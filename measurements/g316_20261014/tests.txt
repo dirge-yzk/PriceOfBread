@@ -1,0 +1,13 @@
+# (316) フルスイート（Category!=FullLength・Release・隔離ビルド）
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:  1138、スキップ:     0、合計:  1138、期間: 6 m 27 s - PriceOfBread.Tests.dll (net10.0)
+
+# FullLength
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 13 s - PriceOfBread.Tests.dll (net10.0)
+
+# 番人の直し（④の同語反復）の後のフルスイート（Category!=FullLength）
+
+成功!   -失敗:     0、合格:  1138、スキップ:     0、合計:  1138、期間: 6 m 17 s - PriceOfBread.Tests.dll (net10.0)

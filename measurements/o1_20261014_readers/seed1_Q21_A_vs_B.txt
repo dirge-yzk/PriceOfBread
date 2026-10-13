@@ -1,0 +1,32 @@
+== A
+52 onGold 1 conv 0.85 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.289 i/gdp nan debt 721888.0 rate 0.028 treas 16774.0
+53 onGold 1 conv 0.85 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.274 i/gdp nan debt 721286.0 rate 0.028 treas 16804.0
+54 onGold 1 conv 0.85 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.272 i/gdp nan debt 720685.0 rate 0.028 treas 16494.0
+55 onGold 1 conv 0.858 gate 1 gdpOnly 0 short 2485.0 bor 2485.0 full r 1.0 i/rev 0.284 i/gdp nan debt 723170.0 rate 0.028 treas 5185.0
+56 onGold 1 conv 0.858 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.283 i/gdp nan debt 722567.0 rate 0.028 treas 7395.0
+57 onGold 1 conv 0.858 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.284 i/gdp nan debt 722488.0 rate 0.028 treas 6514.0
+58 onGold 1 conv 0.865 gate 1 gdpOnly 0 short 1471.0 bor 1471.0 full r 1.0 i/rev 0.277 i/gdp nan debt 723959.0 rate 0.028 treas 6465.0
+59 onGold 1 conv 0.865 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.26 i/gdp nan debt 723355.0 rate 0.028 treas 8528.0
+60 onGold 1 conv 0.865 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.261 i/gdp nan debt 722753.0 rate 0.028 treas 8152.0
+61 onGold 1 conv 0.871 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.264 i/gdp nan debt 722150.0 rate 0.032 treas 7196.0
+62 onGold 1 conv 0.871 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.346 i/gdp nan debt 721548.0 rate 0.032 treas 6066.0
+63 onGold 1 conv 0.871 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.351 i/gdp nan debt 721368.0 rate 0.031 treas 5372.0
+64 onGold 1 conv 0.878 gate 1 gdpOnly 0 short 2712.0 bor 2712.0 full r 1.0 i/rev 0.378 i/gdp nan debt 724080.0 rate 0.033 treas 3200.0
+65 onGold 1 conv 0.878 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.22 i/gdp nan debt 723476.0 rate 0.033 treas 10825.0
+66 onGold 1 conv 0.878 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.261 i/gdp nan debt 722874.0 rate 0.033 treas 10578.0
+== B
+52 onGold 1 conv 0.85 gate 1 gdpOnly 1 short 10800.0 bor 6263.0 ticket r 1.0 i/rev 0.729 i/gdp 0.0476 debt 757154.0 rate 0.033 treas -8541.0
+53 onGold 1 conv 0.85 gate 1 gdpOnly 1 short 4611.0 bor 4611.0 full r 1.0 i/rev 0.677 i/gdp 0.0478 debt 761765.0 rate 0.029 treas -2399.0
+54 onGold 1 conv 0.85 gate 1 gdpOnly 0 short 656.0 bor 656.0 full r 1.0 i/rev 0.645 i/gdp 0.047 debt 762422.0 rate 0.029 treas 1481.0
+55 onGold 1 conv 0.858 gate 1 gdpOnly 1 short 1546.0 bor 1546.0 full r 1.0 i/rev 0.717 i/gdp 0.048 debt 763968.0 rate 0.029 treas 1073.0
+56 onGold 1 conv 0.858 gate 1 gdpOnly 1 short 547.0 bor 547.0 full r 1.0 i/rev 0.684 i/gdp 0.0485 debt 764515.0 rate 0.029 treas 1760.0
+57 onGold 1 conv 0.858 gate 1 gdpOnly 1 short 1088.0 bor 1088.0 full r 1.0 i/rev 0.704 i/gdp 0.0475 debt 765603.0 rate 0.029 treas 1201.0
+58 onGold 1 conv 0.865 gate 1 gdpOnly 0 short 1263.0 bor 1263.0 full r 1.0 i/rev 0.664 i/gdp 0.0609 debt 766866.0 rate 0.033 treas 1476.0
+59 onGold 1 conv 0.865 gate 0 gdpOnly 0 short 1527.0 bor 0.0 gateClosed r 0.78 i/rev 0.852 i/gdp 0.0638 debt 767512.0 rate 0.035 treas 1013.0
+60 onGold 1 conv 0.865 gate 0 gdpOnly 0 short 1437.0 bor 0.0 gateClosed r 0.798 i/rev 0.8 i/gdp 0.0668 debt 768104.0 rate 0.035 treas 1052.0
+61 onGold 0 conv 0.871 gate 0 gdpOnly 0 short 3532.0 bor 0.0 gateClosed r 0.637 i/rev 0.933 i/gdp 0.0628 debt 770193.0 rate 0.046 treas -1024.0
+62 onGold 0 conv 0.871 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.318 i/gdp 0.0619 debt 769551.0 rate 0.042 treas 6009.0
+63 onGold 0 conv 0.871 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.381 i/gdp 0.0601 debt 768910.0 rate 0.042 treas 5819.0
+64 onGold 0 conv 0.575 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.33 i/gdp 0.0589 debt 768269.0 rate 0.049 treas 7155.0
+65 onGold 0 conv 0.575 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.318 i/gdp 0.0517 debt 767629.0 rate 0.05 treas 7567.0
+66 onGold 0 conv 0.575 gate 1 gdpOnly 0 short nan bor 0.0 noShortfall r 1.0 i/rev 0.317 i/gdp 0.0529 debt 766989.0 rate 0.05 treas 8114.0

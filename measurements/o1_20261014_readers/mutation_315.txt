@@ -1,0 +1,22 @@
+M1 第2条件を常に偽: exit=1   失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [17 s] / 失敗!   -失敗:     3、合格:     0、スキップ:     0、合計:     3、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.FiscalTests.借入の門が第2条件で開いていても不履行の計数は歳入の比のまま積もる [4 s]
+    失敗 PriceOfBread.Tests.FiscalTests.借入の門の第2条件は月の名目GDPに対する利払いの比が限界の未満なら歳入の門が閉じていても開く [48 ms]
+    失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [17 s]
+    復元 md5 一致: True
+M2 未満を以下にする: exit=1   失敗 PriceOfBread.Tests.FiscalTests.借入の門の第2条件は月の名目GDPに対する利払いの比が限界の未満なら歳入の門が閉じていても開く [61 ms] / 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.FiscalTests.借入の門の第2条件は月の名目GDPに対する利払いの比が限界の未満なら歳入の門が閉じていても開く [61 ms]
+    復元 md5 一致: True
+M3 OR を AND にする: exit=1   失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [16 s] / 失敗!   -失敗:     3、合格:     0、スキップ:     0、合計:     3、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.FiscalTests.借入の門が第2条件で開いていても不履行の計数は歳入の比のまま積もる [7 s]
+    失敗 PriceOfBread.Tests.FiscalTests.借入の門の第2条件は月の名目GDPに対する利払いの比が限界の未満なら歳入の門が閉じていても開く [87 ms]
+    失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [16 s]
+    復元 md5 一致: True
+M4 計数の門を借入の門と揃える: exit=1   失敗 PriceOfBread.Tests.FiscalTests.借入の門が第2条件で開いていても不履行の計数は歳入の比のまま積もる [5 s] / 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 30 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.FiscalTests.借入の門が第2条件で開いていても不履行の計数は歳入の比のまま積もる [5 s]
+    復元 md5 一致: True
+M5 計器の旗を常に0: exit=1   失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [12 s] / 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [12 s]
+    復元 md5 一致: True
+M6 計器の月数を二重に数える: exit=1   失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [7 s] / 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.InstrumentsTests.借入の門を第2条件だけで開けた月の列が月ごとの生の列から組み直した数に合う [7 s]
+    復元 md5 一致: True
