@@ -824,7 +824,7 @@ public sealed class Diplomacy
     {
         foreach (var p in Powers)
         {
-            if (p.Nation is not { } nw) { p.NavalShare = new Share(c.AbstractNavalShare); continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
+            if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
             p.GdpPerMonth = new RealGdpPerMonth(SyncGdp(p, nw));   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
             // 軍隊規模＝兵士POP数（軍事費が徴募）。即応度（兵士の充足）が乗数＝給与/補給が切れた軍は大幅に弱い。
             // 扶養限界＝大軍は給与（民間賃金×兵数）を要し、払えなければ充足が落ち戦力が下がる（経済が要る）。治安維持力（警察）とは分離。
@@ -863,23 +863,23 @@ public sealed class Diplomacy
                 p.NavalFuelMul = floor + (1.0 - floor) * ff;
             }
             // 艦隊摩耗（07_再設計 §6-1・A6裁定「する」・2026-07-31）：交戦中は、自分が展開している海盆で敵艦隊と接触するほど艦が沈む。
-            // ★(189) 摩耗は**艦の在庫**（Region.FleetUnits）を沈める＝財ごとに同じ割合（その月に沈む割合＝NavalAttritionRate×接触の濃さ）・床を置かない（思想⑧）。
+            // ★(189) 摩耗は**艦の在庫**（Region.FleetUnits）を沈める＝財ごとに同じ割合（その月に沈む割合＝NavalAttritionRatePerMonth×接触の濃さ）・床を置かない（思想⑧）。
             //   建艦（海軍の調達＝目標の艦隊と在庫の差を海軍の予算の中で買う）で年単位でしか戻らない＝トラファルガー後の制海権固定が出る。払えない国は再建できない（負けた側は沈んだまま）。
             //   旧＝海軍シェア（持続量）を削り床 NavalShareMin 0.05・沈んだぶんを軍艦財の追加需要（NavalRepairUnits）へ＝海軍シェアが 0.05 以下の国（清など）は艦が沈まなかった。
-            if (c.NavalAttritionRate > 0 && p._fleetDriven && p.FleetGauge > 0)
+            if (c.NavalAttritionRatePerMonth.Value > 0 && p._fleetDriven && p.FleetGauge > 0)
             {
                 double hostile = 0; var hos = BasinHostility(p);
                 for (int b = 0; b < hos.Length; b++) hostile += hos[b] * p.BasinPresence[b];   // 自分が居る海盆での敵支配度＝接触の濃さ
                 if (hostile > 1e-9)
                 {
-                    double frac = c.NavalAttritionRate * hostile;   // その月に沈む艦の割合
+                    double frac = c.NavalAttritionRatePerMonth.Value * hostile;   // その月に沈む艦の割合
                     if (frac > 1) frac = 1;
                     foreach (var rr in nw.Regions)
                         if (rr.State == RegionState.Active && rr.FleetUnits is { } fu)
                             for (int k = 0; k < fu.Length; k++) fu[k] *= 1.0 - frac;
                     // ★新兵器の必要性の海の損耗（2026-10-01 (153)・設計 §1A-4 (4a)）＝今月に沈んだ艦の割合÷艦隊摩耗の月の上限の割合
-                    //   （NavalAttritionRate＝全艦が敵の支配1の海盆に居る月）＝0〜1（陸と空は戦死の WarCasualties・単位は同じ「総力戦の月の上限を1とした割合」）。記帳だけ（摩耗の量は変えない）。
-                    double seaLoss = frac / c.NavalAttritionRate;
+                    //   （NavalAttritionRatePerMonth＝全艦が敵の支配1の海盆に居る月）＝0〜1（陸と空は戦死の WarCasualties・単位は同じ「総力戦の月の上限を1とした割合」）。記帳だけ（摩耗の量は変えない）。
+                    double seaLoss = frac / c.NavalAttritionRatePerMonth.Value;
                     if (seaLoss > 0) (nw.DiscoveryLossQ ??= new double[Discovery.LossDomains])[(int)WarDomain.Sea] += seaLoss;   // 否定形＝NaN と0は積まない
                     SyncFleet(p, nw, c, denom, soldiersNow);   // 沈んだ艦は今月の海軍力から（旧＝海軍シェアを削った月から）
                 }
@@ -2481,7 +2481,7 @@ public sealed class Diplomacy
                 double pop = mobW.TotalPopulation;
                 double share = pop > 1e-9 ? mobW.SoldierSizeK() / pop : 0;   // 兵士の数÷人口（B11）
                 if (!(share >= 0)) share = 0;
-                exBase = c.WarExhaustionRate * share / (c.MobilizationConscriptFrac * Military.WorkingMenStdShare);
+                exBase = c.WarExhaustionRate * share / (c.MobilizationConscriptFrac.Value * Military.WorkingMenStdShare);
             }
             p.WarExhaustion = Math.Min(1, p.WarExhaustion + exBase + econEx + blockade + fiscal + airRaid + chem);   // 厭戦も1回
             // 説明API（#63）：厭戦の内訳＝前期＋基礎（動員の負担・(170)）＋経済悪化＋封鎖＋財政＋空襲＋化学兵器−上限クランプ。Explain=nullでゼロコスト（player国のみ非null）。
@@ -2735,7 +2735,7 @@ public sealed class Diplomacy
         // 将校貴族の戦死（B-1）：戦死の一部は士官＝伝統支配層（貴族）にも及ぶ＝WarFeverを煽る貴族も血を流す。少数なので小さく、貴族の5%/月を上限。
         double offCasTotal = 0;
         if (nobPop > 1e-9)
-            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap), violent: true, OfficerAgeWeights);   // ★年齢の層（段4e 後半）：将校＝男20〜49歳から（旧＝閉鎖階級の女性と子供も比例で死んだ）
+            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare.Value * cas, nobPop * OfficerCasualtyPopCap), violent: true, OfficerAgeWeights);   // ★年齢の層（段4e 後半）：将校＝男20〜49歳から（旧＝閉鎖階級の女性と子供も比例で死んだ）
         double weBefore = p.WarExhaustion, casTerm = c.WarExhaustionCasualty * (cas / soldierPop);
         p.WarExhaustion = Math.Min(1, p.WarExhaustion + casTerm);   // 戦死率に比例して厭戦↑
         if (p.Nation?.Explain is { } exc)   // 説明API：戦死の衝撃を厭戦内訳へ追記（Resetは StepWars の主サイトのみ）

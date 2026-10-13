@@ -597,7 +597,7 @@ public sealed class Simulation
             //   月数は史実の兵器庫の桁（Coefficients.InitialArsenalMonths の注記）。国名を読まない＝人口（母数）に比例する。
             double manpower = 0;
             foreach (var r in regions) manpower += Military.RegionManpower(r, coef);
-            double natSoldiers = coef.MaxSoldierFraction * manpower;
+            double natSoldiers = coef.MaxSoldierFraction.Value * manpower;
             var capReg = regions[0];
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             {
@@ -886,7 +886,7 @@ public sealed class Simulation
         var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(),
             Literacy = pw > 1e-9 ? (peasant.Literacy * peasant.Size + worker.Literacy * worker.Size) / pw : 0.3 };
         double pwMen = Military.RecruitMen(peasant) + Military.RecruitMen(worker);   // ★(145) 兵役の母数の単位（働き盛りの男）
-        double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction * pwMen;
+        double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction.Value * pwMen;
         if (pw > 1e-9)
         {
             Military.MoveCohort(peasant, soldier, draft * peasant.Size / pw, coef);   // ★2026-09-26：手元の coef を渡す（旧＝3引数版が既定の係数を新しく作っていた・sweep-23）

@@ -112,7 +112,7 @@ public partial class GameViewModel
             if (!(soldiers > 0)) return "—";
             // Military.Step の目標兵数と同一式（母数＝農民＋都市労働者＋現役の兵士）。★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ（Military.cs:187 と同じ述語）
             //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限1.0倍（表示だけが別式になるのを避ける）。
-            double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac * gate * lawFrac * manpower : 0;
+            double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac.Value * gate * lawFrac * manpower : 0;
             return $"{Math.Max(1.0, target / soldiers):F1}倍";   // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝下限1.0倍
         }
     }

@@ -1433,7 +1433,7 @@ public sealed class Coefficients
     public double OilNeedsMachinery = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-19 原油の機械投入＝batch10 硬性ゲート緑（列強再現16.3/清30%）・作者指示「石油は採掘機をサプライチェーンに加えて解決」 */          // 原油の採掘に機械（掘削機＝機械53）の投入を要求し、技術水準0.6の閾値（DefaultRecipeOnset）を外す（作者指示9/4「石油は採掘機をサプライチェーンに加えて解決」）。0＝従来＝恒等
     public double OilMachineryInput = 0.05;         //   原油1単位あたりの機械投入（RefPrice 4.39×0.05≈+0.22＝原油0.54→0.76）
     public double ArmsStockEnabled = 1.0;
-    public double ArmsWearRate = 0.02;            // 平時の月次摩耗率（定常で 目標×これ ＝ 現行の平時フローに一致するよう逆算）
+    public RatePerMonth ArmsWearRatePerMonth = new(0.02);            // 平時の月次摩耗率（定常で 目標×これ ＝ 現行の平時フローに一致するよう逆算）
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
     // 【墓標2026-09-26（棚卸し mil-21・dorm-36）】MilitaryProcureProRata（軍需の4段を一律比例で削る器・休眠0）＝2026-08-13 実測で差し戻し（破綻1/10）＝削除
     // 直下 TrenchDefenseWeight の注記：
@@ -1459,7 +1459,7 @@ public sealed class Coefficients
     public double SeaInvasionControlMin = 0.65;
     public double WarDeclareTension = 140.0;      // **2026-07-25採用（C-高6の次段＝下げ戻し）**：exact38/near71/◎20・人口一致30%（ともに梯子最高）。屈服経路（AISubmitMilRatio=3.0）の開通で一方的な組合せは戦わずに折れる＝旧140へ戻し互角の対立だけが戦争へ（160は屈服なし時代の戦争過多対策だった）。緊張上限200
     // 1934拡張 #106（外交・戦争UI）。総動員（World.Mobilized）の書き手＝プレイヤーの戦争タブと SelfPlay.DecideQuarter の AI 分岐（2026-09-20 に段の点火で常時 live）
-    public double MobilizationConscriptFrac = 0.22;   // 総動員ONでの戦時徴兵の深さ（levée en masse＝働き盛りの男の22%まで兵士化＝人口の約6%〔1794 の仏 約4%・1813 の普 約6%〕・平時上限0.04/通常戦時0.12を超える。(145) で母数を働き盛りの男へ＝旧＝大衆の22%）。既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）。★M1（作者裁定2026-09-19）：効くのは徴兵法≥選抜の国だけ＝総動員は既存の徴兵を深めるのであって志願兵制を迂回しない
+    public Share MobilizationConscriptFrac = new(0.22);   // 総動員ONでの戦時徴兵の深さ（levée en masse＝働き盛りの男の22%まで兵士化＝人口の約6%〔1794 の仏 約4%・1813 の普 約6%〕・平時上限0.04/通常戦時0.12を超える。(145) で母数を働き盛りの男へ＝旧＝大衆の22%）。既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）。★M1（作者裁定2026-09-19）：効くのは徴兵法≥選抜の国だけ＝総動員は既存の徴兵を深めるのであって志願兵制を迂回しない
     public double ConcedeTensionTarget = 110.0;   // 最後通牒で「要求を受け入れる」＝緊張をこの値へ下げて開戦を回避（WarDeclareTension=140未満）
     public double TensionPopupThreshold = 70.0;   // 緊張ポップアップを出す内部緊張の閾値（同ランク列強と）＝**宣戦閾値の半分**（WarDeclareTension=140）。プレイヤーUIのみ＝自己対戦/較正に無影響
     // ★2026-08-02に 100→70（作者指摘「もっと早く通知してもよい」）。100は表示のクランプ上限と同値だったので
@@ -1696,7 +1696,7 @@ public sealed class Coefficients
     //   ★2026-09-27 回2-1b：据え置き。Rate 0.002 で上限に張り付く月は 0.0%（seed1/2/3）＝錨には効いていない（上限が効き始める Rate の p10 は 0.08〜0.09）。
     //   ★2026-10-02 (156)：兵の頭数の単位で読む値（人口の頭数に依らない＝兵1人あたり）＝(145) の読み替えの外のまま。戦死の率を兵の単位へ読み替えた後（0.0072）も張り付く月は 0.0%（探索の腕 B の5種・全ての年代）。
     public double WarCasualtyMonthlyCap = 0.04;
-    public double OfficerCasualtyShare = 0.06;    // B-1：戦死の一部が士官＝伝統支配層(貴族)にも及ぶ割合＝WarFeverを煽る貴族も血を流す（士官は少数なので小・上限は貴族の5%/月）
+    public Share OfficerCasualtyShare = new(0.06);    // B-1：戦死の一部が士官＝伝統支配層(貴族)にも及ぶ割合＝WarFeverを煽る貴族も血を流す（士官は少数なので小・上限は貴族の5%/月）
 
     // === 改修2026-06-28：国家ランク・通商破壊・技術優位・外交アクション（ユーザー指示） ===
     // 国家ランク（列強/中堅/弱小）＝NationalScore の相対閾値で四半期ごとに動的分類（数に限りなし・ランク変化でも同盟/戦争は継続）。
@@ -2161,7 +2161,7 @@ public sealed class Coefficients
     //     「何年も買えない国」は消していない（アメリカの軍事力0が残る＝軍需産業の不在と貿易の消滅が原因）。次の根はそちら。
     public double BaseArmsStockEnabled = 1.0;
     // 月次摩耗率（MilitaryGoods と同じ並び＝小銃・弾薬・火砲・軍艦・汽船・馬・自動車）。
-    // ★1.0＝消耗品＝従来のフロー経路。1未満＝耐久品＝在庫を持つ（上位段の ArmsWearRate と同じ0.02）。
+    // ★1.0＝消耗品＝従来のフロー経路。1未満＝耐久品＝在庫を持つ（上位段の ArmsWearRatePerMonth と同じ0.02）。
     // ⚠**新しい分類表を作らない**＝「耐久か消耗か」は摩耗の速さという物理そのもので表す（1.0で従来経路に退化する）。
     public double[] MilitaryWearRatesPerMonth = [0.02, 1.0, 0.02, 0.02, 0.02, 1.0, 0.02];
     public double MilitaryUpkeepScale = 0.18 / Military.WorkingMenStdShare;                 // 兵士1人あたりの平時軍需消費スケール（0.12→0.18＝戦争が減っても常備軍の調達で火薬/鉛/帆船の連鎖を維持＝死蔵防止）（(145) 兵の単位の読み替え＝旧値 0.18÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）＝軍需の総量は旧のまま・兵1人の装備は約3.6倍＝兵1人の費用が史実〔1人あたり年GDP の約3倍〕へ近づく
@@ -2258,7 +2258,7 @@ public sealed class Coefficients
     // 【削除2026-10-03 (189)】NavalBuildRate 0.3（海軍シェアの目標値への月次EMA＝建艦の時間遅れ）＝海軍シェア（Power.NavalShare）は兵士のうち艦に乗る割合（乗員÷兵士）を毎月導く量になった。
     //   建艦の時間遅れは艦の在庫そのもの（買えた分だけ積む・市場の配給と予算で律速）が担う＝同じ物理を2度持たない（設計書 §3-2）。
     // 艦隊摩耗（07_再設計 §6-1・A6裁定・2026-07-31点火）：交戦中に敵と接触した艦隊が沈み、建艦でしか戻らない＝トラファルガー後の制海権固定。
-    public double NavalAttritionRate = 0.05;      // 月次の摩耗率＝これ×(自分の展開海盆での敵支配度)＝その月に沈む艦の割合（★(189) 艦の在庫を財ごとに同じ割合で沈める・旧＝海軍シェアを削り床 NavalShareMin）
+    public RatePerMonth NavalAttritionRatePerMonth = new(0.05);      // 月次の摩耗率＝これ×(自分の展開海盆での敵支配度)＝その月に沈む艦の割合（★(189) 艦の在庫を財ごとに同じ割合で沈める・旧＝海軍シェアを削り床 NavalShareMin）
     // 【削除2026-10-03 (189)】NavalRepairPerLoss 1.0（沈没ぶんを軍艦財の追加需要へ）＝海軍の調達が目標の艦隊と在庫の差を埋める＝沈んだ分は自分で発注される（同じ需要を2度立てない）。
     // ★★艦の在庫（2026-08-01・作者裁定「陸軍は兵士ありき、海軍は戦艦ありき。海軍の強さが海兵の数から決まるのはナンセンス」）。
     // ⚠実測（1914断面・上陸ゲート点火後）の海軍力順位＝1位 福州王国／2位 長沙王国／3位 清／…／**イギリスは8位圏外**。
@@ -2321,7 +2321,7 @@ public sealed class Coefficients
     //   （Q200 228029／Q350 54429／Q524 29452）、2倍の許容を大きく超えた。換算分母は現行の調達式から導出する
     //   ＝EconomyStep.FleetGaugeDenominator（SoldiersPerMilitary × MilitaryUpkeepScale × Σ(rate×RefPrice) ÷ Spoilage）。★(189) 単位の換算として残す（艦の強さのゲージ＝建造費×段の乗数の和÷これ・開幕の艦隊の播種）
     public int WarshipGoodId = Catalog.WarshipId;                // 軍艦（★(189) 1隻の乗員の物差し＝帆船の戦列艦〔EconomyStep.FleetCrewPerHull〕。旧＝修理需要の宛先〔撤去〕）
-    public double AbstractNavalShare = 0.10;      // 抽象標的（被植民地勢力）の海軍シェア＝弱小（陸の守りが主）
+    public Share AbstractNavalShare = new(0.10);      // 抽象標的（被植民地勢力）の海軍シェア＝弱小（陸の守りが主）
     public double DistanceWarDecay = 1.0;         // 戦力投射の距離減衰（1あたり1万km）。遠い戦線ほど押し合いが鈍る＝クリミア/ボーア型の兵站難
     // 倍率排除：旧 SuezDetourKm（投射の一律ケープ迂回加算）は撤去。投射距離も Geo.SeaDistanceKm が喜望峰/スエズ/パナマ経由で表現する。
     public double HomeDefenseBonus = 1.25;        // 本土防衛の地の利（抽象標的＝自領で戦う側は投射せず守りに専念）
@@ -2461,7 +2461,7 @@ public sealed class Coefficients
     //   値＝旧の値÷段の既定（0.175÷0.25）＝段の既定（0.25）で旧と同じ額＝段を上げれば払える予算が比例して増える（推奨で進めた・新しい数ではなく単位の読み替え）。
     //   段の4つ（0.25・0.5・0.75・1.0）＝使える歳入の 17.5%・35%・52.5%・70%（史実の平時の軍事費÷中央の歳出 30〜50%【推】＝段2〜3）。
     //   ★(175)：戦時段（交戦中かつ総動員中・施行が段3 を超えた分）はこれに加えて借入の1件の額（BorrowFractionOfGdp×月次の名目GDP・借入の門が開いているとき）を器に足す＝戦時国債（Military.EnvelopeAt）。
-    public double MilitaryEnvelopeShare = 0.7;
+    public Share MilitaryEnvelopeShare = new(0.7);
     // 【削除2026-10-02 (155)】軍拡の倍率 ArmsRaceHigh（1.2）・ArmsRaceLow（0.8）・ArmsRaceTensionFloor（30）＝平時の目標に近隣のライバルの扶養限界÷自国を [0.8, 1.2] で掛けた
     //   （作者設計 2026-08-08）＝脅威の入口を軍事費の段の1つにする（作者 2026-10-01 に異議なし）ので削除（削減方向）。上下の切りは思想⑧の天井でもあった（(151) の申し送り5）。
     // ── 露普歳入是正（wf_f219b706・2026-08-08 調査確定）：普＝潤沢減税の床0.25に開幕から131年ロック（国庫ストックを支出へ
@@ -2493,13 +2493,13 @@ public sealed class Coefficients
     // 目標設定が誤りだった＝**初期軍13031は一度も維持されたことがない値**で、経済が較正されているのは現在の均衡8069の方。
     // 0.10 は世界総量 8069→9205（**+14%**）に収まる値。普61→115・蘭19→58が持ち上がり、清3845は不変（人頭が勝つ）。
     // ※英は人頭150が財政を上回るためこの水準では不変。英に効き始めるのは k≥0.13（世界総量+26%）＝経済が耐えるかを段階的に測る。
-    public double MaxSoldierFraction = 0.04;               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合（定員〔Military.EstablishmentOf・(155)〕の人口の側＝徴兵法の割当て＝人口の約1.1%〔普1786 約3.6%・英仏 0.5〜1%〕。人口大国ほど大軍を持てる＝国力）。(145) で母数を働き盛りの男へ（旧＝大衆の割合＝人口の約3.4%）
+    public Share MaxSoldierFraction = new(0.04);               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合（定員〔Military.EstablishmentOf・(155)〕の人口の側＝徴兵法の割当て＝人口の約1.1%〔普1786 約3.6%・英仏 0.5〜1%〕。人口大国ほど大軍を持てる＝国力）。(145) で母数を働き盛りの男へ（旧＝大衆の割合＝人口の約3.4%）
     public double MilitarismStrengthBonus = 1.3;            // 軍の練度：軍事力（戦力評価）の乗数の**満額**＝実効は 1+(これ−1)×軍の練度（識字×組織×勤務年数。★2026-08-18＝法のON/OFFを撤去）。同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×**軍の政治的優位**（軍の圧力×(1−文民制度の弁)∈[0,1]）。★2026-08-18＝法の門を撤去。⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝組織の大きさ・解隊の脅威・人事介入・屈辱が源泉
     public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）。★(140) 請求どおりの賃金で払う（旧＝兵力の市場の値＝参照価格の門で押さえられ請求の7〜80%）。★(161) 徴兵制（選抜・皆兵）の兵卒は徴兵の兵の手当＝同じ所得を頭数で割る（RecruitWage の keep＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い・標準の構成で働き盛り1人あたりの約0.55）＝徴兵は兵1人を安くする（AI が作者に返した設計・作者の承認は未確認＝推奨で進めた）・★(163) 手当÷規定＝頭数÷働き盛り＝年齢の構成で約0.50〜0.61 と動く（子供が多い国ほど徴兵の兵は安い）
     public RatePerMonth SoldierMigrationRatePerMonth = new(0.08);             // 平時の徴募/離職速度（月次）。★(155) 読み手＝徴兵制の国の平時の強制の徴募（定員の州按分へ寄せる・Military.Step）と、平時に定員を超えた兵を民間の職へ戻す速さ（Meritocracy の ⑦＝四半期の値 1−(1−これ)^3）。旧＝扶養限界の目標への漸進（徴募と離職の両方・月次）
-    public double ConscriptionFraction = 0.12;            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポレオン戦争の頂点 4〜6% の桁・行き過ぎは経済に打撃）。(145) で母数を働き盛りの男へ（旧＝大衆の割合）
-    public double ConscriptionRate = 0.15;               // 戦時の動員速度（平時より速い）
+    public Share ConscriptionFraction = new(0.12);            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポレオン戦争の頂点 4〜6% の桁・行き過ぎは経済に打撃）。(145) で母数を働き盛りの男へ（旧＝大衆の割合）
+    public RatePerMonth ConscriptionRatePerMonth = new(0.15);               // 戦時の動員速度（平時より速い）
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
     public double ForceUnlockRate = 0.10;          // 武力解錠時のインフラ進捗（開発の約10倍速）
@@ -2713,7 +2713,7 @@ public sealed class Coefficients
     public double CanalTollTrafficRate = 0.02;   // 外6：取扱高あたり通行料率（通航トン数課金の実効レート。旧CanalTollRate/CanalTollByTraffic/CanalTollByRouteは02断線走査2026-07-28のルート判定一本化で削除済み＝この係数が唯一の実効レバー。#17較正）
     public double CanalInvestReturns = 0.5;   // 外7：運河建設拠出国へ通行料を持分比で配当する割合(0..1)＋交戦中の拠出停止。0=現行の全額扼者・無条件拠出（恒等）
     public double ConscriptionScalesWithWar = 1.0;   // 外12：戦時徴兵率を戦争規模でスケール。0=現行の一律ConscriptionFraction（恒等）
-    public double ConscriptionFloorFraction = 0.02;   // 外12：限定戦争の徴兵下限（depth=0の徴兵率＝働き盛りの男の割合・(145)。ConscriptionScalesWithWar>0でのみ使用。#17較正）
+    public Share ConscriptionFloorFraction = new(0.02);   // 外12：限定戦争の徴兵下限（depth=0の徴兵率＝働き盛りの男の割合・(145)。ConscriptionScalesWithWar>0でのみ使用。#17較正）
     public double ConscriptionExhaustionWeight = 1.0;   // 外12：厭戦(WarExhaustion)→動員深度の重み（同上）
     public double ConscriptionFrontStep = 0.34;   // 外12：追加戦線1本あたりの動員深度増分（単一戦線=0で恒等。同上）
     public double ConscriptionEnemyRatioWeight = 1.0;   // 外12：敵陸軍優勢(比>1)→動員深度の重み（同上）

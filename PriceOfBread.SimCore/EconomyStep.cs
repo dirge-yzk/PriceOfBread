@@ -317,13 +317,13 @@ public static class EconomyStep
     /// 戦時は摩耗が (warMult−1)×ArmsWarWearScale だけ増す（その州の戦時倍率＝国軍も運動も同じ州の同じ値）。1期で全損はしない＝上限0.9。
     /// ★基本段・上位段・tier3 が**同じ1本**（2026-09-29 処理の一元化 段3 F）＝旧は上位段と tier3 が別の写し（未初期化を0・目標に陸海の再配分なし・
     ///   充足＝Σmin(在庫,目標)÷Σ目標）だった。摩耗率は段の表が持つ＝基本段は財ごとの表（<see cref="Coefficients.MilitaryWearRatesPerMonth"/>・消耗品1.0＝フロー）、
-    ///   上位段と tier3 は全て耐久品で一律（<see cref="Coefficients.ArmsWearRate"/>）。</summary>
+    ///   上位段と tier3 は全て耐久品で一律（<see cref="Coefficients.ArmsWearRatePerMonth"/>）。</summary>
     private static double ArmsFillContribution(Region region, Coefficients coef, int[] goods, int b, double want, double got, double rate, double scalePeace, double milMul, Dictionary<int, double>? stock, bool opening)
     {
         int gid = goods[b];
         double wear = stock is null ? 1.0
             : ReferenceEquals(goods, coef.MilitaryGoods) ? (b < coef.MilitaryWearRatesPerMonth.Length ? coef.MilitaryWearRatesPerMonth[b] : 1.0)
-            : coef.ArmsWearRate;
+            : coef.ArmsWearRatePerMonth.Value;
         if (stock is null || !(wear < 1.0)) return got;
         double target = BaseArmsTarget(scalePeace, rate, wear, milMul);
         double a = ArmsHeld(stock, gid, target, opening);
@@ -367,7 +367,7 @@ public static class EconomyStep
     private static double TierQty(Region region, Coefficients coef, int gid, double rate, bool stock, double mul)
     {
         if (!stock) return region.MilitaryScale * rate * mul;
-        double target = BaseArmsTarget(region.MilitaryScalePeace, rate, coef.ArmsWearRate, mul);
+        double target = BaseArmsTarget(region.MilitaryScalePeace, rate, coef.ArmsWearRatePerMonth.Value, mul);
         double have = region.ArmsStock is { } held ? ArmsHeld(held, gid, target, false) : target;   // 武器庫が一度も開いていない＝開幕の軍（ArmsHeld）
         return Math.Max(0, target - have);
     }

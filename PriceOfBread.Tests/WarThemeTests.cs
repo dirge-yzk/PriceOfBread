@@ -23,7 +23,7 @@ public class WarThemeTests
         //   旧 NavalEmphasisWeight（海軍シェアへの政策傾斜）は係数ごと撤去＝海軍シェアの入力は払った金の比だけ。
         //   ★(151)：旧式（地理の比）へ戻す旗 NavalShareFromUpkeep は読み手ごと削除＝常に払った金の比（下の「海軍シェアは払った金の比だけから決まる」が見る）。
         // 07_再設計 第3弾3a（2026-07-31・点火）の建艦の時間遅れ（NavalBuildRate＝海軍シェアの EMA）は (189) で削除＝建艦の遅れは艦の在庫そのもの（買えた分だけ積む）。
-        Assert.Equal(0.05, c.NavalAttritionRate);    // 同3b：艦隊摩耗（A6裁定）＝沈んだ艦は建艦でしか戻らない（(189) 艦の在庫を沈める）
+        Assert.Equal(0.05, c.NavalAttritionRatePerMonth.Value);    // 同3b：艦隊摩耗（A6裁定）＝沈んだ艦は建艦でしか戻らない（(189) 艦の在庫を沈める）
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public class WarThemeTests
         var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef;
         double Share(World w) => w.SoldierSizeK() / w.TotalPopulation;
-        double sFr = Share(fr), sBr = Share(br), full = c.MobilizationConscriptFrac * Military.WorkingMenStdShare;
+        double sFr = Share(fr), sBr = Share(br), full = c.MobilizationConscriptFrac.Value * Military.WorkingMenStdShare;
         Assert.True(sFr > 0 && sBr > 0 && sFr != sBr, $"前提が崩れた：両国の兵士の割合（仏 {sFr:G6}・英 {sBr:G6}）");
         Assert.True(sFr < full && sBr < full, $"前提が崩れた：割合が総動員の上限以上＝旧の値と見分けられない（仏 {sFr:G6}・英 {sBr:G6}）");
         fr.Explain = new ExplainLedger(); br.Explain = new ExplainLedger();
@@ -383,7 +383,7 @@ public class WarThemeTests
     // ===== ★新兵器の必要性の損耗の記帳（2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）=====
     // ⚠機構だけを見る：戦死（WarCasualties）はその月の兵の損耗の割合（戦死÷兵士）÷総力戦の月の上限（WarCasualtyMonthlyCap）を陸と空へ分けて
     //   World.DiscoveryLossQ に積む（空＝制空劣勢で増えた分）。単位＝脅威の割合と同じ「最大を1とした割合」＝上限で頭打ちの月はちょうど1。
-    //   艦隊摩耗は沈んだ割合（摩耗÷海軍シェア）÷NavalAttritionRate を海へ積む。読み手（発見の判定）は DiscoveryScoreTests が見る。
+    //   艦隊摩耗は沈んだ割合（摩耗÷海軍シェア）÷NavalAttritionRatePerMonth を海へ積む。読み手（発見の判定）は DiscoveryScoreTests が見る。
     [Fact]
     public void 戦死は損耗の強さを総力戦の上限を1として陸と空に分けて記帳する()
     {
@@ -434,7 +434,7 @@ public class WarThemeTests
         double frac = 1.0 - Hulls(fr) / h0;   // 外交の1か月は艦を買わない・劣化させない（どちらも EconomyStep）＝隻数の減りは摩耗だけ
         Assert.True(frac > 0, $"前提が崩れた：仏の艦隊摩耗が走っていない（隻数 {h0:G6}→{Hulls(fr):G6}）");
         Assert.NotNull(fr.DiscoveryLossQ);
-        double expected = frac / c.NavalAttritionRate;
+        double expected = frac / c.NavalAttritionRatePerMonth.Value;
         Assert.Equal(expected, fr.DiscoveryLossQ![(int)WarDomain.Sea], 9);
         Assert.True(expected > 0 && expected <= 1.0 + 1e-12, $"海の損耗の強さが0〜1の外（{expected:G6}）");
         Assert.True(fr.DiscoveryLossQ[(int)WarDomain.Land] > 0, "前提が崩れた：同じ月の戦死（陸）が積まれていない");

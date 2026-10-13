@@ -76,7 +76,7 @@ public static class Military
     /// 新しい数・新しい状態は無い（段の写像・借入の門・1件の額は既存）。NaN と負は0（否定形）。</summary>
     public static double EnvelopeAt(World w, Coefficients c, double level)
     {
-        double e = level * c.MilitaryEnvelopeShare * Math.Max(0, w.SpendableRevenue());
+        double e = level * c.MilitaryEnvelopeShare.Value * Math.Max(0, w.SpendableRevenue());
         double war = WarStageShare(w, level);
         if (war > 0 && Fiscal.BorrowGateOpen(w, c)) e += war * Fiscal.BorrowTicket(w.NominalGdpPerMonth.Value, c);
         return e > 0 ? e : 0;
@@ -127,7 +127,7 @@ public static class Military
                 if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
                 { poolEarn += Math.Max(0, p.LastEarnedPerMonth.Value); poolSize += keep ? p.Size : WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）・徴兵制は頭数（(161)）
         }
-        double manLimit = c.MaxSoldierFraction * natManpower;
+        double manLimit = c.MaxSoldierFraction.Value * natManpower;
         double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）・徴兵制は頭数あたり＝兵1人を安くする（(161)）
         double equip = 0;
         for (int b = 0; b < c.MilitaryGoods.Length; b++)
@@ -192,7 +192,7 @@ public static class Military
     {
         // 外12：戦時徴兵率を戦争の規模でスケール（一律12%総動員→限定戦争は数%）。⚠**ConscriptionScalesWithWar は 1.0 で点火済み**（旧コメントの「0（既定）」は誤り・2026-08-01訂正）＝戦時徴兵は一律ではない。0 なら mobilizeFrac=ConscriptionFraction＝現行と厳密恒等。
         // 規模の代理＝厭戦(WarExhaustion＝長期戦・経済悪化・戦死の総合)・戦線数（多正面ほど深い動員）・敵陸軍比（劣勢ほど総動員）。軍需側 WarMobilizationDepth と同型の線形段階化。
-        double conscriptFrac = c.ConscriptionFraction;
+        double conscriptFrac = c.ConscriptionFraction.Value;
         if (atWar && c.ConscriptionScalesWithWar > 0 && w.Diplomacy is { } dip && w.SelfPower is { } self)
         {
             int fronts = 0; double enemyLand = 0;
@@ -207,11 +207,11 @@ public static class Military
             double ratioDepth = self.LandPower > 1e-9 ? PoliticalQuantities.Clamp01(enemyLand / self.LandPower - 1.0) : 0;   // 敵優勢(比>1)で深まる。互角以下=0
             double depth = PoliticalQuantities.Clamp01(c.ConscriptionExhaustionWeight * exh + frontDepth + c.ConscriptionEnemyRatioWeight * ratioDepth);   // 段階化の合成（各重み0で depth=0）
             // 下限＝限定戦争の徴兵率、上限＝現行の総動員（ConscriptionFraction）。depth=0（既定or小戦争）で上限に張り付かせず ConscriptionFloorFraction へ、depth=1 で総動員。
-            conscriptFrac = c.ConscriptionFloorFraction + (c.ConscriptionFraction - c.ConscriptionFloorFraction) * depth;
+            conscriptFrac = c.ConscriptionFloorFraction.Value + (c.ConscriptionFraction.Value - c.ConscriptionFloorFraction.Value) * depth;
         }
         // 総動員（#106・プレイヤーの戦時レバー）＝徴兵の深さを levée en masse 水準（MobilizationConscriptFrac）へ引き上げ＝非兵士POPを兵士へ大量変換（下の国民意識ゲートで低NC国は届かない＝1793仏 vs 墺洪）。★M1（作者裁定2026-09-19）：この深さを読むのは下の強制徴募（wartimeConscript＝徴兵法≥選抜）だけ＝総動員は**既にある徴兵を深める**のであって志願兵制の国を徴兵しない（英1916兵役法・米1863/1917徴兵法・南部連合1862＝代議制国家の大量徴兵は必ず立法を通った）。
         // 既定 w.Mobilized=false で不発（AI の書き手は SelfPlay.DecideQuarter の総動員分岐のみ＝2026-09-20 の段の点火で常時 live）。国民意識ゲート(下)の前に上げることで、総動員も低国民意識国では脱走で目減りする。
-        if (atWar && w.Mobilized) conscriptFrac = Math.Max(conscriptFrac, c.MobilizationConscriptFrac);
+        if (atWar && w.Mobilized) conscriptFrac = Math.Max(conscriptFrac, c.MobilizationConscriptFrac.Value);
         // 国民意識ゲート（docs/2026-07-13_国民意識.md）：大規模動員＝nation-in-armsには高い国民意識が要る。低国民意識/多民族帝国は総動員が届かず
         // （脱走・不服従）浅い軍しか立てられない（1793 levée en masse＝革命的国民意識 vs 墺洪1914の限定動員）。外12（戦争規模）で決めた深さを国民意識が上限で抑える。
         // EthnicUnityの軍質(UnityMilitaryQuality＝多民族軍は脆い＝質)とは別＝こちらは動員の深さ(量)。既定 Weight=0 で恒等。
@@ -269,7 +269,7 @@ public static class Military
             // ★3値化2026-08-01：**引ける人数が法で変わる**。選抜＝籤で一部（旧＝1.0＝厳密同値）／皆兵＝適齢男子ぜんぶ＋予備役。
             // ⚠これは「強い軍が持てる」だけの話ではない——引いた人数ぶん労働力が畑と工場から消える＝供給側の穴が開く。
             double lawFrac = w.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0;
-            if (wartimeConscript) { desired = Math.Max(desired, conscriptFrac * lawFrac * manpower); rate = c.ConscriptionRate; }  // 戦時＝徴兵（速く・上限まで）
+            if (wartimeConscript) { desired = Math.Max(desired, conscriptFrac * lawFrac * manpower); rate = c.ConscriptionRatePerMonth.Value; }  // 戦時＝徴兵（速く・上限まで）
             double delta = rate * (desired - soldier.Size);
             if (!(delta > 0)) continue;   // ★減らす枝は無い＝平時の定員超過は転職の仕組みが民間の職へ戻す（Meritocracy の ⑦）・戦時は復員しない（否定形＝NaN も動かさない）
             // ★支配度doc §15（2026-09-06 追記裁定・器2026-09-07）：平時の常備軍の徴募でも、植民地格または在地区分が国家区分を上回る州から引いた分は遺恨を積む
@@ -398,5 +398,5 @@ public static class Military
 
     /// <summary>★平時の上限の人口比（(145)）＝MaxSoldierFraction（働き盛りの男の割合）×標準の構成の働き盛りの男の割合＝「兵÷総人口」で読む正規化の分母
     /// （軍の社会的重み・職業軍の度合い π・軍部の組織性）。旧＝MaxSoldierFraction をそのまま人口比として読んだ（母数が全ての人の頃の単位）。</summary>
-    internal static double PeaceCapShareOfPop(Coefficients c) => c.MaxSoldierFraction * WorkingMenStdShare;
+    internal static double PeaceCapShareOfPop(Coefficients c) => c.MaxSoldierFraction.Value * WorkingMenStdShare;
 }

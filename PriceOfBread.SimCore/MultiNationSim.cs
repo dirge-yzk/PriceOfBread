@@ -1515,7 +1515,7 @@ public sealed class MultiNationSim
             var w = Nations[i].World;
             ps.Add(w.SelfPower!);   // 多国では全ての国が外交上の代表を持つ（ArmyShape.Borders は Nation を持つ Power の並び）
             seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
-            own[i] = w.Coef.MaxSoldierFraction * man;
+            own[i] = w.Coef.MaxSoldierFraction.Value * man;
         }
         var borderHome = new double[n * n];   // ★(178) 両側とも本国の州（Core・Integrated）の国境だけ（対称）
         var border = ArmyShape.Borders(ps, _coef, borderHome);

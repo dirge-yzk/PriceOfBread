@@ -573,7 +573,7 @@ public partial class GameViewModel
             double signalBudget = r.MilitaryBudgetCeiling;   // EconomyStep と同じ＝Budget ≤ Ceiling は Simulation の書き手の単調性で成立（旧 Math.Max(Ceiling, Budget) と同値・2026-09-11 M4）
             double afford = estCost > Eps ? Math.Min(1.0, r.MilitaryAffordRaw) : 0.0;
             // 耐久装備の目標在庫と発注（EconomyStep）
-            double wear = Math.Max(1e-6, c.ArmsWearRate);
+            double wear = Math.Max(1e-6, c.ArmsWearRatePerMonth.Value);
             double warWear = wear * (1.0 + c.ArmsWarWearScale * Math.Max(0, r.MilitaryWarMultLast - 1.0));
             bool stock = c.ArmsStockEnabled > 0;
             double StockTarget(double rate) => r.MilitaryScalePeace * rate / wear;
@@ -803,7 +803,7 @@ public partial class GameViewModel
         var me = Me;
         bool atWar = false;
         foreach (var war in dip.Wars) if (war.A == me || war.B == me) { atWar = true; break; }
-        double conscriptFrac = c.ConscriptionFraction;
+        double conscriptFrac = c.ConscriptionFraction.Value;
         if (atWar && c.ConscriptionScalesWithWar > 0)
         {
             int fronts = 0; double enemyLand = 0;
@@ -816,9 +816,9 @@ public partial class GameViewModel
             double frontDepth = Math.Min(1.0, Math.Max(0, fronts - 1) * c.ConscriptionFrontStep);
             double ratioDepth = me.LandPower > 1e-9 ? Math.Clamp(enemyLand / me.LandPower - 1.0, 0, 1) : 0;
             double depth = Math.Clamp(c.ConscriptionExhaustionWeight * me.WarExhaustion + frontDepth + c.ConscriptionEnemyRatioWeight * ratioDepth, 0, 1);
-            conscriptFrac = c.ConscriptionFloorFraction + (c.ConscriptionFraction - c.ConscriptionFloorFraction) * depth;
+            conscriptFrac = c.ConscriptionFloorFraction.Value + (c.ConscriptionFraction.Value - c.ConscriptionFloorFraction.Value) * depth;
         }
-        if (atWar && _player.Mobilized) conscriptFrac = Math.Max(conscriptFrac, c.MobilizationConscriptFrac);
+        if (atWar && _player.Mobilized) conscriptFrac = Math.Max(conscriptFrac, c.MobilizationConscriptFrac.Value);
         if (c.NationBuildMobilizationWeight > 0)
         {
             double ncGate = c.NationBuildMobilizationWeight * (1.0 - Math.Max(0, _player.NationalConsciousness));

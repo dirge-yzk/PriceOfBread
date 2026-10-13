@@ -21,7 +21,7 @@ public class ArsenalOpeningTests
         double man = 0;
         foreach (var r in w.Regions) man += Military.RegionManpower(r, c);
         int b = System.Array.IndexOf(c.MilitaryGoods, good);
-        double monthly = c.MilitaryUpkeepScale * c.MaxSoldierFraction * man * c.MilitaryRates[b];
+        double monthly = c.MilitaryUpkeepScale * c.MaxSoldierFraction.Value * man * c.MilitaryRates[b];
         return System.Math.Max(200.0, monthly * c.InitialArsenalMonths);
     }
 
