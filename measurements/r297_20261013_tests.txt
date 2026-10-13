@@ -1,0 +1,8 @@
+# フルスイート（Category!=FullLength・Release・隔離ビルド・コミット 3576256 の写し）
+
+成功!   -失敗:     0、合格:  1128、スキップ:     0、合計:  1128、期間: 8 m 23 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 12:35:55
+# FullLength
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 10 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 12:45:14
