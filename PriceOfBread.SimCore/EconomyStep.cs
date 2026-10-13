@@ -862,6 +862,7 @@ public static class EconomyStep
 
         // 地域の工業化投資：投資家（資本家）が貯蓄から「建設の束」を買い工業化度を積む（→生産性↑・都市化上限↑）
         double construction = 0;
+        double privateIndPerConstruction = coef.IndPerConstruction;   // (300) 私的な建設 1 束が上げる工業化度（IndCapitalOutputYears>0 のとき州の経済の大きさで決まる）
         double maintenance = 0;
         double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
         double monumentConstruction = 0, monumentLaborUnits = 0;
@@ -927,10 +928,11 @@ public static class EconomyStep
                 double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
                 desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
             }
-            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
-            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
-            if (Instruments.On && world is not null) Instruments.ConsRegion(world, region, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (289) 計器（読むだけ）：州ごとの希望・枠・計画
-            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, coef, marginalGain * (1.0 + coef.IndTechLeverage * techLev), sat, techLev, hurdle, netReturn, jointStock, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (300) 計器（読むだけ）：希望を決める項（限界収益・sat・技術・hurdle・netReturn・吸収・株式会社）を州ごとに
+            privateIndPerConstruction = PrivateIndPerConstruction(region, coef);   // (300) 線 i1（IndCapitalOutputYears=0 なら IndPerConstruction そのもの）
+            construction = Math.Min(desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
+            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
+            if (Instruments.On && world is not null) Instruments.ConsRegion(world, region, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (289) 計器（読むだけ）：州ごとの希望・枠・計画
+            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, coef, marginalGain * (1.0 + coef.IndTechLeverage * techLev), sat, techLev, hurdle, netReturn, jointStock, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (300) 計器（読むだけ）：希望を決める項（限界収益・sat・技術・hurdle・netReturn・吸収・株式会社）を州ごとに
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -1961,8 +1963,8 @@ public static class EconomyStep
             //     翌月の新規購入が消え、結局は建設需要が抜ける（＝止めたかった副作用が裏口から入る）。加算だけを止める。
             if (!warmFrozen)
             {
-                region.Industrialization += built * coef.IndPerConstruction;
-                region.CumPrivateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
+                region.Industrialization += built * privateIndPerConstruction;
+                region.CumPrivateIndustrialization += built * privateIndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
             }
             // ★投資家がプランテーション・鉱山にも投資する（2026-08-04・作者指示「投資家もプランテーションや鉱山に投資するように」）。
             //   旧＝資本家の建設は region.Industrialization（工業化度）にしか変わらず、RGO（農園・鉱山・牧場）は
@@ -1988,7 +1990,7 @@ public static class EconomyStep
                         ? (Catalog.IsMineral(bestRgo.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap)
                         : coef.ScaleMax;
                     // 〔削除 2026-10-11 (271)〕希少鉱物の産地の拡張天井を賦存比例にする枝（ScarceCapFollowsEndowment・既定 0）＝鉱脈の在庫が物理の限界をすでに担う（二重）。
-                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + built * coef.IndPerConstruction * coef.RgoCapitalShare);
+                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + built * privateIndPerConstruction * coef.RgoCapitalShare);
                     bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
                 }
             }
@@ -2703,6 +2705,19 @@ public static class EconomyStep
         double gate = coef.StateProcurePriceGate;
         if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
         return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（0=旧恒等・1=満額適用）
+    }
+
+    /// <summary>(300) 線 i1：私的な建設 1 束が上げる工業化度。<c>IndCapitalOutputYears</c>（κ）＝0 なら <c>IndPerConstruction</c>（1 束＝0.01・州の大きさに依らない＝今まで）。
+    /// κ＞0 なら <c>1÷N</c>：N＝κ×（州の全 POP の前月の所得を年へ換算）÷（基準の束の費用×(1＋建設の工賃の割合)×州の物価水準）＝工業化度 1 点に要る資本が κ 年分の州の実質の所得（資本産出比）。
+    /// 旧は N が州の大きさに依らず 100 束（ロンドンもヨーテボリも同じ束数）＝定常の補填も月に 1 束のオーダーで、投資の額が州の経済に比例しなかった。N が非正・非有限なら IndPerConstruction（否定形）。</summary>
+    internal static double PrivateIndPerConstruction(Region region, Coefficients coef)
+    {
+        if (!(coef.IndCapitalOutputYears > 0)) return coef.IndPerConstruction;
+        MoneyPerMonth regionIncome = default;
+        foreach (var ip in region.Pops) if (ip.LastEarnedPerMonth.Value > 0) regionIncome += ip.LastEarnedPerMonth;
+        double bundlesPerIndexPoint = coef.IndCapitalOutputYears * Calendar.PerMonthToPerYear(regionIncome).Value
+            / (BundleRef(coef) * (1.0 + coef.ConstructionLaborWageFrac) * Math.Max(region.PriceLevel, Eps));
+        return bundlesPerIndexPoint > 0 && !double.IsInfinity(bundlesPerIndexPoint) ? 1.0 / bundlesPerIndexPoint : coef.IndPerConstruction;
     }
 
     /// <summary>建設の資材の束1単位の参照価格（名目・1783年＝<see cref="Catalog.RefPrices"/>）。実質で比べる所は呼び手が州の物価水準を掛ける。</summary>
