@@ -1,0 +1,2 @@
+# (293) 番人 ConservationTests.港の混雑を解くのに要る建設費は手で打った数と一致する の突然変異（Release・隔離ビルド・1 件のフィルタ）
+# a＝÷PortCapToThroughput を落とす／b＝＋lostCapacity を落とす／c＝NaN の否定形を外す（units<=0 ? 0 : …）／restore＝戻した。各行＝== 変異 変えた行の数・ビルドのエラー数・テストの結果

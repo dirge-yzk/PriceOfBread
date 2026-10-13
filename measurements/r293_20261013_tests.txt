@@ -1,0 +1,8 @@
+START 09:42:02 filter=Category!=FullLength src=D:/PoB_work/m293/tree293
+build rc=0
+成功!   -失敗:     0、合格:  1127、スキップ:     0、合計:  1127、期間: 6 m 20 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 09:48:54
+START 09:53:24 filter=Category=FullLength src=D:/PoB_work/m293/tree293
+build rc=0
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 35 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 09:57:35

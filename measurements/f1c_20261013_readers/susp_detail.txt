@@ -1,0 +1,53 @@
+s1 A first-susp month=None Q=None
+s1 C first-susp month=166 Q=56
+   m 163 cTotal=8820 revenueBase=4627 cInterest=2409 cArmy=1481 cNavy=203.4 treasuryAtClaimStock=-5.925e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.5229 payRateShare=1 govDebtStock=7.678e+05 convertibilityShare=0.9775 cSoldierPay=273
+   m 165 cTotal=7446 revenueBase=4248 cInterest=2451 cArmy=982 cNavy=134.9 treasuryAtClaimStock=-4.926e+04 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5802 payRateShare=0.7023 govDebtStock=7.723e+05 convertibilityShare=0.9775 cSoldierPay=237
+   m 166 cTotal=1.157e+04 revenueBase=1.043e+04 cInterest=2464 cArmy=744.1 cNavy=178.3 treasuryAtClaimStock=-5.033e+04 borrowGateOpenFlag=0 interestToRevenueShareNow=0.2384 payRateShare=0.4736 govDebtStock=7.756e+05 convertibilityShare=0.9787 cSoldierPay=503
+s2 A first-susp month=None Q=None
+s2 C first-susp month=97 Q=33
+   m 94 cTotal=1.157e+04 revenueBase=4063 cInterest=2447 cArmy=0 cNavy=0 treasuryAtClaimStock=1.221e+04 borrowGateOpenFlag=0 interestToRevenueShareNow=0.6017 payRateShare=1 govDebtStock=6.963e+05 convertibilityShare=0.9269 cSoldierPay=1335
+   m 96 cTotal=9138 revenueBase=3729 cInterest=2447 cArmy=841.9 cNavy=147.6 treasuryAtClaimStock=7794 borrowGateOpenFlag=0 interestToRevenueShareNow=0.6571 payRateShare=1 govDebtStock=6.952e+05 convertibilityShare=0.9269 cSoldierPay=314.5
+   m 97 cTotal=9263 revenueBase=4635 cInterest=2451 cArmy=945.4 cNavy=110.7 treasuryAtClaimStock=346.9 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5294 payRateShare=0.4789 govDebtStock=6.965e+05 convertibilityShare=0.9306 cSoldierPay=330.5
+s3 A first-susp month=863 Q=289
+   m 860 cTotal=3.497e+04 revenueBase=1.944e+04 cInterest=1021 cArmy=1.181e+04 cNavy=1925 treasuryAtClaimStock=5.097e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.05245 payRateShare=1 govDebtStock=4.62e+05 convertibilityShare=1 cSoldierPay=3469
+   m 862 cTotal=2.636e+04 revenueBase=1.982e+04 cInterest=1018 cArmy=2194 cNavy=0 treasuryAtClaimStock=-5693 borrowGateOpenFlag=1 interestToRevenueShareNow=0.05268 payRateShare=1 govDebtStock=4.741e+05 convertibilityShare=1 cSoldierPay=8019
+   m 863 cTotal=6.163e+04 revenueBase=1.932e+04 cInterest=1044 cArmy=2308 cNavy=0 treasuryAtClaimStock=-2.767e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.05579 payRateShare=0.5771 govDebtStock=4.903e+05 convertibilityShare=1 cSoldierPay=8067
+s3 C first-susp month=None Q=None
+s4 A first-susp month=1007 Q=337
+   m 1004 cTotal=1.947e+04 revenueBase=1.928e+04 cInterest=1482 cArmy=0 cNavy=0 treasuryAtClaimStock=-6.723e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.07915 payRateShare=1 govDebtStock=7.074e+05 convertibilityShare=1 cSoldierPay=8641
+   m 1006 cTotal=1.908e+04 revenueBase=1.948e+04 cInterest=1570 cArmy=0 cNavy=0 treasuryAtClaimStock=-1.553e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.08195 payRateShare=1 govDebtStock=7.474e+05 convertibilityShare=1 cSoldierPay=8393
+   m 1007 cTotal=7.15e+04 revenueBase=2.024e+04 cInterest=1597 cArmy=0 cNavy=0 treasuryAtClaimStock=-4.46e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.08115 payRateShare=0.614 govDebtStock=7.725e+05 convertibilityShare=1 cSoldierPay=8585
+s4 C first-susp month=None Q=None
+s5 A first-susp month=154 Q=52
+   m 151 cTotal=1.754e+04 revenueBase=9118 cInterest=2471 cArmy=2286 cNavy=116.1 treasuryAtClaimStock=3.152e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.3117 payRateShare=1 govDebtStock=7.516e+05 convertibilityShare=0.9724 cSoldierPay=786
+   m 153 cTotal=1.517e+04 revenueBase=9020 cInterest=2831 cArmy=2402 cNavy=122 treasuryAtClaimStock=2.939e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.3127 payRateShare=1 govDebtStock=7.504e+05 convertibilityShare=0.9724 cSoldierPay=773.9
+   m 154 cTotal=1.812e+04 revenueBase=8589 cInterest=2821 cArmy=2450 cNavy=127.2 treasuryAtClaimStock=2.843e+04 borrowGateOpenFlag=1 interestToRevenueShareNow=0.2833 payRateShare=1 govDebtStock=7.497e+05 convertibilityShare=0.9738 cSoldierPay=763.1
+s5 C first-susp month=None Q=None
+s6 A first-susp month=157 Q=53
+   m 154 cTotal=1.849e+04 revenueBase=1.014e+04 cInterest=2439 cArmy=1531 cNavy=0 treasuryAtClaimStock=6251 borrowGateOpenFlag=1 interestToRevenueShareNow=0.2779 payRateShare=1 govDebtStock=7.657e+05 convertibilityShare=0.9738 cSoldierPay=2634
+   m 156 cTotal=1.761e+04 revenueBase=9487 cInterest=2811 cArmy=1521 cNavy=0 treasuryAtClaimStock=5190 borrowGateOpenFlag=1 interestToRevenueShareNow=0.2962 payRateShare=1 govDebtStock=7.691e+05 convertibilityShare=0.9738 cSoldierPay=2676
+   m 157 cTotal=1.856e+04 revenueBase=9883 cInterest=2810 cArmy=0 cNavy=0 treasuryAtClaimStock=4587 borrowGateOpenFlag=1 interestToRevenueShareNow=0.2468 payRateShare=1 govDebtStock=7.736e+05 convertibilityShare=0.9751 cSoldierPay=4194
+s6 C first-susp month=105 Q=36
+   m 102 cTotal=6643 revenueBase=5049 cInterest=2746 cArmy=1140 cNavy=233.6 treasuryAtClaimStock=2308 borrowGateOpenFlag=1 interestToRevenueShareNow=0.5439 payRateShare=1 govDebtStock=6.987e+05 convertibilityShare=0.934 cSoldierPay=231
+   m 104 cTotal=6603 revenueBase=5094 cInterest=2766 cArmy=1143 cNavy=232.4 treasuryAtClaimStock=198.5 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5436 payRateShare=0.8014 govDebtStock=7.038e+05 convertibilityShare=0.9373 cSoldierPay=236.3
+   m 105 cTotal=1.764e+04 revenueBase=5022 cInterest=2769 cArmy=1170 cNavy=238.1 treasuryAtClaimStock=-73.39 borrowGateOpenFlag=1 interestToRevenueShareNow=0.5564 payRateShare=0.5733 govDebtStock=7.095e+05 convertibilityShare=0.9373 cSoldierPay=231.4
+s7 A first-susp month=167 Q=57
+   m 164 cTotal=1.502e+04 revenueBase=7566 cInterest=2573 cArmy=3352 cNavy=46.06 treasuryAtClaimStock=6734 borrowGateOpenFlag=1 interestToRevenueShareNow=0.3397 payRateShare=1 govDebtStock=7.557e+05 convertibilityShare=0.9775 cSoldierPay=2385
+   m 166 cTotal=1.559e+04 revenueBase=8619 cInterest=2570 cArmy=4079 cNavy=57.61 treasuryAtClaimStock=-964.8 borrowGateOpenFlag=1 interestToRevenueShareNow=0.299 payRateShare=0.7647 govDebtStock=7.624e+05 convertibilityShare=0.9787 cSoldierPay=2337
+   m 167 cTotal=2.3e+04 revenueBase=8413 cInterest=2578 cArmy=4745 cNavy=67.01 treasuryAtClaimStock=2034 borrowGateOpenFlag=1 interestToRevenueShareNow=0.3081 payRateShare=0.6616 govDebtStock=7.676e+05 convertibilityShare=0.9787 cSoldierPay=2366
+s7 C first-susp month=None Q=None
+s8 A first-susp month=None Q=None
+s8 C first-susp month=109 Q=37
+   m 106 cTotal=1.055e+04 revenueBase=4619 cInterest=2561 cArmy=1327 cNavy=242.2 treasuryAtClaimStock=3198 borrowGateOpenFlag=1 interestToRevenueShareNow=0.5554 payRateShare=1 govDebtStock=7.048e+05 convertibilityShare=0.9405 cSoldierPay=385.9
+   m 108 cTotal=9434 revenueBase=4315 cInterest=2567 cArmy=981.6 cNavy=179.1 treasuryAtClaimStock=3171 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5958 payRateShare=0.8169 govDebtStock=7.057e+05 convertibilityShare=0.9405 cSoldierPay=352.6
+   m 109 cTotal=9405 revenueBase=7283 cInterest=2571 cArmy=1116 cNavy=261.8 treasuryAtClaimStock=-751.4 borrowGateOpenFlag=0 interestToRevenueShareNow=0.3541 payRateShare=0.4939 govDebtStock=7.081e+05 convertibilityShare=0.9434 cSoldierPay=191.9
+s9 A first-susp month=None Q=None
+s9 C first-susp month=73 Q=25
+   m 70 cTotal=1.494e+04 revenueBase=4947 cInterest=2728 cArmy=964.2 cNavy=160.9 treasuryAtClaimStock=5739 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5488 payRateShare=0.7466 govDebtStock=7.11e+05 convertibilityShare=0.8898 cSoldierPay=353.2
+   m 72 cTotal=1.303e+04 revenueBase=4804 cInterest=2718 cArmy=861.2 cNavy=143.8 treasuryAtClaimStock=4878 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5638 payRateShare=0.7509 govDebtStock=7.156e+05 convertibilityShare=0.8898 cSoldierPay=339.6
+   m 73 cTotal=1.473e+04 revenueBase=9056 cInterest=2708 cArmy=955.2 cNavy=160.6 treasuryAtClaimStock=3584 borrowGateOpenFlag=0 interestToRevenueShareNow=0.2984 payRateShare=0.6146 govDebtStock=7.167e+05 convertibilityShare=0.8953 cSoldierPay=330.2
+s10 A first-susp month=118 Q=40
+   m 115 cTotal=1.159e+04 revenueBase=5358 cInterest=2672 cArmy=1734 cNavy=258.3 treasuryAtClaimStock=3558 borrowGateOpenFlag=1 interestToRevenueShareNow=0.4975 payRateShare=1 govDebtStock=7.641e+05 convertibilityShare=0.949 cSoldierPay=411.2
+   m 117 cTotal=9277 revenueBase=4452 cInterest=2663 cArmy=1057 cNavy=157.3 treasuryAtClaimStock=4052 borrowGateOpenFlag=0 interestToRevenueShareNow=0.5971 payRateShare=0.9462 govDebtStock=7.65e+05 convertibilityShare=0.949 cSoldierPay=363.5
+   m 118 cTotal=1.05e+04 revenueBase=9139 cInterest=2659 cArmy=995.1 cNavy=245 treasuryAtClaimStock=-6337 borrowGateOpenFlag=0 interestToRevenueShareNow=0.2908 payRateShare=0.4813 govDebtStock=7.672e+05 convertibilityShare=0.9515 cSoldierPay=258.9
+s10 C first-susp month=None Q=None

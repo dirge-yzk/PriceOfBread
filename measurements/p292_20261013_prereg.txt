@@ -1,0 +1,47 @@
+(292) 線P：港の資本家の支出を「要る分だけ」に（事前登録・測る前・2026-10-13・枝 port・worktree D:/PoB_work/wt_port・基点 09880eb〔基線 r290・SOURCE-HASH 6b711f9d586a62f8〕・仮番号・腕は回していない）
+推奨で進めた。「」は作者の原文だけ。AI の読み・推奨・数字の解釈は作者の言葉ではない。この文書より後に線・予測・定義を動かさない。
+コミットの共著表記：Claude Sonnet 5.5（実行したモデル）。
+
+[作者の指示・原文]
+- 2026-10-13「全て推奨で進めてください」＝Claude が報告で推奨つきで聞いた4点への答え。その一つ（④）＝設計 (1) に港の支出を含める＝貯蓄の残高×率でなく混雑を解くのに要る分だけ払う。残る3点（①教義が地租の目標を戻す件は今は変えない ②地租の半段のコードを入れ、率は 1785 の窓どおり 0.17 ③査定税の機構は今は入れない）はこの線の対象ではない（別の線）。それ以外を「承認済み」とは書かない。
+- 恒久：「迷ったら推奨で実行。どうしても判断に迷う場合はリスト化して保留する」。
+
+[1. 根（(289) 線D の実測・基線 r290 の数）]
+- 英の粗投資÷国の所得は Q5〜Q40 で 10.2%・Q41〜Q160 で 26.7%（史実の約 6%（1760）〜11%（1830〜40 年代）【推・Allen の要約経由】）。最大の中身は港の建設の工賃・資本家ルートで Q5〜Q40 の 5.9%。資本家の工場の建設は 0.03%。
+- ソース：MultiNationSim.StepPorts の資本家ルート cCap＝PortInvestFrac(0.04)×州の投資家の貯蓄（混雑した港の州で毎四半期）。額が貯蓄の残高に比例する流れで、貯蓄が所得の十数年分あるので額が膨らむ（混雑が解けるまで毎四半期。解くのに要る額とは無関係）。
+
+[2. 変更（腕 B・1つの変更）]
+- 資本家ルートの額を cCap＝min(要る分, 州の投資家の貯蓄)へ。要る分＝[(PortCongestionTarget−その港の州の LastTradeThrottle)×LastTradePotential÷PortCapToThroughput＋その四半期の減耗で失った容量]×PortBuildCostPerUnit（括弧の中が 0 以下なら 0）。
+  ★減耗の項を含める（反証役の指摘・事前に固定）：StepPorts は投資の前に PortCapacity×(1−PortDecay) を掛ける。律速率は減耗の前の容量で測った値なので、減耗の補填が無いと毎四半期 PortDecay×PortCapacity だけ足りず混雑の門のすぐ下で振動する。失った容量＝減耗の前後の PortCapacity の差（StepPorts の中の値・新しい状態ではない）。助走（_calendarFrozen）では減耗も門も止まる。
+  導出：LastTradeThrottle＝min(1, cap÷potential)（BilateralMarket の容量律速）・cap＝船腹の実効＋PortCapToThroughput×PortCapacity（加法的）。混雑の門（throttle＜目標＜1）の中では throttle×potential＝今の cap そのもの。目標の律速率へ上げるのに要る cap の不足は (目標−throttle)×potential で、港の容量 1 単位が cap を PortCapToThroughput だけ足すので、要る容量は不足÷PortCapToThroughput・建設費は×PortBuildCostPerUnit。新しい状態は作らない（四半期の最初の清算が書く LastTradeThrottle と LastTradePotential は同じ瞬間の値）。
+  門（助走・蒸気機関・混雑・投資家 POP の有無）と国家ルート（PortStateRequest×r）は変えない。国家ルートの額は資本家ルートの要る分から差し引かない（式は字義どおり。国家ルートは英では≒0・他の国の重なりは記録）。
+- PortInvestFrac は使い手が無くなるので消す（Coefficients・POB_COEF・Runner・Tests・scripts の名前も・DormantIdentityTests の削除済みの名簿へ）。
+- 番人：要る分の式（手で組んだ港の州で、払う額が要る分と貯蓄の小さい方・要る分は手で打った数と一致・混雑していなければ 0）。突然変異で赤を確かめる。
+
+[3. 腕]
+- A＝計器の列だけを足した木（コミット 2・恒等のはず）。計器の列を足すだけで挙動を変えない＝A の 10種 plain は b10_20261013_r290 とバイト一致を確かめる。
+- B＝A に変更（コミット 3）。
+- 10種（種1〜10）・計器つき（INS=1・NATIONS＝イギリス,フランス,ネーデルラント,ポルトガル）。B は 10種・5種・計器つき10種の帯 3 本。A は計器つき 10種だけ回す（A の plain 10種・5種は基線 r290 に等しい）。
+- 足す計器の列（読むだけ・Instruments.On の中）：新しい表 port_s<seed>.tsv＝挙げた国×四半期×活きた港の州。列は quarter・year・nation・region・tradeThrottleIndex（四半期の終わりの断面＝StepPorts が見た値）・tradePotentialWeight・portThroughput（LastPortThroughput）・portCapacityEnd・investorSavingsStock（建設の前）・congestedGate（混雑の門を通ったか）・needMoneyAtQuarterEnd（要る分の式の値・A では反事実）・capitalIntendedMoneyAtQuarterEnd・capitalPaidMoneyAtQuarterEnd・statePaidMoneyAtQuarterEnd・builtCapacity。四半期の終わりに1回払う額なので PerMonth の名にしない（claimPortAtQuarterEnd と同じ形）。読み手が Calendar.PerQuarterToPerMonth 相当（÷3）で月あたりにしてから所得（月あたり）と比べる。
+  読み手 scripts/instruments/p292/an_p292.py（port_s と nation_s の earnedTotalPerMonth と an_d289 (a) の投資の総額を使う）。
+
+[4. 事前登録した線（窓は測る前に決める）]
+窓（四半期の番号 q は 0 始まり・表の Q は q+1）：Q5-40＝q4..39・Q41-160＝q40..159（an_d289 と同じ）。量は種ごとに窓で足してから10種の中央値（括弧は最小〜最大）。
+■ 合格の線（作りの上で自明に満たされない量・全て英。3つとも満たして採る）
+ P1 英の港の資本家ルートの年額÷国の所得（所得＝全階級の Earned の和）：Q5-40 と Q41-160 の両方で B の中央値が A より小さく、かつ 10種のうち 8 種以上で（種ごとに）A より小さい。
+    ⚠ 自明でない理由：min(要る分, 貯蓄) は貯蓄の少ない港の州では 4% を上回りうる（要る分が貯蓄の 4% より大きい州）＝下がるとは限らない。
+ P2 英の港の混雑：「港の州×四半期」のうち LastTradeThrottle＜PortCongestionTarget（0.9）の割合（Q5-40 と Q41-160）が B で A の +10 ポイント以内、かつ 取扱高で重み付けた律速率（Σ throttle×取扱高 ÷ Σ 取扱高）の中央値が B で A より 0.05 以上は下がらない。
+    ⚠ 自明でない理由：要る分だけ払うので、貯蓄が足りない・減耗・潜在量の伸びが先に走る州では混雑が残る。
+ P3 英の粗投資の総額÷国の所得（an_d289 (a) の合計）：Q41-160 で B が A（26.7%）より 3 ポイント以上低く、かつ Q5-40 と Q41-160 の両方で 12% 以下（史実の約 11% の上端の少し外）。さらに桁の線として Q5-40 で 0.6% 以上（史実 約 6% の 1/10 未満は港を削りすぎ）。
+    ⚠ 自明でない理由：港の分が減っても他の経路（国営工場・再開・資本家の工場）が貯蓄の余りで増えれば総額は下がらない。Q5-40 の B は A 10.2% から港 5.9% を引いて約 4.3% が見込み＝4% の線は算術の縁に乗り他の経路の揺れで割れる（反証役の指摘）ので下限を桁の線 0.6% にした。Q5-40 の総額が史実の 6〜11% に届かない向きは記録（港が元から 5.9% を占めていた内訳の裏返し）。
+■ 止める線（README §1-2 の F1・10種で読む）
+ 破綻（クラッシュ・NaN・保存則・同じ版のセーブ往復・進行不能）＝1種でも・移民による州の空洞化（ピークの1/10 未満）1 件・人口100以上の千件級補給崩壊 ≧2/10・フルスイートの赤（閾値を広げない）・NG（史実比較の桁）の新しいセル＞外れたセル＋6・推定の計算量 ＞253.5 秒。
+■ 記録だけ（採否に使わない）
+ 資本家の貯蓄÷所得（英・仏・蘭・葡）・富裕層（貴族・資本家・商人）の貯蓄の増減・窃盗（flow_s の経路）・歳入÷年GDP・貿易/GDP（国ごとの 1913 年比）・exact/near・◎7割帯・NG の集合・港の容量の伸び（portCapacityEnd）・仏・蘭・葡の同じ指標（P1〜P3 の英を他国で）・国家ルートと資本家ルートの重なり（同じ港の州が同じ四半期に両方払った額）・貯蓄が要る分に足りなかった（min で貯蓄が選ばれた）割合。
+
+[5. 必要性の確認（README §1-2）]
+- 回さない：PortInvestFrac の消去は使い手が無い（grep：MultiNationSim.cs:1427 の1か所＋テスト1）＝名前の消去は結果を変えない。
+- 回す：式の変更は帯の測りが要る（答えがソースから決まらない＝要る分と貯蓄の比・混雑の動き）。まず canary（selfplay 1 N）で桁を確かめ（要る分が貯蓄の 4% の何倍か）、その後 帯3本。
+- flow_s の経路名（scripts/instruments/flow262/route_names.py）は (ファイル, 行番号) で引く＝StepPorts に計器の呼び出しを足すと MultiNationSim.cs の行が動く。腕 A（コミット 2）の行数に route_names を合わせ、腕 B（コミット 3）はコミット 2 から行数を変えない書き方にする（P1 の読みはこの表に依存）。
+- 既存の番人 港と運河の建設の工賃は労働の持分へ届く・国家の港建設は…は PortInvestFrac を双子のつまみにしている＝係数を消すので双子のつまみを LastTradePotential（0 なら要る分 0）へ替える。
+- A の恒等：計器の列だけ（Instruments.On の外で値を読む行は追加しない）。plain の 10種が b10_20261013_r290 とバイト一致（A の計器つき 10種の帯の報告も）。

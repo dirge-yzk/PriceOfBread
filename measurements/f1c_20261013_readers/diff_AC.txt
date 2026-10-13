@@ -1,0 +1,5 @@
+diff -r D:/PoB_work/f1c/src_A/PriceOfBread.SimCore/world.json D:/PoB_work/f1c/src_C/PriceOfBread.SimCore/world.json
+287c287
+<    "landTaxStage": 2,
+---
+>    "landTaxStage": 1.275,
