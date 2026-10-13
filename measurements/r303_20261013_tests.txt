@@ -1,0 +1,16 @@
+# (303) 木＝D:/PoB_work/wt_y2（コミット c0697f3・隔離ビルド --artifacts-path D:/PoB_work/y2/art・Release）
+START 17:25:37 filter=Category!=FullLength
+  PriceOfBread.App -> D:\PoB_work\y2\art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\y2\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\y2\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:  1134、スキップ:     0、合計:  1134、期間: 11 m 44 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 17:37:28
+--- FullLength
+START 17:46:25 filter=Category=FullLength
+D:\PoB_work\y2\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 57 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 17:50:25
