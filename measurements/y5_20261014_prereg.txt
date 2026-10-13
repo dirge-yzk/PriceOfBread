@@ -1,0 +1,20 @@
+(317) 線Y5 事前登録（2026-10-14・コード変更の前に書く）
+基点 41a78f4（基線 r314）・枝 y5・worktree D:/PoB_work/wt_y5
+
+テーマ＝人口・移民・社会移動（Meritocracy.cs・MultiNationSim.cs 移民・Territory.cs・Colonial.cs・Simulation.cs の人口）
+選んだ理由：線O′（Fiscal.cs・Credit.cs）と鉱床（Discovery.cs）のどちらにも触れない／(307) §2 が RatePerQuarter を足す回を先と明示して残した塊／
+旧名の参照は SimCore・Tests・Runner 1 行だけ（scripts・App・measure.sh に無い）
+
+新しい型：RatePerQuarter（四半期率）＋Calendar の型つき換算 3 本（PerQuarterToPerMonth・PerMonthToPerQuarter・PerQuarterToPerYear）
+SaveGame の Tag.Unit は IUnitValue＋型名で一般化済み＝分岐の追加は不要（savetest で往復を確かめる）
+
+移す：
+ RatePerQuarter（名前に PerQuarter）：CapitalRiseRate・UpperFallRate・MiddleFallRate・BankruptcyFallRate・ClergyJoinRate・ClergyExitRate・
+   ArtisanDeclineRate・JobSearchRate・PettyEntryRate・PromotionSpeed・EmigrationMaxFrac・ImmigrationReceiveCapFrac
+ RatePerMonth：ColonySettlerRate・PopGrowthRate
+ RatePerYear：CrudeBirthRate
+ Share：ClergyFloorShare・ReligiousProfessionShare・ColonyPromotionCoreShare・ImmigrationSelectiveFrac・ImmigrationClosedFrac
+移さない（一覧へ）：EmigrationRate（機会差 1 あたりの四半期率＝割合でない）・MinorityPromotionPenalty 等（名前に割合の語が無い）・
+ JobPoolTemperature・JobSearchLiteracyWeight・JobSearchUsesEma（重み・温度・月次EMAの速さ）
+
+合否：10種・5種・計器つき10種が r314 と全行バイト一致／NG 73 同じ集合／空洞化 0／フルスイート／FullLength／savetest／leakhunt
