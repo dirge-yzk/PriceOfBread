@@ -56,4 +56,11 @@ public class PrivateInvestmentScaleTests
         SetIncome(r, 0);                           // 所得 0 → 今のまま（フェイルオープン）
         Assert.Equal(c.IndPerConstruction, EconomyStep.PrivateIndPerConstruction(r, c));
     }
+
+    /// <summary>既定の宣言（(300) 腕 B を採った＝資本産出比 κ の既定 1.0）。覆すなら理由とともにここを書き換える。</summary>
+    [Fact]
+    public void 資本産出比の既定は1年分()
+    {
+        Assert.Equal(1.0, new Coefficients().IndCapitalOutputYears);
+    }
 }

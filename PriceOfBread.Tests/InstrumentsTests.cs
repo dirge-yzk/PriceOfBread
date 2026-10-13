@@ -420,7 +420,10 @@ public class InstrumentsTests
                 groups++;
             }
             Assert.True(groups >= 4 * 8 * (Quarters - 2), $"突き合わせた (四半期, 国, 階級) が少ない（{groups}）");
-            Assert.True(worst < 1e-9, $"貯蓄の在庫の増減が台帳の書き手の和に閉じない（相対 {worst:E2}・最悪 {worstAt}）＝記帳されていない書き手がある");
+            // ★2026-10-13 (300)：許しを 1e-9→2e-9。表の値は G10（有効数字10桁）で書く＝在庫 s0・s1 と台帳の各行がそれぞれ最大 5e-10（相対）丸められ、最悪の合算は 1.5e-9 に届く。
+            //   (300) の木（資本産出比 κ＝1）で在庫が大きくなり 192 組が 2e-10 を超えた（最悪 1.08e-9・絶対値で 1e-4〜1e-3＝在庫 1e6 の桁の10桁目）＝丸めの床であって未記帳の書き手ではない
+            //   （未記帳の書き手なら誤差は流れの大きさ〔1e-4 以上〕・世界の台帳の leakhunt は違反なし）。
+            Assert.True(worst < 2e-9, $"貯蓄の在庫の増減が台帳の書き手の和に閉じない（相対 {worst:E2}・最悪 {worstAt}）＝記帳されていない書き手がある");
             foreach (var k in new[] { "settle", "give", "giveIncome", "take", "carryOut", "carryIn" }) Assert.True(seen[k] > 0, $"書き手の種類 {k} が1度も立たない（対照）＝この盤面ではその書き手の記帳を測れていない");
 
             // ★(264) 反証役 rv 中#1・低#2：経路名は呼び手の位置。PaySales／Procure の中の Transfer（InternationalMarket.cs）は経路に出ない＝呼び手の位置を Transfer へ渡す。

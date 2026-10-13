@@ -1155,7 +1155,7 @@ public sealed class Coefficients
     public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）。★(300) 国家の経路（国庫の建設・巨大建造物）はこれのまま。私的な建設は IndCapitalOutputYears>0 なら州の実質の年所得で決まる（EconomyStep.PrivateIndPerConstruction）＝0 のときだけこの値
-    public double IndCapitalOutputYears = 0;      // ★(300) 線 i1：工業化度 1 点に要る資本＝州の実質の年所得のこれ倍（資本産出比 K/Y・私的な建設の経路だけ）。>0 で私的な建設 1 束が上げる工業化度が 1÷N（N＝これ×州の実質の年所得÷基準の束の費用）になる＝州の経済の大きさに比例した投資額。0＝今まで（1 束＝IndPerConstruction・州の大きさに依らない）＝厳密恒等。国家の経路は変えない
+    public double IndCapitalOutputYears = 1.0;    // ★(300) 線 i1（腕 B を採った＝既定 1.0・0 で今まで）：工業化度 1 点に要る資本＝州の実質の年所得のこれ倍（資本産出比 K/Y・私的な建設の経路だけ）。>0 で私的な建設 1 束が上げる工業化度が 1÷N（N＝これ×州の実質の年所得÷基準の束の費用）になる＝州の経済の大きさに比例した投資額。0＝今まで（1 束＝IndPerConstruction・州の大きさに依らない）＝厳密恒等。国家の経路は変えない
     public double RgoCapitalShare = 0.5;   // ★2026-08-04（作者指示「投資家もプランテーションや鉱山に投資するように」）：資本家の建設が生む工業化度のうち、最も採算の良いRGO（農園/鉱山/牧場）の作付面積（BuiltScale＝Scaleの下限）へも回る比。旧＝資本家の建設は工業化度にしか変わらず、RGOは採算によるScaleの伸縮だけで**面積を増やす資本がどこからも来なかった**（工場はBuiltScaleが下限を押し上げるのにRGOには無い）。史実の農園・鉱山は資本を吸って規模を広げる（囲い込み・カリブの砂糖・南アの金）。同じ建設束・同じ予算から出す＝新しい資源も市場も作らない。0で厳密恒等（休眠）／StateShareCounterOnly=1.0 点火（2026-08-30）により既定ではこの枝は不走行＝rgoprobe 対照実験用に残置
     public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
     public double FactoryMaterialFrac = 0.6;      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費
