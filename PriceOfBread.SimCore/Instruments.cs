@@ -888,7 +888,7 @@ public static class Instruments
 
     // ---------------------------------------------------------------- (281) 線O0：借入の門の周り（読むだけ） ----------------------------------------------------------------
 
-    /// <summary>仏1788 の支払停止の線＝利払い÷歳入（3.18億÷4.72億リーヴル≒0.67・Fiscal.Borrow の注の史実の錨）。係数ではない＝計器の物差し（0.55 の限界 <see cref="Coefficients.MaxInterestShareOfRevenue"/> は係数から読む）。</summary>
+    /// <summary>仏1788 の支払停止の線＝利払い÷歳入（3.18億÷4.72億リーヴル≒0.67・Fiscal.Borrow の注の史実の錨）。係数ではない＝計器の物差し（借入の門の限界 <see cref="Coefficients.MaxInterestShareOfRevenue"/> は係数から読む）。</summary>
     internal const double SuspensionInterestShare = 0.67;
 
     /// <summary>切り下げで埋める前の払えない額÷請求＝max(0, 請求−(max(0,国庫)＋歳入＋借入))÷請求（[0,1]）。<paramref name="payable0"/>＝月初の払える額 max(0,国庫)＋歳入（借越は含めない＝当座借越を数えない）。
