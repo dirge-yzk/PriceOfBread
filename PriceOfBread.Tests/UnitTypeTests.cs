@@ -193,6 +193,16 @@ public class UnitTypeTests
         (typeof(Coefficients), "ConscriptionRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "NavalAttritionRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "ArmsWearRatePerMonth", typeof(RatePerMonth)),
+        // ★(313) 割合の型の残り その4＝外交・緊張・戦争の係数（係数のテーマ2）。国力の首位比の閾値・賠償と賞金の割合は Share、戦争の月の率は RatePerMonth。緊張の率（緊張点／月）・軍の強さの比・倍率・旗は移していない
+        (typeof(Coefficients), "TreatyPortLapseRatio", typeof(Share)),
+        (typeof(Coefficients), "GreatPowerScoreFraction", typeof(Share)),
+        (typeof(Coefficients), "MinorPowerScoreFraction", typeof(Share)),
+        (typeof(Coefficients), "ReparationGdpFraction", typeof(Share)),
+        (typeof(Coefficients), "PrizeCargoShare", typeof(Share)),
+        (typeof(Coefficients), "WarExhaustionRatePerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "WarMilitancyRatePerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "WarCasualtyRatePerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "WarCasualtyCapPerMonth", typeof(RatePerMonth)),
     ];
 
     [Fact]
@@ -444,6 +454,39 @@ public class UnitTypeTests
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 2) / 13.0), BitConverter.DoubleToInt64Bits(got));
         }
         foreach (var old in new[] { "ConscriptionRate", "NavalAttritionRate", "ArmsWearRate" })
+            Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
+    }
+
+    /// <summary>★(313) 割合の型の残り その4＝外交・緊張・戦争の係数 9 本が、セーブの往復と係数の名前引き（反射の橋）で割り切れない値（13分の幾つ）のままビットが残ること・
+    /// 欄の型が表のとおりであること・改名前の欄が残っていないこと。期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで外交の係数の欄が残る()
+    {
+        (string Name, Type Type)[] fields =
+        [
+            ("TreatyPortLapseRatio", typeof(Share)), ("GreatPowerScoreFraction", typeof(Share)), ("MinorPowerScoreFraction", typeof(Share)),
+            ("ReparationGdpFraction", typeof(Share)), ("PrizeCargoShare", typeof(Share)), ("WarExhaustionRatePerMonth", typeof(RatePerMonth)),
+            ("WarMilitancyRatePerMonth", typeof(RatePerMonth)), ("WarCasualtyRatePerMonth", typeof(RatePerMonth)), ("WarCasualtyCapPerMonth", typeof(RatePerMonth)),
+        ];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < fields.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(fields[k].Name)!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 2) / 13.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < fields.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(fields[k].Name)!;
+            Assert.Equal(fields[k].Type, f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 2) / 13.0), BitConverter.DoubleToInt64Bits(got));
+        }
+        foreach (var old in new[] { "WarExhaustionRate", "WarMilitancyRate", "WarCasualtyRate", "WarCasualtyMonthlyCap" })
             Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
     }
 

@@ -512,7 +512,7 @@ public sealed class Diplomacy
     /// TreatyPortLapseRatio=0.5点火（2026-08-16）。0なら1命令も走らない厳密恒等（OFF対照はPOB_COEF）。</summary>
     internal void TreatyPortLapse(Coefficients c, int month)
     {
-        if (c.TreatyPortLapseRatio <= 0) return;
+        if (c.TreatyPortLapseRatio.Value <= 0) return;
         // ★支配度 段5（§6・2026-09-07 器）：外国持分の風化＝連続形（刻みも一斉検査も無し）。対最強列強の国力比が TreatyPortLapseRatio に近づくほど速く
         //   DominanceSpeed で0へ寄る（持続条件＝勝者の投射は段8）。ForeignRuleFromTreaty=0 では持分が無い＝1命令も走らない。
         if (c.ForeignRuleFromTreaty > 0)
@@ -524,7 +524,7 @@ public sealed class Diplomacy
                 {
                     if (p.Nation is not { } w) continue;
                     double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / topC;
-                    double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio) * c.DominanceSpeed;
+                    double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
                     if (!(fade > 0)) continue;
                     foreach (var r in w.Regions)
                         for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
@@ -541,7 +541,7 @@ public sealed class Diplomacy
         {
             if (p.Nation is not { } w || w.TreatyPortsGranted <= 0) continue;
             double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / top;
-            if (ratio >= c.TreatyPortLapseRatio)
+            if (ratio >= c.TreatyPortLapseRatio.Value)
             {
                 w.TreatyPortsGranted--;
                 Log.Add($"{_year} {p.Name}の条約港が失効（残{w.TreatyPortsGranted}港・対最強列強の国力比{ratio:P0}）");   // 力の均衡が不平等条約を風化させた
@@ -581,7 +581,7 @@ public sealed class Diplomacy
         double top = 0;
         foreach (var (_, s) in real) top = Math.Max(top, s);
         if (top <= 1e-9) { foreach (var (p, _) in real) _rank[p.Id] = PowerRank.Minor; return; }   // 退化世界の防御
-        double great = top * c.GreatPowerScoreFraction, minor = top * c.MinorPowerScoreFraction;
+        double great = top * c.GreatPowerScoreFraction.Value, minor = top * c.MinorPowerScoreFraction.Value;
         foreach (var (p, s) in real)
             _rank[p.Id] = s >= great ? PowerRank.Great : s < minor ? PowerRank.Minor : PowerRank.Middle;
     }
@@ -761,7 +761,7 @@ public sealed class Diplomacy
         // 拿捕原資（prize-money-gdp-based-no-cargo）：①敵GDP比例（旧）と②敵が通商破壊で実際に失った海上取扱高比例（新）をブレンド。
         // ②＝敵の全活性州 LastPortThroughput の合計×通商破壊で失った海運割合(LastBlockadeRisk)＝交易していない内陸大国(露/墺)を封鎖しても積荷項0＝海軍の意味が交易構造から創発。両値とも既存（新規データなし）。
         double cargoBase = 0;
-        if (c.PrizeCargoShare > 1e-12)
+        if (c.PrizeCargoShare.Value > 1e-12)
         {
             double victimThroughput = 0;
             foreach (var r in vw.Regions) if (r.State == RegionState.Active) victimThroughput += r.LastPortThroughput;
@@ -783,7 +783,7 @@ public sealed class Diplomacy
                 cargoBase *= 1.0 + c.PrizeLossProrated * (share - 1.0);   // PrizeLossProrated=0で係数1（恒等）／=1で share（完全按分）
             }
         }
-        double prizeRaw = c.PrizeMoneyRatePerMonth.Value * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.GdpPerMonth.Value) + c.PrizeCargoShare * cargoBase);   // ⚠実質GDP（RealGdpPerMonth）を貨幣の額に使う（賠償金の基準・貢納と同じ型の外し方＝(251) 反証役 vm#4・定義の誤りは型で防げない＝史実の裁定の回に）
+        double prizeRaw = c.PrizeMoneyRatePerMonth.Value * advantage * ((1.0 - c.PrizeCargoShare.Value) * Math.Max(0, vw.GdpPerMonth.Value) + c.PrizeCargoShare.Value * cargoBase);   // ⚠実質GDP（RealGdpPerMonth）を貨幣の額に使う（賠償金の基準・貢納と同じ型の外し方＝(251) 反証役 vm#4・定義の誤りは型で防げない＝史実の裁定の回に）
         if (!(prizeRaw > 1e-9)) return;
         var merchants = new List<Pop>();
         foreach (var r in vw.Regions)
@@ -2464,9 +2464,9 @@ public sealed class Diplomacy
             // ★厭戦の基礎＝動員の負担（2026-10-02 (170)・外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」
             //   （動員の深さか軍需支出÷GDP）へ置き換える」）。★物差しは作者の裁定（2026-09-26 §10-11-2 B11）＝「厭戦の物差しは「兵士の数÷人口」。」
             //   ★(172) 合流で裁定の形へ直した（反証役 vm3#1＝(170) の入れた形は母数を兵役の母数〔Military.RegionManpower〕・割る数を ConscriptionFraction にした＝裁定から外れていた）。
-            //   旧＝交戦の月ごとに一律 WarExhaustionRate（0.03）＝どの戦争も開戦から約34か月で必ず終わる時間の時計
+            //   旧＝交戦の月ごとに一律 WarExhaustionRatePerMonth（0.03）＝どの戦争も開戦から約34か月で必ず終わる時間の時計
             //   （r167 の10種で列強どうしの戦争の厭戦の増分の 78〜88% がこの項・列強どうしの戦争の長さの中央 8〜12 か月・最長 30 か月＝(170) §1）。
-            //   新＝WarExhaustionRate×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）。兵士と人口はどちらも全ての州・全ての POP
+            //   新＝WarExhaustionRatePerMonth×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）。兵士と人口はどちらも全ての州・全ての POP
             //   （World.SoldierSizeK・World.TotalPopulation＝分子と分母を同じ規則で）。割る数＝[戦争⑤] の推奨「割る数は MobilizationConscriptFrac（総動員の上限で今の0.03になる）」を
             //   (145) の兵の単位（MobilizationConscriptFrac の母数を大衆から働き盛りの男へ）で読み替えた＝総動員の上限（働き盛りの男の22%＝人口の約6%）まで動員した国の基礎が旧の値
             //   （推奨で進めた・読み替えは AI＝作者の承認は未確認・新しい数なし）。小さな軍で戦う戦争（植民地戦争・遠征）は長く続けられ、大きく動員した国ほど早く疲れる。
@@ -2475,13 +2475,13 @@ public sealed class Diplomacy
             //   （海を隔てた戦争も終わるかは (172) の10種の終局で続く戦争の表で読む＝実装ログ (172)）。
             //   ⚠ 国民皆兵（×2.5）で総動員した国は基礎が旧の約2.5倍＝総力戦ほど短い向き（第一次大戦 51 か月の錨と逆＝作者への確認・(170) §11）。
             //   ⚠ 厭戦は徴兵の深さを上げる（Military.Step の ConscriptionExhaustionWeight）＝厭戦→兵士→基礎の正の輪がこの形で閉じる（反証役 vm3#4＝大きさは実装ログ (172) の記録）。
-            double exBase = c.WarExhaustionRate;
+            double exBase = c.WarExhaustionRatePerMonth.Value;
             if (p.Nation is { } mobW)
             {
                 double pop = mobW.TotalPopulation;
                 double share = pop > 1e-9 ? mobW.SoldierSizeK() / pop : 0;   // 兵士の数÷人口（B11）
                 if (!(share >= 0)) share = 0;
-                exBase = c.WarExhaustionRate * share / (c.MobilizationConscriptFrac.Value * Military.WorkingMenStdShare);
+                exBase = c.WarExhaustionRatePerMonth.Value * share / (c.MobilizationConscriptFrac.Value * Military.WorkingMenStdShare);
             }
             p.WarExhaustion = Math.Min(1, p.WarExhaustion + exBase + econEx + blockade + fiscal + airRaid + chem);   // 厭戦も1回
             // 説明API（#63）：厭戦の内訳＝前期＋基礎（動員の負担・(170)）＋経済悪化＋封鎖＋財政＋空襲＋化学兵器−上限クランプ。Explain=nullでゼロコスト（player国のみ非null）。
@@ -2658,7 +2658,7 @@ public sealed class Diplomacy
             }
             bool decisive = Math.Abs(war.Score) >= 1.0;
             // 早期講和（革命圧力で前倒し）。★2026-09-26（項目20 E・Q9 と同じ回）：膠着の打ち切り（WarMaxMonths=60 か月で白紙講和）を削除した。
-            //   交戦国は毎月 WarExhaustionRate（0.03）以上の厭戦を積み（他の項も全て非負・交戦中に厭戦を減らす書き手は無い）、34か月以内に両者が1.0へ届く
+            //   交戦国は毎月 WarExhaustionRatePerMonth（0.03）以上の厭戦を積み（他の項も全て非負・交戦中に厭戦を減らす書き手は無い）、34か月以内に両者が1.0へ届く
             //   ＝weary（両者 > 0.9×cut・cut≦1）が60か月より先に必ず立つ＝打ち切りは一度も効いていなかった。
             //   ★(170)：厭戦の基礎は動員の負担に比例（上の動員の負担・(172) で作者 B11 の「兵士の数÷人口」へ直した）＝34か月の保証は無くなった（兵の少ない国は基礎が小さい）。
             //   打ち切りは戻さない＝時間の時計を作らない（2026-09-06 恒久方針）。兵を持つ交戦国は基礎が積もり続ける（(170) の入れた形〔兵役の母数・(172) で直した〕の10種で
@@ -2689,11 +2689,11 @@ public sealed class Diplomacy
         // 設計意図の約2倍速だった。WarMilitancyViaTarget=1（既定）で直接加算を止め、Politics の目標項へ一本化（当時0.5→1.0へ補償・★段2 2026-09-09 で 1.0→0.35＝満期の厭戦0.9でも門0.5に単独では届かない水準へ再確定）
         //（失業・軍拡負担と同じ「不満の単一ソース」処方）。0で旧挙動（休眠切替可）。
         if (c.WarMilitancyViaTarget > 0.5) return;
-        double add = c.WarMilitancyRate + c.WarExhaustionMilitancy * p.WarExhaustion;
+        double add = c.WarMilitancyRatePerMonth.Value + c.WarExhaustionMilitancy * p.WarExhaustion;
         foreach (var pop in w.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + add);
     }
 
-    /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyMonthlyCap で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
+    /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyCapPerMonth で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
     /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。
     /// internal＝番人テスト用（InternalsVisibleTo・TradeTreaties と同じ流儀・2026-09-25）。呼び出しは StepWars の1箇所だけ。</summary>
     internal double WarCasualties(Power p, Coefficients c, double contactStrength, double airControl = 0.5)   // ★2026-09-25：static を外した＝インスタンスの CasualtyProbe を読むため（計算は不変）
@@ -2711,16 +2711,16 @@ public sealed class Diplomacy
         //   同じ接触なら、兵1人あたりのゲージが高い側（装備・質の良い軍）ほど自軍のうちぶつかる割合が小さく、死ぬ人数が少ない。
         //   ⚠割合は上限・下限で削らない（思想⑧）＝押しに熟練・制空が乗るので1を超えうる。頭打ちは既存の兵士の月次上限だけ。
         //   ⚠自軍のゲージが0なら押しも0＝接触0＝出血0。`>` の比較で守る＝ゲージが NaN でも0の側へ倒れる（割合へ NaN を通さない）。
-        double casForce = p.Military > 1e-9 ? c.WarCasualtyRate * soldierPop * (contactStrength / p.Military) : 0;
+        double casForce = p.Military > 1e-9 ? c.WarCasualtyRatePerMonth.Value * soldierPop * (contactStrength / p.Military) : 0;
         double airMul = 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
         casForce *= airMul;
-        double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
+        double cas = Math.Min(casForce, soldierPop * c.WarCasualtyCapPerMonth.Value);   // 1ヶ月最大で兵士の WarCasualtyCapPerMonth（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
         if (Instruments.On) Instruments.Casualty(this, _year, p, soldierPop, cas);   // 計器（読むだけ）
         CasualtyProbe?.Invoke(casForce, soldierPop);   // 観測だけ（既定 null＝引数ごと評価しない）
         // ★新兵器の必要性の陸と空の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）
-        //   ＝今月の兵の損耗の割合（戦死÷兵士＝下の厭戦の casTerm と同じ割合）÷総力戦の月の上限（WarCasualtyMonthlyCap＝「総力戦で年〜40%の史実水準」）＝0〜1
+        //   ＝今月の兵の損耗の割合（戦死÷兵士＝下の厭戦の casTerm と同じ割合）÷総力戦の月の上限（WarCasualtyCapPerMonth＝「総力戦で年〜40%の史実水準」）＝0〜1
         //   （率を脅威の割合と同じ「最大を1とした割合」へ直す＝新しい数なし）。空＝制空劣勢で増えた分（敵の空から受けた損耗＝cas×(1−1÷増し)）・陸＝残り。記帳だけ（戦死の量は変えない）。
-        double lossI = c.WarCasualtyMonthlyCap > 0 ? cas / soldierPop / c.WarCasualtyMonthlyCap : 0;
+        double lossI = c.WarCasualtyCapPerMonth.Value > 0 ? cas / soldierPop / c.WarCasualtyCapPerMonth.Value : 0;
         if (lossI > 0)   // 否定形＝NaN と0は積まない
         {
             var lq = w.DiscoveryLossQ ??= new double[Discovery.LossDomains];
@@ -2961,7 +2961,7 @@ public sealed class Diplomacy
         bool farCrush = c.TreatyPortWinnerDistanceKm > 0 && Math.Abs(war.Score) >= c.VassalizeWinScore   // ★是正（監査2026-09-02 #22）：saは[-1,1]にクランプ済みでVassalizeWinScore=1.4と比較すると恒久false（死コード）。tooFarToRuleと同じ未クランプ物差しに揃える
             && winner.Nation is { } wf0 && loser.Nation is { } lf0
             && Geo.DistanceKm(wf0.Latitude, wf0.Longitude, lf0.Latitude, lf0.Longitude) > c.TreatyPortWinnerDistanceKm;
-        double repBase = (c.ReparationGdpFraction * loser.GdpPerMonth * sa * (farCrush ? c.TreatyPortReparationMult : 1.0)).Value;
+        double repBase = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * sa * (farCrush ? c.TreatyPortReparationMult : 1.0)).Value;
         repBase -= repCut * repBase;   // #21 会議外交：会議度に応じ賠償を削る（repCut=0＝現行ビット恒等・x−0*x==x）。植民地/割譲は不変＝賠償のみ抑制
         // ★賠償は**貨幣経済を持つ2国の間だけ**で動く（回1-1・2026-09-26・段0の番人 fis-21 が全長で発見）。
         //   抽象標的（Nation の無い勢力）は World を持たない＝国庫も基礎貨幣も無い。

@@ -1320,14 +1320,14 @@ if (args.Length > 0 && args[0] == "casprobe")
     foreach (var nn in cpm.Nations) nn.TelemetryEnabled = false;
     cpm.Diplomacy.Log.Enabled = false;
     cpm.StartWarmup();
-    double cpRate = cpm.Coef.WarCasualtyRate, cpCapShare = cpm.Coef.WarCasualtyMonthlyCap;   // Diplomacy.Step が実際に読む共有の係数
+    double cpRate = cpm.Coef.WarCasualtyRatePerMonth.Value, cpCapShare = cpm.Coef.WarCasualtyCapPerMonth.Value;   // Diplomacy.Step が実際に読む共有の係数
     var dec = new SortedDictionary<int, double[]>();   // 年代 → [戦死, 兵士POP月和, 交戦国月数, 上限張り付き月数, 世界人口（年代の最後の四半期）]
     var rStar = new List<double>();                     // 国×月ごとの「上限が効き始める Rate」＝ Rate×上限/上限前
     int cpYear = cpm.Nations[0].World.Year;
     double[] Dec(int y) { int d = y / 10 * 10; if (!dec.TryGetValue(d, out var a)) dec[d] = a = new double[5]; return a; }
     cpm.Diplomacy.CasualtyProbe = (force, soldiers) =>
     {
-        double cap = soldiers * cpCapShare;   // WarCasualties の上限（兵士の WarCasualtyMonthlyCap/月）
+        double cap = soldiers * cpCapShare;   // WarCasualties の上限（兵士の WarCasualtyCapPerMonth/月）
         var a = Dec(cpYear);
         a[0] += Math.Min(force, cap); a[1] += soldiers; a[2] += 1; if (force >= cap) a[3] += 1;
         rStar.Add(force > 1e-12 ? cpRate * cap / force : double.PositiveInfinity);
@@ -1338,7 +1338,7 @@ if (args.Length > 0 && args[0] == "casprobe")
         cpm.StepQuarter();
         Dec(cpYear)[4] = cpm.Nations.Sum(nn => nn.World.TotalPopulation);   // 毎四半期上書き＝年代の最後の四半期の値が残る
     }
-    Console.WriteLine($"=== 戦死の計器（seed {cpSeed}・{cpQ}四半期・WarCasualtyRate={cpRate:G4}・上限＝兵士の{cpCapShare:P1}/月）人数の単位は千人 ===");
+    Console.WriteLine($"=== 戦死の計器（seed {cpSeed}・{cpQ}四半期・WarCasualtyRatePerMonth={cpRate:G4}・上限＝兵士の{cpCapShare:P1}/月）人数の単位は千人 ===");
     Console.WriteLine($"{"年代",-6}{"兵士の戦死",14}{"交戦国月",10}{"月戦死率",12}{"上限張付",10}{"世界人口",16}");
     foreach (var (d, a) in dec)
         Console.WriteLine($"{d,-6}{a[0],14:F2}{a[2],10:N0}{(a[1] > 0 ? a[0] / a[1] : 0),12:G4}{(a[2] > 0 ? a[3] / a[2] : 0),10:P1}{a[4],16:N0}");

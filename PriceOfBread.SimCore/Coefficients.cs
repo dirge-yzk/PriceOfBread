@@ -676,7 +676,7 @@ public sealed class Coefficients
     //   ⚠1.0 のまま σ を10倍にすると**1.5年を超える全ての戦争が全土蜂起を生む**（ナポレオン戦争の英仏・クリミアの露・南北戦争・ボーア戦争が全部崩壊する）。
     //   0.35＝満期の厭戦0.9が**単独では門0.50に届かない**（0.315）値＝1917年の露・1918年の独は飢餓が足し合わさって初めて越える。
     public double WarWearinessMilitancy = 0.35;   // 厭戦（対外戦争の消耗）→闘争度入力。較正は we=0 で不活性＝中立
-    public double WarMilitancyViaTarget = 1.0;   // 監査2026-07-11（二3）：1＝厭戦→闘争度を Politics の目標項に一本化（Diplomacy の月次直接加算 WarMilitancyRate/WarExhaustionMilitancy を不発化）。0＝旧の二重経路。クーデタ側の明示の厭戦乗数は同じ厭戦の2回目（P9）＝2026-09-20 に削除済み（兵士の厭戦はこの目標項→闘争度の1回だけ）
+    public double WarMilitancyViaTarget = 1.0;   // 監査2026-07-11（二3）：1＝厭戦→闘争度を Politics の目標項に一本化（Diplomacy の月次直接加算 WarMilitancyRatePerMonth/WarExhaustionMilitancy を不発化）。0＝旧の二重経路。クーデタ側の明示の厭戦乗数は同じ厭戦の2回目（P9）＝2026-09-20 に削除済み（兵士の厭戦はこの目標項→闘争度の1回だけ）
 
     // --- 転職（昇格・転落）。閾値＝国民平均の1人あたり貯蓄に対する倍率＝経済規模で自動スケール ---
     public double ClergyFloorShare = 0.002;      // 聖職者の下限（地域人口比0.2%）。世俗化で没落しても教会は消えない
@@ -1069,7 +1069,7 @@ public sealed class Coefficients
     // ★条約港の自然失効（案A・作者裁定2026-08-16「戦争で解除という例外を作らない。もっとシンプルに」）＝
     //   不平等条約は「力の差が続く間だけ有効」。動詞・ボタン・交渉・戦争例外なし＝脱出路は「強くなる」だけ
     //   （日本の条約改正1899/1911＝近代化を背景に条約が風化した、が創発）。AI対称は構造（同じ検査が全国に走る）。
-    public double TreatyPortLapseRatio = 0.5;         // 【点火0.5・2026-08-16＝A/B: 単独35/69/51・港配線との合成36/73/51=near+5優加法。法−5は記録・監視】ゲート兼閾値：国力（軍事+生産＝NationalScore既存成分）÷最強列強 がこれ以上なら条約港が風化。0＝1命令も走らない厳密恒等（片道ラチェット）
+    public Share TreatyPortLapseRatio = new(0.5);         // 【点火0.5・2026-08-16＝A/B: 単独35/69/51・港配線との合成36/73/51=near+5優加法。法−5は記録・監視】ゲート兼閾値：国力（軍事+生産＝NationalScore既存成分）÷最強列強 がこれ以上なら条約港が風化。0＝1命令も走らない厳密恒等（片道ラチェット）
     public double TreatyPortLapseYears = 4.0;         // 失効の刻み（年）＝この年数ごとの全国一斉検査で1港ずつ（無状態＝month剰余判定・クールダウン用フィールドを作らない）。Ratio=0では不読
     public double TreatyPortReparationMult = 2.5;     // 条約港の講和での賠償倍率（「多額の賠償金」＝属国化の代わりに金と通商特権を取る）
     public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝輸出の敷居を25%上げる。0で厳密恒等
@@ -1467,7 +1467,7 @@ public sealed class Coefficients
     //   半分に置けば、宣戦までの折り返し地点で一度だけ知らせる＝まだ増減の操作が効く時点で選べる。
     //   ⚠一度出した相手は TensionRepromptDrop ぶん下がるまで再通知しない＝頻繁には出ない。
     // 【墓標2026-09-30・支払いの一元化 段3-2】WarCostPerMilitary（400＝軍ゲージ1あたりの月次戦費・国庫から全POP へ頭数で配った）を Diplomacy.Fund ごと削除（作者裁定 Q8 (a)＝軍需の調達と兵士の給与が実体・思想⑨）。
-    public double WarExhaustionRate = 0.03;       // 戦争疲弊（厭戦%）の蓄積の基礎（月）＝★(170) 動員の負担：総動員の上限（MobilizationConscriptFrac＝働き盛りの男の22%）まで動員した国の月の基礎。
+    public RatePerMonth WarExhaustionRatePerMonth = new(0.03);       // 戦争疲弊（厭戦%）の蓄積の基礎（月）＝★(170) 動員の負担：総動員の上限（MobilizationConscriptFrac＝働き盛りの男の22%）まで動員した国の月の基礎。
                                                   //   実際の基礎＝これ×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）（Diplomacy.StepWars・外部レビュー Q10・作者 B11「厭戦の物差しは「兵士の数÷人口」。」・
                                                   //   (172) で裁定の形へ直した＝(170) の入れた形は兵役の母数÷ConscriptionFraction）。旧＝交戦の月ごとに一律（時間の時計＝約34か月で必ず終わる）。抽象の相手は一律のまま
     public double WarExhaustionEcon = 0.10;       // ＋経済悪化（1人あたりの落ち込み GdpPcDrawdown・2026-09-29＝領土を失った総額の落ち込みは数えない）に比例して厭戦が増す（月）
@@ -1481,7 +1481,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26】WarMaxMonths（60か月の膠着で白紙講和）＝厭戦が34か月以内に両者1.0へ届く＝一度も効かない時計（項目20 E）。NaN の出口は Diplomacy の weary の否定形が担う
     public double PostWarTension = 38;            // 講和後の緊張の置き直し値。そこからゆっくり100へ再上昇＝中後期戦争を生むが時計仕掛けにはしない
     // 【墓標2026-09-26】TruceYearsPerExhaustion（規模で決める休戦・休眠0＝09-07 裁定の器）＝作者裁定 Q9 で休戦の仕組みごと削除（講和に不戦年限の条項は無く、厭戦と財政が担う）。既定0で休戦は常に0年だった＝挙動不変
-    public double ReparationGdpFraction = 0.2;    // 賠償金＝敗者GDP×戦勝点×これ。完全勝利(戦勝点1)で GDP の20%（普仏戦争の50億フラン≒仏GDP25%規模に近づける＝大国も戦争で痩せる。0.1→0.2）
+    public Share ReparationGdpFraction = new(0.2);    // 賠償金＝敗者GDP×戦勝点×これ。完全勝利(戦勝点1)で GDP の20%（普仏戦争の50億フラン≒仏GDP25%規模に近づける＝大国も戦争で痩せる。0.1→0.2）
     // 【墓標2026-09-26】SpoilsWorthThreshold（抽象標的の国庫が1万を超えれば攻める価値がある）＝回1-1で削除。抽象標的は賠償を払わない（貨幣経済を持つ2国の間だけ）ので国庫は戦果にならない。world.json の国庫は全て閾値未満＝挙動不変
 
     // --- 戦争熱／膨張意欲（案Y・植民地獲得を許容する国内世論。段B＝計算と累積のみ／消費は段Cで配線。値は暫定でsweep対象） ---
@@ -1653,7 +1653,7 @@ public sealed class Coefficients
     public int MaxDependents = 8;                 // 1宗主が抱えられる従属の上限（帝国の過剰拡張＝過伸を防ぐ）。4→8（宗主の地理2026-07-12：史実の英は印度諸邦6＋ビルマ＋アデン等で4では史実の勢力圏が物理的に組めなかった。過伸の実費は植民地維持費・貢納の不満・離反が担う）
     public double GovCostVassalThreshold = 0.4;   // 講和の圧勝後：敗者の統治コスト（民族距離0.5＋宗教距離0.5）がこれ以上＝異民族/異教で直接統治が高コスト→属国化（間接統治）／未満＝同族で安く併呑→追加割譲
     public double AllianceBreakTension = 50;      // 同盟国間の緊張がこれを超えると同盟が崩れる（強国は孤立へ）
-    public double WarMilitancyRate = 0.004;       // 自国の交戦が pop の闘争度を上げる（戦争疲弊の内政コスト）。⚠WarMilitancyViaTarget>0.5（既定）では不読＝旧経路
+    public RatePerMonth WarMilitancyRatePerMonth = new(0.004);       // 自国の交戦が pop の闘争度を上げる（戦争疲弊の内政コスト）。⚠WarMilitancyViaTarget>0.5（既定）では不読＝旧経路
     // 戦死（上限前）＝兵士POP×（接触÷自軍の Military）×これ/月＝**自軍のうち実際にぶつかった兵の、月の死亡率**（無次元）。
     //   接触＝各戦線の min(aPush,bPush) の和（投射・戦費充足・上陸・制空を織り込んだ押しのゲージ）。÷自軍のゲージ＝自軍のうち接触した割合。
     // ★2026-09-27 回2-1b（棚卸し mil-01）：**基準を兵の頭数へ揃えた**（分子と分母の非対称の是正・式は Diplomacy.WarCasualties）。
@@ -1691,18 +1691,18 @@ public sealed class Coefficients
     //     ＝戦争の規模の回が接触の割合（動員と前線）の不足として扱う。9-3 の一括再較正でこの率を動かしてよい（番人は単位の換算＝率×WorkingMenStdShare＝0.002 を見る・動かすなら宣言）。
     //   ⚠読み替えは戦死の総数を (145) の前の水準へ戻すが、兵1人あたりの割合を読む項（厭戦の戦死の項 casTerm＝WarExhaustionCasualty×戦死÷兵士・新兵器の損耗 lossI）は
     //     (145) の前とも後とも違う値（約3.6倍）になる＝全面の接触の月の厭戦の項 0.0012→0.0043／月（基礎 0.03 に比べて小さい【推】）。
-    public double WarCasualtyRate = 0.002 / Military.WorkingMenStdShare;
+    public RatePerMonth WarCasualtyRatePerMonth = new(0.002 / Military.WorkingMenStdShare);
     // 戦死の月次上限＝兵士の これ（改修2026-06-28：0.15→0.04＝総力戦で年〜40%）。
     //   ★2026-09-27 回2-1b：据え置き。Rate 0.002 で上限に張り付く月は 0.0%（seed1/2/3）＝錨には効いていない（上限が効き始める Rate の p10 は 0.08〜0.09）。
     //   ★2026-10-02 (156)：兵の頭数の単位で読む値（人口の頭数に依らない＝兵1人あたり）＝(145) の読み替えの外のまま。戦死の率を兵の単位へ読み替えた後（0.0072）も張り付く月は 0.0%（探索の腕 B の5種・全ての年代）。
-    public double WarCasualtyMonthlyCap = 0.04;
+    public RatePerMonth WarCasualtyCapPerMonth = new(0.04);
     public Share OfficerCasualtyShare = new(0.06);    // B-1：戦死の一部が士官＝伝統支配層(貴族)にも及ぶ割合＝WarFeverを煽る貴族も血を流す（士官は少数なので小・上限は貴族の5%/月）
 
     // === 改修2026-06-28：国家ランク・通商破壊・技術優位・外交アクション（ユーザー指示） ===
     // 国家ランク（列強/中堅/弱小）＝NationalScore の相対閾値で四半期ごとに動的分類（数に限りなし・ランク変化でも同盟/戦争は継続）。
     // 実国家を首位スコア比で3層に分け、抽象勢力(Nation==null＝被植民地の弱小勢力)は常に弱小。
-    public double GreatPowerScoreFraction = 0.35;  // 首位比率式のランク判定。53カ国世界（実国>12）では人数制に置換済みだが、**実国12以下の世界（テスト・較正）では現役**（Diplomacy.cs の if (real.Count > 12) の else 側＝台帳訂正2026-07-12・旧注記「廃止・残置」は不正確）
-    public double MinorPowerScoreFraction = 0.22;  // 実国12以下の世界（テスト・較正）では現役（GreatPowerScoreFractionと同じ if (real.Count > 12) の else 側）
+    public Share GreatPowerScoreFraction = new(0.35);  // 首位比率式のランク判定。53カ国世界（実国>12）では人数制に置換済みだが、**実国12以下の世界（テスト・較正）では現役**（Diplomacy.cs の if (real.Count > 12) の else 側＝台帳訂正2026-07-12・旧注記「廃止・残置」は不正確）
+    public Share MinorPowerScoreFraction = new(0.22);  // 実国12以下の世界（テスト・較正）では現役（GreatPowerScoreFractionと同じ if (real.Count > 12) の else 側）
     // P7 制度疲労（2026-07-17）：InstitutionalDecay の読み3チャネル＋脱出動学の係数。主フラグ＝3チャネル重み（全0で完全休眠・状態更新も走らない）
     public double DecayReformResistWeight = 0.75;   // ①改革への抵抗＝旧支配層の政治力×(1+k×decay)（配線1本＝InterestGroups.PoliticalWeight Closed分岐）。live 0.75（清decay0.8で×1.6）
     public double DecayTechAdoptWeight = 0.75;      // ②技術採用の遅延＝キャッチアップ採用速度×(1−k×decay)。live 0.75（清decay0.8で×0.4＝科挙官僚制の遅い近代化）
@@ -1854,7 +1854,7 @@ public sealed class Coefficients
     public double HegemonRestraintFloor = 0.25;    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停止はしない）
     // リアリティ補強（改修2026-06-28・第4弾）。
     public RatePerMonth PrizeMoneyRatePerMonth = new(0.004);          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 敵の商人から制海国の兵士へ（両建て保存・2026-09-30 支払いの段3-2＝旧は国庫から国庫へ）。海軍を持つ交易上の意味
-    public double PrizeCargoShare = 1.0;           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×(1-CommerceRaidFactor))』比例へ移すブレンド（prize-money-gdp-based-no-cargo）。1=完全に積荷連動（内陸大国を封鎖しても賞金0）/0=現行のGDP比例（恒等）
+    public Share PrizeCargoShare = new(1.0);           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×(1-CommerceRaidFactor))』比例へ移すブレンド（prize-money-gdp-based-no-cargo）。1=完全に積荷連動（内陸大国を封鎖しても賞金0）/0=現行のGDP比例（恒等）
     public double ColonizeAnnexMilitancy = 0.3;    // A5無血植民地化の被支配不満（接収植民地のMilitancy/属国pop闘争度の初期値＝抵抗の実体化）
     public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
     // ★★列強の介入と和平提案（docs/202607/20260731_列強の介入と和平提案_部分完了.md【一部】.md・器2026-08-01）：
@@ -2861,7 +2861,7 @@ public sealed class Coefficients
     public double FascismCrisisLeftRef = 0.30;    // 左派の脅威の物差し＝社会主義＋共産主義のシェアがこれで満額＝同上
     public double IdeologyGateIndScale = 3.0;   // 政16：発展度スカラーの工業化正規化スケール（frontierInd/これ をClamp01）。非0必須（0除算回避）。発展度＝ファシズムの支持の式（UpdateShares）と発見パネルのホバー
     public double IdeologyGateUrbanWeight = 0.5;   // 政16：発展度スカラーにおける都市労働者シェアの加重（0=工業化度のみ・1=都市シェアのみ）
-    // 【墓標2026-09-27・旗の焼き込み（回2-1b・mil-01・x-01）】CasualtiesFromContact（外2・1.0で点火済み）＝戦死の基準を自軍の Military にする0の枝を削除。戦死の式は Diplomacy.WarCasualties（兵の頭数×接触÷自軍のゲージ×WarCasualtyRate）
+    // 【墓標2026-09-27・旗の焼き込み（回2-1b・mil-01・x-01）】CasualtiesFromContact（外2・1.0で点火済み）＝戦死の基準を自軍の Military にする0の枝を削除。戦死の式は Diplomacy.WarCasualties（兵の頭数×接触÷自軍のゲージ×WarCasualtyRatePerMonth）
     public double WarWearinessDecays = 1.0;   // 外3：非交戦国の厭戦の扱い。0=Step冒頭で即時0リセット（旧＝厭戦の開戦抑止が講和の翌月に消える）／>0=WarWearinessDecayRateで指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。バランス2026-07-07有効化：終戦翌月の再参戦（AI監査の愚行#5）を解消し敗戦国に回復期を与える＝首位交代を促す
     public double WarWearinessDecayRate = 0.97;   // 外3：WarWearinessDecays>0のときの非交戦国厭戦の月次残存率。WarWearinessDecays=0では未参照
     // 【墓標2026-09-26】AbstractTargetReparations（外8・抽象標的の国庫の3割を賠償へ）＝回1-1で削除。抽象標的は World を持たない＝受け手だけが +rep を記帳して金が世界の外から湧いた（片側記帳・段0の番人 fis-21）

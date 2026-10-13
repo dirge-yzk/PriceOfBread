@@ -196,7 +196,7 @@ public class WarThemeTests
 
     // ★(170) 厭戦の基礎＝動員の負担（外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」（動員の深さか軍需支出÷GDP）へ置き換える」）。
     //   ★物差しは作者の裁定（2026-09-26 §10-11-2 B11）＝「厭戦の物差しは「兵士の数÷人口」。」＝(172) で裁定の形へ直した（反証役 vm3#1＝(170) の入れた形は兵役の母数÷ConscriptionFraction）。
-    //   基礎＝WarExhaustionRate×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）（割る数は [戦争⑤] の推奨「総動員の上限で今の0.03」を (145) の兵の単位で
+    //   基礎＝WarExhaustionRatePerMonth×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）（割る数は [戦争⑤] の推奨「総動員の上限で今の0.03」を (145) の兵の単位で
     //   読み替えた＝推奨で進めた・読み替えは AI＝作者の承認は未確認）。
     //   統制盤面＝OneFront の仏英（交戦中・1戦線・平時の常備軍＝割合は総動員の上限より小さい）。外交の1か月の説明台帳の「基礎の消耗」が両国それぞれの式と一致する
     //   （旧の一律 0.03 なら赤・(170) の入れた形〔兵役の母数・ConscriptionFraction〕なら赤）。両国の割合は違う＝国ごとの量。実際の厭戦の更新も同じ値を使う＝最初の「上限クランプ」の項が0
@@ -221,8 +221,8 @@ public class WarThemeTests
                 else if (t.Reason == "上限クランプ(100%)" && double.IsNaN(clamp)) clamp = t.Delta;   // 最初のクランプ＝厭戦の主の更新（2本目は戦死の衝撃の分）
             }
             Assert.False(double.IsNaN(b), "前提が崩れた：厭戦の内訳に基礎の項がない（戦争が回っていない）");
-            Assert.Equal(c.WarExhaustionRate * s / full, b);
-            Assert.True(b < c.WarExhaustionRate, $"基礎が旧の一律の値（{c.WarExhaustionRate}）のまま（{b:G6}）");
+            Assert.Equal(c.WarExhaustionRatePerMonth.Value * s / full, b);
+            Assert.True(b < c.WarExhaustionRatePerMonth.Value, $"基礎が旧の一律の値（{c.WarExhaustionRatePerMonth.Value}）のまま（{b:G6}）");
             Assert.True(w.SelfPower!.WarExhaustion < 1, "前提が崩れた：厭戦が上限に張り付いた（クランプが正しく0にならない）");
             Assert.Equal(0.0, clamp);
         }
@@ -249,7 +249,7 @@ public class WarThemeTests
         foreach (var t in br.Explain!.Get("Exhaustion")) if (t.Reason == "基礎の消耗") b = t.Delta;
         Assert.False(double.IsNaN(b), "前提が崩れた：英の厭戦の内訳に基礎の項がない（戦争が回っていない）");
         Assert.Equal(0.0, b);
-        Assert.Equal(c.WarExhaustionRate, ab.WarExhaustion, 12);
+        Assert.Equal(c.WarExhaustionRatePerMonth.Value, ab.WarExhaustion, 12);
     }
 
     // ★検証2026-09-23で追加：突然変異M4（`civShare = civToll` ＝戦線数で割らない）が上の3本を**全て緑のまま通した**。
@@ -295,7 +295,7 @@ public class WarThemeTests
     }
 
     // ===== 戦死の式の番人（2026-09-25 初版・2026-09-27 回2-1b で基準を兵の頭数へ＝棚卸し mil-01）=====
-    // ⚠機構だけを見る：月の戦死（兵士・上限前）＝Rate×兵士POP×（接触÷自軍の Military）で、兵士POP×WarCasualtyMonthlyCap で頭打ちになる。
+    // ⚠機構だけを見る：月の戦死（兵士・上限前）＝Rate×兵士POP×（接触÷自軍の Military）で、兵士POP×WarCasualtyCapPerMonth で頭打ちになる。
     //   分子（戦死）と分母（月次上限・厭戦＝戦死÷兵士）が同じ頭数の規則で数えられる（回2-1b の番人）。
     //   ①同じ戦争（同じ接触・同じゲージ）で兵の頭数だけ変えると、戦死は頭数に比例し、厭戦の増分は変わらない。
     //   ②兵1人あたりのゲージ（装備・質＝時代で約1000倍動く量）だけ変える＝ゲージと接触を同じ倍率で動かしても、戦死は動かない。
@@ -315,18 +315,18 @@ public class WarThemeTests
             sim.Diplomacy.WarCasualties(p, c, contactStrength);
             return (sb - fr.SoldierSizeK(), p.WarExhaustion);
         }
-        double share = 0.05 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;   // 自軍のうち接触した割合＝上限の1/20（係数の値に依らず上限の十分下）
+        double share = 0.05 * c.WarCasualtyCapPerMonth / c.WarCasualtyRatePerMonth;   // 自軍のうち接触した割合＝上限の1/20（係数の値に依らず上限の十分下）
 
         // (1) 水準：兵士の減り＝Rate×兵士×接触÷ゲージ・厭戦の増分＝重み×戦死÷兵士＝重み×Rate×割合
         var (d1, e1) = Hit(share * m0);
-        Assert.True(Math.Abs(d1 - c.WarCasualtyRate * s0 * share) <= 1e-9 * d1, $"戦死が Rate×兵士×接触÷ゲージ でない（実 {d1:G17} 期待 {c.WarCasualtyRate * s0 * share:G17}）");
-        Assert.True(Math.Abs(e1 - c.WarExhaustionCasualty * c.WarCasualtyRate * share) <= 1e-9 * e1, $"厭戦の増分が 重み×Rate×割合 でない（実 {e1:G17}）");
+        Assert.True(Math.Abs(d1 - c.WarCasualtyRatePerMonth.Value * s0 * share) <= 1e-9 * d1, $"戦死が Rate×兵士×接触÷ゲージ でない（実 {d1:G17} 期待 {c.WarCasualtyRatePerMonth.Value * s0 * share:G17}）");
+        Assert.True(Math.Abs(e1 - c.WarExhaustionCasualty * c.WarCasualtyRatePerMonth.Value * share) <= 1e-9 * e1, $"厭戦の増分が 重み×Rate×割合 でない（実 {e1:G17}）");
 
         // (2) 同じ戦争で兵の頭数だけ3倍（接触もゲージも同じ）：戦死は頭数に比例して3倍・厭戦の増分（戦死÷兵士）は同じ
         double s1 = fr.SoldierSizeK();
         foreach (var pop in fr.AllPops()) if (pop.IsSoldier) pop.Size *= 3.0;
         var (d2, e2) = Hit(share * m0);
-        Assert.True(Math.Abs(d2 - c.WarCasualtyRate * 3.0 * s1 * share) <= 1e-9 * d2, $"頭数を3倍にしても戦死が頭数に比例しない（実 {d2:G17} 期待 {c.WarCasualtyRate * 3.0 * s1 * share:G17}）");
+        Assert.True(Math.Abs(d2 - c.WarCasualtyRatePerMonth.Value * 3.0 * s1 * share) <= 1e-9 * d2, $"頭数を3倍にしても戦死が頭数に比例しない（実 {d2:G17} 期待 {c.WarCasualtyRatePerMonth.Value * 3.0 * s1 * share:G17}）");
         Assert.True(Math.Abs(e2 - e1) <= 1e-9 * e1, $"頭数だけ変えたのに厭戦の増分が動いた（{e1:G17} → {e2:G17}）＝分子と分母の規則が違う");
 
         // (3) 兵1人あたりのゲージだけ1000倍（接触も同じ倍率＝接触した割合は同じ）：戦死は動かない＝ゲージに引きずられない
@@ -334,7 +334,7 @@ public class WarThemeTests
         p.Military = 1000 * m0;
         var (d3, e3) = Hit(share * 1000 * m0);
         p.Military = m0;
-        Assert.True(Math.Abs(d3 - c.WarCasualtyRate * s2 * share) <= 1e-9 * d3, $"ゲージを1000倍にすると戦死が動く（実 {d3:G17} 期待 {c.WarCasualtyRate * s2 * share:G17}）");
+        Assert.True(Math.Abs(d3 - c.WarCasualtyRatePerMonth.Value * s2 * share) <= 1e-9 * d3, $"ゲージを1000倍にすると戦死が動く（実 {d3:G17} 期待 {c.WarCasualtyRatePerMonth.Value * s2 * share:G17}）");
         Assert.True(Math.Abs(e3 - e1) <= 1e-9 * e1, $"ゲージだけ変えたのに厭戦の増分が動いた（{e1:G17} → {e3:G17}）");
 
         // (4) 接触0＝出血0。自軍のゲージが0や NaN なら押しも無い＝出血0（割合へ0除算・NaN を通さない）
@@ -353,13 +353,13 @@ public class WarThemeTests
         {
             double sb = fr.SoldierSizeK();
             var (d, _) = Hit(k * m0);
-            Assert.True(Math.Abs(d - sb * c.WarCasualtyMonthlyCap) <= 1e-9 * d,
-                $"上限で頭打ちにならない（割合×{k:G}：実 {d:G17} 上限 {sb * c.WarCasualtyMonthlyCap:G17}）");
+            Assert.True(Math.Abs(d - sb * c.WarCasualtyCapPerMonth.Value) <= 1e-9 * d,
+                $"上限で頭打ちにならない（割合×{k:G}：実 {d:G17} 上限 {sb * c.WarCasualtyCapPerMonth.Value:G17}）");
         }
     }
 
     // ★戦死の率は兵の頭数の単位（2026-10-02 (156)＝(145) の兵の単位の読み替えの取りこぼし・(157) で機構と単位の換算の形へ書き直した）：
-    //   (1) 全面の接触（自軍の全てがぶつかる月）の兵1人の月の死＝WarCasualtyRate そのもの（総力戦の月の上限の下）＝係数の名乗り「接触した兵1人の月の死亡率」。
+    //   (1) 全面の接触（自軍の全てがぶつかる月）の兵1人の月の死＝WarCasualtyRatePerMonth そのもの（総力戦の月の上限の下）＝係数の名乗り「接触した兵1人の月の死亡率」。
     //   (2) 係数＝2026-09-27 回2-1b の較正（兵を全人口の頭数で数えた単位で総量の錨に合わせた 0.002）を (145) の兵の単位の比（Military.WorkingMenStdShare）で読み替えた値
     //       ＝率×WorkingMenStdShare＝0.002（単位の換算の不変条件）。旧値 0.002 を読み替えずに残すと (153)〜(155) の戦死の NG（1790〜1810年代が史実の14〜32分の1）。
     //   ⚠(157) 反証役の指摘＝この率の分母は接触した兵・史実の兵1人の月の死（ナポレオン戦争 約0.7% ほか）の分母は動員した兵の全員＝史実の帯で係数を固定しない（旧の 0.5〜1.5% の判定は外した）。
@@ -374,14 +374,14 @@ public class WarThemeTests
         p.WarExhaustion = 0;
         sim.Diplomacy.WarCasualties(p, c, m0);   // 接触＝自軍のゲージ＝全てがぶつかる月（制空は既定の中立＝×1.0）
         double rate = (s0 - fr.SoldierSizeK()) / s0;
-        Assert.True(rate < c.WarCasualtyMonthlyCap, $"前提が崩れた：全面の接触で総力戦の月の上限に張り付いた（{rate:P3}）");
-        Assert.True(Math.Abs(rate - c.WarCasualtyRate) <= 1e-9 * c.WarCasualtyRate, $"全面の接触の月の兵1人の死 {rate:G17} が率 {c.WarCasualtyRate:G17} でない");
-        Assert.True(Math.Abs(c.WarCasualtyRate * Military.WorkingMenStdShare - 0.002) <= 1e-12,
-            $"戦死の率×WorkingMenStdShare＝{c.WarCasualtyRate * Military.WorkingMenStdShare:G17}（2026-09-27 の較正 0.002 を兵の頭数の単位へ読み替えた値でない）");
+        Assert.True(rate < c.WarCasualtyCapPerMonth.Value, $"前提が崩れた：全面の接触で総力戦の月の上限に張り付いた（{rate:P3}）");
+        Assert.True(Math.Abs(rate - c.WarCasualtyRatePerMonth.Value) <= 1e-9 * c.WarCasualtyRatePerMonth.Value, $"全面の接触の月の兵1人の死 {rate:G17} が率 {c.WarCasualtyRatePerMonth.Value:G17} でない");
+        Assert.True(Math.Abs(c.WarCasualtyRatePerMonth.Value * Military.WorkingMenStdShare - 0.002) <= 1e-12,
+            $"戦死の率×WorkingMenStdShare＝{c.WarCasualtyRatePerMonth.Value * Military.WorkingMenStdShare:G17}（2026-09-27 の較正 0.002 を兵の頭数の単位へ読み替えた値でない）");
     }
 
     // ===== ★新兵器の必要性の損耗の記帳（2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）=====
-    // ⚠機構だけを見る：戦死（WarCasualties）はその月の兵の損耗の割合（戦死÷兵士）÷総力戦の月の上限（WarCasualtyMonthlyCap）を陸と空へ分けて
+    // ⚠機構だけを見る：戦死（WarCasualties）はその月の兵の損耗の割合（戦死÷兵士）÷総力戦の月の上限（WarCasualtyCapPerMonth）を陸と空へ分けて
     //   World.DiscoveryLossQ に積む（空＝制空劣勢で増えた分）。単位＝脅威の割合と同じ「最大を1とした割合」＝上限で頭打ちの月はちょうど1。
     //   艦隊摩耗は沈んだ割合（摩耗÷海軍シェア）÷NavalAttritionRatePerMonth を海へ積む。読み手（発見の判定）は DiscoveryScoreTests が見る。
     [Fact]
@@ -404,7 +404,7 @@ public class WarThemeTests
         Assert.Equal(0.0, full[air]);
         Assert.Equal(0.0, full[sea]);
         // (2) 上限の下：強さ＝戦死÷兵士÷上限＝Rate×接触した割合÷上限（接触した割合を上限の1/20 に置く＝0.05）
-        double share = 0.05 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;
+        double share = 0.05 * c.WarCasualtyCapPerMonth / c.WarCasualtyRatePerMonth;
         var low = Hit(share * m0, 0.5);
         Assert.Equal(0.05, low[land], 9);
         // (3) 制空劣勢（0＝敵が空を握る）：戦死が (1＋AirCasualtyWeight) 倍・増えた分が空＝空÷(陸＋空)＝1−1÷(1＋AirCasualtyWeight)
@@ -472,7 +472,7 @@ public class WarThemeTests
         var order = new System.Collections.Generic.List<Power>();
         foreach (var p in sim.Diplomacy.Powers) if (p == fr || p == br || p == am) order.Add(p);
         Assert.Equal(3, hits.Count);
-        double Contact(Power p) { var (f, s) = hits[order.IndexOf(p)]; return f * p.Military / (c.WarCasualtyRate * s); }
+        double Contact(Power p) { var (f, s) = hits[order.IndexOf(p)]; return f * p.Military / (c.WarCasualtyRatePerMonth.Value * s); }
         double m1 = Math.Min(w1.PushA, w1.PushB), m2 = Math.Min(w2.PushA, w2.PushB);
         Assert.True(Math.Abs(Contact(fr) - (m1 + m2)) <= 1e-9 * (m1 + m2), $"仏の接触 {Contact(fr):G17} が2戦線の min(押し) の和 {m1 + m2:G17} でない");
         Assert.True(Math.Abs(Contact(br) - m1) <= 1e-9 * m1, $"英の接触 {Contact(br):G17} が仏英戦線の min(押し) {m1:G17} でない");

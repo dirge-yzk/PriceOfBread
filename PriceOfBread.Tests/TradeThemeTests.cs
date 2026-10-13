@@ -17,7 +17,7 @@ public class TradeThemeTests
     public void テーマI_既定係数が方針どおり()   // 休眠復旧2026-07-08：A復旧（トリアージ文書）で拿捕実積荷・内陸距離減衰は有効化＝新既定を番人化
     {
         var c = new Coefficients();
-        Assert.Equal(1.0, c.PrizeCargoShare);          // A-5有効化（賞金は実積荷基準）
+        Assert.Equal(1.0, c.PrizeCargoShare.Value);          // A-5有効化（賞金は実積荷基準）
         Assert.Equal(1.0, c.InlandPortDistanceDecay);  // A-4有効化（港湾集約の創発）
     }
 
@@ -25,7 +25,7 @@ public class TradeThemeTests
     public void テーマI_全機能係数有効化でも保存則が保たれる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
-        sim.Coef.PrizeCargoShare = 1.0;             // 拿捕賞金の積荷連動
+        sim.Coef.PrizeCargoShare = new Share(1.0);             // 拿捕賞金の積荷連動
         sim.Coef.InlandPortDistanceDecay = 1.0;     // 内陸港距離減衰（NearestPortDistanceKm=0なら不発だが係数経路は走る）
         var ex = Record.Exception(() => sim.Run(200));   // §11.6（貨幣・人口保存と境界）が全ティック・全国で保持
         Assert.Null(ex);
