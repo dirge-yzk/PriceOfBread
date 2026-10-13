@@ -444,7 +444,7 @@ public class UnitTypeTests
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 2) / 13.0), BitConverter.DoubleToInt64Bits(got));
         }
         foreach (var old in new[] { "ConscriptionRate", "NavalAttritionRate", "ArmsWearRate" })
-            Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は「存在しない係数名」で止まる）
+            Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
     }
 
     [Fact]
