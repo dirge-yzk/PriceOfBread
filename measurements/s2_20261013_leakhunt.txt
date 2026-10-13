@@ -1,0 +1,2 @@
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）（上書き LuxuryIncomeElasticity=0.5 DomesticServiceUsesIncomeElasticity=1 DomesticServiceProductivity=0.5 DomesticServiceRankless=1）

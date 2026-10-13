@@ -1,5 +1,6 @@
 """(299) 線(3) 奢侈品の所得弾力の読み手（読むだけ・挙動は変えない）。
   ⚠(301) main には (299) のコードが入っていない（B は採らなかった＝記録だけ）＝nation_s の luxuryIncomeRatio・crimeRateWorstRegionPerMonth の列は枝 l3 の木（1e20451 以後）でだけ出る。main の木の出力では動かない。
+  ⚠(304) 枝 s2（(302)）は列 luxuryIncomeRatio を worldRealIncomePerCapitaPerMonth へ置き換えた＝s2 の木の出力ではこの読み手の奢侈品の節は空になる（落ちはしない）。s2 の出力は s2/an_s2.py で読む。
 事前登録 measurements/l3_20261013_prereg.txt の [4][5]。
   python an_l3.py A=<ins> B=<ins> [C=<ins> ...]   （先頭の腕が基線 A・採否は B を A に対して読む）
   入力＝`INS=1 POB_INSTRUMENTS_NATIONS=イギリス,フランス,ネーデルラント,ポルトガル bash scripts/instruments/batch.sh run <腕> 10` の <出力>/ins

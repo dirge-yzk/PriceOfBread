@@ -1,0 +1,12 @@
+seed 1: 払えない額のある月の binder {'gateClosed': 2, 'full': 18} 停止0回
+seed 2: 払えない額のある月の binder {'gateClosed': 4, 'full': 20} 停止0回
+seed 3: 払えない額のある月の binder {'gateClosed': 3} 停止0回
+seed 4: 払えない額のある月の binder {'gateClosed': 2, 'full': 17, 'ticket': 4} 停止0回
+seed 5: 払えない額のある月の binder {'gateClosed': 4} 停止0回
+seed 6: 払えない額のある月の binder {'gateClosed': 3, 'full': 3, 'ticket': 5} 停止0回
+seed 7: 払えない額のある月の binder {'full': 12, 'gateClosed': 1} 停止0回
+seed 8: 払えない額のある月の binder {'gateClosed': 4, 'full': 3} 停止0回
+seed 9: 払えない額のある月の binder {'gateClosed': 3, 'full': 11} 停止0回
+seed 10: 払えない額のある月の binder {'gateClosed': 2, 'full': 17} 停止0回
+全体(shortfall>0の月) {'gateClosed': 28, 'full': 101, 'ticket': 9}
+最初の停止0件の直前7か月 {}

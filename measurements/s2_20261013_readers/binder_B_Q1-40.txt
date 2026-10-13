@@ -1,0 +1,12 @@
+seed 1: 払えない額のある月の binder {'full': 37, 'gateClosed': 4, 'ticket': 1} 停止0回
+seed 2: 払えない額のある月の binder {'full': 7} 停止0回
+seed 3: 払えない額のある月の binder {'full': 12, 'gateClosed': 5, 'ticket': 2} 停止0回
+seed 4: 払えない額のある月の binder {'full': 51, 'ticket': 4} 停止0回
+seed 5: 払えない額のある月の binder {'full': 16, 'ticket': 2, 'gateClosed': 2} 停止1回  最初の停止 月64(Q22) 直前7か月の払えない月の binder {'full': 1, 'ticket': 2, 'gateClosed': 2} 利払い÷歳入 [0.5, 0.49, 0.48, 0.66, 0.69, 0.73, 0.23]
+seed 6: 払えない額のある月の binder {'gateClosed': 3, 'full': 3, 'ticket': 1} 停止0回
+seed 7: 払えない額のある月の binder {'full': 16, 'gateClosed': 3} 停止0回
+seed 8: 払えない額のある月の binder {'full': 16, 'gateClosed': 3, 'ticket': 3} 停止0回
+seed 9: 払えない額のある月の binder {'gateClosed': 4} 停止1回  最初の停止 月67(Q23) 直前7か月の払えない月の binder {'gateClosed': 1} 利払い÷歳入 [0.68, 0.67, 0.66, 0.66, 0.66, 0.69, 0.69]
+seed 10: 払えない額のある月の binder {'full': 4, 'gateClosed': 2} 停止0回
+全体(shortfall>0の月) {'full': 162, 'gateClosed': 26, 'ticket': 13}
+最初の停止2件の直前7か月 {'full': 1, 'ticket': 2, 'gateClosed': 3}

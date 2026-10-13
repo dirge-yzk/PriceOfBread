@@ -1,0 +1,8 @@
+# (302) NG（史実比較の桁）の集合の差＝基準 rd:measurements/ng301_20261013:r301（NG 73）に対し 比べる側（読み手の出力 measurements/ng302_20261013）
+A: # 基準 rd:measurements/ng301_20261013:r301＝NG 73／比べる rd:D:/PoB_work/wt_s2/measurements/ng302_20261013:A302＝NG 73 / ## 新しい NG（基準では NG でない）: 0 / ## 外れた NG（比べる側で NG でない）: 0 / ## 前からの NG: 73
+D: # 基準 rd:measurements/ng301_20261013:r301＝NG 73／比べる rd:D:/PoB_work/wt_s2/measurements/ng302_20261013:D302＝NG 81 / ## 新しい NG（基準では NG でない）: 22 / ## 外れた NG（比べる側で NG でない）: 14 / ## 前からの NG: 59
+B: # 基準 rd:measurements/ng301_20261013:r301＝NG 73／比べる rd:D:/PoB_work/wt_s2/measurements/ng302_20261013:B302＝NG 81 / ## 新しい NG（基準では NG でない）: 16 / ## 外れた NG（比べる側で NG でない）: 8 / ## 前からの NG: 65
+C: # 基準 rd:measurements/ng301_20261013:r301＝NG 73／比べる rd:D:/PoB_work/wt_s2/measurements/ng302_20261013:C302＝NG 83 / ## 新しい NG（基準では NG でない）: 20 / ## 外れた NG（比べる側で NG でない）: 10 / ## 前からの NG: 63
+P: # 基準 rd:measurements/ng301_20261013:r301＝NG 73／比べる rd:D:/PoB_work/wt_s2/measurements/ng302_20261013:P302＝NG 72 / ## 新しい NG（基準では NG でない）: 9 / ## 外れた NG（比べる側で NG でない）: 10 / ## 前からの NG: 63
+E: # 基準 rd:measurements/ng301_20261013:r301＝NG 73／比べる rd:D:/PoB_work/wt_s2/measurements/ng302_20261013:E302＝NG 67 / ## 新しい NG（基準では NG でない）: 7 / ## 外れた NG（比べる側で NG でない）: 13 / ## 前からの NG: 60
+止める線＝新しい NG ＞ 外れた NG ＋ 6：A 0 ≦ 6 内側・D 22 ＞ 14+6 外側・B 16 ＞ 8+6 外側・C 20 ＞ 10+6 外側・P 9 ≦ 16 内側・E 7 ≦ 19 内側

@@ -1,0 +1,12 @@
+1_pop_unweighted:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.世界の所得が正でないときと人口0のときは0を配る_買う側が中立へ倒す [101 ms] |   失敗 PriceOfBread.Tests.
+2_fx_multiplied:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.世界の1人あたり実質所得は名目を物価で割った人口加重_為替は掛けない_手の算術 [34 ms] | 失敗!   -失�
+3_no_price_divide:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.世界の所得が正でないときと人口0のときは0を配る_買う側が中立へ倒す [146 ms] |   失敗 PriceOfBread.Tests
+4_double_divide:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.世界の1人あたり実質所得は名目を物価で割った人口加重_為替は掛けない_手の算術 [42 ms] | 失敗!   -失�
+5_national_r:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.家事奉仕は切り替えが立つときだけ同じ式に入る [10 ms] |   失敗 PriceOfBread.Tests.LuxuryIncomeTests.世界の値が�
+6_service_excluded:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.家事奉仕は切り替えが立つときだけ同じ式に入る [43 ms] | 失敗!   -失敗:     1、合格:     8、スキップ: 
+7_service_switch_ignored:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.家事奉仕は切り替えが立つときだけ同じ式に入る [10 ms] |   失敗 PriceOfBread.Tests.LuxuryIncomeTests.奢�
+8_opium_not_excluded:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.奢侈品の欲しい量は買い手の階級ごとのr乗_国単位の一律の倍率ではない_日用品と主食とアヘンは
+9_guard_removed:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.世界の値が正でないとき_所得が正でない人は中立 [9 ms] | 失敗!   -失敗:     1、合格:     8、スキップ:    
+10_productivity_ignored:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.使用人の産出の係数は毎月の能力に届き倍率どおりに変わる_構築時の生産性は1のまま [1 s] | 失�
+11_numerator_after_overwrite:   失敗 PriceOfBread.Tests.LuxuryIncomeTests.家事奉仕は切り替えが立つときだけ同じ式に入る [10 ms] |   失敗 PriceOfBread.Tests.LuxuryIncomeTests.�
+DONE

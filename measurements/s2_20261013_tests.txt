@@ -1,0 +1,5 @@
+# (302) テスト（Release・最終の木 6108474）
+普段のフルスイート（Category!=FullLength）: 1144 本 合格・0 失敗（6分47秒）
+全長（Category=FullLength）: 3 本 合格・0 失敗（4分9秒）
+LuxuryIncomeTests: 11 本（家事奉仕の優先配分の番人を含む）・DormantIdentityTests に係数 4 本（DomesticServiceProductivity は scale 型の表・他 3 本はゼロの表）
+経路名の鍵の行は移し方の呼び出しを指す: 合格（route_names.py の MultiNationSim.cs の鍵 8 本を +1）
