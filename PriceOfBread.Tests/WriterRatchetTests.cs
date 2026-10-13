@@ -383,7 +383,9 @@ public class WriterRatchetTests
     //   新しい計数「発見：平滑化した値段の歩（国×四半期）」＝数えていなかった Discovery.AdvancePrice（単価 19.63 µs）＝2,503（40四半期）。
     //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
-    [InlineData(CostLedger.ConstructionSeen, 7299L)]
+    // ★2026-10-13 表の更新（(294) h6′＝英の地租の段 2→1.275 と借入の門の限界 MaxInterestShareOfRevenue 0.55→0.67＝軌道が動いた分の宣言・新しい計数の処理は無い）：覇権の判定 3,375,747→3,008,569（−10.9%＝10% を超えて下がった＝表を下げる・最初の40四半期の同盟の候補が居る月の軌道）・建設：見た生産者（旬）7,299→6,318（−13.4%・同じ）。ほかは許しの内（フルスイートで確かめた）。
+    //   全長の10種の推定は 242.4 秒（r293 の 243.4 から −1.0・上限 248.5 秒の内・払っていない・実装ログ (294)）。
+    [InlineData(CostLedger.ConstructionSeen, 6318L)]
     [InlineData(CostLedger.CreditSpans, 34146L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
@@ -442,7 +444,7 @@ public class WriterRatchetTests
     //   〔構築時に首都の軍需3財の在庫を1回置く式の入力を変えただけ〕）：覇権の判定 2,104,027→3,375,747（+60.5%＝最初の40四半期の同盟の候補が居る月〔国の数〕の軌道【推・1種40四半期の国の数は未確認】・10種で分離独立 8→16・処理の形は同じ）・
     //   請求：見た生産者（月）2,626→2,711（+3.2%＝許しの +2% を超えた軌道・(197) の宣言 3,013 の下）。ほかの16本は許しの内（+2%／−10%・フルスイートで確かめた）。
     //   全長の10種（計器つきの腕 B10）の推定 243.0→242.8 秒（上限 248.5 秒の内・払っていない・実装ログ (239)）。
-    [InlineData(CostLedger.DiploHegemonScans, 3375747L)]
+    [InlineData(CostLedger.DiploHegemonScans, 3008569L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]
