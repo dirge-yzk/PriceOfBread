@@ -42,7 +42,7 @@ public sealed class NationConfig
     //   ⚠消費税（専売）は法の段でなく生産の決断（AI は毎四半期の教義で対象を置く）＝初期値を持たない。関税は initialTariff。
     public int PollTaxStage = 1;
     // ★土地税の段だけ小数を許す（2026-10-12 (288)・測り直し 2026-10-13 (291)）＝段の間の開始値。Government.TaxValue が整数の段では旧と全ビット一致（既定は旧の値）。
-    //   英の行を 1.275（率 0.17）にする腕を測る（採否は measurements/f1c_20261013_prereg.txt）＝O'Brien 1988 表4 の 1785 の直接税〔地租＋査定税〕÷名目GDP（BoE）1.58% を、査定税を持たないモデルの一つの直接税（地租）で担う
+    //   英の行は 1.275（率 0.17）＝(291) 単独では採らず、(294) h6′ で借入の門の限界 0.67 と一緒に採った（measurements/h6_20261013_prereg.txt・(296) 合流）＝O'Brien 1988 表4 の 1785 の直接税〔地租＋査定税〕÷名目GDP（BoE）1.58% を、査定税を持たないモデルの一つの直接税（地租）で担う
     //   （率 1.0 あたり直接税÷年GDP 約 9.4%・measurements/f1c_20261013_prereg.txt）。
     //   ⚠小数の開始値は段の格子の途中＝実効の率は目標（段の格子）へ Government.Move で這い寄る（距離に比例）。
     public double LandTaxStage = 1;

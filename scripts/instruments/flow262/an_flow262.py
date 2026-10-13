@@ -1,4 +1,5 @@
 """(262) お金の流れの3つの異常の出どころ（線R）の表の読み手。
+  ⚠(296) 注記：この読み手が書く門の 0.55 は (294) より前の借入の門の限界の値（今の既定 Coefficients.MaxInterestShareOfRevenue は 0.67）＝0.55 の数え方は旧の線のまま（係数から読まない）。
   python an_flow262.py <計器の出力ディレクトリ(ins)> <表の出力ディレクトリ> [自国=イギリス] [仏=フランス] [蘭=ネーデルラント]
   入力＝標準の計器（`INS=1 POB_INSTRUMENTS_NATIONS=イギリス,フランス,ネーデルラント bash scripts/instruments/batch.sh run <腕> 10` の <出力>/ins）の
         class_s（階級の貯蓄の在庫・所得・支出）・flow_s（★(262) 貯蓄の書き手の台帳）・fiscal_s（月ごとの財政の鎖）・nation_s（全ての国の四半期の財政の鎖）。

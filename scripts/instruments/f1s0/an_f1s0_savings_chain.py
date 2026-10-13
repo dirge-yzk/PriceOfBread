@@ -1,4 +1,5 @@
 """F1 段0 の表（(258)・実装ログ (257) §5 の fable の設計の段1〜段5 の予測を、今の基線の数字で置き直す入力）の読み手。
+  ⚠(296) 注記：この読み手が書く門の 0.55 は (294) より前の借入の門の限界の値（今の既定 Coefficients.MaxInterestShareOfRevenue は 0.67）＝0.55 の数え方は旧の線のまま（係数から読まない）。
   python an_f1s0_savings_chain.py <計器の出力ディレクトリ(ins)> <表の出力ディレクトリ> [自国=イギリス] [仏=フランス]
   入力＝標準の計器（`POB_INSTRUMENTS_NATIONS=イギリス,フランス INS=1 bash scripts/instruments/batch.sh run <腕> 10` の <出力>/ins）の
         class_s（挙げた国は四半期ごと）・fiscal_s（挙げた国の月ごと）・nation_s（全ての国の四半期ごと・(258) で財政の鎖の列を足した）。

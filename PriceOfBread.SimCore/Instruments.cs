@@ -123,7 +123,7 @@ public static class Instruments
         public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
         // ---- (281) 線O0：借入の門の周り（読むだけ・月ごとの印と四半期の和）。LimitPrev＝前の月の「利払いが限界に届いたか」は四半期をまたぐ（助走の月は -1 へ戻す）
         public double GateInt = double.NaN, GateRev = double.NaN;   // PreBorrow で門が読んだ直近の利払いと歳入（月の決算の終わりの値とは別＝Fiscal.Step が月末に書き換える前）
-        public int LimitNow = -1, Over067Now = -1, LimitPrev = -1;  // 今月の門の入力で 利払い÷歳入が限界に届いたか／仏1788 の線 0.67 を超えたか（-1＝判定に来なかった 0＝いいえ 1＝はい）・前の月の LimitNow
+        public int LimitNow = -1, Over067Now = -1, LimitPrev = -1;  // 今月の門の入力で 利払い÷歳入が限界に届いたか／仏1788 の線 0.67 を超えたか（-1＝判定に来なかった 0＝いいえ 1＝はい）・前の月の LimitNow。⚠(294) から既定の限界も 0.67＝限界を動かさない国では Over067Now（超える）は LimitNow（届く＝以上）とちょうど等しい月だけ違う＝別の物差しとしてはほぼ働かない（列名は変えない）
         public bool WarNow;                                         // 今月交戦中か（WarMonth が軍の更新の直前に立てる・Begin で下ろす）
         public int QLimitMonths, QLimitCrossings, QLimitBorrowMonths, QZombieMonths, QWarGateClosedMonths, QOver067Months, QOver067BorrowedMonths, QOver067RBelow1Months;
         public int QUnpaidObs, QUnpaidMonths, QMegaPass, QMegaOpen;

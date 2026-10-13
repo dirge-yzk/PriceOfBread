@@ -1683,7 +1683,7 @@ public class InstrumentsTests
                 w.BorrowCooldownMonths = 0;
                 w.Coef.MaxInterestShareOfRevenue = new Share(0.55);   // (294) 手で組んだ入力の比（0.30・0.60・0.72・0.10・0.70）が限界の両側にある前提を、世界の既定の限界（0.67）に預けず 0.55 に置く（この国だけの係数）
                 double limit = w.Coef.MaxInterestShareOfRevenue.Value;
-                Assert.InRange(limit, 0.5, 0.6);   // 前提：入力の比（0.30・0.60・0.72・0.10・0.70）が限界 0.55 の両側にある
+                Assert.True(new[] { 0.30, 0.60, 0.72, 0.10, 0.70 }.Count(s => s >= limit) == 3 && new[] { 0.30, 0.60, 0.72, 0.10, 0.70 }.Count(s => s < limit) == 2, "前提：入力の比が限界の両側にある（以上が 0.60・0.72・0.70 の3・未満が 0.30・0.10 の2）＝下の期待の数はこの割り振りの上で手で数えた");   // (296) 反証役：0.55 を置いた後の InRange は何も確かめない＝入力の割り振りを直接見る
                 void Month(double share, double r, double borrowed, double devalued, double payable0, bool war)
                 {
                     w.LastRevenuePerMonth = new MoneyPerMonth(1000); w.LastInterestPerMonth = new MoneyPerMonth(share * 1000);
