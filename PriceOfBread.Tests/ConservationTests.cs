@@ -896,6 +896,23 @@ public class ConservationTests
         Assert.Equal(full.spent * 0.5, half.spent, 6);   // 支払い率の分だけ（量を減らす）
     }
 
+    /// <summary>★(293) 港の州の混雑を解くのに要る建設費 <see cref="MultiNationSim.PortCapitalNeed"/>（計器 port_s の needMoneyAtQuarterEnd・挙動は読まない）。
+    /// 係数は明示（目標 0.9・容量→取扱高 2.0・建設費 40）・律速率 0.4・潜在量 1000・減耗で失った容量 4。
+    /// **期待は手で打った数**（関数の式を写さない）：目標へ上げる不足 (0.9−0.4)×1000＝500 を容量 1 単位が 2 だけ足すので 250 単位＋減耗の補填 4＝254 単位×40＝10160。
+    /// 混雑していない（律速率 0.95）なら不足は負で減耗の 4 を超える＝0・潜在量 0 なら減耗の補填だけ 4×40＝160・律速率 NaN と容量→取扱高 0 は 0。
+    /// ⚠突然変異：容量→取扱高の割り算を落とす（504×40）・減耗の項を落とす（250×40）・NaN の否定形を外す で赤。</summary>
+    [Fact]
+    public void 港の混雑を解くのに要る建設費は手で打った数と一致する()
+    {
+        var c = new Coefficients { PortCongestionTarget = 0.9, PortCapToThroughput = 2.0, PortBuildCostPerUnit = 40.0 };
+        static Region R(double throttle, double potential) => new Region { LastTradeThrottle = throttle, LastTradePotential = potential };
+        Assert.Equal(10160.0, MultiNationSim.PortCapitalNeed(R(0.4, 1000), c, 4), 9);
+        Assert.Equal(0.0, MultiNationSim.PortCapitalNeed(R(0.95, 1000), c, 4), 9);
+        Assert.Equal(160.0, MultiNationSim.PortCapitalNeed(R(0.4, 0), c, 4), 9);
+        Assert.Equal(0.0, MultiNationSim.PortCapitalNeed(R(double.NaN, 1000), c, 4), 9);
+        Assert.Equal(0.0, MultiNationSim.PortCapitalNeed(R(0.4, 1000), new Coefficients { PortCongestionTarget = 0.9, PortCapToThroughput = 0, PortBuildCostPerUnit = 40.0 }, 4), 9);
+    }
+
     /// <summary>★(223) 国家の港建設の請求は四半期の締め月の請求（払える額と比べて国家の支払い率 r を決める）に入る＝貢納・招聘の支度金・外資の利回りと同じ位置。請求に入れないと
     /// （旧）r＝1 のまま国庫を超えて払う。盤面＝英の1国を次の四半期の最後の日の手前まで進め・締め月の直前に蒸気機関の発見・混雑した港・大きな裁量余剰を置き、PortStateFrac の有無だけを変える
     /// ＝請求が大きいほど締め月の払えない額が増え、借りられない英では切り下げの額（払える額を埋める＝Fiscal の月初）が増える（r は切り下げで埋まるので切り下げの額で読む）。⚠突然変異「港の請求を足さない」で赤。</summary>

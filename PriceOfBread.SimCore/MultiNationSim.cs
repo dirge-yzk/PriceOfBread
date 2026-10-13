@@ -1406,7 +1406,7 @@ public sealed class MultiNationSim
     /// <summary>★(292) 港の州の混雑を解くのに要る建設費（自国通貨・四半期に1回の額）＝[(混雑の目標 PortCongestionTarget − 律速率 LastTradeThrottle)×潜在量 LastTradePotential ÷ PortCapToThroughput ＋ 今期の減耗で失った容量]×PortBuildCostPerUnit。
     /// 導出：律速率＝min(1, cap÷potential)・cap＝船腹の実効＋PortCapToThroughput×PortCapacity（加法的＝BilateralMarket）。混雑の門（律速率＜目標＜1）の中では 律速率×potential が今の cap そのもの＝目標へ上げる不足は (目標−律速率)×potential・
     /// 港の容量 1 単位が cap を PortCapToThroughput だけ足す。律速率は減耗の前の容量で測った値なので、減耗で失った容量（StepPorts の減耗の前後の差）を補う（無いと毎四半期 PortDecay×PortCapacity だけ足りず門のすぐ下で振動する）。
-    /// 新しい状態は作らない（四半期の最初の清算が書く律速率と潜在量は同じ瞬間の値）。0 以下・NaN は 0。internal＝番人（ConservationTests の港の要る分）が手で組んだ州に当てる。</summary>
+    /// 新しい状態は作らない（四半期の最初の清算が書く律速率と潜在量は同じ瞬間の値）。0 以下・NaN は 0。internal＝番人（ConservationTests.港の混雑を解くのに要る建設費は手で打った数と一致する）が手で組んだ州に当てる。</summary>
     internal static double PortCapitalNeed(Region r, Coefficients c, double lostCapacity)
     {
         if (!(c.PortCapToThroughput > 0)) return 0;
