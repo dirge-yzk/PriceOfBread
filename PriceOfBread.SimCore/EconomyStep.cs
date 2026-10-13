@@ -442,11 +442,11 @@ public static class EconomyStep
     /// ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。</summary>
     internal static double RentShareOf(Producer s, Region region, Coefficients coef, double ruralPop)
     {
-        double rentShare = s.IsRgo ? System.Math.Min(s.RentShare, region.FarmRentCap) : s.RentShare;
+        double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap) : s.RentShare.Value;
         if (coef.RentScarcityElasticity > 0 && s.IsRgo)
         {
             double landScarcity = region.ArableLand < 1e8 ? Math.Max(0, ruralPop / Math.Max(1.0, region.ArableLand) - 1.0) : 0;
-            rentShare = System.Math.Min(s.RentShare * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
+            rentShare = System.Math.Min(s.RentShare.Value * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
         }
         return rentShare;
     }
@@ -795,8 +795,8 @@ public static class EconomyStep
                               + coef.OldLaborFactor * (lpop.AgeShare(65, double.PositiveInfinity, 0) + lpop.AgeShare(65, double.PositiveInfinity, 1) * part);
                 if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0) adults *= Math.Max(0.5, 1.0 - coef.OpiumLaborPenalty * region.OpiumAddiction);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）
                 // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
-                lpop.ChildLaborRate = LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]);   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
-                double work = adults + lpop.AgeShare(10, 15) * coef.ChildWorkFactor * lpop.ChildLaborRate;
+                lpop.ChildLaborRate = new Share(LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]));   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
+                double work = adults + lpop.AgeShare(10, 15) * coef.ChildWorkFactor * lpop.ChildLaborRate.Value;
                 // 倍率排除②：旧 work/0.64（標準構成を等倍化する正規化定数）を「各popの初期労働供給 work0」基準へ一般化。
                 // 初回（t=0）の work を基準に捕捉＝各popが自分の出発点に対する相対変化（女性財産権法・児童労働禁止・戦死）で効く。標準構成は work0=0.64 で旧挙動と一致＝較正中立。
                 if (lpop.InitialWork < 0) lpop.InitialWork = work;
@@ -804,7 +804,7 @@ public static class EconomyStep
                 //   ⚠**新しい経路を作らない**＝既存の労働供給（この work）に乗せるだけ＝産出減・賃金上昇・食料不足は既存の市場が創発させる。
                 //   ⚠基準（InitialWork）の捕捉より**後**に掛ける＝平時の労働を基準に測る（動員中の細った労働を新しい基準にしてしまわない）。
                 //   ⚠民兵率0（既定 RevoltMilitiaRaise=0 では恒久0）では分岐に入らない＝厳密恒等。NaN でも条件が偽＝旧側へ倒れる。
-                if (lpop.MilitiaShare > 0) work *= System.Math.Max(0.0, 1.0 - lpop.MilitiaShare);
+                if (lpop.MilitiaShare.Value > 0) work *= System.Math.Max(0.0, 1.0 - lpop.MilitiaShare.Value);
                 boost *= work / System.Math.Max(1e-9, lpop.InitialWork);
             }
             // 土地作物RGO（採取/農業のうち鉱物・労働・役務を除く＝穀物/畜産/木/綿花等）に土地の収穫逓減を適用。鉱物は鉱床(mineralMul)が別に律速。
@@ -1840,7 +1840,7 @@ public static class EconomyStep
             m.Stock = Math.Max(0, available - sold);   // 優先配分の浮動小数点残差で極微の負になりうる（−1e−15）。非負へクランプ
             m.LastProduced = produced[gi];
             m.LastSold = sold;
-            m.LastRation = ration[gi];   // 財別の配給率を記帳（生産タブの材別「供給:n%」が読む唯一の出所）。純記帳＝力学の読み手なし
+            m.LastRation = new Share(ration[gi]);   // 財別の配給率を記帳（生産タブの材別「供給:n%」が読む唯一の出所）。純記帳＝力学の読み手なし
             m.LastShortage = Math.Max(0, totalDemand - available);
             // ※価格形成（在庫ギャップ＋需給フロー）は日次へ移譲（MarketFlow.StepDay）。月次決算はここまで＝
             //   クリアリングと所得決済（金の動き）だけを担い、価格は鼓動（日次）が需給を読んで少しずつ動かす（三層時計）。
@@ -2451,7 +2451,7 @@ public static class EconomyStep
             double rent, wages;
             // 補助率×r（作者裁定 Q9・2026-09-28）：旧＝借入スタックの出費上限（SpendingCapFactor・係数 SubsidyRespectsSpendingCap）を掛けた＝債務の重さは
             //   利子の請求が大きくなることで r に出る＝二重計上なので撤去し、国庫の払える割合 r の1本へ（借金漬けの国は補助を維持できない＝同じ向き）。
-            double subRate = s.SubsidyRate * payRate;
+            double subRate = s.SubsidyRate.Value * payRate;
             // ★国営持分は補助金の対象外（作者裁定2026-08-10「国営工場は常に補助金を出しているようなもの」）。
             //   国営持分は**損失を国庫が全額負う**（下の StateSpent += -valueAdded*stateFrac）ので、そこへ補助金を重ねるのは
             //   同じ支援の二重計上。会計側は元から民営持分（privLoss）にしか乗っていなかったが、**採算の底上げ**（下の margin 緩和）
@@ -2520,9 +2520,9 @@ public static class EconomyStep
             if (coef.FactoryMothballRate > 0 && s.BuiltScale > Eps && !s.IsRgo && Catalog.Goods[gi].Tier != GoodTier.Service)
             {
                 double mbDir = s.SmoothedMargin < -coef.FactoryMothballMarginIn ? 1.0 : s.SmoothedMargin > 0 ? -1.0 : 0.0;
-                if (mbDir != 0) s.MothballFrac = Math.Clamp(s.MothballFrac + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * (1.0 - stateCover));
+                if (mbDir != 0) s.MothballFrac = new Share(Math.Clamp(s.MothballFrac.Value + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * (1.0 - stateCover)));
             }
-            double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
+            double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac.Value)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
             // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
             // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
             double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限（ゲート0＝ScaleMax＝恒等）
@@ -2613,7 +2613,7 @@ public static class EconomyStep
                 // 農業労働は自給分（自作＝市場外の雇用）を失業から除く：高自給の貧農の自作を「失業」と数えない
                 // （主食消費は §EconomyStep で自給ぶんを FoodMet に計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
                 if (s.GoodId == Catalog.FarmLaborId) unsold -= lpop.Subsistence;
-                lpop.UnemploymentRate = PoliticalQuantities.Clamp01(unsold);
+                lpop.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(unsold));
             }
 
         // rank11（ServiceUnemployment=1.0点火2026-08-16・社会移動監査2026-08-15）：役務専任popの失業＝教育→教師/医療→医者/行政→官僚/家事奉仕→使用人。
@@ -2628,7 +2628,7 @@ public static class EconomyStep
                     var sp = region.Pops[s.LaborPopIndex];
                     if (sp.IsSoldier) continue;
                     double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
-                    sp.UnemploymentRate = PoliticalQuantities.Clamp01(coef.ServiceUnemployment * unsold);
+                    sp.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(coef.ServiceUnemployment * unsold));
                 }
 
         // rank10b（JobSearchUsesEma=0.02点火2026-08-16＝月次EMA率・記憶約4年）：慢性失業の記憶＝失業プールの駆動を瞬間UでなくU多年EMAへ。
@@ -2636,8 +2636,8 @@ public static class EconomyStep
         if (coef.JobSearchUsesEma > 0)
             foreach (var p in region.Pops)
             {
-                if (p.UnemploymentEma < 0) p.UnemploymentEma = p.UnemploymentRate;
-                else p.UnemploymentEma += coef.JobSearchUsesEma * (p.UnemploymentRate - p.UnemploymentEma);
+                if (p.UnemploymentEma < 0) p.UnemploymentEma = p.UnemploymentRate.Value;
+                else p.UnemploymentEma += coef.JobSearchUsesEma * (p.UnemploymentRate.Value - p.UnemploymentEma);
             }
     }
 

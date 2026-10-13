@@ -219,7 +219,7 @@ public static class Politics
         bool inRevolt = w.InCivilWar || w.RevoltingFaction is not null || w.PendingRebelRegions is not null;
         foreach (var p in w.AllPops())
         {
-            if (p.MilitiaShare > 0 && !inRevolt) p.MilitiaShare = 0;   // 戦争の終わりという**状態**で剥がす
+            if (p.MilitiaShare.Value > 0 && !inRevolt) p.MilitiaShare = default;   // 戦争の終わりという**状態**で剥がす
             double urban = p.IsUrban ? c.UrbanConsciousnessBoost : 1.0;
             double convert = SchoolingConversion(p, convertNow, c);   // 政15：既定は convertNow（全pop一律・現行恒等）／>0 で pop の就学履歴ストックへ
             // 便乗：勢いある運動は無学な民をも政治化する（教育に依らず＝専制の安定を崩す）。識字が低いほど便乗しやすい（群衆心理）。
@@ -272,7 +272,7 @@ public static class Politics
             // ★段2＝民族項の**一本鎖**（設計メモ §7-3・作者裁定2026-09-09）。⚠旧は同じ民族統一度を3度読んでいた
             //   ＝①国項 UnitySecessionMilitancy×(1−EthnicUnity)×自分の中核度 ②pop項 MinorityMilitancy×(1−中核度) ③上昇鈍化 ×(1−UnityMilitancyRelief×EthnicUnity)。
             //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**なので①③は②の粗い写しにすぎない＝pop解像度の②だけを残す（国平均は②から創発する）。
-            double minorityMil = w.EthnicEnabled ? c.MinorityMilitancy * (1.0 - p.CoreEthnicShare) : 0;
+            double minorityMil = w.EthnicEnabled ? c.MinorityMilitancy * (1.0 - p.CoreEthnicShare.Value) : 0;
             // 参政権の範囲2法（2026-08-16）：移民原住民参政権「あり」＝本国州の非中核分(1−CoreEthnicShare)が政治的国民に算入される
             // ＝少数派の地位不満は ×(1−算入)＝算入1で0（新しい定数を作らない創発形）。植民地格の州は対象外（そちらは植民地参政権＝分離圧の緩和側）。
             // ★E-05段3（2026-09-03）：格を見ず**算入率**で連続に緩める＝本国州は中核度≈1でほぼ0まで消え、植民地は中核度≈0でほとんど残る
@@ -1040,8 +1040,8 @@ public static class Politics
                 int pb = PolicyPreferences.BlocOf(p);
                 if (pb != best.Bloc) continue;
                 double share = Math.Min(1.0, c.RevoltMilitiaRaise * p.Militancy);
-                if (!(share > p.MilitiaShare)) continue;   // 否定形＝NaN は据え置き（上げる側にしか書かない＝再蜂起で札が減らない）
-                p.MilitiaShare = share;
+                if (!(share > p.MilitiaShare.Value)) continue;   // 否定形＝NaN は据え置き（上げる側にしか書かない＝再蜂起で札が減らない）
+                p.MilitiaShare = new Share(share);
             }
         }
         // ★蜂起は地図の上に立つ（内戦一元化・2026-08-30／首都の分離独立・2026-09-28 処理の一元化 段2 束3・作者裁定 a）＝本拠州に拠る反乱国を建て、
@@ -1797,7 +1797,7 @@ public static class Politics
     internal static double AvgRegionCoreShare(Region r)   // ★B1：Colonial.Step の州昇格判定も読む
     {
         double core = 0, size = 0;
-        foreach (var p in r.Pops) if (!p.IsSoldier) { core += p.CoreEthnicShare * p.Size; size += p.Size; }
+        foreach (var p in r.Pops) if (!p.IsSoldier) { core += p.CoreEthnicShare.Value * p.Size; size += p.Size; }
         return size > 1e-9 ? core / size : 1.0;   // pop なし＝1.0（少数派度0＝加算なし＝中立）
     }
 

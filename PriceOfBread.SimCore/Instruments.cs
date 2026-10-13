@@ -1429,7 +1429,7 @@ public static class Instruments
                 foreach (var p in r.Pops)
                 {
                     pop += p.Size; if (!p.IsUrban) rural += p.Size;
-                    unemp += p.Size * p.UnemploymentRate; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;
+                    unemp += p.Size * p.UnemploymentRate.Value; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;
                     if (SettlerOut.TryGetValue(p, out var po)) { settlerOut += po[0]; po[0] = 0; }
                 }
                 bool active = r.State == RegionState.Active;

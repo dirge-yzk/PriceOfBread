@@ -34,7 +34,7 @@ public class MobilityPushTests
             var r = sim.World.Region;
             double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
             r.ArableLand = rural / 2.0;   // 農村人口/耕地=2 → 稀少度=max(0,2−1)=1.0（双子とも同条件＝混んだ州を直接セット）
-            foreach (var pr in r.Producers) if (pr.IsRgo) { pr.RentShare = 0.5; pr.OwnerPopIndex = 0; }   // 地主制を明示（所有=貴族Pops[0]）＝決定論
+            foreach (var pr in r.Producers) if (pr.IsRgo) { pr.RentShare = new Share(0.5); pr.OwnerPopIndex = 0; }   // 地主制を明示（所有=貴族Pops[0]）＝決定論
             EconomyStep.Run(r, sim.World.Coef);   // 1ヶ月だけ直接呼ぶ＝所得の分配式を単離（価格・産出は§④より上流で双子恒等）
         }
         var ro = off.World.Region; var rn = on.World.Region;

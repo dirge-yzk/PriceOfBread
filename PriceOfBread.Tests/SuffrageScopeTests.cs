@@ -24,7 +24,7 @@ public class SuffrageScopeTests
             w.Suffrage = Suffrage.AdultMale;       // 大衆に発言権がある状態＝算入がそのまま声になる
             var col = w.Regions[1];                // 非首都州を植民地格に
             col.Tier = RegionTier.Colonial;
-            foreach (var p in col.Pops) p.CoreEthnicShare = 0.0;   // 全員が非中核（現地民）＝「自国民のみ」では算入0
+            foreach (var p in col.Pops) p.CoreEthnicShare = new Share(0.0);   // 全員が非中核（現地民）＝「自国民のみ」では算入0
         }
         on.World.ColonialSuffrage = ColonialSuffrageLaw.Full;      // ON側だけ全面算入（OFF側は「なし」＝算入0）
         return (off, on);
@@ -77,7 +77,7 @@ public class SuffrageScopeTests
         sim.Run(20);
         var w = sim.World;
         w.Regions[1].Tier = RegionTier.Colonial;
-        foreach (var p in w.Regions[1].Pops) p.CoreEthnicShare = 0.25;   // 非中核が居ても「全面＋あり」なら全量算入
+        foreach (var p in w.Regions[1].Pops) p.CoreEthnicShare = new Share(0.25);   // 非中核が居ても「全面＋あり」なら全量算入
         w.Coef.SuffrageScopeGate = 0;
         var (t0, m0, s0) = InterestGroups.Blocs(w);
         w.Coef.SuffrageScopeGate = 1.0;

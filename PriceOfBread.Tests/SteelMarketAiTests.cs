@@ -200,7 +200,7 @@ public class SteelMarketAiTests
             var (down, up) = FindChainPair(w, rg);
             rg.Markets[down.GoodId].Price = 100.0 * RefAnchor(rg, down.GoodId);   // 下流＝全国で突出した不足（eff≈99）
             down.SmoothedMargin = 1.0;                                            // 旧判断でも建つ＝OFF側の対照が成立する
-            rg.Markets[up.GoodId].LastRation = 0.0;                               // 上流＝配給0％＝連鎖の律速（Fill=0）
+            rg.Markets[up.GoodId].LastRation = new Share(0.0);                               // 上流＝配給0％＝連鎖の律速（Fill=0）
             // 係数5.0＝上流の優先（1+5×(1−Fill)=6）が下流の失業重み上限（1+2×1=3）を必ず上回る＝argmax が決定論
             w.Coef.AiSupplyChainEyes = on ? 5.0 : 0.0;
 

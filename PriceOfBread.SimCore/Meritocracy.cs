@@ -149,7 +149,7 @@ public static class Meritocracy
                 // #14 少数民族の昇格摩擦（ガラスの天井）：少数派ほど(core<1)昇格しにくい＝下層に滞留。均質pop(core=1)で係数1＝中立。
                 // rank17（点火0.5 MinorityPenaltyModernBlend）：開かれた社会（M高）ほど法的障壁が畳まれる。blend=0で×1.0＝旧と厳密恒等。
                 double effPen = c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m);
-                double minorityF = w.EthnicEnabled ? Math.Max(0, 1.0 - effPen * (1.0 - from.CoreEthnicShare)) : 1.0;
+                double minorityF = w.EthnicEnabled ? Math.Max(0, 1.0 - effPen * (1.0 - from.CoreEthnicShare.Value)) : 1.0;
                 double gateEdu = targets[i] == r.BureaucratPopIndex ? higherEdu : gateEduPro;   // 官僚は旧来の資格（上のコメント）
                 // ★段②（2026-08-17・作者裁定）：**技師・研究者だけ**は志望者本人が高等教育（財136）を買えていることを要する。
                 //   ⚠教師・医者・官僚は対象外＝初等教員も町医者も大学を出ていない時代の話（大学の希少さがそのまま昇格の律速になる）。
@@ -217,7 +217,7 @@ public static class Meritocracy
                     var p = r.Pops[i];
                     if (p.Closed || p.Size <= Eps) continue;
                     // rank10b（点火0.02 JobSearchUsesEma）：駆動は慢性失業（U多年EMA）＝循環失業は滞留して闘争度へ。0＝瞬間U（旧）。
-                    double u = c.JobSearchUsesEma > 0 && p.UnemploymentEma >= 0 ? p.UnemploymentEma : p.UnemploymentRate;
+                    double u = c.JobSearchUsesEma > 0 && p.UnemploymentEma >= 0 ? p.UnemploymentEma : p.UnemploymentRate.Value;
                     if (u <= Eps) continue;
                     int cls = ClassOf(r, i);
                     if (cls < 0) continue;
@@ -513,7 +513,7 @@ public static class Meritocracy
                 {
                     var t = r.Pops[i];
                     double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, gateEma, c);
-                    double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate);   // 空き＝受け皿の売れ残りが少ないほど吸収する（兵士の「失業」＝給与の未払いの割合＝払われない軍には志願しない）
+                    double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);   // 空き＝受け皿の売れ残りが少ないほど吸収する（兵士の「失業」＝給与の未払いの割合＝払われない軍には志願しない）
                     double f = amount * (share[i] / sumW) * gate * vacancy;
                     if (srcRural && t.IsUrban) { f = Math.Min(f, urbanHeadroom); }
                     if (t.IsSoldier) f = Math.Min(f, soldierVac);   // 席の空きまで
@@ -601,7 +601,7 @@ public static class Meritocracy
         if (target == r.ArtisanPopIndex)
             return c.PettyEntryRate > 0 && avgPerCap > Eps && src.Size > Eps && src.Savings.Value / src.Size < avgPerCap ? 0.0 : 1.0;
         double minorityF = w.EthnicEnabled
-            ? Math.Max(0, 1.0 - c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m) * (1.0 - src.CoreEthnicShare))
+            ? Math.Max(0, 1.0 - c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m) * (1.0 - src.CoreEthnicShare.Value))
             : 1.0;
         if (target == r.BureaucratPopIndex) return PoliticalQuantities.Clamp01(src.Literacy * higherEdu * minorityF);
         double gateEdu = higherEdu;

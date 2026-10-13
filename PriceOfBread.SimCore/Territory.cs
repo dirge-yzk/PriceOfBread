@@ -180,7 +180,7 @@ public static class Territory
         if (!(pop >= 1.0)) return r.ProductivityBonus * wagePull * land;   // ★否定形＝pop が NaN のとき除算枝（unemp/pop）へ落ちない。有限値では `pop < 1.0` と厳密に同値
         // ★(161)（(157) の反証役の指摘 va#8）：兵士は失業者に数えない＝兵士の「失業」は給与の未払いの割合（Simulation が書く・脱走と志願の空きだけが読む）で、民間の職の無さではない。
         //   分母は州の人口のまま（兵士は職に就いている人として数える＝貴族・聖職と同じ）。
-        double unemp = 0; foreach (var p in r.Pops) if (!p.IsSoldier) unemp += p.Size * p.UnemploymentRate;
+        double unemp = 0; foreach (var p in r.Pops) if (!p.IsSoldier) unemp += p.Size * p.UnemploymentRate.Value;
         // プッシュ要因（B-4）：地域の不満（迫害・治安悪化）が機会を下げ、その地域からの流出を促す（ポグロム・抑圧からの逃避）。
         //   ★2026-09-30 段4e H：不穏＝州の平均闘争度の1本（平民の民間人＝駐留の兵と閉鎖階級を除く）＝旧は全 POP の和÷全人口（兵と貴族の闘争度が州の不穏に混ざった）。
         double unrest = Politics.AvgRegionMilitancy(r);
@@ -305,16 +305,16 @@ public static class Territory
         {
             case Rehoming.Ceded:
                 if (r.Tier != RegionTier.Colonial) r.Tier = RegionTier.Integrated;
-                if (!sameCore) foreach (var p in r.Pops) p.CoreEthnicShare = 0.0;
+                if (!sameCore) foreach (var p in r.Pops) p.CoreEthnicShare = new Share(0.0);
                 r.TierInParent = null;   // ★(183) 第三の国へ渡った＝分離した親へ再併合で戻る州ではない
                 break;
             case Rehoming.Seceded:
-                foreach (var p in r.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;
+                foreach (var p in r.Pops) p.CoreEthnicShare = new Share(1.0 - p.CoreEthnicShare.Value);
                 r.TierInParent = r.Tier;   // ★(183) 分離の時点の親の下の格（再併合で戻す）
                 r.AnnexBaggage = 0;   // 案Y：建国の州は新しい国の「生まれの人口」＝併合の荷物ではない（親の下で付いた旧記帳もここで清算）
                 break;
             case Rehoming.Returned:
-                foreach (var p in r.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;   // 建国時の反転を戻す（親の中核定義へ復帰）
+                foreach (var p in r.Pops) p.CoreEthnicShare = new Share(1.0 - p.CoreEthnicShare.Value);   // 建国時の反転を戻す（親の中核定義へ復帰）
                 if (r.TierInParent is { } tp) r.Tier = tp;   // ★(183) 分離の時点の親の下の格へ（独立の確定で本土になった残骸の州も）
                 r.TierInParent = null;
                 break;
@@ -377,7 +377,7 @@ public static class Territory
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, from, to);
             to.CumulativeTradeFlow += Bin; to.PopulationDelta += P;
-            Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
+            Transport.Receive(to, rail, ship, from.ShipSteamShareEma.Value);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
         // ★(183) 植民地の保存の台帳：植民地格へ戻る州は、植民地格を出たときの出口（独立の確定＝本土・植民地の昇格＝編入）から1つ戻す

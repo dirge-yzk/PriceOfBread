@@ -1200,7 +1200,7 @@ public class MilitaryTests
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
-                s.UnemploymentRate = 0; s.UnemploymentEma = 0;   // 未払いの脱走（①''）を外す
+                s.UnemploymentRate = new Share(0); s.UnemploymentEma = 0;   // 未払いの脱走（①''）を外す
                 if (natMan > 0) expect += dq * Math.Max(0, s.Size - seatsNat * Military.RegionManpower(r, c) / natMan);
             }
             double b = w.SoldierSizeK(), p0 = w.TotalPopulation;
@@ -1235,10 +1235,10 @@ public class MilitaryTests
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
-            s.UnemploymentRate = 0; s.UnemploymentEma = 0; s.EarnedPerMonth *= 10;
+            s.UnemploymentRate = new Share(0); s.UnemploymentEma = 0; s.EarnedPerMonth *= 10;
             vac[r] = (s, s.Size, c.MaxSoldierFraction * Military.RegionManpower(r, c) - s.Size);
             foreach (var p in r.Pops)
-                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)) { p.UnemploymentRate = 0.3; p.UnemploymentEma = 0.3; }
+                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)) { p.UnemploymentRate = new Share(0.3); p.UnemploymentEma = 0.3; }
         }
         w.ArmySkill = 0.5; w.NavySkill = 0.5;
         double s0 = w.SoldierSizeK();
@@ -1266,7 +1266,7 @@ public class MilitaryTests
         {
             var w = France155().World; var c = w.Coef;
             c.MilitaryEnvelopeShare = 1e9;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && SoldierOf(r) is { } s) { s.UnemploymentRate = unpaid; s.UnemploymentEma = unpaid; }
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && SoldierOf(r) is { } s) { s.UnemploymentRate = new Share(unpaid); s.UnemploymentEma = unpaid; }
             // 席＝どの州でも今の兵以下（空きを作らない＝志願の空きの係数〔1−未払い〕で差が出ないように・超過の復員は双子で同じ）
             double fill = double.PositiveInfinity;
             foreach (var r in w.Regions)
@@ -1291,7 +1291,7 @@ public class MilitaryTests
             w.Coef.MilitaryEnvelopeShare = env;
             for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
             var s = w.Region.Pops[w.Region.SoldierPopIndex];
-            return (s.UnemploymentRate, w.FiscalFundingRatio.Value);
+            return (s.UnemploymentRate.Value, w.FiscalFundingRatio.Value);
         }
         var big = Arm(1e9); var tiny = Arm(1e-12);
         Assert.True(Math.Abs(big.u - (1 - big.r)) <= 1e-12, $"大きい器で未払い {big.u} ≠ 1−r {1 - big.r}");
@@ -1946,7 +1946,7 @@ public class MilitaryTests
             for (int i = 0; i < r.Pops.Count; i++)
             {
                 var p = r.Pops[i];
-                p.UnemploymentRate = 0;   // 空き（1−失業）を1に
+                p.UnemploymentRate = new Share(0);   // 空き（1−失業）を1に
                 if (!p.IsSoldier && Meritocracy.ClassOf(r, i) == 0 && !ReferenceEquals(p, farm) && !ReferenceEquals(p, work)) p.EarnedPerMonth = new MoneyPerMonth(0);   // 他の下流の職は候補にならない
             }
             farm.EarnedPerMonth = new MoneyPerMonth(1.2 * Military.WorkingAdults(farm));   // 働き手1人あたり 1.2
@@ -1981,14 +1981,14 @@ public class MilitaryTests
         var w = France155().World; var c = w.Coef; var r = w.Region;
         var s = r.Pops[r.SoldierPopIndex];
         Assert.True(s.Size > 1, "前提が崩れた：兵士が居ない");
-        s.UnemploymentRate = 0;
+        s.UnemploymentRate = new Share(0);
         double o0 = Territory.Opportunity(r, c);
-        s.UnemploymentRate = 1;
+        s.UnemploymentRate = new Share(1);
         double o1 = Territory.Opportunity(r, c);
         Assert.True(o0 > 0, $"前提が崩れた：機会 {o0}");
         Assert.Equal(o0, o1);
         Pop? farm = null; foreach (var p in r.Pops) if (!p.IsSoldier && p.ClassId == c.SoldierRecruitClassA) { farm = p; break; }
-        farm!.UnemploymentRate = Math.Min(1, farm.UnemploymentRate + 0.5);
+        farm!.UnemploymentRate = new Share(Math.Min(1, farm.UnemploymentRate.Value + 0.5));
         Assert.True(Territory.Opportunity(r, c) < o0, "民間の失業が移民の引力を下げない");
     }
 

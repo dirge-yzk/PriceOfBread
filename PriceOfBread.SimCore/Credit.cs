@@ -187,7 +187,7 @@ public static class Credit
         //     div は「月次係数を日次へ配分する」ための除数（信頼・与信調整の速度に使うのは正しい）であって、年率→日次の換算には使えない。
         //     既定 LoanSpreadPerYear=0・PolicyRateLoanWeight=0 ゆえ loanRate=0＝この節に入らない＝**是正時点ではビット恒等**。B4（点火）の前提として先に潰す。
         //   ※ 係数の単位注記は Coefficients.cs 側（LoanSpreadPerYear/PolicyRateLoanWeight/PolicyRateBondWeight/BondBaseRatePerYear）に付す提案を notes に列挙。
-        double loanRate = w.LoanRateAnnual;   // 換算はWorld側の唯一の地点へ集約（UIと同じ値を見る＝表示と挙動が乖離しない）。式・順序は従来と同一＝ビット恒等
+        double loanRate = w.LoanRatePerYear.Value;   // 換算はWorld側の唯一の地点へ集約（UIと同じ値を見る＝表示と挙動が乖離しない）。式・順序は従来と同一＝ビット恒等
         if (loanRate > 1e-12 && bank.Loans.Value > 1e-9)
         {
             double interestDue = Calendar.PerYearToPerDay(bank.Loans.Value * loanRate) * days;   // ★旬次（S3c）：h 日ぶん（×1 は丸めを変えない）

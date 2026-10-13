@@ -1057,7 +1057,7 @@ public sealed class UtilityAgent : INationAgent
         if (pr.LaborPopIndex >= 0 && pr.LaborPopIndex < rg.Pops.Count)
         {
             var lp = rg.Pops[pr.LaborPopIndex];
-            if (lp.Size > 1e-9) idle = PoliticalQuantities.Clamp01(lp.UnemploymentRate);
+            if (lp.Size > 1e-9) idle = PoliticalQuantities.Clamp01(lp.UnemploymentRate.Value);
         }
         return new(eff * (1.0 + FacilityBuildIdleWeight * idle), eff, worldOpened);
     }
@@ -1458,7 +1458,7 @@ public sealed class UtilityAgent : INationAgent
                 {
                     if (!pr.IsRgo) continue;
                     rentN++;
-                    if (pr.RentShare > rg.FarmRentCap) rentRoom += pr.RentShare - rg.FarmRentCap;
+                    if (pr.RentShare.Value > rg.FarmRentCap) rentRoom += pr.RentShare.Value - rg.FarmRentCap;
                 }
             }
             double room = rentN > 0 ? rentRoom / rentN : 0;

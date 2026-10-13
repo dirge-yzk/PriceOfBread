@@ -161,6 +161,19 @@ public class UnitTypeTests
         (typeof(Coefficients), "DebtDistressRatio", typeof(RatioToGdpYear)),
         (typeof(Coefficients), "AusterityStartDebt", typeof(RatioToGdpYear)),
         (typeof(Coefficients), "AusterityRange", typeof(RatioToGdpYear)),
+        // ★(297) 割合の型の残り その1＝Model.cs（Pop・Producer・Market・Region）の割合と World の汽船の割合・貸出金利（年率）
+        (typeof(Pop), "MilitiaShare", typeof(Share)),
+        (typeof(Pop), "UnemploymentRate", typeof(Share)),
+        (typeof(Pop), "InitialFertileShare", typeof(Share)),
+        (typeof(Pop), "ChildLaborRate", typeof(Share)),
+        (typeof(Pop), "CoreEthnicShare", typeof(Share)),
+        (typeof(Producer), "RentShare", typeof(Share)),
+        (typeof(Producer), "MothballFrac", typeof(Share)),
+        (typeof(Producer), "SubsidyRate", typeof(Share)),
+        (typeof(Market), "LastRation", typeof(Share)),
+        (typeof(Region), "GarrisonShare", typeof(Share)),
+        (typeof(World), "ShipSteamShareEma", typeof(Share)),
+        (typeof(World), "LoanRatePerYear", typeof(RatePerYear)),
     ];
 
     [Fact]
@@ -323,6 +336,37 @@ public class UnitTypeTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.FiscalFundingRatio.Value), BitConverter.DoubleToInt64Bits(w2.FiscalFundingRatio.Value));
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Coef.TitheRate.Value), BitConverter.DoubleToInt64Bits(w2.Coef.TitheRate.Value));
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Coef.AusterityStartDebt.Value), BitConverter.DoubleToInt64Bits(w2.Coef.AusterityStartDebt.Value));
+    }
+
+    /// <summary>★(297) 割合の型の残り その1＝Pop・Producer・Market・Region・World の割合の欄が、セーブの往復で割り切れない値（13分の幾つ）のまま残る。
+    /// 欄ごとに別の値を置く＝取り違えて読み書きしても赤（期待値は欄の番号 k/13 を直に書く＝セーブの出力から作らない）。</summary>
+    [Fact]
+    public void セーブの往復で割合の型の欄が残る()
+    {
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var w1 = sim1.Nations[0].World;
+        var pop = w1.Regions[0].Pops[0]; var prod = w1.Regions[0].Producers[0]; var mkt = w1.Regions[0].Markets[0];
+        pop.MilitiaShare = new Share(1.0 / 13.0); pop.UnemploymentRate = new Share(2.0 / 13.0); pop.InitialFertileShare = new Share(3.0 / 13.0);
+        pop.ChildLaborRate = new Share(4.0 / 13.0); pop.CoreEthnicShare = new Share(5.0 / 13.0);
+        prod.RentShare = new Share(6.0 / 13.0); prod.MothballFrac = new Share(7.0 / 13.0); prod.SubsidyRate = new Share(8.0 / 13.0);
+        mkt.LastRation = new Share(9.0 / 13.0); w1.Regions[0].GarrisonShare = new Share(10.0 / 13.0); w1.ShipSteamShareEma = new Share(11.0 / 13.0);
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var w2 = SaveGame.Load(ms).Nations[0].World;
+        var pop2 = w2.Regions[0].Pops[0]; var prod2 = w2.Regions[0].Producers[0]; var mkt2 = w2.Regions[0].Markets[0];
+        static long Bits(Share s) => BitConverter.DoubleToInt64Bits(s.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(1.0 / 13.0), Bits(pop2.MilitiaShare));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(2.0 / 13.0), Bits(pop2.UnemploymentRate));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(3.0 / 13.0), Bits(pop2.InitialFertileShare));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(4.0 / 13.0), Bits(pop2.ChildLaborRate));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(5.0 / 13.0), Bits(pop2.CoreEthnicShare));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(6.0 / 13.0), Bits(prod2.RentShare));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(7.0 / 13.0), Bits(prod2.MothballFrac));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(8.0 / 13.0), Bits(prod2.SubsidyRate));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(9.0 / 13.0), Bits(mkt2.LastRation));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(10.0 / 13.0), Bits(w2.Regions[0].GarrisonShare));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(11.0 / 13.0), Bits(w2.ShipSteamShareEma));
     }
 
     [Fact]

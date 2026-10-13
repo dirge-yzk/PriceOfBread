@@ -38,7 +38,7 @@ public class ColonyPromotionTests
         Assert.True(Math.Abs((w.TotalPopulation - w.PopulationDelta) - popBaseline) < 1e-3, "人口保存の破れ（国内移動は台帳を動かさない）");
         money.Check(w);
         // 昇格：中核民族を過半・人口を門番以上にして1期回す → Integrated・保存検査の台帳が1つ進む
-        foreach (var pp in canada.Pops) { if (!pp.Closed && !pp.IsSoldier) pp.CoreEthnicShare = 1.0; }
+        foreach (var pp in canada.Pops) { if (!pp.Closed && !pp.IsSoldier) pp.CoreEthnicShare = new Share(1.0); }
         if (canada.SumPopulation() < w.Coef.ColonyPromotionMinPop)
             foreach (var pp in canada.Pops) if (pp.ClassId == PopClass.Peasant) { double add = w.Coef.ColonyPromotionMinPop - canada.SumPopulation() + 1; pp.Size += add; w.PopulationDelta += add; break; }
         sim.Run(1);
@@ -79,7 +79,7 @@ public class ColonyPromotionTests
             var reg = w.Regions.Single(r => r.Name == col.Name);
             Assert.Equal(RegionTier.Colonial, reg.Tier);
             Assert.Equal(col.PopSize, reg.SumPopulation(), 9);   // 現地住民がそのまま州の人口（入植者0）
-            Assert.All(reg.Pops, p => Assert.Equal(0.0, p.CoreEthnicShare * p.Size));   // 現地住民は宗主の中核民族ではない
+            Assert.All(reg.Pops, p => Assert.Equal(0.0, p.CoreEthnicShare.Value * p.Size));   // 現地住民は宗主の中核民族ではない
         }
         Assert.Equal(before + natives, w.TotalPopulation, 6);   // 奪った植民地の人口が消えない
         Assert.True(Math.Abs((w.TotalPopulation - w.PopulationDelta) - popBaseline) < 1e-3, "人口保存の破れ（州化の PopulationDelta 記帳漏れ）");
@@ -102,7 +102,7 @@ public class ColonyPromotionTests
             var core0 = new System.Collections.Generic.Dictionary<string, double[]>();
             var tier0 = new System.Collections.Generic.Dictionary<string, RegionTier>();
             var dom0 = new System.Collections.Generic.Dictionary<string, double>();
-            foreach (var r in es.Regions) { core0[r.Name] = r.Pops.Select(p => p.CoreEthnicShare).ToArray(); tier0[r.Name] = r.Tier; dom0[r.Name] = r.Dominance; }
+            foreach (var r in es.Regions) { core0[r.Name] = r.Pops.Select(p => p.CoreEthnicShare.Value).ToArray(); tier0[r.Name] = r.Tier; dom0[r.Name] = r.Dominance; }
             var mine = new System.Collections.Generic.HashSet<Region>(fr.Regions);
             var war = new War { A = fr.SelfPower, B = es.SelfPower!, Score = 1.3 };   // 決定的（割譲の線1.2以上）・壊滅未満（属国化1.4未満）＝境界改定の1州（＋制海権があれば植民地格の州）
             sim.Diplomacy.ResolvePeace(sim.Coef, war);
@@ -115,7 +115,7 @@ public class ColonyPromotionTests
                 Assert.Equal(dom0[reg.Name], reg.Dominance);     // 支配度は動かさない（0 にすると翌四半期に独立の戦争＝回1-1 の計測で差し戻し）
                 Assert.NotNull(reg.ColonialResources);            // null＝単一国の旧経路（植民地財が代金なしに湧く・col-02）
                 for (int i = 0; i < reg.Pops.Count; i++)
-                    Assert.Equal(sameCulture ? core0[reg.Name][i] : 0.0, reg.Pops[i].CoreEthnicShare);
+                    Assert.Equal(sameCulture ? core0[reg.Name][i] : 0.0, reg.Pops[i].CoreEthnicShare.Value);
             }
         }
     }
@@ -132,7 +132,7 @@ public class ColonyPromotionTests
             var canada = pw.Regions.First(r => r.Name == "カナダ");
             Assert.Equal(RegionTier.Colonial, canada.Tier);
             var natives = canada.Pops.OrderByDescending(p => p.Size).First();   // 現地住民（農民）＝宗主の中核民族ではない
-            double core0 = natives.CoreEthnicShare;
+            double core0 = natives.CoreEthnicShare.Value;
             Assert.True(core0 < 0.25, $"前提が崩れた：現地住民の中核民族割合が低くない（{core0:F3}）＝反転の向きを見分けられない");
             pw.PendingSecessionWars = [canada];   // 分離独立の戦争（開戦時に建国）
             sim.StepQuarter();
@@ -140,7 +140,7 @@ public class ColonyPromotionTests
             Assert.NotSame(pw, rw);
             Assert.Equal(RegionTier.Colonial, canada.Tier);   // 戦争の決着まで格は動かさない
             Assert.NotNull(canada.ColonialResources);          // null＝単一国の旧経路（植民地財が代金なしに湧く・col-02）
-            Assert.True(natives.CoreEthnicShare > 0.75, $"建国で民族の割合が反転していない（旧少数派が新しい国の中核・{natives.CoreEthnicShare:F3}）");
+            Assert.True(natives.CoreEthnicShare.Value > 0.75, $"建国で民族の割合が反転していない（旧少数派が新しい国の中核・{natives.CoreEthnicShare.Value:F3}）");
             var war = sim.Diplomacy.Wars.Single(x => x.CivilWarParent == pw.SelfPower && (x.A == rw.SelfPower || x.B == rw.SelfPower));
             Assert.True(war.CivilWarSecession, "前提が崩れた：分離独立の戦争になっていない");
             double parentSign = war.A == pw.SelfPower ? 1.0 : -1.0;
@@ -159,7 +159,7 @@ public class ColonyPromotionTests
                 Assert.Contains(canada, pw.Regions);
                 Assert.Equal(RegionTier.Colonial, canada.Tier);   // 失敗した蜂起で植民地が本土に化けない
                 Assert.NotNull(canada.ColonialResources);
-                Assert.True(natives.CoreEthnicShare < 0.25, $"再併合で民族の割合が裏返ったまま戻った（{natives.CoreEthnicShare:F3}／出発 {core0:F3}）");
+                Assert.True(natives.CoreEthnicShare.Value < 0.25, $"再併合で民族の割合が裏返ったまま戻った（{natives.CoreEthnicShare.Value:F3}／出発 {core0:F3}）");
             }
         }
     }

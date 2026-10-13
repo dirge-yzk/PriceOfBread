@@ -553,7 +553,7 @@ public partial class GameViewModel
                      t3Rates = EconomyStep.DiscoveredRates(r, c, c.MilitaryTier3Goods, c.MilitaryTier3Rates),
                      airRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryAirGoods, c.MilitaryAirRates);
             double Price(int g) => r.Markets[g].Price;
-            double Ration(int g) => r.Markets[g].LastRation;
+            double Ration(int g) => r.Markets[g].LastRation.Value;
             // 価格による買い控え＝国家調達の価格の門の1本（EconomyStep.StatePriceAfford＝エンジンと同じ式・2026-09-30 段4e K）
             double PriceAfford(int g) => EconomyStep.StatePriceAfford(r, c, g);
             // ★(189) 陸の装備の段は艦を買わない（EconomyStep.LandMul＝艦は0・他は1＝エンジンと同じ1本）。艦は下の「艦隊」の節（海軍の調達＝目標の艦隊と在庫）。

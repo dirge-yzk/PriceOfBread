@@ -94,7 +94,7 @@ public class FranceTests
     {
         var sim = new Simulation(Fr(1789), new NullAgent());
         double base0 = sim.World.BaseMoney.Value;
-        foreach (var p in sim.World.Region.Producers) p.SubsidyRate = 1.0;   // 全工場に満額補助金（赤字工場の肩代わりを発火・2026-07-19率化）
+        foreach (var p in sim.World.Region.Producers) p.SubsidyRate = new Share(1.0);   // 全工場に満額補助金（赤字工場の肩代わりを発火・2026-07-19率化）
         var ex = Record.Exception(() => sim.Run(20));
         Assert.Null(ex);
         Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0, "工場補助金で基礎貨幣保存が破れた");

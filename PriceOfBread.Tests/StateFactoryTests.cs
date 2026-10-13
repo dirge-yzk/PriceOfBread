@@ -86,12 +86,12 @@ public class StateFactoryTests
         Assert.Equal(1, World.StateUnits(p, w.Coef));          // ★1棟だけ（旧は全部売り＝0棟になっていた）
         Assert.Equal(1, p.StateTarget);
         Assert.True(w.Treasury.Value > treasury0, "払い下げ代金が国庫へ入っていない");
-        Assert.True(p.SubsidyRate <= 0 || p.BuiltScale > 1e-9);   // 残る棟があるうちは補助金を外さない
+        Assert.True(p.SubsidyRate.Value <= 0 || p.BuiltScale > 1e-9);   // 残る棟があるうちは補助金を外さない
 
         Assert.True(w.SetStateTarget(0, Catalog.SteelId, 0));
         Assert.Equal(0, World.StateUnits(p, w.Coef));
         Assert.Equal(0.0, p.BuiltScale);                       // 売り切ると完全民営化
-        Assert.Equal(0.0, p.SubsidyRate);
+        Assert.Equal(0.0, p.SubsidyRate.Value);
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class StateFactoryTests
 
         // ① 民営100%＝従来どおり設定できる（厳密恒等）
         w.SetSubsidyRate(0, Catalog.SteelId, 1.0);
-        Assert.Equal(1.0, p.SubsidyRate);
+        Assert.Equal(1.0, p.SubsidyRate.Value);
         var all = w.CanSubsidize(0, Catalog.SteelId);
         Assert.True(all.Ok);
         Assert.Equal(1.0, all.PrivateShare, 9);
@@ -214,9 +214,9 @@ public class StateFactoryTests
         Assert.False(no.Ok);
         Assert.Equal("国営100%", no.Reason);
         w.SetSubsidyRate(0, Catalog.SteelId, 1.0);
-        Assert.Equal(0.0, p.SubsidyRate);
+        Assert.Equal(0.0, p.SubsidyRate.Value);
         w.SetSubsidy(0, Catalog.SteelId, true);
-        Assert.Equal(0.0, p.SubsidyRate);
+        Assert.Equal(0.0, p.SubsidyRate.Value);
     }
 
     [Fact]
@@ -226,11 +226,11 @@ public class StateFactoryTests
         var w = sim.World;
         var p = Steel(w.Regions[0]);
         w.SetSubsidyRate(0, Catalog.SteelId, 1.0);
-        Assert.Equal(1.0, p.SubsidyRate);
+        Assert.Equal(1.0, p.SubsidyRate.Value);
         p.BuiltScale = p.Scale;                          // 建設が完成して国営100%になった
         p.StateTarget = World.StateUnits(p, w.Coef);     // カウンターは現在値＝払い下げも着工も走らせない
         w.StepStateTargets();
-        Assert.Equal(0.0, p.SubsidyRate);                // 効かない値を記録に残さない（払い下げた瞬間に復活しない）
+        Assert.Equal(0.0, p.SubsidyRate.Value);                // 効かない値を記録に残さない（払い下げた瞬間に復活しない）
     }
 
     /// <summary>全生産者の Scale・平滑採算・国庫の合計（2本の世界が同じ道を通ったかの物差し）。</summary>
@@ -257,7 +257,7 @@ public class StateFactoryTests
                 foreach (var p in r.Producers)
                 {
                     if (stateOwned) { p.BuiltScale = s.World.Coef.ScaleMax; p.StateTarget = World.StateUnits(p, s.World.Coef); }
-                    p.SubsidyRate = subsidy;
+                    p.SubsidyRate = new Share(subsidy);
                 }
             s.Run(4);
             return s;
@@ -324,7 +324,7 @@ public class StateFactoryTests
         double t0w = withState.World.Treasury.Value, t0n = without.World.Treasury.Value;
         withState.Run(4); without.Run(4);
         Assert.NotEqual(withState.World.Treasury.Value - t0w, without.World.Treasury.Value - t0n);   // 損益が国庫を通っている（同額なら経路が死んでいる）
-        Assert.Equal(0.0, Steel(withState.World.Regions[0]).SubsidyRate);   // 支えているのは補助金ではない
+        Assert.Equal(0.0, Steel(withState.World.Regions[0]).SubsidyRate.Value);   // 支えているのは補助金ではない
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public class StateFactoryTests
         Assert.NotEmpty(c.Items);
         foreach (var it in c.Items)
         {
-            double expected = System.Math.Clamp(r.Markets[it.GoodId].LastRation, 0, 1);
+            double expected = System.Math.Clamp(r.Markets[it.GoodId].LastRation.Value, 0, 1);
             Assert.Equal(expected, it.Fill);                     // UI が読む値＝エンジンの記帳そのもの（第二の式を置かない）
             Assert.InRange(it.Fill, 0.0, 1.0);
         }

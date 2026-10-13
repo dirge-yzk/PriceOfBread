@@ -172,7 +172,7 @@ public sealed class Pop
     /// ⚠階級の禁止規則は**どこにも書かない**（体制側の郷勇＝LoyalistMilitia は有産ブロックだけで組まれ、
     ///   反乱側のヴァンデ1793・カルリスタ1833は貴族が率いた）＝読むのは「その運動のブロックか」と「どれだけ怒っているか」だけ。
     /// ⚠RevoltMilitiaRaise=0（既定）では誰も0以外を書かない＝全経路で ×1.0／+0.0＝厳密恒等。</summary>
-    public double MilitiaShare;
+    public Share MilitiaShare;
     public double EducationFill = 1.0;   // 教育（財）の充足率＝今月買えた量÷必要量。識字の到達天井（消費が識字を生む）。教育財の無い小シナリオは1.0＝従来挙動
     // ★段②（2026-08-17）：前月の EducationFill のスナップショット。EconomyStep の月初（per-pop リセット）で1回だけ写す。
     //   ⚠**必要な理由＝順序依存の遮断**：EducationFill は財ループ内（gi==94 の処理時）に 0 へリセットされてから埋め直される。
@@ -212,10 +212,10 @@ public sealed class Pop
     public double HealthFill;            // 医療（財）の充足率。人口扶養力に小さく効く（医者がいないと乳児が死ぬ）。既定0＝効果なし
     public double NewsFill;              // 新聞（財）の充足率（1934拡張E3）。国民意識の実効値＋政治意識のpress項の入力＝「新聞を買えて読めたか」。新聞財の無い小シナリオは0
     public double RadioFill;             // ラジオ（財）の充足率（E3・1920s〜）。国民意識の識字不要チャネル（検閲非依存＝国営宣伝）。財の解禁前は0
-    public double UnemploymentRate;      // 労働（労働力/農業/高度）の売れ残り率＝失業。職の喪失は所得の算術を超えて怒りを生む（社会保障が和らげる対象）。労働市場の無い世界は0＝従来挙動
+    public Share UnemploymentRate;      // 労働（労働力/農業/高度）の売れ残り率＝失業。職の喪失は所得の算術を超えて怒りを生む（社会保障が和らげる対象）。労働市場の無い世界は0＝従来挙動
     public double UnemploymentEma = -1.0;   // rank10b（JobSearchUsesEma=0.02点火2026-08-16）：失業率の多年EMA＝慢性失業の記憶。-1=未捕捉（初回更新で現在値から開始＝跳躍なし）。JobSearchUsesEma=0（対照腕）では読み書きされず恒等。失業プール①''の駆動が瞬間UでなくこれをEMA読み＝循環失業と構造失業の分岐
     public double InitialWork = -1.0;    // 労働供給の初期値（t=0 の work＝成人男女参加＋児童労働）。倍率排除②：旧 work/0.64 の正規化定数を「各popの初期労働供給」へ一般化（標準構成なら0.64＝中立）。-1=未捕捉（初回 EconomyStep で確定）
-    public double InitialFertileShare = -1.0;  // ①Phase3：出産可能女性プールの初期値（t=0 の出産可能プール＝Simulation.FertilePool・年齢の層から読む）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
+    public Share InitialFertileShare = new Share(-1.0);  // ①Phase3：出産可能女性プールの初期値（t=0 の出産可能プール＝Simulation.FertilePool・年齢の層から読む）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
     /// <summary>★年齢の層（2026-09-30 段4e 後半・設計 docs/202609/20260929/20260929_年齢の層_人口ピラミッドと世代の流れ_設計_未着手.md・作者裁定 2026-09-29＝C 案）＝
     /// 10歳刻み8層（0〜9・10〜19・…・60〜69・70以上）×男女の**割合**16本（合計1・添字＝層×2＋性〔0＝男・1＝女〕）。人数は Size×割合＝Size が主
     /// （年齢を指定しない死と移動は何もしなくても全層に比例）。読み口は <see cref="AgeShare"/> の1本。
@@ -224,8 +224,8 @@ public sealed class Pop
     /// ⚠新しい状態（思想⑩の例外＝設計書 §8）：年齢の構成は0〜70年前の出生・戦死・飢饉・移民の履歴で、今の盤面から導けない。
     /// ⚠固定長の構造体にしない（SaveGame の値型の switch に無い型は Struct 経路で無限に潜る）＝double[]。</summary>
     public double[] Ages = StdAges();
-    public double ChildLaborRate;        // この pop の子供の労働時間割合（0..1・倍率排除④）。家計困窮×合法度×(1−就学)から創発。労働供給（半人前）と識字（働く子は学校へ行けない）の両方を律する。LaborSupply が算出
-    public double CoreEthnicShare = 1.0; // 中核（titular）民族の割合（0..1・倍率排除⑧）。国一律スカラー EthnicUnity を POP属性化＝民族統一度は各popの加重平均から創発。移民は core=0 で混ざり希釈、同化で回復、内部移動で運搬、征服で低下
+    public Share ChildLaborRate;        // この pop の子供の労働時間割合（0..1・倍率排除④）。家計困窮×合法度×(1−就学)から創発。労働供給（半人前）と識字（働く子は学校へ行けない）の両方を律する。LaborSupply が算出
+    public Share CoreEthnicShare = new Share(1.0); // 中核（titular）民族の割合（0..1・倍率排除⑧）。国一律スカラー EthnicUnity を POP属性化＝民族統一度は各popの加重平均から創発。移民は core=0 で混ざり希釈、同化で回復、内部移動で運搬、征服で低下
     public double NationalConsciousness = -1;   // ★国民意識のpop属性（国スカラー World.NationalConsciousness のpop化・2026-08-01）。
                                           // 教育と同じ漸近形で育て、植民地・遠隔・非コアのpopは上がりにくい（倍率でなく構造から）。
                                           // NationConsciousnessPerPop=1.0（既定）でlive・0（対照腕）では誰も読み書きしない＝厳密恒等。-1＝未捕捉（国の値は配らない＝配ると平均が変わる）
@@ -385,7 +385,7 @@ public sealed class Pop
         BlendAges(from, to, n, s0, t0, draft, draftLo, draftHi, femaleAccess);   // 年齢と男女の構成（16本）
         // 移る組の構成（送り手の平均・選抜のときだけ違う）
         double cLit = double.IsNaN(literacy) ? from.Literacy : literacy;
-        double cCore = double.IsNaN(coreAtDest) ? from.CoreEthnicShare : coreAtDest;
+        double cCore = double.IsNaN(coreAtDest) ? from.CoreEthnicShare.Value : coreAtDest;
         // 残る側＝選抜で組が平均と違う量だけ質量保存で動かす（平均と同じなら1ビットも触らない）
         double rest = s0 - n;
         if (rest > 1e-12 && cLit != from.Literacy) from.Literacy = PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest);
@@ -393,7 +393,7 @@ public sealed class Pop
         to.Literacy = PoliticalQuantities.Clamp01((to.Literacy * t0 + cLit * n) / t1);
         to.Militancy = PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1);
         to.Consciousness = PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1);
-        to.CoreEthnicShare = PoliticalQuantities.Clamp01((to.CoreEthnicShare * t0 + cCore * n) / t1);
+        to.CoreEthnicShare = new Share(PoliticalQuantities.Clamp01((to.CoreEthnicShare.Value * t0 + cCore * n) / t1));
         double wTo = to.NationalConsciousness >= 0 ? t0 : 0, wFrom = from.NationalConsciousness >= 0 ? n : 0;
         if (wTo + wFrom > 1e-12)
             to.NationalConsciousness = PoliticalQuantities.Clamp01(((wTo > 0 ? to.NationalConsciousness * wTo : 0) + (wFrom > 0 ? from.NationalConsciousness * wFrom : 0)) / (wTo + wFrom));
@@ -674,7 +674,7 @@ public sealed class Producer
     public double MarginalCost;   // 1単位の付加価値費用（賃金・生存線分）＝**参照価格の単位**。読むときは EconomyStep.MineralSelfCost（×自己費用の物価水準 World.CostPriceLevel×州の乗数＝価格と同じ単位・2026-09-27 (73)）を通す。退出閾値には投入費を加算（§9-A 仕組み2）
     public int OwnerPopIndex;     // 地代/利潤の受け手
     public int LaborPopIndex;     // 賃金の受け手
-    public double RentShare;      // ρ。自営は実質無関係（owner==labor）
+    public Share RentShare;      // ρ。自営は実質無関係（owner==labor）
     public List<Input> Inputs = [];   // レシピの投入材（多段チェーン §2.4）。RGO は空
     public double LastInputFill = 1.0;  // 前期の投入充足率（§9-A 注2：投入が買えないと実産出が落ちる・律速）
     // UI診断用の純記帳（2026-07-19・力学は一切読まない）：素材のみの充足率。
@@ -701,7 +701,7 @@ public sealed class Producer
     //   建てた工場は倒産免除＋床で全稼働を強制されるため、慢性赤字が資本家の負債へ垂れ流しになる欠落の是正＝
     //   設備は残る（BuiltScale不変）が床が (1−MothballFrac) 倍に縮む＝維持労働と産出だけ止まり、採算が戻れば同率で再開。
     //   FactoryMothballRate=0（測定OFF腕）では一度も書かれず0のまま＝床はビット恒等（★既定0.05でlive・2026-08-31点火）。
-    public double MothballFrac;
+    public Share MothballFrac;
     // 国営工場カウンター（作者裁定2026-08-10）＝**目標の棟数**（0..StateTargetMax）。1カウント＝1回の建設完成＝Coefficients.FactoryBuildScale。
     // 現在の棟数は BuiltScale/FactoryBuildScale（World.StateUnitsOf）＝これは「意志」であって「実現」ではない。
     // 目標>現在なら World.StepStateTargets が着工を試み（国庫・建材採算・技術ゲートが速度を決める）、
@@ -723,8 +723,8 @@ public sealed class Producer
     public double ConstructionPayPerDay;   // 建設の1日あたり支払い（国庫→工員＝労務費。素材費でなく労務費）
     // 補助金（2026-07-19に率へ拡張）：民間持分の赤字のうちこの率を国庫が肩代わり。満額(1.0)なら旧boolのONとビット同値
     // （赤字全額肩代わり＋採算floor0＝操業維持）。部分率は損失を率ぶんだけ緩和＝深い赤字なら倒産もありうる。
-    public double SubsidyRate;
-    public bool Subsidized => SubsidyRate > 1e-9;   // 互換の読み口（AI/UIの判定用・直列化されない）
+    public Share SubsidyRate;
+    public bool Subsidized => SubsidyRate.Value > 1e-9;   // 互換の読み口（AI/UIの判定用・直列化されない）
     // 産業政策の代償 レバー1（2026-07-24）：補助依存ストック（0..1）。補助金/国営持分で赤字操業した月に漸増・自立黒字で漸減（コルナイの軟予算制約）。
     // 実効生産性に ×(1−SubsidySoftBudgetDecay×これ) で乗る＝恒久補助は実質コスト逓増。SubsidySoftBudgetDecay=0（対照腕）で乗数×1.0＝厳密恒等・既定0.4でlive（ストック自体は常時更新＝プローブ可視）
     public double SubsidyDependence;
@@ -818,7 +818,7 @@ public sealed class Market
     // その月のこの財の配給率 ration[gi]（買い手が欲しかった量のうち実際に渡った比）。Producer.LastMaterialFill は
     // 「素材の**最小**」の1本しか持たない＝どの材がどれだけ届いたかは読めなかった。純記帳＝力学の読み手はゼロ
     // （生産タブの生産コスト欄と ProductionDiag.CostItem.Fill だけが読む）。素材投入を持たない財は 1.0 のまま。
-    public double LastRation = 1.0;
+    public Share LastRation = new Share(1.0);
     // popが自腹で買った量の**階級別**内訳（作者フィードバック2026-08-10 項目6）＝添字は <see cref="Pop.ClassId"/>、
     // 値はその月に実際に渡った量（非役務＝p.GoodDemand×ration／役務＝階層配分で渡った qty）。
     // ★2026-09-20：**純記帳ではなくなった**＝力学の読み手が2つ付いた（旧注記＝「純記帳＝力学の読み手はゼロ。生産タブの
@@ -974,7 +974,7 @@ public sealed class Region
     // 既存の afford は Math.Min(1,…) で切っているため「余裕がある」が読めず、軍を増やすべきか減らすべきかの信号にならなかった。
     // 生の比＝1超で余裕・1未満で不足。Military.Step がこれを見て軍を増減させる（目標を式で決めるのをやめる）。
     public double MilitaryAffordRaw = 1.0;            // 装備の支払能力（軍事予算÷必要額・無クランプ）
-    public double GarrisonShare;                      // 駐屯州調達（課題6）：この州の装備需要・予算の全国シェア（月次・Simulationが設定）
+    public Share GarrisonShare;                      // 駐屯州調達（課題6）：この州の装備需要・予算の全国シェア（月次・Simulationが設定）
     public double SoldierPayBudget;                   // 今期の兵力調達の予算（兵士給与。Simulation が設定）
     public double CompulsoryEduFunding;               // 義務教育の財源率（教育費スライダー）。popが買えない教育の何割を国庫が買い与えるか。0＝義務教育でない
     public double GridCapacity;                       // 送電容量（地域内）。電力はこの容量までしか工場に届かない＝電化には送電網への投資が要る

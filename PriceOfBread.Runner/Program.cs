@@ -22,7 +22,7 @@ static double TradeGdp(World w)
 // （旧＝Runner が LastSold/LastProduced から再導出＝閾値も農業の自給控除も別式だった・2026-09-11 #13）。労働市場の無い州は0。
 static double UnemploymentOf(Region r, int laborGood)
 {
-    foreach (var s in r.Producers) if (s.GoodId == laborGood && s.LaborPopIndex >= 0 && s.LaborPopIndex < r.Pops.Count) return r.Pops[s.LaborPopIndex].UnemploymentRate;
+    foreach (var s in r.Producers) if (s.GoodId == laborGood && s.LaborPopIndex >= 0 && s.LaborPopIndex < r.Pops.Count) return r.Pops[s.LaborPopIndex].UnemploymentRate.Value;
     return 0;
 }
 
@@ -6898,7 +6898,7 @@ if (args.Length > 0 && args[0] == "frdbg")
     foreach (var ns in fsim.Nations) ns.TelemetryEnabled = false;
     fsim.Diplomacy.Log.Enabled = false;
     var fw = fsim.Nations.First(n => n.World.SelfPower?.BaseName == "フランス").World;
-    { double nr = 0, rs = 0; int rgos = 0; foreach (var r in fw.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.Closed) nr += pp.LandRentPerMonth.Value; foreach (var pr in r.Producers) if (pr.IsRgo) { rgos++; rs += pr.RentShare; } }
+    { double nr = 0, rs = 0; int rgos = 0; foreach (var r in fw.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.Closed) nr += pp.LandRentPerMonth.Value; foreach (var pr in r.Producers) if (pr.IsRgo) { rgos++; rs += pr.RentShare.Value; } }
       Console.WriteLine($"Q0前: 貴族LandRent={nr:N0} RGO数={rgos} RentShare計={rs:F2}"); }
     for (int q = 0; q < 8; q++)
     {
@@ -6984,7 +6984,7 @@ if (args.Length > 0 && args[0] == "ethnoprobe")
             foreach (var r in w.Regions)
             {
                 double sz = 0, cs = 0, lt = 0;
-                foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare; lt += p.Size * p.Literacy; }
+                foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare.Value; lt += p.Size * p.Literacy; }
                 if (!(sz > 1e-9)) continue;
                 double core = cs / sz;
                 string key = $"{w.SelfPower?.BaseName ?? "?"}/{r.Name}";
@@ -7005,7 +7005,7 @@ if (args.Length > 0 && args[0] == "ethnoprobe")
                 foreach (var r in w.Regions)
                 {
                     double sz = 0, cs = 0, lt = 0;
-                    foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare; lt += p.Size * p.Literacy; }
+                    foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare.Value; lt += p.Size * p.Literacy; }
                     if (!(sz > 1e-9)) continue;
                     if (cs / sz < worstCore) { worstCore = cs / sz; worst = r; worstLit = lt / sz; }
                 }
@@ -7278,7 +7278,7 @@ if (args.Length > 0 && args[0] == "milstart")
             if (w.SelfPower is not { } sp || r.Markets.Length == 0) continue;
             int ng = r.Markets.Length;
             double Price(int g) => r.Markets[g].Price;
-            double Ration(int g) => r.Markets[g].LastRation;
+            double Ration(int g) => r.Markets[g].LastRation.Value;
             double PriceAfford(int g) => EconomyStep.StatePriceAfford(r, c, g);   // 国家調達の価格の門の1本（エンジンと同じ式・2026-09-30 段4e K）
             double[] milRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates);   // 発見の解禁度込みの原単位＝エンジンと同じ1本（2026-09-11 #17）
             double flatNaval = 0, flatAll = 0;
@@ -7524,9 +7524,9 @@ if (args.Length > 0 && args[0] == "classprobe")
                     if (p.Size <= 1e-9) continue;
                     int cls = Meritocracy.ClassOf(r, pi);
                     if (cls < 0 || p.IsSoldier) { tot += p.Size; continue; }   // 兵士は分母（総人口）のみ（★(155) ClassOf は兵士を下流の職に数える＝この計器は旧の物差しのまま兵士を外す）
-                    double emp = p.Size * (1.0 - p.UnemploymentRate);
+                    double emp = p.Size * (1.0 - p.UnemploymentRate.Value);
                     if (cls == 2) up += emp; else if (cls == 1) mid += emp; else low += emp;
-                    unemp += p.Size * p.UnemploymentRate;
+                    unemp += p.Size * p.UnemploymentRate.Value;
                     tot += p.Size;
                 }
             }

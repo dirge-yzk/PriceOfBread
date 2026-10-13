@@ -616,7 +616,7 @@ public partial class GameViewModel
                 gate[gi] = Math.Max(gate[gi], pGate);
                 AddRecipe(recipesOf, gi, p.Inputs);
                 if (p.ConstructionLeft > 0) building[gi]++;
-                if (p.SubsidyRate > subsRate[gi]) subsRate[gi] = p.SubsidyRate;   // 品目の補助率（全州一括適用＝最大値が現在値）
+                if (p.SubsidyRate.Value > subsRate[gi]) subsRate[gi] = p.SubsidyRate.Value;   // 品目の補助率（全州一括適用＝最大値が現在値）
                 if (p.Bankrupt) continue;
                 // 加工財＝真の工場（労働を雇う＝BuysLabor。職人の工房〔Output=30の手工業〕やRGOは除外＝1789に工場が林立して見える誤りを解消）／素材＝産出中のRGO=産地
                 // 産出の足切りは QtyEps（＝TargetStockFloor＝1単位）＝旧の直書き 1 と同値だが、出所を1本に揃える（幻の生産2026-08-10）
@@ -955,7 +955,7 @@ public partial class GameViewModel
             if (pr is not null && pr.LaborPopIndex >= 0 && pr.LaborPopIndex < rg.Pops.Count)
             {
                 var lp2 = rg.Pops[pr.LaborPopIndex];
-                idle = lp2.Size * lp2.UnemploymentRate;
+                idle = lp2.Size * lp2.UnemploymentRate.Value;
             }
             // 従業員（作者フィードバック2026-08-10 項目6）＝この州でこの財を作る全生産者の労働投入を人数へ換算した和。
             // 換算率は失業率の定義と整合する LaborRate（労働popの人数 ÷ 今月供給した労働units）＝旧・設備欄の全国「従業員」と同じ式の州版。

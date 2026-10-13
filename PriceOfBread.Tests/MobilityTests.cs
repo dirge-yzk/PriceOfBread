@@ -99,11 +99,11 @@ public class MobilityTests
             sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（英は月20で既にペア天井超過＝素だと§2.4が正しく封鎖する。ここは転職経路自体を見る）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             // 農民の半分が失業・労働者の1人あたり所得が農民を大きく上回る世界（工場が生産性で勝つ）を直接セット＝決定論
-            farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // JobSearchUsesEma点火（2026-08-16）＝プールは慢性失業（EMA）を読む
+            farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = 0.5;   // JobSearchUsesEma点火（2026-08-16）＝プールは慢性失業（EMA）を読む
             farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
             // 職人は識字0（資格なし）＋半分失業：同階級に入れる職が無い→下層の最良職（労働者）へ降格
             var artisan = r.Pops[r.ArtisanPopIndex];
-            artisan.UnemploymentRate = 0.5; artisan.UnemploymentEma = 0.5; artisan.Literacy = 0.0; artisan.EarnedPerMonth = new MoneyPerMonth(0);
+            artisan.UnemploymentRate = new Share(0.5); artisan.UnemploymentEma = 0.5; artisan.Literacy = 0.0; artisan.EarnedPerMonth = new MoneyPerMonth(0);
             double pop0 = 0; foreach (var p in r.Pops) pop0 += p.Size;
             Meritocracy.Step(sim.World, sim.World.Coef);
             double pop1 = 0; foreach (var p in r.Pops) pop1 += p.Size;
@@ -130,7 +130,7 @@ public class MobilityTests
             var w = sim.World; var r = w.Region;
             w.Coef.BaseUrbanCap = 0.0; w.Coef.UrbanPerInd = 0.0;   // 天井0＝都市への新規流入枠なし（双子とも同条件）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
-            farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // EMA点火に追随
+            farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = 0.5;   // EMA点火に追随
             farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
             Meritocracy.Step(w, w.Coef);
         }
@@ -153,7 +153,7 @@ public class MobilityTests
             var r = sim.World.Region;
             sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（天井の封鎖は専用テストが見る）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
-            farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // EMA点火に追随
+            farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = 0.5;   // EMA点火に追随
             farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
             before = farmer.Size;
             Meritocracy.Step(sim.World, sim.World.Coef);

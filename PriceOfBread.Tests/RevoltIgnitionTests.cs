@@ -150,7 +150,7 @@ public class RevoltIgnitionTests
         var w = sim.World; var c = w.Coef;
         foreach (var p in w.AllPops())
         {
-            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
+            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = new Share(1.0);
             p.FoodNeed = 1.0; p.FoodMet = foodMet; p.FoodRef = foodRef;
         }
         Pop? noble = null;
@@ -588,7 +588,7 @@ public class RevoltIgnitionTests
         // ⚠既定が0であること自体は DormantIdentityTests の DormantZeroFields が唯一の宣言（ここで二重に書かない）。
         //   ここが見るのは「0のとき機構が本当に何もしないか」＝蜂起は起きたのに札が1枚も立たないこと。
         var (w, _) = 段5_蜂起させる(militiaRaise: 0);
-        foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare);   // 蜂起は起きたのに札は1枚も立たない＝読み手（労働・戦力・死の配分）は全て素通り
+        foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare.Value);   // 蜂起は起きたのに札は1枚も立たない＝読み手（労働・戦力・死の配分）は全て素通り
     }
 
     [Fact]
@@ -607,11 +607,11 @@ public class RevoltIgnitionTests
         Assert.True(angry is not null && calm is not null && soldier is not null, "前提が崩れた：農民/都市労働者/兵士のPOPが揃っていない");
         // 式そのもの＝min(1, 係数×そのPOPの闘争度)。⚠闘争度は Politics.Step の中で target へ寄るので**Step後の値**で照合する
         //   （民兵を立てた後に闘争度を書き換える経路はこの枝に無い）。
-        Assert.Equal(Math.Min(1.0, 0.5 * angry!.Militancy), angry.MilitiaShare, 9);
-        Assert.Equal(Math.Min(1.0, 0.5 * calm!.Militancy), calm.MilitiaShare, 9);
+        Assert.Equal(Math.Min(1.0, 0.5 * angry!.Militancy), angry.MilitiaShare.Value, 9);
+        Assert.Equal(Math.Min(1.0, 0.5 * calm!.Militancy), calm.MilitiaShare.Value, 9);
         Assert.True(angry.MilitiaShare > calm.MilitiaShare, $"不満の順序が民兵率の順序になっていない（怒 {angry.MilitiaShare:F3} ≤ 静 {calm.MilitiaShare:F3}）");
-        Assert.Equal(0.0, soldier!.MilitiaShare);   // 兵士POPは民兵にならない（寝返りは建国路の別機構）
-        foreach (var p in f.Region.Pops) if (p.IsModernElite && !p.IsSoldier) Assert.Equal(0.0, p.MilitiaShare);   // 別ブロック（近代エリート）は立たない＝旗が違う
+        Assert.Equal(0.0, soldier!.MilitiaShare.Value);   // 兵士POPは民兵にならない（寝返りは建国路の別機構）
+        foreach (var p in f.Region.Pops) if (p.IsModernElite && !p.IsSoldier) Assert.Equal(0.0, p.MilitiaShare.Value);   // 別ブロック（近代エリート）は立たない＝旗が違う
     }
 
     [Fact]
@@ -624,16 +624,16 @@ public class RevoltIgnitionTests
             foreach (var p in home.Pops) if (p.Closed && !p.IsSoldier) { noble = p; break; }
         });
         Assert.True(noble is not null, "前提が崩れた：本拠州に閉鎖階級（貴族・聖職）のPOPがいない");
-        Assert.True(noble!.MilitiaShare > 0, "旧支配層の蜂起で有産の民兵が1人も立たない＝階級の禁止規則が入り込んでいる");
+        Assert.True(noble!.MilitiaShare.Value > 0, "旧支配層の蜂起で有産の民兵が1人も立たない＝階級の禁止規則が入り込んでいる");
         // 大衆が立たないのは**階級で禁じたから**ではなく、この運動のブロックでないから（旗が違う）
-        foreach (var p in f.Region.Pops) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) Assert.Equal(0.0, p.MilitiaShare);
+        foreach (var p in f.Region.Pops) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) Assert.Equal(0.0, p.MilitiaShare.Value);
     }
 
     [Fact]
     public void 段5_戦争の終わりで民兵率が0へ戻る()   // (iii) タイマーではなく状態で剥がす
     {
         var (w, f) = 段5_蜂起させる(militiaRaise: 0.5);
-        double raised = 0; foreach (var p in f.Region.Pops) raised = Math.Max(raised, p.MilitiaShare);
+        double raised = 0; foreach (var p in f.Region.Pops) raised = Math.Max(raised, p.MilitiaShare.Value);
         Assert.True(raised > 0, "前提が崩れた：民兵が1人も立っていない");
         // 内戦の状態＝この国を親とする内戦タグの戦争（World.InCivilWar の1本）。★2026-09-28：旧＝旧経路の内戦（CivilWarYears）が立った
         //   ＝その経路は削除・単国の世界の蜂起は即時の決着＝戦争の形の内戦の状態を盤面に置いて「状態で剥がす」を測る。
@@ -644,13 +644,13 @@ public class RevoltIgnitionTests
         Assert.True(w.InCivilWar, "前提が崩れた：内戦の状態になっていない");
 
         Politics.Step(w, w.Coef);   // 内戦中の四半期＝剥がれない（時間で消していないことの対照）
-        double still = 0; foreach (var p in f.Region.Pops) still = Math.Max(still, p.MilitiaShare);
+        double still = 0; foreach (var p in f.Region.Pops) still = Math.Max(still, p.MilitiaShare.Value);
         Assert.True(still > 0, "内戦中に民兵の札が剥がれた＝戦争という状態でなく時間で剥がしている");
 
         // 戦争の終わり（再併合・独立の確定・白紙分断のどれで終わっても同じ状態＝内戦でなくなる）
         dip.Wars.Clear(); w.RevoltingFaction = null; w.PendingRebelRegions = null;
         Politics.Step(w, w.Coef);
-        foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare);   // 武器を置いて畑と工場へ戻る＝労働供給がその瞬間に回復する
+        foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare.Value);   // 武器を置いて畑と工場へ戻る＝労働供給がその瞬間に回復する
     }
 
     [Fact]
@@ -658,7 +658,7 @@ public class RevoltIgnitionTests
     {
         var (offW, _) = 段5_蜂起させる(militiaRaise: 0);
         var (onW, _) = 段5_蜂起させる(militiaRaise: 0.5);
-        double raised = 0; foreach (var p in onW.AllPops()) raised += p.MilitiaShare;
+        double raised = 0; foreach (var p in onW.AllPops()) raised += p.MilitiaShare.Value;
         Assert.True(raised > 0, "前提が崩れた：ON腕で民兵が立っていない");
         // 2腕の違いは札だけ＝同じ四半期の人口も貨幣も1ビットも違わない（民兵は人を作らない・移さない）
         Assert.Equal(offW.TotalPopulation, onW.TotalPopulation, 9);
@@ -688,8 +688,8 @@ public class RevoltIgnitionTests
             foreach (var p in fr.Regions[1].Pops)
             {
                 if (p.IsSoldier) continue;
-                if (p.ClassId == PopClass.Peasant) { armed = p; p.MilitiaShare = 1.0; }
-                else if (p.ClassId == PopClass.Worker) { athome = p; p.MilitiaShare = 0.0; }
+                if (p.ClassId == PopClass.Peasant) { armed = p; p.MilitiaShare = new Share(1.0); }
+                else if (p.ClassId == PopClass.Worker) { athome = p; p.MilitiaShare = new Share(0.0); }
             }
             Assert.True(armed is not null && athome is not null && armed.Size > 1e-6 && athome.Size > 1e-6, "前提が崩れた：2つのPOPが揃っていない");
             var war = new War { A = fr.SelfPower!, B = br.SelfPower!, Score = -0.5 };   // A＝劣勢＝戦場になる側
@@ -717,7 +717,7 @@ public class RevoltIgnitionTests
         var garrison = home.Pops.Find(p => p.IsSoldier);
         Assert.True(garrison is not null && garrison.Size > 1e-9, "前提が崩れた：反乱州に守備兵がいない");
         garrison!.Militancy = 0.5;   // ⚠この後の四半期で target へ少し動く（両腕とも同じ軌道＝比較は成立する）
-        if (militiaShare > 0) foreach (var p in home.Pops) if (!p.IsSoldier) p.MilitiaShare = militiaShare;
+        if (militiaShare > 0) foreach (var p in home.Pops) if (!p.IsSoldier) p.MilitiaShare = new Share(militiaShare);
         pw.PendingRebelRegions = [home];
         pw.PendingRebelPolity = Polity.Republic;
         int n0 = sim.Nations.Count;
@@ -1072,7 +1072,7 @@ public class RevoltIgnitionTests
         int pn = pw.Regions.Count, rn = rw.Regions.Count;
         double rPop0 = rw.TotalPopulation;
         var core0 = new System.Collections.Generic.Dictionary<string, double>();
-        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare;
+        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare.Value;
         // ★保存はエンジン自身の不変条件で見る（新しい許容誤差を書かない）：基準線を今この瞬間に取り、講和のあとで Check する。
         var pPop = new PopulationConservation(pw); var pMoney = new MoneyConservation(pw);
         var rPop = new PopulationConservation(rw); var rMoney = new MoneyConservation(rw);
@@ -1086,7 +1086,7 @@ public class RevoltIgnitionTests
         foreach (var r in rw.Regions)
             if (core0.TryGetValue(r.Name, out double x0) && r.Pops.Count > 0)
             {
-                Assert.Equal(1.0 - x0, r.Pops[0].CoreEthnicShare, 12);
+                Assert.Equal(1.0 - x0, r.Pops[0].CoreEthnicShare.Value, 12);
                 Assert.Equal(0.0, r.AnnexBaggage);   // 内戦で動く州は「外から連れてきた人口」ではない（建国路の AnnexBaggage=0 と同じ）
                 moved++;
             }
@@ -1100,7 +1100,7 @@ public class RevoltIgnitionTests
         var (sim, pw, rw, war) = 段7_内戦を1本立てる(coef);
         int total = pw.Regions.Count + rw.Regions.Count;   // 内戦が始まった時点の親の版図（建国で割れた両側の和）
         var core0 = new System.Collections.Generic.Dictionary<string, double>();
-        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare;
+        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare.Value;
         war.Score = -0.20; war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
         sim.Diplomacy.ResolvePeace(coef, war);
         Assert.True(rw.Regions.Count > 1, "前提が崩れた：膨張していない＝全返還の検査にならない");
@@ -1118,7 +1118,7 @@ public class RevoltIgnitionTests
             if (expanded.Contains(r.Name) && core0.TryGetValue(r.Name, out double x0) && r.Pops.Count > 0)
             {
                 Assert.True(Math.Abs(2 * x0 - 1) > 0.5, $"前提が崩れた：中核比が0.5近傍（{x0:F3}）＝往復の向きを見分けられない");
-                double back = r.Pops[0].CoreEthnicShare;
+                double back = r.Pops[0].CoreEthnicShare.Value;
                 Assert.True(Math.Abs(back - x0) < Math.Abs(back - (1.0 - x0)), $"{r.Name}の中核比が裏返ったまま返った（{back:F3}／出発 {x0:F3}）");
             }
     }
@@ -1316,7 +1316,7 @@ public class RevoltIgnitionTests
             w.Tariff = 1.0;             // 国の関税姿勢＝保護の端（州の関税の利害は開幕で0＝乖離1）
             w.Legitimacy = 0.02;        // 引き留めを小さく＝大衆のいる州は離れる向き
             foreach (var q in w.Regions) foreach (var p in q.Pops) p.Militancy = 0;
-            foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = 0.0; p.NationalConsciousness = 0.0; }   // 州の中で一様＝人を動かしても州の平均は同じ
+            foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); p.NationalConsciousness = 0.0; }   // 州の中で一様＝人を動かしても州の平均は同じ
             r.Dominance = 0.5;
             foreach (var p in r.Pops)
             {

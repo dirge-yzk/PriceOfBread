@@ -96,7 +96,7 @@ public static class PolicyPreferences
     internal static double AvgUnemployment(World w)
     {
         double u = 0, size = 0;
-        foreach (var p in w.AllPops()) if (p.IsCommoner) { u += p.UnemploymentRate * p.Size; size += p.Size; }
+        foreach (var p in w.AllPops()) if (p.IsCommoner) { u += p.UnemploymentRate.Value * p.Size; size += p.Size; }
         return size > 1e-9 ? u / size : 0;
     }
 

@@ -72,7 +72,7 @@ public static class InterestGroups
     /// 両法が最大（全面＋あり）で全pop=1.0＝ゲート点火前と同じ集計＝連続性。読み手＝Blocs（発言権）・Fiscal consent（課税への同意）。</summary>
     public static double SuffrageInclusion(World w, Region r, Pop p)
     {
-        double core = p.CoreEthnicShare;
+        double core = p.CoreEthnicShare.Value;
         if (!(core >= 0 && core <= 1)) core = 1.0;   // NaN/域外は中立（全算入＝点火前と同じ）へ倒す（否定形＝Clampは NaN を消さない）
         if (r.Tier == RegionTier.Colonial)
             return w.ColonialSuffrage switch

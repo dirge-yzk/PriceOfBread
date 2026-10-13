@@ -394,7 +394,7 @@ public static class CrownParliament
                 //   外すと彼らが −1 のまま残り、国の加重平均を永久に汚す（旧実装の実害）。
                 if (!(p.Size > 1e-9)) continue;
                 if (p.NationalConsciousness < 0) p.NationalConsciousness = seed;
-                double coreShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare);
+                double coreShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare.Value);
                 // P12残渣①：ON＝民族抵抗は速度でなく天井（core=1.0・天井=ceiling×(1−民族距離×(1−開放度))）／OFF＝現行の速度core・天井そのまま（ビット恒等）
                 double core = open ? 1.0 : PoliticalQuantities.Clamp01(1.0 - c.NationConsciousnessCoreWeight * (1.0 - coreShare));
                 double ceil = open ? ceiling * (1.0 - (1.0 - coreShare) * (1.0 - openness)) : ceiling;

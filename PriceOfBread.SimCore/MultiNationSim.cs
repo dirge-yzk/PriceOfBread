@@ -454,7 +454,7 @@ public sealed class MultiNationSim
         System.Array.Copy(pw.Discovered, nw.Discovered, System.Math.Min(pw.Discovered.Length, nw.Discovered.Length));
         nw.WorldDiscovered = pw.WorldDiscovered;   // 世界の解禁の和は全ての国で同じ配列
         foreach (var rr in regs) rr.Discovered = nw.Discovered;
-        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShareEma);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
+        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShareEma.Value);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
         // ★法の継承は1本（World.CopyLawsFrom＝段の法と税・支出の段は法の軸の表のまま・政策の目標は丸ごと・2026-09-28 処理の一元化 段2 C）。
         //   旧＝ここに World と Policy の対を軸ごとに約40行＝女性の権利は Policy だけ写し漏れた前歴・累進課税／植民地参政権／移民原住民参政権／
         //   技術者流出禁止法／行政費は漏れたままだった。政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。
@@ -1608,8 +1608,8 @@ public sealed class MultiNationSim
                     if (!revive) resist = Math.Max(0.0, resist);   // 旧＝床あり（同化は遅くなるが止まらない）
                     // 逆流の核＝core×(1−core)：中核度1のPOPは1ビットも動かない（**持っていない民族は復興できない**＝
                     // 単一文化国の自国民が自分から離反する暴走を構造で閉じる）。同化側の核は従来どおり (1−core)＝core=0 から立ち上がる。
-                    double kernel = resist > 0 ? 1.0 - p.CoreEthnicShare : p.CoreEthnicShare * (1.0 - p.CoreEthnicShare);
-                    p.CoreEthnicShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare + assim * resist * kernel);   // 倍率排除⑧：同化は per-pop で中核割合を1へ寄せる（EthnicUnity は加重平均から創発）
+                    double kernel = resist > 0 ? 1.0 - p.CoreEthnicShare.Value : p.CoreEthnicShare.Value * (1.0 - p.CoreEthnicShare.Value);
+                    p.CoreEthnicShare = new Share(PoliticalQuantities.Clamp01(p.CoreEthnicShare.Value + assim * resist * kernel));   // 倍率排除⑧：同化は per-pop で中核割合を1へ寄せる（EthnicUnity は加重平均から創発）
                 }
             }
         }
@@ -1782,7 +1782,7 @@ public sealed class MultiNationSim
         MoneyStock savOut = new MoneyStock(fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav);
         MoneyStock debtOut = sp.Debt * frac;
         Fiscal.BookForeignDebt(sp, sp.BondHoldings * frac, src, dst);   // ★国債の保有台帳（2026-09-21）：発行国（src）の対外債へ振替＝受入国の対外債権
-        double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare, money: false);
+        double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare.Value, money: false);
         if (!(moved > 0)) return 0;
         MoneyStock savIn = World.CrossFx(src, dst, savOut);     // 換算（差は換算の台帳へ）
         MoneyStock debtIn = -World.CrossFx(src, dst, -debtOut); // 負債は負の額として換算＝台帳の差の符号が基礎貨幣（貯蓄−与信）と揃う

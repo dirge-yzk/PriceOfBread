@@ -844,7 +844,7 @@ public static class Discovery
         foreach (var q in r.Pops)
         {
             if (q.IsSoldier || !(q.Size > 0)) continue;
-            people += site.Kind == Catalog.SiteKind.Deposit ? q.Size * PoliticalQuantities.Clamp01(q.CoreEthnicShare) : q.Size;
+            people += site.Kind == Catalog.SiteKind.Deposit ? q.Size * PoliticalQuantities.Clamp01(q.CoreEthnicShare.Value) : q.Size;
         }
         double n0 = c.DiscoverySiteFindHalfPop > 0 ? c.DiscoverySiteFindHalfPop : 0;   // 否定形＝NaN・負は0（人が居れば厚み1）
         double thick = people > 0 ? people / (people + n0) : 0;

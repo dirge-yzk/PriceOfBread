@@ -302,7 +302,7 @@ public class AiFirstWaveTests
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w); w.MandateSpent = 0;
         w.ImmigrationRestriction = law; w.Policy.ImmigrationRestriction = law;
         w.LastImmigration = w.TotalPopulation * inflow;
-        foreach (var pp in w.AllPops()) pp.UnemploymentRate = unemployment;
+        foreach (var pp in w.AllPops()) pp.UnemploymentRate = new Share(unemployment);
         w.TreatyPortsGranted = treatyPorts;
         if (capitalCrisis)
         {
@@ -509,7 +509,7 @@ public class AiFirstWaveTests
         Assert.True(w.FoodFill >= w.Coef.DynMandateFoodAnchor, "テスト前提が崩れた：飢饉の判定が立つ");
         foreach (var r in w.Regions)
             foreach (var pr in r.Producers)
-                if (pr.IsRgo) Assert.True(pr.RentShare <= r.FarmRentCap, "テスト前提が崩れた：地代の余地がある");
+                if (pr.IsRgo) Assert.True(pr.RentShare.Value <= r.FarmRentCap, "テスト前提が崩れた：地代の余地がある");
         Assert.True(Government.GateInfo(w, PolicyAxis.SerfEmancipation, increasing: true, (int)ReformLevel.Limited).Ok, "テスト前提が崩れた：門が開かない");
         UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
         Assert.Equal(ReformLevel.Limited, w.Policy.SerfEmancipation);   // 旧＝余地0・飢饉なし＝置かない（なしのまま）

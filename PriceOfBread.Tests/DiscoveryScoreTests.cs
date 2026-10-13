@@ -845,7 +845,7 @@ public class DiscoveryScoreTests
         SiteMarket(w, Catalog.Sites[p.SiteRow].Good, b.Cost * System.Math.Exp(3.0));   // 必要性を立てる（人が居なくても必要性は変わらないことを見る）
         var t0 = Discovery.SiteTerms(w, r, p, w.Coef);
         Assert.True(t0.Tech > 0 && t0.Need > 0, $"前提が崩れた（入植者が居るのに技術力か必要性が0・{t0}）");
-        foreach (var q in r.Pops) q.CoreEthnicShare = 0;
+        foreach (var q in r.Pops) q.CoreEthnicShare = new Share(0);
         var t = Discovery.SiteTerms(w, r, p, w.Coef);
         Assert.Equal(0.0, t.Tech);
         Assert.Equal(t0.Need, t.Need);
@@ -856,7 +856,7 @@ public class DiscoveryScoreTests
         wk.TechLevel = Discovery.DifficultyOf(Catalog.Sites[pk.SiteRow].Decade, wk.Coef) * 2;
         double before = Discovery.SiteTerms(wk, rk, pk, wk.Coef).Tech;
         Assert.True(before > 0, "前提が崩れた（植林の技術力0）");
-        foreach (var q in rk.Pops) q.CoreEthnicShare = 0;
+        foreach (var q in rk.Pops) q.CoreEthnicShare = new Share(0);
         Assert.Equal(before, Discovery.SiteTerms(wk, rk, pk, wk.Coef).Tech);
     }
 
@@ -874,7 +874,7 @@ public class DiscoveryScoreTests
         var c = w.Coef;
         int g = Catalog.Sites[p.SiteRow].Good;
         w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
-        foreach (var q in r.Pops) q.CoreEthnicShare = 1;
+        foreach (var q in r.Pops) q.CoreEthnicShare = new Share(1);
         var b = SiteParts(w, r, p);
         Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・入植者 {b.People}）");
         Assert.True(System.Math.Abs(b.Cost / Catalog.RefPrices[g] - 1.0) > 0.01, $"前提が崩れた（掘る費用が参照価格と同じ・{b.Cost}）");
@@ -903,12 +903,12 @@ public class DiscoveryScoreTests
         SiteMarket(w, g, 2.0 * b.Cost);
         double n0 = c.DiscoverySiteFindHalfPop;
         Assert.Equal(Discovery.TermMax * t1.People / (t1.People + n0), t1.T.Tech, 9);
-        foreach (var q in r.Pops) q.CoreEthnicShare = 0.5;
+        foreach (var q in r.Pops) q.CoreEthnicShare = new Share(0.5);
         var t4 = SiteParts(w, r, p);
         Assert.Equal(0.5 * t1.People, t4.People, 9);
         Assert.Equal(t1.T.Need, t4.T.Need);
         Assert.Equal(Discovery.TermMax * t4.People / (t4.People + n0), t4.T.Tech, 9);
-        foreach (var q in r.Pops) q.CoreEthnicShare = 1;
+        foreach (var q in r.Pops) q.CoreEthnicShare = new Share(1);
         // ⑤ 投入の値段＝農業労働力の平滑化した値段（国内の市場を生かして2倍）
         Assert.Contains(p.Inputs, i => i.GoodId == Catalog.FarmLaborId);
         double fl = w.DiscoveryPrice![Catalog.FarmLaborId];
@@ -1340,7 +1340,7 @@ public class DiscoveryScoreTests
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
         var c = w.Coef; int g = Catalog.Sites[p.SiteRow].Good;
         w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
-        foreach (var q in r.Pops) q.CoreEthnicShare = 1;
+        foreach (var q in r.Pops) q.CoreEthnicShare = new Share(1);
         var b = SiteParts(w, r, p);
         Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・入植者 {b.People}）");
         c.DiscoverySiteFindHalfPop = b.People / 9.0;                                        // 見つける力＝70×0.9＝63

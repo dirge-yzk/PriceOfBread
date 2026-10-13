@@ -839,7 +839,7 @@ public sealed class Diplomacy
             //   ⚠MilitiaCombatValue=0（既定）では走査もせず 0×0＝x+0＝厳密恒等。
             double militiaMen = 0;
             if (c.MilitiaCombatValue > 0)
-                foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare > 0) militiaMen += mp.Size * mp.MilitiaShare;
+                foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare.Value > 0) militiaMen += mp.Size * mp.MilitiaShare.Value;
             double soldiersNow = nw.SoldierSizeK();   // ★(189) 戦力と乗員（艦に乗る兵）が同じ兵士の数を読む
             p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
             p.AirPower = p.Military * nw.Region.MilitaryAirFill;   // 1934拡張E2：空軍力＝陸海戦力×空軍装備充足（飛行機/戦闘機/化学兵器）。財の解禁(1910s)前はFill0＝空軍0＝恒等
@@ -2534,7 +2534,7 @@ public sealed class Diplomacy
                 {
                     double civPop = 0;
                     var civ = new List<Pop>(); var civW = new List<double>();
-                    foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civ.Add(pp); civW.Add(pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare)); }
+                    foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civ.Add(pp); civW.Add(pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare.Value)); }
                     if (civPop > 1e-9)
                         civToll = wz.KillPops(civ, civW, civPop * tollRate, violent: true);   // 死の記帳の1本（段4e J）。★2026-09-23：戦争別台帳へ渡すのは**この1回**（国の累計と戦争別台帳は別物＝二重計上でない）
                 }

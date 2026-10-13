@@ -560,7 +560,7 @@ public sealed class World
     /// <summary>実効の貸出金利（**年率**）。無次元の政策レバー <see cref="InterestRate"/> を年率へ換算する**唯一の地点**（金利doc B1・2026-07-30）。
     /// 式は <c>Credit.Step</c> の loanRate と同一（同順＝ビット一致）。LoanSpreadPerYear / PolicyRateLoanWeight が既定0のあいだは 0＝利息なし
     /// ＝エンジンに量が無い（B4の点火で意味を持つ）。★画面はその間、貸出金利の行ごと隠す（2026-09-26・点火まで出さない）。</summary>
-    public double LoanRateAnnual => Coef.LoanSpreadPerYear.Value + Coef.PolicyRateLoanWeight * InterestRate;
+    public RatePerYear LoanRatePerYear => new RatePerYear(Coef.LoanSpreadPerYear.Value + Coef.PolicyRateLoanWeight * InterestRate);
 
     // --- 政治（§9-E／§A-11・段3）---
     public bool PoliticsEnabled { get; internal set; }
@@ -929,7 +929,7 @@ public sealed class World
     // 高い＝不満の上昇が鈍い・軍が結束・近代化が通りやすい／低い＝移民を引く（坩堝）・分離圧力。EthnicEnabled が false の世界（合成較正・最小テスト）では全効果が無効＝較正不変。
     // 倍率排除⑧：国一律スカラーを廃し、各popの中核民族割合(CoreEthnicShare)の人口加重平均から創発させる計算プロパティ。
     // !EthnicEnabled（合成較正・最小テスト世界）は1.0＝全効果が無効＝較正不変。移民(core=0)で希釈・同化で回復・征服で低下が pop属性から自動で出る。
-    public double EthnicUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, c = 0; foreach (var p in AllPops()) { s += p.Size; c += p.Size * p.CoreEthnicShare; } return s > 1e-9 ? c / s : 1.0; } }
+    public double EthnicUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, c = 0; foreach (var p in AllPops()) { s += p.Size; c += p.Size * p.CoreEthnicShare.Value; } return s > 1e-9 ? c / s : 1.0; } }
     // 宗教統一度（タスクA/宗教civic）：EthnicUnityと対称の派生スカラー＝国内多数派宗教に属す州人口比∈[0,1]。州ラベル(単一Religion)から派生＝per-pop宗教属性を作らず「スカラーのみ」設計に忠実。均質国/単一宗教/!EthnicEnabled(合成較正)＝1.0。墺洪/オスマンのミレット型分裂を国民統合の抵抗として立てる（旧NationBuildReligiousDragは第3段3-6で削除＝宗教civicは第5段5-5の新設計待ち・現在読み手なしの観測量。02断線走査2026-07-28注記是正）。
     public double ReligiousUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, best = 0; var seen = new System.Collections.Generic.Dictionary<string, double>(); foreach (var r in Regions) { if (r.State != RegionState.Active || string.IsNullOrEmpty(r.Religion)) continue; double p = 0; foreach (var q in r.Pops) p += q.Size; if (p <= 0) continue; s += p; double v = seen.TryGetValue(r.Religion, out var e) ? e + p : p; seen[r.Religion] = v; if (v > best) best = v; } return s > 1e-9 ? best / s : 1.0; } }
     public bool EthnicEnabled { get; internal set; }
@@ -1202,7 +1202,7 @@ public sealed class World
     public double ShipCapacity { get; internal set; }          // 海運輸送容量（港→世界市場）。船財の投資で積む
     // 運用コスト監査2026-08-16（#3 汽船の運行燃料）：ShipCapacity に占める汽船（tier2）の容量の割合（0=帆走のみ）。ShipCapacity は帆船と汽船の合算で購入後に区別が消えるため、燃料需要の按分にこの1本だけ状態を持つ（在庫の中身は記憶が無いと導けない）。
     // 書き手＝Transport.Step（2026-09-26 回4-3 から常に・購入のたびに容量加重で厳密に＝旧の平滑 ShipSteamShareSmoothing は削除）。名前の Ema は旧の名残（セーブの名前表を変えない）。
-    public double ShipSteamShareEma { get; internal set; }
+    public Share ShipSteamShareEma { get; internal set; }
     public double ColonialShipBurden { get; internal set; }    // 植民地補給航路による海運の混雑（Colonial が毎期設定）。交易の実効海運＝ShipCapacity/(1+これ)＝遠方帝国ほど交易船が補給に取られる（スケールフリー）
     public double LossFinanced { get; internal set; }          // 累積：損失で貯蓄が負になり信用で埋めた額（有限責任の負債化）。慢性赤字の可視化＝隠蔽しない
     // === POPの個人債務の診断（2026-08-02）===
@@ -2396,7 +2396,7 @@ public sealed class World
         var r = Regions[regionIndex];
         var p = FindFactory(r, goodId);
         if (p is null) return;
-        p.SubsidyRate = StateProfitShare(p, r, Coef) >= 1.0 ? 0.0 : PoliticalQuantities.Clamp01(rate);
+        p.SubsidyRate = new Share(StateProfitShare(p, r, Coef) >= 1.0 ? 0.0 : PoliticalQuantities.Clamp01(rate));
     }
 
     /// <summary>補助金を設定できるか（UI表示用）＝<see cref="CanSellFactory"/> と同じ理由連鎖の作法。
@@ -2460,7 +2460,7 @@ public sealed class World
         var p = FindFactory(r, goodId)!;
         Transfer((this, [r.Pops[r.InvestorPopIndex]]), (this, null, null), price, TreasuryCat.StateFactory);   // 資本家→国庫（移し方の1本・2026-09-30 段4g＝旧は貯蓄の手書きと国庫の片側の記帳。買えることは CanSellFactory が確かめた）
         p.BuiltScale = Math.Max(0, p.BuiltScale - Coef.FactoryBuildScale);   // 1棟ぶん民営化（残る棟は国営のまま）
-        if (p.BuiltScale <= 1e-9) { p.BuiltScale = 0; p.SubsidyRate = 0; }   // 売り切った時だけ補助金も外れる（旧挙動と同値）
+        if (p.BuiltScale <= 1e-9) { p.BuiltScale = 0; p.SubsidyRate = default; }   // 売り切った時だけ補助金も外れる（旧挙動と同値）
         p.StateTarget = Math.Min(p.StateTarget, StateUnitsOf(p));
         return true;
     }
@@ -2602,7 +2602,7 @@ public sealed class World
                 // ★国営100%になった工場からは補助金が外れる（作者裁定2026-08-10「国営工場は補助金の対象外」）。
                 //   EconomyStep では既に1円も効いていない（subEff=0）＝挙動は不変で、残るのは**記録の嘘**だけ
                 //   （押していない補助金が払い下げの瞬間に復活する）。ここで消せば表示も動詞も同じ真実を指す。
-                if (p.SubsidyRate > 0 && StateProfitShare(p, r, Coef) >= 1.0) p.SubsidyRate = 0;
+                if (p.SubsidyRate.Value > 0 && StateProfitShare(p, r, Coef) >= 1.0) p.SubsidyRate = default;
             }
         }
         StepFactoryTargets();

@@ -25,7 +25,7 @@ public class ServiceEconomyTests
         var engineer = new Pop { ClassId = 4, ClassName = "技師", IsUrban = true, Size = 100, Savings = new MoneyStock(10_000), Satisfaction = 1.0, IsModernElite = true };
         var noble    = new Pop { ClassId = 0, ClassName = "貴族", IsUrban = false, Size = 100, Savings = new MoneyStock(10_000), Satisfaction = 1.0, Closed = true };
         // 教育の生産者（教師・投入なし＝紙の市場価格に依存しない純粋な供給制約）。
-        var producer = new Producer { GoodId = Catalog.EducationId, Productivity = supplyPerTeacher, Output = supplyPerTeacher * 10, MarginalCost = 0.4, LaborPopIndex = 0, OwnerPopIndex = 0, RentShare = 0.0 };
+        var producer = new Producer { GoodId = Catalog.EducationId, Productivity = supplyPerTeacher, Output = supplyPerTeacher * 10, MarginalCost = 0.4, LaborPopIndex = 0, OwnerPopIndex = 0, RentShare = default };
 
         var r = new Region
         {
@@ -277,7 +277,7 @@ public class ServiceEconomyTests
             Assert.Equal(r.TeacherPopIndex, pub.LaborPopIndex); Assert.Equal(r.TeacherPopIndex, pub.OwnerPopIndex);         // 公立学校＝教師の自営
             Assert.Equal(c.ClergyEduProductivity, parish.Productivity); Assert.Equal(c.TeacherEduProductivity, pub.Productivity);
             Assert.Equal(Catalog.PaperId, Assert.Single(parish.Inputs).GoodId); Assert.Equal(Catalog.BookId, Assert.Single(pub.Inputs).GoodId);   // 紙／書籍
-            Assert.Equal(0.0, parish.RentShare); Assert.Equal(0.0, pub.RentShare);
+            Assert.Equal(0.0, parish.RentShare.Value); Assert.Equal(0.0, pub.RentShare.Value);
         }
         var r0 = w.Regions[0];
         var pa = r0.Producers[r0.EducationProducerIndex]; var pu = r0.Producers[r0.EducationProducerIndex + 1];

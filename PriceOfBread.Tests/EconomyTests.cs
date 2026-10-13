@@ -566,7 +566,7 @@ public class EconomyTests
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
         var laborer = new Pop { ClassId = 0, ClassName = "農業労働者", IsUrban = false, Size = 1000, Savings = new MoneyStock(500_000) };
         var landlord = new Pop { ClassId = 1, ClassName = "地主", IsUrban = false, Size = 50, Savings = new MoneyStock(500_000) };
-        var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 0, RentShare = 0.3 };
+        var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 0, RentShare = new Share(0.3) };
         var market = new Market { Price = 1.0, Stock = 1200, TargetStock = 1200 };
         return new Region { Id = 0, Goods = [food], Pops = [laborer, landlord], Producers = [rgo], Markets = [market] };
     }
@@ -577,7 +577,7 @@ public class EconomyTests
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
         var laborer = new Pop { ClassId = 0, ClassName = "農業労働者", IsUrban = false, Size = 1000, Savings = new MoneyStock(laborerSavings), EarnedPerMonth = new MoneyPerMonth(laborerLastEarned) };
         var landlord = new Pop { ClassId = 1, ClassName = "地主", IsUrban = false, Size = 50, Savings = new MoneyStock(500_000) };
-        var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 0, RentShare = 0.3 };
+        var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 0, RentShare = new Share(0.3) };
         var market = new Market { Price = 1.0, Stock = 1200, TargetStock = 1200 };
         return new Region { Id = 0, Goods = [food], Pops = [laborer, landlord], Producers = [rgo], Markets = [market] };
     }
