@@ -1,0 +1,206 @@
+START 01:31:20 filter=Category!=FullLength src=D:/PoB_work/wt_e6
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\r310\tree_t_e6full\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (72 ミリ秒)。
+  D:\PoB_work\r310\tree_t_e6full\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (877 ミリ秒)。
+  D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (874 ミリ秒)。
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.SimCore\Instruments.cs(1659,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\r310\art_te6full\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\r310\art_te6full\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\ConservationTests.cs(960,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(223,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(223,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(224,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(224,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\InstrumentsTests.cs(792,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\r310\art_te6full\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.SimCore\Instruments.cs(1659,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\ConservationTests.cs(960,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(223,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(223,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(224,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(224,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\InstrumentsTests.cs(792,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    9 個の警告
+    0 エラー
+
+経過時間 00:00:34.56
+build rc=0
+D:\PoB_work\r310\art_te6full\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:05.05]     PriceOfBread.Tests.FiscalTests.外債の元本_償還は減らした債権の比で債権国へ届き世界の貨幣は変わらない [FAIL]
+  失敗 PriceOfBread.Tests.FiscalTests.外債の元本_償還は減らした債権の比で債権国へ届き世界の貨幣は変わらない [30 ms]
+  エラー メッセージ:
+   前提が崩れた：仏に初期国債がない
+  スタック トレース:
+     at PriceOfBread.Tests.FiscalTests.外債の元本_償還は減らした債権の比で債権国へ届き世界の貨幣は変わらない() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\FiscalTests.cs:line 525
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.37]     PriceOfBread.Tests.FiscalTests.巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる [FAIL]
+  失敗 PriceOfBread.Tests.FiscalTests.巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる [20 ms]
+  エラー メッセージ:
+   前提が崩れた：英の国庫が空
+  スタック トレース:
+     at PriceOfBread.Tests.FiscalTests.巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\FiscalTests.cs:line 1399
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:09.80]     PriceOfBread.Tests.FiscalTests.国債台帳_台帳導入前のセーブは読込時に起票される [FAIL]
+  失敗 PriceOfBread.Tests.FiscalTests.国債台帳_台帳導入前のセーブは読込時に起票される [7 ms]
+  エラー メッセージ:
+   前提が崩れた：仏に初期国債がない
+  スタック トレース:
+     at PriceOfBread.Tests.FiscalTests.国債台帳_台帳導入前のセーブは読込時に起票される() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\FiscalTests.cs:line 488
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:10.30]     PriceOfBread.Tests.FiscalTests.巨大建造物の外資は相手の投資家が出し利回りも投資家へ届き払えない利回りは元本へ繰り入れる [FAIL]
+  失敗 PriceOfBread.Tests.FiscalTests.巨大建造物の外資は相手の投資家が出し利回りも投資家へ届き払えない利回りは元本へ繰り入れる [13 ms]
+  エラー メッセージ:
+   前提が崩れた：英の国庫が空
+  スタック トレース:
+     at PriceOfBread.Tests.FiscalTests.巨大建造物の外資は相手の投資家が出し利回りも投資家へ届き払えない利回りは元本へ繰り入れる() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\FiscalTests.cs:line 1368
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:13.12]     PriceOfBread.Tests.FiscalTests.国債台帳_越境移民の保有は発行国の対外債へ振り替わる [FAIL]
+  失敗 PriceOfBread.Tests.FiscalTests.国債台帳_越境移民の保有は発行国の対外債へ振り替わる [53 ms]
+  エラー メッセージ:
+   仏の初期国債の持ち主が起票されていない
+  スタック トレース:
+     at PriceOfBread.Tests.FiscalTests.国債台帳_越境移民の保有は発行国の対外債へ振り替わる() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\FiscalTests.cs:line 402
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:16.11]     PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "アメリカ", difficulty: "普通") [FAIL]
+  失敗 PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "アメリカ", difficulty: "普通") [439 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "普通"
+Actual:   "簡単"
+           ↑ (pos 0)
+  スタック トレース:
+     at PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(String name, String difficulty) in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\NationBriefTests.cs:line 66
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:17.20]     PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "プロイセン", difficulty: "簡単") [FAIL]
+  失敗 PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "プロイセン", difficulty: "簡単") [172 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "簡単"
+Actual:   "普通"
+           ↑ (pos 0)
+  スタック トレース:
+     at PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(String name, String difficulty) in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\NationBriefTests.cs:line 66
+   at InvokeStub_NationBriefTests.難易度の現時点の割り当て(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:29.49]     PriceOfBread.Tests.WarThemeTests.戦争の形の穏健な革命は国債を継承する [FAIL]
+  失敗 PriceOfBread.Tests.WarThemeTests.戦争の形の穏健な革命は国債を継承する [345 ms]
+  エラー メッセージ:
+   前提が崩れた：親に国債が無い
+  スタック トレース:
+     at PriceOfBread.Tests.WarThemeTests.戦争の形の穏健な革命は国債を継承する() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\WarThemeTests.cs:line 710
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:30.80]     PriceOfBread.Tests.MoneyThemeTests.不換シニョリッジ_有効化で新規発行が積まれ貨幣保存が整合 [FAIL]
+  失敗 PriceOfBread.Tests.MoneyThemeTests.不換シニョリッジ_有効化で新規発行が積まれ貨幣保存が整合 [10 s]
+  エラー メッセージ:
+   不換新規発行(CumulativeFiatIssued)が積まれていない＝シニョリッジ経路が発火していない
+  スタック トレース:
+     at PriceOfBread.Tests.MoneyThemeTests.不換シニョリッジ_有効化で新規発行が積まれ貨幣保存が整合() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\MoneyThemeTests.cs:line 57
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:48.14]     PriceOfBread.Tests.MilitaryTests.海軍の予算は装備の器を海の金の割合で分ける [FAIL]
+[xUnit.net 00:00:48.29]     PriceOfBread.Tests.MilitaryTests.海軍力は艦の在庫と段の効きから決まり陸軍の即応度と質を読まない [FAIL]
+  失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は装備の器を海の金の割合で分ける [39 ms]
+  エラー メッセージ:
+   前提が崩れた：海軍の予算 0・陸の装備の上限 0
+  スタック トレース:
+     at PriceOfBread.Tests.MilitaryTests.海軍の予算は装備の器を海の金の割合で分ける() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\MilitaryTests.cs:line 859
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.MilitaryTests.海軍力は艦の在庫と段の効きから決まり陸軍の即応度と質を読まない [24 ms]
+  エラー メッセージ:
+   前提が崩れた：英に艦が無い
+  スタック トレース:
+     at PriceOfBread.Tests.MilitaryTests.海軍力は艦の在庫と段の効きから決まり陸軍の即応度と質を読まない() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\MilitaryTests.cs:line 878
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:53.02]     PriceOfBread.Tests.MilitaryTests.徴兵の母数は支配度の届き方で縮む [FAIL]
+  失敗 PriceOfBread.Tests.MilitaryTests.徴兵の母数は支配度の届き方で縮む [18 ms]
+  エラー メッセージ:
+   母数が半分なのに兵数が縮まない（対照 74.9→74.9／本腕 74.9→74.9）
+  スタック トレース:
+     at PriceOfBread.Tests.MilitaryTests.徴兵の母数は支配度の届き方で縮む() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\MilitaryTests.cs:line 278
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:11.62]     PriceOfBread.Tests.TreasuryLedgerTests.国家の支払い率は全ての行に同じrで掛かり利子の未払いは元本へ [FAIL]
+  失敗 PriceOfBread.Tests.TreasuryLedgerTests.国家の支払い率は全ての行に同じrで掛かり利子の未払いは元本へ [123 ms]
+  エラー メッセージ:
+   前提：国債が無い
+  スタック トレース:
+     at PriceOfBread.Tests.TreasuryLedgerTests.国家の支払い率は全ての行に同じrで掛かり利子の未払いは元本へ() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\TreasuryLedgerTests.cs:line 127
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:22.62]     PriceOfBread.Tests.TreasuryLedgerTests.借入の上限は利払いが歳入の限界に届く所で物価水準が2倍でも比は変わらない [FAIL]
+  失敗 PriceOfBread.Tests.TreasuryLedgerTests.借入の上限は利払いが歳入の限界に届く所で物価水準が2倍でも比は変わらない [152 ms]
+  エラー メッセージ:
+   前提：利払いと歳入が立っていない（0／1476.0142374975242）
+  スタック トレース:
+     at PriceOfBread.Tests.TreasuryLedgerTests.借入の上限は利払いが歳入の限界に届く所で物価水準が2倍でも比は変わらない() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\TreasuryLedgerTests.cs:line 322
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:26.00]     PriceOfBread.Tests.PolicyPoliticsTests.専売はAIもプレイヤーも同じ口を通り教義が対象の広さを選ぶ [FAIL]
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.専売はAIもプレイヤーも同じ口を通り教義が対象の広さを選ぶ [11 s]
+  エラー メッセージ:
+   全AIの対象の広さが同じ（段 2）＝教義が広さを選んでいない
+  スタック トレース:
+     at PriceOfBread.Tests.PolicyPoliticsTests.専売はAIもプレイヤーも同じ口を通り教義が対象の広さを選ぶ() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\PolicyPoliticsTests.cs:line 583
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:55.54]     PriceOfBread.Tests.WarThemeTests.戦争の形の急進革命が勝つと国債の否認と失脚と土地改革が走る [FAIL]
+  失敗 PriceOfBread.Tests.WarThemeTests.戦争の形の急進革命が勝つと国債の否認と失脚と土地改革が走る [97 ms]
+  エラー メッセージ:
+   前提が崩れた：親に国債が無い＝否認を見分けられない
+  スタック トレース:
+     at PriceOfBread.Tests.WarThemeTests.戦争の形の急進革命が勝つと国債の否認と失脚と土地改革が走る() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\WarThemeTests.cs:line 689
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:06:08.33]     PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+  エラー メッセージ:
+   立憲王政イギリス は戦争の表に出るのに交戦の月が0
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\InstrumentsTests.cs:line 224
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:06:17.47]     PriceOfBread.Tests.InstrumentsTests.物価の鎖の表は更新の式を再現し置き直しの行を含む [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.物価の鎖の表は更新の式を再現し置き直しの行を含む [1 s]
+  エラー メッセージ:
+   紙幣増発もクランプもない更新の行が少ない（1）＝物価の1歩を測れていない
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.物価の鎖の表は更新の式を再現し置き直しの行を含む() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\InstrumentsTests.cs:line 1632
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:06:17.48]     PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す [9 ms]
+  エラー メッセージ:
+   経路名の鍵が移し方の呼び出しを指していない（鍵を今の木で取り直す）：MultiNationSim.cs:1325「// ★段3-2（2026-09-30・C9）：工賃は**自国の労働の④の持分**（全ての活きた州の労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales の国の枝）。」 ／ MultiNationSim.cs:1447「// ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。」 ／ MultiNationSim.cs:1448「//   旧＝自国の全POP へ頭数（財を買わない）。進捗は動いた額（資本家の分＋国庫の分）。」 ／ MultiNationSim.cs:1401「var inv = Diplomacy.Powers.Find(p => p.Id == kv.Key);」 ／ MultiNationSim.cs:1479「if (merchants.Count == 0) continue;   // 引受手(商人)が居ない国は保険市場が立たない」 ／ MultiNationSim.cs:1911「//   移し方の1本（World.Transfer）＝受け手不在なら払わない（国庫に残る）。」 ／ MultiNationSim.cs:990「{」 ／ MultiNationSim.cs:1785「MoneyStock debtOut = sp.Debt * frac;」 ／ Simulation.cs:2858「double want = qty * price;」 ／ Simulation.cs:2251「{」 ／ Simulation.cs:2254「}」 ／ Simulation.cs:2909「: r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.InvestorPopIndex : -1;」 ／ Simulation.cs:2966「//   （旧＝与信と貯蓄を手で書いた2行＝下げ止まり＝TotalMoney＋不足, Loans＋不足 で相殺＝保存）。受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。」 ／ World.cs:1972「{」 ／ World.cs:2461「/// <summary>払い下げ1棟ぶんの買取価格＝年間利益×<see cref="Coefficients.SoeSaleYears"/>×（1棟／国営持分）。」
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す() in D:\PoB_work\r310\tree_t_e6full\PriceOfBread.Tests\InstrumentsTests.cs:line 1224
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:    19、合格:  1119、スキップ:     0、合計:  1138、期間: 6 m 19 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 END 01:38:18
