@@ -1,0 +1,7 @@
+# (321) 線Y6 フルスイートと FullLength（コミット d82466e・Release・隔離ビルド）
+## フルスイート Category!=FullLength
+
+成功!   -失敗:     0、合格:  1138、スキップ:     0、合計:  1138、期間: 8 m 58 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 49 s - PriceOfBread.Tests.dll (net10.0)
