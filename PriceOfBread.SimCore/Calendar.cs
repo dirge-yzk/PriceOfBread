@@ -33,10 +33,8 @@ public static class Calendar
     // 専用の値型の換算（型を受けて型を返す＝年と月を取り違えるとコンパイルが通らない。中身は上の double 版そのもの）。
     public static RatePerMonth PerYearToPerMonth(RatePerYear perYear) => new(PerYearToPerMonth(perYear.Value));
     public static RatePerYear PerMonthToPerYear(RatePerMonth perMonth) => new(PerMonthToPerYear(perMonth.Value));
-    // ★(317) 四半期率（RatePerQuarter）の換算：中身は double 版の 1 回の除算・乗算そのもの（月→年を合成せず 1 本ずつ通す）。
+    // ★(317) 四半期率（RatePerQuarter）の換算：中身は double 版の 1 回の除算そのもの。★(318) 使い手の無い 2 本（月→四半期・四半期→年）は消した＝使い手が出たときに足す。
     public static RatePerMonth PerQuarterToPerMonth(RatePerQuarter perQuarter) => new(PerQuarterToPerMonth(perQuarter.Value));
-    public static RatePerQuarter PerMonthToPerQuarter(RatePerMonth perMonth) => new(PerMonthToPerQuarter(perMonth.Value));
-    public static RatePerYear PerQuarterToPerYear(RatePerQuarter perQuarter) => new(PerQuarterToPerYear(perQuarter.Value));
     public static MoneyPerMonth PerYearToPerMonth(MoneyPerYear perYear) => new(PerYearToPerMonth(perYear.Value));
     public static MoneyPerYear PerMonthToPerYear(MoneyPerMonth perMonth) => new(PerMonthToPerYear(perMonth.Value));
     /// <summary>月の決算：1か月分の流れ（円/月）を、在庫（残高）へ足す量（円）に直す。在庫＋流れの暗黙の演算子は無い＝Pop の月末の精算（SettleMonth）が貯蓄へ足すのはこの1本を通す（中身は値をそのまま包む＝掛け算も丸めも無い）。

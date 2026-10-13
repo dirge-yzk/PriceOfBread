@@ -85,10 +85,8 @@ public class UnitTypeTests
         // 対照（何もしない番人は必ず緑）：Calendar には年⇔月の型つきの換算がある
         Assert.NotNull(typeof(Calendar).GetMethod("PerYearToPerMonth", [typeof(RatePerYear)]));
         Assert.NotNull(typeof(Calendar).GetMethod("PerMonthToPerYear", [typeof(RatePerMonth)]));
-        // ★(317) 四半期率の換算も Calendar の型つきの多重定義（3 本）
+        // ★(317) 四半期率の換算も Calendar の型つきの多重定義（★(318) 使い手のある 1 本だけ残した）
         Assert.NotNull(typeof(Calendar).GetMethod("PerQuarterToPerMonth", [typeof(RatePerQuarter)]));
-        Assert.NotNull(typeof(Calendar).GetMethod("PerMonthToPerQuarter", [typeof(RatePerMonth)]));
-        Assert.NotNull(typeof(Calendar).GetMethod("PerQuarterToPerYear", [typeof(RatePerQuarter)]));
     }
 
     /// <summary>量の宣言と型の表（double に戻したら赤）。World のプロパティ・Coefficients のフィールド。</summary>
@@ -296,10 +294,8 @@ public class UnitTypeTests
         {
             Assert.Equal(BitConverter.DoubleToInt64Bits(Calendar.PerYearToPerMonth(x)), BitConverter.DoubleToInt64Bits(Calendar.PerYearToPerMonth(new RatePerYear(x)).Value));
             Assert.Equal(BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerYear(x)), BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerYear(new RatePerMonth(x)).Value));
-            // ★(317) 四半期率の換算も double の 1 回の除算・乗算そのもの（x/3・x*3・x*4）
+            // ★(317) 四半期率の換算も double の 1 回の除算そのもの（x/3）
             Assert.Equal(BitConverter.DoubleToInt64Bits(x / 3), BitConverter.DoubleToInt64Bits(Calendar.PerQuarterToPerMonth(new RatePerQuarter(x)).Value));
-            Assert.Equal(BitConverter.DoubleToInt64Bits(x * 3), BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerQuarter(new RatePerMonth(x)).Value));
-            Assert.Equal(BitConverter.DoubleToInt64Bits(x * 4), BitConverter.DoubleToInt64Bits(Calendar.PerQuarterToPerYear(new RatePerQuarter(x)).Value));
         }
         // ★(256) 割合の積と年GDP 比の作り口も double の1演算そのもの
         foreach (var a in xs) foreach (var b in xs)
