@@ -1,0 +1,12 @@
+seed 1: 払えない額のある月の binder {} 停止0回
+seed 2: 払えない額のある月の binder {} 停止0回
+seed 3: 払えない額のある月の binder {} 停止0回
+seed 4: 払えない額のある月の binder {} 停止0回
+seed 5: 払えない額のある月の binder {} 停止0回
+seed 6: 払えない額のある月の binder {} 停止0回
+seed 7: 払えない額のある月の binder {} 停止0回
+seed 8: 払えない額のある月の binder {} 停止0回
+seed 9: 払えない額のある月の binder {} 停止0回
+seed 10: 払えない額のある月の binder {} 停止0回
+全体(shortfall>0の月) {}
+最初の停止0件の直前4か月 {}

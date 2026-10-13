@@ -1,0 +1,12 @@
+(296) 突然変異：InstrumentsTests の 借入の門の周りの列を手で組んだ5か月の入力で数える の置く限界 0.55→0.65（写し D:/PoB_work/m296/mut・88d4f3b から）＝赤（前提の Assert で止まる）。戻した木（88d4f3b）はフルスイート 1128 合格の中で緑。
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:04.35]     PriceOfBread.Tests.InstrumentsTests.借入の門の周りの列を手で組んだ5か月の入力で数える [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.借入の門の周りの列を手で組んだ5か月の入力で数える [3 s]
+  エラー メッセージ:
+   前提：入力の比が限界の両側にある（以上が 0.60・0.72・0.70 の3・未満が 0.30・0.10 の2）＝下の期待の数はこの割り振りの上で手で数えた
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.借入の門の周りの列を手で組んだ5か月の入力で数える() in D:\PoB_work\m296\tree_t_mut\PriceOfBread.Tests\InstrumentsTests.cs:line 1686
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
