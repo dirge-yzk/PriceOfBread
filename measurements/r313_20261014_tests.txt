@@ -1,0 +1,3 @@
+# (313) Release・隔離ビルド D:/PoB_work/y4/art・コミット b51ff00（SOURCE-HASH 9ee904b64bf51708）・帯の後に回した（帯とは並べていない）
+フルスイート（Category!=FullLength）: 成功!   -失敗:     0、合格:  1136、スキップ:     0、合計:  1136、期間: 8 m 19 s - PriceOfBread.Tests.dll (net10.0)
+FullLength: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 8 m 51 s - PriceOfBread.Tests.dll (net10.0)
