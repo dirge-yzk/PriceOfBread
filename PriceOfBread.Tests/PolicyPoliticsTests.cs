@@ -1209,7 +1209,15 @@ public class PolicyPoliticsTests
         //   人頭税の目標は35四半期ほどで効き始め（前半は軽税と重税で充足が同じ）、1点の値は四半期の揺れ（±0.02）に埋もれる＝段2A で発見していない財
         //   （缶詰・ガス）の幻の需要が消えて充足の水準が上がった木では60四半期目の1点が逆転した（軽 0.1452・重 0.1464）が、後半20四半期の平均は
         //   軽 0.1615＞重 0.1492（闘争度 0.1015＜0.1111）＝鎖は生きている（旧の木の平均は 0.1313＞0.1154）。
-        (double Tax, double Sat, double Mil) Run(double pollTax)
+        // ★(327) 盤面の直し（主張は同じ・窃盗の基数 CrimeVictimBasis の既定 0→1）：旧の盤面は〈開始から重い／軽い人頭税を置き、60四半期目までの後半20四半期の平均〉だった。
+        //   闘争度の生活苦の項 LivingWant は参照点 LivingRef からの【低下】（Politics.LivingWant）＝水準の差は恒久の差を作らず、見えるのは税を入れた直後の過渡だけ。
+        //   旧の窃盗（貯蓄×率）の世界では、その過渡の尾が後半20四半期に残り軽税＜重税が出ていた（仏の独り舞台・差は充足 0.0095・闘争度 +0.004＝薄い）。
+        //   新しい基数（所得×率）の世界は同じ窓で闘争度が逆転した（軽 0.1304＞重 0.1204・充足は 0.1428＞0.1383 で鎖の前半は生きたまま）。診断（窓を動かした表・MilLiving 込み）は
+        //   実装ログ (327)：旧の世界でも q120 以後は赤（窓を動かすと向きが入れ替わる）＝〈この窓だけの過渡の尾に載った盤面〉。
+        //   直し＝助走（20・60・100 四半期）の後に税を段差で入れ、直後 20 四半期の平均を 3 つの助走で足して比べる（差の合計）。軽税＝0・重税＝0.6（旧と同じ）。
+        //   診断の数（重税−軽税の合計・実装ログ (327)）：新しい基数＝充足 −0.0034・闘争度 +0.0775／旧の基数＝充足 −0.0273・闘争度 +0.0189。向きは両方とも鎖のとおり。
+        //   新しい基数では税→充足の差が約 1/8 に薄い【推】（納税は貯蓄で頭打ち〔Fiscal.cs の r_p〕で、窃盗の流れが消えた世界の大衆の貯蓄が薄いため・未検証）＝薄い差の向きの番人。
+        (double Tax, double Sat, double Mil) Run(double pollTax, int warmup)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
@@ -1217,23 +1225,28 @@ public class PolicyPoliticsTests
             // 開幕の国債（仏1783＝world.json の govDebt）を消す＝国債の流れを隔離（2026-09-30 (135)）：連合維持費を撤去した後は、軽税の世界が国債を払えず不履行
             //   （大衆の暴動・信用の凍結）へ・重税の世界は利子を資本家へ払う＝税の差でなく国債の差が充足を動かし、鎖の向きが逆に見えた（充足 0.1068→0.1084）。
             w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0); foreach (var rg in w.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = new MoneyStock(0);
+            sim.Run(warmup);   // 税は入れない（同じ軌道＝2 つの世界はここまで 1 ビットも違わない）
             w.PollTax = pollTax; w.Policy.PollTaxTarget = pollTax;
             double satAvg = 0, milAvg = 0; int k = 0;
-            for (int q = 0; q < 60; q++)
+            for (int q = 0; q < 20; q++)
             {
                 sim.Run(1);
-                if (q < 40) continue;   // 後半20四半期の平均
                 double sat = 0, mil = 0, size = 0;
                 foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; }
                 satAvg += sat / System.Math.Max(1e-9, size); milAvg += mil / System.Math.Max(1e-9, size); k++;
             }
             return (w.PollTax, satAvg / k, milAvg / k);
         }
-        var light = Run(0.0);
-        var heavy = Run(0.6);
-        Assert.True(heavy.Tax > light.Tax + 0.1, $"前提が崩れた：実税が重くなっていない（{light.Tax:F3}→{heavy.Tax:F3}）");
-        Assert.True(heavy.Sat < light.Sat, $"重税なのに充足が下がらない（{light.Sat:F4}→{heavy.Sat:F4}）＝C3の鎖が切れている");
-        Assert.True(heavy.Mil > light.Mil, $"重税なのに闘争度が上がらない（{light.Mil:F4}→{heavy.Mil:F4}）＝C3の鎖が切れている");
+        double dSat = 0, dMil = 0;
+        foreach (int warmup in new[] { 20, 60, 100 })
+        {
+            var light = Run(0.0, warmup);
+            var heavy = Run(0.6, warmup);
+            Assert.True(heavy.Tax > light.Tax + 0.1, $"前提が崩れた：実税が重くなっていない（{light.Tax:F3}→{heavy.Tax:F3}・助走 {warmup}）");
+            dSat += heavy.Sat - light.Sat; dMil += heavy.Mil - light.Mil;
+        }
+        Assert.True(dSat < 0, $"重税なのに充足が下がらない（3 つの助走の差の合計 {dSat:F4}）＝C3の鎖が切れている");
+        Assert.True(dMil > 0, $"重税なのに闘争度が上がらない（3 つの助走の差の合計 {dMil:F4}）＝C3の鎖が切れている");
     }
 
     [Fact]

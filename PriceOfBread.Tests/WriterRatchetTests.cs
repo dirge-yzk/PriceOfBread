@@ -389,11 +389,11 @@ public class WriterRatchetTests
     //   請求：見た生産者（月）2,711→3,118（+15.0%＝許しの +2% を超えた軌道・処理の形は同じ＝(197) の宣言 3,013 を超える・40四半期の1種の盤面で生きている生産者の月が増えた）・
     //   建設：見た生産者（旬）6,318→5,213（−17.5%）・価格：日次の写像の回 27,979,627→24,941,975（−10.9%）＝どちらも10% を超えて下がった＝表を下げる。ほかの15本は許しの内。
     //   全長の10種（計器なし `b10_20261013_i1D`）の推定は 245.2 秒（r296 の 242.4 から +2.8・上限 248.5 秒の内・払っていない・実装ログ (300)）。
-    [InlineData(CostLedger.ConstructionSeen, 5213L)]
+    [InlineData(CostLedger.ConstructionSeen, 5319L)]
     [InlineData(CostLedger.CreditSpans, 34146L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
-    [InlineData(CostLedger.ClaimProducers, 3118L)]
+    [InlineData(CostLedger.ClaimProducers, 3218L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     // ★2026-10-10 表の更新（(227) 段4＝植民地と州の人口を史実の千人へ〔英領インド 950→2,600万・コンゴ盆地 10→300万ほか〕＋国庫を人口の係数でそろえた＝データで動いた分の宣言・新しい計数の処理は無い）：
@@ -448,7 +448,11 @@ public class WriterRatchetTests
     //   〔構築時に首都の軍需3財の在庫を1回置く式の入力を変えただけ〕）：覇権の判定 2,104,027→3,375,747（+60.5%＝最初の40四半期の同盟の候補が居る月〔国の数〕の軌道【推・1種40四半期の国の数は未確認】・10種で分離独立 8→16・処理の形は同じ）・
     //   請求：見た生産者（月）2,626→2,711（+3.2%＝許しの +2% を超えた軌道・(197) の宣言 3,013 の下）。ほかの16本は許しの内（+2%／−10%・フルスイートで確かめた）。
     //   全長の10種（計器つきの腕 B10）の推定 243.0→242.8 秒（上限 248.5 秒の内・払っていない・実装ログ (239)）。
-    [InlineData(CostLedger.DiploHegemonScans, 3008569L)]
+    // ★2026-10-14 表の更新（(327) 窃盗の被害の基数 CrimeVictimBasis の既定 0→1＝被害を貯蓄×率から min(前の月の所得×率, 貯蓄) へ＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔Crime.cs の被害の式の 1 行を差し替えただけ＝計数の外の四則〕）：覇権の判定 3,008,569→3,182,374（+5.8%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）・
+    //   請求：見た生産者（月）3,118→3,218（+3.2%）・建設：見た生産者（旬）5,213→5,319（+2.0%）＝どちらも許しの +2% を超えた軌道（(197) の宣言 3,013・8,204 の内）。ほかの15本は許しの内（+2%／−10%）。
+    //   全長の10種（計器つき `b10_20261014_r327_ins`・基線 r326 に対して）の推定 245.2→245.1 秒（上限 248.5 秒の内・払っていない・実装ログ (327)）。
+    [InlineData(CostLedger.DiploHegemonScans, 3182374L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]

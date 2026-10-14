@@ -101,10 +101,15 @@ public class TechInstitutionTests
     // 「宗教教育に**留まる**国は追いつけない」を検証するため、日本の議会を無効化（梯子テストと同じ分離手法）＝
     // NullAgent世界では教育目標が初期値（宗教）のまま動かず、綱領上書きによる転換だけを封じる（政変・経済は生きたまま）。
     // ★2026-09-26（回5-1 項目17）：綱領は撤去＝議会はもう目標を書かない。分離は議席の純支持を切る分として残す。
-    private static MultiNationSim RunWithJapanPinnedReligious(int quarters)
+    private static MultiNationSim RunWithJapanPinnedReligious(int quarters, bool pinBritain = false)
     {
-        var sim = new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
+        // ★(327) pinBritain＝英の報道法・教育法・参政権を毎四半期書き戻す（公教育の自由国の番人と同じ分離手法・既定 false＝他の 2 本の盤面は 1 ビットも変えない）。
+        var cfg = Four();
+        var sim = pinBritain
+            ? new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] ? new FreePressPublicEducationPin() : new NullAgent(), coef: new Coefficients { ColoniesAreRegions = 0 })
+            : new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
         sim.Nations[1].World.ParliamentEnabled = false;
+        if (pinBritain) sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法）
         // ★(159) 盤面の前提（主張は同じ）：物を生む行の必要性が動力（労働力の財）の平滑化した値段÷参照価格になり、この4カ国の閉じた世界では動力が参照を超えず
         //   誰も蒸気機関を必要としない（1843年まで）＝工場が石炭を焚かず英米の技術水準が 1.04・1.20 で凍る（r154 の盤面は4カ国とも開幕から蒸気機関を知り英 2.18）。
         //   この番人の主題は制度（特許・株式会社）と宗教教育＝蒸気機関は開幕から4カ国に与える（r154 の盤面と同じ前提）。
@@ -131,7 +136,11 @@ public class TechInstitutionTests
     [Fact]
     public void 制度は社会の発展で施行され宗教国は特許を自力で見つけない()
     {
-        var sim = RunWithJapanPinnedReligious(400);
+        // ★(327) 盤面の直し（主張は同じ）：英の政治を固定する（pinBritain）。窃盗の基数 CrimeVictimBasis の既定を 1 にした木では、統治する主体のいないこの閉じた 4 カ国の世界で
+        //   英が政変を経てブルジョワ独裁（国営報道）へ入り技術が 1.0〜1.1 で凍る軌道になった（診断：基数 1・ε＝±1e-8 の摂動で英の株式会社が False／True／False に裏返る＝薄氷・
+        //   基数 0 は 3 つとも True・技術 2.8）。主題は制度（特許・株式会社）の施行で、政体の軌道ではない＝クラス冒頭の注記（政治環境を固定するのが正しい）と
+        //   公教育の自由国の番人と同じ分離。英を固定した盤面は基数 0・1 とも ε を替えても全て True（英の技術 3.4〜3.6）。
+        var sim = RunWithJapanPinnedReligious(400, pinBritain: true);
         var uk = sim.Nations[2].World; var jp = sim.Nations[1].World;
         Assert.True(uk.PatentLaw, "イギリス（自由＋公教育）は特許を施行するはず");
         var tj = Discovery.Evaluate(jp, null, jp.Coef, includeKnown: true)[Discovery.PatentRow];
