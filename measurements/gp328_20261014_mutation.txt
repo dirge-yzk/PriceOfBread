@@ -1,0 +1,30 @@
+(328) 流れG ① 番人の突然変異（写しの木 D:/PoB_work/gp_328/mut・コミット 49221dcd の上・各 1 箇所を書き換えて該当の番人だけ回す・対照 M0 は無変更）
+
+M0_control: 成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M1_multiply: 失敗!   -失敗:     3、合格:     2、スキップ:     0、合計:     5、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M2_default_on: 失敗!   -失敗:     3、合格:     2、スキップ:     0、合計:     5、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M3_base_any: 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M4_no_call: 失敗!   -失敗:     4、合格:     1、スキップ:     0、合計:     5、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M5_inputs_too: 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M6_contact_buyer_known: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 50 s - PriceOfBread.Tests.dll (net10.0)
+END
+
+[M1_multiply] 赤になった番人：
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲート1は動力のレシピの自己費用を生産性の比で割り_手で書いた表と一致する
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲートは指数_半分なら平方根_投入と生産性は触らない
+  失敗 PriceOfBread.Tests.RecipeCostTests.共有世界の植民地格の州も蒸気の動力の自己費用が畳まれる_PromoteColonyToRegion_の経路
+[M2_default_on] 赤になった番人：
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲート1は動力のレシピの自己費用を生産性の比で割り_手で書いた表と一致する
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲート0は全州全生産者で費用も生産性もビット一致
+  失敗 PriceOfBread.Tests.RecipeCostTests.動くのは別レシピだけ_基準レシピと一次産品と基準の無い財は動かない
+[M3_base_any] 赤になった番人：
+  失敗 PriceOfBread.Tests.RecipeCostTests.動くのは別レシピだけ_基準レシピと一次産品と基準の無い財は動かない
+[M4_no_call] 赤になった番人：
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲート1は動力のレシピの自己費用を生産性の比で割り_手で書いた表と一致する
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲートは指数_半分なら平方根_投入と生産性は触らない
+  失敗 PriceOfBread.Tests.RecipeCostTests.動くのは別レシピだけ_基準レシピと一次産品と基準の無い財は動かない
+  失敗 PriceOfBread.Tests.RecipeCostTests.共有世界の植民地格の州も蒸気の動力の自己費用が畳まれる_PromoteColonyToRegion_の経路
+[M5_inputs_too] 赤になった番人：
+  失敗 PriceOfBread.Tests.RecipeCostTests.ゲートは指数_半分なら平方根_投入と生産性は触らない
+[M6_contact_buyer_known] 赤になった番人：
+  失敗 PriceOfBread.Tests.InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される

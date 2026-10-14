@@ -1,0 +1,3 @@
+# (328) フルスイート（Category!=FullLength）と FullLength・隔離ビルド --artifacts-path D:/PoB_work/gp_328/art・Release・帯の後（帯と並べていない）・コミット 49221dcd
+成功!   -失敗:     0、合格:  1147、スキップ:     0、合計:  1147、期間: 10 m - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 50 s - PriceOfBread.Tests.dll (net10.0)

@@ -92,3 +92,15 @@
 [9] 前半の恒等の証明（この回の合否）
   形のコードを入れた木（既定 0）で、10 種・5 種・計器つき 10 種の帯の報告が r326（b10_20261014_r326・b5_20261014_r326・b10_20261014_r326_ins）と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
   この A の ins（disc_s）は後半の基線として D:/PoB_work/gp_328 に残す。 an_disc320.py の要約が (320) [8] の数（〜1784 の解禁 36・34・35・37・36・34・35・35・37・34 ほか）と一致することも確かめる。
+
+[10] 追記（2026-10-14・形のコード〔コミット 49221dcd〕と恒等の帯 3 本を得た後・腕 B・N1・N2 の値は 1 つも見ていない・書いたモデル Claude Sonnet 5.5）
+  元の本文（[先頭]〜[9]）は書き換えない。線の値は動かさない。
+  (a) 足した計器（[8] の実装）：disccontact_s<seed>.tsv ＝ quarter・year・buyer・row・seller・valuePerQuarter。行は蒸気機関と機関車だけ。額は、買い手の国がまだ解禁していない行の運び手の財を、解禁済みの売り手の国から越境で買った額（金建て）の四半期の和
+      （BilateralMarket.AccumulateDiscovery が DiscoveryImportQ へ足す所と同じ述語・Instruments.On の中だけ）。分母は書かない（売り手どうしの割合を読む用）。四半期の区切りは disc_s と同じ書き出しの位置。
+      基線 A の読み（measurements/gp_20261014/base_contact_A.txt）：主要国の蒸気機関の相手は、仏＝墺 14%・露 14%・葡 12%・アワド 10%・ポーランド 8%／普＝米 44%・仏 12%／墺＝露 20%・米 19%・ザクセン 13%／
+      露＝シク連邦 38%・立憲王政英 17%・清 14%／米＝ポーランド 35%・仏 29%／蘭＝普 19%・墺 17%・米 17%／西＝葡 26%・米 15%・仏 14%／オスマン＝ハイデラバード 16%・ネパール 10%・清 10%。
+      ⇒ (322) の読み〈主要国の伝わりの相手は開幕の薄い国〉は、西・蘭・オスマンの 3 国でだけでなく、仏（アワド・ポーランド）・露（シク・清）・オスマン（ハイデラバード・ネパール・清）で薄い国の比重が大きい。普・蘭・米は主要国どうしが相手。額は種をまたいだ和で正規化していない【推】。
+  (b) 係数が播種に届く道：POB_COEF（Coefficients の構築時に読む）は全ての新しい Coefficients に届く。**MultiNationSim の coef 引数は開幕の国の州の播種には届かない**（cfg.ToScenario が新しい係数を作る）＝腕は POB_COEF（batch.sh の coef_<腕>.txt）で渡す。
+      番人（RecipeCostTests）は単国 Simulation（Scenario.Coef）と、植民地格の州（PromoteColonyToRegion・MultiNationSim の coef が届く）の 2 経路を通す。
+  (c) 腕の渡し方（後半）：coef_gpB.txt＝ RecipeCostFollowsProductivity=1／coef_gpN1.txt＝ SupplySlope=0.50000001／coef_gpN2.txt＝ SupplySlope=0.49999999（batch.sh run が POB_COEF="$(cat coef_<腕>.txt)" で読む）。A は係数ファイルなし。
+  (d) 恒等：A（係数 0）の帯 3 本が r326 と cmp でファイルとして 1 バイトも違わない（実装ログ (328)）。 an_disc320.py の A の要約が (320) [8] の数と一致。

@@ -146,6 +146,38 @@ def records(A, B):
         print(f'  {row}: 中央値 {med(d)}・早 {sum(1 for x in d if x < 0)}・遅 {sum(1 for x in d if x > 0)}・同 {sum(1 for x in d if x == 0)}')
 
 
+def load_contact(d):
+    out = {}
+    for f in sorted(glob.glob(os.path.join(d, 'disccontact_s*.tsv'))):
+        sd = int(re.search(r'disccontact_s(\d+)\.tsv', f).group(1))
+        rows = []
+        with open(f, encoding='utf-8') as fh:
+            hdr = fh.readline().rstrip(chr(10)).split(chr(9))
+            for l in fh:
+                p = l.rstrip(chr(10)).split(chr(9))
+                if len(p) == len(hdr):
+                    rows.append(dict(zip(hdr, p)))
+        out[sd] = rows
+    return out
+
+
+def contacts(name, d):
+    """接触の内訳（disccontact_s・事前登録 [8]）：主要国が蒸気機関の運び手の財を、どの国から買って接触を得たか（種をまたいだ額の和の上位 5 国と全体に占める割合）。"""
+    data = load_contact(d)
+    if not data:
+        print(f'{chr(10)}## 接触の内訳 {name}：disccontact_s が無い'); return
+    print(f'{chr(10)}## 接触の内訳 {name}（蒸気機関の行・買い手別・種をまたいだ額の和の上位 5 売り手と割合）')
+    for n in INDUSTRIAL + RECORD:
+        tot = collections.Counter()
+        for sd, rows in data.items():
+            for r in rows:
+                if r['buyer'] == n and r['row'] == '蒸気機関':
+                    tot[r['seller']] += fl(r['valuePerQuarter'])
+        s = sum(tot.values())
+        top = ' / '.join(f'{k} {v / s:.0%}' for k, v in tot.most_common(5)) if s > 0 else '（記帳なし）'
+        print(f'  {n}: 合計 {s:.4g} ＝ {top}')
+
+
 if __name__ == '__main__':
     ds = sys.argv[1:]
     arms = [Arm(d) for d in ds]
@@ -153,3 +185,4 @@ if __name__ == '__main__':
     if len(arms) >= 2:
         lines(arms[0], arms[1], arms[2:])
         records(arms[0], arms[1])
+    for d in ds: contacts(d, d)
