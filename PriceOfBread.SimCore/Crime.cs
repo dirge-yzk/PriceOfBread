@@ -63,6 +63,7 @@ public static class Crime
                     if (weight > 0) { poor.Add(p); need.Add(weight); }
                 }
                 World.Transfer((w, r.Pops), (w, poor, need), pool, fromWeights: stolen);
+                if (Instruments.On) Instruments.Theft(r, pool, poor);   // ★(323) 計器（読むだけ・州ごとの窃盗の額と受け手の所得＝region_s の列）。Transfer の行（flow_s の鍵 Crime.cs:65）より後ろに置く
             }
 
             // 犯罪→満足度の還流（crime-is-dead-end + theft-no-property-disincentive 統合）：治安崩壊は非物質厚生（安心）を毀損する。

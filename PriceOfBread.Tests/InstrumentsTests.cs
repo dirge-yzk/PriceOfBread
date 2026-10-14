@@ -2201,4 +2201,54 @@ public class InstrumentsTests
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// ★(323) 州ごとの窃盗の列（<c>region_s</c> の <c>theftPoolPerMonth</c>・<c>theftRecipientsEarnedPerMonth</c>・<c>earnedPerMonth</c>）の番人。
+    /// 期待値は別の経路から作る：貯蓄の書き手の台帳 <c>flow_s</c>（POP の貯蓄の書き込みで数える＝<c>Crime.cs</c> の移し方の受け取り）の国×四半期の和 ＝ 州の行の窃盗の列の国×四半期の和。
+    /// 何もしない番人は必ず緑になる＝窃盗が実際に起きた（対照）ことを数える（秩序を崩して犯罪率を上げた盤面）。受け手の所得は窃盗のある行で正・窃盗の無い行は 0。
+    /// </summary>
+    [Fact]
+    public void 州ごとの窃盗の列は貯蓄の書き手の台帳の窃盗の受け取りと国ごとに合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            try
+            {
+                var sim = Make();
+                foreach (var n in sim.Nations) n.World.Coef.CrimeOrderPerPop = 1e12;   // 秩序を崩す＝犯罪率が上限に近い（対照）
+                RunMatch(sim, 12, instr: true);
+            }
+            finally { Instruments.Configure(null, null); }
+
+            var (rh, rr) = Table(System.IO.Path.Combine(dir, "region_s1789.tsv"));
+            Assert.All(rr, r => Assert.Equal(rh.Length, r.Length));
+            int iq = Array.IndexOf(rh, "quarter"), inat = Array.IndexOf(rh, "nation");
+            var byNat = rr.GroupBy(r => (r[iq], r[inat])).ToDictionary(g => g.Key, g => g.Sum(r => Col(rh, r, "theftPoolPerMonth")));
+
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "flow_s1789.tsv"));
+            int fq = Array.IndexOf(fh, "quarter"), fn = Array.IndexOf(fh, "nation"), fk = Array.IndexOf(fh, "kind"), ff = Array.IndexOf(fh, "sourceFile");
+            var ledger = fr.Where(r => r[ff] == "Crime.cs" && (r[fk] == "give" || r[fk] == "giveIncome"))
+                           .GroupBy(r => (r[fq], r[fn])).ToDictionary(g => g.Key, g => g.Sum(r => Col(fh, r, "amountPerMonth")));
+
+            double total = 0; int checkedPairs = 0;
+            foreach (var kv in byNat)
+            {
+                double exp = ledger.GetValueOrDefault(kv.Key);
+                Assert.InRange(kv.Value - exp, -1e-6 * Math.Max(1, Math.Abs(exp)), 1e-6 * Math.Max(1, Math.Abs(exp)));
+                total += kv.Value; if (exp > 0) checkedPairs++;
+            }
+            foreach (var key in ledger.Keys) Assert.True(byNat.ContainsKey(key), $"台帳に窃盗の受け取りがあるのに州の行が無い {key}");
+            Assert.True(total > 0 && checkedPairs > 0, $"窃盗が1件も写っていない（盤面が犯罪を起こせていないか、写しの漏れ・合計 {total}）");
+            foreach (var r in rr)
+            {
+                double pool = Col(rh, r, "theftPoolPerMonth"), rec = Col(rh, r, "theftRecipientsEarnedPerMonth"), earned = Col(rh, r, "earnedPerMonth");
+                Assert.True(pool >= 0 && rec >= 0 && earned >= 0, "負の量");
+                if (pool == 0) Assert.Equal(0.0, rec);
+            }
+            Assert.Contains(rr, r => Col(rh, r, "theftPoolPerMonth") > 0 && Col(rh, r, "theftRecipientsEarnedPerMonth") > 0);   // 受け手の所得が写っている
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

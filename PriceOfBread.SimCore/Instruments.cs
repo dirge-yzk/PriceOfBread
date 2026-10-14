@@ -12,7 +12,7 @@
 /// <item><c>nation_s&lt;seed&gt;.tsv</c> 国×四半期（全ての国・死んだ国も）：人口・兵士・名目GDP・交戦と内戦の月の数・徴兵法・総動員・安全保障の不安の割合・州の格の数・台帳の累計（借入・切り下げ・陸・海）・国債・
 /// 貿易（清算1回分の輸出と輸入）。史実比較の桁の読み手（NG の読み手の入力 11 種）の入力＝旧の注入（scripts/instruments の inj_*.py）の代わり。</item>
 /// <item><c>flow_s&lt;seed&gt;.tsv</c> ★(262) 貯蓄の書き手の台帳（挙げた国だけ・四半期ごと・階級×書き手の種類×呼び出しの位置×相手の側の月平均の額と件数）。階級の貯蓄の増減が書き手の和に閉じる。</item>
-/// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足。
+/// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足・★(323) 窃盗の列（<c>theftPoolPerMonth</c>＝州のその四半期の盗まれた額の月平均・<c>theftRecipientsEarnedPerMonth</c>＝受け手〔困窮大衆〕の前の月の所得の月平均・<c>earnedPerMonth</c>＝州の全 POP の前の月の所得の和〔四半期の末〕）。
 /// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
@@ -1403,11 +1403,21 @@ public static class Instruments
     sealed class RegionFlow
     {
         public double MigrationOutK, MigrationInK, SettlerInK, CrossBorderOutK, CrossBorderInK;
+        public double TheftPoolSum, TheftRecipientsEarnedSum;   // ★(323) 四半期の月ごとの窃盗の額の和・その月の受け手（困窮大衆）の前の月の所得の和（Crime.Step の Transfer の直後・読むだけ）
         public Dictionary<Region, double>? MigrationTo;   // 出る州→入る州ごとの量（四半期の合計・州の間の移民だけ）
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RegionFlow> Flows = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, double[]> SettlerOut = new();   // 入植で本国の pop から出た量（四半期の合計）＝出た pop が居る州の行に書く
     static RegionFlow FlowOf(Region r) => Flows.GetValue(r, _ => new RegionFlow());
+
+    /// <summary>★(323) 窃盗（<see cref="Crime.Step"/> の移し方の直後・読むだけ）：その州のその月の盗まれた額 <paramref name="pool"/> と、受け手（困窮大衆＝闘争度×(1−満足度) の重みが正の POP）の前の月の所得の和を、四半期の和として積む。
+    /// 州の中で閉じる移転（盗む側も受ける側も同じ州）なので、州ごとの行で〈窃盗の受け取り÷受け手の所得〉が読める（<c>flow_s</c> は国×階級で州を分けない）。</summary>
+    internal static void Theft(Region r, double pool, List<Pop> recipients)
+    {
+        var f = FlowOf(r); f.TheftPoolSum += pool;
+        double e = 0; foreach (var p in recipients) e += Calendar.OneMonthOf(p.LastEarnedPerMonth).Value;
+        f.TheftRecipientsEarnedSum += e;
+    }
 
     /// <summary>州の間の移民（<c>Territory.MoveRegion</c> の運搬の直後・読むだけ）。</summary>
     internal static void Migrated(Region src, Region dst, double sizeK)
@@ -1437,7 +1447,8 @@ public static class Instruments
         if (!sk.RegionHeader)
         {
             sk.Region.WriteLine("quarter\tyear\tnationIndex\tnation\tregion\ttier\tactiveFlag\tpopulationK\truralPopulationK\topportunityIndex\tholdingFactor\twageFactor\tlandFactor\temploymentShare\tpushFactor\thousingFactor\twagePremium\tarableLand\t"
-                + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tsettlerOutKPerQuarter\tsettlerInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare");
+                + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tsettlerOutKPerQuarter\tsettlerInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare\t"
+                + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth");
             sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter");
             sk.RegionHeader = true;
         }
@@ -1448,11 +1459,11 @@ public static class Instruments
             var w = sim.Nations[i].World; var c = w.Coef; string nation = NameOf(w);
             foreach (var r in w.Regions)
             {
-                double pop = 0, rural = 0, unemp = 0, unrest = 0, foodMet = 0, foodNeed = 0, settlerOut = 0;
+                double pop = 0, rural = 0, unemp = 0, unrest = 0, foodMet = 0, foodNeed = 0, settlerOut = 0, earned = 0;
                 foreach (var p in r.Pops)
                 {
                     pop += p.Size; if (!p.IsUrban) rural += p.Size;
-                    unemp += p.Size * p.UnemploymentRate.Value; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;
+                    unemp += p.Size * p.UnemploymentRate.Value; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;   earned += Calendar.OneMonthOf(p.LastEarnedPerMonth).Value;   // ★(323)
                     if (SettlerOut.TryGetValue(p, out var po)) { settlerOut += po[0]; po[0] = 0; }
                 }
                 bool active = r.State == RegionState.Active;
@@ -1464,13 +1475,14 @@ public static class Instruments
                 var f = FlowOf(r);
                 sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), active ? "1" : "0", F(pop), F(rural),
                     F(active ? Territory.Opportunity(r, c) : double.NaN), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
-                    F(f.MigrationOutK), F(f.MigrationInK), F(settlerOut), F(f.SettlerInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1)));
+                    F(f.MigrationOutK), F(f.MigrationInK), F(settlerOut), F(f.SettlerInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1),
+                    F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)));   // ★(323) 窃盗の列（四半期の月平均・窃盗の無い州は 0）
                 if (f.MigrationTo is { } to)
                 {
                     foreach (var kv in to) if (kv.Value > 0) sk.Migration.WriteLine(string.Join('\t', I(q), r.Name, kv.Key.Name, F(kv.Value)));
                     to.Clear();
                 }
-                f.MigrationOutK = f.MigrationInK = f.SettlerInK = f.CrossBorderOutK = f.CrossBorderInK = 0;
+                f.MigrationOutK = f.MigrationInK = f.SettlerInK = f.CrossBorderOutK = f.CrossBorderInK = 0;   f.TheftPoolSum = f.TheftRecipientsEarnedSum = 0;
             }
         }
     }
