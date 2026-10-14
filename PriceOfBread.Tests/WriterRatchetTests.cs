@@ -390,11 +390,11 @@ public class WriterRatchetTests
     //   建設：見た生産者（旬）6,318→5,213（−17.5%）・価格：日次の写像の回 27,979,627→24,941,975（−10.9%）＝どちらも10% を超えて下がった＝表を下げる。ほかの15本は許しの内。
     //   全長の10種（計器なし `b10_20261013_i1D`）の推定は 245.2 秒（r296 の 242.4 から +2.8・上限 248.5 秒の内・払っていない・実装ログ (300)）。
     //   ★(327) で請求 3,118→3,218・建設 5,213→5,319 へ上げた（下の DiploHegemonScans の上の (327) の段）。
-    [InlineData(CostLedger.ConstructionSeen, 6196L)]   // ★(331) 5,319→6,196（下の (331) の段）
+    [InlineData(CostLedger.ConstructionSeen, 4887L)]   // ★(331) 5,319→6,196→★(333) 4,887（下の (333) の段）
     [InlineData(CostLedger.CreditSpans, 34146L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
-    [InlineData(CostLedger.ClaimProducers, 3218L)]
+    [InlineData(CostLedger.ClaimProducers, 2695L)]   // ★(333) 3,218→2,695（下の (333) の段）
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     // ★2026-10-10 表の更新（(227) 段4＝植民地と州の人口を史実の千人へ〔英領インド 950→2,600万・コンゴ盆地 10→300万ほか〕＋国庫を人口の係数でそろえた＝データで動いた分の宣言・新しい計数の処理は無い）：
@@ -457,7 +457,11 @@ public class WriterRatchetTests
     //   建設：見た生産者（旬）5,319→6,196（+16.5%＝許しの +2% を超えた軌道・処理の形は同じ・(197) の宣言 8,204 の内）・覇権の判定 3,182,374→2,763,126（−13.2%＝10% を超えて下がった＝表を下げる）・
     //   新しい計数〈奢侈品と家事奉仕の所得弾力：POP×月〉0→1,413,360（新しい処理＝世界の1人あたり実質所得の配りの走査と買い手の POP ごとの係数・docs の「処理の刻みの表」に行を足した・単価 0.0155 µs は推定＝census は申し送り）。ほかは許しの内（+2%／−10%）。
     //   全長の10種（計器つき `b10_20261014_r331_ins`）の推定 245.1（r327）→246.4 秒（上限 248.5 秒の内・払っていない・ta＋gp だけの木は 248.3 秒・実装ログ (331)）。
-    [InlineData(CostLedger.DiploHegemonScans, 2763126L)]
+    // ★2026-10-14 表の更新（(333) 初期値 段4 C2 南アジアの人口＝world.json の行だけ〔マラータ同盟・シク連邦・アワドの階級の人数と国庫を 2.240 倍・コードは同じ〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔人数を変えただけ＝POP・州・生産者の数は不変〕）：建設：見た生産者（旬）6,196→4,887（−21%）・請求：見た生産者（月）3,218→2,695（−16%）・覇権の判定 2,763,126→2,351,664（−15%）＝いずれも 10% を超えて下がった軌道
+    //   （1種40四半期。南アジアの国が大きくなると最初の40四半期の建設と同盟の候補が居る月の軌道が動く・処理の形は同じ＝表を下げる）。ほかは許しの内。
+    //   全長の10種（計器つき `b10_20261014_sa333_ins`・基線 r331 に対して）の推定の計算量は実装ログ (333) の表のとおり（上限 248.5 秒に対し許し +2% の内・払った所＝清算：着値の充填）。
+    [InlineData(CostLedger.DiploHegemonScans, 2351664L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]
