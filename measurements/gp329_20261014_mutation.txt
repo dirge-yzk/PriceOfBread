@@ -1,0 +1,10 @@
+M0_control: 成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M1_multiply: 失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M2_default_on: 失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 987 ms - PriceOfBread.Tests.dll (net10.0)
+M3_all_goods: 失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M4_no_call: 失敗!   -失敗:     5、合格:     1、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M5_inputs_too: 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M6_artisan_too: 失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M7_wrong_base: 失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M8_no_gate_exponent: 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 999 ms - PriceOfBread.Tests.dll (net10.0)
+END
