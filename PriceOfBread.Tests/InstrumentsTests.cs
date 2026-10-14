@@ -197,16 +197,22 @@ public class InstrumentsTests
             var (wh, wr) = Table(System.IO.Path.Combine(dir, "wars_s1789.tsv"));
             var inWar = new HashSet<string>(wr.SelectMany(r => new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] }));
             Assert.NotEmpty(wr);   // 対照＝この盤面で戦争が起きている
-            var monthsByNation = new Dictionary<string, double>();
+            // ★(331) 合流の盤面の直し：国の名前（表示名）は改名で変わる（例＝イギリス→立憲王政イギリス）＝戦争の表の当事者の名前と国×四半期の表の名前は時点がずれうる。
+            //   国の個体の番号 nationUid で月を数え、その個体が名乗った名前の集合で戦争の表と突き合わせる（主張は同じ・(331) で戦争の途中の改名の盤面に当たって赤）。
+            var monthsByUid = new Dictionary<string, double>();
+            var namesByUid = new Dictionary<string, HashSet<string>>();
+            var warMonthRows = new List<string>();
             foreach (var r in nr)
             {
                 double aw = Col(nh, r, "atWarMonths"), cw = Col(nh, r, "civilWarMonths");
                 Assert.InRange(aw, 0, 3); Assert.InRange(cw, 0, 3);
-                string n = r[Array.IndexOf(nh, "nation")];
-                monthsByNation[n] = monthsByNation.GetValueOrDefault(n) + aw;
-                if (aw > 0) Assert.Contains(n, inWar);
+                string n = r[Array.IndexOf(nh, "nation")], uid = r[Array.IndexOf(nh, "nationUid")];
+                monthsByUid[uid] = monthsByUid.GetValueOrDefault(uid) + aw;
+                (namesByUid.TryGetValue(uid, out var ns) ? ns : namesByUid[uid] = new HashSet<string>()).Add(n);
+                if (aw > 0) warMonthRows.Add(uid);
             }
-            Assert.True(monthsByNation.Values.Sum() > 0, "交戦の月が1つも立たない（数える写しの漏れ）");
+            foreach (var uid in warMonthRows) Assert.True(namesByUid[uid].Overlaps(inWar), $"{string.Join("/", namesByUid[uid])} に交戦の月が立つのに戦争の表に出ない");
+            Assert.True(monthsByUid.Values.Sum() > 0, "交戦の月が1つも立たない（数える写しの漏れ）");
             // (260) 国営の棟の着工と完成の列（線E の合否の量）：入れ子の数（閉じていた分 ≦ 全体・着工の時点でも閉じていた分 ≦ 完成の月に閉じていた分）と、完成は着工を超えない。
             double started = 0, completed = 0;
             foreach (var r in nr)
@@ -221,7 +227,13 @@ public class InstrumentsTests
             foreach (var r in wr)   // 戦争の表の当事者（国）が1か月以上戦ったなら、その国の交戦の月が立つ
                 if (Col(wh, r, "months") > 0)
                     foreach (var side in new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] })
-                        if (monthsByNation.ContainsKey(side)) Assert.True(monthsByNation[side] > 0, $"{side} は戦争の表に出るのに交戦の月が0");
+                    {
+                        // ★(331) 盤面の直し：内戦の開戦時に建国した側（sideB）は、月数 1 の内戦だと自分の月の決算（交戦の月を数える位置）が来る前に決着して交戦の月が 0 のまま残る
+                        //   （(331) の盤面＝1789 年の英の内戦〈イギリス 対 立憲王政イギリス・1 か月〉・建国した国の行は 1 四半期だけ・交戦の月 0）。数える位置の時点の端＝この組だけ外す。
+                        if (Col(wh, r, "civilWarFlag") > 0 && Col(wh, r, "months") <= 1 && side == r[Array.IndexOf(wh, "sideB")]) continue;
+                        var uids = namesByUid.Where(kv => kv.Value.Contains(side)).Select(kv => kv.Key).ToList();
+                        if (uids.Count > 0) Assert.True(uids.Sum(u => monthsByUid[u]) > 0, $"{side} は戦争の表に出るのに交戦の月が0");
+                    }
 
             var (ch2, cr2) = Table(System.IO.Path.Combine(dir, "casualty_s1789.tsv"));   // 戦死の月ごとの和（旧の cas の Y 行）
             Assert.NotEmpty(cr2);
@@ -2107,6 +2119,22 @@ public class InstrumentsTests
             var picked = new[] { "イギリス", "フランス" };
             var start = new Dictionary<(string, string), (double Cum, double Ipc)>();
             var rows = new List<(string Nation, string Region, int Q, double Cum0, double Ipc0, double Cum1, double Ipc1)>();
+            // ★(331) 合流の盤面の直し：1 束の工業化度は州の所得（LastEarnedPerMonth）で月ごとに動く。旧は四半期の初めと終わりの 2 点で括った＝四半期の中の 1 か月だけ州の所得が跳ねる月
+            //   （ロンドンは助走明けの 4 か月目に州の所得が約 6 倍＝r326 の木でも同じ・(331) の診断）に束が多く建つと括りの外へ出る。四半期の中の日ごとの値の最小と最大で括る（主張は同じ）。
+            var span = new Dictionary<(string, string), (double Lo, double Hi)>();
+            void Watch()
+            {
+                foreach (var n in sim.Nations)
+                {
+                    string nn = Instruments.NameOf(n.World);
+                    if (Array.IndexOf(picked, nn) < 0) continue;
+                    foreach (var r in n.World.Regions)
+                    {
+                        double ipc = EconomyStep.PrivateIndPerConstruction(r, n.World.Coef);
+                        span[(nn, r.Name)] = span.TryGetValue((nn, r.Name), out var w) ? (Math.Min(w.Lo, ipc), Math.Max(w.Hi, ipc)) : (ipc, ipc);
+                    }
+                }
+            }
             void Snap(int q)
             {
                 foreach (var n in sim.Nations)
@@ -2116,8 +2144,14 @@ public class InstrumentsTests
                     foreach (var r in n.World.Regions)
                     {
                         double cum = r.CumPrivateIndustrialization, ipc = EconomyStep.PrivateIndPerConstruction(r, n.World.Coef);
-                        if (q >= 0 && start.TryGetValue((nn, r.Name), out var s)) rows.Add((nn, r.Name, q, s.Cum, s.Ipc, cum, ipc));
+                        if (q >= 0 && start.TryGetValue((nn, r.Name), out var s))
+                        {
+                            double lo = Math.Min(s.Ipc, ipc), hi = Math.Max(s.Ipc, ipc);
+                            if (span.TryGetValue((nn, r.Name), out var w)) { lo = Math.Min(lo, w.Lo); hi = Math.Max(hi, w.Hi); }
+                            rows.Add((nn, r.Name, q, s.Cum, lo, cum, hi));
+                        }
                         start[(nn, r.Name)] = (cum, ipc);
+                        span[(nn, r.Name)] = (ipc, ipc);
                     }
                 }
             }
@@ -2130,7 +2164,7 @@ public class InstrumentsTests
                 Snap(-1);
                 for (int q = 0; q < Quarters; q++)
                 {
-                    sim.StepQuarter();
+                    for (int d = 0; d < Calendar.DaysPerQuarter; d++) { sim.StepDay(); Watch(); }   // ★(331) StepQuarter と同じ日次の刻み＋読むだけの観測
                     Instruments.Quarter(sim, 1789UL, q);
                     Snap(q);
                 }
