@@ -247,7 +247,7 @@ public class UnitTypeTests
         (typeof(Coefficients), "CorruptionMax", typeof(Share)),
         (typeof(Coefficients), "CapitalExportFrac", typeof(Share)),
         (typeof(Coefficients), "InsuranceCoverageMax", typeof(Share)),
-        // ★(325) 割合の型の残り その7＝財政の係数 3 本（Share）。資本規制下の開放度・身分制免税の割引率・免税を王権の取り分に結ぶ率。`GoldCoverMin` は `SelfPlay.cs` が比べる相手で、並行の流れF の触れる所なので移していない（実装ログ (325)）。
+        // ★(325) 割合の型の残り その7＝財政の係数 3 本（Share）。資本規制下の開放度・身分制免税の割引率・免税を王権の取り分に結ぶ率。`GoldCoverMin` は `SelfPlay.cs` が比べる相手で、並行の流れF の触れる所なので移していない（実装ログ (325)）（→(330) で移した）。
         (typeof(Coefficients), "CapitalControlOpenness", typeof(Share)),
         (typeof(Coefficients), "PrivilegeTaxDiscount", typeof(Share)),
         (typeof(Coefficients), "PrivilegeFromCrownShare", typeof(Share)),

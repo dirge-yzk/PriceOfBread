@@ -7,7 +7,7 @@
   ⚠鍵は今の木の行＝古い木の flow_s（r264・r268 ほか）を読むときは、その回のコミットの route_names.py を git show で取り出して使う。番人＝InstrumentsTests の「経路名の鍵の行は移し方の呼び出しを指す」。
 """
 ROUTE_NAMES = {
-    ('Crime.cs', 65): '窃盗(全POPの貯蓄×犯罪率→困窮した大衆)',
+    ('Crime.cs', 65): '窃盗(全POPの被害＝min(前の月の所得×犯罪率, 貯蓄)→困窮した大衆)',   # ★(331) (327) で基数が既定 1＝所得に比例（旧 0＝貯蓄×率＝在庫に比例）
     # ★(264) PaySales・Procure の呼び手（旧＝InternationalMarket.cs:124／125 に潰れていた）
     ('BilateralMarket.cs', 872): '清算所の輸出代金(世界の外→生産者の持分・PaySales)',
     ('Colonial.cs', 128): '植民地の開発の汽船の代金(投資家→生産者の持分・PaySales)',

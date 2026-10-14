@@ -577,10 +577,20 @@ public class PolicyPoliticsTests
                 Assert.True(v == 0.0 || v == std, $"AIが標準率以外の率を書いた（{w.SelfPower?.Name} {Catalog.Goods[g].Name} = {v:F4}）");
                 anyTaxed |= v > 0;
             }
-            tiers.Add(w.StateMonopolyTier);
         }
         Assert.True(anyTaxed, "12四半期でどのAIも材を1つも選ばない＝この番人は何も測っていない");
-        Assert.True(tiers.Count >= 2, $"全AIの対象の広さが同じ（段 {string.Join("/", tiers)}）＝教義が広さを選んでいない");
+        // (d) 教義が広さを選ぶ＝同じ盤面（12四半期後の1国）にスタンスを1つずつ当て、教義の床の段が分かれることを見る。
+        //   ★(331) 盤面の直し：旧は〈12四半期後の全AIの段が2種類以上〉で読んでいた。合流の診断（実装ログ (331)・measurements/m331_20261014/diag_*.txt）では
+        //   旧の木でも12四半期後のスタンスは工業化と軍備だけ（どちらも床は段2）で、2種類目はネーデルラント1国が開幕の段3を国庫が安全水準を超えるまで保っていた残り＝教義の選択ではなかった。
+        //   流れG ①と需要の点火でネーデルラントの国庫が早く積もり q10 で段2へ狭まった＝全国が段2になって赤（逼迫の国は q1〜q12 で 0 国）。主張（教義が広さを選ぶ）は同じで、測り方を機構へ移した。
+        var wd = sim.Nations[0].World;
+        foreach (var s in new[] { UtilityAgent.Stance.Modernize, UtilityAgent.Stance.Industrialize, UtilityAgent.Stance.Welfare, UtilityAgent.Stance.Fiscal, UtilityAgent.Stance.Militarize })
+        {
+            wd.SetStateMonopolyTier(0); wd.FiscalFundingRatio = new Share(1.0); wd.SetTreasuryRaw(0.5 * UtilityAgent.FiscalBufferOf(wd));   // 逼迫なし・国庫は安全水準の下＝今の広さ（0）と教義の床の大きい方＝教義の床
+            UtilityAgent.Apply(wd, s);
+            tiers.Add(wd.StateMonopolyTier);
+        }
+        Assert.True(tiers.Count >= 2, $"全ての教義の対象の広さが同じ（段 {string.Join("/", tiers)}）＝教義が広さを選んでいない");
     }
 
     // ============================================================================================
