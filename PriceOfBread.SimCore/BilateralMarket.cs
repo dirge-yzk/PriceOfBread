@@ -53,7 +53,10 @@ public sealed partial class InternationalMarket
         var ks = nations[seller].World.Discovered; var wb = nations[buyer].World; var kb = wb.Discovered;
         foreach (int r in rows)
             if (Discovery.Known(ks, r) && !Discovery.Known(kb, r))
+            {
                 (wb.DiscoveryImportQ ??= new double[Catalog.Discoveries.Length])[r] += value;
+                if (Instruments.On) Instruments.DiscoveryContact(wb, nations[seller].World, r, value);   // (328) 接触の内訳（読むだけ）
+            }
     }
     private void AccumulatePairFlow(int seller, int buyer, double value, int n)
     {

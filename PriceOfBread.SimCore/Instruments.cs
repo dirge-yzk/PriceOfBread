@@ -69,6 +69,7 @@ public static class Instruments
         public readonly List<string> Rows = new();
         public readonly List<string> SiteRows = new();     // (316) 産地の判定の行（開いた行 O・開く前の軌道 T）＝四半期の末に site_s へ書く
         public readonly List<string> DiscRows = new();     // (320) 発見の表の行の出来事（E）と蒸気機関・機関車の軌道（T）＝四半期の末に disc_s へ書く
+        public readonly Dictionary<(int Row, string Seller), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
@@ -167,6 +168,7 @@ public static class Instruments
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
         public System.IO.StreamWriter? Site, Metal; public bool SiteHeader, MetalHeader;   // (316) 産地の判定の行・世界の金銀の行
         public System.IO.StreamWriter? Disc; public bool DiscHeader;                       // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
+        public System.IO.StreamWriter? DiscContact; public bool DiscContactHeader;         // (328) 伝わりの接触の内訳（買い手×行×売り手）
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
         public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
@@ -1391,6 +1393,7 @@ public static class Instruments
         SpendTable(sk);   // (286)
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
+        sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
@@ -1511,6 +1514,16 @@ public static class Instruments
     internal static void DiscoveryTrace(World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
         => S(w).DiscRows.Add(DiscRowText("T", w, row, t, ratio));
 
+    /// <summary>★(328) 伝わりの接触の内訳（<see cref="BilateralMarket"/> の発見の記帳 <c>AccumulateDiscovery</c> が <c>DiscoveryImportQ</c> へ足す所と同じ述語〔売り手が解禁済み・買い手が未解禁〕・読むだけ）。
+    /// 蒸気機関と機関車の行だけ、買い手の国ごとに〈どの国から運び手の財を買ったか〉を四半期の和で貯める（述語が買い手の未解禁を要るので解禁後は貯まらない＝小さい表）。
+    /// 分母（世界のその運び手の財の取引額）は書かない＝売り手の国どうしの割合を読む用。四半期の区切りは disc_s と同じ表の書き出しの位置。</summary>
+    internal static void DiscoveryContact(World buyer, World seller, int row, double value)
+    {
+        if (!(value > 0) || Catalog.Discoveries[row].Name is not ("蒸気機関" or "機関車")) return;
+        var acc = S(buyer).DiscContact; var key = (row, NameOf(seller));
+        acc[key] = acc.TryGetValue(key, out double cur) ? cur + value : value;
+    }
+
     static string DiscRowText(string kind, World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
         => string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), Catalog.Discoveries[row].Name,
             F(t.Tech), F(t.Need), F(t.Transmit), ratio is (0, 0) ? "nan" : F(ratio.Replaced), ratio is (0, 0) ? "nan" : F(ratio.Cost), F(w.TechLevel));   // 書かれなかった行（新兵器・制度・思想など）は nan
@@ -1527,6 +1540,14 @@ public static class Instruments
             var st = S(n.World);
             foreach (var row in st.DiscRows) { int tab = row.IndexOf('\t'); sk.Disc.WriteLine(row.Substring(0, tab + 1) + I(q) + row.Substring(tab)); }
             st.DiscRows.Clear();
+            if (st.DiscContact.Count > 0)   // (328) 接触の内訳（買い手の国の個体×行×売り手の国）
+            {
+                sk.DiscContact ??= Open("disccontact", seed);
+                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	valuePerQuarter"); sk.DiscContactHeader = true; }
+                foreach (var ((crow, seller), v) in st.DiscContact.OrderBy(kv => kv.Key.Row).ThenBy(kv => kv.Key.Seller, StringComparer.Ordinal))
+                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, F(v)));
+                st.DiscContact.Clear();
+            }
         }
     }
 

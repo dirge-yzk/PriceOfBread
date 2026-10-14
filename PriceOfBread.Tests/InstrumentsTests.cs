@@ -2203,6 +2203,48 @@ public class InstrumentsTests
     }
 
     /// <summary>
+    /// ★(328) 流れG ①：伝わりの接触の内訳 <c>disccontact_s</c> の番人。期待は計器の出力の写しでなく<b>disc_s の出来事の行（別の経路）との関係</b>で書く：
+    /// 買い手の国の行（蒸気機関・機関車）ごとに、①売り手の国はその四半期までに解禁済み（英は開幕で蒸気機関を知っている＝出来事の行が無い）②買い手はその四半期の判定の後に解禁する（解禁の四半期 ≧ 記帳の四半期）
+    /// ③額は正・行は蒸気機関と機関車だけ。前提の確かめ＝記帳の行が十分あること（何もしない計器が緑にならない）。
+    /// 突然変異＝<c>BilateralMarket.AccumulateDiscovery</c> の呼びを述語の外へ出す（買い手が解禁済みの行にも記帳が出る）、で赤。
+    /// </summary>
+    [Fact]
+    public void 接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            try
+            {
+                var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
+                Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+                for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (dh, drows) = Table(System.IO.Path.Combine(dir, "disc_s1789.tsv"));
+            int dKind = Array.IndexOf(dh, "kind"), dNation = Array.IndexOf(dh, "nation"), dRow = Array.IndexOf(dh, "row"), dQ = Array.IndexOf(dh, "quarter");
+            var unlockQ = new Dictionary<(string Nation, string Row), int>();
+            foreach (var r in drows) if (r[dKind] == "E") unlockQ.TryAdd((r[dNation], r[dRow]), int.Parse(r[dQ], System.Globalization.CultureInfo.InvariantCulture));
+            var (h, rows) = Table(System.IO.Path.Combine(dir, "disccontact_s1789.tsv"));
+            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
+            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller");
+            Assert.True(rows.Count > 10, $"前提が崩れた（接触の内訳の行 {rows.Count}）");
+            foreach (var r in rows)
+            {
+                int q = int.Parse(r[iQ], System.Globalization.CultureInfo.InvariantCulture);
+                Assert.Contains(r[iRow], new[] { "蒸気機関", "機関車" });
+                Assert.True(Col(h, r, "valuePerQuarter") > 0, "額が正でない");
+                bool sellerKnew = unlockQ.TryGetValue((r[iSeller], r[iRow]), out int sq) ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
+                Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
+                if (unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
+            }
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
     /// ★(323) 州ごとの窃盗の列（<c>region_s</c> の <c>theftPoolPerMonth</c>・<c>theftRecipientsEarnedPerMonth</c>・<c>earnedPerMonth</c>）の番人。
     /// 期待値は別の経路から作る：貯蓄の書き手の台帳 <c>flow_s</c>（POP の貯蓄の書き込みで数える＝<c>Crime.cs</c> の移し方の受け取り）の国×四半期の和 ＝ 州の行の窃盗の列の国×四半期の和。
     /// 何もしない番人は必ず緑になる＝窃盗が実際に起きた（対照）ことを数える（秩序を崩して犯罪率を上げた盤面）。受け手の所得は窃盗のある行で正・窃盗の無い行は 0。
