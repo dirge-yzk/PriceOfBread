@@ -6,7 +6,9 @@
   線（事前登録 [4]・主窓 Q41-160 と Q5-40）：
     H1 大衆（工場労働者＋農民）の家事奉仕の量の割合：B ≦ A−max(0.15, 2δ)・B＜A の種 ≥8
     H2 貴族の 1 人あたりの家事奉仕の量 B÷A ≧ 1+max(0.20, 2δ) かつ 中流（商人＋資本家）の 1 人あたり B÷A ≧ 1+max(0.20, 2δ)
-    H3 英の使用人÷人口 B÷A ∈ [0.85, 1.25]（Q5-40 と Q41-160 の両方）。史実の参照 5.7%（1871・二次）
+    H3 英の使用人÷人口 B÷A ≧ 0.85（Q5-40 と Q41-160 の両方・上限なし＝事前登録の追記 2）。史実の参照 5.7%（英・ウェールズ 1871・二次）
+    判定は H1・H2 が Q41-160 だけ（Q5-40 は参考）・H3 は Q5-40 と Q41-160 の両方。最後に 1 行にまとめる
+    P8（記録・追記 2）貧国〔国全体の r＜1〕の貴族＋資本家と大衆の奢侈品の支払い B÷A（spend_s の全国）／ r≤0 の fallback の計数（nation_s の luxuryRatio* の列）
     H4（記録）奢侈品（Luxury 階層・アヘンを除く）の輸出額÷全輸出額が最大の国と上位 5 国（nation_s の luxuryExportsPerClearing÷exportsPerClearing）
   窓（四半期の番号 q は 0 始まり・表の Q は q+1）：nation_s・svc_s・class_s は Q1-8・Q5-40・Q41-160・Q161-240・Q189-228・全期。
         spend_s の窓の区切りは Instruments.SpendBucketStart＝[0,4,8,40,160,188,228,…]（構成の線 H1・H2 は Q5-40〔区切り 1・2〕・Q41-160〔3〕・Q161-188〔4〕・Q189-228〔5〕で読む＝Q1-8 と全期は無い）。
@@ -268,12 +270,12 @@ for wname, lo, hi in (('Q41-160', 40, 159), ('Q161-240', 160, 239)):
 
 # ---------------------------------------------------------------- 記録：英の階級ごとの r（近似）
 print('\n## 記録：英の階級ごとの r の近似＝（class_s の earnedPerMonth÷priceLevel÷sizeK）÷Y（Y は各腕の worldRealIncomePerCapitaPerMonth・0 の腕は —）。窓の中央→種の中央')
-print('| 腕 | 窓 | 貴族 | 資本家 | 農民 | 使用人 |')
-print('|---|---|---|---|---|---|')
+print('| 腕 | 窓 | 貴族 | 資本家 | 商人 | 工場労働者 | 農民 | 使用人 |')
+print('|---|---|---|---|---|---|---|---|')
 for a in OTH:
     for name, lo, hi in WIN:
         cells = []
-        for cid in (NOBLE, CAPITALIST, PEASANT, SERVANT):
+        for cid in (NOBLE, CAPITALIST, MERCHANT, WORKER, PEASANT, SERVANT):
             v = []
             for sd in SEEDS:
                 C = CLSD[a].get(sd, {}); N = NATD[a][sd][UK]
@@ -377,11 +379,124 @@ for k, nd in (('needMetShare', 3), ('foodMetShare', 3), ('supplyFillShare', 3)):
             out.append(f'{cell(ukv, nd)} ／ {cell(wv, nd)}')
         print(f'| {name} | ' + ' | '.join(out) + ' |')
 
-# ---------------------------------------------------------------- 事前登録の線の判定
+# ---------------------------------------------------------------- 記録 P8：貧国の貴族＋資本家と大衆の奢侈品の支払い（spend_s の全国・事前登録 追記 2）
+def load_spend_all(D):
+    """seed -> bucket -> (uid, nation) -> {'months', 'size':{c}, 'receipt':{c}, 'lux':{c}}（Luxury 階層の財〔アヘンを除く〕の payPerMonth の階級ごとの和）"""
+    out = {}
+    for p in sorted(glob.glob(os.path.join(D, 'spend_s*.tsv'))):
+        sd = seed_of(p, 'spend_s'); d = out.setdefault(sd, {})
+        for r in rows(p):
+            k = r['kind']
+            if k == 'class':
+                e = d.setdefault(int(r['bucket']), {}).setdefault((r['nationUid'], r['nation']), {'months': f(r['monthsCount']), 'size': {}, 'receipt': {}, 'lux': {}})
+                c = int(r['classId']); e['size'][c] = f(r['qtyPerMonth']); e['receipt'][c] = f(r['receiptPerMonth'])
+            elif k == 'good' and r['tier'] == 'Luxury' and r['slotName'] != 'アヘン':
+                e = d.setdefault(int(r['bucket']), {}).setdefault((r['nationUid'], r['nation']), {'months': f(r['monthsCount']), 'size': {}, 'receipt': {}, 'lux': {}})
+                c = int(r['classId']); e['lux'][c] = e['lux'].get(c, 0.0) + f(r['payPerMonth'])
+    return out
+
+
+def nation_median(a, sd, nat, key, lo, hi):
+    N = NATD[a][sd].get(nat, {})
+    return med([N[q][key] for q in sorted(N) if lo <= q <= hi and key in N[q]])
+
+
+if OTH:
+    b_arm = OTH[0]
+    SPA = {a: load_spend_all(ARMS[a]) for a in (BASE, b_arm)}
+    print(f'\n## 記録 P8：貧国〔国全体の r＜1・{b_arm} の Y と各国の priceLevel で選ぶ〕の貴族＋資本家と大衆の奢侈品〔Luxury 階層・アヘンを除く〕の 1 人あたりの実質の支払い（payPerMonth÷人数÷priceLevel）の {b_arm}÷{BASE}（種の中央〔最小〜最大〕・＞1 の種）')
+    print('| 窓 | 貧国の数（種の中央） | 貴族＋資本家 | 大衆（工場労働者＋農民） | 参考：貧国の貴族＋資本家の r の中央 |')
+    print('|---|---|---|---|---|')
+    ELITE = (NOBLE, CAPITALIST)
+    for wname, buckets, lo, hi in SPEND_WIN[:2]:
+        elite_r = []; mass_r = []; npoor = []; elite_rr = []
+        for sd in SEEDS:
+            def acc(a, poor_set, cls):
+                pay = size = 0.0
+                for key in poor_set:
+                    pl = nation_median(a, sd, key[1], 'priceLevel', lo, hi)
+                    if not (pl == pl and pl > 0):
+                        continue
+                    for bk in buckets:
+                        e = SPA[a].get(sd, {}).get(bk, {}).get(key)
+                        if e is None:
+                            continue
+                        m = e['months']
+                        for c in cls:
+                            if c in e['size'] and c in e['lux']:
+                                pay += e['lux'][c] * m / pl; size += e['size'][c] * m
+                return pay / size if size > 0 else float('nan')
+            poor = []; rvals = []
+            Yb = med([NATD[b_arm][sd][UK][q].get('worldRealIncomePerCapitaPerMonth', 0.0) for q in range(lo, hi + 1) if q in NATD[b_arm][sd].get(UK, {})])
+            for key in (SPA[b_arm].get(sd, {}).get(buckets[0], {})):
+                tot_rec = tot_sz = 0.0; ok = True
+                pl = nation_median(b_arm, sd, key[1], 'priceLevel', lo, hi)
+                if not (pl == pl and pl > 0 and Yb > 0):
+                    continue
+                for bk in buckets:
+                    e = SPA[b_arm].get(sd, {}).get(bk, {}).get(key)
+                    if e is None:
+                        ok = False; break
+                    m = e['months']
+                    tot_rec += sum(e['receipt'].values()) * m; tot_sz += sum(e['size'].values()) * m
+                if ok and tot_sz > 0 and (tot_rec / tot_sz / pl / Yb) < 1:
+                    poor.append(key)
+                    e = SPA[b_arm][sd][buckets[0]][key]
+                    er = sum(e['receipt'].get(c, 0) for c in ELITE); es = sum(e['size'].get(c, 0) for c in ELITE)
+                    if es > 0:
+                        rvals.append(er / es / pl / Yb)
+            npoor.append(len(poor)); elite_rr.append(med(rvals))
+            ea, eb = acc(BASE, poor, ELITE), acc(b_arm, poor, ELITE)
+            ma, mb = acc(BASE, poor, MASS), acc(b_arm, poor, MASS)
+            elite_r.append(eb / ea if ea == ea and ea > 0 else float('nan')); mass_r.append(mb / ma if ma == ma and ma > 0 else float('nan'))
+        up_e = sum(1 for x in elite_r if x == x and x > 1); up_m = sum(1 for x in mass_r if x == x and x > 1)
+        print(f'| {wname} | {med(npoor):.0f} | {cell(elite_r, 3)}・＞1 の種 {up_e}/{len([x for x in elite_r if x == x])} | {cell(mass_r, 3)}・＞1 の種 {up_m}/{len([x for x in mass_r if x == x])} | {cell(elite_rr, 2)} |')
+
+
+# ---------------------------------------------------------------- 記録：r≤0 などで f＝1 に倒れた POP×月（nation_s の累計列の窓の差）
+FB = ('luxuryRatioPopMonths', 'luxuryRatioNonPositivePopMonths', 'luxuryRatioInvalidPopMonths', 'luxuryRatioNonPositiveSizeSum')
+
+
+def fb_window(a, sd, nats, lo, hi):
+    """窓 [lo, hi] の累計列の差（lo-1 の末の値を引く・窓の終わりが試合の末より後なら最後の四半期まで）"""
+    tot = [0.0] * 4
+    for n in nats:
+        N = NATD[a][sd].get(n, {})
+        if not N:
+            continue
+        qs = [q for q in N if q <= hi]
+        if not qs:
+            continue
+        h = max(qs)
+        if not all(k in N[h] for k in FB):
+            continue
+        l0 = N.get(lo - 1) if lo >= 1 else None
+        for i, k in enumerate(FB):
+            tot[i] += N[h][k] - (l0[k] if l0 is not None and k in l0 else 0.0)
+    return tot
+
+
+for a in OTH:
+    print(f'\n## 記録：{a} の r≤0 などで f＝1 に倒れた POP×月（nation_s の luxuryRatio* の累計列の窓の差・ε＝0 の腕は 0）。事前登録 追記 2：非正の POP×月が総数の 1% 以上なら f＝0 を次の腕の候補に書く')
+    print('| 窓 | 範囲 | 総数（POP×月・種の中央） | 非正の割合 | 非正の Size の和 | 無効の割合 |')
+    print('|---|---|---|---|---|---|')
+    for name, lo, hi in WIN:
+        for label, nats_of in (('英', lambda sd, a=a: [UK]), ('全国', lambda sd, a=a: list(NATD[a][sd]))):
+            tots = []; npr = []; invr = []; npsz = []
+            for sd in SEEDS:
+                t, n_, i_, s_ = fb_window(a, sd, nats_of(sd), lo, hi)
+                tots.append(t); npr.append(n_ / t if t > 0 else float('nan')); invr.append(i_ / t if t > 0 else float('nan')); npsz.append(s_)
+            print(f'| {name} | {label} | {cell(tots, 0)} | {cell(npr, 4)} | {cell(npsz, 1)} | {cell(invr, 4)} |')
+
+
+# ---------------------------------------------------------------- 事前登録の線の判定（追記 2 の読み方：H1・H2 の合否は Q41-160 だけ・H3 は下限だけ・Q5-40 は参考）
 print('\n## 事前登録の線の判定（B＝' + (OTH[0] if OTH else '—') + '・雑音の床 δ はヌル腕 ' + str(NULLS) + ' から）')
 if OTH:
     b = OTH[0]
+    verdict = {}
     for wname, buckets, lo, hi in SPEND_WIN[:2]:
+        main = wname == 'Q41-160'
+        tag = '' if main else '〔参考・合否に使わない〕'
         d_mass = floor(lambda a, sd: comp_stats(a, sd, buckets)[0])
         d_nob = floor(lambda a, sd: comp_stats(a, sd, buckets)[1])
         d_mid = floor(lambda a, sd: comp_stats(a, sd, buckets)[2])
@@ -389,15 +504,32 @@ if OTH:
         lower = sum(1 for x, y in zip(ma, mb) if x == x and y == y and y < x)
         thr1 = max(0.15, 2 * (d_mass if d_mass == d_mass else 0))
         ok1 = med(mb) <= med(ma) - thr1 and lower >= 8
-        print(f'- H1 {wname}：大衆の割合 A {med(ma):.3f}→B {med(mb):.3f}（差 {med(mb) - med(ma):+.3f}・線 ≦ −{thr1:.3f}・δ={d_mass:.4f}）・B＜A の種 {lower}/{len(SEEDS)}（線 ≧8）→ {"通る" if ok1 else "外れる"}')
+        print(f'- H1 {wname}{tag}：大衆の割合 A {med(ma):.3f}→B {med(mb):.3f}（差 {med(mb) - med(ma):+.3f}・線 ≦ −{thr1:.3f}・δ={d_mass:.4f}）・B＜A の種 {lower}/{len(SEEDS)}（線 ≧8）→ {"通る" if ok1 else "外れる"}')
+        for cname, cid in (('工場労働者', WORKER), ('農民', PEASANT)):
+            def share(a, sd, cid=cid):
+                S = SPD[a].get(sd, {}); qty = collections.defaultdict(float)
+                for bk in buckets:
+                    e = S.get(bk)
+                    if e is None:
+                        return float('nan')
+                    for c, v in e['qty'].items():
+                        qty[c] += v * e['months']
+                tot = sum(qty.values())
+                return qty[cid] / tot if tot > 0 else float('nan')
+            sa = med([share(BASE, sd) for sd in SEEDS]); sb = med([share(b, sd) for sd in SEEDS])
+            print(f'    内訳 {cname}：A {sa:.3f}→B {sb:.3f}（差 {sb - sa:+.3f}）')
         rn, cn, nn = H[('pc1', wname, b)]; rm, cm, nm = H[('pc2', wname, b)]
         base_n = med([comp_stats(BASE, sd, buckets)[1] for sd in SEEDS]); base_m = med([comp_stats(BASE, sd, buckets)[2] for sd in SEEDS])
         da = d_nob / base_n if d_nob == d_nob and base_n else 0.0
         dm = d_mid / base_m if d_mid == d_mid and base_m else 0.0
         t_n = 1 + max(0.20, 2 * da); t_m = 1 + max(0.20, 2 * dm)
         ok2 = rn >= t_n and rm >= t_m
-        print(f'- H2 {wname}：貴族の1人あたり B÷A {rn:.3f}（線 ≧{t_n:.3f}・B＞A {cn}/{nn}）・中流 B÷A {rm:.3f}（線 ≧{t_m:.3f}・B＞A {cm}/{nm}）→ {"通る" if ok2 else "外れる"}　※主窓は Q41-160')
+        print(f'- H2 {wname}{tag}：貴族の1人あたり B÷A {rn:.3f}（線 ≧{t_n:.3f}・B＞A {cn}/{nn}）・中流 B÷A {rm:.3f}（線 ≧{t_m:.3f}・B＞A {cm}/{nm}）→ {"通る" if ok2 else "外れる"}')
+        if main:
+            verdict['H1'] = ok1; verdict['H2'] = ok2
     r5, c5, n5 = H[('svc', 'Q5-40', b)]; r41, c41, n41 = H[('svc', 'Q41-160', b)]
-    ok3 = 0.85 <= r5 <= 1.25 and 0.85 <= r41 <= 1.25
+    ok3 = r5 >= 0.85 and r41 >= 0.85
+    verdict['H3'] = ok3
     s41 = med([svc_share(b, sd, 40, 159) for sd in SEEDS])
-    print(f'- H3：使用人÷人口 B÷A　Q5-40 {r5:.3f}（B＞A {c5}/{n5}）・Q41-160 {r41:.3f}（B＞A {c41}/{n41}）（線 0.85〜1.25 の両方）→ {"通る" if ok3 else "外れる"}　／　B の Q41-160 の水準 {s41:.4f} 対 史実 {HIST_SERVANT_SHARE:.3f}')
+    print(f'- H3：使用人÷人口 B÷A　Q5-40 {r5:.3f}（B＞A {c5}/{n5}）・Q41-160 {r41:.3f}（B＞A {c41}/{n41}）（線 ≧0.85 の両方・上限なし）→ {"通る" if ok3 else "外れる"}　／　B の Q41-160 の水準 {s41:.4f} 対 史実 {HIST_SERVANT_SHARE:.3f}（英・ウェールズ 1871）、A は {med([svc_share(BASE, sd, 40, 159) for sd in SEEDS]):.4f}')
+    print('- **合否（Q41-160 の H1・H2、Q5-40 と Q41-160 の H3）：' + '・'.join(f'{k} {"通る" if v else "外れる"}' for k, v in verdict.items()) + ' → ' + ('H1〜H3 全て通る' if all(verdict.values()) else 'H1〜H3 のどれかが外れた') + '**')

@@ -1485,12 +1485,20 @@ public static class EconomyStep
         {
             incomeFactorOfPop = new double[region.Pops.Count];
             double worldY = world.WorldRealIncomePerCapitaPerMonth, priceLevel = world.PriceLevel;
+            double fbNonPos = 0, fbInvalid = 0, fbNonPosSize = 0;   // (329) 計器（読むだけ）：中立（1）へ倒した POP×月の数え（Instruments.On のときだけ使う・f の式には入らない）
             for (int ip = 0; ip < incomeFactorOfPop.Length; ip++)
             {
                 var ipop = region.Pops[ip];
                 double r = earnedBeforeThisMonth[ip] / priceLevel / ipop.Size / worldY;
                 incomeFactorOfPop[ip] = ipop.Size > 0 && worldY > 0 && priceLevel > 0 && r > 0 && double.IsFinite(r) ? Math.Pow(r, coef.LuxuryIncomeElasticity) : 1.0;
+                if (Instruments.On)
+                {
+                    bool valid = ipop.Size > 0 && worldY > 0 && priceLevel > 0 && double.IsFinite(r);
+                    if (!valid) fbInvalid++;
+                    else if (!(r > 0)) { fbNonPos++; fbNonPosSize += ipop.Size; }
+                }
             }
+            if (Instruments.On) Instruments.LuxuryRatioDiag(world, incomeFactorOfPop.Length, fbNonPos, fbInvalid, fbNonPosSize);   // (329) 計器（読むだけ）：r≤0 などで f＝1 に倒れた POP×月
             if (costL is not null) costL[CostLedger.LuxuryRatioPops] += incomeFactorOfPop.Length;
         }
         // 階級別の購入記帳（作者フィードバック2026-08-10 項目6）の配列長＝この州に居る最大 ClassId＋1。

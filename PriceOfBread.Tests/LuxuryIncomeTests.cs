@@ -95,7 +95,7 @@ public class LuxuryIncomeTests
             p.LastEarnedPerMonth = new MoneyPerMonth(rOf(p) * 10.0 * p.Size * 2.0);   // r＝(所得÷物価÷人数)÷Y ⇒ 所得＝r×Y×人数×物価（Y＝10・物価 2 の呼び出しで）
             if (bigCurrentEarned) p.EarnedPerMonth = new MoneyPerMonth(1e9 * p.Size);   // 今の月の Earned（Run の冒頭で LastEarned へ写されゼロ化される）＝分子に使えば結果が変わる
         }
-        w.Region.OpiumAddiction = 0.05;   // アヘンの必要量は中毒の在庫で立つ（所得で決まらない）＝需要が立った状態で「掛けない」ことを確かめる
+        w.Region.OpiumAddiction = 0.05;   // アヘンの必要量は中毒の在庫で立つ（所得で決まらない）＝需要が立った状態で〈掛けない〉ことを確かめる
         EconomyStep.Run(w.Region, w.Coef, 1.0, w.Bank, w);
         return (w.Region, w);
     }

@@ -1,0 +1,10 @@
+== mut1 nonpos into invalid
+  失敗 PriceOfBread.Tests.LuxuryRatioDiagTests.r非正のPOPと無効のPOPを別々に数える_資本家のrを負にした盤面の手の算術 [4 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== mut2 size sum as count
+  失敗 PriceOfBread.Tests.LuxuryRatioDiagTests.r非正のPOPと無効のPOPを別々に数える_資本家のrを負にした盤面の手の算術 [4 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 919 ms - PriceOfBread.Tests.dll (net10.0)
+== mut3 count at eps zero
+  失敗 PriceOfBread.Tests.LuxuryRatioDiagTests.ε0では数えない_全ての列が0 [1 s]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+DONE

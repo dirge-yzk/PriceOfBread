@@ -71,6 +71,7 @@ public static class Instruments
         public readonly List<string> DiscRows = new();     // (320) 発見の表の行の出来事（E）と蒸気機関・機関車の軌道（T）＝四半期の末に disc_s へ書く
         public readonly Dictionary<(int Row, string Seller), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
+        public double LuxPopMonths, LuxNonPosPopMonths, LuxInvalidPopMonths, LuxNonPosSizeSum;   // (329) 奢侈品の所得弾力：f＝1 に倒れた POP×月の累計（読むだけ・四半期の終わりに nation_s へ）
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
         public int GateOpenNow = -1;                       // 今月の借入の門（-1＝判定に来なかった 0＝閉じていた 1＝開いていた）＝月初の PreBorrow が Borrow と同じ1本（Fiscal.BorrowGateOpen）で読む
@@ -986,7 +987,16 @@ public static class Instruments
         if (w.ExportsByGood is { } eg)
             for (int g = 0; g < eg.Length && g < Catalog.Goods.Length; g++)
                 if (Catalog.Goods[g].Tier == GoodTier.Luxury && g != w.Coef.OpiumGoodId) luxExp += eg[g];
-        return [("worldRealIncomePerCapitaPerMonth", F(w.WorldRealIncomePerCapitaPerMonth)), ("luxuryExportsPerClearing", F(luxExp))];
+        var st = S(w);
+        return [("worldRealIncomePerCapitaPerMonth", F(w.WorldRealIncomePerCapitaPerMonth)), ("luxuryExportsPerClearing", F(luxExp)),
+            ("luxuryRatioPopMonths", F(st.LuxPopMonths)), ("luxuryRatioNonPositivePopMonths", F(st.LuxNonPosPopMonths)), ("luxuryRatioInvalidPopMonths", F(st.LuxInvalidPopMonths)), ("luxuryRatioNonPositiveSizeSum", F(st.LuxNonPosSizeSum))];
+    }
+
+    /// <summary>★(329) 奢侈品の所得弾力の計器（読むだけ）：EconomyStep が 1 州×1 か月ごとに呼ぶ。pops＝その州の POP の数（総数）・nonPos＝Size・世界の値・物価が正で r が非正の POP の数・invalid＝Size・世界の値・物価が正でない／r が非有限の数（どちらも f＝1 へ倒れた）・nonPosSize＝非正の POP の Size の和。累計は Extras329 が nation_s の末尾 4 列へ書く（ε＝0 では呼ばれない＝0）。</summary>
+    internal static void LuxuryRatioDiag(World w, double pops, double nonPos, double invalid, double nonPosSize)
+    {
+        var st = S(w);
+        st.LuxPopMonths += pops; st.LuxNonPosPopMonths += nonPos; st.LuxInvalidPopMonths += invalid; st.LuxNonPosSizeSum += nonPosSize;
     }
 
     // ---------------------------------------------------------------- (289) 線D：資本家の建設の州ごとの表 ----------------------------------------------------------------
