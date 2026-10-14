@@ -1479,7 +1479,7 @@ public static class EconomyStep
             if ((g.Tier == GoodTier.Staple || (coef.FoodIncludesAnimalProtein > 0 && g.Nutrition > 0)) && g.RefPrice > Eps)   // ★塊1段1b：食卓に動物性タンパクも並ぶ（ゲート0＝主食のみ＝恒等）
             { stapleLogSum += Math.Log(Math.Max(region.Markets[g.Id].Price, Eps) / g.RefPrice); stapleN++; }
         double stapleMeanRatio = stapleN > 0 ? Math.Exp(stapleLogSum / stapleN) : 1.0;
-        // ★(302) 線(2)(3)：奢侈品と家事奉仕の欲しい量の所得弾力（階級単位）。POP ごとに f＝Pow(r, ε)、r＝(その POP の前の月の確定した所得〔LastEarnedPerMonth の上書きの前の値＝earnedBeforeThisMonth〕÷PriceLevel÷Size)÷World.WorldRealIncomePerCapitaPerMonth（買い手の1人あたり実質所得÷世界の1人あたり実質所得・実質＝名目÷物価の1本）。ε＝0（既定）は評価しない＝厳密恒等。否定形で Size・世界の値・物価が正でない／r が非有限・非正は中立（1）へ倒す（資本家の Earned は粗利潤で負になりうる）。POP につき月に 1 回（財のループの前）。掛ける先は desired（欲しい量）だけ＝p.GoodNeed は触らない（満足度の台帳は嗜好品の met を分子と分母の両方へ積む＝欲しい量の増減は罰にも褒美にもならない）。上限・下限は置かない（思想⑧・予算の上限は affordable）。
+        // ★(302) 線(2)(3)：奢侈品と家事奉仕の欲しい量の所得弾力（階級単位）。POP ごとに f＝Pow(r, ε)、r＝(その POP の前の月の確定した所得〔LastEarnedPerMonth の上書きの前の値＝earnedBeforeThisMonth〕÷PriceLevel÷Size)÷World.WorldRealIncomePerCapitaPerMonth（買い手の1人あたり実質所得÷世界の1人あたり実質所得・実質＝名目÷物価の1本）。ε＝0 は評価しない＝旧の挙動と厳密恒等（★(331) 既定は 0.5＝点火）。否定形で Size・世界の値・物価が正でない／r が非有限・非正は中立（1）へ倒す（資本家の Earned は粗利潤で負になりうる）。POP につき月に 1 回（財のループの前）。掛ける先は desired（欲しい量）だけ＝p.GoodNeed は触らない（満足度の台帳は嗜好品の met を分子と分母の両方へ積む＝欲しい量の増減は罰にも褒美にもならない）。上限・下限は置かない（思想⑧・予算の上限は affordable）。
         double[]? incomeFactorOfPop = null;
         if (earnedBeforeThisMonth is not null)
         {

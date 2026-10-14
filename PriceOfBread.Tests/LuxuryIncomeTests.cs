@@ -63,8 +63,8 @@ public class LuxuryIncomeTests
     [Fact]
     public void ε0では配りが走らず値は0のまま_ε正では走って件数が立ち全国で同じ値()
     {
-        var sim0 = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], seed: 1789);
-        foreach (var n in sim0.Nations) n.TelemetryEnabled = false;
+        var sim0 = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], seed: 1789, coef: new Coefficients { LuxuryIncomeElasticity = 0 });   // ★(331) 既定は 0.5（点火）＝ε0 は明示
+        foreach (var n in sim0.Nations) { n.TelemetryEnabled = false; n.World.Coef.LuxuryIncomeElasticity = 0; }   // ★(331) 国の係数は国ごと別インスタンス（cfg.ToScenario が既定を作る）＝ε0 は国の側にも置く
         sim0.StepQuarter(); sim0.StepQuarter();
         Assert.All(sim0.Nations, n => Assert.Equal(0.0, n.World.WorldRealIncomePerCapitaPerMonth));
         Assert.Equal(0L, sim0.CostTotals()[CostLedger.LuxuryRatioPops]);
