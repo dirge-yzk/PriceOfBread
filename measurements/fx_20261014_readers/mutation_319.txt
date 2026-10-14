@@ -1,0 +1,13 @@
+M1 旗1以上でも max を通さない → 失敗!   -失敗:     2、合格:    14、スキップ:     0、合計:    16、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  / 赤: 0
+  復元 md5一致: True
+M2 専売の段の旗の条件 >=2 を >=1 に → 失敗!   -失敗:     1、合格:    15、スキップ:     0、合計:    16、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  / 赤: 0
+  復元 md5一致: True
+M3a 窃盗の旗を見ない（常に旧） → 失敗!   -失敗:     3、合格:    13、スキップ:     0、合計:    16、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  / 赤: 0
+  復元 md5一致: True
+M3b 窃盗の旗を見ない（常に新） → 失敗!   -失敗:     1、合格:    15、スキップ:     0、合計:    16、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  / 赤: 0
+  復元 md5一致: True
+M4 重さの分母を利払いでなく歳入に → 失敗!   -失敗:     5、合格:    11、スキップ:     0、合計:    16、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  / 赤: 0
+  復元 md5一致: True
+M5 重さの線を係数でなく 0.5 に固定 → 失敗!   -失敗:     4、合格:    12、スキップ:     0、合計:    16、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  / 赤: 0
+  復元 md5一致: True
+done
