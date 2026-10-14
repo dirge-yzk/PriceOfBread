@@ -491,7 +491,11 @@ public sealed class Coefficients
     // ⚠**この較正の出所に注意**（2026-08-01訂正）：「既定治安維持力400で≈0.5」は BaseCoercion を独立に掃引する**単一国の較正世界**の数字で、
     //   多国シムでは治安維持力は兵数×即応度から出る（CoercionPerSoldier・2026-06-23の一本化）ので400は現れない。値の妥当性は多国側で測り直すこと。
     public double CrimeOrderPerPop = 0.8;        // 治安の必要治安維持力（人口あたり強度）。秩序＝Coercion÷(基準人口×これ)＝Coercion/800（既定治安維持力400で≈0.5＝平時は微小・不況/不満で発火）。0.4は治安維持力400で秩序1.0に飽和し犯罪が死んでいた→0.8で活性化
-    public double CrimeBase = 0.01;              // 秩序が完全に崩れた時の月次窃盗率の上限（被害者の貯蓄比）
+    public double CrimeBase = 0.01;              // 秩序が完全に崩れた時の月次窃盗率の上限（被害者の基数に掛ける率・基数は下の CrimeVictimBasis）
+    // ★(327) 窃盗の被害の基数。1＝min(被害者の前の月の所得×犯罪率, 貯蓄)（所得に比例する流れ・既定）／0＝被害者の貯蓄×犯罪率（旧＝在庫に比例する流れ）。
+    //   旧は貯蓄が月収の約 90 か月分ある英の大衆から毎月貯蓄の数%を取る形＝窃盗が大衆の支出の 2〜3 割を支える作り物だった（窃盗の純受け取り÷大衆の支出 0.318〔Q5〜Q40〕）。規模の史実の出典は無い（measurements/ta_20261014_prereg.txt [2]・推定）。
+    //   犯罪率の上限は月 CrimeBase×(1＋CrimeUrbanWeight)（変えない）。(323) の腕 T と全行一致（(327)）。
+    public int CrimeVictimBasis = 1;
     public double CrimeMilitancyWeight = 1.0;    // 犯罪率に効く「貧しく不満な大衆」の重み（闘争度×不充足）
     public double CrimeUrbanWeight = 0.6;        // B-4：都市化（過密スラム・匿名性・相対的剥奪）が犯罪を増幅＝犯罪率×(1+これ×都市人口比)。19世紀ロンドン/パリのスラム犯罪
     // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CrimeSatPenalty/CrimeWealthFear/CorruptionLegitimacyErosion＝live・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===

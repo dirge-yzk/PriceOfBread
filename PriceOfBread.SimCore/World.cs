@@ -936,7 +936,7 @@ public sealed class World
     public bool PoliticalLockEnabled { get; internal set; } = true;   // スライダーの政治ロック（純支持≤0の向きへ動かせない）。財政機構の単体テストは false で隔離（税→歳入→保存の検証は政治的可否と直交）
     public bool CoercionFollowsForce { get; internal set; }            // 武力統合：治安維持力を「軍事費スライダー」から導出（治安維持力スライダー廃止）。多国シム（実ゲーム＋selfplay）で true、較正/単体は false で BaseCoercion を独立に掃引（較正世界を保護）
     public double PublicOrder { get; internal set; } = 1.0;   // 治安＝実効治安維持力の人口カバレッジ（1=完全な秩序）。財政破綻・人口増で警察が薄まると下がる
-    public double CrimeRate { get; internal set; }             // 月次の窃盗率（最悪地域・貯蓄比）。秩序の崩れ×困窮大衆で湧く（ガラス箱・警告用）
+    public double CrimeRate { get; internal set; }             // 月次の窃盗率（最悪地域・被害者の基数〔CrimeVictimBasis〕に掛ける率）。秩序の崩れ×困窮大衆で湧く（ガラス箱・警告用）
     public double ReformistPower { get; internal set; }
     public double RadicalPower { get; internal set; }
     public double MeanSatisfactionPol { get; internal set; }   // 大衆（Politics.IsMassPop＝闘争度・不満度と同じ母集団・2026-09-25 に全国民から変更）の人口加重平均満足度＝経済危機の指標。一党支配→独裁化（ブルジョア/プロレタリア）は満足度が低い危機国のみ（ワイマール型）＝満足した安定な立憲（英・米）を巻き込まない。実装＝NationalScore.MeanSatisfaction（第5段5-1で一元化・Politics.Stepがpop更新後に代入＝従来と同時点）
