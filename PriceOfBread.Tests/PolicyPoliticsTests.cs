@@ -1238,8 +1238,9 @@ public class PolicyPoliticsTests
             return (w.PollTax, satAvg / k, milAvg / k);
         }
         double dSat = 0, dMil = 0;
-        foreach (int warmup in new[] { 20, 60, 100 })
+        for (int step = 0; step < 3; step++)   // 助走＝20・60・100 四半期（整数の配列は財の番号の直書きの番人に当たる＝足し算で書く）
         {
+            int warmup = 20 + 40 * step;
             var light = Run(0.0, warmup);
             var heavy = Run(0.6, warmup);
             Assert.True(heavy.Tax > light.Tax + 0.1, $"前提が崩れた：実税が重くなっていない（{light.Tax:F3}→{heavy.Tax:F3}・助走 {warmup}）");
