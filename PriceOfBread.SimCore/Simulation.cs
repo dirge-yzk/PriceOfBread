@@ -3071,11 +3071,13 @@ public sealed class Simulation
             World.Bank?.Gold.Value ?? 0.0, World.CumulativeTradeFlow.Value));
     }
 
-    /// <summary>★(328) 流れG ①（<see cref="Coefficients.RecipeCostFollowsProductivity"/>・既定0＝<b>休眠</b>）：同じ財に並ぶ別レシピの自己費用を、生産性の比で割る（播種で1回）。
+    /// <summary>★(328) 流れG ①（<see cref="Coefficients.RecipeCostFollowsProductivity"/>・既定0＝<b>休眠</b>）：労働力の財（人力・畜力・蒸気機関・電動・水車）に並ぶ動力の別レシピの自己費用を、生産性の比で割る（播種で1回）。
     /// 作者 2026-09-08「同一生産コスト辺りの産出能力にするのが正しい」（賦存の倍率＝<see cref="ApplyEndowment"/>）と同じ構造を機械の生産性へ広げる形＝AI の読み・推奨（作者の承認は未確認）。
     /// 旧＝生産性は Capacity にしか乗らず、蒸気機関の動力（生産性×2.0）は自己費用が人力（×1.0）と同じ 0.35 のまま＋投入＝必ず人力より高い＝必要性 ln(v÷cost) が構造的に 0。
-    /// <c>MarginalCost ÷= (そのレシピの Productivity ÷ 基準レシピの Productivity)^gate</c>。基準レシピ＝同じ GoodId で RecipeName が空・IsRgo でない生産者（人力・工場の既定）。
-    /// 対象＝RecipeName が空でない・IsRgo でない別レシピ（職人は比0.6なので逆向きに上がる）。基準の無い財（教育の並置・上下水道・電化インフラ）は割らない（教育は運転時に Productivity が書き換わる〔StepMonth〕ので播種の比に意味が無い）。
+    /// <c>MarginalCost ÷= (そのレシピの Productivity ÷ 人力の Productivity)^gate</c>。基準レシピ＝労働力の財で RecipeName が空・IsRgo でない生産者（人力）。
+    /// ⚠対象を労働力の財の別レシピ（動力 4 本）に**絞った**のは反証役の点検（高・中）による：(1) 工場の別レシピや職人は、自己費用が管理・資本の付加価値（0.06）や自営の維持費（0.35）で、
+    /// 労働は別の投入や別の担い手に分かれている＝〈人時あたりの費用÷人時あたりの産出〉の会計の恒等が成り立たない。動力は同じ労働者 pop を担い手に持ち、自己費用が担い手の維持費＝恒等が成り立つ。
+    /// (2) 基準レシピの Productivity は賦存（<see cref="ApplyEndowment"/> が資源の財の基準レシピに ×3.5 を掛ける）の後の値＝工場の財を対象に含めると、資源の州で比が 1/3.5 になる。労働力は資源の財でないので賦存を受けない。
     /// 割るのは自己費用だけ（Inputs の QtyPerOutput は産出1単位あたりで既に正規化済み＝二重に割らない）。市場・発見の費用（PriceBook.Cost）・診断が同じ MarginalCost を読む＝Discovery だけで割る形の非対称が出ない。
     /// ゲート0は走査も Math.Pow も通らない＝厳密恒等。比が NaN・非正・無限なら触らない（否定形）。AddAlternateRecipes の末尾（4本の構築経路の最後の add）から1回だけ呼ぶ。
     /// ⚠この関数を末尾に置いたのは、flow262/route_names.py の鍵（Simulation.cs の行）を動かさないため。</summary>
@@ -3083,13 +3085,13 @@ public sealed class Simulation
     {
         double gate = c.RecipeCostFollowsProductivity;
         if (!(gate > 0)) return;
-        var baseProductivity = new Dictionary<int, double>();
+        double baseProd = 0;
         foreach (var p in producers)
-            if (p.RecipeName.Length == 0 && !p.IsRgo) baseProductivity.TryAdd(p.GoodId, p.Productivity);
+            if (p.GoodId == Catalog.LaborId && p.RecipeName.Length == 0 && !p.IsRgo) { baseProd = p.Productivity; break; }
+        if (!(baseProd > 0)) return;
         foreach (var p in producers)
         {
-            if (p.RecipeName.Length == 0 || p.IsRgo) continue;
-            if (!baseProductivity.TryGetValue(p.GoodId, out double baseProd)) continue;
+            if (p.GoodId != Catalog.LaborId || p.RecipeName.Length == 0 || p.IsRgo) continue;
             double ratio = p.Productivity / baseProd;
             if (!(ratio > 0) || double.IsInfinity(ratio)) continue;
             p.MarginalCost /= System.Math.Pow(ratio, gate);
