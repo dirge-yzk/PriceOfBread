@@ -1,0 +1,18 @@
+項目	国	年	値	単位	分母	出典	URL	確かさ	注
+公的部門債務	英	1783/1784/1785/1786/1787/1788/1789/1790	258/265/267/267/269/268/268/268	£百万（年末）	—	Bank of England, A Millennium of Macroeconomic Data for the UK（FRED 再掲 PSDOUKA）	https://fred.stlouisfed.org/data/PSDOUKA.txt	原典の再掲	狭義の National Debt と同一かは未確認
+公的部門債務÷名目GDP	英	1783/1784/1785/1786/1787/1788/1789/1790	128.5/136.6/137.9/128.5/132.3/136.2/135.0/122.8	%	名目GDP（BoE 系列）	同上（FRED PSDOTUKA）	https://fred.stlouisfed.org/data/PSDOTUKA.txt	原典の再掲	モデルの開幕の英の債務÷年GDP 0.99〜1.03 は低い側
+税収（Exchequer 受入の純額・5年移動平均の中心）	英	1780/1785/1790	10.08/11.75/13.74	£百万	—	O'Brien 1988, The Political Economy of British Taxation 1660-1815, EHR 41(1), Table 2	https://slantchev.ucsd.edu/courses/ps143a/readings/O'Brien%20-%20Political%20Economy%20of%20British%20Taxation,%201660-1815.pdf	原典（本文の抽出・1790 は再確認を推奨）	純額。粗税収との差は 1788 年以後約10%
+歳出に占める利払い	英	1776-1783（戦時）	30	%	政府の総歳出	O'Brien 1988, Table 1	同上	原典	軍事 62%・文官 8%
+歳出に占める利払い	英	1784-1792（平時）	56	%	政府の総歳出	O'Brien 1988, Table 1	同上	原典	軍事 31%・文官 13%。利払い÷税収ではない
+コンソルの利回り（年初）	英	1780/1783/1785/1786/1788/1790	4.90/4.72/5.01/4.07/4.01/3.89	%	—	BoE Millennium（FRED 再掲 LTCYUKA）	https://fred.stlouisfed.org/data/LTCYUKA.txt	原典の再掲	
+歳入・歳出・債務費	仏	1788	歳入 503・歳出 632・債務費÷歳入 50.5%	百万リーヴル・%	歳入	教育用資料の二次要約（原典 Compte rendu au roi 1788 は未取得）		要約のみ	
+債務÷GNP・税÷GNP	仏／英	1788	仏 56%・7%／英 182%・12%	%	GNP	Weir 1989（要約経由・原文未確認）		要約のみ	英の 182% は BoE の 136% と分母が違う
+連邦と州の債務	米	1790	連邦 約77（国内 40＋対外 12 ほか）＋州 25	百万ドル	—	Hamilton, Report on Public Credit 1790（Wikipedia 経由）	https://en.wikipedia.org/wiki/First_Report_on_the_Public_Credit	二次	
+歳入	普	1786 頃	約 2000	万ターレル／年	—	Ranke（Gutenberg 版・要約）	https://projekt-gutenberg.org/authors/leopold-von-ranke/books/geschichtsbilder-aus-leopold-v-rankes-werken/chapter/49	要約のみ	国庫の残高（戦時財宝）は見つからない
+人口（英領インドの範囲）	南アジア	1600/1650/1700/1750/1801/1811/1821/1831/1841/1851/1861/1871	142/142/164/190/207/215/205/216/212/232/244/256	百万人	—	Broadberry, Custodis & Gupta 2015, India and the Great Divergence, EEH, Table 1（Mahalanobis & Bhattacharya 1976; Visaria & Visaria 1983 経由）	https://researchonline.lse.ac.uk/id/eprint/56838/	原典（本文の表・年率の行で検算）	1783 は 1750=190 と 1801=207 の間。モデルの 1.22 億は約6割
+世界の工業生産に占めるインド	南アジア	1750/1800/1860/1880	約25%/1/5未満/1/10未満/3%未満	%	世界	Bairoch 系列（Clingingsmith & Williamson NBER w11730 の本文）	https://www.nber.org/system/files/working_papers/w11730/w11730.pdf	原典（作業論文の本文）	
+世界の金の産出（年平均）	世界	1841-50/1851-60/1881-90	約 55/約 200/約 162	トン／年	—	Statistics Canada 旧版の引用（要約）		要約のみ	カリフォルニアとヴィクトリアで約4倍
+家事使用人	英・ウェールズ	1871	130万超（男性 105,745）	人	—	Michelle Higgs（二次）		二次	雇い手は数のうえでは中流の小さな家が大半（Hill 1996・Clegg 2015 の要約）
+奢侈品の輸入	露	1793-1795	申告額 約 1140 万＋関税 約 110 万	ルーブル	—	Kahan 1966, The Costs of Westernization in Russia, Slavic Review	https://www.cambridge.org/core/journals/slavic-review/article/abs/costs-of-westernization-in-russia-the-gentry-and-the-economy-in-the-eighteenth-century/84A8326FA5F558B3CBEF5C8DDF48F137	要約のみ	貴族の領地の約2/3が19世紀半ばに抵当（1家の研究の要旨・全国値でない）
+広州からの輸出	清	1782	茶 21,176 ピクル（約 1,408 t）・生糸 1,205 ピクル（約 80 t）	量	—	MIT Visualizing Cultures（Morse を引用）	https://visualizingcultures.mit.edu/rise_fall_canton_01/cw_essay02.html	二次（本文）	
+広州の交易	清	1828	茶 850 万・生糸 110 万（輸出）・アヘン 1120 万（私商の輸入）	メキシコ銀ドル	—	同上	同上	二次（本文）	茶の代金をアヘンと銀で埋める構造
