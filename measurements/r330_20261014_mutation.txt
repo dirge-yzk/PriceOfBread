@@ -1,0 +1,3 @@
+# (330) 突然変異（当てて赤を確かめ、git checkout で戻した。UnitTypeTests だけを回した）
+M1 Coefficients.cs の GoldCoverMin に [System.NonSerialized] を付ける -> 失敗 UnitTypeTests.セーブの往復と名前引きで兌換と恐慌の係数の欄が残る（Assert.Equal() Failure: Values differ）／失敗 1・合格 21
+M2 UnitTypeTests の表の World.GdpDrawdown の期待の型を Share から RatePerMonth にする -> 失敗 UnitTypeTests.量の宣言が表のとおり型になっている（World.GdpDrawdown は RatePerMonth のはず（Share になっている））／失敗 1・合格 21

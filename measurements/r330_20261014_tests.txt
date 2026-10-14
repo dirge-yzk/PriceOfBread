@@ -1,0 +1,4 @@
+# (330) dotnet test PriceOfBread.slnx -c Release --artifacts-path D:/PoB_work/y8_330/art --filter "Category!=FullLength"（コードの木 18888f3a・帯の後＝帯と並べていない）
+成功!   -失敗:     0、合格:  1142、スキップ:     0、合計:  1142、期間: 12 m 38 s - PriceOfBread.Tests.dll (net10.0)
+# FullLength（--filter "Category=FullLength"）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 14 m 23 s - PriceOfBread.Tests.dll (net10.0)
