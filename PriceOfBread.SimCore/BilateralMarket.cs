@@ -313,7 +313,7 @@ public sealed partial class InternationalMarket
                 rg[r0 + 2] = suezOkN[e.nation] ? 1 : 0; rg[r0 + 3] = panOkN[e.nation] ? 1 : 0;
                 for (int b = 0; b < Basins.Count; b++) rg[r0 + 4 + b] = BitConverter.DoubleToInt64Bits(hv0[b]);
             }
-            // 署名の違う州の行（売り手）と列（買い手）を捨てる
+            // 署名の違う州の行（買い手）と列（売り手）を捨てる（(335) で添字の並びを入れ替えた・行と列の両方を捨てるので役の向きに依らない）
             static void Drop(double[] tab, long[] sOld, long[] sNew, int k, int n)
             {
                 for (int a = 0; a < n; a++)
