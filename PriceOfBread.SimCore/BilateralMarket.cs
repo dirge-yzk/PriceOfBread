@@ -23,6 +23,9 @@ public sealed partial class InternationalMarket
     [System.NonSerialized] private long[]? _cost;
     internal long[] Cost => _cost ??= new long[CostLedger.Count];
     internal long[]? CostOrNull => _cost;
+    /// <summary>★(335) 番人用（テストだけが書く）：真なら成約の反復ごとに〈反復不変の値〉（単価・最良の売り手・運賃・関税・港湾料・払い手の1単位の支払い・価格静止の冪ほか）を求め直す
+    /// ＝使い回す前の形。既定 false。<c>TradeClearingTests</c> が使い回し（既定）と求め直しの清算を同じ盤面で比べる（全ての量がビット単位で同じ）。</summary>
+    internal static bool DealConstAlwaysStale;
     private const int RolloverGuardMax = 400;   // ロールオーバー反復の停止保証（X は成約ごとに厳密に減る＝通常は数回で終わる。届いたら諦めるだけ＝破綻しない）
     public double[][]? PairFlowQ;
     public double[][]? LastPairFlow;   // ★段7：直近に消費した四半期のペア行列（純テレメトリ＝pairprobe/診断が読む。StepDiffusion がスワップ退避）
@@ -228,6 +231,15 @@ public sealed partial class InternationalMarket
         // ★2026-09-29（高速化の段 S2・厳密恒等）：州の表は配列で読む（List の添字は11項目の組を丸ごと写してから項目を読む＝清算の内側のループで1回約80バイト）。
         //   組の項目への書き込みは無い（List では書けない）＝読む値は同じ。
         var tr = trList.ToArray();
+        // ★(335) 州ごとの最寄りの海ノードと接ぎ木の片側（州の海に出る点→そのノードの大圏距離）。距離の表と危険料の表の埋め直し（PairKm・PairRisk）が組ごとに
+        //   最寄りの検索と大圏距離を繰り返していた＝州ごとに1回だけ。値は SeaGraph.SeaDistanceKm が組ごとに求める値と同じ式・同じ入力（海に出る点の座標）。
+        var seaNodeOf = new int[tc]; var seaHalf = new double[tc];
+        for (int t0 = 0; t0 < tc; t0++)
+        {
+            int sn = SeaGraph.NearestSeaNode(tr[t0].lat, tr[t0].lon);
+            seaNodeOf[t0] = sn;
+            seaHalf[t0] = Geo.DistanceKm(tr[t0].lat, tr[t0].lon, SeaGraph.Nodes[sn].Lat, SeaGraph.Nodes[sn].Lon);
+        }
         // ★(3) 地形の陸路コスト係数（設計doc 20260826_地形と輸送コスト.DONE.md）＝州ごとに1回だけ算出。
         //   実効係数＝馬と鉄道の**railGate ブレンド**。★2026-10-01 (150)：railGate＝鉄道輸送の門＝発見の表の「機関車」の行（2値・Transport の容量と同じ1本）
         //   ＝旧＝技術水準の時計の傾斜 RailGate(TechLevel)（発見と関係なく開いた）。
@@ -334,7 +346,7 @@ public sealed partial class InternationalMarket
         var kmGen = ks.Gen; int kmG = ++ks.G;
         double KmOf(int a, int b)
         {
-            int ix = a * tc + b;
+            int ix = b * tc + a;   // ★(335) 買い手の行・売り手の列＝買い手 b を固定して売り手 a を走る（着値の充填）が同じ行の中を歩く＝キャッシュに乗る（旧は a*tc+b＝売り手ごとに tc 要素飛ぶ）。表の中身は添字の入れ替えだけ
             double v = kmTab[ix];
             if (v >= 0) { kmGen[ix] = kmG; return v; }
             v = PairKm(a, b);
@@ -351,7 +363,7 @@ public sealed partial class InternationalMarket
             double viaSea = double.PositiveInfinity;
             if (tr[a].seaOk && tr[b].seaOk)
             {
-                double sea = Geo.SeaDistanceKm(tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);
+                double sea = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);   // ★(335) Geo.SeaDistanceKm と同じ値（最寄りの海ノードと接ぎ木の片側は州ごとに求めた物）
                 viaSea = sea + tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b];   // ★(3)＋鉄道低下：陸脚＝地形×実効比
             }
             LastPairWasLand = false;   // ★既定＝海（下の陸直行が勝ったときだけ true）
@@ -377,13 +389,13 @@ public sealed partial class InternationalMarket
         {
             int bi = tr[buyer].nation;
             if (!natAnyHostile[bi]) return 0;
-            double cached = riskTab[seller * tc + buyer];
+            double cached = riskTab[buyer * tc + seller];   // ★(335) 距離の表と同じ並び（買い手の行・売り手の列）
             if (cached >= 0) return cached;
-            var kmB = SeaGraph.RouteBasinKm(SeaGraph.NearestSeaNode(tr[seller].lat, tr[seller].lon), SeaGraph.NearestSeaNode(tr[buyer].lat, tr[buyer].lon), suezOkN[bi], panOkN[bi]);
+            var kmB = SeaGraph.RouteBasinKm(seaNodeOf[seller], seaNodeOf[buyer], suezOkN[bi], panOkN[bi]);
             double integral = 0;
             for (int b = 0; b < Basins.Count; b++) integral += natHostility[bi][b] * kmB[b];
             double risk = 1.0 - Math.Exp(-c.RiskLambda * integral / Diplomacy.DistanceNormKm);
-            riskTab[seller * tc + buyer] = risk;
+            riskTab[buyer * tc + seller] = risk;
             return risk;
         }
 
@@ -679,6 +691,13 @@ public sealed partial class InternationalMarket
                 int candN = 0, resS = headS, resPrev = -1;   // 候補の数／次に調べる売り手（打ち切り位置）とその手前の生存売り手
                 int bestA = -1, bestPos = -1; double bestDelA = double.MaxValue, secondDelA = double.MaxValue, bestKmA = 0;
                 bool keepBest = false;   // (a)：前回の best/second をそのまま使う
+                // ★(335) 最良が変わらない反復（成約の直後に最良が有資格のまま＝keepBest）で値が変わらない量（単価 unitA・最良の売り手・買い手と売り手の価格の基準・
+                //   運賃・着値の分母・関税・港湾料・保険料・払い手の1単位の支払い・価格静止の冪）は、最良と次善が決まり直した反復（dealConstStale）でだけ求める。
+                //   式と評価順は旧のまま。入力は全て、最良と次善（bestA・bestPos・secondDelA）・この行の定数（t・lp・g・ni）・この清算で不変の表
+                //   （tr・exRate・tar・portOwner・underwriters・候補表の candF・距離の印 kmGen/kmLand）だけ＝成約で動く量（在庫・容量・予算・LastImport・LastExport）は読まない。
+                bool dealConstStale = true;
+                double unitA = 0, rpT = 0, powVal = 0, sellAccB = 0, rpS = 0, frA = 0, sA = 0, dutyA = 0, portT = 0, portS = 0, premA = 0, costA = 0;
+                int snA = 0, siA = 0; Market msA = null!; bool xPriceOn = false, crossA = false, seaA = false;
                 bool dealtRow = false;   // この行で1件でも成約したか（成約しなかった行に印＝ClearFailLp）
                 int guard = 0;
                 while (true)
@@ -687,6 +706,7 @@ public sealed partial class InternationalMarket
                     if (++guard > RolloverGuardMax) break;   // 停止保証
                     if (!keepBest)
                     {
+                        dealConstStale = true;   // ★(335) 最良と次善が決まり直す＝下の反復不変の値を求め直す
                         // (b) 候補表から最良と次善を引き直す（(着値, 添字) の辞書式＝候補表の並び順に依らない）
                         bestA = -1; bestPos = -1; bestDelA = double.MaxValue; secondDelA = double.MaxValue;
                         for (int k = 0; k < candN; k++)
@@ -749,39 +769,43 @@ public sealed partial class InternationalMarket
                     }
                     keepBest = false;
                     if (bestA < 0 || !(lp > bestDelA)) break;   // 否定形＝NaNは取引しない
-                    double unitA = Math.Min(lp, double.IsPositiveInfinity(secondDelA) ? lp : secondDelA);
-                    unitA = Math.Max(unitA, sellers[bestA].Price);
-                    int snA = sellers[bestA].Node; int siA = tr[snA].nation;
-                    var msA = tr[snA].r.Markets[g];
+                    if (dealConstStale || DealConstAlwaysStale)
+                    {
+                        dealConstStale = false;
+                        unitA = Math.Min(lp, double.IsPositiveInfinity(secondDelA) ? lp : secondDelA);
+                        unitA = Math.Max(unitA, sellers[bestA].Price);
+                        snA = sellers[bestA].Node; siA = tr[snA].nation;
+                        msA = tr[snA].r.Markets[g];
+                        rpT = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni];
+                        // ★価格振動の根②（2026-09-07・2026-09-08 点火＝旗 TradeBuyerSolvesAtUnitPrice は 2026-09-26 に焼き込み）：買い手の静止点を〈実際に払う単価 unitA〉で解く
+                        //   （売り手側 yPrice と同じ物差し）。旧式＝最良の着値 bestDelA は、単一供給では unitA=lp より安い価格で解く＝過剰発注→閾で0の bang-bang だった。
+                        xPriceOn = rpT > 1e-9 && unitA > 1e-9;
+                        if (xPriceOn) powVal = Math.Pow(rpT / unitA, twoEps);   // 価格静止の量の冪（旧は反復ごとに同じ入力で呼んでいた）
+                        sellAccB = tr[snA].access * (milGood ? milExportAcc[siA] : 1.0);
+                        if (c.IsolationExportWeight > 0) sellAccB *= System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tar[siA]) * System.Math.Max(0, tar[siA]));   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
+                        if (g == c.OpiumGoodId && oexban[siA]) sellAccB *= Contraband.LeakFraction(tr[snA].r.AdminFill, c);
+                        rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
+                        frA = freightRate > 1e-12 ? freightRate * bestKmA / Diplomacy.DistanceNormKm : 0.0;
+                        // ★段3-1（econ-07/B21）：売り手の受取＝次善の着値（単価 unitA）を最良の売り手の着値の倍率（1＋運賃＋楔＋封鎖）で割り戻した積出し価格。
+                        //   旧＝単価を丸ごと売り手に払った＝輸入国の関税・穀物法と影の運送（従価の運送の楔・危険料）が外国の売り手の収入になっていた
+                        //   （関税を上げるほど輸出国への支払いが増える＝帰着が逆）。関税と穀物法の分は通関で輸入国の国庫へ・影の運送は誰にも払わない
+                        //   （捌き手の商人が国内で売る値との差として残る）・運賃は積出し価格に掛かり船の持ち主へ。
+                        crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
+                        sA = unitA / candF![bestPos];
+                        dutyA = crossA ? duty : 0.0;
+                        seaA = !LandNow(t * tc + snA);   // 港湾料と保険料の率（海路の成約だけ）。★(335) KmOf(snA, t) が書いた添字（買い手 t の行・売り手 snA の列）
+                        portT = seaA && portOwner[t] is not null ? c.PortFeeRate : 0.0; portS = seaA && portOwner[snA] is not null ? c.PortFeeRate : 0.0;
+                        premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
+                        costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃＋港湾料＋保険料・自国通貨＝A7）
+                    }
                     // --- 買い手 X（§1-2）：価格静止と物理の2腕 min（低すぎる着値で静止点が無い穴を X_need が塞ぐ）---
-                    double rpT = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni];
-                    // ★価格振動の根②（2026-09-07・2026-09-08 点火＝旗 TradeBuyerSolvesAtUnitPrice は 2026-09-26 に焼き込み）：買い手の静止点を「実際に払う単価 unitA」で解く
-                    //   （売り手側 yPrice と同じ物差し）。旧式＝最良の着値 bestDelA は、単一供給では unitA=lp より安い価格で解く＝過剰発注→閾で0の bang-bang だった。
-                    double xPrice = rpT > 1e-9 && unitA > 1e-9
-                        ? m.LastDemand * Math.Pow(rpT / unitA, twoEps) - (m.LastProduced + m.LastImport) : 0.0;
+                    double xPrice = xPriceOn ? m.LastDemand * powVal - (m.LastProduced + m.LastImport) : 0.0;
                     double xNeed = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
                     double X = tr[t].access * Math.Max(0, Math.Min(xPrice, xNeed));
                     if (g == c.OpiumGoodId && oban[ni]) X *= Contraband.LeakFraction(tr[t].r.AdminFill, c);
                     // --- 売り手 Y（§1-3）：u が高いほど地元を絞って出す（固定点＝現在の輸出率）---
-                    double sellAccB = tr[snA].access * (milGood ? milExportAcc[siA] : 1.0);
-                    if (c.IsolationExportWeight > 0) sellAccB *= System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tar[siA]) * System.Math.Max(0, tar[siA]));   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
-                    if (g == c.OpiumGoodId && oexban[siA]) sellAccB *= Contraband.LeakFraction(tr[snA].r.AdminFill, c);
-                    double rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
                     double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
                     double Y = sellAccB * Math.Max(0, Math.Min(yPrice, left[bestA]));   // 物理上限＝avail（=Stock−TargetStock・left が消化を追う）
-                    double frA = freightRate > 1e-12 ? freightRate * bestKmA / Diplomacy.DistanceNormKm : 0.0;
-                    // ★段3-1（econ-07/B21）：売り手の受取＝次善の着値（単価 unitA）を最良の売り手の着値の倍率（1＋運賃＋楔＋封鎖）で割り戻した積出し価格。
-                    //   旧＝単価を丸ごと売り手に払った＝輸入国の関税・穀物法と影の運送（従価の運送の楔・危険料）が外国の売り手の収入になっていた
-                    //   （関税を上げるほど輸出国への支払いが増える＝帰着が逆）。関税と穀物法の分は通関で輸入国の国庫へ・影の運送は誰にも払わない
-                    //   （捌き手の商人が国内で売る値との差として残る）・運賃は積出し価格に掛かり船の持ち主へ。
-                    bool crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
-                    double sA = unitA / candF![bestPos];
-                    double dutyA = crossA ? duty : 0.0;
-                    // 港湾料と保険料の率（海路の成約だけ＝港の取扱高と同じ印・上の段3-4 の注記）
-                    bool seaA = !LandNow(snA * tc + t);
-                    double portT = seaA && portOwner[t] is not null ? c.PortFeeRate : 0.0, portS = seaA && portOwner[snA] is not null ? c.PortFeeRate : 0.0;
-                    double premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
-                    double costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃＋港湾料＋保険料・自国通貨＝A7）
                     double pot = Math.Min(Math.Min(X, Y), left[bestA]);
                     pot = Math.Min(pot, budget[t] / Math.Max(1e-12, costA));   // 支払能力（捌き手の貯蓄）
                     double qA = pot;
@@ -843,7 +867,7 @@ public sealed partial class InternationalMarket
                     if (vA > distTop[t]) { distTop[t] = vA; tr[t].r.LastTradeDistanceKm = bestKmA; }
                     if (vA > distTop[snA]) { distTop[snA] = vA; tr[snA].r.LastTradeDistanceKm = bestKmA; }
                     // ★陸路可視化（2026-08-31）：この対の最短が陸直行なら、両端の州へ「陸路の最大相手」を記帳（純テレメトリ・地図が実経路を描く）
-                    if (LandNow(snA * tc + t) || LandNow(t * tc + snA))
+                    if (LandNow(t * tc + snA) || LandNow(snA * tc + t))   // ★(335) 添字の並びを入れ替えた（どちらの向きの印も読む）
                     {
                         if (vA > tr[t].r.LastLandPartnerFlow) { tr[t].r.LastLandPartnerFlow = vA; tr[t].r.LastLandPartnerName = tr[snA].r.Name; }
                         if (vA > tr[snA].r.LastLandPartnerFlow) { tr[snA].r.LastLandPartnerFlow = vA; tr[snA].r.LastLandPartnerName = tr[t].r.Name; }

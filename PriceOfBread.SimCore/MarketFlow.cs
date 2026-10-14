@@ -222,12 +222,13 @@ public static class MarketFlow
                         //   P0<Eps と NaN（否定形）は従来どおり ln(P0/rp) を取る。
                         // ★小刻み（2026-09-30 高速化の段 S3c・近似）：1歩の刻み hs は時定数の1/10 まで（<see cref="SubStep"/>）＝h を hs 日ずつ同じ閉じた式で進める
                         //   （y は小刻みの始めの価格で1回）。hs＝h なら旧の1歩と1ビットも同じ。小刻みの途中で内側を外れたら歩の始めから日次の経路へ（旧の予測の帯と同じ扱い）。
-                        int hs = SubStep(h, u0, coef, div);
+                        int hs = SubStep(h, u0, coef, div, out double amp0);   // ★(335) amp0＝u0 から求めた amp（最初の小刻みの GoodsY が同じ値を使う）
                         double Ps = P0, us = u0; bool inner = true;
                         for (int dn = 0; dn < h; dn += hs)
                         {
                             if (dn > 0 && !(System.Math.Abs(BandT(Ps, rp, lnFloorGoods, lnCeilGoods, out _, out us)) < InnerT)) { inner = false; break; }
-                            double g1 = 1 + GoodsY(Ps, rp, demandRaw, supply, gap, coef, div, Ps >= Eps ? us : System.Math.Log(Ps / rp));
+                            // ★(335) 最初の小刻み（dn＝0）で Ps≧Eps なら lnDev は SubStep の lnDev と同じ u0 ＝amp は同じ値（Ps＜Eps と NaN は従来どおり Log(Ps/rp) から求める）
+                            double g1 = 1 + (dn == 0 && Ps >= Eps ? GoodsYAmp(Ps, rp, demandRaw, supply, gap, coef, div, amp0) : GoodsY(Ps, rp, demandRaw, supply, gap, coef, div, Ps >= Eps ? us : System.Math.Log(Ps / rp)));
                             double tp = BandT(Ps * System.Math.Pow(g1, hs), rp, lnFloorGoods, lnCeilGoods, out double lp, out _);
                             if (!(g1 > 0 && System.Math.Abs(tp) < InnerT)) { inner = false; break; }
                             Ps = rp * System.Math.Exp(lp * SoftT(tp, k, hs));   // P′＝SB_hs(P·(1＋y)^hs)
@@ -306,14 +307,27 @@ public static class MarketFlow
     ///   ③ndist＝1（参照の20倍より外＝上の帯に張り付いた財）なら 1^p＝1（IEEE の pow の定義）＝Pow を呼ばない。値は1ビットも変わらない。</summary>
     private static double GoodsY(double price, double rp, double demandRaw, double supply, double gap, Coefficients coef, double div, double lnDev)
     {
+        return GoodsYAmp(price, rp, demandRaw, supply, gap, coef, div, AmpOf(lnDev, coef));
+    }
+
+    /// <summary>★(335) 価格の動きの加速度 amp＝中心＋(端−中心)×(対数の乖離/端)^べき（乖離が端以上なら端）。lnDev だけの関数。<see cref="GoodsY"/> と <see cref="SubStep"/> が同じ1本を読む
+    /// （旧は両方が同じ式を別々に書いていた＝閉じた式の最初の小刻みで同じ入力の Pow を2度呼んでいた）。端（ndist＝1）の 1^べき＝1 は IEEE の pow の定義（旧の SubStep は Pow(1,べき) を呼んでいた＝同じ値）。</summary>
+    private static double AmpOf(double lnDev, Coefficients coef)
+    {
+        double lnRef = coef.PriceAmpLnScale;   // amp曲線の端の対数距離（=ln20≈3.0）。安全網クランプ幅とは分離
+        double ndist = System.Math.Min(1.0, System.Math.Abs(lnDev) / lnRef);
+        return coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * (ndist == 1.0 ? 1.0 : System.Math.Pow(ndist, coef.PriceAmpPower));
+    }
+
+    /// <summary>★(335) <see cref="GoodsY"/> の amp 以外の部分。amp は lnDev だけの関数＝閉じた式の最初の小刻みでは <see cref="SubStep"/> が同じ lnDev から求めた amp をそのまま渡す
+    /// （同じ式・同じ入力の Pow を2度呼ばない＝厳密恒等）。</summary>
+    private static double GoodsYAmp(double price, double rp, double demandRaw, double supply, double gap, Coefficients coef, double div, double amp)
+    {
         double dev = price / rp;
         double e = coef.PriceElasticity;
         double eD = demandRaw * System.Math.Pow(dev, -e);
         double eS = supply == 0 && dev > 0 && dev <= double.MaxValue && e >= 0 && e <= 1 ? supply : supply * System.Math.Pow(dev, e);
         double flow = (eD - eS) / (eD + eS + Eps);
-        double lnRef = coef.PriceAmpLnScale;   // amp曲線の端の対数距離（=ln20≈3.0）。安全網クランプ幅とは分離
-        double ndist = System.Math.Min(1.0, System.Math.Abs(lnDev) / lnRef);
-        double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * (ndist == 1.0 ? 1.0 : System.Math.Pow(ndist, coef.PriceAmpPower));
         return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
     }
 
@@ -378,10 +392,9 @@ public static class MarketFlow
 
     /// <summary>★閉じた式の小刻み（2026-09-30 S3c）：h の約数のうち hs×g≦<see cref="StepPerTau"/> を満たす最大（最小1）。g＝FlowAdjustSpeed·ε/div·amp(lnDev)
     /// （amp は <see cref="GoodsY"/> と同じ式）。NaN は h のまま＝旧の1歩の経路（予測の帯の判定で日次へ落ちる）。</summary>
-    private static int SubStep(int h, double lnDev, Coefficients coef, double div)
+    private static int SubStep(int h, double lnDev, Coefficients coef, double div, out double amp)
     {
-        double ndist = System.Math.Min(1.0, System.Math.Abs(lnDev) / coef.PriceAmpLnScale);
-        double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * System.Math.Pow(ndist, coef.PriceAmpPower);
+        amp = AmpOf(lnDev, coef);
         double g = coef.FlowAdjustSpeed * coef.PriceElasticity / div * amp;
         int hs = h;
         while (hs > 1 && hs * g > StepPerTau) { hs--; while (hs > 1 && h % hs != 0) hs--; }

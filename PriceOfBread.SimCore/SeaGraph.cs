@@ -475,6 +475,13 @@ public static class SeaGraph
     {
         int s = NearestSeaNode(lat1, lon1, leadBudgetMult), t = NearestSeaNode(lat2, lon2, leadBudgetMult);
         double stitch = Geo.DistanceKm(lat1, lon1, Nodes[s].Lat, Nodes[s].Lon) + Geo.DistanceKm(lat2, lon2, Nodes[t].Lat, Nodes[t].Lon);
+        return SeaDistanceKmFromNodes(s, t, stitch, lat1, lon1, lat2, lon2, suezOpen, panamaOpen);
+    }
+
+    /// <summary>★(335) <see cref="SeaDistanceKm(double,double,double,double,bool,bool,double)"/> の後半＝最寄りの海ノード s・t と接ぎ木の距離 stitch（始点の接ぎ木＋終点の接ぎ木の和）が分かっているときの海路距離。
+    /// 呼び手が地点ごとに1度だけ最寄りの海ノードと接ぎ木の片側を求めておけば、組ごとに最寄りの検索（辞書の引き）と大圏距離を繰り返さない（式は旧のまま・分けただけ）。</summary>
+    internal static double SeaDistanceKmFromNodes(int s, int t, double stitch, double lat1, double lon1, double lat2, double lon2, bool suezOpen, bool panamaOpen)
+    {
         double d = Matrix(suezOpen, panamaOpen)[s * Nodes.Length + t];
         if (double.IsPositiveInfinity(d))
         {

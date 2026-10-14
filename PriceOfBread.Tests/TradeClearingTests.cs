@@ -534,4 +534,112 @@ public class TradeClearingTests
         Assert.True(Math.Abs(sim.Diplomacy.CumulativeFxResidual - fx0) > 1e-9, "為替が違うのに換算の台帳が動かない");
         Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, (gen.BaseMoney + tus.BaseMoney).Value - bm0, 6);   // 世界の名目の動き＝換算の台帳
     }
+
+    // ★(335) 成約の反復で値が変わらない量（単価・最良の売り手・運賃・関税・港湾料・払い手の1単位の支払い・価格静止の冪）は、最良と次善が決まり直した反復でだけ求める。
+    //   番人＝同じ盤面を〈使い回す（既定）〉と〈反復ごとに求め直す（旧の形・InternationalMarket.DealConstAlwaysStale）〉で清算し、全州の財と全 POP の貯蓄ほか国の台帳が
+    //   ビット単位で同じ。⚠成約が最良を替えながら続く盤面（最安が尽きて次善へ・同じ最良からの複数回の成約）でなければ使い回しの誤りは出ない＝盤面は上の Make の構成
+    //   （最安は薄く次善は厚く、買い手は全州）を使い、成約が反復を重ねたこと（最安と次善の両方から買った・買い手1行の成約が複数回）を前提として確かめる。
+    private static long[] BitsAfterClearing(bool alwaysStale, bool manySellers, params NationConfig[] cfg)
+    {
+        bool saved = InternationalMarket.DealConstAlwaysStale;
+        InternationalMarket.DealConstAlwaysStale = alwaysStale;
+        try
+        {
+            var (sim, g, seller, seller2, _) = Make(cfg);
+            var sellers = new List<Region> { seller, seller2 };
+            if (manySellers)
+            {   // 売り手を増やす：港の州6つを値段の違う薄い売り手にする＝買い手1行の中で最良が何度も替わり、単価・運賃・関税・港湾料が替わる
+                double wp = sim.Market.Price[g]; int k = 0;
+                foreach (var r in sim.Nations.SelectMany(n => n.World.Regions).Where(r => r.State == RegionState.Active && r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2)).Take(6).ToList())
+                {
+                    var m = r.Markets[g]; m.Price = (0.65 + 0.1 * k++) * wp; m.Stock = 300; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 1e6;
+                    sellers.Add(r);
+                }
+                seller.Markets[g].LastProduced = 1e6; seller2.Markets[g].LastProduced = 1e6; seller2.Markets[g].Stock = 300;
+                foreach (var n0 in sim.Nations) foreach (var r0 in n0.World.Regions) foreach (var p0 in r0.Pops) p0.SetSavings(1e9);   // 買い手の支払能力は十分
+                foreach (var n1 in sim.Nations) foreach (var r1 in n1.World.Regions) if (r1.State == RegionState.Active && !sellers.Contains(r1)) r1.Markets[g].TargetStock = 5000;   // 買い手の物理の不足を大きく＝価格静止の量 xPrice が買う量を決める（冪の使い回しが効く盤面）
+            }
+            sim.Market.Step(sim.Nations, sim.Coef);
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);   // 2回目の清算（月の清算＝眠る行・前の清算の持ち越しの表）
+            if (!manySellers) Assert.True(seller.Markets[g].LastExport > 1e-9 && seller2.Markets[g].LastExport > 1e-9, "最安と次善の両方から買っていない（テスト前提の破れ）");
+            if (manySellers) Assert.True(sellers.Count(s => s.Markets[g].LastExport > 1e-9) >= 3, "3つ以上の売り手から買っていない＝最良が何度も替わる盤面でない（テスト前提の破れ）");
+            var bits = new List<long>();
+            void Add(double v) => bits.Add(BitConverter.DoubleToInt64Bits(v));
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World;
+                Add(w.BaseMoney.Value); Add(w.CumulativeTradeFlow.Value); Add(w.Treasury.Value); Add(w.LastExportValue); Add(w.LastImportValue); Add(w.LastTariffRevenuePerClearing);
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active) continue;
+                    Add(r.LastPortThroughput); Add(r.LastTradePotential); Add(r.LastTradeThrottle); Add(r.LastTradeDistanceKm);
+                    foreach (var m in r.Markets) { Add(m.Stock); Add(m.LastImport); Add(m.LastExport); }
+                    foreach (var p in r.Pops) { Add(p.Savings.Value); Add(p.Debt.Value); }
+                }
+            }
+            Add(sim.Diplomacy.CumulativeFxResidual);
+            return bits.ToArray();
+        }
+        finally { InternationalMarket.DealConstAlwaysStale = saved; }
+    }
+
+    [Fact]
+    public void 成約の反復で値が変わらない量の使い回しは毎回求め直した清算と同じ()
+    {
+        foreach (var cfg in new[] { TwoPorts(), new[] { WorldData.ByName("イギリス") }, new[] { WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("ネーデルラント") } })
+        {
+            foreach (bool many in cfg.Length == 2 && cfg[0].Name == "ジェノヴァ" ? new[] { false } : new[] { false, true })   // 港が2つの世界は売り手を増やせない
+            {
+            var cached = BitsAfterClearing(false, many, cfg);
+            var fresh = BitsAfterClearing(true, many, cfg);
+            Assert.Equal(fresh.Length, cached.Length);
+            for (int i = 0; i < cached.Length; i++)
+                Assert.True(cached[i] == fresh[i], $"使い回し(既定)と求め直しで {i} 番目の量が違う（{BitConverter.Int64BitsToDouble(cached[i])} / {BitConverter.Int64BitsToDouble(fresh[i])}）＝反復不変でない量を使い回している");
+            }
+        }
+    }
+
+    // ★(335) 清算の距離の表（PairKm）は州ごとに1回求めた最寄りの海ノードと接ぎ木の片側から海路距離を出す（旧は組ごとに SeaGraph.SeaDistanceKm が求めていた）。
+    //   番人＝期待値は清算の外：州の海に出る点の座標を Climate.CityCoord から引き、公開の Geo.SeaDistanceKm で売り手の港→買い手の海に出る点の海路距離を組ごとに求め、
+    //   買い手の陸脚（州の PortLandKm×地形の係数×陸/海の比）を足した値。清算が取引の相手との距離として記録する値（Region.LastTradeDistanceKm＝最大額の取引の距離）が、
+    //   成約した買い手でビット単位で一致する。陸路の直行は止める（LandRouteEnabled＝0）・鉄道の前（陸脚の地形係数は馬）。
+    [Fact]
+    public void 清算が記録する取引の距離は州の座標から公開の海路距離で求めた値と一致する()
+    {
+        var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"), WorldData.ByName("フランス"));
+        sim.Coef.LandRouteEnabled = 0;
+        seller.Markets[g].Stock = 1e7; seller2.Markets[g].Stock = 1e7; seller.Markets[g].LastProduced = 1e6; seller2.Markets[g].LastProduced = 1e6;   // 売り手は尽きず出し渋らない＝多くの買い手が成約する（確かめる州を増やす）
+        foreach (var n0 in sim.Nations) foreach (var r0 in n0.World.Regions) foreach (var p0 in r0.Pops) p0.SetSavings(1e9);   // 買い手の支払能力は十分（確かめる州を増やす）
+        sim.Market.Step(sim.Nations, sim.Coef);
+        var c = sim.Coef;
+        int checkedN = 0;
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                if (r.State != RegionState.Active || ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 0) || r.LastPortFrozen || (!r.IsPort && r.NearestPortName.Length == 0)) continue;
+                // 買い手の海に出る点と陸脚（BilateralMarket の州の表と同じ規則：港なら自州・内陸なら最寄りの港）
+                var cb = Climate.CityCoord(r.Name); double landKm = 0;
+                if (!r.IsPort) { cb = Climate.CityCoord(r.NearestPortName); landKm = r.PortLandKm; }
+                bool rail = Discovery.RailTransport(n.World.Discovered);
+                int ti = (int)r.Terrain;
+                double horse = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0, railCost = ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0;
+                double terr = horse + (rail ? 1.0 : 0.0) * (railCost - horse);
+                if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) terr = c.TerrainWaterMajorCost;
+                else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) terr = c.TerrainWaterMinorCost;
+                double ratio = c.LandSeaCostRatio * (1.0 - (rail ? 1.0 : 0.0) * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
+                bool match = false;
+                foreach (var s in new[] { seller, seller2 })
+                {
+                    var cs = Climate.CityCoord(s.Name);
+                    double sea = Geo.SeaDistanceKm(cs.Lat, cs.Lon, cb.Lat, cb.Lon, false, false);
+                    double e = sea + 0.0 + landKm * terr * ratio;   // 売り手は港（陸脚0）
+                    if (BitConverter.DoubleToInt64Bits(e) == BitConverter.DoubleToInt64Bits(r.LastTradeDistanceKm)) match = true;
+                }
+                Assert.True(match, $"{r.Name} の記録した取引の距離 {r.LastTradeDistanceKm} が、売り手の港からの海路距離＋陸脚（公開の Geo.SeaDistanceKm で組ごとに求めた値）のどちらとも一致しない");
+                checkedN++;
+            }
+        int act = 0, imp = 0, frz = 0, nop = 0;
+        foreach (var n2 in sim.Nations) foreach (var r2 in n2.World.Regions) { if (r2.State != RegionState.Active) continue; act++; if (r2.Markets[g].LastImport > 0) imp++; if (r2.LastPortFrozen) frz++; if (!r2.IsPort && r2.NearestPortName.Length == 0) nop++; }
+        Assert.True(checkedN >= 10, $"確かめた買い手が少ない（{checkedN}／活きた州 {act}・輸入あり {imp}・凍結 {frz}・港なし {nop}）＝テスト前提の破れ");
+    }
 }
