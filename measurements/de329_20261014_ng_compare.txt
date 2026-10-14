@@ -1,0 +1,5 @@
+# (329) bash scripts/instruments/ng.sh D:/PoB_work/de_329/out_Ai_10/ins de329 D:/PoB_work/de_329/ng329 rd:measurements/ng314_20261014:r314（読み手の出力フォルダは D:/… の形）＝基準 r314 と同じ集合（読み手 13 表は measurements/ng329_20261014/）
+# 基準 rd:measurements/ng314_20261014:r314＝NG 73／比べる rd:D:/PoB_work/de_329/ng329:de329＝NG 73
+## 新しい NG（基準では NG でない）: 0
+## 外れた NG（比べる側で NG でない）: 0
+## 前からの NG: 73

@@ -1,0 +1,5 @@
+# (329) FullLength（Release・隔離ビルド D:/PoB_work/de_329/art・コードの木 ce0b0f04）
+D:\PoB_work\de_329\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 53 s - PriceOfBread.Tests.dll (net10.0)
