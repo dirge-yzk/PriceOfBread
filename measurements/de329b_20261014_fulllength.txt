@@ -1,0 +1,17 @@
+D:\PoB_work\wt_de\PriceOfBread.SimCore\EconomyStep.cs(1487,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_de\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_de\PriceOfBread.SimCore\Instruments.cs(1788,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_de\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\de_329\art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\de_329\art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\wt_de\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\ConservationTests.cs(960,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\UnitTypeTests.cs(281,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\UnitTypeTests.cs(281,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\UnitTypeTests.cs(282,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\UnitTypeTests.cs(282,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_de\PriceOfBread.Tests\InstrumentsTests.cs(792,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\wt_de\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\de_329\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\de_329\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 50 s - PriceOfBread.Tests.dll (net10.0)

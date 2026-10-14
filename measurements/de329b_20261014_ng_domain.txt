@@ -1,0 +1,4 @@
+B: 新しい 20 {'navy': 1, 'rail': 1, 'fin': 3, 'hist171': 1, 'law': 13, 'trade': 1} ／ 外れた 10 {'rail': 1, 'steam': 6, 'sold': 1, 'law': 2} ／ 正味 +10
+N1: 新しい 10 {'rail': 2, 'steam': 1, 'fin': 2, 'law': 5} ／ 外れた 12 {'navy': 2, 'rail': 2, 'fin': 4, 'wardead': 1, 'law': 2, 'trade': 1} ／ 正味 -2
+N2: 新しい 20 {'navy': 4, 'rail': 2, 'steam': 3, 'fin': 1, 'law': 10} ／ 外れた 5 {'navy': 1, 'fin': 2, 'sold': 1, 'law': 1} ／ 正味 +15
+L: 新しい 16 {'rail': 2, 'steam': 1, 'fin': 1, 'hist171': 1, 'law': 11} ／ 外れた 8 {'rail': 1, 'steam': 1, 'fin': 5, 'trade': 1} ／ 正味 +8
