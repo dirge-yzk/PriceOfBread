@@ -1,0 +1,1 @@
+SupplySlope=0.50000001

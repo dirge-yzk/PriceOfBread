@@ -1,0 +1,38 @@
+== M1_S因子なし
+[xUnit.net 00:00:06.26]     PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 1, expected: 0.16500000000000001) [FAIL]
+[xUnit.net 00:00:06.37]     PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 3, expected: 0.082500000000000004) [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 1, expected: 0.16500000000000001) [95 ms]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 3, expected: 0.082500000000000004) [115 ms]
+失敗!   -失敗:     2、合格:    19、スキップ:     0、合計:    21、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M2_係数を見ない
+[xUnit.net 00:00:08.13]     PriceOfBread.Tests.MonopolyPushTests.係数0は乱数を1度も引かず専売の段も旧のまま [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.係数0は乱数を1度も引かず専売の段も旧のまま [205 ms]
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M3_不等号反転
+[xUnit.net 00:00:07.82]     PriceOfBread.Tests.MonopolyPushTests.係数1で確率1の盤面なら必ず1段広がる [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.係数1で確率1の盤面なら必ず1段広がる [76 ms]
+[xUnit.net 00:00:08.53]     PriceOfBread.Tests.MonopolyPushTests.抽選が外れたら旧の枝へ落ちる [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.抽選が外れたら旧の枝へ落ちる [173 ms]
+失敗!   -失敗:     2、合格:    19、スキップ:     0、合計:    21、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M4_p0でも引く
+[xUnit.net 00:00:08.76]     PriceOfBread.Tests.MonopolyPushTests.係数1でも重さが0なら引かず旧の枝_広げず国庫が安全水準を超えれば狭める [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.係数1でも重さが0なら引かず旧の枝_広げず国庫が安全水準を超えれば狭める [263 ms]
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M5_払えない請求でも引く
+[xUnit.net 00:00:07.71]     PriceOfBread.Tests.MonopolyPushTests.払えない請求があれば旧どおり広げ抽選は引かない [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.払えない請求があれば旧どおり広げ抽選は引かない [229 ms]
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M6_限界を0.5固定
+[xUnit.net 00:00:09.16]     PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 0, expected: 0.33000000000000002) [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 0, expected: 0.33000000000000002) [6 s]
+[xUnit.net 00:00:09.32]     PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 1, expected: 0.16500000000000001) [FAIL]
+[xUnit.net 00:00:09.52]     PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 3, expected: 0.082500000000000004) [FAIL]
+[xUnit.net 00:00:10.10]     PriceOfBread.Tests.MonopolyPushTests.利払いの重さの真偽表(interest: 300, revenue: 150, limit: 0.67000000000000004, expected: 0.66500000000000004) [FAIL]
+[xUnit.net 00:00:10.40]     PriceOfBread.Tests.MonopolyPushTests.利払いの重さの真偽表(interest: 134, revenue: 200, limit: 0.67000000000000004, expected: 0) [FAIL]
+[xUnit.net 00:00:10.73]     PriceOfBread.Tests.MonopolyPushTests.利払いの重さの真偽表(interest: 300, revenue: 300, limit: 0.67000000000000004, expected: 0.33000000000000002) [FAIL]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 1, expected: 0.16500000000000001) [168 ms]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.確率は重さに余裕の因子を掛けた値(treasuryMul: 3, expected: 0.082500000000000004) [190 ms]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.利払いの重さの真偽表(interest: 300, revenue: 150, limit: 0.67000000000000004, expected: 0.66500000000000004) [99 ms]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.利払いの重さの真偽表(interest: 134, revenue: 200, limit: 0.67000000000000004, expected: 0) [142 ms]
+  失敗 PriceOfBread.Tests.MonopolyPushTests.利払いの重さの真偽表(interest: 300, revenue: 300, limit: 0.67000000000000004, expected: 0.33000000000000002) [73 ms]
+MUTDONE

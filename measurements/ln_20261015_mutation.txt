@@ -1,0 +1,14 @@
+(336) 番人 DiscoveryTierTests・DormantIdentityTests（8 本）の突然変異。写しの木で 1 つずつ当てて赤を確認。M0＝対照（緑）
+M1 判定を飛ばす continue を消す／M2 前提が既知のとき飛ばす（向きを逆）／M3 ゲートを >= 0（常時オン）／M4 機関車の前提を汽船へ変える（表の辺の誤り）／M5 飛ばす条件に未解禁の行を要する（実質 M1）
+=== M0 01:51:42
+成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+=== M1 01:54:34
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+=== M2 01:55:26
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+=== M3 01:56:27
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+=== M4 01:57:47
+失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+=== M5 01:58:39
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
