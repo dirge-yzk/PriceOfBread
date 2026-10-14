@@ -32,7 +32,7 @@ public static class Ideologies
             + w.Coef.VictoryNationalism * w.VictoryShock + w.Coef.ExternalPressureNationalism * w.ExternalPressure;
         double victoryImp = w.Coef.VictoryImperialism * w.VictoryShock;   // 機能8-②：戦勝→帝国主義（植民地熱）
         // 機能8-③（2026-07-28）：恐慌→両極化（左＝社会/共産・右＝反動。ワイマール型）。恐慌は平均60.8回/試合＝係数は小さく（1項ずつ--zero帰属）。
-        double dd = w.GdpDrawdown;
+        double dd = w.GdpDrawdown.Value;
         double depSoc = w.Coef.DepressionSocialism * dd, depComm = w.Coef.DepressionCommunism * dd, depReact = w.Coef.DepressionReaction * dd;
         // 機能8-④（2026-07-28）：飢えの記憶→急進側（共和1789/社会）。「パンの値段」の題名に最も近い機構。
         double famRep = w.Coef.FamineRepublicanism * w.FamineMemory, famSoc = w.Coef.FamineSocialism * w.FamineMemory;
@@ -160,7 +160,7 @@ public static class Ideologies
     public static double FascismCrisis(World w)
     {
         double defeat = PoliticalQuantities.Clamp01(w.DefeatShock);
-        double slump = PoliticalQuantities.Clamp01(w.GdpDrawdown / System.Math.Max(1e-9, w.Coef.FascismCrisisSlumpRef));
+        double slump = PoliticalQuantities.Clamp01(w.GdpDrawdown.Value / System.Math.Max(1e-9, w.Coef.FascismCrisisSlumpRef));
         var natIdeo = National(w);
         double left = PoliticalQuantities.Clamp01((natIdeo[(int)Ideology.Socialism] + natIdeo[(int)Ideology.Communism]) / System.Math.Max(1e-9, w.Coef.FascismCrisisLeftRef));
         return PoliticalQuantities.Clamp01(System.Math.Max(defeat, slump) * left);   // ⚠敗戦か恐慌の**どちらか**（両方は要らない）× 左派の脅威

@@ -711,7 +711,7 @@ public class FiscalTests
         double Coverage(World w) => w.BaseMoney / w.BroadMoney;
         var keep = Board(true);
         Assert.True(keep.MonetaryEnabled && keep.NominalGdpPerMonth.Value > 0, "前提が崩れた：英に貨幣経済が無い");
-        Assert.True(Coverage(keep) >= keep.Coef.GoldCoverMin * keep.Coef.GoldRejoinCoverMargin, $"前提が崩れた：準備が薄い（カバー率 {Coverage(keep)}）");
+        Assert.True(Coverage(keep) >= keep.Coef.GoldCoverMin.Value * keep.Coef.GoldRejoinCoverMargin, $"前提が崩れた：準備が薄い（カバー率 {Coverage(keep)}）");
         Fiscal.Step(keep, keep.Coef);
         Assert.Equal(1.0, keep.FiscalFundingRatio.Value);
         Assert.True(keep.GovDebt.Value > Calendar.PerMonthToPerYear(1.5 * keep.NominalGdpPerMonth).Value, "前提が崩れた：債務が年GDP の2倍に届いていない");
@@ -1392,7 +1392,7 @@ public class FiscalTests
     public void 巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる()
     {
         var sim = FrozenWorld("イギリス", "フランス");
-        var coef = new Coefficients { MegaprojectForeignMinRank = 0, MegaprojectForeignShare = 0, MegaprojectCrisisDrawdown = -1.0 };   // 収縮は常に閾値の上＝恐慌の分岐へ入る（門だけを動かす）
+        var coef = new Coefficients { MegaprojectForeignMinRank = 0, MegaprojectForeignShare = 0, MegaprojectCrisisDrawdown = new(-1.0) };   // 収縮は常に閾値の上＝恐慌の分岐へ入る（門だけを動かす）
         var uk = sim.Nations[0].World;
         var mp = new Megaproject { Id = "番人門", Name = "番人門", Host = uk.Regions[0].Name, BuildUnits = 1e12, TechGate = 0, Started = true };
         sim.Diplomacy.Megaprojects.Clear(); sim.Diplomacy.Megaprojects.Add(mp);

@@ -118,9 +118,9 @@ public static class Megaprojects
             // 段7 反景気循環（2026-07-28）：恐慌**かつ起債可能**なら拠出を増やす＝遊休労働を吸う。
             // 好況では建造物が民間から労働を奪い（段1の律速経由でむしろ建設を止める側に働く）、不況では遊休を吸う＝
             // 同じ機構が景気局面で逆の意味を持つ。史実のニューディールは赤字財政で成立したので、条件は「財政に余裕」ではなく「まだ借りられる」。
-            double cyc = 1.0; if (Instruments.On && coef.MegaprojectCounterCyclical > 0 && hw.GdpDrawdown > coef.MegaprojectCrisisDrawdown) Instruments.MegaCrisis(hw, Fiscal.BorrowGateOpen(hw, coef));   // 計器（読むだけ・行数を変えない＝経路名の鍵 route_names.py が Megaprojects.cs の行番号で引く）：恐慌の拠出の判定に来た回数と、うち「まだ借りられる」が真だった回数
+            double cyc = 1.0; if (Instruments.On && coef.MegaprojectCounterCyclical > 0 && hw.GdpDrawdown.Value > coef.MegaprojectCrisisDrawdown.Value) Instruments.MegaCrisis(hw, Fiscal.BorrowGateOpen(hw, coef));   // 計器（読むだけ・行数を変えない＝経路名の鍵 route_names.py が Megaprojects.cs の行番号で引く）：恐慌の拠出の判定に来た回数と、うち「まだ借りられる」が真だった回数
             if (coef.MegaprojectCounterCyclical > 0
-                && hw.GdpDrawdown > coef.MegaprojectCrisisDrawdown
+                && hw.GdpDrawdown.Value > coef.MegaprojectCrisisDrawdown.Value
                 && Fiscal.BorrowGateOpen(hw, coef))   // 「まだ借りられる」＝Fiscal.Borrow の門と同じ1本（利払い÷歳入が限界の下・冷却中でない・助走でない。LastInterestPerMonth・LastRevenue は直近の月次決算の量＝翌月初の借入の門が読む量）。旧は助走の条件の無い手書きの2条件＝同じ式（(281) 恒等）：呼び手の MultiNationSim は `!_calendarFrozen` の中でだけ呼び、WarmupFrozen は _calendarFrozen と同じ区間（WarmupEconomy）でだけ立つ＝助走の条件はここへ来る時に常に偽
                 cyc += coef.MegaprojectCounterCyclical;
             double claim = share * cyc * hw.Treasury.Value;

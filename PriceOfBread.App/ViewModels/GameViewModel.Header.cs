@@ -186,7 +186,7 @@ public partial class GameViewModel
         }
     }
     // 兌換カバー率の内訳（比率＝基礎貨幣÷広義貨幣）。金融テキストのホバー。
-    public string CoverTip => _player.BroadMoney.Value <= 1e-9 ? "" : $"基礎貨幣 {Money(_player.BaseMoney.Value)}\n広義貨幣 {Money(_player.BroadMoney.Value)}\n維持線 {_player.Coef.GoldCoverMin:P0}";
+    public string CoverTip => _player.BroadMoney.Value <= 1e-9 ? "" : $"基礎貨幣 {Money(_player.BaseMoney.Value)}\n広義貨幣 {Money(_player.BroadMoney.Value)}\n維持線 {_player.Coef.GoldCoverMin.Value:P0}";
     // 戦力余剰・好戦世論の内訳（World.WarFever の6項を再構成＋膨張意欲の今四半期増分）。ヘッダー左のホバー。
     public string ExpansionTip
     {

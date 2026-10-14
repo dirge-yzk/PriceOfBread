@@ -933,7 +933,7 @@ public sealed class Coefficients
     public double BankRunSensitivity = 1.16;
     public Share BankRunMax = new(0.5);           // 取り付けによる実効準備の最大縮小率（0.5＝半分まで）
     public double LolrHeatTrigger = 0.9;      // 最後の貸し手の発動：与信過熱度(Heat)がこれ超で危機と判定
-    public double LolrDrawdownTrigger = 0.10; // 同：景気後退(GdpDrawdown)がこれ超で危機と判定
+    public Share LolrDrawdownTrigger = new(0.10); // 同：景気後退(GdpDrawdown)がこれ超で危機と判定
     public double GdpPeakDecay = 0.02;        // GDPピークの忘却係数（四半期）。トレンドがピークを下回る間ピークをゆっくり再基準化＝構造的に縮小した国が「新しい長期水準」へ。0＝旧バグ（単調増加で永久恐慌）
     public Share LolrMinFunding = new(0.6);       // 最後の貸し手を担える財政健全度（FiscalFundingRatio）の下限＝破綻寸前の国は救えない（Bagehot：solventにのみ貸す）
     public Share LolrStrength = new(0.7);         // 危機時に取り付け(run)を打ち消す割合＝流動性供給で恐慌を和らげる（高利＝根治はせず底打ちのみ）
@@ -1019,7 +1019,7 @@ public sealed class Coefficients
     public double RegionalPriceLevelMax = 1.45;     // 地域物価乗数の上限（金融中心の物価高の天井）
     // 金本位制（信用ゲート＋黄金の足枷）。加入＝資格（コストでない）、加入中＝規律。
     // 【削除2026-09-28（作者裁定 F6）】GoldStandardMaxDebt（加入：債務/年GDP≤4.2%）・GoldStandardSuspendDebt（停止：>7.5%）＝史実の英（1815年に債務が GDP の約2.5倍で1821年に兌換を再開）に合わない門。兌換の門は取り付け（GoldCoverMin）と財政（FiscalFundingRatio）だけ＝Fiscal.Step の注記
-    public double GoldCoverMin = 0.25;              // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney。これ未満で兌換停止クライシス(金流出で守れない)。
+    public Share GoldCoverMin = new(0.25);            // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney。これ未満で兌換停止クライシス(金流出で守れない)。
                                                     // 有効化2026-07-10（キュー1）：実測（goldprobe 5seeds×500Q・加入国10.9万サンプル）＝健全帯 中央0.52/p25 0.48/p1 0.43・危機の谷は0.21以下〜負値へ突き抜ける。
                                                     // 0.25＝健全帯の床(p1=0.43)より下・危機の谷より上＝下回りは加入四半期の約0.1%＝「実在するが常態でない」兌換停止（1797英/1893米型）。0.5だと36.6%が下回り常時発火＝不採用
     public Share GoldStandardMinFunding = new(0.85);    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）。危機でこれを割ると強制離脱（兌換停止）
@@ -1135,7 +1135,7 @@ public sealed class Coefficients
     // 恐慌の資本破壊（最終調整2026-06-29・ユーザー指示「恐慌が資本を破壊」）：深い景気後退（GdpDrawdown が閾値超）では工場閉鎖・資本廃棄で工業化度が退行する＝
     // 恐慌が『ストック』を削る＝覇権の構造的先行（工業化）を大恐慌が巻き戻す。閾値超のドローダウンにのみ効く。
     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）。大恐慌(DD50%・閾値0.2→超過0.3)で月1.8%の資本廃棄。※深め過ぎは逆効果（挑戦者をより壊す）＝中庸0.06が最適
-    public double DepressionScrapThreshold = 0.20;  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
+    public Share DepressionScrapThreshold = new(0.20);  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
     // 〔7-1〕恐慌の資本破壊を BuiltScale へ（2026-09-06・作者裁定§4-1「工場が1棟も消えないのは史実に反する」）：恐慌の同じ月に、床（BuiltScale）に
     //   支えられて操業している工場＝床が無ければ閉鎖している工場だけ、BuiltScale を同じ scrapKeep で廃棄する（RGO は対象外）。0＝従来（厳密恒等）。
     public double DepressionScrapsBuiltScale = 1.0;   /* ★点火2026-09-06＝0.0→1.0・〔7-1〕恐慌の資本破壊を BuiltScale へ（採算割れの工場だけ閉鎖） */
@@ -1549,7 +1549,7 @@ public sealed class Coefficients
     // ⚠「財政に余裕」を条件にすると不況時に発動しない（設計書§4-6 の自己矛盾）。起債可能を条件にすると
     //   デフォルト直後は BorrowCooldownMonths=24（月＝2年）のあいだ発動せず「破産した国はニューディールを打てない」が自動で出る。
     public double MegaprojectCounterCyclical = 1.0;   // **点火2026-07-28（段7）**：恐慌かつ起債可能なら拠出2倍   // 恐慌時に建造物への国庫拠出を何倍にするか（0=無効＝厳密恒等・1.0で「恐慌時は倍」相当の加算率）
-    public double MegaprojectCrisisDrawdown = 0.08;   // 恐慌とみなす GdpDrawdown の閾値（トレンドGDPのピーク比収縮）
+    public Share MegaprojectCrisisDrawdown = new(0.08);   // 恐慌とみなす GdpDrawdown の閾値（トレンドGDPのピーク比収縮）
     // 段5 外資パートナー（2026-07-28）。**単一パートナー**＝相手は決定論のargmaxで1カ国だけ・持分は係数で固定（交渉しない）。
     // トレードオフ＝自前は遅く財政を圧迫するが果実は全部自国／外資は速いが完成後も収益の一部が恒久的に外へ流れる。
     public double MegaprojectForeignShare = 0.5;   // **点火2026-07-28（段5）**：持分50%＝外資を入れると建設は約2倍速く、完成後は元本の利回りが恒久的に外へ流れる      // 外資の持分。0=外資機構ごと無効＝厳密恒等。>0 で「その比率ぶん建設が速くなり、完成後の効果の同比率が外へ流れる」
@@ -1806,7 +1806,7 @@ public sealed class Coefficients
     //   別軸譲歩の実体は「本丸以外の要求の法だけが通常経路で動いた」（Politics.CrisisThroughLawPath の moved==2）。
     public double FactionOpportunism = 1.0;        // 第6段6-5点火（2026-07-28）：結束の予算化＝運動は閾値越えでも体制健在なら待つ（静かな蓄積→一斉投入＝1848/1917）。弱み（下2つ・交戦）か圧倒（下のOverwhelm）で打つ。0で旧＝閾値即発火
     public double FactionStrikeLegitimacy = 0.5;   // 第6段6-5：体制の弱み判定＝正統性がこれ未満なら好機
-    public double FactionStrikeDrawdown = 0.1;     // 第6段6-5：体制の弱み判定＝GDPドローダウンがこれ超（恐慌）なら好機
+    public Share FactionStrikeDrawdown = new(0.1);     // 第6段6-5：体制の弱み判定＝GDPドローダウンがこれ超（恐慌）なら好機
     public double FactionOverwhelmFactor = 1.5;    // 第6段6-5：圧倒判定＝勢力強度が保持力のこれ倍超なら好機を待たず打つ（雪崩は止まらない）
     public double FactionTargetsWeakAxis = 1.0;    // 第6段6-5②点火（2026-07-28）：要求スコア÷(1+これ×OpposingPower)＝体制の守りが薄い軸を優先（状況依存の要求）。0で旧＝ブロック選好×可動域のみ
     public double PoliticalBudgetGate = 0.5;       // 第6段6-1点火（2026-07-28）：政治予算制約＝開いた戦線（目標≠現在の政治軸）数Nで押す力を正規化（速度・余白×(1/N)^これ）。0で全軸に全力＝厳密恒等・1で完全正規化。「全部を同時には押せない」

@@ -1592,7 +1592,7 @@ public sealed class World
     // GDP景気循環トラッカー（反景気循環的金融政策の入力）。四半期ごとに UpdateGdpCycle で更新。
     public double GdpTrend { get; private set; }
     public double GdpPeak { get; private set; }
-    public double GdpDrawdown => GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpTrend / GdpPeak) : 0;   // トレンドGDPのピーク比収縮＝景気後退の度合い
+    public Share GdpDrawdown => GdpPeak > 1 ? new(PoliticalQuantities.Clamp01(1.0 - GdpTrend / GdpPeak)) : new(0);   // トレンドGDPのピーク比収縮＝景気後退の度合い
     // ★E2（作者裁定2026-08-26）：**1人あたり**のドローダウン。割譲や分離で総額が落ちただけの国を「恐慌」と呼ばないための物差し。
     //   ⚠厳密な切り分けはしない（作者裁定）＝割譲でサプライ網が壊れて本当に縮んだ場合はこちらも落ちる＝恐慌と出るのが正しい。
     //   読み手＝表示側（通知・年代記・外交ホバー）と、エンジンでは厭戦の経済悪化の項（Diplomacy.StepWars・2026-09-29＝首都や州を失った総額の落ち込みを
@@ -1739,7 +1739,7 @@ public sealed class World
         double convTarget = OnGoldStandard ? 1.0 : 0.0;
         if (OnGoldStandard && c.ConvertibilityCoverageBand > 0 && broad > 1e-9)
         {
-            double lo = c.GoldCoverMin * c.GoldRejoinCoverMargin;
+            double lo = c.GoldCoverMin.Value * c.GoldRejoinCoverMargin;
             double hi = lo * (1.0 + c.GoldCoverCreditRestraint);
             double band = hi - lo;
             double cover = baseM / broad;

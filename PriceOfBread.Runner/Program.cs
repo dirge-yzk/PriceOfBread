@@ -5283,7 +5283,7 @@ if (args.Length > 0 && args[0] == "calib")
     var dsim = new Simulation(sc, new NullAgent());
     dsim.Run(400);
     var dw = dsim.World;
-    System.Console.WriteLine($"\n精査(低税0.05/寺子屋/強制150＝FiscalTest): 政体={dw.Polity} 技術={dw.TechLevel:F2} 財源充足={dw.FiscalFundingRatio:P0} ドローダウン={dw.GdpDrawdown:P0} 銀行信頼={(dw.Bank?.Confidence ?? -1):F2} 平均満足={NationalScore.MeanSatisfaction(dw):F2}");
+    System.Console.WriteLine($"\n精査(低税0.05/寺子屋/強制150＝FiscalTest): 政体={dw.Polity} 技術={dw.TechLevel:F2} 財源充足={dw.FiscalFundingRatio:P0} ドローダウン={dw.GdpDrawdown.Value:P0} 銀行信頼={(dw.Bank?.Confidence ?? -1):F2} 平均満足={NationalScore.MeanSatisfaction(dw):F2}");
     double maxC = 0; foreach (var p in dw.AllPops()) if (p.Consciousness > maxC) maxC = p.Consciousness;
     System.Console.WriteLine($"最大意識={maxC:F2}");
     var ag = Ideologies.National(dw);

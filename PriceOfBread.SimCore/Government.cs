@@ -351,7 +351,7 @@ public static class Government
         if (c.TrilemmaRateGate > 0 && w.OnGoldStandard && !w.CapitalControlLaw && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
         {
             double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
-            double coverTarget = c.GoldCoverMin * c.GoldRejoinCoverMargin;
+            double coverTarget = c.GoldCoverMin.Value * c.GoldRejoinCoverMargin;
             double gap = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             gap = Math.Clamp(gap, -1, 1);
             if (!(gap >= -1 && gap <= 1)) gap = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）

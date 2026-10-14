@@ -319,7 +319,7 @@ public static class Fiscal
                 double burn = Math.Min(Math.Max(burnMem, burnParity), sav * c.CurrencyReformBurnCap.Value);
                 // 自己制限：焼却は正貨カバー率を悪化させる（Mが減りLは減らせない）。改革が自分で金本位復帰の
                 // ゲート（GoldCoverMin×GoldRejoinCoverMargin）を閉じては本末転倒なので、そこまでで止める。既存係数の再利用。
-                double lo = c.GoldCoverMin * c.GoldRejoinCoverMargin;
+                double lo = c.GoldCoverMin.Value * c.GoldRejoinCoverMargin;
                 double loans = w.OutstandingLoans.Value, tre = Math.Max(0, w.Treasury.Value);
                 if (loans > tre && lo < 1.0) burn = Math.Min(burn, Math.Max(0, w.TotalMoney.Value - (loans - tre) / (1.0 - lo)));
                 if (burn > 1e-12 && sav > 1e-9)
@@ -490,13 +490,13 @@ public static class Fiscal
             if (w.OnGoldStandard)
             {
                 // ★3値化2026-08-13：兌換の規律は**銀本位でも同じ足枷**＝MetallicStandardLaw（銀でも金でも真）を読む。休眠時は旧 GoldStandardLaw と厳密に一致。
-                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin)
+                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin.Value)
                 {
                     w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;   // 自発離脱 or 危機での強制停止（準備枯渇＝兌換停止クライシス含む）
                     // GoldCoverMin有効化2026-07-10：強制停止を観測可能に（スカラーカウンタ＝batch頻度集計・Diplomacyログ＝年代記）。自発離脱（AIが志向を下げた）は数えない。
                     if (w.GoldStandardSuspendedInCrisis)
                     {
-                        bool coverTrip = coverage < c.GoldCoverMin;
+                        bool coverTrip = coverage < c.GoldCoverMin.Value;
                         w.GoldSuspensions++; if (coverTrip) w.GoldCoverSuspensions++;
                         w.LogAdd($"{w.Year} {w.SelfPower?.Name}が兌換停止（金本位から強制離脱・{(coverTrip ? $"正貨準備カバー率{coverage:P0}<{c.GoldCoverMin:P0}" : "財政不足")}）");
                     }
@@ -507,7 +507,7 @@ public static class Fiscal
             //   旧＝カバー率・財政だけを見た＝改革より先に再加入すると、改革は兌換停止中にしかできないので記憶が1世紀凍結し、
             //   CapitalMarket の資本逃避が止まらなかった（露1804〜11年の先着争い＝世界規模の補給崩壊の根）。史実＝露カンクリン改革1839〜43（アシグナツィアを実勢で銀に換算してから兌換）・ウィッテ改革1897・レンテンマルク1923→金本位1924。
             else if (w.MetallicStandardLaw && w.FiscalFundingRatio >= c.GoldStandardMinFunding
-                     && coverage >= c.GoldCoverMin * c.GoldRejoinCoverMargin && !broken)
+                     && coverage >= c.GoldCoverMin.Value * c.GoldRejoinCoverMargin && !broken)
             { w.OnGoldStandard = true; w.GoldStandardSuspendedInCrisis = false; }
         }
         // #2 Fisher：名目金利＝実質（基礎＋債務上乗せ）＋期待インフレ。高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い。

@@ -251,6 +251,13 @@ public class UnitTypeTests
         (typeof(Coefficients), "CapitalControlOpenness", typeof(Share)),
         (typeof(Coefficients), "PrivilegeTaxDiscount", typeof(Share)),
         (typeof(Coefficients), "PrivilegeFromCrownShare", typeof(Share)),
+        // ★(330) 割合の型の残り その8＝兌換の維持線 `GoldCoverMin`・景気後退の度合い `World.GdpDrawdown`（ピーク比の落ち込み・派生）と、その閾値 4 本（Share）。`GdpPcDrawdown`（1人あたり）は読み手が表示側と厭戦の項で別の家族＝次の回。
+        (typeof(Coefficients), "GoldCoverMin", typeof(Share)),
+        (typeof(World), "GdpDrawdown", typeof(Share)),
+        (typeof(Coefficients), "LolrDrawdownTrigger", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectCrisisDrawdown", typeof(Share)),
+        (typeof(Coefficients), "FactionStrikeDrawdown", typeof(Share)),
+        (typeof(Coefficients), "DepressionScrapThreshold", typeof(Share)),
     ];
 
     [Fact]
@@ -629,6 +636,32 @@ public class UnitTypeTests
             Assert.Equal(typeof(Share), f.FieldType);
             Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 5) / 19.0), BitConverter.DoubleToInt64Bits(got));
+        }
+    }
+
+    /// <summary>★(330) 割合の型の残り その8＝兌換の維持線と恐慌の閾値の係数 5 本（Share）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること。
+    /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで兌換と恐慌の係数の欄が残る()
+    {
+        string[] names = ["GoldCoverMin", "LolrDrawdownTrigger", "MegaprojectCrisisDrawdown", "FactionStrikeDrawdown", "DepressionScrapThreshold"];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 7) / 23.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            Assert.Equal(typeof(Share), f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 7) / 23.0), BitConverter.DoubleToInt64Bits(got));
         }
     }
 

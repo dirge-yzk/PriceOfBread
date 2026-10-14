@@ -386,7 +386,7 @@ public class RevoltIgnitionTests
         Assert.Equal(civilWar || addExternalWar, Government.AtWar(pw));   // 前提＝内戦も交戦として数えられる（旧経路の再現）
         Assert.Equal(civilWar, pw.InCivilWar);
         pw.Legitimacy = 1.0;   // 弱みの正統性項を閉じる（閾値0.5＝1四半期の変動では割らない）
-        Assert.False(pw.GdpDrawdown > coef.FactionStrikeDrawdown, $"前提が崩れた：恐慌項が開いている（GdpDrawdown {pw.GdpDrawdown:F3}）＝弱みの切り分けができない");
+        Assert.False(pw.GdpDrawdown.Value > coef.FactionStrikeDrawdown.Value, $"前提が崩れた：恐慌項が開いている（GdpDrawdown {pw.GdpDrawdown:F3}）＝弱みの切り分けができない");
         var f = 巨大な運動を差し込む(pw, pw.Regions[0]);   // 段0と同じ注入＝保持力を桁で上回る運動（力の門は確実に越える）
         Politics.Step(pw, coef);
         return ReferenceEquals(pw.PendingFactionCrisis, f);   // 札が立った＝選定に入った／立たない＝好機を待った

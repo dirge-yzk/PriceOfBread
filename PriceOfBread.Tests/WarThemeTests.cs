@@ -184,7 +184,7 @@ public class WarThemeTests
         // ★盤面の直し（2026-10-01 (144) 合流）：合わせた木では総額の落ち込みの差が 0.0041（前提の 0.005 に届かない＝割譲した平均以下の州の産出の割合が下がった）。
         //   前提を「突然変異が見える条件」へ置き換えた＝割譲した国の総額の落ち込みが双子の1人あたりの落ち込み（下の主張の基準 pc0）を 0.002 超え、双子の総額も超える
         //   ＝経済悪化を総額 GdpDrawdown で測る突然変異なら econ＞係数×pc0 で必ず赤（確かめた＝赤）。主張（下の2本）は変えない。
-        Assert.True(fr.GdpDrawdown > pc0 + 0.002 && fr.GdpDrawdown > twin.GdpDrawdown, $"前提が崩れた：割譲で総額の落ち込みが立っていない（総額 {fr.GdpDrawdown:G6}・双子の総額 {twin.GdpDrawdown:G6}・双子の1人あたり {pc0:G6}）");
+        Assert.True(fr.GdpDrawdown.Value > pc0 + 0.002 && fr.GdpDrawdown.Value > twin.GdpDrawdown.Value, $"前提が崩れた：割譲で総額の落ち込みが立っていない（総額 {fr.GdpDrawdown:G6}・双子の総額 {twin.GdpDrawdown:G6}・双子の1人あたり {pc0:G6}）");
         fr.Explain = new ExplainLedger();
         sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
         double econ = double.NaN;

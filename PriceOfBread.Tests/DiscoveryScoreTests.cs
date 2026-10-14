@@ -1115,7 +1115,7 @@ public class DiscoveryScoreTests
         Assert.Equal(N(col / pop, hD), t[Discovery.ImperialismRow].Need, 9);
         Assert.Equal(N(mil / pop, hD), t[Discovery.FascismRow].Need, 9);
         w.DefeatShock = 0;   // 危機が無ければファシズムの必要性は0（GDP の落ち込みが無い盤面）
-        if (!(w.GdpDrawdown > 0)) Assert.Equal(0.0, Discovery.Evaluate(w, null, c, includeKnown: true)[Discovery.FascismRow].Need);
+        if (!(w.GdpDrawdown.Value > 0)) Assert.Equal(0.0, Discovery.Evaluate(w, null, c, includeKnown: true)[Discovery.FascismRow].Need);
     }
 
     /// <summary>思想の門は発見の表の思想の行の2値（旧＝世界の発展度の傾斜＝全ての国がほぼ同時に開いた・計器 (152)＝社会主義の門 0.5 が主要国の全てで1788〜93年）。

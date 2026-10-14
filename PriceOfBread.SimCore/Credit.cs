@@ -66,7 +66,7 @@ public static class Credit
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
-        double targetConf = PoliticalQuantities.Clamp01(1.0 - c.PanicSensitivity * Math.Max(0, c.ConfidencePivot - avgSat) - c.DrawdownPanic * w.GdpDrawdown - fiscalDefault - debtDeflation - bondLoss - overheatFragility);
+        double targetConf = PoliticalQuantities.Clamp01(1.0 - c.PanicSensitivity * Math.Max(0, c.ConfidencePivot - avgSat) - c.DrawdownPanic * w.GdpDrawdown.Value - fiscalDefault - debtDeflation - bondLoss - overheatFragility);
         // 信用は日次（三層時計）。速度を日数配分（÷PriceFlowDailyDiv）＝30日積分が従来の月次1回にほぼ一致＝較正温存。
         // パニック/平時の非対称（速い崩落・遅い醸成）も貸し剥がし倍率も比なので、一律に割っても保たれる。
         double div = c.PriceFlowDailyDiv;
@@ -97,7 +97,7 @@ public static class Credit
         if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney.Value > 1e-9 && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
         {
             double gcCoverage = w.BaseMoney / w.BroadMoney;
-            double gcFloor = c.GoldCoverMin * (1.0 + c.GoldCoverCreditRestraint);
+            double gcFloor = c.GoldCoverMin.Value * (1.0 + c.GoldCoverCreditRestraint);
             if (gcFloor > 1e-9 && gcCoverage < gcFloor) maxLoans *= System.Math.Max(GoldCoverCreditFloor, gcCoverage / gcFloor);
         }
         // ★借り手の返せる額（作者裁定 A16・E6 の1歩目・2026-09-28）：与信の上限＝「準備×信用乗数」と「借り手が返せる額」の小さい方。
@@ -117,7 +117,7 @@ public static class Credit
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
         double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax.Value);
         // 最後の貸し手（B-3 Bagehot）：危機（過熱 or 後退）かつ財政が健全（solvent）なら国庫/中銀が流動性を供給し取り付けを和らげる＝恐慌の底打ち（根治はしない）。AIの安全弁。
-        bool crisis = bank.Heat > c.LolrHeatTrigger || w.GdpDrawdown > c.LolrDrawdownTrigger;
+        bool crisis = bank.Heat > c.LolrHeatTrigger || w.GdpDrawdown.Value > c.LolrDrawdownTrigger.Value;
         if (crisis && w.FiscalFundingRatio > c.LolrMinFunding) run *= 1.0 - c.LolrStrength.Value;
         // LOLR準備拡張（no-lolr-balance-sheet）：危機×財政健全でmaxLoansを一時拡張＝バジョット原則「平時に蓄えた準備を危機に高利で貸す」。信用創造はBaseMoney中立(広義のみ膨張)ゆえInvariants変更不要。LolrReserveBoost=0で恒等（既定0.5）。
         double lolrBoost = crisis && w.FiscalFundingRatio > c.LolrMinFunding ? c.LolrReserveBoost : 0;

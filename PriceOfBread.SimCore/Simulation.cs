@@ -2310,7 +2310,7 @@ public sealed class Simulation
                             lpr.Scale = Math.Max(0, lpr.Scale * (1.0 - World.Coef.WarLivestockRequisition * Math.Min(1.0, r.LastWarIntensity)));
                 if (World.Coef.DepressionScrapRate > 0 && r.CapitalEnabled && !World.WarmupFrozen)
                 {
-                    double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown - World.Coef.DepressionScrapThreshold);
+                    double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown.Value - World.Coef.DepressionScrapThreshold.Value);
                     r.Industrialization *= scrapKeep;
                     r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
                     r.StrandedVintage *= scrapKeep;
@@ -2795,7 +2795,7 @@ public sealed class Simulation
         if (World.Coef.MintReserveTargetWeight > 0)
         {
             double coverage = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
-            double coverTarget = World.Coef.GoldCoverMin * World.Coef.GoldRejoinCoverMargin;
+            double coverTarget = World.Coef.GoldCoverMin.Value * World.Coef.GoldRejoinCoverMargin;
             double shortfall = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             shortfall = PoliticalQuantities.Clamp01(shortfall);   // NaN は Clamp01 が0＝造幣停止側へ倒す
             mintScale = 1.0 - World.Coef.MintReserveTargetWeight * (1.0 - shortfall);

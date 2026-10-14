@@ -547,7 +547,7 @@ public sealed class UtilityAgent : INationAgent
         uWel += w.Coef.StanceRevoltWelfare * revolt;
         uMil += w.Coef.StanceRevoltCoercion * revolt;
         // 恐慌の目：GDPドローダウン→緊縮（国庫逼迫 fiscalNeed より早く点く先行指標。反景気循環の金融政策とは別レバー＝財政姿勢）。
-        uFis += w.Coef.StanceDrawdownFiscal * w.GdpDrawdown;
+        uFis += w.Coef.StanceDrawdownFiscal * w.GdpDrawdown.Value;
 
         // 教義バイアス（多様化）：得意分野の効用を増幅＝政体ごとに異なる戦略を歩ませる
         switch (doctrine)
@@ -789,7 +789,7 @@ public sealed class UtilityAgent : INationAgent
         if (w.Coef.CapitalMobilityLawGate > 0)
         {
             double cover = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
-            w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin;
+            w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin.Value;
         }
         // ★AI第1波②（2026-08-16）：総動員のAI分岐＝プレイヤーと同じレバー（World.Mobilized＝Military.cs:128 の徴兵深度0.12→0.22＝徴兵法≥選抜の国だけ・M1 2026-09-19）。
         // ★(195) 入る条件と出る条件＝下の段落（戦争の規模 Diplomacy.WarScale と存亡＝上げる線と下げる線・線の間は現状維持）。旧＝陣営戦力比（SideMilitary）で劣勢 or 敗色が深い で入り、講和まで戻さない。
@@ -1373,7 +1373,7 @@ public sealed class UtilityAgent : INationAgent
 
         // 反景気循環的金融政策（教義の金利を上書き）：景気後退で利下げ＝信用を支え恐慌を緩衝、過熱で利上げ＝引締。
         // ＝賢い中央銀行ほど恐慌を浅く短くできる（恐慌回避の巧拙が国力差に出るか計測する）。
-        double drawdown = w.GdpDrawdown;
+        double drawdown = w.GdpDrawdown.Value;
         double heat = w.FinancialHeat;
         if (drawdown > RecessionDrawdownThreshold) p.InterestRateTarget = EasingInterestRate;        // 後退＝緩和（恐慌の緩衝）
         else if (heat > OverheatHeatThreshold) p.InterestRateTarget = TighteningInterestRate;        // 過熱＝引締

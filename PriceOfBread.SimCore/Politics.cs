@@ -1005,7 +1005,7 @@ public static class Politics
                     foreach (var war in dipEx.Wars)
                         if (war.CivilWarParent is null && (war.A == spEx || war.B == spEx)) { externalWar = true; break; }
                 bool weakness = w.Legitimacy < c.FactionStrikeLegitimacy
-                             || w.GdpDrawdown > c.FactionStrikeDrawdown
+                             || w.GdpDrawdown.Value > c.FactionStrikeDrawdown.Value
                              || externalWar;
                 if (!weakness && bestStrength < (hold + militia) * c.FactionOverwhelmFactor) { ClearFactionCrisis(w); return; }   // R2：圧倒判定も同じ実効保持力を読む（フラグ0では hold==coerce＝ビット恒等）。★要求は法の経路：待つ＝通知を下ろす
             }
