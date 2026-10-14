@@ -1,0 +1,17 @@
+# (324) 検証の記録（隔離ビルド D:/PoB_work/m5_324/art・art_t・形のコミット 4564958f の木）
+## フルスイート（Category!=FullLength）
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_m5\PriceOfBread.SimCore\Instruments.cs(1751,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_m5\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\m5_324\art_t\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\m5_324\art_t\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\m5_324\art_t\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\m5_324\art_t\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:  1140、スキップ:     0、合計:  1140、期間: 7 m 31 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength
+D:\PoB_work\m5_324\art_t\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 48 s - PriceOfBread.Tests.dll (net10.0)

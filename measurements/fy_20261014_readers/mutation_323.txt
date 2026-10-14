@@ -1,0 +1,7 @@
+(323) 窃盗の列の番人 InstrumentsTests.州ごとの窃盗の列は貯蓄の書き手の台帳の窃盗の受け取りと国ごとに合う の突然変異（2026-10-14・Release・番人だけを --filter で走らせた）
+元の木（b68aacdb の前の作業木）で緑（合格 1）。
+M1 Crime.cs の Instruments.Theft の呼び出しを消す                          → 赤（Assert.InRange: 州の行の窃盗の列の合計が flow_s の窃盗の受け取りと合わない）
+M2 Instruments.cs の theftPoolPerMonth の割る数 Calendar.MonthsPerQuarter を 4.0 にする（番人を書いた時点の式。その後 Calendar.PerQuarterToPerMonth に直した＝同じ値） → 赤（Assert.InRange: 同上）
+M3 Instruments.cs の Theft の受け手の所得の積み上げ（f.TheftRecipientsEarnedSum += e）を消す → 赤（Assert.Contains: 窃盗があって受け手の所得が正の行が無い）
+各変異の後に元のファイルへ戻した（git diff --stat で差分が計器の追加分だけであることを確認）。
+期待値の出所：flow_s は POP の貯蓄の書き込み（Pop 側の Sav）から数えた台帳＝計器の Theft の口（Crime.Step の Transfer の直後）とは別の経路。
