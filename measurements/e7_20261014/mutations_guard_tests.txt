@@ -1,0 +1,5 @@
+M1 起票し直しを外す => ['失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.OpeningFiscalRuleTests.規則の国は助走の各四半期の終わりに国庫と国債を式どおりに置き台帳が閉じる [577 ms]']
+M2 対外債を引かず比×GDP に置く => ['失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.OpeningFiscalRuleTests.対外債のある国は国内の元本を負にしない_対外債は触らない [879 ms]']
+M3 国庫を月数だけにする => ['失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.OpeningFiscalRuleTests.歳入が正でない四半期は国庫を置かず旧の戻しへ落ちる_NaNも通さない [5 ms]', '失敗 PriceOfBread.Tests.OpeningFiscalRuleTests.規則の国は助走の各四半期の終わりに国庫と国債を式どおりに置き台帳が閉じる [813 ms]']
+M4 歳入の守りを外す => ['失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.OpeningFiscalRuleTests.歳入が正でない四半期は国庫を置かず旧の戻しへ落ちる_NaNも通さない [6 ms]']
+RESTORED

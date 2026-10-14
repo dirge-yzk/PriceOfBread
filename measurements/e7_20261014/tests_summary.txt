@@ -1,0 +1,38 @@
+# (332) 線 e7 のテストの記録（Release）
+## A の木（既定の world.json）・普段のフルスイート Category!=FullLength
+成功!   -失敗:     0、合格:  1171、スキップ:     0、合計:  1171、期間: 6 m 52 s - PriceOfBread.Tests.dll (net10.0)
+DONE rc=0
+## A の木・FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 32 s - PriceOfBread.Tests.dll (net10.0)
+DONE rc=0
+## 腕 B の world.json を当てた木・最初のフルスイート（行の処置は実装ログ (332) §6）
+失敗!   -失敗:    27、合格:  1140、スキップ:     0、合計:  1167、期間: 9 m 39 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.TreasuryLedgerTests.国家の支払い率は全ての行に同じrで掛かり利子の未払いは元本へ
+失敗 PriceOfBread.Tests.InitialDefaultsTests.回247_既定は最頻の値_書くキーが最も少ない
+失敗 PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "アメリカ", difficulty: "普通")
+失敗 PriceOfBread.Tests.TreasuryLedgerTests.借入の上限は利払いが歳入の限界に届く所で物価水準が2倍でも比は変わらない
+失敗 PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "プロイセン", difficulty: "簡単")
+失敗 PriceOfBread.Tests.FiscalTests.外債の元本_償還は減らした債権の比で債権国へ届き世界の貨幣は変わらない
+失敗 PriceOfBread.Tests.FiscalTests.巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる
+失敗 PriceOfBread.Tests.FiscalTests.国債台帳_台帳導入前のセーブは読込時に起票される
+失敗 PriceOfBread.Tests.FiscalTests.対外借入の債権は貸し手が払った額で換算され翌四半期に数え直さない
+失敗 PriceOfBread.Tests.FiscalTests.巨大建造物の外資は相手の投資家が出し利回りも投資家へ届き払えない利回りは元本へ繰り入れる
+失敗 PriceOfBread.Tests.MoneyThemeTests.不換シニョリッジ_有効化で新規発行が積まれ貨幣保存が整合
+失敗 PriceOfBread.Tests.FiscalTests.国債台帳_越境移民の保有は発行国の対外債へ振り替わる
+失敗 PriceOfBread.Tests.WarThemeTests.戦争の形の穏健な革命は国債を継承する
+失敗 PriceOfBread.Tests.UnitTypeTests.異なる型の間には演算子も変換も無い_在庫と流れ_実質と名目
+失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は装備の器を海の金の割合で分ける
+失敗 PriceOfBread.Tests.MilitaryTests.海軍力は艦の在庫と段の効きから決まり陸軍の即応度と質を読まない
+失敗 PriceOfBread.Tests.MilitaryTests.徴兵の母数は支配度の届き方で縮む
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 6196)
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 3218)
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2763126)
+失敗 PriceOfBread.Tests.WarThemeTests.戦争の形の急進革命が勝つと国債の否認と失脚と土地改革が走る
+失敗 PriceOfBread.Tests.StartWarmupTests.助走は国債を動かさず開幕の英の国債は年GDPの約1倍
+失敗 PriceOfBread.Tests.StartWarmupTests.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント
+失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う
+失敗 PriceOfBread.Tests.InstrumentsTests.借入の門の周りの列が試合の月ごとの行から組み直した数に合う
+失敗 PriceOfBread.Tests.InstrumentsTests.物価の鎖の表は更新の式を再現し置き直しの行を含む
+失敗 PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す
+## 腕 B の木・助走なしの器を直した後の 7 クラス（Fiscal・Military・MoneyTheme・OpeningFiscalRule・TreasuryLedger・WarTheme・UnitType）
+失敗 1・合格 206・合計 207（失敗の 1 本＝既定の world.json は規則を持たない番人＝B の world.json では立たないのが設計どおり）
