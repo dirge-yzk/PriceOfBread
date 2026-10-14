@@ -55,7 +55,7 @@ public class DormantIdentityTests
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝鉱脈で割らない＝厳密恒等
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
-        "RecipeCostFollowsProductivity",   // ★(328) 流れG ①＝同じ財の別レシピの自己費用を生産性の比で割る（Simulation.ApplyRecipeCostFollowsProductivity・0＝走査もしない＝厳密恒等）
+        // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
         "FactoryBuildRefIsReal",        // 進捗/素材ゲートの参照束を実質（×PriceLevel）へ＝兄弟ゲートと同じ物差し（0＝名目＝旧恒等）
         // ★PriceLawSupplyIncludesStock と TradeBuyerSolvesAtUnitPrice は 2026-09-08 に 1.0 で**対で点火**（腕 price2b）＝この表から外した。

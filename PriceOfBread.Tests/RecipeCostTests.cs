@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(328) 流れG ①：労働力の財に並ぶ動力の別レシピの自己費用を生産性の比で割る器 <see cref="Coefficients.RecipeCostFollowsProductivity"/>
-/// （<see cref="Simulation.ApplyRecipeCostFollowsProductivity"/>・既定0＝休眠）の番人。
+/// （<see cref="Simulation.ApplyRecipeCostFollowsProductivity"/>・★(331) 既定1＝点火・0＝旧）の番人。〈off〉はゲート0を明示した世界。
 /// 期待は式の写しでなく**手で書いた表**（レシピ→自己費用の播種の値と生産性の比。値は goods.json の productivity と Simulation.cs のレシピの字面から人が読んだ物＝
 /// 実装の計算とは別の出所）と、作者の原則（同一生産コスト辺りの産出能力＝自己費用×生産性が人力と同じ）の関係で書く。</summary>
 public class RecipeCostTests
@@ -15,10 +15,10 @@ public class RecipeCostTests
     static Producer? Find(Region r, int good, string recipe) => r.Producers.Find(p => p.GoodId == good && p.RecipeName == recipe);
 
     [Fact]
-    public void ゲート0は全州全生産者で費用も生産性もビット一致()
+    public void ゲート0と負のゲートは全州全生産者で費用も生産性もビット一致()
     {
-        var off = Seed(new Coefficients());
-        var zero = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.0 });
+        var off = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.0 });
+        var zero = Seed(new Coefficients { RecipeCostFollowsProductivity = -1.0 });   // ★(331) 否定形の守り（!(gate>0)）＝負も走査しない
         Assert.Equal(off.World.Regions.Count, zero.World.Regions.Count);
         for (int i = 0; i < off.World.Regions.Count; i++)
         {
@@ -35,7 +35,8 @@ public class RecipeCostTests
     [Fact]
     public void ゲート1は動力のレシピの自己費用を生産性の比で割り_手で書いた表と一致する()
     {
-        var off = Seed(new Coefficients()); var on = Seed(new Coefficients { RecipeCostFollowsProductivity = 1.0 });
+        var off = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.0 }); var on = Seed(new Coefficients { RecipeCostFollowsProductivity = 1.0 });
+        Assert.Equal(1.0, new Coefficients().RecipeCostFollowsProductivity);   // ★(331) 既定は点火（1）
         var rOff = off.World.Regions[0]; var rOn = on.World.Regions[0];
         // (レシピ, 財, 播種の自己費用, 生産性の比＝人が goods.json とレシピの字面から読んだ値)
         var table = new (string Recipe, int Good, double Mc0, double Ratio)[]
@@ -73,7 +74,7 @@ public class RecipeCostTests
     [Fact]
     public void ゲートは指数_半分なら平方根_投入と生産性は触らない()
     {
-        var off = Seed(new Coefficients()); var half = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.5 });
+        var off = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.0 }); var half = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.5 });
         var a = Find(off.World.Regions[0], Catalog.LaborId, "蒸気機関")!; var b = Find(half.World.Regions[0], Catalog.LaborId, "蒸気機関")!;
         Assert.Equal(0.35 / System.Math.Sqrt(2.0), b.MarginalCost, 12);
         Assert.Equal(a.Inputs.Count, b.Inputs.Count);
@@ -83,7 +84,7 @@ public class RecipeCostTests
     [Fact]
     public void 動くのは労働力の動力レシピだけ_人力と一次産品と工場の別レシピと職人と基準の無い財は動かない()
     {
-        var off = Seed(new Coefficients()); var on = Seed(new Coefficients { RecipeCostFollowsProductivity = 1.0 });
+        var off = Seed(new Coefficients { RecipeCostFollowsProductivity = 0.0 }); var on = Seed(new Coefficients { RecipeCostFollowsProductivity = 1.0 });
         int moved = 0, rgoSeen = 0, noBaseSeen = 0, factoryAltSeen = 0, artisanSeen = 0;
         for (int i = 0; i < off.World.Regions.Count; i++)
         {

@@ -1429,14 +1429,14 @@ public sealed class Coefficients
     //   ⚠豊富側と希少側で**別のゲート**＝非対称を選べる（希少側は費用を上げる方向＝非産地を殺しうる。2026-09-07 の MineralCostFollowsGrade 点火で人口21.8→7.1 の前例）。
     public double EndowmentCostFollowsAbundance = 0.0;   // 賦存倍率>1 の州：自己費用÷倍率^これ（0＝割らない＝厳密恒等／1＝完全に「同一費用あたりの産出能力」）
     public double EndowmentCostFollowsScarcity = 0.0;    // 賦存倍率<1（非産地 0.4）の州：自己費用÷倍率^これ＝**費用が上がる**（0＝上げない＝厳密恒等）
-    /// <summary>★(328) 流れG ①（既定0＝**休眠**・厳密恒等）：労働力の財に並ぶ動力の別レシピ（畜力・蒸気機関・電動・水車）の自己費用を、〈そのレシピの生産性÷人力の生産性〉のこの乗で割る（播種で1回）。
+    /// <summary>★(328) 流れG ①（★(331) 合流で既定 0→1 に点火＝**有効**・0＝旧の挙動〔走査もしない〕）：労働力の財に並ぶ動力の別レシピ（畜力・蒸気機関・電動・水車）の自己費用を、〈そのレシピの生産性÷人力の生産性〉のこの乗で割る（播種で1回）。
     /// 旧＝生産性は能力（EconomyStep の Capacity）にだけ乗り、1単位の費用に入らない＝蒸気機関の動力は人力の2倍を出すのに自己費用が人力と同じ 0.35＋投入で必ず高く、必要性（ln(v÷cost)）が構造的に0になる。
     /// 作者 2026-09-08「同一生産コスト辺りの産出能力にするのが正しい」（賦存の倍率・<c>EndowmentCostFollows*</c>）を機械の生産性へ広げる形＝**AI の読み・推奨（作者の承認は未確認）**。
     /// 1＝完全に〈人時あたりの費用÷人時あたりの産出〉（蒸気 0.35→0.175・畜力 0.269・電動 0.14・水車 0.364）。0＝割らない。
     /// ⚠対象を動力 4 本に絞った理由＝工場の別レシピ（自己費用は管理・資本の付加価値で労働は別の投入）と職人（自営で単位が別）には会計の恒等が成り立たず、資源の州では基準レシピの生産性が賦存で 3.5 倍になっていて比が歪む（反証役の点検）。
     /// 市場（EconomyStep.MineralSelfCost）・発見の費用（Discovery の PriceBook.Cost）・診断が同じ <c>Producer.MarginalCost</c> を読む＝市場と必要性の非対称が出ない。投入（QtyPerOutput）は産出1単位あたりで既に正規化済み＝割らない。
     /// 実装＝<see cref="Simulation.ApplyRecipeCostFollowsProductivity"/>。</summary>
-    public double RecipeCostFollowsProductivity = 0.0;
+    public double RecipeCostFollowsProductivity = 1.0;   // ★(331) 点火（枝 gp の腕 B〔b10_20261014_gp329B_ins〕の形・合流の担当が作者 2026-10-14 の止める線の規則で読み直して採った）
     // ★C群（作者裁定2026-09-05「すべてやる」・Vic3抽出の採用分 9/4）：新しい財を足さず**レシピ**で表す（「幅に足さない」規約）。
     public double SteamTurbineEnabled = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-18 蒸気タービン＝batch10 硬性ゲート緑（◎16/人口11.6/貿易10.4%）・作者裁定「C群すべてやる」 */        // 蒸気タービン発電＝電力の第4レシピ（発電機0.2＋石炭 SteamTurbineCoalInput・生産性×SteamTurbineProductivity）。パーソンズ1884→普及1890s。0＝Producer を足さない＝恒等
     // 【削除2026-10-01 段2A】SteamTurbineOnset（蒸気タービンの解禁の技術水準 1.35）＝発見の表の行（蒸気タービン・1880年代）へ
