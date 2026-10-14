@@ -1,0 +1,3 @@
+# (325) 突然変異（当てて赤を確かめ、戻した）
+M1 PrivilegeTaxDiscount に [System.NonSerialized] → セーブの往復と名前引きで財政の係数の欄が残る が赤（期待 4599360377341952862・実際 0）
+M2 表の CapitalControlOpenness の期待の型を RatePerMonth にする → 量の宣言が表のとおり型になっている が赤
