@@ -167,6 +167,7 @@ def contacts(name, d):
     if not data:
         print(f'{chr(10)}## 接触の内訳 {name}：disccontact_s が無い'); return
     print(f'{chr(10)}## 接触の内訳 {name}（蒸気機関の行・買い手別・種をまたいだ額の和の上位 5 売り手と割合）')
+    print('  ⚠売り手の鍵は表示名（nationUid でない）＝内戦の後継・建国で同じ国の割合が割れる（例：立憲王政イギリスとイギリス）。額は種をまたいだ和で、分母で正規化していない')
     for n in INDUSTRIAL + RECORD:
         tot = collections.Counter()
         for sd, rows in data.items():
