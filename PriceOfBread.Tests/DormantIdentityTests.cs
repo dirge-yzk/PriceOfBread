@@ -37,6 +37,8 @@ public class DormantIdentityTests
         "NiterBedEnabled",              // 硝石丘＝硝石の低効率レシピ（財の3分類の再開）＝0で足さない
         // ★ScarceCountsIncludeColonies（希少鉱物の総量保存の k/N に植民地を数える）は 2026-10-04 (197) で**点火**（反証役 vq2#1）＝この表から外した。
         "ConsumeBudgetSavingsRatePerMonth",   // ★(273) 線P 段5＝消費の予算を min(予算, 前月の所得＋貯蓄×d) で切る（EconomyStep.Run ③の入口）。0＝分岐に入らず評価しない＝厳密恒等（d＝0 を式に入れると min(予算, 前月の所得) になり恒等でないのでコードは d＞0 のときだけ評価する）。腕は POB_COEF で置く。
+        "LuxuryIncomeElasticity",       // ★(302) 線(2)(3)＝奢侈品の欲しい量の所得弾力 ε（EconomyStep の desired に POP ごとに Pow(r, ε)・MultiNationSim が世界の1人あたり実質所得を毎月配る）。0＝分岐に入らず配りも走らない＝厳密恒等。採ったら表から外す
+        "DomesticServiceUsesIncomeElasticity",   // ★(302) 線(2)＝家事奉仕も上の弾力の式に入れる切り替え（0／1）。0＝入れない＝厳密恒等
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
         "DecayFromPrivilege",           // 特権システム 段6＝制度疲労の導出（読み手3箇所は DecayForReaders・ゲート0で旧値）

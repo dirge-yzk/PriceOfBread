@@ -528,6 +528,13 @@ public static class EconomyStep
         //   ⚠旧はこの2つが p.Satisfaction（前月の値が月末まで残る）を読んでいた＝同じ「前月」の時点をそのまま保つ。
         var lastSupply = scratch.LastSupply;
         for (int pi0 = 0; pi0 < region.Pops.Count; pi0++) lastSupply[pi0] = region.Pops[pi0].SupplyFill;
+        // ★(302) 線(2)(3)：所得弾力の買い手の側の分子＝この月の LastEarnedPerMonth の**上書きの前**の値（前の月の確定した所得）を撮る。MultiNationSim.DistributeWorldRealIncome が世界の値（分母）を作る時点で読む欄と同じ値＝分子と分母が同じ月・同じ欄（下の退避が上書きした後の欄を読むと分子だけ 1 か月新しい）。ε＝0 は撮らない。
+        double[]? earnedBeforeThisMonth = null;
+        if (coef.LuxuryIncomeElasticity > 0 && world is not null)
+        {
+            earnedBeforeThisMonth = new double[region.Pops.Count];
+            for (int pe = 0; pe < earnedBeforeThisMonth.Length; pe++) earnedBeforeThisMonth[pe] = region.Pops[pe].LastEarnedPerMonth.Value;
+        }
         foreach (var p in region.Pops)
         {
             // ★ゼロ化の直前に前期の所得を退避（私的投資の原資が読む・2026-08-04）。⚠この行は複数文が並ぶ＝行途中にコメントを挿すと以降が全部コメントアウトされる（実際に踏んで平均充足0＝31テスト赤）
@@ -1472,6 +1479,20 @@ public static class EconomyStep
             if ((g.Tier == GoodTier.Staple || (coef.FoodIncludesAnimalProtein > 0 && g.Nutrition > 0)) && g.RefPrice > Eps)   // ★塊1段1b：食卓に動物性タンパクも並ぶ（ゲート0＝主食のみ＝恒等）
             { stapleLogSum += Math.Log(Math.Max(region.Markets[g.Id].Price, Eps) / g.RefPrice); stapleN++; }
         double stapleMeanRatio = stapleN > 0 ? Math.Exp(stapleLogSum / stapleN) : 1.0;
+        // ★(302) 線(2)(3)：奢侈品と家事奉仕の欲しい量の所得弾力（階級単位）。POP ごとに f＝Pow(r, ε)、r＝(その POP の前の月の確定した所得〔LastEarnedPerMonth の上書きの前の値＝earnedBeforeThisMonth〕÷PriceLevel÷Size)÷World.WorldRealIncomePerCapitaPerMonth（買い手の1人あたり実質所得÷世界の1人あたり実質所得・実質＝名目÷物価の1本）。ε＝0（既定）は評価しない＝厳密恒等。否定形で Size・世界の値・物価が正でない／r が非有限・非正は中立（1）へ倒す（資本家の Earned は粗利潤で負になりうる）。POP につき月に 1 回（財のループの前）。掛ける先は desired（欲しい量）だけ＝p.GoodNeed は触らない（満足度の台帳は嗜好品の met を分子と分母の両方へ積む＝欲しい量の増減は罰にも褒美にもならない）。上限・下限は置かない（思想⑧・予算の上限は affordable）。
+        double[]? incomeFactorOfPop = null;
+        if (earnedBeforeThisMonth is not null)
+        {
+            incomeFactorOfPop = new double[region.Pops.Count];
+            double worldY = world.WorldRealIncomePerCapitaPerMonth, priceLevel = world.PriceLevel;
+            for (int ip = 0; ip < incomeFactorOfPop.Length; ip++)
+            {
+                var ipop = region.Pops[ip];
+                double r = earnedBeforeThisMonth[ip] / priceLevel / ipop.Size / worldY;
+                incomeFactorOfPop[ip] = ipop.Size > 0 && worldY > 0 && priceLevel > 0 && r > 0 && double.IsFinite(r) ? Math.Pow(r, coef.LuxuryIncomeElasticity) : 1.0;
+            }
+            if (costL is not null) costL[CostLedger.LuxuryRatioPops] += incomeFactorOfPop.Length;
+        }
         // 階級別の購入記帳（作者フィードバック2026-08-10 項目6）の配列長＝この州に居る最大 ClassId＋1。
         // ★純記帳の準備だけ＝ここでは何も決めない（力学の読み手はゼロ）。試験世界は本編と別の階級レイアウトを使うので固定長にしない。
         int popClassLen = 0;
@@ -1548,6 +1569,7 @@ public static class EconomyStep
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
             if (!needless) consumedGoods++;
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
+            bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && gi != coef.OpiumGoodId) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
             if (!needless)
             foreach (var p in region.Pops)
             {
@@ -1574,6 +1596,7 @@ public static class EconomyStep
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
+                    if (incomeElasticGood) desired *= incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）
                     // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
                     // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
                     if (coef.PanicBuyWeight > 0 && staple)

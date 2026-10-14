@@ -461,6 +461,8 @@ public class WriterRatchetTests
     [InlineData(CostLedger.DiscoveryNations, 2585L)]
     [InlineData(CostLedger.ThreatReachPairs, 318001L)]
     [InlineData(CostLedger.DiscoveryPriceNations, 2574L)]
+    // ★(299) 奢侈品の所得比：ε＝0（既定）は配りが走らない＝宣言 0。採ったら B の .cost の件数で宣言し直す。
+    [InlineData(CostLedger.LuxuryRatioPops, 0L)]
     // ★2026-10-02 表の更新（(170) 厭戦の基礎を動員の負担へ〔外部レビュー Q10〕＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔基礎の計算＝交戦国×月に州×POP を1回（兵役の母数と兵士・(172) で兵士と人口へ）＝「外交：国×月」の単価の中の小さい分〕）：
     //   覇権の判定 1,941,249→2,884,531（+48.6%＝戦争が長くなり最初の40四半期の交戦と同盟の候補が居る月が増えた軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。

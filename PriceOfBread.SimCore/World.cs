@@ -2696,4 +2696,7 @@ public sealed class World
 
     // 基礎貨幣＝広義マネー ＋ 国庫 − 与信（保存量＝金。§A-7／§11.6）
     public MoneyStock BaseMoney => TotalMoney + Treasury - OutstandingLoans;
+
+    /// <summary>★(302) 線(2)(3)：世界の1人あたり実質所得（月・参照価格の単位・人数は <c>Pop.Size</c> の単位〔千人〕あたり）＝Σ全国の活きている州の全 POP の（<c>LastEarnedPerMonth</c>÷<c>PriceLevel</c>）÷Σ同じ POP の <c>Size</c>。奢侈品と家事奉仕の欲しい量の所得弾力の参照。MultiNationSim が毎月（月次決算の前）全国の POP から**求め直して**全 World へ同じ値を配る導ける量（積まない・読み手は <see cref="EconomyStep"/> の買い手の側だけ）。World は他国を見られない層の分離のため配る形（WorldTechLevel と同型）。0＝配りが走らない（<c>LuxuryIncomeElasticity</c>＝0）か、正でない＝買う側が否定形で中立（欲しい量を変えない）へ倒す。</summary>
+    public double WorldRealIncomePerCapitaPerMonth { get; internal set; }
 }

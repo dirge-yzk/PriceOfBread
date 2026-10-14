@@ -758,6 +758,7 @@ public sealed class MultiNationSim
         //   armstrace が1788年（助走明け最初の断面）から発散＝決算は**他国の当日更新を恒常的に読む**（旧調査の疑いどおり。
         //   候補＝金融の相互参照：通貨ペア引力・金利・金流。ログ退避（World.PendingLog）は恒等が証明できたので恒久採用＝
         //   共有 List へのレース類を根絶）。再挑戦するなら国別状態ハッシュのフェーズ計器で読み手を特定してから。
+        if (_coef.LuxuryIncomeElasticity > 0 && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) DistributeWorldRealIncome();   // ★(302) 月次決算の前に世界の1人あたり実質所得を全国へ配る（本体と置き場の理由は DistributeWorldRealIncome の注）。ε＝0 は走らない
         foreach (var sim in Nations) sim.StepDayClose();
         foreach (var sim in Nations) sim.World.FlushLog();      // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
         if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
@@ -1935,6 +1936,32 @@ public sealed class MultiNationSim
         foreach (var n in Nations) CostLedger.AddInto(t, n.World.CostOrNull);
         return t;
     }
+
+    /// <summary>★(302) 線(2)(3)：世界の1人あたり実質所得 <see cref="World.WorldRealIncomePerCapitaPerMonth"/> を全国へ配る（毎月・求め直す導ける量＝積まない）。
+    /// 置き場＝<see cref="StepDay"/> の月末の日・全国の StepDayDaily の後・StepDayClose の前（どの国の月次決算〔EconomyStep.Run が読む〕よりも先に、確定した前の月の所得で全国同じ時点の値を作る）。
+    /// 値＝Σ(全国の活きている州の全 POP の <c>LastEarnedPerMonth</c>÷その国の <c>PriceLevel</c>)÷Σ(同じ POP の <c>Size</c>)（人口加重・閾値なし）。実質＝名目÷物価の 1 本（FxRate は掛けない＝(299) は為替〔不換の国で目標がほぼ 1/P〕と物価で二重に割っていた）。
+    /// 買い手の側（EconomyStep）の分子〔POP の LastEarnedPerMonth÷PriceLevel÷Size〕と同じ換算・同じ集合（活きている州）。非有限な所得の国は分子にも分母にも入れない。人口の和が 0 のときは 0（買う側が否定形で中立へ倒す）。走査は Nations 順（決定論）・並列相の外（逐次）。</summary>
+    internal void DistributeWorldRealIncome()
+    {
+        double incomeSum = 0, populationSum = 0;
+        long pops = 0;
+        foreach (var nation in Nations)
+        {
+            var w = nation.World;
+            double earned = 0, size = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Pops) { earned += p.LastEarnedPerMonth.Value; size += p.Size; }
+                pops += r.Pops.Count;
+            }
+            double real = earned / w.PriceLevel;
+            if (size > 0 && double.IsFinite(real)) { incomeSum += real; populationSum += size; }
+        }
+        double worldPerCapita = populationSum > 0 ? incomeSum / populationSum : 0;
+        foreach (var nation in Nations) nation.World.WorldRealIncomePerCapitaPerMonth = worldPerCapita;
+        Cost[CostLedger.LuxuryRatioPops] += pops;
+    }
 }
 
 /// <summary>★計算量の台帳（2026-09-30 作者裁定「計算量の予算」＝推奨で採択）。処理ごとの「見た件数」を数える**診断**であって、シミュの状態ではない。
@@ -1952,7 +1979,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, Count = 20;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, Count = 21;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -1962,6 +1989,7 @@ public static class CostLedger
         "四半期首：POP×国（AI・議会・政府）", "四半期末：POP×国", "共有層：国×四半期（国力・移民・国際金融ほか）",
         "GDP：州×生産者の和（取り直した分）", "移民：州×州の組（国内・越境）", "発見：国×四半期（点数の判定）", "外交：脅威の届き方（脅威を持つ国×国）",
         "発見：平滑化した値段の歩（国×四半期）",
+        "奢侈品と家事奉仕の所得弾力：POP×月（世界の値の配りの走査と買い手の POP ごとの係数）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -1996,11 +2024,14 @@ public static class CostLedger
         DiscoveryUnitMicros,   // 発見：国×四半期＝Discovery.Evaluate の1回（州×財の集計・生産者の走査・行の3項）＝(147) の discprobe の実測（下の定数の注記）
         ThreatReachUnitMicros,   // 外交：脅威の届き方＝Diplomacy.ThreatReach の1組（同盟と従属の照会・投射・有理飽和）＋国境の表（月3回と四半期1回＝1回 0.046ms・1試合 約0.1秒＝この単価の中に含めない小さい分）＝(151) の実測（下の定数の注記）
         DiscoveryPriceUnitMicros,   // 発見：平滑化した値段の歩＝Discovery.AdvancePrice の1回（州×財の集計・瞬間の値段・平滑）＝(186) の census（下の定数の注記）
+        LuxuryRatioUnitMicros,   // ★(299) 奢侈品の所得比：国×活きている州の POP を1回なぞる（所得と人口の和）＝census は無い（ε＝0 では走らず件数 0）＝同じ形の走査（GDP の和の1要素あたり 0.0155 µs）から置いた推定。採ったら B の .cost の実測で取り直す
     ];
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数
     /// （census の計器 inj_c186・種1・668四半期・r182 の木〔586b80e〕5回＝19.87／19.61／19.01／19.49／20.02 µs・眠りの木5回＝19.89／19.59／19.42／19.62／19.81 µs の平均 19.63）。
     /// ⚠ (159)(165) から「共有層：国×四半期」の中の小さい分と書いていたが、その単価（(136)(146) の census）は AdvancePrice の前に取った＝数えていなかった（(182) の申し送り）。</summary>
     public const double DiscoveryPriceUnitMicros = 19.63;
+    /// <summary>★(299) 奢侈品の所得比の走査の単価（マイクロ秒/POP）。census は無い＝GDP の和の1要素あたり（0.0155）から置いた推定（走査の形が近い＝州→POP をなぞって2つの和を足す）。ε＝0（既定）では走らないので件数 0＝宣言 0。採ったら B の .cost の実測で取り直す。</summary>
+    public const double LuxuryRatioUnitMicros = 0.0155;
     /// <summary>発見の判定の単価（マイクロ秒/国×四半期）＝(147) の Runner discprobe（種1・668四半期・全ての国の Discovery.Evaluate を Stopwatch で計った和÷回数＝76.0・41,373回〔割高さの参照を投入の費用へ直した後の木〕・直す前の木は 67.7）。
     /// ★(165) 91.0＝同じ計り方（種1・668四半期・41,468回・単独）＝比べる相手を新しいレシピで作る費用へ（門の開いたレシピの一覧・値段の帳＝市場の死んだ財を作る費用で読む繰り返し）。
     /// 世界の平滑化した値段（国×財の和・四半期に1回）は「共有層：国×四半期」の中（1回 約8千の積和＝小さい分）。

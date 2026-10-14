@@ -977,6 +977,18 @@ public static class Instruments
         return cols;
     }
 
+    /// <summary>★(329) 線(2)(3)（取り込み元 (299)(302)）：国×四半期の行の末尾の 2 列。読むだけ。
+    /// <c>worldRealIncomePerCapitaPerMonth</c>＝<see cref="World.WorldRealIncomePerCapitaPerMonth"/>（世界の1人あたり実質所得〔名目÷物価・人数は千人の単位〕・MultiNationSim が月次決算の前に毎月配る値の、四半期の終わりの時点の値。全ての国で同じ値）。ε＝0（既定）は配りが走らない＝全ての国と四半期で 0。
+    /// <c>luxuryExportsPerClearing</c>＝その国の <see cref="World.ExportsByGood"/>（直近の清算1回分・世界価格建て）のうち Luxury 階層の財〔アヘンを除く＝所得弾力の対象と同じ集合〕の和。事前登録の記録の列 H4〔奢侈品の輸出が稼ぎ頭の国〕を全ての国で読む（goods_s は残存国の主食・日用品だけ・px_goods は挙げた国だけ）。</summary>
+    internal static List<(string Name, string Value)> Extras329(World w)
+    {
+        double luxExp = 0;
+        if (w.ExportsByGood is { } eg)
+            for (int g = 0; g < eg.Length && g < Catalog.Goods.Length; g++)
+                if (Catalog.Goods[g].Tier == GoodTier.Luxury && g != w.Coef.OpiumGoodId) luxExp += eg[g];
+        return [("worldRealIncomePerCapitaPerMonth", F(w.WorldRealIncomePerCapitaPerMonth)), ("luxuryExportsPerClearing", F(luxExp))];
+    }
+
     // ---------------------------------------------------------------- (289) 線D：資本家の建設の州ごとの表 ----------------------------------------------------------------
 
     sealed class ConAcc { public int Judged; public double Desired, Budget, Planned, PlannedUnits, BuiltUnits, Paid; public int TermMonths, DesiringMonths; public double TermGain, TermSat, TermTech, TermCrowd, TermHeat, TermHurdle, TermNet, TermAbsorb, TermJoint, TermUnits, TermUnitMoney; }
@@ -1689,6 +1701,8 @@ public static class Instruments
         foreach (var ex in ext287) cols.Add(ex.Value);
         var ext289 = Extras289(st);   // (289) 線D：国の所得の合計・国庫が実際に払った建設の額
         foreach (var ex in ext289) cols.Add(ex.Value);
+        var ext329 = Extras329(w);   // (329) 線(2)(3)：世界の1人あたり実質所得（配られた値）と奢侈品の輸出額
+        foreach (var ex in ext329) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -1709,7 +1723,8 @@ public static class Instruments
                 + string.Join('\t', ext281.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext286.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext287.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext289.Select(e => e.Name)));
+                + string.Join('\t', ext289.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext329.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));

@@ -2578,6 +2578,10 @@ public sealed class Coefficients
     // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】ConstructionLaborViaMarket（点火2026-07-28）＝建設工賃は労働力財の市場で買う形だけを残した。旧＝材料費比例の工賃を工員の Savings へ直書き（月内の仮勘定を通らない）＝削除
     public double DemandElasticityMaxDaily = 2.5;   // 【R1点火2026-07-13＝2.5】経11（大量消費化）：日用品(Daily)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で価格暴落による大量消費化(産業革命の綿布型)を許す。2.5＝安価工業製品を基礎量の2.5倍まで大量消費
     public double DemandElasticityMaxLuxury = 2.0;   // 【R1点火2026-07-13＝2.0】経11：奢侈品(Luxury)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で安価工業製品の大量消費化を許す
+    // ★(302) 線(2)(3)：奢侈品の欲しい量の所得弾力（作者 2026-10-12 の設計「奢侈品のみ所得弾力をつける」・参照所得は世界の1人あたり実質所得）。無次元の指数 ε。欲しい量 desired に Pow(r, ε) を掛ける（r＝買い手の POP〔州×階級〕の1人あたり実質所得 ÷ 世界の1人あたり実質所得・実質＝名目÷PriceLevel の1本〔FxRate は掛けない＝(299) は為替と物価で二重に割っていた〕・世界の値は MultiNationSim が毎月 World.WorldRealIncomePerCapitaPerMonth へ配る）。対象＝Luxury 階層の非役務の財（アヘンは除く＝必要量が中毒の在庫で決まり所得で決まらない）と、DomesticServiceUsesIncomeElasticity が立つときの家事奉仕。0＝分岐に入らず配りも走らない＝厳密恒等。事前登録 measurements/de_20261014_prereg.txt（取り込み元 s2_20261013_prereg.txt）。休眠0（DormantIdentityTests の表）。
+    public double LuxuryIncomeElasticity = 0;   // ★(302) 上の注。0＝恒等（休眠）。POB_COEF=LuxuryIncomeElasticity=0.5 で腕 B／D
+    // ★(302) 線(2)：家事奉仕（役務）も上の所得弾力の式に入れる切り替え（0／1・ε は LuxuryIncomeElasticity と同じ）。作者の (2)「使用人の産出量を減らすことで、富裕層はより多くの使用人POPを雇用せざるを得なくなります」が富裕層に届くには、富裕層の欲しい量が所得で増える必要がある、という AI の読み。0＝入れない＝恒等。
+    public double DomesticServiceUsesIncomeElasticity = 0;
     // ── 所得翻訳ゲート（設計3・2026-08-08 敵対審査済み）：GDP∝人口＝英14位の根＝「生産性↑が需要へ翻訳されない蓋」を、
     //   貯蓄・投資・価格係留のどれにも触れずこの1点で切る。f = min(1 + k·ln(max(1, r)), Cap)、
     //   r = (LastEarnedPerMonth/Size) ÷ basketRef（basketRef＝Staple∪Daily の BaseNeed×RefPrice＝月収が基礎バスケット何個分か）。
