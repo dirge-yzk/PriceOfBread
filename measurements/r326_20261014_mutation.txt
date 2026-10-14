@@ -1,0 +1,4 @@
+# (326) 番人 InstrumentsTests.州ごとの窃盗の列は貯蓄の書き手の台帳の窃盗の受け取りと国ごとに合う の突然変異（合流の木 0889bce8 の写し D:/PoB_work/merge_326/src_M1・作業ツリーは触らない・隔離ビルド Release）
+M1 Crime.Step の Instruments.Theft の呼び出しを消す → 赤（Assert.InRange 失敗＝州の行の窃盗の列の国×四半期の和が flow_s の Crime.cs の受け取りと合わない・14 秒）
+対照：変えない木（0889bce8）はフルスイートで緑（下の r326_20261014_tests.txt）
+枝 fy の木では M1〜M3（フック削除・月数を 4・受け手の所得を積まない）が全て赤（measurements/fy_20261014_readers/mutation_323.txt）
