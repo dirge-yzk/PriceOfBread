@@ -1,0 +1,4 @@
+# (322) 番人 InstrumentsTests.発見の表の出来事は解禁の集合の増えに閉じ軌道は未解禁の蒸気機関と機関車だけを書く の突然変異（コードの木 5a4e17c の写し D:/PoB_work/m322/src_M{1,2}・作業ツリーは触らない）
+M1 Discovery.Step の Instruments.DiscoveryEvent の呼び出しを消す → 赤（Assert.Equal 期待 1・実際 0＝出来事の行の数が解禁の集合の増えと合わない）
+M2 蒸気機関の軌道の条件 !known[SteamRow] を true に → 赤（Assert.DoesNotContain＝英の蒸気機関の T 行が出た）
+対照：変えない木（5a4e17c）はフルスイートで緑（1139 合格）
