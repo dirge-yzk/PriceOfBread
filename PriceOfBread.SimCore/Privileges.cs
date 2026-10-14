@@ -36,10 +36,10 @@ public static class Privileges
     /// <summary>身分制免税の割引率＝閉鎖階級（貴族・聖職）の課税ベースから抜ける割合。
     /// ★<see cref="TaxAssessment"/> と同じ1本の定義（2026-09-07に重複を畳んだ・1.0−これ＝旧式とビット同一）。</summary>
     public static double TaxExemptionDegree(World w, Coefficients c, double crownShare)
-        => !(c.PrivilegeTaxDiscount > 0) ? 0.0
-         : c.PrivilegeFromCrownShare > 0
-            ? c.PrivilegeTaxDiscount * c.PrivilegeFromCrownShare * PoliticalQuantities.Clamp01(crownShare)
-            : (w.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate ? c.PrivilegeTaxDiscount : 0.0);
+        => !(c.PrivilegeTaxDiscount.Value > 0) ? 0.0
+         : c.PrivilegeFromCrownShare.Value > 0
+            ? c.PrivilegeTaxDiscount.Value * c.PrivilegeFromCrownShare.Value * PoliticalQuantities.Clamp01(crownShare)
+            : (w.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate ? c.PrivilegeTaxDiscount.Value : 0.0);
 
     /// <summary>特許会社の残高＝独占レントがまだどこかに立つか。州の度合は物理側の唯一定義 <see cref="EconomyStep.MonopolyDegree"/>（premium=1＝度合[0,1]）を呼ぶ＝
     /// 州の工業化で溶け（MonopolyDissolveInd）・独禁法で縮む（MonopolyRentFactor）。州ごとに違うので**最大**＝「その特権がまだ在るか」の答え（表示のみ・力学の読み手なし）。</summary>
@@ -60,7 +60,7 @@ public static class Privileges
     public static double Degree(World w, Coefficients c, int kind) => kind switch
     {
         Tithe => TitheDegree(w, c),
-        TaxExemption => TaxExemptionDegree(w, c, c.PrivilegeFromCrownShare > 0 && c.PrivilegeTaxDiscount > 0 ? PowerAffinity.Shares(w)[0] : 0),   // Fiscal.cs の crownShareForPrivilege と同じ式・同じガード（既定は呼ばない）
+        TaxExemption => TaxExemptionDegree(w, c, c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0),   // Fiscal.cs の crownShareForPrivilege と同じ式・同じガード（既定は呼ばない）
         VestedOffice => EstateDegree(w),
         Seigneurial => SeigneurialDegree(w),
         Monopoly => MonopolyDegree(w, c),
@@ -72,7 +72,7 @@ public static class Privileges
     public static bool Enabled(Coefficients c, int kind) => kind switch
     {
         Tithe => c.TitheRate.Value > 0,
-        TaxExemption => c.PrivilegeTaxDiscount > 0,
+        TaxExemption => c.PrivilegeTaxDiscount.Value > 0,
         VestedOffice => true,   // 身分任用の取り分＝汚職の分配経路（BureaucracyLaw）にゲートは無い
         Seigneurial => true,    // 領主権＝RGOの地代（農奴解放法）にゲートは無い
         Monopoly => c.MonopolyRentPremium > 0,

@@ -61,14 +61,14 @@ public static class Fiscal
             foreach (var r in w.Regions) foreach (var p in r.Pops) scopeInc[si++] = InterestGroups.SuffrageInclusion(w, r, p);
         }
         // ★AUD-07（2026-09-03）：身分制免税の駆動量＝王権の取り分（PrivilegeFromCrownShare=0 の既定では**呼ばない**＝1命令も増えない恒等）。
-        double crownShareForPrivilege = c.PrivilegeFromCrownShare > 0 && c.PrivilegeTaxDiscount > 0 ? PowerAffinity.Shares(w)[0] : 0;
+        double crownShareForPrivilege = c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
         // ★支配度の一般化 段3（作者採用 §5・2026-09-07）：課税ベース＝国家区分＋在地区分×届け率（RuleDelivery）。在地の仲介者の取り分
         //   （在地区分×免税率×あるべき税）は納税者→その州の貴族へ移転（保存）し領主権の台帳へ。無統治・外国区分からは取れない。
         //   走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。RuleSharesTaxBase=0 では配列を作らず1命令も走らない＝厳密恒等。
         double[]? ruleMul = null, ruleCut = null; Pop?[]? ruleLord = null;
         if (c.RuleSharesTaxBase > 0)
         {
-            double g = c.RuleSharesTaxBase, deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount);
+            double g = c.RuleSharesTaxBase, deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value);
             ruleMul = new double[pops.Count]; ruleCut = new double[pops.Count]; ruleLord = new Pop?[pops.Count];
             int ri = 0;
             foreach (var r in w.Regions)
@@ -717,7 +717,7 @@ public static class Fiscal
         //   旧＝関税の従属変数なので「関税は高いが資本は自由」（19世紀後半の独/米）が原理的に表現できなかった。
         //   規制でも0にしない（★密輸と同じ理由＝規制しても抜け道はあった）。CapitalMobilityLawGate=0 で下の旧式のみ（⚠既定は点火済みの1.0＝2026-08-13・x-02 で注記を是正）。
         double openness = c.CapitalMobilityLawGate > 0
-            ? (w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness) : 1.0)
+            ? (w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness.Value) : 1.0)
             : PoliticalQuantities.Clamp01(1.0 - c.CapitalOpennessTariffWeight * w.Tariff);
         double domesticPool = capSavings * c.BondAppetite.Value;
         // ★外資の貸し手は**低金利の国ほど深い**（2026-09-29・向きの是正）＝信認（基礎金利÷その国の国債の金利）に比例。旧＝金利÷基礎金利（金利が下がると外資が縮む）。

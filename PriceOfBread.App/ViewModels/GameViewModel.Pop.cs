@@ -148,7 +148,7 @@ public partial class GameViewModel
         var c = _player.Coef;
         // 身分制免税だけは法律タブに行が無い＝政体が決める（PrivilegeFromCrownShare>0 の腕では王権の取り分＝法でも政体でもないので出さない）。
         if (kind == SimCore.Privileges.TaxExemption)
-            return c.PrivilegeFromCrownShare > 0 ? null : "政体:" + PolityRegimeJa(_player.Polity);
+            return c.PrivilegeFromCrownShare.Value > 0 ? null : "政体:" + PolityRegimeJa(_player.Polity);
         string? title = kind switch
         {
             SimCore.Privileges.Tithe => c.StateReligionGate > 0 ? "国教" : null,       // ゲート0＝国教法は率を変調しない＝根拠は TitheRate だけで法でない

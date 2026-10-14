@@ -1789,7 +1789,7 @@ public static class Politics
     internal static double RuleDelivery(Region r, Coefficients c, double g)
     {
         if (!(g > 0) || r.Rule.Length != 4) return 1.0;
-        double deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount);
+        double deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value);
         double v = (1.0 - g) + g * (PoliticalQuantities.Clamp01(r.Rule[0]) + PoliticalQuantities.Clamp01(r.Rule[1]) * deliver);
         return !(v >= 0 && v <= 1) ? 1.0 : v;
     }

@@ -40,7 +40,7 @@ public class PrivilegeDisplayTests
                 foreach (double fromCrown in new[] { 0.0, 0.8 })
                     foreach (double share in new[] { 0.0, 0.4, 1.3 })
                     {
-                        c.PrivilegeTaxDiscount = disc; c.PrivilegeFromCrownShare = fromCrown;
+                        c.PrivilegeTaxDiscount = new Share(disc); c.PrivilegeFromCrownShare = new Share(fromCrown);
                         // 旧式（2026-09-07の畳み込み前・Privileges.cs の原文）
                         double old = disc > 0 && noble!.Closed && !noble.IsSoldier
                             ? (fromCrown > 0

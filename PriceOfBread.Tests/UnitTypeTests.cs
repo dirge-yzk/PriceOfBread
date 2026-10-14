@@ -247,6 +247,10 @@ public class UnitTypeTests
         (typeof(Coefficients), "CorruptionMax", typeof(Share)),
         (typeof(Coefficients), "CapitalExportFrac", typeof(Share)),
         (typeof(Coefficients), "InsuranceCoverageMax", typeof(Share)),
+        // ★(325) 割合の型の残り その7＝財政の係数 3 本（Share）。資本規制下の開放度・身分制免税の割引率・免税を王権の取り分に結ぶ率。`GoldCoverMin` は `SelfPlay.cs` が比べる相手で、並行の流れF の触れる所なので移していない（実装ログ (325)）。
+        (typeof(Coefficients), "CapitalControlOpenness", typeof(Share)),
+        (typeof(Coefficients), "PrivilegeTaxDiscount", typeof(Share)),
+        (typeof(Coefficients), "PrivilegeFromCrownShare", typeof(Share)),
     ];
 
     [Fact]
@@ -600,6 +604,32 @@ public class UnitTypeTests
         }
         foreach (var old in new[] { "CapitalDividendRate", "CapitalFlightRate", "CapitalDomesticFlightRate", "DevaluationCapFrac" })
             Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
+    }
+
+    /// <summary>★(325) 割合の型の残り その7＝財政の係数 3 本（Share）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること。
+    /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで財政の係数の欄が残る()
+    {
+        string[] names = ["CapitalControlOpenness", "PrivilegeTaxDiscount", "PrivilegeFromCrownShare"];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 5) / 19.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            Assert.Equal(typeof(Share), f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 5) / 19.0), BitConverter.DoubleToInt64Bits(got));
+        }
     }
 
     [Fact]

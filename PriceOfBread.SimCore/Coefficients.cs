@@ -1917,8 +1917,8 @@ public sealed class Coefficients
     //   身分制免税が政体ラベル（Absolutist/Despotic/Shogunate）の集合判定で入切していた＝2026-08-19「政体は表示専用」と矛盾。
     //   ⚠0＝旧（ラベル判定）＝厳密恒等／>0 で**王権の取り分**（PowerAffinity.Shares[0]）に比例する連続量になる
     //   ＝「王が強いほど貴族の免税が通る」＝立憲化で自然に消える（ラベルでなく力の配分から創発）。
-    public double PrivilegeFromCrownShare = 0.0;
-    public double PrivilegeTaxDiscount = 0.3;   // **2026-07-23点火・同日0.6→0.3へ縮小**（0.6は旧体制44カ国の歳入を削りすぎ＝プロイセン/スペインが逸脱過多へ・batch実測）
+    public Share PrivilegeFromCrownShare = new(0.0);
+    public Share PrivilegeTaxDiscount = new(0.3);   // **2026-07-23点火・同日0.6→0.3へ縮小**（0.6は旧体制44カ国の歳入を削りすぎ＝プロイセン/スペインが逸脱過多へ・batch実測）
     // C-高9（史実検証2026-07-22）：公教育（Public法）の国庫財源率。0=旧挙動＝Public は財政コスト厳密0（国が無料で供給を得る因果の逆向き）。
     // 史実の公教育は無償でなく「共同体が教師俸給を払い親も一部払う混合」（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。
     // 点火0.4＝義務教育（EducationSpending満額）の4割相当を国庫が負担。
@@ -3369,7 +3369,7 @@ public sealed class Coefficients
     //   ②「兌換維持＋資本自由」のときだけ金利が**帰結**になる（★史実＝誰も金融政策の自律を選ばなかった）
     // ⚠新しい概念を1つも置かない——効き先も目標カバー率も既存の配線（ForeignBondCapacity / GoldCoverMin）をそのまま使う。
     public double CapitalMobilityLawGate = 1.0;        // ★点火2026-08-13（同一ソースA/B：◎7割帯 16→21・政体exact +1.8・経済規模 +2.5／人口 −2.9・領土本国 −2.5）。0で openness は旧式（関税の従属変数）＝厳密恒等／1で資本移動の法から導出＝関税との連動を切る
-    public double CapitalControlOpenness = 0.25;       // 規制下の資本開放度。0にしない（★密輸と同じ理由＝規制しても抜け道はあった。1930年代の資本統制も完全ではない）
+    public Share CapitalControlOpenness = new(0.25);       // 規制下の資本開放度。0にしない（★密輸と同じ理由＝規制しても抜け道はあった。1930年代の資本統制も完全ではない）
     public double CapitalControlPrefScale = 1.0;       // 資本の反対の強さ＝対外保有(CapitalAbroad÷名目GDP)に掛ける倍率。対外投資を持たない国では反対が立たない
     public double TrilemmaRateGate = 1.0;              // ★点火2026-08-13（上の資本移動の法と**対**で意味を持つ＝2つ揃って初めてトリレンマが閉じる）。0で金利は常にレバー＝厳密恒等／1で「兌換維持＋資本自由」のときだけ金利が自動（＝操作不能）
     // ==== 銀本位と大デフレ（2026-08-13・docs/202608/20260812_銀本位と大デフレ.REVERTED_部分完了.md）====
