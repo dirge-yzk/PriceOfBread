@@ -1,0 +1,21 @@
+項目	国	値	単位	出典（hist_sources_20261014.tsv の行／他）	確かさ	史実の確証	注
+govDebtToGdpYear	イギリス	1.34	国債÷年名目GDP（比）	BoE Millennium（FRED 再掲 PSDOTUKA）公的部門債務÷名目GDP 1783/1784/1785＝128.5/136.6/137.9%の平均 134.3%	原典の再掲	あり（英だけ）	狭義の National Debt と同一かは未確認。1783〜1790 の幅 122.8〜137.9%。年末の値＝開幕は1783年初なので3年の平均で置く（単年 128.5 は戦後直後の谷）
+govDebtToGdpYear	フランス	0.56	同上	Weir 1989 の債務÷GNP 56%（1788・要約経由・原文未確認）	要約のみ	要約のみ	分母は GNP。旧 0.6（NationConfig の注記〈1789 に 0.6〜0.8〉＝二次の概数）。出典のある側の 0.56 を採る（差は 7%）
+govDebtToGdpYear	ネーデルラント	1.6	同上	NationConfig の注記（ホラント州を主とする約6億ギルダー）	二次の概数	なし	新しい出典は見つからない（hist_sources_20261014_notfound.txt）＝推定
+govDebtToGdpYear	アメリカ	0.4	同上	Hamilton 1790 の連邦 約77百万ドル＋州 25百万ドル（Wikipedia 経由・二次）／分母の GDP は表に無い	二次	なし	分母が無いので比は NationConfig の注記のまま＝推定
+govDebtToGdpYear	スペイン	0.3	同上	NationConfig の注記（王室債と国王証券）	二次の概数	なし	推定
+govDebtToGdpYear	オーストリア	0.2	同上	NationConfig の注記（1780年代 約3億フローリン）	二次の概数	なし	推定
+govDebtToGdpYear	ロシア	0.05	同上	NationConfig の注記（1769年以後の蘭の借款）	二次の概数	なし	推定
+govDebtToGdpYear	教皇領	1.1	同上	修正一覧 E3 の幅 0.8〜1.5 の中央	推定	なし	幅は修正一覧・原典なし
+govDebtToGdpYear	ジェノヴァ	1.5	同上	修正一覧 E3 の幅 1〜2 の中央	推定	なし	
+govDebtToGdpYear	デンマーク	0.3	同上	修正一覧 E3	推定	なし	
+govDebtToGdpYear	スウェーデン	0.2	同上	修正一覧 E3	推定	なし	
+govDebtToGdpYear	ポルトガル	0.1	同上	修正一覧 E3	推定	なし	
+govDebtToGdpYear	両シチリア	0.4	同上	修正一覧 E3 の幅 0.3〜0.5 の中央	推定	なし	
+govDebtToGdpYear	ヴェネツィア	0.4	同上	同上	推定	なし	
+govDebtToGdpYear	バイエルン	0.4	同上	同上	推定	なし	
+govDebtToGdpYear	ザクセン	0.3	同上	修正一覧 E3 の幅 0.2〜0.4 の中央	推定	なし	
+govDebtToGdpYear	ヴュルテンベルク	0.3	同上	同上	推定	なし	
+govDebtToGdpYear	オスマン	0.1	同上	修正一覧 E3	推定	なし	
+treasuryMonths	既定（上の1国を除く60国）	2.5	月（直近の月の歳入×月数）	出典なし（旧の絶対額の助走後の国庫÷月の歳入の国の中央値 2.3 か月に近い丸め）	推定	なし（見つからない）	hist_sources_20261014_notfound.txt：各国の国庫の月数は見つからない
+treasuryMonths	プロイセン	28	同上	フリードリヒ2世の戦時財宝 約5,100万ターラー÷年歳入 約2,200万ターラー（NationConfig の注記＝二次の概数）／Ranke の歳入 約2000万ターラー（要約）	二次の概数	なし（残高は見つからない）	戦時財宝 1786 の残高は見つからない
