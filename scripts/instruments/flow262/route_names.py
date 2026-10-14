@@ -9,7 +9,7 @@
 ROUTE_NAMES = {
     ('Crime.cs', 65): '窃盗(全POPの被害＝min(前の月の所得×犯罪率, 貯蓄)→困窮した大衆)',   # ★(331) (327) で基数が既定 1＝所得に比例（旧 0＝貯蓄×率＝在庫に比例）
     # ★(264) PaySales・Procure の呼び手（旧＝InternationalMarket.cs:124／125 に潰れていた）
-    ('BilateralMarket.cs', 872): '清算所の輸出代金(世界の外→生産者の持分・PaySales)',
+    ('BilateralMarket.cs', 896): '清算所の輸出代金(世界の外→生産者の持分・PaySales)',
     ('Colonial.cs', 128): '植民地の開発の汽船の代金(投資家→生産者の持分・PaySales)',
     ('Colonial.cs', 129): '植民地の開発の線路の代金(投資家→生産者の持分・PaySales)',
     ('Colonial.cs', 386): '国家の調達の代金(国庫→生産者の持分・BuyUpkeepGood→Procure)',
@@ -19,15 +19,15 @@ ROUTE_NAMES = {
     ('Simulation.cs', 2859): '造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)',
     ('Transport.cs', 137): '汽船の燃料の買い付け(商人→生産者の持分・Procure)',
     ('Transport.cs', 206): '船と線路の買い付け(投資家→生産者の持分・Procure)',
-    ('BilateralMarket.cs', 871): '商人の交易マージン(世界の外→商人)',
-    ('BilateralMarket.cs', 903): '船主の運賃(世界の外→船主)',
-    ('BilateralMarket.cs', 907): '港の所有者の収入(世界の外→港主)',
-    ('BilateralMarket.cs', 909): '保険の引受人の保険料(世界の外→引受人)',
-    ('BilateralMarket.cs', 914): '売買方針の補助(国庫→輸入者)',
-    ('BilateralMarket.cs', 920): '関税と穀物法(輸入者→国庫)',
-    ('BilateralMarket.cs', 921): '輸入代金と運賃(輸入者→清算所＝国境の外)',
-    ('BilateralMarket.cs', 938): '輸出補助(国庫→輸出者)',
-    ('BilateralMarket.cs', 963): '運河の通行料(国庫→国庫)',
+    ('BilateralMarket.cs', 895): '商人の交易マージン(世界の外→商人)',
+    ('BilateralMarket.cs', 927): '船主の運賃(世界の外→船主)',
+    ('BilateralMarket.cs', 931): '港の所有者の収入(世界の外→港主)',
+    ('BilateralMarket.cs', 933): '保険の引受人の保険料(世界の外→引受人)',
+    ('BilateralMarket.cs', 938): '売買方針の補助(国庫→輸入者)',
+    ('BilateralMarket.cs', 944): '関税と穀物法(輸入者→国庫)',
+    ('BilateralMarket.cs', 945): '輸入代金と運賃(輸入者→清算所＝国境の外)',
+    ('BilateralMarket.cs', 962): '輸出補助(国庫→輸出者)',
+    ('BilateralMarket.cs', 987): '運河の通行料(国庫→国庫)',
     # ★(271) TakeGold(:306)／GiveGold(:312〜) も呼び手の位置を Transfer へ渡す＝旧の3行(306・317・318)は4つの機構が潰れていた。呼び手ごとに名前を付けた（位置は (271) の木）
     ('CapitalMarket.cs', 156): '国内資本の逃避(投資家→国境の外・不信の国だけ)',
     ('CapitalMarket.cs', 163): '国内資本の逃避の受け皿(国境の外→受け皿国の投資家)',
