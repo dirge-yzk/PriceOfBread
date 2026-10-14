@@ -790,11 +790,18 @@ public static class Discovery
             w.DiscoveryLossQ = null;
         }
         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
-        var terms = Score(w, view, c, includeKnown: false, null, null, out var book, out var dem);
+        var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
+        var terms = Score(w, view, c, includeKnown: false, null, ro, out var book, out var dem);
+        if (ro is not null)   // (320) 計器だけ＝まだ解禁していない蒸気機関と機関車の軌道（四半期ごと）
+        {
+            if (!known[SteamRow]) Instruments.DiscoveryTrace(w, SteamRow, terms[SteamRow], ro[SteamRow]);
+            if (!known[LocomotiveRow]) Instruments.DiscoveryTrace(w, LocomotiveRow, terms[LocomotiveRow], ro[LocomotiveRow]);
+        }
         for (int row = 0; row < terms.Length && row < known.Length; row++)
         {
             if (known[row] || !(terms[row].Score >= GateScore)) continue;
             known[row] = true;
+            if (ro is not null) Instruments.DiscoveryEvent(w, row, terms[row], ro[row]);   // (320) 計器だけ
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。

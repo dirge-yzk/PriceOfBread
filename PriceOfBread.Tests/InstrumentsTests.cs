@@ -2157,4 +2157,48 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+    /// <summary>
+    /// (320) 流れG：発見の表 <c>disc_s</c> の番人。期待は表の写しでなく<b>関係</b>で書く。
+    /// ①出来事の行（kind=E）の数＝その国の解禁の集合の増え（走り終わりの Discovered の数−走り始めの数）②出来事の点数（技術力＋必要性＋伝わり）は門 100 に届いている
+    /// ③軌道の行（kind=T）は蒸気機関と機関車だけ・まだ解禁していない四半期だけ（英は開幕で蒸気機関を知っている＝英の蒸気機関の T 行は 0）④全ての行が列の数どおり。
+    /// 前提の確かめ＝出来事と軌道の行が十分あること（何もしない計器が緑にならない）。
+    /// </summary>
+    [Fact]
+    public void 発見の表の出来事は解禁の集合の増えに閉じ軌道は未解禁の蒸気機関と機関車だけを書く()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            var start = new Dictionary<string, int>(); var end = new Dictionary<string, int>();
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+                foreach (var n in sim.Nations) start[Instruments.NameOf(n.World)] = n.World.Discovered.Count(b => b);
+                for (int q = 0; q < 24; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+                foreach (var n in sim.Nations) end[Instruments.NameOf(n.World)] = n.World.Discovered.Count(b => b);
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (h, rows) = Table(System.IO.Path.Combine(dir, "disc_s1789.tsv"));
+            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
+            int iKind = Array.IndexOf(h, "kind"), iNation = Array.IndexOf(h, "nation"), iRow = Array.IndexOf(h, "row");
+            int events = 0, traces = 0;
+            foreach (var nation in start.Keys)
+            {
+                int e = rows.Count(r => r[iKind] == "E" && r[iNation] == nation);
+                Assert.Equal(end[nation] - start[nation], e);   // 解禁の集合の増え＝出来事の行の数
+                events += e;
+            }
+            foreach (var r in rows)
+            {
+                if (r[iKind] == "E") Assert.True(Col(h, r, "techTerm") + Col(h, r, "needTerm") + Col(h, r, "transmitTerm") >= 100.0 - 1e-6, $"解禁した行の点数が門に届いていない（{r[iNation]} {r[iRow]}）");
+                else { Assert.Equal("T", r[iKind]); Assert.Contains(r[iRow], new[] { "蒸気機関", "機関車" }); traces++; }
+            }
+            Assert.DoesNotContain(rows, r => r[iKind] == "T" && r[iNation] == "イギリス" && r[iRow] == "蒸気機関");   // 英は開幕で蒸気機関を知っている＝軌道の行は無い
+            Assert.True(events > 0 && traces > 4 * 24, $"前提が崩れた（出来事 {events}・軌道の行 {traces}）");
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

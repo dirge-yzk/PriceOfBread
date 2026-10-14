@@ -68,6 +68,7 @@ public static class Instruments
         public bool HaveLedger; public double PrevTreasury; public readonly double[] PrevLedger = new double[NCat];
         public readonly List<string> Rows = new();
         public readonly List<string> SiteRows = new();     // (316) 産地の判定の行（開いた行 O・開く前の軌道 T）＝四半期の末に site_s へ書く
+        public readonly List<string> DiscRows = new();     // (320) 発見の表の行の出来事（E）と蒸気機関・機関車の軌道（T）＝四半期の末に disc_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
@@ -165,6 +166,7 @@ public static class Instruments
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
         public System.IO.StreamWriter? Site, Metal; public bool SiteHeader, MetalHeader;   // (316) 産地の判定の行・世界の金銀の行
+        public System.IO.StreamWriter? Disc; public bool DiscHeader;                       // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
         public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
@@ -1375,6 +1377,7 @@ public static class Instruments
         }
         RegionRows(sk, seed, q, sim);
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
+        DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1387,6 +1390,7 @@ public static class Instruments
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
+        sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
@@ -1482,6 +1486,35 @@ public static class Instruments
             if (!cp.IsCanal) continue;
             bool opened = sk.CanalOpened.TryGetValue(cp.Id, out var oq);
             wr.WriteLine(string.Join('\t', cp.Id, opened ? oq.Quarter.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1", opened ? oq.Year.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1"));
+        }
+    }
+
+    // ---------------------------------------------------------------- 発見の表の行の出来事（流れG・(320)）----------------------------------------------------------------
+
+    /// <summary>★(320) 発見の表の行が解禁した（<see cref="Discovery.Step"/> の解禁の所・読むだけ）。<paramref name="ratio"/>＝代替する物の値段（実質）と新しいレシピで作る費用（物を生む行だけ・無ければ NaN）。</summary>
+    internal static void DiscoveryEvent(World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
+        => S(w).DiscRows.Add(DiscRowText("E", w, row, t, ratio));
+
+    /// <summary>★(320) まだ解禁していない蒸気機関と機関車の行の軌道（<see cref="Discovery.Step"/> の判定の頭・読むだけ・四半期ごと）。</summary>
+    internal static void DiscoveryTrace(World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
+        => S(w).DiscRows.Add(DiscRowText("T", w, row, t, ratio));
+
+    static string DiscRowText(string kind, World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
+        => string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), Catalog.Discoveries[row].Name,
+            F(t.Tech), F(t.Need), F(t.Transmit), ratio is (0, 0) ? "nan" : F(ratio.Replaced), ratio is (0, 0) ? "nan" : F(ratio.Cost), F(w.TechLevel));   // 書かれなかった行（新兵器・制度・思想など）は nan
+
+    /// <summary>★(320) 発見の表 <c>disc_s</c>（読むだけ）。列＝kind（E 解禁した行／T 蒸気機関と機関車の軌道〔まだ解禁していない四半期ごと〕）・quarter・year・nation・row・techTerm・needTerm・transmitTerm・
+    /// replaced（代替する物の値段・実質）・cost（新しいレシピで作る費用）・techLevel（★(322) 合流：枝 dg の列 ownOpen は外した＝解禁した後の盤面を読むので製法の行で常に 1 になる・反証役 dg〔bv〕#1）。replaced／cost は物を生む行（製法・新製品）だけ（それ以外は nan）。</summary>
+    static void DiscTable(Sink sk, ulong seed, int q, MultiNationSim sim)
+    {
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        sk.Disc ??= Open("disc", seed);
+        if (!sk.DiscHeader) { sk.Disc.WriteLine("kind\tquarter\tyear\tnation\trow\ttechTerm\tneedTerm\ttransmitTerm\treplaced\tcost\ttechLevel"); sk.DiscHeader = true; }
+        foreach (var n in sim.Nations)
+        {
+            var st = S(n.World);
+            foreach (var row in st.DiscRows) { int tab = row.IndexOf('\t'); sk.Disc.WriteLine(row.Substring(0, tab + 1) + I(q) + row.Substring(tab)); }
+            st.DiscRows.Clear();
         }
     }
 
