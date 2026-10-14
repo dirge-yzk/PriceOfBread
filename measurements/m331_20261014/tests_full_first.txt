@@ -1,0 +1,3 @@
+  失敗 PriceOfBread.Tests.InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる [1 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+失敗!   -失敗:     2、合格:  1165、スキップ:     0、合計:  1167、期間: 6 m 43 s - PriceOfBread.Tests.dll (net10.0)
