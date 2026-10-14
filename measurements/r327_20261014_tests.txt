@@ -1,0 +1,9 @@
+# (327) 隔離ビルド D:/PoB_work/ta_327/art（Release）・枝 ta の先端（SimCore は 75cbf960 から 1 字も変えていない）
+# 1回目（75cbf960）: 失敗 5 本（PolicyPoliticsTests.実税が重い世界ほど…・WriterRatchetTests.計算量の見た件数 3 件・TechInstitutionTests.制度は社会の発展で…）→ 処置は diag_tests_327.txt
+1回目: 失敗!   -失敗:     5、合格:  1141、スキップ:     0、合計:  1146、期間: 8 m 19 s - PriceOfBread.Tests.dll (net10.0)
+# 2回目（テスト修正後）: 失敗 1 本（GoodIdGuardTests.数値の財idは書かない＝助走の整数の配列）→ 足し算の繰り返しへ
+2回目: 失敗!   -失敗:     1、合格:  1145、スキップ:     0、合計:  1146、期間: 6 m 42 s - PriceOfBread.Tests.dll (net10.0)
+# 3回目（最終）
+3回目: 成功!   -失敗:     0、合格:  1146、スキップ:     0、合計:  1146、期間: 40 m 11 s - PriceOfBread.Tests.dll (net10.0)
+# FullLength（Category=FullLength）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 7 m 31 s - PriceOfBread.Tests.dll (net10.0)

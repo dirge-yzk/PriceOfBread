@@ -1,0 +1,17 @@
+=== M0_unmutated
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+=== M1_三項が新しい式へ入らない(>0を>99)
+[xUnit.net 00:00:08.48]     PriceOfBread.Tests.CrimeBasisTests.旗1の窃盗は純移転で受け手の増えが被害の和と一致し所得比は係数の上限を超えない [FAIL]
+[xUnit.net 00:00:08.55]     PriceOfBread.Tests.CrimeBasisTests.旗1で貯蓄が0の人は被害に遭わず貯蓄が所得と率の積より小さい人は貯蓄で頭打ち [FAIL]
+[xUnit.net 00:00:08.56]     PriceOfBread.Tests.CrimeBasisTests.旗1の窃盗の被害は前の月の所得に率を掛けた額で貯蓄の在庫に比例しない [FAIL]
+失敗!   -失敗:     3、合格:     2、スキップ:     0、合計:     5、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+=== M2_貯蓄での頭打ちを外す
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+=== M3_既定を0へ戻す
+[xUnit.net 00:00:09.96]     PriceOfBread.Tests.CrimeBasisTests.既定の窃盗の基数は1で所得に比例する [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
+=== M2_貯蓄での頭打ちを外す × 既存の計器の番人と窃盗に触れる番人
+[xUnit.net 00:07:02.39]     PriceOfBread.Tests.InstrumentsTests.州ごとの窃盗の列は貯蓄の書き手の台帳の窃盗の受け取りと国ごとに合う [FAIL]
+失敗!   -失敗:     1、合格:    75、スキップ:     0、合計:    76、期間: 7 m 14 s - PriceOfBread.Tests.dll (net10.0)
+MUT2DONE
