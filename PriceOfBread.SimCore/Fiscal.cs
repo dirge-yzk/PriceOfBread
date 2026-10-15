@@ -83,8 +83,7 @@ public static class Fiscal
         var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
         for (int pi = 0; pi < pops.Count; pi++)
         {
-            var p = pops[pi];
-            if (p.IsCriminal) continue;   // ★(366) 犯罪者は申告せず頭数も把握されない＝所得税・累進・人頭税・土地税・十分の一税の請求を立てない（盗んだ金に所得税が掛かるのを防ぐ）。犯罪者の POP が無い世界では偽＝恒等
+            var p = pops[pi]; if (p.IsCriminal) continue;   // ★(366) 犯罪者は申告せず頭数も把握されない＝所得税・累進・人頭税・土地税・十分の一税の請求を立てない（盗んだ金に所得税が掛かるのを防ぐ）。犯罪者の POP が無い世界では偽＝恒等
             // C-高4（史実検証2026-07-22）：身分制免税＝旧体制（絶対王政/専制/幕府）では閉鎖階級（貴族・聖職）の課税ベースが過少査定される
             //（taille réelle・ユンカーの Grundsteuer 免除。完全免除でなく割引＝vingtième は貴族にも課された）。立憲/共和/軍政では特権消滅。
             // PrivilegeTaxDiscount=0 で privBase=1.0＝乗算恒等（IEEE754で×1.0は厳密）。所得税と土地税の両方に掛ける（土地税だけ塞がないと同じ金が逃げ道を替えるだけ）。

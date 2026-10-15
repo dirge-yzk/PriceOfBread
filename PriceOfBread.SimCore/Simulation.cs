@@ -905,14 +905,6 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = servant.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = default });
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // 高度労働力（技師）＋石油火力
         AddArtisanProducers(producers, artisanIdx: 11);   // 職人の工房（工場との並存レシピ）。家事使用人を末尾(12)に足したので pops.Count-1 でなく職人の明示index
-        // ★(366) 犯罪者 POP（治安と所有の安全 段0 の器）：CriminalClassEnabled=0（既定）では pops に 1 件も足さない＝Pops.Count も既存の添字も不変＝**厳密恒等**（研究者と同じ作法）。
-        //   >0 のとき末尾に規模 0 の器を 1 つ置く（添字は pops.Count＝研究者の有無で 13 か 14）。入口・出口・奪う金は段2（この段では誰も犯罪者にならない）。
-        int criminalIdx = -1;
-        if (coef.CriminalClassEnabled > 0)
-        {
-            criminalIdx = pops.Count;
-            pops.Add(new Pop { ClassId = PopClass.Criminal, ClassName = "犯罪者", IsUrban = false, Size = 0, Satisfaction = 1.0, Literacy = worker.Literacy });
-        }
         // （兵力の生産者は (145) で削除＝兵士の給与は EconomyStep が兵士POPの所得へ直接払う＝兵力の市場は (140) から読み手が無かった）
         AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
         var region = new Region
@@ -937,7 +929,7 @@ public sealed class Simulation
             CulturalGoodId = cfg.CulturalGoodId,   // 象徴的主食（表示アンカーのみ・固執機構は廃止）
             InvestorPopIndex = 3, MeritFromIndex = 2, MeritToIndex = 4,
             ClergyPopIndex = 6, TeacherPopIndex = 7, BureaucratPopIndex = 8, DoctorPopIndex = 9, SoldierPopIndex = 5, MerchantPopIndex = 10, ArtisanPopIndex = 11, ServantPopIndex = 12,
-            CriminalPopIndex = criminalIdx, ResearcherPopIndex = resFrac > 0 ? 13 : -1,   // ★段②：研究者は休眠時 -1＝Meritocracy の昇格先に数えない（POP自体も並んでいない）
+            CriminalPopIndex = AddCriminalPop(pops, coef, worker.Literacy), ResearcherPopIndex = resFrac > 0 ? 13 : -1,   // ★段②：研究者は休眠時 -1＝Meritocracy の昇格先に数えない（POP自体も並んでいない）
             EducationProducerIndex = eduIdx,
             ColonialResources = [],   // 多国＝植民地ベース（首都州 Id0 のみ StepMonth で更新）
             Goods = goods,
@@ -1482,12 +1474,6 @@ public sealed class Simulation
         int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8, coef: coef, clergyIdx: 5);
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // ★2026-09-26：渡された coef を使う（旧＝ここだけ既定の係数を新しく作っていた＝国ごとの係数・テストの w.Coef.X= が植民地州の高度な生産者に届かなかった・col-26）
         AddArtisanProducers(producers, artisanIdx: 10);
-        int criminalIdx = -1;   // ★(366) 犯罪者 POP の器（BuildProvince と同じ作法・CriminalClassEnabled=0 では並べない＝厳密恒等）
-        if (coef.CriminalClassEnabled > 0)
-        {
-            criminalIdx = pops.Count;
-            pops.Add(new Pop { ClassId = PopClass.Criminal, ClassName = "犯罪者", IsUrban = false, Size = 0, Satisfaction = 1.0, Literacy = peasant.Literacy });
-        }
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 11, OwnerPopIndex = 11, RentShare = default });
         AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
         var region = new Region
@@ -1506,7 +1492,7 @@ public sealed class Simulation
             CapitalEnabled = true, Industrialization = 0.0,
             CulturalGoodId = w.Region.CulturalGoodId,
             InvestorPopIndex = 3, MeritFromIndex = 2, MeritToIndex = 4,
-            ClergyPopIndex = 5, TeacherPopIndex = 6, BureaucratPopIndex = 7, DoctorPopIndex = 8, MerchantPopIndex = 9, ArtisanPopIndex = 10, ServantPopIndex = 11, SoldierPopIndex = 12, CriminalPopIndex = criminalIdx,
+            ClergyPopIndex = 5, TeacherPopIndex = 6, BureaucratPopIndex = 7, DoctorPopIndex = 8, MerchantPopIndex = 9, ArtisanPopIndex = 10, ServantPopIndex = 11, SoldierPopIndex = 12, CriminalPopIndex = AddCriminalPop(pops, coef, peasant.Literacy),
             EducationProducerIndex = eduIdx,
             ColonialResources = [],   // 植民地財の産出は首都州（Id0）のみが担う（BuildProvince と同じ）
             Goods = goods, Pops = pops, Producers = producers, Markets = markets,
@@ -3166,5 +3152,15 @@ public sealed class Simulation
             if (!(ratio > 0) || double.IsInfinity(ratio)) continue;
             p.MarginalCost /= System.Math.Pow(ratio, gate);
         }
+    }
+
+    /// <summary>★(366) 犯罪者 POP の器（治安と所有の安全 段0）。CriminalClassEnabled=0（既定）では pops に 1 件も足さず -1 を返す＝Pops.Count も既存の添字も不変＝**厳密恒等**（研究者と同じ作法）。
+    /// &gt;0 のとき末尾に規模 0 の器を 1 つ置き、その添字（pops.Count−1＝研究者の有無で 13 か 14）を返す。入口・出口・奪う金は段2（この段では誰も犯罪者にならない）。
+    /// 本土の州（BuildProvince）と昇格した植民地の州（PromoteColonyToRegion）が Region の初期化子の中で呼ぶ＝行を増やさない（flow_s の経路名の鍵が行番号のため）。</summary>
+    private static int AddCriminalPop(List<Pop> pops, Coefficients coef, double literacy)
+    {
+        if (!(coef.CriminalClassEnabled > 0)) return -1;
+        pops.Add(new Pop { ClassId = PopClass.Criminal, ClassName = "犯罪者", IsUrban = false, Size = 0, Satisfaction = 1.0, Literacy = literacy });
+        return pops.Count - 1;
     }
 }
