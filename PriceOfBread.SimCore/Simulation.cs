@@ -2677,6 +2677,7 @@ public sealed class Simulation
         bool noMothers = !(massBirthKey > 1e-12);   // 産む人が居ない（全 POP の出産可能のプール≈0）＝出生0（否定形＝NaN も0）
         if (noMothers) totalBirths = 0;
         bool recovering = net >= totalBirths;
+        if (Instruments.On) Instruments.DemoMonth(World, recovering, noMothers);   // (361) 計器（読むだけ）：人口の月の数・回復期の月・産む人が居ない月
         double totalDeaths = recovering ? 0 : totalBirths - net;
         double deathRate = recovering ? 0 : totalDeaths / (ageDeath ? massDeathWeight : massPop);   // 平常の死の率（年齢の指数×規模の1単位あたり・月）
         double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
@@ -2720,6 +2721,7 @@ public sealed class Simulation
                     diagBirths += births; diagDeaths += births - (newSize - p.Size);   // ★計器：死亡＝実際に減った人数（クランプ込み）＝出生−実際の増分
                     // ★年齢の層（2026-09-30 段4e 後半）：加齢（毎月・層の上の端の密度で上の層へ・70以上は死でだけ出る）→ 出生（0〜9 の男女へ半々）→ 平常の死（年齢の重み＝
                     //   標準のピラミッドが1783年の出生で動かない重み）＝実際に減った人数。旧＝子供比（約16年で成人・AgingYears）と老年比（約45年で老年・WorkingYears・老衰の重み3・上限0.15）の2本。
+                    if (Instruments.On) Instruments.DemoPop(World, p, size0, births, births - (newSize - size0), mortW);   // (361) 計器（読むだけ・StepAges の前＝年齢の構成は月初のまま）
                     p.StepAges(size0, births, births - (newSize - size0), mortW);
                     p.Size = newSize;
                     // 人11a（新生児の識字の無償相続の解消）：出生は Size を増やすだけで Literacy 不変＝新生児が親popの識字を暗黙相続（無償の世代間伝達＝識字ラチェット）。
@@ -2743,6 +2745,7 @@ public sealed class Simulation
                     if (excess > 0 && p.Size > 0)
                     {
                         double d = Math.Min(excess, p.Size);
+                        if (Instruments.On) Instruments.DemoFamine(World, p, d, disasterW);   // (361) 計器（読むだけ・KillAges の前）
                         p.KillAges(p.Size, d, disasterW);   // 年齢の層：災害死の年齢の重み（0〜9 と 60以上に厚く）
                         p.Size -= d; famineDead += d;
                     }
