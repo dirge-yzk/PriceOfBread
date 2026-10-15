@@ -1,0 +1,51 @@
+apply M1_active_filter
+== M1_active_filter
+[xUnit.net 00:00:14.27]     PriceOfBread.Tests.PopScanTests.国家会計の走査は絞らず稼働中の走査は稼働中の州だけを返す [FAIL]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+restore M1_active_filter
+apply M2_cache_outside
+== M2_cache_outside
+[xUnit.net 00:00:08.49]     PriceOfBread.Tests.PopScanTests.窓の中の和は求め直しと一致し立場の土台の写しは使い回しを壊さない [FAIL]
+[xUnit.net 00:00:08.55]     PriceOfBread.Tests.PopScanTests.四半期首の窓の中でPOPは動かず窓は閉じて出てくる [FAIL]
+[xUnit.net 00:00:08.59]     PriceOfBread.Tests.PopScanTests.番人は窓の中のPOPへの書き込みを書いた段で止める [FAIL]
+[xUnit.net 00:00:08.63]     PriceOfBread.Tests.PopScanTests.州の価格水準の1周の求め方は旧の2周とビット一致 [FAIL]
+失敗!   -失敗:     4、合格:     6、スキップ:     0、合計:    10、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+restore M2_cache_outside
+apply M3_build_nocopy
+== M3_build_nocopy
+[xUnit.net 00:00:09.64]     PriceOfBread.Tests.PopScanTests.窓の中の和は求め直しと一致し立場の土台の写しは使い回しを壊さない [FAIL]
+[xUnit.net 00:00:09.92]     PriceOfBread.Tests.PopScanTests.四半期首の窓の中でPOPは動かず窓は閉じて出てくる [FAIL]
+失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+restore M3_build_nocopy
+apply M4_taxscan_shift
+== M4_taxscan_shift
+[xUnit.net 00:00:13.77]     PriceOfBread.Tests.PopScanTests.課税の走査の並行の列はPOPの一覧と同じ並びで対になる [FAIL]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+restore M4_taxscan_shift
+apply M5_regional_sum
+== M5_regional_sum
+[xUnit.net 00:00:11.30]     PriceOfBread.Tests.PopScanTests.州の価格水準の1周の求め方は旧の2周とビット一致 [FAIL]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+restore M5_regional_sum
+apply M6_held_wrong
+== M6_held_wrong
+[xUnit.net 00:00:07.76]     PriceOfBread.Tests.PopScanTests.払い手の保有の合計を渡す移し方は渡さない移し方とビット一致 [FAIL]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+restore M6_held_wrong
+apply M7_no_distribute_guard
+== M7_no_distribute_guard
+[xUnit.net 00:00:06.53]     PriceOfBread.Tests.PopScanTests.番人は窓の中のPOPへの書き込みを書いた段で止める [FAIL]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+restore M7_no_distribute_guard
+apply M8_check_noop
+== M8_check_noop
+[xUnit.net 00:00:05.35]     PriceOfBread.Tests.PopScanTests.払い手の保有の合計を渡す移し方は渡さない移し方とビット一致 [FAIL]
+[xUnit.net 00:00:05.36]     PriceOfBread.Tests.PopScanTests.番人は使い回しが求め直しと1ビットでも違えば止める [FAIL]
+失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+restore M8_check_noop
+apply M9_landed_wrong
+== M9_landed_wrong
+[xUnit.net 00:00:03.11]     PriceOfBread.Tests.PopScanTests.窓の中の和は求め直しと一致し立場の土台の写しは使い回しを壊さない [FAIL]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+restore M9_landed_wrong
+ALLDONE
