@@ -9,7 +9,7 @@
 /// </summary>
 public static class PopClass
 {
-    public const int Count = 14;   // ★段6（特権）の発言権集計の配列長（Noble..Researcher）
+    public const int Count = 15;   // ★段6（特権）の発言権集計の配列長（Noble..Criminal）。(366) 犯罪者 14 を足して 14→15
 
     public const int Noble = 0;        // 貴族（Closed＝世襲・行政の近世的担い手）
     public const int Peasant = 1;      // 農民（＝SoldierRecruitClassA・登用訓練の母体）
@@ -22,4 +22,5 @@ public static class PopClass
     public const int Bureaucrat = 8;   // 官僚（行政力/俸給/汚職分配/弾圧の受け手）
     public const int Artisan = 11;     // 職人（手工業の自営＝ギルド）
     public const int Researcher = 13;  // ★研究者（高等教育を算出＝大学。2026-08-17）。⚠ResearcherFrac=0 の世界には**存在しない**（pops に並べない＝Pops.Count が13のまま）
+    public const int Criminal = 14;    // ★犯罪者（落ちる先の無い失業者がなる階級。(366) 治安と所有の安全 段0 の器＝設計 doc 20261015_治安と所有の安全_設計 §3-1）。⚠CriminalClassEnabled=0 の世界には**存在しない**（pops に並べない＝Pops.Count は増えない・Region.CriminalPopIndex=-1）。Closed も IsSoldier も付けない
 }

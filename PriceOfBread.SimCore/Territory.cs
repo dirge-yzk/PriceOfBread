@@ -252,7 +252,7 @@ public static class Territory
             // 人4：地域間移民は経済移民＝閉鎖階級（貴族・聖職）・兵士を動かさない（PopDecision:20 の明示除外・越境の !IsSoldier と対称化）。
             // 貴族が毎月世界の技術水準へ経済移民する非対称の解消（★2026-09-26：旗 RegionMigrationExcludesClosed（#17点火）を焼き込み・x-01）。
             // FrontierDevelopment 較正世界は農民pop単体（Closed/IsSoldier なし）＝TerritoryTests 中立。
-            if (sp.Closed || sp.IsSoldier) continue;
+            if (sp.Closed || sp.IsSoldier || sp.IsCriminal) continue;   // ★(366) 犯罪者は経済移民の比較（賃金）が当てはまらない＝州の間を動かない（犯罪者の POP が無い世界では偽＝恒等）
             double moveSize = size0[i] * fraction;
             if (!(moveSize > 1e-9)) continue;   // ★否定形＝NaN も弾く（旧 `moveSize <= 1e-9` は NaN で false ＝ Size/Savings を直接 NaN 化していた）。有限値では厳密同値
             if (dst.PopOf(sp.ClassId) is not { } dp) continue;   // 目的地に同クラスが無ければ移さない（最小核）

@@ -19,7 +19,7 @@ public static class PopDecision
         Pop? rural = null, urban = null;
         foreach (var p in region.Pops)
         {
-            if (p.Closed) continue;        // 閉鎖階級（世襲の特権身分）は移民しない（史実の身分制）
+            if (p.Closed || p.IsCriminal) continue;        // 閉鎖階級（世襲の特権身分）は移民しない（史実の身分制）。★(366) 犯罪者も農村↔都市の再配分に入れない（IsUrban=false の犯罪者が「農村」の代表に化けるのを防ぐ）
             if (p.IsUrban) urban ??= p;
             else rural ??= p;
         }

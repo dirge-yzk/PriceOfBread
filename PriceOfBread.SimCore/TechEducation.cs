@@ -86,6 +86,7 @@ public static class TechEducation
                 if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                 {
+                    if (p.IsCriminal) continue;   // ★(366) 犯罪者は教育を買っても識字へ効かせない（教育の供給を吸うだけ＝設計 doc §4）。犯罪者の POP が無い世界では偽＝恒等
                     if (p.Literacy < p.EducationFill)
                     {
                         double litFactor = 1.0 + c.ChildLaborLiteracyPenalty * (1.0 - LaborSupply.ChildLaborRate(p, r, c, p.SupplyFill));   // 児童労働率0＝学校へ（旧 禁止＝1+penalty）／率1＝全員労働（旧 許可＝1.0）
@@ -109,7 +110,7 @@ public static class TechEducation
             {
                 if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
-                    p.EducationEma += c.EducationEmaRate * (p.EducationFill - p.EducationEma);   // 修学年数の蓄積（当月Fillへ緩慢に収束＝一時的な途絶を平滑化）
+                    if (!p.IsCriminal) p.EducationEma += c.EducationEmaRate * (p.EducationFill - p.EducationEma);   // ★(366) 犯罪者は修学の蓄えも伸ばさない   // 修学年数の蓄積（当月Fillへ緩慢に収束＝一時的な途絶を平滑化）
             }
 
         // 教育2段階：識字 → エリート＝**平均識字 × 世俗水路**。世俗水路は法のswitchでなく

@@ -500,6 +500,7 @@ public sealed class Coefficients
     public double CrimeUrbanWeight = 0.6;        // B-4：都市化（過密スラム・匿名性・相対的剥奪）が犯罪を増幅＝犯罪率×(1+これ×都市人口比)。19世紀ロンドン/パリのスラム犯罪
     // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CrimeSatPenalty/CrimeWealthFear/CorruptionLegitimacyErosion＝live・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===
     public double CrimeSatPenalty = 0.5;         // 犯罪→満足度の還流（crime-is-dead-end）：crimeRate×これ を地域全POPの満足度から減算（治安崩壊＝非物質厚生の毀損）。第(iii)段2026-07-09で0.5へ有効化済み
+    public double CriminalClassEnabled = 0.0;    // ★(366) 犯罪者 POP の器の主フラグ（治安と所有の安全 段0）＝0 で犯罪者 POP を並べない（Pops.Count も Region.CriminalPopIndex=-1 も不変・厳密恒等）／>0 で州の Pops の末尾に規模 0 の犯罪者を 1 つ置く（段1 の腕 A）。⚠構築時に読む係数＝シムを作ってから書き換えても届かない（POB_COEF は構築前に渡す）
     public double CrimeWealthFearWeight = 0.5;   // 財産不安（theft-no-property-disincentive）：富裕POP(wealthRel>1)ほど犯罪被害の満足度減を強める＝『失う物を守る』反動を満足度経由でIdeologyへ。**0.5で有効化済み**（台帳訂正2026-07-12・旧注記「既定0」は誤り）
     public double CorruptionLegitimacyErosion = 0.015;// 腐敗→正統性侵食（corruption-only-fiscal-leak）：(1−AdminEfficiency)×avgConsc×これ をlegから減算＝意識ある社会ほど縁故主義を許さない。較正は行政財なしAdminEff=1で0。**ストック意味論＝旧0.15×regen0.02**
     // ★物理削除2026-08-21【墓標・再点火禁止】：WelfareTargeting（休眠0.0・D群却下2026-07-18）＝福祉フラット加算 WelfareSatComponent の困窮targeting配分。

@@ -441,7 +441,7 @@ public static class Meritocracy
                 {
                     var t = r.Pops[i];
                     if (ReferenceEquals(t, src) || t.Closed || t.IsSoldier || t.Size <= Eps) continue;
-                    if (i == r.InvestorPopIndex || i == r.MerchantPopIndex) continue;
+                    if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                     if (ClassOf(r, i) != cls) continue;
                     double inc = JobIncome(t, src);   // ★(161) 比べ方の1本（送り手が兵士なら民間の職を働き手1人あたりで・民間どうしは頭数あたり＝旧と同じ値）
                     if (inc > bestInc) { bestInc = inc; best = i; }
@@ -491,7 +491,7 @@ public static class Meritocracy
                 var t = r.Pops[i];
                 if (ReferenceEquals(t, src) || t.Closed || t.Size <= Eps) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;   // ★(155) 兵士の席は空きがあるときだけ候補（席の数＝定員・⑦）
-                if (i == r.InvestorPopIndex || i == r.MerchantPopIndex) continue;
+                if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
                 double inc = JobIncome(t, src);
                 if (inc <= minIncome) continue;
@@ -535,7 +535,7 @@ public static class Meritocracy
                 var t = r.Pops[i];
                 if (ReferenceEquals(t, src) || t.Closed || t.Size <= Eps) continue;   // 空の職は給与が観測できない（①と同じ）
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;   // ★(155) 兵士の席は空きがあるときだけ候補（⑦）
-                if (i == r.InvestorPopIndex || i == r.MerchantPopIndex) continue;
+                if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
                 double inc = JobIncome(t, src);
                 if (inc > bestInc) { bestInc = inc; bestIdx = i; }

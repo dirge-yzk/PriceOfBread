@@ -1426,6 +1426,8 @@ public static partial class Instruments
     const int PxMonthGameMax = 24, PxGoodsGameMax = 48;
 
     static string PxI(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    // (366) 貯蓄・所得・支出の階級別の列の数。犯罪者（階級 14）の列は CriminalClassEnabled>0 の世界にだけ出す＝犯罪者の POP が無い世界の出力（表の頭の列も）は NC を 14→15 にしても 1 バイトも変わらない。読み手（an_e7・an_x280）は 0..13 を名前で引く。
+    static int PxCols(World w) => w.Coef.CriminalClassEnabled > 0 ? NC : NC - 1;
 
     /// <summary>(280) 物価の財の表の対象：主食・日用品と、専売の梯子の最初の群（World.ExciseGoods＝ビール・蒸留酒・ワイン・煙草・茶・コーヒー・石鹸）。名前で引く（番号でなく Catalog の財から・README §1-9）。</summary>
     static bool PxGoodPicked(int g) => Catalog.Goods[g].Tier == GoodTier.Staple || Catalog.Goods[g].Tier == GoodTier.Daily || System.Array.IndexOf(World.ExciseGoods, g) >= 0;
@@ -1475,9 +1477,9 @@ public static partial class Instruments
         cols.Add(("time", (warm ? "wm" : "qm") + PxI(warm ? st.PxMonthWarmN++ : st.PxMonthGameN++))); cols.Add(("nation", NameOf(w))); C("year", w.Year);
         C("priceLevelIndex", w.PriceLevel); C("broadMoneyStock", total); C("treasuryStock", w.Treasury.Value); C("outstandingLoansStock", w.OutstandingLoans.Value);
         C("convertibilityShare", w.Convertibility); C("stapleRelPriceMedianRatio", stapleRel); C("dailyRelPriceMedianRatio", dailyRel);
-        for (int c = 0; c < NC; c++) C("savingsStockClass" + PxI(c), sav[c]);
-        for (int c = 0; c < NC; c++) C("earnedPerMonthClass" + PxI(c), earn[c]);
-        for (int c = 0; c < NC; c++) C("paidPerMonthClass" + PxI(c), paid[c]);
+        for (int c = 0; c < PxCols(w); c++) C("savingsStockClass" + PxI(c), sav[c]);
+        for (int c = 0; c < PxCols(w); c++) C("earnedPerMonthClass" + PxI(c), earn[c]);
+        for (int c = 0; c < PxCols(w); c++) C("paidPerMonthClass" + PxI(c), paid[c]);
         st.PxMonthHdr ??= string.Join('\t', cols.Select(x => x.Name));
         st.PxMonthRows.Add(string.Join('\t', cols.Select(x => x.Value)));
     }
@@ -1504,9 +1506,9 @@ public static partial class Instruments
         st.PxResetSince = 0; st.PxResetCount = 0;
         C("savingsLambdaRatio", double.NaN); C("savingsBeforeRebaseStock", double.NaN); C("savingsAfterRebaseStock", double.NaN); C("savingsRebaseRatio", double.NaN);
         C("monthsInQuarterCount", st.PxMonths);
-        for (int c = 0; c < NC; c++) C("savingsStockClass" + PxI(c), sav[c]);
-        for (int c = 0; c < NC; c++) C("earnedPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxEarn[c] / st.PxMonths : double.NaN);
-        for (int c = 0; c < NC; c++) C("paidPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxPaid[c] / st.PxMonths : double.NaN);
+        for (int c = 0; c < PxCols(w); c++) C("savingsStockClass" + PxI(c), sav[c]);
+        for (int c = 0; c < PxCols(w); c++) C("earnedPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxEarn[c] / st.PxMonths : double.NaN);
+        for (int c = 0; c < PxCols(w); c++) C("paidPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxPaid[c] / st.PxMonths : double.NaN);
         st.PxHdr ??= string.Join('\t', cols.Select(x => x.Name));
         st.PxRows.Add(string.Join('\t', cols.Select(x => x.Value)));
         Array.Clear(st.PxEarn); Array.Clear(st.PxPaid); st.PxMonths = 0;
@@ -1551,9 +1553,9 @@ public static partial class Instruments
         st.PxResetSince = 0; st.PxResetCount = 0;
         C("savingsLambdaRatio", lambda); C("savingsBeforeRebaseStock", before); C("savingsAfterRebaseStock", after); C("savingsRebaseRatio", before > 0 ? after / before : double.NaN);
         C("monthsInQuarterCount", st.PxMonths);
-        for (int c = 0; c < NC; c++) C("savingsStockClass" + PxI(c), sav[c]);
-        for (int c = 0; c < NC; c++) C("earnedPerMonthClass" + PxI(c), double.NaN);
-        for (int c = 0; c < NC; c++) C("paidPerMonthClass" + PxI(c), double.NaN);
+        for (int c = 0; c < PxCols(w); c++) C("savingsStockClass" + PxI(c), sav[c]);
+        for (int c = 0; c < PxCols(w); c++) C("earnedPerMonthClass" + PxI(c), double.NaN);
+        for (int c = 0; c < PxCols(w); c++) C("paidPerMonthClass" + PxI(c), double.NaN);
         st.PxHdr ??= string.Join('\t', cols.Select(x => x.Name));
         st.PxRows.Add(string.Join('\t', cols.Select(x => x.Value)));
     }

@@ -164,6 +164,9 @@ public sealed class Pop
     /// 旧＝同じ述語 `!Closed &amp;&amp; !IsSoldier` を人頭税・失業・州の闘争度と群衆・鎮圧の死・緩和・昇格の受け手が10か所で手書きした。
     /// 大衆（<see cref="Politics.IsMassPop"/>）はこれから近代エリートを除いたもの。福祉の受給者（Fiscal＝閉鎖階級と近代エリートを除く＝兵士を含む）は別の集合（作者裁定 2026-09-28 §14-2 の3）。</summary>
     public bool IsCommoner => !Closed && !IsSoldier;
+    /// <summary>★犯罪者の述語（(366) 治安と所有の安全 段0 の器）＝階級の番号だけで判る（新しい旗を持たない＝思想⑩）。CriminalClassEnabled=0 の世界には該当する POP が無い＝どの読み手でも偽。
+    /// 税・州の間の移民・識字の伸びから外す分岐が読む（IsSoldier が 84 箇所に読まれる規模の点検を避けるため、旗でなく述語）。転職の行き先は州の添字 <see cref="Region.CriminalPopIndex"/> で外す。</summary>
+    public bool IsCriminal => ClassId == PopClass.Criminal;
     /// <summary>★民兵率（段5＝民兵と寝返り・作者裁定3・2026-09-08）＝このPOPの**何割が武器を取ったか**（0..1）。
     /// ⚠<see cref="IsSoldier"/> とは**別概念**：兵士POPは常備軍そのもの（軍事費で徴募され、職業として軍にいる＝戦力の素・戦死の母数）。
     ///   民兵は**職業を持ったまま武器を取った民間人**＝畑と工場から労働が抜け（EconomyStep の労働供給が ×(1−これ)）、
@@ -920,6 +923,7 @@ public sealed class Region
     public int TeacherPopIndex = -1;                  // 教師（公教育・義務教育の教育を生産）
     public int BureaucratPopIndex = -1;               // 官僚（行政を生産。不足＝汚職で税収が漏れる）
     public int DoctorPopIndex = -1;                   // 医者（医療を生産。人口扶養力に効く）
+    public int CriminalPopIndex = -1;                 // 犯罪者（(366) 治安と所有の安全 段0 の器）。⚠-1＝犯罪者 POP を持たない世界（CriminalClassEnabled=0・較正の小世界）＝除外の分岐（転職の行き先）は添字 ≧0 の時だけ働く＝厳密恒等。点火の世界では州の Pops の末尾（添字は構築の順で決まる）
     public int ResearcherPopIndex = -1;               // 研究者（高等教育を生産＝大学。段②の昇格先）。⚠-1＝研究者POPを持たない世界＝昇格先に数えない＝厳密恒等
     public int SoldierPopIndex = -1;                  // 兵士（国家が雇う＝給与は EconomyStep が所得へ直接・(145) で兵力の市場を削除）
     public int MerchantPopIndex = -1;                 // 商人（流通マージン＋貿易の仲立ちで稼ぎ、商船を買って海運容量を支える）
