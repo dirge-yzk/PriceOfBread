@@ -93,6 +93,63 @@ public class PopulationInstrumentTests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
+    [Fact]
+    public void 飢えが無い盤面では層別の死の率が年齢の重みの比に合う()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_pop3_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var c = new Coefficients(); c.FamineExcessMortality = 0;
+            var sim = new Simulation(new Scenario { Seed = 1, Kind = ScenarioKind.RegionalFamine, Coef = c }, new NullAgent());
+            sim.Run(60);
+            var a = Instruments.PopAccOf(sim.World);
+            Assert.Equal(0, a.DeathsFamine);
+            Assert.True(a.DeathsNormal > 0);
+            var w = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // 外の出所：年齢の重み（1人あたりの相対の死亡率）
+            double mu0 = a.BandDeaths[0] / a.BandExposure[0];
+            Assert.True(mu0 > 0);
+            for (int b = 1; b < Pop.AgeBands; b++)
+            {
+                double ratio = a.BandDeaths[b] / a.BandExposure[b] / mu0, expect = w[2 * b] / w[0];
+                Assert.True(Math.Abs(ratio - expect) <= 0.05 * expect, $"層 {b} の死の率の比 {ratio:F4} が年齢の重みの比 {expect:F4} に合わない");
+            }
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void 戦死は窓ごとの差分で積まれ_窓の和が累計に合う()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_pop4_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "フランス");
+        try
+        {
+            var sim = Make();
+            Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+            var fr = sim.Nations.First(n => Instruments.NameOf(n.World) == "フランス").World;
+            double inject0 = fr.WarDeadCumulative;
+            try
+            {
+                for (int q = 0; q < 6; q++)
+                {
+                    sim.StepQuarter();
+                    if (q == 1) fr.WarDeadCumulative += 7;   // 戦死の台帳へ直接足す（診断の欄・動学は読まない）＝窓ごとの差分で拾われるか
+                    if (q == 3) fr.WarDeadCumulative += 3;
+                    Instruments.Quarter(sim, 1789UL, q);
+                }
+            }
+            finally { Instruments.Close(sim); }
+            var (h, rows) = Table(System.IO.Path.Combine(dir, "pop_s1789.tsv"));
+            var mine = rows.Where(r => r[0] == "N" && r[4] == "フランス").ToList();
+            Assert.Equal(6, mine.Count);
+            Assert.Equal(fr.WarDeadCumulative - inject0, mine.Sum(r => Col(h, r, "warDeadK")), 9);                                   // 窓の和＝累計
+            Assert.True(Col(h, mine[1], "warDeadK") >= 7 && Col(h, mine[3], "warDeadK") >= 3);
+            Assert.True(Col(h, mine[2], "warDeadK") < 7, "窓 1 の増分が次の窓にも積まれた＝差分でなく累計を書いている");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
     private static MultiNationSim Make() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
 
     private static List<long> Digest(MultiNationSim sim)
