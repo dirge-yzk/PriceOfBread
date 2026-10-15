@@ -417,7 +417,7 @@ public sealed class Simulation
             markets[d.Id] = new Market { Price = refP, Stock = 200, TargetStock = 200 };
             // 教育・医療・行政・兵力は担い手pop（教師・医者・官僚・兵士）が居ない簡易世界では持たない（市場の器だけ＝休眠。識字は Fill=1.0 の従来挙動）。
             if (d.Tier == GoodTier.Service && d.Id != Catalog.LaborId && d.Id != Catalog.AdvLaborId && d.Id != Catalog.FarmLaborId) continue;
-            goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, Spoilage = Catalog.SpoilageOf(d.Id), NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
+            goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, WearRatePerMonth = d.WearRatePerMonth, NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
             if (d.IsColonial) continue;   // 植民地素材は国内生産者なし（輸入のみ）
             if (d.Tier == GoodTier.Service) continue;   // 役務（労働力・高度労働力・農業労働力）の生産者は下で紐づけて追加
             bool isFactory = d.Inputs.Length > 0;
@@ -495,7 +495,7 @@ public sealed class Simulation
         foreach (var d in Catalog.Goods)
         {
             double refP = Catalog.RefPrices[d.Id];   // 参照価格＝労働込みの実費用連鎖（深い連鎖ほど高い＝自然な価格勾配。役務は固定錨）
-            goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, Spoilage = Catalog.SpoilageOf(d.Id), NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
+            goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, WearRatePerMonth = d.WearRatePerMonth, NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
             markets[d.Id] = new Market { Price = refP, Stock = 200, TargetStock = 200 };
             if (d.IsColonial) continue;   // 植民地素材は国内生産者なし（輸入のみ・植民地と制海で供給）
             if (d.Tier == GoodTier.Service) continue;   // 役務は AddServiceProducers が担い手popに紐づけて追加
@@ -971,7 +971,7 @@ public sealed class Simulation
         foreach (var d in Catalog.Goods)
         {
             double refP = Catalog.RefPrices[d.Id];   // 参照価格＝労働込みの実費用連鎖（深い連鎖ほど高い＝自然な価格勾配。役務は固定錨）
-            goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, Spoilage = Catalog.SpoilageOf(d.Id), NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
+            goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, WearRatePerMonth = d.WearRatePerMonth, NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
             markets[d.Id] = new Market { Price = refP, Stock = 200, TargetStock = 200 };
             // 旧「colonial財は国内生産者なし（輸入のみ）」のスキップを撤廃＝colonial財も RGO 生産者を持つ。
             // 賦存州（州が Resources に列挙）のみ産み、非賦存州の生産者は BuildProvince が除去する＝茶＝中国/ゴム＝東南ア…の偏在が地理から創発（287州世界）。

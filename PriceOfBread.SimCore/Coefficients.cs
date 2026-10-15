@@ -2280,7 +2280,7 @@ public sealed class Coefficients
     // ★★艦の在庫（2026-08-01・作者裁定「陸軍は兵士ありき、海軍は戦艦ありき。海軍の強さが海兵の数から決まるのはナンセンス」）。
     // ⚠実測（1914断面・上陸ゲート点火後）の海軍力順位＝1位 福州王国／2位 長沙王国／3位 清／…／**イギリスは8位圏外**。
     //   原因＝NavalPower = Military × NavalShare で Military が兵数駆動＝**人口の多い国が艦を1隻も持たずに海軍大国になる**。
-    // ★機構＝購入した戦闘艦を積み、耐久財の劣化率（Catalog.SpoilageOf＝月0.5%）で減らす。**重みは RefPrice（建造費）**＝
+    // ★機構＝購入した戦闘艦を積み、耐久財の損耗の率（財の表の WearRatePerMonth＝月0.5%）で減らす。**重みは RefPrice（建造費）**＝
     //   弩級戦艦とスループの差は既にデータにあるので、**新しい定数を1本も置かない**。
     // ★★(189)（2026-10-03・00一覧 §0-A の 0h＝(187) の反証役 va1#1「この裁定が現物で効いていない」）：2026-08-02 の点火は min(艦隊, 乗員＝軍の総合ゲージ×海軍シェア) だった＝
     //   乗員の側が全ての主要国・全ての断面で律速（1815 英＝艦隊 1.92 対 乗員 0.12）・軍艦の購入も兵の頭数×海の割合＝海軍の強さは海兵の数（陸軍の即応度と質つき）のままだった。
@@ -2336,7 +2336,7 @@ public sealed class Coefficients
     //   ＝読み手（Diplomacy の開幕の判定と艦隊駆動の旗・Runner の navalgauge）ごと削除。経済を持つ国の海軍力は常に艦の在庫から（Power.NavalPower）・抽象標的（経済を持たない）だけが静的な Military×AbstractNavalShare のまま。
     // ⚠★係数 FleetStockPerNavalGauge は**撤去した**（2026-08-01・裁定③の但し書き）。定数Kは時代で×7.74漂い
     //   （Q200 228029／Q350 54429／Q524 29452）、2倍の許容を大きく超えた。換算分母は現行の調達式から導出する
-    //   ＝EconomyStep.FleetGaugeDenominator（SoldiersPerMilitary × MilitaryUpkeepScale × Σ(rate×RefPrice) ÷ Spoilage）。★(189) 単位の換算として残す（艦の強さのゲージ＝建造費×段の乗数の和÷これ・開幕の艦隊の播種）
+    //   ＝EconomyStep.FleetGaugeDenominator（SoldiersPerMilitary × MilitaryUpkeepScale × Σ(rate×RefPrice) ÷ WearRatePerMonth）。★(189) 単位の換算として残す（艦の強さのゲージ＝建造費×段の乗数の和÷これ・開幕の艦隊の播種）
     public int WarshipGoodId = Catalog.WarshipId;                // 軍艦（★(189) 1隻の乗員の物差し＝帆船の戦列艦〔EconomyStep.FleetCrewPerHull〕。旧＝修理需要の宛先〔撤去〕）
     public Share AbstractNavalShare = new(0.10);      // 抽象標的（被植民地勢力）の海軍シェア＝弱小（陸の守りが主）
     public double DistanceWarDecay = 1.0;         // 戦力投射の距離減衰（1あたり1万km）。遠い戦線ほど押し合いが鈍る＝クリミア/ボーア型の兵站難

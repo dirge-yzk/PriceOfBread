@@ -82,11 +82,11 @@ public static class EconomyStep
     /// ── 導出（自由な数がゼロ）──────────────────────────────────────────────────
     ///   兵士1あたりの軍需購入額 ＝ MilitaryUpkeepScale × Σ_all(rate_g × RefPrice_g)
     ///   ゲージ1あたり           ＝ ×SoldiersPerMilitary
-    ///   定常ストック            ＝ ÷Spoilage(軍艦)
+    ///   定常ストック            ＝ ÷WearRatePerMonth(軍艦)
     /// ⚠Σ は**艦艇だけでなく基本装備の全体**を採る。理由＝艦艇だけで割ると、艦艇の調達比 rate が小さいぶん
     ///   ゲージが実勢の数倍に膨らみ、min の艦隊側が二度と binding しなくなる（＝人口海軍への逆戻り）。
     ///   全体で割ると「ゲージ1の軍隊が艦に振り向けている割合」がそのまま艦隊ゲージになり、両側が張り合う。
-    /// ⚠**新しい係数を1本も置かない**（MilitaryUpkeepScale・SoldiersPerMilitary・MilitaryRates・RefPrice・Spoilage は全て既存）。
+    /// ⚠**新しい係数を1本も置かない**（MilitaryUpkeepScale・SoldiersPerMilitary・MilitaryRates・RefPrice・WearRatePerMonth は全て既存）。
     /// ★(189)（2026-10-03）：min（艦隊, 乗員）は無くなった＝これは単位の換算だけ（艦の強さのゲージ＝Σ隻数×1隻の強さ〔<see cref="FleetUnitPower"/>〕÷これ・
     ///   1隻の乗員〔<see cref="FleetCrewPerHull"/>〕・目標の艦隊の換算〔<see cref="FleetOrder"/>〕・開幕の艦隊の播種〔Diplomacy〕が同じ1本を読む）。</summary>
     internal static double FleetGaugeDenominator(Region region, Coefficients coef)
@@ -94,7 +94,7 @@ public static class EconomyStep
         double basket = 0;
         for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             basket += coef.MilitaryRates[b] * (region.GoodOf(coef.MilitaryGoods[b])?.RefPrice ?? 0);   // ⚠発見の解禁度（DiscoveredRates）は掛けない＝ここは**必要量ではなく単位換算**（ゲージ→建造費）であり、発見のたびに換算尺が動くと艦隊ゲージが不連続に伸縮する
-        double sp = Catalog.SpoilageOf(coef.WarshipGoodId);
+        double sp = Catalog.WearRatePerMonthOf(coef.WarshipGoodId);
         if (!(basket > 0) || !(sp > 1e-12)) return double.NaN;   // ⚠否定形＝NaN が来ても落ちる側へ倒す
         return coef.SoldiersPerMilitary * coef.MilitaryUpkeepScale * basket / sp;
     }
@@ -222,7 +222,7 @@ public static class EconomyStep
     /// ×海の金の割合（Simulation の equipRoom×seaShare の写し・必要額で切る前＝目標から導く必要額に依らず循環しない）。0以下・NaN は払えない（0）。</summary>
     internal static double FleetAffordableCost(World world, Coefficients coef)
     {
-        double spoil = Catalog.SpoilageOf(coef.WarshipGoodId);
+        double spoil = Catalog.WearRatePerMonthOf(coef.WarshipGoodId);
         double room = Military.EnvelopeOf(world, coef) - Military.SoldierPayFull(world, coef);
         return room > 0 && spoil > 1e-12 ? room * world.NavalSpendShare.Value / spoil : 0;   // 否定形＝NaN は払えない側（艦を目標に入れない）
     }
@@ -560,9 +560,9 @@ public static class EconomyStep
         double refrigeration = coef.RefrigerationEffect > 0 && Discovery.Refrigeration(region.Discovered)
             ? PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
         foreach (var good in region.Goods)
-            if (good.Spoilage > 0)
+            if (good.WearRatePerMonth > 0)
             {
-                double spoil = good.Spoilage;
+                double spoil = good.WearRatePerMonth;
                 if (refrigeration > 0 && Catalog.IsRefrigerable(good.Id)) spoil *= 1.0 - coef.RefrigerationEffect * refrigeration;
                 var spm = region.Markets[good.Id];
                 // 廃棄材の記録（2026-08-08・作者要望）：消える量を12ヶ月リングへ。純テレメトリ＝力学の読み手なし・
@@ -2034,14 +2034,14 @@ public static class EconomyStep
             // ★★**累積＋腐敗へ改修（2026-08-01・作者指示）**：「耐久財と食料で分けるべき。セメントは余るならスタックしてよいが食料は良くて3か月。
             //   何にしろ過剰な生産はロスであるべきで、ロスは金を生まないべきだ」。
             // ⚠旧＝**1段の上書き**＝充当されなかった手持ちが理由なく消えていた（物量が飛ぶ／耐久財と生鮮の区別も無い）。
-            // ★新＝残った手持ちに今月の余りを足し、**市場の在庫とまったく同じ腐敗率**（Catalog.SpoilageOf＝セメント/鋼 月0.5%・製材 月2%）で減衰させる。
+            // ★新＝残った手持ちに今月の余りを足し、**市場の在庫とまったく同じ損耗の率**（財の表の WearRatePerMonth＝セメント/鋼 月0.5%・製材 月2%・読み口は Catalog.DurabilityOf＝残る割合）で減衰させる。
             //   ・耐久財は実質スタックでき、生鮮なら数か月で消える＝**財の性質が保管期間を決める**（新しい分類も新しい定数も置かない）
             //   ・手持ちが増えるほど新規購入（investDemand）が減る＝**自己制限的で有界**（新しい上限を置く必要がない）
             //   ・腐敗は手持ちを減らすだけで支払いを伴わない＝**ロスは金を生まない**（市場側の腐敗と同一の会計。財収支にも触れない＝市場外のバッファ）
             if (coef.ConstructionMaterialCarryover > 0 && region.ConstructionCarryover is { } carry)
             {
                 void KeepMaterial(int gid, double eff, double cons)
-                    => carry[gid] = (carry[gid] + coef.ConstructionMaterialCarryover * Math.Max(0, eff - built * cons)) * (1.0 - Catalog.SpoilageOf(gid));
+                    => carry[gid] = (carry[gid] + coef.ConstructionMaterialCarryover * Math.Max(0, eff - built * cons)) * Catalog.DurabilityOf(gid);
                 KeepMaterial(sg, sEff, coef.ConsSteel);
                 KeepMaterial(mg, mEff, coef.ConsMachine);
                 KeepMaterial(cg, cEff, coef.ConsCement);
@@ -2213,10 +2213,10 @@ public static class EconomyStep
         // ⚠助走中は劣化も止める（GridDecayRate と GridReplaceRate は対＝片方だけ効かせると定常が崩れる。係数の注記どおり）。
         if (!warmFrozen) region.GridCapacity *= coef.GridDecayRate;   // 送電網の経年劣化（維持＝再敷設が要る。経18：既定0.998＝旧直書きと同値・中立。GridReplaceRate=0.002 の置換需要と対＝二重表現。notes参照）
 
-        // ★艦の劣化（2026-10-03 (189)）：州の艦の在庫（Region.FleetUnits）は財の劣化率（Catalog.SpoilageOf＝月0.5%）で毎月減る＝全ての州（首都の外に残った艦も同じ＝劣化しない死蔵の在庫を作らない）。
+        // ★艦の劣化（2026-10-03 (189)）：州の艦の在庫（Region.FleetUnits）は財の損耗の率（財の表の WearRatePerMonth＝月0.5%・読み口は Catalog.DurabilityOf）で毎月減る＝全ての州（首都の外に残った艦も同じ＝劣化しない死蔵の在庫を作らない）。
         //   買えた艦は下の決済で積む（劣化→積み増し＝旧 FleetStock と同じ順）。
         if (region.FleetUnits is { } fleetUnits)
-            for (int k = 0; k < fleetUnits.Length && k < coef.FleetGoodIds.Length; k++) fleetUnits[k] *= 1.0 - Catalog.SpoilageOf(coef.FleetGoodIds[k]);
+            for (int k = 0; k < fleetUnits.Length && k < coef.FleetGoodIds.Length; k++) fleetUnits[k] *= Catalog.DurabilityOf(coef.FleetGoodIds[k]);
 
         // 軍需の決済：国家が買った分の支払い（→生産者の売上）。総額は StateSpent＝Simulation が国庫から引く（国庫→生産者で保存）。
         // 装備充足率＝必要量(MilitaryScale×レート)のうち実際に買えた割合（予算afford×在庫ration）。武器が買えないと兵力が下がる（Militaryで即応度に乗算）。

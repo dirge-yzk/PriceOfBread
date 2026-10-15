@@ -350,7 +350,7 @@ public class GoodIdGuardTests
         ("辞書・組の初期化子 { n, \"名前\" }", new Regex(@"(?:\{|(?<![\w)\]>])\()\s*\d+\s*,\s*""""")),   // 直前が識別子の ( は呼び出し（MkPop(0, "貴族", …) など＝階級の番号）であって組ではない
         ("GoodDef の直書き new(n, \"名前\"", new Regex(@"\bnew\s*\(\s*\d+\s*,\s*""""")),
         ("財を引数に取る呼び出し", new Regex(@"\b(?:BuildFactory|CanBuildFactory|CanSellFactory|SellFactory|FindFactory|SetStateTarget|SetSubsidyRate|SetSubsidy|CanSubsidize|OutputOf|PaySales|GoodOf)\([^,()]*,\s*\d+\s*[,)]")),
-        ("財を引数に取る呼び出し（先頭）", new Regex(@"\b(?:SelectProdGood|SetFactoryTarget|NationFactoryUnits|WeatherExposure|IsMineral|IsColonial|RgoBoosterGoods|RgoFacilityName|SpoilageOf|TransportWeight|FactorySpec|ServiceRefPrice|AdvLaborPerOutput|IsRefrigerable|IsScarceMineral|TradeBiasOf)\(\s*\d+\s*[,)]")),
+        ("財を引数に取る呼び出し（先頭）", new Regex(@"\b(?:SelectProdGood|SetFactoryTarget|NationFactoryUnits|WeatherExposure|IsMineral|IsColonial|RgoBoosterGoods|RgoFacilityName|WearRatePerMonthOf|DurabilityOf|UseOf|TransportWeight|FactorySpec|ServiceRefPrice|AdvLaborPerOutput|IsRefrigerable|IsScarceMineral|TradeBiasOf)\(\s*\d+\s*[,)]")),
         ("名前つき引数 good: n", new Regex(@"\b(?:goodId|good|gid|goodIdx)\s*:\s*\d+\b")),
         ("無名の整数の配列", new Regex(@"\bnew\s*(?:int)?\s*\[\s*\]\s*\{\s*\d+\s*(?:,\s*\d+\s*)*\}")),
         ("foreach (… in [整数の並び])", new Regex(@"\bin\s+\[\s*\d+\s*(?:,\s*\d+\s*)*\]")),

@@ -112,7 +112,8 @@ public sealed class Good
     public double RefPrice;     // 需要曲線の参照価格
     public double Elasticity;   // 価格弾力（必需＝小・日用/奢侈＝大）
     public bool IsColonial;     // 気候ゲート財（Catalog.IsColonial と同値）＝賦存州（Resources に列挙）のみ産する。非賦存州は BuildProvince が生産者を除去
-    public double Spoilage;     // 在庫の月次腐敗・劣化率（保管期間に応じた減衰。穀物/生鮮＝高・金属/燃料＝低。だぶつきの恒久滞留を防ぐ）
+    public double WearRatePerMonth;     // 在庫の月の損耗の率（財の表 GoodDef.WearRatePerMonth の写し＝保管期間に応じた減衰。穀物/生鮮＝高・金属/燃料＝低。だぶつきの恒久滞留を防ぐ）。率そのものを使う式の読み口＝耐久度は下の Durability
+    public double Durability => 1.0 - WearRatePerMonth;   // ★(346) 耐久度 d（1か月あたり残る割合）＝読み口だけ（保存しない・Catalog.DurabilityOf と同じ式）
     public bool NonTradeable;   // 輸送不可（労働力・教育・行政・医療＝役務）。地元市場のみ＝貿易・世界価格の対象外
     public bool GrainChain;     // A-高3：穀物法の課税客体（麦・小麦粉）。史実の客体は穀粒と挽き割りで、焼成パンの国際貿易は存在しない（旗 CornLawGrainChainGate は 2026-09-26 に焼き込み）
     public double Nutrition;    // ★塊1（2026-08-31）：非主食の食べ物度（加工肉/干物=1.0）。主食はTierで常に食料＝この値は読まない。FoodIncludesAnimalProtein=0 で不読＝恒等
@@ -1075,7 +1076,7 @@ public sealed class Region
     public string[] ForeignRulers = [];
     public double[] ForeignShares = [];
     // ★艦の在庫（2026-10-03 (189)・作者の裁定 2026-08-01「陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」）＝
-    //   戦闘艦の財ごとの隻数（Coefficients.FleetGoodIds と同じ並び＝軍艦・装甲艦・弩級戦艦）。買えた艦（EconomyStep の海軍の調達）を積み、財の劣化率（Catalog.SpoilageOf）で毎月減り、交戦の海で沈む（Diplomacy の艦隊摩耗）。
+    //   戦闘艦の財ごとの隻数（Coefficients.FleetGoodIds と同じ並び＝軍艦・装甲艦・弩級戦艦）。買えた艦（EconomyStep の海軍の調達）を積み、財の損耗の率（財の表の WearRatePerMonth・読み口は Catalog.DurabilityOf）で毎月減り、交戦の海で沈む（Diplomacy の艦隊摩耗）。
     //   null＝まだ艦を持ったことがない（0隻）。Diplomacy が艦の強さ（段の効き＝建造費×段の乗数）と乗員（隻数×1隻の乗員）を毎月ここから導く。
     //   ⚠旧 FleetStock（建造費で重みを付けた1本の和）を置き換えた＝段の効き（強さ）と隻数（乗員）は1本の和からは導けない（思想⑩：本当に要る分だけ＝財ごとの隻数）。
     public double[]? FleetUnits;

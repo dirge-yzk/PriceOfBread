@@ -2114,7 +2114,7 @@ if (args.Length > 0 && args[0] == "fleetprobe")
             bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
             double wsum = 0; int wn = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { wsum += Military.RecruitWage(r, c, last: false, keep: keep) * c.SoldierPayMult; wn++; }
             double pay1 = wn > 0 ? wsum / wn : 0;
-            double spoil = Catalog.SpoilageOf(c.WarshipGoodId);
+            double spoil = Catalog.WearRatePerMonthOf(c.WarshipGoodId);
             double room = System.Math.Max(0, env - payFull);
             double navBud = room * w.NavalSpendShare.Value;
             bool port = false; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { port = true; break; }
