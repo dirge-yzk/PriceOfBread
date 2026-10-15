@@ -32,13 +32,13 @@ public class ConsumptionEntryTests
         e.PayBegin();
         e.Pay(0, 20, 20, 1, 1); e.Pay(1, 3, 3, 1, 1); e.Pay(2, 30, 30, 1, 1);
         e.GoodEnd(true);
-        // 日用品（層 1・財 8）：欲しい量＝15・6（C は欲しい量 0＝呼ばれない）。A は 10 だけ払い、B は買えない。
+        // 日用品（層 1・財 8）：欲しい量＝15・6（C は欲しい量 0＝呼ばれない）。A は 10・B は 4 を払う（B は食料 3＋日用品 4＝7 ＞ Y 5＝食料だけでは所得を超えない）。
         e.GoodBegin(8, 1);
         e.Want(0, 15, 15, 15, 1); e.Want(1, 6, 6, 0, 1);
         e.PayBegin();
-        e.Pay(0, 10, 10, 1, 1); e.Pay(1, 0, 0, 1, 1); e.Pay(2, 0, 0, 1, 1);
+        e.Pay(0, 10, 10, 1, 1); e.Pay(1, 4, 4, 1, 1); e.Pay(2, 0, 0, 1, 1);
         e.GoodEnd(true);
-        region.Pops[0].PaidPerMonth = new MoneyPerMonth(30); region.Pops[1].PaidPerMonth = new MoneyPerMonth(3); region.Pops[2].PaidPerMonth = new MoneyPerMonth(30);
+        region.Pops[0].PaidPerMonth = new MoneyPerMonth(30); region.Pops[1].PaidPerMonth = new MoneyPerMonth(7); region.Pops[2].PaidPerMonth = new MoneyPerMonth(30);
         e.Finish();
 
         int cls = PopClass.Peasant * k;
@@ -52,13 +52,13 @@ public class ConsumptionEntryTests
         Assert.Equal(15 + 6, V("dailyWantPerMonth"), 12);
         Assert.Equal(20 + 8 + 30, V("foodDemandPerMonth"), 12);
         Assert.Equal(20 + 3 + 30, V("foodPaidPerMonth"), 12);
-        Assert.Equal(10, V("dailyPaidPerMonth"), 12);
-        Assert.Equal(30 + 3 + 30, V("consumptionPaidPerMonth"), 12);
+        Assert.Equal(10 + 4, V("dailyPaidPerMonth"), 12);
+        Assert.Equal(30 + 7 + 30, V("consumptionPaidPerMonth"), 12);
         // 供給後の籠＝欲しい量×配給率（1）×値段（1）＝欲しい量と同じ
         Assert.Equal(20 + 12 + 30, V("foodSuppliedWantPerMonth"), 12);
         Assert.Equal(15 + 6, V("dailySuppliedWantPerMonth"), 12);
-        // 余り X（設計 doc §1-2・層1・2 の支払いを引く）＝max(0, Y−食料の支払い−日用品の支払い)：A＝30−20−10＝0・B＝5−3−0＝2・C＝10−30→0
-        Assert.Equal(2, V("remainderPerMonth"), 12);
+        // 余り X（設計 doc §1-2・層1・2 の支払いを引く）＝max(0, Y−食料の支払い−日用品の支払い)：A＝30−20−10＝0・B＝5−3−4＝−2→0・C＝10−30→0
+        Assert.Equal(0, V("remainderPerMonth"), 12);
         // 余り（所得−籠）＝max(0, Y−食料の籠−日用品の籠)：A＝30−35＜0→0・B＝5−18→0・C＝10−30→0
         Assert.Equal(0, V("remainderByBasketPerMonth"), 12);
         // 籠の不足 max(0, F+D−Y)：A＝35−30＝5・B＝18−5＝13・C＝30−10＝20
@@ -70,10 +70,10 @@ public class ConsumptionEntryTests
         // 層2 の予算の影 max(0, min(Y,S)−min(食料の支払い,S))：A＝30−20＝10・B＝min(5,8)−min(3,8)＝2・C＝10−min(30,50)＝−20→0。削られる額 max(0, 日用品の籠−予算)：A＝15−10＝5・B＝6−2＝4・C＝0
         Assert.Equal(10 + 2, V("shadowDailyBudgetPerMonth"), 12);
         Assert.Equal(5 + 4, V("shadowDailyCutPerMonth"), 12);
-        // 取り崩し max(0, 消費の支払い−Y)：A＝30−30＝0・B＝3−5→0・C＝30−10＝20。食料だけ：A＝20−30→0・B＝0・C＝30−10＝20。食料と日用品：A＝30−30＝0
-        Assert.Equal(20, V("savingsDrawPerMonth"), 12);
+        // 取り崩し max(0, 消費の支払い−Y)：A＝30−30＝0・B＝7−5＝2（食料だけでは 3＜5＝食料の取り崩しは 0 のまま）・C＝30−10＝20。食料だけ：A＝20−30→0・B＝3−5→0・C＝30−10＝20。食料と日用品：A＝30−30＝0・B＝(3+4)−5＝2・C＝20
+        Assert.Equal(20 + 2, V("savingsDrawPerMonth"), 12);
         Assert.Equal(20, V("foodSavingsDrawPerMonth"), 12);
-        Assert.Equal(20, V("basketSavingsDrawPerMonth"), 12);
+        Assert.Equal(20 + 2, V("basketSavingsDrawPerMonth"), 12);
         // 籠が所得で賄える POP の人口（F+D≦Y）：誰も賄えない＝0。食料の籠が予算を超える POP：B（12＞8）＝20
         Assert.Equal(0, V("basketCoveredPopK"), 12);
         Assert.Equal(20, V("foodUnaffordablePopK"), 12);
@@ -84,8 +84,8 @@ public class ConsumptionEntryTests
         Assert.Equal(35 * nExpected, num[7], 10);
         Assert.Equal(62, bas[7], 12);
         Assert.Equal(53, bou[7], 12);
-        // 日用品：欲しい量＝21・人口 35・b＝21/35＝0.6・最大の1人あたり購入＝A の 1.0＞b → min＝b。Σmin＝min(10, 6)＝6＋0＋0。n＝6/(35×0.6)＝6/21
-        Assert.Equal(35 * (6.0 / 21.0), num[8], 10);
+        // 日用品：欲しい量＝21・人口 35・b＝21/35＝0.6・最大の1人あたり購入＝A の 10/10＝1.0（B は 4/20＝0.2）＞b → min＝b。Σmin＝min(10, 0.6×10)＝6＋min(4, 0.6×20)＝4＋0＝10。n＝10/(35×0.6)＝10/21
+        Assert.Equal(35 * (10.0 / 21.0), num[8], 10);
         // 役務の優先配分の財は必需の割合を出さない（Den に積まない）
         e.GoodBegin(9, 3); e.Want(0, 5, 5, 5, 1); e.PayBegin(); e.PayService(PopClass.Peasant, 5, 5); e.GoodEnd(false);
         Assert.Equal(0, den[9], 12); Assert.Equal(5, bas[9], 12); Assert.Equal(5, bou[9], 12);
@@ -185,7 +185,7 @@ public class ConsumptionEntryTests
             Assert.True(cRows.Count >= 4 * quarters * 3, $"C 行が少なすぎる（{cRows.Count}）＝計器が働いていない");
             Assert.NotEmpty(nRows);
             Assert.Equal(cRows.Count, cRows.Select(r => (r[1], r[4], r[6])).Distinct().Count());   // (四半期, 国の個体, 階級) が一意
-            double wantAll = 0, drawAll = 0; int maxRemainder = 0;
+            double wantAll = 0, drawAll = 0, unfilledAll = 0; int maxRemainder = 0;
             foreach (var r in cRows)
             {
                 double food = Col(h, r, "foodPaidPerMonth"), daily = Col(h, r, "dailyPaidPerMonth"), lux = Col(h, r, "luxuryPaidPerMonth"), other = Col(h, r, "otherPaidPerMonth");
@@ -203,11 +203,13 @@ public class ConsumptionEntryTests
                 Assert.True(Col(h, r, "popK") > 0);
                 Assert.True(Col(h, r, "remainderPerMonth") >= 0 && Col(h, r, "savingsDrawPerMonth") >= 0 && Col(h, r, "basketGapPerMonth") >= 0);
                 Assert.True(Col(h, r, "remainderPerMonth") <= Col(h, r, "earnedLastPositivePerMonth") + 1e-6 * Math.Max(1, Col(h, r, "earnedLastPositivePerMonth")), "余りが所得を超えた");
-                wantAll += Col(h, r, "foodWantPerMonth") + Col(h, r, "dailyWantPerMonth"); drawAll += Col(h, r, "savingsDrawPerMonth");
+                wantAll += Col(h, r, "foodWantPerMonth") + Col(h, r, "dailyWantPerMonth"); drawAll += Col(h, r, "savingsDrawPerMonth"); unfilledAll += Col(h, r, "foodUnfilledHeldPerMonth");
                 if (Col(h, r, "remainderPerMonth") > 0) maxRemainder++;
             }
             Assert.True(wantAll > 0, "籠の費用が全て 0＝需要の口に来ていない");
             Assert.True(maxRemainder > 0, "余りが正の行が1つも無い（富裕層の余りが出ていない対照）");
+            Assert.True(unfilledAll > 0, "在庫切れの食料を予算から外した額が全て 0＝その口が働いていない（対照）");
+            Assert.True(drawAll > 0, "所得を超えた支払い（取り崩し）が全て 0＝対照の盤面になっていない");
 
             // spend_s（別の経路の積算）：窓 0（四半期 0〜3）の国×階級の good 行の支払いの和＝C 行の4四半期の平均の 4 層の支払いの和
             var (sh, sr) = Table(System.IO.Path.Combine(dir, "spend_s1789.tsv"));
