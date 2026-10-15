@@ -1,0 +1,9 @@
+# (348) 突然変異（合流の木 c0bc62ab の上で一時的に当てて戻した）
+## M1 Instruments.EntryCtx.Finish の X と Xb を入れ替える → ConsumptionEntryTests 赤
+[xUnit.net 00:00:00.65]     PriceOfBread.Tests.ConsumptionEntryTests.手の算術で余りと取り崩しと層2の影と必需の割合の影が出る [FAIL]
+Expected: 80 (rounded from 80)
+Actual:   70 (rounded from 70)
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+## M2 ClearScratch.FitZero の Array.Clear を消す → ClearScratchTests 赤
+[xUnit.net 00:00:03.35]     PriceOfBread.Tests.ClearScratchTests.大きな盤面で作業領域を汚した後でも同じ種は同じ貿易の出力を出す [FAIL]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
