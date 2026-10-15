@@ -784,7 +784,7 @@ public sealed class Simulation
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
         var (city, share, resources, culture, religion, _, _, _, _, _, _) = p;   // Coastal/HeldSince/Malarial/ArableLand/IndShare/Rule は p.* で直接参照（★2026-10-01 (148)：LateResources を削除＝産地の発見の表 Catalog.Sites へ）
-        var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
+        var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
         // 列挙する州（中国の茶州等）は下の賦存ブースト×3.5で産み、加工して世界へ売る＝供給の偏在が地理から創発する（287州世界）。
         producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(resources, pr.GoodId) < 0 && SiteRowFor(city, pr.GoodId, coef, sharedWorld) < 0);
@@ -819,9 +819,9 @@ public sealed class Simulation
                 // ★実測の矛盾がこれで解ける：チャールストン（綿花・葉煙草の賦存州）は米の farmLordShare=0 ゆえ
                 //   「奴隷プランテーションが自作農の家族農場として計上される」状態だった。
                 // ★思想②に抵触しない＝world.json の resources は一次データ（国ごとの倍率ではない）。PlantationRentShare=0 で旧値＝厳密恒等。
-                if (pr.IsRgo && coef.PlantationRentShare > 0)
+                if (pr.IsRgo && coef.PlantationRentShare.Value > 0)
                 {
-                    double plantation = coef.PlantationRentShare;
+                    double plantation = coef.PlantationRentShare.Value;
                     if (plantation > pr.RentShare.Value) { pr.RentShare = new Share(plantation); pr.OwnerPopIndex = 0; }   // 所有は地主階級（貴族）＝経営者のいる大農園
                 }
             }
@@ -1413,9 +1413,9 @@ public sealed class Simulation
                 // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
                 //   上書きは**輸出作物**（主食でない賦存＝Colonial.ExportCrop・Colonial.AbsenteeRgo と同じ判別）だけ＝主食は現地の地主のまま（作者 2026-09-29「主食の生産は現地の地主のまま」・
                 //   メモリの要約）＝自作農の床 0.3・持ち主は農民（「現地の地主＝今の持ち主〔農民〕のまま」は AI の読み・(177) 反証役 vc1#7＝地代の記録〔LandRent〕を首都へ移すのも AI の設計＝植民地の州の地税の課税ベースから外れる）。輸出作物の地代は植民地格の間は不在地主（本国の首都の投資家）へ送る（EconomyStep の④・InternationalMarket.PaySales）。
-                if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare > pr.RentShare.Value)
+                if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare.Value > pr.RentShare.Value)
                 {
-                    pr.RentShare = new Share(coef.PlantationRentShare); pr.OwnerPopIndex = 3;
+                    pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;
                 }
             }
             else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
@@ -2397,7 +2397,7 @@ public sealed class Simulation
     {
         if (!c.FertileWomenBirths) return p.Size;
         double fertile = FertilePool(p, c);
-        double init = p.InitialFertileShare.Value > 0 ? p.InitialFertileShare.Value : Math.Max(c.FertileShareFloor, fertile);   // フロアを現実的下限へ引き上げ可能に（1e-6 だと捕捉時 fertile≈0 の pop の重みが桁違いに膨張＝出生集中バグ）
+        double init = p.InitialFertileShare.Value > 0 ? p.InitialFertileShare.Value : Math.Max(c.FertileShareFloor.Value, fertile);   // フロアを現実的下限へ引き上げ可能に（1e-6 だと捕捉時 fertile≈0 の pop の重みが桁違いに膨張＝出生集中バグ）
         double w = p.Size * fertile / init;
         // 凍結分母の是正（休眠 FertileAbsoluteBlend=0・作者裁定2026-08-16＝年代スケール禁止・確立した形で）：
         // popごとの t=0 凍結分母 init は、初期構成が偏ったpop（聖職者F=0.10）でも捕捉時に重み=Size を保証するが、新生児（F≈0.5）の
@@ -2595,7 +2595,7 @@ public sealed class Simulation
             massPop += p.Size;
             massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // ★(143) 平常の死の配分鍵＝年齢の構成で重みを付けた規模
             if (c.FertileWomenBirths && p.InitialFertileShare.Value < 0)
-                p.InitialFertileShare = new Share(Math.Max(c.FertileShareFloor, FertilePool(p, c)));   // t=0 の出産可能女性プールを各popの相対基準として捕捉（BirthWeight と同一式＝人5 のカップル律速も t=0 正規化に反映）
+                p.InitialFertileShare = new Share(Math.Max(c.FertileShareFloor.Value, FertilePool(p, c)));   // t=0 の出産可能女性プールを各popの相対基準として捕捉（BirthWeight と同一式＝人5 のカップル律速も t=0 正規化に反映）
 
             double bwp = BirthWeight(p, c);
             massBirthWeight += bwp;   // ①Phase3：国の出生の総数の物差し（既定は Size＝massBirthWeight==massPop）

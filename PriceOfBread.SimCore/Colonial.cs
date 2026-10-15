@@ -112,7 +112,7 @@ public static class Colonial
             if (economic)   // 採算が合う間だけ＝市場任せ
             {
                 var inv = r.Pops[r.InvestorPopIndex];
-                double budget = c.ColonialInvestFrac * Math.Max(0, inv.Savings.Value);
+                double budget = c.ColonialInvestFrac.Value * Math.Max(0, inv.Savings.Value);
                 double affordableDev = devCost > 1e-9 ? budget / devCost : 0;
                 double byStock = Math.Min(r.Markets[ship].Stock / Math.Max(1e-9, c.ColonialShipPerInfra),
                                           r.Markets[rail].Stock / Math.Max(1e-9, c.ColonialRailPerInfra));
@@ -140,7 +140,7 @@ public static class Colonial
         double popSum = 0, perColonyOutput = 0;
         foreach (var col in w.SelfPower!.ColonyList)
         {
-            double exploitation = 1.0 - c.ColonialPayShare;   // 採取の上がりのうち現地に落ちない割合＝搾取
+            double exploitation = 1.0 - c.ColonialPayShare.Value;   // 採取の上がりのうち現地に落ちない割合＝搾取
             double malariaDeath = col.Malarial ? c.ColonialExploitMortality * (1.0 - malariaFill) : 0;   // マラリア地は既存の植民地月次死亡率で、キニーネ未供給の分だけ蝕まれる（マラリア専用倍率を置かない）
             // 開始前の助走（w.WarmupFrozen・2026-08-10）は現地人口・識字・不満を進めない＝どれも「年月が経って積み上がる」量。
             // 産出（PopSize比例）と資源供給は下でそのまま算出される＝助走で落ち着かせたい経済側は止まらない。

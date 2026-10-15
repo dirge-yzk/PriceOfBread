@@ -1,0 +1,5 @@
+(343) 線Y9 の突然変異（当てて赤を確かめ、`git checkout <ファイル>` で戻した・隔離ビルド D:/PoB_work/y9_343/art・Release）
+M1  Coefficients.TransitTollShare に [System.NonSerialized] -> `セーブの往復と名前引きで投資と取り分と率の係数の欄が残る` が赤（Expected 4602388264357977848 / Actual 0）
+M2  UnitTypeTests の宣言の表で World.GdpPcDrawdown の期待の型を Share -> RatePerMonth -> `量の宣言が表のとおり型になっている` が赤（"World.GdpPcDrawdown は RatePerMonth のはず（Share になっている）"）
+M3  World.GdpPcDrawdown の式を常に new(0) へ -> 最初は既存の WarThemeTests 42 本が全て緑（生き残った）。番人 `一人あたりの景気後退の度合いはピーク比の落ち込みである` を足して、同じ変異で赤（Expected 4596373779694328216 / Actual 0）
+M4  World.GdpPcDrawdown の門から `GdpPeak > 1` を外す -> 同じ番人が赤

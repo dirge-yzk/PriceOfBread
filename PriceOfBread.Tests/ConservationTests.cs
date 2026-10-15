@@ -810,7 +810,7 @@ public class ConservationTests
         (World w, Region port, List<Pop> pops, double[] sav, double treas, double cap) Port(double frac)
         {
             var sim = Uk(); var w = sim.Nations[0].World;
-            sim.Coef.PortInvestFrac = frac; w.Discovered[Discovery.SteamRow] = true;
+            sim.Coef.PortInvestFrac = new(frac); w.Discovered[Discovery.SteamRow] = true;
             var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
             foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;   // 他の港は混雑していない＝建設は1つの港だけ
             port.LastTradeThrottle = 0; w.FiscalFundingRatio = new Share(1.0);
@@ -818,7 +818,7 @@ public class ConservationTests
             var (pops, sav) = Sav(w);
             return (w, port, pops, sav, w.Treasury.Value, port.PortCapacity);
         }
-        var p0 = Port(0); var p1 = Port(new Coefficients().PortInvestFrac);
+        var p0 = Port(0); var p1 = Port(new Coefficients().PortInvestFrac.Value);
         var portLabor = Labor([p1.port]);
         var investor = p1.port.Pops[p1.port.InvestorPopIndex];
         Assert.NotEmpty(portLabor);
@@ -838,14 +838,14 @@ public class ConservationTests
         (World w, List<Pop> pops, double[] sav, double progress) Canal(double frac)
         {
             var sim = Uk(); var w = sim.Nations[0].World;
-            sim.Coef.CanalInvestFrac = frac;
+            sim.Coef.CanalInvestFrac = new(frac);
             var cp = sim.Diplomacy.Chokepoints.Find(k => k.IsCanal && !k.IsOpen)!;
             cp.TechGate = 0; cp.BuildCost = 1e18;
             Invoke(sim, "StepCanals");
             var (pops, sav) = Sav(w);
             return (w, pops, sav, cp.BuildProgress);
         }
-        var c0 = Canal(0); var c1 = Canal(new Coefficients().CanalInvestFrac);
+        var c0 = Canal(0); var c1 = Canal(new Coefficients().CanalInvestFrac.Value);
         var labor = Labor(c1.w.Regions.Where(r => r.State == RegionState.Active));
         var investors = new HashSet<Pop>(CapitalMarket.Investors(c1.w));   // ★段3-3（C13・2026-09-30）：運河の出資者＝投資家の述語の1本（配当の受け手と同じ集合・旧＝各州の資本家1人）
         Assert.NotEmpty(labor);
@@ -883,7 +883,7 @@ public class ConservationTests
             port.LastTradeThrottle = 0; port.LastPortThroughput = 1000;
             w.FiscalFundingRatio = new Share(r); w.FiscalCapacityPerMonth = new MoneyPerMonth(100);
             double invSav = port.Pops[port.InvestorPopIndex].Savings.Value;
-            double want = w.AdminSpending * w.Coef.PortStateFrac * 100 * Calendar.MonthsPerQuarter * r;   // 単独の混雑した港＝取扱高の比 1
+            double want = w.AdminSpending * w.Coef.PortStateFrac.Value * 100 * Calendar.MonthsPerQuarter * r;   // 単独の混雑した港＝取扱高の比 1
             double oldWay = 0.5 * 0.04 * invSav * r;   // 旧式＝PortStateFrac(0.5)×資本家の投資(PortInvestFrac 0.04×投資家の貯蓄)×r
             double t0 = w.Treasury.Value;
             typeof(MultiNationSim).GetMethod("StepPorts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, null);
@@ -930,7 +930,7 @@ public class ConservationTests
             double b0 = w.TreasuryLedger[(int)TreasuryCat.Devalue];
             for (int d = 0; d < 4; d++)   // 最後の4日（その中に締め月の月決算が1回）：毎日、盤面を置き直す（清算が混雑の旗と取扱高を書き換える）
             {
-                w.Coef.PortStateFrac = frac; w.Discovered[Discovery.SteamRow] = true;
+                w.Coef.PortStateFrac = new(frac); w.Discovered[Discovery.SteamRow] = true;
                 foreach (var x in w.Regions) { x.LastTradeThrottle = 0; x.LastPortThroughput = x.IsPort ? 1000 : 0; }
                 w.FiscalCapacityPerMonth = new MoneyPerMonth(1e6);
                 sim.StepDay();

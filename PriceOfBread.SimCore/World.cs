@@ -1079,7 +1079,7 @@ public sealed class World
         if (WarmupFrozen || r.State != RegionState.Active || !r.IsPort || !Discovery.SteamPower(Discovered)) return 0;
         if (!(r.LastTradeThrottle < Coef.PortCongestionTarget) || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) return 0;
         if (!(nationThroughput > 1e-9) || !(r.LastPortThroughput > 0)) return 0;   // 否定形＝NaN は請求しない
-        return Calendar.PerMonthToPerQuarter((AdminSpending * Coef.PortStateFrac * FiscalCapacityPerMonth).Value) * (r.LastPortThroughput / nationThroughput);
+        return Calendar.PerMonthToPerQuarter((AdminSpending * Coef.PortStateFrac.Value * FiscalCapacityPerMonth).Value) * (r.LastPortThroughput / nationThroughput);
     }
     /// <summary>国の港の州の取扱高の和（<see cref="PortStateRequest"/> の分母）。</summary>
     internal double PortThroughputTotal()
@@ -1599,7 +1599,7 @@ public sealed class World
     //   不況と数えない）。エンジンの資本破壊や金融の判断は従来どおり総額の GdpDrawdown を見る。
     public double GdpPcTrend { get; private set; }
     public double GdpPcPeak { get; private set; }
-    public double GdpPcDrawdown => GdpPcPeak > 0 && GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpPcTrend / GdpPcPeak) : 0;
+    public Share GdpPcDrawdown => GdpPcPeak > 0 && GdpPeak > 1 ? new(PoliticalQuantities.Clamp01(1.0 - GdpPcTrend / GdpPcPeak)) : new(0);
     public void UpdateGdpCycle()
     {
         double g = GdpPerMonth.Value;

@@ -258,6 +258,27 @@ public class UnitTypeTests
         (typeof(Coefficients), "MegaprojectCrisisDrawdown", typeof(Share)),
         (typeof(Coefficients), "FactionStrikeDrawdown", typeof(Share)),
         (typeof(Coefficients), "DepressionScrapThreshold", typeof(Share)),
+        // ★(343) 割合の型の残り その9＝景気後退の度合い（1人あたり）`World.GdpPcDrawdown`（派生）と、投資・取り分・率・床の係数 19 本（Share）。建造物・植民地・運河と港・保険・通行料・人口の床・後追いの先端比。EconomyStep を読み手に持つ物（`ReignitionDemandFrac`・`IndInvestmentFrac`・`RgoCapitalShare`・`ConstructionLaborWageFrac` ほか）は並行のアヘンの線が触る間は移さない。
+        (typeof(World), "GdpPcDrawdown", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectStateFrac", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectForeignShare", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectForeignDrawFrac", typeof(Share)),
+        (typeof(Coefficients), "ColonialPayShare", typeof(Share)),
+        (typeof(Coefficients), "ColonialInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "CanalInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "PortInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "PortStateFrac", typeof(Share)),
+        (typeof(Coefficients), "CatchupFraction", typeof(Share)),
+        (typeof(Coefficients), "CatchupFractionAdvanced", typeof(Share)),
+        (typeof(Coefficients), "TransitTollShare", typeof(Share)),
+        (typeof(Coefficients), "RevoltSuppressDeadFrac", typeof(Share)),
+        (typeof(Coefficients), "InsurancePayoutFrac", typeof(Share)),
+        (typeof(Coefficients), "StockpileOtherFrac", typeof(Share)),
+        (typeof(Coefficients), "RecruitMaxFracOfSource", typeof(Share)),
+        (typeof(Coefficients), "SerfCashShareFloor", typeof(Share)),
+        (typeof(Coefficients), "FertileShareFloor", typeof(Share)),
+        (typeof(Coefficients), "UnificationNatioShare", typeof(Share)),
+        (typeof(Coefficients), "PlantationRentShare", typeof(Share)),
     ];
 
     [Fact]
@@ -663,6 +684,50 @@ public class UnitTypeTests
             Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 7) / 23.0), BitConverter.DoubleToInt64Bits(got));
         }
+    }
+
+    /// <summary>★(343) 割合の型の残り その9＝投資・取り分・率・床の係数 19 本（Share）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること。
+    /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで投資と取り分と率の係数の欄が残る()
+    {
+        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "ColonialPayShare", "ColonialInvestFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "StockpileOtherFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 5) / 31.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            Assert.Equal(typeof(Share), f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 5) / 31.0), BitConverter.DoubleToInt64Bits(got));
+        }
+    }
+
+    /// <summary>★(343) 1人あたりの景気後退の度合い `World.GdpPcDrawdown`（派生の `Share`）が、ピーク比の落ち込み 1−トレンド÷ピーク をそのまま返し、ピークが無い・総額のピークが小さいときは 0 であること。
+    /// 期待値は入れた数から直に書く（`GdpPcDrawdown` の式から作らない）。型の宣言は `Declared` の表が見る（これは値）。</summary>
+    [Fact]
+    public void 一人あたりの景気後退の度合いはピーク比の落ち込みである()
+    {
+        var w = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent()).Nations[0].World;
+        void Set(string name, double v) => typeof(World).GetProperty(name)!.SetValue(w, v);
+        Set("GdpPeak", 50.0); Set("GdpPcPeak", 100.0); Set("GdpPcTrend", 80.0);
+        Assert.IsType<Share>(w.GdpPcDrawdown);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(1.0 - 80.0 / 100.0), BitConverter.DoubleToInt64Bits(w.GdpPcDrawdown.Value));
+        Set("GdpPcTrend", 100.0);
+        Assert.Equal(0.0, w.GdpPcDrawdown.Value);                     // ピークに並ぶ＝落ち込み 0
+        Set("GdpPcTrend", 80.0); Set("GdpPcPeak", 0.0);
+        Assert.Equal(0.0, w.GdpPcDrawdown.Value);                     // 1人あたりのピークが無い
+        Set("GdpPcPeak", 100.0); Set("GdpPeak", 1.0);
+        Assert.Equal(0.0, w.GdpPcDrawdown.Value);                     // 総額のピークが 1 以下＝助走前
     }
 
     [Fact]

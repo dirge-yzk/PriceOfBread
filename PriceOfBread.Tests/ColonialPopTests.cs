@@ -97,10 +97,10 @@ public class ColonialPopTests
         var sugar = mex.Producers.First(p => p.IsRgo && p.GoodId == Catalog.SugarCaneId);
         var maize = mex.Producers.First(p => p.IsRgo && p.GoodId == Catalog.MaizeId);
         Assert.True(Colonial.AbsenteeRgo(mex, sugar), "サトウキビ（賦存・主食でない）が不在地主の大農園と判別されない");
-        Assert.Equal(w.Coef.PlantationRentShare, sugar.RentShare.Value);
+        Assert.Equal(w.Coef.PlantationRentShare.Value, sugar.RentShare.Value);
         Assert.Equal(PopClass.Capitalist, mex.Pops[sugar.OwnerPopIndex].ClassId);
         Assert.False(Colonial.AbsenteeRgo(mex, maize), "トウモロコシ（主食）が不在地主の大農園と判別された");
-        Assert.True(maize.RentShare.Value < w.Coef.PlantationRentShare, $"主食の地代の取り分が大農園の値（{maize.RentShare.Value}）＝現地の地主のままでない");
+        Assert.True(maize.RentShare.Value < w.Coef.PlantationRentShare.Value, $"主食の地代の取り分が大農園の値（{maize.RentShare.Value}）＝現地の地主のままでない");
         Assert.Equal(PopClass.Peasant, mex.Pops[maize.OwnerPopIndex].ClassId);
     }
 

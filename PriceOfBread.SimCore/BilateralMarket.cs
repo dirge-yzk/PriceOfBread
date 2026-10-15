@@ -963,14 +963,14 @@ public sealed partial class InternationalMarket
             }
         }
         // Stage C：トランジット通行料＝利用国の国庫から港所有国の国庫へ（運河通行料と同じ台帳作法・両建てで保存）。
-        if (transitUses is { Count: > 0 } && c.TransitTollShare > 1e-12)
+        if (transitUses is { Count: > 0 } && c.TransitTollShare.Value > 1e-12)
         {
             var owed = new Dictionary<(int U, int O), double>();
             var order = new List<(int U, int O)>();
             var totalByUser = new double[nn];
             foreach (var (u, o, r) in transitUses)
             {
-                double amt = c.TransitTollShare * (r.LastPortThroughput - (portStart.TryGetValue(r, out double ps0) ? ps0 : 0.0));   // 当清算ぶんの差分（四半期累計に掛けない）
+                double amt = c.TransitTollShare.Value * (r.LastPortThroughput - (portStart.TryGetValue(r, out double ps0) ? ps0 : 0.0));   // 当清算ぶんの差分（四半期累計に掛けない）
                 if (amt <= 1e-12) continue;
                 var k = (u, o);
                 if (owed.TryGetValue(k, out double cur)) owed[k] = cur + amt; else { owed[k] = amt; order.Add(k); }

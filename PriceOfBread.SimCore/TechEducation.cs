@@ -146,7 +146,7 @@ public static class TechEducation
         // 後発国のキャッチアップ（最終調整2026-06-29）：近代化国（FrontierCapable＝自由＋公教育＝吸収能力あり）は前線の高い比率(CatchupFractionAdvanced)まで・速い速度で追い上げる。
         // 非近代化（検閲/宗教教育の巨人＝清/印）は従来の CatchupFraction 0.5 で頭打ち＝置いていかれる。両 Advanced 係数を基礎値と同値にすれば旧挙動に恒等。
         bool absorptive = FrontierCapable(w, c);
-        double catchFrac = absorptive ? c.CatchupFractionAdvanced : c.CatchupFraction;
+        double catchFrac = absorptive ? c.CatchupFractionAdvanced.Value : c.CatchupFraction.Value;
         double adoptRate = absorptive ? c.AdoptionRateAdvanced : c.AdoptionRate;
         if (c.CatchupAbsorptionBlend > 0)
         {
@@ -156,7 +156,7 @@ public static class TechEducation
             // 公教育化しても識字低×検閲の大国（清・印）は天井が中間に留まり1914年に技術2前後（史実の後置）・英独仏は吸収≈1で従来どおり＝全球収束の是正。
             double absorption = AbsorptionOf(w, c);
             double a = absorptive ? 1.0 + (absorption - 1.0) * c.CatchupAbsorptionBlend : 0.0;   // blend=0で二値（旧恒等）
-            catchFrac = c.CatchupFraction + (c.CatchupFractionAdvanced - c.CatchupFraction) * a;
+            catchFrac = c.CatchupFraction.Value + (c.CatchupFractionAdvanced.Value - c.CatchupFraction.Value) * a;
             adoptRate = c.AdoptionRate + (c.AdoptionRateAdvanced - c.AdoptionRate) * a;
         }
         if (c.DecayTechAdoptWeight > 0) adoptRate *= 1.0 - Math.Clamp(c.DecayTechAdoptWeight * w.InstitutionalDecay, 0, DecayAdoptPenaltyCap);   // P7②制度疲労＝採用速度の遅延（科挙官僚制が技師を作らない）。live（DecayTechAdoptWeight=0.75）・0で恒等

@@ -1392,7 +1392,7 @@ public class FiscalTests
     public void 巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる()
     {
         var sim = FrozenWorld("イギリス", "フランス");
-        var coef = new Coefficients { MegaprojectForeignMinRank = 0, MegaprojectForeignShare = 0, MegaprojectCrisisDrawdown = new(-1.0) };   // 収縮は常に閾値の上＝恐慌の分岐へ入る（門だけを動かす）
+        var coef = new Coefficients { MegaprojectForeignMinRank = 0, MegaprojectForeignShare = new(0), MegaprojectCrisisDrawdown = new(-1.0) };   // 収縮は常に閾値の上＝恐慌の分岐へ入る（門だけを動かす）
         var uk = sim.Nations[0].World;
         var mp = new Megaproject { Id = "番人門", Name = "番人門", Host = uk.Regions[0].Name, BuildUnits = 1e12, TechGate = 0, Started = true };
         sim.Diplomacy.Megaprojects.Clear(); sim.Diplomacy.Megaprojects.Add(mp);

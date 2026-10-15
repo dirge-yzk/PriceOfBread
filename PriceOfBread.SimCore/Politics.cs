@@ -1431,7 +1431,7 @@ public static class Politics
         if (strength <= coerce)
         {
             // 鎮圧：州の平民の民間人に規模按分で死＝死の記帳の1本（World.KillPops・段4e J＝人口の台帳と戦死の累計）・貯蓄は遺族に残る＝貨幣保存非接触。
-            double dead = Math.Min(crowd * c.RevoltSuppressDeadFrac, crowd);
+            double dead = Math.Min(crowd * c.RevoltSuppressDeadFrac.Value, crowd);
             if (dead > 1e-9 && crowd > 1e-9)
                 dead = w.KillPops(worst.Pops.FindAll(p => p.IsCommoner), null, dead, violent: true);
             double legBeforeRevolt = w.Legitimacy;
