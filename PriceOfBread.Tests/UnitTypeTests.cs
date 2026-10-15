@@ -712,6 +712,24 @@ public class UnitTypeTests
         }
     }
 
+    /// <summary>★(343) 1人あたりの景気後退の度合い `World.GdpPcDrawdown`（派生の `Share`）が、ピーク比の落ち込み 1−トレンド÷ピーク をそのまま返し、ピークが無い・総額のピークが小さいときは 0 であること。
+    /// 期待値は入れた数から直に書く（`GdpPcDrawdown` の式から作らない）。型の宣言は `Declared` の表が見る（これは値）。</summary>
+    [Fact]
+    public void 一人あたりの景気後退の度合いはピーク比の落ち込みである()
+    {
+        var w = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent()).Nations[0].World;
+        void Set(string name, double v) => typeof(World).GetProperty(name)!.SetValue(w, v);
+        Set("GdpPeak", 50.0); Set("GdpPcPeak", 100.0); Set("GdpPcTrend", 80.0);
+        Assert.IsType<Share>(w.GdpPcDrawdown);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(1.0 - 80.0 / 100.0), BitConverter.DoubleToInt64Bits(w.GdpPcDrawdown.Value));
+        Set("GdpPcTrend", 100.0);
+        Assert.Equal(0.0, w.GdpPcDrawdown.Value);                     // ピークに並ぶ＝落ち込み 0
+        Set("GdpPcTrend", 80.0); Set("GdpPcPeak", 0.0);
+        Assert.Equal(0.0, w.GdpPcDrawdown.Value);                     // 1人あたりのピークが無い
+        Set("GdpPcPeak", 100.0); Set("GdpPeak", 1.0);
+        Assert.Equal(0.0, w.GdpPcDrawdown.Value);                     // 総額のピークが 1 以下＝助走前
+    }
+
     [Fact]
     public void 反射の橋は専用の値型を数として読み書きする()
     {
