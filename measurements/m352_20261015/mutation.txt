@@ -1,0 +1,6 @@
+(352) 合流：反証役 pu〔v〕の処置の番人の突然変異（PopScanTests・Release・--artifacts-path 隔離・木 84f83fad の写し）
+M1 列挙子の数の検査を外す（`if (_regions.Count != _regionCount || …) throw` → `if (false) throw`）
+   → 赤：PopScanTests.走査の途中で一覧の数が変わると落ちる（失敗 1・合格 11）
+M2 取り立ての番人を頭へ戻す（`double moved = 0;` の直後に `if (PopWindow.Verify) PopWindow.GuardWrite(...)`）
+   → 赤：PopScanTests.番人は窓の中でも何も動かさない取り立てを止めない（失敗 1・合格 11）
+処置後の木（変異なし）：PopScanTests 12 合格・失敗 0

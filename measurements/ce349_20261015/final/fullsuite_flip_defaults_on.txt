@@ -1,0 +1,168 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\ce_349\flip\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (84 ミリ秒)。
+  D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (1.34 秒)。
+  D:\PoB_work\ce_349\flip\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (1.34 秒)。
+D:\PoB_work\ce_349\flip\PriceOfBread.SimCore\EconomyStep.cs(1534,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\ce_349\flip\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.SimCore\Instruments.cs(2119,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\ce_349\flip\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\ce_349\art_flip\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\ce_349\art_flip\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\ConservationTests.cs(960,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\UnitTypeTests.cs(309,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\UnitTypeTests.cs(309,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\UnitTypeTests.cs(310,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\UnitTypeTests.cs(310,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ce_349\flip\PriceOfBread.Tests\InstrumentsTests.cs(804,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\ce_349\flip\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\ce_349\art_flip\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\ce_349\art_flip\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:04.39]     PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む [FAIL]
+  失敗 PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む [445 ms]
+  エラー メッセージ:
+   格差が出ていない（資本家 0 vs 労働 1）
+  スタック トレース:
+     at PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\UnderconsumptionTests.cs:line 24
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:16.11]     PriceOfBread.Tests.Stage1Tests.都市化が進み都市率は0と1の間で安定する [FAIL]
+  失敗 PriceOfBread.Tests.Stage1Tests.都市化が進み都市率は0と1の間で安定する [277 ms]
+  エラー メッセージ:
+   都市化が進まなかった：10.0 % → 0.0 %
+  スタック トレース:
+     at PriceOfBread.Tests.Stage1Tests.都市化が進み都市率は0と1の間で安定する() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\Stage1Tests.cs:line 17
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:18.12]     PriceOfBread.Tests.CreditTests.基礎貨幣が負の国でも与信の回収は返せる額を越えて続かない [FAIL]
+  失敗 PriceOfBread.Tests.CreditTests.基礎貨幣が負の国でも与信の回収は返せる額を越えて続かない [143 ms]
+  エラー メッセージ:
+   前提が崩れた：好況で与信が伸びていない（230788.1188766656・返せる額 1698218.0448027172）
+  スタック トレース:
+     at PriceOfBread.Tests.CreditTests.基礎貨幣が負の国でも与信の回収は返せる額を越えて続かない() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\CreditTests.cs:line 134
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:32.79]     PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある [FAIL]
+  失敗 PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある [300 ms]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.001 - 1)
+Actual: 2.9911793297739808
+  スタック トレース:
+     at PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\ElectionAiTests.cs:line 198
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:37.14]     PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [FAIL]
+  失敗 PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [1 ms]
+  エラー メッセージ:
+   休眠のはずの「ConsumptionLayersEnabled」が既定 1＝**点火されている**。点火したなら本テストの表からも外すこと（表が休眠の一覧である）
+  スタック トレース:
+     at PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\DormantIdentityTests.cs:line 135
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:46.23]     PriceOfBread.Tests.ElectionAiTests.半分効く投入割合は国の大きさで変わらない [FAIL]
+  失敗 PriceOfBread.Tests.ElectionAiTests.半分効く投入割合は国の大きさで変わらない [419 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 0.5 (rounded from 0.5)
+Actual:   0.25055251000000001 (rounded from 0.25055251026684128)
+  スタック トレース:
+     at PriceOfBread.Tests.ElectionAiTests.半分効く投入割合は国の大きさで変わらない() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\ElectionAiTests.cs:line 567
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:27.30]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [FAIL]
+[xUnit.net 00:02:27.30]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 4887) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：着値の充填」が 49362161 件（宣言 43891020・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\WriterRatchetTests.cs:line 488
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 4887) [< 1 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 6240 件（宣言 4887・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\WriterRatchetTests.cs:line 488
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:27.35]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2695) [FAIL]
+[xUnit.net 00:02:27.35]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 21, declared: 0) [FAIL]
+[xUnit.net 00:02:27.35]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [FAIL]
+[xUnit.net 00:02:27.35]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 24941975) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2695) [< 1 ms]
+  エラー メッセージ:
+   計算量「請求：見た生産者（月）」が 3533 件（宣言 2695・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\WriterRatchetTests.cs:line 488
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 21, declared: 0) [< 1 ms]
+  エラー メッセージ:
+   計算量「消費の予算の3層：POP の走査（州×月ごとに3回・旗 ConsumptionLayersEnabled＝1 のときだけ）」が 2108262 件（宣言 0・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\WriterRatchetTests.cs:line 488
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：見た買い手行」が 5412142 件（宣言 5185642・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\WriterRatchetTests.cs:line 488
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 24941975) [< 1 ms]
+  エラー メッセージ:
+   計算量「価格：日次の写像の回」が 20817495 件（宣言 24941975）＝10 % を超えて**下がった**＝表を 20817495 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\WriterRatchetTests.cs:line 492
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:44.87]     PriceOfBread.Tests.StartWarmupTests.置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない [FAIL]
+  失敗 PriceOfBread.Tests.StartWarmupTests.置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない [22 s]
+  エラー メッセージ:
+   イギリス の物価水準 / 対照 = 1.700
+  スタック トレース:
+     at PriceOfBread.Tests.StartWarmupTests.置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\StartWarmupTests.cs:line 497
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:04:11.89]     PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [FAIL]
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [12 s]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.040000000000000001 - 0.14000000000000001)
+Actual: 0.030093917234451231
+  スタック トレース:
+     at PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\StartWarmupTests.cs:line 189
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:08:18.57]     PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [17 s]
+  エラー メッセージ:
+   場面 T の照合が空洞（飢え 0・構造 12）
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\InstrumentsTests.cs:line 1588
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:09:18.37]     PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す [15 ms]
+  エラー メッセージ:
+   経路名の鍵が移し方の呼び出しを指していない（鍵を今の木で取り直す）：Fiscal.cs:174「// 仲介者の取り分（納税者→貴族＝移し方の1本・所得にも書く）。受け手は重み1（在地の貴族1人＝頭数に依らない＝旧と同じ）。」 ／ Fiscal.cs:200「// ★2026-09-30 段4g：納税者→官僚の移し方の1本（払い手の重み＝自分の税の請求＝受け手が2つ〔官僚と国庫〕の1つ目）。旧＝国庫の取り分から按分の本体を直に呼んだ。」 ／ Fiscal.cs:216「// 国庫の取り分＝税の請求の和−官僚へ漏れた分（納税者→国庫の移し方の1本・払い手の重み＝自分の税の請求＝受け手の2つ目）。動いた額が純税収。」 ／ Fiscal.cs:224「//   ★2026-09-30 段4g：大衆→聖職の移し方の1本（払い手の重み＝自分の十分の一税の請求・受け手は頭数・所得にも書く）。」 ／ Fiscal.cs:330「//   旧＝貯蓄を手で引き、基礎貨幣の前後の差を実測して台帳へ書き、意図との不一致を例外で検査した（移し方の1本は動いた額をそのまま台帳へ書く＝構造で閉じる）。」 ／ Fiscal.cs:360「double domInt = interestPaid - foreignInt;」 ／ Fiscal.cs:417「double heldTotal = 0; foreach (var h in held) heldTotal += h;」 ／ Fiscal.cs:428「//   CapitalMarket が四半期末に、減らした債権と同じ比（＝債権の比）で債権国の投資家へ GiveGold する。」 ／ Fiscal.cs:576「w.LastWelfareCostPerMonth = new MoneyPerMonth(welfareClaim);   // 請求（r を掛ける前）＝翌月の月初の請求の見込み（Simulation）と予算表が読む」 ／ Fiscal.cs:609「double reached = elderSize > 1e-9 ? pensionCost * (reachW / elderSize) : 0;」 ／ Fiscal.cs:750「var paid = new List<double>(capitalists.Count);」 ／ Fiscal.cs:753「}」
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\InstrumentsTests.cs:line 1236
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:09:29.13]     PriceOfBread.Tests.HabitTests.アヘンの表は州と国の行が揃い_国の中毒度は州の和に合い_計器を出しても軌道は変わらない [FAIL]
+  失敗 PriceOfBread.Tests.HabitTests.アヘンの表は州と国の行が揃い_国の中毒度は州の和に合い_計器を出しても軌道は変わらない [3 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 8 decimal places
+Expected: 0.99999554999999996 (rounded from 0.99999554503929999)
+Actual:   0.99999554000000002 (rounded from 0.99999554499999999)
+  スタック トレース:
+     at PriceOfBread.Tests.HabitTests.アヘンの表は州と国の行が揃い_国の中毒度は州の和に合い_計器を出しても軌道は変わらない() in D:\PoB_work\ce_349\flip\PriceOfBread.Tests\HabitTests.cs:line 209
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:    17、合格:  1204、スキップ:     0、合計:  1221、期間: 9 m 31 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,12 @@
+ok PriceOfBread.SimCore/EconomyStep.cs 66 -> 35
+RED P1 Y から税を引かない | 失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+ok PriceOfBread.SimCore/EconomyStep.cs 40 -> 40
+RED P2 教育・医療を層1へ | 失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+ok PriceOfBread.SimCore/EconomyStep.cs 40 -> 40
+RED P3 習慣性の財を層1へ | 失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+ok PriceOfBread.SimCore/EconomyStep.cs 30 -> 26
+RED P4 最初の月の旧経路を外す | 失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+ok PriceOfBread.SimCore/Fiscal.cs 70 -> 73
+RED P5 納税の実額を積まない | 失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+ok PriceOfBread.SimCore/EconomyStep.cs 84 -> 41
+RED P6 月初に納税を退避しない | 失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

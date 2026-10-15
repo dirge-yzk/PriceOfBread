@@ -1,0 +1,32 @@
+== 窓 Q5–Q12（イギリス）
+農民     popK=   6885.4 Y/cap= 1.963 food_sup= 0.627 daily_sup= 2.052 lux_sup= 0.813 foodWant= 0.947 dailyWant= 5.712 paid= 3.630 held= 0.320 sav=  131.55 籠/Y=  1.36 日用品/食料= 3.27
+工場労働者  popK=   2725.8 Y/cap= 3.250 food_sup= 2.083 daily_sup= 2.111 lux_sup= 1.040 foodWant= 3.123 dailyWant= 5.763 paid= 5.382 held= 1.040 sav=  189.54 籠/Y=  1.29 日用品/食料= 1.01
+職人     popK=    874.7 Y/cap= 2.118 food_sup= 2.084 daily_sup= 2.128 lux_sup= 0.844 foodWant= 3.158 dailyWant= 5.808 paid= 5.196 held= 1.074 sav=  112.44 籠/Y=  1.99 日用品/食料= 1.02
+使用人    popK=   1697.9 Y/cap= 0.381 food_sup= 2.073 daily_sup= 2.113 lux_sup= 0.359 foodWant= 3.097 dailyWant= 5.759 paid= 0.365 held= 0.031 sav=    0.40 籠/Y= 10.97 日用品/食料= 1.02
+貴族     popK=    115.9 Y/cap=31.682 food_sup= 2.088 daily_sup= 2.104 lux_sup= 3.248 foodWant= 3.149 dailyWant= 5.777 paid= 7.579 held= 1.061 sav= 6350.80 籠/Y=  0.13 日用品/食料= 1.01
+資本家    popK=   2257.8 Y/cap=14.378 food_sup= 2.089 daily_sup= 2.137 lux_sup= 2.193 foodWant= 3.153 dailyWant= 5.811 paid= 6.590 held= 1.065 sav= 3766.12 籠/Y=  0.29 日用品/食料= 1.02
+商人     popK=    451.5 Y/cap=15.192 food_sup= 2.089 daily_sup= 2.143 lux_sup= 2.240 foodWant= 3.153 dailyWant= 5.818 paid= 6.644 held= 1.065 sav= 1657.15 籠/Y=  0.28 日用品/食料= 1.03
+== 窓 Q13–Q40（イギリス）
+農民     popK=   7533.2 Y/cap= 1.662 food_sup= 0.568 daily_sup= 1.978 lux_sup= 0.855 foodWant= 0.863 dailyWant= 5.210 paid= 2.893 held= 0.294 sav=   37.79 籠/Y=  1.53 日用品/食料= 3.48
+工場労働者  popK=   2783.1 Y/cap= 5.817 food_sup= 1.900 daily_sup= 2.033 lux_sup= 1.305 foodWant= 2.915 dailyWant= 5.301 paid= 5.056 held= 0.958 sav=  165.50 籠/Y=  0.68 日用品/食料= 1.07
+職人     popK=    242.8 Y/cap= 4.445 food_sup= 1.930 daily_sup= 2.072 lux_sup= 1.360 foodWant= 2.684 dailyWant= 5.285 paid= 5.479 held= 0.754 sav=   48.02 籠/Y=  0.90 日用品/食料= 1.07
+使用人    popK=   1333.3 Y/cap= 0.503 food_sup= 1.893 daily_sup= 2.033 lux_sup= 0.475 foodWant= 2.731 dailyWant= 5.208 paid= 0.489 held= 0.037 sav=    0.53 籠/Y=  7.80 日用品/食料= 1.07
+貴族     popK=    113.2 Y/cap=29.659 food_sup= 1.897 daily_sup= 2.021 lux_sup= 3.605 foodWant= 2.857 dailyWant= 5.255 paid= 7.678 held= 0.960 sav= 7239.52 籠/Y=  0.13 日用品/食料= 1.06
+資本家    popK=   2272.5 Y/cap=12.112 food_sup= 1.896 daily_sup= 2.052 lux_sup= 2.299 foodWant= 2.873 dailyWant= 5.292 paid= 6.432 held= 0.977 sav= 3823.51 籠/Y=  0.33 日用品/食料= 1.08
+商人     popK=    450.8 Y/cap=21.162 food_sup= 1.897 daily_sup= 2.057 lux_sup= 2.998 foodWant= 2.874 dailyWant= 5.299 paid= 7.165 held= 0.977 sav= 1758.89 籠/Y=  0.19 日用品/食料= 1.08
+== 窓 Q5–Q40（イギリス）
+農民     popK=   7389.3 Y/cap= 1.724 food_sup= 0.580 daily_sup= 1.993 lux_sup= 0.846 foodWant= 0.880 dailyWant= 5.314 paid= 3.046 held= 0.300 sav=   57.20 籠/Y=  1.49 日用品/食料= 3.43
+工場労働者  popK=   2770.3 Y/cap= 5.256 food_sup= 1.940 daily_sup= 2.050 lux_sup= 1.247 foodWant= 2.960 dailyWant= 5.402 paid= 5.127 held= 0.976 sav=  170.76 籠/Y=  0.76 日用品/食料= 1.06
+職人     popK=    383.2 Y/cap= 3.264 food_sup= 2.008 daily_sup= 2.100 lux_sup= 1.098 foodWant= 2.925 dailyWant= 5.550 paid= 5.336 held= 0.916 sav=   80.70 籠/Y=  1.26 日用品/食料= 1.05
+使用人    popK=   1414.3 Y/cap= 0.471 food_sup= 1.941 daily_sup= 2.054 lux_sup= 0.444 foodWant= 2.828 dailyWant= 5.355 paid= 0.456 held= 0.036 sav=    0.49 籠/Y=  8.49 日用品/食料= 1.06
+貴族     popK=    113.8 Y/cap=30.117 food_sup= 1.940 daily_sup= 2.039 lux_sup= 3.524 foodWant= 2.923 dailyWant= 5.373 paid= 7.656 held= 0.983 sav= 7038.47 籠/Y=  0.13 日用品/食料= 1.05
+資本家    popK=   2269.2 Y/cap=12.613 food_sup= 1.939 daily_sup= 2.071 lux_sup= 2.275 foodWant= 2.935 dailyWant= 5.407 paid= 6.467 held= 0.996 sav= 3810.82 籠/Y=  0.32 日用品/食料= 1.07
+商人     popK=    450.9 Y/cap=19.834 food_sup= 1.939 daily_sup= 2.076 lux_sup= 2.829 foodWant= 2.936 dailyWant= 5.415 paid= 7.049 held= 0.997 sav= 1736.26 籠/Y=  0.20 日用品/食料= 1.07
+== 窓 Q41–Q100（イギリス）
+農民     popK=   7014.0 Y/cap= 1.000 food_sup= 0.441 daily_sup= 1.871 lux_sup= 0.537 foodWant= 0.736 dailyWant= 5.331 paid= 1.013 held= 0.295 sav=    1.34 籠/Y=  2.31 日用品/食料= 4.25
+工場労働者  popK=   3621.3 Y/cap= 4.840 food_sup= 1.406 daily_sup= 1.932 lux_sup= 0.875 foodWant= 2.223 dailyWant= 5.170 paid= 4.037 held= 0.646 sav=  159.64 籠/Y=  0.69 日用品/食料= 1.37
+職人     popK=      6.7 Y/cap= 3.938 food_sup= 1.508 daily_sup= 1.940 lux_sup= 1.194 foodWant= 2.199 dailyWant= 4.724 paid= 4.464 held= 0.691 sav=   39.39 籠/Y=  0.88 日用品/食料= 1.29
+使用人    popK=    893.2 Y/cap= 0.426 food_sup= 1.400 daily_sup= 1.922 lux_sup= 0.376 foodWant= 1.878 dailyWant= 4.760 paid= 0.422 held= 0.011 sav=    0.44 籠/Y=  7.80 日用品/食料= 1.37
+貴族     popK=    114.3 Y/cap=15.061 food_sup= 1.451 daily_sup= 1.912 lux_sup= 2.039 foodWant= 2.352 dailyWant= 5.297 paid= 5.523 held= 0.901 sav= 8544.30 籠/Y=  0.22 日用品/食料= 1.32
+資本家    popK=   2713.0 Y/cap= 4.485 food_sup= 1.442 daily_sup= 1.945 lux_sup= 1.164 foodWant= 2.342 dailyWant= 5.333 paid= 4.687 held= 0.901 sav= 2898.18 籠/Y=  0.76 日用品/食料= 1.35
+商人     popK=    517.9 Y/cap=32.181 food_sup= 1.443 daily_sup= 1.947 lux_sup= 3.129 foodWant= 2.344 dailyWant= 5.336 paid= 6.737 held= 0.901 sav= 2177.62 籠/Y=  0.11 日用品/食料= 1.35
