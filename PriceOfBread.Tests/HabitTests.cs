@@ -85,6 +85,39 @@ public class HabitTests
         Assert.Equal(0.05, r2.OpiumAddiction);
     }
 
+    /// <summary>1か国の盤面で EconomyStep.Run を1回して、アヘンの州の市場の需要（LastDemand）を返す。奢侈品の所得弾力 ε と成長を変えて比べる（POP の所得は階級ごとに r が違う）。</summary>
+    private static double OpiumDemand(double epsilon, double growth)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var w = sim.World;
+        w.Coef.LuxuryIncomeElasticity = epsilon;
+        w.Coef.OpiumAddictionGrowth = growth;
+        w.WorldRealIncomePerCapitaPerMonth = 10.0;
+        w.PriceLevel = 2.0;
+        foreach (var p in w.AllPops())
+        {
+            p.SetSavings(1e12);
+            double r = p.ClassId == PopClass.Noble ? 0.25 : p.ClassId == PopClass.Peasant ? 4.0 : 1.0;
+            p.LastEarnedPerMonth = new MoneyPerMonth(r * 10.0 * p.Size * 2.0);
+        }
+        w.Region.OpiumAddiction = 0.05;
+        EconomyStep.Run(w.Region, w.Coef, 1.0, w.Bank, w);
+        return w.Region.Markets[Catalog.OpiumId].LastDemand;
+    }
+
+    [Fact]
+    public void アヘンは奢侈品の所得弾力の対象外_成長が0でも_習慣性の行で除く()
+    {
+        // 所得弾力 ε を 0 → 0.5 にしても、アヘンの需要は 1 ビットも変わらない（階級ごとの r が違うので、掛かれば必ず変わる）。
+        // ⚠成長 0 でも除外は外れない（除外は財の行の有無＝番号で決まり、機構のフラグ〔成長>0〕ではない）。
+        foreach (double growth in new[] { 0.1, 0.0 })
+        {
+            double a = OpiumDemand(0.0, growth), b = OpiumDemand(0.5, growth);
+            Assert.True(a > 0, $"前提が崩れた：成長 {growth} でアヘンの需要が立っていない（主張が空洞）");
+            Assert.Equal(a, b);
+        }
+    }
+
     // ---------------------------------------------------------------- (342) 段1：アヘンの表 opium_s ----------------------------------------------------------------
 
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
