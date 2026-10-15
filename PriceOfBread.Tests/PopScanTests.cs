@@ -52,6 +52,7 @@ public class PopScanTests
         var w = Britain();
         var pop = w.Regions[0].Pops[0];
         double t0 = w.TotalPopulation, s0 = w.SoldierSizeK();
+        bool old = PopWindow.Verify; PopWindow.Verify = false;   // この試験は窓の前提（窓の中で POP を書かない）をわざと破って使い回しを見る＝番人（環境変数で既定が真になる）を切る
         w.PopSums = new PopWindow();
         try
         {
@@ -60,7 +61,7 @@ public class PopScanTests
             Assert.Equal(t0, w.TotalPopulation);   // 窓の中＝使い回し（窓の中で POP を書かないのが前提）
             Assert.Equal(s0, w.SoldierSizeK());
         }
-        finally { w.PopSums = null; }
+        finally { w.PopSums = null; PopWindow.Verify = old; }
         double expect = 0; foreach (var r in w.Regions) { double s = 0; foreach (var p in r.Pops) s += p.Size; expect += s; }   // 素の入れ子（州ごとの和を州の並びで）
         Assert.Equal(expect, w.TotalPopulation);   // 窓の外＝求め直し（書き換えた分が入る）
         Assert.Equal(t0 + 5, w.TotalPopulation, 9);

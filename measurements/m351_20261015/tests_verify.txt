@@ -1,0 +1,50 @@
+START 18:50:39 filter=Category!=FullLength src=D:/PoB_work/pu351/src_pu
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (79 ミリ秒)。
+  D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (269 ミリ秒)。
+  D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (275 ミリ秒)。
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\Instruments.cs(2104,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\EconomyStep.cs(1489,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\pu351\art_tfullv\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\pu351\art_tfullv\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\ConservationTests.cs(960,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(309,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(309,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(310,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(310,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\InstrumentsTests.cs(804,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\pu351\art_tfullv\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\Instruments.cs(2104,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\EconomyStep.cs(1489,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\ConservationTests.cs(960,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(309,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(309,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(310,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(310,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\InstrumentsTests.cs(804,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    10 個の警告
+    0 エラー
+
+経過時間 00:00:40.05
+build rc=0
+D:\PoB_work\pu351\art_tfullv\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:01:42.36]     PriceOfBread.Tests.PopScanTests.窓の外は毎回求め直し窓の中は使い回す [FAIL]
+  失敗 PriceOfBread.Tests.PopScanTests.窓の外は毎回求め直し窓の中は使い回す [1 ms]
+  エラー メッセージ:
+   System.InvalidOperationException : POP の窓：総人口の使い回しが求め直しと違う（使い回し 16363.800000000001・求め直し 16368.800000000001）＝窓の中で POP が動いた
+  スタック トレース:
+     at PriceOfBread.SimCore.PopWindow.TotalPopulation(World w) in D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.SimCore\PopScan.cs:line 72
+   at PriceOfBread.Tests.PopScanTests.窓の外は毎回求め直し窓の中は使い回す() in D:\PoB_work\pu351\tree_t_fullv\PriceOfBread.Tests\PopScanTests.cs:line 60
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:  1208、スキップ:     0、合計:  1209、期間: 7 m 55 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 END 18:59:19
