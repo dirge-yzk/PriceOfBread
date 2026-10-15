@@ -3305,7 +3305,7 @@ if (args.Length > 0 && args[0] == "transitprobe")
     foreach (var n in simT.Nations)
         foreach (var r in n.World.Regions)
             if (r.State == RegionState.Active && r.IsPort) owner.TryAdd(r.Name, n.World.SelfPower?.Name ?? "?");
-    System.Console.WriteLine($"TransitEnabled={simT.Coef.TransitEnabled}　通行料率={simT.Coef.TransitTollShare:P0}");
+    System.Console.WriteLine($"TransitEnabled={simT.Coef.TransitEnabled}　通行料率={simT.Coef.TransitTollShare.Value:P0}");
     System.Console.WriteLine($"{"州",-14}{"国",-12}{"借りた港",-14}{"港の所有国",-12}{"陸路km",8}{"通行料/期",12}");
     int used = 0, unlinked = 0;
     foreach (var n in simT.Nations)
@@ -3315,7 +3315,7 @@ if (args.Length > 0 && args[0] == "transitprobe")
             if (r.LastTransitPortName.Length == 0) { unlinked++; continue; }
             used++;
             System.Console.WriteLine($"{r.Name,-14}{n.World.SelfPower?.Name,-12}{r.LastTransitPortName,-14}"
-                + $"{owner.GetValueOrDefault(r.LastTransitPortName, "?"),-12}{r.TransitLandKm,8:F0}{simT.Coef.TransitTollShare * r.LastPortThroughput,12:F0}");
+                + $"{owner.GetValueOrDefault(r.LastTransitPortName, "?"),-12}{r.TransitLandKm,8:F0}{simT.Coef.TransitTollShare.Value * r.LastPortThroughput,12:F0}");
         }
     System.Console.WriteLine($"→ 港を借りた州 {used} 件／借りられなかった州 {unlinked} 件（後者は対外交易なし）");
     return;
@@ -5157,7 +5157,7 @@ if (args.Length > 0 && args[0] == "chronicle")
             if (w.ConscriptionLaw != pConsc[i]) { Ev(c, i, "法律", $"徴兵：{pConsc[i]} → {w.ConscriptionLaw}"); pConsc[i] = w.ConscriptionLaw; }
             if (w.OnGoldStandard != pGold[i]) { Ev(c, i, "法律", w.OnGoldStandard ? "金本位制に加入" : "金本位制を離脱（兌換停止）"); pGold[i] = w.OnGoldStandard; }
             // 恐慌（UIと同じ物差しと閾値＝1人あたり・SelfPlayMatch の1組）
-            double dd = w.GdpPcDrawdown;
+            double dd = w.GdpPcDrawdown.Value;
             if (c > 12)
             {
                 if (!inDep[i] && dd > SelfPlayMatch.DepressionEnterDrawdown) { inDep[i] = true; depEnterC[i] = c; depDepth[i] = dd; depTroughC[i] = c; }

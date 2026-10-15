@@ -1323,7 +1323,7 @@ public sealed class MultiNationSim
                 // ★支払いの一元化 段2-3（E1・2026-09-29）：投資家（貯蓄の比）→建設の工賃を移し方の1本で＝動いた額が進捗と持分になる。
                 // ★段3-2（2026-09-30・C9）：工賃は**自国の労働の④の持分**（全ての活きた州の労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales の国の枝）。
                 //   旧＝自国の全POP へ頭数（財を買わない＝建設の工賃なのに農民・貴族・兵士まで受け取った）。労働の担い手がいなければ動かない（進捗も持分も立たない）。
-                double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac * pool, w);
+                double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);
                 if (!(inv > 0)) continue;
                 cp.BuildProgress += inv;
                 // 外7：拠出国の持分（累計拠出額）を記録＝後で通行料を持分比で分配（配当）。既定0.5＝この持分が配当に効く。0では通行料が扼者総取りのままなので持分は参照されず無影響。
@@ -1438,7 +1438,7 @@ public sealed class MultiNationSim
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
                 double need = Instruments.On ? PortCapitalNeed(r, _coef, capBeforeDecay - r.PortCapacity) : double.NaN;   // (292) 計器（読むだけ）：混雑を解くのに要る分（反事実）
-                double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings.Value);          // 資本家ルート
+                double cCap = _coef.PortInvestFrac.Value * Math.Max(0, ip.Savings.Value);          // 資本家ルート
                 double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio.Value;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
                 double invest = cCap + cState;
                 if (Instruments.On) Instruments.PortGate(w, r, ip.Savings.Value, need, cCap, cState);   // (292) 計器（読むだけ）
@@ -1461,7 +1461,7 @@ public sealed class MultiNationSim
     //   ⚠封鎖の危険 LastBlockadeRisk の書き手が無い＝常に0（棚卸し econ-14）＝保険金は実ゲームでは立たない（形だけを直した）。
     private void StepMarineInsurance()
     {
-        if (_coef.InsurancePayoutFrac <= 0) return;
+        if (_coef.InsurancePayoutFrac.Value <= 0) return;
         foreach (var sim in Nations)
         {
             var w = sim.World;
@@ -1477,7 +1477,7 @@ public sealed class MultiNationSim
                 { merchants.Add(r.Pops[r.MerchantPopIndex]); exposure.Add(Math.Max(0, r.LastPortThroughput)); }
             if (merchants.Count == 0) continue;   // 引受手(商人)が居ない国は保険市場が立たない
             // 保険金：商人基金（引受手・貯蓄の比）→荷主（捌き手の商人・海路の取扱高の比）＝基金の範囲で部分払い（払い手の貯蓄でクランプ・移し方の1本）
-            World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac * throughput * risk);
+            World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac.Value * throughput * risk);
         }
     }
 
@@ -1869,7 +1869,7 @@ public sealed class MultiNationSim
                     premium *= 1.0 + Geo.DistanceKm(src.Latitude, src.Longitude, dst.Latitude, dst.Longitude) / _coef.RecruitDistanceScale;
                 double perHead = _coef.RecruitCostPerHead * premium;
                 if (!(perHead > 0) || !double.IsFinite(perHead)) continue;
-                double heads = System.Math.Min(dst.RecruitBudget / perHead, pool * _coef.RecruitMaxFracOfSource) * (1.0 - ban);
+                double heads = System.Math.Min(dst.RecruitBudget / perHead, pool * _coef.RecruitMaxFracOfSource.Value) * (1.0 - ban);
                 if (!(heads > 1e-9)) continue;
                 if (heads > bestHeads) { bestHeads = heads; bestS = sIdx; bestSrcR = srcR; bestCost = perHead; }
             }

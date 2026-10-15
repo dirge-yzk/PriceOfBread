@@ -18,7 +18,7 @@ public class CohortPhase3Tests
         Assert.Equal(0.75, c.OldLaborFactor);       // 【史実値へ2026-08-08作者裁定＝19世紀の高齢労働参加×体力減。0.6は経済較正が拒否→0.75】旧0.92(2026-07-18)
         Assert.True(c.FertileWomenBirths);           // 第(iii)段有効化＝出生が出産可能女性プールに律速（失われた世代の伝播）
         Assert.Equal(1.0, c.CoupleLimitedBirths);    // 第(iii)段有効化＝カップル律速（徴兵で出生が増える符号逆転の解消・セット必須）
-        Assert.Equal(0.05, c.FertileShareFloor);     // 第(iii)段有効化＝プール正規化の下限フロア（出生集中の防止・セット必須）
+        Assert.Equal(0.05, c.FertileShareFloor.Value);     // 第(iii)段有効化＝プール正規化の下限フロア（出生集中の防止・セット必須）
     }
 
     [Fact]

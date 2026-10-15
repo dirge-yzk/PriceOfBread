@@ -113,8 +113,8 @@ public static class Megaprojects
             foreach (var m2 in dip.Megaprojects)
                 if (m2.Started && !m2.IsComplete && m2.Owner is { } o2 && ReferenceEquals(o2, hw.SelfPower) && hw.TechLevel >= m2.TechGate) inProgressHere++;
             double share = inProgressHere > 0
-                ? Math.Min(coef.MegaprojectStateFrac, coef.MegaprojectStateCap / inProgressHere)
-                : coef.MegaprojectStateFrac;
+                ? Math.Min(coef.MegaprojectStateFrac.Value, coef.MegaprojectStateCap / inProgressHere)
+                : coef.MegaprojectStateFrac.Value;
             // 段7 反景気循環（2026-07-28）：恐慌**かつ起債可能**なら拠出を増やす＝遊休労働を吸う。
             // 好況では建造物が民間から労働を奪い（段1の律速経由でむしろ建設を止める側に働く）、不況では遊休を吸う＝
             // 同じ機構が景気局面で逆の意味を持つ。史実のニューディールは赤字財政で成立したので、条件は「財政に余裕」ではなく「まだ借りられる」。
@@ -127,7 +127,7 @@ public static class Megaprojects
             if (claim <= 1e-9 || hw.Treasury.Value <= 0) continue;
             // 段5 外資（2026-07-28）：**単一パートナー**を決定論のargmaxで1度だけ選び latch する。毎期再選定すると
             // 貯蓄の揺らぎで受取国が点滅し、配当先が振動して604四半期で軌道が発散する。
-            if (coef.MegaprojectForeignShare > 0 && mp.ForeignPartnerId < 0 && mp.Owner is { } own)
+            if (coef.MegaprojectForeignShare.Value > 0 && mp.ForeignPartnerId < 0 && mp.Owner is { } own)
                 ChooseForeignPartner(dip, nations, mp, own, coef);
             // 外資が入っていれば、その持分ぶん**追加で**拠出される＝建設が速くなる（自前は遅いが果実は全部自国＝トレードオフ）。
             // ★段3-3（C12・2026-09-30）：出し手は外資国の**投資家**（CapitalMarket.Investors＝相手を選ぶ物差しと同じ集合・貯蓄の比・貯蓄まで）→保有国の国庫
@@ -144,7 +144,7 @@ public static class Megaprojects
                     // 1件が1四半期に引ける額を投資家の貯蓄の一定比で頭打ち＝1国が全世界の事業を同時に賄えない（資本の希少性）。
                     var investors = CapitalMarket.Investors(fw);
                     double cap = 0; foreach (var ip in investors) cap += Math.Max(0, ip.Savings.Value);
-                    double ask = Math.Min(want * hw.FxRate / fw.FxRate, coef.MegaprojectForeignDrawFrac * cap);   // 外資国の通貨
+                    double ask = Math.Min(want * hw.FxRate / fw.FxRate, coef.MegaprojectForeignDrawFrac.Value * cap);   // 外資国の通貨
                     if (!(ask > 1e-9)) break;
                     double give = World.Transfer((fw, investors), (hw, null, null), ask, TreasuryCat.OtherIn);   // 外資国＝対外流出・保有国＝対外流入（保存・為替で換算）
                     if (!(give > 0)) break;
@@ -189,7 +189,7 @@ public static class Megaprojects
         }
         if (best is null) return;
         mp.ForeignPartnerId = best.Id;
-        mp.ForeignShare = coef.MegaprojectForeignShare;
+        mp.ForeignShare = coef.MegaprojectForeignShare.Value;
         dip.Log.Add($"{owner.Nation?.Year ?? 0} {mp.Name}に{best.Name}の資本が入った（持分{mp.ForeignShare:P0}）");
     }
 

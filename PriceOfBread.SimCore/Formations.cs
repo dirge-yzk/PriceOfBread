@@ -469,7 +469,7 @@ public static class Formations
             if (best is null || r.Tier < best.Tier) best = r;  // 低Tierから狙う（北ドイツ連邦→ドイツ）
         }
         if (best is null) return null;
-        return Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare ? best : null;
+        return Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare.Value ? best : null;
     }
 
     /// <summary>P4：必要州のうち未領有分の保有国（実国家）＝統一戦争の宣戦対象リスト（決定論＝RequiredAll順）。</summary>

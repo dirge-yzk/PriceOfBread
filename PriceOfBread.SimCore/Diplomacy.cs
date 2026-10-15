@@ -2460,7 +2460,7 @@ public sealed class Diplomacy
             // ★経済悪化は**1人あたり**の落ち込み（World.GdpPcDrawdown・2026-09-29）＝領土を失って総額が落ちただけの国は不況ではない（分子と分母を同じ規則で＝
             //   GDP と人口が一緒に去った）。首都の分離独立・割譲・分離独立の全ての戦争に同じ1本。⚠旧＝総額の GdpDrawdown＝首都を失った政府は
             //   首都州の GDP の分だけ「不況」と数えられ、厭戦が四半期に最大 +0.67 積まれて兵が5〜15倍でも先に崩れた（(97) §8）。
-            double exBefore = p.WarExhaustion, econEx = c.WarExhaustionEcon * (p.Nation?.GdpPcDrawdown ?? 0);
+            double exBefore = p.WarExhaustion, econEx = c.WarExhaustionEcon * (p.Nation?.GdpPcDrawdown.Value ?? 0);
             // ★厭戦の基礎＝動員の負担（2026-10-02 (170)・外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」
             //   （動員の深さか軍需支出÷GDP）へ置き換える」）。★物差しは作者の裁定（2026-09-26 §10-11-2 B11）＝「厭戦の物差しは「兵士の数÷人口」。」
             //   ★(172) 合流で裁定の形へ直した（反証役 vm3#1＝(170) の入れた形は母数を兵役の母数〔Military.RegionManpower〕・割る数を ConscriptionFraction にした＝裁定から外れていた）。

@@ -258,6 +258,27 @@ public class UnitTypeTests
         (typeof(Coefficients), "MegaprojectCrisisDrawdown", typeof(Share)),
         (typeof(Coefficients), "FactionStrikeDrawdown", typeof(Share)),
         (typeof(Coefficients), "DepressionScrapThreshold", typeof(Share)),
+        // ★(343) 割合の型の残り その9＝景気後退の度合い（1人あたり）`World.GdpPcDrawdown`（派生）と、投資・取り分・率・床の係数 19 本（Share）。建造物・植民地・運河と港・保険・通行料・人口の床・後追いの先端比。EconomyStep を読み手に持つ物（`ReignitionDemandFrac`・`IndInvestmentFrac`・`RgoCapitalShare`・`ConstructionLaborWageFrac` ほか）は並行のアヘンの線が触る間は移さない。
+        (typeof(World), "GdpPcDrawdown", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectStateFrac", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectForeignShare", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectForeignDrawFrac", typeof(Share)),
+        (typeof(Coefficients), "ColonialPayShare", typeof(Share)),
+        (typeof(Coefficients), "ColonialInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "CanalInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "PortInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "PortStateFrac", typeof(Share)),
+        (typeof(Coefficients), "CatchupFraction", typeof(Share)),
+        (typeof(Coefficients), "CatchupFractionAdvanced", typeof(Share)),
+        (typeof(Coefficients), "TransitTollShare", typeof(Share)),
+        (typeof(Coefficients), "RevoltSuppressDeadFrac", typeof(Share)),
+        (typeof(Coefficients), "InsurancePayoutFrac", typeof(Share)),
+        (typeof(Coefficients), "StockpileOtherFrac", typeof(Share)),
+        (typeof(Coefficients), "RecruitMaxFracOfSource", typeof(Share)),
+        (typeof(Coefficients), "SerfCashShareFloor", typeof(Share)),
+        (typeof(Coefficients), "FertileShareFloor", typeof(Share)),
+        (typeof(Coefficients), "UnificationNatioShare", typeof(Share)),
+        (typeof(Coefficients), "PlantationRentShare", typeof(Share)),
     ];
 
     [Fact]
@@ -662,6 +683,32 @@ public class UnitTypeTests
             Assert.Equal(typeof(Share), f.FieldType);
             Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 7) / 23.0), BitConverter.DoubleToInt64Bits(got));
+        }
+    }
+
+    /// <summary>★(343) 割合の型の残り その9＝投資・取り分・率・床の係数 19 本（Share）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること。
+    /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで投資と取り分と率の係数の欄が残る()
+    {
+        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "ColonialPayShare", "ColonialInvestFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "StockpileOtherFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 5) / 31.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            Assert.Equal(typeof(Share), f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 5) / 31.0), BitConverter.DoubleToInt64Bits(got));
         }
     }
 

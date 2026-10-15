@@ -29,7 +29,7 @@ public class TransitTests
         //   （二国間の実測バッチで硬性ゲート緑・フラグ0）。0で通年フォールバック無しの非接続へ戻る。
         var c = new Coefficients();
         Assert.Equal(1.0, c.TransitEnabled);
-        Assert.Equal(0.05, c.TransitTollShare);   // 通行料率＝取扱高の5%（港所有国の国庫へ）
+        Assert.Equal(0.05, c.TransitTollShare.Value);   // 通行料率＝取扱高の5%（港所有国の国庫へ）
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class TransitTests
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("ジェノヴァ", bern.LastTransitPortName);
         Assert.True(bern.LastPortThroughput > 0, "トランジット州の交易が立たなかった（テスト前提の破れ）");
-        double toll = sim.Coef.TransitTollShare * bern.LastPortThroughput;
+        double toll = sim.Coef.TransitTollShare.Value * bern.LastPortThroughput;
         Assert.True(toll > 0);
         Assert.True(Math.Abs(genoa.Treasury.Value - (tB0 + toll)) < 1e-6, $"港所有国の受取が通行料と一致しない（Δ={genoa.Treasury.Value - tB0:F6} 期待={toll:F6}）");
         Assert.True(Math.Abs(swiss.Treasury.Value - (tA0 - toll)) < 1e-6, $"利用国の支払が通行料と一致しない（Δ={swiss.Treasury.Value - tA0:F6} 期待={-toll:F6}）");
