@@ -118,6 +118,32 @@ public class HabitTests
         }
     }
 
+    /// <summary>1か国の盤面で EconomyStep.Run を1回して、労働力の州の市場の産出（LastProduced）を返す。州の中毒度 <paramref name="stock"/>・成長 <paramref name="growth"/>。</summary>
+    private static double LaborProduced(double stock, double growth)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var w = sim.World;
+        w.Coef.OpiumAddictionGrowth = growth;
+        // 労働供給は各 POP の初回の値（work0）で正規化される＝1回目は中毒度 0 で基準を捕まえ、2回目に中毒度を置いて比べる
+        w.Region.OpiumAddiction = 0.0;
+        EconomyStep.Run(w.Region, w.Coef, 1.0, w.Bank, w);
+        w.Region.OpiumAddiction = stock;
+        EconomyStep.Run(w.Region, w.Coef, 1.0, w.Bank, w);
+        return w.Region.Markets[Catalog.LaborId].LastProduced;
+    }
+
+    [Fact]
+    public void 依存は労働力の産出を蝕む_成長が0なら蝕まない_手の算術の上限と下限()
+    {
+        double clean = LaborProduced(0.0, 0.1), sick = LaborProduced(0.2, 0.1), noFlag = LaborProduced(0.2, 0.0);
+        Assert.True(clean > 0, "前提が崩れた：労働力の産出が 0（主張が空洞）");
+        // 成長 0 なら労働は蝕まれない（中毒度はアヘンの需要の上乗せとして州の家計を少し動かすので、完全なビット一致ではなく 1e-4 以内）
+        Assert.InRange(noFlag / clean, 1.0 - 1e-4, 1.0 + 1e-4);
+        // 成人の労働供給だけに ×(1−1.0×0.2)＝0.8 が掛かる（児童労働は蝕まれない）＝産出の比は 0.8 より大きく、蝕まれない場合より 5% 以上小さい
+        double ratio = sick / clean;
+        Assert.InRange(ratio, 0.8, 0.95);
+    }
+
     // ---------------------------------------------------------------- (342) 段1：アヘンの表 opium_s ----------------------------------------------------------------
 
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
