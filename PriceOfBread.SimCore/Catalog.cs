@@ -636,16 +636,16 @@ public static class Catalog
         new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId),   // パール街1882（電力の既定のレシピ）＝ガス灯
         new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId),          // 配電（パール街1882）・交流送電1890s＝ガスの導管の網
         new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId),   // §1A-5 の表＝家事奉仕（家事使用人）
-        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId),     // 安全型1885＝馬（個人の移動）
-        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId),   // オットー1876・ダイムラー1885＝蒸気機関
-        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）
-        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId),   // 放送の実用化1920＝新聞
+        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId, After: "加硫ゴム"),     // 安全型1885＝馬（個人の移動）
+        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId, After: "蒸気機関"),   // オットー1876・ダイムラー1885＝蒸気機関
+        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId, After: "内燃機関"),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）
+        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId, After: "電化製品"),   // 放送の実用化1920＝新聞
         // --- 発明・新兵器（軍事の圧力は陸・海・空で分ける＝作者裁定 2026-09-28 ⑤）---
-        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea),        // ラ・グロワール1859
+        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea, After: "汽船"),        // ラ・グロワール1859
         new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),     // マキシム1884
-        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea),   // ドレッドノート1906
-        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land),             // 1916
-        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air),
+        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea, After: "装甲艦"),   // ドレッドノート1906
+        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land, After: "内燃機関"),             // 1916
+        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air, After: "内燃機関"),
         new("化学兵器", ChemicalWeaponId, "", DiscoveryField.Weapon, 1910, WarDomain.Land), // イーペル1915
         // --- 制度（社会の仕組み）・思想（考え方）＝財を持たない行（財 NoGood）・設計 §1A-6（2026-10-01 (152)）---
         //   旧＝制度は中核エリートと工業化度の傾斜（特許＝中核エリート 0.35〜0.45・株式会社＝最大工業化度 0.25〜0.35・鉄道＝最大工業化度 0.8 の閾値）・
@@ -669,6 +669,44 @@ public static class Catalog
         (ArtilleryId, "鋳鉄砲", SteelId, ""),
         (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）
     ];
+
+    /// <summary>★(336) 流れG ② 系統×段階：行ごとの前提の行の添字（−1＝前提なし＝系統の根）＝<see cref="DiscoveryRow.After"/> の名前を引く。
+    /// 辺の表と前提の木は AI の推奨。作者 2026-10-02「すべて推奨でよい。」（(177)）が掛かるのは AI の推奨〈引きなし・判定は各系統の次の段だけ〉の一句まで。★(344) 辺の表 8 本（腕 B）に 作者 2026-10-15「特に違和感はないです。これでいきましょう。」＝表の承認（出典の頁は未確認）。
+    /// ⚠辺を張る基準：子の投入が親の運び手の財（<see cref="Discovery.CarriersByRow"/>）の唯一の出口なら、子のゲートは親の伝わりの取引の道を作りで閉じる（機関車・汽船 ← 蒸気機関＝蒸気機関を未解禁の国は SteamEngineId の需要が0）
+    /// ＝measurements/ln_20261015_prereg.txt [14-2]。★(344) 表は 8 本（(336) の 20 本から、機関車・汽船・石炭火力ほかの 12 本を外した＝腕 B）・係数 <see cref="Coefficients.DiscoveryTierGate"/>（既定 1）が0なら読まれない。⚠機関車・汽船 ← 蒸気機関は伝わりの道（段2）を直してから再導入する（(338) [15]）。
+    /// 構築で表の誤りを止める（前提の名前が表に無い・自分自身・輪）。⚠<see cref="Discoveries"/> の後ろに置く（静的初期化は書いた順）。</summary>
+    public static readonly int[] DiscoveryAfter = BuildDiscoveryAfter();
+    private static int[] BuildDiscoveryAfter()
+    {
+        var res = new int[Discoveries.Length];
+        for (int i = 0; i < Discoveries.Length; i++)
+        {
+            string a = Discoveries[i].After;
+            if (a.Length == 0) { res[i] = -1; continue; }
+            int j = System.Array.FindIndex(Discoveries, x => x.Name == a);
+            if (j < 0 || j == i) throw new System.InvalidOperationException($"発見の表の行〈{Discoveries[i].Name}〉の前提〈{a}〉が表に無いか自分自身");
+            res[i] = j;
+        }
+        for (int i = 0; i < res.Length; i++)
+        {
+            int k = i, steps = 0;
+            while (res[k] >= 0) { k = res[k]; if (++steps > res.Length) throw new System.InvalidOperationException($"発見の表の前提に輪がある（{Discoveries[i].Name} から）"); }
+        }
+        return res;
+    }
+    /// <summary>行の段（根＝1・前提の鎖の長さ＋1）。系統＝根の行（<see cref="DiscoveryLine"/>）。段と系統は前提の1本から導く（別に持たない）。</summary>
+    public static int DiscoveryTier(int row)
+    {
+        int t = 1;
+        while (DiscoveryAfter[row] >= 0) { row = DiscoveryAfter[row]; t++; }
+        return t;
+    }
+    /// <summary>行の系統の根の行（前提のない行まで前提をさかのぼる）。</summary>
+    public static int DiscoveryLine(int row)
+    {
+        while (DiscoveryAfter[row] >= 0) row = DiscoveryAfter[row];
+        return row;
+    }
 
     /// <summary>発見の表の行（財・レシピ）の添字。無ければ −1（地理差＝常にある）。⚠線形の走査＝構築と Producer の控え（<see cref="Producer.DiscoveryRow"/>）だけが呼ぶ。</summary>
     public static int DiscoveryRowOf(int good, string recipe)

@@ -38,8 +38,11 @@ def check_edges():
     got = {}
     for m in re.finditer(r'new\("([^"]+)",[^\n]*?After: "([^"]+)"', txt):
         got[m.group(1)] = m.group(2)
-    if got != PARENT:
-        print('EDGES と Catalog.cs の After が違う', set(got.items()) ^ set(PARENT.items()))
+    # ★(344) 合流で腕 B を既定にした＝Catalog.cs の After は B の 8 本（EDGES の 20 本から ARM_DROP["B"] を外した物）。
+    #   EDGES は (336) の器の 20 本のまま（過去の腕 A・T1・T1s・B の読みの数え方）＝木が 20 本でも 8 本でも通す。
+    b_edges = {k: v for k, v in PARENT.items() if k not in ARM_DROP["B"]}
+    if got != PARENT and got != b_edges:
+        print('EDGES（20 本）とも腕 B（8 本）とも Catalog.cs の After が違う', set(got.items()) ^ set(b_edges.items()))
         sys.exit(1)
 
 
