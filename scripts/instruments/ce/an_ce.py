@@ -18,7 +18,7 @@ from instr import seeds, num
 args = sys.argv[1:]
 subs = []
 SET = 'both'
-GOODS = None
+SHOW = None
 V = '-v' in args
 i = 0
 dirs = []
@@ -29,7 +29,7 @@ while i < len(args):
     elif a == '--set':
         SET = args[i + 1]; i += 2
     elif a == '--goods':
-        GOODS = args[i + 1].split(','); i += 2
+        SHOW = args[i + 1].split(','); i += 2
     elif a.startswith('-'):
         i += 1
     else:
@@ -44,8 +44,8 @@ if SET in ('mass', 'rich'): use = [SET]
 else: use = ['mass', 'rich']
 # 窓（q は 0 始まり・Q は 1 始まり）
 WINS = [('Q5-Q12', 4, 11), ('Q13-Q40', 12, 39), ('Q5-Q40', 4, 39), ('Q41-Q160', 40, 159), ('Q161-Q400', 160, 399), ('Q401-Q668', 400, 667)]
-GOODS_DEFAULT = ['パン', '米', '野菜', 'ジャガイモ', 'トウモロコシ', '砂糖', '茶', 'コーヒー', '缶詰', 'ビール', '煙草', '蒸留酒', '灯油', 'ガス', '石鹸', '衣料', '家具', '自転車', 'ラジオ', 'ワイン', '時計', '自動車', '冷蔵庫', '電化製品']
-GOODS = GOODS or GOODS_DEFAULT
+SHOW_DEFAULT = ['パン', '米', '野菜', 'ジャガイモ', 'トウモロコシ', '砂糖', '茶', 'コーヒー', '缶詰', 'ビール', '煙草', '蒸留酒', '灯油', 'ガス', '石鹸', '衣料', '家具', '自転車', 'ラジオ', 'ワイン', '時計', '自動車', '冷蔵庫', '電化製品']
+SHOW = SHOW or SHOW_DEFAULT
 
 
 def fnum(x):
@@ -197,7 +197,7 @@ for nat in nations:
     if not rows: continue
     wins = sorted({r[1] for r in rows})
     print(f'\n-- {nat}  窓の先頭の Q：' + ' '.join(f'Q{w + 1}' for w in wins))
-    for g in GOODS:
+    for g in SHOW:
         cells = []
         for w in wins:
             ns = [r[4] for r in rows if r[2] == g and r[1] == w]
