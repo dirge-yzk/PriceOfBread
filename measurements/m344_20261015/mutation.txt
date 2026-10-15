@@ -1,0 +1,5 @@
+(344) 合流の突然変異（一時的に壊して赤を確かめた・コミットしていない・Release・--artifacts-path D:/PoB_work/merge_344/art_t）
+A. EconomyStep.cs の計器の口 `if (insOn) Instruments.HabitSold(region, sold);` を `if (false) …` に → HabitTests〈アヘンの表は州と国の行が揃い…〉が赤（Assert.Contains: soldPerMonth>0 の行が無い）。反証役 op〔v〕低2 の穴を埋めた番人。
+B. Habit.Of が茶（TeaId）にも行を返す → HabitTests〈習慣性の行を持つ財は在庫を州と財へ分けるまで1つだけ〉が赤（ほかに 3 本も赤）。反証役 op〔v〕低3 の番人。
+M4. Catalog.cs の戦車の前提を 内燃機関→自動車 に → DiscoveryTierTests〈既定は点火で表の辺は手書きの一覧と一致し木で輪が無い〉が赤（事前登録 [14-5] の M4 の再確認）。
+戻した後：HabitTests 8・UnitTypeTests・DiscoveryTierTests 3・DiscoveryScoreTests 38 が緑。フルスイートは m344_20261015/tests.txt。
