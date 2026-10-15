@@ -1,0 +1,13 @@
+cb\res_f1_base price 82.01 daily 21.17 goods 60.84 | bil 77.03 rows 60.74 rest 16.29 | cpu 298.6 wall 226.4 (64290729, 470431327, 178501994, 175283306)
+cb\res_f2_new price 80.58 daily 21.67 goods 58.90 | bil 71.50 rows 55.31 rest 16.19 | cpu 290.0 wall 219.3 (64290729, 470431327, 178501994, 175283306)
+cb\res_f3_new price 80.80 daily 21.70 goods 59.09 | bil 72.76 rows 56.27 rest 16.49 | cpu 289.8 wall 220.8 (64290729, 470431327, 178501994, 175283306)
+cb\res_f4_base price 81.83 daily 21.20 goods 60.63 | bil 78.27 rows 61.95 rest 16.33 | cpu 297.4 wall 226.2 (64290729, 470431327, 178501994, 175283306)
+cb\res_f5_base price 82.07 daily 21.26 goods 60.81 | bil 78.08 rows 61.75 rest 16.33 | cpu 301.6 wall 226.6 (64290729, 470431327, 178501994, 175283306)
+cb\res_f6_new price 80.88 daily 21.77 goods 59.11 | bil 71.95 rows 55.81 rest 16.14 | cpu 291.9 wall 220.3 (64290729, 470431327, 178501994, 175283306)
+price base mean 81.97 (82.01 81.83 82.07) new mean 80.75 (80.58 80.80 80.88) ratio 0.9851
+daily base mean 21.21 (21.17 21.20 21.26) new mean 21.71 (21.67 21.70 21.77) ratio 1.0238
+goods base mean 60.76 (60.84 60.63 60.81) new mean 59.04 (58.90 59.09 59.11) ratio 0.9716
+bil base mean 77.79 (77.03 78.27 78.08) new mean 72.07 (71.50 72.76 71.95) ratio 0.9264
+rows base mean 61.48 (60.74 61.95 61.75) new mean 55.80 (55.31 56.27 55.81) ratio 0.9076
+rest base mean 16.31 (16.29 16.33 16.33) new mean 16.27 (16.19 16.49 16.14) ratio 0.9973
+cpu base mean 299.21 (298.64 297.42 301.58) new mean 290.57 (289.98 289.78 291.94) ratio 0.9711

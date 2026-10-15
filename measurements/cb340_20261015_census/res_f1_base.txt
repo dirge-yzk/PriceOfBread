@@ -1,0 +1,12 @@
+freq 10000000
+price 820135067
+daily 211704340
+bil 770268824
+rows 607368871
+rowsSeen 64290729
+fills 470431327
+priceGoods 178501994
+priceDailyRuns 175283306
+priceCalls 1933110
+cpuSec 298.641
+wallSec 226.432
