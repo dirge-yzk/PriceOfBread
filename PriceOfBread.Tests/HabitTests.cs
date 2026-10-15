@@ -6,7 +6,9 @@ namespace PriceOfBread.Tests;
 /// <summary>(342) 段2：財の性質〈習慣性〉（<see cref="Habit"/>・<see cref="HabitProfile"/>）の番人。アヘンの中毒の更新は旧の式（<c>OpiumAddictionGrowth</c> ほかの直読み）と同じ値で、他の財は 0（効かない）。
 /// 期待値はコードの式を呼ばず、リテラルの算術で書く（0.1・0.02・0.2・1.0・2.0 は係数の既定値＝別の出所）。
 /// 突然変異（一時的に壊して赤を確かめる・結果は実装ログ (342)）：①<c>NextStock</c> の減衰を 1.1 倍 ②<c>NextStock</c> の上限を外す ③<c>LaborFactor</c> の床を 0.4 に ④<c>Of</c> が全ての財に行を返す
-/// ⑤<c>EconomyStep</c> の更新を <c>Active</c>（成長&gt;0）で守る ⑥<c>LaborFactor</c> の主フラグを外す ⑦<c>EconomyStep</c> の <c>adults *= </c> の行を消す。</summary>
+/// ⑤<c>EconomyStep</c> の更新を <c>Active</c>（成長&gt;0）で守る ⑥<c>LaborFactor</c> の主フラグを外す ⑦<c>EconomyStep</c> の <c>adults *= </c> の行を消す ⑧所得弾力の除外を <c>Active</c> に。
+/// ★(344) 反証役 op〔v〕：計器の全体の口（<c>Instruments.Configure</c>）を立てる試験があるので、並列を外す集まり〈Instruments〉に入れた（<c>InstrumentsTests</c>・<c>LuxuryRatioDiagTests</c> と同じ）。</summary>
+[Collection("Instruments")]
 public class HabitTests
 {
     [Fact]
@@ -144,6 +146,16 @@ public class HabitTests
         Assert.InRange(ratio, 0.8, 0.95);
     }
 
+    /// <summary>★(344) 反証役 op〔v〕：依存の在庫は州の 1 本（<see cref="Region.OpiumAddiction"/>）だけ＝<see cref="Habit.StockOf"/> と更新は、行を持つ財ならどれもこの 1 本を読み書きする。
+    /// 2 財目の行を <see cref="Habit.Of"/> に足すと、アヘンの在庫を黙って共有し上書きする＝在庫を州×財へ分けるまで、行を持つ財は 1 つまで（分けた回にこの番人を外す）。</summary>
+    [Fact]
+    public void 習慣性の行を持つ財は在庫を州と財へ分けるまで1つだけ()
+    {
+        var c = new Coefficients();
+        int n = Catalog.Goods.Count(g => Habit.Of(c, g.Id).Forms);
+        Assert.True(n <= 1, $"習慣性の行を持つ財が {n} 個＝在庫が州の 1 本のまま共有される（先に在庫を州×財へ分ける）");
+    }
+
     // ---------------------------------------------------------------- (342) 段1：アヘンの表 opium_s ----------------------------------------------------------------
 
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
@@ -177,7 +189,7 @@ public class HabitTests
         var (withIns, dir) = RunMatch(quarters, instr: true);
         try
         {
-            Assert.Equal(plain, withIns);   // 計器は読むだけ（種を置いた州の中毒度と英の国庫が全ビットで一致）
+            Assert.Equal(plain, withIns);   // 計器は読むだけ＝種を置いた州の中毒度と英の国庫の 2 値がビットで一致（★(344) 言い方を直した：全軌道の一致の根拠は計器つきの帯〔_ins〕が計器なしの帯と全行一致すること）
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "opium_s1789.tsv"));
             var h = lines[0].Split('	'); var rows = lines.Skip(1).Select(l => l.Split('	')).ToList();
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
@@ -188,6 +200,8 @@ public class HabitTests
             Assert.Equal(region.Count, region.Select(r => (r[I("quarter")], r[I("nationIndex")], r[I("region")])).Distinct().Count());
             var seededRows = region.Where(r => r[I("nationIndex")] == "2").ToList();
             Assert.True(seededRows.Count >= quarters);
+            // ★(344) 反証役 op〔v〕：販売量を積む計器の口（Instruments.HabitSold）が消えても緑のままだった＝種を置いた国の州の行で販売量が正の行があること
+            Assert.Contains(seededRows, r => D(r, "soldPerMonth") > 0);
             foreach (var r in region)
             {
                 double a = D(r, "addictionIndex");

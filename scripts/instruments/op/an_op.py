@@ -6,7 +6,8 @@
     sold＝N 行の soldTotalPerMonth の四半期の和÷種の数（販売量の月平均×3＝四半期の和）／exports＝exportsPerClearing の最大
     firstPossession＝保有の法が初めて 0 でなくなった年（種の中央値）・firstExportBan＝輸出の法が初めて 1 になった年
     tension＝tensionAddedPerQuarter の和（種あたり）・pairMonths＝積んだ組×月の数
-  -v＝州の中毒度の上位（種をまたいだ最大）も出す。財の番号は読まない（表に財の列が無い）。"""
+  -v＝州の中毒度の上位（種をまたいだ最大）も出す。財の番号は読まない（表に財の列が無い）。
+  ★(344) 反証役 op〔v〕：州の天井（係数の既定 OpiumAddictionCap 0.2）に張り付く R 行の数を国ごとに出す（--cap で上限を変える）＝(342) の初回の読み〈9,425 行〉の式。"""
 import sys, os, collections, statistics
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from instr import rows, seeds, num
@@ -14,7 +15,8 @@ from instr import rows, seeds, num
 args = sys.argv[1:]
 V = '-v' in args
 sub = args[args.index('-n') + 1] if '-n' in args else None
-dirs = [a for i, a in enumerate(args) if not a.startswith('-') and not (i > 0 and args[i - 1] == '-n')]
+CAP = float(args[args.index('--cap') + 1]) if '--cap' in args else 0.2
+dirs = [a for i, a in enumerate(args) if not a.startswith('-') and not (i > 0 and args[i - 1] in ('-n', '--cap'))]
 D = dirs[0]
 sds = seeds(D, 'opium')
 if not sds:
@@ -22,6 +24,7 @@ if not sds:
 nat = collections.defaultdict(lambda: collections.defaultdict(list))   # nation -> key -> per-seed list
 cur = {}
 peakS = collections.defaultdict(float); peakSwhere = {}
+atCap = collections.Counter(); nR = 0
 for sd, r in rows(D, 'opium'):
     n = r['nation']; yr = int(r['year'])
     if r['scope'] == 'N':
@@ -36,6 +39,8 @@ for sd, r in rows(D, 'opium'):
         c['tlev'] = max(c['tlev'], num(r['tensionLevelMaxIndex']))
     else:
         a = num(r['addictionIndex'])
+        nR += 1
+        if a >= CAP - 1e-9: atCap[n] += 1
         if a > peakS[(n, r['region'])]: peakS[(n, r['region'])] = a; peakSwhere[(n, r['region'])] = (sd, yr)
 names = sorted({n for (_, n) in cur})
 print(f'種 {len(sds)} 本  国×種の行 {len(cur)}')
@@ -51,6 +56,10 @@ for n in names:
     med = lambda xs: f'{statistics.median(xs):.0f}' if xs else '-'
     print(f"{n}\t{len(cs)}\t{statistics.median(pk):.4f}/{max(pk):.4f}\t{med(pyr)}\t{sum(c['sold'] for c in cs)/len(sds):.3f}\t{max(c['ex'] for c in cs):.3f}\t"
           f"{med(pos)}({len(pos)})\t{med(ban)}({len(ban)})\t{sum(c['tens'] for c in cs)/len(sds):.2f}\t{sum(c['pm'] for c in cs)}\t{max(c['tlev'] for c in cs):.2f}")
+print(f'\n州の天井（{CAP}）に張り付く R 行：{sum(atCap.values())} / 全 R 行 {nR}（国ごと・種をまたいだ和）')
+for n, k in atCap.most_common():
+    if sub and sub not in n: continue
+    print(f'{n}\t{k}')
 if V:
     print('\n州の中毒度の上位（種をまたいだ最大）')
     for (n, rg), v in sorted(peakS.items(), key=lambda kv: -kv[1])[:20]:

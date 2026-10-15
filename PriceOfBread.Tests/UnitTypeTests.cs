@@ -251,7 +251,7 @@ public class UnitTypeTests
         (typeof(Coefficients), "CapitalControlOpenness", typeof(Share)),
         (typeof(Coefficients), "PrivilegeTaxDiscount", typeof(Share)),
         (typeof(Coefficients), "PrivilegeFromCrownShare", typeof(Share)),
-        // ★(330) 割合の型の残り その8＝兌換の維持線 `GoldCoverMin`・景気後退の度合い `World.GdpDrawdown`（ピーク比の落ち込み・派生）と、その閾値 4 本（Share）。`GdpPcDrawdown`（1人あたり）は読み手が表示側と厭戦の項で別の家族＝次の回。
+        // ★(330) 割合の型の残り その8＝兌換の維持線 `GoldCoverMin`・景気後退の度合い `World.GdpDrawdown`（ピーク比の落ち込み・派生）と、その閾値 4 本（Share）。`GdpPcDrawdown`（1人あたり）は読み手が表示側と厭戦の項で別の家族＝次の回（★(343) で移した）。
         (typeof(Coefficients), "GoldCoverMin", typeof(Share)),
         (typeof(World), "GdpDrawdown", typeof(Share)),
         (typeof(Coefficients), "LolrDrawdownTrigger", typeof(Share)),
@@ -260,21 +260,21 @@ public class UnitTypeTests
         (typeof(Coefficients), "DepressionScrapThreshold", typeof(Share)),
         // ★(343) 割合の型の残り その9＝景気後退の度合い（1人あたり）`World.GdpPcDrawdown`（派生）と、投資・取り分・率・床の係数 19 本（Share）。建造物・植民地・運河と港・保険・通行料・人口の床・後追いの先端比。EconomyStep を読み手に持つ物（`ReignitionDemandFrac`・`IndInvestmentFrac`・`RgoCapitalShare`・`ConstructionLaborWageFrac` ほか）は並行のアヘンの線が触る間は移さない。
         (typeof(World), "GdpPcDrawdown", typeof(Share)),
-        (typeof(Coefficients), "MegaprojectStateFrac", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectStateFrac", typeof(RatePerQuarter)),   // ★(344) 反証役 y9〔v〕中＝毎四半期の率（Share から型だけ直した・読み手は .Value のまま・改名は次の回）
         (typeof(Coefficients), "MegaprojectForeignShare", typeof(Share)),
-        (typeof(Coefficients), "MegaprojectForeignDrawFrac", typeof(Share)),
+        (typeof(Coefficients), "MegaprojectForeignDrawFrac", typeof(RatePerQuarter)),   // ★(344) 1四半期に引ける上限
         (typeof(Coefficients), "ColonialPayShare", typeof(Share)),
-        (typeof(Coefficients), "ColonialInvestFrac", typeof(Share)),
-        (typeof(Coefficients), "CanalInvestFrac", typeof(Share)),
-        (typeof(Coefficients), "PortInvestFrac", typeof(Share)),
+        (typeof(Coefficients), "ColonialInvestFrac", typeof(RatePerMonth)),   // ★(344) Colonial.Step は月次（Simulation の月の段）
+        (typeof(Coefficients), "CanalInvestFrac", typeof(RatePerQuarter)),   // ★(344) 毎四半期
+        (typeof(Coefficients), "PortInvestFrac", typeof(RatePerQuarter)),   // ★(344) 毎四半期
         (typeof(Coefficients), "PortStateFrac", typeof(Share)),
         (typeof(Coefficients), "CatchupFraction", typeof(Share)),
         (typeof(Coefficients), "CatchupFractionAdvanced", typeof(Share)),
         (typeof(Coefficients), "TransitTollShare", typeof(Share)),
         (typeof(Coefficients), "RevoltSuppressDeadFrac", typeof(Share)),
         (typeof(Coefficients), "InsurancePayoutFrac", typeof(Share)),
-        (typeof(Coefficients), "StockpileOtherFrac", typeof(Share)),
-        (typeof(Coefficients), "RecruitMaxFracOfSource", typeof(Share)),
+        (typeof(Coefficients), "RecruitMaxFracOfSource", typeof(RatePerQuarter)),   // ★(344) 1四半期に1国から抜ける上限
+        // ★(344) 反証役 y9〔v〕低＝`StockpileOtherFrac`（優先財の重み 1.0 に対する相対の重み＝倍率）は double へ戻した（(343) の分類〈倍率は移さない〉に合わせる）
         (typeof(Coefficients), "SerfCashShareFloor", typeof(Share)),
         (typeof(Coefficients), "FertileShareFloor", typeof(Share)),
         (typeof(Coefficients), "UnificationNatioShare", typeof(Share)),
@@ -686,12 +686,12 @@ public class UnitTypeTests
         }
     }
 
-    /// <summary>★(343) 割合の型の残り その9＝投資・取り分・率・床の係数 19 本（Share）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること。
+    /// <summary>★(343) 割合の型の残り その9＝投資・取り分・率・床の係数 18 本（Share 12 本・★(344) で時間の基準のある率 6 本〔RatePerQuarter 5・RatePerMonth 1〕へ直した・`StockpileOtherFrac` は double へ戻した）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること。
     /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
     [Fact]
     public void セーブの往復と名前引きで投資と取り分と率の係数の欄が残る()
     {
-        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "ColonialPayShare", "ColonialInvestFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "StockpileOtherFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
+        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "ColonialPayShare", "ColonialInvestFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < names.Length; k++)
@@ -706,7 +706,7 @@ public class UnitTypeTests
         for (int k = 0; k < names.Length; k++)
         {
             var f = typeof(Coefficients).GetField(names[k])!;
-            Assert.Equal(typeof(Share), f.FieldType);
+            Assert.Equal(Declared.Single(d => d.Owner == typeof(Coefficients) && d.Member == names[k]).Expect, f.FieldType);   // ★(344) 6 本は時間の基準のある率（RatePerQuarter・RatePerMonth）
             Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 5) / 31.0), BitConverter.DoubleToInt64Bits(got));
         }

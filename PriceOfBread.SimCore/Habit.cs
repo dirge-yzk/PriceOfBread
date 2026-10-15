@@ -20,7 +20,8 @@ public readonly record struct HabitProfile(bool Forms, double Growth, double Dec
 /// ⚠ 禁令の側（輸入・輸出の禁止の法・密輸・闇栽培・外圧の緊張）は財の番号のまま＝依存ではなく法（段3 の〈禁制品の法〉で扱う）。</summary>
 public static class Habit
 {
-    /// <summary>財 <paramref name="goodId"/> の習慣性の行。習慣性の無い財は既定値（全て 0）。</summary>
+    /// <summary>財 <paramref name="goodId"/> の習慣性の行。習慣性の無い財は既定値（全て 0）。
+    /// ⚠★(344) 反証役 op〔v〕：2 財目の行を足す前に、在庫を州×財へ分ける（今の在庫は <see cref="Region.OpiumAddiction"/> の 1 本＝<see cref="StockOf"/> と更新はどの財でもこの 1 本を読み書きする＝足すと黙って共有・上書きする）。番人＝HabitTests の〈行を持つ財は 1 つだけ〉。</summary>
     public static HabitProfile Of(Coefficients c, int goodId) =>
         goodId == c.OpiumGoodId
             ? new HabitProfile(true, c.OpiumAddictionGrowth, c.OpiumAddictionDecay, c.OpiumAddictionCap, c.OpiumLaborPenalty, c.OpiumMiseryScale)

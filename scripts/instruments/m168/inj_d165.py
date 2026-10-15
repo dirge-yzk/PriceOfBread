@@ -67,7 +67,7 @@ public static class D165Diag
                     bool front = (w.Freedom >= c.FrontierFreedomThreshold || (c.InnovationEliteSubstitute > 0 && w.Elite >= c.EliteForFullTech && w.AdminEfficiency >= c.InnovationAdminThreshold))
                                  && w.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory;
                     double baseT = c.AdoptionCeiling * System.Math.Clamp(w.Elite / c.EliteForFullTech, 0, 1);
-                    double catchFrac = front ? c.CatchupFractionAdvanced : c.CatchupFraction;
+                    double catchFrac = front ? c.CatchupFractionAdvanced.Value : c.CatchupFraction.Value;
                     double contact = c.CatchupContactWeight > 0 ? 1.0 - c.CatchupContactWeight * (1.0 - System.Math.Clamp(w.TradeContactShare, 0, 1)) : 1.0;
                     double adoptionCeil = System.Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac * contact);
                     double catchT = baseT + System.Math.Max(0, adoptionCeil - c.AdoptionCeiling) * System.Math.Clamp(w.Elite / c.EliteForCatchup, 0, 1);

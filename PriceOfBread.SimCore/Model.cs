@@ -945,7 +945,7 @@ public sealed class Region
         double scare = PoliticalQuantities.Clamp01((WarScareTension - c.StockpileTensionThreshold) / System.Math.Max(1e-9, c.StockpileTensionSpan));
         bool priority = goodId >= 0 && goodId < Catalog.Goods.Length
                         && (Catalog.Goods[goodId].Tier == GoodTier.Staple || System.Array.IndexOf(c.MilitaryGoods, goodId) >= 0);
-        return 1.0 + c.StockpilePanicWeight * scare * (priority ? 1.0 : c.StockpileOtherFrac.Value);
+        return 1.0 + c.StockpilePanicWeight * scare * (priority ? 1.0 : c.StockpileOtherFrac);
     }
     public double ContrabandProductionFactor = 1.0;   // 禁制品の国内生産の実効率（禁制品doc C3・2026-07-30）：全面禁止の州では取り締まれた分だけ産出が消え、残るのは闇栽培（Contraband.LeakFraction）。1.0＝禁止していない
     public int NationalizedMask;                       // 国有化部門（5部門＋『全て』＝§11-6d統合）のビットマスク（1934拡張E6）。Simulation が World.NationalizedMask() から設定。EconomyStep が財の部門と突き合わせ利潤を国庫へ。NationalizationGate=0で常に0＝恒等
