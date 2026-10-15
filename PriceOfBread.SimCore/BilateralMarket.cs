@@ -558,6 +558,10 @@ public sealed partial class InternationalMarket
         var sellers = new List<Seller>(tc);
         var buyers = new List<(int Node, double Price)>(tc);
         var distTop = new double[tc];   // 距離の診断＝どの取引を代表に採ったか（最大額）
+        // ★(347) 財ごとの州の市場と自州価格（金建て）の読み置き。旧＝平均の走査・売り手の候補・買い手の候補の3回、同じ `tr[t].r.Markets[g].Price * exRate[国]` を読んでいた
+        //   （州→市場の配列→市場と3段の参照を3回）。新＝平均の走査で1回だけ読み、あとの2つの走査と買い手行・売り手の市場の読みは配列から取る。
+        //   値は同じ式・同じ入力（走査のあいだ価格は書かれない）＝同じ値。読むのは連結した州（linked）だけ＝書くのも連結した州だけ。
+        var mktOf = new Market[tc]; var lpOf = new double[tc];
 
         var gOrder = new int[gc];
         for (int gi0 = 0; gi0 < gc; gi0++) gOrder[gi0] = gi0;
@@ -582,7 +586,9 @@ public sealed partial class InternationalMarket
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
-                double lp0 = tr[t].r.Markets[g].Price * exRate[tr[t].nation];
+                var mk0 = tr[t].r.Markets[g];
+                double lp0 = mk0.Price * exRate[tr[t].nation];
+                mktOf[t] = mk0; lpOf[t] = lp0;   // ★(347) あとの走査が読む
                 if (lp0 > 1e-9) { sum += lp0; cnt++; }
             }
             if (cnt == 0) continue;
@@ -602,8 +608,8 @@ public sealed partial class InternationalMarket
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
-                var m = tr[t].r.Markets[g];
-                double lp = m.Price * exRate[tr[t].nation];
+                var m = mktOf[t];
+                double lp = lpOf[t];
                 if (lp <= 1e-9 || m.Stock <= 1e-9) continue;
                 int ni = tr[t].nation;
                 double sellAcc = tr[t].access * (milGood ? milExportAcc[ni] : 1.0);
@@ -632,7 +638,7 @@ public sealed partial class InternationalMarket
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
-                double lpB = tr[t].r.Markets[g].Price * exRate[tr[t].nation];
+                double lpB = lpOf[t];
                 if (lpB > 1e-9) buyers.Add((t, lpB));
             }
             if (buyers.Count == 0) continue;
@@ -642,7 +648,7 @@ public sealed partial class InternationalMarket
             long nFill = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）
             foreach (var (t, lp) in buyers)
             {
-                var m = tr[t].r.Markets[g];
+                var m = mktOf[t];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
                 m.ClearFailLp = 0;   // 印は走査して成約しなかったときだけ（下の行の終わり）＝門で飛ばした行・成約した行は印なし
@@ -775,7 +781,7 @@ public sealed partial class InternationalMarket
                         unitA = Math.Min(lp, double.IsPositiveInfinity(secondDelA) ? lp : secondDelA);
                         unitA = Math.Max(unitA, sellers[bestA].Price);
                         snA = sellers[bestA].Node; siA = tr[snA].nation;
-                        msA = tr[snA].r.Markets[g];
+                        msA = mktOf[snA];
                         rpT = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni];
                         // ★価格振動の根②（2026-09-07・2026-09-08 点火＝旗 TradeBuyerSolvesAtUnitPrice は 2026-09-26 に焼き込み）：買い手の静止点を〈実際に払う単価 unitA〉で解く
                         //   （売り手側 yPrice と同じ物差し）。旧式＝最良の着値 bestDelA は、単一供給では unitA=lp より安い価格で解く＝過剰発注→閾で0の bang-bang だった。
