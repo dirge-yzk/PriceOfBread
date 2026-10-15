@@ -103,7 +103,7 @@ public class ConsumptionEntryTests
         e2.Finish();
         int cap = PopClass.Capitalist * k;
         double W(string col) => c2[cap + Ci(col)];
-        Assert.Equal(100 - 10 - 5, W("remainderPerMonth"), 12);          // X＝Y−食料の籠−日用品の籠
+        Assert.Equal(100 - 10 - 5, W("remainderPerMonth"), 12);          // X＝Y−食料の支払い−日用品の支払い（この場面は支払い＝供給後の籠＝10・5）
         Assert.Equal(0, W("savingsDrawPerMonth"), 12);                    // 支払い 55 ＜ Y 100
         Assert.Equal(200 - 100, W("restStockStock"), 12);                 // S′＝予算−Y
         Assert.Equal(100 - 10, W("shadowDailyBudgetPerMonth"), 12);       // min(Y,S)−min(F,S)＝100−10
@@ -113,6 +113,18 @@ public class ConsumptionEntryTests
         Assert.Equal(40, W("luxuryPaidPerMonth"), 12);
         Assert.Equal(40, W("luxuryWantPerMonth"), 12);
         Assert.Equal(40 * 0.8, W("luxurySuppliedWantPerMonth"), 12);       // 供給後の籠＝欲しい量×配給率
+
+        // ---- ★(348) 反証役 ca〔v〕低1：余りの2本を見分ける場面。資本家 1 人・所得 100・残予算 200。食料の籠 30（配給率 1）に対し在庫切れで 20 だけ買えた（日用品は無し）。
+        //   X（支払いを引く）＝100−20＝80・所得−籠（供給後の籠を引く）＝100−30＝70＝2本が違う値になる（Finish の X と Xb を取り違えると赤）。
+        var part = new Region();
+        part.Pops.Add(new Pop { ClassId = PopClass.Capitalist, Size = 1, Savings = new MoneyStock(200), LastEarnedPerMonth = new MoneyPerMonth(100), RemainingBudget = 200 });
+        var c4 = new double[14 * k]; var e4 = new Instruments.EntryCtx(c4, new double[ng], new double[ng], new double[ng], new double[ng]);
+        e4.Begin(part); e4.Start();
+        e4.GoodBegin(7, 0); e4.Want(0, 30, 30, 30, 1); e4.PayBegin(); e4.Pay(0, 20, 20, 1, 1); e4.GoodEnd(true);
+        part.Pops[0].PaidPerMonth = new MoneyPerMonth(20);
+        e4.Finish();
+        Assert.Equal(100 - 20, c4[cap + Ci("remainderPerMonth")], 12);
+        Assert.Equal(100 - 30, c4[cap + Ci("remainderByBasketPerMonth")], 12);
 
         // ---- 残予算が負の POP（人口 3・貴族）：在庫切れの食料を予算から外して貯蓄を超えた後の財の需要が負になる行を拾う
         var broke = new Region();

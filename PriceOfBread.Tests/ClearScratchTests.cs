@@ -56,6 +56,10 @@ public class ClearScratchTests
     [Fact]
     public void 大きな盤面で作業領域を汚した後でも同じ種は同じ貿易の出力を出す()
     {
+        // ★(348) 反証役 rf〔v〕低1：xUnit はスレッドを使い回す＝1回目の前にこのスレッドの作業領域を空にして「きれいな作業領域」の1回目を保証する
+        var fld = typeof(InternationalMarket).GetField("_clearScratch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(fld);
+        fld!.SetValue(null, null);
         string first = Small();
         Big();                    // 国61・州300 超・財の使い方も多い盤面で、同じスレッドの作業領域を大きく汚す
         string second = Small();  // 汚れた作業領域で同じ盤面を回す
