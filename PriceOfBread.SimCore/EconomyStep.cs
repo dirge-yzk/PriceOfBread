@@ -800,7 +800,7 @@ public static class EconomyStep
                 double part = LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]);
                 double adults = lpop.AgeShare(15, 65, 0) + lpop.AgeShare(15, 65, 1) * part
                               + coef.OldLaborFactor * (lpop.AgeShare(65, double.PositiveInfinity, 0) + lpop.AgeShare(65, double.PositiveInfinity, 1) * part);
-                if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0) adults *= Math.Max(0.5, 1.0 - coef.OpiumLaborPenalty * region.OpiumAddiction);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）
+                adults *= Habit.LaborFactor(coef, region);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）＝(342) 財の性質〈習慣性〉を読む1本（アヘンの行だけ 1 未満になりうる・他は ×1.0）
                 // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
                 lpop.ChildLaborRate = new Share(LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]));   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
                 double work = adults + lpop.AgeShare(10, 15) * coef.ChildWorkFactor * lpop.ChildLaborRate.Value;
@@ -1538,7 +1538,8 @@ public static class EconomyStep
             else
                 priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
             // アヘンは中毒度を1人あたり必要量に上乗せ（供給→消費→中毒→需要 の正のフィードバック・実験）
-            double effBaseNeed = good.BaseNeed + (gi == coef.OpiumGoodId ? region.OpiumAddiction : 0);
+            var habit = Habit.Of(coef, gi);   // (342) 財の性質〈習慣性〉（習慣の強さ・減衰・上限・害）＝この財の行。習慣性の無い財は全て 0
+            double effBaseNeed = good.BaseNeed + Habit.StockOf(region, habit);
             // 公共医療（社会保障）は医薬品の消費を増やす＝資材を消費（pop が予算内で買う＝保存則安全）。
             if (gi == coef.MedicalGoodId) effBaseNeed *= 1.0 + region.SocialSecurity * coef.MedicalWelfareBoost;
             // 過密/スラムの疫病：都市化が**衛生（上下水道の充足率）**を上回ると疫病圧が立ち、医療(医者の役務)の需要が跳ねる。
@@ -1573,11 +1574,11 @@ public static class EconomyStep
             //   ラジオの充足は必要が0なら0＝飛ばしても同じ0を書く（下）。月末に残る作業欄の値は読み手が無い（次に読む前に同じ財の値で上書き）。
             bool needless = effBaseNeed == 0.0
                 && gi != Catalog.EducationId && gi != Catalog.HigherEducationId && gi != Catalog.NewspaperId
-                && !(gi == coef.OpiumGoodId && coef.OpiumAddictionGrowth > 0)
+                && !habit.Active
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
             if (!needless) consumedGoods++;
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
-            bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && gi != coef.OpiumGoodId) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
+            bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && !habit.Forms) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
             if (!needless)
             foreach (var p in region.Pops)
             {
@@ -1597,8 +1598,8 @@ public static class EconomyStep
                 //   分割後の満足度のまま読むと、自給の小農が満足度0に張り付き（新世界では1783〜1833年に人口加重で3割超）ゲートが全員で飽和する
                 //   ＝旧の飽和点0.5（OpiumMiseryScale=2）の分位の写像は満足度0の原子に落ちて定義できない（旧は人口の16.8%が0.5未満）。
                 //   経済の行動であって政治の量ではない＝食料の二重計上にならない（思想⑨）。
-                if (gi == coef.OpiumGoodId && coef.OpiumAddictionGrowth > 0)
-                    p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(coef.OpiumMiseryScale * (1.0 - lastSupply[pIdx])) + region.OpiumAddiction) * p.Size;
+                if (habit.Active)
+                    p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(habit.MiseryScale * (1.0 - lastSupply[pIdx])) + Habit.StockOf(region, habit)) * p.Size;
                 double marketNeed = staple ? p.GoodNeed * (1.0 - p.Subsistence) : p.GoodNeed;   // 自給分は市場に出さない（農民）
                 double demand = 0;
                 if (marketNeed > 0)
@@ -1674,10 +1675,11 @@ public static class EconomyStep
             clearPrice[gi] = m.Price;
 
             // アヘン中毒度の更新：1人あたり消費が中毒を育てる（成長>減衰で発散＝供給した分だけ需要が膨らむ・実験）
-            if (gi == coef.OpiumGoodId)
+            if (habit.Forms)
             {
                 double perCapita = totalPop > Eps ? sold / totalPop : 0;
-                region.OpiumAddiction = Math.Clamp(region.OpiumAddiction + coef.OpiumAddictionGrowth * perCapita - coef.OpiumAddictionDecay * region.OpiumAddiction, 0, coef.OpiumAddictionCap);   // P3：生理的上限＝依存→満足↓→困窮消費↑の正帰還に物理の蓋（0.2上限でも労働−最大20%・満足−最大10%）
+                if (insOn) Instruments.HabitSold(region, sold);   // (342) 計器（読むだけ）：州のその月の販売量
+                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // P3：生理的上限＝依存→満足↓→困窮消費↑の正帰還に物理の蓋（0.2上限でも労働−最大20%・満足−最大10%）
             }
 
             // ★popが自腹で買った量の階級別記帳（作者フィードバック2026-08-10 項目6）＝生産タブの「用途」先頭行が読む唯一の出所。
