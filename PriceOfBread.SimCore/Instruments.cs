@@ -14,6 +14,7 @@
 /// <item><c>flow_s&lt;seed&gt;.tsv</c> ★(262) 貯蓄の書き手の台帳（挙げた国だけ・四半期ごと・階級×書き手の種類×呼び出しの位置×相手の側の月平均の額と件数）。階級の貯蓄の増減が書き手の和に閉じる。</item>
 /// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足・★(323) 窃盗の列（<c>theftPoolPerMonth</c>＝州のその四半期の盗まれた額の月平均・<c>theftRecipientsEarnedPerMonth</c>＝受け手〔困窮大衆〕の前の月の所得の月平均・<c>earnedPerMonth</c>＝州の全 POP の前の月の所得の和〔四半期の末〕）。
 /// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
+/// <item><c>opium_s&lt;seed&gt;.tsv</c> ★(342) アヘンの表（<c>scope</c> 列で2種類の行）：<c>R</c>＝州×四半期（中毒度・販売量・闇栽培の係数のどれかが動いている州だけ）・<c>N</c>＝国×四半期（禁令・輸出入・緊張の積みのどれかが有る国だけ）。読み手 <c>scripts/instruments/op/an_op.py</c>。列は <see cref="OpiumRows"/> の注。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
