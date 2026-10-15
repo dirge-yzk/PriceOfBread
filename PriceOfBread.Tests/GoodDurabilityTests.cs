@@ -141,4 +141,41 @@ public class GoodDurabilityTests
                 }
         Assert.True(checkedN > 100, $"検査が空回りしている（{checkedN}）");
     }
+
+    // ---- 読み手：建設の資材の持ち越しと艦の在庫は耐久度 d（残る割合）を、財ごとに正しい財で掛ける ----
+
+    [Fact]
+    public void 艦の在庫は毎月その艦の財の耐久度だけ残る()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World; var r = w.Region; var c = w.Coef;
+        r.NationHasPort = false;   // 港が無ければ艦を買わない（買い足しを混ぜない＝劣化だけを見る）
+        var before = new double[c.FleetGoodIds.Length];
+        for (int k = 0; k < before.Length; k++) before[k] = 1000.0 * (k + 1);
+        r.FleetUnits = (double[])before.Clone();
+        EconomyStep.Run(r, c, 1.0, w.Bank, w);
+        for (int k = 0; k < before.Length; k++)
+            Assert.True(SameBits(before[k] * (1.0 - OldSpoilageOf(c.FleetGoodIds[k])), r.FleetUnits![k]), $"{Catalog.Goods[c.FleetGoodIds[k]].Name}: {r.FleetUnits![k]:R}");
+    }
+
+    [Fact]
+    public void 建設の資材の持ち越しは財ごとの耐久度で減る()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World; var r = w.Region; var c = w.Coef;
+        Assert.True(c.ConstructionMaterialCarryover > 0, "前提が崩れた：持ち越しが切れている");
+        int[] gids = [c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId];
+        const double big = 1e12;   // 今月の余り（在庫の桁）に比べて桁違いに大きい持ち越しを置く＝残る割合だけがほぼそのまま見える
+        r.ConstructionCarryover = new double[r.Markets.Length];
+        foreach (int g in gids) r.ConstructionCarryover[g] = big;
+        EconomyStep.Run(r, c, 1.0, w.Bank, w);
+        foreach (int g in gids)
+        {
+            double expectedRatio = 1.0 - OldSpoilageOf(g);
+            double ratio = r.ConstructionCarryover![g] / big;
+            Assert.True(Math.Abs(ratio - expectedRatio) < 1e-6, $"{Catalog.Goods[g].Name}: 持ち越しの残る割合 {ratio:R}（期待 {expectedRatio:R}）");
+        }
+        // 鋼・機械・セメントの損耗は 0.5%・製材は 2%（財ごとに違う値を掛けている）
+        Assert.NotEqual(OldSpoilageOf(c.CementGoodId), OldSpoilageOf(c.LumberGoodId));
+    }
 }
