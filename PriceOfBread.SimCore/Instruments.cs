@@ -71,6 +71,7 @@ public static class Instruments
         public readonly List<string> DiscRows = new();     // (320) 発見の表の行の出来事（E）と蒸気機関・機関車の軌道（T）＝四半期の末に disc_s へ書く
         public readonly Dictionary<(int Row, string Seller), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
+        public double OpTensionAdded, OpTensionLevelMax; public int OpTensionPairMonths;   // ★(342) 禁令中の国が輸出国との組へ積んだアヘンの緊張（四半期の和・件数・積んだ直後の組の値の最大）
         public double LuxPopMonths, LuxNonPosPopMonths, LuxInvalidPopMonths, LuxNonPosSizeSum;   // (329) 奢侈品の所得弾力：f＝1 に倒れた POP×月の累計（読むだけ・四半期の終わりに nation_s へ）
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
@@ -173,6 +174,7 @@ public static class Instruments
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
         public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
+        public System.IO.StreamWriter? Opium; public bool OpiumHeader;                     // (342) アヘンの表（州×四半期の行 R と国×四半期の行 N）
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
     internal sealed class SpendAcc
@@ -986,7 +988,7 @@ public static class Instruments
         double luxExp = 0;
         if (w.ExportsByGood is { } eg)
             for (int g = 0; g < eg.Length && g < Catalog.Goods.Length; g++)
-                if (Catalog.Goods[g].Tier == GoodTier.Luxury && g != w.Coef.OpiumGoodId) luxExp += eg[g];
+                if (Catalog.Goods[g].Tier == GoodTier.Luxury && !Habit.Of(w.Coef, g).Forms) luxExp += eg[g];
         var st = S(w);
         return [("worldRealIncomePerCapitaPerMonth", F(w.WorldRealIncomePerCapitaPerMonth)), ("luxuryExportsPerClearing", F(luxExp)),
             ("luxuryRatioPopMonths", F(st.LuxPopMonths)), ("luxuryRatioNonPositivePopMonths", F(st.LuxNonPosPopMonths)), ("luxuryRatioInvalidPopMonths", F(st.LuxInvalidPopMonths)), ("luxuryRatioNonPositiveSizeSum", F(st.LuxNonPosSizeSum))];
@@ -1367,6 +1369,7 @@ public static class Instruments
         var sk = SinkOf(sim, seed);
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
+        if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; }   // (342) 助走の月は数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
 
@@ -1400,6 +1403,7 @@ public static class Instruments
             st.FacStarted = st.FacStartedClosed = st.FacDone = st.FacDoneClosed = st.FacDoneClosedAtStart = 0;
         }
         RegionRows(sk, seed, q, sim);
+        OpiumRows(sk, seed, q, sim);    // (342) アヘンの表
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
@@ -1419,6 +1423,7 @@ public static class Instruments
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
+        sk.Opium?.Dispose(); sk.Opium = null;   // (342)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 
@@ -1428,6 +1433,7 @@ public static class Instruments
     sealed class RegionFlow
     {
         public double MigrationOutK, MigrationInK, SettlerInK, CrossBorderOutK, CrossBorderInK;
+        public double HabitSoldSum;   // ★(342) 州のアヘンの月ごとの販売量の和（四半期の末に opium_s へ書いて 0 へ戻す）
         public double TheftPoolSum, TheftRecipientsEarnedSum;   // ★(323) 四半期の月ごとの窃盗の額の和・その月の受け手（困窮大衆）の前の月の所得の和（Crime.Step の Transfer の直後・読むだけ）
         public Dictionary<Region, double>? MigrationTo;   // 出る州→入る州ごとの量（四半期の合計・州の間の移民だけ）
     }
@@ -1510,6 +1516,60 @@ public static class Instruments
                 f.MigrationOutK = f.MigrationInK = f.SettlerInK = f.CrossBorderOutK = f.CrossBorderInK = 0;   f.TheftPoolSum = f.TheftRecipientsEarnedSum = 0;
             }
         }
+    }
+
+    // ---------------------------------------------------------------- (342) アヘンの表（段1・読むだけ）----------------------------------------------------------------
+
+    /// <summary>★(342) 段1：アヘンの表 <c>opium_s</c>（<c>scope</c> 列で2種類の行）。<c>R</c>＝州×四半期（中毒度が正・販売量が正・闇栽培の係数が 1 未満のどれかの州だけ）：中毒度 <c>addictionIndex</c>（<see cref="Region.OpiumAddiction"/>）・
+    /// 四半期の月平均の販売量 <c>soldPerMonth</c>・1人あたり <c>soldPerCapitaPerMonth</c>・州の市場の値段 <c>unitPrice</c>・労働の倍率 <c>laborFactorIndex</c>（<see cref="Habit.LaborFactor"/>＝1 で蝕まない）・闇栽培の係数 <c>productionFactorIndex</c>（全面禁止の州で 1 未満）。
+    /// <c>N</c>＝国×四半期（法・緊張・輸出入のどれかが有る国だけ）：保有の法の段 <c>possessionLawCode</c>（0＝許可・1＝輸入禁止・2＝禁止）・輸出の法 <c>exportBanFlag</c>・全国の人口加重の中毒度 <c>nationalAddictionIndex</c>・
+    /// 全州の販売量の和 <c>soldTotalPerMonth</c>・直近の清算1回分の輸出 <c>exportsPerClearing</c>／輸入 <c>importsPerClearing</c>（世界価格建て）・
+    /// 緊張の積み：四半期に積んだ率の和 <c>tensionAddedPerQuarter</c>・積んだ組×月の数 <c>tensionPairMonthsCount</c>・積んだ直後の組のアヘン由来の緊張の四半期の最大 <c>tensionLevelMaxIndex</c>。
+    /// 読むだけ＝力学の値を書かない・乱数を引かない。販売量と緊張の積みは本体の位置でわずかに積む（<c>Instruments.On</c> の中だけ）。</summary>
+    static void OpiumRows(Sink sk, ulong seed, int q, MultiNationSim sim)
+    {
+        sk.Opium ??= Open("opium", seed);
+        if (!sk.OpiumHeader)
+        {
+            sk.Opium.WriteLine("scope	quarter	year	nationIndex	nation	region	populationK	addictionIndex	soldPerMonth	soldPerCapitaPerMonth	unitPrice	laborFactorIndex	productionFactorIndex	"
+                + "possessionLawCode	exportBanFlag	nationalAddictionIndex	soldTotalPerMonth	exportsPerClearing	importsPerClearing	tensionAddedPerQuarter	tensionPairMonthsCount	tensionLevelMaxIndex");
+            sk.OpiumHeader = true;
+        }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int year = sim.Nations[0].World.Year;
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; var c = w.Coef; string nation = NameOf(w); var st = S(w);
+            int gid = c.OpiumGoodId;
+            double popSum = 0, addSum = 0, soldSum = 0;
+            foreach (var r in w.Regions)
+            {
+                var f = FlowOf(r);
+                double sold = Calendar.PerQuarterToPerMonth(f.HabitSoldSum); f.HabitSoldSum = 0;
+                bool active = r.State == RegionState.Active;
+                double pop = active ? r.SumPopulation() : 0;
+                if (active) { popSum += pop; addSum += r.OpiumAddiction * pop; soldSum += sold; }
+                if (!(r.OpiumAddiction > 0 || sold > 0 || r.ContrabandProductionFactor < 1.0)) continue;
+                double price = gid >= 0 && gid < r.Markets.Length && r.Markets[gid] is { } mk ? mk.Price : double.NaN;
+                sk.Opium.WriteLine(string.Join('	', "R", I(q), I(year), I(i), nation, r.Name, F(pop), F(r.OpiumAddiction), F(sold), F(pop > 0 ? sold / pop : double.NaN), F(price),
+                    F(Habit.LaborFactor(c, r)), F(r.ContrabandProductionFactor), "", "", "", "", "", "", "", "", ""));
+            }
+            double ex = w.ExportsByGood is { } eg && gid >= 0 && gid < eg.Length ? eg[gid] : 0, im = w.ImportsByGood is { } ig && gid >= 0 && gid < ig.Length ? ig[gid] : 0;
+            if (w.OpiumPossession != ReformLevel.None || w.OpiumExportBan || addSum > 0 || soldSum > 0 || ex > 0 || im > 0 || st.OpTensionPairMonths > 0)
+                sk.Opium.WriteLine(string.Join('	', "N", I(q), I(year), I(i), nation, "", "", "", "", "", "", "", "",
+                    I((int)w.OpiumPossession), w.OpiumExportBan ? "1" : "0", F(popSum > 0 ? addSum / popSum : 0), F(soldSum), F(ex), F(im), F(st.OpTensionAdded), I(st.OpTensionPairMonths), F(st.OpTensionLevelMax)));
+            st.OpTensionAdded = 0; st.OpTensionPairMonths = 0; st.OpTensionLevelMax = 0;
+        }
+    }
+
+    /// <summary>★(342) 州のその月のアヘンの販売量（<c>EconomyStep</c> の中毒度の更新の直前・読むだけ）。</summary>
+    internal static void HabitSold(Region r, double sold) => FlowOf(r).HabitSoldSum += sold;
+
+    /// <summary>★(342) 禁令中の国 <paramref name="w"/> がアヘンの輸出国との組へ緊張を積んだ直後（<c>Diplomacy.OpiumTension</c>・読むだけ）：積んだ率 <paramref name="rate"/>・その組のアヘン由来の緊張の今の値 <paramref name="level"/>。</summary>
+    internal static void OpiumTension(World w, double rate, double level)
+    {
+        var st = S(w); st.OpTensionAdded += rate; st.OpTensionPairMonths++;
+        if (level > st.OpTensionLevelMax) st.OpTensionLevelMax = level;
     }
 
     /// <summary>戦争1本ごと（<c>wars</c>）と(年, 国)ごとの戦死（<c>casualty</c>）。戦争の戦死と月数は試合の終わりの値（戦争が続いていればその時点まで）。</summary>

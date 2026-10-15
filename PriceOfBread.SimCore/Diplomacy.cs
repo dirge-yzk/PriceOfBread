@@ -1462,10 +1462,13 @@ public sealed class Diplomacy
                         foreach (var g in r.Resources) if (g == c.OpiumGoodId) { exporter = true; break; }
                         if (exporter) break;
                     }
-                if (exporter && !AtWar(a, b) && !InDependency(a, b)) AddTension(a, b, c.OpiumBanTensionRate, TensionReason.Opium);
+                if (exporter && !AtWar(a, b) && !InDependency(a, b)) { AddTension(a, b, c.OpiumBanTensionRate, TensionReason.Opium); if (Instruments.On) Instruments.OpiumTension(an, c.OpiumBanTensionRate, OpiumReasonLevel(a, b)); }   // (342) 計器（読むだけ）：積んだ率と、その組のアヘン由来の緊張の今の値
             }
         }
     }
+
+    /// <summary>(342) 計器用（読むだけ）：組 (a, b) の緊張のうち、理由が阿片のものの今の値（理由別の台帳 <c>_tensionWhy</c> の1成分）。</summary>
+    private double OpiumReasonLevel(Power a, Power b) => _tensionWhy.TryGetValue(Key(a, b), out var w) && w.Length > (int)TensionReason.Opium ? w[(int)TensionReason.Opium] : 0;
 
     private void TriggerWars(Coefficients c)
     {
