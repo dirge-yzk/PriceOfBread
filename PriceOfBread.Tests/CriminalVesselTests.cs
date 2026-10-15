@@ -223,9 +223,10 @@ public class CriminalVesselTests
     {
         // 送り手＝農民（下流）。行き先の候補に、稼ぎが突出して高い犯罪者（階級 14 ＝ 下流）を置く。
         // 添字を 13 にすると候補から外れて犯罪者は 1 人も増えない／添字を −1 にすると稼ぎの高い犯罪者へ動く（＝除外の分岐が添字で働いている証拠）。
-        double Gained(int criminalIndexMode, bool forced)
+        double Gained(int criminalIndexMode, bool forced, double temperature)
         {
             var w = QuietBritain();
+            w.Coef.JobPoolTemperature = temperature;   // 0＝総取りの waterfall の枝・正＝低温 softmax の枝（行き先の除外は両方に要る）
             var r = w.Regions[0];
             var crim = Plant(r, 14, size: 1000);
             crim.EarnedPerMonth = new MoneyPerMonth(1e9);
@@ -238,10 +239,11 @@ public class CriminalVesselTests
             typeof(Meritocracy).GetMethod("RouteViaPool", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, args);
             return crim.Size - s0;
         }
-        foreach (bool forced in new[] { false, true })
-        {
-            Assert.True(Gained(-1, forced) > 1e-6, $"前提が崩れた：添字が −1 なら稼ぎの高い犯罪者へ動くはず（強制 {forced}）");
-            Assert.Equal(0.0, Gained(1, forced));
-        }
+        foreach (double temperature in new[] { 0.15, 0.0 })
+            foreach (bool forced in new[] { false, true })
+            {
+                Assert.True(Gained(-1, forced, temperature) > 1e-6, $"前提が崩れた：添字が −1 なら稼ぎの高い犯罪者へ動くはず（強制 {forced}・温度 {temperature}）");
+                Assert.Equal(0.0, Gained(1, forced, temperature));
+            }
     }
 }
