@@ -1,4 +1,6 @@
-﻿namespace PriceOfBread.SimCore;
+﻿using TrEntry = (int nation, PriceOfBread.SimCore.Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk);
+
+namespace PriceOfBread.SimCore;
 
 /// <summary>二国間交易（作者裁定2026-08-11／設計＝docs/202608/二国間交易への置換_設計_完了.md【完了】.md）。
 ///
@@ -101,10 +103,58 @@ public sealed partial class InternationalMarket
     }
     [System.ThreadStatic] private static KmScratch? _kmScratch;
 
+    /// <summary>★(347) 清算1回ぶんの作業用の配列と一覧の置き場＝スレッドごと（selfplay-batch は試合ごとにスレッド）。旧＝清算のたびに約40本の配列
+    /// （州・国・財の数の長さ）と一覧を作り直していた（ゴミ集めの負担）。新＝伸ばすだけで持ち越す。静的＝セーブに載らない（状態ではない・清算の頭で必ず初期化して使う）。
+    /// ⚠配列は要る長さより長いことがある＝要る長さの外を読まない・Array.Sort／.Length に渡さない（各配列の使い方は <see cref="StepBilateral"/>）。
+    /// ⚠参照を持つ配列は清算の終わりに <see cref="Release"/> で空ける（終わった試合の州・POP・世界を握り続けない）。</summary>
+    private sealed class ClearScratch
+    {
+        public Dictionary<Region, double> PortStart = new();
+        public Dictionary<string, int> TransitPortOwner = new();
+        public List<(int user, int owner, Region r)> TransitUses = [];
+        public Good?[] GoodById = [];
+        public double[] ExRate = [], Tar = [], Corn = [], MilExportAcc = [], ShipShare = [], ImportVal = [], ExportVal = [], PartnerStd = [], PartnerBal = [], PartnerTot = [], PremRecv = [];
+        public bool[] Oban = [], Oexban = [], NatAnyHostile = [], SuezOkN = [], PanOkN = [], Ok = [];
+        public double[][] NatHostility = [], ImpTop = [], ExpTop = [], ExpByGood = [], ImpByGood = [];
+        public TrEntry[] Tr = new TrEntry[512];
+        public int[] SeaNodeOf = [], LandNode = [], NextS = [], CandS = [];
+        public double[] SeaHalf = [], TerrCost = [], LandRatio = [], LandGraft = [], Budget = [], PayHouse = [], PortRecv = [], PayTariff = [], PaySub = [],
+            Rev = [], RevX = [], ExpReg = [], PotNew = [], CapLeft = [], DistTop = [], LpOf = [], Left = [], CandD = [], CandK = [], CandF = [];
+        public List<Pop>?[] PayerOf = [], Underwriters = [];
+        public List<Pop>?[] ShipOwners = [];
+        public bool[] Bill = [];
+        public Pop?[] PortOwner = [];
+        public Market[] MktOf = [];
+        public List<Seller> Sellers = [];
+        public List<(int Node, double Price)> Buyers = [];
+
+        /// <summary>要る長さ n 以上の配列を返す（足りなければ作り直す・中身は消さない＝全要素を書いてから読む配列だけ）。</summary>
+        public static T[] Fit<T>(ref T[] a, int n) { if (a.Length < n) a = new T[n]; return a; }
+        /// <summary>要る長さ n 以上の配列を返し、先頭の n 個を既定値（0・null・false）にする（+= で積む配列・条件つきでしか書かない配列）。</summary>
+        public static T[] FitZero<T>(ref T[] a, int n) { if (a.Length < n) a = new T[n]; else Array.Clear(a, 0, n); return a; }
+        /// <summary>内側の配列（長さ gc）の置き場。行ごとに長さを確かめ、先頭から gc 個を0にして返す。</summary>
+        public static double[][] FitRows(ref double[][] a, int n, int gc)
+        {
+            if (a.Length < n) { var b = new double[n][]; Array.Copy(a, b, a.Length); a = b; }
+            for (int i = 0; i < n; i++) { if (a[i] is null || a[i].Length != gc) a[i] = new double[gc]; else Array.Clear(a[i]); }
+            return a;
+        }
+        /// <summary>清算の終わり：参照を持つ配列を空ける（要る長さ tc／nn／gc の先頭だけ書いた）。</summary>
+        public void Release(int tc, int nn, int gc)
+        {
+            Array.Clear(Tr, 0, tc); Array.Clear(PayerOf, 0, tc); Array.Clear(PortOwner, 0, tc); Array.Clear(MktOf, 0, tc);
+            Array.Clear(Underwriters, 0, nn); Array.Clear(ShipOwners, 0, nn); Array.Clear(GoodById, 0, gc);
+            Array.Clear(NatHostility, 0, nn); Array.Clear(ExpByGood, 0, nn); Array.Clear(ImpByGood, 0, nn);
+            Sellers.Clear(); Buyers.Clear(); PortStart.Clear(); TransitPortOwner.Clear(); TransitUses.Clear();
+        }
+    }
+    [System.ThreadStatic] private static ClearScratch? _clearScratch;
+
     private void StepBilateral(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter = true)
     {
         int gc = _price.Length, nn = nations.Count;
         if (nn == 0) return;   // 参加国なし＝清算なし（下の nations[0] を守る）
+        var sc = _clearScratch ??= new ClearScratch();   // ★(347) 作業用の配列の置き場（スレッドごと）。使う配列は下で Fit／FitZero が長さを合わせる（FitZero は先頭 n 個を0にする）
         // ==== S4 裁定清算（2026-08-30 点火・docs/202608 §1-2〜1-4/§2）====
         //   数量を水準式で解く：買い X=min(価格静止 X_price, 物理 X_need)・売り Y=min(価格静止 Y_price, 在庫−地元1ヶ月分)。
         //   容量は同期制約（S4-1＝両端から減算・θ乗算撤去）。
@@ -112,12 +162,12 @@ public sealed partial class InternationalMarket
         //   （TradeCapacityHard=0）を旗ごと削除した＝既定では1命令も走っていなかった（差し戻しは git の1手）。
         // ★月次清算（2026-08-22）：LastPortThroughput は四半期末の読み手（港湾投資・保険・通行料・ArmyShape・UI）が四半期量として読む＝
         //   月次清算では四半期の第1清算だけリセットして以後は累計する。当清算ぶんは start との差分（トランジット通行料は差分に掛ける＝3重課金回避）。
-        var portStart = new Dictionary<Region, double>();
-        var goodById = new Good?[gc];
+        var portStart = sc.PortStart; portStart.Clear();
+        var goodById = ClearScratch.FitZero(ref sc.GoodById, gc);   // id の無い所は null のまま読まれる
         foreach (var g in nations[0].World.Region.Goods) goodById[g.Id] = g;
 
-        var exRate = new double[nn]; var tar = new double[nn]; var corn = new double[nn];
-        var oban = new bool[nn]; var oexban = new bool[nn]; var milExportAcc = new double[nn];
+        var exRate = ClearScratch.Fit(ref sc.ExRate, nn); var tar = ClearScratch.Fit(ref sc.Tar, nn); var corn = ClearScratch.Fit(ref sc.Corn, nn);   // 下の国のループが全要素を書く
+        var oban = ClearScratch.Fit(ref sc.Oban, nn); var oexban = ClearScratch.Fit(ref sc.Oexban, nn); var milExportAcc = ClearScratch.Fit(ref sc.MilExportAcc, nn);
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
@@ -136,7 +186,7 @@ public sealed partial class InternationalMarket
 
         // ---- 交易主体＝全active州。州ごとに「海に出る点（自港 or 最寄り港）・そこまでの陸路・アクセス・容量」を1回だけ作る ----
         // ★重心は作らない（廃止）。距離は下の対ごとに引く。
-        var trList = new List<(int nation, Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk)>();
+        var tr = sc.Tr; int tc = 0;   // ★(347) 州の表（旧＝一覧に足してから配列へ写していた＝清算のたびに一覧と配列を2つ作った）。足りなければ伸ばす
         // Stage C（裁定A3）：内陸国トランジット＝自国に港が無い州は外国の港を借りる。旧経路と同じ候補（構築時の上位2港）を読み、
         //   現所有国と交戦中なら次候補へ。借りた州は下で通行料（取扱高×TransitTollShare）を港所有国へ払う。
         bool transitOn = c.TransitEnabled > 0.5;
@@ -144,15 +194,15 @@ public sealed partial class InternationalMarket
         List<(int user, int owner, Region r)>? transitUses = null;
         if (transitOn)
         {
-            transitPortOwner = new Dictionary<string, int>();
+            transitPortOwner = sc.TransitPortOwner; transitPortOwner.Clear();
             for (int i2 = 0; i2 < nn; i2++)
                 foreach (var r2 in nations[i2].World.Regions)
                     if (r2.State == RegionState.Active && r2.IsPort) transitPortOwner.TryAdd(r2.Name, i2);
-            transitUses = [];
+            transitUses = sc.TransitUses; transitUses.Clear();
         }
-        var natHostility = new double[nn][];
-        var natAnyHostile = new bool[nn];
-        var suezOkN = new bool[nn]; var panOkN = new bool[nn];
+        var natHostility = ClearScratch.Fit(ref sc.NatHostility, nn);   // 下の国のループが全要素を書く
+        var natAnyHostile = ClearScratch.Fit(ref sc.NatAnyHostile, nn);
+        var suezOkN = ClearScratch.Fit(ref sc.SuezOkN, nn); var panOkN = ClearScratch.Fit(ref sc.PanOkN, nn);
         for (int i = 0; i < nn; i++)
         {
             var W = nations[i].World;
@@ -224,16 +274,15 @@ public sealed partial class InternationalMarket
                 bool seaOk = linked;
                 if (c.LandRouteEnabled > 0 && (cc.Lat != 0 || cc.Lon != 0)) linked = true;
                 // ★S4-1：容量は同期制約（capLeft）で効く＝前月の律速率 LastTradeThrottle はアクセスに掛けない（同じ容量が2回効く二重拘束の回避）
-                trList.Add((i, r, lat, lon, landKm, natAccess, cap, linked, cc.Lat, cc.Lon, seaOk));
+                if (tc == tr.Length) { Array.Resize(ref sc.Tr, tr.Length * 2); tr = sc.Tr; }
+                tr[tc++] = (i, r, lat, lon, landKm, natAccess, cap, linked, cc.Lat, cc.Lon, seaOk);
             }
         }
-        int tc = trList.Count;
         // ★2026-09-29（高速化の段 S2・厳密恒等）：州の表は配列で読む（List の添字は11項目の組を丸ごと写してから項目を読む＝清算の内側のループで1回約80バイト）。
         //   組の項目への書き込みは無い（List では書けない）＝読む値は同じ。
-        var tr = trList.ToArray();
         // ★(335) 州ごとの最寄りの海ノードと接ぎ木の片側（州の海に出る点→そのノードの大圏距離）。距離の表と危険料の表の埋め直し（PairKm・PairRisk）が組ごとに
         //   最寄りの検索と大圏距離を繰り返していた＝州ごとに1回だけ。値は SeaGraph.SeaDistanceKm が組ごとに求める値と同じ式・同じ入力（海に出る点の座標）。
-        var seaNodeOf = new int[tc]; var seaHalf = new double[tc];
+        var seaNodeOf = ClearScratch.Fit(ref sc.SeaNodeOf, tc); var seaHalf = ClearScratch.Fit(ref sc.SeaHalf, tc);   // 下のループが全要素を書く
         for (int t0 = 0; t0 < tc; t0++)
         {
             int sn = SeaGraph.NearestSeaNode(tr[t0].lat, tr[t0].lon);
@@ -245,8 +294,8 @@ public sealed partial class InternationalMarket
         //   ＝旧＝技術水準の時計の傾斜 RailGate(TechLevel)（発見と関係なく開いた）。
         //   水路タグは >0 のとき陸脚コストをその値へ**置換**（川が道の代わり＝内陸なのに港に近い扱い）。
         //   表が全1.0・水運0なら terrCost は恒等的に1.0（旗 TerrainCostEnabled は 2026-09-26 に焼き込み＝表は常に効く）。
-        var terrCost = new double[tc];
-        var landRatio = new double[tc];   // ★州ごとの実効 陸/海コスト比（鉄道時代の低下・RailCostFraction=1.0で12のまま＝恒等）
+        var terrCost = ClearScratch.Fit(ref sc.TerrCost, tc);   // 下のループが全要素を書く
+        var landRatio = ClearScratch.Fit(ref sc.LandRatio, tc);   // ★州ごとの実効 陸/海コスト比（鉄道時代の低下・RailCostFraction=1.0で12のまま＝恒等）
         for (int t0 = 0; t0 < tc; t0++)
         {
             var W0 = nations[tr[t0].nation].World;
@@ -262,7 +311,7 @@ public sealed partial class InternationalMarket
             terrCost[t0] = m0;
         }
         // ★(1.5)：各州の陸グラフ最寄りノードと接ぎ木距離を**1回だけ**引く（州×州のループで NearestNode を呼ばない）。
-        var landNode = new int[tc]; var landGraft = new double[tc];
+        var landNode = ClearScratch.Fit(ref sc.LandNode, tc); var landGraft = ClearScratch.FitZero(ref sc.LandGraft, tc);   // 接ぎ木の距離は陸路の旗が立つときだけ書く（下の else は0のまま読まれる）
         if (c.LandRouteEnabled > 0)
             for (int t0 = 0; t0 < tc; t0++)
             {
@@ -400,16 +449,15 @@ public sealed partial class InternationalMarket
         }
 
         // 相手の台帳＝材ごとに「最大額の相手」だけを残す（全対を持つと 54×136×54 になる）。値は同期の最大額。
-        var impTop = new double[nn][]; var expTop = new double[nn][];
+        var impTop = ClearScratch.FitRows(ref sc.ImpTop, nn, gc); var expTop = ClearScratch.FitRows(ref sc.ExpTop, nn, gc);   // 財ごとの最大額＝0から
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
             if (w0.ImportFromByGood is null || w0.ImportFromByGood.Length != gc) { w0.ImportFromByGood = new string[gc]; w0.ExportToByGood = new string[gc]; }
             else { Array.Fill(w0.ImportFromByGood, null!); Array.Fill(w0.ExportToByGood!, null!); }
-            impTop[i] = new double[gc]; expTop[i] = new double[gc];
         }
 
-        var expByGood = new double[nn][]; var impByGood = new double[nn][];
+        var expByGood = ClearScratch.Fit(ref sc.ExpByGood, nn); var impByGood = ClearScratch.Fit(ref sc.ImpByGood, nn);   // 下の国のループが全要素を書く（世界の配列への参照）
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
@@ -424,21 +472,21 @@ public sealed partial class InternationalMarket
         //   売り手の受取（積出し価格＝次善の着値を最良の売り手の楔で割り戻した値）は④の持分（地代・国営持分・賃金＝Earned を通す）／運賃は船の持ち主（商人）へ／
         //   関税と穀物法の分は通関の時点で輸入国の国庫へ（econ-07）／金建ての額は各国の通貨へ為替で換算（A7）。
         //   清算所＝世界の外（払い手は清算所へ払い、受け手は清算所から受け取る）＝同じ国の州どうしの取引は同じ国の台帳に −x と +x が入って打ち消す（国内の決済）。
-        var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額（CIF＝積出し価格＋運賃）・輸出額（FOB＝積出し価格）・金建て（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
+        var importVal = ClearScratch.FitZero(ref sc.ImportVal, nn); var exportVal = ClearScratch.FitZero(ref sc.ExportVal, nn);   // 越境の輸入額（CIF＝積出し価格＋運賃）・輸出額（FOB＝積出し価格）・金建て（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
         // ★(210) 取引の相手の本位（World.TradePartnerStandardBalance）＝越境の成約の積出し価格を買い手と売り手の両方に、相手の本位の符号（金＋1・銀−1・不換0）で積む。
         //   本位は清算の間に変わらない＝前もって国ごとに1回引く（成約の行で World を引かない）。
-        var partnerStd = new double[nn]; var partnerBal = new double[nn]; var partnerTot = new double[nn];
+        var partnerStd = ClearScratch.Fit(ref sc.PartnerStd, nn); var partnerBal = ClearScratch.FitZero(ref sc.PartnerBal, nn); var partnerTot = ClearScratch.FitZero(ref sc.PartnerTot, nn);   // 本位は下の国のループが全要素を書く
         for (int i = 0; i < nn; i++) partnerStd[i] = nations[i].World.MonetaryLaw switch { MonetaryStandardLaw.Gold => 1.0, MonetaryStandardLaw.Silver => -1.0, _ => 0.0 };
         double freightPool = 0;   // 運賃（金建て）＝船腹の比で各国の船の持ち主へ
-        var shipShare = new double[nn];
+        var shipShare = ClearScratch.FitZero(ref sc.ShipShare, nn);
         // ★段3-1（C3）：運賃の受け手＝船の持ち主＝その国の商人POP（船を買うのは州の商人＝Transport.BuyToward）。旧＝運賃は各国の純流入に混ぜて国の全POP の貯蓄比（Apply）。
         //   商人の居ない国（合成の試験世界）は活動州の全POP。受け手の居ない国は船腹の比から外す（運賃が誰にも渡らない片側記帳を作らない）。
-        var shipOwners = new List<Pop>[nn];
+        var shipOwners = ClearScratch.FitZero(ref sc.ShipOwners, nn);   // 運賃を取らないとき（下の if に入らない）は null のまま読まれない
         double freightRate = 0;
         if (c.FreightRatePer10Mm > 1e-12)
         {
             double shipSum = 0; int eligible = 0;
-            var ok = new bool[nn];
+            var ok = ClearScratch.FitZero(ref sc.Ok, nn);
             for (int i2 = 0; i2 < nn; i2++)
             {
                 var so = new List<Pop>();
@@ -475,10 +523,11 @@ public sealed partial class InternationalMarket
 
         // ---- S4 のプール ----
         double twoEps = 2.0 * c.PriceElasticity;   // X_price の指数（ε=0.5 なら 1＝D·rp/d−P−I）
-        int[]? nextS = null;   // ★連結リスト圧縮（2026-09-01）：在庫が尽きた売り手（と 2026-09-26 から容量が尽きた売り手）を走査から恒久除去する「次の生存索引」
+        int[] nextS = sc.NextS;   // ★(347) 作業領域から借りる（足りなければ下の財のループの頭で伸ばす・全要素を書いてから読む）
+        // ★連結リスト圧縮（2026-09-01）：在庫が尽きた売り手（と 2026-09-26 から容量が尽きた売り手）を走査から恒久除去する「次の生存索引」
         // ★逐次の候補表（2026-09-26・高速化・厳密恒等）：買い手1行のあいだ、訪問済みで有資格の売り手（着値＜MaxValue）を持つ＝伸長のみ・買い手ごとに0から。
         //   旧＝反復のたびに先頭から走査し直していた（成約の直後の同一の再走査・一時スキップの踏み直し）。下の買い手ループの注記を参照。
-        int[]? candS = null; double[]? candD = null; double[]? candK = null; double[]? candF = null;   // candF＝着値の倍率（1＋運賃＋楔＋封鎖）＝売り手の受取を割り戻す分母
+        int[] candS = sc.CandS; double[] candD = sc.CandD; double[] candK = sc.CandK; double[] candF = sc.CandF;   // ★(347) 作業領域から借りる（足りなければ下で伸ばす・候補の数 candN の手前だけ読む）。candF＝着値の倍率（1＋運賃＋楔＋封鎖）＝売り手の受取を割り戻す分母
         // ★段3-1：支払能力＝輸入の捌き手（州の商人POP・商人の居ない州は州の全POP）の貯蓄（自国通貨・清算の始めの値）。旧＝国の全POP の貯蓄の和（Apply と同一集合）。
         //   この清算の受け取り（商人の仲介料・生産者のいない在庫の代金）は清算の終わりに入る＝この清算の支払能力に足さない（先に使えない）。
         // ★為替手形（2026-09-29 高速化の段 S3b・補給の鎖の緩衝＝緊急の輸入の財布）：捌き手の商人は積荷を担保に自国の銀行で手形を割り引いて払い、
@@ -489,9 +538,9 @@ public sealed partial class InternationalMarket
         //   ②返し切れない手形の残る商人は新しい手形を振り出せない（不渡りの商人は引き受けてもらえない）＝支払能力は貯蓄だけ
         //   ③手形を振り出せる商人の支払能力は積荷が担保＝上限は量（X＝物理の不足と価格の量）だけ＝∞。払う時に貯蓄で足りない分だけ借りる。
         //   ⚠天井でもタイマーでもない（返す理由＝売った代金が入った・貸さない理由＝前の手形が返っていない）。商人の居ない州（試験世界）は借りない。
-        var payerOf = new List<Pop>?[tc];   // 輸入の払い手（null＝払い手なし＝輸入しない）
-        var budget = new double[tc];
-        var bill = new bool[tc];            // 手形を振り出せる（商人の払い手・返し切れない手形が無い）
+        var payerOf = ClearScratch.FitZero(ref sc.PayerOf, tc);   // 輸入の払い手（null＝払い手なし＝輸入しない）
+        var budget = ClearScratch.FitZero(ref sc.Budget, tc);
+        var bill = ClearScratch.FitZero(ref sc.Bill, tc);            // 手形を振り出せる（商人の払い手・返し切れない手形が無い）
         for (int t2 = 0; t2 < tc; t2++)
         {
             var r2 = tr[t2].r;
@@ -503,20 +552,20 @@ public sealed partial class InternationalMarket
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
             if (bill[t2]) budget[t2] = double.PositiveInfinity;   // ③積荷が担保（量は X が決める）
         }
-        var payHouse = new double[tc];   // 払い手が清算所へ払う額（輸入代金＋運賃＋港湾料＋保険料・自国通貨）
+        var payHouse = ClearScratch.FitZero(ref sc.PayHouse, tc);   // 払い手が清算所へ払う額（輸入代金＋運賃＋港湾料＋保険料・自国通貨）
         // ★支払いの一元化 段3-4（2026-09-30・C10＝処理の一元化 段4d）：**港湾料と海上保険の保険料は取引の時点の上乗せ**＝海路の成約ごとに輸入の捌き手（荷主）が払う
         //   （単価に入る＝払い手の支払能力が量を減らす・手形の振り出しも同じ額）。受け手＝港湾料は両端の港の州の投資家（港の持ち主・1端ごとに取扱高×PortFeeRate）・
         //   保険料は輸入国の引受手（その国の商人の頭数）。旧＝四半期末に国の全POP から貯蓄の比で（StepPorts／StepMarineInsurance）＝荷主でない内陸の農民も払った。
         //   港の州は IsPort（旧と同じ＝内陸州の取扱高には港湾料が掛からない）・持ち主のいない港は取らない・引受手のいない国は保険を掛けない（旧と同じ）。
-        var portOwner = new Pop?[tc];     // 港の持ち主（港の州の投資家・不在は null＝港湾料を取らない）
-        var portRecv = new double[tc];    // 港の持ち主の受け取り（その州の国の通貨）
+        var portOwner = ClearScratch.FitZero(ref sc.PortOwner, tc);     // 港の持ち主（港の州の投資家・不在は null＝港湾料を取らない）
+        var portRecv = ClearScratch.FitZero(ref sc.PortRecv, tc);    // 港の持ち主の受け取り（その州の国の通貨）
         for (int t2 = 0; t2 < tc; t2++)
         {
             var r2 = tr[t2].r;
             if (c.PortFeeRate > 0 && r2.IsPort && r2.InvestorPopIndex >= 0 && r2.InvestorPopIndex < r2.Pops.Count && r2.Pops[r2.InvestorPopIndex].Size > 1e-9) portOwner[t2] = r2.Pops[r2.InvestorPopIndex];   // 受け手が居る＝移し方の1本が配れる（頭数＞0）
         }
-        var underwriters = new List<Pop>?[nn];   // 引受手＝その国の活きた州の商人（居ない国・外交層の無い国は保険市場が立たない＝null）
-        var premRecv = new double[nn];           // 引受手の受け取り（その国の通貨）
+        var underwriters = ClearScratch.FitZero(ref sc.Underwriters, nn);   // 引受手＝その国の活きた州の商人（居ない国・外交層の無い国は保険市場が立たない＝null）
+        var premRecv = ClearScratch.FitZero(ref sc.PremRecv, nn);           // 引受手の受け取り（その国の通貨）
         if (c.MarinePremiumRate > 0)
             for (int i2 = 0; i2 < nn; i2++)
             {
@@ -526,13 +575,13 @@ public sealed partial class InternationalMarket
                 foreach (var r2 in w2.Regions) if (r2.State == RegionState.Active && r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { uw.Add(r2.Pops[r2.MerchantPopIndex]); uwSize += r2.Pops[r2.MerchantPopIndex].Size; }
                 if (uwSize > 1e-9) underwriters[i2] = uw;   // 受け手が居る＝移し方の1本が頭数で配れる（払わせて配れない額を作らない）
             }
-        var payTariff = new double[tc];  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）
-        var paySub = new double[tc];     // 売買方針（高く買う）の補助＝国庫→払い手（自国通貨・国家の支払い率 r は払う時に掛ける）
-        var rev = new double[tc]; var revX = new double[tc];   // 財ごとの売り手の受取（自国通貨）・うち越境（仲介料の基数）＝財の清算の終わりに④で分けて0へ戻す
-        var expReg = new double[tc];     // 越境の輸出の受取（自国通貨・全財）＝ダンピング補助の重み（輸出を捌いた州の商人）
+        var payTariff = ClearScratch.FitZero(ref sc.PayTariff, tc);  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）
+        var paySub = ClearScratch.FitZero(ref sc.PaySub, tc);     // 売買方針（高く買う）の補助＝国庫→払い手（自国通貨・国家の支払い率 r は払う時に掛ける）
+        var rev = ClearScratch.FitZero(ref sc.Rev, tc); var revX = ClearScratch.FitZero(ref sc.RevX, tc);   // 財ごとの売り手の受取（自国通貨）・うち越境（仲介料の基数）＝財の清算の終わりに④で分けて0へ戻す
+        var expReg = ClearScratch.FitZero(ref sc.ExpReg, tc);     // 越境の輸出の受取（自国通貨・全財）＝ダンピング補助の重み（輸出を捌いた州の商人）
         double fxIntended = 0;           // 清算所の名目の出入りの差（受け取る側の通貨−払う側の通貨）＝為替の換算で世界の名目の基礎貨幣が動く分（A7）
-        var potNew = new double[tc];   // 新定義の潜在量（容量で切る前の pot·W を両端に計上）＝θ/T4 の分母
-        var capLeft = new double[tc]; for (int t2 = 0; t2 < tc; t2++) capLeft[t2] = tr[t2].cap;
+        var potNew = ClearScratch.FitZero(ref sc.PotNew, tc);   // 新定義の潜在量（容量で切る前の pot·W を両端に計上）＝θ/T4 の分母
+        var capLeft = ClearScratch.Fit(ref sc.CapLeft, tc); for (int t2 = 0; t2 < tc; t2++) capLeft[t2] = tr[t2].cap;
         // ★国際市場の間引き（作者裁定 2026-09-29 の3・(6)）：前の清算で成約が無かった買い手の行（州×財）は眠る＝月次の清算では回さない。
         //   起こす理由＝①四半期の最初の清算で値段の差が運賃を超えているか軽く確かめる（下の 1b の打ち切り＝最良の売り手の着値の下界 ≧ 自州価格なら O(1) で終わる）
         //   ②この月にその財が足りなかった（Market.LastShortage＞0＝飢饉の輸入を遅らせない）。前の清算で成約したか＝Market.PrevImport（EconomyStep が月初に写す前の月の輸入）
@@ -555,9 +604,13 @@ public sealed partial class InternationalMarket
                 foreach (var rC in nations[i].World.Regions)
                     foreach (var mC in rC.Markets) mC.ClearFailLp = 0;   // ①＝全ての行を確かめ直す（前の四半期の印を残さない）
 
-        var sellers = new List<Seller>(tc);
-        var buyers = new List<(int Node, double Price)>(tc);
-        var distTop = new double[tc];   // 距離の診断＝どの取引を代表に採ったか（最大額）
+        var sellers = sc.Sellers;
+        var buyers = sc.Buyers;
+        var distTop = ClearScratch.FitZero(ref sc.DistTop, tc);   // 距離の診断＝どの取引を代表に採ったか（最大額）
+        // ★(347) 財ごとの州の市場と自州価格（金建て）の読み置き。旧＝平均の走査・売り手の候補・買い手の候補の3回、同じ `tr[t].r.Markets[g].Price * exRate[国]` を読んでいた
+        //   （州→市場の配列→市場と3段の参照を3回）。新＝平均の走査で1回だけ読み、あとの2つの走査と買い手行・売り手の市場の読みは配列から取る。
+        //   値は同じ式・同じ入力（走査のあいだ価格は書かれない）＝同じ値。読むのは連結した州（linked）だけ＝書くのも連結した州だけ。
+        var mktOf = ClearScratch.Fit(ref sc.MktOf, tc); var lpOf = ClearScratch.Fit(ref sc.LpOf, tc);   // 連結した州だけ書く・連結した州だけ読む
 
         var gOrder = new int[gc];
         for (int gi0 = 0; gi0 < gc; gi0++) gOrder[gi0] = gi0;
@@ -582,7 +635,9 @@ public sealed partial class InternationalMarket
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
-                double lp0 = tr[t].r.Markets[g].Price * exRate[tr[t].nation];
+                var mk0 = tr[t].r.Markets[g];
+                double lp0 = mk0.Price * exRate[tr[t].nation];
+                mktOf[t] = mk0; lpOf[t] = lp0;   // ★(347) あとの走査が読む
                 if (lp0 > 1e-9) { sum += lp0; cnt++; }
             }
             if (cnt == 0) continue;
@@ -602,8 +657,8 @@ public sealed partial class InternationalMarket
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
-                var m = tr[t].r.Markets[g];
-                double lp = m.Price * exRate[tr[t].nation];
+                var m = mktOf[t];
+                double lp = lpOf[t];
                 if (lp <= 1e-9 || m.Stock <= 1e-9) continue;
                 int ni = tr[t].nation;
                 double sellAcc = tr[t].access * (milGood ? milExportAcc[ni] : 1.0);
@@ -618,11 +673,11 @@ public sealed partial class InternationalMarket
             if (sellers.Count == 0) continue;
             sellers.Sort((a, b) => a.Price != b.Price ? a.Price.CompareTo(b.Price) : string.CompareOrdinal(tr[a.Node].r.Name, tr[b.Node].r.Name));   // ★買い手ソート(:515)と統一＝カルチャ非依存の決定論的タイブレーク（wave2b是正）
 
-            var left = new double[sellers.Count];   // 売り手ごとの残り（出せる量から成約ごとに減る）
+            var left = ClearScratch.Fit(ref sc.Left, sellers.Count);   // 売り手ごとの残り（出せる量から成約ごとに減る）
             for (int s = 0; s < sellers.Count; s++) left[s] = sellers[s].Stock;
             int headS = 0;   // 先頭の生存売り手（価格昇順の死んだ接頭辞を跨ぐ）
             // ★連結リスト圧縮：財ごとに全員生存で初期化
-            if (nextS is null || nextS.Length < sellers.Count) nextS = new int[Math.Max(64, sellers.Count * 2)];
+            if (nextS.Length < sellers.Count) nextS = sc.NextS = new int[Math.Max(64, sellers.Count * 2)];
             for (int s = 0; s < sellers.Count; s++) nextS[s] = s + 1;
 
             // ---- 買い手＝全ての州（段3-1 の R6＝帯を撤去）。**高く買う相手から順に**応じる（作者指示2026-08-11）。
@@ -632,7 +687,7 @@ public sealed partial class InternationalMarket
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
-                double lpB = tr[t].r.Markets[g].Price * exRate[tr[t].nation];
+                double lpB = lpOf[t];
                 if (lpB > 1e-9) buyers.Add((t, lpB));
             }
             if (buyers.Count == 0) continue;
@@ -642,7 +697,7 @@ public sealed partial class InternationalMarket
             long nFill = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）
             foreach (var (t, lp) in buyers)
             {
-                var m = tr[t].r.Markets[g];
+                var m = mktOf[t];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
                 m.ClearFailLp = 0;   // 印は走査して成約しなかったときだけ（下の行の終わり）＝門で飛ばした行・成約した行は印なし
@@ -684,7 +739,7 @@ public sealed partial class InternationalMarket
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; continue; }   // 需要0＝D·Pow≦0 から P+I≧0 を引く＝xPrice≦0
                 if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; continue; }   // 支払能力0＝pot≦0（この清算の中で増えない）
                 if (thin && !(capLeft[t] / Math.Max(1e-9, Wg) > 1e-12)) { m.ClearFailLp = lp; continue; }   // ★(130)②買い手の容量が尽きた行＝成約できない（qA の上限）・月の清算の潜在量は読まれない＝回さない。印は走査して成約しなかった行と同じ（上の (130) の注記・否定形＝NaN も回さない）
-                if (candS is null || candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = new int[cn0]; candD = new double[cn0]; candK = new double[cn0]; candF = new double[cn0]; }
+                if (candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = sc.CandS = new int[cn0]; candD = sc.CandD = new double[cn0]; candK = sc.CandK = new double[cn0]; candF = sc.CandF = new double[cn0]; }
                 double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
@@ -775,7 +830,7 @@ public sealed partial class InternationalMarket
                         unitA = Math.Min(lp, double.IsPositiveInfinity(secondDelA) ? lp : secondDelA);
                         unitA = Math.Max(unitA, sellers[bestA].Price);
                         snA = sellers[bestA].Node; siA = tr[snA].nation;
-                        msA = tr[snA].r.Markets[g];
+                        msA = mktOf[snA];
                         rpT = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni];
                         // ★価格振動の根②（2026-09-07・2026-09-08 点火＝旗 TradeBuyerSolvesAtUnitPrice は 2026-09-26 に焼き込み）：買い手の静止点を〈実際に払う単価 unitA〉で解く
                         //   （売り手側 yPrice と同じ物差し）。旧式＝最良の着値 bestDelA は、単一供給では unitA=lp より安い価格で解く＝過剰発注→閾で0の bang-bang だった。
@@ -987,5 +1042,6 @@ public sealed partial class InternationalMarket
                 World.Transfer((nations[k.U].World, null), (nations[k.O].World, null, null), toll, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
             }
         }
+        sc.Release(tc, nn, gc);   // ★(347) 作業領域が参照を握り続けない
     }
 }

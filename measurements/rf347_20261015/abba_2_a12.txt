@@ -1,0 +1,11 @@
+freq 10000000
+bilTicks 394659606
+bilBytes 512637816
+bilCalls 660
+totalAllocBytes 4838074752
+gen0 8
+gen1 3
+gen2 1
+gcPauseSec 0.079
+cpuSec 137.500
+wallSec 240.764
