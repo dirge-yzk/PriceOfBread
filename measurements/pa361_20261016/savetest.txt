@@ -1,0 +1,4 @@
+D:\PoB_work\wt_pa\PriceOfBread.SimCore\EconomyStep.cs(1489,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_pa\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_pa\PriceOfBread.SimCore\Instruments.cs(2109,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_pa\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+保存 44.2MB（979ms）／読込 791ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
