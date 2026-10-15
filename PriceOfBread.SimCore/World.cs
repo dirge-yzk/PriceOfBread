@@ -781,7 +781,7 @@ public sealed class World
     /// ★段3-5（2026-09-30・C8）＝造幣局・★段4g（2026-09-30）＝不換の発行者と銀行の与信（企業・家計）も世界の外の側の台帳の種類（<see cref="Outside"/>）
     ///   ＝お金が生まれる／消える経路も、動いた額をそのまま台帳へ書く（旧＝切り下げ・通貨改革・与信・損失の負債化・手形が台帳と貯蓄を手で書いた）。</summary>
     internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null,
-                                    Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null,
+                                    Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null, double fromHeld = double.NaN,
                                     [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
     {
         if (Instruments.On) Instruments.Route(routeFile, routeLine, from.Pops is not null ? 'P' : from.W is not null ? 'T' : OutsideCode(outside), to.Pops is not null ? 'P' : to.W is not null ? 'T' : OutsideCode(outside));   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）と相手の側を貯蓄の台帳の経路名にする
@@ -798,7 +798,7 @@ public sealed class World
         double moved;
         if (from.Pops is { } fp)
         {
-            moved = Pop.Take(fp, amount, fromWeights, taken);   // 動いた額＝引いた額の和（受け手へは同じ額）
+            moved = Pop.Take(fp, amount, fromWeights, taken, fromHeld);   // 動いた額＝引いた額の和（受け手へは同じ額）。fromHeld＝呼び手が同じ並びで求め済みの保有の合計（NaN＝ここで数える）
             if (!(moved > 0)) return 0;
         }
         else
@@ -1269,6 +1269,7 @@ public sealed class World
         if (weights is null) foreach (var p in pops) sw += p.Size;
         else foreach (var x in weights) sw += x;
         if (!(sw > 1e-9)) return 0;
+        if (PopWindow.Verify) PopWindow.GuardWrite("戦死・粛清");
         double dead = 0;
         for (int i = 0; i < pops.Count; i++)
         {
@@ -1693,7 +1694,7 @@ public sealed class World
         if (Coef.OpeningSavingsRebaseMode != whenMode || !(BroadMoneyToIncome > 0)) return;   // モードが違う（既定0＝置かない）・m が0・負・NaN は置かない（否定形）
         var years = Coef.SavingsYearsByClass;
         double inc = 0, shape = 0, before = 0;
-        foreach (var r in Regions) foreach (var p in r.Pops)
+        foreach (var (_, p) in AllPopsWithRegion())
         {
             before += p.Savings.Value;
             double e = p.LastEarnedPerMonth.Value;
@@ -1705,7 +1706,7 @@ public sealed class World
         if (!(shape > 0) || !(target > 0)) return;   // 配分の形も目標も正でなければ何もしない
         double lambda = target / shape;
         double after = 0;
-        foreach (var r in Regions) foreach (var p in r.Pops)
+        foreach (var (_, p) in AllPopsWithRegion())
         {
             double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
             double e = p.LastEarnedPerMonth.Value;
@@ -1823,9 +1824,8 @@ public sealed class World
     ///   ＝分離した州は新しい国へ移る（建国路）＝国の州は全て国家会計に入る（旧＝Seceded の州を除いた）。</summary>
     public IEnumerable<Pop> AllPops()
     {
-        foreach (var r in Regions)
-            foreach (var p in r.Pops)
-                yield return p;
+        foreach (var (_, p) in AllPopsWithRegion())   // ★(351) 集合の定義は <see cref="PopScan"/> の 1 か所（旧は入れ子の foreach の写し）
+            yield return p;
     }
 
     public MoneyStock TotalMoney
@@ -1834,18 +1834,38 @@ public sealed class World
     }
 
     /// <summary>国家人口＝全州の人口（★2026-09-28：旧＝分離で凍結した州 Seceded を除いた＝その経路は削除）。人口保存不変量 TotalPopulation==初期+PopulationDelta。</summary>
-    public double TotalPopulation
+    public double TotalPopulation => PopSums is { } win ? win.TotalPopulation(this) : ComputeTotalPopulation();
+
+    /// <summary>総人口の本体（州ごとの和を州の並びで足す・窓の外の読みと窓の初回の求めが同じ式＝<see cref="PopWindow"/>）。</summary>
+    internal double ComputeTotalPopulation()
     {
-        get { double s = 0; foreach (var r in Regions) s += r.SumPopulation(); return s; }
+        double s = 0; foreach (var r in Regions) s += r.SumPopulation(); return s;
     }
 
     /// <summary>兵士POP（IsSoldier）の総数＝軍隊規模の素（戦力ゲージ＝これ÷係数×即応度）。</summary>
-    public double SoldierSizeK()
+    public double SoldierSizeK() => PopSums is { } win ? win.SoldierSizeK(this) : ComputeSoldierSizeK();
+
+    /// <summary>兵士の数の本体（国家会計の集合 <see cref="AllPopsWithRegion"/> の兵士の規模の和）。</summary>
+    internal double ComputeSoldierSizeK()
     {
         double s = 0;
-        foreach (var p in AllPops()) if (p.IsSoldier) s += p.Size;
+        foreach (var (_, p) in AllPopsWithRegion()) if (p.IsSoldier) s += p.Size;
         return s;
     }
+
+    /// <summary>★窓の中だけ非 null（総人口・兵士の数ほか POP 由来の和の使い回しの置き場＝<see cref="PopWindow"/>・作業領域＝セーブに載らない）。置く・外すのは <c>Simulation.QuarterStart</c> だけ。</summary>
+    internal PopWindow? PopSums
+    {
+        get => _popSums;
+        set { if (_popSums is null != value is null) PopWindow.Open += value is null ? -1 : 1; _popSums = value; }   // 開いている窓の数（番人＝窓の中の POP への書き込みを止める用）
+    }
+    [System.NonSerialized] private PopWindow? _popSums;
+
+    /// <summary>国家会計の集合の走査（全ての州の全ての POP・絞らない・<see cref="PopScan"/>）。<see cref="AllPops"/> と同じ列（州と一緒に取れる版）。</summary>
+    public PopScan AllPopsWithRegion() => new(Regions, false);
+
+    /// <summary>稼働中の州（<c>State==Active</c>）の POP の走査（<see cref="PopScan"/>）。本番の盤面では <see cref="AllPopsWithRegion"/> と同じ列。</summary>
+    public PopScan ActivePopsWithRegion() => new(Regions, true);
 
     // （1棟単位の手動建設 BuildIndustry は 2026-09-26 に削除＝呼び手はテストと PlayHarness の !build だけで、UIにもAIにも無い動詞だった（x-04）。
     //   国家主導の工業化は ApplyModernizationInvestment（率のレバー）の1本＝国庫→建設予約の検証もそちらで行う＝FranceTests）

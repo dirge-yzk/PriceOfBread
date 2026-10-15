@@ -31,9 +31,6 @@ public static class Fiscal
         //   この関数が書くのは国庫・貯蓄・国債と台帳だけ＝産出・州・物価水準は動かない＝下の読み手は getter とビット単位で同じ値を読む。
         double gdp = w.GdpPerMonth.Value, nominalGdp = w.NominalOf(gdp);
 
-        var pops = new List<Pop>();
-        foreach (var r in w.Regions) pops.AddRange(r.Pops);
-
         // 行政力＝行政効率の移動平均。検地台帳（土地税）のアンロック＝一度できれば残る。
         // ★裁定2026-09-12（FIX2）：所得税の解禁ラッチを削除。閾値は所得税の天井（Government・同日廃止）の飽和点と同一の比・同一の値で、
         //   「ラッチが立つ瞬間＝天井が拘束しなくなる瞬間」＝同じ規則の端点の二重表現だった。しかも徴収本体（下の所得税）はラッチを
@@ -53,33 +50,17 @@ public static class Fiscal
         // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：課税への同意（下の consent）が読む声を「政治的国民への算入率」で加重
         // ＝植民地格の州・本国の非中核popの徴税力に参政権と同じ梯子を適用（代表なくして課税なしの植民地版＝印紙法1765）。
         // 走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。gate=0 では配列を作らず1命令も走らない＝厳密恒等（⚠既定は1.0＝点火2026-09-06）。
-        double[]? scopeInc = null;
-        if (c.SuffrageScopeGate > 0 && c.TaxConsentWeight > 0)
-        {
-            scopeInc = new double[pops.Count];
-            int si = 0;
-            foreach (var r in w.Regions) foreach (var p in r.Pops) scopeInc[si++] = InterestGroups.SuffrageInclusion(w, r, p);
-        }
+        //   ★(351) 州×POP のなぞりは**この 1 本**（下の pops と、POP ごとの並行の列〔算入率・領主の取り分〕を同じ 1 周で作る＝旧は pops を平らにする周と並行の配列を埋める周が別で、
+        //     添字が合わなければ黙って旧挙動へ倒していた〔集合の定義がずれると黙って外れる〕）。列は pops と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える。集合＝国家会計の集合（絞らない）。
+        var scan = TaxScan.Of(w, c);
+        var pops = scan.Pops;
+        List<double>? scopeInc = scan.ScopeInc, ruleMul = scan.RuleMul, ruleCut = scan.RuleCut; List<Pop?>? ruleLord = scan.RuleLord;
         // ★AUD-07（2026-09-03）：身分制免税の駆動量＝王権の取り分（PrivilegeFromCrownShare=0 の既定では**呼ばない**＝1命令も増えない恒等）。
         double crownShareForPrivilege = c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
         // ★支配度の一般化 段3（作者採用 §5・2026-09-07）：課税ベース＝国家区分＋在地区分×届け率（RuleDelivery）。在地の仲介者の取り分
         //   （在地区分×免税率×あるべき税）は納税者→その州の貴族へ移転（保存）し領主権の台帳へ。無統治・外国区分からは取れない。
         //   走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。RuleSharesTaxBase=0 では配列を作らず1命令も走らない＝厳密恒等。
-        double[]? ruleMul = null, ruleCut = null; Pop?[]? ruleLord = null;
-        if (c.RuleSharesTaxBase > 0)
-        {
-            double g = c.RuleSharesTaxBase, deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value);
-            ruleMul = new double[pops.Count]; ruleCut = new double[pops.Count]; ruleLord = new Pop?[pops.Count];
-            int ri = 0;
-            foreach (var r in w.Regions)
-            {
-                Pop? lord = null; foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }
-                double mul = Politics.RuleDelivery(r, c, g);
-                double cut = r.Rule.Length == 4 ? g * PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - deliver) : 0;
-                foreach (var p in r.Pops) { if (ri >= pops.Count) break; ruleMul[ri] = mul; ruleCut[ri] = lord is not null ? cut : 0; ruleLord[ri] = lord; ri++; }
-            }
-            if (ri != pops.Count) { ruleMul = null; ruleCut = null; ruleLord = null; }   // ⚠添字が合わない（集合の定義が変わった）ときは旧挙動へ倒す＝壊さない
-        }
+        //   （列 ruleMul・ruleCut・ruleLord は上の 1 周で作る＝RuleSharesTaxBase=0 では作らない）
         // ★支払いの一元化 段3-4（2026-09-30・B6・作者裁定 Q4＝処理の一元化 段4d）：**POP の義務は1本の率**。税（所得・累進・人頭・土地）と十分の一税と領主の取り分を
         //   POP ごとに全部集め、r_p＝min(1, 払える額÷請求の和)（払える額＝max(0, 貯蓄)）を全ての請求に同じに掛ける＝優先順位を作らない（国家の支払い率と同じ規則の POP 版）。
         //   旧＝所得→累進→人頭→土地の順に残りの貯蓄で切り、十分の一税は税の後の残りから（別の関数 Privileges.CollectTithe・国家が教会に優先）。
@@ -327,7 +308,7 @@ public static class Fiscal
                     // ★2026-09-30 段4g：焼却＝全POP（貨幣の保有＝貯蓄の比・d5）→世界の外（不換の発行者＝Outside.Fiat）の移し方の1本＝不換の**回収**
                     //   （基礎貨幣の正当な減少源＝台帳 CumulativeFiatIssued が動いた額だけ下がる＝Invariants の expected が同額下がる）。
                     //   旧＝貯蓄を手で引き、基礎貨幣の前後の差を実測して台帳へ書き、意図との不一致を例外で検査した（移し方の1本は動いた額をそのまま台帳へ書く＝構造で閉じる）。
-                    burn = World.Transfer((w, pops), (null, null, null), burn, outside: World.Outside.Fiat);
+                    burn = World.Transfer((w, pops), (null, null, null), burn, outside: World.Outside.Fiat, fromHeld: sav);   // ★(351) 払い手の保有の合計は上の sav と同じ順の同じ和（間に何も書かない）
                     double bite = burn / sav;
                     foreach (var p in pops) p.Militancy = Math.Min(1, p.Militancy + bite);   // 消えた分だけ怒る（新係数を作らない）
                 }
@@ -709,7 +690,7 @@ public static class Fiscal
         double nominalGdp = w.NominalGdpPerMonth.Value;
         double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
         var capitalists = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート
+        foreach (var (_, p) in w.AllPopsWithRegion()) if (CapitalMarket.IsInvestor(p)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート
         double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings.Value);
         // 財6（資本開放度の脱・関税連動）：openness の関税連動を CapitalOpennessTariffWeight で連続化。既定1.0＝openness=Clamp(1−1.0×Tariff,0,1)＝旧 Clamp(1−Tariff,0,1) と代数的に厳密一致（数値中立）。
         // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
@@ -766,6 +747,43 @@ public static class Fiscal
 
     /// <summary>★国債の持ち手と保有（2026-09-21 保有台帳・2026-09-30 段4g に旧 PayBondHolders を移し方の1本へ畳んだ残り）＝保有が正の POP と、その保有（受け手の重み）。
     /// 利払いと減債の国内の脚が読む（持ち手＝保有が正の POP・重み＝保有・端数は最後の持ち手）。持ち手不在（保有の和≈0）なら移し方の1本は動かさない＝国庫残置（保存）。</summary>
+    /// <summary>★(351) 課税の走査＝POP の一覧と、POP ごとの並行の列（課税への同意の算入率・領主への届き方・領主の取り分・その州の領主）を**同じ 1 周**で作る（州の並び→州の中の POP の並び＝国家会計の集合）。
+    /// 列は <see cref="Pops"/> と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える（旧＝pops を平らにする周と並行の配列を別のなぞりで埋める周が別で、数が合わなければ黙って旧挙動へ倒していた）。
+    /// 列の有無は旧と同じ門：<see cref="ScopeInc"/>＝SuffrageScopeGate&gt;0 かつ TaxConsentWeight&gt;0／<see cref="RuleMul"/>・<see cref="RuleCut"/>・<see cref="RuleLord"/>＝RuleSharesTaxBase&gt;0（門が閉じていれば作らない・その分の命令は走らない）。</summary>
+    internal sealed class TaxScan
+    {
+        internal readonly List<Pop> Pops = [];
+        internal List<double>? ScopeInc, RuleMul, RuleCut;
+        internal List<Pop?>? RuleLord;
+
+        internal static TaxScan Of(World w, Coefficients c)
+        {
+            var s = new TaxScan();
+            bool scopeOn = c.SuffrageScopeGate > 0 && c.TaxConsentWeight > 0, ruleOn = c.RuleSharesTaxBase > 0;
+            double ruleG = 0, ruleDeliver = 1.0;
+            if (ruleOn) { ruleG = c.RuleSharesTaxBase; ruleDeliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value); }
+            if (scopeOn) s.ScopeInc = [];
+            if (ruleOn) { s.RuleMul = []; s.RuleCut = []; s.RuleLord = []; }
+            foreach (var r in w.Regions)
+            {
+                Pop? lord = null; double mul = 1.0, cut = 0;
+                if (ruleOn)
+                {
+                    foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }   // その州の領主＝最初の貴族
+                    mul = Politics.RuleDelivery(r, c, ruleG);
+                    cut = r.Rule.Length == 4 ? ruleG * PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - ruleDeliver) : 0;
+                }
+                foreach (var p in r.Pops)
+                {
+                    s.Pops.Add(p);
+                    s.ScopeInc?.Add(InterestGroups.SuffrageInclusion(w, r, p));
+                    if (ruleOn) { s.RuleMul!.Add(mul); s.RuleCut!.Add(lord is not null ? cut : 0); s.RuleLord!.Add(lord); }
+                }
+            }
+            return s;
+        }
+    }
+
     private static (List<Pop> Holders, List<double> Held) BondHolders(List<Pop> pops)
     {
         var holders = new List<Pop>(); var held = new List<double>();
@@ -803,7 +821,7 @@ public static class Fiscal
     internal static void RepudiateDebt(World w, Coefficients c)
     {
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = default;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = default;   // ★保有台帳（2026-09-21）
+        foreach (var (_, p) in w.AllPopsWithRegion()) p.BondHoldings = default;   // ★保有台帳（2026-09-21）
         w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;
         w.BorrowCooldownMonths = c.DefaultCooldownMonths;
     }
@@ -814,7 +832,7 @@ public static class Fiscal
     internal static void SeedBondHoldings(World w)
     {
         MoneyStock dom = w.GovDebt - w.ForeignDebt, held = default; double invSav = 0, size = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p)) invSav += Math.Max(0, p.Savings.Value); }
+        foreach (var (_, p) in w.AllPopsWithRegion()) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p)) invSav += Math.Max(0, p.Savings.Value); }
         if (held.Value > 0 || !(dom.Value > 0) || BondLedger.Balanced(w, held)) return;   // 検査が割れない（端数の残差だけ）なら起票しない＝台帳入りのセーブはビット不変
         foreach (var r in w.Regions)
             foreach (var p in r.Pops)

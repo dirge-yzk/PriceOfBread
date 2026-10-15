@@ -775,6 +775,17 @@ public sealed class MultiNationSim
             { long t1 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: monthIdx == 0); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t1); }
             ProbeDiff("国際市場(月)");
         }
+        // ★(351) 州×POP の走査の表③＝四半期末の共有層（下のブロック・全国の四半期末の後に逐次・国をまたぐ）の段の並び・読む欄／書く欄。順序は変えない。
+        //   集合＝各国の国家会計の集合（World.AllPopsWithRegion）。この層が書いた POP の欄は次の四半期首（Simulation.QuarterStart）が読む＝四半期首の読む時点は「共有層の後」。
+        //   ・NationalScore.StepStanding／StepSecurityThreat／UpdateTradeWeights　読む：兵の規模・前の月の所得　書く：国の欄
+        //   ・Diplomacy.Step×3（BeginQuarterSyncWindow の窓）　読む：規模・民兵・閉鎖　書く：規模（KillPops＝戦死）・闘争度・貯蓄（賠償・戦利品）
+        //   ・StepCanals／Megaprojects／Market.Step／StepPorts／StepMarineInsurance　読む：投資家と商人の貯蓄・規模　書く：貯蓄
+        //   ・StepAssimilation　読む：識字　書く：中核民族の割合
+        //   ・MigrateBetweenNations／RecruitSpecialists　読む：食料の充足・貯蓄・規模・失業　書く：規模・貯蓄・Blend の全欄・閉鎖（為替で運ぶ）
+        //   ・StepDiscoveries　読む：規模　書く：国の欄
+        //   ・CapitalMarket.Step／対外借入の貸し手の引き落とし　読む：投資家の貯蓄　書く：貯蓄
+        //   ・ReabsorbNations／SpawnSecededNations　州ごと移す　・StepDiffusion　読む：識字・報道・ラジオ・規模・思想　書く：国の欄
+        //   順番に依存する所：戦死と移民（規模・貯蓄）を四半期首の地域価格・Blocs・Build が読む／移民が混ぜた思想を次の四半期首の議会が読む。
         if (quarterDone)
         {
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
@@ -1423,7 +1434,7 @@ public sealed class MultiNationSim
         foreach (var sim in Nations)
         {
             var w = sim.World;
-            double natPop = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) natPop += p.Size;
+            double natPop = 0; foreach (var (_, p) in w.ActivePopsWithRegion()) natPop += p.Size;
             if (natPop <= 1e-9) continue;
             double natThr = w.PortThroughputTotal();   // ★(223) 国家ルートの請求の分母（World.PortStateRequest）
             bool techOk = Discovery.SteamPower(w.Discovered);   // ★近代港湾（蒸気の浚渫・埠頭）の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の閾値 PortTechOnset 0.2）
@@ -1603,7 +1614,7 @@ public sealed class MultiNationSim
                 //   出版市場を持てた少数派は同化を押し返す）。0＝床あり＝厳密恒等。
                 bool revive = _coef.AssimilationRevival > 0;
                 double rr = revive ? _coef.AssimilationRevival : _coef.AssimilationLiteracyResist;
-                foreach (var r in w.Regions) foreach (var p in r.Pops)
+                foreach (var (_, p) in w.AllPopsWithRegion())
                 {
                     double resist = rr > 0 ? 1.0 - rr * p.Literacy : 1.0;
                     if (!revive) resist = Math.Max(0.0, resist);   // 旧＝床あり（同化は遅くなるが止まらない）

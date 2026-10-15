@@ -290,6 +290,7 @@ public sealed class Pop
     /// 国内（同じ通貨）は同じ額（上の5引数）。国債の保有は国内だけ運ぶ（越境は発行国の対外債へ振り替えて 0）。</summary>
     internal static void Carry(Pop from, Pop to, MoneyStock savings, MoneyStock debt, MoneyStock bond, MoneyStock savingsIn, MoneyStock debtIn)
     {
+        if (PopWindow.Verify) PopWindow.GuardWrite("運搬");
         from._savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
         to._savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
         if (Instruments.On) { Instruments.Sav(from, Instruments.SavKind.CarryOut, -savings.Value); Instruments.Sav(to, Instruments.SavKind.CarryIn, savingsIn.Value); }   // (262) 計器（読むだけ）：貯蓄の書き手の台帳
@@ -306,6 +307,7 @@ public sealed class Pop
     {
         if (!(Math.Abs(amount) > 0)) return 0;
         if (pops.Count == 0) return amount;
+        if (PopWindow.Verify) PopWindow.GuardWrite("按分");
         double total = 0;
         if (weights is null) foreach (var p in pops) total += p.Size;
         else foreach (var x in weights) total += x;
@@ -325,14 +327,22 @@ public sealed class Pop
     /// <paramref name="weights"/>＝null なら**貯蓄の保有の比**（d5）：取る額＝min(額, Σmax(0,貯蓄))・各自＝取る額×max(0,貯蓄)÷Σ（旧の式のまま）。
     /// 重みがあれば**払い手ごとの自分の請求**：各自の請求＝重み×(額÷Σ重み)・払うのは自分の貯蓄まで（max(0,貯蓄)）＝払い手ごとの1本の率（作者裁定 Q4＝POP が払えない税は請求を立てない・窃盗と没収への拡張は Q4 の払い手の側の形を推奨で広げたもの＝(144) 注記）。
     ///   呼び手が額に Σ重み（同じ並びの和）を渡せば 額÷Σ重み＝1 ちょうど＝請求そのもの。
-    /// <paramref name="taken"/>＝非 null なら払い手ごとの動いた額を並びの順に足す。否定形のガード＝NaN の額・請求は取らない。</summary>
-    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null)
+    /// <paramref name="taken"/>＝非 null なら払い手ごとの動いた額を並びの順に足す。否定形のガード＝NaN の額・請求は取らない。
+    /// <paramref name="heldKnown"/>＝（重み null のときだけ読む）呼び手が**同じ並びで**もう求めた Σmax(0,貯蓄)（NaN＝ここで数える）。★(351) 切り下げと通貨改革は、額を決めるのに払い手の保有の合計を先に数える
+    ///   ＝その和と同じ和をここでもう一度数えていた。呼び手の求めと移し方の間は何も書かない＝同じ順の同じ和＝1 ビットも違わない（番人＝<see cref="PopWindow.Verify"/> が求め直して確かめる）。</summary>
+    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null, double heldKnown = double.NaN)
     {
         double moved = 0;
+        if (PopWindow.Verify) PopWindow.GuardWrite("取り立て");
         if (weights is null)
         {
             double held = 0;
-            foreach (var p in payers) held += Math.Max(0, p._savings.Value);
+            if (!double.IsNaN(heldKnown) && !PopWindow.Verify) held = heldKnown;
+            else
+            {
+                foreach (var p in payers) held += Math.Max(0, p._savings.Value);
+                if (!double.IsNaN(heldKnown)) PopWindow.Check("払い手の保有の合計", heldKnown, held);
+            }
             double take = Math.Min(amount, held);
             if (!(take > 1e-12) || !(held > 1e-9)) return 0;
             foreach (var p in payers) { double s = take * (Math.Max(0, p._savings.Value) / held); p._savings -= new MoneyStock(s); moved += s; taken?.Add(s); if (Instruments.On) Instruments.Sav(p, Instruments.SavKind.Take, -s); }   // (262) 計器（読むだけ）
@@ -355,13 +365,14 @@ public sealed class Pop
     /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
     internal void SettleMonth()
     {
+        if (PopWindow.Verify) PopWindow.GuardWrite("月末の精算");
         _savings += Calendar.OneMonthOf(EarnedPerMonth - PaidPerMonth);
         if (Instruments.On) Instruments.Sav(this, Instruments.SavKind.Settle, Calendar.OneMonthOf(EarnedPerMonth - PaidPerMonth).Value);   // (262) 計器（読むだけ）：同じ式をもう一度（純粋）
     }
 
     /// <summary>★(273) 貯蓄を値で置き直す（開幕の貯蓄の式・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。旧 (218)(220) の ScaleSavings〔倍率〕を置き換えた＝Pop の貯蓄の書き手の数は変わらない
     /// （作者裁定 Q13 の「口を増やさない」・名前は盤面の道具 Board.SetSavings〔試験の反射〕と別にした）。</summary>
-    internal void RebaseSavingsTo(double v) => _savings = new MoneyStock(v);
+    internal void RebaseSavingsTo(double v) { if (PopWindow.Verify) PopWindow.GuardWrite("貯蓄の置き直し"); _savings = new MoneyStock(v); }
 
     /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I＝設計の <c>PopTransfer.Blend</c>・Pop の中の1本）：<paramref name="from"/> から <paramref name="to"/> へ
     /// <paramref name="n"/> 人を移し、移る組の属性を受け手へ人数で混ぜ、人と動くお金（貯蓄・債務・国債の保有＝1人あたりの按分）を <see cref="Carry"/> で運ぶ。
@@ -381,6 +392,7 @@ public sealed class Pop
     {
         if (Instruments.On) Instruments.Route(routeFile, routeLine, 'P', 'P');   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）を貯蓄の台帳の経路名にする
         if (!(n > 1e-12) || !(from.Size > 1e-12) || ReferenceEquals(from, to)) return 0;
+        if (PopWindow.Verify) PopWindow.GuardWrite("人の移動");
         if (n > from.Size) n = from.Size;
         double s0 = from.Size, t0 = to.Size, t1 = t0 + n;
         BlendAges(from, to, n, s0, t0, draft, draftLo, draftHi, femaleAccess);   // 年齢と男女の構成（16本）

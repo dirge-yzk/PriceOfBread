@@ -109,19 +109,10 @@ public static class PolicyPreferences
     {
         var (t, m, s) = InterestGroups.Blocs(w);
         double[] power = [t, m, s];
-        double[] wealth = new double[BlocCount], rent = new double[BlocCount], income = new double[BlocCount], poll = new double[BlocCount];
-        double[] old = new double[BlocCount], blocPop = new double[BlocCount];
-        double tw = 0, tr = 0, ti = 0, tp = 0;
-        foreach (var p in w.AllPops())
-        {
-            int b = BlocOf(p);
-            double sv = System.Math.Max(0, p.Savings.Value);
-            wealth[b] += sv; tw += sv;
-            double rn = System.Math.Max(0, p.LandRentPerMonth.Value); rent[b] += rn; tr += rn;
-            double inc = System.Math.Max(0, p.EarnedPerMonth.Value); income[b] += inc; ti += inc;
-            if (p.IsCommoner) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
-            if (!p.IsSoldier) { old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
-        }
+        //   ★POP 由来の和（富・地代・所得・人頭税の母体・高齢の人口）は第 3 走査＝窓の中（<see cref="PopWindow"/>）は使い回す（写しを渡す＝下の正規化が書き換える）。
+        var sums = w.PopSums is { } win ? win.BuildSums(w) : ComputeBuildSums(w);
+        double[] wealth = sums.Wealth, rent = sums.Rent, income = sums.Income, poll = sums.Poll, old = sums.Old, blocPop = sums.BlocPop;
+        double tw = sums.Tw, tr = sums.Tr, ti = sums.Ti, tp = sums.Tp;
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
@@ -132,6 +123,48 @@ public static class PolicyPreferences
             ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio.Value) + (ngdp > 1e-9 ? System.Math.Min(1.0, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp))).Value) : 0))
             : 0;
         return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp);
+    }
+
+    /// <summary><see cref="Build"/> の POP 由来の和（ブロックごと・正規化の前）。国の入力（法・国庫）は読まない＝窓の中の使い回し（<see cref="PopWindow"/>）に載せられる。</summary>
+    internal sealed class BuildSums
+    {
+        internal double[] Wealth = new double[BlocCount], Rent = new double[BlocCount], Income = new double[BlocCount], Poll = new double[BlocCount];
+        internal double[] Old = new double[BlocCount], BlocPop = new double[BlocCount];
+        internal double Tw, Tr, Ti, Tp;
+        internal BuildSums Copy() => new()
+        {
+            Wealth = (double[])Wealth.Clone(), Rent = (double[])Rent.Clone(), Income = (double[])Income.Clone(), Poll = (double[])Poll.Clone(),
+            Old = (double[])Old.Clone(), BlocPop = (double[])BlocPop.Clone(), Tw = Tw, Tr = Tr, Ti = Ti, Tp = Tp,
+        };
+        /// <summary>番人（<see cref="PopWindow.Verify"/>）：求め直した和と 1 ビットも違わないことを確かめる。</summary>
+        internal void CheckSame(BuildSums f)
+        {
+            PopWindow.Check("立場の土台の合計(富)", Tw, f.Tw); PopWindow.Check("立場の土台の合計(地代)", Tr, f.Tr);
+            PopWindow.Check("立場の土台の合計(所得)", Ti, f.Ti); PopWindow.Check("立場の土台の合計(人頭税)", Tp, f.Tp);
+            for (int i = 0; i < BlocCount; i++)
+            {
+                PopWindow.Check("立場の土台(富)", Wealth[i], f.Wealth[i]); PopWindow.Check("立場の土台(地代)", Rent[i], f.Rent[i]);
+                PopWindow.Check("立場の土台(所得)", Income[i], f.Income[i]); PopWindow.Check("立場の土台(人頭税)", Poll[i], f.Poll[i]);
+                PopWindow.Check("立場の土台(高齢)", Old[i], f.Old[i]); PopWindow.Check("立場の土台(ブロックの人口)", BlocPop[i], f.BlocPop[i]);
+            }
+        }
+    }
+
+    /// <summary><see cref="Build"/> の第 3 走査の本体＝国家会計の集合（<see cref="World.AllPopsWithRegion"/>）を 1 周して POP 由来の和を数える。窓の外は毎回これ・窓の中は初回と番人の求め直しがこれ。</summary>
+    internal static BuildSums ComputeBuildSums(World w)
+    {
+        var o = new BuildSums();
+        foreach (var (_, p) in w.AllPopsWithRegion())
+        {
+            int b = BlocOf(p);
+            double sv = System.Math.Max(0, p.Savings.Value);
+            o.Wealth[b] += sv; o.Tw += sv;
+            double rn = System.Math.Max(0, p.LandRentPerMonth.Value); o.Rent[b] += rn; o.Tr += rn;
+            double inc = System.Math.Max(0, p.EarnedPerMonth.Value); o.Income[b] += inc; o.Ti += inc;
+            if (p.IsCommoner) { o.Poll[b] += p.Size; o.Tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
+            if (!p.IsSoldier) { o.Old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); o.BlocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
+        }
+        return o;
     }
 
     private static void Normalize(double[] a, double total)

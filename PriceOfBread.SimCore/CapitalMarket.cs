@@ -288,7 +288,7 @@ public static class CapitalMarket
     internal static List<Pop> Investors(World w)
     {
         var pops = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p)) pops.Add(p);
+        foreach (var (_, p) in w.AllPopsWithRegion()) if (IsInvestor(p)) pops.Add(p);
         return pops;
     }
 
@@ -296,7 +296,7 @@ public static class CapitalMarket
     internal static double InvestorSavings(World w)
     {
         double s = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p)) s += System.Math.Max(0, p.Savings.Value);
+        foreach (var (_, p) in w.AllPopsWithRegion()) if (IsInvestor(p)) s += System.Math.Max(0, p.Savings.Value);
         return s;
     }
 

@@ -19,21 +19,14 @@ public static class InterestGroups
         //   土地の価値＝**地代（既存の物理フロー LandRent）の資本化**＝新しい状態を置かない。Closed階級のみ＝
         //   資本家の工場は流動資産側が既に表す。⚠地代は月次でゼロ化→再集計される生きたフロー＝土地改革・農奴解放で
         //   地代が削られれば政治力も一緒に痩せる（貴族の没落が法から創発する）。LandedPowerCapitalization=0 で厳密恒等。
-        double LandedWealth(Pop p) => Math.Max(0, p.Savings.Value)
-            + (p.Closed && w.Coef.LandedPowerCapitalization > 0 ? w.Coef.LandedPowerCapitalization * Math.Max(0, p.LandRentPerMonth.Value) : 0);
+        double LandedWealth(Pop p) => LandedWealthOf(w, p);
         // 参政権の範囲2法（作者裁定2026-08-16）：政治的国民への算入率でpopを加重（植民地格の州＝植民地参政権・本国州の非中核分＝移民原住民参政権）。
         // ループは AllPops と同じ走査順（w.Regions→r.Pops・Seceded スキップ）の入れ子＝州の格が読める形。
         // ★J-001の範囲（2026-09-04・運転規則§9で作者裁定を差し戻し）：参政権の範囲が縛るのは**本国議会の代表と課税への同意**（Fiscal/Government）まで。
         //   発言権（この関数＝利益集団の重み）は票の前提にしない＝票の無い層にも声はあった（チャーティスト1839/反穀物法同盟1838/1848年）
         //   ＝算入率はここでは掛けない（測定専用の腕 SuffrageScopeVoice は 2026-09-26 に削除＝dorm-49）。
-        double totalWealth = 0, totalPop = 0;
-        foreach (var r in w.Regions)
-        {
-            foreach (var p in r.Pops)
-            {
-                totalWealth += LandedWealth(p); totalPop += p.Size;
-            }
-        }
+        //   ★第 1 走査（富と人口の分母）は POP だけに依る＝窓の中（<see cref="PopWindow"/>）は使い回す。第 2 走査（重み）は法（参政権）・軍の優位に依る＝毎回求める。
+        var (totalWealth, totalPop) = w.PopSums is { } win ? win.LandedTotals(w) : ComputeLandedTotals(w);
 
         // 実効参政権＝法律（World.Suffrage）。政体が含意する参政権は遷移/初期化の一回 floor-raise で法へ畳み込み済（倍率排除②）＝毎期の max(法,政体) 写像を廃止。
         var eff = w.Suffrage;
@@ -48,22 +41,35 @@ public static class InterestGroups
         // ループ不変（World の純関数）＝1回だけ計算して pop ごとに掛ける。
         double closedMul = (1.0 + w.Coef.MilitarismClout * PoliticalQuantities.MilitaryPoliticalRatio(w)) * (1.0 + w.Coef.DecayReformResistWeight * w.DecayForReaders);
         double trad = 0, modern = 0, mass = 0;
-        foreach (var r in w.Regions)
+        foreach (var (_, p) in w.AllPopsWithRegion())
         {
-            foreach (var p in r.Pops)
-            {
-                double lw = LandedWealth(p), sz = p.Size;
-                double wealthShare = totalWealth > 1e-9 ? lw / totalWealth : 0;
-                double share = beta > 0 && totalPop > 1e-9
-                    ? (1.0 - beta) * wealthShare + beta * (sz / totalPop)
-                    : wealthShare;
-                double pw = share * PoliticalWeight(p, eff, closedMul, w.Coef);
-                if (p.Closed) trad += pw;
-                else if (p.IsModernElite) modern += pw;
-                else mass += pw;
-            }
+            double lw = LandedWealth(p), sz = p.Size;
+            double wealthShare = totalWealth > 1e-9 ? lw / totalWealth : 0;
+            double share = beta > 0 && totalPop > 1e-9
+                ? (1.0 - beta) * wealthShare + beta * (sz / totalPop)
+                : wealthShare;
+            double pw = share * PoliticalWeight(p, eff, closedMul, w.Coef);
+            if (p.Closed) trad += pw;
+            else if (p.IsModernElite) modern += pw;
+            else mass += pw;
         }
         return (trad, modern, mass);
+    }
+
+    /// <summary>1 つの POP の政治力の素の富＝貯蓄＋（閉鎖階級なら）地代の資本化。<see cref="Blocs"/> の第 1・第 2 走査が読む唯一の定義。</summary>
+    private static double LandedWealthOf(World w, Pop p)
+        => Math.Max(0, p.Savings.Value)
+            + (p.Closed && w.Coef.LandedPowerCapitalization > 0 ? w.Coef.LandedPowerCapitalization * Math.Max(0, p.LandRentPerMonth.Value) : 0);
+
+    /// <summary><see cref="Blocs"/> の第 1 走査＝国家会計の集合（<see cref="World.AllPopsWithRegion"/>）の富と人口の分母（同じ順の和）。窓の中の使い回しの求め直し（<see cref="PopWindow"/>）も同じ本体を通る。</summary>
+    internal static (double Wealth, double Pop) ComputeLandedTotals(World w)
+    {
+        double totalWealth = 0, totalPop = 0;
+        foreach (var (_, p) in w.AllPopsWithRegion())
+        {
+            totalWealth += LandedWealthOf(w, p); totalPop += p.Size;
+        }
+        return (totalWealth, totalPop);
     }
 
     /// <summary>参政権の範囲2法（作者裁定2026-08-16）＝popの「政治的国民への算入率」0..1。**SuffrageScopeGate>0 の枝からのみ呼ぶ**（呼ばないことが休眠の恒等）。

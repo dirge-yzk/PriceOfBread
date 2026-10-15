@@ -229,11 +229,11 @@ public sealed class Simulation
         World.InterestRate = scenario.InitialInterestRate;
         // P6 乾隆帝の遺産（2026-07-17）：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱）。既定0=不走行＝恒等
         if (scenario.InitialMassMilitancy > 0)
-            foreach (var rg in World.Regions) foreach (var p in rg.Pops)
+            foreach (var (_, p) in World.AllPopsWithRegion())
                 if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
         // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）。家計の与信は POP の債務の和から始まる
         //   （建国＝親から運んだ州の POP の輸入の為替手形・Territory.TransferRegion が親の銀行から外した分＝2026-09-29 S3b。開幕は0）。
-        MoneyStock popDebt = default; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
+        MoneyStock popDebt = default; foreach (var (_, p) in World.AllPopsWithRegion()) popDebt += p.Debt;
         World.Bank = new Bank { Gold = World.TotalMoney, Loans = default, Confidence = 1.0, HouseholdLoans = popDebt };
 
         Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
@@ -1635,6 +1635,15 @@ public sealed class Simulation
     }
 
     // 四半期の戦略前段：金融ショック・AIの政策決定・政府の政策反映・建設の進行。
+    // ★(351) 州×POP の走査の表④＝四半期首（この関数）の段の並び・読む欄／書く欄。読む時点は全て共有層の後（＝四半期末の戦死・移民・国際市場・資本市場の書き込みを含む。直前の月の決算の値ではない）。
+    //   ・DecideQuarter（AI）　読む：闘争度・満足・利益集団の力・Build の各欄　書く：国の欄・**資本家の貯蓄**（着工 SetStateTarget の払い下げ）　★窓の外
+    //   ・UpdateRegionalPriceLevels　読む：貯蓄・所得・規模（稼働中の州）　書く：州の物価乗数・賃金プレミアム　（国の和と州の和を 1 周で求める）　★窓の外
+    //   ・Parliament.Step　読む：思想・規模　書く：国の欄・**有権者の貯蓄**（総選挙の公示への AI の答え＝World.ResolveElection が国庫→有権者）　★窓の外
+    //   ----（ここから窓：総人口・兵士の数・Blocs の分母・Build の POP 由来の和を 1 回だけ求めて配る＝PopWindow）----
+    //   ・ApplyModernizationInvestment　読む：識字・高等教育の充足・規模　書く：国の欄・州の建設予約
+    //   ・Government.Step（法の軸ごとに Build）　読む：貯蓄・地代・所得・規模・年齢の層　書く：法の欄（参政権ほか＝Blocs の重みの第 2 走査はこれで動く＝使い回さない）
+    //   ----（窓の終わり）----
+    //   窓の中で POP の規模・貯蓄・地代・所得・年齢の層を書く段は無い（番人＝POB_POPSCAN_VERIFY=1）。法（参政権ほか）が動くと Blocs の重みは変わる＝使い回すのは POP 由来の和だけ。
     private void QuarterStart()
     {
         World.Cost[CostLedger.QuarterStartPops] += ActivePopCount();   // 計算量の台帳（診断）：四半期首（AI・議会・政府の反映）は POP×国に比例
@@ -1670,8 +1679,16 @@ public sealed class Simulation
         _agent.DecideQuarter(World);
         UpdateRegionalPriceLevels();           // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）を四半期ごとに更新。日次の StepDay が r.PriceLevel に適用
         Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。目標は書かない（法軸の綱領は 2026-09-26 に撤去＝回5-1 項目17・AI の意図へ移設／経済軸は 2026-09-19）。ParliamentEnabled の国のみ＝較正不変
-        World.ApplyModernizationInvestment();      // 近代化投資（UI・AI 共通の動詞）
-        Government.Step(World, World.Coef);   // 政策を反映（法整備＝即時／スライダー＝利益集団の力で律速して漸進）
+        // ★(351) 窓（POP 由来の和の使い回し・結果を変えない・<see cref="PopWindow"/>）＝近代化投資〜政府の反映の終わり。AI の決定（着工・払い下げの動詞が資本家の貯蓄を動かす）と議会（総選挙の公示への AI の答え
+        //   World.ResolveElection が国庫→有権者の貯蓄を動かす）は窓の**外**（(351) の canary で番人が止めた＝議会を窓に入れると利益集団の富の分母が割れた）。窓の中の 2 段が書くのは国の欄・州の欄・法の欄・闘争度ほか。
+        //   環境変数 POB_POPSCAN_VERIFY=1 で番人（使い回すたびに求め直して照合）。
+        World.PopSums = new PopWindow();
+        try
+        {
+            World.ApplyModernizationInvestment();      // 近代化投資（UI・AI 共通の動詞）
+            Government.Step(World, World.Coef);   // 政策を反映（法整備＝即時／スライダー＝利益集団の力で律速して漸進）
+        }
+        finally { World.PopSums = null; }
         if (Instruments.On) Instruments.AfterGovernment(World);   // 計器（読むだけ）：戦時段の解禁・軍事費の段の目標と施行（四半期の頭）
     }
 
@@ -1682,16 +1699,30 @@ public sealed class Simulation
     {
         var c = World.Coef;
         bool priceOn = c.RegionalPriceLevelWeight > 0;   // 無効＝全州一律（従来挙動・較正中立）。労働価格プレミアムの簿記は常に更新（使用は OpportunityWageWeight でゲート）
+        // ★(351) 1 周で足す：稼働中の州の POP を州の並びで 1 周し、州ごとの和（rSav・rEarn・rPop）と国の和（nat＝州をまたいで足し続ける）を同時に数える。
+        //   旧＝国の和の周と州ごとの和の周の 2 周（同じ集合・同じ順）。各和の足し込みの順は旧と同じ＝1 ビットも変わらない（国の和は州ごとの和の合計ではない＝足し方が違う）。
         double natSav = 0, natEarn = 0, natPop = 0;
-        foreach (var r in World.Regions) if (r.State == RegionState.Active)
-            foreach (var p in r.Pops) { natSav += p.Savings.Value; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
-        double natPerCap = natPop > 1e-9 ? natSav / natPop : 0;
-        double natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;   // 国平均の1人あたり月次所得（QuarterStart時点＝直前月）
-        foreach (var r in World.Regions)
+        var regSums = new double[World.Regions.Count * 3];
+        for (int ri = 0; ri < World.Regions.Count; ri++)
         {
-            if (r.State != RegionState.Active) { r.LocalPriceMultiplier = 1.0; r.WagePremium = 1.0; continue; }
+            var r = World.Regions[ri];
+            if (r.State != RegionState.Active) continue;
             double rSav = 0, rEarn = 0, rPop = 0;
-            foreach (var p in r.Pops) { rSav += p.Savings.Value; rEarn += p.EarnedPerMonth.Value; rPop += p.Size; }
+            foreach (var p in r.Pops)
+            {
+                double sv = p.Savings.Value, ea = p.EarnedPerMonth.Value, sz = p.Size;
+                natSav += sv; natEarn += ea; natPop += sz;
+                rSav += sv; rEarn += ea; rPop += sz;
+            }
+            regSums[ri * 3] = rSav; regSums[ri * 3 + 1] = rEarn; regSums[ri * 3 + 2] = rPop;
+        }
+        double natPerCap = natPop > 1e-9 ? natSav / natPop : 0;
+        double natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;   // 国平均の1人あたり月次所得（QuarterStart時点＝共有層〔戦死・移民・国際市場・資本市場の受け取り〕が直前の月の決算の後に書いた分を含む）
+        for (int ri = 0; ri < World.Regions.Count; ri++)
+        {
+            var r = World.Regions[ri];
+            if (r.State != RegionState.Active) { r.LocalPriceMultiplier = 1.0; r.WagePremium = 1.0; continue; }
+            double rSav = regSums[ri * 3], rEarn = regSums[ri * 3 + 1], rPop = regSums[ri * 3 + 2];
             double mult = 1.0;
             if (priceOn && natPerCap > 1e-9 && rPop > 1e-9)
             {
@@ -1733,6 +1764,12 @@ public sealed class Simulation
     }
 
     // 四半期の戦略後段：技術・制度・政治・社会移動・景気循環トラッカー（90日目）。
+    // ★(351) 州×POP の走査の表②＝四半期末（この関数・同じ国の月 3 の決算の直後・共有層の前）の段の並び・読む欄／書く欄。順序は変えない。
+    //   ・GrowTech／Discovery（単国だけ）　読む：国の欄　書く：国の欄
+    //   ・Politics.Step　読む：満足（犯罪で削った後）・食料の充足（人口動態の後）・識字・報道・中核民族の割合・思想・規模　書く：闘争度・政治意識・国民意識・思想・生活の基準・規模（鎮圧と粛清の KillPops）・貯蓄（恐怖政治の没収 Transfer）
+    //   ・Meritocracy.Step　読む：失業・貯蓄・所得・教育の移動平均・識字・債務　書く：Blend の全欄（闘争度は政治が書いた直後の値を混ぜる）・お金も運ぶ　時点：政治の後
+    //   ・TickExpansionWill（利益集団の力）・UpdateGdpCycle・UpdatePriceLevel・Snapshot　読む：貯蓄・地代・規模・闘争度・識字・満足　書く：国の欄・記録だけ　時点：社会移動の後（ここから POP は動かない）
+    //   順番に依存する所：犯罪が削った満足を政治と記録（Snapshot）が読む／政治が書いた闘争度を社会移動の Blend が混ぜる。
     private void QuarterEnd()
     {
         World.Cost[CostLedger.QuarterEndPops] += ActivePopCount();   // 計算量の台帳（診断）：四半期末（技術・制度・政治・社会移動ほか）は POP×国に比例
@@ -1805,6 +1842,25 @@ public sealed class Simulation
         }
     }
 
+    // ★(351) 州×POP の走査の表①＝月末の決算（この関数）の段の並び・各段が読む欄／書く欄・読む時点（案 A・順序は変えない・実装ログ (348) §8 の座標を (351) の木で取り直した）。
+    //   POP の貯蓄を書く口は移し方の 1 本（World.Transfer）と Pop の Take／Distribute／Carry／SettleMonth／Blend／KillPops だけ＝下の「書く」は呼び手の段に数える。
+    //   集合＝国家会計の集合（World.AllPopsWithRegion＝絞らない）。州のループは State==Active（本番の盤面は全州が Active＝同じ列）。
+    //   ・前段（兵の給与の請求・予算の州ループ・教師）　読む：兵 POP の規模・徴募の賃金・識字・高等教育の充足　書く：州の予算の欄だけ　時点：前月の盤面（経済の前）
+    //   ・切り下げ（払える額の側へ入れて取る）　読む：全 POP の Σmax(0,貯蓄)　書く：貯蓄（Transfer）　時点：前月の盤面（Σ は Take へ渡す＝同じ順の同じ和）
+    //   ・支払い率の州ループ→EconomyStep.Run　読む：闘争度・貯蓄・債務・規模ほか　書く：貯蓄・債務・所得・支出・満足・失業・食料・健康・教育ほか　時点：前月の値を読み今月を書く
+    //   ・Colonial.Step　読む：貯蓄・規模　書く：識字・闘争度・貯蓄　時点：今月の経済の後
+    //   ・StepMineralDeposits／MintGold　読む：産出　書く：基礎貨幣（鋳造）　時点：今月の経済の後
+    //   ・Fiscal.Step（税・十分の一税・領主の取り分・国債）　読む：前の月の所得・貯蓄・識字・報道・階級・閉鎖　書く：貯蓄・国債の保有・地代・闘争度　時点：今月の経済の後
+    //   ・StepStateTargets（国営工場の払い下げ・接収）　読む：—　書く：資本家の貯蓄（払い下げ）・闘争度（接収）　時点：財政の後
+    //   ・Crime.Step　読む：規模・闘争度・満足・前の月の所得・貯蓄　書く：貯蓄（窃盗）→満足（Transfer の後に削る）・州の犯罪率　時点：税の後
+    //   ・Military.Step　読む：兵の規模・国民意識・前の月の所得　書く：規模・年齢の層・貯蓄（Blend）　時点：犯罪の後
+    //   ・PopDecision.Run　読む：今月の所得・食料の充足（前月の人口動態の値）・閉鎖　書く：規模（州の中の階級の遷移）　時点：軍の後
+    //   ・Territory.Step　読む：規模・失業・州の犯罪率（CrimePushWeight）・州の賃金プレミアム（四半期首の値）　書く：Blend の全欄・闘争度　時点：今月
+    //   ・GrowLiteracy　読む：教育の充足・児童労働・高等教育の充足　書く：識字・教育の移動平均・国の専門人材　時点：今月
+    //   ・DemographicStep　読む：食料・健康・年齢の層　書く：規模・年齢の層・食料の充足・識字　時点：今月の経済の後
+    //   ・Backstop／CheckInvariants　読む：貯蓄　書く：債務（Backstop）　時点：月の最後
+    //   順番に依存する所（まとめない＝案 B は採らない）：経済→税（所得と貯蓄を税が読む）→犯罪（税の後の貯蓄と闘争度を読む・移して読み直す 2 周〔Crime.Step の :65→:76〕は窃盗の保存の順）→人口動態（今月の食料と健康を読む）の鎖。
+    //   食料の充足（FoodFill）だけは人口動態が書いた値を PopDecision が次の月に読む（前月の値）。
     private void MonthSettle()
     {
         // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。
@@ -2235,7 +2291,7 @@ public sealed class Simulation
             }
             if (devalueRoom > 1e-9)
             {
-                double totalSav = 0; foreach (var dr in World.Regions) foreach (var dp in dr.Pops) totalSav += Math.Max(0, dp.Savings.Value);
+                double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
                 // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
                 double devalue = Math.Min(devalueRoom, totalSav * World.Coef.DevaluationCapFracPerMonth.Value);
                 if (devalue > 1e-9)
@@ -2248,8 +2304,8 @@ public sealed class Simulation
                     //   （旧＝貯蓄の手書きの引き落とし・国庫の片側の記帳・不換の台帳の手書き）。台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。
                     if (haircut > 1e-12)
                     {
-                        var allPops = new List<Pop>(); foreach (var dr in World.Regions) allPops.AddRange(dr.Pops);
-                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue);
+                        var allPops = new List<Pop>(); foreach (var (_, dp) in World.AllPopsWithRegion()) allPops.Add(dp);
+                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
                     }
                     else haircut = 0;
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
