@@ -2134,6 +2134,91 @@ if (args.Length > 0 && args[0] == "fleetprobe")
     Console.WriteLine($"fleetprobe: {fpSim.Nations.Count}国 → {fpOut}");
     return;
 }
+// === 艦隊の注意の重みの断面（読むだけ・2026-10-15 (354) 流れM 段0）： dotnet run -- navyneed <出力TSV> [seed] [断面の四半期をカンマで] ===
+//   同じ盤面で ArmyShape.Compute を重みの基数だけ入れ替えて呼び（A＝越境の交易額〔今〕・U＝全て同じ・B＝交易額÷年の名目GDP・C＝交易額²÷GDP・D＝交易額÷√GDP）、
+//   海の必要量・目標の艦隊（払える側の上限つき）を国ごとに並べる。Compute は重みを平均で割る＝TradeValueSmoothed に基数をそのまま入れてよい（呼んだ後に元へ戻す）。
+//   海の必要量の組成＝全ての国の海盆プレゼンスを 0 にした呼び出し（hrSea が 0＝艦隊の項が消える・制海権と遠征技術の門は触らない＝海を越えて来る陸軍の項だけ）を needSeaCross に置く（艦隊の項＝needSeaA−needSeaCross）。
+//   戻しの検算＝呼ぶ前後の NeedSea・TradeValueSmoothed・NavySkillMul が一致（不一致なら標準エラーへ）。
+if (args.Length > 0 && args[0] == "navyneed")
+{
+    string nnOut = args.Length > 1 ? args[1] : "navyneed.tsv";
+    ulong nnSeed = ArgUlong(args, 2, 1UL);
+    var nnQs = new SortedSet<int>();
+    foreach (var tok in (args.Length > 3 ? args[3] : "40,148,308,504").Split(',', StringSplitOptions.RemoveEmptyEntries)) if (int.TryParse(tok, out var qv)) nnQs.Add(qv);
+    var nnSim = new MultiNationSim(WorldData.Nations(), nnSeed, _ => new UtilityAgent());
+    foreach (var nn in nnSim.Nations) nn.TelemetryEnabled = false;
+    nnSim.Diplomacy.Log.Enabled = false;
+    var nnB = new System.Text.StringBuilder();
+    nnB.Append("time\tnation\tnavalPower\tships\ttradeSm\tgdpYear\tforcePot\tspendShare\tneedLand\tneedInt\tneedSeaA\tneedSeaCross\tneedSeaU\tneedSeaB\tneedSeaC\tneedSeaD\twA\twB\twC\twD\ttargetRefA\ttargetRefU\ttargetRefB\ttargetRefC\ttargetRefD\taffordRef\tport\n");
+    void NNSnap(string tm)
+    {
+        var dip = nnSim.Diplomacy; var cf = nnSim.Coef;
+        var ps = new List<Power>();
+        foreach (var p in dip.Powers) if (p.Nation is not null) ps.Add(p);
+        int n = ps.Count;
+        var sv = new (double land, double sea, double inter, double men, double col)[n];
+        var tv = new double[n]; var skill = new double[n]; var gy = new double[n];
+        for (int i = 0; i < n; i++)
+        {
+            var p = ps[i]; sv[i] = (p.NeedLand, p.NeedSea, p.NeedInternal, p.NeedMen, p.AttentionColSumMax);
+            tv[i] = p.Nation!.TradeValueSmoothed; skill[i] = p.NavySkillMul;
+            gy[i] = Calendar.PerMonthToPerYear(p.Nation!.NominalGdpPerMonth).Value;
+        }
+        (double sea, double land, double inter, double tRef)[] Read()
+        {
+            var r = new (double, double, double, double)[n];
+            for (int i = 0; i < n; i++)
+            {
+                var p = ps[i]; var w = p.Nation!;
+                double tRef = 0;
+                if (w.Regions.Count > 0 && EconomyStep.FleetTargetUnits(w.Regions[0], w.Coef, w) is { } tt)
+                    for (int k = 0; k < tt.Length; k++) tRef += tt[k] * (w.Regions[0].GoodOf(w.Coef.FleetGoodIds[k])?.RefPrice ?? 0);
+                r[i] = (p.NeedSea, p.NeedLand, p.NeedInternal, tRef);
+            }
+            return r;
+        }
+        (double sea, double land, double inter, double tRef)[] With(Func<int, double> basis)
+        {
+            for (int i = 0; i < n; i++) ps[i].Nation!.TradeValueSmoothed = basis(i);
+            ArmyShape.Compute(dip, cf);
+            return Read();
+        }
+        double Open(int i) => gy[i] > 1e-9 ? tv[i] / gy[i] : 0;
+        double BasisB(int i) => Open(i);
+        double BasisC(int i) => tv[i] * Open(i);
+        double BasisD(int i) => gy[i] > 1e-9 ? tv[i] / System.Math.Sqrt(gy[i]) : 0;
+        double[] Rel(Func<int, double> f) { var o = new double[n]; double s = 0; for (int i = 0; i < n; i++) { double x = f(i); o[i] = x > 0 ? x : 0; s += o[i]; } for (int i = 0; i < n; i++) o[i] = s > 0 ? o[i] / (s / n) : 1; return o; }
+        var rA = With(i => tv[i]);
+        var rU = With(_ => 1.0);
+        var rB = With(BasisB);
+        var rC = With(BasisC);
+        var rD = With(BasisD);
+        var bp = new double[n][];
+        for (int i = 0; i < n; i++) { bp[i] = (double[])ps[i].BasinPresence.Clone(); System.Array.Clear(ps[i].BasinPresence); }
+        var rX = With(i => tv[i]);   // 艦隊の項を消した盤面（海盆の重なりが 0＝hrSea が 0・投射の制海権は触らない）＝海を越えて来る陸軍の項だけ
+        for (int i = 0; i < n; i++) bp[i].CopyTo(ps[i].BasinPresence, 0);
+        for (int i = 0; i < n; i++) { var p = ps[i]; p.Nation!.TradeValueSmoothed = tv[i]; (p.NeedLand, p.NeedSea, p.NeedInternal, p.NeedMen, p.AttentionColSumMax) = sv[i]; }
+        for (int i = 0; i < n; i++) if (ps[i].NavySkillMul != skill[i] || !ps[i].BasinPresence.AsSpan().SequenceEqual(bp[i]) || ps[i].Nation!.TradeValueSmoothed != tv[i] || ps[i].NeedSea != sv[i].sea) Console.Error.WriteLine($"navyneed: 戻しの不一致 {tm} {ps[i].Name}");
+        var wA = Rel(i => tv[i]); var wB = Rel(BasisB); var wC = Rel(BasisC); var wD = Rel(BasisD);
+        for (int i = 0; i < n; i++)
+        {
+            var p = ps[i]; var w = p.Nation!; string nm = p.BaseName.Length > 0 ? p.BaseName : p.Name;
+            double ships = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) ships += fa[k];
+            double afford = w.Regions.Count > 0 ? EconomyStep.FleetAffordableCost(w, w.Coef) : 0;
+            bool port = false; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { port = true; break; }
+            nnB.Append(string.Join("\t", new object[] { tm, nm, p.NavalPower, ships, tv[i], gy[i], ArmyShape.ForcePotential(p), w.NavalSpendShare.Value, rA[i].land, rA[i].inter,
+                rA[i].sea, rX[i].sea, rU[i].sea, rB[i].sea, rC[i].sea, rD[i].sea, wA[i], wB[i], wC[i], wD[i],
+                rA[i].tRef, rU[i].tRef, rB[i].tRef, rC[i].tRef, rD[i].tRef, afford, port ? 1 : 0 })).Append((char)10);
+        }
+    }
+    nnSim.StartWarmup();
+    NNSnap("warm");
+    int nnLast = nnQs.Count > 0 ? nnQs.Max : 0;
+    for (int q = 1; q <= nnLast; q++) { nnSim.StepQuarter(); if (nnQs.Contains(q)) NNSnap("q" + q); }
+    System.IO.File.WriteAllText(nnOut, nnB.ToString(), new System.Text.UTF8Encoding(false));
+    Console.WriteLine($"navyneed: {nnSim.Nations.Count}国 → {nnOut}");
+    return;
+}
 if (args.Length > 0 && args[0] == "poweraff")
 {
     ulong paSeed = ArgUlong(args, 1, 1789UL);
