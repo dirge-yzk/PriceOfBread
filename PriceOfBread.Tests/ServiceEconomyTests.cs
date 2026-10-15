@@ -19,7 +19,7 @@ public class ServiceEconomyTests
         for (int i = 0; i < n; i++) markets[i] = new Market { Price = 1.0, Stock = 0, TargetStock = 1 };
         markets[Catalog.EducationId].Price = 0.6;
 
-        var edu = new Good { Id = Catalog.EducationId, Name = "教育", Tier = GoodTier.Service, BaseNeed = 0.06, RefPrice = 0.6, Elasticity = 0.8, Spoilage = 1.0, NonTradeable = true };
+        var edu = new Good { Id = Catalog.EducationId, Name = "教育", Tier = GoodTier.Service, BaseNeed = 0.06, RefPrice = 0.6, Elasticity = 0.8, WearRatePerMonth = 1.0, NonTradeable = true };
         var teacher  = new Pop { ClassId = 7, ClassName = "教師", IsUrban = true, Size = 10, Savings = new MoneyStock(0), Satisfaction = 1.0, IsModernElite = true };
         var worker   = new Pop { ClassId = 2, ClassName = "労働者", IsUrban = true, Size = 100, Savings = new MoneyStock(workerSavings), Satisfaction = 1.0 };
         var engineer = new Pop { ClassId = 4, ClassName = "技師", IsUrban = true, Size = 100, Savings = new MoneyStock(10_000), Satisfaction = 1.0, IsModernElite = true };

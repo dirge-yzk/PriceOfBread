@@ -10,7 +10,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 1,
@@ -23,7 +25,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 2,
@@ -36,7 +40,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 3,
@@ -49,7 +55,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 4,
@@ -62,7 +70,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 5,
@@ -75,7 +85,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 6,
@@ -88,7 +100,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 7,
@@ -101,7 +115,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 8,
@@ -114,7 +130,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 9,
@@ -127,7 +145,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 10,
@@ -140,7 +160,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 11,
@@ -153,7 +175,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 12,
@@ -166,7 +190,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 13,
@@ -179,7 +205,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 14,
@@ -192,7 +220,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 15,
@@ -205,7 +235,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": true,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 16,
@@ -218,7 +250,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.2,
+    "use": "Consumed"
   },
   {
     "id": 17,
@@ -231,7 +265,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 18,
@@ -244,7 +280,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 19,
@@ -257,7 +295,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.15,
+    "use": "Consumed"
   },
   {
     "id": 20,
@@ -270,7 +310,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.2,
+    "use": "Consumed"
   },
   {
     "id": 21,
@@ -283,7 +325,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 22,
@@ -296,7 +340,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 23,
@@ -309,7 +355,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 24,
@@ -322,7 +370,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.1,
+    "use": "Consumed"
   },
   {
     "id": 25,
@@ -335,7 +385,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 26,
@@ -348,7 +400,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 27,
@@ -374,7 +428,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 28,
@@ -396,7 +452,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 29,
@@ -418,7 +476,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 30,
@@ -440,7 +500,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 31,
@@ -462,7 +524,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 32,
@@ -484,7 +548,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 33,
@@ -510,7 +576,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 34,
@@ -536,7 +604,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 35,
@@ -554,7 +624,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 36,
@@ -572,7 +644,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 37,
@@ -590,7 +664,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 38,
@@ -608,7 +684,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 39,
@@ -626,7 +704,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 40,
@@ -644,7 +724,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 41,
@@ -666,7 +748,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 42,
@@ -684,7 +768,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": true,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 43,
@@ -702,7 +788,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.15,
+    "use": "Consumed"
   },
   {
     "id": 44,
@@ -720,7 +808,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 45,
@@ -742,7 +832,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 46,
@@ -764,7 +856,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 47,
@@ -786,7 +880,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 48,
@@ -804,7 +900,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 49,
@@ -826,7 +924,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 50,
@@ -852,7 +952,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 51,
@@ -874,7 +976,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 52,
@@ -900,7 +1004,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 53,
@@ -922,7 +1028,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 54,
@@ -940,7 +1048,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.25,
+    "use": "Consumed"
   },
   {
     "id": 55,
@@ -962,7 +1072,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": 1
+    "nutrition": 1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 56,
@@ -984,7 +1096,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": 1
+    "nutrition": 1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 57,
@@ -1014,7 +1128,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 58,
@@ -1032,7 +1148,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 59,
@@ -1054,7 +1172,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 60,
@@ -1072,7 +1192,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 61,
@@ -1090,7 +1212,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 62,
@@ -1116,7 +1240,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 63,
@@ -1138,7 +1264,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 64,
@@ -1160,7 +1288,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 65,
@@ -1182,7 +1312,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 66,
@@ -1195,7 +1327,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 67,
@@ -1208,7 +1342,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 68,
@@ -1230,7 +1366,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 69,
@@ -1252,7 +1390,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 70,
@@ -1274,7 +1414,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 71,
@@ -1300,7 +1442,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 72,
@@ -1322,7 +1466,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 73,
@@ -1344,7 +1490,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 74,
@@ -1370,7 +1518,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 75,
@@ -1392,7 +1542,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 76,
@@ -1414,7 +1566,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 77,
@@ -1436,7 +1590,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 78,
@@ -1458,7 +1614,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 79,
@@ -1480,7 +1638,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 80,
@@ -1506,7 +1666,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 81,
@@ -1532,7 +1694,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 82,
@@ -1554,7 +1718,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 83,
@@ -1567,7 +1733,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 84,
@@ -1580,7 +1748,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 85,
@@ -1598,7 +1768,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 86,
@@ -1620,7 +1792,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 87,
@@ -1638,7 +1812,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 88,
@@ -1651,7 +1827,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 89,
@@ -1664,7 +1842,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 90,
@@ -1686,7 +1866,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 91,
@@ -1699,7 +1881,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 92,
@@ -1712,7 +1896,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 93,
@@ -1725,7 +1911,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 94,
@@ -1743,7 +1931,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 95,
@@ -1765,7 +1955,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 96,
@@ -1791,7 +1983,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 97,
@@ -1809,7 +2003,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 98,
@@ -1822,7 +2018,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.2,
+    "use": "Consumed"
   },
   {
     "id": 99,
@@ -1840,7 +2038,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 100,
@@ -1858,7 +2058,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 101,
@@ -1880,7 +2082,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 102,
@@ -1898,7 +2102,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 103,
@@ -1916,7 +2122,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 104,
@@ -1942,7 +2150,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 105,
@@ -1955,7 +2165,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.2,
+    "use": "Consumed"
   },
   {
     "id": 106,
@@ -1968,7 +2180,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.06,
+    "use": "Consumed"
   },
   {
     "id": 107,
@@ -1981,7 +2195,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 108,
@@ -1994,7 +2210,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 109,
@@ -2007,7 +2225,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.02,
+    "use": "Consumed"
   },
   {
     "id": 110,
@@ -2020,7 +2240,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 111,
@@ -2033,7 +2255,9 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   },
   {
     "id": 112,
@@ -2059,7 +2283,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 113,
@@ -2085,7 +2311,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 114,
@@ -2098,7 +2326,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 115,
@@ -2124,7 +2354,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 116,
@@ -2146,7 +2378,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 117,
@@ -2168,7 +2402,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.04,
+    "use": "Consumed"
   },
   {
     "id": 118,
@@ -2190,7 +2426,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 119,
@@ -2216,7 +2454,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 120,
@@ -2246,7 +2486,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 121,
@@ -2272,7 +2514,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 122,
@@ -2294,7 +2538,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 123,
@@ -2316,7 +2562,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Consumed"
   },
   {
     "id": 124,
@@ -2338,7 +2586,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 125,
@@ -2356,7 +2606,9 @@
     "isColonial": false,
     "nonTradeable": true,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 1,
+    "use": "Consumed"
   },
   {
     "id": 126,
@@ -2378,7 +2630,9 @@
     "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.005,
+    "use": "Held"
   },
   {
     "id": 127,
@@ -2391,6 +2645,8 @@
     "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
-    "nutrition": -1
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
   }
 ]
