@@ -1,0 +1,9 @@
+(363) 合流が組み直した〈既定を 1／1 に倒した複製の木〉の差分（反証役 ce3〔bv〕低#6 の処置）
+基点＝コミット 703b2024（枝 ce3）。差は PriceOfBread.SimCore/Coefficients.cs の 2 行だけ：
+-    public int ConsumptionLayersEnabled = 0;
++    public int ConsumptionLayersEnabled = 1;
+-    public int ConsumptionOpeningLevel = 0;
++    public int ConsumptionOpeningLevel = 1;
+確かめ：703b2024 を git archive で取り出し、上の 2 行だけを置き換え、measure.sh と同じ規則（.cs・.json・.axaml・.csproj・.slnx の sha256 の並びの sha256）で数えた SOURCE-HASH＝c607118c594fe33b。
+線の報告の c607118c…（suite_flag1_default.txt・savetest_flag1.txt・leakhunt_flag1_tail.txt の木）と先頭 8 文字が一致＝複製の木は〈703b2024＋既定の 2 行〉だった。
+⚠ 腕の POB_COEF の経路（ConsumptionLayersEnabled=1;ConsumptionOpeningLevel=1）と同じ結果になることは確かめていない＝旗 1 を採る回で、腕と同じ POB_COEF の経路でも savetest を 1 回回す。
