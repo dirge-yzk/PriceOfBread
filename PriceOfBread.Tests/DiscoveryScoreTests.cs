@@ -633,6 +633,9 @@ public class DiscoveryScoreTests
         World? w = null;
         foreach (var n in sim.Nations)
         {
+            // ★(344) 系統×段階の点火（DiscoveryTierGate＝1）の後は、前提の行（戦車・軍用機←内燃機関・弩級戦艦←装甲艦）がまだの国でこれらの行は判定されない（点数・項は 0）
+            //   ＝この試験は損耗の項だけを見る＝前提の行を解禁済みにしてから読む（1四半期の盤面では内燃機関を知る国が無い）。
+            foreach (int r in all) { int a = Catalog.DiscoveryAfter[r]; if (a >= 0) n.World.Discovered[a] = true; }
             var t = Discovery.Evaluate(n.World, null, n.World.Coef, includeKnown: true);
             if (all.All(r => t[r].Tech > 0)) { w = n.World; break; }   // 6行とも代表の生産者が居る国
         }
