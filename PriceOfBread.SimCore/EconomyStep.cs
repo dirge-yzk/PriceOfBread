@@ -551,6 +551,7 @@ public static class EconomyStep
         bool insOn = Instruments.On && world is not null;   // (271) 計器（読むだけ）：消費の予算の拘束を国×四半期へ（BudgetBindDiag と同じ行・同じ述語）
         long insRows = 0, insBound = 0; double insDesired = 0, insDemand = 0;
         double[]? insSpend = insOn ? Instruments.SpendBuf(world!) : null;   // (286) 計器（読むだけ）：階級×支払いの種類の積算（支払いの位置で積む）
+        var insEnt = insOn ? Instruments.EntryBegin(world!, region) : null;   // (345) 計器（読むだけ）：消費の入口の材料（使える所得・籠の費用・余り・取り崩し・必需の割合の影）。助走の月は null
         if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
         // （所得翻訳ゲート＝DemandIncomeElasticity・2026-08-08 差し戻し・休眠は 2026-09-26 に削除＝棚卸し econ-16/dorm-51）
         // 在庫の腐敗・劣化（保管期間に応じた減衰）：穀物・生鮮は速く、金属・燃料は遅い。だぶつきの恒久滞留を防ぐ。
@@ -1456,6 +1457,7 @@ public static class EconomyStep
             }
         }
 
+        insEnt?.Start();   // (345) 計器（読むだけ）：財のループの直前の残予算・貯蓄・支払い
         // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
         // 消費順＝第1キー tier（エンゲル：生存→日用→贅沢は価格に依らず維持）／第2キー 同tier内の**安い順**。
         // ＝予算が尽きる貧者は最安（野菜→パン…）から埋まり、買い切れず野菜だけになる。富裕は全部買えて多様。価格は毎期変わるので毎期ソート。
@@ -1577,6 +1579,7 @@ public static class EconomyStep
                 && !habit.Active
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
             if (!needless) consumedGoods++;
+            if (insEnt is not null && !needless) insEnt.GoodBegin(gi, staple || foodNonStaple ? 0 : good.Tier == GoodTier.Daily ? 1 : good.Tier == GoodTier.Luxury ? 2 : 3);   // (345) 計器（読むだけ）：層＝食料・日用品・奢侈品・役務その他
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
             bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && !habit.Forms) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
             if (!needless)
@@ -1643,6 +1646,7 @@ public static class EconomyStep
                     demand = Math.Min(desired, affordable);
                     if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);
                     if (insOn) { insRows++; if (demand < desired - 1e-12) insBound++; insDesired += desired * buyerPrice; insDemand += demand * buyerPrice; }
+                    if (insEnt is not null) insEnt.Want(pIdx, marketNeed * priceFactor, desired, demand, buyerPrice);   // (345) 計器（読むだけ）：籠の費用＝欲しい量×買い手の値段
                 }
                 p.GoodDemand = demand;
                 popDemand += demand;
@@ -1725,6 +1729,7 @@ public static class EconomyStep
                         double pay = qty * m.Price;
                         p.PaidPerMonth += new MoneyPerMonth(pay);
                         if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, pay);   // (286) 計器（読むだけ）
+                        insEnt?.PayService(p.ClassId, qty, pay);   // (345) 計器（読むだけ）
                         p.RemainingBudget -= pay;
                         revenue[gi] += pay;               // 受講料/診療費 → 教師・聖職者・医者の売上（保存）
                         double fill = p.GoodNeed > Eps ? Math.Min(1.0, qty / p.GoodNeed) : 1.0;
@@ -1804,10 +1809,13 @@ public static class EconomyStep
                 double needW = foodTier ? 0.0 : good.Tier switch { GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
                 // 必要の無い財（上の needless）＝どの POP も買う量0・必要0＝このループは支払い・売上・国庫・台帳へ +0.0 を足し（各欄は月初に +0 から積む＝−0 にならない）、
                 //   0 の特権の取り分を捨て（Privileges.Record は正の額だけ）、充足の台帳（GoodNeed>Eps）に入らない＝回さない（作業欄は前の財の値＝読まない）。
+                int insI = -1;   // (345) 計器（読むだけ）：POP の添字
+                if (insEnt is not null && !needless) insEnt.PayBegin();
                 if (!needless)
                 foreach (var p in region.Pops)
                 {
                     double qty = p.GoodDemand * ration[gi];
+                    if (insEnt is not null) insI++;
                     if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
                     // 経13：補助のベースを基礎価格(m.Price)から税・流通込み総額へ揃える（buyerPrice の (1-insure) と整合）。
                     // 総額ベース（2026-07-19有効化・2026-09-28 に旗 InsuranceSubsidyConsistent ごと焼き込み）＝pay が buyerPrice に一致し予算超過（貯蓄負値化）を解消。保存は成立（pop+国庫＝生産者+商人）。
@@ -1816,6 +1824,7 @@ public static class EconomyStep
                     double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
                     p.PaidPerMonth += new MoneyPerMonth(pay);
                     if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, qty * m.Price, qty * m.Price * (stateMonop + (monRent > 0 && !(gi == Catalog.TeaId && region.InvestorPopIndex >= 0 && region.InvestorPopIndex < region.Pops.Count) ? monRent : 0)));   // (286) 計器（読むだけ）：買い手の実支払い・数量・生産者の受取（税と流通マージンを除く）／(289) 国庫の取り分〔専売の上乗せ＋国庫へ行く独占レント〕
+                    if (insEnt is not null) insEnt.Pay(insI, qty, pay, ration[gi], buyerPrice);   // (345) 計器（読むだけ）
                     p.RemainingBudget -= pay;
                     // ★備蓄（作者裁定2026-09-20 2'）：食料が**在庫切れで**買えなかった分（買えたはずの量 GoodDemand − 配給された量 qty）の予算は、
                     //   同じ月の下の階層（日用品・嗜好品）へ流さない＝残予算から外すだけで払わない＝金は既存の Savings に残る（新しい状態を作らない・思想⑩）。
@@ -1827,6 +1836,7 @@ public static class EconomyStep
                         double unfilled = p.GoodDemand - qty;
                         if (unfilled > 0) p.RemainingBudget -= unfilled * m.Price * (1 + stateMonop + distM + monRent + guildRent) - unfilled * insureBase * insure;
                     }
+                    if (insEnt is not null && foodTier && p.GoodDemand - qty > 0) insEnt.Unfilled(insI, (p.GoodDemand - qty) * m.Price * (1 + stateMonop + distM + monRent + guildRent) - (p.GoodDemand - qty) * insureBase * insure);   // (345) 計器（読むだけ）：予算から外した在庫切れの食料の額
                     revenue[gi] += qty * m.Price;             // 消費者の支払い（税・マージン抜き）を売上へ（実支払いベース＝保存の要）
                     region.StateSpent[(int)TreasuryCat.Welfare] += subsidy;             // 国家の医療費負担（国庫→生産者＝保存。pop が払わない分を国庫が補填）
                     region.StateSpent[(int)TreasuryCat.StateMonopoly] -= qty * m.Price * stateMonop;   // 専売は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent で精算＝保存）
@@ -1875,6 +1885,7 @@ public static class EconomyStep
                 }
             }
 
+            if (insEnt is not null && !needless) insEnt.GoodEnd(!(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId)));   // (345) 計器（読むだけ）：必需の割合の影（役務の優先配分の財は出さない）
             m.Stock = Math.Max(0, available - sold);   // 優先配分の浮動小数点残差で極微の負になりうる（−1e−15）。非負へクランプ
             m.LastProduced = produced[gi];
             m.LastSold = sold;
@@ -1886,6 +1897,7 @@ public static class EconomyStep
         }
         if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)consumedGoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見た POP×財（必要の無い財を除く）
         if (insOn) Instruments.ConsumeMonth(world!, insRows, insBound, insDesired, insDemand);   // (271) 計器（読むだけ）
+        insEnt?.Finish();   // (345) 計器（読むだけ）：POP ごとの余り・取り崩しの派生量
         // ★純テレメトリ（2026-08-21）：全財を買い終えた時点の**使い残し**。予算が binding なら 0 に張り付く。
         if (BudgetBindDiag.On)
         {

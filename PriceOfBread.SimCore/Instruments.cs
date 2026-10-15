@@ -15,6 +15,7 @@
 /// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足・★(323) 窃盗の列（<c>theftPoolPerMonth</c>＝州のその四半期の盗まれた額の月平均・<c>theftRecipientsEarnedPerMonth</c>＝受け手〔困窮大衆〕の前の月の所得の月平均・<c>earnedPerMonth</c>＝州の全 POP の前の月の所得の和〔四半期の末〕）。
 /// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
 /// <item><c>opium_s&lt;seed&gt;.tsv</c> ★(342) アヘンの表（<c>scope</c> 列で2種類の行）：<c>R</c>＝州×四半期（中毒度・販売量・闇栽培の係数のどれかが動いている州だけ）・<c>N</c>＝国×四半期（禁令・輸出入・緊張の積みのどれかが有る国だけ）。読み手 <c>scripts/instruments/op/an_op.py</c>。列は <see cref="OpiumRows"/> の注。</item>
+/// <item><c>ce_s&lt;seed&gt;.tsv</c> ★(345) 消費の入口 段A：予算の3層の材料（<c>scope</c> 列で2種類の行）：<c>C</c>＝国×四半期×階級（挙げた国は毎四半期・他の国は年末の7階級）の月の和を月数で割った額＝使える所得（前の月の確定した所得）・月初の貯蓄と消費の予算・食料／日用品／奢侈品／役務その他の籠の費用（欲しい量×買い手の値段）と予算で切った後の需要と実際の支払い・所得を超えた支払い（貯蓄の取り崩し）・余り（所得−食料の籠−日用品の籠）ほか。<c>N</c>＝国×窓（40四半期）×財の必需の割合の影（導いた値を書くだけで読み手は無い）。読み手 <c>scripts/instruments/ce/an_ce.py</c>。列は <see cref="CeColNames"/> の注。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
@@ -136,6 +137,8 @@ public static class Instruments
         public double QUnpaidSum, QUnpaidMax, QDevalueShareSum, QDevalueShareMax;
         // ---- (286) 線Q：富裕層のお金の行き先（階級×支払いの種類）と建設の門
         public double[]? QSpend;                           // 今の四半期の月ごとの支払いの和：[(階級 × SpendW + 種類) × 3 + {支払い額, 数量, 生産者の受取}]（EconomyStep の支払いの位置が積む）
+        // ---- (345) 消費の入口 段A（読むだけ）：階級×欄の今の四半期の月の和（欄は CeColNames）と、財ごとの必需の割合の影の和（州×月の和・四半期の末に ce_s へ畳んで 0 へ戻す）
+        public double[]? CeC, CeNum, CeDen, CeBasket, CeBought; public EntryCtx? Ent;
         public int ConRegionMonths;                        // 建設の判定に来た州×月
         public double ConPlannedMoney, ConBudgetBoundMoney, ConBuiltUnits, ConPlannedUnits; public readonly double[] ConRationW = new double[5];   // 計画した（枠で切った後の）金額／枠が切った州×月の枠の金額／建った束／計画した束／計画した束で重みづけた配給率（鋼・機械・セメント・製材・労働）の和
         public double ConGainSum, ConHurdleSum, ConBudgetMoney, ConDesiredMoney;   // 限界収益・資本コストの州×月の和／投資枠の金額／希望の金額（希望の束×束の費用×(1+工賃)）
@@ -176,6 +179,8 @@ public static class Instruments
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
         public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
         public System.IO.StreamWriter? Opium; public bool OpiumHeader;                     // (342) アヘンの表（州×四半期の行 R と国×四半期の行 N）
+        public System.IO.StreamWriter? Ce; public bool CeHeader;                           // (345) 消費の入口の表（国×四半期×階級の行 C と国×窓×財の行 N）
+        public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
     internal sealed class SpendAcc
@@ -489,6 +494,232 @@ public static class Instruments
                     if (a.Spend[k] == 0 && a.Spend[k + 1] == 0 && a.Spend[k + 2] == 0 && a.Spend[k + 3] == 0) continue;
                     wr.WriteLine(string.Join('\t', ch, "extra", I(ng + e), SpendExtraNames[e], "", I(a.Months), F(a.Spend[k] / mo), F(a.Spend[k + 1] / mo), F(a.Spend[k + 2] / mo), F(a.Spend[k + 3] / mo)));
                 }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- (345) 消費の入口 段A：予算の3層の材料（読むだけ） ----------------------------------------------------------------
+
+    // 階級ごとの欄（州と月をまたいで足した月の和。四半期の行で月数で割る）。欄の番号と CeColNames の並びは一致させる。
+    const int CeSize = 0, CeEarnLast = 1, CeEarnLastPos = 2, CeSavStart = 3, CeBudStart = 4,
+        CeWant = 5 /* 5..8＝食料・日用品・奢侈品・役務その他 */, CeDem = 9 /* 9..11＝食料・日用品・奢侈品 */, CeSWant = 12 /* 12..14＝食料・日用品・奢侈品 */, CePay = 15 /* 15..18＝食料・日用品・奢侈品・役務その他 */,
+        CeConsPaid = 19, CeUnfilled = 20, CeRemainder = 21, CeRemainderBasket = 22, CeBasketGap = 23, CeFoodGap = 24, CeRestStock = 25, CeShadowBud = 26, CeShadowCut = 27,
+        CeDraw = 28, CeFoodDraw = 29, CeBasketDraw = 30, CeCoveredPopK = 31, CeFoodUnaffordPopK = 32, CeNegDemand = 33, CeNegBudgetPopK = 34, CeK = 35;
+    /// <summary>★(345) <c>ce_s</c> の C 行の列（階級ごと・月の平均）。<c>earnedLastPerMonth</c>＝Σ <see cref="Pop.LastEarnedPerMonth"/>（EconomyStep が月の頭に前の月の確定値へ写した欄＝消費の予算の層の <c>Y</c>・資本家は負になりうる）／
+    /// <c>earnedLastPositivePerMonth</c>＝Σ max(0, Y)（以下の派生量はこちらを使う）／<c>savingsStartStock</c>＝月初の貯蓄（負の債務を含む）／<c>budgetStartStock</c>＝Σ max(0, 消費の財のループの直前の残予算)（投資家の控除・再点火の発注・反乱の武器を引いた後＝設計 doc §1-2 の <c>S</c>）／
+    /// <c>…WantPerMonth</c>＝Σ 欲しい量×買い手の値段（予算で切る前・供給で切る前＝奢侈品と家事奉仕は所得の弾力・主食はパニック買いを掛けた後）／<c>…DemandPerMonth</c>＝予算で切った後（min(欲しい量, 予算÷値段)）×買い手の値段／
+    /// <c>…SuppliedWantPerMonth</c>＝Σ 欲しい量×その財の配給率×買い手の値段（〈籠の費用〉の実用の定義＝市場に無い財〔配給率が低い〕の欲しい量を数えない。主食の弾力 0 は値段が上がっても欲しい量が減らない＝供給の無い主食の欲しい量×品薄の値段が WantPerMonth を何倍にも膨らます）／
+    /// <c>…PaidPerMonth</c>＝実際の支払い（配給の後・補助を引いた額）／<c>consumptionPaidPerMonth</c>＝Σ(消費の財のループの前後の <see cref="Pop.PaidPerMonth"/> の差)＝4つの層の支払いの和と一致しなければ写し漏れ（<c>class_s</c> の <c>paidPerMonth</c> は建設・保守なども含む全 Paid＝分母が違う）／
+    /// <c>foodUnfilledHeldPerMonth</c>＝食料が在庫切れで買えず予算から外した額／<c>remainderPerMonth</c>＝Σ max(0, Y−食料の支払い−日用品の支払い)（設計 doc §1-2 の余り <c>X</c> の影＝層1・2 の支払いは今の実際の支払いで代用）／
+    /// <c>remainderByBasketPerMonth</c>＝Σ max(0, Y−食料の供給後の籠−日用品の供給後の籠)（所得−籠）／<c>basketGapPerMonth</c>＝Σ max(0, 供給後の籠の和−Y)／<c>foodGapPerMonth</c>＝Σ max(0, 供給後の食料の籠−Y)／
+    /// <c>restStockStock</c>＝Σ max(0, 予算−Y)（設計 doc の <c>S′</c>）／<c>shadowDailyBudgetPerMonth</c>＝Σ max(0, min(Y,S)−min(食料の支払い,S))（層2 の予算の影＝設計 doc §1-2 の式）／<c>shadowDailyCutPerMonth</c>＝Σ max(0, 供給後の日用品の籠−その予算)（層2 で削られる額の影）／
+    /// <c>savingsDrawPerMonth</c>＝Σ max(0, 消費の支払い−Y)（所得を超えて貯蓄から出した額）／<c>foodSavingsDrawPerMonth</c>＝Σ max(0, 食料の支払い−Y)／<c>basketSavingsDrawPerMonth</c>＝Σ max(0, 食料と日用品の支払い−Y)／
+    /// <c>basketCoveredPopK</c>＝供給後の食料の籠＋日用品の籠 ≦ Y の POP の人口／<c>foodUnaffordablePopK</c>＝供給後の食料の籠 ＞ 予算 の POP の人口／
+    /// <c>negativeDemandPerMonth</c>＝需要が負（残予算が負＝在庫切れの食料を予算から外して貯蓄を超えた POP の、後の財）の行の需要×買い手の値段の和（≦0）／<c>budgetEndNegativePopK</c>＝消費の財のループの後に残予算が負の POP の人口。
+    /// ⚠限界：①Y の定義は〈前の月の Earned〉（移転を含むかは Earned に入る物に従う）②各 POP の欲しい量の和は、財の間の予算の食い合いを見ない③PerMonth は州と月の和を四半期の月数で割った国の月平均④役務の優先配分の財は供給後の籠を持たない。</summary>
+    internal static readonly string[] CeColNames =
+    [
+        "popK", "earnedLastPerMonth", "earnedLastPositivePerMonth", "savingsStartStock", "budgetStartStock",
+        "foodWantPerMonth", "dailyWantPerMonth", "luxuryWantPerMonth", "otherWantPerMonth",
+        "foodDemandPerMonth", "dailyDemandPerMonth", "luxuryDemandPerMonth",
+        "foodSuppliedWantPerMonth", "dailySuppliedWantPerMonth", "luxurySuppliedWantPerMonth",
+        "foodPaidPerMonth", "dailyPaidPerMonth", "luxuryPaidPerMonth", "otherPaidPerMonth",
+        "consumptionPaidPerMonth", "foodUnfilledHeldPerMonth", "remainderPerMonth", "remainderByBasketPerMonth", "basketGapPerMonth", "foodGapPerMonth", "restStockStock",
+        "shadowDailyBudgetPerMonth", "shadowDailyCutPerMonth", "savingsDrawPerMonth", "foodSavingsDrawPerMonth", "basketSavingsDrawPerMonth",
+        "basketCoveredPopK", "foodUnaffordablePopK", "negativeDemandPerMonth", "budgetEndNegativePopK",
+    ];
+    /// <summary>非挙げ国が年末の行に出す階級（貴族・農民・工場労働者・資本家・職人・商人・家事使用人）。</summary>
+    static readonly int[] CeOtherClasses = [PopClass.Noble, PopClass.Peasant, PopClass.Worker, PopClass.Capitalist, PopClass.Artisan, 10, 12];
+    /// <summary>国の個体×窓（40四半期）ごとの積算。N 行（必需の割合の影）の元。</summary>
+    internal sealed class CeAcc
+    {
+        public string Nation = ""; public int Months;
+        public readonly double[] Num, Den, Basket, Bought;
+        public CeAcc(int ng) { Num = new double[ng]; Den = new double[ng]; Basket = new double[ng]; Bought = new double[ng]; }
+    }
+    const int CeWindowQuarters = 40;
+    /// <summary>階級ごとの欄の数（番人が <c>EntryCtx</c> の配列を作るため）。</summary>
+    internal static int CeWidth => CeK;
+
+    /// <summary>★(345) 州×月の消費の入口の作業欄（世界ごとに1つを使い回す）。<c>EconomyStep.Run</c> の消費の財のループの口から呼ぶ（<c>Instruments.On</c> の中だけ・読むだけ＝力学の値を1つも書かない）。
+    /// 助走の月は作らない（<see cref="EntryBegin"/> が null を返す）。必要の無い財は呼ばない（<c>needless</c> の外）。</summary>
+    internal sealed class EntryCtx
+    {
+        readonly double[] cC, cNum, cDen, cBasket, cBought; Region reg = null!; int np;
+        int[] cls = [];
+        double[] size = [], y = [], sav0 = [], bud0 = [], paid0 = [], cur = [], want = [], pay = [];
+        double sizeTot; int gi, grp; double d0Sum, num, cMax, b, bought;
+        internal EntryCtx(double[] c, double[] num, double[] den, double[] basket, double[] bought) { cC = c; cNum = num; cDen = den; cBasket = basket; cBought = bought; }
+
+        internal void Begin(Region r)
+        {
+            reg = r; np = r.Pops.Count;
+            if (cls.Length < np) { cls = new int[np]; size = new double[np]; y = new double[np]; sav0 = new double[np]; bud0 = new double[np]; paid0 = new double[np]; cur = new double[np]; }
+            if (want.Length < 3 * np) { want = new double[3 * np]; pay = new double[3 * np]; }
+            Array.Clear(want, 0, 3 * np); Array.Clear(pay, 0, 3 * np);
+            sizeTot = 0;
+            for (int i = 0; i < np; i++)
+            {
+                var p = r.Pops[i];
+                cls[i] = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; size[i] = p.Size; sizeTot += p.Size; y[i] = p.LastEarnedPerMonth.Value;
+            }
+        }
+        /// <summary>消費の財のループの直前（予算の上限・投資家の控除・発注と武器の控除の後）：残予算・貯蓄・その時点の支払いを撮る。</summary>
+        internal void Start()
+        {
+            for (int i = 0; i < np; i++) { var p = reg.Pops[i]; sav0[i] = p.Savings.Value; bud0[i] = p.RemainingBudget; paid0[i] = p.PaidPerMonth.Value; }
+        }
+        /// <summary>財 <paramref name="g"/>（層 <paramref name="group"/>＝0 食料・1 日用品・2 奢侈品・3 役務その他）の需要のループの前。</summary>
+        internal void GoodBegin(int g, int group) { gi = g; grp = group; d0Sum = 0; num = 0; cMax = 0; b = 0; bought = 0; Array.Clear(cur, 0, np); }
+        /// <summary>需要のループの1行（必要量が正の POP）：<paramref name="d0"/>＝欲しい量（価格の弾力まで・所得の弾力の前）・<paramref name="desired"/>＝予算で切る前の欲しい量・<paramref name="demand"/>＝切った後。</summary>
+        internal void Want(int i, double d0, double desired, double demand, double price)
+        {
+            d0Sum += d0;
+            var C = cC; int k = cls[i] * CeK;
+            double wv = desired * price;
+            C[k + CeWant + grp] += wv; cur[i] = desired;
+            if (demand < 0) C[k + CeNegDemand] += demand * price;
+            if (grp < 3) C[k + CeDem + grp] += demand * price;
+        }
+        /// <summary>支払いのループの前：籠の1人あたり <c>b</c>＝Σ欲しい量÷州の人口（必需の割合の影の分母の上限）。</summary>
+        internal void PayBegin() { b = sizeTot > 0 ? d0Sum / sizeTot : 0; }
+        /// <summary>支払いのループの1行（<paramref name="i"/>＝POP の添字・<paramref name="ration"/>＝この財の配給率・<paramref name="price"/>＝買い手の値段）。</summary>
+        internal void Pay(int i, double qty, double payv, double ration, double price)
+        {
+            int k = cls[i] * CeK;
+            cC[k + CePay + grp] += payv;
+            if (grp < 3) { double sw = cur[i] * ration * price; cC[k + CeSWant + grp] += sw; want[grp * np + i] += sw; pay[grp * np + i] += payv; }
+            double s = size[i], cap = b * s, qp = qty > 0 ? qty : 0;   // 負の需要（残予算が負の POP）は必需の割合の影に数えない（negativeDemandPerMonth に別に出す）
+            num += qp < cap ? qp : cap;
+            if (s > 0) { double cc = qp / s; if (cc > cMax) cMax = cc; }
+            bought += qty;
+        }
+        /// <summary>役務の優先配分のループの1行（添字を持たない＝階級だけに積む・必需の割合は出さない）。</summary>
+        internal void PayService(int classId, double qty, double payv)
+        {
+            int c = (uint)classId < (uint)NC ? classId : NC - 1;
+            cC[c * CeK + CePay + grp] += payv; bought += qty;
+        }
+        /// <summary>食料が在庫切れで買えず、予算から外した額。</summary>
+        internal void Unfilled(int i, double v) => cC[cls[i] * CeK + CeUnfilled] += v;
+        /// <summary>財のループの終わり。<paramref name="nValid"/>＝比例配給の財（役務の優先配分の財は必需の割合を出さない）。
+        /// 必需の割合の影 <c>n</c>＝Σ_p min(買った量_p, 籠の1人あたり×人口_p) ÷ (Σ人口 × min(最大の1人あたり購入, 籠の1人あたり))（設計 doc §4-1・min(c_p, min(c_max, b)) = min(c_p, b) で1回の走査で出る）。誰も買えない州は 0。</summary>
+        internal void GoodEnd(bool nValid)
+        {
+            if (!(d0Sum > 0) || gi >= cNum.Length) return;
+            cBasket[gi] += d0Sum; cBought[gi] += bought;
+            if (nValid && sizeTot > 0)
+            {
+                double nn = b > 0 && cMax > 0 ? num / (sizeTot * (cMax < b ? cMax : b)) : 0;
+                cNum[gi] += sizeTot * nn; cDen[gi] += sizeTot;
+            }
+        }
+        /// <summary>消費の財のループの後：POP ごとの非線形な派生量（max の中が POP ごと＝階級の和から導けない）を階級へ畳む。</summary>
+        internal void Finish()
+        {
+            var C = cC;
+            for (int i = 0; i < np; i++)
+            {
+                var p = reg.Pops[i]; int k = cls[i] * CeK; double s = size[i];
+                double Y = y[i], Yp = Y > 0 ? Y : 0, S0 = bud0[i] > 0 ? bud0[i] : 0;
+                double F = want[i], D = want[np + i], fp = pay[i], dp = pay[np + i];   // F・D＝供給後の籠（食料・日用品）・fp・dp＝実際の支払い
+                double cons = p.PaidPerMonth.Value - paid0[i];
+                double X = Yp - fp - dp; if (!(X > 0)) X = 0;
+                double Xb = Yp - F - D; if (!(Xb > 0)) Xb = 0;
+                double gap = F + D - Yp; if (!(gap > 0)) gap = 0;
+                double fgap = F - Yp; if (!(fgap > 0)) fgap = 0;
+                double rest = S0 - Yp; if (!(rest > 0)) rest = 0;
+                double l2 = (Yp < S0 ? Yp : S0) - (fp < S0 ? fp : S0); if (!(l2 > 0)) l2 = 0;
+                double l2cut = D - l2; if (!(l2cut > 0)) l2cut = 0;
+                double draw = cons - Yp; if (!(draw > 0)) draw = 0;
+                double fdraw = fp - Yp; if (!(fdraw > 0)) fdraw = 0;
+                double bdraw = fp + dp - Yp; if (!(bdraw > 0)) bdraw = 0;
+                C[k + CeSize] += s; C[k + CeEarnLast] += Y; C[k + CeEarnLastPos] += Yp; C[k + CeSavStart] += sav0[i]; C[k + CeBudStart] += S0; C[k + CeConsPaid] += cons;
+                C[k + CeRemainder] += X; C[k + CeRemainderBasket] += Xb; C[k + CeBasketGap] += gap; C[k + CeFoodGap] += fgap; C[k + CeRestStock] += rest; C[k + CeShadowBud] += l2; C[k + CeShadowCut] += l2cut;
+                C[k + CeDraw] += draw; C[k + CeFoodDraw] += fdraw; C[k + CeBasketDraw] += bdraw;
+                if (p.RemainingBudget < 0) C[k + CeNegBudgetPopK] += s;
+                if (F + D <= Yp) C[k + CeCoveredPopK] += s;
+                if (F > S0) C[k + CeFoodUnaffordPopK] += s;
+            }
+        }
+    }
+    /// <summary>★(345) 州×月の入口。助走の月は null（何も積まない）。</summary>
+    internal static EntryCtx? EntryBegin(World w, Region r)
+    {
+        if (w.WarmupFrozen) return null;
+        var st = S(w);
+        int ng = Catalog.Goods.Length;
+        st.CeC ??= new double[NC * CeK];
+        st.CeNum ??= new double[ng]; st.CeDen ??= new double[ng]; st.CeBasket ??= new double[ng]; st.CeBought ??= new double[ng];
+        var e = st.Ent ??= new EntryCtx(st.CeC, st.CeNum, st.CeDen, st.CeBasket, st.CeBought);
+        e.Begin(r);
+        return e;
+    }
+    static void CeClear(WState st)
+    {
+        if (st.CeC is not null) Array.Clear(st.CeC);
+        if (st.CeNum is not null) { Array.Clear(st.CeNum); Array.Clear(st.CeDen!); Array.Clear(st.CeBasket!); Array.Clear(st.CeBought!); }
+    }
+
+    /// <summary>四半期の末：C 行（挙げた国は毎四半期・他の国は年末の7階級）を書き、N 行の元（必需の割合の影）を窓へ足して、今の四半期の積算を戻す。<c>st.Uid</c> が採番された後（<see cref="Quarter"/> の <see cref="SpendFold"/> の後）で呼ぶ。</summary>
+    static void CeFold(Sink sk, ulong seed, World w, WState st, int q, bool picked, bool yearEnd)
+    {
+        var c = st.CeC; if (c is null) return;
+        if (st.ClsMonths > 0 && st.Uid != 0)
+        {
+            double mo = st.ClsMonths; string nation = NameOf(w);
+            string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (picked || yearEnd)
+            {
+                var names = new string?[NC];
+                foreach (var r in w.Regions) foreach (var p in r.Pops) { int cc = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; names[cc] ??= p.ClassName; }
+                sk.Ce ??= Open("ce", seed);
+                if (!sk.CeHeader) { sk.Ce.WriteLine(CeHeaderLine()); sk.CeHeader = true; }
+                string tail = new string('\t', 3);   // N 行の3列（necessityShadowShare・basketQtyPerMonth・boughtQtyPerMonth）は C 行では空
+                for (int cl = 0; cl < NC; cl++)
+                {
+                    if (!picked && Array.IndexOf(CeOtherClasses, cl) < 0) continue;
+                    int k = cl * CeK;
+                    if (!(c[k + CeSize] > 0)) continue;
+                    var sb = new System.Text.StringBuilder();
+                    sb.Append("C\t").Append(I(q)).Append('\t').Append(I(q)).Append('\t').Append(I(w.Year)).Append('\t').Append(I(st.Uid)).Append('\t').Append(nation).Append('\t').Append(I(cl)).Append('\t').Append(names[cl] ?? "").Append("\t\t\t\t").Append(I(st.ClsMonths));
+                    for (int f = 0; f < CeK; f++)
+                    {
+                        // 欄 f の値：人口と 〈人口の月数〉 は欄 CeSize（人口×月の和）。Stock 系も月の平均＝月の和÷月数
+                        sb.Append('\t').Append(F(c[k + f] / mo));
+                    }
+                    sb.Append(tail);
+                    sk.Ce.WriteLine(sb.ToString());
+                }
+            }
+            int win = q / CeWindowQuarters;
+            if (!sk.CeN.TryGetValue((st.Uid, win), out var a)) sk.CeN[(st.Uid, win)] = a = new CeAcc(Catalog.Goods.Length);
+            a.Nation = nation; a.Months += st.ClsMonths;
+            if (st.CeNum is { } nm)
+                for (int g = 0; g < nm.Length; g++) { a.Num[g] += nm[g]; a.Den[g] += st.CeDen![g]; a.Basket[g] += st.CeBasket![g]; a.Bought[g] += st.CeBought![g]; }
+        }
+        CeClear(st);
+    }
+    static string CeHeaderLine() => "scope\tquarter\tlastQuarter\tyear\tnationUid\tnation\tclassId\tclassName\tgoodId\tgoodName\ttier\tmonthsCount\t" + string.Join('\t', CeColNames) + "\tnecessityShadowShare\tbasketQtyPerMonth\tboughtQtyPerMonth";
+
+    /// <summary>試合の終わり：N 行（国×窓×財の必需の割合の影）。<c>necessityShadowShare</c>＝人口で重みづけた州×月の平均（比例配給の財だけ・役務の優先配分の財は nan）・<c>basketQtyPerMonth</c>＝欲しい量（価格の弾力まで）の月の和・
+    /// <c>boughtQtyPerMonth</c>＝買った量の月の和・<c>popK</c> 欄（C 行の popK の位置）＝その財の籠が立つ州の人口の月平均。窓は 40 四半期（<c>quarter</c>～<c>lastQuarter</c>）。</summary>
+    static void CeTable(Sink sk)
+    {
+        if (sk.CeN.Count == 0) return;
+        sk.Ce ??= Open("ce", sk.Seed);
+        if (!sk.CeHeader) { sk.Ce.WriteLine(CeHeaderLine()); sk.CeHeader = true; }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string mid = new string('\t', CeK - 1);   // popK 以外の C 列は空
+        foreach (var kv in sk.CeN.OrderBy(k => k.Key.Uid).ThenBy(k => k.Key.Win))
+        {
+            var a = kv.Value; int win = kv.Key.Win; double mo = a.Months > 0 ? a.Months : double.NaN;
+            for (int g = 0; g < a.Basket.Length; g++)
+            {
+                if (!(a.Basket[g] > 0)) continue;
+                var gd = Catalog.Goods[g];
+                sk.Ce.WriteLine(string.Join('\t', "N", I(win * CeWindowQuarters), I(win * CeWindowQuarters + CeWindowQuarters - 1), "", I(kv.Key.Uid), a.Nation, "", "", I(g), gd.Name, gd.Tier.ToString(), I(a.Months),
+                    F(a.Den[g] / mo) + mid, F(a.Den[g] > 0 ? a.Num[g] / a.Den[g] : double.NaN), F(a.Basket[g] / mo), F(a.Bought[g] / mo)));
             }
         }
     }
@@ -1370,7 +1601,7 @@ public static class Instruments
         var sk = SinkOf(sim, seed);
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
-        if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; }   // (342) 助走の月は数えない
+        if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); }   // (342) 助走の月は数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
 
@@ -1396,6 +1627,7 @@ public static class Instruments
             FlushPx(sk, seed, st);   // (280) 物価の鎖の行（挙げた国だけが溜めている）
             NationRow(sk, seed, q, i, w, st, yearEnd);
             SpendFold(sk, w, st, q, picked);   // (286) 線Q：支払いの積算を窓の区切りへ（階級の所得と支出を戻す前）
+            CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
             if (picked) PortRows(sk, seed, q, w);       // (292) 線P：港の建設の州ごとの表
@@ -1418,6 +1650,7 @@ public static class Instruments
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
+        CeTable(sk);      // (345)
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
@@ -1425,6 +1658,7 @@ public static class Instruments
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
         sk.Opium?.Dispose(); sk.Opium = null;   // (342)
+        sk.Ce?.Dispose(); sk.Ce = null;   // (345)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 
