@@ -920,7 +920,7 @@ public partial class GameViewModel
             var cf = _player.Coef;
             double cpuRef = cf.ConsSteel * Catalog.RefPrices[cf.SteelGoodId] + cf.ConsMachine * Catalog.RefPrices[cf.MachineGoodId]
                           + cf.ConsCement * Catalog.RefPrices[cf.CementGoodId] + cf.ConsLumber * Catalog.RefPrices[cf.LumberGoodId];
-            double units = cpuRef > 1e-9 ? cf.FactoryMaterialFrac * spec.Cost / cpuRef : 0;   // 総建設ユニット
+            double units = cpuRef > 1e-9 ? cf.FactoryMaterialFrac.Value * spec.Cost / cpuRef : 0;   // 総建設ユニット
             double P(int id) => id >= 0 && id < cap0.Markets.Length ? cap0.Markets[id].Price : 0;
             double machineQty = cf.ConsMachine * units;
             var mats = new System.Text.StringBuilder();
@@ -930,7 +930,7 @@ public partial class GameViewModel
             Row(cf.MachineGoodId, machineQty);
             Row(cf.CementGoodId, cf.ConsCement * units);
             Row(cf.LumberGoodId, cf.ConsLumber * units);
-            double wageTotal = (1.0 - cf.FactoryMaterialFrac) * spec.Cost;
+            double wageTotal = (1.0 - cf.FactoryMaterialFrac.Value) * spec.Cost;
             buildCostTip = $"{facilityWord}　建設費 {Money(spec.Cost)}" + mats
                 + $"\n合計コスト {Money(wageTotal + matCostSum)}"
                 + $"\n完成まで {spec.Quarters / (double)Calendar.QuartersPerYear:F1}年"
@@ -938,7 +938,7 @@ public partial class GameViewModel
         }
         // 州に依存しないループ不変量（州ループの外で1回だけ求める＝buildAfford と同じ場所）。
         double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
-        double payPerDay = (1.0 - _player.Coef.FactoryMaterialFrac) * spec.Cost / days;   // 着工に要る初日の労務費（World.BuildFactory と同式）
+        double payPerDay = (1.0 - _player.Coef.FactoryMaterialFrac.Value) * spec.Cost / days;   // 着工に要る初日の労務費（World.BuildFactory と同式）
         var keyed = new List<(double prod, ProdRegionRow row)>();
         for (int ri = 0; ri < _player.Regions.Count; ri++)
         {

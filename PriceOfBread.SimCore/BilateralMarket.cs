@@ -947,7 +947,7 @@ public sealed partial class InternationalMarket
                 var rS = tr[t].r; var wS = nations[tr[t].nation].World;
                 double comm = 0;
                 if (revX[t] > 0 && rS.MerchantPopIndex >= 0 && rS.MerchantPopIndex < rS.Pops.Count)
-                    comm = World.Transfer((null, null), (wS, [rS.Pops[rS.MerchantPopIndex]], null), revX[t] * c.MerchantTradeMargin, TreasuryCat.OtherIn, income: true);
+                    comm = World.Transfer((null, null), (wS, [rS.Pops[rS.MerchantPopIndex]], null), revX[t] * c.MerchantTradeMargin.Value, TreasuryCat.OtherIn, income: true);
                 PaySales((null, null), rS, g, rev[t] - comm, wS);
                 rev[t] = 0; revX[t] = 0;
             }

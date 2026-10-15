@@ -545,7 +545,7 @@ public static class EconomyStep
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
-            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac;
+            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
         // ★純テレメトリ（2026-08-21）：この州の pop がこの月に**使える**消費予算の総額（投資枠控除後）。
         double budgetStartDiag = 0;
         bool insOn = Instruments.On && world is not null;   // (271) 計器（読むだけ）：消費の予算の拘束を国×四半期へ（BudgetBindDiag と同じ行・同じ述語）
@@ -906,7 +906,7 @@ public static class EconomyStep
             //   投資の原資を**所得（Earned）**にする案（器 IndInvestFromIncome）は、0.4×所得で点火すると旧式の約1/150になり世界が崩壊した
             //   （英GDP 290,733→2）＝資本コストの較正が巨大な貯蓄ストックを前提に組まれている＝建設費・減価・貯蓄を一緒に動かす大改修が要る。
             //   ★2026-09-26（棚卸し dorm-50）：「0で確定＝休眠」だった器を削除（再挑戦はその大改修と一緒に設計し直す＝検討 §10-10［金融1］）。
-            double budget = coef.IndInvestmentFrac * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+            double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
             // （退蔵結晶化 段4a/段2の予算配線は Stage1 中止で2026-08-29撤去＝休眠削除・厳密恒等）
             // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。
             // 書き手は World.StepStateTargets の接収が成立した月だけ（★2026-08-29点火＝既定0.05。=0なら一度も走らない）。
@@ -1356,7 +1356,7 @@ public static class EconomyStep
                 //   トリクルは coreDemand に**入っている**＝実際に在庫を食っている（価格シグナルだけに載せる旗 ReignitionTrickleConserves は 2026-09-26 に削除＝dorm-50）。
                 //   幽霊だったのは物量ではなく**代金**の方だった。それを下の決済で正す。
                 inputNeed[inp.GoodId] += s.Output * eq;
-                double trickle = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;   // 供給ベースを超える再点火分＝止まった工場の再開発注
+                double trickle = Math.Max(0, coef.ReignitionDemandFrac.Value * s.DesiredOutput - s.Output) * eq;   // 供給ベースを超える再点火分＝止まった工場の再開発注
                 trickleFill[pi] += trickle * region.Markets[inp.GoodId].Price;   // 発注額（下で持ち主の予算を通してから需要へ入れる＝A3）
                 // ★再点火発注に代金を付ける（点火2026-08-01・作者指摘「実装の形としては正だが、実装方法としてスマートでない」への差し替え）。
                 // 旧＝止まった工場が現物を受け取るのに誰も払わず、売った側も1銭も受け取らなかった（＝物が消え、所得が消えた）。
@@ -1423,7 +1423,7 @@ public static class EconomyStep
             trickleFill[pi] = fill;   // 以後は生産者ごとの充足率（決済が同じ量を再現して請求する）
             if (!(fill > 0)) continue;
             foreach (var inp in s.Inputs)
-                inputTrickle[inp.GoodId] += Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * EffectiveQty(s, region, inp, coef) * fill;
+                inputTrickle[inp.GoodId] += Math.Max(0, coef.ReignitionDemandFrac.Value * s.DesiredOutput - s.Output) * EffectiveQty(s, region, inp, coef) * fill;
         }
         // 蒸気動力（石炭）需要を加算（電化分は上で電力に置換済み＝石炭需要が自然に減る）。steamOn でのみ非ゼロ＝従来/最小経済/未発見の国は無効。
         if (energyOn)
@@ -1921,7 +1921,7 @@ public static class EconomyStep
                 revenue[inp.GoodId] += pay;
                 // 再点火発注の代金（2026-09-28 に旗 ReignitionOrderSettles ごと焼き込み）：需要フェーズと**同じ式**（s.Output はこの2フェーズ間で動かない・充足率は需要の段で決めた持ち主の率）
                 //   ＝発注量を再現し、配給された分だけ請求する。売った側の売上へそのまま入れる（請求と受け取りが同じ額＝厳密保存）。
-                double tb = clearPrice[inp.GoodId] * Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq * trickleFill[pi] * ration[inp.GoodId];
+                double tb = clearPrice[inp.GoodId] * Math.Max(0, coef.ReignitionDemandFrac.Value * s.DesiredOutput - s.Output) * eq * trickleFill[pi] * ration[inp.GoodId];
                 trickleBill += tb;
                 revenue[inp.GoodId] += tb;
             }
@@ -2026,7 +2026,7 @@ public static class EconomyStep
             //     プランテーション/鉱山の地代を静かに国庫へ移してしまう（所有の二重表現）。作者裁定「増えるのはカウンター経由のみ」。
             //   ★StateShareCounterOnly=1.0 点火（2026-08-30・帰還構造の全数調査 §1-3）＝この枝は走らない（作者裁定「国営持分の自動的な拡張なし」）。
             //     残置する理由＝旧挙動との対照実験（rgoprobe 0/1）のため。枝の中の StateTarget 引き上げは「月次駆動がこの棟を売り戻さない」ための整合。
-            if (coef.RgoCapitalShare > 0 && built > Eps && coef.StateShareCounterOnly <= 0 && !warmFrozen)   // 助走中は作付面積（BuiltScale＝恒久の能力）を広げない
+            if (coef.RgoCapitalShare.Value > 0 && built > Eps && coef.StateShareCounterOnly <= 0 && !warmFrozen)   // 助走中は作付面積（BuiltScale＝恒久の能力）を広げない
             {
                 Producer? bestRgo = null;
                 foreach (var pr in region.Producers)
@@ -2038,7 +2038,7 @@ public static class EconomyStep
                         ? (Catalog.IsMineral(bestRgo.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap)
                         : coef.ScaleMax;
                     // 〔削除 2026-10-11 (271)〕希少鉱物の産地の拡張天井を賦存比例にする枝（ScarceCapFollowsEndowment・既定 0）＝鉱脈の在庫が物理の限界をすでに担う（二重）。
-                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + privateIndGain * coef.RgoCapitalShare);
+                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + privateIndGain * coef.RgoCapitalShare.Value);
                     bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
                 }
             }
@@ -2571,7 +2571,7 @@ public static class EconomyStep
             if (coef.FactoryMothballRate > 0 && s.BuiltScale > Eps && !s.IsRgo && Catalog.Goods[gi].Tier != GoodTier.Service)
             {
                 double mbDir = s.SmoothedMargin < -coef.FactoryMothballMarginIn ? 1.0 : s.SmoothedMargin > 0 ? -1.0 : 0.0;
-                if (mbDir != 0) s.MothballFrac = new Share(Math.Clamp(s.MothballFrac.Value + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * (1.0 - stateCover)));
+                if (mbDir != 0) s.MothballFrac = new Share(Math.Clamp(s.MothballFrac.Value + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap.Value * (1.0 - stateCover)));
             }
             double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac.Value)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
             // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
@@ -2716,7 +2716,7 @@ public static class EconomyStep
             {
                 var fs = Catalog.FactorySpec(cs.GoodId);
                 double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);                              // 建設の月数（四半期×3）
-                double u = coef.FactoryMaterialFrac * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford * payRate;   // 素材の必要量×採算率×r＝支払いは量×現在価格＝真の価格依存
+                double u = coef.FactoryMaterialFrac.Value * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford * payRate;   // 素材の必要量×採算率×r＝支払いは量×現在価格＝真の価格依存
                 if (!(u > Eps)) continue;   // 否定形＝NaN は買わない側
                 factoryBuildUnits += u;
                 investDemand[coef.SteelGoodId] += coef.ConsSteel * u;

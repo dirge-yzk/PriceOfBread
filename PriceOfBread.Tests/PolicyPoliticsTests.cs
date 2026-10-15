@@ -1139,7 +1139,7 @@ public class PolicyPoliticsTests
         Assert.Equal(army, p.ArmyUpkeepTarget);   // 選んだ目標は1ミリも書き換わらない
         Assert.Equal(navy, p.NavyUpkeepTarget);
         // 同じ床が同じ係数のまま門になる＝現在値×WartimeUpkeepFloor の段より下は選べない
-        int floorStage = Government.MilitaryStage(w.MilitarySpending.Value * w.Coef.WartimeUpkeepFloor);
+        int floorStage = Government.MilitaryStage(w.MilitarySpending.Value * w.Coef.WartimeUpkeepFloor.Value);
         Assert.True(floorStage > 1, $"前提が崩れた：床の段が最下段（{floorStage}）＝この世界では門を測れない");
         Assert.Equal((false, "戦争中は軍を解散できない"), Government.LawPrereq(w, PolicyAxis.Coercion, floorStage - 1, w.Coef));
         Assert.True(Government.LawPrereq(w, PolicyAxis.Coercion, floorStage, w.Coef).Ok);

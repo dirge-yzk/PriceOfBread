@@ -1326,7 +1326,7 @@ public sealed class MultiNationSim
                 var w = sim.World; year = w.Year;
                 if (w.TechLevel < cp.TechGate) continue;   // 近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
-                if (_coef.CanalInvestReturns > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
+                if (_coef.CanalInvestReturns.Value > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 // ★段3-3（C13・2026-09-30）：出資者＝投資家の述語の1本（CapitalMarket.Investors＝配当の受け手と同じ集合）。旧＝各州の資本家1人（InvestorPopIndex・活きた州）。
                 var investors = CapitalMarket.Investors(w);
                 double pool = 0; foreach (var ip in investors) pool += Math.Max(0, ip.Savings.Value);
@@ -1339,7 +1339,7 @@ public sealed class MultiNationSim
                 cp.BuildProgress += inv;
                 // 外7：拠出国の持分（累計拠出額）を記録＝後で通行料を持分比で分配（配当）。既定0.5＝この持分が配当に効く。0では通行料が扼者総取りのままなので持分は参照されず無影響。
                 //   ★段3-3（2026-09-30）：持分は**金建て**（拠出×為替）＝国をまたぐ配当の比を1つの物差しで（進捗 BuildProgress は建設の工賃＝国内の払いの額のまま）。
-                if (_coef.CanalInvestReturns > 0 && w.SelfPower is { } shp)
+                if (_coef.CanalInvestReturns.Value > 0 && w.SelfPower is { } shp)
                 {
                     double invG = inv * w.FxRate;
                     cp.InvestorShares[shp.Id] = cp.InvestorShares.TryGetValue(shp.Id, out double prev) ? prev + invG : invG;
@@ -1389,7 +1389,7 @@ public sealed class MultiNationSim
                 if (toll <= 1e-9) continue;
                 // 外7：CanalInvestReturns>0 なら通行料の一部を建設拠出国の**投資家**へ持分（累計拠出額）比で配当し、残りを扼者の国庫へ。既定0.5＝配当あり。0＝全額扼者。
                 //   ★段3-3（C9・2026-09-30）：配当の受け手は出資した国の投資家（出資者と同じ集合・旧＝拠出国の国庫）。払いは使用国の国庫から直接・国境をまたげば為替で換算（移し方の1本）。
-                double dividend = _coef.CanalInvestReturns > 0 ? DistributeCanalDividend(cp, toll * _coef.CanalInvestReturns, uw) : 0;
+                double dividend = _coef.CanalInvestReturns.Value > 0 ? DistributeCanalDividend(cp, toll * _coef.CanalInvestReturns.Value, uw) : 0;
                 World.Transfer((uw, null), (ow, null, null), toll - dividend, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);   // 配当されなかった残余（＝扼者取り分）。分配失敗時も toll 全額が扼者へ回り保存
             }
         }

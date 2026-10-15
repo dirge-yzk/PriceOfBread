@@ -412,9 +412,9 @@ public static class Politics
             }
             // 一党支配（共和制・立憲君主制）：閾値超の支配が多元的正統性を削る→権威主義へ漂流（正統性↓→保持力↓→内戦なし即時）。
             // **危機国（平均満足度＜閾値）のみ**＝経済が破綻した社会の支配的政党だけが独裁に転ぶ（ワイマール→ナチ型）。満足した安定な一党優位（英・米の自由党多数等）は無傷で侵食しない。
-            if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && maxSeat > c.PartyDominanceThreshold && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
+            if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && maxSeat > c.PartyDominanceThreshold.Value && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
             {
-                double domErode = c.DominanceLegitimacyErosion * (maxSeat - c.PartyDominanceThreshold) / (1 - c.PartyDominanceThreshold) * dynErodeMul;
+                double domErode = c.DominanceLegitimacyErosion * (maxSeat - c.PartyDominanceThreshold.Value) / (1 - c.PartyDominanceThreshold.Value) * dynErodeMul;
                 erosion += domErode;
                 w.Explain?.Add("Legitimacy", "一党支配の私物化(多元的正統性の毀損)", -domErode);
             }
@@ -625,9 +625,9 @@ public static class Politics
         if (w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
         {
             double maxSeat = Math.Max(w.PartySeats[0], Math.Max(w.PartySeats[1], w.PartySeats[2]));
-            if (maxSeat > c.PartyDominanceThreshold)
+            if (maxSeat > c.PartyDominanceThreshold.Value)
             {
-                domExcess = (maxSeat - c.PartyDominanceThreshold) / (1 - c.PartyDominanceThreshold);
+                domExcess = (maxSeat - c.PartyDominanceThreshold.Value) / (1 - c.PartyDominanceThreshold.Value);
                 domDictator = w.GoverningParty switch
                 {
                     2 => Polity.ProletarianDictatorship,

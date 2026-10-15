@@ -657,7 +657,7 @@ public static class Government
                 // ★裁定B（2026-09-12）：戦時の下限ロック（旧＝Step が p.ArmyUpkeepTarget/p.NavyUpkeepTarget を Max で黙って持ち上げていた）を門へ移す。
                 //   新しい量も新しい数もゼロ＝同じ c.WartimeUpkeepFloor を同じ現在値に掛けて段へ写すだけ（係数は PowerShares の LockedSpending と共有＝単一ソース）。
                 //   ⚠値は1ミリも書き換えない＝「その段には下がれない」。GateInfo が段の財政軸だけ**下げる側でも**ここを照会するので実効。
-                if (w.AtWarNow && c.WartimeUpkeepFloor > 0 && targetLevel < MilitaryStage(w.MilitarySpending.Value * c.WartimeUpkeepFloor))
+                if (w.AtWarNow && c.WartimeUpkeepFloor.Value > 0 && targetLevel < MilitaryStage(w.MilitarySpending.Value * c.WartimeUpkeepFloor.Value))
                     return (false, "戦争中は軍を解散できない");
                 break;
             case PolicyAxis.SocialSecurity:

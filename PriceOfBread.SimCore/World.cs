@@ -1237,7 +1237,7 @@ public sealed class World
         // 致死率の衛生連動（epidemic-ignores-built-sanitation）：工業化proxyと実衛生財(上下水道+石鹸+電化)をブレンド。EpidemicSanitationWeight=0で旧proxy厳密一致。
         double realSanit = PoliticalQuantities.Clamp01(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill);
         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
-        double deathFrac = c.EpidemicSeverity * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
+        double deathFrac = c.EpidemicSeverity.Value * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
         // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
         // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
         //   POP の中は年齢の重み（0〜9 と 60以上に (1＋DisasterAgeMortalityExcess)）。旧＝POP の間の重みが子供比＋老年比を読み、POP の中の年齢の運搬も同じ脆弱さを読んだ＝2度（思想⑨）。
@@ -1887,7 +1887,7 @@ public sealed class World
         if (afford < Coef.FactoryStartAffordFloor) return (false, $"建材が高すぎる(採算率{afford:P0}<床{Coef.FactoryStartAffordFloor:P0})");
         var spec0 = Catalog.FactorySpec(goodId);
         double days0 = Math.Max(1, spec0.Quarters) * (double)Calendar.DaysPerQuarter;
-        double pay0 = (1.0 - Coef.FactoryMaterialFrac) * spec0.Cost / days0;
+        double pay0 = (1.0 - Coef.FactoryMaterialFrac.Value) * spec0.Cost / days0;
         if (Treasury.Value < pay0) return (false, $"国庫不足(初日の労務費{pay0:F0})");
         return (true, "");
     }
@@ -1916,7 +1916,7 @@ public sealed class World
         if (ConstructionAfford(this, r) < Coef.FactoryStartAffordFloor) return false;   // 建てる州の建材の価格（段4e K）
         var spec = Catalog.FactorySpec(goodId);
         double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
-        double payPerDay = (1.0 - Coef.FactoryMaterialFrac) * spec.Cost / days;   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
+        double payPerDay = (1.0 - Coef.FactoryMaterialFrac.Value) * spec.Cost / days;   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
         if (Treasury.Value < payPerDay) return false;                           // 初日の労務費すら払えない
         p.ConstructionLeft = days;                                        // 着工（即時には立たない・日数で数える）
         p.ConstructionPayPerDay = payPerDay;
@@ -1937,7 +1937,7 @@ public sealed class World
         if (!(cpuNow >= 0)) return 0;
         var fs = Catalog.FactorySpec(p.GoodId);
         double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);
-        double u = c.FactoryMaterialFrac * fs.Cost / conMonths / cpuRef * c.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // AccumulateFactoryBuild の u と同じ式
+        double u = c.FactoryMaterialFrac.Value * fs.Cost / conMonths / cpuRef * c.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // AccumulateFactoryBuild の u と同じ式
         double material = u * cpuNow;
         return material;
     }
@@ -2107,7 +2107,7 @@ public sealed class World
         //   ⚠大学の無い州へ配っても買えないだけ＝カネは国庫に残る（StateBuildQueue と同じ fail-safe）。
         // ★段④：招聘へ回す分（⚠学費より先に取る＝「育てる」より「呼ぶ」が即効という順序ではなく、単に配分の順序）。
         //   ⚠k=0 で予約が立たない＝厳密恒等。★空振りは RecruitSpecialists が使わずに終わる＝国庫に残る。
-        double recPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToRecruit);
+        double recPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToRecruit.Value);
         if (recPart > 0) { RecruitBudget += recPart; budget -= recPart; }
         if (!(budget > 0)) return;
         double eduPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToHigherEdu);
@@ -2314,7 +2314,7 @@ public sealed class World
             double exposed = 1.0 - fill;
             if (exposed > 1e-9)   // （未防護割合×兵士数）が EpidemicSeverity（既存の疫病致死率）で死ぬ＝疫病と同じ死の記帳の1本（KillPops・段4e J＝人口の台帳・粗死亡の計器）
             {
-                double rate = exposed * Coef.EpidemicSeverity, total = 0;
+                double rate = exposed * Coef.EpidemicSeverity.Value, total = 0;
                 var soldiers = new List<Pop>();
                 foreach (var p in AllPops()) if (p.IsSoldier) { soldiers.Add(p); total += p.Size * rate; }
                 KillPops(soldiers, null, total, violent: false);
@@ -2398,7 +2398,7 @@ public sealed class World
     {
         double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale / Math.Max(p.Scale, 1e-9)) : 0.0;
         if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0 && Nationalization.IsNationalized(p.GoodId, r.NationalizedMask))
-            f = Math.Max(f, c.NationalizationStateShare);
+            f = Math.Max(f, c.NationalizationStateShare.Value);
         return f;
     }
 
@@ -2676,7 +2676,7 @@ public sealed class World
     /// NationalizationSeizureRate=0 なら呼び手の条件が偽＝1命令も走らない（⚠既定は点火済みの0.05＝2026-08-29・live・x-02 で注記を是正）。</summary>
     private void Seize(Region r, Producer p, double suppress, double capitalPower)
     {
-        double want = Coef.NationalizationStateShare * p.Scale;
+        double want = Coef.NationalizationStateShare.Value * p.Scale;
         double gap = want - p.BuiltScale;
         if (!(gap > 1e-9) || !(p.Scale > 1e-9)) return;
         double resist = Coef.SeizureResistanceWeight * capitalPower * (gap / p.Scale);   // 奪われる持分が大きいほど強く抵抗する

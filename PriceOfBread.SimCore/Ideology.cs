@@ -162,7 +162,7 @@ public static class Ideologies
         double defeat = PoliticalQuantities.Clamp01(w.DefeatShock);
         double slump = PoliticalQuantities.Clamp01(w.GdpDrawdown.Value / System.Math.Max(1e-9, w.Coef.FascismCrisisSlumpRef));
         var natIdeo = National(w);
-        double left = PoliticalQuantities.Clamp01((natIdeo[(int)Ideology.Socialism] + natIdeo[(int)Ideology.Communism]) / System.Math.Max(1e-9, w.Coef.FascismCrisisLeftRef));
+        double left = PoliticalQuantities.Clamp01((natIdeo[(int)Ideology.Socialism] + natIdeo[(int)Ideology.Communism]) / System.Math.Max(1e-9, w.Coef.FascismCrisisLeftRef.Value));
         return PoliticalQuantities.Clamp01(System.Math.Max(defeat, slump) * left);   // ⚠敗戦か恐慌の**どちらか**（両方は要らない）× 左派の脅威
     }
 

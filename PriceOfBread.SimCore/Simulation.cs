@@ -852,7 +852,7 @@ public sealed class Simulation
         // ★研究者（2026-08-17・作者裁定「上流階級と別カテゴリでインテリ（医者/技師/研究者）を置く」）＝インテリの4人目。
         //   ⚠**総量保存**：教師/官僚/医者の取り分から按分で切り出す（新しい人は湧かない＝思想⑥）。
         //   ResearcherFrac=0（既定）で keep=1.0＝旧の 0.40/0.35/0.25 と厳密一致・研究者Size=0＝**ビット恒等**。
-        double resFrac = System.Math.Clamp(coef.ResearcherFrac, 0, 0.9);
+        double resFrac = System.Math.Clamp(coef.ResearcherFrac.Value, 0, 0.9);
         double keep = 1.0 - resFrac;
         var teacher    = MkPop(7, "教師", true, intel * 0.40 * keep, lit[6], 800, modern: true);   // 公教育・義務教育の教育を算出
         var bureaucrat = MkPop(8, "官僚", true, intel * 0.35 * keep, lit[6], 800, modern: true);   // 行政を算出（不足＝汚職）
@@ -1205,7 +1205,7 @@ public sealed class Simulation
         //   研究者が高等教育を算出し、**教育を既に買ったpopがさらに自費で買う**ことでのみ技師・研究者へ昇格（無償化されない＝作者裁定2026-08-14）。
         //   投入＝書籍のみ（⚠ガラスは史実検討で却下2026-08-17）。生産性は教育5.0/医療4.0/行政3.0 より低い＝**希少で高価**。
         //   ⚠researcherIdx<0（研究者POPを持たない世界＝較正・辺境・最小）または ResearcherFrac=0 なら1件も足さない＝**厳密恒等**。
-        if (researcherIdx >= 0 && coef is { ResearcherFrac: > 0 })
+        if (researcherIdx >= 0 && coef is { ResearcherFrac.Value: > 0 })
             producers.Add(new Producer { GoodId = Catalog.HigherEducationId, Productivity = coef.UniversityProductivity, Output = pops[researcherIdx].Size * 0.5, MarginalCost = 0.4, LaborPopIndex = researcherIdx, OwnerPopIndex = researcherIdx, RentShare = default, Inputs = [.. Catalog.Goods[Catalog.HigherEducationId].Inputs] });
         return eduIndex;
     }
@@ -1579,7 +1579,7 @@ public sealed class Simulation
             if (r.State == RegionState.Active)
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
-                r.FarmRentCap = new Share(System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap)));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
+                r.FarmRentCap = new Share(System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap.Value), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap.Value)));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
                 r.CrowdingPremium = System.Math.Max(0, (World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear).Value);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
@@ -2812,7 +2812,7 @@ public sealed class Simulation
             }
             r.MineralDeposit = System.Math.Max(0, r.MineralDeposit - outSum);   // 掘った分だけ減る
             double frac = r.MineralDepositInitial > 1e-9 ? r.MineralDeposit / r.MineralDepositInitial : 1.0;
-            double knee = System.Math.Clamp(c.DepositGradeKnee, 1e-6, 1.0);
+            double knee = System.Math.Clamp(c.DepositGradeKnee.Value, 1e-6, 1.0);
             double grade = frac >= knee ? 1.0 : c.DepositGradeFloor + (1.0 - c.DepositGradeFloor) * System.Math.Max(0, frac) / knee;
             if (!(grade >= c.DepositGradeFloor && grade <= 1.0)) grade = 1.0;   // NaNは品位低下なし側へ倒す（否定形＝ClampはNaNを消さない）
             r.MineralGradeFactor = grade;

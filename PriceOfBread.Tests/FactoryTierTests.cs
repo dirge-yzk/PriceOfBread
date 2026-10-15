@@ -119,7 +119,7 @@ public class FactoryTierTests
         int sg = sA.World.Coef.SteelGoodId;
         var spec = Catalog.FactorySpec(sg);
         double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
-        double payPerDay = (1.0 - sA.World.Coef.FactoryMaterialFrac) * spec.Cost / days;   // BuildFactory と同じ1日分の工賃
+        double payPerDay = (1.0 - sA.World.Coef.FactoryMaterialFrac.Value) * spec.Cost / days;   // BuildFactory と同じ1日分の工賃
         foreach (var r in new[] { rA, rB })
         {
             var p = World.FindFactory(r, sg);

@@ -125,7 +125,7 @@ public static class Factions
                     if ((ca.Lat == 0 && ca.Lon == 0) || (cb.Lat == 0 && cb.Lon == 0)) continue;
                     if (Geo.DistanceKm(ca.Lat, ca.Lon, cb.Lat, cb.Lon) > c.FactionMergeRangeKm) continue;
                     var big = a.Size >= b.Size ? a : b; var small = big == a ? b : a;
-                    big.Cohesion = PoliticalQuantities.Clamp01(big.Cohesion + c.FactionMergeCohesionGain * small.Cohesion);
+                    big.Cohesion = PoliticalQuantities.Clamp01(big.Cohesion + c.FactionMergeCohesionGain.Value * small.Cohesion);
                     big.Rejections = System.Math.Max(big.Rejections, small.Rejections);   // 怨嗟は深い方が残る
                     small.Cohesion = 0; small.AbsentQuarters = (int)c.FactionForgetQuarters;   // 吸収＝次の掃除で自然消滅（即Removeせず走査を壊さない）
                     merged.Add(big); merged.Add(small);

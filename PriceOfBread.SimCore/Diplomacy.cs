@@ -1945,7 +1945,7 @@ public sealed class Diplomacy
             if (!p.IsPlayer)
             {
                 double selfThreat = ThreatScore(p, c);
-                double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor, 1.0 - selfThreat) : 1.0);   // 裁定2：衛星国用 SatelliteFormChance(0.06) の借用を専用係数へ分離（0.06で旧挙動）
+                double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor.Value, 1.0 - selfThreat) : 1.0);   // 裁定2：衛星国用 SatelliteFormChance(0.06) の借用を専用係数へ分離（0.06で旧挙動）
                 if (c.EnableDependency && p.Nation is not null && Suzerain(p) is null && rng.NextDouble() < colonizeChance)
                     TryAiSubjugate(p, c);
             }

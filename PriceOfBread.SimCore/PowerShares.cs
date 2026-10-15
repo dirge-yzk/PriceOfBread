@@ -98,8 +98,8 @@ public static class PowerShares
         //   ⚠**申し送り**：プロイセンの「鉄の予算」（1867年北ドイツ連邦憲法第62条・七年予算）は**政体ではなく多年度予算という制度**なので、
         //   ここは将来「多年度で固定された歳出」として復活させるべき（★政体から導くのが誤りだっただけで、機構そのものは史実）。
         double floor = 0;
-        if (w.AtWarNow && c.WartimeUpkeepFloor > 0)
-            floor = System.Math.Max(floor, (w.ArmyUpkeep.Value + w.NavyUpkeep.Value) * c.WartimeUpkeepFloor);
+        if (w.AtWarNow && c.WartimeUpkeepFloor.Value > 0)
+            floor = System.Math.Max(floor, (w.ArmyUpkeep.Value + w.NavyUpkeep.Value) * c.WartimeUpkeepFloor.Value);
         return PoliticalQuantities.Clamp01(floor);   // NaN は Clamp01 が0へ
     }
 

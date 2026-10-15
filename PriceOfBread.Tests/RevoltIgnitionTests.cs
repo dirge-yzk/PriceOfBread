@@ -1225,7 +1225,7 @@ public class RevoltIgnitionTests
     {
         double Spent(bool ban, double adminFill, double smugglingMax)
         {
-            var (sim, _, _) = 武装する運動(enabled: 1, tune: c => c.SmugglingMax = smugglingMax);
+            var (sim, _, _) = 武装する運動(enabled: 1, tune: c => c.SmugglingMax = new(smugglingMax));
             var w = sim.World; var r = w.Region;
             w.CivilianArmsBan = ban;
             r.AdminFill = adminFill;   // 漏れは前月の行政充足を読む（Run の末尾で上書きされる前）。⚠専売の徴収漏れも同じ値を読むので比べる腕どうしは揃える

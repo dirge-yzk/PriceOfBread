@@ -28,8 +28,8 @@ public static class Contraband
     /// （清が1729・1796・1800と繰り返し禁じても流入が止まらなかったのは、禁令が無かったからではなく取り締まれなかったから）。</summary>
     public static double LeakFraction(double adminFill, Coefficients c)
     {
-        if (c.SmugglingMax <= 0) return 0.0;
-        double f = c.SmugglingMax * (1.0 - adminFill);
+        if (c.SmugglingMax.Value <= 0) return 0.0;
+        double f = c.SmugglingMax.Value * (1.0 - adminFill);
         return !(f >= 0) ? 0.0 : f > 1.0 ? 1.0 : f;   // 否定形＝NaNは0へ（Math.Clamp は NaN を消さない）。有限値では Clamp(f,0,1) と厳密同値
     }
 }

@@ -279,6 +279,28 @@ public class UnitTypeTests
         (typeof(Coefficients), "FertileShareFloor", typeof(Share)),
         (typeof(Coefficients), "UnificationNatioShare", typeof(Share)),
         (typeof(Coefficients), "PlantationRentShare", typeof(Share)),
+        // ★(355) 割合の型の残り その10＝EconomyStep を読み手に持つ物（アヘンの線が済んだので）と、閾値・上限・取り分・床の係数 21 本（Share 20・RatePerMonth 1〔IndInvestmentFrac＝毎月の予算が貯蓄の在庫に掛かる月率〕）。
+        (typeof(Coefficients), "ReignitionDemandFrac", typeof(Share)),
+        (typeof(Coefficients), "IndInvestmentFrac", typeof(RatePerMonth)),
+        (typeof(Coefficients), "RgoCapitalShare", typeof(Share)),
+        (typeof(Coefficients), "FactoryMaterialFrac", typeof(Share)),
+        (typeof(Coefficients), "ResearcherFrac", typeof(Share)),
+        (typeof(Coefficients), "NationalizationStateShare", typeof(Share)),
+        (typeof(Coefficients), "PartyDominanceThreshold", typeof(Share)),
+        (typeof(Coefficients), "LandReformRentCap", typeof(Share)),
+        (typeof(Coefficients), "SerfEmancipationRentCap", typeof(Share)),
+        (typeof(Coefficients), "FactoryMothballCap", typeof(Share)),
+        (typeof(Coefficients), "DepositGradeKnee", typeof(Share)),
+        (typeof(Coefficients), "ManifestoFulfillMove", typeof(Share)),
+        (typeof(Coefficients), "FascismCrisisLeftRef", typeof(Share)),
+        (typeof(Coefficients), "EpidemicSeverity", typeof(Share)),
+        (typeof(Coefficients), "SmugglingMax", typeof(Share)),
+        (typeof(Coefficients), "WartimeUpkeepFloor", typeof(Share)),
+        (typeof(Coefficients), "HegemonRestraintFloor", typeof(Share)),
+        (typeof(Coefficients), "FactionMergeCohesionGain", typeof(Share)),
+        (typeof(Coefficients), "CanalInvestReturns", typeof(Share)),
+        (typeof(Coefficients), "ModernizationToRecruit", typeof(Share)),
+        (typeof(Coefficients), "MerchantTradeMargin", typeof(Share)),
     ];
 
     [Fact]
@@ -709,6 +731,32 @@ public class UnitTypeTests
             Assert.Equal(Declared.Single(d => d.Owner == typeof(Coefficients) && d.Member == names[k]).Expect, f.FieldType);   // ★(344) 6 本は時間の基準のある率（RatePerQuarter・RatePerMonth）
             Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 5) / 31.0), BitConverter.DoubleToInt64Bits(got));
+        }
+    }
+
+    /// <summary>★(355) 割合の型の残り その10＝21 本（Share 20・RatePerMonth 1）が、反射の入口（POB_COEF／Runner と同じ UnitValues）で書いた値をセーブ→読込でビットのまま残し、宣言の型が表のとおりであること。
+    /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで閾値と取り分と床の係数の欄が残る()
+    {
+        string[] names = ["ReignitionDemandFrac", "IndInvestmentFrac", "RgoCapitalShare", "FactoryMaterialFrac", "ResearcherFrac", "NationalizationStateShare", "PartyDominanceThreshold", "LandReformRentCap", "SerfEmancipationRentCap", "FactoryMothballCap", "DepositGradeKnee", "ManifestoFulfillMove", "FascismCrisisLeftRef", "EpidemicSeverity", "SmugglingMax", "WartimeUpkeepFloor", "HegemonRestraintFloor", "FactionMergeCohesionGain", "CanalInvestReturns", "ModernizationToRecruit", "MerchantTradeMargin"];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 7) / 37.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < names.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(names[k])!;
+            Assert.Equal(Declared.Single(d => d.Owner == typeof(Coefficients) && d.Member == names[k]).Expect, f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 7) / 37.0), BitConverter.DoubleToInt64Bits(got));
         }
     }
 

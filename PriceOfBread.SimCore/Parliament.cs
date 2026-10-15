@@ -430,7 +430,7 @@ public static class Parliament
         if (w.ManifestoIdeology < 0 || w.ManifestoDone) return;
         double moved = FactionSnapshot.AxisPosition(w, w.ManifestoAxis) - w.ManifestoBaseline;
         if (!w.ManifestoIncrease) moved = -moved;
-        if (!(moved >= c.ManifestoFulfillMove)) return;   // 否定形＝NaN も未達成側へ落とす
+        if (!(moved >= c.ManifestoFulfillMove.Value)) return;   // 否定形＝NaN も未達成側へ落とす
         w.ManifestoDone = true;
         w.ManifestoCredit += c.ManifestoFulfillCredit;
         w.LogAdd($"{w.Year} {w.SelfPower?.Name}の与党が公約を果たした（{FactionSnapshot.DemandJa(w.ManifestoAxis, w.ManifestoIncrease)}）");
