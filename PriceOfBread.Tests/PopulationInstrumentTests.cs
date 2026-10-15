@@ -94,6 +94,28 @@ public class PopulationInstrumentTests
     }
 
     [Fact]
+    public void 飢えのhookは災害の重みで層を取る_手の算術()
+    {
+        // ★(363) 反証役 pa〔v〕低#2：上の盤面の番人は〈層 0・層 7 の死の割合＞人年の割合〉だけを見る＝平常の重みでも通る。
+        // ここは hook を直に呼び、年齢の構成を一様（16 本×1/16）・超過 1.0（0〜9 と 60 以上が 2 倍）にして、層ごとの取り分を手の分数で突き合わせる。
+        var sim = new Simulation(Famine(1), new NullAgent());
+        var w = sim.World;
+        var p = w.Regions.SelectMany(r => r.Pops).First(x => x.Size > 0);
+        for (int k = 0; k < p.Ages.Length; k++) p.Ages[k] = 1.0 / 16;
+        Span<double> dw = stackalloc double[2 * Pop.AgeBands];
+        Pop.DisasterWeights(dw, 1.0);
+        var a = Instruments.PopAccOf(w); a.Clear(w);
+        double d = 1e-3 * p.Size;   // 小さい＝どの層も尽きない（配り直しが起きない）
+        Instruments.DemoFamine(w, p, d, dw);
+        // 重み 2 の層（0・6・7）は 2 本×2＝4、重み 1 の層（1〜5）は 2 本×1＝2、合計 3×4＋5×2＝22
+        double[] expect = [4.0 / 22, 2.0 / 22, 2.0 / 22, 2.0 / 22, 2.0 / 22, 2.0 / 22, 4.0 / 22, 4.0 / 22];
+        for (int b = 0; b < Pop.AgeBands; b++)
+            Assert.True(Math.Abs(a.BandDeaths[b] - expect[b] * d) <= 1e-9 * d, $"層 {b} の飢えの死 {a.BandDeaths[b] / d:F6}×d が手の分数 {expect[b]:F6}×d に合わない（災害の重みが hook に載っていない）");
+        Assert.Equal(d, a.DeathsFamine, 12);
+        Assert.Equal(0, a.DeathsNormal);
+    }
+
+    [Fact]
     public void 飢えが無い盤面では層別の死の率が年齢の重みの比に合う()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_pop3_" + Guid.NewGuid().ToString("N"));
@@ -223,6 +245,9 @@ public class PopulationInstrumentTests
                 double tot = Col(h, r, "deathsNormalK") + Col(h, r, "deathsFamineK");
                 Assert.True(Math.Abs(bands - tot) <= 1e-9 * Math.Max(1, tot), $"層別の死の和 {bands} が平常＋飢え {tot} に合わない");
                 Assert.True(Col(h, r, "deathsBand0K") <= tot + 1e-9);
+                // ★(363) 反証役 pa〔v〕低#3：deathsOtherK は〈台帳の差−平常−飢え〉の残差＝窓の和の一致だけでは hook の数え過ぎが残差の負に隠れる＝負でないことを見る
+                double oth = Col(h, r, "deathsOtherK");
+                Assert.True(!(oth < -1e-9 * Math.Max(1, tot)), $"疫病ほかの死 {oth} が負＝hook が平常か飢えの死を数え過ぎている");
                 double s10 = Col(h, r, "s10Share"); if (!double.IsNaN(s10)) Assert.InRange(s10, 0, 1 + 1e-12);
                 Assert.Equal(double.IsNaN(Col(h, r, "mu0PerYear")), double.IsNaN(s10));
                 if (!double.IsNaN(s10)) Assert.True(Math.Abs(Math.Exp(-10.0 * Col(h, r, "mu0PerYear")) - s10) <= 1e-8, "s10 が e^(−10μ0) に合わない");                                     // 10 歳まで生き残る確率＝e^(−10μ0)
