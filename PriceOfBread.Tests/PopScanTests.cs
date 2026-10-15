@@ -133,6 +133,36 @@ public class PopScanTests
         finally { PopWindow.Verify = old; }
     }
 
+    /// <summary>★(352) 反証役〔pu v〕低：走査の途中で州または POP の一覧の数が変わったら、黙って飛ばさず落ちる（旧の入れ子の foreach は List の版の検査で落ちた）。
+    /// 期待＝例外（手で 1 件を消して作る）。</summary>
+    [Fact]
+    public void 走査の途中で一覧の数が変わると落ちる()
+    {
+        var w = Britain();
+        Assert.True(w.Regions[0].Pops.Count >= 2, "前提が崩れた：州の POP が足りない");
+        Assert.Throws<InvalidOperationException>(() => { foreach (var (r, _) in w.AllPopsWithRegion()) r.Pops.RemoveAt(r.Pops.Count - 1); });
+        var w2 = Britain();
+        Assert.True(w2.Regions.Count >= 2, "前提が崩れた：州が足りない");
+        Assert.Throws<InvalidOperationException>(() => { foreach (var _ in w2.ActivePopsWithRegion()) w2.Regions.RemoveAt(w2.Regions.Count - 1); });
+    }
+
+    /// <summary>★(352) 反証役〔pu v〕低：取り立ての番人は動かす額が決まった後＝窓の中でも 0 しか動かさない呼びは止めない（他の書き込み口と同じ形）。</summary>
+    [Fact]
+    public void 番人は窓の中でも何も動かさない取り立てを止めない()
+    {
+        var w = Britain();
+        var pops = w.Regions[0].Pops;
+        bool old = PopWindow.Verify; PopWindow.Verify = true;
+        try
+        {
+            w.PopSums = new PopWindow();
+            Assert.Equal(0.0, Pop.Take(pops, 0.0));
+            Assert.Equal(0.0, Pop.Take(pops, 1.0, new List<double>(new double[pops.Count])));
+            Assert.Throws<InvalidOperationException>(() => Pop.Take(pops, 1.0));
+        }
+        finally { w.PopSums = null; PopWindow.Verify = old; }
+    }
+
     /// <summary>番人（POB_POPSCAN_VERIFY）は窓の中の POP への書き込みを、読みの照合を待たずに**書いた段で**止める。窓の外では書ける・窓を閉じれば開いた数は元に戻る。
     /// （議会の段の総選挙の公示への AI の答え〔国庫→有権者の貯蓄〕を窓に入れた最初の木を、canary が軌道の変化で見つけた＝同じ形の書き込みを窓の中で見つける番人。）</summary>
     [Fact]

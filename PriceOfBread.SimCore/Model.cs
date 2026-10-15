@@ -333,7 +333,6 @@ public sealed class Pop
     internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null, double heldKnown = double.NaN)
     {
         double moved = 0;
-        if (PopWindow.Verify) PopWindow.GuardWrite("取り立て");
         if (weights is null)
         {
             double held = 0;
@@ -345,12 +344,14 @@ public sealed class Pop
             }
             double take = Math.Min(amount, held);
             if (!(take > 1e-12) || !(held > 1e-9)) return 0;
+            if (PopWindow.Verify) PopWindow.GuardWrite("取り立て");   // ★(352) 反証役〔pu v〕低：動かす額が決まった後（0 しか動かさない呼びは止めない＝他の書き込み口と同じ形）
             foreach (var p in payers) { double s = take * (Math.Max(0, p._savings.Value) / held); p._savings -= new MoneyStock(s); moved += s; taken?.Add(s); if (Instruments.On) Instruments.Sav(p, Instruments.SavKind.Take, -s); }   // (262) 計器（読むだけ）
             return moved;
         }
         double tw = 0;
         foreach (var x in weights) tw += x;
         if (!(tw > 0)) return 0;
+        if (PopWindow.Verify) PopWindow.GuardWrite("取り立て");
         double scale = amount / tw;
         for (int i = 0; i < payers.Count; i++)
         {

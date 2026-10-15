@@ -19,19 +19,22 @@ public readonly struct PopScan
     {
         private readonly List<Region> _regions;
         private readonly bool _activeOnly;
-        private int _ri, _pi;
+        private int _ri, _pi, _regionCount, _popCount;
         private Region? _r;
         private List<Pop>? _pops;
-        internal Enumerator(List<Region> regions, bool activeOnly) { _regions = regions; _activeOnly = activeOnly; _ri = -1; _pi = -1; }
+        internal Enumerator(List<Region> regions, bool activeOnly) { _regions = regions; _activeOnly = activeOnly; _ri = -1; _pi = -1; _regionCount = regions.Count; _popCount = 0; }
         public bool MoveNext()
         {
             while (true)
             {
+                // ★(352) 反証役〔pu v〕低：走査の途中で一覧の数が変わったら落とす（旧の入れ子の foreach は List の版の検査で落ちた＝黙って飛ばす・二重に読む形にしない）。
+                //   数だけを見る＝同じ数のままの入れ替えは見えない（旧の版の検査より弱い）。今の呼び手は走査の中で一覧を変えない（旧なら落ちていた）＝値は変わらない。
+                if (_regions.Count != _regionCount || (_pops is not null && _pops.Count != _popCount)) throw new System.InvalidOperationException("POP の走査：走査の途中で州または POP の一覧の数が変わった");
                 if (_pops is not null && ++_pi < _pops.Count) return true;
                 if (++_ri >= _regions.Count) { _pops = null; return false; }
                 var r = _regions[_ri];
                 if (_activeOnly && r.State != RegionState.Active) { _pops = null; continue; }
-                _r = r; _pops = r.Pops; _pi = -1;
+                _r = r; _pops = r.Pops; _popCount = r.Pops.Count; _pi = -1;
             }
         }
         public (Region Region, Pop Pop) Current => (_r!, _pops![_pi]);
@@ -50,7 +53,18 @@ public readonly struct PopScan
 internal sealed class PopWindow
 {
     /// <summary>番人の旗（環境変数 <c>POB_POPSCAN_VERIFY=1</c> で既定が真）。真なら窓の中の読みごとに求め直し、ビットが違えば例外。既定は偽＝実行ゼロ。試験は立てて回す（<c>PopScanTests</c>）。</summary>
-    internal static bool Verify = System.Environment.GetEnvironmentVariable("POB_POPSCAN_VERIFY") == "1";
+    internal static bool Verify = InitVerify();
+
+    /// <summary>★(352) 反証役〔pu v〕中：旗が実行の中で立っていた証拠＝環境変数で立ったときだけ、終わりに照合の回数を標準エラーへ 1 行出す（旗が立たない既定の実行は何も出さない）。</summary>
+    private static bool InitVerify()
+    {
+        bool on = System.Environment.GetEnvironmentVariable("POB_POPSCAN_VERIFY") == "1";
+        if (on) System.AppDomain.CurrentDomain.ProcessExit += (_, _) => System.Console.Error.WriteLine($"[POP の窓] 番人 POB_POPSCAN_VERIFY=1：照合 {System.Threading.Interlocked.Read(ref Checks)} 回・窓を開いた回数 {System.Threading.Interlocked.Read(ref Opened)}");
+        return on;
+    }
+
+    /// <summary>番人の数え（<see cref="Verify"/> が真のときだけ増える）。</summary>
+    internal static long Checks, Opened;
 
     /// <summary>このスレッドで開いている窓の数（番人 <see cref="Verify"/> が窓の中の POP への書き込みを止めるために数える）。窓は四半期首の 1 スレッドの中で開閉する。</summary>
     [System.ThreadStatic] internal static int Open;
@@ -98,6 +112,7 @@ internal sealed class PopWindow
 
     internal static void Check(string what, double cached, double fresh)
     {
+        if (Verify) System.Threading.Interlocked.Increment(ref Checks);
         if (System.BitConverter.DoubleToInt64Bits(cached) != System.BitConverter.DoubleToInt64Bits(fresh))
             throw new System.InvalidOperationException($"POP の窓：{what}の使い回しが求め直しと違う（使い回し {cached:R}・求め直し {fresh:R}）＝窓の中で POP が動いた");
     }

@@ -1857,7 +1857,7 @@ public sealed class World
     internal PopWindow? PopSums
     {
         get => _popSums;
-        set { if (_popSums is null != value is null) PopWindow.Open += value is null ? -1 : 1; _popSums = value; }   // 開いている窓の数（番人＝窓の中の POP への書き込みを止める用）
+        set { if (_popSums is null != value is null) { PopWindow.Open += value is null ? -1 : 1; if (PopWindow.Verify && value is not null) System.Threading.Interlocked.Increment(ref PopWindow.Opened); } _popSums = value; }   // 開いている窓の数（番人＝窓の中の POP への書き込みを止める用）
     }
     [System.NonSerialized] private PopWindow? _popSums;
 
