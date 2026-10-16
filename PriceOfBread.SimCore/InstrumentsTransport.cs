@@ -4,6 +4,7 @@ namespace PriceOfBread.SimCore;
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsFm.cs／InstrumentsPop.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない
 // （蓄えは InternationalMarket の外＝ConditionalWeakTable・セーブに載らない）。出力は INS=1（POB_INSTRUMENTS）のときだけ。偽の間は本体の hook が 1 命令も走らない。
 //
+// 列の名前：接尾辞 PerYear＝その年に記帳した成約の合計（金建て・重さ・件数）／Gold＝金建て／Km＝実の km（eq＝運賃の換算 km）／PerMonth＝州の断面の月の流れ（README §1-9）。
 // 出すもの（1 試合＝seed ごとに 4 本の TSV）：
 //   trbin_s<seed>.tsv     年×（陸直行／海経由）×（国内／越境）×（距離の帯 8）×（財の重さの帯 5）：成約の件数・積出し価格の額・重さ（数量×輸送重量）・
 //                         実の km を掛けた重さ（陸脚／海脚に分けて）・運賃の換算 km を掛けた重さ・払われた運賃（陸脚の分／海脚の分に分けて）。成約 1 件ごとに足す＝清算の行の全数。
@@ -103,11 +104,11 @@ public static partial class Instruments
     /// <summary>経路の行と州の断面の行を出す年の間隔（年の数字がこの数の倍数の年の終わり）。既定 10。番人だけが 1 にする。</summary>
     internal static int TrSnapEveryYears = 10;
 
-    const string TrBinHeader = "year\trouteCode\tcrossBorderFlag\tdistanceBandCode\tweightBandCode\tdealsCount\tvalueGold\tweightUnits\tweightKmReal\tweightKmLandReal\tweightKmSeaReal\t"
-        + "weightKmEq\tweightKmEqLand\tweightKmEqSea\tfreightGold\tfreightLandPartGold\tfreightSeaPartGold";
+    const string TrBinHeader = "year\trouteCode\tcrossBorderFlag\tdistanceBandCode\tweightBandCode\tdealsCountPerYear\tvalueGoldPerYear\tweightUnitsPerYear\tweightKmRealPerYear\tweightKmLandRealPerYear\tweightKmSeaRealPerYear\t"
+        + "weightKmEqPerYear\tweightKmEqLandPerYear\tweightKmEqSeaPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tfreightSeaPartGoldPerYear";
     const string TrRouteHeader = "year\tsellerRegion\tbuyerRegion\tsellerNation\tbuyerNation\tsellerTerrainCode\tbuyerTerrainCode\trouteCode\trealSeaKm\trealLandKm\teqSeaKm\teqLandKm\teqBookKm\tterrainCostSeller\tterrainCostBuyer\t"
-        + "landSeaRatioSeller\tlandSeaRatioBuyer\tdealsCount\tvalueGold\tweightUnits\tfreightGold\tfreightLandPartGold\tvalueSeaRouteGold\tvalueTimesEqBookKmGold\tvalueTimesEqSeaKmGold\tvalueTimesEqLandKmGold";
-    const string TrNatHeader = "year\tnation\trailGateFlag\tfreightPaidGold\tfreightPaidLandPartGold\tfreightPaidDomesticGold\tfreightPaidLandPartDomesticGold\tfreightReceivedGold\tweightKmReal";
+        + "landSeaRatioSeller\tlandSeaRatioBuyer\tdealsCountPerYear\tvalueGoldPerYear\tweightUnitsPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tvalueSeaRouteGoldPerYear\tvalueTimesEqBookKmGoldPerYear\tvalueTimesEqSeaKmGoldPerYear\tvalueTimesEqLandKmGoldPerYear";
+    const string TrNatHeader = "year\tnation\trailGateFlag\tfreightPaidGoldPerYear\tfreightPaidLandPartGoldPerYear\tfreightPaidDomesticGoldPerYear\tfreightPaidLandPartDomesticGoldPerYear\tfreightReceivedGoldPerYear\tweightKmRealPerYear";
     const string TrStatHeader = "scope\tyear\tnation\tregion\tterrainCode\tlat\tlon\tareaKm2\tareaWithin1000KmKm2\tmeanHaulKm\tmeanHaulWithin1000KmKm\tportFlag\tpopulationK\turbanPopulationK\t"
         + "factoryOutputValuePerMonth\tgatherOutputValuePerMonth\toutputWeightPerMonth\tname\tvalue\trefValue";
 

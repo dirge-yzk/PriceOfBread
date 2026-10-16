@@ -67,17 +67,17 @@ public class TransportInstrumentTests
             foreach (var r in nr)
             {
                 string y = Str(nh, r, "year");
-                paid[y] = paid.GetValueOrDefault(y) + Col(nh, r, "freightPaidGold"); recv[y] = recv.GetValueOrDefault(y) + Col(nh, r, "freightReceivedGold");
-                double p = Col(nh, r, "freightPaidGold");
-                Assert.True(Col(nh, r, "freightPaidLandPartGold") <= p * (1 + 1e-9) + 1e-12 && Col(nh, r, "freightPaidDomesticGold") <= p * (1 + 1e-9) + 1e-12);
-                Assert.True(Col(nh, r, "freightPaidLandPartDomesticGold") <= Col(nh, r, "freightPaidDomesticGold") * (1 + 1e-9) + 1e-12);
+                paid[y] = paid.GetValueOrDefault(y) + Col(nh, r, "freightPaidGoldPerYear"); recv[y] = recv.GetValueOrDefault(y) + Col(nh, r, "freightReceivedGoldPerYear");
+                double p = Col(nh, r, "freightPaidGoldPerYear");
+                Assert.True(Col(nh, r, "freightPaidLandPartGoldPerYear") <= p * (1 + 1e-9) + 1e-12 && Col(nh, r, "freightPaidDomesticGoldPerYear") <= p * (1 + 1e-9) + 1e-12);
+                Assert.True(Col(nh, r, "freightPaidLandPartDomesticGoldPerYear") <= Col(nh, r, "freightPaidDomesticGoldPerYear") * (1 + 1e-9) + 1e-12);
             }
             Assert.True(paid.Count >= 5, $"年の行が少ない {paid.Count}");
             double paidAll = 0, landAll = 0;
             foreach (var y in paid.Keys) { Near(paid[y], recv[y], 1e-6); paidAll += paid[y]; }
             Assert.True(paidAll > 0, "運賃が 1 件も払われていない＝計器が空");
             // 陸脚の運賃（世界の船の持ち主へ行った分）が正＝§2-7 の不具合の大きさ
-            foreach (var r in nr) landAll += Col(nh, r, "freightPaidLandPartGold");
+            foreach (var r in nr) landAll += Col(nh, r, "freightPaidLandPartGoldPerYear");
             Assert.True(landAll > 0, "陸脚の運賃が 0＝陸脚の分け方が空");
 
             // ---- ③ 帯：陸脚＋海脚＝合計・運賃の2つの分け方・距離の帯の中の平均の実 km
@@ -86,13 +86,13 @@ public class TransportInstrumentTests
             foreach (var r in br)
             {
                 int route = (int)Col(bh, r, "routeCode"), cross = (int)Col(bh, r, "crossBorderFlag"), db = (int)Col(bh, r, "distanceBandCode");
-                double w = Col(bh, r, "weightUnits"), real = Col(bh, r, "weightKmReal"), rl = Col(bh, r, "weightKmLandReal"), rs = Col(bh, r, "weightKmSeaReal");
+                double w = Col(bh, r, "weightUnitsPerYear"), real = Col(bh, r, "weightKmRealPerYear"), rl = Col(bh, r, "weightKmLandRealPerYear"), rs = Col(bh, r, "weightKmSeaRealPerYear");
                 Near(real, rl + rs, 1e-9);
-                Near(Col(bh, r, "weightKmEq"), Col(bh, r, "weightKmEqLand") + Col(bh, r, "weightKmEqSea"), 1e-9);
-                Near(Col(bh, r, "freightGold"), Col(bh, r, "freightLandPartGold") + Col(bh, r, "freightSeaPartGold"), 1e-9);
+                Near(Col(bh, r, "weightKmEqPerYear"), Col(bh, r, "weightKmEqLandPerYear") + Col(bh, r, "weightKmEqSeaPerYear"), 1e-9);
+                Near(Col(bh, r, "freightGoldPerYear"), Col(bh, r, "freightLandPartGoldPerYear") + Col(bh, r, "freightSeaPartGoldPerYear"), 1e-9);
                 if (route == 0)
                 {   // 陸直行＝海脚が無く運賃は全部が陸脚
-                    Assert.Equal(0.0, rs, 9); Assert.Equal(0.0, Col(bh, r, "weightKmEqSea"), 9); Near(Col(bh, r, "freightGold"), Col(bh, r, "freightLandPartGold"), 1e-9); landRows++;
+                    Assert.Equal(0.0, rs, 9); Assert.Equal(0.0, Col(bh, r, "weightKmEqSeaPerYear"), 9); Near(Col(bh, r, "freightGoldPerYear"), Col(bh, r, "freightLandPartGoldPerYear"), 1e-9); landRows++;
                 }
                 else { Assert.True(rs > 0, "海経由の行の海脚が 0"); seaRows++; }
                 if (cross == 1) crossRows++; else domRows++;
@@ -118,8 +118,8 @@ public class TransportInstrumentTests
                 if (Str(rh, r, "sellerRegion").StartsWith("(")) continue;
                 double eqSea = Col(rh, r, "eqSeaKm"), eqLand = Col(rh, r, "eqLandKm"), book = Col(rh, r, "eqBookKm");
                 Near(book, eqSea + eqLand, 1e-9);                     // 最後の成約の経路：海脚＋陸脚の換算 km ＝ 運賃の計算に使われた換算 km
-                double fr = Col(rh, r, "freightGold"), frL = Col(rh, r, "freightLandPartGold");
-                double vb = Col(rh, r, "valueTimesEqBookKmGold"), vs = Col(rh, r, "valueTimesEqSeaKmGold"), vl = Col(rh, r, "valueTimesEqLandKmGold");
+                double fr = Col(rh, r, "freightGoldPerYear"), frL = Col(rh, r, "freightLandPartGoldPerYear");
+                double vb = Col(rh, r, "valueTimesEqBookKmGoldPerYear"), vs = Col(rh, r, "valueTimesEqSeaKmGoldPerYear"), vl = Col(rh, r, "valueTimesEqLandKmGoldPerYear");
                 Near(vb, vs + vl, 1e-9);                              // 全ての成約で（額の重み付き）：海脚＋陸脚の換算 km ＝ 運賃の計算に使われた換算 km
                 Near(rate * vb / norm, fr, 1e-6);                     // 運賃率×（荷の値打ち×換算 km）÷距離の物差し＝払われた運賃
                 Near(rate * vl / norm, frL, 1e-6);                    // 陸脚の分＝運賃率×（荷の値打ち×陸脚の換算 km）÷距離の物差し
@@ -134,12 +134,12 @@ public class TransportInstrumentTests
             foreach (var r in rr)
             {
                 if (Str(rh, r, "sellerRegion").StartsWith("(")) { Assert.Fail("上位 3000 組の外の行が出た＝4 国の試験では起きないはず（越境の突き合わせの前提が崩れた）"); }
-                string y = Str(rh, r, "year"); double f = Col(rh, r, "freightGold");
+                string y = Str(rh, r, "year"); double f = Col(rh, r, "freightGoldPerYear");
                 if (Str(rh, r, "sellerNation") != Str(rh, r, "buyerNation")) crossPair[y] = crossPair.GetValueOrDefault(y) + f; else domPair[y] = domPair.GetValueOrDefault(y) + f;
             }
             foreach (var r in br)
             {
-                string y = Str(bh, r, "year"); double f = Col(bh, r, "freightGold");
+                string y = Str(bh, r, "year"); double f = Col(bh, r, "freightGoldPerYear");
                 if ((int)Col(bh, r, "crossBorderFlag") == 1) crossBin[y] = crossBin.GetValueOrDefault(y) + f; else domBin[y] = domBin.GetValueOrDefault(y) + f;
             }
             Assert.True(crossPair.Count >= 5 && domPair.Count >= 5);
