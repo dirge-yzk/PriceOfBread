@@ -1,5 +1,5 @@
 # buff_inventory_20261016.tsv　バフ・デバフの棚卸し（読むだけ・main dda004b・SimCore の Coefficients の読み手のある係数＋直書き）
-# ★(377) 合流の注：この表は main dda004b の木で作った。その後に消えた行＝制度疲労の 12 本と DecayAdoptPenaltyCap（(373) で物理削除）・DynMandateGraftWeight と CorruptionLegitimacyErosion（(377) で物理削除）・OpeningSavingsRebaseMode と SavingsYearsByClass（(375) で物理削除）。厭戦の DynMandateWarWeight 系は残した（実装ログ (377)）。行は直していない
+# ★(377) 合流の注：この表は main dda004b の木で作った。その後に消えた行＝制度疲労の 12 本と DecayAdoptPenaltyCap（(373) で物理削除）（DynMandateGraftWeight と CorruptionLegitimacyErosion は (377) で消して測り、止める線に当たって戻した＝残る）・OpeningSavingsRebaseMode と SavingsYearsByClass（(375) で物理削除）。厭戦の DynMandateWarWeight 系は残した（実装ログ (377)）。行は直していない
 # 区分：甲＝集計値・抽象状態を入力に本物の流れ（生産・需要・賃金・税・人口・軍・政治）へ掛ける倍率・閾値＝削除の候補／乙＝値段・量・所得への行動の応答＝残す／丙＝物理の換算＝残す／灰＝上限・下限・飽和（設計思想⑧）／他＝旗・暦・物の id・計器・AI の規則の定数（仕分けの外）
 # 既線＝削除の線が既に立っている物（制度疲労・汚職・厭戦・技術水準・工業化度・行政効率・動力の倍率・SteamBoost・運賃の倍率・飢饉の記憶）＝印を付けて数えるだけ。動力の倍率の 3 本は ElecBoost・ElecLaborSave・LaborSaveRate と読んだ【推】。Era* の 5 本は運賃の倍率と同じ前線の技術のランプを読む＝運賃の倍率の線に数えた
 # 種：a＝流れへの倍率・閾値／b＝出来事や集計を保持する政治在庫（闘争度・正統性・思想・国民意識・満足度・熟練度・戦争熱）へ直に足す項（設計思想⑨の問い）

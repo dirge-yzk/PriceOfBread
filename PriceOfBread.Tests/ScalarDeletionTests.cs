@@ -47,22 +47,29 @@ public class ScalarDeletionTests
     {
         // (377) で消して止める線に当たり戻した 2 項。対照＝同じ盤面で係数を 0 にした世界（World.Coef は国ごとの別インスタンス）。
         // 期待値は本体の式から作らない＝〈係数ありの方が天命も正統性も低い〉だけを見る。前提：開幕の清・ロシアは実効汚職が正（行政財が足りない）。
-        MultiNationSim Run(bool zero)
+        // 天命の項は正統性の侵食の倍率（dynErodeMul）にも届く＝対照は 1 項ずつ 0 にする（両方を同時に 0 にすると正統性の差が天命の経路で出てしまう）。
+        MultiNationSim Run(bool zeroGraft, bool zeroErosion)
         {
             var sim = Board();
-            if (zero) foreach (var n in sim.Nations) { n.World.Coef.DynMandateGraftWeight = 0.0; n.World.Coef.CorruptionLegitimacyErosion = 0.0; }
+            foreach (var n in sim.Nations)
+            {
+                if (zeroGraft) n.World.Coef.DynMandateGraftWeight = 0.0;
+                if (zeroErosion) n.World.Coef.CorruptionLegitimacyErosion = 0.0;
+            }
             sim.Run(1);
             return sim;
         }
-        var with = Run(false);
-        var without = Run(true);
+        var both = Run(false, false);
+        var noGraft = Run(true, false);
+        var noErosion = Run(false, true);
+        World Of(MultiNationSim s, string name) => s.Nations.First(n => n.World.SelfPower!.Name == name).World;
         foreach (var name in new[] { "清", "ロシア" })
         {
-            var w1 = with.Nations.First(n => n.World.SelfPower!.Name == name).World;
-            var w0 = without.Nations.First(n => n.World.SelfPower!.Name == name).World;
+            var w1 = Of(both, name);
             Assert.True(w1.EffectiveCorruption > 0, $"前提：{name} の実効汚職が 0（{w1.EffectiveCorruption}）＝この盤面では項を確かめられない");
-            Assert.True(w1.DynasticMandate < w0.DynasticMandate, $"{name}：汚職の項があっても天命が下がらない（{w0.DynasticMandate}→{w1.DynasticMandate}）＝天命の汚職の項が消えている");
-            Assert.True(w1.Legitimacy < w0.Legitimacy, $"{name}：腐敗の侵食があっても正統性が下がらない（{w0.Legitimacy}→{w1.Legitimacy}）＝腐敗→正統性の侵食が消えている");
+            Assert.True(w1.DynasticMandate < Of(noGraft, name).DynasticMandate, $"{name}：汚職の項があっても天命が下がらない（{Of(noGraft, name).DynasticMandate}→{w1.DynasticMandate}）＝天命の汚職の項が消えている");
+            Assert.Equal(Of(noErosion, name).DynasticMandate, w1.DynasticMandate);   // 侵食の係数は天命に届かない（同じ四半期）
+            Assert.True(w1.Legitimacy < Of(noErosion, name).Legitimacy, $"{name}：腐敗の侵食があっても正統性が下がらない（{Of(noErosion, name).Legitimacy}→{w1.Legitimacy}）＝腐敗→正統性の侵食が消えている");
         }
     }
 
