@@ -383,9 +383,9 @@ public static class PolicyPreferences
     }
 
     // 議会（議席）の法への力：党≈ブロック（保守0/自由1/社会2）の選好を議席で加重。富でなく票の声。ParliamentEnabled かつ議会のある政体のみ。
-    private static bool HasLegislature(Polity p) => p is Polity.ConstitutionalMonarchy or Polity.Republic;
+    internal static bool HasLegislature(Polity p) => p is Polity.ConstitutionalMonarchy or Polity.Republic;
 
-    private static double ParliamentNet(World w, PolicyAxis a, double sign, in Profile e)
+    internal static double ParliamentNet(World w, PolicyAxis a, double sign, in Profile e)
     {
         if (!w.ParliamentEnabled || !HasLegislature(w.Polity)) return 0;
         double sum = 0;
@@ -464,7 +464,7 @@ public static class PolicyPreferences
 
     /// <summary>第6段6-4（2026-07-28）統帥権：軍の政策選好＝軍事軸のみ（武力＝軍事費/治安維持力・徴兵法の増加に賛成＝縮小に反対）。他軸は無関心。
     /// ★2026-08-18：親軍法の撤去で軸は2本になったが、その2本こそ軍国度（軍事費×徴兵法）の2因子＝軍が押す先は変わっていない。</summary>
-    private static double ArmyStake(PolicyAxis a)
+    internal static double ArmyStake(PolicyAxis a)
         => a is PolicyAxis.Coercion or PolicyAxis.ConscriptionLaw ? 1.0 : 0.0;
 
     /// <summary>第6段6-4（2026-07-28）軍の政治力＝係数×兵士人口シェア×(1−議会統制)。文民統制（ParliamentControl）の確立が

@@ -17,6 +17,7 @@
 /// <item><c>opium_s&lt;seed&gt;.tsv</c> ★(342) アヘンの表（<c>scope</c> 列で2種類の行）：<c>R</c>＝州×四半期（中毒度・販売量・闇栽培の係数のどれかが動いている州だけ）・<c>N</c>＝国×四半期（禁令・輸出入・緊張の積みのどれかが有る国だけ）。読み手 <c>scripts/instruments/op/an_op.py</c>。列は <see cref="OpiumRows"/> の注。</item>
 /// <item><c>ce_s&lt;seed&gt;.tsv</c> ★(345) 消費の入口 段A：予算の3層の材料（<c>scope</c> 列で2種類の行）：<c>C</c>＝国×四半期×階級（挙げた国は毎四半期・他の国は年末の7階級）の月の和を月数で割った額＝使える所得（前の月の確定した所得）・月初の貯蓄と消費の予算・食料／日用品／奢侈品／役務その他の籠の費用（欲しい量×買い手の値段）と予算で切った後の需要と実際の支払い・所得を超えた支払い（貯蓄の取り崩し）・余り（所得−食料の籠−日用品の籠）ほか。<c>N</c>＝国×窓（40四半期）×財の必需の割合の影（導いた値を書くだけ＝力学は読まない・読み手は <c>an_ce.py</c> の N 行の表）。読み手 <c>scripts/instruments/ce/an_ce.py</c>。列は <see cref="CeColNames"/> の注。</item>
 /// <item><c>pop_s&lt;seed&gt;.tsv</c> ★(361) 人口の作り替え 段A・B（<c>scope</c> 列で2種類の行・実装は <c>InstrumentsPop.cs</c>）：<c>N</c>＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）の粗出生・粗死亡（平常・飢え・疫病ほか・戦死は別）・層別（10歳刻み8本）の死と死の率・10歳までの生存・60歳以後の余命・合計出生率の代理・回復期（平常の死が0の月）の数・子の価値 <c>v</c>（ψ＝0）とその項（稼ぎ・費用・老後の扶養）・結婚の割合 <c>m</c> と制限 <c>c</c> と合計出生率の影・影の出生。<c>C</c>＝国×四半期×階級（挙げた国は全階級・他は年末の7階級）の影の項。籠は <c>ce_s</c> の積算を読む。読み手 <c>scripts/instruments/pop/an_pop.py</c>。新しい数（θ・m_max・合計出生率7.5）は計器の const＝力学の係数ではない。</item>
+/// <item><c>fm_s&lt;seed&gt;.tsv</c> ★(371) 流れM の計器 2 本（実装は <c>InstrumentsFm.cs</c>・国×四半期＝挙げた国は毎四半期・他の全ての国は年末）：①戦時の軍事費の純支持（<c>militaryMoveNetSupportIndex</c>）の項への分解（街頭の 3 ブロック・議会・軍）と、戦争の規模・存亡・戦場の強さ・兵士の人口比。②海の金の割合の分母 max(陸の必要量＋内の守り, 自国の軍の大きさ) の組成（陸の必要量を本国どうしの国境・植民地を含む国境・国境でない投射に、内の守りを人口・不穏度・質に分け、どちらが分母を決めているか）。読み手 <c>scripts/instruments/fm/an_fm.py</c>。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
@@ -77,6 +78,7 @@ public static partial class Instruments
         public double OpTensionAdded, OpTensionLevelMax; public int OpTensionPairMonths;   // ★(342) 禁令中の国が輸出国との組へ積んだアヘンの緊張（四半期の和・件数・積んだ直後の組の値の最大）
         public double LuxPopMonths, LuxNonPosPopMonths, LuxInvalidPopMonths, LuxNonPosSizeSum;   // (329) 奢侈品の所得弾力：f＝1 に倒れた POP×月の累計（読むだけ・四半期の終わりに nation_s へ）
         public PopAcc? PopA;                               // (361) 人口の作り替え 段A・B の蓄え（InstrumentsPop.cs）
+        public FmAcc? FmA;                                 // (371) 流れM の計器の蓄え（InstrumentsFm.cs）
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
         public int GateOpenNow = -1;                       // 今月の借入の門（-1＝判定に来なかった 0＝閉じていた 1＝開いていた）＝月初の PreBorrow が Borrow と同じ1本（Fiscal.BorrowGateOpen）で読む
@@ -183,6 +185,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Opium; public bool OpiumHeader;                     // (342) アヘンの表（州×四半期の行 R と国×四半期の行 N）
         public System.IO.StreamWriter? Ce; public bool CeHeader;                           // (345) 消費の入口の表（国×四半期×階級の行 C と国×窓×財の行 N）
         public System.IO.StreamWriter? PopS; public bool PopSHeader;                       // (361) 人口の表（国×四半期の行 N と国×四半期×階級の行 C）
+        public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
         public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
@@ -836,6 +839,7 @@ public static partial class Instruments
         st.MmOutcome = outcome; st.MmCur = cur; st.MmTarget = target; st.MmNet = net; st.MmResist = resist; st.MmSpeed = speed; st.MmPush = w.PoliticalPushBudget;
         st.MmStock = w.MandateSpent; st.MmStockMax = w.PoliticalCapitalMax; st.MmIncreasing = increasing;
         if (e.Power is null) return;
+        FmNet(w, e, increasing);   // (371) 流れM の計器：純支持の項への分解
         double sign = increasing ? 1 : -1;
         double p0 = PolicyPreferences.Pref(PolicyAxis.Coercion, 0, e, w) * sign, p1 = PolicyPreferences.Pref(PolicyAxis.Coercion, 1, e, w) * sign, p2 = PolicyPreferences.Pref(PolicyAxis.Coercion, 2, e, w) * sign;
         st.MmOppTrad = p0 < 0 ? e.Power[0] * -p0 : 0; st.MmOppModern = p1 < 0 ? e.Power[1] * -p1 : 0; st.MmOppMass = p2 < 0 ? e.Power[2] * -p2 : 0;
@@ -1606,7 +1610,7 @@ public static partial class Instruments
         var sk = SinkOf(sim, seed);
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
-        if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); }   // (342) 助走の月は数えない
+        if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
 
@@ -1633,6 +1637,7 @@ public static partial class Instruments
             NationRow(sk, seed, q, i, w, st, yearEnd);
             SpendFold(sk, w, st, q, picked);   // (286) 線Q：支払いの積算を窓の区切りへ（階級の所得と支出を戻す前）
             PopFold(sk, seed, w, st, q, picked, yearEnd);   // (361) 人口の表（籠は ce_s の積算を読む＝CeFold が戻す前）
+            FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
@@ -1666,6 +1671,7 @@ public static partial class Instruments
         sk.Opium?.Dispose(); sk.Opium = null;   // (342)
         sk.Ce?.Dispose(); sk.Ce = null;   // (345)
         sk.PopS?.Dispose(); sk.PopS = null;   // (361)
+        sk.Fm?.Dispose(); sk.Fm = null;       // (371)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 

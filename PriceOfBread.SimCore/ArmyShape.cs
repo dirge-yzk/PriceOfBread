@@ -37,7 +37,9 @@ public static class ArmyShape
         var hrLand = new double[n * n];
         var hrCross = new double[n * n];   // ★(151) 海を越えて届く陸軍（j の首都から i の首都が別の陸塊）＝i は海で止める＝海の必要量へ
         var hrSea = new double[n * n];
-        var border = Borders(ps, c);
+        double[]? fmHome = Instruments.On ? new double[n * n] : null;   // 計器（読むだけ・(371) 流れM の計器）：本国どうしの国境の分（Borders の第3引数は呼び手が0で渡す表＝戻り値の border は変わらない）
+        double[]? fmH = Instruments.On ? new double[n * n] : null;      // 計器（読むだけ）：敵意 h(i,j) の写し（下の二重ループで h を計算した直後に写す）
+        var border = Borders(ps, c, fmHome);
         // ★海路の接触（2026-10-03 (194)・推奨【推】・作者の承認は未確認）＝相手の艦隊が i へ向く重みに i の越境の交易額（World.TradeValueSmoothed＝輸出＋輸入の額の数期の平滑・金建て
         //   ＝交易比重 Power.TradeWeight〔禁輸の痛み・国際価格の重み〕と同じ量）÷全ての国の平均を掛ける
         //   （作者 2026-09-29「その通り、推奨でよい。陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」が答えた AI の提案〈海軍は別のベース＝艦隊の比と海路の接触〉の「海路の接触」を
@@ -62,6 +64,7 @@ public static class ArmyShape
             {
                 if (i == j) continue;
                 double h = Hostility(dip, ps[i], ps[j], c);
+                if (fmH is not null) fmH[j * n + i] = h;   // 計器（読むだけ・(371)）
                 // ★陸の到達＝届く強さ（投射＝距離減衰×制海権）＋国境の長さ（2026-10-01 (151)・作者裁定 2026-09-29「国境を接している国は脅威だが、そうでない国はあまり脅威ではない
                 //   （国境線が長いほど軍事費が必要になる）」・AI の提案〈陸軍は安全保障＝国境の長さ×地形の通りにくさ・植民地の国境も数える〉に作者「その通り、推奨でよい」）。
                 //   国境＝陸路グラフで隣り合う州の組の数×地形の通りにくさ（<see cref="Borders"/>・植民地格の州も州として数える）。接しない国は投射だけ（国境の辺1本ぶんが上限）＝あまり脅威でない。
@@ -143,6 +146,7 @@ public static class ArmyShape
             p.NeedMen = c.SoldiersPerMilitary * ((p.NeedLand + p.NeedInternal) + c.NavalCrewPerGauge * p.NeedSea) / System.Math.Max(0.05, q);
             p.AttentionColSumMax = maxColSum;
         }
+        if (Instruments.On) Instruments.ArmyNeed(ps, c, border, fmHome!, fmH!, hrLand, hrCross, hrSea, landPot, unrest);   // 計器（読むだけ・(371) 流れM の計器）：陸の必要量の組成と海の金の割合の分母
     }
 
     /// <summary>★敵意 h(i,j)∈[0,1)（脅威の作り直し・2026-10-01 (151)）＝緊張の有理飽和（平時でも床 φ＝「無政府状態では武力は武力」）。
