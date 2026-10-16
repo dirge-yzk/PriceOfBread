@@ -1,0 +1,27 @@
+using System;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+public class DiagCe4Tmp
+{
+    private readonly ITestOutputHelper o;
+    public DiagCe4Tmp(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Diag()
+    {
+        foreach (ulong seed in new ulong[] { 5, 7 })
+        {
+            var sim = new Simulation(WorldData.ByName("イギリス").ToScenario(seed), new NullAgent());
+            sim.World.TaxRate = new Share(0.10); sim.World.Policy.IncomeTaxTarget = 0.10;
+            var w = sim.World;
+            o.WriteLine("flag=" + w.Coef.ConsumptionLayersEnabled + " seed=" + seed);
+            for (int q = 0; q < 8; q++)
+            {
+                sim.StepQuarter();
+                double fc = w.FiscalCapacityPerMonth.Value, half = w.ElectionPushHalfPoint();
+                o.WriteLine($"q{q} fc={fc:F1} half={half:F1} ratio={half / Math.Max(fc, 1e-9):F3} gdp={w.NominalGdpPerMonth.Value:F0} rev={w.LastRevenuePerMonth.Value:F0} int={w.LastInterestPerMonth.Value:F0} adm={w.LastAdminClaimPerMonth.Value:F0} mil={w.LastMilitaryClaimPerMonth.Value:F0} pop={w.TotalPopulation:F0}");
+            }
+        }
+    }
+}

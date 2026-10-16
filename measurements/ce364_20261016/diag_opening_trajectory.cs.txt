@@ -1,0 +1,31 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+public class DiagCe4Tmp2
+{
+    private readonly ITestOutputHelper o;
+    public DiagCe4Tmp2(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Diag()
+    {
+        var cfgs = WorldData.Nations(); var sim = new MultiNationSim(cfgs, 1789UL, _ => new UtilityAgent());
+        sim.StartWarmup();
+        o.WriteLine("flag=" + sim.Nations[0].World.Coef.ConsumptionLayersEnabled);
+        var names = new[] { "イギリス", "フランス", "スペイン", "ネーデルラント", "オーストリア", "プロイセン", "清" };
+        for (int q = 0; q < 8; q++)
+        {
+            if (q > 0) sim.StepQuarter();
+            string line = $"T{q}:";
+            foreach (var nm in names)
+            {
+                int i = cfgs.ToList().FindIndex(c => c.Name == nm);
+                var w = sim.Nations[i].World;
+                line += $" {nm}={w.LastRevenuePerMonth / w.NominalGdpPerMonth:F3}";
+            }
+            o.WriteLine(line);
+        }
+    }
+}

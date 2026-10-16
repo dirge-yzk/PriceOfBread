@@ -38,6 +38,11 @@ KMIN = 1.0
 if '-min' in args: KMIN = float(args[args.index('-min') + 1])
 dirs = [a for i, a in enumerate(args) if not a.startswith('-') and not (i > 0 and args[i - 1] == '-min')]
 TOT = collections.Counter()
+# 例外の名簿（作者 2026-10-15＝重要でない北極の植民地の州などは最小限の例外・主要国の州は例外にしない）＝州の名前で引く。
+# 名簿の州の事象は上の件数（止める線）から外し、下の別の行に数える（名簿の州の事象が無ければ出力は名簿を足す前とバイトで同じ）。
+# (368) で入れた＝ヌーク（英領・北極圏）だけ（推奨・作者の承認は未確認）。ペトロパヴロフスクは規模が大きいので入れない。
+EXEMPT = {'ヌーク'}
+TOTX = collections.Counter()
 URB = collections.defaultdict(lambda: [0.0, 0.0])
 MIG = collections.defaultdict(lambda: [0.0, 0.0])
 EV = []
@@ -92,13 +97,14 @@ for d in dirs:
                     elif foodMean < 0.8: cause = '飢え'
                     else: cause = 'その他'
                     isCap = (r['q'], reg) in caps
-                    TOT[(div, cause)] += 1
+                    if reg in EXEMPT: TOTX[(div, cause)] += 1
+                    else: TOT[(div, cause)] += 1
                     if div == 10 or (V4 and cause == '移民'):
                         dst = collections.Counter()
                         for (qq, dd, vv) in MPq.get(reg, []):
                             if rows[pkI]['q'] < qq <= r['q']: dst[dd] += vv
                         top = dst.most_common(3)
-                        EV.append(dict(div=div, sd=sd, reg=reg, nat=r['nation'], tier=r['tier'], pk=pk, pky=rows[pkI]['yr'], yr=r['yr'], v=v, D=D, mig=mig, col=col, xb=xb, other=other,
+                        EV.append(dict(ex=reg in EXEMPT, div=div, sd=sd, reg=reg, nat=r['nation'], tier=r['tier'], pk=pk, pky=rows[pkI]['yr'], yr=r['yr'], v=v, D=D, mig=mig, col=col, xb=xb, other=other,
                                        cause=cause, cap=isCap, warMax=warMax, foodMin=foodMin, top=top, a=rows[pkI], z=r,
                                        dist=[dist(reg, t[0]) for t in top]))
 TOT10 = {k[1]: v for k, v in TOT.items() if k[0] == 10}
@@ -106,7 +112,9 @@ TOT4 = {k[1]: v for k, v in TOT.items() if k[0] == 4}
 print(f'## 種 {nseed}・ピーク {KMIN:g} 千人以上')
 print(f'## ピークの1/10 未満: {sum(TOT10.values())} 件 {TOT10}')
 print(f'## ピークの1/4 未満: {sum(TOT4.values())} 件 {TOT4}')
-EV10 = [e for e in EV if e['div'] == 10]
+if TOTX:
+    print(f'## 例外の名簿 {sorted(EXEMPT)} の事象（上の件数の外）: 1/10 ' + str({k[1]: v for k, v in TOTX.items() if k[0] == 10}) + ' 1/4 ' + str({k[1]: v for k, v in TOTX.items() if k[0] == 4}))
+EV10 = [e for e in EV if e['div'] == 10 and not e['ex']]
 by = collections.Counter((e['tier'], e['cause']) for e in EV10)
 print('## 1/10 の格×原因: ' + '  '.join(f'{k[0]}/{k[1]} {v}' for k, v in sorted(by.items())))
 szc = collections.Counter(('≥1000' if e['pk'] >= 1000 else '100-1000' if e['pk'] >= 100 else '10-100' if e['pk'] >= 10 else '<10', e['cause']) for e in EV10)
@@ -120,5 +128,5 @@ if V:
     print('##   因子（始め→終わり）: ' + ' '.join(F))
     for e in sorted(EV, key=lambda e: (e['cause'] != '移民', e['sd'], e['yr'])):
         tops = ', '.join(f'{t[0]}:{t[1]:.3g}({dd:.0f})' for t, dd in zip(e['top'], e['dist']))
-        print(f"  [{e['cause']}・1/{e['div']}] s{e['sd']} {e['reg']}（{e['nat']}・{e['tier']}{'・首都' if e['cap'] else ''}） {e['pk']:.4g}({e['pky']})→{e['v']:.3g}({e['yr']})  州間 {e['mig']:.3g} 入植 {e['col']:.3g} 越境 {e['xb']:.3g} 他 {e['other']:.3g}  → {tops}")
+        print(f"  [{e['cause']}・1/{e['div']}{'・例外の名簿' if e['ex'] else ''}] s{e['sd']} {e['reg']}（{e['nat']}・{e['tier']}{'・首都' if e['cap'] else ''}） {e['pk']:.4g}({e['pky']})→{e['v']:.3g}({e['yr']})  州間 {e['mig']:.3g} 入植 {e['col']:.3g} 越境 {e['xb']:.3g} 他 {e['other']:.3g}  → {tops}")
         print('      ' + ' '.join(f"{k} {e['a'][k]:.3g}→{e['z'][k]:.3g}" for k in F) + f"  耕地 {e['a']['arable']:.3g} 農村 {e['a']['rural']:.3g}→{e['z']['rural']:.3g}")

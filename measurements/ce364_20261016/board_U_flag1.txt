@@ -1,0 +1,32 @@
+D:\PoB_work\ce4_364\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+D:\PoB_work\ce4_364\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.08]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:00.20]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:00.23]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:01.37]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.DiagCe4Tmp.Diag [1 s]
+  標準出力メッセージ:
+ flag=1 seed=5
+ q0 fc=0.0 half=362.4 ratio=362441158099.783 gdp=47264 rev=2599 int=2569 adm=669 mil=69 pop=15735
+ q1 fc=0.0 half=381.0 ratio=381000424475.042 gdp=49618 rev=2757 int=2602 adm=709 mil=76 pop=15479
+ q2 fc=74.6 half=437.1 ratio=5.857 gdp=56102 rev=4255 int=2616 adm=1094 mil=106 pop=15348
+ q3 fc=355.3 half=457.0 ratio=1.286 gdp=58249 rev=4574 int=2617 adm=1176 mil=139 pop=15292
+ q4 fc=253.6 half=466.3 ratio=1.838 gdp=59544 rev=3596 int=2614 adm=925 mil=139 pop=15266
+ q5 fc=155.8 half=432.0 ratio=2.773 gdp=55317 rev=2993 int=2609 adm=770 mil=135 pop=15240
+ q6 fc=95.7 half=406.2 ratio=4.246 gdp=51955 rev=2477 int=2605 adm=637 mil=130 pop=15251
+ q7 fc=58.7 half=370.8 ratio=6.312 gdp=46955 rev=2230 int=2610 adm=573 mil=124 pop=15279
+ flag=1 seed=7
+ q0 fc=0.0 half=368.0 ratio=368032264353.475 gdp=47993 rev=2574 int=2569 adm=662 mil=69 pop=15748
+ q1 fc=0.0 half=386.6 ratio=386588391192.435 gdp=50348 rev=2783 int=2601 adm=716 mil=78 pop=15514
+ q2 fc=129.5 half=454.3 ratio=3.509 gdp=58333 rev=4410 int=2614 adm=1134 mil=99 pop=15401
+ q3 fc=355.9 half=474.6 ratio=1.333 gdp=60639 rev=4283 int=2614 adm=1101 mil=141 pop=15360
+ q4 fc=233.7 half=460.5 ratio=1.970 gdp=58975 rev=3599 int=2610 adm=926 mil=139 pop=15334
+ q5 fc=143.6 half=426.6 ratio=2.972 gdp=54762 rev=2920 int=2606 adm=751 mil=134 pop=15311
+ q6 fc=88.2 half=399.2 ratio=4.528 gdp=51105 rev=2454 int=2603 adm=631 mil=129 pop=15320
+ q7 fc=54.1 half=372.3 ratio=6.876 gdp=47127 rev=2278 int=2610 adm=586 mil=124 pop=15343
+テストの実行に成功しました。
+テストの合計数: 1
+     成功: 1
+合計時間: 1.8168 秒

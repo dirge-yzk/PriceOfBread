@@ -1,0 +1,137 @@
+D:\PoB_work\ce4_364\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+D:\PoB_work\ce4_364\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.08]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:00.20]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:00.22]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:08.51]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.DiagCe4Tmp2.Diag [8 s]
+  標準出力メッセージ:
+ flag=1
+    フランス mon=2061 tar=170 direct=1971
+ フランス rev/gdp=0.0609 rev=4202 gdp=69053 int=1821
+    日本 mon=1945 tar=425 direct=2049
+ 日本 rev/gdp=0.0747 rev=4420 gdp=59184 int=0
+    イギリス mon=910 tar=145 direct=761
+ イギリス rev/gdp=0.0280 rev=1816 gdp=64808 int=3238
+    アメリカ mon=401 tar=15 direct=180
+ アメリカ rev/gdp=0.0588 rev=596 gdp=10144 int=158
+    ロシア mon=1193 tar=244 direct=707
+ ロシア rev/gdp=0.0497 rev=2144 gdp=43131 int=79
+    プロイセン mon=502 tar=11 direct=344
+ プロイセン rev/gdp=0.0658 rev=857 gdp=13023 int=0
+    オスマン mon=1266 tar=174 direct=773
+ オスマン rev/gdp=0.0647 rev=2213 gdp=34226 int=0
+    オーストリア mon=1324 tar=174 direct=1191
+ オーストリア rev/gdp=0.0683 rev=2690 gdp=39410 int=294
+    ネーデルラント mon=363 tar=54 direct=154
+ ネーデルラント rev/gdp=0.0774 rev=571 gdp=7377 int=699
+    スペイン mon=733 tar=41 direct=159
+ スペイン rev/gdp=0.0338 rev=933 gdp=27615 int=383
+    サルデーニャ＝ピエモンテ mon=325 tar=29 direct=178
+ サルデーニャ＝ピエモンテ rev/gdp=0.0763 rev=532 gdp=6967 int=0
+    清 mon=17511 tar=1943 direct=7539
+ 清 rev/gdp=0.0609 rev=26993 gdp=443052 int=0
+    朝鮮 mon=664 tar=153 direct=500
+ 朝鮮 rev/gdp=0.0856 rev=1317 gdp=15389 int=0
+    マラータ同盟 mon=7055 tar=679 direct=4755
+ マラータ同盟 rev/gdp=0.0888 rev=12488 gdp=140631 int=0
+    マイソール mon=421 tar=36 direct=213
+ マイソール rev/gdp=0.0941 rev=670 gdp=7119 int=0
+    ハイデラバード mon=867 tar=101 direct=573
+ ハイデラバード rev/gdp=0.0975 rev=1540 gdp=15800 int=0
+    シク連邦 mon=1085 tar=92 direct=1038
+ シク連邦 rev/gdp=0.1158 rev=2215 gdp=19133 int=0
+    ビルマ mon=351 tar=45 direct=194
+ ビルマ rev/gdp=0.0722 rev=590 gdp=8170 int=0
+    ネパール mon=250 tar=19 direct=155
+ ネパール rev/gdp=0.0698 rev=424 gdp=6070 int=0
+    シャム mon=313 tar=30 direct=149
+ シャム rev/gdp=0.0675 rev=492 gdp=7287 int=0
+    西山朝 mon=430 tar=59 direct=240
+ 西山朝 rev/gdp=0.0763 rev=729 gdp=9553 int=0
+    カンボジア mon=44 tar=9 direct=26
+ カンボジア rev/gdp=0.0939 rev=79 gdp=841 int=0
+    ラオス mon=73 tar=14 direct=43
+ ラオス rev/gdp=0.0849 rev=130 gdp=1526 int=0
+    ペルシャ mon=355 tar=6 direct=200
+ ペルシャ rev/gdp=0.0762 rev=561 gdp=7362 int=0
+    アラビア mon=82 tar=3 direct=38
+ アラビア rev/gdp=0.0866 rev=123 gdp=1417 int=0
+    イエメン mon=148 tar=3 direct=81
+ イエメン rev/gdp=0.0773 rev=232 gdp=3001 int=0
+    オマーン mon=52 tar=15 direct=13
+ オマーン rev/gdp=0.0480 rev=80 gdp=1667 int=0
+    アフガニスタン mon=455 tar=10 direct=272
+ アフガニスタン rev/gdp=0.0741 rev=737 gdp=9956 int=0
+    ブハラ mon=175 tar=4 direct=115
+ ブハラ rev/gdp=0.0728 rev=294 gdp=4035 int=0
+    ヒヴァ mon=57 tar=1 direct=46
+ ヒヴァ rev/gdp=0.1088 rev=104 gdp=958 int=0
+    コーカンド mon=116 tar=31 direct=61
+ コーカンド rev/gdp=0.0922 rev=207 gdp=2250 int=0
+    モロッコ mon=329 tar=60 direct=218
+ モロッコ rev/gdp=0.0798 rev=606 gdp=7600 int=0
+    エチオピア mon=254 tar=24 direct=159
+ エチオピア rev/gdp=0.0654 rev=438 gdp=6694 int=0
+    マダガスカル mon=159 tar=14 direct=90
+ マダガスカル rev/gdp=0.0715 rev=263 gdp=3673 int=0
+    スウェーデン mon=192 tar=10 direct=109
+ スウェーデン rev/gdp=0.0799 rev=312 gdp=3898 int=0
+    デンマーク mon=203 tar=54 direct=55
+ デンマーク rev/gdp=0.0770 rev=312 gdp=4051 int=0
+    スイス mon=134 tar=22 direct=99
+ スイス rev/gdp=0.1064 rev=255 gdp=2400 int=0
+    ポーランド mon=470 tar=123 direct=435
+ ポーランド rev/gdp=0.0968 rev=1027 gdp=10614 int=0
+    ポルトガル mon=309 tar=147 direct=9
+ ポルトガル rev/gdp=0.0521 rev=465 gdp=8919 int=0
+    ジェノヴァ mon=46 tar=4 direct=37
+ ジェノヴァ rev/gdp=0.1030 rev=87 gdp=848 int=0
+    ライン諸邦 mon=317 tar=98 direct=52
+ ライン諸邦 rev/gdp=0.0704 rev=466 gdp=6615 int=0
+    両シチリア mon=458 tar=101 direct=376
+ 両シチリア rev/gdp=0.1029 rev=935 gdp=9086 int=0
+    教皇領 mon=155 tar=51 direct=86
+ 教皇領 rev/gdp=0.1006 rev=292 gdp=2903 int=0
+    トスカーナ mon=78 tar=12 direct=48
+ トスカーナ rev/gdp=0.0963 rev=138 gdp=1437 int=0
+    ヴェネツィア mon=184 tar=53 direct=147
+ ヴェネツィア rev/gdp=0.1074 rev=384 gdp=3571 int=0
+    バイエルン mon=65 tar=23 direct=47
+ バイエルン rev/gdp=0.0902 rev=135 gdp=1500 int=0
+    ザクセン mon=154 tar=48 direct=69
+ ザクセン rev/gdp=0.0859 rev=271 gdp=3156 int=0
+    ハノーファー mon=78 tar=11 direct=48
+ ハノーファー rev/gdp=0.1042 rev=137 gdp=1316 int=0
+    ヴュルテンベルク mon=50 tar=5 direct=38
+ ヴュルテンベルク rev/gdp=0.1094 rev=93 gdp=848 int=0
+    阮氏 mon=52 tar=4 direct=29
+ 阮氏 rev/gdp=0.0946 rev=85 gdp=901 int=0
+    ラヘジ mon=18 tar=1 direct=5
+ ラヘジ rev/gdp=0.0831 rev=25 gdp=301 int=0
+    デリー mon=157 tar=18 direct=71
+ デリー rev/gdp=0.1186 rev=247 gdp=2079 int=0
+    アワド mon=1724 tar=280 direct=920
+ アワド rev/gdp=0.0964 rev=2924 gdp=30320 int=0
+    ダホメ王国 mon=33 tar=4 direct=11
+ ダホメ王国 rev/gdp=0.0639 rev=48 gdp=753 int=0
+    アシャンティ王国 mon=185 tar=39 direct=103
+ アシャンティ王国 rev/gdp=0.0848 rev=327 gdp=3854 int=0
+    ソコト mon=617 tar=79 direct=395
+ ソコト rev/gdp=0.0851 rev=1091 gdp=12826 int=0
+    コンゴ王国 mon=43 tar=3 direct=27
+ コンゴ王国 rev/gdp=0.0739 rev=73 gdp=982 int=0
+    アルジェ摂政国 mon=264 tar=71 direct=130
+ アルジェ摂政国 rev/gdp=0.1015 rev=464 gdp=4577 int=0
+    オヨ帝国 mon=108 tar=20 direct=63
+ オヨ帝国 rev/gdp=0.0885 rev=191 gdp=2156 int=0
+    ボルヌ帝国 mon=113 tar=17 direct=61
+ ボルヌ帝国 rev/gdp=0.1024 rev=190 gdp=1853 int=0
+    ハワイ王国 mon=17 tar=2 direct=9
+ ハワイ王国 rev/gdp=0.0642 rev=28 gdp=434 int=0
+テストの実行に成功しました。
+テストの合計数: 1
+     成功: 1
+合計時間: 8.9263 秒

@@ -2796,7 +2796,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
     int epEnd = ArgInt(args, 2, 1936);
     int[] epYears = [1788, 1800, 1820, 1840, 1853, 1868, 1876, 1890, 1900, 1912, 1925, 1936];
     string[] epWatch = ["日本", "イギリス", "プロイセン", "ロシア", "清", "朝鮮"];
-    const int EpN = 16;   // ClassId の上限（PopClass は 0..13）
+    const int EpN = 16;   // ClassId の上限（PopClass は 0..14・14＝犯罪者〔(366)〕）
     var epsim = new MultiNationSim(WorldData.Nations(), epSeed, _ => new UtilityAgent());
     foreach (var nn in epsim.Nations) nn.TelemetryEnabled = false;
     epsim.Diplomacy.Log.Enabled = false;

@@ -1,0 +1,44 @@
+  失敗 PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [1 ms]
+  失敗 PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある [63 ms]
+  失敗 PriceOfBread.Tests.ElectionAiTests.金の代価は投入額そのもので国庫からpopへ移るだけ [80 ms]
+  失敗 PriceOfBread.Tests.MobilityTests.食えない中層は労働者に転落し不満を持ち込む [7 s]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2351664) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 4887) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2695) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 21, declared: 0) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 24941975) [< 1 ms]
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [13 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [9 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+テストの合計数: 1244
+     成功: 1230
+     失敗: 14
+合計時間: 7.4732 分
+
+--- 失敗の中身（挙動を守る赤・新しい赤のみ抜粋）
+  失敗 PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある [63 ms]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.001 - 1)
+  失敗 PriceOfBread.Tests.ElectionAiTests.金の代価は投入額そのもので国庫からpopへ移るだけ [80 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 55.488266942000003 (rounded from 55.488266941742005)
+  失敗 PriceOfBread.Tests.MobilityTests.食えない中層は労働者に転落し不満を持ち込む [7 s]
+  エラー メッセージ:
+   職のない教師が転落していない（7→15）
+  スタック トレース:
+  失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [9 s]
+  エラー メッセージ:
+   賛成不足・在庫不足のどちらかの段の法が場面 A に無い（符号の件数 0,0,12,0,0,0,0,0,0,0）＝突き合わせが空洞
+  スタック トレース:
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+  エラー メッセージ:
+   国営の棟の着工が1件も写っていない（対照）＝着工の口（World.BuildFactory の計器）を消しても緑になる
+  スタック トレース:
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [13 s]
+  エラー メッセージ:
+   開幕の歳入÷年GDP が帯 0.04〜0.14 の外： イギリス 0.0141、スペイン 0.0128、プロイセン 0.0377
+  スタック トレース:
