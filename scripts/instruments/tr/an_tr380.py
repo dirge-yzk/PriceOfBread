@@ -103,6 +103,7 @@ def main():
             leak = 100.0 - share if v['freightPaidLandPartDomesticGoldPerYear'] > 0 else float('nan')
             print(f"   {nm:8} 払った {v['freightPaidGoldPerYear']:9.1f}（陸脚 {v['freightPaidLandPartGoldPerYear']:8.1f}・国内成約 {v['freightPaidDomesticGoldPerYear']:8.1f}・うち国内の陸脚 {v['freightPaidLandPartDomesticGoldPerYear']:8.1f}） 受取 {share:5.1f}%  自国の国内の陸脚運賃の {leak:5.1f}% が世界へ漏れる（受け取りの割合を自国の持ち分と読んだ）")
         # 陸脚の運賃の合計のうち、受け手と払い手の国が違う分＝払い手の国の受け取りの割合を引いた額（全ての国の和）
+        # ⚠(382) 反証役 tr〔v〕低#2：時代（40 年前後）と種をまとめた和の比で引く近似＝清算ごとの (1−船腹の比) の積算とは一致しない（各国の取り分は最大でも約 9%＝桁は崩れない・小数 1 桁の精度は無い）
         landpaid = sum(v['freightPaidLandPartGoldPerYear'] for v in pn.values())
         wrong = sum(v['freightPaidLandPartGoldPerYear'] * (1 - v['freightReceivedGoldPerYear'] / tot_recv if tot_recv else 0) for v in pn.values())
         print(f'   陸脚の運賃の合計 {landpaid:.1f}（全運賃の {pct(landpaid, tot_paid):.1f}%）＝払い手の国の受け取りの割合（船の持ち主の持ち分）だけが自国へ戻り、残り {wrong:.1f}（{pct(wrong, landpaid):.1f}%）は他国の船の持ち主へ行く')
