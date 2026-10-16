@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>(373) 政治のスカラーの削除 段0 の形（休眠）の番人。事前登録 measurements/ps_20261016_prereg.txt。
 /// 旗 3 本（DeleteInstitutionalDecay・DeleteCorruptionScalars・DeleteWarWearinessScalars）は既定 0＝旧。期待値は本体の式から作らず、世界のデータ（清 0.8・オスマン 0.6・露 0.4・
-/// 天井の共通床 0.3）と「旗 1 なら 0」をリテラルで書く。対照（旗 0 で 0 でない）を必ず置く＝何もしない機構が緑にならない。
+/// 天井の共通床 0.3）と〈旗 1 なら 0〉をリテラルで書く。対照（旗 0 で 0 でない）を必ず置く＝何もしない機構が緑にならない。
 /// 突然変異で赤になる箇所：Simulation の初期値の三項（疲労の初期値に旗を掛けない）・Politics の 240／343／344／387 の旗の枝（旗を読まない）。</summary>
 [Collection("Instruments")]
 public class ScalarDeletionTests
