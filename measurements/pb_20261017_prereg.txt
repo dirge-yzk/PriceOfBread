@@ -1,0 +1,125 @@
+政治の束の削除（独裁へ引く項・勅令の速さ・犯罪と出来事から政治の在庫への直の足し・恐慌から思想への直の足し）(384) 事前登録（測る前・結果を見て線を動かさない）
+枝 pb・worktree D:/PoB_work/wt_pb・基点 9979d9bf（(382) 合流＝成績表 m377 と全行一致の木・exact 46.6・near 84.9・NG 88・空洞化 移民 0／飢え 1・推定の計算量 243.8 秒＝余り 4.7 秒）・仮番号 (384)・書いた日 2026-10-17・書いたモデル Claude Sonnet 5.5
+この文書は最初のコミット（形のコードより前）。腕 A・B・N1・N2 の成績表は 1 本も回していない。形のコードもまだ 1 行も書いていない（この文書の [3] が形の仕様。書いた後で仕様と違う所が出たら、その場で [追記] に書く）。
+段0 の表（[1]）はソースの読み（grep と該当行の通読）と、手元にある基準の計器の表 D:/PoB_work/keep_377/m377_ins（m377 の計器つき 10 種）の読みだけから作った＝腕に当たる計測は 1 本も使っていない。基準の読みは scripts/instruments/pb/base_read.py の出力 measurements/pb_20261017/base_m377.txt。
+相談役（advisor）は書く前に 1 回見た（段0 の読みの後・形の前）。反証役（opus）はこの担当の道具に無い＝腕の前に後半の担当が呼ぶ（指示文の規定）。advisor は反証役の代わりにならない。
+作者の指示：作者 2026-10-16 の裁定（原文）「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」「技術水準・工業化度・制度疲労ですが、これらは「盤面から導く形に置換」ではなく、これらは既に経済側に機能しているので、それを集計してバフ/デバフを与えるのは全て二重計上という判断です。」「闘争度・正当性・威信→保持(過去の記憶も含むため)」「文化に属性は付けたくない。」。
+止める線の原文（作者 2026-10-14）「正しい挙動＞バランスです。バランスを理由には差し戻さない。ただし、それが歴史的に正しい挙動だと確証がなく、かつバランスを破壊するものであればNGとする」。
+それ以外の設計（形・線・幅・計器の列・分類・束の切り方）は全て AI の推奨（作者の承認は未確認）。
+
+[0] ⚠ 指示から外れた所・指示にない決め（先頭に置く）
+  ① 【旗を足さない（1 本を除く）】腕 B は既存の係数の中立値で作る（POB_COEF）。理由＝B に入れる 12 項目のうち 11 本の係数は 0 が恒等の読み手（加算 +c×k・門 c>0・乗算 ×(1+c)）で、〈旗が 0 のとき旧と同じ〉は旗でなく係数の既定そのもの。旗を足すと A の経路に分岐が 11 本増えるだけで得が無い（README §1-2 の必要性の確認）。指示文の〈旗で恒等の器〉の字義からは外れるが、A の恒等はソースから自明（係数の既定は 1 ビットも触らない）。旗を足す 1 本＝DeleteRegimeChangeRelief（下の ③）。
+  ② 【範囲から外した 2 行】(ア) DominanceInstabilitySatisfaction（満足度の門 0.43）は消さない。読み手が 3 か所の共有の門：Politics.cs:415（一党支配→正統性の侵食＝DominanceLegitimacyErosion。作者〈正統性は保持〉）・:568（独裁への引力＝今回消す物）・:595（ブルジョア独裁の引力 BourgeoisCoupWeight＝棚卸しの区分は乙）。係数ごと消すと保持すべき 2 か所が危機の門を失う（:595 の門は 2026-08-12 に〈満足した米が 1923 年にブルジョア独裁へ転ぶ〉を直すために足した物＝外すと既知の史実の誤りが戻る）。この線では :568 の読みが死ぬだけ＝係数は残す。棚卸しの行 DominanceInstabilitySatisfaction（順 1・本体＝政）は〈独裁へ引く項〉の門だけと読んだ機械の仕分けの誤り。作者に聞く物 Q1。(イ) IdeologyGateUrbanWeight（順 2・本体＝経と書かれた行）は消さない。この係数は〈バフ〉でなく発展度 dev の 2 成分（世界最先端の工業化度の傾斜／都市労働者の割合）の配合の重みで、0 にしても中立にならない（dev が工業化度だけになる）。dev のもう片方の IdeologyGateIndScale は工業化度の既線。工業化度の線と一緒に扱う。作者に聞く物 Q2。
+  ③ 【ReformMilitancyRelief は 1 か所だけ】この係数は 4 か所が読む：Politics.cs:203（一揆への譲歩が法に施行された州を鎮める）・:848（内戦の鎮圧後に反乱側を鎮める）・:1225（運動の要求をのんだ州を鎮める）・:1901（政変で失脚しなかった層を鎮める）。前 3 つは作者の裁定（2026-09-09〜11〈弾圧は鎮めない・譲歩が鎮める〉）の実装で、今回の範囲（政変から闘争度への直の足し）に入るのは :1901 だけ。係数を 1.0 にすると 4 か所が同時に外れて作者の裁定の実装まで消えるので、:1901 にだけ旗 DeleteRegimeChangeRelief（double・既定 0）を足す。さらに束の中で唯一の負帰還（輪の歯止め）＝ほかの 9 本（闘争度を足す側）と同じ腕に乗ると相殺で両方隠れる。切り分け腕で単独に動かせるようにしてある（[4]）。
+  ④ 【Deposed の経済の経路は薄い】DeposedMilitancySpike（失脚した層の闘争度 +0.6）は、経済の打撃が恐怖政治（急進革命のみ）と土地改革のときだけ。立憲への転換で失脚した層には経済の経路が無く、あるのは政治の経路（発言権の低下→法の隔たり→闘争度の目標 MilVoice）だけ。二重計上の根拠が 他の行より弱い。B には入れる（目標に政治の経路が既にある）が、不合格のときの切り分けの第一候補に名指しする。作者に聞く物 Q3。
+  ⑤ 【計器は World に状態を足さない】計器の列は Instruments.cs の ConditionalWeakTable<World, …>（既存の作法）に積む。World に Diag の欄を足さない（(373) の先例は (377) で外した）。scalars_s に列を足す（[3]）。
+  ⑥ 【コミットの順】事前登録 → 形（コード）の順。形は事前登録に書いた仕様のとおりに書く。
+  ⑦ 【M2 の数は形の後の探りで 1 回だけ動かしてよい】(373) の先例（追記 1）と同じ。動かすのは M2 の下限の数だけ（H の線と止める線は動かさない）。動かしたら追記に理由と動かした前後の数を書く。
+
+[1] 段0：読み手の表（ソースの読み・9979d9bf の行番号・計器の表 keep_377/m377_ins の読み）
+  列：係数／読み手 ファイル:行／入力→掛ける先／同じ出来事の経済（または政治）の経路 現物の行／帰還／棚卸しの読みとの違い／処置
+  ─ 順 1（独裁へ引く項・政体のフレーバー）
+  P1 DominanceCoupWeight=2.5／Politics.cs:606（加算）・:566-580（引力の相手を決める門と switch）／与党の議席の過剰 domExcess→独裁形態（社会 2＝プロ独裁・自由 1＝ブルジョア独裁・保守 0＝軍政）の引力点／出来事でなく政体の状態から政体の引力点への項。同じ効きを持つ物＝一党支配が正統性を削る DominanceLegitimacyErosion（:415・保持）と、有権者の思想の支持 SupportAt（:601）。有権者の思想を独裁形態への加算として 2 度目に読む（00一覧 P9 候補の診断・A1≡A4 の記録）／帰還＝正（独裁→一党の翼賛議会→さらに独裁）／棚卸しは〈無・政〉で一致／B に入れる（DominanceCoupWeight=0）。係数 0 で :606 は +0.0・:566-580 の switch は計算されるだけで読み手が死ぬ
+  P2 AutocraticPolicyAgility=0.5／Government.cs:887-888／非議会政体の法のスライダー歩幅 ×(1+0.5)／議会のある政体の遅さは、法の抵抗 OpposingPower が議席を数える項（PolicyPreferences.cs:407-411 `HasLegislature` のときだけ ParliamentLawWeight×議席）で既に表されている＝非議会は議席の抵抗が無いぶん既に速い。×1.5 はその速さの 2 度目の計上／帰還＝無／棚卸しは〈無・政〉で一致／B に入れる（AutocraticPolicyAgility=0・`> 0` の門で不発）
+  P3 DominanceInstabilitySatisfaction=0.43／Politics.cs:415・:568・:595（3 か所の共有の門）／平均満足度→一党支配の侵食・独裁の引力・ブルジョア独裁の引力の門／棚卸しの〈独裁へ引く項の門のみ〉は誤り（上の [0]② ア）／帰還＝正／B に入れない（作者に聞く物 Q1）
+  ─ 順 2（出来事から在庫への直の足し）
+  E1 CrimeSatPenalty=0.5・E2 CrimeWealthFearWeight=0.5／Crime.cs:73-83／犯罪率×(0.5＋0.5×max(0, 相対富−1))→全 POP の満足度から減算／同じ出来事の経路＝窃盗の移し（Crime.cs:58-69 の World.Transfer＝被害者の貯蓄が減り困窮大衆に入る）→翌月の予算→消費の必要の充足 NeedMet（EconomyStep.cs:2641 `Satisfaction = NeedMet/NeedTotal`＝作者裁定 2026-08-19〈満足度でなく生活水準〉）。つまり満足度は定義上〈必要なものをどれだけ買えたか〉だけで、犯罪の恐怖という非物質の減算はこの定義の外の足し／帰還＝経路は正（犯罪→満足度↓→犯罪者の母体 `size×militancy×(1−satisfaction)` が太る）。ただし満足度は毎月 EconomyStep が NeedMet から書き直す＝減算は同じ月の Politics の読み（四半期末）にしか届かない／棚卸しの〈無・経〉と一致／B に入れる（2 本とも 0・`> 0 ||` の門で不発）
+  E3 DefaultMilitancyHit=0.25／Fiscal.cs:441／債務不履行の出来事→大衆の闘争度 +0.25（Clamp01）／経路＝RepudiateDebt（国債の請求権の消滅）＋信用凍結 Bank.Confidence=0・Heat=0（Fiscal.cs:437）→与信の収縮→所得の低下→生活水準／帰還＝無／一致／B に入れる（0・Clamp01(m+0)＝m）
+  E4 DeposedMilitancySpike=0.6／Politics.cs:1891／政変で失脚した層の POP の闘争度 +0.6／経済の経路は薄い（恐怖政治と土地改革のときだけ＝[0]④）。政治の経路＝闘争度の目標 `PoliticalDistanceWeight×politicalGap`（Politics.cs:266-275）が、発言権と現政体の座標の変化を直接読む／帰還＝無／棚卸しの〈経〉は経済の経路としては薄い／B に入れる（0）。不合格の切り分けの第一候補
+  E5 ReformMilitancyRelief=0.5（:1901 だけ）／Politics.cs:1901／政変で失脚しなかった層の闘争度 ×0.5／経路＝政体座標の更新が politicalGap（Politics.cs:266-275）を次の四半期に直接動かす（σ=0.30 で目標へ追従）／帰還＝負（歯止め）／B に入れる（旗 DeleteRegimeChangeRelief=1・:1901 の `else` の枝）。:203・:848・:1225 は触らない（[0]③）
+  E6 WarDefeatMilitancySpike=0.15／Diplomacy.cs:3118（OutcomeShocks・決定的な敗北のとき全 POP）／敗戦→闘争度 +0.15（Math.Min(1, …)）／経路＝戦争の傷（戦死・封鎖・失地・賠償）→生活水準・飢餓の駆動（Politics.cs の FamineDrive）。敗戦ショック DefeatShock→正統性（DefeatShockLegitWeight）→保持力と、DefeatNationalism→思想は別の経路で保持／帰還＝無／一致／B に入れる（0）
+  E7 SeizureMilitancyCost=0.5／World.cs:2613（Seize）／接収した持分 share→資本家 POP の闘争度 +0.5×share／経路＝奪われた持分の配当（BuiltScale が増え民間の取り分が国庫へ移る・コメント World.cs:2597）→資本家の所得。ただし資本家の生活水準 NeedMet は所得の落ちにほとんど反応しない【推】。唯一の担い手になりうる読み手 SoeSaleMilitancyCeil（World.cs:2376・払い下げの買い手の闘争度の上限）は既定 0＝休眠。闘争度は ideology の mil 項と犯罪の母体を通して読まれる／帰還＝無／棚卸しの〈無・経〉と一致／B に入れる（0）
+  E8 DepressionSocialism=0.3・E9 DepressionCommunism=0.15・E10 DepressionReaction=0.2／Ideology.cs:36（係数×GDP の落ち込み dd）→:96 `r[1] += depReact`・:98 `r[5] += depSoc + famSoc`・:99 `r[6] += depComm`／恐慌→思想の分布へ直接加点／経路＝恐慌（GdpDrawdown）→失業・所得→生活の失望→闘争度 mil→同じ関数が mil で左派と反動へ振る（Ideology.cs:60-95。ファシズムの項は `mil × (反動＋国民主義)`）。つまり恐慌が思想へ向かう経路は mil 経由で既にある。社会主義・共産主義は発見の門 eraSoc/eraComm を後で掛けられる（:101）／帰還＝無／一致／B に入れる（3 本とも 0。`0×dd＝0.0`・`depSoc + famSoc＝0.0 + famSoc＝famSoc` は有限値でビット一致）
+  ─ 棚卸しの 順 2 の 11 本のうち 10 本を B に入れる。外す 1 本＝IdeologyGateUrbanWeight（[0]② イ）。順 1 の 3 本のうち 2 本を入れる。外す 1 本＝DominanceInstabilitySatisfaction（[0]② ア）。
+  基準の読み（A＝m377 の計器つき 10 種・nation_s 全ての国が毎四半期）：政体の遷移の総数 3154（種ごと 281〜356）・独裁（ブルジョア独裁 BD・プロ独裁 PD・軍政 MD）への流入 337（BD 300・MD 37・PD 0）・内戦の発生 994・BD の在任の中央値 15 四半期・MD の在任の中央値 2 四半期・民主制の核（イギリス・ネーデルラント・アメリカ・スイス・スウェーデン・デンマーク）への独裁の流入 67（英 23・蘭 20・スイス 11・米 9・デンマーク 3・スウェーデン 1）。militancyMean の種ごとの中央値 0.168〜0.200（全体 0.1815）。教育法 Public 以上の最初の年の中央値＝清 1887.5（届かない種 3）・オスマン 1792（1）・ロシア 1793.5（1）・日本 1951（8）。史実の独裁の窓の k（生きていた 10 種のうち窓の中で独裁がある種の数）＝ロシア 1917〜25＝1・プロイセン 1930〜40＝0・スペイン 1920〜45＝2・日本 1930〜45＝2・ポルトガル 1926〜45＝5・清 1911〜25＝2・オスマン 1908〜25＝0。最終政体の分布（成績表）＝立憲君主 322・絶対王政 160・共和 93・BD 64（軍政・プロ独裁は最終に無い）。
+  ⇒ 読み取り：基準の世界は史実の独裁の窓をほとんど再現していない（判定できる窓はポルトガルだけ・[6] H2）。BD への流入 300 の大半は立憲↔BD の往復（立憲→BD 242・BD→立憲 198）。
+
+[2] 作者に聞く物（B に入れない・推奨つき・推奨で進めない＝この線は待つ）
+  Q1 DominanceInstabilitySatisfaction（満足度の門 0.43）：3 か所の共有の門。この線では :568 の読みが死ぬだけ。残る 2 か所（一党支配→正統性の侵食 :415・ブルジョア独裁の引力 :595）の門を〈閾値より比例〉（README §1-8）へ置き換えるかを聞く。推奨＝当面残す（門を比例へ直す設計は 不足の 3 分割で満足度の目盛りを導き直した後＝記憶〈独裁は錠だけで保たれていた〉の 2026-09-22 の止めた理由と同じ）。外すと :595 の既知の史実の誤り（米 1923 年）が戻る。
+  Q2 IdeologyGateUrbanWeight：発展度 dev の配合の重み（バフでない）。推奨＝工業化度の線（IdeologyGateIndScale と一緒に）で決める。
+  Q3 DeposedMilitancySpike：経済の経路が薄い。推奨＝B に入れて測り、不合格のときの切り分けの第一候補にする。作者が〈闘争度は過去の記憶を含むので保持〉とした範囲に入るなら、出来事から闘争度への足しの全てを保持側へ寄せる判断もある。
+  Q4 ReformMilitancyRelief の残り 3 か所（:203・:848・:1225）：作者の裁定の実装（譲歩が鎮める）。推奨＝残す。これも闘争度への直の掛け算（×0.5）で、この束の対象にあたるかを聞く。
+
+[3] 形（旗 1 本・計器の列）
+  Coefficients：DeleteRegimeChangeRelief（double・既定 0）。Politics.cs:1901 の `else p.Militancy *= c.ReformMilitancyRelief;` を `else if (!(c.DeleteRegimeChangeRelief > 0)) p.Militancy *= c.ReformMilitancyRelief;` へ（旗 0 は常に真＝旧と同じ式）。DormantIdentityTests の名簿に旗の名前を足す。
+  ほかの 10 本は係数を書き換えない・読み手の式も書き換えない（B は POB_COEF の中立値）。
+  計器（読むだけ・INS=1 のときだけ・Instruments.cs の ConditionalWeakTable<World, PbAcc>＝新しいシミュの状態を足さない）：
+   ・Politics.Transition：一党支配の引力が出るとき（domDictator が null でない）に、引力あり・なしの両方で引力点を求める。なしの支持＝そのポリティの s から `DominanceCoupWeight×domExcess` に政体の実績の乗数（RegimeTrackRecordWeight）を掛けた分を引いた値（乗算は加算の後に掛かるため）。pbDomActive＝引力が非ゼロだった呼びの数・pbDomFlip＝引力あり・なしで引力点が違った呼びの数・pbDomDecisive＝pbDomFlip のうち、引力ありの引力点が domDictator で第 1 の門（`best − cur > PolityInertia×Legitimacy`）を越えた呼びの数。〈決定的〉は第 1 の門までの数＝以降の門（動員が保持力を超える等）は含まない上限。
+   ・Politics.ExecuteRegimeChange：pbRegime（呼びの数）・pbRegimeViolent（violent が真の呼びの数）。
+   ・scalars_s に追加する列（末尾）：meanSatPol・maxSeat・govParty・gdpDrawdown・factionRevolts（World.FactionRevolts）・pbDomActive・pbDomFlip・pbDomDecisive・pbRegime・pbRegimeViolent（後ろの 5 本は 計器が積んだ国ごとの累計）。meanSatPol・maxSeat・govParty は一党支配の門が開いているかの読み、gdpDrawdown は恐慌の項が非ゼロかの読み。
+  番人：PbFormTests（新）＝(a) 旗 0 と旗 1 の差が :1901 の枝にだけ出ること（短い世界で政変を起こし、失脚しなかった層の闘争度が旗 0 で ×relief・旗 1 で据え置き）(b) DominanceCoupWeight=0 の独裁の引力点が switch の相手に加算されないこと（反事実の値が計器の「引力なし」の値と一致）(c) B の POB_COEF の全文字列が実在の係数名と型に通ること（スペル違いの沈黙を防ぐ）。突然変異で赤を確かめる。
+  セーブ：旗は double 1 本（名前で辿る）。計器は World の外＝セーブに載らない。savetest は旗 0 と旗 1 で同じ版の往復を確かめる。
+  触る行（並行の線との合流の目印）：Coefficients.cs（旗の 1 行）・Politics.cs（:1901・Transition の計器の数行・ExecuteRegimeChange の 2 行）・Instruments.cs か新ファイル InstrumentsPb.cs（accumulator）・InstrumentsScalars.cs（列）・DormantIdentityTests.cs・PbFormTests.cs（新）・scripts/instruments/pb/（新）。wt_ae（行政効率）は Politics.cs の :387 付近と Fiscal.cs を触る見込み＝行は重ならない。wt_tf（輸送の計器）は Instruments*.cs の別ファイル。
+
+[4] 腕（計器つき 10 種・INS=1・POB_INSTRUMENTS_NATIONS は 10 国・同じ木・同時に回す）
+  A  ：POB_COEF なし。成績表 3 枚が m377（b10_20261017_m377・b5_20261017_m377・b10_20261017_m377_ins）と全行一致（名乗り行の SOURCE-HASH を除く）が合格条件（M0）。
+  B  ：POB_COEF="DominanceCoupWeight=0;AutocraticPolicyAgility=0;CrimeSatPenalty=0;CrimeWealthFearWeight=0;DefaultMilitancyHit=0;DeposedMilitancySpike=0;WarDefeatMilitancySpike=0;SeizureMilitancyCost=0;DepressionSocialism=0;DepressionCommunism=0;DepressionReaction=0;DeleteRegimeChangeRelief=1"（batch.sh は `$W/coef_<腕>.txt` を POB_COEF に渡す）。
+  N1／N2：A に SupplySlope=0.50000001／0.49999999（ヌル腕 2 本・粒度は粗く）。
+  切り分け腕（B が止める線か H の線で落ちたときだけ・最大 2 本ずつ）：BP＝DominanceCoupWeight=0;AutocraticPolicyAgility=0（政体の項）。BM＝残りの 9（犯罪 2・不履行・失脚・敗戦・接収・恐慌 3・DeleteRegimeChangeRelief=1）。BM が落ちて BP が通ったら、BM から DeleteRegimeChangeRelief を外した BM2 を 1 本足す（歯止めと足しの相殺の確認）。
+  腕の計器の国：清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ,スペイン（(373) の 8 国に 米・西 を足す。scalars_s が毎四半期を出す国）。nation_s は全ての国が毎四半期。
+  回し方：scripts/instruments/batch.sh の `prep <腕> commit:<sha> plain` ＋ `INS=1 bash batch.sh run <腕>`。raw の TSV は D:/PoB_work/pb に採否が決まるまで残す。
+
+[5] 史実の確証の欄（向きの出典・README〈史実の確証が無く、かつバランスを壊す〉）
+  向きは作者の裁定（二重計上の排除）。出典の頁は未確認（この担当は web を引かない・通説の概数）。
+  独裁へ引く項（P1）：確証あり（中）＝議席の過半の一党支配が危機で自動的に独裁形態へ引かれるという史実の通説は無い。ナチ党は連立・大統領内閣・授権法、ファシスト党は少数の議席から国王の委譲、プリモ・デ・リベラとフランコは軍の反乱（軍の力は CoupSupport の別の項が担う）。英蘭に軍政は無い（00一覧 P9 候補の診断・A1≡A4 の記録）。
+  勅令は速い（P2）：確証あり（中・弱）＝1861 年の農奴解放や明治の太政官布告の速さは史実だが、非議会の速さは法の抵抗に議席が無いこと（PolicyPreferences.cs:407-411）で既に出る。×1.5 の根拠は二重計上。
+  犯罪→満足度（E1・E2）：確証は弱い＝治安の悪化が福利を下げるのは通説だが、満足度は定義上〈必要なものの充足〉（作者裁定 2026-08-19）で、犯罪の被害は窃盗の移しで貯蓄を通って充足に既に入る。
+  不履行・敗戦・失脚・接収（E3・E4・E6・E7）：確証あり（中）＝1789 年の仏の国庫の破綻、1875〜76 年のオスマンの不履行、1870〜71 年の仏の敗戦とコミューン、1905 年の露の敗戦、1917〜18 年の独墺露。ただしどれも経済の傷（信用の凍結・戦費・封鎖・飢え）が闘争度の目標に既に入る。失脚（E4）は政治の経路のみ。
+  政変の緩和（E5）：確証は薄い＝新体制の蜜月は史実にあるが（1789 年の夏・1848 年の春）、座標の更新が政治の隔たりを直接動かす。
+  恐慌→思想（E8〜E10）：確証あり（強）＝大恐慌の後の独・伊・西・日の右傾と共産の伸長は通説。ただし恐慌の効きは失業と所得→闘争度→思想の経路で既に出る。
+  ⇒ 向きの出典の表（hist_sources_20261014.tsv）には足さない（年・数量でなく構造の確かめ）。
+
+[6] 線
+  定義：scalars_s（polityCode・educationLaw・militancyMean・defeatShock・上の追加の列）と nation_s（polityCode・civilWarMonths・nationUid・sovereignDefaultCumulativeCount・supplyFillShare）と region_s（theftPoolPerMonth）と成績表の報告から読む。読み手は scripts/instruments/ps/an_ps1.py の定義（補給崩壊・H2 の教育法の年）を再利用し、scripts/instruments/pb/base_read.py（基準の読み）を腕の読み手へ伸ばす（後半の担当・腕の前にコミット）。
+   遷移＝nation_s の polityCode が前の四半期から変わった四半期。国は四半期 0 の名前の nationUid に追随（変名に追随）。独裁＝BD・PD・MD。内戦の発生＝civilWarMonths が 0 以下から正になった四半期。
+   補給崩壊＝nation_s で人口 100 以上の国×四半期の supplyFillShare ＜ 0.3（scripts/instruments/m270/supply.py と同じ）。
+   N の幅 w＝N1 と N2 の差（2 本）。基線の平均 m＝A・N1・N2 の平均。k_X＝腕 X の 10 種のうち事象が起きた種の数。
+  【機構の確かめ（採否の線）】
+   M0：A の成績表 3 枚が m377 と全行バイト一致（SOURCE-HASH の行を除く）・NG は 88 で同じ集合（新しい 0・外れた 0）。落ちたら形のバグ＝形を直してから測り直す。
+   M1：B の POB_COEF の全 12 項目（11 係数＋旗）が適用されたことを、報告の名乗り行（POB_COEF の写し）で確かめる（A の名乗り行は POB_COEF なし）。B の scalars_s は pbDomActive・pbDomFlip・pbDomDecisive が全行 0（B の引力は DominanceCoupWeight×domExcess＝0 で、非ゼロの呼びが無い）。B の経路で :1901 の緩和が外れていることは、番人 PbFormTests の (a) が短い世界で確かめる（成績表では直接は見えない・[0]③）。
+   M2（何もしない機構が緑にならない）：A で、(F1) pbDomActive の最後の累計（10 種の合計）≥ 100 かつ pbDomDecisive ≥ 1／(F2) 非議会政体（polityCode が 立憲君主・共和以外）の scalars_s の行 ≥ 10000／(F3) region_s で theftPoolPerMonth ＞ 0 の行 ≥ 100／(F4a) nation_s の sovereignDefaultCumulativeCount の最後の累計（10 種の合計）≥ 10／(F4b) pbRegime の累計 ≥ 300／(F4c) defeatShock が 0.5 未満から 0.99 以上へ上がった行 ≥ 10／(F5) 同じ pbRegime／(F6) gdpDrawdown ＞ 0.05 の行 ≥ 1000。テーマごとに落ちたら、そのテーマは〈何もしない〉＝H の線に入れず記録に回す（探りの後に動かしてよいのはこれらの下限の数だけ・[0]⑦）。F1 の pbDomDecisive が 0 なら P1 は 休眠の項＝削除は機構の無害な掃除。
+  【挙動の線（採否の線）】
+   H1 流れの保存：次の 5 量（どれも 10 種の合計）を B と基線 3 腕で比べる。(a) 政体の遷移の総数 (b) 独裁への流入 (c) 内戦の発生 (d) 暴力的な政体変更（pbRegimeViolent の最後の累計）(e) 蜂起（factionRevolts の最後の累計）。不合格の量＝|B−m| ＞ max(2w, 0.25m)。ただし (b) は向きを分ける＝減る側は B ≥ 0.5m まで許す（減る向きは [5] で確証がある・基準では独裁への流入の大半が往復）、増える側は max(2w, 0.25m) まで。5 量中 2 量以上の不合格で H1 は不合格。1 量だけなら合格・報告の先頭に名前を書く。
+   H2 史実の独裁の窓：[1] の 7 窓の k。判定できる＝min(k_A, k_N1, k_N2) − 2 ＞ 0（基準の k では ポルトガルだけ）。窓ごとの合格＝k_B ≥ min(k_A, k_N1, k_N2) − 2。判定できる n 件のうち落ちた窓が n/6 未満なら合格（n ＜ 6 なら 0 件）。判定できる窓が 0 件なら H2 は〈判定不能〉と印字し、合格にも不合格にも数えない（読み手は k の表を全部印字する）。
+   H3 民主制の核への独裁：イギリス・ネーデルラント・アメリカ・スイス・スウェーデン・デンマークへの独裁の流入の合計（10 種）。合格＝B ≤ max(A, N1, N2) + 10。増える側だけを見る（減る向きは確証あり）。
+   H4 改革の年：教育法が Public 以上へ初めて変わる年の種の中央値を 清・オスマン・ロシア・日本で比べる（届かない種は 1951 として入れる・届かない種の数を腕・国ごとに印字）。合格＝|中央値(B) − 中央値(基線 3 腕の平均)| ≦ max(15 年, 2×|中央値(N1) − 中央値(N2)|) の国が 4 国中 3 国以上。基準の中央値＝清 1887.5・オスマン 1792・ロシア 1793.5・日本 1951。日本は 8/10 が届かない＝動かなければ合格。B が基線より前倒しで外れた国は先頭に名前を書く。
+  【記録（採否の線にしない・毎回同じ）】
+   R1：exact・near（政体 exact／near を含む）・NG（ng.sh・基準 rd:measurements/ng377_20261017:m377・読み手の出力フォルダは D:/… で渡す）・兌換停止の数・勝者の分布・最終政体の分布・法の多様性・国家の出入り・恐慌の統計（10 種）・跳躍ダイジェストの〈10年内に政変3回〉の件数（m377＝131 件）。
+   R2：補給崩壊の総数（人口 100 以上）と 1 国の寄与の上位。空洞化（`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`）。
+   R3：独裁の在任の中央値（BD・MD・PD）と流入の内訳（元の政体→先の政体）。記憶〈独裁は錠だけで保たれていた〉の教訓＝基準の MD の在任の中央値 2 四半期（錠の長さ）が B でどう動くか。
+   R4：カオス性＝ヌル腕どうしの開き（N1−N2）と B−A の開き。量＝H1 の 5 量・補給崩壊の総数・exact・near・NG の正味・勝者の数。種ごとの散らばり（最小・最大）を A・B・N1・N2 で並べ、|B−A| ÷ |N1−N2| を書く（比が 3 以下なら B の効きはカオスの雑音の内）。
+   R5：militancyMean の中央値（種ごと・全体）と国別の 1783/1850/1914/1950 の中央値（A と B）。(373) の厭戦・汚職の削除では militancyMean が 0.27→0.15 に下がり改革の圧力が弱まった。この束で militancyMean が下がるかを見る。
+   R6：pbDomActive・pbDomFlip・pbDomDecisive の最後の累計（A）と、BD・MD への流入の差（A−B）の対応。
+   R7：savetest（旗 0・旗 1）／leakhunt／フルスイート／FullLength（採るときだけ）。
+
+[7] 予測（外れたら外れたと書く）
+  P1 M0・M1：合格（構造）。M2：F2〜F6 は合格する見込み。F1 の pbDomDecisive は 0〜数件で、基準の MD の流入 37（在任の中央値 2 四半期＝奪取の直後に錠が外れて立憲へ戻る往復）のうち 引力が決定的だったのは少数にとどまる【推・A1≡A4 の記録では反事実の最終判定の反転 0】。
+  P2 B の流れ：独裁への流入 337 は 200〜330 に（基準の BD の入り口は ブルジョア独裁の引力 BourgeoisCoupWeight・暴力革命・政体グラフの引力点のどれかが担うため、P1 だけでは半分は消えない）。軍政の流入 37 は 0〜25（軍政の引力点は引力の加算を要する＝記憶）。民主制の核への独裁の流入 67 は英蘭の分（43）が減る向き。政体の遷移の総数 3154 は ±10% 内。
+  P3 militancyMean：不履行・失脚・敗戦の加算（0.25・0.6・0.15）は σ=0.30（半減期 2 四半期）で目標へ戻るので、中央値への効きは小さい（−0.01 未満）。:1901 の緩和を外すと政変の直後の失脚しなかった層の闘争度が最大 2 倍の過渡を持つ（+）。犯罪の減算は満足度を押し上げる側＝闘争度の目標を下げる向き（わずか）。総じて militancyMean は ±0.01 内。(373) の厭戦・汚職のような 0.27→0.15 の大幅な低下は起きない見立て（あの 2 項は目標への毎四半期の寄与で、この束は出来事の 1 回の加算）。
+  P4 改革の年（H4）：勅令の速さ（P2）を外すと非議会政体の法の歩幅が 1/1.5 になる＝清・オスマン・ロシアの教育法が遅れる向き（数年）。日本は動かない（8/10 が届かない）。H4 が 3/4 を割る可能性は低くない【推】。割れば AutocraticPolicyAgility を B から外して BP の単独の読みへ。
+  P5 補給崩壊・空洞化：旗も係数も飢え・人口に直接触れない＝止める線に当たらない見立て。政体が変わる回数が動くと内戦・分離の件数が動く。
+  P6 exact／near：A から −3pt 以内【推】。政体 exact／near は 独裁の窓の再現（1920・1950 の プロ独裁・軍政の exact）が既に低い（成績表 断面1920 政体 exact 27%・1950 32%）ので下げ幅は小さい。
+  P7 計算量：B は計算が減る側（旗・係数の分岐が通らない）。A は旗の比較 1 本＋計器の分岐（INS=1 のときだけ）＝推定 ほぼ 0（＜0.1 秒）。
+
+[8] 採否の規則
+  止める線に掛からず M0・M1 と H1・H2・H3・H4（判定できるもの）が合格なら B を採る（旗と係数・読み手・計器の物理削除と成績表 3 枚の確認は合流の担当）。M2 で落ちたテーマは H の線に入れず、そのテーマは〈休眠の機構の掃除〉として採る（効きが無いことが測れた物は消してよい・ただし A と B の成績表が全行一致であること）。
+  止める線に掛かった、または H の線で落ちたとき：切り分け腕 BP・BM（最大 2 本）を回し、通ったテーマだけ採る。BM が落ちて BP が通ったときだけ BM2（歯止めを外した BM）を 1 本足す。両方が単独で通り B が落ちたときは相互作用＝どちらも採らず作者に出す。
+  H の線だけが外れたテーマ（止める線は通る）：確証のある向きの後退として採らず、報告の先頭に書き、推奨の形（README §1-7）を作者に出す。
+  M0 が落ちたら形のバグ。測った後に線を動かさない。バランス（exact・near・NG・兌換停止・勝者・常勝）は記録だけで採否に使わない。
+
+[9] 止める線（作者 2026-10-14〜15 の裁定。README〈止める線の改め〉）
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）／移民による州の空洞化（ピークの 1/10 未満）1 件（北極の植民地の州など重要でない州は最小限の例外の名簿に入れてよい・主要国の州は入れない）／人口 100 以上の千件級の補給崩壊 ≧2/10／挙動が壊れたテストの赤／推定の計算量 ＞248.5 秒（m377＝243.8 秒・使う量は [10]）。
+  NG・exact・near・兌換停止はバランス＝記録。〈史実の確証が無く、かつバランスを壊す〉直しは止める：[5] のとおり向きの確証があるテーマ（P1・E3・E6・E8〜E10）と弱いテーマ（E1・E2・E4・E5・E7・P2）がある。H の線が全て通れば向きは保たれたと読む。弱いテーマだけで〈壊す〉が起きたら、そのテーマを外す（切り分け腕で特定）。
+  〈壊す〉の物差し（報告に書く数字・採否は H の線と止める線）＝exact か near がヌル腕（N1・N2 の平均）から 10pt 以上落ちる／世界（人口 100 以上）の補給崩壊の頻度が倍以上（max(A, N1, N2) の 2 倍）／NG の正味（新しい−外れた）が閾値 max(5, 2×|N1 正味−N2 正味|) を超える。
+  空洞化の確かめは `python scripts/instruments/hol/an_h2.py <出力>/ins -v4`。
+
+[10] 計算量の使う量と、採ったあとの掃除
+  旗の比較 1 本（ResolveRevolt の失脚しなかった層ごと）＋計器（INS=1 のときだけ）。推定の計算量は A と同じ 243.8 秒のはず。余り 4.7 秒の内。B は計算が減る側。CostLedger には数えない。
+  採ったあとの掃除（合流の担当）：係数 11 本（DominanceCoupWeight・AutocraticPolicyAgility・CrimeSatPenalty・CrimeWealthFearWeight・DefaultMilitancyHit・DeposedMilitancySpike・WarDefeatMilitancySpike・SeizureMilitancyCost・DepressionSocialism・DepressionCommunism・DepressionReaction のうち採ったテーマの物）と旗・Politics.cs:566-580 の domDictator と switch（読み手が死ぬ）・:606 の加算・Crime.cs:73-83 の減算の枝・Ideology.cs:36 の dd の 3 項・Government.cs:887-888・Fiscal.cs:441・Diplomacy.cs:3118・World.cs:2613・Politics.cs:1891 と :1901 の `else` の枝。成績表 3 枚が B の腕と全行バイト一致であること（削除後のコード≡B）。
+  採ったとき赤になりうる番人の名簿（今は触らない）：InstrumentsTests.cs:1155・1163（AutocraticPolicyAgility を読む）・SocialThemeTests.cs:20（CrimeSatPenalty と CrimeWealthFearWeight を代入）・RevoltIgnitionTests.cs:1648（ResolveRevolt の失脚しなかった層の ×ReformMilitancyRelief を期待する）・DormantIdentityTests（旗の名前）。ほか 係数名を文字列で参照する番人は合流の担当が grep で洗う。
+  docs の触る所：00一覧 00-BUFF の行に〈(384) 政治の束 順 1・順 2 の測り〉・実装ログ (384)・CURRENT。
+
+[11] 運用（この担当は段0・形・事前登録まで・腕は回さない）
+  後半の担当が A・B・N1・N2 を回す（4 本同時・INS=1・上の 10 国）。読み手を腕の前にコミット（scripts/instruments/pb/）。
+  この担当がやった確かめ（腕ではない）：ビルド・番人・短距離のスモーク（旗 0 の `selfplay 1 200` の基点の木との全体一致・旗 1 と B の係数での短距離）・savetest・M2 の下限の探り。結果は measurements/pb_20261017/ に置く。
+  反証役（opus）は腕の前に、この文書と形のコードと scalars_s の追加の列を読む。
