@@ -90,3 +90,10 @@
 [10] 運用（この回の前半＝形と事前登録まで・腕は回さない）
   前半：事前登録（このコミット）→ an2 の `869d624a` を載せる → 旗 3 本の形 → 番人（突然変異で赤を確かめる）→ 基点との恒等（selfplay 1 200 の cmp・旗 1 の短い走行・savetest 旗 0／旗 1）→ フルスイート。
   後半の担当：opus の反証役にこの文書・形・計器を読ませてから A・N1・N2・B を回す。
+
+[追記1] 形のコミットの後・腕の前（2026-10-17・書いたモデル Claude Sonnet 5.5・腕は 1 本も回していない・線の数字は動かしていない）
+  ・[8] R4 の計器の列：`scalars_s` の末尾に 7 列を足した（adminEfficiency・adminPowerSmoothed・highAdminQuarters・landTaxUnlocked・crown・childLaborLegal・workHoursValue）。R4 の線の数字（A 系の幅で決める）は後半の担当が腕の前に書く。
+  ・旗 1 の `AdminEfficiency` は説明台帳（Explain）に〈官僚制(行政費)〉の 1 項だけを記帳する（戻り値と同じ値＝ExplainTests の合計の番人は旗 1 でも成り立つ）。
+  ・番人が届かない所（自己申告）：前線の技術の門の連言（`FrontierCapable` は private）・変異 (2) の門の二重の保険・必要量 0 の枝の 0.0。
+  ・フルスイートの既存の赤 1 本（`GoodIdGuardTests.道具のPythonは財の番号を数字で書かない`＝`scripts/instruments/bg/an_bg0.py:109`・`an_bg1.py:73` の `g == 0.0`）はこの線の変更ではない。[5] ④ の既知の赤にこれも足す。
+  ・形の検証：旗 0 の基点との `selfplay 1 200` の cmp 一致・savetest 旗 0／旗 1・leakhunt 旗 1・FullLength 旗 1 は `measurements/ae_383_form/` と実装ログ (383) §2。
