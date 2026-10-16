@@ -1,0 +1,4 @@
+# 基準 rd:measurements/ng348_20261015:m348＝NG 82／比べる rd:D:/PoB_work/merge_368/ng368:m368＝NG 82
+## 新しい NG（基準では NG でない）: 0
+## 外れた NG（比べる側で NG でない）: 0
+## 前からの NG: 82
