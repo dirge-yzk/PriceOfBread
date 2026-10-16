@@ -29,6 +29,7 @@ public static partial class Instruments
         public double NeedInternal = double.NaN, GarrisonMen = double.NaN, UnrestShare = double.NaN, QualityQ = double.NaN, PopK = double.NaN;
         public double ForcePot = double.NaN, LandPot = double.NaN, NavalShareOfIdeal = double.NaN, LandSideDenominator = double.NaN;
         public double BorderHomeLen = double.NaN, BorderColonialLen = double.NaN, NavalPowerIndex = double.NaN;
+        public double ExtShare = double.NaN, AttentionSumL = double.NaN, Top1Ext = double.NaN, Top1LandPot = double.NaN;   // 自国の陸軍が外へ向く割合（注意配分の分母 u＋Σ のうち u 以外）・外向きの和・寄与の最大の相手の同じ割合と陸軍の大きさ
         public int LandSideBindsFlag = -1;
         public string Top3 = "", TopColonial3 = "";
         public void ClearNet()
@@ -41,6 +42,7 @@ public static partial class Instruments
             HaveArmy = false;
             NeedLand = NeedLandBorderHome = NeedLandBorderColonial = NeedLandProjection = NeedLandPartsSum = double.NaN;
             NeedSea = NeedSeaFleet = NeedSeaCross = NeedInternal = GarrisonMen = UnrestShare = QualityQ = PopK = ForcePot = LandPot = NavalShareOfIdeal = LandSideDenominator = BorderHomeLen = BorderColonialLen = NavalPowerIndex = double.NaN;
+            ExtShare = AttentionSumL = Top1Ext = Top1LandPot = double.NaN;
             LandSideBindsFlag = -1; Top3 = ""; TopColonial3 = "";
         }
     }
@@ -119,6 +121,9 @@ public static partial class Instruments
             a.LandSideBindsFlag = needSide >= a.ForcePot ? 1 : 0;
             a.BorderHomeLen = lenH; a.BorderColonialLen = lenC; a.NavalPowerIndex = p.NavalPower;
             a.Top3 = TopNames(ps, contrib, m); a.TopColonial3 = TopNames(ps, contribCol, m);
+            double ext = sumL[i] - unrest[i];   // 添字 i を「武力の持ち主 j」として読む＝この国の陸軍が外（国境・海を越える投射）へ向く分の和（Compute の sumL から内向きの u を引いたもの）
+            a.AttentionSumL = ext; a.ExtShare = sumL[i] > 1e-12 ? ext / sumL[i] : double.NaN;
+            if (m > 0 && contrib[0].v > 0) { int t = contrib[0].j; a.Top1Ext = sumL[t] > 1e-12 ? (sumL[t] - unrest[t]) / sumL[t] : double.NaN; a.Top1LandPot = landPot[t]; }
         }
     }
     static string TopNames(List<Power> ps, (double v, int j)[] sorted, int m)
@@ -141,7 +146,8 @@ public static partial class Instruments
         + "atWarAtDecisionFlag\tmobilizedAtDecisionFlag\twarScaleRatioAtDecision\thomeLosingScoreAtDecision\tatWarMonthsCount\twarIntensityMaxIndex\tsoldierShare\t"
         + "needLandIndex\tneedLandBorderHomeIndex\tneedLandBorderColonialIndex\tneedLandProjectionIndex\tneedLandGapShare\tneedInternalIndex\tgarrisonMenIndex\tunrestShare\tqualityIndex\ttotalPopulationK\t"
         + "forcePotentialIndex\tlandPotentialIndex\tlandSideDenominatorIndex\tlandSideBindsFlag\tneedSeaIndex\tneedSeaFleetIndex\tneedSeaCrossIndex\tnavalSpendShareIdealShare\tnavalPowerIndex\t"
-        + "borderHomeLengthIndex\tborderColonialLengthIndex\tneedLandTop3\tcolonialBorderTop3";
+        + "borderHomeLengthIndex\tborderColonialLengthIndex\tneedLandTop3\tcolonialBorderTop3\t"
+        + "ownArmyOutwardShare\townArmyOutwardWeightIndex\ttop1OutwardShare\ttop1LandPotentialIndex";
 
     static void FmFold(Sink sk, ulong seed, World w, WState st, int q, bool picked, bool yearEnd)
     {
@@ -167,7 +173,7 @@ public static partial class Instruments
             I(st.DecAtWar), I(st.DecMobilized), F(st.DecScale), F(st.DecLosing), I(st.WarMonths), F(wi), F(soldier),
             F(a.NeedLand), F(a.NeedLandBorderHome), F(a.NeedLandBorderColonial), F(a.NeedLandProjection), F(landGap), F(a.NeedInternal), F(a.GarrisonMen), F(a.UnrestShare), F(a.QualityQ), F(a.PopK),
             F(a.ForcePot), F(a.LandPot), F(a.LandSideDenominator), a.HaveArmy ? I(a.LandSideBindsFlag) : "", F(a.NeedSea), F(a.NeedSeaFleet), F(a.NeedSeaCross), F(a.NavalShareOfIdeal), F(a.NavalPowerIndex),
-            F(a.BorderHomeLen), F(a.BorderColonialLen), a.Top3, a.TopColonial3));
+            F(a.BorderHomeLen), F(a.BorderColonialLen), a.Top3, a.TopColonial3, F(a.ExtShare), F(a.AttentionSumL), F(a.Top1Ext), F(a.Top1LandPot)));
         a.ClearNet(); a.ClearArmy();
     }
 }

@@ -87,7 +87,7 @@ public class FlowMInstrumentTests
             var (h, rows) = Table(System.IO.Path.Combine(dir, "fm_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             Assert.True(rows.Count >= 4 * 24 - 4, $"行が少ない {rows.Count}");
-            int army = 0, homeBorder = 0, binds = 0, notBinds = 0, withNet = 0;
+            int army = 0, homeBorder = 0, binds = 0, notBinds = 0, withNet = 0, outward = 0;
             foreach (var r in rows)
             {
                 if (r[Array.IndexOf(h, "landSideBindsFlag")] != "")
@@ -106,6 +106,11 @@ public class FlowMInstrumentTests
                     // 内の守りの材料：人口×不穏度×係数＝要る人の頭数（質で兵の戦力に直す前）
                     Assert.True(Col(h, r, "garrisonMenIndex") >= 0 && Col(h, r, "unrestShare") is >= 0 and <= 1);
                     if (Col(h, r, "needLandBorderHomeIndex") > 0) homeBorder++;
+                    // 自国の陸軍が外へ向く割合＝外向きの和÷（外向きの和＋不穏度）：別の列（不穏度）から書き直す
+                    double outW = Col(h, r, "ownArmyOutwardWeightIndex"), outS = Col(h, r, "ownArmyOutwardShare"), unrestS = Col(h, r, "unrestShare");
+                    Assert.True(outW >= 0 && outS is >= 0 and <= 1, $"外向きの割合が [0,1] の外 {outS}（和 {outW}）");
+                    if (outW + unrestS > 1e-12) Near(outW / (outW + unrestS), outS);
+                    if (outW > 0) outward++;
                 }
                 if (r[Array.IndexOf(h, "netIncreasingFlag")] != "")
                 {
@@ -117,6 +122,7 @@ public class FlowMInstrumentTests
             }
             Assert.True(army >= 4 * 20, $"組成の行が少ない {army}（hook が Compute の終わりに来ていない）");
             Assert.True(homeBorder > 0, "本国どうしの国境から来る陸の必要量が 1 行も無い＝4 国は陸続きなのに部分が空");
+            Assert.True(outward > 0, "外向きの和が正の行が無い＝注意配分の外向きの列が空");
             Assert.True(binds + notBinds > 0 && withNet > 0, $"分母の判定 {binds + notBinds}・純支持の行 {withNet} が空振り");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
