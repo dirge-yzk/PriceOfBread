@@ -186,6 +186,27 @@ public class TransportInstrumentTests
             foreach (var y in inNat.Keys) Near(landBin.GetValueOrDefault(y), inNat[y], 1e-6);
             Assert.True(toOwnAll > 0 && toOwnAll < inAll, $"戻る額 {toOwnAll}・国の中の陸脚の運賃 {inAll}（4 国の試験では 0 < 戻る額 < 国の中の運賃）");
             Assert.True(toOwnAll < recvAll, "戻る額は受け取った運賃の和より小さい");
+            // 国ごと：〈戻る額÷国の中の陸脚の運賃〉は、その国の船腹の比（受け取った運賃÷世界の受け取り）の時間平均に近い＝売り手側にも買い手側にも〈その国自身の〉比を掛けた証拠
+            //   （売り手と買い手の比を取り違えると、国の中の運賃に相手国の比が掛かって、この国の比から外れる）。2 つの量は別の経路（成約の位置の積／清算の終わりの配り）で、重みが違うので完全には一致しない。
+            var inBy = new Dictionary<string, double>(); var ownBy = new Dictionary<string, double>(); var recvBy = new Dictionary<string, double>();
+            foreach (var r in nr)
+            {
+                string nm = Str(nh, r, "nation");
+                inBy[nm] = inBy.GetValueOrDefault(nm) + Col(nh, r, "freightLandSellerSideInNationGoldPerYear") + Col(nh, r, "freightLandBuyerSideInNationGoldPerYear");
+                ownBy[nm] = ownBy.GetValueOrDefault(nm) + Col(nh, r, "freightLandInNationToOwnCarriersGoldPerYear");
+                recvBy[nm] = recvBy.GetValueOrDefault(nm) + Col(nh, r, "freightReceivedGoldPerYear");
+            }
+            double recvTot = recvBy.Values.Sum(); int shareChecked = 0, shareOff = 0; var shareMsg = new List<string>();
+            foreach (var nm in inBy.Keys)
+            {
+                double sh0 = recvBy[nm] / recvTot;
+                if (!(inBy[nm] > 0) || sh0 < 0.03) continue;
+                double ratio = ownBy[nm] / inBy[nm]; shareMsg.Add($"{nm} 戻る/国の中={ratio:F4}・受取の割合={sh0:F4}");
+                if (Math.Abs(ratio - sh0) > 0.35 * sh0) shareOff++;
+                shareChecked++;
+            }
+            Assert.True(shareChecked >= 2, "船腹の比が 3% 以上で陸脚の運賃のある国が 2 つ未満＝比の突き合わせが空: " + string.Join(" ／ ", shareMsg));
+            Assert.True(shareOff == 0, "戻る額÷国の中の陸脚の運賃が、その国の船腹の比から外れた国がある：" + string.Join(" ／ ", shareMsg));
         }
         finally { restore(); }
     }
