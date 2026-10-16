@@ -613,7 +613,7 @@ public sealed class UtilityAgent : INationAgent
         else if (!atWar && armyShare >= 0) p.ConscriptionLaw = ConscriptionLowerTarget(w.ConscriptionLaw, armyShare, p.ConscriptionLaw);
         else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.ConscriptionLaw;   // 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
-        if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+        if (!(w.Coef.DeleteAdminEfficiencyFactors > 0) && w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
         if (w.MeanIndustrialization > AntitrustIndThreshold)
             p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
         // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等

@@ -142,7 +142,7 @@ public static class CrownParliament
                 // (2)の継続カウンタ＝行政力が高い状態が何四半期続いたか（形に依らず数える＝専制でなくなっても素直にリセットされる）。
                 // wave2b：旧＝この更新自体が「王冠なし(Crown=None・共和/立憲)」の間は凍結され旧カウントが残った（専制へ復帰した瞬間に誤発火し得た）。
                 // 更新は形の判定より外側で毎期走らせ、Absolutist/Despotic/Shogunate 以外では素直にリセットする。
-                if (w.Crown is CrownForm.Absolutist or CrownForm.Despotic or CrownForm.Shogunate && w.AdminEfficiency > c.DespoticToAbsolutistAdmin)
+                if (c.DeleteAdminEfficiencyFactors > 0) w.HighAdminQuarters = 0; else if (w.Crown is CrownForm.Absolutist or CrownForm.Despotic or CrownForm.Shogunate && w.AdminEfficiency > c.DespoticToAbsolutistAdmin)   // ★(383) 旗>0＝カウンタも変異 (2) も無い
                     w.HighAdminQuarters++;
                 else w.HighAdminQuarters = 0;
 
@@ -167,7 +167,7 @@ public static class CrownParliament
                         else w.LogAdd($"{w.Year} {w.SelfPower?.Name}の幕府が倒れ親政に復した");
                     }
                 }
-                else if (w.Crown == CrownForm.Despotic && w.HighAdminQuarters >= c.DespoticToAbsolutistQuarters)
+                else if (!(c.DeleteAdminEfficiencyFactors > 0) && w.Crown == CrownForm.Despotic && w.HighAdminQuarters >= c.DespoticToAbsolutistQuarters)
                 {
                     // (2) 専制 → 絶対王政（官僚絶対主義・プロイセン型）：宮廷の恣意が、育った官僚機構に置き換わる。
                     w.Crown = CrownForm.Absolutist;

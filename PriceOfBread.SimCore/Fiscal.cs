@@ -36,8 +36,8 @@ public static class Fiscal
         //   「ラッチが立つ瞬間＝天井が拘束しなくなる瞬間」＝同じ規則の端点の二重表現だった。しかも徴収本体（下の所得税）はラッチを
         //   一度も読まず、実体は「UIのスライダーだけを灰色にする」規則＝AI（SelfPlay）は同じ世界で自由に所得税を置いていた
         //   ＝AI/プレイヤー非対称の出どころ。行政の弱さは下の汚職漏れが額で表す。
-        w.AdminPowerSmoothed += c.AdminPowerSmoothing * (w.AdminEfficiency - w.AdminPowerSmoothed);
-        if (!w.LandTaxUnlocked && w.AdminPowerSmoothed >= c.LandTaxAdminGate) w.LandTaxUnlocked = true;
+        if (!(c.DeleteAdminEfficiencyFactors > 0)) { w.AdminPowerSmoothed += c.AdminPowerSmoothing * (w.AdminEfficiency - w.AdminPowerSmoothed);   // ★(383) 旗>0＝更新も錠も無い（錠は構築から開いている）
+            if (!w.LandTaxUnlocked && w.AdminPowerSmoothed >= c.LandTaxAdminGate) w.LandTaxUnlocked = true; }
 
         // ★撤去2026-08-16（掃除キューC2-C5・棚卸C群）：汚職根絶＝清廉度ストック CleanGovernance の月次更新（debtRoom/corruptionRoom/統治スパン2本）を物理削除。
         //   汚職V2（(1−行政)×(1−監視noisy-or)＝World.EffectiveCorruption）が恒久ON裁定済み＝V2では清廉度ストックごと不読＝この更新は死骸だった。

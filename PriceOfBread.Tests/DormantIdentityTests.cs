@@ -20,6 +20,8 @@ public class DormantIdentityTests
     [
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
+        "DeleteAdminEfficiencyFactors", // ★(383) 行政効率の連鎖の削除＝AdminEfficiency を AdminFill の人口加重平均だけにし、それを読む倍率・錠・カウンタを消す主フラグ（0＝旧）。採否は腕 A／B で測ってから（事前登録 measurements/ae_20261017_prereg.txt）
+        "AdminFillFailClosed",          // ★(383) 官僚 POP が居ない州・最初の決算の前の AdminFill を 0 から始める fail-open の修正（0＝旧の既定値 1.0）
         "CapacityAnchorFromRegions",    // ★(369) 扶養力の錨を州と一緒に動かす＝錨を〈今持つ州の AnchorPopulation の和〉に置き換える主フラグ（0＝旧の錨 pop − PopulationDelta）。採否は腕 A／B で測ってから（事前登録 measurements/an_20261016_prereg.txt）
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
         "MeritModernityFromClosed",     // AUD-07：メリトクラシーの政体バフ除去

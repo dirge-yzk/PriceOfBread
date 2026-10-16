@@ -327,4 +327,19 @@ public static class PoliticalQuantities
         //   それでも否定形で書く＝摩擦が数でなければ摩擦なし扱いにせず、回復量そのものを 0 に倒すのは呼び手（Politics.Step）の否定形ガード。
         return !(friction > 0) ? 1.0 : 1.0 / (1.0 + friction);
     }
+
+    /// <summary>★(383) 活きた州の <see cref="Region.AdminFill"/>（官僚の役務の充足）の人口加重平均＝<see cref="World.AdminEfficiency"/> の旗 <see cref="Coefficients.DeleteAdminEfficiencyFactors"/>>0 の値。
+    /// 足し順は World.AdminEfficiency の `market`（旧の式）と同じ（州の並び順に fill+=AdminFill×人口・size+=人口）。人口が無い国は 1.0（旧と同じ・漏れる収入が無い）。</summary>
+    public static double AdminFillMean(World w)
+    {
+        double fill = 0, size = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double p = r.SumPopulation();
+            fill += r.AdminFill * p; size += p;
+        }
+        if (size <= 1e-9) return 1.0;
+        return Clamp01(fill / size);
+    }
 }

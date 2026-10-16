@@ -341,7 +341,7 @@ public static class Politics
             double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - c.DynMandateSatPivot) / (1.0 - c.DynMandateSatPivot);   // 中立点は分位の写像で導出（Coefficients.DynMandateSatPivot）
             double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
-            double dmGraft = -c.DynMandateGraftWeight * w.EffectiveCorruption;
+            double dmGraft = c.DeleteAdminEfficiencyFactors > 0 ? 0.0 : -c.DynMandateGraftWeight * w.EffectiveCorruption;   // ★(383) 旗>0＝汚職の項は消える
             double dynPerf = dmSat + dmFood + dmWar + dmGraft;
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
             w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
@@ -384,7 +384,7 @@ public static class Politics
         double institutionalGap = avgConsc * Math.Max(0, c.RepresentationThreshold - w.Freedom);
         // 腐敗→正統性侵食（corruption-only-fiscal-leak）：縁故主義・公共財の毀損は制度不信を生む。意識ある社会(avgConsc)ほど腐敗を許さない＝institutionalGap と同型ゲート。
         // 較正中立：合成較正は行政財なしで AdminEfficiency=1.0＝(1−AdminEfficiency)=0 で侵食0（係数0.015は実世界で効く）。腐敗は財政漏れ(Fiscal)に加え政治的代償を持つ。
-        double corruptionErosion = c.CorruptionLegitimacyErosion * avgConsc * Math.Max(0, 1.0 - w.AdminEfficiency);   // C2-C5撤去2026-08-16：末尾の ×(1−CleanGovernance) を物理削除（V2恒久ONで清廉度は恒等0＝×1.0はIEEE754で厳密恒等）。⚠監視(OversightV2)はここに掛けない＝掛けると挙動変更（掃除の範囲外・要裁定なら較正ラウンドで）
+        double corruptionErosion = c.DeleteAdminEfficiencyFactors > 0 ? 0.0 : c.CorruptionLegitimacyErosion * avgConsc * Math.Max(0, 1.0 - w.AdminEfficiency);   // ★(383) 旗>0＝侵食は消える。   // C2-C5撤去2026-08-16：末尾の ×(1−CleanGovernance) を物理削除（V2恒久ONで清廉度は恒等0＝×1.0はIEEE754で厳密恒等）。⚠監視(OversightV2)はここに掛けない＝掛けると挙動変更（掃除の範囲外・要裁定なら較正ラウンドで）
         // 政1：全侵食項を erosion に集約（無状態版 leg=1−erosion／ストック版は前期値からこの erosion を差し引き緩慢に再生）。
         double erosion = (c.LegitimacyErosionRate * institutionalGap + corruptionErosion) * dynErodeMul + c.DefeatShockLegitWeight * w.DefeatShock;   // 敗戦ショックが正統性を一時的に大きく削る（敗戦→革命）。較正は DefeatShock=0＝中立。P8天命は連続項のみ変調（×1.0で恒等・敗戦インパルスは除外）
         // 説明API（#63）：正統性の内訳を実寄与量で記帳。既定は LegitimacyIsStock=1.0＝**ストック**（履歴が累積する経路依存量）。

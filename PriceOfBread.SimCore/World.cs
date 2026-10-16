@@ -1503,7 +1503,7 @@ public sealed class World
     {
         get
         {
-            bool manorGate = Coef.NobleAdminFromSeigneurial > 0;   // 点火時だけ地代の内訳を数える（既定は加算1回も走らない＝素の走査のまま）
+            if (Coef.DeleteAdminEfficiencyFactors > 0) return PoliticalQuantities.AdminFillMean(this); /* ★(383) 旗>0＝4 因子を消した行政効率（下の式の market そのもの）。旗 0 は下の式のまま */ bool manorGate = Coef.NobleAdminFromSeigneurial > 0;   // 点火時だけ地代の内訳を数える（既定は加算1回も走らない＝素の走査のまま）
             double fill = 0, size = 0, nobles = 0, rentNoble = 0, rentAll = 0;
             foreach (var r in Regions)
             {

@@ -20,7 +20,7 @@ public static class TechEducation
         double pressAbs = PressFactor(w.Censorship);
         // ★穴③（2026-08-31）：行政の脚＝×(1−AbsorptionAdminWeight×(1−行政効率))。IncomeAbsorption と同形・0＝×1.0＝厳密恒等。
         //   識字と所得は輸出成功の循環で満たされる（世界工場の椅子取り）＝科挙官僚制/植民地行政の質だけが循環の外の判別子（洋務運動の原器）。
-        double adminAbs = c.AbsorptionAdminWeight > 0
+        double adminAbs = c.AbsorptionAdminWeight > 0 && !(c.DeleteAdminEfficiencyFactors > 0)   // ★(383) 旗>0＝行政の脚は消える
             ? 1.0 - c.AbsorptionAdminWeight * (1.0 - PoliticalQuantities.Clamp01(w.AdminEfficiency)) : 1.0;
         double breadth = PoliticalQuantities.Clamp01(w.Elite / c.EliteForFullTech);
         // ★厚み（作者採用2026-09-06 段3）：採用の識字項を 広さ^(1−a)×厚み^a へ。a=0 で広さそのもの（分岐＝ビット恒等）。
@@ -270,7 +270,7 @@ public static class TechEducation
     // 世界の技術水準解禁：自由が閾値以上（または#22＝高エリート技術力＋高行政効率で代替＝権威主義的近代化） かつ 世俗の水路（公教育以上）
     private static bool FrontierCapable(World w, Coefficients c) =>
         (w.Freedom >= c.FrontierFreedomThreshold
-         || (c.InnovationEliteSubstitute > 0 && w.Elite >= c.EliteForFullTech && w.AdminEfficiency >= c.InnovationAdminThreshold)) &&
+         || (c.InnovationEliteSubstitute > 0 && w.Elite >= c.EliteForFullTech && (c.DeleteAdminEfficiencyFactors > 0 || w.AdminEfficiency >= c.InnovationAdminThreshold))) &&
         w.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory;
 
 }
