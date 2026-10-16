@@ -1,0 +1,6 @@
+(385) フルスイート（Category!=FullLength・Release・隔離ビルド --artifacts-path D:/PoB_work/tf_385/art・木＝コミット af862eb5）
+失敗 PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [3 s]
+失敗!   -失敗:     1、合格:  1232、スキップ:     0、合計:  1233、期間: 11 m 33 s - PriceOfBread.Tests.dll (net10.0)
+
+※ 1 本赤＝GoodIdGuardTests.道具のPythonは財の番号を数字で書かない：scripts/instruments/bg/an_bg0.py:109 と an_bg1.py:73（`g == 0`・(382) 合流が記録として写した借入の門の読み手）。基点 9979d9bf の scripts は (385) で 1 バイトも触っていない＝基点からの赤（この線の変更と無関係）。
+※ 変更に関わるテスト（TransportInstrumentTests 3 本・InstrumentsTests〔経路名の鍵の行を含む〕ほか 40 本）は最初のコミット 488d8ed6 の木で緑（2 分 25 秒）。
