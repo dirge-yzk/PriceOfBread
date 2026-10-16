@@ -5,10 +5,11 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(373)(377) 政治のスカラーの削除の番人。事前登録 measurements/ps_20261016_prereg.txt・実装ログ (373)(377)。
-/// 制度疲労（(373)）と汚職の政治の 2 項（天命の汚職の項・腐敗→正統性の侵食＝(377)）は物理削除した＝名前で復活を禁じる（期待値は本体の式から作らない）。
+/// 制度疲労（(373)）は物理削除した＝名前で復活を禁じる（期待値は本体の式から作らない）。採らなかった旗 2 本と World の Diag 3 欄も main に入れない＝名前で禁じる。
+/// 汚職の政治の 2 項（天命の汚職の項・腐敗→正統性の侵食）は (377) で消して測ったが止める線（移民による州の空洞化）に当たり戻した＝作者に聞く Q1 と一緒。戻した 2 項が働くことを対照つきで確かめる。
 /// 厭戦の 2 項（闘争度の目標項 WarWearinessMilitancy・天命の戦争の項 DynMandateWarWeight）は残す＝外すと戦争→内政の経路が消える（(377) の読み）。
 /// それが黙って消えないように、厭戦のストックを直に置いて〈闘争度の目標項が 0 でない〉〈天命が下がる〉を対照つきで確かめる（何もしない機構が緑にならない）。
-/// 突然変異で赤になる箇所：削除した名前の復活・Politics の warWeariness／dmWar の項を外す。</summary>
+/// 突然変異で赤になる箇所：削除した名前の復活・Politics の warWeariness／dmWar の項を外す・dmGraft／corruptionErosion の項を外す。</summary>
 [Collection("Instruments")]
 public class ScalarDeletionTests
 {
@@ -32,13 +33,37 @@ public class ScalarDeletionTests
     }
 
     [Fact]
-    public void 汚職の政治の2項は物理削除済み_旗とDiagの欄も残らない()
+    public void 採らなかった旗2本とDiagの欄はmainに入れない()
     {
-        // (377)：作者 2026-10-16「汚職→廃止」。財政の漏れ（Fiscal の官僚への移転）は別＝作者に聞く物 Q1 なので、ここでは禁じない。
-        string[] coefGone = ["DynMandateGraftWeight", "CorruptionLegitimacyErosion", "DeleteCorruptionScalars", "DeleteWarWearinessScalars"];
+        // (373) の形の旗 2 本（既定 0）と純記帳の Diag 3 欄は枝 ps に残す（思想⑩・反証役 ps〔bv〕中#1）。
+        string[] coefGone = ["DeleteCorruptionScalars", "DeleteWarWearinessScalars"];
         foreach (var n in coefGone) Assert.Null(typeof(Coefficients).GetField(n));
         string[] worldGone = ["DiagDmWar", "DiagDmGraft", "DiagCorrErosion"];
         foreach (var n in worldGone) Assert.Null(typeof(World).GetMember(n, All).FirstOrDefault());
+    }
+
+    [Fact]
+    public void 汚職の政治の2項は残る_天命と正統性を下げる()
+    {
+        // (377) で消して止める線に当たり戻した 2 項。対照＝同じ盤面で係数を 0 にした世界（World.Coef は国ごとの別インスタンス）。
+        // 期待値は本体の式から作らない＝〈係数ありの方が天命も正統性も低い〉だけを見る。前提：開幕の清・ロシアは実効汚職が正（行政財が足りない）。
+        MultiNationSim Run(bool zero)
+        {
+            var sim = Board();
+            if (zero) foreach (var n in sim.Nations) { n.World.Coef.DynMandateGraftWeight = 0.0; n.World.Coef.CorruptionLegitimacyErosion = 0.0; }
+            sim.Run(1);
+            return sim;
+        }
+        var with = Run(false);
+        var without = Run(true);
+        foreach (var name in new[] { "清", "ロシア" })
+        {
+            var w1 = with.Nations.First(n => n.World.SelfPower!.Name == name).World;
+            var w0 = without.Nations.First(n => n.World.SelfPower!.Name == name).World;
+            Assert.True(w1.EffectiveCorruption > 0, $"前提：{name} の実効汚職が 0（{w1.EffectiveCorruption}）＝この盤面では項を確かめられない");
+            Assert.True(w1.DynasticMandate < w0.DynasticMandate, $"{name}：汚職の項があっても天命が下がらない（{w0.DynasticMandate}→{w1.DynasticMandate}）＝天命の汚職の項が消えている");
+            Assert.True(w1.Legitimacy < w0.Legitimacy, $"{name}：腐敗の侵食があっても正統性が下がらない（{w0.Legitimacy}→{w1.Legitimacy}）＝腐敗→正統性の侵食が消えている");
+        }
     }
 
     [Fact]

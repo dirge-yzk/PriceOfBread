@@ -341,8 +341,8 @@ public static class Politics
             double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - c.DynMandateSatPivot) / (1.0 - c.DynMandateSatPivot);   // 中立点は分位の写像で導出（Coefficients.DynMandateSatPivot）
             double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
-            // ★(377) 天命の汚職の項（−DynMandateGraftWeight×実効汚職）を物理削除＝作者 2026-10-16「汚職→廃止」。汚職の財政の漏れ（Fiscal.cs の官僚への移転）は残る＝作者に聞く物 Q1
-            double dynPerf = dmSat + dmFood + dmWar;
+            double dmGraft = -c.DynMandateGraftWeight * w.EffectiveCorruption;
+            double dynPerf = dmSat + dmFood + dmWar + dmGraft;
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
             w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
             if (w.Explain != null)   // 説明API：天命の内訳（合計＝最終値の厳密分解）
@@ -354,6 +354,7 @@ public static class Politics
                 w.Explain.Add("DynasticMandate", "未教育層の満足(天命の母数)", r * dmSat);
                 w.Explain.Add("DynasticMandate", "飢えの評価", r * dmFood);
                 w.Explain.Add("DynasticMandate", "戦争疲弊の評価", r * dmWar);
+                w.Explain.Add("DynasticMandate", "汚職の体感", r * dmGraft);
                 double dmClamp = r * ((dmTarget - 0.5) - dynPerf);
                 if (dmClamp != 0) w.Explain.Add("DynasticMandate", "評価の飽和", dmClamp);
             }
@@ -381,9 +382,11 @@ public static class Politics
         // 意識ある社会が要求する代表/自由(RepresentationThreshold)と実効(Freedom＝参政権＋報道法から創発)の差が正統性を侵食する。
         // ＝閉じた体制(低Freedom)ほど・意識が高いほど削れ、代表的な体制(Freedom≥閾値)は自動で侵食ゼロ（政体ラベルでなく制度実数から創発）。
         double institutionalGap = avgConsc * Math.Max(0, c.RepresentationThreshold - w.Freedom);
-        // ★(377) 腐敗→正統性の侵食（CorruptionLegitimacyErosion×平均意識×(1−行政効率)）を物理削除＝作者 2026-10-16「汚職→廃止」（正統性へ直に足す項＝設計思想⑨）
+        // 腐敗→正統性侵食（corruption-only-fiscal-leak）：縁故主義・公共財の毀損は制度不信を生む。意識ある社会(avgConsc)ほど腐敗を許さない＝institutionalGap と同型ゲート。
+        // 較正中立：合成較正は行政財なしで AdminEfficiency=1.0＝(1−AdminEfficiency)=0 で侵食0（係数0.015は実世界で効く）。腐敗は財政漏れ(Fiscal)に加え政治的代償を持つ。
+        double corruptionErosion = c.CorruptionLegitimacyErosion * avgConsc * Math.Max(0, 1.0 - w.AdminEfficiency);   // C2-C5撤去2026-08-16：末尾の ×(1−CleanGovernance) を物理削除（V2恒久ONで清廉度は恒等0＝×1.0はIEEE754で厳密恒等）。⚠監視(OversightV2)はここに掛けない＝掛けると挙動変更（掃除の範囲外・要裁定なら較正ラウンドで）
         // 政1：全侵食項を erosion に集約（無状態版 leg=1−erosion／ストック版は前期値からこの erosion を差し引き緩慢に再生）。
-        double erosion = (c.LegitimacyErosionRate * institutionalGap) * dynErodeMul + c.DefeatShockLegitWeight * w.DefeatShock;   // 敗戦ショックが正統性を一時的に大きく削る（敗戦→革命）。較正は DefeatShock=0＝中立。P8天命は連続項のみ変調（×1.0で恒等・敗戦インパルスは除外）
+        double erosion = (c.LegitimacyErosionRate * institutionalGap + corruptionErosion) * dynErodeMul + c.DefeatShockLegitWeight * w.DefeatShock;   // 敗戦ショックが正統性を一時的に大きく削る（敗戦→革命）。較正は DefeatShock=0＝中立。P8天命は連続項のみ変調（×1.0で恒等・敗戦インパルスは除外）
         // 説明API（#63）：正統性の内訳を実寄与量で記帳。既定は LegitimacyIsStock=1.0＝**ストック**（履歴が累積する経路依存量）。
         // 代数：leg = (1−s)·1 + s·P + s·regen − erosion − mandate（P=前期の正統性・侵食は s に依らず全額）。ゆえに「前期からの正統性（履歴）＋今期の回復−侵食−マンデート＋後続イベント（戦勝/デフォルト/内戦…）」に分解される。
         // null 条件のため説明モードオフでは丸ごと短絡＝本計算はビット恒等。侵食の各項はこの下で個別に負記帳する。
@@ -393,6 +396,7 @@ public static class Politics
             w.Explain.Add("Legitimacy", "前期からの正統性(履歴の累積)", w.Legitimacy);
             w.Explain.Add("Legitimacy", "自然回復(安定期の信任回復)", c.LegitimacyRegenRate * Math.Max(0, 1 - w.Legitimacy) * dynRegenMul);
             w.Explain.Add("Legitimacy", "制度ギャップ侵食(意識と参政権・報道の乖離)", -c.LegitimacyErosionRate * institutionalGap * dynErodeMul);
+            w.Explain.Add("Legitimacy", "腐敗侵食(縁故主義・公共財の毀損)", -corruptionErosion * dynErodeMul);
             w.Explain.Add("Legitimacy", "敗戦ショック", -c.DefeatShockLegitWeight * w.DefeatShock);
         }
         // 議会の力学（ParliamentEnabled のみ＝合成較正は従来どおり）：既存の正統性に信号を流し、遷移を創発させる（外科的フリップなし）。

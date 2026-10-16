@@ -498,11 +498,11 @@ public sealed class Coefficients
     public int CrimeVictimBasis = 1;
     public double CrimeMilitancyWeight = 1.0;    // 犯罪率に効く「貧しく不満な大衆」の重み（闘争度×不充足）
     public double CrimeUrbanWeight = 0.6;        // B-4：都市化（過密スラム・匿名性・相対的剥奪）が犯罪を増幅＝犯罪率×(1+これ×都市人口比)。19世紀ロンドン/パリのスラム犯罪
-    // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CrimeSatPenalty/CrimeWealthFear＝live・CorruptionLegitimacyErosion は (377) で物理削除・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===
+    // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CrimeSatPenalty/CrimeWealthFear/CorruptionLegitimacyErosion＝live〔★(377) 削除を測って止める線に当たり戻した＝作者に聞く Q1 と一緒〕・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===
     public double CrimeSatPenalty = 0.5;         // 犯罪→満足度の還流（crime-is-dead-end）：crimeRate×これ を地域全POPの満足度から減算（治安崩壊＝非物質厚生の毀損）。第(iii)段2026-07-09で0.5へ有効化済み
     public double CriminalClassEnabled = 0.0;    // ★(366) 犯罪者 POP の器の主フラグ（治安と所有の安全 段0）＝0 で犯罪者 POP を並べない（Pops.Count も Region.CriminalPopIndex=-1 も不変・厳密恒等）／>0 で州の Pops の末尾に規模 0 の犯罪者を 1 つ置く（段1 の腕 A）。⚠構築時に読む係数＝シムを作ってから書き換えても届かない（POB_COEF は構築前に渡す）
     public double CrimeWealthFearWeight = 0.5;   // 財産不安（theft-no-property-disincentive）：富裕POP(wealthRel>1)ほど犯罪被害の満足度減を強める＝『失う物を守る』反動を満足度経由でIdeologyへ。**0.5で有効化済み**（台帳訂正2026-07-12・旧注記「既定0」は誤り）
-    // ★物理削除2026-10-16 (377)【墓標・再点火禁止】：CorruptionLegitimacyErosion（0.015）＝腐敗→正統性の侵食。作者 2026-10-16「汚職→廃止」
+    public double CorruptionLegitimacyErosion = 0.015;// 腐敗→正統性侵食（corruption-only-fiscal-leak）：(1−AdminEfficiency)×avgConsc×これ をlegから減算＝意識ある社会ほど縁故主義を許さない。較正は行政財なしAdminEff=1で0。**ストック意味論＝旧0.15×regen0.02**
     // ★物理削除2026-08-21【墓標・再点火禁止】：WelfareTargeting（休眠0.0・D群却下2026-07-18）＝福祉フラット加算 WelfareSatComponent の困窮targeting配分。
     //   基質（WelfareSatBonus＝満足度への直接加算）が作者裁定2026-08-17/19で撤去されたため、配分係数だけ残しても対象が存在しない＝道連れで削除。
     // ★段2で削除（設計メモ §2-1／§7-3）：InequalityMilitancy＝格差(ジニ)の闘争度加算と、その中立アンカー GiniNeutral。
@@ -1717,7 +1717,7 @@ public sealed class Coefficients
     public Share GreatPowerScoreFraction = new(0.35);  // 首位比率式のランク判定。53カ国世界（実国>12）では人数制に置換済みだが、**実国12以下の世界（テスト・較正）では現役**（Diplomacy.cs の if (real.Count > 12) の else 側＝台帳訂正2026-07-12・旧注記「廃止・残置」は不正確）
     public Share MinorPowerScoreFraction = new(0.22);  // 実国12以下の世界（テスト・較正）では現役（GreatPowerScoreFractionと同じ if (real.Count > 12) の else 側）
     // ★(373)(377) 政治のスカラーの削除（事前登録 measurements/ps_20261016_prereg.txt）。作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」
-    //   制度疲労（(373)）と汚職の政治の 2 項（天命の汚職の項・腐敗→正統性の侵食＝(377)）は物理削除した。厭戦の 2 項（WarWearinessMilitancy・DynMandateWarWeight）は残す＝外すと戦争→内政の経路が消える（実装ログ (377)）。旗 DeleteCorruptionScalars・DeleteWarWearinessScalars は main に入れない（形は枝 ps のコミット 64a208c8 に残る）
+    //   制度疲労（(373)）は物理削除した。汚職の政治の 2 項（天命の汚職の項・腐敗→正統性の侵食）は (377) で消して測ったが、止める線（移民による州の空洞化 1 件・セネガル）に当たったので戻した＝作者に聞く Q1 と一緒（実装ログ (377)）。厭戦の 2 項（WarWearinessMilitancy・DynMandateWarWeight）は残す＝外すと戦争→内政の経路が消える。旗 DeleteCorruptionScalars・DeleteWarWearinessScalars と World の Diag 3 欄は main に入れない（形は枝 ps のコミット 64a208c8 に残る）
     public double RankUpdateIntervalQuarters = 4;  // P14（2026-07-17点火）：ランク再分類の間隔（四半期）。4=年次ソート＝閾値チャタリング（列強動詞の点滅）抑制・威信の残光。1=毎四半期（旧挙動）。判定タイミングの間引きのみ＝RNGなし決定論中立
     public int GreatPowerCount = 7;                // 列強の定員（スコア上位N・2026-07-04人数制：同ランクの外交相手が常時5〜8カ国）
     // ★4段階化（作者指示2026-08-11）＝列強／準列強／中堅／弱小。旧「中堅12」を 準列強5＋中堅7 に割った。
@@ -3126,7 +3126,7 @@ public sealed class Coefficients
     public double DynMandateFoodWeight = 1.0;   // perf: 食料重み×min(0, FoodFill−アンカー)
     public double DynMandateFoodAnchor = 0.8;   // 食料アンカー＝飢饉閾値基準（プローブ検証済み：1.0基準は慢性輸入国=英を常時罰し終盤BD化→0.8で解消。罰すべきは飢饉であって輸入依存ではない）
     public double DynMandateWarWeight = 0.4;    // perf: −戦争重み×WarExhaustion
-    // ★物理削除2026-10-16 (377)【墓標・再点火禁止】：DynMandateGraftWeight（0.5）＝天命の汚職の項。作者 2026-10-16「汚職→廃止」
+    public double DynMandateGraftWeight = 0.5;  // perf: −汚職重み×実効汚職（制度側corruptionErosionは平均意識スケール＝近代の罰・こちらは未教育シェア減衰＝前近代の民の体感＝罰の担い手がクロスフェード＝二重計上不成立）
     public double DynMandateEmaRate = 0.08;     // EMA率/四半期（時定数≈3年）
     public double MandateReligiousCircuit = 1.0;   // 第5段5-5点火（2026-07-28）：天命の宗教媒介＝dynE×(1−これ×(1−開度×容量))。開度=国教法（無神論=0）・容量=聖職者/(文盲×ClergyMediationPerCapita)飽和。聖職者未モデル世界は素通し。0で旧恒等
     public double ClergyMediationPerCapita = 0.005;   // 第5段5-5：媒介飽和の基準＝文盲人口の0.5%の聖職者で容量1.0（仏1789実測≈1%＝開始時は各国飽和・世俗化/無神論で痩せて初めて効く）

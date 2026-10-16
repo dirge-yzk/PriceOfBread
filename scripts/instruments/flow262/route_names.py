@@ -67,7 +67,7 @@ ROUTE_NAMES = {
     ('MultiNationSim.cs', 1483): '海上保険の保険金(商人→被害の商人)',
     ('MultiNationSim.cs', 1915): '招聘の支度金(国庫→到着した人)',
     ('MultiNationSim.cs', 994): '外国債務の返済(貸し手のPOP→国境の外)',
-    ('Politics.cs', 1911): '革命の没収(没収された側→大衆)',
+    ('Politics.cs', 1915): '革命の没収(没収された側→大衆)',
     ('Simulation.cs', 2303): '切り下げの課税(全POP→国庫)',
     ('Simulation.cs', 2306): '切り下げの新規発行(不換の発行者→国庫)',
     ('Simulation.cs', 2912): '金の輸入(造幣局→商人)',
