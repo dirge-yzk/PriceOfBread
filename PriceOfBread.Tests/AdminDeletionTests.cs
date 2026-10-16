@@ -47,19 +47,42 @@ public class AdminDeletionTests
         Assert.Equal(expect, on.AdminEfficiency, 12);
     }
 
-    [Fact]
-    public void 旗1で行政力の移動平均は動かず_土地税の錠は構築から開いている()
+    // 土地税が 0 の国（解禁が行政の錠に頼る国）
+    private static Simulation LandTaxZeroNation(double flag)
     {
-        // 土地税が 0 の国（解禁が行政の錠に頼る国）を探す
         var cfg = WorldData.Nations().First(n => n.ToScenario(1).InitialLandTax <= 0);
-        Simulation Make(double flag) { var sc = cfg.ToScenario(5); sc.Coef.DeleteAdminEfficiencyFactors = flag; return new Simulation(sc, new NullAgent()); }
-        var off = Make(0.0); var on = Make(1.0);
-        Assert.False(off.World.LandTaxUnlocked);
+        var sc = cfg.ToScenario(5); sc.Coef.DeleteAdminEfficiencyFactors = flag;
+        return new Simulation(sc, new NullAgent());
+    }
+
+    [Fact]
+    public void 旗1の行政効率の説明台帳は値と一致する()
+    {
+        var w = France(1.0).World;
+        SetFill(w, 0.6);
+        w.Explain = new ExplainLedger();
+        double v = w.AdminEfficiency;
+        Assert.Equal(0.6, v, 12);
+        Assert.Equal(v, w.Explain.Get("AdminEfficiency").Sum(t => t.Delta), 12);
+    }
+
+    [Fact]
+    public void 旗1で土地税の錠は構築から開いている_旗0は閉じている()
+    {
+        Assert.False(LandTaxZeroNation(0.0).World.LandTaxUnlocked);
+        var on = LandTaxZeroNation(1.0);
         Assert.True(on.World.LandTaxUnlocked);                              // 錠の削除＝常に開く（ラッチが立たないのではない）
+        on.Run(4);
+        Assert.True(on.World.LandTaxUnlocked);
+    }
+
+    [Fact]
+    public void 旗1で行政力の移動平均は動かない_旗0は動く()
+    {
+        var off = LandTaxZeroNation(0.0); var on = LandTaxZeroNation(1.0);
         off.Run(4); on.Run(4);
         Assert.True(off.World.AdminPowerSmoothed > 0.0, "旗 0 の行政力の移動平均が動かない");
         Assert.Equal(0.0, on.World.AdminPowerSmoothed);                     // 旗 1＝更新が無い
-        Assert.True(on.World.LandTaxUnlocked);
     }
 
     [Fact]

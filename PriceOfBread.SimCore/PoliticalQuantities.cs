@@ -340,6 +340,8 @@ public static class PoliticalQuantities
             fill += r.AdminFill * p; size += p;
         }
         if (size <= 1e-9) return 1.0;
-        return Clamp01(fill / size);
+        double v = Clamp01(fill / size);
+        if (w.Explain != null) { w.Explain.Reset("AdminEfficiency"); w.Explain.Add("AdminEfficiency", "官僚制(行政費)", v); }   // 説明API（#63）：旗>0 の行政効率は充足だけ（記帳は戻り値と同じ値）
+        return v;
     }
 }
