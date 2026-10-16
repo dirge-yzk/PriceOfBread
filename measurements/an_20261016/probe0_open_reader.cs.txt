@@ -1,0 +1,37 @@
+using System;
+using System.Linq;
+using System.IO;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+public class ZzProbeAnchorTests
+{
+    [Fact]
+    public void Probe()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1UL, _ => new UtilityAgent());
+        var sb = new System.Text.StringBuilder();
+        void Dump(string tag)
+        {
+            sb.AppendLine("== " + tag);
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World;
+                double pop = w.TotalPopulation, delta = w.PopulationDelta, baseline = pop - delta;
+                double core = 0, col = 0, other = 0; int nc = 0, nk = 0;
+                foreach (var r in w.Regions)
+                {
+                    double p = r.SumPopulation();
+                    if (r.Tier == RegionTier.Core) { core += p; nc++; } else if (r.Tier == RegionTier.Colonial) { col += p; nk++; } else other += p;
+                }
+                sb.AppendLine($"{w.SelfPower?.Name}\tbaseline={baseline:F3}\tpop={pop:F3}\tdelta={delta:F3}\tcore={core:F3}({nc})\tcolonial={col:F3}({nk})\tother={other:F3}");
+            }
+        }
+        Dump("construct");
+        sim.StartWarmup();
+        Dump("warm");
+        File.WriteAllText("D:/PoB_work/an_round/probe0.txt", sb.ToString());
+    }
+}

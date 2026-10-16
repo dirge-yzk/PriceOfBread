@@ -1,0 +1,36 @@
+=== 木 5459c41a560666c644775ae31af030daf38fa537（git archive の写し D:/PoB_work/merge_372/t_5459c41a）
+POB_COEF 相当＝既定を書き換えた写し：ConsumptionLayersEnabled=1;ConsumptionOpeningLevel=1
+2369:    public int ConsumptionLayersEnabled = 1;
+2372:    public int ConsumptionOpeningLevel = 1;   // ★(349) 腕では 1（作者の表の砂糖・茶・コーヒー・缶詰・自転車・ラジオ・灯油・ガス）。水準 2 の 6 財は出典が逆向き（家具は Allen の籠より大きい）＝確証なしで採らない
+rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  成功 PriceOfBread.Tests.FranceTests.工業化はゆるやかに進むが都市化は史実的な範囲に縛られる [1 s]
+  成功 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [16 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [10 s]
+  エラー メッセージ:
+   賛成不足・在庫不足のどちらかの段の法が場面 A に無い（符号の件数 0,0,12,0,0,0,0,0,0,0）＝突き合わせが空洞
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+テストの合計数: 3
+合計時間: 29.5421 秒
+=== 木 f1a2d03d152bed8ccec96d4255f7510cea1a986b（git archive の写し D:/PoB_work/merge_372/t_f1a2d03d）
+POB_COEF 相当＝既定を書き換えた写し：ConsumptionLayersEnabled=1;ConsumptionOpeningLevel=1
+2369:    public int ConsumptionLayersEnabled = 1;
+2372:    public int ConsumptionOpeningLevel = 1;   // ★(349) 腕では 1（作者の表の砂糖・茶・コーヒー・缶詰・自転車・ラジオ・灯油・ガス）。水準 2 の 6 財は出典が逆向き（家具は Allen の籠より大きい）＝確証なしで採らない
+rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.FranceTests.工業化はゆるやかに進むが都市化は史実的な範囲に縛られる [1 s]
+  エラー メッセージ:
+   工業化が進んでいない
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [16 s]
+  エラー メッセージ:
+   場面 T の照合が空洞（飢え 0・構造 12）
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [10 s]
+テストの合計数: 3
+合計時間: 29.7142 秒
+DONE

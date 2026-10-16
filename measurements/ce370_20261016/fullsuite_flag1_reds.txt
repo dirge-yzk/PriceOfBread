@@ -1,0 +1,42 @@
+旗 1 の木のフルスイート（POB_COEF="ConsumptionLayersEnabled=1;ConsumptionOpeningLevel=1"・複製でない作業ツリー wt_ce5・形の木 f1a2d03d＋事前登録追記 27d51245・Release・Category!=FullLength・7 分 24 秒）
+  失敗 PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [34 ms]
+  失敗 PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある [85 ms]
+  失敗 PriceOfBread.Tests.ElectionAiTests.金の代価は投入額そのもので国庫からpopへ移るだけ [77 ms]
+  失敗 PriceOfBread.Tests.FranceTests.工業化はゆるやかに進むが都市化は史実的な範囲に縛られる [1 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [12 s]
+  失敗 PriceOfBread.Tests.MobilityTests.食えない中層は労働者に転落し不満を持ち込む [7 s]
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [13 s]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 24941975) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2351664) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 4887) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 21, declared: 0) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2695) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [< 1 ms]
+失敗!   -失敗:    15、合格:  1240、スキップ:     0、合計:  1255、期間: 7 m 24 s - PriceOfBread.Tests.dll (net10.0)
+
+--- 失敗の中身（挙動を守る赤）
+  失敗 PriceOfBread.Tests.FranceTests.工業化はゆるやかに進むが都市化は史実的な範囲に縛られる [1 s]
+  エラー メッセージ:
+   工業化が進んでいない
+  失敗 PriceOfBread.Tests.ElectionAiTests.既定の半減点は手の届く目盛りにある [85 ms]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.001 - 1)
+  失敗 PriceOfBread.Tests.ElectionAiTests.金の代価は投入額そのもので国庫からpopへ移るだけ [77 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 55.563380543999997 (rounded from 55.563380543827748)
+  失敗 PriceOfBread.Tests.MobilityTests.食えない中層は労働者に転落し不満を持ち込む [7 s]
+  エラー メッセージ:
+   職のない教師が転落していない（7→15）
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [13 s]
+  エラー メッセージ:
+   開幕の歳入÷年GDP が帯 0.04〜0.14 の外： イギリス 0.0158、スペイン 0.0189
+  失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [12 s]
+  エラー メッセージ:
+   場面 T の照合が空洞（飢え 0・構造 12）
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+  エラー メッセージ:
+   国営の棟の着工が1件も写っていない（対照）＝着工の口（World.BuildFactory の計器）を消しても緑になる
