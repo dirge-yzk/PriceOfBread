@@ -5,9 +5,9 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(373) 政治のスカラーの削除 段0 の形（休眠）の番人。事前登録 measurements/ps_20261016_prereg.txt。
-/// 旗 3 本（DeleteInstitutionalDecay・DeleteCorruptionScalars・DeleteWarWearinessScalars）は既定 0＝旧。期待値は本体の式から作らず、世界のデータ（清 0.8・オスマン 0.6・露 0.4・
-/// 天井の共通床 0.3）と〈旗 1 なら 0〉をリテラルで書く。対照（旗 0 で 0 でない）を必ず置く＝何もしない機構が緑にならない。
-/// 突然変異で赤になる箇所：Simulation の初期値の三項（疲労の初期値に旗を掛けない）・Politics の 240／343／344／387 の旗の枝（旗を読まない）。</summary>
+/// 旗 2 本（DeleteCorruptionScalars・DeleteWarWearinessScalars）は既定 0＝旧（不採用・枝に残す）。制度疲労の旗は採用して削除した。期待値は本体の式から作らず、〈旗 1 なら 0〉をリテラルで書く。
+/// 対照（旗 0 で 0 でない）を必ず置く＝何もしない機構が緑にならない。
+/// 突然変異で赤になる箇所：Politics の 240／343／344／387 の旗の枝（旗を読まない）・削除した名前の復活（制度疲労の番人）。</summary>
 [Collection("Instruments")]
 public class ScalarDeletionTests
 {
@@ -24,49 +24,23 @@ public class ScalarDeletionTests
     public void 旗の既定は休眠()
     {
         var c = new Coefficients();
-        Assert.Equal(0.0, c.DeleteInstitutionalDecay);
         Assert.Equal(0.0, c.DeleteCorruptionScalars);
         Assert.Equal(0.0, c.DeleteWarWearinessScalars);
     }
 
-    private static World Built(double flagD, string nation)
-    {
-        var cfg = WorldData.ByName(nation);
-        var coef = new Coefficients { DeleteInstitutionalDecay = flagD };
-        var sc = new Scenario { Seed = 1, Kind = ScenarioKind.Nation, NationConfig = cfg, InitialInstitutionalDecay = cfg.InstitutionalDecay, Coef = coef, SharedWorld = true };   // ToScenario と同じ初期値の写し
-        return new Simulation(sc, new UtilityAgent()).World;
-    }
-
     [Fact]
-    public void 疲労の初期値は旗0で世界のデータのまま_旗1で0()
+    public void 制度疲労は物理削除済み_係数も状態も読み手に残らない()
     {
-        // 旗 0：清 0.8・オスマン 0.6・露 0.4（world.json）・天井＝初期値∨共通床 0.3。日本（初期 0）は天井だけ 0.3。
-        var qing = Built(0.0, "清"); Assert.Equal(0.8, qing.InstitutionalDecay, 12); Assert.Equal(0.8, qing.InstitutionalDecayCeiling, 12);
-        var ott = Built(0.0, "オスマン"); Assert.Equal(0.6, ott.InstitutionalDecay, 12); Assert.Equal(0.6, ott.InstitutionalDecayCeiling, 12);
-        var rus = Built(0.0, "ロシア"); Assert.Equal(0.4, rus.InstitutionalDecay, 12); Assert.Equal(0.4, rus.InstitutionalDecayCeiling, 12);
-        var jpn = Built(0.0, "日本"); Assert.Equal(0.0, jpn.InstitutionalDecay, 12); Assert.Equal(0.3, jpn.InstitutionalDecayCeiling, 12);
-        // 旗 1：全て 0・天井も 0（書き手の門に入らない）
-        foreach (var n in new[] { "清", "オスマン", "ロシア", "日本" })
-        {
-            var w = Built(1.0, n);
-            Assert.Equal(0.0, w.InstitutionalDecay); Assert.Equal(0.0, w.InstitutionalDecayCeiling); Assert.Equal(0.0, w.DecayForReaders);
-        }
-    }
-
-    [Fact]
-    public void 疲労が0で天井も0なら書き手は走らず0のまま()
-    {
-        // 旗 1 と同じ初期状態を後から置く（MultiNationSim の係数は国ごとの別のインスタンスで、構築の後では初期値の三項に届かない）。
-        var sim = Board(0.0, 0.0);
-        var qing = Of(sim, "清");
-        Assert.Equal(0.8, qing.InstitutionalDecay, 12);   // 対照：旗 0 の清は疲労が 0 でない
-        foreach (var n in sim.Nations) { n.World.InstitutionalDecay = 0; n.World.InstitutionalDecayCeiling = 0; }
-        sim.Run(6);
-        foreach (var n in sim.Nations)
-        {
-            Assert.Equal(0.0, n.World.InstitutionalDecay); Assert.Equal(0.0, n.World.InstitutionalDecayCeiling);
-            Assert.Equal(0.0, n.World.DecayForReaders);
-        }
+        // 腕 BD（制度疲労だけ）が H の線と止める線に通って採用した削除（2026-10-16）。復活を黙って許さない＝名前で存在を禁じる（期待値は本体の式から作らない）。
+        string[] coefGone = ["DeleteInstitutionalDecay", "DecayReformResistWeight", "DecayTechAdoptWeight", "DecayMilitaryWeight", "DecayShockRelief", "DecayShockCooldownQuarters",
+            "DecayReactionRegrowth", "DecayLockinIndustrialization", "DecayCeilingUniversal", "ModernizationDecayCost", "ModernizationDecayRelief", "DecayFromPrivilege"];
+        foreach (var n in coefGone) Assert.Null(typeof(Coefficients).GetField(n));
+        string[] worldGone = ["InstitutionalDecay", "InstitutionalDecayCeiling", "DecayForReaders", "PrivilegeDecayRaw", "WorldMaxPrivilegeDecayRaw"];
+        const System.Reflection.BindingFlags all = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+        foreach (var n in worldGone) Assert.Null(typeof(World).GetMember(n, all).FirstOrDefault());
+        // 初期値の入り口（NationConfig／Scenario）にも残さない
+        Assert.Null(typeof(NationConfig).GetField("InstitutionalDecay"));
+        Assert.Null(typeof(Scenario).GetProperty("InitialInstitutionalDecay"));
     }
 
     [Fact]

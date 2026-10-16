@@ -3453,7 +3453,7 @@ if (args.Length > 0 && args[0] == "selectprobe")
     long tRank = sw.ElapsedMilliseconds;
     var diff = NationBrief.Difficulties(cfgs0, coef0, soldiers0);
     System.Console.WriteLine($"world.json読込 {tCfg}ms／ランク算出（世界の構築込み）{tRank - tCfg}ms");
-    System.Console.WriteLine($"{"国",-14}{"強さ",-6}{"難易度",-8}{"素点",8}{"資源",7}{"分離",7}{"安全",7}{"負荷",7}{"疲労",7}");
+    System.Console.WriteLine($"{"国",-14}{"強さ",-6}{"難易度",-8}{"素点",8}{"資源",7}{"分離",7}{"安全",7}{"負荷",7}");
     var order = new List<NationConfig>(cfgs0);
     var easeByName = cfgs0.ToDictionary(c => c.Name, c => NationBrief.Ease(c, cfgs0, coef0, soldiers0));   // ★Sort中に再計算しない
     order.Sort((a, b) => easeByName[b.Name].CompareTo(easeByName[a.Name]));
@@ -3461,7 +3461,7 @@ if (args.Length > 0 && args[0] == "selectprobe")
     {
         var t = NationBrief.Terms(c, cfgs0, coef0, soldiers0);
         System.Console.WriteLine($"{c.Name,-14}{ranks.GetValueOrDefault(c.Name, ""),-6}{diff.GetValueOrDefault(c.Name, "―"),-8}"
-            + $"{t.Ease,8:F3}{t.Resource,7:F2}{t.Hold,7:F2}{t.Safety,7:F2}{t.Load,7:F2}{t.Decay,7:F2}");
+            + $"{t.Ease,8:F3}{t.Resource,7:F2}{t.Hold,7:F2}{t.Safety,7:F2}{t.Load,7:F2}");
     }
     return;
 }
@@ -5038,7 +5038,6 @@ if (args.Length > 0 && args[0] == "politics-ablation")
     ulong paSeed = args.Length > 1 && ulong.TryParse(args[1], out var pas) ? pas : 1UL;
     string[] paFlags = [
         "RegimeTrackRecordWeight",
-        "DecayReformResistWeight", "DecayTechAdoptWeight", "DecayMilitaryWeight",
         "ReformAnticipationWeight", "WarCoercionDrain",   // PushedLawGrievance は 2026-09-20 に係数ごと削除（段の点火）・DynasticMandateEnabled／RedefinedMandateEnabled／ReformFromAboveEnabled は 2026-09-26 に旗ごと焼き込み（x-01）
     ];
     int PaRun(string? flag)
@@ -7170,7 +7169,7 @@ if (args.Length > 0 && args[0] == "natprobe")
     npsim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     foreach (var ns in npsim.Nations) ns.TelemetryEnabled = false;
     npsim.Diplomacy.Log.Enabled = false;
-    Console.WriteLine("年	工業化	GDP	国庫	兵	交戦	満足	闘争	政体	正統	投資家貯蓄	制度疲労");
+    Console.WriteLine("年	工業化	GDP	国庫	兵	交戦	満足	闘争	政体	正統	投資家貯蓄");
     for (int q = 0; q < Coefficients.GameQuarters; q++)
     {
         npsim.StepQuarter();

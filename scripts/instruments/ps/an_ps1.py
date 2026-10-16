@@ -115,23 +115,36 @@ def load_arms(args):
 
 # ---------------------------------------------------------------- M1 / M2
 def sec_m1(arms):
-    p('=== M1：旗が効いている（B の scalars_s）===')
-    for tag in ('A', 'B'):
-        a = arms.get(tag)
-        if not a or not a.sca:
+    p('=== M1：旗が効いている（旗が 1 の行だけで、その旗の列が 0）===')
+    p('  （追記4：切り分け腕でも読めるようテーマごとに〈その旗が 1 の行〉だけを見る。閾値は変えない。flagD の列が無い表〔制度疲労の削除後の木〕は該当の節を飛ばす）')
+    for tag, a in arms.items():
+        if not a.sca:
             p(f'  {tag}: scalars_s 無し')
             continue
         rows = [x for r in a.sca.values() for x in r]
         n = len(rows)
-        want = '1' if tag == 'B' else '0'
-        flags_ok = all(fl(x['flagD']) == fl(want) and fl(x['flagC']) == fl(want) and fl(x['flagW']) == fl(want) for x in rows)
-        bad_d = sum(1 for x in rows if not (fl(x['decay']) == 0 and fl(x['decayCeiling']) == 0))
-        bad_w = sum(1 for x in rows if not (fl(x['milWarMean']) == 0 and fl(x['dmWar']) == 0))
-        bad_c = sum(1 for x in rows if not (fl(x['dmGraft']) == 0 and fl(x['corrErosion']) == 0))
-        p(f'  {tag}: 行 {n}・旗は全行 {want}: {flags_ok}・(decay,ceiling が 0 でない行 {bad_d})・(milWarMean,dmWar が 0 でない行 {bad_w})・(dmGraft,corrErosion が 0 でない行 {bad_c})')
-        if tag == 'B':
-            ok = flags_ok and bad_d == 0 and bad_w == 0 and bad_c == 0 and n > 0
-            p(f'  M1 判定：{"合格" if ok else "不合格"}')
+        res = []
+        for flag, label, cols in (('flagD', '疲労', ('decay', 'decayCeiling')), ('flagC', '汚職', ('dmGraft', 'corrErosion')), ('flagW', '厭戦', ('milWarMean', 'dmWar'))):
+            if flag not in rows[0]:
+                res.append(f'{label}: 列なし')
+                continue
+            on = [x for x in rows if fl(x[flag]) == 1]
+            off = [x for x in rows if fl(x[flag]) == 0]
+            bad = sum(1 for x in on if not all(fl(x[c]) == 0 for c in cols))
+            ctrl = sum(1 for x in off if not all(fl(x[c]) == 0 for c in cols))
+            res.append(f'{label}: 旗1の行 {len(on)}（0でない {bad}）・旗0の行 {len(off)}（0でない対照 {ctrl}）')
+        p(f'  {tag}: 行 {n}・' + '・'.join(res))
+    b = arms.get('B')
+    if b and b.sca:
+        rows = [x for r in b.sca.values() for x in r]
+        ok = True
+        for flag, cols in (('flagD', ('decay', 'decayCeiling')), ('flagC', ('dmGraft', 'corrErosion')), ('flagW', ('milWarMean', 'dmWar'))):
+            if flag not in rows[0]:
+                continue
+            on = [x for x in rows if fl(x[flag]) == 1]
+            if on and any(not all(fl(x[c]) == 0 for c in cols) for x in on):
+                ok = False
+        p(f'  M1 判定（B の腕）：{"合格" if ok else "不合格"}')
 
 
 def sec_m2(arms):

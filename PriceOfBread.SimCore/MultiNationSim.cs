@@ -461,11 +461,6 @@ public sealed class MultiNationSim
         nw.CopyLawsFrom(pw);
         Politics.RaiseFoundingInstitutions(nw);
         nw.AdminPowerSmoothed = pw.AdminPowerSmoothed;
-        // #126 制度疲労の継承（2026-07-25・ユーザー裁定「清の近代化が簡単すぎる」）：独立は文明を巻き戻さない（技術・法の継承）が、**制度の病も引き継ぐ**。
-        // 旧＝新国家は decay=0 で生まれ、親が清（decay≈0.8）でも技術採用×0.6・改革抵抗×1.4・軍質ペナルティが全て消滅＝
-        // 「分裂で身軽に近代化」（上海王国4勝/昆明系4勝の機構的な根）。軍閥期の中国は清の制度的な病（禄位・割拠）を引き継いだ＝継承が史実。
-        nw.InstitutionalDecay = pw.InstitutionalDecay;
-        nw.InstitutionalDecayCeiling = pw.InstitutionalDecayCeiling;
         nw.BornOfSecession = true;   // P9：独立戦争の危機乗数（レヴェ・アン・マス）の判定用（分離で生まれた国＋交戦中）
         // ★保持力の測定は親の値から始まる（2026-09-29 線2）＝治安の強度（人口あたり）は構築の BaseCoercion と同じく親から＝次の四半期末の Politics.Step が自国の軍と正統性で測り直す。
         //   ⚠旧＝新しい国の測定は0（最初の四半期は保持力0）＝開戦で動員を自国の POP で測る（Diplomacy.DeclareCivilWar）と革命圧力が「保持力0」で満杯になる。
@@ -676,7 +671,6 @@ public sealed class MultiNationSim
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;   // StepDay と同一：後追いが立ち上がる先端を毎反復同期
             { double fe = 0; foreach (var n in Nations) if (n.World.Expertise > fe) fe = n.World.Expertise; foreach (var n in Nations) n.World.WorldFrontierExpertise = fe; }   // ★専門人材率の先端も配る（知識doc 段3）
-            { double fd = 0; foreach (var n in Nations) if (n.World.PrivilegeDecayRaw > fd) fd = n.World.PrivilegeDecayRaw; foreach (var n in Nations) n.World.WorldMaxPrivilegeDecayRaw = fd; }   // ★特権段6：制度疲労の導出量の世界最大（正規化の分母）
         }
     }
 
@@ -834,7 +828,6 @@ public sealed class MultiNationSim
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;
             { double fe = 0; foreach (var n in Nations) if (n.World.Expertise > fe) fe = n.World.Expertise; foreach (var n in Nations) n.World.WorldFrontierExpertise = fe; }   // ★専門人材率の先端も配る（知識doc 段3）
-            { double fd = 0; foreach (var n in Nations) if (n.World.PrivilegeDecayRaw > fd) fd = n.World.PrivilegeDecayRaw; foreach (var n in Nations) n.World.WorldMaxPrivilegeDecayRaw = fd; }   // ★特権段6：制度疲労の導出量の世界最大（正規化の分母）
             // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
             // 「先進勢力との接触」の実体から四半期導出する。外圧＝世界の技術水準との格差（GapScaleで正規化）×海からの接触係数
             //（港あり=1/内陸=InlandFactor＝黒船は海から来る）。世界の技術水準国自身は格差0＝外圧0（追い風は後発の現象）。

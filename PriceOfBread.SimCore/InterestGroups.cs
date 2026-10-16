@@ -39,7 +39,7 @@ public static class InterestGroups
         // ⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝将校団の政治力は
         // 「軍の圧力（組織の大きさ＋解隊の脅威＋粛清/人事介入の記憶＋対外屈辱）×（1−文民制度の弁）」から出る（Finer/Huntington）。
         // ループ不変（World の純関数）＝1回だけ計算して pop ごとに掛ける。
-        double closedMul = (1.0 + w.Coef.MilitarismClout * PoliticalQuantities.MilitaryPoliticalRatio(w)) * (1.0 + w.Coef.DecayReformResistWeight * w.DecayForReaders);
+        double closedMul = (1.0 + w.Coef.MilitarismClout * PoliticalQuantities.MilitaryPoliticalRatio(w));
         double trad = 0, modern = 0, mass = 0;
         foreach (var (_, p) in w.AllPopsWithRegion())
         {

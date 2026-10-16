@@ -1716,18 +1716,8 @@ public sealed class Coefficients
     // 実国家を首位スコア比で3層に分け、抽象勢力(Nation==null＝被植民地の弱小勢力)は常に弱小。
     public Share GreatPowerScoreFraction = new(0.35);  // 首位比率式のランク判定。53カ国世界（実国>12）では人数制に置換済みだが、**実国12以下の世界（テスト・較正）では現役**（Diplomacy.cs の if (real.Count > 12) の else 側＝台帳訂正2026-07-12・旧注記「廃止・残置」は不正確）
     public Share MinorPowerScoreFraction = new(0.22);  // 実国12以下の世界（テスト・較正）では現役（GreatPowerScoreFractionと同じ if (real.Count > 12) の else 側）
-    // P7 制度疲労（2026-07-17）：InstitutionalDecay の読み3チャネル＋脱出動学の係数。主フラグ＝3チャネル重み（全0で完全休眠・状態更新も走らない）
-    public double DecayReformResistWeight = 0.75;   // ①改革への抵抗＝旧支配層の政治力×(1+k×decay)（配線1本＝InterestGroups.PoliticalWeight Closed分岐）。live 0.75（清decay0.8で×1.6）
-    public double DecayTechAdoptWeight = 0.75;      // ②技術採用の遅延＝キャッチアップ採用速度×(1−k×decay)。live 0.75（清decay0.8で×0.4＝科挙官僚制の遅い近代化）
-    public double DecayMilitaryWeight = 0.75;       // ③軍改革の失敗＝軍質×(1−k×decay×正規化技術差)＝1840年代にアヘン戦争型敗北が可能に。live 0.75
-    public double DecayShockRelief = 0.20;         // ショック（決定的敗戦/内戦勃発/国家破産）1回の部分減衰（仕様帯−0.15〜0.25）
-    public int DecayShockCooldownQuarters = 20;    // ショック減衰のクールダウン（連発防止＝5年）
-    public double DecayReactionRegrowth = 0.01;    // 反動の再成長率/四半期（旧支配層優位×検閲が続く限り天井へ漸近＝「負ければ近代化」の逆説を防ぐ）
-    // ★撤去2026-08-16（C2-C5）：DecayLockinCleanGov（清廉度ロックイン閾値）を物理削除＝汚職V2恒久ONで清廉度ストックごと撤去・唯一の読者（Politics.cs lockin枝）は常に偽の死骸だった。
-    public double DecayLockinIndustrialization = 1.0;  // ロックイン＝平均工業化がこの閾値以上で再成長停止
     // ★(373) 政治のスカラーの削除（休眠・採否は未定＝旧と並存・事前登録 measurements/ps_20261016_prereg.txt）。作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」
-    //   3本とも 0＝旧＝厳密恒等。採否が決まったら旗ごと・読み手ごと・書き手ごと物理削除する（置き換えは作らない）。腕 B＝3本とも 1。不合格のときだけ 1 本ずつ切り分ける。
-    public double DeleteInstitutionalDecay = 0.0;     // >0＝制度疲労のストックと天井を 0 のまま保つ（読み手 InterestGroups・TechEducation・ArmyShape・World 近代化費・EconomyStep の緩和は×1.0／+0.0／門を通らない・Politics の月次は走らない）
+    //   制度疲労は腕 BD（制度疲労だけ）が H の線と止める線に通ったので採用し、旗・ストック・天井・読み手・書き手を物理削除した（2026-10-16）。汚職と厭戦の 2 本は腕 BCW が H の線に落ちたので不採用＝旗を既定 0 のまま枝に残す。
     public double DeleteCorruptionScalars = 0.0;      // >0＝天命の汚職の項（DynMandateGraftWeight×実効汚職）と腐敗→正統性の侵食（CorruptionLegitimacyErosion）を 0 にする。⚠財政の漏れ（Fiscal.cs の revenue×CorruptionMax×実効汚職＝官僚への移転）は含めない＝作者に聞く物（事前登録 [2]）
     public double DeleteWarWearinessScalars = 0.0;    // >0＝厭戦の闘争度項（WarWearinessMilitancy×厭戦＝Pop.MilWar）と天命の戦争の項（DynMandateWarWeight×厭戦）を 0 にする。⚠厭戦のストック自体（戦争の終わり・動員の深さ・保持力の戦時ドレイン・同盟の疲れ）は含めない＝作者に聞く物（事前登録 [2]）
     public double RankUpdateIntervalQuarters = 4;  // P14（2026-07-17点火）：ランク再分類の間隔（四半期）。4=年次ソート＝閾値チャタリング（列強動詞の点滅）抑制・威信の残光。1=毎四半期（旧挙動）。判定タイミングの間引きのみ＝RNGなし決定論中立
@@ -2024,9 +2014,6 @@ public sealed class Coefficients
     // ⑭-B（B-高3の前提）：CoreEthnicShare の初期化を州の Culture ラベルで分化（主流文化州=高・少数文化州=低＝地理的局在）。0=国一律u0＝厳密恒等。
     // 旧＝墺の全11州が一律0.35＝分離圧力の強度が戻っても「どの州が離れるか」の地理が生まれない。点火1.0＝一致州1.0/不一致州0.0（加重平均が州構成から創発）。
     public double CoreInitByRegionCulture = 1.0;   // **2026-07-25点火試験（第3群B-高3の前提⑭-B）**：一致州1.0/不一致州0.0＝分離の地理的局在が州構成から創発
-    // C-高7：制度疲労の天井の共通床。旧＝天井=初期値のため decay を持たない50カ国は構造的に硬直しえない（3カ国だけの特権）。
-    // 0=旧挙動＝厳密恒等。点火0.3＝低い値からの段階点火（0.8級を一律に与えると約40カ国の改革抵抗が跳ね1914断面の6法軸が保守側へ倒れる）。
-    public double DecayCeilingUniversal = 0.3;   // **2026-07-25点火試験（第3群C-高7）**：低い共通床から段階点火（decayを持たない50カ国も硬直しうる）
     // ===== 2026-07-24設計群（7doc）＝点火状況は各行参照 =====
     // 産業政策の代償（設計doc 2026-07-24「産業政策の代償設計」）
     // レバー1【本命】軟予算制約（コルナイ）：補助金/国営赤字で操業する工場は「補助依存ストック」（Producer.SubsidyDependence 0..1）が漸増し、
@@ -2873,9 +2860,7 @@ public sealed class Coefficients
     // ★近代化投資（2026-08-04・作者指示「工業化投資を近代化投資に変更…制度疲労・技術力などを改善する効果を持つ」）
     public double ModernizationOldGuardResist = 0.5;  // 旧支配層の政治力シェア1.0あたり近代化投資が止まる割合（免許・検地・認可を握るのが旧支配層）。制度疲労が旧支配層の政治力を膨らませる既存経路と結び「改革を要する国ほど改革できない」が創発。0で乗算恒等
     public double ModernizationCostGdpShare = 1.0;   // frac/(1-frac) に掛かる係数。frac=0.3 で四半期GDPの約0.43倍＝年GDP比11%（発展途上国家の投資率として妥当）・frac=0.8 で4倍・frac→1 で発散。A=2.0 も試したが年GDP比21%は高すぎ、帯も経済規模−6.3で劣った（2026-08-04実測）。**国庫比でなく絶対額**にすることで「100%はほとんどの国で不可能」を成立させる。0で旧式（国庫×frac×0.5）＝厳密恒等
-    public double ModernizationDecayCost = 1.5;       // 制度疲労1.0あたりの追加コスト倍率（清decay0.8で×2.2）＝科挙官僚制が鉄道を敷くのに要した余分
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ
-    public double ModernizationDecayRelief = 0.10;    // 実現した工業化度1あたりの制度疲労の低下。**0.02→0.10（2026-08-04）**：0.02では疲労0.8の解消に100年以上かかり、作者指示「近代化投資で疲労が取り除きやすくなるからペナルティを大きくする」の前提（取り除ける）が満たされないまま罰だけが重くなっていた（実測＝疲労を抱える露/墺が列強になれず列強・再現率が−11pt）。0.10で持続的な投資が約20年で疲労を解消＝明治型の速さ。0で恒等
     // 【墓標2026-09-26（棚卸し dorm-50）】ModernizationTechGain（近代化投資の直接の技術加点・「0で確定」2026-08-04）＝削除。制度疲労が技術採用を律しているので近代化投資が疲労を削れば技術は伸びる＝直接の加点は二重計上（実測で公教育の普 vs 宗教教育の露の差が消えた）
     public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 近代化投資（World.ApplyModernizationInvestment）の州上限＝この工業化度に達した州へは国庫投資を注がない（プレイヤー/AI共通。富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】StateRevenueAllTaxes＝国家の歳入要求を所得税・人頭税・土地税の純支持へ（政12・点火済み）
@@ -3356,10 +3341,7 @@ public sealed class Coefficients
     //     それだけで受益層は世界に1本の門（蜂起の閾値）に届く／新参の特権（強度小）はほとんど動かない。⇒ 剥離は「2か月で門」を1発で満たす。
     //   ⚠点火は PrivilegeLedgerEnabled と同じ回に（台帳が走らないとこの枝に到達しない）＝単独計測は「台帳ON×怒り0」との2腕で取る。
     public double PrivilegeStripMilitancy = 0.0;
-    // ★特権システム 段6（作者設計 §6）：制度疲労を導出量へ＝読み手が (1−g)×旧ストック + g×（天井×Σ(取り分/GDP×発言権シェア)÷世界最大）を読む。0＝旧スカラー（厳密恒等）。
-    //   ⚠清の43%抑制の主因を差し替える操作＝単独計測・分裂の是正と同じラウンドに入れない（作者設計 §9）。PrivilegeLedgerEnabled>0 が前提。
-    public double DecayFromPrivilege = 0.0;
-    // ★特権システム 段5前半（2026-09-07）：P5 特許会社（茶の独占レント＝資本家の取り分）を台帳へ記帳（金の流れは変えない・DecayFromPrivilege の分子に乗る）。0＝記帳なし＝恒等。
+    // ★特権システム 段5前半（2026-09-07）：P5 特許会社（茶の独占レント＝資本家の取り分）を台帳へ記帳（金の流れは変えない。制度疲労の導出は2026-10-16に削除）。0＝記帳なし＝恒等。
     //   P6 徴兵免除は「取り分＝金の移転」が無い（兵役の回避）＝台帳の単位に乗らない＝作者裁定待ち（動員ベースの歪みだけなら既存の徴兵プール除外が担っている）。
     public double PrivilegeMonopolyInLedger = 0.0;
     // ★特権システム 段4（作者設計 §4-1 P4・2026-09-07）：同業組合法（GuildLaw 保護/制限/廃止）。主ゲート＝法が動く（Government/AI目標/要求経路/UI）。0＝法が Full のまま動かず・効き先も0＝厳密恒等。

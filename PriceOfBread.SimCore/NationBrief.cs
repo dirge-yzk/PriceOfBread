@@ -109,7 +109,7 @@ public static class NationBrief
     }
 
     /// <summary>難易度の素点の内訳（0..1／素点は加重和）。UIと診断（selectprobe）が同じ1本を読む。</summary>
-    public static (double Ease, double Resource, double Hold, double Safety, double Load, double Decay)
+    public static (double Ease, double Resource, double Hold, double Safety, double Load)
         Terms(NationConfig c, NationConfig[] all, Coefficients coef, IReadOnlyDictionary<string, double>? soldiers = null)
     {
         soldiers ??= OpeningSoldiers(all, coef);   // 呼び手が渡さなければ世界を1つ組んで読む（国ごとに繰り返し呼ぶ側は渡すこと）
@@ -124,8 +124,8 @@ public static class NationBrief
         //   最も忙しい盤面になる。難易度は「生き残れるか」だけでなく「回せるか」でもある。
         //   工業を3倍で数えるのは、1点の工業化度が概ね数州ぶんの生産・補助金・建設の判断を増やすため。
         double load = PoliticalQuantities.Clamp01((c.Provinces.Length + c.InitialColonies.Length + 3.0 * c.Industrialization) / 25.0);
-        double ease = 0.35 * resource + 0.25 * hold + 0.15 * safety - 0.25 * load - 0.30 * c.InstitutionalDecay;
-        return (ease, resource, hold, safety, load, c.InstitutionalDecay);
+        double ease = 0.35 * resource + 0.25 * hold + 0.15 * safety - 0.25 * load;
+        return (ease, resource, hold, safety, load);
     }
 
     /// <summary>難易度の素点（高いほど易しい）。★エンジンが実際に課す量だけで作る（docs §3 ＋作者指摘2026-08-11の操作量）。
