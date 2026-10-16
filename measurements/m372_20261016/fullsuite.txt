@@ -1,0 +1,4 @@
+木 53088e7cb0f6478e2ddf230ff761b991d90b3232
+rc=0 壁 548 秒
+成功!   -失敗:     0、合格:  1231、スキップ:     0、合計:  1231、期間: 8 m 38 s - PriceOfBread.Tests.dll (net10.0)
+追記：コミット 53088e7c の後に読み手 scripts/instruments/an/an_traj.py を足した＝同じ写しへ置いて GoodIdGuard の 43 本を --no-build で回した＝緑
