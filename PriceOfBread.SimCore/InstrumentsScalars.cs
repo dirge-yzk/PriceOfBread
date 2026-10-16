@@ -14,7 +14,8 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string ScalarsHeader = "quarter\tyear\tnation\tborn\tpopK\tatWar\tpolityCode\teducationLaw\tsuffrage\tcensorship\tbureaucracy\t"
-        + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar";
+        + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
+        + "meanSatPol\tmaxSeat\tgovParty\tgdpDrawdown\tfactionRevolts\tpbDomActive\tpbDomFlip\tpbDomDecisive\tpbDomExec\tpbDomMismatch\tpbRegime\tpbRegimeViolent\tpbRegimeDict";   // ★(384) 末尾の 13 列（政治の束の計器・InstrumentsPb.cs）
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -25,12 +26,14 @@ public static partial class Instruments
         foreach (var p in w.AllPops()) { sz += p.Size; milWar += p.MilWar * p.Size; mil += p.Militancy * p.Size; }
         if (sz > 0) { milWar /= sz; mil /= sz; }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        var c = w.Coef;
+        var c = w.Coef; var pb = PbOf(w);   // ★(384) 政治の束の計器の累計（InstrumentsPb.cs）
         sk.Sca ??= Open("scalars", seed);
         if (!sk.ScaHeader) { sk.Sca.WriteLine(ScalarsHeader); sk.ScaHeader = true; }
         sk.Sca.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), w.BornOfSecession ? "1" : "0", F(popK), Government.AtWar(w) ? "1" : "0",
             I((int)w.Polity), I((int)w.EducationLaw), I((int)w.Suffrage), I((int)w.Censorship), I((int)w.Bureaucracy),
             F(w.EffectiveCorruption), F(w.DynasticMandate), F(w.Legitimacy), F(w.DefeatShock),
-            F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0))));
+            F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
+            F(w.MeanSatisfactionPol), F(Math.Max(w.PartySeats[0], Math.Max(w.PartySeats[1], w.PartySeats[2]))), I(w.GoverningParty), F(w.GdpDrawdown.Value), I(w.FactionRevolts),
+            F(pb.DomActive), F(pb.DomFlip), F(pb.DomDecisive), F(pb.DomExec), F(pb.DomMismatch), F(pb.Regime), F(pb.RegimeViolent), F(pb.RegimeDict)));
     }
 }

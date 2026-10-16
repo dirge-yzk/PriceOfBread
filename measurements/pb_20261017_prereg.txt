@@ -123,3 +123,18 @@
   後半の担当が A・B・N1・N2 を回す（4 本同時・INS=1・上の 10 国）。読み手を腕の前にコミット（scripts/instruments/pb/）。
   この担当がやった確かめ（腕ではない）：ビルド・番人・短距離のスモーク（旗 0 の `selfplay 1 200` の基点の木との全体一致・旗 1 と B の係数での短距離）・savetest・M2 の下限の探り。結果は measurements/pb_20261017/ に置く。
   反証役（opus）は腕の前に、この文書と形のコードと scalars_s の追加の列を読む。
+
+[追記1] 形のコードを書いた後・腕の前（2026-10-17・書いたモデル Claude Sonnet 5.5・線も予測も動かしていない）
+  ① 【[10] の番人の名簿の訂正】初版は RevoltIgnitionTests.cs:1648 を〈ResolveRevolt の失脚しなかった層の ×ReformMilitancyRelief を期待する〉と書いたが誤り。あの番人は :203（一揆への譲歩を施行した州を鎮める）の緩和を測る。:1901 の削除で赤になる番人は見つからない（grep：ExecuteRegimeChange を踏む番人は ConservationTests.cs:683 の没収の保存だけで、緩和の値は見ない）。:1901 の挙動を明示する番人は PbFormTests の (旗は政変の緩和の枝だけを切り…) が唯一。
+  ② 【M3 を足す】M0・M1・M2 に加えて M3＝A の scalars_s の pbDomMismatch が全行 0（計器の複製 Politics.PickAttractor が本体の Transition とずれていない）。0 でなければ pbDomFlip・pbDomDecisive は信用しない（H の線ではなく計器の線）。
+  ③ 【形の実際】事前登録の [3] のとおりに書いた。違う所は無い。B のスペルは POB_COEF の例外（存在しない係数名で止まる）と番人 PbFormTests（11 本の名前の実在と既定が正）で二重に守る。
+  ④ 【形の探り（腕ではない）・seed 1・200 四半期・読んだのは事前登録のコミットの後】読み手 measurements/pb_20261017/smoke_read.py・表 measurements/pb_20261017/smoke_20261017.txt（中間の表は D:/PoB_work/pb_round/smoke に残す）。
+     恒等（探り）：基点 9979d9bf の木・形の木の旗 0（計器なし）・形の木の旗 0（INS=1・10 国）の selfplay stdout が cmp で全体一致（11960 バイト）。1 種の 200 四半期の一致は恒等の証明にならない＝腕 A の M0。
+     M2 の探り（A・seed 1・200Q・72 国×行 4595）：pbDomActive 1375・pbDomFlip 835・pbDomDecisive 569・pbDomExec 22・pbDomMismatch 0（M3 合格）・pbRegime 55（全て暴力の転換）・gdpDrawdown ＞0.05 が 1092 行・非議会政体の行 3400・defeatShock ≧0.99 が 113 行・一党支配の門が開く行（meanSatPol＜0.43・maxSeat＞0.6・立憲/共和）が 624 行・region_s の theft ＞0 が 48676/60724。defaults は 200Q では 0、m377 の 10 種×668Q では計 94（種ごと 6〜13）。⇒ M2 の下限（F1〜F6）は全て探りの数で十分に超える見込み。数は動かさない。
+     B の探り（POB_COEF 全 12 項目・同 seed・200Q）：pbDomActive 以下の引力の列は全行 0（M1 の構造は合格）。軌道は A と 2 行目から違う（スコア 136.2→139.6・ハーネス合否 〇9△0×1→〇8△2×0）＝カオス。militancyMean の中央値は A 0.168・B 0.140（1 seed・1 腕＝ヌル腕の幅が無いので雑音と区別できない）。⚠ [7] の P3（militancyMean ±0.01 内）は探りでは外れた向き。線は動かさない（militancyMean は採否の線に入れていない・R5）。腕で確かめる。
+  ⑤ 【形の変更 1 点・計器の列を足した】pbDomExec（引力の決定的な呼びの後、同じ呼びの中で ExecuteRegimeChange が引力の独裁形態を目標に実行された数）と pbRegimeDict（ExecuteRegimeChange の目標が独裁〔BD・PD・MD〕の数）の 2 列を scalars_s の末尾に足した（[3] の 11 列 → 13 列）。力学は動かない（計器の分岐の中だけ）。探りの再実行で恒等を確かめ直した（④）。
+  ⑥ 【H1 の差し替え（腕の前・探りの数を見て変えた＝正直に書く）】探りで pbDomExec 22／pbRegime 55＝A の ExecuteRegimeChange の約 4 割が引力の独裁形態への実行だった（B の pbRegime は 22）。H1 の初版（(d) 暴力的な政体変更の総数を両側で守る）は、消す項の意図した効き（引力による独裁への転換が減る）で落ちる作りだった。標的で分ける：
+     H1（差し替え後）：次の 6 量（どれも 10 種の合計）。両側で守る（不合格＝|B−m| ＞ max(2w, 0.25m)）：(a) 政体の遷移のうち先が独裁でないもの（nation_s の polityCode が 独裁以外へ変わった四半期の数）／(c) 内戦の発生／(d) 暴力的な政体変更のうち先が独裁でないもの（pbRegimeViolent − pbRegimeDict の最後の累計）／(e) 蜂起（factionRevolts の最後の累計）。減る側を B ≥ 0.5m まで許す（不合格＝B ＜ 0.5m または B ＞ m＋max(2w, 0.25m)）：(b) 独裁への流入／(b′) 暴力的な政体変更のうち先が独裁のもの（pbRegimeDict）。減る側を許す理由＝消す項の意図した効きで、向きは [5] で確証がある（独裁の流入の大半は往復）。6 量中 2 量以上の不合格で H1 は不合格。1 量だけなら合格・名前を報告の先頭に書く。基線の平均 m が 10 未満の量は〈判定不能〉と印字して数えない（(e) の蜂起は探りで 0〜1 件＝判定不能になる見込み）。
+  ⑦ 【savetest】旗 0 と B（旗 1・係数 11 本 0）の両方で同じ版の往復を確かめる（結果は measurements/pb_20261017/savetest_*.txt）。
+  ⑧ 【[7] P1・P2 の訂正（外れたと書く）】P1 は〈引力の pbDomDecisive は 0〜数件〉と見立て、根拠に A1≡A4 の記録（反事実の最終判定の反転 0）を引いたが、あれは軍の項 CoupSupport の反事実で、この引力の項ではない＝根拠の取り違え。探りでは pbDomDecisive 569・pbDomExec 22（seed 1・200Q）＝引力は A の独裁形態への転換のかなりの部分を担う。P2（独裁への流入は 200〜330）は下振れする見込み（B の探りの pbRegime は 22／55）。軍政（MD）の流入が引力なしでほぼ 0 になるかは腕で確かめる。
+  ⑨ 【H1 の読み手の注意】(a)(b) は nation_s の polityCode の遷移（全ての国が毎四半期）から、(b′)(d) は scalars_s の pbRegimeDict／pbRegimeViolent の最後の累計（World ごと＝分離独立で生まれた国は 0 から数え直す）から数える。両者の母集団が違う（nation_s は暴力でない遷移も数える）ので、(b) と (b′) を足し引きしない。

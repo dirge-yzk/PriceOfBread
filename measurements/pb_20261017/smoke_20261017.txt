@@ -1,0 +1,22 @@
+形の探り（腕ではない・seed 1・200 四半期・2026-10-17・計器の国は 10 国）
+[恒等] 基点 9979d9bf の木（計器なし）の selfplay stdout と、形の木の旗 0（計器なし／INS=1）の stdout の 3 本が cmp で全体一致（11960 バイト）。形に pbDomExec を足した後でも同じ（計器なし・INS=1 とも）。1 種の 200 四半期の一致は恒等の証明にならない（README §1-2）＝成績表 3 枚の全行一致は腕 A の M0。
+
+--- A（旗 0）scalars_s1 ---
+4595 rows; nations 72 {'pbDomActive': 1375.0, 'pbDomFlip': 835.0, 'pbDomDecisive': 569.0, 'pbDomExec': 22.0, 'pbDomMismatch': 0.0, 'pbRegime': 55.0, 'pbRegimeViolent': 55.0, 'factionRevolts': 0.0}
+gdpDrawdown>0.05 rows 1092
+nonlegislative rows 3400
+defeatShock>=0.99 rows 113
+gate-open rows (meanSatPol<0.43 & maxSeat>0.6 & CM/Rep) 624
+militancyMean median 0.1677
+
+--- B（POB_COEF 全 12 項目）scalars_s1 ---
+4607 rows; nations 74 {'pbDomActive': 0.0, 'pbDomFlip': 0.0, 'pbDomDecisive': 0.0, 'pbDomExec': 0.0, 'pbDomMismatch': 0.0, 'pbRegime': 22.0, 'pbRegimeViolent': 22.0, 'factionRevolts': 1.0}
+gdpDrawdown>0.05 rows 1038
+nonlegislative rows 2887
+defeatShock>=0.99 rows 76
+gate-open rows (meanSatPol<0.43 & maxSeat>0.6 & CM/Rep) 919
+militancyMean median 0.1402
+
+B の stdout は A と 2 行目から違う（スコア 136.2→139.6・ハーネス合否 〇9△0×1→〇8△2×0）＝旗と係数の効きによる軌道の分岐（カオス）。1 seed の探りであり、militancyMean の中央値の差（0.168→0.140）はカオスの雑音と区別できない。
+defaults（nation_s・seed1・200Q の A）: 0／m377 の 10 種全長 668Q の合計: 94（種ごと 6〜13）
+theftPoolPerMonth>0 の region_s の行（A・形の前の探り）: 48676 / 60724

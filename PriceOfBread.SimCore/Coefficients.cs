@@ -385,6 +385,7 @@ public sealed class Coefficients
     public double LegitimacyErosionRate = 0.0175;     // 制度ギャップ1単位あたりの正統性侵食（四半期フロー）。**ストック意味論2026-07-10＝旧0.175（水準）×RegenRate0.02**＝平衡 leg=1−erosion/regen が旧水準に一致（Absolutist Freedom0.20で平衡0.93=旧と同じ・到達に時定数1/regen≈12.5年の経路依存が乗る）
     public double RepresentationThreshold = 0.6;      // この Freedom 以上の体制は代表的＝意識による正統性侵食を受けない（旧 authMonarchy 以外 erosion=0 の連続版）。世界の技術水準閾値と同水準
     public double ReformMilitancyRelief = 0.5;        // 政体転換時に勝者・中立の闘争度が下がる係数
+    public double DeleteRegimeChangeRelief = 0.0;     // ★(384) 政治の束の削除（休眠・採否は未定＝旧と並存・事前登録 measurements/pb_20261017_prereg.txt）：>0＝Politics.ResolveRevolt（:1901）の失脚しなかった層の ×ReformMilitancyRelief を掛けない。ReformMilitancyRelief の残りの 3 か所（一揆の譲歩・内戦の鎮圧・運動の要求をのんだとき）は作者の裁定の実装＝この旗では動かない。0＝旧＝厳密恒等
     // --- 革命ダイナミクス（便乗・失脚・軍事クーデター。仏革命の再現＋専制の不安定化＋政体の多様化）---
     public double BandwagonSensitivity = 0.45;        // 便乗の勢い＝(改革派+急進派)/保持力×これ（0..1）。革命が近いほど大衆が雪崩を打つ。低い＝雪崩が起きにくく自由化の臨界に達しにくい
     public double BandwagonWeight = 0.32;             // 勢いある運動が無学な民の政治意識を引き上げる強さ（教育に依らず＝専制の安定を崩す）。低い＝無学な大衆は容易には扇動されない

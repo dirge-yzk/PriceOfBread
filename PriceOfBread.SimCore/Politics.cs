@@ -547,6 +547,25 @@ public static class Politics
         return (hope, conscSum, sizeSum);
     }
 
+    /// <summary>★(384) 計器専用（読むだけ）：Transition の引力点の求め方の複製。<paramref name="pullWeight"/> だけを差し替えて、一党支配の引力が引力点を変えたかを反事実で数える。
+    /// 本体のループ（Transition）と同じ式・同じ演算の順＝<see cref="Instruments.PbDominance"/> の mismatch が本体との食い違いを数える。Instruments.On のときだけ呼ばれる。</summary>
+    private static (Polity attractor, double best, double cur) PickAttractor(World w, Coefficients c, double[] agg, double[] curCoord, double soldierForce, double coerce, double bourgeoisCoup, Polity? domDictator, double domExcess, double pullWeight)
+    {
+        Polity attractor = w.Polity; double best = double.NegativeInfinity, cur = 0;
+        foreach (var pol in Ideologies.Polities)
+        {
+            double s = Ideologies.SupportAt(agg, pol == w.Polity ? curCoord : Ideologies.BasePolityCoord(pol), c.IdeologyAffinitySlope);
+            if (pol == Polity.MilitaryDictatorship) s += CoupSupport(w, c, soldierForce, coerce);
+            if (domDictator is { } dd && pol == dd) s += pullWeight * domExcess;
+            if (pol == Polity.BourgeoisDictatorship) s += bourgeoisCoup;
+            if (c.RegimeTrackRecordWeight > 0)
+                s *= Math.Max(0.05, 1.0 + c.RegimeTrackRecordWeight * w.RegimeTrackRecord[CrownParliament.RegimeFamily(pol)]);
+            if (pol == w.Polity) cur = s;
+            if (s > best) { best = s; attractor = pol; }
+        }
+        return (attractor, best, cur);
+    }
+
     /// <summary>
     /// 政体転換（§9-E・利益集団駆動）。動員（改革派＋急進派）が現体制の保持力（治安維持力×正統性）を超えると倒れ、
     /// **支配的になる勢力と移行の仕方が目標政体を決める**：漸進改革→立憲君主制（明治型）／革命は主力が大衆ならプロレタリア独裁・
@@ -555,6 +574,7 @@ public static class Politics
     /// </summary>
     private static void Transition(World w, Coefficients c, double reformist, double radical, double coerce, bool eroding)
     {
+        if (Instruments.On) Instruments.PbPullReset(w);   // ★(384) 計器（読むだけ）：この呼びの引力の〈決定的〉の記録を空にする（ExecuteRegimeChange が読む）
         double challenge = reformist + radical;
         // 画一的な政体遷移（イデオロギー駆動）：国民イデオロギー集計→各政体の支持→引力点。
         // 引力点が現政体と異なり、支持差が保持力（PolityInertia×正統性）を超えれば遷移。任意→任意が単一式で出る。
@@ -612,6 +632,12 @@ public static class Politics
                 s *= Math.Max(0.05, 1.0 + c.RegimeTrackRecordWeight * w.RegimeTrackRecord[CrownParliament.RegimeFamily(pol)]);
             if (pol == w.Polity) cur = s;
             if (s > best) { best = s; attractor = pol; }
+        }
+        if (Instruments.On && domDictator is { } ddi && c.DominanceCoupWeight * domExcess > 0)   // ★(384) 計器（読むだけ・INS=1 のときだけ）：一党支配の引力が引力点を変えたか。引力あり・なしで引力点を求め直す（同じ式の複製＝mismatch が 0 でなければ複製が本体からずれている）
+        {
+            var (aWith, bWith, cWith) = PickAttractor(w, c, agg, curCoord, soldierForce, coerce, bourgeoisCoup, domDictator, domExcess, c.DominanceCoupWeight);
+            var (aNo, _, _) = PickAttractor(w, c, agg, curCoord, soldierForce, coerce, bourgeoisCoup, domDictator, domExcess, 0.0);
+            Instruments.PbDominance(w, flip: aWith != aNo, decisive: aWith != aNo && aWith == ddi && aWith != w.Polity && bWith - cWith > c.PolityInertia * w.Legitimacy, mismatch: aWith != attractor || bWith != best, target: ddi);
         }
         if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
         // 政2：上からの改革（明治型・欽定憲法・露大改革）＝支配ブロック自身が主導する代議制/近代化への移行。大衆動員(challenge)が治安維持力を超えずとも遷移できる例外チャネル。
@@ -698,6 +724,7 @@ public static class Politics
     // ⚠矯正講和（Diplomacy.ResolvePeace）と床交差の再ラベル（CrownParliament）は意図どおりこの実行部を通らない（押し付けられた政体・ラベルの付け替え）。
     internal static void ExecuteRegimeChange(World w, Coefficients c, Polity target, bool violent)
     {
+        if (Instruments.On) Instruments.PbRegime(w, violent, target);   // ★(384) 計器（読むだけ）：政体の変更の呼びの数と暴力の転換の数
         // ★段2（作者裁定2026-09-09 part3）＝**革命の波を削除**した。1848年の同時多発は伝染ではなく
         // 1845-47年の胴枯病と穀物の不作が欧州を**同時に**襲った共通ショックであり、それは盤面（飢餓の駆動項）に既にある。
         // 台本がある限り創発を検証すらできないので、放送も受信も消す。⚠国民の覚醒（RevolutionAwakensNation）は別機構＝残す。
@@ -1898,7 +1925,7 @@ public static class Politics
                     p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;
                 }
             }
-            else p.Militancy *= c.ReformMilitancyRelief;                                            // 勝者・中立＝緩和
+            else if (!(c.DeleteRegimeChangeRelief > 0)) p.Militancy *= c.ReformMilitancyRelief;     // 勝者・中立＝緩和（★(384) 旗 DeleteRegimeChangeRelief が 1 なら緩和しない＝腕 B・事前登録 measurements/pb_20261017_prereg.txt。既定 0＝旧）
         }
         // 粛清・亡命の死＝死の記帳の1本（World.KillPops＝人口の台帳・戦死の累計に計上）。失脚した層の規模の比＝各層の RevolutionTerror の割合。
         if (purgedPops is not null) w.TerrorPurgeCumulative += w.KillPops(purgedPops, null, purgeTotal, violent: true);   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う
