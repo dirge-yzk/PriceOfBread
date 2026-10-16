@@ -1,3 +1,4 @@
+# ★(377) 合流の注（反証役 ps〔bv〕低）：この出力の〈M1 判定：不合格〉は直す前の読み手の印字。直した読み手（an_ps1.py・閾値は同じ）では BD・BCW とも M1 合格（実装ログ (373) 後半・追記4 ①）
 === M1：旗が効いている（B の scalars_s）===
   A: 行 144050・旗は全行 0: True・(decay,ceiling が 0 でない行 144050)・(milWarMean,dmWar が 0 でない行 132307)・(dmGraft,corrErosion が 0 でない行 121873)
   B: 行 142733・旗は全行 1: False・(decay,ceiling が 0 でない行 142733)・(milWarMean,dmWar が 0 でない行 0)・(dmGraft,corrErosion が 0 でない行 0)

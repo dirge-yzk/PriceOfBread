@@ -1,3 +1,4 @@
+# ★(377) 開幕の貯蓄の置き直しの機構（OpeningSavingsRebaseMode・SavingsYearsByClass）は (375) で削除した＝再走は削除の前の木で
 """(280) 線X の読み手：置き直し（OpeningSavingsRebaseMode=2）で物価水準が上がる経路を、標準の計器の新しい3本の表から読む（読むだけ）。
 使い方：python an_x280.py <腕Aの計器の出力> <腕Bの計器の出力> [種の数=3]
 入力：money_s<seed>.tsv（物価の更新の鎖・置き直しの行）・pxgoods_s<seed>.tsv（財ごとの価格と量）・pxmonth_s<seed>.tsv（月ごとの貨幣と所得）。

@@ -1,3 +1,4 @@
+# ★(377) 開幕の貯蓄の置き直しの機構（OpeningSavingsRebaseMode・SavingsYearsByClass）は (375) で削除した＝再走は削除の前の木で
 """(305) 線 r3：英の貯蓄の置き直し（段3・OpeningSavingsRebaseMode=1）の測り直しの読み手（読むだけ・挙動は変えない）。
 事前登録 measurements/r3_20261013_prereg.txt の [2][3]。p273/an_p273_arms.py（P1′〜P6）と s2/an_s2.py（富裕層の分子・分母）の型を写した。
   python an_r3.py <出力ファイル.md> A=<ins> B=<ins> [SEEDS=<n>＝種を先頭の n 個に絞る（10種の走行から5種の読みを取り出す）]

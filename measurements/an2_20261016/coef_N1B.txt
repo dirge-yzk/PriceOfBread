@@ -1,0 +1,1 @@
+CapacityAnchorFromRegions=1;CapacityFoodAfterLand=1;SupplySlope=0.50000001

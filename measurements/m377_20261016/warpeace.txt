@@ -1,0 +1,6 @@
+A pairs 521 median(war-peace)=0.0289 mean=0.0345  median ratio war/peace=1.137  share>0=0.75
+N1 pairs 524 median(war-peace)=0.0271 mean=0.0348  median ratio war/peace=1.142  share>0=0.73
+N2 pairs 526 median(war-peace)=0.0327 mean=0.0383  median ratio war/peace=1.173  share>0=0.78
+BD pairs 520 median(war-peace)=0.0291 mean=0.0334  median ratio war/peace=1.152  share>0=0.74
+B pairs 513 median(war-peace)=0.0028 mean=0.0065  median ratio war/peace=1.016  share>0=0.53
+BCW pairs 521 median(war-peace)=0.0039 mean=0.0069  median ratio war/peace=1.023  share>0=0.54

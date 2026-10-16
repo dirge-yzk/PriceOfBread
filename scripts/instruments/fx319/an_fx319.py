@@ -1,3 +1,4 @@
+# ★(377) 開幕の貯蓄の置き直しの機構（OpeningSavingsRebaseMode・SavingsYearsByClass）は (375) で削除した＝再走は削除の前の木で
 """(319) 流れF 財政の鎖を1本の腕で：段0（必要性の確認・読むだけ）の読み手。
   python an_fx319.py A=<ins> [B=<ins>] [Q=8] [国=イギリス]
   入力＝`INS=1 POB_INSTRUMENTS_NATIONS=イギリス,フランス,ネーデルラント,ポルトガル bash scripts/instruments/batch.sh run <腕> 10` の <出力>/ins

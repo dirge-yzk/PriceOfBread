@@ -1,3 +1,4 @@
+# ★(377) 開幕の貯蓄の置き直しの機構（OpeningSavingsRebaseMode・SavingsYearsByClass）は (375) で削除した＝再走は削除の前の木で
 """(273) 線P：段3（英の貯蓄の置き直し）＋段5（消費の予算の上限）の事前登録の入力を、基線の計器つき10種から出す読み手（読むだけ）。
   python an_p273.py <計器の出力ディレクトリ(ins)> <表の出力ディレクトリ> [国=イギリス,フランス,ネーデルラント,ポルトガル]
   入力＝標準の計器（`POB_INSTRUMENTS_NATIONS=イギリス,フランス,ネーデルラント,ポルトガル INS=1 bash scripts/instruments/batch.sh run <腕> 10` の <出力>/ins）の

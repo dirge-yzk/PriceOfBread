@@ -1,0 +1,1 @@
+CapacityAnchorFromRegions=1;CapacityFoodAfterLand=1
