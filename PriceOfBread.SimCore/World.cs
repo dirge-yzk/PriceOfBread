@@ -545,7 +545,7 @@ public sealed class World
     public double FoodRatioProductionSmoothed { get; internal set; } = -1;   // 主食の生産比（実産出÷必要量）のEMA（FoodFillSmoothing共用・-1=未捕捉→初回直接初期化）。扶養力の生産アンカー用（人2補完2026-07-11）
     // ★人口診断（2026-08-01・popprobe 用の純記帳。力学は読まない＝挙動非依存）。
     // 扶養力のどの項が律速しているかを外から見るための窓＝「英の人口が131年横ばい」の原因特定に使う。
-    public double DiagCapacity, DiagCapacityBaseline, DiagHealthcare, DiagDoctorCare, DiagFoodRatio, DiagLandAnchor;
+    public double DiagCapacity, DiagCapacityBaseline, DiagHealthcare, DiagDoctorCare, DiagFoodRatio, DiagLandAnchor, DiagAnchorBaseline;
     // ★粗出生・粗死亡の累積（2026-09-26・回0-4＝計器の裁き10・純記帳＝力学は1か所も読まない）：出生＝DemographicStep の出生の総和／
     //   死亡＝戦争以外で人口台帳（PopulationDelta）から引いた実際の人数（人口動態の死亡・局地飢饉・疫病・遠征の疫病）。戦死は WarDeadCumulative。
     //   ⇒ 世界の総人口の番人（ConservationTests）が「出生−死亡−戦死」以外の増減＝片側記帳を見つける物差しになる。popprobe の粗出生・粗死亡の列の元。

@@ -2673,6 +2673,7 @@ public sealed class Coefficients
 
     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
     // 点火状況は各行参照。1州較正harnessでは加重=非加重・老年なし（旧 OldShare=0・★2026-09-30 段4e 後半で年齢の層へ＝全 POP が標準のピラミッドから始まる）・複数州なしで恒等になるよう設計。
+    public double CapacityAnchorFromRegions = 0.0;   // ★(369) 扶養力の錨を州と一緒に動かす（休眠・採否は未定＝旧と並存・事前登録 measurements/an_20261016_prereg.txt）。0＝旧（錨 baseline ＝ pop − PopulationDelta＝州を失っても開幕のまま・建国の子は建国時の現在人口で始まり親は全部持ち続ける＝二重計上）／>0＝錨を〈今その国が持つ州の AnchorPopulation の和〉に置き換える（州の開幕人口は構築で Region に写した定数・本国の州だけ非 0・植民地格の州は台帳に入るので 0＝旧の錨に入っていなかった分）＝割譲・再併合・建国で州と一緒に移り、錨が 0 の国（植民地格の州だけの残りの国）は人口の段を飛ばさず扶養力（Σ耕地）の門に置き換わる
     public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」の間でブレンド。0=baselineアンカー(天井約2.5倍)で現行と厳密一致・1で実食料産出から再構成＝19世紀の人口爆発(英4倍/米23倍)とpop>capacityの補償死倒錯を解消。乗数束上限撤去・耕地×技術アンカー・再較正は#17残件
     public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝15〜49歳の女と男・年齢の層）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
     public double FertilityAffectsBirthsOnly = 1.0;   // 人7（出生率倍率の死亡側混線）：第4段4-6で単独点火（2026-07-27）＝「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消。旧・M8試験の破綻1/30は OldLaborFactor=0.5 との抱き合わせで、相方はその後0.75で単独点火済み＝前提消滅→単独再測定へ。netFertility=fertility+これ×(1−fertility)。0で旧（死亡側もfertility比例）
