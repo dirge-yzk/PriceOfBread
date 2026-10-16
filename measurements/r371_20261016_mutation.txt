@@ -1,0 +1,22 @@
+0
+== M1 軍の項の符号を反転
+[xUnit.net 00:00:05.03]     PriceOfBread.Tests.FlowMInstrumentTests.純支持の項の和が本体の純支持に合い_軍の項は係数に比例し向きで符号が反転する [FAIL]
+  失敗 PriceOfBread.Tests.FlowMInstrumentTests.純支持の項の和が本体の純支持に合い_軍の項は係数に比例し向きで符号が反転する [4 s]
+[xUnit.net 00:00:07.48]     PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [FAIL]
+  失敗 PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [2 s]
+0
+== M2 議会の項を落とす
+[xUnit.net 00:00:04.99]     PriceOfBread.Tests.FlowMInstrumentTests.純支持の項の和が本体の純支持に合い_軍の項は係数に比例し向きで符号が反転する [FAIL]
+  失敗 PriceOfBread.Tests.FlowMInstrumentTests.純支持の項の和が本体の純支持に合い_軍の項は係数に比例し向きで符号が反転する [4 s]
+[xUnit.net 00:00:07.38]     PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [FAIL]
+  失敗 PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [2 s]
+0
+== M3 投射の部分から国境の分を引かない
+[xUnit.net 00:00:07.62]     PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [FAIL]
+  失敗 PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [2 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+0
+== M4 海の艦隊の項を落とす
+[xUnit.net 00:00:07.82]     PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [FAIL]
+  失敗 PriceOfBread.Tests.FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる [2 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 7 s - PriceOfBread.Tests.dll (net10.0)

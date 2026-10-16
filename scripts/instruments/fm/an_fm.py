@@ -144,6 +144,10 @@ def q1(rows, title='全国'):
         if len(v) < 5:
             continue
         print(f'  {nm} | {len(v)} | {mean([f(x["moveNetSupportIndex"]) for x in v]):+.3f} | {sum(1 for x in v if f(x["moveNetSupportIndex"]) < 0) / len(v):.3f} | {mean([f(x["netArmyIndex"]) for x in v]):+.3f} | {mean([f(x["netParliamentIndex"]) for x in v]):+.3f} | {mean([f(x["moveResistIndex"]) for x in v]):.3f} | {mean([f(x["moveStepFraction"]) for x in v]):.4f}')
+    print('T8 増額の一歩の目標との隔たり（目標−現在の軍事費の割合）と、1 回で埋まる割合（歩幅）')
+    for k in sorted(g):
+        v = g[k]; gp = [f(x['moveTargetShare']) - f(x['moveCurrentShare']) for x in v]
+        print(f'  {k} | 行 {len(v)} | 隔たり p10／p50／p90 {pct(gp, 0.1):.4f}／{pct(gp, 0.5):.4f}／{pct(gp, 0.9):.4f} | 現在 {mean([f(x["moveCurrentShare"]) for x in v]):.4f} 目標 {mean([f(x["moveTargetShare"]) for x in v]):.4f}')
     # 減額の一歩（戦時の復員）も参考
     dec = [x for x in rows if x['netIncreasingFlag'] == '0']
     gd = collections.defaultdict(list)
@@ -180,6 +184,12 @@ def q2(rows):
             c1[t] += 1; c2[tc] += 1
         print('  全体の先頭 ' + '・'.join(f'{k or "なし"} {v}' for k, v in c1.most_common(8)))
         print('  植民地を含む国境の先頭 ' + '・'.join(f'{k or "なし"} {v}' for k, v in c2.most_common(8)))
+        print('T4 英の陸の必要量の最大の相手：その陸軍の大きさと外へ向く割合（上位の相手の平均）')
+        for e in ('1783-1813', '1814-1853', '1854-1883', '1884-1913', '1914-1950'):
+            v = [x for x in uk if era(int(f(x['quarter']))) == e]
+            if len(v) < 8:
+                continue
+            print(f'  {e} | 最大の相手の陸軍の大きさ {mean([f(x["top1LandPotentialIndex"]) for x in v]):.2f} | 外へ向く割合 {mean([f(x["top1OutwardShare"]) for x in v]):.3f}')
         print('T2b 英の陸の必要量への寄与（上位 3 国に入った分の平均・時代別・上位 3 に入らない分は 0 として平均した下限）')
         for e in ('1783-1813', '1814-1853', '1854-1883', '1884-1913', '1914-1950'):
             v = [x for x in uk if era(int(f(x['quarter']))) == e]
@@ -207,7 +217,32 @@ def q2(rows):
                     out.append(sea / (sea + den))
                 return mean(out), pct(out, 0.5)
             a = s(False, False); b = s(True, False); c = s(False, True); d = s(True, True)
-            print(f'  {e} | 行 {len(v)} | 今 {a[0]:.3f}（中央 {a[1]:.3f}）| 植民地国境を除く {b[0]:.3f}（{b[1]:.3f}）| 投射を除く {c[0]:.3f}（{c[1]:.3f}）| 両方を除く {d[0]:.3f}（{d[1]:.3f}）')
+            def qing_half():
+                out = []
+                for x in v:
+                    cq = 0.0
+                    for tok in x['needLandTop3'].split(';'):
+                        if tok.startswith('清:'):
+                            cq = f(tok.split(':', 1)[1])
+                    nl = f(x['needLandIndex']) - 0.5 * cq
+                    sea = f(x['needSeaIndex']); den = max(nl + f(x['needInternalIndex']), f(x['forcePotentialIndex']))
+                    out.append(sea / (sea + den))
+                return mean(out), pct(out, 0.5)
+            h = qing_half()
+            print(f'  {e} | 行 {len(v)} | 今 {a[0]:.3f}（中央 {a[1]:.3f}）| 植民地国境を除く {b[0]:.3f}（{b[1]:.3f}）| 投射を除く {c[0]:.3f}（{c[1]:.3f}）| 両方を除く {d[0]:.3f}（{d[1]:.3f}）| 清の寄与を半分 {h[0]:.3f}（{h[1]:.3f}）')
+
+
+def q2b(rows):
+    A = [x for x in rows if x['landSideBindsFlag'] != '']
+    MAIN = ['イギリス', 'フランス', 'ネーデルラント', 'ポルトガル', 'スペイン', 'ロシア', 'プロイセン', 'オーストリア', 'アメリカ', '日本', '清', 'オスマン']
+    print('\n#### Q2b 自国の陸軍が外へ向く割合（注意配分の分母 u＋Σ のうち u 以外）＝1 に近いほど〈内向きの軍は無い〉と読まれる')
+    print('  国 | ' + ' | '.join(['1783-1813', '1814-1853', '1854-1883', '1884-1913', '1914-1950']) + '   各欄＝外へ向く割合の平均／内向きの u（不穏度）の平均／外向きの重みの和の平均')
+    for nm in MAIN:
+        cells = []
+        for e in ('1783-1813', '1814-1853', '1854-1883', '1884-1913', '1914-1950'):
+            v = [x for x in A if x['nation'] == nm and era(int(f(x['quarter']))) == e]
+            cells.append(f'{mean([f(x["ownArmyOutwardShare"]) for v_ in [0] for x in v]):.3f}／{mean([f(x["unrestShare"]) for x in v]):.3f}／{mean([f(x["ownArmyOutwardWeightIndex"]) for x in v]):.2f}' if len(v) >= 8 else '-')
+        print(f'  {nm} | ' + ' | '.join(cells))
 
 
 def main():
@@ -220,6 +255,7 @@ def main():
         q1([x for x in rows if x['nation'] == 'イギリス'], '英だけ')
     if what in ('q2', 'all'):
         q2(rows)
+        q2b(rows)
 
 
 if __name__ == '__main__':
