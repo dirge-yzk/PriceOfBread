@@ -5,6 +5,8 @@
 #   ④手段ごとの費用の見積もり（doc §2-1 の表の形・今の世界の値段で・係数は下の RECIPES＝史実から置いた【推】で、シミュの係数ではない）と分かれ目の距離
 #   ⑤州の中の平均の運び距離と山／平地の州の都市の割合・工場の産出（§2-5）⑥事前登録の線の候補に足す数。
 # ⚠読むだけ。RECIPES の数は計器でなくこの読み手が持つ＝直しても成績表は動かない。⚠重さは相対の輸送重量（トンではない）。
+# (385) 計器の直し（列の追加）を読む：①の末尾に〈陸脚の運賃のうち、その陸脚がある州の国の運び手へ戻る割合〉（T8・成約ごとの正確な値）と陸脚の売り手側・買い手側の内訳を足した。
+#   ⑤は面積の行（A）を年ごとに持つ（G 行と同じ年の同じ州の集合）。旧い形の表（380・列が無い）は新しい節を飛ばす。
 import sys, os, csv, math, collections
 os.environ.setdefault('PYTHONUTF8', '1')
 if hasattr(sys.stdout, 'reconfigure'): sys.stdout.reconfigure(encoding='utf-8')
@@ -86,8 +88,9 @@ def main():
         e = era_of(int(r['year']))
         if not e: continue
         d = PN[e][r['nation']]
-        for k in ('freightPaidGoldPerYear', 'freightPaidLandPartGoldPerYear', 'freightPaidDomesticGoldPerYear', 'freightPaidLandPartDomesticGoldPerYear', 'freightReceivedGoldPerYear'):
-            d[k] += num(r[k]) / ns
+        for k in ('freightPaidGoldPerYear', 'freightPaidLandPartGoldPerYear', 'freightPaidDomesticGoldPerYear', 'freightPaidLandPartDomesticGoldPerYear', 'freightReceivedGoldPerYear',
+                  'freightLandSellerSideInNationGoldPerYear', 'freightLandBuyerSideInNationGoldPerYear', 'freightLandInNationToOwnCarriersGoldPerYear'):
+            d[k] += num(r.get(k, 'nan')) / ns   # (385) 旧い形の表には新しい列が無い＝nan
     gdp = collections.defaultdict(lambda: collections.defaultdict(list))
     for r in nation_s:
         e = era_of(int(r['year']))
@@ -107,6 +110,11 @@ def main():
         landpaid = sum(v['freightPaidLandPartGoldPerYear'] for v in pn.values())
         wrong = sum(v['freightPaidLandPartGoldPerYear'] * (1 - v['freightReceivedGoldPerYear'] / tot_recv if tot_recv else 0) for v in pn.values())
         print(f'   陸脚の運賃の合計 {landpaid:.1f}（全運賃の {pct(landpaid, tot_paid):.1f}%）＝払い手の国の受け取りの割合（船の持ち主の持ち分）だけが自国へ戻り、残り {wrong:.1f}（{pct(wrong, landpaid):.1f}%）は他国の船の持ち主へ行く')
+        # (385) T8（成約ごとの正確な値）：陸脚の運賃のうち、その陸脚がある州の国の運び手へ戻る割合。売り手側の陸脚は売り手の国・買い手側は買い手の国に積み、戻る額＝運賃×その国の船腹の比（その清算の値）。
+        sIn = sum(v['freightLandSellerSideInNationGoldPerYear'] for v in pn.values()); bIn = sum(v['freightLandBuyerSideInNationGoldPerYear'] for v in pn.values()); own = sum(v['freightLandInNationToOwnCarriersGoldPerYear'] for v in pn.values())
+        if not math.isnan(own):
+            print(f'   (385) 陸脚の運賃（その陸脚のある国の中）{sIn + bIn:.1f}＝売り手側 {sIn:.1f}（{pct(sIn, sIn + bIn):.1f}%）＋買い手側 {bIn:.1f}（{pct(bIn, sIn + bIn):.1f}%）〔全運賃 {tot_paid:.1f} のうち陸脚の分 {landpaid:.1f}＝和は一致する〕')
+            print(f'   (385) T8：うち、その陸脚のある国の運び手へ戻る額 {own:.1f}＝{pct(own, sIn + bIn):.2f}%（残り {100 - pct(own, sIn + bIn):.2f}% は他国の運び手へ）〔線＝≧ 90%〕')
 
     # ---------------- ② 距離の分布と財の重さの帯 ----------------
     print('\n## ② 距離の分布（成約の実 km の合計の帯・重さの割合%・時代別）')
@@ -197,14 +205,19 @@ def main():
 
     # ---------------- ⑤ 州の中の運び・山と平地 ----------------
     print('\n## ⑤ 州の中の平均の運び距離（A）と山／平地の州の都市の割合・工場の産出（G・10年ごとの年の終わり）')
-    A = [r for r in stat if r['scope'] == 'A' and r['seed'] == seeds[0]]
-    hs = collections.defaultdict(list)
-    for r in A:
-        h = num(r['meanHaulKm'])
-        if not math.isnan(h): hs[int(r['terrainCode'])].append(h)
-    allh = sorted(h for v in hs.values() for h in v)
-    print(f'   州 {len(A)} 件・平均の運び距離（km）の中央値 {allh[len(allh) // 2]:.0f}・四分位 {allh[len(allh) // 4]:.0f}〜{allh[3 * len(allh) // 4]:.0f}・最大 {allh[-1]:.0f}（座標の疎な州は大きい）' if allh else '   面積の行が無い')
-    print('   地形別（州の数・平均の運び距離の中央値 km）：' + ' '.join(f'{TERR[t]} {len(hs[t])}件/{sorted(hs[t])[len(hs[t]) // 2]:.0f}' for t in range(7) if hs[t]))
+    AALL = [r for r in stat if r['scope'] == 'A' and r['seed'] == seeds[0]]
+    ayears = sorted({int(r['year']) for r in AALL})
+    # (385) 面積の行は断面の年（10 年ごと）ごとにその年の州で取り直す（旧は開幕の 1 回だけ＝後から現れた州は無く、その土地は隣の州に吸われた）
+    for ay in ayears:
+        A = [r for r in AALL if int(r['year']) == ay]
+        hs = collections.defaultdict(list)
+        for r in A:
+            h = num(r['meanHaulKm'])
+            if not math.isnan(h): hs[int(r['terrainCode'])].append(h)
+        allh = sorted(h for v in hs.values() for h in v)
+        if ay not in (ayears[0], 1850, 1910, ayears[-1]) and ay != 1790: continue
+        print(f'   [{ay}] 州 {len(A)} 件・平均の運び距離（km）の中央値 {allh[len(allh) // 2]:.0f}・四分位 {allh[len(allh) // 4]:.0f}〜{allh[3 * len(allh) // 4]:.0f}・最大 {allh[-1]:.0f}（座標の疎な州は大きい）' if allh else f'   [{ay}] 面積の行が無い')
+        print('     地形別（州の数・平均の運び距離の中央値 km）：' + ' '.join(f'{TERR[t]} {len(hs[t])}件/{sorted(hs[t])[len(hs[t]) // 2]:.0f}' for t in range(7) if hs[t]))
     G = [r for r in stat if r['scope'] == 'G']
     ys = sorted({int(r['year']) for r in G})
     print(f"   {'年':>5} {'地形':6} {'州':>5} {'人口K/州':>9} {'都市%':>6} {'工場産出/千人':>12} {'採取産出/千人':>12} {'重さ/千人':>9}  （種の平均・人口加重）")
@@ -228,14 +241,14 @@ def main():
         if t == 1 and Z.get('TerrainWaterMajorCost', 0) > 0: return Z['TerrainWaterMajorCost']
         if t == 2 and Z.get('TerrainWaterMinorCost', 0) > 0: return Z['TerrainWaterMinorCost']
         return Z.get(('TerrainRailCost[' if rail else 'TerrainHorseCost[') + names[t] + ']', 1.0)
-    hmap = {(r['region']): num(r['meanHaulKm']) for r in A}
+    hmap = {(int(r['year']), r['region']): num(r['meanHaulKm']) for r in AALL}   # (385) 年と州の名前で持つ（G 行と同じ年の面積）
     print('   州の中の運びを同じ率で課すと荷の値打ちの何%か（産出の額で加重・平均の運び距離は陸マスクの面積から）と、商人の取り分 4% に対する割合')
     print(f"   {'地形':6} {'州':>4} {'平均の運び距離km':>14} {'陸÷海×地形':>10} {'運び%(鉄道前)':>12} {'/4%':>6} {'運び%(鉄道後)':>12} {'/4%':>6}")
     yy = 1910 if 1910 in ys else (ys[-1] if ys else None)
     agg = collections.defaultdict(lambda: collections.defaultdict(float))
     for r in G:
         if int(r['year']) != yy: continue
-        h = hmap.get(r['region'], float('nan'))
+        h = hmap.get((int(r['year']), r['region']), float('nan'))
         if math.isnan(h): continue
         t = int(r['terrainCode']); v = num(r['factoryOutputValuePerMonth']) + num(r['gatherOutputValuePerMonth'])
         a = agg[t]; a['n'] += 1; a['v'] += v; a['hv'] += h * v
