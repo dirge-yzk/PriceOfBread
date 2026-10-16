@@ -321,7 +321,7 @@ public sealed class UtilityAgent : INationAgent
     //   ＋ LolrStrength=0・LolrReserveBoost=0（最後の貸し手なし）。読み手＝Apply の金利ブロック（PreTightenHeatFrac）と財政規律ブロック（CrisisAusterityRelief）の2箇所のみ。
     // #124裁定確定（2026-07-25）：切り分け実測＝a/bとも恐慌を減らすが near−5（帯が恐慌の多さに依存＝1848/1917型政変の駆動因は経済危機そのもの。
     // 逸脱の実体＝後進専制国が危機を凌いで近代化しすぎ・英が固着）。ユーザー裁定＝**賢いAIを固定し、帯は数値側で再較正する**
-    //（AI=プレイヤー対称の原則＝バランスをAIの愚かさで取らない）。再較正の第一候補＝C-高7 DecayCeilingUniversal（後進国が「危機の破壊」でなく
+    //（AI=プレイヤー対称の原則＝バランスをAIの愚かさで取らない）。再較正の第一候補だった C-高7（共通床・2026-10-16に制度疲労ごと削除済み。後進国が「危機の破壊」でなく
     // 「制度の硬直」で後進に留まる経路＝新逸脱国ヒヴァ/エチオピア/マラータ等はdecayストックを持たない50カ国側）→次にDecay3チャネル強化。
     private const double EasingInterestRate = 0.05;        // 緩和金利
     private const double OverheatHeatThreshold = 0.7;      // 過熱＝引締の熱閾値

@@ -2107,19 +2107,6 @@ public static class EconomyStep
                 region.Industrialization += built * coef.IndPerConstruction;
                 region.CumStateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝国家建設分の累積（純カウンタ・力学は読まない）
             }
-            // ★近代化投資の非物的な成果（2026-08-04・作者指示「制度疲労・技術力などを改善する効果」）。
-            //   ⚠**実際に建った分**に比例させる＝新しい金の流れを作らない（保存不変）。予約でなく実現量を見る。
-            //   鉄道・電信・工場を実際に建てることが、そのまま行政の近代化と技術の吸収になる
-            //   （官僚が時刻表と規格を扱い、職工が機械を覚える）＝抽象的な「改革ポイント」を置かない。
-            //   ⚠ゼロ化の直前＝この行より上で stateConstruction が確定している。係数0で厳密恒等。
-            if (world is not null && stateConstruction > Eps && !warmFrozen)   // 助走：制度疲労の解消も技術の吸収も「建った成果」＝能力と一緒に凍結する
-            {
-                double modBuilt = stateConstruction * coef.IndPerConstruction;   // 実現した工業化度の増分（下で州へ加算される量と同じ尺度）
-                if (coef.ModernizationDecayRelief > 0 && world.InstitutionalDecay > 0)
-                    world.InstitutionalDecay = Math.Max(0, world.InstitutionalDecay - coef.ModernizationDecayRelief * modBuilt);
-                // ⚠技術への直接の加点は置かない（器 ModernizationTechGain は「0で確定」＝2026-09-26 削除・dorm-50）。制度疲労が技術採用を律しているので、
-                //   近代化投資が制度疲労を削れば技術はその経路で伸びる＝直接の加点は二重計上（実測で教育による技術の差＝普 vs 露が消えた）。
-            }
         }
 
         // === 巨大建造物の決済（2026-07-28）：買えた束だけ進捗に積む。支払いは国庫（StateSpent＝国庫→生産者で保存）===

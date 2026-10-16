@@ -576,20 +576,6 @@ public sealed class World
     public double[] PrivilegeTakeYear { get; } = new double[Privileges.Count];
     public double[] PrivilegeHeldYears { get; } = System.Linq.Enumerable.Repeat(-1.0, Privileges.Count).ToArray();   // 負値＝未初期化（最初の月に Privileges.StepMonth が世代長 or 0 で初期化）
     public bool[] PrivilegeLastActive { get; } = new bool[Privileges.Count];   // 前月の活性（剥離＝活性→不活性の検出・段3）
-    // ★特権システム 段6（作者設計 §6）：制度疲労の導出量＝Σ(取り分/GDP×受益クラスの発言権シェア)（生値・Privileges.StepMonth が**月次**で書く＝Fiscal.cs:175 の呼び出しが月次）と世界最大（MultiNationSim が配る）
-    public double PrivilegeDecayRaw { get; internal set; }
-    public double WorldMaxPrivilegeDecayRaw { get; internal set; }
-    /// <summary>読み手用の制度疲労＝DecayFromPrivilege（0..1）で旧ストックと導出量をブレンド。0＝InstitutionalDecay そのもの（厳密恒等）。導出＝天井×(生値÷世界最大)。</summary>
-    public double DecayForReaders
-    {
-        get
-        {
-            double g = Coef.DecayFromPrivilege;
-            if (!(g > 0)) return InstitutionalDecay;
-            double derived = WorldMaxPrivilegeDecayRaw > 1e-12 ? InstitutionalDecayCeiling * PoliticalQuantities.Clamp01(PrivilegeDecayRaw / WorldMaxPrivilegeDecayRaw) : 0;
-            return (1.0 - g) * InstitutionalDecay + g * derived;
-        }
-    }
     public double[] PartySeats { get; } = new double[3];    // 議席シェア（得票率・保守/自由/社会）＝F4後も常に族の集計値（互換射影）
     public double[] VoteShares { get; } = new double[3];    // 政7：毎期の得票率（世論・表示専用・保守/自由/社会）。SeatsFrozenBetweenElections=0ではPartySeatsと同時更新で恒等・>0で確定議席と分離
     public int QuartersSinceElection { get; internal set; }
@@ -1101,17 +1087,8 @@ public sealed class World
     // 国債（§財政）：赤字を借金で賄う。国内＝資本家の余剰貯蓄（工場投資とクラウディングアウト）、海外＝開放度に応じ。
     // 売り切れない＝部分的債務不履行（焦げ付き）。対外債の不履行＝介入（正統性↓＋貸し手有利の緊縮）。
     public MoneyStock GovDebt { get; internal set; }       // 国債残高
-    // P7 制度疲労（2026-07-17・一般機構＝清専用コードなし）：改革を阻む構造的硬直のストック（0..1）。初期値＝world.jsonデータ（清0.8/オスマン0.6/露0.4/西欧0/日本0明示）。
-    // 天井＝初期値（構造的硬直の上限＝初期より悪化しない・初期0の国は恒久0のハード保証）。下げ＝ショックのみ／再成長＝反動／ロックインで停止（Politics.Step）。読み3チャネルは各休眠係数（Decay*Weight=0で恒等）
-    public double InstitutionalDecay { get; internal set; }
-    public double InstitutionalDecayCeiling { get; internal set; }
-    internal bool DecayPrevCivilWar;      // ショック検出のエッジ用（内戦勃発）
-    internal bool DecayPrevDefeatShock;   // ショック検出のエッジ用（決定的敗戦）
-    internal bool DecayPrevDefault;       // ショック検出のエッジ用（国家破産）
-    internal int DecayShockCooldown;      // ショック減衰の連発防止（四半期）
+    public double DiagDmWar, DiagDmGraft, DiagCorrErosion;   // ★(373) DiagDm*／DiagCorrErosion＝Politics が最後に書いた天命の戦争の項・汚職の項・腐敗→正統性の侵食（計器 scalars_s の純記帳・力学は読まない）
     internal int SovereignDefaultCount;   // C-中9（2026-07-22）：デフォルト回数。HadSovereignDefault は恒久boolで1ゲーム1回しか立ち上がらず、2度目以降の破産が改革の窓を開けない（オスマン1875・エジプト1876・西は19世紀に6回）
-    internal int DecayPrevDefaultCount;   // ショック検出のエッジ用（破産回数）
-    internal bool DecayShockPending;      // C-中9：クールダウン中に起きたショックの保留。旧実装はエッジが消費されて緩和が永久に失われた（オスマン1875破産→1877露土敗戦が実例）
     // POP動詞①（階級優遇/弾圧＝ClassStance/ClassStancePaid/ClassGrievance/LastClassVerbCost/SetClassStance）は2026-07-20廃止＝
     // 第3段3-1で完全削除（2026-07-27・書き手ゼロ/常時0の死蔵）。訓練/奨学金の診断カウンタは現役＝残置。
 
@@ -1991,11 +1968,10 @@ public sealed class World
         //   作者の要求「近代化投資100%はほとんどの国で不可能なほど高額」を満たすには、費用が国の**規模**に
         //   対して決まっていなければならない。そこで **GDP比の絶対額**に置き換える（払えるかは国庫が決める）。
         //   ── コスト倍率 ────────────────────────────────────────────────────────
-        //   制度疲労が重い国・技術が遅れた国ほど、同じ近代化に多くの金がかかる（既存の状態量だけで作る）。
-        //   ＝科挙官僚制が鉄道を敷くのに要した余分な費用・技術を輸入に頼る国の割高さ。
+        //   技術が遅れた国ほど、同じ近代化に多くの金がかかる（既存の状態量だけで作る）。
+        //   ＝技術を輸入に頼る国の割高さ。
         //   ⚠ModernizationCostGdpShare=0 で旧式（国庫比）に戻る＝休眠。
         double costMul = 1.0
-            + Coef.ModernizationDecayCost * PoliticalQuantities.Clamp01(InstitutionalDecay)
             + Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0);
         //   ── 費用は frac に対して**凸**（2026-08-04）─────────────────────────────
         //   要求額 = A × GDP × コスト倍率 × frac/(1−frac)。frac→1 で**発散**＝「100%はほとんどの国で不可能」が
@@ -2024,8 +2000,6 @@ public sealed class World
         // ★旧体制の反対（2026-08-04・作者指示「旧体制がこれらに反対するようにする」）。
         //   近代化投資は鉄道の免許・検地・工場の認可を要する＝**それを握っているのが旧支配層**なので、
         //   彼らの政治力が強いほど話が進まない。新しい状態も新しい軸も置かず、既存のブロック政治力から導く。
-        //   ⚠制度疲労が旧支配層の政治力を膨らませる経路（DecayReformResistWeight）が既にあるので、
-        //     **疲労した国ほど近代化が進まない**が自動的に成立する＝「改革を要する国ほど改革できない」旧体制の罠。
         //   ⚠ModernizationOldGuardResist=0 で乗算恒等（休眠）。
         if (Coef.ModernizationOldGuardResist > 0)
         {

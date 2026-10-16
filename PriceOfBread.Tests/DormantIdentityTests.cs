@@ -41,7 +41,8 @@ public class DormantIdentityTests
         // ★LuxuryIncomeElasticity・DomesticServiceUsesIncomeElasticity（(302)(329) 奢侈品と家事奉仕の所得弾力）は 2026-10-14 (331) の合流で**点火**（0.5・1）＝この表から外した。
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
-        "DecayFromPrivilege",           // 特権システム 段6＝制度疲労の導出（読み手3箇所は DecayForReaders・ゲート0で旧値）
+        "DeleteCorruptionScalars",      // ★(373) 同上＝天命の汚職の項と腐敗→正統性の侵食を 0 にする（0＝旧）
+        "DeleteWarWearinessScalars",    // ★(373) 同上＝厭戦の闘争度項と天命の戦争の項を 0 にする（0＝旧）
         "PrivilegeMonopolyInLedger",    // 特権システム 段5前半＝特許会社の取り分を台帳へ（記帳のみ）
         "GuildLawGate",                 // 特権システム 段4＝同業組合法の主ゲート（法が動かない）
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）

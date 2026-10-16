@@ -386,13 +386,12 @@ public partial class GameViewModel
         IndAct = Money(ind); IndAmt = Money(ind);   // レバー直結＝実効=予想
         // ★コストの内訳ホバー（2026-08-04）：制度疲労・技術の遅れの割増と旧体制の反対＝なぜ同じ%でも高く/細くなるのかの分解（データのみ）
         {
-            double dec = System.Math.Clamp(_player.InstitutionalDecay, 0, 1);
             var (trad, modern, mass) = InterestGroups.Blocs(_player);
             double tot = trad + modern + mass; double tradShare = tot > 1e-9 ? trad / tot : 0;
             IndTip = $"技術(対世界最先端) {(1.0 - lag >= 0.995 ? "最先端" : (1.0 - lag).ToString("P0"))}"
                    + System.Environment.NewLine
-                   + $"コスト倍率 ×{1.0 + _player.Coef.ModernizationDecayCost * dec + _player.Coef.ModernizationTechLagCost * lag:F2}"
-                   + $"(制度疲労 +{_player.Coef.ModernizationDecayCost * dec:P0}　技術の遅れ +{_player.Coef.ModernizationTechLagCost * lag:P0})"
+                   + $"コスト倍率 ×{1.0 + _player.Coef.ModernizationTechLagCost * lag:F2}"
+                   + $"(技術の遅れ +{_player.Coef.ModernizationTechLagCost * lag:P0})"
                    + System.Environment.NewLine + $"旧体制の反対 -{System.Math.Min(1.0, _player.Coef.ModernizationOldGuardResist * tradShare):P0}(旧支配層の政治力 {tradShare:P0})";
             OnPropertyChanged(nameof(IndTip));
         }

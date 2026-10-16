@@ -175,7 +175,7 @@ public static class CrownParliament
                     w.LogAdd($"{w.Year} {w.SelfPower?.Name}の統治が官僚機構に移った");
                 }
                 // (3) 絶対王政は**変異しない**＝君主制の外への遷移は既存の政体遷移（Polity側）が担う。後退（絶対→専制）も入れない
-                //     ＝行政力の崩壊は既存の InstitutionalDecay が政体側で罰する（二重化しない）。
+                //     ＝行政力の崩壊は政体側の遷移が罰する（二重化しない。制度疲労のスカラーは2026-10-16に削除）。
             }
         }
 

@@ -1,0 +1,1 @@
+selfplay 1 200: dda004b の木（計器なし・SOURCE-HASH 011717768cdf750b）の out.txt と 形の木・旗 0・INS=1 の out.txt が cmp で全体一致（11828 バイト）。旗 3 本とも 1 の out.txt は 2 行目から違う（スコア 149.2→117.3・恐慌ほか）。

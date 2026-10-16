@@ -237,7 +237,7 @@ public static class Politics
 
         // 倍率排除⑥b-2：軍拡負担の闘争度直接加算（治安維持力>2500 の手書き絶対閾値）を撤去。軍・治安維持力の維持コストは
         // 既存の財政連鎖（大軍→赤字→緊縮→逆進課税/福祉削減→可処分所得↓→満足↓）が WantWeight×(1−Satisfaction) で拾う＝不満の単一ソースへ集約（⑥a/失業と同じ二重計上の解消）。
-        double warWeariness = w.SelfPower?.WarExhaustion ?? 0;   // 厭戦（対外戦争のみ・較正は0）。闘争度入力へ（旧：Ideology の階級分岐で直接加点）
+        double warWeariness = c.DeleteWarWearinessScalars > 0 ? 0.0 : w.SelfPower?.WarExhaustion ?? 0;   // 厭戦（対外戦争のみ・較正は0）。闘争度入力へ（旧：Ideology の階級分岐で直接加点）。★(373) 旗 1＝厭戦の闘争度項の削除（腕 B）＝0 を入れる（下の項は +0.0）
         // 政治の空間モデル：現政体の4軸座標（実参政権でドリフト済＝第5段5-1でPoliticalQuantitiesへ一元化）をループ前に1回算出。各popの理想点との距離が政治的不満。
         double[] regimeCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：移民原住民参政権の少数派緩和は「州の格」を読む
@@ -340,8 +340,8 @@ public static class Politics
             var (uneduShare, uneduSatAvg) = PoliticalQuantities.MandateBase(w);
             double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - c.DynMandateSatPivot) / (1.0 - c.DynMandateSatPivot);   // 中立点は分位の写像で導出（Coefficients.DynMandateSatPivot）
             double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
-            double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
-            double dmGraft = -c.DynMandateGraftWeight * w.EffectiveCorruption;
+            double dmWar = c.DeleteWarWearinessScalars > 0 ? 0.0 : -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0); w.DiagDmWar = dmWar;   // ★(373) 旗 1＝天命の戦争の項の削除（腕 B）。DiagDm* は計器の純記帳
+            double dmGraft = c.DeleteCorruptionScalars > 0 ? 0.0 : -c.DynMandateGraftWeight * w.EffectiveCorruption; w.DiagDmGraft = dmGraft;   // ★(373) 旗 1＝天命の汚職の項の削除（腕 B）
             double dynPerf = dmSat + dmFood + dmWar + dmGraft;
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
             w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
@@ -384,7 +384,7 @@ public static class Politics
         double institutionalGap = avgConsc * Math.Max(0, c.RepresentationThreshold - w.Freedom);
         // 腐敗→正統性侵食（corruption-only-fiscal-leak）：縁故主義・公共財の毀損は制度不信を生む。意識ある社会(avgConsc)ほど腐敗を許さない＝institutionalGap と同型ゲート。
         // 較正中立：合成較正は行政財なしで AdminEfficiency=1.0＝(1−AdminEfficiency)=0 で侵食0（係数0.015は実世界で効く）。腐敗は財政漏れ(Fiscal)に加え政治的代償を持つ。
-        double corruptionErosion = c.CorruptionLegitimacyErosion * avgConsc * Math.Max(0, 1.0 - w.AdminEfficiency);   // C2-C5撤去2026-08-16：末尾の ×(1−CleanGovernance) を物理削除（V2恒久ONで清廉度は恒等0＝×1.0はIEEE754で厳密恒等）。⚠監視(OversightV2)はここに掛けない＝掛けると挙動変更（掃除の範囲外・要裁定なら較正ラウンドで）
+        double corruptionErosion = c.DeleteCorruptionScalars > 0 ? 0.0 : c.CorruptionLegitimacyErosion * avgConsc * Math.Max(0, 1.0 - w.AdminEfficiency); w.DiagCorrErosion = corruptionErosion;   // ★(373) 旗 1＝腐敗→正統性の侵食の削除（腕 B）。C2-C5撤去2026-08-16：末尾の ×(1−CleanGovernance) を物理削除（V2恒久ONで清廉度は恒等0＝×1.0はIEEE754で厳密恒等）。⚠監視(OversightV2)はここに掛けない＝掛けると挙動変更（掃除の範囲外・要裁定なら較正ラウンドで）
         // 政1：全侵食項を erosion に集約（無状態版 leg=1−erosion／ストック版は前期値からこの erosion を差し引き緩慢に再生）。
         double erosion = (c.LegitimacyErosionRate * institutionalGap + corruptionErosion) * dynErodeMul + c.DefeatShockLegitWeight * w.DefeatShock;   // 敗戦ショックが正統性を一時的に大きく削る（敗戦→革命）。較正は DefeatShock=0＝中立。P8天命は連続項のみ変調（×1.0で恒等・敗戦インパルスは除外）
         // 説明API（#63）：正統性の内訳を実寄与量で記帳。既定は LegitimacyIsStock=1.0＝**ストック**（履歴が累積する経路依存量）。
@@ -474,63 +474,6 @@ public static class Politics
         // 「パンの値段」の題名に最も近い機構＝飢饉は過ぎ去っても急進思想（共和/社会）として残る（1789の記憶）。
         w.FamineMemory = w.FamineMemory * c.FamineMemoryDecay + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
 
-        // P7 制度疲労の脱出動学（2026-07-17・RNGなし決定論・主フラグ全0で不走行＝恒等）：下げ＝ショックのみ（小改革の積み重ねでは下がらない＝日清敗北なくして戊戌変法なし）／
-        // 再成長＝反動（旧支配層優位×検閲が続く限り天井へ）／ロックイン（公教育以上・立憲/議会・工業化・清廉継続のいずれか）で再成長停止＝定着。クランプ[0,天井]＝初期0の国は恒久0
-        if ((c.DecayReformResistWeight > 0 || c.DecayTechAdoptWeight > 0 || c.DecayMilitaryWeight > 0) && w.InstitutionalDecayCeiling > 1e-9)
-        {
-            if (w.Explain != null)   // 説明API：毎期Resetして前期値から積む（Resetなしの逐次Addは台帳が無限蓄積する）
-            {
-                w.Explain.Reset("InstitutionalDecay");
-                w.Explain.Add("InstitutionalDecay", "前期からの制度疲労(履歴の累積)", w.InstitutionalDecay);
-            }
-            if (w.DecayShockCooldown > 0) w.DecayShockCooldown--;
-            bool shock = false;
-            bool defeatNow = w.DefeatShock >= 0.5;                            // 決定的敗戦（ResolvePeace が 1.0 を注入した直後の高水準・減衰済み残滓と区別）
-            if (defeatNow && !w.DecayPrevDefeatShock) shock = true;
-            w.DecayPrevDefeatShock = defeatNow;
-            bool cwNow = w.InCivilWar;                                        // 大規模反乱（内戦の勃発エッジ）。★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（CivilWarYears）を削除＝「内戦中か」の述語の1本（戦争の形の内戦＝首都の蜂起・地方の蜂起・分離独立）
-            if (cwNow && !w.DecayPrevCivilWar) shock = true;
-            w.DecayPrevCivilWar = cwNow;
-            if (w.HadSovereignDefault && !w.DecayPrevDefault) shock = true;   // 国家破産（恒久フラグの立ち上がり）
-            w.DecayPrevDefault = w.HadSovereignDefault;
-            // C-中9（史実検証2026-07-22）：上の恒久boolでは破産は1ゲーム1回しか窓を開かない（オスマン1875→ミドハト憲法1876、エジプト1876、西は19世紀に6回デフォルト）。
-            // さらに Prev の更新が下のクールダウン判定の外にあるため、破産が別ショックの20四半期クールダウン中に起きると唯一のエッジが消費され緩和が永久に失われる（オスマン1875破産→1877露土敗戦が実例）。
-            // 回数エッジ＋保留ラッチで両方を解消（2026-07-23 点火＝旗 DecayShockRepeatable は 2026-09-26 に焼き込み）。
-            {
-                if (w.SovereignDefaultCount > w.DecayPrevDefaultCount) shock = true;
-                w.DecayPrevDefaultCount = w.SovereignDefaultCount;
-                if (shock) w.DecayShockPending = true;
-                shock = w.DecayShockPending;
-            }
-            if (shock && w.DecayShockCooldown <= 0)
-            {
-                double before = w.InstitutionalDecay;
-                w.InstitutionalDecay = Math.Max(0, w.InstitutionalDecay - c.DecayShockRelief);
-                w.DecayShockCooldown = c.DecayShockCooldownQuarters;
-                w.DecayShockPending = false;
-                w.Explain?.Add("InstitutionalDecay", "ショックの改革の窓", w.InstitutionalDecay - before);
-            }
-            else
-            {
-                bool lockin = w.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory
-                           || w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
-                           || w.MeanIndustrialization >= c.DecayLockinIndustrialization;   // C2-C5撤去2026-08-16：清廉度ロックイン（CleanGovernance≥DecayLockinCleanGov）を物理削除＝V2恒久ONで清廉度は恒等0＝この枝は常に偽の死骸だった
-                if (!lockin && w.Censorship != CensorshipLaw.FreePress)
-                {
-                    var (tradP, modernP, massP) = InterestGroups.Blocs(w);
-                    if (tradP >= modernP && tradP >= massP)
-                    {
-                        double before = w.InstitutionalDecay;
-                        w.InstitutionalDecay = Math.Min(w.InstitutionalDecayCeiling, w.InstitutionalDecay + c.DecayReactionRegrowth * (w.InstitutionalDecayCeiling - w.InstitutionalDecay));
-                        w.Explain?.Add("InstitutionalDecay", "反動の再硬直", w.InstitutionalDecay - before);
-                    }
-                }
-            }
-            double idBeforeClamp = w.InstitutionalDecay;
-            w.InstitutionalDecay = Math.Clamp(w.InstitutionalDecay, 0, w.InstitutionalDecayCeiling);
-            if (w.Explain != null && w.InstitutionalDecay != idBeforeClamp)
-                w.Explain.Add("InstitutionalDecay", w.InstitutionalDecay > idBeforeClamp ? "下限クランプ" : "天井クランプ(初期の構造硬直)", w.InstitutionalDecay - idBeforeClamp);
-        }
         // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は軍が前線へ取られ国内の治安維持力が下がる（厭戦＝長期戦ほど大→本国で革命機会＝1917型）。
         // 機能6-1（第7段第2波・2026-07-28）：戦時の結束（rally around the flag）＝開戦直後は保持力が上がるが厭戦で減衰し（WarRallyDecayPoint超でゼロ）、
         // 長期戦はドレインが上回る＝1914年8月の熱狂→1917年の崩壊が単一項で出る。恒常抑制にしない（二月革命型を殺さない）。WarRallyCoercion=0で旧恒等。

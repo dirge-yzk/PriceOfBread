@@ -50,7 +50,6 @@ public sealed class NationConfig
     //   前提が最初から満たされていた＝**制度の階段が1段まるごと存在しなかった**。
     //   ⚠例外は world.json で個別に指定する（清＝科挙・プロイセン＝一般幕僚と文官制度）。
     public BureaucracyLaw Bureaucracy = BureaucracyLaw.Spoils;
-    public double InstitutionalDecay = 0;   // P7 制度疲労の初期値（清0.8/オスマン0.6/露0.4・西欧と日本は0＝明示的にJSONへ書かない）
     public double NationalConsciousness0 = -1;   // P9 国民意識v2の初期値（−1=係数既定。米0.32=独立戦争直後/仏0.1=革命前）
     public double InitialMassMilitancy = 0;      // P6 乾隆帝の遺産：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱。既定0=恒等・盛りすぎない）
     public double InitialTariff = 0.4;   // 関税の初期値（0..1）。既定＝最頻値（61国のうち30国）。日本＝鎖国で極めて高い
@@ -96,7 +95,7 @@ public sealed class NationConfig
     {
         SharedWorld = sharedWorld, Seed = seed, StartYear = Calendar.StartYear, Kind = ScenarioKind.Nation, NationConfig = this,
         PoliticsEnabled = true, InitialPolity = Polity, FiscalEnabled = true,
-        InitialPollTax = Government.TaxValue(PolicyAxis.PollTax, PollTaxStage), InitialLandTax = Government.TaxValue(PolicyAxis.LandTax, LandTaxStage), InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialInstitutionalDecay = InstitutionalDecay, InitialBureaucracy = Bureaucracy, InitialNationalConsciousness = NationalConsciousness0, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,   // 所得税は0から（TaxRate の既定＝1783年に所得税を持つ国は無い）・直接税は国ごとの段（上の PollTaxStage／LandTaxStage）
+        InitialPollTax = Government.TaxValue(PolicyAxis.PollTax, PollTaxStage), InitialLandTax = Government.TaxValue(PolicyAxis.LandTax, LandTaxStage), InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialBureaucracy = Bureaucracy, InitialNationalConsciousness = NationalConsciousness0, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,   // 所得税は0から（TaxRate の既定＝1783年に所得税を持つ国は無い）・直接税は国ごとの段（上の PollTaxStage／LandTaxStage）
         EducationLaw = Education, ExternalPressure = 0.3,
         InitialInterestRate = InitialInterestRate,  // 中庸の金利＝信用の過剰変動を抑える初期設定（プレイヤーが上下で金融政策）
         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）

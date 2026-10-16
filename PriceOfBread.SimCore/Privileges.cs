@@ -132,30 +132,6 @@ public static class Privileges
             w.PrivilegeHeldYears[k] = active ? w.PrivilegeHeldYears[k] + dt : System.Math.Max(0, w.PrivilegeHeldYears[k] - dt);
             w.PrivilegeTakeMonth[k] = 0;
         }
-        if (c.DecayFromPrivilege > 0) w.PrivilegeDecayRaw = DerivedDecayRaw(w, c);   // ★段6：ゲート>0 のときだけ計算（0＝1命令も足さない）
-    }
-
-    /// <summary>★段6：制度疲労の導出量の生値＝Σ_k（年間取り分 k ÷ 名目GDP × 受益クラス k の発言権シェア）。発言権＝InterestGroups.FranchiseVoice（議会の票と同じ量）。
-    /// 正規化（÷世界最大×天井）は World.DecayForReaders が行う。PrivilegeLedgerEnabled=0 では呼ばれない。</summary>
-    public static double DerivedDecayRaw(World w, Coefficients c)
-    {
-        double gdp = w.NominalGdpPerMonth.Value; if (!(gdp > 1e-9)) return 0;
-        double[] voice = new double[PopClass.Count]; double total = 0;
-        foreach (var p in w.AllPops())
-        {
-            if (p.IsSoldier || p.ClassId < 0 || p.ClassId >= voice.Length) continue;
-            double v = InterestGroups.FranchiseVoice(p, w.Suffrage, c) * p.Size;
-            if (!(v > 0)) continue;
-            voice[p.ClassId] += v; total += v;
-        }
-        if (!(total > 1e-9)) return 0;
-        double raw = 0;
-        for (int k = 0; k < Count && k < w.PrivilegeTakeMonth.Length; k++)
-        {
-            int cls = Beneficiary[k]; if (cls < 0 || cls >= voice.Length) continue;
-            raw += (w.PrivilegeTakeYear[k] / gdp) * (voice[cls] / total);
-        }
-        return !(raw >= 0) ? 0 : raw;
     }
 
     /// <summary>強度∈[0,1]＝保有年数÷世代長（DominanceMatureYears）。剥離の怒り（段3）はこれに比例する。</summary>

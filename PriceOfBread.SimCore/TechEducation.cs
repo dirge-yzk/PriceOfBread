@@ -56,7 +56,6 @@ public static class TechEducation
         if (!(s > 0)) return Math.Max(0, 1.0 - c.ResearchScaleWeight);
         return Math.Max(0, 1.0 + c.ResearchScaleWeight * (Math.Sqrt(s) - 1.0));   // s=1で厳密に1.0（参照点で恒等）
     }
-    private const double DecayAdoptPenaltyCap = 0.95;      // 制度疲労による採用速度ペナルティの上限（完全停止は避ける）
 
     /// <summary>
     /// 月次：識字の伸び（§A-1）＋ エリート水準の再計算（教育2段階：識字→エリート）。
@@ -160,7 +159,6 @@ public static class TechEducation
             catchFrac = c.CatchupFraction.Value + (c.CatchupFractionAdvanced.Value - c.CatchupFraction.Value) * a;
             adoptRate = c.AdoptionRate + (c.AdoptionRateAdvanced - c.AdoptionRate) * a;
         }
-        if (c.DecayTechAdoptWeight > 0) adoptRate *= 1.0 - Math.Clamp(c.DecayTechAdoptWeight * w.InstitutionalDecay, 0, DecayAdoptPenaltyCap);   // P7②制度疲労＝採用速度の遅延（科挙官僚制が技師を作らない）。live（DecayTechAdoptWeight=0.75）・0で恒等
         // ★接触（作者採用2026-09-06 段8）：後追いは人と物の往来に乗る＝天井の**床より上**にだけ接触度を掛ける（鎖国でも基礎は失われない）。0 で ×1.0。
         double contact = c.CatchupContactWeight > 0 ? 1.0 - c.CatchupContactWeight * (1.0 - PoliticalQuantities.Clamp01(w.TradeContactShare)) : 1.0;
         double adoptionCeil = Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac * contact);

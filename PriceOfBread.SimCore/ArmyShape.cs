@@ -289,9 +289,6 @@ public static class ArmyShape
     internal static (double Tech, double Cohesion, double Militarism) Quality(World w, Coefficients c)
     {
         double techQuality = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * PoliticalQuantities.Clamp01(w.TechLevel / c.TechMilFullLevel);
-        if (c.DecayMilitaryWeight > 0 && w.DecayForReaders > 0)   // ★特権段6：読み手は DecayForReaders（ゲート0で従来値）
-            techQuality *= 1.0 - System.Math.Clamp(c.DecayMilitaryWeight * w.DecayForReaders
-                * PoliticalQuantities.Clamp01((w.WorldTechLevel - w.TechLevel) / System.Math.Max(1e-9, w.WorldTechLevel)), 0, 0.9);
         double cohesion = w.EthnicEnabled ? 1 + c.UnityMilitaryQuality * (w.EthnicUnity - 0.5) : 1.0;
         // ①軍の練度（2026-08-18・親軍法の撤去）＝識字×組織（専門官僚制・鉄道）×勤務年数。旧＝親軍法ONで一律1.3の段差。
         // 露は皆兵＋巨額でも低質（識字と下士官層の不在）・英は志願長期勤務で最高＝法でなく実物量が質を作る。

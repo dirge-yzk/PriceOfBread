@@ -641,7 +641,6 @@
    "treasury": 12000,
    "landTaxStage": 0,
    "govDebt": 20000,
-   "institutionalDecay": 0.4,
    "initialTariff": 0.3,
    "initialColonies": [
     {
@@ -1041,7 +1040,6 @@
    "literacy": 0.03,
    "coercion": 500,
    "treasury": 12000,
-   "institutionalDecay": 0.6,
    "initialTariff": 0.1,
    "initialConscription": "Volunteer",
    "initialCornLaws": "Limited",
@@ -1847,7 +1845,6 @@
    "pollTaxStage": 0,
    "landTaxStage": 2,
    "initialMassMilitancy": 0.25,
-   "institutionalDecay": 0.8,
    "initialTariff": 0.8,
    "initialConscription": "Volunteer",
    "initialImmigration": "Selective",

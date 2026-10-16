@@ -60,7 +60,6 @@ public sealed class Scenario
     public double InitialTreasury { get; init; } = 0.0;        // 初期国庫（武力解錠の原資など）
     public double InitialGovDebt { get; init; } = 0.0;         // 初期国債残高（P5：仏＝米独立戦争債務「重債務だが未破綻」。国内債扱い＝純負債・貨幣非移動で保存中立）
     public BureaucracyLaw InitialBureaucracy { get; init; } = BureaucracyLaw.MeritExam;   // 官僚制度の初期値（2026-08-04）。**単体テスト/較正の既定は MeritExam＝旧と同じ**（行政効率に倍率が乗らない中立点）＝較正harnessは不変。多国は NationConfig が Spoils を渡す
-    public double InitialInstitutionalDecay { get; init; } = 0.0;   // P7 制度疲労の初期値（＝クランプ天井。清0.8/オスマン0.6/露0.4・他0）
     public double InitialNationalConsciousness { get; init; } = -1;   // P9 国民意識v2の初期値（−1=係数既定0.075。米0.32/仏0.1＝world.json）
     public double InitialMassMilitancy { get; init; } = 0;   // P6：非特権大衆の初期闘争度（清のみ非0想定・既定0=恒等）
 

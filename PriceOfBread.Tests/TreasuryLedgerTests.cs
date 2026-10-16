@@ -503,7 +503,7 @@ public class TreasuryLedgerTests
         Assert.True(a.unit > need, $"前提：A の1件の額 {a.unit:F1} が払えない額 {need:F1} を越えない");
         Assert.True(System.Math.Abs(a.bor - need) <= 1e-6 * need, $"借りられる月の借入 {a.bor:F4} が払えない額 {need:F4} でない（プールが尽きたか、切り下げが先に埋めた）");
         Assert.Equal(0.0, a.dev);
-        Assert.Equal(1.0, a.w.FiscalFundingRatio.Value);
+        Assert.Equal(1.0, a.w.FiscalFundingRatio.Value, 12);   // 12 桁＝1 ulp の丸め（0.99999999999999989）を通す。意図は〈切り下げない・r＝1〉
 
         // B：冷却中＝借りず、切り下げ＝(1−兌換)×払えない額
         var b = Month(w => { w.BorrowCooldownMonths = 2; });
