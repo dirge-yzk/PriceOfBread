@@ -428,6 +428,26 @@ public sealed partial class InternationalMarket
             LastPairWasLand = viaLand < viaSea;   // ★純テレメトリ（戻り値・算術は不変）
             return Math.Min(viaSea, viaLand);
         }
+        // ★(380) 輸送の段0 の計器（Instruments.On のときだけ呼ぶ・読むだけ）：PairKm の式を海脚・陸脚・換算 km に分けて書き直した物（sea＝その成約の経路が海経由か）。
+        //   値は書かない・状態を持たない。PairKm の式が変われば食い違う（番人 TransportInstrumentTests が〈海脚＋陸脚の換算 km ＝ 成約の換算 km〉を確かめる）。
+        Instruments.TrRoute RouteParts(int a, int b, bool sea, double eqBook)
+        {
+            var rt = new Instruments.TrRoute { Sea = sea, EqBook = eqBook, TerrSeller = terrCost[a], TerrBuyer = terrCost[b], RatioSeller = landRatio[a], RatioBuyer = landRatio[b] };
+            if (sea)
+            {
+                rt.RealSeaKm = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);
+                rt.EqSea = rt.RealSeaKm;
+                rt.RealLandKm = tr[a].landKm + tr[b].landKm;
+                rt.EqLand = tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b];
+            }
+            else
+            {
+                double raw = PathGraph.LandMatrix()[landNode[a] * PathGraph.Nodes.Length + landNode[b]];
+                rt.RealLandKm = raw + landGraft[a] + landGraft[b];
+                rt.EqLand = rt.RealLandKm * 0.5 * (terrCost[a] * landRatio[a] + terrCost[b] * landRatio[b]);
+            }
+            return rt;
+        }
         // 経路のリスク料＝敵支配度の線積分（買い手側の敵対度で見る＝荷を受け取る側が保険を負う）。交戦なしで0。
         // ★通商破壊リスクのメモ化（2026-09-01・高速化第2弾）：PairRisk は Step 内の純関数（依存＝tr座標・natHostility・choke開閉＝全てStep冒頭で確定）
         //   なのに、戦時の買い手×売り手×財×ロールオーバーごとに海盆経路探索（RouteBasinKm）を再実行していた＝戦争が増える終盤×貿易復活で
@@ -907,6 +927,7 @@ public sealed partial class InternationalMarket
                     if (portS > 0) { double rS = vA * portS / exRate[siA]; portRecv[snA] += rS; fxIntended += rS - vA * portS / exRate[ni]; }   // 積出し港の持ち主は自国の通貨で（換算の差は台帳へ）
                     if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
                     freightPool += frG;
+                    if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA);   // ★(380) 輸送の段0 の計器（読むだけ）
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];   // 売買方針（高く買う）＝積出し価格×楔（旧＝数量×表示用の平均×楔＝R6）
                     // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
                     //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。
@@ -978,6 +999,7 @@ public sealed partial class InternationalMarket
         {
             if (!(freightPool > 0) || !(shipShare[i] > 0)) continue;
             double amt = freightPool * shipShare[i] / exRate[i];
+            if (Instruments.On) Instruments.TradeFreightReceived(this, nations[i].World, freightPool * shipShare[i]);   // ★(380) 輸送の段0 の計器（読むだけ・金建て）
             fxIntended += amt;
             World.Transfer((null, null), (nations[i].World, shipOwners[i], null), amt, TreasuryCat.OtherIn, income: true);
         }

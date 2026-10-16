@@ -1,0 +1,311 @@
+namespace PriceOfBread.SimCore;
+
+// ---------------------------------------------------------------- (380) 輸送の段0 の計器（読むだけ・設計 docs/202610/20261016/20261016_輸送の手段と距離_設計.md §5-1 段0） ----------------------------------------------------------------
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsFm.cs／InstrumentsPop.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない
+// （蓄えは InternationalMarket の外＝ConditionalWeakTable・セーブに載らない）。出力は INS=1（POB_INSTRUMENTS）のときだけ。偽の間は本体の hook が 1 命令も走らない。
+//
+// 出すもの（1 試合＝seed ごとに 4 本の TSV）：
+//   trbin_s<seed>.tsv     年×（陸直行／海経由）×（国内／越境）×（距離の帯 8）×（財の重さの帯 5）：成約の件数・積出し価格の額・重さ（数量×輸送重量）・
+//                         実の km を掛けた重さ（陸脚／海脚に分けて）・運賃の換算 km を掛けた重さ・払われた運賃（陸脚の分／海脚の分に分けて）。成約 1 件ごとに足す＝清算の行の全数。
+//   trroute_s<seed>.tsv   経路（売り手の州×買い手の州）ごと＝10 年ごとの年の終わり（年の数字が 10 の倍数）の四半期。額の大きい上位 3000 組＋残りの合計の 1 行。
+//                         距離（海脚・陸脚・運賃の換算）・両端の地形と地形の係数・陸÷海の比・その年の成約の額・重さ・運賃。
+//   trnation_s<seed>.tsv  年×国：その国の買い手が払った運賃（うち陸脚の分・うち自国の売り手との成約の分）と、その国が世界の船腹の比で受け取った運賃＝§2-7 の不具合の大きさ。
+//   trstat_s<seed>.tsv    scope 列で 5 種類：
+//                           A＝州の面積（陸路用の陸マスクを 0.2° ごとに数え、一番近い州の座標へ割り当てる・構築で 1 回）と州の中の平均の運び距離 (2/3)√(A/π)。
+//                           G＝州の断面（10 年ごとの年の終わり）：地形・人口・都市人口・工場と採取場の産出（参照価格×量）・産出の重さ。
+//                           P＝年の終わりの世界の平均の財の値段（金建て）＋労働の賃金（人口加重・金建て）＋参照価格。
+//                           Z＝運賃と地形に関わる係数の値（開幕に 1 回）。
+// ⚠限界（計器が自分で申告する）：
+//   ・運賃の陸脚と海脚の分け方は換算 km の比（運賃は換算 km に比例する＝BilateralMarket の frA）。陸脚の換算 km は PairKm の式を hook の側で書き直した物（地形×陸÷海の比を含む）＝
+//     式が変われば食い違う。番人で〈海脚＋陸脚の換算 km が成約の換算 km に合う〉を確かめる。
+//   ・重さ＝数量×Catalog.TransportWeight（相対の単位・トンではない）。財の単位がトンに換算できる保証は無い。
+//   ・州の面積は 0.2° 格子の標本（誤差は数 %）で、陸の格子点を州の座標へ最近傍で割り当てる＝州の座標が疎な地域（シベリア・サハラ）は大きく出る。列 areaWithin1000KmKm2 は州の座標から 1000 km 以内の格子点だけを数える。
+//   ・緯度が −60 度より南・80 度より北の格子点は数えない（人の住まない地域・計器の定数）。
+//   ・成約が無い経路は出ない。上位 3000 組の外は 1 行の合計にまとめる。
+public static partial class Instruments
+{
+    /// <summary>経路の分解（hook が BilateralMarket の側で PairKm の式から書き直す）。海経由＝海脚 <see cref="RealSeaKm"/>＋両端の陸脚 <see cref="RealLandKm"/>（売り手側と買い手側の和）・
+    /// 陸直行＝陸グラフの最短路＋接ぎ木の km の 1 本。換算 km＝<see cref="EqSea"/>＋<see cref="EqLand"/>（PairKm の戻り値＝<see cref="EqBook"/> に合う）。
+    /// <see cref="EqBook"/>＝運賃の計算に使われた換算 km（BilateralMarket の bestKmA）＝分解の突き合わせ先。</summary>
+    internal struct TrRoute
+    {
+        public bool Sea;
+        public double EqBook, RealSeaKm, RealLandKm, EqSea, EqLand, TerrSeller, TerrBuyer, RatioSeller, RatioBuyer;
+    }
+
+    /// <summary>距離の帯の境（実の km の合計）。帯 0＝50 未満 … 帯 7＝12000 以上。計器の定数。</summary>
+    internal static readonly double[] TrDistEdges = [50, 150, 400, 1000, 2500, 6000, 12000];
+    /// <summary>財の重さの帯の境（輸送重量）。0.4・1.0・2.5・3.0・6.0 の 5 値の中間。計器の定数。</summary>
+    internal static readonly double[] TrWeightEdges = [0.7, 1.5, 2.75, 4.5];
+    static int TrBand(double[] edges, double x) { int b = 0; while (b < edges.Length && x >= edges[b]) b++; return b; }
+
+    sealed class TrBin
+    {
+        public long Deals;
+        public double Value, Weight, WKmReal, WKmLandReal, WKmSeaReal, WKmEq, WKmEqLand, WKmEqSea, Freight, FreightLand, FreightSea;
+    }
+    sealed class TrPair
+    {
+        public string SellerNation = "", BuyerNation = "";
+        public TrRoute Route;
+        public long Deals; public double Value, Weight, Freight, FreightLand;
+        public double ValueSea, ValueEqBook, ValueEqSea, ValueEqLand;   // 成約の額で重みを付けた換算 km の和（凍る港で経路が季節ごとに変わる組があるので、運賃の突き合わせは最後の成約の km でなくこの和で行う）
+    }
+    sealed class TrNat
+    {
+        public double Paid, PaidLand, PaidDomestic, PaidLandDomestic, Received, WKmReal;
+    }
+    sealed class TrAcc
+    {
+        public readonly Dictionary<int, TrBin> Bins = new();
+        public readonly Dictionary<(Region S, Region B), TrPair> Pairs = new();
+        public readonly Dictionary<string, TrNat> Nats = new();
+        public int FoldedQuarters;
+        public void Clear() { Bins.Clear(); Pairs.Clear(); Nats.Clear(); }
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, TrAcc> TrAccs = new();
+    static TrAcc TrOf(InternationalMarket m) => TrAccs.GetValue(m, _ => new TrAcc());
+    static TrNat TrNatOf(TrAcc a, string name) { if (!a.Nats.TryGetValue(name, out var n)) a.Nats[name] = n = new TrNat(); return n; }
+
+    /// <summary>成約 1 件（<c>BilateralMarket</c> の記帳の位置・読むだけ）。<paramref name="freight"/>＝その成約の運賃（金建て・<c>freightPool</c> へ足す額）・<paramref name="weight"/>＝財 1 単位の輸送重量。</summary>
+    internal static void TradeDeal(InternationalMarket m, World buyer, World seller, Region sellerR, Region buyerR, double weight, double qty, double value, double freight, in TrRoute rt, bool cross)
+    {
+        var a = TrOf(m);
+        double w = qty * weight, eq = rt.EqSea + rt.EqLand;
+        double frLand = eq > 0 ? freight * rt.EqLand / eq : 0.0;
+        double realKm = rt.RealSeaKm + rt.RealLandKm;
+        int key = (((rt.Sea ? 1 : 0) * 2 + (cross ? 1 : 0)) * (TrDistEdges.Length + 1) + TrBand(TrDistEdges, realKm)) * (TrWeightEdges.Length + 1) + TrBand(TrWeightEdges, weight);
+        if (!a.Bins.TryGetValue(key, out var b)) a.Bins[key] = b = new TrBin();
+        b.Deals++; b.Value += value; b.Weight += w;
+        b.WKmReal += w * realKm; b.WKmLandReal += w * rt.RealLandKm; b.WKmSeaReal += w * rt.RealSeaKm;
+        b.WKmEq += w * eq; b.WKmEqLand += w * rt.EqLand; b.WKmEqSea += w * rt.EqSea;
+        b.Freight += freight; b.FreightLand += frLand; b.FreightSea += freight - frLand;
+        var nb = TrNatOf(a, NameOf(buyer));
+        nb.Paid += freight; nb.PaidLand += frLand; nb.WKmReal += w * realKm;
+        if (!cross) { nb.PaidDomestic += freight; nb.PaidLandDomestic += frLand; }
+        if (!a.Pairs.TryGetValue((sellerR, buyerR), out var p)) a.Pairs[(sellerR, buyerR)] = p = new TrPair { SellerNation = NameOf(seller), BuyerNation = NameOf(buyer) };
+        p.Route = rt; p.Deals++; p.Value += value; p.Weight += w; p.Freight += freight; p.FreightLand += frLand;
+        if (rt.Sea) p.ValueSea += value;
+        p.ValueEqBook += value * rt.EqBook; p.ValueEqSea += value * rt.EqSea; p.ValueEqLand += value * rt.EqLand;
+    }
+
+    /// <summary>清算の終わりに世界の船腹の比で配った運賃（金建て・国ごと）。<c>BilateralMarket</c> の <c>World.Transfer</c> の直前・読むだけ。</summary>
+    internal static void TradeFreightReceived(InternationalMarket m, World owner, double gold) => TrNatOf(TrOf(m), NameOf(owner)).Received += gold;
+
+    /// <summary>番人用：この試合の市場に蓄えがあるか（計器を切っている間は作られない＝hook が 1 命令も走らない）。</summary>
+    internal static bool TrAccExists(MultiNationSim sim) => TrAccs.TryGetValue(sim.Market, out _);
+
+    /// <summary>助走の直後：助走の月の成約を数えない。</summary>
+    internal static void TrClear(MultiNationSim sim) { if (TrAccs.TryGetValue(sim.Market, out var a)) a.Clear(); }
+
+    // ---------------------------------------------------------------- 書き出し（Quarter の末尾から） ----------------------------------------------------------------
+
+    /// <summary>経路の行と州の断面の行を出す年の間隔（年の数字がこの数の倍数の年の終わり）。既定 10。番人だけが 1 にする。</summary>
+    internal static int TrSnapEveryYears = 10;
+
+    const string TrBinHeader = "year\trouteCode\tcrossBorderFlag\tdistanceBandCode\tweightBandCode\tdealsCount\tvalueGold\tweightUnits\tweightKmReal\tweightKmLandReal\tweightKmSeaReal\t"
+        + "weightKmEq\tweightKmEqLand\tweightKmEqSea\tfreightGold\tfreightLandPartGold\tfreightSeaPartGold";
+    const string TrRouteHeader = "year\tsellerRegion\tbuyerRegion\tsellerNation\tbuyerNation\tsellerTerrainCode\tbuyerTerrainCode\trouteCode\trealSeaKm\trealLandKm\teqSeaKm\teqLandKm\teqBookKm\tterrainCostSeller\tterrainCostBuyer\t"
+        + "landSeaRatioSeller\tlandSeaRatioBuyer\tdealsCount\tvalueGold\tweightUnits\tfreightGold\tfreightLandPartGold\tvalueSeaRouteGold\tvalueTimesEqBookKmGold\tvalueTimesEqSeaKmGold\tvalueTimesEqLandKmGold";
+    const string TrNatHeader = "year\tnation\trailGateFlag\tfreightPaidGold\tfreightPaidLandPartGold\tfreightPaidDomesticGold\tfreightPaidLandPartDomesticGold\tfreightReceivedGold\tweightKmReal";
+    const string TrStatHeader = "scope\tyear\tnation\tregion\tterrainCode\tlat\tlon\tareaKm2\tareaWithin1000KmKm2\tmeanHaulKm\tmeanHaulWithin1000KmKm\tportFlag\tpopulationK\turbanPopulationK\t"
+        + "factoryOutputValuePerMonth\tgatherOutputValuePerMonth\toutputWeightPerMonth\tname\tvalue\trefValue";
+
+    static string TrI(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    static void TransportFold(Sink sk, ulong seed, int q, MultiNationSim sim)
+    {
+        var a = TrOf(sim.Market);
+        bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
+        a.FoldedQuarters++;
+        if (a.FoldedQuarters == 1) TrStatFirst(sk, seed, sim);
+        if (!yearEnd) return;
+        FlushTransport(sk, seed, sim);
+    }
+
+    /// <summary>年の終わり（と試合の終わりの残り）：蓄えを行にして書き、0 へ戻す。</summary>
+    static void FlushTransport(Sink sk, ulong seed, MultiNationSim sim)
+    {
+        var a = TrOf(sim.Market);
+        int year = sim.Nations[0].World.Year;
+        sk.TrBin ??= Open("trbin", seed); sk.TrRoute ??= Open("trroute", seed); sk.TrNat ??= Open("trnation", seed); sk.TrStat ??= Open("trstat", seed);
+        if (!sk.TrHeader) { sk.TrBin.WriteLine(TrBinHeader); sk.TrRoute.WriteLine(TrRouteHeader); sk.TrNat.WriteLine(TrNatHeader); sk.TrStat.WriteLine(TrStatHeader); sk.TrHeader = true; }
+        foreach (var kv in a.Bins.OrderBy(k => k.Key))
+        {
+            int k = kv.Key; var b = kv.Value;
+            int nw = TrWeightEdges.Length + 1, nd = TrDistEdges.Length + 1;
+            int wb = k % nw, db = k / nw % nd, cross = k / (nw * nd) % 2, sea = k / (nw * nd * 2);
+            sk.TrBin.WriteLine(string.Join('\t', TrI(year), TrI(sea), TrI(cross), TrI(db), TrI(wb), b.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), F(b.Value), F(b.Weight), F(b.WKmReal), F(b.WKmLandReal), F(b.WKmSeaReal),
+                F(b.WKmEq), F(b.WKmEqLand), F(b.WKmEqSea), F(b.Freight), F(b.FreightLand), F(b.FreightSea)));
+        }
+        foreach (var kv in a.Nats.OrderBy(k => k.Key, StringComparer.Ordinal))
+        {
+            var n = kv.Value; World? w = null;
+            foreach (var sn in sim.Nations) if (NameOf(sn.World) == kv.Key) { w = sn.World; break; }
+            sk.TrNat.WriteLine(string.Join('\t', TrI(year), kv.Key, w is null ? "nan" : Discovery.RailTransport(w.Discovered) ? "1" : "0", F(n.Paid), F(n.PaidLand), F(n.PaidDomestic), F(n.PaidLandDomestic), F(n.Received), F(n.WKmReal)));
+        }
+        if (year % TrSnapEveryYears == 0)
+        {
+            var top = a.Pairs.OrderByDescending(k => k.Value.Value).ThenBy(k => k.Key.S.Name, StringComparer.Ordinal).ThenBy(k => k.Key.B.Name, StringComparer.Ordinal).ToList();
+            double restDeals = 0, restValue = 0, restWeight = 0, restFreight = 0, restFreightLand = 0, restVs = 0, restVb = 0, restVsea = 0, restVland = 0;
+            for (int i = 0; i < top.Count; i++)
+            {
+                var (key, p) = (top[i].Key, top[i].Value);
+                if (i >= 3000) { restDeals += p.Deals; restValue += p.Value; restWeight += p.Weight; restFreight += p.Freight; restFreightLand += p.FreightLand; restVs += p.ValueSea; restVb += p.ValueEqBook; restVsea += p.ValueEqSea; restVland += p.ValueEqLand; continue; }
+                var rt = p.Route;
+                sk.TrRoute.WriteLine(string.Join('\t', TrI(year), key.S.Name, key.B.Name, p.SellerNation, p.BuyerNation, TrI((int)key.S.Terrain), TrI((int)key.B.Terrain), rt.Sea ? "1" : "0",
+                    F(rt.RealSeaKm), F(rt.RealLandKm), F(rt.EqSea), F(rt.EqLand), F(rt.EqBook), F(rt.TerrSeller), F(rt.TerrBuyer), F(rt.RatioSeller), F(rt.RatioBuyer),
+                    p.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), F(p.Value), F(p.Weight), F(p.Freight), F(p.FreightLand), F(p.ValueSea), F(p.ValueEqBook), F(p.ValueEqSea), F(p.ValueEqLand)));
+            }
+            if (top.Count > 3000)
+                sk.TrRoute.WriteLine(string.Join('\t', TrI(year), "(上位3000組の外の合計)", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", F(restDeals), F(restValue), F(restWeight), F(restFreight), F(restFreightLand), F(restVs), F(restVb), F(restVsea), F(restVland)));
+            TrRegionRows(sk, sim, year);
+        }
+        TrPriceRows(sk, sim, year);
+        a.Clear();
+    }
+
+    /// <summary>試合の終わり：年の途中で終わった残りを書く（四半期の数が 4 の倍数なら何も残らない）。</summary>
+    static void TransportClose(Sink sk, MultiNationSim sim)
+    {
+        if (!TrAccs.TryGetValue(sim.Market, out var a)) return;
+        if (a.Bins.Count > 0 || a.Nats.Count > 0) FlushTransport(sk, sk.Seed, sim);
+    }
+
+    // ---------------------------------------------------------------- 静的な表（面積・係数） ----------------------------------------------------------------
+
+    static void TrStatFirst(Sink sk, ulong seed, MultiNationSim sim)
+    {
+        sk.TrStat ??= Open("trstat", seed); sk.TrBin ??= Open("trbin", seed); sk.TrRoute ??= Open("trroute", seed); sk.TrNat ??= Open("trnation", seed);
+        if (!sk.TrHeader) { sk.TrBin.WriteLine(TrBinHeader); sk.TrRoute.WriteLine(TrRouteHeader); sk.TrNat.WriteLine(TrNatHeader); sk.TrStat.WriteLine(TrStatHeader); sk.TrHeader = true; }
+        int year = sim.Nations[0].World.Year;
+        var regs = new List<(string Nation, Region R)>();
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) regs.Add((NameOf(n.World), r));
+        var pts = new (double Lat, double Lon)[regs.Count];
+        for (int i = 0; i < regs.Count; i++) pts[i] = Climate.CityCoord(regs[i].R.Name);
+        var (area, areaNear) = TrAreas(pts);
+        for (int i = 0; i < regs.Count; i++)
+        {
+            var r = regs[i].R;
+            sk.TrStat.WriteLine(string.Join('\t', "A", TrI(year), regs[i].Nation, r.Name, TrI((int)r.Terrain), F(pts[i].Lat), F(pts[i].Lon), F(area[i]), F(areaNear[i]), F(MeanHaul(area[i])), F(MeanHaul(areaNear[i])),
+                r.IsPort ? "1" : "0", "", "", "", "", "", "", "", ""));
+        }
+        var c = sim.Nations[0].World.Coef;
+        void Z(string name, double v) => sk.TrStat!.WriteLine(string.Join('\t', "Z", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", name, F(v), ""));
+        Z("LandSeaCostRatio", c.LandSeaCostRatio); Z("RailCostFraction", c.RailCostFraction); Z("FreightRatePer10Mm", c.FreightRatePer10Mm);
+        Z("TransportMargin", c.TransportMargin); Z("DistanceMarginScale", c.DistanceMarginScale); Z("TransportWeightMarginScale", c.TransportWeightMarginScale);
+        Z("MerchantMargin", c.MerchantMargin); Z("TerrainWaterMajorCost", c.TerrainWaterMajorCost); Z("TerrainWaterMinorCost", c.TerrainWaterMinorCost);
+        Z("DistanceNormKm", Diplomacy.DistanceNormKm);
+        for (int t = 0; t < c.TerrainHorseCost.Length; t++) Z("TerrainHorseCost[" + ((Terrain)t) + "]", c.TerrainHorseCost[t]);
+        for (int t = 0; t < c.TerrainRailCost.Length; t++) Z("TerrainRailCost[" + ((Terrain)t) + "]", c.TerrainRailCost[t]);
+    }
+
+    static double MeanHaul(double areaKm2) => areaKm2 > 0 ? 2.0 / 3.0 * Math.Sqrt(areaKm2 / Math.PI) : double.NaN;
+
+    static readonly Dictionary<long, (double[] All, double[] Near)> AreaCache = new();
+    const double TrAreaStepDeg = 0.2, TrAreaNearKm = 1000.0, TrAreaLatMin = -60.0, TrAreaLatMax = 80.0, KmPerDeg = 111.195;
+
+    /// <summary>陸路用の陸マスクの格子点（0.2° ごと）を一番近い州の座標へ割り当て、面積（km²）を数える。同じ座標の州は等分。座標が (0,0)（未登録）の州は NaN。</summary>
+    internal static (double[] All, double[] Near) TrAreas((double Lat, double Lon)[] pts)
+    {
+        long sig = 1469598103934665603L;
+        foreach (var p in pts) { sig = (sig ^ BitConverter.DoubleToInt64Bits(p.Lat)) * 1099511628211L; sig = (sig ^ BitConverter.DoubleToInt64Bits(p.Lon)) * 1099511628211L; }
+        lock (AreaCache) if (AreaCache.TryGetValue(sig, out var hit)) return hit;
+        var uniq = new List<(double Lat, double Lon)>(); var uid = new int[pts.Length]; var members = new List<int>();
+        var seen = new Dictionary<(double, double), int>();
+        for (int i = 0; i < pts.Length; i++)
+        {
+            if (pts[i].Lat == 0 && pts[i].Lon == 0) { uid[i] = -1; continue; }
+            if (!seen.TryGetValue(pts[i], out int u)) { u = uniq.Count; seen[pts[i]] = u; uniq.Add(pts[i]); members.Add(0); }
+            uid[i] = u; members[u]++;
+        }
+        var ua = new double[uniq.Count]; var un = new double[uniq.Count];
+        int nx = (int)Math.Round(360.0 / TrAreaStepDeg), ny = (int)Math.Round(180.0 / TrAreaStepDeg);
+        double cellDeg = TrAreaStepDeg;
+        for (int yi = 0; yi < ny; yi++)
+        {
+            double lat = 90.0 - (yi + 0.5) * cellDeg;
+            if (lat < TrAreaLatMin || lat > TrAreaLatMax) continue;
+            double cosLat = Math.Cos(lat * Math.PI / 180.0);
+            double cellKm2 = cellDeg * KmPerDeg * cellDeg * KmPerDeg * cosLat;
+            for (int xi = 0; xi < nx; xi++)
+            {
+                double lon = -180.0 + (xi + 0.5) * cellDeg;
+                if (!Landmask.IsLandForRoads(lat, lon)) continue;
+                int best = -1; double bd = double.MaxValue;
+                for (int u = 0; u < uniq.Count; u++)
+                {
+                    double dl = Math.Abs(lon - uniq[u].Lon); if (dl > 180.0) dl = 360.0 - dl;
+                    double dy = lat - uniq[u].Lat, dx = dl * cosLat;
+                    double d2 = dy * dy + dx * dx;
+                    if (d2 < bd) { bd = d2; best = u; }
+                }
+                if (best < 0) continue;
+                ua[best] += cellKm2;
+                if (Math.Sqrt(bd) * KmPerDeg <= TrAreaNearKm) un[best] += cellKm2;
+            }
+        }
+        var all = new double[pts.Length]; var near = new double[pts.Length];
+        for (int i = 0; i < pts.Length; i++)
+        {
+            if (uid[i] < 0) { all[i] = near[i] = double.NaN; continue; }
+            all[i] = ua[uid[i]] / members[uid[i]]; near[i] = un[uid[i]] / members[uid[i]];
+        }
+        lock (AreaCache) AreaCache[sig] = (all, near);
+        return (all, near);
+    }
+
+    // ---------------------------------------------------------------- 州の断面と世界の値段 ----------------------------------------------------------------
+
+    static void TrRegionRows(Sink sk, MultiNationSim sim, int year)
+    {
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; string nation = NameOf(w);
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                double pop = 0, urban = 0;
+                foreach (var p in r.Pops) { pop += p.Size; if (p.IsUrban) urban += p.Size; }
+                double fac = 0, gat = 0, wt = 0;
+                foreach (var pr in r.Producers)
+                {
+                    var good = r.GoodOf(pr.GoodId);
+                    if (good is null || good.Tier == GoodTier.Service) continue;
+                    double o = pr.Output;
+                    if (pr.IsRgo) gat += o * good.RefPrice; else fac += o * good.RefPrice;
+                    wt += o * Catalog.TransportWeight(pr.GoodId);
+                }
+                var cc = Climate.CityCoord(r.Name);
+                sk.TrStat!.WriteLine(string.Join('\t', "G", TrI(year), nation, r.Name, TrI((int)r.Terrain), F(cc.Lat), F(cc.Lon), "", "", "", "", r.IsPort ? "1" : "0", F(pop), F(urban), F(fac), F(gat), F(wt), "", "", ""));
+            }
+        }
+    }
+
+    /// <summary>運賃の見積もりの材料の財（名前で引く）。馬・飼料・石炭・線路・機関車・帆船・汽船・原油・内燃機関・自動車・鋼・製材。</summary>
+    static readonly int[] TrPriceGoods = [Catalog.HorseId, Catalog.FodderId, Catalog.CoalId, Catalog.RailId, Catalog.LocomotiveId, Catalog.SailingShipId, Catalog.SteamshipId,
+        Catalog.CrudeOilId, Catalog.CombustionEngineId, Catalog.AutomobileId, Catalog.SteelId, Catalog.LumberId];
+
+    static void TrPriceRows(Sink sk, MultiNationSim sim, int year)
+    {
+        var px = sim.Market.Price;
+        foreach (int g in TrPriceGoods)
+            sk.TrStat!.WriteLine(string.Join('\t', "P", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", Catalog.Goods[g].Name, F(g < px.Count ? px[g] : double.NaN), F(Catalog.RefPrices[g])));
+        foreach (int g in new[] { Catalog.LaborId, Catalog.AdvLaborId })
+        {
+            double num = 0, den = 0;
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World; double fx = w.FxRate;
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active || g >= r.Markets.Length || r.Markets[g] is not { } mk) continue;
+                    double sz = 0; foreach (var p in r.Pops) sz += p.Size;
+                    if (!(sz > 0) || !(mk.Price > 0)) continue;
+                    num += sz * mk.Price * fx; den += sz;
+                }
+            }
+            sk.TrStat!.WriteLine(string.Join('\t', "P", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", Catalog.Goods[g].Name, F(den > 0 ? num / den : double.NaN), F(Catalog.RefPrices[g])));
+        }
+    }
+}
