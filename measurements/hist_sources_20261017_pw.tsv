@@ -1,0 +1,12 @@
+項目	国	年	値	単位	分母	出典	URL	確かさ	注
+動力の源（蒸気）	英	1760/1800/1830/1870/1907	5000/35000/160000/2060000/9659000	馬力	—	Crafts 2004 表3（Kanefsky 1979 p.338）	https://www.lse.ac.uk/asset-library/information/wp7503.pdf	一次の再掲（表を読んだ）	(378 動力の作り直し) 1830 に水と同じ
+動力の源（水）	英	1760/1800/1830/1870/1907	70000/120000/160000/230000/178000	馬力	—	同上	同上	一次の再掲（表を読んだ）	蒸気が水を抜く 1830
+蒸気1馬力の年の費用	英	1760/1800/1830/1850/1870/1910	33.5/20.4/20.4/13.4/8.0/4.0	ポンド（当時）	1馬力・1年	Crafts 2004 表4（von Tunzelmann 1978・Kanefsky 1979・Winterbottom 1907）	同上	一次の再掲（表を読んだ）	学習曲線の錨の候補。資本費 1800 56→1910 15
+最初の綿紡績所	ボンベイ（英領インド）	1854	創立（操業 1856）	—	—	Wikipedia Bombay Spinning and Weaving Company	https://en.wikipedia.org/wiki/Bombay_Spinning_and_Weaving_Company	二次（検索要約）	低賃金でも導入
+蒸気の紡績所の操業	日本	1883	大阪紡績（約1万錘）	—	—	検索の要約（oldphotosjapan ほか）	https://oldphotosjapan.substack.com/p/japans-cotton-revolution	二次（検索要約）	—
+機械の綿布の工場の操業	清	1890	上海機器織布局（3.5万錘・織機530）	—	—	Cambridge JEH の論文の要約	https://cambridge.org/core/journals/journal-of-economic-history/article/abs/handicraft-and-manufactured-cotton-textiles-in-china-18711910/B539C9E87BC26AD1CE4B27FEAF4FFBAA	二次（検索要約）	1893 焼失
+製造業の電動機÷原動機	米	1899/1909	4.6/28	%	原動機の馬力	HSUS 表 Dd848-853（検索の要約）	https://hsus.cambridge.org/HSUSWeb/toc/treeTablePathIdDd848-853.html	二次（分母の定義は未確認）	電気の無い世界の線の錨
+銀建ての日の賃金	英／長江の下流	1650-1849	11.5/1.7	g 銀／日	—	Gupta と Ma 2010 を引く講義の資料	https://fenix.iseg.ulisboa.pt/downloadFile/844558074124782/EBH23a%20Lecture%206.pdf	二次（講義の資料）	【推】英÷長江 約6.8
+馬力の紡績所	英	1769	Arkwright のノッティンガム（→1771 クロムフォードの水力）	—	—	ERIH の Arkwright の項	https://www.erih.net/how-it-started/stories-about-people-biographies/biography/arkwright	二次（検索要約）	畜力を作らない理由
+高賃金と安い燃料が機械化を採算に乗せた	英	1700-1850	賃金÷資本・賃金÷燃料が他国より高い	—	—	Allen 2009『The British Industrial Revolution in Global Perspective』	—	【推】（頁の数は見ていない）	L2・L3 の向き
+穀物建ての賃金は欧亜で近く銀建ては北西欧が大きく高い	欧／アジア	1500-1850	—	—	—	Broadberry と Gupta 2006（Economic History Review）・Allen 2001（Explorations in Economic History 38: 411-447）	—	【推】（検索の要約のみ・数は見ていない）	L3 の食料建ての幅

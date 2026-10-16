@@ -1,0 +1,67 @@
+(381) 読む線：行政効率と汚職の残りの削除の線を読む（読むだけ・枝なし・main af06c35 の木・opus・selfplay は回していない）
+★2026-10-17 (382) 合流が線の報告から起こした写し（全文は AI の読み＝作者の承認は未確認・【推】は推測）。生の計器＝D:/PoB_work/keep_377（基線 m377_ins・汚職の 2 項を消した腕 t2＝cxcorr）。
+
+== (1) 〈行政効率〉の実体（その名の変数は無い・3 つの層）
+- 実物の量 Region.AdminFill＝買えた行政の役務 ÷ 要る量（AdminNeedPerPop 0.04 × 人口）。書き手は EconomyStep.cs:2390 の 1 か所。予算は EconomyStep.cs:1280-1298（国が官僚 POP から役務 AdminId を市場で買う＝金の流れ）。
+  ⚠ fail-open：adminProc（官僚 POP があり AdminId<ng）が偽だと既定値 1.0（Model.cs:929）のまま＝官僚が居ない州は〈行政は満額〉と読まれる。
+- 合成の量 World.AdminEfficiency（World.cs:1502・getter・状態なし）＝Clamp01((市場 + 貴族×(1−市場)) × unity × accountability × BureaucracyFactor)。
+  市場＝AdminFill の人口加重／貴族＝NobleAdminFactor 15 × 貴族の割合（上限 NobleAdminCap 0.5）／unity＝UnityAdminBonus 0.12（民族）／accountability＝CorruptionFromOpacity 0.25 ×（報道・メリトクラシー）／BureaucracyFactor＝BureaucracyAdminSpread 0.12（法）。
+- ストック World.AdminPowerSmoothed＝AdminEfficiency の EMA（Fiscal.cs:39・AdminPowerSmoothing 0.05）＝導ける量を貯めている（思想⑩の候補）。
+
+書き手と読み手（SimCore の全数・区分：上乗せ＝経済の側に既にある効きの上乗せ／代用＝他に表す物が無い量の代用／丙＝実物の量で残す物）
+| ファイル:行 | 読む量 | 倍率か金の流れか | 区分 | 歯止めの輪 |
+| EconomyStep.cs:2390（書き手）・:1289-1298・:2386-2388 | AdminFill | 金の流れ（国→官僚） | 実体 | 予算→官僚の売上→充足 |
+| World.cs:1502-1556（書き手） | AdminEfficiency | 倍率の連鎖 | 4 つの因子が上乗せ | 下の全て |
+| Fiscal.cs:39（書き手） | AdminPowerSmoothed | EMA | ⑩の候補 | — |
+| World.cs:408 → Fiscal.cs:170 | EffectiveCorruption | 金の流れ（納税者→官僚・率はスカラーの式） | 代用（弱い国が税を取れない、を表す唯一の経路・Government.cs:279-283 の注） | 行政費の不足→税の漏れ→歳入→行政費 |
+| Politics.cs:344 dmGraft | EffectiveCorruption | 倍率（天命の項） | 上乗せ（漏れ→所得→満足→天命が既にある＝思想⑨） | 天命→正統性 |
+| Politics.cs:387 corruptionErosion | (1−AdminEfficiency) | 倍率（正統性の侵食） | 上乗せ | 正統性→革命 |
+| Fiscal.cs:40 LandTaxAdminGate 0.1 | AdminPowerSmoothed | 片方向の錠（LandTaxUnlocked） | 漏れが残るなら上乗せ・消えるなら代用 | 土地税の解禁 |
+| Simulation.cs:1923-1935 LawEnforcementAdminGate 0.5 | AdminPowerSmoothed | 追従の速さの倍率（労働時間・女性の賃金保持・児童労働の禁止） | 代用（監督官） | 法の浸透 |
+| CrownParliament.cs:145-147 DespoticToAbsolutistAdmin 0.6 | AdminEfficiency | 門＋カウンタ HighAdminQuarters | 代用 | 政体の変異 |
+| SelfPlay.cs:616（直書き 0.6） | AdminEfficiency | AI の規則 | 代用（AI に置き換えの信号が要る） | 専門官僚制の採用 |
+| TechEducation.cs:23-24 AbsorptionAdminWeight 0.5 | AdminEfficiency | 倍率（吸収） | 代用（注に〈循環の外の唯一の判別子〉） | 技術の採用 |
+| TechEducation.cs:273 InnovationAdminThreshold 0.85 | AdminEfficiency | 門 | 代用（技術水準の線と一緒に消える【推】） | 前線の技術の解禁 |
+| GovernanceSnapshot.cs:50,70・MultiNationSim.cs:463 | AdminPowerSmoothed | 保存と写し | ⑩ | — |
+| BilateralMarket.cs:666,841,860・Simulation.cs:2083・EconomyStep.cs:422,1239,1753 | AdminFill の直読み | 漏れの割合（SmugglingMax・StateMonopolyLeakMax・EduReachFromAdmin は休眠） | 丙＝残す | 禁制品・専売・武器・教育 |
+| Instruments.cs:285-287,795-820,1404・InstrumentsScalars.cs:33 | 両方 | 計器 | 計器 | — |
+| App GameViewModel.Fiscal.cs:206,306・.Header.cs:264-285,378・.Refresh.cs:209,290／Runner Program.cs:2915,5569,6860,6976,6998,7333,8076,8158 | 両方 | 表示 | 表示の〈行政力〉は消す線で直す | — |
+休眠のまま残っている物：NobleAdminFromSeigneurial＝0・CorruptionPoorOfficialWeight＝0・EduReachFromAdmin＝0。
+（行番号は af06c35 の木＝着手の前に grep で取り直す）
+
+== (2) 汚職の残りと行政効率を同じ線で消すとき、どれが同じ式か
+- 同じ量・同じ式：財政の漏れ（Fiscal.cs:170）と天命の項 dmGraft（Politics.cs:344）＝どちらも EffectiveCorruption＝(1−AdminEfficiency)×(1−OversightV2)。
+- 同じ基の量・別の式：正統性の侵食（Politics.cs:387）は (1−AdminEfficiency) だけ（監視 OversightV2 を掛けない）。
+- 同じ量の遅れ：AdminPowerSmoothed は AdminEfficiency の EMA＝土地税の錠と法の浸透は漏れと同じ量を遅れて読む。
+- 式の中の二重計上（思想⑨）：検閲の法が 2 回（AdminEfficiency の accountability〔Politics.PressFreedom＝1.0/0.6/0〕と OversightPress〔1.0/0.4/0〕）・官僚制度の法が 2 回（BureaucracyFactor と OversightMerit）＝Coefficients.cs:3407-3411 が自分で名乗っている。
+⇒ 同じ線で消すならひとまとまり＝AdminEfficiency の getter・EffectiveCorruption・OversightV2 の 3 因子・AdminPowerSmoothed・LandTaxUnlocked・HighAdminQuarters。残すのは AdminFill だけ。
+
+== (3) セネガルの空洞化の鎖（(377) t2 の止める線）
+結論：汚職の 2 項が変えたのは〈どの国が残存国になるか〉。止める線を鳴らしたのは既知の別の欠陥＝凍った扶養力の錨（00-AN）。【推】は因果の向きだけで、数は生の計器の値。
+1. 直接の効き：天命が Q0 から上がる（フランス 0.479→0.511）。
+2. 軌道の分岐：種 3 のフランスは 1803 年に人口 31.4M→20.2M（正統性 0.219）・本国の州を次々に失う・1831 年にパリがスペインへ・1833 年の人口 765 千人（残るのは北部サン=ドマング・マスカリン諸島・セネガルの 3 植民地）。基線では最後まで本国を保つ。
+3. 凍った錨：Simulation.cs:2484 の baseline = pop − PopulationDelta は州の移転で両辺が同じだけ動く（Territory.cs:355,379）＝錨は 1783 年のフランスの人口のまま。下限 capacity ≥ baseline×0.3（約 9.4M）が 0.4〜5M の残存国を大きく上回る＝ロジスティックが飽和しない。PopGrowthRatePerMonth 0.006 から成長の天井は年約 7.4%。
+4. 幻の膨張：セネガルの自然増は年 5.3〜7.2%（1829〜79）・移民の流入はほぼ 0・入植 0。人口 15→413 千人（1881）・耕地 27・土地の因子 0.26。同じ時期の他の 2 州も 12〜13 倍（1870：サン=ドマング 234→2942・マスカリン 100→1358）。マスカリンは t2 の 1/4 の一覧にも出る。
+5. しぼみ：1881 年にアメリカへ移ると国内の移民の道が開き、四半期あたり最大 13 千人が流出（西部・中核ベンガル・中央メキシコへ）・1937 年に 42.6 千人。基線のセネガルは同じ時期 44〜70 千人＝落ちた先は平常の水準。
+6. 頻度：本国を失って初期人口の 1/10 未満になった国は 10 種で基線 15・t2 14＝汚職の 2 項を消しても残存国は増えていない。
+⇒〈ピーク 426.8〉は錨が作った幻。(377) の差し戻しの根拠は 00-AN の欠陥に当たったこと（汚職の 2 項そのものの害を示したわけではない【推】）。
+
+== (4) 削除の線の形と事前登録の候補（推奨・AI）
+削除の形（置き換えはせず削除だけ）：
+- 消す：天命の汚職の項・正統性の侵食（上乗せ）／AdminEfficiency の 4 因子（貴族・unity・accountability・BureaucracyFactor）／AdminPowerSmoothed（⑩）／LandTaxUnlocked の片方向の錠（漏れを残すなら上乗せ）／HighAdminQuarters／表示の〈行政力〉。
+- 残す：AdminFill と、それを直に読む丙の 4 系統。
+作者へ出す一覧（他に表す物が無い所）：
+1. 財政の漏れ（Q1）：消すと〈弱い国は税を取れない〉が無くなる。AdminFill だけから率を作る形は置き換え＝作者の判断。
+2. 法の浸透の門（児童労働の禁止の浸透も含む）：出生の意図「児童労働の禁止が家計の収入を減らし」に効く＝消すと禁止が即座に浸透する。
+3. 専制→絶対王政の変異の門。
+4. AI の専門官僚制の規則（AI とプレイヤーが同じ物を読む信号が要る）。
+5. 吸収の行政の脚と前線の門（技術水準の線と順番を合わせる）。
+6. 貴族の素地の項（コードの注に作者裁定 2026-09-08 の記載）。
+7. 官僚 POP が無い州は AdminFill＝1.0 で満額扱いになる件（消す線の前提として名乗らせる）。
+事前登録の候補：
+- 順番：先に 00-AN の錨の半分（B0）を入れるか、消す腕と重ねた 1 本の腕で測る（推奨）。止める線の定義を変えるのは作者の判断（例：ピーク時の持ち主が残存国〔初期人口の 1/10 未満〕の州は別枠で記録／ピークでなく 1783 年の人口を基準にする）。推奨は定義を変えずに錨を先に直す形。
+- ヌル腕：同じ木で 2 本（SupplySlope ±1e-8）。
+- 記録の線：残存国の数（腕ごと）・空洞化の州の持ち主が残存国だったか・残存国の州の自然増（年 4% 超の州×年の数）。
+- 機構の線：天命の中央・正統性の中央（R2・R3）／教育法が Public に届く年（オスマン・ロシア・清・日本）／歳入÷GDP の時代別（漏れを消す場合）／土地税の解禁の年／労働時間・児童労働の浸透の速さ（門を消す場合）／専門官僚制の採用の年（普・英・米）。
+- 止める線（今のまま）：破綻 0/10・移民による空洞化（1/10 未満）0・千件級の補給崩壊 0/10・推定の計算量 ≦ 248.5 秒・NG は rd:measurements/ng377_20261017:m377 と比べる。
+読んだ生の計器：D:/PoB_work/keep_377/m377_ins/{region,migration,scalars}_s3.tsv・D:/PoB_work/keep_377/cxcorr/{region,migration}_s3.tsv・scalars_s1〜s10.tsv。
