@@ -1596,18 +1596,17 @@ public class InstrumentsTests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
-    /// <summary>★(280) 線X：物価の更新の鎖の表（<c>money_s</c>）が <see cref="World.UpdatePriceLevel"/> の式を再現し、置き直し（モード2）の行が趨勢の取り直しの関係を保つ・最後の行の物価が盤面と一致する。
-    /// 期待値は表の列どうしの関係（趨勢の1歩・趨勢比・物価の1歩）と盤面の物価から作る（計器の中の式を写さない）。何もしない番人にならないよう、更新の行・置き直しの行・紙幣増発もクランプもない行の数を数えて下限を課す。
+    /// <summary>★(280) 線X：物価の更新の鎖の表（<c>money_s</c>）が <see cref="World.UpdatePriceLevel"/> の式を再現する・最後の行の物価が盤面と一致する。
+    /// 期待値は表の列どうしの関係（趨勢の1歩・趨勢比・物価の1歩）と盤面の物価から作る（計器の中の式を写さない）。何もしない番人にならないよう、更新の行・紙幣増発もクランプもない行の数を数えて下限を課す。
     /// 月ごとの表（<c>pxmonth_s</c>）は助走の月を含み、財ごとの表（<c>pxgoods_s</c>）は主食・日用品・専売の群を含む。
-    /// ⚠壊し方＝置き直しの行の趨勢を取り直し前の値にする（趨勢比の関係が崩れて赤）・更新の行の物価の前後を取り違える（連鎖の連続が崩れて赤）。</summary>
+    /// ⚠壊し方＝更新の行の物価の前後を取り違える（連鎖の連続が崩れて赤）。</summary>
     [Fact]
-    public void 物価の鎖の表は更新の式を再現し置き直しの行を含む()
+    public void 物価の鎖の表は更新の式を再現する()
     {
         string dir = NewDir();
         try
         {
             var sim = new MultiNationSim([.. WorldData.Nations()], 1789UL, _ => new UtilityAgent());
-            foreach (var n in sim.Nations) n.World.Coef.OpeningSavingsRebaseMode = 2;
             var uk = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
             Instruments.Configure(dir, "イギリス");
             try
@@ -1622,11 +1621,6 @@ public class InstrumentsTests
             var (h, rows) = Table(System.IO.Path.Combine(dir, "money_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             int iEv = Array.IndexOf(h, "event"), iT = Array.IndexOf(h, "time");
-            var rebase = rows.Where(r => r[iEv] == "rebase2").ToList();
-            Assert.Single(rebase);
-            double ratioR = Col(h, rebase[0], "savingsRebaseRatio");
-            Assert.InRange(ratioR, 0.001, 0.5);   // 英の貯蓄は大きく縮む（実測 約 0.0099＝構築の定数は年所得の約 50 倍）
-            AssertNear(Col(h, rebase[0], "priceLevelBeforeIndex"), Col(h, rebase[0], "moneyToGdpMonths") / Col(h, rebase[0], "moTrendAfterMonths"));   // 置き直しの直後の趨勢比＝物価水準
             var upd = rows.Where(r => r[iEv] == "update").ToList();
             Assert.True(upd.Count >= 5, $"更新の行が少ない（{upd.Count}）");
             double sens = uk.Coef.MonetaryPriceSensitivity, speed = uk.Coef.MonetaryTrendSpeed; int plain = 0; double prevAfter = double.NaN;

@@ -2357,14 +2357,6 @@ public sealed class Coefficients
     // 助走は**暦を進めない**（World.WarmupFrozen）＝何四半期回しても開始は1783/Q1。1914断面(Q524)・全長 GameQuarters・TechOnset の年ゲートは不動。
     public int StartWarmupQuarters = 20;        // 助走の長さ（四半期）。4＝1年（2026-08-10以前の App と同じ長さ）／20＝5年／40＝10年。0で助走なし。★帯はバッチで測って選ぶ
     public int StartWarmupTechIterations = 8;  // 技術の助走の反復回数（旧 GameViewModel のハードコード8）。識字×世俗水路の差を技術差へ実体化（暦も人口も動かさない）
-    // ★(273) 開幕の貯蓄の置き直し（線P・段3・旧 (220) の InitMoneyMode〔比×年名目GDP の表〕を置き換えた）＝NationConfig.BroadMoneyToIncome〔広義の貨幣÷年所得 m・world.json の broadMoneyToIncome・今は英だけ〕を
-    //   助走の中で全ての POP の貯蓄へ当てる（World.RebaseOpeningMoney）。0＝置かない（既定＝構築の「1000人あたりの定数」〔3000/200/300/3200…〕のまま＝英で貯蓄が年所得の約14倍）／
-    //   1＝助走の終わりに1回／2＝助走の最初の四半期の終わりに1回（その後は置かない＝助走が谷を吸う腕 S′）。m が0の国は何も動かない。採否未定（実装ログ (273) の事前登録）＝腕ごとに POB_COEF で切り替える。
-    public int OpeningSavingsRebaseMode = 0;
-    //   配分の形（階級ごとの年所得に対する貯蓄の年数の相対値）。絶対値は m から導く倍率 λ ＝ m × Σ正の所得 ÷ Σ k×所得（導ける量＝状態に持たない）が決める＝貯蓄 ＝ λ × k × 年所得。
-    //   階級 id 順（0 貴族・1 農民・2 工場労働者・3 資本家・4 技師・5 兵士・6 聖職者・7 教師・8 官僚・9 医者・10 商人・11 職人・12 使用人・13 研究者）。国名を含まない・階級の違いだけ。
-    //   値はすべて【推】＝家計の現金保有の桁・幅は 資本家 3〜6・貴族 1〜3・商人 1〜2・農民と使用人 0.1〜0.3（聖職者は貴族と同じ〔教会領も土地〕・専門職は 1.0・兵士は大衆と同じ）。出典の取り直しと根拠は measurements/sav_20261010_prereg.txt。
-    public double[] SavingsYearsByClass = [2.0, 0.2, 0.2, 4.5, 1.0, 0.2, 2.0, 1.0, 1.0, 1.0, 1.5, 0.5, 0.2, 1.0];
     // ★(273) 消費の予算の上限（線P・段5）＝EconomyStep.Run の月初の予算 RemainingBudget を min(RemainingBudget, 前月の所得 + 貯蓄 × d) で切る（全ての POP・再点火の発注と反乱の武器を差し引いた後・財のループの前）。
     //   d＞0 の月率（貯蓄のうち1か月に消費へ回してよい割合）。0＝切らない（既定＝予算は月初の貯蓄そのもの＝d＝0 を式に入れると min(予算, 前月の所得) になり恒等でない＝コードは d＞0 のときだけ評価する）。採否未定（実装ログ (273)）。
     public RatePerMonth ConsumeBudgetSavingsRatePerMonth = new(0);

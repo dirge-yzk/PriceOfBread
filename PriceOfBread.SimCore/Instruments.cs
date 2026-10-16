@@ -1085,7 +1085,7 @@ public static partial class Instruments
 
     // ---------------------------------------------------------------- (262) 貯蓄の書き手の台帳（階級の ΔSavings の出どころ・読むだけ） ----------------------------------------------------------------
 
-    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の6本だけ（<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>・開幕の <c>RebaseSavingsTo</c>〔(273) 旧 ScaleSavings〕）。
+    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の5本だけ（<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>。開幕の貯蓄の置き直し〔旧 RebaseSavingsTo〕は削除した）。
     /// Settle＝月末の精算（所得−支出）／Give＝受け取り（所得に書かない）／GiveIncome＝受け取り（所得にも書く）／Take＝払い（支出に書かない）／CarryOut・CarryIn＝人と動くお金（階級・州・国をまたぐ運搬）／Rebase＝国が替わる換算。</summary>
     internal enum SavKind : byte { Settle, Give, GiveIncome, Take, CarryOut, CarryIn, Rebase, RegionOut, RegionIn }
     static readonly string[] SavKindNames = ["settle", "give", "giveIncome", "take", "carryOut", "carryIn", "rebase", "regionOut", "regionIn"];
@@ -1535,33 +1535,6 @@ public static partial class Instruments
             st.PxGoodsRows.Add(string.Join('\t', time, nm, PxI(w.Year), Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), excise ? "1" : "0", F(g < w.StateMonopolyMargins.Length ? w.StateMonopolyMargins[g] : double.NaN), PxI(n),
                 F(Catalog.RefPrices[g]), F(price / n), F(lvl / n), F(Median(rels)), F(rels.Count > 0 ? rels.Max() : double.NaN), F(prod), F(dem), F(sold), F(shortage), F(imp), F(exp), F(stock)));
         }
-    }
-
-    /// <summary>(280) 趣旨＝貯蓄の置き直し（<see cref="World.RebaseOpeningMoney"/>）の1回：置く前後の貯蓄の和・倍率 λ・趨勢の取り直しの前後。同じ表（<c>money_s</c>）の event＝rebase の行。</summary>
-    internal static void OpeningRebased(World w, int whenMode, double before, double after, double lambda, double trend0, double money, double ratio)
-    {
-        var st = S(w);
-        if (!IsPicked(w, st)) return;
-        string time = (w.WarmupFrozen ? "w" : "q") + PxI(Math.Max(0, (w.WarmupFrozen ? st.PxWarmN : st.PxGameN) - 1));
-        var sav = new double[NC];
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; sav[c] += p.Savings.Value; }
-        var cols = new List<(string Name, string Value)>();
-        void C(string name, double v) => cols.Add((name, F(v)));
-        cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year); cols.Add(("event", "rebase" + PxI(whenMode)));
-        C("priceLevelBeforeIndex", w.PriceLevel); C("priceLevelAfterEmaIndex", double.NaN); C("priceLevelAfterFiatIndex", double.NaN); C("priceLevelAfterIndex", w.PriceLevel); C("costPriceLevelAfterIndex", w.CostPriceLevel);
-        C("expectedInflationPerYear", w.ExpectedInflationPerYear.Value); C("fiatPressureBeforeShare", double.NaN);
-        C("broadMoneyStock", w.BroadMoney.Value); C("baseMoneyStock", w.BaseMoney.Value); C("treasuryStock", w.Treasury.Value); C("outstandingLoansStock", w.OutstandingLoans.Value);
-        C("convertibilityTargetShare", double.NaN); C("convertibilityShare", w.Convertibility); C("moneyUsedStock", money); C("gdpRealPerMonth", ratio > 1e-9 ? money / ratio : double.NaN);
-        C("moneyToGdpMonths", ratio); C("moTrendBeforeMonths", trend0); C("moTrendAfterMonths", w.MoTrendForInstruments); C("cyclicalRatio", double.NaN);
-        C("cumulativeTradeFlowStock", w.CumulativeTradeFlow.Value); C("cumulativeGoldMintedStock", w.CumulativeGoldMinted.Value); C("cumulativeFiatIssuedStock", w.CumulativeFiatIssued.Value); C("treasuryResetSinceLastRowStock", st.PxResetSince); C("treasuryResetCount", st.PxResetCount);
-        st.PxResetSince = 0; st.PxResetCount = 0;
-        C("savingsLambdaRatio", lambda); C("savingsBeforeRebaseStock", before); C("savingsAfterRebaseStock", after); C("savingsRebaseRatio", before > 0 ? after / before : double.NaN);
-        C("monthsInQuarterCount", st.PxMonths);
-        for (int c = 0; c < PxCols(w); c++) C("savingsStockClass" + PxI(c), sav[c]);
-        for (int c = 0; c < PxCols(w); c++) C("earnedPerMonthClass" + PxI(c), double.NaN);
-        for (int c = 0; c < PxCols(w); c++) C("paidPerMonthClass" + PxI(c), double.NaN);
-        st.PxHdr ??= string.Join('\t', cols.Select(x => x.Name));
-        st.PxRows.Add(string.Join('\t', cols.Select(x => x.Value)));
     }
 
     /// <summary>(280) 助走の四半期の終わりに国庫を助走の前の値へ戻した額（呼び手＝<see cref="World.RebaseTreasury"/>）。戻す前の国庫 <paramref name="before"/> と戻した値 <paramref name="to"/> の差＝基礎貨幣の創出（正）か消滅（負）。</summary>

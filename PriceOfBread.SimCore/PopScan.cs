@@ -69,7 +69,7 @@ internal sealed class PopWindow
     /// <summary>このスレッドで開いている窓の数（番人 <see cref="Verify"/> が窓の中の POP への書き込みを止めるために数える）。窓は四半期首の 1 スレッドの中で開閉する。</summary>
     [System.ThreadStatic] internal static int Open;
 
-    /// <summary>POP の規模・貯蓄の書き込み口（<c>Pop.Distribute／Take／Carry／SettleMonth／Blend／RebaseSavingsTo</c>・<c>World.KillPops</c>）の頭が呼ぶ番人。
+    /// <summary>POP の規模・貯蓄の書き込み口（<c>Pop.Distribute／Take／Carry／SettleMonth／Blend</c>・<c>World.KillPops</c>）の頭が呼ぶ番人。
     /// <see cref="Verify"/> が真で窓が開いている間の書き込みは例外（使い回しの前提が壊れる＝読みの照合を待たずに、書いた段で止める）。既定（偽）は旗を 1 回読むだけ。</summary>
     internal static void GuardWrite(string what)
     {

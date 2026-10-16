@@ -523,7 +523,6 @@ public sealed class MultiNationSim
         int quarters = quartersOverride ?? _coef.StartWarmupQuarters;
         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
         WarmupEconomy(quarters, onQuarter);
-        foreach (var n in Nations) n.World.RebaseOpeningMoney(1);   // ★(273) 開幕の貯蓄を m（広義の貨幣÷年所得）へ（モード1＝助走の終わりの1回・world.json の broadMoneyToIncome が正の国だけ）＝貯蓄の増減の基準線は下の RebaselineInvariants で取り直す
         WarmupTech(_coef.StartWarmupTechIterations);
         // ★開幕の既知の集合（(169)）＝データ（NationConfig.KnownDiscoveries＝world.json・1783年より前に史実でその国が使っていた発見）＝構築で置いた（Simulation のコンストラクタ）。
         //   ここでは世界の解禁の和（需要の門）を配るだけ。判定は最初の四半期の終わりから（他の四半期と同じ1本）。
@@ -647,7 +646,7 @@ public sealed class MultiNationSim
         {
             StepQuarter();
             for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseTreasury(treasury0[i]);
-            if (q == 0) foreach (var n in Nations) n.World.RebaseOpeningMoney(2); RebaselineInvariants();   // ★(273) モード2＝最初の四半期の後に1回（所得 LastEarned が出そろってから・基準線の取り直しの前）
+            RebaselineInvariants();
             onQuarter?.Invoke();
         }
         _calendarFrozen = false;

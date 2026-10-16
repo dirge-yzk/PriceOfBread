@@ -215,6 +215,9 @@ public class DormantIdentityTests
         "InitMoneyMode",              // 投資家の貯蓄を比×年名目GDP へ置き直すモード＝OpeningSavingsRebaseMode に置き換えた
         "InitInvestorMoneyShare",     // 同じ器の投資家の取り分
         "InitMoneyScale",             // 同じ器の倍率
+        // ★(375) (273) の開幕の貯蓄の置き直し（モード 0 が既定の休眠）を削除した（作者 2026-10-16 の答え「全て推奨」）。NationConfig.BroadMoneyToIncome と world.json の broadMoneyToIncome・World.RebaseOpeningMoney・Pop.RebaseSavingsTo・計器 money_s の rebase の行も一緒に消えた。
+        "OpeningSavingsRebaseMode",   // 開幕の貯蓄の置き直しのモード（0 置かない・1 助走の終わり・2 最初の四半期の後）
+        "SavingsYearsByClass",        // 置き直しの配分の形（階級ごとの貯蓄の年数）＝読み手は置き直しだけだった
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：
