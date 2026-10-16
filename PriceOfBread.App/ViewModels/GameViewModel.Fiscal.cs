@@ -330,7 +330,7 @@ public partial class GameViewModel
         double penLevel = _player.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
         double pen = System.Math.Min(c.PensionCostRatePerMonth * penLevel * oldSize, welCap);
         // ★是正2026-08-10：ここは**休眠側の旧式**（frac×国庫×0.5）を自前で計算していて、実際に国庫から引かれる額と一致していなかった
-        //   （現行は ModernizationCostGdpShare>0＝GDP比の凸コスト×制度疲労/技術の遅れ×旧体制の反対）。すぐ下の IndTip は
+        //   （現行は ModernizationCostGdpShare>0＝GDP比の凸コスト×技術の遅れ×旧体制の反対（★(373) 制度疲労の割増は削除））。すぐ下の IndTip は
         //   新式の内訳を出していたので、**倍率の説明だけ新しく金額は古い**という食い違いにもなっていた。
         //   予算表の他の行と同じ作法（接14＝UIの自前近似をやめエンジンの式を読む）に揃える＝World.ModernizationBudget が唯一の出所。
         double ind = Calendar.PerQuarterToPerMonth(_player.ModernizationBudget());   // 四半期→月割
@@ -380,11 +380,11 @@ public partial class GameViewModel
         // ★汚職根絶費の行は撤去（汚職V2点火2026-08-15＝V2では請求ごと死んでいる＝常に0の行を出さない）
         // ★2026-08-15作者指示：技術力をヘッダーから移設＝近代化投資の欄に「技術効率」として表示。
         //   技術効率＝対最先端の遅れ（技術ゲインの残差比例式の駆動項＝遅れているほど£あたりの追いつきが大きい）。
-        //   0%＝最先端＝投資しても技術は伸びない（工業化と制度疲労には効く）が一目で読める。
+        //   0%＝最先端＝投資しても技術は伸びない（工業化には効く）が一目で読める。
         double lag = _player.WorldTechLevel > 1e-9 ? System.Math.Clamp((_player.WorldTechLevel - _player.TechLevel) / _player.WorldTechLevel, 0, 1) : 0;
         IndLine = $"近代化投資 {_player.ModernizationFrac:P0}　効率 +{lag:P0}";
         IndAct = Money(ind); IndAmt = Money(ind);   // レバー直結＝実効=予想
-        // ★コストの内訳ホバー（2026-08-04）：制度疲労・技術の遅れの割増と旧体制の反対＝なぜ同じ%でも高く/細くなるのかの分解（データのみ）
+        // ★コストの内訳ホバー（2026-08-04）：技術の遅れの割増と旧体制の反対（★(373) 制度疲労は削除）＝なぜ同じ%でも高く/細くなるのかの分解（データのみ）
         {
             var (trad, modern, mass) = InterestGroups.Blocs(_player);
             double tot = trad + modern + mass; double tradShare = tot > 1e-9 ? trad / tot : 0;

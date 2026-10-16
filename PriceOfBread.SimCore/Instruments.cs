@@ -1509,7 +1509,6 @@ public static partial class Instruments
         C("moneyToGdpMonths", ratio); C("moTrendBeforeMonths", trend0); C("moTrendAfterMonths", w.MoTrendForInstruments); C("cyclicalRatio", cyclical);
         C("cumulativeTradeFlowStock", w.CumulativeTradeFlow.Value); C("cumulativeGoldMintedStock", w.CumulativeGoldMinted.Value); C("cumulativeFiatIssuedStock", w.CumulativeFiatIssued.Value); C("treasuryResetSinceLastRowStock", st.PxResetSince); C("treasuryResetCount", st.PxResetCount);
         st.PxResetSince = 0; st.PxResetCount = 0;
-        C("savingsLambdaRatio", double.NaN); C("savingsBeforeRebaseStock", double.NaN); C("savingsAfterRebaseStock", double.NaN); C("savingsRebaseRatio", double.NaN);
         C("monthsInQuarterCount", st.PxMonths);
         for (int c = 0; c < PxCols(w); c++) C("savingsStockClass" + PxI(c), sav[c]);
         for (int c = 0; c < PxCols(w); c++) C("earnedPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxEarn[c] / st.PxMonths : double.NaN);

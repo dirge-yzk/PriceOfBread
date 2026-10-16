@@ -183,7 +183,7 @@ public static class Fiscal
                 if (c.PrivilegeLedgerEnabled > 0)
                     Privileges.Record(w, Privileges.VestedOffice, delivered * Privileges.EstateDegree(w));
                 // ★8b：汚職所得は【官職という財産からの地代】＝LandRent へ記帳し rentier=rent/(rent+earned) を押し上げる
-                //   →官僚が改革（自分の収入源の廃止）に反対する回路の入力＝制度疲労が国名なしで出る（doc §5）。
+                //   →官僚が改革（自分の収入源の廃止）に反対する回路の入力＝改革への抵抗が国名なしで出る（doc §5・★(373) 制度疲労のスカラーは物理削除）。
                 //   ⚠金は上の Distribute（Savings）で移動済み＝ここは所得の**分類**の記帳のみ（金は二重に湧かない）。
                 //   （撤去2026-08-16 C2-C5：V2恒久ONにつき CorruptionCoreV2>0 ガードを外し無条件化＝挙動恒等）
                 if (delivered > 1e-12)
@@ -433,7 +433,7 @@ public static class Fiscal
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
-            w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が制度疲労の窓を開けない）
+            w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が数えられない）。★(373) 制度疲労の削除の後、回数は計器（defaultCount・sovereignDefaultCumulativeCount）とセーブだけが読む
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);
@@ -817,7 +817,7 @@ public static class Fiscal
     /// 対外信用の崩壊＝兌換崩壊→外資逃避（CapitalMarket）・当面 借りられない（DefaultCooldownMonths）。
     /// C-中1（史実検証2026-07-22）：革命的否認に信用市場の代償が無かった（BorrowCooldownMonths も触らないため即座に再起債できる＝一過性Anarchyが債務ロンダリング装置になる）。
     /// 史実の代償は「永久追放」でなく長期市場からの排除＋高コスト短期化（ソヴィエト1918否認→ジェノヴァ1922決裂、以後も短期の供給者信用は継続）。
-    /// ※制度疲労ショック（HadSovereignDefault/SovereignDefaultCount）・信用凍結・正統性はデフォルトの側だけが足す（革命そのものが既に体制転換＝二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）</summary>
+    /// ※（★(373) 制度疲労ショックは物理削除）信用凍結・正統性はデフォルトの側だけが足す（革命そのものが既に体制転換＝二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）</summary>
     internal static void RepudiateDebt(World w, Coefficients c)
     {
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = default;

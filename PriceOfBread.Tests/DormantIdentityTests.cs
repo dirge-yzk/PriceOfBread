@@ -189,6 +189,7 @@ public class DormantIdentityTests
     /// 期待値の出所は measurements/dormant_20261011.tsv の「消す（済み）」の行を手で写した名簿であって Coefficients ではない（同語反復にしない・tsv を読みはしない）。消した理由は各名前の注記。
     /// ★(254) 反証役 vz#1：CohortGateK・EnclosureRate・OpulenceInfraChannel・RuralPromotionRate の削除は担当の推奨（作者の承認は未確認）＝作者の 2026-09-21 の言葉は「生きた一覧の矛盾は棄却側で閉じる」（一覧の付け方）で削除の指示ではない・再測は git の履歴から。
     /// ★(255)：NobleInvests（貴族も投資家に含める述語の開閉・2026-08-14 差し戻し）を足した＝消す前の恒等は帯3本の全行バイト一致で示した（(255)）。
+    /// ★(375)：OpeningSavingsRebaseMode・SavingsYearsByClass は開幕の貯蓄の置き直しの機構の削除（実装ログ (375)・00一覧 00-REB）で足した＝tsv には無い。
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
@@ -250,7 +251,7 @@ public class DormantIdentityTests
     {
         foreach (var name in RetiredFields)
             Assert.True(typeof(Coefficients).GetField(name) is null,
-                $"棚卸し（253）（271）で削除した係数「{name}」が Coefficients に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
+                $"棚卸しと削除の回（(253) 以後・名簿の注記）で削除した係数「{name}」が Coefficients に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
     }
 
     [Fact]
