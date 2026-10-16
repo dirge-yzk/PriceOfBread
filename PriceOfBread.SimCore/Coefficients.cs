@@ -1725,6 +1725,11 @@ public sealed class Coefficients
     public double DecayReactionRegrowth = 0.01;    // 反動の再成長率/四半期（旧支配層優位×検閲が続く限り天井へ漸近＝「負ければ近代化」の逆説を防ぐ）
     // ★撤去2026-08-16（C2-C5）：DecayLockinCleanGov（清廉度ロックイン閾値）を物理削除＝汚職V2恒久ONで清廉度ストックごと撤去・唯一の読者（Politics.cs lockin枝）は常に偽の死骸だった。
     public double DecayLockinIndustrialization = 1.0;  // ロックイン＝平均工業化がこの閾値以上で再成長停止
+    // ★(373) 政治のスカラーの削除（休眠・採否は未定＝旧と並存・事前登録 measurements/ps_20261016_prereg.txt）。作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」
+    //   3本とも 0＝旧＝厳密恒等。採否が決まったら旗ごと・読み手ごと・書き手ごと物理削除する（置き換えは作らない）。腕 B＝3本とも 1。不合格のときだけ 1 本ずつ切り分ける。
+    public double DeleteInstitutionalDecay = 0.0;     // >0＝制度疲労のストックと天井を 0 のまま保つ（読み手 InterestGroups・TechEducation・ArmyShape・World 近代化費・EconomyStep の緩和は×1.0／+0.0／門を通らない・Politics の月次は走らない）
+    public double DeleteCorruptionScalars = 0.0;      // >0＝天命の汚職の項（DynMandateGraftWeight×実効汚職）と腐敗→正統性の侵食（CorruptionLegitimacyErosion）を 0 にする。⚠財政の漏れ（Fiscal.cs の revenue×CorruptionMax×実効汚職＝官僚への移転）は含めない＝作者に聞く物（事前登録 [2]）
+    public double DeleteWarWearinessScalars = 0.0;    // >0＝厭戦の闘争度項（WarWearinessMilitancy×厭戦＝Pop.MilWar）と天命の戦争の項（DynMandateWarWeight×厭戦）を 0 にする。⚠厭戦のストック自体（戦争の終わり・動員の深さ・保持力の戦時ドレイン・同盟の疲れ）は含めない＝作者に聞く物（事前登録 [2]）
     public double RankUpdateIntervalQuarters = 4;  // P14（2026-07-17点火）：ランク再分類の間隔（四半期）。4=年次ソート＝閾値チャタリング（列強動詞の点滅）抑制・威信の残光。1=毎四半期（旧挙動）。判定タイミングの間引きのみ＝RNGなし決定論中立
     public int GreatPowerCount = 7;                // 列強の定員（スコア上位N・2026-07-04人数制：同ランクの外交相手が常時5〜8カ国）
     // ★4段階化（作者指示2026-08-11）＝列強／準列強／中堅／弱小。旧「中堅12」を 準列強5＋中堅7 に割った。

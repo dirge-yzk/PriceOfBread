@@ -42,6 +42,9 @@ public class DormantIdentityTests
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
         "DecayFromPrivilege",           // 特権システム 段6＝制度疲労の導出（読み手3箇所は DecayForReaders・ゲート0で旧値）
+        "DeleteInstitutionalDecay",     // ★(373) 政治のスカラーの削除（腕 B の旗）＝制度疲労のストックと天井を 0 のまま保つ（0＝旧）。採否は腕 A／B で測ってから（事前登録 measurements/ps_20261016_prereg.txt）
+        "DeleteCorruptionScalars",      // ★(373) 同上＝天命の汚職の項と腐敗→正統性の侵食を 0 にする（0＝旧）
+        "DeleteWarWearinessScalars",    // ★(373) 同上＝厭戦の闘争度項と天命の戦争の項を 0 にする（0＝旧）
         "PrivilegeMonopolyInLedger",    // 特権システム 段5前半＝特許会社の取り分を台帳へ（記帳のみ）
         "GuildLawGate",                 // 特権システム 段4＝同業組合法の主ゲート（法が動かない）
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）

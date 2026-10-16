@@ -1104,7 +1104,7 @@ public sealed class World
     // P7 制度疲労（2026-07-17・一般機構＝清専用コードなし）：改革を阻む構造的硬直のストック（0..1）。初期値＝world.jsonデータ（清0.8/オスマン0.6/露0.4/西欧0/日本0明示）。
     // 天井＝初期値（構造的硬直の上限＝初期より悪化しない・初期0の国は恒久0のハード保証）。下げ＝ショックのみ／再成長＝反動／ロックインで停止（Politics.Step）。読み3チャネルは各休眠係数（Decay*Weight=0で恒等）
     public double InstitutionalDecay { get; internal set; }
-    public double InstitutionalDecayCeiling { get; internal set; }
+    public double InstitutionalDecayCeiling { get; internal set; } public double DiagDmWar, DiagDmGraft, DiagCorrErosion;   // ★(373) DiagDm*／DiagCorrErosion＝Politics が最後に書いた天命の戦争の項・汚職の項・腐敗→正統性の侵食（計器 scalars_s の純記帳・力学は読まない）
     internal bool DecayPrevCivilWar;      // ショック検出のエッジ用（内戦勃発）
     internal bool DecayPrevDefeatShock;   // ショック検出のエッジ用（決定的敗戦）
     internal bool DecayPrevDefault;       // ショック検出のエッジ用（国家破産）

@@ -116,10 +116,10 @@ public sealed class Simulation
                 _ => CommandLaw.Crown,
             },
             Bureaucracy = scenario.InitialBureaucracy,   // ★官僚制度の初期値（2026-08-04）
-            InstitutionalDecay = scenario.InitialInstitutionalDecay,
+            InstitutionalDecay = scenario.Coef.DeleteInstitutionalDecay > 0 ? 0.0 : scenario.InitialInstitutionalDecay,   // ★(373) 旗 1＝制度疲労の削除（腕 B）＝ストックも天井（下）も 0 のまま＝書き手（Politics の月次・EconomyStep の近代化の緩和）は走らず読み手は全て×1.0／+0.0／門を通らない。0＝既定＝旧
             // C-高7（史実検証2026-07-22）：天井の共通床＝decayを持たない国も硬直しうる（旧＝天井=初期値のため50カ国が構造的に硬直不能＝3カ国だけの特権）。
             // DecayCeilingUniversal=0 で Max は初期値そのまま＝厳密恒等。初期値が高い国（清0.8等）はそのまま。
-            InstitutionalDecayCeiling = Math.Max(scenario.InitialInstitutionalDecay, scenario.Coef.DecayCeilingUniversal),   // P7：制度疲労（天井＝初期値∨共通床）
+            InstitutionalDecayCeiling = scenario.Coef.DeleteInstitutionalDecay > 0 ? 0.0 : Math.Max(scenario.InitialInstitutionalDecay, scenario.Coef.DecayCeilingUniversal),   // P7：制度疲労（天井＝初期値∨共通床）
             InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
             Longitude = scenario.NationConfig?.Longitude ?? 0,

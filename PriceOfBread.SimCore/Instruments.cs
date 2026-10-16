@@ -186,6 +186,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Ce; public bool CeHeader;                           // (345) 消費の入口の表（国×四半期×階級の行 C と国×窓×財の行 N）
         public System.IO.StreamWriter? PopS; public bool PopSHeader;                       // (361) 人口の表（国×四半期の行 N と国×四半期×階級の行 C）
         public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
+        public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
         public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
@@ -1638,6 +1639,7 @@ public static partial class Instruments
             SpendFold(sk, w, st, q, picked);   // (286) 線Q：支払いの積算を窓の区切りへ（階級の所得と支出を戻す前）
             PopFold(sk, seed, w, st, q, picked, yearEnd);   // (361) 人口の表（籠は ce_s の積算を読む＝CeFold が戻す前）
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
+            ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
@@ -1672,6 +1674,7 @@ public static partial class Instruments
         sk.Ce?.Dispose(); sk.Ce = null;   // (345)
         sk.PopS?.Dispose(); sk.PopS = null;   // (361)
         sk.Fm?.Dispose(); sk.Fm = null;       // (371)
+        sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 
