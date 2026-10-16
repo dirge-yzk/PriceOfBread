@@ -1087,7 +1087,6 @@ public sealed class World
     // 国債（§財政）：赤字を借金で賄う。国内＝資本家の余剰貯蓄（工場投資とクラウディングアウト）、海外＝開放度に応じ。
     // 売り切れない＝部分的債務不履行（焦げ付き）。対外債の不履行＝介入（正統性↓＋貸し手有利の緊縮）。
     public MoneyStock GovDebt { get; internal set; }       // 国債残高
-    public double DiagDmWar, DiagDmGraft, DiagCorrErosion;   // ★(373) DiagDm*／DiagCorrErosion＝Politics が最後に書いた天命の戦争の項・汚職の項・腐敗→正統性の侵食（計器 scalars_s の純記帳・力学は読まない）
     internal int SovereignDefaultCount;   // C-中9（2026-07-22）：デフォルト回数。HadSovereignDefault は恒久boolで1ゲーム1回しか立ち上がらず、2度目以降の破産が改革の窓を開けない（オスマン1875・エジプト1876・西は19世紀に6回）
     // POP動詞①（階級優遇/弾圧＝ClassStance/ClassStancePaid/ClassGrievance/LastClassVerbCost/SetClassStance）は2026-07-20廃止＝
     // 第3段3-1で完全削除（2026-07-27・書き手ゼロ/常時0の死蔵）。訓練/奨学金の診断カウンタは現役＝残置。

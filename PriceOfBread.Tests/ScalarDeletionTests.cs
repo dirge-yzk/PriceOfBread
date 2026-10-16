@@ -4,29 +4,18 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(373) 政治のスカラーの削除 段0 の形（休眠）の番人。事前登録 measurements/ps_20261016_prereg.txt。
-/// 旗 2 本（DeleteCorruptionScalars・DeleteWarWearinessScalars）は既定 0＝旧（不採用・枝に残す）。制度疲労の旗は採用して削除した。期待値は本体の式から作らず、〈旗 1 なら 0〉をリテラルで書く。
-/// 対照（旗 0 で 0 でない）を必ず置く＝何もしない機構が緑にならない。
-/// 突然変異で赤になる箇所：Politics の 240／343／344／387 の旗の枝（旗を読まない）・削除した名前の復活（制度疲労の番人）。</summary>
+/// <summary>(373)(377) 政治のスカラーの削除の番人。事前登録 measurements/ps_20261016_prereg.txt・実装ログ (373)(377)。
+/// 制度疲労（(373)）と汚職の政治の 2 項（天命の汚職の項・腐敗→正統性の侵食＝(377)）は物理削除した＝名前で復活を禁じる（期待値は本体の式から作らない）。
+/// 厭戦の 2 項（闘争度の目標項 WarWearinessMilitancy・天命の戦争の項 DynMandateWarWeight）は残す＝外すと戦争→内政の経路が消える（(377) の読み）。
+/// それが黙って消えないように、厭戦のストックを直に置いて〈闘争度の目標項が 0 でない〉〈天命が下がる〉を対照つきで確かめる（何もしない機構が緑にならない）。
+/// 突然変異で赤になる箇所：削除した名前の復活・Politics の warWeariness／dmWar の項を外す。</summary>
 [Collection("Instruments")]
 public class ScalarDeletionTests
 {
-    private static MultiNationSim Board(double flagC, double flagW, ulong seed = 83)
-    {
-        var sim = new MultiNationSim([WorldData.ByName("清"), WorldData.ByName("ロシア")], seed: seed) { DiplomacyFrozen = true };
-        foreach (var n in sim.Nations) { n.World.Coef.DeleteCorruptionScalars = flagC; n.World.Coef.DeleteWarWearinessScalars = flagW; }
-        return sim;
-    }
+    private static MultiNationSim Board(ulong seed = 83)
+        => new([WorldData.ByName("清"), WorldData.ByName("ロシア")], seed: seed) { DiplomacyFrozen = true };
 
-    private static World Of(MultiNationSim sim, string name) => sim.Nations.First(n => n.World.SelfPower!.Name == name).World;
-
-    [Fact]
-    public void 旗の既定は休眠()
-    {
-        var c = new Coefficients();
-        Assert.Equal(0.0, c.DeleteCorruptionScalars);
-        Assert.Equal(0.0, c.DeleteWarWearinessScalars);
-    }
+    private const System.Reflection.BindingFlags All = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
 
     [Fact]
     public void 制度疲労は物理削除済み_係数も状態も読み手に残らない()
@@ -36,41 +25,43 @@ public class ScalarDeletionTests
             "DecayReactionRegrowth", "DecayLockinIndustrialization", "DecayCeilingUniversal", "ModernizationDecayCost", "ModernizationDecayRelief", "DecayFromPrivilege"];
         foreach (var n in coefGone) Assert.Null(typeof(Coefficients).GetField(n));
         string[] worldGone = ["InstitutionalDecay", "InstitutionalDecayCeiling", "DecayForReaders", "PrivilegeDecayRaw", "WorldMaxPrivilegeDecayRaw"];
-        const System.Reflection.BindingFlags all = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
-        foreach (var n in worldGone) Assert.Null(typeof(World).GetMember(n, all).FirstOrDefault());
+        foreach (var n in worldGone) Assert.Null(typeof(World).GetMember(n, All).FirstOrDefault());
         // 初期値の入り口（NationConfig／Scenario）にも残さない
         Assert.Null(typeof(NationConfig).GetField("InstitutionalDecay"));
         Assert.Null(typeof(Scenario).GetProperty("InitialInstitutionalDecay"));
     }
 
     [Fact]
-    public void 汚職の2項は旗1で0_旗0では天命の汚職の項が負()
+    public void 汚職の政治の2項は物理削除済み_旗とDiagの欄も残らない()
     {
-        var off = Board(0.0, 0.0); off.Run(2);
-        double graft0 = off.Nations.Min(n => n.World.DiagDmGraft);
-        Assert.True(graft0 < 0.0, $"対照：旗 0 の天命の汚職の項が負でない（{graft0}）＝汚職の項が何もしない器になっている");
-        Assert.All(off.Nations, n => Assert.True(n.World.DiagCorrErosion >= 0.0));
-        var on = Board(1.0, 0.0); on.Run(2);
-        Assert.All(on.Nations, n => { Assert.Equal(0.0, n.World.DiagDmGraft); Assert.Equal(0.0, n.World.DiagCorrErosion); });
+        // (377)：作者 2026-10-16「汚職→廃止」。財政の漏れ（Fiscal の官僚への移転）は別＝作者に聞く物 Q1 なので、ここでは禁じない。
+        string[] coefGone = ["DynMandateGraftWeight", "CorruptionLegitimacyErosion", "DeleteCorruptionScalars", "DeleteWarWearinessScalars"];
+        foreach (var n in coefGone) Assert.Null(typeof(Coefficients).GetField(n));
+        string[] worldGone = ["DiagDmWar", "DiagDmGraft", "DiagCorrErosion"];
+        foreach (var n in worldGone) Assert.Null(typeof(World).GetMember(n, All).FirstOrDefault());
     }
 
     [Fact]
-    public void 厭戦の2項は旗1で0_旗0では闘争度の目標項と天命の戦争の項が働く()
+    public void 厭戦の2項は残る_闘争度の目標項と天命の戦争の項が働く()
     {
-        // 厭戦のストックを直に置く（戦争を待たない）。Politics.Step は四半期に 1 回＝Run(1) で通る。
-        MultiNationSim Armed(double flagW)
+        // 厭戦のストックを直に置く（戦争を待たない）。Politics.Step は四半期に 1 回＝Run(1) で通る。対照＝同じ盤面で厭戦 0。
+        MultiNationSim Armed(double exhaustion)
         {
-            var sim = Board(0.0, flagW);
-            foreach (var n in sim.Nations) n.World.SelfPower!.WarExhaustion = 0.6;
+            var sim = Board();
+            foreach (var n in sim.Nations) n.World.SelfPower!.WarExhaustion = exhaustion;
             sim.Run(1);
             return sim;
         }
         double MilWarMax(MultiNationSim sim) => sim.Nations.Max(n => n.World.AllPops().Max(p => p.MilWar));
-        var off = Armed(0.0);
-        Assert.True(MilWarMax(off) > 0.0, "対照：旗 0 の厭戦の闘争度項 MilWar が 0＝何もしない器になっている");
-        Assert.True(off.Nations.Min(n => n.World.DiagDmWar) < 0.0, "対照：旗 0 の天命の戦争の項が負でない");
-        var on = Armed(1.0);
-        Assert.Equal(0.0, MilWarMax(on));
-        Assert.All(on.Nations, n => Assert.Equal(0.0, n.World.DiagDmWar));
+        var calm = Armed(0.0);
+        var tired = Armed(0.6);
+        Assert.Equal(0.0, MilWarMax(calm));
+        Assert.True(MilWarMax(tired) > 0.0, "厭戦 0.6 で闘争度の目標項 MilWar が 0＝厭戦→闘争度の経路が消えている");
+        foreach (var name in new[] { "清", "ロシア" })
+        {
+            double m0 = calm.Nations.First(n => n.World.SelfPower!.Name == name).World.DynasticMandate;
+            double m1 = tired.Nations.First(n => n.World.SelfPower!.Name == name).World.DynasticMandate;
+            Assert.True(m1 < m0, $"{name}：厭戦 0.6 で天命が下がらない（{m0}→{m1}）＝天命の戦争の項が消えている");
+        }
     }
 }
