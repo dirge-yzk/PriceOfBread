@@ -8306,11 +8306,16 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
                                              //   ⚠300Q の帯は全長の帯と別の物差し（後期次元＝航空/WWI が無測定・断面数も減る）＝同じ長さの腕同士でだけ比較する
     int gq = gqArg > 0 ? gqArg : PriceOfBread.SimCore.Coefficients.GameQuarters;
     var costSys0 = CostSys.Snap();   // ★計算量の測り（2026-09-30）：系の稼働（負荷の記録）の始点
-    var b = SelfPlayMatch.RunBatch(n, gq, ir, par > 0 ? par : null, seedBase);
+    // ★2026-10-17（開発の高速化・ビット恒等）：試合と集計を分けた＝POB_FIRST5_OUT があれば、同じ走りの先頭5試合（seeds 1..5）の報告も書く
+    //   （各試合は独立＝selfplay-batch 5 と同じ報告。5種の成績表のためにもう1本バッチを回さなくてよい）。
+    var matches = SelfPlayMatch.RunMatches(n, gq, ir, par > 0 ? par : null, seedBase);
+    var bAll = SelfPlayMatch.Summarize(matches, gq);
     // ★計算量の測り（2026-09-30 作者裁定「計算量の予算」）＝帯の報告とは**別のファイル**（POB_COST_OUT・measure.sh が <出力>.cost を渡す）。
     //   ⚠報告の本体には1文字も足さない＝恒等の検証（報告の全行バイト一致）を壊さない（CPU 秒は時刻と負荷で揺れる・件数は軌道で動く）。
     if (Environment.GetEnvironmentVariable("POB_COST_OUT") is { Length: > 0 } costOut)
-        File.WriteAllText(costOut, CostSys.Report(b, costSys0, seedBase, gq));
+        File.WriteAllText(costOut, CostSys.Report(bAll, costSys0, seedBase, gq));
+    int Report(BatchSummary b)
+    {
     Console.WriteLine($"=== バッチ自己対戦 seeds {seedBase}..{seedBase + (ulong)b.N - 1}（各{gq}四半期{(ir is { } v ? $"・金利{v:F2}" : "")}）===");
     if (PriceOfBread.SimCore.Coefficients.OverrideSummary() is { Length: > 0 } ov)
         Console.WriteLine($"★係数の上書き（POB_COEF）: {ov}");   // 走行条件の名乗り＝ヘッダーを突き合わせてから数字を読む
@@ -8517,7 +8522,23 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
         0 => "全ゲート緑・6次元も到達（終了コード0）",
         1 => "★硬性ゲートに赤（終了コード1＝差し戻しの理由）",
         _ => "硬性ゲート緑・6次元が未達（終了コード2＝記録して進む）" }}");
-    if (rc != 0) Environment.Exit(rc);   // ★measure.sh は $RC をそのまま返すので、自動化がそのまま乗る
+    return rc;
+    }
+    int rcAll = Report(bAll);
+    if (Environment.GetEnvironmentVariable("POB_FIRST5_OUT") is { Length: > 0 } first5 && matches.Length > 5)
+    {
+        var b5 = SelfPlayMatch.Summarize(matches[..5], gq);
+        var stdout = Console.Out;
+        using (var w5 = new StreamWriter(first5, false, new System.Text.UTF8Encoding(false)))
+        {
+            Console.SetOut(w5);
+            try { Report(b5); } finally { Console.SetOut(stdout); }
+        }
+        // 計算量の測り：件数と推定は5試合の和から（CPU 秒の行は10試合のプロセスの値＝名乗りの行を足す）
+        if (Environment.GetEnvironmentVariable("POB_COST_OUT") is { Length: > 0 })
+            File.WriteAllText(first5 + ".cost", "# ★POB_FIRST5_OUT：10種の走りの先頭5試合から切り出した計算量（件数・推定は5試合の値・実測の CPU 秒と壁は10種のプロセスの値）\n" + CostSys.Report(b5, costSys0, seedBase, gq));
+    }
+    if (rcAll != 0) Environment.Exit(rcAll);   // ★measure.sh は $RC をそのまま返すので、自動化がそのまま乗る
     return;
 }
 

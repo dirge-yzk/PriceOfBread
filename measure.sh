@@ -100,6 +100,11 @@ export POB_SOURCE_HASH="$HASH"
 if [ "${1:-}" = "selfplay-batch" ]; then export POB_COST_OUT="$OUT.cost"; rm -f "$POB_COST_OUT"; fi
 "$DOTNET" "$SNAP/PriceOfBread.Runner/bin/Release/net10.0/PriceOfBread.Runner.dll" "$@" > "$OUT" 2>&1
 RC=$?
+# ★2026-10-17（開発の高速化）：POB_FIRST5_OUT＝同じ10種の走りの先頭5試合（seeds 1..5）の報告（Runner が書く・selfplay-batch 5 と同じ報告）。マニフェストも同じ木の物を写す。
+if [ -n "${POB_FIRST5_OUT:-}" ] && [ -f "$POB_FIRST5_OUT" ]; then
+  sed 's/^RUN: .*/RUN: selfplay-batch 5（5種＝探索）（10種の走りの先頭5試合＝POB_FIRST5_OUT）/' "$OUT.manifest" > "$POB_FIRST5_OUT.manifest"
+  echo "      5種＝$POB_FIRST5_OUT（10種の走りから切り出し・マニフェスト=$POB_FIRST5_OUT.manifest）"
+fi
 [ "$SNAP_OWNED" = "1" ] && rm -rf "$SNAP"   # 既定の隔離先だけ片付ける（SNAP_DIR を渡した腕は呼び手のもの＝残す）
 echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT$RUN_NOTE　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
 [ -n "${POB_COST_OUT:-}" ] && [ -f "$POB_COST_OUT" ] && echo "      計算量＝$POB_COST_OUT　$(grep -E '^判定:' "$POB_COST_OUT")"

@@ -2150,8 +2150,12 @@ public static class SelfPlayMatch
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _kept.GetEnumerator();
     }
 
-    /// <summary>seeds 1..N をバッチ実行し集計（破綻率・決着・勝者分布・デッドロック・合否・常勝/即死フラグ）。</summary>
-    public static BatchSummary RunBatch(int n, int quarters = Coefficients.GameQuarters, double? interestRate = null, int? parallel = null, ulong seedBase = 1)   // ★seedBase（2026-08-14）＝ノイズ床の測定（同一ソースでシード群を振り直す）。既定1＝seeds 1..n＝厳密恒等
+    /// <summary>seeds 1..N をバッチ実行し集計（破綻率・決着・勝者分布・デッドロック・合否・常勝/即死フラグ）。＝<see cref="RunMatches"/> ＋ <see cref="Summarize"/>（★2026-10-17 開発の高速化で2つに分けた・ビット恒等）。</summary>
+    public static BatchSummary RunBatch(int n, int quarters = Coefficients.GameQuarters, double? interestRate = null, int? parallel = null, ulong seedBase = 1)
+        => Summarize(RunMatches(n, quarters, interestRate, parallel, seedBase), quarters);
+
+    /// <summary>★2026-10-17（開発の高速化・ビット恒等）：試合だけを回して返す（集計は <see cref="Summarize"/>）。各試合は独立＝先頭の k 試合を集計すれば seeds 1..k のバッチと同じ報告になる（Runner の POB_FIRST5_OUT）。</summary>
+    public static MatchResult[] RunMatches(int n, int quarters = Coefficients.GameQuarters, double? interestRate = null, int? parallel = null, ulong seedBase = 1)   // ★seedBase（2026-08-14）＝ノイズ床の測定（同一ソースでシード群を振り直す）。既定1＝seeds 1..n＝厳密恒等
     {
         // 各シードは完全独立（自前の MultiNationSim・RNG・共有可変状態なし）＝シード並列で安全に高速化。
         // 結果はシード番号で添字付けして集める＝並列でも順序・集計は決定論的（各シードの結果は他シードに非依存）。
@@ -2168,6 +2172,13 @@ public static class SelfPlayMatch
         // n でクランプするのは 30 シードに 32 ワーカーが純粋な遊休になるため。OOM は握り潰さず即 throw する（下の catch 参照）＝静かな帯汚染を防ぐ。
         var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = parallel ?? Math.Clamp(Environment.ProcessorCount, 2, Math.Max(2, n)) };
         System.Threading.Tasks.Parallel.For(0, n, opts, i => arr[i] = Run(seedBase + (ulong)i, quarters, interestRate, lean: true));   // ★seedBase 起点（既定1＝旧 i+1 と同値）   // lean＝外交ログ停止（開戦数はカウンタ・イベント年表はバッチでは未使用）
+        return arr;
+    }
+
+    /// <summary>★2026-10-17：<see cref="RunMatches"/> の試合を集計する（旧 RunBatch の後半そのまま）。</summary>
+    public static BatchSummary Summarize(IReadOnlyList<MatchResult> arr, int quarters = Coefficients.GameQuarters)
+    {
+        int n = arr.Count;
         var results = new List<MatchResult>(arr);
 
         int breakdowns = results.Count(r => !r.Completed);
