@@ -17,3 +17,7 @@ uishot/
 *.tmp
 *.bak
 *.orig
+
+## Python のキャッシュ（2026-10-17 (392)）
+__pycache__/
+*.pyc
