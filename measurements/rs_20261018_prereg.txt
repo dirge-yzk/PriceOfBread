@@ -1,0 +1,155 @@
+# (399) 事前登録：支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（形は既存の旗と新しい旗 5 本で恒等の器）
+# 書いた時点：2026-10-18。腕は 1 本も回していない。形のコードより前（この文書が枝 rs の最初のコミット）。書いたモデル Claude Sonnet 5.5。
+# 木：基点 c56617da（main・基準の成績表 m397）。枝 rs・worktree D:/PoB_work/wt_rs・作業フォルダ D:/PoB_work/rs_399。
+# 引用の決まり：「」は作者の原文だけ。AI の線・推奨は〈〉かバッククォートで書く。報告では「帯」を「成績表」と言う。
+# 出所：docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md（§2 の4区分・§5 読み手・§6 条約港の廃止・§9 段3〜5）・記憶〈支配の4区分を全61カ国へ〉・
+#       実装ログ (381)(387)・00一覧 行 P1-8・README の止める線（作者 2026-10-17）・Politics.cs（CheckSecession の4区分の積分）・Fiscal.cs（漏れと RuleDelivery）・Diplomacy.cs（条約港）・Simulation.cs（enforce）。
+# 範囲：この文書とコードは前半（形・事前登録まで）。腕 A・B・N1・N2 は後半の担当が回す。
+
+[0] 何を入れるか（作者の原文と AI の読み）
+  作者 2026-10-16 条約港：「条約港は廃止します。これは州の支配度で表現できます。」
+  作者 2026-10-16 在地の区分（私の質問への指摘）：「農奴解放は農奴POPを禁止して農民POPにする法で、州の支配度には影響しない筈」
+  作者 2026-10-16：「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・「文化に属性は付けたくない。」（土地のデータは可）
+  作者 2026-10-17 汚職の財政の漏れ：「これも消す。」「税の漏れは支配度側にある筈」（法の浸透の門 `LawEnforcementAdminGate` も同じ回で消す：(387) が作者の言葉として写した文）
+  作者 2026-10-17：「史実度の低下は差し戻し理由にはなりません。私はそのような指示はしていない。バランスより正しい挙動を優先してください」・「残りは推奨で進めてください。」
+  作者 2026-10-15：「計算資源の上限は必要。適時高速化・最適化を入れる目安としても死守したい。」
+  記憶〈支配の4区分を全61カ国へ〉（2026-09-23）の診断：world.json の rule（国 61＋州 165）は入っているが、点火すると3本の根で在地しか残らない。①在地の目標が農奴解放法 1 本（`Politics.cs` の `localScale`＝SeigneurialDegree の比）
+    ②無統治の目標が (1−治安)×(1−支配度) で、本土州の支配度が一律 1.0（HeldSinceFromData=0）なので 0 ③外国の目標が常に 0（ForeignRuleFromTreaty=0）。加えて ④植民地の州は rule のデータを通らない
+    （`Simulation.PromoteColonyToRegion` が無条件に `Rule = RuleInit = [0,1,0,0]`）。点火だけ先にやると、在地が農奴法へ潰れた世界で較正し直すことになる＝組で直す。
+  ⚠この文書の決め（D1〜D9）は AI の推奨。作者の承認は未確認。作者に聞く物は [7]。
+
+[1] 形（D1〜D9・旗で恒等の器・物理削除は採用の後）
+  （全体）旗 0 の経路は 1 命令も足さない（`x*1.0` のような恒等の演算も書かない・分岐は旗の比較だけ）。置き換えは三項演算か `if (旗) … else 旧` の形で、旧の式をそのまま残す。
+  旗：既存 5 本（`RuleSharesEnabled`・`RuleSharesReach`・`RuleSharesTaxBase`・`ForeignRuleFromTreaty`・`HeldSinceFromData`・どれも既定 0）＋新しい 5 本（既定 0・DormantIdentityTests の表に載せる）。
+      `RuleLocalFromRights`（①）・`RuleUngovFromReach`（②）・`ColonyRuleFromData`（④）・`TaxLeakByRule`（⑤a）・`LawReachByRule`（⑤b）。③は既存の `ForeignRuleFromTreaty`（講和 1 回で積む持分の大きさ）が担う。
+      新しい旗を 5 本に分けた理由＝止める線に当たったときに腕を回し直さずに切り分けられる（B は 5 本全部＋既存 4 本）。採用の後は旗ごと物理削除する。
+  B の POB_COEF ＝ `RuleSharesEnabled=1,RuleSharesReach=1,RuleSharesTaxBase=1,ForeignRuleFromTreaty=0.5,RuleLocalFromRights=1,RuleUngovFromReach=1,ColonyRuleFromData=1,TaxLeakByRule=1,LawReachByRule=1`。
+      `HeldSinceFromData` は B に入れない（D3 の理由）。`ForeignRuleFromTreaty=0.5` の大きさは AI の置き（確証なし・[7] Q4）。
+
+  D1 ① 在地の目標を農奴解放の法から切り離す（`RuleLocalFromRights`）：
+      旧＝`tLocal = min(1−tUngov, RuleInit[1] × localScale)`・`localScale = SerfEmancipation の未解放度 ÷ 開幕の未解放度`（開幕に解放済みの英・米・蘭は分母 0 で恒久 0）。
+      新＝`tLocal = min(1−tUngov, RuleInit[1] × Privileges.IntermediaryDegree(w))`。`IntermediaryDegree` ＝ max(身分の度合い〔既存の `EstateDegree`＝官僚制度法 猟官 1／資格任用 0.5／専門 0＝特権の台帳の 既得の官職 の残高〕,
+      土地の権利の度合い〔土地改革の法 なし 1／限定 0.5／全面 0〕)。農奴解放の法は読まない。
+      理由（AI の読み）：仲介者（徴税請負・藩・ザミーンダール・土司・領主の裁判権）が握る権利は、徴税と官職の私有（官僚制度の専門化で直轄に置き換わる）と、地代を取る権利（土地改革で縮む）に乗っている。
+      どちらかが残る限り仲介者の権利は残る＝max。農奴解放は人の身分の法であって州の支配の法ではない（作者の指摘）。
+      開幕：59 カ国は官僚制度＝猟官（1.0）・清とプロイセンは資格任用（0.5）・全ての国で土地改革＝なし（1.0）→ 全ての国で IntermediaryDegree＝1.0＝開幕から目標は rule のデータどおり（跳びなし・分母の状態も要らない）。
+      法は動く量で片方向の錠は無い（専門官僚制 かつ 土地改革 全面で 0）。`World.SeigneurialDegree0`（開幕の未解放度の写し）は旗 1 では読まない（採用の後に物理削除）。
+      ⚠〈確証なし〉：max の形・二つの法を選んだこと・仲介者の権利が法の度合いだけで決まること（インドの藩王国は官僚制度法が専門でも 1947 まで残った）。
+      ⚠作者の原文との差：作者は〈特権の台帳の残高〉と書いたが、台帳の 6 本（十分の一税・身分制免税・既得の官職・領主権・特許会社・同業組合）に徴税請負・藩・ザミーンダール・土司・都市の自治という名の特権は無い。
+        使える残高は 既得の官職（官僚制度法）だけ＝土地の権利は台帳に無い法の度合いを足した（台帳の 7 本目にはしない＝配列とセーブを動かさない）。
+  D2 ② 無統治を治安と到達の距離で測る（`RuleUngovFromReach`）：
+      旧＝`tUngov = (1−PublicOrder) × (1−Dominance)`。新＝`tUngov = (1−PublicOrder) × (1−到達)`、到達＝`1 ÷ (1 + DistanceWarDecay × km ÷ DistanceNormKm)`、km＝国の座標（`w.Latitude`／`w.Longitude`）から州の座標（`Places.Coord`）への大圏距離。
+      座標が (0,0)（未登録）の州は到達 1.0（幻の遠距離を作らない）。`CheckSecession` の投射と同じ形・同じ係数（新しい定数なし）。`Region.Dominance` は無統治の目標から外れる（分離の判定は今のまま Dominance を使う）。
+      ⚠〈確証なし〉：到達を首都からの大圏距離だけで測る（鉄道・電信・道路の到達は入っていない）。首都のすぐ近くの無法地帯は無統治にならない。目標は連続で閾値の錠は無い。
+  D3 ③ 条約港を外国区分へ（`ForeignRuleFromTreaty>0`＝既存の旗の意味を完成させる）：
+      ・付与：敗者の最大の港州（`Diplomacy.cs` の既存の選び方）に勝者の持分を `ForeignRuleFromTreaty` だけ積む（既存）。旗 > 0 では `TreatyPortsGranted++` をしない（個数の機構を使わない）。賠償の倍率 `TreatyPortReparationMult`・遠距離の制約 `TreatyPortWinnerDistanceKm` は残す（講和の地理の制約）。
+      ・風化：持分は対最強列強の国力比で連続に風化する（既存の式）。⚠既存の器の単位の不具合を直す＝`Diplomacy.TreatyPortLapse` は毎月呼ばれるのに `DominanceSpeed`（四半期あたり）を掛けていた＝点火すると 3 倍速。旗 > 0 では四半期の月（`month % MonthsPerQuarter == 0`）だけ風化させる。
+        4 年ごとの全国の一斉検査（個数を 1 減らす枝）は旗 > 0 では走らない。旗 0 では到達しないので直しても恒等。
+      ・関税：`InternationalMarket.TreatyPortTariffScale` ＝ 旗 > 0 では `1 − 港の収容力で重みづけた外国持分の平均`（活きている港州だけ・持分は `min(1, 合計)`・港が無い国は 1.0）。個数×`TreatyPortTariffLoss` の式は使わない。
+      ・読み手の読み替え（静かに壊れる読み手）：`PoliticalQuantities.WarFeverPublicSphere` の屈辱の項（条約港＞0 なら +1）と `SelfPlay` の移民法（条約港＞0 なら開放）は、旗 > 0 では `Politics.TreatyPortInForce`＝〈港州の外国持分が付与の大きさの半分以上〉に読み替える（旧と同じ 0／1 の意味・持分が風化すると失効する）。
+        読み替えを忘れると AI の移民法が外圧で開かなくなる。App の `TreatyPortLine`・News の通知・`AiFirstWaveTests` の個数の試験は採用の後の掃除（[8]）。
+      ・外国の区分の目標＝`Rule[2]` ← 持分の合計（既存・`RuleSharesEnabled>0` が前提）。
+      ⚠〈確証なし〉：港の収容力の重み・半分以上という読み替えの線・付与の大きさ。作者の原文に乗る部分（確証あり）は〈条約港は廃止・州の支配度で表現〉と〈講和で敗者の港州が外国持分を得る〉まで。
+  D4 ④ 植民地の州も開始時の rule のデータを通す（`ColonyRuleFromData`）：
+      旧＝`Simulation.PromoteColonyToRegion` が `Rule = RuleInit = [0,1,0,0]`（在地 100%）。新＝`places.json` の kind＝colony の行に任意の列 `rule`（4 要素）を足し、`Places.RuleOf(name)` が返す。あれば `Rule = RuleInit = その値`・無ければ旧の `[0,1,0,0]`。
+      データ：kind＝colony の 100 行に `rule` を置く（開幕の植民地 77 件＋後から州になる 23 件）。出典の数字は無い＝AI が 6 種類に分けて置いた（大農園の島・交易の要塞港・大陸の間接統治の大人口・辺境の交易所・開拓の入植地・独立に近い藩国の取り分）。
+      土地の側のデータ（文化の札ではない）。表は `measurements/rs_20261018_colony_rule.tsv`（名前・種類・4 要素・置いた理由の一言）。
+      旗 0 では `Places.RuleOf` を呼ばない（読む行が旗の内側）＝world と places の読み込みの結果は変わらない（列を読むだけで使わない）。
+      ⚠〈確証なし〉：6 種類の分け方と数字（1783 年の植民地の統治の形の史実の数字は手元に無い）。数字は掃く対象にしない＝作者が直す前提の初期値。
+  D5 ⑤a 汚職の財政の漏れを消す（`TaxLeakByRule`）：
+      旧＝`leak = revenue × CorruptionMax × EffectiveCorruption`（納税者から官僚への移転・`Fiscal.cs`）。新（旗 > 0）＝`leak = 0`。税の経路は支配度の区分が決める：`RuleSharesTaxBase>0` の `RuleDelivery`＝(1−g)+g×(国家区分＋在地区分×届け率)・
+      届け率＝`1−PrivilegeTaxDiscount`・在地の取り分（在地区分×(1−届け率)×あるべき税）は納税者から州の貴族へ（`ruleCut`・`ruleLord`・既存の保存則の移転）。
+      ⚠作者の指示文の〈税は国家の区分だけが国庫へ（在地の分は保有階級へ）〉は文字どおりには 届け率＝0（在地の分の全額が貴族へ）。この線は既存の器（届け率 0.7＝設計 doc §5 の〈仲介者の届け率〉）を残した。
+        届け率 0 の読みは国庫が大きく痩せる（清・露・オスマン・日本の在地 0.35〜0.58）。作者に聞く [7] Q1。
+      ・旗 > 0 で消える物（読み手の一覧）：`World.LastTaxLeak`（診断）・官僚 POP への汚職所得（`LandRentPerMonth` への記帳＝改革への抵抗の入力）・特権の台帳の 既得の官職 の取り分（`Privileges.VestedOffice` の `Record`）。`EffectiveCorruption`・`OversightV2`・`CorruptionMax` の
+        シミュ側の読み手は Fiscal の 1 か所だけ（残りは計器と App の表示）＝採用の後の物理削除の候補（[8]）。
+  D6 ⑤b 法の浸透の門を支配度へ（`LawReachByRule`）：
+      旧＝`enforce = min(1, AdminEfficiency ÷ LawEnforcementAdminGate)`（`Simulation.cs`・労働時間の短縮・女性の賃金保持・児童労働の禁止の浸透の追従の速さに掛かる）。
+      新（旗 > 0）＝`enforce` ＝ 活きている州の人口で重みづけた `Politics.RuleReach(r, c)` の平均（`RuleReach` ＝ (1−g)+g×国家区分・g＝`RuleSharesReach`）。人口が 0 なら 1.0。行政効率は読まない。
+      理由：法は国家の区分の範囲にだけ届く（設計 doc §3）。浸透の遅れは 〈行政の購入量の不足〉 でなく 〈その土地を国家が統治している割合〉 に置き換わる。
+      ⚠〈確証なし〉：人口加重の平均（州ごとの浸透は国の一つの追従値に畳まれる）。児童労働の禁止の浸透は出生の意図（作者 2026-10-15）に効く：国家の区分が低い国は禁止が浸透しにくくなる向き。
+  D7 計器（`INS=1` のときだけ・読むだけ・乱数なし・新しい状態なし）：新しい表 `rule_s`（`InstrumentsRule.cs`・[2]）。本体への hook は 0 行（`Instruments.Quarter` から世界の状態を直に読む）。
+  D8 セーブ：新しい欄は無い（旗は係数・places.json の列はデータ・`IntermediaryDegree`／到達／`enforce` は都度計算）。`Region.Rule`／`RuleInit`／`ForeignRulers`／`ForeignShares` は既存の欄＝SaveGame の反射の分岐に載る。旗 1 の savetest を形の担当が 1 本回す（[6]）。
+  D9 AI とプレイヤーは同じ 1 本（`IsPlayer` を読まない）。国別の特例なし。文化に属性を付けない（rule は州の土地の側のデータ）。
+
+[2] 計器 `rule_s`（INS=1・旗 0 でも出す＝A の表が〈開幕のデータと動かない区分〉の表になる）
+  行＝国×四半期×活きている州。挙げた国（`POB_INSTRUMENTS_NATIONS`）は毎四半期・他の全ての国は年末（`secession_s` と同じ選び方）。
+  列：quarter・year・nation・region・tier・popK・ruleStateShare・ruleLocalShare・ruleForeignShare・ruleUngovShare・ruleInitLocalShare（開幕のデータ）・foreignRulerCount・dominanceShare・capitalDistanceKm・reachShare（D2 の到達）・
+      intermediaryDegreeIndex（D1）・serfLawCode・bureaucracyLawCode・landReformLawCode（法の段・在地の区分が農奴解放の年で消えないことを読む）・
+      国の列（その国の全ての州の行に同じ値）：publicOrderIndex・stateReachIndex（D6 の enforce）・adminEfficiencyIndex（旧の門の値＝旗 0 で比べる）・treatyPortsGrantedCount（旧の個数）・treatyPortInForceFlag・portForeignShare（D3 の関税の目減り）・taxLeakPerMonth・
+      revenuePerMonth・gdpPerMonth（税÷GDP を読み手が組む）。
+  ⚠限界（計器が自己申告する）：四半期の末の断面（行の値は Instruments.Quarter の呼び時点＝政治の段の後）・「持分の誰か」は ForeignRulers の個数だけ（主体名は列にしない）。
+
+[3] 腕（同じ木・計器つき 10 種〔INS=1・NATIONS 清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本＝m397 と同じ〕・素の 10 種・素の 5 種。基準の成績表 m397）
+  A  ＝ 旗 0（既定）。素の 10 種・5 種・計器つき 10 種の報告が m397（b10_20261018_m397・b5_20261018_m397・b10_20261018_m397_ins）と名乗り行の SOURCE-HASH を除いて全行一致（恒等の証明の腕＝形の合否。
+       計器つきは新しい表 `rule_s` が増えるだけで報告の本体は変わらない）。
+  N1 ＝ A ＋ `SupplySlope=0.50000001`。N2 ＝ A ＋ `SupplySlope=0.49999999`（A のヌル）。
+  B  ＝ [1] の POB_COEF（9 本）。B 自身のヌルは回さない（粒度は粗く）。変更は 1 つ（組で入れる＝記憶〈点火だけ先にやると潰れる〉）。切り分けは止める線に当たったときだけ：旗ごとに外した腕（B−①・B−②・B−④・B−⑤a・B−⑤b・B−③）。
+  運用の見込み：4 本 × 10 種。計器つきの生の出力は 1 本あたり約 13GB。A と B を先に同時に、N1・N2 を次に。生の計器の TSV は採否が決まるまで D:/PoB_work に残す。
+  ★先に 1 本：A の計器つき 10 種から `rule_s` を読み、〈開幕のデータの区分が動かない世界で 英と清の税÷GDP はどこにいるか〉と〈D6 の enforce の値〔国家の区分〕と旧の門の値〔行政効率÷0.5〕の分布〕を確かめてから B を解釈する。
+
+[4] 止める線（README・作者 2026-10-14／10-15／10-17）
+  ① 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest・進行不能（完走 10/10 でない）。税の経路を変えるので 国庫と国債と貯蓄の保存（Σ保有＝GovDebt−ForeignDebt）の番人を特に見る。
+  ② 発散：金利・人口・値段が桁で暴走（m397 の基準：金利の上限への張り付き率 最大 0.158%〔線 1.575%〕・値段の天井 最大 0.081%〔線 1.000%〕・値段の底 最大 2.134%〔線 21.341%〕・人口の 10 倍超の国 0・`an_ae383.py sec=div,sup`）。
+  ③ 州の空洞化：移民によるピークの 1/10 未満が 1 件でも（`an_h2.py <出力>/ins -v4`・例外の名簿はヌークだけ）。B は植民地の州の rule・税・徴兵の母数・法の浸透が動く＝植民地の州が主な懸念。
+  ④ 推定の計算量 ＞ 248.5 秒（名目）。m397 は 247.6 秒＝余り 約 0.9 秒。
+      使う量（旗 1 で増える物）：(a) 州×四半期の区分の積分（既存・`RuleSharesEnabled>0` で走る・州 225×668 四半期＝約 15 万回×数十演算）に D1 の `IntermediaryDegree`（定数時間）と D2 の到達（`Places.Coord` の辞書引き＋大圏距離）が加わる＝約 15 万回×約 1 µs
+      (b) `RuleDelivery` の列（`TaxScan` の POP ごとの 3 本の列・既存の器・毎月全ての国で POP 数分）＝POP 約 3,000×2,004 か月＝約 600 万回×数 ns (c) D6 の `enforce`（毎月・全ての国・州の人口の和）＝約 45 万回 (d) 関税の目減り（`TariffRate` の呼びごとに港州を走査）＝呼びは清算ごと・
+      州数は国あたり数個。合計は約 0.1 秒の見込み（実測は後半の担当・.cost の件数に乗らない）。
+      払い先（旗 1 で減る物）：(e) 汚職の漏れ＝納税者全員から官僚への移し方の 1 本（毎月・全ての国・払い手の POP 数分の按分）が消える (f) `TreatyPortLapse` の個数枝（全国の走査・4 年ごと）が消える。正味は 0 か負の見込み。
+      `CostLedger` の行は足さない：新しい処理は定数時間の州ごとの式で、件数は州×四半期の既存のループに乗る（宣言した表を超えない）＝推定の計算量は B でも A と同じ値で出る。実際の差は、同じ負荷で旗 0／旗 1 の単独 1 試合の CPU 秒を測って記録する（後半の担当）。
+      他の線（sp〔高速化〕・op〔英と蘭の開幕〕）の使う量は合流で足す＝この線だけで余りを使い切らない。余りが 0.9 秒しか無い＝並行の線 sp の節約を当てにしない・この線の払い先は上の (e)(f)。
+  ⑤ 機構と不変条件のテストの赤（AI とプレイヤーの対称・保存・セーブの往復ほか）。史実の桁を固定したテストの赤は止める線ではない（記録にして計器へ移す）。旗 1 の番人は新しく足す（[6]）。
+  ⑥ 〈歴史的に正しい挙動だと確証がなく、かつバランスを破壊する〉の両方（作者 2026-10-14）：D1・D2・D3 の細部・D4 の数字・D6 の平均は確証なし。〈バランスを壊す〉の物差し（README・AI の推奨・閾値は AI の置き・ヌル腕 N1・N2 の幅で基準を取る）＝
+      ①同じ国が毎回壊れる：一国が人口か領土の半分以上を失う・消える種が 8/10 以上で、ヌル腕は 2/10 以下 ②一国の発散：首位の国の世界の実質GDP の取り分がヌル腕の最大を幅の 2 倍以上超え、8/10 以上の種で同じ国 ③片方向の錠：最大の段に張り付く国×四半期がヌル腕の最大の 2 倍以上。
+      ④補給崩壊の倍化は作者に聞く（記録のまま）。
+  記録だけ（採否に使わない）：exact・near・NG・補給崩壊（千件級を含む）・史実の線・常勝の疑い・人口の倍率・政変の数・カオス性。
+
+[5] 記録の線（採否に使わない・`rule_s`＋既存の表から読む）
+  R1 英と清の税÷GDP（設計 doc §1：清 2〜3%・英 10% 超）：`rule_s` の revenuePerMonth・gdpPerMonth（年換算）を 1800・1850・1900・1940 年で。A／N1／N2／B の差。
+  R2 1800 年の 分割されたポーランドの地域（プロイセン・オーストリア・ロシアの併合州）と英の 国家区分の人口加重（9 月の失敗の型＝分割ポーランド 0.88 ＞ 英 0.77 が出た）：順が逆転していないか。HeldSinceFromData=0 のままなので 併合州は Core・支配度 1.0 の扱い。
+  R3 条約港の代わりの外国の区分の州と年：外国の区分 ＞ 0 の州・付与の年・風化の年（史実の窓：南京条約 1842 の清〔5 港〕・安政の五カ国条約 1858 の日本・江華島条約 1876 の朝鮮など・年は SelfPlay の注の記載＝AI の記憶で作者が確かめる物）。A は個数（`treatyPortsGrantedCount`）・B は持分。
+  R4 在地の区分が農奴解放の年で消えないこと：農奴解放の法が 限定／全面 に動く年（露 1861・普 1807〜1850・墺 1848 など）の前後で ruleLocalShare が 農奴解放の年を境に落ちないこと（B）。旧の枝（A に旗 `RuleLocalFromRights` だけ 0）では落ちる。
+  R5 enforce の分布：D6 の値（国家の区分の人口加重）と旧の門（行政効率÷0.5）の国別・時代別。児童労働の禁止の浸透（`ChildLaborLegal`）が 禁止の法の年の後に 90% に届く年（`scalars_s`）。
+  R6 在地の取り分の流れ：仲介者の取り分（`ruleCut`）の国×年の総額と、貴族 POP の所得（`class_s`）への加算。
+  R7 植民地の州の区分（D4）：英領インド（中核ベンガル・内陸ベンガル・マドラス）の 国家／在地／無統治 の時系列と、その税収の取り分。
+  R8 無統治の区分の分布（D2）：国別・州別の ruleUngovShare（辺境の州が高く、首都近傍が 0 に近いか）。
+  R9 補給崩壊・総政変・内戦の数・分離の数（A に対する増減・記録のみ）。
+  予想（AI・外れてよい）：(a) 旧の漏れを消して 区分で受けると 清・露・オスマン・日本の国庫の取り分が痩せる（在地 0.35〜0.58 × 仲介者の取り分 0.3）＝税÷GDP の差が出る向き (b) 英は国家の区分が高く税÷GDP が高い
+  (c) 条約港の代わりの外国の区分は 清に出る・日本は 国力比の回復で早く風化する (d) 児童労働の禁止の浸透は 国家の区分が低い国で遅れる (e) 空洞化の線に植民地の州が当たる懸念（税の取り分が貴族へ流れて植民地の州の POP の所得が痩せる向き）。
+
+[6] 恒等の証明（この線の合否・前半＝形の担当）と番人
+  ・旗 0 は分岐の外で 1 命令も変わらない。ソースの論証：差分で旗 0 の経路に新しい演算が無いことを grep の行つきで報告に書く（[1] の 全体）。
+  ・前半の担当は腕を回さない。旗 0 の木が c56617da とビット一致することは、`git archive c56617da` の木（D:/PoB_work/rs_399/base）と形の木で `measure.sh <出力> selfplay 1 200` を 1 本ずつ `cmp`（短距離・隔離ビルド）＋計器つき（INS=1）の本体も同じバイト列で確かめる。
+    ⚠これは恒等の証明の全てではない（1 種）＝全長の 10 種・5 種・計器つき 10 種の成績表 3 枚が m397 と全行一致するのは後半の担当の腕 A（合否）。
+  ・DormantIdentityTests の表に新しい旗 5 本を足す（既定 0 の旗を明示的に 0 で上書きしても軌道が同じ）。
+  ・旗 1（B）の短い canary（1 種・200 四半期）を 1 本：完走・NaN なし・savetest（旗 1 の往復）・leakhunt（保存則）。結果は採否に使わない（前半の担当の健全性の確認だけ）。
+  ・番人（期待値は数値のリテラルで書く・同じ関数から作らない・突然変異で赤を確かめる）：
+      D1：農奴解放の法を なし→全面 に変えても在地の目標が動かない／官僚制度法 猟官→専門 かつ 土地改革 全面で在地の目標が 0／片方だけでは残る（max）／開幕（猟官・土地改革 なし）は IntermediaryDegree＝1.0／旗 0 は旧の localScale どおり。
+      D2：首都の近傍は到達 1・距離 10,000km で 0.5（DistanceWarDecay=1）・座標未登録は 1／無統治の目標が Dominance に依らない／旗 0 は旧の式。
+      D3：旗 > 0 の講和で TreatyPortsGranted が増えず 港州に持分が積まれる／持分は四半期の月だけ風化し 3 か月で 1 回分／関税の目減りが 港の収容力の重みつき平均で 個数に依らない／港が無い国は 1.0／
+          `TreatyPortInForce` が 半分未満で偽／旗 0 は個数どおり。
+      D4：places.json の rule がある植民地は その値が Rule と RuleInit に入る／無い名前は [0,1,0,0]／旗 0 は [0,1,0,0] のまま／全 100 行の rule は 4 要素で合計 1（データの不変条件）。
+      D5：旗 > 0 で漏れ 0・官僚 POP へ汚職所得が入らない・納税者から出る額の合計＝国庫＋貴族の取り分（保存）／旗 0 は漏れが立つ。
+      D6：旗 > 0 で enforce が AdminEfficiency に依らない（行政効率を変えても同じ）／州の国家区分に比例（人口加重）／人口 0 で 1／旗 0 は旧の門。
+  ・計器 `rule_s` は旗 0・INS=1 で出力が増えるだけ（報告の本体は変わらない）。
+
+[7] 作者に聞く物（推奨つき・AI の物＝作者の承認は未確認）
+  Q1 ⑤a の届け率：指示文の〈税は国家の区分だけが国庫へ（在地の分は保有階級へ）〉は 届け率＝0 と読める。推奨＝既存の器（届け率＝1−PrivilegeTaxDiscount＝0.7・設計 doc §5 の仲介者の届け率）で入れ、国庫の取り分の差（清 2〜3% 対 英 10% 超）が出るかを R1 で見てから決める。
+  Q2 D1 の仲介者の権利を 官僚制度法と土地改革の max で読む形（台帳に徴税請負・藩・ザミーンダール・土司・都市の自治という名の特権は無い）。推奨＝このまま。台帳に 7 本目を足す案は 配列とセーブを動かす＝この線では採らない。
+  Q3 D2 の到達を 首都からの大圏距離だけで測る形。推奨＝まず B で 無統治の分布を読む（R8）。鉄道・電信の到達を入れるのは輸送の線（段 1）と合わせる。
+  Q4 `ForeignRuleFromTreaty=0.5`（講和 1 回で敗者の最大の港州に積む持分）と 関税の目減りの重み（港の収容力）と 〈半分以上〉の読み替え。推奨＝このまま・数字は掃かない（作者が直す前提の初期値）。
+  Q5 D4 の植民地の rule の数字（6 種類・AI の置き・出典なし）。推奨＝開幕のデータとして置き、作者が直す。出典（著者・書名か統計名）を集めるのは手元で。
+  Q6 `HeldSinceFromData`（併合年を読む＝州の格 Core→Integrated・支配度の初期値）は この線に入れない。理由＝D2 で無統治の目標が Dominance を読まなくなり 点火の必然が消える・別の挙動（併合州 28）が混ざる。推奨＝別の線で 1 テーマ 1 計測。
+  Q7 D3 の 毎月の風化の単位の不具合（旧の器の 3 倍速）を旗 > 0 でだけ直す。推奨＝このまま（旗 0 は動かさない）。
+
+[8] 採用の後の物理削除の候補（この線では消さない・申し送り）
+  `TreatyPortsGranted`・`TreatyPortTariffLoss`・`TreatyPortLapseRatio`（の個数の使い道）・`TreatyPortLapseYears`・`TreatyPortLapse` の個数の枝・`TreatyPortTariffScale` の個数の式・`World.SeigneurialDegree0`・`localScale`・
+  `Fiscal.cs` の漏れの塊・`CorruptionMax`・`EffectiveCorruption`／`OversightV2` の財政側の読み手・`LawEnforcementAdminGate`・`Simulation.cs` の 旧の enforce・旗 5 本と既存 4 本（点火した旗は消す）。
+  App の `TreatyPortLine`・News の条約港の通知・`TreatyPortLapseTests`・`AiFirstWaveTests` の個数の試験は 持分の読みに置き換える。復活を禁じる番人（消した係数が戻っていない）を足す。
+
+[9] 触る行の見込み（並行の線 sp〔高速化〕・op〔英と蘭の開幕〕と同じファイルを触る可能性＝合流で解く）
+  Coefficients.cs（旗 5 行・既存の旗の注）・Politics.cs（`CheckSecession` の区分の積分の 2 式・新しい関数 `RegionReach`／`StateReach`／`TreatyPortInForce`／`ForeignPortShare`）・Privileges.cs（`IntermediaryDegree` 新規）・
+  Fiscal.cs（`leak` の 1 行）・Simulation.cs（`enforce` の式 1 か所・`PromoteColonyToRegion` の Rule の 2 行）・Diplomacy.cs（付与の分岐・`TreatyPortLapse`）・InternationalMarket.cs（`TreatyPortTariffScale`）・PoliticalQuantities.cs（屈辱の項 1 行）・
+  SelfPlay.cs（移民の外圧 1 行）・Places.cs（`rule` の列と `RuleOf`）・places.json（colony 100 行に rule 列）・InstrumentsRule.cs（新規）・Instruments.cs（Sink の欄 1・Quarter の呼び 1・Dispose 1 の 3 行）・
+  テスト（DormantIdentityTests の表 5 行・新規の番人）・scripts/instruments/rs（新規）・measurements の tsv。衝突の見込み：`Instruments.cs` の 3 行（sp の計器の高速化も触る）。world.json は触らない（op の英・蘭の開幕と衝突しない）。
