@@ -1,3 +1,4 @@
+# ★2026-10-17 (spd)：不要になった＝鍵は route_anchors.tsv（呼び出しの行のコードの文字列）へ移り、route_names.py が読むときに今の木から行番号を引く。この道具は今の route_names.py（辞書を持たない）には当たらない＝(387) の記録として残す。
 # (387) 合流：route_names.py の鍵を基点の木の同じ行の文字列で合流の木から取り直す道具（README・00一覧の合流の決まり）。
 # 使い方：python rekey.py [write]　＝repo・基点（'9979d9bf'）・枝（ae・pb）は先頭の定数を書き換えて使う。枝が別の文へ移した鍵はその枝の文を錨にする。一意に当たらない鍵は印字する。
 import re,subprocess,sys
