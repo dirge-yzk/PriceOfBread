@@ -223,8 +223,16 @@ public class StartWarmupTests3
             double tar = System.Math.Max(0, w.LastTariffRevenuePerClearing) / w.Coef.MonthsPerClearing;
             return (w.LastRevenuePerMonth.Value - mon - tar) / w.NominalGdpPerMonth.Value;
         }
-        foreach (var nm in new[] { "イギリス", "フランス", "ネーデルラント", "スペイン", "オーストリア", "プロイセン" })
-            Assert.InRange(Rev(names.IndexOf(nm)), 0.04, 0.14);   // ★蘭も 0.14（2026-09-30 (127)・(119)(122) の 0.18→0.20 を戻した＝上の注記）
+        // ★(400) 2026-10-18：英・蘭は開幕の専売の段をデータで持つ（OpeningStateMonopolyTier＝3・旗 OpeningFiscalAlign の既定 1）＝専売益が歳入に入り、開幕の歳入が年GDP の 0.14 を超えうる
+        //   （手元の出典の幅は約 6〜12%・2〜4 倍は記録で NG ではない）。史実の桁を固定した細い帯は止める線ではない（README 2026-10-17）＝専売の段をデータで持つ国は上限を 0.25（下の全国の上限と同じ）へ。他の 4 国は従来の 0.14。
+        var six = new[] { "イギリス", "フランス", "ネーデルラント", "スペイン", "オーストリア", "プロイセン" };
+        var revs = string.Join("・", six.Select(nm => $"{nm} {Rev(names.IndexOf(nm)):P1}"));
+        foreach (var nm in six)
+        {
+            int ix = names.IndexOf(nm);
+            double hi = cfgs[ix].OpeningStateMonopolyTier > 0 ? 0.25 : 0.14;   // ★蘭も 0.14 だった（2026-09-30 (127)・(119)(122) の 0.18→0.20 を戻した＝上の注記）
+            Assert.True(Rev(ix) >= 0.04 && Rev(ix) <= hi, $"{nm} の開幕の歳入が年GDP の {Rev(ix):P1}（範囲 4%〜{hi:P0}）：{revs}");
+        }
         for (int i = 0; i < names.Count; i++)
             Assert.True(Rev(i) <= 0.25, $"{names[i]} の開幕の歳入が年GDP の {Rev(i):P1}（旧＝清 36.6%）");
         Assert.InRange(Direct(names.IndexOf("清")), 0.005, 0.03);

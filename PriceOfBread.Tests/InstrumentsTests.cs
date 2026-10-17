@@ -20,7 +20,13 @@ public class InstrumentsTests
 {
     // (384) 戦争が起きる四半期まで走らせる長さ。政治の束の削除で軌道が動き、この盤面の最初の戦争は旧の 40 四半期以内から Q54 へずれた（探りで確かめた）＝戦争を対照にする番人は戦争を含む長さで回す。
     private const int WarQ = 100;
-    private static MultiNationSim Make() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
+    // ★(400) 2026-10-18：この盤面は借入の枝を 1 度は通す対照が要る（下の borrowSeen）。旗 OpeningFiscalAlign の既定 1 では英が段 3 の歳入で始まり 20 四半期のうちに借りない＝この番人の盤面だけ旧の開幕〔段 2〕へ戻す（計器が軌道を変えない・形が正しい、の確かめには開幕の財政の形は関係しない）。
+    private static MultiNationSim Make()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
+        foreach (var n in sim.Nations) n.World.Coef.OpeningFiscalAlign = 0;
+        return sim;
+    }
 
     private static void RunMatch(MultiNationSim sim, int quarters, bool instr)
     {
