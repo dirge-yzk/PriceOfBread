@@ -288,7 +288,7 @@ public sealed class UtilityAgent : INationAgent
     /// 欲しい法＝<see cref="Government.LevelLaws"/>／<see cref="Government.RateLaws"/> の表の行で目標が現行より上（表を読むだけ＝法の一覧を作らない）。
     /// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
     /// 新しい定数・閾値・状態を置かない（毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。INS=1 のときは読むだけの記録を残す（旗 0 でも）。</summary>
-    private static void BureaucracyFollowsWants(World w, NationPolicy p)
+    internal static void BureaucracyFollowsWants(World w, NationPolicy p)   // internal＝番人が整形（GateLaw）の前の目標を直に見るためだけ（可視性のみ）
     {
         int wantMask = 0, blockMask = 0; var need = w.Bureaucracy; var burIn = p.Bureaucracy; var coef = w.Coef;
         void Scan(PolicyAxis axis, int cur, int tgt)

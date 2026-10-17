@@ -104,6 +104,24 @@ public class BureaucracyFromPrereqTests
         Assert.Equal(BureaucracyLaw.MeritExam, w.Policy.Bureaucracy);   // 4 本とも資格任用で通る＝専門官僚制は要らない
     }
 
+    /// <summary>整形（GateLaw）は目標を現行から一歩へ畳むので、走査が置いた目標そのものは GateAllLawTargets の後では見えない＝走査を直に呼んで見る。</summary>
+    [Fact]
+    public void 走査が置く目標は必要な最小の段で_高い目標は下げない()
+    {
+        var w = Board(1.0);
+        Want(w, PolicyAxis.Antitrust);
+        w.Policy.Bureaucracy = BureaucracyLaw.Spoils;
+        UtilityAgent.BureaucracyFollowsWants(w, w.Policy);
+        Assert.Equal(BureaucracyLaw.MeritExam, w.Policy.Bureaucracy);   // 専門官僚制まで押さない
+        w.Policy.Bureaucracy = BureaucracyLaw.Professional;             // 議会などが置いた高い目標
+        UtilityAgent.BureaucracyFollowsWants(w, w.Policy);
+        Assert.Equal(BureaucracyLaw.Professional, w.Policy.Bureaucracy);   // 下げない
+        w = Board(0.0);
+        Want(w, PolicyAxis.Antitrust);
+        UtilityAgent.BureaucracyFollowsWants(w, w.Policy);   // 旗 0 は（計器の読みで走っても）目標を書かない
+        Assert.Equal(BureaucracyLaw.Spoils, w.Policy.Bureaucracy);
+    }
+
     [Fact]
     public void LawPrereqの官僚制度の引数は既定で今の官僚制度を読む()
     {
