@@ -99,6 +99,23 @@ public class SoldierHoldSplitTests
     }
 
     [Fact]
+    public void 兵が半々なら門2の高さは保持力かけ2aマイナス1まで下がる()
+    {
+        // 傾き 2.0・兵士の思想は伝統とナショが半々・現政体 絶対君主制・引力点 軍政：a＝0.5487（手計算：現政体への支持 0.9174・軍政への支持 0.7544）
+        //   → 守る側 κ×a＝548.7・挑戦は 動員＋κ×(1−a)＝動員＋451.3 → 門 2 は 動員 ＞ κ×(2a−1)＝97.5 のとき開く（保持力 κ＝1000）
+        Polity Run(double flag, double mobilization)
+        {
+            var w = Board(flag, Nat, Trad, slope: 2.0);
+            foreach (var p in w.AllPops()) if (p.IsSoldier) { p.IdeologyShares[Trad] = 0.5; p.IdeologyShares[Nat] = 0.5; }
+            Politics.Transition(w, w.Coef, 0.0, mobilization, 1000.0, eroding: false);
+            return w.Polity;
+        }
+        Assert.Equal(Polity.MilitaryDictatorship, Run(1.0, 300));   // 300 ＞ 97.5（分けた門）。旧の門なら 300 ＜ 1000 で止まる
+        Assert.Equal(Polity.Absolutist, Run(0.0, 300));
+        Assert.Equal(Polity.Absolutist, Run(1.0, 20));              // 20 ＜ 97.5 は止まる
+    }
+
+    [Fact]
     public void 旗1では軍政の支持へ足し算が無く旗0では兵力が引力点を反転させる()
     {
         // 国民は全員伝統（絶対君主制の支持 2−0.7×0.112≒1.92・軍政 2−0.7×0.815≒1.43＝差 0.49 ＜ 足し算の上限 0.6）。兵力は極大・保持力は微小（取り分 σ≒1）
