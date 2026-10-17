@@ -2777,6 +2777,17 @@ public sealed class Coefficients
     //   【墓標2026-10-02 (173)】B5 ColonyPlantationRent（植民地格の州の賦存RGOに PlantationRentShare）＝焼き込み（R1＋c6）＝輸出作物（主食でない賦存）だけ・地代は不在地主へ（Colonial.AbsenteeRgo）。
     //   B14 world.json の heldSince（併合年）を読む＝新領土は支配度が低く Integrated 格で始まる（E-06 の核心が開始盤面に効く）。0＝読まない＝全州 Core・支配度1＝旧。採用後は係数を消して常時読む。
     public double HeldSinceFromData = 0.0;
+    // ★(399) 支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（事前登録 measurements/rs_20261018_prereg.txt・旗は全て既定 0＝1 命令も走らない・点火の組＝B 腕の POB_COEF）。採用の後は旗ごと物理削除する。
+    //   ①在地の目標を農奴解放の法から切り離す：RuleInit[1]×Privileges.IntermediaryDegree（官僚制度法と土地改革の max）。RuleSharesEnabled>0 が前提。
+    public double RuleLocalFromRights = 0.0;
+    //   ②無統治の目標を支配度でなく 治安と首都からの距離の到達で測る：(1−秩序)×(1−到達)・到達＝1÷(1＋DistanceWarDecay×km÷DistanceNormKm)。RuleSharesEnabled>0 が前提。
+    public double RuleUngovFromReach = 0.0;
+    //   ④植民地の州も places.json の rule（開始時のデータ）を通す。0＝一律の在地 1.0（[0,1,0,0]）。
+    public double ColonyRuleFromData = 0.0;
+    //   ⑤a 汚職の財政の漏れ（納税者→官僚の移転）を消す。税の経路は RuleSharesTaxBase の区分が決める。
+    public double TaxLeakByRule = 0.0;
+    //   ⑤b 法の浸透の門（行政効率÷LawEnforcementAdminGate）を、活きている州の人口で重みづけた RuleReach の平均へ置き換える。RuleSharesReach が g。
+    public double LawReachByRule = 0.0;
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。

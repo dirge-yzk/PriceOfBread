@@ -738,7 +738,7 @@ public sealed class UtilityAgent : INationAgent
                 && pressure > w.Coef.ImmigrationRestrictionPrefScale * w.Coef.ImmigrationReceiveCapPerQuarter.Value
                               * (w.ImmigrationRestriction == ImmigrationLaw.Open ? 1.0 : w.Coef.ImmigrationSelectiveFrac.Value))
                 immWant = System.Math.Max(immWant, (int)w.ImmigrationRestriction + 1);
-            if (w.TreatyPortsGranted > 0) immWant = (int)ImmigrationLaw.Open;   // 外圧
+            if (w.UnequalTreatyInForce) immWant = (int)ImmigrationLaw.Open;   // 外圧
             StepLawToward(w, p, PolicyAxis.ImmigrationRestriction, (int)p.ImmigrationRestriction, immWant, (int)ImmigrationLaw.Closed,
                 v => p.ImmigrationRestriction = (ImmigrationLaw)v);
 

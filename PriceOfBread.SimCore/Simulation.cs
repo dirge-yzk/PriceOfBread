@@ -1478,8 +1478,8 @@ public sealed class Simulation
             //   （内陸植民地が landmass.json 未登録なら再び海港になる）＝fail-closed（false）へ倒し、ログで沈黙を避ける。
             Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
             Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える
-            Rule = [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝間接統治（在地1.0）から始める（段2で支配度と同じ物理で国家区分が育つ）
-            RuleInit = [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
+            Rule = coef.ColonyRuleFromData > 0 && Places.RuleOf(col.Name) is { } colRule0 ? colRule0 : [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝間接統治（在地1.0）から始める（段2で支配度と同じ物理で国家区分が育つ）   // ★(399) ④：ColonyRuleFromData>0 は places.json の rule（開始時のデータ）を通す・無い名前は旧の一律の在地 1.0
+            RuleInit = coef.ColonyRuleFromData > 0 && Places.RuleOf(col.Name) is { } colRule1 ? colRule1 : [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
             Terrain = Places.TerrainOf(col.Name),   // ★(3) 地形タグ（昇格植民地も同じ1枚の表から）
             Resources = [.. col.Resources], Culture = w.Region.Culture, Religion = w.Region.Religion,
             ArableLand = Math.Max(1.0, peasantSize) * LandHeadroom,   // 本土州と同じ規則（耕地賦存＝初期農民×余裕）
@@ -1919,7 +1919,9 @@ public sealed class Simulation
         // 法は離散（8/10/12時間法を議会が可決）だが現場の労働時間は連続で追従＝移行期は中間値を取り、産出・厚生・健康が滑らかに動く。
         // 第6段6-8a（2026-07-28）執行の飢餓：先進方向（短縮・禁止・保持確立）の浸透は監督官が要る＝行政力でゲート
         //（法は残して監督官を切る反動＝1802徒弟法の空文化。緩和方向は即時＝規制撤廃に監督官は不要）。LawEnforcementAdminGate=0で恒等。
-        double enforce = World.Coef.LawEnforcementAdminGate > 0
+        //   ★(399) ⑤b LawReachByRule>0：浸透の遅れは 行政の購入量の不足でなく 〈その土地を国家が統治している割合〉＝州の人口で重みづけた RuleReach の平均（法は国家の区分の範囲にだけ届く）。旗 0 は旧のまま。
+        double enforce = World.Coef.LawReachByRule > 0 ? Politics.StateReach(World, World.Coef)
+            : World.Coef.LawEnforcementAdminGate > 0
             ? Math.Min(1.0, World.AdminEfficiency / World.Coef.LawEnforcementAdminGate) : 1.0;
         double hoursTarget = World.WorkHours.Hours();
         World.WorkHoursValue += World.Coef.WorkHoursFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0) * (hoursTarget - World.WorkHoursValue);

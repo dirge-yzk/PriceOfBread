@@ -515,8 +515,11 @@ public sealed class Diplomacy
         if (c.TreatyPortLapseRatio.Value <= 0) return;
         // ★支配度 段5（§6・2026-09-07 器）：外国持分の風化＝連続形（刻みも一斉検査も無し）。対最強列強の国力比が TreatyPortLapseRatio に近づくほど速く
         //   DominanceSpeed で0へ寄る（持続条件＝勝者の投射は段8）。ForeignRuleFromTreaty=0 では持分が無い＝1命令も走らない。
+        //   ★(399) 単位の是正：DominanceSpeed は四半期あたり＝この関数は毎月呼ばれるので 四半期の月（month % MonthsPerQuarter == 0）だけ風化させる（旧の器は点火すると 3 倍速だった）。
+        //   旗 > 0 では個数の枝（4 年ごとの一斉検査）を走らせずここで戻る（旗 0 は下へ落ちて旧のまま）。
         if (c.ForeignRuleFromTreaty > 0)
         {
+            if (month % Calendar.MonthsPerQuarter != 0) return;
             double topC = 0;
             foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, NationalScore.Military(gw) + NationalScore.Wealth(gw));
             if (topC > 1e-9)
@@ -529,6 +532,7 @@ public sealed class Diplomacy
                     foreach (var r in w.Regions)
                         for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
                 }
+            return;
         }
         int spanMonths = System.Math.Max(1, (int)Calendar.YearsToMonths(c.TreatyPortLapseYears));
         if (month <= 0 || month % spanMonths != 0) return;   // month0（開幕）は検査しない＝初期盤面に条約港は無く、開幕跳躍も作らない
@@ -3013,8 +3017,13 @@ public sealed class Diplomacy
                     && Geo.DistanceKm(wf.Latitude, wf.Longitude, lf.Latitude, lf.Longitude) > c.TreatyPortWinnerDistanceKm;
                 if (c.EnableDependency && crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
                 {
+                    // ★(399) ForeignRuleFromTreaty>0：条約港の個数の機構を使わない（TreatyPortsGranted は増えない・関税の目減りと読み手は州の外国持分から）。旗 0 は旧のまま。
+                    if (c.ForeignRuleFromTreaty > 0) Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（賠償{rep:F0}・戦勝点{absScore:0.00}）");
+                    else
+                    {
                     dw.TreatyPortsGranted++;   // 関税自主権を1段失う（最恵国待遇で特権は全列強へ波及＝相手を選ばない）
                     Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（第{dw.TreatyPortsGranted}港・賠償{rep:F0}・戦勝点{absScore:0.00}）");
+                    }
                     // ★支配度 段5（§6・2026-09-07 器）：条約港＝敗者の最大の港州に勝者の持分（外国区分）を積む。個数の式（TreatyPortsGranted）は点火まで残す＝観測のみ。
                     if (c.ForeignRuleFromTreaty > 0)
                     {

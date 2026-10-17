@@ -163,7 +163,8 @@ public static class Fiscal
         // ★撤去2026-08-16（C2-C5）：旧式OFF枝（(1−行政)×(1−清廉度)＋civicGraft別項）を物理削除＝V2恒久ON裁定済みで到達不能の死骸だった。
         //   civicGraft（低国民意識×代議制の構造汚職の床）は V2 では「議会の予算権」（OversightV2 の第3因子）が担う＝別項を持たない。
         //   ⚠NationalConsciousnessCorruptionWeight 係数自体は存続＝読者が別に2箇所生きている（World.civicCarriesEthnic の二重計上回避ゲート・CrownParliament の国民意識蓄積チャネル）。
-        double leak = revenue * c.CorruptionMax.Value * w.EffectiveCorruption;
+        //   ★(399) ⑤a TaxLeakByRule>0：漏れは無い（税の漏れは支配度の側にある〔作者 2026-10-17〕＝上で RuleDelivery が国庫へ届く分と在地の貴族の分に割っている）。旗 0 は旧のまま。
+        double leak = c.TaxLeakByRule > 0 ? 0.0 : revenue * c.CorruptionMax.Value * w.EffectiveCorruption;
         w.LastTaxLeak = leak;   // 診断：汚職漏れの実額
         double delivered = 0;
         if (leak > 1e-12)

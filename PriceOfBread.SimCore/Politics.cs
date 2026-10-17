@@ -1541,11 +1541,16 @@ public static class Politics
             double degNow = Privileges.SeigneurialDegree(w);
             if (w.SeigneurialDegree0 < 0) w.SeigneurialDegree0 = degNow;   // 最初の四半期＝1783年の未解放度を分母に固定
             double localScale = w.SeigneurialDegree0 > 1e-9 ? degNow / w.SeigneurialDegree0 : 0;   // 法が動いた分だけ在地が動く（初期に未解放でない国は0）
+            // ★(399) ①：在地の目標を農奴解放の法から切り離す＝仲介者が握る権利の残高（官僚制度法と土地改革の max）。旗 0 では呼ばない＝localScale のまま。
+            double intermediary = c.RuleLocalFromRights > 0 ? Privileges.IntermediaryDegree(w) : 0.0;
             foreach (var r4 in w.Regions)
             {
                 if (r4.State != RegionState.Active || r4.Rule.Length != 4) continue;
-                double tUngov = (1.0 - order) * (1.0 - PoliticalQuantities.Clamp01(r4.Dominance));
-                double tLocal = System.Math.Min(1.0 - tUngov, (r4.RuleInit.Length == 4 ? r4.RuleInit[1] : 0) * localScale);
+                // ★(399) ②：無統治の目標＝(1−治安)×(1−到達)（首都からの距離）。旗 0 は旧の (1−治安)×(1−支配度)。
+                double tUngov = c.RuleUngovFromReach > 0
+                    ? (1.0 - order) * (1.0 - RegionReach(w, c, r4))
+                    : (1.0 - order) * (1.0 - PoliticalQuantities.Clamp01(r4.Dominance));
+                double tLocal = System.Math.Min(1.0 - tUngov, (r4.RuleInit.Length == 4 ? r4.RuleInit[1] : 0) * (c.RuleLocalFromRights > 0 ? intermediary : localScale));
                 double tForeign = c.ForeignRuleFromTreaty > 0 ? ForeignShareSum(r4) : 0.0;   // ★段5：外国持分の合計（ゲート0＝0＝旧）
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);
                 double[] t = [tState, tLocal, tForeign, tUngov];
@@ -1680,6 +1685,57 @@ public static class Politics
     /// </summary>
     internal static double SuffrageInclusion(World w, Region r)
         => w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : AvgRegionCoreShare(r);
+
+    /// <summary>★(399) ② 州への国家の到達∈(0,1]＝首都（国の座標）からの大圏距離で減衰する＝<c>CheckSecession</c> の投射と同じ形・同じ係数（DistanceWarDecay・DistanceNormKm）。
+    /// 座標が未登録（0,0）・距離が正でない・非有限の州は 1.0（幻の遠距離を作らない）。無統治の目標 (1−治安)×(1−到達) の読み手（<c>RuleUngovFromReach</c>）。</summary>
+    internal static double RegionReach(World w, Coefficients c, Region r)
+    {
+        var rc = Places.Coord(r.Name);
+        if (rc.Lat == 0 && rc.Lon == 0) return 1.0;
+        double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
+        if (!(km > 0) || !double.IsFinite(km)) return 1.0;
+        double v = 1.0 / (1.0 + c.DistanceWarDecay * km / Diplomacy.DistanceNormKm);
+        return !(v > 0 && v <= 1.0) ? 1.0 : v;
+    }
+
+    /// <summary>★(399) ⑤b 法の浸透＝活きている州の人口で重みづけた <see cref="RuleReach"/> の平均（<c>LawReachByRule</c> の enforce）。人口が正の州が無ければ 1.0。行政効率は読まない。</summary>
+    internal static double StateReach(World w, Coefficients c)
+    {
+        double num = 0, den = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double pop = r.SumPopulation();
+            if (!(pop > 0)) continue;
+            num += pop * RuleReach(r, c); den += pop;
+        }
+        return den > 0 ? num / den : 1.0;
+    }
+
+    /// <summary>★(399) ③ 関税の目減り＝活きている港州の人口で重みづけた外国持分（合計・上限1）の平均。港州が無ければ 0。<c>TreatyPortTariffScale</c> は 1−これ。</summary>
+    internal static double ForeignPortShare(World w)
+    {
+        double num = 0, den = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || !r.IsPort) continue;
+            double pop = r.SumPopulation();
+            if (!(pop > 0)) continue;
+            num += pop * ForeignShareSum(r); den += pop;
+        }
+        return den > 0 ? num / den : 0.0;
+    }
+
+    /// <summary>★(399) ③ 条約港が効いているか＝港州の外国持分が付与の大きさ（ForeignRuleFromTreaty）の半分以上。旧の <c>TreatyPortsGranted &gt; 0</c> の読み手（屈辱の項・移民法の外圧）の読み替え先。
+    /// 持分は風化するので、付与の半分を割ると失効する（個数が一斉検査で 1 減る旧と同じ 0／1 の意味）。</summary>
+    internal static bool TreatyPortInForce(World w, Coefficients c)
+    {
+        double line = 0.5 * c.ForeignRuleFromTreaty;
+        if (!(line > 0)) return false;
+        foreach (var r in w.Regions)
+            if (r.State == RegionState.Active && r.IsPort && ForeignShareSum(r) >= line) return true;
+        return false;
+    }
 
     /// <summary>★支配度の一般化 段4（作者採用 §5・2026-09-07）：公共財（教育の財源・年金の給付）の到達＝(1−g)+g×国家区分。
     /// 在地区分・外国区分・無統治には届かない（在地の劣化版＝特権の提供は段5以降）。RuleSharesReach=0 で 1.0＝厳密恒等。Rule が無い州は1。</summary>

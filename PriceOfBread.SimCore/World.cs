@@ -45,6 +45,8 @@ public sealed class World
     //   ＝港の数が増えるほど**自国の関税が効かなくなる**。最恵国待遇で特権は全列強へ広がったので、
     //     許与した相手だけでなく**全ての相手に対して**効く＝二国間テーブルを持たない（モデルの粒度と一致）。
     public int TreatyPortsGranted;
+    /// <summary>★(399) 不平等条約（条約港）が効いているか＝旧の <c>TreatyPortsGranted &gt; 0</c> の読み手（屈辱の項・移民法の外圧）の唯一の入口。<c>ForeignRuleFromTreaty&gt;0</c> では個数が増えないので港州の外国持分から読む（<see cref="Politics.TreatyPortInForce"/>）。</summary>
+    internal bool UnequalTreatyInForce => Coef.ForeignRuleFromTreaty > 0 ? Politics.TreatyPortInForce(this, Coef) : TreatyPortsGranted > 0;
     /// <summary>この国が誰かと交戦中か（2026-08-04・戦時の維持費下限ロック用）。多国以外は常に false＝較正中立。</summary>
     public bool AtWarNow => Diplomacy is { } d && SelfPower is { } sp && d.AtWarAny(sp);
     // ★財ごとの売買方針（2026-08-04・作者仕様(3)「高く買う/安く売る」）。

@@ -157,7 +157,8 @@ public sealed partial class InternationalMarket
     /// 最恵国待遇で特権は全列強へ波及したので**全ての相手に効く**＝二国間テーブルを持たない（モデルの粒度と一致）。
     /// TreatyPortTariffLoss=0 で 1.0＝乗算恒等（休眠）。</summary>
     internal static double TreatyPortTariffScale(World w, Coefficients c)   // internal＝ProductionDiag が関税の楔を同式で読む
-        => w.TreatyPortsGranted <= 0 || c.TreatyPortTariffLoss <= 0
+        => c.ForeignRuleFromTreaty > 0 ? 1.0 - Politics.ForeignPortShare(w)   // ★(399) 条約港の廃止：自国の関税が効かない割合＝港州の外国持分の人口加重平均（個数×TreatyPortTariffLoss の式は使わない）。旗 0 は下の旧のまま
+         : w.TreatyPortsGranted <= 0 || c.TreatyPortTariffLoss <= 0
             ? 1.0
             : Math.Max(0, 1.0 - c.TreatyPortTariffLoss * w.TreatyPortsGranted);
 
