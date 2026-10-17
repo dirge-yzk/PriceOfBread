@@ -1,0 +1,17 @@
+# (393) 突然変異の生の出力（木の写し D:/PoB_work/mc_393/mutsrc に 1 か所ずつ置換・SoldierHoldSplitTests だけを回す）
+# 1 回目＝番人 8 本（M3・M3b が生き残った）。2 回目＝半々の盤面の番人を足した 9 本で M3・M3b を回し直し（どちらも赤）。
+## 1 回目（8 本）
+M1 足し算を残す => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M2 a の向きを逆 => RED ['失敗!   -失敗:     4、合格:     4、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M3 挑戦へ足さない => GREEN(!) ['成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M3b 守る側を縮めない => GREEN(!) ['成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M4 縁の a=0 => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M5 兵士でない POP を集計 => RED ['失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M6 動員から兵を外さない => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M7 母数からも兵を外す => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M8 負を 0 にしない => RED ['失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+## 2 回目（9 本・M3 と M3b の回し直し）
+M3 挑戦へ足さない => RED ['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9']
+M3b 守る側を縮めない => RED ['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9']
+## 置換の中身
+M1 足し算を残す＝soldierForce を常に SoldierForce にして && !splitHold を外す／M2 a を 1−pc/tot／M3 challenge += coerce*(1−holdA) を消す／M3b coerce *= holdA を消す／M4 縁を a=0／M5 兵士でない POP を集計／M6 exclSoldiers=false／M7 兵士の分岐から conscSum・sizeSum の加算を消す／M8 pc・pa の負を 0 にしない
