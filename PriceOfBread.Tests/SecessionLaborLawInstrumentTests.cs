@@ -108,6 +108,45 @@ public class SecessionLaborLawInstrumentTests
     }
 
     [Fact]
+    public void 同時に閾値を越えた州が複数あれば共有分母が立ち_行の保持力は共有分母で割った値になる()
+    {
+        // 直に CheckSecession を踏む（RevoltIgnitionTests の幽霊の国の根と同じ作法）。英の盤面で大衆のいる州を全て離れる向きに置き、圧力の尺度を上げて閾値を越えた州を 2 つ以上にする。
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_sl2_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            var w = sim.World; var c = w.Coef;
+            c.SecessionPressureScale = 50.0;
+            w.Tariff = 1.0; w.Legitimacy = 0.02;
+            var targets = w.Regions.Where(x => x.Id != 0 && x.State == RegionState.Active && Politics.RegionCrowd(x) > 1).ToList();
+            Assert.True(targets.Count >= 2, $"前提が崩れた：大衆のいる非首都の州が {targets.Count} 件");
+            foreach (var q in w.Regions) foreach (var p in q.Pops) p.Militancy = 0;
+            foreach (var r in targets) foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); p.NationalConsciousness = 0.0; }
+            Politics.CheckSecession(w, c, 0.0);
+            var rows = Instruments.SecRowsPending(w);
+            Assert.NotNull(rows);
+            var h = Instruments.SecessionHeaderText.Split('	').Skip(3).ToArray();   // 行は region から始まる（quarter／year／nation は Fold が前に付ける）
+            int Ix(string n) { int i = Array.IndexOf(h, n); Assert.True(i >= 0, n); return i; }
+            double V(string[] r, string n) => double.Parse(r[Ix(n)], System.Globalization.CultureInfo.InvariantCulture);
+            var parsed = rows!.Select(r => r.Split('	')).ToList();
+            Assert.All(parsed, r => Assert.Equal(h.Length, r.Length));
+            int restive = parsed.Count(r => V(r, "pressureIndex") > c.SecessionThreshold);   // 番人の側で数える（内戦の戦線は無い盤面）
+            Assert.True(restive >= 2, $"前提が崩れた：閾値を越えた州が {restive} 件");
+            double expectDiv = 1.0 + c.SecessionHoldSharedArmy * Math.Max(0, restive - 1);
+            Assert.True(c.SecessionHoldSharedArmy > 0 && expectDiv > 1.0, "共有分母が 1 のまま（SecessionHoldSharedArmy＝0？）");
+            foreach (var r in parsed)
+            {
+                Near(expectDiv, V(r, "sharedDivIndex"), 1e-9, "共有分母");
+                Assert.Equal(restive, (int)V(r, "restiveCount"));
+                Near(V(r, "effHoldBeforeShareIndex") / expectDiv, V(r, "holdShareIndex"), 1e-9, "共有分母で割った保持力");
+                Near(V(r, "holdShareIndex") - V(r, "pressureIndex"), V(r, "marginIndex"), 1e-9, "余裕");
+            }
+        }
+        finally { Cleanup(dir); }
+    }
+
+    [Fact]
     public void 労働の財ごとの列は3財の和が既存の合算列に合い_最後の行は番人の側の書き方で数え直した値に合う()
     {
         var (dir, sim) = Run(24);

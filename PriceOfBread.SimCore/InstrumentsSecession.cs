@@ -96,6 +96,9 @@ public static partial class Instruments
         st.SecRows = rows;
     }
 
+    /// <summary>番人（テスト）が CheckSecession を直に踏んだ後の行（Quarter の前・SecFold が消す前）を読む口。</summary>
+    internal static List<string>? SecRowsPending(World w) => S(w).SecRows;
+
     /// <summary>相対の差 (a−b)÷max(|b|, 1e-12)。両方 0 なら 0。</summary>
     static double Rel(double a, double b) => a == b ? 0.0 : (a - b) / Math.Max(Math.Abs(b), 1e-12);
 
