@@ -7,7 +7,7 @@
   基点の木（計器なし） = 形の木（計器なし） = 形の木（計器つき）   cmp で全バイト一致（3 本）
   計器つきの表 32 本は m397 の 31 本＋新しい `rule_s`（15,122 行）。
 B の canary（参考・採否に使わない）：POB_COEF="RuleSharesEnabled=1;RuleSharesReach=1;RuleSharesTaxBase=1;ForeignRuleFromTreaty=0.5;RuleLocalFromRights=1;RuleUngovFromReach=1;ColonyRuleFromData=1;TaxLeakByRule=1;LawReachByRule=1"
-  selfplay 1 200 は終了コード 0（完走・NaN なし）・出力 12,087 バイト（A と違う＝旗 1 は挙動を変える）・SOURCE-HASH fd4f3ea879c1fc47（旗は環境変数＝ソースは形の木から rule_s の読み手の追加のみ違う）。
+  selfplay 1 200 は終了コード 0（完走・NaN なし）・出力 12,087 バイト（A と違う＝旗 1 は挙動を変える）・SOURCE-HASH fd4f3ea879c1fc47（旗は環境変数。この走りの時点の木は identity の走りと SimCore・Runner の全ファイルが同一〔manifest の sha256 を突き合わせて不一致 0〕。SOURCE-HASH の差は走りの後に足した Tests〔RuleSharesFormTests など〕と旗の無い手書きの差のみ）。
 旗 0 の経路に新しい演算が無いことのソースの論証（git diff の行）：
   Politics.cs 1541〜1555行  tUngov／tLocal ＝ 三項演算の分岐（旧の式はそのまま else 側に残る）・intermediary は旗 0 で 0.0 を置くだけ（読まれない）
   Fiscal.cs 166行           leak ＝ 三項演算（旧の式はそのまま）
