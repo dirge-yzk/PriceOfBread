@@ -202,7 +202,7 @@ public class TransportInstrumentTests
                 double sh0 = recvBy[nm] / recvTot;
                 if (!(inBy[nm] > 0) || sh0 < 0.03) continue;
                 double ratio = ownBy[nm] / inBy[nm]; shareMsg.Add($"{nm} 戻る/国の中={ratio:F4}・受取の割合={sh0:F4}");
-                if (Math.Abs(ratio - sh0) > 0.35 * sh0) shareOff++;
+                if (Math.Abs(ratio - sh0) > 0.05 * sh0) shareOff++;   // (390) 幅を 35%→5% へ：正常な木の差は 0.5〜1.3%（オーストリア 1.2・フランス 0.5・プロイセン 1.3）・M3（比の添字の取り違え）は 16〜53%（フランス 16・オーストリア 25・プロイセン 53＝(390) の木での実測）＝3 国全てで赤。挙動を変える線の合流の木で正常な差が 5% を超えたら、まず差の原因（船腹の比の時間平均と成約ごとの積の重みの違い）を読んでから幅を決める
                 shareChecked++;
             }
             Assert.True(shareChecked >= 2, "船腹の比が 3% 以上で陸脚の運賃のある国が 2 つ未満＝比の突き合わせが空: " + string.Join(" ／ ", shareMsg));

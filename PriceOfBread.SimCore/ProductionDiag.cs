@@ -110,7 +110,7 @@ public static class ProductionDiag
 
     /// <summary>労働（市場で買う3種の労働力）か。人件費の行はこの3つだけを集める＝他の役務が投入に混ざっても
     /// 「人件費」に紛れ込ませない（その役務は名前のついた材料行として出る）。</summary>
-    private static bool IsLaborGood(int gid) => gid == Catalog.LaborId || gid == Catalog.AdvLaborId || gid == Catalog.FarmLaborId;
+    internal static bool IsLaborGood(int gid) => gid == Catalog.LaborId || gid == Catalog.AdvLaborId || gid == Catalog.FarmLaborId;
 
     /// <summary>表示に使う生産者個体の規約＝**その州の先頭**（エンジンの動詞 SetSubsidy/BuildFactory と同じ個体）。
     /// その州に居なければ国内の active 州を順に探す（レシピと自己費用を実在の個体から取る）。

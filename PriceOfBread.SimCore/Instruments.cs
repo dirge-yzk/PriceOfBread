@@ -189,6 +189,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
         public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
         public System.IO.StreamWriter? Anc; public bool AncHeader;                         // (369) 扶養力の錨の表（国×四半期）
+        public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
@@ -1616,6 +1617,8 @@ public static partial class Instruments
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             AnchorFold(sk, seed, w, q, picked, yearEnd);    // (369) 扶養力の錨の表
+            CapFold(sk, seed, w, st, q, picked, yearEnd);   // (390) 工場の能力の内訳の表（四半期の末の断面・読むだけ）
+            IdeologyFold(sk, seed, w, st, q, picked, yearEnd);   // (390) 思想の割合の表（National と素の平均）
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
@@ -1655,6 +1658,7 @@ public static partial class Instruments
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
         sk.Anc?.Dispose(); sk.Anc = null;   // (369)
+        sk.Cap?.Dispose(); sk.Cap = null; sk.Ide?.Dispose(); sk.Ide = null;   // (390)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 

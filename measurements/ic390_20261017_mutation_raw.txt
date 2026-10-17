@@ -1,0 +1,47 @@
+applied M0
+== M0: 成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+applied M1
+== M1:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [12 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 34 s - PriceOfBread.Tests.dll (net10.0)
+applied M2
+== M2:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [10 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 33 s - PriceOfBread.Tests.dll (net10.0)
+applied M3
+== M3:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [14 s]
+   フランス 労働に縛られた作りたい量 期待 9486.536589701922・実際 37483.82569
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 34 s - PriceOfBread.Tests.dll (net10.0)
+applied M4
+== M4:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [14 s]
+   フランス 担い手 POP の重複を除いた人数 期待 3923.5528535251165・実際 284800.1085
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 35 s - PriceOfBread.Tests.dll (net10.0)
+applied M5
+== M5:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [12 s]
+   フランス 労働の配給率 期待 0.999994970143677・実際 1.147483796
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 36 s - PriceOfBread.Tests.dll (net10.0)
+applied M6
+== M6:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [6 s]
+   フランス 能力加重の工業化度 期待 0.2654077699753131・実際 0.002713104309
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+Traceback (most recent call last):
+  File "D:\PoB_work\ic_390\mutate.py", line 22, in <module>
+    assert b.count(o)==1,(mid,o,b.count(o)); b=b.replace(o,n)
+           ^^^^^^^^^^^^^
+AssertionError: ('M7', 'string.Join(\'\t\', nat.Select(F)) + "\t" + string.Join(\'\t\', mean.Select(F))', 0)
+M7 APPLYFAIL
+applied M8
+== M8:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.思想の割合は列の数が列挙に合い_集計の和が1で_最後の行は数え直した値に合い_意識の重みが効いている [11 s]
+   フランス 素の平均 Traditionalism 期待 0.10677427588118499・実際 0.004024402588
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+applied M9
+== M9:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.思想の割合は列の数が列挙に合い_集計の和が1で_最後の行は数え直した値に合い_意識の重みが効いている [9 s]
+   フランス 重みの和 期待 272.860976465773・実際 374.8137604
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+applied M11
+== M11:   失敗 PriceOfBread.Tests.FactoryIdeologyInstrumentTests.能力の鎖と投入の律速の分類が閉じ_最後の行は世界を数え直した値に合う [3 s]
+   フランス 能力 期待 60270.46641621148・実際 404898.5921
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+applied M10
+== M10:   失敗 PriceOfBread.Tests.TransportInstrumentTests.運賃の払い手と受け手が別の経路で閉じ_分解と帯が列の別の組み合わせと合う [8 s]
+   戻る額÷国の中の陸脚の運賃が、その国の船腹の比から外れた国がある：オーストリア 戻る/国の中=0.2279・受取の割合=0.1819 ／ フランス 戻る/国の中=0.2612・受取の割合=0.3098 ／ プロイセン 戻る/国の中=0.2346・受取の割合=0.4
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE

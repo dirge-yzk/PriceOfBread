@@ -1,0 +1,10 @@
+(390) 恒等の証明（コード＝コミット 0db18aaa・SOURCE-HASH 9bdee9f47c18d99d・FILES 279・基準 m387＝measurements/b10_20261017_m387 ほか）
+成績表 3 枚（10種・5種・計器つき10種）を同時に回し、m387 の 3 枚と cmp（ファイル全体のバイト一致・名乗り行の .manifest は別ファイル）：
+  b10_20261017_ic390      = b10_20261017_m387       IDENTICAL（exact 49.5・near 84.9）
+  b5_20261017_ic390       = b5_20261017_m387        IDENTICAL
+  b10_20261017_ic390_ins  = b10_20261017_m387_ins   IDENTICAL（POB_INSTRUMENTS_NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本）
+計器の生の表：新しい木の計器つき 10 種（ins フォルダ 340 ファイル）の既存 320 ファイル（anchor_s・canal_s・casualty_s・ce_s・class_s・cons_s・disc_s・…・trstat_s ほか全種×10 シード）を
+  D:/PoB_work/keep_387/m387_ins（新しい基線の計器つき 10 種の生）の同名のファイルと cmp：compared=320 diff=0（全てバイト一致）。新しい物は factory_s1〜10.tsv と ideology_s1〜10.tsv の 20 ファイルだけ。
+NG：ng.sh（rd:measurements/ng387_20261017:m387 を基準）＝93・新しい 0・外れた 0・前から 93（ic390_20261017_ng_compare.txt・ng390_20261017/）。
+州の空洞化：an_h2.py -v4 の出力が m387_20261017_hollow.txt とファイル全体で一致（ピークの 1/10 未満 0 件・1/4 未満 7 件〔移民〕）。
+推定の計算量（.cost）：244.0 秒（10種）・242.9 秒（5種）・計器つき 10 種も予算の内（余りは m387 と同じ 4.5 秒）。
