@@ -288,7 +288,7 @@ public sealed class UtilityAgent : INationAgent
                 Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Government.MilitaryLawStages);   // Max(1,…)＝「なし」を作らない
     }
 
-    /// <summary>★(389) Q-a8 AI の官僚制度（旗 <see cref="Coefficients.AiBureaucracyFromPrereq"/>・既定 0＝走査が走らない）：AI が欲しい法（目標が現行より上）のうち、その一歩が
+    /// <summary>★(389) Q-a8 AI の官僚制度（旗 <see cref="Coefficients.AiBureaucracyFromPrereq"/>・既定 2・0 なら走査が走らない）：AI が欲しい法（目標が現行より上）のうち、その一歩が
     /// 〈官僚制度が前提〉で止まっている法があれば、官僚制度の目標をその法が通る一番低い段まで上げる。直後の <c>GateLaw(官僚制度)</c> が法律タブと同じ門で一歩に整形する。
     /// 欲しい法＝<see cref="Government.LevelLaws"/>／<see cref="Government.RateLaws"/> の表の行で目標が現行より上（表を読むだけ＝法の一覧を作らない）。
     /// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
