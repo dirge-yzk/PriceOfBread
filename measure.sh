@@ -51,6 +51,24 @@ SNAP_OWNED=0
 if [ -z "${SNAP_DIR:-}" ]; then SNAP_OWNED=1; fi
 SNAP="${SNAP_DIR:-${TMPDIR:-/c/Users/$USERNAME/AppData/Local/Temp}/claude/pob-measure-snap-$$}"
 
+# ★2026-10-17（開発の高速化）：SNAP_REUSE=1 と SNAP_DIR＝同じ木の写しとビルドを使い回す。作業ツリーから直接求めた SOURCE-HASH（写した後と同じ値になる
+#   ＝除く名前を prune する）が、その写しのビルドの印 .built_hash と同じで、Runner の dll があれば、複製とビルドを飛ばす（隔離は保つ＝測るのは写しの dll）。
+#   MEASURE_BUILD_ONLY=1＝複製とビルドだけして終わる（同じ木で成績表を2本同時に回すとき：先にこれで1回ビルドし、2本を SNAP_REUSE=1 で起こす）。
+if [ "${SNAP_REUSE:-0}" = "1" ] && [ "$SNAP_OWNED" = "0" ] && [ "${RUN_TESTS:-0}" != "1" ] && [ -f "$SNAP/.built_hash" ] \
+   && [ -f "$SNAP/PriceOfBread.Runner/bin/Release/net10.0/PriceOfBread.Runner.dll" ]; then
+  ( cd "$SRC_DIR" && find . \( -name bin -o -name obj -o -name docs -o -name dist -o -name .vs -o -name .git -o -name measurements -o -name uishot \) -prune \
+      -o -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) -print | sort | xargs sha256sum ) > "$OUT.manifest.tmp" || exit 1
+  HASH=$(sha256sum < "$OUT.manifest.tmp" | cut -c1-16)
+  if [ "$HASH" = "$(cat "$SNAP/.built_hash")" ]; then
+    { echo "SOURCE-HASH: $HASH"; echo "FILES: $(wc -l < "$OUT.manifest.tmp")"; echo "RUN: $*$RUN_NOTE"; echo "---"; cat "$OUT.manifest.tmp"; } > "$OUT.manifest"
+    rm -f "$OUT.manifest.tmp"
+    echo "[1-3/4] 同じ木の写しとビルドを使い回す（SNAP_REUSE・SOURCE-HASH=$HASH）"
+    REUSED=1
+  else
+    rm -f "$OUT.manifest.tmp"; echo "      SNAP_REUSE：写しの木と違う（作業ツリー $HASH・写し $(cat "$SNAP/.built_hash")）＝複製し直す"
+  fi
+fi
+if [ "${REUSED:-0}" != "1" ]; then
 echo "[1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist/measurements/uishot を除く）"
 rm -rf "$SNAP" && mkdir -p "$SNAP" || exit 1
 # ★2026-09-29（高速化の段 S1）：measurements（帯と計器の表 46MB）と uishot（撮影 18MB）も外す＝ビルドにも測定にも読まれない
@@ -72,6 +90,9 @@ BUILD_TARGET="$SNAP/PriceOfBread.slnx"
 [ "${RUN_TESTS:-0}" = "1" ] || BUILD_TARGET="$SNAP/PriceOfBread.Runner/PriceOfBread.Runner.csproj"
 "$DOTNET" build "$BUILD_TARGET" -c Release 2>&1 | grep -E "error|エラー|警告|成功" | head -5
 [ "${PIPESTATUS[0]}" = "0" ] || { echo "!! ビルド失敗＝測定を中止"; exit 1; }
+[ "${RUN_TESTS:-0}" = "1" ] || echo "$HASH" > "$SNAP/.built_hash"   # SNAP_REUSE の印（Runner だけのビルドのとき）
+fi
+if [ "${MEASURE_BUILD_ONLY:-0}" = "1" ]; then echo "      MEASURE_BUILD_ONLY：複製とビルドだけで終える（$SNAP・SOURCE-HASH=$HASH）"; exit 0; fi
 
 # テストも隔離側で回す（--test を付けたとき）。作業ツリーで dotnet test を叩くと testhost が
 # PriceOfBread.SimCore.dll をロックし、並行してビルドできなくなる（2026-07-28 に実際に踏んだ）。
