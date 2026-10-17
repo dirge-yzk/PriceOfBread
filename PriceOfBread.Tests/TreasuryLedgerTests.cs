@@ -179,7 +179,7 @@ public class TreasuryLedgerTests
     /// 切り下げの余地が閉じて4四半期で不履行＝国債が消える）＝旧と同じ盤面を置く。</summary>
     private static Scenario FranceFiat()
     {
-        var cfg = NationConfig.France().ShallowClone();
+        var cfg = OpeningFixture.Named("フランス");   // ★(332) 開幕の国庫・国債を絶対額で持つ盤面（助走なしの器）
         cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
         return cfg.ToScenario(19);
     }

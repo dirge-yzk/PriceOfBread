@@ -117,7 +117,7 @@ public sealed class Simulation
             Bureaucracy = scenario.InitialBureaucracy,   // ★官僚制度の初期値（2026-08-04）
             InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
-            Longitude = scenario.NationConfig?.Longitude ?? 0,
+            Longitude = scenario.NationConfig?.Longitude ?? 0, OpeningTreasuryMonths = scenario.NationConfig?.TreasuryMonths ?? 0, OpeningGovDebtToGdpYear = scenario.NationConfig?.GovDebtToGdpYear ?? 0,   // ★(332) 開幕の国庫（歳入×月数）と国債（比×年の名目GDP）の規則（world.json の treasuryMonths／govDebtToGdpYear・0＝規則なし＝旧の戻し・行を増やさず鍵の行番号を動かさない）
             EthnicEnabled = scenario.NationConfig is not null,   // 民族統一度（倍率排除⑧）は各popの CoreEthnicShare 加重平均から創発。NationConfig 由来の国だけ有効化＝合成較正/最小世界は無効で較正不変
             MonetaryEnabled = scenario.NationConfig is not null,       // 物価水準（インフレ/デフレ）も実在国だけ＝合成較正/最小世界は P≡1 で従来同値
             ParliamentEnabled = scenario.NationConfig is not null,     // 議会・選挙も実在国だけ＝合成較正は従来の政治モデルのまま（33/33/33不変）
@@ -134,7 +134,7 @@ public sealed class Simulation
         //   ★座標の規則は遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B）＝未登録の州名は据え置き（幻の座標を作らない）。
         if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
-        if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発）
+        if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用系列（同型・係数 0 では引かない）
         foreach (var r0 in regions) if (r0.State == RegionState.Active) World.FoundingActiveProvinces++;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
         if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(383) 最初の決算の前の AdminFill は満額でなく 0（行政財のある世界だけ＝fail-closed）。★(369) 州の開幕の人口＝扶養力の錨の定数（構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
         // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。

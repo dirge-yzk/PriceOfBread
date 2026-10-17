@@ -1,5 +1,4 @@
 """(306) 線(2) 使用人の試し直し（作者の設計 (2)・使用人の産出の倍率）の読み手（読むだけ・挙動は変えない）。(302) の s2/an_s2.py から作った（弾力の節を外し、能力・採算・階級ごとの家事奉仕を足した）。
-  ⚠(308) main には (306) のコードが入っていない（B は採らなかった＝記録だけ）＝svc_s の末尾 2 列 servantCapacityPerMonth・servantDesiredPerMonth は枝 sv の木（3eaec32 以後）でだけ出る。main の木の出力では利用率・採算の節が動かない。
 事前登録 measurements/sv_20261013_prereg.txt の [1][2][5][6]。
   python an_sv.py A=<ins> [B=<ins> ...]   （先頭の腕が基線 A・採否は 2 番目の腕 B を A に対して読む）
   入力＝`INS=1 POB_INSTRUMENTS_NATIONS=イギリス,フランス,ネーデルラント,ポルトガル bash scripts/instruments/batch.sh run <腕> 10` の <出力>/ins

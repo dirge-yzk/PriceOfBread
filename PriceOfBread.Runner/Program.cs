@@ -2219,6 +2219,81 @@ if (args.Length > 0 && args[0] == "navyneed")
     Console.WriteLine($"navyneed: {nnSim.Nations.Count}国 → {nnOut}");
     return;
 }
+// === 艦隊の注意の重みの静的な比較（読むだけ・2026-10-14 (324) 流れM 段5 段0）： dotnet run -- fleetweight <出力TSV> [seed] [quartersAfter] ===
+//   同じ盤面で ArmyShape.Compute を重みの基数だけ変えて3回呼び（A＝越境の交易額・B1＝FleetContactPerGdp=1＝交易額÷年の名目GDP・B2＝World.TradeContactShare〔対の貿易÷GDP・平滑なし〕）、
+//   海の必要量と目標の艦隊（払える側の上限つき）を並べる。呼んだ後は Need*・TradeValueSmoothed・係数を元へ戻す＝fleetprobe と同じ道筋を辿る（戻しの検算は ships 列）。
+//   断面＝warm・q4・q12・q19・q40・q80・q160（quartersAfter までの物）。warm は開幕の播種（OpeningNavalShares）の後の盤面の再計算＝艦隊の項は有り A≠B1≠B2 になる（恒等の検算の行ではない・stored の Need* は重みを読まない）。
+if (args.Length > 0 && args[0] == "fleetweight")
+{
+    string fwOut = args.Length > 1 ? args[1] : "fleetweight.tsv";
+    ulong fwSeed = ArgUlong(args, 2, 1789UL);
+    int fwAfter = (int)ArgUlong(args, 3, 160UL);
+    var fwSim = new MultiNationSim(WorldData.Nations(), fwSeed, _ => new UtilityAgent());
+    foreach (var nn in fwSim.Nations) nn.TelemetryEnabled = false;
+    fwSim.Diplomacy.Log.Enabled = false;
+    var fwB = new System.Text.StringBuilder();
+    fwB.Append("time\tnation\tnavalPower\tships\ttradeSmoothed\tgdpYear\topenness\tcontactShare\twA\twB1\twB2\tneedSeaA\tneedSeaB1\tneedSeaB2\tneedLand\twantA\twantB1\twantB2\ttargetRefA\ttargetRefB1\ttargetRefB2\taffordRef\n");
+    void FWSnap(string tm)
+    {
+        var dip = fwSim.Diplomacy; var cf = fwSim.Coef;
+        var ps = new List<Power>();
+        foreach (var p in dip.Powers) if (p.Nation is not null) ps.Add(p);
+        int n = ps.Count;
+        var sv = new (double land, double sea, double inter, double men, double col)[n];
+        var tv = new double[n];
+        for (int i = 0; i < n; i++) { var p = ps[i]; sv[i] = (p.NeedLand, p.NeedSea, p.NeedInternal, p.NeedMen, p.AttentionColSumMax); tv[i] = p.Nation!.TradeValueSmoothed; }
+        int flag0 = cf.FleetContactPerGdp;
+        (double sea, double land, double want, double tRef)[] Read()
+        {
+            var r = new (double, double, double, double)[n];
+            for (int i = 0; i < n; i++)
+            {
+                var p = ps[i]; var w = p.Nation!;
+                double tRef = 0;
+                if (w.Regions.Count > 0 && EconomyStep.FleetTargetUnits(w.Regions[0], w.Coef, w) is { } tt)
+                    for (int k = 0; k < tt.Length; k++) tRef += tt[k] * (w.Regions[0].GoodOf(w.Coef.FleetGoodIds[k])?.RefPrice ?? 0);
+                r[i] = (p.NeedSea, p.NeedLand, p.NeedSea / System.Math.Max(1e-9, p.NavySkillMul), tRef);
+            }
+            return r;
+        }
+        cf.FleetContactPerGdp = 0; ArmyShape.Compute(dip, cf); var rA = Read();
+        cf.FleetContactPerGdp = 1; ArmyShape.Compute(dip, cf); var rB1 = Read();
+        cf.FleetContactPerGdp = 0;
+        for (int i = 0; i < n; i++) ps[i].Nation!.TradeValueSmoothed = ps[i].Nation!.TradeContactShare;
+        ArmyShape.Compute(dip, cf); var rB2 = Read();
+        for (int i = 0; i < n; i++) ps[i].Nation!.TradeValueSmoothed = tv[i];
+        cf.FleetContactPerGdp = flag0;
+        for (int i = 0; i < n; i++) { var p = ps[i]; (p.NeedLand, p.NeedSea, p.NeedInternal, p.NeedMen, p.AttentionColSumMax) = sv[i]; }
+        // 重み（Compute の中と同じ式を外で書き直す＝相対重みの読み手用。平均で割る）
+        var oA = new double[n]; var oB1 = new double[n]; var oB2 = new double[n]; var gy = new double[n];
+        double sA = 0, sB1 = 0, sB2 = 0;
+        for (int i = 0; i < n; i++)
+        {
+            var w = ps[i].Nation!;
+            oA[i] = tv[i] > 0 ? tv[i] : 0;
+            gy[i] = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
+            oB1[i] = gy[i] > 1e-9 ? oA[i] * cf.ClearingsPerYear / gy[i] : 0; if (!(oB1[i] >= 0)) oB1[i] = 0;
+            oB2[i] = w.TradeContactShare > 0 ? w.TradeContactShare : 0;
+            sA += oA[i]; sB1 += oB1[i]; sB2 += oB2[i];
+        }
+        for (int i = 0; i < n; i++)
+        {
+            var p = ps[i]; var w = p.Nation!; string nm = p.BaseName.Length > 0 ? p.BaseName : p.Name;
+            double ships = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) ships += fa[k];
+            double afford = w.Regions.Count > 0 ? EconomyStep.FleetAffordableCost(w, w.Coef) : 0;
+            fwB.Append(string.Join("\t", new object[] { tm, nm, p.NavalPower, ships, tv[i], gy[i], (gy[i] > 1e-9 ? tv[i] * cf.ClearingsPerYear / gy[i] : 0), w.TradeContactShare,
+                sA > 0 ? oA[i] / (sA / n) : 1, sB1 > 0 ? oB1[i] / (sB1 / n) : 1, sB2 > 0 ? oB2[i] / (sB2 / n) : 1,
+                rA[i].sea, rB1[i].sea, rB2[i].sea, rA[i].land, rA[i].want, rB1[i].want, rB2[i].want, rA[i].tRef, rB1[i].tRef, rB2[i].tRef, afford })).Append((char)10);
+        }
+    }
+    var fwKeep = new HashSet<int> { 4, 12, 19, 40, 80, 160 };
+    fwSim.StartWarmup();
+    FWSnap("warm");
+    for (int q = 1; q <= fwAfter; q++) { fwSim.StepQuarter(); if (fwKeep.Contains(q)) FWSnap("q" + q); }
+    System.IO.File.WriteAllText(fwOut, fwB.ToString(), new System.Text.UTF8Encoding(false));
+    Console.WriteLine($"fleetweight: {fwSim.Nations.Count}国 → {fwOut}");
+    return;
+}
 if (args.Length > 0 && args[0] == "poweraff")
 {
     ulong paSeed = ArgUlong(args, 1, 1789UL);
@@ -3531,15 +3606,17 @@ if (args.Length > 0 && args[0] == "search")
     return;
 }
 
-// === 貨幣保存リーク狩り： dotnet run -- leakhunt [seed] [四半期] ===
+// === 貨幣保存リーク狩り： dotnet run -- leakhunt [seed] [四半期] [warm] ===
 // 恒久プローブ（Simulation.ConservationProbe）を有効化して1試合を回し、保存量 D＝基礎貨幣−累積台帳 が動いたサブステップを stderr へ出す。
 // 絞り込みの順序：[PROBE共有]（四半期共有層）→[PROBE国内]（日次/月次）→[PROBE金融]（国際金融の段）→ 現場のコードを成分分解。
 if (args.Length > 0 && args[0] == "leakhunt")
 {
     ulong lseed = args.Length > 1 && ulong.TryParse(args[1], out var ls) ? ls : 1789UL;
     int lquarters = args.Length > 2 && int.TryParse(args[2], out var lq) ? lq : Coefficients.GameQuarters;
+    bool lwarm = args.Length > 3 && args[3] == "warm";   // ★(332) 第4引数 warm＝助走（StartWarmup）を通した盤面から回す（既定は従来どおり助走なし＝既存の出力と比べられる）
     Simulation.ConservationProbe = true;
     var lm = new MultiNationSim(WorldData.Nations(), lseed, _ => new UtilityAgent());
+    if (lwarm) lm.StartWarmup();   // ★(332) 助走（国庫と国債を助走の中で置く経路 World.RebaseOpeningFiscal を含む）を通した盤面から保存則を見る。⚠助走そのものは検査の外＝起点 lw0 は助走の**後**に取る（助走の各四半期は RebaseTreasury で基礎貨幣が動き RebaselineInvariants で基準線を取り直す＝前に取ると偽の漏れ）。助走の中の基礎貨幣の出入り（国庫の戻し）は money_s の treasuryResetSinceLastRowStock で数える（e7 の読み手）。国債は貨幣でなく、保有の台帳は不変条件 BondLedger が各段で見る
     // ★世界の台帳（fis-21・2026-09-26）：国ごとの D は片側記帳を拾えない＝四半期ごとに世界の合計を「正当な湧き口と消え口」で説明できるかを見る
     //   （ConservationTests の世界の合計の番人と同じ式）。人口＝Σ現存国の全州−（出生−戦争以外の死亡−戦死）の累積／
     //   貨幣＝Σ現存国の基礎貨幣−（鋳造＋不換発行）の累積（累積は一度でも居た国の全部）。
@@ -3571,7 +3648,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
             lw0 = lw;
         }
         // （退蔵結晶化の IW 不変条件は 2026-09-26 に削除＝結晶資産 Pop.IlliquidWealth ごと消えた・dorm-24）
-        System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期・保存則違反なし）");
+        System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期{(lwarm ? "・助走つき" : "")}・保存則違反なし）");
         System.Console.WriteLine($"世界の台帳：説明できない増減＝人口 {lPopBad}四半期（累計 {lPopSum:+0.0;-0.0}）・基礎貨幣 {lMoneyBad}四半期（累計 {lMoneySum:+0.0;-0.0}）"
                                  + (Coefficients.OverrideSummary() is { Length: > 0 } lov ? $"（上書き {lov}）" : ""));
     }

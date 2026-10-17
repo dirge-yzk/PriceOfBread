@@ -87,6 +87,7 @@ public class DormantIdentityTests
         // ★下2本は D-35 の反射走査が拾った（**初期化子を書かない宣言**＝`public double X;` なので静的なテキスト検索では見つからない）。
         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）
+        // ★DiscoveryPriceInitFromCost・DiscoveryCarrierDownstream（流れG）・DomesticServiceProductivity（既定 0.30）は 2026-10-17 (388) で**点火**＝この表から外した。
         "SilverParityFromRatio",        // ★器（2026-09-07）＝世界銀価格を同一市場内の 銀/金鉱 比から作る（E→平均→E の自己参照を断つ）。0＝旧統計 Market.Price[銀] を注入＝厳密恒等
         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）

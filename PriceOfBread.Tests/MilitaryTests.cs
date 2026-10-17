@@ -262,7 +262,7 @@ public class MilitaryTests
     {
         static (double before, double after, World w) Arm(double g)
         {
-            var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+            var sim = new Simulation(OpeningFixture.Named("フランス").ToScenario(1789), new NullAgent());   // ★(332) 開幕の国庫・国債を絶対額で持つ盤面
             var w = sim.World;
             w.Coef.RuleSharesTaxBase = g;
             w.Coef.MilitaryEnvelopeShare = new Share(1e9);   // ★(155) 定員＝人口の側（上限割合×母数）で読む（払える予算が律速にならない）
@@ -665,7 +665,7 @@ public class MilitaryTests
     //       脅威＝「同盟国は計上しない」「属国は仮想敵国ほどではないが、脅威を与える」「国境を接している国は脅威だが、そうでない国はあまり脅威ではない（国境線が長いほど軍事費が必要になる）」）=====
 
     private static MultiNationSim Frozen152(params string[] names)
-        => new(System.Array.ConvertAll(names, WorldData.ByName), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        => new(System.Array.ConvertAll(names, OpeningFixture.Named), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };   // ★(332) 国庫・国債は絶対額（助走なしの器）
 
     /// <summary>同盟を張る（本体の締結は AI の確率の枝だけ＝番人は盤面へ直に置く・WarThemeTests と同じ作法）。</summary>
     private static void Ally152(Diplomacy d, Power a, Power b)
@@ -870,7 +870,7 @@ public class MilitaryTests
     [Fact]
     public void 海軍力は艦の在庫と段の効きから決まり陸軍の即応度と質を読まない()
     {
-        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients());
+        var sim = new MultiNationSim([OpeningFixture.Named("イギリス"), OpeningFixture.Named("フランス")], seed: 1789, coef: new Coefficients());   // ★(332) 国庫・国債は絶対額（助走なしの器）
         var c = sim.Coef;
         c.NavalAttritionRatePerMonth = new RatePerMonth(0);   // 交戦の艦隊摩耗を外す（艦の在庫を変えるもう1つの入力）
         sim.Diplomacy.Step(c, sim.Rng, 1);   // 開幕の同期＝艦の播種
@@ -1109,6 +1109,7 @@ public class MilitaryTests
     {
         var sim = Frozen152("イギリス", "フランス", "スペイン");
         var dip = sim.Diplomacy; var c = sim.Coef;
+        c.FleetContactPerGdp = 0;   // ★(388) 既定が 1（開放度）になった＝この番人は旧の形〔越境の交易額の絶対額〕を明示して見る。開放度の形は下の基数の番人が見る
         var ws = sim.Nations.ConvertAll(n => n.World);
         var ps = ws.ConvertAll(w => w.SelfPower!);
         foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = new Share(0); }
@@ -1128,6 +1129,45 @@ public class MilitaryTests
         Assert.True(esZero.Fr > eq.Fr, $"西の交易が0でも仏へ向く注意が増えない（{eq.Fr:G17}→{esZero.Fr:G17}）");
         var fr4 = Sea(1, 4, 1);
         Assert.True(fr4.Fr > eq.Fr && fr4.Es < eq.Es, $"仏の交易が4倍でも注意が仏へ寄らない（仏 {eq.Fr:G17}→{fr4.Fr:G17}・西 {eq.Es:G17}→{fr4.Es:G17}）");
+    }
+
+    /// <summary>★(324) 艦隊の注意の重みの基数 <see cref="Coefficients.FleetContactPerGdp"/>＝0 は越境の交易額（絶対額）・1 は交易額÷自国の年の名目GDP（開放度）。
+    /// 盤面＝(194) の番人と同じ（英・仏・西を同じ1つの海盆・英だけが静的な海軍）。交易額は3国とも1で固定し、仏の物価水準（＝名目GDP）だけを動かす。
+    /// ①基数0＝仏の名目GDPが4倍でも仏西の海の必要量は1ビットも動かない ②基数1＝仏の名目GDPが4倍で仏の海の必要量は下がり西は上がる（開放度が1/4）
+    /// ③基数1＝仏の交易額が4倍で仏の海の必要量は上がり西は下がる ④基数1＝西の交易額が0なら西の海の必要量は0 ⑤基数1＝全ての国の名目GDPを同じ倍率にしても海の必要量は動かない（規模に依らない＝重みは平均で割る相対）。
+    /// ⚠突然変異〈基数1でも GDP で割らない〉で ② が赤（⑤ は国の名目GDPを同じ倍率にしても値が動かない＝規模に依らないことの記録で、基数1の識別には効かない）。期待値は順序とビット一致で書く（同じ式で値を作らない）。</summary>
+    [Fact]
+    public void 艦隊の注意の重みの基数は交易額と年の名目GDPの比に切り替わる()
+    {
+        var sim = Frozen152("イギリス", "フランス", "スペイン");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var ws = sim.Nations.ConvertAll(n => n.World);
+        var ps = ws.ConvertAll(w => w.SelfPower!);
+        foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = new Share(0); }
+        ps[0].NavalShare = new Share(1.0);
+        Assert.True(ps[0].NavalPower > 0 && ArmyShape.LandPotential(ps[0]) == 0, "前提が崩れた：英の艦隊が無いか陸に兵が立つ");
+        foreach (var w in ws) { w.MonetaryEnabled = true; w.PriceLevel = 1.0; Assert.True(w.NominalGdpPerMonth.Value > 1e-9, "前提が崩れた：名目GDPが0"); }
+        (double Fr, double Es) Sea(int basis, double tFr, double tEs, double pFr, double pEs, double pUk = 1.0)
+        {
+            c.FleetContactPerGdp = basis;
+            ws[0].TradeValueSmoothed = 1; ws[1].TradeValueSmoothed = tFr; ws[2].TradeValueSmoothed = tEs;
+            ws[0].PriceLevel = pUk; ws[1].PriceLevel = pFr; ws[2].PriceLevel = pEs;
+            ArmyShape.Compute(dip, c);
+            return (ps[1].NeedSea, ps[2].NeedSea);
+        }
+        var b0 = Sea(0, 1, 1, 1, 1); var b0p = Sea(0, 1, 1, 4, 1);
+        Assert.True(b0.Fr > 0 && b0.Es > 0, $"前提が崩れた：英の艦隊の注意が仏西に向かない（{b0.Fr}・{b0.Es}）");
+        Assert.Equal(b0.Fr, b0p.Fr); Assert.Equal(b0.Es, b0p.Es);   // ① 基数0は名目GDPを読まない
+        var b1 = Sea(1, 1, 1, 1, 1); var b1p = Sea(1, 1, 1, 4, 1);
+        Assert.True(b1p.Fr < b1.Fr && b1p.Es > b1.Es, $"基数1で仏の名目GDPが4倍でも注意が仏から西へ移らない（仏 {b1.Fr:G17}→{b1p.Fr:G17}・西 {b1.Es:G17}→{b1p.Es:G17}）");   // ②
+        var t4 = Sea(1, 4, 1, 1, 1);
+        Assert.True(t4.Fr > b1.Fr && t4.Es < b1.Es, $"基数1で仏の交易額が4倍でも注意が仏へ寄らない（仏 {b1.Fr:G17}→{t4.Fr:G17}・西 {b1.Es:G17}→{t4.Es:G17}）");   // ③
+        var esZero = Sea(1, 1, 0, 1, 1);
+        Assert.Equal(0.0, esZero.Es);   // ④
+        // ⑤ 全ての国の名目GDPを同じ倍率にしても相対重みは同じ（浮動小数の丸めの幅の内）
+        var all3 = Sea(1, 1, 1, 3, 3, pUk: 3);
+        Assert.True(System.Math.Abs(all3.Fr - b1.Fr) <= 1e-9 * b1.Fr && System.Math.Abs(all3.Es - b1.Es) <= 1e-9 * b1.Es, $"基数1で全ての国の名目GDPを3倍にすると海の必要量が動く（仏 {b1.Fr:G17}→{all3.Fr:G17}・西 {b1.Es:G17}→{all3.Es:G17}）");
+        Sea(0, 1, 1, 1, 1);   // 係数を既定へ戻す
     }
 
     /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。

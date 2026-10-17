@@ -1809,7 +1809,7 @@ public class InstrumentsTests
                         {
                             double u = Math.Max(0, claims - (p0 + bor)) / claims, d = Math.Max(0, dev) / claims;
                             obs++; unpaidSum += u; devSum += d; if (u > 0) unpaidM++; unpaidMax = Math.Max(unpaidMax, u); devMax = Math.Max(devMax, d);
-                            Assert.True(Near(u, Col(fh, x, "unpaidBeforeDevaluationShare")), "月の列が生の列から組み直した値に合わない");
+                            Assert.True(Math.Abs(u - Col(fh, x, "unpaidBeforeDevaluationShare")) <= 1e-8, $"月の列が生の列から組み直した値に合わない（{g.Key} Q{q} 組み直し {u:G17}・列 {Col(fh, x, "unpaidBeforeDevaluationShare"):G17}・請求 {claims:G17}・払える額 {p0:G17}・借入 {bor:G17}）");
                         }
                     }
                     Assert.Equal((double)limitM, Col(nh, r, "interestAtLimitMonthsCount")); Assert.Equal((double)zombieM, Col(nh, r, "zombieMonthsCount"));
@@ -2255,7 +2255,8 @@ public class InstrumentsTests
             Instruments.Configure(dir, "*");
             try
             {
-                var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
+                // ★(388) 既定が DiscoveryCarrierDownstream＝1 になった。この番人は運び手の表が旧の形（係数 0）のときの記帳の規則を見る＝0 を明示する（広げた表の運び手は伝わりの道の番人が見る）
+                var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
                 Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
                 for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
                 Instruments.Close(sim);
@@ -2267,17 +2268,27 @@ public class InstrumentsTests
             foreach (var r in drows) if (r[dKind] == "E") unlockQ.TryAdd((r[dNation], r[dRow]), int.Parse(r[dQ], System.Globalization.CultureInfo.InvariantCulture));
             var (h, rows) = Table(System.IO.Path.Combine(dir, "disccontact_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
-            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller");
+            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier");
+            Assert.True(iCarrier >= 0, "carrier 列が無い");
             Assert.True(rows.Count > 10, $"前提が崩れた（接触の内訳の行 {rows.Count}）");
             foreach (var r in rows)
             {
                 int q = int.Parse(r[iQ], System.Globalization.CultureInfo.InvariantCulture);
                 Assert.Contains(r[iRow], new[] { "蒸気機関", "機関車" });
                 Assert.True(Col(h, r, "valuePerQuarter") > 0, "額が正でない");
+                // (360) 運び手の財の列：既定（係数 0）の運び手の表の財だけ（蒸気機関の行＝蒸気機関の財・機関車の行＝機関車か蒸気機関の財）
+                Assert.Contains(r[iCarrier], r[iRow] == "蒸気機関" ? new[] { "蒸気機関" } : new[] { "機関車", "蒸気機関" });
                 bool sellerKnew = unlockQ.TryGetValue((r[iSeller], r[iRow]), out int sq) ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
                 if (unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
+            // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。
+            var (fh, frows) = Table(System.IO.Path.Combine(dir, "discflow_s1789.tsv"));
+            Assert.True(frows.Count > 10, $"前提が崩れた（接触の分母の行 {frows.Count}）");
+            int fGood = Array.IndexOf(fh, "good");
+            var flowGoods = new HashSet<string>(); foreach (var r in frows) { flowGoods.Add(r[fGood]); Assert.True(Col(fh, r, "valueFlowQ") >= 0); }
+            Assert.Contains("蒸気機関", flowGoods);
+            foreach (var r in rows) Assert.Contains(r[iCarrier], flowGoods);
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

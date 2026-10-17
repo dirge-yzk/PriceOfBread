@@ -816,12 +816,14 @@ public class UnitTypeTests
                 }
                 else Assert.True(ops.Length == 0, $"{a.Name} が {b.Name} を取る演算子を持つ: {string.Join(",", ops.Select(m => m.Name))}");
             }
-        // Calendar で在庫の型を返すのは OneMonthOf の1本だけ（MoneyPerMonth を受けて MoneyStock を返す＝Pop の月末の精算が貯蓄へ足す口）。⚠これは Calendar の換算の口の検査で、
+        // Calendar で在庫の型を返すのは OneMonthOf と OneYearOf の2本だけ（MoneyPerMonth を受けて MoneyStock を返す＝Pop の月末の精算が貯蓄へ足す口／★(332) MoneyPerYear を受けて MoneyStock を返す＝〈年GDP の何倍〉の在庫〔開幕の国債〕を作る口）。⚠これは Calendar の換算の口の検査で、
         // 在庫を作る口の全てではない：double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock の public のコンストラクタ・CrossFx の在庫の型の版）は型で守っていない＝件数は下の「在庫のお金をdoubleから作る所の数」のラチェットが止める。
         var toStock = typeof(Calendar).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.ReturnType == typeof(MoneyStock)).ToArray();
-        Assert.Single(toStock);
-        Assert.Equal("OneMonthOf", toStock[0].Name);
-        Assert.Equal([typeof(MoneyPerMonth)], toStock[0].GetParameters().Select(p => p.ParameterType).ToArray());
+        Assert.Equal(2, toStock.Length);
+        var oneMonth = toStock.Single(m => m.Name == "OneMonthOf");
+        Assert.Equal([typeof(MoneyPerMonth)], oneMonth.GetParameters().Select(p => p.ParameterType).ToArray());
+        var oneYear = toStock.Single(m => m.Name == "OneYearOf");   // ★(332)
+        Assert.Equal([typeof(MoneyPerYear)], oneYear.GetParameters().Select(p => p.ParameterType).ToArray());
         // 実質から名目へは World.NominalOf（double を受ける）だけ。名目GDP は貨幣の型・実質GDP は別の型。
         Assert.Equal(typeof(MoneyPerMonth), typeof(World).GetProperty("NominalGdpPerMonth")!.PropertyType);
         Assert.NotEqual(typeof(World).GetProperty("GdpPerMonth")!.PropertyType, typeof(World).GetProperty("NominalGdpPerMonth")!.PropertyType);

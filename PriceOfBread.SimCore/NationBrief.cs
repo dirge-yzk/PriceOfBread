@@ -71,6 +71,8 @@ public static class NationBrief
     /// 2026-09-30 (135)：旧の分母＝行政費の人頭割り AdminCostPerPop×人口（削除＝行政の購買と同じ役務の二重の支払い）。</summary>
     public static double TreasuryMonths(NationConfig c, Coefficients coef)
     {
+        // ★(388) world.json の絶対額 treasury は 0 の置き場（開幕の国庫は助走の終わりに歳入×月数で置く＝NationConfig.TreasuryMonths）。規則のある国は月数をそのまま読む（歳入≒行政の必要量の月の額）。
+        if (c.TreasuryMonths > 0) return c.TreasuryMonths;
         double cost = coef.AdminNeedPerPop * Catalog.RefPrices[Catalog.AdminId] * Population(c);
         return cost > 1e-9 ? c.Treasury / cost : double.PositiveInfinity;
     }

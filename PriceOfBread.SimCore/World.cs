@@ -843,7 +843,7 @@ public sealed class World
     public double LastEmigration { get; internal set; }               // 診断：今四半期の移民流出（越境）
     public List<FactionState> Factions { get; } = [];        // F3a：持続する国内勢力（クラスタの永続化）。ParliamentEnabled世界のみFactions.Stepが更新
     public FactionState? RevoltingFaction { get; internal set; }   // F3b：進行中の内乱の主体（経済決着の要求源・SecedingRegionと同じ参照作法）
-    public DeterministicRng? FactionRng { get; internal set; }     // F3：変異の独立RNG系列（主系列・豊凶・疫病と分離＝較正/決定論に非干渉。null=較正/最小世界＝不発）
+    public DeterministicRng? FactionRng { get; internal set; } public DeterministicRng? AiRng { get; internal set; }     // F3：変異の独立RNG系列（主系列・豊凶・疫病と分離＝較正/決定論に非干渉。null=較正/最小世界＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用乱数（同型・実在国のみ・Coef.MonopolyBurdenPushMode＞0 のときだけ引く＝0 では消費しない）
     public int FactionMutations { get; internal set; }             // 診断カウンタ（leanバッチでも数える＝GoldSuspensions同型）
     public double RebelArmsSpent { get; internal set; }            // ★診断カウンタ（武器の市場購入・2026-09-11）：反乱勢力が武器に払った累計（FactionMutations と同型＝leanバッチでも数える）。休眠（RebelArmsMarketEnabled=0）では書き手が走らず0のまま
     public int FactionRevolts { get; internal set; }               // 診断カウンタ：F3b内乱の発火数
@@ -2593,4 +2593,29 @@ public sealed class World
 
     /// <summary>★(302) 線(2)(3)：世界の1人あたり実質所得（月・参照価格の単位・人数は <c>Pop.Size</c> の単位〔千人〕あたり）＝Σ全国の活きている州の全 POP の（<c>LastEarnedPerMonth</c>÷<c>PriceLevel</c>）÷Σ同じ POP の <c>Size</c>。奢侈品と家事奉仕の欲しい量の所得弾力の参照。MultiNationSim が毎月（月次決算の前）全国の POP から**求め直して**全 World へ同じ値を配る導ける量（積まない・読み手は <see cref="EconomyStep"/> の買い手の側だけ）。World は他国を見られない層の分離のため配る形（WorldTechLevel と同型）。0＝配りが走らない（<c>LuxuryIncomeElasticity</c>＝0）か、正でない＝買う側が否定形で中立（欲しい量を変えない）へ倒す。</summary>
     public double WorldRealIncomePerCapitaPerMonth { get; internal set; }
+
+    /// <summary>★(332) 開幕の国庫 ＝ 直近の月の歳入 × この月数（<see cref="NationConfig.TreasuryMonths"/>・0＝規則なし）。読み手＝<see cref="RebaseOpeningFiscal"/> だけ。</summary>
+    public double OpeningTreasuryMonths { get; init; }
+    /// <summary>★(332) 開幕の国債 ＝ 年名目GDP × この比（<see cref="NationConfig.GovDebtToGdpYear"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningFiscal"/> だけ。</summary>
+    public double OpeningGovDebtToGdpYear { get; init; }
+
+    /// <summary>★(332) 開幕の国庫と国債を、助走の終わりの盤面の流れから置く（初期値の整備 段6 の採り直し＝国庫と国債は絶対額でなく、史実の比から導く量）。
+    /// 呼び手＝<see cref="MultiNationSim.WarmupEconomy"/> の各四半期の終わり（旧の国庫の戻し <see cref="RebaseTreasury"/> の置き場所）。最後の四半期の値が開幕の値になる。
+    /// <para>国庫：<see cref="OpeningTreasuryMonths"/> が正で、直近の月の歳入（<see cref="LastRevenuePerMonth"/>）が正なら 歳入×月数（<see cref="RebaseTreasury"/> で置く＝台帳も捨てる）。それ以外（規則なし・歳入が正でない四半期）は旧のとおり助走の前の国庫 <paramref name="treasuryBefore"/> へ戻す（否定形の守り＝NaN は旧へ落ちる）。</para>
+    /// <para>国債：<see cref="OpeningGovDebtToGdpYear"/> が正で、年名目GDP が正なら 比×年名目GDP。★対外債（<see cref="ForeignDebt"/>）は触らない（貸し手の国の債権〔ForeignBondClaims〕と引き落としの予約が相手側に立っている）＝GovDebt を対外債より小さくせず、国内の元本 GovDebt−ForeignDebt を負にしない。
+    /// 国債は貨幣でないので保存則の基準線は動かない（<see cref="RebaseTreasury"/> の国庫だけが基礎貨幣に出入りする）。
+    /// 保有の台帳（Σ保有 ＝ GovDebt − ForeignDebt）は、置き直すたびに空にして <see cref="Fiscal.SeedBondHoldings"/> で投資家の貯蓄比に起票し直す（金は動かない）。</para>
+    /// <para>既定（<see cref="OpeningTreasuryMonths"/>＝<see cref="OpeningGovDebtToGdpYear"/>＝0）は旧の <c>RebaseTreasury(treasuryBefore)</c> と同じ1文＝新しい分岐に入らない（規則のない国・分離独立の国・番人の国の経路。★(388) 以後の既定の world.json は 61 国が規則を持つ）。</para></summary>
+    internal void RebaseOpeningFiscal(double treasuryBefore)
+    {
+        if (OpeningTreasuryMonths > 0 && LastRevenuePerMonth.Value > 0) RebaseTreasury((Calendar.OneMonthOf(LastRevenuePerMonth) * OpeningTreasuryMonths).Value);
+        else RebaseTreasury(treasuryBefore);
+        if (!(OpeningGovDebtToGdpYear > 0)) return;
+        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(NominalGdpPerMonth);
+        if (!(gdpYear.Value > 0)) return;
+        MoneyStock placed = OpeningGovDebtToGdpYear * Calendar.OneYearOf(gdpYear);
+        foreach (var r in Regions) foreach (var p in r.Pops) p.BondHoldings = default;
+        GovDebt = placed.Value > ForeignDebt.Value ? placed : ForeignDebt;
+        Fiscal.SeedBondHoldings(this);
+    }
 }
