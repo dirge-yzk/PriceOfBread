@@ -35,6 +35,8 @@ public class FactoryIdeologyInstrumentTests
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_fi_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         var sim = Make();
+        // ★(393) 隔離：この番人が測るのは思想の割合の集計であって政治ではない。首都の蜂起（内戦）が立つと反乱国が増えて国の数が変わる＝拮抗の帯を 0 にして即時の政変に倒す。
+        foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
         Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
         Instruments.Phase(sim, 1789UL, "warm");

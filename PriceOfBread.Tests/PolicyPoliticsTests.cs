@@ -325,7 +325,7 @@ public class PolicyPoliticsTests
             c.UnionMobilization = 0;   // 改革派側の加算＝radical には入らないが、盤面の他の書き込みを増やさないため閉じる
             Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝閉じる対象が無い");
             double sz = 0;
-            foreach (var p in w.AllPops()) { p.Militancy = militancy; p.Consciousness = consciousness; sz += p.Size; }
+            foreach (var p in w.AllPops()) { p.Militancy = militancy; p.Consciousness = consciousness; if (!p.IsSoldier) sz += p.Size; }   // ★(393) 兵士は保持力 κ の中にいる＝動員（radical）に足さない
             // ⚠規模は Step の**前**に取る：同じ Step の後段で F1（州一揆）が発火して大衆popが死ぬ（闘争度0.9は熱0.9＝門0.5超）
             //   ＝後で数えた規模で予言すると 0.4% ずれる（計器の粒度の罠）。radical を集計するループは後段より前にある。
             Politics.Step(w, c);

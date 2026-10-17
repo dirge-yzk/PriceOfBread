@@ -2270,7 +2270,7 @@ public class InstrumentsTests
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier");
             Assert.True(iCarrier >= 0, "carrier 列が無い");
-            Assert.True(rows.Count > 10, $"前提が崩れた（接触の内訳の行 {rows.Count}）");
+            Assert.True(rows.Count >= 5, $"前提が崩れた（接触の内訳の行 {rows.Count}）");   // ★(393) 10 → 5：兵の保持力の分けで軌道が動き、60 四半期の接触の行が 6 に減った（規則の検査は行ごとなので 5 行あれば空ではない）
             foreach (var r in rows)
             {
                 int q = int.Parse(r[iQ], System.Globalization.CultureInfo.InvariantCulture);
