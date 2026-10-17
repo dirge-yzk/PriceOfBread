@@ -78,6 +78,7 @@ SEEDS=5 bash measure.sh <出力パス> selfplay-batch          # 探索の腕（
 | ★★8 | **フルスイートは1つの回でコミット前の1回だけ。突然変異は新しい番人にだけ入れる** | ★ 途中で回しても、コミット前にもう1回要る |
 | ★9 | **`SOURCE-HASH` とヘッダー（走行条件の名乗り行）を突き合わせてから数字を読む** | ★ 2つの測定が同じソース・同じ条件かが分かる |
 | ★★10 | **全長の保存則の番人（印 `Category=FullLength`・約7分）は普段のフルスイートから外す**＝普段 `dotnet test … --filter "Category!=FullLength"`（`RUN_TESTS=1` の measure.sh も同じ）・⚠ **保存則に触る回だけ** `dotnet test … --filter "Category=FullLength"` で別に回す | ★ 作者裁定 2026-09-26。⚠ 素の `dotnet test` は外さない（回すだけ遅い） |
+| ★11 | **同じ条件の走りは回し直さない**（2026-10-18・開発の高速化）＝`MEASURE_CACHE=1` を付けて `measure.sh` を呼ぶ（selfplay-batch だけ）。⚠ テスト（`RUN_TESTS=1`）と `POB_TIME` では使わない | ★ シミュは決定論的＝同じ入力なら同じ出力。鍵＝作業ツリーの SOURCE-HASH＋SimCore と Runner の全ファイル（埋め込みの landmask.bin など）＋引数＋`POB_` の環境変数の全て（出力先のパスは有無だけ）＋走る前の基線ファイルの中身。当たりは報告・`.cost`（写しの名乗りの行つき）・走った後の基線・5種の報告・計器の生ファイル（ハードリンク）を写す＝基準の木で回す雑音の腕や回し直しが自動で当たる。置き場＝`MEASURE_CACHE_DIR`（既定 `D:/PoB_work/measure_cache`・自分で片付ける）。併せて `POB_FIRST5_OUT`（10種の走りから5種の成績表も）・`SNAP_REUSE=1`／`MEASURE_BUILD_ONLY=1`（同じ木のビルドの使い回し）＝設計 doc `docs/202610/20261017/20261017_ゲームと開発の高速化_フォーク.md` |
 
 ### ★★ 探索は5種・採否を決める1本は10種（2026-09-30 (115)）
 

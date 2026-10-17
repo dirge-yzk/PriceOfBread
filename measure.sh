@@ -15,6 +15,7 @@
 #   例: bash measure.sh /tmp/batch.txt selfplay-batch 10
 #       RUN_TESTS=1 bash measure.sh /tmp/batch.txt selfplay-batch 10   ← テストも隔離側で回す（作業ツリーをロックしない）
 #       bash measure.sh /tmp/chron.txt chronicle 1
+#       MEASURE_CACHE=1 bash measure.sh /tmp/b10.txt selfplay-batch 10   ← 同じ条件の走りが前にあれば回さずにその結果を写す（下の MEASURE_CACHE）
 #       SEEDS=5 bash measure.sh /tmp/b5.txt selfplay-batch     ← 探索の腕（5種）。採否を決める1本は種の数を書かない＝既定の10種
 # 出力パスの隣に <出力パス>.manifest（ソースのハッシュ一覧と要約）も書く。
 # 2つの測定が同じソースかは manifest 冒頭の SOURCE-HASH 行を比べれば分かる。
@@ -45,6 +46,54 @@ if [ -z "$DOTNET" ] || [ ! -x "$DOTNET" ]; then
   done
 fi
 [ -n "$DOTNET" ] && [ -x "$DOTNET" ] || { echo "!! dotnet が見つからない（DOTNET=... で明示指定してください）"; exit 1; }
+# ★2026-10-18（開発の高速化・結果は回したときと同じ）：MEASURE_CACHE=1＝selfplay-batch の結果を使い回す。シミュは決定論的＝同じ入力なら同じ出力。
+#   鍵＝作業ツリーの SOURCE-HASH（マニフェストと同じ数え方）＋SimCore と Runner のフォルダの全ファイル（埋め込みの landmask.bin など＝SOURCE-HASH の外）
+#   ＋Runner の引数＋POB_ で始まる環境変数の全て（出力先のパスの変数は有無だけ）＋走る前の忠実度の基線ファイルの中身（報告の〈前回比〉の入力）。
+#   当たり＝報告・計算量（.cost・先頭に写しの名乗りの行）・走った後の基線・5種の報告（POB_FIRST5_OUT）・計器の生ファイル（POB_INSTRUMENTS・ハードリンク）を写して終わる。
+#   外れ＝ふだんどおり回し、終了コードが 0/1/2 のときだけ写しを置く。置き場＝MEASURE_CACHE_DIR（既定 D:/PoB_work/measure_cache）。
+#   使わない＝RUN_TESTS=1（テストは回す）・POB_TIME（時間を印字＝揺れる）・selfplay-batch 以外。⚠置き場は自分で片付ける（計器つきの1本は 4GB 前後・作業フォルダとハードリンクで共有）。
+CACHE_KEY=""
+CACHE_DIR="${MEASURE_CACHE_DIR:-/d/PoB_work/measure_cache}"
+src_manifest() {   # 作業ツリーから SOURCE-HASH の元を作る（写した後と同じ値＝除く名前を prune する・SNAP_REUSE と共用）
+  ( cd "$SRC_DIR" && find . \( -name bin -o -name obj -o -name docs -o -name dist -o -name .vs -o -name .git -o -name measurements -o -name uishot \) -prune \
+      -o -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) -print | sort | xargs sha256sum )
+}
+if [ "${MEASURE_CACHE:-0}" = "1" ] && [ "${1:-}" = "selfplay-batch" ] && [ "${RUN_TESTS:-0}" != "1" ] && [ -z "${POB_TIME:-}" ]; then
+  CHASH=$(src_manifest | sha256sum | cut -c1-16)
+  CINPUTS=$( cd "$SRC_DIR" && find PriceOfBread.SimCore PriceOfBread.Runner \( -name bin -o -name obj \) -prune -o -type f -print | sort | xargs sha256sum | sha256sum | cut -c1-16 )
+  CBASE="${POB_FIDELITY_BASELINE:-$SRC_DIR/.pob-fidelity-baseline.tsv}"
+  CACHE_KEY=$( { echo "SOURCE-HASH $CHASH"; echo "INPUTS $CINPUTS"; echo "ARGS $*"
+                 env | grep '^POB_' | grep -v -E '^POB_(INSTRUMENTS|FIRST5_OUT|COST_OUT|FIDELITY_BASELINE|SOURCE_HASH)=' | sort
+                 [ -n "${POB_INSTRUMENTS:-}" ] && echo "INSTRUMENTS on"; [ -n "${POB_FIRST5_OUT:-}" ] && echo "FIRST5 on"
+                 if [ -f "$CBASE" ]; then echo "BASELINE $(sha256sum < "$CBASE" | cut -c1-16)"; else echo "BASELINE none"; fi; } | sha256sum | cut -c1-24 )
+  CE="$CACHE_DIR/$CACHE_KEY"
+  if [ -f "$CE/rc" ] && [ -f "$CE/out" ]; then
+    echo "[1-4/4] MEASURE_CACHE：同じ条件の走りの写しを使う（鍵 $CACHE_KEY・SOURCE-HASH=$CHASH・元 $(cat "$CE/origin" 2>/dev/null)）"
+    src_manifest > "$OUT.manifest.tmp"
+    { echo "SOURCE-HASH: $CHASH"; echo "FILES: $(wc -l < "$OUT.manifest.tmp")"; echo "RUN: $*$RUN_NOTE（MEASURE_CACHE の写し・鍵 $CACHE_KEY）"; echo "---"; cat "$OUT.manifest.tmp"; } > "$OUT.manifest"
+    rm -f "$OUT.manifest.tmp"
+    cp "$CE/out" "$OUT"
+    if [ -f "$CE/cost" ]; then { echo "# ★MEASURE_CACHE の写し（鍵 $CACHE_KEY）：件数と推定は同じ・実測の CPU 秒と壁は元の走りの値"; cat "$CE/cost"; } > "$OUT.cost"; fi
+    [ -f "$CE/baseline_after" ] && cp "$CE/baseline_after" "$CBASE"
+    if [ -n "${POB_FIRST5_OUT:-}" ] && [ -f "$CE/first5" ]; then
+      cp "$CE/first5" "$POB_FIRST5_OUT"
+      [ -f "$CE/first5.cost" ] && { echo "# ★MEASURE_CACHE の写し（鍵 $CACHE_KEY）：件数と推定は同じ・実測の CPU 秒と壁は元の走りの値"; cat "$CE/first5.cost"; } > "$POB_FIRST5_OUT.cost"
+      [ -f "$CE/first5.baseline" ] && cp "$CE/first5.baseline" "$POB_FIRST5_OUT.fidelity-baseline.tsv"
+      sed 's/^RUN: .*/RUN: selfplay-batch 5（5種＝探索）（10種の走りの先頭5試合＝POB_FIRST5_OUT・MEASURE_CACHE の写し）/' "$OUT.manifest" > "$POB_FIRST5_OUT.manifest"
+    fi
+    if [ -n "${POB_INSTRUMENTS:-}" ] && [ -d "$CE/ins" ]; then
+      mkdir -p "$POB_INSTRUMENTS"
+      for f in "$CE/ins"/*; do b=$(basename "$f"); rm -f "$POB_INSTRUMENTS/$b"; ln "$f" "$POB_INSTRUMENTS/$b" 2>/dev/null || cp "$f" "$POB_INSTRUMENTS/$b"; done
+    fi
+    RC=$(cat "$CE/rc")
+    echo "      終了コード=$RC　テスト=0　出力=$OUT$RUN_NOTE　マニフェスト=$OUT.manifest（SOURCE-HASH=$CHASH・MEASURE_CACHE の写し）"
+    [ -f "$OUT.cost" ] && echo "      計算量＝$OUT.cost　$(grep -E '^判定:' "$OUT.cost")"
+    [ -f "$OUT.cost" ] && grep -E '^揺れ:' "$OUT.cost" | sed 's/^/      /'
+    exit "$RC"
+  fi
+  # 外れ：計器の出力先に残った古いハードリンク（写しと同じ実体）を外す＝Runner の上書きが写しの中身を壊さない
+  [ -n "${POB_INSTRUMENTS:-}" ] && [ -d "$POB_INSTRUMENTS" ] && find "$POB_INSTRUMENTS" -maxdepth 1 -type f -links +1 -delete
+fi
 # ★2026-09-26（fis-23）：既定の隔離先を**この実行だけのもの**にする（旧＝固定の pob-measure-snap を全実行で共有＝SNAP_DIR を渡し忘れた
 #   2本目の measure.sh が1本目の走行中のスナップショットを rm -rf していた）。既定を使ったときだけ終わりに片付ける。
 SNAP_OWNED=0
@@ -56,8 +105,7 @@ SNAP="${SNAP_DIR:-${TMPDIR:-/c/Users/$USERNAME/AppData/Local/Temp}/claude/pob-me
 #   MEASURE_BUILD_ONLY=1＝複製とビルドだけして終わる（同じ木で成績表を2本同時に回すとき：先にこれで1回ビルドし、2本を SNAP_REUSE=1 で起こす）。
 if [ "${SNAP_REUSE:-0}" = "1" ] && [ "$SNAP_OWNED" = "0" ] && [ "${RUN_TESTS:-0}" != "1" ] && [ -f "$SNAP/.built_hash" ] \
    && [ -f "$SNAP/PriceOfBread.Runner/bin/Release/net10.0/PriceOfBread.Runner.dll" ]; then
-  ( cd "$SRC_DIR" && find . \( -name bin -o -name obj -o -name docs -o -name dist -o -name .vs -o -name .git -o -name measurements -o -name uishot \) -prune \
-      -o -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) -print | sort | xargs sha256sum ) > "$OUT.manifest.tmp" || exit 1
+  src_manifest > "$OUT.manifest.tmp" || exit 1
   HASH=$(sha256sum < "$OUT.manifest.tmp" | cut -c1-16)
   if [ "$HASH" = "$(cat "$SNAP/.built_hash")" ]; then
     { echo "SOURCE-HASH: $HASH"; echo "FILES: $(wc -l < "$OUT.manifest.tmp")"; echo "RUN: $*$RUN_NOTE"; echo "---"; cat "$OUT.manifest.tmp"; } > "$OUT.manifest"
@@ -125,6 +173,25 @@ RC=$?
 if [ -n "${POB_FIRST5_OUT:-}" ] && [ -f "$POB_FIRST5_OUT" ]; then
   sed 's/^RUN: .*/RUN: selfplay-batch 5（5種＝探索）（10種の走りの先頭5試合＝POB_FIRST5_OUT）/' "$OUT.manifest" > "$POB_FIRST5_OUT.manifest"
   echo "      5種＝$POB_FIRST5_OUT（10種の走りから切り出し・マニフェスト=$POB_FIRST5_OUT.manifest）"
+fi
+# MEASURE_CACHE の外れ：終了コードが 0/1/2（走り切った）なら写しを置く（一時の名前で作ってから名前を替える＝途中の写しを当たりにしない）
+if [ -n "$CACHE_KEY" ] && { [ "$RC" = "0" ] || [ "$RC" = "1" ] || [ "$RC" = "2" ]; }; then
+  if [ "$HASH" != "$CHASH" ]; then echo "      MEASURE_CACHE：測った木（$HASH）が鍵を作った時の作業ツリー（$CHASH）と違う＝写しを置かない"
+  else
+    CT="$CACHE_DIR/.tmp-$CACHE_KEY-$$"; rm -rf "$CT"; mkdir -p "$CT"
+    cp "$OUT" "$CT/out"; [ -f "$OUT.cost" ] && cp "$OUT.cost" "$CT/cost"
+    [ -f "$POB_FIDELITY_BASELINE" ] && cp "$POB_FIDELITY_BASELINE" "$CT/baseline_after"
+    if [ -n "${POB_FIRST5_OUT:-}" ] && [ -f "$POB_FIRST5_OUT" ]; then
+      cp "$POB_FIRST5_OUT" "$CT/first5"; [ -f "$POB_FIRST5_OUT.cost" ] && cp "$POB_FIRST5_OUT.cost" "$CT/first5.cost"
+      [ -f "$POB_FIRST5_OUT.fidelity-baseline.tsv" ] && cp "$POB_FIRST5_OUT.fidelity-baseline.tsv" "$CT/first5.baseline"
+    fi
+    if [ -n "${POB_INSTRUMENTS:-}" ] && [ -d "$POB_INSTRUMENTS" ]; then
+      mkdir -p "$CT/ins"   # この走りが書いた物だけ（マニフェストより新しい）＝出力先に残った前の走りのファイルを混ぜない
+      find "$POB_INSTRUMENTS" -maxdepth 1 -type f -newer "$OUT.manifest" -print0 | while IFS= read -r -d '' f; do ln "$f" "$CT/ins/$(basename "$f")" 2>/dev/null || cp "$f" "$CT/ins/$(basename "$f")"; done
+    fi
+    echo "$OUT（$(date '+%Y-%m-%d %H:%M')）" > "$CT/origin"; echo "$RC" > "$CT/rc"
+    if [ -d "$CACHE_DIR/$CACHE_KEY" ]; then rm -rf "$CT"; else mv "$CT" "$CACHE_DIR/$CACHE_KEY" && echo "      MEASURE_CACHE：写しを置いた（鍵 $CACHE_KEY）"; fi
+  fi
 fi
 [ "$SNAP_OWNED" = "1" ] && rm -rf "$SNAP"   # 既定の隔離先だけ片付ける（SNAP_DIR を渡した腕は呼び手のもの＝残す）
 echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT$RUN_NOTE　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
