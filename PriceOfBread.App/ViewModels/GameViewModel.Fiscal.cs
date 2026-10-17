@@ -203,7 +203,7 @@ public partial class GameViewModel
     //     ⚠**行を増やさない**＝該当する既存のセルのホバーに入れる（既存の作法）。
     //     ⚠内訳の式は1つも書き写さない＝既に組んである AdminTerms()／CreditTerms()（GameViewModel.Header.cs・同じ partial class）を**呼ぶだけ**。
     /// <summary>行政費のセルのホバー＝**行政力**（行政費レバーと行政効率の関係＝2026-08-15に作者指示でヘッダーへ足したもの）。</summary>
-    public string AdminTip => $"行政力　{_player.AdminPowerSmoothed:P0}\n" + string.Join("\n", AdminTerms().Select(t => t.Text));
+    public string AdminTip => $"行政力　{_player.AdminEfficiency:P0}\n" + string.Join("\n", AdminTerms().Select(t => t.Text));
     /// <summary>外資流入のセルのホバー＝**外資信用**の4項（信用が何で削れているか＝4項の積）。</summary>
     public string ForeignInTip => $"外資信用　{_player.CreditRating:P0}\n" + string.Join("\n", CreditTerms().Select(t => t.Text));
 

@@ -328,8 +328,8 @@ public static class PoliticalQuantities
         return !(friction > 0) ? 1.0 : 1.0 / (1.0 + friction);
     }
 
-    /// <summary>★(383) 活きた州の <see cref="Region.AdminFill"/>（官僚の役務の充足）の人口加重平均＝<see cref="World.AdminEfficiency"/> の旗 <see cref="Coefficients.DeleteAdminEfficiencyFactors"/>>0 の値。
-    /// 足し順は World.AdminEfficiency の `market`（旧の式）と同じ（州の並び順に fill+=AdminFill×人口・size+=人口）。人口が無い国は 1.0（旧と同じ・漏れる収入が無い）。</summary>
+    /// <summary>★(383) 活きた州の <see cref="Region.AdminFill"/>（官僚の役務の充足）の人口加重平均＝<see cref="World.AdminEfficiency"/> の値（作者 2026-10-16「行政効率→廃止」で 4 因子の倍率の連鎖は物理削除した）。
+    /// 足し順は旧の式の `market` と同じ（州の並び順に fill+=AdminFill×人口・size+=人口）。人口が無い国は 1.0（旧と同じ・漏れる収入が無い）。</summary>
     public static double AdminFillMean(World w)
     {
         double fill = 0, size = 0;

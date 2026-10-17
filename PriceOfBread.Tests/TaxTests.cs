@@ -13,20 +13,20 @@ namespace PriceOfBread.Tests;
 public class TaxTests
 {
     [Fact]
-    public void 土地税は貴族の行政で解禁される()
+    public void 土地税は最初から押せて立つ()
     {
-        // 近世国家＝貴族が行政を担う（貴族の人口比×係数＝国庫不要の行政効率）。
-        // よって貴族のいる国は行政費ゼロでも土地税（粗い検地＝年貢/タイユ）が立つ＝序盤の財政を支える（ユーザー要望）。
+        // ★(383) 作者 2026-10-16「行政効率→廃止」：旧は行政力の移動平均が閾値を越えて検地台帳の錠が開くまで土地税の最上段が押せなかった（貴族の統治の素地で開く）。
+        //   錠ごと物理削除した＝土地税は最初から開いている。行政費ゼロでも土地税（粗い検地＝年貢/タイユ）が立つ＝序盤の財政を支える（ユーザー要望）。
         // ※治安維持力は低く固定（人口比例の維持費で国庫を食わせない）。
         var sim = new Simulation(NationConfig.Japan().ToScenario(11), new NullAgent());
         sim.World.PoliticalLockEnabled = false;   // 税の解禁・歳入機構を検証＝政治ロック（地主の土地税反対）とは直交なので隔離
         sim.World.BaseCoercion = 100; sim.World.Policy.CoercionTarget = 100;
         sim.World.Policy.AdminSpendingTarget = 0.0;   // 官僚への投資ゼロでも…
         sim.World.Policy.LandTaxTarget = 1.0;
+        Assert.True(Government.LawPrereq(sim.World, PolicyAxis.LandTax, Government.TaxLawStages, sim.World.Coef).Ok, "開幕から土地税の最上段が押せない");   // 錠は無い＝開幕で既に開いている
         sim.Run(120);
-        Assert.True(sim.World.LandTaxUnlocked, $"貴族のいる国で土地税が解禁されない（行政力{sim.World.AdminPowerSmoothed:F2}）");
         // ★主張の書き直し（2026-09-20 段の点火）：土地税は段の法＝目標1.0は最上段（錨 Government.LandTaxTop＝0.4）へ落ちる。
-        //   「解禁」は値を0へ書き潰す三項ではなく**最上段が押せる**こと（LawPrereq「検地台帳が前提」が開く）＝その門と、率が錨の半分を越えて登ることを見る。
+        //   「解禁」は値を0へ書き潰す三項ではなく**最上段が押せる**こと＝その門と、率が錨の半分を越えて登ることを見る。
         Assert.True(Government.LawPrereq(sim.World, PolicyAxis.LandTax, Government.TaxLawStages, sim.World.Coef).Ok, "解禁後も土地税の最上段が押せない");
         Assert.True(sim.World.LandTax > 0.5 * Government.LandTaxTop, $"解禁後に土地税が動いていない（{sim.World.LandTax:F3}）");
     }

@@ -29,8 +29,8 @@ public enum ConscriptionLaw { Volunteer, Selective, Universal }
 /// 発言権の鎮静効果を「選挙の実在」で変調（議会×秘密=満額・議会×公開=買収で減・非議会=紙で3割）。既定 Open。SecretBallotGate=0 で完全恒等（E9点火）。</summary>
 public enum SecretBallotLaw { Open, Secret }
 
-/// <summary>官僚制度（1934拡張E5）。猟官制→資格任用制→専門官僚制。専門化ほど行政効率が高く汚職が減る（プロイセン文官改革）。
-/// 既定 MeritExam（中庸・中華圏は科挙で資格任用が自然）。BureaucracyAdminSpread=0 で効果なし＝恒等（E9点火）。猟官制の政権交代ショック（官僚総入替）はE9で追加。</summary>
+/// <summary>官僚制度（1934拡張E5）。猟官制→資格任用制→専門官僚制。任用の質は監視（World.OversightV2 の資格任用の脚）と累進課税の前提として効く（プロイセン文官改革）。★(383) 行政効率への段階係数 BureaucracyAdminSpread は物理削除した。
+/// 既定 MeritExam（中庸・中華圏は科挙で資格任用が自然）。猟官制の政権交代ショック（官僚総入替）はE9で追加。</summary>
 public enum BureaucracyLaw { Spoils, MeritExam, Professional }
 
 /// <summary>★★★予算法（作者設計 2026-08-20）。**誰が歳出を決めるか**の憲法上の所在。既存の3段軸に揃える。
@@ -174,7 +174,7 @@ public sealed class NationPolicy
     public ReformLevel Pension = ReformLevel.None;           // 死蔵（社会保障法第4段=SocialSecurityLaw.Pensionに吸収済み・02断線走査2026-07-28）。施行経路を持たない＝w.Pensionの実値はGovernmentがSocialSecurityLawから毎期導出。MultiNationSim/PlayHarness/Appの表示が読むため残置
     public ConscriptionLaw ConscriptionLaw = ConscriptionLaw.Selective;  // 徴兵法（1934拡張E5）。既定Selective＝現行の戦時徴兵挙動を保つ（志願制は新たに選べる制限）
     public SecretBallotLaw SecretBallot = SecretBallotLaw.Open;              // 秘密投票法（1934拡張E5）。既定Open。SecretBallotGate=0で効果なし＝恒等
-    public BureaucracyLaw Bureaucracy = BureaucracyLaw.MeritExam;            // 官僚制度（1934拡張E5）。既定MeritExam。BureaucracyAdminSpread=0で効果なし＝恒等
+    public BureaucracyLaw Bureaucracy = BureaucracyLaw.MeritExam;            // 官僚制度（1934拡張E5）。既定MeritExam
     public ImmigrationLaw ImmigrationRestriction = ImmigrationLaw.Open;   // ★移民制限法（2026-08-01）。既定 Open＝制限なし＝現行と厳密同義
     public SpecialistExitLaw SpecialistExitLaw = SpecialistExitLaw.Free;   // ★技術者流出禁止法（段⑤・2026-08-17）。既定 Free＝禁止なし＝現行と厳密同義
     // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）。既定 None＝1783年に植民地へ議席を与えた国は無い＝開始局面は現行と厳密同義

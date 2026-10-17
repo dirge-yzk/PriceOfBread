@@ -95,7 +95,6 @@ public sealed class Simulation
             TaxRate = new Share(scenario.TaxRate),
             PollTax = scenario.InitialPollTax,   // 人頭税＝近世国家の主財源（行政不要）。序盤の国庫を支える（所得税は19世紀までロック）
             LandTax = scenario.InitialLandTax,   // 土地税＝検地台帳を保有済みの確立国家は開始から徴収（>0なら開始解禁）
-            LandTaxUnlocked = scenario.InitialLandTax > 0 || scenario.Coef.DeleteAdminEfficiencyFactors > 0,   // 台帳がある＝開始から解禁（admin ゲートは無から台帳を作る場合の関門）
             ForceUnlock = scenario.ForceUnlock,
             // 国庫は Pay 経由でしか動かせない（World の台帳・2026-08-13）＝生成時の初期化は下の SetTreasuryRaw で行う。
             GovDebt = new MoneyStock(scenario.InitialGovDebt),   // P5：初期国債（仏＝米独立戦争債務）。純負債＝貨幣非移動・保存中立。GovAvgCouponPerYearはrollover=1で初回Fiscalが市場金利へ上書き
@@ -137,7 +136,7 @@ public sealed class Simulation
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発）
         foreach (var r0 in regions) if (r0.State == RegionState.Active) World.FoundingActiveProvinces++;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
-        if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (scenario.Coef.AdminFillFailClosed > 0 && Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(369) 前半＝州の開幕の人口（扶養力の錨の定数・構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
+        if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(383) 最初の決算の前の AdminFill は満額でなく 0（行政財のある世界だけ＝fail-closed）。★(369) 州の開幕の人口＝扶養力の錨の定数（構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
         // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
         //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
         //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍のルブラン法を回し、化学薬品の平均価格が16倍・中央値は2倍）。
@@ -1495,7 +1494,7 @@ public sealed class Simulation
         region.SeaBasin = SeaGraph.BasinAt(clat, clon);   // 港州＝海盆を積出港座標から（WirePortDistances の港側と同じ規則）
         if (!Landmass.IsRegistered(col.Name)) w.LogAdd($"{w.Year} {col.Name}州はlandmass.json未登録＝IsPort=falseへ倒した（沈黙回避）");   // fail-closed の可視化
         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
-        if (coef.AdminFillFailClosed > 0 && Catalog.AdminId < region.Markets.Length) region.AdminFill = 0.0; Territory.Adopt(w, region);   // ★(383) 昇格直後の AdminFill は 0 から。Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
+        if (Catalog.AdminId < region.Markets.Length) region.AdminFill = 0.0; Territory.Adopt(w, region);   // ★(383) 昇格直後の AdminFill は 0 から（fail-closed）。Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
         // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）
         double P = region.SumPopulation();
         w.PopulationDelta += P;       // 現地住民＝台帳の外から（ゲーム外流入の作法）。貨幣は持ち込まない（蓄えと持参金は 2026-09-30 段4g に削除＝旧の貨幣の台帳の行は常に +0）
@@ -1921,7 +1920,7 @@ public sealed class Simulation
         // 第6段6-8a（2026-07-28）執行の飢餓：先進方向（短縮・禁止・保持確立）の浸透は監督官が要る＝行政力でゲート
         //（法は残して監督官を切る反動＝1802徒弟法の空文化。緩和方向は即時＝規制撤廃に監督官は不要）。LawEnforcementAdminGate=0で恒等。
         double enforce = World.Coef.LawEnforcementAdminGate > 0
-            ? Math.Min(1.0, (World.Coef.DeleteAdminEfficiencyFactors > 0 ? World.AdminEfficiency : World.AdminPowerSmoothed) / World.Coef.LawEnforcementAdminGate) : 1.0;
+            ? Math.Min(1.0, World.AdminEfficiency / World.Coef.LawEnforcementAdminGate) : 1.0;
         double hoursTarget = World.WorkHours.Hours();
         World.WorkHoursValue += World.Coef.WorkHoursFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0) * (hoursTarget - World.WorkHoursValue);
         // 賃金保持・児童労働合法度の連続追従（倍率排除④）：法は離散だが社会への浸透は連続（女性の賃金保持の確立／児童労働禁止の取締り）。
@@ -2481,8 +2480,7 @@ public sealed class Simulation
         double pop = World.TotalPopulation;
         if (pop < 1e-9) return;
         var c = World.Coef;
-        double baseline = pop - World.PopulationDelta;   // 規定値
-        bool anchorFromRegions = c.CapacityAnchorFromRegions > 0; if (anchorFromRegions) { baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation; } if (baseline < 1e-9 && !anchorFromRegions) return;   // ★(369) 扶養力の錨を州と一緒に動かす（CapacityAnchorFromRegions・既定 0＝旧の式と門のまま）＝>0 で錨 ＝ 今持つ州の AnchorPopulation の和（旧の錨 pop − PopulationDelta は TransferRegion が pop と台帳の両方から P を引くので領土が動いても不変〔本国を失った残りの国が 1783 年の錨を持ち続ける〕・建国の子と親の二重計上）。錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity。⚠この行は畳んである＝行を増やすと経路名の鍵 route_names.py の行番号がずれる（InstrumentsTests 経路名の鍵の番人）
+        double baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation;   // ★(369) 扶養力の錨＝今持つ州の AnchorPopulation の和（旧の錨 pop − PopulationDelta は TransferRegion が pop と台帳の両方から P を引くので領土が動いても不変〔本国を失った残りの国が 1783 年の錨を持ち続ける〕・建国の子と親の二重計上だった）。錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity
         double litSum = 0, healthSum = 0, foodMet = 0, foodNeed = 0;
         foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; }
         double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
@@ -2596,7 +2594,7 @@ public sealed class Simulation
                                         - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
                                         + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)
                                         - c.PollutionCapacityWeight * World.UrbanShare * avgInd * (1.0 - sanitation)) * WorkHoursCapacity(World.WorkHoursValue, c);   // 衛生は都市で按分＝疫病は過密の問題＋工業化の環境外部性（公害圧＝工業化×都市化×(1−衛生/規制)で超過死亡・上下水道で緩和）。PollutionCapacityWeight=0で従来完全一致
-        capacity = Math.Max(baseline * 0.3, capacity); if (anchorFromRegions && !(capacity > 1e-9)) return;   // ★(369) 旗>0 の門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は旧の門と同じく人口の段を飛ばす（否定形＝NaN も飛ばす側）。旗 0 は capacity ≧ 0.3×錨 > 0 で不発
+        capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
         // ★診断（2026-08-01・純記帳）：扶養力の内訳を外へ出す。popprobe が読む。
         World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // (369) 人口の段が実際に使った錨（純記帳・計器 anchor_s の anchorUsed）
         World.DiagHealthcare = healthcare; World.DiagDoctorCare = doctorCare;

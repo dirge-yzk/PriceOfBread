@@ -113,9 +113,8 @@ public static class Government
         new(PolicyAxis.ChildLabor, w => w.ChildLaborAllowed ? 1 : 0, (w, v) => w.ChildLaborAllowed = v == 1, (w, p) => p.ChildLaborAllowed ? 1 : 0, 1),
         // 議会の法案（段5・第4増分）：力の均衡（＋議席）が許せば一歩。穀物法は地主が保護を望む（撤廃は自由/大衆）。土地改革・農奴解放は地主が強く抵抗。
         new(PolicyAxis.CornLaws, w => (int)w.CornLaws, (w, v) => w.CornLaws = (ReformLevel)v, (w, p) => (int)p.CornLaws, 2, Stage: 2),   // なし→限定的→全面 を1段ずつ（1期での総反転を防ぐ）
-        // 土地改革は検地台帳（LandTaxUnlocked＝土地税と同じ前提）が要る＝測量・登記なしに土地は再分配できない（史実：地租改正1873）。
-        // 土地税とは課税ベースでも自動連動（改革で地代が縮む→LandRent↓→土地税の税収↓＝両者は税源を取り合う）。
-        new(PolicyAxis.LandReform, w => (int)w.LandReform, (w, v) => w.LandReform = (ReformLevel)v, (w, p) => (int)p.LandReform, 2, Stage: 2, Open: w => w.LandTaxUnlocked),
+        // 土地改革は土地税と課税ベースで自動連動（改革で地代が縮む→LandRent↓→土地税の税収↓＝両者は税源を取り合う）。
+        new(PolicyAxis.LandReform, w => (int)w.LandReform, (w, v) => w.LandReform = (ReformLevel)v, (w, p) => (int)p.LandReform, 2, Stage: 2),
         new(PolicyAxis.SerfEmancipation, w => (int)w.SerfEmancipation, (w, v) => w.SerfEmancipation = (ReformLevel)v, (w, p) => (int)p.SerfEmancipation, 2, Stage: 2),   // なし→限定的→全面。農奴解放は布告＝検地台帳不要（露1861）
         // 社会保障法（1934拡張E5）：4段の法が福祉水準と年金を駆動（旧スライダー廃止・年金を第4段に吸収）。
         // 第3段3-6（2026-07-27）：SocialSecurityLawGate=1.0（E9点火）を焼き込み＝旧・別年金法else枝（到達不能）を削除。
@@ -275,11 +274,11 @@ public static class Government
         }
 
         // スライダー（連続）：変更方向に反対する集団の力で律速
-        // 税制：人頭税・関税は常時。土地税は検地台帳（LawPrereq）が前提。⚠専売は税ではなく生産の決断＝2026-09-20に政策軸ごと撤去。
+        // 税制：人頭税・関税・土地税は常時。⚠専売は税ではなく生産の決断＝2026-09-20に政策軸ごと撤去。
         // ★裁定2026-09-12（FIX1）：所得税・累進の**行政力の天井を廃止**（施行側の Min も LawPrereq の腕も削除＝他の税と同じ Q4 1本）。
         //   行政の弱さは「その税率を選べない」ことではなく「取り立てた金が国庫へ届かない」ことで出る＝Fiscal の汚職漏れ
         //   （revenue × CorruptionMax × EffectiveCorruption、EffectiveCorruption=(1−AdminEfficiency)(1−OversightV2)）が唯一の担い手。
-        //   天井はその同じ量（AdminPowerSmoothed＝AdminEfficiency の移動平均）を率の側にも掛けていた＝二重計上だった
+        //   天井はその同じ量（行政効率の移動平均）を率の側にも掛けていた＝二重計上だった
         //   （土地税の landEff が同じ理由で撤去済み＝下の Fiscal の注記と同文）。
         // 連続のレバー（関税・行政費・金利）は5%刻み（AI/プレイヤー共通）：0..1の目標を0.05に丸めてから適用（政治の漸進ロックは別途 Move が担う）。
         // 治安維持力(BaseCoercion)は200〜4000スケールで武力スライダーに従属（CoercionTarget は軍事費から導出）＝0.05丸めの対象外。
@@ -288,8 +287,7 @@ public static class Government
         // ★作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」：ここに専売の施行は**無い**。
         //   専売は材ごとの ON/OFF（World.SetStateMonopolyOn）だけで、国ごとの率という状態が存在しない＝Move する連続値が無い。
         //   政治の門は同じ1本（GateInfo の純支持＋政治資本の在庫）を**そのセッターが**引く＝「議会の同意なしに歳入構成は動かない」は保たれる。
-        // ★裁定B（2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」）：未解禁の土地税を実効値0へ叩き落とす三項は 2026-09-20 に削除。
-        //   「検地台帳が無い」は Move の後で値を書き潰すことではなく、LawPrereq（case LandTax＝「検地台帳が前提」）が**その段を押させない**こと。
+        // ★裁定B（2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」）：未解禁の土地税を実効値0へ叩き落とす三項は 2026-09-20 に削除。土地税の錠（検地台帳）そのものも (383) で物理削除した。
         // 社会保障の旧スライダー枝は第3段3-6で削除（SocialSecurityLawGate=1.0焼き込み＝上の法駆動が正）。
         // ★税・支出の段は表 RateLaws を施行の順に回す（2026-09-28 処理の一元化 段1＝旧は軸ごとの Move の1行）。
         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
@@ -614,7 +612,7 @@ public static class Government
         if (StagedAxis(a) && targetLevel > CurrentStage(w, a) + 1)
             return (false, "前段階が必要");
         // ★税・支出・軍事費の段（作者裁定2026-09-12 R1/R2）＝**押せなさの根拠をここへ集める**＝法律タブの可否とエンジンの施行が同じ1本を読む。
-        //   新しい定数を1つも置かない（検地台帳・教育法・緊縮の逆進フロア・総動員は全て既存の量）。
+        //   新しい定数を1つも置かない（教育法・緊縮の逆進フロア・総動員は全て既存の量）。
         switch (a)
         {
             // ⚠**天井型の前提は登る側にしか掛けない**（2026-09-12 反証）：GateInfo は段の財政軸だけ**下げる側でも**
@@ -625,9 +623,6 @@ public static class Government
             // ⚠所得税・累進は行政力の腕を持たない（2026-09-12 FIX1 で行政力の天井を廃止）＝弱い行政は「課せない」のではなく
             //   「取り立てた金が国庫に届かない」（Fiscal の汚職漏れ）。議会の噛みつき（PowerShares.ParliamentGrip の分子＝所得税＋累進）を
             //   立法で先に0にしてしまうのが天井の実害だった。★所得税の門は行政力ではなく理由（払えない請求＝下の case IncomeTax・2026-09-30 (127)）。
-            case PolicyAxis.LandTax:
-                if (targetLevel >= 1 && !w.LandTaxUnlocked && targetLevel > CurrentStage(w, a)) return (false, "検地台帳が前提");   // 測量・登記なしに地租は課せない（土地改革と同文・地租改正1873）
-                break;
             case PolicyAxis.IncomeTax:
                 // ★所得税の**導入**は払えない請求が起こす（2026-09-30 (127)）＝所得税の無い国（率が0）が段を上げられるのは国家の支払い率 r＜1
                 //   （借入と切り下げの後にも払えない請求がある）の時だけ。いったん課した国（率＞0＝査定の仕組みと先例がある）は政治の門だけで上げ下げする。
@@ -711,9 +706,6 @@ public static class Government
             case PolicyAxis.ProgressiveTax:
                 // 累進課税 ← 官僚制度（資格任用以上）。累進は所得の把握（申告と査察）を要する＝近代税務行政の産物。
                 if (targetLevel >= 1 && w.Bureaucracy < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
-                break;
-            case PolicyAxis.LandReform:
-                if (targetLevel >= 1 && !w.LandTaxUnlocked) return (false, "検地台帳が前提");   // 土地改革は測量・登記（行政力で解禁）が要る
                 break;
             case PolicyAxis.WomenRights:
                 // ★女性の権利の梯子（統合法・2026-08-10）。旧「女性参政権法←女性教育権法」の前提は**段の並びそのもの**が担う

@@ -8,7 +8,7 @@ namespace PriceOfBread.SimCore;
 //   born ＝ 分離独立で生まれた国（BornOfSecession）。regionsN ＝ 州の数（全て）／activeRegionsN ＝ 活きた州／anchorRegionsN ＝ AnchorPopulation が正の州（本国起源の州）。
 public static partial class Instruments
 {
-    internal const string AnchorHeader = "quarter\tyear\tnation\tborn\tpopK\tdeltaK\tanchorOld\tanchorRegions\tanchorUsed\tflag\tregionsN\tactiveRegionsN\tanchorRegionsN\tcapacity\tcapBase\tarableSum\tfoodFill";
+    internal const string AnchorHeader = "quarter\tyear\tnation\tborn\tpopK\tdeltaK\tanchorOld\tanchorRegions\tanchorUsed\tregionsN\tactiveRegionsN\tanchorRegionsN\tcapacity\tcapBase\tarableSum\tfoodFill";
 
     static void AnchorFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -23,11 +23,10 @@ public static partial class Instruments
             if (r.AnchorPopulation > 0) withAnchor++;
         }
         double anchorOld = popK - w.PopulationDelta;
-        bool flag = w.Coef.CapacityAnchorFromRegions > 0;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Anc ??= Open("anchor", seed);
         if (!sk.AncHeader) { sk.Anc.WriteLine(AnchorHeader); sk.AncHeader = true; }
         sk.Anc.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), w.BornOfSecession ? "1" : "0", F(popK), F(w.PopulationDelta), F(anchorOld), F(anchorRegions), F(w.DiagAnchorBaseline),
-            flag ? "1" : "0", I(w.Regions.Count), I(active), I(withAnchor), F(w.DiagCapacity), F(w.DiagCapacityBaseline), F(w.DiagLandAnchor), F(w.FoodFill)));
+            I(w.Regions.Count), I(active), I(withAnchor), F(w.DiagCapacity), F(w.DiagCapacityBaseline), F(w.DiagLandAnchor), F(w.FoodFill)));
     }
 }

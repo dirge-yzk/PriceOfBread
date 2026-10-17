@@ -2387,8 +2387,8 @@ public static class EconomyStep
             double pay = got * clearPrice[Catalog.AdminId] * adminMul;   // 単価×距離の割増（上の予算の見積もりと同じ）
             revenue[Catalog.AdminId] += pay;
             region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : (coef.AdminFillFailClosed > 0 ? 0.0 : 1.0);
-        } else if (coef.AdminFillFailClosed > 0 && Catalog.AdminId < ng) region.AdminFill = 0.0;   // ★(383) 官僚 POP が居ない州は〈行政は満額〉でなく 0（旗>0）
+            region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : 0.0;   // ★(383) 必要量 0 の州は〈行政は満額〉でなく 0（fail-closed）
+        } else if (Catalog.AdminId < ng) region.AdminFill = 0.0;   // ★(383) 官僚 POP が居ない州も〈行政は満額〉でなく 0（旧は既定値 1.0 が残った＝fail-open）
 
         // 上下水道の決済：国家が買った上下水道の支払い（→施設＝建設会社の売上・国庫→popで保存）。充足率＝衛生。
         if (infraProc)

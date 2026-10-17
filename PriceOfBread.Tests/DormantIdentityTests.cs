@@ -20,9 +20,6 @@ public class DormantIdentityTests
     [
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
-        "DeleteAdminEfficiencyFactors", // ★(383) 行政効率の連鎖の削除＝AdminEfficiency を AdminFill の人口加重平均だけにし、それを読む倍率・錠・カウンタを消す主フラグ（0＝旧）。採否は腕 A／B で測ってから（事前登録 measurements/ae_20261017_prereg.txt）
-        "AdminFillFailClosed",          // ★(383) 官僚 POP が居ない州・最初の決算の前の AdminFill を 0 から始める fail-open の修正（0＝旧の既定値 1.0）
-        "CapacityAnchorFromRegions",    // ★(369) 扶養力の錨を州と一緒に動かす＝錨を〈今持つ州の AnchorPopulation の和〉に置き換える主フラグ（0＝旧の錨 pop − PopulationDelta）。採否は腕 A／B で測ってから（事前登録 measurements/an_20261016_prereg.txt）
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
         "MeritModernityFromClosed",     // AUD-07：メリトクラシーの政体バフ除去
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
@@ -87,7 +84,6 @@ public class DormantIdentityTests
         "EduReachFromAdmin",            // 特権 段1（作者裁定2026-09-08）＝義務教育の国庫給付の天井に行政の充足率（0で×1.0＝給付は行政を見ない＝従来）
         "EduProducersCoexist",          // ★教育の三層化 段1 器（2026-09-12）＝教区学校（聖職者・紙）と公立学校（教師・書籍）を常設2件で並置し教育法を非活性側の Scale=0 へ降格。
                                         //   0＝AddServiceProducers が従来の1件だけを add・StepMonth の月次差し替えがそのまま走る・EconomyStep は Scale を読まない＝ビット恒等。点火は段3（batch30 単独＋savetest）
-        "NobleAdminFromSeigneurial",    // 特権 段2（作者裁定2026-09-08）＝領主権の見返り＝貴族の行政の素地を「地代シェア∨農奴の未解放度」で変調（0で×1.0＝頭数だけ＝従来）
         // ★下2本は D-35 の反射走査が拾った（**初期化子を書かない宣言**＝`public double X;` なので静的なテキスト検索では見つからない）。
         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）

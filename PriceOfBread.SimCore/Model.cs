@@ -896,7 +896,7 @@ public sealed class Region
     public int OriginPowerId = -1;                    // 1783年（世界構築時）にこの州を領有していた国の Power.Id＝「故地」の恒久ラベル。-1=未設定（較正・最小世界＝記帳不発）。分離独立で生まれた国へ移っても不変
     public double AnnexBaggage;                       // この州が現所有国へ入った時点の持ち込み人口（征服割譲・植民地州昇格で記帳／故地への復帰=OriginPowerId一致と分離建国の創設州は0）。
                                                       // SelfPlay の PopGrowth 分子が Σ(非Seceded州のこれ) を差し引く＝征服インフレの除去（併合後の自然増は自国分として残る）。州が去れば荷物ごと去る＝Σは自動整合
-    public double AnchorPopulation;                   // ★(369) 扶養力の錨に入る人口＝構築（Simulation の構築・PrebuiltRegions でない州）の時点の州の人口を 1 回だけ写した定数（以後書かない）。本国の州（BuildNation）だけ非 0・植民地の州昇格（PromoteColonyToRegion）は 0＝その住民は PopulationDelta の台帳に入り旧の錨（pop − PopulationDelta）に入っていなかった。州と一緒に国から国へ移る（TransferRegion は Region を渡す）。読み手＝DemographicStep の CapacityAnchorFromRegions>0 の経路だけ（0 では誰も読まない）
+    public double AnchorPopulation;                   // ★(369) 扶養力の錨に入る人口＝構築（Simulation の構築・PrebuiltRegions でない州）の時点の州の人口を 1 回だけ写した定数（以後書かない）。本国の州（BuildNation）だけ非 0・植民地の州昇格（PromoteColonyToRegion）は 0＝その住民は PopulationDelta の台帳に入り旧の錨（pop − PopulationDelta）に入っていなかった。州と一緒に国から国へ移る（TransferRegion は Region を渡す）。読み手＝DemographicStep の錨（(383) で旗 CapacityAnchorFromRegions を既定 1 にして旧の錨 pop − PopulationDelta ごと物理削除）
     public bool NationHasPort;   // ★2026-08-01：この州の**国**が港州を1つでも持つか（Simulation が毎月複製する World 由来の値）。
                                  // ⚠軍需調達は首都州でしか走らないため、「軍艦は港でしか造れない」を `region.IsPort` で判定すると
                                  //   内陸に首都のある国（仏・露・普・墺・西・サルデーニャ）が永久に艦隊を持てなくなる。造船するのは港だが、発注するのは国である。
