@@ -8314,7 +8314,7 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     //   ⚠報告の本体には1文字も足さない＝恒等の検証（報告の全行バイト一致）を壊さない（CPU 秒は時刻と負荷で揺れる・件数は軌道で動く）。
     if (Environment.GetEnvironmentVariable("POB_COST_OUT") is { Length: > 0 } costOut)
         File.WriteAllText(costOut, CostSys.Report(bAll, costSys0, seedBase, gq));
-    int Report(BatchSummary b)
+    int Report(BatchSummary b, string basePath)
     {
     Console.WriteLine($"=== バッチ自己対戦 seeds {seedBase}..{seedBase + (ulong)b.N - 1}（各{gq}四半期{(ir is { } v ? $"・金利{v:F2}" : "")}）===");
     if (PriceOfBread.SimCore.Coefficients.OverrideSummary() is { Length: > 0 } ov)
@@ -8466,7 +8466,6 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
         // ★前回値との差分を必ず併記する（裁定①の条件2）。⚠exit 2 は「未達」であって「悪化」ではないので、
         //   **悪化の検出は差分でしか出せない**。基線は POB_FIDELITY_BASELINE のパス（measure.sh が作業ツリー直下を渡す
         //   ＝隔離スナップショットではなく走行を跨いで残る場所）。⚠毎回上書きする＝常に「直前の走行との差」を意味する。
-        string basePath = Environment.GetEnvironmentVariable("POB_FIDELITY_BASELINE") ?? "";
         // ★基線に走行条件を書く（fis-23・2026-09-26）：旧＝数字だけを書いたので、長さ・シード・係数の上書きの違う腕や、同時に回した別の腕の値と
         //   黙って差を取っていた。1行目に「#条件」（シード・四半期数・係数の上書き・measure.sh が渡す SOURCE-HASH）を書き、読むときに突き合わせる。
         //   条件が食い違えば差を出さない（「前回値なし（条件違い）」）。⚠条件の記録が無い旧い基線は従来どおり差を出す（出力は旧と1字も変わらない）。
@@ -8524,15 +8523,21 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
         _ => "硬性ゲート緑・6次元が未達（終了コード2＝記録して進む）" }}");
     return rc;
     }
-    int rcAll = Report(bAll);
+    string fidBase = Environment.GetEnvironmentVariable("POB_FIDELITY_BASELINE") ?? "";
+    // POB_FIRST5_OUT：5種の報告の〈前回比〉は、この走りの前の基線と比べる（10種の報告が書き換えた後の基線＝条件違いと比べない）
+    //   ＝走りの前の基線を 5種の報告の隣（<5種>.fidelity-baseline.tsv）へ写して、5種の報告はそれを読み書きする。
+    byte[]? fidBefore = fidBase.Length > 0 && File.Exists(fidBase) ? File.ReadAllBytes(fidBase) : null;
+    int rcAll = Report(bAll, fidBase);
     if (Environment.GetEnvironmentVariable("POB_FIRST5_OUT") is { Length: > 0 } first5 && matches.Length > 5)
     {
         var b5 = SelfPlayMatch.Summarize(matches[..5], gq);
+        string fid5 = fidBase.Length > 0 ? first5 + ".fidelity-baseline.tsv" : "";
+        if (fid5.Length > 0) { if (fidBefore is not null) File.WriteAllBytes(fid5, fidBefore); else File.Delete(fid5); }
         var stdout = Console.Out;
         using (var w5 = new StreamWriter(first5, false, new System.Text.UTF8Encoding(false)))
         {
             Console.SetOut(w5);
-            try { Report(b5); } finally { Console.SetOut(stdout); }
+            try { Report(b5, fid5); } finally { Console.SetOut(stdout); }
         }
         // 計算量の測り：件数と推定は5試合の和から（CPU 秒の行は10試合のプロセスの値＝名乗りの行を足す）
         if (Environment.GetEnvironmentVariable("POB_COST_OUT") is { Length: > 0 })
