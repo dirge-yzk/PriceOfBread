@@ -640,7 +640,7 @@ public sealed class MultiNationSim
         for (int q = 0; q < quarters; q++)
         {
             StepQuarter();
-            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseOpeningFiscal(treasury0[i]);   // ★(332) 規則のある国（TreasuryMonths／GovDebtToGdpYear が正）は歳入×月数と比×年名目GDP を置く・無い国は旧の戻し（既定の world.json は全て無い）
+            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseOpeningFiscal(treasury0[i]);   // ★(332) 規則のある国（TreasuryMonths／GovDebtToGdpYear が正）は歳入×月数と比×年名目GDP を置く・無い国は旧の戻し（★(388) 既定の world.json は 61 国が規則を持つ・無いのは分離独立の国と番人の国）
             RebaselineInvariants();
             onQuarter?.Invoke();
         }

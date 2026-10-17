@@ -14,6 +14,7 @@ public class DomesticServiceProductivityTests
         var cfgs = new[] { NationConfig.Britain(), NationConfig.France() };
         var def = new MultiNationSim(cfgs, seed: 1789);
         var half = new MultiNationSim(cfgs, seed: 1789);
+        foreach (var nat in def.Nations) nat.World.Coef.DomesticServiceProductivity = 1.0;   // ★(388) 既定が 0.30 になった＝比べる基線の倍率 1.0 を明示する（旧の既定と同じ）
         foreach (var nat in half.Nations) nat.World.Coef.DomesticServiceProductivity = 0.5;   // シムを作った後の書き換え（POB_COEF と同じ届き方）
         int svc = Catalog.DomesticServiceId;
         foreach (var s in new[] { def, half }) foreach (var nat in s.Nations) nat.TelemetryEnabled = false;
@@ -38,8 +39,8 @@ public class DomesticServiceProductivityTests
     }
 
     [Fact]
-    public void 既定の倍率は1_恒等の器()
+    public void 既定の倍率は0_30_388で採用()
     {
-        Assert.Equal(1.0, new Coefficients().DomesticServiceProductivity);
+        Assert.Equal(0.30, new Coefficients().DomesticServiceProductivity);
     }
 }

@@ -25,9 +25,9 @@ public class MonopolyPushTests
     private static void SetTreasuryTimesBuffer(World w, double mul) => w.SetTreasuryRaw(mul * UtilityAgent.FiscalBufferOf(w));
 
     [Fact]
-    public void 係数の既定は0で旧の挙動()
+    public void 係数の既定は1で比例の形を採用している_388()
     {
-        Assert.Equal(0, new Coefficients().MonopolyBurdenPushMode);
+        Assert.Equal(1, new Coefficients().MonopolyBurdenPushMode);
     }
 
     // ---------------------------------------------------------------- 利払いの重さ（手で決めた真偽表）

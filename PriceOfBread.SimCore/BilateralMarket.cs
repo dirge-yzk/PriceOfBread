@@ -42,8 +42,8 @@ public sealed partial class InternationalMarket
         {
             var ws = new List<World>(nations.Count);
             foreach (var n in nations) ws.Add(n.World);
-            // ⚠表は最初の呼び手の係数で一度だけ作る（国ごとの Coef が別インスタンスで DiscoveryCarrierDownstream の値が違うと呼ぶ順で変わる）＝POB_COEF の全体指定では全ての国が同じ値で起きない（事前登録の追記 8）
-            _discCarriers = Discovery.CarriersByRow(ws, c.DiscoveryCarrierDownstream > 0);   // ★(360) 0（既定）は旧と同じ表
+            // ⚠表は最初の呼び手の係数で一度だけ作る（国ごとの Coef が別インスタンスで DiscoveryCarrierDownstream の値が違うと呼ぶ順で変わる）＝POB_COEF の全体指定では全ての国が同じ値で起きない（measurements/bk_20261017_prereg.txt [1]）
+            _discCarriers = Discovery.CarriersByRow(ws, c.DiscoveryCarrierDownstream > 0);   // ★(360) 既定1（(388) 採用）＝運び手の財を投入に持つ資本財を足した表・0は旧と同じ表
             _discRowsByCarrier = Discovery.RowsByCarrier(_discCarriers);
         }
         return _discCarriers;

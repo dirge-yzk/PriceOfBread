@@ -87,8 +87,7 @@ public class DormantIdentityTests
         // ★下2本は D-35 の反射走査が拾った（**初期化子を書かない宣言**＝`public double X;` なので静的なテキスト検索では見つからない）。
         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）
-        "DiscoveryPriceInitFromCost",   // ★(320) 流れG＝平滑化した値段の最初の値を自然価格（最も安いレシピの費用）から（0＝旧＝最初の観測の瞬間の値で始める＝AdvancePrice は従来の2行と同じ・厳密恒等）
-        "DiscoveryCarrierDownstream",   // ★(360) 流れG 伝わりの道＝発見の行の運び手の財に、それを投入に持つ取引できる資本財（機関車・汽船）を1代だけ足す（0＝旧＝CarriersByRow は従来の表・厳密恒等）
+        // ★DiscoveryPriceInitFromCost・DiscoveryCarrierDownstream（流れG）・DomesticServiceProductivity（既定 0.30）は 2026-10-17 (388) で**点火**＝この表から外した。
         "SilverParityFromRatio",        // ★器（2026-09-07）＝世界銀価格を同一市場内の 銀/金鉱 比から作る（E→平均→E の自己参照を断つ）。0＝旧統計 Market.Price[銀] を注入＝厳密恒等
         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
@@ -99,7 +98,6 @@ public class DormantIdentityTests
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>
     private static readonly string[] DormantOneFields =
     [
-        "DomesticServiceProductivity",     // ★(306) 線(2)＝家事奉仕の生産者（使用人）の1人あたりの産出の倍率（1＝今の値＝恒等）。採ったら表から外す
         "MilitaryProcurePriceGateScale",   // 軍需財の国家調達の価格ゲート倍率（1＝満額＝旧恒等・0＝価格を見ない）
         "FactoryBuildPriceGateScale",      // 裁定②＝工事の進捗/素材需要の価格ゲート混合（1＝旧恒等・0＝価格を見ずに進む）
         "UnificationV1Only",               // ★2026-09-26（fis-27・dorm-52）：統一戦争の名指し（北ドイツ連邦・ドイツ・イタリアの3件）＝1が旧挙動。点火（0＝名指しの撤去）は回8-3（col-19）

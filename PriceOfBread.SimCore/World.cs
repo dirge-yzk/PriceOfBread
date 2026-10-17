@@ -2605,7 +2605,7 @@ public sealed class World
     /// <para>国債：<see cref="OpeningGovDebtToGdpYear"/> が正で、年名目GDP が正なら 比×年名目GDP。★対外債（<see cref="ForeignDebt"/>）は触らない（貸し手の国の債権〔ForeignBondClaims〕と引き落としの予約が相手側に立っている）＝GovDebt を対外債より小さくせず、国内の元本 GovDebt−ForeignDebt を負にしない。
     /// 国債は貨幣でないので保存則の基準線は動かない（<see cref="RebaseTreasury"/> の国庫だけが基礎貨幣に出入りする）。
     /// 保有の台帳（Σ保有 ＝ GovDebt − ForeignDebt）は、置き直すたびに空にして <see cref="Fiscal.SeedBondHoldings"/> で投資家の貯蓄比に起票し直す（金は動かない）。</para>
-    /// <para>既定（<see cref="OpeningTreasuryMonths"/>＝<see cref="OpeningGovDebtToGdpYear"/>＝0）は旧の <c>RebaseTreasury(treasuryBefore)</c> と同じ1文＝新しい分岐に入らない。</para></summary>
+    /// <para>既定（<see cref="OpeningTreasuryMonths"/>＝<see cref="OpeningGovDebtToGdpYear"/>＝0）は旧の <c>RebaseTreasury(treasuryBefore)</c> と同じ1文＝新しい分岐に入らない（規則のない国・分離独立の国・番人の国の経路。★(388) 以後の既定の world.json は 61 国が規則を持つ）。</para></summary>
     internal void RebaseOpeningFiscal(double treasuryBefore)
     {
         if (OpeningTreasuryMonths > 0 && LastRevenuePerMonth.Value > 0) RebaseTreasury((Calendar.OneMonthOf(LastRevenuePerMonth) * OpeningTreasuryMonths).Value);

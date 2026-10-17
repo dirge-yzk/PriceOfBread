@@ -54,10 +54,23 @@ public class NationBriefTests
         Assert.Equal(real, NationBrief.Terms(prussia, all, coef).Safety, 12);
     }
 
+    /// <summary>★(388) 規則のある国（world.json の treasuryMonths）の難易度の資源の項は月数そのものを読む（絶対額 treasury は 0 の置き場＝読むと全ての国が 0 か月になる）。
+    /// 期待値は表の値（measurements/e7_20261014_values.tsv＝英 2.5・プロイセン 28）。⚠壊し方＝規則を読まず絶対額だけ読む → 赤。</summary>
+    [Fact]
+    public void 開幕の国庫の月数は規則のある国では規則の月数を読む()
+    {
+        var coef = new Coefficients();
+        Assert.Equal(2.5, NationBrief.TreasuryMonths(WorldData.ByName("イギリス"), coef));
+        Assert.Equal(28.0, NationBrief.TreasuryMonths(WorldData.ByName("プロイセン"), coef));
+        Assert.Equal(0.0, WorldData.ByName("イギリス").Treasury);   // 前提＝絶対額は置き場の 0（これを読む旧の式なら 0 か月になる）
+    }
+
+    // ★(388) 開幕の国庫が史実の比（歳入×月数・多くの国で 2.5 か月・プロイセンは 28 か月）で置かれるようになり、旧の絶対額（プロイセン 274 か月ほか）の資源の項が消えた＝順位が動いた
+    //   （アメリカ 普通→簡単・プロイセン 簡単→普通）。これは選択画面の札の現時点の割り当て（創発する物の記録）で、機構の不変条件ではない＝期待値を現時点へ更新した。
     [Theory]
-    [InlineData("アメリカ", "普通")]
+    [InlineData("アメリカ", "簡単")]
     [InlineData("ネーデルラント", "普通")]
-    [InlineData("プロイセン", "簡単")]
+    [InlineData("プロイセン", "普通")]
     [InlineData("日本", "簡単")]
     [InlineData("イギリス", "普通")]
     [InlineData("ロシア", "普通")]

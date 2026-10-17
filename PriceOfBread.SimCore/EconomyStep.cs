@@ -774,7 +774,7 @@ public static class EconomyStep
             // ★2026-08-10（幻の生産）：技術ゲート2本を**変数に取る**だけ（式・値・掛順は不変＝厳密恒等）。
             //   下の産出スナップが「未発明か」を**この同じ値**で判定する＝能力の式と判定式が食い違わない。
             double gate = Discovery.Gate(region, s);   // 発見の門（レシピの行を国が発見したか・表に無いレシピ＝地理差は1・鉱床の後期の産地だけ傾斜・退場のレシピは後継の発見で0）
-            double boost = baumol ? (s.GoodId == Catalog.DomesticServiceId ? coef.DomesticServiceProductivity : 1.0)   // ★(306) 線(2)：使用人の1人あたりの産出の倍率（1.0＝今の値＝恒等）。構築時でなく毎月読む＝POB_COEF（シムを作った後の書き換え）が届く
+            double boost = baumol ? (s.GoodId == Catalog.DomesticServiceId ? coef.DomesticServiceProductivity : 1.0)   // ★(306) 線(2)：使用人の1人あたりの産出の倍率（★(388) 既定 0.30・1.0＝旧の値）。構築時でなく毎月読む＝POB_COEF（シムを作った後の書き換え）が届く
                 : isLabor ? indMult * gate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
                 : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + coef.EffBoost * s.EffFill)
                   * gate;        // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る

@@ -434,7 +434,7 @@ public sealed class UtilityAgent : INationAgent
     }
 
     /// <summary>★(337) 係数 <see cref="Coefficients.MonopolyBurdenPushMode"/>＞0 のとき、払えていて r＝1 のままでも利払いが重い間に専売の段を 1 段広げるか＝専用乱数 <see cref="World.AiRng"/> を 1 回引いて u＜p。
-    /// 係数 0・p＝0・乱数の列なし（較正／最小世界）では**引かない**（既定で恒等＝乱数を消費しない）。</summary>
+    /// 係数 0・p＝0・乱数の列なし（較正／最小世界）では**引かない**（旧の経路＝乱数を消費しない・★(388) 既定は 1）。</summary>
     internal static bool MonopolyPushDraw(World w, out double p, out double u)
     {
         p = double.NaN; u = double.NaN;

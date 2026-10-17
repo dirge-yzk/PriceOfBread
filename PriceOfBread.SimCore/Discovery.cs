@@ -583,7 +583,7 @@ public static class Discovery
     /// ★(169) 重み＝国内の産出（その財を実際に売っている国＝輸出か国内の売りに回る自国の生産）＝開幕の一律の在庫を少しの需要で捌くだけの国（産出≈0）は重み≈0
     ///   （(166) の根＝外へ売らない薄い市場の値段が世界の値段になった＝(167) の申し送りの腕・推奨で進めた）。旧（(165)〜(167)）＝国の需要（買う国の値段で平均した）。</summary>
     /// <remarks>★(320) 値段の履歴を持たない国（<see cref="World.DiscoveryPrice"/> が null）の最初の値は、係数 <see cref="Coefficients.DiscoveryPriceInitFromCost"/> が正なら自然価格
-    /// （<see cref="NaturalPrior"/>）から始めて最初の観測を他の四半期と同じ率で入れる（観測の無い財・自然価格の立たない財は旧のまま＝瞬間の値）。0（既定）は旧＝最初の観測の瞬間の値。</remarks>
+    /// （<see cref="NaturalPrior"/>）から始めて最初の観測を他の四半期と同じ率で入れる（観測の無い財・自然価格の立たない財は旧のまま＝瞬間の値）。既定1（(388) 採用）。0は旧＝最初の観測の瞬間の値。</remarks>
     internal static (double[] Inst, double[] Sold) AdvancePrice(World w, Coefficients c)
     {
         w.Cost[CostLedger.DiscoveryPriceNations]++;   // 計算量の台帳（診断）：平滑化した値段の歩は国×四半期（(186)＝数えていなかった処理を数える）

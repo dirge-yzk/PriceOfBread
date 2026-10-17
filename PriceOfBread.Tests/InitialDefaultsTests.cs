@@ -51,9 +51,10 @@ public class InitialDefaultsTests
     public void 回247_既定は最頻の値_書くキーが最も少ない()
     {
         // 既定は世界の大半の国の値に置く（書くキーが最少）。位置・階級の規模・識字・国庫・貨幣化の段のように国ごとに必ず置く値は既定を持たない（除く）。
+        //   ★(388) treasuryMonths＝開幕の国庫の規則（歳入×月数）。絶対額 treasury の置き換えなので国ごとに必ず置く値の側（既定を 2.5 にすると JSON に書かない建国・番人の国が規則を持ってしまう＝規則のない国の旧の経路が消える）。
         //   ★(248) broadMoneyToGdp も既定を最頻（0.1）へ動かした＝この番人の対象に入れた（旧＝除外・(247) の「建国が読む」は誤診）。★(273) broadMoneyToIncome に置き換えた〔(375) 置き直しの機構と一緒に削除した〕。
         var defaults = JsonSerializer.SerializeToElement(new NationConfig(), WorldData.Options);
-        var perNation = new HashSet<string> { "name", "provinces", "rule", "latitude", "longitude", "literacy", "treasury", "nobility", "peasant", "worker", "bourgeois", "professional", "merchant", "artisan" };
+        var perNation = new HashSet<string> { "name", "provinces", "rule", "latitude", "longitude", "literacy", "treasury", "treasuryMonths", "nobility", "peasant", "worker", "bourgeois", "professional", "merchant", "artisan" };
         var cfgs = WorldData.Nations();
         Assert.True(cfgs.Length >= 61);
         using var doc = WorldJson();

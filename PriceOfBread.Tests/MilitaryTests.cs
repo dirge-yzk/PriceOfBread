@@ -1109,6 +1109,7 @@ public class MilitaryTests
     {
         var sim = Frozen152("イギリス", "フランス", "スペイン");
         var dip = sim.Diplomacy; var c = sim.Coef;
+        c.FleetContactPerGdp = 0;   // ★(388) 既定が 1（開放度）になった＝この番人は旧の形〔越境の交易額の絶対額〕を明示して見る。開放度の形は下の基数の番人が見る
         var ws = sim.Nations.ConvertAll(n => n.World);
         var ps = ws.ConvertAll(w => w.SelfPower!);
         foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = new Share(0); }

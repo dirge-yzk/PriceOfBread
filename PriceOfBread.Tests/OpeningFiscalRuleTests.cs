@@ -26,13 +26,16 @@ public class OpeningFiscalRuleTests
     private static bool AnyHolder(World w) { foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.BondHoldings.Value > 0) return true; return false; }
 
     [Fact]
-    public void 既定の世界データは規則を持たない_絶対額のまま()
+    public void 既定の世界データは規則を持つ_388で採用()
     {
-        // 既定で恒等＝規則の入力が 61 国とも 0 なら RebaseOpeningFiscal は旧の RebaseTreasury(助走の前の国庫) と同じ1文になる。
-        // ⚠腕 B を採る回はこの番人を〈規則を持つ国の表〉（出典＝measurements/e7_20261014_values.tsv）に書き換える。
+        // ★(388) 腕 B を採った＝world.json は 61 国の国庫を歳入×月数・18 国の国債を比×年の名目GDP で置く（出典＝measurements/e7_20261014_values.tsv）。
+        // 数は表から数えた物（61・18・英 1.34・英の月数 2.5）で、式の出力から作らない。規則が0の国の旧の経路（RebaseTreasury の1文）は下の With(…, 0, 0) の国が見る。
         var nations = WorldData.Nations();
         Assert.Equal(61, nations.Length);
-        foreach (var c in nations) { Assert.Equal(0.0, c.TreasuryMonths); Assert.Equal(0.0, c.GovDebtToGdpYear); }
+        Assert.Equal(61, nations.Count(c => c.TreasuryMonths > 0));
+        Assert.Equal(18, nations.Count(c => c.GovDebtToGdpYear > 0));
+        Assert.Equal(1.34, nations.Single(c => c.Name == "イギリス").GovDebtToGdpYear);
+        Assert.Equal(2.5, nations.Single(c => c.Name == "イギリス").TreasuryMonths);
     }
 
     [Fact]

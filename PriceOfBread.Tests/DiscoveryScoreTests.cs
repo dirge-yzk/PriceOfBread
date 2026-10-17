@@ -14,9 +14,10 @@ public class DiscoveryScoreTests
     private static int Row(string name) => System.Array.FindIndex(Catalog.Discoveries, d => d.Name == name);
 
     /// <summary>1四半期だけ回した盤面（市場の需要と値段が立つ・開幕の助走は通さない＝速い）。</summary>
-    private static MultiNationSim Board(ulong seed = 7)
+    private static MultiNationSim Board(ulong seed = 7, Coefficients? coef = null)
     {
-        var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+        var sim = coef is null ? new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent())
+                               : new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent(), coef);
         sim.StepQuarter();
         return sim;
     }
@@ -1339,7 +1340,9 @@ public class DiscoveryScoreTests
     [Fact]
     public void 判定は一過性の値段の跳ねでは開かない()
     {
-        var sim = Board();
+        // ★(388) 既定が DiscoveryPriceInitFromCost＝1 になった。この盤面の前提は〈平滑化した値段が最初の観測そのもの〉（掘る費用の投入の値段が瞬間と平滑で同じ）＝旧の始め方（0）に固定する。
+        //   Q12 の主張（判定は平滑化した値段を読む）は始め方に依らない＝下の主張の行は変えない。
+        var sim = Board(coef: new Coefficients { DiscoveryPriceInitFromCost = 0 });
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
         var c = w.Coef; int g = Catalog.Sites[p.SiteRow].Good;
         w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
@@ -1384,15 +1387,15 @@ public class DiscoveryScoreTests
         return double.NaN;
     }
 
-    /// <summary>既定（0）では、履歴の無い国の最初の平滑化した値段は最初の観測の瞬間の値そのもの＝旧と同じ（恒等）。
+    /// <summary>係数0（旧・★(388) 前の既定）では、履歴の無い国の最初の平滑化した値段は最初の観測の瞬間の値そのもの＝旧と同じ（恒等）。
     /// 係数が正なら、最初の値は自然価格（投入の無い財は手で出せる）から始まり最初の観測が他の四半期と同じ率 a で入る＝ s ＝ n ＋ a×(x − n)・n＝自己費用×自己費用の物価水準÷物価水準（労働力＝人力・石炭）。
     /// 関係で書く：n は (s − a×x)÷(1 − a) で逆算でき、手で出した自然価格と一致する・s は n と x の間にある。前提の確かめ＝自然価格が瞬間の値と違う国が十分あること（何もしない機構が緑にならない）。
     /// ⚠壊し方＝自然価格を使わず瞬間の値で始める・最初の観測を入れない（s＝n）・率を変える・世界の平均を先入観にする → 赤。</summary>
     [Fact]
     public void 自然価格から始めると最初の平滑化した値段が自然価格と同じ率の観測で閉じる()
     {
-        // 既定＝旧と同じ（瞬間の値そのもの）
-        var sim0 = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        // 係数 0＝旧と同じ（瞬間の値そのもの）。★(388) 既定が 1 になったので 0 を明示する
+        var sim0 = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent(), new Coefficients { DiscoveryPriceInitFromCost = 0 });
         sim0.StepQuarter();
         int exact = 0;
         foreach (var n in sim0.Nations)

@@ -11,11 +11,12 @@
    "merchant": 467,
    "artisan": 1400,
    "literacy": 0.37,
-   "treasury": 3700,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.56,
    "pollTaxStage": 2,
    "landTaxStage": 2,
    "nationalConsciousness0": 0.1,
-   "govDebt": 470000,
    "initialTariff": 0.25,
    "industrialization": 0.25,
    "initialColonies": [
@@ -167,7 +168,8 @@
    "literacy": 0.27,
    "polity": "Shogunate",
    "coercion": 450,
-   "treasury": 19000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "landTaxStage": 3,
    "initialTariff": 0.95,
    "initialConscription": "Volunteer",
@@ -281,10 +283,11 @@
    "polity": "ConstitutionalMonarchy",
    "education": "Public",
    "coercion": 380,
-   "treasury": 21000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 1.34,
    "pollTaxStage": 0,
    "landTaxStage": 1.275,
-   "govDebt": 750000,
    "initialTariff": 0.3,
    "industrialization": 1.4,
    "initialColonies": [
@@ -549,8 +552,9 @@
    "polity": "Republic",
    "education": "Public",
    "coercion": 180,
-   "treasury": 560,
-   "govDebt": 48000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.4,
    "nationalConsciousness0": 0.32,
    "initialTariff": 0.1,
    "industrialization": 0.2,
@@ -638,9 +642,10 @@
    "literacy": 0.05,
    "polity": "Despotic",
    "coercion": 700,
-   "treasury": 12000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.05,
    "landTaxStage": 0,
-   "govDebt": 20000,
    "initialTariff": 0.3,
    "initialColonies": [
     {
@@ -951,7 +956,8 @@
    "literacy": 0.45,
    "education": "Public",
    "coercion": 600,
-   "treasury": 46000,
+   "treasury": 0,
+   "treasuryMonths": 28,
    "pollTaxStage": 0,
    "landTaxStage": 2,
    "initialTariff": 0.2,
@@ -1039,7 +1045,9 @@
    "artisan": 900,
    "literacy": 0.03,
    "coercion": 500,
-   "treasury": 12000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.1,
    "initialTariff": 0.1,
    "initialConscription": "Volunteer",
    "initialCornLaws": "Limited",
@@ -1249,9 +1257,10 @@
    "artisan": 946,
    "literacy": 0.3,
    "coercion": 500,
-   "treasury": 13000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.2,
    "landTaxStage": 3,
-   "govDebt": 90000,
    "initialTariff": 0.3,
    "industrialization": 0.2,
    "initialSerfEmancipation": "Limited",
@@ -1428,10 +1437,11 @@
    "polity": "Republic",
    "education": "Public",
    "coercion": 250,
-   "treasury": 2900,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 1.6,
    "pollTaxStage": 0,
    "landTaxStage": 2,
-   "govDebt": 160000,
    "initialTariff": 0.05,
    "industrialization": 0.2,
    "initialColonies": [
@@ -1528,9 +1538,10 @@
    "artisan": 511,
    "literacy": 0.08,
    "coercion": 500,
-   "treasury": 9800,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.3,
    "pollTaxStage": 0,
-   "govDebt": 95000,
    "initialTariff": 0.3,
    "initialColonies": [
     {
@@ -1779,7 +1790,8 @@
    "artisan": 306,
    "literacy": 0.35,
    "coercion": 450,
-   "treasury": 2400,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialTariff": 0.2,
@@ -1841,7 +1853,8 @@
    "literacy": 0.2,
    "polity": "Despotic",
    "coercion": 500,
-   "treasury": 160000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 2,
    "initialMassMilitancy": 0.25,
@@ -2165,7 +2178,8 @@
    "artisan": 600,
    "literacy": 0.1,
    "coercion": 450,
-   "treasury": 4500,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.9,
    "initialImmigration": "Closed",
    "provinces": [
@@ -2237,7 +2251,8 @@
    "artisan": 6719,
    "literacy": 0.05,
    "polity": "Despotic",
-   "treasury": 40316,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialConscription": "Volunteer",
@@ -2332,7 +2347,8 @@
    "artisan": 557,
    "literacy": 0.05,
    "polity": "Despotic",
-   "treasury": 2149,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialTariff": 0.5,
@@ -2384,7 +2400,8 @@
    "artisan": 1000,
    "literacy": 0.05,
    "polity": "Despotic",
-   "treasury": 4500,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialConscription": "Volunteer",
@@ -2437,7 +2454,8 @@
    "literacy": 0.05,
    "polity": "Republic",
    "coercion": 250,
-   "treasury": 5599,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialConscription": "Volunteer",
@@ -2470,7 +2488,8 @@
    "artisan": 500,
    "literacy": 0.2,
    "polity": "Despotic",
-   "treasury": 2500,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "ラングーン",
@@ -2512,7 +2531,8 @@
    "merchant": 120,
    "artisan": 350,
    "literacy": 0.04,
-   "treasury": 1700,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -2542,7 +2562,8 @@
    "merchant": 264,
    "artisan": 461,
    "literacy": 0.12,
-   "treasury": 2200,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "バンコク",
@@ -2575,7 +2596,8 @@
    "artisan": 637,
    "literacy": 0.08,
    "polity": "Despotic",
-   "treasury": 2697,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "ハノイ",
@@ -2617,7 +2639,8 @@
    "merchant": 34,
    "artisan": 86,
    "literacy": 0.1,
-   "treasury": 341,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "プノンペン",
@@ -2646,7 +2669,8 @@
    "merchant": 60,
    "artisan": 150,
    "literacy": 0.1,
-   "treasury": 450,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "ヴィエンチャン",
@@ -2676,7 +2700,8 @@
    "artisan": 1000,
    "literacy": 0.03,
    "polity": "Despotic",
-   "treasury": 2137,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.05,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -2779,7 +2804,8 @@
    "artisan": 120,
    "literacy": 0.04,
    "polity": "Despotic",
-   "treasury": 450,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.1,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -2818,7 +2844,8 @@
    "merchant": 210,
    "artisan": 280,
    "literacy": 0.04,
-   "treasury": 890,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.1,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -2857,7 +2884,8 @@
    "merchant": 97,
    "artisan": 48,
    "literacy": 0.04,
-   "treasury": 267,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.05,
    "initialColonies": [
     {
@@ -2912,7 +2940,8 @@
    "artisan": 1000,
    "literacy": 0.02,
    "polity": "Despotic",
-   "treasury": 2900,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.1,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -2978,7 +3007,8 @@
    "professional": 60,
    "artisan": 500,
    "literacy": 0.03,
-   "treasury": 1200,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3008,7 +3038,8 @@
    "merchant": 120,
    "artisan": 150,
    "literacy": 0.03,
-   "treasury": 290,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3037,7 +3068,8 @@
    "merchant": 250,
    "artisan": 300,
    "literacy": 0.03,
-   "treasury": 660,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3067,7 +3099,8 @@
    "merchant": 500,
    "artisan": 900,
    "literacy": 0.03,
-   "treasury": 2200,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.1,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -3121,7 +3154,8 @@
    "literacy": 0.03,
    "polity": "Despotic",
    "coercion": 150,
-   "treasury": 1800,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3151,7 +3185,8 @@
    "merchant": 150,
    "artisan": 300,
    "literacy": 0.01,
-   "treasury": 1100,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "アンタナナリヴ",
@@ -3189,7 +3224,9 @@
    "merchant": 282,
    "artisan": 564,
    "literacy": 0.48,
-   "treasury": 1200,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.2,
    "initialSerfEmancipation": "Full",
    "provinces": [
     {
@@ -3254,7 +3291,9 @@
    "merchant": 315,
    "artisan": 490,
    "literacy": 0.5,
-   "treasury": 1300,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.3,
    "initialTariff": 0.25,
    "initialColonies": [
     {
@@ -3324,7 +3363,8 @@
    "artisan": 401,
    "literacy": 0.45,
    "polity": "Republic",
-   "treasury": 740,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.05,
    "provinces": [
     {
@@ -3354,7 +3394,8 @@
    "literacy": 0.05,
    "polity": "Republic",
    "coercion": 250,
-   "treasury": 2900,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3423,7 +3464,9 @@
    "merchant": 148,
    "artisan": 148,
    "literacy": 0.06,
-   "treasury": 3000,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.1,
    "pollTaxStage": 0,
    "landTaxStage": 2,
    "initialColonies": [
@@ -3526,7 +3569,9 @@
    "literacy": 0.35,
    "polity": "Republic",
    "coercion": 300,
-   "treasury": 310,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 1.5,
    "initialTariff": 0.2,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -3558,7 +3603,8 @@
    "artisan": 220,
    "literacy": 0.38,
    "coercion": 350,
-   "treasury": 2100,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.2,
    "provinces": [
     {
@@ -3586,7 +3632,9 @@
    "bourgeois": 300,
    "professional": 150,
    "literacy": 0.13,
-   "treasury": 2800,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.4,
    "provinces": [
     {
      "city": "ナポリ",
@@ -3644,7 +3692,9 @@
    "merchant": 120,
    "artisan": 301,
    "literacy": 0.25,
-   "treasury": 890,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 1.1,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3698,7 +3748,8 @@
    "merchant": 103,
    "artisan": 155,
    "literacy": 0.25,
-   "treasury": 440,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.05,
    "initialConscription": "Volunteer",
    "provinces": [
@@ -3739,7 +3790,9 @@
    "literacy": 0.28,
    "polity": "Republic",
    "coercion": 300,
-   "treasury": 1100,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.4,
    "provinces": [
     {
      "city": "ヴェネツィア",
@@ -3793,7 +3846,9 @@
    "merchant": 73,
    "artisan": 182,
    "literacy": 0.35,
-   "treasury": 440,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.4,
    "initialTariff": 0.25,
    "provinces": [
     {
@@ -3825,7 +3880,9 @@
    "artisan": 325,
    "literacy": 0.5,
    "education": "Public",
-   "treasury": 890,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.3,
    "initialTariff": 0.25,
    "provinces": [
     {
@@ -3857,7 +3914,8 @@
    "merchant": 58,
    "artisan": 146,
    "literacy": 0.4,
-   "treasury": 390,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.25,
    "provinces": [
     {
@@ -3897,7 +3955,9 @@
    "merchant": 44,
    "artisan": 109,
    "literacy": 0.5,
-   "treasury": 250,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
+   "govDebtToGdpYear": 0.3,
    "initialTariff": 0.25,
    "provinces": [
     {
@@ -3928,7 +3988,8 @@
    "artisan": 93,
    "literacy": 0.08,
    "polity": "Despotic",
-   "treasury": 376,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "サイゴン",
@@ -3957,7 +4018,8 @@
    "merchant": 12,
    "artisan": 12,
    "literacy": 0.04,
-   "treasury": 37,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialConscription": "Volunteer",
    "provinces": [
     {
@@ -3988,7 +4050,8 @@
    "literacy": 0.05,
    "polity": "Despotic",
    "coercion": 150,
-   "treasury": 709,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialConscription": "Volunteer",
@@ -4021,7 +4084,8 @@
    "merchant": 896,
    "literacy": 0.05,
    "polity": "Despotic",
-   "treasury": 7839,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialConscription": "Volunteer",
@@ -4054,7 +4118,8 @@
    "artisan": 40,
    "literacy": 0.01,
    "coercion": 80,
-   "treasury": 210,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "アボメイ",
@@ -4096,7 +4161,8 @@
    "artisan": 300,
    "literacy": 0.02,
    "coercion": 100,
-   "treasury": 1200,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "クマシ",
@@ -4138,7 +4204,8 @@
    "literacy": 0.04,
    "clergyFrac": 0.45,
    "coercion": 300,
-   "treasury": 3900,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "ソコト",
@@ -4196,7 +4263,8 @@
    "intelligentsiaFrac": 0.3,
    "peasantSubsistence": 0.75,
    "coercion": 60,
-   "treasury": 290,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "ンバンザ=コンゴ",
@@ -4239,7 +4307,8 @@
    "literacy": 0.05,
    "peasantSubsistence": 0.65,
    "coercion": 250,
-   "treasury": 1500,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.3,
    "initialConscription": "Volunteer",
    "initialCornLaws": "Limited",
@@ -4297,7 +4366,8 @@
    "literacy": 0.01,
    "intelligentsiaFrac": 0.3,
    "coercion": 120,
-   "treasury": 710,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "オヨ=イレ",
@@ -4342,7 +4412,8 @@
    "intelligentsiaFrac": 0.3,
    "peasantSubsistence": 0.72,
    "coercion": 100,
-   "treasury": 570,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "provinces": [
     {
      "city": "ンガザルガム",
@@ -4376,7 +4447,8 @@
    "intelligentsiaFrac": 0.25,
    "peasantSubsistence": 0.8,
    "coercion": 40,
-   "treasury": 130,
+   "treasury": 0,
+   "treasuryMonths": 2.5,
    "initialTariff": 0.3,
    "provinces": [
     {
