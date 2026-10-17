@@ -240,6 +240,12 @@ public sealed class UtilityAgent : INationAgent
         //   土台の入力（POP の保有・現行法・軍事費の目標〔Government.MilitaryTotalTarget〕ほか）をこの整形は書かない＝書くのは法目標（NationPolicy）だけで、
         //   土台が読む軍事費の目標（陸海の維持費の目標）の書き込みは**最後の照会の後**（末尾の軍事費の段）。旧＝照会ごとに Build＝全長の1種で約18万回（Build の15%）。
         PolicyPreferences.Profile? shared = null;
+        if (w.Coef.AiBureaucracyFromPrereq > 0 || Instruments.On)   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む
+        {
+            long scanT0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;   // 走査の実時間は .cost の件数に入らない＝計器つきのときだけ測る（追記3）
+            BureaucracyFollowsWants(w, p, ref shared);
+            if (Instruments.On) Instruments.BurTime(w, System.Diagnostics.Stopwatch.GetTimestamp() - scanT0);
+        }
         GateLaw(ref shared, w, PolicyAxis.EducationLaw, (int)w.EducationLaw, (int)p.EducationLaw, (int)EducationLaw.Compulsory, v => p.EducationLaw = (EducationLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Suffrage, (int)w.Suffrage, (int)p.Suffrage, (int)Suffrage.Universal, v => p.Suffrage = (Suffrage)v);
         GateLaw(ref shared, w, PolicyAxis.WomenRights, (int)w.WomenRights, (int)p.WomenRights, (int)WomenRightsLaw.Suffrage, v => p.WomenRights = (WomenRightsLaw)v);
@@ -280,6 +286,46 @@ public sealed class UtilityAgent : INationAgent
         // 軍事費＝合計だけが段（陸海比は SetNavalUpkeepShare が続けて連続で決める＝D4）。書き込み口は比を保つ既存の1本。
         GateLaw(ref shared, w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending.Value), Government.MilitaryStage(p.MilitarySpendingTarget),
                 Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Government.MilitaryLawStages);   // Max(1,…)＝「なし」を作らない
+    }
+
+    /// <summary>★(389) Q-a8 AI の官僚制度（旗 <see cref="Coefficients.AiBureaucracyFromPrereq"/>・既定 2・0 なら走査が走らない）：AI が欲しい法（目標が現行より上）のうち、その一歩が
+    /// 〈官僚制度が前提〉で止まっている法があれば、官僚制度の目標をその法が通る一番低い段まで上げる。直後の <c>GateLaw(官僚制度)</c> が法律タブと同じ門で一歩に整形する。
+    /// 欲しい法＝<see cref="Government.LevelLaws"/>／<see cref="Government.RateLaws"/> の表の行で目標が現行より上（表を読むだけ＝法の一覧を作らない）。
+    /// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
+    /// 旗 1＝欲しければ数える。旗 2＝さらに、官僚制度が足りていれば法律タブと同じ門 <see cref="Government.GateInfo"/>（純支持・政治資本の残り）も通る法だけ数える
+    /// （段0 の実測：独占禁止は開幕の工業化度で全国が 1787 年ごろから欲しがるが、政治の支持が無ければ通らない欲しさ）。
+    /// 新しい定数・閾値・状態を置かない（**引き金**は毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。
+    /// ⚠**置いた目標は導き直されない**＝施行されるまで（欲しさが消えても）残る（プレイヤーの置いた目標・議会の綱領の目標と同じ。解放を足すなら番人を意図して書き換える）。事前登録 追記3 [A]。
+    /// INS=1 のときは読むだけの記録を残す（旗 0 でも）。</summary>
+    internal static void BureaucracyFollowsWants(World w, NationPolicy p, ref PolicyPreferences.Profile? shared)
+    {
+        int wantMask = 0, blockMask = 0, feasMask = 0; var need = w.Bureaucracy; var applyNeed = w.Bureaucracy; var burIn = p.Bureaucracy; var coef = w.Coef;
+        bool politicalGate = coef.AiBureaucracyFromPrereq > 1;
+        PolicyPreferences.Profile? sh = shared;
+        void Scan(PolicyAxis axis, int cur, int tgt)
+        {
+            if (!(tgt > cur)) return;
+            int next = cur + 1;
+            bool okNow = Government.LawPrereq(w, axis, next, coef).Ok;
+            if (okNow && w.Bureaucracy == BureaucracyLaw.Spoils) return;   // 今が猟官制で通る＝官僚制度に左右されない法
+            if (Government.LawPrereq(w, axis, next, coef, BureaucracyLaw.Spoils).Ok || !Government.LawPrereq(w, axis, next, coef, BureaucracyLaw.Professional).Ok) return;   // 官僚制度に左右される法だけ
+            int bit = axis switch { PolicyAxis.SocialSecurity => 1, PolicyAxis.Antitrust => 2, PolicyAxis.Nationalization => 4, PolicyAxis.NationalizationAll => 8, PolicyAxis.ProgressiveTax => 16, _ => 32 };
+            wantMask |= bit;
+            if (okNow) return;
+            blockMask |= bit;
+            var lawNeed = w.Bureaucracy;
+            for (var level = w.Bureaucracy + 1; level <= BureaucracyLaw.Professional; level++)
+                if (Government.LawPrereq(w, axis, next, coef, level).Ok) { lawNeed = level; break; }
+            if (lawNeed > need) need = lawNeed;
+            bool feasible = (politicalGate || Instruments.On) && Government.GateInfo(w, axis, true, next, ref sh, lawNeed).Ok;   // 官僚制度が足りていれば法律タブで押せる法
+            if (feasible) feasMask |= bit;
+            if ((!politicalGate || feasible) && lawNeed > applyNeed) applyNeed = lawNeed;
+        }
+        foreach (var law in Government.LevelLaws) Scan(law.Axis, law.Get(w), law.Target(w, p));
+        foreach (var law in Government.RateLaws) Scan(law.Axis, Government.TaxStage(law.Axis, law.Get(w)), Government.TaxStage(law.Axis, law.Target(p)));
+        shared = sh;
+        if (coef.AiBureaucracyFromPrereq > 0 && applyNeed > w.Bureaucracy && p.Bureaucracy < applyNeed) p.Bureaucracy = applyNeed;
+        if (Instruments.On && (wantMask != 0 || p.Bureaucracy != w.Bureaucracy)) Instruments.BurObserve(w, burIn, p.Bureaucracy, wantMask, blockMask, feasMask, blockMask != 0 ? (int)need : -1);
     }
 
     // ★撤去2026-08-16（C2-C5）：AutoAntiCorruptionTarget（汚職根絶の自動化・2026-08-02）を物理削除＝汚職V2恒久ONで根絶費の動詞ごと死骸（プレイヤー/AI対称のまま消滅）。
@@ -647,7 +693,7 @@ public sealed class UtilityAgent : INationAgent
         else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.ConscriptionLaw;   // 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
         // ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
-        //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では普・米 10/10・英 8/10 種が 1951 年まで猟官制＝
+        //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では米 10/10 種が 1951 年まで猟官制（★(389) 段0 の実測で訂正：普は world.json で開幕から資格任用・英は m387 で 10/10 種が 1800 年前後に議会の経路で資格任用へ届く・計器のある 87 国のうち 51 国が 10 種とも最終まで猟官制）＝
         //   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
         if (w.MeanIndustrialization > AntitrustIndThreshold)
             p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
