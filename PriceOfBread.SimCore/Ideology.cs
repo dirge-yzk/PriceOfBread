@@ -281,7 +281,18 @@ public static class Ideologies
     /// ★思想②を1ミリも侵さない——国名も文化名も出てこない。アメリカ南部が離れるのは**南部の pop の思想分布がそうだから**であって「南部」と書いたからではない。</summary>
     public static double[] Regional(World w, Region r) => Aggregate(w, r.Pops);
 
-    private static double[] Aggregate(World w, IEnumerable<Pop> pops)
+    /// <summary>★(393) 兵士 POP だけのイデオロギー集計＝<see cref="National"/> の反復元を <see cref="Pop.IsSoldier"/> の POP に替えた同型（<see cref="Regional"/> の兄弟・新しい状態なし）。
+    /// 政体遷移の門2 が、保持力を〈今の政体を支える兵〉と〈引力点側へ回る兵〉に分ける a（<c>Politics.SoldierHoldShare</c>）の入力。totalWeight＝集計の分母（規模×意識×発言権の和・0 なら集計は全て 0）。</summary>
+    public static double[] Soldiers(World w, out double totalWeight) => Aggregate(w, SoldierPops(w), out totalWeight);
+
+    private static IEnumerable<Pop> SoldierPops(World w)
+    {
+        foreach (var p in w.AllPops()) if (p.IsSoldier) yield return p;
+    }
+
+    private static double[] Aggregate(World w, IEnumerable<Pop> pops) => Aggregate(w, pops, out _);
+
+    private static double[] Aggregate(World w, IEnumerable<Pop> pops, out double totalWeight)
     {
         var agg = new double[Count];
         double total = 0;
@@ -298,6 +309,7 @@ public static class Ideologies
             total += weight;
         }
         if (total > 1e-9) for (int k = 0; k < Count; k++) agg[k] /= total;
+        totalWeight = total;
         return agg;
     }
 

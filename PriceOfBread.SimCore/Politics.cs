@@ -509,8 +509,10 @@ public static class Politics
         // 労働運動の両義性（B-5）：容認/統制の組合は組織労働として改革派を動員する＝体制への改革圧力（闘争度緩和で革命radicalは下げつつ、ここで改革reformistを上げる）。非合法＝動員なし。
         double unionMob = c.UnionMobilization * (w.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 });
         double reformist = 0, radical = 0, conscSum = 0, sizeSum = 0;
+        bool exclSoldiers = c.HoldSplitBySoldierIdeology > 0;   // (393) 兵は保持力 κ の中にいる＝動員に足すと二重に数える（旗 0 は今のまま）
         foreach (var p in w.AllPops())
         {
+            if (exclSoldiers && p.IsSoldier) { conscSum += p.Consciousness * p.Size; sizeSum += p.Size; continue; }   // 平均意識・平均満足の門の母数は変えない
             // POP動詞①（階級弾圧の表出抑制 express・常時1.0）は2026-07-20廃止＝第3段3-1で削除（2026-07-27・厳密恒等）。
             reformist += p.Size * p.Consciousness * (1 - p.Militancy);
             radical += p.Size * p.Consciousness * p.Militancy;
@@ -548,14 +550,15 @@ public static class Politics
     /// ブルジョワなら共和制。権威主義（絶対/専制/幕府）からの転換が主。自由な政体ではブルジョワが大衆の脅威に独裁化、
     /// 貴族が極端なら反動・復古。絶対君主制は貴族が衰え官僚軍が空白を埋めると専制君主制（上からの近代化）へ。
     /// </summary>
-    private static void Transition(World w, Coefficients c, double reformist, double radical, double coerce, bool eroding)
+    internal static void Transition(World w, Coefficients c, double reformist, double radical, double coerce, bool eroding)   // ★(393) private→internal（アクセス修飾子のみ＝番人が門2 を直接叩く）
     {
         double challenge = reformist + radical;
         // 画一的な政体遷移（イデオロギー駆動）：国民イデオロギー集計→各政体の支持→引力点。
         // 引力点が現政体と異なり、支持差が保持力（PolityInertia×正統性）を超えれば遷移。任意→任意が単一式で出る。
         // 旧来の手書き分岐（軍クーデタ・1917・ブルジョワ反動・独裁の出口…）はこの一式に吸収（軍の力は支持に上乗せ・厭戦は闘争度とイデオロギー経由）。
         var agg = Ideologies.National(w);
-        double soldierForce = SoldierForce(w, c);
+        bool splitHold = c.HoldSplitBySoldierIdeology > 0;   // (393) 軍の力の入口：足し算をやめ、保持力を兵士の思想で分ける（下の第1の門の直後）。0 なら今のまま
+        double soldierForce = splitHold ? 0.0 : SoldierForce(w, c);
         // 倍率排除⑧段階2：現政体の参加軸を**実際の参政権**へドリフト（控えめ）。広い参政権の立憲＝高参加で安定／狭い立憲＝低参加で共和へ押される
         // ＝政体ラベルでなく実法律が政体の引力を動かす（①②③の総仕上げ）。較正中立：sweep は実参政権＝政体の建国参政権でドリフト≒0。
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
@@ -578,7 +581,7 @@ public static class Politics
         foreach (var pol in Ideologies.Polities)
         {
             double s = Ideologies.SupportAt(agg, pol == w.Polity ? curCoord : Ideologies.BasePolityCoord(pol), c.IdeologyAffinitySlope);
-            if (pol == Polity.MilitaryDictatorship)
+            if (pol == Polity.MilitaryDictatorship && !splitHold)
                 s += CoupSupport(w, c, soldierForce, coerce);   // 軍部の力（クーデタは銃が要る＝イデオロギーだけでない）。式は CoupSupport の1本
             if (pol == Polity.BourgeoisDictatorship) s += bourgeoisCoup;   // 法多様性：大衆闘争が高いほどブルジョワが独裁へ傾く
             // 政体形態の実績ストック（信認⇔失望・docs/2026-07-13_形態別失望ストック.md）：その形態系統の実績で支持を符号付きに増減
@@ -590,6 +593,15 @@ public static class Politics
             if (s > best) { best = s; attractor = pol; }
         }
         if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
+        // ★(393) 軍の力の入口：保持力 κ は兵から作った量＝兵が今の政体を支えるか引力点へ回るかで、守る側 κ×a と挑戦の側 κ×(1−a) に分ける
+        //   （a＝兵士 POP だけの思想の集計での 現政体の支持÷（現政体＋引力点の支持））。以後の読み手（予感・門2・拮抗の判定・下賜の幅）は分けた値を読む＝分子と分母を同じ規則で。
+        //   旗 0 でも計器つき（INS=1）なら a を読むだけ出す（値は書き換えない）。事前登録 measurements/mc_20261018_prereg.txt。
+        if (splitHold || Instruments.On)
+        {
+            double holdA = SoldierHoldShare(w, c, curCoord, attractor, out double sCurS, out double sAttS, out double soldierW);
+            if (Instruments.On) Instruments.CoupGate(w, attractor, sCurS, sAttS, holdA, soldierW, coerce, challenge);
+            if (splitHold) { challenge += coerce * (1.0 - holdA); coerce *= holdA; }
+        }
         // 政2：上からの改革（明治型・欽定憲法・露大改革）＝支配ブロック自身が主導する代議制/近代化への移行。大衆動員(challenge)が治安維持力を超えずとも遷移できる例外チャネル。
         // （旗 ReformFromAboveEnabled は 2026-09-26 に焼き込み＝旧挙動＝challenge<=coerce ゲートが無条件で明治1889/プロイセン欽定/露大改革が不能）。
         // 「①引力点が別政体（上の第1ゲートを通過済＝支配層含む国民集計で現政体より別政体の支持が高い）②正統性侵食が進行中(Legitimacy<閾値)③遷移先が反動的奪取でない代議制方向」の三条件が揃えば coerce ゲートを免除。
@@ -1727,6 +1739,19 @@ public static class Politics
         double f = 0;
         foreach (var p in w.AllPops()) if (p.IsSoldier) f += p.Size * (0.2 + p.Militancy);
         return f * c.MilitaryCoupWeight;
+    }
+
+    /// <summary>★(393) 兵士の支持の比 a∈[0,1]＝兵士 POP だけの思想の集計（<see cref="Ideologies.Soldiers"/>）での 現政体の支持÷（現政体の支持＋引力点の支持）（負は 0）。
+    /// 現政体の座標は呼び手が渡す（参政権でドリフトした curCoord）・引力点は静的な基準座標。国民の失望の記録（RegimeTrackRecord）と bourgeoisCoup の上乗せは掛けない（兵の支持であって国民側の項ではない）。
+    /// 分母が正でない〔兵士 POP が無い・両方が 0 以下・NaN〕ときは a＝1（引き揚げる兵がいない＝守る側が全部＝旧の保持力のまま）。否定形で書く（NaN を残さない）。</summary>
+    internal static double SoldierHoldShare(World w, Coefficients c, double[] curCoord, Polity attractor, out double sCur, out double sAtt, out double totalWeight)
+    {
+        var aggS = Ideologies.Soldiers(w, out totalWeight);
+        sCur = Ideologies.SupportAt(aggS, curCoord, c.IdeologyAffinitySlope);
+        sAtt = Ideologies.SupportAt(aggS, Ideologies.BasePolityCoord(attractor), c.IdeologyAffinitySlope);
+        double pc = !(sCur > 0) ? 0.0 : sCur, pa = !(sAtt > 0) ? 0.0 : sAtt;
+        double tot = pc + pa;
+        return !(tot > 0) ? 1.0 : pc / tot;
     }
 
     /// <summary>軍政の支持への加算＝軍部の力＝MCS×σ×π（Transition の唯一の読み手。計器とテストもこれを呼ぶ＝式を写さない）。

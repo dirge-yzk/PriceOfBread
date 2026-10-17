@@ -414,6 +414,7 @@ public sealed class Coefficients
     // --- 画一的な政体遷移（イデオロギー駆動）。支持(政体)=国民イデオロギー集計·親和。引力点-現政体>保持力で遷移 ---
     public double PolityInertia = 0.4;           // 保持力＝PolityInertia×正統性。支持差がこれを超えると遷移（正統性が高い体制は粘る・権威主義下で意識↑＝正統性侵食で倒れやすく）
     public double MilitaryCoupSupport = 0.6;     // 軍部の力を軍事独裁の支持に上乗せ（クーデタは銃が要る＝イデオロギーだけでない）＝これ×取り分 σ＝sf/(sf+保持力)×職業軍の度合い π（Politics.CoupSupport）。軍が武力の均衡を全部握ったとき（σ→1・π=1）の加算の上限
+    public double HoldSplitBySoldierIdeology = 0;   // ★(393) 軍の力の入口の作り直し（器・既定 0＝休眠）：>0 で ①Transition の軍政の支持への足し算 CoupSupport を行わない ②引力点が現政体と違うと決まった後、保持力 κ を兵士 POP だけの思想の集計から出す a＝現政体の支持÷（現政体＋引力点の支持）〔負は 0・兵士の思想が読めなければ a＝1〕で κ×a（守る側）と κ×(1−a)（挑戦の側へ移す）に分ける ③MeasureMobilization は兵士 POP の規模×意識を動員に足さない（κ の中にいる＝二重に数えない）。0＝1 命令も走らない。事前登録 measurements/mc_20261018_prereg.txt。POB_COEF：HoldSplitBySoldierIdeology=1
     // ★作者裁定2026-09-19 R3/R4 は 2026-09-20 に既定化（腕 A4）＝旗 CoupForceShare／CoupMassArmyDiscount と旧式の枝（裸の比 sf/max(1,保持力)）を削除。
     //   同じ項の二重計上2本も係数ごと削除（P9）：WarExhaustionCoupBoost（厭戦の明示乗数＝厭戦は兵士の闘争度に既に入る）・AllegianceCoupWeight（軍帰属の変調＝兵士の思想の読み直し）。
     // 窮乏チャネル（パンの蜂起＝1789）：意識（識字・教育）が低くても、窮乏で闘争度が暴動水準を超えた群衆は革命的脅威になる。
