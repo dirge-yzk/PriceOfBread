@@ -141,7 +141,7 @@ public class StateFactoryTests
         Assert.True(p.BuiltScale > 0, "抵抗ゼロでも接収が進まない＝接収が配線されていない");
         Assert.Equal(treasury0, w.Treasury.Value);                    // 補償を払わない＝金は動かない
         Assert.Equal(savings0, r.Pops[r.InvestorPopIndex].Savings.Value);
-        Assert.True(r.Pops[r.InvestorPopIndex].Militancy > mil0, "押し切った代償（闘争度）が積まれない");
+        Assert.Equal(mil0, r.Pops[r.InvestorPopIndex].Militancy);     // (384) 接収が資本家の闘争度に直に足す項（SeizureMilitancyCost）は削除した＝押し切っても闘争度は動かない（復活の番人）
         Assert.True(r.SeizureChill > 0, "押し切った代償（資本逃避）が積まれない");
         Assert.Equal(World.StateUnits(p, w.Coef), p.StateTarget);   // 接収した持分をカウンターが売り戻さない
     }
