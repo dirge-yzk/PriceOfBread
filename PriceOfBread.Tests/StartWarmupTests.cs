@@ -1,6 +1,7 @@
-using System.Linq;
+﻿using System.Linq;
 using PriceOfBread.SimCore;
 using Xunit;
+using static PriceOfBread.Tests.StartWarmupShared;
 
 namespace PriceOfBread.Tests;
 
@@ -15,10 +16,15 @@ namespace PriceOfBread.Tests;
 /// <para>③**入口が1本**＝App も自己対戦バッチも <see cref="MultiNationSim.StartWarmup"/> だけを通り、同じ盤面から始まる。</para>
 /// <para>⚠これは ON 経路のテスト（助走を実際に回して結果を見る）＝「何もしない機構は必ず緑」の轍を踏まない。</para>
 /// </summary>
+/// ★2026-10-17（開発の高速化）：番人を4つのクラスへ分けた（xUnit はクラスごとに並列）。共有の道具はここ。
+internal static class StartWarmupShared
+{
+    internal static MultiNationSim Build(ulong seed = 1789UL)
+        => new(WorldData.Nations(), seed, _ => new UtilityAgent());
+}
+
 public class StartWarmupTests
 {
-    private static MultiNationSim Build(ulong seed = 1789UL)
-        => new(WorldData.Nations(), seed, _ => new UtilityAgent());
 
     [Theory]
     [InlineData(4)]    // 既定＝1年
@@ -63,6 +69,11 @@ public class StartWarmupTests
         Assert.Equal(w4.Lit, w40.Lit, 6);
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
+public class StartWarmupTests2
+{
     [Fact]
     public void 助走は資本を一切育てない()
     {
@@ -158,6 +169,11 @@ public class StartWarmupTests
     ///   専売を日用品の全てまで広げた（段3＝専売 年GDP の約14%）。新＝梯子は史実の物品税の財から・助走は教義の広さのまま（広げた記憶を積まない）＝開幕の蘭は段2。
     /// 突然変異：所得税を旧の10% へ→①が赤（①の所得税0 の行を外した写しで②も赤＝欧州の国が 14.9%）／world.json の段を読まない（全ての国を既定の段）→①が赤
     /// （③は清を既定の段にしても帯の内側＝段の取り違えは①が持つ・③は地丁銀の桁の錨）。</summary>
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
+public class StartWarmupTests3
+{
     [Fact]
     public void 開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁()
     {
@@ -283,6 +299,11 @@ public class StartWarmupTests
         }
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
+public class StartWarmupTests4
+{
     [Fact]
     public void 助走は二度目の呼び出しで何もしない()
     {

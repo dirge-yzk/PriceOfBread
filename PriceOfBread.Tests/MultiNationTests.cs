@@ -1,5 +1,6 @@
 ﻿using PriceOfBread.SimCore;
 using Xunit;
+using static PriceOfBread.Tests.MultiNationShared;
 
 namespace PriceOfBread.Tests;
 
@@ -9,14 +10,15 @@ namespace PriceOfBread.Tests;
 /// </summary>
 // ⚠2026-08-28：戦闘ログ書式・覇権緊張の2件は ColoniesAreRegions=0 で環境固定＝検証対象は機構（ログ書式・緊張の集中）であって
 //   植民地の政治ではない。昇格を入れると4カ国世界の戦争軌道が変わり、200四半期で戦闘が1件も起きない世界線に入る（実測）。
-public class MultiNationTests
+/// ★2026-10-17（開発の高速化）：番人を4つのクラスへ分けた（xUnit はクラスごとに並列）。共有の道具と同じ走行（Lazy＝1回だけ回す）はここ。
+internal static class MultiNationShared
 {
-    private static NationConfig[] FourNations() =>
+    internal static NationConfig[] FourNations() =>
         [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
 
     // ★同じ走行を1回に（fis-21・2026-09-26）：旧＝同じ4カ国・seed 1789・400四半期を4本のテストがそれぞれ回していた（同じ軌道＝決定論）。
     //   開幕の値（各国の基礎貨幣・植民地の総数）を先に取ってから1回だけ回し、3本が読む（xUnit は同じクラスのテストを順に走らせる）。
-    private sealed class FourNations400
+    internal sealed class FourNations400
     {
         public readonly MultiNationSim Sim;
         public readonly double[] Base0;
@@ -30,7 +32,7 @@ public class MultiNationTests
             Error = Record.Exception(() => Sim.Run(quarters));   // §11.6 が全国・全ティックで保持（戦費還流・賠償の対外移転を含む）
         }
     }
-    private static readonly System.Lazy<FourNations400> Shared400 = new(() => new FourNations400());
+    internal static readonly System.Lazy<FourNations400> Shared400 = new(() => new FourNations400());
     // ★(149) 合流（盤面だけ・主張は同じ）：(147)(148) の発見の作り替え＋(145) の兵の単位を合わせた木では、この4カ国の閉じた世界の400四半期に国どうしの開戦が無い
     //   （6つの種で0・英の首都の内戦だけ7〜9回＝装備の充足が 1803 の米で r144 0.26→0.06・即応度 0.23→0.06＝(147)(148) 単独でも開戦 9→2）。61カ国の帯では交戦ペアは 323→383〜424 で戦争は起きる
     //   ＝植民地の保存を「戦争と講和を通して」確かめる盤面を全長（668四半期・最初の開戦 1920）にした。
@@ -42,7 +44,11 @@ public class MultiNationTests
     //   四半期は200（1833年）＝61カ国の1試合は4カ国の約15倍の重さ＝フルスイートの時間を抑える（⚠ (154)：時間は単独で測っていない＝数を外した）。
     //   ⚠ (154) 反証役の指摘：盤面は国の集合（4→61カ国）と AI（UtilityAgent・旧の2本は AI なし）の2つが変わった。合わせた木の200四半期＝満足度の平均 0.457・工業化の差 4.29・開戦 141
     //   （閾値 0.24・0.20・1）。4カ国の閉じた世界の停滞（社会主義を誰も見つけない）は作者への確認（政体の引力）の回で4カ国の盤面へ戻すかを決める（00一覧）。
-    private static readonly System.Lazy<FourNations400> SharedWorld = new(() => new FourNations400(200, world: true));
+    internal static readonly System.Lazy<FourNations400> SharedWorld = new(() => new FourNations400(200, world: true));
+}
+
+public class MultiNationTests
+{
 
     // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
     //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
@@ -186,6 +192,11 @@ public class MultiNationTests
         Assert.True(m.WorldPricesMoved > 10, $"世界価格が動かない（{m.WorldPricesMoved}）");
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
+public class MultiNationTests2
+{
     [Fact]
     public void 四国は100年放置で破綻せず各国が基礎貨幣を保存する()
     {
@@ -267,6 +278,11 @@ public class MultiNationTests
         Assert.True(britainWorkerShare > britain.Pops[1].Size / britain.SumPopulation(), "イギリスは農民より労働者が多いはず");
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
+public class MultiNationTests3
+{
     [Fact]
     public void 緊張は戦争を生み講和で植民地と賠償が動く()
     {
@@ -327,6 +343,11 @@ public class MultiNationTests
         Assert.True(moved > 10, $"世界価格がほとんど動いていない（{moved}財）");
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
+public class MultiNationTests4
+{
     [Fact]
     public void 国際市場ありでも各国と世界全体が保存する()
     {

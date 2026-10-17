@@ -1,6 +1,7 @@
 ﻿using PriceOfBread.SimCore;
 using PriceOfBread.App.ViewModels;   // ★M5（2026-09-20）＝生産タブの専売チェック（ProdDetail.MonopolyOn）の往復を測るための唯一の App 参照
 using Xunit;
+using static PriceOfBread.Tests.ProductionDiagShared;
 
 namespace PriceOfBread.Tests;
 
@@ -11,16 +12,21 @@ namespace PriceOfBread.Tests;
 ///
 /// 併せて「読み取り専用＝力学を1ビットも動かさない」ことも並走比較で固定する（Explain と同じ作法）。
 /// </summary>
-public class ProductionDiagTests
+/// ★2026-10-17（開発の高速化）：番人を4つのクラスへ分けた（xUnit はクラスごとに並列＝この1クラスがフルスイートの壁を決めていた）。共有の道具はここ。
+internal static class ProductionDiagShared
 {
-    private const double Eps = 1e-9;
+    internal const double Eps = 1e-9;
 
-    private static MultiNationSim RunWorld(int quarters)
+    internal static MultiNationSim RunWorld(int quarters)
     {
         var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
         for (int q = 0; q < quarters; q++) sim.StepQuarter();
         return sim;
     }
+}
+
+public class ProductionDiagTests
+{
 
     [Fact]
     public void 価格の分解は積み上げが市場価格と買い手価格に一致する()
@@ -145,6 +151,11 @@ public class ProductionDiagTests
         Assert.True(sawFactory, "材料費と人件費の両方が正の財が1つも無い＝左段が片方しか出せていない");
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人を4つのクラスへ分けた（中身は変えない・共有の道具は ProductionDiagShared）。</summary>
+public class ProductionDiagTests2
+{
     [Fact]
     public void 稼働率の内訳は掛け合わせると稼働率に一致する()
     {
@@ -191,6 +202,11 @@ public class ProductionDiagTests
         Assert.True(sawDifference, "素材の配給率と投入充足（労働込み）が全く分かれていない＝労働不足が画面から読めない");
     }
 
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人を4つのクラスへ分けた（中身は変えない・共有の道具は ProductionDiagShared）。</summary>
+public class ProductionDiagTests3
+{
     [Fact]
     public void popの購入記帳は内訳の和が合計に一致し販売量を超えない()
     {
@@ -296,6 +312,11 @@ public class ProductionDiagTests
     ///   ① どのレシピも恒等式（内訳の和＝限界費用）を満たす
     ///   ② 従来の1個体（<see cref="ProductionDiag.ExplainCost"/>）は必ずこの集合の中に居る＝画面から消える分解が無い
     ///   ③ 代替レシピを持つ財（電力・鋼・肥料…）が世界のどこかで実際に2本以上返る＝空回りしていない</summary>
+}
+
+/// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人を4つのクラスへ分けた（中身は変えない・共有の道具は ProductionDiagShared）。</summary>
+public class ProductionDiagTests4
+{
     [Fact]
     public void レシピごとの分解は恒等式を満たし従来の分解を含む()
     {
