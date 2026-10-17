@@ -524,7 +524,7 @@ public class WarThemeTests
     // ===== 開戦の入口と終戦の1本（2026-09-28 処理の一元化 段2 C・D）の番人 =====
 
     private static MultiNationSim Board(params string[] names)
-        => new(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(names, WorldData.ByName)), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        => new(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(names, OpeningFixture.Named)), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };   // ★(332) 国庫・国債は絶対額（助走なしの器）
 
     /// <summary>同盟を張る（本体の締結は AI の確率の枝だけ＝番人は盤面へ直に置く）。</summary>
     private static void Ally(Diplomacy d, Power a, Power b)

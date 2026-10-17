@@ -411,6 +411,40 @@ public sealed class UtilityAgent : INationAgent
         return s >= 0 ? (s <= 1 ? s : 1.0) : (s < 0 ? 0 : 1.0);   // 否定形ガード＝NaN は逼迫側（1）
     }
 
+    /// <summary>★(337) 利払いの重さ∈[0,1)＝利払いのうち、歳入が借入の門の限界（<see cref="Coefficients.MaxInterestShareOfRevenue"/>＝<see cref="Fiscal.BorrowGateOpen"/> と同じ線）で支えきれない部分の割合
+    /// ＝(利払い−限界×歳入)÷利払い（限界の下は 0・歳入が 0 なら 1 に近づく）。新しい数を持たない・上下を切らない（入力に比例して 0 から 1 へ連続に近づく）。
+    /// 払えなかった割合 1−r（<see cref="FiscalStressOf"/>）は請求が実際に払えなくなってから立つ＝借入の門が閉じ国庫を食う間（利払い÷歳入が限界を超えて r＝1 のまま）は立たない。こちらはその間を読む。
+    /// 定まらない（NaN）は 0。(319) 枝 fx の器と同じ式。</summary>
+    internal static double InterestBurdenStressOf(World w)
+    {
+        double interest = w.LastInterestPerMonth.Value;
+        double excess = interest - w.Coef.MaxInterestShareOfRevenue.Value * w.LastRevenuePerMonth.Value;
+        return excess > 0 ? excess / interest : 0.0;   // 否定形の裏＝NaN は 0
+    }
+
+    /// <summary>★(337) 専売の段を広げる確率 p＝利払いの重さ B × 余裕の因子 S（S＝安全水準÷(安全水準＋国庫)。国庫が空なら 1・安全水準と同額で 0.5・潤沢で 0 へ。<see cref="SecurityShare"/> と同じ x/(x+y) の有界形）。
+    /// 符号の段差でなく B に比例（B＝0 なら p＝0）・上下を切らない（B∈[0,1)・S∈(0,1] の積）。国庫が定まらない（NaN）は空（S＝1）として扱う（逼迫側へ倒す＝<see cref="FiscalStressOf"/> と同じ向き）。</summary>
+    internal static double MonopolyPushProbabilityOf(World w)
+    {
+        double b = InterestBurdenStressOf(w);
+        if (!(b > 0)) return 0.0;   // B＝0（または NaN）なら p＝0＝引く必要がない（符号の錠ではなく p＝B×S の積が 0 になるだけ。抽選を引かない最適化）
+        double buffer = FiscalBufferOf(w), treasury = w.Treasury.Value;
+        double reserve = treasury > 0 ? treasury : 0.0;
+        return b * (buffer / (buffer + reserve));
+    }
+
+    /// <summary>★(337) 係数 <see cref="Coefficients.MonopolyBurdenPushMode"/>＞0 のとき、払えていて r＝1 のままでも利払いが重い間に専売の段を 1 段広げるか＝専用乱数 <see cref="World.AiRng"/> を 1 回引いて u＜p。
+    /// 係数 0・p＝0・乱数の列なし（較正／最小世界）では**引かない**（既定で恒等＝乱数を消費しない）。</summary>
+    internal static bool MonopolyPushDraw(World w, out double p, out double u)
+    {
+        p = double.NaN; u = double.NaN;
+        if (w.Coef.MonopolyBurdenPushMode <= 0 || w.AiRng is not { } rng) return false;
+        p = MonopolyPushProbabilityOf(w);
+        if (!(p > 0)) return false;
+        u = rng.NextDouble();
+        return u < p;
+    }
+
     /// <summary>★脅威の割合∈[0,1)（2026-10-02 (155)）＝安全保障の不安（届く敵意の養える軍の和＝<see cref="World.SecurityThreat"/>）÷(それ＋自国の養える軍の人口の側＝<see cref="World.SecurityThreatOwnMass"/>)
     /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
     /// 定まらない（単一国・分母0・NaN）は0。
@@ -1411,7 +1445,11 @@ public sealed class UtilityAgent : INationAgent
         if (!w.WarmupFrozen)
         {
             int curTier = w.StateMonopolyTier;
+            bool push = false; double pushP = double.NaN, pushU = double.NaN;   // ★(337) MonopolyBurdenPushMode＝1：払えていて r＝1 でも利払いが重い間は、確率 p＝重さ×余裕の因子 で 1 段広げる（外れたら下の旧の枝）。0＝抽選せず偽＝旧と同じ
+            if (!(fiscalStress > 0)) push = MonopolyPushDraw(w, out pushP, out pushU);
+            if (Instruments.On) Instruments.MonopolyPush(w, InterestBurdenStressOf(w), pushP, pushU, push);   // 計器（読むだけ・(337)）：決断の時点の重さ・確率・抽選の目・当たり（抽選しなかった四半期は NaN・0）
             if (fiscalStress > 0) stateMonopTier = Math.Max(stateMonopTier, curTier + 1);
+            else if (push) stateMonopTier = Math.Max(stateMonopTier, curTier + 1);
             else if (w.Treasury.Value > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
             else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }

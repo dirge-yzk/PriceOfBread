@@ -36,23 +36,24 @@ public sealed partial class InternationalMarket
     /// 四半期末の共有層（MultiNationSim の発見の段）が接触＝②÷その行の運び手の財の①の和 に直して0へ戻す。</summary>
     public double[]? DiscoveryGoodFlowQ;
     [System.NonSerialized] private int[][]? _discCarriers, _discRowsByCarrier;   // 作業領域（財とレシピの定義から導く・セーブに載らない＝ロード後に同じ表を作り直す）
-    internal int[][] DiscoveryCarriers(IReadOnlyList<Simulation> nations)
+    internal int[][] DiscoveryCarriers(IReadOnlyList<Simulation> nations, Coefficients c)
     {
         if (_discCarriers is null)
         {
             var ws = new List<World>(nations.Count);
             foreach (var n in nations) ws.Add(n.World);
-            _discCarriers = Discovery.CarriersByRow(ws);
+            // ⚠表は最初の呼び手の係数で一度だけ作る（国ごとの Coef が別インスタンスで DiscoveryCarrierDownstream の値が違うと呼ぶ順で変わる）＝POB_COEF の全体指定では全ての国が同じ値で起きない（事前登録の追記 8）
+            _discCarriers = Discovery.CarriersByRow(ws, c.DiscoveryCarrierDownstream > 0);   // ★(360) 0（既定）は旧と同じ表
             _discRowsByCarrier = Discovery.RowsByCarrier(_discCarriers);
         }
         return _discCarriers;
     }
-    private void AccumulateDiscovery(IReadOnlyList<Simulation> nations, int seller, int buyer, int g, double value)
+    internal void AccumulateDiscovery(IReadOnlyList<Simulation> nations, Coefficients c, int seller, int buyer, int g, double value)
     {
         var gf = DiscoveryGoodFlowQ ??= new double[Catalog.Goods.Length];
         if (g < 0 || g >= gf.Length || !(value > 0)) return;
         gf[g] += value;
-        DiscoveryCarriers(nations);
+        DiscoveryCarriers(nations, c);
         var rows = _discRowsByCarrier![g];
         if (rows.Length == 0) return;
         var ks = nations[seller].World.Discovered; var wb = nations[buyer].World; var kb = wb.Discovered;
@@ -60,7 +61,7 @@ public sealed partial class InternationalMarket
             if (Discovery.Known(ks, r) && !Discovery.Known(kb, r))
             {
                 (wb.DiscoveryImportQ ??= new double[Catalog.Discoveries.Length])[r] += value;
-                if (Instruments.On) Instruments.DiscoveryContact(wb, nations[seller].World, r, value);   // (328) 接触の内訳（読むだけ）
+                if (Instruments.On) Instruments.DiscoveryContact(wb, nations[seller].World, r, g, value);   // (328) 接触の内訳（読むだけ）
             }
     }
     private void AccumulatePairFlow(int seller, int buyer, double value, int n)
@@ -914,7 +915,7 @@ public sealed partial class InternationalMarket
                     msA.Stock -= qA; msA.LastExport += qA;
                     m.Stock += qA; m.LastImport += qA;
                     if (c.DiffusionWeight > 0 && crossA) AccumulatePairFlow(siA, ni, vA, nn);   // ★段7：伝播のペア記帳（国際取引のみ・0＝不読＝恒等）
-                    if (crossA) AccumulateDiscovery(nations, siA, ni, g, vA);                    // ★段2A：発見の伝わりの記帳（その財を運び手に持つ行＝解禁済みの国からまだの国へ）
+                    if (crossA) AccumulateDiscovery(nations, c, siA, ni, g, vA);                    // ★段2A：発見の伝わりの記帳（その財を運び手に持つ行＝解禁済みの国からまだの国へ）
                     double payA = (vA + frG) / exRate[ni];     // 清算所へ（輸入代金＋運賃・買い手の通貨）
                     double dutyPay = vA * dutyA / exRate[ni];  // 国庫へ（関税と穀物法・買い手の通貨）
                     double feePay = vA * (portT + portS + premA) / exRate[ni];   // 清算所へ（港湾料と保険料・買い手の通貨）＝受け手へは清算の終わりに

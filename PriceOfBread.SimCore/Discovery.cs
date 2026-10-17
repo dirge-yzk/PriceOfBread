@@ -275,16 +275,27 @@ public static class Discovery
     /// ⚠新しい財（発明）は発見するまで需要も理想の軍隊の装備も立たない（需要＝財の解禁・作者裁定 2026-09-08）＝財そのものの輸入は発見の後にしか起きない
     ///   ＝発見の前に伝わる道は投入の資本財（機械・機関・火砲）の輸入と技師の移動だけ（1種の試走で、資本財を運び手から外すと英が機関銃・装甲艦を1950年まで持たなかった）。
     /// 行の代表の生産者（どこかの国の州にある同じ財・同じレシピの最初の1件）の投入から作る＝全ての国で同じレシピの定義。</summary>
-    public static int[][] CarriersByRow(IEnumerable<World> worlds)
+    public static int[][] CarriersByRow(IEnumerable<World> worlds, bool downstream = false)
     {
         int nr = Catalog.Discoveries.Length;
         var rep = new Producer?[nr];
+        // ★(360) 伝わりの道（<paramref name="downstream"/>＝係数 DiscoveryCarrierDownstream が正）：①運び手の財を投入に持つ取引できる資本財（Producer 段の財）の逆引き ②その財を投入に持つ生産者のうち
+        //   発見の行に縛られない（行を解禁しなくても使える）ものがあるか。偽のときは求めない（旧と同じ）。
+        HashSet<int>?[]? downOf = downstream ? new HashSet<int>?[Catalog.Goods.Length] : null;
+        bool[]? freeUse = downstream ? new bool[Catalog.Goods.Length] : null;
         foreach (var w in worlds)
             foreach (var r in w.Regions)
                 foreach (var p in r.Producers)
                 {
                     int row = p.DiscoveryRow;
                     if (row >= 0 && rep[row] is null) rep[row] = p;
+                    if (downOf is not null)
+                        foreach (var inp in p.Inputs)
+                        {
+                            if (inp.GoodId < 0 || inp.GoodId >= downOf.Length || inp.GoodId == p.GoodId) continue;
+                            if (row < 0) freeUse![inp.GoodId] = true;   // 行に縛られない生産者（地理差の既定のレシピ）もこの財を使う
+                            else if (Carries(p.GoodId) && Catalog.Goods[p.GoodId].Tier == GoodTier.Producer) (downOf[inp.GoodId] ??= new HashSet<int>()).Add(p.GoodId);
+                        }
                 }
         var res = new int[nr][];
         var tmp = new List<int>();
@@ -296,6 +307,17 @@ public static class Discovery
             if (rep[row] is { } p)
                 foreach (var inp in p.Inputs)
                     if (Carries(inp.GoodId) && Catalog.Goods[inp.GoodId].Tier == GoodTier.Producer && !tmp.Contains(inp.GoodId)) tmp.Add(inp.GoodId);
+            if (downOf is not null)
+            {
+                // ★(360) 1代だけ：上で数えた運び手のうち、使い道が全て発見の行に縛られた財（＝その財を使う口は自分で行を解禁した国にしか開かない＝解禁の前にその財が取引される道が無い。蒸気機関の財は
+                //   蒸気の動力・汽船・機関車の 3 つの口だけ）を投入に持つ資本財を、財の番号の昇順で足す（接触の分母の和の順序を決定的にする）。機械や鋼のように行に縛られない使い道を持つ財は、解禁の前から
+                //   取引されるので足さない。足した財をさらに辿らない（機関車の先まで広げない）。
+                int n0 = tmp.Count;
+                var add = new SortedSet<int>();
+                for (int i = 0; i < n0; i++)
+                    if (!freeUse![tmp[i]] && downOf[tmp[i]] is { } ds) foreach (int g in ds) if (!tmp.Contains(g)) add.Add(g);
+                foreach (int g in add) tmp.Add(g);
+            }
             res[row] = [.. tmp];
         }
         return res;
@@ -560,6 +582,8 @@ public static class Discovery
     /// ＝旧（(159)）は参照価格へ寄せた。戻り値＝この四半期の瞬間の値段と国の産出（<see cref="WorldPrices"/> の重み・多国の判定の段が使う）。
     /// ★(169) 重み＝国内の産出（その財を実際に売っている国＝輸出か国内の売りに回る自国の生産）＝開幕の一律の在庫を少しの需要で捌くだけの国（産出≈0）は重み≈0
     ///   （(166) の根＝外へ売らない薄い市場の値段が世界の値段になった＝(167) の申し送りの腕・推奨で進めた）。旧（(165)〜(167)）＝国の需要（買う国の値段で平均した）。</summary>
+    /// <remarks>★(320) 値段の履歴を持たない国（<see cref="World.DiscoveryPrice"/> が null）の最初の値は、係数 <see cref="Coefficients.DiscoveryPriceInitFromCost"/> が正なら自然価格
+    /// （<see cref="NaturalPrior"/>）から始めて最初の観測を他の四半期と同じ率で入れる（観測の無い財・自然価格の立たない財は旧のまま＝瞬間の値）。0（既定）は旧＝最初の観測の瞬間の値。</remarks>
     internal static (double[] Inst, double[] Sold) AdvancePrice(World w, Coefficients c)
     {
         w.Cost[CostLedger.DiscoveryPriceNations]++;   // 計算量の台帳（診断）：平滑化した値段の歩は国×四半期（(186)＝数えていなかった処理を数える）
@@ -568,7 +592,19 @@ public static class Discovery
         Aggregate(w, ng, prod, imp, dem, pxd);
         var x = InstantReal(w, ng, prod, imp, dem, pxd);
         var s = w.DiscoveryPrice;
-        if (s is null || s.Length != x.Length) { w.DiscoveryPrice = (double[])x.Clone(); return (x, prod); }
+        if (s is null || s.Length != x.Length)
+        {
+            var s0 = (double[])x.Clone();
+            if (c.DiscoveryPriceInitFromCost > 0)
+            {
+                var nat = NaturalPrior(w, ng);
+                double a0 = PriceSmoothingQ(c);
+                for (int g = 0; g < x.Length; g++)
+                    if (x[g] >= 0 && nat[g] >= 0) s0[g] = nat[g] + a0 * (x[g] - nat[g]);   // 自然価格から、最初の観測を他の四半期と同じ率で（否定形＝NaN の観測・自然価格は旧のまま）
+            }
+            w.DiscoveryPrice = s0;
+            return (x, prod);
+        }
         double a = PriceSmoothingQ(c);
         for (int g = 0; g < x.Length; g++)
         {
@@ -576,6 +612,35 @@ public static class Discovery
             s[g] = s[g] >= 0 ? s[g] + a * (x[g] - s[g]) : x[g];           // 最初の観測は瞬間の値から
         }
         return (x, prod);
+    }
+
+    /// <summary>★(320) 自然価格（財ごと・係数 <see cref="Coefficients.DiscoveryPriceInitFromCost"/> が正のとき、履歴の無い国の平滑化した値段の最初の値）
+    /// ＝その国でその財を作る門の開いたレシピ（<see cref="PriceBook"/> と同じ集合・レシピの名前ごとに最初の生産者）のうち最も安いものの費用（自己費用×自己費用の物価水準÷物価水準＋Σ投入の量×投入の自然価格）。
+    /// 全ての財を「市場が死んでいる」として <see cref="PriceBook.Of"/> に読ませる＝市場の値段も着値も使わず、レシピと自己費用だけから出る（参照価格を読まない）。作れない財・投入の輪・作れない投入を要する財は
+    /// <see cref="NoPrice"/>（先入観なし）。導出量（状態ではない）・履歴の無い国の最初の1回だけ求める。</summary>
+    internal static double[] NaturalPrior(World w, int ng)
+    {
+        var recipes = new List<Producer>?[ng];
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+            {
+                if (p.GoodId < 0 || p.GoodId >= ng || !(Gate(r, p) > 0)) continue;
+                var lr = recipes[p.GoodId] ??= new List<Producer>(2);
+                bool seen = false; foreach (var q in lr) if (q.RecipeName == p.RecipeName) { seen = true; break; }
+                if (!seen) lr.Add(p);
+            }
+        }
+        double plv = w.NominalOf(1.0);
+        double selfScale = plv > 0 ? w.CostPriceLevel / plv : 1.0;
+        if (!(selfScale > 0)) selfScale = 1.0;   // 否定形＝NaN は平価へ
+        var none = new double[ng + 1]; System.Array.Fill(none, NoPrice);
+        var book = new PriceBook(none, new bool[ng], null, recipes, selfScale, w, 0);
+        var res = new double[ng + 1];
+        for (int g = 0; g < ng; g++) { double v = book.Of(g); res[g] = v >= 0 ? v : NoPrice; }
+        res[ng] = NoPrice;
+        return res;
     }
 
     /// <summary>★(165) 世界の平滑化した実質の値段（財ごと）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、★(169) その国の産出（売っている量・旧＝需要）で重み付けた平均。

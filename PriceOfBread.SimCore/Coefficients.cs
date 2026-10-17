@@ -1948,6 +1948,19 @@ public sealed class Coefficients
     /// （<see cref="Catalog.DiscoveryAfter"/>）。前提の行が解禁した判定の次の四半期から判定する（同じ四半期の判定は判定の前の解禁の集合で読む＝連鎖で同時に開かない）。
     /// 0 では <see cref="Discovery.Score"/> の行ループの頭の1つの条件が偽になるだけ（式・順序は変えない）。実装＝<see cref="Discovery"/> の Score。</summary>
     public double DiscoveryTierGate = 1.0;
+    /// <summary>★(320) 平滑化した値段（<see cref="World.DiscoveryPrice"/>）の最初の値（流れG・既定0＝旧＝最初の観測の瞬間の値で始める＝厳密恒等）。
+    /// 0より大きいと、まだ値段の履歴を持たない国（開幕の最初の判定・建国した国）の平滑化した値段を、その国の<b>自然価格</b>（その財を作る門の開いたレシピのうち最も安いものの費用
+    /// ＝自己費用×自己費用の物価水準÷物価水準＋Σ投入×投入の自然価格・<see cref="Discovery.NaturalPrior"/>）から始め、最初の観測は他の四半期と同じ率（<see cref="Discovery.PriceSmoothingQ"/>）で入れる。
+    /// 理由＝作者裁定 Q12（発見は一過性の値段の跳ねでは起きず、持続する割高さだけが起こす）なのに、履歴の無い最初の判定は平滑が無く瞬間の値で始まる＝開幕の動力の値段が高かった国は最初の判定で
+    /// 必要性が立つ（r314 の 10 種で蒸気機関を最初の四半期に解禁する英以外の国が 34〜37 か国・全て産業の基盤の薄い国・清は 10/10 の種）。⚠世界の値段の平均を先入観にする形（産出重み）は
+    /// 不採用＝canary で主要国まで最初の四半期に解禁した（産出の大きい非産業国の高い値段が平均を引き上げる・実装ログ (320)）。0/1 の切り替え（採否が未定のため）。</summary>
+    public double DiscoveryPriceInitFromCost = 0;
+    /// <summary>★(360) 流れG 伝わりの道（既定0＝旧＝厳密恒等）。0より大きいと、発見の行の伝わりの運び手の財（<see cref="Discovery.CarriersByRow"/>）に、<b>その運び手を投入に持つ取引できる資本財</b>（Producer 段・1代だけ）を足す
+    /// ＝製法を体に持つ設備を運び手に数える設計 §1A-7 の延長（蒸気機関の財を積んだ機関車・汽船を買う国は、その売り手が蒸気機関を知っていれば蒸気機関に触れる）。
+    /// 理由＝蒸気機関の行の運び手は蒸気機関の財 1 つだけ（労働力＝動力は取引できず石炭は資本財ではない）で、その財を使う口は自分で解禁した行（蒸気の動力・汽船・機関車）だけ＝
+    /// 自分で蒸気機関を持つ国しか蒸気機関の財を買わない＝解禁の前に伝わる道が無い（日本・デンマークほか 7 国が 1950 年まで蒸気機関を持たない・measurements/g3r_20261016_root.txt）。
+    /// 新しい状態も閾値も国ごとの分岐も無い。接触の分母（世界のその運び手の財の取引額）も足した財の分だけ広がる。0/1 の切り替え（採否が未定のため）。</summary>
+    public double DiscoveryCarrierDownstream = 0;
     public double DiscoveryNeedHalfSite = 0.04;     // ★(148) 産地の発見（大鉱床・植林＝Catalog.Sites）の必要性の半分点＝強度がこの値で35。
                                                     //   ★(171) 強度＝ln(その財の平滑化した値段÷その国で今のレシピで掘る費用)（作者 2026-10-02 の一般則を産地に当てた AI の読み＝推奨で進めた・作者の承認は未確認〔元の形＝作者が採用した提案③〕・費用は国の今のレシピ〔産地の富みを読まない〕＝候補2とは呼ばない・(172) 反証役 vd4#3・vd4#4）。
                                                     //   0.5→0.04（推奨で進めた）＝産地の年の錨（史実の年との差の平均）で見つける力の半分点と同じ腕で較正（実装ログ (171)＝産地が開かない軌道の5種から
@@ -2254,6 +2267,10 @@ public sealed class Coefficients
     public double AttentionHostilityFloor = 0.15;  // 平時（緊張0）でも残る敵意＝「無政府状態では武力は武力」。⚠段1の分布を見て較正する
     public double AttentionTensionHalf = 40.0;     // 敵意が半分に達する緊張。★**既存の RivalTensionThreshold(40)＝「これ超＝ライバル」と同値**＝新しい水準を発明しない
     public double AllyAttentionDiscount = 0.7;     // 宗主と属国の間の敵意の割引（3割だけ向ける）＝作者裁定 2026-09-29 の5「属国は仮想敵国ほどではないが、脅威を与える」（ArmyShape.Hostility・脅威の緊張が同じ1本）。⚠(151) 同盟は割引でなく0（同「同盟国は計上しない」・旧＝同盟と従属の共用の3割）
+    // ★(324) 流れM 段5 艦隊の注意の重み（採否未定＝腕ごとに POB_COEF で切り替える・既定 0＝旧の挙動）：FleetContactPerGdp＝相手の艦隊が自国へ向く重み（ArmyShape.Compute の海路の接触）の基数。
+    //   0＝自国の越境の交易額（World.TradeValueSmoothed）÷全ての国の平均（旧＝(194)）／1＝自国の越境の交易額÷自国の年の名目GDP（開放度）を全ての国の平均で割った相対（平滑の量・平均で割る形・注意配分の列の正規化は同じ）。
+    //   動機＝旧の重みは絶対額なので名目の大きい国（清は平均の約10倍）ほど艦隊の注意を受ける（(311) の申し送り）。開放度は規模に依らず〈海の交易にどれだけ依るか〉を読む（MultiNationSim の TradeGoldPull と同じ物差し）。
+    public int FleetContactPerGdp = 0;
     public double InternalGarrisonPerPop = 0.002;  // 不穏度1.0のとき国内秩序に要する兵÷人口。★清の八旗・緑営は約80万／人口3.8億＝約0.2%（1783〜1850の常備の内地守備）
     // 【削除2026-10-01 (151)】SeaEscortPerTradeValue（守るべき海上価値1あたりの護衛艦隊・休眠0）＝通商保護は絶対量でなく「海に出ている経済の割合だけ軍の同じ割合を海に置く」（ArmyShape.SeaTradeShare＝新しい数なし）へ。絶対量は海の交易の大きい国の海軍を経済の規模で膨らませた（(151) の探索の腕＝清の艦隊が英の約15倍に戻った）（★2026-10-03 (183)：割合の形の通商保護の項も ArmyShape.SeaTradeShare ごと削除＝海の必要量に自国の軍の大きさの項を置かない）
     // 同じ戦力ゲージあたりの乗員（海軍は資本集約・陸軍は労働集約）＝英の常備陸軍が人口比で小さいことの本質。⚠較正で決める
@@ -2321,6 +2338,12 @@ public sealed class Coefficients
     // ★(273) 消費の予算の上限（線P・段5）＝EconomyStep.Run の月初の予算 RemainingBudget を min(RemainingBudget, 前月の所得 + 貯蓄 × d) で切る（全ての POP・再点火の発注と反乱の武器を差し引いた後・財のループの前）。
     //   d＞0 の月率（貯蓄のうち1か月に消費へ回してよい割合）。0＝切らない（既定＝予算は月初の貯蓄そのもの＝d＝0 を式に入れると min(予算, 前月の所得) になり恒等でない＝コードは d＞0 のときだけ評価する）。採否未定（実装ログ (273)）。
     public RatePerMonth ConsumeBudgetSavingsRatePerMonth = new(0);
+
+    // ★(337) 流れF AI の応答（利払いの重さを読む）を比例の形で（採否未定＝腕ごとに POB_COEF で切り替える・既定 0＝旧の挙動）：
+    //   MonopolyBurdenPushMode＝AI が専売の段を広げる判定に、払えていて r＝1 のままでも利払いが重い間（借入の門が閉じ国庫を食う間）の動きを足す。
+    //   0＝旧（払えない請求〔1−r＞0〕があるときだけ 1 段広げる）／1＝加えて、確率 p＝重さ×余裕の因子 で 1 段広げる
+    //   （重さ＝(利払い−MaxInterestShareOfRevenue×歳入)÷利払い・余裕の因子＝安全水準÷(安全水準＋国庫)。符号の段差でなく大きさに比例＝§1-8）。外れたら旧の枝（狭める／保つ）。抽選は専用の World.AiRng（係数 0 では引かない）。
+    public int MonopolyBurdenPushMode = 0;
 
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）
@@ -2536,6 +2559,8 @@ public sealed class Coefficients
     public double SubsistenceHarvestFullExposure = 1.0;   // 経2（飢饉の深さ）：自給充足の収穫係数の露出度。0=局地HarvestFactorのみで現行と厳密一致・1で市場向けRGOと同じ三重積算(WeatherBandFactor×CropHealth[主食id]×landFactor)を自給にも乗じ、ジャガイモ胴枯病型の飢饉の核心層(高自給の貧農)に病害・緯度帯天候・土地逓減を届かせる
     // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】ConstructionLaborViaMarket（点火2026-07-28）＝建設工賃は労働力財の市場で買う形だけを残した。旧＝材料費比例の工賃を工員の Savings へ直書き（月内の仮勘定を通らない）＝削除
     public double DemandElasticityMaxDaily = 2.5;   // 【R1点火2026-07-13＝2.5】経11（大量消費化）：日用品(Daily)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で価格暴落による大量消費化(産業革命の綿布型)を許す。2.5＝安価工業製品を基礎量の2.5倍まで大量消費
+    // ★(306) 線(2)：家事奉仕の生産者（使用人）の1人あたりの産出の倍率（無次元）。作者 2026-10-12 の設計 (2)「使用人POPの産出量を減らす」。EconomyStep の能力 Size×fraction×Productivity×boost の boost（役務は 1）を家事奉仕だけこの値にする（毎月再計算される＝構築時の Productivity でなくこれがレバー・構築時に読まない＝POB_COEF が届く）。1.0＝今の値＝恒等（x*1.0 は x）。事前登録 measurements/sv_20261013_prereg.txt。
+    public double DomesticServiceProductivity = 1.0;
     public double DemandElasticityMaxLuxury = 2.0;   // 【R1点火2026-07-13＝2.0】経11：奢侈品(Luxury)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で安価工業製品の大量消費化を許す
     // ★(302) 線(2)(3)：奢侈品の欲しい量の所得弾力（作者 2026-10-12 の設計「奢侈品のみ所得弾力をつける」・参照所得は世界の1人あたり実質所得）。無次元の指数 ε。欲しい量 desired に Pow(r, ε) を掛ける（r＝買い手の POP〔州×階級〕の1人あたり実質所得 ÷ 世界の1人あたり実質所得・実質＝名目÷PriceLevel の1本〔FxRate は掛けない＝(299) は為替と物価で二重に割っていた〕・世界の値は MultiNationSim が毎月 World.WorldRealIncomePerCapitaPerMonth へ配る）。対象＝Luxury 階層の非役務の財（アヘンは除く＝必要量が中毒の在庫で決まり所得で決まらない）と、DomesticServiceUsesIncomeElasticity が立つときの家事奉仕。0＝分岐に入らず配りも走らない＝厳密恒等。事前登録 measurements/de_20261014_prereg.txt（取り込み元 s2_20261013_prereg.txt）。★(331) 合流で点火（0.5）＝DormantIdentityTests の表から外した。
     public double LuxuryIncomeElasticity = 0.5;   // ★(302) 上の注。★(331) 合流で既定 0→0.5 に点火（枝 de の腕 B〔b10_20261014_de329B_ins〕の形・ε の大きさは確証なし＝(302) の AI の値）。0＝旧の挙動（分岐に入らず配りも走らない）

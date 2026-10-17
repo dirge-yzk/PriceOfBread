@@ -2259,17 +2259,27 @@ public class InstrumentsTests
             foreach (var r in drows) if (r[dKind] == "E") unlockQ.TryAdd((r[dNation], r[dRow]), int.Parse(r[dQ], System.Globalization.CultureInfo.InvariantCulture));
             var (h, rows) = Table(System.IO.Path.Combine(dir, "disccontact_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
-            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller");
+            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier");
+            Assert.True(iCarrier >= 0, "carrier 列が無い");
             Assert.True(rows.Count > 10, $"前提が崩れた（接触の内訳の行 {rows.Count}）");
             foreach (var r in rows)
             {
                 int q = int.Parse(r[iQ], System.Globalization.CultureInfo.InvariantCulture);
                 Assert.Contains(r[iRow], new[] { "蒸気機関", "機関車" });
                 Assert.True(Col(h, r, "valuePerQuarter") > 0, "額が正でない");
+                // (360) 運び手の財の列：既定（係数 0）の運び手の表の財だけ（蒸気機関の行＝蒸気機関の財・機関車の行＝機関車か蒸気機関の財）
+                Assert.Contains(r[iCarrier], r[iRow] == "蒸気機関" ? new[] { "蒸気機関" } : new[] { "機関車", "蒸気機関" });
                 bool sellerKnew = unlockQ.TryGetValue((r[iSeller], r[iRow]), out int sq) ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
                 if (unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
+            // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。
+            var (fh, frows) = Table(System.IO.Path.Combine(dir, "discflow_s1789.tsv"));
+            Assert.True(frows.Count > 10, $"前提が崩れた（接触の分母の行 {frows.Count}）");
+            int fGood = Array.IndexOf(fh, "good");
+            var flowGoods = new HashSet<string>(); foreach (var r in frows) { flowGoods.Add(r[fGood]); Assert.True(Col(fh, r, "valueFlowQ") >= 0); }
+            Assert.Contains("蒸気機関", flowGoods);
+            foreach (var r in rows) Assert.Contains(r[iCarrier], flowGoods);
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

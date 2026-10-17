@@ -56,6 +56,13 @@ public static class ArmyShape
         {
             double x = ps[i].Nation!.TradeValueSmoothed;   // ps は Nation 非null に絞ってある
             contact[i] = x > 0 ? x : 0;   // 否定形＝NaN と負は0
+            if (c.FleetContactPerGdp == 1)
+            {
+                // ★(324) 重みの基数を自国の年の名目GDPで割る（開放度＝越境の交易÷GDP・MultiNationSim の TradeGoldPull と同じ物差し）。分母が痩せた国は0（否定形＝NaN も0）。平均で割る形は下で同じ。
+                double gdpYear = Calendar.PerMonthToPerYear(ps[i].Nation!.NominalGdpPerMonth).Value;
+                contact[i] = gdpYear > 1e-9 ? contact[i] * c.ClearingsPerYear / gdpYear : 0;
+                if (!(contact[i] >= 0)) contact[i] = 0;
+            }
             contactSum += contact[i];
         }
         double contactMean = contactSum / n;

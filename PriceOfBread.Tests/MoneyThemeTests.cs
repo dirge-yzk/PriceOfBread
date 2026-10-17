@@ -48,7 +48,7 @@ public class MoneyThemeTests
     [Fact]
     public void 不換シニョリッジ_有効化で新規発行が積まれ貨幣保存が整合()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
+        var sim = new Simulation(OpeningFixture.Named("フランス").ToScenario(13), new NullAgent());   // ★(332) 開幕の国庫・国債を絶対額で持つ盤面
         sim.World.Policy.MonetaryTarget = 0;   // 不換に固定＝赤字を切り下げで埋める→シニョリッジが発火
         sim.World.BaseCoercion = 20000;                // 高治安維持力＝維持費が歳入を食う＝慢性赤字を強制（赤字なしでは devalue が発火しない）
         sim.World.Coef.FiatIssueFrac = new Share(0.6);

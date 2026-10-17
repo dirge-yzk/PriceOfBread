@@ -546,7 +546,8 @@ public sealed class MultiNationSim
         {
             int nr = Catalog.Discoveries.Length, n = Nations.Count;
             var gf = Market.DiscoveryGoodFlowQ;
-            var carriers = Market.DiscoveryCarriers(Nations);
+            var carriers = Market.DiscoveryCarriers(Nations, _coef);
+            if (Instruments.On && gf is not null) Instruments.DiscoveryFlow(Nations[0].World, gf, carriers);   // (360) 計器（読むだけ）：接触の分母
             var contacts = new double[n][];
             for (int i = 0; i < n; i++)
             {
@@ -639,7 +640,7 @@ public sealed class MultiNationSim
         for (int q = 0; q < quarters; q++)
         {
             StepQuarter();
-            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseTreasury(treasury0[i]);
+            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseOpeningFiscal(treasury0[i]);   // ★(332) 規則のある国（TreasuryMonths／GovDebtToGdpYear が正）は歳入×月数と比×年名目GDP を置く・無い国は旧の戻し（既定の world.json は全て無い）
             RebaselineInvariants();
             onQuarter?.Invoke();
         }

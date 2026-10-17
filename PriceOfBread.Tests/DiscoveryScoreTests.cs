@@ -1368,4 +1368,136 @@ public class DiscoveryScoreTests
         Assert.False(p.SiteFound, "一過性の値段の跳ねで産地が開いた（判定が平滑化した値段を読んでいない）");
         Assert.Equal(b.Cost + a * (v - b.Cost), w.DiscoveryPrice![g], 9);
     }
+    // ===== ★(320) 流れG：平滑化した値段の最初の値（係数 DiscoveryPriceInitFromCost）の番人 =====
+
+    /// <summary>自然価格（その国でその財を作る最も安い門の開いたレシピの費用）を、財の定義から手で出す（PriceBook を使わない別の出所）：
+    /// 投入の無い財（労働力の人力・石炭）＝最初の門の開いたレシピの生産者の自己費用×自己費用の物価水準÷物価水準。</summary>
+    private static double NaturalByHand(World w, int good, string recipe)
+    {
+        double plv = w.NominalOf(1.0), selfScale = w.CostPriceLevel / plv;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+                if (p.GoodId == good && p.RecipeName == recipe && Discovery.Gate(r, p) > 0) return p.MarginalCost * selfScale;
+        }
+        return double.NaN;
+    }
+
+    /// <summary>既定（0）では、履歴の無い国の最初の平滑化した値段は最初の観測の瞬間の値そのもの＝旧と同じ（恒等）。
+    /// 係数が正なら、最初の値は自然価格（投入の無い財は手で出せる）から始まり最初の観測が他の四半期と同じ率 a で入る＝ s ＝ n ＋ a×(x − n)・n＝自己費用×自己費用の物価水準÷物価水準（労働力＝人力・石炭）。
+    /// 関係で書く：n は (s − a×x)÷(1 − a) で逆算でき、手で出した自然価格と一致する・s は n と x の間にある。前提の確かめ＝自然価格が瞬間の値と違う国が十分あること（何もしない機構が緑にならない）。
+    /// ⚠壊し方＝自然価格を使わず瞬間の値で始める・最初の観測を入れない（s＝n）・率を変える・世界の平均を先入観にする → 赤。</summary>
+    [Fact]
+    public void 自然価格から始めると最初の平滑化した値段が自然価格と同じ率の観測で閉じる()
+    {
+        // 既定＝旧と同じ（瞬間の値そのもの）
+        var sim0 = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        sim0.StepQuarter();
+        int exact = 0;
+        foreach (var n in sim0.Nations)
+        {
+            var w = n.World; var x = Discovery.InstantRealPrices(w); var s = w.DiscoveryPrice!;
+            for (int g = 0; g < x.Length; g++) if (x[g] >= 0) { Assert.Equal(x[g], s[g], 12); exact++; }
+        }
+        Assert.True(exact > 1000, $"前提が崩れた（既定の盤面の観測が少ない {exact}）");
+
+        // 係数が正
+        var coef = new Coefficients { DiscoveryPriceInitFromCost = 1 };
+        var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent(), coef);
+        foreach (var n in sim.Nations) n.World.CostPriceLevel = 1.3;   // 自己費用の物価水準が物価水準と違う盤面（助走の無い盤面は 1 のまま＝掛け忘れが見えない）
+        sim.StepQuarter();
+        double a = Discovery.PriceSmoothingQ(coef);
+        Assert.InRange(a, 0.01, 0.5);
+        int differs = 0, checkedN = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; var x = Discovery.InstantRealPrices(w); var s = w.DiscoveryPrice!;
+            foreach (var (good, recipe) in new[] { (Catalog.LaborId, ""), (Catalog.CoalId, "") })
+            {
+                if (!(x[good] >= 0)) continue;
+                double nat = NaturalByHand(w, good, recipe);
+                if (double.IsNaN(nat)) continue;
+                Assert.True(nat > 0);
+                double back = (s[good] - a * x[good]) / (1.0 - a);   // 最初の値から逆算した自然価格
+                Assert.True(System.Math.Abs(back - nat) <= 1e-9 * nat, $"{Instruments.NameOf(w)} {Catalog.Goods[good].Name}：逆算した自然価格 {back} が手で出した {nat} と違う");
+                Assert.True(s[good] >= System.Math.Min(nat, x[good]) - 1e-12 && s[good] <= System.Math.Max(nat, x[good]) + 1e-12, "最初の値が自然価格と瞬間の値の間に無い");
+                checkedN++;
+                if (System.Math.Abs(s[good] - x[good]) > 1e-6) differs++;
+            }
+        }
+        Assert.True(checkedN >= 50 && differs >= 50, $"前提が崩れた（確かめた国×財 {checkedN}・自然価格が瞬間の値と違う {differs}）");
+    }
+
+    // ===== ★(360) 流れG 伝わりの道（係数 DiscoveryCarrierDownstream）の番人 =====
+
+    /// <summary>既定（0）の運び手の表は旧と同じ（蒸気機関の行＝蒸気機関の財だけ）。係数が正なら、各行の運び手の表の先頭は旧の表のまま（順序も）で、
+    /// 足されるのは「旧の運び手を投入に持つ・取引できる・資本財（Producer 段）」だけを財の番号の昇順で＝1代だけ（足した財の先は辿らない）。ただし旧の運び手のうち使い道が全て発見の行に縛られた財（蒸気機関など）からだけ足す。
+    /// 蒸気機関の行の足し分は、財の表から手で数えた機関車と汽船（蒸気機関の財 0.6 を投入に持つ最終財）と一致する。
+    /// 前提の確かめ＝足される行が複数ある（何もしない機構が緑にならない）。⚠壊し方＝2代以上辿る・旧の運び手を落とす・取引できない財や資本財でない財を足す・足し分の順序を乱す → 赤。</summary>
+    [Fact]
+    public void 伝わりの道は運び手の表に設備を使う資本財を1代だけ足す()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        var worlds = sim.Nations.Select(n => n.World).ToList();
+        var old = Discovery.CarriersByRow(worlds);
+        var off = Discovery.CarriersByRow(worlds, false);
+        for (int r = 0; r < old.Length; r++) Assert.Equal(old[r], off[r]);   // 既定の引数＝旧
+        Assert.Equal([Catalog.SteamEngineId], old[Row("蒸気機関")]);
+        var on = Discovery.CarriersByRow(worlds, true);
+        Assert.Equal(old.Length, on.Length);
+        int changed = 0;
+        for (int r = 0; r < old.Length; r++)
+        {
+            Assert.Equal(old[r], on[r].Take(old[r].Length).ToArray());   // 旧の運び手が先頭にそのまま残る
+            var extra = on[r].Skip(old[r].Length).ToArray();
+            Assert.Equal(extra.OrderBy(g => g).ToArray(), extra);          // 足し分は番号の昇順
+            Assert.Equal(extra.Length, extra.Distinct().Count());
+            foreach (int g in extra)
+            {
+                Assert.DoesNotContain(g, old[r]);
+                Assert.Equal(GoodTier.Producer, Catalog.Goods[g].Tier);
+                Assert.False(Catalog.Goods[g].NonTradeable);
+                // 財の表（別の出所）から：その財の既定のレシピの投入のどれかが旧の運び手
+                Assert.Contains(Catalog.Goods[g].Inputs, i => old[r].Contains(i.GoodId));
+            }
+            if (extra.Length > 0) changed++;
+        }
+        Assert.True(changed >= 2, $"前提が崩れた（足し分のある行 {changed}）");
+        // 蒸気機関の行：蒸気機関の財を投入に持つ最終財＝汽船と機関車（財の表から手で）。足した財（汽船・機関車）の先は辿らない＝足し分はこの 2 つだけ
+        int[] byHand = [.. Catalog.Goods.Where(d => d.Tier == GoodTier.Producer && !d.NonTradeable && d.Inputs.Any(i => i.GoodId == Catalog.SteamEngineId)).Select(d => d.Id).OrderBy(g => g)];
+        Assert.Contains(Catalog.SteamshipId, byHand); Assert.Contains(Catalog.LocomotiveId, byHand);
+        Assert.Equal([Catalog.SteamEngineId, .. byHand], on[Row("蒸気機関")]);
+        // 使い道が行に縛られない財（機械＝蒸気機関の財の既定のレシピは発見の行を持たない）は足さない＝機械を運び手にする行（石炭火力・水力発電ほか）は旧の表のまま
+        Assert.True(Catalog.DiscoveryRowOf(Catalog.SteamEngineId, "") < 0, "前提が崩れた（蒸気機関の財の既定のレシピが行に縛られている）");
+        Assert.Contains(Catalog.Goods[Catalog.SteamEngineId].Inputs, i => i.GoodId == Catalog.MachineryId);
+        foreach (string nm in new[] { "石炭火力", "水力発電", "石油火力", "送電網", "蒸気タービン" }) Assert.Equal(old[Row(nm)], on[Row(nm)]);
+        Assert.Equal(old[Row("転炉鋼")], on[Row("転炉鋼")]);   // 鋼（線路ほか行に縛られない使い道がある）
+    }
+
+    /// <summary>国境を越えた成約の記帳：蒸気機関を知る国（英）から、知らない国（日）が機関車を買うと、既定（0）では蒸気機関の行へ記帳されず（機関車の行そのものは英が未解禁なので記帳されない）、
+    /// 係数が正なら蒸気機関の行へその額が記帳される。売り手がその行を知らない国なら記帳されない（運び手の述語は変えない）。
+    /// ⚠壊し方＝運び手の表を引かず別の行へ記帳する・買い手が知っている行にも記帳する・係数が 0 でも足す → 赤。</summary>
+    [Fact]
+    public void 機関車を買うと蒸気機関の行の接触が係数が正のときだけ記帳される()
+    {
+        int steam = Row("蒸気機関");
+        double Booked(double flag, string seller, string buyer, int good, out bool premise)
+        {
+            var coef = new Coefficients { DiscoveryCarrierDownstream = flag };
+            var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent(), coef);
+            int si = sim.Nations.FindIndex(n => Instruments.NameOf(n.World) == seller), bi = sim.Nations.FindIndex(n => Instruments.NameOf(n.World) == buyer);
+            Assert.True(si >= 0 && bi >= 0);
+            premise = Discovery.Known(sim.Nations[si].World.Discovered, steam) && !Discovery.Known(sim.Nations[bi].World.Discovered, steam);
+            sim.Market.AccumulateDiscovery(sim.Nations, coef, si, bi, good, 10.0);
+            return sim.Nations[bi].World.DiscoveryImportQ?[steam] ?? 0;
+        }
+        Assert.Equal(0, Booked(0, "イギリス", "日本", Catalog.LocomotiveId, out bool p0));
+        Assert.Equal(10.0, Booked(1, "イギリス", "日本", Catalog.LocomotiveId, out bool p1), 12);
+        Assert.Equal(10.0, Booked(1, "イギリス", "日本", Catalog.SteamshipId, out bool p2), 12);
+        Assert.Equal(10.0, Booked(0, "イギリス", "日本", Catalog.SteamEngineId, out bool p3), 12);   // 旧の運び手（蒸気機関の財）は既定でも記帳される
+        Assert.Equal(0, Booked(1, "日本", "イギリス", Catalog.LocomotiveId, out bool p4));          // 売り手が知らない・買い手が知っている
+        Assert.True(p0 && p1 && p2 && p3, "前提が崩れた（英が蒸気機関を知り日本が知らない開幕でない）");
+        Assert.False(p4);
+    }
 }

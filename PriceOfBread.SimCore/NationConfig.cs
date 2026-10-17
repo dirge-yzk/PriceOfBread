@@ -27,6 +27,12 @@ public sealed class NationConfig
     public EducationLaw Education = EducationLaw.Religious;
     public double Coercion = 400;   // 人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）
     public double Treasury = 200_000;
+    // ★(332) 国庫と国債を比から導く規則（初期値の整備 段6 の採り直し・既定は両方 0＝規則なし＝上の絶対額 Treasury／GovDebt が従来どおり開幕の値）。
+    //   正のとき World.RebaseOpeningFiscal が助走の各四半期の終わりに置く＝開幕の国庫 ＝ 直近の月の歳入 × TreasuryMonths か月・開幕の国債 ＝ max(年名目GDP × GovDebtToGdpYear, 対外債)
+    //   （史実の比を入力に、絶対額は助走の終わりの盤面の歳入と名目GDP から導く量）。値の出典と確かさの表は measurements/e7_20261014_values.tsv（英の比だけ BoE の原典の再掲・他は推定）。
+    //   world.json に入れるのは腕 B の書き換え（scripts/instruments/e7/make_world_b.py）＝既定の world.json は不変。
+    public double TreasuryMonths = 0;
+    public double GovDebtToGdpYear = 0;
     public double GovDebt = 0;      // 初期国債残高（国内債＝利払いは国庫→資本家の内部移転・保有は Fiscal.SeedBondHoldings が購入と同じ規則で起票）
     // ★1783年の国債÷年GDP の史実（2026-09-29・world.json の govDebt＝開幕〔助走の後〕の年名目GDP×比）：英 約1.1（1783 約2.4億ポンド÷GDP 約2億）・仏 約0.6（米独立戦争の後・1789 0.6〜0.8）・
     //   蘭 約1.6（ホラント州を主とする約6億ギルダー）・米 約0.4（大陸会議と各州の独立戦争債務 約7,800万ドル・1790 の引き受け）・西 約0.3（王室債と国王証券 vales reales）・

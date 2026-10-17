@@ -73,7 +73,8 @@ public static partial class Instruments
         public readonly List<string> Rows = new();
         public readonly List<string> SiteRows = new();     // (316) 産地の判定の行（開いた行 O・開く前の軌道 T）＝四半期の末に site_s へ書く
         public readonly List<string> DiscRows = new();     // (320) 発見の表の行の出来事（E）と蒸気機関・機関車の軌道（T）＝四半期の末に disc_s へ書く
-        public readonly Dictionary<(int Row, string Seller), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
+        public readonly List<string> DiscFlowRows = new();   // (360) 世界の越境の取引額（接触の分母）：蒸気機関・機関車の行の運び手の財ごと・四半期の末に discflow_s へ（Nations[0] の世界に貯める）
+        public readonly Dictionary<(int Row, string Seller, int Good), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public double OpTensionAdded, OpTensionLevelMax; public int OpTensionPairMonths;   // ★(342) 禁令中の国が輸出国との組へ積んだアヘンの緊張（四半期の和・件数・積んだ直後の組の値の最大）
         public double LuxPopMonths, LuxNonPosPopMonths, LuxInvalidPopMonths, LuxNonPosSizeSum;   // (329) 奢侈品の所得弾力：f＝1 に倒れた POP×月の累計（読むだけ・四半期の終わりに nation_s へ）
@@ -112,6 +113,7 @@ public static partial class Instruments
         public readonly double[] QCapBoundPaid = new double[CapDs.Length], QCapCut = new double[CapDs.Length], QCapBoundPopK = new double[CapDs.Length];
         // ---- (265) 専売の段・国営工場の売却・財政の逼迫（AI の判断の四半期の頭）
         public int FactorySold, MonoBefore = -1, MonoTarget = -1; public double FiscalStressAtDecision = double.NaN;
+        public double PushBurden = double.NaN, PushP = double.NaN, PushU = double.NaN; public int PushHit;   // (337) 専売の段の確率の押し上げ：決断の時点の重さ・確率・抽選の目・当たり
         // ---- (271) 線K：国の個体・消費の予算の拘束・建設の投資枠・国債のプール・与信の上限（読むだけ・四半期の和・四半期の末に0へ戻す）
         public int Uid;                                    // 国の個体の番号（0＝未採番）＝World の個体に付く＝改名でも変わらず、建国は新しい番号（四半期の行を書く順に採番＝決定論）
         public long CnRows, CnBound; public double CnDesired, CnDemand;   // 消費の (POP×財) の行：行数・予算で切られた行数（需要＜希望）・希望額と立った需要額（金額建て・月の和）
@@ -178,6 +180,7 @@ public static partial class Instruments
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
         public System.IO.StreamWriter? Site, Metal; public bool SiteHeader, MetalHeader;   // (316) 産地の判定の行・世界の金銀の行
         public System.IO.StreamWriter? Disc; public bool DiscHeader;                       // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
+        public System.IO.StreamWriter? DiscFlow; public bool DiscFlowHeader;               // (360) 接触の分母（運び手の財ごとの世界の越境の取引額）
         public System.IO.StreamWriter? DiscContact; public bool DiscContactHeader;         // (328) 伝わりの接触の内訳（買い手×行×売り手）
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
@@ -367,6 +370,8 @@ public static partial class Instruments
     internal static void FiscalStress(World w, double stress) => S(w).FiscalStressAtDecision = stress;
     /// <summary>専売の段の書き込みの直前：今の段と AI が置く段。</summary>
     internal static void MonopolyDecision(World w, int before, int target) { var st = S(w); st.MonoBefore = before; st.MonoTarget = target; }
+    /// <summary>(337) 専売の段の確率の押し上げ（<c>SelfPlay.Apply</c>）：決断の時点の利払いの重さ・確率 p・抽選の目 u（抽選しなかったら NaN）・当たり。</summary>
+    internal static void MonopolyPush(World w, double burden, double p, double u, bool hit) { var st = S(w); st.PushBurden = burden; st.PushP = p; st.PushU = u; st.PushHit = hit ? 1 : 0; }
 
     /// <summary>借りる前（月初の払える額と余剰が決まった所）。</summary>
     internal static void PreBorrow(World w, double payable, double spare)
@@ -737,6 +742,7 @@ public static partial class Instruments
     static void SvcRow(Sink sk, int q, World w)
     {
         int id = Catalog.DomesticServiceId;
+        double capacity = 0, desired = 0;   // ★(306) 能力（Size×fraction×Productivity×boost）と、能力×採算（DesiredOutput）＝四半期の末の月の値
         double servantK = 0, noble = 0, cap = 0, merch = 0, totalK = 0, output = 0, sold = 0, shortage = 0, demand = 0, priceW = 0, produced = 0, rationW = 0;
         foreach (var r in w.Regions)
         {
@@ -746,14 +752,14 @@ public static partial class Instruments
                 totalK += p.Size;
                 if (p.ClassId == 12) servantK += p.Size; else if (p.ClassId == PopClass.Noble) noble += p.Size; else if (p.ClassId == PopClass.Capitalist) cap += p.Size; else if (p.ClassId == 10) merch += p.Size;
             }
-            foreach (var s in r.Producers) if (s.GoodId == id) output += s.Output;
+            foreach (var s in r.Producers) if (s.GoodId == id) { output += s.Output; capacity += s.Capacity; desired += s.DesiredOutput; }
             var m = r.Markets[id];
             produced += m.LastProduced; sold += m.LastSold; shortage += m.LastShortage; demand += m.LastDemand; priceW += m.Price * Math.Max(m.LastSold, 1e-9); rationW += Math.Max(m.LastSold, 1e-9);
         }
         sk.Svc ??= Open("svc", sk.Seed);
-        if (!sk.SvcHeader) { sk.Svc.WriteLine("quarter\tyear\tnation\ttotalPopulationK\tservantK\tnobleK\tcapitalistK\tmerchantK\tservantOutputPerMonth\tproducedPerMonth\tsoldPerMonth\tdemandPerMonth\tshortagePerMonth\tpriceSoldWeighted\trefPrice\tservicePerServant"); sk.SvcHeader = true; }
+        if (!sk.SvcHeader) { sk.Svc.WriteLine("quarter\tyear\tnation\ttotalPopulationK\tservantK\tnobleK\tcapitalistK\tmerchantK\tservantOutputPerMonth\tproducedPerMonth\tsoldPerMonth\tdemandPerMonth\tshortagePerMonth\tpriceSoldWeighted\trefPrice\tservicePerServant\tservantCapacityPerMonth\tservantDesiredPerMonth"); sk.SvcHeader = true; }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        sk.Svc.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), F(totalK), F(servantK), F(noble), F(cap), F(merch), F(output), F(produced), F(sold), F(demand), F(shortage), F(priceW / rationW), F(id < Catalog.RefPrices.Length ? Catalog.RefPrices[id] : double.NaN), F(servantK > 0 ? sold / servantK : double.NaN)));
+        sk.Svc.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), F(totalK), F(servantK), F(noble), F(cap), F(merch), F(output), F(produced), F(sold), F(demand), F(shortage), F(priceW / rationW), F(id < Catalog.RefPrices.Length ? Catalog.RefPrices[id] : double.NaN), F(servantK > 0 ? sold / servantK : double.NaN), F(capacity), F(desired)));
     }
 
     /// <summary>★(271) 与信の上限のどちらが縛ったか（<c>Credit.Step</c>・旬の初日の呼び＝<paramref name="days"/> 日ぶん）：準備の側の上限 <paramref name="reserveCap"/>（準備×信用乗数×金のカバー率の抑制）と、
@@ -935,7 +941,7 @@ public static partial class Instruments
         st.BondMonths = 0; st.BondBase = st.BondDebt = st.BondFisher = st.BondDistrust = st.BondPolicy = st.BondGold = st.BondRepr = st.BondClamp = st.BondRate = st.BondDebtRatio = st.BondConvMul = st.BondReprMul = 0;
         st.QAdmClaim = st.QAdmNeedB = st.QAdmMinB = st.QAdmNeedP = st.QAdmMinP = st.QCfBorrowed = 0; st.QAdmOverRegionMonths = st.QCfShortMonths = st.QCfRBelow1Months = st.QCfObs = 0;
         st.QCapPaid = st.QCapPopK = 0; Array.Clear(st.QCapBoundPaid); Array.Clear(st.QCapCut); Array.Clear(st.QCapBoundPopK);
-        st.FactorySold = 0; st.MonoBefore = st.MonoTarget = -1; st.FiscalStressAtDecision = double.NaN;
+        st.FactorySold = 0; st.MonoBefore = st.MonoTarget = -1; st.FiscalStressAtDecision = double.NaN; st.PushBurden = st.PushP = st.PushU = double.NaN; st.PushHit = 0;
         // (271) 助走の分は数えない
         st.CnRows = st.CnBound = 0; st.CnDesired = st.CnDemand = 0;
         st.ConDesiring = st.ConBound = 0; st.ConDesiredUnits = st.ConCutUnits = 0;
@@ -1645,6 +1651,7 @@ public static partial class Instruments
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
+        sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
@@ -1830,11 +1837,23 @@ public static partial class Instruments
     /// <summary>★(328) 伝わりの接触の内訳（<see cref="BilateralMarket"/> の発見の記帳 <c>AccumulateDiscovery</c> が <c>DiscoveryImportQ</c> へ足す所と同じ述語〔売り手が解禁済み・買い手が未解禁〕・読むだけ）。
     /// 蒸気機関と機関車の行だけ、買い手の国ごとに〈どの国から運び手の財を買ったか〉を四半期の和で貯める（述語が買い手の未解禁を要るので解禁後は貯まらない＝小さい表）。
     /// 分母（世界のその運び手の財の取引額）は書かない＝売り手の国どうしの割合を読む用。四半期の区切りは disc_s と同じ表の書き出しの位置。</summary>
-    internal static void DiscoveryContact(World buyer, World seller, int row, double value)
+    internal static void DiscoveryContact(World buyer, World seller, int row, int good, double value)
     {
         if (!(value > 0) || Catalog.Discoveries[row].Name is not ("蒸気機関" or "機関車")) return;
-        var acc = S(buyer).DiscContact; var key = (row, NameOf(seller));
+        var acc = S(buyer).DiscContact; var key = (row, NameOf(seller), good);   // (360) 運び手の財（買った財）も名乗る＝伝わりの道で機関車・汽船が蒸気機関の行の運び手になる分を読む
         acc[key] = acc.TryGetValue(key, out double cur) ? cur + value : value;
+    }
+
+    /// <summary>★(360) 接触の分母（読むだけ）：蒸気機関・機関車の行の運び手の財ごとの、この四半期の世界の越境の取引額（<c>DiscoveryGoodFlowQ</c>＝接触の分母が読む配列そのもの）。
+    /// 分子の内訳（disccontact_s の carrier）と並べて、運び手を広げた分の希釈（分母だけが太る側）を読む。四半期の末に discflow_s へ。</summary>
+    internal static void DiscoveryFlow(World w0, double[] gf, int[][] carriers)
+    {
+        var goods = new SortedSet<int>();
+        for (int r = 0; r < carriers.Length; r++)
+            if (Catalog.Discoveries[r].Name is "蒸気機関" or "機関車") foreach (int g in carriers[r]) goods.Add(g);
+        var st = S(w0);
+        foreach (int g in goods)
+            if (g < gf.Length) st.DiscFlowRows.Add(string.Join('	', w0.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), Catalog.Goods[g].Name, F(gf[g])));
     }
 
     static string DiscRowText(string kind, World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
@@ -1853,12 +1872,19 @@ public static partial class Instruments
             var st = S(n.World);
             foreach (var row in st.DiscRows) { int tab = row.IndexOf('\t'); sk.Disc.WriteLine(row.Substring(0, tab + 1) + I(q) + row.Substring(tab)); }
             st.DiscRows.Clear();
+            if (ReferenceEquals(n, sim.Nations[0]) && st.DiscFlowRows.Count > 0)   // (360) 接触の分母（世界の値＝1 国の世界に貯めた行を 1 度だけ）
+            {
+                sk.DiscFlow ??= Open("discflow", seed);
+                if (!sk.DiscFlowHeader) { sk.DiscFlow.WriteLine("quarter	year	good	valueFlowQ"); sk.DiscFlowHeader = true; }
+                foreach (var row in st.DiscFlowRows) sk.DiscFlow.WriteLine(I(q) + "	" + row);
+                st.DiscFlowRows.Clear();
+            }
             if (st.DiscContact.Count > 0)   // (328) 接触の内訳（買い手の国の個体×行×売り手の国）
             {
                 sk.DiscContact ??= Open("disccontact", seed);
-                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	valuePerQuarter"); sk.DiscContactHeader = true; }
-                foreach (var ((crow, seller), v) in st.DiscContact.OrderBy(kv => kv.Key.Row).ThenBy(kv => kv.Key.Seller, StringComparer.Ordinal))
-                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, F(v)));
+                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	carrier	valuePerQuarter"); sk.DiscContactHeader = true; }
+                foreach (var ((crow, seller, cgood), v) in st.DiscContact.OrderBy(kv => kv.Key.Row).ThenBy(kv => kv.Key.Seller, StringComparer.Ordinal).ThenBy(kv => kv.Key.Good))
+                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, Catalog.Goods[cgood].Name, F(v)));
                 st.DiscContact.Clear();
             }
         }
@@ -2087,6 +2113,7 @@ public static partial class Instruments
         for (int k = 0; k < CapDs.Length; k++) C("capBoundPopShare" + CapDNames[k], capOn ? st.QCapBoundPopK[k] / st.QCapPopK : double.NaN);
         N("monopolyTierBeforeDecisionStage", st.MonoBefore); N("monopolyTierTargetDecisionStage", st.MonoTarget); N("monopolyTierEndStage", w.StateMonopolyTier);
         C("fiscalStressAtDecisionIndex", st.FiscalStressAtDecision); N("stateFactorySoldCount", st.FactorySold);
+        C("interestBurdenAtDecisionIndex", st.PushBurden); C("monopolyPushProbabilityIndex", st.PushP); C("monopolyPushDrawIndex", st.PushU); N("monopolyPushHitCount", st.PushHit);
         C("pollTaxEndShare", w.PollTax); C("pollTaxTargetEndShare", w.Policy.PollTaxTarget); C("socialSecurityEndShare", w.SocialSecurity); C("socialSecurityTargetEndShare", w.Policy.SocialSecurityTarget); N("socialSecurityLawEndStage", (int)w.SocialSecurityLaw);
         return cols;
     }

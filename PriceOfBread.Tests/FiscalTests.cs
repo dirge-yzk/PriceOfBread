@@ -396,7 +396,7 @@ public class FiscalTests
     public void 国債台帳_越境移民の保有は発行国の対外債へ振り替わる()
     {
         var coef = new Coefficients();
-        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent(), coef);
+        var sim = new MultiNationSim([OpeningFixture.Named("イギリス"), OpeningFixture.Named("フランス")], 1789, _ => new NullAgent(), coef);   // ★(332) 開幕の国庫・国債を絶対額で持つ盤面（助走なしの器）
         var br = sim.Nations[0].World; var fr = sim.Nations[1].World;
         // 仏の初期国債（米独立戦争債務）は構築時に購入と同じ規則で起票される
         Assert.True(fr.GovDebt.Value > 0 && Math.Abs(HeldOf(fr) - (fr.GovDebt.Value - fr.ForeignDebt.Value)) <= 1e-9 * fr.GovDebt.Value, "仏の初期国債の持ち主が起票されていない");
@@ -483,7 +483,7 @@ public class FiscalTests
     [Fact]
     public void 国債台帳_台帳導入前のセーブは読込時に起票される()
     {
-        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var sim1 = new MultiNationSim([OpeningFixture.Named("イギリス"), OpeningFixture.Named("フランス")], 1789, _ => new NullAgent());   // ★(332) 開幕の国債を絶対額で持つ盤面
         var fr1 = sim1.Nations[1].World;
         Assert.True(fr1.GovDebt.Value > 0, "前提が崩れた：仏に初期国債がない");
         foreach (var r in fr1.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);   // 台帳導入前のセーブ（保有は既定値0で読まれる）を模す
@@ -508,7 +508,7 @@ public class FiscalTests
     private static (MultiNationSim sim, Coefficients coef) QuietBondWorld()
     {
         var coef = new Coefficients { CapitalFlightRatePerQuarter = new RatePerQuarter(0), CapitalDividendRatePerQuarter = new RatePerQuarter(0), CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0) };
-        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
+        var sim = new MultiNationSim([OpeningFixture.Named("イギリス"), OpeningFixture.Named("フランス"), OpeningFixture.Named("プロイセン")], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };   // ★(332) 国庫・国債は絶対額（助走なしの器）
         CapitalMarket.Step(sim.Nations, coef);
         return (sim, coef);
     }
@@ -1197,7 +1197,7 @@ public class FiscalTests
 
     private static MultiNationSim FrozenWorld(params string[] names)
     {
-        var sim = new MultiNationSim(names.Select(WorldData.ByName).ToArray(), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var sim = new MultiNationSim(names.Select(OpeningFixture.Named).ToArray(), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };   // ★(332) 国庫・国債は絶対額（助走なしの器）
         foreach (var n in sim.Nations) n.TelemetryEnabled = false;
         sim.Diplomacy.Log.Enabled = false;
         return sim;
