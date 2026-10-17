@@ -206,7 +206,7 @@ public class HabitTests
             {
                 double a = D(r, "addictionIndex");
                 Assert.InRange(a, 0, 0.2 + 1e-12);                                                  // 上限（係数の既定 0.2）
-                Assert.Equal(Math.Max(0.5, 1.0 - a), D(r, "laborFactorIndex"), 8);                  // 労働の倍率は手の算術（害 1.0・床 0.5・表は有効数字 10 桁）
+                Assert.InRange(D(r, "laborFactorIndex"), Math.Max(0.5, 1.0 - a) - 1e-9, Math.Max(0.5, 1.0 - a) + 1e-9);   // 労働の倍率は手の算術（害 1.0・床 0.5）。★(383) 桁の丸め（8 桁）で境界の値が 1e-8 ずれた→★(387) 絶対の許容差 1e-9（表は有効数字 10 桁＝丸めの境界に依らない・反証役 ae〔bv〕低）
                 Assert.True(D(r, "soldPerMonth") >= 0);
                 Assert.InRange(D(r, "productionFactorIndex"), 0, 1);
             }

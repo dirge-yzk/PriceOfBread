@@ -18,14 +18,11 @@ public static class TechEducation
     internal static double AbsorptionOf(World w, Coefficients c)
     {
         double pressAbs = PressFactor(w.Censorship);
-        // ★穴③（2026-08-31）：行政の脚＝×(1−AbsorptionAdminWeight×(1−行政効率))。IncomeAbsorption と同形・0＝×1.0＝厳密恒等。
-        //   識字と所得は輸出成功の循環で満たされる（世界工場の椅子取り）＝科挙官僚制/植民地行政の質だけが循環の外の判別子（洋務運動の原器）。
-        double adminAbs = c.AbsorptionAdminWeight > 0
-            ? 1.0 - c.AbsorptionAdminWeight * (1.0 - PoliticalQuantities.Clamp01(w.AdminEfficiency)) : 1.0;
+        // ★(383) 作者 2026-10-16「行政効率→廃止」：穴③（2026-08-31）の行政の脚〔×(1−AbsorptionAdminWeight×(1−行政効率))〕は物理削除した（行政の質は既に経済側〔行政費の充足・汚職漏れ〕で効く＝吸収能力へ重ねて掛けるのは二重計上）。
         double breadth = PoliticalQuantities.Clamp01(w.Elite / c.EliteForFullTech);
         // ★厚み（作者採用2026-09-06 段3）：採用の識字項を 広さ^(1−a)×厚み^a へ。a=0 で広さそのもの（分岐＝ビット恒等）。
         if (c.AdoptExpertiseWeight > 0) breadth = Math.Pow(breadth, 1.0 - c.AdoptExpertiseWeight) * Math.Pow(ExpertiseRel(w), c.AdoptExpertiseWeight);
-        return breadth * pressAbs * IncomeAbsorption(w, c) * adminAbs;
+        return breadth * pressAbs * IncomeAbsorption(w, c);
     }
 
     /// <summary>吸収能力の**経済側**（2026-08-12）＝技術を載せる資本を買えるか。1人あたり所得で測る。
@@ -267,10 +264,10 @@ public static class TechEducation
         _ => 0.0,
     };
 
-    // 世界の技術水準解禁：自由が閾値以上（または#22＝高エリート技術力＋高行政効率で代替＝権威主義的近代化） かつ 世俗の水路（公教育以上）
+    // 世界の技術水準解禁：自由が閾値以上（または#22＝高エリート技術力で代替＝権威主義的近代化。(383) で行政効率の連言は物理削除） かつ 世俗の水路（公教育以上）
     private static bool FrontierCapable(World w, Coefficients c) =>
         (w.Freedom >= c.FrontierFreedomThreshold
-         || (c.InnovationEliteSubstitute > 0 && w.Elite >= c.EliteForFullTech && w.AdminEfficiency >= c.InnovationAdminThreshold)) &&
+         || (c.InnovationEliteSubstitute > 0 && w.Elite >= c.EliteForFullTech)) &&
         w.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory;
 
 }

@@ -11,6 +11,9 @@ namespace PriceOfBread.Tests;
 /// ③帯が閉じる：距離の帯の中の重さ加重の平均の実 km は帯の境（テストが自分で持つ境）の内側・陸脚＋海脚＝合計・運賃＝陸脚の分＋海脚の分。
 /// ④州の面積：全ての州の面積の和が陸地の面積の桁・同じ座標の州は等分・平均の運び距離＝(2/3)√(A/π)。州の断面の産出の和＝国の GdpPerMonth（別の経路）。
 /// ⑤計器を切っている間は蓄えが作られない（hook が 1 命令も走らない）。
+/// ⑥(385) 陸脚の売り手側・買い手側：和が元の陸脚の列に合う（3 つのファイルで）・海経由は〈売り手側の換算 km ＝ 売り手側の実 km × 地形の係数 × 陸÷海の比〉（別の列から再構成）・
+///   陸直行は売り手側÷買い手側 ＝ 両端の（地形×比）の比・国の表の〈国の中の陸脚の運賃〉の和 ＝ 帯の表の陸脚の運賃の和（別のファイル）・〈戻る額〉は受け取った運賃を超えない。
+///   対照＝越境の海経由で売り手側の陸脚の運賃が正の行がある。⑦(385) 州の面積の行が断面の年ごとに出て、その年の G 行の州の集合に合う。
 /// 何もしない番人は必ず緑になる＝陸直行と海経由の両方・越境と国内の両方・陸脚の運賃が正の行が 1 つ以上あることを対照にする。軌道が計器で変わらないことは InstrumentsTests と成績表の全行一致が見る。
 /// </summary>
 [Collection("Instruments")]
@@ -90,6 +93,10 @@ public class TransportInstrumentTests
                 Near(real, rl + rs, 1e-9);
                 Near(Col(bh, r, "weightKmEqPerYear"), Col(bh, r, "weightKmEqLandPerYear") + Col(bh, r, "weightKmEqSeaPerYear"), 1e-9);
                 Near(Col(bh, r, "freightGoldPerYear"), Col(bh, r, "freightLandPartGoldPerYear") + Col(bh, r, "freightSeaPartGoldPerYear"), 1e-9);
+                // (385) 陸脚の売り手側＋買い手側 ＝ 元の陸脚の列（実 km・換算 km・運賃）
+                Near(rl, Col(bh, r, "weightKmRealLandSellerSidePerYear") + Col(bh, r, "weightKmRealLandBuyerSidePerYear"), 1e-9);
+                Near(Col(bh, r, "weightKmEqLandPerYear"), Col(bh, r, "weightKmEqLandSellerSidePerYear") + Col(bh, r, "weightKmEqLandBuyerSidePerYear"), 1e-9);
+                Near(Col(bh, r, "freightLandPartGoldPerYear"), Col(bh, r, "freightLandSellerSidePartGoldPerYear") + Col(bh, r, "freightLandBuyerSidePartGoldPerYear"), 1e-9);
                 if (route == 0)
                 {   // 陸直行＝海脚が無く運賃は全部が陸脚
                     Assert.Equal(0.0, rs, 9); Assert.Equal(0.0, Col(bh, r, "weightKmEqSeaPerYear"), 9); Near(Col(bh, r, "freightGoldPerYear"), Col(bh, r, "freightLandPartGoldPerYear"), 1e-9); landRows++;
@@ -112,7 +119,7 @@ public class TransportInstrumentTests
             double rate = 0, norm = 0;
             foreach (var r in sr) if (Str(sh, r, "scope") == "Z") { string nm = Str(sh, r, "name"); if (nm == "FreightRatePer10Mm") rate = Col(sh, r, "value"); if (nm == "DistanceNormKm") norm = Col(sh, r, "value"); }
             Assert.True(rate > 0 && norm > 0, "Z の行から運賃率と距離の物差しが読めない");
-            int checkedPairs = 0, withLandLeg = 0, seaPairs = 0, landPairs = 0;
+            int checkedPairs = 0, withLandLeg = 0, seaPairs = 0, landPairs = 0, crossSellerLeg = 0;
             foreach (var r in rr)
             {
                 if (Str(rh, r, "sellerRegion").StartsWith("(")) continue;
@@ -125,6 +132,20 @@ public class TransportInstrumentTests
                 Near(rate * vl / norm, frL, 1e-6);                    // 陸脚の分＝運賃率×（荷の値打ち×陸脚の換算 km）÷距離の物差し
                 if ((int)Col(rh, r, "routeCode") == 0) { Assert.Equal(0.0, eqSea, 9); landPairs++; } else { Assert.True(Col(rh, r, "realSeaKm") > 0); seaPairs++; }
                 if (frL > 0) withLandLeg++;
+                // (385) 陸脚の売り手側・買い手側：和が合う・海経由の（最後の成約の）売り手側の換算 km ＝ 売り手側の実 km × 地形の係数 × 陸÷海の比（別の列から再構成）
+                double rls = Col(rh, r, "realLandSellerSideKm"), rlb = Col(rh, r, "realLandBuyerSideKm"), els = Col(rh, r, "eqLandSellerSideKm"), elb = Col(rh, r, "eqLandBuyerSideKm");
+                double ts = Col(rh, r, "terrainCostSeller"), tb = Col(rh, r, "terrainCostBuyer"), ks = Col(rh, r, "landSeaRatioSeller"), kb = Col(rh, r, "landSeaRatioBuyer");
+                Near(Col(rh, r, "realLandKm"), rls + rlb, 1e-9); Near(eqLand, els + elb, 1e-9);
+                Near(frL, Col(rh, r, "freightLandSellerSidePartGoldPerYear") + Col(rh, r, "freightLandBuyerSidePartGoldPerYear"), 1e-6);
+                Near(vl, Col(rh, r, "valueTimesEqLandSellerSideKmGoldPerYear") + Col(rh, r, "valueTimesEqLandBuyerSideKmGoldPerYear"), 1e-9);
+                if ((int)Col(rh, r, "routeCode") == 1) { Near(rls * ts * ks, els, 1e-9); Near(rlb * tb * kb, elb, 1e-9); }
+                else { Near(rls, rlb, 1e-9); Near(rls * ts * ks, els, 1e-9); Near(rlb * tb * kb, elb, 1e-9); }   // 陸直行：実 km は半分ずつ・換算は各端の係数
+                if ((int)Col(rh, r, "routeCode") == 1 && Col(rh, r, "valueSeaRouteGoldPerYear") >= Col(rh, r, "valueGoldPerYear") * (1 - 1e-9))
+                {   // 全ての成約が海経由の組：売り手側÷買い手側の運賃 ＝ 両端の（実 km×地形×比）の比（売り手側の分だけが正の組もある＝0 除け）
+                    double fs = Col(rh, r, "freightLandSellerSidePartGoldPerYear"), fb = Col(rh, r, "freightLandBuyerSidePartGoldPerYear");
+                    if (els > 0 && elb > 0 && fb > 0) Near(els / elb, fs / fb, 1e-6);
+                    if (fs > 0 && Str(rh, r, "sellerNation") != Str(rh, r, "buyerNation")) crossSellerLeg++;
+                }
                 // 陸脚の換算 km ≧ 陸脚の実 km ×（地形の係数の最小 0.15）×（陸÷海の比の最小）
                 Assert.True(eqLand + 1e-9 >= Col(rh, r, "realLandKm") * 0.15 * Math.Min(Col(rh, r, "landSeaRatioSeller"), Col(rh, r, "landSeaRatioBuyer")) * (1 - 1e-9) || Col(rh, r, "realLandKm") == 0);
                 checkedPairs++;
@@ -147,6 +168,45 @@ public class TransportInstrumentTests
             foreach (var y in domPair.Keys) Near(domPair[y], domBin.GetValueOrDefault(y), 1e-6);
             Assert.True(checkedPairs >= 50, $"経路の行が少ない {checkedPairs}");
             Assert.True(landPairs > 0 && seaPairs > 0 && withLandLeg > 0, $"陸直行 {landPairs}・海経由 {seaPairs}・陸脚の運賃が正 {withLandLeg}");
+            Assert.True(crossSellerLeg > 0, "越境の海経由で売り手側の陸脚の運賃が正の組が 1 つも無い（対照）");
+
+            // ---- ⑥ (385) 国の表：国の中の陸脚の運賃（売り手側は売り手の国・買い手側は買い手の国）の和 ＝ 帯の表の陸脚の運賃の和（別のファイル・年ごと）。戻る額は国の中の陸脚の運賃・受け取った運賃を超えない。
+            var inNat = new Dictionary<string, double>(); var landBin = new Dictionary<string, double>(); double toOwnAll = 0, inAll = 0, recvAll = 0;
+            foreach (var r in nr)
+            {
+                string y = Str(nh, r, "year");
+                double sIn = Col(nh, r, "freightLandSellerSideInNationGoldPerYear"), bIn = Col(nh, r, "freightLandBuyerSideInNationGoldPerYear"), own = Col(nh, r, "freightLandInNationToOwnCarriersGoldPerYear");
+                inNat[y] = inNat.GetValueOrDefault(y) + sIn + bIn;
+                Assert.True(own <= sIn + bIn + 1e-9 * Math.Max(1.0, sIn + bIn), "戻る額が国の中の陸脚の運賃を超えた");
+                Assert.True(own <= Col(nh, r, "freightReceivedGoldPerYear") * (1 + 1e-9) + 1e-12, "戻る額が受け取った運賃を超えた（戻る額は受け取りの一部のはず）");
+                Assert.True(Col(nh, r, "freightPaidLandPartDomesticGoldPerYear") <= sIn + bIn + 1e-9 * Math.Max(1.0, sIn + bIn), "国内の成約の陸脚の運賃は国の中の陸脚の運賃に含まれる");
+                toOwnAll += own; inAll += sIn + bIn; recvAll += Col(nh, r, "freightReceivedGoldPerYear");
+            }
+            foreach (var r in br) landBin[Str(bh, r, "year")] = landBin.GetValueOrDefault(Str(bh, r, "year")) + Col(bh, r, "freightLandPartGoldPerYear");
+            foreach (var y in inNat.Keys) Near(landBin.GetValueOrDefault(y), inNat[y], 1e-6);
+            Assert.True(toOwnAll > 0 && toOwnAll < inAll, $"戻る額 {toOwnAll}・国の中の陸脚の運賃 {inAll}（4 国の試験では 0 < 戻る額 < 国の中の運賃）");
+            Assert.True(toOwnAll < recvAll, "戻る額は受け取った運賃の和より小さい");
+            // 国ごと：〈戻る額÷国の中の陸脚の運賃〉は、その国の船腹の比（受け取った運賃÷世界の受け取り）の時間平均に近い＝売り手側にも買い手側にも〈その国自身の〉比を掛けた証拠
+            //   （売り手と買い手の比を取り違えると、国の中の運賃に相手国の比が掛かって、この国の比から外れる）。2 つの量は別の経路（成約の位置の積／清算の終わりの配り）で、重みが違うので完全には一致しない。
+            var inBy = new Dictionary<string, double>(); var ownBy = new Dictionary<string, double>(); var recvBy = new Dictionary<string, double>();
+            foreach (var r in nr)
+            {
+                string nm = Str(nh, r, "nation");
+                inBy[nm] = inBy.GetValueOrDefault(nm) + Col(nh, r, "freightLandSellerSideInNationGoldPerYear") + Col(nh, r, "freightLandBuyerSideInNationGoldPerYear");
+                ownBy[nm] = ownBy.GetValueOrDefault(nm) + Col(nh, r, "freightLandInNationToOwnCarriersGoldPerYear");
+                recvBy[nm] = recvBy.GetValueOrDefault(nm) + Col(nh, r, "freightReceivedGoldPerYear");
+            }
+            double recvTot = recvBy.Values.Sum(); int shareChecked = 0, shareOff = 0; var shareMsg = new List<string>();
+            foreach (var nm in inBy.Keys)
+            {
+                double sh0 = recvBy[nm] / recvTot;
+                if (!(inBy[nm] > 0) || sh0 < 0.03) continue;
+                double ratio = ownBy[nm] / inBy[nm]; shareMsg.Add($"{nm} 戻る/国の中={ratio:F4}・受取の割合={sh0:F4}");
+                if (Math.Abs(ratio - sh0) > 0.35 * sh0) shareOff++;
+                shareChecked++;
+            }
+            Assert.True(shareChecked >= 2, "船腹の比が 3% 以上で陸脚の運賃のある国が 2 つ未満＝比の突き合わせが空: " + string.Join(" ／ ", shareMsg));
+            Assert.True(shareOff == 0, "戻る額÷国の中の陸脚の運賃が、その国の船腹の比から外れた国がある：" + string.Join(" ／ ", shareMsg));
         }
         finally { restore(); }
     }
@@ -173,20 +233,33 @@ public class TransportInstrumentTests
         {
             string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
             var (sh, sr) = Table(P("trstat"));
-            int aRows = 0; double areaSum = 0;
+            int aRows = 0; var areaSumByYear = new Dictionary<string, double>(); var aSet = new Dictionary<string, HashSet<string>>(); var gSet = new Dictionary<string, HashSet<string>>();
             foreach (var r in sr.Where(r => Str(sh, r, "scope") == "A"))
             {
                 aRows++;
+                string ay = Str(sh, r, "year");
+                if (!aSet.TryGetValue(ay, out var asx)) aSet[ay] = asx = new HashSet<string>();
+                asx.Add(Str(sh, r, "nation") + "/" + Str(sh, r, "region"));
                 double a = Col(sh, r, "areaKm2"), n = Col(sh, r, "areaWithin1000KmKm2");
                 if (!double.IsNaN(a))
                 {
-                    areaSum += a;
+                    areaSumByYear[ay] = areaSumByYear.GetValueOrDefault(ay) + a;
                     Assert.True(n <= a * (1 + 1e-12));
                     Near(2.0 / 3.0 * Math.Sqrt(a / Math.PI), Col(sh, r, "meanHaulKm"), 1e-8);
                 }
             }
             Assert.True(aRows >= 50, $"面積の行が少ない {aRows}");
-            Assert.InRange(areaSum, 80e6, 150e6);
+            foreach (var kv in areaSumByYear) Assert.InRange(kv.Value, 80e6, 150e6);   // 年ごと（旧は全部の和＝年を数えなかった）
+            // (385) 面積の行が断面の年（G 行のある年）ごとに出て、その年の G 行の州の集合に合う（A がその年の州に従う）。開幕の 1 回の年も 1 組ある。
+            foreach (var r in sr.Where(r => Str(sh, r, "scope") == "G"))
+            {
+                string gy = Str(sh, r, "year");
+                if (!gSet.TryGetValue(gy, out var gsx)) gSet[gy] = gsx = new HashSet<string>();
+                gsx.Add(Str(sh, r, "nation") + "/" + Str(sh, r, "region"));
+            }
+            Assert.True(gSet.Count >= 5, $"断面の年が少ない {gSet.Count}");
+            foreach (var kv in gSet) { Assert.True(aSet.ContainsKey(kv.Key), $"断面の年 {kv.Key} に面積の行が無い"); Assert.True(kv.Value.SetEquals(aSet[kv.Key]), $"断面の年 {kv.Key} の面積の行の州の集合が G 行の州の集合と違う"); }
+            Assert.True(aSet.Count == gSet.Count + 1, $"面積の行の年 {aSet.Count}（断面の年 {gSet.Count} ＋ 開幕の 1 回のはず）");
             // 州の断面：国ごとの（工場＋採取場）の産出の和 ＝ World.GdpPerMonth（別の経路）・都市人口 ≦ 人口
             var perNation = new Dictionary<string, double>(); string lastYear = "";
             foreach (var r in sr.Where(r => Str(sh, r, "scope") == "G")) lastYear = Str(sh, r, "year");

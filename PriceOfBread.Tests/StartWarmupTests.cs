@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using PriceOfBread.SimCore;
 using Xunit;
 using static PriceOfBread.Tests.StartWarmupShared;

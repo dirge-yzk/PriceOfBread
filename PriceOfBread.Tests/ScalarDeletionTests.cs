@@ -33,6 +33,18 @@ public class ScalarDeletionTests
     }
 
     [Fact]
+    public void 政治の束12項目は物理削除済み_係数も旗も復活しない()
+    {
+        // (384) 腕 B（独裁へ引く項・勅令の速さ・犯罪と出来事から闘争度／満足度への直の足し・恐慌から思想への直の足し）が止める線に掛からず採用した削除（2026-10-17）。
+        // 復活を黙って許さない＝名前で存在を禁じる（期待値は本体の式から作らない）。ReformMilitancyRelief は Politics の 3 か所（(387) の木で :203・:823・:1200）の作者裁定（譲歩が鎮める）の実装なので残る。
+        string[] coefGone = ["DominanceCoupWeight", "AutocraticPolicyAgility", "CrimeSatPenalty", "CrimeWealthFearWeight", "DefaultMilitancyHit", "DeposedMilitancySpike",
+            "WarDefeatMilitancySpike", "SeizureMilitancyCost", "DepressionSocialism", "DepressionCommunism", "DepressionReaction", "DeleteRegimeChangeRelief"];
+        foreach (var n in coefGone) Assert.Null(typeof(Coefficients).GetField(n));
+        Assert.NotNull(typeof(Coefficients).GetField("ReformMilitancyRelief"));
+        Assert.NotNull(typeof(Coefficients).GetField("DominanceInstabilitySatisfaction"));   // 正統性の侵食とブルジョア独裁の引力の門は残る
+    }
+
+    [Fact]
     public void 採らなかった旗2本とDiagの欄はmainに入れない()
     {
         // (373) の形の旗 2 本（既定 0）と純記帳の Diag 3 欄は枝 ps に残す（思想⑩・反証役 ps〔bv〕中#1）。
@@ -43,34 +55,29 @@ public class ScalarDeletionTests
     }
 
     [Fact]
-    public void 汚職の政治の2項は残る_天命と正統性を下げる()
+    public void 汚職の政治の2項は物理削除されている_天命と正統性は実効汚職を読まない()
     {
-        // (377) で消して止める線に当たり戻した 2 項。対照＝同じ盤面で係数を 0 にした世界（World.Coef は国ごとの別インスタンス）。
-        // 期待値は本体の式から作らない＝〈係数ありの方が天命も正統性も低い〉だけを見る。前提：開幕の清・ロシアは実効汚職が正（行政財が足りない）。
-        // 天命の項は正統性の侵食の倍率（dynErodeMul）にも届く＝対照は 1 項ずつ 0 にする（両方を同時に 0 にすると正統性の差が天命の経路で出てしまう）。
-        MultiNationSim Run(bool zeroGraft, bool zeroErosion)
+        // (377) で一度消して止める線に当たり戻した 2 項（天命の汚職の項 dmGraft・腐敗→正統性の侵食）を、作者 2026-10-16「汚職→廃止」と 10-17「史実度の低下は差し戻し理由にはなりません」で
+        // (383) が再び物理削除した。係数 2 本が型に無いこと＋行政の充足〔実効汚職の元〕を 0 にしても 1 にしても Politics.Step の天命と正統性は 1 ビットも変わらないこと＋説明台帳に項が無いこと。
+        Assert.Null(typeof(Coefficients).GetField("DynMandateGraftWeight"));
+        Assert.Null(typeof(Coefficients).GetField("CorruptionLegitimacyErosion"));
+        (double Mandate, double Legit, bool HasGraft, bool HasErosion) Run(double fill)
         {
-            var sim = Board();
-            foreach (var n in sim.Nations)
-            {
-                if (zeroGraft) n.World.Coef.DynMandateGraftWeight = 0.0;
-                if (zeroErosion) n.World.Coef.CorruptionLegitimacyErosion = 0.0;
-            }
-            sim.Run(1);
-            return sim;
+            var w = new Simulation(NationConfig.France().ToScenario(7), new NullAgent()).World;
+            // ★(387) 反証役 ae〔bv〕低の確かめ：この盤面では満足の項で天命の目標が 1 に張り付き（Clamp01）、汚職の項を戻しても値が動かなかった（突然変異 M6 が緑）。
+            //   満足の重みを 0 にして目標を張り付かない所（中立 0.5 の近く）へ置く＝充足に依る項があれば値が動く。
+            w.Coef.DynMandateSatWeight = 0.0;
+            foreach (var r in w.Regions) r.AdminFill = fill;
+            w.Explain = new ExplainLedger();
+            Politics.Step(w, w.Coef);
+            return (w.DynasticMandate, w.Legitimacy,
+                w.Explain.Get("DynasticMandate").Any(t => t.Reason == "汚職の体感"), w.Explain.Get("Legitimacy").Any(t => t.Reason.StartsWith("腐敗侵食")));
         }
-        var both = Run(false, false);
-        var noGraft = Run(true, false);
-        var noErosion = Run(false, true);
-        World Of(MultiNationSim s, string name) => s.Nations.First(n => n.World.SelfPower!.Name == name).World;
-        foreach (var name in new[] { "清", "ロシア" })
-        {
-            var w1 = Of(both, name);
-            Assert.True(w1.EffectiveCorruption > 0, $"前提：{name} の実効汚職が 0（{w1.EffectiveCorruption}）＝この盤面では項を確かめられない");
-            Assert.True(w1.DynasticMandate < Of(noGraft, name).DynasticMandate, $"{name}：汚職の項があっても天命が下がらない（{Of(noGraft, name).DynasticMandate}→{w1.DynasticMandate}）＝天命の汚職の項が消えている");
-            Assert.Equal(Of(noErosion, name).DynasticMandate, w1.DynasticMandate);   // 侵食の係数は天命に届かない（同じ四半期）
-            Assert.True(w1.Legitimacy < Of(noErosion, name).Legitimacy, $"{name}：腐敗の侵食があっても正統性が下がらない（{Of(noErosion, name).Legitimacy}→{w1.Legitimacy}）＝腐敗→正統性の侵食が消えている");
-        }
+        var weak = Run(0.0); var strong = Run(1.0);
+        Assert.InRange(strong.Mandate, 0.46 + 1e-9, 0.54 - 1e-9);   // 前提：天命の目標が 0 と 1 に張り付かない（初期 0.5・EMA 0.08＝目標が (0,1) の内なら値は (0.46,0.54) の内）
+        Assert.False(weak.HasGraft); Assert.False(weak.HasErosion);
+        Assert.Equal(strong.Mandate, weak.Mandate);   // 実効汚職が 1 と 0 でも天命は同じ
+        Assert.Equal(strong.Legit, weak.Legit);       // 同・正統性
     }
 
     [Fact]

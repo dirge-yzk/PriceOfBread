@@ -2387,8 +2387,8 @@ public static class EconomyStep
             double pay = got * clearPrice[Catalog.AdminId] * adminMul;   // 単価×距離の割増（上の予算の見積もりと同じ）
             revenue[Catalog.AdminId] += pay;
             region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : 1.0;
-        }
+            region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : 0.0;   // ★(383) 必要量 0 の州は〈行政は満額〉でなく 0（fail-closed）
+        } else if (Catalog.AdminId < ng) region.AdminFill = 0.0;   // ★(383) 官僚 POP が居ない州も〈行政は満額〉でなく 0（旧は既定値 1.0 が残った＝fail-open）
 
         // 上下水道の決済：国家が買った上下水道の支払い（→施設＝建設会社の売上・国庫→popで保存）。充足率＝衛生。
         if (infraProc)
@@ -2629,7 +2629,7 @@ public static class EconomyStep
             // （退蔵結晶化 段3＝HoardCrystallizeRate と結晶資産 Pop.IlliquidWealth は 2026-09-26 に削除＝休眠の枝だけが書き、常に0を運んでいた）
             // ★★★**これは「満足度」ではなく「生活水準」である**（作者裁定 2026-08-19）。
             //   ⚠**必要なものをどれだけ買えているかだけ**で決まる。直接バフ4件（時短/電化/福祉/年金）は物理削除2026-08-21（思想⑨・各墓標＝Coefficients）。
-            //   ★この行の後の加減算は**1件**＝**犯罪減算（Crime.cs の CrimeSatPenalty=0.5＝live）**（阿片減算 OpiumSatisfactionPenalty は 2026-09-26・組合加算 UnionSatBonus は 2026-10-11 (271) に削除＝⑨・dorm-22）。
+            //   ★この行の後の加減算は**0件**＝犯罪減算（Crime.cs の CrimeSatPenalty・CrimeWealthFearWeight）は (384) で削除・阿片減算 OpiumSatisfactionPenalty は 2026-09-26・組合加算 UnionSatBonus は 2026-10-11 (271) に削除＝⑨・dorm-22。
             //   ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝この比の中身は「日用品の不足＝不満」と「嗜好品が買えた＝上振れ」だけ。
             //     食料の欠乏は FoodMet/FoodNeed → FamineDrive → 闘争度 の1本へ移った（満足度の水準は主食が抜けたぶん構造的に下がる＝読み手の門は分位の写像で導き直し済み）。
             //   ★その逆（1−これ）が政治へ向かう（Politics.cs の want）。

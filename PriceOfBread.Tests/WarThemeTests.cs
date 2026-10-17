@@ -698,7 +698,10 @@ public class WarThemeTests
         Assert.Equal(Polity.ProletarianDictatorship, fr.Polity);
         Assert.Equal(0.0, fr.GovDebt.Value);                   // 急進革命だけ否認（即時の政変と同じ規則）
         Assert.Equal(ReformLevel.Full, fr.LandReform);   // プロレタリア独裁＝全面の土地改革
-        Assert.Contains(fr.AllPops(), p => p.Closed && p.Militancy > 0.2);   // 失脚＝旧支配層の反革命の不満
+        Assert.DoesNotContain(fr.AllPops(), p => p.Closed && p.Militancy > 0.2 + 1e-12);   // (384) 失脚した層の闘争度への直の足し（DeposedMilitancySpike）は削除した＝政変そのものでは闘争度は跳ばない（復活の番人・失脚は政治の経路〔発言権→法の隔たり→闘争度の目標〕で表される）
+        // ★(387) 反証役 pb〔bv〕低：政変の緩和（失脚しなかった層の闘争度 ×ReformMilitancyRelief）も (384) で削除した＝失脚しなかった層は 0.2 のまま（×0.5 されない）。
+        Assert.Contains(fr.AllPops(), p => !p.Closed);
+        Assert.DoesNotContain(fr.AllPops(), p => !p.Closed && p.Militancy < 0.2 - 1e-12);
     }
 
     [Fact]

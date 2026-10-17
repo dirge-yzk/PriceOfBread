@@ -128,7 +128,7 @@ public sealed class World
     //   ⚠独立ストックを持つと正統性と乖離してドリフトする＝その事故が構造的に起きない形。
     public BudgetLaw BudgetLaw { get; internal set; } = BudgetLaw.Decree;
     public CommandLaw CommandLaw { get; internal set; } = CommandLaw.Crown;
-    public BureaucracyLaw Bureaucracy { get; internal set; } = BureaucracyLaw.MeritExam;            // 官僚制度（現在値・1934拡張E5）。猟官/資格任用/専門＝行政効率の段階係数。BureaucracyAdminSpread=0で恒等
+    public BureaucracyLaw Bureaucracy { get; internal set; } = BureaucracyLaw.MeritExam;            // 官僚制度（現在値・1934拡張E5）。猟官/資格任用/専門＝監視の資格任用の脚と累進課税の前提
     public ImmigrationLaw ImmigrationRestriction { get; internal set; } = ImmigrationLaw.Open;   // ★移民制限法（2026-08-01）。既定 Open＝制限なし＝現行と厳密同義
     // 参政権の範囲2法（現在値・作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）。既定 None＝開始局面は現行と厳密同義。
     // 読み手＝InterestGroups.Blocs（発言権）・Fiscal の consent（課税への同意）・Politics（分離圧の緩和・少数派闘争度）＝全て gate>0 のみ。
@@ -229,9 +229,9 @@ public sealed class World
     public NationPolicy Policy { get; internal set; } = new();
     public double SocialSecurity { get; internal set; }  // 社会保障（0..1・現在値）
     public double AdminSpending { get; internal set; } = 0.5;  // 行政費（0..1・現在値）。官僚の役務「行政」の調達予算＝官僚の給与。低い＝汚職（税収が漏れる）
-    // --- 税制の拡張（現在値）。土地税は行政力でアンロック（検地台帳＝一度できれば残る）。所得税・累進に行政力の天井/解禁は無い（2026-09-12 廃止＝徴収の実効は汚職漏れ）---
+    // --- 税制の拡張（現在値）。土地税は最初から開いている（検地台帳の錠は (383) で物理削除）。所得税・累進に行政力の天井/解禁は無い（2026-09-12 廃止＝徴収の実効は汚職漏れ）---
     public double PollTax { get; internal set; }          // 人頭税（0..1）。行政不要・確実・逆進的（閉鎖階級は免除＝特権）
-    public double LandTax { get; internal set; }          // 土地税（0..1）。RGOの地代（地主の取り分）に課税。要・検地台帳
+    public double LandTax { get; internal set; }          // 土地税（0..1）。RGOの地代（地主の取り分）に課税
     public double ProgressiveTax { get; internal set; }   // 累進課税（0..1・現在値）。富裕層(近代エリート・閉鎖階級)の所得に**追加**課税＝再分配（A-1#3配線2026-06-24）。段の法（2026-09-20 点火）＝官僚制度（資格任用以上）の法が前提（LawPrereq＝目標を置く側の門）・徴収漏れは所得税と同じ汚職leak。富裕が強く抵抗
     // ★★専売＝「材ごとの ON/OFF × エンジンの標準率」1本（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）。
     //   ⚠**国ごとの率は存在しない**＝旧 World.StateMonopoly（政治が動かす天井）と Policy.StateMonopolyTarget（その目標）は物理削除した。
@@ -388,7 +388,6 @@ public sealed class World
     public bool WomenEducationLaw => WomenRights >= WomenRightsLaw.Education;
     /// <summary>女性参政権が成立しているか（＝梯子が最上段）。男女普通選挙(Universal)の前提。</summary>
     public bool WomenSuffrage => WomenRights >= WomenRightsLaw.Suffrage;
-    public double AdminPowerSmoothed { get; internal set; }   // 行政力（行政効率の移動平均）。土地税のアンロック（検地台帳）の物差し（所得税の天井・解禁は2026-09-12に廃止＝徴収の実効は汚職漏れが額で表す）
     public double LastTaxLeak { get; internal set; }          // 直近月の汚職漏れ（税収×腐敗率×実効汚職＝官僚の懐へ）。診断用
     // ★撤去2026-08-16（掃除キューC2-C5）：汚職根絶レバーの旧機構＝AntiCorruptionSpending（根絶費）・CleanGovernance（清廉度ストック）・
     //   LastAntiCorruptionCost（診断）を物理削除。汚職V2恒久ONの裁定済み（20260814_汚職をサブシステムにする§10）＝V2では全て不読の死骸だった。
@@ -475,7 +474,6 @@ public sealed class World
     public MoneyPerMonth LastColonialUpkeepPerMonth { get; internal set; }      // 直近月の植民地維持費（駐留・海軍の俸給＝現金分）の実支払い（診断・予算表。監査2026-07-11 接1。石炭・糧食・キニーネの現物調達は市場経由＝StateSpent側）
     public double LastTributeOutPerQuarter { get; internal set; }          // 直近四半期に宗主へ払った貢納（診断・予算表＝月表示は/3。監査2026-07-11 接1）
     public double LastTributeInPerQuarter { get; internal set; }           // 直近四半期に属国から受け取った貢納合計（同上）
-    public bool LandTaxUnlocked { get; internal set; }     // 検地台帳の完成（行政力が閾値に達した実績＝一方向）
     public bool IsQuarterEndMonth { get; internal set; }   // 四半期の締め月の月次決算で true（Simulation の月次決算が書く）。読み手＝製法の通知・軍の熟練度（旧読み手の財政の器 FiscalQuarterlyGating は 2026-09-26 に削除）
     // 財5（対外国債の閉鎖系化）：他モデル国の資本家貯蓄の合計（対外国債の引き受け余力）。注入は MultiNationSim（ForeignBondFromInvestors>0.5 のときだけ）。
     // ★初期値は −1＝「未注入」（2026-07-31 点火時の是正）。⚠2026-09-29（支払いの一元化 段2-2・A5）：未注入も外資0として読む（Fiscal.Borrow）
@@ -512,7 +510,7 @@ public sealed class World
 
     /// <summary>★法の継承の1本（2026-09-28 処理の一元化 段2 C）＝建国した国が親の法をそのまま受け継ぐ（独立は制度を巻き戻さない）。
     /// 現在値＝段の法（表 <see cref="Government.LevelLaws"/>）と税・支出の段（表 <see cref="Government.RateLaws"/>）を**表のまま**写し、
-    /// 表の外の制度（関税・金利・行政費・陸海の維持費・特許・株式会社・鉄道・検地台帳・年金・福祉水準・実労働時間）を足す。
+    /// 表の外の制度（関税・金利・行政費・陸海の維持費・特許・株式会社・鉄道・年金・福祉水準・実労働時間）を足す。
     /// 目標＝政策を丸ごと写す（<see cref="NationPolicy.CopyFrom"/>＝開始盤面の退避と同じ1本）。
     /// ⚠旧＝建国（MultiNationSim.SpawnNation）が World と Policy の対を軸ごとに手で約40行書いた＝軸を足すたびに写し漏れた
     ///   （女性の権利は Policy だけ漏れた前歴。累進課税・植民地参政権・移民原住民参政権・技術者流出禁止法・行政費は漏れたままだった）。
@@ -524,7 +522,6 @@ public sealed class World
         foreach (var law in Government.RateLaws) law.Set(this, law.Get(src));
         Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
         SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
-        LandTaxUnlocked = src.LandTaxUnlocked;   // 特許・株式会社・鉄道は発見の2値（Discovered＝建国は親の知識を継ぐ）を読むだけ＝写さない
         ConscriptionPreWar = src.ConscriptionPreWar;   // ★(178) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
         Policy.CopyFrom(src.Policy);
@@ -545,7 +542,7 @@ public sealed class World
     public double FoodRatioProductionSmoothed { get; internal set; } = -1;   // 主食の生産比（実産出÷必要量）のEMA（FoodFillSmoothing共用・-1=未捕捉→初回直接初期化）。扶養力の生産アンカー用（人2補完2026-07-11）
     // ★人口診断（2026-08-01・popprobe 用の純記帳。力学は読まない＝挙動非依存）。
     // 扶養力のどの項が律速しているかを外から見るための窓＝「英の人口が131年横ばい」の原因特定に使う。
-    public double DiagCapacity, DiagCapacityBaseline, DiagHealthcare, DiagDoctorCare, DiagFoodRatio, DiagLandAnchor;
+    public double DiagCapacity, DiagCapacityBaseline, DiagHealthcare, DiagDoctorCare, DiagFoodRatio, DiagLandAnchor, DiagAnchorBaseline;
     // ★粗出生・粗死亡の累積（2026-09-26・回0-4＝計器の裁き10・純記帳＝力学は1か所も読まない）：出生＝DemographicStep の出生の総和／
     //   死亡＝戦争以外で人口台帳（PopulationDelta）から引いた実際の人数（人口動態の死亡・局地飢饉・疫病・遠征の疫病）。戦死は WarDeadCumulative。
     //   ⇒ 世界の総人口の番人（ConservationTests）が「出生−死亡−戦死」以外の増減＝片側記帳を見つける物差しになる。popprobe の粗出生・粗死亡の列の元。
@@ -879,7 +876,6 @@ public sealed class World
     public double CoopPublicRegime { get; internal set; }      // 協力度チャネル③世論↔体制∈[-1,1]＝満足度と大衆闘争度の集計（世論は派生面＝史実精査§5判断①・新規状態ほぼ不要）
     public double ArmyAllegiance { get; internal set; }        // 軍帰属∈[-1,1]：+1=王権・−1=議会・0=自律（兵士の思想が割れている軍）。兵士のイデオロギー傾き＋将校の任免権の所在から導出（給与の乗算は2026-08-18撤去＝給与は向きでなく規律・能力を動かす＝CrownParliament の帰属導出）
     public double[] RegimeTrackRecord { get; } = new double[4];   // 政体形態の実績ストック∈[-1,+1]（信認⇔失望・4系統：0君主/1議会制/2強権/3急進）。正=長期成功で信認された形態（英CMがentrench）／負=危機で倒れた形態（discredited→極端が浮上）。CoopPublicRegimeを符号のまま蓄積＋半減期50年で減衰＋Transition支持へ符号付き乗数。RegimeTrackRecordWeight=0 なら書くだけ（⚠既定は点火済みの0.3＝live・x-02 で注記を是正）（docs/2026-07-13_形態別失望ストック.md）
-    public int HighAdminQuarters { get; internal set; }           // 行政効率が高い状態の連続四半期数（07_再設計 §1・2026-07-31）。専制→絶対王政（官僚絶対主義）の変異トリガー。CrownFormMutation=0では加算されない
     public int RegimeTenureQuarters { get; internal set; }        // 現政体の在任四半期数（政体交代でリセット）。実績ストックの正の信認ゲート＝長期成功のみ信認へ寄る（始まったばかりの形態は実績を持てない）
     // ★政権への失望（作者裁定 2026-09-29「政権への失望のような量が積もって止まる仕掛け」・ナポレオン3世の人民投票1851）＝**直近の政変の数**（減衰つき）。
     //   書き手＝CrownParliament.ApplyRegime（事件で政体を変える唯一の書き込み口＝即時の政変・内戦の決着・矯正講和）で +1（⚠床交差の再ラベル＝漸進は数えない）／
@@ -1498,70 +1494,26 @@ public sealed class World
     }
     [System.NonSerialized] private GdpMemo? _gdpMemo;
 
-    /// <summary>行政効率＝行政（官僚の役務）の充足率（人口加重平均）。1未満＝汚職（税収が漏れる・Fiscal）。行政財の無い世界は1.0。</summary>
+    /// <summary>行政効率＝行政（官僚の役務）の充足率＝活きた州の <see cref="Region.AdminFill"/> の人口加重平均。1未満＝汚職（税収が漏れる・Fiscal）。行政財の無い世界は1.0。
+    /// ★(383) 作者 2026-10-16「行政効率→廃止」：貴族の統治・民族統一度・説明責任・官僚制度の段階の 4 因子の倍率の連鎖は物理削除した（既に経済側で効いている量の二重計上）。
+    /// 足し順は旧の式の `market` と同じ（州の並び順に fill+=AdminFill×人口・size+=人口）。人口が無い国は 1.0（旧と同じ・漏れる収入が無い）。
+    /// ★(387) 合流：呼び手が 1 本になったので PoliticalQuantities.AdminFillMean をこの getter へ畳んだ（反証役 ae〔bv〕低・式と足し順は同じ）。</summary>
     public double AdminEfficiency
     {
         get
         {
-            bool manorGate = Coef.NobleAdminFromSeigneurial > 0;   // 点火時だけ地代の内訳を数える（既定は加算1回も走らない＝素の走査のまま）
-            double fill = 0, size = 0, nobles = 0, rentNoble = 0, rentAll = 0;
+            double fill = 0, size = 0;
             foreach (var r in Regions)
             {
                 if (r.State != RegionState.Active) continue;
                 double p = r.SumPopulation();
                 fill += r.AdminFill * p; size += p;
-                foreach (var pop in r.Pops)
-                {
-                    if (pop.Closed && pop.ClassId == PopClass.Noble) nobles += pop.Size;   // 貴族（Closed＋ClassId0）＝近世国家の行政の担い手
-                    if (manorGate) { double lr = System.Math.Max(0, pop.LandRentPerMonth.Value); rentAll += lr; if (pop.ClassId == PopClass.Noble) rentNoble += lr; }
-                }
             }
             if (size <= 1e-9) return 1.0;
-            double market = fill / size;                                                                  // 官僚（市場）が買えた行政
-            // ★特権の見返り 段2（作者裁定2026-09-08・駆動量の差し替え2026-09-08）：素地の駆動量が貴族の**頭数**だけなのは診断漏れ＝
-            //   領主が土地を握るからこそ国庫を使わない行政が立つ（1783年の英＝無給の地主貴族＝治安判事／普のグーツヘルシャフトはその農奴版）。
-            //   駆動量＝①貴族が握る地代のシェア（RGOの所有＝farmLordShare と地代上限 FarmRentCap の帰結・EconomyStep.cs:2264）と
-            //   ②農奴の身分的緊縛（未解放度）の**論理和**＝どちらかが在れば在地の統治は在る／両方無い自作農の共和国だけが素地を失う。
-            //   ⚠農奴解放度を単独の駆動量にすると英・米・蘭が最低になり原型の事例で向きが逆になる（実測1783年＝貴族地代シェア 英0.900／露0.704／米0.286）。
-            //   NobleAdminFromSeigneurial=0 で ×1.0＝厳密恒等（地代も未解放度も1度も読まない）。
-            double hold = rentAll > 1e-9 && rentNoble > 0 ? (rentNoble < rentAll ? rentNoble / rentAll : 1.0) : 0;   // 貴族が握る地代のシェア∈[0,1]（比較で通す＝NaN は0側へ落ちる）
-            double aristocratic = System.Math.Clamp(nobles / size * Coef.NobleAdminFactor, 0, Coef.NobleAdminCap)
-                * (manorGate ? 1.0 - Coef.NobleAdminFromSeigneurial * (1.0 - hold) * (1.0 - Privileges.SeigneurialDegree(this)) : 1.0);
-            double baseEff = market + aristocratic * (1 - market);                                         // 貴族が素地・官僚が残余を上積み（近代化で官僚が主役へ）
-            // U2（変数統合監査2026-07-13・裁定b）：代議制では民族の**財政**ペナルティを汚職側へ一本化＝
-            // 行政のunity項を切って二重計上を解消（帝国=非代議制は従来どおり民族→行政痩せ）。NationalConsciousnessCorruptionWeight=0では常にunity適用＝旧挙動恒等。
-            // ⚠C2-C5撤去（2026-08-16）：一本化先だった civicGraft（Fiscal leak別項）はV2恒久ONで物理撤去済み＝代議制の財政的汚職はV2の監視（議会の予算権因子）が担う。
-            //   このゲート自体は実挙動に効く生き読者＝掃除対象外（読者ゼロでない）。ゲートの意味の再裁定は将来の較正ラウンドへ。
-            bool civicCarriesEthnic = Coef.NationalConsciousnessCorruptionWeight > 0 && Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
-            double unity = EthnicEnabled && !civicCarriesEthnic ? 1 + Coef.UnityAdminBonus * (EthnicUnity - 0.5) : 1.0;   // 民族統一度＝国民国家の近代化（多民族帝国は行政が痩せる）。代議制×civicGraft時は切り一本化(U2)
-            // 説明責任係数（corruption-only-funding-shortfall）：報道自由(監視)＋メリトクラシー(身分制でない任用)が高い社会ほど予算が漏れにくい。
-            // 検閲＋身分制人事の閉じた体制は同じ予算でも漏れる（露/オスマン vs 英/プロイセン文官改革）＝閉じた体制ほど腐敗が温存される経路依存。
-            // 倍率排除：固定倍率でなく既存状態量(PressFreedom×Meritocracy)から創発。CorruptionFromOpacity=0 既定で恒等＝較正中立。
-            double accountability = PoliticsEnabled
-                ? 1.0 - Coef.CorruptionFromOpacity * (1.0 - Politics.PressFreedom(Censorship)) * (1.0 - Meritocracy)
-                : 1.0;
-            // 説明API（#63）：行政効率の内訳＝官僚+貴族×民族統一×説明責任（乗算連鎖をbefore/after差分で加法分解）。getterは複数回読まれるが毎回Reset→Addで冪等。Explain=nullでゼロコスト・戻り値不変。
-            if (Explain != null)
-            {
-                Explain.Reset("AdminEfficiency");
-                Explain.Add("AdminEfficiency", "官僚制(行政費)", market);
-                Explain.Add("AdminEfficiency", "貴族の統治", aristocratic * (1 - market));
-                Explain.Add("AdminEfficiency", "民族統一度", baseEff * (unity - 1));
-                Explain.Add("AdminEfficiency", "報道自由と実力任用", baseEff * unity * (accountability - 1));
-                double raw2 = baseEff * unity * accountability * BureaucracyFactor(), cl = PoliticalQuantities.Clamp01(raw2);
-                Explain.Add("AdminEfficiency", "官僚制度(猟官/資格任用/専門)", baseEff * unity * accountability * (BureaucracyFactor() - 1));
-                if (cl != raw2) Explain.Add("AdminEfficiency", cl > raw2 ? "下限クランプ" : "上限クランプ", cl - raw2);
-            }
-            return PoliticalQuantities.Clamp01(baseEff * unity * accountability * BureaucracyFactor());
+            double v = PoliticalQuantities.Clamp01(fill / size);
+            if (Explain != null) { Explain.Reset("AdminEfficiency"); Explain.Add("AdminEfficiency", "官僚制(行政費)", v); }   // 説明API（#63）：行政効率は充足だけ（記帳は戻り値と同じ値）
+            return v;
         }
-    }
-
-    /// <summary>官僚制度（1934拡張E5）の行政効率係数＝1+Spread×段階オフセット（猟官−1/資格任用0/専門+1）。BureaucracyAdminSpread=0 なら常に1.0（⚠既定は0.12＝live・x-02 で注記を是正）。</summary>
-    private double BureaucracyFactor()
-    {
-        if (Coef.BureaucracyAdminSpread <= 0) return 1.0;
-        int off = Bureaucracy switch { BureaucracyLaw.Spoils => -1, BureaucracyLaw.Professional => 1, _ => 0 };
-        return 1.0 + Coef.BureaucracyAdminSpread * off;
     }
 
     // GDP景気循環トラッカー（反景気循環的金融政策の入力）。四半期ごとに UpdateGdpCycle で更新。
@@ -2609,8 +2561,6 @@ public sealed class World
         p.BuiltScale += take;
         p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));   // 接収した持分をカウンターが翌月に売り戻さない
         double share = take / p.Scale;
-        if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
-            r.Pops[r.InvestorPopIndex].Militancy = PoliticalQuantities.Clamp01(r.Pops[r.InvestorPopIndex].Militancy + Coef.SeizureMilitancyCost * share);
         r.SeizureChill = PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share);
     }
 

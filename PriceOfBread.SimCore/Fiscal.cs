@@ -31,13 +31,9 @@ public static class Fiscal
         //   この関数が書くのは国庫・貯蓄・国債と台帳だけ＝産出・州・物価水準は動かない＝下の読み手は getter とビット単位で同じ値を読む。
         double gdp = w.GdpPerMonth.Value, nominalGdp = w.NominalOf(gdp);
 
-        // 行政力＝行政効率の移動平均。検地台帳（土地税）のアンロック＝一度できれば残る。
-        // ★裁定2026-09-12（FIX2）：所得税の解禁ラッチを削除。閾値は所得税の天井（Government・同日廃止）の飽和点と同一の比・同一の値で、
-        //   「ラッチが立つ瞬間＝天井が拘束しなくなる瞬間」＝同じ規則の端点の二重表現だった。しかも徴収本体（下の所得税）はラッチを
-        //   一度も読まず、実体は「UIのスライダーだけを灰色にする」規則＝AI（SelfPlay）は同じ世界で自由に所得税を置いていた
-        //   ＝AI/プレイヤー非対称の出どころ。行政の弱さは下の汚職漏れが額で表す。
-        w.AdminPowerSmoothed += c.AdminPowerSmoothing * (w.AdminEfficiency - w.AdminPowerSmoothed);
-        if (!w.LandTaxUnlocked && w.AdminPowerSmoothed >= c.LandTaxAdminGate) w.LandTaxUnlocked = true;
+        // ★(383) 作者 2026-10-16「行政効率→廃止」：行政力の移動平均 AdminPowerSmoothed と、それが閾値を越えて立てる検地台帳（土地税）の錠 LandTaxUnlocked は物理削除した。
+        //   旧の錠は〈行政の弱さ〉を二重に数えていた（裁定2026-09-12 FIX1・FIX2 で所得税の天井と解禁ラッチは同じ理由で廃止済み）。行政の弱さは下の汚職漏れが額で表す。
+        //   土地税・土地改革は最初から開いている（旧は InitialLandTax=0 の国が錠の閾値まで待った＝その待ちは無い）。
 
         // ★撤去2026-08-16（掃除キューC2-C5・棚卸C群）：汚職根絶＝清廉度ストック CleanGovernance の月次更新（debtRoom/corruptionRoom/統治スパン2本）を物理削除。
         //   汚職V2（(1−行政)×(1−監視noisy-or)＝World.EffectiveCorruption）が恒久ON裁定済み＝V2では清廉度ストックごと不読＝この更新は死骸だった。
@@ -438,7 +434,6 @@ public static class Fiscal
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);
             w.Explain?.Add("Legitimacy", "国家破産（デフォルト）の信認崩壊", w.Legitimacy - legBeforeDefault);   // 説明API（#63）
-            foreach (var dp in pops) if (Politics.IsMassPop(dp)) dp.Militancy = PoliticalQuantities.Clamp01(dp.Militancy + c.DefaultMilitancyHit);
         }
         // 財7（債務/GDPの単位整合）：NominalGdpPerMonth は月次フロー、GovBondRatePerYear は年率（利払いを/12）。分母は年の名目GDP（月次×12）。
         //   ★2026-09-29：旗 DebtGdpAnnualized（2026-07-26 点火＝既定1.0）を焼き込み＝国債の金利の2つの上乗せ（債務比・信認の喪失）を史実の年の単位で出し直した（下）＝旧の月次の枝（0）は較正の意味を失った。

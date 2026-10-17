@@ -144,7 +144,6 @@ public sealed class UtilityAgent : INationAgent
     private const double ModernizerModBias = 1.5;            // 近代化教義：近代化効用の増幅
     private const double ModernizerWelBias = 1.2;           // 近代化教義：福祉効用の増幅
     private const double CompulsoryEduTechThreshold = 1.0;   // 義務教育の技術閾値
-    private const double ProfessionalBureaucracyAdminThreshold = 0.6;   // 02断線走査2026-07-28：専門官僚制を目標に置く行政効率
     private const double AntitrustIndThreshold = 0.5;                   // 02断線走査2026-07-28：談合禁止を目標に置く工業化度
     private const double ForceUnlockBufferMult = 3.0;                   // 02断線走査2026-07-28：再征服をONにする国庫の余裕（月次義務バッファの倍数）
     private const double ForceUnlockMilitancyCeiling = 0.4;             // 02断線走査2026-07-28：この闘争度以上では制圧を強行しない（全pop闘争度↑が革命を招く）
@@ -613,7 +612,9 @@ public sealed class UtilityAgent : INationAgent
         else if (!atWar && armyShare >= 0) p.ConscriptionLaw = ConscriptionLowerTarget(w.ConscriptionLaw, armyShare, p.ConscriptionLaw);
         else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.ConscriptionLaw;   // 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
-        if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+        // ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
+        //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では普・米 10/10・英 8/10 種が 1951 年まで猟官制＝
+        //   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
         if (w.MeanIndustrialization > AntitrustIndThreshold)
             p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
         // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
@@ -1237,7 +1238,7 @@ public sealed class UtilityAgent : INationAgent
                 if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
-                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る→検地台帳のアンロックにも繋がる）
+                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る）
                 p.IncomeTaxTarget = 0.25;   // 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
                 p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.3; p.PollTaxTarget = 0;   // 近代税制へ移行（人頭税は廃止）
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
@@ -1464,8 +1465,8 @@ public sealed class UtilityAgent : INationAgent
             double room = rentN > 0 ? rentRoom / rentN : 0;
             // ★農奴解放＝**次の段を毎四半期の目標に置く**（2026-10-03 (184)・推奨で進めた）＝可否は門（法律タブと同じ GateInfo＝旧支配層の反対と政治資本の在庫）が決める
             //   ＝検閲の既定（「自由化を目指す・政治ゲートが可否を決める」）と同じ形。⚠**量は読まない（門だけで決まる）**＝3法の AI の設計（2026-08-02「AIは既存の物質量だけを読む」・
-            //   docs/202608/20260802_3法の開放 §3-2）から外れる（(187) 反証役 va2#3・推奨で進めた＝作者の承認は未確認）。⚠特権の見返り（NobleAdminFromSeigneurial＝今は 0.0 で休眠）を点火する回では、
-            //   作者 2026-09-08「特権にメリットを持たせることで…どこかのタイミングで特権を剥がす、という判断が生まれます」に合わせ、剥がす費用と見返りを読む形へ直す（00一覧）。
+            //   docs/202608/20260802_3法の開放 §3-2）から外れる（(187) 反証役 va2#3・推奨で進めた＝作者の承認は未確認）。⚠特権の見返り（貴族の行政の素地 NobleAdminFromSeigneurial は (383) で行政効率の 4 因子ごと物理削除した）。
+            //   作者 2026-09-08「特権にメリットを持たせることで…どこかのタイミングで特権を剥がす、という判断が生まれます」の見返りは、行政の素地としては無くなった（00一覧）。
             //   旧＝余地（上の room）か飢饉の時だけ置いた。⚠余地は**今の法の上限**（FarmRentCap＝土地改革と農奴解放の上限の小さい方）に対して測る
             //   ＝土地改革がなしの間は、農奴解放もなし（上限1.0）なら余地0＝最初の入口は飢饉だけ（土地改革が進んだ後は余地でも入った＝(187) 反証役 va2#4）。
             //   飢饉の判定は開幕の10年に多い（腕A の10種＝清32%・オスマン48%・スペイン28%・墺16%・露15% の四半期）＝門が開く窓（立憲か共和＝全ての国の門が開いた四半期の99.8%）と

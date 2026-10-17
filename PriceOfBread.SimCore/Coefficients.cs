@@ -165,8 +165,7 @@ public sealed class Coefficients
     public double InnovationRate = 0.012;         // 革新の速さ（自由＋公教育が世界の技術水準を押し上げる）
     public double InnovationScale = 3.0;          // 革新の逓減スケール（技術がこれを超えると伸びにくい＝先端の張り付き防止）
     public double FrontierFreedomThreshold = 0.6; // 世界の技術水準解禁（革新）の自由度閾値
-    public double InnovationEliteSubstitute = 1.0; // 【#22点火2026-07-15＝1.0・革新の自由度緩和】自由の代替＝高エリート技術力(w.Elite≥EliteForFullTech)＋高行政効率(w.AdminEfficiency≥InnovationAdminThreshold)でも革新可に。0=自由必須（現行と厳密恒等）・>0で検閲下でも有能な官僚制の国（ドイツ帝国/明治日本）が革新可＝史実の「権威主義的近代化」。公教育条件は維持
-    public double InnovationAdminThreshold = 0.85;  // 【#22＝0.85・的絞り】自由代替に要る行政効率の閾値（独帝国級の卓越した官僚制のみ）。InnovationEliteSubstitute=0では未使用
+    public double InnovationEliteSubstitute = 1.0; // 【#22点火2026-07-15＝1.0・革新の自由度緩和】自由の代替＝高エリート技術力(w.Elite≥EliteForFullTech)でも革新可に（★(383) で行政効率の連言 InnovationAdminThreshold は物理削除）。0=自由必須・>0で検閲下でも技術力の高い国（ドイツ帝国/明治日本）が革新可＝史実の「権威主義的近代化」。公教育条件は維持
     // ★2026-08-12（技術の全球収束・第2次）：CapitalAbsorptionBlend / CatchupAbsorptionBlend は**吸収能力**でスケールする正しい形だが、
     //   その吸収能力（AbsorptionOf）が識字×報道自由**しか**測っていない＝経済の中身が1つも入っていない。
     //   実測（techtrace seed1）：1923年の技術がラオス4.18＞プロイセン4.14＞ダホメ王国4.13＞イギリス3.98。
@@ -250,8 +249,7 @@ public sealed class Coefficients
     // 議会の力学（既存の正統性→保持力→政体遷移に信号を流す。ParliamentEnabled の国のみ＝較正不変）。
     public Share PartyDominanceThreshold = new(0.6);      // 一党支配と見なす議席シェアの閾値（これ超で多元性が崩れ始める）
     public double DominanceLegitimacyErosion = 0.05;  // 一党支配が正統性を削る強さ（支配＝多元的正統性の喪失→権威主義へ漂流）。**ストック意味論2026-07-10＝旧0.5（水準）×RegenRate0.02（平衡対応 erosion=regen×水準）＝四半期フローへ再スケール**
-    public double DominanceCoupWeight = 2.5;          // 一党支配が与党の独裁形態（社会→プロ独裁/自由→ブルジョア独裁/保守→軍政）の引力点を押し上げる強さ。不安定国限定（下記ゲート）なので強くできる＝不安定な一党支配国でのみ独裁が引力点に
-    // 一党支配→独裁化（正統性侵食＋独裁引力）とブルジョア独裁の危機ゲートが働く平均満足度（MeanSatisfactionPol）の上限。これ超の満足した国では
+    // 一党支配→正統性侵食（独裁引力 DominanceCoupWeight は (384) で物理削除）とブルジョア独裁の危機ゲートが働く平均満足度（MeanSatisfactionPol）の上限。これ超の満足した国では
     //   立憲/共和の一党優位は独裁化しない＝経済危機の共和国（低満足）だけがワイマール型で独裁化。
     // ★2026-09-22 分位の写像で導き直し（階層3分割で主食＝台帳の最も満たされた成分が抜け、水準が構造的に下がったため）：
     //   比べる相手＝立憲/共和・議会ありの国×四半期の MeanSatisfactionPol（隔離計器 tiersatprobe・seed1-3×604Q）。
@@ -384,13 +382,12 @@ public sealed class Coefficients
     // 実効(Freedom＝参政権＋報道法から創発)の差が正統性を侵食する＝閉じた体制ほど・意識が高いほど削れる。代表的な体制(Freedom≥閾値)は侵食ゼロ。
     public double LegitimacyErosionRate = 0.0175;     // 制度ギャップ1単位あたりの正統性侵食（四半期フロー）。**ストック意味論2026-07-10＝旧0.175（水準）×RegenRate0.02**＝平衡 leg=1−erosion/regen が旧水準に一致（Absolutist Freedom0.20で平衡0.93=旧と同じ・到達に時定数1/regen≈12.5年の経路依存が乗る）
     public double RepresentationThreshold = 0.6;      // この Freedom 以上の体制は代表的＝意識による正統性侵食を受けない（旧 authMonarchy 以外 erosion=0 の連続版）。世界の技術水準閾値と同水準
-    public double ReformMilitancyRelief = 0.5;        // 政体転換時に勝者・中立の闘争度が下がる係数
+    public double ReformMilitancyRelief = 0.5;        // 譲歩が鎮める係数（Politics の 3 か所＝譲歩で庶民の闘争度・内戦の決着で反乱者・州の譲歩）。★(384) 旧の用途〈政体転換時に勝者・中立の闘争度が下がる〉は物理削除した
     // --- 革命ダイナミクス（便乗・失脚・軍事クーデター。仏革命の再現＋専制の不安定化＋政体の多様化）---
     public double BandwagonSensitivity = 0.45;        // 便乗の勢い＝(改革派+急進派)/保持力×これ（0..1）。革命が近いほど大衆が雪崩を打つ。低い＝雪崩が起きにくく自由化の臨界に達しにくい
     public double BandwagonWeight = 0.32;             // 勢いある運動が無学な民の政治意識を引き上げる強さ（教育に依らず＝専制の安定を崩す）。低い＝無学な大衆は容易には扇動されない
     // ★段2で削除（設計メモ §7-3）：BandwagonMilitancy＝群衆の熱（momentum×want）。**want の利得にすぎない**（同じ不満に係数を掛けて2度足していた）。
     //   便乗そのものは**意識**の側に残っている（BandwagonWeight＝勢いある運動が無学の民を政治化する）＝根は1本のまま。
-    public double DeposedMilitancySpike = 0.6;        // 革命で失脚した集団のPOPの闘争度の急騰（反革命＝国内不安定＝仏革命の再現）
     public double RevolutionTerror = 0.25;             // 政（タスクB恐怖政治）【採用2026-07-14＝0.25・急進革命限定版】＝exact38→39(歴代最良)・清13→11・首位交代58.7→61.7（0.15はexact36で劣る＝0.25採用）急進革命(共和/プロレタリア独裁/アナーキー)の勝利時のみ失脚した旧支配層をSize×これ粛清＋Savings×これ没収→大衆へ再分配。0=休眠。旧R5(全失脚革命に適用)は◎−4で保留したがタスクBは的を絞り再挑戦：革命で失脚した旧支配層（Closed＝貴族聖職／ProletarianDictatorshipではModernEliteも）のPOPを、特権剥奪に留まらず物理的に粛清・亡命でSizeのこの割合だけ縮小（仏革命の断頭台・ロシア革命の白系亡命）。人口台帳へ計上（保存）。0=既定＝死亡0で現行と厳密一致。決着1回あたりの累積粛清率
     // 【墓標2026-09-28・旧経路の内戦の削除（処理の一元化 段2 束3・作者裁定 a・g）】第二の戦争エンジン Politics.ProcessCivilWar と共に9本を削除＝
     //   CivilWarDurationYears（4年のタイマー）・CivilWarByScore（抽象的な戦勝点の決着）・CivilWarConscriptRate（徴集）・CivilWarCasualtyRate（戦死）・
@@ -485,7 +482,6 @@ public sealed class Coefficients
     public double DefaultArrearsMonths = 1.0;
     // 【墓標2026-10-04】DefaultTriggerQuarters（int 8＝r＜1 の月を1つずつ8か月）＝DefaultArrearsMonths（払えなかった大きさの累計）へ置き換えた（(205)）
     public double DefaultLegitimacyHit = 0.5;    // デフォルト時の正統性崩壊（→闘争度↑・革命リスク）。信用と威信の喪失
-    public double DefaultMilitancyHit = 0.25;    // デフォルト時の大衆の闘争度スパイク（経済混乱→暴動）
     public int DefaultCooldownMonths = 24;     // デフォルト後の借入禁止の**月数**（信用回復まで＝2年。月次で減る＝旧名 DefaultCooldownQuarters は単位が名前と食い違っていた・(243) で DefaultCooldownMonths へ改名）。この間は赤字を切り下げ/薄給で凌ぐしかない
     public double CrowdingOutWeight = 1.5;       // クラウディングアウト（金利チャネル）：政府の国債金利プレミアム(GovBondRatePerYear−基礎)×これ を民間投資のハードルレートに上乗せ。＝政府借入が民間投資を締め出す（高債務国で工業化↓・金本位の信用国は弱い＝条件付き）
     // ⚠**この較正の出所に注意**（2026-08-01訂正）：「既定治安維持力400で≈0.5」は BaseCoercion を独立に掃引する**単一国の較正世界**の数字で、
@@ -498,11 +494,8 @@ public sealed class Coefficients
     public int CrimeVictimBasis = 1;
     public double CrimeMilitancyWeight = 1.0;    // 犯罪率に効く「貧しく不満な大衆」の重み（闘争度×不充足）
     public double CrimeUrbanWeight = 0.6;        // B-4：都市化（過密スラム・匿名性・相対的剥奪）が犯罪を増幅＝犯罪率×(1+これ×都市人口比)。19世紀ロンドン/パリのスラム犯罪
-    // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CrimeSatPenalty/CrimeWealthFear/CorruptionLegitimacyErosion＝live〔★(377) 削除を測って止める線に当たり戻した＝作者に聞く Q1 と一緒〕・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===
-    public double CrimeSatPenalty = 0.5;         // 犯罪→満足度の還流（crime-is-dead-end）：crimeRate×これ を地域全POPの満足度から減算（治安崩壊＝非物質厚生の毀損）。第(iii)段2026-07-09で0.5へ有効化済み
+    // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CorruptionLegitimacyErosion は (383) で物理削除・CrimeSatPenalty/CrimeWealthFear は (384) で削除〔犯罪→満足度の直の減算は窃盗の移しで貯蓄を通って充足に既に入る〕・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===
     public double CriminalClassEnabled = 0.0;    // ★(366) 犯罪者 POP の器の主フラグ（治安と所有の安全 段0）＝0 で犯罪者 POP を並べない（Pops.Count も Region.CriminalPopIndex=-1 も不変・厳密恒等）／>0 で州の Pops の末尾に規模 0 の犯罪者を 1 つ置く（段1 の腕 A）。⚠構築時に読む係数＝シムを作ってから書き換えても届かない（POB_COEF は構築前に渡す）
-    public double CrimeWealthFearWeight = 0.5;   // 財産不安（theft-no-property-disincentive）：富裕POP(wealthRel>1)ほど犯罪被害の満足度減を強める＝『失う物を守る』反動を満足度経由でIdeologyへ。**0.5で有効化済み**（台帳訂正2026-07-12・旧注記「既定0」は誤り）
-    public double CorruptionLegitimacyErosion = 0.015;// 腐敗→正統性侵食（corruption-only-fiscal-leak）：(1−AdminEfficiency)×avgConsc×これ をlegから減算＝意識ある社会ほど縁故主義を許さない。較正は行政財なしAdminEff=1で0。**ストック意味論＝旧0.15×regen0.02**
     // ★物理削除2026-08-21【墓標・再点火禁止】：WelfareTargeting（休眠0.0・D群却下2026-07-18）＝福祉フラット加算 WelfareSatComponent の困窮targeting配分。
     //   基質（WelfareSatBonus＝満足度への直接加算）が作者裁定2026-08-17/19で撤去されたため、配分係数だけ残しても対象が存在しない＝道連れで削除。
     // ★段2で削除（設計メモ §2-1／§7-3）：InequalityMilitancy＝格差(ジニ)の闘争度加算と、その中立アンカー GiniNeutral。
@@ -513,7 +506,6 @@ public sealed class Coefficients
     public double LaborUnionToleratedOutputMul = 0.95;  // 労働組合(容認)の工場出力乗数＝賃上げ/ストで▲5%（資本が反対する理由）。旧・スイッチ直書き0.95を係数化（H・値据え置き）
     public double LaborUnionControlledOutputMul = 0.98;  // 労働組合(統制)の工場出力乗数＝御用組合で▲2%。旧・スイッチ直書き0.98を係数化（H・値据え置き）
     // === テーマF（政治・近代化回路）===
-    public double CorruptionFromOpacity = 0.25;   // 説明責任係数（corruption-only-funding-shortfall）：閉鎖性(低報道自由×低メリトクラシー)がAdminEfficiencyを割り引く。有効AdminEff×=(1−これ×(1−PressFreedom)×(1−Meritocracy))。0で恒等
     // 【削除 2026-10-11 (271)】IncumbencyBias（現職効果・既定 0）＝作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝振り返りの投票は作る予定が無い（履歴から戻せる）。
     // --- 政府・政策（介入レバー。スライダーは利益集団の力で律速して漸進）---
     public double PolicyBaseSpeed = 0.12;        // スライダーが目標へ寄る基本速さ（四半期）
@@ -732,9 +724,8 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し econ-16・dorm-51）】TariffRetaliationViaPolitics（報復の圧力を支持項へ通す器・休眠0）＝2回差し戻し（一律形9/4：開放度0.211→0.156／輸出者だけ形9/5：◎18→12）＝再挑戦の計画が無い＝削除
     public double PollutionCapacityWeight = 0.15; // 工業化の環境外部性（no-environmental-pollution-externality）：capacityに −これ×都市化×avgInd×(1−衛生) を加算＝工業都市の公害超過死亡。上下水道で緩和。0で従来完全一致
 
-    // --- 税制の拡張（土地税は検地台帳でアンロック。所得税の天井/ラッチは2026-09-12に廃止＝行政の弱さは汚職漏れが額で表す）---
+    // --- 税制の拡張（土地税の検地台帳の錠は (383) で物理削除。所得税の天井/ラッチは2026-09-12に廃止＝行政の弱さは汚職漏れが額で表す）---
     public double PollTaxRate = 0.15;            // 人頭税スライダー1.0時の1人あたり月額（労働者の月収2〜3に対し約5〜7%＝重い）
-    public double LandTaxAdminGate = 0.1;        // 土地税のアンロックに要る行政力（粗い検地台帳＝近世国家の主財源・年貢/タイユ）。低い＝確立した国家は序盤から課税できる
     public double AdminNeedPerPop = 0.04;        // 人口1単位あたりの行政の必要量。官僚・予算が足りないと AdminFill<1＝汚職
     // --- 社会移動（昇格・転落）：閾値は地域の1人あたり平均貯蓄に対する倍率＝経済規模で自動スケール ---
     public double CapitalRiseThreshold = 8.0;    // 中流→資本家の昇格閾値（平均の8倍の資金）。転落閾値と離す＝発振防止
@@ -784,7 +775,6 @@ public sealed class Coefficients
     // funding修正（2026-06-18）：公共サービス予算を**国庫ストックでなく税収フロー(FiscalCapacityPerMonth)から支弁**＝国庫が基礎義務に食われ常時0でも機能する。各係数は「歳入のうちその用途に充てる最大シェア（スライダー×これ）」。
     // 旧は ×Treasury（≈0で全餓死）だったので値も歳入基準に再較正。支出は国庫から引く（不足は赤字→国債→緊縮の既存フィードバック）。
     public double FiscalCapacitySmoothing = 0.15; // 裁量余剰(FiscalCapacityPerMonth)EMAの平滑速度（豊作/恐慌の振れをならす）
-    public double AdminPowerSmoothing = 0.05;     // 行政力(AdminPowerSmoothed)EMAの平滑速度（旧 Fiscal直書き0.05を係数化＝sweep対象）
     public double GdpTrendSmoothing = 0.18;       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
     public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflationPerYear)EMAの平滑速度（旧 World直書き0.34）
     public Share AdminBudgetFrac = new(0.5);          // 行政＝歳入シェア（行政費スライダー×これ×歳入）。行政が薄いと汚職で歳入が漏れるので自己投資的
@@ -806,16 +796,6 @@ public sealed class Coefficients
     //   ★(161)：「規定の給与」は働き盛り1人あたり（志願兵の給与）＝徴兵制で兵卒の給与が手当（頭数あたり）に下がっても、幹部の給与の必要額は規定の給与で数える（質の値段は法に依らない）。
     public double MilitaryCadrePayRatio = 1.0;
     public Share WelfareRevenueShare = new(0.8);      // 福祉＝歳入シェア（社会保障スライダー×これ×歳入が給付の上限）
-    public double NobleAdminFactor = 15.0;       // 貴族による行政の素地：貴族の人口比×これ＝国庫不要の行政効率（近世国家は貴族が行政を担う＝序盤の財政難を緩和）
-    public double NobleAdminCap = 0.5;           // 貴族由来の行政効率の上限（貴族だけでは満額にならない＝近代化で官僚が要る）
-    // ★特権の見返り 段2（作者裁定2026-09-08 §2「特権にメリットを持たせて国家運営を可能にする」）：貴族の行政の素地を**領主権の在地**で変調＝
-    //   1−これ×(1−貴族の地代シェア)×(1−SeigneurialDegree)＝「土地を握っている」か「農奴が縛られている」かのどちらかが在れば素地は満額（World.AdminEfficiency）。
-    //   領主が自分の土地を治める分だけ国庫不要の行政が立ち、土地を失えばその素地が痩せる（1861年の露がゼムストヴォを作らねばならなかった構造）。
-    //   ⚠駆動量を農奴解放度**だけ**にしてはいけない（史実の是正2026-09-08）：1783年の英は農奴制が無いまま無給の地主貴族＝治安判事が地方行政を担った原型で、
-    //     普のグーツヘルシャフトはその農奴版にすぎない。単独入力では英・米・蘭が最低になり原型の事例で向きが逆になる。
-    //   ⚠1未満に保つ（1−これ＝床）。1.0にすると 教育→識字→メリトクラシー→説明責任→行政 の環が正帰還で閉じて低行政国が永久固着する＝裁定2と正面衝突。
-    //   0で×1.0＝厳密恒等（三項の false 側がリテラル1.0＝地代の集計も SeigneurialDegree も1度も走らない）。
-    public double NobleAdminFromSeigneurial = 0.0;
     public Share CorruptionMax = new(0.25);          // 行政が全く無い時に税収が漏れる最大割合（漏れは官僚の懐へ＝移転で保存）
     public double CorruptionPoorOfficialWeight = 0.0; // ★暮らせない官僚は汚職に手を染めやすい（作者要望2026-08-17・休眠）。実効汚職＝(1−行政)×(1−監視)×(1+これ×max(0,1−World.OfficialWelfareFill))。**物差しは俸給でなく満足度**（作者裁定＝「嗜好品を購入できているか」）＝官僚popの前月満足度の規模加重平均。俸給比を採らない理由＝(a)**全員が貧しい国では 官僚所得÷平均所得 が1.0（適正）になるのに官僚は飢えている**＝絶対的な窮乏を取り逃す (b)満足度は[0,1]に有界＝**比でないので分母の下限が要らない**（『比のガードは絶対値で書かない』の罠を構造的に踏まない） (c)闘争度・犯罪率と同じ物差しに合流＝**汚職はエリート版の同じ不満**＝式を2つ作らない。史実＝清の**養廉銀**（官位にふさわしい暮らしを保たせて汚職を減らす＝俸給の額でなく生活の充足の制度）／英の**ノースコート＝トレヴェリアン改革**。⚠**前月**の満足度を読む（Pop.LastSatisfaction）＝汚職の分け前→貯蓄→消費→満足度→汚職 の環を**同一ティックで閉じない**（設計側 20260817_開発速度の根本修正 §1）。0＝World.EffectiveCorruption が否定形ガードで即return＝旧式そのもの（ビット恒等・経路を作らない）。⚠設計側への申し送り＝汚職を予算の余りへ畳む改修が入ったら、この項は「余り×(1−監視)」の**分配率**へ移す（同じ導出量を読み替えるだけ）。点火は単独A/B
     // ★撤去2026-08-16（掃除キューC2-C5・棚卸C群）：汚職根絶レバー（2026-07-06）の係数8本＝AntiCorruptionSpeed/CostRate/DebtLock/DebtFree/GraftLock/Floor/SpanPopWeight/SpanRegionWeight を物理削除。
@@ -1000,7 +980,6 @@ public sealed class Coefficients
     public double DiscriminationLiteracy = 0.45;    // 平均識字がこれ未満だと差別で移民を阻む：流入 ×clamp(平均識字/これ)＝低教育＝排斥
     public double UnityMilitaryQuality = 0.2;       // 〔軍の結束〕Power.Military ×(1+これ×(統一度−0.5))＝同質な軍は強い・多民族軍は脆い
     // 【墓標2026-09-26】ConquestForeignWeight（植民地の奪取で勝者の全POPの中核民族割合を縮める換算）＝回1-1（col-04・mil-18）で削除。州になった植民地の住民は core=0 で作られる＝民族統一度は既に下がる（二重の希釈・思想⑨）
-    public double UnityAdminBonus = 0.12;           // 〔近代化〕行政効率 ×(1+これ×(統一度−0.5))＝国民国家は中央の指令が届く
     // #14 少数民族の経済的実体：少数派（CoreEthnicShare<1）の階級は昇格に摩擦・不満が高い＝同化までの過渡で「別挙動」を持つ（均質pop=core1で効果0＝較正中立）。EthnicEnabledでgate。
     public double MinorityPromotionPenalty = 0.5;   // 昇格率 ×(1−これ×(1−core))＝完全少数派(core=0)で昇格半減＝ガラスの天井（移民/被征服層が下層に滞留）。0で無効
     public double MinorityMilitancy = 0.2;          // ★段2以後の**民族項の唯一の形**（一本鎖）：闘争度 +これ×(1−core)＝差別・排斥が分離独立/ナショナリズムへ（被征服のCededColonyMilitancyと別＝恒常的な地位の不満）。0で無効
@@ -1619,7 +1598,6 @@ public sealed class Coefficients
     // 0で従来の固定値＝**厳密恒等**（休眠）。点火時は基礎を下げて技術項を上げる（例：基礎1500＋技術1200×t → 1783年1500km・1913年約5000km）。
     // 【墓標2026-09-26（棚卸し mil-21・dorm-41）】CessionRangeTechKm（上の器・休眠0）＝根拠のない4000kmに技術の倍率を足す形＝作者裁定4（09-08）の技術水準の倍率の撤去の方向＝削除
     public double CessionMaxDistanceKm = 4000;     // 監査2026-07-05：割譲の投射圏＝**勝者の首都**から割譲候補州までの大圏距離の上限。圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）。0以下=無制約（旧挙動）。首都座標未登録のテスト小世界は自動的に無制約
-    public double WarDefeatMilitancySpike = 0.15;  // 決定的敗北で全popの闘争度に上乗せ（敗戦→革命の火種）
     public double DefeatShockDecay = 0.85;         // 敗戦ショックの四半期減衰（1.0から数年で消える）
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）。**ストック意味論＝ショックは減衰0.85で毎期加算され累積Σ0.85^t≈6.67倍→旧0.5（フロー一回分）÷6.67≈0.075**＝敗戦一発の総打撃を旧水準に保つ
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）
@@ -1828,9 +1806,6 @@ public sealed class Coefficients
     public double VictoryNationalism = 0.5;        // 機能8-②点火（2026-07-28）：戦勝ショック→r[4]（戦勝→主戦論＝日清・日露後の日本型。敗戦のr[4]+r[1]に対する対称）。0で恒等
     public double VictoryImperialism = 0.3;        // 機能8-②：戦勝ショック→r[8]（植民地熱。帝国主義の門＝発見の2値が見つけるまでを抑える）。0で恒等
     public double VictoryShockDecay = 0.85;        // 機能8-②d：戦勝ショックの四半期減衰（DefeatShockDecayと同水準＝噴出は数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
-    public double DepressionSocialism = 0.3;       // 機能8-③点火（2026-07-28）：恐慌（GdpDrawdown）→r[5]社会主義。恐慌は平均60.8回/試合＝小さく。0で恒等
-    public double DepressionCommunism = 0.15;      // 機能8-③：恐慌→r[6]共産（共産主義の門＝発見の2値が見つけるまでを抑える）。0で恒等
-    public double DepressionReaction = 0.2;        // 機能8-③：恐慌→r[1]反動（両極化＝ワイマール型）。0で恒等
     public double FamineRepublicanism = 0.3;       // 機能8-④点火（2026-07-28）：飢えの記憶→r[3]共和（1789＝「パンの値段」の題名に最も近い機構）。0で恒等
     public double FamineSocialism = 0.3;           // 機能8-④：飢えの記憶→r[5]社会。0で恒等
     public double FamineMemoryDecay = 0.95;        // 機能8-④：飢えの記憶の四半期残存率（半減期≈3.4年＝飢饉は忘れられるが世代内は残る）
@@ -1994,7 +1969,6 @@ public sealed class Coefficients
     public double AiTariffRelaxation = 0.1;             // ★点火2026-08-31（T2腕＝AI目標が5-10%帯へ・保護と自由化の波の対称化）             // ★案A（作者裁定2026-08-31）＝AI保護関税ラチェットの対動詞：急増の無い平時に目標を毎四半期 TariffReactionMax×これ だけ漸減（保護の波→自由化の波の対称化。ReactProtectiveTariff の「下げはしない」の是正）。0＝厳密恒等（点火候補0.1＝約−10%/年）
     public double TradeTreatyEnabled = 1.0;             // ★点火2026-08-31（T2腕）             // ★案B（作者裁定2026-08-31）＝通商条約：平時×両国の産業利害が自由貿易側（州関税利害の国平均<0）の実国家ペアが、互いの関税目標を**低い方へ収束**（コブデン=シュヴァリエ1860＋最恵国の連鎖＝条約網が関税を下げ広げる対ラチェット）。新しい数はゼロ（低い方へ寄せるだけ）。★2026-09-07：プレイヤー国も同じ四半期の掃引に入る＝AI＝プレイヤー対称（手動の提案ボタンは廃止）。0＝厳密恒等
     public double RentProtectionWeightCoef = 1.0;       // ★点火2026-08-31＝1.5→1.0（案D・T2腕）       // ★案D（作者裁定2026-08-31）＝旧支配層の保護利害の重み（旧・PolicyPreferences のハードコード定数1.5を係数化＝既定同値で厳密恒等）。関税・穀物法の選好が読む。全員関税100%漂流の主動力＝#17調整対象
-    public double AbsorptionAdminWeight = 0.5;          // ★点火2026-08-31（T2腕＝アジア世界工場の椅子取りを制度の質で判別）          // ★穴③（アジア準先端技術・2026-08-31）：吸収能力に**行政**の脚を追加＝×(1−これ×(1−行政効率))。08方針§6の原器（洋務運動＝武器は買えても識字・**行政**が伴わない）の行政側。既存の識字（Elite）・所得（IncomeAbsorption）は輸出成功の循環で満たされてしまう（カンボジア技術2.33実測）＝制度の質だけが循環の外にある判別子。IncomeAbsorptionと同形。0＝厳密恒等
     public double AISubmitLegitCost = 0.05;        // 屈服の正統性コスト（下関・三国干渉の屈辱＝国内の怒り）
     // B-高3：同化への識字抵抗＝assim_eff = assim × max(0, 1 − これ×識字)。0で×1.0＝厳密恒等。
     //   ⚠段4（2026-09-09）以降、床 max(0,·) は AssimilationRevival=0 のときだけ掛かる（>0 では符号が反転する＝民族復興）。
@@ -2024,10 +1998,7 @@ public sealed class Coefficients
     // ⚠順序不可逆＝レバー1・2の点火より先に入れない（コストなしの補助金ファームを44カ国へ配ることになる）。
     public double AiDevelopmentalSubsidy = 0.0;
     // 政体フレーバー（設計doc 2026-07-24「政体フレーバー設計」）
-    // レバー2 勅令は速い：非選挙政体（絶対/専制/幕府/軍政）のスライダー歩幅 ×(1+これ)（議会審議を経ない＝農奴解放勅令・太政官布告）。
-    // 0で×1.0＝厳密恒等。⚠代償の在処（裁定C2・2026-09-12）：旧＝押し切り遺恨 PushedLawGrievance が「速いが恨まれる」を価格付けしていたが、
-    // 2026-09-20 に遺恨ごと削除＝残る代償は押し切りの政治資本（Government.Spend→正統性）だけ。新しい代償は発明しない（Government.Move の注と同文）。
-    public double AutocraticPolicyAgility = 0.5;       // **2026-07-25点火試験**（非選挙政体のスライダー歩幅×1.5＝勅令は速い）
+    // 【墓標 (384)】レバー2 勅令は速い（AutocraticPolicyAgility＝非選挙政体のスライダー歩幅 ×(1+これ)）は物理削除した＝議会の抵抗は OpposingPower が議席で数える（二重計上）。
     // レバー3 議会の信認割引：選挙のある政体（立憲/共和）の国債金利に連続割引＝予算統制→債権者の信認（英コンソルが安かった理由）。
     // convDiscount と同形の乗数。C〜H中6（英仏が同一条件で価格付けされる問題）の一般則。0で×1.0＝厳密恒等。
     public Share BondRateRepresentationDiscount = new(0.1);   // 【0.2→0.1へ減衰2026-08-08作者裁定＝連立とセットの攪乱源】議会統制力の連続量へ改修して再点火（旧・政体ラベル二値0.2は2026-07-25差し戻し＝DebtGdp年換算フリップで再挑戦解禁の記録どおり）。
@@ -3073,8 +3044,6 @@ public sealed class Coefficients
     public double CrownFormMutation = 1.0;        // 主フラグ。0で変異なし（旧＝休眠）
     public double ShogunateEndTension = 40.0;     // 幕府が倒れる外圧＝対外緊張（黒船）
     public double ShogunateEndMilitancy = 0.5;    // 幕府が倒れる内圧＝大衆の闘争度（同ゲートの内圧(c)と同水準）。★内圧が外圧（緊張/200）を上回れば議会つきで終わる＝A1「どちらも許す」
-    public double DespoticToAbsolutistAdmin = 0.6;      // 専制→絶対王政（官僚絶対主義）の行政効率の閾値
-    public double DespoticToAbsolutistQuarters = 8.0;   // 同・継続四半期数（2年＝一時的な好調では変異しない）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】PolityGraphRetired＝平和的漸進遷移を遷移グラフから廃止（P3c・点火済み）
     // --- 政体形態の実績ストック（信認⇔失望・経路依存・2026-07-13・設計doc「形態別失望ストック」）---
     // 蓄積/減衰は書くだけ（P0観測と同型）＝いつ走っても恒等。読むのは Transition の注入のみで RegimeTrackRecordWeight=0なら無効（現行0.3＝有効）。
@@ -3126,7 +3095,6 @@ public sealed class Coefficients
     public double DynMandateFoodWeight = 1.0;   // perf: 食料重み×min(0, FoodFill−アンカー)
     public double DynMandateFoodAnchor = 0.8;   // 食料アンカー＝飢饉閾値基準（プローブ検証済み：1.0基準は慢性輸入国=英を常時罰し終盤BD化→0.8で解消。罰すべきは飢饉であって輸入依存ではない）
     public double DynMandateWarWeight = 0.4;    // perf: −戦争重み×WarExhaustion
-    public double DynMandateGraftWeight = 0.5;  // perf: −汚職重み×実効汚職（制度側corruptionErosionは平均意識スケール＝近代の罰・こちらは未教育シェア減衰＝前近代の民の体感＝罰の担い手がクロスフェード＝二重計上不成立）
     public double DynMandateEmaRate = 0.08;     // EMA率/四半期（時定数≈3年）
     public double MandateReligiousCircuit = 1.0;   // 第5段5-5点火（2026-07-28）：天命の宗教媒介＝dynE×(1−これ×(1−開度×容量))。開度=国教法（無神論=0）・容量=聖職者/(文盲×ClergyMediationPerCapita)飽和。聖職者未モデル世界は素通し。0で旧恒等
     public double ClergyMediationPerCapita = 0.005;   // 第5段5-5：媒介飽和の基準＝文盲人口の0.5%の聖職者で容量1.0（仏1789実測≈1%＝開始時は各国飽和・世俗化/無神論で痩せて初めて効く）
@@ -3173,7 +3141,6 @@ public sealed class Coefficients
     public double SecretBallotGate = 1.0;   /* E9点火（1934拡張） */              // **主フラグ**：0で秘密投票の効果なし＝恒等。>0で下の reality で politicalGap の鎮静を変調
     public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在するが買収/脅迫で歪む（英1872以前）。E9点火（1934拡張）＝0.6→0.9に緩和（較正への衝撃を抑えつつ秘密投票に価値を残す）
     public double PaperFranchiseReality = 0.7;         // 非議会政体（専制等）＝紙の参政権＝選挙の実在なし。E9点火＝0.3→0.7に緩和（専制の参政権発行の鎮静を弱めるが較正を壊さない範囲）
-    public double BureaucracyAdminSpread = 0.12;       // 1934拡張E5 官僚制度：行政効率×(1+これ×段階)（猟官−1/資格任用0/専門+1）。0（既定）で恒等。**E9点火＝0.12**（専門+12%行政・猟官−12%＝プロイセン文官改革vsオスマン縁故）。既定MeritExam(0)で恒等
     // 1934拡張E5 社会保障法（旧スライダーの置換）：0で旧スライダー駆動＝恒等／1で5段の法が福祉水準SocialSecurityと年金を駆動（スライダー廃止・年金吸収）。E9点火
     public double SocialSecurityLawGate = 1.0;         // **主フラグ**：0で旧スライダー（現行厳密一致）／1で社会保障法が駆動。E9点火（1934拡張・目標0で無福祉＝較正中立）
     // ★段2で削除（検証担当 2026-09-09）：UnemploymentInsuranceRelief＝失業保険段による失業項の緩和。
@@ -3209,13 +3176,14 @@ public sealed class Coefficients
     public double NationalizationSeizureRate = 0.05;   // **主フラグ**★点火2026-08-29（夜間R22単独A/B batch30＝帯中立・破綻0。⚠発火頻度はAIの国有化採用に依存＝国有化シナリオでの実測は未・要観察）：接収の月次速度（Scale に対する比／月）。0＝旧経路（stateFrac の下限）
     // 以下3本は NationalizationSeizureRate>0 の**枝の中でしか読まれない**（★2026-08-29点火＝既定0.05でlive）。
     public double SeizureResistanceWeight = 1.0;       // 抵抗＝これ×資本家ブロックの政治力（InterestGroups.Blocs.Modern）×奪われる持分。0で無抵抗＝押し切り放題（点火時は1.0を既定とする＝作者裁定「よほど強権的でないと押さえつけられない」★作者の発話は原文のまま置く＝N1の置換対象外。ここの「強権的」は治安維持力の強い体制の意）
-    public double SeizureMilitancyCost = 0.5;          // 押し切った代償①：資本家popの闘争度＋＝これ×奪った持分
-    public double SeizureInvestmentChill = 1.0;        // 押し切った代償②：資本逃避＝Region.SeizureChill＋＝これ×奪った持分（私的投資予算に ×(1−chill)）
+    public double SeizureInvestmentChill = 1.0;        // 押し切った代償（旧②・①＝接収→闘争度の直の足し SeizureMilitancyCost は (384) で物理削除）：資本逃避＝Region.SeizureChill＋＝これ×奪った持分（私的投資予算に ×(1−chill)）
     public double SeizureChillDecay = 0.1;             // 資本逃避の月次減衰（chill ×= 1−これ）。0で永続
     // ★不満のある資本家は工場を買わない（作者裁定2026-08-10）＝接収↔売却の往復搾取を因果で閉じる。
     //   量は既存の Pop.Militancy（闘争度0..1）＝他の「政府への不満」の読み手と同じ物差し（新しい不満の定義を作らない）。
     //   0＝ゲート無効（常に買える）＝厳密恒等。>0＝投資家popの闘争度がこれを超えると買い手がつかない。
     //   AIの投げ売り（fiscalStress）も同じ CanSellFactory を通る＝対称。
+    //   ⚠(387) 反証役 pb〔bv〕低：接収→資本家の闘争度の直の足し（SeizureMilitancyCost）は (384) で消した＝接収された資本家の闘争度は接収では上がらない。
+    //   点火する回は、配当の喪失（所得）から不満が十分に立つかを先に確かめる。
     public double SoeSaleMilitancyCeil = 0.0;
     public int StateTargetMax = 99;                    // 国営工場カウンターの上限（作者仕様＝0〜99）
     // ★「国営持分が勝手に増えるのを止める」（作者裁定2026-08-10 B節「自動的な拡張なし」）。唯一の自動拡張＝EconomyStep の RgoCapitalShare

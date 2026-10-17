@@ -45,7 +45,7 @@ public partial class GameViewModel
         _pfChild = _player.ChildLaborLegal >= 0.5; _pfWomenRights = _player.WomenRights;
         _pfCorn = _player.CornLaws; _pfLand = _player.LandReform; _pfSerf = _player.SerfEmancipation; _pfPen = _player.Pension; _pfSS = _player.SocialSecurityLaw;
         _pfColSuf = _player.ColonialSuffrage; _pfMigSuf = _player.MigrantNativeSuffrage;   // 参政権の範囲2法（2026-08-16）
-        _pfLandUnlocked = _player.LandTaxUnlocked; _pfGold = _player.OnGoldStandard;
+        _pfGold = _player.OnGoldStandard;
         _pfDefault = _player.HadSovereignDefault; _pfPatent = _player.PatentLaw; _pfJoint = _player.JointStock; _pfEpidemic = _player.EpidemicActiveYears > 0;
         _pfOrderLow = _player.PublicOrder < 0.5;   // 治安崩壊のエッジ（接15）
         _pfParty = _player.GoverningParty; _pfRank = _sim.Diplomacy.RankOf(_sim.Diplomacy.Powers[_playerIndex]);
@@ -182,7 +182,6 @@ public partial class GameViewModel
 
         // === 自国の制度・政治の転機（プレイ判断に効く通知・変化した瞬間だけ）===
         void Notice(string icon, string text, IBrush b) => QueueNewsText(icon, text, b, 0, 0, true);
-        if (_player.LandTaxUnlocked && !_pfLandUnlocked) Notice("📜", "検地台帳が完成し、土地税が解禁された", NewsGold);
         if (_player.Suffrage != _pfSuf) Notice("🗳", $"参政権が「{JaEnumConverter.Ja(_player.Suffrage)}」になった", NewsBlue);
         if (_player.EducationLaw != _pfEdu) Notice("🗳", $"教育が「{JaEnumConverter.Ja(_player.EducationLaw)}」になった", NewsBlue);
         if (_player.Censorship != _pfCen) Notice("🗳", $"報道が「{JaEnumConverter.Ja(_player.Censorship)}」になった", NewsBlue);

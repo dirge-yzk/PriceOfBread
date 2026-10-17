@@ -139,13 +139,8 @@ public static class CrownParliament
             //   新＝**形ごとに固有の実体トリガー**を持たせる。国名の特例は書かない（「幕府という形が日本にしかない」ことをデータが運ぶ＝思想②）。
             if (c.CrownFormMutation > 0 && w.Seizure == SeizureForm.None)
             {
-                // (2)の継続カウンタ＝行政力が高い状態が何四半期続いたか（形に依らず数える＝専制でなくなっても素直にリセットされる）。
-                // wave2b：旧＝この更新自体が「王冠なし(Crown=None・共和/立憲)」の間は凍結され旧カウントが残った（専制へ復帰した瞬間に誤発火し得た）。
-                // 更新は形の判定より外側で毎期走らせ、Absolutist/Despotic/Shogunate 以外では素直にリセットする。
-                if (w.Crown is CrownForm.Absolutist or CrownForm.Despotic or CrownForm.Shogunate && w.AdminEfficiency > c.DespoticToAbsolutistAdmin)
-                    w.HighAdminQuarters++;
-                else w.HighAdminQuarters = 0;
-
+                // ★(383) 作者 2026-10-16「行政効率→廃止」：(2) 専制→絶対王政（官僚絶対主義・プロイセン型）の変異は、行政効率が高い状態の継続 HighAdminQuarters（DespoticToAbsolutistAdmin／Quarters）を門にしていた。
+                //   その量（4 因子つきの行政効率の閾値）を廃止したので、カウンタごと変異 (2) を物理削除した（専制→絶対王政は政体側の遷移と議会が担う）。
                 if (w.Crown == CrownForm.Shogunate)
                 {
                     // (1) ★幕府の終わり（A1裁定＝**両経路を許す**）。外圧（黒船＝対外緊張）または内圧（大衆の闘争度）で追い詰められた幕府は倒れる。
@@ -166,13 +161,6 @@ public static class CrownParliament
                         }
                         else w.LogAdd($"{w.Year} {w.SelfPower?.Name}の幕府が倒れ親政に復した");
                     }
-                }
-                else if (w.Crown == CrownForm.Despotic && w.HighAdminQuarters >= c.DespoticToAbsolutistQuarters)
-                {
-                    // (2) 専制 → 絶対王政（官僚絶対主義・プロイセン型）：宮廷の恣意が、育った官僚機構に置き換わる。
-                    w.Crown = CrownForm.Absolutist;
-                    w.HighAdminQuarters = 0;
-                    w.LogAdd($"{w.Year} {w.SelfPower?.Name}の統治が官僚機構に移った");
                 }
                 // (3) 絶対王政は**変異しない**＝君主制の外への遷移は既存の政体遷移（Polity側）が担う。後退（絶対→専制）も入れない
                 //     ＝行政力の崩壊は政体側の遷移が罰する（二重化しない。制度疲労のスカラーは2026-10-16に削除）。

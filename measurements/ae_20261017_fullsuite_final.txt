@@ -1,0 +1,21 @@
+D:\PoB_work\wt_ae\PriceOfBread.Tests\bin\Release\net10.0\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:34.10]     PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [FAIL]
+  失敗 PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [2 s]
+  エラー メッセージ:
+   Python の道具が財の番号を数字で書いている 2 件＝instr.good_id("名前") か Catalog の定数で書くこと：instruments/bg/an_bg0.py:109［g／id／gi の比較］g == 0（1 件・許可 0） ／ instruments/bg/an_bg1.py:73［g／id／gi の比較］g == 0（1 件・許可 0）
+  スタック トレース:
+     at PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない() in D:\PoB_work\wt_ae\PriceOfBread.Tests\GoodIdGuardTests.cs:line 571
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:05:20.58]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3262330) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3262330) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2345270 件（宣言 3262330）＝10 % を超えて**下がった**＝表を 2345270 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\wt_ae\PriceOfBread.Tests\WriterRatchetTests.cs:line 493
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:  1249、スキップ:     0、合計:  1251、期間: 10 m 27 s - PriceOfBread.Tests.dll (net10.0)

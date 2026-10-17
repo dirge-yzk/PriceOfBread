@@ -460,7 +460,6 @@ public sealed class MultiNationSim
         //   技術者流出禁止法／行政費は漏れたままだった。政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。
         nw.CopyLawsFrom(pw);
         Politics.RaiseFoundingInstitutions(nw);
-        nw.AdminPowerSmoothed = pw.AdminPowerSmoothed;
         nw.BornOfSecession = true;   // P9：独立戦争の危機乗数（レヴェ・アン・マス）の判定用（分離で生まれた国＋交戦中）
         // ★保持力の測定は親の値から始まる（2026-09-29 線2）＝治安の強度（人口あたり）は構築の BaseCoercion と同じく親から＝次の四半期末の Politics.Step が自国の軍と正統性で測り直す。
         //   ⚠旧＝新しい国の測定は0（最初の四半期は保持力0）＝開戦で動員を自国の POP で測る（Diplomacy.DeclareCivilWar）と革命圧力が「保持力0」で満杯になる。

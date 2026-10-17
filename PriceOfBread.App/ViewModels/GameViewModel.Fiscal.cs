@@ -185,7 +185,7 @@ public partial class GameViewModel
 
     // --- 税・支出（作者裁定2026-09-12 R1・2026-09-20 点火）＝**段ボタンへ一本化**（GameViewModel.Law の IncomeTaxLaw ほか6行）。
     //     ⚠撤去2026-09-20: 所得税・累進・人頭税・土地税・教育費のスライダー（IncomeTax/ProgressiveTax/PollTax/LandTax(+Enabled)/EducationSpending(+Enabled)）。
-    //       前提（検地台帳・教育法・緊縮の下限・官僚制度）は段ボタンの「押せない段」＝エンジンの LawPrereq 1本が出す（UIに第二の判定式を置かない）。
+    //       前提（教育法・緊縮の下限・官僚制度）は段ボタンの「押せない段」＝エンジンの LawPrereq 1本が出す（UIに第二の判定式を置かない）。
     //     ⚠社会保障のスライダーは 2026-09-12 に撤去（法律タブの法へ一本化）。専売の全体スライダーは 2026-07-19 に廃止（生産タブの商品ごとの率）。---
 
     // ⚠撤去2026-09-23: SnapBack（クランプが効いた時に**ドラッグ確定後**へ再通知して thumb を上限位置へ戻す1本・2026-07-16）。
@@ -203,7 +203,7 @@ public partial class GameViewModel
     //     ⚠**行を増やさない**＝該当する既存のセルのホバーに入れる（既存の作法）。
     //     ⚠内訳の式は1つも書き写さない＝既に組んである AdminTerms()／CreditTerms()（GameViewModel.Header.cs・同じ partial class）を**呼ぶだけ**。
     /// <summary>行政費のセルのホバー＝**行政力**（行政費レバーと行政効率の関係＝2026-08-15に作者指示でヘッダーへ足したもの）。</summary>
-    public string AdminTip => $"行政力　{_player.AdminPowerSmoothed:P0}\n" + string.Join("\n", AdminTerms().Select(t => t.Text));
+    public string AdminTip => $"行政力　{_player.AdminEfficiency:P0}\n" + string.Join("\n", AdminTerms().Select(t => t.Text));
     /// <summary>外資流入のセルのホバー＝**外資信用**の4項（信用が何で削れているか＝4項の積）。</summary>
     public string ForeignInTip => $"外資信用　{_player.CreditRating:P0}\n" + string.Join("\n", CreditTerms().Select(t => t.Text));
 

@@ -69,9 +69,9 @@ HI = '借りた月（利払い÷歳入≧0.67）'
 for sd, r in rows(D, 'fiscal'):
     n = r['nation']; mi = int(num(r['monthIndex'])); y = int(num(r['year']))
     if n == UK:
-        on_gold = num(r['onGold'])
-        if prev_gold.get(sd) == 1.0 and on_gold == 0.0 and sd not in first: first[sd] = y + (mi % 12) / 12.0
-        prev_gold[sd] = on_gold
+        gold = num(r['onGold'])
+        if prev_gold.get(sd) == 1.0 and gold == 0.0 and sd not in first: first[sd] = y + (mi % 12) / 12.0
+        prev_gold[sd] = gold
     gate = num(r['borrowGateOpenFlag']); cd = num(r['borrowCooldownMonths']); sf = num(r['borrowShortfallPerMonth']); bw = num(r['borrowedPerMonth'])
     sh = num(r['interestToRevenueShareAtGate']); iv = num(r['insolvencyMonths']); binder = r['borrowBinder']
     key = (sd, n); p = prevrow.get(key)

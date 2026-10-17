@@ -84,7 +84,6 @@ public class DormantIdentityTests
         "EduReachFromAdmin",            // 特権 段1（作者裁定2026-09-08）＝義務教育の国庫給付の天井に行政の充足率（0で×1.0＝給付は行政を見ない＝従来）
         "EduProducersCoexist",          // ★教育の三層化 段1 器（2026-09-12）＝教区学校（聖職者・紙）と公立学校（教師・書籍）を常設2件で並置し教育法を非活性側の Scale=0 へ降格。
                                         //   0＝AddServiceProducers が従来の1件だけを add・StepMonth の月次差し替えがそのまま走る・EconomyStep は Scale を読まない＝ビット恒等。点火は段3（batch30 単独＋savetest）
-        "NobleAdminFromSeigneurial",    // 特権 段2（作者裁定2026-09-08）＝領主権の見返り＝貴族の行政の素地を「地代シェア∨農奴の未解放度」で変調（0で×1.0＝頭数だけ＝従来）
         // ★下2本は D-35 の反射走査が拾った（**初期化子を書かない宣言**＝`public double X;` なので静的なテキスト検索では見つからない）。
         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）

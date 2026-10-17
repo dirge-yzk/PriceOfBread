@@ -21,10 +21,16 @@ namespace PriceOfBread.SimCore;
 //     式が変われば食い違う。番人で〈海脚＋陸脚の換算 km が成約の換算 km に合う〉を確かめる。
 //   ・重さ＝数量×Catalog.TransportWeight（相対の単位・トンではない）。財の単位がトンに換算できる保証は無い。
 //   ・州の面積は 0.2° 格子の標本（誤差は数 %）で、陸の格子点を州の座標へ最近傍で割り当てる＝州の座標が疎な地域（シベリア・サハラ）は大きく出る。列 areaWithin1000KmKm2 は州の座標から 1000 km 以内の格子点だけを数える。
-//   ・(382) 反証役 tr〔v〕低#3：面積（A 行）は最初の四半期に 1 回だけ、その時点の州で格子を分ける＝後から現れた州（建国・昇格・植民）には面積の行が無く、
-//     その土地は開幕の時点の隣の州に吸われる＝開幕の州の面積と運び距離が大きく出る（G 行の州の数は時代とともに増える）。
-//   ・(382) 反証役 tr〔v〕中#1：陸脚の換算 km（TrRoute.EqLand）と運賃の陸脚の分は売り手側と買い手側の和の 1 本＝越境の海経由の成約では売り手側の陸脚は
-//     売り手の国の中を運ぶ＝〈払い手の国の運び手へ戻る割合〉はこの計器では両端の州へ分けて測れない（線 T8 は国内の成約の陸脚 PaidLandDomestic だけで置く）。
+//   ・(385) 直した：面積（A 行）は開幕の 1 回に加えて、州の断面（G 行）と同じ年の終わり（10 年ごと）にその年の州（Active）で取り直す。旧（380）は開幕の 1 回だけで、
+//     後から現れた州（建国・昇格・植民）には面積の行が無く、その土地は開幕の時点の隣の州に吸われていた（反証役 tr〔v〕低#3）。開幕の A 行も Active の州だけで分ける（旧は全 Regions）。
+//   ・(385) 直した：陸脚を売り手側と買い手側に分けて記帳する（RealLandSellerKm／RealLandBuyerKm／EqLandSeller／EqLandBuyer）。和の列（EqLand・FreightLand）は残す（反証役 tr〔v〕中#1）。
+//     海経由は PairKm の式の二つの項そのまま（売り手の州から港まで・港から買い手の州まで）。陸直行は PairKm の式が両端の係数の平均なので、経路の実 km を半分ずつ両端へ割り、
+//     換算は各端の係数で掛ける近似（途中の州・第三国を通る分は国で追わない＝越境の陸直行の売り手側は売り手の国の中にあると置く）。
+//     ⚠(387) 反証役 tf〔v〕中：海経由でも、内陸州が外国の港（通過港 TransitPortName・BilateralMarket の通過港の分岐）を使う成約では、売り手側の陸脚は
+//     港の持ち主の国を通る。これも売り手の国（買い手側は買い手の国）へ、その国の船腹の比で積む近似（自国の港 NearestPortName の成約だけが正確）。
+//     直すなら r.LastTransitPortName の持ち主の国で割る＝段1 の払い先の直しで陸直行の第三国と一緒に決める（設計 doc §7-4）。
+//   ・(385) 〈陸脚の運賃のうち、その陸脚がある州の国の運び手へ戻る額〉（trnation の freightLandInNationToOwnCarriersGoldPerYear）は成約ごとに
+//     〔売り手側の運賃×売り手の国の船腹の比〕＋〔買い手側の運賃×買い手の国の船腹の比〕を足した額（船腹の比はその清算の BilateralMarket.shipShare＝運賃の配りと同じ値）＝時代×種の和の近似ではない。
 //   ・緯度が −60 度より南・80 度より北の格子点は数えない（人の住まない地域・計器の定数）。
 //   ・成約が無い経路は出ない。上位 3000 組の外は 1 行の合計にまとめる。
 public static partial class Instruments
@@ -36,6 +42,8 @@ public static partial class Instruments
     {
         public bool Sea;
         public double EqBook, RealSeaKm, RealLandKm, EqSea, EqLand, TerrSeller, TerrBuyer, RatioSeller, RatioBuyer;
+        /// <summary>(385) 陸脚の売り手側・買い手側（和は <see cref="RealLandKm"/>／<see cref="EqLand"/>）。陸直行は実 km を半分ずつ・換算は各端の係数で。</summary>
+        public double RealLandSellerKm, RealLandBuyerKm, EqLandSeller, EqLandBuyer;
     }
 
     /// <summary>距離の帯の境（実の km の合計）。帯 0＝50 未満 … 帯 7＝12000 以上。計器の定数。</summary>
@@ -48,17 +56,20 @@ public static partial class Instruments
     {
         public long Deals;
         public double Value, Weight, WKmReal, WKmLandReal, WKmSeaReal, WKmEq, WKmEqLand, WKmEqSea, Freight, FreightLand, FreightSea;
+        public double FreightLandSeller, FreightLandBuyer, WKmRealLandSeller, WKmRealLandBuyer, WKmEqLandSeller, WKmEqLandBuyer;   // (385) 陸脚の売り手側・買い手側
     }
     sealed class TrPair
     {
         public string SellerNation = "", BuyerNation = "";
         public TrRoute Route;
         public long Deals; public double Value, Weight, Freight, FreightLand;
+        public double FreightLandSeller, FreightLandBuyer, ValueEqLandSeller, ValueEqLandBuyer;   // (385) 陸脚の売り手側・買い手側
         public double ValueSea, ValueEqBook, ValueEqSea, ValueEqLand;   // 成約の額で重みを付けた換算 km の和（凍る港で経路が季節ごとに変わる組があるので、運賃の突き合わせは最後の成約の km でなくこの和で行う）
     }
     sealed class TrNat
     {
         public double Paid, PaidLand, PaidDomestic, PaidLandDomestic, Received, WKmReal;
+        public double LandSellerSideIn, LandBuyerSideIn, LandInToOwnCarriers;   // (385) その国の中にある陸脚の運賃（売り手側は売り手の国・買い手側は買い手の国へ積む）と、うち同じ国の運び手へ戻る額
     }
     sealed class TrAcc
     {
@@ -73,11 +84,12 @@ public static partial class Instruments
     static TrNat TrNatOf(TrAcc a, string name) { if (!a.Nats.TryGetValue(name, out var n)) a.Nats[name] = n = new TrNat(); return n; }
 
     /// <summary>成約 1 件（<c>BilateralMarket</c> の記帳の位置・読むだけ）。<paramref name="freight"/>＝その成約の運賃（金建て・<c>freightPool</c> へ足す額）・<paramref name="weight"/>＝財 1 単位の輸送重量。</summary>
-    internal static void TradeDeal(InternationalMarket m, World buyer, World seller, Region sellerR, Region buyerR, double weight, double qty, double value, double freight, in TrRoute rt, bool cross)
+    internal static void TradeDeal(InternationalMarket m, World buyer, World seller, Region sellerR, Region buyerR, double weight, double qty, double value, double freight, in TrRoute rt, bool cross, double shipShareSeller, double shipShareBuyer)
     {
         var a = TrOf(m);
         double w = qty * weight, eq = rt.EqSea + rt.EqLand;
         double frLand = eq > 0 ? freight * rt.EqLand / eq : 0.0;
+        double frLandS = eq > 0 ? freight * rt.EqLandSeller / eq : 0.0, frLandB = eq > 0 ? freight * rt.EqLandBuyer / eq : 0.0;   // (385) 陸脚の運賃を売り手側・買い手側へ（換算 km の比）
         double realKm = rt.RealSeaKm + rt.RealLandKm;
         int key = (((rt.Sea ? 1 : 0) * 2 + (cross ? 1 : 0)) * (TrDistEdges.Length + 1) + TrBand(TrDistEdges, realKm)) * (TrWeightEdges.Length + 1) + TrBand(TrWeightEdges, weight);
         if (!a.Bins.TryGetValue(key, out var b)) a.Bins[key] = b = new TrBin();
@@ -85,11 +97,16 @@ public static partial class Instruments
         b.WKmReal += w * realKm; b.WKmLandReal += w * rt.RealLandKm; b.WKmSeaReal += w * rt.RealSeaKm;
         b.WKmEq += w * eq; b.WKmEqLand += w * rt.EqLand; b.WKmEqSea += w * rt.EqSea;
         b.Freight += freight; b.FreightLand += frLand; b.FreightSea += freight - frLand;
+        b.FreightLandSeller += frLandS; b.FreightLandBuyer += frLandB; b.WKmRealLandSeller += w * rt.RealLandSellerKm; b.WKmRealLandBuyer += w * rt.RealLandBuyerKm; b.WKmEqLandSeller += w * rt.EqLandSeller; b.WKmEqLandBuyer += w * rt.EqLandBuyer;
         var nb = TrNatOf(a, NameOf(buyer));
         nb.Paid += freight; nb.PaidLand += frLand; nb.WKmReal += w * realKm;
         if (!cross) { nb.PaidDomestic += freight; nb.PaidLandDomestic += frLand; }
+        var ns = TrNatOf(a, NameOf(seller));   // (385) 売り手側の陸脚は売り手の国の中・買い手側の陸脚は買い手の国の中。戻る額＝その国の船腹の比（清算の運賃の配りと同じ値）
+        ns.LandSellerSideIn += frLandS; ns.LandInToOwnCarriers += frLandS * shipShareSeller;
+        nb.LandBuyerSideIn += frLandB; nb.LandInToOwnCarriers += frLandB * shipShareBuyer;
         if (!a.Pairs.TryGetValue((sellerR, buyerR), out var p)) a.Pairs[(sellerR, buyerR)] = p = new TrPair { SellerNation = NameOf(seller), BuyerNation = NameOf(buyer) };
         p.Route = rt; p.Deals++; p.Value += value; p.Weight += w; p.Freight += freight; p.FreightLand += frLand;
+        p.FreightLandSeller += frLandS; p.FreightLandBuyer += frLandB; p.ValueEqLandSeller += value * rt.EqLandSeller; p.ValueEqLandBuyer += value * rt.EqLandBuyer;
         if (rt.Sea) p.ValueSea += value;
         p.ValueEqBook += value * rt.EqBook; p.ValueEqSea += value * rt.EqSea; p.ValueEqLand += value * rt.EqLand;
     }
@@ -109,10 +126,13 @@ public static partial class Instruments
     internal static int TrSnapEveryYears = 10;
 
     const string TrBinHeader = "year\trouteCode\tcrossBorderFlag\tdistanceBandCode\tweightBandCode\tdealsCountPerYear\tvalueGoldPerYear\tweightUnitsPerYear\tweightKmRealPerYear\tweightKmLandRealPerYear\tweightKmSeaRealPerYear\t"
-        + "weightKmEqPerYear\tweightKmEqLandPerYear\tweightKmEqSeaPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tfreightSeaPartGoldPerYear";
+        + "weightKmEqPerYear\tweightKmEqLandPerYear\tweightKmEqSeaPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tfreightSeaPartGoldPerYear\t"
+        + "freightLandSellerSidePartGoldPerYear\tfreightLandBuyerSidePartGoldPerYear\tweightKmRealLandSellerSidePerYear\tweightKmRealLandBuyerSidePerYear\tweightKmEqLandSellerSidePerYear\tweightKmEqLandBuyerSidePerYear";
     const string TrRouteHeader = "year\tsellerRegion\tbuyerRegion\tsellerNation\tbuyerNation\tsellerTerrainCode\tbuyerTerrainCode\trouteCode\trealSeaKm\trealLandKm\teqSeaKm\teqLandKm\teqBookKm\tterrainCostSeller\tterrainCostBuyer\t"
-        + "landSeaRatioSeller\tlandSeaRatioBuyer\tdealsCountPerYear\tvalueGoldPerYear\tweightUnitsPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tvalueSeaRouteGoldPerYear\tvalueTimesEqBookKmGoldPerYear\tvalueTimesEqSeaKmGoldPerYear\tvalueTimesEqLandKmGoldPerYear";
-    const string TrNatHeader = "year\tnation\trailGateFlag\tfreightPaidGoldPerYear\tfreightPaidLandPartGoldPerYear\tfreightPaidDomesticGoldPerYear\tfreightPaidLandPartDomesticGoldPerYear\tfreightReceivedGoldPerYear\tweightKmRealPerYear";
+        + "landSeaRatioSeller\tlandSeaRatioBuyer\tdealsCountPerYear\tvalueGoldPerYear\tweightUnitsPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tvalueSeaRouteGoldPerYear\tvalueTimesEqBookKmGoldPerYear\tvalueTimesEqSeaKmGoldPerYear\tvalueTimesEqLandKmGoldPerYear\t"
+        + "realLandSellerSideKm\trealLandBuyerSideKm\teqLandSellerSideKm\teqLandBuyerSideKm\tfreightLandSellerSidePartGoldPerYear\tfreightLandBuyerSidePartGoldPerYear\tvalueTimesEqLandSellerSideKmGoldPerYear\tvalueTimesEqLandBuyerSideKmGoldPerYear";
+    const string TrNatHeader = "year\tnation\trailGateFlag\tfreightPaidGoldPerYear\tfreightPaidLandPartGoldPerYear\tfreightPaidDomesticGoldPerYear\tfreightPaidLandPartDomesticGoldPerYear\tfreightReceivedGoldPerYear\tweightKmRealPerYear\t"
+        + "freightLandSellerSideInNationGoldPerYear\tfreightLandBuyerSideInNationGoldPerYear\tfreightLandInNationToOwnCarriersGoldPerYear";
     const string TrStatHeader = "scope\tyear\tnation\tregion\tterrainCode\tlat\tlon\tareaKm2\tareaWithin1000KmKm2\tmeanHaulKm\tmeanHaulWithin1000KmKm\tportFlag\tpopulationK\turbanPopulationK\t"
         + "factoryOutputValuePerMonth\tgatherOutputValuePerMonth\toutputWeightPerMonth\tname\tvalue\trefValue";
 
@@ -141,29 +161,33 @@ public static partial class Instruments
             int nw = TrWeightEdges.Length + 1, nd = TrDistEdges.Length + 1;
             int wb = k % nw, db = k / nw % nd, cross = k / (nw * nd) % 2, sea = k / (nw * nd * 2);
             sk.TrBin.WriteLine(string.Join('\t', TrI(year), TrI(sea), TrI(cross), TrI(db), TrI(wb), b.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), F(b.Value), F(b.Weight), F(b.WKmReal), F(b.WKmLandReal), F(b.WKmSeaReal),
-                F(b.WKmEq), F(b.WKmEqLand), F(b.WKmEqSea), F(b.Freight), F(b.FreightLand), F(b.FreightSea)));
+                F(b.WKmEq), F(b.WKmEqLand), F(b.WKmEqSea), F(b.Freight), F(b.FreightLand), F(b.FreightSea),
+                F(b.FreightLandSeller), F(b.FreightLandBuyer), F(b.WKmRealLandSeller), F(b.WKmRealLandBuyer), F(b.WKmEqLandSeller), F(b.WKmEqLandBuyer)));
         }
         foreach (var kv in a.Nats.OrderBy(k => k.Key, StringComparer.Ordinal))
         {
             var n = kv.Value; World? w = null;
             foreach (var sn in sim.Nations) if (NameOf(sn.World) == kv.Key) { w = sn.World; break; }
-            sk.TrNat.WriteLine(string.Join('\t', TrI(year), kv.Key, w is null ? "nan" : Discovery.RailTransport(w.Discovered) ? "1" : "0", F(n.Paid), F(n.PaidLand), F(n.PaidDomestic), F(n.PaidLandDomestic), F(n.Received), F(n.WKmReal)));
+            sk.TrNat.WriteLine(string.Join('\t', TrI(year), kv.Key, w is null ? "nan" : Discovery.RailTransport(w.Discovered) ? "1" : "0", F(n.Paid), F(n.PaidLand), F(n.PaidDomestic), F(n.PaidLandDomestic), F(n.Received), F(n.WKmReal),
+                F(n.LandSellerSideIn), F(n.LandBuyerSideIn), F(n.LandInToOwnCarriers)));
         }
         if (year % TrSnapEveryYears == 0)
         {
             var top = a.Pairs.OrderByDescending(k => k.Value.Value).ThenBy(k => k.Key.S.Name, StringComparer.Ordinal).ThenBy(k => k.Key.B.Name, StringComparer.Ordinal).ToList();
-            double restDeals = 0, restValue = 0, restWeight = 0, restFreight = 0, restFreightLand = 0, restVs = 0, restVb = 0, restVsea = 0, restVland = 0;
+            double restDeals = 0, restValue = 0, restWeight = 0, restFreight = 0, restFreightLand = 0, restVs = 0, restVb = 0, restVsea = 0, restVland = 0, restFls = 0, restFlb = 0, restVls = 0, restVlb = 0;
             for (int i = 0; i < top.Count; i++)
             {
                 var (key, p) = (top[i].Key, top[i].Value);
-                if (i >= 3000) { restDeals += p.Deals; restValue += p.Value; restWeight += p.Weight; restFreight += p.Freight; restFreightLand += p.FreightLand; restVs += p.ValueSea; restVb += p.ValueEqBook; restVsea += p.ValueEqSea; restVland += p.ValueEqLand; continue; }
+                if (i >= 3000) { restDeals += p.Deals; restValue += p.Value; restWeight += p.Weight; restFreight += p.Freight; restFreightLand += p.FreightLand; restVs += p.ValueSea; restVb += p.ValueEqBook; restVsea += p.ValueEqSea; restVland += p.ValueEqLand; restFls += p.FreightLandSeller; restFlb += p.FreightLandBuyer; restVls += p.ValueEqLandSeller; restVlb += p.ValueEqLandBuyer; continue; }
                 var rt = p.Route;
                 sk.TrRoute.WriteLine(string.Join('\t', TrI(year), key.S.Name, key.B.Name, p.SellerNation, p.BuyerNation, TrI((int)key.S.Terrain), TrI((int)key.B.Terrain), rt.Sea ? "1" : "0",
                     F(rt.RealSeaKm), F(rt.RealLandKm), F(rt.EqSea), F(rt.EqLand), F(rt.EqBook), F(rt.TerrSeller), F(rt.TerrBuyer), F(rt.RatioSeller), F(rt.RatioBuyer),
-                    p.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), F(p.Value), F(p.Weight), F(p.Freight), F(p.FreightLand), F(p.ValueSea), F(p.ValueEqBook), F(p.ValueEqSea), F(p.ValueEqLand)));
+                    p.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), F(p.Value), F(p.Weight), F(p.Freight), F(p.FreightLand), F(p.ValueSea), F(p.ValueEqBook), F(p.ValueEqSea), F(p.ValueEqLand),
+                    F(rt.RealLandSellerKm), F(rt.RealLandBuyerKm), F(rt.EqLandSeller), F(rt.EqLandBuyer), F(p.FreightLandSeller), F(p.FreightLandBuyer), F(p.ValueEqLandSeller), F(p.ValueEqLandBuyer)));
             }
             if (top.Count > 3000)
-                sk.TrRoute.WriteLine(string.Join('\t', TrI(year), "(上位3000組の外の合計)", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", F(restDeals), F(restValue), F(restWeight), F(restFreight), F(restFreightLand), F(restVs), F(restVb), F(restVsea), F(restVland)));
+                sk.TrRoute.WriteLine(string.Join('\t', TrI(year), "(上位3000組の外の合計)", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", F(restDeals), F(restValue), F(restWeight), F(restFreight), F(restFreightLand), F(restVs), F(restVb), F(restVsea), F(restVland), "", "", "", "", F(restFls), F(restFlb), F(restVls), F(restVlb)));
+            TrAreaRows(sk, sim, year);   // (385) 州の面積をその年の州で取り直す（G 行と同じ年）
             TrRegionRows(sk, sim, year);
         }
         TrPriceRows(sk, sim, year);
@@ -184,17 +208,7 @@ public static partial class Instruments
         sk.TrStat ??= Open("trstat", seed); sk.TrBin ??= Open("trbin", seed); sk.TrRoute ??= Open("trroute", seed); sk.TrNat ??= Open("trnation", seed);
         if (!sk.TrHeader) { sk.TrBin.WriteLine(TrBinHeader); sk.TrRoute.WriteLine(TrRouteHeader); sk.TrNat.WriteLine(TrNatHeader); sk.TrStat.WriteLine(TrStatHeader); sk.TrHeader = true; }
         int year = sim.Nations[0].World.Year;
-        var regs = new List<(string Nation, Region R)>();
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) regs.Add((NameOf(n.World), r));
-        var pts = new (double Lat, double Lon)[regs.Count];
-        for (int i = 0; i < regs.Count; i++) pts[i] = Climate.CityCoord(regs[i].R.Name);
-        var (area, areaNear) = TrAreas(pts);
-        for (int i = 0; i < regs.Count; i++)
-        {
-            var r = regs[i].R;
-            sk.TrStat.WriteLine(string.Join('\t', "A", TrI(year), regs[i].Nation, r.Name, TrI((int)r.Terrain), F(pts[i].Lat), F(pts[i].Lon), F(area[i]), F(areaNear[i]), F(MeanHaul(area[i])), F(MeanHaul(areaNear[i])),
-                r.IsPort ? "1" : "0", "", "", "", "", "", "", "", ""));
-        }
+        TrAreaRows(sk, sim, year);
         var c = sim.Nations[0].World.Coef;
         void Z(string name, double v) => sk.TrStat!.WriteLine(string.Join('\t', "Z", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", name, F(v), ""));
         Z("LandSeaCostRatio", c.LandSeaCostRatio); Z("RailCostFraction", c.RailCostFraction); Z("FreightRatePer10Mm", c.FreightRatePer10Mm);
@@ -203,6 +217,22 @@ public static partial class Instruments
         Z("DistanceNormKm", Diplomacy.DistanceNormKm);
         for (int t = 0; t < c.TerrainHorseCost.Length; t++) Z("TerrainHorseCost[" + ((Terrain)t) + "]", c.TerrainHorseCost[t]);
         for (int t = 0; t < c.TerrainRailCost.Length; t++) Z("TerrainRailCost[" + ((Terrain)t) + "]", c.TerrainRailCost[t]);
+    }
+
+    /// <summary>(385) 州の面積の行（scope A）：その年の Active の州だけで陸マスクの格子を分ける（G 行と同じ州の集合）。開幕の 1 回と、10 年ごとの年の終わりに書く。座標の並びが同じ年は <see cref="AreaCache"/> に当たる。</summary>
+    static void TrAreaRows(Sink sk, MultiNationSim sim, int year)
+    {
+        var regs = new List<(string Nation, Region R)>();
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) regs.Add((NameOf(n.World), r));
+        var pts = new (double Lat, double Lon)[regs.Count];
+        for (int i = 0; i < regs.Count; i++) pts[i] = Climate.CityCoord(regs[i].R.Name);
+        var (area, areaNear) = TrAreas(pts);
+        for (int i = 0; i < regs.Count; i++)
+        {
+            var r = regs[i].R;
+            sk.TrStat!.WriteLine(string.Join('\t', "A", TrI(year), regs[i].Nation, r.Name, TrI((int)r.Terrain), F(pts[i].Lat), F(pts[i].Lon), F(area[i]), F(areaNear[i]), F(MeanHaul(area[i])), F(MeanHaul(areaNear[i])),
+                r.IsPort ? "1" : "0", "", "", "", "", "", "", "", ""));
+        }
     }
 
     static double MeanHaul(double areaKm2) => areaKm2 > 0 ? 2.0 / 3.0 * Math.Sqrt(areaKm2 / Math.PI) : double.NaN;

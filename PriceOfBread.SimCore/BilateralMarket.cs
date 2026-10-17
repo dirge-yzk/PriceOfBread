@@ -437,14 +437,14 @@ public sealed partial class InternationalMarket
             {
                 rt.RealSeaKm = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);
                 rt.EqSea = rt.RealSeaKm;
-                rt.RealLandKm = tr[a].landKm + tr[b].landKm;
-                rt.EqLand = tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b];
+                rt.RealLandKm = tr[a].landKm + tr[b].landKm; rt.RealLandSellerKm = tr[a].landKm; rt.RealLandBuyerKm = tr[b].landKm;   // ★(385) 陸脚を売り手側・買い手側に分ける
+                rt.EqLand = tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b]; rt.EqLandSeller = tr[a].landKm * terrCost[a] * landRatio[a]; rt.EqLandBuyer = tr[b].landKm * terrCost[b] * landRatio[b];
             }
             else
             {
                 double raw = PathGraph.LandMatrix()[landNode[a] * PathGraph.Nodes.Length + landNode[b]];
-                rt.RealLandKm = raw + landGraft[a] + landGraft[b];
-                rt.EqLand = rt.RealLandKm * 0.5 * (terrCost[a] * landRatio[a] + terrCost[b] * landRatio[b]);
+                rt.RealLandKm = raw + landGraft[a] + landGraft[b]; rt.RealLandSellerKm = rt.RealLandKm * 0.5; rt.RealLandBuyerKm = rt.RealLandKm * 0.5;   // ★(385) 陸直行は経路の半分ずつを両端の州へ（PairKm の式が両端の係数の平均）
+                rt.EqLand = rt.RealLandKm * 0.5 * (terrCost[a] * landRatio[a] + terrCost[b] * landRatio[b]); rt.EqLandSeller = rt.RealLandKm * 0.5 * (terrCost[a] * landRatio[a]); rt.EqLandBuyer = rt.RealLandKm * 0.5 * (terrCost[b] * landRatio[b]);
             }
             return rt;
         }
@@ -927,7 +927,7 @@ public sealed partial class InternationalMarket
                     if (portS > 0) { double rS = vA * portS / exRate[siA]; portRecv[snA] += rS; fxIntended += rS - vA * portS / exRate[ni]; }   // 積出し港の持ち主は自国の通貨で（換算の差は台帳へ）
                     if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
                     freightPool += frG;
-                    if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA);   // ★(380) 輸送の段0 の計器（読むだけ）
+                    if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni]);   // ★(380) 輸送の段0 の計器（読むだけ）・★(385) 運賃の配りの比を売り手側・買い手側の国で添える
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];   // 売買方針（高く買う）＝積出し価格×楔（旧＝数量×表示用の平均×楔＝R6）
                     // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
                     //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。

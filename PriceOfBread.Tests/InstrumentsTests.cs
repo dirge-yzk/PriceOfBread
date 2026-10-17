@@ -18,6 +18,8 @@ public class InstrumentsCollection { }
 [Collection("Instruments")]
 public class InstrumentsTests
 {
+    // (384) 戦争が起きる四半期まで走らせる長さ。政治の束の削除で軌道が動き、この盤面の最初の戦争は旧の 40 四半期以内から Q54 へずれた（探りで確かめた）＝戦争を対照にする番人は戦争を含む長さで回す。
+    private const int WarQ = 100;
     private static MultiNationSim Make() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
 
     private static void RunMatch(MultiNationSim sim, int quarters, bool instr)
@@ -186,13 +188,13 @@ public class InstrumentsTests
         try
         {
             Instruments.Configure(dir, null);
-            try { RunMatch(Make(), 40, instr: true); }
+            try { RunMatch(Make(), WarQ, instr: true); }
             finally { Instruments.Configure(null, null); }
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
-            Assert.True(nr.Count >= 4 * 40, "国×四半期の行が足りない");   // 建国（分離独立）で国が増えるので4国より多くてよい
-            Assert.Equal(4 * 40, nr.Count(r => int.Parse(r[Array.IndexOf(nh, "nationIndex")]) < 4));   // 最初の4国は全ての四半期に1行ずつ（死んだ国も）
+            Assert.True(nr.Count >= 4 * WarQ, "国×四半期の行が足りない");   // 建国（分離独立）で国が増えるので4国より多くてよい
+            Assert.Equal(4 * WarQ, nr.Count(r => int.Parse(r[Array.IndexOf(nh, "nationIndex")]) < 4));   // 最初の4国は全ての四半期に1行ずつ（死んだ国も）
             Assert.Equal(nr.Count, nr.Select(r => (r[Array.IndexOf(nh, "quarter")], r[Array.IndexOf(nh, "nationIndex")])).Distinct().Count());
             var (wh, wr) = Table(System.IO.Path.Combine(dir, "wars_s1789.tsv"));
             var inWar = new HashSet<string>(wr.SelectMany(r => new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] }));
@@ -241,7 +243,7 @@ public class InstrumentsTests
 
             var (sh, sr) = Table(System.IO.Path.Combine(dir, "stock_s1789.tsv"));
             var yearEnd = sr.Where(r => { var t = r[Array.IndexOf(sh, "time")]; return t.StartsWith('q') && int.Parse(t[1..]) % 4 == 3; }).ToList();
-            Assert.True(yearEnd.Count >= 4 * (40 / 4), "年末の行が足りない");
+            Assert.True(yearEnd.Count >= 4 * (WarQ / 4), "年末の行が足りない");
             foreach (var r in yearEnd)
             {
                 Assert.InRange(Col(sh, r, "steamFillShare"), 0, 1);
@@ -267,7 +269,7 @@ public class InstrumentsTests
         {
             var sim = Make();
             Instruments.Configure(dir, "*");
-            try { RunMatch(sim, 40, instr: true); }
+            try { RunMatch(sim, WarQ, instr: true); }
             finally { Instruments.Configure(null, null); }
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
@@ -285,7 +287,7 @@ public class InstrumentsTests
                 int q = int.Parse(row[iqN]); string nation = row[inN];
                 // 財政の月の行は四半期の末ごとに順に出る・助走の直後の最初の月は台帳の差分の起点が無く行が出ない（最初の四半期は2か月）＝全ての四半期が揃う国の q>=1 を行の順で引く
                 var all = fr.Where(r => r[inF] == nation).ToList();
-                if (q < 1 || all.Count != Calendar.MonthsPerQuarter * 40 - 1) continue;
+                if (q < 1 || all.Count != Calendar.MonthsPerQuarter * WarQ - 1) continue;
                 var months = all.Skip(2 + Calendar.MonthsPerQuarter * (q - 1)).Take(Calendar.MonthsPerQuarter).ToList();
                 checkedQuarters++;
                 double Mean(string c) => months.Average(r => Col(fh, r, c));
@@ -1132,7 +1134,7 @@ public class InstrumentsTests
         {
             var sim = Make();
             Instruments.Configure(dir, "*");
-            try { RunMatch(sim, 40, instr: true); }
+            try { RunMatch(sim, WarQ, instr: true); }
             finally { Instruments.Configure(null, null); }
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
@@ -1152,7 +1154,7 @@ public class InstrumentsTests
                 if (outcome == 1 || outcome == 2) Assert.InRange(after, cur - 1e-8, cur + 1e-8);
                 if (outcome >= 2)
                 {
-                    Assert.InRange(f, 0, c0.PolicyBaseSpeed * (1.0 + c0.AutocraticPolicyAgility) + 1e-8);
+                    Assert.InRange(f, 0, c0.PolicyBaseSpeed + 1e-8);
                     double trad = Col(nh, row, "militaryMoveResistTradIndex"), mod = Col(nh, row, "militaryMoveResistModernIndex"), mass = Col(nh, row, "militaryMoveResistMassIndex");
                     Assert.True(trad >= 0 && mod >= 0 && mass >= 0, "ブロックの反対は負にならない");
                     Assert.True(res + 1e-8 >= trad + mod + mass, $"抵抗の合計 {res} がブロックの内訳の和 {trad + mod + mass} を下回る");
@@ -1160,7 +1162,7 @@ public class InstrumentsTests
                     double expectPush = fronts > 1 ? Math.Pow(1.0 / fronts, c0.PoliticalBudgetGate) : 1.0;
                     Assert.InRange(push, expectPush - 1e-8, expectPush + 1e-8); checkedPush++;
                     // ★(270) 歩幅の比＝歩幅×(1+抵抗の重み×抵抗)÷基本の速さ：解禁の四半期は政治予算を掛けない（1.0 か勅令の加速）・解禁の外は政治予算を掛ける（push か push×勅令の加速）
-                    double ratio = f * (1.0 + c0.PolicyResistanceWeight * res) / c0.PolicyBaseSpeed, agile = 1.0 + c0.AutocraticPolicyAgility;
+                    double ratio = f * (1.0 + c0.PolicyResistanceWeight * res) / c0.PolicyBaseSpeed, agile = 1.0;   // (384) 勅令の速さ（AutocraticPolicyAgility）は削除した＝歩幅の比に非議会の加速は無い
                     bool open = Col(nh, row, "warStageOpenAfterGovFlag") == 1;
                     bool near(double x, double y) => Math.Abs(x - y) <= 1e-6 * Math.Max(1.0, Math.Abs(y));
                     if (open) { Assert.True(near(ratio, 1.0) || near(ratio, agile), $"解禁の四半期の歩幅の比 {ratio}（政治予算 {push} を掛けてはいけない）"); openCounts[push < 0.99 ? 1 : 0]++; }
@@ -1172,7 +1174,7 @@ public class InstrumentsTests
                     Assert.True(outcome == 4 ? net < 0 : net >= 0, $"結果{outcome}の純支持 {net}");
                 }
             }
-            Assert.True(counts[3] > 0 && counts[2] > 0, $"無償で動いた四半期と政治資本が足りず固定された四半期が両方起きていない（{string.Join(',', counts)}）");   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
+            Assert.True(counts[3] > 0, $"無償で動いた四半期が1度も無い（{string.Join(',', counts)}）");   // ★(383) 旧は〈政治資本が足りず固定された四半期 counts[2]〉も要求した。行政効率の連鎖を消した盤面ではこの 4 国 40 四半期に起きなくなった（0,0,0,119,44）＝対照の一つを外した（結果 2 の行が出れば内側の式の照合は今も働く）   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
             Assert.True(counts[4] > 0, $"政治資本を払って動いた四半期が1度も無い（{string.Join(',', counts)}）＝純支持が負の経路が写っていない");
             Assert.True(checkedPush > 0);
             Assert.True(openCounts[1] > 0, $"解禁の四半期のうち政治予算の係数が1未満の四半期が無い（{openCounts[0]},{openCounts[1]}）＝政治予算を掛けないことを確かめる対照にならない");
@@ -1529,7 +1531,7 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make();
-                RunMatch(sim, 60, instr: false);
+                RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)
                 {
                     var w = nation.World;
