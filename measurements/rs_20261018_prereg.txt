@@ -153,3 +153,24 @@
   Fiscal.cs（`leak` の 1 行）・Simulation.cs（`enforce` の式 1 か所・`PromoteColonyToRegion` の Rule の 2 行）・Diplomacy.cs（付与の分岐・`TreatyPortLapse`）・InternationalMarket.cs（`TreatyPortTariffScale`）・PoliticalQuantities.cs（屈辱の項 1 行）・
   SelfPlay.cs（移民の外圧 1 行）・Places.cs（`rule` の列と `RuleOf`）・places.json（colony 100 行に rule 列）・InstrumentsRule.cs（新規）・Instruments.cs（Sink の欄 1・Quarter の呼び 1・Dispose 1 の 3 行）・
   テスト（DormantIdentityTests の表 5 行・新規の番人）・scripts/instruments/rs（新規）・measurements の tsv。衝突の見込み：`Instruments.cs` の 3 行（sp の計器の高速化も触る）。world.json は触らない（op の英・蘭の開幕と衝突しない）。
+
+[10] 追記1（2026-10-18・形のコードを書いた後・腕を回す前）：[0]〜[9] との違い・形の途中で分かったこと
+  ⚠ 形のコードを書く間に事前登録の文言を直す必要が出た物を、元の文書は書き換えずここに足す（元の文は最初のコミットのまま）。
+  ① B の POB_COEF の区切りは `;`（`,` ではない・`Coefficients.ParseOverrides` が `;` で割る）：
+     `RuleSharesEnabled=1;RuleSharesReach=1;RuleSharesTaxBase=1;ForeignRuleFromTreaty=0.5;RuleLocalFromRights=1;RuleUngovFromReach=1;ColonyRuleFromData=1;TaxLeakByRule=1;LawReachByRule=1`
+  ② D3 の関税の目減りの重み：[1] D3 は 〈港の収容力で重みづけた平均〉 と書いたが、`Region.PortCapacity` は 0 から始まり投資で積む（開幕の港州は 0）＝重みが全て 0 になり目減りが立たない。
+     実装は **港州の人口で重みづけた外国持分の平均**（`Politics.ForeignPortShare`・活きている港州だけ・持分は min(1, 合計)・港州が無ければ 0）。[6] D3 の番人・[7] Q4 の〈港の収容力〉も人口に読み替える。
+  ③ D4 のデータの 6 種類は、表 `measurements/rs_20261018_colony_rule.tsv` の種類の列のとおり＝大農園の島〔plantation〕・交易の要塞港・商館〔fort〕・大陸の間接統治の大人口〔indirect〕・辺境の交易所・伝道所〔post〕・開拓の入植地〔settler〕・未領有・部族地帯〔unclaimed〕。
+     [1] D4 の最後の種類〈独立に近い藩国の取り分〉は使わなかった（未領有・部族地帯に替えた＝後から州になる 23 件の行き先）。数字は 6 組：国家/在地/外国/無統治 ＝ 0.70/0.25/0/0.05・0.60/0.30/0/0.10・0.50/0.45/0/0.05・0.15/0.35/0/0.50・0.55/0.10/0/0.35・0.10/0.50/0/0.40。AI の置き・出典なし。
+  ④ 国の座標＝首都の都市の座標（NationConfig の緯度経度が首都の都市と一致）。首都の州は距離 0 → 到達 1.0。D2 の到達は 首都以外の州から効く（ルアーヴル 177.7km → 0.98254・マルセイユ 659.5km → 0.93813）。
+  ⑤ 旧の門の値と新の enforce（短距離の canary〔1 種・200 四半期〕で計器 `rule_s` を読んだ・参考）：旧の enforce ＝ min(1, adminEfficiencyIndex÷0.5)。1784 年の最初の行は 仏 0.22・英 0.19（行政効率 0.111・0.094）だが、
+     1790〜1830 年の中央値では 清・仏・露・普・墺・日 が 1.00・英 0.66〜0.81・オスマン 0.92〜1.00。B の新の enforce（国家の区分の人口加重）は 英 0.59〜0.67・清 0.63・仏 0.68〜0.70・露 0.51〜0.54・オスマン 0.42〜0.50・普 0.68〜0.79・墺 0.54〜0.57・日 0.41〜0.42。
+     つまり B では **法の浸透の追従は旧より遅くなる**（旧の門が満額だった国は ×0.4〜0.8）。[5] の予想 (d) は 〈国家の区分が低い国ほど遅い〉に加え 〈全体に旧より遅い〉。児童労働の禁止の浸透（出生の意図）が遅れる向きは 大きい線として R5 で見る。
+     英領インドを持つ英の国全体の国家区分は B の植民地のデータで 1790 年 0.49（本国の州だけ 0.73）・A では植民地が在地 100% のため 0.25。
+  ⑥ A（短距離）の恒等の確かめは [6] のとおり実施：`selfplay 1 200` の出力 12,485 バイトが基点 c56617da の木と 計器なし・計器つき（INS）とも全バイト一致（`measurements/rs399_20261018_identity_canary.txt`）。
+  ⑦ 旗の読み手の一覧（grep・形の担当）：`RuleLocalFromRights`／`RuleUngovFromReach`＝`Politics.CheckSecession` の区分の積分（1 か所）・`ColonyRuleFromData`＝`Simulation.PromoteColonyToRegion`（1 か所）・
+     `TaxLeakByRule`＝`Fiscal.Step`（1 か所）・`LawReachByRule`＝`Simulation.MonthSettle`（1 か所）・`ForeignRuleFromTreaty`＝`Diplomacy.TreatyPortLapse`／講和の付与／`InternationalMarket.TreatyPortTariffScale`／`World.UnequalTreatyInForce`（条約港の読み手 2 か所の入口）。
+  ⑧ 作者の指示文との差（先頭に書く物）：(a) `HeldSinceFromData` を B に入れなかった（D2 で無統治の目標が支配度を読まなくなる・併合州 28 の格と支配度の初期値は別の挙動）。(b) 税の届け率は既存の器（0.7）を残した（Q1）。
+     (c) 仲介者の権利の残高は 台帳でなく 官僚制度法と土地改革の法の max（Q2）。(d) 並行の線 sp〔高速化〕は当てにしない。
+  ⑨ 助言者（advisor）が推した `Region.AdminFill`（国が行政の役務を買えた割合）で在地の目標を決める形は採らなかった：AdminFill は行政財の充足＝不足の量で到達ではない（Politics.cs の注・仏英 1798 で 0.1）・官僚 POP の無い州は既定 1.0（fail-open）で植民地の在地が即消える・
+     市場の値段に揺れる。作者の指示文（特権の台帳の残高）に近い法の度合い（D1）を選んだ。
