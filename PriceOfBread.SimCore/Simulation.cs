@@ -94,7 +94,7 @@ public sealed class Simulation
             FiscalEnabled = scenario.FiscalEnabled,
             TaxRate = new Share(scenario.TaxRate),
             PollTax = scenario.InitialPollTax,   // 人頭税＝近世国家の主財源（行政不要）。序盤の国庫を支える（所得税は19世紀までロック）
-            LandTax = scenario.InitialLandTax,   // 土地税＝検地台帳を保有済みの確立国家は開始から徴収（>0なら開始解禁）
+            LandTax = scenario.InitialLandTax,   // 土地税の開始値（確立国家は開始から徴収）
             ForceUnlock = scenario.ForceUnlock,
             // 国庫は Pay 経由でしか動かせない（World の台帳・2026-08-13）＝生成時の初期化は下の SetTreasuryRaw で行う。
             GovDebt = new MoneyStock(scenario.InitialGovDebt),   // P5：初期国債（仏＝米独立戦争債務）。純負債＝貨幣非移動・保存中立。GovAvgCouponPerYearはrollover=1で初回Fiscalが市場金利へ上書き

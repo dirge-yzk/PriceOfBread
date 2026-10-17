@@ -2,6 +2,7 @@
 使い方：python an_ae383.py A=<出力>/ins B=<出力>/ins N1=<出力>/ins N2=<出力>/ins [rA=<A の報告> rB=… rN1=… rN2=…] [sec=div,sup,r1,r2,r3,r4,ratio,asia,fz,pop,chaos]
   読む表＝nation_s・scalars_s・stock_s・anchor_s（<出力>/ins の *_s<種>.tsv）。報告（rX）は〈人口: 成長倍率〉と exact／near の行だけ読む。
   腕の結果を見てから式を書かない＝式は事前登録の定義だけ（閾値は追記4）。表が無ければ該当の節を飛ばして〈無し〉と印字する。
+  ⚠限界（自己申告）：SCA_COLS の adminPowerSmoothed・highAdminQuarters・landTaxUnlocked は (383) の物理削除で最終の木の scalars_s から消えた。最終の木の出力に R4 の退化の確かめ（adminPowerSmoothed≥0.5）を当てると列が無く 0% と読む＝その節は削除前の A 系の出力にだけ使う。
   記号：[止] ＝止める線（発散 ①'）／[記] ＝記録（採否に使わない・追記3 の（2））。
 """
 import csv, glob, math, os, re, sys, collections

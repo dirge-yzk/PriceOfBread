@@ -1236,7 +1236,7 @@ public sealed class UtilityAgent : INationAgent
                 if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
-                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る→検地台帳のアンロックにも繋がる）
+                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る）
                 p.IncomeTaxTarget = 0.25;   // 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
                 p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.3; p.PollTaxTarget = 0;   // 近代税制へ移行（人頭税は廃止）
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）

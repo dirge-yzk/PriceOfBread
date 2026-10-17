@@ -197,9 +197,9 @@ public sealed class NationPolicy
 
     // --- スライダーの目標値（現在値は World 側＝利益集団の力で律速して漸進）---
     public double IncomeTaxTarget;        // 所得税率 0..1
-    // --- 税制の拡張（土地税は検地台帳＝行政力でアンロック。徴収の実効は汚職漏れが額で表す＝率は削らない）---
+    // --- 税制の拡張（土地税は最初から開いている〔検地台帳の錠は (383) で物理削除〕。徴収の実効は汚職漏れが額で表す＝率は削らない）---
     public double PollTaxTarget;          // 人頭税 0..1。行政不要＝いつでも確実に取れるが逆進的（閉鎖階級は免除＝特権）＝大衆の不満
-    public double LandTaxTarget;          // 土地税 0..1。検地台帳（行政力の蓄積）でアンロック。RGOの地代（地主＝貴族）に課税＝旧支配層が強く抵抗
+    public double LandTaxTarget;          // 土地税 0..1。RGOの地代（地主＝貴族）に課税＝旧支配層が強く抵抗
     public double ProgressiveTaxTarget;   // 累進課税 0..1。富裕POPの所得に追加課税。段の法（2026-09-20 点火）＝官僚制度（資格任用以上）の法が前提（Government.LawPrereq）。行政が弱いと取り立てが汚職で漏れる
     // ★専売の目標は無い（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝旧 StateMonopolyTarget を物理削除。
     //   専売の広さは World.StateMonopolyMargins（材ごとの ON/OFF）から毎期導出する＝新しい状態変数を作らない（思想⑩）。

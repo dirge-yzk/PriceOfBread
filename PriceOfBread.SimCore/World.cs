@@ -229,9 +229,9 @@ public sealed class World
     public NationPolicy Policy { get; internal set; } = new();
     public double SocialSecurity { get; internal set; }  // 社会保障（0..1・現在値）
     public double AdminSpending { get; internal set; } = 0.5;  // 行政費（0..1・現在値）。官僚の役務「行政」の調達予算＝官僚の給与。低い＝汚職（税収が漏れる）
-    // --- 税制の拡張（現在値）。土地税は行政力でアンロック（検地台帳＝一度できれば残る）。所得税・累進に行政力の天井/解禁は無い（2026-09-12 廃止＝徴収の実効は汚職漏れ）---
+    // --- 税制の拡張（現在値）。土地税は最初から開いている（検地台帳の錠は (383) で物理削除）。所得税・累進に行政力の天井/解禁は無い（2026-09-12 廃止＝徴収の実効は汚職漏れ）---
     public double PollTax { get; internal set; }          // 人頭税（0..1）。行政不要・確実・逆進的（閉鎖階級は免除＝特権）
-    public double LandTax { get; internal set; }          // 土地税（0..1）。RGOの地代（地主の取り分）に課税。要・検地台帳
+    public double LandTax { get; internal set; }          // 土地税（0..1）。RGOの地代（地主の取り分）に課税
     public double ProgressiveTax { get; internal set; }   // 累進課税（0..1・現在値）。富裕層(近代エリート・閉鎖階級)の所得に**追加**課税＝再分配（A-1#3配線2026-06-24）。段の法（2026-09-20 点火）＝官僚制度（資格任用以上）の法が前提（LawPrereq＝目標を置く側の門）・徴収漏れは所得税と同じ汚職leak。富裕が強く抵抗
     // ★★専売＝「材ごとの ON/OFF × エンジンの標準率」1本（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）。
     //   ⚠**国ごとの率は存在しない**＝旧 World.StateMonopoly（政治が動かす天井）と Policy.StateMonopolyTarget（その目標）は物理削除した。
@@ -510,7 +510,7 @@ public sealed class World
 
     /// <summary>★法の継承の1本（2026-09-28 処理の一元化 段2 C）＝建国した国が親の法をそのまま受け継ぐ（独立は制度を巻き戻さない）。
     /// 現在値＝段の法（表 <see cref="Government.LevelLaws"/>）と税・支出の段（表 <see cref="Government.RateLaws"/>）を**表のまま**写し、
-    /// 表の外の制度（関税・金利・行政費・陸海の維持費・特許・株式会社・鉄道・検地台帳・年金・福祉水準・実労働時間）を足す。
+    /// 表の外の制度（関税・金利・行政費・陸海の維持費・特許・株式会社・鉄道・年金・福祉水準・実労働時間）を足す。
     /// 目標＝政策を丸ごと写す（<see cref="NationPolicy.CopyFrom"/>＝開始盤面の退避と同じ1本）。
     /// ⚠旧＝建国（MultiNationSim.SpawnNation）が World と Policy の対を軸ごとに手で約40行書いた＝軸を足すたびに写し漏れた
     ///   （女性の権利は Policy だけ漏れた前歴。累進課税・植民地参政権・移民原住民参政権・技術者流出禁止法・行政費は漏れたままだった）。

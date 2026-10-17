@@ -134,7 +134,7 @@ public sealed partial class LawRowVM : ObservableObject
     }
 
     /// <summary>前提未達の理由文を「◯◯:△△」レイアウトへ整形（作者指示2026-08-15）。
-    /// 「◯◯（△△）が前提」→「前提 ◯◯:△△」のパターン変換のみ。合わない文（検地台帳が前提・プロレタリア独裁のみ 等）は
+    /// 「◯◯（△△）が前提」→「前提 ◯◯:△△」のパターン変換のみ。合わない文（プロレタリア独裁のみ 等）は
     /// そのまま返す＝安全側。整形は表示側（本VM）の責務＝Government.cs には触れない。</summary>
     private static string FormatPrereq(string reason)
     {
