@@ -64,6 +64,9 @@ public class ScalarDeletionTests
         (double Mandate, double Legit, bool HasGraft, bool HasErosion) Run(double fill)
         {
             var w = new Simulation(NationConfig.France().ToScenario(7), new NullAgent()).World;
+            // ★(387) 反証役 ae〔bv〕低の確かめ：この盤面では満足の項で天命の目標が 1 に張り付き（Clamp01）、汚職の項を戻しても値が動かなかった（突然変異 M6 が緑）。
+            //   満足の重みを 0 にして目標を張り付かない所（中立 0.5 の近く）へ置く＝充足に依る項があれば値が動く。
+            w.Coef.DynMandateSatWeight = 0.0;
             foreach (var r in w.Regions) r.AdminFill = fill;
             w.Explain = new ExplainLedger();
             Politics.Step(w, w.Coef);
@@ -71,6 +74,7 @@ public class ScalarDeletionTests
                 w.Explain.Get("DynasticMandate").Any(t => t.Reason == "汚職の体感"), w.Explain.Get("Legitimacy").Any(t => t.Reason.StartsWith("腐敗侵食")));
         }
         var weak = Run(0.0); var strong = Run(1.0);
+        Assert.InRange(strong.Mandate, 0.46 + 1e-9, 0.54 - 1e-9);   // 前提：天命の目標が 0 と 1 に張り付かない（初期 0.5・EMA 0.08＝目標が (0,1) の内なら値は (0.46,0.54) の内）
         Assert.False(weak.HasGraft); Assert.False(weak.HasErosion);
         Assert.Equal(strong.Mandate, weak.Mandate);   // 実効汚職が 1 と 0 でも天命は同じ
         Assert.Equal(strong.Legit, weak.Legit);       // 同・正統性
