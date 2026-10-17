@@ -26,6 +26,8 @@ public class BureaucracyFromPrereqTests
         return w;
     }
 
+    private static void Follow(World w) { PolicyPreferences.Profile? shared = null; UtilityAgent.BureaucracyFollowsWants(w, w.Policy, ref shared); }
+
     private static void Want(World w, PolicyAxis axis)
     {
         var p = w.Policy;
@@ -111,15 +113,36 @@ public class BureaucracyFromPrereqTests
         var w = Board(1.0);
         Want(w, PolicyAxis.Antitrust);
         w.Policy.Bureaucracy = BureaucracyLaw.Spoils;
-        UtilityAgent.BureaucracyFollowsWants(w, w.Policy);
+        Follow(w);
         Assert.Equal(BureaucracyLaw.MeritExam, w.Policy.Bureaucracy);   // 専門官僚制まで押さない
         w.Policy.Bureaucracy = BureaucracyLaw.Professional;             // 議会などが置いた高い目標
-        UtilityAgent.BureaucracyFollowsWants(w, w.Policy);
+        Follow(w);
         Assert.Equal(BureaucracyLaw.Professional, w.Policy.Bureaucracy);   // 下げない
         w = Board(0.0);
         Want(w, PolicyAxis.Antitrust);
-        UtilityAgent.BureaucracyFollowsWants(w, w.Policy);   // 旗 0 は（計器の読みで走っても）目標を書かない
+        Follow(w);   // 旗 0 は（計器の読みで走っても）目標を書かない
         Assert.Equal(BureaucracyLaw.Spoils, w.Policy.Bureaucracy);
+    }
+
+    /// <summary>旗 2＝官僚制度が足りていれば法律タブの門（純支持・政治資本の残り）も通る法だけ数える。旗 1 は政治の見込みを問わない。</summary>
+    [Fact]
+    public void 旗2は政治の門が通る見込みのある法だけ数える()
+    {
+        // 政治の門が閉じる盤面（開幕の政治資本の残りが足りない）：旗 1 は目標を上げ、旗 2 は上げない
+        var w1 = Board(1.0); w1.PoliticalLockEnabled = true; Want(w1, PolicyAxis.Antitrust);
+        PolicyPreferences.Profile? sh = null;
+        var gate = Government.GateInfo(w1, PolicyAxis.Antitrust, true, 1, ref sh, BureaucracyLaw.MeritExam);
+        Assert.False(gate.Ok);                       // 前提の盤面（変われば読み直す）
+        Assert.Equal("政治資本の残りが不足", gate.Reason);
+        Follow(w1);
+        Assert.Equal(BureaucracyLaw.MeritExam, w1.Policy.Bureaucracy);
+        var w2 = Board(2.0); w2.PoliticalLockEnabled = true; Want(w2, PolicyAxis.Antitrust);
+        Follow(w2);
+        Assert.Equal(BureaucracyLaw.Spoils, w2.Policy.Bureaucracy);
+        // 政治の門が開く盤面（純支持の門を外す）：旗 2 も上げる
+        var w3 = Board(2.0); Want(w3, PolicyAxis.Antitrust);
+        Follow(w3);
+        Assert.Equal(BureaucracyLaw.MeritExam, w3.Policy.Bureaucracy);
     }
 
     [Fact]

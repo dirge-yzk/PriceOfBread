@@ -788,13 +788,13 @@ public static class Government
     /// <summary>★立場の土台（<see cref="PolicyPreferences.Build"/>）を呼び手と分け合う読み口（2026-10-01 (146) 計算量の予算・恒等）：
     /// <paramref name="shared"/> が空なら純支持を読むときに1回だけ取って入れ、次の照会はそれを使う＝**間に立場の土台の入力を書かない呼び手だけ**が渡す
     /// （AI の法目標の整形 UtilityAgent.GateAllLawTargets＝法目標〔NationPolicy〕を書くだけ・軍事費の目標の書き込みは最後の照会の後）。</summary>
-    internal static (bool Ok, double Cost, string Reason) GateInfo(World w, PolicyAxis a, bool increasing, int targetLevel, ref PolicyPreferences.Profile? shared)
+    internal static (bool Ok, double Cost, string Reason) GateInfo(World w, PolicyAxis a, bool increasing, int targetLevel, ref PolicyPreferences.Profile? shared, BureaucracyLaw? bur = null)   // (389) bur＝官僚制度を仮に置く読み（AI の走査だけが渡す・null＝従来どおり）
     {
         // ★段（R1/R2・2026-09-12）：段になった財政の軸だけは**下げる側でも**前提を照会する＝床（緊縮の逆進フロア・軍事費の最下段）が
         //   「押せない段」として上下とも同じ1本（LawPrereq）から出る。他の軸は従来どおり上げる時だけ。
         if (increasing || FiscalStagedAxis(a))
         {
-            var (pok, preq) = LawPrereq(w, a, targetLevel, w.Coef);
+            var (pok, preq) = LawPrereq(w, a, targetLevel, w.Coef, bur);
             if (!pok) return (false, 0, preq);
         }
         // 第6段6-7：不可逆の理由をUIへ（施行側StepEnum/StepBoolと同一判定＝表示と物理の一致）。労働時間のみ後退＝増加方向。
