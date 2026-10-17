@@ -8,7 +8,7 @@
   ①secession_s ＝ 州ごとの離脱圧力・保持力・支配度の内訳。節 A＝計器の自己申告（組み直した圧力と本体の差の最大・中央の保持力の組み直しの差の最大）。
      節 B＝挙げた国ごとに〈分離の戦争へ入った州〉（goFlag=1 の最初の四半期）と、その前の 8 四半期の平均（圧力・保持力・余裕・支配度・国民意識・大衆の飽和）。
      節 C＝圧力の因数の分解（関税の項・民族の項・国民意識の割引・参政権の割引・大衆の飽和）の中央値（州×四半期）。
-  ②factory_s の末尾 27 列 ＝ 労働の 3 財ごとの供給・需要・配給率・律速（時代別・挙げた国の作りたい量の重みの割合）。
+  ②factory_s の末尾 27 列 ＝ 労働の 3 財ごとの供給・工場の要る量と市場の需要・配給率・律速（時代別・挙げた国の作りたい量の重みの割合）。
   ③scalars_s の末尾 4 列 ＝ 前提つきの法（累進課税・失業保険以上・独占禁止・国有化）が最初に入った年（国別・種の中央値）。
 ⚠限界：挙げた国（POB_INSTRUMENTS_NATIONS）は毎四半期、他の国は年末の行だけ。節 B の前の 8 四半期は毎四半期の行がある国だけで平均する。
 """
@@ -103,14 +103,17 @@ def main(folder, out):
                 a[p + 'BoundLoss'] += num(r[ix[p + 'BoundLossRefValuePerMonth']])
                 a[p + 'Need'] += num(r[ix[p + 'NeedAtDesiredUnitsPerMonth']])
                 a[p + 'Supply'] += num(r[ix[p + 'SupplyCapacityUnitsPerMonth']])
-    P('時代\t作りたい量に占める律速（労働力／高度労働力／農業労働力）\t失った量に占める（同）\t需要÷器（同）')
+                a[p + 'MktDem'] += num(r[ix[p + 'MarketDemandUnitsPerMonth']])   # ★(397) 反証役 ic2〔v〕低#5：市場の需要（農場など工場の外の買い手を含む）
+    P('時代\t作りたい量に占める律速（労働力／高度労働力／農業労働力）\t失った量に占める（同）\t工場の作りたい量に要る量÷供給の器（同）\t市場の需要÷供給の器（同）')
+    P('  ⚠(397) 反証役 ic2〔v〕低#5：3 列目の分子は BuysLabor の工場の NeedAtDesired（作りたい量に要る量）＝市場の需要ではない（農業労働力の 0% は分子が工場に限られるため）。市場の需要は 4 列目')
     for e in sorted(acc):
         a = acc[e]
         d, l = a['desired'] or float('nan'), a['loss'] or float('nan')
-        P('%d-\t%s\t%s\t%s' % (1783 + 40 * e,
+        P('%d-\t%s\t%s\t%s\t%s' % (1783 + 40 * e,
                               ' / '.join('%.2f%%' % (100 * a[p + 'BoundDesired'] / d) for p in ('plainLabor', 'advLabor', 'farmLabor')),
                               ' / '.join('%.2f%%' % (100 * a[p + 'BoundLoss'] / l) for p in ('plainLabor', 'advLabor', 'farmLabor')),
-                              ' / '.join('%.1f%%' % (100 * a[p + 'Need'] / a[p + 'Supply']) if a[p + 'Supply'] else 'nan' for p in ('plainLabor', 'advLabor', 'farmLabor'))))
+                              ' / '.join('%.1f%%' % (100 * a[p + 'Need'] / a[p + 'Supply']) if a[p + 'Supply'] else 'nan' for p in ('plainLabor', 'advLabor', 'farmLabor')),
+                              ' / '.join('%.1f%%' % (100 * a[p + 'MktDem'] / a[p + 'Supply']) if a[p + 'Supply'] else 'nan' for p in ('plainLabor', 'advLabor', 'farmLabor'))))
     # ---------------- ③ scalars_s 法
     P()
     P('=== E. 前提つきの法が最初に入った年（国別・種の中央値・入らなかった種は数えない）===')

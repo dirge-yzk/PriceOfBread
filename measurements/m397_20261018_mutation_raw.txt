@@ -1,0 +1,4 @@
+== (397) 突然変異 M1′（反証役 mc〔bv〕低#6）：Politics.Transition の軍政の支持へ旧の CoupSupport の式そのもの（0.6×σ×π・σ＝sf/(sf+κ)・sf＝Σ兵の Size×(0.2+闘争度)×1.4/WorkingMenStdShare・π＝平時の上限の比）を戻す・木 12d42cc8 の写し・SoldierHoldSplitTests だけ
+  失敗 PriceOfBread.Tests.SoldierHoldSplitTests.軍政の支持へ足し算が無く兵力を極大にしても引力点は国民の集計だけで決まる [3 ms]
+   Assert.Equal() Failure: Values differ
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,13 @@
+# (394) 形（旗 FactoryCapacityFromPlant・既定 0）の恒等の確かめ（前半＝短距離と 3 種・成績表 3 枚の全行一致は後半の腕 A）
+# 基点 c6d465d（git archive の木・SOURCE-HASH 522f7b780110cb00＝m392 と同じ）対 枝 fp（SOURCE-HASH af288a1deb321ec9＝1)2) の時点の木〔SimCore はコード e96fe45a と同じ・テスト FactoryPlantTests.cs の書き損じの名前を直す前〕。3) の枝は 3eb6b1450f6cf80e＝直したあとの木）。作業フォルダ D:/PoB_work/fp。
+1) selfplay 1 200（plain・旗 0）：基点と枝の出力が cmp 一致（12062 バイト）。
+2) selfplay 1 200（POB_INSTRUMENTS 付き・旗 0）：出力が cmp 一致（12062 バイト）。計器の生 29 ファイル中 28 が一致・不一致は burscan_s1.tsv だけ（走査の実時間の計器＝時刻で揺れる値）。
+3) selfplay-batch 3（計器つき・NATIONS＝清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本・旗 0）：成績表が cmp 一致（基点 SOURCE-HASH 522f7b780110cb00・枝 3eb6b1450f6cf80e〔コード e96fe45a のあとの木〕）。
+   計器の生 111 ファイル中 108 が一致・不一致は burscan_s1〜s3.tsv（実時間の計器）だけ。
+4) savetest 1789 300 12：旗 0 OK（63 カ国・最大相対差 0）／旗 1 OK（62 カ国・最大相対差 0）。leakhunt 1789 200（旗 1）：完走・保存則違反なし（人口 0・基礎貨幣 0）。
+5) フルスイート（Release・Category!=FullLength・隔離ビルド D:/PoB_work/fp/art）：1306 合格・失敗 0（13 分 10 秒）。新しい番人 FactoryPlantTests 7 本・DormantIdentityTests の表に 1 行。
+5b) FullLength（Category=FullLength）：3 合格（5 分 51 秒）。
+6) 突然変異（measurements/fp394_20261018_mutation.txt）：対照 M0 緑・M1〜M6 赤。
+7) 旗 0 の経路の論証（ソース）：差分は ①EconomyStep.cs 供給 ①の前に `if (coef.FactoryCapacityFromPlant > 0) …`（旗 0 は 1 回の比較だけ）②能力の式の頭数の項を `double headsK = region.Pops[lp].Size;` に取り出し（`if (旗>0 && …) headsK = FactoryPlantK;` は旗 0 で偽）③ヘルパー 1 本（旗 1 のときだけ呼ぶ）。
+   評価順は旧の ((((Size*fraction)*Productivity)*boost)*harvestMul)*mineralMul と同じ。Pop.FactoryPlantK は旗 0 では書かれない（−1 のまま）。
+8) ⚠全長の 10 種・5 種・計器つき 10 種の成績表 3 枚の m392 との全行一致は未走（後半の腕 A）。

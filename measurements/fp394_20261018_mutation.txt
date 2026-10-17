@@ -1,0 +1,7 @@
+M0_none	rc=0	成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M1_no_decay_always_follow	rc=1	  失敗 PriceOfBread.Tests.FactoryPlantTests.更新の関数の縁_助走とNaNと頭数の下限 [29 ms] |   失敗 PriceOfBread.Tests.FactoryPlantTests.頭数が半分になっても設備は減価の速さでしか減らない [47 ms] | 失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M2_no_floor	rc=1	  失敗 PriceOfBread.Tests.FactoryPlantTests.更新の関数の縁_助走とNaNと頭数の下限 [35 ms] | 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M3_nan_not_reset	rc=1	  失敗 PriceOfBread.Tests.FactoryPlantTests.更新の関数の縁_助走とNaNと頭数の下限 [5 ms] | 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M4_no_update_call	rc=1	  失敗 PriceOfBread.Tests.FactoryPlantTests.頭数が半分になっても設備は減価の速さでしか減らない [77 ms] |   失敗 PriceOfBread.Tests.FactoryPlantTests.設備の欄はセーブの往復で残る [6 s] | 失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M5_applies_to_rgo	rc=1	  失敗 PriceOfBread.Tests.FactoryPlantTests.工場でない生産者の能力は旗1でも旗0と同じ [46 ms] | 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M6_resync_ignored	rc=1	  失敗 PriceOfBread.Tests.FactoryPlantTests.更新の関数の縁_助走とNaNと頭数の下限 [5 ms] | 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
