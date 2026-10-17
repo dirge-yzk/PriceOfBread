@@ -555,30 +555,12 @@ public static class Politics
     /// </summary>
     private static void Transition(World w, Coefficients c, double reformist, double radical, double coerce, bool eroding)
     {
-        double challenge = reformist + radical; if (Instruments.On) Instruments.PbPullReset(w);   // ★(384) 計器（読むだけ）：この呼びの引力の〈決定的〉の記録を空にする（ExecuteRegimeChange が読む）
+        double challenge = reformist + radical;
         // 画一的な政体遷移（イデオロギー駆動）：国民イデオロギー集計→各政体の支持→引力点。
         // 引力点が現政体と異なり、支持差が保持力（PolityInertia×正統性）を超えれば遷移。任意→任意が単一式で出る。
         // 旧来の手書き分岐（軍クーデタ・1917・ブルジョワ反動・独裁の出口…）はこの一式に吸収（軍の力は支持に上乗せ・厭戦は闘争度とイデオロギー経由）。
         var agg = Ideologies.National(w);
         double soldierForce = SoldierForce(w, c);
-        // 一党支配（議会のある政体）：与党の独裁形態の引力を押し上げ＝支配的政党が体制を私物化（社会→プロ独裁／自由→ブルジョア独裁／保守→軍政）。
-        // 正統性侵食（上）と対で働き、支配が極まると独裁が引力点になる。多元的な選挙（拮抗）では発火しない＝外科的でなく支配度で連続。
-        Polity? domDictator = null; double domExcess = 0;
-        // 一党支配→独裁化は**危機国（平均満足度＜閾値）のみ**＝満足した安定な立憲/共和（英・米の一党優位）は独裁の引力を受けない＝立憲を巻き込まずに稀な独裁を出す。
-        if (w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
-        {
-            double maxSeat = Math.Max(w.PartySeats[0], Math.Max(w.PartySeats[1], w.PartySeats[2]));
-            if (maxSeat > c.PartyDominanceThreshold.Value)
-            {
-                domExcess = (maxSeat - c.PartyDominanceThreshold.Value) / (1 - c.PartyDominanceThreshold.Value);
-                domDictator = w.GoverningParty switch
-                {
-                    2 => Polity.ProletarianDictatorship,
-                    1 => Polity.BourgeoisDictatorship,
-                    _ => Polity.MilitaryDictatorship,
-                };
-            }
-        }
         // 倍率排除⑧段階2：現政体の参加軸を**実際の参政権**へドリフト（控えめ）。広い参政権の立憲＝高参加で安定／狭い立憲＝低参加で共和へ押される
         // ＝政体ラベルでなく実法律が政体の引力を動かす（①②③の総仕上げ）。較正中立：sweep は実参政権＝政体の建国参政権でドリフト≒0。
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
@@ -603,7 +585,6 @@ public static class Politics
             double s = Ideologies.SupportAt(agg, pol == w.Polity ? curCoord : Ideologies.BasePolityCoord(pol), c.IdeologyAffinitySlope);
             if (pol == Polity.MilitaryDictatorship)
                 s += CoupSupport(w, c, soldierForce, coerce);   // 軍部の力（クーデタは銃が要る＝イデオロギーだけでない）。式は CoupSupport の1本
-            if (domDictator is { } dd && pol == dd) s += c.DominanceCoupWeight * domExcess;   // 一党支配→その独裁形態の引力
             if (pol == Polity.BourgeoisDictatorship) s += bourgeoisCoup;   // 法多様性：大衆闘争が高いほどブルジョワが独裁へ傾く
             // 政体形態の実績ストック（信認⇔失望・docs/2026-07-13_形態別失望ストック.md）：その形態系統の実績で支持を符号付きに増減
             // ＝信認された形態（正）は選ばれ/現体制なら粘り（entrench）、失望された形態（負）は避けられる→両穏健形が負なら極端が浮上（ワイマール/1917）。
@@ -613,7 +594,7 @@ public static class Politics
             if (pol == w.Polity) cur = s;
             if (s > best) { best = s; attractor = pol; }
         }
-        if (Instruments.On && domDictator is { } ddi && c.DominanceCoupWeight * domExcess > 0) Instruments.PbDominanceCf(w, c, agg, curCoord, soldierForce, coerce, bourgeoisCoup, ddi, domExcess, attractor, best, cur); if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
+        if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
         // 政2：上からの改革（明治型・欽定憲法・露大改革）＝支配ブロック自身が主導する代議制/近代化への移行。大衆動員(challenge)が治安維持力を超えずとも遷移できる例外チャネル。
         // （旗 ReformFromAboveEnabled は 2026-09-26 に焼き込み＝旧挙動＝challenge<=coerce ゲートが無条件で明治1889/プロイセン欽定/露大改革が不能）。
         // 「①引力点が別政体（上の第1ゲートを通過済＝支配層含む国民集計で現政体より別政体の支持が高い）②正統性侵食が進行中(Legitimacy<閾値)③遷移先が反動的奪取でない代議制方向」の三条件が揃えば coerce ゲートを免除。
@@ -697,7 +678,7 @@ public static class Politics
     //   （戦争で勝ったプロレタリア革命が国債を引き継ぎ地代も残る）。規則そのもの（既定は継承・急進革命だけ否認）は変えていない。
     // ⚠矯正講和（Diplomacy.ResolvePeace）と床交差の再ラベル（CrownParliament）は意図どおりこの実行部を通らない（押し付けられた政体・ラベルの付け替え）。
     internal static void ExecuteRegimeChange(World w, Coefficients c, Polity target, bool violent)
-    { if (Instruments.On) Instruments.PbRegime(w, violent, target);   // ★(384) 計器（読むだけ）：政体の変更の呼びの数と暴力の転換の数
+    {
         // ★段2（作者裁定2026-09-09 part3）＝**革命の波を削除**した。1848年の同時多発は伝染ではなく
         // 1845-47年の胴枯病と穀物の不作が欧州を**同時に**襲った共通ショックであり、それは盤面（飢餓の駆動項）に既にある。
         // 台本がある限り創発を検証すらできないので、放送も受信も消す。⚠国民の覚醒（RevolutionAwakensNation）は別機構＝残す。
@@ -1888,7 +1869,6 @@ public static class Politics
                         || (depMass && IsMassPop(p));
             if (deposed)
             {
-                p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.DeposedMilitancySpike);   // 失脚＝反革命の激しい不満
                 if (terror && !p.IsSoldier && p.Size > 0)
                 {
                     (purgedPops ??= []).Add(p); purgeTotal += p.Size * c.RevolutionTerror;   // 粛清・亡命＝失脚した層の RevolutionTerror の割合（下で死の記帳の1本へ）
@@ -1898,7 +1878,6 @@ public static class Politics
                     p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;
                 }
             }
-            else if (!(c.DeleteRegimeChangeRelief > 0)) p.Militancy *= c.ReformMilitancyRelief;     // 勝者・中立＝緩和（★(384) 旗 DeleteRegimeChangeRelief が 1 なら緩和しない＝腕 B・事前登録 measurements/pb_20261017_prereg.txt。既定 0＝旧）
         }
         // 粛清・亡命の死＝死の記帳の1本（World.KillPops＝人口の台帳・戦死の累計に計上）。失脚した層の規模の比＝各層の RevolutionTerror の割合。
         if (purgedPops is not null) w.TerrorPurgeCumulative += w.KillPops(purgedPops, null, purgeTotal, violent: true);   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う

@@ -878,14 +878,7 @@ public static class Government
             || a is PolicyAxis.PollTax or PolicyAxis.LandTax or PolicyAxis.ProgressiveTax))   // [PORT:P6] 予算闘争→法ゲートの抵抗への加算（★専売は Move を持たない＝2026-09-20 に腕を削除。門は World.SetStateMonopolyOn 側の GateInfo）
             resist += w.Coef.ParliamentBudgetVeto * Math.Max(0, w.ParliamentControl) * Math.Max(0, -w.CoopParliamentCrown);
         double speed = c.PolicyBaseSpeed / (1.0 + c.PolicyResistanceWeight * resist) * (mandate && !fullPush ? w.PoliticalPushBudget : 1.0);   // 第6段6-1：政治の押しのみ戦線数で正規化（機械追従＝武力統合の治安維持力は対象外）。★(270) fullPush＝戦時段の解禁の間の軍事費の一歩は戦線数で薄めない（Step の milTotal だけが真を渡す）
-        // 政体フレーバー レバー2（2026-07-24）：勅令は速い＝非選挙政体（絶対/専制/幕府/軍政）はスライダー歩幅×(1+これ)（議会審議を経ない＝
-        // 農奴解放勅令・太政官布告）。独立乗算・0で恒等。
-        // ⚠代償の在処（裁定C2・2026-09-12）：旧＝押し切り遺恨 PushedLawGrievance が「速いが恨まれる」を価格付けしていた。遺恨は 2026-09-20 に削除＝
-        //   残る代償は押し切りの政治資本（下の Spend＝正統性の減算）だけ＝専制は相対的に速くなる。新しい代償は発明しない（規律）＝
-        //   計測で「アジア過近代化」側が悪化したら AutocraticPolicyAgility の値そのものが裁定対象。
-        // ※StepEnum/StepBool（1段/期に量子化された法軸）には掛けない＝1.5歩が表現できず端数ストック新設は過剰。速さの実体は連続スライダー側。
-        if (c.AutocraticPolicyAgility > 0 && !(w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic))
-            { speed *= 1.0 + c.AutocraticPolicyAgility; if (Instruments.On) Instruments.PbAgility(w); }   // ★(384) 計器（読むだけ）：勅令の速さが掛かった歩の数
+        // (384) 政体フレーバー レバー2〈勅令は速い〉（AutocraticPolicyAgility＝非選挙政体の歩幅×1.5）は削除した。議会のある政体の遅さは法の抵抗が議席を数える項（PolicyPreferences.cs の HasLegislature）で既に表される＝二重計上の排除。
         double next = cur + speed * (target - cur);
         if (mandate && net < 0)   // 反対を押し切って動いた＝動いた量の分だけ政治資本を燃やす
         {

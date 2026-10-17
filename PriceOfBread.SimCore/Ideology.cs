@@ -31,9 +31,7 @@ public static class Ideologies
         double nationalismSurge = w.Coef.DefeatNationalism * w.DefeatShock + w.Coef.LostLandNationalism * w.LostRegionsCumulative
             + w.Coef.VictoryNationalism * w.VictoryShock + w.Coef.ExternalPressureNationalism * w.ExternalPressure;
         double victoryImp = w.Coef.VictoryImperialism * w.VictoryShock;   // 機能8-②：戦勝→帝国主義（植民地熱）
-        // 機能8-③（2026-07-28）：恐慌→両極化（左＝社会/共産・右＝反動。ワイマール型）。恐慌は平均60.8回/試合＝係数は小さく（1項ずつ--zero帰属）。
-        double dd = w.GdpDrawdown.Value;
-        double depSoc = w.Coef.DepressionSocialism * dd, depComm = w.Coef.DepressionCommunism * dd, depReact = w.Coef.DepressionReaction * dd;
+        // (384) 恐慌→思想の直の加点（DepressionSocialism/Communism/Reaction）は削除した＝恐慌は失業・所得→生活の失望→闘争度 mil を通り、同じ関数が mil で左派と反動へ振る（二重計上の排除）。
         // 機能8-④（2026-07-28）：飢えの記憶→急進側（共和1789/社会）。「パンの値段」の題名に最も近い機構。
         double famRep = w.Coef.FamineRepublicanism * w.FamineMemory, famSoc = w.Coef.FamineSocialism * w.FamineMemory;
 
@@ -93,10 +91,8 @@ public static class Ideologies
             if (w.ManifestoIdeology >= 0 && w.ManifestoIdeology < r.Length && w.ManifestoCredit > 0)
                 r[w.ManifestoIdeology] += w.ManifestoCredit;
             r[8] += victoryImp;         // 機能8-②：戦勝→帝国主義（帝国主義の門 eraImp＝発見の2値が見つけるまでを抑える）
-            r[1] += depReact;           // 機能8-③：恐慌→反動（右極化）
             r[3] += famRep;             // 機能8-④：飢えの記憶→共和（1789）
-            r[5] += depSoc + famSoc;    // 機能8-③/④：恐慌＋飢え→社会主義
-            r[6] += depComm;            // 機能8-③：恐慌→共産（共産主義の門 eraComm＝発見の2値が見つけるまでを抑える）
+            r[5] += famSoc;             // 機能8-④：飢え→社会主義
             // 思想の門（後発イデオロギーはその国が見つけるまで0＝発見の表の2値・2026-10-01 (152)）＝加算後に掛ける。※ナショ(4)は門無し＝ボナパルティズムとして初期から存在。
             r[5] *= eraSoc; r[6] *= eraComm; r[8] *= eraImp;
             // ファシズム（E7・E9点火）：ファシズムを見つけた国(eraFasc)の発展した経済(dev)で危機(mil)が高いほど、反動(r[1])と国民主義(r[4])が権威主義へ結晶＝それらから recruit（反共・国家動員）。FascismGate=0で不発＝r[9]=0＝配列長9と数値等価。

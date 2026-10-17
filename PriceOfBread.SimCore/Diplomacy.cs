@@ -3115,7 +3115,6 @@ public sealed class Diplomacy
         if (absScore >= 1.0 && loseW is { } dw)
         {
             dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0);   // 正統性ショック（Politics で数年かけて減衰しつつ遷移を駆動）。小国相手の屈辱的敗北でも起きる（アドワ型）
-            foreach (var pop in dw.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + c.WarDefeatMilitancySpike);   // 敗戦の怒り＝革命の火種
         }
     }
 

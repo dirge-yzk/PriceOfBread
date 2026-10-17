@@ -33,6 +33,18 @@ public class ScalarDeletionTests
     }
 
     [Fact]
+    public void 政治の束12項目は物理削除済み_係数も旗も復活しない()
+    {
+        // (384) 腕 B（独裁へ引く項・勅令の速さ・犯罪と出来事から闘争度／満足度への直の足し・恐慌から思想への直の足し）が止める線に掛からず採用した削除（2026-10-17）。
+        // 復活を黙って許さない＝名前で存在を禁じる（期待値は本体の式から作らない）。ReformMilitancyRelief は :203・:848・:1225 の作者裁定（譲歩が鎮める）の実装なので残る。
+        string[] coefGone = ["DominanceCoupWeight", "AutocraticPolicyAgility", "CrimeSatPenalty", "CrimeWealthFearWeight", "DefaultMilitancyHit", "DeposedMilitancySpike",
+            "WarDefeatMilitancySpike", "SeizureMilitancyCost", "DepressionSocialism", "DepressionCommunism", "DepressionReaction", "DeleteRegimeChangeRelief"];
+        foreach (var n in coefGone) Assert.Null(typeof(Coefficients).GetField(n));
+        Assert.NotNull(typeof(Coefficients).GetField("ReformMilitancyRelief"));
+        Assert.NotNull(typeof(Coefficients).GetField("DominanceInstabilitySatisfaction"));   // 正統性の侵食とブルジョア独裁の引力の門は残る
+    }
+
+    [Fact]
     public void 採らなかった旗2本とDiagの欄はmainに入れない()
     {
         // (373) の形の旗 2 本（既定 0）と純記帳の Diag 3 欄は枝 ps に残す（思想⑩・反証役 ps〔bv〕中#1）。
