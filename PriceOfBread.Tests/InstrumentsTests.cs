@@ -1210,30 +1210,38 @@ public class InstrumentsTests
     /// （<c>Transfer(</c>・<c>Blend(</c>・<c>PaySales(</c>・<c>Procure(</c>・<c>GiveGold(</c>・<c>TakeGold(</c>）を含むことを確かめる。期待はソースの本文（鍵の表とは別の出所）。
     /// ⚠限界：隣り合う2行がどちらも移し方の呼び出し（Credit.cs の貸しと回収など）のときの1行のずれは捕まえない（行の本文の照合は表を2枚にするので入れていない）。
     /// 突然変異＝Credit.cs の鍵を (271) の前の 162／173／239 に戻す、で赤。
+    /// ★2026-10-17（開発の高速化・挙動は変えない）：鍵の表は <c>route_anchors.tsv</c>（ファイル・呼び出しの行のコードの文字列〔// より前・前後の空白を除く〕・名前・注）へ移した＝
+    /// 行番号は読み手（<c>route_names.py</c>）が今の木のソースから引く＝ソースの行がずれても鍵を取り直さなくてよい（旧＝合流のたびに行番号の鍵を取り直していた）。
+    /// この番人は、anchor がそのファイルのコードの部分にちょうど1本あり、その行が移し方の呼び出しを含むことを確かめる（行のずれは壊れない・呼び出しの行の書き換えは捕まえる）。
+    /// 突然変異＝anchor を1文字変える／同じ anchor を2本にする、で赤。
     /// </summary>
     [Fact]
     public void 経路名の鍵の行は移し方の呼び出しを指す()
     {
         string root = GoodIdGuardTests.RepoRoot();
-        string py = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "scripts", "instruments", "flow262", "route_names.py"));
-        var keys = System.Text.RegularExpressions.Regex.Matches(py, @"\('([A-Za-z0-9]+\.cs)', (\d+)\):")
-            .Select(m => (File: m.Groups[1].Value, Line: int.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture))).ToList();
+        var keys = System.IO.File.ReadAllLines(System.IO.Path.Combine(root, "scripts", "instruments", "flow262", "route_anchors.tsv"))
+            .Where(l => l.Length > 0 && l[0] != '#')
+            .Select(l => l.Split('\t'))
+            .Where(c => c[0].Length > 0)
+            .Select(c => (File: c[0], Anchor: c[1])).ToList();
         Assert.True(keys.Count >= 60, $"鍵が少なすぎる（{keys.Count}）＝表の読み方が壊れた");
         Assert.Equal(keys.Count, keys.Distinct().Count());
         string[] calls = ["Transfer(", "Blend(", "PaySales(", "Procure(", "GiveGold(", "TakeGold("];
+        static string Code(string x) { int k = x.IndexOf("//", StringComparison.Ordinal); return (k >= 0 ? x[..k] : x).Trim(); }
         var bad = new List<string>();
         foreach (var g in keys.GroupBy(k => k.File))
         {
             string path = System.IO.Path.Combine(root, "PriceOfBread.SimCore", g.Key);
             Assert.True(System.IO.File.Exists(path), "鍵のファイルが無い " + g.Key);
-            var src = System.IO.File.ReadAllLines(path);
+            var code = System.IO.File.ReadAllLines(path).Select(Code).ToArray();
             foreach (var k in g)
             {
-                string text = k.Line >= 1 && k.Line <= src.Length ? src[k.Line - 1] : "";
-                if (!calls.Any(text.Contains)) bad.Add($"{k.File}:{k.Line}「{text.Trim()}」");
+                int hits = code.Count(c => c == k.Anchor);
+                if (hits != 1) bad.Add($"{k.File}：{hits} 本「{k.Anchor}」");
+                else if (!calls.Any(k.Anchor.Contains)) bad.Add($"{k.File}：移し方の呼び出しでない「{k.Anchor}」");
             }
         }
-        Assert.True(bad.Count == 0, "経路名の鍵が移し方の呼び出しを指していない（鍵を今の木で取り直す）：" + string.Join(" ／ ", bad));
+        Assert.True(bad.Count == 0, "経路名の鍵がソースに1本だけ見つからないか、移し方の呼び出しでない（route_anchors.tsv の anchor を直す）：" + string.Join(" ／ ", bad));
     }
 
     /// <summary>

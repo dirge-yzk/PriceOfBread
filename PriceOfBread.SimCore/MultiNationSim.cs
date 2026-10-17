@@ -727,7 +727,9 @@ public sealed class MultiNationSim
     ///   2026-08-29 に純粋日次（価格形成・建設・信用＝実測74%）だけを並列化し、境界相（四半期首・月次決算・四半期末）を逐次に残す形で
     ///   **ビット一致を実証**＝armstrace seed1 で（旧一体型≡新逐次）と（新逐次≡新並列）・selfplay seed2 全出力一致・savetest 0.0E+000。
     /// ⚠この保証は Simulation.StepDayDaily の国ローカル不変条件（同所コメント）に立つ＝共有へ触る処理は StepDayClose 側へ。</summary>
-    internal static readonly bool ParallelDays = System.Environment.GetEnvironmentVariable("POB_PAR") != "0";
+    /// ★2026-10-17（高速化・ビット恒等）：readonly を外した＝<see cref="SelfPlayMatch.RunBatch"/> が試合を並列に回す間だけ false にする
+    ///   （試合の並列の中に国の並列を入れると、旬の最終日以外は仕事が軽く、61国を配る待ち〔空回り〕と取り合いが仕事より重い＝10種のバッチで壁 995→530 秒・2563→723 秒〔順を入れ替えた2回〕・報告は全行一致）。
+    internal static bool ParallelDays = System.Environment.GetEnvironmentVariable("POB_PAR") != "0";
     public static long TicksNations, TicksMarket;   // POB_TIME=1 の計器。★2026-09-26（sweep-25）：selfplay-batch は1プロセスで試合を並列に回す＝素の += は数が欠ける＝Interlocked で足す
 
     public bool StepDay()

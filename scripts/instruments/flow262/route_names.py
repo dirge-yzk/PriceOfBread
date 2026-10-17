@@ -6,80 +6,51 @@
   ★(272) 合流の担当：(271) で Credit.cs に1行・Politics.cs から削除が入り、Fiscal.cs／Simulation.cs／World.cs の鍵は 66b25c6 の時点でずれていた＝(272) の木（main）で鍵を取り直した（16 本・(264) の木の行の本文を今の木で一意に探した）。
   ⚠鍵は今の木の行＝古い木の flow_s（r264・r268 ほか）を読むときは、その回のコミットの route_names.py を git show で取り出して使う。番人＝InstrumentsTests の「経路名の鍵の行は移し方の呼び出しを指す」。
 """
-ROUTE_NAMES = {
-    ('Crime.cs', 65): '窃盗(全POPの被害＝min(前の月の所得×犯罪率, 貯蓄)→困窮した大衆)',   # ★(331) (327) で基数が既定 1＝所得に比例（旧 0＝貯蓄×率＝在庫に比例）
-    # ★(264) PaySales・Procure の呼び手（旧＝InternationalMarket.cs:124／125 に潰れていた）
-    ('BilateralMarket.cs', 972): '清算所の輸出代金(世界の外→生産者の持分・PaySales)',
-    ('Colonial.cs', 128): '植民地の開発の汽船の代金(投資家→生産者の持分・PaySales)',
-    ('Colonial.cs', 129): '植民地の開発の線路の代金(投資家→生産者の持分・PaySales)',
-    ('Colonial.cs', 386): '国家の調達の代金(国庫→生産者の持分・BuyUpkeepGood→Procure)',
-    ('MultiNationSim.cs', 1329): '運河の建設の工賃(投資家→労働の持分・PaySales)',
-    ('MultiNationSim.cs', 1451): '港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)',
-    ('MultiNationSim.cs', 1452): '港の建設の工賃・国家ルート(国庫→労働の持分・PaySales)',
-    ('Simulation.cs', 2910): '造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)',
-    ('Transport.cs', 137): '汽船の燃料の買い付け(商人→生産者の持分・Procure)',
-    ('Transport.cs', 206): '船と線路の買い付け(投資家→生産者の持分・Procure)',
-    ('BilateralMarket.cs', 971): '商人の交易マージン(世界の外→商人)',
-    ('BilateralMarket.cs', 1004): '船主の運賃(世界の外→船主)',
-    ('BilateralMarket.cs', 1008): '港の所有者の収入(世界の外→港主)',
-    ('BilateralMarket.cs', 1010): '保険の引受人の保険料(世界の外→引受人)',
-    ('BilateralMarket.cs', 1015): '売買方針の補助(国庫→輸入者)',
-    ('BilateralMarket.cs', 1021): '関税と穀物法(輸入者→国庫)',
-    ('BilateralMarket.cs', 1022): '輸入代金と運賃(輸入者→清算所＝国境の外)',
-    ('BilateralMarket.cs', 1039): '輸出補助(国庫→輸出者)',
-    ('BilateralMarket.cs', 1064): '運河の通行料(国庫→国庫)',
-    # ★(271) TakeGold(:306)／GiveGold(:312〜) も呼び手の位置を Transfer へ渡す＝旧の3行(306・317・318)は4つの機構が潰れていた。呼び手ごとに名前を付けた（位置は (271) の木）
-    ('CapitalMarket.cs', 156): '国内資本の逃避(投資家→国境の外・不信の国だけ)',
-    ('CapitalMarket.cs', 163): '国内資本の逃避の受け皿(国境の外→受け皿国の投資家)',
-    ('CapitalMarket.cs', 170): '外資の逃避(受け入れ国の投資家→国境の外)',
-    ('CapitalMarket.cs', 172): '外資への配当(受け入れ国の投資家→国境の外)',
-    ('CapitalMarket.cs', 185): '外資の逃避と配当の還流(国境の外→債権国の投資家)',
-    ('CapitalMarket.cs', 191): '還流の返金(対外保有が無い期＝抜いた国の投資家へ)',
-    ('CapitalMarket.cs', 221): '資本の輸出の送り出し(投資家→国境の外)',
-    ('CapitalMarket.cs', 232): '資本の輸出の受け入れ(国境の外→受け入れ国の投資家)',
-    ('CapitalMarket.cs', 271): '外債の利子と元本の配分(国境の外→債権国の投資家)',
-    ('Megaprojects.cs', 209): '巨大建造物の外資の利回り(保有国の国庫→外資国の投資家)',
-    ('MultiNationSim.cs', 1405): '運河の通行料の配当(国庫→拠出国の投資家)',
-    ('Colonial.cs', 340): '植民地の口座の相殺(在地⇄不在地主)',
-    ('Credit.cs', 163): '企業への与信・貸し(銀行→投資家)',
-    ('Credit.cs', 164): '企業への与信・回収(投資家→銀行)',
-    ('Credit.cs', 174): '企業への与信・貸し(銀行→預金者)',
-    ('Credit.cs', 175): '企業への与信・回収(預金者→銀行)',
-    ('Credit.cs', 240): '借り手の利払い→預金者',
-    ('Credit.cs', 241): '銀行利潤の繰り入れ(新規与信→預金者)',
-    ('Bank.cs', 30): '家計の与信・貸し(銀行→POP)',
-    ('Bank.cs', 31): '家計の与信・返済(POP→銀行)',
-    ('Diplomacy.cs', 796): '通商破壊の拿捕品(商人→拿捕した側)',
-    ('Fiscal.cs', 155): '封建貢租(納税者→貴族)',
-    ('Fiscal.cs', 181): '汚職の漏れ(納税者→官僚)',
-    ('Fiscal.cs', 197): '税(納税者→国庫)',
-    ('Fiscal.cs', 205): '十分の一税(大衆→聖職者)',
-    ('Fiscal.cs', 311): '通貨改革の焼却(全POP→不換の発行者)',
-    ('Fiscal.cs', 341): '国債の国内利払い(国庫→国債の保有者)',
-    ('Fiscal.cs', 342): '国債の対外利払い',
-    ('Fiscal.cs', 398): '国債の国内償還(国庫→保有者)',
-    ('Fiscal.cs', 409): '国債の対外償還',
-    ('Fiscal.cs', 557): '福祉(国庫→大衆)',
-    ('Fiscal.cs', 590): '年金(国庫→高齢者)',
-    ('Fiscal.cs', 731): '国債の国内購入(資本家→国庫)',
-    ('Fiscal.cs', 734): '国債の海外購入',
-    ('Megaprojects.cs', 149): '巨大建造物への外資の拠出',
-    ('MultiNationSim.cs', 1483): '海上保険の保険金(商人→被害の商人)',
-    ('MultiNationSim.cs', 1915): '招聘の支度金(国庫→到着した人)',
-    ('MultiNationSim.cs', 994): '外国債務の返済(貸し手のPOP→国境の外)',
-    ('Politics.cs', 1915): '革命の没収(没収された側→大衆)',
-    ('Simulation.cs', 2303): '切り下げの課税(全POP→国庫)',
-    ('Simulation.cs', 2306): '切り下げの新規発行(不換の発行者→国庫)',
-    ('Simulation.cs', 2912): '金の輸入(造幣局→商人)',
-    ('Simulation.cs', 2961): '金の売却(POP→造幣局)',
-    ('Simulation.cs', 3018): '損失の負債化(銀行→貯蓄が負のPOP)',
-    ('World.cs', 724): '選挙の買収(国庫→有権者)',
-    ('World.cs', 1919): '国営工場の建設の工賃(国庫→労働者)',
-    ('World.cs', 2405): '国営工場の払い下げ(資本家→国庫)',
-    ('PopDecision.cs', 77): '州の中の移動(POPの運搬)',
-    ('Meritocracy.cs', 673): '社会移動(階級の運搬)',
-    ('Military.cs', 376): '徴兵と復員(階級の運搬)',
-    ('Territory.cs', 267): '州の間の移民(POPの運搬)',
-    ('MultiNationSim.cs', 1789): '越境の移民(POPの運搬)',
-    ('', 0): '(位置なし＝月末の精算・国が替わる換算・州の移動)',
-}
+# ★2026-10-17（開発の高速化・挙動は変えない）：鍵の表は route_anchors.tsv（ファイル・呼び出しの行のコードの文字列・名前・注）へ移した。
+#   行番号は、読むときに今の木（または POB_SRC_ROOT が指す木）のソースから引く＝ソースの行がずれても鍵の表を取り直さなくてよい。
+#   ⚠古い木の flow_s（行番号はその木のソースの行）を読むときは、その回のコミットのソースを取り出して POB_SRC_ROOT に指す。
+#   呼び出しの行のコードそのものを書き換えたときだけ、表の anchor を直す（番人＝InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す）。
+import os as _os
+
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+ANCHORS_TSV = _os.path.join(_HERE, 'route_anchors.tsv')
+
+
+def _code(x):
+    k = x.find('//')
+    return (x[:k] if k >= 0 else x).strip()
+
+
+def load_anchors(path=ANCHORS_TSV):
+    rows = []
+    for line in open(path, encoding='utf-8'):
+        line = line.rstrip('\r\n')
+        if not line or line.startswith('#'):
+            continue
+        f, a, name, note = (line.split('\t') + ['', '', '', ''])[:4]
+        rows.append((f, a, name, note))
+    return rows
+
+
+def resolve(src_root=None, path=ANCHORS_TSV):
+    """鍵の表を (ファイル, 今の木の行) → 名前 へ引く。anchor が見つからない・2本以上あるときは止める（黙って落ちない）。"""
+    src_root = src_root or _os.environ.get('POB_SRC_ROOT') or _os.path.normpath(_os.path.join(_HERE, '..', '..', '..'))
+    out, bad, cache = {}, [], {}
+    for f, a, name, _note in load_anchors(path):
+        if not f:
+            out[('', 0)] = name
+            continue
+        if f not in cache:
+            cache[f] = [_code(x) for x in open(_os.path.join(src_root, 'PriceOfBread.SimCore', f), encoding='utf-8-sig').read().split('\n')]
+        hits = [i + 1 for i, c in enumerate(cache[f]) if c == a]
+        if len(hits) != 1:
+            bad.append(f'{f}: {len(hits)} 本「{a[:80]}」')
+            continue
+        out[(f, hits[0])] = name
+    if bad:
+        raise RuntimeError('経路名の鍵がソースに1本だけ見つからない（route_anchors.tsv の anchor を直す）：' + ' ／ '.join(bad))
+    return out
+
+
+ROUTE_NAMES = resolve()
+
