@@ -824,12 +824,10 @@ public class WarThemeTests
     // ============================================================================================
     /// <summary>全POPの思想を1つに寄せて意識を1に（国民集計＝規模×意識×発言権の加重＝意識0の盤面は集計が空で引力点が動かない）、
     /// 正統性を0に（保持の慣性＝PolityInertia×正統性を0へ＝引力点がそのまま遷移先）。
-    /// 軍部の支持（CoupSupport＝兵力÷(兵力＋保持力)）は外す＝手で渡す保持力が小さいと軍政が引力点を奪う（引力点を思想だけで決める盤面）。
+    /// 軍政の支持への足し算は無い（(393) で削除）＝引力点は思想だけで決まる。
     /// 戻り値＝盤面を元に戻す手（建国路は四半期の Politics.Step を通るので、置いた思想のまま次の四半期へ持ち込まない）。</summary>
     private static Action PinIdeology(World w, Ideology ideo)
     {
-        double coup0 = w.Coef.MilitaryCoupSupport;
-        w.Coef.MilitaryCoupSupport = 0;
         var saved = new System.Collections.Generic.List<(Pop P, double[] S, double C)>();
         foreach (var p in w.AllPops())
         {
@@ -838,7 +836,7 @@ public class WarThemeTests
         }
         double leg0 = w.Legitimacy;
         w.Legitimacy = 0;
-        return () => { foreach (var (p, s, cs) in saved) { System.Array.Copy(s, p.IdeologyShares, s.Length); p.Consciousness = cs; } w.Legitimacy = leg0; w.Coef.MilitaryCoupSupport = coup0; };
+        return () => { foreach (var (p, s, cs) in saved) { System.Array.Copy(s, p.IdeologyShares, s.Length); p.Consciousness = cs; } w.Legitimacy = leg0; };
     }
 
     /// <summary>eroding＝この四半期に正統性が下がった（Politics.Step が測る・上からの改革の門が読む）。既定＝侵食の最中の盤面。</summary>
@@ -856,6 +854,8 @@ public class WarThemeTests
         Assert.True(fr.Regions.Count > 1 && capital.Id == 0, "前提が崩れた：遷都先の州が無い");
         // 拮抗した暴力の転換＝奪取（共産主義の引力点）・挑戦 1.5 ＞ 保持力 1.0・挑戦 ＜ 保持力×圧勝比 1.8
         var restore = PinIdeology(fr, Ideology.Communism);
+        // ★(393) 兵は保持力の中にいる＝兵の思想が引力点側へ回ると守る側が縮み拮抗の帯が動く。この番人が見るのは拮抗した転換の様態（首都の蜂起）だけなので、兵は現政体を支える思想（伝統）に置く（a＝1＝手で渡す保持力 1.0 がそのまま守る側）。
+        foreach (var p in fr.AllPops()) if (p.IsSoldier) { System.Array.Clear(p.IdeologyShares); p.IdeologyShares[0] = 1.0; }
         Transition(fr, reformist: 0, radical: 1.5, coerce: 1.0);
         restore();
         Assert.Equal(polity0, fr.Polity);   // 即時の政変ではない（旧＝旧経路の内戦が立った）

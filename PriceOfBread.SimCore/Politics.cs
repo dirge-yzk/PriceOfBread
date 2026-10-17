@@ -509,10 +509,9 @@ public static class Politics
         // 労働運動の両義性（B-5）：容認/統制の組合は組織労働として改革派を動員する＝体制への改革圧力（闘争度緩和で革命radicalは下げつつ、ここで改革reformistを上げる）。非合法＝動員なし。
         double unionMob = c.UnionMobilization * (w.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 });
         double reformist = 0, radical = 0, conscSum = 0, sizeSum = 0;
-        bool exclSoldiers = c.HoldSplitBySoldierIdeology > 0;   // (393) 兵は保持力 κ の中にいる＝動員に足すと二重に数える（旗 0 は今のまま）
         foreach (var p in w.AllPops())
         {
-            if (exclSoldiers && p.IsSoldier) { conscSum += p.Consciousness * p.Size; sizeSum += p.Size; continue; }   // 平均意識・平均満足の門の母数は変えない
+            if (p.IsSoldier) { conscSum += p.Consciousness * p.Size; sizeSum += p.Size; continue; }   // ★(393) 兵は保持力 κ の中にいる＝動員に足すと二重に数える（平均意識・平均満足の門の母数には入れる）
             // POP動詞①（階級弾圧の表出抑制 express・常時1.0）は2026-07-20廃止＝第3段3-1で削除（2026-07-27・厳密恒等）。
             reformist += p.Size * p.Consciousness * (1 - p.Militancy);
             radical += p.Size * p.Consciousness * p.Militancy;
@@ -557,8 +556,6 @@ public static class Politics
         // 引力点が現政体と異なり、支持差が保持力（PolityInertia×正統性）を超えれば遷移。任意→任意が単一式で出る。
         // 旧来の手書き分岐（軍クーデタ・1917・ブルジョワ反動・独裁の出口…）はこの一式に吸収（軍の力は支持に上乗せ・厭戦は闘争度とイデオロギー経由）。
         var agg = Ideologies.National(w);
-        bool splitHold = c.HoldSplitBySoldierIdeology > 0;   // (393) 軍の力の入口：足し算をやめ、保持力を兵士の思想で分ける（下の第1の門の直後）。0 なら今のまま
-        double soldierForce = splitHold ? 0.0 : SoldierForce(w, c);
         // 倍率排除⑧段階2：現政体の参加軸を**実際の参政権**へドリフト（控えめ）。広い参政権の立憲＝高参加で安定／狭い立憲＝低参加で共和へ押される
         // ＝政体ラベルでなく実法律が政体の引力を動かす（①②③の総仕上げ）。較正中立：sweep は実参政権＝政体の建国参政権でドリフト≒0。
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
@@ -581,8 +578,6 @@ public static class Politics
         foreach (var pol in Ideologies.Polities)
         {
             double s = Ideologies.SupportAt(agg, pol == w.Polity ? curCoord : Ideologies.BasePolityCoord(pol), c.IdeologyAffinitySlope);
-            if (pol == Polity.MilitaryDictatorship && !splitHold)
-                s += CoupSupport(w, c, soldierForce, coerce);   // 軍部の力（クーデタは銃が要る＝イデオロギーだけでない）。式は CoupSupport の1本
             if (pol == Polity.BourgeoisDictatorship) s += bourgeoisCoup;   // 法多様性：大衆闘争が高いほどブルジョワが独裁へ傾く
             // 政体形態の実績ストック（信認⇔失望・docs/2026-07-13_形態別失望ストック.md）：その形態系統の実績で支持を符号付きに増減
             // ＝信認された形態（正）は選ばれ/現体制なら粘り（entrench）、失望された形態（負）は避けられる→両穏健形が負なら極端が浮上（ワイマール/1917）。
@@ -595,12 +590,11 @@ public static class Politics
         if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
         // ★(393) 軍の力の入口：保持力 κ は兵から作った量＝兵が今の政体を支えるか引力点へ回るかで、守る側 κ×a と挑戦の側 κ×(1−a) に分ける
         //   （a＝1−d・d＝兵士 POP だけの思想の集計で思想ごとに〈引力点を現政体より好む分〉の正の部を質量で足し親和の範囲で割った離反の割合）。以後の読み手（予感・門2・拮抗の判定・下賜の幅）は分けた値を読む＝分子と分母を同じ規則で。
-        //   旗 0 でも計器つき（INS=1）なら a を読むだけ出す（値は書き換えない）。事前登録 measurements/mc_20261018_prereg.txt。
-        if (splitHold || Instruments.On)
+        //   事前登録 measurements/mc_20261018_prereg.txt。軍政の支持への足し算（旧 CoupSupport）は消した＝引力点は国民の集計だけで決まる（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」）。
         {
             double holdA = SoldierHoldShare(w, c, curCoord, attractor, out double sCurS, out double sAttS, out double soldierW);
             if (Instruments.On) Instruments.CoupGate(w, attractor, sCurS, sAttS, holdA, soldierW, coerce, challenge);
-            if (splitHold) { challenge += coerce * (1.0 - holdA); coerce *= holdA; }
+            challenge += coerce * (1.0 - holdA); coerce *= holdA;
         }
         // 政2：上からの改革（明治型・欽定憲法・露大改革）＝支配ブロック自身が主導する代議制/近代化への移行。大衆動員(challenge)が治安維持力を超えずとも遷移できる例外チャネル。
         // （旗 ReformFromAboveEnabled は 2026-09-26 に焼き込み＝旧挙動＝challenge<=coerce ゲートが無条件で明治1889/プロイセン欽定/露大改革が不能）。
@@ -1733,16 +1727,6 @@ public static class Politics
         return size > 1e-9 ? core / size : 1.0;   // pop なし＝1.0（少数派度0＝加算なし＝中立）
     }
 
-    // 兵士の政治力＝規模×(0.2+不満)×係数（頭数の単位・兵数に線形で上限なし＝上限は読み手 CoupSupport の取り分が与える）。不満＝兵士POPの闘争度（生活・給与は満足度経由・飢えは飢餓の駆動項経由で入る）。
-    // 厭戦は闘争度の目標項（WarWearinessMilitancy）を通って (0.2+不満) に1回だけ入る（明示の厭戦乗数は同じ厭戦の2回目＝P9 で 2026-09-20 に削除）。
-    // 読み手は Transition の軍政加算（CoupSupport）だけ。
-    private static double SoldierForce(World w, Coefficients c)
-    {
-        double f = 0;
-        foreach (var p in w.AllPops()) if (p.IsSoldier) f += p.Size * (0.2 + p.Militancy);
-        return f * c.MilitaryCoupWeight;
-    }
-
     /// <summary>★(393) 兵が今の政体を支える割合 a∈[0,1]＝1−d。d＝兵士 POP だけの思想の集計（<see cref="Ideologies.Soldiers"/>）で思想ごとに〈引力点を現政体より好む分〉の正の部を質量で足し親和の範囲で割った離反の割合
     /// （<see cref="Ideologies.DefectionShare"/>・差だけを読む＝親和の零点に依存しない）。兵が現政体を好むか無関心なら a＝1（旧の保持力のまま）。兵士 POP が無い・重み 0 でも d＝0 で a＝1（縁も連続）。
     /// 現政体の座標は呼び手が渡す（参政権でドリフトした curCoord）・引力点は静的な基準座標。国民の失望の記録（RegimeTrackRecord）と bourgeoisCoup の上乗せは掛けない（兵の支持であって国民側の項ではない）。
@@ -1754,32 +1738,6 @@ public static class Politics
         sCur = Ideologies.SupportAt(aggS, curCoord, c.IdeologyAffinitySlope);
         sAtt = Ideologies.SupportAt(aggS, attCoord, c.IdeologyAffinitySlope);
         return 1.0 - Ideologies.DefectionShare(aggS, curCoord, attCoord, c.IdeologyAffinitySlope);
-    }
-
-    /// <summary>軍政の支持への加算＝軍部の力＝MCS×σ×π（Transition の唯一の読み手。計器とテストもこれを呼ぶ＝式を写さない）。
-    /// ★R3（作者裁定2026-09-19・2026-09-20 既定化）：武力の取り分 σ＝sf/(sf+κ)∈[0,1)。分子は兵数に線形で無限・分母は上限へ漸近
-    ///   （分子と分母の非対称）＝取り分は発散する量への漸近ロック（P8 の例外）。加算の上限は MCS。σ&gt;½ ⇔ sf&gt;κ＝門2と同じ物差し。
-    ///   兵も保持力も無い 0/0 と NaN は否定形で0。
-    /// ★R4（同）：×π（<see cref="ProfessionalArmyShare"/>）。平時の上限を超えた戦時徴兵の分は軍政へ足さない
-    ///   ＝大衆軍の力は兵士込みの挑戦力（門2）と国民集計を通ってだけ効く（兵士の思想は集計の1回だけ＝P9）。
-    /// π は w から自分で読む＝呼び出し側が π を落とせない（2026-09-20 検証の突然変異 M5：呼び出し側で π=1 を渡しても全テスト緑だった）。
-    /// 軍帰属（<see cref="World.ArmyAllegiance"/>）は読まない＝旧の変調 max(0,1−0.5×帰属) は兵士の思想の読み直し（P9）で、向きも史実と逆
-    ///   （反王権の軍ほど軍政へ膨らむ）だった＝2026-09-20 に削除。</summary>
-    internal static double CoupSupport(World w, Coefficients c, double soldierForce, double coerce)
-    {
-        double tot = soldierForce + coerce;
-        double pull = c.MilitaryCoupSupport * (!(tot > 0) ? 0 : soldierForce / tot);
-        return pull * ProfessionalArmyShare(w.SoldierSizeK(), w.TotalPopulation, Military.PeaceCapShareOfPop(c));   // ★(145)：平時の上限の人口比（上限割合×標準の構成の働き盛りの男の割合）
-    }
-
-    /// <summary>★作者裁定2026-09-19 R4：職業軍の度合い π∈(0,1]＝兵のうち平時の上限（総人口×平時の上限の人口比 <see cref="Military.PeaceCapShareOfPop"/>）に収まる割合。
-    /// x＝兵数÷(総人口×上限の人口比)（PowerAffinity の軍部シェアと同じ正規化・同じガード＝新しい数ゼロ）。x≤1 で1、それ以外は 1/x。NaN は1＝割り引かない側（否定形）。
-    /// ★(145)：上限の人口比＝MaxSoldierFraction（働き盛りの男の割合）×標準の構成の働き盛りの男の割合（旧＝MaxSoldierFraction をそのまま人口比）。
-    /// ⚠平時の π=1 は「平時の兵 ≤ 扶養限界×軍拡の倍率（最大1.2）≤ 1.2×上限割合×母数」に依存する（母数＝徴募元と兵士の働き盛りの男＝人口の約8割の層）。戦後の復員の遅れ・内戦の徴集・総人口の急な痩せ（飢饉・州の喪失）では平時でも &lt;1。</summary>
-    internal static double ProfessionalArmyShare(double soldiers, double population, double capShareOfPop)
-    {
-        double x = soldiers / Math.Max(1.0, population) / Math.Max(1e-9, capShareOfPop);
-        return !(x > 1) ? 1.0 : 1.0 / x;
     }
 
     /// <summary>第5段5-6（2026-07-28）革命→国民意識（ナポレオンの鎖①・中核ルールdoc §11）：暴力革命の成立は天命の媒介回路（聖職者・領主）を
