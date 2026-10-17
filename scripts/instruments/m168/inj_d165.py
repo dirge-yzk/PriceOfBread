@@ -1,4 +1,5 @@
 # ★(377) 2026-10-16 以降の木では使えない＝w.InstitutionalDecay は (373) で物理削除した（再走は削除の前の木で）
+# ★(387) 同じく InnovationAdminThreshold・前線の門の行政の連言は (383) で物理削除した＝注入する FrontierCapable の写しは今の木と合わない（黙って食い違う）
 """[計測の写しだけ] (165) 線D 後半の計器（読むだけ）。環境変数 POB_D165_DIR の下に t<seed>.txt。未設定なら1命令も走らない。
 単独でも、他の計器（s3a・ghost・gate…）を当てた木にも当てられる（SelfPlay の sim.StartWarmup() と sim.StepQuarter() の直後に足す）。
   N 行＝年に1回（q%4==3）の国ごと：年・国（BaseName）・人口・技術水準・世界の技術水準・Elite・EliteCore・教育法・報道法・自由・行政効率・制度疲労・接触度・

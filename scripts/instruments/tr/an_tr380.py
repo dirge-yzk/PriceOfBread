@@ -241,15 +241,17 @@ def main():
         if t == 1 and Z.get('TerrainWaterMajorCost', 0) > 0: return Z['TerrainWaterMajorCost']
         if t == 2 and Z.get('TerrainWaterMinorCost', 0) > 0: return Z['TerrainWaterMinorCost']
         return Z.get(('TerrainRailCost[' if rail else 'TerrainHorseCost[') + names[t] + ']', 1.0)
-    hmap = {(int(r['year']), r['region']): num(r['meanHaulKm']) for r in AALL}   # (385) 年と州の名前で持つ（G 行と同じ年の面積）
+    # (385) 年と州の名前で持つ（G 行と同じ年の面積）。★(387) 反証役 tf〔v〕低：種ごとに州の集合と格子の分け方が違う＝(種, 年, 州) の鍵にする（旧は種 1 の A 行を全ての種の G 行に当てた）
+    hmap = {(r['seed'], int(r['year']), r['region']): num(r['meanHaulKm']) for r in stat if r['scope'] == 'A'}
     print('   州の中の運びを同じ率で課すと荷の値打ちの何%か（産出の額で加重・平均の運び距離は陸マスクの面積から）と、商人の取り分 4% に対する割合')
     print(f"   {'地形':6} {'州':>4} {'平均の運び距離km':>14} {'陸÷海×地形':>10} {'運び%(鉄道前)':>12} {'/4%':>6} {'運び%(鉄道後)':>12} {'/4%':>6}")
     yy = 1910 if 1910 in ys else (ys[-1] if ys else None)
-    agg = collections.defaultdict(lambda: collections.defaultdict(float))
+    agg = collections.defaultdict(lambda: collections.defaultdict(float)); dropped = 0; seen = 0
     for r in G:
         if int(r['year']) != yy: continue
-        h = hmap.get((int(r['year']), r['region']), float('nan'))
-        if math.isnan(h): continue
+        seen += 1
+        h = hmap.get((r['seed'], int(r['year']), r['region']), float('nan'))
+        if math.isnan(h): dropped += 1; continue
         t = int(r['terrainCode']); v = num(r['factoryOutputValuePerMonth']) + num(r['gatherOutputValuePerMonth'])
         a = agg[t]; a['n'] += 1; a['v'] += v; a['hv'] += h * v
         a['pre'] += v * Z['FreightRatePer10Mm'] * Z['LandSeaCostRatio'] * tf(t, False) * h / Z['DistanceNormKm']
@@ -262,6 +264,7 @@ def main():
         pre = a['pre'] / a['v']; post = a['post'] / a['v']
         print(f"   {TERR[t]:6} {a['n'] / ns:4.0f} {a['hv'] / a['v']:14.0f} {Z['LandSeaCostRatio'] * tf(t, False):10.2f} {100 * pre:12.2f} {pre / mm:6.2f} {100 * post:12.2f} {post / mm:6.2f}")
     if allv: print(f"   全州   {'':4} {'':14} {'':10} {100 * allpre / allv:12.2f} {allpre / allv / mm:6.2f} {100 * allpost / allv:12.2f} {allpost / allv / mm:6.2f}   （{yy} 年の断面）")
+    print(f'   （面積の行が無く落とした G 行 {dropped} 件／{seen} 件＝その種のその年の A 行に州が無い・平均の運び距離が数でない）')
     print('   ⚠水路の州（大河・支流）は陸脚の係数を 0.15・0.4 に置き換える（BilateralMarket）＝州の中の運びも同じ置き換えを仮定した。⚠荷が運び距離の平均だけ動くと置いた（実際は市場へ向かう荷と市場から来る荷が半々）。')
 
 if __name__ == '__main__': main()

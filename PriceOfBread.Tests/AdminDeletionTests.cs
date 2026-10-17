@@ -53,7 +53,7 @@ public class AdminDeletionTests
     }
 
     [Fact]
-    public void 土地税は開幕から最上段まで押せる_検地台帳の錠は無い()
+    public void 土地税は開幕から段1を押せる_検地台帳の錠は無い()   // ★(387) 名前を主張（段 1）に合わせた（反証役 ae〔bv〕低）
     {
         // 土地税が 0 の国（旧は行政力の移動平均が閾値を越えるまで錠が閉じていた）でも開幕から押せる
         var cfg = WorldData.Nations().First(n => n.ToScenario(1).InitialLandTax <= 0);

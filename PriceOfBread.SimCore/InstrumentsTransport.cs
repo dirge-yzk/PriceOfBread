@@ -26,6 +26,9 @@ namespace PriceOfBread.SimCore;
 //   ・(385) 直した：陸脚を売り手側と買い手側に分けて記帳する（RealLandSellerKm／RealLandBuyerKm／EqLandSeller／EqLandBuyer）。和の列（EqLand・FreightLand）は残す（反証役 tr〔v〕中#1）。
 //     海経由は PairKm の式の二つの項そのまま（売り手の州から港まで・港から買い手の州まで）。陸直行は PairKm の式が両端の係数の平均なので、経路の実 km を半分ずつ両端へ割り、
 //     換算は各端の係数で掛ける近似（途中の州・第三国を通る分は国で追わない＝越境の陸直行の売り手側は売り手の国の中にあると置く）。
+//     ⚠(387) 反証役 tf〔v〕中：海経由でも、内陸州が外国の港（通過港 TransitPortName・BilateralMarket の通過港の分岐）を使う成約では、売り手側の陸脚は
+//     港の持ち主の国を通る。これも売り手の国（買い手側は買い手の国）へ、その国の船腹の比で積む近似（自国の港 NearestPortName の成約だけが正確）。
+//     直すなら r.LastTransitPortName の持ち主の国で割る＝段1 の払い先の直しで陸直行の第三国と一緒に決める（設計 doc §7-4）。
 //   ・(385) 〈陸脚の運賃のうち、その陸脚がある州の国の運び手へ戻る額〉（trnation の freightLandInNationToOwnCarriersGoldPerYear）は成約ごとに
 //     〔売り手側の運賃×売り手の国の船腹の比〕＋〔買い手側の運賃×買い手の国の船腹の比〕を足した額（船腹の比はその清算の BilateralMarket.shipShare＝運賃の配りと同じ値）＝時代×種の和の近似ではない。
 //   ・緯度が −60 度より南・80 度より北の格子点は数えない（人の住まない地域・計器の定数）。

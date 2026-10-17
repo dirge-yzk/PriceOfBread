@@ -1494,9 +1494,27 @@ public sealed class World
     }
     [System.NonSerialized] private GdpMemo? _gdpMemo;
 
-    /// <summary>行政効率＝行政（官僚の役務）の充足率＝活きた州の <see cref="Region.AdminFill"/> の人口加重平均（<see cref="PoliticalQuantities.AdminFillMean"/>）。1未満＝汚職（税収が漏れる・Fiscal）。行政財の無い世界は1.0。
-    /// ★(383) 作者 2026-10-16「行政効率→廃止」：貴族の統治・民族統一度・説明責任・官僚制度の段階の 4 因子の倍率の連鎖は物理削除した（既に経済側で効いている量の二重計上）。</summary>
-    public double AdminEfficiency => PoliticalQuantities.AdminFillMean(this);
+    /// <summary>行政効率＝行政（官僚の役務）の充足率＝活きた州の <see cref="Region.AdminFill"/> の人口加重平均。1未満＝汚職（税収が漏れる・Fiscal）。行政財の無い世界は1.0。
+    /// ★(383) 作者 2026-10-16「行政効率→廃止」：貴族の統治・民族統一度・説明責任・官僚制度の段階の 4 因子の倍率の連鎖は物理削除した（既に経済側で効いている量の二重計上）。
+    /// 足し順は旧の式の `market` と同じ（州の並び順に fill+=AdminFill×人口・size+=人口）。人口が無い国は 1.0（旧と同じ・漏れる収入が無い）。
+    /// ★(387) 合流：呼び手が 1 本になったので PoliticalQuantities.AdminFillMean をこの getter へ畳んだ（反証役 ae〔bv〕低・式と足し順は同じ）。</summary>
+    public double AdminEfficiency
+    {
+        get
+        {
+            double fill = 0, size = 0;
+            foreach (var r in Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                double p = r.SumPopulation();
+                fill += r.AdminFill * p; size += p;
+            }
+            if (size <= 1e-9) return 1.0;
+            double v = PoliticalQuantities.Clamp01(fill / size);
+            if (Explain != null) { Explain.Reset("AdminEfficiency"); Explain.Add("AdminEfficiency", "官僚制(行政費)", v); }   // 説明API（#63）：行政効率は充足だけ（記帳は戻り値と同じ値）
+            return v;
+        }
+    }
 
     // GDP景気循環トラッカー（反景気循環的金融政策の入力）。四半期ごとに UpdateGdpCycle で更新。
     public double GdpTrend { get; private set; }
