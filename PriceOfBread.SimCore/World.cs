@@ -2608,7 +2608,7 @@ public sealed class World
         double take = Math.Min(gap, Coef.NationalizationSeizureRate * p.Scale);
         p.BuiltScale += take;
         p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));   // 接収した持分をカウンターが翌月に売り戻さない
-        double share = take / p.Scale;
+        double share = take / p.Scale; if (Instruments.On && r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) Instruments.PbSeize(this, share);   // ★(384) 計器（読むだけ）：資本家の闘争度が動いた接収の数
         if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
             r.Pops[r.InvestorPopIndex].Militancy = PoliticalQuantities.Clamp01(r.Pops[r.InvestorPopIndex].Militancy + Coef.SeizureMilitancyCost * share);
         r.SeizureChill = PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share);

@@ -34,9 +34,9 @@ public class PbFormTests
         Assert.True(flag is not null && flag.FieldType == typeof(double));
         Assert.Equal(0.0, (double)flag!.GetValue(c)!);
         Assert.True(c.ReformMilitancyRelief is > 0 and < 1, "ReformMilitancyRelief の既定が 0〜1 の間でない＝緩和にならない");
-        // 計器の列：scalars_s の見出しに追加の 13 列がある（読み手が名前で引く）
+        // 計器の列：scalars_s の見出しに追加の 15 列がある（読み手が名前で引く）
         string hdr = (string)typeof(Instruments).GetField("ScalarsHeader", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.GetRawConstantValue()!;
-        foreach (var col in new[] { "meanSatPol", "maxSeat", "govParty", "gdpDrawdown", "factionRevolts", "pbDomActive", "pbDomFlip", "pbDomDecisive", "pbDomExec", "pbDomMismatch", "pbRegime", "pbRegimeViolent", "pbRegimeDict" })
+        foreach (var col in new[] { "meanSatPol", "maxSeat", "govParty", "gdpDrawdown", "factionRevolts", "pbDomActive", "pbDomFlip", "pbDomDecisive", "pbDomExec", "pbDomMismatch", "pbRegime", "pbRegimeViolent", "pbRegimeDict", "pbAgil", "pbSeize" })
             Assert.Contains("\t" + col, hdr);
     }
 

@@ -15,7 +15,7 @@ public static partial class Instruments
 {
     internal const string ScalarsHeader = "quarter\tyear\tnation\tborn\tpopK\tatWar\tpolityCode\teducationLaw\tsuffrage\tcensorship\tbureaucracy\t"
         + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
-        + "meanSatPol\tmaxSeat\tgovParty\tgdpDrawdown\tfactionRevolts\tpbDomActive\tpbDomFlip\tpbDomDecisive\tpbDomExec\tpbDomMismatch\tpbRegime\tpbRegimeViolent\tpbRegimeDict";   // ★(384) 末尾の 13 列（政治の束の計器・InstrumentsPb.cs）
+        + "meanSatPol\tmaxSeat\tgovParty\tgdpDrawdown\tfactionRevolts\tpbDomActive\tpbDomFlip\tpbDomDecisive\tpbDomExec\tpbDomMismatch\tpbRegime\tpbRegimeViolent\tpbRegimeDict\tpbAgil\tpbSeize";   // ★(384) 末尾の 15 列（政治の束の計器・InstrumentsPb.cs）
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -34,6 +34,6 @@ public static partial class Instruments
             F(w.EffectiveCorruption), F(w.DynasticMandate), F(w.Legitimacy), F(w.DefeatShock),
             F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
             F(w.MeanSatisfactionPol), F(Math.Max(w.PartySeats[0], Math.Max(w.PartySeats[1], w.PartySeats[2]))), I(w.GoverningParty), F(w.GdpDrawdown.Value), I(w.FactionRevolts),
-            F(pb.DomActive), F(pb.DomFlip), F(pb.DomDecisive), F(pb.DomExec), F(pb.DomMismatch), F(pb.Regime), F(pb.RegimeViolent), F(pb.RegimeDict)));
+            F(pb.DomActive), F(pb.DomFlip), F(pb.DomDecisive), F(pb.DomExec), F(pb.DomMismatch), F(pb.Regime), F(pb.RegimeViolent), F(pb.RegimeDict), F(pb.Agil), F(pb.Seize)));
     }
 }

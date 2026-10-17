@@ -885,7 +885,7 @@ public static class Government
         //   計測で「アジア過近代化」側が悪化したら AutocraticPolicyAgility の値そのものが裁定対象。
         // ※StepEnum/StepBool（1段/期に量子化された法軸）には掛けない＝1.5歩が表現できず端数ストック新設は過剰。速さの実体は連続スライダー側。
         if (c.AutocraticPolicyAgility > 0 && !(w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic))
-            speed *= 1.0 + c.AutocraticPolicyAgility;
+            { speed *= 1.0 + c.AutocraticPolicyAgility; if (Instruments.On) Instruments.PbAgility(w); }   // ★(384) 計器（読むだけ）：勅令の速さが掛かった歩の数
         double next = cur + speed * (target - cur);
         if (mandate && net < 0)   // 反対を押し切って動いた＝動いた量の分だけ政治資本を燃やす
         {
