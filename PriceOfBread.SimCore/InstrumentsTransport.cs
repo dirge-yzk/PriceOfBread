@@ -71,16 +71,29 @@ public static partial class Instruments
         public double Paid, PaidLand, PaidDomestic, PaidLandDomestic, Received, WKmReal;
         public double LandSellerSideIn, LandBuyerSideIn, LandInToOwnCarriers;   // (385) その国の中にある陸脚の運賃（売り手側は売り手の国・買い手側は買い手の国へ積む）と、うち同じ国の運び手へ戻る額
     }
+    /// <summary>距離の帯×重さの帯×（陸／海）×（国内／越境）の組の数＝帯の表の長さ（鍵は <see cref="TradeDeal"/> の key）。</summary>
+    const int TrBinCount = 2 * 2 * 8 * 5;
     sealed class TrAcc
     {
-        public readonly Dictionary<int, TrBin> Bins = new();
+        public readonly TrBin?[] Bins = new TrBin?[TrBinCount];   // ★2026-10-17（開発の高速化）：旧 Dictionary<int, TrBin>＝成約ごとの表引き。書き出しは鍵の順（旧の OrderBy と同じ）
+        public int BinsUsed;
         public readonly Dictionary<(Region S, Region B), TrPair> Pairs = new();
         public readonly Dictionary<string, TrNat> Nats = new();
         public int FoldedQuarters;
-        public void Clear() { Bins.Clear(); Pairs.Clear(); Nats.Clear(); }
+        // ★2026-10-17：直前の成約の買い手・売り手の国の行（清算は買い手の行ごとに回る＝同じ国が続く）。名前の文字列が同じ物のときだけ使う＝外れれば表を引く（結果は同じ）
+        public string? LastBName, LastSName; public TrNat? LastB, LastS;
+        public void Clear() { Array.Clear(Bins); BinsUsed = 0; Pairs.Clear(); Nats.Clear(); LastBName = LastSName = null; LastB = LastS = null; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, TrAcc> TrAccs = new();
-    static TrAcc TrOf(InternationalMarket m) => TrAccs.GetValue(m, _ => new TrAcc());
+    [ThreadStatic] static InternationalMarket? trLastM;   // ★2026-10-17：直前の市場とその蓄え（バッチは試合ごとに別のスレッド・1試合の清算は1本のスレッド）
+    [ThreadStatic] static TrAcc? trLastA;
+    static TrAcc TrOf(InternationalMarket m)
+    {
+        if (ReferenceEquals(m, trLastM) && trLastA is not null) return trLastA;
+        var a = TrAccs.GetValue(m, _ => new TrAcc());
+        trLastM = m; trLastA = a;
+        return a;
+    }
     static TrNat TrNatOf(TrAcc a, string name) { if (!a.Nats.TryGetValue(name, out var n)) a.Nats[name] = n = new TrNat(); return n; }
 
     /// <summary>成約 1 件（<c>BilateralMarket</c> の記帳の位置・読むだけ）。<paramref name="freight"/>＝その成約の運賃（金建て・<c>freightPool</c> へ足す額）・<paramref name="weight"/>＝財 1 単位の輸送重量。</summary>
@@ -92,16 +105,19 @@ public static partial class Instruments
         double frLandS = eq > 0 ? freight * rt.EqLandSeller / eq : 0.0, frLandB = eq > 0 ? freight * rt.EqLandBuyer / eq : 0.0;   // (385) 陸脚の運賃を売り手側・買い手側へ（換算 km の比）
         double realKm = rt.RealSeaKm + rt.RealLandKm;
         int key = (((rt.Sea ? 1 : 0) * 2 + (cross ? 1 : 0)) * (TrDistEdges.Length + 1) + TrBand(TrDistEdges, realKm)) * (TrWeightEdges.Length + 1) + TrBand(TrWeightEdges, weight);
-        if (!a.Bins.TryGetValue(key, out var b)) a.Bins[key] = b = new TrBin();
+        var b = a.Bins[key];
+        if (b is null) { a.Bins[key] = b = new TrBin(); a.BinsUsed++; }
         b.Deals++; b.Value += value; b.Weight += w;
         b.WKmReal += w * realKm; b.WKmLandReal += w * rt.RealLandKm; b.WKmSeaReal += w * rt.RealSeaKm;
         b.WKmEq += w * eq; b.WKmEqLand += w * rt.EqLand; b.WKmEqSea += w * rt.EqSea;
         b.Freight += freight; b.FreightLand += frLand; b.FreightSea += freight - frLand;
         b.FreightLandSeller += frLandS; b.FreightLandBuyer += frLandB; b.WKmRealLandSeller += w * rt.RealLandSellerKm; b.WKmRealLandBuyer += w * rt.RealLandBuyerKm; b.WKmEqLandSeller += w * rt.EqLandSeller; b.WKmEqLandBuyer += w * rt.EqLandBuyer;
-        var nb = TrNatOf(a, NameOf(buyer));
+        string bName = NameOf(buyer);
+        var nb = ReferenceEquals(bName, a.LastBName) && a.LastB is not null ? a.LastB : (a.LastB = TrNatOf(a, a.LastBName = bName));
         nb.Paid += freight; nb.PaidLand += frLand; nb.WKmReal += w * realKm;
         if (!cross) { nb.PaidDomestic += freight; nb.PaidLandDomestic += frLand; }
-        var ns = TrNatOf(a, NameOf(seller));   // (385) 売り手側の陸脚は売り手の国の中・買い手側の陸脚は買い手の国の中。戻る額＝その国の船腹の比（清算の運賃の配りと同じ値）
+        string sName = NameOf(seller);
+        var ns = ReferenceEquals(sName, a.LastSName) && a.LastS is not null ? a.LastS : (a.LastS = TrNatOf(a, a.LastSName = sName));   // (385) 売り手側の陸脚は売り手の国の中・買い手側の陸脚は買い手の国の中。戻る額＝その国の船腹の比（清算の運賃の配りと同じ値）
         ns.LandSellerSideIn += frLandS; ns.LandInToOwnCarriers += frLandS * shipShareSeller;
         nb.LandBuyerSideIn += frLandB; nb.LandInToOwnCarriers += frLandB * shipShareBuyer;
         if (!a.Pairs.TryGetValue((sellerR, buyerR), out var p)) a.Pairs[(sellerR, buyerR)] = p = new TrPair { SellerNation = NameOf(seller), BuyerNation = NameOf(buyer) };
@@ -155,9 +171,9 @@ public static partial class Instruments
         int year = sim.Nations[0].World.Year;
         sk.TrBin ??= Open("trbin", seed); sk.TrRoute ??= Open("trroute", seed); sk.TrNat ??= Open("trnation", seed); sk.TrStat ??= Open("trstat", seed);
         if (!sk.TrHeader) { sk.TrBin.WriteLine(TrBinHeader); sk.TrRoute.WriteLine(TrRouteHeader); sk.TrNat.WriteLine(TrNatHeader); sk.TrStat.WriteLine(TrStatHeader); sk.TrHeader = true; }
-        foreach (var kv in a.Bins.OrderBy(k => k.Key))
+        for (int k = 0; k < a.Bins.Length; k++)
         {
-            int k = kv.Key; var b = kv.Value;
+            var b = a.Bins[k]; if (b is null) continue;
             int nw = TrWeightEdges.Length + 1, nd = TrDistEdges.Length + 1;
             int wb = k % nw, db = k / nw % nd, cross = k / (nw * nd) % 2, sea = k / (nw * nd * 2);
             sk.TrBin.WriteLine(string.Join('\t', TrI(year), TrI(sea), TrI(cross), TrI(db), TrI(wb), b.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), F(b.Value), F(b.Weight), F(b.WKmReal), F(b.WKmLandReal), F(b.WKmSeaReal),
@@ -198,7 +214,7 @@ public static partial class Instruments
     static void TransportClose(Sink sk, MultiNationSim sim)
     {
         if (!TrAccs.TryGetValue(sim.Market, out var a)) return;
-        if (a.Bins.Count > 0 || a.Nats.Count > 0) FlushTransport(sk, sk.Seed, sim);
+        if (a.BinsUsed > 0 || a.Nats.Count > 0) FlushTransport(sk, sk.Seed, sim);
     }
 
     // ---------------------------------------------------------------- 静的な表（面積・係数） ----------------------------------------------------------------
@@ -257,23 +273,39 @@ public static partial class Instruments
         var ua = new double[uniq.Count]; var un = new double[uniq.Count];
         int nx = (int)Math.Round(360.0 / TrAreaStepDeg), ny = (int)Math.Round(180.0 / TrAreaStepDeg);
         double cellDeg = TrAreaStepDeg;
+        // ★2026-10-17（開発の高速化・結果は旧の総当たりと同じ）：州を緯度の順に並べ、格子点の緯度から外へ広げて探す。d2 は旧と同じ式・同じ距離なら番号の小さい州
+        //   （旧＝番号の順に狭義の < で最初の最小）。d2 ≥ dy² なので、dy² が今の最小を超えた側はそこで打ち切る（並びの外へ行くほど |dy| は単調に増える）。
+        int nu = uniq.Count;
+        var ord = new int[nu]; for (int u = 0; u < nu; u++) ord[u] = u;
+        Array.Sort(ord, (p, q) => uniq[p].Lat != uniq[q].Lat ? uniq[p].Lat.CompareTo(uniq[q].Lat) : p.CompareTo(q));
+        var oLat = new double[nu]; var oLon = new double[nu];
+        for (int k = 0; k < nu; k++) { oLat[k] = uniq[ord[k]].Lat; oLon[k] = uniq[ord[k]].Lon; }
         for (int yi = 0; yi < ny; yi++)
         {
             double lat = 90.0 - (yi + 0.5) * cellDeg;
             if (lat < TrAreaLatMin || lat > TrAreaLatMax) continue;
             double cosLat = Math.Cos(lat * Math.PI / 180.0);
             double cellKm2 = cellDeg * KmPerDeg * cellDeg * KmPerDeg * cosLat;
+            int lo0 = 0, hi0 = nu;   // 緯度が lat 以上の最初の位置
+            while (lo0 < hi0) { int mid = (lo0 + hi0) >> 1; if (oLat[mid] < lat) lo0 = mid + 1; else hi0 = mid; }
             for (int xi = 0; xi < nx; xi++)
             {
                 double lon = -180.0 + (xi + 0.5) * cellDeg;
                 if (!Landmask.IsLandForRoads(lat, lon)) continue;
                 int best = -1; double bd = double.MaxValue;
-                for (int u = 0; u < uniq.Count; u++)
+                int up = lo0, dn = lo0 - 1;
+                while (up < nu || dn >= 0)
                 {
-                    double dl = Math.Abs(lon - uniq[u].Lon); if (dl > 180.0) dl = 360.0 - dl;
-                    double dy = lat - uniq[u].Lat, dx = dl * cosLat;
+                    double dyU = up < nu ? lat - oLat[up] : 0.0, dyD = dn >= 0 ? lat - oLat[dn] : 0.0;
+                    bool takeUp = dn < 0 || (up < nu && dyU * dyU <= dyD * dyD);
+                    int k = takeUp ? up : dn; double dy = takeUp ? dyU : dyD;
+                    if (dy * dy > bd) { if (takeUp) up = nu; else dn = -1; continue; }
+                    if (takeUp) up++; else dn--;
+                    double dl = Math.Abs(lon - oLon[k]); if (dl > 180.0) dl = 360.0 - dl;
+                    double dx = dl * cosLat;
                     double d2 = dy * dy + dx * dx;
-                    if (d2 < bd) { bd = d2; best = u; }
+                    int u = ord[k];
+                    if (d2 < bd || (d2 == bd && u < best)) { bd = d2; best = u; }
                 }
                 if (best < 0) continue;
                 ua[best] += cellKm2;

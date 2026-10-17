@@ -211,6 +211,75 @@ public class TransportInstrumentTests
         finally { restore(); }
     }
 
+    /// <summary>★2026-10-17（開発の高速化）：州の面積の近傍探索（緯度の順に並べて外へ広げる）が、旧の総当たり（番号の順に狭義の &lt; で最初の最小）とビットまで同じ面積を出す。
+    /// 点は同じ緯度の組（距離の同点）・同じ座標・日付変更線の両側・(0,0) を混ぜる。</summary>
+    [Fact]
+    public void 州の面積の近傍探索は総当たりと同じ面積を出す()
+    {
+        ulong x = 0x9E3779B97F4A7C15UL;
+        double Next() { x ^= x << 13; x ^= x >> 7; x ^= x << 17; return (x >> 11) * (1.0 / (1UL << 53)); }
+        var pts = new List<(double Lat, double Lon)>();
+        for (int i = 0; i < 220; i++) pts.Add((Math.Round(-55 + 130 * Next(), 1), Math.Round(-180 + 360 * Next(), 1)));
+        for (int i = 0; i < 30; i++) { var q = pts[i * 5]; pts.Add((q.Lat, Math.Round(q.Lon + 2.0 * (Next() - 0.5), 1))); }   // 同じ緯度
+        pts.Add(pts[3]); pts.Add(pts[17]);                    // 同じ座標
+        pts.Add((10.1, 179.9)); pts.Add((10.1, -179.9));      // 日付変更線の両側
+        pts.Add((0.0, 0.0));
+        var arr = pts.ToArray();
+        var (all, near) = Instruments.TrAreas(arr);
+        var (rAll, rNear) = BruteAreas(arr);
+        for (int i = 0; i < arr.Length; i++)
+        {
+            Assert.True(BitConverter.DoubleToInt64Bits(all[i]) == BitConverter.DoubleToInt64Bits(rAll[i]), $"面積が総当たりと違う：{i} {arr[i]} {all[i]} ≠ {rAll[i]}");
+            Assert.True(BitConverter.DoubleToInt64Bits(near[i]) == BitConverter.DoubleToInt64Bits(rNear[i]), $"1000 km 以内の面積が総当たりと違う：{i} {arr[i]} {near[i]} ≠ {rNear[i]}");
+        }
+    }
+
+    /// <summary>旧の総当たり（2026-10-17 以前の Instruments.TrAreas の本体そのまま・計器の定数も同じ値）。</summary>
+    static (double[] All, double[] Near) BruteAreas((double Lat, double Lon)[] pts)
+    {
+        const double step = 0.2, nearKm = 1000.0, latMin = -60.0, latMax = 80.0, kmPerDeg = 111.195;
+        var uniq = new List<(double Lat, double Lon)>(); var uid = new int[pts.Length]; var members = new List<int>();
+        var seen = new Dictionary<(double, double), int>();
+        for (int i = 0; i < pts.Length; i++)
+        {
+            if (pts[i].Lat == 0 && pts[i].Lon == 0) { uid[i] = -1; continue; }
+            if (!seen.TryGetValue(pts[i], out int u)) { u = uniq.Count; seen[pts[i]] = u; uniq.Add(pts[i]); members.Add(0); }
+            uid[i] = u; members[u]++;
+        }
+        var ua = new double[uniq.Count]; var un = new double[uniq.Count];
+        int nx = (int)Math.Round(360.0 / step), ny = (int)Math.Round(180.0 / step);
+        for (int yi = 0; yi < ny; yi++)
+        {
+            double lat = 90.0 - (yi + 0.5) * step;
+            if (lat < latMin || lat > latMax) continue;
+            double cosLat = Math.Cos(lat * Math.PI / 180.0);
+            double cellKm2 = step * kmPerDeg * step * kmPerDeg * cosLat;
+            for (int xi = 0; xi < nx; xi++)
+            {
+                double lon = -180.0 + (xi + 0.5) * step;
+                if (!Landmask.IsLandForRoads(lat, lon)) continue;
+                int best = -1; double bd = double.MaxValue;
+                for (int u = 0; u < uniq.Count; u++)
+                {
+                    double dl = Math.Abs(lon - uniq[u].Lon); if (dl > 180.0) dl = 360.0 - dl;
+                    double dy = lat - uniq[u].Lat, dx = dl * cosLat;
+                    double d2 = dy * dy + dx * dx;
+                    if (d2 < bd) { bd = d2; best = u; }
+                }
+                if (best < 0) continue;
+                ua[best] += cellKm2;
+                if (Math.Sqrt(bd) * kmPerDeg <= nearKm) un[best] += cellKm2;
+            }
+        }
+        var all = new double[pts.Length]; var near = new double[pts.Length];
+        for (int i = 0; i < pts.Length; i++)
+        {
+            if (uid[i] < 0) { all[i] = near[i] = double.NaN; continue; }
+            all[i] = ua[uid[i]] / members[uid[i]]; near[i] = un[uid[i]] / members[uid[i]];
+        }
+        return (all, near);
+    }
+
     [Fact]
     public void 州の面積は陸地を分け合い平均の運び距離は幾何の式に合い_州の断面の産出が国のGDPに合う()
     {
