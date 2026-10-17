@@ -298,3 +298,33 @@ for k in ORDER:
             tot[nat] = sum(vs)
         print(f'  L2 {k} {w}\t工賃の月の出費が上限（近似）をこえた国×月の数：' + '・'.join(f'{n} {c}' for n, c in tot.items()))
 print('  （名簿の外の国には門の効果を測れない＝nation_s の着工数と L1 だけ。pendingWill は計器に無い）')
+
+# ------------------------------------------------------------------ 追記4（測った後に足した記録・採否に使わない）
+print('\n== 追記4 記録 X1（英・蘭だけの③と金利の天井＝全国の和は (1) を検出できない）')
+def only_nl_uk(arm, field, pred):
+    return sum(1 for N in DATA[arm][0].values() for nat in (UK, NL) for r in N.get(nat, {}).values() if pred(num(r[field])))
+for k in ORDER:
+    print(f'  X1\t{k}\t英・蘭の最大の段（5）に張り付く国×四半期 {only_nl_uk(k, "monopolyTierEndStage", lambda x: x >= 5)}\t英・蘭の金利の天井の張り付き月 {only_nl_uk(k, "interestAtLimitMonthsCount", lambda x: FINITE(x) and x > 0)}（全国×全期の和は上の発散の行・上限は英・蘭の国×四半期 2×668×種数）')
+print('\n== 追記4 記録 X2（L1 の連なりが A より増えた国の上位〔B−A・全種の和〕）')
+def l1_by_nation(arm):
+    c = collections.Counter()
+    for sd, N in DATA[arm][0].items():
+        for nat, qs in N.items():
+            st = [num(qs[q]['stateFacilityStartedCount']) for q in sorted(qs)]
+            if sum(st) <= 0: continue
+            run = 0; sb = False
+            for x in st:
+                if x > 0: sb = True; run = 0
+                elif sb:
+                    run += 1
+                    if run == 8: c[nat] += 1
+    return c
+if 'A' in ARMS:
+    LA = l1_by_nation('A')
+    for k in ORDER:
+        if k == 'A': continue
+        LK = l1_by_nation(k)
+        diff = sorted(((LK.get(n, 0) - LA.get(n, 0), n) for n in set(LK) | set(LA)), reverse=True)
+        print(f'  X2\t{k}-A 増えた上位 ' + '・'.join(f'{n} {d:+d}' for d, n in diff[:8] if d > 0) + '\t減った上位 ' + '・'.join(f'{n} {d:+d}' for d, n in diff[::-1][:5] if d < 0))
+print('\n== 追記4 記録 X3（1/4 未満の空洞化は an_h2.py で別に数える＝hol_*.txt）')
+print('  （読み手の限界：①の〈消える〉は最後の行がピークの 1/2 未満かで見る＝途中で行が切れる国は拾えない可能性・金利の天井の判定は nm>0 のときだけ鳴る）')
