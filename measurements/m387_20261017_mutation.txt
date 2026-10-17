@@ -1,0 +1,18 @@
+★(387) 合流の突然変異（反証役 ae〔bv〕中#2 の再走＋pb〔bv〕低#3 の M9）。木 7eaf9a7b（M0〜M9）と f589118e（番人の強化の後の M0・M6）。filter＝AdminDeletionTests・ScalarDeletionTests・WarThemeTests の急進革命の 1 本（17 本）。
+M1 行政効率×0.9／M2 官僚が居ない州の else if を消す／M3 構築の AdminFill=0 を消す／M4 法の浸透の門が行政効率を読まない／M5 吸収に行政の脚を戻す／M6 天命の目標に −0.1×(1−行政効率)／M7 AI の専門官僚制の規則を戻す／M8 土地税に検地台帳の錠を戻す／M9 政変の緩和（失脚しなかった層 ×ReformMilitancyRelief）を戻す
+== 7eaf9a7b
+M0 rc=0  :: 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M1 rc=1 AdminDeletionTests.行政効率の説明台帳は値と一致する;AdminDeletionTests.行政効率は州の充足の人口加重平均だけ; :: 失敗!   -失敗:     2、合格:    15、スキップ:     0、合計:    17、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M2 rc=1 AdminDeletionTests.官僚POPが居ない州のAdminFillは0_決算の後も働く州は書かれる; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M3 rc=1 AdminDeletionTests.法の浸透の門は行政効率の瞬間値を読む;AdminDeletionTests.最初の決算の前のAdminFillは0; :: 失敗!   -失敗:     2、合格:    15、スキップ:     0、合計:    17、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M4 rc=1 AdminDeletionTests.法の浸透の門は行政効率の瞬間値を読む; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+M5 rc=1 AdminDeletionTests.吸収能力は行政の充足に依らない; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M6 rc=0  :: 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M7 rc=1 AdminDeletionTests.AIは行政効率を理由に専門官僚制を目標に置かない; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M8 rc=1 AdminDeletionTests.土地税は開幕から段1を押せる_検地台帳の錠は無い; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M9 rc=1 WarThemeTests.戦争の形の急進革命が勝つと国債の否認と失脚と土地改革が走る; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
+== f589118e（ScalarDeletionTests の値の番人を張り付かない盤面へ直した後）
+M0 rc=0  :: 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M6 rc=1 ScalarDeletionTests.汚職の政治の2項は物理削除されている_天命と正統性は実効汚職を読まない; :: 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE

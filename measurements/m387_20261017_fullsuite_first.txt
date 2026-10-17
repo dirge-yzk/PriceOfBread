@@ -1,0 +1,3 @@
+★(387) 合流の 1 回目のフルスイート（木 240e29c5・Category!=FullLength・Release・隔離ビルド D:/PoB_work/merge_387/art・13:17→13:28）。赤 1 本＝route_names.py の World.cs の鍵 2 本（AdminEfficiency の getter を畳んだ 18 行のずれ）＝7eaf9a7b で取り直して単独で緑。
+  失敗 PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す [19 ms]
+失敗!   -失敗:     1、合格:  1251、スキップ:     0、合計:  1252、期間: 10 m 23 s - PriceOfBread.Tests.dll (net10.0)
