@@ -570,8 +570,6 @@ public static class EconomyStep
                 // Stock の更新式は不変（結合順も同じ＝数値軌道はビット不変）。
                 double lost = Math.Max(0, spm.Stock) * spoil;
                 spm.SpoilLog[spm.SpoilIdx] = lost; spm.SpoilIdx = (spm.SpoilIdx + 1) % 12;
-                double spSum = 0; for (int si = 0; si < 12; si++) spSum += spm.SpoilLog[si];
-                spm.SpoiledLastYear = spSum;
                 spm.Stock *= 1.0 - spoil;
             }
         foreach (var m in region.Markets)
@@ -1516,29 +1514,8 @@ public static class EconomyStep
             int gi = good.Id;
             var m = region.Markets[gi];
             double usePrice = Math.Max(m.Price, Eps);
-            // 買い手価格の楔5項＝唯一定義 BuyerWedge（ProductionDiag.ExplainPrice／PolicyPreferences.EffectiveStateMonopoly も同じものを呼ぶ・2026-09-11 M5）
-            var (stateMonop, distM, monRent, guildRent, insure) = BuyerWedge(region, coef, gi, isService[gi], guildShare, guildDeg);
-            double buyerPrice = usePrice * (1 + stateMonop + distM + monRent + guildRent) * (1 - insure);
-            // 自己価格弾力（基準からの乖離→需要）と交差弾力（主食内の相対価格による再配分）を**指数空間で一度に合成し単一クランプ**する（audit #8）。
-            // 旧・二重クランプ（自己を先にクランプ→交差を掛け再クランプ）は、安い主食で自己弾力が上限に張り付くと交差の代替が頭打ちになり、
-            // 「非栽培国が安い地元主食に十分シフトできず強制輸入」を生んでいた（馬鈴薯/玉蜀黍の主食化でこの欠陥が顕在化）。
             bool staple = good.Tier == GoodTier.Staple;
-            // 経11（大量消費化）：需要の上クランプは従来 PriceFactorMax=1.4 一律＝価格暴落しても基礎量の1.4倍で頭打ち＝産業革命の綿布型「安価な工業製品の大量消費」が構造的に起きない。
-            // 財tier別に上限を差し替える（DemandElasticityMaxDaily=2.5／Luxury=2.0・R1点火2026-07-13。1.4=PriceFactorMax なら旧恒等）。PriceFactorMin/Max自体は不変。
-            double elasMax = good.Tier switch { GoodTier.Daily => coef.DemandElasticityMaxDaily, GoodTier.Luxury => coef.DemandElasticityMaxLuxury, _ => coef.PriceFactorMax };
-            // ★塊1段0（StapleElasticityZero）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。ゲート0＝データの弾力＝厳密恒等
-            double elasEff = staple && coef.StapleElasticityZero > 0 ? 0.0 : good.Elasticity;
-            double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
             bool foodNonStaple = !staple && coef.FoodIncludesAnimalProtein > 0 && good.Nutrition > 0;   // ★塊1段1b：動物性タンパクも食卓の交差弾力に参加（肉高騰→パン/芋へ流れる＝ギッフェンの創発）
-            double priceFactor;
-            if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
-            {
-                double ownRatio = usePrice / Math.Max(good.RefPrice, Eps);
-                double subst = Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), coef.CrossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
-                priceFactor = Math.Clamp(selfFactor * subst, coef.PriceFactorMin, elasMax);
-            }
-            else
-                priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
             // アヘンは中毒度を1人あたり必要量に上乗せ（供給→消費→中毒→需要 の正のフィードバック・実験）
             var habit = Habit.Of(coef, gi);   // (342) 財の性質〈習慣性〉（習慣の強さ・減衰・上限・害）＝この財の行。習慣性の無い財は全て 0
             double effBaseNeed = good.BaseNeed + Habit.StockOf(region, habit);
@@ -1578,6 +1555,31 @@ public static class EconomyStep
                 && gi != Catalog.EducationId && gi != Catalog.HigherEducationId && gi != Catalog.NewspaperId
                 && !habit.Active
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
+            // ★必要の無い財は楔・価格弾力の冪を求めない（計算量・恒等）：下で使うのは POP のループ（needless なら回さない）と後段の POP のループ（同）だけ＝needless の財では値が読まれない。
+            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0;
+            if (!needless)
+            {
+                // 買い手価格の楔5項＝唯一定義 BuyerWedge（ProductionDiag.ExplainPrice／PolicyPreferences.EffectiveStateMonopoly も同じものを呼ぶ・2026-09-11 M5）
+                (stateMonop, distM, monRent, guildRent, insure) = BuyerWedge(region, coef, gi, isService[gi], guildShare, guildDeg);
+                buyerPrice = usePrice * (1 + stateMonop + distM + monRent + guildRent) * (1 - insure);
+                // 自己価格弾力（基準からの乖離→需要）と交差弾力（主食内の相対価格による再配分）を**指数空間で一度に合成し単一クランプ**する（audit #8）。
+                // 旧・二重クランプ（自己を先にクランプ→交差を掛け再クランプ）は、安い主食で自己弾力が上限に張り付くと交差の代替が頭打ちになり、
+                // 「非栽培国が安い地元主食に十分シフトできず強制輸入」を生んでいた（馬鈴薯/玉蜀黍の主食化でこの欠陥が顕在化）。
+                // 経11（大量消費化）：需要の上クランプは従来 PriceFactorMax=1.4 一律＝価格暴落しても基礎量の1.4倍で頭打ち＝産業革命の綿布型「安価な工業製品の大量消費」が構造的に起きない。
+                // 財tier別に上限を差し替える（DemandElasticityMaxDaily=2.5／Luxury=2.0・R1点火2026-07-13。1.4=PriceFactorMax なら旧恒等）。PriceFactorMin/Max自体は不変。
+                double elasMax = good.Tier switch { GoodTier.Daily => coef.DemandElasticityMaxDaily, GoodTier.Luxury => coef.DemandElasticityMaxLuxury, _ => coef.PriceFactorMax };
+                // ★塊1段0（StapleElasticityZero）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。ゲート0＝データの弾力＝厳密恒等
+                double elasEff = staple && coef.StapleElasticityZero > 0 ? 0.0 : good.Elasticity;
+                double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
+                if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
+                {
+                    double ownRatio = usePrice / Math.Max(good.RefPrice, Eps);
+                    double subst = Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), coef.CrossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
+                    priceFactor = Math.Clamp(selfFactor * subst, coef.PriceFactorMin, elasMax);
+                }
+                else
+                    priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
+            }
             if (!needless) consumedGoods++;
             if (insEnt is not null && !needless) insEnt.GoodBegin(gi, staple || foodNonStaple ? 0 : good.Tier == GoodTier.Daily ? 1 : good.Tier == GoodTier.Luxury ? 2 : 3);   // (345) 計器（読むだけ）：層＝食料・日用品・奢侈品・役務その他
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字

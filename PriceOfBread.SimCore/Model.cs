@@ -849,7 +849,9 @@ public sealed class Market
     // 月次リング（直近12ヶ月）。純テレメトリ＝力学の読み手なし（生産タブの財パネルと spoilprobe が読む）。
     public double[] SpoilLog = new double[12];   // 月次の廃棄量（リング）
     public int SpoilIdx;                          // リングの書き込み位置
-    public double SpoiledLastYear;                // 直近12ヶ月の合計（月次で再計算）
+    /// <summary>直近12ヶ月の合計＝<see cref="SpoilLog"/> の添字 0..11 の昇順の和（読まれたときに求める＝月次の決算が財ごとに12項を足し直さない・読み手は画面と診断だけ）。
+    /// 旧＝EconomyStep.Run が月ごと・財ごとに同じ式で書いていた欄（リングを書く所は1つ＝その後の和と読んだ時の和は同じ値）。</summary>
+    public double SpoiledLastYear { get { double s = 0; for (int i = 0; i < 12; i++) s += SpoilLog[i]; return s; } }
 }
 
 /// <summary>貿易タブT2（2026-07-24）：輸送律速の内訳＝cap合成時にどの容量が最小だったか（なし/海運/鉄道/港湾）。純テレメトリ・力学は読まない。
