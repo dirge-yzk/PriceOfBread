@@ -281,7 +281,18 @@ public static class Ideologies
     /// ★思想②を1ミリも侵さない——国名も文化名も出てこない。アメリカ南部が離れるのは**南部の pop の思想分布がそうだから**であって「南部」と書いたからではない。</summary>
     public static double[] Regional(World w, Region r) => Aggregate(w, r.Pops);
 
-    private static double[] Aggregate(World w, IEnumerable<Pop> pops)
+    /// <summary>★(393) 兵士 POP だけのイデオロギー集計＝<see cref="National"/> の反復元を <see cref="Pop.IsSoldier"/> の POP に替えた同型（<see cref="Regional"/> の兄弟・新しい状態なし）。
+    /// 政体遷移の門2 が、保持力を〈今の政体を支える兵〉と〈引力点側へ回る兵〉に分ける a（<c>Politics.SoldierHoldShare</c>）の入力。totalWeight＝集計の分母（規模×意識×発言権の和・0 なら集計は全て 0）。</summary>
+    public static double[] Soldiers(World w, out double totalWeight) => Aggregate(w, SoldierPops(w), out totalWeight);
+
+    private static IEnumerable<Pop> SoldierPops(World w)
+    {
+        foreach (var p in w.AllPops()) if (p.IsSoldier) yield return p;
+    }
+
+    private static double[] Aggregate(World w, IEnumerable<Pop> pops) => Aggregate(w, pops, out _);
+
+    private static double[] Aggregate(World w, IEnumerable<Pop> pops, out double totalWeight)
     {
         var agg = new double[Count];
         double total = 0;
@@ -298,6 +309,7 @@ public static class Ideologies
             total += weight;
         }
         if (total > 1e-9) for (int k = 0; k < Count; k++) agg[k] /= total;
+        totalWeight = total;
         return agg;
     }
 
@@ -334,6 +346,21 @@ public static class Ideologies
         double s = 0;
         for (int k = 0; k < Count; k++) s += agg[k] * AffinityOf(polityCoord, IdeologyCoord[k], affinitySlope);
         return s;
+    }
+
+    /// <summary>★(393) 離反の割合 d∈[0,1]＝集計 agg（質量の和は 1 以下）の各思想 k について〈引力点を現政体より好む分〉の正の部を質量で足し、親和の範囲 AffMax−AffMin で割る。
+    /// 差だけを読む＝全ての親和に同じ定数を足しても動かない（零点に依存しない）。現政体を好むか無関心なら 0。質量が 0（集計が空）なら 0。NaN は 0 に倒す（否定形）。
+    /// 事前登録 measurements/mc_20261018_prereg.txt [11](2)。</summary>
+    public static double DefectionShare(double[] agg, double[] curCoord, double[] attCoord, double affinitySlope)
+    {
+        double sum = 0;
+        for (int k = 0; k < Count; k++)
+        {
+            double gain = AffinityOf(attCoord, IdeologyCoord[k], affinitySlope) - AffinityOf(curCoord, IdeologyCoord[k], affinitySlope);
+            if (gain > 0) sum += agg[k] * gain;
+        }
+        double d = sum / (AffMax - AffMin);
+        return !(d > 0) ? 0.0 : d;
     }
 
     /// <summary>ある政体への支持＝静的基準座標で評価（Runner診断・後方互換）。遷移本体は SupportAt にドリフト座標を渡す。</summary>

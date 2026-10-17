@@ -390,13 +390,13 @@ public static class Military
     /// <summary>★兵の単位の換算（(145)）＝標準のピラミッドの働き盛りの男（16〜59歳）の割合（0.2765）＝新しい数0（標準のピラミッドの表から）。
     /// 兵役の母数を「全ての人（標準の構成）」から「働き盛りの男」へ読み替えた比＝同じ割合の値で兵の数がこの比になる。
     /// 兵を単位にした較正（戦力ゲージ SoldiersPerMilitary・治安維持力 CoercionPerSoldier・装備 MilitaryUpkeepScale・
-    /// 軍政の力 MilitaryCoupWeight・軍の政治力 ArmyPoliticalWeight・徴兵の国民形成 NationBuildConscript・戦争熱 WarFeverSoldier）と
+    /// 軍の政治力 ArmyPoliticalWeight・徴兵の国民形成 NationBuildConscript・戦争熱 WarFeverSoldier）と
     /// 政治の正規化（平時の上限の人口比 <see cref="PeaceCapShareOfPop"/>）は、この比で読み替える＝旧の兵1単位の働きを新しい兵の単位で保つ。
     /// ★(149) 反証の指摘：民兵の戦力 MilitiaCombatValue（既定0）は「本当の兵1人に対する比」＝兵と同じ分子に入る＝読み替えない（値は旧のまま）。
     /// ⚠ MilitaryUpkeepScale は休眠の反乱の武器の購入（EconomyStep＝MilitaryUpkeepScale×参加人数〔本当の頭数〕）も読む＝点火すると反乱の装備の必要量が約3.6倍（1÷この比）＝点火の回で決める。</summary>
     internal static readonly double WorkingMenStdShare = Pop.StdShare(16, 60, 0);
 
     /// <summary>★平時の上限の人口比（(145)）＝MaxSoldierFraction（働き盛りの男の割合）×標準の構成の働き盛りの男の割合＝「兵÷総人口」で読む正規化の分母
-    /// （軍の社会的重み・職業軍の度合い π・軍部の組織性）。旧＝MaxSoldierFraction をそのまま人口比として読んだ（母数が全ての人の頃の単位）。</summary>
+    /// （軍の社会的重み・軍部の組織性。旧の読み手の職業軍の度合い π は (393) で削除）。旧＝MaxSoldierFraction をそのまま人口比として読んだ（母数が全ての人の頃の単位）。</summary>
     internal static double PeaceCapShareOfPop(Coefficients c) => c.MaxSoldierFraction.Value * WorkingMenStdShare;
 }

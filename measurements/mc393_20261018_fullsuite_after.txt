@@ -1,0 +1,5 @@
+(393) 後半 採用後のフルスイート（Category!=FullLength・Release・隔離ビルド・コミット 追記の直し後）
+START 04:04:43 filter=Category!=FullLength src=/d/PoB_work/wt_mc
+成功!   -失敗:     0、合格:  1305、スキップ:     0、合計:  1305、期間: 7 m 13 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 04:12:30
+(前の走り＝直す前は 1305 中 5 本が赤：PolicyPoliticsTests・WriterRatchetTests・TransportInstrumentTests・InstrumentsTests・FactoryIdeologyInstrumentTests＝軌道が動いた試験の前提)

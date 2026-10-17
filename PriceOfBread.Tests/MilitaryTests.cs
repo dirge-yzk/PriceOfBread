@@ -635,7 +635,6 @@ public class MilitaryTests
         Assert.Equal(250.0, c.SoldiersPerMilitary / u, 9);
         Assert.Equal(5.0, c.CoercionPerSoldier * u, 9);
         Assert.Equal(0.18, c.MilitaryUpkeepScale * u, 12);
-        Assert.Equal(1.4, c.MilitaryCoupWeight * u, 9);
         Assert.Equal(5.0, c.ArmyPoliticalWeight * u, 9);
         Assert.Equal(0.5, c.NationBuildConscript * u, 12);
         Assert.Equal(4.0, c.WarFeverSoldier * u, 9);

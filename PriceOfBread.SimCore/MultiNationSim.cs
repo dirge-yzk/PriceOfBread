@@ -2034,7 +2034,7 @@ public static class CostLedger
         AiBureaucracyScanUnitMicros,   // ★(395) AI の官僚制度の走査：SelfPlay.BureaucracyFollowsWants の1回（国×四半期）＝(389) の burscan の壁時計の中央÷呼びの数（下の定数の注記）
     ];
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
-    /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
+    /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
     /// それまで .cost の外にあった重さ（(392) の申し送り）を内側へ入れる行＝推定の計算量が約 0.5 秒増える（予算の上限 248.5 秒の内）。</summary>
     public const double AiBureaucracyScanUnitMicros = 12.76;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数

@@ -67,6 +67,7 @@ public static partial class Instruments
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
         public List<string>? SecRows;                      // (395) 州の分離の内訳の行（CheckSecession が置き SecFold が書いて消す）
+        public string? CoupRow; public int CoupRoute;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
         public readonly double[] Claim = new double[(int)Item.Count];
         public double Treasury0, Payable0, Spare0, Payable1, Borrowed, Devalued, ClaimsTotal, PayRate;
@@ -195,6 +196,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
         public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
         public System.IO.StreamWriter? Bur; public bool BurHeader;                         // (389) AI の官僚制度の判断の表（国×四半期）
+        public System.IO.StreamWriter? Coup; public bool CoupHeader;                       // (393) 軍の力の入口の表（国×四半期・第 1 の門を通った行だけ）
         public System.IO.StreamWriter? Anc; public bool AncHeader;                         // (369) 扶養力の錨の表（国×四半期）
         public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public System.IO.StreamWriter? Sec; public bool SecHeader;                         // (395) 州の分離の内訳の表（国×四半期×州）
@@ -1628,6 +1630,7 @@ public static partial class Instruments
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
+            CoupFold(sk, seed, w, st, q);   // (393) 軍の力の入口の表
             AnchorFold(sk, seed, w, q, picked, yearEnd);    // (369) 扶養力の錨の表
             CapFold(sk, seed, w, st, q, picked, yearEnd);   // (390) 工場の能力の内訳の表（四半期の末の断面・読むだけ）
             IdeologyFold(sk, seed, w, st, q, picked, yearEnd);   // (390) 思想の割合の表（National と素の平均）
@@ -1673,6 +1676,7 @@ public static partial class Instruments
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
         sk.Bur?.Dispose(); sk.Bur = null;   // (389)
+        sk.Coup?.Dispose(); sk.Coup = null;   // (393)
         sk.Anc?.Dispose(); sk.Anc = null;   // (369)
         sk.Cap?.Dispose(); sk.Cap = null; sk.Ide?.Dispose(); sk.Ide = null;   // (390)
         sk.Sec?.Dispose(); sk.Sec = null;   // (395)

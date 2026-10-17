@@ -407,13 +407,11 @@ public sealed class Coefficients
     // ★0.000005 で正統性項は 英0.92・仏0.86・露0.86・清0.36 になり、治安維持力項と合わせて閾値を超えうる＝
     //   **強く正統な国は帝国を保てる／弱く正統性を欠く国は割れる**という本来の形になる。
     public double SecessionHoldPerPop = 0.000005;      // 中央の保持力＝治安維持力×正統性をこれ×人口で割る（大国ほど辺境を抑えにくい）
-    public double MilitaryCoupWeight = 1.4 / Military.WorkingMenStdShare;           // （(145) 兵の単位の読み替え＝旧値 1.4÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。兵士の政治力＝規模×(0.2+不満)×これ＝軍政の支持への加算の入力（Politics.CoupSupport）。決めるのは引力点だけで、実行は兵士込みの挑戦力が保持力を超える門2に従う（CoercionSoftCap の注記）。兵の頭数を保持力の単位へ換える交換比＝取り分 sf/(sf+保持力) の曲がり所を動かす
     public double IndustrializedTechThreshold = 0.25;  // 経路分類：工業化とみなす技術水準（§B-5。失敗0.1<これ<採用0.5）
     public double IndustrializedUrbanThreshold = 0.45; // 経路分類：工業化とみなす都市率（高め＝都市化単独では誤分類しない・技術主導）
 
     // --- 画一的な政体遷移（イデオロギー駆動）。支持(政体)=国民イデオロギー集計·親和。引力点-現政体>保持力で遷移 ---
     public double PolityInertia = 0.4;           // 保持力＝PolityInertia×正統性。支持差がこれを超えると遷移（正統性が高い体制は粘る・権威主義下で意識↑＝正統性侵食で倒れやすく）
-    public double MilitaryCoupSupport = 0.6;     // 軍部の力を軍事独裁の支持に上乗せ（クーデタは銃が要る＝イデオロギーだけでない）＝これ×取り分 σ＝sf/(sf+保持力)×職業軍の度合い π（Politics.CoupSupport）。軍が武力の均衡を全部握ったとき（σ→1・π=1）の加算の上限
     // ★作者裁定2026-09-19 R3/R4 は 2026-09-20 に既定化（腕 A4）＝旗 CoupForceShare／CoupMassArmyDiscount と旧式の枝（裸の比 sf/max(1,保持力)）を削除。
     //   同じ項の二重計上2本も係数ごと削除（P9）：WarExhaustionCoupBoost（厭戦の明示乗数＝厭戦は兵士の闘争度に既に入る）・AllegianceCoupWeight（軍帰属の変調＝兵士の思想の読み直し）。
     // 窮乏チャネル（パンの蜂起＝1789）：意識（識字・教育）が低くても、窮乏で闘争度が暴動水準を超えた群衆は革命的脅威になる。
@@ -2939,7 +2937,7 @@ public sealed class Coefficients
     public double ParliamentBudgetVeto = 2.0;      // P1-C 予算闘争（憲法紛争1862）：所得税スライダーの抵抗に 統制力×max(0,−協力度)×これ を加算＝非協力議会は予算を通さない。提案2.0
     public double VictoryLegitBoost = 0.05;         // P1-D 勝利の免責（ビスマルク型）：決定的勝利で正統性ストック+これ×戦勝点＝敗戦ショックの対称。0.1は工業化の差別化を壊し**0.05で採用**（bisect2026-07-10）
     public double CrownRollbackRate = 0.02;         // P1-E ストルイピン後退：敵対議会(coop<−0.5)×高正統性(>0.7)×王権寄り軍(>0.3)でParliamentControl−これ/四半期。提案0.02
-    // P1-F（軍帰属のクーデタ変調）は 2026-09-20 に係数ごと削除＝軍帰属の lean は兵士の思想の読み直し（P9）で向きも史実と逆だった（MilitaryCoupSupport の注記）。
+    // P1-F（軍帰属のクーデタ変調）は 2026-09-20 に係数ごと削除＝軍帰属の lean は兵士の思想の読み直し（P9）で向きも史実と逆だった（旧 MilitaryCoupSupport の注記＝その係数も (393) で削除）。
     // --- 王権議会F1＝州一揆（2026-07-10・点火済み）---
     // ★段2（設計メモ §7-3・作者裁定2026-09-09）：0.25 → **0.50**。σ=0.30 のまま門が 0.25 だと**1四半期の欠乏で一揆が発火**して
     //   「一瞬の飢餓では起きない」という裁定が破れる。0.50 にすると F1の門・暴動閾値(RiotMilitancyThreshold)・闘争度の飽和が

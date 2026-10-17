@@ -1,0 +1,10 @@
+M1 足し算を戻す => RED ['失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M2 離反の向きを逆 => RED ['失敗!   -失敗:     6、合格:     4、スキップ:     0、合計:    10、期間: 872 ms - PriceOfBread.Tests.dll (net1
+M3 挑戦へ足さない => RED ['失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 864 ms - PriceOfBread.Tests.dll (net1
+M3b 守る側を縮めない => RED ['失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (net10
+M5 兵士でない POP を集計 => RED ['失敗!   -失敗:     5、合格:     5、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (n
+M6 動員から兵を外さない => RED ['失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (net1
+M7 母数からも兵を外す => RED ['失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (net10
+M8 個別の正の部を取らず集計の差で取る => RED ['失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dl
+M9 比の形へ戻す => RED ['失敗!   -失敗:     6、合格:     4、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M11 範囲で割らない => RED ['失敗!   -失敗:     5、合格:     5、スキップ:     0、合計:    10、期間: 1 s - PriceOfBread.Tests.dll (net10.
