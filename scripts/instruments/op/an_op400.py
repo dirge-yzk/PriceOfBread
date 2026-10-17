@@ -4,7 +4,7 @@
 入力：nation_s<seed>.tsv（全ての国・四半期ごと）と fiscal_s<seed>.tsv（POB_INSTRUMENTS_NATIONS に挙げた国だけ・月ごと）。新しい計器の列は読まない（0 本）。
 出すもの（事前登録の記号）：
   M1 開幕の段（B の英・蘭の Q0 monopolyTierBeforeDecisionStage が 10/10 種で 3 か）
-  M2 国庫（fiscal_s の最初の行〔monthIndex 2〕の treasuryAtClaimStock ÷ 同じ行の revenueBasePerMonth・2.5 の ±10% は追記2 ⑤）
+  M2 国庫（fiscal_s の最初の行〔monthIndex 2〕の treasuryAtClaimStock ÷ 同じ行の revenueBasePerMonth・追記3 で判定を〈B÷A の向きのみ〉に改めた）
   M3 門（英の Q0 の stateFacilityStartedCount を腕×種で・合格＝B が A の同じ種より小さい種が 5 以上かつ中央値が小さい〔追記2 ③〕）
   P1〜P4・R1〜R7（窓 W1＝最初の 3 行／W2＝Q0〜Q8／W3＝Q5〜Q40／W4＝Q1〜Q40・種の中央値〔最小〜最大〕）
   止める線の判定式：①同じ国が毎回壊れる ②一国の発散 ③片方向の錠（最大の段の張り付き＋追記2 ① の着工 0 の長い連なり L1）／発散（国債÷年GDP>5・金利の天井）
@@ -70,7 +70,7 @@ print('== M2 国庫（fiscal_s の最初の行の treasuryAtClaimStock ÷ revenu
 for k in ORDER:
     for nat in (UK, NL):
         v = per_seed(k, lambda sd, N, F, nat=nat: (num(F[nat][0]['treasuryAtClaimStock']) / num(F[nat][0]['revenueBasePerMonth'])) if nat in F and F[nat] else float('nan'))
-        print(f'  {k}\t{nat}\t{fmt(v, 3)}\t2.5±10% の種 {sum(1 for x in v if FINITE(x) and abs(x - 2.5) <= 0.25)}/{len(v)}')
+        print(f'  {k}\t{nat}\t{fmt(v, 3)}\t（追記3：最初の行は月 2＝助走の後 2 か月ぶん動いた後で 2.5 にならない。読むのは B÷A の向きだけ・厳密な 2.5 は番人）')
 print('== M3 門（英の Q0 の stateFacilityStartedCount・種ごと）')
 m3 = {}
 for k in ORDER:
@@ -115,10 +115,19 @@ for nat in (UK, NL):
         s += f'\t歳入÷GDP W2 {fmt(rev_gdp_q(k, nat, 0, 8))} W3 {fmt(rev_gdp_q(k, nat, 5, 40))}\tr<1 の月数(Q0-8) {fmt(pay_below1(k, nat), 1)}'
         print(s)
 print('  （P1：B の英の W1 は 0.55〜0.75・A は 6/10 種が 1.1 超／蘭は 0.4〜0.8。手元の幅 歳入÷GDP 約 6〜12%・2〜4 倍は記録で NG ではない）')
+def int_rev_month(arm, nat, i):   # 追記3：事前登録 [1] の定義＝月 2・3・4 の月ごとの比（fiscal_s の最初の 3 行の i 番目 0/1/2）
+    def f(sd, N, F):
+        fr = F.get(nat, [])
+        if len(fr) <= i or num(fr[i]['revenueBasePerMonth']) <= 0: return float('nan')
+        return num(fr[i]['claimInterestPerMonth']) / num(fr[i]['revenueBasePerMonth'])
+    return per_seed(arm, f)
 for nat in (UK, NL):
     for k in ORDER:
         v = int_rev_w1(k, nat)
-        print(f'  P1 {nat} {k}: W1 の種ごと {[round(x, 2) if FINITE(x) else None for x in v]}')
+        print(f'  P1 {nat} {k}: W1(3 行の和÷和) の種ごと {[round(x, 2) if FINITE(x) else None for x in v]}')
+        for i, lab in enumerate(('月2', '月3', '月4')):
+            m = int_rev_month(k, nat, i)
+            print(f'     {lab}（月ごとの比）{fmt(m, 2)}\t1.1 超の種 {sum(1 for x in m if FINITE(x) and x > 1.1)}/{len(m)}\t種ごと {[round(x, 2) if FINITE(x) else None for x in m]}')
 
 print('\n== R2/P2 兌換を離れる最初の月と戻る月・不履行（fiscal_s の onGold・defaultCount）')
 def gold_events(F, nat):
