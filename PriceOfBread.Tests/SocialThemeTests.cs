@@ -18,7 +18,6 @@ public class SocialThemeTests
         var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         var c = sim.World.Coef;
         c.CrimeSatPenalty = 0.5; c.CrimeWealthFearWeight = 0.5;       // 犯罪→満足度＋財産不安
-        c.CorruptionLegitimacyErosion = 0.3;                          // 腐敗→正統性
         // WelfareTargeting は物理削除2026-08-21（基質＝福祉の満足度フラット加算が作者裁定で撤去済み。ここでの設定は WelfareSatBonus=0 のため元々no-opだった）
         c.StrikeProductionHit = 0.5;                                 // 労働争議減産
         sim.World.Policy.LaborUnion = LaborUnionLaw.Tolerated;       // 組合合法化＝ストライキ経路を発火可能に

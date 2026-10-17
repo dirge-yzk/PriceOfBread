@@ -92,8 +92,7 @@ public partial class GameViewModel
         // ⚠これまで**議会とAIだけが動かせてプレイヤーは触れなかった**（対称性の違反）。機構は他22軸と完全に同じで、
         //   代価（政治資本・不可逆・前提法）は既に実装済み＝Add を3行足すだけで完結する。
         // ★ラベルは「なし／限定的／全面」＝変更通知（JaEnumConverter）と同じ語彙にする（同じ法を2種類の言葉で語らない）。
-        // ★土地改革に表示条件を付けない理由＝検地台帳（LandTaxUnlocked）の前提は既に LawPrereq にあり、
-        //   未解禁なら段が自動でグレーアウトし理由がホバーに出て、解禁時に自動で点灯する（参政権と同じ作法）。
+        // ★土地改革に表示条件を付けない（検地台帳の錠は (383) で物理削除＝最初から開いている）。
         Add("穀物法", PolicyAxis.CornLaws, ["なし", "限定的", "全面"], () => (int)w.CornLaws, () => (int)p.CornLaws, v => p.CornLaws = (ReformLevel)v);
         Add("土地改革", PolicyAxis.LandReform, ["なし", "限定的", "全面"], () => (int)w.LandReform, () => (int)p.LandReform, v => p.LandReform = (ReformLevel)v);
         Add("農奴解放", PolicyAxis.SerfEmancipation, ["なし", "限定的", "全面"], () => (int)w.SerfEmancipation, () => (int)p.SerfEmancipation, v => p.SerfEmancipation = (ReformLevel)v);
@@ -115,7 +114,7 @@ public partial class GameViewModel
         //   法律タブの「教育と労働」群からは外した（下の groups からも外してある）＝同じ法を2箇所に出さない。
         WelfareLaw = new LawRowVM(w, PolicyAxis.SocialSecurity, "社会保障", ["救貧法", "労災", "失業保険", "年金"], () => (int)w.SocialSecurityLaw, () => Math.Clamp((int)Math.Round(p.SocialSecurityTarget * 3), 0, 3), v => p.SocialSecurityTarget = v / 3.0, () => c.SocialSecurityLawGate > 0);
         Add("秘密投票", PolicyAxis.SecretBallot, ["公開", "秘密"], () => (int)w.SecretBallot, () => (int)p.SecretBallot, v => p.SecretBallot = (SecretBallotLaw)v, () => c.SecretBallotGate > 0);
-        Add("官僚制度", PolicyAxis.Bureaucracy, ["猟官制", "資格任用", "専門官僚"], () => (int)w.Bureaucracy, () => (int)p.Bureaucracy, v => p.Bureaucracy = (BureaucracyLaw)v, () => c.BureaucracyAdminSpread > 0);
+        Add("官僚制度", PolicyAxis.Bureaucracy, ["猟官制", "資格任用", "専門官僚"], () => (int)w.Bureaucracy, () => (int)p.Bureaucracy, v => p.Bureaucracy = (BureaucracyLaw)v);
         Add("国教", PolicyAxis.StateReligion, ["国教のみ", "内心の自由", "信仰の自由", "国家無神論"], () => (int)w.StateReligion, () => (int)p.StateReligion, v => p.StateReligion = (StateReligionLaw)v, () => c.StateReligionGate > 0);   // 国家無神論＝前提DAGでプロレタリア独裁のみ（例外①）
         Add("独占禁止", PolicyAxis.Antitrust, ["規制なし", "談合禁止", "独占の解体"], () => (int)w.Antitrust, () => (int)p.Antitrust, v => p.Antitrust = (AntitrustLaw)v, () => c.AntitrustGate > 0);
         Add("同業組合", PolicyAxis.Guild, ["保護", "制限", "廃止"], () => (int)w.Guild, () => (int)p.Guild, v => p.Guild = (GuildLaw)v, () => c.GuildLawGate > 0);   // ★特権 段4（2026-09-07）

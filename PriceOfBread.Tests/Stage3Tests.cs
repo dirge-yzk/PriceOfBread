@@ -36,9 +36,9 @@ public class Stage3Tests
         sim.Run(400);
         Assert.Equal(Polity.Absolutist, sim.World.Polity);
         Assert.Equal(ModernizationPath.Tokugawa, sim.ClassifyPath());
-        // 採用天井で頭打ち＝世界の技術水準に届かない（永遠の二番手・§2.8）
-        Assert.True(sim.World.TechLevel <= sim.World.Coef.AdoptionCeiling + 1e-9,
-            $"徳川型が世界の技術水準に届いた：{sim.World.TechLevel}");
+        // ★(383) 〈採用天井で頭打ち＝世界の技術水準に届かない（永遠の二番手・§2.8）〉は史実の形の主張（創発）で機構の不変条件ではない。
+        //   前線の技術の門の連言〔高エリート∧行政効率≥InnovationAdminThreshold〕を作者 2026-10-16「行政効率→廃止」で消した結果、高エリートだけで前線が開くので
+        //   この盤面の徳川型は天井を越える（2.38）。作者 2026-10-17「史実度の低下は差し戻し理由にはなりません」＝テストから外し、成績表（G-asia・技術水準の読み）の記録へ移した。
     }
 
     [Fact]

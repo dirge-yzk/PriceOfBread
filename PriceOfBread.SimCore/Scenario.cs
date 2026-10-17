@@ -53,7 +53,7 @@ public sealed class Scenario
     public bool FiscalEnabled { get; init; } = false;
     public double TaxRate { get; init; } = 0.0;            // 所得税率（中心ジレンマ §3.1）。率は行政力に縛られない（序盤ロック＝行政力の天井/解禁は2026-09-12に廃止）＝査定機構の未熟は徴収の汚職漏れが額で表す
     public double InitialPollTax { get; init; } = 0.0;     // 人頭税の初期値（0..1）。行政不要で確実＝近世国家の主財源（人頭税・タイユ）。序盤の国庫を支える
-    public double InitialLandTax { get; init; } = 0.0;     // 土地税の初期値（0..1）。>0なら検地台帳を保有済み＝開始から解禁・徴収（近世絶対王政の根幹＝年貢。確立国家は1789年に既に台帳を持つ）
+    public double InitialLandTax { get; init; } = 0.0;     // 土地税の初期値（0..1）。開始値（近世絶対王政の根幹＝年貢。確立国家は1789年に既に台帳を持つ）。★(383) 検地台帳の錠は物理削除＝0 でも土地税は最初から押せる
 
     // --- 軍事（§6.1／§A-8 武力解錠・段4e）---
     public bool ForceUnlock { get; init; } = false;            // locked を武力で速く解錠（国庫出血・闘争度↑）

@@ -2890,7 +2890,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
         Console.WriteLine($"      教育財：生産{oT,9:F1}（うち世俗{oS,9:F1}）生産性{prod,5:F1} 価格{EpNum(price)} 在庫{stock,9:F1} 需要{demand,9:F1}"
             + $" 教師POP{teacher,9:F0} 聖職者POP{clergy,9:F0} 教育費{w.EducationSpending:F2} 義務財源{eduFund:F2}");
         Console.WriteLine($"      特権保全{PowerShares.PrivilegeIntact(w):F2}＝(農奴{serfV:F2}[{w.SerfEmancipation}] ＋ 免税{1 - System.Math.Clamp(landTax + progTax, 0, 1):F2}"
-            + $"[地租{landTax:F2}(台帳{(w.LandTaxUnlocked ? "解禁" : "未")}) 累進{progTax:F2}] ＋ 身分{estateV:F2}[{w.Bureaucracy}]) / 3");
+            + $"[地租{landTax:F2} 累進{progTax:F2}] ＋ 身分{estateV:F2}[{w.Bureaucracy}]) / 3");
         // ★法の門（Government.GateInfo と PolicyPreferences.NetSupport＝施行と同じ単一ソースを**照会するだけ**・書き込みなし）
         // ⚠AIの目標（w.Policy）は GateAllLawTargets が「通らない段」を現行法へ畳んだ**後**の値なので、目標=現状でも
         //   「そもそも欲しくない」のか「欲しいが通らない」のかが区別できない。よって**常に1段上げの可否を照会**して両方出す。
@@ -6311,7 +6311,7 @@ if (args.Length > 0 && args[0] == "freshboard")
         double brp = r.Goods.First(x => x.Id == bid).RefPrice;
         double bread = brp > 1e-9 ? r.Markets[bid].Price / brp : 1;
         int ceil = 0; foreach (var good in r.Goods) { if (good.Tier == GoodTier.Service) continue; var mk = r.Markets[good.Id]; if (mk.LastDemand < 1) continue; bool f = Catalog.Goods[good.Id].Inputs.Length > 0 && !Catalog.Goods[good.Id].IsColonial; if (!f && mk.LastProduced + mk.LastImport < 0.05) continue; if ((good.RefPrice > 1e-9 ? mk.Price / good.RefPrice : 1) >= 19) ceil++; }
-        Console.WriteLine($"  {w.SelfPower?.Name,-8} 政体{w.Polity,-22} 主食{bread,7:P0} 国庫{w.Treasury / 1000,7:F0}k 人頭税{w.PollTax:P0} 軍事費{w.MilitarySpending:P0} 土地税解禁{(w.LandTaxUnlocked ? "可" : "不")} 工業化{r.TotalIndustrialization:F2} 天井財{ceil,2}");
+        Console.WriteLine($"  {w.SelfPower?.Name,-8} 政体{w.Polity,-22} 主食{bread,7:P0} 国庫{w.Treasury / 1000,7:F0}k 人頭税{w.PollTax:P0} 軍事費{w.MilitarySpending:P0} 工業化{r.TotalIndustrialization:F2} 天井財{ceil,2}");
     }
     return;
 }
@@ -6995,7 +6995,7 @@ if (args.Length > 0 && args[0] == "fisc")
         {
             var w = n.World;
             var p = w.Policy;
-            Console.WriteLine($"  {w.SelfPower?.Name,-8} 国庫{w.Treasury,11:F0} 行政力{w.AdminPowerSmoothed:F2} 行政効率{w.AdminEfficiency:P0} | 税:所得{w.TaxRate:F2}人頭{w.PollTax:F2}土地{(w.LandTaxUnlocked ? $"{w.LandTax:F2}" : "×")}専売の負担{w.StateMonopolyBreadth:F2} | 歳出目標:教育{p.EducationSpendingTarget:F1}行政{p.AdminSpendingTarget:F1}軍事{p.MilitarySpendingTarget:F1}福祉{p.SocialSecurityTarget:F1}強制{p.CoercionTarget:F0}");
+            Console.WriteLine($"  {w.SelfPower?.Name,-8} 国庫{w.Treasury,11:F0} 行政効率{w.AdminEfficiency:P0} | 税:所得{w.TaxRate:F2}人頭{w.PollTax:F2}土地{w.LandTax:F2}専売の負担{w.StateMonopolyBreadth:F2} | 歳出目標:教育{p.EducationSpendingTarget:F1}行政{p.AdminSpendingTarget:F1}軍事{p.MilitarySpendingTarget:F1}福祉{p.SocialSecurityTarget:F1}強制{p.CoercionTarget:F0}");
         }
     }
     return;
@@ -7330,7 +7330,7 @@ if (args.Length > 0 && args[0] == "fisprobe")
             double line = UtilityAgent.FiscalBufferOf(w) * 8.0;
             double mul = w.Treasury.Value > line && line > 1e-9 ? Math.Max(0.25, line / w.Treasury.Value) : 1.0;
             double extract = w.NominalGdpPerMonth.Value > 1e-9 ? w.LastRevenuePerMonth / w.NominalGdpPerMonth : 0;   // ★(252) 名目の歳入÷名目GDP（旧＝名目の歳入÷実質GDP〔参照価格×量〕＝物価水準を含む比だった・(250)(251) 反証役 vm#3 で型が見つけた・診断の出力だけ＝帯に入らない・推奨で直した〔作者の承認は未確認〕）
-            Console.WriteLine($"{nm}	{w.LastRevenuePerMonth:N0}	{extract:P1}	{w.Treasury:N0}	{line:N0}	×{mul:F2}	{w.AdminPowerSmoothed:F2}	{w.PollTax:F2}/{w.LandTax:F2}/{w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:F2}/{w.Tariff:F2}/{w.TaxRate:F2}	{Math.Max(0, w.LastTariffRevenuePerClearing):N0}");
+            Console.WriteLine($"{nm}	{w.LastRevenuePerMonth:N0}	{extract:P1}	{w.Treasury:N0}	{line:N0}	×{mul:F2}	{w.AdminEfficiency:F2}	{w.PollTax:F2}/{w.LandTax:F2}/{w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:F2}/{w.Tariff:F2}/{w.TaxRate:F2}	{Math.Max(0, w.LastTariffRevenuePerClearing):N0}");
         }
         Console.WriteLine();
         fpMi++;
@@ -8155,7 +8155,7 @@ if (args.Length > 0 && args[0] == "soloadmin")
         if (q % 4 != 3) continue;
         var w = ssim.World; var r0 = w.Region;
         var bur = r0.Pops[8]; var mer = r0.Pops[10];
-        Console.WriteLine($"{w.Year}: 国庫{w.Treasury,10:F0} 行政費{w.AdminSpending:F2} 行政力{w.AdminPowerSmoothed:F2} 充足{r0.AdminFill:P0} 行政価格{r0.Markets[Catalog.AdminId].Price:F2} 官僚{bur.Size:F0}（貯蓄/人{bur.Savings / Math.Max(1, bur.Size):F0}） 商人{mer.Size:F0}（{mer.Savings / Math.Max(1, mer.Size):F0}）");
+        Console.WriteLine($"{w.Year}: 国庫{w.Treasury,10:F0} 行政費{w.AdminSpending:F2} 行政効率{w.AdminEfficiency:F2} 充足{r0.AdminFill:P0} 行政価格{r0.Markets[Catalog.AdminId].Price:F2} 官僚{bur.Size:F0}（貯蓄/人{bur.Savings / Math.Max(1, bur.Size):F0}） 商人{mer.Size:F0}（{mer.Savings / Math.Max(1, mer.Size):F0}）");
     }
     return;
 }

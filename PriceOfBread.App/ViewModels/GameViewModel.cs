@@ -53,7 +53,7 @@ public partial class GameViewModel : ViewModelBase
     private SocialSecurityLaw _pfSS;   // 社会保障法の段（弧3-3・2026-07-24＝段の変わり目をニュースに残す）
     private ColonialSuffrageLaw _pfColSuf; private MigrantNativeSuffrageLaw _pfMigSuf;   // 参政権の範囲2法（2026-08-16）
     private bool _pfOrderLow;          // 治安崩壊の前回値（接15・2026-07-25＝秩序<50%のエッジ通知）
-    private bool _pfLandUnlocked, _pfGold, _pfDefault, _pfPatent, _pfJoint, _pfEpidemic;
+    private bool _pfGold, _pfDefault, _pfPatent, _pfJoint, _pfEpidemic;
     private int _pfParty; private PowerRank _pfRank;
     private static readonly IBrush TensionLow = new SolidColorBrush(Color.Parse("#1F5FA8"));    // 緊張 低=青
     private static readonly IBrush TensionMid = new SolidColorBrush(Color.Parse("#B8860B"));    // 緊張 中=黄

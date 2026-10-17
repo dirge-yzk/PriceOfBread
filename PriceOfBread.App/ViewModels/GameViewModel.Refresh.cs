@@ -287,7 +287,7 @@ public partial class GameViewModel
             // ★2026-08-31作者指示：金融(x/6)と汚職はヘッダーから撤去（_histFin/_histCorr の採取はセーブ互換のため継続）
             // ★2026-08-15作者指示(5)：治安はヘッダーから撤去＝州ホバーへ移設済み（Map.cs・悪化州のみ表示。SecurityTermsも削除済み）
             // ★2026-09-23：行政力は年次系列を持たない＝グラフが作れない＝ホバーを持たない素の項目にする（内訳は財政タブへ移送）
-            StatPlain($"行政力:{_player.AdminPowerSmoothed:P0}", "行政力", 76),
+            StatPlain($"行政力:{_player.AdminEfficiency:P0}", "行政力", 76),
             StatG($"正統性:{_player.Legitimacy:P0}", "正統性", _histLeg, v => v.ToString("F3"), 76),        // 説明API（#63）の内訳は政治タブへ移送（2026-09-23）
             StatG($"国民意識:{_player.NationalConsciousnessDisplay:P0}", "国民意識", _histCons, v => v.ToString("P0"), 96),   // ★2026-08-02：開始時から値がある（World 側で初期値を読み側に持たせた）
             // 政治資本（MandateSpent）はヘッダー上段の戦力余剰の隣へ移動（2026-07-20ユーザー指示）＝CoercionHeaderText。年次履歴 _histMandate は互換のため採取継続。

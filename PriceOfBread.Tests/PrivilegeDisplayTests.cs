@@ -114,62 +114,7 @@ public class PrivilegeDisplayTests
         Assert.True(Privileges.Degree(gb, gb.Coef, Privileges.Tithe) > 0, "国教のイギリスで十分の一税が立たない");
     }
 
-    /// <summary>★特権の見返り 段2（作者裁定2026-09-08）＝領主権の在地が貴族の行政の素地を変調する機構。
-    /// 同じ世界の <see cref="World.SerfEmancipation"/> だけを差し替えて <see cref="World.AdminEfficiency"/>（純getter＝貴族の頭数・人口・行政の充足はすべて同一）を読む。
-    /// (a) 係数0では駆動量を1ビットも見ない (b) 点火すると未解放度に**線形**（＝素地への乗算の変調であって別経路でない）
-    /// (c) 全面解放でも素地は消えない＝床（k=1.0 でも土地の保有が残す＝作者裁定「特権まみれの国でも出力を確保する」の番人）。</summary>
-    [Fact]
-    public void 領主権の見返りは係数0で恒等かつ点火で残高に線形で床を残す()
-    {
-        var w = Warm(NationConfig.France());
-        var c = w.Coef;
-        double Eff(ReformLevel lv) { w.SerfEmancipation = lv; return w.AdminEfficiency; }
-
-        // (a) 恒等：既定0では農奴解放法も地代の内訳も1ビットも読まない
-        c.NobleAdminFromSeigneurial = 0.0;
-        double none0 = Eff(ReformLevel.None), full0 = Eff(ReformLevel.Full);
-        AssertBitEqual(none0, full0, "係数0なのに領主権の在地が行政効率に効いている");
-        Assert.True(none0 > 1e-6 && none0 < 1.0 - 1e-6, $"クランプに張り付いた腕では機構を測れない（{none0:R}）");
-
-        // (b) 点火：未解放度 1／0.5／0 に対して行政効率は等差＝乗算の変調（新しい経路を足していない証拠）
-        c.NobleAdminFromSeigneurial = 0.5;
-        double n = Eff(ReformLevel.None), l = Eff(ReformLevel.Limited), f = Eff(ReformLevel.Full);
-        AssertBitEqual(none0, n, "未解放度1は係数の有無で変わってはいけない＝1−k×(1−保有)×(1−1)＝1.0");
-        Assert.True(n > l && l > f, $"領主権を剥がすほど素地が痩せる向きでない（{n:R}/{l:R}/{f:R}）");
-        Assert.Equal(n - l, l - f, 12);
-
-        // (c) 床：k<1 なら全面解放でも素地は残る（k=1.0 でも土地を握る限り残る＝(d)が測る）
-        c.NobleAdminFromSeigneurial = 1.0;
-        Assert.True(f > Eff(ReformLevel.Full) + 1e-9, "全面解放で素地が痩せる向きでない");
-    }
-
-    /// <summary>★駆動量の差し替え（史実の是正2026-09-08）＝領主権の在地は「貴族が地代を握る」∨「農奴が縛られている」の論理和。
-    /// 農奴解放度**だけ**を駆動量にすると、農奴制の無い1783年の英・米・蘭が最低になり、無給の地主貴族＝治安判事という
-    /// 国庫を使わない貴族行政の**原型**で向きが逆になる。ここは同じ世界の <see cref="Pop.LandRentPerMonth"/> の帰属だけを差し替えて測る
-    /// （頭数・人口・行政の充足は不変＝乗算の変調であることの証拠を保ったまま、土地の保有が単独で素地を支えることを見る）。</summary>
-    [Fact]
-    public void 領主権の在地は土地の保有と農奴の緊縛の論理和である()
-    {
-        var w = Warm(NationConfig.France());
-        var c = w.Coef;
-        c.NobleAdminFromSeigneurial = 1.0;          // 床を最小にした最も鋭い腕＝差が最大に出る
-        w.SerfEmancipation = ReformLevel.Full;      // 農奴の緊縛は無し＝残る駆動量は土地の保有だけ（英の型）
-
-        double rentNoble = 0, rentOther = 0;
-        foreach (var p in w.AllPops()) { double lr = System.Math.Max(0, p.LandRentPerMonth.Value); if (p.ClassId == PopClass.Noble) rentNoble += lr; else rentOther += lr; }
-        Assert.True(rentNoble > 1e-9 && rentOther > 1e-9, $"地代の内訳が測れない世界（貴族{rentNoble:R}／他{rentOther:R}）");
-
-        double held = w.AdminEfficiency;
-        foreach (var p in w.AllPops()) if (p.ClassId == PopClass.Noble) p.LandRentPerMonth = new MoneyPerMonth(0);   // 米の型：土地は自作農の手にあり貴族は地代を1銭も握らない
-        double landless = w.AdminEfficiency;
-        Assert.True(held > landless + 1e-9, $"農奴制の無い国で土地の保有が素地を支えていない＝原型の事例で向きが逆（{held:R} vs {landless:R}）");
-
-        // 論理和の他方：土地を1銭も握らなくても未解放度1.0なら素地は満額＝係数の有無でビット同一（露の型）
-        w.SerfEmancipation = ReformLevel.None;
-        double bound = w.AdminEfficiency;
-        c.NobleAdminFromSeigneurial = 0.0;
-        AssertBitEqual(w.AdminEfficiency, bound, "未解放度1.0でも土地を握らないと素地が痩せている＝論理和でなく積になっている");
-    }
+    // ★(383) 作者 2026-10-16「行政効率→廃止」：特権の見返り 段2（領主権の在地が貴族の行政の素地を変調する機構 NobleAdminFromSeigneurial）は行政効率の 4 因子ごと物理削除した。その番人 2 本（係数 0 で恒等・点火で線形で床を残す／在地は土地の保有と農奴の緊縛の論理和）も消した。
 
     /// <summary>特権の取り分は pop→pop の移転＝ゼロ和（国庫を通さず貨幣を作らない）。
     /// 十分の一税＝特権そのものが金を動かす現物の経路（★2026-09-30 段3-4＝Fiscal.Step の税の走査で税と同じ1本の率で集める＝旧 Privileges.CollectTithe は削除）。

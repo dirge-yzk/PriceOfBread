@@ -1,0 +1,16 @@
+ok PriceOfBread.SimCore/World.cs 1
+M1 行政効率に係数を掛ける rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [160 ms]', '  失敗 PriceOfBread.Tests.AdminDeletionTests.行政効率の説明台帳は値と一致する [19 ms]', '  失敗 PriceOfBread.Tests.AdminDeletionTests.行政効率は州の充足の人口加重平均だけ [1 ms]']
+ok PriceOfBread.SimCore/EconomyStep.cs 1
+M2 官僚POPが居ない州のelse ifを消す rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [102 ms]', '失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 16 s - PriceOfBread.Tests.dll (net10.0)']
+ok PriceOfBread.SimCore/Simulation.cs 1
+M3 構築のAdminFill=0を消す rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [23 ms]', '  失敗 PriceOfBread.Tests.AdminDeletionTests.最初の決算の前のAdminFillは0 [59 ms]', '     Error: Assert.Equal() Failure: Values differ']
+ok PriceOfBread.SimCore/Simulation.cs 1
+M4 法の浸透の門が行政効率を読まない rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [50 ms]', '失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 10 s - PriceOfBread.Tests.dll (net10.0)']
+ok PriceOfBread.SimCore/TechEducation.cs 1
+M5 吸収に行政の脚を戻す rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [14 ms]', '  失敗 PriceOfBread.Tests.AdminDeletionTests.吸収能力は行政の充足に依らない [123 ms]', '失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 12 s - PriceOfBread.Tests.dll (net10.0)']
+ok PriceOfBread.SimCore/Politics.cs 1
+M6 天命に汚職の説明項を戻す rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [32 ms]', '  失敗 PriceOfBread.Tests.AdminDeletionTests.天命と正統性の説明台帳に汚職の項は無い [15 ms]', '失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 6 s - PriceOfBread.Tests.dll (net10.0)']
+ok PriceOfBread.SimCore/SelfPlay.cs 1
+M7 AIの専門官僚制の規則を戻す rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [32 ms]', '  失敗 PriceOfBread.Tests.AdminDeletionTests.AIは行政効率を理由に専門官僚制を目標に置かない [84 ms]', '失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 5 s - PriceOfBread.Tests.dll (net10.0)']
+ok PriceOfBread.SimCore/Government.cs 1
+M8 土地税の最上段に錠を戻す rc= 1 ['  失敗 PriceOfBread.Tests.AdminDeletionTests.土地税は開幕から最上段まで押せる_検地台帳の錠は無い [82 ms]', '失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 11 s - PriceOfBread.Tests.dll (net10.0)']

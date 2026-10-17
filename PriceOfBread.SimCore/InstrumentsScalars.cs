@@ -7,6 +7,7 @@ namespace PriceOfBread.SimCore;
 //   dynMandate・legitimacy・defeatShock ＝ 天命・正統性・敗戦ショック。warExhaustion ＝ 厭戦のストック（Power.WarExhaustion）。
 //   milWarMean・militancyMean ＝ Pop.MilWar と Pop.Militancy の人口加重平均（MilWar は Politics が最後に書いた闘争度の目標への寄与＝何もしない機構が緑にならないための実測）。
 //   dmWar ＝ 天命の戦争の項（−DynMandateWarWeight×厭戦のストック＝Politics の式と同じ値をここで導く）。汚職の 2 項の列 dmGraft・corrErosion と旗の列 flagC・flagW は (377) の物理削除で消した。
+//   adminEfficiency・crown・childLaborLegal・workHoursValue ＝ (383) 行政効率の削除の線の読み（World の値をそのまま読む・adminEfficiency ＝ AdminFill の人口加重平均）。行政力の移動平均・高行政の継続四半期・土地税の錠の 3 列は (383) の物理削除で消した。
 //   atWar・polityCode・educationLaw・suffrage・censorship・bureaucracy ＝ 政体の遷移の年と改革の年の読み取り（法の列挙値の整数）。
 // ⚠限界（計器が自分で申告する）：
 //   ・dmWar は行を書く時点の厭戦のストックから導く（Politics.Step が使った時点の値とは限らない）。人口 0 の国と死んだ国は行を出さない。
@@ -14,7 +15,8 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string ScalarsHeader = "quarter\tyear\tnation\tborn\tpopK\tatWar\tpolityCode\teducationLaw\tsuffrage\tcensorship\tbureaucracy\t"
-        + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar";
+        + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
+        + "adminEfficiency\tcrown\tchildLaborLegal\tworkHoursValue";
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -31,6 +33,7 @@ public static partial class Instruments
         sk.Sca.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), w.BornOfSecession ? "1" : "0", F(popK), Government.AtWar(w) ? "1" : "0",
             I((int)w.Polity), I((int)w.EducationLaw), I((int)w.Suffrage), I((int)w.Censorship), I((int)w.Bureaucracy),
             F(w.EffectiveCorruption), F(w.DynasticMandate), F(w.Legitimacy), F(w.DefeatShock),
-            F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0))));
+            F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
+            F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue)));
     }
 }

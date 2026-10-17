@@ -327,4 +327,21 @@ public static class PoliticalQuantities
         //   それでも否定形で書く＝摩擦が数でなければ摩擦なし扱いにせず、回復量そのものを 0 に倒すのは呼び手（Politics.Step）の否定形ガード。
         return !(friction > 0) ? 1.0 : 1.0 / (1.0 + friction);
     }
+
+    /// <summary>★(383) 活きた州の <see cref="Region.AdminFill"/>（官僚の役務の充足）の人口加重平均＝<see cref="World.AdminEfficiency"/> の値（作者 2026-10-16「行政効率→廃止」で 4 因子の倍率の連鎖は物理削除した）。
+    /// 足し順は旧の式の `market` と同じ（州の並び順に fill+=AdminFill×人口・size+=人口）。人口が無い国は 1.0（旧と同じ・漏れる収入が無い）。</summary>
+    public static double AdminFillMean(World w)
+    {
+        double fill = 0, size = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double p = r.SumPopulation();
+            fill += r.AdminFill * p; size += p;
+        }
+        if (size <= 1e-9) return 1.0;
+        double v = Clamp01(fill / size);
+        if (w.Explain != null) { w.Explain.Reset("AdminEfficiency"); w.Explain.Add("AdminEfficiency", "官僚制(行政費)", v); }   // 説明API（#63）：旗>0 の行政効率は充足だけ（記帳は戻り値と同じ値）
+        return v;
+    }
 }

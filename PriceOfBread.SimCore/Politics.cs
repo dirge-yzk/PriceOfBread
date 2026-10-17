@@ -328,7 +328,7 @@ public static class Politics
 
         // P8 天命 DynasticMandate v2（第5段5-3・2026-07-27）：抽象EMA→**未教育層の支持**へ再定義（docs/202607/20260727_政治の中核ルールと危機の選択_部分完了.md【一部】.md §8）。
         // Mandate＝未教育層（1−意識加重）の満足の評価EMA＝支持層が実在し検算可能。満足度は未教育popを通じてのみ天命へ・教育popを通じてのみ闘争度へ（§8-3）。
-        // 「食えている限りの忠誠」＝dmFood/dmWar/dmGraft が王朝循環の条件を担う（§8-6）。決定的勝敗のインパルスは読まない＝DefeatShock/VictoryLegitBoost専属・二重流入排除。
+        // 「食えている限りの忠誠」＝dmFood/dmWar が王朝循環の条件を担う（§8-6）。決定的勝敗のインパルスは読まない＝DefeatShock/VictoryLegitBoost専属・二重流入排除。
         // 効果＝正統性の**連続項のみ**非対称増幅（離散インパルス＝敗戦ショック/戦勝/破産/鎮圧/建国には掛けない）。
         double dynErodeMul = 1.0, dynRegenMul = 1.0;
         {   // 天命（P8・2026-07-18 点火＝旗 DynasticMandateEnabled は 2026-09-26 に焼き込み）
@@ -341,8 +341,7 @@ public static class Politics
             double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - c.DynMandateSatPivot) / (1.0 - c.DynMandateSatPivot);   // 中立点は分位の写像で導出（Coefficients.DynMandateSatPivot）
             double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
-            double dmGraft = -c.DynMandateGraftWeight * w.EffectiveCorruption;
-            double dynPerf = dmSat + dmFood + dmWar + dmGraft;
+            double dynPerf = dmSat + dmFood + dmWar;   // ★(383) 作者 2026-10-16「汚職→廃止」：汚職の項 dmGraft（天命への -DynMandateGraftWeight×実効汚職）は物理削除した
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
             w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
             if (w.Explain != null)   // 説明API：天命の内訳（合計＝最終値の厳密分解）
@@ -354,7 +353,6 @@ public static class Politics
                 w.Explain.Add("DynasticMandate", "未教育層の満足(天命の母数)", r * dmSat);
                 w.Explain.Add("DynasticMandate", "飢えの評価", r * dmFood);
                 w.Explain.Add("DynasticMandate", "戦争疲弊の評価", r * dmWar);
-                w.Explain.Add("DynasticMandate", "汚職の体感", r * dmGraft);
                 double dmClamp = r * ((dmTarget - 0.5) - dynPerf);
                 if (dmClamp != 0) w.Explain.Add("DynasticMandate", "評価の飽和", dmClamp);
             }
@@ -382,11 +380,9 @@ public static class Politics
         // 意識ある社会が要求する代表/自由(RepresentationThreshold)と実効(Freedom＝参政権＋報道法から創発)の差が正統性を侵食する。
         // ＝閉じた体制(低Freedom)ほど・意識が高いほど削れ、代表的な体制(Freedom≥閾値)は自動で侵食ゼロ（政体ラベルでなく制度実数から創発）。
         double institutionalGap = avgConsc * Math.Max(0, c.RepresentationThreshold - w.Freedom);
-        // 腐敗→正統性侵食（corruption-only-fiscal-leak）：縁故主義・公共財の毀損は制度不信を生む。意識ある社会(avgConsc)ほど腐敗を許さない＝institutionalGap と同型ゲート。
-        // 較正中立：合成較正は行政財なしで AdminEfficiency=1.0＝(1−AdminEfficiency)=0 で侵食0（係数0.015は実世界で効く）。腐敗は財政漏れ(Fiscal)に加え政治的代償を持つ。
-        double corruptionErosion = c.CorruptionLegitimacyErosion * avgConsc * Math.Max(0, 1.0 - w.AdminEfficiency);   // C2-C5撤去2026-08-16：末尾の ×(1−CleanGovernance) を物理削除（V2恒久ONで清廉度は恒等0＝×1.0はIEEE754で厳密恒等）。⚠監視(OversightV2)はここに掛けない＝掛けると挙動変更（掃除の範囲外・要裁定なら較正ラウンドで）
+        // ★(383) 作者 2026-10-16「汚職→廃止」：腐敗→正統性の侵食 corruptionErosion（CorruptionLegitimacyErosion×意識×(1−行政効率)）は物理削除した（腐敗は財政漏れ Fiscal の額で効く＝正統性へ重ねて引くのは二重計上）。
         // 政1：全侵食項を erosion に集約（無状態版 leg=1−erosion／ストック版は前期値からこの erosion を差し引き緩慢に再生）。
-        double erosion = (c.LegitimacyErosionRate * institutionalGap + corruptionErosion) * dynErodeMul + c.DefeatShockLegitWeight * w.DefeatShock;   // 敗戦ショックが正統性を一時的に大きく削る（敗戦→革命）。較正は DefeatShock=0＝中立。P8天命は連続項のみ変調（×1.0で恒等・敗戦インパルスは除外）
+        double erosion = (c.LegitimacyErosionRate * institutionalGap) * dynErodeMul + c.DefeatShockLegitWeight * w.DefeatShock;   // 敗戦ショックが正統性を一時的に大きく削る（敗戦→革命）。較正は DefeatShock=0＝中立。P8天命は連続項のみ変調（×1.0で恒等・敗戦インパルスは除外）
         // 説明API（#63）：正統性の内訳を実寄与量で記帳。既定は LegitimacyIsStock=1.0＝**ストック**（履歴が累積する経路依存量）。
         // 代数：leg = (1−s)·1 + s·P + s·regen − erosion − mandate（P=前期の正統性・侵食は s に依らず全額）。ゆえに「前期からの正統性（履歴）＋今期の回復−侵食−マンデート＋後続イベント（戦勝/デフォルト/内戦…）」に分解される。
         // null 条件のため説明モードオフでは丸ごと短絡＝本計算はビット恒等。侵食の各項はこの下で個別に負記帳する。
@@ -396,7 +392,6 @@ public static class Politics
             w.Explain.Add("Legitimacy", "前期からの正統性(履歴の累積)", w.Legitimacy);
             w.Explain.Add("Legitimacy", "自然回復(安定期の信任回復)", c.LegitimacyRegenRate * Math.Max(0, 1 - w.Legitimacy) * dynRegenMul);
             w.Explain.Add("Legitimacy", "制度ギャップ侵食(意識と参政権・報道の乖離)", -c.LegitimacyErosionRate * institutionalGap * dynErodeMul);
-            w.Explain.Add("Legitimacy", "腐敗侵食(縁故主義・公共財の毀損)", -corruptionErosion * dynErodeMul);
             w.Explain.Add("Legitimacy", "敗戦ショック", -c.DefeatShockLegitWeight * w.DefeatShock);
         }
         // 議会の力学（ParliamentEnabled のみ＝合成較正は従来どおり）：既存の正統性に信号を流し、遷移を創発させる（外科的フリップなし）。
@@ -718,7 +713,6 @@ public static class Politics
         //   （scorebreak実測＝上位がポーランド/ラオス等の平和な小国・仏47位）。
         //   共和革命＝土地改革（限定的）・プロレタリア独裁＝全面（集産化）。**書くのは既存の法**＝FarmRentCap が
         //   地代を削り、地代の資本化＝旧支配層の政治力が一緒に痩せる（機構は全て既存・この1本だけが欠けていた）。
-        //   ⚠検地台帳の前提は迂回＝没収に台帳は要らない（参政権の floor-raise と同じ扱い）。
         //   ⚠立憲君主制には適用しない＝地主との妥協の産物（英・七月王政）。（旗 RevolutionLandReform は 2026-09-26 に焼き込み）
         if (dt)
         {
@@ -1249,7 +1243,7 @@ public static class Politics
             if (staged)
             {
                 int s0 = Government.TaxStage(a, cur), s = Math.Clamp(s0 + (inc ? n : -n), 0, Government.TaxLawStages);
-                // 前提DAG（検地台帳・教育法・緊縮の逆進フロア）＝StepEnumAxis と同じ作法。
+                // 前提DAG（教育法・緊縮の逆進フロア）＝StepEnumAxis と同じ作法。
                 // ★裁定B（2026-09-12 反証）：段の財政軸は**下げる側でも**前提を照会する＝<see cref="Government.GateInfo"/> が段の財政軸だけ
                 //   上下とも LawPrereq を通すのと同じ理由（床＝「緊縮の下限」は下げる向きにしか現れない）。旧はここが inc の側だけで、
                 //   勝った運動の経済決着だけが床を素通りできた（裁定Bで施行側の Max を廃した以上、翌期に押し戻す者はもう居ない）。
