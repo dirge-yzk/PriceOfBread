@@ -1,0 +1,8 @@
+﻿start 10/18/2026 06:19:28
+default cpu=89 wall=63
+PGO0 cpu=94 wall=70
+TC0 cpu=88 wall=67
+default cpu=89 wall=63
+PGO0 cpu=0 wall=465
+TC0 cpu=159 wall=1061
+end 10/18/2026 06:49:18
