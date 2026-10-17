@@ -97,6 +97,23 @@ public class OpeningFiscalAlignTests
         Assert.NotEqual("", TierMismatch(ai.Nations[0].World, 3));    // 対照：旗 0 の AI の英は助走の後に段 3 ではない（教義の段〔Industrialize＝2〕）＝旗 1 の差が観測できる
     }
 
+    [Theory]
+    [InlineData(1.0, true)]    // 両方
+    [InlineData(2.0, true)]    // 段だけ（切り分けの B1）
+    [InlineData(3.0, false)]   // 門だけ（切り分けの B2）＝段の置き換えは走らない
+    [InlineData(0.0, false)]
+    public void 旗の値の割り方_段は1と2で立ち3と0では立たない(double flag, bool tierOn)
+    {
+        foreach (bool ai in new[] { false, true })
+        {
+            var sim = Build(["イギリス", "フランス"], ai ? _ => new UtilityAgent() : _ => new NullAgent(), flag);
+            sim.StartWarmup();
+            var uk = sim.Nations[0].World;
+            if (tierOn) Assert.Equal("", TierMismatch(uk, 3));
+            else Assert.NotEqual("", TierMismatch(uk, 3));   // 段 3 にならない（NullAgent は 0・AI は教義の段）
+        }
+    }
+
     [Fact]
     public void 規則のない国は旗1でも旗0と同じ専売の財を課す()
     {
@@ -186,6 +203,10 @@ public class OpeningFiscalAlignTests
     [InlineData(1.0, 1.0)]   // relax・旗 1＝飛ばす
     [InlineData(0.0, 0.0)]   // 非 relax の経路・旗 0
     [InlineData(0.0, 1.0)]   // 非 relax の経路・旗 1
+    [InlineData(1.0, 2.0)]   // 旗 2〔段だけ〕＝門は走らない＝旗 0 と同じ
+    [InlineData(1.0, 3.0)]   // 旗 3〔門だけ〕＝旗 1 と同じ
+    [InlineData(0.0, 2.0)]
+    [InlineData(0.0, 3.0)]
     public void 新しい工事の月の出費が上限をこえるなら旗1だけ着工しない(double relax, double flag)
     {
         var w = FourNations().Nations[0].World;
@@ -202,7 +223,7 @@ public class OpeningFiscalAlignTests
 
         new UtilityAgent().DecideQuarter(w);
 
-        if (flag > 0) Assert.Equal(0, cand.StateTarget);   // 新しい工事を足すと上限を超える＝押さない
+        if (flag == 1.0 || flag == 3.0) Assert.Equal(0, cand.StateTarget);   // 新しい工事を足すと上限を超える＝押さない（門が開く旗は 1・3）
         else Assert.Equal(1, cand.StateTarget);            // 旧＝上限の内の今ある工事だけを見て着工（超過する）
     }
 
@@ -228,6 +249,8 @@ public class OpeningFiscalAlignTests
     [Theory]
     [InlineData(0.0)]
     [InlineData(1.0)]
+    [InlineData(2.0)]
+    [InlineData(3.0)]
     public void 着工を拒まれた意志の出費も旗1では上限に数える(double flag)
     {
         // 英の Q0 で起きたこと：建材の採算などで着工を拒まれた意志は monthlyBuild に載らず、全州に意志が立ち、月次の再挑戦が上限の約 3 倍の工事を着工した（診断）。
@@ -254,7 +277,7 @@ public class OpeningFiscalAlignTests
         var wills = planted.Where(x => x.Pr.StateTarget > World.StateUnits(x.Pr, w.Coef)).ToList();
         Assert.All(planted, x => Assert.True(x.Pr.ConstructionLeft <= 0, "前提：着工は全て拒まれた"));
         double sum = wills.Sum(x => UtilityAgent.NewFacilityOutlayPerMonth(w, x.Rg, x.Pr));
-        if (flag > 0)
+        if (flag == 1.0 || flag == 3.0)
         {
             Assert.True(wills.Count >= 1, "上限の内の意志は立つ");
             Assert.True(sum <= cap, $"立った意志の月の出費の見積りの和 {sum} が上限 {cap} をこえた");

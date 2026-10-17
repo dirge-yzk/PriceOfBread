@@ -1159,7 +1159,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
         //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
         bool relax = w.Coef.AiBuildGuardRelax > 0;
-        bool outlayGate = w.Coef.OpeningFiscalAlign > 0;   // ★(400) 着工しようとする工事の月の出費も上限と比べる（下の 2 か所）。0＝旧
+        bool outlayGate = w.Coef.OpeningFiscalAlign > 0 && w.Coef.OpeningFiscalAlign != 2;   // ★(400) 着工しようとする工事の月の出費も上限と比べる（下の 2 か所）。旗 1〔両方〕か 3〔門だけ〕のとき。0〔旧〕・2〔段だけ〕では走らない
         if (relax ? !(w.FiscalFundingRatio.Value >= 1) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
         // ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
         //   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
@@ -1516,7 +1516,7 @@ public sealed class UtilityAgent : INationAgent
             else if (w.Treasury.Value > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
             else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }
-        else if (w.OpeningStateMonopolyTier > 0 && w.Coef.OpeningFiscalAlign > 0) stateMonopTier = Math.Max(stateMonopTier, w.OpeningStateMonopolyTier);   // ★(400) 助走の間は専売の開幕の段（world.json・旗 OpeningFiscalAlign＞0）を保つ＝教義の段は床のまま max（助走の始めに置いた段を助走の各四半期の教義が下げて消さない）。規則なしの国・旗 0 ではこの行は走らない
+        else if (w.OpeningStateMonopolyTier > 0 && w.Coef.OpeningFiscalAlign > 0 && w.Coef.OpeningFiscalAlign != 3) stateMonopTier = Math.Max(stateMonopTier, w.OpeningStateMonopolyTier);   // ★(400) 助走の間は専売の開幕の段（world.json・旗 OpeningFiscalAlign＞0）を保つ＝教義の段は床のまま max（助走の始めに置いた段を助走の各四半期の教義が下げて消さない）。規則なしの国・旗 0 ではこの行は走らない
         // ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。
         //   ⚠旧はここが w.StateMonopolyMargins[] へ直書きしていた（天井の自動導出を避けるための意図的な迂回）＝P5の破れ。天井が消えたので迂回の理由も消えた。
         if (Instruments.On) Instruments.MonopolyDecision(w, w.StateMonopolyTier, Math.Clamp(stateMonopTier, 0, World.StateMonopolyMaxTier));   // 計器（読むだけ・(265)）：専売の段（今の段→置く段・Clamp は SetStateMonopolyTier と同じ）

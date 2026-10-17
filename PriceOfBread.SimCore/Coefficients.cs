@@ -2349,6 +2349,7 @@ public sealed class Coefficients
     //   (2) AI の工場の着工の門（SelfPlay.TryBuildFacility）：着工しようとする工事の月の出費（工賃＋素材）を、今ある工事の月の出費に足してから上限（FacilityBuildOutlayShare×安全水準）と比べる。
     //       超えるなら**その州は飛ばす**（機構の BuildFactory／SetStateTarget は変えない＝AI の判断だけ）。
     //   0＝(1)(2) とも 1 命令も違わない。採否は measurements/op_20261018_prereg.txt。
+    //   値の割り方（追記2・測る前に固定）：1＝(1)(2) 両方（腕 B）／2＝(1) だけ（切り分けの B1）／3＝(2) だけ（切り分けの B2）。同じ木で値だけ違う。
     public double OpeningFiscalAlign = 0;
 
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
