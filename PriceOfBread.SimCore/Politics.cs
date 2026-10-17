@@ -1522,6 +1522,7 @@ public static class Politics
             if (!(d > 0)) d = 0; else if (d > 1) d = 1;
             r2.Dominance = d;
         }
+        if (Instruments.On) Instruments.SecObserve(w, c, coerce, stance, hold, sharedDivDom, restive, margins);   // ★(395) 計器（読むだけ）：州ごとの離脱圧力・保持力・支配度の内訳の表
         // ★支配度の一般化 段1（2026-09-06・観測のみ）：4区分を目標へ寄せる。目標は既存量だけ＝国家＝行政効率×支配度（行政の到達×駐留と意識の帰結）、
         //   在地＝農奴解放の未解放度×国家の残り、外国＝0（段5で講和・占領から）、無統治＝残り。速度は DominanceSpeed（新しい速度定数を作らない）。合計1を保つ。
         if (c.RuleSharesEnabled > 0)
@@ -1669,7 +1670,7 @@ public static class Politics
     ///   （英領インドはウェストミンスターに議席なし／仏領アルジェリアのコロンはパリに議席あり）。
     ///   ⇒ これを法で表すなら「編入するか植民地のままか」という別の決定が要る＝**J-009 の裁定待ち**。
     /// </summary>
-    private static double SuffrageInclusion(World w, Region r)
+    internal static double SuffrageInclusion(World w, Region r)
         => w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : AvgRegionCoreShare(r);
 
     /// <summary>★支配度の一般化 段4（作者採用 §5・2026-09-07）：公共財（教育の財源・年金の給付）の到達＝(1−g)+g×国家区分。
