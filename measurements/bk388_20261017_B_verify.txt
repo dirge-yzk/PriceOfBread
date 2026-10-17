@@ -1,0 +1,34 @@
+(388) 後半：既定を倒した木（コミット 94d51c5c・SimCore は 12022e82 と同じ）の検証の記録
+== フルスイート（FullLength を除く・Release・隔離ビルド）
+成功!   -失敗:     0、合格:  1284、スキップ:     0、合計:  1284、期間: 16 m 31 s - PriceOfBread.Tests.dll (net10.0)
+== FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 37 s - PriceOfBread.Tests.dll (net10.0)
+== savetest（既定・全 63 カ国〔既定の world.json では分離独立が 1 国多い〕）
+保存 44.0MB（902ms）／読込 793ms（300四半期時点）
+savetest OK：12四半期後も全63カ国が継続系列と一致（最大相対差 0.0E+000）
+rc=0
+== leakhunt（既定・助走なし）末尾
+leakhunt 完走（seed=1789・668四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+rc=0
+1
+== leakhunt（助走つき seed 1789・668 四半期）末尾
+leakhunt 完走（seed=1789・668四半期・助走つき・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+rc=0
+== 参考：最初のフルスイート（同じ旗・テストの直し前）の赤 10 本→直し後の 5 本→0 本（fullsuite1.txt・fullsuite2.txt）
+fullsuite1.txt:  失敗 PriceOfBread.Tests.InitialDefaultsTests.回247_既定は最頻の値_書くキーが最も少ない [2 s]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.DomesticServiceProductivityTests.使用人の産出の係数は毎月の能力に届き倍率どおりに変わる_構築時の生産性は1のまま [4 s]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.DiscoveryScoreTests.判定は一過性の値段の跳ねでは開かない [7 s]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "アメリカ", difficulty: "普通") [5 s]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.NationBriefTests.難易度の現時点の割り当て(name: "プロイセン", difficulty: "簡単") [2 s]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.MilitaryTests.艦隊の注意は相手の越境の交易額で向く [216 ms]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.DiscoveryScoreTests.自然価格から始めると最初の平滑化した値段が自然価格と同じ率の観測で閉じる [7 s]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2402406) [< 1 ms]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 5032) [< 1 ms]
+fullsuite1.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2695) [< 1 ms]
+fullsuite2.txt:  失敗 PriceOfBread.Tests.StartWarmupTests.助走は国債を動かさず開幕の英の国債は年GDPの約1倍 [7 s]
+fullsuite2.txt:  失敗 PriceOfBread.Tests.StartWarmupTests.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント [7 s]
+fullsuite2.txt:  失敗 PriceOfBread.Tests.MultiNationTests.戦闘ログは日付が二重にならない書式で出る [3 s]
+fullsuite2.txt:  失敗 PriceOfBread.Tests.InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される [1 m 2 s]
+fullsuite2.txt:  失敗 PriceOfBread.Tests.InstrumentsTests.借入の門の周りの列が試合の月ごとの行から組み直した数に合う [5 s]
