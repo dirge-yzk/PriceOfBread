@@ -9,6 +9,8 @@ namespace PriceOfBread.SimCore;
 //   dmWar ＝ 天命の戦争の項（−DynMandateWarWeight×厭戦のストック＝Politics の式と同じ値をここで導く）。汚職の 2 項の列 dmGraft・corrErosion と旗の列 flagC・flagW は (377) の物理削除で消した。
 //   adminEfficiency・crown・childLaborLegal・workHoursValue ＝ (383) 行政効率の削除の線の読み（World の値をそのまま読む・adminEfficiency ＝ AdminFill の人口加重平均）。行政力の移動平均・高行政の継続四半期・土地税の錠の 3 列は (383) の物理削除で消した。
 //   atWar・polityCode・educationLaw・suffrage・censorship・bureaucracy ＝ 政体の遷移の年と改革の年の読み取り（法の列挙値の整数）。
+//   ★(395) 末尾の 4 列＝前提つきの法（ab の R2）：socialSecurityLawCode（0 救貧法・1 労災・2 失業保険・3 年金）・antitrustLawCode（0 なし・1 談合禁止・2 トラスト解体）・progressiveTaxShare（累進課税 0..1・現在値）・
+//   nationalizedMaskCode（国有化部門のビット＝<c>NationalizedSector</c> の番号が立つ位置：鉄道 1・鉱山 2・軍需 4・石油 16・電力 32・全て 64）。World の現在値をそのまま読む。
 // ⚠限界（計器が自分で申告する）：
 //   ・dmWar は行を書く時点の厭戦のストックから導く（Politics.Step が使った時点の値とは限らない）。人口 0 の国と死んだ国は行を出さない。
 //   ・effCorruption は World.EffectiveCorruption を計器の中で呼ぶ＝AdminEfficiency の走査を国×行ごとに 1 回足す（INS=1 のときだけ・結果は書かない）。
@@ -16,7 +18,8 @@ public static partial class Instruments
 {
     internal const string ScalarsHeader = "quarter\tyear\tnation\tborn\tpopK\tatWar\tpolityCode\teducationLaw\tsuffrage\tcensorship\tbureaucracy\t"
         + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
-        + "adminEfficiency\tcrown\tchildLaborLegal\tworkHoursValue";
+        + "adminEfficiency\tcrown\tchildLaborLegal\tworkHoursValue\t"
+        + "socialSecurityLawCode\tantitrustLawCode\tprogressiveTaxShare\tnationalizedMaskCode";   // ★(395) 前提つきの法の4本（事前登録 ab の R2＝累進課税・失業保険・独占禁止・国有化が入った年を読む）＝末尾に足した（既存の列の位置は動かない）
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -34,6 +37,7 @@ public static partial class Instruments
             I((int)w.Polity), I((int)w.EducationLaw), I((int)w.Suffrage), I((int)w.Censorship), I((int)w.Bureaucracy),
             F(w.EffectiveCorruption), F(w.DynasticMandate), F(w.Legitimacy), F(w.DefeatShock),
             F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
-            F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue)));
+            F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue),
+            I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask())));
     }
 }

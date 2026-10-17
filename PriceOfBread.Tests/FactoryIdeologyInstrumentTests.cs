@@ -52,7 +52,7 @@ public class FactoryIdeologyInstrumentTests
         {
             var (h, rows) = Table(System.IO.Path.Combine(dir, "factory_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
-            Assert.Equal(4 + 33, h.Length);
+            Assert.Equal(4 + 33 + 27, h.Length);   // ★(395) 末尾に労働の財ごとの 27 列（既存の 33 列は動かさない）
             Assert.True(rows.Count >= 4 * 24 - 4, $"行が少ない {rows.Count}");
             int withCap = 0, chainOk = 0, anyLaborBound = 0, anyOtherBound = 0, anyNotBound = 0;
             double unmatched = 0, desiredAll = 0;

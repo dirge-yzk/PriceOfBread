@@ -1,0 +1,58 @@
+M1_margin_sign	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う [22 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 1 m 13 s - PriceOfBread.Tests.dll (net10.0)
+M2_drop_suffrage_factor	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う [10 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 52 s - PriceOfBread.Tests.dll (net10.0)
+M3_crowd_saturation	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う [17 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 1 m 15 s - PriceOfBread.Tests.dll (net10.0)
+M4_hold_not_shared	GREEN(見逃し)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 40 s - PriceOfBread.Tests.dll (net10.0)
+M5_bound_all_to_first	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.労働の財ごとの列は3財の和が既存の合算列に合い_最後の行は番人の側の書き方で数え直した値に合う [7 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 38 s - PriceOfBread.Tests.dll (net10.0)
+M6_suppliers_double_count	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.労働の財ごとの列は3財の和が既存の合算列に合い_最後の行は番人の側の書き方で数え直した値に合う [6 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 33 s - PriceOfBread.Tests.dll (net10.0)
+M7_swap_law_columns	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.法の列は世界の現在値に合い_国有化のマスクは6フラグから別に組み立てた値に合う [3 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 31 s - PriceOfBread.Tests.dll (net10.0)
+M8_mask_drop_all	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.法の列は世界の現在値に合い_国有化のマスクは6フラグから別に組み立てた値に合う [1 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+M9_scan_count_double	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.計算量の台帳のAIの官僚制度の走査の行は表に揃い_件数は計器の走査の呼びの数に合う [6 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+M10_unit_misplaced	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.計算量の台帳のAIの官僚制度の走査の行は表に揃い_件数は計器の走査の呼びの数に合う [8 ms]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+M11_adv_need_to_plain	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.労働の財ごとの列は3財の和が既存の合算列に合い_最後の行は番人の側の書き方で数え直した値に合う [4 s]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 31 s - PriceOfBread.Tests.dll (net10.0)
+M4_hold_not_shared	RED(検出)
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.同時に閾値を越えた州が複数あれば共有分母が立ち_行の保持力は共有分母で割った値になる [4 ms]
+  エラー メッセージ:
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 19 s - PriceOfBread.Tests.dll (net10.0)

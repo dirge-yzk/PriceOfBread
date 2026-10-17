@@ -242,7 +242,8 @@ public sealed class UtilityAgent : INationAgent
         PolicyPreferences.Profile? shared = null;
         if (w.Coef.AiBureaucracyFromPrereq > 0 || Instruments.On)   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む
         {
-            long scanT0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;   // 走査の実時間は .cost の件数に入らない＝計器つきのときだけ測る（追記3）
+            long scanT0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;   // 走査の実時間（秒）は計器つきのときだけ測る（追記3）。呼びの数は下の台帳が数える
+            w.Cost[CostLedger.AiBureaucracyScans]++;   // 計算量の台帳（診断）：官僚制度の走査は国×四半期（(395)＝(392) までは .cost の外だった）
             BureaucracyFollowsWants(w, p, ref shared);
             if (Instruments.On) Instruments.BurTime(w, System.Diagnostics.Stopwatch.GetTimestamp() - scanT0);
         }
