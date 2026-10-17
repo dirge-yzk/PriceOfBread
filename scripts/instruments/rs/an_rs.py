@@ -7,10 +7,16 @@
  粒度の自己申告：挙げた国（NATIONS）は毎四半期・他の国は年末だけ。年の比べには年末の行（quarter%4==3）だけを使う。
  R1 税÷GDP：英・清ほかの revenuePerMonth÷gdpPerMonth を 1800・1850・1900・1940 年の年末で（種の中央値）。
     ⚠GdpPerMonth は中間財を重ねる総産出で付加価値ではない・revenue は予算の基数（純税収＋間接税）＝史実の税÷GDP とは定義が違う（README §1-9）。
+    ⚠設計 doc §1 の史実の数字（清 2〜3%・英 10% 超）は出典（著者・統計名）と分母（付加価値か総産出か）が未確認＝手元で集める物。この表は参考の記録で Q1 の判断には使わない。
  R2 国家区分の人口加重：英と、分割ポーランドの併合州（ダンツィヒ・レンベルク）を持つ国の国全体・併合州そのもの。1790・1800・1810 年。
  R3 外国の区分：ruleForeignShare＞0 の（国・州）の初年・終年・最大・出た種の数。旧の個数（treatyPortsGrantedCount＞0）の初年・種の数も並べる。
+    （追記2）外国持分の寿命：持分が 0.25（付与 0.5 の半分＝treatyPortInForceFlag の線）以上だった連続の年数の分布（国別）。清の史実の窓（約 100 年）と比べるための記録。
  R4 在地の区分が農奴解放の年で消えないこと：serfLawCode が上がった四半期の前後 8 四半期の国全体の在地の区分の人口加重（挙げた国のみ）。
- R5 enforce：stateReachIndex（⑤b の値）と min(1, adminEfficiencyIndex÷0.5)（旧の門の値）の 20 年ごとの中央値。
+ R5 enforce：stateReachIndex（⑤b の値）と min(1, adminEfficiencyIndex÷0.5)（旧の門の値）の 20 年ごとの中央値。（追記2）本国の州だけの重み（stateReachHomeIndex）を並べる。
+    児童労働の禁止の浸透（scalars_s の childLaborLegal：1＝合法 → 0）が 0.99 を割った年と 0.1 以下（約 90% 浸透）に届いた年・その間の年数（国別・種の中央値）。
+ R6 仲介者の取り分：ruleCutPerMonth（納税者→州の貴族）÷revenuePerMonth を 1800・1850・1900・1940 年（年末・種の中央値）。（追記2）
+ R9 区分の動き（追記2・反証役の点検 中1）：国ごとの国家区分（人口加重）の四半期差の |Δ| の最大と、その四半期の原因の札（法の段が動いた・外国持分が動いた・州の構成が変わった・治安が動いた）。
+    intermediaryDegreeIndex（D1 の仲介者の権利の残高）が 1.0 に張り付いている四半期の割合（国別・max の形が拘束しているか）。
  R7 英領インドの 3 州（中核ベンガル・内陸ベンガル・マドラス）の 4 区分の時系列（1790・1830・1870・1910・1940）。
  R8 無統治の区分の分布：挙げた国の州ごとの平均（上位 12）。
 """
@@ -75,6 +81,11 @@ def main():
     serf = {}                           # (seed, nation) -> [(q, serfLawCode)]
     ungov = defaultdict(list)           # (nation, region) -> [ungov]
     india = defaultdict(list)           # (year, region) -> [(st, lo, fo, un)]
+    fser = defaultdict(list)            # (seed, nation, region) -> [(q, foreignShare)]（R3 の寿命）
+    locq = defaultdict(dict)            # (seed, nation, region) -> {q: localShare}（R4 の州別）
+    stq = defaultdict(dict)             # (seed, nation) -> {q: 国家区分の人口加重}（R9）
+    lawq = {}                           # (seed, q, nation) -> (serf, bur, land, order)（R9）
+    interm = defaultdict(list)          # nation -> [(seed, q, intermediaryDegreeIndex)]（R9）
     qcount = defaultdict(int)
     for si, p in enumerate(files):
         for r in tsv(p):
@@ -85,6 +96,8 @@ def main():
             key = (si, q, n)
             if key not in nat_rows:
                 nat_rows[key] = r
+                lawq[key] = (r['serfLawCode'], r['bureaucracyLawCode'], r['landReformLawCode'], f(r['publicOrderIndex']))
+                interm[n].append((si, q, f(r['intermediaryDegreeIndex'])))
                 qcount[(si, n)] += 1
                 s = serf.setdefault((si, n), [])
                 if not s or s[-1][1] != r['serfLawCode']:
@@ -102,6 +115,8 @@ def main():
                 e[0] = min(e[0], y)
                 e[1].add(si)
             ungov[(n, rg)].append(un)
+            fser[(si, n, rg)].append((q, fo))
+            locq[(si, n, rg)][q] = lo
             if rg in INDIA and n == 'イギリス' and q % 4 == 3:
                 india[(y, rg)].append((st, lo, fo, un))
     nseed = len(files)
@@ -146,6 +161,24 @@ def main():
         P('  なし')
     for (n, rg), e in sorted(foreign.items(), key=lambda kv: (-len(kv[1][3]), kv[0])):
         P('  %s %s\t初年 %d・終年 %d・最大 %.3f・出た種 %d/%d' % (n, rg, e[0], e[1], e[2], len(e[3]), nseed))
+    P('外国持分の寿命（持分 0.25 以上の連続の年数・種×州ごと・国別の中央値と最大）：')
+    life = defaultdict(list)
+    for (si, n, rg), seq in fser.items():
+        seq.sort()
+        start = None
+        for q, fo in seq:
+            if fo >= 0.25 and start is None:
+                start = q
+            elif fo < 0.25 and start is not None:
+                life[n].append((q - start) / 4.0)
+                start = None
+        if start is not None:
+            life[n].append(-(seq[-1][0] - start) / 4.0)   # 負＝最後まで続いた（打ち切り）
+    if not life:
+        P('  なし')
+    for n, v in sorted(life.items()):
+        done = [x for x in v if x > 0]
+        P('  %s\t完結 %d 件・中央値 %.1f 年・最大 %.1f 年／打ち切り（最後まで続いた）%d 件' % (n, len(done), med(done), max(done) if done else float('nan'), len(v) - len(done)))
     P('旧の個数（treatyPortsGrantedCount＞0）：')
     if not port_old:
         P('  なし')
@@ -166,6 +199,22 @@ def main():
                 shown += 1
     if not shown:
         P('  該当なし')
+    P('  州別（上の事象ごと：前後 4 四半期の平均の差〔後−前〕・両方に出る州のみ・差が −0.05 以下の州の数と最小）：')
+    for (si, n), ch in sorted(serf.items()):
+        if qcount[(si, n)] < 0.9 * maxq:
+            continue
+        for (q0, code), (q1, code1) in zip(ch, ch[1:]):
+            if int(code1) > int(code):
+                ds = []
+                for (s2, n2, rg), d in locq.items():
+                    if s2 != si or n2 != n:
+                        continue
+                    bf = [d[q] for q in range(q1 - 4, q1) if q in d]
+                    af = [d[q] for q in range(q1, q1 + 4) if q in d]
+                    if bf and af:
+                        ds.append(statistics.fmean(af) - statistics.fmean(bf))
+                if ds:
+                    P('    種%d %s 四半期%d\t州 %d・差が −0.05 以下 %d・最小 %.3f' % (si + 1, n, q1, len(ds), sum(1 for x in ds if x <= -0.05), min(ds)))
 
     # R5
     P('\n== R5 enforce：stateReachIndex（新）と min(1, adminEfficiencyIndex÷0.5)（旧）・20 年ごとの中央値 ==')
@@ -176,6 +225,91 @@ def main():
             o = [min(1.0, f(r['adminEfficiencyIndex']) / 0.5) for (si, q, nn), r in nat_rows.items() if nn == n and dec <= int(r['year']) < dec + 20]
             row.append('%d:%.2f/%.2f' % (dec, med(a), med(o)))
         P('  %s\t新/旧 ' % n + ' '.join(row))
+    P('  本国の州だけの重み（stateReachHomeIndex）の 20 年ごとの中央値（植民地込み／本国だけ）：')
+    for n in focus:
+        row = []
+        for dec in range(1790, 1950, 20):
+            a = [f(r['stateReachIndex']) for (si, q, nn), r in nat_rows.items() if nn == n and dec <= int(r['year']) < dec + 20]
+            h = [f(r.get('stateReachHomeIndex', 'nan')) for (si, q, nn), r in nat_rows.items() if nn == n and dec <= int(r['year']) < dec + 20]
+            row.append('%d:%.2f/%.2f' % (dec, med(a), med(h)))
+        P('  %s\t込み/本国 ' % n + ' '.join(row))
+    # 児童労働の禁止の浸透（scalars_s）
+    P('  児童労働の浸透（childLaborLegal：1＝合法→0）：0.99 を割った年／0.1 以下に届いた年／間の年数（種の中央値・割った種の数・届いた種の数）：')
+    cl = defaultdict(lambda: defaultdict(list))
+    for sp in sorted(glob.glob(sys.argv[1].rstrip('/\\') + '/scalars_s*.tsv')):
+        si = int(''.join(ch for ch in sp.rsplit('scalars_s', 1)[1] if ch.isdigit()) or 0)
+        for r in tsv(sp):
+            cl[r['nation']][si].append((int(r['quarter']), int(r['year']), f(r['childLaborLegal'])))
+    for n in focus:
+        y1s, y2s, gaps = [], [], []
+        for si, seq in cl.get(n, {}).items():
+            seq.sort()
+            a = next((y for q, y, v in seq if v < 0.99), None)
+            c2 = next((y for q, y, v in seq if v <= 0.1), None)
+            if a is not None:
+                y1s.append(a)
+                if c2 is not None:
+                    y2s.append(c2)
+                    gaps.append(c2 - a)
+        P('    %s\t%s／%s／%s（割った種 %d・届いた種 %d）' % (n, '%.0f' % med(y1s) if y1s else '-', '%.0f' % med(y2s) if y2s else '-', '%.0f' % med(gaps) if gaps else '-', len(y1s), len(y2s)))
+
+    # R6
+    P('\n== R6 仲介者の取り分（ruleCutPerMonth÷revenuePerMonth・年末・種の中央値）==')
+    P('国\t' + '\t'.join(str(y) for y in TARGET_YEARS))
+    for n in focus:
+        row = []
+        for y in TARGET_YEARS:
+            v = [f(r['ruleCutPerMonth']) / f(r['revenuePerMonth']) for (si, q, nn), r in nat_rows.items()
+                 if nn == n and int(r['year']) == y and q % 4 == 3 and f(r['revenuePerMonth']) > 0]
+            row.append('%.4f' % med(v) if v else '-')
+        P(n + '\t' + '\t'.join(row))
+
+    # R9
+    P('\n== R9 区分の動き（追記2）==')
+    P('国ごとの国家区分（人口加重）の四半期差 |Δ| の最大（毎四半期の国のみ・種ごとの最大の中央値と全種の最大・最大の四半期の札）：')
+    for (si, q, n), rows in reg.items():
+        if qcount[(si, n)] >= 0.9 * maxq:
+            stq[(si, n)][q] = wavg(rows, 2)
+    big = defaultdict(list)
+    for (si, n), d in stq.items():
+        qs = sorted(d)
+        best = None
+        for a, c2 in zip(qs, qs[1:]):
+            if c2 - a != 1 or d[a] != d[a] or d[c2] != d[c2]:
+                continue
+            dv = abs(d[c2] - d[a])
+            if best is None or dv > best[0]:
+                best = (dv, c2)
+        if best:
+            dv, c2 = best
+            la, lb = lawq.get((si, c2 - 1, n)), lawq.get((si, c2, n))
+            tags = []
+            if la and lb:
+                if la[:3] != lb[:3]:
+                    tags.append('法の段が動いた')
+                if abs(la[3] - lb[3]) > 0.05:
+                    tags.append('治安が動いた')
+            fa = sum(t[4] * t[1] for t in reg[(si, c2 - 1, n)]) if (si, c2 - 1, n) in reg else 0
+            fb = sum(t[4] * t[1] for t in reg[(si, c2, n)]) if (si, c2, n) in reg else 0
+            if abs(fb - fa) > 1e-6 * (1 + abs(fa)):
+                tags.append('外国持分が動いた')
+            na = {t[0] for t in reg.get((si, c2 - 1, n), [])}
+            nb = {t[0] for t in reg.get((si, c2, n), [])}
+            if na != nb:
+                tags.append('州の構成が変わった')
+            big[n].append((dv, c2, nat_rows[(si, c2, n)]['year'], '・'.join(tags) or '札なし（治安と到達の連続の動き）'))
+    for n in focus:
+        v = big.get(n, [])
+        if v:
+            top = max(v)
+            P('  %s\t中央値 %.3f・最大 %.3f（%s年・%s）' % (n, med([x[0] for x in v]), top[0], top[2], top[3]))
+    P('仲介者の権利の残高（intermediaryDegreeIndex）が 1.0 の四半期の割合（毎四半期の国・年代別。1.0 のまま＝max の形が拘束していない）：')
+    for n in focus:
+        row = []
+        for dec in range(1790, 1950, 20):
+            v = [x for (si, q, x) in interm.get(n, []) if qcount[(si, n)] >= 0.9 * maxq and dec <= 1783 + (q + 1) // 4 < dec + 20 and x == x]
+            row.append('%d:%.2f' % (dec, sum(1 for x in v if x > 0.9999) / len(v)) if v else '%d:-' % dec)
+        P('  %s\t' % n + ' '.join(row))
 
     # R7
     P('\n== R7 英領インドの 3 州（国家/在地/外国/無統治・種の中央値）==')

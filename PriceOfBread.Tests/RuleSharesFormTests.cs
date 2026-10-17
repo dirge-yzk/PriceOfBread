@@ -300,6 +300,55 @@ public class RuleSharesFormTests
         }
     }
 
+    /// <summary>★(399) 追記2（反証役の点検 低6）：仲介者の取り分の保存。同じ盤面の双子（X＝TaxBase 0・Y＝TaxBase 1・どちらも漏れ 0）を 1 か月踏む。
+    /// 全ての州の区分を [国家 0.5・在地 0.4・外国 0.1・無統治 0]・届け率 0.7（1−PrivilegeTaxDiscount 0.3）とすると、手計算で
+    /// 国庫へ届く税 Y＝0.78×X（0.5＋0.4×0.7）・仲介者の取り分＝0.12×X（0.4×0.3）。取り分は納税者から州の貴族へ移るだけ＝(1) 大衆の納税者の貯蓄の減りは X の 0.9 倍（0.78＋0.12）
+    /// (2) 全 POP の貯蓄の増え＋国庫の税収は X と Y で等しい（取り分が貨幣を作りも壊しもしない）。期待値のリテラルは本体の式から作らない。
+    /// ⚠突然変異「取り分を貴族へ移さず捨てる」「取り分を二重に引く」で赤になる。</summary>
+    [Fact]
+    public void D5_仲介者の取り分は納税者から貴族への移転で貨幣を作りも壊しもしない()
+    {
+        (double tax, double cut, double massDelta, double popsDelta, double lordPaid) Month(bool ruleOn)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            sim.Run(1);
+            var w = sim.World; var c = w.Coef;
+            c.TaxLeakByRule = 1; c.RuleSharesEnabled = 1; if (ruleOn) c.RuleSharesTaxBase = 1;
+            Assert.Equal(0.3, c.PrivilegeTaxDiscount.Value, 12);   // 前提（届け率 0.7 の元）
+            w.TaxRate = new Share(0.1); c.TitheRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.SocialSecurity = 0; w.Pension = ReformLevel.None;
+            foreach (var r in w.Regions)
+            {
+                r.Rule = [0.5, 0.4, 0.1, 0.0];
+                foreach (var p in r.Pops) p.SetSavings(Math.Max(p.Savings.Value, 100.0 * Math.Max(0, p.LastEarnedPerMonth.Value)));   // 全員が請求を満額払える（払えない分の按分を外す）
+            }
+            if (ruleOn)   // 前提：税を払う POP のいる活きている州には全て領主（規模のある貴族）がいる＝取り分が捨てられない
+                Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.Contains(r.Pops, p => p.ClassId == PopClass.Noble && !p.IsSoldier && p.Size > 1e-9));
+            double mass0 = 0, all0 = 0, lord0 = 0;
+            var lords = new System.Collections.Generic.List<Pop>();
+            foreach (var r in w.Regions)
+            {
+                Pop? lord = null;   // その州の領主＝最初の貴族（兵士でなく規模あり）。領主本人の税は取り分を引かれない（自分へ払う意味がない）
+                foreach (var p in r.Pops) { all0 += p.Savings.Value; if (Politics.IsMassPop(p) && !p.IsSoldier) mass0 += p.Savings.Value; if (p.ClassId == PopClass.Noble && !p.IsSoldier && lord is null && p.Size > 1e-9) lord = p; }
+                if (lord is not null) { lords.Add(lord); lord0 += lord.Savings.Value; }
+            }
+            double t0 = w.TreasuryLedger[(int)TreasuryCat.Tax];
+            w.FiscalFundingRatio = new Share(1.0); Fiscal.Step(w, c, 0);
+            double mass1 = 0, all1 = 0;
+            foreach (var r in w.Regions) foreach (var p in r.Pops) { all1 += p.Savings.Value; if (Politics.IsMassPop(p) && !p.IsSoldier) mass1 += p.Savings.Value; }
+            double lord1 = 0; foreach (var l in lords) lord1 += l.Savings.Value;
+            return (w.TreasuryLedger[(int)TreasuryCat.Tax] - t0, w.LastRuleCut, mass1 - mass0, all1 - all0, lord0 - lord1);
+        }
+        var x = Month(false); var y = Month(true);
+        Assert.True(x.tax > 1e3, $"前提が崩れた：税が立たない {x.tax}");
+        Assert.Equal(0.0, x.cut);
+        Assert.Equal(0.78, y.tax / x.tax, 9);                          // 国庫へ届く税＝0.5＋0.4×0.7
+        Assert.True(x.lordPaid > 0 && x.lordPaid < 0.5 * x.tax, $"前提が崩れた：領主本人の税の割合 {x.lordPaid / x.tax}");
+        Assert.Equal(0.12, y.cut / (x.tax - x.lordPaid), 9);           // 仲介者の取り分＝0.4×(1−0.7)×(領主本人を除く納税者の査定の全額)
+        Assert.True(x.massDelta < -100, $"前提が崩れた：大衆の納税が立たない {x.massDelta}");
+        Assert.Equal(0.9, y.massDelta / x.massDelta, 9);               // 大衆の納税者は 国庫への 0.78 と 領主への 0.12 の合わせて 0.9 を払う
+        Assert.Equal(x.popsDelta + x.tax, y.popsDelta + y.tax, 4);     // 全 POP の貯蓄の増え＋国庫の税収は双子で等しい
+    }
+
     // ===== D6 ⑤b 法の浸透の門 =====
 
     [Fact]
@@ -322,8 +371,8 @@ public class RuleSharesFormTests
     [Fact]
     public void D6_女性の賃金保持の追従の速さが国家の区分に比例し行政効率に依らない()
     {
-        double s = new Coefficients().WomenRightsFollowSpeed;
-        foreach (double reach in new[] { 0.2, 1.0 })
+        Assert.Equal(0.15, new Coefficients().WomenRightsFollowSpeed, 12);   // 前提（既定の追従の速さ）。期待値は手計算のリテラル＝1−(1−0.15×到達)^3（月次の追従が 3 回）
+        foreach (var (reach, want) in new[] { (0.2, 0.087327), (1.0, 0.385875) })
         {
             var sim = France(c => { c.RuleSharesReach = 1; c.LawReachByRule = 1; });
             var w = sim.World;
@@ -331,7 +380,7 @@ public class RuleSharesFormTests
             w.WomenRights = WomenRightsLaw.Property;
             w.WomenWageRetention = 0.0;
             sim.StepQuarter();   // 月次の追従が 3 回
-            Assert.Equal(1.0 - Math.Pow(1.0 - s * reach, 3), w.WomenWageRetention, 9);
+            Assert.Equal(want, w.WomenWageRetention, 9);
         }
     }
 }

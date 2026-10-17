@@ -75,6 +75,7 @@ public static class Fiscal
         double titheCollected = 0;
         // ★2026-09-30 段4g：払い手と自分の請求（1本の率を掛けた後）を集め、走査の後に移し方の1本で取る（払い手の重み＝自分の請求・払い手ごとの1本の率＝Q4）。
         //   旧＝走査の中で貯蓄を手で引き（税＋取り分＋十分の一税）、国庫は合計を1回で足した（国庫の片側の記帳）・十分の一税は按分の本体を直に呼んだ。
+        if (ruleMul is not null) w.LastRuleCut = 0;   // ★(399) 診断：今月の仲介者の取り分の総額（計器 rule_s の ruleCutPerMonth・読むだけ・RuleSharesTaxBase>0 の経路だけで動く）
         var taxPayers = new List<Pop>(); var taxClaim = new List<double>();
         var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
         for (int pi = 0; pi < pops.Count; pi++)
@@ -149,6 +150,7 @@ public static class Fiscal
             {
                 // 仲介者の取り分（納税者→貴族＝移し方の1本・所得にも書く）。受け手は重み1（在地の貴族1人＝頭数に依らない＝旧と同じ）。
                 double moved = World.Transfer((w, [p]), (w, [lord], [1.0]), cut, income: true);
+                w.LastRuleCut += moved;   // ★(399) 診断（読むだけ）
                 if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Seigneurial, moved);
             }
             if (tax > 0) { taxPayers.Add(p); taxClaim.Add(tax); }

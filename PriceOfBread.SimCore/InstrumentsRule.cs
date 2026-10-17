@@ -10,12 +10,27 @@ namespace PriceOfBread.SimCore;
 //     dominanceShare（支配度）／capitalDistanceKm（国の座標からの大圏距離・座標未登録は nan）／reachShare（Politics.RegionReach＝② の到達・旗に依らず計算）。
 //   国の列（その国の全ての州の行に同じ値）：serfLawCode・bureaucracyLawCode・landReformLawCode（法の段）／intermediaryDegreeIndex（① 仲介者の権利の残高）／publicOrderIndex（治安）／
 //     stateReachIndex（⑤b の enforce の値＝Politics.StateReach・RuleSharesReach=0 なら 1.0）／adminEfficiencyIndex（旧の門の入力＝旗 0 の enforce は min(1, これ÷LawEnforcementAdminGate)）／
-//     treatyPortsGrantedCount（旧の個数）・treatyPortInForceFlag（読み替えた述語）・portForeignShare（③ の関税の目減り）／taxLeakPerMonth（直近月の汚職漏れ）／revenuePerMonth・gdpPerMonth（税÷GDP を読み手が組む）。
+//     treatyPortsGrantedCount（旧の個数）・treatyPortInForceFlag（読み替えた述語）・portForeignShare（③ の関税の目減り）／taxLeakPerMonth（直近月の汚職漏れ）／revenuePerMonth・gdpPerMonth（税÷GDP を読み手が組む）／
+//     ruleCutPerMonth（直近月の仲介者の取り分＝納税者→州の貴族・World.LastRuleCut・R6）／stateReachHomeIndex（stateReachIndex を植民地格の州を除いた人口加重で読んだ値・R5）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（Instruments.Quarter の呼び時点）／外国持分の主体名は列にしない（個数だけ）／旗 0 の stateReachIndex・reachShare は参考値（本体は読まない）。
 public static partial class Instruments
 {
     internal const string RuleHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\truleStateShare\truleLocalShare\truleForeignShare\truleUngovShare\truleInitLocalShare\tforeignRulerCount\tdominanceShare\tcapitalDistanceKm\treachShare\t"
-        + "serfLawCode\tbureaucracyLawCode\tlandReformLawCode\tintermediaryDegreeIndex\tpublicOrderIndex\tstateReachIndex\tadminEfficiencyIndex\ttreatyPortsGrantedCount\ttreatyPortInForceFlag\tportForeignShare\ttaxLeakPerMonth\trevenuePerMonth\tgdpPerMonth";
+        + "serfLawCode\tbureaucracyLawCode\tlandReformLawCode\tintermediaryDegreeIndex\tpublicOrderIndex\tstateReachIndex\tadminEfficiencyIndex\ttreatyPortsGrantedCount\ttreatyPortInForceFlag\tportForeignShare\ttaxLeakPerMonth\trevenuePerMonth\tgdpPerMonth\truleCutPerMonth\tstateReachHomeIndex";
+
+    /// <summary>stateReachIndex の本国の州だけ版（植民地格の州を除く人口加重の <see cref="Politics.RuleReach"/> の平均・読むだけ）。本体の enforce は読まない（<c>StateReach</c> は植民地格の州も含む）。</summary>
+    static double HomeStateReach(World w, Coefficients c)
+    {
+        double num = 0, den = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            double pop = r.SumPopulation();
+            if (!(pop > 0)) continue;
+            num += pop * Politics.RuleReach(r, c); den += pop;
+        }
+        return den > 0 ? num / den : 1.0;
+    }
 
     static void RuleFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -27,7 +42,7 @@ public static partial class Instruments
         string head = I(q) + "\t" + I(w.Year) + "\t" + NameOf(w) + "\t";
         string nat = string.Join('\t', I((int)w.SerfEmancipation), I((int)w.Bureaucracy), I((int)w.LandReform), F(Privileges.IntermediaryDegree(w)), F(w.PublicOrder),
             F(Politics.StateReach(w, c)), F(w.AdminEfficiency), I(w.TreatyPortsGranted), w.UnequalTreatyInForce ? "1" : "0", F(Politics.ForeignPortShare(w)),
-            F(w.LastTaxLeak), F(w.LastRevenuePerMonth.Value), F(w.GdpPerMonth.Value));
+            F(w.LastTaxLeak), F(w.LastRevenuePerMonth.Value), F(w.GdpPerMonth.Value), F(w.LastRuleCut), F(HomeStateReach(w, c)));
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;

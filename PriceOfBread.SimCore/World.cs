@@ -391,6 +391,7 @@ public sealed class World
     /// <summary>女性参政権が成立しているか（＝梯子が最上段）。男女普通選挙(Universal)の前提。</summary>
     public bool WomenSuffrage => WomenRights >= WomenRightsLaw.Suffrage;
     public double LastTaxLeak { get; internal set; }          // 直近月の汚職漏れ（税収×腐敗率×実効汚職＝官僚の懐へ）。診断用
+    public double LastRuleCut { get; internal set; }          // ★(399) 直近月の仲介者の取り分（納税者→州の貴族・RuleSharesTaxBase>0 のときだけ立つ）。診断用（計器 rule_s が読む）
     // ★撤去2026-08-16（掃除キューC2-C5）：汚職根絶レバーの旧機構＝AntiCorruptionSpending（根絶費）・CleanGovernance（清廉度ストック）・
     //   LastAntiCorruptionCost（診断）を物理削除。汚職V2恒久ONの裁定済み（20260814_汚職をサブシステムにする§10）＝V2では全て不読の死骸だった。
     // 実効汚職（正規化・0..1）＝(1−行政効率)×(1−監視noisy-or)。汚職の**正準定義**（変数統合監査2026-07-13 C1・V2点火2026-08-15）。standalone読み（SelfPlay等）はこれを参照＝定義同期を構造保証。
