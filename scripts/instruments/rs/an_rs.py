@@ -15,8 +15,9 @@
  R5 enforce：stateReachIndex（⑤b の値）と min(1, adminEfficiencyIndex÷0.5)（旧の門の値）の 20 年ごとの中央値。（追記2）本国の州だけの重み（stateReachHomeIndex）を並べる。
     児童労働の禁止の浸透（scalars_s の childLaborLegal：1＝合法 → 0）が 0.99 を割った年と 0.1 以下（約 90% 浸透）に届いた年・その間の年数（国別・種の中央値）。
  R6 仲介者の取り分：ruleCutPerMonth（納税者→州の貴族）÷revenuePerMonth を 1800・1850・1900・1940 年（年末・種の中央値）。（追記2）
- R9 区分の動き（追記2・反証役の点検 中1）：国ごとの国家区分（人口加重）の四半期差の |Δ| の最大と、その四半期の原因の札（法の段が動いた・外国持分が動いた・州の構成が変わった・治安が動いた）。
+ R10 区分の動き（追記2 ①・追記3 で R9 から振り直し）：国ごとの国家区分（人口加重）の四半期差の |Δ| の最大と、その四半期の原因の札（法の段が動いた・外国持分が動いた・州の構成が変わった・治安が動いた）。
     intermediaryDegreeIndex（D1 の仲介者の権利の残高）が 1.0 に張り付いている四半期の割合（国別・max の形が拘束しているか）。
+ R11 徴兵の母数の掛け率と公共財の到達（追記3 ②）／R12 関税の倍率（追記3 ⑤）は rule_s の既存の列から組む。
  R7 英領インドの 3 州（中核ベンガル・内陸ベンガル・マドラス）の 4 区分の時系列（1790・1830・1870・1910・1940）。
  R8 無統治の区分の分布：挙げた国の州ごとの平均（上位 12）。
 """
@@ -265,7 +266,7 @@ def main():
         P(n + '\t' + '\t'.join(row))
 
     # R9
-    P('\n== R9 区分の動き（追記2）==')
+    P('\n== R10 区分の動き（追記2 ①・追記3 で R9 から振り直し）==')
     P('国ごとの国家区分（人口加重）の四半期差 |Δ| の最大（毎四半期の国のみ・種ごとの最大の中央値と全種の最大・最大の四半期の札）：')
     for (si, q, n), rows in reg.items():
         if qcount[(si, n)] >= 0.9 * maxq:
@@ -324,6 +325,35 @@ def main():
     rows = [(statistics.fmean(v), n, rg, len(v)) for (n, rg), v in ungov.items() if n in focus and v]
     for m, n, rg, c in sorted(rows, reverse=True)[:12]:
         P('  %s %s\t平均 %.3f（行 %d）' % (n, rg, m, c))
+    # R11（追記3）徴兵の母数と公共財の到達：rule_s の既存の列から読み手が組む（コードを変えない）。B（RuleSharesTaxBase=1・RuleSharesReach=1）の式のまま。
+    #   徴兵の母数（Military.RegionManpower の掛け率）＝国家区分＋在地区分×(1−PrivilegeTaxDiscount=0.7)＝Politics.RuleDelivery(g=1)・公共財の到達＝国家区分＝Politics.RuleReach(g=1)。
+    #   A（旗 0）では実際の掛け率は 1.0（この表の値は B でだけ意味がある）。popK で人口加重（兵の母数の重みは徴募元の男＝人口に比例とみなす近似）。
+    P('\n== R11 徴兵の母数の掛け率（国家区分＋在地区分×0.7）／公共財の到達（国家区分）・人口加重・20 年ごとの種の中央値（B の式。A では実際は 1.0）==')
+    for n in focus:
+        row = []
+        for dec in range(1790, 1950, 20):
+            dv, rc = [], []
+            for (si, q, nn), rows in reg.items():
+                if nn != n or qcount[(si, n)] < 0.9 * maxq or not (dec <= 1783 + (q + 1) // 4 < dec + 20) or q % 4 != 3:
+                    continue
+                den = sum(t[1] for t in rows if t[1] > 0)
+                if den > 0:
+                    dv.append(sum(t[1] * min(1.0, t[2] + t[3] * 0.7) for t in rows if t[1] > 0) / den)
+                    rc.append(sum(t[1] * t[2] for t in rows if t[1] > 0) / den)
+            row.append('%d:%.2f/%.2f' % (dec, med(dv), med(rc)) if dv else '%d:-' % dec)
+        P('  %s\t' % n + ' '.join(row))
+
+    # R12（追記3）関税の倍率：A＝1−0.25×treatyPortsGrantedCount（旧の個数式）・B＝1−portForeignShare（港州の外国持分の人口加重）。倍率が 1 未満の四半期の割合と最小。
+    P('\n== R12 関税の倍率（挙げた国・毎四半期の国・A は 1−0.25×個数・B は 1−portForeignShare・1 未満の四半期の割合/最小）==')
+    for n in focus:
+        a, b = [], []
+        for (si, q, nn), r in nat_rows.items():
+            if nn != n or qcount[(si, n)] < 0.9 * maxq:
+                continue
+            a.append(max(0.0, 1.0 - 0.25 * f(r['treatyPortsGrantedCount'])))
+            b.append(1.0 - f(r['portForeignShare']))
+        fm = lambda v: ('%.3f/%.2f' % (sum(1 for x in v if x < 0.9999) / len(v), min(v))) if v else '-'
+        P('  %s\tA式 %s\tB式 %s' % (n, fm(a), fm(b)))
     if out is not sys.stdout:
         out.close()
 
