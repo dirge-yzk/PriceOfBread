@@ -3216,12 +3216,12 @@ public sealed class Coefficients
                                             //   ＝AIの法到達がプレイヤーの「1本ずつ置く」と同じ土俵（2〜4倍速）。効く帯＝政体exact/near（改革の速度・後進専制の近代化時期）・
                                             //   法多様性・総政変（法が通る→闘争の捌け口が変わる）。
     public double AiLawWriteCoverage = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact41.6・near+2.9。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】 // **点火済み（live）**：書き手ゼロ2法（移民制限法・国教法＝監査Top10の10位）のAI書き手（SelfPlay.DecideModernLaws）。
-    public double AiBureaucracyFromPrereq = 0;   // ★(389) Q-a8 休眠の器：AI が欲しい法が〈官僚制度が前提〉で止まった四半期に官僚制度の次の段を目標に置く（SelfPlay.GateAllLawTargets の先頭・前提は Government.LawPrereq の同じ1本＝プレイヤーの法律タブと同じ）。0＝走査が走らない＝厳密恒等。事前登録 measurements/ab_20261017_prereg.txt
                                             //   >0＝既存量（移民流入率×大衆失業＝PolicyPreferences と同じ材料／支配ブロックの教義 DoctrineFrom）から目標を導き、
                                             //   **必ず StepLawToward 経由**（GateInfo確認・1段ずつ）で置く＝AiLawGateUnified の値に依らず（0でも）幽霊戦線を新設しない独立設計。
                                             //   0＝ブロックごと不実行＝ビット恒等。
                                             //   点火A/Bの観点：非選挙46カ国で2法が enum 既定値から初めて動く＝流入国の移民制限（排華移民法/白豪主義の型が新大陸で創発）・
                                             //   近代エリート/大衆支配国の宗教寛容化（十分の一税↓・識字移民）。移民フロー・人口・識字の帯に効く。
+    public double AiBureaucracyFromPrereq = 0;   // ★(389) Q-a8 休眠の器：AI が欲しい法が〈官僚制度が前提〉で止まった四半期に官僚制度の次の段を目標に置く（SelfPlay.GateAllLawTargets の先頭・前提は Government.LawPrereq の同じ1本＝プレイヤーの法律タブと同じ）。0＝走査が走らない＝厳密恒等。1＝欲しければ数える／2＝さらに官僚制度が足りていれば法律タブの門（GateInfo）も通る法だけ数える。置いた目標は施行されるまで残る（プレイヤーの置いた目標と同じ・追記3 の錠）。事前登録 measurements/ab_20261017_prereg.txt
 
     // ==== 鋼市場AI側 2026-08-16（docs/202608/20260816_鋼市場診断_部分完了.md 修正#1〜#5・実装節＝同docの末尾）====
     // 作者方針＝**鋼の数値の外科手術は禁止**。先行者レント自体は史実どおりOK＝欠けているのは第二幕（レント→AI資本の参入→価格崩壊＝1873-96大不況）

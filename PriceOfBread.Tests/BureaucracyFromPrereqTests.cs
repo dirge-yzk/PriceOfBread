@@ -145,6 +145,24 @@ public class BureaucracyFromPrereqTests
         Assert.Equal(BureaucracyLaw.MeritExam, w3.Policy.Bureaucracy);
     }
 
+    /// <summary>追記3 の錠を名指しする番人：走査は目標を上げるだけで下げない＝置いた目標は欲しさが消えても施行まで残る（プレイヤーの置いた目標と同じ・議会の綱領の目標も同じ）。
+    /// 欲しさが消えたら畳む形（解放）を足すなら、この番人を意図して書き換える（暗黙に変えない）。</summary>
+    [Fact]
+    public void 置いた目標は欲しさが消えても施行まで残る_施行されたら専門官僚制へは押さない()
+    {
+        var w = Board(1.0);
+        Want(w, PolicyAxis.Antitrust);
+        UtilityAgent.GateAllLawTargets(w, w.Policy);
+        Assert.Equal(BureaucracyLaw.MeritExam, w.Policy.Bureaucracy);
+        w.Policy.Antitrust = AntitrustLaw.None;   // 欲しさが消える
+        for (var quarter = 0; quarter < 4; quarter++) UtilityAgent.GateAllLawTargets(w, w.Policy);
+        Assert.Equal(BureaucracyLaw.MeritExam, w.Policy.Bureaucracy);   // 残る（錠）
+        w.Bureaucracy = BureaucracyLaw.MeritExam;   // 施行された
+        Want(w, PolicyAxis.Antitrust);
+        for (var quarter = 0; quarter < 4; quarter++) UtilityAgent.GateAllLawTargets(w, w.Policy);
+        Assert.Equal(BureaucracyLaw.MeritExam, w.Policy.Bureaucracy);   // 資格任用で足りる法は専門官僚制へ押さない
+    }
+
     [Fact]
     public void LawPrereqの官僚制度の引数は既定で今の官僚制度を読む()
     {

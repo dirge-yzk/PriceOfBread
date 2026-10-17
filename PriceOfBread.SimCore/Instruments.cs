@@ -64,6 +64,7 @@ public static partial class Instruments
 
     sealed class WState
     {
+        public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
         public readonly double[] Claim = new double[(int)Item.Count];
@@ -1644,6 +1645,7 @@ public static partial class Instruments
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
         CeTable(sk);      // (345)
+        BurScanTable(sk, sim);   // (389)
         TransportClose(sk, sim);   // (380) 年の途中で終わった残り
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)

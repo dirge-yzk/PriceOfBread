@@ -47,6 +47,10 @@ def main():
         lines.append('%s\t%d\t%s\t%d\t%d\t%s\t%d' % (
             nation, len(rows), ''.join(str(r[0]) for r in rows), sum(1 for r in rows if r[1] == 0),
             len(years), (statistics.median(years) if years else '-'), sum(1 for r in rows if r[3] is not None)))
+    # 採否の規則（事前登録 追記3 [A]）の数：開幕が猟官制で、最終が資格任用以上の（国, 種）の数。国の別は 3 種以上ある国だけ
+    reach_pairs = sum(sum(1 for r in rows if r[0] == 0 and r[1] >= 1) for rows in per_nation.values() if len(rows) >= 3)
+    spoils_pairs = sum(sum(1 for r in rows if r[0] == 0) for rows in per_nation.values() if len(rows) >= 3)
+    lines.append('TOTAL\treachedPairs=%d\tspoilsStartPairs=%d' % (reach_pairs, spoils_pairs))
     text = '\n'.join(lines) + '\n'
     if len(sys.argv) > 2:
         with open(sys.argv[2], 'wb') as out:

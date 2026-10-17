@@ -240,7 +240,12 @@ public sealed class UtilityAgent : INationAgent
         //   土台の入力（POP の保有・現行法・軍事費の目標〔Government.MilitaryTotalTarget〕ほか）をこの整形は書かない＝書くのは法目標（NationPolicy）だけで、
         //   土台が読む軍事費の目標（陸海の維持費の目標）の書き込みは**最後の照会の後**（末尾の軍事費の段）。旧＝照会ごとに Build＝全長の1種で約18万回（Build の15%）。
         PolicyPreferences.Profile? shared = null;
-        if (w.Coef.AiBureaucracyFromPrereq > 0 || Instruments.On) BureaucracyFollowsWants(w, p, ref shared);   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む
+        if (w.Coef.AiBureaucracyFromPrereq > 0 || Instruments.On)   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む
+        {
+            long scanT0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;   // 走査の実時間は .cost の件数に入らない＝計器つきのときだけ測る（追記3）
+            BureaucracyFollowsWants(w, p, ref shared);
+            if (Instruments.On) Instruments.BurTime(w, System.Diagnostics.Stopwatch.GetTimestamp() - scanT0);
+        }
         GateLaw(ref shared, w, PolicyAxis.EducationLaw, (int)w.EducationLaw, (int)p.EducationLaw, (int)EducationLaw.Compulsory, v => p.EducationLaw = (EducationLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Suffrage, (int)w.Suffrage, (int)p.Suffrage, (int)Suffrage.Universal, v => p.Suffrage = (Suffrage)v);
         GateLaw(ref shared, w, PolicyAxis.WomenRights, (int)w.WomenRights, (int)p.WomenRights, (int)WomenRightsLaw.Suffrage, v => p.WomenRights = (WomenRightsLaw)v);
@@ -652,7 +657,7 @@ public sealed class UtilityAgent : INationAgent
         else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.ConscriptionLaw;   // 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
         // ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
-        //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では普・米 10/10・英 8/10 種が 1951 年まで猟官制＝
+        //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では米 10/10 種が 1951 年まで猟官制（★(389) 段0 の実測で訂正：普は world.json で開幕から資格任用・英は m387 で 10/10 種が 1800 年前後に議会の経路で資格任用へ届く・計器のある 87 国のうち 51 国が 10 種とも最終まで猟官制）＝
         //   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
         if (w.MeanIndustrialization > AntitrustIndThreshold)
             p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
