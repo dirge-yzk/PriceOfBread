@@ -1801,7 +1801,7 @@ public class InstrumentsTests
                         {
                             double u = Math.Max(0, claims - (p0 + bor)) / claims, d = Math.Max(0, dev) / claims;
                             obs++; unpaidSum += u; devSum += d; if (u > 0) unpaidM++; unpaidMax = Math.Max(unpaidMax, u); devMax = Math.Max(devMax, d);
-                            Assert.True(Near(u, Col(fh, x, "unpaidBeforeDevaluationShare")), "月の列が生の列から組み直した値に合わない");
+                            Assert.True(Math.Abs(u - Col(fh, x, "unpaidBeforeDevaluationShare")) <= 1e-8, $"月の列が生の列から組み直した値に合わない（{g.Key} Q{q} 組み直し {u:G17}・列 {Col(fh, x, "unpaidBeforeDevaluationShare"):G17}・請求 {claims:G17}・払える額 {p0:G17}・借入 {bor:G17}）");
                         }
                     }
                     Assert.Equal((double)limitM, Col(nh, r, "interestAtLimitMonthsCount")); Assert.Equal((double)zombieM, Col(nh, r, "zombieMonthsCount"));
@@ -2247,7 +2247,8 @@ public class InstrumentsTests
             Instruments.Configure(dir, "*");
             try
             {
-                var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
+                // ★(388) 既定が DiscoveryCarrierDownstream＝1 になった。この番人は運び手の表が旧の形（係数 0）のときの記帳の規則を見る＝0 を明示する（広げた表の運び手は伝わりの道の番人が見る）
+                var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
                 Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
                 for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
                 Instruments.Close(sim);

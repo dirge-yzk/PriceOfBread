@@ -20,6 +20,19 @@ public class StartWarmupTests
     private static MultiNationSim Build(ulong seed = 1789UL)
         => new(WorldData.Nations(), seed, _ => new UtilityAgent());
 
+    /// <summary>★(388) 開幕の国庫と国債の規則（world.json の treasuryMonths／govDebtToGdpYear）を外し、絶対額（国庫 20,000・英仏蘭は国債 500,000）を置いた盤面
+    /// ＝規則のない国の旧の経路（助走が国庫と国債を動かさない）を、何もしない機構にならない非零の値で見る。規則のある国の置き方は OpeningFiscalRuleTests が見る。</summary>
+    private static MultiNationSim BuildRuleless(ulong seed = 1789UL)
+    {
+        var cfgs = WorldData.Nations().Select(c =>
+        {
+            var x = c.ShallowClone(); x.TreasuryMonths = 0; x.GovDebtToGdpYear = 0; x.Treasury = 20_000;
+            x.GovDebt = c.Name is "イギリス" or "フランス" or "ネーデルラント" ? 500_000 : 0;
+            return x;
+        }).ToArray();
+        return new(cfgs, seed, _ => new UtilityAgent());
+    }
+
     [Theory]
     [InlineData(4)]    // 既定＝1年
     [InlineData(20)]   // 5年
@@ -101,8 +114,9 @@ public class StartWarmupTests
     [Fact]
     public void 助走は国債を動かさず開幕の英の国債は年GDPの約1倍()
     {
-        var bare = Build();
-        var warmed = Build();
+        // ★(388) ①は規則のない盤面（旧の経路）で見る。規則のある既定の盤面では助走が歳入×月数と比×年GDP で置く（設計どおり）ので ② は既定の盤面で読む。
+        var bare = BuildRuleless();
+        var warmed = BuildRuleless();
         warmed.StartWarmup();
         static double Held(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings.Value; return h; }
         for (int i = 0; i < bare.Nations.Count; i++)
@@ -112,6 +126,9 @@ public class StartWarmupTests
             Assert.Equal(a.ForeignDebt, b.ForeignDebt);
             Assert.Equal(Held(a), Held(b), 6);
         }
+        Assert.True(bare.Nations.Any(n => n.World.GovDebt.Value > 0), "前提が崩れた（動かさない主張が空洞＝国債が全て0）");
+        warmed = Build();
+        warmed.StartWarmup();
         var names = WorldData.Nations().Select(n => n.Name).ToList();
         double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         Assert.InRange(Ratio("イギリス"), 0.9, 1.4);
@@ -129,18 +146,22 @@ public class StartWarmupTests
     [Fact]
     public void 助走は国庫を動かさず開幕の国庫は年GDPの数パーセント()
     {
-        var bare = Build();
-        var warmed = Build();
+        // ★(388) ①は規則のない盤面（旧の経路）で見る。規則のある既定の盤面では助走の終わりに歳入×月数で置く（設計どおり）ので ② は既定の盤面で読む。
+        var bare = BuildRuleless();
+        var warmed = BuildRuleless();
         warmed.StartWarmup();
         for (int i = 0; i < bare.Nations.Count; i++)
             Assert.Equal(bare.Nations[i].World.Treasury.Value, warmed.Nations[i].World.Treasury.Value);
+        Assert.True(bare.Nations.All(n => n.World.Treasury.Value > 0), "前提が崩れた（動かさない主張が空洞＝国庫が0）");
+        warmed = Build();
+        warmed.StartWarmup();
         var names = WorldData.Nations().Select(n => n.Name).ToList();
         double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         double R(string name) => Ratio(names.IndexOf(name));
         Assert.InRange(R("イギリス"), 0.01, 0.06);
         Assert.InRange(R("フランス"), 0.0, 0.02);
-        Assert.InRange(R("プロイセン"), 0.2, 0.4);
-        Assert.InRange(R("清"), 0.02, 0.08);
+        Assert.InRange(R("プロイセン"), 0.1, 0.4);   // ★(388) 下限 0.2→0.1：国庫が歳入×28 か月（e7 の入力・二次の概数）で置かれ、歳入が年GDPの約 7% なので約 17%。史実の財宝（年の歳入の2年強）の月数は入力の側の確かさ（記録）
+        Assert.InRange(R("清"), 0.015, 0.08);   // ★(388) 下限 0.02→0.015：国庫が歳入×2.5 か月（出典なしの既定）で置かれ、清は歳入が年GDPの約 2〜3% なので約 1.97%。乾隆末の戸部の銀庫（約7,000万両）は入力の側の確かさ（記録）
         for (int i = 0; i < names.Count; i++)
             if (names[i] != "プロイセン")
                 Assert.True(Ratio(i) <= 0.1, $"{names[i]} の開幕の国庫が年GDP の {Ratio(i):P1}（史実の桁＝数%）");

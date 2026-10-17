@@ -302,7 +302,10 @@ public class MultiNationTests
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
         sim.Run(200);
-        var battles = sim.Diplomacy.Log.Where(l => l.Contains("陸戦で") || l.Contains("海戦で")).ToList();
+        System.Collections.Generic.List<string> Battles() => sim.Diplomacy.Log.Where(l => l.Contains("陸戦で") || l.Contains("海戦で")).ToList();
+        // ★(388) 戦いが起きる時期は軌道で動く（開幕の国庫が史実の比になった後は 200 か月で戦いの無い軌道があった）＝書式の番人なので戦いが出るまで進める（上限 1200 か月）
+        for (int more = 0; more < 5 && Battles().Count == 0; more++) sim.Run(200);
+        var battles = Battles();
         Assert.NotEmpty(battles);
         foreach (var l in battles)
         {
