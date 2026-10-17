@@ -3216,6 +3216,7 @@ public sealed class Coefficients
                                             //   ＝AIの法到達がプレイヤーの「1本ずつ置く」と同じ土俵（2〜4倍速）。効く帯＝政体exact/near（改革の速度・後進専制の近代化時期）・
                                             //   法多様性・総政変（法が通る→闘争の捌け口が変わる）。
     public double AiLawWriteCoverage = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact41.6・near+2.9。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】 // **点火済み（live）**：書き手ゼロ2法（移民制限法・国教法＝監査Top10の10位）のAI書き手（SelfPlay.DecideModernLaws）。
+    public double AiBureaucracyFromPrereq = 0;   // ★(389) Q-a8 休眠の器：AI が欲しい法が〈官僚制度が前提〉で止まった四半期に官僚制度の次の段を目標に置く（SelfPlay.GateAllLawTargets の先頭・前提は Government.LawPrereq の同じ1本＝プレイヤーの法律タブと同じ）。0＝走査が走らない＝厳密恒等。事前登録 measurements/ab_20261017_prereg.txt
                                             //   >0＝既存量（移民流入率×大衆失業＝PolicyPreferences と同じ材料／支配ブロックの教義 DoctrineFrom）から目標を導き、
                                             //   **必ず StepLawToward 経由**（GateInfo確認・1段ずつ）で置く＝AiLawGateUnified の値に依らず（0でも）幽霊戦線を新設しない独立設計。
                                             //   0＝ブロックごと不実行＝ビット恒等。

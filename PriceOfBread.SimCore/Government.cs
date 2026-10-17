@@ -601,7 +601,7 @@ public static class Government
     /// <summary>前提法DAG（1934拡張E4・2026-07-19）：ある法軸をある目標段(0基点)へ上げる前提が満たされているか＋不足理由。
     /// 非循環（前提は必ず「より基礎の別法」を指す・相互ロックしない）。UIの可否表示・施行・バイパス（勢力譲歩）の**単一ソース**。
     /// targetLevel＝目標のenum序数（bool法は1）。低い段への後退は常に可（前提は上げる時だけ）。E5/E6が新法軸の前提をここへ追加する。</summary>
-    public static (bool Ok, string Reason) LawPrereq(World w, PolicyAxis a, int targetLevel, Coefficients c)
+    public static (bool Ok, string Reason) LawPrereq(World w, PolicyAxis a, int targetLevel, Coefficients c, BureaucracyLaw? bur = null)   // (389) bur＝官僚制度を仮に置く読み（AI の走査だけが渡す・null＝今の官僚制度＝従来どおり）
     {
         // ★段階の前提（2026-08-04・作者指示「参政権含めいくつかの法は1段階ずつしか進まないように（1つ前の段階を前提条件にする）」）。
         //   多段の法は**1つ前の段を踏んでいることを前提**にする＝段の飛び越しを禁じる。
@@ -689,23 +689,23 @@ public static class Government
             case PolicyAxis.SocialSecurity:
                 // 社会保障の高い段（失業保険=2以上） ← 官僚制度（資格任用以上）。給付を配るには受給資格を判定できる行政が要る
                 // （ビスマルクの疾病/災害/年金保険は帝国の官僚機構の上に載った）。救貧法・労災までは前提なし＝教区や雇用主でも回せる。
-                if (targetLevel >= (int)SocialSecurityLaw.Unemployment && w.Bureaucracy < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
+                if (targetLevel >= (int)SocialSecurityLaw.Unemployment && (bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
                 break;
             case PolicyAxis.Antitrust:
                 // 独占禁止 ← 官僚制度（資格任用以上）。カルテルを摘発するには縁故でない執行機関が要る（米ICC1887→シャーマン法1890の順）。
-                if (targetLevel >= (int)AntitrustLaw.CartelBan && w.Bureaucracy < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
+                if (targetLevel >= (int)AntitrustLaw.CartelBan && (bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
                 break;
             case PolicyAxis.Nationalization:
             case PolicyAxis.NationalizationAll:
                 // 国有化 ← 官僚制度（資格任用以上）。国が現業を経営するには官僚機構が要る（縁故任用の国有化は略奪になる）。
-                if (targetLevel >= 1 && w.Bureaucracy < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
+                if (targetLevel >= 1 && (bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
                 // ★『全て』（作者裁定2026-08-14 §11-6d）＝5部門以外の全産業の一括国有化（計画経済）はソ連型以外で操作不能。
                 //   国家無神論（StateAtheism ゲート）と同型＝政体の属性。UIのグレーアウト・施行（StepBool）・譲歩（StepNationalization）が全てこの1本を読む。
                 if (a == PolicyAxis.NationalizationAll && w.Polity != Polity.ProletarianDictatorship) return (false, "プロレタリア独裁のみ");
                 break;
             case PolicyAxis.ProgressiveTax:
                 // 累進課税 ← 官僚制度（資格任用以上）。累進は所得の把握（申告と査察）を要する＝近代税務行政の産物。
-                if (targetLevel >= 1 && w.Bureaucracy < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
+                if (targetLevel >= 1 && (bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
                 break;
             case PolicyAxis.WomenRights:
                 // ★女性の権利の梯子（統合法・2026-08-10）。旧「女性参政権法←女性教育権法」の前提は**段の並びそのもの**が担う

@@ -240,6 +240,7 @@ public sealed class UtilityAgent : INationAgent
         //   土台の入力（POP の保有・現行法・軍事費の目標〔Government.MilitaryTotalTarget〕ほか）をこの整形は書かない＝書くのは法目標（NationPolicy）だけで、
         //   土台が読む軍事費の目標（陸海の維持費の目標）の書き込みは**最後の照会の後**（末尾の軍事費の段）。旧＝照会ごとに Build＝全長の1種で約18万回（Build の15%）。
         PolicyPreferences.Profile? shared = null;
+        if (w.Coef.AiBureaucracyFromPrereq > 0 || Instruments.On) BureaucracyFollowsWants(w, p);   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む
         GateLaw(ref shared, w, PolicyAxis.EducationLaw, (int)w.EducationLaw, (int)p.EducationLaw, (int)EducationLaw.Compulsory, v => p.EducationLaw = (EducationLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Suffrage, (int)w.Suffrage, (int)p.Suffrage, (int)Suffrage.Universal, v => p.Suffrage = (Suffrage)v);
         GateLaw(ref shared, w, PolicyAxis.WomenRights, (int)w.WomenRights, (int)p.WomenRights, (int)WomenRightsLaw.Suffrage, v => p.WomenRights = (WomenRightsLaw)v);
@@ -280,6 +281,34 @@ public sealed class UtilityAgent : INationAgent
         // 軍事費＝合計だけが段（陸海比は SetNavalUpkeepShare が続けて連続で決める＝D4）。書き込み口は比を保つ既存の1本。
         GateLaw(ref shared, w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending.Value), Government.MilitaryStage(p.MilitarySpendingTarget),
                 Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Government.MilitaryLawStages);   // Max(1,…)＝「なし」を作らない
+    }
+
+    /// <summary>★(389) Q-a8 AI の官僚制度（旗 <see cref="Coefficients.AiBureaucracyFromPrereq"/>・既定 0＝走査が走らない）：AI が欲しい法（目標が現行より上）のうち、その一歩が
+    /// 〈官僚制度が前提〉で止まっている法があれば、官僚制度の目標をその法が通る一番低い段まで上げる。直後の <c>GateLaw(官僚制度)</c> が法律タブと同じ門で一歩に整形する。
+    /// 欲しい法＝<see cref="Government.LevelLaws"/>／<see cref="Government.RateLaws"/> の表の行で目標が現行より上（表を読むだけ＝法の一覧を作らない）。
+    /// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
+    /// 新しい定数・閾値・状態を置かない（毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。INS=1 のときは読むだけの記録を残す（旗 0 でも）。</summary>
+    private static void BureaucracyFollowsWants(World w, NationPolicy p)
+    {
+        int wantMask = 0, blockMask = 0; var need = w.Bureaucracy; var burIn = p.Bureaucracy; var coef = w.Coef;
+        void Scan(PolicyAxis axis, int cur, int tgt)
+        {
+            if (!(tgt > cur)) return;
+            int next = cur + 1;
+            bool okNow = Government.LawPrereq(w, axis, next, coef).Ok;
+            if (okNow && w.Bureaucracy == BureaucracyLaw.Spoils) return;   // 今が猟官制で通る＝官僚制度に左右されない法
+            if (Government.LawPrereq(w, axis, next, coef, BureaucracyLaw.Spoils).Ok || !Government.LawPrereq(w, axis, next, coef, BureaucracyLaw.Professional).Ok) return;   // 官僚制度に左右される法だけ
+            int bit = axis switch { PolicyAxis.SocialSecurity => 1, PolicyAxis.Antitrust => 2, PolicyAxis.Nationalization => 4, PolicyAxis.NationalizationAll => 8, PolicyAxis.ProgressiveTax => 16, _ => 32 };
+            wantMask |= bit;
+            if (okNow) return;
+            blockMask |= bit;
+            for (var level = w.Bureaucracy + 1; level <= BureaucracyLaw.Professional; level++)
+                if (Government.LawPrereq(w, axis, next, coef, level).Ok) { if (level > need) need = level; break; }
+        }
+        foreach (var law in Government.LevelLaws) Scan(law.Axis, law.Get(w), law.Target(w, p));
+        foreach (var law in Government.RateLaws) Scan(law.Axis, Government.TaxStage(law.Axis, law.Get(w)), Government.TaxStage(law.Axis, law.Target(p)));
+        if (coef.AiBureaucracyFromPrereq > 0 && blockMask != 0 && p.Bureaucracy < need) p.Bureaucracy = need;
+        if (Instruments.On && (wantMask != 0 || p.Bureaucracy != w.Bureaucracy)) Instruments.BurObserve(w, burIn, p.Bureaucracy, wantMask, blockMask, blockMask != 0 ? (int)need : -1);
     }
 
     // ★撤去2026-08-16（C2-C5）：AutoAntiCorruptionTarget（汚職根絶の自動化・2026-08-02）を物理削除＝汚職V2恒久ONで根絶費の動詞ごと死骸（プレイヤー/AI対称のまま消滅）。
