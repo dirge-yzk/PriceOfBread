@@ -288,6 +288,7 @@
    "govDebtToGdpYear": 1.34,
    "pollTaxStage": 0,
    "landTaxStage": 1.275,
+   "openingStateMonopolyTier": 3,
    "initialTariff": 0.3,
    "industrialization": 1.4,
    "initialColonies": [
@@ -1442,6 +1443,7 @@
    "govDebtToGdpYear": 1.6,
    "pollTaxStage": 0,
    "landTaxStage": 2,
+   "openingStateMonopolyTier": 3,
    "initialTariff": 0.05,
    "industrialization": 0.2,
    "initialColonies": [

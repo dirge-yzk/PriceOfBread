@@ -2598,6 +2598,8 @@ public sealed class World
     public double OpeningTreasuryMonths { get; init; }
     /// <summary>★(332) 開幕の国債 ＝ 年名目GDP × この比（<see cref="NationConfig.GovDebtToGdpYear"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningFiscal"/> だけ。</summary>
     public double OpeningGovDebtToGdpYear { get; init; }
+    /// <summary>★(400) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>・0＝規則なし）。読み手＝<see cref="MultiNationSim.WarmupEconomy"/> の始め（旗 <see cref="Coefficients.OpeningFiscalAlign"/>＞0 のとき SetStateMonopolyTier で置く）と SelfPlay.Apply の助走の間（同じ旗のとき教義の段との max）だけ。助走の後は読まれない。</summary>
+    public int OpeningStateMonopolyTier { get; init; }
 
     /// <summary>★(332) 開幕の国庫と国債を、助走の終わりの盤面の流れから置く（初期値の整備 段6 の採り直し＝国庫と国債は絶対額でなく、史実の比から導く量）。
     /// 呼び手＝<see cref="MultiNationSim.WarmupEconomy"/> の各四半期の終わり（旧の国庫の戻し <see cref="RebaseTreasury"/> の置き場所）。最後の四半期の値が開幕の値になる。
