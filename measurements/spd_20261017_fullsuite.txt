@@ -1,0 +1,4 @@
+D:\PoB_work\spd_m387\testart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:  1252、スキップ:     0、合計:  1252、期間: 15 m 17 s - PriceOfBread.Tests.dll (net10.0)
