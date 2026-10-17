@@ -2167,12 +2167,7 @@ public static class SelfPlayMatch
         //   報告は全行バイト一致（実装ログ (111)）＝Runner の csproj で入れた（App と Tests は変えない）。
         // n でクランプするのは 30 シードに 32 ワーカーが純粋な遊休になるため。OOM は握り潰さず即 throw する（下の catch 参照）＝静かな帯汚染を防ぐ。
         var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = parallel ?? Math.Clamp(Environment.ProcessorCount, 2, Math.Max(2, n)) };
-        // ★2026-10-17（高速化・ビット恒等）：試合を並列に回す間は国の日次の並列を切る（二重の並列の待ちと取り合いを消す＝MultiNationSim.ParallelDays の注）。
-        //   国の日次は並列でも逐次でもビット一致する作り（同所の不変条件）＝報告は変わらない。試合が1つ・並列度1のときは今のまま。
-        bool parDays0 = MultiNationSim.ParallelDays;
-        if (n > 1 && opts.MaxDegreeOfParallelism > 1) MultiNationSim.ParallelDays = false;
-        try { System.Threading.Tasks.Parallel.For(0, n, opts, i => arr[i] = Run(seedBase + (ulong)i, quarters, interestRate, lean: true)); }   // ★seedBase 起点（既定1＝旧 i+1 と同値）   // lean＝外交ログ停止（開戦数はカウンタ・イベント年表はバッチでは未使用）
-        finally { MultiNationSim.ParallelDays = parDays0; }
+        System.Threading.Tasks.Parallel.For(0, n, opts, i => arr[i] = Run(seedBase + (ulong)i, quarters, interestRate, lean: true));   // ★seedBase 起点（既定1＝旧 i+1 と同値）   // lean＝外交ログ停止（開戦数はカウンタ・イベント年表はバッチでは未使用）
         var results = new List<MatchResult>(arr);
 
         int breakdowns = results.Count(r => !r.Completed);
