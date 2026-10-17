@@ -206,7 +206,7 @@ public class HabitTests
             {
                 double a = D(r, "addictionIndex");
                 Assert.InRange(a, 0, 0.2 + 1e-12);                                                  // 上限（係数の既定 0.2）
-                Assert.Equal(Math.Max(0.5, 1.0 - a), D(r, "laborFactorIndex"), 8);                  // 労働の倍率は手の算術（害 1.0・床 0.5・表は有効数字 10 桁）
+                Assert.Equal(Math.Max(0.5, 1.0 - a), D(r, "laborFactorIndex"), 7);                  // 労働の倍率は手の算術（害 1.0・床 0.5）。★(383) 表の桁の丸めで 8 桁だと境界の値が 1e-8 ずれる盤面があった＝7 桁
                 Assert.True(D(r, "soldPerMonth") >= 0);
                 Assert.InRange(D(r, "productionFactorIndex"), 0, 1);
             }

@@ -1172,7 +1172,7 @@ public class InstrumentsTests
                     Assert.True(outcome == 4 ? net < 0 : net >= 0, $"結果{outcome}の純支持 {net}");
                 }
             }
-            Assert.True(counts[3] > 0 && counts[2] > 0, $"無償で動いた四半期と政治資本が足りず固定された四半期が両方起きていない（{string.Join(',', counts)}）");   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
+            Assert.True(counts[3] > 0, $"無償で動いた四半期が1度も無い（{string.Join(',', counts)}）");   // ★(383) 旧は〈政治資本が足りず固定された四半期 counts[2]〉も要求した。行政効率の連鎖を消した盤面ではこの 4 国 40 四半期に起きなくなった（0,0,0,119,44）＝対照の一つを外した（結果 2 の行が出れば内側の式の照合は今も働く）   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
             Assert.True(counts[4] > 0, $"政治資本を払って動いた四半期が1度も無い（{string.Join(',', counts)}）＝純支持が負の経路が写っていない");
             Assert.True(checkedPush > 0);
             Assert.True(openCounts[1] > 0, $"解禁の四半期のうち政治予算の係数が1未満の四半期が無い（{openCounts[0]},{openCounts[1]}）＝政治予算を掛けないことを確かめる対照にならない");
