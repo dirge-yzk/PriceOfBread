@@ -1,4 +1,6 @@
 # (390) 工場の能力の内訳（factory_s）と思想の割合（ideology_s）の読み手。使い方：PYTHONUTF8=1 python an_ic390.py <ins フォルダ> [種の最大=全て] [国=挙げた国のみ|全て]
+# ⚠限界：laborSupplyCapacityUnitsPerMonth（人の側の器）は労働力の生産者の Capacity の和＝純粋な頭数でなく 工業化度の倍率×発見の門×働ける人口の割合 を含む。
+#   断面は四半期の末の 1 か月（LastInputFill は次月用の値＝産出を決めた前月の値と 1 か月ずれる・産出/充足が 100% を超えるのはこのずれと在庫循環・慣性）。
 # 読むだけ。段0＝〈工場の能力を律速しているのが頭数か投入の充足か〉を時代別・国別に出す。数字の意味は SimCore/InstrumentsCapacity.cs の頭のコメント。
 import sys, glob, csv, os, re, collections
 d = sys.argv[1]; smax = int(sys.argv[2]) if len(sys.argv) > 2 else 10**9
