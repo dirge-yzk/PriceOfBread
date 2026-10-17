@@ -2755,15 +2755,15 @@ public sealed class Coefficients
     public double DominanceMatureYears = 30.0;       //   初期値＝保有年数÷これ（世代長＝同化の物差し）。HeldSince=0（中核）＝1.0
     // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md 段1）：州の4区分（国家・在地・外国・無統治）を
     //   DominanceSpeed で目標へ寄せる（目標＝既存量だけ：国家＝行政効率×支配度／在地＝農奴解放の未解放度×残り／外国＝段5／無統治＝残り）。0＝積分せず誰も読まない（厳密恒等）。
-    public double RuleSharesEnabled = 0.0;
+    public double RuleSharesEnabled = 1.0;
     // ★支配度の一般化 段4（作者採用 §5・2026-09-07）：公共財の到達＝(1−g)+g×国家区分（教育の財源率・年金の給付）。0＝×1＝厳密恒等。RuleSharesEnabled>0 が前提（区分が動く）。
-    public double RuleSharesReach = 0.0;
+    public double RuleSharesReach = 1.0;
     // ★支配度の一般化 段3（作者採用 §5・2026-09-07）：課税ベース（所得/累進/人頭/土地）と徴兵ベース＝(1−g)+g×(国家区分＋在地区分×(1−PrivilegeTaxDiscount))。
     //   在地の仲介者の取り分は納税者→州の貴族へ（領主権の台帳）。0＝×1＝厳密恒等。RuleSharesEnabled>0 が前提。
-    public double RuleSharesTaxBase = 0.0;
+    public double RuleSharesTaxBase = 1.0;
     // ★支配度の一般化 段5（§6/§6d・2026-09-07 器＝観測のみ）：条約港の講和で敗者の最大港州に勝者の持分（外国区分）をこれだけ積む。国力比で連続に風化（DominanceSpeed）。
     //   0＝持分なし＝厳密恒等。点火時＝TreatyPortTariffLoss/Lapse の個数式を持分の読み出しへ置換（単独計測・忠実度の基線取り直し）。RuleSharesEnabled>0 が前提。
-    public double ForeignRuleFromTreaty = 0.0;
+    public double ForeignRuleFromTreaty = 0.5;
     // ★支配度doc §14（2026-09-06 追記裁定・器2026-09-07）：戦力投射の起点集合＝自国と従属国の州のうち 国家区分 Rule[0] ≥ これ の港州（首都は常に含む）。
     //   1.1（到達不能）＝{首都}＝旧＝厳密恒等。0.5 で「実効支配している港」が基地網になる（ジブラルタル/マルタ/アデン/シンガポール/香港）。⚠Projection は戦争/割譲/属国/植民地/調停が全部読む＝単独計測（§14-4）。
     public double ProjectionRuleMin = 1.1;
@@ -2779,15 +2779,15 @@ public sealed class Coefficients
     public double HeldSinceFromData = 0.0;
     // ★(399) 支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（事前登録 measurements/rs_20261018_prereg.txt・旗は全て既定 0＝1 命令も走らない・点火の組＝B 腕の POB_COEF）。採用の後は旗ごと物理削除する。
     //   ①在地の目標を農奴解放の法から切り離す：RuleInit[1]×Privileges.IntermediaryDegree（官僚制度法と土地改革の max）。RuleSharesEnabled>0 が前提。
-    public double RuleLocalFromRights = 0.0;
+    public double RuleLocalFromRights = 1.0;
     //   ②無統治の目標を支配度でなく 治安と首都からの距離の到達で測る：(1−秩序)×(1−到達)・到達＝1÷(1＋DistanceWarDecay×km÷DistanceNormKm)。RuleSharesEnabled>0 が前提。
-    public double RuleUngovFromReach = 0.0;
+    public double RuleUngovFromReach = 1.0;
     //   ④植民地の州も places.json の rule（開始時のデータ）を通す。0＝一律の在地 1.0（[0,1,0,0]）。
-    public double ColonyRuleFromData = 0.0;
+    public double ColonyRuleFromData = 1.0;
     //   ⑤a 汚職の財政の漏れ（納税者→官僚の移転）を消す。税の経路は RuleSharesTaxBase の区分が決める。
-    public double TaxLeakByRule = 0.0;
+    public double TaxLeakByRule = 1.0;
     //   ⑤b 法の浸透の門（行政効率÷LawEnforcementAdminGate）を、活きている州の人口で重みづけた RuleReach の平均へ置き換える。RuleSharesReach が g。
-    public double LawReachByRule = 0.0;
+    public double LawReachByRule = 1.0;
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。
