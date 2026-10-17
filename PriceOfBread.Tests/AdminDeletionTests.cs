@@ -59,7 +59,7 @@ public class AdminDeletionTests
         var cfg = WorldData.Nations().First(n => n.ToScenario(1).InitialLandTax <= 0);
         var w = new Simulation(cfg.ToScenario(5), new NullAgent()).World;
         SetFill(w, 0.0);                                                    // 行政が全く無くても
-        Assert.True(Government.LawPrereq(w, PolicyAxis.LandTax, Government.TaxLawStages, w.Coef).Ok);
+        Assert.True(Government.LawPrereq(w, PolicyAxis.LandTax, 1, w.Coef).Ok);   // 段 1（段は 1 つずつ登る）
         Assert.True(Government.LawPrereq(w, PolicyAxis.LandReform, 1, w.Coef).Ok);
     }
 
@@ -109,6 +109,7 @@ public class AdminDeletionTests
     {
         var s = France(21);
         s.World.Regions[0].BureaucratPopIndex = -1;                         // 官僚が居ない州（adminProc が偽）
+        s.World.Regions[0].AdminFill = 1.0;                                 // 旧の既定値（満額）が残っていても決算が 0 に倒す
         s.Run(1);
         Assert.Equal(0.0, s.World.Regions[0].AdminFill);                    // 旧：既定値 1.0 のまま＝満額と読まれた
         Assert.Contains(s.World.Regions.Skip(1), r => r.AdminFill > 0.0 && r.AdminFill <= 1.0);   // 働く州は決算が書く
@@ -127,9 +128,14 @@ public class AdminDeletionTests
             s.Run(1);
             return 12.0 - w.WorkHoursValue;
         }
-        double open = Drop(0.5), tight = Drop(50.0);
+        double open = Drop(0.5);
         Assert.True(open > 0.0);
-        Assert.True(tight < open * 0.5, $"門を 100 倍にしても労働時間の追従が遅くならない（門 0.5 {open}・門 50 {tight}）＝行政効率を読んでいない");
+        // 官僚が居ない国（AdminFill は決算が 0 に保つ）＝行政効率 0＝監督官が居ない＝短縮は 1 ミリも進まない
+        var s2 = France(9); var w2 = s2.World;
+        foreach (var r in w2.Regions) r.BureaucratPopIndex = -1;
+        w2.WorkHours = WorkHours.Eight; w2.WorkHoursValue = 12.0; w2.Coef.LawEnforcementAdminGate = 0.5;
+        s2.Run(1);
+        Assert.Equal(12.0, w2.WorkHoursValue);
     }
 
     [Fact]

@@ -23,7 +23,7 @@ public class TaxTests
         sim.World.BaseCoercion = 100; sim.World.Policy.CoercionTarget = 100;
         sim.World.Policy.AdminSpendingTarget = 0.0;   // 官僚への投資ゼロでも…
         sim.World.Policy.LandTaxTarget = 1.0;
-        Assert.True(Government.LawPrereq(sim.World, PolicyAxis.LandTax, Government.TaxLawStages, sim.World.Coef).Ok, "開幕から土地税の最上段が押せない");   // 錠は無い＝開幕で既に開いている
+        Assert.True(Government.LawPrereq(sim.World, PolicyAxis.LandTax, 1, sim.World.Coef).Ok, "開幕から土地税の段 1 が押せない");   // 錠は無い＝開幕で既に開いている
         sim.Run(120);
         // ★主張の書き直し（2026-09-20 段の点火）：土地税は段の法＝目標1.0は最上段（錨 Government.LandTaxTop＝0.4）へ落ちる。
         //   「解禁」は値を0へ書き潰す三項ではなく**最上段が押せる**こと＝その門と、率が錨の半分を越えて登ることを見る。
