@@ -294,7 +294,9 @@ public sealed class UtilityAgent : INationAgent
     /// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
     /// 旗 1＝欲しければ数える。旗 2＝さらに、官僚制度が足りていれば法律タブと同じ門 <see cref="Government.GateInfo"/>（純支持・政治資本の残り）も通る法だけ数える
     /// （段0 の実測：独占禁止は開幕の工業化度で全国が 1787 年ごろから欲しがるが、政治の支持が無ければ通らない欲しさ）。
-    /// 新しい定数・閾値・状態を置かない（毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。INS=1 のときは読むだけの記録を残す（旗 0 でも）。</summary>
+    /// 新しい定数・閾値・状態を置かない（**引き金**は毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。
+    /// ⚠**置いた目標は導き直されない**＝施行されるまで（欲しさが消えても）残る（プレイヤーの置いた目標・議会の綱領の目標と同じ。解放を足すなら番人を意図して書き換える）。事前登録 追記3 [A]。
+    /// INS=1 のときは読むだけの記録を残す（旗 0 でも）。</summary>
     internal static void BureaucracyFollowsWants(World w, NationPolicy p, ref PolicyPreferences.Profile? shared)
     {
         int wantMask = 0, blockMask = 0, feasMask = 0; var need = w.Bureaucracy; var applyNeed = w.Bureaucracy; var burIn = p.Bureaucracy; var coef = w.Coef;
