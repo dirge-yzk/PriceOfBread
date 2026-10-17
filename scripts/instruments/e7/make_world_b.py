@@ -19,6 +19,9 @@ for ln in open(tsv, 'rb').read().decode('utf-8').splitlines()[1:]:
 assert default_months and ratios
 src, dst = sys.argv[1], sys.argv[2]; only_uk = '--only-uk' in sys.argv
 raw = open(src, 'rb').read(); assert not raw.startswith(b'\xef\xbb\xbf') and b'\r' not in raw
+# ★(392) 合流（反証役 bk〔bv〕低#7）：(388) 以後の既定の world.json は腕 B の形（treasury 0・treasuryMonths あり）＝この道具は 1859a57 以前の world.json の専用。
+#   既に規則の鍵がある入力に走らせると treasuryMonths・govDebtToGdpYear の鍵が二重になる＝止める。
+assert b'"treasuryMonths"' not in raw and b'"govDebtToGdpYear"' not in raw, '入力は既に腕 B の形（(388) 以後の既定）＝この道具は 1859a57 以前の world.json の専用'
 lines = raw.decode('utf-8').split('\n')
 out, cur, seen_ratio, seen_treasury = [], None, set(), set()
 for ln in lines:
