@@ -348,6 +348,21 @@ public static class Ideologies
         return s;
     }
 
+    /// <summary>★(393) 離反の割合 d∈[0,1]＝集計 agg（質量の和は 1 以下）の各思想 k について〈引力点を現政体より好む分〉の正の部を質量で足し、親和の範囲 AffMax−AffMin で割る。
+    /// 差だけを読む＝全ての親和に同じ定数を足しても動かない（零点に依存しない）。現政体を好むか無関心なら 0。質量が 0（集計が空）なら 0。NaN は 0 に倒す（否定形）。
+    /// 事前登録 measurements/mc_20261018_prereg.txt [11](2)。</summary>
+    public static double DefectionShare(double[] agg, double[] curCoord, double[] attCoord, double affinitySlope)
+    {
+        double sum = 0;
+        for (int k = 0; k < Count; k++)
+        {
+            double gain = AffinityOf(attCoord, IdeologyCoord[k], affinitySlope) - AffinityOf(curCoord, IdeologyCoord[k], affinitySlope);
+            if (gain > 0) sum += agg[k] * gain;
+        }
+        double d = sum / (AffMax - AffMin);
+        return !(d > 0) ? 0.0 : d;
+    }
+
     /// <summary>ある政体への支持＝静的基準座標で評価（Runner診断・後方互換）。遷移本体は SupportAt にドリフト座標を渡す。</summary>
     public static double Support(double[] agg, Polity pol, double affinitySlope) => SupportAt(agg, PolityCoord[(int)pol], affinitySlope);
 }

@@ -594,7 +594,7 @@ public static class Politics
         }
         if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
         // ★(393) 軍の力の入口：保持力 κ は兵から作った量＝兵が今の政体を支えるか引力点へ回るかで、守る側 κ×a と挑戦の側 κ×(1−a) に分ける
-        //   （a＝兵士 POP だけの思想の集計での 現政体の支持÷（現政体＋引力点の支持））。以後の読み手（予感・門2・拮抗の判定・下賜の幅）は分けた値を読む＝分子と分母を同じ規則で。
+        //   （a＝1−d・d＝兵士 POP だけの思想の集計で思想ごとに〈引力点を現政体より好む分〉の正の部を質量で足し親和の範囲で割った離反の割合）。以後の読み手（予感・門2・拮抗の判定・下賜の幅）は分けた値を読む＝分子と分母を同じ規則で。
         //   旗 0 でも計器つき（INS=1）なら a を読むだけ出す（値は書き換えない）。事前登録 measurements/mc_20261018_prereg.txt。
         if (splitHold || Instruments.On)
         {
@@ -622,13 +622,13 @@ public static class Politics
         //   診断（main af5cc7b・4種×300四半期）＝絶対・専制の下賜 222件のうち正統性が下がった四半期は 64件（残りは衝撃の後の回復の途中＝露の1816年ほか）。
         bool reformFromAbove = !IsSeizure(attractor)
                              && w.Legitimacy < c.ReformFromAboveLegitThreshold + anticipation && eroding;
-        if (challenge <= coerce && !reformFromAbove) return;   // 動員（改革派＋急進派）が実効治安維持力を超えない＝国家が鎮圧＝高治安維持力の権威主義は工業化しても徳川に留まる（上からの改革チャネルのみ免除）
+        if (challenge <= coerce && !reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 1); return; }   // 動員（改革派＋急進派）が実効治安維持力を超えない＝国家が鎮圧＝高治安維持力の権威主義は工業化しても徳川に留まる（上からの改革チャネルのみ免除）
         // P3c 遷移グラフの廃止（旗 PolityGraphRetired は 2026-09-26 に焼き込み）：**平和的な漸進遷移**（非奪取×改革派主導）はグラフのジャンプから外す＝
         // 連続動学（P3b＝議会/王権圧力→統制力→床交差の再ラベル・廃位・王権の形の変異）が同じ帰結を漸進で出す。
         // 暴力革命（急進主導）と奪取（独裁/無政府）は史実どおり不連続イベント＝ExecuteRegimeChange のまま。
         // C-高1(2)：改革派主導の平和的遷移でも「上からの改革」が発火しているなら下賜（ExecuteRegimeChange の GrantedControlOnReform）に到達させる
         //（旧＝この早期returnが下賜の点火口を殺し、欽定憲法が原理的に不能だった）。ReformGrantPcWidth=0 では旧条件のまま＝厳密恒等。
-        if (!IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) return;
+        if (!IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) { if (Instruments.On) Instruments.CoupRoute(w, 2); return; }
         // ★様態の判定はここ（政体変更の唯一の呼び手＝引力点の遷移）だけ（2026-09-28 処理の一元化 段2 束2・A）。
         //   旧＝ExecuteRegimeChange の先頭にあった＝内戦の決着（旧経路の内戦・戦争の形の MultiNationSim.ReabsorbNations）が
         //   実行部だけを呼べず、実行部を丸写しするか（旧経路）登録簿と建国制度の2行だけを書く（戦争の形）しかなかった。
@@ -647,9 +647,10 @@ public static class Politics
         //     旧経路の「内戦中は通常遷移しない」の置き換え＝戦争の形の内戦の親も反乱国も、この間は拮抗の転換を起こさない。
         if (violent && challenge < coerce * c.CivilWarLandslideRatio)
         {
-            if (w.InCivilWar || w.PendingRebelRegions is not null) return;
+            if (w.InCivilWar || w.PendingRebelRegions is not null) { if (Instruments.On) Instruments.CoupRoute(w, 7); return; }
             if (RaiseRevolt(w, w.Regions[0], attractor))
             {
+                if (Instruments.On) Instruments.CoupRoute(w, 3);
                 w.LogAdd($"{w.Year} {w.SelfPower?.Name}の首都{w.Regions[0].Name}で蜂起＝政府は首都を出て戦う（内戦）");
                 return;
             }
@@ -668,7 +669,8 @@ public static class Politics
         }
         // P2（flag=1）：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
         // 「近代法を持つが議会に権力を渡さない」プロイセン/明治型が自然点になる（ラベルが後日 床交差で変わった時だけ建国制度が走る）。
-        if (reformFromAbove && c.PolityLabelFromAxes > 0) return;
+        if (reformFromAbove && c.PolityLabelFromAxes > 0) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
+        if (Instruments.On) Instruments.CoupRoute(w, violent ? 5 : 6);
         ExecuteRegimeChange(w, c, attractor, violent);
     }
 
@@ -1741,17 +1743,17 @@ public static class Politics
         return f * c.MilitaryCoupWeight;
     }
 
-    /// <summary>★(393) 兵士の支持の比 a∈[0,1]＝兵士 POP だけの思想の集計（<see cref="Ideologies.Soldiers"/>）での 現政体の支持÷（現政体の支持＋引力点の支持）（負は 0）。
+    /// <summary>★(393) 兵が今の政体を支える割合 a∈[0,1]＝1−d。d＝兵士 POP だけの思想の集計（<see cref="Ideologies.Soldiers"/>）で思想ごとに〈引力点を現政体より好む分〉の正の部を質量で足し親和の範囲で割った離反の割合
+    /// （<see cref="Ideologies.DefectionShare"/>・差だけを読む＝親和の零点に依存しない）。兵が現政体を好むか無関心なら a＝1（旧の保持力のまま）。兵士 POP が無い・重み 0 でも d＝0 で a＝1（縁も連続）。
     /// 現政体の座標は呼び手が渡す（参政権でドリフトした curCoord）・引力点は静的な基準座標。国民の失望の記録（RegimeTrackRecord）と bourgeoisCoup の上乗せは掛けない（兵の支持であって国民側の項ではない）。
-    /// 分母が正でない〔兵士 POP が無い・両方が 0 以下・NaN〕ときは a＝1（引き揚げる兵がいない＝守る側が全部＝旧の保持力のまま）。否定形で書く（NaN を残さない）。</summary>
+    /// sCur／sAtt は集計での支持（計器の列・a の計算には使わない）。事前登録 measurements/mc_20261018_prereg.txt [11](2)。</summary>
     internal static double SoldierHoldShare(World w, Coefficients c, double[] curCoord, Polity attractor, out double sCur, out double sAtt, out double totalWeight)
     {
         var aggS = Ideologies.Soldiers(w, out totalWeight);
+        var attCoord = Ideologies.BasePolityCoord(attractor);
         sCur = Ideologies.SupportAt(aggS, curCoord, c.IdeologyAffinitySlope);
-        sAtt = Ideologies.SupportAt(aggS, Ideologies.BasePolityCoord(attractor), c.IdeologyAffinitySlope);
-        double pc = !(sCur > 0) ? 0.0 : sCur, pa = !(sAtt > 0) ? 0.0 : sAtt;
-        double tot = pc + pa;
-        return !(tot > 0) ? 1.0 : pc / tot;
+        sAtt = Ideologies.SupportAt(aggS, attCoord, c.IdeologyAffinitySlope);
+        return 1.0 - Ideologies.DefectionShare(aggS, curCoord, attCoord, c.IdeologyAffinitySlope);
     }
 
     /// <summary>軍政の支持への加算＝軍部の力＝MCS×σ×π（Transition の唯一の読み手。計器とテストもこれを呼ぶ＝式を写さない）。

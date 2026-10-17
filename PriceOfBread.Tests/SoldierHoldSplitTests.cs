@@ -5,9 +5,9 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(393) 軍の力の入口の作り直し（旗 <c>HoldSplitBySoldierIdeology</c>）の番人。事前登録 measurements/mc_20261018_prereg.txt。
-/// 形＝①軍政の支持への足し算 CoupSupport を行わない ②引力点が決まった後、保持力 κ を兵士 POP だけの思想で守る側 κ×a と挑戦の側 κ×(1−a) に分ける
-/// ③MeasureMobilization は兵士の規模×意識を動員に足さない。期待値は数値と政体のリテラルで書く（本体の関数から作らない）。
-/// 突然変異（足し算を残す／a の向きを逆にする／分けを挑戦へ足さない／縁の a を 0 にする／兵士でない POP も集計する／兵士を動員から外さない）で赤になることを確かめた（実装ログ (393)）。</summary>
+/// 形＝①軍政の支持への足し算 CoupSupport を行わない ②引力点が決まった後、保持力 κ を兵士 POP だけの思想で守る側 κ×a と挑戦の側 κ×(1−a) に分ける（a＝1−d・d＝思想ごとに〈引力点を現政体より好む分〉の正の部を質量で足し親和の範囲 3 で割った離反の割合）
+/// ③MeasureMobilization は兵士の規模×意識を動員に足さない。期待値は数値と政体のリテラルで書く（本体の関数から作らない・思想座標からの手計算は事前登録 [11](3)）。
+/// 突然変異（足し算を残す／離反の向きを逆にする／分けを挑戦へ足さない／守る側を縮めない／兵士でない POP も集計する／兵士を動員から外さない／母数から兵を外す／負の差を 0 にしない／比の形へ戻す／集計の差で取る／範囲で割らない）で赤になることを確かめた（実装ログ (393)）。</summary>
 public class SoldierHoldSplitTests
 {
     private const int Trad = 0, Nat = 4;   // 思想の添字：0 伝統・4 ナショ
@@ -32,20 +32,32 @@ public class SoldierHoldSplitTests
         => Politics.SoldierHoldShare(w, w.Coef, Ideologies.BasePolityCoord(cur), att, out _, out _, out _);
 
     [Fact]
-    public void 兵の支持の比aは現政体と引力点の兵士での支持の比で負は0()
+    public void 兵の保持率aは1マイナス離反の割合で思想ごとに引力点を好む分の正の部を範囲3で割る()
     {
-        // 傾き 2.0・兵士は全員ナショ・現政体 立憲君主制・引力点 軍事独裁：支持＝2−2.0×距離（座標から手計算：立憲まで √0.605・軍政まで √0.185）
+        // 傾き 2.0・兵士は全員ナショ・現政体 立憲君主制・引力点 軍事独裁：親和＝2−2.0×距離（座標から手計算：立憲まで √0.605＝0.44437・軍政まで √0.185＝1.13977）
+        //   d＝(1.13977−0.44437)/(2−(−1))＝0.23180 → a＝0.76820
         var w = Board(1.0, Nat, Nat, slope: 2.0);
-        Assert.Equal(0.28051, A(w, Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship), 5);
-        // 傾き 4.0：ナショ兵の現政体（絶対君主制）への支持は 2−4×0.971＜−1 で床 −1（負は 0）・軍政へは 2−4×0.430＝0.28 → a＝0
+        Assert.Equal(0.76820, A(w, Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship), 5);
+        // 傾き 4.0：ナショ兵の現政体（絶対君主制）への親和は 2−4×0.971＜−1 で床 −1・軍政へは 2−4×0.430＝0.27953 → d＝1.27953/3＝0.42651 → a＝0.57349
         w = Board(1.0, Nat, Nat);
-        Assert.Equal(0.0, A(w, Polity.Absolutist, Polity.MilitaryDictatorship));
-        // 向きを逆にする：現政体が軍政・引力点が絶対君主制 → 現政体の支持だけが正 → a＝1
-        Assert.Equal(1.0, A(w, Polity.MilitaryDictatorship, Polity.Absolutist));
+        Assert.Equal(0.57349, A(w, Polity.Absolutist, Polity.MilitaryDictatorship), 5);
     }
 
     [Fact]
-    public void 兵士の思想が読めないときは守る側が全部でa1()
+    public void 兵が現政体を好むか無関心ならaは1で旧の保持力のまま()
+    {
+        var w = Board(1.0, Nat, Nat);
+        // 向きを逆にする：現政体が軍政・引力点が絶対君主制 → 兵は現政体を好む（差が負）→ d＝0 → a＝1
+        Assert.Equal(1.0, A(w, Polity.MilitaryDictatorship, Polity.Absolutist));
+        // 無関心：現政体と引力点が同じ座標なら親和の差は 0 → a＝1（比の形なら ½ になって門の高さが 0 になる所）
+        Assert.Equal(1.0, A(w, Polity.Absolutist, Polity.Absolutist));
+        // 傾き 2.0・兵士が全員伝統（絶対君主制に最も近い）：引力点が軍政でも兵は現政体を好む → a＝1
+        w = Board(1.0, Nat, Trad, slope: 2.0);
+        Assert.Equal(1.0, A(w, Polity.Absolutist, Polity.MilitaryDictatorship));
+    }
+
+    [Fact]
+    public void 兵士の思想が読めないときは離反0でa1()
     {
         var w = Board(1.0, Nat, Nat);
         foreach (var p in w.AllPops()) if (p.IsSoldier) p.Consciousness = 0;   // 重み＝規模×意識×発言権 が 0＝集計は全て 0
@@ -58,12 +70,22 @@ public class SoldierHoldSplitTests
     }
 
     [Fact]
+    public void 割れた軍は集計で相殺されず離反した分だけ守る側が縮む()
+    {
+        // 傾き 2.0・兵士は伝統とナショが半々・現政体 絶対君主制・引力点 軍政：伝統は現政体を好む（差が負＝0）・ナショは引力点を好む（1.13977−0.05835）
+        //   d＝0.5×1.08142/3＝0.18024 → a＝0.81976（集計の支持は現政体 0.9174 ＞ 軍政 0.7544 なので、集計の差で取る形なら離反は 0 になる）
+        var w = Board(1.0, Nat, Trad, slope: 2.0);
+        foreach (var p in w.AllPops()) if (p.IsSoldier) { p.IdeologyShares[Trad] = 0.5; p.IdeologyShares[Nat] = 0.5; }
+        Assert.Equal(0.81976, A(w, Polity.Absolutist, Polity.MilitaryDictatorship), 5);
+    }
+
+    [Fact]
     public void aは兵士POPだけを読み兵士でないPOPの思想では動かない()
     {
         var w1 = Board(1.0, Trad, Nat, slope: 2.0);
         var w2 = Board(1.0, Nat, Nat, slope: 2.0);   // 民間人の思想だけが違う
         Assert.Equal(A(w1, Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship), A(w2, Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship));
-        Assert.Equal(0.28051, A(w1, Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship), 5);
+        Assert.Equal(0.76820, A(w1, Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship), 5);
     }
 
     /// <summary>国民の集計＝ナショ（引力点＝軍政）の盤面で、動員 100・保持力 1000 を直接渡して門 2 を叩く。</summary>
@@ -80,29 +102,31 @@ public class SoldierHoldSplitTests
     {
         Assert.Equal(Polity.Absolutist, AfterTransition(0.0, Nat));
         Assert.Equal(Polity.Absolutist, AfterTransition(0.0, Trad));
+        Assert.Equal(Polity.Absolutist, AfterTransition(0.0, Nat, challengeRadical: 800));
     }
 
     [Fact]
-    public void 兵が引力点側へ回ると動員が保持力に届かなくても門2が開く()
+    public void 兵が引力点側へ回ると門2の高さが下がる()
     {
-        // a＝0（兵は全員ナショ＝軍政側）：守る側 κ×0・挑戦 100＋1000×1 ＞ 0 → 軍政へ
-        Assert.Equal(Polity.MilitaryDictatorship, AfterTransition(1.0, Nat));
+        // 傾き 4.0・兵は全員ナショ（引力点＝軍政側）：a＝0.57349 → 守る側 κ×a＝573.49・挑戦 動員＋κ×(1−a)＝動員＋426.51 → 門 2 は 動員 ＞ κ×(2a−1)＝146.98 のとき開く（κ＝1000）
+        Assert.Equal(Polity.Absolutist, AfterTransition(1.0, Nat, challengeRadical: 100));            // 100 ＜ 146.98 は止まる
+        Assert.Equal(Polity.MilitaryDictatorship, AfterTransition(1.0, Nat, challengeRadical: 200));   // 200 ＞ 146.98。旧の門なら 200 ＜ 1000 で止まる（次の行）
+        Assert.Equal(Polity.Absolutist, AfterTransition(0.0, Nat, challengeRadical: 200));
     }
 
     [Fact]
     public void 兵が今の政体を支えるなら旧の門2と同じ判定で国は倒れない()
     {
-        // a＝1（兵は全員伝統＝絶対君主制側）：守る側 κ×1・挑戦 100＋0 ＜ 1000 → 変化なし
+        // 兵は全員伝統（絶対君主制側）：a＝1 → 守る側 κ×1・挑戦 100＋0 ＜ 1000 → 変化なし
         Assert.Equal(Polity.Absolutist, AfterTransition(1.0, Trad));
         // 動員が保持力を超えれば旧と同じく倒れる（分けは a＝1 で恒等）
         Assert.Equal(Polity.MilitaryDictatorship, AfterTransition(1.0, Trad, challengeRadical: 1500));
     }
 
     [Fact]
-    public void 兵が半々なら門2の高さは保持力かけ2aマイナス1まで下がる()
+    public void 割れた軍の門2は離反の割合だけ下がる()
     {
-        // 傾き 2.0・兵士の思想は伝統とナショが半々・現政体 絶対君主制・引力点 軍政：a＝0.5487（手計算：現政体への支持 0.9174・軍政への支持 0.7544）
-        //   → 守る側 κ×a＝548.7・挑戦は 動員＋κ×(1−a)＝動員＋451.3 → 門 2 は 動員 ＞ κ×(2a−1)＝97.5 のとき開く（保持力 κ＝1000）
+        // 傾き 2.0・兵士の思想は伝統とナショが半々・現政体 絶対君主制・引力点 軍政：a＝0.81976（上の番人）→ 門 2 は 動員 ＞ κ×(2a−1)＝639.5 のとき開く（保持力 κ＝1000）
         Polity Run(double flag, double mobilization)
         {
             var w = Board(flag, Nat, Trad, slope: 2.0);
@@ -110,9 +134,9 @@ public class SoldierHoldSplitTests
             Politics.Transition(w, w.Coef, 0.0, mobilization, 1000.0, eroding: false);
             return w.Polity;
         }
-        Assert.Equal(Polity.MilitaryDictatorship, Run(1.0, 300));   // 300 ＞ 97.5（分けた門）。旧の門なら 300 ＜ 1000 で止まる
-        Assert.Equal(Polity.Absolutist, Run(0.0, 300));
-        Assert.Equal(Polity.Absolutist, Run(1.0, 20));              // 20 ＜ 97.5 は止まる
+        Assert.Equal(Polity.MilitaryDictatorship, Run(1.0, 800));   // 800 ＞ 639.5（分けた門）。旧の門なら 800 ＜ 1000 で止まる
+        Assert.Equal(Polity.Absolutist, Run(0.0, 800));
+        Assert.Equal(Polity.Absolutist, Run(1.0, 500));             // 500 ＜ 639.5 は止まる
     }
 
     [Fact]

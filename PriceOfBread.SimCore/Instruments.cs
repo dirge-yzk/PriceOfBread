@@ -66,7 +66,7 @@ public static partial class Instruments
     {
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
-        public string? CoupRow;                            // (393) 軍の力の入口の表の行（Politics.Transition が置き CoupFold が書いて消す）
+        public string? CoupRow; public int CoupRoute;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
         public readonly double[] Claim = new double[(int)Item.Count];
         public double Treasury0, Payable0, Spare0, Payable1, Borrowed, Devalued, ClaimsTotal, PayRate;
