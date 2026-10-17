@@ -45,3 +45,10 @@ applied M10
    戻る額÷国の中の陸脚の運賃が、その国の船腹の比から外れた国がある：オーストリア 戻る/国の中=0.2279・受取の割合=0.1819 ／ フランス 戻る/国の中=0.2612・受取の割合=0.3098 ／ プロイセン 戻る/国の中=0.2346・受取の割合=0.4
 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
 MUTDONE
+
+== (392) 合流が最終の木 fc196eb3 で M7 を回し直した生の出力（反証役 ic〔v〕低#3・置換＝InstrumentsIdeology.cs の National と素の平均の列の入れ替え・D:/PoB_work/m392/mut.py M7）
+applied M7
+Failed PriceOfBread.Tests.FactoryIdeologyInstrumentTests.思想の割合は列の数が列挙に合い_集計の和が1で_最後の行は数え直した値に合い_意識の重みが効いている [7 s]
+Error Message:
+フランス National Traditionalism 期待 0.09750405478888904・実際 0.1063816746
+Failed!  - Failed:     1, Passed:     1, Skipped:     0, Total:     2, Duration: 10 s - PriceOfBread.Tests.dll (net10.0)

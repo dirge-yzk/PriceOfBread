@@ -1,0 +1,5 @@
+(389) 線 ab のフルスイートの結果（合流 (392) が D:/PoB_work/ab_389 の生の記録から写した・反証役 ab〔bv〕低#6）
+旗 0 の木（前半・afa7fd5f 以前）: fullsuite.log の末尾
+成功!   -失敗:     0、合格:  1263、スキップ:     0、合計:  1263、期間: 7 m 50 s - PriceOfBread.Tests.dll (net10.0)
+既定 2 の木（後半・7f8cf81c・腕名 Bd）: fullsuite_Bd.log の末尾
+成功!   -失敗:     0、合格:  1264、スキップ:     0、合計:  1264、期間: 8 m 50 s - PriceOfBread.Tests.dll (net10.0)

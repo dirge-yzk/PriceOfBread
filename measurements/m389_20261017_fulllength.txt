@@ -1,0 +1,2 @@
+(389) 線 ab の FullLength の結果（合流 (392) が D:/PoB_work/ab_389/fulllength_Bd.log から写した・既定 2 の木 7f8cf81c）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 55 s - PriceOfBread.Tests.dll (net10.0)

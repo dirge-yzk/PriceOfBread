@@ -1,0 +1,2 @@
+(392) フルスイート（Category!=FullLength・Release・隔離ビルド --artifacts-path D:/PoB_work/m392/art_fs・木 fc196eb3・開始 00:30:59）
+成功!   -失敗:     0、合格:  1299、スキップ:     0、合計:  1299、期間: 8 m 9 s - PriceOfBread.Tests.dll (net10.0)
