@@ -69,7 +69,7 @@ public class OpeningFiscalAlignTests
         Assert.Contains("ネーデルラント", positive);
         Assert.Equal(3, ns.Single(c => c.Name == "イギリス").OpeningStateMonopolyTier);
         Assert.Equal(3, ns.Single(c => c.Name == "ネーデルラント").OpeningStateMonopolyTier);
-        Assert.Equal(0.0, new Coefficients().OpeningFiscalAlign);   // 旗の既定は 0（腕 A）
+        Assert.Equal(1.0, new Coefficients().OpeningFiscalAlign);   // 旗の既定は 1（2026-10-18 に点火・0 は旧の経路〔腕 A〕）
     }
 
     [Fact]
