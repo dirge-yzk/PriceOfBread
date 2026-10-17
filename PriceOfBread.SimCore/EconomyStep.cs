@@ -63,8 +63,12 @@ public static class EconomyStep
         }
         else
         {
-            System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW); System.Array.Clear(s.ElecNeed);
-            System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen); System.Array.Clear(s.TrickleFill);
+            // ★2026-10-18（高速化・恒等）：InputCost・ProdW・EffChosen は消さない＝Run が読む前に読む添字を全て書く。
+            //   ProdW＝重みのループ（眠った生産者を飛ばす）が書き、読むのは供給のループ（同じく眠った生産者を飛ばす）だけ。
+            //   InputCost＝投入費のループ（眠った生産者を飛ばす）が書き、読むのは売上の按分のループ（同じく飛ばす）だけ。EffChosen＝Run の頭で 0..np−1 に −1 を書く。
+            //   ⚠ElecNeed・SteamNeed・EffNeed は条件つきで書いて全ての生産者で和を取る＝0 が要る（消す）。
+            System.Array.Clear(s.ElecNeed);
+            System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.TrickleFill);
         }
         if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; s.LastSupply = new double[npops]; s.TrickleOwner = new double[npops]; }
         else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); System.Array.Clear(s.TrickleOwner); }   // LastSupply は Run が月頭に全要素を上書きする
