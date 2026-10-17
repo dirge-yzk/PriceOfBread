@@ -2543,8 +2543,6 @@ public sealed class World
         p.BuiltScale += take;
         p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));   // 接収した持分をカウンターが翌月に売り戻さない
         double share = take / p.Scale;
-        if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
-            r.Pops[r.InvestorPopIndex].Militancy = PoliticalQuantities.Clamp01(r.Pops[r.InvestorPopIndex].Militancy + Coef.SeizureMilitancyCost * share);
         r.SeizureChill = PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share);
     }
 

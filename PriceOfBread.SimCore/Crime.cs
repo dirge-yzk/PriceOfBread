@@ -66,23 +66,7 @@ public static class Crime
                 if (Instruments.On) Instruments.Theft(r, pool, poor);   // ★(323) 計器（読むだけ・州ごとの窃盗の額と受け手の所得＝region_s の列）。Transfer の行（flow_s の鍵 Crime.cs:65）より後ろに置く
             }
 
-            // 犯罪→満足度の還流（crime-is-dead-end + theft-no-property-disincentive 統合）：治安崩壊は非物質厚生（安心）を毀損する。
-            // 富裕層(wealthRel>1)ほど『失う物を守る』財産不安が強い＝満足度を強く削られ、満足度経路から反動(Ideology/Politics)へ波及。
-            // 較正中立：合成単一地域は order≈1 で crimeRate≈0、かつ既定 CrimeSatPenalty=CrimeWealthFearWeight=0（crimeRate乗算と二重ゲート）。満足度は非保存量で貨幣に触れない。
-            // 窃盗再分配の『後』に置く：満足度を先に削ると受取重みの基準が分母 criminal とずれて保存則を破るため（上記コメント参照）。
-            if (c.CrimeSatPenalty > 0 || c.CrimeWealthFearWeight > 0)
-            {
-                double sumW = 0, sumSz = 0;
-                foreach (var pp in r.Pops) { sumW += Math.Max(0, pp.Savings.Value); sumSz += pp.Size; }
-                double meanWpc = sumSz > 1e-9 ? sumW / sumSz : 0;
-                foreach (var pp in r.Pops)
-                {
-                    double wpc = pp.Size > 1e-9 ? Math.Max(0, pp.Savings.Value) / pp.Size : 0;
-                    double wealthRel = meanWpc > 1e-9 ? wpc / meanWpc : 1;
-                    double penalty = crimeRate * (c.CrimeSatPenalty + c.CrimeWealthFearWeight * Math.Max(0, wealthRel - 1));
-                    pp.Satisfaction = PoliticalQuantities.Clamp01(pp.Satisfaction - penalty);
-                }
-            }
+            // (384) 犯罪→満足度の直の減算（CrimeSatPenalty・CrimeWealthFearWeight）は削除した＝満足度は必要の充足 NeedMet だけ（作者裁定 2026-08-19）。犯罪の被害は窃盗の移しで貯蓄を通って充足に既に入る（二重計上の排除）。
         }
         w.CrimeRate = worstRate;
     }

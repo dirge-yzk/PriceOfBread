@@ -104,10 +104,10 @@ print('⑥ 英の兌換停止：金本位が 1→0 の最初の月の年（種�
 first = {}; init = {}; prev = {}
 for sd, r in rows(D, 'fiscal'):
     if r['nation'] != UK: continue
-    g = num(r['onGold'])
-    if sd not in init: init[sd] = g
-    if prev.get(sd) == 1.0 and g == 0.0 and sd not in first: first[sd] = (int(num(r['year'])), int(num(r['monthIndex'])))
-    prev[sd] = g
+    gold = num(r['onGold'])
+    if sd not in init: init[sd] = gold
+    if prev.get(sd) == 1.0 and gold == 0.0 and sd not in first: first[sd] = (int(num(r['year'])), int(num(r['monthIndex'])))
+    prev[sd] = gold
 print('  ' + ', '.join(f'seed{sd}:{first[sd][0] if sd in first else "-"}' for sd in seeds) + '　開幕の onGold: ' + ','.join(str(int(init[sd])) for sd in seeds))
 # ⑦ 全ての国：金利の上限の張り付き（四半期）と不履行（種ごとの累計の最大の和）の上位
 capq = collections.Counter(); dflt = collections.defaultdict(int); names = {}

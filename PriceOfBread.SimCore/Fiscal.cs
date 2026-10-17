@@ -434,7 +434,6 @@ public static class Fiscal
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);
             w.Explain?.Add("Legitimacy", "国家破産（デフォルト）の信認崩壊", w.Legitimacy - legBeforeDefault);   // 説明API（#63）
-            foreach (var dp in pops) if (Politics.IsMassPop(dp)) dp.Militancy = PoliticalQuantities.Clamp01(dp.Militancy + c.DefaultMilitancyHit);
         }
         // 財7（債務/GDPの単位整合）：NominalGdpPerMonth は月次フロー、GovBondRatePerYear は年率（利払いを/12）。分母は年の名目GDP（月次×12）。
         //   ★2026-09-29：旗 DebtGdpAnnualized（2026-07-26 点火＝既定1.0）を焼き込み＝国債の金利の2つの上乗せ（債務比・信認の喪失）を史実の年の単位で出し直した（下）＝旧の月次の枝（0）は較正の意味を失った。

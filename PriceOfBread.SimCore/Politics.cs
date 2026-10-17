@@ -556,32 +556,14 @@ public static class Politics
         // 旧来の手書き分岐（軍クーデタ・1917・ブルジョワ反動・独裁の出口…）はこの一式に吸収（軍の力は支持に上乗せ・厭戦は闘争度とイデオロギー経由）。
         var agg = Ideologies.National(w);
         double soldierForce = SoldierForce(w, c);
-        // 一党支配（議会のある政体）：与党の独裁形態の引力を押し上げ＝支配的政党が体制を私物化（社会→プロ独裁／自由→ブルジョア独裁／保守→軍政）。
-        // 正統性侵食（上）と対で働き、支配が極まると独裁が引力点になる。多元的な選挙（拮抗）では発火しない＝外科的でなく支配度で連続。
-        Polity? domDictator = null; double domExcess = 0;
-        // 一党支配→独裁化は**危機国（平均満足度＜閾値）のみ**＝満足した安定な立憲/共和（英・米の一党優位）は独裁の引力を受けない＝立憲を巻き込まずに稀な独裁を出す。
-        if (w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
-        {
-            double maxSeat = Math.Max(w.PartySeats[0], Math.Max(w.PartySeats[1], w.PartySeats[2]));
-            if (maxSeat > c.PartyDominanceThreshold.Value)
-            {
-                domExcess = (maxSeat - c.PartyDominanceThreshold.Value) / (1 - c.PartyDominanceThreshold.Value);
-                domDictator = w.GoverningParty switch
-                {
-                    2 => Polity.ProletarianDictatorship,
-                    1 => Polity.BourgeoisDictatorship,
-                    _ => Polity.MilitaryDictatorship,
-                };
-            }
-        }
         // 倍率排除⑧段階2：現政体の参加軸を**実際の参政権**へドリフト（控えめ）。広い参政権の立憲＝高参加で安定／狭い立憲＝低参加で共和へ押される
         // ＝政体ラベルでなく実法律が政体の引力を動かす（①②③の総仕上げ）。較正中立：sweep は実参政権＝政体の建国参政権でドリフト≒0。
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         // 法多様性（政体・2026-07-07）：大衆闘争×ブルジョワ勢力＝ブルジョア独裁の引き金（下記 AvgMassMilitancy の設計コメントの配線＝
         // 高闘争の議会制国家でエリートが秩序回復の独裁を敷く）。議会制の立憲/共和のみ＝較正（ParliamentEnabled=false）遮蔽。
         // ★2026-08-12：**危機ゲートの非対称を解消**（旗 BourgeoisCoupNeedsCrisis は 2026-09-26 に焼き込み）。
-        //   すぐ上の一党支配→独裁化（domDictator）は「満足した安定な立憲/共和は独裁の引力を受けない」という危機ゲート
-        //   （MeanSatisfactionPol < DominanceInstabilitySatisfaction）を持つのに、**同じ「議会制国家がエリート独裁に転ぶ」
+        //   旧の一党支配→独裁化（domDictator・(384) で物理削除）は「満足した安定な立憲/共和は独裁の引力を受けない」という危機ゲート
+        //   （MeanSatisfactionPol < DominanceInstabilitySatisfaction）を持っていたのに、**同じ「議会制国家がエリート独裁に転ぶ」
         //   現象を測るこの項だけが素通り**していた。近代ブロックが厚い国ほど値が大きくなるので、最も厚いアメリカ
         //   （貴族18 に対し 資本家429・専門職143）が最も転びやすい＝1923年に BourgeoisDictatorship で反動剥奪を受け、
         //   参政権と報道を1段ずつ失って識字26%・技術2.64まで落ちる（実測）。秩序回復の独裁は**回復すべき無秩序**を要る。
@@ -598,7 +580,6 @@ public static class Politics
             double s = Ideologies.SupportAt(agg, pol == w.Polity ? curCoord : Ideologies.BasePolityCoord(pol), c.IdeologyAffinitySlope);
             if (pol == Polity.MilitaryDictatorship)
                 s += CoupSupport(w, c, soldierForce, coerce);   // 軍部の力（クーデタは銃が要る＝イデオロギーだけでない）。式は CoupSupport の1本
-            if (domDictator is { } dd && pol == dd) s += c.DominanceCoupWeight * domExcess;   // 一党支配→その独裁形態の引力
             if (pol == Polity.BourgeoisDictatorship) s += bourgeoisCoup;   // 法多様性：大衆闘争が高いほどブルジョワが独裁へ傾く
             // 政体形態の実績ストック（信認⇔失望・docs/2026-07-13_形態別失望ストック.md）：その形態系統の実績で支持を符号付きに増減
             // ＝信認された形態（正）は選ばれ/現体制なら粘り（entrench）、失望された形態（負）は避けられる→両穏健形が負なら極端が浮上（ワイマール/1917）。
@@ -1882,7 +1863,6 @@ public static class Politics
                         || (depMass && IsMassPop(p));
             if (deposed)
             {
-                p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.DeposedMilitancySpike);   // 失脚＝反革命の激しい不満
                 if (terror && !p.IsSoldier && p.Size > 0)
                 {
                     (purgedPops ??= []).Add(p); purgeTotal += p.Size * c.RevolutionTerror;   // 粛清・亡命＝失脚した層の RevolutionTerror の割合（下で死の記帳の1本へ）
@@ -1892,7 +1872,6 @@ public static class Politics
                     p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;
                 }
             }
-            else p.Militancy *= c.ReformMilitancyRelief;                                            // 勝者・中立＝緩和
         }
         // 粛清・亡命の死＝死の記帳の1本（World.KillPops＝人口の台帳・戦死の累計に計上）。失脚した層の規模の比＝各層の RevolutionTerror の割合。
         if (purgedPops is not null) w.TerrorPurgeCumulative += w.KillPops(purgedPops, null, purgeTotal, violent: true);   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う

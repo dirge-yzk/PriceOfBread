@@ -1178,9 +1178,9 @@ public class PolicyPoliticsTests
         // 施行も目標を削らない＝他の税と同じ Q4 1本（★主張の書き直し 2026-09-20 段の点火：旧は「段のない世界」で目標1.0へ 0.877。
         //   段の世界では目標は最上段＝錨 IncomeTaxTop へ落ちる＝同じ「天井が無い」を錨に対する到達率で測る）
         w.Policy.IncomeTaxTarget = 1.0; w.Policy.ProgressiveTaxTarget = 1.0;
-        for (int q = 0; q < 40; q++) Government.Step(w, w.Coef);
+        for (int q = 0; q < 60; q++) Government.Step(w, w.Coef);   // (384) 勅令の速さ（非選挙政体の歩幅×1.5）の削除で歩幅が 1/1.5 になった＝同じ到達率を測る長さを 40→60 四半期へ
         Assert.True(w.AdminEfficiency < 0.5, $"前提が崩れた：行政力が育ってしまい天井の有無を測れない（{w.AdminEfficiency:F3}）");
-        // 行政力0の国＝旧の天井は厳密に0（率も0）。Move が漸近＝40四半期で最上段には届かないが、錨の8割を超えて登る。
+        // 行政力0の国＝旧の天井は厳密に0（率も0）。Move が漸近＝60四半期で最上段には届かないが、錨の8割を超えて登る。
         Assert.True(w.TaxRate.Value > 0.8 * Government.IncomeTaxTop, $"行政力が低い国の所得税が上がらない＝どこかに天井が残っている（{w.TaxRate.Value:F3}）");
         Assert.True(w.TaxRate.Value <= Government.IncomeTaxTop, $"最上段を越えた（{w.TaxRate.Value:F3}）");
     }

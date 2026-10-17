@@ -467,7 +467,9 @@ public class WriterRatchetTests
     // ★2026-10-17 表の更新（(383) 行政効率と汚職の残りの削除＋扶養力の錨の半分〔作者 2026-10-16「行政効率→廃止」「汚職→廃止」〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔消す側〕）：
     //   覇権の判定 3,262,330→2,345,270（−28.1%＝10% を超えて下がった＝表を下げる・最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内。
     //   全長の10種（計器つき `b10_20261017_ae383_ins`）の推定 243.8→242.9 秒（上限 248.5 秒の内・払っていない・実装ログ (383)）。
-    [InlineData(CostLedger.DiploHegemonScans, 2345270L)]
+    // ★2026-10-17 (384) 政治の束 12 項目の物理削除でも同じ桁へ下がった（枝 pb の木で 2,345,164）。(387) 合流の木（ae＋pb＋tf）は 2,402,406（基点 3,262,330 から −26.4%・
+    //   ae だけ・pb だけの木より +2.4%＝2 本の軌道の重ね・処理の形は同じ＝新しい計数の処理は無い）＝合流が測った値を置いた。
+    [InlineData(CostLedger.DiploHegemonScans, 2402406L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]

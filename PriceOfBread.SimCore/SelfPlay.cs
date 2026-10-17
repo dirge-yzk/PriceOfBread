@@ -612,7 +612,9 @@ public sealed class UtilityAgent : INationAgent
         else if (!atWar && armyShare >= 0) p.ConscriptionLaw = ConscriptionLowerTarget(w.ConscriptionLaw, armyShare, p.ConscriptionLaw);
         else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.ConscriptionLaw;   // 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
-        // ★(383) 作者 2026-10-16「行政効率→廃止」：〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI だけの押し（旧の 4 因子つきの閾値）は物理削除した。官僚制度の軸は議会・政治の経路でプレイヤーと同じく動く（AI とプレイヤーの対称）。
+        // ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
+        //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では普・米 10/10・英 8/10 種が 1951 年まで猟官制＝
+        //   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
         if (w.MeanIndustrialization > AntitrustIndThreshold)
             p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
         // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
