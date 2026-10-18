@@ -1293,6 +1293,7 @@ public class PolicyPoliticsTests
     private static Simulation CapitalBoard()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 既定は採用値（壁の一歩を値段にする）。この盤面の番人は〈在庫の門だけ・壁は永久に通らない〉旧の経路を見る＝旗を 0 に明示（新しい経路は ReformPathTests）
         sim.Run(8);
         return sim;
     }
@@ -1656,6 +1657,7 @@ public class PolicyPoliticsTests
     public void S1_余白の門は退役し非憲法級は正統性に依らず在庫だけで決まる()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔在庫の門だけ〕を見る番人＝旗を 0 に明示
         sim.Run(8);
         var w = sim.World;
         int opposed = 0, opposedLowLeg = 0;
@@ -1786,7 +1788,7 @@ public class PolicyPoliticsTests
     }
 
     /// <summary>目標を置ける法軸の現在の段（<see cref="SetLawTarget"/> の鏡像）。</summary>
-    private static int LawLevel(World w, PolicyAxis a) => a switch
+    internal static int LawLevel(World w, PolicyAxis a) => a switch
     {
         PolicyAxis.ShorterHours => (int)w.WorkHours,
         PolicyAxis.ChildLabor => w.ChildLaborAllowed ? 1 : 0,
@@ -1807,7 +1809,7 @@ public class PolicyPoliticsTests
 
     /// <summary>純支持が負（＝押し切りが要る）で、在庫が潤沢なら通る一歩を1本見つける。代価つきで返す。
     /// ★S1 以後は「通る」を決めるのは在庫だけ＝憲法級（参政権）は硬い純支持&gt;0 のまま否決されるので自然に外れる。</summary>
-    private static (PolicyAxis Axis, bool Inc, int Level, double Cost) FindOpposedStep(World w)
+    internal static (PolicyAxis Axis, bool Inc, int Level, double Cost) FindOpposedStep(World w)
     {
         w.Legitimacy = 1.0;                                   // 盤面を固定する（旧＝余白 θ を最大にする理由だったが S1 で θ は退役＝残る役目は再現性）
         w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;      // 在庫では止めない状態で探す
@@ -1836,7 +1838,7 @@ public class PolicyPoliticsTests
         return default;
     }
 
-    private static void SetLawTarget(World w, PolicyAxis a, int level)
+    internal static void SetLawTarget(World w, PolicyAxis a, int level)
     {
         var p = w.Policy;
         switch (a)

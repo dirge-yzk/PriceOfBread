@@ -2060,7 +2060,7 @@ public sealed class Simulation
                 // C-高9（史実検証2026-07-22）：公教育（Public）にも国庫財源を配線（旧＝Compulsory 以外は厳密0＝「国が無料で供給を得る」因果の逆向き）。
                 // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
-                    : World.EducationLaw == EducationLaw.Public ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)
+                    : World.EducationLaw == EducationLaw.Public || (World.EducationLaw == EducationLaw.Religious && World.Coef.ParishEduFunded > 0) ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // ★(404) 旗 ParishEduFunded＞0：Religious も Public と同じ割合を国庫が買う（担い手は教区学校のまま・rf_20261018_prereg.txt D2）。0 は旧の 0
                     * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
                 if (r.EducationProducerIndex >= 0)
                 {

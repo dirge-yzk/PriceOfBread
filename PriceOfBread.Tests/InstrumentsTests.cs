@@ -1455,6 +1455,7 @@ public class InstrumentsTests
         try
         {
             var sim = Make();
+            foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) この番人は旧の経路〔S＋代価 ≦ b でしか通らない〕の台帳の恒等を見る＝旗を 0 に明示（既定は採用値 1）
             Instruments.Configure(dir, "*");
             try { RunMatch(sim, 40, instr: true); }
             finally { Instruments.Configure(null, null); }
@@ -1539,6 +1540,7 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make(CoverageSeed);
+                foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔壁は永遠に通らない・符号 2 の構造〕の分割を見る番人＝旗を 0 に明示（既定は採用値 1）
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)
                 {

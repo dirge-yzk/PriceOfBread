@@ -547,7 +547,8 @@ public static class Government
         {
             double cost = -net * w.Coef.MandateSpendRate * costMul;   // 反対を押し切った代償（−net=|純支持|）＝正統性の全幅
             if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
-            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) Instruments.GateResult(w, 2, net); return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
+            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true); } return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
+            if (Instruments.On) Instruments.WallPass(w, cost, true, a);   // 計器（読むだけ・(404)）：壁の分岐で通った一歩（旗 0 は数えない）
             Spend(w, cost);
         }
         if (Instruments.On) Instruments.GateResult(w, net < 0 ? 4 : 3, net);
@@ -560,7 +561,16 @@ public static class Government
     ///   **人気のある法すら通せなくなる＝進行不能**（P4の破綻）。
     /// ⚠否定形：NaN が混じれば <c>&lt;=</c> が偽＝門は閉じる側へ倒れる（fail-open にしない）。</summary>
     internal static bool PoliticalCapitalAffords(World w, double cost)
-        => w.MandateSpent + cost <= w.PoliticalCapitalMax;
+    {
+        if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true;
+        // ★(404) 壁の一歩だけを値段にする（旗 MandateOverStockFromLegitimacy＞0・事前登録 rf_20261018_prereg.txt D1）：代価が b そのものを超える一歩は在庫が満タンでも届かない＝待っても永遠に通らない壁だった
+        //   （README §1-8 片方向の錠なし・歯止めは値段と費用で）。値段＝①在庫を使い切る（S＝0 の満タンのときだけ・その後 S＝代価で長く空く）②正統性が代価を払えること（この四半期に請求済みの MandateSpentNew を引く）。
+        //   正統性の減算は Spend が記帳する MandateSpentNew→Politics.Step の 1 回だけ（新しい減算を足さない）。代価≦b の一歩は上の式のまま（時間の値段）。旗 0 は下の 1 行で旧と同じ偽。
+        //   ⚠否定形：S・正統性・代価のどれかが NaN なら比較が偽＝閉じる側へ倒れる。
+        //   ここへ来た時点で S+代価 ＞ b。S≦0（満タン）ならそれは 代価＞b と同じ＝壁の一歩（S＞0 なら普通の一歩の在庫不足か壁の一歩の在庫の使いかけ＝どちらも待つ）。
+        if (!(w.Coef.MandateOverStockFromLegitimacy > 0)) return false;
+        return w.MandateSpent <= 0 && cost <= w.Legitimacy - w.MandateSpentNew - w.Coef.MandateOverStockLegitFloor;   // 床 0（既定）は引く量が 0＝事前登録の式
+    }
 
     // ★裁定C2（2026-09-12「法の変更そのものは闘争度に関与しない。実税が生活を苦しくし、結果として不満度を上げて反乱が増える形にする」）：
     //   押し切り遺恨／阻止の不満のラッパ2本は 2026-09-20 の段の点火で削除。税から闘争度への経路は実税→生活水準→不満度（Politics の力学）1本。
@@ -871,7 +881,8 @@ public static class Government
             double moved = Math.Min(1.0, Math.Abs(next - cur) / spendScale);
             double cost = -net * w.Coef.MandateSpendRate * moved;
             if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
-            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
+            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) { Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); Instruments.RfBlocked(w, false); } return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
+            if (Instruments.On) Instruments.WallPass(w, cost, false, a);   // 計器（読むだけ・(404)）
             Spend(w, cost);
         }
         if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, mandate && net < 0 ? 4 : 3, e, increasing);

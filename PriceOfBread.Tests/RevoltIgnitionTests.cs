@@ -1745,6 +1745,7 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World;
         w.PollTax = 2.0 / 3.0; w.Policy.PollTaxTarget = 1.0 / 3.0;
+        w.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔壁の一歩は永遠に通らない〕を見る番人＝旗を 0 に明示（既定は採用値 1）
         // ⚠旧の対照「ゲート0＝常に false」は旗とともに退役（2026-09-20 段の点火）。
         // ★空手形の封じ（2026-09-12 反証）：門が閉じている向きは目標を置いても施行中ではない＝Move が1ミリも動かさないので
         //   毎月の取り立ては1ミリも変わらない（1789年の仏＝国庫が痩せた国で人頭税を下げる純支持は負）。
