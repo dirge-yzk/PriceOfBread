@@ -352,9 +352,6 @@ public static class PolicyPreferences
                 //   （CapitalAbroad÷名目GDP）から創発＝対外投資を持たない国では反対が立たない＝法が争点にならない。
                 // ・地主／労働＝**規制を望む**（資本が国内に留まれば国内の雇用と地価を支える）。
                 // ★史実＝金融の中心（英シティ）ほど自由を守り、資本を輸入する側（後発国）は流出局面で統制へ傾いた。
-                // ⚠思想③（休眠フラグは既定で厳密恒等）：休眠中に**選好だけ非0**だと、この軸が要求リストに載って
-                //   他の要求を押し出す＝軸を1本足しただけで軌道が動く。実測で捕まえた（2026-08-13・帯が8軸すべてで動いた）。
-                if (w.Coef.CapitalMobilityLawGate <= 0) return 0;
                 double abroadShare = e.NominalGdp > 1e-9 ? PoliticalQuantities.Clamp01(w.CapitalAbroad.Value / e.NominalGdp) : 0;
                 if (!(abroadShare >= 0 && abroadShare <= 1)) abroadShare = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
                 return modern ? -(1.0 + w.Coef.CapitalControlPrefScale * abroadShare) : 1.0;

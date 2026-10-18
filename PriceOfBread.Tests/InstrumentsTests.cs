@@ -122,10 +122,9 @@ public class InstrumentsTests
             Assert.True(sr.Count >= 4 * (Quarters + 2), "在庫の断面が少ない");
 
             // ---- (258) F1 段0：財政の鎖の四半期の列（nation_s）が月次の表（fiscal_s）と別の経路で合う。
-            //   nation_s の数は月ごとの状態から四半期へ足した値・fiscal_s は月ごとの行＝2つの経路が同じ月を数える。予算の基数＝純税収＋係数×間接税は本体の式（Coefficients）から。
+            //   nation_s の数は月ごとの状態から四半期へ足した値・fiscal_s は月ごとの行＝2つの経路が同じ月を数える。予算の基数＝純税収＋間接税。
             {
                 var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
-                double indirectK = new Coefficients().IndirectTaxInBudgetBase;
                 int groupsChecked = 0, closedSeen = 0, shortSeen = 0, rBelowSeen = 0, binderSeen = 0, binderGateClosedSeen = 0;
                 foreach (var nation in fr.Select(r => r[Array.IndexOf(fh, "nation")]).Distinct())
                 {
@@ -139,7 +138,7 @@ public class InstrumentsTests
                         foreach (var r in grp)
                         {
                             double rev = Col(fh, r, "revenueBasePerMonth"), dn = Col(fh, r, "directTaxNetPerMonth"), ind = Col(fh, r, "indirectRevenuePerMonth");
-                            Assert.True(Math.Abs(rev - (dn + indirectK * ind)) <= 1e-6 * Math.Max(1.0, Math.Abs(rev)), $"予算の基数が純税収＋係数×間接税に合わない {nation}");
+                            Assert.True(Math.Abs(rev - (dn + ind)) <= 1e-6 * Math.Max(1.0, Math.Abs(rev)), $"予算の基数が純税収＋間接税に合わない {nation}");
                             // (261) 反証役 T1 中#1：月初の門の旗（PreBorrow が読む Fiscal.BorrowGateOpen）と、Fiscal.Borrow の中で門が閉じて止まった口（Instruments.Gate＝borrowBinder の gateClosed）は別の経路＝借入の判定に来た月は「gateClosed ⇔ 旗 0」
                             string binder = r[Array.IndexOf(fh, "borrowBinder")];
                             if (binder != "noShortfall")

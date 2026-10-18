@@ -136,7 +136,7 @@ public partial class GameViewModel
         LedgerBalanceText = (bal >= 0 ? "+" : "-") + Money(System.Math.Abs(bal));
         // 通貨改革のボタンは**発動条件を満たしたときだけ**出す（押せないボタンを置かない＝UI最小主義）
         var c0 = _player.Coef;
-        CurrencyReformVisible = c0.CurrencyReformEnabled > 0.5 && !_player.OnGoldStandard
+        CurrencyReformVisible = !_player.OnGoldStandard
             && _player.CurrencyReformCooldown <= 0 && _player.NominalGdpPerMonth.Value > 1e-9
             && _player.CumulativeDevaluation / _player.NominalGdpPerMonth.Value > c0.CapitalFlightDistrustThreshold
             && _player.NoDevaluationMonths >= c0.CurrencyReformCalmMonths
@@ -268,7 +268,7 @@ public partial class GameViewModel
     //   掴めないことと、この真下に並ぶ通貨制度の法・法律タブの資本移動の法が状態を示していれば足りる。
     //   ⚠エンジン側（Government の rateTarget 差し替え）と**同じ条件式**を読む＝UIとエンジンが食い違わない。
     public bool InterestLeverEnabled
-        => !(_player.Coef.TrilemmaRateGate > 0 && _player.OnGoldStandard && !_player.CapitalControlLaw && (_player.Coef.SilverLightDiscipline <= 0 || _player.GoldStandardLaw));   // ★B6（実バグ21件・2026-09-07）：銀の段の軽い規律の第4条件をエンジン（Government）と揃える＝銀正貨のプレイヤーだけレバーが死んでいた
+        => !(_player.OnGoldStandard && !_player.CapitalControlLaw && _player.GoldStandardLaw);   // ★B6（実バグ21件・2026-09-07）：銀の段の軽い規律の第4条件をエンジン（Government）と揃える＝銀正貨のプレイヤーだけレバーが死んでいた
 
     // 近代化投資：四半期に ModernizationBudget（GDP比の凸コスト）を全資本区画の建設予約へ（World.ApplyModernizationInvestment が自動適用）。
     // ★2026-08-10 に財政タブへスライダーを復活。⚠エンジン側の対（Simulation.QuarterStart がプレイヤー国を上書きしない）と**セット**で意味を持つ

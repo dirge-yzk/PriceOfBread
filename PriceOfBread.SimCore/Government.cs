@@ -44,19 +44,16 @@ public static class Government
     internal const int MilitaryLawStages = 4;
     internal const int SocialSecurityMaxLevel = 3;    // 社会保障法の最上段（Pension）＝4段（PoorLaw..Pension）の最大序数。internal（2026-09-11）＝Parliament.TargetDemand が法の段で目標を置く。2026-07-21「なし」廃止で救貧法が最下段（序数0＝福祉水準0）
 
-    /// <summary>R1 蜂起R群2026-08-16（診断A1・本丸）：軍事力→治安維持力目標。CoercionSoftCap=0＝旧 min(x, CoercionMax)＝**ビット恒等**／
-    /// >0＝漸近逓減 x/(1+x/CoercionMax)（SelfPlay.Score.Military と同じ既存の逓減形・x→∞でCoercionMaxへ漸近）。
+    /// <summary>R1 蜂起R群2026-08-16（診断A1・本丸）：軍事力→治安維持力目標。漸近逓減 x/(1+x/CoercionMax)（SelfPlay.Score.Military と同じ既存の逓減形・x→∞でCoercionMaxへ漸近）。
     /// 壁の何が悪いか：旧 CoercionMax=4000 は挑戦力の理論最大（BaseCoercion換算 ≈ PoliticalReferencePop×1.25 ≈ 1250）の3.2倍＝
     /// 軍事費スライダー≳0.28でcapに張り付き「不満100%・意識100%でも革命が代数的に不能」（クーデタも同じ動員ゲート従属）。
     /// ⚠これは**形の切替であり値の縮尺でない**：min未満の帯でも x/(1+x/cap)&lt;x＝平時のBaseCoercion（Politics・治安維持力維持費・
-    /// FactionSnapshot表示の読み手）も下がる。旧と厳密恒等にするのはフラグ0の旧式のみ。
-    /// ★2026-08-16の点火梯子で**CoercionSoftCap=1.0 に点火済み（live）**＝水準 CoercionMax も同時に 4000→2000（等号点1250の1.6倍）へ是正
+    /// FactionSnapshot表示の読み手）も下がる。
+    /// ★2026-08-16の点火梯子で旧の旗 CoercionSoftCap=1.0 に点火（2026-10-18 に焼き込み＝旧 min(x, CoercionMax) の壁は git の履歴）＝水準 CoercionMax も同時に 4000→2000（等号点1250の1.6倍）へ是正
     /// （漸近値が等号点1250へ近づくほど「大軍でも正統性×財政が痩せれば倒れる」帯が開く）。見る帯＝総政変・政体exact。
     /// internal＝ON経路テスト用（InternalsVisibleTo）。</summary>
     internal static double CoercionTargetFromForce(double force, Coefficients c)
-        => c.CoercionSoftCap > 0
-            ? force / (1.0 + force / Math.Max(1e-9, c.CoercionMax))
-            : Math.Min(force, c.CoercionMax);
+        => force / (1.0 + force / Math.Max(1e-9, c.CoercionMax));
 
     /// <summary>★段の法（enum の法と bool の法）の軸の1行（2026-09-28 処理の一元化 段1）。値は段の序数（bool は 0/1）。
     /// 施行（<see cref="Step"/>）・戦線の数え（<see cref="CountOpenFronts"/>）・段（<see cref="StagedAxis"/>／<see cref="CurrentStage"/>）・
@@ -341,12 +338,11 @@ public static class Government
         //   このとき目標は政策の意思でなく**正貨のカバー率を守るための帰結**＝カバー率が目標を下回れば上げ、十分なら下げる。
         //   ⚠新しい概念は1つも置かない：目標カバー率は既存の再加入条件（GoldCoverMin×GoldRejoinCoverMargin）をそのまま読む。
         //   自己安定する：金利↑→PolicyRateCapitalDraw で正貨が来る→カバー率が戻る→金利↓（★史実＝誰も金融政策の自律を選ばなかった）。
-        //   TrilemmaRateGate=0 なら下の分岐に入らず＝厳密恒等（★ 2026-08-13 点火＝既定1.0）。
+        //   （旧の旗 TrilemmaRateGate は 2026-08-13 点火・2026-10-18 に焼き込み＝下の分岐は常に有効。）
         double rateTarget = Q5(PoliticalQuantities.Clamp01(p.InterestRateTarget));
-        // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21・**live=1**）：金利防衛（バンクレート）は発券銀行制度＝金の段の制度。
+        // ★銀の段の軽い規律（旧の旗 SilverLightDiscipline・2026-08-21 点火・2026-10-18 焼き込み）：金利防衛（バンクレート）は発券銀行制度＝金の段の制度。
         //   1783年の銀正貨国に金利レバーの自動化を課すと約60カ国のレバーが死ぬ（19-6差し戻しの根①）＝銀の段では自動化しない。
-        //   0に戻せば旧来（銀の段も自動化）と厳密恒等。
-        if (c.TrilemmaRateGate > 0 && w.OnGoldStandard && !w.CapitalControlLaw && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
+        if (w.OnGoldStandard && !w.CapitalControlLaw && w.GoldStandardLaw)
         {
             double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             double coverTarget = c.GoldCoverMin.Value * c.GoldRejoinCoverMargin;

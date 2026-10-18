@@ -867,8 +867,6 @@ public sealed class UtilityAgent : INationAgent
         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
         // 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は
         // 金流出が止まらなくなってから敷かれた。⚠実際に法が通るかは資本の反対（PolicyPreferences）が決める＝プレイヤーと同じ政治ゲート。
-        // CapitalMobilityLawGate 点火1.0（2026-08-13）＝live。0 で旧式（法も openness も動かない）。
-        if (w.Coef.CapitalMobilityLawGate > 0)
         {
             double cover = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin.Value;
@@ -914,7 +912,7 @@ public sealed class UtilityAgent : INationAgent
         // 通貨改革（2026-08-13）：**プレイヤーのボタンと同じ口**（World.RequestCurrencyReform）を押す。
         // AIは実力どおりの新平価を選ぶ（ポワンカレ型）＝旧平価に戻すという自傷は**プレイヤーだけが選べる選択肢**。
         // 機構は対称で、判断だけが違う（巨大建造物と同じ作法）。ゲートは Fiscal が持つので、ここは意思だけ。
-        if (w.Coef.CurrencyReformEnabled > 0.5 && !w.OnGoldStandard && w.CurrencyReformCooldown <= 0
+        if (!w.OnGoldStandard && w.CurrencyReformCooldown <= 0
             && w.NominalGdpPerMonth.Value > 1e-9 && w.CumulativeDevaluation / w.NominalGdpPerMonth.Value > w.Coef.CapitalFlightDistrustThreshold
             && w.NoDevaluationMonths >= w.Coef.CurrencyReformCalmMonths)
             w.RequestCurrencyReform(w.ExchangeRate);

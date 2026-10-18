@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// 蜂起R群 2026-08-16（docs/202608/20260816_蜂起不発と極端プレイ診断_部分完了.md）のON経路検証。
-/// R1 CoercionSoftCap＝coerce飽和を壁→漸近逓減（Government.CoercionTargetFromForce）／
+/// R1 coerce飽和を壁→漸近逓減（Government.CoercionTargetFromForce・旧の旗 CoercionSoftCap は2026-10-18に焼き込み）／
 /// R2 FactionRevoltLocalCoerce＝F3b右辺の州pop按分ブレンド（Politics.LocalizedHold）／
 /// R3 は★段2（2026-09-09）で機構ごと消滅＝熱は州平均闘争度1量（同じ主張を新しい形で測る2本に書き直し済み）／
 /// R4 ModernizationBudgetSoftCap＝近代化投資のminクランプ→漸近逓減（World.ModernizationBudget）。
@@ -23,7 +23,6 @@ public class RevoltIgnitionTests
         // ⚠POB_COEF で明示的に上書きした測定走行では見ない（点火A/Bを同一バイナリで取るため）。
         var c = new Coefficients();
         string ov = Coefficients.OverrideSummary();
-        if (!ov.Contains("CoercionSoftCap", StringComparison.Ordinal)) Assert.Equal(1.0, c.CoercionSoftCap);
         if (!ov.Contains("CoercionMax", StringComparison.Ordinal)) Assert.Equal(2000.0, c.CoercionMax);   // R1と同時に水準も是正（旧4000）
         if (!ov.Contains("FactionRevoltLocalCoerce", StringComparison.Ordinal)) Assert.Equal(0.5, c.FactionRevoltLocalCoerce);
         // ★段2（設計メモ §7-3・作者裁定2026-09-09）で確定した4値＝史実から逆算した数（勘で置いていない）。うっかり動いたらここが赤になる。
@@ -43,13 +42,8 @@ public class RevoltIgnitionTests
     public void R1_ソフト化で高軍事費でも点火可能な帯が開く()   // 診断A1：旧CoercionMax=4000は等号点≈1250の3.2倍＝軍事費≳0.28で革命が代数的に不能だった
     {
         var c = new Coefficients();
-        c.CoercionSoftCap = 0;   // ★OFF側を明示ピン（既定は点火1.0）
-        // フラグ0＝旧 min(x, CoercionMax) とビット恒等（壁のまま）
-        foreach (var x in new[] { 0.0, 800.0, 1600.0, 4000.0, 12000.0 })
-            Assert.Equal(System.Math.Min(x, c.CoercionMax), Government.CoercionTargetFromForce(x, c));
         // 等号点（診断A1の導出）：challenge理論最大 ≈ Pop×1.25 → 点火 ⇔ BaseCoercion×Leg×funding < PoliticalReferencePop×1.25 ≈ 1250
         double ignitionBound = c.PoliticalReferencePop * 1.25;
-        c.CoercionSoftCap = 1.0;
         double soft = Government.CoercionTargetFromForce(1600.0, c);   // 旧なら1600＝点火不能の帯
         Assert.True(soft < ignitionBound,
             $"ソフト化しても点火帯が開かない（force1600 → {soft:F1} ≥ 等号点 {ignitionBound:F0}）");

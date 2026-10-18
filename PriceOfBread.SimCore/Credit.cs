@@ -92,9 +92,9 @@ public static class Credit
         // #125 正貨準備の動学（2026-07-25）：金本位国のカバー率防衛＝coverage(BaseMoney/BroadMoney)が床(GoldCoverMin×(1+これ))へ迫ると
         // 与信上限を比例で絞る（1890年代のバンクレート防衛の与信面＝兌換を守るため信用を犠牲にする）。与信↓→BroadMoney↓→coverage回復＝負帰還
         //（現行は準備が薄くても与信が伸び続け、割った瞬間に強制離脱＝カバー率割れ316回の構造）。床0.25＝信用の全面凍結はしない。GoldCoverCreditRestraint=0で不読＝厳密恒等（既定0.5）。
-        // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21・**live=1**）：発券カバー率防衛の与信抑制も金の段の制度（19-10差し戻しの根②＝
-        //   点火時に20〜31カ国で binding）。銀の段では絞らない。0に戻せば旧来（銀の段も絞る）と厳密恒等。
-        if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney.Value > 1e-9 && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
+        // ★銀の段の軽い規律（旧の旗 SilverLightDiscipline・2026-08-21 点火・2026-10-18 焼き込み）：発券カバー率防衛の与信抑制も金の段の制度（19-10差し戻しの根②＝
+        //   点火時に20〜31カ国で binding）。銀の段では絞らない。
+        if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney.Value > 1e-9 && w.GoldStandardLaw)
         {
             double gcCoverage = w.BaseMoney / w.BroadMoney;
             double gcFloor = c.GoldCoverMin.Value * (1.0 + c.GoldCoverCreditRestraint);
@@ -126,9 +126,8 @@ public static class Credit
         // Heat符号逆転の是正（経8）：Heat=Loans/実効上限 は取り付けで分母（準備）が縮むと跳ね上がる。
         // この Heat は World.FinancialHeat 経由で株式ユーフォリア項(EquityHeatEuphoria・既定有効)へ配線され、投資ハードルから減じられる＝
         // 「取り付けの最中に投資が刺激される」符号逆転を生む。安定準備(取り付け前 maxLoans＝run/lolr 反映前)基準の使用率なら、パニックで縮む分母に振り回されない。
-        // EuphoriaUsesStableReserve=0 で旧・縮小後 effMaxLoans 基準。既定1.0＝安定準備基準（#17較正で有効化）。
-        double heatDenom = effMaxLoans * (1.0 - c.EuphoriaUsesStableReserve) + maxLoans * c.EuphoriaUsesStableReserve;
-        bank.Heat = heatDenom > 1e-9 ? Math.Clamp(bank.Loans.Value / heatDenom, 0, HeatClampMax) : 0;   // 与信使用率＝過熱度（既定は取り付けで準備が縮むと過熱度↑・stable基準では準備縮小に不感）
+        // 安定準備基準（旧の旗 EuphoriaUsesStableReserve＝#17較正で有効化・2026-10-18 焼き込み。旧・縮小後 effMaxLoans 基準は git の履歴）。
+        bank.Heat = maxLoans > 1e-9 ? Math.Clamp(bank.Loans.Value / maxLoans, 0, HeatClampMax) : 0;   // 与信使用率＝過熱度（取り付けで準備が縮んでも安定準備基準では不感）
         double targetLoans = effMaxLoans * confL * appetite;
         // 説明API（金利doc B2・2026-07-30）：与信目標の加法分解＝「金利を動かしたとき何がどれだけ動いたか」を測れる状態にする。
         // 乗算連鎖 maxLoans×(1−run)×(1+lolr)×Confidence×appetite を before/after 差分で分解（AdminEfficiency と同型）。

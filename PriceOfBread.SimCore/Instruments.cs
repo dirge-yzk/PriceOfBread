@@ -393,7 +393,7 @@ public static partial class Instruments
         st.LimitNow = lr > 0 && !(w.LastInterestPerMonth < w.Coef.MaxInterestShareOfRevenue * w.LastRevenuePerMonth) ? 1 : 0;
         st.Over067Now = lr > 0 && li > SuspensionInterestShare * lr ? 1 : 0;
     }
-    /// <summary>歳入の内訳（Fiscal.Step が予算の基数を書いた所）：純税収と間接税の実収。予算の基数＝純税収＋<c>IndirectTaxInBudgetBase</c>×間接税。</summary>
+    /// <summary>歳入の内訳（Fiscal.Step が予算の基数を書いた所）：純税収と間接税の実収。予算の基数＝純税収＋間接税。</summary>
     internal static void Revenue(World w, double directNet, double indirect)
     {
         if (Live(w) is not { } st) return;

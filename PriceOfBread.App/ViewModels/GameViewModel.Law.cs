@@ -108,7 +108,7 @@ public partial class GameViewModel
         else
             AddEcon("通貨制度", PolicyAxis.MonetaryStandard, ["不換紙幣", "金本位"], () => w.GoldStandardLaw ? 1 : 0, () => p.MonetaryTarget >= 2 ? 1 : 0, v => p.MonetaryTarget = v == 1 ? 2 : 0);
         // ★資本移動（トリレンマdoc・2026-08-13）。通貨制度の真下＝この2行の組が「金利が自分のものか」を決める（並べれば説明文は要らない＝思想⑦）。
-        AddEcon("資本移動", PolicyAxis.CapitalMobility, ["自由", "規制"], () => w.CapitalControlLaw ? 1 : 0, () => p.CapitalControlTarget ? 1 : 0, v => p.CapitalControlTarget = v == 1, () => c.CapitalMobilityLawGate > 0);
+        AddEcon("資本移動", PolicyAxis.CapitalMobility, ["自由", "規制"], () => w.CapitalControlLaw ? 1 : 0, () => p.CapitalControlTarget ? 1 : 0, v => p.CapitalControlTarget = v == 1);
         // 社会保障：最下段は救貧法（「なし」廃止＝救貧法が福祉水準0。2026-07-21）。4段＝target×3で写す（エンジン Government の導出と一致）。
         // ★2026-09-23（作者裁定「社会保障の段を財政タブへ」）：行は **WelfareLaw** として財政タブの社会保障の金額行の直下に置く。
         //   法律タブの「教育と労働」群からは外した（下の groups からも外してある）＝同じ法を2箇所に出さない。

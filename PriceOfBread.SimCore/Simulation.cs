@@ -2238,11 +2238,11 @@ public sealed class Simulation
             double deficit = spare < 0 ? -spare : 0;   // 否定形＝NaN は0（借りた後に残った払えない額＝借りられない月は全額）
             // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
             double devalueRoom = deficit * (1.0 - World.Convertibility);
-            // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
+            // ★銀の段の軽い規律（旧の旗 SilverLightDiscipline・2026-08-21 点火・2026-10-18 焼き込み）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
             //   （清の咸豊大銭・ムガル以来の含有量操作）。封印されるのは**銀行券の発行**の側＝正貨比率（BaseMoney/BroadMoney）ぶんは
             //   兌換中でも改鋳の窓が開く：room = deficit×(1 − Conv×(1−正貨比率))。純正貨経済（比率≈1）はほぼ全開・銀行券経済ほど封印が効く。
-            //   ⚠新しい定数ゼロ（19-10差し戻しの根③＝切下げ封印の全世界閉鎖、の是正）。**live=1（2026-08-21点火）**・0に戻せば旧式と厳密恒等。金の段は従来どおり封印。
-            if (World.Coef.SilverLightDiscipline > 0 && World.MonetaryLaw == MonetaryStandardLaw.Silver)
+            //   ⚠新しい定数ゼロ（19-10差し戻しの根③＝切下げ封印の全世界閉鎖、の是正）。金の段は従来どおり封印。
+            if (World.MonetaryLaw == MonetaryStandardLaw.Silver)
             {
                 double specie = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
                 if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
