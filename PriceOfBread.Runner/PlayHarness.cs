@@ -461,7 +461,7 @@ internal static class PlayHarness
                     return $"売買方針 {a[1]} = {b}";
                 }
                 // ---- ★(405) 外交の動詞（00-HARN）：UI のボタンと同じ口を叩く。invade・unify・mediate は本体の述語が返す理由をそのまま出す（第二の基準を作らない）。
-                //   provoke・ease は本体が bool しか返さない＝拒否の文言は Diplomacy.RaiseTension／EaseTension の条件（自国・国家なし・束 Bracket の違い）の写し＝本体の条件が変われば直す所（(407) 反証役 bi〔v〕低#2）----
+                //   provoke・ease の拒否の理由は本体の述語 Diplomacy.TensionActionRefusal（RaiseTension／EaseTension の門と同じ 1 本）が返す理由をそのまま出す（★(427) 旧は本体の条件の写しの文言＝(407) 反証役 bi〔v〕低#2）----
                 case "provoke":
                 case "ease":
                 {
@@ -471,7 +471,7 @@ internal static class PlayHarness
                     bool ok = a[0] == "provoke" ? w.Diplomacy.RaiseTension(w.SelfPower, t, w.Coef) : w.Diplomacy.EaseTension(w.SelfPower, t, w.Coef);
                     string verb = a[0] == "provoke" ? "挑発" : "緩和";
                     return ok ? $"{verb} {t.Name}: 緊張を{(a[0] == "provoke" ? "上げた" : "下げた")}（{w.Coef.TensionActionRampMonths}か月かけて反映・今 {w.Diplomacy.Tension(w.SelfPower, t):F1}）"
-                              : $"⚠{verb} {t.Name} 不可（自国・国家のない相手・束〔Bracket〕の違う相手は不可）";
+                              : $"⚠{verb} {t.Name} 不可（{w.Diplomacy.TensionActionRefusal(w.SelfPower, t, w.Coef) ?? "実行できなかった"}）";
                 }
                 case "invade":
                 {

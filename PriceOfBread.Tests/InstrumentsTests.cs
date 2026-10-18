@@ -2280,7 +2280,7 @@ public class InstrumentsTests
     [Fact]
     public void 接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される()
     {
-        var openNames = new HashSet<string>();   // ★(420) 開幕に居る国の表示名（分離・建国で生まれた国を見分ける）
+        var openNames = new HashSet<string>();   // ★(420) 開幕に居る国の名（構築時の名 BaseName＝計器の国名と同じ。分離・建国で生まれた国を見分ける）
         ulong DSEED = 1790UL;   // ★(418) 日用品の自給の点火で種 1789 の 60 四半期には越境の運び手の取引が1件も出ず接触の内訳の表が無い〔境の上の番人＝(393) で 6 行だった〕＝種を 1790 へ（1791・1792 も出ない）。規則の検査は行ごと
         string dir = NewDir();
         try
@@ -2290,7 +2290,7 @@ public class InstrumentsTests
             {
                 // ★(388) 既定が DiscoveryCarrierDownstream＝1 になった。この番人は運び手の表が旧の形（係数 0）のときの記帳の規則を見る＝0 を明示する（広げた表の運び手は伝わりの道の番人が見る）
                 var sim = new MultiNationSim(WorldData.Nations(), DSEED, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
-                foreach (var n0 in sim.Nations) openNames.Add(n0.World.SelfPower?.Name ?? "");
+                foreach (var n0 in sim.Nations) openNames.Add(n0.World.SelfPower?.BaseName ?? "");
                 Instruments.Phase(sim, DSEED, "open"); sim.StartWarmup(); Instruments.Phase(sim, DSEED, "warm");
                 for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
                 Instruments.Close(sim);
@@ -2312,16 +2312,12 @@ public class InstrumentsTests
                 Assert.True(Col(h, r, "valuePerQuarter") > 0, "額が正でない");
                 // (360) 運び手の財の列：既定（係数 0）の運び手の表の財だけ（蒸気機関の行＝蒸気機関の財・機関車の行＝機関車か蒸気機関の財）
                 Assert.Contains(r[iCarrier], r[iRow] == "蒸気機関" ? new[] { "蒸気機関" } : new[] { "機関車", "蒸気機関" });
-                // ★(415) 売り手の鍵は表示名＝政体が替わると名前が替わる（朝鮮→立憲王政朝鮮）。解禁の出来事の行は解禁した時の名前で書かれるので、完全一致が無ければ名前が含み合う国の最も早い解禁で読む
+                // ★(427) 売り手の鍵は計器の国名（構築時の名 BaseName＝改名では替わらない）。旧の注（415）は〈政体が替わると名前が替わる（朝鮮→立憲王政朝鮮）〉と書いて名前の含み合いで別名を探したが、
+                //   立憲王政朝鮮は朝鮮の改名でなく分離・建国で生まれた別の国（別の World と Power・BaseName も別）＝含み合いは診断が違った。完全一致で読む：
+                //   ①開幕に居た国は自分の解禁の行（disc_s の E 行）で読む ②分離・建国で生まれた国は親の解禁を写して生まれる＝自分の E 行が無い（dt＋ce＋sc を重ねた木で見つけた：内陸ベンガル王国・機関車）。
+                //   その国が売り手のときは〈その行を Q までに誰かが解禁していた〉（写しの元が要る）で読む。
                 bool sellerFound = unlockQ.TryGetValue((r[iSeller], r[iRow]), out int sq);
-                if (!sellerFound)
-                {
-                    var alias = unlockQ.Where(kv => kv.Key.Row == r[iRow] && (kv.Key.Nation.Contains(r[iSeller]) || r[iSeller].Contains(kv.Key.Nation))).Select(kv => kv.Value).ToList();
-                    if (alias.Count > 0) { sellerFound = true; sq = alias.Min(); }
-                }
-                // ★(420) 合流で見つけた（dt＋ce＋sc を重ねた木で初めて赤＝売り手 内陸ベンガル王国・機関車）：分離・建国で生まれた国は親の解禁を写して生まれる＝解禁の出来事の行が無い。
-                //   その国が売り手のときは〈その行を Q までに誰かが解禁していた〉（写しの元が要る）で読む（開幕の国は従来どおり自分の解禁）。
-                bool founded = !sellerFound && !openNames.Any(o => o.Length > 0 && (o.Contains(r[iSeller]) || r[iSeller].Contains(o)));
+                bool founded = !sellerFound && !openNames.Contains(r[iSeller]);
                 if (founded) { var anyQ = unlockQ.Where(kv => kv.Key.Row == r[iRow]).Select(kv => kv.Value).DefaultIfEmpty(int.MaxValue).Min(); sellerFound = anyQ <= q; sq = anyQ; }
                 bool sellerKnew = sellerFound ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
@@ -2374,11 +2370,18 @@ public class InstrumentsTests
                 double exp = ledger.GetValueOrDefault(kv.Key);
                 if (Math.Abs(kv.Value - exp) > 1e-6 * Math.Max(1, Math.Abs(exp)))
                 {
-                    // ★(418) 国名が四半期の途中で変わる四半期（政体の変名）は、州の行は四半期末の新しい名・台帳は移した月の古い名で書く＝国ごとの鍵が割れる。額は割れた2つの鍵の和で合う＝その四半期の世界の和で突き合わせる（窃盗が起きる四半期の軌道で割れ方が動く）
-                    // ★(420) 反証役 ce〔bv〕低：和へ落ちるのは鍵が割れた四半期だけ（窃盗のある国の名前の集合が州の行と台帳で違う）。名前がそろう四半期で額が合わなければ赤。
+                    // ★(418) 鍵が割れる四半期がある。額は割れた鍵の和で合う＝その四半期の世界の和で突き合わせる（窃盗が起きる四半期の軌道で割れ方が動く）。
+                    // ★(427) 割れの出所を直した（旧の注は〈政体の変名〉と書いたが、計器の国名は構築時の名 BaseName で改名では替わらない）。本当の出所は州の持ち主が四半期の途中で替わること：
+                    //   分離・建国（MultiNationSim が新しい World と Power を作る）で州が新しい国へ移ると、窃盗の額は州の側（Instruments.Theft は州に積む）で四半期末の持ち主＝新しい国の行へ、
+                    //   台帳は盗んだ時点の持ち主（PopOwner＝RegionOut/RegionIn で付け替わるまでの国）へ記帳される＝帰属の時点が違う。国の個体の番号 nationUid に替えても閉じない（個体が本当に別）。
+                    //   なので〈割れてよいのは、その四半期に生まれた国（前の四半期の州の行に居ない名）が絡む鍵だけ〉に絞り、和で合うことを見る。生まれた国が絡まない鍵で額が合わなければ赤。
                     var natPool = byNat.Where(k => k.Key.Item1 == kv.Key.Item1 && k.Value > 0).Select(k => k.Key.Item2).ToHashSet();
                     var natLed = ledger.Where(k => k.Key.Item1 == kv.Key.Item1 && k.Value > 0).Select(k => k.Key.Item2).ToHashSet();
-                    Assert.False(natPool.SetEquals(natLed), $"国名の割れが無い四半期で国ごとの窃盗の額が合わない {kv.Key}：州の行 {kv.Value}・台帳 {exp}");
+                    var delta = new HashSet<string>(natPool); delta.SymmetricExceptWith(natLed);   // 片側にしか居ない名
+                    string prevQ = (int.Parse(kv.Key.Item1, System.Globalization.CultureInfo.InvariantCulture) - 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var prevNames = rr.Where(r => r[iq] == prevQ).Select(r => r[inat]).ToHashSet();   // 前の四半期の州の行に居た国
+                    Assert.True(delta.Count > 0, $"鍵が割れていない四半期で国ごとの窃盗の額が合わない {kv.Key}：州の行 {kv.Value}・台帳 {exp}");
+                    Assert.True(delta.All(n => !prevNames.Contains(n)), $"その四半期に生まれた国でない名が片側にしか居ない {kv.Key}：{string.Join(",", delta)}");
                     double qPool = byNat.Where(k => k.Key.Item1 == kv.Key.Item1).Sum(k => k.Value), qLed = ledger.Where(k => k.Key.Item1 == kv.Key.Item1).Sum(k => k.Value);
                     Assert.InRange(qPool - qLed, -1e-6 * Math.Max(1, Math.Abs(qLed)), 1e-6 * Math.Max(1, Math.Abs(qLed)));
                 }

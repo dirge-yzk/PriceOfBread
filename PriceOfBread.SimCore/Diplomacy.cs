@@ -2070,10 +2070,16 @@ public sealed class Diplomacy
         }
     }
 
+    /// <summary>★(427) 挑発・緩和ができない理由（できるなら null）＝<see cref="RaiseTension"/>・<see cref="EaseTension"/> の門の条件の**唯一の置き場**（自国・国家のない相手・束 <see cref="Bracket"/> の違う相手は不可）。
+    /// 旧は Runner の `provoke`／`ease` が拒否の文言を本体の条件の写しで書いていた（(407) 反証役 bi〔v〕低#2）＝本体の条件が変われば文言が嘘になる。今は Runner もここの理由をそのまま出す（第二の基準を作らない）。
+    /// 真偽と評価の順は旧の条件式と同じ（actor==target → target.Nation → Bracket の 2 回）で、読むだけ。</summary>
+    public string? TensionActionRefusal(Power actor, Power target, Coefficients c)
+        => actor == target ? "自国は不可" : target.Nation is null ? "国家のない相手は不可" : Bracket(actor, c) != Bracket(target, c) ? "束（Bracket）の違う相手は不可" : null;
+
     /// <summary>挑発する（同ランク間）。ActionTensionStep を数ヶ月かけて反映（押すたびに積む・待ちは無い）。交易断絶は押した瞬間・近隣波及と国内の政治的帰結は毎月動いた分だけ。</summary>
     public bool RaiseTension(Power actor, Power target, Coefficients c)
     {
-        if (actor == target || target.Nation is null || Bracket(actor, c) != Bracket(target, c)) return false;   // ★B8（実バグ21件・2026-09-07）：UIのポップアップは Bracket（併合束）で相手を出すのに動詞は素の RankOf で拒んでいた＝同じ1本を読む
+        if (TensionActionRefusal(actor, target, c) is not null) return false;   // ★B8（実バグ21件・2026-09-07）：UIのポップアップは Bracket（併合束）で相手を出すのに動詞は素の RankOf で拒んでいた＝同じ1本を読む
         long k = Key(actor, target), dk = DirKey(actor, target);
         _tensionRamp[dk] = _tensionRamp.GetValueOrDefault(dk) + c.ActionTensionStep;
         // 禁輸ボタンの廃止（禁制品doc C1・2026-07-30）：挑発は緊張と**同時に**禁輸を科す（2026-09-28 から AI もこの動詞を押す＝旧 AI の侮辱の直書きは削除）。
@@ -2087,7 +2093,7 @@ public sealed class Diplomacy
     /// <summary>緊張を緩和する（同ランク間）。ActionTensionStep を数ヶ月かけて減らす（押すたびに積む・待ちは無い）。国内の政治的帰結は毎月動いた分だけ（格下への宥和＝弱腰）。</summary>
     public bool EaseTension(Power actor, Power target, Coefficients c)
     {
-        if (actor == target || target.Nation is null || Bracket(actor, c) != Bracket(target, c)) return false;   // ★B8（実バグ21件・2026-09-07）：UIのポップアップは Bracket（併合束）で相手を出すのに動詞は素の RankOf で拒んでいた＝同じ1本を読む
+        if (TensionActionRefusal(actor, target, c) is not null) return false;   // ★B8（実バグ21件・2026-09-07）：UIのポップアップは Bracket（併合束）で相手を出すのに動詞は素の RankOf で拒んでいた＝同じ1本を読む
         long dk = DirKey(actor, target);
         _tensionRamp[dk] = _tensionRamp.GetValueOrDefault(dk) - c.ActionTensionStep;
         return true;
@@ -2138,7 +2144,8 @@ public sealed class Diplomacy
     // 解除も自動（戦争終結 EndWar・属国化 StepDependency）＝プレイヤーが個別に付け外しする面は無い。読み手（HasEmbargo・交易アクセス）は不変。
     /// <summary>侵略の**結果判定だけ**（作者裁定2026-08-23の1本化）：実効戦力が屈服線を超えれば屈服（抽象標的＝植民地を接収／実在国＝属国化）、
     /// 超えなければ拒否＝開戦。★可否（<see cref="World.CanInvade"/>）・余剰戦力の消費・物資（船/糧食/キニーネ）は呼び出し側の
-    /// <see cref="World.Invade"/> が持つ＝**この関数を直接叩く経路は他に無い**（AIもプレイヤーも World.Invade を通る）。</summary>
+    /// <see cref="World.Invade"/> が持つ＝**この関数を直接叩く経路は他に無い**（AIもプレイヤーも World.Invade を通る）。
+    /// ★(427) 戻り値は**常に true**（屈服でも拒否〔開戦〕でも）＝屈服か開戦かの区別を持たない。読み手は交戦の有無か属国化の有無で読む。</summary>
     internal bool Subjugate(Power great, Power target, Coefficients c)
     {
         double force = ColonizeForce(great, target, c);   // 到達できねば屈服させられない（距離・制海権・遠征技術＝共通式。宗主の地理2026-07-12で一本化）

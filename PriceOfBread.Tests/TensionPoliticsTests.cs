@@ -129,6 +129,30 @@ public class TensionPoliticsTests(ITestOutputHelper output)
     //   ③上限200で切れた分は払わない。④AI は相手へ向けた自分のならしが空のときだけ同じ動詞を押す（乱数なし）。⑤屈服は両向きのならしを消す。
     private static void SetTension(Diplomacy dip, Power a, Power b, double v) => dip.AddTension(a, b, v - dip.Tension(a, b), TensionReason.Initial);
 
+    /// <summary>
+    /// ★(427) 挑発・緩和の門の理由の 1 本化：<c>Diplomacy.TensionActionRefusal</c>（Runner の `provoke`／`ease` の拒否の文言の出所）が、<c>RaiseTension</c>／<c>EaseTension</c> の真偽と全ての組で一致する
+    /// （旧の門の条件式〔自国・国家のない相手・束 Bracket の違い〕をここに別に書き下して期待値にする＝述語の出力から作らない）。対照＝理由が 3 種とも出る組・通る組がどちらも有る。
+    /// </summary>
+    [Fact]
+    public void 挑発と緩和の拒否の理由は動詞の真偽と全ての組で一致する()
+    {
+        var sim = WarmSim(); var c = sim.Coef; var dip = sim.Diplomacy;
+        var powers = dip.Powers.ToList();
+        var reasons = new HashSet<string?>(); int pairs = 0;
+        foreach (var a in powers) foreach (var b in powers)
+        {
+            bool allowedByRule = !(a == b || b.Nation is null || dip.Bracket(a, c) != dip.Bracket(b, c));   // 旧の門の条件式の書き下し（期待値の出所は述語の外）
+            string? why = dip.TensionActionRefusal(a, b, c);
+            Assert.Equal(allowedByRule, why is null);
+            reasons.Add(why);
+            Assert.Equal(allowedByRule, dip.RaiseTension(a, b, c));
+            Assert.Equal(allowedByRule, dip.EaseTension(a, b, c));
+            if (a == b) Assert.Equal("自国は不可", why); else if (b.Nation is null) Assert.Equal("国家のない相手は不可", why); else if (!allowedByRule) Assert.Equal("束（Bracket）の違う相手は不可", why);
+            pairs++;
+        }
+        Assert.True(pairs >= 9 && reasons.Contains(null) && reasons.Contains("自国は不可") && reasons.Contains("国家のない相手は不可") && reasons.Contains("束（Bracket）の違う相手は不可"), $"対照が空：組 {pairs}・理由 {string.Join("／", reasons.Select(r => r ?? "通る"))}");
+    }
+
     [Fact]
     public void 緊張の操作は待ちなしで積み1か月の動きは上限まで政治的帰結と波及は動いた分だけ払う()
     {

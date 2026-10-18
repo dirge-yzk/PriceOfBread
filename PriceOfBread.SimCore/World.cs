@@ -2155,7 +2155,9 @@ public sealed class World
     /// ★物資は国家の調達の1本（<see cref="Colonial.BuyUpkeepGood"/>＝需要の計上・価格の門・支払い率・国庫から生産者へ・財の出入りの台帳）で買って消費する
     /// （2026-09-29 処理の一元化 段3 K・区分＝戦費）。⚠旧＝首都の市場の在庫を直に `*=`・`-=` で消した＝代金も台帳も無く缶詰・キニーネ・船が痕跡なく消えた。
     /// 実効戦力が屈服線を超えれば屈服（抽象標的＝植民地を接収／実在の弱小国＝属国化）、超えなければ拒否＝開戦。
-    /// 戦争自体は他国戦争と同一処理（StepWars/ResolvePeace）。</summary>
+    /// 戦争自体は他国戦争と同一処理（StepWars/ResolvePeace）。
+    /// ★(427) 戻り値の読み方：<c>CanInvade</c> を通って実行したか（通らなければ false＝何も消費しない）。**屈服と開戦を区別しない**＝<see cref="Diplomacy.Subjugate"/> は屈服でも拒否〔開戦〕でも true を返す。
+    /// 屈服か開戦かは戻り値でなく交戦の有無（<c>Diplomacy.IsAtWar</c>）か属国化の有無で読む（Runner の `!invade` はそう読む）。</summary>
     public bool Invade(Power target, Colony? interest = null)
     {
         if (!CanInvade(target, out _)) return false;
@@ -2186,7 +2188,7 @@ public sealed class World
             }
         }
         bool ok = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所
-        if (ok) AddProximityTension(target);   // 勢力圏の衝突＝近接列強と緊張↑（グレートゲーム）。屈服して領土を得たときのみ加算
+        if (ok) AddProximityTension(target);   // 勢力圏の衝突＝近接列強と緊張↑（グレートゲーム）。★(427) 注の訂正：ok は Subjugate の戻り値＝屈服でも開戦でも true なので、実際は拒否〔開戦〕の枝でも加算される（旧の注は〈屈服して領土を得たときのみ〉）。挙動のまま・意図を決めて直すのは挙動の線（00一覧 (420) の申し送り⑥）
         // ★A2-1（2026-09-26）：兵の疫病死と植民地の州化は信用の「月の中の定数」の入力＝表から外し、次の日次で求め直させる。
         //   AI は四半期末（境界相）にしか呼ばないので何も変わらない。プレイヤーは月の途中で呼べる＝旧と同じく翌日から新しい値を読む。
         Simulation.CreditMonth.Remove(this);

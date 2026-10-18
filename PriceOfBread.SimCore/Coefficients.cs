@@ -2677,7 +2677,7 @@ public sealed class Coefficients
     // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md）：州の4区分（国家・在地・外国・無統治）を
     //   DominanceSpeed で目標へ寄せる。(399) で点火（旗 RuleSharesEnabled・RuleSharesReach・RuleSharesTaxBase・RuleLocalFromRights・RuleUngovFromReach・ColonyRuleFromData・TaxLeakByRule・LawReachByRule は物理削除＝常時）：
     //   目標＝国家〔残り〕／在地〔開幕のデータ×仲介者の権利の残高 Privileges.IntermediaryDegree〕／外国〔講和で積まれた持分の合計〕／無統治〔(1−治安)×(1−到達)〕。
-    //   公共財（教育の財源・年金）と法の浸透の到達＝国家区分（Politics.RuleReach）・課税ベースと徴兵ベース＝国家区分＋在地区分×(1−PrivilegeTaxDiscount)（Politics.RuleDelivery）。★(408) 以後（AdminServesStateRule＝1）は国家区分×(d＋(1−d)×AdminFill)＋在地区分×d（d＝1−PrivilegeTaxDiscount）＝役務が届かない国家区分の分も仲介者を通る。
+    //   公共財（教育の財源・年金）と法の浸透の到達＝国家区分（Politics.RuleReach）・課税ベースと徴兵ベース＝国家区分＋在地区分×(1−PrivilegeTaxDiscount)（Politics.RuleDelivery）。★(408) 以後（旗 AdminServesStateRule は (419) で焼き込み〔常に〕）は国家区分×(d＋(1−d)×AdminFill)＋在地区分×d（d＝1−PrivilegeTaxDiscount）＝役務が届かない国家区分の分も仲介者を通る。
     //   在地の仲介者の取り分は納税者→州の貴族へ（領主権の台帳）。汚職の財政の漏れ・条約港の個数の機構・法の浸透の門（行政効率÷LawEnforcementAdminGate）は物理削除した。
     // ★支配度の一般化 段5（§6/§6d・2026-09-07 器・(399) で点火）：条約港の講和で敗者の最大港州に勝者の持分（外国区分）をこれだけ積む。国力比で連続に風化（DominanceSpeed）。
     //   条約港は個数の機構でなく州の外国区分で表す（作者 2026-10-16：条約港は廃止・州の支配度で表現）。関税の目減りと屈辱・移民法の外圧の述語（付与の半分以上）は持分から読む。0＝持分なし（条約港が無い世界）。

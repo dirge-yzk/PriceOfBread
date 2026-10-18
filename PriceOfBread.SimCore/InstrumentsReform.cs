@@ -8,8 +8,8 @@ namespace PriceOfBread.SimCore;
 //   legitimacyShare／mandateStockIndex（目減り S）／mandateMaxIndex（最大量 b）／mandateSpentNewIndex（この四半期の末の今期増分＝Politics.Step が減算する前の値ではなく後の 0 になりうる）／supportShare（b を作る支持 sup）／
 //   wallPassCount・wallPassLawCount・wallPassSliderCount・wallPassCostIndex（前の行からこの行までの間〔挙げた国は 1 四半期・他の国は 4 四半期〕に壁の分岐で通った一歩の数〔法・スライダーの内訳〕と代価の和）／
 //   educationLawCode・educationSpendingShare／parishFundingShare（CompulsoryEduFunding の州の人口加重平均）／educationBuyPerMonth（国庫が教育に払った額＝CumEducationCost の前の行からの差を月数で割る）／literacyShare（人口加重の識字・兵士を除く）／
-//   suffrageLawCode・censorshipLawCode・landReformLawCode・bureaucracyLawCode・serfLawCode・polityCode／militaryPushIndex（MilitaryPush＝S を粛清の記憶として読む）・coopParliamentCrownIndex（S を紛争記憶として読む）／blockedLawCount・blockedSliderCount（資本の門で止まった一歩・旗に依らず数える）・blockedWhileFrozenCount（うち S＞b で止まった数＝壁の一歩の後の凍結）／wallPassAxes（壁を通った一歩の軸名・なければ -）。
-//   ★(409) 末尾に 2 列：wallPassCostShareOfAvailMax（前の行からこの行までに壁の分岐で通った一歩の cost÷avail の最大〔avail＝正統性−請求済み〕・通った一歩が無ければ 0）／wallLegitBlockedCount（満タン〔S≦0〕で代価＞b なのに正統性の側の式で止まった**試みの数**〔MandateGate と Move の呼びのたびに数える＝止まった同じ法を毎四半期に試し直せば重ねて数える＝別々の一歩の数ではない〕。旗に依らず数えるが、**「正統性の側で止まった」と読めるのは旗 MandateOverStockFromLegitimacy＝1 の世界だけ**〔旗 0 では在庫だけで止まった試みも数える〕）。
+//   suffrageLawCode・censorshipLawCode・landReformLawCode・bureaucracyLawCode・serfLawCode・polityCode／militaryPushIndex（MilitaryPush＝S を粛清の記憶として読む）・coopParliamentCrownIndex（S を紛争記憶として読む）／blockedLawCount・blockedSliderCount（資本の門で止まった一歩）・blockedWhileFrozenCount（うち S＞b で止まった数＝壁の一歩の後の凍結）／wallPassAxes（壁を通った一歩の軸名・なければ -）。
+//   ★(409) 末尾に 2 列：wallPassCostShareOfAvailMax（前の行からこの行までに壁の分岐で通った一歩の cost÷avail の最大〔avail＝正統性−請求済み〕・通った一歩が無ければ 0）／wallLegitBlockedCount（満タン〔S≦0〕で代価＞b なのに正統性の側の式で止まった**試みの数**〔MandateGate と Move の呼びのたびに数える＝止まった同じ法を毎四半期に試し直せば重ねて数える＝別々の一歩の数ではない〕。★(427) 注の一巡：旗 MandateOverStockFromLegitimacy は (419) で焼き込み〔常に有効〕＝満タンで代価＞b の試みは正統性の側の式でしか止まらない＝そのまま〈正統性の側で止まった試みの数〉と読める〔旧の旗 0 の世界の読みは墓標 (419) だけ〕）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／wallPass* は壁の分岐だけ（普通の一歩は数えない）／mandateSpentNewIndex は Politics.Step の後なので通常 0（読み手は mandateStockIndex を使う）／法の段の整数は enum の序数。
 public static partial class Instruments
 {
@@ -29,7 +29,7 @@ public static partial class Instruments
         if (avail > 0 && cost / avail > st.RfWallShareMax) st.RfWallShareMax = cost / avail;
     }
 
-    /// <summary>資本の門（PoliticalCapitalAffords）で止まった一歩を数える（旗に依らず数える＝A の表が旧の世界の止まりの表になる）。S＞b（壁の一歩の後の凍結）で止まった数を別に持つ。呼び手は Instruments.On の中。</summary>
+    /// <summary>資本の門（PoliticalCapitalAffords）で止まった一歩を数える（★(427) 旗 MandateOverStockFromLegitimacy は (419) で焼き込み＝旗に依らない。旧の注〈A の表が旧の世界の止まりの表になる〉は点火前の腕 A の話）。S＞b（壁の一歩の後の凍結）で止まった数を別に持つ。呼び手は Instruments.On の中。</summary>
     internal static void RfBlocked(World w, bool law, double cost)
     {
         var st = S(w);

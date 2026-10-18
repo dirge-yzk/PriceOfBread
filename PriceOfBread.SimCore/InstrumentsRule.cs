@@ -7,12 +7,12 @@ namespace PriceOfBread.SimCore;
 // 行＝国×四半期×活きている州（人口が 0 の国は出さない）。挙げた国は毎四半期・他の全ての国は年末。(399) で区分を点火したので常に動く値を出す（点火前の腕 A〔旗 0〕の表は measurements/rs399_20261018_*）。
 // 列（単位は接尾辞：Share＝0〜1・Index＝無次元の量・K＝千人・Km・Count＝件数・Flag＝0／1・PerMonth＝月あたりの流れ・Code＝法の段の整数）：
 //   州の列：tier／popK／ruleStateShare・ruleLocalShare・ruleForeignShare・ruleUngovShare（Region.Rule の 4 区分）／ruleInitLocalShare（開幕のデータの在地・RuleInit[1]）／foreignRulerCount（外国持分の主体の数）／
-//     dominanceShare（支配度）／capitalDistanceKm（国の座標からの大圏距離・座標未登録は nan）／reachShare（Politics.RegionReach＝② の到達・旗に依らず計算）。
+//     dominanceShare（支配度）／capitalDistanceKm（国の座標からの大圏距離・座標未登録は nan）／reachShare（Politics.RegionReach＝② の到達）。
 //   国の列（その国の全ての州の行に同じ値）：serfLawCode・bureaucracyLawCode・landReformLawCode（法の段）／intermediaryDegreeIndex（① 仲介者の権利の残高）／publicOrderIndex（治安）／
 //     stateReachIndex（法の浸透 enforce の値＝Politics.StateReach）／adminEfficiencyIndex（行政効率＝(399) で読み手が計器だけになった）／
 //     treatyPortInForceFlag（条約港が効いているか）・portForeignShare（③ の関税の目減り）／revenuePerMonth・gdpPerMonth（税÷GDP を読み手が組む）／
 //     ruleCutPerMonth（直近月の仲介者の取り分＝納税者→州の貴族・World.LastRuleCut・R6）／stateReachHomeIndex（植民地格の州を除いた人口加重の RuleReach・R5）。
-//     ⚠(412) (408) 以後は stateReachIndex（Politics.StateReach）が州ごとに ×AdminFill を掛け、この列は掛けない＝2 列は別の量（1783 の仏で 0.70 と 0.08）。2 列を比べる読み手は旗 1 の世界では使わない（列の意味を連続に保つため式は変えない）。
+//     ⚠(412) (408) 以後は stateReachIndex（Politics.StateReach）が州ごとに ×AdminFill を掛け、この列は掛けない＝2 列は別の量（1783 の仏で 0.70 と 0.08）。2 列を比べる読み手は (408) 以後の世界では使わない（列の意味を連続に保つため式は変えない）。★(427) 旗 AdminServesStateRule は (419) で焼き込み〔常に 1〕＝〈旗 1 の世界〉は今の世界の全て。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（Instruments.Quarter の呼び時点）／外国持分の主体名は列にしない（個数だけ）／
 public static partial class Instruments
 {

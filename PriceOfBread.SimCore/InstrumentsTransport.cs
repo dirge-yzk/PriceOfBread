@@ -77,7 +77,7 @@ public static partial class Instruments
     {
         public readonly TrBin?[] Bins = new TrBin?[TrBinCount];   // ★2026-10-17（開発の高速化）：旧 Dictionary<int, TrBin>＝成約ごとの表引き。書き出しは鍵の順（旧の OrderBy と同じ）
         public int BinsUsed;
-        public readonly Dictionary<(Region S, Region B), TrPair> Pairs = new();
+        public readonly Dictionary<(Region S, Region B, string SN, string BN), TrPair> Pairs = new();   // ★(427) 鍵に成約時の売り手と買い手の国名を含める（年の途中で州の持ち主が替わると、同じ州の組が別の国の組として別の行になる＝越境の印は成約ごと・行の国名は初見で固定だったずれの根）
         public readonly Dictionary<string, TrNat> Nats = new();
         public int FoldedQuarters;
         // ★2026-10-17：直前の成約の買い手・売り手の国の行（清算は買い手の行ごとに回る＝同じ国が続く）。名前の文字列が同じ物のときだけ使う＝外れれば表を引く（結果は同じ）
@@ -120,7 +120,7 @@ public static partial class Instruments
         var ns = ReferenceEquals(sName, a.LastSName) && a.LastS is not null ? a.LastS : (a.LastS = TrNatOf(a, a.LastSName = sName));   // (385) 売り手側の陸脚は売り手の国の中・買い手側の陸脚は買い手の国の中。戻る額＝その国の船腹の比（清算の運賃の配りと同じ値）
         ns.LandSellerSideIn += frLandS; ns.LandInToOwnCarriers += frLandS * shipShareSeller;
         nb.LandBuyerSideIn += frLandB; nb.LandInToOwnCarriers += frLandB * shipShareBuyer;
-        if (!a.Pairs.TryGetValue((sellerR, buyerR), out var p)) a.Pairs[(sellerR, buyerR)] = p = new TrPair { SellerNation = NameOf(seller), BuyerNation = NameOf(buyer) };
+        if (!a.Pairs.TryGetValue((sellerR, buyerR, sName, bName), out var p)) a.Pairs[(sellerR, buyerR, sName, bName)] = p = new TrPair { SellerNation = sName, BuyerNation = bName };
         p.Route = rt; p.Deals++; p.Value += value; p.Weight += w; p.Freight += freight; p.FreightLand += frLand;
         p.FreightLandSeller += frLandS; p.FreightLandBuyer += frLandB; p.ValueEqLandSeller += value * rt.EqLandSeller; p.ValueEqLandBuyer += value * rt.EqLandBuyer;
         if (rt.Sea) p.ValueSea += value;
@@ -189,7 +189,7 @@ public static partial class Instruments
         }
         if (year % TrSnapEveryYears == 0)
         {
-            var top = a.Pairs.OrderByDescending(k => k.Value.Value).ThenBy(k => k.Key.S.Name, StringComparer.Ordinal).ThenBy(k => k.Key.B.Name, StringComparer.Ordinal).ToList();
+            var top = a.Pairs.OrderByDescending(k => k.Value.Value).ThenBy(k => k.Key.S.Name, StringComparer.Ordinal).ThenBy(k => k.Key.B.Name, StringComparer.Ordinal).ThenBy(k => k.Key.SN, StringComparer.Ordinal).ThenBy(k => k.Key.BN, StringComparer.Ordinal).ToList();
             double restDeals = 0, restValue = 0, restWeight = 0, restFreight = 0, restFreightLand = 0, restVs = 0, restVb = 0, restVsea = 0, restVland = 0, restFls = 0, restFlb = 0, restVls = 0, restVlb = 0;
             for (int i = 0; i < top.Count; i++)
             {

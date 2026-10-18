@@ -35,22 +35,62 @@ public class TransportInstrumentTests
     private static void Near(double expect, double actual, double rel = 1e-8) => Assert.True(Math.Abs(expect - actual) <= rel * Math.Max(1.0, Math.Abs(expect)), $"期待 {expect}・実際 {actual}");
 
     /// <summary>6 年（24 四半期）回して表を書く。経路と州の断面の行は毎年の終わりに出す（既定は 10 年ごと）。</summary>
-    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters = 24)
+    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters = 24, bool isolate = true)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tr_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         int snap = Instruments.TrSnapEveryYears; Instruments.TrSnapEveryYears = 1;
         var sim = Make();
-        // ★(393) 隔離：この番人が測るのは運賃の記帳の閉じ方であって政治ではない。経路の表は国の名を書き出し時に引く＝年の途中で州の持ち主が変わる首都の蜂起（内戦）が立つと、
-        //   成約時の越境の印（国の添字）と食い違う（0.006%）。首都の蜂起が立たないよう拮抗の帯を 0 にして、即時の政変に倒す。
-        foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
-        sim.DiplomacyFrozen = true;   // ★(416) 同じ隔離：AI の工業化と国力の物差しの点火で戦争による割譲が動くと、年の途中で州の持ち主が変わる年の越境の印の食い違い〔0.03%〕が出る。この番人は運賃の記帳の閉じ方を測る＝外交を止める
+        // ★(393) 隔離：この番人が測るのは運賃の記帳の閉じ方であって政治ではない。年の途中で州の持ち主が替わる首都の蜂起（内戦）・戦争の割譲が立つと軌道が動き、④の船腹の比の突き合わせ（5%）が外れる。
+        //   ★(427) 越境の印が 0.006%（内戦）・0.03%（割譲）ずれた根は直した（TrPair の鍵に成約時の国名を含める）＝その閉じ方は隔離しない別の番人（越境の印は年の途中で…）が見る。
+        //   ここの隔離は船腹の比の突き合わせのためだけに残る（首都の蜂起が立たないよう拮抗の帯を 0 にして即時の政変に倒し、外交を止める）。
+        if (isolate) foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
+        if (isolate) sim.DiplomacyFrozen = true;   // ★(416) 同じ隔離：戦争による割譲が動くと年の途中で州の持ち主が変わる
         Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
         Instruments.Phase(sim, 1789UL, "warm");
         try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
         finally { Instruments.Close(sim); }
         return (dir, sim, () => { Instruments.TrSnapEveryYears = snap; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } });
+    }
+
+    /// <summary>
+    /// ★(427) 越境の印の閉じ方（<c>trroute</c> の売り手の国と買い手の国が違う組の運賃の和 ＝ <c>trbin</c> の越境の印が 1 の運賃の和・年ごと）を、<b>外交を止めずに</b>見る。
+    /// 年の途中で州の持ち主が替わる（戦争の割譲・内戦）と、旧の経路の行は国名を初見の成約で固定して越境の印は成約ごとだったので 0.006〜0.03% ずれた（(393)(416) は番人の側で外交を止めて隠した）。
+    /// 計器の根（経路の行の鍵に成約時の売り手と買い手の国名を含める）を直した＝この番人は政治を止めない。対照＝同じ州の組が年の中で別の国の組として 2 行以上出る年がある（持ち主の替わりが実際に起きた）。
+    /// </summary>
+    [Fact]
+    public void 越境の印は年の途中で州の持ち主が替わっても経路の行と帯の行で閉じる()
+    {
+        var (dir, sim, restore) = Run(60, isolate: false);
+        try
+        {
+            string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
+            var (bh, br) = Table(P("trbin"));
+            var (rh, rr) = Table(P("trroute"));
+            var crossPair = new Dictionary<string, double>(); var crossBin = new Dictionary<string, double>(); var domPair = new Dictionary<string, double>(); var domBin = new Dictionary<string, double>();
+            var seenKeys = new Dictionary<(string, string, string), HashSet<(string, string)>>(); bool split = false;
+            foreach (var r in rr)
+            {
+                if (Str(rh, r, "sellerRegion").StartsWith("(")) Assert.Fail("上位 3000 組の外の行が出た＝4 国の試験では起きないはず");
+                string y = Str(rh, r, "year"); double f = Col(rh, r, "freightGoldPerYear");
+                string sn = Str(rh, r, "sellerNation"), bn = Str(rh, r, "buyerNation");
+                if (sn != bn) crossPair[y] = crossPair.GetValueOrDefault(y) + f; else domPair[y] = domPair.GetValueOrDefault(y) + f;
+                var k = (y, Str(rh, r, "sellerRegion"), Str(rh, r, "buyerRegion"));
+                if (!seenKeys.TryGetValue(k, out var set)) seenKeys[k] = set = new();
+                set.Add((sn, bn)); if (set.Count > 1) split = true;
+            }
+            foreach (var r in br)
+            {
+                string y = Str(bh, r, "year"); double f = Col(bh, r, "freightGoldPerYear");
+                if ((int)Col(bh, r, "crossBorderFlag") == 1) crossBin[y] = crossBin.GetValueOrDefault(y) + f; else domBin[y] = domBin.GetValueOrDefault(y) + f;
+            }
+            Assert.True(crossPair.Count >= 5 && domPair.Count >= 5);
+            foreach (var y in crossPair.Keys) Near(crossPair[y], crossBin.GetValueOrDefault(y), 1e-9);
+            foreach (var y in domPair.Keys) Near(domPair[y], domBin.GetValueOrDefault(y), 1e-9);
+            Assert.True(split, "年の中で持ち主が替わった州の組が 1 つも無い（対照）＝この盤面はずれの根を踏んでいない");
+        }
+        finally { restore(); }
     }
 
     [Fact]
