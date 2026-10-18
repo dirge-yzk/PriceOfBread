@@ -1,6 +1,6 @@
 # (415) 発見の技術力の置き換え・後半：腕 A・B の結果と読み（2026-10-19・書いたモデル Claude Sonnet 5.5）
 # 事前登録＝measurements/dt_20261019_prereg.txt（追記 4 まで・最初のコミット 1ce76528・腕の前のコミット 431f2b5b）。木＝431f2b5b（SOURCE-HASH eba5f51935579cce・腕 A・B で同じ）。
-# ヌル腕は (414) の m412 のもの（measurements/m412n_20261019_null.txt〔wt_nl の枝 nl〕）を共有。作者が「消す／こうする」と裁定した形（技術水準の廃止）なのでヌル腕は NG の判定に使わない（雑音の幅の目安として並べるだけ）。
+# ヌル腕は (414) の m412 のもの（measurements/m412n_20261019_null.txt〔wt_nl の枝 nl〕）を共有。技術水準の廃止そのものは作者の裁定なのでヌル腕を読まない。置き換えの形（親の産業の規則・A0・産地の厚み）は確証なしなので、〈バランスを壊す〉の物差し（NG の判定）にだけヌル腕の幅を読んだ。
 # ⚠この文書の読みは AI の読み。作者の承認は未確認。
 
 [1] 腕 A（既定＝旗 0・5 種）＝恒等の証明
@@ -58,3 +58,6 @@
   推定の計算量 231.2 秒（10 種）・230.3 秒（5 種）。フルスイート 1371 緑（FullLength 除く）・FullLength 3 緑・savetest OK（12 四半期後も全 68 カ国が継続系列と一致・最大相対差 0）・leakhunt 保存則違反なし（人口・基礎貨幣の説明できない増減 0）。
   突然変異：既定を 0 に戻す→DiscoveryEngineerTests T6（既定の構築で合成染料が解禁済み）が赤。本体が投入の財を親に入れない→T4（親の産業の定義）と T2 が赤（前の節）。
   試験の合わせ：旧の式（旗 0）の盤面で固定した番人＝DiscoveryScoreTests・DiscoveryTierTests・InstrumentsTests・TechInstitutionTests・MilitaryTests（理由と対象は実装ログ (415) 後半 §3）。
+  計器の生の全ファイル比較：腕 B と既定を倒した後の計器つき（360 ファイル）の sha256 は 350 が一致・差の 10 は burscan_s*.tsv（走査にかかった秒数＝壁時計の列で毎回揺れる〔m412_ins と n1 の間にも同じ差が出る〕）だけ。
+  NG の再現：`python scripts/instruments/m192/ngset192.py rd:measurements/ng412_20261019:m412 rd:measurements/ng415_20261019:dtB`（読み手の出力はタグ dtB で書かれている・フォルダは D:/… の形で渡す）。
+  SOURCE-HASH＝成績表 3 枚の .manifest も savetest／leakhunt も 7b612d75891455c0（木 2e9790dd）。

@@ -44,7 +44,7 @@ public class PhantomProductionTests
                     if (Catalog.Goods[s.GoodId].Tier == GoodTier.Service) continue;   // 役務は発明ゲートを持たない（ボーモル）
                     double gate = Discovery.Gate(region, s);
                     if (gate > 0) continue;
-                    // ★(415) 退場したレシピ（後継を発見した）は追従式で減っていく途中＝この番人の主題（未発明の財を1単位も作らない）の外。既定では後継（転炉鋼ほか）が開幕に近く開き、12四半期の中で退場が起きる
+                    // ★(415) 退場したレシピ（後継を発見した）は、退場が判定の段（四半期の終わり）で起きてから次の月の産出スナップ（EconomyStep の unInvented＝門0 で Output＝0）までの1期のずれ＝この番人の主題（未発明の財を1単位も作らない）の外。既定では後継（転炉鋼ほか）が1783年に開き、12四半期の中で退場が起きる（基点は1818年で窓の外）
                     if (s.RetiredByRow >= 0 && Discovery.Known(region.Discovered, s.RetiredByRow)) continue;
                     gated++;
                     Assert.True(s.Output == 0.0,
