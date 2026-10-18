@@ -214,6 +214,8 @@ public sealed class Simulation
             if (row < 0) throw new System.InvalidOperationException($"開幕の既知の発見「{name}」は発見の表に無い（world.json の knownDiscoveries）");
             World.Discovered[row] = true;
         }
+        // ★(415) 合成染料の行の互換：技師の量から技術力を求める旗（DiscoveryEngineerHalfPerMonth）が0以下のあいだは全ての国が開幕で解禁済み（行が無かった旧と同じ＝1783年から作れる）。正なら発見で開く。
+        Discovery.SeedCompatRows(World);
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
         World.SetMilitarySpending(new Share(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget)),

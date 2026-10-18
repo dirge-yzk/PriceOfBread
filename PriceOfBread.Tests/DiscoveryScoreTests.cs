@@ -171,7 +171,7 @@ public class DiscoveryScoreTests
                 var w = n.World; string name = w.SelfPower?.BaseName ?? "";
                 var cfg = WorldData.Nations().First(c => c.Name == name);
                 for (int r = 0; r < Catalog.Discoveries.Length; r++)
-                    Assert.True(w.Discovered[r] == cfg.KnownDiscoveries.Contains(Catalog.Discoveries[r].Name),
+                    Assert.True(w.Discovered[r] == (cfg.KnownDiscoveries.Contains(Catalog.Discoveries[r].Name) || r == Discovery.SyntheticDyeRow),   // ★(415) 合成染料の行は旗 DiscoveryEngineerHalfPerMonth が0のあいだ開幕で解禁済み（互換・DiscoveryEngineerTests が旗の正を検査）
                         $"{when}：{name} の {Catalog.Discoveries[r].Name} がデータと違う（{w.Discovered[r]}）");
             }
         }

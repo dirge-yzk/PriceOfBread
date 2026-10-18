@@ -668,6 +668,8 @@ public static class Catalog
         new("共産主義", NoGood, "", DiscoveryField.Idea, 1840),           // 共産党宣言1848
         new("帝国主義", NoGood, "", DiscoveryField.Idea, 1860),           // 新帝国主義1870s〜（ディズレーリ1872・ベルリン会議1884）
         new("ファシズム", NoGood, "", DiscoveryField.Idea, 1920),         // 伊1919〜22・独1933
+        // --- 末尾に足した行（既存の行の添字を動かさない）---
+        new("合成染料", DyeId, "合成染料", DiscoveryField.Process, 1850), // ★(415) アニリン（パーキン1856）＝染料の第2レシピ。旧＝行が無く1783年から作れた穴。係数 DiscoveryEngineerHalfPerMonth が0以下のあいだは開幕で解禁済み（Simulation）
     ];
     /// <summary>財を持たない発見の行（制度と思想）の財の欄（<see cref="DiscoveryRowOf"/> は負の財を探さない＝名前で <see cref="DiscoveryRowNamed"/>）。</summary>
     public const int NoGood = -1;
