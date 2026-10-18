@@ -956,7 +956,7 @@ public class MilitaryTests
         {
             var sim = Frozen152("イギリス", "フランス");
             var w = sim.Nations[0].World; var sp = w.SelfPower!; var r = w.Region; var c = w.Coef;
-            for (int d = 0; d < 30; d++) sim.StepDay();
+            for (int d = 0; d < 60; d++) sim.StepDay();   // ★(418) 30→60：日用品の自給の点火で開幕の最初の月の歳入が薄く〔軍事費の器 23.9＜兵の給与 46.3＝払える側の上限が 0〕30 日目には艦の発注が立たない。60 日目で立つ（309）＝番人は購入の決済の規則を見る
             sp.NeedSea = 0.4; sp.NavySkillMul = 1.0; r.NationHasPort = true;
             foreach (var rr in w.Regions) rr.FleetUnits = null;
             int kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);

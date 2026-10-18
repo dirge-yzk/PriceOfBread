@@ -1,0 +1,42 @@
+MUT farmlabor_qty: 失敗!   -失敗:     2、合格:     6、スキップ:     0、合�
+MUT flag_unread: 失敗!   -失敗:     2、合格:     6、スキップ:     0、合�
+MUT buildscore_pred: 失敗!   -失敗:     1、合格:     7、スキップ:     0、合�
+ビルドに成功しました。
+ M PriceOfBread.Tests/FullChainTests.cs
+ M PriceOfBread.Tests/InstrumentsTests.cs
+ M PriceOfBread.Tests/MilitaryTests.cs
+ M PriceOfBread.Tests/MultiNationTests.cs
+ M PriceOfBread.Tests/WriterRatchetTests.cs
+ M "docs/202609/00_\346\234\252\347\235\200\346\211\213_\351\203\250\345\210\206\345\256\237\350\243\205_\345\267\256\343\201\227\346\210\273\343\201\227_\344\270\200\350\246\247_20260906.md"
+ M "docs/202609/99_\345\256\237\350\243\205\343\203\255\343\202\260_20260903.md"
+ M docs/CURRENT.md
+ M measurements/ce_20261019_prereg.txt
+?? measurements/b10_20261019_ce418
+?? measurements/b10_20261019_ce418.cost
+?? measurements/b10_20261019_ce418.manifest
+?? measurements/b10_20261019_ce418_B_ins
+?? measurements/b10_20261019_ce418_B_ins.cost
+?? measurements/b10_20261019_ce418_B_ins.manifest
+?? measurements/b10_20261019_ce418_ins
+?? measurements/b10_20261019_ce418_ins.cost
+?? measurements/b10_20261019_ce418_ins.manifest
+?? measurements/b5_20261019_ce418
+?? measurements/b5_20261019_ce418.cost
+?? measurements/b5_20261019_ce418.manifest
+?? measurements/b5_20261019_ce418_A
+?? measurements/b5_20261019_ce418_A.cost
+?? measurements/b5_20261019_ce418_A.manifest
+?? measurements/ce418_20261019/canary2_form2_selfplay_s1_q160.txt
+?? measurements/ce418_20261019/canary3_form3_selfplay_s1_q160.txt
+?? measurements/ce418_20261019/lk3.txt
+?? measurements/ce418_20261019/ng_B/
+?? measurements/ce418_20261019/res/
+?? measurements/ce418_20261019/sv3.txt
+?? measurements/ce418_20261019_ins_sha256.txt
+?? scripts/instruments/ce418/rd_arms.py
+?? scripts/instruments/ce418/rd_ce.py
+?? scripts/instruments/ce418/rd_cmp.py
+?? scripts/instruments/ce418/rd_house.py
+?? scripts/instruments/ce418/rd_house2.py
+?? scripts/instruments/ce418/rd_px.py
+MUTDONE

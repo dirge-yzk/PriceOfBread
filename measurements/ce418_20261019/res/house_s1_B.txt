@@ -1,0 +1,50 @@
+フランス 167 [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47]
+3 rows 104 w 0.400 Clot=0.02 Furn=0.54 Pres=0.91 Drie=0.88 Beer=0.84 Spir=0.77 Chee=0.85 Leat=0.50 FL b/p 18094.4 20102.2 use 4079.83
+7 rows 104 w 0.403 Clot=0.04 Furn=0.56 Pres=0.94 Drie=0.90 Beer=0.88 Spir=0.83 Chee=0.89 Leat=0.52 FL b/p 16528.6 17853.7 use 3991.59
+11 rows 104 w 0.386 Clot=0.05 Furn=0.57 Pres=0.95 Drie=0.92 Beer=0.90 Spir=0.86 Chee=0.91 Leat=0.53 FL b/p 17021.1 18455.1 use 4170.42
+19 rows 104 w 0.319 Clot=0.02 Furn=0.44 Pres=0.91 Drie=0.88 Beer=0.84 Spir=0.74 Chee=0.86 Leat=0.37 FL b/p 21331.8 23082.2 use 4003.97
+31 rows 96 w 0.307 Clot=0.00 Furn=0.32 Pres=0.86 Drie=0.80 Beer=0.74 Spir=0.63 Chee=0.77 Leat=0.26 FL b/p 20398.0 24066.5 use 3224.53
+43 rows 96 w 0.193 Clot=0.00 Furn=0.25 Pres=0.74 Drie=0.71 Beer=0.61 Spir=0.54 Chee=0.71 Leat=0.19 FL b/p 18925.5 23285.3 use 2269.90
+79 rows 120 w 0.117 Clot=0.01 Furn=0.59 Pres=0.53 Drie=0.41 Beer=0.28 Spir=0.24 Chee=0.37 Leat=0.49 FL b/p 22281.2 27500.2 use 1606.98
+119 rows 104 w 0.137 Clot=0.00 Furn=0.22 Pres=0.25 Drie=0.14 Beer=0.03 Spir=0.04 Chee=0.10 Leat=0.19 FL b/p 31128.6 41641.4 use 881.450
+159 rows 104 w 0.137 Clot=0.00 Furn=0.24 Pres=0.20 Drie=0.09 Beer=0.03 Spir=0.06 Chee=0.01 Leat=0.15 FL b/p 41485.0 45094.6 use 1078.93
+イギリス 167 [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47]
+3 rows 248 w 0.070 Clot=0.00 Furn=0.14 Pres=0.70 Drie=0.60 Beer=0.55 Spir=0.38 Chee=0.57 Leat=0.10 FL b/p 15825.9 17247.9 use 1064.07
+7 rows 248 w 0.067 Clot=0.00 Furn=0.13 Pres=0.70 Drie=0.63 Beer=0.62 Spir=0.57 Chee=0.65 Leat=0.09 FL b/p 13290.8 17027.6 use 1037.28
+11 rows 264 w 0.065 Clot=0.00 Furn=0.19 Pres=0.79 Drie=0.68 Beer=0.70 Spir=0.64 Chee=0.68 Leat=0.10 FL b/p 12458.3 19028.6 use 1151.86
+19 rows 264 w 0.069 Clot=0.01 Furn=0.33 Pres=0.55 Drie=0.42 Beer=0.36 Spir=0.31 Chee=0.49 Leat=0.24 FL b/p 14582.8 19993.0 use 1012.16
+31 rows 264 w 0.093 Clot=0.01 Furn=0.55 Pres=0.50 Drie=0.37 Beer=0.26 Spir=0.24 Chee=0.32 Leat=0.46 FL b/p 16102.7 25870.4 use 1110.09
+43 rows 264 w 0.386 Clot=0.04 Furn=0.47 Pres=0.44 Drie=0.14 Beer=0.09 Spir=0.04 Chee=0.22 Leat=0.37 FL b/p 13536.3 15869.4 use 855.371
+79 rows 224 w 0.149 Clot=0.03 Furn=0.15 Pres=0.34 Drie=0.04 Beer=0.04 Spir=0.00 Chee=0.01 Leat=0.05 FL b/p 8517.42 10803.4 use 287.698
+119 rows 240 w 0.146 Clot=0.03 Furn=0.14 Pres=0.06 Drie=0.13 Beer=0.09 Spir=0.03 Chee=0.04 Leat=0.08 FL b/p 6151.97 9383.56 use 263.020
+159 rows 272 w 0.148 Clot=0.04 Furn=0.27 Pres=0.17 Drie=0.14 Beer=0.11 Spir=0.08 Chee=0.09 Leat=0.15 FL b/p 22998.5 26557.0 use 887.633
+清 167 [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47]
+3 rows 208 w 0.533 Clot=0.80 Furn=0.82 Pres=0.96 Drie=0.99 Beer=0.98 Spir=0.96 Chee=0.98 Leat=0.80 FL b/p 176279. 185327. use 58449.1
+7 rows 208 w 0.526 Clot=0.79 Furn=0.81 Pres=0.97 Drie=0.98 Beer=0.98 Spir=0.95 Chee=0.98 Leat=0.80 FL b/p 174971. 191712. use 59719.9
+11 rows 208 w 0.523 Clot=0.79 Furn=0.81 Pres=0.98 Drie=0.98 Beer=0.98 Spir=0.95 Chee=0.98 Leat=0.79 FL b/p 177956. 196896. use 59730.8
+19 rows 208 w 0.514 Clot=0.78 Furn=0.81 Pres=0.98 Drie=0.98 Beer=0.97 Spir=0.94 Chee=0.98 Leat=0.79 FL b/p 178593. 184873. use 62928.2
+31 rows 208 w 0.521 Clot=0.76 Furn=0.80 Pres=0.98 Drie=0.98 Beer=0.97 Spir=0.93 Chee=0.97 Leat=0.78 FL b/p 182116. 193535. use 66780.1
+43 rows 208 w 0.184 Clot=0.55 Furn=0.61 Pres=0.98 Drie=0.98 Beer=0.97 Spir=0.92 Chee=0.97 Leat=0.61 FL b/p 122580. 148294. use 19524.1
+79 rows 208 w 0.186 Clot=0.53 Furn=0.74 Pres=0.84 Drie=0.76 Beer=0.71 Spir=0.60 Chee=0.77 Leat=0.70 FL b/p 183359. 235572. use 26060.2
+119 rows 232 w 0.231 Clot=0.40 Furn=0.74 Pres=0.73 Drie=0.68 Beer=0.49 Spir=0.29 Chee=0.58 Leat=0.67 FL b/p 305429. 402656. use 38367.9
+159 rows 232 w 0.204 Clot=0.20 Furn=0.55 Pres=0.55 Drie=0.40 Beer=0.26 Spir=0.15 Chee=0.33 Leat=0.47 FL b/p 362779. 471129. use 27396.0
+日本 167 [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47]
+3 rows 64 w 0.477 Clot=0.72 Furn=0.78 Pres=0.94 Drie=0.94 Beer=0.93 Spir=0.84 Chee=0.94 Leat=0.76 FL b/p 21275.5 27767.9 use 5635.66
+7 rows 64 w 0.475 Clot=0.73 Furn=0.79 Pres=0.97 Drie=0.95 Beer=0.94 Spir=0.87 Chee=0.95 Leat=0.77 FL b/p 21521.9 23862.2 use 5545.35
+11 rows 64 w 0.481 Clot=0.74 Furn=0.80 Pres=0.98 Drie=0.96 Beer=0.95 Spir=0.89 Chee=0.95 Leat=0.78 FL b/p 18002.9 21045.5 use 5589.17
+19 rows 64 w 0.445 Clot=0.71 Furn=0.77 Pres=0.96 Drie=0.94 Beer=0.93 Spir=0.82 Chee=0.93 Leat=0.75 FL b/p 21199.1 23601.0 use 6161.29
+31 rows 64 w 0.443 Clot=0.63 Furn=0.72 Pres=0.95 Drie=0.92 Beer=0.89 Spir=0.75 Chee=0.90 Leat=0.69 FL b/p 23394.1 29787.8 use 6245.76
+43 rows 64 w 0.160 Clot=0.41 Furn=0.56 Pres=0.93 Drie=0.85 Beer=0.81 Spir=0.59 Chee=0.83 Leat=0.48 FL b/p 15199.4 16316.3 use 1802.90
+79 rows 64 w 0.254 Clot=0.45 Furn=0.57 Pres=0.84 Drie=0.74 Beer=0.61 Spir=0.48 Chee=0.73 Leat=0.60 FL b/p 21374.1 23332.9 use 3700.66
+119 rows 64 w 0.253 Clot=0.23 Furn=0.65 Pres=0.55 Drie=0.41 Beer=0.35 Spir=0.13 Chee=0.39 Leat=0.44 FL b/p 31168.0 39659.3 use 3066.93
+159 rows 64 w 0.238 Clot=0.27 Furn=0.54 Pres=0.55 Drie=0.41 Beer=0.37 Spir=0.11 Chee=0.35 Leat=0.53 FL b/p 44139.0 53870.7 use 4990.16
+オーストリア 167 [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47]
+3 rows 96 w 0.437 Clot=0.20 Furn=0.66 Pres=0.92 Drie=0.90 Beer=0.88 Spir=0.84 Chee=0.89 Leat=0.63 FL b/p 13333.8 16182.3 use 3831.94
+7 rows 96 w 0.443 Clot=0.24 Furn=0.68 Pres=0.95 Drie=0.93 Beer=0.91 Spir=0.87 Chee=0.92 Leat=0.65 FL b/p 12614.1 14301.9 use 3782.91
+11 rows 96 w 0.434 Clot=0.29 Furn=0.70 Pres=0.96 Drie=0.95 Beer=0.93 Spir=0.89 Chee=0.93 Leat=0.67 FL b/p 13049.4 15079.6 use 3779.31
+19 rows 96 w 0.384 Clot=0.21 Furn=0.65 Pres=0.94 Drie=0.91 Beer=0.88 Spir=0.80 Chee=0.90 Leat=0.60 FL b/p 16950.2 18798.2 use 3873.67
+31 rows 96 w 0.379 Clot=0.07 Furn=0.57 Pres=0.92 Drie=0.88 Beer=0.83 Spir=0.72 Chee=0.83 Leat=0.52 FL b/p 15118.0 16827.9 use 3375.75
+43 rows 96 w 0.141 Clot=0 Furn=0.24 Pres=0.80 Drie=0.65 Beer=0.73 Spir=0.64 Chee=0.80 Leat=0.15 FL b/p 12475.1 15009.3 use 1023.76
+79 rows 112 w 0.174 Clot=0.02 Furn=0.55 Pres=0.53 Drie=0.39 Beer=0.19 Spir=0.18 Chee=0.33 Leat=0.50 FL b/p 22042.3 24737.2 use 1601.89
+119 rows 112 w 0.143 Clot=0.00 Furn=0.29 Pres=0.28 Drie=0.10 Beer=0.06 Spir=0.05 Chee=0.09 Leat=0.15 FL b/p 34911.1 38756.5 use 1213.17
+159 rows 112 w 0.136 Clot=0.01 Furn=0.23 Pres=0.20 Drie=0.12 Beer=0.06 Spir=0.06 Chee=0.09 Leat=0.15 FL b/p 38254.1 49431.4 use 1200.31

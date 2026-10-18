@@ -2316,6 +2316,7 @@ public sealed class World
         foreach (var p in r.Producers)
         {
             if (p.GoodId != goodId) continue;
+            if (p.RecipeName == Simulation.HouseholdRecipeName) continue;   // ★(418) 農家の手仕事の行は国営の工場の対象ではない（FacilityBuildScore と同じ述語・工場の行の門が閉じた財でも着工・補助の対象に取り違えない・旗 0 では行が無く不発）
             bool open = Discovery.Gate(r, p) > 0;
             bool invested = p.BuiltScale > 1e-9 || p.StateTarget > 0 || p.ConstructionLeft > 0;
             if (invested && open) return p;   // ①投資済み＝これが「その工場」

@@ -1,0 +1,9 @@
+bucket (0, 3) | 貴族 harmonic(nation px ration)=0.518 | 農民 harmonic(nation px ration)=0.520 | 工場労働者 harmonic(nation px ration)=0.520 | 職人 harmonic(nation px ration)=0.520
+bucket (4, 7) | 貴族 harmonic(nation px ration)=0.684 | 農民 harmonic(nation px ration)=0.691 | 工場労働者 harmonic(nation px ration)=0.689 | 職人 harmonic(nation px ration)=0.686
+bucket (8, 39) | 貴族 harmonic(nation px ration)=0.629 | 農民 harmonic(nation px ration)=0.754 | 工場労働者 harmonic(nation px ration)=0.648 | 職人 harmonic(nation px ration)=0.635
+bucket (40, 159) | 貴族 harmonic(nation px ration)=0.663 | 農民 harmonic(nation px ration)=0.812 | 工場労働者 harmonic(nation px ration)=0.709 | 職人 harmonic(nation px ration)=0.717
+bucket (160, 187) | 貴族 harmonic(nation px ration)=nan | 農民 harmonic(nation px ration)=nan | 工場労働者 harmonic(nation px ration)=nan | 職人 harmonic(nation px ration)=nan
+bucket (188, 227) | 貴族 harmonic(nation px ration)=nan | 農民 harmonic(nation px ration)=nan | 工場労働者 harmonic(nation px ration)=nan | 職人 harmonic(nation px ration)=nan
+bucket (228, 267) | 貴族 harmonic(nation px ration)=nan | 農民 harmonic(nation px ration)=nan | 工場労働者 harmonic(nation px ration)=nan | 職人 harmonic(nation px ration)=nan
+bucket (268, 399) | 貴族 harmonic(nation px ration)=nan | 農民 harmonic(nation px ration)=nan | 工場労働者 harmonic(nation px ration)=nan | 職人 harmonic(nation px ration)=nan
+bucket (400, -1) | 貴族 harmonic(nation px ration)=nan | 農民 harmonic(nation px ration)=nan | 工場労働者 harmonic(nation px ration)=nan | 職人 harmonic(nation px ration)=nan

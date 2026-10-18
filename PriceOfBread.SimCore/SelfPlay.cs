@@ -1115,6 +1115,7 @@ public sealed class UtilityAgent : INationAgent
     public static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr)
     {
         if (pr.GoodId < 0 || pr.GoodId >= Catalog.RefPrices.Length || pr.GoodId >= rg.Markets.Length) return new(double.NaN, double.NaN, false);
+        if (pr.RecipeName == Simulation.HouseholdRecipeName) return new(double.NaN, double.NaN, false);   // ★(418) 農家の手仕事の行は国営の工場として建てる対象ではない（AI も StepFactoryTargets もこの 1 本を読む＝対称・旗 0 では行が無く不発）
         if (!(Discovery.Gate(rg, pr) > 0)) return new(double.NaN, double.NaN, false);   // (260) 門が閉じた個体は候補外（否定形＝NaN の門も閉じた側）
         double rp = Catalog.RefPrices[pr.GoodId] * Math.Max(rg.PriceLevel, 1e-9);
         if (!(rp > 1e-9)) return new(double.NaN, double.NaN, false);
