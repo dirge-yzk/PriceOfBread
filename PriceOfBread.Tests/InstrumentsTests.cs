@@ -1449,13 +1449,23 @@ public class InstrumentsTests
     /// ④何もしない番人は必ず緑になる＝払いが段の法・連続の軸の両方にあり、符号 2 と払って通った戦線が実際に起きたことを数える。
     /// </summary>
     [Fact]
-    public void 政治資本の台帳が閉じ符号2の分割が列から組み直した門の式と合う()
+    public void 政治資本の台帳が閉じ符号2の分割が列から組み直した門の式と合う() => PoliticalCapitalLedger(oldPath: true);
+
+    /// <summary>★(410)（(407) の申し送り ②）上の番人は旗 <c>MandateOverStockFromLegitimacy</c> を 0（旧の経路〔S＋代価 ≦ b でしか通らない〕）に固定している＝既定（旗 1・(405) で採用）の世界で同じ台帳の恒等を見る対。
+    /// 台帳の恒等式（Step の目減りの差＝段の法の払い＋連続の軸の払い）は経路に依らない＝そのまま。門の式の組み直しだけが変わる：
+    /// 符号 2（在庫で否決）は旗に依らず S＋代価 ＞ b（壁の一歩の枝は否決を減らすだけ）・払って通った 4／8 は S＋代価 ≦ b **または** 払う前の S が 0 の満タン（壁の一歩・代価が b を超えてよい）。
+    /// 何もしない番人は必ず緑になる＝壁の枝が本当に起きた（払う前の S が 0 で S＋代価 ＞ b のまま払って通った戦線が 1 本以上）ことを数える。</summary>
+    [Fact]
+    public void 政治資本の台帳が閉じ符号2の分割が列から組み直した門の式と合う_既定の経路()
+        => PoliticalCapitalLedger(oldPath: false);
+
+    private void PoliticalCapitalLedger(bool oldPath)
     {
         string dir = NewDir();
         try
         {
             var sim = Make();
-            foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) この番人は旧の経路〔S＋代価 ≦ b でしか通らない〕の台帳の恒等を見る＝旗を 0 に明示（既定は採用値 1）
+            if (oldPath) foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔S＋代価 ≦ b でしか通らない〕の台帳の恒等を見る＝旗を 0 に明示（既定は採用値 1）
             Instruments.Configure(dir, "*");
             try { RunMatch(sim, 40, instr: true); }
             finally { Instruments.Configure(null, null); }
@@ -1466,7 +1476,7 @@ public class InstrumentsTests
                 "tariffPaidInQuarter", "securityPaidInQuarter", "continuousPaidInQuarter", "openFrontCosts", "openFrontSpentAtDecision" })
                 Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
             int iCost = Array.IndexOf(nh, "openFrontCosts"), iSpent = Array.IndexOf(nh, "openFrontSpentAtDecision"), iState = Array.IndexOf(nh, "openFrontStates");
-            int ledgerRows = 0, code2 = 0, code2Level = 0, code2Cont = 0, paidFronts = 0, structural = 0, starved = 0, levelPaidRows = 0, contPaidRows = 0;
+            int ledgerRows = 0, code2 = 0, code2Level = 0, code2Cont = 0, paidFronts = 0, structural = 0, starved = 0, levelPaidRows = 0, contPaidRows = 0, wallPaid = 0;
             foreach (var row in nr)
             {
                 double head = Col(nh, row, "politicalCapitalSpentAtLevelHead"), end = Col(nh, row, "politicalCapitalSpentAtStepEnd"), max = Col(nh, row, "politicalCapitalMaxAtLevelHead");
@@ -1498,7 +1508,12 @@ public class InstrumentsTests
                         if (level) { code2Level++; if (structuralNow) sl++; else tl++; } else { code2Cont++; if (structuralNow) sc++; else tc++; }
                         if (structuralNow) structural++; else starved++;
                     }
-                    else if (code is 4 or 8) { Assert.True(sdec + cost <= max + tol, $"払って通ったのに S＋代価 {sdec + cost} ＞ b {max}"); Assert.True(cost > 0, "払って通った一歩の代価が 0 以下"); paidFronts++; }
+                    else if (code is 4 or 8)
+                    {
+                        bool wall = !oldPath && sdec <= 0 && !(sdec + cost <= max + tol);   // ★(410) 壁の一歩＝払う前の S が 0 の満タンで代価が b を超える（既定の経路だけ）
+                        Assert.True(wall || sdec + cost <= max + tol, $"払って通ったのに S＋代価 {sdec + cost} ＞ b {max}（壁の一歩でもない：払う前の S {sdec}）");
+                        Assert.True(cost > 0, "払って通った一歩の代価が 0 以下"); paidFronts++; if (wall) wallPaid++;
+                    }
                     else if (code is 3 or 7) Assert.Equal(0.0, cost);
                     else if (code is 0 or 1 or 5 or 6) Assert.True(double.IsNaN(cost), $"門の手前の戦線（符号 {code}）に代価がある");
                 }
@@ -1512,6 +1527,7 @@ public class InstrumentsTests
             Assert.True(levelPaidRows > 0 && contPaidRows > 0, $"段の法の払い・連続の軸の払いの行が両方は無い（{levelPaidRows}・{contPaidRows}）");
             Assert.True(code2Level > 0 && paidFronts > 0, $"符号 2 の段の法・払って通った戦線が無い（{code2Level}・{paidFronts}）");
             Assert.Equal(code2, structural + starved);
+            if (!oldPath) Assert.True(wallPaid > 0, $"既定の経路なのに壁の一歩（払う前の S が 0 の満タンで S＋代価 ＞ b のまま通った戦線）が 1 本も無い（払って通った戦線 {paidFronts}）＝壁の枝の突き合わせが空洞");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

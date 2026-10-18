@@ -264,6 +264,49 @@ public class ClearingScopeTests
         }
     }
 
+    /// <summary>★(410)（(407) の申し送り ①）上の〈尽きたら〉の番人は覚えの先頭の相手の売れる分を**ちょうど 0**にした縮退の盤面だけを見る。
+    /// 実際の尽き方は〈覚えの相手が一部だけ売れて、残りを他の売り手に探しに行く〉＝売れる分を満たない量に置く。
+    /// 覚えの相手は最初の清算で最初に相手にした売り手（同じ価格・同じ着値の序列なら覚えの無い行でも最初に当たる）＝覚えの先に買う順と値段の順が同じなので、
+    /// 覚えの相手が一部売って尽き、残りを全ての売り手から探した結果は、覚えの無い行（全ての売り手を値段の順に見る）と 1 ビットも違わない。
+    /// 何もしない番人は必ず緑になる＝覚えの相手が実際に一部だけ売れて（0 でも満額でもなく）他の売り手からも買ったことを数える。</summary>
+    [Fact]
+    public void 覚えの売り手が一部だけ売れて尽きても覚えの無い行と1ビットも違わない()
+    {
+        int xi = FirstDealt();
+        double full;
+        {   // 覚えの無い行で X の売れる分が厚いときの X の取り分＝一部の目安
+            var (sim, g, sellers, _, _) = AfterFirstClearing(0);
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+            full = sellers[xi].Markets[g].LastExport;
+        }
+        Assert.True(full > 1e-6, "X が売っていない（対照の破れ）");
+        (List<double> snap, double fromX, double fromOthers) Run(int K)
+        {
+            var (sim, g, sellers, buyer, _) = AfterFirstClearing(K);
+            sellers[xi].Markets[g].Stock = sellers[xi].Markets[g].TargetStock + 0.4 * full;   // 売れる分が満額の 4 割＝一部だけ売れて尽きる
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+            var l = new List<double>();
+            foreach (var n in sim.Nations)
+                foreach (var r in n.World.Regions)
+                {
+                    if (r.State != RegionState.Active) continue;
+                    var m = r.Markets[g];
+                    l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); l.Add(m.Price);
+                    foreach (var p in r.Pops) l.Add(p.Savings.Value);
+                }
+            return (l, sellers[xi].Markets[g].LastExport, sellers.Where((_, i) => i != xi).Sum(r => r.Markets[g].LastExport));
+        }
+        var a = Run(0); var b = Run(1); var c5 = Run(5);
+        Assert.InRange(a.fromX, 1e-9, full * (1 - 1e-6));   // 0 でも満額でもない＝一部
+        Assert.True(a.fromOthers > 1e-9, "残りを他の売り手から探していない（盤面の前提の破れ）");
+        Assert.True(a.snap.Count == b.snap.Count && a.snap.Count == c5.snap.Count);
+        for (int i = 0; i < a.snap.Count; i++)
+        {
+            Assert.True(BitConverter.DoubleToInt64Bits(a.snap[i]) == BitConverter.DoubleToInt64Bits(b.snap[i]), $"K=1 と覚えの無い行が {i} 番目で違う（{a.snap[i]} 対 {b.snap[i]}）");
+            Assert.True(BitConverter.DoubleToInt64Bits(a.snap[i]) == BitConverter.DoubleToInt64Bits(c5.snap[i]), $"K=5 と覚えの無い行が {i} 番目で違う（{a.snap[i]} 対 {c5.snap[i]}）");
+        }
+    }
+
     [Fact]
     public void 覚えの無い行は2回目の清算でも全ての売り手を見る()
     {
