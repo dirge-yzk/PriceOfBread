@@ -524,6 +524,7 @@ public class AiFirstWaveTests
     public void 門が通らなければAIは飢饉の四半期でも農奴解放の目標を置かない()
     {
         var w = SerfWorld(openGate: false);
+        w.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔壁の一歩は永遠に通らない〕を見る番人＝旗を 0 に明示（既定は採用値 1）
         w.FoodFill = 0.5;   // 飢饉の判定が立つ
         Assert.False(Government.GateInfo(w, PolicyAxis.SerfEmancipation, increasing: true, (int)ReformLevel.Limited).Ok, "テスト前提が崩れた：開幕のロシアで門が開く");
         UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
