@@ -354,8 +354,8 @@ public static class Parliament
             case PolicyAxis.ConscriptionLaw: p.ConscriptionLaw = (ConscriptionLaw)StepTo((int)w.ConscriptionLaw, 2); break;   // ★3値化2026-08-01：上限1では国民皆兵に届かない
             case PolicyAxis.ImmigrationRestriction: p.ImmigrationRestriction = (ImmigrationLaw)StepTo((int)w.ImmigrationRestriction, 2); break;   // ★是正2026-08-01：目標を置く経路が1つも無かった
             case PolicyAxis.SpecialistExitBan: p.SpecialistExitLaw = (SpecialistExitLaw)StepTo((int)w.SpecialistExitLaw, 2); break;   // ★段⑤（2026-08-17）
-            // ★是正2026-08-01：同上（兌換の維持＝増加向き）／★3値化2026-08-13（点火1.0=2026-08-21）：銀を経由する梯子では1段ずつ（gate=0に戻せば旧2値と同じ両端）
-            case PolicyAxis.MonetaryStandard: p.MonetaryTarget = w.Coef.SilverStandardGate > 0 ? StepTo((int)w.MonetaryLaw, 2) : (FlipTo(w.MonetaryLaw == MonetaryStandardLaw.Gold) ? 2 : 0); break;
+            // ★是正2026-08-01：同上（兌換の維持＝増加向き）／★3値化2026-08-13（点火1.0=2026-08-21・旧の旗 SilverStandardGate は 2026-10-18 に焼き込み）：銀を経由する梯子では1段ずつ
+            case PolicyAxis.MonetaryStandard: p.MonetaryTarget = StepTo((int)w.MonetaryLaw, 2); break;
             case PolicyAxis.CapitalMobility: p.CapitalControlTarget = FlipTo(w.CapitalControlLaw); break;   // ★資本移動の法（トリレンマdoc・2026-08-13）＝増加向き＝規制
             // 参政権の範囲2法（2026-08-16）：ここは要求top-k経由のみ
             // ＝休眠中は Pref=0 で要求に載らず不到達・点火時に目標を置く経路が無いと no-op 要求になるので先に配線（2026-08-01の是正と同型）。

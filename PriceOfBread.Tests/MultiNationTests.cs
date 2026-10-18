@@ -60,7 +60,6 @@ public class MultiNationTests
     public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る(double gate)
     {
         var coef = new Coefficients { SilverParityFromRatio = gate };
-        Assert.True(coef.SilverStandardGate > 0, "前提＝SilverStandardGate が live（0なら注入自体が無い）");
         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: coef);
         sim.Run(3);
         double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];

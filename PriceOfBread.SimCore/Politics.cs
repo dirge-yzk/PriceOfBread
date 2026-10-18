@@ -1284,10 +1284,8 @@ public static class Politics
             // ここに case が無く `_ => 0` へ落ちていた＝**要求は成立するが施行されない**＝勢力が永久に同じ要求を出し続ける。
             PolicyAxis.ImmigrationRestriction => StepEnumAxis((int)w.ImmigrationRestriction, 2, v => { w.ImmigrationRestriction = (ImmigrationLaw)v; p.ImmigrationRestriction = w.ImmigrationRestriction; }),
             PolicyAxis.SpecialistExitBan => StepEnumAxis((int)w.SpecialistExitLaw, 2, v => { w.SpecialistExitLaw = (SpecialistExitLaw)v; p.SpecialistExitLaw = w.SpecialistExitLaw; }),   // ★段⑤
-            // ★3値化2026-08-13（点火1.0=2026-08-21銀本位ラウンド）：銀を経由する梯子では1段ずつ譲る（gate=0に戻せば旧 Flip と同じ両端＝厳密恒等）
-            PolicyAxis.MonetaryStandard => c.SilverStandardGate > 0
-                ? StepEnumAxis((int)w.MonetaryLaw, 2, v => { w.MonetaryLaw = (MonetaryStandardLaw)v; p.MonetaryTarget = v; })
-                : Flip(w.MonetaryLaw == MonetaryStandardLaw.Gold, v => { w.MonetaryLaw = v ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat; p.MonetaryTarget = v ? 2 : 0; }),
+            // ★3値化2026-08-13（点火1.0=2026-08-21銀本位ラウンド・旧の旗 SilverStandardGate は 2026-10-18 に焼き込み）：銀を経由する梯子では1段ずつ譲る
+            PolicyAxis.MonetaryStandard => StepEnumAxis((int)w.MonetaryLaw, 2, v => { w.MonetaryLaw = (MonetaryStandardLaw)v; p.MonetaryTarget = v; }),
             PolicyAxis.CapitalMobility => Flip(w.CapitalControlLaw, v => { w.CapitalControlLaw = v; p.CapitalControlTarget = v; }),   // ★資本移動の法（トリレンマdoc・2026-08-13）
             // 参政権の範囲2法（2026-08-16）：休眠中は Pref=0＝要求に載らず不到達。点火時に case が無いと「要求は成立するが施行されない」no-op要求（2026-08-01の前例）になるので先に配線。
             PolicyAxis.ColonialSuffrage => StepEnumAxis((int)w.ColonialSuffrage, 2, v => { w.ColonialSuffrage = (ColonialSuffrageLaw)v; p.ColonialSuffrage = w.ColonialSuffrage; }),

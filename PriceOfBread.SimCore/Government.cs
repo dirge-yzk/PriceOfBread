@@ -89,16 +89,14 @@ public static class Government
         //   （予備役・退役の陸軍大臣は一人も任命されていない）。なのに海軍は1914年4月に建艦予算のためだけに内閣の成立を潰した
         //   ＝**拒否権は制度的であって法定ではなく、法を緩めても何も変わらなかった**。
         // ★通貨制度＝債務者と債権者の政治。3値化（銀本位doc G4・2026-08-13）：不換→銀→金を1期1段。位置＝不換0／銀0.5／金1.0。
-        // ⚠SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では中段へ入らず、旧 StepBool と同じ 0/1 の一歩＝旧挙動と厳密恒等（数値中立）。
+        // （旧の旗 SilverStandardGate は 2026-08-21 銀本位ラウンドで点火・2026-10-18 に焼き込み＝旧 StepBool と同じ 0/1 の一歩の旧経路は削除。）
         // ★B16（実バグ21件・2026-09-07）：通貨の梯子は政治ゲートを通るのに戦線に数えられていなかった＝到達不能な通貨目標を持つAIの
         //   開きっぱなしの戦線が診断にも現れない（当時の徴候＝毎四半期 BlockedGrievance が発火し続けること。その発火は裁定C2で止まり 2026-09-20 に削除したが、
         //   幽霊戦線そのもの＝PoliticalPushBudget を毎期薄める害は残るので、この数え上げは無関係に要る）。
-        //   ★2026-09-28（処理の一元化 段2 束2）：戦線だけの門（FrontsCountMonetary・既定0）を削除＝施行と同じ目標の写像（SilverStandardGate の有無）で1戦線に数える。
+        //   ★2026-09-28（処理の一元化 段2 束2）：戦線だけの門（FrontsCountMonetary・既定0）を削除＝施行と同じ目標の写像で1戦線に数える。
         new(PolicyAxis.MonetaryStandard, w => (int)w.MonetaryLaw, (w, v) => w.MonetaryLaw = (MonetaryStandardLaw)v,
-            (w, p) => w.Coef.SilverStandardGate > 0 ? Math.Clamp(p.MonetaryTarget, 0, 2) : (p.MonetaryTarget >= 2 ? (int)MonetaryStandardLaw.Gold : (int)MonetaryStandardLaw.Fiat), 2,
-            Enact: (w, p, t) => w.MonetaryLaw = w.Coef.SilverStandardGate > 0
-                ? (MonetaryStandardLaw)StepLevel((int)w.MonetaryLaw, t, w, PolicyAxis.MonetaryStandard)
-                : StepLevel(w.MonetaryLaw == MonetaryStandardLaw.Gold ? 1 : 0, p.MonetaryTarget >= 2 ? 1 : 0, w, PolicyAxis.MonetaryStandard) == 1 ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat),
+            (w, p) => Math.Clamp(p.MonetaryTarget, 0, 2), 2,
+            Enact: (w, p, t) => w.MonetaryLaw = (MonetaryStandardLaw)StepLevel((int)w.MonetaryLaw, t, w, PolicyAxis.MonetaryStandard)),
         // ★資本移動＝海外へ投資する資本と国内に雇用を求める側の政治（トリレンマdoc・2026-08-13）。位置＝自由0／規制1.0。
         new(PolicyAxis.CapitalMobility, w => w.CapitalControlLaw ? 1 : 0, (w, v) => w.CapitalControlLaw = v == 1, (w, p) => p.CapitalControlTarget ? 1 : 0, 1),
         new(PolicyAxis.Censorship, w => (int)w.Censorship, (w, v) => w.Censorship = (CensorshipLaw)v, (w, p) => (int)p.Censorship, 2, Stage: 2),   // 報道の自由化（旧支配層が抵抗）

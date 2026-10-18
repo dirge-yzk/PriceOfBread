@@ -103,7 +103,7 @@ public enum GuildLaw { Full, Limited, None }
 
 /// <summary>通貨制度の法（銀本位doc G4・2026-08-13・3段）。不換紙幣→**銀本位**→金本位。
 /// ★階段の順序が意味を持つ：1期1段しか動けないので、⚠不換から一気に金へは飛べない（史実＝日本1871銀→1897金・独1871銀→金）。
-/// ⚠SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では中段（銀）へ入らず、旧・2値の bool（不換⇄金）と**厳密に同じ経路**を通る＝数値中立。
+/// （旧の旗 SilverStandardGate は 2026-08-21 銀本位ラウンドで点火・2026-10-18 に焼き込み＝旧・2値の bool〔不換⇄金〕の経路は削除。）
 /// ★「兌換を約束しているか」は <see cref="World.MetallicStandardLaw"/>（銀でも金でも真）、「本位金属が金か」は
 ///   <see cref="World.GoldStandardLaw"/> が答える＝旧 bool の読み手はどちらの意味で読んでいたかで振り分ける。</summary>
 public enum MonetaryStandardLaw { Fiat, Silver, Gold }
@@ -237,7 +237,7 @@ public sealed class NationPolicy
     public double InterestRateTarget;     // 金利 0..1（金融政策。低＝信用拡大/投資ブーム、高＝引締/安定）
     // 通貨制度の目標段（銀本位doc G4・2026-08-13）：0=不換／1=銀本位／2=金本位。プレイヤー/AI の意思であって、
     // 実際の加入は信用ゲート（低債務＋払える財政）を満たす時のみ。加入中は通貨切下げ封印＝黄金（白銀）の足枷。
-    // ⚠旧 bool GoldStandardTarget を置換（false→0・true→2）。SilverStandardGate=0（旧既定・現行live=1）では 1 を経由しない＝旧経路と厳密一致。
+    // ⚠旧 bool GoldStandardTarget を置換（false→0・true→2）。（旧の旗 SilverStandardGate は 2026-10-18 に焼き込み。）
     public int MonetaryTarget;
     public bool CapitalControlTarget;     // 資本移動を規制したいか（トリレンマdoc・器2026-08-13）。既定 false＝自由。実際の施行は政治ゲート（資本の反対）を通る
 

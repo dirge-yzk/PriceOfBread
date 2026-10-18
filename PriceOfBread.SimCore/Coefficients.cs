@@ -3286,7 +3286,7 @@ public sealed class Coefficients
     //   アフガニスタン・中央アジア3・アラビア・イエメン・オマーン・エチオピア・ラオス・西山朝）。休眠時は銀0/14・1803年に金16の氾濫だった。
     //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】
     //   ★(210) MonetaryPeerPullScale の入力は組ごとの相手と比の外れへ・銀の下落は同じ州の比へ（PolicyPreferences）＝この墓標の4係数の戻し方は旧の記録。
-    public double SilverStandardGate = 1.0;            // **主フラグ**：0で中段（銀）に入らず旧2値と厳密恒等／1（live）で不換→銀→金の3段の梯子が開く
+    // 【墓標2026-10-18・旗の焼き込み】SilverStandardGate（銀本位の主旗・既定1.0・点火2026-08-21 銀本位ラウンド＝4係数一括：同一ソースA/B seeds1-10 ◎7割帯 11→17・逸脱過多 9→7・法+1.9・植民地+3.4・人口+1.4／代償=経済規模−5.0・政体exact−2.3・列強再現−2.5）を消した＝不換→銀→金の3段の梯子が常に開く（旧の2値の経路は削除）。
     // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
     //   連結州平均（表示統計・RefPrice×[0.1,10]でクランプ）。銀本位国の E はその平均から作られ、平均は E を含む＝**E→平均→E の自己参照（正帰還）**。
     //   silverprobe 実測で天井 ExchangeRateCeil(3.0) 近傍に乗数2.8で張り付いた根。

@@ -238,6 +238,8 @@ public class DormantIdentityTests
         "TradeMonthlyClearing", "WinterPortFreeze", "TradeWeightDynamic", "TradeAccessNormalized", "LandEdgesAvoidWater", "BarrierWallSegments", "TransportShareByPotential", "TransportEnabled", "TransitEnabled", "PortRewireEnabled",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c A1（AI・世界の既定1.0の旗10本）
         "AiLawGateUnified", "AiLawWriteCoverage", "AiSupplyChainEyes", "AiWorldPriceEntry", "AiProtectiveTariff", "AiBuildGuardRelax", "InvadeShipSeaDistance", "ExternalPressureDerived", "WorldPriceInitFromRefPrice", "CivilWarPredicateUnified",
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 財3の最後（SilverStandardGate＝銀本位の主旗）
+        "SilverStandardGate",
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

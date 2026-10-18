@@ -8,9 +8,8 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// AI第1波（2026-08-16・docs/20260816_AI動詞被覆監査.md 第1波／実装記録=docs/20260816_AI第1波実装.md）のON経路。
 /// AI第1波の点火枝を検証する。旗 AiLawGateUnified・AiLawWriteCoverage は 2026-10-18 に焼き込み（AiMobilization は 2026-09-20 に削除）＝OFF側の対照は消えた。既存休眠 AiDevelopmentalSubsidy の点火枝も見る。
-/// ⚠2026-08-16の点火梯子で AiLawGateUnified と AiLawWriteCoverage は**点火済み（1.0）**＝既定はもう休眠ではない
 /// （AiDevelopmentalSubsidy は休眠のまま）。AiMobilization は 2026-09-20 に係数ごと削除＝段の点火で総動員のAI分岐が常時 live（②は旗なしで同じ主張を見る）。
-/// ここでは既定値の番人（＝いま live である値の宣言）と、ON/OFF**両側を明示ピン**した対照だけを見る。
+/// ここでは既定値の番人（＝いま live である値の宣言）と、live の経路の挙動を見る。
 /// </summary>
 public class AiFirstWaveTests
 {

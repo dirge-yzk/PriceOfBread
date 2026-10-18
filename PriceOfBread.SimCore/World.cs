@@ -1515,7 +1515,7 @@ public sealed class World
     // ⚠史実＝1873-96年の大デフレは債務者（抵当を抱えた農民）と債権者（銀行）の political war だった
     //   （米：ブライアン「人類を黄金の十字架に架けるな」1896／英：金本位は動かず／独：1871年に金へ）。
     // ★3値化（銀本位doc G4・2026-08-13）：不換→銀→金。⚠internal set＝Runner の機能プローブ(lawaudit)もここを書く。
-    // SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では中段（銀）に入らない＝下の2つの派生 bool が旧 GoldStandardLaw と厳密に一致する。
+    // （旧の旗 SilverStandardGate は 2026-08-21 銀本位ラウンドで点火・2026-10-18 に焼き込み。）
     public MonetaryStandardLaw MonetaryLaw { get; internal set; } = MonetaryStandardLaw.Fiat;
     /// <summary>兌換を約束する法か（銀でも金でも真）。★兌換の規律（切下げ封印・強制離脱・再加入）はこちらを読む——銀本位も足枷である。</summary>
     public bool MetallicStandardLaw => MonetaryLaw != MonetaryStandardLaw.Fiat;
@@ -1590,9 +1590,9 @@ public sealed class World
         // ★本位ごとの平価（銀本位doc G6・2026-08-13）：⚠新しい係数はゼロ——**平価の相手が何か**を変えるだけで
         //   「金本位国⇄金本位国＝固定／銀本位国⇄銀本位国＝固定／金本位国⇄銀本位国＝変動」が自動的に出る。
         //   銀本位国の平価は銀の世界価格に比例する＝★銀が暴落すれば通貨も落ちる（1870-90年代のルピー・両）。
-        //   SilverStandardGate=0（旧既定・現行live=1）または銀価格が未注入では parity=GoldParity＝旧挙動と厳密恒等。
+        //   銀価格が未注入では parity=GoldParity。
         double parity = GoldParity;
-        if (c.SilverStandardGate > 0 && MonetaryLaw == MonetaryStandardLaw.Silver && WorldSilverPrice > 1e-9)
+        if (MonetaryLaw == MonetaryStandardLaw.Silver && WorldSilverPrice > 1e-9)
         {
             double refSilver = Catalog.RefPrices[Catalog.SilverId];
             double silverRel = refSilver > 1e-9 ? WorldSilverPrice / refSilver : 1.0;

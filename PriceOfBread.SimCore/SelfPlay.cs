@@ -858,7 +858,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
         // ★銀は誰でも持てる（銀本位doc G4・銀貨は普遍的だった＝清もインドも独も1783年に銀）＝不換の国は銀を志向する（旧の銀の閾 SilverStandardIndThreshold＝0 は常に真＝(210) で削除）。⚠国名も暦年も書かない。
         bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
-        w.Policy.MonetaryTarget = goldWish ? 2 : w.Coef.SilverStandardGate > 0 ? 1 : 0;
+        w.Policy.MonetaryTarget = goldWish ? 2 : 1;
         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
         // 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は
         // 金流出が止まらなくなってから敷かれた。⚠実際に法が通るかは資本の反対（PolicyPreferences）が決める＝プレイヤーと同じ政治ゲート。

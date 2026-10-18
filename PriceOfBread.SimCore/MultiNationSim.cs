@@ -842,7 +842,6 @@ public sealed class MultiNationSim
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
             // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
             //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
-            //   SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では World 側が読まない＝注入しても挙動中立。
             // ★銀と金の比（(210)・00一覧 §0-A の 10＝金への入力を同じ州の比の世界で＝表示用の統計に乗せない）：同一市場内の 銀/金鉱 比の全 Active 州の対数平均 R
             //   を RefPrice 比で正規化（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）＝World.SilverGoldRatio（通貨制度の選好の入力）。
             //   器 SilverParityFromRatio（R1・休眠）は同じ R を銀本位国の平価の元へ使う＝走査はこの1本（旧＝器の枝の中だけで数えた）。
@@ -850,7 +849,7 @@ public sealed class MultiNationSim
             //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
             //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
             //   走査順＝Nations 順×Regions 順（決定論）。有効な州が無い／比が不正なら 1（平価どおり）・R1 は旧統計へ倒す。
-            if (_coef.SilverStandardGate > 0 && Catalog.SilverId < Market.Price.Count)
+            if (Catalog.SilverId < Market.Price.Count)
             {
                 double ratioSum = 0; int ratioCnt = 0;
                 foreach (var n in Nations)

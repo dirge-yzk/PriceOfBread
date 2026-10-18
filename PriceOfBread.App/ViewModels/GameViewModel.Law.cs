@@ -101,11 +101,8 @@ public partial class GameViewModel
         Add("徴兵法", PolicyAxis.ConscriptionLaw, ["志願兵", "選抜徴兵", "国民皆兵"], () => (int)w.ConscriptionLaw, () => (int)p.ConscriptionLaw, v => p.ConscriptionLaw = (ConscriptionLaw)v);
         // ★2026-08-01：SimCore に入れた2つの法がUIに1行も無く、**AIと議会だけが動かせてプレイヤーが動かせない**状態だった（対称性の違反）。
         Add("移民制限", PolicyAxis.ImmigrationRestriction, ["開放", "選別", "閉鎖"], () => (int)w.ImmigrationRestriction, () => (int)p.ImmigrationRestriction, v => p.ImmigrationRestriction = (ImmigrationLaw)v);
-        // ★3値化（銀本位doc G4・2026-08-13／点火1.0=2026-08-21銀本位ラウンド＝現行は3択）：gate=0に戻したときは中段が存在しないので2択のまま出す＝押せない段を並べない。
-        if (c.SilverStandardGate > 0)
-            AddEcon("通貨制度", PolicyAxis.MonetaryStandard, ["不換紙幣", "銀本位", "金本位"], () => (int)w.MonetaryLaw, () => Math.Clamp(p.MonetaryTarget, 0, 2), v => p.MonetaryTarget = v);
-        else
-            AddEcon("通貨制度", PolicyAxis.MonetaryStandard, ["不換紙幣", "金本位"], () => w.GoldStandardLaw ? 1 : 0, () => p.MonetaryTarget >= 2 ? 1 : 0, v => p.MonetaryTarget = v == 1 ? 2 : 0);
+        // ★3値化（銀本位doc G4・2026-08-13／点火1.0=2026-08-21銀本位ラウンド＝3択・旧の旗 SilverStandardGate は 2026-10-18 に焼き込み）。
+        AddEcon("通貨制度", PolicyAxis.MonetaryStandard, ["不換紙幣", "銀本位", "金本位"], () => (int)w.MonetaryLaw, () => Math.Clamp(p.MonetaryTarget, 0, 2), v => p.MonetaryTarget = v);
         // ★資本移動（トリレンマdoc・2026-08-13）。通貨制度の真下＝この2行の組が「金利が自分のものか」を決める（並べれば説明文は要らない＝思想⑦）。
         AddEcon("資本移動", PolicyAxis.CapitalMobility, ["自由", "規制"], () => w.CapitalControlLaw ? 1 : 0, () => p.CapitalControlTarget ? 1 : 0, v => p.CapitalControlTarget = v == 1);
         // 社会保障：最下段は救貧法（「なし」廃止＝救貧法が福祉水準0。2026-07-21）。4段＝target×3で写す（エンジン Government の導出と一致）。
