@@ -1098,7 +1098,7 @@ public sealed class World
     /// MultiNationSim が四半期同期で注入（器A SilverParityFromRatio と同じ量＝同じ走査の1本・表示用の統計〔Market.Price〕に乗せない）。
     /// 読み手＝PolicyPreferences の通貨制度選好（銀の下落・比が平価から外れている大きさ）。未注入（単一国シナリオ）は1＝平価どおり。</summary>
     public double SilverGoldRatio { get; internal set; } = 1.0;
-    // ★鋼市場診断#2（2026-08-16・AiWorldPriceEntry>0のみ）：国際市場の平均価格（InternationalMarket.Price＝BilateralMarket が成約から書く265州平均）の写し。
+    // ★鋼市場診断#2（2026-08-16・旧の旗 AiWorldPriceEntry は 2026-10-18 に焼き込み）：国際市場の平均価格（InternationalMarket.Price＝BilateralMarket が成約から書く265州平均）の写し。
     // MultiNationSim が四半期同期で注入（WorldTechLevel/IndustrialFrontier/WorldSilverPrice と同型＝World は国際市場を直接見られない層の分離）。
     // null＝未注入（単一国シナリオ・係数0のとき）＝読み手（UtilityAgent.TryBuildFacility＝AIの参入判断のみ）は国内チャネルだけで判断＝恒等。
     // セーブ設計（設計判断）：SaveGame の汎用グラフ直列化（全インスタンスフィールド自動）が double[] として保存し、加えて毎四半期末の再注入が上書きする
@@ -2027,7 +2027,7 @@ public sealed class World
             best = Math.Min(best, seaDist
                 ? Geo.SeaDistanceKm(Latitude, Longitude, col.Latitude, col.Longitude, suezOk, panamaOk)
                 : Geo.DistanceKm(Latitude, Longitude, col.Latitude, col.Longitude));
-        // 実在国標的（Nation!=null）＝首都＋ColoniesAreRegions=1で州化済みの植民地州（Tier==Colonial）も距離走査に含める
+        // 実在国標的（Nation!=null）＝首都＋開幕の昇格（旧の旗 ColoniesAreRegions・2026-10-18 に焼き込み）で州化済みの植民地州（Tier==Colonial）も距離走査に含める
         // （型統合後の旧読み手の是正・G05#6＝Diplomacy.ColonyMass/TargetPointと同じ規則。旧はColonyListのみ＝州化した植民地が消え、
         //   植民地0の実在弱小国は距離0扱いだった）。
         if (t.Nation is { } tw)
@@ -2167,7 +2167,7 @@ public sealed class World
     {
         if (Diplomacy is not { } dip || SelfPower is null) return;
         // 標的の座標集合＝ColonyList（抽象植民地）＋実在国なら首都＋州化済みの植民地州（Tier==Colonial）。
-        // 型統合後の旧読み手の是正（G05#7）：旧はColonyListのみ＝ColoniesAreRegions=1で州化した植民地標的が近接緊張ゼロだった。
+        // 型統合後の旧読み手の是正（G05#7）：旧はColonyListのみ＝開幕の昇格（旧の旗 ColoniesAreRegions）で州化した植民地標的が近接緊張ゼロだった。
         var targetPoints = new List<(double Lat, double Lon)>();
         foreach (var tc in target.ColonyList) targetPoints.Add((tc.Latitude, tc.Longitude));
         if (target.Nation is { } tw)

@@ -245,4 +245,40 @@ public class ColonyPromotionTests
         double mass = sim.Diplomacy.Powers.Sum(p => p.ColonyMassUnits());
         Assert.Equal(sim.Diplomacy.InitialColonyCount, mass, 6);
     }
+
+    // ============================================================================================
+    // ★2026-10-18 恒等の削除（植民地の旧い型の経路一式）の土台の番人（反証役 中#2）。
+    //   維持費・ColonialResources の更新・独立を消してよかったのは「国を持つ全ての国の ColonyList は構築の直後から空」が成り立つから。
+    //   開幕の PromoteAllColonies は、同じ名前の州が既に居る植民地を昇格させずに一覧へ残す（continue）＝world.json に同名が入ると、
+    //   残った植民地は数え（ColonyMass）にだけ載り、維持費も独立も回らない（分子と分母の非対称の型）。
+    // ============================================================================================
+
+    [Fact]
+    public void 削除の土台_構築の直後に国を持つ全ての国の植民地の一覧は空()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        var left = new System.Collections.Generic.List<string>();
+        foreach (var n in sim.Nations)
+            if (n.World.SelfPower is { } sp && sp.ColonyList.Count > 0)
+                left.Add($"{sp.Name}：{string.Join("・", sp.ColonyList.Select(c => c.Name))}");
+        Assert.True(left.Count == 0, $"構築の直後に植民地の一覧に残った国がある（同名の州と衝突して昇格しなかった）＝{string.Join(" ／ ", left)}");
+    }
+
+    [Fact]
+    public void 削除の土台_初期の植民地の名前はどの州の名前とも一致しない()
+    {
+        var cfgs = WorldData.Nations();
+        var regionNames = new System.Collections.Generic.HashSet<string>();
+        foreach (var cfg in cfgs) foreach (var ps in cfg.Provinces) regionNames.Add(ps.City);
+        int colonies = 0;
+        var bad = new System.Collections.Generic.List<string>();
+        foreach (var cfg in cfgs)
+            foreach (var col in cfg.InitialColonies)
+            {
+                colonies++;
+                if (regionNames.Contains(col.Name)) bad.Add($"{cfg.Name}：{col.Name}");
+            }
+        Assert.True(colonies > 0, "前提の破れ：初期の植民地が 1 件も無い（番人が何も見ていない）");
+        Assert.True(bad.Count == 0, $"初期の植民地の名前が州の名前と一致する＝開幕の昇格で一覧に残りうる＝{string.Join(" ／ ", bad)}");
+    }
 }

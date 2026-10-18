@@ -1748,7 +1748,7 @@ public sealed class Coefficients
     public Share ManifestoFulfillMove = new(0.1);      // 達成と認める最小の移動量（軸の可動域に対する割合＝0.1で「1割進んだ」。段のある法は1段でおおむね超える）
     public double ManifestoFulfillCredit = 0.5;    // 達成した瞬間に加担した思想へ乗る支持（Ideology の r[] と同じ物差し＝他の出来事項と横並び）
     public double ManifestoCreditDecay = 0.05;     // その支持の四半期あたりの減衰（半減期≈14四半期＝3.5年＝任期1回ぶん）。0で減衰なし
-    public double ElectionPushScale = 0.3;         // ★E3：加担の押し込み＝選んだ思想の得票を(1+効き×これ)倍（開票1回のみ・×1.0はIEEEでビット恒等）。主レバーElectionEventEnabled=0が先にゼロ化＝恒等不破。設計目安＝効き1.0で+30%（世論を作る長期経路＝教育/検閲より常に劣る短期ブースト）
+    public double ElectionPushScale = 0.3;         // ★E3：加担の押し込み＝選んだ思想の得票を(1+効き×これ)倍（開票1回のみ・×1.0はIEEEでビット恒等）。旧の主レバー ElectionEventEnabled は 2026-10-18 に焼き込み。設計目安＝効き1.0で+30%（世論を作る長期経路＝教育/検閲より常に劣る短期ブースト）
     // 【墓標2026-10-18・旗の焼き込み】EarlyElectionEnabled（機能2-5・既定1.0・点火2026-07-28）を消した＝不信任（与党の民意 VoteShares が閾値割れ）で繰り上げ総選挙が常に有効。0＝固定周期のみの旧は git の履歴から戻せる。
     public double NoConfidenceThreshold = 0.2;     // 機能2-5：与党族の得票率がこれ未満＝内閣が倒れる（第三共和政＝平均8ヶ月内閣の史実側）
     public double EarlyElectionMinQuarters = 4;    // 機能2-5：繰り上げ選挙の最短間隔（1年＝選挙の乱発防止）
@@ -1973,8 +1973,8 @@ public sealed class Coefficients
     // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
     // 【削除2026-09-30 段4e 後半】ConscriptExcludeOldMales（徴兵の上限から老年の男を除く旗）＝年齢の層で徴兵の年齢（男20〜39・皆兵は49まで）を直接読む＝自明（設計書 §4-2）。
     // 【墓標2026-10-18・旗の焼き込み】ExternalPressureDerived（接7・既定1.0・点火2026-07-27 機能優先ラウンド第2群）を消した＝外圧は創建時定数 0.3 でなく「世界の技術水準格差×海からの接触係数」から四半期ごとに導出する。
-    public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。ExternalPressureDerived=0では不読
-    public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。ExternalPressureDerived=0では不読
+    public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み＝常に読む
+    public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み＝常に読む
     // A-高1：鋼のベッセマー不連続。坩堝鋼（地理差・高価＝鉄2.2+コークス1.2・Productivity0.9）と錬鉄レール（地理差・鉄1.3）を
     // 並存レシピで追加し、デフォルト（ベッセマー転炉＝鉄1.0+コークス0.4）を発見の表の転炉鋼（1850年代）で門（旧＝onset 0.55・旗 CrucibleSteelEnabled＝2026-10-01 段2A で焼き込み）。
     // ★石油ケロシン（灯油doc・2026-08-13）：灯油の第2レシピ。原油の「1859年から40年の買い手ゼロ」を埋める。
@@ -2621,7 +2621,7 @@ public sealed class Coefficients
     public double CanalTollTrafficRate = 0.02;   // 外6：取扱高あたり通行料率（通航トン数課金の実効レート。旧CanalTollRate/CanalTollByTraffic/CanalTollByRouteは02断線走査2026-07-28のルート判定一本化で削除済み＝この係数が唯一の実効レバー。#17較正）
     public Share CanalInvestReturns = new(0.5);   // 外7：運河建設拠出国へ通行料を持分比で配当する割合(0..1)＋交戦中の拠出停止。0=現行の全額扼者・無条件拠出（恒等）
     // 【墓標2026-10-18・旗の焼き込み】ConscriptionScalesWithWar（外12・既定1.0）を消した＝戦時徴兵率は戦争規模でスケールする（一律 ConscriptionFraction の旧は git の履歴から戻せる）。
-    public Share ConscriptionFloorFraction = new(0.02);   // 外12：限定戦争の徴兵下限（depth=0の徴兵率＝働き盛りの男の割合・(145)。ConscriptionScalesWithWar>0でのみ使用。#17較正）
+    public Share ConscriptionFloorFraction = new(0.02);   // 外12：限定戦争の徴兵下限（depth=0の徴兵率＝働き盛りの男の割合・(145)。旧の旗 ConscriptionScalesWithWar は 2026-10-18 に焼き込み＝常に使う。#17較正）
     public double ConscriptionExhaustionWeight = 1.0;   // 外12：厭戦(WarExhaustion)→動員深度の重み（同上）
     public double ConscriptionFrontStep = 0.34;   // 外12：追加戦線1本あたりの動員深度増分（単一戦線=0で恒等。同上）
     public double ConscriptionEnemyRatioWeight = 1.0;   // 外12：敵陸軍優勢(比>1)→動員深度の重み（同上）
@@ -2762,11 +2762,11 @@ public sealed class Coefficients
     public double IdeologyGateUrbanWeight = 0.5;   // 政16：発展度スカラーにおける都市労働者シェアの加重（0=工業化度のみ・1=都市シェアのみ）
     // 【墓標2026-09-27・旗の焼き込み（回2-1b・mil-01・x-01）】CasualtiesFromContact（外2・1.0で点火済み）＝戦死の基準を自軍の Military にする0の枝を削除。戦死の式は Diplomacy.WarCasualties（兵の頭数×接触÷自軍のゲージ×WarCasualtyRatePerMonth）
     // 【墓標2026-10-18・旗の焼き込み】WarWearinessDecays（外3・既定1.0）を消した＝非交戦国の厭戦は WarWearinessDecayRate で指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。即時0リセットの旧は git の履歴から戻せる。
-    public double WarWearinessDecayRate = 0.97;   // 外3：WarWearinessDecays>0のときの非交戦国厭戦の月次残存率。WarWearinessDecays=0では未参照
+    public double WarWearinessDecayRate = 0.97;   // 外3：非交戦国厭戦の月次残存率（旧の旗 WarWearinessDecays は 2026-10-18 に焼き込み＝常に使う）
     // 【墓標2026-09-26】AbstractTargetReparations（外8・抽象標的の国庫の3割を賠償へ）＝回1-1で削除。抽象標的は World を持たない＝受け手だけが +rep を記帳して金が世界の外から湧いた（片側記帳・段0の番人 fis-21）
     // 【墓標2026-10-18・旗の焼き込み】ThreatUsesColonyValue（外10・既定1.0・#17有効化）を消した＝脅威評価・海軍シェアの植民地規模は Σ Colony.Value（資源数＋人口）。個数 p.Colonies の旧（インド1個<小島3個）は git の履歴から戻せる。
     // 【墓標2026-10-18・旗の焼き込み】FrozenTensionDecays（外11・既定1.0）を消した＝開戦経路が塞がれた（従属）ペアの緊張≥100 は FrozenTensionDecayRate で微小減衰する（永久凍結の旧は git の履歴から戻せる）。
-    public double FrozenTensionDecayRate = 0.2;   // 外11：FrozenTensionDecays>0のとき開戦不能ペアの≥100緊張に課す月次減衰。FrozenTensionDecays=0では未参照
+    public double FrozenTensionDecayRate = 0.2;   // 外11：開戦不能ペアの≥100緊張に課す月次減衰（旧の旗 FrozenTensionDecays は 2026-10-18 に焼き込み＝常に使う）
     public double FiscalExhaustionWarWeariness = 0.05;   // 外13：財政破綻の厭戦寄与＝(1-payRatio)にこの係数を掛けてWarExhaustionに月次加算（国庫枯渇＝戦費調達限界が講和事由に）。0=無影響（旧＝枯渇しても戦力3割を無期限維持）。バランス2026-07-07有効化：完全破産で約2.3年で厭戦満了＝破産国の無期限戦争（AI監査の愚行#4）を解消
     public double ConquestColonyMilitancy = 1.5;   // 外15＋02断線走査2026-07-28実効化：講和で武力奪取した植民地の初期不満＝これ×ColonizeAnnexMilitancy（旧・>0判定のみで値が式に現れず1.0でも100でも同一だった）。1.5＝武力奪取(0.45)＞無血併合(0.3)の序列＝アルジェリア型の抵抗。1.0で併合と同値・0で据え置き
 

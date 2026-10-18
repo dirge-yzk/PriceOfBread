@@ -393,7 +393,7 @@ public sealed class Diplomacy
     private static double ColonyMass(Power p, Coefficients c)
     {
         double v = 0; foreach (var col in p.ColonyList) v += col.Value;
-        // ★退行修正（帰還構造の全数調査 §1-2・2026-08-30）：ColoniesAreRegions=1 の州昇格で ColonyList が空になり、
+        // ★退行修正（帰還構造の全数調査 §1-2・2026-08-30）：開幕の州昇格（旧の旗 ColoniesAreRegions・2026-10-18 に焼き込み）で ColonyList が空になり、
         //   live 枝が**全国で常に0**＝脅威評価の植民地35%成分が欠落（床0.5により−0.35バイアス）＝「首位交代が起きない」の直接機序・
         //   NavalShareColonyWeight の帝国プレミアムも同死。単位の一本化＝昇格州を Colony.Value と同じ物差しで数える
         //   （資源項は昇格で実経済＝GDP成分に移った＝ここでは 0.5+人口/2 の帝国質量分のみ＝二重計上しない。人口単位は ColonyMassUnits と同じ換算）。
@@ -1421,7 +1421,7 @@ public sealed class Diplomacy
                     foreach (var g in col.Resources) if (g == c.OpiumGoodId) { exporter = true; break; }
                     if (exporter) break;
                 }
-                // ★是正（型統合後の旧読み手・監査2026-09-02 #4/#5）：ColoniesAreRegions=1 で州へ昇格したアヘン産地はColonyListから消える。
+                // ★是正（型統合後の旧読み手・監査2026-09-02 #4/#5）：開幕の昇格（旧の旗 ColoniesAreRegions）で州へ昇格したアヘン産地はColonyListから消える。
                 //   ColonyMass（本ファイル ColonyMass）と同じ両建て＝植民地格の州のResourcesも読む。
                 if (!exporter && b.Nation is { } bnw)
                     foreach (var r in bnw.Regions)
@@ -3245,7 +3245,7 @@ public sealed class Diplomacy
             var b = SeaGraph.BasinAt(col.Latitude, col.Longitude);
             cv[(int)b] += System.Math.Max(1, col.Value); cvSum += System.Math.Max(1, col.Value);
         }
-        // ★是正（型統合後の旧読み手・監査2026-09-02 #28）：ColoniesAreRegions=1 で州へ昇格した植民地はColonyListに居ない＝D1裁定の0.5/0.5配分から漏れる。
+        // ★是正（型統合後の旧読み手・監査2026-09-02 #28）：開幕の昇格（旧の旗 ColoniesAreRegions）で州へ昇格した植民地はColonyListに居ない＝D1裁定の0.5/0.5配分から漏れる。
         //   ColonyMass（Diplomacy.cs）と同じ物差し（units=0.5+人口/ColonyUnitPop*0.5）で足す。州は自前のSeaBasinを持つ＝座標参照が要らない。
         if (nw.Diplomacy is { } dipU && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)

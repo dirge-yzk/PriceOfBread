@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>13l地政学＝経路依存の緊張（docs/202608/20260814_緊張度をコアにする_部分完了.md 13l・作者裁定2026-08-14）の番人。
 /// 法則＝「国は、自分の生命線（閉鎖海盆の唯一の出口）を扼する相手と対立する」。
 /// (1)既定0の休眠ピン (2)ON経路＝依存度×係数がそのままAddTensionされること（露→土＝黒海×ボスポラスが国名なしで立つ）を固定する。
-/// 観測の実証は 99_実装ログ§4-6（diploprobe v4/v5＝普/瑞→丁1.0・露→土0.22・扼者交代の追随）。</summary>
+/// 観測の実証は 99_実装ログ§4-6（Runner の diploprobe〔2026-10-18 に DiploCore ごと削除〕の v4/v5＝普/瑞→丁1.0・露→土0.22・扼者交代の追随）。</summary>
 public class RouteTensionTests
 {
     /// <summary>★2026-09-03（キューB-02）：**点火した**（RouteDependenceTensionRate=0.10＝ThreatTensionRate と同桁）。

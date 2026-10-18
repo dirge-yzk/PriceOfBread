@@ -325,7 +325,7 @@ public static class Territory
         }
     }
 
-    /// <summary>★州の移し替えの1本（2026-09-28 処理の一元化 段2 B）＝割譲（講和の割譲・植民地格の州の複数割譲・反乱国の膨張）・
+    /// <summary>★州の移し替えの1本（2026-09-28 処理の一元化 段2 B）＝割譲（講和の割譲・植民地格の州の複数割譲）・
     /// 建国（新しい国の器は呼び手が州から組む＝<paramref name="to"/> が null）・再併合が必ず通る。種類の差は <see cref="Rehome"/> の引数だけ。
     /// ⚠旧＝割譲（Diplomacy.TransferRegion）・建国（MultiNationSim.SpawnNation）・再併合（ReabsorbNations）が州を外し・Id を振り・台帳を付ける手順を
     ///   それぞれ書いていた＝再併合だけ返還州の Id を「親の州の数」で振り、建国で親の州が抜けて Id が歯抜けのとき既存の州と同じ Id が付いた

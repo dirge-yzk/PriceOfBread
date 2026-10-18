@@ -442,7 +442,7 @@ public partial class GameViewModel
         //   実測（mapedges）＝モスクワ→フィンランド湾口が陸上868km・マドリード→アルボラン海が381km・パリ→イギリス海峡東が157km＝
         //   ロシア/スペイン/フランスの首都から大陸を横断する青い線が出ていた（首都が港でない国はすべて同じ症状）。
         //   ★端点の規約は交易線と1本に揃える＝①自国の港州 ②借りている港 ③どちらも無ければ描かない。
-        // ⚠この節が読むのは sp.ColonyList（昇格前の Colony のみ）。ColoniesAreRegions=1.0（既定）では開始時の
+        // ⚠この節が読むのは sp.ColonyList（昇格前の Colony のみ）。開幕の昇格（旧の旗 ColoniesAreRegions は 2026-10-18 に焼き込み）で開始時の
         //   植民地は最初から州（RegionTier.Colonial）として w.Regions に入り、実交易は上の陸脚/海路ループが
         //   （LastPortThroughput/ExportsByGood 経由で）既に描いている＝この節は未昇格の植民地だけの残り経路。
         var colStitchCoord = new Dictionary<string, (double, double)>();

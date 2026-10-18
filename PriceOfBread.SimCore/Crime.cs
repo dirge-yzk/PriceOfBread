@@ -50,7 +50,7 @@ public static class Crime
             var stolen = new List<double>(r.Pops.Count);
             foreach (var p in r.Pops)
             {
-                double steal = Math.Min(Math.Max(0, Calendar.OneMonthOf(p.LastEarnedPerMonth).Value) * crimeRate, Math.Max(0, p.Savings.Value));   // ★(327) 既定 1＝被害＝min(前の月の所得×率, 貯蓄)＝所得に比例する流れ（盗める量は目の前の所得で頭打ち）。0＝旧＝貯蓄×率（在庫に比例）
+                double steal = Math.Min(Math.Max(0, Calendar.OneMonthOf(p.LastEarnedPerMonth).Value) * crimeRate, Math.Max(0, p.Savings.Value));   // ★(327) 既定 1＝被害＝min(前の月の所得×率, 貯蓄)＝所得に比例する流れ（盗める量は目の前の所得で頭打ち）。旧の旗 CrimeVictimBasis の 0〔貯蓄×率＝在庫に比例〕は 2026-10-18 に焼き込みで削除
                 stolen.Add(steal);
                 pool += steal;
             }

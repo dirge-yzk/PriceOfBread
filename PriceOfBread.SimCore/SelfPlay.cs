@@ -7,7 +7,7 @@
 public static class NationalScore
 {
     // マジックナンバー命名（挙動不変・値据え置き）：スコア合成の重み/スケール/上限。
-    private const double MilitaryDiminishingCap = 12.0;   // 軍事項の逓減キャップ（Runner の外交の観測 dpdump も Military() を読む＝旧 DiploCore.MilitaryDiminished の写経 12.0／2.0 は 2026-09-28 に削除）
+    private const double MilitaryDiminishingCap = 12.0;   // 軍事項の逓減キャップ（旧 DiploCore.MilitaryDiminished の写経 12.0／2.0 は 2026-09-28 に削除・Runner の dpdump と DiploCore は 2026-10-18 に削除）
     private const double GdpScaleDivisor = 12000.0;       // 経済規模の基準スケール
     private const double GdpDiminishingDivisor = 12.0;    // 経済規模の限界逓減
     private const double IndustrializationWeight = 9.0;   // 近代産業の重み
