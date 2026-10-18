@@ -44,6 +44,8 @@ public class PhantomProductionTests
                     if (Catalog.Goods[s.GoodId].Tier == GoodTier.Service) continue;   // 役務は発明ゲートを持たない（ボーモル）
                     double gate = Discovery.Gate(region, s);
                     if (gate > 0) continue;
+                    // ★(415) 退場したレシピ（後継を発見した）は追従式で減っていく途中＝この番人の主題（未発明の財を1単位も作らない）の外。既定では後継（転炉鋼ほか）が開幕に近く開き、12四半期の中で退場が起きる
+                    if (s.RetiredByRow >= 0 && Discovery.Known(region.Discovered, s.RetiredByRow)) continue;
                     gated++;
                     Assert.True(s.Output == 0.0,
                         $"{n.World.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}"

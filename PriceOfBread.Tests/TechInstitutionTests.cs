@@ -38,6 +38,7 @@ public class TechInstitutionTests
         var cfg = Four();
         var sim = new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] || c == cfg[3] ? new FreePressPublicEducationPin() : new NullAgent(),
             coef: new Coefficients());
+        LegacyDiscovery.Apply(sim);   // ★(415) 旧の式（旗0）＝この試験の主題は教育法と技術水準の伸びで、軌道が発見の技術力の出所で動くと絶対の床 1.10 に髪一重で割れる（既定の経路では 1.031）
         sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法。綱領は 2026-09-26 に撤去）
         sim.Nations[3].World.ParliamentEnabled = false;
         // 前提の番人＝固定が効いている（効いていなければ主張の入力が崩れている）。
@@ -105,6 +106,7 @@ public class TechInstitutionTests
         var sim = pinBritain
             ? new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] ? new FreePressPublicEducationPin() : new NullAgent(), coef: new Coefficients())
             : new MultiNationSim(Four(), seed: 1789, coef: new Coefficients());
+        LegacyDiscovery.Apply(sim);   // ★(415) 同上（対照の盤面も旧の式）
         sim.Nations[1].World.ParliamentEnabled = false;
         if (pinBritain) sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法）
         // ★(159) 盤面の前提（主張は同じ）：物を生む行の必要性が動力（労働力の財）の平滑化した値段÷参照価格になり、この4カ国の閉じた世界では動力が参照を超えず

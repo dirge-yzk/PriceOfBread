@@ -931,7 +931,7 @@ public static class Discovery
         var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
         var eo = Instruments.On ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
         var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
-        if (eo is not null && (w.Tick / Calendar.DaysPerQuarter) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
+        if (eo is not null && Calendar.QuarterIndexOfTick(w.Tick) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
         {
             var all = ParentEngineersByRow(w, view, c);
             for (int row = 0; row < all.Length && row < known.Length; row++)

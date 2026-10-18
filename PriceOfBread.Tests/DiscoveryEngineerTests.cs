@@ -5,6 +5,25 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
+/// <summary>★(415) 旧の式（技術水準÷難易度）の盤面を作る試験用の口。既定（係数 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/> が正）では発見の技術力が技師の量から決まるため、
+/// 技術水準を操作して前提を作る機構の番人（判定の門・段・産地・伝わり）と、軌道に依存する計器の番人は、この口で旗を0にした盤面（構築の直後・最初の判定の前に呼ぶ）で動かす。
+/// 旗0は旧と1ビットも違わない（腕 A で証明）＝それらの番人の盤面は旧と同じ軌道。既定の経路は <see cref="DiscoveryEngineerTests"/> が見る。</summary>
+internal static class LegacyDiscovery
+{
+    internal static MultiNationSim Apply(MultiNationSim sim)
+    {
+        sim.Coef.DiscoveryEngineerHalfPerMonth = 0;   // 多国の判定（MultiNationSim.StepQuarter の Discovery.Step）は国の World.Coef でなく共有の係数を読む
+        foreach (var n in sim.Nations) Apply(n.World);
+        return sim;
+    }
+
+    internal static void Apply(World w)
+    {
+        w.Coef.DiscoveryEngineerHalfPerMonth = 0;
+        Discovery.SeedCompatRows(w);   // 旗0の構築と同じ（合成染料の行は開幕で解禁済み）
+    }
+}
+
 /// <summary>★(415) 発見の技術力の置き換え・前半（段3の器）の番人。係数 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/>（事前登録 measurements/dt_20261019_prereg.txt）。
 /// 0以下（既定）＝今の式（技術水準÷難易度）・正＝技術力＝70×A÷(A＋A0×d)×押し（A＝親の産業の生産者が雇った高度労働力の月あたりの量・d＝(行の年代−1780)÷10）。
 /// 機構だけを検査する（A0 の値・解禁の年の並びは創発＝成績表が見る）。</summary>
@@ -22,7 +41,9 @@ public class DiscoveryEngineerTests
     {
         var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
         sim.StepQuarter();
+        sim.Coef.DiscoveryEngineerHalfPerMonth = half;   // 多国の判定が読む共有の係数
         foreach (var n in sim.Nations) n.World.Coef.DiscoveryEngineerHalfPerMonth = half;
+        if (!(half > 0)) foreach (var n in sim.Nations) Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（構築は既定の係数を読むので、旗を0にした盤面は互換の解禁を後から呼ぶ）
         return sim;
     }
 
@@ -227,6 +248,8 @@ public class DiscoveryEngineerTests
         Assert.Equal(Catalog.DyeId, Catalog.Discoveries[dye].Good);
         Assert.Equal(DiscoveryField.Process, Catalog.Discoveries[dye].Field);
         foreach (var n in BoardOff.Value.Nations) Assert.True(n.World.Discovered[dye], $"{n.World.SelfPower?.Name}：旗0で合成染料が未解禁");
+        // 既定（旗が正）の構築：MultiNationSim が係数の既定のまま作った盤面（BoardOn は構築の後で係数を書き換えるだけ）では全ての国で未解禁
+        foreach (var n in BoardOn.Value.Nations) Assert.False(n.World.Discovered[dye], $"{n.World.SelfPower?.Name}：既定の構築で合成染料が解禁済み");
         // 旗が正のときの開幕の互換：構築時に読む係数なので、世界の係数を書いてから同じ関数（構築が呼ぶ SeedCompatRows）を呼んで確かめる
         var w = Nation(BoardOff.Value, "フランス");
         double savedHalf = w.Coef.DiscoveryEngineerHalfPerMonth; bool savedKnown = w.Discovered[dye];

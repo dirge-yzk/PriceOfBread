@@ -33,6 +33,7 @@ public class DiscoveryTierTests
     {
         var sim = coef is null ? new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent())
                                : new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent(), coef);
+        LegacyDiscovery.Apply(sim);   // ★(415) この類の番人は技術水準を操作して前提を作る＝旧の式（旗0）の盤面。既定の経路は DiscoveryEngineerTests
         sim.StepQuarter();
         return sim;
     }

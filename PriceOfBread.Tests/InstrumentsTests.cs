@@ -25,7 +25,9 @@ public class InstrumentsTests
     private static MultiNationSim Make(ulong seed = 1789UL)
     {
         var uk = NationConfig.Britain().ShallowClone(); uk.OpeningStateMonopolyTier = 0;   // ★(407) 写しに書く＝共有の世界データ（WorldData の型初期化の配列）を書き換えない（旧＝(405) は共有の英を 0 にした＝同じテストの工程の後の全ての試験の英が段なしになり、接触の内訳の番人が並びで赤になった）
-        return new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent());
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent());
+        LegacyDiscovery.Apply(sim);   // ★(415) 計器の番人は種ごとの軌道に依存する物が多い（空洞でないことを数える）＝旧の式（旗0）の盤面で固定。計器自体は式に依らない
+        return sim;
     }
 
     private static void RunMatch(MultiNationSim sim, int quarters, bool instr)
@@ -2305,7 +2307,14 @@ public class InstrumentsTests
                 Assert.True(Col(h, r, "valuePerQuarter") > 0, "額が正でない");
                 // (360) 運び手の財の列：既定（係数 0）の運び手の表の財だけ（蒸気機関の行＝蒸気機関の財・機関車の行＝機関車か蒸気機関の財）
                 Assert.Contains(r[iCarrier], r[iRow] == "蒸気機関" ? new[] { "蒸気機関" } : new[] { "機関車", "蒸気機関" });
-                bool sellerKnew = unlockQ.TryGetValue((r[iSeller], r[iRow]), out int sq) ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
+                // ★(415) 売り手の鍵は表示名＝政体が替わると名前が替わる（朝鮮→立憲王政朝鮮）。解禁の出来事の行は解禁した時の名前で書かれるので、完全一致が無ければ名前が含み合う国の最も早い解禁で読む
+                bool sellerFound = unlockQ.TryGetValue((r[iSeller], r[iRow]), out int sq);
+                if (!sellerFound)
+                {
+                    var alias = unlockQ.Where(kv => kv.Key.Row == r[iRow] && (kv.Key.Nation.Contains(r[iSeller]) || r[iSeller].Contains(kv.Key.Nation))).Select(kv => kv.Value).ToList();
+                    if (alias.Count > 0) { sellerFound = true; sq = alias.Min(); }
+                }
+                bool sellerKnew = sellerFound ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
                 if (unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
