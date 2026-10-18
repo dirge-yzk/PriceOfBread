@@ -204,6 +204,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Csc; public bool CscHeader;                         // (403) 清算の見る範囲の絞りの表（年×国×役×行の種類）
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
         public System.IO.StreamWriter? Reform; public bool ReformHeader;                   // (404) 専制の改革の経路の表（国×四半期）
+        public System.IO.StreamWriter? AdmRule; public bool AdmRuleHeader;                 // (408) 行政費の返りの表（国×四半期）
         public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
@@ -1643,6 +1644,7 @@ public static partial class Instruments
             SecFold(sk, seed, w, st, q, picked, yearEnd);   // (395) 州の分離の内訳の表（CheckSecession が置いた行）
             RuleFold(sk, seed, w, q, picked, yearEnd);      // (399) 支配の4区分の表（世界の状態を直に読む）
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
+            AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
@@ -1692,6 +1694,7 @@ public static partial class Instruments
         sk.Sec?.Dispose(); sk.Sec = null;   // (395)
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
+        sk.AdmRule?.Dispose(); sk.AdmRule = null;   // (408)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 

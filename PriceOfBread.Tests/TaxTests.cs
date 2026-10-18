@@ -63,7 +63,7 @@ public class TaxTests
             sim.Run(1);   // 前の月の所得（LastEarnedPerMonth）を立てる＝双子は同じ種で同じ軌道
             var w = sim.World;
             w.TaxRate = new Share(0); w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
-            w.Coef.TitheRate = new Share(0); foreach (var rg0 in w.Regions) rg0.Rule = [1.0, 0.0, 0.0, 0.0];   // 国家が全域を治める（支配度の区分で目減りしない）
+            w.Coef.TitheRate = new Share(0); foreach (var rg0 in w.Regions) { rg0.Rule = [1.0, 0.0, 0.0, 0.0]; rg0.AdminFill = 1.0; }   // 国家が全域を治め、官僚の役務も満額届く（支配度の区分でも行政の充足〔★(408) 旗 1〕でも目減りしない）
             w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
             foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = new MoneyStock(0); pp.SetSavings(System.Math.Max(pp.Savings.Value, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1

@@ -200,7 +200,7 @@ public class PopScanTests
         c.TaxConsentWeight = 0.5;
         w.ColonialSuffrage = ColonialSuffrageLaw.OwnNationals; w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
         Assert.True(w.Regions.Count >= 3);
-        for (int i = 0; i < w.Regions.Count; i++) w.Regions[i].Rule = [0.1 + 0.1 * i, 0.3 + 0.05 * i, 0.2, 0.0];   // 州ごとに届き方が違う
+        for (int i = 0; i < w.Regions.Count; i++) { w.Regions[i].Rule = [0.1 + 0.1 * i, 0.3 + 0.05 * i, 0.2, 0.0]; w.Regions[i].AdminFill = 1.0; }   // 州ごとに届き方が違う（官僚の役務は満額＝★(408) 旗 1 の項は 1 で旧と同じ式）
         w.Regions[1].Tier = RegionTier.Colonial;                                          // 州ごとに算入率も違う
         foreach (var p in w.Regions[1].Pops) p.CoreEthnicShare = new Share(0.25);
         foreach (var p in w.Regions[0].Pops) if (p.ClassId == PopClass.Noble) p.Size = 0;   // 州 0 には領主が居ない（居る州と居ない州が混ざる）

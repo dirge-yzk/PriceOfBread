@@ -253,6 +253,7 @@ public class RuleSharesFormTests
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             sim.Run(1);
             var w = sim.World; var c = w.Coef;
+            c.AdminServesStateRule = 0;   // ★(408) 0.78／0.12 は役務が満額の式（旗 1 の経路は AdminServesRuleTests の G2）＝旗 0 で移転の保存を固定する
             Assert.Equal(0.3, c.PrivilegeTaxDiscount.Value, 12);   // 前提（届け率 0.7 の元）
             w.TaxRate = new Share(0.1); c.TitheRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             foreach (var r in w.Regions)
@@ -295,6 +296,7 @@ public class RuleSharesFormTests
     {
         var w = France(_ => { }).World;
         var act = w.Regions.Where(r => r.State == RegionState.Active).ToList();
+        foreach (var r in w.Regions) r.AdminFill = 1.0;   // ★(408) 官僚の役務は満額（旗 1 の項は 1 で旧と同じ式）
         foreach (var r in act) r.Rule = [0.0, 1.0, 0.0, 0.0];
         act[0].Rule = [1.0, 0.0, 0.0, 0.0];
         double popAll = act.Sum(r => r.SumPopulation());
@@ -311,7 +313,7 @@ public class RuleSharesFormTests
         Assert.Equal(0.15, new Coefficients().WomenRightsFollowSpeed, 12);   // 前提（既定の追従の速さ）。期待値は手計算のリテラル＝1−(1−0.15×到達)^3（月次の追従が 3 回）
         foreach (var (reach, want) in new[] { (0.2, 0.087327), (1.0, 0.385875) })
         {
-            var sim = France(_ => { });
+            var sim = France(c => c.AdminServesStateRule = 0);   // ★(408) 追従の速さ∝R0 は役務が満額の式（月次で充足が動くので旗 0 で固定。旗 1 は AdminServesRuleTests の G4）
             var w = sim.World;
             foreach (var r in w.Regions) r.Rule = [reach, 1.0 - reach, 0.0, 0.0];
             w.WomenRights = WomenRightsLaw.Property;
@@ -328,6 +330,7 @@ public class RuleSharesFormTests
     {
         var w = France(_ => { }).World;
         var r = w.Regions[0];
+        r.AdminFill = 1.0;   // ★(408) 官僚の役務は満額（旗 1 の項は 1 で旧と同じ式）
         Assert.Equal(0.3, w.Coef.PrivilegeTaxDiscount.Value, 12);   // 前提（届け率 0.7 の元）
         r.Rule = [0.5, 0.4, 0.1, 0.0];
         Assert.Equal(0.5, Politics.RuleReach(r), 12);

@@ -1,0 +1,18 @@
+# (408) 後半の試験（Release・隔離ビルド D:/PoB_work/ar/art）
+## 1 回目（既定 1 の木・試験の直し前）：赤 11
+[xUnit.net 00:00:12.55]     PriceOfBread.Tests.GenderTests.女性財産権法は労働供給を増やす [FAIL]
+[xUnit.net 00:00:35.43]     PriceOfBread.Tests.ArsenalOpeningTests.回239_首都の軍需の備蓄は人口の側の定員と月数の式どおりで200は床 [FAIL]
+[xUnit.net 00:01:26.01]     PriceOfBread.Tests.TaxTests.人頭税は閉鎖階級を免除し大衆に重い [FAIL]
+[xUnit.net 00:02:54.84]     PriceOfBread.Tests.RuleSharesFormTests.D7_公共財の到達は国家区分で課税と徴兵の届け率は国家区分に在地区分の7割を足す [FAIL]
+[xUnit.net 00:02:55.88]     PriceOfBread.Tests.MilitaryTests.徴兵の母数は支配度の届き方で縮む [FAIL]
+[xUnit.net 00:02:56.95]     PriceOfBread.Tests.RuleSharesFormTests.D6_女性の賃金保持の追従の速さが国家の区分に比例し行政効率に依らない [FAIL]
+[xUnit.net 00:02:57.10]     PriceOfBread.Tests.RuleSharesFormTests.D6_法の浸透は州の人口で重みづけた国家の区分で行政効率を読まない [FAIL]
+[xUnit.net 00:02:58.13]     PriceOfBread.Tests.RuleSharesFormTests.D5_仲介者の取り分は納税者から貴族への移転で貨幣を作りも壊しもしない [FAIL]
+[xUnit.net 00:03:05.82]     PriceOfBread.Tests.FiscalTests.POPの義務は1本の率で税と十分の一税を同じ割合で払う [FAIL]
+[xUnit.net 00:03:16.58]     PriceOfBread.Tests.PopScanTests.課税の走査の並行の列はPOPの一覧と同じ並びで対になる [FAIL]
+[xUnit.net 00:04:20.23]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 2580) [FAIL]
+失敗!   -失敗:    11、合格:  1339、スキップ:     0、合計:  1350、期間: 7 m 26 s - PriceOfBread.Tests.dll (net10.0)
+## 2 回目（直し後）
+成功!   -失敗:     0、合格:  1350、スキップ:     0、合計:  1350、期間: 7 m 38 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 27 s - PriceOfBread.Tests.dll (net10.0)

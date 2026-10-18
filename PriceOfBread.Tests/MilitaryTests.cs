@@ -265,7 +265,7 @@ public class MilitaryTests
             var sim = new Simulation(OpeningFixture.Named("フランス").ToScenario(1789), new NullAgent());   // ★(332) 開幕の国庫・国債を絶対額で持つ盤面
             var w = sim.World;
             w.Coef.MilitaryEnvelopeShare = new Share(1e9);   // ★(155) 定員＝人口の側（上限割合×母数）で読む（払える予算が律速にならない）
-            foreach (var r in w.Regions) r.Rule = [reach, 0.0, 1.0 - reach, 0.0];   // 国家区分 reach・在地区分0（村請け無し）＝届き方 reach
+            foreach (var r in w.Regions) { r.Rule = [reach, 0.0, 1.0 - reach, 0.0]; r.AdminFill = 1.0; }   // 国家区分 reach・在地区分0（村請け無し）＝届き方 reach（官僚の役務は満額＝★(408) 旗 1 の項は 1）
             double before = w.SoldierSizeK();
             Military.Step(w, w.Coef, atWar: false);
             return (before, w.SoldierSizeK(), w);

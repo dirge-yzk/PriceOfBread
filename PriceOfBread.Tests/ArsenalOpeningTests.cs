@@ -19,7 +19,8 @@ public class ArsenalOpeningTests
     private static double Expected(World w, Coefficients c, int good)
     {
         double man = 0;
-        foreach (var r in w.Regions) man += Military.RegionManpower(r, c);
+        // ★(408) 備蓄の底は構築の中で読む＝その時点の Region.AdminFill は既定の 1.0（構築の後に 0 へ倒す）。旗 AdminServesStateRule が既定 1 でも底は動かない（ソース読みの確定・事前登録 追記2 ②）＝同じ時点（充足 1）の母数で突き合わせる
+        foreach (var r in w.Regions) { double keep = r.AdminFill; r.AdminFill = 1.0; man += Military.RegionManpower(r, c); r.AdminFill = keep; }
         int b = System.Array.IndexOf(c.MilitaryGoods, good);
         double monthly = c.MilitaryUpkeepScale * c.MaxSoldierFraction.Value * man * c.MilitaryRates[b];
         return System.Math.Max(200.0, monthly * c.InitialArsenalMonths);

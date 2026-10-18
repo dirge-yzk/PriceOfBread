@@ -728,7 +728,11 @@ public static class Fiscal
                 Pop? lord = null;
                 foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }   // その州の領主＝最初の貴族
                 double mul = Politics.RuleDelivery(r, c);
-                double cut = r.Rule.Length == 4 ? PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - ruleDeliver) : 0;
+                double cut = r.Rule.Length == 4
+                    ? (c.AdminServesStateRule > 0   // ★(408) 旗＞0：役務が届かない国家区分の分 R0×(1−f) も仲介者の取り分へ（RuleDelivery の落ちた分と同額＝納税者の払う総額は旗に依らない）
+                        ? (PoliticalQuantities.Clamp01(r.Rule[1]) + PoliticalQuantities.Clamp01(r.Rule[0]) * (1.0 - PoliticalQuantities.Clamp01(r.AdminFill))) * (1.0 - ruleDeliver)
+                        : PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - ruleDeliver))
+                    : 0;
                 foreach (var p in r.Pops)
                 {
                     s.Pops.Add(p);

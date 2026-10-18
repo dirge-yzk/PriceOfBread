@@ -2695,6 +2695,14 @@ public sealed class Coefficients
     // ★(399) 支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（事前登録 measurements/rs_20261018_prereg.txt・点火の組＝腕 B・旗は物理削除した）。
     //   在地の目標＝RuleInit[1]×Privileges.IntermediaryDegree（官僚制度法と土地改革の max・農奴解放の法は読まない）／無統治の目標＝(1−秩序)×(1−到達)（到達＝1÷(1＋DistanceWarDecay×km÷DistanceNormKm)）／
     //   植民地の州は places.json の rule（開始時のデータ）／法の浸透＝活きている州の人口で重みづけた RuleReach の平均。
+    // ★(408) 行政費の返り（事前登録 measurements/ar_20261018_prereg.txt・旗 AdminServesStateRule＝既定 0＝旧）：官僚の役務の実物 Region.AdminFill を州の国家区分の届きへ結ぶ（腕 B＝1）。
+    //   (399) で汚職の漏れと法の浸透の門を消した後、行政費は税にも法の届きにも返らなかった（行政費 0 で歳入を浮かせられる）。>0 のとき：
+    //   ・Politics.RuleDelivery（税と徴兵の届け率）＝R0×(d＋(1−d)×f)＋R1×d（f＝AdminFill・d＝1−PrivilegeTaxDiscount）＝役務が届かない国家区分の分は在地の仲介者を通る（取り分が d に減る・最大 (1−d)×R0）。
+    //   ・Fiscal.TaxScan の仲介者の取り分＝(R1＋R0×(1−f))×(1−d)＝国庫に届かなくなった分は州の領主へ移る（納税者の払う総額 R0＋R1 は旗に依らず同じ＝保存）。
+    //   ・Politics.StateReach（法の浸透）＝人口加重の RuleReach×f。RuleReach 自体（年金・教育費の到達）には掛けない（教育→識字→登用→行政の正帰還の環・EduReachFromAdmin の注）。
+    //   新しい倍率も状態も置かない。〈確証なし〉＝請負人の取り分に PrivilegeTaxDiscount を共有した点。0 で 3 本とも旧の式の文字列のまま（ビット恒等）。
+    //   ★2026-10-18 (408) 後半で既定 1 へ**点火**（止める線 ⑥①〜④・発散・空洞化・計算量・クラッシュのどれにも当たらず・成績表3枚は新しい基線）。0 は旧の式（A の腕）。
+    public double AdminServesStateRule = 1.0;
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。
