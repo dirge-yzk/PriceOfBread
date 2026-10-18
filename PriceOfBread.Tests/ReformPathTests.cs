@@ -235,4 +235,86 @@ public class ReformPathTests
         Assert.Equal(0.0, Cum(zero));
         foreach (var r in zero.World.Regions) Assert.Equal(0.0, r.CompulsoryEduFunding);
     }
+
+    // ---------------------------------------------------------------- 点検の追補（追記2）：正統性の減算は1回／スライダーの脚／AI とプレイヤーの対称／D2 の保存 ----------------------------------------------------------------
+
+    /// <summary>Politics.Step の後の正統性＝記帳しない盤面より代価ぶんだけ低い（二重に引かれない）。期待値は代価のリテラル 0.5。</summary>
+    [Fact]
+    public void D1_正統性の減算は1回だけ_Politics_Stepの後の差は代価ちょうど()
+    {
+        var spent = Board().World; var clean = Board().World;
+        foreach (var w in new[] { spent, clean })
+        { w.Legitimacy = 0.95; w.MandateSpent = 0; w.MandateSpentNew = 0; w.PoliticalCapitalMax = 0.3; w.ParliamentControl = 0; }
+        spent.MandateSpent += 0.5; spent.MandateSpentNew += 0.5;          // Spend と同じ 2 台帳への記帳（壁の一歩の代価 0.5）
+        Politics.Step(spent, spent.Coef); Politics.Step(clean, clean.Coef);
+        Assert.Equal(0.5, clean.Legitimacy - spent.Legitimacy, 9);         // 1 回の減算＝差は 0.5（二重なら 1.0）
+        Assert.Equal(0.0, spent.MandateSpentNew);                          // 今期増分は 0 に戻る（次の四半期に再び引かれない）
+        Politics.Step(spent, spent.Coef); Politics.Step(clean, clean.Coef);
+        Assert.InRange(clean.Legitimacy - spent.Legitimacy, 0.4, 0.5 + 1e-9);   // 2 四半期目に新たな減算は無い（差は 0.5 のまま〔再生が低い側で大きい分だけ微小に縮む〕・二重なら 1.0）
+    }
+
+    /// <summary>スライダーの脚（Move・private なので反射で直に呼ぶ）：b が極小の国で関税を反対の向きへ大きく押す（純支持＜0・代価＞b）。旗 0 は 1 ミリも動かず、旗 1 は S＝0 の満タンで動いて S を b より上へ・両台帳へ同額を記帳する。
+    /// （Government.Step 経由にしないのは、先に走る別のスライダーの小さな代価で S＞0 になり壁の一歩が通らない四半期があるため＝Step 経由では脚を孤立して見られない。）</summary>
+    [Fact]
+    public void D1_スライダーの脚も同じ壁を値段にする_旗0は動かず旗1は動く()
+    {
+        var move = typeof(Government).GetMethod("Move", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        (World w, double cur, double next) Run(double flag)
+        {
+            var w = Board().World;
+            w.Coef.MandateOverStockFromLegitimacy = flag; w.Coef.MandateWeight = 0.001;
+            w.Legitimacy = 0.95; w.MandateSpentNew = 0; w.MandateSpent = 0; w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
+            double cur = w.Tariff;
+            double next = (double)move.Invoke(null, new object[] { cur, Math.Max(0.0, cur - 0.4), w.Coef, w, PolicyAxis.Tariff, 1.0, true, false })!;
+            return (w, cur, next);
+        }
+        Assert.True(PolicyPreferences.NetSupport(Board().World, PolicyAxis.Tariff, false) < 0, "テスト前提が崩れた：関税を下げる押しの純支持が負でない");
+        var off = Run(0); var on = Run(1);
+        Assert.Equal(off.cur, off.next);                                     // 旗 0：払えない押しはスライダーも 1 ミリも動かない
+        Assert.Equal(0.0, off.w.MandateSpent);
+        Assert.True(on.next < on.cur, "旗 1 のスライダーの壁の一歩が通っていない");
+        Assert.True(on.w.MandateSpent > on.w.PoliticalCapitalMax, "旗 1 のスライダーの壁の一歩が S を b より上へ記帳していない");
+        Assert.Equal(on.w.MandateSpent, on.w.MandateSpentNew, 9);
+    }
+
+    private static string StripComments(string src)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var line in src.Split('\n')) { int i = line.IndexOf("//", StringComparison.Ordinal); sb.AppendLine(i >= 0 ? line.Substring(0, i) : line); }
+        return sb.ToString();
+    }
+
+    /// <summary>AI とプレイヤーの対称：4 本の脚が共有する関数群（PoliticalCapitalAffords・GateInfo・MandateGate・Move）の本体に、プレイヤーかどうかを読む箇所が無い（World は IsPlayer を持たない＝読む手段が無いことも確かめる）。</summary>
+    [Fact]
+    public void D1_AIとプレイヤーは同じ関数を通る_門の本体はプレイヤーを読まない()
+    {
+        var src = StripComments(System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "Government.cs")));
+        foreach (var head in new[] { "internal static bool PoliticalCapitalAffords(", "public static (bool Ok, double Cost, string Reason) GateInfo(", "private static bool MandateGate(", "private static double Move(" })
+        {
+            int i = src.IndexOf(head, StringComparison.Ordinal);
+            Assert.True(i >= 0, $"本体が見つからない：{head}");
+            int j = src.IndexOf("\n    }", i, StringComparison.Ordinal);
+            string body = src.Substring(i, j > i ? j - i : 4000);
+            Assert.DoesNotContain("IsPlayer", body);
+            Assert.DoesNotContain("Player", body);
+        }
+        Assert.Null(typeof(World).GetProperty("IsPlayer"));
+        Assert.Null(typeof(World).GetField("IsPlayer"));
+    }
+
+    /// <summary>D2：旗 1 の Religious で国庫が買っても貨幣の保存量 D は動かない（国庫の払い＝教師の売上の同額の移動）。</summary>
+    [Fact]
+    public void D2_国庫の購入は保存量Dを動かさない()
+    {
+        var sim = new Simulation(NationConfig.Japan().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        w.Coef.ParishEduFunded = 1;
+        w.EducationLaw = EducationLaw.Religious; w.Policy.EducationLaw = EducationLaw.Religious; w.EducationSpending = 0.6; w.Policy.EducationSpendingTarget = 0.6;
+        double D() => w.BaseMoney.Value - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value;
+        double d0 = D();
+        sim.Run(12);
+        double cum = 0; foreach (var r in w.Regions) cum += r.CumEducationCost;
+        Assert.True(cum > 0, "テスト前提が崩れた：国庫が教育を買っていない");
+        Assert.True(Math.Abs(D() - d0) <= 1e-4, $"保存量 D が動いた：{d0} → {D()}");
+    }
 }

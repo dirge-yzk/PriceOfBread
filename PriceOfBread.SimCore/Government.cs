@@ -553,8 +553,8 @@ public static class Government
         {
             double cost = -net * w.Coef.MandateSpendRate * costMul;   // 反対を押し切った代償（−net=|純支持|）＝正統性の全幅
             if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
-            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) Instruments.GateResult(w, 2, net); return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
-            if (Instruments.On) Instruments.WallPass(w, cost, true);   // 計器（読むだけ・(404)）：壁の分岐で通った一歩（旗 0 は数えない）
+            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true); } return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
+            if (Instruments.On) Instruments.WallPass(w, cost, true, a);   // 計器（読むだけ・(404)）：壁の分岐で通った一歩（旗 0 は数えない）
             Spend(w, cost);
         }
         if (Instruments.On) Instruments.GateResult(w, net < 0 ? 4 : 3, net);
@@ -887,8 +887,8 @@ public static class Government
             double moved = Math.Min(1.0, Math.Abs(next - cur) / spendScale);
             double cost = -net * w.Coef.MandateSpendRate * moved;
             if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
-            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
-            if (Instruments.On) Instruments.WallPass(w, cost, false);   // 計器（読むだけ・(404)）
+            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) { Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); Instruments.RfBlocked(w, false); } return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
+            if (Instruments.On) Instruments.WallPass(w, cost, false, a);   // 計器（読むだけ・(404)）
             Spend(w, cost);
         }
         if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, mandate && net < 0 ? 4 : 3, e, increasing);
