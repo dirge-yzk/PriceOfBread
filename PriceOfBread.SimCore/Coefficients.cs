@@ -2570,7 +2570,7 @@ public sealed class Coefficients
     public double RailCostFraction = 0.25;
     public double LandSeaCostRatio = 12.0;       // 03手順4A：陸の実効距離倍率（§4-2の実測例＝陸単価12。鉄道後の低減は#17で。B3裁定＝新係数はこの1本に集約・地形係数は作らない）
     // 【墓標2026-10-18・旗の焼き込み】TransitEnabled（経路グラフ第1段 Stage C・裁定A3・既定1.0・2026-08-09）を消した＝内陸国（港州ゼロ国）の距離マージンを外国港州トランジットで繋ぎ、利用州の取扱高×TransitTollShare を港所有国へ払う経路は常に有効。
-    public Share TransitTollShare = new(0.05);       // Stage C：通行料率＝トランジット利用州の取扱高（LastPortThroughput）比。決済後に利用国国庫→港所有国国庫の移転（運河通行料 MultiNationSim.StepCanals と同型＝Treasury/CumulativeTradeFlow 両建てで保存）。払えない分は国ごとに比例縮小（負債は作らない）。TransitEnabled=0 では読まれない（休眠）
+    public Share TransitTollShare = new(0.05);       // Stage C：通行料率＝トランジット利用州の取扱高（LastPortThroughput）比。決済後に利用国国庫→港所有国国庫の移転（運河通行料 MultiNationSim.StepCanals と同型＝Treasury/CumulativeTradeFlow 両建てで保存）。払えない分は国ごとに比例縮小（負債は作らない）。旧の旗 TransitEnabled は 2026-10-18 に焼き込み＝常に読む
     // 【墓標2026-10-18・旗の焼き込み】PortRewireEnabled（既定1.0・点火2026-08-16 A/B：単独34/70/53・条約港風化との合成36/73/51=優加法）を消した＝全国の港配線（最寄り港/海盆）を四半期ごとに領土へ追随して張り直す。
     public double TransportWeightMarginScale = 0.3;   // 財9（輸送費の従量化）：交易マージンの従量成分の強度。0で従価一律の現行と厳密一致・>0で margin に TransportWeight(g)/RefPrice(g) 比例の従量部を加算＝石炭/穀物の長距離交易が前鉄道期に立たない
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: ThrottlePrepassUsesRealThreshold  財10（保護バイアス）：輸送スロットルの事前パスの輸入閾値。0で従来の裸マージン＝保護国のthrottleが過小→輸出が巻き添え・1で本パスと同式(tar×TariffProtect+cornPen+blockadeBias)に共通化。>0.5で発火
