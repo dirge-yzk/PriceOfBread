@@ -51,7 +51,7 @@ public sealed class NationConfig
     //   ⚠小数の開始値は段の格子の途中＝実効の率は目標（段の格子）へ Government.Move で這い寄る（距離に比例）。
     public double LandTaxStage = 1;
     // ★(400) 専売の開幕の段（World.StateMonopolyTier の梯子の段・0＝規則なし＝旧のまま〔教義の段が助走から決める・プレイヤーの国は 0〕）。税の段（上の PollTaxStage／LandTaxStage）と同じ形の開幕の入力。
-    //   正のとき（かつ旗 Coefficients.OpeningFiscalAlign＞0）：助走の始め（MultiNationSim.WarmupEconomy）に World.SetStateMonopolyTier(この段) で置き、助走の間は教義の段との max で保つ（AI の教義が助走の各四半期にこの段を下げて消さない）。
+    //   正のとき：助走の始め（MultiNationSim.WarmupEconomy）に World.SetStateMonopolyTier(この段) で置き、助走の間は教義の段との max で保つ（AI の教義が助走の各四半期にこの段を下げて消さない）。
     //   助走の後は何も足さない＝既存の規律（払えない＝広げる・利払いが重い＝確率で広げる・国庫が安全水準を超える＝狭める・教義の段が床）が今の広さから動かす。
     //   値：英 3・蘭 3＝日用品の群まで（梯子は 1＝酒・煙草・茶・コーヒー・石鹸／2＝奢侈品／3＝日用品／4＝主食）。英の 1783 年の物品税は塩・ビール・石鹸・蝋燭・革（蝋燭・革は日用品の群・塩は中間財で梯子の外）。
     //   ⚠助走のある経路（WarmupEconomy を通る StartWarmup・selfplay・App）だけで効く＝助走 0 の経路ではこの欄は使われない（今ある入口は全て助走を通る）。

@@ -1759,11 +1759,19 @@ public sealed class World
         if (WarmupFrozen) return (false, "開始前");
         double afford = ConstructionAfford(this, r0);   // 建てる州の建材の価格（段4e K）
         if (afford < Coef.FactoryStartAffordFloor) return (false, $"建材が高すぎる(採算率{afford:P0}<床{Coef.FactoryStartAffordFloor:P0})");
-        var spec0 = Catalog.FactorySpec(goodId);
-        double days0 = Math.Max(1, spec0.Quarters) * (double)Calendar.DaysPerQuarter;
-        double pay0 = (1.0 - Coef.FactoryMaterialFrac.Value) * spec0.Cost / days0;
+        double pay0 = FactoryPayPerDay(goodId, Coef, out _);
         if (Treasury.Value < pay0) return (false, $"国庫不足(初日の労務費{pay0:F0})");
         return (true, "");
+    }
+
+    /// <summary>国営工場の着工の工賃（1日あたり）＝(1−素材の割合)×建設費÷工期の日数。工期の日数は <paramref name="days"/> に返す（着工が ConstructionLeft に置く）。
+    /// ★(405) 3つの同じ式（CanBuildFactory の初日の労務費・BuildFactory の着工・AI の着工の門の見積り <see cref="UtilityAgent.NewFacilityOutlayPerMonth"/>）を1本にした
+    /// ＝式のテキストは同じ（演算の順序は変えない）。必要性＝着工の可否・実際の記帳・門の見積りが別々に直されて食い違う型の事故を防ぐ。</summary>
+    internal static double FactoryPayPerDay(int goodId, Coefficients c, out double days)
+    {
+        var spec = Catalog.FactorySpec(goodId);
+        days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
+        return (1.0 - c.FactoryMaterialFrac.Value) * spec.Cost / days;   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
     }
 
     /// <summary>工場の着工（Vic2型・時間制）：建設は一瞬でなく数年かかり、四半期ごとに労務費（国庫→工員）を払って進む。
@@ -1788,10 +1796,8 @@ public sealed class World
         //   ⚠AIもプレイヤーもこの1関数を通る（カウンター駆動 StepStateTarget も内部でここを呼ぶ）＝1行で対称に効く。
         if (WarmupFrozen) return false;
         if (ConstructionAfford(this, r) < Coef.FactoryStartAffordFloor) return false;   // 建てる州の建材の価格（段4e K）
-        var spec = Catalog.FactorySpec(goodId);
-        double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
-        double payPerDay = (1.0 - Coef.FactoryMaterialFrac.Value) * spec.Cost / days;   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
-        if (Treasury.Value < payPerDay) return false;                           // 初日の労務費すら払えない
+        double payPerDay = FactoryPayPerDay(goodId, Coef, out double days);   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
+        if (Treasury.Value < payPerDay) return false;                         // 初日の労務費すら払えない
         p.ConstructionLeft = days;                                        // 着工（即時には立たない・日数で数える）
         p.ConstructionPayPerDay = payPerDay;
         if (Instruments.On) Instruments.FacilityStarted(this, r, p);      // 読むだけの計器（(260)・既定は出さない）
@@ -2593,7 +2599,7 @@ public sealed class World
     public double OpeningTreasuryMonths { get; init; }
     /// <summary>★(332) 開幕の国債 ＝ 年名目GDP × この比（<see cref="NationConfig.GovDebtToGdpYear"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningFiscal"/> だけ。</summary>
     public double OpeningGovDebtToGdpYear { get; init; }
-    /// <summary>★(400) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>・0＝規則なし）。読み手＝<see cref="MultiNationSim.WarmupEconomy"/> の始め（旗 <see cref="Coefficients.OpeningFiscalAlign"/>＞0 のとき SetStateMonopolyTier で置く）と SelfPlay.Apply の助走の間（同じ旗のとき教義の段との max）だけ。助走の後は読まれない。</summary>
+    /// <summary>★(400) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>・0＝規則なし）。読み手＝<see cref="MultiNationSim.WarmupEconomy"/> の始め（SetStateMonopolyTier で置く）と SelfPlay.Apply の助走の間（教義の段との max）だけ。助走の後は読まれない。</summary>
     public int OpeningStateMonopolyTier { get; init; }
 
     /// <summary>★(332) 開幕の国庫と国債を、助走の終わりの盤面の流れから置く（初期値の整備 段6 の採り直し＝国庫と国債は絶対額でなく、史実の比から導く量）。

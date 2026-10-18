@@ -937,8 +937,7 @@ public partial class GameViewModel
                 + $"\n国庫 {Money(_player.Treasury.Value)}（着工{(wageTotal + matCostSum > 1e-9 ? System.Math.Floor(System.Math.Max(0, _player.Treasury.Value) / (wageTotal + matCostSum)) : 0):F0}回分）";   // ★2026-08-31（清レポート4-4＝60連打で国庫271の無警告）：一括着工の帰結を事前に読める
         }
         // 州に依存しないループ不変量（州ループの外で1回だけ求める＝buildAfford と同じ場所）。
-        double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
-        double payPerDay = (1.0 - _player.Coef.FactoryMaterialFrac.Value) * spec.Cost / days;   // 着工に要る初日の労務費（World.BuildFactory と同式）
+        double payPerDay = World.FactoryPayPerDay(gi, _player.Coef, out _);   // 着工に要る初日の労務費（World.BuildFactory と同じ1本・(405)）
         var keyed = new List<(double prod, ProdRegionRow row)>();
         for (int ri = 0; ri < _player.Regions.Count; ri++)
         {

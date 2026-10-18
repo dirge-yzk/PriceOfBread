@@ -7,13 +7,14 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// ★(400) 英・蘭の開幕の財政の整合（旗 <see cref="Coefficients.OpeningFiscalAlign"/>・事前登録 measurements/op_20261018_prereg.txt）の番人。
+/// ★(400) 英・蘭の開幕の財政の整合の番人（旗 OpeningFiscalAlign は (405) で焼き込んで物理削除＝既定の経路だけが残った・事前登録 measurements/op_20261018_prereg.txt）。
 /// (1) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>）＝助走の始めに置き、助走の間は AI の教義が下げて消さない。
 /// (2) AI の工場の着工の門＝着工しようとする工事の月の出費を、今ある工事の月の出費に足してから上限と比べる。
+/// (405) 旗が無くなったので、旧の経路との対照は〈開幕の専売の段を持たない設定〔OpeningStateMonopolyTier＝0〕〉と〈上限の内の工事は従来どおり着工する〉で取る。
 /// 期待値は World の外から別に数える：専売の段は梯子の群（酒・煙草… ／ 奢侈品 ／ 日用品 ／ 主食 ／ 役務）を財ごとに数えて組む（SetStateMonopolyTier の戻りも StateMonopolyTier も使わない）。
-/// 門の出費の見積りは、旗 0 で実際に着工した後の記帳（ConstructionPayPerDay＋ConstructionMaterialPerMonth）と突き合わせる。
+/// 工賃の式（<see cref="World.FactoryPayPerDay"/>）は、建設費・工期・素材の割合の定数から外で組んだ式（リテラルの 90 日）と 1 ビットも違わないことを見る。
 /// 突然変異（赤を確かめた）：助走の始めの SetStateMonopolyTier の行を消す→NullAgent の英が 0 のまま／SelfPlay.Apply の else 側の max を消す→UtilityAgent の英が教義の段へ戻る／
-/// 門の `monthlyBuild +` の項を消す→門が束縛する番人が赤／見積りの工賃の式を変える→見積りと記帳の一致が赤／旗の読みを消す→全て赤。
+/// 門の `monthlyBuild +` の項を消す→門が束縛する番人が赤／工賃の式を変える→見積りと記帳の一致・工賃の式の番人が赤。
 /// </summary>
 public class OpeningFiscalAlignTests
 {
@@ -50,12 +51,12 @@ public class OpeningFiscalAlignTests
         return "";
     }
 
-    private static MultiNationSim Build(string[] names, Func<NationConfig, INationAgent> agent, double flag, ulong seed = 1789UL)
+    /// <summary>先頭の国（イギリス）の開幕の専売の段を持つ設定（world.json の既定）か、持たない設定（0＝規則なし＝旧の開幕）で盤面を組む。</summary>
+    private static MultiNationSim Build(string[] names, Func<NationConfig, INationAgent> agent, bool openingTier = true, ulong seed = 1789UL)
     {
         var cfgs = names.Select(n => WorldData.ByName(n).ShallowClone()).ToArray();   // 共有の世界データは書き換えない
-        var sim = new MultiNationSim(cfgs, seed, agent);
-        foreach (var n in sim.Nations) n.World.Coef.OpeningFiscalAlign = flag;   // 国ごと別インスタンス（World.Coef）＝助走の前に書く
-        return sim;
+        if (!openingTier) cfgs[0].OpeningStateMonopolyTier = 0;
+        return new MultiNationSim(cfgs, seed, agent);
     }
 
     [Fact]
@@ -69,15 +70,14 @@ public class OpeningFiscalAlignTests
         Assert.Contains("ネーデルラント", positive);
         Assert.Equal(3, ns.Single(c => c.Name == "イギリス").OpeningStateMonopolyTier);
         Assert.Equal(3, ns.Single(c => c.Name == "ネーデルラント").OpeningStateMonopolyTier);
-        Assert.Equal(1.0, new Coefficients().OpeningFiscalAlign);   // 旗の既定は 1（2026-10-18 に点火・0 は旧の経路〔腕 A〕）
     }
 
     [Fact]
-    public void 旗1ではプレイヤーの英もAIの英も助走の後に専売の段3で始まる()
+    public void 既定ではプレイヤーの英もAIの英も助走の後に専売の段3で始まる()
     {
         foreach (bool ai in new[] { false, true })
         {
-            var sim = Build(["イギリス", "フランス"], ai ? _ => new UtilityAgent() : _ => new NullAgent(), 1.0);
+            var sim = Build(["イギリス", "フランス"], ai ? _ => new UtilityAgent() : _ => new NullAgent());
             sim.StartWarmup();
             var uk = sim.Nations[0].World;
             Assert.Equal(3, uk.OpeningStateMonopolyTier);   // 前提＝world.json の値が World に届いている
@@ -86,60 +86,44 @@ public class OpeningFiscalAlignTests
     }
 
     [Fact]
-    public void 旗0では英は旧のまま_NullAgentは0_AIは教義の段で3にならない()
+    public void 開幕の専売の段を持たない設定の英は旧のまま_NullAgentは0_AIは教義の段で3にならない()
     {
-        var player = Build(["イギリス", "フランス"], _ => new NullAgent(), 0.0);
+        var player = Build(["イギリス", "フランス"], _ => new NullAgent(), openingTier: false);
         player.StartWarmup();
+        Assert.Equal(0, player.Nations[0].World.OpeningStateMonopolyTier);
         Assert.Equal("", TierMismatch(player.Nations[0].World, 0));   // 旧＝プレイヤーの国は専売の財が 1 つも課税されない
 
-        var ai = Build(["イギリス", "フランス"], _ => new UtilityAgent(), 0.0);
+        var ai = Build(["イギリス", "フランス"], _ => new UtilityAgent(), openingTier: false);
         ai.StartWarmup();
-        Assert.NotEqual("", TierMismatch(ai.Nations[0].World, 3));    // 対照：旗 0 の AI の英は助走の後に段 3 ではない（教義の段〔Industrialize＝2〕）＝旗 1 の差が観測できる
-    }
-
-    [Theory]
-    [InlineData(1.0, true)]    // 両方
-    [InlineData(2.0, true)]    // 段だけ（切り分けの B1）
-    [InlineData(3.0, false)]   // 門だけ（切り分けの B2）＝段の置き換えは走らない
-    [InlineData(0.0, false)]
-    public void 旗の値の割り方_段は1と2で立ち3と0では立たない(double flag, bool tierOn)
-    {
-        foreach (bool ai in new[] { false, true })
-        {
-            var sim = Build(["イギリス", "フランス"], ai ? _ => new UtilityAgent() : _ => new NullAgent(), flag);
-            sim.StartWarmup();
-            var uk = sim.Nations[0].World;
-            if (tierOn) Assert.Equal("", TierMismatch(uk, 3));
-            else Assert.NotEqual("", TierMismatch(uk, 3));   // 段 3 にならない（NullAgent は 0・AI は教義の段）
-        }
+        Assert.NotEqual("", TierMismatch(ai.Nations[0].World, 3));    // 対照：段の無い設定の AI の英は助走の後に段 3 ではない（教義の段〔Industrialize＝2〕）＝既定の差が観測できる
     }
 
     [Fact]
-    public void 規則のない国は旗1でも旗0と同じ専売の財を課す()
+    public void 規則のない国の専売の財は英の開幕の段の有無で変わらない()
     {
-        double[] Margins(double flag)
+        double[] Margins(bool openingTier)
         {
-            var sim = Build(["イギリス", "フランス"], _ => new UtilityAgent(), flag);
+            var sim = Build(["イギリス", "フランス"], _ => new UtilityAgent(), openingTier);
             sim.StartWarmup();
             return (double[])sim.Nations[1].World.StateMonopolyMargins.Clone();   // フランス＝規則なし（OpeningStateMonopolyTier＝0）
         }
-        Assert.Equal(Margins(0.0), Margins(1.0));
+        Assert.Equal(Margins(false), Margins(true));
     }
 
     [Fact]
-    public void 旗1の英の開幕の歳入は段3の物で国庫は歳入の2_5か月分_旗0より歳入が大きい()
+    public void 既定の英の開幕の歳入は段3の物で国庫は歳入の2_5か月分_段の無い設定より歳入が大きい()
     {
-        double Revenue(double flag, out double treasury, out double months)
+        double Revenue(bool openingTier, out double treasury, out double months)
         {
-            var sim = Build(["イギリス", "フランス"], _ => new UtilityAgent(), flag);
+            var sim = Build(["イギリス", "フランス"], _ => new UtilityAgent(), openingTier);
             sim.StartWarmup();
             var w = sim.Nations[0].World;
             treasury = w.Treasury.Value; months = w.OpeningTreasuryMonths;
             return w.LastRevenuePerMonth.Value;
         }
-        double r0 = Revenue(0.0, out _, out _);
-        double r1 = Revenue(1.0, out double t1, out double m1);
-        Assert.True(r1 > r0, $"段 3 の歳入が段 2 より大きいはず（旗1 {r1}・旗0 {r0}）");
+        double r0 = Revenue(false, out _, out _);
+        double r1 = Revenue(true, out double t1, out double m1);
+        Assert.True(r1 > r0, $"段 3 の歳入が段 2 より大きいはず（既定 {r1}・段なし {r0}）");
         Assert.Equal(2.5, m1);   // 国庫の月数のリテラルは触らない
         Assert.True(Math.Abs(t1 - r1 * m1) <= 1e-9 * Math.Max(1.0, r1 * m1), $"国庫 {t1} ≠ 歳入×月数 {r1 * m1}");   // 数え直しは助走の最後の歳入から自動
     }
@@ -174,18 +158,46 @@ public class OpeningFiscalAlignTests
     {
         var w = FourNations().Nations[0].World;
         Room(w);
-        w.Coef.OpeningFiscalAlign = 0.0;   // 旗 0＝旧の判断で着工させ、着工後の記帳を読む
         var rg = w.Regions[0];
         var pr = Pick(rg);
         Plant(rg, pr);
         double est = UtilityAgent.NewFacilityOutlayPerMonth(w, rg, pr);
         Assert.True(est > 0);
+        Assert.True(est < Cap(w), "前提：この工事の出費が単独では上限の内＝門は通す");
 
         new UtilityAgent().DecideQuarter(w);
 
-        Assert.True(pr.ConstructionLeft > 0, "前提：旗 0 で着工した");
+        Assert.True(pr.ConstructionLeft > 0, "前提：上限の内なので着工した");
         double booked = Calendar.PerDayToPerMonth(pr.ConstructionPayPerDay) + World.ConstructionMaterialPerMonth(rg, pr, w.Coef);   // TryBuildFacility が着工後に律速へ加算する式
-        Assert.Equal(booked, est);   // 工賃の式（BuildFactory と同じ）と素材が着工後の記帳と 1 ビットも違わない
+        Assert.Equal(booked, est);   // 工賃の式（BuildFactory と同じ1本）と素材が着工後の記帳と 1 ビットも違わない
+    }
+
+    [Fact]
+    public void 工賃の式は建設費と工期と素材の割合から外で組んだ式と一致し着工の記帳と可否の理由が同じ1本を読む()
+    {
+        var w = FourNations().Nations[0].World;
+        var rg = w.Regions[0];
+        var pr = Pick(rg);
+        int ri = 0, gi = pr.GoodId;
+        var spec = Catalog.FactorySpec(gi);
+        double days = Math.Max(1, spec.Quarters) * 90.0;                              // 1 四半期＝90 日（Calendar の定数を使わず外で書く）
+        double expectedPay = (1.0 - w.Coef.FactoryMaterialFrac.Value) * spec.Cost / days;   // 工賃＝(1−素材の割合)×建設費÷工期の日数（リテラルの順序）
+        Assert.True(expectedPay > 0);
+        Assert.Equal(expectedPay, World.FactoryPayPerDay(gi, w.Coef, out double gotDays));
+        Assert.Equal(days, gotDays);
+
+        // 可否の理由：国庫が初日の労務費に 1 足りないと不可〔国庫不足〕・足りれば可（CanBuildFactory が同じ1本を読む）
+        w.SetTreasuryRaw(expectedPay - 1.0);
+        var (okLow, reasonLow) = w.CanBuildFactory(ri, gi);
+        Assert.False(okLow);
+        Assert.Contains("国庫不足", reasonLow);
+        w.SetTreasuryRaw(expectedPay + 1.0);
+        Assert.True(w.CanBuildFactory(ri, gi).Ok);
+
+        // 着工の記帳：BuildFactory が ConstructionPayPerDay と ConstructionLeft に同じ値を置く
+        Assert.True(w.BuildFactory(ri, gi));
+        Assert.Equal(expectedPay, pr.ConstructionPayPerDay);
+        Assert.Equal(days, pr.ConstructionLeft);
     }
 
     /// <summary>今ある工事の月の出費を cap−room に置く（別の生産者を工事中にして、その工賃を逆算する）。</summary>
@@ -199,42 +211,35 @@ public class OpeningFiscalAlignTests
     }
 
     [Theory]
-    [InlineData(1.0, 0.0)]   // 既定の経路（relax）・旗 0＝旧は上限を超えて着工する
-    [InlineData(1.0, 1.0)]   // relax・旗 1＝飛ばす
-    [InlineData(0.0, 0.0)]   // 非 relax の経路・旗 0
-    [InlineData(0.0, 1.0)]   // 非 relax の経路・旗 1
-    [InlineData(1.0, 2.0)]   // 旗 2〔段だけ〕＝門は走らない＝旗 0 と同じ
-    [InlineData(1.0, 3.0)]   // 旗 3〔門だけ〕＝旗 1 と同じ
-    [InlineData(0.0, 2.0)]
-    [InlineData(0.0, 3.0)]
-    public void 新しい工事の月の出費が上限をこえるなら旗1だけ着工しない(double relax, double flag)
+    [InlineData(1.0)]   // 既定の経路（relax）
+    [InlineData(0.0)]   // 非 relax の経路
+    public void 新しい工事の月の出費が上限をこえるなら着工しない(double relax)
     {
         var w = FourNations().Nations[0].World;
         Room(w);
-        w.Coef.AiBuildGuardRelax = relax; w.Coef.OpeningFiscalAlign = flag;
+        w.Coef.AiBuildGuardRelax = relax;
         var rg = w.Regions[0];
         var cand = Pick(rg, 0); var other = Pick(rg, 1);
         Plant(rg, cand);
         double est = UtilityAgent.NewFacilityOutlayPerMonth(w, rg, cand);
         double cap = Cap(w);
         Assert.True(est < cap, "前提：この工事の出費が単独では上限の内（束縛するのは今ある工事との和）");
-        PlantOngoing(w, rg, other, cap - 0.5 * est);   // 残りの余地は見積りの半分＝旧の早期の門（今ある工事≦上限）は通るが、足すと超える
+        PlantOngoing(w, rg, other, cap - 0.5 * est);   // 残りの余地は見積りの半分＝早期の門（今ある工事≦上限）は通るが、足すと超える
         Assert.True(cap - 0.5 * est < cap);
 
         new UtilityAgent().DecideQuarter(w);
 
-        if (flag == 1.0 || flag == 3.0) Assert.Equal(0, cand.StateTarget);   // 新しい工事を足すと上限を超える＝押さない（門が開く旗は 1・3）
-        else Assert.Equal(1, cand.StateTarget);            // 旧＝上限の内の今ある工事だけを見て着工（超過する）
+        Assert.Equal(0, cand.StateTarget);   // 新しい工事を足すと上限を超える＝押さない
     }
 
     [Theory]
     [InlineData(1.0)]
     [InlineData(0.0)]
-    public void 新しい工事を足しても上限の内なら旗1でも従来どおり着工する(double relax)
+    public void 新しい工事を足しても上限の内なら従来どおり着工する(double relax)
     {
         var w = FourNations().Nations[0].World;
         Room(w);
-        w.Coef.AiBuildGuardRelax = relax; w.Coef.OpeningFiscalAlign = 1.0;
+        w.Coef.AiBuildGuardRelax = relax;
         var rg = w.Regions[0];
         var cand = Pick(rg);
         Plant(rg, cand);
@@ -246,17 +251,12 @@ public class OpeningFiscalAlignTests
         Assert.Equal(1, cand.StateTarget);
     }
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    [InlineData(2.0)]
-    [InlineData(3.0)]
-    public void 着工を拒まれた意志の出費も旗1では上限に数える(double flag)
+    [Fact]
+    public void 着工を拒まれた意志の出費も上限に数える()
     {
         // 英の Q0 で起きたこと：建材の採算などで着工を拒まれた意志は monthlyBuild に載らず、全州に意志が立ち、月次の再挑戦が上限の約 3 倍の工事を着工した（診断）。
-        // ここでは着工を常に拒む（FactoryStartAffordFloor を 1 より大きく）＝意志だけが立つ盤面で、立った意志の見積りの和が上限を超えるか（旗 0）／超えないか（旗 1）を数える。
+        // ここでは着工を常に拒む（FactoryStartAffordFloor を 1 より大きく）＝意志だけが立つ盤面で、立った意志の見積りの和が上限の内に収まるかを数える。
         var w = FourNations().Nations[0].World;
-        w.Coef.OpeningFiscalAlign = flag;
         w.Coef.FactoryStartAffordFloor = 2.0;   // ConstructionAfford ≦ 1 なので着工は必ず拒まれる
         w.LastAdminClaimPerMonth = new MoneyPerMonth(6_200);   // バッファ≒31,000＝軽工業（費用 30,000）が身の丈ゲートを通る最小の大きさ・上限≒3,100/月
         w.SetTreasuryRaw(1.5 * UtilityAgent.FiscalBufferOf(w));
@@ -277,16 +277,8 @@ public class OpeningFiscalAlignTests
         var wills = planted.Where(x => x.Pr.StateTarget > World.StateUnits(x.Pr, w.Coef)).ToList();
         Assert.All(planted, x => Assert.True(x.Pr.ConstructionLeft <= 0, "前提：着工は全て拒まれた"));
         double sum = wills.Sum(x => UtilityAgent.NewFacilityOutlayPerMonth(w, x.Rg, x.Pr));
-        if (flag == 1.0 || flag == 3.0)
-        {
-            Assert.True(wills.Count >= 1, "上限の内の意志は立つ");
-            Assert.True(sum <= cap, $"立った意志の月の出費の見積りの和 {sum} が上限 {cap} をこえた");
-            Assert.True(wills.Count < planted.Count, $"全ての州に意志が立った（{wills.Count}/{planted.Count}）＝門が束縛していない");
-        }
-        else
-        {
-            Assert.Equal(planted.Count, wills.Count);   // 旧＝拒まれた意志は数えないので全ての州に意志が立つ
-            Assert.True(sum > cap, $"対照の前提：旧では意志の見積りの和 {sum} が上限 {cap} をこえる");
-        }
+        Assert.True(wills.Count >= 1, "上限の内の意志は立つ");
+        Assert.True(sum <= cap, $"立った意志の月の出費の見積りの和 {sum} が上限 {cap} をこえた");
+        Assert.True(wills.Count < planted.Count, $"全ての州に意志が立った（{wills.Count}/{planted.Count}）＝門が束縛していない");
     }
 }

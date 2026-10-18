@@ -223,7 +223,7 @@ public class StartWarmupTests3
             double tar = System.Math.Max(0, w.LastTariffRevenuePerClearing) / w.Coef.MonthsPerClearing;
             return (w.LastRevenuePerMonth.Value - mon - tar) / w.NominalGdpPerMonth.Value;
         }
-        // ★(400) 2026-10-18：英・蘭は開幕の専売の段をデータで持つ（OpeningStateMonopolyTier＝3・旗 OpeningFiscalAlign の既定 1）＝専売益が歳入に入り、開幕の歳入が年GDP の 0.14 を超えうる
+        // ★(400) 2026-10-18：英・蘭は開幕の専売の段をデータで持つ（OpeningStateMonopolyTier＝3・旗 OpeningFiscalAlign は (405) で焼き込み済み）＝専売益が歳入に入り、開幕の歳入が年GDP の 0.14 を超えうる
         //   （手元の出典の幅は約 6〜12%・2〜4 倍は記録で NG ではない）。史実の桁を固定した細い帯は止める線ではない（README 2026-10-17）＝専売の段をデータで持つ国は上限を 0.25（下の全国の上限と同じ）へ。他の 4 国は従来の 0.14。
         var six = new[] { "イギリス", "フランス", "ネーデルラント", "スペイン", "オーストリア", "プロイセン" };
         var revs = string.Join("・", six.Select(nm => $"{nm} {Rev(names.IndexOf(nm)):P1}"));

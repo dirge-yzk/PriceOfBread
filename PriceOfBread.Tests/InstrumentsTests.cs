@@ -20,12 +20,12 @@ public class InstrumentsTests
 {
     // (384) 戦争が起きる四半期まで走らせる長さ。政治の束の削除で軌道が動き、この盤面の最初の戦争は旧の 40 四半期以内から Q54 へずれた（探りで確かめた）＝戦争を対照にする番人は戦争を含む長さで回す。
     private const int WarQ = 100;
-    // ★(400) 2026-10-18：この盤面は借入の枝を 1 度は通す対照が要る（下の borrowSeen）。旗 OpeningFiscalAlign の既定 1 では英が段 3 の歳入で始まり 20 四半期のうちに借りない＝この番人の盤面だけ旧の開幕〔段 2〕へ戻す（計器が軌道を変えない・形が正しい、の確かめには開幕の財政の形は関係しない）。
-    private static MultiNationSim Make()
+    // ★(400)(405) 2026-10-18：この盤面は借入の枝を 1 度は通す対照が要る（下の borrowSeen）。英の開幕の専売の段（world.json の 3）では英が段 3 の歳入で始まり 20 四半期のうちに借りない＝この番人の盤面の英だけ
+    //   開幕の段を持たない形〔規則なし＝教義の段が助走から決める＝旧の開幕〕へ戻す（旗の焼き込み〔405〕の後は旗でなく設定の欄で戻す）。計器が軌道を変えない・形が正しい、の確かめには開幕の財政の形は関係しない。
+    private static MultiNationSim Make(ulong seed = 1789UL)
     {
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
-        foreach (var n in sim.Nations) n.World.Coef.OpeningFiscalAlign = 0;
-        return sim;
+        var uk = NationConfig.Britain(); uk.OpeningStateMonopolyTier = 0;
+        return new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent());
     }
 
     private static void RunMatch(MultiNationSim sim, int quarters, bool instr)
@@ -1526,6 +1526,9 @@ public class InstrumentsTests
     /// 場面 B＝政治資本が潤沢（S＝−1000）：台帳の恒等式を World の目減りの差（Step の前後）と突き合わせる。
     /// 何もしない番人は必ず緑になる＝場面 T に飢え・場面 U に構造が1本以上あったこと、場面 B に払いがあったことを数える。
     /// </summary>
+    // ★(405) 旗の焼き込みで盤面の軌道が変わり（着工の門が全ての試験の盤面で開いた）、種 1789 では場面 T に飢え（代価≦b）の段の法が立たなくなった＝この番人だけ種を替えて、全ての場面が空洞でない盤面を選んだ（探した種：1790 と 1793 は緑・1791 と 1792 は場面 T が空洞＝実装ログ (405)）。
+    private const ulong CoverageSeed = 1790UL;
+
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
     {
@@ -1536,7 +1539,7 @@ public class InstrumentsTests
             var comparedBy = new Dictionary<(char Scene, bool Structural), int>();   // ★(279) 照合した段の法を場面×構造／飢えで数える
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
-                var sim = Make();
+                var sim = Make(CoverageSeed);
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)
                 {
