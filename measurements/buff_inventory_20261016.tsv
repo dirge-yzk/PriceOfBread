@@ -1220,7 +1220,7 @@
 他	ColonialInfraPerColony	外交			Colonial.cs:139								済（2026-10-18 削除）
 他	ColonialRegionCession	外交			Diplomacy.cs:2930								済（2026-10-18 旗の焼き込みで削除）
 他	ColonialRegionSettlement	外交			Colonial.cs:244								済（2026-10-18 削除）
-他	ColoniesAreRegions	外交			Colonial.cs:74								済
+他	ColoniesAreRegions	外交			Colonial.cs:74								済（2026-10-18 旗の焼き込みで削除）
 他	ColonyCaptureBudget	外交			Diplomacy.cs:2865								済
 他	ColonyCaptureCostBase	外交			Diplomacy.cs:2887								済
 他	ColonyCapturePopCost	外交			Diplomacy.cs:2887								済
