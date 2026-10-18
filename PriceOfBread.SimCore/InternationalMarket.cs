@@ -30,16 +30,15 @@ public sealed partial class InternationalMarket
     //   旧・世界市場（世界価格の1ステップ変化率クランプ・輸出マージン上限）だけが読んでおり、
     //   433行の削除で**読み手が0件**になっていた（private const なのでコンパイラは警告を出さない＝静かに残る種類の死骸）。
 
-    public InternationalMarket(int goodCount, double worldPriceInitFromRefPrice = 0.0)
+    public InternationalMarket(int goodCount)
     {
         _price = new double[goodCount];
         _volume = new double[goodCount];
-        // 財11（world-price-init-1.0）：平均価格の**初期値**。既定0＝全財1.0。>0.5でRefPrice初期化に切替
-        // ＝開始数年の高額財交易の凍結・安い原料の初期過大を解消。★点火2026-07-27（WorldPriceInitFromRefPrice=1.0）＝MultiNationSim から配線済み。
+        // 財11（world-price-init-1.0）：平均価格の**初期値**はRefPrice＝開始数年の高額財交易の凍結・安い原料の初期過大を解消。
+        // ★点火2026-07-27（旧の旗 WorldPriceInitFromRefPrice は 2026-10-18 に焼き込み＝全財1.0の旧は削除）。
         // ⚠この初期値は今も生きている——BilateralMarket が最初の成約を書くまでの間、Validation と UI が読む値がここで決まる。
-        bool initFromRef = worldPriceInitFromRefPrice > 0.5;
         for (int i = 0; i < goodCount; i++)
-            _price[i] = initFromRef && i < Catalog.RefPrices.Length ? Catalog.RefPrices[i] : 1.0;   // 参照価格から開始（取引で調整）
+            _price[i] = i < Catalog.RefPrices.Length ? Catalog.RefPrices[i] : 1.0;   // 参照価格から開始（取引で調整）
     }
 
 

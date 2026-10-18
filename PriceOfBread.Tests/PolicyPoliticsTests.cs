@@ -1603,7 +1603,6 @@ public class PolicyPoliticsTests
     public void S1_在庫で否決された段はAIの目標に残る_吸収状態が無い()
     {
         var sim = CapitalBoard(); var w = sim.World;
-        w.Coef.AiLawGateUnified = 1.0;
         var agent = new UtilityAgent();
         var laws = new (PolicyAxis Axis, Func<int> Cur, Func<int> Tgt)[]
         {

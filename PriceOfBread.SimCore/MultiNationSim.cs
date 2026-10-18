@@ -59,7 +59,7 @@ public sealed class MultiNationSim
             foreach (var t0 in WorldData.Setup().Targets) foreach (var c0 in t0.Colonies) { sumK += c0.PopK; nCol++; }
             Diplomacy.ColonyUnitPop = nCol > 0 && sumK > 1e-9 ? sumK / nCol : 1.0;
         }
-        Market = new InternationalMarket(Catalog.Goods.Length, _coef.WorldPriceInitFromRefPrice);   // A-低7（2026-07-24配線・点火2026-07-27）：世界価格の初期値をRefPriceから初期化（既定1.0）。0で全財1.0の旧初期化
+        Market = new InternationalMarket(Catalog.Goods.Length);   // A-低7（2026-07-24配線・点火2026-07-27）：世界価格の初期値をRefPriceから初期化（既定1.0）。0で全財1.0の旧初期化
         for (int i = 0; i < configs.Count; i++)
         {
             var cfg = configs[i];
@@ -825,16 +825,15 @@ public sealed class MultiNationSim
             // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
             // 「先進勢力との接触」の実体から四半期導出する。外圧＝世界の技術水準との格差（GapScaleで正規化）×海からの接触係数
             //（港あり=1/内陸=InlandFactor＝黒船は海から来る）。世界の技術水準国自身は格差0＝外圧0（追い風は後発の現象）。
-            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。既定1.0＝点火済み（2026-07-27）。0で定数0.3据え置き。
-            if (_coef.ExternalPressureDerived > 0)
-                foreach (var n in Nations)
-                {
-                    var w = n.World;
-                    bool coastal = false;
-                    foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { coastal = true; break; }
-                    double gap = PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));
-                    w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
-                }
+            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。点火2026-07-27（旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み）。
+            foreach (var n in Nations)
+            {
+                var w = n.World;
+                bool coastal = false;
+                foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { coastal = true; break; }
+                double gap = PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));
+                w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
+            }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
             // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度（ファシズムの支持の式・発見パネルのホバー）が
             // 代理(WorldTechLevel との max)でなくこれを参照する（思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
@@ -923,19 +922,18 @@ public sealed class MultiNationSim
                     wn.TradeGoldPull = bal * Math.Min(1.0, rel);
                 }
             }
-            // ★鋼市場診断#2（2026-08-16・AiWorldPriceEntry>0のみ）：国際市場の平均価格（Market.Price＝BilateralMarket が成約から書く265州平均）を
+            // ★鋼市場診断#2（2026-08-16・旧の旗 AiWorldPriceEntry は 2026-10-18 に焼き込み）：国際市場の平均価格（Market.Price＝BilateralMarket が成約から書く265州平均）を
             //   各国 World へ**読み取り専用**注入＝WorldTechLevel/IndustrialFrontier と同型の四半期同期・WorldSilverPrice(G6) と同じ
             //   「World は国際市場を見られない（層の分離）」ための配布。⚠新しい価格を作らない——既存の平均価格をそのまま渡すだけ。
             //   読み手＝SelfPlay.TryBuildFacility（AIの参入判断＝逆インセンティブの反転）のみ。
-            //   係数0＝注入自体をスキップ（World 側は null のまま・配列も確保しない）＝厳密恒等。★既定は点火1.0＝毎四半期注入する。
-            if (_coef.AiWorldPriceEntry > 0)
-                foreach (var n in Nations)
-                {
-                    var wn = n.World;
-                    if (wn.WorldGoodsPrices is not { } wgp || wgp.Length != Market.Price.Count)
-                        wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
-                    for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
-                }
+            //   毎四半期注入する。
+            foreach (var n in Nations)
+            {
+                var wn = n.World;
+                if (wn.WorldGoodsPrices is not { } wgp || wgp.Length != Market.Price.Count)
+                    wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
+                for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
+            }
             // 財5（対外国債の他国資本引き当て・プール注入）：各国の対外国債プールに『他モデル国の資本家貯蓄の合計』＝対外国債の引き受け余力を注入。
             // Fiscal.Step はこれを上限に対外債発行をクランプする（実引き当て/保有国配分は #17 の CapitalMarket 経路で・notes 参照）。
             // 毎四半期このプールへ注入し Fiscal 側が上限として読む（★2026-09-26：旗 ForeignBondFromInvestors を焼き込み・x-01）。

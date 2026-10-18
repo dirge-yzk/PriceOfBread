@@ -873,7 +873,7 @@ public sealed class World
     {
         get
         {
-            if (!(Coef.CivilWarPredicateUnified > 0) || Diplomacy is not { } d || SelfPower is not { } sp) return false;
+            if (Diplomacy is not { } d || SelfPower is not { } sp) return false;
             foreach (var war in d.Wars) if (war.CivilWarParent is not null && (war.A == sp || war.B == sp)) return true;
             return false;
         }
@@ -2024,8 +2024,8 @@ public sealed class World
     {
         double best = double.MaxValue;
         // 接9（監査2026-07-11・2026-07-25休眠配線）：他の海運コストは全て海路距離（喜望峰/スエズ/パナマ経由）へ統一済みなのに、
-        // 侵略の船要求だけが大圏直線＝海域をまたぐ遠方標的ほど船要求が過小（欧州→ボルネオで本来の約73%）。1で海路距離へ統一。既定1＝海路距離（焼き込み済みの旗・0＝旧の大圏直線）。
-        bool seaDist = Coef.InvadeShipSeaDistance > 0.5 && Diplomacy is not null && SelfPower is not null;
+        // 侵略の船要求だけが大圏直線＝海域をまたぐ遠方標的ほど船要求が過小（欧州→ボルネオで本来の約73%）。海路距離へ統一（旧の旗 InvadeShipSeaDistance は 2026-10-18 に焼き込み）。
+        bool seaDist = Diplomacy is not null && SelfPower is not null;
         bool suezOk = seaDist && Diplomacy!.ChokeOpenFor(Diplomacy.SuezId, SelfPower);
         bool panamaOk = seaDist && Diplomacy!.ChokeOpenFor(Diplomacy.PanamaId, SelfPower);
         foreach (var col in t.ColonyList)

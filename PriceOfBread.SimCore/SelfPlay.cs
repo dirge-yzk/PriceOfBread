@@ -121,18 +121,15 @@ public sealed class UtilityAgent : INationAgent
     private const double UnrestSSPressure = 1.0;
     private const double UFisWeight = 1.2;                      // 緊縮効用：国庫逼迫の重み
     private const double ColonyDefenseWeight = 0.3;             // 植民地防衛の軍拡効用
-    // 工場/プランテーションの着工（2026-08-04）。平時の規律＝借入と同じ財政逼迫の上限。
-    // ★2026-08-04の再是正：0.5（＝バッファの半分まで減っていても着工）では、工事の日次出費が国庫を吸い上げ、
-    //   福祉・行政に回る金が細って満足度が落ち、政党支配×低満足の経路で**軍事独裁が5%→34%**まで増えた（実測R16/R17）。
-    //   工場は「余裕のある国が建てるもの」＝国庫が財政バッファを**満たしている**時だけに絞る（0＝逼迫ゼロ）。
-    private const double FacilityBuildStressCeiling = 0.0;
+    // 工場/プランテーションの着工（2026-08-04）。平時の規律＝借入と同じ（国家の支払い率 r＜1 の時だけ止まる）。
+    //   （旧の定数 FacilityBuildStressCeiling=0.0〔2026-08-04 の再是正：0.5 の緩和で軍事独裁が 5%→34%〕は旗 AiBuildGuardRelax の焼き込み〔2026-10-18〕で消えた。）
     private const double FacilityBuildMinMargin = 0.05;   // 実質相対価格の超過がこれ以下なら建てない（不足していない物を建てない・2026-08-04にボトルネック駆動へ転用）
     private const double FacilityBuildIdleWeight = 2.0;   // 失業の重み＝同じ採算なら人の余っている州を選ぶ（作者のUI要求と同じ判断材料）
     private const double FacilityBuildOutlayShare = 0.10;
     private const double FacilityBuildCostCap = 1.0;   // 建てられる工場の総費用の上限＝財政バッファ比（規模中立＝小国は軽工業から・2026-08-04）   // 工事の月次出費が財政バッファのこの割合を超えたら新規着工を止める（同時工事の暴走を防ぐ・規模中立）
-    // ★鋼市場診断#4（2026-08-16・Coefficients.AiSupplyChainEyes>0 のときだけ読む）：
+    // ★鋼市場診断#4（2026-08-16・旧の旗 AiSupplyChainEyes は 2026-10-18 に焼き込み）：
     private const double AiChainStarvedFill = 0.9;   // 投入の配給率（Market.LastRation＝生産タブの「供給:n%」と同じ出所）がこれ未満＝その材が連鎖の律速（上流を候補に足す）
-    // ★鋼市場診断#5（2026-08-16・Coefficients.AiProtectiveTariff>0 のときだけ読む）判定線：
+    // ★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）判定線：
     private const double AiTariffEmaRate = 0.25;          // 輸入EMAの追従率（四半期0.25＝約1年の記憶＝「前年比」の最小実装。新しい状態はAI個体の _importEma 1本だけ）
     private const double AiTariffSurgeRatio = 1.5;        // 対EMA比これ超＝輸入急増（1870年代の穀物侵入・英国鋼の輸出攻勢級の流入）
     private const double AiTariffImportFloorShare = 0.001; // 急増と数える最小規模＝輸入額（清算単位＝月次清算では直近1か月分・NominalGdpPerMonth も月次フロー）>名目GDP×これ（規模中立＝微小財の雑音で関税を動かさない）
@@ -195,7 +192,7 @@ public sealed class UtilityAgent : INationAgent
         set(next);
     }
 
-    /// <summary>★AI第1波①（2026-08-16・<see cref="Coefficients.AiLawGateUnified"/>>0 のみ）：AIの法目標の統一ゲート＝幽霊戦線の根絶。
+    /// <summary>★AI第1波①（2026-08-16・旧の旗 AiLawGateUnified は 2026-10-18 に焼き込み）：AIの法目標の統一ゲート＝幽霊戦線の根絶。
     /// <see cref="StepLawToward"/> と同じ作法（GateInfo確認・1段ずつ）だが、基点を**現行法**に置き、**規則で**到達不能な段は目標＝現行法へ畳む
     /// ＝到達不能な法を目標に残さない（⚠2026-09-18まではここが「通らない段は一律で畳む」だった＝下の修正段落）。幽霊戦線の実体＝目標≠現在の軸が CountOpenFronts に毎期数えられ続け、
     /// 政治押し予算 (1/N)^0.5（Government.Step の PoliticalPushBudget）が**連続の軸（税と支出の段・軍事費・関税）の押しを一律に薄める**（段の法の歩幅には掛からない＝(275) 訂正・(274) の計器）こと。
@@ -233,7 +230,7 @@ public sealed class UtilityAgent : INationAgent
     ///   穀物法・土地改革・農奴解放＝既に StepLawToward 済み（Apply内）／
     /// 通貨制度（MonetaryTarget）＝CountOpenFronts に数えられない軸＝幽霊戦線を作らない（実加入も信用ゲートが握る）／
     /// 社会保障法＝Government.Step がスライダー（SocialSecurityTarget）から毎期導出＝法目標の書き込み口が別／
-    /// 移民制限法・国教法＝AiLawWriteCoverage の書き手が常に StepLawToward 経由（二重整形しない）。</summary>
+    /// 移民制限法・国教法＝AI の書き手が常に StepLawToward 経由（二重整形しない）。</summary>
     internal static void GateAllLawTargets(World w, NationPolicy p)   // internal＝番人（潤沢の減税も門を通る）が冪等性を確かめるためだけ（可視性のみ）
     {
         // ★立場の土台（PolicyPreferences.Build＝POP の数回の走査）は、この整形の中で最初に純支持を読むときに1回だけ取って全ての照会で分け合う（2026-10-01 (146) 計算量の予算・恒等）：
@@ -709,11 +706,9 @@ public sealed class UtilityAgent : INationAgent
         else if (w.GoverningParty == (int)Parliament.Party.Socialist)
             p.NationalizeRailways = p.NationalizeElectricity = true;   // 社会党執政＝自然独占2部門（アトリー型・戦後国有化。旧・通信は『全て』へ統合＝ソ連型以外は目標に置けない）
 
-        // ★AI第1波③（2026-08-16・AiLawWriteCoverage>0）：書き手ゼロ2法（移民制限法・国教法）のAI目標。
+        // ★AI第1波③（2026-08-16・旧の旗 AiLawWriteCoverage は 2026-10-18 に焼き込み）：書き手ゼロ2法（移民制限法・国教法）のAI目標。
         // 旧＝議会与党の綱領（Parliament.ApplyPlatform・2026-09-26 に撤去＝回5-1）のみ＝非選挙政体（1783年の54カ国中46カ国）では誰もこの2法を動かさなかった。
-        // ⚠書き込みは必ず StepLawToward 経由（GateInfo確認・1段ずつ）＝AiLawGateUnified の状態に依存せず幽霊戦線を新設しない独立設計。
-        // ⚠0＝ブロックごと不実行（新しい読みもしない）＝ビット恒等。
-        if (w.Coef.AiLawWriteCoverage > 0)
+        // ⚠書き込みは必ず StepLawToward 経由（GateInfo確認・1段ずつ）＝幽霊戦線を新設しない独立設計。
         {
             // 移民制限：読むのは**実際に起きている量**＝流入（前四半期の確定値÷人口）と大衆の失業。
             //   PolicyPreferences.ImmigrationRestriction（法選好の大衆スタンス）と同じ材料・同じ合成＝法が争点になる強さそのもの。
@@ -918,7 +913,7 @@ public sealed class UtilityAgent : INationAgent
             w.RequestCurrencyReform(w.ExchangeRate);
         // ★潤沢の減税（RelieveOpulence）は Apply の中＝門（GateAllLawTargets）の前へ移した（2026-09-28 (85)）。
         //   旧はここ＝門の**後**に税の目標へ連続の倍率を掛け、門が拒む段を置けた（AI だけ・プレイヤーは法律タブで門を通る）。
-        // ★鋼市場診断#5（2026-08-16・AiProtectiveTariff>0のみ）：保護関税の反射。
+        // ★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）：保護関税の反射。
         // ⚠**順序**＝関税目標を書く既存の3か所（Apply のスタンス定数／ダンピングの解除／RelieveOpulence の減税乗算）の**後**に置く。
         //   前に置くと同じ四半期の Apply が上書きし、反射が一度も効かない（衝突ではなく無効化になる）。
         //   逆に「条件時のみ書く」ので、条件が引けば翌四半期からは上の3か所が従来どおり単独で目標を決める＝恒久的な上書きにはしない。
@@ -971,7 +966,7 @@ public sealed class UtilityAgent : INationAgent
     internal const double OpulenceBufferQuarters = 8.0;   // 財政バッファ（月の義務の FiscalStressBufferMonths＝5か月分）の8倍＝月の義務の約40か月分の戦費予備を超えたら「取り過ぎ」（旧の注記「月次義務の8四半期分＝2年分」は単位の誤り＝(203) で見つけ (207) で注記だけ直した）
     private const double OpulenceTaxFloor = 0.25;        // 減税の床（無税国家にはしない＝行政・軍の最低限は回る）
 
-    /// <summary>★鋼市場診断#5（2026-08-16・<see cref="Coefficients.AiProtectiveTariff"/>>0 のみ）：**保護関税の反射**＝防衛側の第二幕。
+    /// <summary>★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）：**保護関税の反射**＝防衛側の第二幕。
     /// 診断B-3の逆インセンティブ（#2で参入側を反転させた）に対して、こちらは「安い輸入に押されている国が壁を作る」側＝
     /// 史実「安い英国鋼→独米が製鉄所<b>と関税</b>」の後半分（1879年独の鉄と穀物の関税・1861年米モリル関税）。
     /// これが secondDeliver（次善の売り手の着値＝成約単価）の底上げとして働き、先行者レントを外から削る。
@@ -993,10 +988,9 @@ public sealed class UtilityAgent : INationAgent
     ///   全インスタンスフィールド（private/readonly含む）を辿るので、Simulation._agent → この UtilityAgent → _importEma（double[]）まで
     ///   自動で往復する＝点火後も savetest はビット一致（AI個体の記憶を World の力学状態へ移す必要はない）。
     ///   初回（と財数の変化）は現在値で初期化＝比1.0＝「いきなり急増」と誤認しない。</summary>
-    private double[]? _importEma;   // 財別・輸入額（清算単位）のEMA（AI個体の記憶・四半期に1回更新）。係数0では確保すらしない
+    private double[]? _importEma;   // 財別・輸入額（清算単位）のEMA（AI個体の記憶・四半期に1回更新）。
     private void ReactProtectiveTariff(World w)
     {
-        if (!(w.Coef.AiProtectiveTariff > 0)) return;          // 0＝以下を一切実行しない（否定形＝NaNも休眠側）。★既定は点火1.0＝この枝は通らない
         if (w.ImportsByGood is not { } imp) return;            // 多国シムの決済がまだ／単一国＝材料なし
         if (_importEma is not { } ema || ema.Length != imp.Length)
         {
@@ -1028,7 +1022,7 @@ public sealed class UtilityAgent : INationAgent
         // ★2026-09-04（tariffprobe実測）：目標が110〜125%へ出ていた＝Move の実効クランプ[TariffFloor,1]は関税を切るが**目標は切らない**ので、
         //   平時の漸減（TariffReactionMax×AiTariffRelaxation=0.025/四半期）が1.0を割るまで最大10四半期を空費し、自由化が2.5年遅れていた。
         //   目標も実効と同じ上限1で切る（新しい数ではない＝Move と同じクランプ）。
-        double want = System.Math.Min(1.0, w.Tariff + w.Coef.TariffReactionMax * w.Coef.AiProtectiveTariff);
+        double want = System.Math.Min(1.0, w.Tariff + w.Coef.TariffReactionMax);
         if (want > w.Policy.TariffTarget) w.Policy.TariffTarget = want;   // 急増時＝上げ（対動詞＝上の平時漸減）
     }
 
@@ -1109,7 +1103,7 @@ public sealed class UtilityAgent : INationAgent
     /// <para><b>Excess</b>＝実質相対価格の超過＝ <c>Price ÷ (RefPrice×物価水準) − 1</c>。高い＝供給が需要に追いつかない
     /// ＝連鎖の律速点（市場自身が示すボトルネック。生産タブの赤字と同じ現象の価格側）。真の律速が上流にあるなら上流の財ほど
     /// 相対価格が高く出る（自分の材料は安いまま）＝この最大化は自然に連鎖を遡って律速点を選ぶ。</para>
-    /// <para><b>WorldOpened</b>（鋼市場診断#2・AiWorldPriceEntry&gt;0のみ）＝世界の着値（<see cref="World.WorldGoodsPrices"/>＝
+    /// <para><b>WorldOpened</b>（鋼市場診断#2・旧の旗 AiWorldPriceEntry は 2026-10-18 に焼き込み）＝世界の着値（<see cref="World.WorldGoodsPrices"/>＝
     /// 265州平均）を自国の費用錨と比べた超過が国内チャネルを上回った＝「世界へ売れるレント」で開いた候補。旧は自国の局所価格だけを読むため
     /// 「安い輸入が来るほど建てない」＝史実（安い英国鋼→独米が製鉄所+関税）の真逆になっていた。輸送楔は TransportMargin を流用。</para>
     /// <para><b>Score</b>＝<c>Excess ×(1 + 失業の重み×失業率)</c>＝不足の深さ×人が余っている（同じ不足なら人の余る州を選ぶ）。</para>
@@ -1128,7 +1122,7 @@ public sealed class UtilityAgent : INationAgent
         if (!(rp > 1e-9)) return new(double.NaN, double.NaN, false);
         double eff = rg.Markets[pr.GoodId].Price / rp - 1.0;
         bool worldOpened = false;
-        if (w.Coef.AiWorldPriceEntry > 0 && w.WorldGoodsPrices is { } wgp && pr.GoodId < wgp.Length)
+        if (w.WorldGoodsPrices is { } wgp && pr.GoodId < wgp.Length)
         {
             double worldRel = wgp[pr.GoodId] / rp - 1.0 - w.Coef.TransportMargin;
             if (worldRel > eff) { eff = worldRel; worldOpened = true; }   // NaNは比較で偽＝開かない（fail-closed）
@@ -1152,12 +1146,11 @@ public sealed class UtilityAgent : INationAgent
     private static void TryBuildFacility(World w)
     {
         if (w.SelfPower is null) return;   // 単一国（テスト・較正）では走らせない＝較正に無影響
-        // ★鋼市場診断#3(b)（2026-08-16・AiBuildGuardRelax>0のみ）：財政ガードの緩和＝旧「FiscalStress>0.0で即return」（国庫がバッファ満額でないと建てない）を
+        // ★鋼市場診断#3(b)（2026-08-16・旧の旗 AiBuildGuardRelax は 2026-10-18 に焼き込み）：財政ガードの緩和＝旧「FiscalStress>0.0で即return」（国庫がバッファ満額でないと建てない）を
         //   **借入と同じ規律**（Fiscal の借入の条件＝国家の支払い率 r＜1 の時だけ止まる・2026-09-28＝旧は維持費＋利払いを国庫で賄えない時）へ。否定形＝NaNは建てない側。
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
-        //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
-        bool relax = w.Coef.AiBuildGuardRelax > 0;
-        if (relax ? !(w.FiscalFundingRatio.Value >= 1) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
+        //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和を広げるときは**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
+        if (!(w.FiscalFundingRatio.Value >= 1)) return;
         // ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
         //   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
         //   国庫が日次で流出し続けた。実測（R16）＝軍事独裁が 5.0%→53.4%＝**世界中で国家が財政破綻して軍が政権を取った**。
@@ -1165,8 +1158,8 @@ public sealed class UtilityAgent : INationAgent
         //   物差しは既存の財政バッファ（月次義務の N か月分・規模中立）＝新しいスカラーを置かない。
         double buffer = FiscalBufferOf(w);
         double monthlyBuild = 0;
-        int pendingWill = 0;   // ★国営工場カウンターの**未達の意志**（2026-08-10）＝目標>現在の棟数。建材高騰で着工が拒まれた月も目標は残る（意志は消えない）＝これも律速に数える
-        int[]? pendingRegion = relax ? new int[w.Regions.Count] : null;   // ★#3(a)：州ごとの意志（relax時のみ確保＝既定0では読み書きゼロ）
+        // ★国営工場カウンターの**未達の意志**（2026-08-10）＝目標>現在の棟数。建材高騰で着工が拒まれた月も目標は残る（意志は消えない）＝これも律速に数える
+        var pendingRegion = new int[w.Regions.Count];   // ★#3(a)：州ごとの意志
         for (int ri0 = 0; ri0 < w.Regions.Count; ri0++)
         {
             var rg0 = w.Regions[ri0];
@@ -1179,37 +1172,33 @@ public sealed class UtilityAgent : INationAgent
                     monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);   // ★裁定②の安全弁＝素材も律速に数える（2026-09-27 焼き込み＝工事費の6割が律速から漏れていた）
                 }
                 int pw = Math.Max(0, pr0.StateTarget - World.StateUnits(pr0, w.Coef));
-                pendingWill += pw;
-                if (pendingRegion is not null) pendingRegion[ri0] += pw;
+                pendingRegion[ri0] += pw;
             }
         }
-        // ★鋼市場診断#3(a)（2026-08-16・AiBuildGuardRelax>0のみ）：旧＝全国のどこかに意志が残っていれば**全国 return**＝世界中のAI国が「同時1件」
-        //   （四半期1回と合わせて年4棟が上限＝AI資本の参入が構造的に鈍い＝診断B-3の四重ガードの一角）。relax＝州ごとの判定へ
+        // ★鋼市場診断#3(a)（2026-08-16・旧の旗 AiBuildGuardRelax は 2026-10-18 に焼き込み）：旧＝全国のどこかに意志が残っていれば**全国 return**＝世界中のAI国が「同時1件」
+        //   （四半期1回と合わせて年4棟が上限＝AI資本の参入が構造的に鈍い＝診断B-3の四重ガードの一角）。今＝州ごとの判定
         //   （下の候補ループで意志の残る州だけ静止・他州は並行着工）＝ラチェット防止の性格（意志は溜めない）は州単位で保つ。
-        if (!relax && pendingWill > 0) return;   // 前に立てた意志がまだ実現していない＝新しい意志を積まない（旧「1四半期に1件」の性格を保つ＝ラチェットを作らない）
         double outlayCap = FacilityBuildOutlayShare * buffer;
         if (monthlyBuild > outlayCap) return;   // 工事の月次出費が財政バッファを食い過ぎていれば新規着工しない（#3の緩和でも**残す**＝本命の予算制約）
-        int bestR = -1, bestG = -1; double bestScore = 0;   // 閾値は relExcess > FacilityBuildMinMargin 側で判定（2026-08-04）
-        int[]? bestGr = null; double[]? bestScoreR = null;   // ★#3(a)：relax時は州ごとの最良（並行着工の候補。既定0では確保しない）
-        if (relax) { bestGr = new int[w.Regions.Count]; bestScoreR = new double[w.Regions.Count]; for (int i = 0; i < bestGr.Length; i++) bestGr[i] = -1; }
+        // 閾値は relExcess > FacilityBuildMinMargin 側で判定（2026-08-04）
+        var bestGr = new int[w.Regions.Count]; var bestScoreR = new double[w.Regions.Count]; for (int i = 0; i < bestGr.Length; i++) bestGr[i] = -1;   // ★#3(a)：州ごとの最良（並行着工の候補）
         void Consider(int cri, int gid, double sc)   // NaNスコアは両比較とも偽＝落ちる（否定形と同じfail-closed）
         {
-            if (relax) { if (sc > bestScoreR![cri]) { bestScoreR[cri] = sc; bestGr![cri] = gid; } }
-            else if (sc > bestScore) { bestScore = sc; bestR = cri; bestG = gid; }
+            if (sc > bestScoreR[cri]) { bestScoreR[cri] = sc; bestGr[cri] = gid; }
         }
         // ★連鎖の目の読む個体（2026-10-01 (146) 計算量の予算・恒等＝全長の1種で連鎖の目 約1,340万回）：その州でその財を作る**先頭の生産者**
         //   （ProductionDiag.ExplainCost の規約＝FindProducer）。この走査は州の生産者を先頭から回す＝先頭の個体は既に通った
         //   ＝州ごとに「財→先頭の個体」を覚えて渡す（旧＝候補ごとに州の生産者を先頭から探し直した＝連鎖の目の時間の約半分）。
-        Producer?[]? firstOf = w.Coef.AiSupplyChainEyes > 0 ? new Producer?[Catalog.Goods.Length] : null;
+        var firstOf = new Producer?[Catalog.Goods.Length];
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var rg = w.Regions[ri];
             if (rg.State != RegionState.Active) continue;
-            if (pendingRegion is not null && pendingRegion[ri] > 0) continue;   // ★#3(a)：意志の残る州だけ静止（他州は動く）
-            if (firstOf is not null) System.Array.Clear(firstOf);
+            if (pendingRegion[ri] > 0) continue;   // ★#3(a)：意志の残る州だけ静止（他州は動く）
+            System.Array.Clear(firstOf);
             foreach (var pr in rg.Producers)
             {
-                if (firstOf is not null && pr.GoodId >= 0 && pr.GoodId < firstOf.Length) firstOf[pr.GoodId] ??= pr;   // 先頭の個体（下の continue より前＝建設中・倒産中も数える＝FindProducer と同じ）
+                if (pr.GoodId >= 0 && pr.GoodId < firstOf.Length) firstOf[pr.GoodId] ??= pr;   // 先頭の個体（下の continue より前＝建設中・倒産中も数える＝FindProducer と同じ）
                 if (pr.ConstructionLeft > 0 || pr.Bankrupt) continue;   // 建設中・倒産中は対象外
                 if (pr.GoodId < 0 || pr.GoodId >= Catalog.Goods.Length) continue;
                 if (Catalog.Goods[pr.GoodId].Tier == GoodTier.Service) continue;   // 役務は工場として建たない（BuildFactory と同条件）
@@ -1217,7 +1206,7 @@ public sealed class UtilityAgent : INationAgent
                 if (double.IsNaN(val.Score)) continue;   // 基準価格・市場の範囲外＝候補外
                 double eff = val.Excess;
                 bool worldOpened = val.WorldOpened;
-                // ★鋼市場診断#4（2026-08-16・AiSupplyChainEyes>0のみ）：連鎖の律速を読む目。需要シグナル（eff>閾値）のある候補財について
+                // ★鋼市場診断#4（2026-08-16・旧の旗 AiSupplyChainEyes は 2026-10-18 に焼き込み）：連鎖の律速を読む目。需要シグナル（eff>閾値）のある候補財について
                 //   ProductionDiag.ExplainCost（純関数＝力学の状態を1ビットも書かない・従来は生産タブUIだけの読み手）を読み、
                 //   配給率（CostItem.Fill＝Market.LastRation＝プレイヤーが生産タブの「供給:n%」で見るのと同じ値＝AI/プレイヤー対称）が
                 //   最も低い非労働投入が AiChainStarvedFill を割っていれば、その**上流財を候補に足して優先**する
@@ -1225,10 +1214,9 @@ public sealed class UtilityAgent : INationAgent
                 //   上流には relExcess/SmoothedMargin の関門を課さない＝配給（fill<1）の事実が不足の証拠で、輸入錨や在庫クランプで
                 //   価格シグナルが鈍る財こそこの目の出番（診断B-5「連鎖の逆算が実行不能」の是正）。身の丈ゲートは上流自身の工場費用で課す。
                 //   労働3種（IsLabor）は建てられないので対象外。qty≈0の投入（電化の労働節約で消えた材）は律速と数えない。
-                //   0＝ProductionDiag を一切呼ばない＝恒等。
-                if (w.Coef.AiSupplyChainEyes > 0 && eff > FacilityBuildMinMargin)
+                if (eff > FacilityBuildMinMargin)
                 {
-                    var chain = ProductionDiag.ExplainCost(w, rg, firstOf![pr.GoodId]!);   // ＝ExplainCost(w, rg, pr.GoodId) と同じ個体（(146)）
+                    var chain = ProductionDiag.ExplainCost(w, rg, firstOf[pr.GoodId]!);   // ＝ExplainCost(w, rg, pr.GoodId) と同じ個体（(146)）
                     int starved = -1; double minFill = AiChainStarvedFill;
                     foreach (var it in chain.Items)
                         if (!it.IsLabor && it.Qty > 1e-9 && it.Fill < minFill) { minFill = it.Fill; starved = it.GoodId; }
@@ -1236,7 +1224,7 @@ public sealed class UtilityAgent : INationAgent
                         && Catalog.Goods[starved].Tier != GoodTier.Service
                         && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream && Discovery.Gate(rg, upstream) > 0   // (260) 上流の個体も門が開いていること
                         && Catalog.FactorySpec(starved).Cost <= FacilityBuildCostCap * buffer)
-                        Consider(ri, starved, eff * (1.0 + w.Coef.AiSupplyChainEyes * (1.0 - minFill)));
+                        Consider(ri, starved, eff * (1.0 + (1.0 - minFill)));
                 }
                 // ★身の丈ゲート（2026-08-04・R19の赤＝ジェノヴァ6/10最下位の是正）：FactorySpec の建設費は**絶対額**
                 //   （軽工業3万〜弩級戦艦32万）なので、都市国家が総費用の大きい工場を着工すると経済ごと沈む。
@@ -1259,21 +1247,12 @@ public sealed class UtilityAgent : INationAgent
         // ★AIも**同じカウンター**を1つ上げる（作者裁定2026-08-10 E節＝動詞を1本に統合して非対称を作らない）。
         //   SetStateTarget はその場で1歩試し（＝旧 BuildFactory 直呼びと同じ着工）、拒まれた月は目標が残って
         //   月次の StepStateTargets が再挑戦する＝「意志は消えない」。溜まらないのは上の pendingWill ガードが受ける。
-        if (!relax)
-        {
-            if (bestR >= 0)
-            {
-                var bp = World.FindFactory(w.Regions[bestR], bestG);   // SetStateTarget が掴むのと同じ1本（代替レシピの取り違えでカウンターが噛み合わない事故を作らない）
-                if (bp is not null) w.SetStateTarget(bestR, bestG, World.StateUnits(bp, w.Coef) + 1);
-            }
-            return;
-        }
         // ★鋼市場診断#3(a)（2026-08-16）：州ごとの並行着工＝州index順（決定論・同点規律は従来の「州順→財id順」を州内 best が引き継ぐ）。
         //   着工が実際に始まった分の月次出費をその場で加算し、outlayCap（本命の予算制約）を跨いだら残りの州は打ち切り
         //   ＝「全国同時1件」という人工的な直列化だけを外し、金の天井は従来の1本のまま。
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
-            if (bestGr![ri] < 0) continue;
+            if (bestGr[ri] < 0) continue;
             if (monthlyBuild > outlayCap) break;
             var bp = World.FindFactory(w.Regions[ri], bestGr[ri]);
             if (bp is null) continue;
@@ -1717,7 +1696,7 @@ public sealed class UtilityAgent : INationAgent
         //   危機の要求より前＝要求が最後の言葉のまま。Apply の後に走っていた処理（借入の予約・通貨改革の予約）は国庫も潤沢線も動かさない＝判定は同じ。
         RelieveOpulence(w);
         Parliament.TargetCrisisDemands(w);
-        if (w.Coef.AiLawGateUnified > 0) GateAllLawTargets(w, p);
+        GateAllLawTargets(w, p);
     }
 }
 

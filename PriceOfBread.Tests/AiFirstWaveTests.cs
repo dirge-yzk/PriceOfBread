@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// AI第1波（2026-08-16・docs/20260816_AI動詞被覆監査.md 第1波／実装記録=docs/20260816_AI第1波実装.md）のON経路。
-/// 3フラグ（AiLawGateUnified／AiMobilization／AiLawWriteCoverage）＋既存休眠 AiDevelopmentalSubsidy の点火枝を検証する。
+/// AI第1波の点火枝を検証する。旗 AiLawGateUnified・AiLawWriteCoverage は 2026-10-18 に焼き込み（AiMobilization は 2026-09-20 に削除）＝OFF側の対照は消えた。既存休眠 AiDevelopmentalSubsidy の点火枝も見る。
 /// ⚠2026-08-16の点火梯子で AiLawGateUnified と AiLawWriteCoverage は**点火済み（1.0）**＝既定はもう休眠ではない
 /// （AiDevelopmentalSubsidy は休眠のまま）。AiMobilization は 2026-09-20 に係数ごと削除＝段の点火で総動員のAI分岐が常時 live（②は旗なしで同じ主張を見る）。
 /// ここでは既定値の番人（＝いま live である値の宣言）と、ON/OFF**両側を明示ピン**した対照だけを見る。
@@ -21,8 +21,6 @@ public class AiFirstWaveTests
         // ⚠POB_COEF で明示的に上書きした測定走行では見ない（点火A/Bを同一バイナリで取るため）。
         var c = new Coefficients();
         string ov = Coefficients.OverrideSummary();
-        if (!ov.Contains("AiLawGateUnified", StringComparison.Ordinal)) Assert.Equal(1.0, c.AiLawGateUnified);        // 2026-08-16点火
-        if (!ov.Contains("AiLawWriteCoverage", StringComparison.Ordinal)) Assert.Equal(1.0, c.AiLawWriteCoverage);    // 2026-08-16点火
         // AiMobilization（旧「保留＝休眠のまま」）は 2026-09-20 に係数ごと削除＝主張は作者裁定（段の点火）で覆った＝②が live の分岐を見る。
         if (!ov.Contains("AiDevelopmentalSubsidy", StringComparison.Ordinal)) Assert.Equal(0.0, c.AiDevelopmentalSubsidy);   // 既存休眠（Coefficients.cs:1377）＝点火枝のみ下のテストで確認
     }
@@ -48,13 +46,12 @@ public class AiFirstWaveTests
     ///   作者裁定で上限を撤去したため、その塞ぎ方は現物に存在しない。★残る決定論の塞ぎ＝<see cref="Government"/> の LawPrereq で、
     ///   **普通選挙は女性の権利が選挙権の段に達していないと通らない**（第3段3-6以降で唯一残った参政権の前提）。</summary>
     [Fact]
-    public void 統一ゲートONで到達不能な段を目標に置かない()
+    public void 統一ゲートは到達不能な段を目標に置かない()
     {
         var sim = UnreachableSuffrageWorld(11);
         var w = sim.World;
         w.Suffrage = Suffrage.AdultMale;      // 次の1段＝Universal
         w.WomenRights = WomenRightsLaw.None;  // ⚠前提未達＝支持配置に依らず決定論で塞がれる
-        w.Coef.AiLawGateUnified = 1.0;
         // 前提の自己検証（非空虚性）：次の1段が実際に到達不能であること
         Assert.False(Government.GateInfo(w, PolicyAxis.Suffrage, increasing: true, (int)w.Suffrage + 1).Ok,
             "テスト前提が崩れた：女性の権利が未達なのに普通選挙の1段が通ってしまう（LawPrereq を確認）");
@@ -63,22 +60,10 @@ public class AiFirstWaveTests
     }
 
     [Fact]
-    public void 統一ゲートOFFでは同じ状況で到達不能目標が置かれる_旧挙動の記録()
+    public void 統一ゲートは到達可能になれば次の1段だけを目標に置く()
     {
         var sim = UnreachableSuffrageWorld(11);
         var w = sim.World;
-        w.Coef.AiLawGateUnified = 0;   // ★OFF側を明示ピン（2026-08-16に既定0→1.0で点火済み＝対照は明示しないと番人が空洞化する）
-        new UtilityAgent().DecideQuarter(w);
-        Assert.Equal(Suffrage.AdultMale, w.Policy.Suffrage);        // 旧＝無ゲート代入＝譲歩目標がそのまま載る
-        Assert.NotEqual(w.Suffrage, w.Policy.Suffrage);             // ＝目標≠現行法が CountOpenFronts に毎期数えられる（幽霊戦線）
-    }
-
-    [Fact]
-    public void 統一ゲートONで到達可能になれば次の1段だけを目標に置く()
-    {
-        var sim = UnreachableSuffrageWorld(11);
-        var w = sim.World;
-        w.Coef.AiLawGateUnified = 1.0;
         // 純支持を確実に正へ（憲法級＝マンデート余白では押せない＝実際の支持が要る）：大衆と近代の発言権を厚く
         //（SuffrageScopeTests と同じ細工＝巨大貯蓄で発言権を作る。参政権のこの段は大衆+1・近代も制限選挙までは賛成）。
         foreach (var pp in w.AllPops()) if (!pp.Closed && !pp.IsModernElite && !pp.IsSoldier) { pp.SetSavings(1e9); break; }
@@ -249,12 +234,10 @@ public class AiFirstWaveTests
     // ============ ③ AiLawWriteCoverage＝移民制限法・国教法の書き手 ============
 
     [Fact]
-    public void 書き手フラグONで移民制限法と国教法に目標が立つ_1段ずつ()
+    public void 移民制限法と国教法に目標が立つ_1段ずつ()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
         var w = sim.World;
-        w.Coef.AiLawWriteCoverage = 1.0;
-        w.Coef.AiLawGateUnified = 0;        // ⚠明示ピン（既定は点火1.0）＝統一ゲート抜きでも通る＝StepLawToward経由の独立設計の証明
         w.PoliticsEnabled = true;
         w.Legitimacy = 1.0;
         w.Coef.MandateWeight = 50.0;        // 在庫ハンマー＝非憲法級2軸は支持配置に依らず GateInfo が通る（LawPrereq だけが効く状態）
@@ -266,19 +249,6 @@ public class AiFirstWaveTests
         new UtilityAgent().DecideQuarter(w);
         Assert.Equal(ImmigrationLaw.Selective, w.Policy.ImmigrationRestriction);   // 今の法（開放）から1段（選別）
         Assert.Equal(StateReligionLaw.InnerFreedom, w.Policy.StateReligion);       // 国教のみ→内心の自由（1段）
-    }
-
-    [Fact]
-    public void 書き手フラグOFFでは2法の目標が動かない()
-    {
-        var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
-        var w = sim.World;
-        w.Coef.AiLawWriteCoverage = 0;   // ★OFF側を明示ピン（2026-08-16に既定0→1.0で点火済み）
-        w.LastImmigration = w.TotalPopulation * 0.05;
-        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.SetSavings(1e9); break; }
-        new UtilityAgent().DecideQuarter(w);
-        Assert.Equal(ImmigrationLaw.Open, w.Policy.ImmigrationRestriction);        // 書き手ゼロのまま＝enum既定値
-        Assert.Equal(StateReligionLaw.StateChurch, w.Policy.StateReligion);
     }
 
     /// <summary>★作者裁定 2026-09-28 F5：移民制限法の AI は流入の圧力で締めるだけ＝開くのは資本の要求（危機の要求）か外圧（条約港）だけ。
@@ -295,7 +265,6 @@ public class AiFirstWaveTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
         var w = sim.World;
-        w.Coef.AiLawWriteCoverage = 1.0;
         w.PoliticsEnabled = true;
         w.Legitimacy = 1.0;
         w.Coef.MandateWeight = 50.0;        // 在庫ハンマー（上のテストと同じ）
@@ -350,7 +319,6 @@ public class AiFirstWaveTests
     {
         var sim = UnreachableSuffrageWorld(11);
         var w = sim.World;
-        w.Coef.AiLawGateUnified = 1.0;
         // 前提の自己検証（非空虚性）：次の1段は**規則では塞がれていない**のに、支持が足りずゲートが否決している盤面であること
         Assert.True(Government.LawPrereq(w, PolicyAxis.Suffrage, (int)w.Suffrage + 1, w.Coef).Ok,
             "テスト前提が崩れた：この盤面の次の1段は前提DAGで塞がれている（＝支持不足型の拒否になっていない）");
@@ -370,7 +338,6 @@ public class AiFirstWaveTests
         var w = sim.World;
         w.Suffrage = Suffrage.AdultMale;      // 次の1段＝Universal
         w.WomenRights = WomenRightsLaw.None;  // 前提未達（LawPrereq＝「女性の権利（選挙権）が前提」）
-        w.Coef.AiLawGateUnified = 1.0;
         Assert.False(Government.LawPrereq(w, PolicyAxis.Suffrage, (int)Suffrage.Universal, w.Coef).Ok,
             "テスト前提が崩れた：女性の権利が未達なのに普通選挙の段が規則で通ってしまう");
         new UtilityAgent().DecideQuarter(w);
@@ -384,7 +351,6 @@ public class AiFirstWaveTests
     {
         var sim = UnreachableSuffrageWorld(11);
         var w = sim.World;
-        w.Coef.AiLawGateUnified = 1.0;
         var agent = new UtilityAgent();
         for (int q = 0; q < 40; q++)
         {
@@ -408,7 +374,6 @@ public class AiFirstWaveTests
     {
         var human = UnreachableSuffrageWorld(11).World;   // プレイヤー国（NullAgent＝AIの書き手は走らない）
         var ai = UnreachableSuffrageWorld(11).World;
-        human.Coef.AiLawGateUnified = ai.Coef.AiLawGateUnified = 1.0;
         human.Policy.Suffrage = Suffrage.Census;          // 法律タブで置いた目標（＝次の1段）。以後プレイヤーは何もしない
         new UtilityAgent().DecideQuarter(ai);
         Assert.Equal(human.Policy.Suffrage, ai.Policy.Suffrage);   // 旧＝AIだけが None へ畳んで不一致（＝P5の破れ）

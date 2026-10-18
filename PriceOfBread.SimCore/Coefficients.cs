@@ -1966,7 +1966,7 @@ public sealed class Coefficients
     // 【削除2026-09-30・支払いの一元化 段3-5（C8）】MintWageShare（鋳造の代金のうち労働へ渡す割合 0.5＝④と別の規則）＝鋳造の代金は④の持分（InternationalMarket.PaySales＝地代→持ち主・賃金→労働）へ。
     public double TariffInterestPrefWeight = 0.3;   // **点火2026-07-27（機能優先ラウンド第2群）**    // 接8a：州関税利害（競争力）の国平均を近代エリートの関税選好へ加算＝後発工業国の保護主義（米国システム/独1879）。0=不読
     public double TariffStateRevenueWeight = 0.08;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 接8b：国家の歳入要求を関税軸へ（旧・専売の腕と同型＝19世紀最大の歳入源）。0=不読
-    public double InvadeShipSeaDistance = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**       // 接9：侵略の船要求距離を大圏直線(0)→海路距離(1・喜望峰/スエズ/パナマ経由)へ統一（他の海運コストは統一済み）。0=現行
+    // 【墓標2026-10-18・旗の焼き込み】InvadeShipSeaDistance（接9・既定1.0・点火2026-07-27 機能優先ラウンド第1群）を消した＝侵略の船要求距離は大圏直線でなく海路距離（喜望峰/スエズ/パナマ経由）。
     public double EpidemicOnsetSanitationWeight = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）** // 接12：疫病の発生率×(1−これ×最過密州の衛生整備度)＝衛生インフラが流行の発生自体を止める（従来は死亡率側のみ）。0=不読
     public double HealthcareRealGate = 0.5;   // **点火2026-07-27（機能優先ラウンド第3群）**          // 接13：扶養力の主医療チャネルを実医療財消費(HealthFill)で min ゲート（1=医者なし→医療ボーナス0・中間=部分ゲート）。0=第3項なし（現行）
     public double CrimePushWeight = 6.0;   // **点火2026-07-27（機能優先ラウンド第2群）→ 同日 0.3→6.0 へ再点火**：crimeRate の上限は CrimeBase 0.01×(1+CrimeUrbanWeight 0.6)=0.016 しかなく、
@@ -1976,7 +1976,7 @@ public sealed class Coefficients
     public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（★2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights＝POP の間と POP の中の1本）。0=均等死
     // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
     // 【削除2026-09-30 段4e 後半】ConscriptExcludeOldMales（徴兵の上限から老年の男を除く旗）＝年齢の層で徴兵の年齢（男20〜39・皆兵は49まで）を直接読む＝自明（設計書 §4-2）。
-    public double ExternalPressureDerived = 1.0;   // **点火2026-07-27（機能優先ラウンド第2群）**     // 接7：外圧を創建時定数0.3から「世界の技術水準格差×海の接触」の四半期導出へ（1で有効）。0=定数据え置き（現行）
+    // 【墓標2026-10-18・旗の焼き込み】ExternalPressureDerived（接7・既定1.0・点火2026-07-27 機能優先ラウンド第2群）を消した＝外圧は創建時定数 0.3 でなく「世界の技術水準格差×海からの接触係数」から四半期ごとに導出する。
     public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。ExternalPressureDerived=0では不読
     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。ExternalPressureDerived=0では不読
     // A-高1：鋼のベッセマー不連続。坩堝鋼（地理差・高価＝鉄2.2+コークス1.2・Productivity0.9）と錬鉄レール（地理差・鉄1.3）を
@@ -2569,7 +2569,7 @@ public sealed class Coefficients
     // 【墓標2026-10-18・旗の焼き込み】PortRewireEnabled（既定1.0・点火2026-08-16 A/B：単独34/70/53・条約港風化との合成36/73/51=優加法）を消した＝全国の港配線（最寄り港/海盆）を四半期ごとに領土へ追随して張り直す。
     public double TransportWeightMarginScale = 0.3;   // 財9（輸送費の従量化）：交易マージンの従量成分の強度。0で従価一律の現行と厳密一致・>0で margin に TransportWeight(g)/RefPrice(g) 比例の従量部を加算＝石炭/穀物の長距離交易が前鉄道期に立たない
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: ThrottlePrepassUsesRealThreshold  財10（保護バイアス）：輸送スロットルの事前パスの輸入閾値。0で従来の裸マージン＝保護国のthrottleが過小→輸出が巻き添え・1で本パスと同式(tar×TariffProtect+cornPen+blockadeBias)に共通化。>0.5で発火
-    public double WorldPriceInitFromRefPrice = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**   // 財11（世界価格の初期値）：0で全財1.0初期化（現行）・1でCatalog.RefPricesから初期化＝開始数年の高額財交易の凍結を解消。>0.5で発火。MultiNationSim側でコンストラクタへ渡す配線が要る（既定省略時は0で現行と厳密一致）
+    // 【墓標2026-10-18・旗の焼き込み】WorldPriceInitFromRefPrice（財11・既定1.0・点火2026-07-27 機能優先ラウンド第1群）を消した＝世界価格の初期値は RefPrice（開始数年の高額財交易の凍結・安い原料の初期過大を解消）。InternationalMarket のコンストラクタの引数も消えた。
     // ⚠撤去2026-09-03（J-011）：`SingleNationTradeParity` を削除＝唯一の読み手だった旧・世界市場（`Trade.cs`）を消したため死蔵になった。
     // 【墓標2026-09-29・支払いの一元化 段3-1】ExportRevenueToProducers を削除（輸出代金の半分を生産者の持ち主へ直接・残りを国の全POP の貯蓄比＝輸出代金は全額を④の持分へ＝InternationalMarket.PaySales・C4）。
 
@@ -2686,7 +2686,7 @@ public sealed class Coefficients
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。
     //     ⚠親も反乱国も真＝親の全州が生産−20%を受ける。清・露・オスマンの経済帯が悪化することは作者が受容済み（帯の悪化は差し戻しの理由にしない・記録する）。
-    public double CivilWarPredicateUnified = 1.0;
+    // 【墓標2026-10-18・旗の焼き込み】CivilWarPredicateUnified（実バグ21件 第4波 B3・既定1.0・点火2026-09-08 F3b蜂起doc §5 段3）を消した＝「内戦中か」は World.InCivilWar の1本（War で戦う内戦もここへ届く）。親も反乱国も真＝親の全州が生産−20%を受ける。
     // ★同時独立（作者裁定2026-09-06「独立のクールダウンなど根拠のないものは外す。国がバラバラに分裂してもよい（清など）」・J-015決着）。
     //   従来＝分離は「国につき同時に1つ・内戦4年（CivilWarYears）の後に決着」＝根拠のない直列化で、支配度ストックでは中南米の独立が4年刻みの行列になった。
     //   新＝支配度が尽きた州（旧判定では圧力最大の州）は**その四半期に**内戦一元化の経路（SpawnNation＋内戦タグの戦争）へ＝複数州が同時にそれぞれ独立の戦争に入る。
@@ -3097,14 +3097,14 @@ public sealed class Coefficients
     // 作者方針＝AI=プレイヤー完全等価・難易度はAIを賢くする方向で上げる。実装時は3本とも既定0＝現行AIとビット恒等（分岐の外側に1命令も足さない）。
     // ★点火の現況（2026-08-16の点火梯子）＝AiLawGateUnified と AiLawWriteCoverage は**点火済み・live**。
     //   AiMobilization（総動員のAI分岐）は 2026-09-20 に係数ごと削除＝段の点火（FiscalLawStages）で同じ分岐が常時開いた（SelfPlay.DecideQuarter）。
-    public double AiLawGateUnified = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact36.2→41.6・near+4.4（単独最良のnear）／合成comp4に含む。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】   // **主フラグ・点火済み（live）**：幽霊戦線の根絶（監査Top10の2位＝単一最大効果）。
+    // 【墓標2026-10-18・旗の焼き込み】AiLawGateUnified（AI第1波①・既定1.0・点火2026-08-16 点火梯子＝単独 exact36.2→41.6・near+4.4）を消した＝AI の法目標は統一ゲート GateAllLawTargets を常に通る（幽霊戦線の根絶）。0＝旧来の無ゲート直接代入は git の履歴から戻せる。
                                             //   >0＝AI（Apply/DecideLaws/DecideModernLaws）の全法目標を「現行法から1段・Government.GateInfo（前提DAG＋純支持＋余白）が
                                             //   いま通る段だけ」に統一（SelfPlay.GateAllLawTargets）＝到達不能な法は目標に置かない。毎四半期 want を再計算するので
                                             //   状況が変われば自然に再挑戦＝諦めの恒久化はしない。0＝旧来の無ゲート直接代入（遠い目標を置きっぱなし）＝ビット恒等。
                                             //   点火A/Bの観点：CountOpenFronts のN（現行AIは毎四半期20本前後）が数本へ落ち、政治押し予算 (1/N)^0.5 が約1/4→1近くへ回復
                                             //   ＝AIの法到達がプレイヤーの「1本ずつ置く」と同じ土俵（2〜4倍速）。効く帯＝政体exact/near（改革の速度・後進専制の近代化時期）・
                                             //   法多様性・総政変（法が通る→闘争の捌け口が変わる）。
-    public double AiLawWriteCoverage = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact41.6・near+2.9。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】 // **点火済み（live）**：書き手ゼロ2法（移民制限法・国教法＝監査Top10の10位）のAI書き手（SelfPlay.DecideModernLaws）。
+    // 【墓標2026-10-18・旗の焼き込み】AiLawWriteCoverage（AI第1波③・既定1.0・点火2026-08-16 点火梯子＝単独 exact41.6・near+2.9）を消した＝書き手ゼロ2法（移民制限法・国教法）の AI 目標は常に StepLawToward 経由で置く。
                                             //   >0＝既存量（移民流入率×大衆失業＝PolicyPreferences と同じ材料／支配ブロックの教義 DoctrineFrom）から目標を導き、
                                             //   **必ず StepLawToward 経由**（GateInfo確認・1段ずつ）で置く＝AiLawGateUnified の値に依らず（0でも）幽霊戦線を新設しない独立設計。
                                             //   0＝ブロックごと不実行＝ビット恒等。
@@ -3118,12 +3118,12 @@ public sealed class Coefficients
     // 実装時は全て既定0＝現行AIとビット恒等（0では新しい読み書き・World注入・ProductionDiag呼び出しがゼロ）。年号・国名・IsPlayer分岐は書かない。
     // 点火の打順＝**#4→#2→#1→#5→#3**（診断の裁定＝リスク低→高：#4=純関数の読みだけ・#2=逆インセンティブの反転・#1=第二幕の本丸だが露規模常勝の前科・
     // #5=防衛側の反射・#3=三重ガード緩和は軍事独裁34%の前科）。★**5本とも2026-08-16の点火梯子で点火済み・live**（#1のみ0.6・他は1.0）。
-    public double AiSupplyChainEyes = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact+1.9。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】   // **点火済み（live）**（診断#4）：AIに連鎖の律速を読む目。>0＝TryBuildFacility が需要シグナル（eff>閾値）のある候補財について
+    // 【墓標2026-10-18・旗の焼き込み】AiSupplyChainEyes（鋼市場診断#4・既定1.0・点火2026-08-16 点火梯子＝単独 exact+1.9）を消した＝AI の着工は連鎖の律速（配給率が AiChainStarvedFill 未満の上流財）を読む目を常に持つ（score＝下流eff×(1+(1−fill))）。
                                              //   ProductionDiag.ExplainCost（純関数・従来は生産タブUIだけが読む＝プレイヤーが「供給:n%」で律速を遡るのと同じ情報＝AI/プレイヤー対称）を読み、
                                              //   配給率（Market.LastRation）が最も低い非労働投入が AiChainStarvedFill を割っていればその**上流財を候補に足して優先**する
                                              //   （score＝下流eff×(1+これ×(1−fill))＞下流自身＝律速点から建てる。StepLawToward が GateInfo を読むのと同じ「読み取りだけ」の作法）。
                                              //   0＝ProductionDiag を一切呼ばない＝恒等。点火A/Bで見る帯：**鋼レントの侵食**（鋼・素材の世界価格）・noviceprobe順位差・工業化。
-    public double AiWorldPriceEntry = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact+0.4（逆インセンティブの反転）。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】   // **点火済み（live）**（診断#2）：世界相対価格の注入と参入判断＝**逆インセンティブの反転**。
+    // 【墓標2026-10-18・旗の焼き込み】AiWorldPriceEntry（鋼市場診断#2・既定1.0・点火2026-08-16 点火梯子＝単独 exact+0.4）を消した＝国際市場の平均価格を各国 World へ毎四半期注入し、AI の参入判断が世界の着値を読む（逆インセンティブの反転）。
                                              //   旧＝relExcess=自国価格/参照−1 だけを読む＝安い輸入が来るほど国内価格が下がり「建てない」（史実「安い英国鋼→独米が製鉄所+関税」の真逆・診断B-3）。
                                              //   >0＝MultiNationSim が四半期同期（WorldTechLevel/IndustrialFrontier と同型）で Market.Price（265州平均）を World.WorldGoodsPrices へ注入し、
                                              //   TryBuildFacility の score が max(自国relExcess, 世界relExcess−輸送楔) に開く（楔＝TransportMargin＝BilateralMarket:289 の距離0下界を流用・新距離計算なし）。
@@ -3134,13 +3134,13 @@ public sealed class Coefficients
                                              //   ChooseStance の indRoom(4.0)とダンピングの後発判定(<2.5)は今回触らない（別判断＝スタンス選択/輸出補助の閾値・記録のみ）。
                                              //   0＝定数2.5＝恒等。単一国は IndustrialFrontier=0 なので α>0 でも 2.5 のまま＝較正・単体テスト不変。
                                              //   点火A/Bで見る帯：**列強再現率と露**（規模常勝の再発監視）・工業化の帯・鋼レント。
-    public double AiProtectiveTariff = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact+5.6・法+4.7＝単独最良のexact。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】  // **点火済み（live）**（診断#5・防衛側）：保護関税の反射。>0＝自国財の SmoothedMargin<0 かつ当該財の輸入が急増
+    // 【墓標2026-10-18・旗の焼き込み】AiProtectiveTariff（鋼市場診断#5・既定1.0・点火2026-08-16 点火梯子＝単独 exact+5.6・法+4.7）を消した＝保護関税の反射（輸入急増で TariffTarget を max(現行目標, 現行関税+TariffReactionMax) へ）は常に有効。
                                              //   （ImportsByGood の対EMA比＝「前年比」の最小実装。EMAはAI個体の記憶＝UtilityAgent._importEma）のとき
                                              //   TariffTarget を max(現行目標, 現行関税+TariffReactionMax×これ) へ（振幅は既存の通商反応の較正済み量0.25を流用・
                                              //   実効上限は既存の Move クランプ[TariffFloor,1]＝新しい上限を作らない）。**条件時のみ書く**＝関税スライダーは CountOpenFronts 対象＝
                                              //   幽霊戦線を作らない（条件が引けば翌四半期は Apply のスタンス目標が上書き＝戦線は自然に閉じる）。0＝EMA更新すらしない＝恒等。
                                              //   点火A/Bで見る帯：**貿易/GDP帯**（保護の壁で世界貿易が縮みすぎないか）・secondDeliver の底上げ＝鋼レント・関税の法多様性。
-    public double AiBuildGuardRelax = 1.0;   // 【点火1.0・2026-08-16 点火梯子＝単独 exact+2.2（軍事独裁の頻度は硬性緑を確認）。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】   // **点火済み（live）**（診断#3）：国営着工の三重ガード緩和。>0＝(a)pendingWill（未達の意志）の全国一律 return→**州ごと**の判定
+    // 【墓標2026-10-18・旗の焼き込み】AiBuildGuardRelax（鋼市場診断#3・既定1.0・点火2026-08-16 点火梯子＝単独 exact+2.2）を消した＝AI の着工の財政ガードは借入と同じ規律（国家の支払い率 r＜1 の時だけ止まる）・意志の残る州だけ静止して他州は並行着工。定数 FacilityBuildStressCeiling（0.0）も消えた。
                                              //   （意志の残る州だけ静止・他州は並行着工）(b)FiscalStress>0.0 の即 return→**借金ボタンと同じ規律**（強制義務＝維持費+利払いを国庫で賄える限り建てる）。
                                              //   月次出費≤FacilityBuildOutlayShare(0.10)×バッファの律速は**残す**（これが本命の予算制約＝並行着工でも金の天井は1本）。
                                              //   ⚠2026-08-04の前科（緩和0.5→工事出費が国庫を吸い軍事独裁5%→34%＝SelfPlay:93-95）＝当時は月次出費の律速が未実装だった。

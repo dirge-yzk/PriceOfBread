@@ -236,6 +236,8 @@ public class DormantIdentityTests
         "FertilityAffectsBirthsOnly", "FertileWomenBirths", "CoupleLimitedBirths", "TradeLedgerFix", "CrimeVictimBasis", "DiscoveryTierGate",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 交5（LandRouteEnabled を除く）。LandRouteEnabled は TransitTests・TradeClearingTests が陸路を切る環境固定に使うので残した
         "TradeMonthlyClearing", "WinterPortFreeze", "TradeWeightDynamic", "TradeAccessNormalized", "LandEdgesAvoidWater", "BarrierWallSegments", "TransportShareByPotential", "TransportEnabled", "TransitEnabled", "PortRewireEnabled",
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c A1（AI・世界の既定1.0の旗10本）
+        "AiLawGateUnified", "AiLawWriteCoverage", "AiSupplyChainEyes", "AiWorldPriceEntry", "AiProtectiveTariff", "AiBuildGuardRelax", "InvadeShipSeaDistance", "ExternalPressureDerived", "WorldPriceInitFromRefPrice", "CivilWarPredicateUnified",
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

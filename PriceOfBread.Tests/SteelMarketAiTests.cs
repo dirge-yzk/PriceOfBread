@@ -8,9 +8,8 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// 鋼市場AI側の5フラグ（2026-08-16・診断=docs/202608/20260816_鋼市場診断_部分完了.md／実装節=同docの末尾）のON経路。
 /// #1 AiIndustrialCeilingFrontier／#2 AiWorldPriceEntry／#3 AiBuildGuardRelax／#4 AiSupplyChainEyes／#5 AiProtectiveTariff。
-/// ⚠5本とも2026-08-16の点火梯子で**点火済み**（既定0→#1は0.6・他4本は1.0）＝既定はもう休眠ではない。
-/// ここでは**既定値の番人**（＝いま live である値の宣言）と**ON側の挙動**、および各フラグのOFF側（旧挙動）の対照を見る。
-/// ⚠対照実験はOFF側もON側も明示的にピンする（pob-ignition-comment-sweep の教訓＝既定に寄りかかった番人は点火で空洞化する）。
+/// ⚠5本とも2026-08-16の点火梯子で**点火済み**（既定0→#1は0.6・他4本は1.0）。#2〜#5 の旗（AiWorldPriceEntry・AiBuildGuardRelax・AiSupplyChainEyes・AiProtectiveTariff）は 2026-10-18 に焼き込み＝OFF側（旧挙動）の対照は旗ごと消えた。
+/// ここでは**既定値の番人**（＝いま live である値の宣言）と**ON側の挙動**を見る。
 /// </summary>
 public class SteelMarketAiTests
 {
@@ -51,33 +50,19 @@ public class SteelMarketAiTests
     // ============ (a) 既定値の番人（5フラグとも点火済み＝いまこの値で live） ============
 
     [Fact]
-    public void 鋼市場AI側の5係数は点火済みの既定値である()
+    public void 鋼市場AI側の前線連動は点火済みの既定値である()
     {
         // 2026-08-16 点火梯子で 0→この値へ点火（合成comp4）。うっかり値が動いたらここが赤になる。
         // ⚠POB_COEF で明示的に上書きした測定走行では見ない（点火A/Bを同一バイナリで取るため）。
         var c = new Coefficients();
         string ov = Coefficients.OverrideSummary();
-        if (!ov.Contains("AiSupplyChainEyes", StringComparison.Ordinal)) Assert.Equal(1.0, c.AiSupplyChainEyes);
-        if (!ov.Contains("AiWorldPriceEntry", StringComparison.Ordinal)) Assert.Equal(1.0, c.AiWorldPriceEntry);
         if (!ov.Contains("AiIndustrialCeilingFrontier", StringComparison.Ordinal)) Assert.Equal(0.6, c.AiIndustrialCeilingFrontier);
-        if (!ov.Contains("AiProtectiveTariff", StringComparison.Ordinal)) Assert.Equal(1.0, c.AiProtectiveTariff);
-        if (!ov.Contains("AiBuildGuardRelax", StringComparison.Ordinal)) Assert.Equal(1.0, c.AiBuildGuardRelax);
     }
 
     [Fact]
-    public void 世界価格の注入はフラグが握る()
+    public void 世界価格は毎四半期各国へ注入される()
     {
-        // OFF側を明示ピン（点火前の旧挙動＝配列すら確保しない＝World側の読み手も常にnull枝＝恒等）
-        var off = FourNations();
-        foreach (var n in off.Nations) n.World.Coef.AiWorldPriceEntry = 0.0;
-        off.Coef.AiWorldPriceEntry = 0.0;   // 注入は MultiNationSim 側の係数が握る（四半期末ブロック）
-        off.Run(2);
-        foreach (var n in off.Nations) Assert.Null(n.World.WorldGoodsPrices);
-
-        // ON側も明示ピン（既定は点火1.0だが、番人は既定に寄りかからない）
         var on = FourNations();
-        foreach (var n in on.Nations) n.World.Coef.AiWorldPriceEntry = 1.0;
-        on.Coef.AiWorldPriceEntry = 1.0;
         on.Run(2);
         Assert.All(on.Nations, n => Assert.NotNull(n.World.WorldGoodsPrices));
     }
@@ -111,7 +96,6 @@ public class SteelMarketAiTests
     [Fact]
     public void 世界価格が高ければ自国価格が潰れていても参入する()
     {
-        foreach (bool on in new[] { false, true })
         {
             var w = FourNations().Nations[0].World;   // フランス
             GiveBuildRoom(w, 1.5);
@@ -125,12 +109,10 @@ public class SteelMarketAiTests
             var wgp = new double[Catalog.Goods.Length];
             wgp[pr.GoodId] = 100.0 * rp;              // 世界の着値だけが高い（他財は0＝世界チャネルは開かない）
             w.WorldGoodsPrices = wgp;
-            w.Coef.AiWorldPriceEntry = on ? 1.0 : 0.0;
 
             new UtilityAgent().DecideQuarter(w);
 
-            if (on) Assert.Equal(1, pr.StateTarget);   // 世界へ売れるレントを読んで参入＝反転
-            else Assert.Equal(0, pr.StateTarget);      // 旧＝局所価格しか読まない＝安い輸入ほど建てない
+            Assert.Equal(1, pr.StateTarget);   // 世界へ売れるレントを読んで参入＝反転（旧＝局所価格しか読まない＝安い輸入ほど建てない）
         }
     }
 
@@ -162,9 +144,8 @@ public class SteelMarketAiTests
     /// <summary>(a)並行着工：旧は「全国のどこかに未達の意志があれば**全国** return」＝AI国は世界で同時1件（年4棟）。
     /// 緩和後は意志の残る州だけ静止し、他州は並行して着工する（金の天井＝月次出費の律速は残る）。</summary>
     [Fact]
-    public void ガード緩和ONなら州ごとに並行着工する()
+    public void 州ごとに並行着工する()
     {
-        foreach (bool on in new[] { false, true })
         {
             var w = FourNations().Nations[0].World;
             GiveBuildRoom(w, 1.5);
@@ -176,12 +157,10 @@ public class SteelMarketAiTests
                 rg.Markets[pr.GoodId].Price = 2.0 * RefAnchor(rg, pr.GoodId);
                 pr.SmoothedMargin = 0.5;
             }
-            w.Coef.AiBuildGuardRelax = on ? 1.0 : 0.0;
 
             new UtilityAgent().DecideQuarter(w);
 
-            if (on) Assert.True(WilledCount(w) >= 2, $"並行着工が起きていない（意志の立った生産者={WilledCount(w)}）");
-            else Assert.Equal(1, WilledCount(w));   // 旧＝全国で同時1件
+            Assert.True(WilledCount(w) >= 2, $"並行着工が起きていない（意志の立った生産者={WilledCount(w)}）");   // 旧＝全国で同時1件
         }
     }
 
@@ -190,32 +169,23 @@ public class SteelMarketAiTests
     /// <summary>下流の財が「不足していて儲かる」のに、その材料が配給されている（Fill が低い）とき、
     /// 旧AIは下流を建てて詰まりを深くした。目を持つAIは**上流から**建てる（生産タブでプレイヤーが読むのと同じ「供給:n%」）。</summary>
     [Fact]
-    public void 連鎖の目ONなら上流の律速財を先に建てる()
+    public void 連鎖の目は上流の律速財を先に建てる()
     {
-        foreach (bool on in new[] { false, true })
         {
             var w = FourNations().Nations[0].World;
             GiveBuildRoom(w, 1.5);
             var rg = w.Regions[0];
             var (down, up) = FindChainPair(w, rg);
             rg.Markets[down.GoodId].Price = 100.0 * RefAnchor(rg, down.GoodId);   // 下流＝全国で突出した不足（eff≈99）
-            down.SmoothedMargin = 1.0;                                            // 旧判断でも建つ＝OFF側の対照が成立する
+            down.SmoothedMargin = 1.0;                                            // 旧判断でも建つ候補
             rg.Markets[up.GoodId].LastRation = new Share(0.0);                               // 上流＝配給0％＝連鎖の律速（Fill=0）
-            // 係数5.0＝上流の優先（1+5×(1−Fill)=6）が下流の失業重み上限（1+2×1=3）を必ず上回る＝argmax が決定論
-            w.Coef.AiSupplyChainEyes = on ? 5.0 : 0.0;
+            // 上流の優先は下流の eff × (1+(1−Fill))＝2。下流自身は eff × (1+失業の重み×失業率)＝失業0なら1 ＝argmax が決定論
+            foreach (var pp in w.AllPops()) pp.UnemploymentRate = new Share(0.0);
 
             new UtilityAgent().DecideQuarter(w);
 
-            if (on)
-            {
-                Assert.Equal(1, up.StateTarget);     // 律速点から建てる
-                Assert.Equal(0, down.StateTarget);   // 詰まった下流は後回し（1四半期1件のまま）
-            }
-            else
-            {
-                Assert.Equal(1, down.StateTarget);   // 旧＝価格の高い下流を建てて詰まりを深くする
-                Assert.Equal(0, up.StateTarget);
-            }
+            Assert.Equal(1, up.StateTarget);     // 律速点から建てる（旧＝価格の高い下流を建てて詰まりを深くする）
+            Assert.Equal(0, down.StateTarget);   // 詰まった下流は後回し
         }
     }
 
@@ -257,7 +227,7 @@ public class SteelMarketAiTests
             GiveBuildRoom(w, 1.5);
             Assert.Equal(0.0, UtilityAgent.FiscalStressOf(w));   // 前提：財政の門は通る
             Assert.Equal(0, WilledCount(w));                     // 前提：未達の意志ゼロ
-            w.Coef.AiSupplyChainEyes = 0.0;                      // 連鎖の目は外す（上流を選ぶと下流の着工が見えない）
+            foreach (var rr in w.Regions) foreach (var mm in rr.Markets) mm.LastRation = new Share(1.0);   // 配給の詰まりは無い＝連鎖の目が上流を足さない（上流を選ぶと下流の着工が見えない）
             w.WorldGoodsPrices = null;                           // 世界の着値の経路は閉じる（採算の門を通る候補だけを見る）
             Region? rg = null; Producer? pr = null;
             foreach (var r in w.Regions)
@@ -294,11 +264,9 @@ public class SteelMarketAiTests
     [Fact]
     public void 輸入急増と自国財の赤字で関税目標が上がる()
     {
-        foreach (bool on in new[] { false, true })
         {
             var w = FourNations().Nations[0].World;
-            w.Tariff = 0.5;                     // 現在の関税＝反射の基点（目標は現在＋TariffReactionMax×α＝0.75）
-            w.Coef.AiProtectiveTariff = on ? 1.0 : 0.0;
+            w.Tariff = 0.5;                     // 現在の関税＝反射の基点（目標は現在＋TariffReactionMax＝0.75）
             int gid = PickBuildable(w.Regions[0]).GoodId;
             foreach (var r in w.Regions)        // 自国産業が押されている（生産規模で加重した平均採算が赤字）
                 foreach (var p in r.Producers)
@@ -315,10 +283,8 @@ public class SteelMarketAiTests
             imp[gid] = basis * 5.0;                                  // 対EMA比5倍＝急増線1.5を超える
             agent.DecideQuarter(w);                                  // 2回目＝判定
 
-            if (on) Assert.True(w.Policy.TariffTarget >= 0.75 - 1e-9,
+            Assert.True(w.Policy.TariffTarget >= 0.75 - 1e-9,
                         $"輸入急増×自国赤字なのに壁を作らない（目標={w.Policy.TariffTarget:F3}）");
-            else Assert.True(w.Policy.TariffTarget < 0.75 - 1e-9,
-                        $"休眠のはずの反射が動いている（目標={w.Policy.TariffTarget:F3}）");
         }
     }
 
@@ -329,7 +295,6 @@ public class SteelMarketAiTests
     {
         var w = FourNations().Nations[0].World;
         w.Tariff = 0.5;
-        w.Coef.AiProtectiveTariff = 1.0;
         int gid = PickBuildable(w.Regions[0]).GoodId;
         foreach (var r in w.Regions)
             foreach (var p in r.Producers)

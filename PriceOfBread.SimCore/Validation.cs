@@ -171,13 +171,12 @@ public static class Metrics
         int wars = sim.Diplomacy.WarsStarted;   // 測定短縮①（2026-07-09）：ログ文字列走査→スカラーカウンタ（同値・Log.Enabled=falseのleanバッチでも正しい）
         int totalCol = 0; foreach (var p in sim.Diplomacy.Powers) totalCol += p.Colonies;
         double tradeVol = 0; foreach (var v in sim.Market.Volume) tradeVol += v;
-        // 世界価格の初期値は WorldPriceInitFromRefPrice>0.5 なら RefPrice 起点（InternationalMarket と同じ規則）＝
+        // 世界価格の初期値は RefPrice 起点（InternationalMarket と同じ規則）＝
         // 「動いた」は初期値からの比で測る（1.0固定と比べると参照価格が1から離れた財が取引ゼロでも動いた扱いになっていた）。
-        bool initFromRef = sim.Coef.WorldPriceInitFromRefPrice > 0.5;
         int moved = 0;
         for (int g = 0; g < sim.Market.Price.Count; g++)
         {
-            double init = initFromRef && g < Catalog.RefPrices.Length ? Catalog.RefPrices[g] : 1.0;
+            double init = g < Catalog.RefPrices.Length ? Catalog.RefPrices[g] : 1.0;
             if (Math.Abs(sim.Market.Price[g] / init - 1.0) > PriceMovedThreshold) moved++;
         }
         return new SimMetrics(sim.Year, nations, deadEnd, indSpread, wars, totalCol, tradeVol, moved,
