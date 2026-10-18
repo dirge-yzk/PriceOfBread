@@ -202,12 +202,18 @@ internal static class PlayHarness
         double pop = 0, urbanPop = 0, lit = 0, cons = 0, savings = 0;
         var byClass = new Dictionary<int, (double size, double lit, double sat, double mil, double sav)>();
         var classNames = new SortedDictionary<int, string>();   // ★(405) 階級の番号→名前の表（POP の ClassName の最初の非空）＝報告の階級を番号でなく名前で読める
+        var milByClass = new Dictionary<int, double[]>();   // ★(410) 闘争度の目標の 5 本（Pop.MilLiving ほか）の人口加重和：階級ごと（画面の階級の表と同じ母集団＝階級の全 POP）
+        var milMass = new double[5]; double massSize = 0;   // ★(410) 同・大衆（ヘッダーの闘争度と同じ母集団＝Politics.IsMassPop）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.ClassName.Length > 0 && !classNames.ContainsKey(p.ClassId)) classNames[p.ClassId] = p.ClassName;
+                if (!milByClass.TryGetValue(p.ClassId, out var mc)) milByClass[p.ClassId] = mc = new double[5];
+                double[] mp = [p.MilLiving, p.MilVoice, p.MilWar, p.MilNation, p.MilFamine];
+                for (int k = 0; k < 5; k++) mc[k] += mp[k] * p.Size;
+                if (Politics.IsMassPop(p)) { for (int k = 0; k < 5; k++) milMass[k] += mp[k] * p.Size; massSize += p.Size; }
                 pop += p.Size; if (p.IsUrban) urbanPop += p.Size;
                 lit += p.Literacy * p.Size; cons += p.Consciousness * p.Size;
                 savings += p.Savings.Value;
@@ -221,12 +227,23 @@ internal static class PlayHarness
         sb.AppendLine($"================ {w.Year}年 Q{w.Quarter}　{sp.Name} ================");
         sb.AppendLine($"政体 {w.Polity}　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
         sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
+        // ★(410) 00-HARN の残り：闘争度は 5 本の目標の和（クランプ前）へ速さ σ で追う在庫＝ヘッダーの闘争度と和は一致しない。画面の階級のホバーと同じ名前・同じ 0.5% 未満の省略。
+        sb.AppendLine($"闘争度の目標の内訳（大衆・人口加重・和は在庫が追う先）： {MilParts(milMass, massSize)}");
         sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdpPerMonth:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
 
         sb.AppendLine();
         sb.AppendLine("---- 財政 ----");
         sb.AppendLine($"所得税 {w.TaxRate:P0}　人頭税 {w.PollTax:P0}　土地税 {w.LandTax:P0}　累進 {w.ProgressiveTax:P0}　専売の負担 {w.StateMonopolyBreadth:P0}（実効 {w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:P0}）");
         sb.AppendLine($"関税 {w.Tariff:P0}　教育費 {w.EducationSpending:P0}　行政費 {w.AdminSpending:P0}　社会保障 {w.SocialSecurity:P0}");
+        // ★(410) 00-HARN の残り（プレイの報告 2-3）：教育費の目標は法と支配度を通った後の**実効**でしか国庫の購入にならない（Simulation の CompulsoryEduFunding・払い率を掛けた後の値）。
+        //   目標を払っているつもりで実効 0 の国（Religious で教区学校への補助が無い・支配度が届かない）を報告で読めるようにする。
+        {
+            double effNum = 0, effPop = 0;
+            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; double rp = r.SumPopulation(); effNum += rp * r.CompulsoryEduFunding; effPop += rp; }
+            double effNation = effPop > 1e-9 ? effNum / effPop : 0;
+            sb.AppendLine($"実効の教育費（国庫が教育を買う率・法と支配度と払い率を通した後）： 国（人口加重） {effNation:P1}　首都州 {w.Region.CompulsoryEduFunding:P1}　目標 {w.EducationSpending:P0}　教育法 {w.EducationLaw}"
+                + (w.EducationSpending > 0.005 && effNation < 0.0005 ? "　★目標を払っているつもりで実効 0" : ""));
+        }
         sb.AppendLine($"★近代化投資 {w.ModernizationFrac:P0}（今四半期の予算 {w.ModernizationBudget():N0}）　総動員 {w.Mobilized}");
         sb.AppendLine($"陸軍維持費 {w.ArmyUpkeep:P0}　海軍維持費 {w.NavyUpkeep:P0}　植民地維持 {w.LastColonialUpkeepPerMonth:N0}");
 
@@ -252,7 +269,7 @@ internal static class PlayHarness
             var br = PolicyPreferences.SupportBreakdown(w, ax, true)
                         .Where(x => Math.Abs(x.Weight) > 1e-9)
                         .OrderByDescending(x => Math.Abs(x.Weight)).Take(4);
-            sb.AppendLine($"  {ax,-18} 強化 {up,7:F3}　［{string.Join(" / ", br.Select(x => $"{x.Who}{x.Weight:+0.00;-0.00}"))}］");
+            sb.AppendLine($"  {ax,-18} 強化 {up,7:F3}　［{string.Join(" / ", br.Select(x => $"{x.Who}{x.Weight:+0.00;-0.00}"))}］　次の一歩 {GateText(w, ax)}");   // ★(410) 次の一歩の門＝法律タブのホバーと同じ文言（PlayText）
         }
 
         sb.AppendLine();
@@ -305,7 +322,8 @@ internal static class PlayHarness
         {
             var (size, l, st, m2, sv) = kv.Value;
             double sz = Math.Max(1, size);
-            sb.AppendLine($"  階級{kv.Key,2} {(classNames.TryGetValue(kv.Key, out var cn) ? cn : "？"),-8}  {size,12:N0}  識字{l / sz,5:P0}  水準{st / sz,6:F3}  闘争{m2 / sz,6:F3}  貯蓄{sv,12:N0}");
+            sb.AppendLine($"  階級{kv.Key,2} {(classNames.TryGetValue(kv.Key, out var cn) ? cn : "？"),-8}  {size,12:N0}  識字{l / sz,5:P0}  水準{st / sz,6:F3}  闘争{m2 / sz,6:F3}  貯蓄{sv,12:N0}"
+                + (milByClass.TryGetValue(kv.Key, out var mcls) ? $"　目標［{MilParts(mcls, size)}］" : ""));   // ★(410) 闘争度の目標の 5 本（画面のホバーと同じ名前）
         }
 
         sb.AppendLine();
@@ -471,6 +489,25 @@ internal static class PlayHarness
             }
         }
         catch (Exception ex) { return $"⚠動作失敗 {line}（{ex.GetType().Name}: {ex.Message}）"; }
+    }
+
+    /// <summary>★(410) 闘争度の目標の 5 本（人口加重の和 <paramref name="sum"/>÷<paramref name="size"/>）を画面のホバーと同じ名前・同じ 0.5% 未満の省略で並べる（多い順）。1 本も無ければ「なし」。</summary>
+    private static string MilParts(double[] sum, double size)
+    {
+        double inv = size > 1e-9 ? 1.0 / size : 0;
+        var shown = Enumerable.Range(0, 5).Select(k => (Name: PlayText.MilitancyPartNames[k], V: sum[k] * inv)).Where(x => x.V > 0.005).OrderByDescending(x => x.V).ToList();
+        return shown.Count == 0 ? "なし" : string.Join(" ", shown.Select(x => $"{x.Name} {x.V:F3}"));
+    }
+
+    /// <summary>★(410) 政治の軸の次の一歩（強化の向き）の門を、法律タブのホバーの 2 行目と同じ文言で（<see cref="PlayText.NextStepLine"/>）。照会は副作用なし。</summary>
+    private static string GateText(World w, PolicyAxis ax)
+    {
+        try
+        {
+            var (ok, cost, reason) = Government.GateInfo(w, ax, true, Government.NextStage(w, ax, true));
+            return PlayText.NextStepLine(ok, cost, reason);
+        }
+        catch (Exception ex) { return $"⚠照会できず（{ex.GetType().Name}）"; }
     }
 
     private static double TotalPop(World w)

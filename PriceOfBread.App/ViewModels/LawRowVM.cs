@@ -101,7 +101,7 @@ public sealed partial class LawRowVM : ObservableObject
         string head = $"{Title}:{Stages[level - _levelBase].Label}";   // どの段のホバーかをホバー自身が名乗る（段番号→ラベル添字）
         if (level == CurrentLevel) return head + "\n現在の段階";
         if (level > CurrentLevel && !CanReach(level))
-            return head + "\n制定:不可\n" + FormatPrereq(Government.LawPrereq(_w, _axis!.Value, level, _w.Coef).Reason);
+            return head + "\n制定:不可\n" + PlayText.FormatPrereq(Government.LawPrereq(_w, _axis!.Value, level, _w.Coef).Reason);
         var (ok, cost, reason) = NextStep(level);
         // ★下げる側の理由も出す（2026-09-12 反証）：裁定Bで**床**（緊縮の下限・戦争中は軍を解散できない・軍事費に「なし」は無い）が
         //   Government.LawPrereq へ移り、床は**下げる向きにしか現れない**。上の分岐は level>CurrentLevel だけを見るので、
@@ -112,16 +112,14 @@ public sealed partial class LawRowVM : ObservableObject
         //     「政治資本消費:n　不足」ではなく理由そのもの（政治資本をいくら貯めても開かない門を政治資本の不足と言わない）。
         //   文字列は Government の const が単一ソース（生成側と比較側で散らせない＝2026-08-22 の作者指示が壊れる事故の型）。
         if (!ok && reason.Length > 0 && reason != Government.ReasonNoMandate && reason != Government.ReasonNoCapitalStock)
-            return head + "\n制定:不可\n" + FormatPrereq(reason);
+            return head + "\n制定:不可\n" + PlayText.FormatPrereq(reason);
         // ★2026-08-02（作者指摘「政治資本の消費なしと政治資本0の差がわからない」）：**常に同じ書式**にまとめる。
         //   0でも「政治資本消費:0」と出せば、0という値なのか対象外なのかで迷わない。
         //   ⚠否決のときも**必要量を出す**（作者指摘「政治資本がいくつ必要か知りたい」）＝同じ数字に「・不足」を付けるだけ。
         //   前提法が足りない等、政治資本では解けない理由は上の2分岐で「制定:不可」＋前提行として処理済み。
         //   併せて**誰がどの程度望んでいるか**を添える（賛成が強い順・NetSupport と同じ項の分解＝合計は一致）。
         var body = new System.Text.StringBuilder(head);
-        body.Append('\n').Append(ok ? $"制定:可能（政治資本消費:{cost * 100:F0}）"
-            : reason == Government.ReasonNoCapitalStock ? $"制定:不可（政治資本消費:{cost * 100:F0}　不足）"
-            : $"制定:不可（{reason}）");
+        body.Append('\n').Append(PlayText.GateLine(ok, cost, reason));   // ★(410) 文言は SimCore の PlayText が単一ソース（Runner の play の報告と同じ）
         var parts = PolicyPreferences.SupportBreakdown(_w, _axis.Value, level > CurrentLevel);
         foreach (var (who, wgt) in parts)
         {
@@ -131,22 +129,6 @@ public sealed partial class LawRowVM : ObservableObject
             body.Append('\n').Append(who).Append(wgt > 0 ? ":賛成 " : ":反対 ").Append(System.Math.Abs(wgt * 100).ToString("F0"));
         }
         return body.ToString();
-    }
-
-    /// <summary>前提未達の理由文を「◯◯:△△」レイアウトへ整形（作者指示2026-08-15）。
-    /// 「◯◯（△△）が前提」→「前提 ◯◯:△△」のパターン変換のみ。合わない文（プロレタリア独裁のみ 等）は
-    /// そのまま返す＝安全側。整形は表示側（本VM）の責務＝Government.cs には触れない。</summary>
-    private static string FormatPrereq(string reason)
-    {
-        const string tail = "）が前提";
-        int open = reason.IndexOf('（');
-        if (open > 0 && reason.EndsWith(tail, StringComparison.Ordinal) && open + 1 < reason.Length - tail.Length)
-        {
-            string state = reason[(open + 1)..^tail.Length];
-            if (!state.Contains('（') && !state.Contains('）'))   // 入れ子括弧は変換対象外（誤切り出しを避ける）
-                return $"前提 {reason[..open]}:{state}";
-        }
-        return reason;
     }
 
     /// <summary>段階ボタンのクリック＝目標をその段へ置く（施行は次tick以降、政治ゲート越しに1段ずつ進む）。</summary>

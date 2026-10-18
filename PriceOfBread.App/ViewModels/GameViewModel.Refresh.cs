@@ -565,8 +565,8 @@ public partial class GameViewModel
             // 闘争度の要因内訳：全国size加重の各寄与ぶん（多い順・0.5%未満は省略）。生活水準には操作可能な主因をヒント
             var milb = new List<(string Label, double V)>
             {
-                ("生活水準の不足", mLiving * inv), ("政治的疎外", mVoice * inv), ("厭戦", mWar * inv),
-                ("民族的地位", mNation * inv), ("飢餓", mFamine * inv),
+                (PlayText.MilitancyPartNames[0], mLiving * inv), (PlayText.MilitancyPartNames[1], mVoice * inv), (PlayText.MilitancyPartNames[2], mWar * inv),   // ★(410) 5 本の名前は PlayText が単一ソース（Runner の play の報告と同じ）
+                (PlayText.MilitancyPartNames[3], mNation * inv), (PlayText.MilitancyPartNames[4], mFamine * inv),
             };
             var causes = new List<string>();
             if (foodShort) causes.Add("主食不足");
