@@ -1987,7 +1987,7 @@ public sealed class World
     /// 州の <c>ReturnShare＝Clamp01(1−hurdle÷gross)</c>（<see cref="EconomyStep.InvestmentReturn"/>＝私的な投資家が建設の速さを決める式と同じ 1 本・<c>gross≦0</c> か NaN は 0）を、
     /// 国庫の按分の重み（<see cref="StateInvestWeight"/>）で加重平均する。重みが全て 0 の適格の州があるときは均等（<see cref="ApplyModernizationInvestment"/> の等分の枝と同じ規則）・適格の州が無ければ 0。
     /// <c>techProd</c> は <see cref="TechProductivity"/>（月次の経済と同じ 1 本）。純関数（状態を書かない・<c>IsPlayer</c> も <see cref="IndustrialFrontier"/> も <see cref="MeanIndustrialization"/> も読まない）。
-    /// 集計の工業化度に天井を置かず、設備の限界収益がハードルを割る所（信号 0）が自然な止まり。州の上限（<see cref="Coefficients.IndustryInvestRegionCap"/>）はプレイヤーと共通の物理の上限として残る。</summary>
+    /// 集計の工業化度に天井を置かない。信号が 0 になる所は低技術の国では州の上限の手前・高技術の国（techLev≳1.8）では州の上限の向こう＝高技術の国を止めているのは州の上限（<see cref="Coefficients.IndustryInvestRegionCap"/>・国庫の建設は束ねてヘッドルームで切る・私的な建設は信号と同じ netReturn の門だけで上限を見ないので 5.0 をわずかに超える〔計器で最大 5.29〕）。</summary>
     public double ModernizeReturnShare()
     {
         double num = 0, wsum = 0, eqSum = 0; int n = 0;
