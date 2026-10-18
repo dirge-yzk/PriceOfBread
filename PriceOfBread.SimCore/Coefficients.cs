@@ -2831,6 +2831,10 @@ public sealed class Coefficients
     // 　その床（腕 BF・既定 0.4／0＝床なし＝腕 B）：壁の一歩を払ったあとの正統性がこの値を下回るなら通さない（`cost <= 正統性 − 請求済み − これ`）。旗 MandateOverStockFromLegitimacy＞0 のときだけ読む。
     //   0 の B は開幕の最初の四半期に全ての国が壁の一歩を払い正統性を 0.3〜0.9 燃やす（canary で 53 カ国・事前登録 追記1）＝その変種の腕で値を決める。新しい数字は置かない
     //   （腕で既存の閾値 ReformFromAboveLegitThreshold〔0.4〕などを当てる）。数字の出所は AI の推奨・〈確証なし〉。
+    // ★(409) 床を比例の形に（事前登録 measurements/rw_20261018_prereg.txt [1]）：0＝今の床の式（上）／p＞0＝壁の一歩で払える量を avail^p にする（avail＝正統性−この四半期の請求済み・0〜1）。床は読まない。
+    //   avail^p は avail の連続な単調関数で、段差が無い（床は avail＝床 で 0 から立ち上がる）。p＝2 は床 0.4 より全域で緩く（avail²−avail+0.4＞0）床なしより厳しい。払った後の残りは avail(1−avail)＞0＝壁の一歩では 0 に届かない。
+    //   指数の選択（2・3）は AI の推奨・〈確証なし〉。採ったら床の係数 MandateOverStockLegitFloor を削除して閾値を残さない。0 で厳密恒等。
+    public double MandateOverStockLegitPower = 0;
     public double MandateOverStockLegitFloor = 0.4;   // ★(405) 採用（腕 BF・既定 0.4）：閾値の形で README §1-8・設計思想⑧と緊張する＝作者に聞く Q6（出所は AI の推奨・既存の閾値 ReformFromAboveLegitThreshold と同じ値・〈確証なし〉）。0 に倒すと腕 B
 
     // === 王権議会P0＝内部状態化 2026-07-10（出典＝設計doc「王権議会_史実精査」§3新規1-6/§4結論/§4-b協力度2次元/§5判断③・「設計メモ」§2段階(i)）===

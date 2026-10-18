@@ -24,6 +24,7 @@ public class ReformPathTests
         var c = new Coefficients();
         Assert.Equal(1.0, c.MandateOverStockFromLegitimacy);
         Assert.Equal(0.4, c.MandateOverStockLegitFloor);
+        Assert.Equal(0.0, c.MandateOverStockLegitPower);      // ★(409) 比例の形は器だけ（既定 0＝今の床の式）
         Assert.Equal(1.0, c.ParishEduFunded);
         // 既定の盤面でも門が走る（床 0.4：払った後の正統性が 0.4 を下回る壁の一歩は通らない）
         var w = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent()).World;
@@ -291,6 +292,145 @@ public class ReformPathTests
         Assert.True(on.next < on.cur, "旗 1 のスライダーの壁の一歩が通っていない");
         Assert.True(on.w.MandateSpent > on.w.PoliticalCapitalMax, "旗 1 のスライダーの壁の一歩が S を b より上へ記帳していない");
         Assert.Equal(on.w.MandateSpent, on.w.MandateSpentNew, 9);
+    }
+
+    // ---------------------------------------------------------------- (409) 床を比例の形に（MandateOverStockLegitPower＝p：払える量＝avail^p）----------------------------------------------------------------
+    // 期待値は盤面ごとの数値のリテラル（avail＝正統性−請求済み・b＝PoliticalCapitalMax・S＝MandateSpent）。事前登録 measurements/rw_20261018_prereg.txt [6]。
+
+    private static World PowerBoard(double power, double legit, double spentNew = 0, double b = 0.005)
+    {
+        var w = Board().World;
+        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitFloor = 0.4; w.Coef.MandateOverStockLegitPower = power;
+        w.PoliticalCapitalMax = b; w.MandateSpent = 0; w.MandateSpentNew = spentNew; w.Legitimacy = legit;
+        return w;
+    }
+
+    [Fact]
+    public void P1_形が割れる盤面_床は否で二乗は可_床は読まない()
+    {
+        // avail＝0.75：床 0.4 の払える量は 0.35・二乗は 0.5625
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(0, 0.75), 0.55));    // p＝0＝今の床の式
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.75), 0.55));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.75), 0.57));    // 二乗の上限 0.5625 を超える
+        var w = PowerBoard(2, 0.75); w.Coef.MandateOverStockLegitFloor = 0.99;          // 床は p＞0 では読まない
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.55));
+        // 床 0.4 が通す所は二乗も通す（全域で床より緩い）：avail＝0.5 で床の払える量 0.1
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(0, 0.5), 0.09));
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.5), 0.09));
+        // 床は avail＝0.4 以下で何も通さないが、二乗は 0.16 まで通す
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(0, 0.4), 0.01));
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.4), 0.15));
+    }
+
+    [Fact]
+    public void P2_残りの正統性が細るほど払える量は速く細る_指数3は2より厳しい()
+    {
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.1), 0.011));   // 0.1² ＝ 0.01
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.1), 0.009));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(3, 0.5), 0.126));    // 0.5³ ＝ 0.125（2 進で正確）
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(3, 0.5), 0.124));
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(3, 0.5), 0.125));     // ちょうど（境界は含む）
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.5), 0.2));       // 二乗なら 0.25 まで・三乗は 0.125 まで
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(3, 0.5), 0.2));
+        // 請求済みは引く：正統性 0.9・請求済み 0.4 → avail＝0.5
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.9, 0.4), 0.26));
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.9, 0.4), 0.24));
+    }
+
+    [Fact]
+    public void P3_払った後の残りは0に届かない_avail全域で最大の一歩でも残りは正()
+    {
+        // 払える量いっぱい（avail²）を払った後の残りは avail(1−avail)＞0。格子の各 avail で、上限ぴったりの代価の少し下は可・少し上は否。
+        foreach (double avail in new[] { 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 })
+        {
+            double cap = avail * avail;
+            Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, avail, 0, cap * 0.5), cap * 0.999), $"avail={avail}：上限の少し下が否");
+            Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, avail, 0, cap * 0.5), cap * 1.001), $"avail={avail}：上限の少し上が可");
+            if (avail < 1.0) Assert.True(avail - cap * 0.999 > 0, $"avail={avail}：払った後の残りが 0 以下");
+        }
+    }
+
+    [Fact]
+    public void P4_満タンでなければ否_availが0以下は否_代価がb以下の普通の一歩はpに依らず同じ()
+    {
+        var w = PowerBoard(2, 0.9); w.MandateSpent = 0.01;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));                       // S＞0＝待つ
+        w = PowerBoard(2, 0.4, 0.4);                                                    // avail＝0
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.008));
+        w = PowerBoard(2, 0.4, 0.5);                                                    // avail＝−0.1：二乗は正(0.01)になるが否でなければならない
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.008));
+        foreach (double p in new[] { 0.0, 2.0, 3.0 })                                   // 代価≦b の普通の一歩：S＋代価≦b の境目の両側
+        {
+            w = PowerBoard(p, 0.9, 0, 0.5);
+            Assert.True(Government.PoliticalCapitalAffords(w, 0.25));
+            w.MandateSpent = 0.25;
+            Assert.True(Government.PoliticalCapitalAffords(w, 0.25));                   // 0.25＋0.25＝0.5＝b（境界は含む）
+            Assert.False(Government.PoliticalCapitalAffords(w, 0.26));
+        }
+    }
+
+    [Fact]
+    public void P5_NaNは閉じる側へ倒れる_pがNaNなら旧の式へ落ちる()
+    {
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.9), double.NaN));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, double.NaN), 0.5));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.9, double.NaN), 0.5));
+        var w = PowerBoard(2, 0.9); w.MandateSpent = double.NaN;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));
+        // p が NaN／負なら旧の式（床 0.4）：avail＝0.75 で払える量 0.35
+        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(double.NaN, 0.75), 0.34));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(double.NaN, 0.75), 0.36));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(-1, 0.75), 0.36));
+    }
+
+    /// <summary>4 本の脚が同じ盤面で同じ可否を返す（二乗が通す盤面と通さない盤面の両方）。通る盤面では代価の全額を 2 台帳へ 1 回だけ記帳する。</summary>
+    [Fact]
+    public void P6_脚が揃う_二乗が通さない盤面では照会も点灯も施行も否_通す盤面では全部可()
+    {
+        var w = Board().World;
+        var (axis, inc, level, cost) = PolicyPoliticsTests.FindOpposedStep(w);
+        w.Coef.MandateWeight = 0.001;
+        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitFloor = 0; w.Coef.MandateOverStockLegitPower = 2;
+        double b = PoliticalQuantities.PoliticalCapitalMax(w);
+        Assert.True(cost > b && cost < 0.9, $"テスト前提が崩れた：代価 {cost} が b {b} 超・0.9 未満でない");
+        // 通さない盤面：cost ≦ L（床なしなら通る）だが cost ＞ L²
+        w.Legitimacy = 0.5 * (cost + Math.Sqrt(cost)); w.MandateSpentNew = 0; w.PoliticalCapitalMax = b; w.MandateSpent = 0;
+        Assert.True(cost <= w.Legitimacy && cost > w.Legitimacy * w.Legitimacy, "テスト前提が崩れた：盤面が床なしと二乗を割っていない");
+        Assert.False(Government.GateInfo(w, axis, inc, level).Ok);
+        Assert.False(Government.CanStep(w, axis, inc));
+        int before = PolicyPoliticsTests.LawLevel(w, axis);
+        PolicyPoliticsTests.SetLawTarget(w, axis, level);
+        Government.Step(w, w.Coef);
+        Assert.Equal(before, PolicyPoliticsTests.LawLevel(w, axis));
+        // 通す盤面：L＝0.99（L² ≒ 0.98 ＞ cost）
+        w.Legitimacy = 0.99; w.MandateSpent = 0; w.MandateSpentNew = 0;
+        Assert.True(Government.GateInfo(w, axis, inc, level).Ok);
+        Assert.True(Government.CanStep(w, axis, inc));
+        Government.Step(w, w.Coef);
+        Assert.Equal(level, PolicyPoliticsTests.LawLevel(w, axis));
+        Assert.Equal(cost, w.MandateSpent, 9);
+        Assert.Equal(cost, w.MandateSpentNew, 9);
+    }
+
+    [Fact]
+    public void P7_スライダーの脚も二乗を読む_残りが細ければ動かない()
+    {
+        var move = typeof(Government).GetMethod("Move", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        (World w, double cur, double next) Run(double legit)
+        {
+            var w = Board().World;
+            w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitFloor = 0; w.Coef.MandateOverStockLegitPower = 2; w.Coef.MandateWeight = 0.001;
+            w.Legitimacy = legit; w.MandateSpentNew = 0; w.MandateSpent = 0; w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
+            double cur = w.Tariff;
+            double next = (double)move.Invoke(null, new object[] { cur, Math.Max(0.0, cur - 0.4), w.Coef, w, PolicyAxis.Tariff, 1.0, true, false })!;
+            return (w, cur, next);
+        }
+        var rich = Run(0.95); var poor = Run(0.05);
+        Assert.True(rich.next < rich.cur, "正統性 0.95 でスライダーの壁の一歩が通っていない");
+        double cost = rich.w.MandateSpent;
+        Assert.True(cost > 0.0025 && cost < 0.9, $"テスト前提が崩れた：代価 {cost} が 0.05² を超えない");
+        Assert.Equal(poor.cur, poor.next);                                              // 0.05² ＝ 0.0025 ＜ 代価＝1 ミリも動かない
+        Assert.Equal(0.0, poor.w.MandateSpent);
     }
 
     private static string StripComments(string src)

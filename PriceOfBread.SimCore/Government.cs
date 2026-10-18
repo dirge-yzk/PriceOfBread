@@ -548,7 +548,7 @@ public static class Government
         {
             double cost = -net * w.Coef.MandateSpendRate * costMul;   // 反対を押し切った代償（−net=|純支持|）＝正統性の全幅
             if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
-            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true); } return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
+            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true, cost); } return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
             if (Instruments.On) Instruments.WallPass(w, cost, true, a);   // 計器（読むだけ・(404)）：壁の分岐で通った一歩（旗 0 は数えない）
             Spend(w, cost);
         }
@@ -570,6 +570,9 @@ public static class Government
         //   ⚠否定形：S・正統性・代価のどれかが NaN なら比較が偽＝閉じる側へ倒れる。
         //   ここへ来た時点で S+代価 ＞ b。S≦0（満タン）ならそれは 代価＞b と同じ＝壁の一歩（S＞0 なら普通の一歩の在庫不足か壁の一歩の在庫の使いかけ＝どちらも待つ）。
         if (!(w.Coef.MandateOverStockFromLegitimacy > 0)) return false;
+        // ★(409) 比例の形（旗 MandateOverStockLegitPower＞0）：払える量＝avail^p（avail＝正統性−請求済み）。床は読まない・段差なし。NaN の p は `>` が偽＝下の旧の式（床）へ落ちる。avail が NaN／0 以下なら閉じる。
+        double power = w.Coef.MandateOverStockLegitPower;
+        if (power > 0) { double avail = w.Legitimacy - w.MandateSpentNew; return w.MandateSpent <= 0 && avail > 0 && cost <= Math.Pow(avail, power); }
         return w.MandateSpent <= 0 && cost <= w.Legitimacy - w.MandateSpentNew - w.Coef.MandateOverStockLegitFloor;   // 床（既定 0.4＝(405) 腕 BF・0＝床なし＝事前登録の式〔腕 B〕）＝払った後の正統性が床を下回る一歩は通さない
     }
 
@@ -882,7 +885,7 @@ public static class Government
             double moved = Math.Min(1.0, Math.Abs(next - cur) / spendScale);
             double cost = -net * w.Coef.MandateSpendRate * moved;
             if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
-            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) { Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); Instruments.RfBlocked(w, false); } return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
+            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) { Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); Instruments.RfBlocked(w, false, cost); } return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
             if (Instruments.On) Instruments.WallPass(w, cost, false, a);   // 計器（読むだけ・(404)）
             Spend(w, cost);
         }

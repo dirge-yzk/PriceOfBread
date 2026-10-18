@@ -9,12 +9,13 @@ namespace PriceOfBread.SimCore;
 //   wallPassCount・wallPassLawCount・wallPassSliderCount・wallPassCostIndex（前の行からこの行までの間〔挙げた国は 1 四半期・他の国は 4 四半期〕に旗 MandateOverStockFromLegitimacy の壁の分岐で通った一歩の数〔法・スライダーの内訳〕と代価の和）／
 //   educationLawCode・educationSpendingShare／parishFundingShare（CompulsoryEduFunding の州の人口加重平均）／educationBuyPerMonth（国庫が教育に払った額＝CumEducationCost の前の行からの差を月数で割る）／literacyShare（人口加重の識字・兵士を除く）／
 //   suffrageLawCode・censorshipLawCode・landReformLawCode・bureaucracyLawCode・serfLawCode・polityCode／militaryPushIndex（MilitaryPush＝S を粛清の記憶として読む）・coopParliamentCrownIndex（S を紛争記憶として読む）／blockedLawCount・blockedSliderCount（資本の門で止まった一歩・旗に依らず数える）・blockedWhileFrozenCount（うち S＞b で止まった数＝壁の一歩の後の凍結）／wallPassAxes（壁を通った一歩の軸名・なければ -）。
+//   ★(409) 末尾に 2 列：wallPassCostShareOfAvailMax（前の行からこの行までに壁の分岐で通った一歩の cost÷avail の最大〔avail＝正統性−請求済み〕・通った一歩が無ければ 0）／wallLegitBlockedCount（満タンで代価＞b なのに正統性の側の式で止まった一歩の数〔旗に依らず数える〕）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／wallPass* は壁の分岐だけ（普通の一歩は数えない）／mandateSpentNewIndex は Politics.Step の後なので通常 0（読み手は mandateStockIndex を使う）／法の段の整数は enum の序数。
 public static partial class Instruments
 {
     internal const string ReformHeaderText = "quarter\tyear\tnation\tlegitimacyShare\tmandateStockIndex\tmandateMaxIndex\tmandateSpentNewIndex\tsupportShare\twallPassCount\twallPassLawCount\twallPassSliderCount\twallPassCostIndex\t"
         + "educationLawCode\teducationSpendingShare\tparishFundingShare\teducationBuyPerMonth\tliteracyShare\tsuffrageLawCode\tcensorshipLawCode\tlandReformLawCode\tbureaucracyLawCode\tserfLawCode\tpolityCode\t"
-        + "militaryPushIndex\tcoopParliamentCrownIndex\tblockedLawCount\tblockedSliderCount\tblockedWhileFrozenCount\twallPassAxes";
+        + "militaryPushIndex\tcoopParliamentCrownIndex\tblockedLawCount\tblockedSliderCount\tblockedWhileFrozenCount\twallPassAxes\twallPassCostShareOfAvailMax\twallLegitBlockedCount";
 
     /// <summary>壁の分岐で通った一歩（<see cref="Government.PoliticalCapitalAffords"/> の旗 &gt; 0 の第 2 枝）を数える。呼び手は払う前（Spend の前）に呼ぶ＝S は払う前の値。旗 0 では条件が偽で何も数えない。</summary>
     internal static void WallPass(World w, double cost, bool law, PolicyAxis a)
@@ -24,14 +25,17 @@ public static partial class Instruments
         if (law) st.RfWallLaw++; else st.RfWallSlider++;
         st.RfWallCost += cost;
         st.RfWallAxes += (st.RfWallAxes.Length > 0 ? "," : "") + a;
+        double avail = w.Legitimacy - w.MandateSpentNew;   // (409) 払う前の avail に対する代価の割合（払える量の何割まで使ったか）
+        if (avail > 0 && cost / avail > st.RfWallShareMax) st.RfWallShareMax = cost / avail;
     }
 
     /// <summary>資本の門（PoliticalCapitalAffords）で止まった一歩を数える（旗に依らず数える＝A の表が旧の世界の止まりの表になる）。S＞b（壁の一歩の後の凍結）で止まった数を別に持つ。呼び手は Instruments.On の中。</summary>
-    internal static void RfBlocked(World w, bool law)
+    internal static void RfBlocked(World w, bool law, double cost)
     {
         var st = S(w);
         if (law) st.RfBlkLaw++; else st.RfBlkSlider++;
         if (w.MandateSpent > w.PoliticalCapitalMax) st.RfBlkFrozen++;
+        if (w.MandateSpent <= 0 && cost > w.PoliticalCapitalMax) st.RfBlkLegit++;   // (409) 満タンで代価＞b なのに正統性の側の式で止まった一歩（形が噛んだ回数）
     }
 
     static void ReformFold(Sink sk, ulong seed, World w, WState st, int q, bool picked, bool yearEnd)
@@ -48,8 +52,8 @@ public static partial class Instruments
         }
         int since = st.RfPrevQ < 0 ? 1 : Math.Max(1, q - st.RfPrevQ);   // 前の行からの四半期数（挙げた国は 1・他は 4）
         double buy = double.IsNaN(st.RfCumEduPrev) ? 0 : (cum - st.RfCumEduPrev) / (3.0 * since);
-        int wallLaw = st.RfWallLaw, wallSlider = st.RfWallSlider, blkLaw = st.RfBlkLaw, blkSlider = st.RfBlkSlider, blkFrozen = st.RfBlkFrozen; double wallCost = st.RfWallCost; string wallAxes = st.RfWallAxes.Length > 0 ? st.RfWallAxes : "-";
-        st.RfCumEduPrev = cum; st.RfPrevQ = q; st.RfWallLaw = 0; st.RfWallSlider = 0; st.RfWallCost = 0; st.RfBlkLaw = 0; st.RfBlkSlider = 0; st.RfBlkFrozen = 0; st.RfWallAxes = "";
+        int wallLaw = st.RfWallLaw, wallSlider = st.RfWallSlider, blkLaw = st.RfBlkLaw, blkSlider = st.RfBlkSlider, blkFrozen = st.RfBlkFrozen, blkLegit = st.RfBlkLegit; double wallShareMax = st.RfWallShareMax; double wallCost = st.RfWallCost; string wallAxes = st.RfWallAxes.Length > 0 ? st.RfWallAxes : "-";
+        st.RfCumEduPrev = cum; st.RfPrevQ = q; st.RfWallLaw = 0; st.RfWallSlider = 0; st.RfWallCost = 0; st.RfBlkLaw = 0; st.RfBlkSlider = 0; st.RfBlkFrozen = 0; st.RfBlkLegit = 0; st.RfWallShareMax = 0; st.RfWallAxes = "";
         var c = w.Coef;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Reform ??= Open("reform", seed);
@@ -60,6 +64,6 @@ public static partial class Instruments
             I(wallLaw + wallSlider), I(wallLaw), I(wallSlider), F(wallCost),
             I((int)w.EducationLaw), F(w.EducationSpending), F(popSum > 0 ? fundNum / popSum : 0), F(buy), F(litDen > 0 ? litNum / litDen : double.NaN),
             I((int)w.Suffrage), I((int)w.Censorship), I((int)w.LandReform), I((int)w.Bureaucracy), I((int)w.SerfEmancipation), I((int)w.Polity),
-            F(PoliticalQuantities.MilitaryPush(w)), F(w.CoopParliamentCrown), I(blkLaw), I(blkSlider), I(blkFrozen), wallAxes));
+            F(PoliticalQuantities.MilitaryPush(w)), F(w.CoopParliamentCrown), I(blkLaw), I(blkSlider), I(blkFrozen), wallAxes, F(wallShareMax), I(blkLegit)));
     }
 }
