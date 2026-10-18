@@ -43,9 +43,9 @@ public static class Fiscal
         // 所得税は率をそのまま課す＝**行政の弱さは下の汚職leakが額で表す**（査定機構が未熟な国は取り立てた金が国庫に届かない）。
         // 徴収は手持ち貯蓄まで（所得を消費し尽くした薄貯蓄の階級が負にならない）。専売は EconomyStep（購入時に上乗せ）。
         double revenue = 0;   // 倍率排除：土地税の landEff（行政力→徴収効率の別倍率）を撤去。行政不足の徴収漏れは下の汚職leakに一本化（所得税と同方式・二重計上の解消）
-        // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：課税への同意（下の consent）が読む声を「政治的国民への算入率」で加重
+        // 参政権の範囲2法（作者裁定2026-08-16・旧の旗 SuffrageScopeGate は 2026-10-18 に焼き込み）：課税への同意（下の consent）が読む声を「政治的国民への算入率」で加重
         // ＝植民地格の州・本国の非中核popの徴税力に参政権と同じ梯子を適用（代表なくして課税なしの植民地版＝印紙法1765）。
-        // 走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。gate=0 では配列を作らず1命令も走らない＝厳密恒等（⚠既定は1.0＝点火2026-09-06）。
+        // 走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。TaxConsentWeight=0 では配列を作らず1命令も走らない。
         //   ★(351) 州×POP のなぞりは**この 1 本**（下の pops と、POP ごとの並行の列〔算入率・領主の取り分〕を同じ 1 周で作る＝旧は pops を平らにする周と並行の配列を埋める周が別で、
         //     添字が合わなければ黙って旧挙動へ倒していた〔集合の定義がずれると黙って外れる〕）。列は pops と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える。集合＝国家会計の集合（絞らない）。
         var scan = TaxScan.Of(w, c);
@@ -194,7 +194,7 @@ public static class Fiscal
 
         // 十分の一税（教会税）：大衆（非特権・非兵士＝農民・労働者・職人）の所得の TitheRate を聖職者が受け取る。
         // 公教育に教育の担い手を奪われても食える恒常収入（要望）。pop→聖職者の移転＝国庫を通さず基礎貨幣保存。
-        // 1934拡張E6 国教法：寛容化ほど十分の一税の徴収力が下がる（内心の自由=0.6・信仰の自由=0.3＝教会の税権が国家に制限される）。StateReligionGate=0で×1.0＝恒等。
+        // 1934拡張E6 国教法：寛容化ほど十分の一税の徴収力が下がる（内心の自由=0.6・信仰の自由=0.3＝教会の税権が国家に制限される）。
         // 例外①（2026-07-28）：国家無神論＝教会税の全廃（ソ連1918政教分離令＝教会財産の没収・収入源の遮断）。
         // ★段3-4（2026-09-30）：徴収は上の税と同じ1本の率（旧 Privileges.CollectTithe の徴収の走査を畳んだ）。貯蓄は按分の本体（頭数・端数は最後の聖職）・所得も同じ1行で。
         //   ★2026-09-30 段4g：大衆→聖職の移し方の1本（払い手の重み＝自分の十分の一税の請求・受け手は頭数・所得にも書く）。
@@ -740,7 +740,7 @@ public static class Fiscal
     /// 利払いと減債の国内の脚が読む（持ち手＝保有が正の POP・重み＝保有・端数は最後の持ち手）。持ち手不在（保有の和≈0）なら移し方の1本は動かさない＝国庫残置（保存）。</summary>
     /// <summary>★(351) 課税の走査＝POP の一覧と、POP ごとの並行の列（課税への同意の算入率・領主への届き方・領主の取り分・その州の領主）を**同じ 1 周**で作る（州の並び→州の中の POP の並び＝国家会計の集合）。
     /// 列は <see cref="Pops"/> と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える（旧＝pops を平らにする周と並行の配列を別のなぞりで埋める周が別で、数が合わなければ黙って旧挙動へ倒していた）。
-    /// 列の有無は旧と同じ門：<see cref="ScopeInc"/>＝SuffrageScopeGate&gt;0 かつ TaxConsentWeight&gt;0／<see cref="RuleMul"/>・<see cref="RuleCut"/>・<see cref="RuleLord"/>＝RuleSharesTaxBase&gt;0（門が閉じていれば作らない・その分の命令は走らない）。</summary>
+    /// 列の有無は旧と同じ門：<see cref="ScopeInc"/>＝TaxConsentWeight&gt;0／<see cref="RuleMul"/>・<see cref="RuleCut"/>・<see cref="RuleLord"/>＝RuleSharesTaxBase&gt;0（門が閉じていれば作らない・その分の命令は走らない）。</summary>
     internal sealed class TaxScan
     {
         internal readonly List<Pop> Pops = [];
@@ -750,7 +750,7 @@ public static class Fiscal
         internal static TaxScan Of(World w, Coefficients c)
         {
             var s = new TaxScan();
-            bool scopeOn = c.SuffrageScopeGate > 0 && c.TaxConsentWeight > 0, ruleOn = c.RuleSharesTaxBase > 0;
+            bool scopeOn = c.TaxConsentWeight > 0, ruleOn = c.RuleSharesTaxBase > 0;
             double ruleG = 0, ruleDeliver = 1.0;
             if (ruleOn) { ruleG = c.RuleSharesTaxBase; ruleDeliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value); }
             if (scopeOn) s.ScopeInc = [];

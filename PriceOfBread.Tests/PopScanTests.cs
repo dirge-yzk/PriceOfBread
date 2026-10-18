@@ -197,7 +197,7 @@ public class PopScanTests
         var w = Britain();
         var c = w.Coef;
         c.RuleSharesTaxBase = 1.0; c.PrivilegeTaxDiscount = new Share(0.5);
-        c.SuffrageScopeGate = 1.0; c.TaxConsentWeight = 0.5;
+        c.TaxConsentWeight = 0.5;
         w.ColonialSuffrage = ColonialSuffrageLaw.OwnNationals; w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
         Assert.True(w.Regions.Count >= 3);
         for (int i = 0; i < w.Regions.Count; i++) w.Regions[i].Rule = [0.1 + 0.1 * i, 0.3 + 0.05 * i, 0.2, 0.0];   // 州ごとに届き方が違う
@@ -231,7 +231,7 @@ public class PopScanTests
         Assert.True(sawLord && sawNoLord, "前提が崩れた：領主の居る州と居ない州が揃っていない");
         Assert.True(scan.ScopeInc.Distinct().Count() > 1, "前提が崩れた：算入率が州で違わない");
         // 門が閉じていれば列は作らない
-        c.RuleSharesTaxBase = 0; c.SuffrageScopeGate = 0;
+        c.RuleSharesTaxBase = 0; c.TaxConsentWeight = 0;
         var off = Fiscal.TaxScan.Of(w, c);
         Assert.Equal(n, off.Pops.Count); Assert.Null(off.ScopeInc); Assert.Null(off.RuleMul); Assert.Null(off.RuleCut); Assert.Null(off.RuleLord);
     }

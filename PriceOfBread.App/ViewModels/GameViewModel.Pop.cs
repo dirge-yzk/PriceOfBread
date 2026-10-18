@@ -151,7 +151,7 @@ public partial class GameViewModel
             return c.PrivilegeFromCrownShare.Value > 0 ? null : "政体:" + PolityRegimeJa(_player.Polity);
         string? title = kind switch
         {
-            SimCore.Privileges.Tithe => c.StateReligionGate > 0 ? "国教" : null,       // ゲート0＝国教法は率を変調しない＝根拠は TitheRate だけで法でない
+            SimCore.Privileges.Tithe => "国教",
             SimCore.Privileges.VestedOffice => "官僚制度",
             SimCore.Privileges.Seigneurial => "農奴解放",
             SimCore.Privileges.Monopoly => c.AntitrustGate > 0 ? "独占禁止" : null,     // ゲート0＝MonopolyRentFactor 常に1.0＝法は効かない

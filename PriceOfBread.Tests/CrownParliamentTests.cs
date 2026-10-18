@@ -8,14 +8,14 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// 王権議会P2＝ラベル導出化の番人（2026-07-11・設計正典=HANDOFF📐）。
 /// P2a＝登録簿（Crown/Seizure）＋導出関数（LabelFromAxes）が既存9政体を厳密再現すること。
-/// flag（PolityLabelFromAxes）=0 は完全旧挙動＝156本体が恒等を担保。ここは導出の正しさだけを固定する。
+/// （旧の旗 PolityLabelFromAxes=0 の旧挙動は 2026-10-18 に旗ごと削除。）ここは導出の正しさだけを固定する。
 /// </summary>
 public class CrownParliamentTests
 {
     [Fact]
     public void 全政体のラウンドトリップ_ApplyRegime後の導出が同じラベルへ戻る()
     {
-        var c = new Coefficients { PolityLabelFromAxes = 1.0 };   // 導出セマンティクス（PCジャンプ込み）
+        var c = new Coefficients();   // 導出セマンティクス（PCジャンプ込み）
         foreach (Polity p in Enum.GetValues<Polity>())
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
@@ -27,7 +27,7 @@ public class CrownParliamentTests
     [Fact]
     public void 全53カ国の構築直後_導出ラベルが初期政体と一致する()
     {
-        var c = new Coefficients { PolityLabelFromAxes = 1.0 };
+        var c = new Coefficients();
         int n = 0;
         foreach (var cfg in WorldData.Nations())
         {
@@ -42,7 +42,7 @@ public class CrownParliamentTests
     [Fact]
     public void 弱い下賜はラベルを変えず_床の上抜けで立憲化する()
     {
-        var c = new Coefficients { PolityLabelFromAxes = 1.0 };
+        var c = new Coefficients();
         var sim = new Simulation(NationConfig.Japan().ToScenario(3), new NullAgent());
         CrownParliament.ApplyRegime(sim.World, c, Polity.Shogunate);
         sim.World.ParliamentControl = 0.3;   // 下賜（GrantedControlOnReform）＝弱い議会

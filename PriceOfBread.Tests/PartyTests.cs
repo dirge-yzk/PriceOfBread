@@ -5,32 +5,15 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// F4政党統一の番人（2026-07-12）。互換射影＝World.PartySeats/GoverningPartyは常に「族」の集計値・
-/// DynamicParties=0（既定）は常設3党のみ＝現行と厳密一致、が守るべき不変条件。
+/// F4政党統一の番人（2026-07-12）。互換射影＝World.PartySeats/GoverningPartyは常に「族」の集計値、が守るべき不変条件。
+/// （旧の旗 DynamicParties=0〔常設3党のみ〕の対照は 2026-10-18 に旗ごと削除。）
 /// </summary>
 public class PartyTests
 {
     [Fact]
-    public void 動的政党0では常設3党のみで与党名は族名()
-    {
-        // ★主張の書き換え（2026-09-22）：旧名「既定は常設3党のみ」は既定 DynamicParties=1.0（点火済み）の下では不変条件ではなかった
-        //   ＝仏 seed11 の最初の12四半期に政党化するクラスタが**たまたま**無かったから通っていた。飢餓の駆動の点火（階層3分割と対）で
-        //   1780年代の仏の食料不足が運動を立て、動的政党（自由主義党）が現れた＝旧名の主張は世界の偶然だった。
-        //   クラスの宣言どおりの不変条件＝「DynamicParties=0 は常設3党のみ（厳密一致）」を明示で測る。
-        var sim = new Simulation(NationConfig.France().ToScenario(11), new NullAgent());
-        sim.World.Coef.DynamicParties = 0;
-        for (int q = 0; q < 12; q++) sim.StepQuarter();
-        var w = sim.World;
-        Assert.Equal(3, w.Parties.Count);
-        Assert.All(w.Parties, pt => Assert.True(pt.Permanent));
-        Assert.Contains(w.GoverningPartyName, new[] { "保守党", "自由党", "社会党" });
-    }
-
-    [Fact]
     public void 動的政党でも族の得票集計は不変_射影の恒等()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
-        sim.World.Coef.DynamicParties = 1.0;
         for (int q = 0; q < 40; q++) sim.StepQuarter();
         var w = sim.World;
         Assert.InRange(w.GoverningParty, 0, 2);   // 互換射影＝族番号の保証（Runnerの3長配列・既存読者の前提）
@@ -45,7 +28,6 @@ public class PartyTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         var w = sim.World;
-        w.Coef.DynamicParties = 1.0;
         w.Factions.Add(new FactionState { Region = w.Region, Bloc = 2, Ideo = (int)Ideology.Republicanism, Size = 500, AvgMilitancy = 0.6, Cohesion = 0.5 });
         // 票なし（参政権None）＝在野運動のまま
         w.Suffrage = Suffrage.None; w.ParliamentControl = 0.5;
@@ -61,7 +43,6 @@ public class PartyTests
         // 統制力ゼロの世界では新規政党化は起きない（別世界で確認）
         var sim2 = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         var w2 = sim2.World;
-        w2.Coef.DynamicParties = 1.0;
         w2.Factions.Add(new FactionState { Region = w2.Region, Bloc = 2, Ideo = (int)Ideology.Republicanism, Size = 500, AvgMilitancy = 0.6, Cohesion = 0.5 });
         w2.Suffrage = Suffrage.AdultMale; w2.ParliamentControl = 0;
         Parliament.Step(w2, w2.Coef);
@@ -120,7 +101,6 @@ public class PartyTests
     {
         // 旧＝与党が動的政党（クラスタ由来）なら、選挙の四半期に由来ブロックの要求 top-k を門なしで1段ずつ目標へ押した（関税・累進・社会保障を含む軸を上げ下げ両方）。
         var w = new Simulation(NationConfig.Britain().ToScenario(37), new NullAgent()).World;
-        w.Coef.DynamicParties = 1.0;
         Parliament.Step(w, w.Coef);   // 常設3党の遅延初期化
         // 全ての有権者を社会主義100%に＝社会族の票は全て社会主義党（国民政党＝思想単位）へ入り、常設の社会党は0＝動的政党が与党の実体になる
         foreach (var pp in w.AllPops()) { Array.Clear(pp.IdeologyShares); pp.IdeologyShares[(int)Ideology.Socialism] = 1.0; }

@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// 参政権の範囲2法（作者裁定2026-08-16・主フラグ SuffrageScopeGate＝1.0で点火済み・2026-09-06）のON経路。
+/// 参政権の範囲2法（作者裁定2026-08-16・点火2026-09-06・旧の旗 SuffrageScopeGate は 2026-10-18 に焼き込み）の経路。
 /// 植民地参政権＝植民地格の州（RegionTier.Colonial）のPOPを政治的国民に算入：発言権（InterestGroups.Blocs）と
 /// 課税への同意（Fiscal の consent＝徴税力）へ、なし0／自国民のみ=CoreEthnicShare／全面=全量の梯子で効く。
 /// 双子シム比較スタイル（MobilityTests と同型）＝法だけが違う2世界の方向を見る。
@@ -20,7 +20,6 @@ public class SuffrageScopeTests
         foreach (var sim in new[] { off, on })
         {
             var w = sim.World;
-            w.Coef.SuffrageScopeGate = 1.0;        // 点火（双子とも＝差は法だけ）
             w.Suffrage = Suffrage.AdultMale;       // 大衆に発言権がある状態＝算入がそのまま声になる
             var col = w.Regions[1];                // 非首都州を植民地格に
             col.Tier = RegionTier.Colonial;
@@ -68,24 +67,5 @@ public class SuffrageScopeTests
         foreach (var p in on.World.Regions[1].Pops) if (!p.IsSoldier) savOn += p.Savings.Value;
         Assert.True(savOn < savOff,
             $"全面算入なのに植民地州の徴税力が上がらない（なし後貯蓄 {savOff:F0} / 全面後貯蓄 {savOn:F0}）");
-    }
-
-    [Fact]
-    public void 両法を最大にするとゲート点火前と同じ集計になる()   // 連続性＝全面＋ありは全pop算入率1.0＝点火前の物差しと厳密一致
-    {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        sim.Run(20);
-        var w = sim.World;
-        w.Regions[1].Tier = RegionTier.Colonial;
-        foreach (var p in w.Regions[1].Pops) p.CoreEthnicShare = new Share(0.25);   // 非中核が居ても「全面＋あり」なら全量算入
-        w.Coef.SuffrageScopeGate = 0;
-        var (t0, m0, s0) = InterestGroups.Blocs(w);
-        w.Coef.SuffrageScopeGate = 1.0;
-        w.ColonialSuffrage = ColonialSuffrageLaw.Full;
-        w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.Granted;
-        var (t1, m1, s1) = InterestGroups.Blocs(w);
-        Assert.Equal(t0, t1);
-        Assert.Equal(m0, m1);
-        Assert.Equal(s0, s1);
     }
 }

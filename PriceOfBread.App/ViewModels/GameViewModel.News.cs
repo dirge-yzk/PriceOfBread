@@ -197,7 +197,7 @@ public partial class GameViewModel
         if (_player.SerfEmancipation != _pfSerf) Notice("🗳", $"農奴解放が「{JaEnumConverter.Ja(_player.SerfEmancipation)}」になった", NewsBlue);
         if (_player.Pension != _pfPen) Notice("🗳", $"年金が「{JaEnumConverter.Ja(_player.Pension)}」になった", NewsBlue);
         if (_player.SocialSecurityLaw != _pfSS) Notice("🗳", $"社会保障が「{JaEnumConverter.Ja(_player.SocialSecurityLaw)}」になった", NewsBlue);   // 弧3-3（2026-07-24）：段階の変わり目をニュースに残す
-        // 参政権の範囲2法（2026-08-16）：施行通知。SuffrageScopeGate=1.0＝点火2026-09-06（0へ戻すと法が動かない＝一度も発火しない）
+        // 参政権の範囲2法（2026-08-16）：施行通知。点火2026-09-06
         if (_player.ColonialSuffrage != _pfColSuf) Notice("🗳", $"植民地参政権が「{JaEnumConverter.Ja(_player.ColonialSuffrage)}」になった", NewsBlue);
         if (_player.MigrantNativeSuffrage != _pfMigSuf) Notice("🗳", _player.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? "移民原住民参政権が施行された" : "移民原住民参政権が廃止された", NewsBlue);
         if (_player.GoverningParty != _pfParty) Notice("🗳", $"選挙で{GoverningName()}が与党になった", NewsBlue);

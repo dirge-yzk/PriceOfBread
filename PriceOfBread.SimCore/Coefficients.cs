@@ -224,7 +224,7 @@ public sealed class Coefficients
     //     豊作→満足↑→不満度（記憶のない導出量）が即座に下がる→参加が縮む→運動の規模が同じ四半期に縮む。
     //     ⇒ 群衆はその場で家に帰り、組織された核だけが半年ほど怒りを保つ（英1795＝暴動は終わったが急進結社は1799年の団結禁止法まで残る）。較正で混同しない。
     public double MilitancySpeed = 0.30;              // 闘争度（ストック）の追従速度σ＝半減期5.8か月
-    public double ParliamentSeatOnOpen = 1.0;   // ★2026-08-04（作者指摘「議会の存在感が薄い」）：開院時に議席を1回だけ確定する。旧＝選挙政体の PartySeats は最初の総選挙（16四半期後）まで全て0で、開幕の4年間は議会が法に一切効かない空席だった（1783年の英には1780年総選挙の議会が現に座っている＝初期化漏れ）。式は非選挙政体が毎期使っている SnapshotSeats と同一＝新しい判断を持ち込まない。0で旧＝空席（厳密恒等）
+    // 【墓標2026-10-18・旗の焼き込み】ParliamentSeatOnOpen（既定1.0・2026-08-04 作者指摘「議会の存在感が薄い」）を消した＝開院時に議席を1回だけ確定する（旧＝選挙政体の PartySeats は最初の総選挙〔16四半期後〕まで全て0だった）。
     public int ElectionIntervalQuarters = 16;         // 議会選挙の間隔（四半期）。16＝4年（自由な政体で与党が交代する周期）
     // 議会の力学（既存の正統性→保持力→政体遷移に信号を流す。ParliamentEnabled の国のみ＝較正不変）。
     public Share PartyDominanceThreshold = new(0.6);      // 一党支配と見なす議席シェアの閾値（これ超で多元性が崩れ始める）
@@ -352,7 +352,7 @@ public sealed class Coefficients
     //   （＝検証で確定した「アサーニャ1931は満額俸給を払ったのに最大のクーデタを招いた＝金ではなく地位・自律・名誉」と同型）。
     // ★代理は既存量：<see cref="PowerShares.PrivilegeIntact"/> の毀損（特権を失いつつある）。⚠新しい状態はゼロ。
     public double ReactionFromLoss = 0;
-    public double RoyalistGate = 1.0;   // ★2026-08-19（作者裁定「天命とは別に、政治意識層の中に王権支持者を入れる」）：10 王党派の供給の強さ。
+    // 【墓標2026-10-18・旗の焼き込み】RoyalistGate（既定1.0・2026-08-19 作者裁定「天命とは別に、政治意識層の中に王権支持者を入れる」・点火2026-08-29 夜間R16 A/B batch30＝帯中立・破綻0）を消した＝10 王党派の供給は常に走り、強さは×1.0。
                                         // ★点火2026-08-29（夜間R16クラスタA/B batch30＝帯中立・破綻0）。0なら1行も走らず r[10]=0（9ファシズムと同じ作法）。
                                         // ⚠実測の根拠：王権シェアが全13断面・全64カ国で14〜18%の頭打ち＝「意識が上がる＝議会支持」の一本道になっていた。
     public double IdeologyAffinitySlope = 2.3;        // 倍率排除⑧：政体×思想の制度座標の距離→親和の傾き（親和=clamp(2−slope×距離,−1,2)）。大＝近い思想だけに高親和（政体引力が鋭い）・小＝なだらか。手書き9×9表の置換の主要較正ノブ
@@ -1742,7 +1742,7 @@ public sealed class Coefficients
     public double DefeatShockTensionRelief = 2.0;  // 機能9-1点火（2026-07-28）：ハイエナ抑制＝敗戦ショックが高い相手への緊張は100超でも減衰（普仏戦争後の仏が連続で食われない）。月次×max(両者shock)。0で恒等
     public double DefeatShockProtectMin = 0.3;     // 機能9-1：保護が効く敗戦ショックの下限（数年で切れる＝DefeatShockDecayが窓）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】ParliamentBudgetScope＝予算協賛の対象を全税軸へ（機能2-1・2026-07-28 点火）
-    public double ElectionEventEnabled = 1.0;   // 【点火1.0・2026-08-17】A/B＝def4(38.2/74.3/61.5/0.63)→eD(**exact40.2**/73.1/61.3/0.66)・硬性緑・372緑。AI等価物と確定形（レバー＝裁量余剰の%・効き＝A/(A+半減点)・代価＝投入額）が揃ってから点火。★E2（選挙doc §7）：総選挙の公示イベント＝「どの思想に加担するか」の択（§3-0/3-2）。0＝公示もポップアップも押し込みもAIの判断も1命令も走らない厳密恒等。★E4のAI等価物（2026-08-17・docs/202608/20260817_選挙イベントのAI等価物_完了.md）でこの1本がプレイヤーとAIの**共通ゲート**になった＝点火すると全国に公示が立ち、プレイヤー国はモーダル・AI国は UtilityAgent.DecideElection が同じ四半期に同じ動詞（World.ResolveElection）で答える（別フラグを作らない＝片方だけ点火して非対称を再生産できない）。点火は単独で測る
+    // 【墓標2026-10-18・旗の焼き込み】ElectionEventEnabled（既定1.0・点火2026-08-17 A/B＝def4(38.2/74.3/61.5/0.63)→eD(exact40.2/73.1/61.3/0.66)・硬性緑・372緑）を消した＝総選挙の公示とプレイヤー/AIの加担の押し込みは常に有効。0＝公示が立たない旧は git の履歴から戻せる。
     // ★E3''（確定形2026-08-17・作者裁定 docs/202608/20260817_選挙の押し込みの凸性_部分完了.md §3）：**代価は曲げない・効きを曲げる**。
     //   レバー＝裁量余剰(FiscalCapacityPerMonth)の何%を注ぐか／投入額＝裁量余剰×レバー／金の代価＝投入額そのもの（国庫→pop）／
     //   効き＝投入額の逓減 A/(1+A/half)（半減点 half で無次元化＝A/(A+half)∈[0,1)）。
@@ -1755,7 +1755,7 @@ public sealed class Coefficients
     public double ManifestoFulfillCredit = 0.5;    // 達成した瞬間に加担した思想へ乗る支持（Ideology の r[] と同じ物差し＝他の出来事項と横並び）
     public double ManifestoCreditDecay = 0.05;     // その支持の四半期あたりの減衰（半減期≈14四半期＝3.5年＝任期1回ぶん）。0で減衰なし
     public double ElectionPushScale = 0.3;         // ★E3：加担の押し込み＝選んだ思想の得票を(1+効き×これ)倍（開票1回のみ・×1.0はIEEEでビット恒等）。主レバーElectionEventEnabled=0が先にゼロ化＝恒等不破。設計目安＝効き1.0で+30%（世論を作る長期経路＝教育/検閲より常に劣る短期ブースト）
-    public double EarlyElectionEnabled = 1.0;      // 機能2-5点火（2026-07-28）：不信任＝与党の民意（VoteShares）が閾値割れで繰り上げ総選挙。0で旧＝固定周期のみ恒等
+    // 【墓標2026-10-18・旗の焼き込み】EarlyElectionEnabled（機能2-5・既定1.0・点火2026-07-28）を消した＝不信任（与党の民意 VoteShares が閾値割れ）で繰り上げ総選挙が常に有効。0＝固定周期のみの旧は git の履歴から戻せる。
     public double NoConfidenceThreshold = 0.2;     // 機能2-5：与党族の得票率がこれ未満＝内閣が倒れる（第三共和政＝平均8ヶ月内閣の史実側）
     public double EarlyElectionMinQuarters = 4;    // 機能2-5：繰り上げ選挙の最短間隔（1年＝選挙の乱発防止）
     // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】ForeignBondCounterparty（既定1.0）＝02断線走査点火（2026-07-28）：外債の利子を債権国投資家へ配当（債権ストック=ForeignBondClaims按分・世界で金が閉じる）＝レンティア帝国（シティ/パリ）の成立。旧＝利子が世界から消える片側記帳。0で旧恒等
@@ -2643,7 +2643,7 @@ public sealed class Coefficients
     public double ConsciousnessFromSchoolingStock = 1.0;   /* #17保留:PolicyPolitics/Polityテスト */   // 政15（変換係数が現行の教育法を読む＝世代遅れなし）：混合比∈[0,1]。0=今期の教育法の即時値を全pop一律（現行恒等）／>0でpopの就学履歴ストックと混ぜ世代遅れを作る
     // 【削除2026-09-30 段4e 後半 4e-3】SchoolingStockSpeed（就学履歴が今の変換係数へ寄る四半期の速さ0.02）＝世代の流れ（20歳になる若者が今の教育法の変換係数を持ち込む）が置き換えた。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】IrreversibleEmancipation＝農奴解放・土地改革の不可逆（政4・点火済み）
-    public double SeatsFrozenBetweenElections = 1.0;   // 政7：選挙間の議席固定。0=PartySeatsを毎期の世論で上書き＝直接民主制的（VoteShares==PartySeats恒等）／>0で得票率はVoteShares(表示)に置きPartySeats(確定議席)は選挙時スナップショットで固定＝レームダック
+    // 【墓標2026-10-18・旗の焼き込み】SeatsFrozenBetweenElections（政7・既定1.0）を消した＝選挙間の議席固定（得票率は VoteShares〔表示〕に置き、PartySeats〔確定議席〕は選挙時のスナップショット）に固定。0＝PartySeats を毎期の世論で上書きする旧は git の履歴から戻せる。
     public double CenterIsFirstProvince = 1.0;   /* ★点火2026-09-05 B群(G5 中心州)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★J-003（作者裁定2026-09-03「首都（史実・表示のみ）と経済中心地は別でよい」）：エンジンの距離計算の基準を**1番目の州**（＝エンジンが首都として扱う州）の座標へ差し替える。⚠世界データの首都座標は `World.DisplayCapitalLat/Lon` に残り**表示専用**になる。実測で差が出るのは3カ国（露634km・コーカンド167km・モロッコ166km）。0で厳密恒等
     // ⚠撤去2026-09-08（段6）：SuppressIsCivilWar／SuppressCostFromScale は無血鎮圧の枝ごと物理削除（読み手ゼロ）。鎮圧＝内戦経路が唯一の形。
     // ⚠撤去2026-09-11（要求は法の経路の点火）：プレイヤーの危機ダイアログの受諾禁止（体制転覆の相手）の係数は決着関数ごと物理削除＝受諾のボタンそのものが無い。
@@ -2948,15 +2948,15 @@ public sealed class Coefficients
     public double LoyalistDistanceFloor = 0.5;     // 湘軍が立つ最小の思想距離（近い反乱＝フロンド型には立たない）
     public double LoyalistHeresyBoost = 1.0;       // 異端（変異）反乱への郷勇の増し（曽国藩の檄）
     // --- F4 政党統一（2026-07-12・点火済み＝DynamicParties=1）---
-    public double DynamicParties = 1.0;            // **F4主フラグ**：1=クラスタ由来の動的政党（統制力>0×参政権票の運動が政党化・族内で得票分割＝PartySeats/GoverningPartyは族の互換射影で不変）。0=常設3党のみ（厳密恒等）
+    // 【墓標2026-10-18・旗の焼き込み】DynamicParties（F4 政党統一・既定1.0・点火2026-07-12）を消した＝クラスタ由来の動的政党（統制力>0×参政権票の運動が政党化・族内で得票分割。PartySeats/GoverningPartyは族の互換射影で不変）が常に走る。0＝常設3党のみの旧は git の履歴から戻せる。
     public double PartyFormCohesion = 0.3;         // 政党化に要るクラスタの結束（蜂起の0.8より低い＝議会経路は組織の敷居が低い）
     // --- P3b 連続動学（2026-07-12・点火済み＝遷移グラフの置換素子。出口はP2の床交差再ラベル）---
     public double ParliamentPressureRate = 0.04;    // 議会圧力：max(0, 代議制支持−現政体支持)×これ/四半期で統制力が育つ（漸進の立憲化＝グラフのジャンプの置換）
     public double CrownPressureRate = 0.04;         // 王権圧力：max(0, 王権形支持−代議制支持)×これ×正統性で統制力を巻き戻す（一般化した反動の常時項・P1-Eクーデタ型とは別）
-    public double RepublicanDeposition = 1.0;      // >0で廃位イベント解禁：統制力≥立憲床×共和支持−立憲支持>保持力差＝王冠廃止（1792/1910ポルトガル・議決＝失脚/債務否認なし）
+    // 【墓標2026-10-18・旗の焼き込み】RepublicanDeposition（既定1.0）を消した＝廃位イベント（統制力≥立憲床×共和支持−立憲支持>保持力差＝王冠廃止。1792/1910ポルトガル・議決＝失脚/債務否認なし）は常に有効。
     // 王権の形の変異（07_再設計 §1＋A1裁定・2026-07-31＝**実体駆動へ再設計して点火**）。旧の支持座標駆動は1789年に亜細亜の専制が一斉絶対王政化＝
     // Abs/Des/Shoは登録簿が歴史を運ぶ（P2知見＝軸で区別しない）ため支持駆動は不適だった。新＝形ごとに固有の実体トリガー（幕府＝外圧/内圧・専制＝行政力の継続）。
-    public double CrownFormMutation = 1.0;        // 主フラグ。0で変異なし（旧＝休眠）
+    // 【墓標2026-10-18・旗の焼き込み】CrownFormMutation（王権の形の変異・主旗・既定1.0）を消した＝実体駆動の変異は常に有効。0＝変異なしの旧は git の履歴から戻せる。
     public double ShogunateEndTension = 40.0;     // 幕府が倒れる外圧＝対外緊張（黒船）
     public double ShogunateEndMilitancy = 0.5;    // 幕府が倒れる内圧＝大衆の闘争度（同ゲートの内圧(c)と同水準）。★内圧が外圧（緊張/200）を上回れば議会つきで終わる＝A1「どちらも許す」
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】PolityGraphRetired＝平和的漸進遷移を遷移グラフから廃止（P3c・点火済み）
@@ -2969,7 +2969,6 @@ public sealed class Coefficients
     // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
     // NationalConsciousnessInitial / NationBuildRate / NationBuildReligiousDrag / NationBuildCrisisWeight は第3段3-6（2026-07-27）で削除＝v1国民意識（到達不能）の専用係数。宗教civicは第5段5-5で新設計へ。
     public double NationBuildConscript = 0.5 / Military.WorkingMenStdShare;      // 徴兵（兵士POP比）の重み＝国民軍の国民形成（ウェーバー「軍は国民の学校」）（(145) 兵の単位の読み替え＝旧値 0.5÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
-    public double NationBuildCivicFloor = 0.3;     // 多民族の抵抗の下限＝drag=clamp(EthnicUnity+これ,0,1)＝天井でなく抵抗（civicナショナリズムで多民族でも克服可＝米/スイス）
     public double NationalConsciousnessCorruptionWeight = 0.2;  // **主フラグ**：⚠旧・汚職チャネル（civicGraft→Fiscal leak別項）は汚職V2恒久ONにつきC2-C5で物理撤去（2026-08-16）＝現在の生き読者は2箇所＝World.civicCarriesEthnic（代議制で民族の行政痩せを切る二重計上回避ゲート）と CrownParliament の国民意識蓄積チャネルゲート。0にすると両者の挙動が変わる＝**掃除対象外（読者あり）**。ゲートの意味の再裁定は較正ラウンドへ
     // P9 国民意識v2「購入モデル」（2026-07-17）：NCは育つものでなく買うもの（機会費用＋維持費で全国飽和を根治）。主フラグは2026-07-27にNationBuildPurchaseMode=1（常にv2）を焼き込み削除済み＝v1蓄積式へ戻す道は無い
     // P8 天命 DynasticMandate v1.1（2026-07-17・プローブ検証済み仕様）：前近代の正統性＝統治パフォーマンス直結。「パンの値段→天命→正統性→革命」。
@@ -3040,24 +3039,15 @@ public sealed class Coefficients
     public double NationConsciousnessReachDecay = 800.0; // 到達が半分になる首都からの距離km。★根拠＝『農民をフランス人に』の周縁
                                                        // （ブルターニュ約400km＝×0.67で遅れて追いつく／アルジェ1350km＝×0.37／デリー6700km＝×0.11＝ほぼ届かない）。
                                                        // ⚠大圏距離であって鉄道距離ではない（山脈も海峡も無視）＝過大評価側の既知の粗さ。
-    public double NationConsciousnessCoreWeight = 0.8;  // 中核民族シェア0のPOPは伸びが×0.2まで落ちる。0にしない理由＝
-                                                       // 少数民族も「その国の」意識を多少は持つ（チェコ人は墺の兵士として戦った）。
-    public double CivicOpennessEnabled = 1.0;  // 【点火2026-08-09 ign_p12＝硬性緑・当てがい値除去】// ★P12残渣①（原典2026-07-17 P12節・実装2026-08-09）：**主フラグ**＝多民族抵抗の置き場所の一本化。
-                                                       // 0（既定）＝現行のまま＝ビット恒等：国スカラー経路は速度drag（dragV2=clamp(EthnicUnity+NationBuildCivicFloor)）・
-                                                       // POP経路は速度core（1−CoreWeight×(1−CoreEthnicShare)）＝民族抵抗が両経路に**構造として二重**（PerPop=1.0の現行live構成では
-                                                       // 読み手3本が消費する値はPOP平均＝core側のみだが、lever<1混合・初回四半期の種にスカラー側dragが残る）。
-                                                       // 1＝原典式へ置換：dragV2/coreを1.0に畳み、民族抵抗を**天井**へ移す＝popの国民化天井=ceiling×(1−民族距離×(1−開放度))・
-                                                       // 民族距離=1−CoreEthnicShare（既存POP化と同じ代理・タスクAを待たない）・開放度=CrownParliament.CivicOpenness
-                                                       // （共和経験×参政権×自由度の等分＝既存政治変数のみ・国別データなし）。スカラー経路も国平均の民族距離(1−EthnicUnity)で同型の天井
-                                                       // ＝NC読み手3本（汚職Fiscal/総動員Military/ナショIdeology）への民族抵抗の効きが「天井経由の一本」になる。点火帯1.0
+    // 【墓標2026-10-18・旗の焼き込み】CivicOpennessEnabled（P12残渣①・主旗・既定1.0・点火2026-08-09 ign_p12＝硬性緑・当てがい値除去）を消した＝多民族抵抗の置き場所は原典式の天井（pop の国民化天井=ceiling×(1−民族距離×(1−開放度))・民族距離=1−CoreEthnicShare・開放度=CrownParliament.CivicOpenness）に一本化。速度drag（NationBuildCivicFloor）と速度core（NationConsciousnessCoreWeight）の係数も一緒に消えた。
     // 【墓標2026-09-30・旗の焼き込み（処理の一元化 段4e I）】MigrantCarriesConsciousness（P12残渣②・2026-08-09 点火 1.0）＝越境移民が出身 POP の国民意識を持参＝
     //   人の移し方の1本 Pop.Blend が国内の移動も含め常に運ぶ（作者裁定 2026-09-28 §14-2 の6）。
     // 1934拡張E5 秘密投票（「紙の参政権」是正）：発言権の鎮静効果を選挙の実在で変調。0（既定）で reality=1.0＝現行恒等（E9で点火し帯を測る＝忠実度が大きく動きうる主変更）
-    public double SecretBallotGate = 1.0;   /* E9点火（1934拡張） */              // **主フラグ**：0で秘密投票の効果なし＝恒等。>0で下の reality で politicalGap の鎮静を変調
+    // 【墓標2026-10-18・旗の焼き込み】SecretBallotGate（主旗・E9 点火・1934拡張）を消した＝秘密投票法と選挙の実在（OpenBallotReality・PaperFranchiseReality）による politicalGap の鎮静の変調は常に有効。
     public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在するが買収/脅迫で歪む（英1872以前）。E9点火（1934拡張）＝0.6→0.9に緩和（較正への衝撃を抑えつつ秘密投票に価値を残す）
     public double PaperFranchiseReality = 0.7;         // 非議会政体（専制等）＝紙の参政権＝選挙の実在なし。E9点火＝0.3→0.7に緩和（専制の参政権発行の鎮静を弱めるが較正を壊さない範囲）
     // 1934拡張E5 社会保障法（旧スライダーの置換）：0で旧スライダー駆動＝恒等／1で5段の法が福祉水準SocialSecurityと年金を駆動（スライダー廃止・年金吸収）。E9点火
-    public double SocialSecurityLawGate = 1.0;         // **主フラグ**：0で旧スライダー（現行厳密一致）／1で社会保障法が駆動。E9点火（1934拡張・目標0で無福祉＝較正中立）
+    // 【墓標2026-10-18・旗の焼き込み】SocialSecurityLawGate（主旗・E9 点火・1934拡張）を消した＝社会保障法が福祉水準を駆動（目標0で無福祉＝較正中立）。旧スライダー枝は 2026-07-27 に削除済み。
     // ★段2で削除（検証担当 2026-09-09）：UnemploymentInsuranceRelief＝失業保険段による失業項の緩和。
     //   唯一の読み手が UnemploymentMilitancy（同じ段で削除した失業の闘争度加算）だったので**読み手ゼロ**になっていた
     //   ＝値0.5を持ち説明文まで付いた「live に見える死コード」＝16本を削除した理由と同じものが1本残っていた。
@@ -3069,7 +3059,7 @@ public sealed class Coefficients
     public double WomenEducationGate = 1.0;            // **主フラグ**：0で効果なし＝恒等／1で女性識字底上げ。E9点火（既定＝梯子は None ＝較正中立）
     public double WomenEduLitBonus = 0.25;             // 女性の権利が教育権の段以上で femaleLit ×(1+これ)（上限=全体識字）＝女子就学が出生転換を早める
     // 1934拡張E6 国教法：寛容化ほど十分の一税↓＋宗教ドラグ↓。0で恒等（E9点火）
-    public double StateReligionGate = 1.0;             // **主フラグ**：0で効果なし＝恒等／1で国教法が十分の一税と宗教ドラグを変調。E9点火（既定StateChurch＝較正中立）
+    // 【墓標2026-10-18・旗の焼き込み】StateReligionGate（主旗・E9 点火）を消した＝国教法が十分の一税と宗教ドラグを変調する経路は常に有効（既定 StateChurch＝較正中立）。
     public double InnerFreedomTithe = 0.6;             // 内心の自由での十分の一税倍率（教会の税権が制限される）
     public double ReligiousFreedomTithe = 0.3;         // 信仰の自由での十分の一税倍率（さらに制限＝政教分離）
     // 1934拡張E6 独占禁止法：独占レント(塩/茶)の実効倍率。0で恒等（E9点火）
@@ -3103,7 +3093,7 @@ public sealed class Coefficients
     public int StateTargetMax = 99;                    // 国営工場カウンターの上限（作者仕様＝0〜99）
     // ==== 参政権の範囲2法（作者裁定2026-08-16・docs/202608/20260815_失業プールと社会移動_部分完了.md 末尾「参政権の範囲2法」節）====
     // 植民地参政権（なし/自国民のみ/全面）＋移民原住民参政権（なし/あり）＝「誰が政治的国民か」を法にする。
-    public double SuffrageScopeGate = 1.0;   /* ★点火2026-09-06＝0.0→1.0・E-11 参政権の範囲法（再測で採用） */             // **主フラグ・点火済み**：0へ戻せば全効果が1命令も走らない厳密恒等（法選好Pref=0＝要求にも載らない・UIの2行も非表示＝natVis と同型）。
+    // 【墓標2026-10-18・旗の焼き込み】SuffrageScopeGate（主旗・既定1.0・点火2026-09-06 E-11 参政権の範囲法・再測で採用）を消した＝算入率が課税への同意・分離圧 ×(1−算入率)・少数派闘争度 ×(1−算入) に常に効く。0＝全効果が走らない旧は git の履歴から戻せる。
     //   算入率（植民地格の州＝植民地参政権 0/CoreEthnicShare/1・本国州の非中核分＝移民原住民参政権 0/1）が
     //   課税への同意（Fiscal consent の voice）・分離圧 ×(1−算入率)・少数派闘争度 ×(1−算入) に効く。発言権（InterestGroups.Blocs）には掛けない（J-001の範囲）。
     // 【墓標2026-09-26（棚卸し dorm-49）】SuffrageScopeVoice（利益集団の発言権を算入率で乗じる測定専用の腕・既定0）＝削除。発言権は票の前提にしない（チャーティスト/反穀物法同盟）
@@ -3224,13 +3214,13 @@ public sealed class Coefficients
     public double FactionMergeRangeKm = 800.0;   // ★点火2026-08-30（合成先行300Q＝経済+10.0/列強+7.6/法+3.5/exact+1.5/破綻0。604Q受け入れbatch30で最終確認・記録は20260830doc）＝合流の距離（太平天国の北上スケール）        // 段6（内戦一元化doc・唯一の新規＝合流）：同ブロック×同イデオ×同変異状態の派閥がこの距離内なら大が小を吸収（結束継ぎ足し）。0＝1命令も走らない＝厳密恒等。太平天国の北上の物理
     public Share FactionMergeCohesionGain = new(0.5);   // 合流時に勝者へ継ぎ足す結束の割合（FactionMergeRangeKm>0のときのみ読む）
     // --- 王権議会P2＝ラベル導出化（2026-07-11・点火済み）---
-    public double PolityLabelFromAxes = 1.0;       // P2主フラグ：1=政体ラベルを登録簿＋議会統制力から導出（EMA停止・遷移PCジャンプ・下賜はPC床のみ・床交差の再ラベル）。0=旧・ラベル真実源（厳密恒等）
+    // 【墓標2026-10-18・旗の焼き込み】PolityLabelFromAxes（P2主旗・既定1.0・点火2026-07-11）を消した＝政体ラベルを登録簿＋議会統制力から導出（EMA停止・遷移PCジャンプ・下賜はPC床のみ・床交差の再ラベル）に固定。0＝ラベルが真実源の旧は git の履歴から戻せる。
     // ★2026-08-12（バグ修正・既定1.0＝是正側）：王冠も奪取も無い国で統制力が立憲床を割ったときの政体ラベル。
     //   1=共和国のまま（議会の弱い共和国）／0=旧挙動＝BourgeoisDictatorship（CrownParliament.LabelFromAxes の
     //   `_ =>` 枝＝自身のコメントが「通常到達不能」と宣言しているのに Crown=None の共和国では必ず到達していた）。
     //   旧挙動の被害＝アメリカが反動政体へ落ち、自由化ラチェットが外れて参政権と報道を各1段剥奪される（1923年 実測：
     //   AdultMale→Census・FreePress→Censorship・識字28%・技術3.25で列強から脱落）。奪った主体が居ないのに独裁を名乗らせない。
-    public double CrownlessCollapseKeepsRepublic = 1.0;
+    // 【墓標2026-10-18・旗の焼き込み】CrownlessCollapseKeepsRepublic（既定1.0・2026-08-12 バグ修正＝是正側）を消した＝王冠も奪取も無い国で統制力が立憲床を割っても共和国のまま（旧＝BourgeoisDictatorship へ落ち、自由化ラチェットが外れて参政権と報道を各1段剥奪されていた）。
     public double ConstitutionalControlFloor = 0.45;   // 立憲化の床：ParliamentControl≥これで立憲/共和ラベル（下賜0.3<床＝弱い議会ではラベル不変＝プロイセン/明治型の自然点）
     public double ConstitutionalControlExit = 0.35;    // 立憲の下抜け（ヒステリシス）：これ以下で専制系へ戻る（墺斯曼1878停止・ちらつき防止）
     // ★読み手＝CrownParliament の政体ラベルのヒステリシス（立憲系はこの下抜けの床で判定）。
@@ -3483,7 +3473,7 @@ public sealed class Coefficients
     // ==== 環境変数による係数の上書き（測定用・2026-08-12）====
     // なぜ要るか：A/B を**同一バイナリ・同一ソースハッシュ**で取るため。従来は既定値を書き換えて2回ビルドしていたが、
     // その間に他の編集が混ざると「挙動不変のはずの変更で軌道が動く」事故になる（設計doc「測定汚染」2026-07-28 と同じ罠）。
-    //   使い方: POB_COEF="CrownlessCollapseKeepsRepublic=0;FactionOpportunism=0" bash measure.sh ...
+    //   使い方: POB_COEF="FactionOpportunism=0" bash measure.sh ...
     // 決定論：同じ環境変数なら同じ値＝再現する。未指定なら1件も触らない（＝厳密恒等）。
     // 名前を間違えたら**黙って無視せず例外**＝「掛けたつもりの実験が素通り」を構造で防ぐ（番人の空洞化対策）。
     private static readonly (string Name, double Value)[] Overrides = ParseOverrides();

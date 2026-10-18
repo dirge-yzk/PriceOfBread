@@ -360,16 +360,15 @@ public partial class GameViewModel
                 $"債務緊縮の強度 {w.AusterityIntensity:P0}　発火の下限 50%");
         // ② 王権の巻き返し（1907六三クーデタ）＝CrownParliament.Step の CrownRollbackRate 節（閾値の定数もエンジンから読む）
         if (c.CrownRollbackRate > 0
-            && (c.CrownlessCollapseKeepsRepublic <= 0 || w.Crown != CrownForm.None)
+            && w.Crown != CrownForm.None
             && w.CoopParliamentCrown < -0.5
             && w.Legitimacy > CrownParliament.CrownRollbackLegitimacyMin
             && w.ArmyAllegiance > CrownParliament.CrownRollbackArmyAllegianceMin)
             Add("王権の巻き返し", -c.CrownRollbackRate,
                 $"王権と議会の協力度 {Signed2(w.CoopParliamentCrown)}　正統性 {w.Legitimacy:P0}　軍の忠誠 {Signed2(w.ArmyAllegiance)}");
 
-        // ③〜⑤ 連続動学（P3b）＝CrownParliament.Step の該当節。外周ゲート（奪取中は凍結・5係数のいずれかが生きている）もエンジンと同じ形で持つ。
-        if (w.Seizure == SeizureForm.None
-            && (c.ParliamentPressureRate > 0 || c.CrownPressureRate > 0 || c.RepublicanDeposition > 0 || c.CrownFormMutation > 0 || c.ArmyPcPressure > 0))
+        // ③〜⑤ 連続動学（P3b）＝CrownParliament.Step の該当節。外周ゲート（奪取中は凍結）もエンジンと同じ形で持つ。
+        if (w.Seizure == SeizureForm.None)
         {
             var agg = Ideologies.National(w);
             double S(Polity p) => Ideologies.SupportAt(agg, Ideologies.BasePolityCoord(p), c.IdeologyAffinitySlope);
@@ -804,7 +803,7 @@ public partial class GameViewModel
         bool atWar = false;
         foreach (var war in dip.Wars) if (war.A == me || war.B == me) { atWar = true; break; }
         double conscriptFrac = c.ConscriptionFraction.Value;
-        if (atWar && c.ConscriptionScalesWithWar > 0)
+        if (atWar)
         {
             int fronts = 0; double enemyLand = 0;
             foreach (var war in dip.Wars)

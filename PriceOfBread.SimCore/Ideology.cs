@@ -35,9 +35,9 @@ public static class Ideologies
         // 機能8-④（2026-07-28）：飢えの記憶→急進側（共和1789/社会）。「パンの値段」の題名に最も近い機構。
         double famRep = w.Coef.FamineRepublicanism * w.FamineMemory, famSoc = w.Coef.FamineSocialism * w.FamineMemory;
 
-        // 王党派の供給源（★ループ前に1回＝O(pops)回避。nationalismSurge と同じ作法）。RoyalistGate=0 なら読まない。
-        double royalPrivilege = w.Coef.RoyalistGate > 0 ? PowerShares.PrivilegeIntact(w) : 0;
-        double royalPatronage = w.Coef.RoyalistGate > 0 ? PowerShares.StatePatronage(w) : 0;
+        // 王党派の供給源（★ループ前に1回＝O(pops)回避。nationalismSurge と同じ作法）。
+        double royalPrivilege = PowerShares.PrivilegeIntact(w);
+        double royalPatronage = PowerShares.StatePatronage(w);
         // ★反動の担い手＝**地位を失いつつある層**（2026-08-20・休眠）。ループ前に1回（O(pops)回避・上と同じ作法）。
         //   ⚠特権の毀損＝農奴解放・免税の廃止・身分制の解体が進むほど大きい＝**旧秩序が現に壊されている度合い**。
         //   ★史実の順序どおり＝1861年の農奴解放が貴族の反動を生み、1876年の秩禄処分が士族反乱を生んだ。
@@ -103,11 +103,10 @@ public static class Ideologies
             //   ⚠閉鎖階級→特権／近代エリート→恩顧／それ以外→供給チャネルなし＝旧 PowerShares.PopExecutiveLean（表モデルと一緒に 2026-09-26 に削除＝pol-09）と同じ写像。
             //   ⚠⚠次段の課題：この2関数は観測層(PowerShares)にあり、エンジンが観測層を呼ぶのは依存の向きとして逆。
             //     ただし「実装を2つ作らない」規律を優先した（旧doc §6-2 危険7）。移すならエンジン側の適切な場所へ。
-            //   RoyalistGate=0 で1行も走らず r[10]=0 ＝ 配列長10と数値等価（9ファシズムと同じ作法）。
-            if (w.Coef.RoyalistGate > 0)
+            //   （旧の旗 RoyalistGate〔供給の強さ×1.0〕は 2026-10-18 に焼き込み。）
             {
                 double royalSupply = p.Closed ? royalPrivilege : (p.IsModernElite ? royalPatronage : 0);
-                if (royalSupply > 0) r[10] += w.Coef.RoyalistGate * cons * royalSupply;
+                if (royalSupply > 0) r[10] += cons * royalSupply;
             }
             Normalize(r);
         }

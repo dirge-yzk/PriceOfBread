@@ -54,7 +54,7 @@ public partial class GameViewModel
     partial void OnFactionCrisisOpenChanged(bool value) { if (value) PopupPause(); else PopupResume(); }
     [ObservableProperty] private string _factionCrisisBody = "";
 
-    // ★E3（選挙doc §3-1/3-2・ElectionEventEnabled>0（点火2026-08-17）で四半期の公示時に出る／0では立たない）：
+    // ★E3（選挙doc §3-1/3-2・点火2026-08-17・四半期の公示時に出る）：
     // 総選挙の公示＝「どの思想に加担するか」1つだけの択（議題は情報＝個別に倒す対象ではない・§3-2a）。
     [ObservableProperty] private bool _electionPopupOpen;
     partial void OnElectionPopupOpenChanged(bool value) { if (value) PopupPause(); else PopupResume(); }
@@ -149,7 +149,7 @@ public partial class GameViewModel
             FactionCrisisOpen = true;
             return;
         }
-        // ②'' ★E3：総選挙の公示（PendingElection）＝どの思想に加担するか（ElectionEventEnabled=0では立たない）
+        // ②'' ★E3：総選挙の公示（PendingElection）＝どの思想に加担するか
         if (!ElectionPopupOpen && !WarPopupOpen && _player.PendingElection is { } pe)
         {
             ElectionAgendas.Clear();

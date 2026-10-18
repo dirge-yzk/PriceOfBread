@@ -42,7 +42,7 @@ public enum PolicyAxis
                                                                                     //   別軸である理由は前提DAGだけ：『全て』はプロレタリア独裁のみ操作可（LawPrereq）を、UIのグレーアウト・施行・譲歩が同じ1本で読めるようにする。
                                                                                     //   ⚠勢力の要求軸には**しない**（ComputeDemands が除外）＝要求は Nationalization 梯子（最終段＝『全て』）が一元管理＝二重要求を出さない。
     ColonialSuffrage,                                                               // ★植民地参政権（参政権の範囲2法・作者裁定2026-08-16・末尾追加＝列挙順保存）。3段：なし/自国民のみ/全面。
-                                                                                    //   SuffrageScopeGate=0 では Pref=0＝要求リストに載らない（CapitalMobility の思想③と同じ防壁）。⚠既定は1.0＝点火2026-09-06
+                                                                                    //   （旧の旗 SuffrageScopeGate=1.0 は点火2026-09-06・2026-10-18 に焼き込み。）
     MigrantNativeSuffrage,                                                          // ★移民原住民参政権（同・末尾追加）。2段：なし/あり。本国州popの非中核割合を政治的国民に算入する法
     SpecialistExitBan,                                                              // ★技術者流出禁止法（段⑤・2026-08-17・末尾追加＝列挙順保存）。軸の増＝**禁止**。3段：自由/制限/禁止。
                                                                                     //   ⚠賛否は**近代エリートの内側**で割れる（資本＝雇う側が賛成／技師・研究者＝売る側が反対）＝符号がブロック内の富の比で決まる。
@@ -360,12 +360,9 @@ public static class PolicyPreferences
                 return modern ? -NationalizationCapitalOpposition : mass ? 1.0 : 0;
             case PolicyAxis.ColonialSuffrage:      // 植民地参政権（作者裁定2026-08-16）＝賛否連合は参政権の梯子と同型（「既存の参政権軸と同型でよい」）：
                                                    //   旧支配層＝帝国の身分秩序の防衛で反対・大衆＝賛成・近代＝制限選挙まで賛成（それ以上は希釈）＋革命脅威で譲歩。
-                // ⚠思想③（PolicyAxis.CapitalMobility の分岐＝上の実測前例）：休眠中に選好だけ非0だと、この軸が要求リストに載って他の要求を押し出す＝gate=0 では Pref も0。
-                if (w.Coef.SuffrageScopeGate <= 0) return 0;
                 goto case PolicyAxis.Suffrage;
             case PolicyAxis.MigrantNativeSuffrage: // 移民原住民参政権（同）＝旧支配層が反対（血統と身分の国民の防衛）・近代エリートが賛成（市民的国民）・
                                                    //   大衆は両義0（連帯と職の競合が相殺＝移民制限法の対立軸〔大衆が制限を推し資本が反対〕と整合・作者裁定「大衆両義でも可」）。
-                if (w.Coef.SuffrageScopeGate <= 0) return 0;   // 思想③＝同上（gate=0 では要求リストに載せない）
                 return trad ? -1.0 : modern ? 1.0 : 0;
             case PolicyAxis.Suffrage:         // 参政権の梯子：自分の包摂までは賛成・希釈は反対
                 // 旧支配層＝票でなく権力＝拡大は希釈で反対。近代＝制限選挙まで賛成・以上は梯子外し。大衆＝賛成。

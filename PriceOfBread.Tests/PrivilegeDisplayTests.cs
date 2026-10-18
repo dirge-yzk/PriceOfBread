@@ -61,17 +61,15 @@ public class PrivilegeDisplayTests
         foreach (var law in System.Enum.GetValues<StateReligionLaw>())
         {
             w.StateReligion = law;
-            foreach (double gate in new[] { 0.0, 1.0 })
-                foreach (double rate in new[] { 0.0, 0.05, 0.2 })
-                {
-                    c.StateReligionGate = gate; c.TitheRate = new Share(rate);
-                    // 旧式（畳み込み前の2文）
-                    double old = rate;
-                    if (gate > 0)
-                        old *= law switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
-                    // 畳み込み後（Fiscal.Step の十分の一税の率と同じ式）
-                    AssertBitEqual(old, c.TitheRate.Value * Privileges.TitheDegree(w, c), $"十分の一税の実効率（{law}/{gate}/{rate}）");
-                }
+            foreach (double rate in new[] { 0.0, 0.05, 0.2 })
+            {
+                c.TitheRate = new Share(rate);
+                // 旧式（畳み込み前の2文）
+                double old = rate;
+                old *= law switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
+                // 畳み込み後（Fiscal.Step の十分の一税の率と同じ式）
+                AssertBitEqual(old, c.TitheRate.Value * Privileges.TitheDegree(w, c), $"十分の一税の実効率（{law}/{rate}）");
+            }
         }
     }
 
@@ -125,7 +123,7 @@ public class PrivilegeDisplayTests
         var w = Warm(NationConfig.France());
         var c = w.Coef;
         w.StateReligion = StateReligionLaw.StateChurch;
-        c.TitheRate = new Share(0.05); c.StateReligionGate = 0; c.CorruptionMax = new Share(0);
+        c.TitheRate = new Share(0.05); c.CorruptionMax = new Share(0);
         w.TaxRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);

@@ -4,31 +4,10 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>E2/E3（docs/202608/20260814_選挙を動詞にする_部分完了.md §3-0〜3-3・§7の梯子）の番人。
-/// (1)既定0の休眠ピン (2)OFF＝公示が一切生成されない (3)ON経路＝公示の中身（支持上位3思想＋看板議題）と
+/// ON経路＝公示の中身（支持上位3思想＋看板議題）と
 /// 加担の決着（押し込みが1回で消費される）を固定する。点火（E4＝AI即決）は単独の測定ラウンドで。</summary>
 public class ElectionEventTests
 {
-    [Fact]
-    public void 係数の既定は休眠()
-    {
-        Assert.Equal(1.0, new Coefficients().ElectionEventEnabled);   // ★2026-08-17に点火（A/B exact38.2→40.2・硬性緑）。0に戻せば公示もポップアップも押し込みも1命令も走らない
-    }
-
-    [Fact]
-    public void OFFでは公示が生成されない()
-    {
-        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 5);
-        var w = sim.Nations[0].World;
-        w.SelfPower!.IsPlayer = true;
-        // ★計器の隔離（2026-09-22）：飢餓の駆動（既定で点火＝階層3分割と対）を外す。英1国だけの世界は食料を輸入できず（主食充足≈0.75）、
-        //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
-        w.Coef.FamineDriveGain = 0;
-        sim.StartWarmup();
-        for (int q = 0; q < (int)w.Coef.ElectionIntervalQuarters + 2; q++) sim.StepQuarter();   // 定期選挙を1回跨ぐ
-        Assert.Null(w.PendingElection);
-        Assert.True(w.ElectionsHeld > 0, "選挙が1回も起きていない＝テスト前提の破れ（政体が非選挙へ転げた可能性）");
-    }
-
     [Fact]
     public void ONでは公示が立ち加担は開票1回で消費される()
     {
@@ -40,7 +19,6 @@ public class ElectionEventTests
         //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
         c.FamineDriveGain = 0;
         sim.StartWarmup();
-        c.ElectionEventEnabled = 1.0;
         ElectionEvent? seen = null;
         for (int q = 0; q < (int)c.ElectionIntervalQuarters + 2 && seen is null; q++)
         {

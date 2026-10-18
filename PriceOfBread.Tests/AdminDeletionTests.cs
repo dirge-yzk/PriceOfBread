@@ -92,7 +92,7 @@ public class AdminDeletionTests
         var w = France(3).World;
         w.Crown = CrownForm.Despotic; w.ParliamentControl = 0.0;
         SetFill(w, 1.0);
-        var c = w.Coef; c.CrownFormMutation = 1.0;
+        var c = w.Coef;
         for (int q = 0; q < 40; q++) CrownParliament.Step(w, c);
         Assert.Equal(CrownForm.Despotic, w.Crown);
     }

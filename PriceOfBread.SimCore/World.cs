@@ -122,7 +122,7 @@ public sealed class World
     //   ⚠盤面から導けない（戦争が終わった時点で、今の段が戦時に上げたものか平時から有ったものかは法の値からは分からない＝英1916 の兵役法は戻り、普1814・日1873 の平時の法は戻らない）＝思想⑩の例外として1つ持つ。
     //   クールダウンではない（戦争の終わりという状態で決まる）。R2（戦時段の失効）と同じ形＝戦時の段は戦争が前提。
     public int ConscriptionPreWar { get; internal set; } = -1;
-    public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。SecretBallotGate=0で恒等
+    public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。
     // ★★★予算法・統帥法（作者設計 2026-08-20）＝**追加するものは法だけ**。予算権と統帥権は独立ストックを持たず、
     //   王権正統性 Lc と議会正統性 Lp（合計1）に**法の重み**を掛けて正規化するだけで出す（<see cref="PowerAffinity"/>）。
     //   ⚠独立ストックを持つと正統性と乖離してドリフトする＝その事故が構造的に起きない形。
@@ -130,12 +130,12 @@ public sealed class World
     public CommandLaw CommandLaw { get; internal set; } = CommandLaw.Crown;
     public BureaucracyLaw Bureaucracy { get; internal set; } = BureaucracyLaw.MeritExam;            // 官僚制度（現在値・1934拡張E5）。猟官/資格任用/専門＝監視の資格任用の脚と累進課税の前提
     public ImmigrationLaw ImmigrationRestriction { get; internal set; } = ImmigrationLaw.Open;   // ★移民制限法（2026-08-01）。既定 Open＝制限なし＝現行と厳密同義
-    // 参政権の範囲2法（現在値・作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）。既定 None＝開始局面は現行と厳密同義。
+    // 参政権の範囲2法（現在値・作者裁定2026-08-16・点火2026-09-06）。既定 None＝開始局面は現行と厳密同義。
     // 読み手＝InterestGroups.Blocs（発言権）・Fiscal の consent（課税への同意）・Politics（分離圧の緩和・少数派闘争度）＝全て gate>0 のみ。
     public ColonialSuffrageLaw ColonialSuffrage { get; internal set; } = ColonialSuffrageLaw.None;             // 植民地参政権：なし/自国民のみ/全面
     public MigrantNativeSuffrageLaw MigrantNativeSuffrage { get; internal set; } = MigrantNativeSuffrageLaw.None;   // 移民原住民参政権：なし/あり
-    public SocialSecurityLaw SocialSecurityLaw { get; internal set; } = SocialSecurityLaw.PoorLaw;   // 社会保障法（現在値・1934拡張E5・4段。既定=救貧法＝福祉水準0）。SocialSecurityLawGate=1で福祉水準SocialSecurityを駆動（スライダー廃止）。0で恒等
-    public StateReligionLaw StateReligion { get; internal set; } = StateReligionLaw.StateChurch;     // 国教法（現在値・1934拡張E6）。寛容ほど十分の一税↓＋宗教ドラグ↓。StateReligionGate=0で恒等
+    public SocialSecurityLaw SocialSecurityLaw { get; internal set; } = SocialSecurityLaw.PoorLaw;   // 社会保障法（現在値・1934拡張E5・4段。既定=救貧法＝福祉水準0）。この法が福祉水準 SocialSecurity を駆動（スライダー廃止）。0で恒等
+    public StateReligionLaw StateReligion { get; internal set; } = StateReligionLaw.StateChurch;     // 国教法（現在値・1934拡張E6）。寛容ほど十分の一税↓＋宗教ドラグ↓。
     public AntitrustLaw Antitrust { get; internal set; } = AntitrustLaw.None;                         // 独占禁止法（現在値・1934拡張E6）。強いほど独占レント↓。AntitrustGate=0で恒等
     public GuildLaw Guild { get; internal set; } = GuildLaw.Full;                                   // ★同業組合法（現在値・特権 段4・2026-09-07）。保護＝職人の参入制限レント＋工場への移動の遅れ
     public bool Mobilized { get; set; }                                                              // 総動員（#106・プレイヤーの戦時レバー・UIが直接トグル）。交戦中ONで戦時徴兵の深さを levée en masse 水準へ引き上げ＝非兵士POP(農民/都市労働者)を兵士へ大量変換（★M1 2026-09-19：徴兵法≥選抜の国だけ＝志願兵制は迂回しない）。既定false。⚠**AI側の書き手は SelfPlay.DecideQuarter の1本**（軍事費の段の最上段＝戦時経済の入口・2026-09-12 R2・2026-09-20 の段の点火で常時 live）（読み手＝Military.cs の徴兵深度／Government.MilitaryTotalTarget の段4の解禁＝M2 2026-09-19・押し上げはしない）
@@ -517,11 +517,11 @@ public sealed class World
     public double[] PrivilegeHeldYears { get; } = System.Linq.Enumerable.Repeat(-1.0, Privileges.Count).ToArray();   // 負値＝未初期化（最初の月に Privileges.StepMonth が世代長 or 0 で初期化）
     public bool[] PrivilegeLastActive { get; } = new bool[Privileges.Count];   // 前月の活性（剥離＝活性→不活性の検出・段3）
     public double[] PartySeats { get; } = new double[3];    // 議席シェア（得票率・保守/自由/社会）＝F4後も常に族の集計値（互換射影）
-    public double[] VoteShares { get; } = new double[3];    // 政7：毎期の得票率（世論・表示専用・保守/自由/社会）。SeatsFrozenBetweenElections=0ではPartySeatsと同時更新で恒等・>0で確定議席と分離
+    public double[] VoteShares { get; } = new double[3];    // 政7：毎期の得票率（世論・表示専用・保守/自由/社会）。確定議席 PartySeats と分離
     public int QuartersSinceElection { get; internal set; }
     public int ElectionsHeld { get; internal set; }          // E0計器（選挙doc §8-a）：総選挙の実施回数（繰り上げ含む・非選挙政体は数えない・助走込み）
     public int QuartersWithElections { get; internal set; }  // E0計器：選挙政体で過ごした四半期数。平均間隔＝これ÷回数（史実英1832-1914＝約15.6Q）
-    // ★E3（選挙doc §3-0〜3-3・ElectionEventEnabled=0既定＝生成されない）：総選挙の公示（非null＝プレイヤー国ならUIが時間停止）。
+    // ★E3（選挙doc §3-0〜3-3）：総選挙の公示（非null＝プレイヤー国ならUIが時間停止）。
     // 択は「どの思想に加担するか」1つだけ（§3-2a＝議題を個別に倒す択は置かない＝法の束の原則）。
     // ★E4（2026-08-17）：公示は**全国に立つ**（Parliament.Step）。AI国は同じ四半期に UtilityAgent.DecideElection が同じ動詞で答える
     // ＝残るのはプレイヤー国の公示だけ（＝UIが答えるまで待つ）。
@@ -638,7 +638,7 @@ public sealed class World
     {
         if (PendingElection is not { } ev) return;
         PendingElection = null;
-        if (ideology < 0 || Coef.ElectionEventEnabled <= 0) return;   // 何もしない／ゲート消灯中の残骸は捨てる
+        if (ideology < 0) return;   // 何もしない
         int slot = System.Array.IndexOf(ev.AgendaIdeologies, ideology);
         if (slot < 0) return;   // 議題に無い思想へは加担できない（上位3思想だけが看板を掲げている）
         double amount = ElectionSpendOf(lever);

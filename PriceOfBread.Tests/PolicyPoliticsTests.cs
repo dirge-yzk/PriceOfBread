@@ -118,7 +118,6 @@ public class PolicyPoliticsTests
     {
         var (sim, p, coord) = DiscontentBoard();
         var w = sim.World; var c = w.Coef;
-        Assert.True(c.SecretBallotGate > 0, "前提が崩れた：秘密投票の主フラグが休眠している");
 
         // ⚠政体は座標も動かすので、**同じ coord を渡して**発言権の実在だけを変える（4軸距離の変化と混ぜない）
         w.Polity = Polity.Republic; w.SecretBallot = SecretBallotLaw.Secret;

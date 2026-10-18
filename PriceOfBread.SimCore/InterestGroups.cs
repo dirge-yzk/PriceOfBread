@@ -72,7 +72,7 @@ public static class InterestGroups
         return (totalWealth, totalPop);
     }
 
-    /// <summary>参政権の範囲2法（作者裁定2026-08-16）＝popの「政治的国民への算入率」0..1。**SuffrageScopeGate>0 の枝からのみ呼ぶ**（呼ばないことが休眠の恒等）。
+    /// <summary>参政権の範囲2法（作者裁定2026-08-16）＝popの「政治的国民への算入率」0..1。
     /// ・植民地格の州（<see cref="RegionTier.Colonial"/>）＝植民地参政権：なし=0／自国民のみ=CoreEthnicShare／全面=1（英モデル／コロン限定／同化主義）。
     /// ・本国州（Core/Integrated）＝中核分は常に算入・非中核分(1−CoreEthnicShare)は移民原住民参政権「あり」でのみ算入。
     /// 両法が最大（全面＋あり）で全pop=1.0＝ゲート点火前と同じ集計＝連続性。読み手＝Blocs（発言権）・Fiscal consent（課税への同意）。</summary>

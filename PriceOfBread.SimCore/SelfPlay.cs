@@ -390,8 +390,8 @@ public sealed class UtilityAgent : INationAgent
                                                         // （レジームチェンジ1.0・割譲 TerritoryCessionScore=1.2 の手前で踏み込む＝間に合う総動員）
     // 【墓標2026-09-28（作者裁定 F5）】移民制限法のAI判定線3本（閉鎖1.0・選別0.4・開放へ戻す0.15）を削除。締める線は (63) の受入の上限の係数から導き、
     //   開放へ戻す枝は消した（DecideModernLaws の移民制限の段落）。
-    // ★E4（総選挙の公示のAI等価物・2026-08-17）の判定線（Coefficients.ElectionEventEnabled>0 のときだけ読む）。
-    // ⚠新しい係数は作らない（ゲートは ElectionEventEnabled 1本＝点火でプレイヤーとAIが同時に有効になる）。ここはAIの判断線＝SelfPlay私有定数。
+    // ★E4（総選挙の公示のAI等価物・2026-08-17）の判定線。
+    // ⚠新しい係数は作らない（旧の旗 ElectionEventEnabled は 2026-10-18 に焼き込み＝公示はプレイヤーとAIで同時に有効）。ここはAIの判断線＝SelfPlay私有定数。
     // ⚠★E3''（確定形2026-08-17）で AiElectionMandateBudget は撤去した＝レバーは「政治資本の何割を賭けるか」ではなく
     //   **裁量余剰の何%を注ぐか**（＝金の予算制約）になったので、押しの大きさをマンデート余白から出す理由が消えた。
     //   余白は今も「そもそも動かせるか」の門（price ≤ margin）としてだけ効く＝二重に使わない。
@@ -788,11 +788,11 @@ public sealed class UtilityAgent : INationAgent
     /// <para><b>静観</b>＝支配連合の利になる看板が1つも無い／注ぐ額が裁量余剰の <see cref="AiElectionMinPush"/> 未満＝
     /// <c>ResolveElection(-1, 0)</c>（UIの「静観」ボタンと同じ呼び出し）＝公示は消え、素の得票で開票される。</para>
     /// <para>決定論＝RNGを引かない（世論・教義・与党・正統性・国庫だけの関数）。同点は支持の高い議題（配列の先）が勝つ＝安定。
-    /// ⚠<see cref="Coefficients.ElectionEventEnabled"/>=0（点火前の値・現在は1.0）では呼び出し側（Parliament.Step）の分岐に入らず、ここも先頭で即 return＝1命令も走らない。</para></summary>
+    /// （旧の旗 <c>ElectionEventEnabled</c> は 2026-10-18 に焼き込み。）</para></summary>
     public static void DecideElection(World w)
     {
         var c = w.Coef;
-        if (c.ElectionEventEnabled <= 0 || w.PendingElection is not { } ev) return;   // ゲート1本に統一（点火でプレイヤーとAIが同時に有効）
+        if (w.PendingElection is not { } ev) return;
         // 政治資本の余白＝ResolveElection が「動かせるか」に使うのと同じ量（別の物差しを持ち込まない）
         double margin = c.MandateWeight * (w.Legitimacy - 0.5);
         if (!(margin > 0)) margin = 0;   // NaNガードは否定形（Clamp/MaxはNaNを消さない）＝余白なし側へ倒す

@@ -30,13 +30,13 @@ public static class CrownParliament
         if (c.SummonParliamentRate > 0 && w.AusterityIntensity > 0.5)
             w.ParliamentControl = PoliticalQuantities.Clamp01(w.ParliamentControl + c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0);
         // P1-E ストルイピン後退：敵対的議会×高正統性×王権寄りの軍＝王権が統制力を段階的に巻き戻す（1907六三クーデタ）。既定0.02で点火（0で休眠）。
-        // ★2026-08-12：`w.Crown != CrownForm.None` を追加（CrownlessCollapseKeepsRepublic>0 のときのみ＝0 は旧挙動の再現）
+        // ★2026-08-12：`w.Crown != CrownForm.None` を追加（旧の旗 CrownlessCollapseKeepsRepublic〔2026-10-18 焼き込み〕）
         //   ＝**王冠の無い共和国で「王権が統制力を巻き戻す」処理が走っていた**。
         //   すぐ下の CrownPressureRate（②王権圧力）と RepublicanDeposition（③廃位）は同じガードを持っており、ここだけ欠けていた。
         //   実測の被害：アメリカ（Republic・Crown=None）の統制力が一方通行で削られて立憲床を割り、LabelFromAxes の
         //   「無君主×議会を潰した＝通常到達不能」と自称する枝から BourgeoisDictatorship へ落ちる。反動政体への遷移は
         //   自由化ラチェットを外すので、参政権 AdultMale→Census・報道 FreePress→Censorship が各1段剥奪される（1923年の実測値と一致）。
-        if (c.CrownRollbackRate > 0 && (c.CrownlessCollapseKeepsRepublic <= 0 || w.Crown != CrownForm.None) && w.CoopParliamentCrown < -0.5 && w.Legitimacy > CrownRollbackLegitimacyMin && w.ArmyAllegiance > CrownRollbackArmyAllegianceMin)
+        if (c.CrownRollbackRate > 0 && w.Crown != CrownForm.None && w.CoopParliamentCrown < -0.5 && w.Legitimacy > CrownRollbackLegitimacyMin && w.ArmyAllegiance > CrownRollbackArmyAllegianceMin)
             w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.CrownRollbackRate);
 
         // --- 2. 協力度3チャネル（§5判断③＝6ペア行列でなく3チャネル）---
@@ -88,9 +88,8 @@ public static class CrownParliament
         // P3b 振動減衰（2026-07-13）：**奪取（独裁・無政府）中は連続動学を凍結**＝ユント/独裁は議会プロセスを停会する（史実：軍政・ボナパルティズムは立憲手続きを止める）。
         //   奪取中も議会/王権圧力がPCを動かすと、奪取が明けた瞬間に不整合なPC値で床を越え**立憲↔軍政が振動**する（P3第1測定の回帰主因＝弱国の振動増）。
         //   奪取中のPCドリフトは可視ラベルに出ない（LabelFromAxes は Seizure 時 PC 無視）が、ApplyRegime が出口でPCを再設定するので凍結は無害＝純粋に spurious drift のみ除く。
-        //   RepublicanDeposition/CrownFormMutation は元々 Seizure==None を自己ゲート済み＝この外周ゲートで挙動不変。5係数を全て0に戻せばブロック非実行＝厳密恒等。
-        if (w.Seizure == SeizureForm.None
-            && (c.ParliamentPressureRate > 0 || c.CrownPressureRate > 0 || c.RepublicanDeposition > 0 || c.CrownFormMutation > 0 || c.ArmyPcPressure > 0))
+        //   廃位と王権の形の変異は元々 Seizure==None を自己ゲート済み＝この外周ゲートで挙動不変（旧の旗 RepublicanDeposition・CrownFormMutation は 2026-10-18 に焼き込み＝ブロックは常に走る）。
+        if (w.Seizure == SeizureForm.None)
         {
             var agg = Ideologies.National(w);
             double S(Polity p) => Ideologies.SupportAt(agg, Ideologies.BasePolityCoord(p), c.IdeologyAffinitySlope);
@@ -126,7 +125,7 @@ public static class CrownParliament
                 w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.ArmyPcPressure * lean * PolicyPreferences.ArmyPower(w));
             // ③廃位イベント：議会が優位（統制力≥立憲床）の下で共和の支持が立憲を保持力差で上回る＝王冠の廃止（1792/1910ポルトガル）。
             //   ラベルは下の床交差で共和へ。革命でなく議決＝Dispossessed/Repudiateは通さない。
-            if (c.RepublicanDeposition > 0 && w.Crown != CrownForm.None && w.Seizure == SeizureForm.None
+            if (w.Crown != CrownForm.None && w.Seizure == SeizureForm.None
                 && w.ParliamentControl >= c.ConstitutionalControlFloor
                 && S(Polity.Republic) - S(Polity.ConstitutionalMonarchy) > c.PolityInertia * w.Legitimacy)
             {
@@ -137,7 +136,7 @@ public static class CrownParliament
             //   ⚠旧＝支持座標駆動（S(FormPolity(f)) の比較）は 1789年に亜細亜の専制が一斉に絶対王政化した＝
             //     形の登録簿（Abs/Des/Sho）は軸で区別されない（P2知見）ため、支持で形を選ぶこと自体が誤りだった。
             //   新＝**形ごとに固有の実体トリガー**を持たせる。国名の特例は書かない（「幕府という形が日本にしかない」ことをデータが運ぶ＝思想②）。
-            if (c.CrownFormMutation > 0 && w.Seizure == SeizureForm.None)
+            if (w.Seizure == SeizureForm.None)
             {
                 // ★(383) 作者 2026-10-16「行政効率→廃止」：(2) 専制→絶対王政（官僚絶対主義・プロイセン型）の変異は、行政効率が高い状態の継続 HighAdminQuarters（DespoticToAbsolutistAdmin／Quarters）を門にしていた。
                 //   その量（4 因子つきの行政効率の閾値）を廃止したので、カウンタごと変異 (2) を物理削除した（専制→絶対王政は政体側の遷移と議会が担う）。
@@ -167,10 +166,9 @@ public static class CrownParliament
             }
         }
 
-        // --- P2（flag=1）：床交差の再ラベル（ヒステリシス）＝統制力が立憲床を上抜け/下抜けした時だけラベルが変わる。
+        // --- P2：床交差の再ラベル（ヒステリシス）＝統制力が立憲床を上抜け/下抜けした時だけラベルが変わる。
         //     召集の累積で1789仏「三部会→立憲」・ストルイピン後退で「停止→専制復帰」が創発。変更時は建国制度（軸→法）を通す
         //     （Dispossessed/RepudiateDebtは通さない＝漸進であり革命でない・設計正典）。
-        if (c.PolityLabelFromAxes > 0)
         {
             var derived = LabelFromAxes(w, c);
             if (derived != w.Polity)
@@ -241,25 +239,18 @@ public static class CrownParliament
                 double crisisMult = 1.0 + (nbAtWar ? c.NationBuildCrisisDefense : 0)
                                         + (w.InCivilWar ? c.NationBuildCrisisCivilWar : 0)   // ★B3：述語1本
                                         + (w.BornOfSecession && nbAtWar ? c.NationBuildCrisisIndependence : 0);
-                double dragV2 = PoliticalQuantities.Clamp01(w.EthnicUnity + c.NationBuildCivicFloor);   // 多民族は1単位のNCが高くつく（墺の悲劇）・civicで克服可（CivicOpennessEnabled=1で開放度の天井へ置換＝P12残渣①）
                 double lawCeil = w.EducationLaw switch { EducationLaw.Compulsory => 0.9, EducationLaw.Public => 0.7, EducationLaw.Religious => 0.4, _ => 0.2 };
                 double ceilingNb = lawCeil * System.Math.Min(1.0, avgLit / 0.6);
-                double ceilScalar = ceilingNb;
-                double openness = 0;
-                if (c.CivicOpennessEnabled > 1e-12)
-                {
-                    // ★P12残渣①（原典2026-07-17）：民族抵抗を速度dragから「天井=1−民族距離×(1−開放度)」へ移す。
-                    // dragV2=1.0（当てがい値 EthnicUnity+civicFloor の廃止）・スカラー経路は国平均の民族距離(1−EthnicUnity)で同型の天井。
-                    // POP経路は AccumulatePopConsciousness 内で per-pop の民族距離(1−CoreEthnicShare)を天井に適用（core速度係数は1.0へ）
-                    // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight／Ideology.UpdateShares の r[4]（NationalismFromConsciousness・休眠）／World.civicCarriesEthnic）が消費する値への民族抵抗は「天井経由の一本」だけになる
-                    // （原典の二重計上ガード＝分離は忠誠度のみ・NCは動員/天命/汚職のみ＝NCの新しい読み手は作らない）。
-                    openness = CivicOpenness(w);
-                    dragV2 = 1.0;
-                    ceilScalar = ceilingNb * (1.0 - (1.0 - w.EthnicUnity) * (1.0 - openness));
-                }
+                // ★P12残渣①（原典2026-07-17・旧の旗 CivicOpennessEnabled は 2026-10-18 に焼き込み）：民族抵抗を速度dragから「天井=1−民族距離×(1−開放度)」へ移す。
+                // 速度dragは無い（当てがい値 EthnicUnity+NationBuildCivicFloor の廃止）・スカラー経路は国平均の民族距離(1−EthnicUnity)で同型の天井。
+                // POP経路は AccumulatePopConsciousness 内で per-pop の民族距離(1−CoreEthnicShare)を天井に適用（core速度係数は1.0へ）
+                // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight／Ideology.UpdateShares の r[4]（NationalismFromConsciousness・休眠）／World.civicCarriesEthnic）が消費する値への民族抵抗は「天井経由の一本」だけになる
+                // （原典の二重計上ガード＝分離は忠誠度のみ・NCは動員/天命/汚職のみ＝NCの新しい読み手は作らない）。
+                double openness = CivicOpenness(w);
+                double ceilScalar = ceilingNb * (1.0 - (1.0 - w.EthnicUnity) * (1.0 - openness));
                 double prevNc2 = w.NationalConsciousness;
                 double headroom = System.Math.Max(0, ceilScalar - prevNc2);
-                double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * dragV2 * crisisMult;   // ★段4：積の順序は旧式のまま（×headroom を外に出しただけ＝ビット恒等）
+                double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;   // ★段4：積の順序は旧式のまま（×headroom を外に出しただけ＝ビット恒等）
                 double gain = ncDrive * headroom;
                 double lose = prevNc2 * c.NationBuildDecayRate;
                 // ★★段4（2026-09-09・作者裁定5「国民意識は廃止しない。盤面で読めるようにするだけ」／設計メモ§7-7バグb）：
@@ -292,9 +283,9 @@ public static class CrownParliament
                     else
                     {
                         w.Explain.Add("NationalConsciousness", "前期からの国民意識（履歴の累積）", prevNc2);
-                        w.Explain.Add("NationalConsciousness", "新聞を読む国民", c.NationBuildAccumRate * spendTerm * dragV2 * crisisMult * headroom);
-                        w.Explain.Add("NationalConsciousness", "ラジオ放送", c.NationBuildAccumRate * radioTerm * dragV2 * crisisMult * headroom);
-                        w.Explain.Add("NationalConsciousness", "徴兵による育成", c.NationBuildAccumRate * conscriptTerm * dragV2 * crisisMult * headroom);
+                        w.Explain.Add("NationalConsciousness", "新聞を読む国民", c.NationBuildAccumRate * spendTerm * crisisMult * headroom);
+                        w.Explain.Add("NationalConsciousness", "ラジオ放送", c.NationBuildAccumRate * radioTerm * crisisMult * headroom);
+                        w.Explain.Add("NationalConsciousness", "徴兵による育成", c.NationBuildAccumRate * conscriptTerm * crisisMult * headroom);
                         w.Explain.Add("NationalConsciousness", "減衰", -lose);
                     }
                 }
@@ -343,9 +334,9 @@ public static class CrownParliament
     /// ⚠−1＝未初期化のPOPは国の現在値で種を播く（新規POP＝移民や階級移動も同じ＝跳躍しない）。
     /// ★既知の限界の是正（P12残渣②・2026-08-09）：移民が「到着国の平均的な国民意識」を持って現れる件は
     ///   人の移し方の1本 Pop.Blend が出身popのNCをSize加重平均で運搬する（旧の旗 MigrantCarriesConsciousness は 2026-09-30 段4e で焼き込み・国内の移動も同じ1本）（★2026-08-09に点火＝既定1.0）。
-    /// ★P12残渣①（CivicOpennessEnabled=1・原典2026-07-17）：民族抵抗をcore速度係数から原典式の**天井**へ移す＝
+    /// ★P12残渣①（旧の旗 CivicOpennessEnabled=1・原典2026-07-17・2026-10-18 焼き込み）：民族抵抗をcore速度係数から原典式の**天井**へ移す＝
     ///   popの国民化天井 = ceiling×(1−民族距離×(1−開放度))・民族距離=1−CoreEthnicShare・開放度=<see cref="CivicOpenness"/>。
-    ///   ★2026-08-09に点火＝既定1.0（0に戻すとcore速度係数のままビット恒等＝openness引数は読まれない）。internal＝テストの式検証用（InternalsVisibleTo）。</summary>
+    ///   ★2026-08-09に点火。internal＝テストの式検証用（InternalsVisibleTo）。</summary>
     /// <summary>★2026-09-03（J-004）：説明台帳のために**加重平均で見た増分と減衰**も返す（報告専用・力学は読まない）。
     /// ⚠既存の呼び手のために出力は out 引数で足す＝戻り値と本体の計算は1文字も変えない。</summary>
     internal static double AccumulatePopConsciousness(World w, Coefficients c, double drive, double ceiling, double decay, double openness)
@@ -354,7 +345,6 @@ public static class CrownParliament
     internal static double AccumulatePopConsciousness(World w, Coefficients c, double drive, double ceiling, double decay, double openness,
                                                      out double wGain, out double wLose)
     {
-        bool open = c.CivicOpennessEnabled > 1e-12;   // NaNは休眠側（fail-closed）へ倒れる
         bool derived = c.NationConsciousnessDerived > 0;   // ★段4：0＝ストック（旧・厳密恒等）／>0＝毎期の導出量（不動点）
         wGain = 0; wLose = 0;   // ★J-004：早期returnでも定義済みにする（報告専用）
         if (w.Regions.Count == 0) return 0;
@@ -383,16 +373,15 @@ public static class CrownParliament
                 if (!(p.Size > 1e-9)) continue;
                 if (p.NationalConsciousness < 0) p.NationalConsciousness = seed;
                 double coreShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare.Value);
-                // P12残渣①：ON＝民族抵抗は速度でなく天井（core=1.0・天井=ceiling×(1−民族距離×(1−開放度))）／OFF＝現行の速度core・天井そのまま（ビット恒等）
-                double core = open ? 1.0 : PoliticalQuantities.Clamp01(1.0 - c.NationConsciousnessCoreWeight * (1.0 - coreShare));
-                double ceil = open ? ceiling * (1.0 - (1.0 - coreShare) * (1.0 - openness)) : ceiling;
+                // P12残渣①：民族抵抗は速度でなく天井（天井=ceiling×(1−民族距離×(1−開放度))）
+                double ceil = ceiling * (1.0 - (1.0 - coreShare) * (1.0 - openness));
                 double head = System.Math.Max(0, ceil - p.NationalConsciousness);
                 double before = p.NationalConsciousness;
                 if (derived)
                 {
-                    // ★段4（作者裁定5）：同じ漸化式の**不動点**＝ NC* = 天井 × d/(decay+d)、d = drive×到達×core。
+                    // ★段4（作者裁定5）：同じ漸化式の**不動点**＝ NC* = 天井 × d/(decay+d)、d = drive×到達。
                     //   記憶を持たない＝同じ盤面なら何度でも同じ値（前期の値を1度も読まない）。⚠NaN/0除算は否定形で0側へ。
-                    double d = drive * reach * core;
+                    double d = drive * reach;
                     p.NationalConsciousness = !(decay + d > 0) ? 0.0 : PoliticalQuantities.Clamp01(ceil * d / (decay + d));
                     // 報告専用（台帳の恒等は保つ）：増分/減衰でなく**実際に動いた向き**を積む。
                     double moved = p.NationalConsciousness - before;
@@ -400,8 +389,8 @@ public static class CrownParliament
                 }
                 else
                 {
-                    p.NationalConsciousness = PoliticalQuantities.Clamp01(p.NationalConsciousness * (1 - decay) + drive * reach * core * head);
-                    gainAcc += drive * reach * core * head * p.Size;   // ★J-004：報告専用（クランプ前の増分）
+                    p.NationalConsciousness = PoliticalQuantities.Clamp01(p.NationalConsciousness * (1 - decay) + drive * reach * head);
+                    gainAcc += drive * reach * head * p.Size;   // ★J-004：報告専用（クランプ前の増分）
                     loseAcc += before * decay * p.Size;                // ★J-004：報告専用
                 }
                 sum += p.NationalConsciousness * p.Size; size += p.Size;
@@ -471,7 +460,7 @@ public static class CrownParliament
             w.RecentRegimeChanges += 1;   // ★政権への失望（2026-09-29）：事件の政変を1回と数える（即時の政変・内戦の決着・矯正講和）。⚠床交差の再ラベル（Step の P2＝漸進）は数えない
         }
         w.Polity = target;
-        if (c.PolityLabelFromAxes > 0) w.ParliamentControl = ParliamentControlTarget(target);
+        w.ParliamentControl = ParliamentControlTarget(target);
     }
 
     /// <summary>P2：軸（登録簿＋議会統制力）→政体ラベルの導出（純関数）。奪取が最優先→統制力の床（現ラベルが立憲/共和なら
@@ -492,8 +481,8 @@ public static class CrownParliament
         // ★2026-08-12：下の `_ =>` は自身のコメントで「通常到達不能」と宣言しているのに、Crown=None の共和国で
         //   統制力が床を割れば必ずここへ来る＝アメリカが自己クーデタ扱いでブルジョワ独裁になっていた（実測）。
         //   奪った主体が居ないのに独裁の名を付けるのが誤り＝**奪取（Seizure）は上の switch が既に全て捌いている**ので、
-        //   王冠も奪取も無いなら「議会の弱い共和国」であって共和国のままである。CrownlessCollapseKeepsRepublic=0 で旧挙動。
-        if (w.Crown == CrownForm.None && c.CrownlessCollapseKeepsRepublic > 0) return Polity.Republic;
+        //   王冠も奪取も無いなら「議会の弱い共和国」であって共和国のままである。（旧の旗 CrownlessCollapseKeepsRepublic は 2026-10-18 に焼き込み。）
+        if (w.Crown == CrownForm.None) return Polity.Republic;
         return w.Crown switch
         {
             CrownForm.Absolutist => Polity.Absolutist,

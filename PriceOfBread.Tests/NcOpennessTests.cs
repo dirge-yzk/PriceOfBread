@@ -6,18 +6,11 @@ using Xunit.Abstractions;
 namespace PriceOfBread.Tests;
 
 /// <summary>P12残渣（原典2026-07-17 P12節・実装2026-08-09）の番人。
-/// ①開放度導出（CivicOpennessEnabled）＝民族抵抗を速度drag/coreから原典式の天井「1−民族距離×(1−開放度)」へ一本化。
+/// ①開放度導出（旧の旗 CivicOpennessEnabled は 2026-10-18 に焼き込み）＝民族抵抗を速度drag/coreから原典式の天井「1−民族距離×(1−開放度)」へ一本化。
 /// ②移民NC運搬（旧 MigrantCarriesConsciousness＝2026-09-30 段4e で焼き込み＝人の移し方の1本 Pop.Blend）＝越境移民が出身popの国民意識を持参しSize加重平均で混合（総量保存）。
-/// ★2026-08-09に点火（両係数とも既定1.0・ign_p12）。0へ戻せば全新コードがフラグの内側で1命令も実行しない）。</summary>
+/// ★2026-08-09に点火（両係数とも既定1.0・ign_p12）。旧の旗は 2026-10-18 までに両方とも焼き込み。</summary>
 public class NcOpennessTests(ITestOutputHelper output)
 {
-    [Fact]
-    public void 係数の既定は点火済み()
-    {
-        var c = new Coefficients();
-        Assert.Equal(1.0, c.CivicOpennessEnabled);        // 点火2026-08-09（ign_p12＝硬性緑・開放度導出＝当てがい値除去の正しい挙動）
-    }
-
     // ── 残渣①：開放度の天井 ─────────────────────────────────────────────
 
     /// <summary>合成世界＝仏の実データ構造で全popのNCと民族シェアをピンし、蓄積1回の増分を式と突き合わせる。
@@ -38,13 +31,12 @@ public class NcOpennessTests(ITestOutputHelper output)
         return (w, minority, core!);
     }
 
-    private static Coefficients OpennessCoef(double enabled) => new()
+    private static Coefficients OpennessCoef() => new()
     {
-        CivicOpennessEnabled = enabled,
         NationConsciousnessReachDecay = 0,   // reach=1.0＝距離を消す（天井だけを単離）
     };
 
-    // ON経路の期待値（reach=1・core=1）：天井 = ceiling×(1−民族距離×(1−開放度))
+    // 期待値（reach=1）：天井 = ceiling×(1−民族距離×(1−開放度))
     private static double ExpectedOn(double nc0, double coreShare, double openness, double drive, double ceiling, double decay)
     {
         double ceil = ceiling * (1.0 - (1.0 - coreShare) * (1.0 - openness));
@@ -58,32 +50,17 @@ public class NcOpennessTests(ITestOutputHelper output)
         const double drive = 0.5, ceiling = 0.9, decay = 0;
         // 低開放度（0.1）：非コアpopの天井=0.9×(1−1×0.9)=0.09＜現在値0.5＝headroom 0＝成長停止（独のポーランド人が天井で止まる）
         var (wLo, minLo, coreLo) = OpennessWorld();
-        CrownParliament.AccumulatePopConsciousness(wLo, OpennessCoef(1.0), drive, ceiling, decay, 0.1);
+        CrownParliament.AccumulatePopConsciousness(wLo, OpennessCoef(), drive, ceiling, decay, 0.1);
         Assert.Equal(ExpectedOn(0.5, 0.0, 0.1, drive, ceiling, decay), minLo.NationalConsciousness, 12);
         Assert.Equal(0.5, minLo.NationalConsciousness, 12);   // 式の帰結＝止まる（低開放度の非コアは国民化しない）
         // 高開放度（0.9）：天井=0.9×(1−1×0.1)=0.81＞0.5＝成長する（米のるつぼ＝移民popが国民化）
         var (wHi, minHi, coreHi) = OpennessWorld();
-        CrownParliament.AccumulatePopConsciousness(wHi, OpennessCoef(1.0), drive, ceiling, decay, 0.9);
+        CrownParliament.AccumulatePopConsciousness(wHi, OpennessCoef(), drive, ceiling, decay, 0.9);
         Assert.Equal(ExpectedOn(0.5, 0.0, 0.9, drive, ceiling, decay), minHi.NationalConsciousness, 12);
         Assert.True(minHi.NationalConsciousness > minLo.NationalConsciousness, "開放度が高いほど非コアpopの天井が開くはず");
         // コアpop（民族距離0）は開放度に無反応＝天井は ceiling のまま（式：1−0×(1−開放度)=1）
         Assert.Equal(ExpectedOn(0.5, 1.0, 0.1, drive, ceiling, decay), coreLo.NationalConsciousness, 12);
         Assert.Equal(coreLo.NationalConsciousness, coreHi.NationalConsciousness, 12);
-    }
-
-    [Fact]
-    public void 休眠経路_openness引数は読まれずcore速度係数の現行式のまま()
-    {
-        const double drive = 0.5, ceiling = 0.9, decay = 0;
-        var (wA, minA, _) = OpennessWorld();
-        var (wB, minB, _) = OpennessWorld();
-        CrownParliament.AccumulatePopConsciousness(wA, OpennessCoef(0.0), drive, ceiling, decay, 0.1);
-        CrownParliament.AccumulatePopConsciousness(wB, OpennessCoef(0.0), drive, ceiling, decay, 0.9);
-        // openness を変えても休眠では1ビットも違わない
-        Assert.Equal(minA.NationalConsciousness, minB.NationalConsciousness, 15);
-        // 現行式＝速度core（CoreWeight=0.8→非コアは×0.2）・天井は ceiling のまま
-        double core = Math.Clamp(1.0 - new Coefficients().NationConsciousnessCoreWeight * (1.0 - 0.0), 0, 1);
-        Assert.Equal(Math.Clamp(0.5 + drive * core * Math.Max(0, ceiling - 0.5), 0, 1), minA.NationalConsciousness, 12);
     }
 
     [Fact]
@@ -270,7 +247,7 @@ public class NcOpennessTests(ITestOutputHelper output)
     public void 段4_点火すると国民意識は記憶を持たない()
     {
         const double drive = 0.5, ceiling = 0.9, decay = 0.0025;
-        var cOn = OpennessCoef(1.0); cOn.NationConsciousnessDerived = 1.0;
+        var cOn = OpennessCoef(); cOn.NationConsciousnessDerived = 1.0;
         var (w, minority, core) = OpennessWorld();
         CrownParliament.AccumulatePopConsciousness(w, cOn, drive, ceiling, decay, 0.5);
         double a1 = minority.NationalConsciousness, b1 = core.NationalConsciousness;
@@ -282,12 +259,12 @@ public class NcOpennessTests(ITestOutputHelper output)
         CrownParliament.AccumulatePopConsciousness(w, cOn, drive, ceiling, decay, 0.5);
         Assert.Equal(a1, minority.NationalConsciousness, 15);
         Assert.Equal(b1, core.NationalConsciousness, 15);
-        // 式＝同じ漸化式の不動点 NC* = 天井 × d/(decay+d)（reach=1・open時はcore=1）
+        // 式＝同じ漸化式の不動点 NC* = 天井 × d/(decay+d)（reach=1）
         double ceilMin = ceiling * (1.0 - (1.0 - 0.0) * (1.0 - 0.5));
         Assert.Equal(ceilMin * drive / (decay + drive), a1, 12);
         // 休眠側（既定0）は同じ呼び出しで積み上がる＝記憶を持つ
         var (w2, min2, _) = OpennessWorld();
-        var cOff = OpennessCoef(1.0);
+        var cOff = OpennessCoef();
         Assert.Equal(0.0, cOff.NationConsciousnessDerived);   // 既定が休眠であることも同時にピン
         CrownParliament.AccumulatePopConsciousness(w2, cOff, drive, ceiling, decay, 0.5);
         double s1 = min2.NationalConsciousness;
@@ -303,7 +280,7 @@ public class NcOpennessTests(ITestOutputHelper output)
     public void 段4_点火すると国内経路の運搬漏れが定義ごと消える()
     {
         const double drive = 0.5, ceiling = 0.9, decay = 0.0025;
-        var cOn = OpennessCoef(1.0); cOn.NationConsciousnessDerived = 1.0;
+        var cOn = OpennessCoef(); cOn.NationConsciousnessDerived = 1.0;
         var (w, minority, _) = OpennessWorld();
         CrownParliament.AccumulatePopConsciousness(w, cOn, drive, ceiling, decay, 0.5);
         double settled = minority.NationalConsciousness;

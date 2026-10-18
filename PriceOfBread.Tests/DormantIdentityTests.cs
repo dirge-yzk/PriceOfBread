@@ -228,6 +228,8 @@ public class DormantIdentityTests
         "PhantomOutputSnapFloor", "ConstructionMaterialCarryover", "SubsistenceHarvestFullExposure", "RgoElasticityGate",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 財3（既定1.0の旗の 0 の枝を削除）。SilverStandardGate は最後の束で消す
         "IndirectTaxInBudgetBase", "CurrencyReformEnabled", "CapitalMobilityLawGate", "EuphoriaUsesStableReserve", "CoercionSoftCap", "TrilemmaRateGate", "SilverLightDiscipline", "CapitalOpennessTariffWeight",
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 政8（既定1.0の旗15本の 0 の枝を削除）と、0 の枝だけで読んでいた NationBuildCivicFloor・NationConsciousnessCoreWeight
+        "CivicOpennessEnabled", "DynamicParties", "EarlyElectionEnabled", "ElectionEventEnabled", "PolityLabelFromAxes", "RepublicanDeposition", "CrownFormMutation", "SeatsFrozenBetweenElections", "ParliamentSeatOnOpen", "RoyalistGate", "CrownlessCollapseKeepsRepublic", "SuffrageScopeGate", "SecretBallotGate", "StateReligionGate", "SocialSecurityLawGate", "NationBuildCivicFloor", "NationConsciousnessCoreWeight",
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

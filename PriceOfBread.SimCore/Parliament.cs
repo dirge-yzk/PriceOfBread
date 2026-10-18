@@ -3,7 +3,7 @@
 /// <summary>
 /// 政党1つ（F4政党統一・2026-07-12）。常設3党（保守/自由/社会＝族の受け皿・index0-2固定）＋クラスタ由来の動的政党。
 /// **互換射影**＝World.PartySeats[3]/GoverningParty は常に「族」の集計値のまま（既存読者は全て無改修・Runnerの3長配列も安全）。
-/// 動的政党は族内で得票を分け合う（Σ族=不変）＝DynamicParties（既定1.0）を0にすると常設3党のみ。
+/// 動的政党は族内で得票を分け合う（Σ族=不変）。
 /// FactionState参照は持たない（セーブの参照グラフを単純に保つ＝FactionStateと同じ「Region参照＋値」の形）。
 /// </summary>
 public sealed class PoliticalParty
@@ -43,11 +43,11 @@ public static class Parliament
             w.Parties.Add(new PoliticalParty { Name = "自由党", Family = 1, Permanent = true });
             w.Parties.Add(new PoliticalParty { Name = "社会党", Family = 2, Permanent = true });
         }
-        if (c.DynamicParties > 0) SyncDynamicParties(w, c);   // F4：クラスタ→政党の出入り（既定1.0・0で常設3党のみ）
+        SyncDynamicParties(w, c);   // F4：クラスタ→政党の出入り
         StepManifesto(w, c);   // ★公約の達成判定と支持の減衰（作者指示2026-08-24）
 
-        // 政7：得票率（世論）の毎期計算。SeatsFrozenBetweenElections（既定1.0）：得票率を VoteShares に置き、PartySeats（政治力学＝ConstMonarchyErosion・
-        // 一党支配判定・法案の議席加重が読む）は選挙時のスナップショットで固定（レームダック・任期中の民意乖離）。0で PartySeats を毎期上書き＝表示と議席が同一。
+        // 政7：得票率（世論）の毎期計算。得票率を VoteShares に置き、PartySeats（政治力学＝ConstMonarchyErosion・
+        // 一党支配判定・法案の議席加重が読む）は選挙時のスナップショットで固定（レームダック・任期中の民意乖離）。（旧の旗 SeatsFrozenBetweenElections は 2026-10-18 に焼き込み。）
         // ⚠是正（第2段2-5・2026-07-27）：旧注記「VoteShares＝表示専用」は嘘＝**選挙の新与党判定（Winner）が現在の民意として VoteShares を読む**（凍結時に確定議席でなく民意で交代を決める＝実質の力学読み手）。
         ComputeVotes(w, c);
         // ★開院時の議席（2026-08-04・作者指摘「議会の存在感が薄い」）＝**開幕の議会が空席だった**バグの是正。
@@ -56,8 +56,7 @@ public static class Parliament
         //   1783年の英には1780年総選挙で選ばれた議会が現に座っている＝「開幕は空席」は史実でも設計でもない単なる初期化漏れ。
         //   直し方＝**新しい判断を持ち込まず**、非選挙政体が毎期使っているのと同じ SnapshotSeats を開院時に1回だけ呼ぶ
         //   ＝「初回は直近の総選挙の結果が既に出ている」。以後は従来どおり16四半期ごと。
-        //   ⚠ SeatsFrozenBetweenElections=0（凍結なし）では SnapshotSeats 自体が不要（VoteShares と PartySeats が毎期恒等）。
-        //   ⚠ ParliamentSeatOnOpen=0 で旧＝空席のまま（休眠・厳密恒等）。
+        //   （旧の旗 ParliamentSeatOnOpen・SeatsFrozenBetweenElections は 2026-10-18 に焼き込み。）
         //   ⚠**初回Stepでは席を取らない**：Simulation.Step では Parliament.Step が Politics.Step（＝Ideology.UpdateShares）より
         //     先に走るので、1四半期目の IdeologyShares は全て0＝ComputeVotes の縮退フォールバック（族が全く無い時は保守1）で
         //     得票が保守100%になる。そこで席を固定すると**開幕の議会が丸ごと保守党**という嘘の議会が4年間座り続ける（実測で確認）。
@@ -65,7 +64,6 @@ public static class Parliament
         //   ⚠議席が空のときだけ＝一度きり（選挙後の再入なし・専制から立憲へ移った国は既に席があるので発火しない）。
         bool seatsEmpty = w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9;
         if (seatsEmpty && w.QuartersSinceElection >= 1
-            && c.ParliamentSeatOnOpen > 0 && c.SeatsFrozenBetweenElections > 0
             && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic)
         {
             SnapshotSeats(w);
@@ -78,11 +76,10 @@ public static class Parliament
         {
             w.QuartersWithElections++;   // E0計器：選挙政体の在籍四半期（平均間隔の分子）。カウンタのみ＝挙動不変
             // 機能2-5（2026-07-28）：不信任＝与党の民意（VoteShares）が閾値を割ると任期途中でも繰り上げ選挙（第三共和政の短命内閣・
-            // 支持基盤の崩れた内閣は保たない）。最短間隔EarlyElectionMinQuartersで選挙の乱発を防ぐ。EarlyElectionEnabled=0で旧＝固定周期のみ恒等。
-            bool noConfidence = c.EarlyElectionEnabled > 0
-                && w.QuartersSinceElection >= (int)c.EarlyElectionMinQuarters
+            // 支持基盤の崩れた内閣は保たない）。最短間隔EarlyElectionMinQuartersで選挙の乱発を防ぐ。（旧の旗 EarlyElectionEnabled は 2026-10-18 に焼き込み。）
+            bool noConfidence = w.QuartersSinceElection >= (int)c.EarlyElectionMinQuarters
                 && w.GoverningParty is >= 0 and < 3 && w.VoteShares[w.GoverningParty] < c.NoConfidenceThreshold;
-            // ★E3公示（選挙doc §3-0/3-2・ElectionEventEnabled=1で点火済み2026-08-17）：次の四半期が定期総選挙なら公示が立つ。
+            // ★E3公示（選挙doc §3-0/3-2・旧の旗 ElectionEventEnabled=1 で2026-08-17点火・2026-10-18焼き込み）：次の四半期が定期総選挙なら公示が立つ。
             //   繰り上げ（不信任）には公示なし＝準備の時間が無いのが史実の解散総選挙。
             // ★E4・AI等価物（作者裁定2026-08-17「AI・プレイヤー完全等価。プレイヤーにのみ使える手段があってはならない」）：
             //   旧＝`w.SelfPower?.IsPlayer == true` で**プレイヤー国にだけ公示が立ち、AIは常に即決＝素の得票**だった
@@ -91,7 +88,7 @@ public static class Parliament
             //   プレイヤー国のときだけポップアップする）＝UIの都合を SimCore に持ち込まない。
             //   AI国は**この場で**同じ動詞（World.ResolveElection）に答える＝未回答の公示を次の開票（下の開票時クリア）まで持ち越さない。
             //   ⚠プレイヤー国の公示は本人が答えるまで残る（既存挙動）＝AIが人の選挙を代行しない（Politics の危機イベントと同じ規律）。
-            if (c.ElectionEventEnabled > 0 && w.PendingElection is null
+            if (w.PendingElection is null
                 && !noConfidence && w.QuartersSinceElection == c.ElectionIntervalQuarters - 1)
             {
                 w.PendingElection = BuildElectionEvent(w, c);
@@ -105,9 +102,9 @@ public static class Parliament
                 w.GoverningParty = (int)Winner(w);   // 選挙＝最大党が組閣（過半数なくても第一党）。カウンタを0に戻す前に勝者を確定（順序不問＝恒等）
                 w.QuartersSinceElection = 0;
                 w.ElectionsHeld++;   // E0計器：総選挙の実施（定期・繰り上げの別を問わない）
-                if (c.SeatsFrozenBetweenElections > 0) SnapshotSeats(w);   // 政7：選挙で議席を確定（以後の世論変動は VoteShares のみ動く）
+                SnapshotSeats(w);   // 政7：選挙で議席を確定（以後の世論変動は VoteShares のみ動く）
                 // ★E3：加担の押し込みは開票1回で消費（未回答の公示も流す＝択の先送りは「何もしない」と同じ）
-                if (c.ElectionEventEnabled > 0) { w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null; }
+                w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null;
             }
         }
         else
@@ -118,9 +115,9 @@ public static class Parliament
             // ★E4（2026-08-17）：議会が消えた（政変で非選挙政体へ転げた）＝**公示も加担も失効**する。
             //   ⚠これが無いと、公示から開票までの間に政体が転げた国で押し込み（ElectionPushIdeology）が開票時のクリアに永久に到達せず、
             //     ComputeVotes は毎四半期走る（非選挙政体は毎期 SnapshotSeats）ので**一度きりの動詞が恒久の議席補正になる**。
-            //   プレイヤー国・AI国の区別なし＝同じ機構（既定0では1つも状態を書かない＝恒等）。
-            if (c.ElectionEventEnabled > 0) { w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null; }
-            if (c.SeatsFrozenBetweenElections > 0) SnapshotSeats(w);   // 政7：非選挙政体は毎期スナップショット＝VoteShares と PartySeats は恒等（凍結でも従来同値）
+            //   プレイヤー国・AI国の区別なし＝同じ機構。
+            w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null;
+            SnapshotSeats(w);   // 政7：非選挙政体は毎期スナップショット＝VoteShares と PartySeats は恒等（凍結でも従来同値）
         }
 
         w.GoverningPartyName = GoverningPartyOf(w)?.Name ?? "";   // F4：与党の実体名（族内最大得票・未初期化=空でUIが族名へフォールバック）
@@ -179,11 +176,11 @@ public static class Parliament
     private static void ComputeVotes(World w, Coefficients c)
     {
         var eff = w.Suffrage;   // 実効参政権＝法律値（政体含意は floor-raise で法へ畳み込み済・倍率排除②）
-        // ★E3（選挙doc §3-2・ElectionEventEnabled=0または未加担＝push=-1＝分岐に一度も入らない＝ビット恒等）：
+        // ★E3（選挙doc §3-2・未加担＝push=-1＝分岐に一度も入らない）：
         //   加担した思想のシェアだけ (1+効き×Scale) 倍で票を集計＝その pop の中で票が移る（voters総量は保存）。開票1回で消費（Step側でリセット）。
         //   ★E3''（2026-08-17）：ElectionPushStrength は**効き**＝投入額の逓減 A/(A+半減点)∈[0,1)（World.ElectionPushEffectOf）
         //   ＝ここは「いくら注いだか」を知らない（金と効きの翻訳は唯一の口 World.ResolveElection が済ませている）。
-        int push = c.ElectionEventEnabled > 0 ? w.ElectionPushIdeology : -1;
+        int push = w.ElectionPushIdeology;
         double pushMul = 1.0 + w.ElectionPushStrength * c.ElectionPushScale;
         double cons = 0, lib = 0, soc = 0;
         // F4：政党別の得票の素材（族の中の分割）＝動的政党がある時だけ、同じ走査で思想別の票も積む（走査を2度しない）。
@@ -226,7 +223,7 @@ public static class Parliament
             v0 = d0 / dt; v1 = d1 / dt; v2 = d2 / dt;
         }
         // 政7：得票率は VoteShares に置き、PartySeats（政治力学が読む確定議席）は SnapshotSeats（選挙時/非選挙政体の毎期）でのみ更新＝レームダック。
-        // 第3段3-6（2026-07-27）：SeatsFrozenBetweenElections=1.0（政7点火）を焼き込み＝旧・毎期上書き枝（到達不能）を削除。
+        // 第3段3-6（2026-07-27）：SeatsFrozenBetweenElections=1.0（政7点火）を焼き込み＝旧・毎期上書き枝（到達不能）を削除（旗そのものは 2026-10-18 に削除）。
         w.VoteShares[0] = v0; w.VoteShares[1] = v1; w.VoteShares[2] = v2;
 
         // F4：政党別の得票（族の中の分割＝**族計は上のv0-2と厳密一致**＝互換射影の恒等）。常設党＝族計−Σ動的（族の残り全部）。
@@ -481,7 +478,7 @@ public static class Parliament
     }
 }
 
-/// <summary>★E3（選挙doc §3-0〜3-2・ElectionEventEnabled=1.0 で全国に公示・0で生成されない）：総選挙の公示＝プレイヤーの択待ち（AI国は同じ四半期に UtilityAgent.DecideElection が答える）。
+/// <summary>★E3（選挙doc §3-0〜3-2・全国に公示）：総選挙の公示＝プレイヤーの択待ち（AI国は同じ四半期に UtilityAgent.DecideElection が答える）。
 /// 択は「どの思想に加担するか」1つだけ（§3-2a＝議題を個別に倒す択は置かない＝法の束の原則）。
 /// 議題は「今回は何が焦点か」を知るための情報であって、個別に操作する対象ではない。</summary>
 public sealed class ElectionEvent

@@ -305,16 +305,16 @@ if (args.Length > 0 && args[0] == "armyshape")
 //   dotnet PriceOfBread.Runner.dll instprobe
 if (args.Length > 0 && args[0] == "instprobe")
 {
-    foreach (var (flag, scope) in new[] { (0.0, 0.0), (1.0, 0.0), (1.0, 1.0) })
+    foreach (var flag in new[] { 0.0, 1.0 })
     {
-        var cf = new Coefficients { ColoniesAreRegions = flag, SuffrageScopeGate = scope };
+        var cf = new Coefficients { ColoniesAreRegions = flag };
         var msI = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], 1789UL, null, cf);
         msI.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
         msI.Nations[1].World.ParliamentEnabled = false;
         for (int q = 0; q < 400; q++) msI.StepQuarter();
         var wB = msI.Nations[2].World;
         int colReg = 0; foreach (var rr in wB.Regions) if (rr.Tier == RegionTier.Colonial) colReg++;
-        Console.WriteLine($"ColoniesAreRegions={flag} SuffrageScopeGate={scope}　英：州{wB.Regions.Count}（うち植民地格{colReg}）　植民地オブジェクト{wB.SelfPower?.ColonyList.Count}");
+        Console.WriteLine($"ColoniesAreRegions={flag}　英：州{wB.Regions.Count}（うち植民地格{colReg}）　植民地オブジェクト{wB.SelfPower?.ColonyList.Count}");
         Console.WriteLine($"   Freedom {wB.Freedom:F3}（閾値 {cf.FrontierFreedomThreshold:F3}）　教育法 {wB.EducationLaw}");
         Console.WriteLine($"   Elite {wB.Elite:F4}　EliteCore {wB.EliteCore:F4}");
         Console.WriteLine($"   特許 {wB.PatentLaw}　株式会社 {wB.JointStock}　鉄道 {wB.Railways}　技術 {wB.TechLevel:F2}");

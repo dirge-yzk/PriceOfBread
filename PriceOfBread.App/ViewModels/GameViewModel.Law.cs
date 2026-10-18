@@ -73,10 +73,9 @@ public partial class GameViewModel
             => NationalizationLaws.Add(new LawRowVM(w, axis, title, labels, cur, tgt, set, vis));
         // --- 常設の法（開始年から選べる）---
         Add("参政権", PolicyAxis.Suffrage, ["なし", "制限選挙", "男性普通", "男女普通"], () => (int)w.Suffrage, () => (int)p.Suffrage, v => p.Suffrage = (Suffrage)v);
-        // 参政権の範囲2法（作者裁定2026-08-16）＝SuffrageScopeGate 点火時のみ表示（natVis と同型＝効果ゼロの法を出さない「ゲート緑≠機構が働いた」の罠封じ）。
-        Func<bool> sufScopeVis = () => c.SuffrageScopeGate > 0;
-        Add("植民地参政権", PolicyAxis.ColonialSuffrage, ["なし", "自国民のみ", "全面"], () => (int)w.ColonialSuffrage, () => (int)p.ColonialSuffrage, v => p.ColonialSuffrage = (ColonialSuffrageLaw)v, sufScopeVis);
-        Add("移民原住民参政権", PolicyAxis.MigrantNativeSuffrage, ["なし", "あり"], () => (int)w.MigrantNativeSuffrage, () => (int)p.MigrantNativeSuffrage, v => p.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v, sufScopeVis);
+        // 参政権の範囲2法（作者裁定2026-08-16・旧の旗 SuffrageScopeGate は 2026-10-18 に焼き込み＝常に表示）。
+        Add("植民地参政権", PolicyAxis.ColonialSuffrage, ["なし", "自国民のみ", "全面"], () => (int)w.ColonialSuffrage, () => (int)p.ColonialSuffrage, v => p.ColonialSuffrage = (ColonialSuffrageLaw)v);
+        Add("移民原住民参政権", PolicyAxis.MigrantNativeSuffrage, ["なし", "あり"], () => (int)w.MigrantNativeSuffrage, () => (int)p.MigrantNativeSuffrage, v => p.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v);
         // 教育：初等の最下段は宗教学校（「なし」＝EducationLaw.None は無学社会の内部状態としてエンジンに残すが、プレイヤーの選択肢からは除外。実在国は宗教学校始点＝+1オフセットで写す）。
         Add("教育", PolicyAxis.EducationLaw, ["宗教学校", "公教育", "義務教育"], () => Math.Max(0, (int)w.EducationLaw - 1), () => Math.Max(0, (int)p.EducationLaw - 1), v => p.EducationLaw = (EducationLaw)(v + 1));
         Add("報道", PolicyAxis.Censorship, ["国営のみ", "検閲", "自由報道"], () => (int)w.Censorship, () => (int)p.Censorship, v => p.Censorship = (CensorshipLaw)v);
@@ -112,10 +111,10 @@ public partial class GameViewModel
         // 社会保障：最下段は救貧法（「なし」廃止＝救貧法が福祉水準0。2026-07-21）。4段＝target×3で写す（エンジン Government の導出と一致）。
         // ★2026-09-23（作者裁定「社会保障の段を財政タブへ」）：行は **WelfareLaw** として財政タブの社会保障の金額行の直下に置く。
         //   法律タブの「教育と労働」群からは外した（下の groups からも外してある）＝同じ法を2箇所に出さない。
-        WelfareLaw = new LawRowVM(w, PolicyAxis.SocialSecurity, "社会保障", ["救貧法", "労災", "失業保険", "年金"], () => (int)w.SocialSecurityLaw, () => Math.Clamp((int)Math.Round(p.SocialSecurityTarget * 3), 0, 3), v => p.SocialSecurityTarget = v / 3.0, () => c.SocialSecurityLawGate > 0);
-        Add("秘密投票", PolicyAxis.SecretBallot, ["公開", "秘密"], () => (int)w.SecretBallot, () => (int)p.SecretBallot, v => p.SecretBallot = (SecretBallotLaw)v, () => c.SecretBallotGate > 0);
+        WelfareLaw = new LawRowVM(w, PolicyAxis.SocialSecurity, "社会保障", ["救貧法", "労災", "失業保険", "年金"], () => (int)w.SocialSecurityLaw, () => Math.Clamp((int)Math.Round(p.SocialSecurityTarget * 3), 0, 3), v => p.SocialSecurityTarget = v / 3.0);
+        Add("秘密投票", PolicyAxis.SecretBallot, ["公開", "秘密"], () => (int)w.SecretBallot, () => (int)p.SecretBallot, v => p.SecretBallot = (SecretBallotLaw)v);
         Add("官僚制度", PolicyAxis.Bureaucracy, ["猟官制", "資格任用", "専門官僚"], () => (int)w.Bureaucracy, () => (int)p.Bureaucracy, v => p.Bureaucracy = (BureaucracyLaw)v);
-        Add("国教", PolicyAxis.StateReligion, ["国教のみ", "内心の自由", "信仰の自由", "国家無神論"], () => (int)w.StateReligion, () => (int)p.StateReligion, v => p.StateReligion = (StateReligionLaw)v, () => c.StateReligionGate > 0);   // 国家無神論＝前提DAGでプロレタリア独裁のみ（例外①）
+        Add("国教", PolicyAxis.StateReligion, ["国教のみ", "内心の自由", "信仰の自由", "国家無神論"], () => (int)w.StateReligion, () => (int)p.StateReligion, v => p.StateReligion = (StateReligionLaw)v);   // 国家無神論＝前提DAGでプロレタリア独裁のみ（例外①）
         Add("独占禁止", PolicyAxis.Antitrust, ["規制なし", "談合禁止", "独占の解体"], () => (int)w.Antitrust, () => (int)p.Antitrust, v => p.Antitrust = (AntitrustLaw)v, () => c.AntitrustGate > 0);
         Add("同業組合", PolicyAxis.Guild, ["保護", "制限", "廃止"], () => (int)w.Guild, () => (int)p.Guild, v => p.Guild = (GuildLaw)v, () => c.GuildLawGate > 0);   // ★特権 段4（2026-09-07）
         Add("戦時配給", PolicyAxis.WartimeRationing, ["なし", "あり"], () => w.WartimeRationing ? 1 : 0, () => p.WartimeRationing ? 1 : 0, v => p.WartimeRationing = v == 1, () => c.RationingGate > 0);

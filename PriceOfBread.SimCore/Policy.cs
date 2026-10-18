@@ -26,7 +26,7 @@ public enum WorkHours { Eight, Ten, Twelve, Unlimited }
 public enum ConscriptionLaw { Volunteer, Selective, Universal }
 
 /// <summary>秘密投票法（1934拡張E5）。公開投票→秘密投票。「紙の参政権」問題の是正＝専制が選挙なしで参政権を発行しても不満が満額鎮まる SelfPlay:195 の構造を封じる。
-/// 発言権の鎮静効果を「選挙の実在」で変調（議会×秘密=満額・議会×公開=買収で減・非議会=紙で3割）。既定 Open。SecretBallotGate=0 で完全恒等（E9点火）。</summary>
+/// 発言権の鎮静効果を「選挙の実在」で変調（議会×秘密=満額・議会×公開=買収で減・非議会=紙で3割）。既定 Open。</summary>
 public enum SecretBallotLaw { Open, Secret }
 
 /// <summary>官僚制度（1934拡張E5）。猟官制→資格任用制→専門官僚制。任用の質は監視（World.OversightV2 の資格任用の脚）と累進課税の前提として効く（プロイセン文官改革）。★(383) 行政効率への段階係数 BureaucracyAdminSpread は物理削除した。
@@ -67,13 +67,13 @@ public enum WomenRightsLaw { None, Property, Education, Suffrage }
 /// ★史実＝米の排華移民法1882・日米紳士協約1907・1924移民法／豪の白豪主義。**流入で職を脅かされる大衆が推し、労働力を求める資本が反対する**。</summary>
 public enum ImmigrationLaw { Open, Selective, Closed }
 
-/// <summary>植民地参政権（参政権の範囲2法・作者裁定2026-08-16・主フラグ <see cref="Coefficients.SuffrageScopeGate"/>＝1.0で点火済み・2026-09-06）。
+/// <summary>植民地参政権（参政権の範囲2法・作者裁定2026-08-16・点火2026-09-06・旧の旗 SuffrageScopeGate は 2026-10-18 に焼き込み）。
 /// None＝なし（植民地格の州のPOPは政治的国民でない＝英モデル：本国議会に植民地議席なし）／
 /// OwnNationals＝自国民のみ（各popの CoreEthnicShare 分だけ算入＝アルジェリア入植者モデル：コロンのみ・ムスリム排除）／
 /// Full＝全面（全量算入＝同化主義モデル：カディス1812・セネガル四コミューン1848・ラミーヌゲイ法1946）。
 /// 効き＝植民地格の州（RegionTier.Colonial）のPOPを政治的国民に算入：発言権（<see cref="InterestGroups.Blocs"/>）・
 /// 課税への同意（Fiscal の consent＝植民地の徴税力）・分離圧力の緩和（Politics.CheckSecession ×(1−算入率)）。
-/// 前提＝参政権:制限選挙以上（LawPrereq）。SuffrageScopeGate=0 では効果もUI表示も無し＝厳密恒等。</summary>
+/// 前提＝参政権:制限選挙以上（LawPrereq）。</summary>
 public enum ColonialSuffrageLaw { None, OwnNationals, Full }
 
 /// <summary>移民原住民参政権（参政権の範囲2法・同上・2段。表記は中黒なし＝作者裁定）。None＝なし／Granted＝あり。
@@ -83,11 +83,11 @@ public enum ColonialSuffrageLaw { None, OwnNationals, Full }
 public enum MigrantNativeSuffrageLaw { None, Granted }
 
 /// <summary>社会保障法（1934拡張E5）。救貧法→労災→失業保険→年金の4段（最下段=救貧法が福祉水準0＝旧「なし」相当。2026-07-21「なし」廃止）。旧・社会保障スライダーの置換（スライダー廃止＝段階が福祉水準を駆動）。
-/// 既定 SocialSecurityLawGate=1.0（E9点火）＝この法が福祉水準を駆動（旧スライダー枝は Government で焼き込み削除済み・gate は Politics の失業保険緩衝のみ読む）。第4段=年金は既存年金法を吸収。失業保険段=失業の闘争度を緩和（ファシズム防波堤）。</summary>
+/// この法が福祉水準を駆動（旧スライダー枝は Government で焼き込み削除済み・旧の旗 SocialSecurityLawGate は 2026-10-18 に削除）。第4段=年金は既存年金法を吸収。失業保険段=失業の闘争度を緩和（ファシズム防波堤）。</summary>
 public enum SocialSecurityLaw { PoorLaw, WorkersComp, Unemployment, Pension }
 
 /// <summary>国教法（1934拡張E6）。国教のみ→内心の自由→信仰の自由の3段。寛容ほど十分の一税↓（聖職者収入↓）だが宗教分裂の抵抗↓（多宗派国の統合）＋識字移民を惹く（ユグノー型）。
-/// 既定 StateChurch（1789はほぼ国教制）。StateReligionGate=0で効果なし＝恒等（E9点火）。
+/// 既定 StateChurch（1789はほぼ国教制）。
 /// StateAtheism（例外①・2026-07-28）＝国家無神論。寛容の梯子の延長ではなく**プロレタリア独裁が毎期強制**する
 /// （§13-7：マルクス主義イデオロギーには含めない・ボリシェヴィキ1917以降のみ＝法が戻るのではなく政体が無効化する）。
 /// 効果＝十分の一税0＋天命の媒介回路（第5段5-5）の完全遮断＝共産主義国家が農民の天命忠誠を破壊できる。通常政体の法ターゲットには出さない。</summary>
@@ -172,15 +172,15 @@ public sealed class NationPolicy
     public ReformLevel LandReform = ReformLevel.None;        // 土地改革：地代取り分を縮小し農民へ再分配。社会＝全面・自由＝限定的・保守（地主）＝なし
     public ReformLevel SerfEmancipation = ReformLevel.None;  // 農奴解放：農奴制（高い地代取り分）を小作へ（露1861）。社会＝全面/自由＝限定的（償却付＝1861型）・保守＝なし
     public ConscriptionLaw ConscriptionLaw = ConscriptionLaw.Selective;  // 徴兵法（1934拡張E5）。既定Selective＝現行の戦時徴兵挙動を保つ（志願制は新たに選べる制限）
-    public SecretBallotLaw SecretBallot = SecretBallotLaw.Open;              // 秘密投票法（1934拡張E5）。既定Open。SecretBallotGate=0で効果なし＝恒等
+    public SecretBallotLaw SecretBallot = SecretBallotLaw.Open;              // 秘密投票法（1934拡張E5）。既定Open
     public BureaucracyLaw Bureaucracy = BureaucracyLaw.MeritExam;            // 官僚制度（1934拡張E5）。既定MeritExam
     public ImmigrationLaw ImmigrationRestriction = ImmigrationLaw.Open;   // ★移民制限法（2026-08-01）。既定 Open＝制限なし＝現行と厳密同義
     public SpecialistExitLaw SpecialistExitLaw = SpecialistExitLaw.Free;   // ★技術者流出禁止法（段⑤・2026-08-17）。既定 Free＝禁止なし＝現行と厳密同義
-    // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）。既定 None＝1783年に植民地へ議席を与えた国は無い＝開始局面は現行と厳密同義
+    // 参政権の範囲2法（作者裁定2026-08-16・点火2026-09-06）。既定 None＝1783年に植民地へ議席を与えた国は無い＝開始局面は現行と厳密同義
     public ColonialSuffrageLaw ColonialSuffrage = ColonialSuffrageLaw.None;             // 植民地参政権：なし/自国民のみ/全面
     public MigrantNativeSuffrageLaw MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;   // 移民原住民参政権：なし/あり
-    public SocialSecurityLaw SocialSecurityLaw = SocialSecurityLaw.PoorLaw;  // 社会保障法（1934拡張E5・4段。既定=救貧法＝福祉水準0で旧「なし」相当）。既定 SocialSecurityLawGate=1.0（E9点火）でこの法が福祉水準を駆動（旧スライダー枝は削除済み）
-    public StateReligionLaw StateReligion = StateReligionLaw.StateChurch;    // 国教法（1934拡張E6・3段）。寛容ほど十分の一税↓＋宗教分裂の抵抗↓。StateReligionGate=0で恒等
+    public SocialSecurityLaw SocialSecurityLaw = SocialSecurityLaw.PoorLaw;  // 社会保障法（1934拡張E5・4段。既定=救貧法＝福祉水準0で旧「なし」相当）。この法が福祉水準を駆動（旧スライダー枝は削除済み）
+    public StateReligionLaw StateReligion = StateReligionLaw.StateChurch;    // 国教法（1934拡張E6・3段）。寛容ほど十分の一税↓＋宗教分裂の抵抗↓
     public AntitrustLaw Antitrust = AntitrustLaw.None;                       // 独占禁止法（1934拡張E6・3段）。強いほど独占レント↓＝大衆生活水準↑・エリート収入↓。AntitrustGate=0で恒等
     public GuildLaw Guild = GuildLaw.Full;                                   // ★同業組合法（特権 段4・3段）。既定＝保護（1783年の全国＝ギルドあり）。GuildLawGate=0 で恒等
     public bool WartimeRationing = false;                                    // 戦時配給法（1934拡張E6・あり/なし）。戦時のみ発火＝海上封鎖の厭戦（飢餓）を公平配給で緩和（英国型）だが自由派/資本が反対（価格統制）。RationingGate=0で恒等

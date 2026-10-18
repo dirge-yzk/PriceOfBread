@@ -502,7 +502,7 @@
                 </DockPanel>
             </Border>
 
-            <!-- ★E3（選挙doc §3-1/3-2）：総選挙の公示＝どの思想に加担するか1択（議題は情報・ElectionEventEnabled=0では出ない） -->
+            <!-- ★E3（選挙doc §3-1/3-2）：総選挙の公示＝どの思想に加担するか1択（議題は情報） -->
             <Border IsVisible="{Binding ElectionPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
                     MinWidth="420" MaxWidth="540" Padding="0" ZIndex="10">

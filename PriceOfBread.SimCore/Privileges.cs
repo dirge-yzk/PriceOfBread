@@ -29,9 +29,7 @@ public static class Privileges
     /// ★十分の一税の徴収（Fiscal.Step の税の走査）と同じ1本の定義（同じ式を2箇所に書かない・2026-09-07）。TitheRate=0 の世界は0＝特権そのものが無い。</summary>
     public static double TitheDegree(World w, Coefficients c)
         => !(c.TitheRate.Value > 0) ? 0.0
-         : c.StateReligionGate > 0
-            ? w.StateReligion switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 }
-            : 1.0;
+         : w.StateReligion switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
 
     /// <summary>身分制免税の割引率＝閉鎖階級（貴族・聖職）の課税ベースから抜ける割合。
     /// ★<see cref="TaxAssessment"/> と同じ1本の定義（2026-09-07に重複を畳んだ・1.0−これ＝旧式とビット同一）。</summary>

@@ -131,11 +131,10 @@ public static class Politics
     }
 
     /// <summary>実効発言権∈[0,1]（闘争度ループと**同じ1本**）＝票の発言権 × 選挙の実在（1934拡張E5「紙の参政権」の是正）。
-    /// 議会政体×秘密投票=満額／議会×公開投票=買収・脅迫で減／非議会政体=紙の参政権。SecretBallotGate=0 で変調なし＝旧式。</summary>
+    /// 議会政体×秘密投票=満額／議会×公開投票=買収・脅迫で減／非議会政体=紙の参政権。</summary>
     internal static double EffectiveVoice(World w, Coefficients c, Pop p)
     {
         double effVoice = InterestGroups.FranchiseVoice(p, w.Suffrage, c);
-        if (c.SecretBallotGate > 0)
         {
             double reality = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
                 ? (w.SecretBallot == SecretBallotLaw.Secret ? 1.0 : c.OpenBallotReality)
@@ -240,8 +239,8 @@ public static class Politics
         double warWeariness = w.SelfPower?.WarExhaustion ?? 0;   // 厭戦（対外戦争のみ・較正は0）。闘争度入力へ（旧：Ideology の階級分岐で直接加点）。★(377) 厭戦の項は残す＝(373) の腕で、これを外すと交戦中と平時の闘争度の差が消えた（戦争→内政の経路がこの項だけ・実装ログ (377)）
         // 政治の空間モデル：現政体の4軸座標（実参政権でドリフト済＝第5段5-1でPoliticalQuantitiesへ一元化）をループ前に1回算出。各popの理想点との距離が政治的不満。
         double[] regimeCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
-        // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：移民原住民参政権の少数派緩和は「州の格」を読む
-        // ＝ループを州→popの入れ子へ（AllPops と同じ走査順＝gate=0 で厳密恒等）。
+        // 参政権の範囲2法（作者裁定2026-08-16・旧の旗 SuffrageScopeGate は 2026-10-18 に焼き込み）：移民原住民参政権の少数派緩和は「州の格」を読む
+        // ＝ループを州→popの入れ子へ（AllPops と同じ走査順）。
         foreach (var milReg in w.Regions)
         {
         foreach (var p in milReg.Pops)
@@ -277,7 +276,7 @@ public static class Politics
             // ＝少数派の地位不満は ×(1−算入)＝算入1で0（新しい定数を作らない創発形）。植民地格の州は対象外（そちらは植民地参政権＝分離圧の緩和側）。
             // ★E-05段3（2026-09-03）：格を見ず**算入率**で連続に緩める＝本国州は中核度≈1でほぼ0まで消え、植民地は中核度≈0でほとんど残る
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝＝移民原住民参政権「あり」で本国州だけ0 は削除）。
-            if (c.SuffrageScopeGate > 0 && w.EthnicEnabled)
+            if (w.EthnicEnabled)
                 minorityMil *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, milReg));
             // [PORT:P1] ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
             //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では起きないが半年続けば大量の反乱軍」が**係数の値では表現できない**証明だった＝利得ごと作り直す。
@@ -661,9 +660,9 @@ public static class Politics
             w.ParliamentControl = PoliticalQuantities.Clamp01(Math.Max(w.ParliamentControl, grant));
             w.ReformGrantCount++;   // C-高1完成検証（2026-07-25）：下賜の発生数（診断＝chronicleが集計。挙動非依存）
         }
-        // P2（flag=1）：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
+        // P2：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
         // 「近代法を持つが議会に権力を渡さない」プロイセン/明治型が自然点になる（ラベルが後日 床交差で変わった時だけ建国制度が走る）。
-        if (reformFromAbove && c.PolityLabelFromAxes > 0) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
+        if (reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
         if (Instruments.On) Instruments.CoupRoute(w, violent ? 5 : 6);
         ExecuteRegimeChange(w, c, attractor, violent);
     }
@@ -1447,15 +1446,14 @@ public static class Politics
                 double nc = AvgRegionConsciousness(r);
                 pressure *= Math.Max(0, 1.0 - c.SecessionConsciousnessWeight * nc);
             }
-            // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：植民地参政権で政治的国民に算入された植民地格の州は
+            // 参政権の範囲2法（作者裁定2026-08-16）：植民地参政権で政治的国民に算入された植民地格の州は
             // 分離圧力が算入率ぶん緩む＝×(1−算入率)。算入率＝なし0／自国民のみ=州の平均中核度（AvgRegionCoreShare＝民族項と同じ言語）／全面1
-            // ＝代表を得た州は離れない（N7 分離割引と同型の乗算・新しい定数なし）。gate=0 では分岐に入らない＝厳密恒等。
+            // ＝代表を得た州は離れない（N7 分離割引と同型の乗算・新しい定数なし）。
             // ★E-05段3（2026-09-03）：⚠旧はここで `Tier == Colonial` を見ていた＝**同じ問い（代表を得ているか）に法が2本**。
             //   新＝格を見ず、上の少数派の地位不満と**同じ算入率**を使う＝規則は1本（作者裁定「法側で制御したい」）。
             //   ⚠本国州も同じ式を通るが、中核度≈1＝算入率≈1＝圧力≈0への割引＝**従来ここに来ていなかった州の挙動は実質変わらない**。
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝は削除）
-            if (c.SuffrageScopeGate > 0)
-                pressure *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, r));
+            pressure *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, r));
             // ★幽霊の国の根（2026-09-30 (118)・推奨で進めた）：**離脱の力は人の数で測る**（反乱を起こすのは人）。
             //   旧＝圧力は1人あたりの量（関税の乖離×州の平均闘争度×文化）だけで州の人口に依らず、引き留めは国の人口と治安維持力（人の数 coerce）で測る
             //   ＝分子と分母が別の単位。州の間の移民で大衆が数人まで抜けた州（小さな植民地の州）も人口3千の州と同じ圧力で離れ、

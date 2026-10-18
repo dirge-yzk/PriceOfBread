@@ -50,9 +50,6 @@ public class ElectionAiTests
         return sim;
     }
 
-    private static void SetGate(MultiNationSim sim, double v)
-    { foreach (var n in sim.Nations) n.World.Coef.ElectionEventEnabled = v; }
-
     /// <summary>貨幣の総量（国庫＋全popの貯蓄）＝保存検査の物差し（leakhunt と同じ言語の最小版）。</summary>
     private static double TotalMoneyOf(World w)
     {
@@ -68,46 +65,12 @@ public class ElectionAiTests
         return v;
     }
 
-    // ============ (a) 既定＝点火済み（★2026-08-17） ============
-
-    [Fact]
-    public void 係数の既定は点火済み_AI経路も同じ1本のゲートの内側にある()
-    {
-        // ⚠POB_COEF で明示上書きした測定走行では既定値を見ない（点火A/Bを同一バイナリで取るため・AiFirstWaveTests と同じ作法）
-        // ★2026-08-17に点火（A/B exact38.2→40.2・near73.1・硬性緑）。⚠この1本が**プレイヤーとAIの共通ゲート**である事実は
-        //   点火後も変わらない＝別フラグを作らないので「片方だけ点けて非対称を再生産する」ができない（OFF側は下のテストが明示ピンで持つ）。
-        if (!Coefficients.OverrideSummary().Contains("ElectionEventEnabled", StringComparison.Ordinal))
-            Assert.Equal(1.0, new Coefficients().ElectionEventEnabled);
-    }
-
-    [Fact]
-    public void OFFではAI国にも公示が立たず1つも状態が動かない()
-    {
-        var sim = AiWorld(5);
-        SetGate(sim, 0.0);   // ★OFF側を明示ピン（点火後に既定が動いても番人が空洞化しない）
-        for (int q = 0; q < Interval + 2; q++) sim.StepQuarter();
-        bool anyElection = false;
-        foreach (var n in sim.Nations)
-        {
-            var w = n.World;
-            Assert.Null(w.PendingElection);
-            Assert.Equal(0, w.ElectionCalls);
-            Assert.Equal(0, w.ElectionsBacked);
-            Assert.Equal(-1, w.ElectionPushIdeology);
-            Assert.Equal(0.0, w.ElectionPushStrength, 12);
-            Assert.Equal(0.0, w.ElectionLastSpend, 12);   // ★E3''：金の経路も1銭も動かない（国庫に触れない）
-            anyElection |= w.ElectionsHeld > 0;
-        }
-        Assert.True(anyElection, "テスト前提の破れ：観測窓に総選挙が1回も入っていない（政体が非選挙へ転げた可能性）");
-    }
-
     // ============ (b) AI国の公示は同じ四半期に解決される ============
 
     [Fact]
     public void ONではAI国にも公示が立ち同じ四半期に解決される()
     {
         var sim = AiWorld(5);
-        SetGate(sim, 1.0);
         for (int q = 0; q < Interval + 2; q++)
         {
             sim.StepQuarter();
@@ -126,7 +89,6 @@ public class ElectionAiTests
     public void プレイヤー国の公示はAIに解決されず残る()
     {
         var sim = AiWorld(5);
-        SetGate(sim, 1.0);
         var player = sim.Nations[0].World;
         player.SelfPower!.IsPlayer = true;
         bool sawPlayerPending = false;
@@ -148,7 +110,6 @@ public class ElectionAiTests
     {
         var sim = ElectiveWorld(seed);
         var w = sim.World;
-        w.Coef.ElectionEventEnabled = 1.0;
         for (int q = 0; q < quarters; q++) sim.StepQuarter();
         return w;
     }
@@ -254,7 +215,6 @@ public class ElectionAiTests
     {
         var sim = ElectiveWorld(7);
         var w = sim.World;
-        w.Coef.ElectionEventEnabled = 1.0;
         for (int q = 0; q < 6; q++) sim.StepQuarter();
         var (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
@@ -319,7 +279,7 @@ public class ElectionAiTests
     /// （繰り上げ選挙が誤発火しないよう EarlyElection も切る＝見たいのは注入判断だけ）。</summary>
     private static void ForceGovernmentInDanger(World w)
     {
-        w.Coef.EarlyElectionEnabled = 0;
+        w.Coef.EarlyElectionMinQuarters = 1e9;   // 繰り上げ選挙を実質起こさない（旧の旗 EarlyElectionEnabled=0 の代わり）
         w.Coef.NoConfidenceThreshold = 1.0;   // どの得票でも「線に触れている」＝danger=1
     }
 
@@ -351,7 +311,6 @@ public class ElectionAiTests
     {
         var sim = ElectiveWorld(7);
         var w = sim.World;
-        w.Coef.ElectionEventEnabled = 1.0;
         for (int q = 0; q < 6; q++) sim.StepQuarter();
         var (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
@@ -389,7 +348,6 @@ public class ElectionAiTests
     {
         var sim = ElectiveWorld(7);
         var w = sim.World;
-        w.Coef.ElectionEventEnabled = 1.0;
         w.Coef.ParliamentStreetSupersede = 0;   // ★2026-08-31点火（既定0.5）：本検査の本義は「Δ正統性=|純支持|×効き」の経路同一性＝二重票の是正とは無関係。0.5だと純支持の余白が半分になり、前提設置（MandateSpent）で符号が反転する足場の脆さを踏む＝OFF側を明示ピン
         for (int q = 0; q < 6; q++) sim.StepQuarter();
         // ★盤面の直し（2026-09-29 (110) 合流）：看板は**前提を置いた盤面**（危機・逼迫なし・正統性1・紛争記憶1）で選ぶ。
@@ -442,12 +400,11 @@ public class ElectionAiTests
     {
         var sim = ElectiveWorld(7);
         var w = sim.World;
-        w.Coef.ElectionEventEnabled = 1.0;
         for (int q = 0; q < 6; q++) sim.StepQuarter();
         var (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
         OpenMandateWindow(w, net);
-        w.Coef.EarlyElectionEnabled = 0;   // 繰り上げ選挙の副作用を外す（見たいのは注入判断だけ）
+        w.Coef.EarlyElectionMinQuarters = 1e9;   // 繰り上げ選挙の副作用を外す（見たいのは注入判断だけ）
         ClearFiscalStress(w);              // 他の支出に逼迫なし
         double fc = w.FiscalCapacityPerMonth.Value;
         Assert.True(fc > 0, "テスト前提の破れ：裁量余剰が0");
@@ -487,7 +444,6 @@ public class ElectionAiTests
     {
         var sim = ElectiveWorld(7);
         var w = sim.World;
-        w.Coef.ElectionEventEnabled = 1.0;
         for (int q = 0; q < 6; q++) sim.StepQuarter();
         var (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
@@ -579,8 +535,7 @@ public class ElectionAiTests
         {
             var sim = ElectiveWorld(seed);
             var w = sim.World;
-            w.Coef.ElectionEventEnabled = 1.0;
-            var trace = new List<double>();
+                var trace = new List<double>();
             for (int q = 0; q < Interval + 2; q++)
             {
                 sim.StepQuarter();

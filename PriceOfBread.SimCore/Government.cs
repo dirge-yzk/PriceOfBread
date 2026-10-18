@@ -114,7 +114,7 @@ public static class Government
         new(PolicyAxis.LandReform, w => (int)w.LandReform, (w, v) => w.LandReform = (ReformLevel)v, (w, p) => (int)p.LandReform, 2, Stage: 2),
         new(PolicyAxis.SerfEmancipation, w => (int)w.SerfEmancipation, (w, v) => w.SerfEmancipation = (ReformLevel)v, (w, p) => (int)p.SerfEmancipation, 2, Stage: 2),   // なし→限定的→全面。農奴解放は布告＝検地台帳不要（露1861）
         // 社会保障法（1934拡張E5）：4段の法が福祉水準と年金を駆動（旧スライダー廃止・年金を第4段に吸収）。
-        // 第3段3-6（2026-07-27）：SocialSecurityLawGate=1.0（E9点火）を焼き込み＝旧・別年金法else枝（到達不能）を削除。
+        // 第3段3-6（2026-07-27）：SocialSecurityLawGate=1.0（E9点火）を焼き込み＝旧・別年金法else枝（到達不能）を削除（旗そのものは 2026-10-18 に削除）。
         // AIの福祉意図(SocialSecurityTarget 0..1)を法の段階へ写像＝別AI規則を書かずスライダー廃止と等価（AI/議会は従来どおり目標を出す）。
         // 救貧0/労災0.33/失業0.67/年金1.0＝段階が福祉水準を駆動（救貧法=福祉水準0で旧「なし」相当・較正中立）。
         // ⚠緊縮は福祉水準を削らない（裁定B・2026-09-12・旧の Min クランプは 2026-09-20 の段の点火で削除）：法の段がそのまま福祉水準＝
@@ -173,8 +173,8 @@ public static class Government
         //   位置は表に出さない（FactionSnapshot.AxisPosition＝0.5・要求の軸から除く ComputeDemands と同じ）。旧4部門の4戦線が1戦線に畳まれる（§11-6d）。
         new(PolicyAxis.NationalizationAll, w => w.NationalizeAll ? 1 : 0, (w, v) => w.NationalizeAll = v == 1,
             (w, p) => p.NationalizeAll && (w.Polity == Polity.ProletarianDictatorship || w.NationalizeAll) ? 1 : 0, 1),
-        // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）：植民地参政権（3段）・移民原住民参政権（2段）。
-        // gate=0 へ戻すと目標＝現在（既定 None・AI/議会/勢力が目標を置かない）＝StepLevel が即 return＝厳密恒等。
+        // 参政権の範囲2法（作者裁定2026-08-16・点火2026-09-06）：植民地参政権（3段）・移民原住民参政権（2段）。
+        // 既定 None＝AI/議会/勢力が目標を置かなければ目標＝現在＝StepLevel が即 return。
         new(PolicyAxis.ColonialSuffrage, w => (int)w.ColonialSuffrage, (w, v) => w.ColonialSuffrage = (ColonialSuffrageLaw)v, (w, p) => (int)p.ColonialSuffrage, 2, Stage: 2),   // なし→自国民のみ→全面を1段ずつ
         new(PolicyAxis.MigrantNativeSuffrage, w => (int)w.MigrantNativeSuffrage, (w, v) => w.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v, (w, p) => (int)p.MigrantNativeSuffrage, 1, Stage: 1),   // なし0／あり1（2段＝段の飛び越しが存在しない）
     ];
@@ -285,7 +285,7 @@ public static class Government
         //   専売は材ごとの ON/OFF（World.SetStateMonopolyOn）だけで、国ごとの率という状態が存在しない＝Move する連続値が無い。
         //   政治の門は同じ1本（GateInfo の純支持＋政治資本の在庫）を**そのセッターが**引く＝「議会の同意なしに歳入構成は動かない」は保たれる。
         // ★裁定B（2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」）：未解禁の土地税を実効値0へ叩き落とす三項は 2026-09-20 に削除。土地税の錠（検地台帳）そのものも (383) で物理削除した。
-        // 社会保障の旧スライダー枝は第3段3-6で削除（SocialSecurityLawGate=1.0焼き込み＝上の法駆動が正）。
+        // 社会保障の旧スライダー枝は第3段3-6で削除（法駆動が正）。
         // ★税・支出の段は表 RateLaws を施行の順に回す（2026-09-28 処理の一元化 段1＝旧は軸ごとの Move の1行）。
         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。

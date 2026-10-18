@@ -78,7 +78,7 @@ public class PowerSharesTests
     public void 年次議決の税だけなら議会の掌握は1()
     {
         // ★史学検証4（1850年プロイセン憲法）：第109条で常設の税は存続＝議会が噛めるのは年次議決の税と起債だけ。
-        var c = new Coefficients { PolityLabelFromAxes = 1.0 };
+        var c = new Coefficients();
         var rep = new Simulation(NationConfig.France().ToScenario(1), new NullAgent()).World;
         CrownParliament.ApplyRegime(rep, c, Polity.Republic);          // 統制力1.0
         rep.TaxRate = new Share(1.0); rep.ProgressiveTax = 1.0; rep.PollTax = 0; rep.LandTax = 0; rep.SetStateMonopolyTier(0);
