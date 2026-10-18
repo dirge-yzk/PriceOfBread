@@ -13,7 +13,16 @@
   0.10×FiscalStressBufferMonths×(利払い＋行政＋陸＋海の請求) の近似（FiscalStressBufferMonths を --buf で渡す・既定は Coefficients から 5 を仮定）。名簿の外の国には L2 を出せない。"""
 import sys, os, collections, statistics
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from instr import rows, seeds, num
+from instr import rows as _rows, seeds, num
+# 追記4：読む列だけ残す（nation_s は 256 列・fiscal_s は 99 列で、全列を辞書にすると 4 腕で約 19GB 食う＝他の線の測りと並べると足りなくなる）。使う列は本文の引用符つきの名前から自動で拾う。
+_SRC = open(os.path.abspath(__file__), encoding='utf-8').read()
+def rows(D, kind):
+    keep = None
+    for sd, r in _rows(D, kind):
+        if keep is None:
+            import re
+            keep = [h for h in r if re.search("['\"]" + re.escape(h) + "['\"]", _SRC)]
+        yield sd, {h: r[h] for h in keep}
 
 UK, NL = 'イギリス', 'ネーデルラント'
 args = sys.argv[1:]
