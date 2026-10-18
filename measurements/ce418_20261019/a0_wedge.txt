@@ -1,0 +1,23 @@
+nobles bucket 4-7: good pay receipt qty pay/receipt (wedge) pay/qty (buyer price)
+  衣料     pay=80.77 rec=77.66 qty=31.335 wedge=1.040 buyerprice=2.58
+  家具     pay=54.71 rec=52.60 qty=23.591 wedge=1.040 buyerprice=2.32
+  紙      pay=31.61 rec=30.40 qty=8.802 wedge=1.040 buyerprice=3.59
+  加工肉    pay=35.77 rec=34.39 qty=12.847 wedge=1.040 buyerprice=2.78
+  干物     pay=29.02 rec=27.90 qty=16.861 wedge=1.040 buyerprice=1.72
+  ビール    pay=21.82 rec=18.48 qty=14.307 wedge=1.181 buyerprice=1.53
+  灯油     pay=24.82 rec=23.87 qty=15.217 wedge=1.040 buyerprice=1.63
+  煙草     pay=22.31 rec=18.89 qty=10.876 wedge=1.181 buyerprice=2.05
+  革製品    pay=24.34 rec=23.40 qty=14.094 wedge=1.040 buyerprice=1.73
+  陶磁器    pay=17.12 rec=16.46 qty=16.213 wedge=1.040 buyerprice=1.06
+  石鹸     pay=18.97 rec=16.07 qty=5.191 wedge=1.181 buyerprice=3.66
+  茶      pay=3.18 rec=2.53 qty=1.097 wedge=1.261 buyerprice=2.90
+  コーヒー   pay=3.40 rec=2.88 qty=1.535 wedge=1.181 buyerprice=2.22
+  医薬品    pay=28.87 rec=27.76 qty=8.439 wedge=1.040 buyerprice=3.42
+  蒸留酒    pay=12.00 rec=10.16 qty=8.651 wedge=1.181 buyerprice=1.39
+  チーズ    pay=12.41 rec=11.93 qty=8.462 wedge=1.040 buyerprice=1.47
+  書籍     pay=4.56 rec=4.38 qty=1.465 wedge=1.040 buyerprice=3.11
+  新聞     pay=15.05 rec=14.47 qty=3.096 wedge=1.040 buyerprice=4.86
+q4 model no-wedge=0.585 with-wedge=0.588
+q5 model no-wedge=0.559 with-wedge=0.562
+q6 model no-wedge=0.477 with-wedge=0.482
+q7 model no-wedge=0.498 with-wedge=0.502

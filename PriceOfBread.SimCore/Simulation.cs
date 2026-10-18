@@ -1131,6 +1131,7 @@ public sealed class Simulation
                     Inputs = [new Input(Catalog.IronOreId, 0.6), new Input(Catalog.CoalId, 0.8), new Input(Catalog.SaltId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ChemicalsId))] });
                 }
             }
+        AddHouseholdProducers(producers, coef);   // ★(418) 日用品の自給：農家の手仕事の行（旗 HouseholdProductionEnabled＝0 で 1 本も足さない）
         ApplyRecipeCostFollowsProductivity(producers, coef);   // ★(328) 流れG ①：別レシピの自己費用を生産性の比で割る（★(331) 既定1＝点火・0＝走査もしない＝旧の挙動）。4本の構築経路の最後の add の後の1回
     }
 
@@ -1142,8 +1143,8 @@ public sealed class Simulation
             producers.Add(new Producer
             {
                 GoodId = gid, RecipeName = "職人",
-                Productivity = d.Productivity * FullChainProductivityScale * 0.6,   // 手仕事＝工場より遅い
-                Output = 30, Scale = 1.0, MarginalCost = 0.35,   // 1789＝職人が現役の主役（工場は0.5/0.05から育つ）
+                Productivity = d.Productivity * FullChainProductivityScale * HandcraftProductivityRatio,   // 手仕事＝工場より遅い（★(418) 比 0.6 は農家の手仕事の行と共有する定数へ括り出した＝値と式の順序は同じ）
+                Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 1789＝職人が現役の主役（工場は0.5/0.05から育つ）
                 LaborPopIndex = artisanIdx, OwnerPopIndex = artisanIdx, RentShare = default,
                 Inputs = [.. d.Inputs],   // 素材だけ（雇用も機械も使わない自営）
             });
@@ -3076,5 +3077,51 @@ public sealed class Simulation
         if (!(coef.CriminalClassEnabled > 0)) return -1;
         pops.Add(new Pop { ClassId = PopClass.Criminal, ClassName = "犯罪者", IsUrban = false, Size = 0, Satisfaction = 1.0, Literacy = literacy });
         return pops.Count - 1;
+    }
+
+    /// <summary>手仕事の生産性の比（職人の工房と農家の手仕事の行が共有する＝工場の生産性に対する比・値は (418) の前の職人のリテラル 0.6 そのもの）。</summary>
+    internal const double HandcraftProductivityRatio = 0.6;
+    /// <summary>手仕事の自己費用（職人の工房と農家の手仕事の行が共有する＝自営の維持費・値は (418) の前の職人のリテラル 0.35 そのもの）。</summary>
+    internal const double HandcraftSelfCost = 0.35;
+    /// <summary>農家の手仕事の行の RecipeName（職人の `"職人"` と衝突しない＝職人の没落の計器は数えない・FacilityBuildScore が候補から外す述語）。</summary>
+    internal const string HouseholdRecipeName = "家内工業";
+
+    /// <summary>★(418) 農家の手仕事の 8 財と投入（手書きの表・産出 1 単位あたり）。工場の連鎖の入力〔綿布←綿花・製材←木・革←畜産＋木・肉←畜産・小麦粉←麦〕を、家が一段の加工を自分でやる形に原料へ展開した値
+    /// （事前登録 measurements/ce_20261019_prereg.txt の D3・AI の読み＝〈確証なし〉）。文化の札も国の分岐も無い＝財の表から読んだ値だけ。</summary>
+    internal static readonly (int GoodId, Input[] Inputs)[] HouseholdRecipes =
+    [
+        (Catalog.ClothingId,      [new Input(Catalog.CottonId, 0.6), new Input(Catalog.DyeId, 0.2)]),
+        (Catalog.FurnitureId,     [new Input(Catalog.TimberId, 0.645), new Input(Catalog.LivestockId, 0.15)]),
+        (Catalog.PreservedMeatId, [new Input(Catalog.LivestockId, 0.36), new Input(Catalog.WheatId, 0.3)]),
+        (Catalog.DriedFishId,     [new Input(Catalog.FishId, 0.7), new Input(Catalog.SaltId, 0.2)]),
+        (Catalog.BeerId,          [new Input(Catalog.WheatId, 0.5)]),
+        (Catalog.SpiritsId,       [new Input(Catalog.WheatId, 0.6)]),
+        (Catalog.CheeseId,        [new Input(Catalog.LivestockId, 0.6)]),
+        (Catalog.LeatherGoodsId,  [new Input(Catalog.LivestockId, 0.25), new Input(Catalog.TimberId, 0.075), new Input(Catalog.FurId, 0.2), new Input(Catalog.DyeId, 0.2)]),
+    ];
+
+    /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 <see cref="Coefficients.HouseholdProductionEnabled"/>＝0（既定）では**先頭で戻る**＝Producers の件数も順序も不変（厳密恒等）。
+    /// &gt;0 のとき、財を作る州（その財の行が既にある）に、職人の工房（<see cref="AddArtisanProducers"/>）と同じ自営の型の行を 1 財 1 本ずつ足す：担い手＝所有者＝農民（既存の RGO の行の担い手から読む）・
+    /// 生産性＝財の生産性×全連鎖の倍率×<see cref="HandcraftProductivityRatio"/>・自己費用＝<see cref="HandcraftSelfCost"/>・規模 1.0・産出 30（職人と同じ）・労働力も高度労働力も雇わない。
+    /// 農民の時間の値段は、農民の能力を RGO の行と分け合う零和分割（EconomyStep の prodW／laborTotalW）が担う＝新しい状態も倍率も置かない。表に無い RecipeName＝発見の門 1＝眠らない。</summary>
+    private static void AddHouseholdProducers(List<Producer> producers, Coefficients coef)
+    {
+        if (!(coef.HouseholdProductionEnabled > 0)) return;
+        int peasantIdx = -1;
+        foreach (var pr in producers) if (pr.IsRgo) { peasantIdx = pr.LaborPopIndex; break; }
+        if (peasantIdx < 0) return;   // RGO の無い世界（最小シナリオ）は不発
+        foreach (var (gid, inputs) in HouseholdRecipes)
+        {
+            if (!producers.Exists(p => p.GoodId == gid)) continue;   // その財を作らない世界は不発
+            var d = Catalog.Goods[gid];
+            producers.Add(new Producer
+            {
+                GoodId = gid, RecipeName = HouseholdRecipeName,
+                Productivity = d.Productivity * FullChainProductivityScale * HandcraftProductivityRatio,
+                Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,
+                LaborPopIndex = peasantIdx, OwnerPopIndex = peasantIdx, RentShare = default,
+                Inputs = [.. inputs],
+            });
+        }
     }
 }

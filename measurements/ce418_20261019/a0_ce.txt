@@ -1,0 +1,93 @@
+seed 1 {'フランス': 8684, '日本': 8684, 'イギリス': 8684, 'ロシア': 8684, 'プロイセン': 8684, 'オスマン': 8684, 'オーストリア': 8684, '清': 8684, 'アメリカ': 1169, 'ネーデルラント': 1169}
+  フランス
+   貴族     popK=     266  dailyRatio(supplied/want)=0.317  paid/demand=0.317  demand/want(cut)=1.000  paid/want=0.317 | food ratio sup/want=0.431 paid/dem=0.431  cut=1.000
+   ALL    popK=   29159  dailyRatio(supplied/want)=0.301  paid/demand=0.309  demand/want(cut)=0.547  paid/want=0.169 | food ratio sup/want=0.421 paid/dem=0.449  cut=0.859
+   農民     popK=   17485  dailyRatio(supplied/want)=0.289  paid/demand=0.295  demand/want(cut)=0.369  paid/want=0.109 | food ratio sup/want=0.399 paid/dem=0.463  cut=0.855
+   工場労働者  popK=    4374  dailyRatio(supplied/want)=0.316  paid/demand=0.319  demand/want(cut)=0.935  paid/want=0.298 | food ratio sup/want=0.427 paid/dem=0.432  cut=0.988
+   資本家    popK=    2290  dailyRatio(supplied/want)=0.320  paid/demand=0.320  demand/want(cut)=1.000  paid/want=0.320 | food ratio sup/want=0.431 paid/dem=0.431  cut=1.000
+   技師     popK=     335  dailyRatio(supplied/want)=0.319  paid/demand=0.319  demand/want(cut)=1.000  paid/want=0.319 | food ratio sup/want=0.436 paid/dem=0.436  cut=1.000
+   兵士     popK=     240  dailyRatio(supplied/want)=0.307  paid/demand=0.324  demand/want(cut)=0.484  paid/want=0.157 | food ratio sup/want=0.423 paid/dem=0.525  cut=0.691
+   聖職者    popK=     298  dailyRatio(supplied/want)=0.317  paid/demand=0.317  demand/want(cut)=1.000  paid/want=0.317 | food ratio sup/want=0.432 paid/dem=0.432  cut=1.000
+   教師     popK=     118  dailyRatio(supplied/want)=0.318  paid/demand=0.318  demand/want(cut)=1.000  paid/want=0.318 | food ratio sup/want=0.428 paid/dem=0.428  cut=1.000
+   官僚     popK=     114  dailyRatio(supplied/want)=0.332  paid/demand=0.332  demand/want(cut)=1.000  paid/want=0.332 | food ratio sup/want=0.457 paid/dem=0.457  cut=1.000
+   医者     popK=      81  dailyRatio(supplied/want)=0.324  paid/demand=0.324  demand/want(cut)=1.000  paid/want=0.324 | food ratio sup/want=0.440 paid/dem=0.440  cut=1.000
+   商人     popK=     454  dailyRatio(supplied/want)=0.320  paid/demand=0.320  demand/want(cut)=1.000  paid/want=0.320 | food ratio sup/want=0.431 paid/dem=0.431  cut=1.000
+   職人     popK=    1400  dailyRatio(supplied/want)=0.321  paid/demand=0.321  demand/want(cut)=1.000  paid/want=0.321 | food ratio sup/want=0.434 paid/dem=0.434  cut=1.000
+   使用人    popK=    1700  dailyRatio(supplied/want)=0.323  paid/demand=nan  demand/want(cut)=-0.000  paid/want=-0.000 | food ratio sup/want=0.437 paid/dem=0.832  cut=0.123
+  イギリス
+   貴族     popK=     117  dailyRatio(supplied/want)=0.389  paid/demand=0.389  demand/want(cut)=1.000  paid/want=0.389 | food ratio sup/want=0.703 paid/dem=0.703  cut=1.000
+   ALL    popK=   49065  dailyRatio(supplied/want)=0.236  paid/demand=0.377  demand/want(cut)=0.501  paid/want=0.189 | food ratio sup/want=0.184 paid/dem=0.653  cut=0.243
+   農民     popK=   40167  dailyRatio(supplied/want)=0.162  paid/demand=0.355  demand/want(cut)=0.368  paid/want=0.130 | food ratio sup/want=0.059 paid/dem=0.535  cut=0.096
+   工場労働者  popK=    2873  dailyRatio(supplied/want)=0.387  paid/demand=0.414  demand/want(cut)=0.886  paid/want=0.367 | food ratio sup/want=0.685 paid/dem=0.704  cut=0.973
+   資本家    popK=    2332  dailyRatio(supplied/want)=0.392  paid/demand=0.392  demand/want(cut)=1.000  paid/want=0.392 | food ratio sup/want=0.702 paid/dem=0.702  cut=1.000
+   技師     popK=     372  dailyRatio(supplied/want)=0.383  paid/demand=0.383  demand/want(cut)=1.000  paid/want=0.383 | food ratio sup/want=0.663 paid/dem=0.663  cut=1.000
+   兵士     popK=     102  dailyRatio(supplied/want)=0.343  paid/demand=0.350  demand/want(cut)=0.978  paid/want=0.342 | food ratio sup/want=0.619 paid/dem=0.623  cut=0.992
+   聖職者    popK=      82  dailyRatio(supplied/want)=0.389  paid/demand=0.389  demand/want(cut)=1.000  paid/want=0.389 | food ratio sup/want=0.703 paid/dem=0.703  cut=1.000
+   教師     popK=     178  dailyRatio(supplied/want)=0.390  paid/demand=0.390  demand/want(cut)=1.000  paid/want=0.390 | food ratio sup/want=0.688 paid/dem=0.688  cut=1.000
+   官僚     popK=     194  dailyRatio(supplied/want)=0.394  paid/demand=0.395  demand/want(cut)=0.990  paid/want=0.391 | food ratio sup/want=0.700 paid/dem=0.704  cut=0.992
+   医者     popK=     199  dailyRatio(supplied/want)=0.392  paid/demand=0.392  demand/want(cut)=1.000  paid/want=0.392 | food ratio sup/want=0.692 paid/dem=0.692  cut=1.000
+   商人     popK=     463  dailyRatio(supplied/want)=0.393  paid/demand=0.393  demand/want(cut)=1.000  paid/want=0.393 | food ratio sup/want=0.702 paid/dem=0.702  cut=1.000
+   職人     popK=     313  dailyRatio(supplied/want)=0.367  paid/demand=0.369  demand/want(cut)=0.990  paid/want=0.365 | food ratio sup/want=0.704 paid/dem=0.704  cut=1.000
+   使用人    popK=    1671  dailyRatio(supplied/want)=0.391  paid/demand=nan  demand/want(cut)=-0.000  paid/want=-0.000 | food ratio sup/want=0.720 paid/dem=0.891  cut=0.220
+seed 2 {'フランス': 8684, '日本': 8684, 'イギリス': 8684, 'ロシア': 8684, 'プロイセン': 8684, 'オスマン': 8684, 'オーストリア': 8684, '清': 8684, 'アメリカ': 1169, 'ネーデルラント': 1169}
+  フランス
+   貴族     popK=     263  dailyRatio(supplied/want)=0.332  paid/demand=0.332  demand/want(cut)=1.000  paid/want=0.332 | food ratio sup/want=0.464 paid/dem=0.464  cut=1.000
+   ALL    popK=   28952  dailyRatio(supplied/want)=0.312  paid/demand=0.318  demand/want(cut)=0.555  paid/want=0.176 | food ratio sup/want=0.451 paid/dem=0.487  cut=0.845
+   農民     popK=   17345  dailyRatio(supplied/want)=0.300  paid/demand=0.296  demand/want(cut)=0.384  paid/want=0.114 | food ratio sup/want=0.425 paid/dem=0.513  cut=0.815
+   工場労働者  popK=    4280  dailyRatio(supplied/want)=0.331  paid/demand=0.334  demand/want(cut)=0.949  paid/want=0.317 | food ratio sup/want=0.461 paid/dem=0.465  cut=0.991
+   資本家    popK=    2270  dailyRatio(supplied/want)=0.334  paid/demand=0.334  demand/want(cut)=1.000  paid/want=0.334 | food ratio sup/want=0.463 paid/dem=0.463  cut=1.000
+   技師     popK=     338  dailyRatio(supplied/want)=0.326  paid/demand=0.326  demand/want(cut)=1.000  paid/want=0.326 | food ratio sup/want=0.458 paid/dem=0.458  cut=1.000
+   兵士     popK=     366  dailyRatio(supplied/want)=0.303  paid/demand=0.295  demand/want(cut)=0.326  paid/want=0.096 | food ratio sup/want=0.437 paid/dem=0.589  cut=0.601
+   聖職者    popK=     295  dailyRatio(supplied/want)=0.331  paid/demand=0.331  demand/want(cut)=1.000  paid/want=0.331 | food ratio sup/want=0.465 paid/dem=0.465  cut=1.000
+   教師     popK=     112  dailyRatio(supplied/want)=0.333  paid/demand=0.333  demand/want(cut)=1.000  paid/want=0.333 | food ratio sup/want=0.463 paid/dem=0.463  cut=1.000
+   官僚     popK=     112  dailyRatio(supplied/want)=0.328  paid/demand=0.328  demand/want(cut)=1.000  paid/want=0.328 | food ratio sup/want=0.471 paid/dem=0.471  cut=1.000
+   医者     popK=      76  dailyRatio(supplied/want)=0.333  paid/demand=0.333  demand/want(cut)=1.000  paid/want=0.333 | food ratio sup/want=0.465 paid/dem=0.465  cut=1.000
+   商人     popK=     450  dailyRatio(supplied/want)=0.335  paid/demand=0.335  demand/want(cut)=1.000  paid/want=0.335 | food ratio sup/want=0.464 paid/dem=0.464  cut=1.000
+   職人     popK=    1376  dailyRatio(supplied/want)=0.337  paid/demand=0.337  demand/want(cut)=1.000  paid/want=0.337 | food ratio sup/want=0.467 paid/dem=0.467  cut=1.000
+   使用人    popK=    1668  dailyRatio(supplied/want)=0.338  paid/demand=nan  demand/want(cut)=-0.000  paid/want=-0.000 | food ratio sup/want=0.470 paid/dem=0.839  cut=0.125
+  イギリス
+   貴族     popK=     117  dailyRatio(supplied/want)=0.370  paid/demand=0.370  demand/want(cut)=1.000  paid/want=0.370 | food ratio sup/want=0.681 paid/dem=0.681  cut=1.000
+   ALL    popK=   49846  dailyRatio(supplied/want)=0.217  paid/demand=0.386  demand/want(cut)=0.456  paid/want=0.176 | food ratio sup/want=0.162 paid/dem=0.639  cut=0.220
+   農民     popK=   40964  dailyRatio(supplied/want)=0.144  paid/demand=0.393  demand/want(cut)=0.303  paid/want=0.119 | food ratio sup/want=0.051 paid/dem=0.533  cut=0.085
+   工場労働者  popK=    2886  dailyRatio(supplied/want)=0.369  paid/demand=0.392  demand/want(cut)=0.894  paid/want=0.351 | food ratio sup/want=0.666 paid/dem=0.681  cut=0.977
+   資本家    popK=    2334  dailyRatio(supplied/want)=0.374  paid/demand=0.374  demand/want(cut)=1.000  paid/want=0.374 | food ratio sup/want=0.683 paid/dem=0.683  cut=1.000
+   技師     popK=     385  dailyRatio(supplied/want)=0.368  paid/demand=0.368  demand/want(cut)=1.000  paid/want=0.368 | food ratio sup/want=0.645 paid/dem=0.645  cut=1.000
+   兵士     popK=      98  dailyRatio(supplied/want)=0.348  paid/demand=0.351  demand/want(cut)=0.990  paid/want=0.348 | food ratio sup/want=0.640 paid/dem=0.645  cut=0.991
+   聖職者    popK=      82  dailyRatio(supplied/want)=0.370  paid/demand=0.370  demand/want(cut)=1.000  paid/want=0.370 | food ratio sup/want=0.681 paid/dem=0.681  cut=1.000
+   教師     popK=     182  dailyRatio(supplied/want)=0.373  paid/demand=0.373  demand/want(cut)=1.000  paid/want=0.373 | food ratio sup/want=0.671 paid/dem=0.671  cut=1.000
+   官僚     popK=     202  dailyRatio(supplied/want)=0.377  paid/demand=0.377  demand/want(cut)=1.000  paid/want=0.377 | food ratio sup/want=0.695 paid/dem=0.695  cut=1.000
+   医者     popK=     208  dailyRatio(supplied/want)=0.373  paid/demand=0.373  demand/want(cut)=1.000  paid/want=0.373 | food ratio sup/want=0.675 paid/dem=0.675  cut=1.000
+   商人     popK=     464  dailyRatio(supplied/want)=0.374  paid/demand=0.374  demand/want(cut)=1.000  paid/want=0.374 | food ratio sup/want=0.683 paid/dem=0.683  cut=1.000
+   職人     popK=     314  dailyRatio(supplied/want)=0.368  paid/demand=0.369  demand/want(cut)=0.994  paid/want=0.367 | food ratio sup/want=0.684 paid/dem=0.684  cut=1.000
+   使用人    popK=    1611  dailyRatio(supplied/want)=0.374  paid/demand=-0.316  demand/want(cut)=0.000  paid/want=-0.000 | food ratio sup/want=0.700 paid/dem=0.852  cut=0.233
+seed 3 {'フランス': 8684, '日本': 8684, 'イギリス': 8684, 'ロシア': 8684, 'プロイセン': 8684, 'オスマン': 8684, 'オーストリア': 8684, '清': 8684, 'アメリカ': 1169, 'ネーデルラント': 1169}
+  フランス
+   貴族     popK=     279  dailyRatio(supplied/want)=0.345  paid/demand=0.345  demand/want(cut)=1.000  paid/want=0.345 | food ratio sup/want=0.465 paid/dem=0.465  cut=1.000
+   ALL    popK=   30536  dailyRatio(supplied/want)=0.324  paid/demand=0.324  demand/want(cut)=0.560  paid/want=0.181 | food ratio sup/want=0.449 paid/dem=0.476  cut=0.861
+   農民     popK=   18438  dailyRatio(supplied/want)=0.311  paid/demand=0.292  demand/want(cut)=0.393  paid/want=0.115 | food ratio sup/want=0.420 paid/dem=0.479  cut=0.862
+   工場労働者  popK=    4549  dailyRatio(supplied/want)=0.344  paid/demand=0.349  demand/want(cut)=0.949  paid/want=0.332 | food ratio sup/want=0.463 paid/dem=0.468  cut=0.989
+   資本家    popK=    2348  dailyRatio(supplied/want)=0.347  paid/demand=0.347  demand/want(cut)=1.000  paid/want=0.347 | food ratio sup/want=0.463 paid/dem=0.463  cut=1.000
+   技師     popK=     365  dailyRatio(supplied/want)=0.345  paid/demand=0.345  demand/want(cut)=1.000  paid/want=0.345 | food ratio sup/want=0.466 paid/dem=0.466  cut=1.000
+   兵士     popK=     306  dailyRatio(supplied/want)=0.325  paid/demand=0.315  demand/want(cut)=0.424  paid/want=0.134 | food ratio sup/want=0.442 paid/dem=0.516  cut=0.732
+   聖職者    popK=     310  dailyRatio(supplied/want)=0.344  paid/demand=0.344  demand/want(cut)=1.000  paid/want=0.344 | food ratio sup/want=0.465 paid/dem=0.465  cut=1.000
+   教師     popK=     118  dailyRatio(supplied/want)=0.347  paid/demand=0.347  demand/want(cut)=1.000  paid/want=0.347 | food ratio sup/want=0.464 paid/dem=0.464  cut=1.000
+   官僚     popK=     116  dailyRatio(supplied/want)=0.354  paid/demand=0.354  demand/want(cut)=1.000  paid/want=0.354 | food ratio sup/want=0.485 paid/dem=0.485  cut=1.000
+   医者     popK=      79  dailyRatio(supplied/want)=0.350  paid/demand=0.350  demand/want(cut)=1.000  paid/want=0.350 | food ratio sup/want=0.471 paid/dem=0.471  cut=1.000
+   商人     popK=     466  dailyRatio(supplied/want)=0.348  paid/demand=0.348  demand/want(cut)=1.000  paid/want=0.348 | food ratio sup/want=0.463 paid/dem=0.463  cut=1.000
+   職人     popK=    1418  dailyRatio(supplied/want)=0.348  paid/demand=0.348  demand/want(cut)=1.000  paid/want=0.348 | food ratio sup/want=0.464 paid/dem=0.464  cut=1.000
+   使用人    popK=    1744  dailyRatio(supplied/want)=0.348  paid/demand=nan  demand/want(cut)=-0.000  paid/want=-0.000 | food ratio sup/want=0.463 paid/dem=0.834  cut=0.128
+  イギリス
+   貴族     popK=     115  dailyRatio(supplied/want)=0.410  paid/demand=0.410  demand/want(cut)=1.000  paid/want=0.410 | food ratio sup/want=0.715 paid/dem=0.715  cut=1.000
+   ALL    popK=   36861  dailyRatio(supplied/want)=0.290  paid/demand=0.428  demand/want(cut)=0.542  paid/want=0.232 | food ratio sup/want=0.185 paid/dem=0.668  cut=0.245
+   農民     popK=   28084  dailyRatio(supplied/want)=0.216  paid/demand=0.436  demand/want(cut)=0.401  paid/want=0.175 | food ratio sup/want=0.057 paid/dem=0.538  cut=0.101
+   工場労働者  popK=    2835  dailyRatio(supplied/want)=0.409  paid/demand=0.439  demand/want(cut)=0.849  paid/want=0.372 | food ratio sup/want=0.696 paid/dem=0.754  cut=0.919
+   資本家    popK=    2300  dailyRatio(supplied/want)=0.414  paid/demand=0.414  demand/want(cut)=1.000  paid/want=0.414 | food ratio sup/want=0.714 paid/dem=0.714  cut=1.000
+   技師     popK=     357  dailyRatio(supplied/want)=0.406  paid/demand=0.406  demand/want(cut)=1.000  paid/want=0.406 | food ratio sup/want=0.683 paid/dem=0.683  cut=1.000
+   兵士     popK=     149  dailyRatio(supplied/want)=0.383  paid/demand=0.400  demand/want(cut)=0.950  paid/want=0.380 | food ratio sup/want=0.664 paid/dem=0.683  cut=0.969
+   聖職者    popK=      81  dailyRatio(supplied/want)=0.410  paid/demand=0.410  demand/want(cut)=1.000  paid/want=0.410 | food ratio sup/want=0.714 paid/dem=0.714  cut=1.000
+   教師     popK=     178  dailyRatio(supplied/want)=0.412  paid/demand=0.412  demand/want(cut)=1.000  paid/want=0.412 | food ratio sup/want=0.706 paid/dem=0.706  cut=1.000
+   官僚     popK=     196  dailyRatio(supplied/want)=0.414  paid/demand=0.414  demand/want(cut)=1.000  paid/want=0.414 | food ratio sup/want=0.715 paid/dem=0.715  cut=1.000
+   医者     popK=     195  dailyRatio(supplied/want)=0.415  paid/demand=0.415  demand/want(cut)=1.000  paid/want=0.415 | food ratio sup/want=0.715 paid/dem=0.715  cut=1.000
+   商人     popK=     457  dailyRatio(supplied/want)=0.414  paid/demand=0.414  demand/want(cut)=1.000  paid/want=0.414 | food ratio sup/want=0.714 paid/dem=0.714  cut=1.000
+   職人     popK=     338  dailyRatio(supplied/want)=0.405  paid/demand=0.407  demand/want(cut)=0.989  paid/want=0.403 | food ratio sup/want=0.727 paid/dem=0.727  cut=0.999
+   使用人    popK=    1577  dailyRatio(supplied/want)=0.413  paid/demand=nan  demand/want(cut)=-0.000  paid/want=-0.000 | food ratio sup/want=0.728 paid/dem=0.847  cut=0.213
