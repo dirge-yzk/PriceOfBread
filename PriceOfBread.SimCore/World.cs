@@ -1937,24 +1937,22 @@ public sealed class World
             // ⚠どこにも進学したい者が居なければ人材へは配らない＝budget を減らさず全額を建設へ（fail-open＝投資が静かに消えない）
         }
         if (!(budget > 0)) return;
-        double cap = Coef.IndustryInvestRegionCap;
-        bool Eligible(Region r) => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < cap;   // 上限判定は新旧合計（ヴィンテージ2026-07-10）
         // ★均等配分をやめる（2026-08-03・作者指示「より効果的に」）：旧＝適格州へ**頭数で等分**だったので、
         //   建設材の在庫が無い州にも同額が積まれ、そこでは価格だけ上がって単位に変わらなかった。
         //   按分の重み＝**その州が実際に変換できる量**＝上限までの余地 × 建設材の手当（4材の最小在庫÷必要量）。
         //   どちらも既存の状態量（TotalIndustrialization / Markets[].Stock）＝新しいスカラーを置かない。
         //   全州の重みが0（どこも材料が無い）なら旧どおり等分＝投資が静かに消えない（fail-open）。
         int n = 0; double wsum = 0;
-        for (int i = 0; i < weight.Length; i++) if (Eligible(Regions[i])) { n++; wsum += weight[i] = InvestWeight(Regions[i]); }
+        for (int i = 0; i < weight.Length; i++) if (StateInvestEligible(Regions[i])) { n++; wsum += weight[i] = StateInvestWeight(Regions[i]); }
         if (n == 0) return;
         if (wsum > 1e-9)
         {
-            for (int i = 0; i < weight.Length; i++) if (Eligible(Regions[i])) Regions[i].StateBuildQueue += budget * (weight[i] / wsum);
+            for (int i = 0; i < weight.Length; i++) if (StateInvestEligible(Regions[i])) Regions[i].StateBuildQueue += budget * (weight[i] / wsum);
         }
         else
         {
             double per = budget / n;
-            foreach (var r in Regions) if (Eligible(r)) r.StateBuildQueue += per;
+            foreach (var r in Regions) if (StateInvestEligible(r)) r.StateBuildQueue += per;
         }
 
         // ★段③：進学したいのに学費が届いていない量（＝EconomyStep の高等教育の需要式 × 未充足分）。
@@ -1964,20 +1962,74 @@ public sealed class World
             foreach (var p in r.Pops) g += p.Size * p.Literacy * p.LastEducationFill * System.Math.Max(0, 1.0 - p.HigherEduFill);
             return g;
         }
-
-        double InvestWeight(Region r)
-        {
-            double head = Math.Max(0, cap - r.TotalIndustrialization);   // 上限までの余地＝これ以上は積めない州へ注がない
-            if (head <= 0) return 0;
-            var co = Coef;
-            int sg = co.SteelGoodId, mg = co.MachineGoodId, cg = co.CementGoodId, lg = co.LumberGoodId;
-            if (sg >= r.Markets.Length || mg >= r.Markets.Length || cg >= r.Markets.Length || lg >= r.Markets.Length) return head;
-            // 建設材の手当＝束を何単位ぶん賄えるか（4材の最小）。在庫ゼロの州は0＝注いでも価格が上がるだけ。
-            double units = Math.Min(Math.Min(r.Markets[sg].Stock / Math.Max(1e-9, co.ConsSteel), r.Markets[mg].Stock / Math.Max(1e-9, co.ConsMachine)),
-                                    Math.Min(r.Markets[cg].Stock / Math.Max(1e-9, co.ConsCement), r.Markets[lg].Stock / Math.Max(1e-9, co.ConsLumber)));
-            return head * Math.Max(0, units);
-        }
     }
+
+    /// <summary>国庫の近代化投資を注ぐ適格の州＝活きていて・資本区画を持ち・投資家 POP があり・工業化度（新旧合計）が州の上限に達していない（上限判定は新旧合計・ヴィンテージ2026-07-10）。
+    /// <see cref="ApplyModernizationInvestment"/>（配り先）と <see cref="ModernizeReturnShare"/>（AI の信号）が同じ 1 本を読む（(416) でローカル関数から抜き出した・式は同じ）。</summary>
+    internal bool StateInvestEligible(Region r) => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
+
+    /// <summary>国庫の近代化投資の州への按分の重み＝その州が実際に変換できる量＝上限までの余地×建設材の手当（4材の最小在庫÷必要量）。<see cref="ApplyModernizationInvestment"/> のローカル関数から抜き出した((416)・式は同じ)。</summary>
+    internal double StateInvestWeight(Region r)
+    {
+        double cap = Coef.IndustryInvestRegionCap;
+        double head = Math.Max(0, cap - r.TotalIndustrialization);   // 上限までの余地＝これ以上は積めない州へ注がない
+        if (head <= 0) return 0;
+        var co = Coef;
+        int sg = co.SteelGoodId, mg = co.MachineGoodId, cg = co.CementGoodId, lg = co.LumberGoodId;
+        if (sg >= r.Markets.Length || mg >= r.Markets.Length || cg >= r.Markets.Length || lg >= r.Markets.Length) return head;
+        // 建設材の手当＝束を何単位ぶん賄えるか（4材の最小）。在庫ゼロの州は0＝注いでも価格が上がるだけ。
+        double units = Math.Min(Math.Min(r.Markets[sg].Stock / Math.Max(1e-9, co.ConsSteel), r.Markets[mg].Stock / Math.Max(1e-9, co.ConsMachine)),
+                                Math.Min(r.Markets[cg].Stock / Math.Max(1e-9, co.ConsCement), r.Markets[lg].Stock / Math.Max(1e-9, co.ConsLumber)));
+        return head * Math.Max(0, units);
+    }
+
+    /// <summary>★(416) AI の近代化投資を止める信号（旗 <see cref="Coefficients.AiModernizeFromReturn"/>）＝国庫の近代化投資の配り先の設備が儲かっているか。
+    /// 州の <c>ReturnShare＝Clamp01(1−hurdle÷gross)</c>（<see cref="EconomyStep.InvestmentReturn"/>＝私的な投資家が建設の速さを決める式と同じ 1 本・<c>gross≦0</c> か NaN は 0）を、
+    /// 国庫の按分の重み（<see cref="StateInvestWeight"/>）で加重平均する。重みが全て 0 の適格の州があるときは均等（<see cref="ApplyModernizationInvestment"/> の等分の枝と同じ規則）・適格の州が無ければ 0。
+    /// <c>techProd</c> は <see cref="TechProductivity"/>（月次の経済と同じ 1 本）。純関数（状態を書かない・<c>IsPlayer</c> も <see cref="IndustrialFrontier"/> も <see cref="MeanIndustrialization"/> も読まない）。
+    /// 集計の工業化度に天井を置かず、設備の限界収益がハードルを割る所（信号 0）が自然な止まり。州の上限（<see cref="Coefficients.IndustryInvestRegionCap"/>）はプレイヤーと共通の物理の上限として残る。</summary>
+    public double ModernizeReturnShare()
+    {
+        double num = 0, wsum = 0, eqSum = 0; int n = 0;
+        foreach (var r in Regions)
+        {
+            if (!StateInvestEligible(r)) continue;
+            double share = EconomyStep.ReturnShare(r, Coef, TechProductivity(r));
+            double wt = StateInvestWeight(r);
+            n++; eqSum += share;
+            num += wt * share; wsum += wt;
+        }
+        if (n == 0) return 0;
+        return wsum > 1e-9 ? num / wsum : eqSum / n;
+    }
+
+    /// <summary>★(416) 工場の生産性の乗数 <c>techProd</c>＝技術の逓減（2 まで線形・超えは緩い傾き）×労働時間の産出×労働組合・罷業の乗数。<c>Simulation</c> の月次の経済の呼び（<c>EconomyStep.Run</c> の引数）と
+    /// <see cref="ModernizeReturnShare"/>（AI の近代化投資の信号）が同じ 1 本を通る＝式は <c>Simulation.cs</c> の月次の中にあった物を抜き出しただけ（式・順序・リテラルは抜き出す前と同じ）。純関数（状態を書かない）。</summary>
+    internal double TechProductivity(Region r)
+    {
+        // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）
+        // 労働時間→工場出力（連続・倍率排除②）：労働供給は労働時間に比例しつつ疲労で逓減（h=14で1.0、短いほど産出↓）。死亡率↓は人口動態で別途。
+        double whOut = Math.Pow(WorkHoursValue / WorkHours.Unlimited.Hours(), Coef.LaborFatigueExp)
+                     * Math.Max(0.0, 1.0 - Coef.LaborFatiguePenalty * Math.Max(0.0, WorkHoursValue - WorkHours.Twelve.Hours()));   // 12h超は過労で産出頭打ち〜微減（LaborFatiguePenalty=0で旧＝単調増）
+        // ※児童労働の出力係数(clOut)は廃止：子供の実体化により労働供給そのもの（EconomyStep の労働係数）で表現される（二重計上の防止）
+        double union = LaborUnion switch { LaborUnionLaw.Tolerated => Coef.LaborUnionToleratedOutputMul, LaborUnionLaw.Controlled => Coef.LaborUnionControlledOutputMul, _ => 1.0 };   // 労働組合容認＝賃上げ/ストで工場出力↓（資本が反対する理由。不満緩和は別途）
+        // no-graduated-unrest-stages（最小dormant）：本国の労働争議＝減産の土台。植民地の旧い型の産出の怠業（ColonialUnrestSupplyHit・2026-10-18 に削除）と同型を本国に開く。
+        // 組合容認かつ地域平均闘争度が中間閾値超で操業停止（賃上げ要求）。0（対照腕）で乗数1.0＝不発・既定0.25でlive（台帳訂正2026-07-12）。
+        if (Coef.StrikeProductionHit > 0 && LaborUnion != LaborUnionLaw.Illegal)
+        {
+            double rmil = 0, rsz = 0; foreach (var mp in r.Pops) { rmil += mp.Size * mp.Militancy; rsz += mp.Size; }
+            double avgMil = rsz > 1e-9 ? rmil / rsz : 0;
+            double strikeIntensity = Math.Max(0, avgMil - Coef.StrikeMilitancyThreshold);
+            union *= PoliticalQuantities.Clamp01(1.0 - strikeIntensity * Coef.StrikeProductionHit);
+        }
+        // 満足度への直接バフ（時短whWell・福祉WelfareSatComponent・年金PensionWellbeing）は物理削除2026-08-21（思想⑨＝支出/法は財を経ずに満足度を動かさない。
+        // 作者裁定8/19「満足度という値を捨てて生活水準＝買えたかのみ」）。時短は出力減 whOut・福祉/年金は現金給付（→消費→生活水準）としてのみ残る。
+        return (1.0 + Math.Min(TechLevel, TechProdDiminishKnee) + Math.Max(0.0, TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
+    }
+
+    // 技術→工場生産性の逓減：技術水準がこの閾値（較正域）までは線形、超過分は緩やかな傾きで逓減（高技術でも生産性が暴走しない）。(416) で Simulation から移した。
+    private const double TechProdDiminishKnee = 2.0;    // 逓減が始まる技術水準（Math.Min の上限＝Math.Max の基準）
+    private const double TechProdDiminishSlope = 0.3;   // 閾値超の技術1あたりの追加生産性（逓減後の傾き）
 
     /// <summary>戦争熱（案Y）：好戦世論の公共圏（報道×識字×都市化×屈辱）・軍事費・伝統支配層（将校貴族）・兵士規模・外的脅威の合成。
     /// 0.5前後が中立。植民地獲得を許容する国内世論の基礎値。標的別のブルジョワ加点（不足資源を産む標的）は侵略評価時に上乗せ（段C）。</summary>

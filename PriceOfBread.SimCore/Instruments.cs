@@ -66,6 +66,7 @@ public static partial class Instruments
     {
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
+        public int ModStance = -1; public double ModGapUsed = double.NaN; public bool ModFromReturn;   // (416) AI の近代化投資の判断（Apply が置き ModFold が書いて戻す）
         public List<string>? SecRows;                      // (395) 州の分離の内訳の行（CheckSecession が置き SecFold が書いて消す）
         public string? CoupRow; public int CoupRoute;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
@@ -205,6 +206,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
         public System.IO.StreamWriter? Reform; public bool ReformHeader;                   // (404) 専制の改革の経路の表（国×四半期）
         public System.IO.StreamWriter? AdmRule; public bool AdmRuleHeader;                 // (408) 行政費の返りの表（国×四半期）
+        public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // (416) 近代化投資の信号の表（国×四半期）・国力の旧と新の表（国×年末）
         public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
@@ -1645,6 +1647,7 @@ public static partial class Instruments
             RuleFold(sk, seed, w, q, picked, yearEnd);      // (399) 支配の4区分の表（世界の状態を直に読む）
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
             AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
+            ModFold(sk, seed, w, st, q, picked, yearEnd);   // (416) AI の近代化投資の信号の表（旧の gap と新しい信号）
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
@@ -1659,6 +1662,7 @@ public static partial class Instruments
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
+        ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1695,6 +1699,7 @@ public static partial class Instruments
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
         sk.AdmRule?.Dispose(); sk.AdmRule = null;   // (408)
+        sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // (416)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 

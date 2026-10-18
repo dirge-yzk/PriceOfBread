@@ -2703,6 +2703,16 @@ public sealed class Coefficients
     //   新しい倍率も状態も置かない。〈確証なし〉＝請負人の取り分に PrivilegeTaxDiscount を共有した点。0 で 3 本とも旧の式の文字列のまま（ビット恒等）。
     //   ★2026-10-18 (408) 後半で既定 1 へ**点火**（止める線 ⑥①〜④・発散・空洞化・計算量・クラッシュのどれにも当たらず・成績表3枚は新しい基線）。0 は旧の式（A の腕）。
     public double AdminServesStateRule = 1.0;
+    // ★(416) 工業化度の AI の読み手の置き換え（事前登録 measurements/sc_20261019_prereg.txt・旗 AiModernizeFromReturn・既定 0＝旧）：AI の近代化投資を止める信号を、集計の工業化度の天井
+    //   （EffectiveIndCeiling＝max(2.5, α×世界前線)・前線はプレイヤーを含む全国の最大）から、国庫の按分の配り先の設備が儲かっているか（World.ModernizeReturnShare＝州の 1−hurdle÷gross の按分の重みつき平均・
+    //   EconomyStep.InvestmentReturn＝私的な投資家が建設の速さを決める式と同じ 1 本）へ換える。段で切る（切り分けの順）：≧1＝Apply の indGap と AutoModernizationFrac（NullAgent・既定式）／
+    //   ≧2＝さらにダンピングの後発判定（旧＝MeanIndustrialization＜2.5 → 新＝信号＞0）／≧3＝さらにスタンスの工業化の余地（旧＝max(0, 4.0−MeanInd) → 新＝4.0×信号・目盛りの係数で上限ではない）。
+    //   旗 ≧1 では EffectiveIndCeiling・IndustrialFrontier・AiIndustrialCeilingFrontier を読まない（採用のとき後者 2 つの読み手を削除する）。法の閾値（反トラスト・同業組合・金本位）の置き換えは工業化度の削除の線（置き換え先が無い）。
+    //   新しい状態も倍率も置かない。州の上限 IndustryInvestRegionCap は変えない（プレイヤーと共通の物理の上限）。0 で 3 か所とも旧の式の文字列のまま（ビット恒等）。
+    public double AiModernizeFromReturn = 0;
+    // ★(416) 国力の物差し（00-SCORE・事前登録 同上・旗 ScoreFromWorldShare・既定 0＝旧）：>0 のとき NationalScore の国力を、世界の総量に対する本国の割合の 6 項（兵・軍事費〔参照価格建て〕・鉄の産出・動力の消費・都市人口・総人口）の
+    //   均等平均×100 にする（飽和もクランプも使わない・総量が 0 の項は平均から外す・植民地の州は数えない）。外交のランク・条約港の風化・序列の在庫・NationBrief が同じ物差しを読む。作者の 2026-06-28 の指示と逆向きになる恐れ（人口の項が 4 つ）＝承認は未確認。
+    public double ScoreFromWorldShare = 0;
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。

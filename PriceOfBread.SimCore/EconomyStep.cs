@@ -884,14 +884,12 @@ public static class EconomyStep
             if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
             // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
-            double techLev = Math.Max(0, productivityMultiplier - 1.0);
-            double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
-            double marginalGain = coef.IndProductivityGain / (sat * sat);
+            // ★(416)：この 4 行の式は InvestmentReturn の 1 本へ抜き出した（式・順序・リテラルは抜き出す前と同じ）。AI の近代化投資の信号（World.ModernizeReturnShare・旗 AiModernizeFromReturn）も同じ関数を通る。
+            var (techLev, sat, grossReturn, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
             // クラウディングアウト（金利チャネル）：政府の借入で上がった国債金利プレミアムが民間投資のハードルを上げる
             // ＝高債務国ほど民間投資が締め出され工業化が鈍る（資本希少国で強く・金本位の信用国は弱い＝条件付き）。
             // 株式市場のバブル（改修2026-06-28・金融改革②）：与信過熱→株高→投資ハードル↓→過剰投資→さらに過熱…→ある日Confidence崩壊で投資急停止＝ブーム→恐慌が新規倍率なしで創発。較正(Heat=0)では中立。
-            double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
-            double netReturn = marginalGain * (1.0 + coef.IndTechLeverage * techLev) - hurdle;
+            double netReturn = grossReturn - hurdle;
             // 株式会社（発見の表の制度の行＝所有国の2値・2026-10-01 (152)）＝中産の資本が株で工業へ＝投資の速さ×JointStockInvestBonus（旧＝州の倍率 IndustrializationBoost を Institutions.Step が四半期ごとに整合した）。
             double jointStock = world is not null && world.JointStock ? coef.JointStockInvestBonus : 1.0;
             double desiredGrowth = coef.IndInvestmentSpeed * jointStock * Math.Max(0, netReturn);
@@ -911,9 +909,9 @@ public static class EconomyStep
             }
             privateIndPerConstruction = PrivateIndPerConstruction(region, coef);   // (300) 線 i1（IndCapitalOutputYears=0 なら IndPerConstruction そのもの）
             construction = Math.Min(desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
-            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
+            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), grossReturn, hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
             if (Instruments.On && world is not null) Instruments.ConsRegion(world, region, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (289) 計器（読むだけ）：州ごとの希望・枠・計画
-            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, marginalGain * (1.0 + coef.IndTechLeverage * techLev), sat, techLev, hurdle, netReturn, jointStock, privateAbsorb, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (300) 計器（読むだけ）：希望を決める項（限界収益・sat・技術・hurdle・netReturn・吸収・株式会社）を州ごとに
+            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, grossReturn, sat, techLev, hurdle, netReturn, jointStock, privateAbsorb, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (300) 計器（読むだけ）：希望を決める項（限界収益・sat・技術・hurdle・netReturn・吸収・株式会社）を州ごとに
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -2638,6 +2636,27 @@ public static class EconomyStep
                 investDemand[coef.CementGoodId] += coef.ConsCement * u;
                 investDemand[coef.LumberGoodId] += coef.ConsLumber * u;
             }
+    }
+
+    /// <summary>★(416) 設備の限界収益（私的な投資家の建設の速さを決める式の 1 本）。<c>EconomyStep.Run</c> の私的投資と <see cref="World.ModernizeReturnShare"/>（AI の近代化投資の信号）が同じ関数を通る。
+    /// 戻り値＝(技術の梃子の量 techLev・飽和の変数 sat・総収益 gross・ハードル hurdle)。純関数（状態を書かない）。
+    /// <c>sat＝1＋稼働資本÷IndProductivityScale</c>（<c>indMult</c> と同じ飽和点・座礁控除後）／<c>gross＝IndProductivityGain÷sat²×(1＋IndTechLeverage×techLev)</c>／
+    /// <c>hurdle＝IndCapitalCost＋CrowdingOutWeight×締め出し−EquityHeatEuphoria×金融の熱</c>。<c>netReturn＝gross−hurdle</c> を呼び手が作る。</summary>
+    internal static (double TechLev, double Sat, double Gross, double Hurdle) InvestmentReturn(Region region, Coefficients coef, double productivityMultiplier)
+    {
+        double techLev = Math.Max(0, productivityMultiplier - 1.0);
+        double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
+        double marginalGain = coef.IndProductivityGain / (sat * sat);
+        double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
+        return (techLev, sat, marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle);
+    }
+
+    /// <summary>★(416) 設備の収益の持ち分＝<c>Clamp01(1−hurdle÷gross)</c>＝総収益のうちハードルを越えて残る割合（<see cref="InvestmentReturn"/> の gross−hurdle を gross で割った物）。<c>gross≦0</c> か NaN は 0。
+    /// <see cref="World.ModernizeReturnShare"/> が州ごとに呼ぶ（AI の近代化投資の信号）。</summary>
+    internal static double ReturnShare(Region region, Coefficients coef, double productivityMultiplier)
+    {
+        var (_, _, gross, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
+        return !(gross > 0) ? 0 : PoliticalQuantities.Clamp01(1.0 - hurdle / gross);
     }
 
     /// <summary>★建設の資材の束（鋼・機械・セメント・製材）1単位の費用＝その州の今の価格（2026-09-30 処理の一元化 段4e K の <c>BundleCost</c>）。

@@ -16,7 +16,10 @@ public static class NationalScore
     private const double FinancePerCapitaDivisor = 150.0; // 1人あたり与信の基準。★50→150（2026-08-04）：scorebreak実測で**全53カ国が上限6.0に張り付き**（ラオスまで満点）＝軸が死んで差別化ゼロだった。信用が普遍化した世界では基準を上げないと「深さ」を測れない（ロンドンのシティ＝1人あたり与信の厚みが再び差になる）
     private const double FinanceCap = 6.0;                // 金融項の上限
 
-    public static double Of(World w) => Military(w) + Wealth(w) + Finance(w) + Tech(w);
+    public static double Of(World w) => w.Coef.ScoreFromWorldShare > 0 ? ShareOf(w) : OfOld(w);
+
+    /// <summary>従来の国力（兵＋豊かさ＋金融＋技術の点数の和）。旗 <see cref="Coefficients.ScoreFromWorldShare"/>＝0 の <see cref="Of"/> と同じ値（計器が旧と新を並べる）。</summary>
+    internal static double OfOld(World w) => Military(w) + Wealth(w) + Finance(w) + Tech(w);
 
     /// <summary>序列に使う国力（2026-08-02）。★フローでなく**ストック**を返す。まだ種が無ければ現在値を返す
     /// （初期化前でも順位が壊れない）。更新は StepStanding が四半期に1度だけ行う。</summary>
@@ -24,13 +27,115 @@ public static class NationalScore
 
     /// <summary>国力の在庫を1四半期ぶん現在値へ寄せる（2026-08-02）。上がるのも落ちるのも同じ速さで遅い。
     /// ★rate=1 で在庫＝現在値＝厳密恒等（休眠）。決定論（新規 RNG draw なし）。</summary>
-    public static void StepStanding(World w)
+    public static void StepStanding(World w) => StepStanding(w, Of(w));
+
+    /// <summary>国力の在庫を寄せる先（now）を呼び手が渡す形。旗 <see cref="Coefficients.ScoreFromWorldShare"/>＞0 のとき、呼び手が世界の総量を 1 回求めた <see cref="ShareScores"/> の値を渡す（国ごとに総量を求め直さない）。</summary>
+    internal static void StepStanding(World w, double now)
     {
-        double now = Of(w);
         if (double.IsNaN(w.ScoreStanding)) { w.ScoreStanding = now; return; }   // 開始時の種＝そのときの実力
         double r = PoliticalQuantities.Clamp01(w.Coef.ScoreInertiaRate);
         w.ScoreStanding += (now - w.ScoreStanding) * r;
     }
+    // ===== ★(416) 国力の物差し＝世界の総量に対する本国の割合（旗 ScoreFromWorldShare・事前登録 measurements/sc_20261019_prereg.txt D6） =====
+    /// <summary>国力の 6 項の素の量（本国の州だけ＝活きていて Tier≠Colonial）。兵・軍事費〔参照価格建て＝名目を物価水準で割る〕・鉄の産出（鋼は鉄を投入する＝入れると二重計上）・動力の消費（石炭＋原油×熱量比）・都市人口・総人口。</summary>
+    internal readonly record struct ScoreTerms(double Soldiers, double MilitarySpend, double Iron, double Energy, double UrbanPop, double TotalPop)
+    {
+        internal const int Count = 6;
+        internal double this[int i] => i switch { 0 => Soldiers, 1 => MilitarySpend, 2 => Iron, 3 => Energy, 4 => UrbanPop, _ => TotalPop };
+    }
+
+    private static double Pos(double x) => !(x > 0) ? 0 : x;   // 否定形＝NaN も 0（総量に NaN を混ぜない）
+
+    internal static ScoreTerms TermsOf(World w)
+    {
+        double soldiers = 0, urban = 0, total = 0, iron = 0, energy = 0;
+        double oilToCoal = w.Coef.ColonyFuelOilEnergyRatio;   // 既存の熱量の比（原油は同熱量の必要量が石炭の 1/これ＝原油の量×これ＝石炭換算）
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            foreach (var p in r.Pops)
+            {
+                double s = Pos(p.Size);
+                total += s;
+                if (p.IsUrban) urban += s;
+                if (p.IsSoldier) soldiers += s;
+            }
+            var mk = r.Markets;
+            if (Catalog.IronId < mk.Length) iron += Pos(mk[Catalog.IronId].LastProduced);
+            if (Catalog.CoalId < mk.Length) energy += Pos(mk[Catalog.CoalId].LastDemand);
+            if (Catalog.CrudeOilId < mk.Length) energy += Pos(mk[Catalog.CrudeOilId].LastDemand) * oilToCoal;
+        }
+        double pl = w.PriceLevel;
+        double mil = !(pl > 0) ? 0 : Pos(Pos(w.LastMilitaryClaimPerMonth.Value) + Pos(w.LastSoldierPayPerMonth.Value)) / pl;
+        return new ScoreTerms(soldiers, mil, iron, energy, urban, total);
+    }
+
+    /// <summary>世界の総量に対する割合の国力＝100×(総量が正の項の割合の均等平均)。呼び手が総量を 1 回求める（World に総量を持たせない）。
+    /// 旗が 0 の世界では従来の <see cref="Of"/> をそのまま返す（呼び手が旗を気にせず使える）。<paramref name="shares"/> を渡すと国×6 項の割合も返す（計器用・総量 0 の項は 0）。</summary>
+    internal static double[] ShareScores(IReadOnlyList<World> worlds, double[][]? shares = null)
+    {
+        var terms = new ScoreTerms[worlds.Count];
+        for (int i = 0; i < terms.Length; i++) terms[i] = TermsOf(worlds[i]);
+        return SharesFromTerms(terms, shares);
+    }
+
+    /// <summary>6 項の素の量から国力（割合の均等平均×100）を求める純関数（世界の総量は渡された国の和・総量が正でない項は平均から外す）。番人が素の量を直に渡せる。</summary>
+    internal static double[] SharesFromTerms(ScoreTerms[] terms, double[][]? shares = null)
+    {
+        int n = terms.Length;
+        var tot = new double[ScoreTerms.Count];
+        for (int i = 0; i < n; i++)
+            for (int t = 0; t < ScoreTerms.Count; t++) tot[t] += terms[i][t];
+        var res = new double[n];
+        for (int i = 0; i < n; i++)
+        {
+            double sum = 0; int used = 0;
+            for (int t = 0; t < ScoreTerms.Count; t++)
+            {
+                double sh = tot[t] > 0 ? terms[i][t] / tot[t] : 0;
+                if (shares is not null) shares[i][t] = sh;
+                if (tot[t] > 0) { sum += sh; used++; }   // 総量が 0 の項は平均から外す
+            }
+            res[i] = used > 0 ? 100.0 * (sum / used) : 0;
+        }
+        return res;
+    }
+
+    /// <summary>国力（旗に従う）を世界の全国分まとめて 1 回で求める。旗 0＝従来の <see cref="Of"/>、旗＞0＝<see cref="ShareScores"/>（旗は先頭の世界の係数を読む）。</summary>
+    public static double[] Scores(IReadOnlyList<World> worlds)
+    {
+        if (worlds.Count > 0 && worlds[0].Coef.ScoreFromWorldShare > 0) return ShareScores(worlds);
+        var r = new double[worlds.Count];
+        for (int i = 0; i < r.Length; i++) r[i] = Of(worlds[i]);
+        return r;
+    }
+
+    /// <summary>四半期の序列の在庫の更新を全国分まとめて（旗＞0 では総量を 1 回だけ求める）。旗 0 は従来どおり国ごとの <see cref="StepStanding(World)"/>。</summary>
+    internal static void StepStandingAll(IReadOnlyList<World> worlds)
+    {
+        if (worlds.Count > 0 && worlds[0].Coef.ScoreFromWorldShare > 0)
+        {
+            var sc = ShareScores(worlds);
+            for (int i = 0; i < worlds.Count; i++) StepStanding(worlds[i], sc[i]);
+        }
+        else foreach (var w in worlds) StepStanding(w);
+    }
+
+    /// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の世界の一覧。外交盤が無い単独の世界は自分だけ。</summary>
+    internal static List<World> NationWorldsOf(World w)
+    {
+        var l = new List<World>();
+        if (w.Diplomacy is { } d) foreach (var p in d.Powers) if (p.Nation is { } nw) l.Add(nw);
+        if (!l.Contains(w)) { l.Clear(); l.Add(w); }   // 盤に居ない世界（単独のテスト・較正）＝総量は自分だけ
+        return l;
+    }
+
+    private static double ShareOf(World w)
+    {
+        var l = NationWorldsOf(w);
+        return ShareScores(l)[l.IndexOf(w)];
+    }
+
     // 規模偏重の是正（ユーザ指定）：GDP（＝人口×生産＝規模に比例）と軍（兵数＝人口に比例）の比重を下げ、
     // 1人あたりの発展度（技術・工業化・生活水準・金融の深さ）の比重を上げる＝大人口だけで上位に立てないようにする。
     // 改修2026-06-28：技術項を追加し、軍を逓減キャップ・GDP逓減を強化＝**19世紀の欧州の技術優位を国力評価に反映**（清の人口361M一強の是正・ユーザー指示「技術力で差がでるように」）。
@@ -334,8 +439,14 @@ public sealed class UtilityAgent : INationAgent
     public static double AutoModernizationFrac(World w, double fiscalStress)
     {
         double easeInd = 1 - fiscalStress;
-        double ceil = EffectiveIndCeiling(w);   // ★鋼市場診断#1（2026-08-16）：プレイヤー自動化もAIと同じ包絡（この関数の存在理由＝対称）。既定0＝定数2.5＝ビット恒等
-        double indGap = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
+        double indGap;
+        if (w.Coef.AiModernizeFromReturn >= 1.0)
+            indGap = w.ModernizeReturnShare();   // ★(416) 旗 AiModernizeFromReturn≧1：集計の工業化度の天井でなく、国庫の配り先の設備の収益の持ち分（Apply と同じ 1 本・片方だけ換えると非対称ができる）
+        else
+        {
+            double ceil = EffectiveIndCeiling(w);   // ★鋼市場診断#1（2026-08-16）：プレイヤー自動化もAIと同じ包絡（この関数の存在理由＝対称）。既定0＝定数2.5＝ビット恒等
+            indGap = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
+        }
         return System.Math.Max(0, indGap * easeInd * ModernizeInvestFrac);
     }
 
@@ -346,7 +457,7 @@ public sealed class UtilityAgent : INationAgent
     /// ⚠経緯（Apply内コメント「無制限だと露が規模常勝」）＝**点火は段階掃引 α=0.6/0.8/1.0**（一気に1.0へ上げない）・列強再現率と露を必ず見る。
     /// ⚠ChooseStance の indRoom(4.0)＝スタンス選択の目標と、ダンピングの後発判定(&lt;2.5)は今回据え置き（別判断＝ここは投資の物理上限のみ・記録）。
     /// 単一国（IndustrialFrontier=0）は α>0 でも 2.5＝較正・単体テスト恒等。NaN は否定形ガードで定数側へ（fail-closed）。</summary>
-    private static double EffectiveIndCeiling(World w)
+    internal static double EffectiveIndCeiling(World w)
     {
         double a = w.Coef.AiIndustrialCeilingFrontier;
         if (!(a > 0)) return IndustrializationCeiling;   // 0＝厳密恒等（否定形＝NaNも休眠側）。★既定は点火0.6＝この枝は通らない
@@ -556,7 +667,8 @@ public sealed class UtilityAgent : INationAgent
         var doctrine = DoctrineFrom(w);   // 倍率排除⑧：支配ブロック＋軍国度から創発（政体ラベルの写像を廃止・政変や参政権拡大で動的に変わる）
         double sat = NationalScore.MeanSatisfaction(w);
         double techGap = Math.Max(0, w.WorldTechLevel - w.TechLevel);                  // 技術の遅れ（後発の伸びしろ）
-        double indRoom = Math.Max(0, IndustrializationRoomTarget - w.MeanIndustrialization); // 工業化の余地（到達可能な目標≈均衡3.7。達成後はuIndが下がり教義の道へ）。改修2026-06-28：首都州のみ→全州平均（首都州が崩れてもAIが投資目標を見失わない）
+        double indRoom = w.Coef.AiModernizeFromReturn >= 3.0 ? IndustrializationRoomTarget * w.ModernizeReturnShare()   // ★(416) 旗≧3：余地＝目盛り 4.0×設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）
+            : Math.Max(0, IndustrializationRoomTarget - w.MeanIndustrialization); // 工業化の余地（到達可能な目標≈均衡3.7。達成後はuIndが下がり教義の道へ）。改修2026-06-28：首都州のみ→全州平均（首都州が崩れてもAIが投資目標を見失わない）
         double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);                                       // 不満（満足の不足）
         double fiscalNeed = FiscalStressOf(w);   // 国庫の逼迫（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
 
@@ -1594,8 +1706,17 @@ public sealed class UtilityAgent : INationAgent
             double easeInd = 1 - fiscalStress;
             // ★鋼市場診断#1（2026-08-16）：分母＝EffectiveIndCeiling＝α=0で定数2.5＝ビット恒等／AiIndustrialCeilingFrontier=α>0 で
             //   max(2.5, α×World.IndustrialFrontier)＝世界前線連動。★段階掃引0.6/0.8/1.0の結論＝**α=0.6で点火済み（live）**（露規模常勝の前科）。
-            double indCeil = EffectiveIndCeiling(w);
-            double indGap = PoliticalQuantities.Clamp01((indCeil - w.MeanIndustrialization) / indCeil);
+            // ★(416) 旗 AiModernizeFromReturn（事前登録 measurements/sc_20261019_prereg.txt）：≧1＝この gap を国庫の配り先の設備の収益の持ち分（World.ModernizeReturnShare）に換える（EffectiveIndCeiling・IndustrialFrontier は読まない）。
+            //   ≧2＝下のダンピングの後発判定も同じ信号（＞0）に換える。0＝旧の式の文字列のまま。
+            double retShare = w.Coef.AiModernizeFromReturn >= 1.0 ? w.ModernizeReturnShare() : 0;
+            double indCeil = 0, indGap;
+            if (w.Coef.AiModernizeFromReturn >= 1.0) indGap = retShare;
+            else
+            {
+                indCeil = EffectiveIndCeiling(w);
+                indGap = PoliticalQuantities.Clamp01((indCeil - w.MeanIndustrialization) / indCeil);
+            }
+            if (Instruments.On) Instruments.ModernizeSignal(w, s, indGap, w.Coef.AiModernizeFromReturn >= 1.0);   // 計器（読むだけ・(416)）：旧の gap と新しい信号を並べる
             // ★採算で絞る（2026-08-03・作者指示「AIがより効果的に近代化投資を行うように」）：
             //   建設は鋼/機械/セメント/製材の**束**を買う。束が参照価格より高騰していると、同じ国庫で買える単位が減り、
             //   さらに需要を足すぶん価格を押し上げる＝**産出は増えず物価だけ上がる**。実測（indprobe）で英の鋼は
@@ -1624,7 +1745,8 @@ public sealed class UtilityAgent : INationAgent
             };
             // ダンピング（負関税＝輸出補助）：産業スタンスで輸出超過かつ財政健全なら世界市場へ安売り（後発の輸出攻勢）。
             // 後発限定（工業化度<2.5）＝成熟した輸出大国が国庫で安売りを続けると輸出ブーム→私的建設の暴走（実測＝ロンドン工業化度35）になるため。
-            if (s == Stance.Industrialize && fiscalStress <= 1e-9 && w.LastExportValue > w.LastImportValue * DumpingExportRatio && w.MeanIndustrialization < IndustrializationCeiling)
+            if (s == Stance.Industrialize && fiscalStress <= 1e-9 && w.LastExportValue > w.LastImportValue * DumpingExportRatio
+                && (w.Coef.AiModernizeFromReturn >= 2.0 ? retShare > 0 : w.MeanIndustrialization < IndustrializationCeiling))   // ★(416) 旗≧2：後発＝設備の収益がまだ立つ（信号＞0）
                 p.TariffTarget = DumpingTariff;
             else if (p.TariffTarget < 0)
                 p.TariffTarget = 0;   // ダンピング解除（監査2026-07-11 他6）：旧＝リセットなしでスタンス離脱後も輸出額×10%の国庫→商人補助金が恒久残留（緊縮中も垂れ流し＝財政規律と逆行）
@@ -1988,12 +2110,13 @@ public static class SelfPlayMatch
                     System.Array.Resize(ref gdpPcTrend, nn); System.Array.Resize(ref gdpPcPeak, nn); System.Array.Resize(ref inMajorDep, nn);
                 }
                 var scores = new double[sim.Nations.Count];
+                var scoresNow = NationalScore.Scores(sim.Nations.ConvertAll(sn => sn.World));   // ★(416) 国力（旗に従う）を全国分 1 回で（旗＞0 で国ごとに世界の総量を求め直さない・旗 0 は従来の Of と同じ値）
                 worldOutPrev = worldOutThis; worldOutThis = 0;   // 分母の床に使う世界計＝**前の四半期**の値（当期は今から集計）
                 worldTrendPrev = worldTrendThis; worldTrendThis = 0;   // DD床用も同じ作法（前期の世界GDPトレンド計）
                 for (int i = 0; i < sim.Nations.Count; i++)
                 {
                     var w = sim.Nations[i].World;
-                    double sc = NationalScore.Of(w);
+                    double sc = scoresNow[i];
                     scores[i] = NationalScore.Standing(w);   // デッドロック/首位交代の判定も在庫で（序列と同じ物差し）
                     // ★異常検出は**生のフロー**を見る＝在庫は平滑されるので NaN の混入を隠しうる。両方を検査する。
                     if (double.IsNaN(sc) || double.IsInfinity(sc) || double.IsNaN(scores[i]) || double.IsInfinity(scores[i]))

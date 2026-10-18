@@ -180,3 +180,26 @@
       国力の絶対値を閾値に使う読み手は無い（ランク・風化・序列・検査は相対）。一方 `F0` 表示（`GameViewModel.Header.cs`・`Refresh.cs`・`SaveMenu.cs`）は ×100 で整数が意味を持つ。
   9-6 通貨の確認：軍事費の請求は国ごとの名目（`NominalGdpPerMonth＝GdpPerMonth×PriceLevel`）＝国どうしの物価水準が違う。国の間で足す前に `PriceLevel` で割って参照価格建てにする（`World.NominalOf` の逆）。
       国どうしの通貨の換算（為替）は参照価格建ての実質量を比べる限り要らない。この割り算が足りない場合の逃げ道＝軍事費の項を落とす（5 項・[7] に書く）。
+
+[10] 追記1（2026-10-19・形のコードを書いた後・腕を回す前・書いたモデル Claude Sonnet 5.5）：[0]〜[9] との違い・形の途中で分かったこと
+  ① **単独の世界（外交盤が無い）の国力は 100（正の項があれば）か 0**。[1] D6 の〈正の項の割合×100〉は誤り（総量＝自分なので含まれる項の割合は全て 1＝平均 1）。コードと番人 S2 はこちら（100 か 0）。
+  ② **抜き出しは 3 本**（[6] の 2 本に足した）：`EconomyStep.InvestmentReturn`（設備の限界収益の式）・`EconomyStep.ReturnShare`（持ち分の割合）・`World.TechProductivity`（`Simulation` の月次にあった techProd の式。逓減の定数 2 本も World へ移した）・
+      `World.StateInvestEligible`／`StateInvestWeight`（`ApplyModernizationInvestment` のローカル関数を internal のメソッドへ）。式・順序・リテラルは抜き出す前のまま。`Simulation` の月次の呼びは `World.TechProductivity(r)` の 1 行になった。
+  ③ **国力の計算の入口**：`NationalScore.Of`（旗に従う）・`OfOld`（従来の和・計器が旧と新を並べる）・`ShareScores`／`SharesFromTerms`（純関数）・`Scores`（旗に従う全国分）・`StepStandingAll`（四半期の在庫の更新）・`NationWorldsOf`。
+      呼び手：`MultiNationSim` の四半期末の在庫の更新（旗＞0 のときだけ `StepStandingAll`）・`Diplomacy.ComputeRanks`・`TreatyPortLapse`（`ShareScoreByPower` で総量を 1 回）・セルフプレイの検査（`Scores` を 1 回）。
+      `NationBrief.Opening`・画面・Runner の表示は `Of(World)` の道（世界の総量をその場で求める＝呼ぶ回数が少ない所だけ）。
+  ④ **足した計器**（INS=1・旗 0 でも出す・読むだけ）：`modsig_s`（国×四半期・16 列：quarter／year／nation／meanIndustrialization／indCeilingOld／industrialFrontier／indGapOld／returnShare／eligibleCount／investWeightSum／grossMean／hurdleMean／stance／gapUsed／flagLevel／modernizationFracSet）・
+      `score_s`（国×年末・18 列：quarter／year／nation／scoreOld／scoreShare／rankOld／rankShare／share1Soldiers〜share6TotalPop／meanIndustrialization／techLevel／populationTotal／isGreatOld／isGreatShare）。既存の表の列は足していない。
+  ⑤ **恒等（前半・1 種）**：基点 2938df5（`git archive`＝SOURCE-HASH 5be3bdc6a7a0216e＝m412 と同じ）と形の木で `measure.sh selfplay 1 200` の報告が plain・INS=1（8 国）とも**バイト一致**（4 本とも 12,475 バイトで `cmp` 同一）。
+      計器の表は base の 43 表が形の木で全て一致（`flow_s1.tsv` は呼び元の行番号の列だけが違う＝`Simulation.cs` の行が 20 行減った分・値は全行一致）・形の木は新しい表 `modsig_s1`・`score_s1` が増えるだけ。
+      ⚠これは 1 種＝恒等の証明の全てではない（腕 A の 5 種の成績表が b5_20261019_m412 と全行一致するのが合否）。
+  ⑥ **番人**：`ModernizeReturnAndScoreTests` 12 本（期待値は手計算のリテラル）。突然変異 10 種（返りの符号・重みを人口に・前線を信号に混ぜる・分母を自分に・植民地を数える・鉄を鋼に・ダンピングの旧の門・余地の旧の式・軍事費の物価水準・自動化の旧の道）が全て赤になった。
+  ⑦ **1 シードの A の計器（旗 0・seed 1・200 四半期）が見せた〈もし新しい物差しなら〉**（作者に出す順位の顔ぶれ R1 の先取り・1 種の記録）：新しい国力は**清が首位**（1800 年 30.0 点・次点マラータ同盟 6.1・1820 年 27.0 対 10.7・1832 年 36.2 対 12.5）。
+      英は 1800 年 3.1 点で 7 位・1820 年 5.5 で 3 位・1832 年 3.4 で 5 位（旧は 2 位・1 位・1 位）。米は 1800 年 6 位・1820 年 7 位・1832 年 12 位。日は 11 位→4 位→4 位。エチオピアは 1800 年 37 位・1832 年 23 位（旧は 15 位・4 位）。ハワイはこの試合の国の一覧に居ない（seed 1・200 四半期）。
+      6 項の内訳（1800 年）：清は兵 0.13・軍事費 0.28・鉄 0.28・動力 0.37・都市人口 0.32・総人口 0.43 の割合（人口の項だけでなく鉄と動力も清が桁違い）。英は鉄 0.05・動力 0.05・都市人口 0.03・総人口 0.02。
+      ＝作者の 2026-06-28 の指示〈技術で差が出るように・大人口だけで上位に立たない〉と食い違う（予想 (a) の的中）。さらに、鉄と動力の消費が清に集まっているのは**この世界の産業の分布**（英の鉄が世界の 5% ほか）で、物差しの形でなく経済の側の再現の問題（記録）。
+  ⑧ **ダンピングの後発判定の試験で分かったこと**：旗 2 の信号＞0 の判定でダンピングの目標が負になる（-0.025・Apply の後段でスケールされる）。旗 1 では産業スタンスの保護関税の目標が残る。番人は符号だけを見る。
+  ⑨ **B の canary（旗 `AiModernizeFromReturn=3`＋`ScoreFromWorldShare=1`・seed 1・200 四半期・計器つき・採否に使わない）**：完走・NaN なし・`savetest 1 60 12` OK（全 68 カ国・最大相対差 0）・`leakhunt 1789 120 warm` 完走（保存則違反なし・説明できない増減 0）。
+      勝者は清（30.2）・恐慌 43→28 回・損失financing のピーク率 2.11→1.80%。**AI の工業化度が州の上限 5.0 の近くまで上がった**（上海 4.8・プーナ 4.3・モスクワ 4.7・ウィーン 4.5・A は 2.5〜2.6）＝〈プレイヤー 4.9・AI 3.0〉の非対称は〈両方とも州の上限の近く〉になる。
+      生産性に効く稼働資本（座礁分を除く）は総量より小さく、信号が立ち続けるため（1833 年の信号：清 0.007・日 0.017・露 0.11・英 0.26・仏 0.38）。開幕の信号は英 0.32・仏 0.40・清 0.42・日 0.41（旧の gap は 0.96〜1.0）＝開幕の率は旧の 0.3〜0.4 倍。
+      記録の線 R4・R5 で 10 種を読む（アジアの過近代化の再発か・開幕のバーストの縮み）。採否は止める線だけ。`measurements/sc_20261019_canary_B_*`・`sc_20261019_read_seed1.txt`。

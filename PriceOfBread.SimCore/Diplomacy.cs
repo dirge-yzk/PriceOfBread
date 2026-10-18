@@ -510,13 +510,16 @@ public sealed class Diplomacy
     {
         if (c.TreatyPortLapseRatio.Value <= 0) return;
         if (month % Calendar.MonthsPerQuarter != 0) return;
+        // ★(416) 旗 ScoreFromWorldShare＞0：力の差＝世界の総量に対する本国の割合の国力（NationalScore.ShareScores）。向きは同じ（自国÷列強の最大・近いほど風化が速い）。0＝従来の Military＋Wealth のまま。
+        var shareScore = c.ScoreFromWorldShare > 0 ? ShareScoreByPower() : null;
+        double Strength(Power p, World w) => shareScore is not null ? shareScore[p.Id] : NationalScore.Military(w) + NationalScore.Wealth(w);
         double topC = 0;
-        foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, NationalScore.Military(gw) + NationalScore.Wealth(gw));
+        foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, Strength(p, gw));
         if (topC > 1e-9)
             foreach (var p in Powers)
             {
                 if (p.Nation is not { } w) continue;
-                double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / topC;
+                double ratio = Strength(p, w) / topC;
                 double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
                 if (!(fade > 0)) continue;
                 foreach (var r in w.Regions)
@@ -534,13 +537,14 @@ public sealed class Diplomacy
         // 小さな世界（テスト・較正＝実国12以下）は従来の比率式を維持＝4カ国世界で全員列強になり動学が変わるのを防ぐ。
         _rank.Clear();
         var real = new List<(Power P, double S)>();
+        var shareScore = c.ScoreFromWorldShare > 0 ? ShareScoreByPower() : null;   // ★(416) 旗＞0：総量を 1 回だけ求める（国ごとに求め直さない）
         foreach (var p in Powers)
         {
             // ★慣性は**序列の見え方**（忠実度の列強軸・首位交代・UIの順位）に効かせ、ここ＝外交の実挙動を決める
             //   ランク判定には掛けない（2026-08-02 R5）。R3/R4 の実測で、在庫をここへ通すと植民地化・介入・同盟の
             //   相手が固定され、スペインが6-7/10で最下位に沈む副作用が出た（本国州 0.75→0.58）。
             //   作者の要求は「上位が頻繁に入れ替わらないこと」＝順位の安定であって、外交の相手固定ではない。
-            if (p.Nation is { } w) real.Add((p, NationalScore.Of(w)));
+            if (p.Nation is { } w) real.Add((p, shareScore is not null ? shareScore[p.Id] : NationalScore.Of(w)));
             else _rank[p.Id] = PowerRank.Minor;   // 抽象勢力＝常に弱小
         }
         if (real.Count > 12)
@@ -559,6 +563,17 @@ public sealed class Diplomacy
         double great = top * c.GreatPowerScoreFraction.Value, minor = top * c.MinorPowerScoreFraction.Value;
         foreach (var (p, s) in real)
             _rank[p.Id] = s >= great ? PowerRank.Great : s < minor ? PowerRank.Minor : PowerRank.Middle;
+    }
+
+    /// <summary>★(416) 旗 ScoreFromWorldShare＞0 の国力を実在の国ぶん 1 回で求める（Power.Id → 国力）。世界の総量は実在の国（Nation が非 null）の和。</summary>
+    private Dictionary<int, double> ShareScoreByPower()
+    {
+        var ps = new List<Power>(); var ws = new List<World>();
+        foreach (var p in Powers) if (p.Nation is { } nw) { ps.Add(p); ws.Add(nw); }
+        var sc = NationalScore.ShareScores(ws);
+        var d = new Dictionary<int, double>(ps.Count);
+        for (int i = 0; i < ps.Count; i++) d[ps[i].Id] = sc[i];
+        return d;
     }
 
     /// <summary>この勢力のランク（列強/中堅/弱小）。未算出なら弱小。</summary>
