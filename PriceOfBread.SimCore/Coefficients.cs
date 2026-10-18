@@ -2348,6 +2348,17 @@ public sealed class Coefficients
     //   値の割り方（追記2・測る前に固定）：1＝(1)(2) 両方（腕 B）／2＝(1) だけ（切り分けの B1）／3＝(2) だけ（切り分けの B2）。同じ木で値だけ違う。
     public double OpeningFiscalAlign = 1;
 
+    // ★(403) 清算の見る範囲の絞り（結果の変わる高速化・旗・既定 0＝1 命令も違わない・測る前の登録 measurements/cs_20261018_prereg.txt）。
+    //   ClearingIdleSearchQuarters（②）：>=2 のとき、前の月に輸入も不足も無かった買い手行（州×財）は N 四半期に 1 回だけ、四半期の最初の清算で売り手を探す（行ごとに位相が散る）。
+    //   0（か 1）＝全ての行が四半期の最初の清算で探す（今の挙動）。値は N（4＝年に 1 度）。
+    public double ClearingIdleSearchQuarters = 0;
+    //   ClearingIdleShortageWakesStaplesOnly（②の幅）：>0 のとき、②で不足（LastShortage）が起こす行を主食（GoodTier.Staple か麦の連鎖）に限る＝主食でない財の不足だけの行も番の四半期だけ探す。
+    //   0＝不足のある行は全て起こす（取引も不足も無い行だけが番）。②が 0 のときは読まれない。
+    public double ClearingIdleShortageWakesStaplesOnly = 0;
+    //   ClearingPartnerScope（①）：>=1 のとき、四半期の 2・3 月目の清算で、その四半期の最初の清算に成約した買い手行は、その清算で相手にした売り手（先の K 人）から先に買う。
+    //   覚えの売り手が尽きたら全ての売り手を探し直す。値は K（0＝全ての売り手を見る＝今の挙動）。覚えは作業領域（セーブに載らない・四半期の最初の清算が作り直す）。最初の清算の走査は変えない。
+    public double ClearingPartnerScope = 0;
+
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）
     public const int FidelityQuarters1820 = 152;             // ★E-08 多断面（作者提案2026-09-04）：Maddison の基準年＝1820年12月（(1820−1783)×4+4）

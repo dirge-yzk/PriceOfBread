@@ -22,6 +22,9 @@ public class DormantIdentityTests
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         // ★AiBureaucracyFromPrereq は 2026-10-17 (389) に 2 で**点火**（欲しい法が官僚制度の前提で止まったとき、法律タブの門も通る法だけ官僚制度の目標を上げる）＝この表から外した。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
+        "ClearingIdleSearchQuarters",  // ★(403) 清算の見る範囲の絞り②＝取引も不足も無い買い手行を N 四半期に 1 回だけ探す（N≧2・0＝全ての行が四半期の最初の清算で探す＝今の挙動）。採否は measurements/cs_20261018_prereg.txt
+        "ClearingIdleShortageWakesStaplesOnly",   // ★(403) ②の幅＝不足が起こす行を主食に限る（②が 0 のときは読まれない）
+        "ClearingPartnerScope",       // ★(403) 清算の見る範囲の絞り①＝四半期の 2・3 月目の清算で最初の清算の相手（K 人）から先に買う（K≧1・0＝今の挙動）
         // ★OpeningFiscalAlign（(400) 英・蘭の開幕の財政の整合）は 2026-10-18 に 1 で**点火**（既定を 1 へ・止める線に当たらず）＝この表から外した。
         "MeritModernityFromClosed",     // AUD-07：メリトクラシーの政体バフ除去
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
