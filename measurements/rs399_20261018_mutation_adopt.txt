@@ -1,0 +1,11 @@
+M0	届け率を 1 にする（在地区分を丸ごと届ける）	RED(3)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D7_公共財の到達は国家区分で課税と徴兵の届け率は国家区分に在地区分の7割を足す [5 s] | 失敗 PriceOfBread.Tests.PopScanTests.課税の走査の並行の列はPOPの一覧と同じ並びで対になる [5 s] | 失敗 PriceOfBread.Tests.RuleSharesFormTests.D5_仲介者の取り分は納税者から貴族への移転で貨幣を作りも壊しもしない [23 ms]	107s
+M1	公共財の到達を在地区分で読む	RED(3)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D7_公共財の到達は国家区分で課税と徴兵の届け率は国家区分に在地区分の7割を足す [2 s] | 失敗 PriceOfBread.Tests.RuleSharesFormTests.D6_女性の賃金保持の追従の速さが国家の区分に比例し行政効率に依らない [54 ms] | 失敗 PriceOfBread.Tests.RuleSharesFormTests.D6_法の浸透は州の人口で重みづけた国家の区分で行政効率を読まない [134 ms]	47s
+M2	外国持分の風化を毎月にする	RED(2)	失敗 PriceOfBread.Tests.TreatyPortLapseTests.力が並んだ国の外国持分は風化し係数0では何も起きない [619 ms] | 失敗 PriceOfBread.Tests.RuleSharesFormTests.D3_外国持分は四半期の月だけ風化する [355 ms]	54s
+M3	関税の目減りを無視する	RED(1)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D3_関税の目減りは港州の外国持分の人口加重 [465 ms]	141s
+M4	昇格する植民地の州がデータを読まない	RED(1)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D4_昇格する植民地の州はデータの区分を持ちデータの無い名前は一律の在地を持つ [47 ms]	87s
+M5	法の浸透を行政に依らず 1 にする	RED(1)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D6_女性の賃金保持の追従の速さが国家の区分に比例し行政効率に依らない [21 ms]	145s
+M6	仲介者の取り分を貴族へ移さず捨てる	BUILD-FAIL	ead.SimCore\Fiscal.cs(151,39): error CS1061: 'Pop' に 'SetSavings' の定義が含まれておらず、型 'Pop' の最初の引数を受け付けるアクセス可能な拡張メソッド 'SetSavings' が見つかりませんでした。using ディレクティブまたはアセンブリ参照が不足していないことを確認してください [D:\PoB_work\rs_adopt\mut\tree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]     2 個の警告     1 エラー  経過時間 00:00:10.95 
+M7	在地の目標を農奴解放の法で読む	RED(1)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D1_在地の目標は農奴解放の法で動かず官僚制度の専門化と土地改革の両方で消える [89 ms]	44s
+MUT-END
+M6	仲介者の取り分を取りっぱぐれる（納税者から引かない）	RED(1)	失敗 PriceOfBread.Tests.RuleSharesFormTests.D5_仲介者の取り分は納税者から貴族への移転で貨幣を作りも壊しもしない [24 ms]	38s
+MUT-END
