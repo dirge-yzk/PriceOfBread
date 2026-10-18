@@ -931,9 +931,12 @@ public static class Discovery
         var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
         var eo = Instruments.On ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
         var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
-        if (eo is not null)   // ★(415) 計器だけ＝まだ解禁していない行の技師の量の軌道（census・事前登録 [6]）
-            for (int row = 0; row < terms.Length && row < known.Length; row++)
-                if (!known[row] && !double.IsNaN(eo[row])) Instruments.EngineerRow("T", w, row, eo[row], terms[row].Tech);
+        if (eo is not null && (w.Tick / Calendar.DaysPerQuarter) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
+        {
+            var all = ParentEngineersByRow(w, view, c);
+            for (int row = 0; row < all.Length && row < known.Length; row++)
+                if (!double.IsNaN(all[row])) Instruments.EngineerRow("T", w, row, all[row], known[row] ? double.NaN : terms[row].Tech, known[row]);
+        }
         if (ro is not null)   // (320) 計器だけ＝まだ解禁していない蒸気機関と機関車の軌道（四半期ごと）
         {
             if (!known[SteamRow]) Instruments.DiscoveryTrace(w, SteamRow, terms[SteamRow], ro[SteamRow]);
@@ -944,7 +947,7 @@ public static class Discovery
             if (known[row] || !(terms[row].Score >= GateScore)) continue;
             known[row] = true;
             if (ro is not null) Instruments.DiscoveryEvent(w, row, terms[row], ro[row]);   // (320) 計器だけ
-            if (eo is not null && !double.IsNaN(eo[row])) Instruments.EngineerRow("E", w, row, eo[row], terms[row].Tech);   // (415) 計器だけ
+            if (eo is not null && !double.IsNaN(eo[row])) Instruments.EngineerRow("E", w, row, eo[row], terms[row].Tech, false);   // (415) 計器だけ
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。

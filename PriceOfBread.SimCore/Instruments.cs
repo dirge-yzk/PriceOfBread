@@ -1893,13 +1893,13 @@ public static partial class Instruments
             if (g < gf.Length) st.DiscFlowRows.Add(string.Join('	', w0.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), Catalog.Goods[g].Name, F(gf[g])));
     }
 
-    /// <summary>★(415) 発見の表の行の親の産業の技師の量（<see cref="Discovery.Step"/> の判定・読むだけ）。kind＝E 解禁した行／T まだ解禁していない行（8四半期ごとに書く）。
+    /// <summary>★(415) 発見の表の行の親の産業の技師の量（<see cref="Discovery.Step"/> の判定・読むだけ）。kind＝E 解禁した行／T 全ての行の軌道（8四半期ごと・解禁済みの行も＝knownFlag 1）。
     /// <paramref name="a"/>＝高度労働力の月あたりの量（<see cref="Discovery.ParentEngineers"/>・旗に関わらず求める）・<paramref name="techTerm"/>＝その四半期の技術力の項（旗が0なら技術水準の式の値）。</summary>
-    internal static void EngineerRow(string kind, World w, int row, double a, double techTerm)
+    internal static void EngineerRow(string kind, World w, int row, double a, double techTerm, bool known)
         => S(w).EngRows.Add(string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), Catalog.Discoveries[row].Name,
-            Catalog.Discoveries[row].Decade.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a), F(techTerm)));
+            Catalog.Discoveries[row].Decade.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a), F(techTerm), known ? "1" : "0"));
 
-    /// <summary>★(415) 技師の量の表 <c>engineer_s</c>。列＝kind・quarter・year・nation・row・decade・engineerPerMonth・techTerm。census は T の行（8四半期ごと）と E の行（解禁した四半期）から A0 を決める（事前登録 [6]）。</summary>
+    /// <summary>★(415) 技師の量の表 <c>engineer_s</c>。列＝kind・quarter・year・nation・row・decade・engineerPerMonth・techTerm・knownFlag（解禁済みの行の techTerm は nan）。census は T の行（8四半期ごと）と E の行（解禁した四半期）から A0 を決める（事前登録 [6]）。</summary>
     static void EngineerTable(Sink sk, ulong seed, int q, MultiNationSim sim)
     {
         foreach (var n in sim.Nations)
@@ -1907,11 +1907,11 @@ public static partial class Instruments
             var st = S(n.World);
             if (st.EngRows.Count == 0) continue;
             sk.Eng ??= Open("engineer", seed);
-            if (!sk.EngHeader) { sk.Eng.WriteLine("kind\tquarter\tyear\tnation\trow\tdecade\tengineerPerMonth\ttechTerm"); sk.EngHeader = true; }
+            if (!sk.EngHeader) { sk.Eng.WriteLine("kind\tquarter\tyear\tnation\trow\tdecade\tengineerPerMonth\ttechTerm\tknownFlag"); sk.EngHeader = true; }
             foreach (var row in st.EngRows)
             {
                 int tab = row.IndexOf('\t');
-                if (row[0] == 'E' || q % 8 == 0) sk.Eng.WriteLine(row.Substring(0, tab + 1) + q.ToString(System.Globalization.CultureInfo.InvariantCulture) + row.Substring(tab));
+                sk.Eng.WriteLine(row.Substring(0, tab + 1) + q.ToString(System.Globalization.CultureInfo.InvariantCulture) + row.Substring(tab));
             }
             st.EngRows.Clear();
         }
