@@ -1788,7 +1788,7 @@ public class PolicyPoliticsTests
     }
 
     /// <summary>目標を置ける法軸の現在の段（<see cref="SetLawTarget"/> の鏡像）。</summary>
-    private static int LawLevel(World w, PolicyAxis a) => a switch
+    internal static int LawLevel(World w, PolicyAxis a) => a switch
     {
         PolicyAxis.ShorterHours => (int)w.WorkHours,
         PolicyAxis.ChildLabor => w.ChildLaborAllowed ? 1 : 0,
@@ -1809,7 +1809,7 @@ public class PolicyPoliticsTests
 
     /// <summary>純支持が負（＝押し切りが要る）で、在庫が潤沢なら通る一歩を1本見つける。代価つきで返す。
     /// ★S1 以後は「通る」を決めるのは在庫だけ＝憲法級（参政権）は硬い純支持&gt;0 のまま否決されるので自然に外れる。</summary>
-    private static (PolicyAxis Axis, bool Inc, int Level, double Cost) FindOpposedStep(World w)
+    internal static (PolicyAxis Axis, bool Inc, int Level, double Cost) FindOpposedStep(World w)
     {
         w.Legitimacy = 1.0;                                   // 盤面を固定する（旧＝余白 θ を最大にする理由だったが S1 で θ は退役＝残る役目は再現性）
         w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;      // 在庫では止めない状態で探す
@@ -1838,7 +1838,7 @@ public class PolicyPoliticsTests
         return default;
     }
 
-    private static void SetLawTarget(World w, PolicyAxis a, int level)
+    internal static void SetLawTarget(World w, PolicyAxis a, int level)
     {
         var p = w.Policy;
         switch (a)
