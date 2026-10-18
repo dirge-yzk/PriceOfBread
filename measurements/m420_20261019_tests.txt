@@ -1,0 +1,15 @@
+# (420) フルスイート（Category!=FullLength・成績表の木 760e5e56・隔離ビルド D:/PoB_work/m420/art・Release）
+成功!   -失敗:     0、合格:  1404、スキップ:     0、合計:  1404、期間: 8 m 2 s - PriceOfBread.Tests.dll (net10.0)
+# (420) FullLength（Category=FullLength）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 59 s - PriceOfBread.Tests.dll (net10.0)
+# 前の走り（f6b2a81a）
+  失敗 PriceOfBread.Tests.FiscalTests.対外借入の債権は貸し手が払った額で換算され翌四半期に数え直さない [202 ms]
+失敗!   -失敗:     1、合格:  1403、スキップ:     0、合計:  1404、期間: 7 m 56 s - PriceOfBread.Tests.dll (net10.0)
+# FiscalTests の前提を直した後の単独の走り
+成功!   -失敗:     0、合格:     1、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+# 既定の経路の TechInstitutionTests の値（写しの木で旗 0 の固定を外し、値を Assert.Fail で書き出した）
+   VALUES britain=1.0868 america=2.3747 japanReligious=0.1511 x1.3=0.1964
+# DiscoveryEngineerTests の突然変異〈投入の財を親に入れない〉（写しの木）
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.行の技師の量は親の産業の生産者の雇用の和と一致する [34 ms]
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [20 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 10 s - PriceOfBread.Tests.dll (net10.0)

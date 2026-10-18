@@ -1,0 +1,5 @@
+# (413) 読む線：波 14 の線の重なり（opus・読むだけ・基点 main 2938df5 の grep・腕なし）＝線の報告から合流 (420) が起こした写し（要約）
+結論：同じ関数の同じ式に触る組は無い。深く重なる線は無い＝次の波へ回した線は無い。
+組ごとの深さ：dt×sc 浅い（Coefficients の別の節・Instruments の別の行・WriterRatchet の表）／dt×dc 無し／dt×ce 浅い（dt が EconomyStep.Run に書かなければ）／dt×hz 浅い／sc×dc 浅い／sc×ce 無し／sc×hz 浅い（PlayHarness の表示と動詞の解析）／dc×ce 浅い（意味の結合＝ce が日用品の満足度を変え dc の不満度が読む＝合流でアブレーション）／dc×hz 浅い（Politics.cs の別の関数・DormantIdentityTests の近い行）／ce×hz 浅い／全線 浅い（WriterRatchet の計算量の宣言の表・計算量の余り）。
+注：dt の技師の量 A は Discovery の中で導く（EconomyStep.Run に器を足さない・思想⑩）／sc は World.IndustrialFrontier を消さない（Ideology の読み手）・NationalScore.MeanSatisfaction と MeanSupplyFill は残す／dc は LivingWant の慣れの形を変えない・点火で POP ごとの費用が増える／ce は新しい生産者の費用を census で先に出す・自家生産のレシピが発見の押しに入りうる／hz の DormantIdentityTests は改行が混ざる＝2 本目に合流する側がバイトで編集／Coefficients.cs は全線が自分の節だけを書く。
+合流 (420) での実際：dc は採らなかった（記録だけ）＝dc×ce のアブレーションは要らなくなった。衝突は Coefficients.cs・Instruments.cs・InstrumentsTests・WriterRatchetTests・実装ログだけ（全て両側を残す形で解いた）。

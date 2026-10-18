@@ -1,0 +1,6 @@
+# (420) 反証役 dc〔bv〕中の再読：dc の腕 B（ParticipationDiscontent=1）の生 dcont_s の小国の行（全ての行＝挙げた国でないので年末）・読み手 scripts/instruments/dc/an4_small420.py（読むだけ・dc の生は採否が決まったので消した）
+# 頭数 新/連続のみ＝partNewK÷partMilK・不満度が先行した分＝(partNewK−partMilK)÷partNewK・MilSum＝milSumNewK÷milSumMilK・D>M＝dGtMShare の平均
+ダホメ王国: 行 1670・頭数 新/連続のみ 1.0323（不満度が先行した分 3.1%）・MilSum 新/連続のみ 1.0111・D>M の人口割合の平均 0.121
+コンゴ王国: 行 1670・頭数 新/連続のみ 1.0217（不満度が先行した分 2.1%）・MilSum 新/連続のみ 1.0074・D>M の人口割合の平均 0.108
+ハワイ王国: 行 1670・頭数 新/連続のみ 1.0256（不満度が先行した分 2.5%）・MilSum 新/連続のみ 1.0088・D>M の人口割合の平均 0.112
+# 大国（挙げた 8 国の毎四半期）の同じ量は dc の R6＝頭数 +0.6%・MilSum +0.2%（measurements/dc_20261019_arms.txt）
