@@ -304,11 +304,77 @@ def rec_r7(arms):
         print('   %-2s ' % a + ' | '.join(row))
 
 
+ERAS = [('1783-1800', 1783, 1800), ('1801-1850', 1801, 1850), ('1851-1950', 1851, 1950)]
+
+
+def rec_r6(arms):
+    """R6 帰還の輪：予算が効いている国×月（買える割合の上限 capped÷need が 1 未満で、充足がその上限の 0.02 以内）の割合（挙げた 8 国・時代別）。"""
+    names = ['A', 'B']
+    print('R6 予算が効いている国×月の割合（fiscal_s の挙げた 8 国・時代別）と充足の平均')
+    for a, d in zip(names, (arms[0], arms[3])):
+        tot = defaultdict(int); bind = defaultdict(int); fsum = defaultdict(float)
+        for p in glob.glob(os.path.join(d, 'fiscal_s*.tsv')):
+            for r in rd(p):
+                if r['nation'] not in NAT8:
+                    continue
+                y = int(r['year']); need = fl(r['adminNeedAtBudgetPerMonth']); cap = fl(r['adminClaimCappedAtBudgetPerMonth']); f = fl(r['adminFillShare'])
+                if not (need > 0) or f != f:
+                    continue
+                for lab, lo, hi in ERAS:
+                    if lo <= y <= hi:
+                        tot[lab] += 1; fsum[lab] += f
+                        s = cap / need
+                        if s < 1.0 and f >= s - 0.02:
+                            bind[lab] += 1
+        print('   %s  ' % a + '  '.join('%s: 効く%.1f%% 充足平均%.2f (n=%d)' % (lab, 100.0 * bind[lab] / max(1, tot[lab]), fsum[lab] / max(1, tot[lab]), tot[lab]) for lab, _, _ in ERAS))
+
+
+def adm_rows(d):
+    out = []
+    for p in sorted(glob.glob(os.path.join(d, 'admrule_s*.tsv'))):
+        out.append([r for r in rd(p) if r['nation'] in NAT8])
+    return out
+
+
+def rec_r4(arms):
+    """R4 徴兵の母数と復員：admrule_s の新しい列（挙げた 8 国・四半期）。A と B を並べる。"""
+    print('R4 定員と復員（挙げた 8 国×四半期・時代別）：人口の側で定員が決まる割合／平時の復員の対象 excessSoldierK の和／兵士 soldierK の中央値／人口の側の定員 manLimitK の B÷旧')
+    for a, d in zip(['A', 'B'], (arms[0], arms[3])):
+        pop = defaultdict(list); exc = defaultdict(float); sold = defaultdict(list); ml = defaultdict(list); n = defaultdict(int)
+        for rows in adm_rows(d):
+            for r in rows:
+                y = int(r['year'])
+                for lab, lo, hi in ERAS:
+                    if lo <= y <= hi:
+                        n[lab] += 1; pop[lab].append(fl(r['popSideDecidesFlag']))
+                        if fl(r['atWarFlag']) == 0:
+                            exc[lab] += fl(r['excessSoldierK'])
+                        sold[lab].append(fl(r['soldierK']))
+                        if fl(r['manLimitOldK']) > 0:
+                            ml[lab].append(fl(r['manLimitK']) / fl(r['manLimitOldK']))
+        print('   %s  ' % a + '  '.join('%s: 人口側%.0f%% 復員対象和%.0fK 兵中央%.1fK 定員比%.3f' % (lab, 100.0 * statistics.mean(pop[lab]) if pop[lab] else float('nan'), exc[lab], statistics.median(sold[lab]) if sold[lab] else float('nan'), statistics.median(ml[lab]) if ml[lab] else float('nan')) for lab, _, _ in ERAS))
+
+
+def rec_r2b(arms):
+    """R2' 仲介者の取り分の行き先と領主の所得（A と B・時代別・挙げた 8 国の種×四半期）"""
+    print("R2' 領主の居ない州の人口割合の中央値／仲介者の取り分の率（全体→領主の居る州）の中央値／貴族の一人あたり所得の最大の中央値と最大値")
+    for a, d in zip(['A', 'B'], (arms[0], arms[3])):
+        ll = defaultdict(list); ca = defaultdict(list); cl = defaultdict(list); nm = defaultdict(list)
+        for rows in adm_rows(d):
+            for r in rows:
+                y = int(r['year'])
+                for lab, lo, hi in ERAS:
+                    if lo <= y <= hi:
+                        ll[lab].append(fl(r['lordlessPopShare'])); ca[lab].append(fl(r['ruleCutRateAllShare'])); cl[lab].append(fl(r['ruleCutRateLordedShare'])); nm[lab].append(fl(r['nobleIncomeMaxPerCapPerMonth']))
+        md = lambda v: statistics.median([t for t in v if t == t]) if [t for t in v if t == t] else float('nan')
+        print('   %s  ' % a + '  '.join('%s: 領主なし%.2f 取り分率%.4f→%.4f 貴族所得max中央%.3g 最大%.3g' % (lab, md(ll[lab]), md(ca[lab]), md(cl[lab]), md(nm[lab]), max([t for t in nm[lab] if t == t] or [float('nan')])) for lab, _, _ in ERAS))
+
+
 if __name__ == '__main__':
     arms = sys.argv[1:5]
     assert len(arms) == 4, __doc__
     for fn in (line1, line2, line3, line4):
         r = fn(arms)
         print()
-    for fn in (rec_r1, rec_r2, rec_r5p, rec_r7):
+    for fn in (rec_r1, rec_r2, rec_r2b, rec_r4, rec_r5p, rec_r6, rec_r7):
         fn(arms); print()
