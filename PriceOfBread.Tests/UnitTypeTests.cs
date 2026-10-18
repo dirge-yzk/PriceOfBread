@@ -241,7 +241,6 @@ public class UnitTypeTests
         (typeof(Coefficients), "InterestCapitalization", typeof(Share)),
         (typeof(Coefficients), "BondAppetite", typeof(Share)),
         (typeof(Coefficients), "ForeignBondCapacity", typeof(Share)),
-        (typeof(Coefficients), "CorruptionMax", typeof(Share)),
         (typeof(Coefficients), "CapitalExportFrac", typeof(Share)),
         (typeof(Coefficients), "InsuranceCoverageMax", typeof(Share)),
         // ★(325) 割合の型の残り その7＝財政の係数 3 本（Share）。資本規制下の開放度・身分制免税の割引率・免税を王権の取り分に結ぶ率。`GoldCoverMin` は `SelfPlay.cs` が比べる相手で、並行の流れF の触れる所なので移していない（実装ログ (325)）（→(330) で移した）。
@@ -627,7 +626,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで金融財政の係数の欄が残る()
     {
-        (string Name, Type Type)[] fields = [("CapitalDividendRatePerQuarter", typeof(RatePerQuarter)), ("CapitalFlightRatePerQuarter", typeof(RatePerQuarter)), ("CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)), ("DevaluationCapFracPerMonth", typeof(RatePerMonth)), ("FiatIssueFrac", typeof(Share)), ("GoldMintFraction", typeof(Share)), ("BondRateRepresentationDiscount", typeof(Share)), ("PreTightenHeatFrac", typeof(Share)), ("CurrencyHoldingRatio", typeof(Share)), ("PublicEduFundingShare", typeof(Share)), ("BankRunMax", typeof(Share)), ("LolrStrength", typeof(Share)), ("CurrencyReformBurnCap", typeof(Share)), ("InterestCapitalization", typeof(Share)), ("BondAppetite", typeof(Share)), ("ForeignBondCapacity", typeof(Share)), ("CorruptionMax", typeof(Share)), ("CapitalExportFrac", typeof(Share)), ("InsuranceCoverageMax", typeof(Share))];
+        (string Name, Type Type)[] fields = [("CapitalDividendRatePerQuarter", typeof(RatePerQuarter)), ("CapitalFlightRatePerQuarter", typeof(RatePerQuarter)), ("CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)), ("DevaluationCapFracPerMonth", typeof(RatePerMonth)), ("FiatIssueFrac", typeof(Share)), ("GoldMintFraction", typeof(Share)), ("BondRateRepresentationDiscount", typeof(Share)), ("PreTightenHeatFrac", typeof(Share)), ("CurrencyHoldingRatio", typeof(Share)), ("PublicEduFundingShare", typeof(Share)), ("BankRunMax", typeof(Share)), ("LolrStrength", typeof(Share)), ("CurrencyReformBurnCap", typeof(Share)), ("InterestCapitalization", typeof(Share)), ("BondAppetite", typeof(Share)), ("ForeignBondCapacity", typeof(Share)), ("CapitalExportFrac", typeof(Share)), ("InsuranceCoverageMax", typeof(Share))];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < fields.Length; k++)

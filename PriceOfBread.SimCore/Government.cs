@@ -271,8 +271,8 @@ public static class Government
         // スライダー（連続）：変更方向に反対する集団の力で律速
         // 税制：人頭税・関税・土地税は常時。⚠専売は税ではなく生産の決断＝2026-09-20に政策軸ごと撤去。
         // ★裁定2026-09-12（FIX1）：所得税・累進の**行政力の天井を廃止**（施行側の Min も LawPrereq の腕も削除＝他の税と同じ Q4 1本）。
-        //   行政の弱さは「その税率を選べない」ことではなく「取り立てた金が国庫へ届かない」ことで出る＝Fiscal の汚職漏れ
-        //   （revenue × CorruptionMax × EffectiveCorruption、EffectiveCorruption=(1−AdminEfficiency)(1−OversightV2)）が唯一の担い手。
+        //   行政の弱さは「その税率を選べない」ことではなく「取り立てた金が国庫へ届かない」ことで出る＝(399) 以後は支配度の区分（Fiscal の RuleDelivery＝国家区分＋在地区分×届け率）が担い手
+        //   （旧＝Fiscal の汚職漏れ revenue × CorruptionMax × EffectiveCorruption は (399) で物理削除）。
         //   天井はその同じ量（行政効率の移動平均）を率の側にも掛けていた＝二重計上だった
         //   （土地税の landEff が同じ理由で撤去済み＝下の Fiscal の注記と同文）。
         // 連続のレバー（関税・行政費・金利）は5%刻み（AI/プレイヤー共通）：0..1の目標を0.05に丸めてから適用（政治の漸進ロックは別途 Move が担う）。

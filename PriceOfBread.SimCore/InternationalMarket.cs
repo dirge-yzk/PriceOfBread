@@ -154,17 +154,15 @@ public sealed partial class InternationalMarket
     /// <summary>条約港による関税の実効低下（2026-08-04・作者仕様(4)）。港を開かされるほど自国の関税が効かなくなる。
     /// 史実＝南京条約1842は5港開港＋協定関税（清は税率を自分で決められなくなった）・安政条約1858も同型。
     /// 最恵国待遇で特権は全列強へ波及したので**全ての相手に効く**＝二国間テーブルを持たない（モデルの粒度と一致）。
-    /// TreatyPortTariffLoss=0 で 1.0＝乗算恒等（休眠）。</summary>
-    internal static double TreatyPortTariffScale(World w, Coefficients c)   // internal＝ProductionDiag が関税の楔を同式で読む
-        => w.TreatyPortsGranted <= 0 || c.TreatyPortTariffLoss <= 0
-            ? 1.0
-            : Math.Max(0, 1.0 - c.TreatyPortTariffLoss * w.TreatyPortsGranted);
+    /// ★(399) 条約港の廃止（作者 2026-10-16：条約港は廃止・州の支配度で表現）：自国の関税が効かない割合＝港州の外国持分の人口加重平均（旧＝港の個数×TreatyPortTariffLoss）。持分が無ければ 1.0。</summary>
+    internal static double TreatyPortTariffScale(World w)   // internal＝ProductionDiag が関税の楔を同式で読む
+        => 1.0 - Politics.ForeignPortShare(w);
 
     internal static double CornFactor(ReformLevel lv) => lv switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };   // internal＝ProductionDiag が穀物法の楔を同式で読む
 
     /// <summary>関税率（国の関税×条約港の低下を [TariffFloor, 1] に収めた値）＝清算の楔（BilateralMarket）・生産の診断（ProductionDiag）・発見の着値（Discovery＝★(169)）が同じ1本を読む
     /// （(169) に清算と診断の同じ式2本をここへ畳んだ）。</summary>
-    internal static double TariffRate(World w, Coefficients c) => Math.Clamp(w.Tariff * TreatyPortTariffScale(w, c), c.TariffFloor, 1);
+    internal static double TariffRate(World w, Coefficients c) => Math.Clamp(w.Tariff * TreatyPortTariffScale(w), c.TariffFloor, 1);
 
     /// <summary>運賃革命の倍率（A-高2・2026-08-15 に従価の運賃へも）＝1−TransportRevolutionMax×clamp01((前線の技術水準−Onset)÷Span)・TransportRevolutionMax≦0 は1。
     /// 清算（BilateralMarket の運賃の倍率）と発見の着値（Discovery.WorldMarket＝★(169)）が同じ1本を読む（(169) に清算の式をここへ移した）。</summary>

@@ -228,7 +228,7 @@ public static class PoliticalQuantities
         double lit = Clamp01(AvgLiteracy(w));                        // 読者がいなければ新聞は燃えない
         double urban = Clamp01(w.UrbanShare);                        // 群衆は都市にいる
         double humiliation = Clamp01(w.DefeatShock + w.Coef.LostLandNationalism * w.LostRegionsCumulative
-                                   + (w.TreatyPortsGranted > 0 ? 1.0 : 0.0));   // 敗戦・失地・不平等条約（条約港）＝火種
+                                   + (w.UnequalTreatyInForce ? 1.0 : 0.0));   // 敗戦・失地・不平等条約（条約港）＝火種
         return press * lit * urban * humiliation;
     }
 

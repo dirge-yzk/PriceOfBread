@@ -108,8 +108,8 @@ public partial class GameViewModel
         TradeBalance = $"{(bal >= 0 ? "＋" : "−")}{Money(Math.Abs(bal))}/月";
         // ★2026-08-15作者フィードバック(10)：関税行（財政タブと重複）・開放度行は撤去。収支は総額の下の大型表示へ（財政タブと同レイアウト）
         // ★条約港（2026-08-04・作者仕様(4)の可視化）：開かされた港の数と関税自主権の実効低下。0港なら行ごと出さない。
-        TreatyPortLine = w.TreatyPortsGranted > 0   // setter は private プロパティへ直接
-            ? $"条約港 {w.TreatyPortsGranted}港　関税の実効 ×{System.Math.Max(0, 1.0 - w.Coef.TreatyPortTariffLoss * w.TreatyPortsGranted):F2}"
+        TreatyPortLine = Politics.ForeignPortShare(w) > 0   // setter は private プロパティへ直接・★(402) 関税が目減りしている間は出す（旧＝UnequalTreatyInForce の半分の線で 0〜0.25 の持分が見えなかった・反証役 rs〔bv〕低#1）
+            ? $"条約港　外国持分 {Politics.ForeignPortShare(w):P0}　関税の実効 ×{InternationalMarket.TreatyPortTariffScale(w):F2}"
             : "";
         OnPropertyChanged(nameof(TreatyPortLine)); OnPropertyChanged(nameof(HasTreatyPorts));
         OnPropertyChanged(nameof(HasExportRows)); OnPropertyChanged(nameof(HasImportRows));

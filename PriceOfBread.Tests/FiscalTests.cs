@@ -1620,7 +1620,7 @@ public class FiscalTests
         (double tax, double tithe, double paid, double earnedDrop, double clergyEarned) Month(double savings)
         {
             var w = QuietBritain();
-            w.TaxRate = new Share(0.1); w.Coef.TitheRate = new Share(0.05); w.Coef.CorruptionMax = new Share(0);
+            w.TaxRate = new Share(0.1); w.Coef.TitheRate = new Share(0.05); foreach (var rg0 in w.Regions) rg0.Rule = [1.0, 0.0, 0.0, 0.0];   // 国家が全域を治める（支配度の区分で目減りしない）
             w.Coef.TaxConsentWeight = 0;   // 課税への同意（発言権の無い大衆から取りきれない分）を外す＝請求は査定の全額
             w.StateReligion = StateReligionLaw.StateChurch;
             foreach (var r in w.Regions) foreach (var q in r.Pops) { q.EarnedPerMonth = new MoneyPerMonth(0); q.LastEarnedPerMonth = new MoneyPerMonth(0); }

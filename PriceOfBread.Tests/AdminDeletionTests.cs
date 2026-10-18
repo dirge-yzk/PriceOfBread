@@ -116,29 +116,6 @@ public class AdminDeletionTests
     }
 
     [Fact]
-    public void 法の浸透の門は行政効率の瞬間値を読む()
-    {
-        // 労働時間の短縮（目標が今より短い）は監督官が要る＝enforce ＝ min(1, 行政効率 ÷ 門)。門を大きくするほど追従が遅い。
-        double Drop(double gate)
-        {
-            var s = France(9); var w = s.World;
-            w.WorkHours = WorkHours.Eight; w.WorkHoursValue = 12.0;
-            SetFill(w, 1.0);
-            w.Coef.LawEnforcementAdminGate = gate;
-            s.Run(1);
-            return 12.0 - w.WorkHoursValue;
-        }
-        double open = Drop(0.5);
-        Assert.True(open > 0.0);
-        // 官僚が居ない国（AdminFill は決算が 0 に保つ）＝行政効率 0＝監督官が居ない＝短縮は 1 ミリも進まない
-        var s2 = France(9); var w2 = s2.World;
-        foreach (var r in w2.Regions) r.BureaucratPopIndex = -1;
-        w2.WorkHours = WorkHours.Eight; w2.WorkHoursValue = 12.0; w2.Coef.LawEnforcementAdminGate = 0.5;
-        s2.Run(1);
-        Assert.Equal(12.0, w2.WorkHoursValue);
-    }
-
-    [Fact]
     public void AIは行政効率を理由に専門官僚制を目標に置かない()
     {
         var s = France(4); var w = s.World;

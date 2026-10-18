@@ -41,7 +41,7 @@ public partial class GameViewModel
     private void SnapshotTurningPoints()
     {
         _pfSuf = _player.Suffrage; _pfEdu = _player.EducationLaw; _pfCen = _player.Censorship; _pfUni = _player.LaborUnion; _pfWh = _player.WorkHours;
-        _pfTreatyPorts = _player.TreatyPortsGranted;   // 条約港の失効通知（案A）＝減少の監視
+        _pfTreatyPortInForce = _player.UnequalTreatyInForce;   // 条約港の失効通知（案A）＝真から偽への監視
         _pfChild = _player.ChildLaborLegal >= 0.5; _pfWomenRights = _player.WomenRights;
         _pfCorn = _player.CornLaws; _pfLand = _player.LandReform; _pfSerf = _player.SerfEmancipation; _pfPen = _player.Pension; _pfSS = _player.SocialSecurityLaw;
         _pfColSuf = _player.ColonialSuffrage; _pfMigSuf = _player.MigrantNativeSuffrage;   // 参政権の範囲2法（2026-08-16）
@@ -187,7 +187,7 @@ public partial class GameViewModel
         if (_player.Censorship != _pfCen) Notice("🗳", $"報道が「{JaEnumConverter.Ja(_player.Censorship)}」になった", NewsBlue);
         if (_player.LaborUnion != _pfUni) Notice("🗳", $"労働組合が「{JaEnumConverter.Ja(_player.LaborUnion)}」になった", NewsBlue);
         // 条約港の自然失効（案A・2026-08-16）：力の均衡が不平等条約を風化させた＝関税自主権の回復はプレイヤーに直接効く転機
-        if (_player.TreatyPortsGranted < _pfTreatyPorts) Notice("🕊", $"条約港が失効し関税自主権を回復しつつある(残り{_player.TreatyPortsGranted}港)", NewsGreen);
+        if (_pfTreatyPortInForce && !_player.UnequalTreatyInForce) Notice("🕊", "条約港が失効し関税自主権を回復しつつある", NewsGreen);
         if (_player.WorkHours != _pfWh) Notice("🗳", $"労働時間が「{JaEnumConverter.Ja(_player.WorkHours)}」になった", NewsBlue);
         bool childNow = _player.ChildLaborLegal >= 0.5;
         if (childNow != _pfChild) Notice("🗳", childNow ? "児童労働が合法化された" : "児童労働が禁止された", NewsBlue);

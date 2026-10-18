@@ -25,7 +25,7 @@ public static class Places
 {
     /// <summary>Terrain＝地形タグ（設計doc 20260826_地形と輸送コスト.DONE.md の7タグ）。空＝平地（既定）。
     /// ★(3)「1枚の表」＝地形はこの表の1列（作者指示）。清算は常に読む（旗 TerrainCostEnabled は 2026-09-26 に焼き込み）。</summary>
-    public sealed record Place(string Name, double Lat, double Lon, string Kind, string Terrain);
+    public sealed record Place(string Name, double Lat, double Lon, string Kind, string Terrain, double[]? Rule = null);
 
     /// <summary>州を敷いたときの**最長の間隔**（km・作者指定 2026-08-27「州数1.5倍相当＝約850kmまで」）。
     /// ⚠これは座標表の生成規約そのもの＝「この距離より遠くに州は無い」。同じ規約を読む側（地図の政治塗り分けの
@@ -49,7 +49,7 @@ public static class Places
         // ★fail-open是正（監査G10#1）：同名行が2つあると後勝ちで黙って上書き＝座標の唯一の真実源で重複が検出されない。
         //   TryAdd＋例外で「後勝ち」を許さない＝現データに重複が無ければ挙動不変（実測0件・places.json 338件）。
         foreach (var r in rows)
-            if (!d.TryAdd(r.Name, new Place(r.Name, r.Lat, r.Lon, r.Kind, r.Terrain)))
+            if (!d.TryAdd(r.Name, new Place(r.Name, r.Lat, r.Lon, r.Kind, r.Terrain, r.Rule)))
                 throw new InvalidOperationException($"places.json の重複: {r.Name}");
         return d;
     }
@@ -61,6 +61,7 @@ public static class Places
         public double Lon { get; set; }
         public string Kind { get; set; } = "";
         public string Terrain { get; set; } = "";   // 空＝平地
+        public double[]? Rule { get; set; }         // ★(399) 開始時の支配の4区分〔国家・在地・外国・無統治・合計1〕（kind＝colony の行だけ・無ければ null）
     }
 
     /// <summary>名前→地形タグ（enum）。未登録・空欄は平地。</summary>
@@ -75,6 +76,11 @@ public static class Places
             "barren" => SimCore.Terrain.Barren,
             _ => SimCore.Terrain.Plain,
         } : SimCore.Terrain.Plain;
+
+    /// <summary>★(399) 名前→開始時の支配の4区分（植民地の州の rule のデータ・土地の側）。無い・4 要素でない・合計が 1 でない行は null＝呼び手は一律の在地 1.0（間接統治）へ倒す。昇格する植民地の州（<c>Simulation.PromoteColonyToRegion</c>）が読む。</summary>
+    public static double[]? RuleOf(string name)
+        => ByName.TryGetValue(name, out var p) && p.Rule is { Length: 4 } r && r[0] >= 0 && r[1] >= 0 && r[2] >= 0 && r[3] >= 0 && System.Math.Abs(r[0] + r[1] + r[2] + r[3] - 1.0) < 1e-9
+            ? (double[])r.Clone() : null;
 
     /// <summary>名前→座標。⚠未登録は (0,0)＝**旧 Climate.CityCoord の既定と同じ**（例外を投げない）。
     /// 0,0 はギニア湾の海上なので、登録漏れは「海の上の州」として現れる＝挙動は旧と厳密に同じ。</summary>

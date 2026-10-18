@@ -196,7 +196,7 @@ public class PopScanTests
     {
         var w = Britain();
         var c = w.Coef;
-        c.RuleSharesTaxBase = 1.0; c.PrivilegeTaxDiscount = new Share(0.5);
+        c.PrivilegeTaxDiscount = new Share(0.5);
         c.TaxConsentWeight = 0.5;
         w.ColonialSuffrage = ColonialSuffrageLaw.OwnNationals; w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
         Assert.True(w.Regions.Count >= 3);
@@ -215,8 +215,8 @@ public class PopScanTests
         {
             Pop? lord = null;   // 期待値＝その州の領主（最初の貴族・兵士でなく規模あり）を素の走査で探す
             foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }
-            double mul = (1.0 - 1.0) + 1.0 * (Math.Clamp(r.Rule[0], 0, 1) + Math.Clamp(r.Rule[1], 0, 1) * (1.0 - 0.5));   // 旧の式（RuleDelivery）を手で
-            double cut = 1.0 * Math.Clamp(r.Rule[1], 0, 1) * (1.0 - (1.0 - 0.5));
+            double mul = Math.Clamp(r.Rule[0], 0, 1) + Math.Clamp(r.Rule[1], 0, 1) * (1.0 - 0.5);   // RuleDelivery の式を手で
+            double cut = Math.Clamp(r.Rule[1], 0, 1) * (1.0 - (1.0 - 0.5));
             foreach (var p in r.Pops)
             {
                 Assert.Same(p, scan.Pops[idx]);
@@ -230,10 +230,10 @@ public class PopScanTests
         }
         Assert.True(sawLord && sawNoLord, "前提が崩れた：領主の居る州と居ない州が揃っていない");
         Assert.True(scan.ScopeInc.Distinct().Count() > 1, "前提が崩れた：算入率が州で違わない");
-        // 門が閉じていれば列は作らない
-        c.RuleSharesTaxBase = 0; c.TaxConsentWeight = 0;
+        // 課税への同意の門が閉じていれば算入率の列は作らない（支配度の区分の列は常に作る）
+        c.TaxConsentWeight = 0;
         var off = Fiscal.TaxScan.Of(w, c);
-        Assert.Equal(n, off.Pops.Count); Assert.Null(off.ScopeInc); Assert.Null(off.RuleMul); Assert.Null(off.RuleCut); Assert.Null(off.RuleLord);
+        Assert.Equal(n, off.Pops.Count); Assert.Null(off.ScopeInc); Assert.Equal(n, off.RuleMul.Count); Assert.Equal(n, off.RuleCut.Count); Assert.Equal(n, off.RuleLord.Count);
     }
 
     /// <summary>州の価格水準の 1 周の求め方＝旧の 2 周の式（この試験に写した）とビット一致。州ごとに貯蓄と所得の厚みを変えて、稼働していない州を挟む。</summary>

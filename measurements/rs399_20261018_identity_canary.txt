@@ -1,0 +1,19 @@
+# (399) 線 rs・形の恒等の確かめ（短距離）：selfplay 1 200・基点 c56617da の木と形の木
+# 書いた時点：2026-10-18。書いたモデル Claude Sonnet 5.5。⚠1 種の一致は恒等の証明の全てではない＝全長の 10 種・5 種・計器つき 10 種の成績表 3 枚が m397 と全行一致するのは後半の担当の腕 A（合否）。
+基点の木（git archive c56617da → D:/PoB_work/rs_399/base）    SOURCE-HASH b6106284b501355e（m397 と同じ）・FILES 288
+形の木（旗は全て既定 0）                                         SOURCE-HASH cdb5ec0b9c4283dc・FILES 289（InstrumentsRule.cs 1 本増）
+コマンド：bash measure.sh <出力> selfplay 1 200（基点の木・形の木）／POB_INSTRUMENTS=<フォルダ> を付けた形の木（計器つき・表 32 本）
+結果：出力 12,485 バイト・sha256 先頭 74ec65e5838ad87c149f
+  基点の木（計器なし） = 形の木（計器なし） = 形の木（計器つき）   cmp で全バイト一致（3 本）
+  計器つきの表 32 本は m397 の 31 本＋新しい `rule_s`（15,122 行）。
+B の canary（参考・採否に使わない）：POB_COEF="RuleSharesEnabled=1;RuleSharesReach=1;RuleSharesTaxBase=1;ForeignRuleFromTreaty=0.5;RuleLocalFromRights=1;RuleUngovFromReach=1;ColonyRuleFromData=1;TaxLeakByRule=1;LawReachByRule=1"
+  selfplay 1 200 は終了コード 0（完走・NaN なし）・出力 12,087 バイト（A と違う＝旗 1 は挙動を変える）・SOURCE-HASH fd4f3ea879c1fc47（旗は環境変数。この走りの時点の木は identity の走りと SimCore・Runner の全ファイルが同一〔manifest の sha256 を突き合わせて不一致 0〕。SOURCE-HASH の差は走りの後に足した Tests〔RuleSharesFormTests など〕と旗の無い手書きの差のみ）。
+旗 0 の経路に新しい演算が無いことのソースの論証（git diff の行）：
+  Politics.cs 1541〜1555行  tUngov／tLocal ＝ 三項演算の分岐（旧の式はそのまま else 側に残る）・intermediary は旗 0 で 0.0 を置くだけ（読まれない）
+  Fiscal.cs 166行           leak ＝ 三項演算（旧の式はそのまま）
+  Simulation.cs 1481〜1482行（PromoteColonyToRegion の Rule／RuleInit）・1923行（enforce）  三項演算（旧の式はそのまま）
+  Diplomacy.cs              TreatyPortLapse の旗 > 0 の分岐の中だけ month の剰余と return を足した／講和の付与は if (旗) Log else {旧の 2 行}
+  InternationalMarket.cs    TreatyPortTariffScale ＝ 三項演算の先頭に旗の比較
+  PoliticalQuantities.cs・SelfPlay.cs  w.TreatyPortsGranted > 0 → w.UnequalTreatyInForce（旗 0 で TreatyPortsGranted > 0 と同じ）
+  Places.cs                 Row／Place に Rule 列（読み込みのみ・旗 0 では RuleOf を呼ばない）
+  Instruments.cs・InstrumentsRule.cs  INS=1 のときだけ動く（本体の hook は 0 行）

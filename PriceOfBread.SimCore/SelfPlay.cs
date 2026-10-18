@@ -720,7 +720,7 @@ public sealed class UtilityAgent : INationAgent
             //     閉鎖へは届かず、閉鎖の下では必ず「開放へ戻す」線を下回った＝1783年の鎖国が1〜2四半期で開国した（(75) §5）。
             //   ★開く向きはここに書かない＝流入の圧力が無い間は現状維持（PolicyPreferences の「流入ゼロの国では争点にならない」と同じ読み）。
             //     開くのは資本の要求（危機の要求＝この後の Parliament.TargetCrisisDemands／内戦の講和＝Politics.ConcedeToFaction）か外圧だけ。
-            //     外圧＝不平等条約で港を開かされていること（TreatyPortsGranted＞0＝講和が積む既存の数・南京条約1842／安政条約1858／江華島条約1876）。
+            //     外圧＝不平等条約で港を開かされていること（World.UnequalTreatyInForce＝港州の外国持分が付与の半分以上・南京条約1842／安政条約1858／江華島条約1876）。
             //   どの向きも StepLawToward＝法律タブ（LawRowVM）と同じ Government.GateInfo を通る。
             double inflowRate = w.TotalPopulation > 1e-9 ? System.Math.Max(0, w.LastImmigration) / w.TotalPopulation : 0;
             double unemployment = PolicyPreferences.AvgUnemployment(w);   // 唯一定義（旧＝口だけ複製を2026-09-11 #13 で畳んだ）
@@ -731,7 +731,7 @@ public sealed class UtilityAgent : INationAgent
                 && pressure > w.Coef.ImmigrationRestrictionPrefScale * w.Coef.ImmigrationReceiveCapPerQuarter.Value
                               * (w.ImmigrationRestriction == ImmigrationLaw.Open ? 1.0 : w.Coef.ImmigrationSelectiveFrac.Value))
                 immWant = System.Math.Max(immWant, (int)w.ImmigrationRestriction + 1);
-            if (w.TreatyPortsGranted > 0) immWant = (int)ImmigrationLaw.Open;   // 外圧
+            if (w.UnequalTreatyInForce) immWant = (int)ImmigrationLaw.Open;   // 外圧
             StepLawToward(w, p, PolicyAxis.ImmigrationRestriction, (int)p.ImmigrationRestriction, immWant, (int)ImmigrationLaw.Closed,
                 v => p.ImmigrationRestriction = (ImmigrationLaw)v);
 
@@ -1148,6 +1148,7 @@ public sealed class UtilityAgent : INationAgent
         //   **借入と同じ規律**（Fiscal の借入の条件＝国家の支払い率 r＜1 の時だけ止まる・2026-09-28＝旧は維持費＋利払いを国庫で賄えない時）へ。否定形＝NaNは建てない側。
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
         //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和を広げるときは**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
+        bool outlayGate = w.Coef.OpeningFiscalAlign > 0 && w.Coef.OpeningFiscalAlign != 2;   // ★(400) 着工しようとする工事の月の出費も上限と比べる（下の 2 か所）。旗 1〔両方〕か 3〔門だけ〕のとき。0〔旧〕・2〔段だけ〕では走らない
         if (!(w.FiscalFundingRatio.Value >= 1)) return;
         // ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
         //   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
@@ -1170,6 +1171,7 @@ public sealed class UtilityAgent : INationAgent
                     monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);   // ★裁定②の安全弁＝素材も律速に数える（2026-09-27 焼き込み＝工事費の6割が律速から漏れていた）
                 }
                 int pw = Math.Max(0, pr0.StateTarget - World.StateUnits(pr0, w.Coef));
+                if (outlayGate && pw > 0 && pr0.ConstructionLeft <= 0) { double e0 = NewFacilityOutlayPerMonth(w, rg0, pr0); monthlyBuild += e0 > 0 ? e0 : 0; }   // ★(400) 旗＞0：立てた意志がまだ着工していない（建材の採算などで拒まれ、月次の再挑戦 StepStateTargets を待つ）工事は、これから払う月の出費の見積りを数える（旧は着工した工事だけ数え、拒まれた意志の出費は上限に現れない＝英は Q0 に 31 州へ意志を立て、月次の再挑戦が上限の約 3 倍の工事を着工した）
                 pendingRegion[ri0] += pw;
             }
         }
@@ -1254,13 +1256,27 @@ public sealed class UtilityAgent : INationAgent
             if (monthlyBuild > outlayCap) break;
             var bp = World.FindFactory(w.Regions[ri], bestGr[ri]);
             if (bp is null) continue;
+            double est = outlayGate ? NewFacilityOutlayPerMonth(w, w.Regions[ri], bp) : 0;
+            if (outlayGate && !(monthlyBuild + est <= outlayCap)) continue;   // ★(400) 旗＞0：今ある工事（と未着工の意志）の月の出費に、これから立てる工事の月の出費を足して上限を超えるならこの州は飛ばす（continue＝後ろの州の小さい工事は塞がない・否定形＝NaN も飛ばす）
             w.SetStateTarget(ri, bestGr[ri], World.StateUnits(bp, w.Coef) + 1);
             if (bp.ConstructionLeft > 0)
             {
                 monthlyBuild += Calendar.PerDayToPerMonth(bp.ConstructionPayPerDay);
                 monthlyBuild += World.ConstructionMaterialPerMonth(w.Regions[ri], bp, w.Coef);
             }   // その月に始まった工事だけを律速へ（拒まれた月は目標が残り月次で再挑戦＝従来どおり）
+            else if (outlayGate) monthlyBuild += est > 0 ? est : 0;   // ★(400) 旗＞0：着工を拒まれた意志も月次の再挑戦で着工する＝見積りを足す（次の州の判断が見る）
         }
+    }
+
+    /// <summary>★(400) これから着工する国営工場の工事の月の出費＝工賃（<see cref="World.BuildFactory"/> と同じ式）＋素材（着工後の律速の加算と同じ <see cref="World.ConstructionMaterialPerMonth"/>）。
+    /// 着工の門（<see cref="TryBuildFacility"/>・旗 OpeningFiscalAlign＞0）が、今ある工事の月の出費 monthlyBuild に足してから上限と比べる。
+    /// ⚠工賃の式は BuildFactory／CanBuildFactory と同じテキストの重複（3 つ目）＝恒等の証明を増やさないため関数にくくり出していない。着工後の加算（ConstructionPayPerDay＝この payPerDay）と値が同じことは番人が見る。</summary>
+    internal static double NewFacilityOutlayPerMonth(World w, Region rg, Producer bp)
+    {
+        var spec = Catalog.FactorySpec(bp.GoodId);
+        double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
+        double payPerDay = (1.0 - w.Coef.FactoryMaterialFrac.Value) * spec.Cost / days;
+        return Calendar.PerDayToPerMonth(payPerDay) + World.ConstructionMaterialPerMonth(rg, bp, w.Coef);
     }
 
     /// <summary>巨大建造物の着工（2026-08-02）。★作者裁定＝**着工はプレイヤーの判断**とし、AIの挙動は動詞の導入前と同じにする。
@@ -1294,7 +1310,7 @@ public sealed class UtilityAgent : INationAgent
                 if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
-                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る）
+                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（★(399) 汚職の財政の漏れは削除済み＝行政費は税にも法の浸透にも返らない・何を返すかは作者に聞く Q8＝(402)）
                 p.IncomeTaxTarget = 0.25;   // 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
                 p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.3; p.PollTaxTarget = 0;   // 近代税制へ移行（人頭税は廃止）
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
@@ -1325,7 +1341,7 @@ public sealed class UtilityAgent : INationAgent
                 break;
             case Stance.Fiscal:
                 p.IncomeTaxTarget = Government.IncomeTaxTop; p.EducationSpendingTarget = 0.2;   // ★錨2026-09-18＝所得税の教義最大＝段の最上段（35%＝1918年の英標準税率30%超）
-                p.AdminSpendingTarget = 0.3;    // 緊縮＝行政費も削る（汚職が増える代償）
+                p.AdminSpendingTarget = 0.3;    // 緊縮＝行政費も削る（★(399) 以後は税の漏れの代償は無い・Q8＝(402)）
                 p.PollTaxTarget = 0.3; p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.4;   // 取れる所から全部取る（緊縮財政）
                 stateMonopTier = 3;   // 日用品まで広く課税（旧の率0.4）
                 p.SocialSecurityTarget = 0.1;   // 金利は下の反景気循環ブロックが一元的に決める（旧・緊縮の高金利0.4は死書き込み＝監査2026-07-12 死10で削除）
@@ -1462,7 +1478,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠潤沢の減税（RelieveOpulence・8四半期分の線）は使わない＝あちらは率への連続倍率・こちらは広さの1段＝同じ線に乗せると国庫が数年分積もるまで狭まらない
         //     （probe seed 1＝英が段3→4・蘭が段3 に張り付き 1784 の歳入÷年GDP 18・24%）。
         //   ⚠狭める側は教義の広さより下へ行かない＝旧 RelieveOpulence の注記が退けた「段を落とす翻訳」（床が無い・毎期 教義−1段）にならない。
-        //   ⚠開始前の助走（World.WarmupFrozen）は今の広さを積まない＝教義の広さのまま（助走は借りない＝r＜1 は「借りられない」助走の作りもの・
+        //   ⚠開始前の助走（World.WarmupFrozen）は今の広さを積まない＝教義の広さのまま〔★(400) ただし NationConfig の OpeningStateMonopolyTier を持つ国（英・蘭）は助走の間その段を教義との max で保つ＝下の else の行・(402)〕（助走は借りない＝r＜1 は「借りられない」助走の作りもの・
         //     広げた記憶は年月が経って積み上がる量＝国庫・国債・法と同じ門）。
         if (!w.WarmupFrozen)
         {
@@ -1475,6 +1491,7 @@ public sealed class UtilityAgent : INationAgent
             else if (w.Treasury.Value > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
             else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }
+        else if (w.OpeningStateMonopolyTier > 0 && w.Coef.OpeningFiscalAlign > 0 && w.Coef.OpeningFiscalAlign != 3) stateMonopTier = Math.Max(stateMonopTier, w.OpeningStateMonopolyTier);   // ★(400) 助走の間は専売の開幕の段（world.json・旗 OpeningFiscalAlign＞0）を保つ＝教義の段は床のまま max（助走の始めに置いた段を助走の各四半期の教義が下げて消さない）。規則なしの国・旗 0 ではこの行は走らない
         // ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。
         //   ⚠旧はここが w.StateMonopolyMargins[] へ直書きしていた（天井の自動導出を避けるための意図的な迂回）＝P5の破れ。天井が消えたので迂回の理由も消えた。
         if (Instruments.On) Instruments.MonopolyDecision(w, w.StateMonopolyTier, Math.Clamp(stateMonopTier, 0, World.StateMonopolyMaxTier));   // 計器（読むだけ・(265)）：専売の段（今の段→置く段・Clamp は SetStateMonopolyTier と同じ）

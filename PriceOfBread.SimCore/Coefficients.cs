@@ -742,7 +742,6 @@ public sealed class Coefficients
     //   ★(161)：「規定の給与」は働き盛り1人あたり（志願兵の給与）＝徴兵制で兵卒の給与が手当（頭数あたり）に下がっても、幹部の給与の必要額は規定の給与で数える（質の値段は法に依らない）。
     public double MilitaryCadrePayRatio = 1.0;
     public Share WelfareRevenueShare = new(0.8);      // 福祉＝歳入シェア（社会保障スライダー×これ×歳入が給付の上限）
-    public Share CorruptionMax = new(0.25);          // 行政が全く無い時に税収が漏れる最大割合（漏れは官僚の懐へ＝移転で保存）
     // ★撤去2026-08-16（掃除キューC2-C5・棚卸C群）：汚職根絶レバー（2026-07-06）の係数8本＝AntiCorruptionSpeed/CostRate/DebtLock/DebtFree/GraftLock/Floor/SpanPopWeight/SpanRegionWeight を物理削除。
     //   汚職V2（旧係数 CorruptionCoreV2＝(1−行政)×(1−監視noisy-or)・2026-10-11 (253) に係数ごと削除）恒久ONの裁定済み＝読者は Fiscal の清廉度更新・根絶費請求のみで、いずれも同日撤去＝読者ゼロを確認。
     // ★専売の標準率（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝**新設ではなく移設**。
@@ -987,12 +986,10 @@ public sealed class Coefficients
     // ★財ごとの売買方針（2026-08-04・作者仕様(3)「高く買う/安く売る」）。関税ダンピングと同じ保存経路（国庫→商人）に載せる
     // ★条約港（2026-08-04・作者仕様(4)「遠方の国に大勝しても属国化は不自然（日本の属国になったオスマン）＝多額の賠償金＋条約港へ」）
     public double TreatyPortWinnerDistanceKm = 6000;  // 勝者と敗者がこれ以上離れていたら属国化しない（遠隔地の属国は統治できない）。0で従来どおり距離を見ない
-    public double TreatyPortTariffLoss = 0.25;        // 条約港1つあたり自国の実効関税が失われる割合（4港で関税ゼロ＝関税自主権の完全喪失）。0で恒等
     // ★条約港の自然失効（案A・作者裁定2026-08-16「戦争で解除という例外を作らない。もっとシンプルに」）＝
     //   不平等条約は「力の差が続く間だけ有効」。動詞・ボタン・交渉・戦争例外なし＝脱出路は「強くなる」だけ
     //   （日本の条約改正1899/1911＝近代化を背景に条約が風化した、が創発）。AI対称は構造（同じ検査が全国に走る）。
     public Share TreatyPortLapseRatio = new(0.5);         // 【点火0.5・2026-08-16＝A/B: 単独35/69/51・港配線との合成36/73/51=near+5優加法。法−5は記録・監視】ゲート兼閾値：国力（軍事+生産＝NationalScore既存成分）÷最強列強 がこれ以上なら条約港が風化。0＝1命令も走らない厳密恒等（片道ラチェット）
-    public double TreatyPortLapseYears = 4.0;         // 失効の刻み（年）＝この年数ごとの全国一斉検査で1港ずつ（無状態＝month剰余判定・クールダウン用フィールドを作らない）。Ratio=0では不読
     public double TreatyPortReparationMult = 2.5;     // 条約港の講和での賠償倍率（「多額の賠償金」＝属国化の代わりに金と通商特権を取る）
     public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝輸出の敷居を25%上げる。0で厳密恒等
     public double TariffProtect = 1.0;               // 輸入の敷居を上げる強さ：輸入閾値＝世界価格×(1+輸送費+関税率×これ)。高関税＝輸入減→国内価格高止まり→国内産業を保護（輸入代替）
@@ -1700,7 +1697,6 @@ public sealed class Coefficients
     public double IrreversibleLaws = 1.0;          // 第6段6-7点火（2026-07-28）：支持層を作る法の不可逆＝参政権/女性の権利（★2026-08-10 統合＝梯子の全段）/社会保障制度は平時に後退不能・労働時間/児童労働は戦時のみ緩和可（英1915軍需品法）。報道/国教は可逆。水準スライダーは常に自由（制度と水準で割れる史実）。0で旧恒等（農奴解放のみ既存不可逆）
     //   ★支配度doc §13（2026-09-07 器）：0..1 の連続へ。1.0＝bool 禁止（現行・厳密恒等）／<1＝禁止せず純支持ゲートを倍率 1/(1−g) で通す／0＝純支持だけ（既得層の怒り＝ReversalAnger は裁定C2 に反する不到達の枝として 2026-09-26 に削除＝pol-27）。段階点火の腕＝0.5
     public double RuptureWindowQuartersOnCrush = 8;   // 第6段6-8点火（2026-07-28）：断裂の窓の長さ＝革命鎮圧・内戦制圧・弾圧の直後この四半期数だけ6-7を解除（反動の後退はこの窓のみ＝仏1850・ストルイピン1907）。0で窓なし
-    public double LawEnforcementAdminGate = 0.5;   // 第6段6-8点火（2026-07-28）：執行の飢餓＝先進方向の法浸透（労働時間短縮・児童労働禁止・女性賃金保持）の追従速度×min(1, 行政力/これ)。法は残して監督官を切る反動（1802徒弟法の空文化）。緩和方向は即時（規制撤廃に監督官は不要）。0で旧恒等
     // ⚠撤去2026-09-11（要求は法の経路の点火）：第6段6-6の別軸譲歩（主フラグ・緩和・結束残存の係数3本と Politics の施行関数）は読み手ごと物理削除。
     //   別軸譲歩の実体は「本丸以外の要求の法だけが通常経路で動いた」（Politics.CrisisThroughLawPath の moved==2）。
     public double FactionOpportunism = 1.0;        // 第6段6-5点火（2026-07-28）：結束の予算化＝運動は閾値越えでも体制健在なら待つ（静かな蓄積→一斉投入＝1848/1917）。弱み（下2つ・交戦）か圧倒（下のOverwhelm）で打つ。0で旧＝閾値即発火
@@ -2265,6 +2261,15 @@ public sealed class Coefficients
     //   （重さ＝(利払い−MaxInterestShareOfRevenue×歳入)÷利払い・余裕の因子＝安全水準÷(安全水準＋国庫)。符号の段差でなく大きさに比例＝§1-8）。外れたら旧の枝（狭める／保つ）。抽選は専用の World.AiRng（係数 0 では引かない）。
     public int MonopolyBurdenPushMode = 1;
 
+    // ★(400) 英・蘭の開幕の財政の整合（旗 1 本・2026-10-18 に既定 1 で**点火**＝止める線に当たらず・測った記録 measurements/op400_20261018_*）：>0 で次の 2 つを同時に開ける（重ねる物は 1 本の腕）。0＝旧の挙動（腕 A・m397 と全行一致）。
+    //   (1) 専売の開幕の段をデータから（NationConfig.OpeningStateMonopolyTier〔world.json の英・蘭＝3〕）：助走の始めに置き、助走の間は教義の段との max で保つ。
+    //       助走の終わりの歳入が段 3 の物になり、開幕の国庫（歳入×月数）も段 3 の歳入で数え直される（World.RebaseOpeningFiscal は変えない）。
+    //   (2) AI の工場の着工の門（SelfPlay.TryBuildFacility）：着工しようとする工事の月の出費（工賃＋素材）を、今ある工事の月の出費に足してから上限（FacilityBuildOutlayShare×安全水準）と比べる。
+    //       超えるなら**その州は飛ばす**（機構の BuildFactory／SetStateTarget は変えない＝AI の判断だけ）。
+    //   0＝(1)(2) とも 1 命令も違わない。採否は measurements/op_20261018_prereg.txt。
+    //   値の割り方（追記2・測る前に固定）：1＝(1)(2) 両方（腕 B）／2＝(1) だけ（切り分けの B1）／3＝(2) だけ（切り分けの B2）。同じ木で値だけ違う。
+    public double OpeningFiscalAlign = 1;
+
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）
     public const int FidelityQuarters1820 = 152;             // ★E-08 多断面（作者提案2026-09-04）：Maddison の基準年＝1820年12月（(1820−1783)×4+4）
@@ -2658,17 +2663,14 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）
     public double DominanceSpeed = 0.025;            //   四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
     public double DominanceMatureYears = 30.0;       //   初期値＝保有年数÷これ（世代長＝同化の物差し）。HeldSince=0（中核）＝1.0
-    // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md 段1）：州の4区分（国家・在地・外国・無統治）を
-    //   DominanceSpeed で目標へ寄せる（目標＝既存量だけ：国家＝行政効率×支配度／在地＝農奴解放の未解放度×残り／外国＝段5／無統治＝残り）。0＝積分せず誰も読まない（厳密恒等）。
-    public double RuleSharesEnabled = 0.0;
-    // ★支配度の一般化 段4（作者採用 §5・2026-09-07）：公共財の到達＝(1−g)+g×国家区分（教育の財源率・年金の給付）。0＝×1＝厳密恒等。RuleSharesEnabled>0 が前提（区分が動く）。
-    public double RuleSharesReach = 0.0;
-    // ★支配度の一般化 段3（作者採用 §5・2026-09-07）：課税ベース（所得/累進/人頭/土地）と徴兵ベース＝(1−g)+g×(国家区分＋在地区分×(1−PrivilegeTaxDiscount))。
-    //   在地の仲介者の取り分は納税者→州の貴族へ（領主権の台帳）。0＝×1＝厳密恒等。RuleSharesEnabled>0 が前提。
-    public double RuleSharesTaxBase = 0.0;
-    // ★支配度の一般化 段5（§6/§6d・2026-09-07 器＝観測のみ）：条約港の講和で敗者の最大港州に勝者の持分（外国区分）をこれだけ積む。国力比で連続に風化（DominanceSpeed）。
-    //   0＝持分なし＝厳密恒等。点火時＝TreatyPortTariffLoss/Lapse の個数式を持分の読み出しへ置換（単独計測・忠実度の基線取り直し）。RuleSharesEnabled>0 が前提。
-    public double ForeignRuleFromTreaty = 0.0;
+    // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md）：州の4区分（国家・在地・外国・無統治）を
+    //   DominanceSpeed で目標へ寄せる。(399) で点火（旗 RuleSharesEnabled・RuleSharesReach・RuleSharesTaxBase・RuleLocalFromRights・RuleUngovFromReach・ColonyRuleFromData・TaxLeakByRule・LawReachByRule は物理削除＝常時）：
+    //   目標＝国家〔残り〕／在地〔開幕のデータ×仲介者の権利の残高 Privileges.IntermediaryDegree〕／外国〔講和で積まれた持分の合計〕／無統治〔(1−治安)×(1−到達)〕。
+    //   公共財（教育の財源・年金）と法の浸透の到達＝国家区分（Politics.RuleReach）・課税ベースと徴兵ベース＝国家区分＋在地区分×(1−PrivilegeTaxDiscount)（Politics.RuleDelivery）。
+    //   在地の仲介者の取り分は納税者→州の貴族へ（領主権の台帳）。汚職の財政の漏れ・条約港の個数の機構・法の浸透の門（行政効率÷LawEnforcementAdminGate）は物理削除した。
+    // ★支配度の一般化 段5（§6/§6d・2026-09-07 器・(399) で点火）：条約港の講和で敗者の最大港州に勝者の持分（外国区分）をこれだけ積む。国力比で連続に風化（DominanceSpeed）。
+    //   条約港は個数の機構でなく州の外国区分で表す（作者 2026-10-16：条約港は廃止・州の支配度で表現）。関税の目減りと屈辱・移民法の外圧の述語（付与の半分以上）は持分から読む。0＝持分なし（条約港が無い世界）。
+    public double ForeignRuleFromTreaty = 0.5;
     // ★支配度doc §14（2026-09-06 追記裁定・器2026-09-07）：戦力投射の起点集合＝自国と従属国の州のうち 国家区分 Rule[0] ≥ これ の港州（首都は常に含む）。
     //   1.1（到達不能）＝{首都}＝旧＝厳密恒等。0.5 で「実効支配している港」が基地網になる（ジブラルタル/マルタ/アデン/シンガポール/香港）。⚠Projection は戦争/割譲/属国/植民地/調停が全部読む＝単独計測（§14-4）。
     public double ProjectionRuleMin = 1.1;
@@ -2682,6 +2684,9 @@ public sealed class Coefficients
     //   【墓標2026-10-02 (173)】B5 ColonyPlantationRent（植民地格の州の賦存RGOに PlantationRentShare）＝焼き込み（R1＋c6）＝輸出作物（主食でない賦存）だけ・地代は不在地主へ（Colonial.AbsenteeRgo）。
     //   B14 world.json の heldSince（併合年）を読む＝新領土は支配度が低く Integrated 格で始まる（E-06 の核心が開始盤面に効く）。0＝読まない＝全州 Core・支配度1＝旧。採用後は係数を消して常時読む。
     public double HeldSinceFromData = 0.0;
+    // ★(399) 支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（事前登録 measurements/rs_20261018_prereg.txt・点火の組＝腕 B・旗は物理削除した）。
+    //   在地の目標＝RuleInit[1]×Privileges.IntermediaryDegree（官僚制度法と土地改革の max・農奴解放の法は読まない）／無統治の目標＝(1−秩序)×(1−到達)（到達＝1÷(1＋DistanceWarDecay×km÷DistanceNormKm)）／
+    //   植民地の州は places.json の rule（開始時のデータ）／法の浸透＝活きている州の人口で重みづけた RuleReach の平均。
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。

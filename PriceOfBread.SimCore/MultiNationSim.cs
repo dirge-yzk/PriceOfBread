@@ -629,6 +629,7 @@ public sealed class MultiNationSim
         if (quarters <= 0) return;   // 助走なし＝素の構築直後の盤面と厳密恒等（フラグの上げ下げすらしない）
         var prevPolitics = Nations.Select(n => n.World.PoliticsEnabled).ToArray();
         var treasury0 = Nations.Select(n => n.World.Treasury.Value).ToArray();   // 助走の前の国庫（world.json の初期値）
+        foreach (var n in Nations) if (n.World.OpeningStateMonopolyTier > 0 && n.World.Coef.OpeningFiscalAlign > 0 && n.World.Coef.OpeningFiscalAlign != 3) n.World.SetStateMonopolyTier(n.World.OpeningStateMonopolyTier);   // ★(400) 専売の開幕の段（world.json の英・蘭＝3・旗 OpeningFiscalAlign が 1〔両方〕か 2〔段だけ〕のときだけ＝3〔門だけ〕では置かない）＝税の段（InitialPollTax／InitialLandTax）と同じ開幕の入力。助走の始めに置く＝AI もプレイヤー（NullAgent）も同じ段で助走に入る。助走の各四半期の教義は Apply の else 側で max を取って保つ
         bool prevDiplomacy = DiplomacyFrozen;
         foreach (var n in Nations) { n.World.PoliticsEnabled = false; n.World.WarmupFrozen = true; }
         DiplomacyFrozen = true;
