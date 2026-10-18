@@ -144,6 +144,35 @@ public class ClearingScopeTests
     }
 
     [Fact]
+    public void 番でない不足だけの行は2回目の清算で走査し直さず自州価格が上がれば起きる()
+    {
+        // 最初の清算で番でないために飛ばした行は、走査して成約しなかった行と同じ印（ClearFailLp）を持つ＝2 月目に不足だけで起きても眠る。自州価格が上がれば起きる
+        const int N = 4;
+        var t0 = Baseline();
+        int q = 1;
+        var turn = TradedIndices(N, q, WakeByShortage, c => c.ClearingIdleShortageWakesStaplesOnly = 1);
+        var offTurn = t0.Where(i => !turn.Contains(i)).ToList();
+        Assert.True(offTurn.Count >= 2 && turn.Count >= 1, "番でない行と番の行が両方要る（盤面の前提）");
+        HashSet<int> Month2(double priceUp)
+        {
+            var (sim, g, sellers, buyers) = Board(3, c => { c.ClearingIdleSearchQuarters = N; c.ClearingIdleShortageWakesStaplesOnly = 1; });
+            SetCalendar(sim, 1800, q);
+            WakeByShortage(buyers, g);
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+            foreach (var r in sellers) { var m = r.Markets[g]; m.LastExport = 0; m.LastImport = 0; }
+            foreach (var r in buyers) { var m = r.Markets[g]; m.PrevImport = 0; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.LastShortage = 1; m.Price *= priceUp; }
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+            var set = new HashSet<int>();
+            for (int i = 0; i < buyers.Count; i++) if (buyers[i].Markets[g].LastImport > 1e-9) set.Add(i);
+            return set;
+        }
+        var same = Month2(1.0);
+        foreach (var i in offTurn) Assert.DoesNotContain(i, same);          // 眠る
+        var up = Month2(1.1);
+        foreach (var i in offTurn) Assert.Contains(i, up);                  // 自州価格が上がれば起きる
+    }
+
+    [Fact]
     public void 助走中は番を使わない()
     {
         var t0 = Baseline();

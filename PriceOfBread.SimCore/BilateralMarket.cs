@@ -759,9 +759,9 @@ public sealed partial class InternationalMarket
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
                 if (idleN > 0 && !thin && !(m.PrevImport > 0) && (!(m.LastShortage > 0) || (idleStapleOnly && !stapleG)))
-                {   // ★(403) 取引も不足も無かった行（旗 ClearingIdleShortageWakesStaplesOnly＞0 なら、主食でない財の不足だけの行も）は番の四半期だけ相手を探す（番でなければ飛ばす・印は四半期の最初に全て消してあるので触らない）
+                {   // ★(403) 取引も不足も無かった行（旗 ClearingIdleShortageWakesStaplesOnly＞0 なら、主食でない財の不足だけの行も）は番の四半期だけ相手を探す（番でなければ飛ばす・走査して成約しなかった行と同じ印 ClearFailLp＝自州価格 を書く＝2・3 月目に不足だけで起きた行が走査し直さない）
                     uint hh = idleKey[t] ^ ((uint)g * 0x9E3779B1u); hh ^= hh >> 15; hh *= 0x2C1B3C6Du; hh ^= hh >> 12;
-                    if ((hh + idleQ) % (uint)idleN != 0) { if (MultiNationSim.TimeOn) CntIdleSkips++; continue; }
+                    if ((hh + idleQ) % (uint)idleN != 0) { if (MultiNationSim.TimeOn) CntIdleSkips++; m.ClearFailLp = lp; continue; }   // 走査して成約しなかった行と同じ印（2・3 月目は第 2 の門で眠る＝自州価格が上がれば起きる）
                 }
                 bool restrict = false; int dealtN = 0;   // ★(403) 旗 ClearingPartnerScope：覚えのある行（四半期の 2・3 月目）は覚えの売り手だけを見る
                 if (scopeOn && thin && m.ClearPartners is { } pmem)
