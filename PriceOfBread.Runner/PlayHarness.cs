@@ -422,7 +422,8 @@ internal static class PlayHarness
                     w.SetTradeBias(gi, b);
                     return $"売買方針 {a[1]} = {b}";
                 }
-                // ---- ★(405) 外交の動詞（00-HARN）：UI のボタンと同じ口を叩く。可否は本体の述語が返す理由をそのまま出す（第二の基準を作らない）----
+                // ---- ★(405) 外交の動詞（00-HARN）：UI のボタンと同じ口を叩く。invade・unify・mediate は本体の述語が返す理由をそのまま出す（第二の基準を作らない）。
+                //   provoke・ease は本体が bool しか返さない＝拒否の文言は Diplomacy.RaiseTension／EaseTension の条件（自国・国家なし・束 Bracket の違い）の写し＝本体の条件が変われば直す所（(407) 反証役 bi〔v〕低#2）----
                 case "provoke":
                 case "ease":
                 {
@@ -432,7 +433,7 @@ internal static class PlayHarness
                     bool ok = a[0] == "provoke" ? w.Diplomacy.RaiseTension(w.SelfPower, t, w.Coef) : w.Diplomacy.EaseTension(w.SelfPower, t, w.Coef);
                     string verb = a[0] == "provoke" ? "挑発" : "緩和";
                     return ok ? $"{verb} {t.Name}: 緊張を{(a[0] == "provoke" ? "上げた" : "下げた")}（{w.Coef.TensionActionRampMonths}か月かけて反映・今 {w.Diplomacy.Tension(w.SelfPower, t):F1}）"
-                              : $"⚠{verb} {t.Name} 不可（同じ格の国どうしだけ・自国か国家のない相手は不可）";
+                              : $"⚠{verb} {t.Name} 不可（自国・国家のない相手・束〔Bracket〕の違う相手は不可）";
                 }
                 case "invade":
                 {
@@ -445,7 +446,8 @@ internal static class PlayHarness
                         if (aim is null) return $"⚠{t.Name} に狙う植民地が無い: {a[2]}";
                     }
                     if (!w.CanInvade(t, out string why)) return $"⚠侵略 {t.Name} 不可（{why}）";
-                    return w.Invade(t, aim) ? $"侵略 {t.Name}: 実行{(aim is not null ? $"（狙い先 {aim.Name}）" : "")}" : $"⚠侵略 {t.Name} 不可";
+                    // ★(407) 反証役 bi〔v〕中：CanInvade が通った後の Invade の false は〈相手が屈服を拒んだ＝開戦〉（World.Invade の Subjugate）＝余剰戦力・缶詰・船・キニーネは払われ、戦争が始まっている
+                    return w.Invade(t, aim) ? $"侵略 {t.Name}: 屈服させた{(aim is not null ? $"（狙い先 {aim.Name}）" : "")}" : $"侵略 {t.Name}: 拒否＝開戦（相手が屈服を拒んだ・余剰戦力と遠征の物資は払った）";
                 }
                 case "unify":
                 {

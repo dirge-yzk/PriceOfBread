@@ -6,6 +6,7 @@
 /// ＝「力ある団体が嫌う法は通らない」。参政権はブルジョワが制限選挙で梯子を外す（近代エリートの選好が反転）。
 /// **政治資本の在庫**（2026-09-21 裁定S1・㉖で既定化）：純支持が負の一歩は、残り a＝max(0, b−S) が代価に届くときだけ押し切れる
 /// （<see cref="PoliticalCapitalAffords"/>）。押し切った分だけ目減り S（<see cref="World.MandateSpent"/>）が積もり正統性も燃える（Politics が減算）＝自己制限的。
+/// ★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・床 MandateOverStockLegitFloor）。
 /// 憲法級（参政権等）だけは硬い「純支持＞0」（在庫では押せない）。旧＝余白 θ=MandateWeight×(正統性−0.5)（2026-07-09〜09-21）。
 /// 法整備はもう即時可決しない＝AI/プレイヤーの意図は政治のゲートを通る（NullAgent は目標＝現状で不動＝後方互換）。
 /// </summary>
@@ -449,7 +450,7 @@ public static class Government
     /// 統合した「女性の権利」は最上段（選挙権）だけが憲法級で、財産権・教育権の段は普通の政策として政治資本で押せる。
     /// 軸単位のままだと財産権の段まで政治資本不可になり、統合が政治の難度を勝手に上げてしまう。</param>
     /// <remarks>★裁定S1（2026-09-21）：<b>余白の門 θ は退役した</b>。反対を押し切る一歩の門は<b>政治資本の在庫ひとつだけ</b>
-    /// （<see cref="PoliticalCapitalAffords"/>＝S+代価 ≤ b）＝門を2つから1つへ減らす（削減の向き）。
+    /// （<see cref="PoliticalCapitalAffords"/>＝S+代価 ≤ b）＝門を2つから1つへ減らす（削減の向き）。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・床 MandateOverStockLegitFloor）。
     /// 退役の理由は係数ではなく構造：旧 θ は1歩の代価を <c>θ×MandateSpendRate</c> で頭打ちにし、b も同じ2係数
     /// （MandateWeight×MandateSpendRate）で作られるので<b>両辺で打ち消し合い</b>、満タンなら必ず最も高い一歩を6本以上払えた
     /// ＝在庫の門が一度も噛まなかった（2026-09-21 ㉓検証＝selfplay-batch 10 の4腕と eduprobe で在庫の否決0件／同じ eduprobe で余白の否決100件）。
@@ -459,7 +460,7 @@ public static class Government
     /// 唯一の除算 <c>−θ/costMul</c> は安全＝<see cref="ReversalCostMul"/> は必ず<b>有限かつ ≥1.0</b> を返す
     /// （<c>IrreversibleLaws ≥ 1.0</c> の禁止段でも 1.0 を返し、禁止そのものは <see cref="BlockedByIrreversibility"/> が先に止める）。</para>
     /// <para>結果（裁定が望んだもの）：代価が θ で頭打ちされないので<b>強く反対される改革は高く、貯めてから通す</b>ことになり、
-    /// b の小さい国（低正統性・発言権を持つ層の支持が薄い）は<b>永久に通せない</b>＝S2「床の保証の廃止」。
+    /// b の小さい国（低正統性・発言権を持つ層の支持が薄い）は<b>永久に通せない</b>＝S2「床の保証の廃止」（⚠旗 0 の経路の記述。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・床 MandateOverStockLegitFloor）＝永久ではない）。
     /// 旧体制の罠（正統性&lt;0.5 で人気の法さえ滞る非対称＝旧 MandateNegativeScale・係数は㉖で削除）も θ ごと退役し、
     /// その役目は <c>b = MandateWeight×MandateSpendRate×(正統性+支持)</c> の小ささが負う＝同じ史実を係数1本少なく出す。</para>
     /// <para>⚠憲法級（参政権・秘密投票・女性の権利の選挙権段）は <b>0</b> を返す＝硬い「純支持&gt;0」のまま
@@ -569,7 +570,7 @@ public static class Government
         //   ⚠否定形：S・正統性・代価のどれかが NaN なら比較が偽＝閉じる側へ倒れる。
         //   ここへ来た時点で S+代価 ＞ b。S≦0（満タン）ならそれは 代価＞b と同じ＝壁の一歩（S＞0 なら普通の一歩の在庫不足か壁の一歩の在庫の使いかけ＝どちらも待つ）。
         if (!(w.Coef.MandateOverStockFromLegitimacy > 0)) return false;
-        return w.MandateSpent <= 0 && cost <= w.Legitimacy - w.MandateSpentNew - w.Coef.MandateOverStockLegitFloor;   // 床 0（既定）は引く量が 0＝事前登録の式
+        return w.MandateSpent <= 0 && cost <= w.Legitimacy - w.MandateSpentNew - w.Coef.MandateOverStockLegitFloor;   // 床（既定 0.4＝(405) 腕 BF・0＝床なし＝事前登録の式〔腕 B〕）＝払った後の正統性が床を下回る一歩は通さない
     }
 
     // ★裁定C2（2026-09-12「法の変更そのものは闘争度に関与しない。実税が生活を苦しくし、結果として不満度を上げて反乱が増える形にする」）：

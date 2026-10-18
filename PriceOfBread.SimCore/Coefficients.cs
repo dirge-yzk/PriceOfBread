@@ -2803,7 +2803,7 @@ public sealed class Coefficients
     //   目盛りの候補（S1 点火後の実測分布から導出・代価の中央0.2408／p75 0.3297／p90 0.4348・中央(正統性+支持)=中央b/(0.3×0.5)=1.2027）：
     //     0.30＝現行維持（満タンでも払えない一歩が70.1%）／0.40＝中央値規準（≒50%）／0.55＝p75規準／0.72＝p90規準（W＝代価の分位÷(0.5×1.2027)）。
     //     ⚠上げると b も回復量 b/MandateRefillQuarters も同率で上がる＝「大改革を可能にする」と「改革を速くする」が同じ1本に乗る。
-    public double MandateWeight = 0.3;          // 在庫 b の目盛り（上の注記）＝b=これ×MandateSpendRate×(正統性+支持)。0＝b=0＝反対を押し切る一歩は全て否決（純支持≥0 の一歩は通る）。選挙の余白 θ_e=これ×(正統性−0.5)（World.ResolveElection・SelfPlay.DecideElection＝S を触らない別通貨）も同じ1本を読む
+    public double MandateWeight = 0.3;          // 在庫 b の目盛り（上の注記）＝b=これ×MandateSpendRate×(正統性+支持)。0＝b=0＝反対を押し切る一歩は全て否決（純支持≥0 の一歩は通る・⚠旗 MandateOverStockFromLegitimacy=0 の世界の記述＝(405) 以後は満タンで正統性が払えれば壁の一歩として通る）。選挙の余白 θ_e=これ×(正統性−0.5)（World.ResolveElection・SelfPlay.DecideElection＝S を触らない別通貨）も同じ1本を読む
     // MandateNegativeScale（旧＝正統性<0.5 の負側 θ の減衰0.5＝「滞るが不能ではない」）は 2026-09-21 ㉖で係数ごと削除＝θ の算術が退役して読み手が消えた。
     public double MandateSpendRate = 0.5;       // 押し切った一歩（純支持<0）の政治資本消費＝|純支持|×これを MandateSpent へ累積。正統性↓＝実効治安維持力(BaseCoercion×Legitimacy×funding)も連動して弱まる＝押し切る統治は治安維持力も削る（意図した結合）
     // MandateRecoveryRate（旧＝目減り S の四半期指数減衰率。2026-07-26 に LegitimacyRegenRate から分離・2026-08-04 に作者指摘「政治資本のたまりが早く、
@@ -2815,7 +2815,7 @@ public sealed class Coefficients
     //   b＝支持と権力の大きさ（<see cref="PoliticalQuantities.PoliticalCapitalMax"/>＝「どれだけ大きなことができるか」）。
     //   回復＝毎期 b/MandateRefillQuarters×実行度（<see cref="PoliticalQuantities.PoliticalCapitalRate"/>＝「どれだけ頻繁に決められるか」）だけ S を**線形に**減らし0で止める。
     //   ⚠作者は漸近回復を却下した（「b 付近で極端に低速になるのは好ましくない」「使えば使うほど事実上の法改正が進むのも違和感」）。
-    //   押し切りの門は S+代価 ≤ b（<see cref="Government.PoliticalCapitalAffords"/>＝**純支持<0 の枝の中だけ**）。消費の式は現行のまま。
+    //   押し切りの門は S+代価 ≤ b（<see cref="Government.PoliticalCapitalAffords"/>＝**純支持<0 の枝の中だけ**）。消費の式は現行のまま。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・床 MandateOverStockLegitFloor）。
     // ★裁定S1（2026-09-21）＝**余白の門 θ の退役**。
     //   <see cref="Government"/> の MandateMargin が非憲法級に +∞ を返す＝θ を読む4本の脚（施行・照会・点灯・スライダー）が
     //   同時に「通す側」へ倒れ、**反対を押し切る一歩の門は在庫ひとつだけ**になる（門を2つから1つへ＝削減の向き）。

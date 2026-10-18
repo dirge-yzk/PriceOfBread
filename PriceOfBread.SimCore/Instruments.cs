@@ -886,7 +886,9 @@ public static partial class Instruments
         else { st.GfGateCost = why == 3 ? 0 : double.NaN; st.GfGateS = double.NaN; }
         st.GfPendCost = st.GfPendS = double.NaN;
     }
-    /// <summary>(278) 符号 2 のうち代価が政治資本の最大量 b そのものを超える（その四半期の b では在庫が空〔満タン〕でも届かない・b と純支持は四半期ごとに動く）＝段の法と連続の軸で同じ1つの定義。</summary>
+    /// <summary>(278) 符号 2 のうち代価が政治資本の最大量 b そのものを超える（その四半期の b では在庫が空〔満タン〕でも届かない・b と純支持は四半期ごとに動く）＝段の法と連続の軸で同じ1つの定義。
+    /// ⚠限界の自己申告（(407) 反証役 rf〔bv〕中#4）：(405) で既定になった旗 <c>MandateOverStockFromLegitimacy</c>=1 の世界では、b を超える代価も在庫が満タン（S=0）で正統性が払えれば通る（壁の一歩）＝この印の〈満タンでも届かない〉は旗 0 の意味。
+    ///   旗 1 では〈その四半期は S&gt;0 か正統性の不足で止まった・b を超える一歩〉と読む（定義は変えていない＝(278) 以来の列の連続を保つ）。</summary>
     static bool IsStructural(World w, int code, double cost) => code == 2 && cost > w.PoliticalCapitalMax;
     /// <summary>(278) 政治資本の代価の計算の直後（<c>MandateGate</c> の押し切りの枝・<c>Move</c> の押し切りの枝）＝払う前の目減り S を一緒に写す。</summary>
     internal static void Priced(World w, double cost) { var st = S(w); st.GfPendCost = cost; st.GfPendS = w.MandateSpent; }

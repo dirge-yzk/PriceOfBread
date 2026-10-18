@@ -239,7 +239,8 @@ public partial class GameViewModel
         //   ★2026-09-21 ㉖で旗を焼き込み＝行は常設（旧＝旗0では行ごと出さない可視条件）。
         {
             double bMax = w.PoliticalCapitalMax, aNow = Math.Max(0, bMax - w.MandateSpent);
-            PoliticalCapitalText = $"{aNow * 100:F0} / {bMax * 100:F0}";
+            // ★(407) 反証役 rf〔bv〕中#4：(405) の壁の一歩（代価が b を超えても満タンなら正統性で払う）の後は S＞b＝在庫は 0 に張り付いて超えた分が見えなかった＝超えた分を出す
+            PoliticalCapitalText = w.MandateSpent > bMax ? $"{aNow * 100:F0} / {bMax * 100:F0}（超過 {(w.MandateSpent - bMax) * 100:F0}）" : $"{aNow * 100:F0} / {bMax * 100:F0}";
             double aff = Ideologies.SupportAt(Ideologies.National(w), PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c), c.IdeologyAffinitySlope);
             double sup = Math.Max(0, Math.Min(1, (aff - Ideologies.AffMin) / (Ideologies.AffMax - Ideologies.AffMin)));
             double pe = PowerShares.ParliamentEffective(w);
@@ -250,7 +251,7 @@ public partial class GameViewModel
             //   満タンまでの実時間は 40/実行度（実測の実行度 0.44 の国なら 91四半期）。この行が「40」と言い続けると
             //   プレイヤーは議会制の国でも10年で満タンになると読む＝計器が機構と食い違う（規律「計器が一番バグる」）。
             double rate = PoliticalQuantities.PoliticalCapitalRate(w);
-            double toFull = !(rate > 0) ? 0 : c.MandateRefillQuarters / rate;
+            double toFull = !(rate > 0) ? 0 : c.MandateRefillQuarters / rate * (bMax > 0 && w.MandateSpent > bMax ? w.MandateSpent / bMax : 1.0);   // ★(407) S＞b（壁の一歩の後）は空から満タンの S÷b 倍（回復は 1 四半期に b÷40×実行度）
             PoliticalCapitalTip = $"正統性 {w.Legitimacy:F2}　現政体の支持 {sup:F2}"
                                 + $"\n議会の実効統制 {pe:F2}　議席の分裂 {split:F2}　内戦 {(w.InCivilWar ? 1 : 0)}"
                                 + $"\n実行度 {rate:F2}　満タンまでの四半期 {toFull:F0}";

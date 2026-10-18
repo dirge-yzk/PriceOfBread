@@ -9,7 +9,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>(403) 清算の見る範囲の絞り（結果の変わる高速化・採用して既定へ焼き込んだ）の番人。測る前の登録＝measurements/cs_20261018_prereg.txt。
 /// ②<c>ClearingIdleSearchQuarters</c>＝取引も不足も無かった買い手行は N 四半期に 1 回だけ、四半期の最初の清算で売り手を探す
-/// （<c>ClearingIdleShortageWakesStaplesOnly</c>＝不足が起こす行を主食に限る）。
+/// （不足が起こす行は主食に限る＝旧の旗 ClearingIdleShortageWakesStaplesOnly は採用で無条件へ焼き込んで消した）。
 /// ①<c>ClearingPartnerScope</c>＝四半期の 2・3 月目の清算で、最初の清算に成約した行は覚えの売り手（K 人）から先に買い、尽きたら全ての売り手を探す。
 /// 2026-10-18 に採用して既定へ焼き込んだ（N＝ClearingIdleSearchQuarters 既定 4・K＝ClearingPartnerScope 既定 4・主食の線は無条件）。旧の挙動との 1 ビット一致は旗のあった木の成績表 3 枚が証明した（ここでは対照を〈N=1＝全ての行が毎四半期探す〉と〈覚えの無い行〉で書く）。
 /// ここは機構が働いていること（ゲート緑の嘘を避ける）と、覚えが作業領域であること・覚えが尽きたらN=1 と同じ（か覚えの無い行と同じ）になることを見る。
