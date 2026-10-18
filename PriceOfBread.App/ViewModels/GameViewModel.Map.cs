@@ -989,7 +989,7 @@ public partial class GameViewModel
     private MapHoverInfo BuildColonyHover(Colony col, string owner)
     {
         var info = new MapHoverInfo { Title = $"{col.Name}　{owner}" };   // ★2026-09-23：州ホバーと同じ＝owner が「アメリカ(シャムの属国)の植民地」のとき括弧が二重にならない
-        info.Lines.Add(new MapHoverLine { Text = $"不満 {col.Militancy:P0}　規模指数 {col.Population:F1}　開発度 {col.Infra:P0}", Brush = HoverDim });   // 開発度＝R13植民地州単位化（発展した植民地を奪えば高産出を引き継ぐ）
+        info.Lines.Add(new MapHoverLine { Text = $"不満 {col.Militancy:P0}　規模指数 {col.Population:F1}", Brush = HoverDim });
         AppendChokepoint(info, col.Name);
         AppendMegaprojects(info, col.Name);   // ★A-13
         var names = (col.Resources ?? []).Where(id => id >= 0 && id < Catalog.Goods.Length).Select(id => Catalog.Goods[id].Name).ToList();

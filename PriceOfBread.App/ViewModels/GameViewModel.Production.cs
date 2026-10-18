@@ -1010,7 +1010,7 @@ public partial class GameViewModel
             //   棟数はエンジンの換算（World.StateUnits）をそのまま読む＝UI に第二の式を置かない。
             //   ★幻の工場（作者スクリーンショット2026-08-10）＝機関銃が「技術不足・生産量0.0k」なのに江戸2・大阪1…計7棟と出ていた。
             //     Producer.Scale は scaleTarget（EconomyStep が 1+margin から算出）を基底に育ち技術ゲートを知らない＝**作れない財にも棟数が立つ**。
-            //     この州の技術で1単位も作れない財は棟数を0にする（エンジン側の是正は休眠 Coefficients.TechGatedScaleZero。
+            //     この州の技術で1単位も作れない財は棟数を0にする（エンジン側の是正は技術ゲート0の操業規模0。
             //     点火すれば Scale 自体が0になりここは自然に0＝**表示は点火の前後どちらでも同じ数**を出す）。
             int stateUnits = pr is not null && !cantMakeHere ? World.StateUnits(pr, _player.Coef) : 0;
             int privUnits = pr is not null && !pr.Bankrupt && !cantMakeHere ? _player.PrivateUnitsOf(pr) : 0;   // 換算はエンジンの1本（棟数の式をUIに持たない）
@@ -1064,7 +1064,7 @@ public partial class GameViewModel
         // 独占バッジ：塩(6)/茶(74)の法的独占。式はUIで再導出せず、エンジンの価格分解（ExplainPrice＝代表州で実際に効いているレント/国内マークアップ）をそのまま見る
         // （MonopolyRent は独禁法E6の region.MonopolyRentFactor 込みの実値＝解体後は自然に0になる）。
         var parts = ProductionDiag.ExplainPrice(_player, cap0, gi);
-        bool legalMonopoly = (gi == Catalog.SaltId || gi == Catalog.TeaId) && (parts.MonopolyRent > 1e-9 || parts.OligopolyMarkup > 1e-9);
+        bool legalMonopoly = (gi == Catalog.SaltId || gi == Catalog.TeaId) && parts.MonopolyRent > 1e-9;
 
         // 用途（使い道・2026-07-19）：この財を材料に使う財ごとの今月の実消費量（産出×投入係数・全国合算）。
         // レシピ上の消費先は今月0でも一覧に出す（何に使えるかの地図）。行クリックでその財を選択。
@@ -1322,7 +1322,6 @@ public partial class GameViewModel
         string Pct(double v) => v.ToString("+0%;-0%;0%");
         // 「需要と供給」の駆動値＝在庫の詰まり具合・寡占の上乗せ・輸入の敷居（関税/穀物法）・世界価格。
         string? sdTip = $"在庫/目標 {(double.IsNaN(p.StockRatio) ? "測定なし" : p.StockRatio.ToString("P0"))}"
-                     + $"\n寡占の上乗せ {Pct(p.OligopolyMarkup)}"
                      + $"\n関税の楔 {Pct(p.TariffWedge)}"
                      + $"\n穀物法の楔 {Pct(p.CornLawWedge)}"
                      + $"\n世界価格 {(world > 1e-6 ? $"£{world:F2}" : "—")}";

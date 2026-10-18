@@ -237,7 +237,7 @@ internal static class PlayHarness
         sb.AppendLine("---- 法（現在値 ／ 目標値）----");
         var pol = w.Policy;
         sb.AppendLine($"初等教育 {w.EducationLaw} ／ {pol.EducationLaw}　　参政権 {w.Suffrage} ／ {pol.Suffrage}　　報道 {w.Censorship} ／ {pol.Censorship}");
-        sb.AppendLine($"穀物法 ／ {pol.CornLaws}　土地改革 ／ {pol.LandReform}　農奴解放 ／ {pol.SerfEmancipation}　年金 ／ {pol.Pension}");
+        sb.AppendLine($"穀物法 ／ {pol.CornLaws}　土地改革 ／ {pol.LandReform}　農奴解放 ／ {pol.SerfEmancipation}");
         sb.AppendLine($"徴兵 ／ {pol.ConscriptionLaw}　官僚 ／ {pol.Bureaucracy}　労組 ／ {pol.LaborUnion}　女性 ／ {pol.WomenRights}");
         sb.AppendLine($"アヘン保有 ／ {pol.OpiumPossession}　アヘン輸出禁止 ／ {pol.OpiumExportBan}　国教 ／ {pol.StateReligion}　独禁 ／ {pol.Antitrust}");
 

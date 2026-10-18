@@ -8,44 +8,14 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// 植民地の州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」・設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）。
 /// ★2026-09-30 段4g（作者裁定 Q12）：Colony オブジェクトの入植（本国の大衆→植民地の入植者・持参金）と入植者の州昇格は経路ごと削除
-///   （国の植民地の一覧はゲームの間ずっと空）＝入植と昇格の主体は植民地格の州（B1）。このクラスは B1 と、抽象標的の植民地の受け取り（州へ実体化）を見る。
+///   （国の植民地の一覧はゲームの間ずっと空）＝入植と昇格の主体は植民地格の州（B1）。このクラスは抽象標的の植民地の受け取り（州へ実体化）を見る。
+///   （B1＝植民地格の州への入植と昇格〔ColonialRegionSettlement ほか〕は 2026-10-18 に機構ごと削除＝名前の復活は DormantIdentityTests.RetiredFields が禁じる。）
 /// ⚠ON経路テスト＝「何もしない機構は必ず緑」の轍を踏まない（[[pob-gate-green-is-not-working]]）。
 /// </summary>
 public class ColonyPromotionTests
 {
     // （Colony オブジェクトの入植者の州昇格の2本〔入植者が過半数の植民地は州へ昇格し保存則が閉じる・入植は送出popから物理移転され人口の多い植民地は昇格しない〕は
-    //   2026-09-30 段4g に機構ごと削除＝作者裁定 Q12：国の植民地の一覧はゲームの間ずっと空＝入植と昇格の主体は植民地格の州＝下の B1 の番人が見る）
-
-    /// <summary>★B1（実バグ21件・2026-09-07）ON経路：ColoniesAreRegions=1（既定）では Colony オブジェクトが Q1 から無い＝入植と昇格の主体は植民地格の州。
-    /// ColonialRegionSettlement>0 で本国の農民/労働者が植民地格の州へ物理移転し（国内移動＝人口・貨幣とも保存）、中核民族が過半かつ人口が北西部条例線を超えた州は Integrated へ昇格する。</summary>
-    [Fact]
-    public void 植民地格の州へ本国から入植が流れ中核民族が過半で昇格する()
-    {
-        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
-        var w = sim.Nations[0].World;
-        w.Coef.ColonialRegionSettlement = 1; w.Coef.ColonySettlerRatePerMonth = new RatePerMonth(0.005);   // 各国の World.Coef は別インスタンス（上のテストと同じ作法）
-        var canada = w.Regions.First(r => r.Name == "カナダ");
-        Assert.Equal(RegionTier.Colonial, canada.Tier);
-        Assert.Empty(w.SelfPower!.ColonyList);   // 既定＝構築時に全植民地が州＝Colony 経路は主体になれない（B1 の根拠）
-        double before = canada.SumPopulation();
-        double popBaseline = w.TotalPopulation - w.PopulationDelta;
-        var money = new MoneyConservation(w);
-        int promotedBefore = sim.Diplomacy.PromotedColonies;
-        sim.Run(8);   // 2年
-        double homeMass = 0; foreach (var rg in w.Regions) if (rg.Tier != RegionTier.Colonial) foreach (var pp in rg.Pops) if (pp.ClassId == PopClass.Peasant || pp.ClassId == PopClass.Worker) homeMass += pp.Size;
-        string classes = string.Join(",", canada.Pops.Select(pp => $"c{pp.ClassId}:{pp.Size:F1}/core{pp.CoreEthnicShare:F2}"));
-        Assert.True(canada.SumPopulation() > before + 1.0, $"入植が流れていない（{before:F1}→{canada.SumPopulation():F1}・WarmupFrozen={w.WarmupFrozen}・本国大衆={homeMass:F0}・農奴解放={w.SerfEmancipation}・Coord={Places.Coord("カナダ")}・海路km={Geo.SeaDistanceKm(w.Latitude, w.Longitude, 46.8, -71.2, false, false):F0}・gate={w.Coef.ColonialRegionSettlement}/{w.Coef.ColonySettlerRatePerMonth.Value}・{classes}）");
-        Assert.True(Math.Abs((w.TotalPopulation - w.PopulationDelta) - popBaseline) < 1e-3, "人口保存の破れ（国内移動は台帳を動かさない）");
-        money.Check(w);
-        // 昇格：中核民族を過半・人口を門番以上にして1期回す → Integrated・保存検査の台帳が1つ進む
-        foreach (var pp in canada.Pops) { if (!pp.Closed && !pp.IsSoldier) pp.CoreEthnicShare = new Share(1.0); }
-        if (canada.SumPopulation() < w.Coef.ColonyPromotionMinPop)
-            foreach (var pp in canada.Pops) if (pp.ClassId == PopClass.Peasant) { double add = w.Coef.ColonyPromotionMinPop - canada.SumPopulation() + 1; pp.Size += add; w.PopulationDelta += add; break; }
-        sim.Run(1);
-        Assert.Equal(RegionTier.Integrated, canada.Tier);
-        Assert.True(sim.Diplomacy.PromotedColonies >= promotedBefore + 1, "保存検査の台帳（PromotedColonies）が進んでいない");   // 同じ期に他の植民地格の州も昇格しうる（重い入植率）
-        Assert.Contains(sim.Diplomacy.Log.Concat(w.PendingLog), l => l.Contains("カナダ") && l.Contains("昇格"));
-    }
+    //   2026-09-30 段4g に機構ごと削除＝作者裁定 Q12：国の植民地の一覧はゲームの間ずっと空＝入植と昇格の主体は植民地格の州）
 
     // ============================================================================================
     // ★回1-1（植民地の型統合の後始末・2026-09-26）の番人＝機構と不変条件だけ（帯は batch10 が見る）。

@@ -456,7 +456,7 @@ public static class EconomyStep
     }
 
     /// <summary>★(186) 生産者の眠り（計算量の予算・近似＝2026-10-03 推奨で進めた）＝0 回す・1 眠った・2 目覚めた。
-    /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（<see cref="Coefficients.TechGatedScaleZero"/>）・産出が0（<see cref="Coefficients.PhantomOutputSnapFloor"/>）に
+    /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（技術ゲート0の月の操業規模0）・産出が0（<see cref="Coefficients.PhantomOutputSnapFloor"/>）に
     ///   置かれた工場と産地。その月の生産者の段（労働の重み・供給・投入の需要と決済・投入の充足・所得と操業規模と採算）を全て飛ばす
     ///   ＝門が0 の間は能力が0（供給①の boost が門を掛ける）＝産出も投入も0 で、旧の段が動かしていたのは平滑の量（労働の重み・採算・蒸気と電化と効率化材の率・補助の依存）と、
     ///   作り手の居ない月の売上の按分（生産者の数で割る）だけ＝按分は回した生産者だけで割る（全てが眠っていれば生産者の居ない財＝商人へ）。
@@ -464,14 +464,14 @@ public static class EconomyStep
     ///   ＝労働の重み＝今の付加価値×売れる量・採算の平滑＝今の採算・蒸気と電化と効率化材の率と補助の依存＝0（産出0 の月が続いた極限）。
     /// 対象外（今のまま回す）＝役務（ボーモル＝門を持たない・教育法が操業規模0 を置く）・倒産中（再参入の判定を持つ）・国が建てた設備のある工場（休止と国営持分）・
     ///   工事中・産地の発見の生産者（<see cref="Producer.SiteRow"/>＝見つかった瞬間に操業規模を1 へ置く＝目覚めを操業規模0 で見分けられない）。
-    /// 操業規模が0 ちょうどになるのは門が0 の月（TechGatedScaleZero）と倒産だけ（下限 ScaleFloor＞0・家畜の徴発は掛け算）＝門が開いていて操業規模0・倒産でない＝目覚めた月。
+    /// 操業規模が0 ちょうどになるのは門が0 の月（技術ゲート0の操業規模0）と倒産だけ（下限 ScaleFloor＞0・家畜の徴発は掛け算）＝門が開いていて操業規模0・倒産でない＝目覚めた月。
     /// ⚠旧と変わる所（(187) 反証役 vb2#1・#9＝記録）：①眠りの間は採算の平滑が止まる＝後継の発見で門が0 になった退場のレシピは二度と目覚めず、退場した月の値で凍る
     ///   （AI の着工は門が閉じた個体を候補にしない＝<see cref="UtilityAgent.FacilityBuildScore"/>・(260)。旧〔(187)〕は眠った個体の採算だけを読まなかった）。②旧は門が0 でも平滑の採算が倒産の線を割れば倒産し、倒産中は品薄なら
     ///   再参入する遷移を持った＝眠った生産者は倒産しない＝門が開く月の始まり方（倒産と再参入の経路か、操業規模0 からの伸びか）が変わる。
     ///   ③全ての生産者が眠った財は生産者の数が0＝その月の売上の全額が商人へ（2026-07-22 の直しが塞いだ「国内在庫の処分代金まで商人へ」の型がこの財で開き直る・お金は保存）。</summary>
     internal static byte SleepState(Region region, Producer s, Coefficients coef)
     {
-        if (!(coef.TechGatedScaleZero > 0) || !(coef.PhantomOutputSnapFloor > 0) || s.Scale != 0 || s.Output != 0 || s.Bankrupt
+        if (!(coef.PhantomOutputSnapFloor > 0) || s.Scale != 0 || s.Output != 0 || s.Bankrupt
             || s.BuiltScale > Eps || s.ConstructionLeft > 0 || s.SiteRow >= 0
             || s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length || Catalog.Goods[s.GoodId].Tier == GoodTier.Service) return 0;
         return Discovery.Gate(region, s) > 0 ? (byte)2 : (byte)1;
@@ -544,7 +544,6 @@ public static class EconomyStep
             // ★ゼロ化の直前に前期の所得を退避（私的投資の原資が読む・2026-08-04）。⚠この行は複数文が並ぶ＝行途中にコメントを挿すと以降が全部コメントアウトされる（実際に踏んで平均充足0＝31テスト赤）
             p.LastEarnedPerMonth = p.EarnedPerMonth;
             p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
-            p.LastSatisfaction = p.Satisfaction;      // ★前月の満足度を写す（当月の Satisfaction は §消費の後で上書きされる＝同一ティックの閉路を作らない。読み手が居なければ書くだけ＝恒等）
             p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
@@ -643,7 +642,7 @@ public static class EconomyStep
             // A-中1派生（2026-07-23）：**未発明のレシピは労働を雇わない**＝未発見（★2026-10-01 段2A＝発見の門 Discovery.Gate が0・旧 TechOnset 未解禁）の生産者は労働配分に参加しない
             //（旧＝解禁前でも prodW=需要×Scale の死ウェイトを持ち、労働を取るのに産出0＝純損失。onset レシピが増えるたびに
             // 見えない損失が積もる構造で、水力発電の追加が4カ国テスト世界の米Techアンカーを割って発覚）。onset≤0＝×1.0＝厳密恒等。
-            // ⚠この行にゲートは無い＝上の記述が真になるのは **操業規模の更新の TechGatedScaleZero（2026-08-11 点火）が Scale=0 を置く経路**による。
+            // ⚠この行にゲートは無い＝上の記述が真になるのは **操業規模の更新の 技術ゲート0の操業規模0（2026-08-11 点火）が Scale=0 を置く経路**による。
             // （2026-08-10の監査で「コメントが実装を先取りしたまま」と指摘された箇所。点火で解消したので、外す時は上の記述も一緒に戻すこと。）
             // ★★★準レント配分＋配分信念（2026-08-22・作者指示「需要と供給が適切に相互作用するよう組み換え、不要な実装を削除するところまで」＝点火・旧式は削除）。
             // 【旧の何が誤りか】重みが「需要**量**×Scale」だった＝価格を飛ばして物量が労働を配っていた。物量なので「石炭の重量」と「時計の個数」を
@@ -752,7 +751,7 @@ public static class EconomyStep
             // ★段1 器 EduProducersCoexist（教育の三層化・2026-09-12）：教育法が非活性にした学校（Simulation.StepMonth が Scale=0 を置く）は能力0。
             //   ⚠Scale は零和分割の重み prodW=LaborWeight×Scale でしか能力に届かず、担い手popに生産者が1件しかない学校（聖職者／教師は他に生産者を持たない）
             //   では上の fallback が fraction=1/laborCount=1 を返して Scale=0 が素通りする（doc §2-7-Z「fraction≡1」の裏面）。教育財に限り Scale=0 を
-            //   fraction=0 と読む＝TechGatedScaleZero（工場は boost の発明ゲートが同時に0）の役務版。0＝第1項で短絡＝s.Scale を読まない＝厳密恒等。否定形＝NaN も0側。
+            //   fraction=0 と読む＝技術ゲート0の操業規模0（工場は boost の発明ゲートが同時に0）の役務版。0＝第1項で短絡＝s.Scale を読まない＝厳密恒等。否定形＝NaN も0側。
             if (coef.EduProducersCoexist > 0 && s.GoodId == Catalog.EducationId && !(s.Scale > 0)) fraction = 0;
             // 不作は**畑（農作物RGO）**の産出を落とす（麦→小麦粉→パンと波及し食糧高騰）。工場（製パン所）は天候の影響を受けない
             // ＝供給減は連鎖を通って届く。小世界の主食RGO（食料・IsRgo未設定の旧式）は無投入で判別し従来どおり対象。
@@ -1644,7 +1643,6 @@ public static class EconomyStep
                             if (borrow > 0)
                             {
                                 Bank.Lend(world, p, borrow); p.RemainingBudget += borrow;   // 債務の記録・預金・家計の与信を同じ額で（Bank.Lend の1本）
-                                if (world is not null) world.HouseholdCreditIssued += borrow;
                             }
                         }
                     }
@@ -2020,34 +2018,9 @@ public static class EconomyStep
                 region.Industrialization += privateIndGain;
                 region.CumPrivateIndustrialization += privateIndGain;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
             }
-            // ★投資家がプランテーション・鉱山にも投資する（2026-08-04・作者指示「投資家もプランテーションや鉱山に投資するように」）。
-            //   旧＝資本家の建設は region.Industrialization（工業化度）にしか変わらず、RGO（農園・鉱山・牧場）は
-            //   採算による Scale の伸縮だけで、**面積を増やす資本**がどこからも来なかった（工場は BuiltScale が下限を押し上げるのに RGO には無い）。
-            //   史実の農園・鉱山は資本を吸って規模を広げる（囲い込み・カリブの砂糖・南アの金）。
-            //   ★同じ建設束・同じ予算から出す＝新しい資源も新しい市場も作らない。配分先は**最も採算の良い RGO 1つ**
-            //     （SmoothedMargin が最大）＝「儲かる畑を広げる」。増えるのは BuiltScale＝Scale の下限＝作付面積の恒久化。
-            //   RgoCapitalShare=0 で1命令も走らない＝厳密恒等（休眠可）。
-            //   ⚠★2026-08-10（国営工場カウンター）：ここが「国営持分が**勝手に**増える」唯一の場所だった。
-            //     BuiltScale は同時に stateFrac（＝利潤の行き先）でもあるので、**資本家の**建設予算から出たこの拡張は
-            //     プランテーション/鉱山の地代を静かに国庫へ移してしまう（所有の二重表現）。作者裁定「増えるのはカウンター経由のみ」。
-            //   ★StateShareCounterOnly=1.0 点火（2026-08-30・帰還構造の全数調査 §1-3）＝この枝は走らない（作者裁定「国営持分の自動的な拡張なし」）。
-            //     残置する理由＝旧挙動との対照実験（rgoprobe 0/1）のため。枝の中の StateTarget 引き上げは「月次駆動がこの棟を売り戻さない」ための整合。
-            if (coef.RgoCapitalShare.Value > 0 && built > Eps && coef.StateShareCounterOnly <= 0 && !warmFrozen)   // 助走中は作付面積（BuiltScale＝恒久の能力）を広げない
-            {
-                Producer? bestRgo = null;
-                foreach (var pr in region.Producers)
-                    if (pr.IsRgo && !pr.Bankrupt && (bestRgo is null || pr.SmoothedMargin > bestRgo.SmoothedMargin)) bestRgo = pr;
-                if (bestRgo is { SmoothedMargin: > 0 })
-                {
-                    // ★カテゴリ別の供給弾力性（2026-08-14）：作付面積/鉱区の資本拡張もカテゴリ上限で抑える（ゲート0＝ScaleMax＝恒等）
-                    double rgoCap = coef.RgoElasticityGate > 0 && bestRgo.GoodId != Catalog.FishId
-                        ? (Catalog.IsMineral(bestRgo.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap)
-                        : coef.ScaleMax;
-                    // 〔削除 2026-10-11 (271)〕希少鉱物の産地の拡張天井を賦存比例にする枝（ScarceCapFollowsEndowment・既定 0）＝鉱脈の在庫が物理の限界をすでに担う（二重）。
-                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + privateIndGain * coef.RgoCapitalShare.Value);
-                    bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
-                }
-            }
+            // 【墓標2026-10-18・恒等の削除】投資家がプランテーション・鉱山の面積（BuiltScale）を広げる枝（RgoCapitalShare）を消した。StateShareCounterOnly=1.0 の点火（2026-08-30）以来一度も走らず、
+            //   BuiltScale は国営持分でもあるので、資本家の建設予算から出すと農園・鉱山の地代を静かに国庫へ移す（所有の二重表現・作者裁定 2026-08-10「国営持分の自動的な拡張なし」）。
+            //   作者 2026-08-04「投資家もプランテーションや鉱山に投資するように」の**働き**は消えていない（未実装＝工場の設備の在庫と同じ形で畑と鉱山にも持たせる・精査 doc §4 ②）。
             // 経17：律速で使い残した非律速資材（eff − built×Cons ≥0）を来月へ繰り越す。
             // ★★**累積＋腐敗へ改修（2026-08-01・作者指示）**：「耐久財と食料で分けるべき。セメントは余るならスタックしてよいが食料は良くて3か月。
             //   何にしろ過剰な生産はロスであるべきで、ロスは金を生まないべきだ」。
@@ -2571,13 +2544,13 @@ public static class EconomyStep
             // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
             double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限（ゲート0＝ScaleMax＝恒等）
             s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度（ゲート0＝ScaleAdjustSpeed＝恒等）
-            // ★幻の工場（**live**・2026-08-11点火／係数 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
+            // ★幻の工場（**live**・2026-08-11点火／旧の旗 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
             // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。
             // 役務（ボーモル＝発明ゲートを持たない）は対象外。労働財も Tier=Service なのでここで自然に外れる
             // （労働の生産者は労働配分の重み付けで競争そのものから外れるため Scale が重みにならない＝除外して安全）。
-            // TechGatedScaleZero=0 で不発＝旧挙動と厳密恒等（二分探索の基線として恒久保持）。
-            if (coef.TechGatedScaleZero > 0 && Catalog.Goods[gi].Tier != GoodTier.Service
+            // （旧の旗 TechGatedScaleZero〔0＝不発の旧挙動〕は 2026-10-18 に 0 の枝ごと削除＝作者「全て推奨」。基線は git の履歴から戻せる。）
+            if (Catalog.Goods[gi].Tier != GoodTier.Service
                 && !(Discovery.Gate(region, s) > 0))   // 否定形＝NaN も「作れない」側へ倒す
                 s.Scale = 0;
 
@@ -2604,18 +2577,6 @@ public static class EconomyStep
             }
         }
 
-        // 国内寡占（no-market-power-monopoly／M6・タスクC）：財別の有効生産者数をMarketFlowへ橋渡し。DomesticMarkupMax=0（既定）なら配列確保すらせず＝中立。
-        // **EffFirms再定義**：既定は競争的(CompetitiveFirmsBase＝高)＝μ≈1で崩壊しない（生産者popは多数の実企業の集約＝生産者pop数を企業数と数える旧定義が偽独占の真因だった）。
-        // 例外＝法的独占(塩gabelle/茶東インド会社)の財は、近代化前(Industrialization<MonopolyDissolveInd)の伝統経済でEffFirms=1＝独占価格が立つ。近代化で潜在競争者数へ移行しμ→1＝価格下落（営業の自由・独占の廃止の創発代理）。超過利潤は清算価格上昇として生産者余剰に流れる（供給を絞る独占の史実機構）。
-        if (coef.DomesticMarkupMax > 0)
-        {
-            if (region.EffFirms is null || region.EffFirms.Length != ng) region.EffFirms = new double[ng];
-            for (int gi2 = 0; gi2 < ng; gi2++)
-            {
-                bool legalMonopoly = (gi2 == Catalog.SaltId || gi2 == Catalog.TeaId) && region.Industrialization < coef.MonopolyDissolveInd;
-                region.EffFirms[gi2] = legalMonopoly ? 1.0 : Math.Max(coef.CompetitiveFirmsBase, producerCount[gi2]);
-            }
-        }
         // 生産者のいない財の売上：#6（B-A2）と同型に商人（輸入の捌き手）へ＝国内移転で保存。商人不在（合成テスト世界）は全pop按分＝取りこぼさない。
         // ★2026-09-28（支払い 段1-1）：植民地財の旧・採取決済（旗 TradeColonialGoods=0 の枝＝売上の25%を対外流出・残りを「植民地交易益」として
         //   商人・投資家・全popへ傾斜配分）を係数4本（TradeColonialGoods・ColonialExtractionFraction・ColonialProfitMerchantShare/InvestorShare）と

@@ -376,7 +376,7 @@ public class FiscalTests
         c.MiddleFallRatePerQuarter = new RatePerQuarter(0); c.UpperFallRatePerQuarter = new RatePerQuarter(0); c.BankruptcyFallRatePerQuarter = new RatePerQuarter(0); c.CapitalRiseRatePerQuarter = new RatePerQuarter(0);
         var worker = r.Pops[r.MeritFromIndex];
         worker.Literacy = 1.0; worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size);
-        foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
+        foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; }
         foreach (var idx in new[] { r.MeritToIndex, r.TeacherPopIndex, r.BureaucratPopIndex, r.DoctorPopIndex })
             if (idx >= 0 && r.Pops[idx].Size > 1e-9) r.Pops[idx].EarnedPerMonth = new MoneyPerMonth(10.0 * r.Pops[idx].Size);
         foreach (var reg in w.Regions) foreach (var p in reg.Pops) p.BondHoldings = new MoneyStock(0);
@@ -424,7 +424,7 @@ public class FiscalTests
     [Fact]
     public void 国債台帳_建国と割譲は対外債へ振替_再併合は反乱国の債務ごと消える()
     {
-        var coef = new Coefficients { RevoltExpansionScore = 0.10 };
+        var coef = new Coefficients();
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: coef) { DiplomacyFrozen = true };
         var pw = sim.Nations[0].World;
         pw.Coef.ForeignBondCapacity = new Share(0);   // ⚠国の係数は国ごと別インスタンス（共有層の coef ではない）＝起債は全額国内（反乱国は親の係数を共有する）
@@ -443,12 +443,10 @@ public class FiscalTests
         Assert.True(pw.ForeignDebt.Value >= rw.ForeignBondClaims.Value * (1 - 1e-9), $"親の対外債 {pw.ForeignDebt} が反乱国の対外債権 {rw.ForeignBondClaims.Value} を含んでいない");
         Assert.Equal(0.0, HeldOf(rw));   // 反乱国の台帳は空（反乱国はまだ起債していない）
         new BondLedger().Check(pw); new BondLedger().Check(rw);
-        // (2) 割譲（内戦の膨張の腕＝Diplomacy の州の物理移転）：割譲州の保有も親の対外債へ
-        var war = sim.Diplomacy.Wars.Find(x => x.CivilWarParent == pw.SelfPower)!;
-        war.Score = -0.20; war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝（膨張の器）は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
+        // (2) 割譲（講和の割譲・建国・再併合が共通に通る州の物理移転 Territory.TransferRegion）：割譲州の保有も親の対外債へ
         var before = new HashSet<Region>(rw.Regions);
         double fd0 = pw.ForeignDebt.Value, cl0 = rw.ForeignBondClaims.Value;
-        sim.Diplomacy.ResolvePeace(coef, war);
+        Territory.TransferRegion(pw, rw, pw.Regions.Find(r => r.Id != 0 && r.State == RegionState.Active)!, Territory.Rehoming.Ceded);
         var ceded = rw.Regions.FindAll(r => !before.Contains(r));
         Assert.True(ceded.Count > 0, "前提が崩れた：州が割譲されていない");
         foreach (var r in ceded) foreach (var p in r.Pops) Assert.Equal(0.0, p.BondHoldings.Value);

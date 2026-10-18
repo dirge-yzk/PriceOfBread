@@ -14,19 +14,6 @@ public static class Transport
         w.RailCapacity = System.Math.Max(0, w.RailCapacity * (1 - c.TransportDecay));   // 減耗（鉄道は0スタート）
         w.ShipCapacity = System.Math.Max(0, w.ShipCapacity * (1 - c.TransportDecay));
         double target = w.TotalPopulation * c.TransportTargetPerPop;   // 経済規模に応じた目標容量
-        // ★T4（輸送doc §3-1・2026-08-13）：目標の錨を**人口**から「実際に運びたかった量」（LastTradePotential＝律速率の分母）へ寄せる。
-        //   ⚠人口だけの目標は、交易しない人口大国に容量を積ませ、交易集約の小国に積ませない（軍とまったく同じ病＝費用も需要も見ない目標追従）。
-        //   ★形は軍で確立したもの（扶養限界のブレンド比 ArmySustainWeight・(145) で k＝1 に達して削除）を踏襲する——⚠`Math.Max(式A, 式B)` で競わせない。
-        //     2式が拮抗する国で支配側が切り替わるたび値が不連続に飛ぶ（軍の3回目の失敗の原因）。**片方に寄せるのでなくブレンドで統一する。**
-        //   ★人口項を残すのは較正の土台であると同時に、容量0からの立ち上がりを支えるため（潜在量は容量が無いと観測されない＝鶏卵）。
-        //   既定0＝人口のみ＝**厳密恒等**。
-        if (c.TransportPotentialWeight > 0)
-        {
-            double pot = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) pot += r.LastTradePotential;
-            if (!(pot >= 0)) pot = 0;   // NaNは人口項のみへ倒す（否定形で書く）
-            target = target * (1.0 - c.TransportPotentialWeight) + pot * c.TransportPotentialHeadroom * c.TransportPotentialWeight;
-        }
         // ★安保doc手順3（2026-08-30点火＝既定1.0）：国防の目的関数＝受けている脅威が大きいほど目標容量を積む（戦略鉄道の一般化＝路線を1本も定義しない）。
         //   脅威比＝前期の SecurityThreat/SecurityThreatOwnMass（無次元・★(155) 安全保障の不安＝届く敵意の養える軍÷自国の養える軍）。target×(1+k×脅威比)＝民間項（上）に**乗せるだけ**＝どの路線かは書かない。
         //   ⚠正のフィードバック（鉄道→脅威→鉄道）は国庫の有限性だけが歯止め。0＝この分岐を通らない＝厳密恒等。
@@ -194,13 +181,7 @@ public static class Transport
                 if (!rail && gi != pick) continue;
                 var m = r.Markets[gi];
                 double mult = (!rail && gi == c.ShipTier2GoodId) ? steamMult : 1.0;   // 汽船=tier2＝1単位あたり容量が大（蒸気船の革命・時代とともに伸びる）
-                // T1（輸送doc §3-3・2026-07-31）：**買えない国の需要が世界市場に載り、買える国の調達費を押し上げる**歪みの是正。
-                // 旧＝希望量をそのまま計上（在庫0でも生産を駆動する鶏卵回避が目的で、意図は正しい）。⚠ ただし財布を一切見ていなかった。
-                // >0 で「買い手の手持ちで買える単位数 × これ」を希望量の上限にする＝**貯蓄があれば在庫0でも需要は立つ**（鶏卵回避は保つ）が、無い袖の需要は消える。
-                // 0（既定）＝上限なし＝分岐に入らず**厳密恒等**。
                 double want = perGood / mult;   // 同じ容量に要る単位数（汽船は1/steamMult）
-                if (c.TransportDemandAffordCap > 0 && m.Price > 1e-9)
-                    want = System.Math.Min(want, c.TransportDemandAffordCap * System.Math.Max(0, investor.Savings.Value) / m.Price);
                 // 買い付けは燃料と同じ1本（InternationalMarket.Procure・段4e K）＝需要の計上（在庫が無くても＝生産を駆動＝鉄道/船の需要が上がる＝史実・ブートストラップ）・
                 //   買い手の貯蓄まで・販売（LastSold＝在庫減を販売として記録し§11.6財収支を保つ）・代金は④の持分（econ-12・段3-1 の C4）。
                 double buy = InternationalMarket.Procure(w, r, gi, want, investor);

@@ -14,13 +14,13 @@ namespace PriceOfBread.SimCore;
 ///（輸入量は (局所価格 − 輸入閾値) に比例し、国内生産は価格→採算→Scale で伸縮する）ので、
 /// ここで価格差を掛けると**二重計上**になる。だから漏れ率は行政力だけの関数にしてある。
 ///
-/// ★ 形は既存の専売の徴収漏れ（<c>EconomyStep</c> の <c>0.5 + 0.5 × AdminFill</c>）と厳密に同型
-///（実効 ＝ 1 − 0.5×(1−AdminFill)）＝新しい定数の作法を増やさない。
+/// ★ 形は専売の徴収漏れ（<c>EconomyStep</c> の <c>(1−StateMonopolyLeakMax) + StateMonopolyLeakMax × AdminFill</c>・StateMonopolyLeakMax＝0.6）と同型で、最大値の係数だけが別
+///（実効 ＝ 1 − SmugglingMax×(1−AdminFill)・SmugglingMax＝0.5）＝行政の欠けで漏れる同じ物理に係数が2本ある（精査 doc 財6）。
 ///
 /// ★ 財ごとの係数は持たない（思想②）。阿片と奴隷と武器の差は
 ///「取り締まる側の行政力」と「密輸の利幅（価格差）」から出る。
 ///
-/// 既定 <see cref="Coefficients.SmugglingMax"/> = 0.5（点火・専売の徴収漏れと同型）。0なら漏れゼロ＝旧「禁令＝完全遮断」と一致。
+/// 既定 <see cref="Coefficients.SmugglingMax"/> = 0.5（点火）。0なら漏れゼロ＝旧「禁令＝完全遮断」と一致。
 /// </summary>
 public static class Contraband
 {

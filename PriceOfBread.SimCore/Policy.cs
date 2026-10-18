@@ -171,7 +171,6 @@ public sealed class NationPolicy
     public ReformLevel CornLaws = ReformLevel.None;          // 穀物法：主食穀物の輸入を阻む（地主保護＝高いパン）／撤廃で安いパン。保守＝全面・自由/社会＝なし（反穀物法同盟1846）
     public ReformLevel LandReform = ReformLevel.None;        // 土地改革：地代取り分を縮小し農民へ再分配。社会＝全面・自由＝限定的・保守（地主）＝なし
     public ReformLevel SerfEmancipation = ReformLevel.None;  // 農奴解放：農奴制（高い地代取り分）を小作へ（露1861）。社会＝全面/自由＝限定的（償却付＝1861型）・保守＝なし
-    public ReformLevel Pension = ReformLevel.None;           // 死蔵（社会保障法第4段=SocialSecurityLaw.Pensionに吸収済み・02断線走査2026-07-28）。施行経路を持たない＝w.Pensionの実値はGovernmentがSocialSecurityLawから毎期導出。MultiNationSim/PlayHarness/Appの表示が読むため残置
     public ConscriptionLaw ConscriptionLaw = ConscriptionLaw.Selective;  // 徴兵法（1934拡張E5）。既定Selective＝現行の戦時徴兵挙動を保つ（志願制は新たに選べる制限）
     public SecretBallotLaw SecretBallot = SecretBallotLaw.Open;              // 秘密投票法（1934拡張E5）。既定Open。SecretBallotGate=0で効果なし＝恒等
     public BureaucracyLaw Bureaucracy = BureaucracyLaw.MeritExam;            // 官僚制度（1934拡張E5）。既定MeritExam
@@ -257,7 +256,7 @@ public sealed class NationPolicy
 
         TariffTarget = o.TariffTarget; InterestRateTarget = o.InterestRateTarget;
         MonetaryTarget = o.MonetaryTarget; CapitalControlTarget = o.CapitalControlTarget;
-        CornLaws = o.CornLaws; LandReform = o.LandReform; SerfEmancipation = o.SerfEmancipation; Pension = o.Pension;
+        CornLaws = o.CornLaws; LandReform = o.LandReform; SerfEmancipation = o.SerfEmancipation;
         ConscriptionLaw = o.ConscriptionLaw; SecretBallot = o.SecretBallot; Bureaucracy = o.Bureaucracy; SocialSecurityLaw = o.SocialSecurityLaw; StateReligion = o.StateReligion; Antitrust = o.Antitrust; Guild = o.Guild; WartimeRationing = o.WartimeRationing; MilitaryExportBan = o.MilitaryExportBan;
         CivilianArmsBan = o.CivilianArmsBan;   // ★民間の武器購入の法（2026-09-11）＝Clone/CopyFrom の運搬漏れは開始盤面復元で目標が落ちる罠
         NationalizeRailways = o.NationalizeRailways; NationalizeMines = o.NationalizeMines; NationalizeMilitary = o.NationalizeMilitary;

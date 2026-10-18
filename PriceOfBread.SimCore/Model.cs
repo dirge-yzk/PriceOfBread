@@ -63,9 +63,6 @@ public enum Ideology
                       //    供給＝**王権から実際に利益を得ている層**（閉鎖階級→特権／近代エリート→恩顧）×政治意識。RoyalistGate=0なら不発（シェア0＝配列長10と数値等価。★2026-08-29点火＝既定1）
 }
 
-/// <summary>近代化の経路（§A-11・M5）。健全な分布＝どれも一つに偏らない。</summary>
-public enum ModernizationPath { Failure, Tokugawa, Meiji, Radical }
-
 /// <summary>地域の状態（§A-8）。locked＝pop≈0・市場休眠。開発（資金）か武力で active 化する。</summary>
 public enum RegionState { Active, Locked }
 
@@ -206,12 +203,8 @@ public sealed class Pop
     /// 慣れの速度は <see cref="LivingRef"/> と同じ <see cref="Coefficients.LivingRefSpeed"/>（新しい数を作らない）。
     /// ⚠−1＝未捕捉（初回の Politics.Step で今の充足に初期化＝開始時の慢性の低さは「平常」として入る＝立ち上がりの跳躍なし）。</summary>
     public double FoodRef = -1.0;
-    public double LastSatisfaction = 1.0;   // ★前月の満足度（2026-08-17・LastEducationFill と同型の退避）。汚職の「薄給の官僚」判定が読む＝
-                                            // 汚職の分け前→貯蓄→消費→満足度→汚職 の環を**同一ティックで閉じない**ため（負のフィードバックだが同月で閉じると発散源になる）。
-                                            // 書くだけの月は恒等（読み手＝World.OfficialWelfareFill が CorruptionPoorOfficialWeight>0 のときだけ読む）。
     public double HigherEduFill;         // 高等教育（財136）の充足率＝自費で買えた量÷欲しかった量。技師・研究者への昇格資格（段②）。既定0＝買っていない（NewsFill と同じ規約）
 
-    public double EducationEma = 1.0;   // 人13：高等教育ゲート用の多年EMA（修学年数の蓄積代理）。EducationGateUsesEma=0（既定）では読み書きされず初期値1.0のまま＝挙動非依存。>0でTechEducationが月次更新・Meritocracyが昇格資格に使用
     public double SchoolingConvStock = -1.0;   // 政15：識字→政治意識の変換係数の就学履歴ストック。-1=未捕捉（初回Politics.Stepで今期の変換係数で初期化＝立ち上がりの跳躍なし）。**ConsciousnessFromSchoolingStock=1.0点火中**＝毎四半期読み書きされ変換係数は完全にストック（半減期約9年の世代遅れ）＝法改正の即効性ゼロ（02断線走査2026-07-28：陳腐化した「既定0」注記を是正。g=1.0は**恒久確定＝クローズ**＝07_再設計§12 B1裁定2026-07-29「正しい（教育は世代遅れのみ）」。旧「裁定待ち」注記は陳腐化のため是正2026-08-16）
     public double HealthFill;            // 医療（財）の充足率。人口扶養力に小さく効く（医者がいないと乳児が死ぬ）。既定0＝効果なし
     public double NewsFill;              // 新聞（財）の充足率（1934拡張E3）。国民意識の実効値＋政治意識のpress項の入力＝「新聞を買えて読めたか」。新聞財の無い小シナリオは0
@@ -983,7 +976,6 @@ public sealed class Region
     //  両係数0（対照腕）では OldVintageCapital=StrandedVintage=0 で両者とも Industrialization に厳密恒等（既定 VintageMigrateRate=0.005 でlive）。
     public double TotalIndustrialization => Industrialization + OldVintageCapital;
     public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
-    public double[]? EffFirms;                        // 財別の有効生産者数（no-market-power-monopoly）。EconomyStepがproducerCountを複製・MarketFlowが国内マークアップに使用。DomesticMarkupMax=0でnullのまま
     public double HousingFill = 1.0;                  // 住居役務の充足率（housing-urban-rent-absent）。移民摩擦に使用。住居財なし/HousingNeedPerUrban=0では1.0＝摩擦なし（従来）
     public double ElecInfraFill;                      // 電化インフラ（上位＝近代都市インフラ）の充足率。満足度＋衛生追加＋送電容量↑。便益は加算なので既定0＝施設の無い世界は便益なし（従来挙動）
     public double ElecInfraBudget;                    // 今期の電化インフラ調達の予算（上下水道と同型。Simulation が設定）

@@ -22,7 +22,6 @@ public class DormantIdentityTests
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         // ★AiBureaucracyFromPrereq は 2026-10-17 (389) に 2 で**点火**（欲しい法が官僚制度の前提で止まったとき、法律タブの門も通る法だけ官僚制度の目標を上げる）＝この表から外した。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
-        "MeritModernityFromClosed",     // AUD-07：メリトクラシーの政体バフ除去
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
         // ★SymmetricTensionVerb は 2026-09-28 に点火して旗ごと削除（回8-1・dip-04）＝この表から外した。
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
@@ -74,14 +73,11 @@ public class DormantIdentityTests
         "MilitiaCombatValue",           // F3b蜂起doc 段5＝民兵1人あたりの戦力 a（<1＝弱兵）。戦場の民間人死の配分の重み 1+a×民兵率 も同じ a。0で戦力にも死の配分にも寄与しない
         // ★SoldierDefectionByMilitancy（F3b蜂起doc 段5＝守備兵の寝返りは割合）は 2026-09-29 処理の一元化 段3 で**点火**（係数ごと削除）＝この表から外した。
         // ★RevoltCooldownRetire（F3b蜂起doc 段6＝共有クールダウンの退役）は 2026-09-29 に**点火**（作者裁定「根拠のない待ち」・旗・タイマー・係数ごと削除）＝この表から外した。
-        "RevoltExpansionScore",         // F3b蜂起doc 段7＝反乱の膨張（膠着の講和で戦勝点を予算に既存の割譲経路で親の州を取る・州1つの値段）。0で内戦の講和は1命令も変わらない
         // ★要求は法の経路（作者裁定2026-09-11）は同日に**点火**（主フラグごと削除・旧3枝も物理削除）＝この表から外した。
         // ★FiscalLawStages（税・支出・軍事費の段＝作者裁定2026-09-12 R1/R2）は 2026-09-20 に**点火**（旗と段の無い世界の枝ごと削除・AiMobilization も同時に削除）＝この表から外した。
         // ★CoupForceShare／CoupMassArmyDiscount（作者裁定2026-09-19 R3/R4＝クーデタ項の取り分化と職業軍の度合い π）は 2026-09-20 に既定化（腕 A4）＝旗と旧式の枝ごと削除＝この表から外した。
-        "ColonialRegionSettlement",     // 実バグ B1＝植民地格の州への入植と Integrated 昇格
-        "ColonyDevCostFromRegion",      // 実バグ B2＝植民地格の州の奪取コストが州の開発度を読む
         // ★EquipNeedsDiscovery（装備の発見）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
-        "AdoptExpertiseWeight", "InnovateExpertiseWeight", "TeacherQualityWeight", "CatchupContactWeight",   // 知識と人的資本の経路（作者採用2026-09-06）＝0で従来（★EduFundingCashClamp は 2026-09-27 線2 で点火・旗ごと削除）
+        "TeacherQualityWeight",   // 知識と人的資本の経路（作者採用2026-09-06）＝0で従来（★EduFundingCashClamp は 2026-09-27 線2 で点火・旗ごと削除）
         "EduReachFromAdmin",            // 特権 段1（作者裁定2026-09-08）＝義務教育の国庫給付の天井に行政の充足率（0で×1.0＝給付は行政を見ない＝従来）
         "EduProducersCoexist",          // ★教育の三層化 段1 器（2026-09-12）＝教区学校（聖職者・紙）と公立学校（教師・書籍）を常設2件で並置し教育法を非活性側の Scale=0 へ降格。
                                         //   0＝AddServiceProducers が従来の1件だけを add・StepMonth の月次差し替えがそのまま走る・EconomyStep は Scale を読まない＝ビット恒等。点火は段3（batch30 単独＋savetest）
@@ -161,29 +157,23 @@ public class DormantIdentityTests
         //   ⚠主フラグではないので休眠表には置かない（休眠表は「これ1本で機構が入り切りする器」の一覧である）。
         "PopDebtLossShare", "DebtRepayFrac", "DebtRuinRatio",
         "HouseholdCreditMonths",
-        "AbsorptionIncomeRef", "AbsorptionIncomeWeight",
         "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）・AiCrisisBorrow は 2026-09-28 に係数ごと削除（借入の自動化で予約の列が消えた）
         // BondRateDebtQuad は 2026-09-29 に係数ごと削除（国債の金利を史実から出し直した＝債務の二次項は英の債務比2.5 の史実と合わない）
         // CoercionUpkeepToSoldiers は 2026-09-30 に係数ごと削除（連合維持費は兵士と官僚の役務の④へ全額＝支払いの段3-2）
-        "CorruptionPoorOfficialWeight",
-        "DomesticMarkupMax", "EducationGateUsesEma",
         "ElectionBribePovertyWeight", "EraNavalFuel",
         "FertileAbsoluteBlend",   // FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除
-        "FertilityEquilibriumWeight", "FertilityIncomeSurvivalGate", "FertilityLandDivisionSlope",
         "FoodIncludesAnimalProtein", "GarrisonProcurement",
         "HigherEduNeedPerEducated",
         "InterestCapitalization", "LoanSpreadPerYear",
         "MigrationFarePerkKm",
         "ModernizationToHigherEdu", "NationalismFromConsciousness",
-        "NavalFuelPerGauge", "NewbornLiteracyDilution",
+        "NavalFuelPerGauge",
         "PolicyRateLoanWeight",
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
-        "ResearchBaseRefPop", "ResearchScaleWeight",
         "ResearcherFrac",
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
-        "TransportDemandAffordCap", "TransportPotentialWeight",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -219,6 +209,21 @@ public class DormantIdentityTests
         // ★(375) (273) の開幕の貯蓄の置き直し（モード 0 が既定の休眠）を削除した（作者 2026-10-16 の答え「全て推奨」）。NationConfig.BroadMoneyToIncome と world.json の broadMoneyToIncome・World.RebaseOpeningMoney・Pop.RebaseSavingsTo・計器 money_s の rebase の行も一緒に消えた。
         "OpeningSavingsRebaseMode",   // 開幕の貯蓄の置き直しのモード（0 置かない・1 助走の終わり・2 最初の四半期の後）
         "SavingsYearsByClass",        // 置き直しの配分の形（階級ごとの貯蓄の年数）＝読み手は置き直しだけだった
+        // ★(恒等の削除 2026-10-18・精査 doc §4 ①-a／①-b／Q2)：既定0で1命令も走らなかった器（読み手が無い・回らない枝の中だけ）を物理削除した。消す前の恒等は selfplay 1 200 の全体の一致で示した（成績表3枚の全行一致はメインの合流の確かめ）。
+        "TransportDemandAffordCap", "TransportPotentialWeight", "TransportPotentialHeadroom",   // 輸送の目標の付け足し 3 本（目標を追う形の中の付け足し）
+        "FertilityEquilibriumWeight", "FertilityLandDivisionSlope", "FertilityIncomeSurvivalGate",   // 出生率の休眠の 3 項
+        "NewbornLiteracyDilution", "EducationGateUsesEma", "EducationEmaRate", "MeritModernityFromClosed",   // 新生児の識字の希釈・高等教育ゲートの多年 EMA・メリトクラシーの政体バフの代わり
+        "RevoltExpansionScore", "DomesticMarkupMax", "CompetitiveFirmsBase", "CorruptionPoorOfficialWeight",   // 反乱の膨張・国内寡占マークアップ・暮らせない官僚の汚職
+        "AbsorptionIncomeWeight", "AbsorptionIncomeRef", "ResearchScaleWeight", "ResearchBaseRefPop",   // Q2＝技術水準の伸びに掛ける倍率（作者 2026-10-18「全て推奨」）
+        "AdoptExpertiseWeight", "InnovateExpertiseWeight", "CatchupContactWeight",
+        "ColonialRegionSettlement", "ColonySettlerRatePerMonth", "ColonyPromotionCoreShare", "ColonyDevCostFromRegion", "ColonyDevCostWeight",   // 植民地の入植と昇格・開発度の項（ColonyPromotionMinPop は分離の圧力が読む＝残す）
+        "ColonialPopGrowth", "ColonialPayShare", "ColonialExploitMortality", "ColonialLiteracyGrowth", "ColonialMilitancyGrowth", "ColonialMilitancyDecay",   // 植民地の旧い型（Colony オブジェクト）の経路一式
+        "ColonialUnrestSupplyHit", "ColonialHoldScale", "ColonialIndependenceMilitancy", "ColonialHoldDistanceDecay", "ColonialHoldSharedArmy", "IndependenceShockYears",
+        "ColonialOutputHalf", "ColonialShipPerInfra", "ColonialRailPerInfra", "ColonialInfraDepreciation", "ColonialInfraPerColony", "ColonialInfraConverge",
+        "ColonialReturnScale", "ColonialDevStep", "ColonialInvestFrac", "ColonialProductionPerColony",
+        "RgoCapitalShare", "StateShareCounterOnly",   // 投資家が畑と鉱山の面積を広げる枝（StateShareCounterOnly=1 の点火 2026-08-30 以来一度も走らない）と、それを止めていた旗
+        "TechGatedScaleZero",   // Q1＝幻の工場の旗の 0 の枝（作者 2026-10-18「全て推奨」）
+        "IndustrializedTechThreshold", "IndustrializedUrbanThreshold", "CalibQuarters",   // 単国の経路の較正（Calibration・Sweep・ClassifyPath）とその物差し
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

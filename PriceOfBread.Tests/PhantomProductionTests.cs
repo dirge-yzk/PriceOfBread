@@ -108,31 +108,17 @@ public class PhantomProductionTests
 
     /// <summary>幻の**工場**（作者スクリーンショット2026-08-10＝1783年の日本に機関銃工場が7つ）。
     /// 表示側（生産タブ）は州の技術ゲートで棟数を0にするが、実体（<c>Producer.Scale</c>）を正すのが本機構
-    /// （<c>TechGatedScaleZero</c>＝2026-08-11に**点火＝既定1.0**。バッチ scale0 が硬性緑・8軸合計+0.6＝雑音圏・◎7割帯 17→19）。
-    /// ここでは①OFF＝旧挙動（幻の Scale が立つ＝症状の再現）②ON＝作れない財だけ Scale=0
-    /// ③正常な財の Scale は不変（誤爆していない）を固定する。
-    /// ★OFF/ON とも**明示設定**する＝既定値に寄りかかると、既定が動いた日に対照実験が空洞化する。</summary>
+    /// （旧の旗 <c>TechGatedScaleZero</c>＝2026-08-11に点火して 2026-10-18 に 0 の枝ごと削除。バッチ scale0 が硬性緑・8軸合計+0.6＝雑音圏・◎7割帯 17→19）。
+    /// ここでは①作れない財だけ Scale=0 ②正常な財の Scale は不変（誤爆していない）を固定する。
+    /// （旧の①＝0 の枝〔幻の Scale が立つ症状の再現〕は枝ごと無いので外した。）</summary>
     [Fact]
-    public void 技術ゲートが0の財は点火時に操業規模も0になる()
+    public void 技術ゲートが0の財は操業規模も0になる()
     {
-        int mg = GoodId("機関銃"), steel = GoodId("鋼");
-        var off = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-        foreach (var n in off.Nations) n.World.Coef.TechGatedScaleZero = 0.0;   // 旧挙動を明示（既定が1.0になったため）
-        for (int q = 0; q < 8; q++) off.StepQuarter();
+        int steel = GoodId("鋼");
         var on = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-        foreach (var n in on.Nations) n.World.Coef.TechGatedScaleZero = 1.0;   // 係数インスタンスは国ごと（重複は上書きで冪等）
         for (int q = 0; q < 8; q++) on.StepQuarter();
 
-        // ①OFFは旧挙動＝作れない財に操業規模が立っている（これが画面の「機関銃工場7つ」の実体）
-        int phantom = 0;
-        foreach (var n in off.Nations)
-            foreach (var region in n.World.Regions)
-                if (region.State == RegionState.Active)
-                    foreach (var s in region.Producers)
-                        if (s.GoodId == mg && s.Scale > 0) phantom++;
-        Assert.True(phantom > 0, "OFF側で幻の操業規模が立たない＝症状の前提が変わった（この機構の意味を見直すこと）");
-
-        // ②点火＝技術ゲートが0の財（役務以外）は操業規模0／③ゲートが開いている財は0にしない
+        // ①技術ゲートが0の財（役務以外）は操業規模0／②ゲートが開いている財は0にしない
         int zeroed = 0, kept = 0;
         foreach (var n in on.Nations)
             foreach (var region in n.World.Regions)

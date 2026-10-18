@@ -4,8 +4,6 @@
 Crime.cs	World.Transfer((w, r.Pops), (w, poor, need), pool, fromWeights: stolen);	窃盗(全POPの被害＝min(前の月の所得×犯罪率, 貯蓄)→困窮した大衆)	★(331) (327) で基数が既定 1＝所得に比例（旧 0＝貯蓄×率＝在庫に比例）
 # ★(264) PaySales・Procure の呼び手（旧＝InternationalMarket.cs:124／125 に潰れていた）
 BilateralMarket.cs	PaySales((null, null), rS, g, rev[t] - comm, wS);	清算所の輸出代金(世界の外→生産者の持分・PaySales)	
-Colonial.cs	InternationalMarket.PaySales((w, [inv]), r, ship, shipUse * shipP, w);	植民地の開発の汽船の代金(投資家→生産者の持分・PaySales)	
-Colonial.cs	InternationalMarket.PaySales((w, [inv]), r, rail, railUse * railP, w);	植民地の開発の線路の代金(投資家→生産者の持分・PaySales)	
 Colonial.cs	return InternationalMarket.Procure(w, r, goodId, want, null, cat);	国家の調達の代金(国庫→生産者の持分・BuyUpkeepGood→Procure)	
 MultiNationSim.cs	double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);	運河の建設の工賃(投資家→労働の持分・PaySales)	
 MultiNationSim.cs	double paidCap = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);	港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)	

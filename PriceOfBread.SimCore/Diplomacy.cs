@@ -105,11 +105,9 @@ public sealed class Colony
     public double PopSize;                              // 住民数（1単位=1000人。初期＝Population×係数で起動し、ゆっくり成長）
     public double Militancy;                            // 独立への不満（搾取×識字＝接触で育つ。産出を乱し、本国の抑えを超えると独立）
     public double Literacy = 0.05;                      // 識字（開発との接触でゆっくり上がる＝教育された植民地ほど独立を求める）
-    public double Infra;                                // R13：この植民地固有の開発度。所有国の国家開発度へ緩やかに収束するが、征服/独立でオブジェクトごと移動＝開発済み植民地を奪えば産出を引き継ぎ・独立後も凍結しない。ColonialInfraPerColony=0 なら未使用＝旧と厳密一致（★ 2026-07-15 点火＝既定1.0）
     // （蓄え Savings と入植者 SettlerSize・SettlerSavings・SettlerLiteracy は 2026-09-30 段4g に経路ごと削除＝作者裁定 Q12：書き手は捕囚市場と入植だけで、
     //   どちらも国の植民地の一覧〔ゲームの間ずっと空〕の上でしか走らなかった＝常に0。入植と昇格の主体は植民地格の州＝Colonial の B1）
     public bool PlayerInterest;                         // プレイヤーが「関心」を付けた＝講和でプレイヤーが勝つ時この州を優先割譲（侵略で狙う州にも自動付与）
-    public int FreedYear = -1;                          // 独立した年（B-4 独立ショック）。-1＝未独立。独立直後は供給崩壊→数年で自由な供給者へ回復（ハイチ型）
     public bool Malarial;                              // マラリア地（熱帯）。キニーネ未供給で征服軍が溶け、保有中も人口成長が鈍る（RequiresQuinine 標的の州を征服すると付与・征服で本国が変わっても付いて回る）
     public double Value => Resources.Length + 0.5 + Population * 0.5;   // 争奪の優先順＝資源数＋人口（豊かで人口の多い植民地が先に奪われる）
 }
@@ -331,7 +329,6 @@ public sealed class Diplomacy
         }
         return (max, ge3, _warCount.Count, worst);
     }
-    public List<Colony> IndependentColonies = [];   // 独立した旧植民地＝自由な供給者として世界市場に残る（資源は消えない・誰の専有でもなくなる）
     public int PromotedColonies;   // 州へ昇格した植民地の累計（2026-08-09＝植民地保存検査の第3の出口。移転でも独立でも消滅でもなく編入）
     public int SovereignColonialRegions;   // ★回1-1（2026-09-26）：独立の確定（RegisterIndependence）で本土になった植民地格の州の累計＝植民地保存検査の「独立」の出口の州版（Colony の独立＝IndependentColonies と同じ出口）。検査の台帳だけ＝力学は読まない
     public int AbsorbedColonies;   // ★J-006（2026-09-05）：同名の州を既に持つ国へ渡った植民地＝Colony オブジェクトが消滅（領土は州として保有済み・★回1-2＝住民はその州へ運ぶ）。保存検査の第4の出口（実測＋独立＋昇格＋吸収＝初期）
@@ -2788,28 +2785,6 @@ public sealed class Diplomacy
                 if (splitW.SecedingRegion is { } heldSeat && cwRebel.Nation is { } heldBy && heldBy.Regions.Contains(heldSeat)) splitW.SecedingRegion = null;
             }
             if (cwRebel.Nation is { } rumpW && rumpW.RumpParentName.Length == 0) rumpW.RumpParentName = cwParent.BaseName.Length > 0 ? cwParent.BaseName : cwParent.Name;   // ★残骸再併合の親リンク（2026-08-31）
-            double parentScore = war.A == cwParent ? s : -s;
-            // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠**＝RevoltExpansionScore=0 では下の1本の比較で必ず抜ける）。
-            //   欠陥＝内戦タグの講和は3枝とも**割譲の手前で return** する＝反乱国の版図は建国時の州のまま永久に凍る
-            //   （合流も機能していない＝どの経路も既存の反乱国へ州を足さない）。史実の大反乱の規模は合流ではなく**移動と吸収**から来た。
-            //   >0 で「押していた分だけ親の州を取る」＝**既存の戦勝点を予算**（1州の値段＝係数）にし、**既存の割譲経路**
-            //   （CedeTerritory の境界改定＝反乱国の首都に最も近い親の非首都州。投射圏・上陸ゲート・最後の1州ガード・
-            //   人口/貨幣の両建て記帳〔Territory.TransferRegion〕ごと再利用）で払う。第二の実装も新しい状態も作らない。
-            //   ⚠この枝**だけ**に置く：再併合の枝は反乱国の**全州**を親へ返す（ReabsorbNations の moving＝rw.Regions 全部）ので
-            //     膨張しても消える／分離戦の勝利（独立確定）へ広げるかは別の裁定＝別に測る。
-            //   ⚠代償（作者了承済み）：膨張したまま膠着＝**大きな永久の分割**が残る（この枝は |戦勝点|<0.25 で終わった戦争そのもの）。
-            //     だから点火は段2（燃え尽き）と段3（亡霊）を測ってから。⚠0.25 以上の値では1州も動かない（この枝の定義＝構造上の上限）。
-            //   ⚠NaN：戦勝点が NaN なら上の Math.Abs(s) < WhitePeaceScore が偽＝この枝に入らない。takeBudget が NaN でも `>=` は偽＝旧側。
-            if (c.RevoltExpansionScore > 0 && parentScore < 0 && cwParent.Nation is { } cwpW && cwRebel.Nation is { } cwrW)
-                for (double takeBudget = -parentScore; takeBudget >= c.RevoltExpansionScore; takeBudget -= c.RevoltExpansionScore)
-                {
-                    int before = cwrW.Regions.Count;
-                    // 取った州は**建国路と同じ作法**（Territory.Rehome の建国＝中核民族の反転・併合の荷物0）で付け直す（回1-1）。
-                    //   ⚠割譲の作法で付け直すと、再併合の一括反転（ReabsorbNations）が片道だけ掛かり、返った州の民族比が裏返ったまま親に残る。
-                    //   失地の累計は下の独立の確定が反乱国の全州で数える（CedeRegion は建国の作法の州を数えない＝二重にしない）。
-                    if (!CedeTerritory(c, cwpW, cwRebel, cwParent.Name, how: Territory.Rehoming.Seceded)) break;   // 圏外／最後の1州＝これ以上は取れない
-                    if (cwrW.Regions.Count <= before) break;                      // 二重防御（移転が起きていないなら回さない）
-                }
             // ★回1-1（col-03）：分断の固定＝反乱国は独立国として残る＝独立の確定と同じ付け直し（本土・支配度1）。
             //   緊張の置き直しは直後の EndWar が講和の値で上書きする（分離戦の反乱勝ちの枝と同じ順）。
             ConfirmIndependence(cwParent, cwRebel, c);
@@ -2865,7 +2840,6 @@ public sealed class Diplomacy
         double budget = sa * c.ColonyCaptureBudget;
         if (loser.ColonyList.Count > 0)
         {
-            double loserDev = loser.Nation?.ColonialInfra ?? 0;   // 開発された帝国ほど植民地が堅い
             bool winnerIsPlayer = winner.IsPlayer;
             // プレイヤーが勝つ時は「関心」を付けた州を最優先（侵略で狙った州・列強領で関心を付けた州）。それ以外は価値の高い順。
             // 同価値は名前で安定tiebreak（A-4#14：List.Sortは不安定＝同価値州の相対順が実装依存だった＝奪われる州が不定）。
@@ -2884,7 +2858,7 @@ public sealed class Diplomacy
             for (int k = 0; k < loser.ColonyList.Count && captured < c.ColonyCaptureMax;)
             {
                 var col = loser.ColonyList[k];
-                double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * col.Resources.Length + c.ColonyDevCostWeight * loserDev + c.ColonyCapturePopCost * col.Population;
+                double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * col.Resources.Length + c.ColonyCapturePopCost * col.Population;
                 // 距離実力ゲート（州割譲CessionMaxDistanceKmの植民地版）：勝者首都→植民地の海路距離×(1−制海権)でコスト増
                 // ＝海軍なき大国（清）は遠方（カリブ海等）を奪えず、海軍国（英）は距離を制海権で相殺＝地理無視の戦利品循環の是正。
                 // 座標(0,0)の抽象植民地は距離項なし（Colonial.cs維持費と同じ規約＝幻の遠距離を課さない）。
@@ -2940,12 +2914,8 @@ public sealed class Diplomacy
                 {
                     if (r.State != RegionState.Active || r.Tier != RegionTier.Colonial || r.Id == 0) continue;
                     double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, ColonyUnitPop);   // Colony.Population と同じ物差し
-                    // ★B2（実バグ21件・2026-09-07）：lcw.ColonialInfra は ColoniesAreRegions=1 で書き手が死に（Colonial.Step の投資ブロックは ColonialResources 空で常に偽）
-                    //   恒等的に0＝「開発された帝国ほど植民地が堅い」の柱が黙って抜けていた。ColonyDevCostFromRegion>0 でその州の開発度（Industrialization＝州パネルの
-                    //   州開発度と同じ量。⚠Region.Infra は解錠の駆動量で Active 州では止まる＝doc の r.Infra は不適）を読む。0＝旧（国スカラー＝0）＝厳密恒等。
-                    double dev = c.ColonyDevCostFromRegion > 0 ? Math.Max(0, r.Industrialization) : lcw.ColonialInfra;
                     double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * r.Resources.Length
-                                + c.ColonyDevCostWeight * dev + c.ColonyCapturePopCost * units;
+                                + c.ColonyCapturePopCost * units;
                     if (cost > budget) continue;
                     double val = r.Resources.Length + 0.5 + units * 0.5;   // Colony.Value と同じ式（価値の高い順に取る）
                     if (val > pickVal || (val == pickVal && (pick is null || string.CompareOrdinal(r.Name, pick.Name) < 0)))
@@ -3133,7 +3103,7 @@ public sealed class Diplomacy
     /// 保存則：移転州の貯蓄総額 S・人口 P を賠償/越境移民と同型に**両国で相殺**（loser−/winner+）＝世界保存。Id は勝者内で一意の非ゼロを再付与。
     /// 選択：takePrize=false＝**最小GDPの非首都州**（境界改定＝アルザス・ロレーヌ型）。takePrize=true＝**最大GDPの州（首都を含む）**＝必要な土地を奪う（圧勝の併合）。
     /// 首都(Id0)を奪った場合は残active州から新首都を昇格＝「首都を持つ」不変条件を維持（国家消滅は別機構）。最後の1州だけは残す。決定論：tiebreak は Id 昇順・新規RNG draw なし。</summary>
-    private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, bool takePrize = false, Territory.Rehoming how = Territory.Rehoming.Ceded)
+    private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, bool takePrize = false)
     {
         if (winner.Nation is not { } ww) return false;   // 抽象勢力は受け皿の World を持たない（呼び出し側で gate 済みだが二重防御）
         int activeCount = 0; foreach (var r in loser.Regions) if (r.State == RegionState.Active) activeCount++;
@@ -3196,21 +3166,20 @@ public sealed class Diplomacy
             if (better) { best = g; cede = r; bestDist = dist; }
         }
         if (cede is null) return false;   // 移転できる州がない（投射圏内に候補なし＝賠償のみ）
-        CedeRegion(c, loser, winner, ww, cede, loserName, how);
+        CedeRegion(c, loser, winner, ww, cede, loserName);
         return true;   // ★是正（監査2026-09-02 #23）：戻り値＝実際に移転したか。_pendingRevanchの予約可否に使う（下）
     }
 
-    /// <summary>割譲の1州（講和の割譲・植民地格の州の複数割譲・反乱国の膨張）＝**講和の帰結だけ**を足す。
+    /// <summary>割譲の1州（講和の割譲・植民地格の州の複数割譲）＝**講和の帰結だけ**を足す。
     /// 州の物理の移し替え（外す・Id・首都の補修＝遷都・台帳・国債の振替・付け直し）は <see cref="Territory.TransferRegion"/> の1本
     /// （2026-09-28 処理の一元化 段2 B＝旧はここに本体があり、建国と再併合が別の写しを持っていた）。</summary>
-    private void CedeRegion(Coefficients c, World loser, Power winner, World ww, Region cede, string loserName, Territory.Rehoming how = Territory.Rehoming.Ceded)
+    private void CedeRegion(Coefficients c, World loser, Power winner, World ww, Region cede, string loserName)
     {
         //   民族の一致＝両国の主流文化が同じか（違えば割譲州の住民は勝者の中核民族ではない＝col-04）。
-        Territory.TransferRegion(loser, ww, cede, how, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
+        Territory.TransferRegion(loser, ww, cede, Territory.Rehoming.Ceded, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
         foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満
         // 機能7-2（2026-07-28）：失地の長期ストック（Politics.Stepが半減期20年で減衰・r[4]の長期項）。
-        //   ★建国の作法（反乱の膨張）の州はここで数えない＝反乱国の州は独立の確定（RegisterIndependence）が全州まとめて数える（二重にしない・作者裁定 c）。
-        if (how != Territory.Rehoming.Seceded) loser.LostRegionsCumulative += 1.0;
+        loser.LostRegionsCumulative += 1.0;
         Log.Add($"{_year} {winner.Name}が{loserName}から{cede.Name}を州移転（領土再編）");
     }
 

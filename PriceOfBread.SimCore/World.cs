@@ -199,8 +199,6 @@ public sealed class World
     /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・損耗の強さ＝画面と計器が同じ3項を出すため・★(159) 人件費の世界の平均は削除）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
     [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
-    public double Expertise { get; internal set; }                    // 専門人材率（UI 語彙）。TechEducation が Elite と同時に計算
-    public double WorldFrontierExpertise { get; internal set; }       // 世界の専門人材率の先端（MultiNationSim が配る）
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double SeigneurialDegree0 { get; internal set; } = -1;   // ★支配度の一般化 段1：1783年の未解放度（在地の目標の分母）。負＝未設定（最初の四半期に Politics が書く）
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
@@ -217,7 +215,6 @@ public sealed class World
     //   実測で7位96点と16位92点の差は4点＝4%しかなく、フローのまま順位という崖で切ると微差が毎期0/1を反転させていた。
     //   NaN=未初期化（初回に現在値で種を置く）。ScoreInertiaRate=1 で毎期フローに一致＝厳密恒等。
     public double ScoreStanding { get; internal set; } = double.NaN;
-    public double Meritocracy { get; internal set; }  // メリトクラシー値（0..1）。近代的利益団体の力＋政体で決まり、教育済みの昇格を司る
 
     // --- 制度（2026-10-01 (152)＝発見の表の制度の行の2値を読むだけ＝状態を持たない・設計 §1A-6）---
     //   旧＝Institutions.Step が毎四半期に書いた bool（特許＝中核エリートの傾斜・株式会社＝最大工業化度の傾斜・鉄道＝最大工業化度 0.8）と州の倍率（IndustrializationBoost）。
@@ -394,63 +391,9 @@ public sealed class World
     // 実効汚職（正規化・0..1）＝(1−行政効率)×(1−監視noisy-or)。汚職の**正準定義**（変数統合監査2026-07-13 C1・V2点火2026-08-15）。standalone読み（SelfPlay等）はこれを参照＝定義同期を構造保証。
     // ⚠V2を切って旧式（(1−行政)×(1−清廉度)）へ戻す道はC2-C5撤去（2026-08-16）で消滅＝裁定済み。CorruptionCoreV2 係数は点火の記録だけで読み手0だった＝2026-10-11 (253) に削除。
     // ⚠積連鎖に埋め込む読み（Politics侵食）は**インライン維持**（プロパティ置換で掛け算結合が変わると浮動小数末尾ビットが動き決定論軌道が発散＝Fiscal.cs警告）。
-    /// ★暮らせない官僚は汚職に手を染めやすい（作者要望2026-08-17・<see cref="Coefficients.CorruptionPoorOfficialWeight"/>＝既定0で休眠）：
-    ///   実効汚職 ＝ (1−行政)×(1−監視) × ( 1 + 重み × max(0, 1 − <see cref="OfficialWelfareFill"/>) )
-    /// 官僚の**生活の充足**（前月の満足度）が満たない分だけ漏れが増える（史実＝清の**養廉銀**＝官位にふさわしい暮らしを
-    /// 保たせて汚職を減らす制度＝俸給の額でなく生活の充足の制度／英の**ノースコート＝トレヴェリアン改革**＝
-    /// 資格任用と適正俸給を対にした＝「絶つ代わりに払う」）。
-    /// ⚠既定では重みの否定形ガードで即 return＝式も結合順も1文字も変わらない（ビット恒等・経路を作らない）。
-    public double EffectiveCorruption
-    {
-        get
-        {
-            double core = (1.0 - AdminEfficiency) * (1.0 - OversightV2);
-            double w = Coef.CorruptionPoorOfficialWeight;
-            if (!(w > 0)) return core;   // ★既定＝旧式そのもの（1命令も増えない）
-            double shortfall = 1.0 - OfficialWelfareFill;      // 生活充足の**不足分**（充足=1で0・困窮で1＝片側有界）
-            if (!(shortfall > 0)) return core;                 // 基準以上に払えている／NaN＝上乗せなし（否定形）
-            double v = core * (1.0 + w * shortfall);
-            if (!(v > core)) return core;                      // NaN・非増加はコアへ
-            return v > 1.0 ? 1.0 : v;                          // 実効汚職は0..1＝CorruptionMax が漏れの上限である意味を壊さない
-        }
-    }
+    public double EffectiveCorruption => (1.0 - AdminEfficiency) * (1.0 - OversightV2);
 
-    /// <summary>★官僚の**生活の充足**（作者要望2026-08-17「金のないPOPほど汚職に手を染めやすい」の導出量・純関数＝新しい状態を作らない）。
-    /// <code>
-    /// 生活の充足 ＝ Σ_官僚 前月満足度_p × 規模_p ÷ Σ_官僚 規模_p     （規模加重平均・[0,1]）
-    /// </code>
-    /// <para>1.0＝欲しい財を全て買えている（＝食える官僚）／0.5＝半分／0＝何も買えない（清の胥吏）。
-    /// 官僚が1人も居ない世界では 1.0＝**上乗せなし**へ倒す（fail-safe＝基準が立たないなら罰さない）。</para>
-    /// <para>⚠**物差しが「俸給比」でなく「満足度」である理由**（作者裁定＝「嗜好品を購入できているか」）：
-    /// ①**貧しい国では 官僚所得÷平均所得 が1.0（＝世間並み＝適正）でも官僚は飢えている**＝相対比は**絶対的な窮乏を取り逃す**。
-    /// ②満足度は[0,1]に有界＝**比ではないので分母の下限が要らない**（『比のガードは絶対値で書かない』の罠を構造的に踏まない。
-    /// 俸給比だと「全国の1人あたり所得」という痩せうる分母が要る）。
-    /// ③闘争度（<see cref="Politics"/> の want＝1−満足度）・犯罪率（<see cref="Crime"/>）と**同じ物差しに合流**する＝
-    /// 汚職は**エリート版の同じ不満**＝式を2つ作らない。</para>
-    /// <para>⚠<c>Satisfaction</c> でなく <c>LastSatisfaction</c>（**前月**）を読む：汚職の分け前は <see cref="Fiscal"/> で
-    /// 官僚の <c>LandRent</c>／<c>Savings</c> へ入るので、当月の満足度を読むと
-    /// **汚職→貯蓄→消費→満足度→汚職** の環が同一ティックで閉じる（負のフィードバックでも同月で閉じれば発散源になる＝
-    /// 設計側 <c>20260817_開発速度の根本修正.md</c> §1）。退避は <see cref="EconomyStep"/> の月初の1行
-    /// （<c>LastEducationFill</c> と同型＝読み手が居ない月は書くだけ＝恒等）。</para>
-    /// <para>⚠兵士（<c>IsSoldier</c>）は数えない＝兵の充足は <c>Military</c> の即応度が読む別の物差し（二重計上しない）。
-    /// 規模で加重するのは、popが集団だから（人数の多い官僚層の暮らしが実効汚職を決める）。</para>
-    /// <para>★設計側への申し送り：汚職を「予算の余り」へ畳む改修（docs/202608/20260817_汚職を予算の余りへ畳む.md）が入ったら、
-    /// この量は <c>余り×(1−監視)</c> の**分配率**側へ移す＝同じ導出量を新設計が読み替えるだけで済む。</para></summary>
-    public double OfficialWelfareFill
-    {
-        get
-        {
-            double satSum = 0, sizeSum = 0;
-            foreach (var p in AllPops())
-                if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier && p.Size > 0)
-                { satSum += p.LastSatisfaction * p.Size; sizeSum += p.Size; }
-            if (!(sizeSum > 0)) return 1.0;              // 官僚が居ない世界＝基準なし＝恒等側へ（否定形＝NaNもここ）
-            double fill = satSum / sizeSum;
-            return !(fill >= 0) ? 1.0 : (fill > 1.0 ? 1.0 : fill);   // 満足度は[0,1]＝比でないので分母の下限が要らない
-        }
-    }
-
-    /// <summary>★監視（汚職再設計 C1・20260814_汚職をサブシステムにする・休眠）。
+    /// <summary>★監視（汚職再設計 C1・20260814_汚職をサブシステムにする・点火 2026-08-15）。
     /// 旧 CleanGovernance（根絶費で買うストック）を**法から導出される監視**へ置換する器：
     ///   監視 ＝ noisy-or(報道の自由, 資格任用, 議会の予算権) ＝ 1 − (1−p)(1−m)(1−b)
     /// noisy-or は 8f の推奨裁定（積だと1要素0で監視全滅＝報道だけでも監視できるのが史実：マックレーカーズ）。
@@ -1177,11 +1120,6 @@ public sealed class World
     public Share ShipSteamShare { get; internal set; }
     public double ColonialShipBurden { get; internal set; }    // 植民地補給航路による海運の混雑（Colonial が毎期設定）。交易の実効海運＝ShipCapacity/(1+これ)＝遠方帝国ほど交易船が補給に取られる（スケールフリー）
     public double LossFinanced { get; internal set; }          // 累積：損失で貯蓄が負になり信用で埋めた額（有限責任の負債化）。慢性赤字の可視化＝隠蔽しない
-    // === POPの個人債務の診断（2026-08-02）===
-    // ⚠★**LossFinanced に相乗りさせない**。あれは SelfPlay.LossFinancedRateThreshold=0.35 という硬性ゲートの分子そのもので、
-    //   家計の起債をそこへ記帳すると閾値が即座に恒真化する（設計§6-1）。別カウンタを立てるのが必須。
-    public double HouseholdCreditIssued { get; internal set; }  // 累積：家計が生活のために借りた額（入口B）
-    public double HouseholdDebtRepaid { get; internal set; }    // 累積：家計が返した額（出口）
     public double PopulationDelta { get; internal set; }       // 人口の規定値からの累積変化（＝累計 出生−死亡−戦死。符号付き）。人口保存則の基準に算入＝動的人口（人口転換）
     public double WarDeadCumulative { get; internal set; }     // 累計戦死（戦争で消耗した人口の総量＝総コスト指標。回復とは別に積算）
     public double TerrorPurgeCumulative { get; internal set; }  // 診断（UI・2026-07-15）：恐怖政治（タスクB）で粛清・亡命した旧支配層の累計人口。**書くだけ＝どの計算路も読まない＝挙動非依存**。UIがDetectEventsで差分を取り「旧支配層が粛清された」ニュースを出す
@@ -1302,8 +1240,6 @@ public sealed class World
     }
 
     // --- 植民地（§6.1 拡張：固有資源＋人口プール＋開発度）---
-    public double ColonialInfra { get; internal set; }   // 植民地の開発度。輸送船＋鉄道の投資で上がり、固有資源の産出と扶養人口を増やす（飽和＝逓減）
-    public double ColonialPop { get; internal set; }     // 植民地人口プール（＝植民地数×産出率）。読み手はRunnerの表示1行のみ＝診断量（02断線走査2026-07-28コメント是正：旧の捕囚市場〔2026-09-30 段4g に削除〕の基数もこの量ではなかった。国力へ繋ぐと ThreatUsesColonyValue のΣColony.Value と二重計上になる＝繋がない）
     public double ModernizationFrac { get; set; }       // 近代化投資レバー（0..1・UI/AI 共通の動詞・既定0＝無効）。四半期予算は ModernizationBudget()（GDP比の凸コスト）、配分は ApplyModernizationInvestment（招聘/高等教育/建設）
     public double ExpansionWill { get; internal set; }   // 膨張意欲（累積）：戦争熱が閾値超で四半期ごとに貯まり、小国侵略で消費（段C）。標的が大きいほど多く要る
 
@@ -1782,7 +1718,7 @@ public sealed class World
         if (r.State != RegionState.Active) return false;
         var p = FindFactory(r, goodId);
         if (p is null || p.ConstructionLeft > 0) return false;            // 既に建設中
-        if (!(Discovery.Gate(r, p) > 0)) return false;                    // ★(260) 発見の門が閉じた個体には建てない（完成の月に TechGatedScaleZero が操業規模を0に置く＝不活性の設備になる）。AI・プレイヤー・月次の再挑戦が通る唯一の着工の口
+        if (!(Discovery.Gate(r, p) > 0)) return false;                    // ★(260) 発見の門が閉じた個体には建てない（完成の月に技術ゲート0の操業規模0が操業規模を0に置く＝不活性の設備になる）。AI・プレイヤー・月次の再挑戦が通る唯一の着工の口
         // ★建材の高値では着工しない（2026-08-04・作者指示「建材も閾値を超える価格の場合、AIもプレイヤーも工場建設不可に」）。
         //   閾値は**既存の半減点をそのまま使う**＝ConstructionAfford は FactoryBuildAfford（現在/参照の連続減衰）で、
         //   0.5 になる点が `比 = FactoryBuildPriceCeil`＝設計上の「これ以上は高すぎる」線。新しい定数を1本も置かない。
@@ -2088,7 +2024,7 @@ public sealed class World
     {
         double best = double.MaxValue;
         // 接9（監査2026-07-11・2026-07-25休眠配線）：他の海運コストは全て海路距離（喜望峰/スエズ/パナマ経由）へ統一済みなのに、
-        // 侵略の船要求だけが大圏直線＝海域をまたぐ遠方標的ほど船要求が過小（欧州→ボルネオで本来の約73%）。1で海路距離へ統一。既定0＝大圏＝現行と厳密一致。
+        // 侵略の船要求だけが大圏直線＝海域をまたぐ遠方標的ほど船要求が過小（欧州→ボルネオで本来の約73%）。1で海路距離へ統一。既定1＝海路距離（焼き込み済みの旗・0＝旧の大圏直線）。
         bool seaDist = Coef.InvadeShipSeaDistance > 0.5 && Diplomacy is not null && SelfPower is not null;
         bool suezOk = seaDist && Diplomacy!.ChokeOpenFor(Diplomacy.SuezId, SelfPower);
         bool panamaOk = seaDist && Diplomacy!.ChokeOpenFor(Diplomacy.PanamaId, SelfPower);
@@ -2367,11 +2303,11 @@ public sealed class World
     /// 同じ財に複数の生産者が並ぶことがある＝**代替レシピ**（鋼＝坩堝鋼（門なし）とベッセマー転炉（発見の表の転炉鋼・旧 onset0.55）／
     /// レール＝錬鉄レールと鋼レール／電力＝火力と水力…）。素朴な <c>Find(GoodId==goodId)</c> は**リストの先頭**を返し、
     /// 鋼ではそれが1858年まで動かせないベッセマー転炉だった＝国営工場を建てても補助金を出しても**動かない工場**に付いていた
-    /// （2026-08-11に TechGatedScaleZero を点火するまでは幻の操業規模が立っていたため、動いているように見えていた）。
+    /// （2026-08-11に 技術ゲート0の操業規模0を点火するまでは幻の操業規模が立っていたため、動いているように見えていた）。
     /// 優先順位＝①既に持分か意志がある生産者で、今日操業できるもの（＝プレイヤー/AIが投資した対象を取り違えない・時代が変わっても付け替えない）
     /// → ②今日操業できる生産者（技術ゲートが開いている） → ③門が閉じた投資済みの生産者 → ④先頭（全部閉じている＝どのみち各所の理由で弾かれる）。
     /// ★(260) 旧は①が門に関わらず先に返った＝後継の発見で退場した旧レシピに持分が残ると、後継が開いても着工・補助・払い下げが全て不活性な旧レシピに付いた
-    ///   （持分は完成の月から操業規模0に置かれる設備〔<see cref="Coefficients.TechGatedScaleZero"/>〕で、<see cref="FactoryCounter"/> も数えない）。閉じた投資済みは③へ下げた。
+    ///   （持分は完成の月から操業規模0に置かれる設備〔技術ゲート0の操業規模0〕で、<see cref="FactoryCounter"/> も数えない）。閉じた投資済みは③へ下げた。
     /// ⚠新しい判定を作らない＝ゲートは供給側・Scale側と同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）。</summary>
     public static Producer? FindFactory(Region r, int goodId)
     {

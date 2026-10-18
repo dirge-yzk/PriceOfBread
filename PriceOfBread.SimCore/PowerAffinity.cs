@@ -468,7 +468,7 @@ public static class PowerAffinity
     /// ⚠根は正規化 (aff−AffMin)/(AffMax−AffMin) が最遠の対を 0 へ潰すこと＝「遠いが非ゼロ」が表現できない。
     /// ★床を置くのは当プロジェクトの既存の書き方（<see cref="Coefficients.CapitalCreditFloor"/> の「ゲートでなくプレミアム」）と同形＝新しい写像を作らない。
     /// ⚠旧注記「AffMin（＝0）」は誤り＝<see cref="Ideologies.AffMin"/> は −1.0（0なのは正規化後の下限）。
-    /// ⚠floor=0（既定）で厳密恒等＝休眠。</summary>
+    /// ⚠引数 floor の既定は 0（＝床なし）だが、呼び手は <see cref="Coefficients.CoalitionClosenessFloor"/>（既定 0.5・2026-09-05 点火）を渡す＝生きている。</summary>
     public static double Closeness(Holder a, Holder b, double slope, double floor = 0)
     {
         if (a == Holder.Revolution || b == Holder.Revolution) return floor;   // ⚠革命は誰とも「近く」ない（引力はシェアと床だけで決まる）

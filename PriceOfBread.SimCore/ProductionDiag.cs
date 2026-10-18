@@ -40,7 +40,7 @@ public static class ProductionDiag
     public readonly record struct PriceParts(
         double RefPrice, double PriceLevel, double SupplyDemand, double MarketPrice,
         double StateMonopoly, double DistributionMargin, double MonopolyRent, double GuildRent, double Insurance, double BuyerPrice,
-        double StockRatio, double OligopolyMarkup, double TariffWedge, double CornLawWedge)
+        double StockRatio, double TariffWedge, double CornLawWedge)
     {
         /// <summary>分解の積み上げ（表示に使う値だけを掛け合わせた再構成）。MarketPrice と一致する。</summary>
         public double RebuiltMarketPrice => RefPrice * PriceLevel * SupplyDemand;
@@ -70,14 +70,12 @@ public static class ProductionDiag
         // 残差（需要と供給）を動かしている駆動値。行にはしない＝ホバーで読む。
         var m = goodId >= 0 && goodId < region.Markets.Length ? region.Markets[goodId] : null;
         double stockRatio = m is not null && m.TargetStock > Eps ? m.Stock / m.TargetStock : double.NaN;
-        double oli = coef.DomesticMarkupMax > 0 && region.EffFirms is { } ef && goodId < ef.Length && ef[goodId] >= 1.0
-            ? coef.DomesticMarkupMax / ef[goodId] : 0.0;                                    // MarketFlow.StepDay の μ−1
         double tariffWedge = InternationalMarket.TariffRate(w, coef) * coef.TariffProtect;   // BilateralMarket の wedge（protect×TariffProtect）と同式
         bool grain = g is not null && (g.Tier == GoodTier.Staple || g.GrainChain);
         double cornWedge = grain ? InternationalMarket.CornFactor(w.CornLaws) * coef.CornLawImportPenalty : 0.0;                                    // BilateralMarket/Trade の cornPen と同式
 
         return new PriceParts(rp, pl, sd, price, stateMonop, distM, monRent, guildRent, insure, buyer,
-                              stockRatio, oli, tariffWedge, cornWedge);
+                              stockRatio, tariffWedge, cornWedge);
     }
 
     // ===== 生産コストの分解 =====

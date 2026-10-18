@@ -357,7 +357,7 @@ public class GoodIdGuardTests
         ("const int …Id = n", new Regex(@"\bconst\s+int\s+\w+Id\s*=\s*\d+")),
     ];
 
-    // ★(251) 反証役 vg#3：今の木で財の定数だけを並べている一覧の名前（Runner の reps・watch・milTrace／DiploCore の StapleExtra／PolicyPoliticsTests の excise）を足した。
+    // ★(251) 反証役 vg#3：今の木で財の定数だけを並べている一覧の名前（Runner の reps・watch・milTrace／PolicyPoliticsTests の excise。DiploCore の StapleExtra は 2026-10-18 に DiploCore ごと削除）を足した。
     //   名前に依らない検出は下の「初期化子に財の定数と整数が混ざる」（{ WheatId, 47 } の形）。⚠限界＝名前が一覧に無く、要素が全て整数の新しい配列は見えない（README §1-9）。
     private static readonly Regex GoodArray = new(@"\b\w*(?i:goods?|goodids?|ids|gids?|resources|fuels?|metals?|weapons?|staples?|crops?|reps|watch|miltrace|stapleextra|excise)\s*=\s*(?:new\s*(?:\w+(?:<\w+>)?)?\s*(?:\[\s*\]\s*)?)?[\[{]([^\]}]*)[\]}]|ColonyDto\([^,()]*,\s*\[([^\]]*)\]");
     /// <summary>入れ子の無い初期化子 [ … ]・{ … } の中身（要素をカンマで分けて、財の定数と裸の整数が混ざるかを見る）。</summary>

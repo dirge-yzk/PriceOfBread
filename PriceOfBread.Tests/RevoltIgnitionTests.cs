@@ -1008,12 +1008,8 @@ public class RevoltIgnitionTests
     }
 
     // ============================================================================================
-    // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠で入れるだけ＝点火は次ラウンド**）。
-    //   欠陥＝内戦タグの講和は3枝（膠着＝分断固定／分離戦で反乱勝ち＝独立確定／それ以外＝再併合予約）とも
-    //   **割譲の手前で return** する＝反乱国の版図は建国時の州のまま永久に凍る（合流の経路も無い）。
-    //   RevoltExpansionScore>0 で膠着の枝だけが「押していた分だけ親の州を取る」＝**既存の戦勝点を予算**にし
-    //   （州1つの値段＝この係数）、**既存の割譲経路** Diplomacy.CedeTerritory で払う。
-    //   ⚠係数は **sim 側**（MultiNationSim(coef:)）へ書く＝Diplomacy が読むのはこのインスタンス（World.Coef は国ごと別物）。
+    // ★内戦タグの講和の3枝（膠着＝分断固定／分離戦で反乱勝ち＝独立確定／それ以外＝再併合予約）は**割譲の手前で return** する＝州は1つも動かない。
+    //   （反乱の膨張の器 RevoltExpansionScore は 2026-10-18 に削除した＝名前の復活は DormantIdentityTests.RetiredFields が禁じる。）
     //   ⚠講和は StepWars の中でしか呼ばれず、そこへ届くには押し合いと運が戦勝点を動かす＝**戦勝点を手で置いて
     //     ResolvePeace を直接踏む**（internal＝ON経路テスト用・TradeTreaties と同じ流儀）。機構の検査であって創発の主張ではない。
     // ============================================================================================
@@ -1045,7 +1041,6 @@ public class RevoltIgnitionTests
                  new[] { (-0.20, true, true, false), (-0.60, true, false, false), (-0.60, false, false, true), (0.60, false, false, true) })   // ★2026-09-29 線2：膠着の枝は分離独立の白紙（政体の内戦の膠着は勝者の枝へ）
         {
             var (sim, pw, rw, war) = 段7_内戦を1本立てる(new Coefficients());
-            Assert.Equal(0.0, sim.Coef.RevoltExpansionScore);   // ⚠OFF側も明示的に確かめる（点火したらこの対照は空洞になる＝そのとき赤で気付く）
             int pn = pw.Regions.Count, rn = rw.Regions.Count;
             double pPop = pw.TotalPopulation, rPop = rw.TotalPopulation, pDelta = pw.PopulationDelta, pFlow = pw.CumulativeTradeFlow.Value;
             war.Score = score; war.CivilWarSecession = secession;
@@ -1060,67 +1055,6 @@ public class RevoltIgnitionTests
             Assert.Equal(rump, rw.RumpParentName.Length > 0);
             Assert.Equal(reint, sim.Diplomacy.PendingReintegrations.Count > 0);
         }
-    }
-
-    [Fact]
-    public void 段7_膨張の腕では押した分だけ州が移り人と金の保存が閉じる()   // (ii) >0 で州が移り保存が閉じる
-    {
-        var coef = new Coefficients { RevoltExpansionScore = 0.10 };   // 州1つの値段＝戦勝点0.10
-        var (sim, pw, rw, war) = 段7_内戦を1本立てる(coef);
-        war.Score = -0.20;   // 反乱側が押している膠着（|戦勝点| < WhitePeaceScore=0.25＝この枝の定義）＝予算0.20で2州
-        war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
-        int pn = pw.Regions.Count, rn = rw.Regions.Count;
-        double rPop0 = rw.TotalPopulation;
-        var core0 = new System.Collections.Generic.Dictionary<string, double>();
-        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare.Value;
-        // ★保存はエンジン自身の不変条件で見る（新しい許容誤差を書かない）：基準線を今この瞬間に取り、講和のあとで Check する。
-        var pPop = new PopulationConservation(pw); var pMoney = new MoneyConservation(pw);
-        var rPop = new PopulationConservation(rw); var rMoney = new MoneyConservation(rw);
-        sim.Diplomacy.ResolvePeace(coef, war);
-        Assert.Equal(pn - 2, pw.Regions.Count);   // 予算0.20 ÷ 値段0.10 ＝ 2州（親から抜ける）
-        Assert.Equal(rn + 2, rw.Regions.Count);   // 同じ2州が反乱国へ入る（消えない）
-        Assert.True(rw.TotalPopulation > rPop0, "州だけが動いて人が付いてきていない");
-        pPop.Check(pw); pMoney.Check(pw); rPop.Check(rw); rMoney.Check(rw);   // 破れれば InvariantViolationException が飛ぶ
-        // 中核民族の基準は親から反乱国へ移る＝建国路と同じ反転（これが無いと再併合の一括反転が片道だけ掛かる）
-        int moved = 0;
-        foreach (var r in rw.Regions)
-            if (core0.TryGetValue(r.Name, out double x0) && r.Pops.Count > 0)
-            {
-                Assert.Equal(1.0 - x0, r.Pops[0].CoreEthnicShare.Value, 12);
-                Assert.Equal(0.0, r.AnnexBaggage);   // 内戦で動く州は「外から連れてきた人口」ではない（建国路の AnnexBaggage=0 と同じ）
-                moved++;
-            }
-        Assert.Equal(2, moved);
-    }
-
-    [Fact]
-    public void 段7_再併合は膨張した分も含めて全州を親へ返す()   // (iii) 太平天国型＝支配→鎮圧→全返還
-    {
-        var coef = new Coefficients { RevoltExpansionScore = 0.10 };
-        var (sim, pw, rw, war) = 段7_内戦を1本立てる(coef);
-        int total = pw.Regions.Count + rw.Regions.Count;   // 内戦が始まった時点の親の版図（建国で割れた両側の和）
-        var core0 = new System.Collections.Generic.Dictionary<string, double>();
-        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare.Value;
-        war.Score = -0.20; war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
-        sim.Diplomacy.ResolvePeace(coef, war);
-        Assert.True(rw.Regions.Count > 1, "前提が崩れた：膨張していない＝全返還の検査にならない");
-        var expanded = new System.Collections.Generic.List<string>();
-        foreach (var r in rw.Regions) expanded.Add(r.Name);
-        var pPop = new PopulationConservation(pw); var pMoney = new MoneyConservation(pw);
-        sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));   // 親が鎮定＝再併合
-        sim.StepQuarter();   // ⚠この中で Simulation の月次 CheckInvariants も全期間走る（破れれば例外）
-        Assert.Equal(2, sim.Nations.Count);         // 反乱国家は消えた
-        Assert.Equal(total, pw.Regions.Count);      // 膨張した分も含めて全州が親へ戻った
-        foreach (var name in expanded) Assert.Contains(pw.Regions, r => r.Name == name);
-        pPop.Check(pw); pMoney.Check(pw);
-        // 反転は往復で閉じる（行きは膨張の器・帰りは再併合の一括反転）＝返った州の中核比は裏返ったままにならない。
-        foreach (var r in pw.Regions)
-            if (expanded.Contains(r.Name) && core0.TryGetValue(r.Name, out double x0) && r.Pops.Count > 0)
-            {
-                Assert.True(Math.Abs(2 * x0 - 1) > 0.5, $"前提が崩れた：中核比が0.5近傍（{x0:F3}）＝往復の向きを見分けられない");
-                double back = r.Pops[0].CoreEthnicShare.Value;
-                Assert.True(Math.Abs(back - x0) < Math.Abs(back - (1.0 - x0)), $"{r.Name}の中核比が裏返ったまま返った（{back:F3}／出発 {x0:F3}）");
-            }
     }
 
     // ============================================================================================

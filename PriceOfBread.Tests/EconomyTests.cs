@@ -33,7 +33,6 @@ public class EconomyTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
         var goods = r.Goods.Where(g => g.Tier != GoodTier.Service && g.RefPrice > 0).Take(2).ToArray();
         Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
         var mS = r.Markets[goods[0].Id]; var mG = r.Markets[goods[1].Id];
@@ -66,7 +65,6 @@ public class EconomyTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
         var goods = r.Goods.Where(g => g.Tier != GoodTier.Service && g.RefPrice > 0).Take(2).ToArray();
         Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
         var mF = r.Markets[goods[0].Id]; var mN = r.Markets[goods[1].Id];
@@ -169,7 +167,6 @@ public class EconomyTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
         var goods = r.Goods.Where(g => g.Tier != GoodTier.Service && g.RefPrice > 0).Take(2).ToArray();
         Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
         var mS = r.Markets[goods[0].Id]; var mG = r.Markets[goods[1].Id];
@@ -204,7 +201,6 @@ public class EconomyTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
         var g = r.Goods.First(x => x.Tier != GoodTier.Service && x.RefPrice > 0);
         foreach (var x in r.Goods) { var mx = r.Markets[x.Id]; mx.LastDemand = 0; mx.LastProduced = 0; }   // この財だけを生きた財にする（台帳の件数をこの財だけにする）
         var m = r.Markets[g.Id];

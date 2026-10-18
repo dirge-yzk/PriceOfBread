@@ -23,9 +23,7 @@ public static class Meritocracy
     public static void Step(World w, Coefficients c)
     {
         Span<int> targets = stackalloc int[5];     // 昇格先（技師・教師・官僚・医者・★研究者）の作業領域（ループ外確保）。⚠5がちょうど上限＝これ以上足すなら幅も広げる
-        double meritW = 0, meritP = 0;             // メリトクラシー値の全活性州 人口加重平均（グローバル診断値。旧：毎州上書きで最後の州だけ残るバグ）
         bool fallReform = c.FallAnchorReform > 0;   // rank7（点火0.3）：>0で③④⑤⑥の物差しを結晶資産込み＋所得年数アンカーへ（0＝下の分岐が一切走らない厳密恒等）。州に依存しない＝ループ外で1回だけ評価
-        bool gateEma = c.EducationGateUsesEma > 0;  // 高等教育ゲートに瞬間Fillでなく多年EMAを使うか。州に依存しない＝ループ外で1回だけ評価
         // ★(155) 兵士の席（⑦）の国の量＝ループ外で1回（定員は国の和＝州へは州の母数÷国の母数で配る＝Military.Step の強制の徴募と同じ1本）
         double seatsNat = Military.EstablishmentOf(w, c, out double seatNatMan);
         bool atWar = w.AtWarNow;   // 戦時は復員しない（Military.Step の交戦の判定と同じ＝自国の戦争が1本でもある）
@@ -35,11 +33,10 @@ public static class Meritocracy
         {
             if (r.State != RegionState.Active) continue;
 
-            double total = 0, modern = 0, totalSav = 0, totalAsset = 0, closed = 0;
+            double total = 0, modern = 0, totalSav = 0, totalAsset = 0;
             foreach (var p in r.Pops)
             {
                 total += p.Size; totalSav += Math.Max(0, p.Savings.Value); if (p.IsModernElite) modern += p.Size;
-                if (p.Closed) closed += p.Size;   // ★AUD-07：身分（貴族・聖職）の人口シェア＝政体ラベルの代わりに読む実体
                 if (fallReform) totalAsset += Math.Max(0, p.Savings.Value);   // rank7(a)：分母も判定資産と同じ定義＝対称（結晶資産は2026-09-26に削除＝常に0だった）
             }
             if (total <= Eps) continue;
@@ -47,12 +44,8 @@ public static class Meritocracy
             double fallAvg = fallReform ? totalAsset / total : avgPerCap;   // rank7：③④⑤⑥のアンカー分母（f=0でavgPerCapと同一参照値）
 
             // M ＝ 政体の近代性 ＋ 近代的利益団体の勢力割合
-            // ★AUD-07（2026-09-03）：政体ラベルの固定表 → 身分の閉鎖度からの導出へ（MeritModernityFromClosed=0 で旧＝厳密恒等）。
-            double modernity = c.MeritModernityFromClosed > 0
-                ? PoliticalQuantities.Clamp01(1.0 - closed / total) * c.MeritModernityFromClosed
-                : PolityModernity(w.Polity);
+            double modernity = PolityModernity(w.Polity);
             double m = PoliticalQuantities.Clamp01(modernity + (modern / total) * c.MeritGroupWeight);
-            meritW += m * total; meritP += total;   // グローバル値は全州の人口加重平均でループ後に確定（per-regionの昇格は下で local m を使う）
 
             if (r.MeritFromIndex < 0 || r.MeritToIndex < 0) continue;
             var from = r.Pops[r.MeritFromIndex];   // 都市労働者
@@ -87,10 +80,8 @@ public static class Meritocracy
             };
             // 高等教育ゲート：中流が買えた教育（＝下層が買った後の**余剰**教育）が専門職への転職資格。
             // 教育の供給が下層の基礎教育で尽きる社会では専門職が育たない。教育財の無い小シナリオは Fill=1.0＝従来挙動。
-            // 人13：既定は当月 EducationFill（瞬間フロー）＝不況で1ヶ月教育が買えないと社会移動が即凍結。EducationGateUsesEma=1 で
-            // 多年EMA（修学年数の蓄積ストック＝EducationEma・識字と同型の緩和）をゲートに使う＝一時的な教育の途絶では資格が消えない（時間スケールの整合）。
             double he = 0, hw = 0;
-            foreach (var p in r.Pops) if (p.IsModernElite) { he += (gateEma ? p.EducationEma : p.EducationFill) * p.Size; hw += p.Size; }
+            foreach (var p in r.Pops) if (p.IsModernElite) { he += p.EducationFill * p.Size; hw += p.Size; }
             double higherEdu = hw > Eps ? he / hw : 1.0;
             // ★2026-08-12（作者裁定②「移民の国の識字が低いのは正しい。そこから教師が時間とともに増えるならよい」）：
             //   資格の物差しが「**エリートに届いた余剰**教育（higherEdu）」だけなので、教育が不足している社会では
@@ -99,7 +90,7 @@ public static class Meritocracy
             //   実測：移民で人口が2倍以上に膨らむアメリカ・ネーデルラントで教師密度が希釈され、識字が
             //   60%→28%・56%→23%へ**下がる**（人口成長に教師供給が原理的に追随できない）。
             //   欠けている物理＝**学校を出た平民から教師が出る**という再生産経路。教師は貴族の余暇からは出ない。
-            //   志望者本人の就学（下層が優先的に買えた EducationFill／そのEMA）を混ぜて閂を外す。0で厳密恒等。
+            //   志望者本人の就学（下層が優先的に買えた EducationFill）を混ぜて閂を外す。0で厳密恒等。
             //   ★形は**混合でなく max**（2026-08-13の是正）。初版は higherEdu と ownEdu の線形混合にしたが、
             //     ownEdu < higherEdu の国では**既存の資格経路を黙って下げて**しまい、イギリスが所得税を解禁できなくなった
             //     （TaxTests「所得税は歳入を生み保存則を保つ」が赤）。壊したかったのは自己閉鎖であって
@@ -113,7 +104,7 @@ public static class Meritocracy
             //     （当時は所得税の解禁ゲートに届かず TaxTests が赤・教育と全く同じ希釈の形。ゲート自体は2026-09-12に廃止）。
             double gateEduPro = higherEdu;
             if (c.PromotionGateOwnSchooling > 0)
-                gateEduPro = Math.Max(higherEdu, c.PromotionGateOwnSchooling * (gateEma ? from.EducationEma : from.EducationFill));
+                gateEduPro = Math.Max(higherEdu, c.PromotionGateOwnSchooling * from.EducationFill);
 
             // ===== ⑦ 兵士の席（2026-10-02 (155)・作者承認 2026-10-01「それでよい。ただし兵士は他の職とは性質が違うので、多少の外科的な処置は許可する」＝推奨で進めた）=====
             // 兵士は下流（0）の職の1つ＝席の数は制度（定員＝Military.EstablishmentOf の州按分＝州の母数÷国の母数）・給与は国家の規定（Simulation の SoldierPayBudget）。
@@ -131,7 +122,7 @@ public static class Meritocracy
                 if (!atWar && soldierPop.Size > seatsR + Eps && c.JobSearchRatePerQuarter.Value > 0)
                 {
                     double noSeat = 0;   // 復員の行き先に兵士の席は入れない（自分自身＝FillJobs が ReferenceEquals で外す）
-                    RouteViaPool(r, w, m, avgPerCap, soldierPop, 0, dischargeQ * (soldierPop.Size - seatsR), secular, higherEdu, gateEma, c, ref noSeat, forced: true);
+                    RouteViaPool(r, w, m, avgPerCap, soldierPop, 0, dischargeQ * (soldierPop.Size - seatsR), secular, higherEdu, c, ref noSeat, forced: true);
                 }
                 soldierVac = Math.Max(0, seatsR - soldierPop.Size);
             }
@@ -200,7 +191,7 @@ public static class Meritocracy
                         // ★特権 段4（同業組合・2026-09-07）：組合が職人を職に縛る＝工場への移動が法の度合×GuildMobilityDrag だけ遅れる（歪み＝表裏の裏）。0＝恒等
                         if (c.GuildLawGate > 0 && c.GuildMobilityDrag > 0) f *= 1.0 - PoliticalQuantities.Clamp01(c.GuildMobilityDrag * Privileges.GuildDegree(w));
                         // 失業プール点火時は行き先も同経路（資格があれば専門職に踏み留まる職人＝没落一直線でない）
-                        if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, f, secular, higherEdu, gateEma, c, ref soldierVac, forced: true);
+                        if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, f, secular, higherEdu, c, ref soldierVac, forced: true);
                         else Move(artisan, from, f, c);
                     }
                 }
@@ -224,7 +215,7 @@ public static class Meritocracy
                     // rank10a（点火0.5 JobSearchLiteracyWeight）：探索効率の識字連動（新聞求人・文書応募の代理）。0で×1.0＝旧と厳密恒等。
                     double eff = c.JobSearchRatePerQuarter.Value * (1.0 - c.JobSearchLiteracyWeight * (1.0 - p.Literacy));
                     double poolFlow = eff * u * p.Size;
-                    RouteViaPool(r, w, m, avgPerCap, p, cls, poolFlow, secular, higherEdu, gateEma, c, ref soldierVac, forced: p.IsSoldier);   // 脱走は強制（席に留まれない）
+                    RouteViaPool(r, w, m, avgPerCap, p, cls, poolFlow, secular, higherEdu, c, ref soldierVac, forced: p.IsSoldier);   // 脱走は強制（席に留まれない）
                 }
 
             // ===== ② 下層 → 聖職者（宗教学校の社会のみ）：教育で儲かる聖職者は魅力的な職 =====
@@ -323,7 +314,7 @@ public static class Meritocracy
                     {
                         // ①''点火時：転落の行き先もプール経路（同階級＝上流は入れる職なし→中流の最良職へ資格の按分・残りは職人等へ）
                         double rate = isCapitalist && (debtRuined || pc < c.InsolventThreshold * anchor) ? c.BankruptcyFallRatePerQuarter.Value : c.UpperFallRatePerQuarter.Value;
-                        RouteViaPool(r, w, m, avgPerCap, p, 2, rate * depth * p.Size, secular, higherEdu, gateEma, c, ref soldierVac, forced: true);
+                        RouteViaPool(r, w, m, avgPerCap, p, 2, rate * depth * p.Size, secular, higherEdu, c, ref soldierVac, forced: true);
                     }
                     else if (isCapitalist && r.ArtisanPopIndex >= 0)
                     {
@@ -348,7 +339,7 @@ public static class Meritocracy
                     {
                         double depth5 = FallDepth(pc5, thr5, false, c);   // rank7(c)：深さ比例（f=0で1.0）
                         // ①''点火時：まず同階級で今より稼げる職（貧した教師→給与の立つ技師等）・駄目なら下層の最良職へ
-                        if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, t, 1, c.MiddleFallRatePerQuarter.Value * depth5 * t.Size, secular, higherEdu, gateEma, c, ref soldierVac, forced: true);
+                        if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, t, 1, c.MiddleFallRatePerQuarter.Value * depth5 * t.Size, secular, higherEdu, c, ref soldierVac, forced: true);
                         else Move(t, from, c.MiddleFallRatePerQuarter.Value * depth5 * t.Size, c);
                     }
                 }
@@ -362,7 +353,7 @@ public static class Meritocracy
                 if (mt.Size > Eps && pcM < thrM)
                 {
                     double depthM = FallDepth(pcM, thrM, false, c);
-                    if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, mt, 1, c.MiddleFallRatePerQuarter.Value * depthM * mt.Size, secular, higherEdu, gateEma, c, ref soldierVac, forced: true);
+                    if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, mt, 1, c.MiddleFallRatePerQuarter.Value * depthM * mt.Size, secular, higherEdu, c, ref soldierVac, forced: true);
                     else Move(mt, from, c.MiddleFallRatePerQuarter.Value * depthM * mt.Size, c);
                 }
             }
@@ -379,14 +370,13 @@ public static class Meritocracy
                     double rate = pc < c.InsolventThreshold * anc6 ? c.BankruptcyFallRatePerQuarter.Value : c.MiddleFallRatePerQuarter.Value;
                     double depth6 = FallDepth(pc, c.MiddleFallThreshold * anc6, false, c);   // 深割れ（破産圏）は自然に速いまま＝depth≈1
                     // ①''点火時：破産職人もプール経路（資格のある者は専門職へ・残りは下層の最良職へ）
-                    if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, rate * depth6 * artisan.Size, secular, higherEdu, gateEma, c, ref soldierVac, forced: true);
+                    if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, rate * depth6 * artisan.Size, secular, higherEdu, c, ref soldierVac, forced: true);
                     else Move(artisan, from, rate * depth6 * artisan.Size, c);
                 }
             }
 
             volunteers += Math.Max(0, soldierVac0 - soldierVac);   // ★(155) この州で志願が埋めた席
         }
-        if (meritP > Eps) w.Meritocracy = meritW / meritP;   // 全活性州の人口加重平均（旧：foreach内で毎州上書き＝最後の州の値だけ残るバグ）
         if (volunteers > Eps) { double sEnd = w.SoldierSizeK(); Military.DiluteSkill(w, sEnd - volunteers, sEnd); }   // ★(155) 志願の新兵は訓練を受けていない＝熟練を薄める
     }
 
@@ -411,7 +401,7 @@ public static class Meritocracy
     /// 農村→都市の移動は §2.4 都市化天井のヘッドルーム内のみ（住宅・インフラが無ければ都市職に入れず元の職に留まる）。
     /// 1段ずつ＝落ち切らなければ翌四半期に再び判定される。</summary>
     private static void RouteViaPool(Region r, World w, double m, double avgPerCap, Pop src, int srcClass, double flow,
-                                     double secular, double higherEdu, bool gateEma, Coefficients c, ref double soldierVac, bool forced = false)
+                                     double secular, double higherEdu, Coefficients c, ref double soldierVac, bool forced = false)
     {
         if (flow <= Eps || srcClass < 0 || src.Size <= Eps) return;
         // ★C-03（2026-09-03）：農奴は「職探し」でも都市へは出られない（移動証明・人格的隷属）。
@@ -426,9 +416,9 @@ public static class Meritocracy
         double srcInc = Math.Max(0, src.EarnedPerMonth.Value) / src.Size;
         double remaining = Math.Min(flow, src.Size);
         double headroom = UrbanHeadroom(r, c);   // §2.4：このプール経路が消費できる都市流入の残枠（既存天井の管轄拡張＝素通り穴の閉鎖）
-        remaining = FillJobs(r, w, m, avgPerCap, src, srcClass, remaining, srcInc * c.PromotionPremium, secular, higherEdu, gateEma, ref headroom, ref soldierVac, c);
+        remaining = FillJobs(r, w, m, avgPerCap, src, srcClass, remaining, srcInc * c.PromotionPremium, secular, higherEdu, ref headroom, ref soldierVac, c);
         if (remaining > Eps && srcClass > 0)
-            remaining = FillJobs(r, w, m, avgPerCap, src, srcClass - 1, remaining, -1.0, secular, higherEdu, gateEma, ref headroom, ref soldierVac, c);
+            remaining = FillJobs(r, w, m, avgPerCap, src, srcClass - 1, remaining, -1.0, secular, higherEdu, ref headroom, ref soldierVac, c);
         // 強制転落（④⑤⑥・①'）は残余を残さない＝破産者は元の階級に留まれない（滞留は失業①''の専有）。
         // 資格・空き・天井で吸収しきれない残りは1段下の最良職へ全量（旧経路と同じ「必ず落ち切る」）。
         // ★これが細ると排水が出生に負ける：聖職者爆発（182→8362）の教訓＝softmax残余が④の排水を細らせ、
@@ -476,7 +466,7 @@ public static class Meritocracy
     /// 行き先の候補から閉鎖階級（貴族・聖職＝身分は買えない）・資本家（参入は資本＝③の管轄）・
     /// 商人（参入は元手＝①の判断を踏襲）・兵士（徴募の管轄）・自分自身を除く。minIncome=-1 で所得条件なし（降格）。</summary>
     private static double FillJobs(Region r, World w, double m, double avgPerCap, Pop src, int jobClass, double amount, double minIncome,
-                                   double secular, double higherEdu, bool gateEma, ref double urbanHeadroom, ref double soldierVac, Coefficients c)
+                                   double secular, double higherEdu, ref double urbanHeadroom, ref double soldierVac, Coefficients c)
     {
         bool srcRural = !src.IsUrban;
         if (c.JobPoolTemperature > 0)
@@ -512,7 +502,7 @@ public static class Meritocracy
                 if (share[i] > 0)
                 {
                     var t = r.Pops[i];
-                    double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, gateEma, c);
+                    double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, c);
                     double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);   // 空き＝受け皿の売れ残りが少ないほど吸収する（兵士の〈失業〉＝給与の未払いの割合＝払われない軍には志願しない）
                     double f = amount * (share[i] / sumW) * gate * vacancy;
                     if (srcRural && t.IsUrban) { f = Math.Min(f, urbanHeadroom); }
@@ -543,7 +533,7 @@ public static class Meritocracy
             if (bestIdx < 0) break;
             tried[bestIdx] = true;
             var dst = r.Pops[bestIdx];
-            double gate = JobGate(r, w, m, avgPerCap, src, bestIdx, jobClass, secular, higherEdu, gateEma, c);
+            double gate = JobGate(r, w, m, avgPerCap, src, bestIdx, jobClass, secular, higherEdu, c);
             if (gate > Eps)
             {
                 double f = amount * gate;
@@ -595,7 +585,7 @@ public static class Meritocracy
     /// 下流・上流の職＝資格なし（上流はそもそも候補が無い）。
     /// rank17：専門職にはガラスの天井 minorityF（①と同じ物差し・時代ブレンド込み）＝プール点火時の天井迂回の閉鎖。</summary>
     private static double JobGate(Region r, World w, double m, double avgPerCap, Pop src, int target, int jobClass,
-                                  double secular, double higherEdu, bool gateEma, Coefficients c)
+                                  double secular, double higherEdu, Coefficients c)
     {
         if (jobClass != 1) return 1.0;
         if (target == r.ArtisanPopIndex)
@@ -606,7 +596,7 @@ public static class Meritocracy
         if (target == r.BureaucratPopIndex) return PoliticalQuantities.Clamp01(src.Literacy * higherEdu * minorityF);
         double gateEdu = higherEdu;
         if (c.PromotionGateOwnSchooling > 0)
-            gateEdu = Math.Max(higherEdu, c.PromotionGateOwnSchooling * (gateEma ? src.EducationEma : src.EducationFill));
+            gateEdu = Math.Max(higherEdu, c.PromotionGateOwnSchooling * src.EducationFill);
         return PoliticalQuantities.Clamp01(src.Literacy * gateEdu * secular * minorityF);
     }
 

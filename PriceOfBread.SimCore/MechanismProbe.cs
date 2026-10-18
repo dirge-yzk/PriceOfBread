@@ -25,8 +25,6 @@ public static class MechanismProbe
     {
         /// <summary>反帝世論（Colonial C1）＝植民地の不満が本国大衆の闘争度へ還流したか。</summary>
         AntiImperialOpinion,
-        /// <summary>植民地の独立（Colonial）＝圧力が本国の抑えを超えて離反したか。</summary>
-        ColonyIndependence,
         /// <summary>権力連合の計算そのものが走ったか（PowerAffinity.Coalition）。
         /// ⚠**この行が要る理由**＝下の革命の行だけを見ると「革命が組めない」と「そもそも連合が計算されていない」を取り違える。
         /// ★実際に 2026-09-03 の初回走行で取り違えかけた（`firecheck` は StepQuarter しか回さず、

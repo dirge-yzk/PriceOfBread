@@ -1119,7 +1119,7 @@ public sealed class UtilityAgent : INationAgent
     ///   （World.StepFactoryTargets）。**第二の実装を作らない**＝州の選び方がAIとプレイヤーで食い違わない。
     /// ★基準価格や市場配列の範囲外＝測れない候補は Score/Excess とも NaN（比較は必ず偽＝fail-closed）。
     /// ★(260) 発見の門が閉じた生産者（まだ見つからない行・後継の発見で退場したレシピ・見つからない産地）も NaN＝作れない個体に建てても完成の月に操業規模が0に置かれる
-    ///   （<see cref="Coefficients.TechGatedScaleZero"/>）＝建てる価値は測れない。述語は <see cref="Discovery.Gate(Region, Producer)"/>＞0（<see cref="World.FindFactory"/>・<see cref="World.FactoryCounter"/> と同じ1本）。</summary>
+    ///   （技術ゲート0の操業規模0）＝建てる価値は測れない。述語は <see cref="Discovery.Gate(Region, Producer)"/>＞0（<see cref="World.FindFactory"/>・<see cref="World.FactoryCounter"/> と同じ1本）。</summary>
     public readonly record struct FacilityBuildValue(double Score, double Excess, bool WorldOpened);
 
     public static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr)

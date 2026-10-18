@@ -669,7 +669,6 @@ public sealed class MultiNationSim
             double frontier = 0;
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;   // StepDay と同一：後追いが立ち上がる先端を毎反復同期
-            { double fe = 0; foreach (var n in Nations) if (n.World.Expertise > fe) fe = n.World.Expertise; foreach (var n in Nations) n.World.WorldFrontierExpertise = fe; }   // ★専門人材率の先端も配る（知識doc 段3）
         }
     }
 
@@ -826,7 +825,6 @@ public sealed class MultiNationSim
             double frontier = 0;                                       // 世界の技術水準＝各国の最高水準（後発の優位・§5.1）
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;
-            { double fe = 0; foreach (var n in Nations) if (n.World.Expertise > fe) fe = n.World.Expertise; foreach (var n in Nations) n.World.WorldFrontierExpertise = fe; }   // ★専門人材率の先端も配る（知識doc 段3）
             // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
             // 「先進勢力との接触」の実体から四半期導出する。外圧＝世界の技術水準との格差（GapScaleで正規化）×海からの接触係数
             //（港あり=1/内陸=InlandFactor＝黒船は海から来る）。世界の技術水準国自身は格差0＝外圧0（追い風は後発の現象）。

@@ -219,12 +219,10 @@ public class UnitTypeTests
         (typeof(Coefficients), "PromotionSpeedPerQuarter", typeof(RatePerQuarter)),
         (typeof(Coefficients), "EmigrationMaxPerQuarter", typeof(RatePerQuarter)),
         (typeof(Coefficients), "ImmigrationReceiveCapPerQuarter", typeof(RatePerQuarter)),
-        (typeof(Coefficients), "ColonySettlerRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "PopGrowthRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "CrudeBirthRatePerYear", typeof(RatePerYear)),
         (typeof(Coefficients), "ClergyFloorShare", typeof(Share)),
         (typeof(Coefficients), "ReligiousProfessionShare", typeof(Share)),
-        (typeof(Coefficients), "ColonyPromotionCoreShare", typeof(Share)),
         (typeof(Coefficients), "ImmigrationSelectiveFrac", typeof(Share)),
         (typeof(Coefficients), "ImmigrationClosedFrac", typeof(Share)),
         // ★(321) 割合の型の残り その6＝金融・財政の係数 19 本（RatePerQuarter 3・RatePerMonth 1・Share 15）。四半期末 1 回の国際金融（CapitalMarket.Step）の配当・逃避は RatePerQuarter、月 1 回の切り下げの上限は RatePerMonth、その他の割合は Share。移さなかった物の理由は実装ログ (321)。
@@ -263,8 +261,6 @@ public class UnitTypeTests
         (typeof(Coefficients), "MegaprojectStateFrac", typeof(RatePerQuarter)),   // ★(344) 反証役 y9〔v〕中＝毎四半期の率（Share から型だけ直した・読み手は .Value のまま・改名は次の回）
         (typeof(Coefficients), "MegaprojectForeignShare", typeof(Share)),
         (typeof(Coefficients), "MegaprojectForeignDrawFrac", typeof(RatePerQuarter)),   // ★(344) 1四半期に引ける上限
-        (typeof(Coefficients), "ColonialPayShare", typeof(Share)),
-        (typeof(Coefficients), "ColonialInvestFrac", typeof(RatePerMonth)),   // ★(344) Colonial.Step は月次（Simulation の月の段）
         (typeof(Coefficients), "CanalInvestFrac", typeof(RatePerQuarter)),   // ★(344) 毎四半期
         (typeof(Coefficients), "PortInvestFrac", typeof(RatePerQuarter)),   // ★(344) 毎四半期
         (typeof(Coefficients), "PortStateFrac", typeof(Share)),
@@ -282,7 +278,6 @@ public class UnitTypeTests
         // ★(355) 割合の型の残り その10＝EconomyStep を読み手に持つ物（アヘンの線が済んだので）と、閾値・上限・取り分・床の係数 21 本（Share 20・RatePerMonth 1〔IndInvestmentFrac＝毎月の予算が貯蓄の在庫に掛かる月率〕）。
         (typeof(Coefficients), "ReignitionDemandFrac", typeof(Share)),
         (typeof(Coefficients), "IndInvestmentFrac", typeof(RatePerMonth)),
-        (typeof(Coefficients), "RgoCapitalShare", typeof(Share)),
         (typeof(Coefficients), "FactoryMaterialFrac", typeof(Share)),
         (typeof(Coefficients), "ResearcherFrac", typeof(Share)),
         (typeof(Coefficients), "NationalizationStateShare", typeof(Share)),
@@ -601,8 +596,8 @@ public class UnitTypeTests
             ("BankruptcyFallRatePerQuarter", typeof(RatePerQuarter)), ("ClergyJoinRatePerQuarter", typeof(RatePerQuarter)), ("ClergyExitRatePerQuarter", typeof(RatePerQuarter)),
             ("ArtisanDeclineRatePerQuarter", typeof(RatePerQuarter)), ("JobSearchRatePerQuarter", typeof(RatePerQuarter)), ("PettyEntryRatePerQuarter", typeof(RatePerQuarter)),
             ("PromotionSpeedPerQuarter", typeof(RatePerQuarter)), ("EmigrationMaxPerQuarter", typeof(RatePerQuarter)), ("ImmigrationReceiveCapPerQuarter", typeof(RatePerQuarter)),
-            ("ColonySettlerRatePerMonth", typeof(RatePerMonth)), ("PopGrowthRatePerMonth", typeof(RatePerMonth)), ("CrudeBirthRatePerYear", typeof(RatePerYear)),
-            ("ClergyFloorShare", typeof(Share)), ("ReligiousProfessionShare", typeof(Share)), ("ColonyPromotionCoreShare", typeof(Share)),
+            ("PopGrowthRatePerMonth", typeof(RatePerMonth)), ("CrudeBirthRatePerYear", typeof(RatePerYear)),
+            ("ClergyFloorShare", typeof(Share)), ("ReligiousProfessionShare", typeof(Share)),
             ("ImmigrationSelectiveFrac", typeof(Share)), ("ImmigrationClosedFrac", typeof(Share)),
         ];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
@@ -713,7 +708,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで投資と取り分と率の係数の欄が残る()
     {
-        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "ColonialPayShare", "ColonialInvestFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
+        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < names.Length; k++)
@@ -739,7 +734,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで閾値と取り分と床の係数の欄が残る()
     {
-        string[] names = ["ReignitionDemandFrac", "IndInvestmentFrac", "RgoCapitalShare", "FactoryMaterialFrac", "ResearcherFrac", "NationalizationStateShare", "PartyDominanceThreshold", "LandReformRentCap", "SerfEmancipationRentCap", "FactoryMothballCap", "DepositGradeKnee", "ManifestoFulfillMove", "FascismCrisisLeftRef", "EpidemicSeverity", "SmugglingMax", "WartimeUpkeepFloor", "HegemonRestraintFloor", "FactionMergeCohesionGain", "CanalInvestReturns", "ModernizationToRecruit", "MerchantTradeMargin"];
+        string[] names = ["ReignitionDemandFrac", "IndInvestmentFrac", "FactoryMaterialFrac", "ResearcherFrac", "NationalizationStateShare", "PartyDominanceThreshold", "LandReformRentCap", "SerfEmancipationRentCap", "FactoryMothballCap", "DepositGradeKnee", "ManifestoFulfillMove", "FascismCrisisLeftRef", "EpidemicSeverity", "SmugglingMax", "WartimeUpkeepFloor", "HegemonRestraintFloor", "FactionMergeCohesionGain", "CanalInvestReturns", "ModernizationToRecruit", "MerchantTradeMargin"];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < names.Length; k++)

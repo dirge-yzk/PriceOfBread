@@ -16,12 +16,11 @@ namespace PriceOfBread.SimCore;
 /// - ★v2（POBSIM2・2026-08-31）＝**フィールド名テーブル**：型の初出時に直列化フィールドのキー（宣言型名.フィールド名）を書く。
 ///   ロードは名前で突き合わせ＝保存側にだけある名前は読み捨て・現行側にだけある名前は既定値（無引数ctorのドナー）で埋める
 ///   ＝**係数・フィールドを足してもセーブが壊れない**（プロイセン走§4-4「Boolean cannot be converted to Double」＝位置ずれの是正）。
-///   旧POBSIM1は従来の位置読み（フィールド集合が一致するビルド内でのみ読める＝現状維持）。
+///   旧POBSIM1（位置読み）は 2026-10-18 に読み口ごと削除（旧版セーブが壊れても構わない＝作者 2026-09-26）。
 /// </summary>
 public static class SaveGame
 {
     private const string Magic = "POBSIM2";
-    private const string MagicV1 = "POBSIM1";
 
     public static void Save(MultiNationSim sim, Stream stream)
     {
@@ -35,8 +34,8 @@ public static class SaveGame
     {
         var br = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
         string magic = br.ReadString();
-        if (magic != Magic && magic != MagicV1) throw new InvalidDataException($"セーブデータの形式が違う（magic={magic}）");
-        object? root = new GraphReader(br, named: magic == Magic).ReadValue();
+        if (magic != Magic) throw new InvalidDataException($"セーブデータの形式が違う（magic={magic}）");
+        object? root = new GraphReader(br).ReadValue();
         var sim = root as MultiNationSim ?? throw new InvalidDataException("セーブデータの復元に失敗（ルートが MultiNationSim でない）");
         // ★国債の保有台帳（2026-09-21）：台帳導入前のセーブは Pop.BondHoldings が既定値0で埋まる＝国内債のある国で不変条件（BondLedger）が
         //   最初の月に割れる（セーブ破れ）。台帳が空で国内債がある国だけ、構築時と同じ起票（購入と同じ規則）で持ち主を記す。
@@ -202,7 +201,7 @@ public static class SaveGame
         }
     }
 
-    private sealed class GraphReader(BinaryReader br, bool named)
+    private sealed class GraphReader(BinaryReader br)
     {
         private readonly List<object> _objects = new();
         private readonly List<Type> _types = new();
@@ -250,11 +249,6 @@ public static class SaveGame
 
         private void ReadFields(Type t, object obj)
         {
-            if (!named)   // 旧POBSIM1＝位置読み（フィールド集合が一致するビルド内のみ＝従来と同じ）
-            {
-                foreach (var f in FieldsOf(t)) f.SetValue(obj, ReadValue());
-                return;
-            }
             var (saved, missing) = MapOf(t);
             foreach (var f in saved)
             {

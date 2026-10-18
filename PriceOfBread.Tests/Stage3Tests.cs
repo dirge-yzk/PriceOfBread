@@ -24,7 +24,6 @@ public class Stage3Tests
         var sim = new Simulation(Stg3(1, EducationLaw.Public, 300, 0.7), new NullAgent());
         sim.Run(400);
         Assert.Equal(Polity.ConstitutionalMonarchy, sim.World.Polity);   // 漸進改革＝立憲君主制（明治型）
-        Assert.Equal(ModernizationPath.Meiji, sim.ClassifyPath());
         Assert.True(sim.World.Freedom >= sim.World.Coef.FrontierFreedomThreshold,   // 立憲君主制＝法律(参政権＋自由化報道)から創発した自由が世界の技術水準閾値を越え革新解禁（倍率排除②：政体スカラーでなく法駆動）
             $"立憲君主制の自由が世界の技術水準閾値に届かない：{sim.World.Freedom}");
     }
@@ -35,25 +34,9 @@ public class Stage3Tests
         var sim = new Simulation(Stg3(1, EducationLaw.Public, 2500, 0.0), new NullAgent());
         sim.Run(400);
         Assert.Equal(Polity.Absolutist, sim.World.Polity);
-        Assert.Equal(ModernizationPath.Tokugawa, sim.ClassifyPath());
         // ★(383) 〈採用天井で頭打ち＝世界の技術水準に届かない（永遠の二番手・§2.8）〉は史実の形の主張（創発）で機構の不変条件ではない。
         //   前線の技術の門の連言〔高エリート∧行政効率≥InnovationAdminThreshold〕を作者 2026-10-16「行政効率→廃止」で消した結果、高エリートだけで前線が開くので
         //   この盤面の徳川型は天井を越える（2.38）。作者 2026-10-17「史実度の低下は差し戻し理由にはなりません」＝テストから外し、成績表（G-asia・技術水準の読み）の記録へ移した。
-    }
-
-    [Fact]
-    public void 教育が乏しいと停滞する失敗型()   // Failure
-    {
-        var sim = new Simulation(Stg3(1, EducationLaw.Religious, 2500, 0.0), new NullAgent());
-        sim.Run(400);
-        Assert.Equal(ModernizationPath.Failure, sim.ClassifyPath());
-    }
-
-    [Fact]
-    public void 近代化の経路はsweepで複数現れM5の分布になる()   // M5
-    {
-        var paths = Sweep.Run(400, 12345).Select(c => c.Path).Distinct().ToList();
-        Assert.True(paths.Count >= 3, $"経路が一つに偏っている（出現 {paths.Count} 種）");
     }
 
     [Fact]

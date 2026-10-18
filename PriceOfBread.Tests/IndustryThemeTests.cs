@@ -20,7 +20,6 @@ public class IndustryThemeTests
         Assert.Equal(0.25, c.LaborSaveRate);            // 休眠復旧2026-07-09 第(iv)段採用（bisect＝挙動4テスト・較正とも無害）
         Assert.Equal(0.005, c.VintageMigrateRate);      // ヴィンテージ資本有効化2026-07-10（キュー5＝承認済み別作業項目(1)。半減期約11.6年の世代交代）
         Assert.Equal(0.5, c.VintageObsolescence);       // 同上（座礁＝0.5×techGap・gap2で全損）
-        Assert.Equal(0.0, c.DomesticMarkupMax);         // B保留（国内clearing直撃）
         Assert.Equal(0.03, c.HousingNeedPerUrban);      // リアリティ群採用2026-07-18＝家賃(住居財追加済み)。旧0.0番人を新採用値へ
         Assert.Equal(0.5, c.HousingMigrationFriction);  // B6点火2026-07-19＝鉄筋コンクリート（住居の晩期レシピ）とセット＝過密で流入飽和・鉄筋コンクリが収容力を解放
     }
@@ -33,7 +32,6 @@ public class IndustryThemeTests
         c.InventoryAdjustGain = 0.3;                       // メッツラー在庫循環
         c.LaborSaveRate = 0.3; c.LaborSaveIndHalf = 1.0;  // 技術的失業
         c.VintageMigrateRate = 0.02; c.VintageObsolescence = 0.5;  // ヴィンテージ資本
-        c.DomesticMarkupMax = 0.5;                        // 国内寡占
         c.HousingMigrationFriction = 0.5;                 // 住宅(財はinertだが摩擦経路は走る・HousingFill=1で無効果)
         double p0 = sim.World.TotalPopulation;
         var ex = Record.Exception(() => sim.Run(200));

@@ -292,9 +292,9 @@ public class MilitaryTests
         => sim.Diplomacy.Powers.Find(p => p.Nation is null && p.ColonyList.Count > 0 && sim.Diplomacy.RankOf(p) == PowerRank.Minor && sim.Diplomacy.Suzerain(p) is null)!;
 
     [Fact]
-    public void 即応度はMilitaryに一度だけ掛かる_侵攻の門と植民地の抑え()
+    public void 即応度はMilitaryに一度だけ掛かる_侵攻の門()
     {
-        // 旧＝Power.Military は既に即応度を含む（Diplomacy の戦力合成）のに、侵攻の門（World.CanInvade）と植民地の抑え（Colonial.Step）がもう一度掛けた
+        // 旧＝Power.Military は既に即応度を含む（Diplomacy の戦力合成）のに、侵攻の門（World.CanInvade）がもう一度掛けた（植民地の抑えは 2026-10-18 に削除）
         //   ＝即応度の二乗で比べた（2026-09-29 処理の一元化 段3 G）。
         var sim = TwoNations();
         var w = sim.Nations[0].World; var me = w.SelfPower!; var c = w.Coef;
@@ -309,22 +309,6 @@ public class MilitaryTests
         me.Military = 0.99 * c.InvadeMilitaryFactor;
         Assert.False(w.CanInvade(target, out reason));
         Assert.Equal("兵力が不足", reason);      // 前提＝門まで届いている（手前の門で落ちていない）
-
-        // 植民地の抑え：同じ軍・同じ圧力で、即応度だけ違う双子が同じ結果（抑え＝軍×係数・圧力は抑えの7割）
-        static bool Freed(double readiness)
-        {
-            var s = TwoNations();
-            var ww = s.Nations[0].World; var pp = ww.SelfPower!;
-            pp.ColonyList.Clear();
-            ww.Region.ColonialResources ??= [];
-            pp.Military = 0.01; ww.MilitaryReadiness = readiness;
-            var col = new Colony { Name = "試験の植民地", Population = 1.0, Militancy = 0.95, PopSize = 0.7 * pp.Military * ww.Coef.ColonialHoldScale / 0.95 };
-            pp.ColonyList.Add(col);
-            Colonial.Step(ww, ww.Coef);
-            return !pp.ColonyList.Contains(col);
-        }
-        Assert.False(Freed(1.0), "前提が崩れた：抑えが圧力を上回るのに独立した");
-        Assert.False(Freed(0.2), "即応度が植民地の抑えにもう一度掛かっている（Military は既に即応度を含む）");
     }
 
     [Fact]
@@ -1993,7 +1977,7 @@ public class MilitaryTests
             s.EarnedPerMonth = new MoneyPerMonth(soldierEarnedPerHead * s.Size);
             Assert.True(work.EarnedPerMonth / work.Size > farm.EarnedPerMonth / farm.Size, "前提が崩れた：頭数あたりでは都市労働者が上（順位が逆になる盤面）");
             double flow = 0.1 * s.Size, f0 = farm.Size, w0 = work.Size, pop0 = r.SumPopulation(), vac = 0;
-            object[] args = [r, w, 0.5, 1.0, s, 0, flow, 1.0, 1.0, false, c, vac, true];
+            object[] args = [r, w, 0.5, 1.0, s, 0, flow, 1.0, 1.0, c, vac, true];
             RouteViaPoolM.Invoke(null, args);
             return (farm.Size - f0, work.Size - w0, flow, r.SumPopulation() - pop0,
                     1.2 * Military.WorkingAdults(s) / s.Size, 1.0 * Military.WorkingAdults(s) / s.Size);

@@ -415,9 +415,9 @@ public class ProductionDiagTests4
     }
 
     /// <summary>M6（2026-09-11）：独占レントの度合の唯一定義＝EconomyStep.MonopolyDegree（物理側）。塩の独占レント＝Premium×度合（工業化で溶け Ind≥MonopolyDissolveInd で0）、
-    /// Privileges の表示は Active 州の最大、段差（EffFirms）はフェードが0になる点と同じ閾値で切り替わる（閾値名は MonopolyDissolveInd 1本）。</summary>
+    /// Privileges の表示は Active 州の最大（閾値名は MonopolyDissolveInd 1本）。</summary>
     [Fact]
-    public void 独占レントの度合は物理側の1本から価格分解と表示と段差が読む()
+    public void 独占レントの度合は物理側の1本から価格分解と表示が読む()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World; var c = w.Coef; var r = w.Region;
@@ -435,14 +435,6 @@ public class ProductionDiagTests4
             Assert.True(Privileges.MonopolyDegree(w, c) >= deg, "表示（Active 州の最大）が首都の度合を下回る");
             Assert.Equal(0.0, ProductionDiag.ExplainPrice(w, r, Catalog.LaborId).MonopolyRent);   // 独占レントの財以外は0
         }
-        // 段差：DomesticMarkupMax>0 の腕で EffFirms[塩]==1 ⇔ Ind < MonopolyDissolveInd（フェードが0になる点と同じ縁）
-        c.DomesticMarkupMax = 0.5;
-        r.Industrialization = 0.0; sim.Run(1);
-        Assert.True(r.Industrialization < c.MonopolyDissolveInd);
-        Assert.Equal(1.0, r.EffFirms![Catalog.SaltId]);
-        r.Industrialization = 0.5; sim.Run(1);
-        Assert.True(r.Industrialization >= c.MonopolyDissolveInd);
-        Assert.True(r.EffFirms![Catalog.SaltId] > 1.0, $"近代化後も塩が法的独占のまま（EffFirms={r.EffFirms![Catalog.SaltId]}）");
         c.MonopolyRentPremium = 0;
         Assert.Equal(0.0, EconomyStep.MonopolyDegree(r, c, 1.0)); Assert.Equal(0.0, Privileges.MonopolyDegree(w, c));
     }

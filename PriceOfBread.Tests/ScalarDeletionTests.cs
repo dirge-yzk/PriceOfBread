@@ -55,6 +55,23 @@ public class ScalarDeletionTests
     }
 
     [Fact]
+    public void 恒等の削除_2026_10_18_の状態の欄は復活しない()
+    {
+        // 精査 doc §4 ①-a／①-b／Q2 の恒等の削除（書き手か読み手が試合で一度も回らなかった状態の欄）。復活を黙って許さない＝名前で存在を禁じる（期待値は本体の式から作らない）。
+        // 係数の名前は DormantIdentityTests.RetiredFields が禁じる。
+        foreach (var n in new[] { "EducationEma", "LastSatisfaction" }) Assert.Null(typeof(Pop).GetMember(n, All).FirstOrDefault());
+        Assert.Null(typeof(Region).GetMember("EffFirms", All).FirstOrDefault());
+        foreach (var n in new[] { "Expertise", "WorldFrontierExpertise", "ColonialInfra", "ColonialPop", "OfficialWelfareFill", "Meritocracy", "HouseholdCreditIssued", "HouseholdDebtRepaid" })
+            Assert.Null(typeof(World).GetMember(n, All).FirstOrDefault());
+        Assert.Null(typeof(Diplomacy).GetMember("IndependentColonies", All).FirstOrDefault());
+        foreach (var n in new[] { "FreedYear", "Infra" }) Assert.Null(typeof(Colony).GetMember(n, All).FirstOrDefault());
+        Assert.Null(typeof(NationPolicy).GetMember("Pension", All).FirstOrDefault());   // 死蔵の年金の目標（World.Pension は社会保障法の段から導く）
+        // 型ごと削除したもの：外交コア（Q4）・単国の経路の較正（Calibration・Sweep・ModernizationPath）
+        foreach (var t in new[] { "DiploCore", "Calibration", "Sweep", "SweepMetrics", "ModernizationPath" })
+            Assert.Null(typeof(Coefficients).Assembly.GetType("PriceOfBread.SimCore." + t));
+    }
+
+    [Fact]
     public void 汚職の政治の2項は物理削除されている_天命と正統性は実効汚職を読まない()
     {
         // (377) で一度消して止める線に当たり戻した 2 項（天命の汚職の項 dmGraft・腐敗→正統性の侵食）を、作者 2026-10-16「汚職→廃止」と 10-17「史実度の低下は差し戻し理由にはなりません」で

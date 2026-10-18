@@ -770,7 +770,7 @@ public sealed class Simulation
     // （EconomyStep:300 prodW=LastDemand×Scale）なので、大軍の国ほど大きな軍需産業が需要から自然に立つ。
     // 対象＝軍需の最終財（火砲81/小銃82/弾薬83/帆船84/軍艦86）と軍需専用の中間財（火薬38/帆布42）。
     // 馬127は除外（畜産＝食料源と競合する既知の感度・MilitaryRates 0.1で症状の主因でない）。
-    // 技術ゲート財（汽船85/装甲艦105等）は対象外＝発見の表に行を持つ並存レシピも触らない（TechGatedScaleZero と整合）。
+    // 技術ゲート財（汽船85/装甲艦105等）は対象外＝発見の表に行を持つ並存レシピも触らない（技術ゲート0の操業規模0と整合）。
     // ★備蓄の深さは <see cref="Coefficients.InitialArsenalMonths"/>（0で旧初期値と厳密恒等＝アブレーションの腕を POB_COEF で測れる）。
     //   操業規模の器 InitialArmsIndustryScale は 2026-08-22 の実測で棄却＝2026-09-26 に削除（棚卸し mil-21・dorm-36）。
     internal static readonly int[] InitialArmsIndustryGoods = [Catalog.GunpowderId, Catalog.CanvasId, Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.SailingShipId, Catalog.WarshipId];
@@ -1181,7 +1181,7 @@ public sealed class Simulation
             // ★段1 器 EduProducersCoexist（教育の三層化 doc §2-1／LIST §0-9-C 段3・2026-09-12）：同じ財（教育94）に生産者を2本**常設**で並べる
             //   （E-13 の黄鉄鉱法・蒸気タービンと同じ「同じ財に複数レシピ」型）。[eduIndex]=教区学校＝聖職者・ClergyEduProductivity・紙61×0.05（写本・教義書）／
             //   [eduIndex+1]=公立学校＝教師・TeacherEduProductivity・書籍112×0.05（近代の教科書）。2件目の添字は「連続 add」から導く＝Region に新フィールドを持たない（盤面則）。
-            //   担い手・生産性・投入は**構築時に確定し以後差し替えない**。教育法は StepMonth が非活性側の Scale=0 を置くゲートに降格（TechGatedScaleZero の役務版）。
+            //   担い手・生産性・投入は**構築時に確定し以後差し替えない**。教育法は StepMonth が非活性側の Scale=0 を置くゲートに降格（技術ゲート0の操業規模0の役務版）。
             //   自営（LaborPopIndex=OwnerPopIndex・RentShare 0）は現行と同じ＝売上が丸ごと担い手 pop の Earned（doc §1-1）。
             producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "教区学校", Productivity = coef.ClergyEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = clergyIdx, OwnerPopIndex = clergyIdx, RentShare = default, Inputs = [new Input(Catalog.PaperId, 0.05)] });
             producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "公立学校", Productivity = coef.TeacherEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = teacherIdx, OwnerPopIndex = teacherIdx, RentShare = default, Inputs = [new Input(Catalog.BookId, 0.05)] });
@@ -1981,41 +1981,6 @@ public sealed class Simulation
             if (r.State == RegionState.Active)
             {
                 r.ColonialAccess = colonialAccess;
-                // 保有植民地から、固有資源の和（本国の植民地資源）と供給駆動の産出量を集計（征服で増減＝動的）。単一国テスト(null)は従来挙動。
-                if (r.ColonialResources != null && World.SelfPower is { } selfP && r.Id == 0)   // 植民地供給は首都州のみ（多州で二重計上しない＝国の植民地は首都市場に着く）
-                {
-                    r.ColonialResources = selfP.ColonyList.SelectMany(col => col.Resources).Distinct().ToArray();
-                    r.ColonialOutput = Colonial.OutputCurve(World.ColonialInfra, World.Coef.ColonialOutputHalf);
-                    r.ColonialSupply ??= new double[Catalog.Goods.Length];
-                    Array.Clear(r.ColonialSupply);
-                    foreach (var col in selfP.ColonyList)
-                    {
-                        // 産出は住民の数と不満で変わる：人口が育てば増え、不満（怠業・反乱）で減る＝搾取しすぎは産出を蝕む。
-                        double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * (World.Diplomacy?.ColonyUnitPop ?? 1.0)) : 1.0)
-                                        * (1.0 - World.Coef.ColonialUnrestSupplyHit * col.Militancy);
-                        foreach (int res in col.Resources)
-                            if (res >= 0 && res < r.ColonialSupply.Length)
-                                r.ColonialSupply[res] += r.ColonialOutput * World.Coef.ColonialProductionPerColony * colScale;   // 植民地ごとに毎期産出
-                    }
-                    // 独立した旧植民地＝自由な供給者：産物は貿易比重に応じて各国市場へ流れる（資源は世界から消えない。
-                    // 旧宗主国は**専有**を失うだけ＝独立の経済的打撃は相対的・世界の連鎖は生きる）。
-                    if (World.Diplomacy is { } dipC && dipC.IndependentColonies.Count > 0)
-                    {
-                        double twSum = 0;
-                        foreach (var pw in dipC.Powers) if (pw.Nation is not null) twSum += pw.TradeWeight;
-                        double myShare = twSum > 1e-9 ? (selfP.TradeWeight / twSum) : 0;
-                        foreach (var col in dipC.IndependentColonies)
-                        {
-                            double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * (World.Diplomacy?.ColonyUnitPop ?? 1.0)) : 1.0) * 0.8;   // 独立後＝外資なしでやや低い産出
-                            // 独立ショック（B-4）：独立直後は産出が崩壊し IndependenceShockYears 年かけて回復（ハイチ1804型＝独立はショック）。
-                            double recovery = col.FreedYear < 0 ? 1.0 : PoliticalQuantities.Clamp01((World.Year - col.FreedYear) / (double)Math.Max(1, World.Coef.IndependenceShockYears));
-                            foreach (int res in col.Resources)
-                                if (res >= 0 && res < r.ColonialSupply.Length)
-                                    r.ColonialSupply[res] += World.Coef.ColonialProductionPerColony * colScale * myShare * recovery;
-                        }
-                    }
-                }
-                else r.ColonialOutput = 1.0;
                 // 軍需調達：軍隊（兵士POP）＋治安維持力に比例、交戦中は増（武器需要ブーム）。財源は国庫の一部。
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
@@ -2106,7 +2071,7 @@ public sealed class Simulation
                     {
                         // ★段1 器 EduProducersCoexist（doc §2-1・LIST §0-9-C 段3・2026-09-12）：[eduIdx]=教区学校（聖職者・紙）／[eduIdx+1]=公立学校（教師・書籍）は**常設**＝
                         //   担い手・生産性・投入を差し替えない（doc §1-2 の崖＝法の1段が「ある職の収入 0↔全額」を切り替える構造の撤去）。
-                        //   教育法は「非活性側の Scale=0」のゲートだけ（TechGatedScaleZero の役務版＝EconomyStep が教育財に限り Scale=0 を fraction=0 と読む）。
+                        //   教育法は「非活性側の Scale=0」のゲートだけ（技術ゲート0の操業規模0の役務版＝EconomyStep が教育財に限り Scale=0 を fraction=0 と読む）。
                         //   再活性は操業規模の更新（床 ScaleFloor へ寄る）が翌月から戻す＝ここで Scale を1へ戻す外科処置は置かない（採算の伸縮は現行のまま）。
                         //   ⚠2件目の存在は盤面（連続 add・GoodId）から判定＝コエフだけでなく実体を見る（BuildFrance 等 clergyIdx を渡さない構築経路は1件のまま＝旧枝へ）。
                         //   ⚠0 ではこの枝に1度も入らない（第1項で短絡）＝旧枝がそのまま走る＝厳密恒等。
@@ -2333,7 +2298,7 @@ public sealed class Simulation
                              * Math.Max(0.0, 1.0 - World.Coef.LaborFatiguePenalty * Math.Max(0.0, World.WorkHoursValue - WorkHours.Twelve.Hours()));   // 12h超は過労で産出頭打ち〜微減（LaborFatiguePenalty=0で旧＝単調増）
                 // ※児童労働の出力係数(clOut)は廃止：子供の実体化により労働供給そのもの（EconomyStep の労働係数）で表現される（二重計上の防止）
                 double union = World.LaborUnion switch { LaborUnionLaw.Tolerated => World.Coef.LaborUnionToleratedOutputMul, LaborUnionLaw.Controlled => World.Coef.LaborUnionControlledOutputMul, _ => 1.0 };   // 労働組合容認＝賃上げ/ストで工場出力↓（資本が反対する理由。不満緩和は別途）
-                // no-graduated-unrest-stages（最小dormant）：本国の労働争議＝減産の土台。植民地の ColonialUnrestSupplyHit と同型を本国に開く。
+                // no-graduated-unrest-stages（最小dormant）：本国の労働争議＝減産の土台。植民地の旧い型の産出の怠業（ColonialUnrestSupplyHit・2026-10-18 に削除）と同型を本国に開く。
                 // 組合容認かつ地域平均闘争度が中間閾値超で操業停止（賃上げ要求）。0（対照腕）で乗数1.0＝不発・既定0.25でlive（台帳訂正2026-07-12）。
                 if (World.Coef.StrikeProductionHit > 0 && World.LaborUnion != LaborUnionLaw.Illegal)
                 {
@@ -2610,28 +2575,12 @@ public sealed class Simulation
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。
         double landFertBoost = c.FertilityBase * landRoom;
-        // 分割相続の出生抑制（人口忠実度ラウンド2026-08-21・FertilityLandDivisionSlope）：土地改革＝小土地所有の創出が進んだ国は、自作農が
-        // 土地の細分化を避けて出生を絞る（ナポレオン民法典の均分相続＝仏の出生率早期低下の標準的説明。識字より前に効いた唯一の大国が仏）。
-        // 既存の法状態 LandReform（None=0/Limited=0.5/Full=1）のみを読む＝国名分岐なし。英=None（囲い込み＝土地なし労働者に抑制動機なし）＝抑制ゼロ。既定0＝厳密恒等。
-        double landDivision = c.FertilityLandDivisionSlope > 0 ? c.FertilityLandDivisionSlope * ((int)World.LandReform / 2.0) : 0.0;
-        // 所得少子化の因果順序（人口忠実度ラウンド2026-08-21・FertilityIncomeSurvivalGate）：所得/発展の少子化は死亡率低下（医療＝healthcare）が
-        // 実現した国でだけ進む（人口転換の定説＝子が生き残るようになってから産み控える。下のコメント「死亡率低下の後に遅れて効く」の実装）。
-        // 旧実装は avgInd を直に読む＝開幕の工業化バースト(+2.0)で全国の出生率が1808年までに床0.5へ落ちていた（英=ヴィクトリア朝の高出生と正反対）。
-        // 既定0＝乗算(1−0)+0×…=1.0はIEEE754で正確＝厳密恒等。healthcare∈[0,∞)をmin(1,·)で有界化。
-        double incomeGate = (1.0 - c.FertilityIncomeSurvivalGate) + c.FertilityIncomeSurvivalGate * Math.Min(1.0, healthcare);
-        double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd * incomeGate - landDivision, c.FertilityFloor, c.FertilityBase + landFertBoost);
+        double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost);
         // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
         // FertilityAffectsBirthsOnly=0 で netFertility==fertility＝現行と厳密一致・1で net の収束速度から fertility を外し 1.0（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立。
         double netFertility = fertility + c.FertilityAffectsBirthsOnly * (1.0 - fertility);
-        // 人口転換の均衡結合（人口忠実度ラウンド2026-08-21・FertilityEquilibriumWeight）：FertilityAffectsBirthsOnly=1.0（人7・2026-07-27）で
-        // netFertility≡1 となって以降、出生率倍率は純増に一切効かない＝人口転換の全機構が「収束の速さ」からも「均衡」からも切断されていた
-        // （実測 popprobe s1＝全国 Q100 で pop/capacity≈1.0 張り付き＝成長は100%天井が決める・英は出生率が下限0.5でも帰結ゼロ）。
-        // 是正＝出生率の低下は**均衡人口**を天井より下へ引く（出生=死亡の均衡。少子化の国は食料が余っていても人口が伸びない＝仏1.45×の物理）。
-        // eqFert=1−これ×max(0,1−fertility)。上側はクランプ（fertility>1の開拓地ブーストは均衡を天井超えに押し上げない＝過冲・飢饉振動の禁止）。
-        // 死亡側は不変（totalDeaths=totalBirths−net の構造そのまま）＝人7「少子化の国は飢饉死も半分」の誤因果を再導入しない。0で (1−pop/cap) と厳密同値。
-        double eqFert = 1.0 - c.FertilityEquilibriumWeight * Math.Max(0.0, 1.0 - fertility);
-        double net = c.PopGrowthRatePerMonth.Value * netFertility * pop * (eqFert - pop / capacity);   // ロジスティック：均衡＝eqFert×扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は FertilityAffectsBirthsOnly で切り離せる
+        double net = c.PopGrowthRatePerMonth.Value * netFertility * pop * (1.0 - pop / capacity);   // ロジスティック：均衡＝扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は FertilityAffectsBirthsOnly で切り離せる
         World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // ★人口診断拡張（2026-08-21・純記帳）：出生率倍率と空き土地ブースト＝仏過大/英過小の因子分解用
         var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
         double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
@@ -2715,14 +2664,6 @@ public sealed class Simulation
                     //   標準のピラミッドが1783年の出生で動かない重み）＝実際に減った人数。旧＝子供比（約16年で成人・AgingYears）と老年比（約45年で老年・WorkingYears・老衰の重み3・上限0.15）の2本。
                     if (Instruments.On) Instruments.DemoPop(World, p, size0, births, births - (newSize - size0), mortW); p.StepAges(size0, births, births - (newSize - size0), mortW);   // (361) 計器（読むだけ・StepAges の前＝年齢の構成は月初のまま）
                     p.Size = newSize;
-                    // 人11a（新生児の識字の無償相続の解消）：出生は Size を増やすだけで Literacy 不変＝新生児が親popの識字を暗黙相続（無償の世代間伝達＝識字ラチェット）。
-                    // NewbornLiteracyDilution=0 で希釈なし＝現行と厳密一致・1で出生分（識字0の新生児 births 人）を加重平均で希釈：Lit_new = Lit_old×(Size−births)/Size。
-                    // 死亡は平均識字で抜ける（平均不変）ため births のみで希釈。生存者(Size−births)が旧識字を担い、新生児は0＝親の識字を無償相続しない。（教育側の識字ラチェットは TechEducation.cs=別担当）
-                    if (c.NewbornLiteracyDilution > 0 && births > 1e-12 && p.Size > 1e-9)
-                    {
-                        double diluted = p.Literacy * PoliticalQuantities.Clamp01((p.Size - births) / p.Size);   // 新生児=識字0 で加重平均（births 人が0を持ち込む）
-                        p.Literacy += c.NewbornLiteracyDilution * (diluted - p.Literacy);   // 0で不変（恒等）・1で完全希釈
-                    }
                     // ★飢えの超過死亡（2026-10-01 (143)）＝**飢えの深さの絶対の率**＝FamineExcessMortality（年率）÷12×深さ^FamineExcessMortalityExponent×月初の規模。
                     //   飢えの深さ＝(門−充足)÷門（門＝飢饉死の門 FamineDeathFillFloor・絶対水準・平常 FoodRef は読まない＝回B）＝門の上は0・門で連続（(131) 腕C）・充足0で1。
                     //   凸（指数4）＝慢性の浅い不足（充足0.6〜0.7）はほとんど殺さず、深い飢饉は速く殺す（史実の飢饉の死は栄養の不足に強く凸・係数の注記）。
@@ -2982,7 +2923,6 @@ public sealed class Simulation
             double pay = Math.Min(p.Debt.Value, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
             if (!(pay > 0)) continue;
             Bank.Lend(World, p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
-            World.HouseholdDebtRepaid += pay;   // 診断。⚠LossFinanced とは**別カウンタ**（硬性ゲートの分子を汚さない・設計§6-1）
         }
     }
 
@@ -3042,21 +2982,6 @@ public sealed class Simulation
     private void CheckInvariants()
     {
         foreach (var inv in _invariants) inv.Check(World);
-    }
-
-    /// <summary>近代化の経路を分類（§B-5・M5）。</summary>
-    public ModernizationPath ClassifyPath()
-    {
-        var c = World.Coef;
-        bool industrialized =
-            World.TechLevel > c.IndustrializedTechThreshold || World.UrbanShare > c.IndustrializedUrbanThreshold;
-        if (!industrialized) return ModernizationPath.Failure;
-        return World.Polity switch
-        {
-            Polity.ConstitutionalMonarchy or Polity.Republic => ModernizationPath.Meiji,   // 自由な近代化
-            Polity.ProletarianDictatorship => ModernizationPath.Radical,
-            _ => ModernizationPath.Tokugawa,                                                // 権威主義下の近代化
-        };
     }
 
     private void Snapshot()

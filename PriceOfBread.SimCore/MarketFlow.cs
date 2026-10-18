@@ -7,7 +7,7 @@
 /// 30日ぶんの積分が従来の月次1回の更新にほぼ一致する＝較正を温存する（旬次になっても1日あたりの式は変えない）。
 /// ★旬次（2026-09-26 A3・作者裁定「ゲームの高速化を優先し、多少の帯の悪化は受け入れる」）：呼び手（<see cref="Simulation.StepDayDaily"/>）は
 ///   旬の最終日（<see cref="Coefficients.PriceFlowStepDays"/>＝h 日ごと）にだけ呼び、h 日ぶんを1歩で進める。
-///   根拠＝ここが読む入力（需給・在庫・在庫目標の倍率・物価水準・工業化・組合厚生・EffFirms）の書き手はすべて境界相
+///   根拠＝ここが読む入力（需給・在庫・在庫目標の倍率・物価水準・工業化・組合厚生）の書き手はすべて境界相
 ///   （月次決算・月末の清算・四半期の首と末）にあり、旬は月をまたがない＝旬の中では入力が定数で、同じ写像を h 回まわしているだけ。
 ///   ・内側（|t|&lt;<see cref="InnerT"/>）の財と役務＝閉じた式 P′＝SB_h(P0·(1＋y0)^h)。SB_h は SoftBand を h 回重ねた厳密な形。
 ///     財は刻みが時定数の1/10 を超えるとき h の約数の小刻みで同じ式を重ねる（2026-09-30 S3c・<see cref="SubStep"/>＝役務は需給差が価格に依らない＝1歩で厳密）。
@@ -53,7 +53,7 @@ public static class MarketFlow
     //   財の歩＝この関数が動かした（死んでいない）財の数。閉じた式（財・役務・張り付いた財 (132)）／日次に落ちた理由別の内訳の和は、財の歩の数に一致する。
     //   日次の回＝日次の写像を実際にまわした回数・省いた日＝ビットで止まって打ち切った残りの日数（日次に落ちた財×h＝回＋省いた日）。
     internal static long CntGoodSteps, CntClosedGoods, CntClosedService, CntClosedPinned,
-        CntDailyStartBand, CntDailyStartHigh, CntDailyStartService, CntDailyPredBand, CntDailyLabor, CntDailyMarkup, CntDailyHardBand, CntDailyNaN, CntDailyStep1,
+        CntDailyStartBand, CntDailyStartHigh, CntDailyStartService, CntDailyPredBand, CntDailyLabor, CntDailyHardBand, CntDailyNaN, CntDailyStep1,
         CntDailyDaysRun, CntDailyDaysSkipped;
 
     /// <param name="days">この1歩で進める日数 h（旬の長さ）。1＝旧来の日次。</param>
@@ -82,7 +82,7 @@ public static class MarketFlow
         // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
         bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
         bool closedWage = h > 1 && lnFloorWage > Eps && lnCeilWage > Eps;
-        long nSteps = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nMarkup = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
+        long nSteps = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
@@ -102,7 +102,7 @@ public static class MarketFlow
             m.TargetStock = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * totalDemand) * region.StockpileFactor(gi, coef);
             // 在庫ギャップ＝自己有界な正規化差 (Target−Stock)/(Target+Stock)∈(−1,1)（役務の flow と同形）。手クランプ不要で過剰/不足が対称（倍率排除）。
             double gap = (m.TargetStock - m.Stock) / (m.TargetStock + m.Stock + Eps);
-            // ★価格振動の根①（2026-09-07・器 PriceLawSupplyIncludesStock／2026-09-08 作者裁定「備蓄がある限り、それは生産できているものとみなす」）：
+            // ★価格振動の根①（2026-09-07・旧の器 PriceLawSupplyIncludesStock〔焼き込み済み〕／2026-09-08 作者裁定「備蓄がある限り、それは生産できているものとみなす」）：
             //   旧式（今月の流入だけ）＝輸入の無い月は倉庫が満杯でも供給0と読まれ、需給差が+1へ飽和して価格が上がり続けた（硫黄の鋸歯の根）。
             //   新＝**需要までは備蓄が生産の代わりをする**＝supply = max(流入, min(流入+在庫, 需要))。上限が需要なので
             //     ・流入が需要を超える月は従来どおり流入がそのまま供給（豊作で価格が落ちる挙動は不変）
@@ -198,21 +198,10 @@ public static class MarketFlow
                 //   輸出州の産出が「過剰供給」と読まれて価格が崩れ、地元価格で決まる採算が産出を絞り輸出余剰が消える自壊を止める。
                 //   TargetStock には入れない＝在庫目標は国内需要のまま。0＝旧式を逐語＝ビット恒等（分岐で足し算自体を回避）。
                 double demandRaw = coef.PriceLawSeesExports > 0 ? totalDemand + m.LastExport : totalDemand;
-                // 国内寡占マークアップ（no-market-power-monopoly）：財別有効生産者数EffFirmsが少ない財ほど価格支配で上乗せ。μ=1+DomesticMarkupMax/EffFirms はEffFirms→∞で1へ漸近＝自己有界（談合/鉄道プール）。
-                // DomesticMarkupMax=0（既定）またはEffFirms未確保でμ=1＝現行price-takerに恒等。月次μを1日あたりへ薄く配分。
-                // ⚠休眠の枝＝点火されたら日次へ落とす（閉じた式に μ を畳まない）。
-                bool markup = false;
-                double muDay = 1.0;
-                if (coef.DomesticMarkupMax > 0 && region.EffFirms is { } ef && gi < ef.Length && ef[gi] >= 1.0)
-                {
-                    double mu = 1.0 + coef.DomesticMarkupMax / ef[gi];
-                    muDay = 1.0 + (mu - 1.0) / div;
-                    markup = true;
-                }
                 double P0 = m.Price;
                 // ★張り付いた市場（S3b）：供給が需要に比べて無い（≦需要×Eps＝流入も在庫も無い）財が参照より上にいる＝帯の不動点への強い縮小（下の日次と閉じた式が読む）。
-                bool pinned = !markup && !(supply > Eps * demandRaw) && P0 > rp;
-                if (closedGoods && !markup)
+                bool pinned = !(supply > Eps * demandRaw) && P0 > rp;
+                if (closedGoods)
                 {
                     double t0 = BandT(P0, rp, lnFloorGoods, lnCeilGoods, out _, out double u0);
                     if (System.Math.Abs(t0) < InnerT)
@@ -254,7 +243,6 @@ public static class MarketFlow
                     else { nStart++; if (MultiNationSim.TimeOn && t0 > 0) nStartHi++; }   // 計器の内訳（上側＝参照より高い側）は POB_TIME のときだけ
                 }
                 else if (h == 1) nStep1++;
-                else if (markup) nMarkup++;
                 else nHard++;
                 // 日次の写像（旧来の1日ぶんと同じ式・同じ順）を h 回。帯に張り付く財（供給0・在庫0で参照の約49倍）のうち閉じた式を使えない財はここ＝張り付く水準を保つ。
                 // ★張り付いた市場（S3b・近似）：pinned の財は不動点への強い縮小
@@ -266,7 +254,6 @@ public static class MarketFlow
                 {
                     run++;
                     double p1 = P * (1 + GoodsY(P, rp, demandRaw, supply, gap, coef, div, System.Math.Log(P / rp)));   // gap は自己有界∈(−1,1)＝旧 symGap クランプ不要
-                    if (markup) p1 *= muDay;
                     p1 = SoftBandLn(p1, rp, lnFloorGoods, lnCeilGoods, k);   // ハードクランプ→対数空間の滑らかな飽和（内部は恒等≒・境界に漸近＝角を除去）
                     bool still = Same(p1, P) || (pinned && System.Math.Abs(p1 - P) <= PinnedTol * P);
                     P = p1;
@@ -289,7 +276,6 @@ public static class MarketFlow
             System.Threading.Interlocked.Add(ref CntDailyStartService, nStartSvc);
             System.Threading.Interlocked.Add(ref CntDailyPredBand, nPred);
             System.Threading.Interlocked.Add(ref CntDailyLabor, nLabor);
-            System.Threading.Interlocked.Add(ref CntDailyMarkup, nMarkup);
             System.Threading.Interlocked.Add(ref CntDailyHardBand, nHard);
             System.Threading.Interlocked.Add(ref CntDailyNaN, nNaN);
             System.Threading.Interlocked.Add(ref CntDailyStep1, nStep1);

@@ -166,23 +166,22 @@ public class CriminalVesselTests
     }
 
     [Fact]
-    public void 識字と修学の蓄えは犯罪者に伸びない_同じ_POP_が通常の階級なら伸びる()
+    public void 識字は犯罪者に伸びない_同じ_POP_が通常の階級なら伸びる()
     {
-        (double lit, double ema) Grow(int classId)
+        double Grow(int classId)
         {
             var w = QuietBritain();
-            w.EducationLaw = EducationLaw.Compulsory; w.Coef.EducationGateUsesEma = 1;
+            w.EducationLaw = EducationLaw.Compulsory;
             var r = w.Regions[0];
             var p = Plant(r, classId);
-            p.EducationFill = 1.0; p.Literacy = 0.1; p.EducationEma = 0.0;
+            p.EducationFill = 1.0; p.Literacy = 0.1;
             Assert.False(w.WarmupFrozen);
             TechEducation.GrowLiteracy(w, w.Coef);
-            return (p.Literacy, p.EducationEma);
+            return p.Literacy;
         }
         var norm = Grow(PopClass.Worker); var crim = Grow(14);
-        Assert.True(norm.lit > 0.1 + 1e-9 && norm.ema > 1e-9, $"前提が崩れた：通常の階級が伸びない（識字 {norm.lit}・蓄え {norm.ema}）");
-        Assert.Equal(0.1, crim.lit);
-        Assert.Equal(0.0, crim.ema);
+        Assert.True(norm > 0.1 + 1e-9, $"前提が崩れた：通常の階級が伸びない（識字 {norm}）");
+        Assert.Equal(0.1, crim);
     }
 
     [Fact]
@@ -235,7 +234,7 @@ public class CriminalVesselTests
             src.EarnedPerMonth = new MoneyPerMonth(1.0);
             double s0 = crim.Size;
             double vac = 0;
-            object?[] args = [r, w, 1.0, 1.0, src, 0, 50.0, 1.0, 0.0, false, w.Coef, vac, forced];
+            object?[] args = [r, w, 1.0, 1.0, src, 0, 50.0, 1.0, 0.0, w.Coef, vac, forced];
             typeof(Meritocracy).GetMethod("RouteViaPool", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, args);
             return crim.Size - s0;
         }

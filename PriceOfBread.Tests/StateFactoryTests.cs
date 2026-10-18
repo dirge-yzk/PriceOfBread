@@ -31,7 +31,7 @@ public class StateFactoryTests
 
     /// <summary>その州で**実際に操業できる**鋼の生産者（技術ゲートが開いている方）。
     /// 鋼は「坩堝鋼（TechOnset=0＝1783年から）」と「高炉・転炉（TechOnset=0.55＝晩期）」の2本立て（Simulation :120-133）で、
-    /// 素朴な <c>Find(GoodId==32)</c> は**晩期の方**を掴む。2026-08-11に TechGatedScaleZero を点火するまでは
+    /// 素朴な <c>Find(GoodId==32)</c> は**晩期の方**を掴む。2026-08-11に 技術ゲート0の操業規模0を点火するまでは
     /// 未解禁の生産者にも幻の操業規模が立っていたため、その工場でも損益が出て**テストが幻の上に建っていた**。
     /// 国営工場の損益・補助金を測る以上、掴むべきは操業できる工場。</summary>
     /// ★エンジンの動詞（着工・補助金・売却・カウンター）と**同じ選択関数**を通す＝
@@ -291,22 +291,15 @@ public class StateFactoryTests
         //   止めた経路＝資本家の建設予算が最も採算の良いRGOの BuiltScale（＝Scaleの下限であり、同時に国営持分）を押し上げていたもの。
         //   ⚠副作用の番人＝止めたせいでRGOの能力（Scale）と産出が痩せないこと。能力は採算駆動（scaleTarget=1+margin）で決まり、
         //     BuiltScale はラチェットを与えていただけ、という読みをここで固定する。
-        static Simulation RunSim(ulong seed, double counterOnly, int quarters)
-        {
-            var sim = new Simulation(Fr(seed), new NullAgent());
-            sim.World.Coef.StateShareCounterOnly = counterOnly;
-            sim.Run(quarters);
-            return sim;
-        }
-        var on = Rgo(RunSim(2034, 1.0, 120));    // 点火（現行の既定）
-        var off = Rgo(RunSim(2034, 0.0, 120));   // 旧経路（対照）
+        // 【2026-10-18・恒等の削除】旧経路（RgoCapitalShare・StateShareCounterOnly=0 の対照の腕）は枝ごと削除した＝対照が無いので、能力の比べは消し、国営持分が湧かないことと能力が立っていることだけを見る。
+        //   名前の復活は DormantIdentityTests.RetiredFields が禁じる。
+        Assert.Null(typeof(Coefficients).GetField("RgoCapitalShare"));
+        Assert.Null(typeof(Coefficients).GetField("StateShareCounterOnly"));
+        var sim = new Simulation(Fr(2034), new NullAgent());
+        sim.Run(120);
+        var on = Rgo(sim);
         Assert.Equal(0.0, on.Built);             // ★誰も建てていないのに国営持分が湧かない
-        Assert.True(off.Built > 0, "対照でも国営持分が増えない＝この番人は何も測っていない（旧経路が動いていない）");
-        Assert.True(on.Scale > off.Scale * 0.9, $"自動拡張を止めたらRGOの能力が痩せた（点火 {on.Scale:F1} vs 旧 {off.Scale:F1}）");
-        // 産出は能力×稼働＝稼働は需要と作柄（1か月の断面）で動く。2本の軌道は120四半期で分かれるので、産出の比は
-        //   国内価格の刻み h を 1/2/3/5/6/10/15 と振ると 0.93/1.31/0.74/0.86/0.99/0.75/0.81 と非単調に散る（能力の比は 0.99〜1.01 で安定）。
-        //   2026-09-26 ㊽：産出の線を 0.9→0.5 へ＝「痩せる」（能力が残っても産出が半分を割る）だけを見る。能力の線（上の 0.9）は据え置き。
-        Assert.True(on.Output > off.Output * 0.5, $"自動拡張を止めたらRGOの産出が痩せた（点火 {on.Output:F0} vs 旧 {off.Output:F0}）");
+        Assert.True(on.Scale > 0 && on.Output > 0, $"RGOの能力と産出が立っていない（能力 {on.Scale:F1}・産出 {on.Output:F0}）");
     }
 
     [Fact]
@@ -571,7 +564,7 @@ public class StateFactoryTests
         Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");   // 受け手が変わるだけ＝鋳造の台帳と基礎貨幣は対
     }
     // ===== (260) 線E：発見の門が閉じた生産者には国営の棟が建たない =====
-    // 門が閉じた個体に着工すると完成の月に TechGatedScaleZero が操業規模を0に置く＝不活性の設備になる（英 1903-22 国営 513・門 431）。
+    // 門が閉じた個体に着工すると完成の月に技術ゲート0の操業規模0が操業規模を0に置く＝不活性の設備になる（英 1903-22 国営 513・門 431）。
     // 期待値は「着工も意志も起きない」「別の開いた個体に付く」で書く（Discovery.Gate の値を期待値にしない＝同語反復にしない）。
 
     /// <summary>門が閉じた生産者（発見の表の行を持ち未解禁・同じ財に門が開いた個体が無い）を持つ州と個体。</summary>

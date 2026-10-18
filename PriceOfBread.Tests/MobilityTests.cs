@@ -247,7 +247,7 @@ public class MobilityTests
         worker.Literacy = 1.0; worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size); worker.SetAdultFemaleShare(0.6);
         eng.SetAdultFemaleShare(0.02); teacher.SetAdultFemaleShare(0.25);   // 初期符号化と同じ性別分離（技師0.02・教師0.25＝20歳以上の層）
         static double Fem(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) / p.AgeShare(20, double.PositiveInfinity);
-        foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
+        foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; }
         eng.EarnedPerMonth = new MoneyPerMonth(10.0 * eng.Size); teacher.EarnedPerMonth = new MoneyPerMonth(10.0 * teacher.Size);
         double engSize0 = eng.Size, teaSize0 = teacher.Size;
         // 保存されるのは女性の人数（年齢の層の女の層×規模・2026-09-30 段4e 後半＝移し方は層×性ごとの人数を足す）

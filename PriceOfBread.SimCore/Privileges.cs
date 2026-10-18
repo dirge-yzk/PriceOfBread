@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 /// <summary>★特権の台帳（作者設計 2026-09-06「特権システム＝制度疲労の置換」§9 段1＝観測のみ・既定 <c>PrivilegeLedgerEnabled=0</c> で1命令も走らない）。
 /// 特権＝(受益クラス, 取り分, 歪み, 法の軸, 強度ストック)。段1は既存の3破片（P1 十分の一税・P2 身分制免税・P3 身分任用＝汚職の取り分）の
 /// **取り分を記帳**し、**強度ストック**（保有年数÷DominanceMatureYears＝既得権化・DominanceIsStock と同じ作法＝タイマーでなく物理）を積む。
-/// 誰も読まない（段3以降の剥離の怒り・段6の制度疲労の導出は (373) で削除）。新しい数は作らない。</summary>
+/// 段6の制度疲労の導出は (373) で削除した。段3の剥離の怒り（<c>PrivilegeStripMilitancy</c>）は作者 2026-10-11「残す」で StepMonth に残る（台帳が立たないと動かない）。新しい数は作らない。</summary>
 public static class Privileges
 {
     // 第1段＝実体のある4本（作者設計「法と特権の仕分け」§8・2026-09-06）

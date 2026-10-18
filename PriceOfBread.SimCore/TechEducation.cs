@@ -20,38 +20,7 @@ public static class TechEducation
         double pressAbs = PressFactor(w.Censorship);
         // ★(383) 作者 2026-10-16「行政効率→廃止」：穴③（2026-08-31）の行政の脚〔×(1−AbsorptionAdminWeight×(1−行政効率))〕は物理削除した（行政の質は既に経済側〔行政費の充足・汚職漏れ〕で効く＝吸収能力へ重ねて掛けるのは二重計上）。
         double breadth = PoliticalQuantities.Clamp01(w.Elite / c.EliteForFullTech);
-        // ★厚み（作者採用2026-09-06 段3）：採用の識字項を 広さ^(1−a)×厚み^a へ。a=0 で広さそのもの（分岐＝ビット恒等）。
-        if (c.AdoptExpertiseWeight > 0) breadth = Math.Pow(breadth, 1.0 - c.AdoptExpertiseWeight) * Math.Pow(ExpertiseRel(w), c.AdoptExpertiseWeight);
-        return breadth * pressAbs * IncomeAbsorption(w, c);
-    }
-
-    /// <summary>吸収能力の**経済側**（2026-08-12）＝技術を載せる資本を買えるか。1人あたり所得で測る。
-    ///
-    /// 旧＝吸収能力は識字×報道自由だけ＝経済の中身が1つも入っていなかった。そのため自給自足の小王国が
-    /// 学校を建てて報道を自由にすれば吸収1.0となり、先端の97%へ速度0.13で吸い寄せられた
-    /// （実測1923年：ラオス4.18・ダホメ王国4.13＞イギリス3.98）。ベッセマー転炉は読める技師だけでは動かない。
-    /// 既定 <c>AbsorptionIncomeRef=0</c> で 1.0 を返す＝**厳密恒等**（休眠）。</summary>
-    private static double IncomeAbsorption(World w, Coefficients c)
-    {
-        if (!(c.AbsorptionIncomeWeight > 0) || !(c.AbsorptionIncomeRef > 0)) return 1.0;
-        double pop = w.TotalPopulation;
-        double perCap = pop > 1 ? (w.GdpPerMonth / pop).Value : 0;
-        if (!(perCap > 0)) perCap = 0;   // NaN も落とす（否定形で書く＝有限値では厳密同値）
-        double f = PoliticalQuantities.Clamp01(perCap / c.AbsorptionIncomeRef);
-        return 1.0 - c.AbsorptionIncomeWeight * (1.0 - f);
-    }
-
-    /// <summary>革新の**規模**（2026-08-12）＝研究は割合でなく人数でする。
-    ///
-    /// 旧＝革新速度 ∝ Elite（＝平均識字×世俗水路＝**割合**）。人口50万のダホメ王国と2000万のイギリスが
-    /// 同じ識字率なら同じ速さで世界の先端を押し上げた。逓減は平方根＝研究基盤10倍で3.2倍（収穫逓減）。
-    /// 既定 <c>ResearchBaseRefPop=0</c> で 1.0 を返す＝**厳密恒等**（休眠）。</summary>
-    private static double ResearchScale(World w, Coefficients c)
-    {
-        if (!(c.ResearchScaleWeight > 0) || !(c.ResearchBaseRefPop > 0)) return 1.0;
-        double s = w.Elite * w.TotalPopulation / c.ResearchBaseRefPop;   // 世俗の教育を受けた層の絶対数／参照
-        if (!(s > 0)) return Math.Max(0, 1.0 - c.ResearchScaleWeight);
-        return Math.Max(0, 1.0 + c.ResearchScaleWeight * (Math.Sqrt(s) - 1.0));   // s=1で厳密に1.0（参照点で恒等）
+        return breadth * pressAbs;
     }
 
     /// <summary>
@@ -99,16 +68,6 @@ public static class TechEducation
                 }
             }
 
-        // 人13：高等教育ゲートの多年EMA（EducationGateUsesEma=1 で Meritocracy が資格判定に使う緩和ストック）。
-        // 既定0では誰も EducationEma を読まないため更新しない＝EMAは初期値のまま・従来挙動に一切影響しない（dormant）。
-        if (c.EducationGateUsesEma > 0 && !w.WarmupFrozen)   // 修学年数のEMAも「時間の蓄積」＝助走では進めない（識字本体と同じ理由）
-            foreach (var r in w.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                foreach (var p in r.Pops)
-                    if (!p.IsCriminal) p.EducationEma += c.EducationEmaRate * (p.EducationFill - p.EducationEma);   // ★(366) 犯罪者は修学の蓄えも伸ばさない   // 修学年数の蓄積（当月Fillへ緩慢に収束＝一時的な途絶を平滑化）
-            }
-
         // 教育2段階：識字 → エリート＝**平均識字 × 世俗水路**。世俗水路は法のswitchでなく
         // **誰が実際に教育を生産しているか**（教師＝世俗1.0／聖職者等＝法の乗数）から創発する。
         // ※旧定義（知識専門職の人口シェア×倍率）は、職業を給与均衡（枠なし）にした際に鶏卵で死んだ：
@@ -116,7 +75,6 @@ public static class TechEducation
         //   識字は教育の購入から独立に立ち上がるため、この定義は起動に他者を必要としない。
         // 教育市場の無い小世界は従来式（平均識字×法乗数）で挙動を温存。
         w.Elite = EmergentElite(w) ?? PoliticalQuantities.AvgLiteracy(w) * EliteMultiplier(w.EducationLaw);
-        w.Expertise = ExpertiseOf(w);   // ★厚み＝専門人材率（作者採用2026-09-06 段1・導出量）
         // ★本国だけの同じ式（2026-08-26）。制度の閾値が読む＝植民地の非識字人口で本国の制度が止まらない。
         //   植民地格の州が無ければ AllPops と同じ集合＝厳密に同値。
         w.EliteCore = EmergentElite(w, coreOnly: true) ?? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) * EliteMultiplier(w.EducationLaw);
@@ -156,9 +114,7 @@ public static class TechEducation
             catchFrac = c.CatchupFraction.Value + (c.CatchupFractionAdvanced.Value - c.CatchupFraction.Value) * a;
             adoptRate = c.AdoptionRate + (c.AdoptionRateAdvanced - c.AdoptionRate) * a;
         }
-        // ★接触（作者採用2026-09-06 段8）：後追いは人と物の往来に乗る＝天井の**床より上**にだけ接触度を掛ける（鎖国でも基礎は失われない）。0 で ×1.0。
-        double contact = c.CatchupContactWeight > 0 ? 1.0 - c.CatchupContactWeight * (1.0 - PoliticalQuantities.Clamp01(w.TradeContactShare)) : 1.0;
-        double adoptionCeil = Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac * contact);
+        double adoptionCeil = Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac);
         double catchupTarget = baseTarget + Math.Max(0, adoptionCeil - c.AdoptionCeiling) * PoliticalQuantities.Clamp01(w.Elite / c.EliteForCatchup);
         if (catchupTarget > baseTarget + 1e-9)
         {
@@ -180,9 +136,8 @@ public static class TechEducation
             // 特許＝発見の表の制度の行の2値（2026-10-01 (152)・設計 §1A-6）＝見つけた国は革新×PatentInnovationBonus
             //   （旧＝中核エリートの傾斜 Discovery.Unlock〔0.35〜0.45＝2026-08-31 段2〕＝世界のどこでも同じ量の閾値）。
             double patentMul = w.PatentLaw ? c.PatentInnovationBonus : 1.0;
-            double innov = c.InnovationRate * w.Elite * press * ResearchScale(w, c) * patentMul
+            double innov = c.InnovationRate * w.Elite * press * patentMul
                          / (1.0 + w.TechLevel / c.InnovationScale);
-            if (c.InnovateExpertiseWeight > 0) innov *= Math.Pow(ExpertiseRel(w), c.InnovateExpertiseWeight);   // ★厚み（段3）：大学が無ければ先端は押せない。0 で不読
             w.TechLevel += innov;
             // （研究の分野時計 World.DiscoveryClocks と按分の器 DiscoveryFieldSplit は 2026-09-26 に削除＝書くだけで読み手が無かった・x-03）
         }
@@ -208,23 +163,6 @@ public static class TechEducation
     /// 法はswitchとしてではなく「誰が教壇に立つか」（教育生産者の切替＋教師階級の盛衰）を通して効く。
     /// 教育の産出が無い世界（教育財の無い小シナリオ）は null＝従来式（法の乗数）へ。
     /// </summary>
-    /// <summary>★厚み（専門人材率）＝近代エリート層（IsModernElite）の高等教育充足×人数 ÷ 全人口。新しいストックは持たない（毎四半期の導出）。</summary>
-    internal static double ExpertiseOf(World w)
-    {
-        double num = 0, den = 0;
-        foreach (var p in w.AllPops()) { if (p.IsSoldier) continue; den += p.Size; if (p.IsModernElite) num += Math.Max(0, p.HigherEduFill) * p.Size; }
-        double v = den > 1e-9 ? num / den : 0;
-        return !(v >= 0) ? 0 : v;
-    }
-    /// <summary>厚みの前線比∈[0,1]＝自国の専門人材率÷世界の先端（先端国＝1）。先端が0（誰にも大学が無い）なら1＝恒等側へ倒す。</summary>
-    private static double ExpertiseRel(World w)
-    {
-        double f = w.WorldFrontierExpertise;
-        if (!(f > 1e-12)) return 1.0;
-        double r = w.Expertise / f;
-        return !(r >= 0) ? 0 : r > 1 ? 1 : r;
-    }
-
     private static double? EmergentElite(World w, bool coreOnly = false)
     {
         double secular = 0, total = 0;

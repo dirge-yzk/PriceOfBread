@@ -1,18 +1,12 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>
-/// 植民地の整備（§6.1 拡張）。固有資源（史実・1780）＋人口プール＋開発度。初期は産出ほぼ0で、投資（輸送船＋鉄道）が
-/// 遅れて実る＝開発度の飽和曲線で産出が伸び、限界収益は逓減する（過剰投資はしない）。私的投資家（ブルジョワ）は
-/// 「増える資源の価値 ＞ 投資コスト」の間だけ自腹で投資する（レバーなし＝市場任せ）。資源側は EconomyStep が固有資源だけを産出率倍で輸入する。
-/// 保存：投資は投資家→生産者(pop)（内部移転）。（Colony オブジェクトの捕囚市場＝外部マネー流入・入植の持参金は 2026-09-30 段4g に経路ごと削除＝作者裁定 Q12）
+/// 植民地の維持費の側（§6.1 拡張）。植民地格の州の距離×質量から補給線の海運占有・燃料・キニーネを求め、反帝世論を本国の大衆の闘争度へ還す。
+/// 輸出作物の大農園の不在地主（R1）の動詞もここ。（Colony オブジェクトの開発度・住民・独立・入植の経路は 2026-10-18 に削除＝試合で一度も回らなかった。）
 /// </summary>
 public static class Colonial
 {
     internal const double OilViableProductionFrac = 0.25;       // 石油を燃料二択に載せる継続生産の下限（必要量比）。海軍運用燃料・民間汽船燃料（運用コスト監査2026-08-16）と共有
-    private const double ColonyLiteracyCap = 0.9;               // 植民地識字の上限
-    private const double ColonyMilitancyLiteracyBase = 0.3;     // 不満成長の識字ベース項（教育された植民地ほど独立志向）
-    private const double FreedColonyMilitancy = 0.2;            // 独立達成後にリセットする不満値
-    private const double SettlerMonthlyOutflowCap = 0.01;       // 入植の安全上限＝1植民地あたり月に本国大衆の1%まで（係数の誤設定で本国が空になる事故の物理停止）
 
     /// <summary>開発度→産出率（0で0、飽和で1へ。初期低・逓減）。</summary>
     public static double OutputCurve(double dev, double half) => dev <= 0 ? 0 : dev / (dev + half);
@@ -21,13 +15,8 @@ public static class Colonial
     {
         int colonies = w.SelfPower?.Colonies ?? 0;
         var r = w.Region;   // 本国（首都地域）
-        // 開発度の減衰（維持しないと衰える）。★助走中は敷設（下の w.ColonialInfra += dev）を止めているので、減衰だけ効かせると
-        //   植民地開発度が一方的に痩せる＝凍結は両側で（2026-08-10 追加裁定・本国の工業化の減価と同じ扱い）。
-        //   ★回1-1（add-04・2026-09-26）：下の早期 return より**前**に置く＝植民地を全て失った国でも開発度は減衰する
-        //   （旧＝return の後ろ＝最後の値のまま凍結し、再獲得で古い開発度が効き始めた）。
-        if (!w.WarmupFrozen) w.ColonialInfra = Math.Max(0, w.ColonialInfra * (1 - c.ColonialInfraDepreciation));
         // 全喪失後に旧値が残らない（接1診断）。★回1-1（col-08）：海運の占有も0へ戻す（旧＝最後の月の占有が永久に残り、交易の海運を細らせた）。
-        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.ColonialPop = 0; w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
+        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
 
         // 0. 維持費（帝国の過伸展）：不満は俸給（金銭）、距離は**物理**（補給線が占有する船腹＝交易の海運を細らせる＋占有された船腹の汽船の燃料）から創発。
         //    遠方植民地が多い国（イギリス）ほど交易船が補給に取られ、汽船の時代は燃料も要る＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
@@ -79,7 +68,6 @@ public static class Colonial
                 double pw = cr.SumPopulation() / colUnitPop;   // col.Population と同じ物差しへ戻す
                 AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
             }
-        foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Malarial);
         double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // 機関の時代係数（民間の汽船と同じ1本＝Transport.Step）
         double steam = w.ShipSteamShare.Value;
         double steamMult = c.ShipTier2CapMult * Discovery.GoodGate(r, c.ShipTier2GoodId) / era;   // R4②：汽船1単位の容量倍（Transport.BuyToward と同じ式・era≥0.05＝EraFactor の床で有限）
@@ -92,91 +80,14 @@ public static class Colonial
         var (fuelG, fuelWant) = ChooseFuelGood(r, c, coalWant);   // 石炭/原油の二択（海軍・民間汽船と同じ1本）
         BuyUpkeepGood(w, r, fuelG, fuelWant);
         const int quinineG = Catalog.QuinineId;   // キニーネ（マラリア鎮静）
-        double malariaFill = quinineWant > 1e-9 ? BuyUpkeepGood(w, r, quinineG, quinineWant) / quinineWant : 1.0;   // 本国市場から買えた割合＝鎮静度（キニーネ供給がコスト＝工業化＋キナ植民地が要る＝中後期）
-
-        // 1. 投資：輸送船(汽船85)＋鉄道(線路56)を植民地へ送り開発度を積む。
-        //    私的投資家＝「限界資源価値 ＞ 投資コスト」の間だけ自腹で（飽和＝逓減で過剰投資しない）。
-        const int ship = Catalog.SteamshipId, rail = Catalog.RailId;
-        if (ship < r.Markets.Length && rail < r.Markets.Length && r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count && r.ColonialResources.Length > 0)
-        {
-            double shipP = Math.Max(r.Markets[ship].Price, 1e-9), railP = Math.Max(r.Markets[rail].Price, 1e-9);
-            double devCost = c.ColonialShipPerInfra * shipP + c.ColonialRailPerInfra * railP;   // 開発度1あたりの財コスト
-            double half = c.ColonialOutputHalf;
-            double dOdD = half / ((w.ColonialInfra + half) * (w.ColonialInfra + half));         // 限界産出（飽和曲線の傾き＝逓減）
-            double resourceValue = 0;                                                           // 固有資源の価値＝需要×価格（希少なほど高い）
-            foreach (int g in r.ColonialResources)
-                if (g >= 0 && g < r.Markets.Length) resourceValue += r.Markets[g].LastDemand * Math.Max(r.Markets[g].Price, 1e-9);
-            double marginalValue = dOdD * resourceValue * c.ColonialReturnScale;                // 開発度を1上げて増える資源の価値
-
-            bool economic = marginalValue > devCost;
-            if (economic)   // 採算が合う間だけ＝市場任せ
-            {
-                var inv = r.Pops[r.InvestorPopIndex];
-                double budget = c.ColonialInvestFrac.Value * Math.Max(0, inv.Savings.Value);
-                double affordableDev = devCost > 1e-9 ? budget / devCost : 0;
-                double byStock = Math.Min(r.Markets[ship].Stock / Math.Max(1e-9, c.ColonialShipPerInfra),
-                                          r.Markets[rail].Stock / Math.Max(1e-9, c.ColonialRailPerInfra));
-                double dev = Math.Max(0, Math.Min(c.ColonialDevStep, Math.Min(affordableDev, byStock)));
-                if (dev > 0)
-                {
-                    double shipUse = Math.Min(dev * c.ColonialShipPerInfra, r.Markets[ship].Stock);   // 丸めで在庫を超えない（非負保証）
-                    double railUse = Math.Min(dev * c.ColonialRailPerInfra, r.Markets[rail].Stock);
-                    r.Markets[ship].Stock -= shipUse; r.Markets[ship].LastExport += shipUse;   // 植民地へ輸出（在庫減＝財収支は Export に計上）
-                    r.Markets[rail].Stock -= railUse; r.Markets[rail].LastExport += railUse;
-                    // ★支払いの一元化 段3-2（2026-09-30・C6）：私的投資家が自腹で、汽船と線路の代金をその財の生産者の④の持分へ（輸送財の買い付けと同じ1本＝InternationalMarket.PaySales）。
-                    //   旧＝本国の全POP へ頭数で配った（市場の在庫を取るのに、その財を作った者でなく全国民が代金を受け取った）。
-                    InternationalMarket.PaySales((w, [inv]), r, ship, shipUse * shipP, w);
-                    InternationalMarket.PaySales((w, [inv]), r, rail, railUse * railP, w);
-                    if (!w.WarmupFrozen) w.ColonialInfra += dev;   // ★助走：汽船・線路は買って払うが**開発度は上げない**（能力の凍結・本国の建設と同じ扱い）
-                }
-            }
-        }
-
-        // 2. 植民地POP：住民が実体を持つ（本国の利益団体には属さない＝台帳の外）。
-        //    人口はゆっくり成長し、識字は開発（インフラ）との接触で上がり、不満は**搾取×識字**で育つ
-        //    ＝開発するほど従順になるのではなく、教育された植民地ほど独立を求める（史実の弁証法）。
-        double outputRate = OutputCurve(w.ColonialInfra, c.ColonialOutputHalf);
-        bool perColony = c.ColonialInfraPerColony > 0.5;   // R13：植民地ごとの開発度を使うか（既定1.0＝点火2026-07-15・0で国家一律）
-        double popSum = 0, perColonyOutput = 0;
-        foreach (var col in w.SelfPower!.ColonyList)
-        {
-            double exploitation = 1.0 - c.ColonialPayShare.Value;   // 採取の上がりのうち現地に落ちない割合＝搾取
-            double malariaDeath = col.Malarial ? c.ColonialExploitMortality * (1.0 - malariaFill) : 0;   // マラリア地は既存の植民地月次死亡率で、キニーネ未供給の分だけ蝕まれる（マラリア専用倍率を置かない）
-            // 開始前の助走（w.WarmupFrozen・2026-08-10）は現地人口・識字・不満を進めない＝どれも「年月が経って積み上がる」量。
-            // 産出（PopSize比例）と資源供給は下でそのまま算出される＝助走で落ち着かせたい経済側は止まらない。
-            if (!w.WarmupFrozen)
-            {
-                // 搾取と不満が現地人口を蝕む（B-4・ベンガル飢饉型の負ループ）：搾取×(0.5+不満)の死亡が成長を上回ると人口が減り、産出（PopSize比例）も落ちる。
-                col.PopSize *= Math.Max(0.5, 1 + c.ColonialPopGrowth - c.ColonialExploitMortality * exploitation * (0.5 + col.Militancy) - malariaDeath);
-                col.Literacy = Math.Min(ColonyLiteracyCap, col.Literacy + c.ColonialLiteracyGrowth * outputRate);
-                // 恐慌の脱植民地化（旧ColonialCrisisMilitancy）はC裁定2026-07-09で撤去＝脆弱な挑戦者の植民地をより奪い覇権の相対優位を拡大する逆効果を実証済み
-                col.Militancy = PoliticalQuantities.Clamp01(col.Militancy + c.ColonialMilitancyGrowth * exploitation * (ColonyMilitancyLiteracyBase + col.Literacy) - c.ColonialMilitancyDecay);
-            }
-            popSum += col.PopSize;   // （入植者の人数 SettlerSize は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）
-            if (perColony)
-            {
-                // R13：植民地ごとの開発度。**非対称収束**＝成長期(col.Infra<所有国水準)は所有国水準を即採用（遅延バイアスなし＝長期保有の植民地は現行と同産出）／所有国より発展した植民地(弱国が奪取・独立時＝col.Infra>所有国水準)のみ緩やかに減衰＝開発を長く保持。col.Infraは征服/独立でオブジェクトごと移動済み＝奪った開発済み植民地は高産出を引き継ぐ。
-                if (col.Infra < w.ColonialInfra) col.Infra = w.ColonialInfra;
-                else col.Infra += (w.ColonialInfra - col.Infra) * c.ColonialInfraConverge;
-                perColonyOutput += col.PopSize * OutputCurve(col.Infra, c.ColonialOutputHalf);
-            }
-        }
-        w.ColonialPop = perColony ? perColonyOutput : popSum * outputRate;   // 国力・スコア互換の集計（開発が進むほど「数えられる」人口）。R13点火時は植民地ごとの開発度で合算
+        if (quinineWant > 1e-9) BuyUpkeepGood(w, r, quinineG, quinineWant);   // 本国市場から買えた割合＝鎮静度（キニーネ供給がコスト＝工業化＋キナ植民地が要る＝中後期）
 
         // C1（改修2026-06-28）：植民地の不満が本国政治へ還流＝**反帝世論**。植民地の流血・抑圧（インド大反乱/ボーア戦争）が本国大衆の闘争度を上げ、自由党/反帝運動の素地になる。
         // 植民地人口加重の平均不満 × 帝国規模（植民地数）で、本国の非特権大衆（農民・労働者・職人）の闘争度に薄く加算。多国・植民地保有国のみ＝較正中立。
         if (c.ColonialUnrestHomeWeight > 1e-9)
         {
             double colMilSum = 0, colPopSum = 0;
-            foreach (var col in w.SelfPower!.ColonyList) { colMilSum += col.Militancy * Math.Max(0, col.PopSize); colPopSum += Math.Max(0, col.PopSize); }
-            // ★AUD-09（監査2026-09-02 medium・2026-09-03投入）：⚠**分子と分母が別の台帳だった**。
-            //   帝国規模の項（下の `colonies`）は `ColonyList.Count + ColonialRegions`＝昇格した植民地格の州も数えるのに、
-            //   不満の加重平均はここで ColonyList しか見ない。⇒ 開幕一括昇格で ColonyList が空になった帝国は
-            //   colPopSum≈0 でこのブロックごと素通り＝**反帝世論が厳密に0**（インド大反乱もボーア戦争も本国に一切響かない）。
-            //   ⚠維持費（上の AccumUpkeep）は 2026-08-26 に両方を見るよう直されており、**ここだけ取り残されていた**
-            //   ＝「型の統合が起こす静かな破損」の再発（旧型の読み手が残る）。
-            //   ★単位：col.PopSize = Population×ColonyUnitPop なので、州側は SumPopulation 相当（Σ Pops.Size）がそのまま同じ物差し。
-            //   ⚠0で厳密恒等（休眠）。
+            // ★AUD-09（2026-09-03）：不満の加重平均は昇格した植民地格の州の闘争度で取る（帝国規模の項 `colonies` が数えるのと同じ集合＝分子と分母を揃える）。単位は州の人口 Σ Pops.Size。
             if (c.AntiImperialCoversRegions > 0)
                 foreach (var cr in w.Regions)
                 {
@@ -194,102 +105,9 @@ public static class Colonial
             }
         }
 
-        // 4. 独立：圧力（人口×不満）が本国の抑え（軍）を超えた大植民地は離反する＝帝国は軍で保たれる。
-        //    本国が戦争で疲弊（即応度低下）した隙に大植民地が独立する＝アメリカ独立戦争の構図。離反した植民地は戻らない。
-        //    ★即応度は Power.Military に既に入っている（Diplomacy の戦力合成）＝ここでもう一度掛けない（2026-09-29 処理の一元化 段3 G・
-        //    旧＝軍×max(0.2, 即応度)＝即応度の二乗・下限の定数 ColonyHoldReadinessFloor ごと削除）。
-        if (w.SelfPower.ColonyList.Count > 0)
-        {
-            // 恐慌のgrip割引（旧DepressionColonyGrip）はC裁定2026-07-09で撤去（ColonialCrisisMilitancyとペアで逆効果を実証済み）
-            double baseHold = w.SelfPower.Military * c.ColonialHoldScale;
-            // 外5：同時多発の按分（ColonialHoldSharedArmy 既定0.5・0で各植民地が全軍と対峙）。>0で不穏植民地数（独立閾値超）に軍を割り、10植民地同時不穏なら各々に届く抑えが薄まる（戦争が戦線数で戦力を割るのと同型）。
-            // 分母＝1+ColonialHoldSharedArmy×(不穏数−1)。0で分母1・1で不穏数ぶんに全軍を按分。
-            int unrestCount = 0;
-            foreach (var col in w.SelfPower.ColonyList)
-                if (col.Militancy > c.ColonialIndependenceMilitancy) unrestCount++;
-            double sharedDiv = 1.0 + c.ColonialHoldSharedArmy * Math.Max(0, unrestCount - 1);
-            List<Colony>? freed = null;
-            foreach (var col in w.SelfPower.ColonyList)
-            {
-                // 外5：距離減衰（ColonialHoldDistanceDecay 既定0.3・0で距離項なし）。>0で本国首都→植民地の海路距離で hold を割り引く（属国離反 Diplomacy.Projection と同型＝地球の裏側は隣接島より保ちにくい）。
-                // 座標未設定(0,0)の抽象植民地は距離項を中立に（AccumUpkeep と同じ幻の遠距離コスト回避）。
-                double km = (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, col.Latitude, col.Longitude, suezOpen, panamaOpen);
-                double distDecay = 1.0 / (1.0 + c.ColonialHoldDistanceDecay * km / Diplomacy.DistanceNormKm);
-                double hold = baseHold * distDecay / sharedDiv;
-                MechanismProbe.Eval(MechanismProbe.Site.ColonyIndependence);   // ★D-34：⚠Eval が小さいこと自体が所見＝昇格で ColonyList が痩せると独立判定に載る植民地が居なくなる
-                if (col.Militancy > c.ColonialIndependenceMilitancy && col.PopSize * col.Militancy > hold)
-                { (freed ??= []).Add(col); MechanismProbe.Hit(MechanismProbe.Site.ColonyIndependence); }
-            }
-            if (freed is not null)
-                foreach (var col in freed)
-                {
-                    w.SelfPower.ColonyList.Remove(col);
-                    w.LogAdd($"{w.Year} {col.Name}が{w.SelfPower.Name}から独立（人口{col.PopSize:F0}・不満{col.Militancy:F2}）");
-                    col.Militancy = FreedColonyMilitancy;   // 独立達成＝不満は晴れる（以後は自由な供給者として静かに暮らす）
-                    col.FreedYear = w.Year;   // 独立ショック（B-4）：独立直後は産出が崩壊し、数年かけて自由な供給者へ回復（ハイチ1804の砂糖供給崩壊型）
-                    w.Diplomacy?.IndependentColonies.Add(col);   // 資源は世界から消えない＝自由貿易の供給者へ（旧宗主国は専有を失う）
-                }
-        }
-
-        // ★作者裁定 Q12（2026-09-30 段4g）：Colony オブジェクトの入植（旧 2b＝本国の大衆→植民地の入植者・持参金）・捕囚市場（旧 3＝植民地の蓄えで本国の完成財を買う）・
-        //   入植者の州昇格（旧 5）を経路ごと削除した。実測＝61カ国の全ての国の植民地の一覧（ColonyList）は構築の直後に空（Runner の regiondump＝植民地の行0）で、
-        //   国が植民地を受け取るのは受け取りの1本（Diplomacy.AcquireColony＝国を持つ受け手はその場で植民地格の州へ）だけ＝国の一覧はゲームの間ずっと空＝3つの経路は
-        //   実際の試合で一度も走らない（抽象標的の植民地の蓄えも書き手が捕囚市場の引き落としだけ＝常に0）。入植と昇格の主体は植民地格の州（下の B1）。
-        // ★B1（実バグ21件・2026-09-07・単独計測）：ColoniesAreRegions=1 では ColonyList が Q1 から空＝旧の入植（2b）も昇格（5）も一度も走らなかった
-        //   （ColonySettlerRatePerMonth/ColonyPromotionCoreShare/ColonyPromotionMinPop が読み手ゼロ・加/豪/南アの自治領化が131年間0件）。
-        //   主体を「植民地格の州」へ移す（新しい状態を作らない）＝入植者比率は既存の AvgRegionCoreShare（宗主の中核民族の比率）、人口は州の pop。
-        //   入植の流量＝本国の農民（農奴解放加重）/労働者 → 植民地格の州の同クラス pop（Territory.MoveBetweenRegions＝地域間移民と同じ運搬・国内移動なので台帳は不変）
-        //   × 距離減衰 × マラリア鎮静率（上の 2b と同じ式・同じ係数）。昇格＝中核民族シェア ≥ ColonyPromotionCoreShare かつ 人口 ≥ ColonyPromotionMinPop → Integrated
-        //   （議席あり・維持費なし・Core にはならない）。PromotedColonies++ で保存検査（植民地の保存）の台帳が閉じる。ColonialRegionSettlement=0＝旧＝厳密恒等。
-        if (c.ColonialRegionSettlement > 0 && c.ColonySettlerRatePerMonth.Value > 0 && !w.WarmupFrozen)
-        {
-            double serfFreeR = 1.0 - Privileges.SeigneurialDegree(w);
-            var srcR = new List<(Pop P, double Wgt)>(); double srcMassR = 0;
-            foreach (var rg in w.Regions)
-            {
-                if (rg.State != RegionState.Active || rg.Tier == RegionTier.Colonial) continue;
-                foreach (var p in rg.Pops)
-                {
-                    if (p.IsSoldier || p.Size <= 1e-9) continue;
-                    double wgt = p.ClassId == PopClass.Peasant ? p.Size * serfFreeR : p.ClassId == PopClass.Worker ? p.Size : 0;
-                    if (wgt > 1e-9) { srcR.Add((p, wgt)); srcMassR += wgt; }
-                }
-            }
-            List<Region>? promoteR = null;
-            foreach (var cr in w.Regions)
-            {
-                if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial || cr.Id == 0) continue;
-                var ccr = Places.Coord(cr.Name);
-                double kmS = (Math.Abs(ccr.Lat) < 1e-9 && Math.Abs(ccr.Lon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, ccr.Lat, ccr.Lon, suezOpen, panamaOpen);
-                double attract = 1.0 / (1.0 + kmS / Diplomacy.DistanceNormKm);
-                if (cr.Malarial) attract *= malariaFill;
-                double flow = Math.Min(c.ColonySettlerRatePerMonth.Value * srcMassR * attract, srcMassR * SettlerMonthlyOutflowCap);
-                if (srcMassR > 1e-9 && flow > 1e-9)
-                {
-                    double moved = 0;
-                    foreach (var (p, wgt) in srcR)
-                    {
-                        if (p.Size <= 1e-9) continue;
-                        double f = Math.Min(flow * (wgt / srcMassR), p.Size);
-                        if (!(f > 1e-12)) continue;
-                        if (cr.PopOf(p.ClassId) is not { } dp) continue;   // 移る先の同じ階級の POP の探し方の1本（段4e I）
-                        Territory.MoveBetweenRegions(p, dp, f, c);
-                        if (Instruments.On) Instruments.Settled(p, cr, f);   // 計器（読むだけ）
-                        moved += f;
-                    }
-                    srcMassR -= moved;
-                }
-                if (Politics.AvgRegionCoreShare(cr) >= c.ColonyPromotionCoreShare.Value && cr.SumPopulation() >= c.ColonyPromotionMinPop)
-                    (promoteR ??= []).Add(cr);
-            }
-            if (promoteR is not null)
-                foreach (var cr in promoteR)
-                {
-                    cr.Tier = RegionTier.Integrated;
-                    if (w.Diplomacy is { } pdip) pdip.PromotedColonies++;   // 保存検査の台帳（植民地格の州が1つ減る）
-                    w.LogAdd($"{w.Year} {cr.Name}が{w.SelfPower.Name}の州へ昇格（中核民族{Politics.AvgRegionCoreShare(cr):P0}・人口{cr.SumPopulation():F0}）");
-                }
-        }
+        // 【墓標2026-10-18・恒等の削除】植民地の旧い型（Colony オブジェクト＝国の ColonyList）の経路一式を消した：開発度への投資（ColonialInfra・ColonialPop）・住民の成長と不満・独立（IndependentColonies）・
+        //   植民地格の州への入植と昇格（ColonialRegionSettlement ほか）。61 カ国の ColonyList は開幕の PromoteAllColonies で空になり、受け取りの1本（Diplomacy.AcquireColony）も国を持つ受け手には州で渡す＝試合では一度も回らなかった。
+        //   ColonyPromotionMinPop は Politics の分離の圧力が読む＝残す。
     }
 
     /// <summary>★R4（2026-10-02 (173)）：植民地の補給線が占有している船腹＝海運の容量×占有÷(1＋占有)（交易に使える容量＝容量÷(1＋占有)の残り）。
