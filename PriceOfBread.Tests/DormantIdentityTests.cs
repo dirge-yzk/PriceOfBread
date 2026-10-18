@@ -22,6 +22,7 @@ public class DormantIdentityTests
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         // ★AiBureaucracyFromPrereq は 2026-10-17 (389) に 2 で**点火**（欲しい法が官僚制度の前提で止まったとき、法律タブの門も通る法だけ官僚制度の目標を上げる）＝この表から外した。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
+        "HouseholdProductionEnabled",   // ★(418) 日用品の自給（農家の手仕事を実の生産者の行にする・00-CE2 案 B）＝0 で Producers に行を足さない（Simulation.AddHouseholdProducers の先頭の return）。点火は後半の腕 B の採否。
         // ★ClearingIdleSearchQuarters・ClearingPartnerScope（(403) 清算の見る範囲の絞り）は 2026-10-18 に既定 4 へ**点火**（旗 ClearingIdleShortageWakesStaplesOnly は主食の線として無条件へ焼き込み・削除）＝この表から外した。
         // ★OpeningFiscalAlign（(400) 英・蘭の開幕の財政の整合）は 2026-10-18 に 1 で**点火**（既定を 1 へ・止める線に当たらず）＝この表から外した。(405) で焼き込んで旗ごと物理削除した。
         // ★MandateOverStockFromLegitimacy・MandateOverStockLegitFloor（床 0.4）・ParishEduFunded（(404) 専制の改革の経路）は 2026-10-18 (405) に 1／0.4／1 で**点火**（腕 BF・止める線に当たらず）＝この表から外した。
