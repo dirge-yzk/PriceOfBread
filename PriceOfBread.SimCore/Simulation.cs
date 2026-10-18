@@ -2576,7 +2576,7 @@ public sealed class Simulation
         // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
         // net の収束速度から fertility を外す（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立（旧の旗 FertilityAffectsBirthsOnly は 2026-10-18 に焼き込み。
-        //  旧の netFertility＝fertility+1.0×(1−fertility) は fertility∈[0.5,∞) で厳密に 1.0＝FertilityFloor が 0.5 以上である限り恒等）。
+        //  旧の netFertility＝fertility+1.0×(1−fertility) は fertility≥0.5 で厳密に 1.0〔0.5≤x≤2 は Sterbenz で 1−x が厳密・x>2 でも 1−x は ulp(x) の倍数で |1−x|≤x ゆえ厳密〕＝FertilityFloor＝0.5 以上である限り恒等。点火時の上限は FertilityBase×(1+LandRoomFertilityCap)＝1.6）。
         double net = c.PopGrowthRatePerMonth.Value * pop * (1.0 - pop / capacity);   // ロジスティック：均衡＝扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は無い（出生側だけが fertility を持つ）
         World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // ★人口診断拡張（2026-08-21・純記帳）：出生率倍率と空き土地ブースト＝仏過大/英過小の因子分解用
         var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）

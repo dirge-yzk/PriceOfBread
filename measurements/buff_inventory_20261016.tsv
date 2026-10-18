@@ -160,14 +160,14 @@
 甲	DecayShockRelief	政治	制度疲労		Politics.cs:508							既線	済
 甲	ModernizationDecayRelief	政治	制度疲労		EconomyStep.cs:2118	工業化度	制度疲労					既線	済
 甲	DynMandateWarWeight	政治	厭戦		Politics.cs:343	厭戦	天命					既線	済
-甲	WarExhaustionMilitancy	政治	厭戦		Diplomacy.cs:2695	厭戦	闘争度					既線	済
-甲	WarMilitancyRatePerMonth	政治	厭戦		Diplomacy.cs:2695	交戦の印	闘争度					既線	済
-甲	WarMilitancyViaTarget	政治	厭戦		Diplomacy.cs:2694	厭戦	闘争度					既線	済
+甲	WarExhaustionMilitancy	政治	厭戦		Diplomacy.cs:2695	厭戦	闘争度					既線	済（2026-10-18 旗の焼き込みで削除）
+甲	WarMilitancyRatePerMonth	政治	厭戦		Diplomacy.cs:2695	交戦の印	闘争度					既線	済（2026-10-18 旗の焼き込みで削除）
+甲	WarMilitancyViaTarget	政治	厭戦		Diplomacy.cs:2694	厭戦	闘争度					既線	済（2026-10-18 旗の焼き込みで削除）
 甲	WarRallyCoercion	政治	厭戦		Politics.cs:539	厭戦	保持力					既線	済
 甲	WarRallyDecayPoint	政治	厭戦		Politics.cs:539	厭戦	保持力					既線	済
 甲	WarWearinessMilitancy	政治	厭戦		Politics.cs:295	厭戦	闘争度					既線	済
 甲	IdeologyGateIndScale	政治	工業化度		Ideology.cs:149	工業化度	発展度（ファシズムの支持）					既線	済
-甲	ExternalPressureDerived	政治	技術水準		MultiNationSim.cs:842	技術水準の差×海の接触	外圧					既線	済
+甲	ExternalPressureDerived	政治	技術水準		MultiNationSim.cs:842	技術水準の差×海の接触	外圧					既線	済（2026-10-18 旗の焼き込みで削除）
 甲	ExternalPressureGapScale	政治	技術水準		MultiNationSim.cs:848							既線	済
 甲	ExternalPressureInlandFactor	政治	技術水準		MultiNationSim.cs:849							既線	済
 甲	〈直書き〉Agents.SuffrageTechThreshold 0.25	政治	技術水準		Agents.cs:37	技術水準	AI の参政権					既線(AI)	済
@@ -265,7 +265,7 @@
 甲	FiscalExhaustionWarWeariness	外交	厭戦		Diplomacy.cs:2457	国庫の払えない割合	厭戦					既線	済
 甲	WarPeaceExhaustion	外交	厭戦		Diplomacy.cs:2281	厭戦	講和					既線	済
 甲	WarWearinessDecayRate	外交	厭戦		Diplomacy.cs:927							既線	済
-甲	WarWearinessDecays	外交	厭戦		Diplomacy.cs:927							既線	済
+甲	WarWearinessDecays	外交	厭戦		Diplomacy.cs:927							既線	済（2026-10-18 旗の焼き込みで削除）
 甲	WarWearyThreshold	外交	厭戦		Diplomacy.cs:1479	厭戦	開戦の門					既線	済
 甲	〈直書き〉TradeWeightIndustrializationSlope 0.10	外交	工業化度		MultiNationSim.cs:79	工業化度	初期の交易比重					既線	済
 甲	〈直書き〉SelfPlay IndustrializationWeight 9.0（国力の点数）	外交	工業化度		SelfPlay.cs:51	工業化度	国力の点数→ランク・外交					既線(AI)	済
@@ -316,7 +316,7 @@
 灰	ImposedRegimeLegitimacy	政治			Diplomacy.cs:3066								済
 灰	LoyalistDistanceFloor	政治			Politics.cs:1244								既定
 灰	MutantCohesionFloor	政治			Factions.cs:86								済
-灰	NationBuildCivicFloor	政治			CrownParliament.cs:256								済
+灰	NationBuildCivicFloor	政治			CrownParliament.cs:256								済（2026-10-18 旗の焼き込みで削除）
 灰	NewsConsciousnessFloor	政治			Politics.cs:231								済
 灰	RedefinedMandateFloor	政治			Politics.cs:455								済
 灰	RedefinedMandateMandateMin	政治			Politics.cs:454								済
@@ -350,7 +350,7 @@
 灰	FarmScaleCap	生産			EconomyStep.cs:2038								済
 灰	LandReformRentCap	生産			Simulation.cs:1582								済
 灰	MineralScaleCap	生産			EconomyStep.cs:2038								済
-灰	PhantomOutputSnapFloor	生産			EconomyStep.cs:470								済
+灰	PhantomOutputSnapFloor	生産			EconomyStep.cs:470								済（2026-10-18 旗の焼き込みで削除）
 灰	PriceCeilFactor	生産			Discovery.cs:760								済
 灰	PriceFactorMax	生産			EconomyStep.cs:1528								済
 灰	PriceFactorMin	生産			EconomyStep.cs:1538								済
@@ -503,7 +503,7 @@
 乙	NationBuildAccumRate	政治			CrownParliament.cs:274								既定
 乙	NationBuildConscript	政治			CrownParliament.cs:249								既定
 乙	NationBuildDecayRate	政治			CrownParliament.cs:276								既定
-乙	NationConsciousnessCoreWeight	政治			CrownParliament.cs:399								既定
+乙	NationConsciousnessCoreWeight	政治			CrownParliament.cs:399								既定（2026-10-18 旗の焼き込みで削除）
 乙	NationConsciousnessReachDecay	政治			CrownParliament.cs:387								既定
 乙	NoConfidenceThreshold	政治			Parliament.cs:84								既定
 乙	NoblePrivilegeWeight	政治			Ideology.cs:188								既定
@@ -554,7 +554,7 @@
 乙	ClergyAttractThreshold	人口			Meritocracy.cs:238								既定
 乙	ConvertibilityRiseSpeed	人口			World.cs:1750								既定
 乙	CrimePushWeight	人口			Instruments.cs:1752								済
-乙	CrimeVictimBasis	人口			Crime.cs:53								既定
+乙	CrimeVictimBasis	人口			Crime.cs:53								既定（2026-10-18 旗の焼き込みで削除）
 乙	DepositYearsAtBirth	人口			Discovery.cs:930								既定
 乙	EpidemicIntraCountrySpread	人口			World.cs:1324								既定
 乙	EpidemicVulnConcentration	人口			World.cs:1251								既定
@@ -641,7 +641,7 @@
 乙	CapitalControlPrefScale	財政			PolicyPreferences.cs:360								既定
 乙	CapitalDemandScale	財政			CapitalMarket.cs:201								既定
 乙	CapitalFlightDistrustThreshold	財政			CapitalMarket.cs:141								既定
-乙	CapitalOpennessTariffWeight	財政			Fiscal.cs:702								済
+乙	CapitalOpennessTariffWeight	財政			Fiscal.cs:702								済（2026-10-18 旗の焼き込みで削除）
 乙	CapitalRiseThreshold	財政			Meritocracy.cs:272								既定
 乙	ConfidencePivot	財政			Credit.cs:69								既定
 乙	ConfidenceSpeed	財政			Credit.cs:73								既定
@@ -763,7 +763,7 @@
 乙	RouteDependenceTensionRate	外交			Diplomacy.cs:1028								既定
 乙	StockpileTensionSpan	外交			Model.cs:963								既定
 乙	StockpileTensionThreshold	外交			Model.cs:962								既定
-乙	SubmitCountsAllies	外交			Diplomacy.cs:1535								既定
+乙	SubmitCountsAllies	外交			Diplomacy.cs:1535								既定（2026-10-18 旗の焼き込みで削除）
 乙	TariffExportOppositionWeight	外交			PolicyPreferences.cs:214								既定
 乙	TariffProtect	外交			BilateralMarket.cs:709								既定
 乙	TariffRetaliation	外交			Diplomacy.cs:1805								既定
@@ -1007,25 +1007,25 @@
 丙	FactoryMarginSmoothing	発見			Discovery.cs:343								既定
 丙	ResearcherFrac	発見			Simulation.cs:855								既定
 丙	TransportDecay	発見			Discovery.cs:725								既定
-他	AiLawGateUnified	政治			SelfPlay.cs:1636								済
-他	AiLawWriteCoverage	政治			SelfPlay.cs:634								済
-他	AntiImperialCoversRegions	政治			Colonial.cs:180								済
+他	AiLawGateUnified	政治			SelfPlay.cs:1636								済（2026-10-18 旗の焼き込みで削除）
+他	AiLawWriteCoverage	政治			SelfPlay.cs:634								済（2026-10-18 旗の焼き込みで削除）
+他	AntiImperialCoversRegions	政治			Colonial.cs:180								済（2026-10-18 旗の焼き込みで削除）
 他	CenterIsFirstProvince	政治			Simulation.cs:141								済
-他	CivicOpennessEnabled	政治			CrownParliament.cs:261								済
-他	CivilWarPredicateUnified	政治			World.cs:951								済
+他	CivicOpennessEnabled	政治			CrownParliament.cs:261								済（2026-10-18 旗の焼き込みで削除）
+他	CivilWarPredicateUnified	政治			World.cs:951								済（2026-10-18 旗の焼き込みで削除）
 他	ClosedWealthMultiple	政治			Simulation.cs:844								済
-他	CoercionSoftCap	政治			Government.cs:57								済
+他	CoercionSoftCap	政治			Government.cs:57								済（2026-10-18 旗の焼き込みで削除）
 他	ConsciousnessFromSchoolingStock	政治			Politics.cs:78								済
 他	CoreHeldYears	政治			Simulation.cs:918								済
-他	CrownFormMutation	政治			CrownParliament.cs:93								済
-他	CrownlessCollapseKeepsRepublic	政治			CrownParliament.cs:39								済
+他	CrownFormMutation	政治			CrownParliament.cs:93								済（2026-10-18 旗の焼き込みで削除）
+他	CrownlessCollapseKeepsRepublic	政治			CrownParliament.cs:39								済（2026-10-18 旗の焼き込みで削除）
 他	CultureDistanceFromEthnic	政治			Politics.cs:1506								済
 他	DesperationConsciousnessGate	政治			Politics.cs:588								既定
 他	DespoticToAbsolutistQuarters	政治			CrownParliament.cs:170								済
-他	DynamicParties	政治			Parliament.cs:46								済
-他	EarlyElectionEnabled	政治			Parliament.cs:82								済
+他	DynamicParties	政治			Parliament.cs:46								済（2026-10-18 旗の焼き込みで削除）
+他	EarlyElectionEnabled	政治			Parliament.cs:82								済（2026-10-18 旗の焼き込みで削除）
 他	EarlyElectionMinQuarters	政治			Parliament.cs:83								済
-他	ElectionEventEnabled	政治			Parliament.cs:94								済
+他	ElectionEventEnabled	政治			Parliament.cs:94								済（2026-10-18 旗の焼き込みで削除）
 他	ElectionIntervalQuarters	政治			Parliament.cs:95								済
 他	FactionConcessionSteps	政治			Politics.cs:1274								済
 他	FactionForgetQuarters	政治			Factions.cs:103								済
@@ -1037,34 +1037,34 @@
 他	NationBuildInitialDefault	政治			CrownParliament.cs:234								済
 他	NationConsciousnessDerived	政治			CrownParliament.cs:285								済
 他	NationConsciousnessPerPop	政治			CrownParliament.cs:296								済
-他	ParliamentSeatOnOpen	政治			Parliament.cs:68								済
+他	ParliamentSeatOnOpen	政治			Parliament.cs:68								済（2026-10-18 旗の焼き込みで削除）
 他	PeacetimeConscriptGrievance	政治			Military.cs:277								済
 他	PoliticalBudgetGate	政治			Government.cs:223								既定
-他	PolityLabelFromAxes	政治			CrownParliament.cs:185								済
+他	PolityLabelFromAxes	政治			CrownParliament.cs:185								済（2026-10-18 旗の焼き込みで削除）
 他	RebelArmsMarketEnabled	政治			EconomyStep.cs:1210								済
 他	RegimeRecordSuccessTenureGate	政治			CrownParliament.cs:223								既定
-他	RepublicanDeposition	政治			CrownParliament.cs:93								済
+他	RepublicanDeposition	政治			CrownParliament.cs:93								済（2026-10-18 旗の焼き込みで削除）
 他	RevoltGrievanceWeight	政治			Politics.cs:975								済
 他	RevoltIgnitionIntensity	政治			Politics.cs:968								済
 他	RevoltMilitiaRaise	政治			Politics.cs:1035								済
 他	RevoltVoiceFloor	政治			Politics.cs:1191								済
-他	RoyalistGate	政治			Ideology.cs:41								既定
+他	RoyalistGate	政治			Ideology.cs:41								既定（2026-10-18 旗の焼き込みで削除）
 他	RuleSharesEnabled	政治			Politics.cs:1609								済
 他	RuleSharesReach	政治			Fiscal.cs:576								済
 他	RuleSharesTaxBase	政治			Fiscal.cs:762								済
 他	RuptureWindowQuartersOnCrush	政治			Politics.cs:765								済
 他	ScoreInertiaRate	政治			SelfPlay.cs:31								済
-他	SeatsFrozenBetweenElections	政治			Parliament.cs:68								済
+他	SeatsFrozenBetweenElections	政治			Parliament.cs:68								済（2026-10-18 旗の焼き込みで削除）
 他	SecessionHoldCoercion	政治			Politics.cs:1485								済
 他	SecessionHoldProjection	政治			Politics.cs:1554								済
 他	SecessionHoldSharedArmy	政治			Politics.cs:1581								済
-他	SecretBallotGate	政治			Politics.cs:138								済
-他	StateReligionGate	政治			Privileges.cs:32								済
+他	SecretBallotGate	政治			Politics.cs:138								済（2026-10-18 旗の焼き込みで削除）
+他	StateReligionGate	政治			Privileges.cs:32								済（2026-10-18 旗の焼き込みで削除）
 他	SuffrageReformThreshold	政治			SelfPlay.cs:1346								済
-他	SuffrageScopeGate	政治			Fiscal.cs:762								済
+他	SuffrageScopeGate	政治			Fiscal.cs:762								済（2026-10-18 旗の焼き込みで削除）
 他	AssimilationRevival	人口			MultiNationSim.cs:1615								済
 他	CoreInitByRegionCulture	人口			Simulation.cs:156								済
-他	CoupleLimitedBirths	人口			Simulation.cs:2448								済
+他	CoupleLimitedBirths	人口			Simulation.cs:2448								済（2026-10-18 旗の焼き込みで削除）
 他	CriminalClassEnabled	人口			Instruments.cs:1434								済
 他	CrossBorderMigrationByOpportunity	人口			MultiNationSim.cs:1653								済
 他	EduProducersCoexist	人口			EconomyStep.cs:754								済
@@ -1073,8 +1073,8 @@
 他	FallAnchorReform	人口			Meritocracy.cs:27								済
 他	FaminePushRegionBlend	人口			MultiNationSim.cs:1720								済
 他	FertileAbsoluteBlend	人口			Simulation.cs:2468								済
-他	FertileWomenBirths	人口			Simulation.cs:2454								済
-他	FertilityAffectsBirthsOnly	人口			Simulation.cs:2633								済
+他	FertileWomenBirths	人口			Simulation.cs:2454								済（2026-10-18 旗の焼き込みで削除）
+他	FertilityAffectsBirthsOnly	人口			Simulation.cs:2633								済（2026-10-18 旗の焼き込みで削除）
 他	FertilityBase	人口			Simulation.cs:2619								済
 他	FoodAnchorNetImport	人口			Simulation.cs:2572								済
 他	FoodOutputAnchorProduction	人口			Simulation.cs:2579								済
@@ -1089,14 +1089,14 @@
 他	SerfGateCoversPool	人口			Meritocracy.cs:420								済
 他	SoapGoodId	人口			EconomyStep.cs:1663								済
 他	WomenEducationGate	人口			Simulation.cs:2615								済
-他	AiBuildGuardRelax	生産			SelfPlay.cs:1079								済
-他	AiSupplyChainEyes	生産			SelfPlay.cs:1123								済
-他	AiWorldPriceEntry	生産			MultiNationSim.cs:944								済
+他	AiBuildGuardRelax	生産			SelfPlay.cs:1079								済（2026-10-18 旗の焼き込みで削除）
+他	AiSupplyChainEyes	生産			SelfPlay.cs:1123								済（2026-10-18 旗の焼き込みで削除）
+他	AiWorldPriceEntry	生産			MultiNationSim.cs:944								済（2026-10-18 旗の焼き込みで削除）
 他	AntitrustGate	生産			Simulation.cs:1951								済
 他	CementGoodId	生産			EconomyStep.cs:482								済
 他	ChilledMeatEnabled	生産			Simulation.cs:1112								済
 他	CompostFertilizerEnabled	生産			Simulation.cs:1281								済
-他	ConstructionMaterialCarryover	生産			EconomyStep.cs:951								済
+他	ConstructionMaterialCarryover	生産			EconomyStep.cs:951								済（2026-10-18 旗の焼き込みで削除）
 他	DepressionScrapsBuiltScale	生産			Simulation.cs:2373								済
 他	DomesticServiceUsesIncomeElasticity	生産			EconomyStep.cs:1584								済
 他	DominanceMatureYears	生産			Privileges.cs:131								既定
@@ -1122,7 +1122,7 @@
 他	RecipeCostFollowsProductivity	生産			Simulation.cs:3142								済
 他	ResourceEndowmentScale	生産			Simulation.cs:809								済
 他	ResourceScarcityScale	生産			Simulation.cs:830								済
-他	RgoElasticityGate	生産			EconomyStep.cs:2037								済
+他	RgoElasticityGate	生産			EconomyStep.cs:2037								済（2026-10-18 旗の焼き込みで削除）
 他	RumpReabsorbYears	生産			MultiNationSim.cs:1119								既定
 他	ScarceCountsIncludeColonies	生産			Simulation.cs:718								済
 他	ScarceMineralGate	生産			Simulation.cs:717								済
@@ -1133,24 +1133,24 @@
 他	StateShareCounterOnly	生産			EconomyStep.cs:2029								済（2026-10-18 削除）
 他	SteamTurbineEnabled	生産			Simulation.cs:1231								済
 他	SteelGoodId	生産			EconomyStep.cs:955								済
-他	SubsistenceHarvestFullExposure	生産			EconomyStep.cs:1870								済
+他	SubsistenceHarvestFullExposure	生産			EconomyStep.cs:1870								済（2026-10-18 旗の焼き込みで削除）
 他	SulfurFromPyriteEnabled	生産			Simulation.cs:1129								済
 他	TechGatedScaleZero	生産			EconomyStep.cs:470								済（2026-10-18 削除）
 他	AdminBudgetFrac	財政			Fiscal.cs:255								済
 他	AiDevelopmentalSubsidy	財政			SelfPlay.cs:1582								済
-他	CapitalMobilityLawGate	財政			Fiscal.cs:700								済
+他	CapitalMobilityLawGate	財政			Fiscal.cs:700								済（2026-10-18 旗の焼き込みで削除）
 他	ConsumeBudgetSavingsRatePerMonth	財政			EconomyStep.cs:1450								済
 他	CrisisAusterityRelief	財政			SelfPlay.cs:1393								済
 他	CurrencyReformCalmMonths	財政			Fiscal.cs:291								済
 他	CurrencyReformCooldownMonths	財政			Fiscal.cs:321								済
-他	CurrencyReformEnabled	財政			Fiscal.cs:286								済
+他	CurrencyReformEnabled	財政			Fiscal.cs:286								済（2026-10-18 旗の焼き込みで削除）
 他	DefaultArrearsMonths	財政			Fiscal.cs:432								済
 他	DefaultCooldownMonths	財政			Fiscal.cs:826								済
-他	EuphoriaUsesStableReserve	財政			Credit.cs:130								済
+他	EuphoriaUsesStableReserve	財政			Credit.cs:130								済（2026-10-18 旗の焼き込みで削除）
 他	FiscalBufferSoldierPayWeight	財政			SelfPlay.cs:404								済
 他	FiscalStressBufferMonths	財政			SelfPlay.cs:396								済
 他	HouseholdCreditStapleOnly	財政			EconomyStep.cs:1631								済
-他	IndirectTaxInBudgetBase	財政			Fiscal.cs:254								済
+他	IndirectTaxInBudgetBase	財政			Fiscal.cs:254								済（2026-10-18 旗の焼き込みで削除）
 他	InterestCapitalization	財政			Credit.cs:228								済
 他	MegaprojectEnabled	財政			Megaprojects.cs:54								済
 他	MegaprojectForeignMinRank	財政			Megaprojects.cs:171								済
@@ -1169,31 +1169,31 @@
 他	PrivilegeMonopolyInLedger	財政			EconomyStep.cs:1859								済
 他	PublicEduFundingShare	財政			Simulation.cs:2105								済
 他	SavingsYearsByClass	財政			World.cs:1695								済
-他	SilverLightDiscipline	財政			Credit.cs:97								済
+他	SilverLightDiscipline	財政			Credit.cs:97								済（2026-10-18 旗の焼き込みで削除）
 他	SilverParityFromRatio	財政			MultiNationSim.cs:891								済
-他	SilverStandardGate	財政			Government.cs:101								済
+他	SilverStandardGate	財政			Government.cs:101								済（2026-10-18 旗の焼き込みで削除）
 他	SoeSaleYears	財政			Credit.cs:114								既定
 他	SovietTaxProfile	財政			SelfPlay.cs:1316								済
 他	StandardMetalMintGate	財政			Simulation.cs:2837								済
 他	StateProcurePriceGate	財政			Colonial.cs:374								済
-他	TrilemmaRateGate	財政			Government.cs:351								済
+他	TrilemmaRateGate	財政			Government.cs:351								済（2026-10-18 旗の焼き込みで削除）
 他	UpkeepDistanceGeneral	財政			Fiscal.cs:625								済
 他	WelfareRevenueShare	財政			Fiscal.cs:552								済
 他	AbstractNavalShare	軍			Diplomacy.cs:827								済
 他	ArmsStockEnabled	軍			EconomyStep.cs:350								済
-他	ArmyShapeEnabled	軍			ArmyShape.cs:30								済
+他	ArmyShapeEnabled	軍			ArmyShape.cs:30								済（2026-10-18 旗の焼き込みで削除）
 他	BaseArmsStockEnabled	軍			EconomyStep.cs:2242								済
 他	BattleClearMargin	軍			Diplomacy.cs:2624								済
 他	BattleDecisiveMargin	軍			Diplomacy.cs:2624								済
 他	BattleLogEnabled	軍			Diplomacy.cs:2620								済
 他	CollapseImposeFromFront	軍			Diplomacy.cs:2653								済
-他	ConscriptionScalesWithWar	軍			Military.cs:196								済
-他	ContinentalLandReach	軍			Diplomacy.cs:3398								済
+他	ConscriptionScalesWithWar	軍			Military.cs:196								済（2026-10-18 旗の焼き込みで削除）
+他	ContinentalLandReach	軍			Diplomacy.cs:3398								済（2026-10-18 旗の焼き込みで削除）
 他	FleetGoodIds	軍			Diplomacy.cs:987								済
 他	GarrisonProcurement	軍			Military.cs:291								済
 他	InitialArsenalMonths	軍			Simulation.cs:592								済
-他	InvadeShipSeaDistance	軍			World.cs:2216								済
-他	LandReachKm	軍			Diplomacy.cs:3402								済
+他	InvadeShipSeaDistance	軍			World.cs:2216								済（2026-10-18 旗の焼き込みで削除）
+他	LandReachKm	軍			Diplomacy.cs:3402								済（2026-10-18 旗の焼き込みで削除）
 他	MilitaryAirGoods	軍			EconomyStep.cs:122								済
 他	MilitaryBudgetNeedCapped	軍			Simulation.cs:2068								済
 他	MilitaryCadrePayRatio	軍			Simulation.cs:2177								済
@@ -1205,57 +1205,57 @@
 他	MilitaryTier3Goods	軍			EconomyStep.cs:119								済
 他	MilitiaCombatValue	軍			Diplomacy.cs:841								済
 他	NavalProcurementNeedsPort	軍			EconomyStep.cs:251								済
-他	RationingGate	軍			Diplomacy.cs:2454								済
+他	RationingGate	軍			Diplomacy.cs:2454								済（2026-10-18 旗の焼き込みで削除）
 他	RevoltExpansionScore	軍			Diplomacy.cs:2803								済（2026-10-18 削除）
 他	SoldierRecruitClassA	軍			Military.cs:127								済
 他	SoldierRecruitClassB	軍			Military.cs:127								済
-他	WarLuckNeedsContact	軍			Diplomacy.cs:2590								済
-他	WarNeedsReach	軍			Diplomacy.cs:1430								済
+他	WarLuckNeedsContact	軍			Diplomacy.cs:2590								済（2026-10-18 旗の焼き込みで削除）
+他	WarNeedsReach	軍			Diplomacy.cs:1430								済（2026-10-18 旗の焼き込みで削除）
 他	WarshipGoodId	軍			EconomyStep.cs:97								済
 他	AiColonizeChance	外交			Diplomacy.cs:1948								済
-他	AiProtectiveTariff	外交			SelfPlay.cs:919								済
-他	BarrierWallSegments	外交			PathGraph.cs:446								済
+他	AiProtectiveTariff	外交			SelfPlay.cs:919								済（2026-10-18 旗の焼き込みで削除）
+他	BarrierWallSegments	外交			PathGraph.cs:446								済（2026-10-18 旗の焼き込みで削除）
 他	ClearingsPerYear	外交			DiploCore.cs:101								済
 他	ColonialImportLagMonths	外交			EconomyStep.cs:590								既定
 他	ColonialInfraPerColony	外交			Colonial.cs:139								済（2026-10-18 削除）
-他	ColonialRegionCession	外交			Diplomacy.cs:2930								済
+他	ColonialRegionCession	外交			Diplomacy.cs:2930								済（2026-10-18 旗の焼き込みで削除）
 他	ColonialRegionSettlement	外交			Colonial.cs:244								済（2026-10-18 削除）
 他	ColoniesAreRegions	外交			Colonial.cs:74								済
 他	ColonyCaptureBudget	外交			Diplomacy.cs:2865								済
 他	ColonyCaptureCostBase	外交			Diplomacy.cs:2887								済
 他	ColonyCapturePopCost	外交			Diplomacy.cs:2887								済
-他	ColonyCaptureReachGate	外交			Diplomacy.cs:2904								済
+他	ColonyCaptureReachGate	外交			Diplomacy.cs:2904								済（2026-10-18 旗の焼き込みで削除）
 他	ColonyCaptureResourceCost	外交			Diplomacy.cs:2887								済
 他	ColonyDevCostFromRegion	外交			Diplomacy.cs:2946								済（2026-10-18 削除）
 他	ColonyDevCostWeight	外交			Diplomacy.cs:2887								済（2026-10-18 削除）
-他	CultureFormationGate	外交			Formations.cs:446								済
-他	CultureFormationNeedsGain	外交			Formations.cs:418								済
+他	CultureFormationGate	外交			Formations.cs:446								済（2026-10-18 旗の焼き込みで削除）
+他	CultureFormationNeedsGain	外交			Formations.cs:418								済（2026-10-18 旗の焼き込みで削除）
 他	EnableCivilizationTension	外交			Diplomacy.cs:937								済
 他	EnableDependency	外交			Diplomacy.cs:938								済
-他	EnableFormations	外交			Diplomacy.cs:916								済
-他	FormationCapitalMove	外交			Formations.cs:397								済
-他	FrozenTensionDecays	外交			Diplomacy.cs:3456								済
+他	EnableFormations	外交			Diplomacy.cs:916								済（2026-10-18 旗の焼き込みで削除）
+他	FormationCapitalMove	外交			Formations.cs:397								済（2026-10-18 旗の焼き込みで削除）
+他	FrozenTensionDecays	外交			Diplomacy.cs:3456								済（2026-10-18 旗の焼き込みで削除）
 他	GreatPowerCount	外交			Diplomacy.cs:575								済
 他	GreatPowerScoreFraction	外交			Diplomacy.cs:584								済
 他	HighTensionBand	外交			Diplomacy.cs:3452								済
-他	ImposeRegimeEnabled	外交			Diplomacy.cs:3060								済
+他	ImposeRegimeEnabled	外交			Diplomacy.cs:3060								済（2026-10-18 旗の焼き込みで削除）
 他	IndependenceShockYears	外交			Simulation.cs:2017								済（2026-10-18 削除）
-他	InterventionRefusalSymmetric	外交			Diplomacy.cs:2307								済
-他	InterventionRefusalWar	外交			Diplomacy.cs:2314								済
+他	InterventionRefusalSymmetric	外交			Diplomacy.cs:2307								済（2026-10-18 旗の焼き込みで削除）
+他	InterventionRefusalWar	外交			Diplomacy.cs:2314								済（2026-10-18 旗の焼き込みで削除）
 他	InterventionWarMinMonths	外交			Diplomacy.cs:2342								済
-他	LandEdgesAvoidWater	外交			PathGraph.cs:404								済
+他	LandEdgesAvoidWater	外交			PathGraph.cs:404								済（2026-10-18 旗の焼き込みで削除）
 他	LandRouteEnabled	外交			BilateralMarket.cs:275								済
 他	MiddlePowerCount	外交			Diplomacy.cs:577								済
 他	MinorPowerScoreFraction	外交			Diplomacy.cs:584								済
 他	MonthsPerClearing	外交			Fiscal.cs:252								済
-他	PeaceInterventionEnabled	外交			Diplomacy.cs:2241								済
-他	PeaceInterventionProbe	外交			Diplomacy.cs:2241								済
-他	PortRewireEnabled	外交			MultiNationSim.cs:197								済
+他	PeaceInterventionEnabled	外交			Diplomacy.cs:2241								済（2026-10-18 旗の焼き込みで削除）
+他	PeaceInterventionProbe	外交			Diplomacy.cs:2241								済（2026-10-18 旗の焼き込みで削除）
+他	PortRewireEnabled	外交			MultiNationSim.cs:197								済（2026-10-18 旗の焼き込みで削除）
 他	PreemptiveSeizeWeight	外交			Diplomacy.cs:1976								済
 他	PriceLawSeesExports	外交			MarketFlow.cs:200								済
 他	PrizeLossProrated	外交			Diplomacy.cs:773								済
 他	ProjectionUsesLand	外交			Diplomacy.cs:3425								済
-他	RankBracketsMerged	外交			Diplomacy.cs:599								済
+他	RankBracketsMerged	外交			Diplomacy.cs:599								済（2026-10-18 旗の焼き込みで削除）
 他	RankUpdateIntervalQuarters	外交			Diplomacy.cs:932								済
 他	RegionalDistanceHalf	外交			MultiNationSim.cs:23								済
 他	SeaStitchLeadBudgetMult	外交			SeaGraph.cs:361								済
@@ -1264,30 +1264,30 @@
 他	ShipTier2GoodId	外交			Colonial.cs:85								済
 他	SubmitProbabilistic	外交			Diplomacy.cs:1505								済
 他	TensionActionRampMonths	外交			Diplomacy.cs:2006								済
-他	ThreatUsesColonyValue	外交			Diplomacy.cs:398								済
-他	TradeAccessNormalized	外交			MultiNationSim.cs:110								済
-他	TradeLedgerFix	外交			Simulation.cs:2541								済
-他	TradeMonthlyClearing	外交			BilateralMarket.cs:601								済
-他	TradeTreatyEnabled	外交			Diplomacy.cs:3235								済
-他	TradeWeightDynamic	外交			MultiNationSim.cs:1581								済
-他	TransitEnabled	外交			BilateralMarket.cs:192								済
-他	TransportEnabled	外交			BilateralMarket.cs:265								済
+他	ThreatUsesColonyValue	外交			Diplomacy.cs:398								済（2026-10-18 旗の焼き込みで削除）
+他	TradeAccessNormalized	外交			MultiNationSim.cs:110								済（2026-10-18 旗の焼き込みで削除）
+他	TradeLedgerFix	外交			Simulation.cs:2541								済（2026-10-18 旗の焼き込みで削除）
+他	TradeMonthlyClearing	外交			BilateralMarket.cs:601								済（2026-10-18 旗の焼き込みで削除）
+他	TradeTreatyEnabled	外交			Diplomacy.cs:3235								済（2026-10-18 旗の焼き込みで削除）
+他	TradeWeightDynamic	外交			MultiNationSim.cs:1581								済（2026-10-18 旗の焼き込みで削除）
+他	TransitEnabled	外交			BilateralMarket.cs:192								済（2026-10-18 旗の焼き込みで削除）
+他	TransportEnabled	外交			BilateralMarket.cs:265								済（2026-10-18 旗の焼き込みで削除）
 他	TransportPotentialWeight	外交			Transport.cs:23								済（2026-10-18 削除）
-他	TransportShareByPotential	外交			Transport.cs:91								済
+他	TransportShareByPotential	外交			Transport.cs:91								済（2026-10-18 旗の焼き込みで削除）
 他	TreatyPortLapseYears	外交			Diplomacy.cs:533								済
 他	UnificationAiCooldownYears	外交			Diplomacy.cs:1845								済
 他	UnificationAiWarGapYears	外交			Diplomacy.cs:1843								済
 他	UnificationV1Only	外交			Formations.cs:465								済
-他	UnificationWarEnabled	外交			Diplomacy.cs:1830								済
-他	VassalDefectionUsesSubmitMeasure	外交			Diplomacy.cs:1367								済
-他	VassalTransferOnCrush	外交			Diplomacy.cs:3075								済
+他	UnificationWarEnabled	外交			Diplomacy.cs:1830								済（2026-10-18 旗の焼き込みで削除）
+他	VassalDefectionUsesSubmitMeasure	外交			Diplomacy.cs:1367								済（2026-10-18 旗の焼き込みで削除）
+他	VassalTransferOnCrush	外交			Diplomacy.cs:3075								済（2026-10-18 旗の焼き込みで削除）
 他	WarFeverUsesBudgetShare	外交			World.cs:2187								済
 他	WarTriggerMonths	外交			Diplomacy.cs:1483								済
-他	WinterPortFreeze	外交			BilateralMarket.cs:263								済
-他	WorldPriceInitFromRefPrice	外交			MultiNationSim.cs:62								済
+他	WinterPortFreeze	外交			BilateralMarket.cs:263								済（2026-10-18 旗の焼き込みで削除）
+他	WorldPriceInitFromRefPrice	外交			MultiNationSim.cs:62								済（2026-10-18 旗の焼き込みで削除）
 他	WorldPriceStatUnclamped	外交			BilateralMarket.cs:646								済
 他	BonanzaDepositYears	発見			Discovery.cs:930								既定
 他	DiffusionWeight	発見			BilateralMarket.cs:896								済
-他	DiscoveryTierGate	発見			Discovery.cs:363								済
+他	DiscoveryTierGate	発見			Discovery.cs:363								済（2026-10-18 旗の焼き込みで削除）
 他	IndustrializedTechThreshold	発見			Calibration.cs:60								済（2026-10-18 削除）
 他	StartWarmupQuarters	他			MultiNationSim.cs:523								済

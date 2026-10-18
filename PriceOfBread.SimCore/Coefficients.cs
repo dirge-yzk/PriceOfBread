@@ -3284,7 +3284,7 @@ public sealed class Coefficients
     //   代償=経済規模−5.0・政体exact−2.3・列強再現−2.5（記録して進む・#17再較正キューへ）。硬性全緑・savetest緑。
     //   形＝1783年[不換0/銀61/金0]の銀本位世界→70年の先行期間→1853年起点の倍々雪崩→1914年に銀圏12/14一致（清・ペルシャ・
     //   アフガニスタン・中央アジア3・アラビア・イエメン・オマーン・エチオピア・ラオス・西山朝）。休眠時は銀0/14・1803年に金16の氾濫だった。
-    //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】
+    //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】※旗の2本（SilverStandardGate・SilverLightDiscipline）は 2026-10-18 に焼き込んで消えた＝戻すなら git の履歴から（残るのは GoldStandardIndThreshold・MonetaryPeerPullScale の2係数だけ）。
     //   ★(210) MonetaryPeerPullScale の入力は組ごとの相手と比の外れへ・銀の下落は同じ州の比へ（PolicyPreferences）＝この墓標の4係数の戻し方は旧の記録。
     // 【墓標2026-10-18・旗の焼き込み】SilverStandardGate（銀本位の主旗・既定1.0・点火2026-08-21 銀本位ラウンド＝4係数一括：同一ソースA/B seeds1-10 ◎7割帯 11→17・逸脱過多 9→7・法+1.9・植民地+3.4・人口+1.4／代償=経済規模−5.0・政体exact−2.3・列強再現−2.5）を消した＝不換→銀→金の3段の梯子が常に開く（旧の2値の経路は削除）。
     // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の

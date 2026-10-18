@@ -1253,7 +1253,7 @@
 | ★ 硬性ゲート | ★ **全緑**（破綻0・デッドロック0・異常0・ハーネス0/10） | 全緑 |
 
 ★★ **銀本位点火後の判定帯**＝**◎7割帯 11→17（+6）・逸脱過多 9→7**・1914年銀圏 **12/14**・硬性全緑・405/405・savetest 0.0E+000。
-⚠ 差し戻しは4係数（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）で完全に旧挙動へ。
+⚠ 差し戻しは4係数（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）で完全に旧挙動へ。　**→ 2026-10-18：SilverStandardGate・SilverLightDiscipline の旗は焼き込んで消えた（戻すなら git の履歴から）**
 
 ⚠ **物差しが2つ変わった**：①政体exact＝導出政体（PowerAffinity.PolityFromShares）で照合・旧ラベルは併記列で継続 ②貿易/GDP＝分母年換算（債務/GDPのDebtGdpAnnualizedと同じ是正）。**過去の数字と比べるときは物差しの版を確認すること。**
 
