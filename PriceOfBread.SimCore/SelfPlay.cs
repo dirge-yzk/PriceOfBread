@@ -37,7 +37,7 @@ public static class NationalScore
         w.ScoreStanding += (now - w.ScoreStanding) * r;
     }
     // ===== ★(416) 国力の物差し＝世界の総量に対する本国の割合（旗 ScoreFromWorldShare・事前登録 measurements/sc_20261019_prereg.txt D6） =====
-    /// <summary>国力の 6 項の素の量（本国の州だけ＝活きていて Tier≠Colonial）。兵・軍事費〔参照価格建て＝名目を物価水準で割る〕・鉄の産出（鋼は鉄を投入する＝入れると二重計上）・動力の消費（石炭＋原油×熱量比）・都市人口・総人口。</summary>
+    /// <summary>国力の 6 項の素の量（本国の州だけ＝活きていて Tier≠Colonial）。兵・軍事費〔参照価格建て＝名目を物価水準で割る〕・鉄の産出（鋼は鉄を投入する＝入れると二重計上）・動力の消費（石炭＋原油×熱量比・満たされた量＝LastSold。満たされない需要〔LastDemand〕は数えない＝足りない国ほど増える歪みを避ける）・都市人口・総人口。</summary>
     internal readonly record struct ScoreTerms(double Soldiers, double MilitarySpend, double Iron, double Energy, double UrbanPop, double TotalPop)
     {
         internal const int Count = 6;
@@ -62,8 +62,8 @@ public static class NationalScore
             }
             var mk = r.Markets;
             if (Catalog.IronId < mk.Length) iron += Pos(mk[Catalog.IronId].LastProduced);
-            if (Catalog.CoalId < mk.Length) energy += Pos(mk[Catalog.CoalId].LastDemand);
-            if (Catalog.CrudeOilId < mk.Length) energy += Pos(mk[Catalog.CrudeOilId].LastDemand) * oilToCoal;
+            if (Catalog.CoalId < mk.Length) energy += Pos(mk[Catalog.CoalId].LastSold);
+            if (Catalog.CrudeOilId < mk.Length) energy += Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCoal;
         }
         double pl = w.PriceLevel;
         double mil = !(pl > 0) ? 0 : Pos(Pos(w.LastMilitaryClaimPerMonth.Value) + Pos(w.LastSoldierPayPerMonth.Value)) / pl;

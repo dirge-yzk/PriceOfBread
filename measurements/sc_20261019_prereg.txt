@@ -37,7 +37,7 @@
       同じ関数＝`EconomyStep` の投資の限界収益の式（`EconomyStep.cs:884〜897`）を `EconomyStep.InvestmentReturn(region, coef, productivityMultiplier)` の 1 本へ抜き出し、`EconomyStep.Run`（私的投資）と `World.ModernizeReturnShare`（AI の信号）が両方これを呼ぶ。
         式は抜き出す前と同じ順序・同じリテラル（`sat＝1＋ProductiveIndustrialization÷IndProductivityScale`・`marginalGain＝IndProductivityGain÷sat²`・`gross＝marginalGain×(1＋IndTechLeverage×techLev)`・`hurdle＝IndCapitalCost＋CrowdingOutWeight×CrowdingPremium−EquityHeatEuphoria×FinancialHeat`・`techLev＝max(0, techProd−1)`）。
       `techProd`（生産性の乗数）も同じ 1 本から取る：`Simulation.cs:2296〜2311` の `whOut`・`union`・`strike`・`techProd` の式を `World.TechProductivity(Region)` へ抜き出し、`Simulation` の月次の呼びと AI の信号が同じ関数を通る（式は同じ順序・同じリテラル）。
-        ⚠これは技術水準の読み手を**増やさない**・消さない（`techProd` の中身は dt の段 5 が後で置き換える＝置き場が 1 本になって楽になる）。
+        ⚠[11] 追記2で訂正：呼ぶ場所の数は増えないが、AI の判断が依存する量としては TechLevel（`IndTechLeverage`＝2.4 の梃子）が**加わる**（旧の gap は工業化度と前線だけを読んだ）。作者が二重計上として削除を決めた集計のスカラーの一つを、別の削除予定のスカラーに付け替えた形になる。dt の段 5 が `techProd` を置き換えると AI の止まる所も動く（合流の注意）。
   D2 レバー（旗 ≥1）：`Apply` の `indGap`（`SelfPlay.cs:1598`）と `AutoModernizationFrac` の `indGap`（`:338`）を `ModernizeReturnShare` に置き換える。分母の `EffectiveIndCeiling`・`IndustrialFrontier`・`AiIndustrialCeilingFrontier` は旗 ≥1 では読まない。
       率＝`信号 × (1−財政逼迫) × スタンスの率`（旧の `indGap` と同じ位置・他の因子は変えない）。2 本の書き手が同じ信号を読む（片方だけ換えると新しい非対称ができる）。
   D3 ダンピングの後発判定（旗 ≥2）：旧＝`MeanIndustrialization < IndustrializationCeiling`（定数 2.5・`SelfPlay.cs:1627`）。新＝`ModernizeReturnShare > 0`（設備の収益がまだ立つ＝後発）。
@@ -48,7 +48,8 @@
       ・〈信号に建設の束の採算 `FactoryBuildAfford` を掛ける〉：国家の建設は `EconomyStep.cs:938〜942` の `bundleAfford`（`StateProcurePriceGate＝1`）で既に束の採算を通っている＝AI の信号に重ねると二重計上（思想⑨）。
       ・〈国の人口加重の `ReturnShare`〉：国庫が実際に配る先（`InvestWeight`）と違う州を見る。
       ・〈ハードルを国債金利へ付け替える〉（(407) 問い 2 の候補）：`IndCapitalCost` の単位（月の率か年の率か）が資本産出比 `IndCapitalOutputYears` と絡んでおり、この波で金利へ付け替えると私的投資の式も変わる。別の線（申し送り・[7] Q3）。
-      ・〈AI のレバーに上限を置く〉：設計思想⑧（選んだ値を上限・下限で削らない）。信号が 0 になる所（設備の収益がハードルを割る所）が自然な止まり。州の上限 5.0 は変えない（プレイヤーと共通の物理の上限）。
+      ・〈AI のレバーに上限を置く〉：設計思想⑧（選んだ値を上限・下限で削らない）。州の上限 5.0 は変えない（プレイヤー・私的投資家と共通の既存の上限）。
+      ⚠[11] 追記2で訂正：〈信号が 0 になる所が自然な止まり〉は取り下げ。式で再現すると、信号が 0 になるのは techLev≈1.77 のとき Productive＝5.0 で、TechLevel が約 1.8 を超える国（英・仏・普・米は 1853 年に 2 を超える）では信号の 0 が州の上限より上にある＝**止めているのは州の上限 `IndustryInvestRegionCap`**。低技術国では信号が先に 0 になる（techLev＝0 で I＝0.78）。
   D8 この線で**置き換えない**読み手と理由（段 0・[9] の表）：法の閾値（`AntitrustIndThreshold`・`TrustbustIndThreshold`＝反トラスト・同業組合・`:694〜698`）と金本位の志向（`GoldStandardIndThreshold`・`:858`）は、
       置き換え先の物理量（市場の集中・交易の割合と兌換の維持率）が今は無い。〈独占の弊害〉は `EconomyStep.cs:410` が `MonopolyDissolveInd`（工業化度で割る）で作っており、工業化度の削除と一緒に作り直す対象。
       工業化度の削除そのもの（`Region.Industrialization`・`MeanIndustrialization`・`IndustryInvestRegionCap`）も扱わない：私的な建設が能力になる唯一の在庫（`EconomyStep.cs:1978`→`indMult〔688〕`）で、工場の設備への資本の役の移し替え
@@ -85,7 +86,7 @@
   A  ＝ 旗 0（既定）。素の 5 種の成績表が b5_20261019_m412 と名乗り行の SOURCE-HASH を除いて全行一致（恒等の証明の腕＝形の合否）。比べる側の計器つき 10 種は m412_ins の生（D:/PoB_work/keep_412/m412_ins）。
        計器つきの 10 種は、新しい表 `modsig_s`・`score_s` が増えるだけで報告の本体は変わらない（旗 0 の世界の順位の読みのために、後半の担当が A の計器つき 10 種を 1 回回してもよい〈ヌル腕とは別・記録のため〉）。
   B  ＝ A ＋ `AiModernizeFromReturn=3` ＋ `ScoreFromWorldShare=1`（計器つき 10 種）。ヌル腕は m412 のもの（b10_20261019_m412_n1_ins・b10_20261019_m412_n2_ins）を共有する（作者 2026-10-18 承認）。
-       ヌルを読むのは NG の判定〈確証なし×バランス破壊〉のときだけ。作者が〈消す／こうする〉と裁定した形（国力の物差しを割合にする・AI の天井を物理量にする）はヌルを読まない。
+       ヌルを読むのは NG の判定〈確証なし×バランス破壊〉のときだけ。[11] 追記2で訂正：国力の物差しを割合にする形（00-SCORE）は作者の裁定待ち（AI の推奨）＝**ヌルを読む**。AI の近代化投資の信号も AI の決め（弾性・ハードルの選び）＝**ヌルを読む**。作者が〈消す／こうする〉と裁定した形（工業化度・技術水準の集計のバフを使わない）の方向だけがヌルを読まない対象で、この線の式そのものは該当しない。
   ★1 腕に 2 本の旗を重ねる理由：①と②は読み合う（国力が外交のランクを決め、ランクが AI の標的を決め、近代化投資が国力を作る）＝単独の腕は片方の旧い物差しの上で測ることになる。止める線に当たったときの切り分けは下の順：
       切り分け順＝(i) `ScoreFromWorldShare` だけ戻す／(ii) `AiModernizeFromReturn` を 3→2→1 と段で戻す。1 テーマ 1 計測の原則どおり、当たらなければ分けない。
   ★先に 1 本：B の canary（seed 1・200 四半期）で完走・NaN なし・savetest（旗 ≥1 の往復）・leakhunt（保存則）を確かめてから 10 種へ進む。
@@ -176,7 +177,7 @@
   9-4 新しい信号の形の数（ソースの式から手計算・外れてよい）：`gross＝1.2÷(1＋I÷2.5)²×(1＋2.4×techLev)`・`hurdle＝0.7`（締め出し・株の熱が 0 のとき）。
       techLev＝0 の国：I＝0 で信号 0.417・I＝0.78 で 0（私的投資家が止まる所）。techLev＝0.5：I＝2.35 で 0。techLev＝1：I＝3.5 で 0。
       ＝旧の gap（c＝2.5 で I＝0 なら 1・I＝1.25 なら 0.5）より、低技術の国の開幕の信号は小さく、高技術の国は長く立つ。外れてよい（techProd は労働時間・組合・罷業の乗数も含む）。
-  9-5 国力の新しい式のソースの確認：`Pop.IsUrban`・`IsSoldier`・`Region.Tier`（Core／Integrated／Colonial）・`Market.LastProduced`／`LastDemand`（月の流量）・`World.PriceLevel`・`LastMilitaryClaimPerMonth`／`LastSoldierPayPerMonth` が全て在る。
+  9-5（[11] 追記2で追記あり）国力の新しい式のソースの確認：`Pop.IsUrban`・`IsSoldier`・`Region.Tier`（Core／Integrated／Colonial）・`Market.LastProduced`／`LastDemand`（月の流量）・`World.PriceLevel`・`LastMilitaryClaimPerMonth`／`LastSoldierPayPerMonth` が全て在る。
       国力の絶対値を閾値に使う読み手は無い（ランク・風化・序列・検査は相対）。一方 `F0` 表示（`GameViewModel.Header.cs`・`Refresh.cs`・`SaveMenu.cs`）は ×100 で整数が意味を持つ。
   9-6 通貨の確認：軍事費の請求は国ごとの名目（`NominalGdpPerMonth＝GdpPerMonth×PriceLevel`）＝国どうしの物価水準が違う。国の間で足す前に `PriceLevel` で割って参照価格建てにする（`World.NominalOf` の逆）。
       国どうしの通貨の換算（為替）は参照価格建ての実質量を比べる限り要らない。この割り算が足りない場合の逃げ道＝軍事費の項を落とす（5 項・[7] に書く）。
@@ -203,3 +204,20 @@
       勝者は清（30.2）・恐慌 43→28 回・損失financing のピーク率 2.11→1.80%。**AI の工業化度が州の上限 5.0 の近くまで上がった**（上海 4.8・プーナ 4.3・モスクワ 4.7・ウィーン 4.5・A は 2.5〜2.6）＝〈プレイヤー 4.9・AI 3.0〉の非対称は〈両方とも州の上限の近く〉になる。
       生産性に効く稼働資本（座礁分を除く）は総量より小さく、信号が立ち続けるため（1833 年の信号：清 0.007・日 0.017・露 0.11・英 0.26・仏 0.38）。開幕の信号は英 0.32・仏 0.40・清 0.42・日 0.41（旧の gap は 0.96〜1.0）＝開幕の率は旧の 0.3〜0.4 倍。
       記録の線 R4・R5 で 10 種を読む（アジアの過近代化の再発か・開幕のバーストの縮み）。採否は止める線だけ。`measurements/sc_20261019_canary_B_*`・`sc_20261019_read_seed1.txt`。
+
+[11] 追記2（2026-10-19・後半の担当・腕を回す前・書いたモデル Claude Sonnet 5.5・反証役の点検〔高 2・中 4・低 2〕への処置）
+  ① [0]〜[10] の訂正：D1（TechLevel への依存）・D5（自然な止まりの取り下げ）・88 行目（00-SCORE と信号はヌルを読む）は上の本文を直した。
+  ② **止めているのは州の上限 5.0**：信号が 0 になる所は低技術国では州の上限の手前・技術 TechLevel≳1.8 の国では州の上限の向こうにある。後者は国庫の近代化投資が `IndustryInvestRegionCap` で止まる（私的投資・プレイヤーと同じ既存の上限）。Q5 は〈信号 0 で AI だけ止まる〉ではなく〈AI の止まる所が前線連動の 3.0 から州の上限 5.0（高技術）か信号 0（低技術）に変わる〉と読み直す（[7] Q5）。
+  ③ **Productive と Total の非対称**（信号は `ProductiveIndustrialization`〔座礁分を除く〕・適格と重みは `TotalIndustrialization`）：名指しして**この波では直さない**。理由＝適格と重みは旗 0 でも国庫の按分に使う既存の経路で、触ると腕 A の恒等が壊れる。私的な投資家の `netReturn` も同じ Productive を読み Total の上限で止まる（同じ関数を通す＝私的投資と対称）。座礁した資本の分だけ信号が高く出て上限へ近づく向きの偏りがあり得る（推測・canary 1 種で上海 4.8・アンタナナリヴ 4.7・ブハラ 4.6）。記録の線 R5 で張り付く国の数を読み、後の線へ申し送る。
+  ④ **t4（動力）を `LastDemand` から `LastSold` へ**（形の直し・旗＞0 の経路だけ＝恒等に影響なし）：`LastDemand` は満たされなかった需要も含む（`EconomyStep.cs:1640` は `totalDemand`）。CINC のエネルギーの項は実際の消費＝満たされた量が正しい。番人 S1 に〈不足を増やしても動力の項は増えない〉を足した。前半の記録（1800 年の清の動力 0.37 ほか）は `LastDemand` による値＝**この追記の後の値ではない**（腕 B の score_s で取り直す）。
+  ⑤ **D3 は門としてほぼ死ぬ見込み**：canary の 1832 年で信号＞0 は B が 85 行中 80 行。成熟した輸出大国も〈後発〉になり、`SelfPlay.cs` の注が書く門の目的（成熟した輸出大国が国庫で安売りを続けるとロンドンの暴走になる）が外れる。D3（旗 2）と D4（旗 3）は〈止める信号の置き換え〉（旗 1）とは**別の AI の決め**＝〈確証なし〉。段で切ってあるので切り分け順 (ii) の 3→2→1 で外せる。記録の線 R6 にダンピングの発動数（国×四半期・目標が負になる行の数）と姿勢の分布を旧（A の計器つきの modsig_s の stance）と新（B）で並べる線を足す。
+  ⑥ **国力の割合化の閾値の意味**（点検 中#3）：`TreatyPortLapseRatio`＝0.5（`fade＝Clamp01(比÷0.5)×速さ`）は旧の物差し（首位とその他の差が 1.5〜2 倍）で較正した値。新しい物差しは清が 30〜36 点・他が 2〜6 点（seed 1 の記録）で、0.5 を超えるのはほぼ首位の国だけ＝首位以外の受け入れ国では外国の持分の風化が旧より遅くなる（清は比 1 で最速）。**係数は変えない**（AI の決めの数が増えるだけ）。R2 に国ごとの外国持分の風化の速さ（TreatyPortLapse の fade を受け入れ国別）を足す。作者に聞く物 Q6 に追加。12 カ国以下の世界の `GreatPowerScoreFraction`／`MinorPowerScoreFraction` も同じ問題を持つ＝同じ Q6。
+  ⑦ **R1 の史実の分母**（点検 中#2）：CINC の式の確証と、挙動（ランクの集合が条約港の風化・開戦の門・標的を決める）の確証は別。**式の定義は確証あり・ランクの挙動は確証なし**と分けて報告する。分母＝Correlates of War の主要国の名簿（state system membership）。リポジトリ・docs にその csv は無い（`scripts/instruments/cow_all.txt` は戦争の一覧）＝R1 の名簿の照合は記憶に基づく表〈出典未確認〉として出す（採否に使わない）。年ごとの Great の集合と記憶の名簿の一致数を旧と新で並べる。
+  ⑧ **NG の読み手のブロック**（点検 高#2・腕の前に固定）：
+      基準＝`rd:measurements/ng412_20261019:m412`。B の計器つき 10 種を `bash ng.sh <出力>/ins <タグ> <読み手の出力フォルダ>` で読み（読み手の出力フォルダは **D:/…** の形で渡す。/d/… だと比較が空振りして〈NG 0・差 0〉と読める）、`python scripts/instruments/m192/ngset192.py rd:measurements/ng412_20261019:m412 rd:<読み手の出力>:<タグ>` で新しい・外れたを出す。
+      雑音の除外＝ヌル 2 本に共通して新しい 13 件（`D:/PoB_work/wt_nl/measurements/m412n_20261019_null.txt`〔枝 nl・origin/nl〕の一覧：fin 英 1810-19 借入・英 1940-50 国債・普 1910-19 軍、law オスマン 1874・1894・スペイン 1874 選抜、steam 墺 1813・墺 1833・仏 1813・普 1833・清 1853・清 1873、trade 普 1904-13）は雑音。
+      NG にする条件（作者 2026-10-14 の両方が揃うとき）：(確証なし) 国力の割合化は作者の裁定待ち／信号の式は AI の決め ∧ (バランス破壊) 次のいずれか：(a) exact か near がヌル 2 本の幅（exact 47.0〜47.2・near 85.6〜85.9）から 10pt 以上落ちる／(b) 補給崩壊（人口 100 以上）がヌル（280〜290）の倍以上＝560 以上／(c) NG の総数が m412 の 81 より 24 超増える＝106 以上（ヌル 2 本の増分 +8〜+12 の 2 倍）。
+      どれかが当たったとき：切り分け順（先に `ScoreFromWorldShare` を戻す→次に `AiModernizeFromReturn` を 3→2→1）で 1 テーマ 1 計測。当たらなければ NG にしない。新しい NG の中身（国・種類）はヌル 2 本の共通 13 件に入るかも報告に書く。
+  ⑨ **R5 は新しい止める線にしない**（作者 2026-10-17：止める線は固定・自作しない）：上の NG の門（信号の式は AI の決め＝確証なし側）の〈バランス破壊〉の数の基準で読む。記録として、`modsig_s` の meanIndustrialization が 4.5 以上の国×四半期の数と、4.9 以上の国の数・年を A（旗 0）と B で並べる（アジアの過近代化の再発かの記録）。
+  ⑩ **係数の渡し方**（実測で確かめた・前半の報告の `POB_COEF=… batch.sh` は効かない）：`scripts/instruments/batch.sh run` は `export POB_COEF="$(cat $W/coef_$ARM.txt)"` で環境を**上書きする**（ファイルが無いと空）。B は `coef_<腕>.txt` に `AiModernizeFromReturn=3;ScoreFromWorldShare=1` を置いて渡す。`POB_INSTRUMENTS_NATIONS` は batch.sh が立てない＝呼び元で `清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本` を export する。走行中は `.manifest` の 3 行目に NATIONS と ★係数の上書きの行・B の `modsig_s*.tsv` の flagLevel 列が 3 であることで旗が効いたことを確かめる（効かなければ A と同じ世界を黙って回す）。腕 A の 5 種は `measure.sh … selfplay-batch`（POB_COEF なし）。
+  ⑪ 作者に聞く物 Q5 の書き直しと Q6 は [7] の末尾へ追記済みとみなす：Q5＝AI の止まる所が前線連動から州の上限（高技術）か信号 0（低技術）に変わることを AI の賢さとして受け入れるか（推奨＝受け入れる）。Q6＝国力の割合化で TreatyPortLapseRatio（0.5）・GreatPowerScoreFraction・MinorPowerScoreFraction の意味が変わる（係数は変えていない）ことを受け入れるか（推奨＝まず受け入れて R2 を見る）。

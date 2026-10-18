@@ -224,17 +224,19 @@ public class ModernizeReturnAndScoreTests
         var w = Neutral(Four(), 0, 0);
         var regs = w.Regions.Where(x => x.State == RegionState.Active && x.Tier != RegionTier.Colonial).ToList();
         Assert.True(regs.Count >= 1);
-        foreach (var r in w.Regions) { r.Markets[Catalog.IronId].LastProduced = 0; r.Markets[Catalog.SteelId].LastProduced = 0; r.Markets[Catalog.CoalId].LastDemand = 0; r.Markets[Catalog.CrudeOilId].LastDemand = 0; }
+        foreach (var r in w.Regions) { r.Markets[Catalog.IronId].LastProduced = 0; r.Markets[Catalog.SteelId].LastProduced = 0; r.Markets[Catalog.CoalId].LastSold = 0; r.Markets[Catalog.CrudeOilId].LastSold = 0; r.Markets[Catalog.CoalId].LastDemand = 0; r.Markets[Catalog.CrudeOilId].LastDemand = 0; }
         var home = regs[0];
         home.Markets[Catalog.IronId].LastProduced = 40;
         home.Markets[Catalog.SteelId].LastProduced = 999;        // 鋼は数えない（鉄を 1.0 投入する＝二重計上）
-        home.Markets[Catalog.CoalId].LastDemand = 10;
-        home.Markets[Catalog.CrudeOilId].LastDemand = 6;           // 石炭換算＝6×ColonyFuelOilEnergyRatio（1.5）＝9
+        home.Markets[Catalog.CoalId].LastSold = 10; home.Markets[Catalog.CoalId].LastDemand = 40;   // 満たされた量だけ数える（需要と売れた量の差＝不足は数えない）
+        home.Markets[Catalog.CrudeOilId].LastSold = 6; home.Markets[Catalog.CrudeOilId].LastDemand = 60;           // 石炭換算＝6×ColonyFuelOilEnergyRatio（1.5）＝9
         w.Coef.ColonyFuelOilEnergyRatio = 1.5;
         w.LastMilitaryClaimPerMonth = new MoneyPerMonth(30); w.LastSoldierPayPerMonth = new MoneyPerMonth(10); w.PriceLevel = 2.0;
         var t = NationalScore.TermsOf(w);
         Assert.Equal(40.0, t.Iron, 9);
         Assert.Equal(19.0, t.Energy, 9);
+        home.Markets[Catalog.CoalId].LastDemand = 4000;   // 不足を増やしても動力の項は増えない
+        Assert.Equal(19.0, NationalScore.TermsOf(w).Energy, 9);
         Assert.Equal(20.0, t.MilitarySpend, 9);   // (30＋10)÷2
         double pop = regs.Sum(x => x.Pops.Sum(p => p.Size));
         Assert.Equal(pop, t.TotalPop, 6);
