@@ -28,7 +28,7 @@
 甲	WarDefeatMilitancySpike	政治		b	Diplomacy.cs:3118	決定的な敗北	闘争度	敗戦→闘争度	無	経	否	2	済
 甲	AISubmitLegitCost	政治		b	Diplomacy.cs:1516	屈服の出来事	正統性	屈服→正統性	無	政	是	3	済
 甲	CededColonyMilitancy	政治		b	Diplomacy.cs:3211	割譲の出来事	闘争度	割譲→闘争度	無	無	是	3	済
-甲	ColonialMilitancyGrowth	政治		b	Colonial.cs:153	搾取×識字	植民地の不満	抽象の植民地の独立	正	政	是	3	済
+甲	ColonialMilitancyGrowth	政治		b	Colonial.cs:153	搾取×識字	植民地の不満	抽象の植民地の独立	正	政	是	3	済（2026-10-18 削除）
 甲	ColonialUnrestHomeWeight	政治		b	Colonial.cs:168	植民地の不満×帝国の規模	本国の闘争度	植民地→本国の闘争度	無	政	是	3	済
 甲	ColonizeAnnexMilitancy	政治		b	Diplomacy.cs:2170	無血の植民地化	闘争度の初期値	植民地化→闘争度	無	無	是	3	済
 甲	ConquestColonyMilitancy	政治		b	Diplomacy.cs:2916	武力の奪取	闘争度の初期値	征服→闘争度	無	無	是	3	済
@@ -70,21 +70,21 @@
 甲	ChildLaborLiteracyPenalty	人口		a	TechEducation.cs:92	法（児童労働の禁止）	識字の伸び	教育	無	経	否	1	済
 甲	HousingUrbanThreshold	人口		a	EconomyStep.cs:1568	都市化の割合	住居の必要の門	住居の需要	無	経	否	1	済
 甲	AssimilationEducationBonus	人口		a	MultiNationSim.cs:1609	法（公教育）	同化の速さ	同化→民族の不満	無	無	是	3	済
-甲	ColonialExploitMortality	人口		a	Colonial.cs:144	搾取の度合い×不満	植民地の住民の死	抽象の植民地の人口	負	経	是	3	済
+甲	ColonialExploitMortality	人口		a	Colonial.cs:144	搾取の度合い×不満	植民地の住民の死	抽象の植民地の人口	負	経	是	3	済（2026-10-18 削除）
 甲	CrimeUrbanWeight	人口		a	Crime.cs:37	都市の人口の割合	窃盗の率	犯罪	無	無	是	3	済
 甲	DiscriminationLiteracy	人口		a	MultiNationSim.cs:1663	識字の平均	移民の流入	移民	無	政	是	3	済
 甲	EthnicDraw	人口		a	MultiNationSim.cs:1663	統一度	移民の引力	移民の坩堝（同化が歯止め）	正	無	是	3	済
 甲	MeritGroupWeight	人口		a	Meritocracy.cs:54	近代的な利益団体の勢力	メリトクラシー	メリトクラシー	無	政	是	3	済
-甲	MeritModernityFromClosed	人口		a	Meritocracy.cs:51	閉鎖の度合い	メリトクラシー	メリトクラシー	無	政	是	3	済
+甲	MeritModernityFromClosed	人口		a	Meritocracy.cs:51	閉鎖の度合い	メリトクラシー	メリトクラシー	無	政	是	3	済（2026-10-18 削除）
 甲	MinorityPenaltyModernBlend	人口		a	Meritocracy.cs:151	時代の混合	ガラスの天井	昇格	無	無	是	3	済
 甲	MinorityPromotionPenalty	人口		a	Meritocracy.cs:151	中核民族の割合	昇格の率	昇格	無	無	是	3	済
 甲	ReligiousProfessionShare	人口		a	Meritocracy.cs:85	法（宗教教育）	昇格の率	昇格	無	経	是	3	済
 甲	WarCivilianToll	人口		a	Diplomacy.cs:2509	劣勢×接触	民間人の死	戦争→民間人の死	無	無	是	3	済
 甲	CapacityFromFoodOutput	人口		a	Simulation.cs:2581	主食の産出	扶養力	扶養力のロジスティック	負	経	否	9-2	済
 甲	FemaleLitFloor	人口		a	Simulation.cs:2613	法（女性財産権）	女性の識字の実効	人口転換	無	経	是	9-2	済
-甲	FertilityEquilibriumWeight	人口		a	Simulation.cs:2640	出生の倍率	扶養力の均衡	扶養力	負	経	否	9-2	済
-甲	FertilityIncomeSurvivalGate	人口		a	Simulation.cs:2628	乳児の生存	所得の少子化の項	人口転換	負	経	否	9-2	済
-甲	FertilityLandDivisionSlope	人口		a	Simulation.cs:2623	法（土地改革）	出生の率	人口転換	負	経	是	9-2	済
+甲	FertilityEquilibriumWeight	人口		a	Simulation.cs:2640	出生の倍率	扶養力の均衡	扶養力	負	経	否	9-2	済（2026-10-18 削除）
+甲	FertilityIncomeSurvivalGate	人口		a	Simulation.cs:2628	乳児の生存	所得の少子化の項	人口転換	負	経	否	9-2	済（2026-10-18 削除）
+甲	FertilityLandDivisionSlope	人口		a	Simulation.cs:2623	法（土地改革）	出生の率	人口転換	負	経	是	9-2	済（2026-10-18 削除）
 甲	FertilityLitOnset	人口		a	Simulation.cs:2629	女性の識字	出生の率の起点	人口転換	負	経	否	9-2	済
 甲	FertilityLitSlope	人口		a	Simulation.cs:2629	女性の識字	出生の率	人口転換	負	経	否	9-2	済
 甲	HealthFillCapacityBonus	人口		a	Simulation.cs:2600	医療の充足	扶養力	扶養力	負	経	否	9-2	済
@@ -104,7 +104,7 @@
 甲	ColoniesForFullColonial	生産		a	Colonial.cs:190	植民地の数	植民地の素材の入手	植民地の素材の入手	無	経	否	1	済
 甲	EffBoost	生産		a	EconomyStep.cs:779	効率化材の充足	RGO の産出	投入財の充足（SteamBoost と同形）	無	経	否	1	済
 甲	ElecInfraGridBoost	生産		a	EconomyStep.cs:1438	電化の基盤の充足	送電の容量	電化（動力の財と同形）	無	経	否	1	済
-甲	ColonialUnrestSupplyHit	生産		a	Simulation.cs:2001	植民地の不満	植民地の産出	抽象の植民地の産出	負	無	是	3	済
+甲	ColonialUnrestSupplyHit	生産		a	Simulation.cs:2001	植民地の不満	植民地の産出	抽象の植民地の産出	負	無	是	3	済（2026-10-18 削除）
 甲	LaborUnionControlledOutputMul	生産		a	Simulation.cs:2341	法（労働組合 統制）	工場の産出	労働組合→産出	無	経	是	3	済
 甲	LaborUnionToleratedOutputMul	生産		a	Simulation.cs:2341	法（労働組合 容認）	工場の産出	労働組合→産出	無	経	是	3	済
 甲	ScaleEconomyGain	生産		a	EconomyStep.cs:831	産出÷自国需要	生産の能力	規模の経済	正	経	是	3	済
@@ -212,7 +212,7 @@
 甲	RefrigerationEffect	生産	工業化度		EconomyStep.cs:561	工業化度	生鮮の腐敗					既線	済
 甲	RefrigerationIndOnset	生産	工業化度		EconomyStep.cs:562							既線	済
 甲	RefrigerationIndSpan	生産	工業化度		EconomyStep.cs:562							既線	済
-甲	RgoCapitalShare	生産	工業化度		EconomyStep.cs:2029							既線	済
+甲	RgoCapitalShare	生産	工業化度		EconomyStep.cs:2029							既線	済（2026-10-18 削除）
 甲	WageClampIndScale	生産	工業化度		MarketFlow.cs:79	工業化度	賃金の天井					既線	済
 甲	WarZoneCapitalDamage	生産	工業化度		Diplomacy.cs:2509	劣勢×接触	工業化度の資本・港					既線	済
 甲	〈直書き〉SelfPlay IndustrializationCeiling 2.5・IndustrializationRoomTarget 4.0	生産	工業化度		SelfPlay.cs:482	工業化度	AI の工業化の効用					既線(AI)	済
@@ -234,7 +234,7 @@
 甲	ModernizationTechLagCost	財政	技術水準		World.cs:2048	技術水準の遅れ	近代化投資の費用					既線	済
 甲	CorruptionFromOpacity	財政	汚職		World.cs:1567	報道の自由×メリトクラシー	行政効率					既線	済
 甲	CorruptionMax	財政	汚職		Fiscal.cs:170	行政効率の不足	税の漏れ					既線	済
-甲	CorruptionPoorOfficialWeight	財政	汚職		World.cs:409							既線	済
+甲	CorruptionPoorOfficialWeight	財政	汚職		World.cs:409							既線	済（2026-10-18 削除）
 甲	OversightFactorScale	財政	汚職		World.cs:464							既線	済
 甲	OversightMeritExam	財政	汚職		World.cs:465	法（資格任用）	監視の力					既線	済
 甲	OversightPressCensored	財政	汚職		World.cs:464	法（検閲）	監視の力					既線	済
@@ -276,14 +276,14 @@
 甲	TransportRevolutionOnset	外交	運賃の倍率		InternationalMarket.cs:174							既線	済
 甲	TransportRevolutionSpan	外交	運賃の倍率		InternationalMarket.cs:174							既線	済
 甲	DecayTechAdoptWeight	発見	制度疲労		Politics.cs:479	制度疲労	技術の採用					既線	済
-甲	AbsorptionIncomeRef	発見	技術水準		TechEducation.cs:39							既線	済
-甲	AbsorptionIncomeWeight	発見	技術水準		TechEducation.cs:39							既線	済
-甲	AdoptExpertiseWeight	発見	技術水準		TechEducation.cs:27							既線	済
+甲	AbsorptionIncomeRef	発見	技術水準		TechEducation.cs:39							既線	済（2026-10-18 削除）
+甲	AbsorptionIncomeWeight	発見	技術水準		TechEducation.cs:39							既線	済（2026-10-18 削除）
+甲	AdoptExpertiseWeight	発見	技術水準		TechEducation.cs:27							既線	済（2026-10-18 削除）
 甲	AdoptionCeiling	発見	技術水準		TechEducation.cs:146							既線	済
 甲	AdoptionRate	発見	技術水準		TechEducation.cs:151							既線	済
 甲	AdoptionRateAdvanced	発見	技術水準		TechEducation.cs:151							既線	済
 甲	CatchupAbsorptionBlend	発見	技術水準		TechEducation.cs:152							既線	済
-甲	CatchupContactWeight	発見	技術水準		TechEducation.cs:165							既線	済
+甲	CatchupContactWeight	発見	技術水準		TechEducation.cs:165							既線	済（2026-10-18 削除）
 甲	CatchupFraction	発見	技術水準		TechEducation.cs:150							既線	済
 甲	CatchupFractionAdvanced	発見	技術水準		TechEducation.cs:150							既線	済
 甲	DiscoverySiteFindHalfPop	発見	技術水準		Discovery.cs:895							既線	済
@@ -291,14 +291,14 @@
 甲	EliteForCatchup	発見	技術水準		TechEducation.cs:167							既線	済
 甲	EliteForFullTech	発見	技術水準		TechEducation.cs:25							既線	済
 甲	FrontierFreedomThreshold	発見	技術水準		TechEducation.cs:274							既線	済
-甲	InnovateExpertiseWeight	発見	技術水準		TechEducation.cs:190							既線	済
+甲	InnovateExpertiseWeight	発見	技術水準		TechEducation.cs:190							既線	済（2026-10-18 削除）
 甲	InnovationAdminThreshold	発見	技術水準		TechEducation.cs:275							既線	済
 甲	InnovationEliteSubstitute	発見	技術水準		TechEducation.cs:275							既線	済
 甲	InnovationRate	発見	技術水準		TechEducation.cs:188							既線	済
 甲	InnovationScale	発見	技術水準		TechEducation.cs:189							既線	済
 甲	PatentInnovationBonus	発見	技術水準		TechEducation.cs:187	法（特許）	技術水準の伸び					既線	済
-甲	ResearchBaseRefPop	発見	技術水準		TechEducation.cs:54							既線	済
-甲	ResearchScaleWeight	発見	技術水準		TechEducation.cs:54							既線	済
+甲	ResearchBaseRefPop	発見	技術水準		TechEducation.cs:54							既線	済（2026-10-18 削除）
+甲	ResearchScaleWeight	発見	技術水準		TechEducation.cs:54							既線	済（2026-10-18 削除）
 甲	StartWarmupTechIterations	発見	技術水準		MultiNationSim.cs:527	識字	開幕の技術水準					既線	済
 甲	TechGrowthRate	発見	技術水準		TechEducation.cs:177							既線	済
 甲	〈直書き〉CensorshipPressFactor 0.75	発見	技術水準		TechEducation.cs:208	法（検閲）	技術の吸収・革新					既線	済
@@ -306,7 +306,7 @@
 灰	AllyJoinLegitimacyMin	政治			Diplomacy.cs:1758								既定
 灰	CoalitionClosenessFloor	政治			PowerAffinity.cs:430								済
 灰	CoercionMax	政治			FactionSnapshot.cs:211								済
-灰	ColonialIndependenceMilitancy	政治			Colonial.cs:209								済
+灰	ColonialIndependenceMilitancy	政治			Colonial.cs:209								済（2026-10-18 削除）
 灰	ConstitutionalControlExit	政治			CrownParliament.cs:501								済
 灰	ConstitutionalControlFloor	政治			CrownParliament.cs:130								済
 灰	DynMandateAmplify	政治			Politics.cs:377								済
@@ -425,7 +425,7 @@
 灰	TariffFloor	外交			Government.cs:340								済
 灰	TariffReactionMax	外交			Diplomacy.cs:1822								済
 灰	TerritoryCessionScore	外交			Diplomacy.cs:2998								済
-灰	TransportDemandAffordCap	外交			Transport.cs:202								済
+灰	TransportDemandAffordCap	外交			Transport.cs:202								済（2026-10-18 削除）
 灰	TreatyPortWinnerDistanceKm	外交			Diplomacy.cs:2964								済
 灰	TreatyRatificationWeight	外交			Diplomacy.cs:3005								済
 灰	VassalDefectionMilitancy	外交			Diplomacy.cs:1366								済
@@ -440,7 +440,7 @@
 乙	BandwagonSensitivity	政治			Politics.cs:209								既定
 乙	BandwagonWeight	政治			Politics.cs:226								既定
 乙	BourgeoisCoupWeight	政治			Politics.cs:651								既定
-乙	ColonialMilitancyDecay	政治			Colonial.cs:153								既定
+乙	ColonialMilitancyDecay	政治			Colonial.cs:153								既定（2026-10-18 削除）
 乙	ConsciousnessSpeed	政治			Politics.cs:235								既定
 乙	ConscriptGrievanceRate	政治			Military.cs:347								済
 乙	ConstMonarchyErosion	政治			Politics.cs:409								既定
@@ -583,7 +583,7 @@
 乙	ReservationWageFall	人口			MarketFlow.cs:143								既定
 乙	ReservationWageRise	人口			MarketFlow.cs:143								既定
 乙	UpperFallThreshold	人口			Meritocracy.cs:319								既定
-乙	CompetitiveFirmsBase	生産			EconomyStep.cs:2623								既定
+乙	CompetitiveFirmsBase	生産			EconomyStep.cs:2623								既定（2026-10-18 削除）
 乙	ConvertibilityCoverageBand	生産			World.cs:1741								既定
 乙	ConvertibilityDropSpeed	生産			World.cs:1750								既定
 乙	CrossElasticity	生産			EconomyStep.cs:1534								既定
@@ -591,7 +591,7 @@
 乙	DailyNeedWeight	生産			EconomyStep.cs:1809								既定
 乙	DepositGradeKnee	生産			Simulation.cs:2815								既定
 乙	DesiredInventoryCover	生産			EconomyStep.cs:848								既定
-乙	DomesticMarkupMax	生産			EconomyStep.cs:2617								済
+乙	DomesticMarkupMax	生産			EconomyStep.cs:2617								済（2026-10-18 削除）
 乙	ElecInfraSanitationWeight	生産			EconomyStep.cs:1552								既定
 乙	EquityHeatEuphoria	生産			EconomyStep.cs:922								既定
 乙	FactoryBuildScale	生産			World.cs:1998								既定
@@ -710,14 +710,14 @@
 乙	AttentionTensionHalf	外交			ArmyShape.cs:161								既定
 乙	BlockadeStapleBias	外交			BilateralMarket.cs:808								既定
 乙	CessionSeaCrossingWeight	外交			Diplomacy.cs:3159								既定
-乙	ColonialDevStep	外交			Colonial.cs:119								既定
-乙	ColonialHoldScale	外交			Colonial.cs:204								既定
-乙	ColonialHoldSharedArmy	外交			Colonial.cs:210								済
-乙	ColonialInfraConverge	外交			Colonial.cs:160								既定
-乙	ColonialLiteracyGrowth	外交			Colonial.cs:151								既定
-乙	ColonialOutputHalf	外交			Colonial.cs:104								既定
-乙	ColonialPopGrowth	外交			Colonial.cs:150								既定
-乙	ColonialReturnScale	外交			Colonial.cs:109								既定
+乙	ColonialDevStep	外交			Colonial.cs:119								既定（2026-10-18 削除）
+乙	ColonialHoldScale	外交			Colonial.cs:204								既定（2026-10-18 削除）
+乙	ColonialHoldSharedArmy	外交			Colonial.cs:210								済（2026-10-18 削除）
+乙	ColonialInfraConverge	外交			Colonial.cs:160								既定（2026-10-18 削除）
+乙	ColonialLiteracyGrowth	外交			Colonial.cs:151								既定（2026-10-18 削除）
+乙	ColonialOutputHalf	外交			Colonial.cs:104								既定（2026-10-18 削除）
+乙	ColonialPopGrowth	外交			Colonial.cs:150								既定（2026-10-18 削除）
+乙	ColonialReturnScale	外交			Colonial.cs:109								既定（2026-10-18 削除）
 乙	ColonizeRivalTension	外交			Diplomacy.cs:2385								既定
 乙	ColonizeSubmitRatio	外交			Diplomacy.cs:2221								既定
 乙	ColonizeValueGdpPer100k	外交			Diplomacy.cs:1970								既定
@@ -808,7 +808,7 @@
 丙	DoctorHealthcareSubstitute	人口			Simulation.cs:2503								済
 丙	EduPerChild	人口			EconomyStep.cs:1591								既定
 丙	EduReachFromAdmin	人口			EconomyStep.cs:1753		AdminFill（買えた官僚の役務）を読む						済
-丙	EducationEmaRate	人口			TechEducation.cs:113								既定
+丙	EducationEmaRate	人口			TechEducation.cs:113								既定（2026-10-18 削除）
 丙	ElecInfraNeedPerUrban	人口			EconomyStep.cs:1320								既定
 丙	EmigrationRate	人口			MultiNationSim.cs:1723								既定
 丙	EpidemicChance	人口			Simulation.cs:1920								既定
@@ -967,17 +967,17 @@
 丙	TerrainHorseCost	軍			ArmyShape.cs:210								既定
 丙	UniversalConscriptionFactor	軍			Military.cs:271		法の物理（徴兵の深さ）						済
 丙	WarCasualtyRatePerMonth	軍			Diplomacy.cs:2717								既定
-丙	ColonialHoldDistanceDecay	外交			Colonial.cs:217								既定
-丙	ColonialInfraDepreciation	外交			Colonial.cs:28								既定
-丙	ColonialInvestFrac	外交			Colonial.cs:115								既定
-丙	ColonialPayShare	外交			Colonial.cs:143								既定
-丙	ColonialProductionPerColony	外交			Simulation.cs:2004								既定
-丙	ColonialRailPerInfra	外交			Colonial.cs:103								既定
-丙	ColonialShipPerInfra	外交			Colonial.cs:103								既定
+丙	ColonialHoldDistanceDecay	外交			Colonial.cs:217								既定（2026-10-18 削除）
+丙	ColonialInfraDepreciation	外交			Colonial.cs:28								既定（2026-10-18 削除）
+丙	ColonialInvestFrac	外交			Colonial.cs:115								既定（2026-10-18 削除）
+丙	ColonialPayShare	外交			Colonial.cs:143								既定（2026-10-18 削除）
+丙	ColonialProductionPerColony	外交			Simulation.cs:2004								既定（2026-10-18 削除）
+丙	ColonialRailPerInfra	外交			Colonial.cs:103								既定（2026-10-18 削除）
+丙	ColonialShipPerInfra	外交			Colonial.cs:103								既定（2026-10-18 削除）
 丙	ColonyCaptureDistanceWeight	外交			Diplomacy.cs:2891								既定
 丙	ColonyFuelOilEnergyRatio	外交			Colonial.cs:356								済
-丙	ColonyPromotionCoreShare	外交			Colonial.cs:282								既定
-丙	ColonySettlerRatePerMonth	外交			Colonial.cs:244								既定
+丙	ColonyPromotionCoreShare	外交			Colonial.cs:282								既定（2026-10-18 削除）
+丙	ColonySettlerRatePerMonth	外交			Colonial.cs:244								既定（2026-10-18 削除）
 丙	ColonyShipOccupyPerDist	外交			Colonial.cs:71								既定
 丙	CornLawImportPenalty	外交			BilateralMarket.cs:708								済
 丙	DistanceMarginScale	外交			BilateralMarket.cs:809								既定
@@ -1000,7 +1000,7 @@
 丙	TransportBuildRate	外交			Transport.cs:159								既定
 丙	TransportCongestionWeight	外交			Transport.cs:40								既定
 丙	TransportMargin	外交			BilateralMarket.cs:744								既定
-丙	TransportPotentialHeadroom	外交			Transport.cs:28								既定
+丙	TransportPotentialHeadroom	外交			Transport.cs:28								既定（2026-10-18 削除）
 丙	TransportWeightMarginScale	外交			BilateralMarket.cs:519								既定
 丙	TreatyPortTariffLoss	外交			InternationalMarket.cs:160								済
 丙	VassalTributeRate	外交			Diplomacy.cs:1340								既定
@@ -1068,7 +1068,7 @@
 他	CriminalClassEnabled	人口			Instruments.cs:1434								済
 他	CrossBorderMigrationByOpportunity	人口			MultiNationSim.cs:1653								済
 他	EduProducersCoexist	人口			EconomyStep.cs:754								済
-他	EducationGateUsesEma	人口			Meritocracy.cs:28								済
+他	EducationGateUsesEma	人口			Meritocracy.cs:28								済（2026-10-18 削除）
 他	EpidemicContagiousYears	人口			World.cs:1327								既定
 他	FallAnchorReform	人口			Meritocracy.cs:27								済
 他	FaminePushRegionBlend	人口			MultiNationSim.cs:1720								済
@@ -1078,13 +1078,13 @@
 他	FertilityBase	人口			Simulation.cs:2619								済
 他	FoodAnchorNetImport	人口			Simulation.cs:2572								済
 他	FoodOutputAnchorProduction	人口			Simulation.cs:2579								済
-他	IndustrializedUrbanThreshold	人口			Calibration.cs:60								済
+他	IndustrializedUrbanThreshold	人口			Calibration.cs:60								済（2026-10-18 削除）
 他	JobSearchUsesEma	人口			EconomyStep.cs:2687								済
 他	LiteracyOddsByClass	人口			Simulation.cs:1348								済
 他	MedicalGoodId	人口			EconomyStep.cs:425								済
 他	ModernizationToHigherEdu	人口			World.cs:2113								済
 他	ModernizationToRecruit	人口			World.cs:2110								済
-他	NewbornLiteracyDilution	人口			Simulation.cs:2728								済
+他	NewbornLiteracyDilution	人口			Simulation.cs:2728								済（2026-10-18 削除）
 他	ProfessionGenderGate	人口			Meritocracy.cs:650								済
 他	SerfGateCoversPool	人口			Meritocracy.cs:420								済
 他	SoapGoodId	人口			EconomyStep.cs:1663								済
@@ -1130,12 +1130,12 @@
 他	ServiceUnemployment	生産			EconomyStep.cs:2673								済
 他	SilverRushEnabled	生産			Simulation.cs:753								済
 他	StapleElasticityZero	生産			EconomyStep.cs:1530								済
-他	StateShareCounterOnly	生産			EconomyStep.cs:2029								済
+他	StateShareCounterOnly	生産			EconomyStep.cs:2029								済（2026-10-18 削除）
 他	SteamTurbineEnabled	生産			Simulation.cs:1231								済
 他	SteelGoodId	生産			EconomyStep.cs:955								済
 他	SubsistenceHarvestFullExposure	生産			EconomyStep.cs:1870								済
 他	SulfurFromPyriteEnabled	生産			Simulation.cs:1129								済
-他	TechGatedScaleZero	生産			EconomyStep.cs:470								済
+他	TechGatedScaleZero	生産			EconomyStep.cs:470								済（2026-10-18 削除）
 他	AdminBudgetFrac	財政			Fiscal.cs:255								済
 他	AiDevelopmentalSubsidy	財政			SelfPlay.cs:1582								済
 他	CapitalMobilityLawGate	財政			Fiscal.cs:700								済
@@ -1206,7 +1206,7 @@
 他	MilitiaCombatValue	軍			Diplomacy.cs:841								済
 他	NavalProcurementNeedsPort	軍			EconomyStep.cs:251								済
 他	RationingGate	軍			Diplomacy.cs:2454								済
-他	RevoltExpansionScore	軍			Diplomacy.cs:2803								済
+他	RevoltExpansionScore	軍			Diplomacy.cs:2803								済（2026-10-18 削除）
 他	SoldierRecruitClassA	軍			Military.cs:127								済
 他	SoldierRecruitClassB	軍			Military.cs:127								済
 他	WarLuckNeedsContact	軍			Diplomacy.cs:2590								済
@@ -1217,17 +1217,17 @@
 他	BarrierWallSegments	外交			PathGraph.cs:446								済
 他	ClearingsPerYear	外交			DiploCore.cs:101								済
 他	ColonialImportLagMonths	外交			EconomyStep.cs:590								既定
-他	ColonialInfraPerColony	外交			Colonial.cs:139								済
+他	ColonialInfraPerColony	外交			Colonial.cs:139								済（2026-10-18 削除）
 他	ColonialRegionCession	外交			Diplomacy.cs:2930								済
-他	ColonialRegionSettlement	外交			Colonial.cs:244								済
+他	ColonialRegionSettlement	外交			Colonial.cs:244								済（2026-10-18 削除）
 他	ColoniesAreRegions	外交			Colonial.cs:74								済
 他	ColonyCaptureBudget	外交			Diplomacy.cs:2865								済
 他	ColonyCaptureCostBase	外交			Diplomacy.cs:2887								済
 他	ColonyCapturePopCost	外交			Diplomacy.cs:2887								済
 他	ColonyCaptureReachGate	外交			Diplomacy.cs:2904								済
 他	ColonyCaptureResourceCost	外交			Diplomacy.cs:2887								済
-他	ColonyDevCostFromRegion	外交			Diplomacy.cs:2946								済
-他	ColonyDevCostWeight	外交			Diplomacy.cs:2887								済
+他	ColonyDevCostFromRegion	外交			Diplomacy.cs:2946								済（2026-10-18 削除）
+他	ColonyDevCostWeight	外交			Diplomacy.cs:2887								済（2026-10-18 削除）
 他	CultureFormationGate	外交			Formations.cs:446								済
 他	CultureFormationNeedsGain	外交			Formations.cs:418								済
 他	EnableCivilizationTension	外交			Diplomacy.cs:937								済
@@ -1239,7 +1239,7 @@
 他	GreatPowerScoreFraction	外交			Diplomacy.cs:584								済
 他	HighTensionBand	外交			Diplomacy.cs:3452								済
 他	ImposeRegimeEnabled	外交			Diplomacy.cs:3060								済
-他	IndependenceShockYears	外交			Simulation.cs:2017								済
+他	IndependenceShockYears	外交			Simulation.cs:2017								済（2026-10-18 削除）
 他	InterventionRefusalSymmetric	外交			Diplomacy.cs:2307								済
 他	InterventionRefusalWar	外交			Diplomacy.cs:2314								済
 他	InterventionWarMinMonths	外交			Diplomacy.cs:2342								済
@@ -1272,7 +1272,7 @@
 他	TradeWeightDynamic	外交			MultiNationSim.cs:1581								済
 他	TransitEnabled	外交			BilateralMarket.cs:192								済
 他	TransportEnabled	外交			BilateralMarket.cs:265								済
-他	TransportPotentialWeight	外交			Transport.cs:23								済
+他	TransportPotentialWeight	外交			Transport.cs:23								済（2026-10-18 削除）
 他	TransportShareByPotential	外交			Transport.cs:91								済
 他	TreatyPortLapseYears	外交			Diplomacy.cs:533								済
 他	UnificationAiCooldownYears	外交			Diplomacy.cs:1845								済
@@ -1289,5 +1289,5 @@
 他	BonanzaDepositYears	発見			Discovery.cs:930								既定
 他	DiffusionWeight	発見			BilateralMarket.cs:896								済
 他	DiscoveryTierGate	発見			Discovery.cs:363								済
-他	IndustrializedTechThreshold	発見			Calibration.cs:60								済
+他	IndustrializedTechThreshold	発見			Calibration.cs:60								済（2026-10-18 削除）
 他	StartWarmupQuarters	他			MultiNationSim.cs:523								済
