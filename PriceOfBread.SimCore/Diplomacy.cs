@@ -306,7 +306,7 @@ public sealed class Diplomacy
     public int WarsStarted;   // 開戦回数のスカラーカウンタ（Validationの開戦数＝旧・Log文字列走査の置換。Log.Enabled=falseでも数える）
     private readonly Dictionary<long, int> _warCount = [];   // ★診断（2026-08-01）：ペアごとの開戦回数。挙動非依存＝書くだけ
     private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（HighTensionDecayRate=1.0 点火済み・0では読まれない）
-    // ★列強の介入と和平提案（器2026-08-01・PeaceInterventionEnabled=0 では誰も書かない）
+    // ★列強の介入と和平提案（器2026-08-01・旧の旗 PeaceInterventionEnabled は 2026-10-18 に焼き込み）
     // ★2026-09-03（キューB-08 の前段）：**同名衝突で州へ昇格できず ColonyList に残った回数**を数える。
     //   ⚠「読み手が空だから消してよい」は本プロジェクトで4回踏んだ推論（型の統合が起こす静かな破損）。
     //   Colony 型と旧経路を撤去してよいかは、この実測が0であることを確かめてから決める。診断専用＝力学は読まない。
@@ -388,11 +388,10 @@ public sealed class Diplomacy
     private static long Key(Power a, Power b) => a.Id < b.Id ? ((long)a.Id << 32) | (uint)b.Id : ((long)b.Id << 32) | (uint)a.Id;
     private static long DirKey(Power suzerain, Power dependent) => ((long)suzerain.Id << 32) | (uint)dependent.Id;   // 有向（非対称関係用）
 
-    // 外10：脅威評価・海軍シェアの植民地「規模」。既定 ThreatUsesColonyValue=1.0 で Σ Colony.Value（資源数＋人口＝インド>小島群）
-    // ＝「数の水増し」でなく実効帝国規模で脅威/海軍を測る。0で個数（p.Colonies）へ戻る。
+    // 外10：脅威評価・海軍シェアの植民地「規模」。Σ Colony.Value（資源数＋人口＝インド>小島群）
+    // ＝「数の水増し」でなく実効帝国規模で脅威/海軍を測る（旧の旗 ThreatUsesColonyValue=0 の個数 p.Colonies は 2026-10-18 に削除）。
     private static double ColonyMass(Power p, Coefficients c)
     {
-        if (c.ThreatUsesColonyValue <= 0) return p.Colonies;
         double v = 0; foreach (var col in p.ColonyList) v += col.Value;
         // ★退行修正（帰還構造の全数調査 §1-2・2026-08-30）：ColoniesAreRegions=1 の州昇格で ColonyList が空になり、
         //   live 枝が**全国で常に0**＝脅威評価の植民地35%成分が欠落（床0.5により−0.35バイアス）＝「首位交代が起きない」の直接機序・
@@ -589,11 +588,11 @@ public sealed class Diplomacy
     /// 緊張の上下と防衛同盟の相手は既定で**旧3束のまま**＝準列強は中堅と同じ束に居る。
     /// ⚠理由＝束を割ると外交の相手が総入れ替えになり、実測で8軸合計が−14.2動いた（バッチ rank4）。
     /// 作者の指示は「ランクを4段階にする」＝呼び名の粒度であって、外交の相手を割る指示ではない。
-    /// RankBracketsMerged=0 でラベルどおり4束に割れる（実験用・帯は上記のとおり動く）。</summary>
+    /// （旧の旗 RankBracketsMerged=0 のラベルどおり4束に割れる実験用の形は 2026-10-18 に削除。）</summary>
     public PowerRank Bracket(Power p, Coefficients c)
     {
         var r = RankOf(p);
-        return c.RankBracketsMerged > 0 && r == PowerRank.Secondary ? PowerRank.Middle : r;
+        return r == PowerRank.Secondary ? PowerRank.Middle : r;
     }
     public bool IsGreatPower(Power p) => RankOf(p) == PowerRank.Great;
 
@@ -909,19 +908,19 @@ public sealed class Diplomacy
         SyncPowers(c);
         if (opening) OpeningNavalShares(c);
 
-        // 変名規則（統一・formable）：文化/宗教の同期後・四半期に1回（EnableFormations=1.0 live・0で不発）。
-        if (c.EnableFormations > 0 && month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
-        if (month % Calendar.MonthsPerQuarter == 0) TradeTreaties(c);   // ★案B（通商条約・作者裁定2026-08-31）：四半期・TradeTreatyEnabled=0では即return＝恒等
+        // 変名規則（統一・formable）：文化/宗教の同期後・四半期に1回（旧の旗 EnableFormations は 2026-10-18 に焼き込み）。
+        if (month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
+        if (month % Calendar.MonthsPerQuarter == 0) TradeTreaties(c);   // ★案B（通商条約・作者裁定2026-08-31）：四半期
 
         // 厭戦は戦争ごとリセット：交戦していない国は0（減衰定数は廃止＝非外科的）。戦争の傷は闘争度が引き継ぐ。
         // 外3：非交戦国の即時0リセットは、TriggerWars(:下)の厭戦ゲート(WarWearyThreshold)を死文にする（講和翌月に厭戦0で再び開戦可能）。
-        // WarWearinessDecays=1.0（既定）で非交戦国の厭戦を即時0でなく指数減衰にする＝講和後も数年は厭戦が残り開戦抑止が効く。0で即時リセット（旧）。
+        // 非交戦国の厭戦は即時0でなく指数減衰にする＝講和後も数年は厭戦が残り開戦抑止が効く（旧の旗 WarWearinessDecays=1.0 は 2026-10-18 に焼き込み）。
         foreach (var p in Powers)
         {
             bool fighting = false;
             foreach (var war in Wars) if (war.A == p || war.B == p) { fighting = true; break; }
             // （旧経路の内戦〔CivilWarYears〕の国を交戦中と数える枝は 2026-09-28 段2 束3 で削除＝内戦は全て Wars にある戦争＝上の走査が数える）
-            if (!fighting) p.WarExhaustion = c.WarWearinessDecays > 0 ? p.WarExhaustion * c.WarWearinessDecayRate : 0;
+            if (!fighting) p.WarExhaustion = p.WarExhaustion * c.WarWearinessDecayRate;
         }
 
         StepTensionRamp(c);            // 予約された緊張操作を毎月少しずつ反映（2026-07-04・政治的帰結と近隣波及は動いた分だけ＝2026-09-28）
@@ -944,12 +943,11 @@ public sealed class Diplomacy
         //   旧は StepWars の後に置いていたため、白紙講和のために立てた war.Score=0 が
         //   **同じ月の押し合いで上書きされてから**講和処理へ入り、領土割譲・賠償・敗戦記録が発生していた
         //   ＝「白紙」の保証がまったく成立していなかった。順序を入れ替えるだけで保証が回復する。
-        if (month % Calendar.MonthsPerQuarter == 0) PeaceInterventionAI(c);   // ★列強の介入と和平提案（PeaceInterventionEnabled=1.0＝live。コメント陳腐化の是正2026-08-09＝P11P12調査の副次発見）
+        if (month % Calendar.MonthsPerQuarter == 0) PeaceInterventionAI(c);   // ★列強の介入と和平提案
         StepWars(c);                   // 戦争の運は盤面非依存ハッシュ（A-3#8）＝rng不要
         CommerceRaidPrize(c);          // 拿捕賞金：制海権を握った側が敵の海上交易を拿捕（通商破壊を海軍国の戦略的利得に・改修2026-06-28）
         DriftTension(c);
-        // ★理想の軍隊の形（2026-08-01・ArmyShapeEnabled=1.0 live＝NeedSea が陸海の維持費の分け方と海軍の調達の目標の艦隊〔(189)〕へ流れる）。四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。
-        // ArmyShapeEnabled=0 で1命令も実行しない。
+        // ★理想の軍隊の形（2026-08-01・NeedSea が陸海の維持費の分け方と海軍の調達の目標の艦隊〔(189)〕へ流れる）。四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。
         if (month % Calendar.MonthsPerQuarter == 0) ArmyShape.Compute(this, c);
         // （戦費・賠償・拿捕・貢納は World.Pay で国庫へ直接記帳する＝末尾の書き戻しの同期窓は 2026-09-28 に撤去）
     }
@@ -1110,7 +1108,7 @@ public sealed class Diplomacy
     }
     private double EffColonies(Power p, Coefficients c)
     {
-        double cc = ColonyMass(p, c);   // 外10：既定 ThreatUsesColonyValue=1.0 で ΣColony.Value／0で個数（p.Colonies）
+        double cc = ColonyMass(p, c);   // 外10：ΣColony.Value
         foreach (var d in DependentsOf(p)) cc += c.DependentThreatWeight * ColonyMass(d, c);
         return cc;
     }
@@ -1361,7 +1359,7 @@ public sealed class Diplomacy
             //   ＝論理積は順に依らない。安い2つを先に見て、陣営戦力（SideMilitary×2＝覇権の判定を含む＝この段の時間の98%〔この回の計器〕）は
             //   両方が成り立った組だけで引く（旧＝全ての組で毎月引いた）。
             if (d.Military > hold + 1e-9 && Politics.AvgMassMilitancy(d.Nation) > c.VassalDefectionMilitancy
-                && !(c.VassalDefectionUsesSubmitMeasure > 0 && SideMilitary(s, d, c) > SideMilitary(d, s, c) * c.AISubmitMilRatio))
+                && !(SideMilitary(s, d, c) > SideMilitary(d, s, c) * c.AISubmitMilRatio))
             {
                 RemoveDependency(s, d);
                 AddTension(s, d, DefectionTensionResidue, TensionReason.Defection);   // 離反は遺恨を残す
@@ -1424,8 +1422,7 @@ public sealed class Diplomacy
         // ⓔ ★**張り付き率が0%でも撤去してはならない。** SeaControl が和1に拘束されるせいで多くのペアが境界のすぐ上に居る。
         //    「binding 0% ＝ 死んだ安全網」と読むのは誤り（設計書 §13-4(4) の最初の実例）。
         // ⓕ 反復開戦がまだ残るなら、それは到達の問題ではなく**講和後の再点火**の問題＝厭戦と講和後の緊張（PostWarTension・遺恨の冷め方）の側を見る（休戦の仕組みは 2026-09-26 に削除＝Q9）。
-        if (c.WarNeedsReach > 0
-            && Projection(a, b, c) < c.DefendProjectionMin && Projection(b, a, c) < c.DefendProjectionMin) return false;
+        if (Projection(a, b, c) < c.DefendProjectionMin && Projection(b, a, c) < c.DefendProjectionMin) return false;
         if (a.Nation is not null && b.Nation is not null) return true;
         var target = a.Nation is null ? a : b;
         return target.ColonyList.Count > 0;
@@ -1491,7 +1488,7 @@ public sealed class Diplomacy
                             // 緊張を宥和側へ・正統性に小さな傷・同ペアに再屈服クールダウン（ファショダ1898・三国干渉＝力の差が見えた対立は戦わずに引く）。
                             // プレイヤーの屈服UI（ResolvePendingWar mode=受諾）と同じ帰結＝プレイヤー/AI対等。MilRatio=0 で不読＝旧挙動（即開戦）。
                             // 機能5-①-2（2026-07-28）：比較を単独軍でなく**陣営戦力**（参戦見込みの同盟込み＝JoinAlliesと同一述語）へ＝
-                            // 三国協商の一員は独より弱くても屈服しない。SubmitCountsAllies=0で旧＝単独軍恒等。
+                            // 三国協商の一員は独より弱くても屈服しない（旧の旗 SubmitCountsAllies は 2026-10-18 に焼き込み）。
                             double aSide = SideMilitary(a, b, c), bSide = SideMilitary(b, a, c);
                             var weak = aSide <= bSide ? a : b;
                             var strong = aSide <= bSide ? b : a;
@@ -1525,11 +1522,10 @@ public sealed class Diplomacy
     }
 
     /// <summary>機能5-①-2（2026-07-28）：陣営戦力＝自軍＋参戦見込みの同盟軍。見込みは JoinAllies の一次条件（同盟・非交戦・緊張≥閾値）のみ
-    /// ＝国難/勝ち目/プレイヤー要請の判定は含まない（参戦見込みの上限）。屈服判定（AI）とUI表示が読む。SubmitCountsAllies=0で自軍単独＝旧恒等。</summary>
+    /// ＝国難/勝ち目/プレイヤー要請の判定は含まない（参戦見込みの上限）。屈服判定（AI）とUI表示が読む。</summary>
     public double SideMilitary(Power p, Power foe, Coefficients c)
     {
         double m = p.Military;
-        if (c.SubmitCountsAllies <= 0) return m;
         // ★参戦の閾値（覇権の判定＝国×国）は同盟の候補が居たときに初めて引く（2026-09-30 作者裁定「計算量の予算」・恒等）：
         //   AllyJoinThreshold は読むだけの純関数＝どこで引いても同じ値・閾値と比べる前に引く順は旧と同じ。同盟の無い国（大半）は引かない。
         double jt = 0; bool jtKnown = false;
@@ -1824,7 +1820,7 @@ public sealed class Diplomacy
     // プレイヤーはUIボタン（同条件・RNGなし）。宣戦後は数年の間隔（1864→1866→1870の律動）。講和・属国化・変体成立・反覇権合従は全て既存機構
     private void TryUnificationWars(Coefficients c)
     {
-        if (c.UnificationWarEnabled <= 0 || UnificationRng is null) return;
+        if (UnificationRng is null) return;
         foreach (var p in Powers)
         {
             if (p.Nation is not { } pw || p.IsPlayer) continue;
@@ -2232,11 +2228,9 @@ public sealed class Diplomacy
     ///   ③両当事国が呑むか（天秤＝「調停者が敵側に回る重み」＋「厭戦」 対 「いま勝っている分」。是正2026-08-01）
     ///   ④両方が呑めば**白紙講和**（Score=0＝領土も賠償も動かない）。片方でも拒めば提案は流れる。
     /// ⚠**RNG を引かない**＝決定論。⚠代償は必ず取る（膨張度・他の列強との緊張）＝タダで世界を止められない。
-    /// ⚠Probe（PeaceInterventionProbe>0）は数えるだけで**世界に一切書かない**＝「そもそも撃てる場面があるのか」の観測窓。</summary>
+    /// （旧の旗 PeaceInterventionEnabled・PeaceInterventionProbe〔数えるだけの観測窓〕は 2026-10-18 に焼き込み・削除。）</summary>
     private void PeaceInterventionAI(Coefficients c)
     {
-        if (!(c.PeaceInterventionEnabled > 0) && !(c.PeaceInterventionProbe > 0)) return;   // 両方0なら1命令も走らない（現既定＝Enabled 1.0でlive・2026-08-01点火。コメント陳腐化の是正2026-08-09）
-        bool probeOnly = !(c.PeaceInterventionEnabled > 0);
         // 走査順は Wars／Powers の登録順＝決定論。⚠拒否からの参戦が Wars に追記しうるので**添字を降順**に走る（新戦争を同ティックで裁かない）。
         for (int wi = Wars.Count - 1; wi >= 0; wi--)
         {
@@ -2252,14 +2246,14 @@ public sealed class Diplomacy
                 // 同点は Id の小さい方＝決定論（列挙順に依存しない）
                 if (best is null || motive > bestMotive || (motive == bestMotive && g.Id < best.Id)) { best = g; bestMotive = motive; }
             }
-            if (best is null || probeOnly) continue;
+            if (best is null) continue;
 
             ExecuteMediation(best, war, c);
         }
     }
 
     /// <summary>調停の本体（列強の介入）。AI（PeaceInterventionAI）とプレイヤー（PlayerOfferPeace）が**同じ本体**を呼ぶ＝AI=プレイヤー対称（2026-09-06）。
-    /// 代償（膨張度・勢力圏の緊張）→両当事国の応諾の天秤→白紙講和（遺恨帳消し）／拒否（面子の緊張・InterventionRefusalWar なら参戦）。</summary>
+    /// 代償（膨張度・勢力圏の緊張）→両当事国の応諾の天秤→白紙講和（遺恨帳消し）／拒否（面子の緊張・拒否側へ参戦）。</summary>
     private void ExecuteMediation(Power greatPower, War war, Coefficients c)
     {
         PeaceOffersMade++;
@@ -2299,16 +2293,13 @@ public sealed class Diplomacy
             PeaceOffersRefused++;
             // ★是正2026-08-13：拒んだ側は1人とは限らない。旧 `okA ? war.B : war.A` は**両者とも拒んだとき war.A だけ**を
             //   拒否者にしていた（提案国から見て理由のない非対称＝どちらが war.A かは戦争の登録順という実装の都合）。
-            //   ⚠面子を潰したのは拒んだ側すべてなので、緊張も参戦も両方に及ぶのが筋。InterventionRefusalSymmetric=1.0（点火2026-08-14）。
-            //   0で旧の1人選択。
-            bool sym = c.InterventionRefusalSymmetric > 0;
+            //   ⚠面子を潰したのは拒んだ側すべてなので、緊張も参戦も両方に及ぶのが筋（旧の旗 InterventionRefusalSymmetric は 2026-08-14 点火・2026-10-18 焼き込み）。
             for (int side = 0; side < 2; side++)
             {
-                Power refuser;
-                if (sym) { if (side == 0 ? okA : okB) continue; refuser = side == 0 ? war.A : war.B; }
-                else { if (side > 0) break; refuser = okA ? war.B : war.A; }
+                if (side == 0 ? okA : okB) continue;
+                Power refuser = side == 0 ? war.A : war.B;
                 AddTension(greatPower, refuser, c.InterventionRivalTension, TensionReason.Mediation);   // 面子を潰された側との緊張（提案の代償は双方向）
-                if (c.InterventionRefusalWar > 0 && !AtWar(greatPower, refuser))
+                if (!AtWar(greatPower, refuser))
                     DeclareWar(greatPower, refuser, c);   // ★拒否＝参戦。★是正（監査2026-09-02 #20）：StartWar直呼びはDeclareWarのInDependencyガードを通らず宗主-属国間の戦争が成立しうる不具合を修正（DeclareWarはAtWarも見るが上でチェック済みなので恒等）
                 Log.Add($"{_year} {refuser.Name}が{greatPower.Name}の調停を拒んだ");
             }
@@ -2353,7 +2344,7 @@ public sealed class Diplomacy
         double motive = SideMilitary(winner, g, c) / Math.Max(1e-9, SideMilitary(g, winner, c));
         // P11 介入口実（2026-08-09・休眠）：交戦国の州に自分の同宗教徒がいる＝口を出す名分（聖地管理権争い＝クリミアの引き金・露のバルカン正教保護）。
         // どちらの交戦国が抱えていても口実になる（勝者でも敗者でも「同宗教徒が戦火の下にいる」）＝max。既存の動機式への乗算1箇所のみ＝新しい介入経路は作らない。
-        // ⚠★点火済み（2026-08-09 ign_p11＝0.5）＝既定構成でこの乗算は走る。0に戻せば乗算自体を踏まない（PeaceInterventionEnabled=1.0 live下でも既存193本が番人）。
+        // ⚠★点火済み（2026-08-09 ign_p11＝0.5）＝既定構成でこの乗算は走る。0に戻せば乗算自体を踏まない（既存193本が番人）。
         if (c.ProtectorInterventionWeight > 1e-12)
             motive *= 1.0 + c.ProtectorInterventionWeight * Math.Max(ProtectorGrievance(g, war.A), ProtectorGrievance(g, war.B));
         return motive;
@@ -2447,8 +2438,8 @@ public sealed class Diplomacy
         {
             if (!fronts.ContainsKey(p)) continue;
             double blockade = c.WarExhaustionBlockade * (p.Nation?.LastBlockadeRisk ?? 0.0);   // 03手順7：封鎖の痛み＝リスク線積分の取扱高加重平均（旧CommerceRaidFactorの置換）。海軍劣勢で封鎖されるほど厭戦が募る（兵糧攻め）
-            // 戦時配給法（E6）：公平配給で封鎖の飢餓厭戦を緩和（英国型）。RationingGate=0またはRationing未制定で×1.0＝恒等。戦時のみ発火＝単一国較正（戦争なし）に無影響。
-            if (c.RationingGate > 0 && (p.Nation?.WartimeRationing ?? false)) blockade *= c.RationingBlockadeRelief;
+            // 戦時配給法（E6）：公平配給で封鎖の飢餓厭戦を緩和（英国型）。Rationing未制定で×1.0。戦時のみ発火＝単一国較正（戦争なし）に無影響。
+            if (p.Nation?.WartimeRationing ?? false) blockade *= c.RationingBlockadeRelief;
             // 外13：財政破綻の厭戦＝国家の支払い率の不足(1−r)を厭戦に加算＝国庫枯渇が講和事由になる（18-19世紀の戦費調達限界＝講和の最大要因）。FiscalExhaustionWarWeariness=0で無影響。
             //   ★2026-09-30：旧の Fund の支払い能力（払えた戦費÷戦費＝国を持つ Power は r そのもの）を r で直接読む（抽象標的は1＝財政の厭戦なし）。
             double fiscal = c.FiscalExhaustionWarWeariness * (1.0 - (p.Nation?.FiscalFundingRatio.Value ?? 1.0));
@@ -2497,7 +2488,6 @@ public sealed class Diplomacy
                 exl.Add("Exhaustion", "化学兵器", chem);
                 exl.Add("Exhaustion", "上限クランプ(100%)", p.WarExhaustion - (exBefore + exBase + econEx + blockade + fiscal + airRaid + chem));
             }
-            WarMilitancy(p, c);    // 闘争度も1回
             double casTotal = WarCasualties(p, c, contact.GetValueOrDefault(p), airCtl);   // 戦死も1回（件数ぶん人口が消える多重計上の解消）。外2：接触強度・E2：制空を渡す
             double civToll = 0;   // ★2026-09-23：今月のこの国の民間人の死（下の戦争別台帳へ兵士戦死と同じ戦線数按分で配る原資）
             // #136 戦場の資本破壊（2026-07-25）：押し合いで劣勢の側の領土が戦場になる＝工業化資本・旧世代資本・港湾が月次で摩耗
@@ -2582,15 +2572,15 @@ public sealed class Diplomacy
             //   結合順が変わって最終ビットがずれ、**帯が動いた**（政体exact+1.9・列強+3.8＝純記帳のはずが軌道が発散）。
             //   delta は**表示専用**に別途計算する＝状態更新の式には一切触れない。
             // ★器 WarLuckNeedsContact（2026-09-05）：接触のない戦線（両者の押しが0＝投射0・上陸不能）では運も立たない。
-            //   旧＝運は盤面非依存に毎月加算＝誰も届かない戦線で戦勝点が乱歩し±1.5へ到達（幽霊戦線の決定的勝利）。0＝不読＝恒等。
+            //   旧＝運は盤面非依存に毎月加算＝誰も届かない戦線で戦勝点が乱歩し±1.5へ到達（幽霊戦線の決定的勝利）。（旧の旗 WarLuckNeedsContact=1.0 は 2026-10-18 に焼き込み＝運は ×(1−1)＝0。）
             //   ★E-17b（運∝接触・reachFrac）は実測で差し戻し＝純ゲート（両者の押しが0なら運0）へ戻す。
-            if (c.WarLuckNeedsContact > 0 && !(aPush + bPush > 0)) luck *= 1.0 - c.WarLuckNeedsContact;
+            if (!(aPush + bPush > 0)) luck *= 0.0;
             // ★2026-09-28 回8-1（棚卸し mil-04）：押しを**割合**で測る＝(押しA−押しB)÷(押しA＋押しB)（塹壕の後の押し）。
             //   旧経路の内戦の押し合い（(攻−守)÷(攻＋守)×WarPushSpeed・2026-09-28 に削除）と同じ物差し＝係数も同じ WarPushSpeed。
             //   旧＝押しの**差**をゲージの単位のまま WarPushSpeed に掛けた。ゲージは装備の充足・質・兵数で時代と規模により約1000倍動くので、
             //     前近代と小国の戦争は押しがほぼ0で運（±WarLuck）だけで決まり、後期の大国は1か月で決着した（1914年以降の戦争は平均約4か月）。
             //   新＝月の戦勝点の動きは最大 WarPushSpeed（一方だけが押す戦線）で、ゲージの規模に依らない＝運（±WarLuck）と同じ単位で比べられる。
-            //   両者の押しが0（上陸不能・投射0）なら割合も0（運も上の WarLuckNeedsContact で0）。否定形＝押しが NaN なら押し合いなし。
+            //   両者の押しが0（上陸不能・投射0）なら割合も0（運も上で0）。否定形＝押しが NaN なら押し合いなし。
             double pushShare = aPush + bPush > 0 ? (aPush - bPush) / (aPush + bPush) : 0;
             if (!(pushShare >= -1 && pushShare <= 1)) pushShare = 0;
             war.Score = Math.Clamp(war.Score + c.WarPushSpeed * pushShare + luck, -CollapseScore, CollapseScore);
@@ -2679,18 +2669,6 @@ public sealed class Diplomacy
                 }
             }
         }
-    }
-
-    private static void WarMilitancy(Power p, Coefficients c)
-    {
-        if (p.Nation is not { } w) return;
-        // 監査2026-07-11（二3）：厭戦→闘争度の単一ソース化。旧＝この月次直接加算（最大0.132/四半期・ラチェット式）と
-        // Politics の目標項（WarWearinessMilitancy×厭戦）が併存し、直接加算は目標緩和で消えない支配的経路＝敗戦国の革命が
-        // 設計意図の約2倍速だった。WarMilitancyViaTarget=1（既定）で直接加算を止め、Politics の目標項へ一本化（当時0.5→1.0へ補償・★段2 2026-09-09 で 1.0→0.35＝満期の厭戦0.9でも門0.5に単独では届かない水準へ再確定）
-        //（失業・軍拡負担と同じ「不満の単一ソース」処方）。0で旧挙動（休眠切替可）。
-        if (c.WarMilitancyViaTarget > 0.5) return;
-        double add = c.WarMilitancyRatePerMonth.Value + c.WarExhaustionMilitancy * p.WarExhaustion;
-        foreach (var pop in w.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + add);
     }
 
     /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyCapPerMonth で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
@@ -2836,7 +2814,7 @@ public sealed class Diplomacy
         // 植民地の争奪：戦勝点＝奪取予算。開発度・資源産出量が高い植民地ほど奪取コストが高い（高価値は1つで予算を食う）。
         // 価値の高い順に「買える範囲」で奪い、上限は ColonyCaptureMax（完全勝利でも3つほど）。
         int captured = 0; var captNames = new List<string>();
-        // ★是正（監査2026-09-02 #21）：旧経路（ColonyList奪取・下）とColonialRegionCession（州奪取・後段）が別々に sa×ColonyCaptureBudget を取っていて講和1回の奪取予算が実質2倍だった＝予算を1本化して持ち越す
+        // ★是正（監査2026-09-02 #21）：旧経路（ColonyList奪取・下）と州奪取（旧の旗 ColonialRegionCession・後段）が別々に sa×ColonyCaptureBudget を取っていて講和1回の奪取予算が実質2倍だった＝予算を1本化して持ち越す
         double budget = sa * c.ColonyCaptureBudget;
         if (loser.ColonyList.Count > 0)
         {
@@ -2874,8 +2852,7 @@ public sealed class Diplomacy
                     //   規則＝投射圏（CessionMaxDistanceKm）の外の植民地は、**海を実際に制していなければ**受け取れない
                     //   ＝上陸侵攻と同じ原始条件（船が無ければ海は渡れない・SeaControl≧SeaInvasionControlMin は敗者との相対）。
                     //   海軍国（英仏）は圏外でも奪える＝カリブの島の交換（史実）は残る。賠償はこの分岐でも満額入る。
-                    //   ColonyCaptureReachGate=0 で旧挙動＝厳密恒等。
-                    if (c.ColonyCaptureReachGate > 0 && km > c.CessionMaxDistanceKm && c.CessionMaxDistanceKm > 0
+                    if (km > c.CessionMaxDistanceKm && c.CessionMaxDistanceKm > 0
                         && !(winner.NavalPower > 1e-9 && SeaControl(winner, loser) >= c.SeaInvasionControlMin))
                     { k++; continue; }
                     cost *= 1 + c.ColonyCaptureDistanceWeight * (km / DistanceNormKm) * (1 - seaControl);
@@ -2897,11 +2874,11 @@ public sealed class Diplomacy
                 else k++;   // この植民地は予算に対し高すぎる＝より価値の低い次の植民地へ
             }
         }
-        // ★従属の一般化V2（講和量差の是正・ColonialRegionCession＝実装2026-08-31・同日点火1.0）：敗者の**植民地格の州**を予算制で複数割譲。
+        // ★従属の一般化V2（講和量差の是正・旧の旗 ColonialRegionCession＝実装2026-08-31・同日点火・2026-10-18 焼き込み）：敗者の**植民地格の州**を予算制で複数割譲。
         //   旧・植民地奪取（最大 ColonyCaptureMax・予算 sa×ColonyCaptureBudget・コスト式）の器を州側へ移植＝
         //   V1（獲得時州化）点火後も「圧勝した帝国戦争は複数の植民地を再配分する」（七年戦争型）が保たれる。
         //   reach＝colonialReach と同じ規律（海軍あり＋制海権≧SeaInvasionControlMin）・首都(Id0)と最後の1州は対象外。0で不発。
-        if (c.ColonialRegionCession > 0 && winner.Nation is { } wcw && loser.Nation is { } lcw
+        if (winner.Nation is { } wcw && loser.Nation is { } lcw
             && winner.NavalPower > 1e-9 && SeaControl(winner, loser) >= c.SeaInvasionControlMin)
         {
             int ctaken = captured;   // 旧経路（ColonyList奪取）との合算で ColonyCaptureMax を守る（予算budgetも上で1本化して共有）
@@ -3026,8 +3003,8 @@ public sealed class Diplomacy
                 // 機構B 矯正講和（2026-07-25・革命輸出doc §3）：壊滅級の勝利×政体イデオロギー距離≥閾値＝勝者が敗者の政体を自陣営へ矯正。
                 // 対称な一般則＝革命共和国の勝利→衛星共和国（バタヴィア1795/ヘルヴェティア1798）・君主同盟の勝利→反動介入（西1823/ハンガリー1849）
                 // ＝1本で両向き・国名も方向も書かない。新しい宣戦動詞は作らない（講和条項＝宣戦廃止の設計維持）。復古は自動創発（押し付け政体は
-                // 正統性が低く始まり実績ストックが失望を蓄積→宗主が弱れば揺り戻す＝ウィーン体制を書かない）。ImposeRegimeEnabled=1.0（点火2026-07-28）・0で不発。
-                if (c.ImposeRegimeEnabled > 0 && crushing && dw.PoliticsEnabled && dw.Polity != ww0.Polity
+                // 正統性が低く始まり実績ストックが失望を蓄積→宗主が弱れば揺り戻す＝ウィーン体制を書かない）。（旧の旗 ImposeRegimeEnabled は 2026-07-28 点火・2026-10-18 焼き込み。）
+                if (crushing && dw.PoliticsEnabled && dw.Polity != ww0.Polity
                     && Math.Abs(Ideology(ww0.Polity) - Ideology(dw.Polity)) >= c.ImposeRegimeIdeologyGap)
                 {
                     CrownParliament.ApplyRegime(dw, c, ww0.Polity);
@@ -3042,7 +3019,7 @@ public sealed class Diplomacy
                 // ＝下関1895（日本が清の朝鮮宗主権を剥奪）・アヘン戦争後の朝貢体制崩壊の物理。朝貢体制は「宗主が守れない・罰せられない」と
                 // 示された瞬間に崩れる＝欧州・日本が清の従属圏を戦争で引き剥がす時代交代の経路（chronicle実測＝清の従属化103/103回が講和経路
                 // ＝植民地化動詞の遠征ゲートだけでは地理が動かなかった）。1戦争1件＝漸進。勝者の抱え上限・実在国のみ。
-                if (c.VassalTransferOnCrush > 0.5 && crushing && CountDependents(winner) < c.MaxDependents)
+                if (crushing && CountDependents(winner) < c.MaxDependents)
                 {
                     Power? take = null; double bestReach = 0;
                     foreach (var d in DependentsOf(loser))
@@ -3152,7 +3129,7 @@ public sealed class Diplomacy
             double dist = DistToWinner(r);
             if (dist == double.MaxValue) continue;   // 上陸ゲート落ち（渡海が要るのに制海権が無い）＝植民地格でも取れない
             // ★植民地格の州（2026-08-27・ColoniesAreRegions の付け替え）：旧・植民地奪取（ColonyCapture）は
-            //   **硬い距離上限を持たず**、射程ゲート（ColonyCaptureReachGate＝海軍あり＋制海権≧SeaInvasionControlMin）だけだった。
+            //   **硬い距離上限を持たず**、射程ゲート（旧の旗 ColonyCaptureReachGate＝海軍あり＋制海権≧SeaInvasionControlMin）だけだった。
             //   州昇格でその土地が CedeTerritory の管轄へ移った今、同じ規則を映さないと**海外植民地の征服が消える**
             //   （英が七年戦争でカナダを取れない＝首都から4000km圏の外）。⚠ColoniesAreRegions=0 では植民地格の州が
             //   存在しないので1度も真にならない＝厳密恒等。
@@ -3197,10 +3174,9 @@ public sealed class Diplomacy
     /// ★2026-09-07（作者指示「通商条約は自動化したい」）：**プレイヤー国も同じ掃引に入る**＝AIとプレイヤーが同一の機構で締結する
     /// （手動の提案動詞 CanProposeTradeTreaty/ProposeTradeTreaty と外交タブのボタンは廃止＝第二の実装を作らない）。
     /// ⚠SelfPlay・較正・xUnit は IsPlayer を立てない＝この変更は帯・テストに対してビット恒等（挙動が変わるのは App と PlayHarness だけ）。
-    /// TradeTreatyEnabled=0＝即return。</summary>
+    /// </summary>
     internal void TradeTreaties(Coefficients c)   // internal＝ON経路テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀）。呼び出しは Step の四半期のみ
     {
-        if (!(c.TradeTreatyEnabled > 0)) return;
         var ti = new double[Powers.Count];   // 利害の事前計算（ペアごとの再計算を避ける＝O(n²×州)→O(n×州+n²)）
         for (int i = 0; i < Powers.Count; i++) ti[i] = Powers[i].Nation is { } w0 ? NationalTariffInterest(w0) : double.NaN;
         for (int i = 0; i < Powers.Count; i++)
@@ -3358,16 +3334,12 @@ public sealed class Diplomacy
     /// <summary>海越え（制海権が要る関係）か。03地理 手順0（2026-07-28）：陸続き＝**陸塊一致**（Landmass.Of＝landmass.jsonの一次データ・距離制限なし）。
     /// 旧・Geo.ContinentOf（矩形5分岐）は島の概念が無く旧世界の全島嶼をユーラシアへ接着＝85.6%の国対が陸続き・英がボルネオへ陸路侵略・
     /// マダガスカルが船なしで大陸侵攻・4ゲート（ExpeditionLift/Projection減衰/CanInvadeの船と制海権/輸送船消費）が同時に無効化されていた。
-    /// 第4段4-4の趣旨（露→満州は陸続き＝ユーラシア同一陸塊）は保存される。ContinentalLandReach=0で旧・海盆×LandReachKm判定へ戻せる。</summary>
+    /// 第4段4-4の趣旨（露→満州は陸続き＝ユーラシア同一陸塊）は保存される（旧の旗 ContinentalLandReach と旧・海盆×LandReachKm判定は 2026-10-18 に削除）。</summary>
     public bool IsSeaCrossing(Power x, Power y, Coefficients c)
     {
         if (x.Nation is not { } xw) return false;   // 抽象標的は投射しない（守る側）
-        var (tlat, tlon, km) = TargetPoint(x, y);
-        if (c.ContinentalLandReach > 0)
-            return !Landmass.Same(xw.Latitude, xw.Longitude, tlat, tlon);
-        Basin xbLand = Geo.BasinOf(xw.Latitude, xw.Longitude);   // 旧判定：陸続き＝生の海盆一致かつLandReachKm内
-        Basin yb = y.Nation is { } yw && yw.Regions.Count > 0 ? yw.Region.SeaBasin : Geo.BasinOf(tlat, tlon);   // ★2026-09-06：国単位の海盆を撤去＝首都州の海盆（最寄り港の海盆）を読む（この腕は ContinentalLandReach=0 の旧判定のみ）
-        return !(xbLand == yb && km <= c.LandReachKm);
+        var (tlat, tlon, _) = TargetPoint(x, y);
+        return !Landmass.Same(xw.Latitude, xw.Longitude, tlat, tlon);
     }
 
     /// <summary>戦力投射係数：攻者Xが防者Yへ陸軍戦力を届ける効率。距離減衰×（海越えなら制海権）。
@@ -3420,8 +3392,8 @@ public sealed class Diplomacy
             if (t < c.HighTensionBand)   // 高緊張帯（既定100）未満のみ薄れる。100以上は下の例外に当たらない限り戦争まで下がらない（休戦の凍結は 2026-09-26 に削除＝Q9）
                 CoolTensionTo(k, Math.Max(0, t - c.TensionDecay));
             // 外11：開戦経路が塞がれた（従属＝TriggerWars で永久に開戦できない）ペアは、緊張≥100 が上限付近でデッドロックし同盟不可/宥和対象判定を恒久的に歪める。
-            // FrozenTensionDecays=1.0（既定）で、そうしたペアの≥100緊張に微小減衰を許す（開戦で解消されない以上ゆっくり冷める）。0で永久凍結（旧）。
-            else if (c.FrozenTensionDecays > 0 && t >= c.HighTensionBand && CannotDeclareWar(k))
+            // そうしたペアの≥100緊張に微小減衰を許す（開戦で解消されない以上ゆっくり冷める。旧の旗 FrozenTensionDecays=1.0 は 2026-10-18 に焼き込み）。
+            else if (t >= c.HighTensionBand && CannotDeclareWar(k))
                 CoolTensionTo(k, Math.Max(0, t - c.FrozenTensionDecayRate));
             // 機能9-1（2026-07-28）ハイエナ抑制：敗戦ショックの高い国が絡むペアは緊張≥100でも減衰＝直近に倒れた国は保護される
             //（普仏戦争後の仏が連続で食われない・列強の焦土均衡）。窓＝DefeatShockDecay（数年で切れる）。機能9-2（凍結条件拡張）とは二者択一＝本案採用。0で恒等。

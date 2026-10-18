@@ -202,7 +202,6 @@ public class UnitTypeTests
         (typeof(Coefficients), "ReparationGdpFraction", typeof(Share)),
         (typeof(Coefficients), "PrizeCargoShare", typeof(Share)),
         (typeof(Coefficients), "WarExhaustionRatePerMonth", typeof(RatePerMonth)),
-        (typeof(Coefficients), "WarMilitancyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "WarCasualtyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "WarCasualtyCapPerMonth", typeof(RatePerMonth)),
         // ★(317) 割合の型の残り その5＝人口・移民・社会移動の係数（係数のテーマ3）。3か月ごとの実行の刻みの率は新しい型 RatePerQuarter（名前に PerQuarter を足した）、月の率は RatePerMonth、年の率は RatePerYear、
@@ -561,7 +560,7 @@ public class UnitTypeTests
         [
             ("TreatyPortLapseRatio", typeof(Share)), ("GreatPowerScoreFraction", typeof(Share)), ("MinorPowerScoreFraction", typeof(Share)),
             ("ReparationGdpFraction", typeof(Share)), ("PrizeCargoShare", typeof(Share)), ("WarExhaustionRatePerMonth", typeof(RatePerMonth)),
-            ("WarMilitancyRatePerMonth", typeof(RatePerMonth)), ("WarCasualtyRatePerMonth", typeof(RatePerMonth)), ("WarCasualtyCapPerMonth", typeof(RatePerMonth)),
+            ("WarCasualtyRatePerMonth", typeof(RatePerMonth)), ("WarCasualtyCapPerMonth", typeof(RatePerMonth)),
         ];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;

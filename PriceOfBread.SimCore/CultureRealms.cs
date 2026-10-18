@@ -13,8 +13,7 @@
 /// ⚠ **判定コードを1行も足さない**——既存の `Qualifies` が `RequiredAll` と `AnyOfSet/AnyOfMin` をそのまま評価する。
 /// ⚠ doc の Tier A「他のどの国より多く持つ」は**実装しない**＝過半を持てば必ず他のどれより多い（過半＞残り全部）ので冗長。
 ///
-/// ⚠⚠**`CultureFormationGate = 0` で `Formations.Enumerate` がこの型に一度も触れない**
-/// ＝型初期化子（`Rules` の静的初期化）すら走らない＝world.json の追加走査も起きない＝**厳密恒等**。既定は 1.0（点火）。
+/// （旧の旗 `CultureFormationGate`〔0 で `Formations.Enumerate` がこの型に一度も触れない〕は 2026-10-18 に焼き込み。）
 /// </summary>
 public static class CultureRealms
 {

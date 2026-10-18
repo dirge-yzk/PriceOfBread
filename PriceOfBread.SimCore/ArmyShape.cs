@@ -19,15 +19,14 @@ namespace PriceOfBread.SimCore;
 /// 軍拡は構造的に縮小写像になる。⚠**減衰係数を1本も置かない。** 建艦競争（仮想敵国の艦隊が海軍の必要を押し上げる）を
 /// 入れても発散しないのは、この正規化があるからである。⚠**注意配分より先に対抗項を入れてはならない。**
 ///
-/// ★live（ArmyShapeEnabled=1.0）。読み手＝陸海の維持費の分け方（<see cref="NavalSpendShareOf"/>＝AI とプレイヤーの同じ関数）・海軍の調達の目標の艦隊
-/// （EconomyStep.FleetOrder＝海の必要量÷海の熟練・(189)）（0へ戻すと非恒等）。分布が外れたら係数を足さず**式を疑う**（armyshape プローブ）。
+/// ★live（旧の旗 ArmyShapeEnabled=1.0 は 2026-10-18 に焼き込み）。読み手＝陸海の維持費の分け方（<see cref="NavalSpendShareOf"/>＝AI とプレイヤーの同じ関数）・海軍の調達の目標の艦隊
+/// （EconomyStep.FleetOrder＝海の必要量÷海の熟練・(189)）。分布が外れたら係数を足さず**式を疑う**（armyshape プローブ）。
 /// </summary>
 public static class ArmyShape
 {
     /// <summary>理想の形を全国ぶん計算して Power の Need* へ書く。四半期に1回で十分（形は年単位でしか動かない）。</summary>
     public static void Compute(Diplomacy dip, Coefficients c)
     {
-        if (!(c.ArmyShapeEnabled > 0)) return;   // 0（対照用）で1命令も実行しない。否定形＝NaN係数も不走行側へ
         var ps = new List<Power>();
         foreach (var p in dip.Powers) if (p.Nation is not null) ps.Add(p);   // 抽象標的は脅威側からも注意配分の宛先からも外す（Projection の HomeDefenseBonus 分岐の誤用を避ける）
         int n = ps.Count;

@@ -190,10 +190,10 @@ public static class Military
 
     public static void Step(World w, Coefficients c, bool atWar)
     {
-        // 外12：戦時徴兵率を戦争の規模でスケール（一律12%総動員→限定戦争は数%）。⚠**ConscriptionScalesWithWar は 1.0 で点火済み**（旧コメントの「0（既定）」は誤り・2026-08-01訂正）＝戦時徴兵は一律ではない。0 なら mobilizeFrac=ConscriptionFraction＝現行と厳密恒等。
+        // 外12：戦時徴兵率を戦争の規模でスケール（一律12%総動員→限定戦争は数%）。（旧の旗 ConscriptionScalesWithWar は 2026-08-01 点火・2026-10-18 に焼き込み）＝戦時徴兵は一律ではない。0 なら mobilizeFrac=ConscriptionFraction＝現行と厳密恒等。
         // 規模の代理＝厭戦(WarExhaustion＝長期戦・経済悪化・戦死の総合)・戦線数（多正面ほど深い動員）・敵陸軍比（劣勢ほど総動員）。軍需側 WarMobilizationDepth と同型の線形段階化。
         double conscriptFrac = c.ConscriptionFraction.Value;
-        if (atWar && c.ConscriptionScalesWithWar > 0 && w.Diplomacy is { } dip && w.SelfPower is { } self)
+        if (atWar && w.Diplomacy is { } dip && w.SelfPower is { } self)
         {
             int fronts = 0; double enemyLand = 0;
             foreach (var war in dip.Wars)

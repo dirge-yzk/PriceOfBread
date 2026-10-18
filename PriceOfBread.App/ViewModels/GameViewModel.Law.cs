@@ -117,7 +117,7 @@ public partial class GameViewModel
         Add("国教", PolicyAxis.StateReligion, ["国教のみ", "内心の自由", "信仰の自由", "国家無神論"], () => (int)w.StateReligion, () => (int)p.StateReligion, v => p.StateReligion = (StateReligionLaw)v);   // 国家無神論＝前提DAGでプロレタリア独裁のみ（例外①）
         Add("独占禁止", PolicyAxis.Antitrust, ["規制なし", "談合禁止", "独占の解体"], () => (int)w.Antitrust, () => (int)p.Antitrust, v => p.Antitrust = (AntitrustLaw)v, () => c.AntitrustGate > 0);
         Add("同業組合", PolicyAxis.Guild, ["保護", "制限", "廃止"], () => (int)w.Guild, () => (int)p.Guild, v => p.Guild = (GuildLaw)v, () => c.GuildLawGate > 0);   // ★特権 段4（2026-09-07）
-        Add("戦時配給", PolicyAxis.WartimeRationing, ["なし", "あり"], () => w.WartimeRationing ? 1 : 0, () => p.WartimeRationing ? 1 : 0, v => p.WartimeRationing = v == 1, () => c.RationingGate > 0);
+        Add("戦時配給", PolicyAxis.WartimeRationing, ["なし", "あり"], () => w.WartimeRationing ? 1 : 0, () => p.WartimeRationing ? 1 : 0, v => p.WartimeRationing = v == 1);
         Add("軍需輸出", PolicyAxis.MilitaryExport, ["許可", "禁止"], () => w.MilitaryExportBan ? 1 : 0, () => p.MilitaryExportBan ? 1 : 0, v => p.MilitaryExportBan = v == 1);   // 禁制品doc C5（2026-07-30）：禁止＝緊張の高い相手へは売らない（相手は法が選ぶ）
         Add("民間の武器購入", PolicyAxis.CivilianArms, ["許可", "禁止"], () => w.CivilianArmsBan ? 1 : 0, () => p.CivilianArmsBan ? 1 : 0, v => p.CivilianArmsBan = v == 1, () => c.RebelArmsMarketEnabled > 0);   // ★反乱勢力の武器購入（2026-09-11）＝禁止しても Contraband.LeakFraction で漏れる。RebelArmsMarketEnabled=0 では行を出さない（効かないレバーを置かない＝同業組合と同じ作法）。AIは SelfPlay.DecideModernLaws が同じ法を同じ条件で動かす＝対称
         // 阿片の法（禁制品doc C3・2026-07-30／★2026-08-11に作者指示で**2行を1本の梯子へ統合**）。

@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// 国家アイデンティティ（2026-07-12）の番人：①変名は表示名のみ＝BaseName（忠実度照合・宗主同一性の鍵）は不変
 /// ②formable（統一変名）は従属国の領有も版図に数えて成立 ③分離独立の建国＝州の物理移転で新国家がスポーンし保存則が立つ。
-/// 既定（EnableFormations=0・SecessionSpawnsNation=0）は旧挙動と厳密一致＝既存162本が番人。
+/// 既定（SecessionSpawnsNation=0）は旧挙動と厳密一致＝既存162本が番人。（旧の旗 EnableFormations は 2026-10-18 に焼き込み。）
 /// </summary>
 public class NationIdentityTests
 {
@@ -36,7 +36,6 @@ public class NationIdentityTests
         var prussia = sim.Diplomacy.Powers.First(p => p.BaseName == "プロイセン");
         foreach (var n in new[] { "ライン諸邦", "ザクセン", "ハノーファー" })
             sim.Diplomacy.SetDependency(prussia, sim.Diplomacy.Powers.First(p => p.BaseName == n));   // 属国化＝本シムの統一の正史経路
-        sim.Coef.EnableFormations = 1.0;
         Formations.Check(sim.Diplomacy, sim.Coef);
         Assert.Equal("北ドイツ連邦", prussia.Name);
         Assert.Equal("プロイセン", prussia.BaseName);

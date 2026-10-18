@@ -183,7 +183,7 @@ public sealed class NationPolicy
     public StateReligionLaw StateReligion = StateReligionLaw.StateChurch;    // 国教法（1934拡張E6・3段）。寛容ほど十分の一税↓＋宗教分裂の抵抗↓
     public AntitrustLaw Antitrust = AntitrustLaw.None;                       // 独占禁止法（1934拡張E6・3段）。強いほど独占レント↓＝大衆生活水準↑・エリート収入↓。AntitrustGate=0で恒等
     public GuildLaw Guild = GuildLaw.Full;                                   // ★同業組合法（特権 段4・3段）。既定＝保護（1783年の全国＝ギルドあり）。GuildLawGate=0 で恒等
-    public bool WartimeRationing = false;                                    // 戦時配給法（1934拡張E6・あり/なし）。戦時のみ発火＝海上封鎖の厭戦（飢餓）を公平配給で緩和（英国型）だが自由派/資本が反対（価格統制）。RationingGate=0で恒等
+    public bool WartimeRationing = false;                                    // 戦時配給法（1934拡張E6・あり/なし）。戦時のみ発火＝海上封鎖の厭戦（飢餓）を公平配給で緩和（英国型）だが自由派/資本が反対（価格統制）。
     public bool MilitaryExportBan = false;                                   // 軍需輸出の法（禁制品doc C5・2026-07-30・許可/禁止）。禁止＝緊張が MilitaryExportTensionThreshold 以上の相手へ武器を売らない（**相手は法が選ぶ**＝手動管理なし）。既定＝許可
     public bool CivilianArmsBan = false;                                     // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11・許可/禁止）。禁止＝反乱勢力の武器購入が Contraband.LeakFraction(AdminFill) だけ漏れる（取り締まれた分だけ買えない）。既定＝許可。RebelArmsMarketEnabled=0 で法は動かない＝恒等
     // 国有化法（1934拡張E6・5部門＋『全て』）。各部門の利潤が国庫へ・赤字も国庫が負う。NationalizationGate=0で恒等

@@ -88,8 +88,7 @@ public static class Colonial
         {
             double colMilSum = 0, colPopSum = 0;
             // ★AUD-09（2026-09-03）：不満の加重平均は昇格した植民地格の州の闘争度で取る（帝国規模の項 `colonies` が数えるのと同じ集合＝分子と分母を揃える）。単位は州の人口 Σ Pops.Size。
-            if (c.AntiImperialCoversRegions > 0)
-                foreach (var cr in w.Regions)
+            foreach (var cr in w.Regions)
                 {
                     if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
                     var (mn, md) = Politics.RegionMilitancy(cr);   // 州の闘争度の和の1本（平民の民間人・段4e H）

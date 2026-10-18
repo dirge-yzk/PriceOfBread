@@ -31,7 +31,6 @@ public class TradeTreatyAutoTests
     public void プレイヤー国もAIと同じ掃引で通商条約を結ぶ()
     {
         var c = new Coefficients();
-        Assert.True(c.TradeTreatyEnabled > 0, "既定で点火している機構（0なら即return＝この検査は無意味）");
 
         // 腕1＝操作国なし（従来のAI同士の掃引）
         var simAi = Build(lowIndex: 0);
@@ -52,17 +51,5 @@ public class TradeTreatyAutoTests
 
         Assert.Equal(afterAi, afterPl);                    // 操作国かどうかで世界が変わらない＝対称
         Assert.True(afterPl[idx] < 0.49, "操作国自身も関税目標が条約で下がる（旧実装では除外されて 0.50 のままだった）");
-    }
-
-    [Fact]
-    public void 機構をOFFにすると誰も動かない()
-    {
-        var c = new Coefficients { TradeTreatyEnabled = 0 };
-        var sim = Build(lowIndex: 0);
-        var reals = sim.Diplomacy.Powers.Where(p => p.Nation is not null).ToList();
-        reals[1].IsPlayer = true;
-        var before = Targets(sim);
-        sim.Diplomacy.TradeTreaties(c);
-        Assert.Equal(before, Targets(sim));
     }
 }

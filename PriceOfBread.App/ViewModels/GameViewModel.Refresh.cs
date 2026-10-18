@@ -55,8 +55,8 @@ public partial class GameViewModel
         var myWars = new List<War>();
         var warEnemyIds = new HashSet<long>();
         foreach (var war0 in _sim.Diplomacy.Wars) if (war0.A == me || war0.B == me) { myWars.Add(war0); warEnemyIds.Add((war0.A == me ? war0.B : war0.A).Id); }
-        // P4 統一戦争（主フラグONのみ）：狙える変体と必要州の保有国リスト（このrefresh内で1回だけ計算）
-        var unifRule = _player.Coef.UnificationWarEnabled > 0.5 ? _player.UnificationRule : null;
+        // P4 統一戦争：狙える変体と必要州の保有国リスト（このrefresh内で1回だけ計算）
+        var unifRule = _player.UnificationRule;
         var unifTargets = unifRule != null ? Formations.UnificationTargets(_sim.Diplomacy, me, unifRule) : null;
         UnifLine = unifRule != null ? $"統一の機運　目標 {unifRule.NewName}" : "";   // 外交タブ上部の状態表示（機運なし＝非表示）
         var cards = new List<NationCard>(powers.Count);   // 据え置き同期（SyncRows）：行の Button/ツールチップを毎月破棄しない

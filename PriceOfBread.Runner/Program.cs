@@ -255,7 +255,7 @@ if (args.Length > 0 && args[0] == "armyshape")
     int[] aCuts = aLong ? [1, 268, 524] : [args.Length > 1 && int.TryParse(args[1], out var aq0) ? aq0 : 524];
     ulong aSeed = ArgUlong(args, 2, 1UL);
     var msA2 = new MultiNationSim(WorldData.Nations(), aSeed, _ => new UtilityAgent());
-    foreach (var s2A in msA2.Nations) { s2A.World.Coef.ArmyShapeEnabled = 1.0; s2A.TelemetryEnabled = false; }
+    foreach (var s2A in msA2.Nations) { s2A.TelemetryEnabled = false; }
     msA2.Diplomacy.Log.Enabled = false;
     msA2.StartWarmup();   // App/バッチと同じ開始盤面
     int aDone = 0;

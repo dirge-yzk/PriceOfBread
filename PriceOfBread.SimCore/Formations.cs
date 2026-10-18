@@ -19,7 +19,7 @@ public sealed record FormationRule(
     string[]? ReligionAnyOf = null,   // 文明ゲート（適格条件と別の必須条件）：Power.Religion がこの集合にあること。null=不問
     string[]? AnyOfSet = null,    // 追加条件：この集合から最低 AnyOfMin 州
     int AnyOfMin = 0,
-    string? NewCapital = null,    // 遷都先州名（FormationCapitalMove=1.0で**配線・点火済み**＝成立時にIdスワップで首都昇格。全32州名はworld.jsonと突合済み＝欠落ゼロ）
+    string? NewCapital = null,    // 遷都先州名（旧の旗 FormationCapitalMove=1.0 で**配線・点火済み**〔2026-10-18 に焼き込み〕＝成立時にIdスワップで首都昇格。全32州名はworld.jsonと突合済み＝欠落ゼロ）
     string? CultureOrigin = null  // ★変名機構の一般化（器2026-08-01）：この規則が由来する文化ラベル（自動生成規則のみ非null）。
                                   // 非nullのとき「開幕より州を増やしたか」を要件に加える＝最初から過半を持つ国が開幕直後に改名するのを防ぐ。既存40ルールは null＝無改修・無影響
 );
@@ -394,7 +394,7 @@ public static class Formations
             }
             // 第4段4-1（2026-07-27）：成立時の遷都＝NewCapital の州が自国 active 州にあれば首都(Id0)へ昇格（伊統一→ローマ等の死蔵データ約35規則を点火）。
             // 手順は割譲の遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B＝Idスワップ・Regions[0] の首都不変条件・座標・旧首都の植民地財）。
-            if (c.FormationCapitalMove > 0 && best.NewCapital is { } capName)
+            if (best.NewCapital is { } capName)
             {
                 var newCap = w.Regions.Find(r => r.Name == capName && r.State == RegionState.Active);
                 if (newCap is not null && newCap.Id != 0)
@@ -415,7 +415,7 @@ public static class Formations
         if (!IdentityEligible(power, rule)) return false;
         // ★変名機構の一般化（器2026-08-01）：自動生成規則（CultureOrigin 非null）は「開幕より同文化の州を増やした」ことを要件にする。
         // ⚠既存40ルールは CultureOrigin==null なのでこの行を素通りする＝厳密恒等。
-        if (rule.CultureOrigin is { } cul && c.CultureFormationNeedsGain > 0 && !CultureRealms.HasGained(d, power, cul)) return false;
+        if (rule.CultureOrigin is { } cul && !CultureRealms.HasGained(d, power, cul)) return false;
         foreach (var name in rule.RequiredAll) if (!Owns(d, power, name)) return false;
         if (rule.AnyOfSet is not null)
         {
@@ -438,12 +438,11 @@ public static class Formations
         return eligible;
     }
 
-    /// <summary>変名規則の列挙（器2026-08-01）：手書き40ルール ＋（ゲートONなら）文化から自動生成した規則。
-    /// ⚠ CultureFormationGate=0 では **CultureRealms 型に一度も触れない**＝静的初期化（world.json の走査）すら走らない＝厳密恒等。</summary>
+    /// <summary>変名規則の列挙（器2026-08-01）：手書き40ルール ＋文化から自動生成した規則（旧の旗 CultureFormationGate は 2026-10-18 に焼き込み）。</summary>
     public static IEnumerable<FormationRule> Enumerate(Coefficients c)
     {
         foreach (var r in Rules) yield return r;
-        if (c.CultureFormationGate > 0) foreach (var r in CultureRealms.Rules) yield return r;
+        foreach (var r in CultureRealms.Rules) yield return r;
     }
 
     /// <summary>その州を領有しているか（直接∪従属国）。UIの必要州チェック表示に使う。</summary>
@@ -458,7 +457,7 @@ public static class Formations
     /// <summary>P4：この国が統一戦争で狙える変体ルール（適格×未成立×必要州が欠け×ナショナリズム閾値）。無ければ null。</summary>
     public static FormationRule? UnificationCandidate(Diplomacy d, Power p, World w, Coefficients c)
     {
-        if (c.UnificationWarEnabled <= 0 || p.Nation is null) return null;
+        if (p.Nation is null) return null;
         FormationRule? best = null;
         foreach (var r in Enumerate(c))
         {
