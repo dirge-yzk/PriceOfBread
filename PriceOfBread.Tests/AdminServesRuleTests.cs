@@ -96,6 +96,29 @@ public class AdminServesRuleTests
         Assert.Equal(90.0, onHalf.paid, 6); Assert.Equal(70.5, onHalf.treasuryTax, 6); Assert.Equal(19.5, onHalf.lordGain, 6);   // 充足 0.5
     }
 
+    [Fact]
+    public void G2b_領主の居ない州では取り分が0で国庫への落ちは納税者の手元に残る_居る州は領主へ移る()
+    {
+        // 追記2（反証役 3）：旗 1 の落ち（R0×(1−f)×(1−d)）は領主の居る州では領主へ移り、居ない州では取り分 0＝納税者の手元に残る（減税として働く）。届け率の側は州に依らず同じ
+        var w = QuietBritain(1);
+        int withLord = -1, noLord = -1;
+        for (int i = 0; i < w.Regions.Count; i++)
+        {
+            var rg = w.Regions[i]; rg.Rule = [0.5, 0.4, 0.1, 0.0]; rg.AdminFill = 0.0;
+            bool has = rg.Pops.Any(q => q.ClassId == PopClass.Noble && !q.IsSoldier && q.Size > 1e-9);
+            if (has && withLord < 0) withLord = i;
+        }
+        Assert.True(withLord >= 0, "前提が崩れた：領主の居る州が無い");
+        for (int i = 0; i < w.Regions.Count; i++) if (i != withLord && w.Regions[i].Pops.Count > 0) { noLord = i; break; }
+        Assert.True(noLord >= 0, "前提が崩れた：別の州が無い");
+        w.Regions[noLord].Pops.RemoveAll(q => q.ClassId == PopClass.Noble);
+        var scan = Fiscal.TaxScan.Of(w, w.Coef);
+        int at = 0, a0 = -1, b0 = -1;
+        for (int i = 0; i < w.Regions.Count; i++) { if (i == withLord) a0 = at; if (i == noLord) b0 = at; at += w.Regions[i].Pops.Count; }
+        Assert.Equal(0.63, scan.RuleMul[a0], 12); Assert.Equal(0.27, scan.RuleCut[a0], 12);   // 領主の居る州：国庫 0.63・領主 (0.4＋0.5)×0.3
+        Assert.Equal(0.63, scan.RuleMul[b0], 12); Assert.Equal(0.0, scan.RuleCut[b0], 12);    // 領主の居ない州：国庫 0.63・取り分 0（落ちた 0.27 は納税者の手元）
+    }
+
     // ===== G3 行政費 0 を続けると役務が届かず国庫に届く割合が下がる（プレイヤーと AI は同じ口） =====
 
     [Fact]
@@ -120,7 +143,7 @@ public class AdminServesRuleTests
         Assert.True(zero1.fill < 1e-6, $"前提が崩れた：行政費 0 でも充足が残る（{zero1.fill}）");
         Assert.True(norm1.fill > zero1.fill + 1e-3, $"前提が崩れた：行政費 0.5 の充足が 0 と変わらない（{norm1.fill}）");
         Assert.True(zero1.now < zero1.old - 0.02, $"旗 1・行政費 0：届く割合 {zero1.now} が旧の式 {zero1.old} より下がらない");   // R0 の人口加重 ≒ 0.6〜0.7 に 0.3 を掛けた落ち
-        Assert.True(norm1.now > zero1.now - 1.0 && norm1.old - norm1.now < zero1.old - zero1.now, "行政費 0.5 の方が旧の式との差が小さい");
+        Assert.True(norm1.old - norm1.now < zero1.old - zero1.now, $"行政費 0.5 の方が旧の式との差が小さい（0.5：{norm1.old - norm1.now}・0：{zero1.old - zero1.now}）");   // 追記2：旧は前半が 0〜1 の値どうしの差で常に真だった空の節を含んでいた（反証役の指摘）
         Assert.Equal(zero0.old, zero0.now, 12);   // 旗 0 は充足 0 でも旧の式のまま
     }
 
@@ -174,6 +197,6 @@ public class AdminServesRuleTests
     public void 計器admrule_sは旗0でも出て旧と新の届きを分けて持つ()
     {
         var hdr = Instruments.AdmRuleHeaderText.Split('\t');
-        Assert.Equal(new[] { "quarter", "year", "nation", "adminFillShare", "ruleStateShare", "ruleLocalShare", "deliveryOldShare", "deliveryShare", "unservedStateShare", "stateReachOldShare", "stateReachShare", "provincesCount" }, hdr);
+        Assert.Equal(new[] { "quarter", "year", "nation", "adminFillShare", "ruleStateShare", "ruleLocalShare", "deliveryOldShare", "deliveryShare", "unservedStateShare", "stateReachOldShare", "stateReachShare", "provincesCount", "ruleCutRateAllShare", "ruleCutRateLordedShare", "lordlessPopShare", "manLimitK", "manLimitOldK", "seatsK", "popSideDecidesFlag", "soldierK", "excessSoldierK", "atWarFlag", "nobleIncomeSumPerMonth", "nobleIncomeMaxPerCapPerMonth" }, hdr);
     }
 }
