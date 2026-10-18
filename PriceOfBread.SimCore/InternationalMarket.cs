@@ -6,7 +6,7 @@
 /// 買い手は「自分のところまで最も安く着く売り手」を選ぶ＝**世界にひとつの価格は存在しない**（同じ財でも産地と距離で着値が違う）。
 /// **輸入の支払い＝輸出の受取**（金建て）で地球規模では金が保存（各国の貿易収支は CumulativeTradeFlow で黒字/赤字を追跡・★段3-1 から各国の通貨へ為替で換算＝名目の差は Diplomacy.CumulativeFxResidual）。
 /// 輸送ゲート：各州のアクセスを鉄道/船容量で律速。**港州＝船のみ・内陸州＝鉄道＋船(min)**＝港ハブ効果
-/// （内陸は鉄道がボトルネック＝港経由の含意）。国の容量は前期に各州が運びたかった量に比例して配る（TransportShareByPotential・実績の無い開幕は均等割り）。
+/// （内陸は鉄道がボトルネック＝港経由の含意）。国の容量は前期に各州が運びたかった量に比例して配る（旧の旗 TransportShareByPotential・実績の無い開幕は均等割り）。
 /// 禁輸・交戦の国は交易が縮む（§6.1）。植民地財も同じ二国間清算に載る（TradeColonialGoods・2026-08-26 点火）。
 /// → 比較優位（工業州は工業品を輸出し食料/原料を輸入、農業州はその逆）が州単位で創発する。
 ///
@@ -43,7 +43,7 @@ public sealed partial class InternationalMarket
     }
 
 
-    /// <param name="firstClearingOfQuarter">★月次清算（TradeMonthlyClearing・2026-08-22）：四半期の最初の清算なら true＝四半期累計量（LastPortThroughput）をリセット。既定 true＝従来の四半期1回呼び出しと厳密同値。</param>
+    /// <param name="firstClearingOfQuarter">★月次清算（旧の旗 TradeMonthlyClearing・2026-08-22・2026-10-18 焼き込み）：四半期の最初の清算なら true＝四半期累計量（LastPortThroughput）をリセット。既定 true＝従来の四半期1回呼び出しと厳密同値。</param>
     public void Step(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter = true)
     {
         // 二国間交易（作者裁定2026-08-11・docs/202608/二国間交易への置換_設計_完了.md【完了】.md）＝州と州が実経路

@@ -53,13 +53,13 @@ public sealed class Coefficients
     //   LaborRentWeight（構造スイッチ）・CrowdRentExpectation（混雑予期＝効果−2.4回・赤1件）・LaborFloorMix（均等床0.15＝準レント下では不要）・ExportDemandWeight（0.25の別建て加算＝価格に輸出が載るので次元不整合）は削除。
     //   測定＝準レント＋信念EMA＋床撤去＝硬性ゲート全緑・405緑・savetest 0.0E+000。大国8の1人あたり実質GDP＝エピソード7.1/試合・最大DD51%（基線2.8/31%・裸8.1/53.5%）。
     /* ★貿易の数量則書き換え（2026-08-22・docs/202608/20260822_貿易数量則の書き換え_設計_部分完了.md）。用量反応で「式の形が律速」を確定した後の段階実装。
-       S1 暦＝TradeMonthlyClearing：国際清算を四半期1回→月次（MonthSettle の後）。量の式が月次規模を読むのに清算が四半期＝単位混在の是正（正しさの修正＝栓ではない）。
-         0＝追加呼び出しゼロ＝ビット恒等。読み手は ClearingsPerYear / MonthsPerClearing で年換算・月割を揃える（×4.0 の直書きを残さない）。
+       S1 暦＝（旧の旗 TradeMonthlyClearing・2026-10-18 に焼き込み）：国際清算を四半期1回→月次（MonthSettle の後）。量の式が月次規模を読むのに清算が四半期＝単位混在の是正（正しさの修正＝栓ではない）。
+         読み手は ClearingsPerYear / MonthsPerClearing で年換算・月割を揃える（×4.0 の直書きを残さない）。
        S3 価格法則＝PriceLawSeesExports：MarketFlow の flow 項の需要側に LastExport を足す。現行は輸入が在庫と供給の**両方**に載るのに輸出は在庫にしか載らない
          （BilateralMarket:460-461 と MarketFlow:27）＝輸出州の産出>需要を「過剰供給」と読み価格が崩れ→profitFactor（地元価格）が産出を絞る→輸出余剰が消える
          ＝**輸出する州ほど罰される非対称**（用量反応×100腕が2.91%で飽和した正体の有力候補＝天井でなくこの均衡）。0＝旧式を逐語に通る＝ビット恒等。
        どちらも 0/1 の構造スイッチ（中間値に意味なし＝運用禁止）。 */
-    public double TradeMonthlyClearing = 1.0;   // ★点火2026-08-30（貿易数量則ラウンド・batch10段階測定→フルスタック採用）
+    // 【墓標2026-10-18・旗の焼き込み】TradeMonthlyClearing（S1 暦・既定1.0・点火2026-08-30 貿易数量則ラウンド・batch10段階測定→フルスタック採用）を消した＝国際清算は四半期1回でなく月次（MonthSettle の後・四半期の第1・第2月末にも清算する）。ClearingsPerYear・MonthsPerClearing は月次の定数（12・1）。
     // 【墓標2026-10-18・旗の焼き込み】TradeLedgerFix（S2台帳衛生・案E・既定1.0・点火2026-08-30）を消した＝人口の主食純輸入はゼロ化前の前清算値（Market.PrevImport/Export）で読む（旧＝常に0を見る＝発火不能）。
     // 【墓標2026-09-26・旗の焼き込み（econ-15・x-01・0-3）】TradeArbitrageClearing（S4主フラグ・点火2026-08-30＝世界貿易/GDP 0.5%→42〜66%）と TradeCapacityHard（S4-1＝容量を同期制約に）
     //   ＝BilateralMarket は水準式の裁定清算と同期容量制約だけになった。旧経路（定数速度×自州規模）と、その専用の係数 TradeSpeed・TradeArbitrageMax・TradeBuyerScaleMult・TradeSellerFlowMult も削除
@@ -86,8 +86,8 @@ public sealed class Coefficients
     //   1＝クランプなしの生の平均。⚠SilverParityFromRatio=0 の旧経路ではこの統計が銀本位国の平価にも流れる＝両者を合わせて測る。0＝旧式＝厳密恒等。
     public double WorldPriceStatUnclamped = 0.0;
     public double PriceLawSeesExports = 1.0;   // ★点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
-    public int ClearingsPerYear => TradeMonthlyClearing > 0 ? Calendar.MonthsPerYear : Calendar.QuartersPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
-    public int MonthsPerClearing => TradeMonthlyClearing > 0 ? 1 : Calendar.MonthsPerQuarter;                    // 1清算が覆う月数（月割の単位ヘルパー）
+    public int ClearingsPerYear => Calendar.MonthsPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
+    public int MonthsPerClearing => 1;                    // 1清算が覆う月数（月割の単位ヘルパー）
     /* ★幻の生産の根絶（作者2度指摘・2026-08-10）＝1783年に内燃機関が「生産量0.0kなのに生産シェア3%・清が世界の12%」、
        自動車が0.0kで「世界の5%」、廃棄率が 12,543,372%。
        根＝EconomyStep :459 の追従式 `Output += SupplyAdjustSpeed × (target − Output)`。**目標が0でも産出は幾何級数で
@@ -1168,7 +1168,7 @@ public sealed class Coefficients
     public double InfraMaintRate = 0.4;
 
     // --- 輸送・物流（§5.1拡張：港・鉄道・船。世界市場は港州のみ、内陸は鉄道で港経由。容量不足→購入量限界縮小→価格上昇）---
-    public bool TransportEnabled = true;            // 輸送ゲートの有効化
+    // 【墓標2026-10-18・旗の焼き込み】TransportEnabled（輸送ゲートの有効化・既定 true）を消した＝輸送の容量制約は常に有効。
     public double InlandPortDistanceDecay = 1.0;    // 内陸州のrailToPort容量を最寄り港までの海路距離で減衰（trade-capacity-even-share-not-network）＝遠い内陸ほど鉄道を食い港集約が創発。減衰=1/(1+これ×NearestPortDistanceKm/10000)。0で均等割りそのまま（恒等）
     public double TransportDecay = 0.02;            // 鉄道/船容量の月次減耗（維持に投資が要る＝持続需要）
     public double TransportTargetPerPop = 0.08;     // 目標容量＝人口×これ（必要数を増やし鉄道供給網の構築を要求）
@@ -1637,7 +1637,7 @@ public sealed class Coefficients
     /* ★冬季の港の凍結（作者裁定2026-08-11「一部の港を冬に使用不可にする。これでグレートゲームが創発できる」）。
        バルト海・白海・オホーツク海・セントローレンス湾の港が真冬の四半期だけ閉じる（Climate.PortFrozen＝実在の海域の表）。
        0で通年開港＝厳密恒等。⚠二国間交易（BilateralMarket・唯一の経路）で効く。 */
-    public double WinterPortFreeze = 1.0;
+    // 【墓標2026-10-18・旗の焼き込み】WinterPortFreeze（既定1.0・作者裁定2026-08-11）を消した＝凍る港はその四半期だけ海に出る口にならない（ロシアのバルト海が冬に閉じる一方、黒海とペルシャ湾は通年）。
     public int SecondPowerCount = 5;               // 準列強の定員（列強の次のN）
     // 外交の「同ランク」束をどう数えるか。1＝準列強を中堅と同じ束に置く（＝4段階化の前と同じ相手・既定）／
     // 0＝ラベルどおり4束に割る。★実測（2026-08-11）＝割ると8軸合計 319.4→305.2（硬性は緑）。
@@ -2517,7 +2517,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TariffBorderOnly＝関税・穀物法の楔を国境だけに＝同国の売り手には掛けない・同国取引を輸入統計と関税の基礎から除く（2026-08-15 点火）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FreightRevolutionAdValorem＝運賃革命を従価マージンにも（2026-08-15 点火）
     // 【墓標2026-09-29・支払いの一元化 段3-1】TradeBandWiden を削除（表示用の単純平均の帯＝R6 で撤去。成立は組ごとの判定（最良の売り手の着値＜自州価格）だけ）。
-    public double TradeAccessNormalized = 1.0;   // ★点火2026-08-15（ign_trade1＝主動因・貿易0.23→1.19%・帯全次元改善）：④対外アクセスの正規化：TradeAccessのlostを真のシェア（lost/Σ全相手weight）へ。旧＝TradeWeight（平均0.25・総和≈15）をシェア扱い＝平均4カ国と禁輸/交戦で床0.10＝実測で英仏露普清が全員恒久床。正規化で禁輸4/60≈7%喪失の史実スケールへ。0＝旧式ビット恒等。点火はA/B
+    // 【墓標2026-10-18・旗の焼き込み】TradeAccessNormalized（貿易復活④・既定1.0・点火2026-08-15 ign_trade1＝主動因・貿易0.23→1.19%・帯全次元改善）を消した＝対外アクセスの喪失は lost/Σ全相手 weight（禁輸4/60カ国≈7%の史実スケール）。旧式の単純和（平均的な相手4カ国で床0.10）は Diplomacy.TradeAccessNormalizedGate ごと削除。
     public double RiskLambda = 2.0;              // 03手順7：リスク線積分の強度＝1−exp(−λΣ敵支配度×km/1e4)。完全支配10,000kmで0.86≈旧ChokeBlockadePenalty(0.8)の帯を継承
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: PerStateTradeDistance  03手順4A（2026-07-28）：距離マージンを州単位の3脚（州→港(陸×LandSeaCostRatio)→海→重心）で計算。0=旧・国一律（首都→重心）
     // ★★陸路の直行を運賃に繋ぐ（2026-08-26・作者指摘「陸上の交易は計算されていない？」）＝(1.5)。
@@ -2555,7 +2555,7 @@ public sealed class Coefficients
     //   ⚠設計環境の実測＝**貿易は増えない**（配分は総量を変えない）。目的は州の細分化を可能にすること＝**州の追加と同時に点火**。
     //   ⚠0＝厳密恒等（旧の均等割りそのもの）。
     //   ★点火2026-08-28＝州追加トランシェ1と同時（docの指定どおり）。batch30＝硬性全緑。差し戻しは0へ。
-    public double TransportShareByPotential = 1.0;
+    // 【墓標2026-10-18・旗の焼き込み】TransportShareByPotential（既定1.0・点火2026-08-28 州追加トランシェ1と同時・batch30＝硬性全緑）を消した＝国の輸送容量の州の取り分は前期の潜在量 LastTradePotential に比例（潜在量の和が痩せたら均等）。Transport.ShareBasis の KPot も消えた。
     public double TerrainWaterMajorCost = 0.15;   // ⚠読み手は TerrainCostEnabled>0 のときだけ（水運は陸運の1/5〜1/10＝docのレンジ）
     public double TerrainWaterMinorCost = 0.4;
     // ★鉄道時代の陸運低下（2026-08-28・輸送コスト是正・作者一任「いい感じに」）：史実＝馬車の陸運は水運の10〜30倍、
@@ -2564,9 +2564,9 @@ public sealed class Coefficients
     //   ★点火0.25（2026-08-29・batch30 A/B）＝政体46.3→47.5・列強30.8→31.7・経済34.2→36.7・**人口22.7→29.0**・硬性全緑。
     public double RailCostFraction = 0.25;
     public double LandSeaCostRatio = 12.0;       // 03手順4A：陸の実効距離倍率（§4-2の実測例＝陸単価12。鉄道後の低減は#17で。B3裁定＝新係数はこの1本に集約・地形係数は作らない）
-    public double TransitEnabled = 1.0;          // 経路グラフ第1段 Stage C（03 §11-6・裁定A3・2026-08-09）：内陸国（港州ゼロ国）の距離マージンを外国港州トランジット（Region.TransitPort*＝構築時静的の上位2候補・所有だけ四半期解決）の3脚で計算。0＝旧・首都基準フォールバック（厳密恒等）・1で点火。交戦中の港は第2候補→両方不可なら旧フォールバック＝鎖国はしない
+    // 【墓標2026-10-18・旗の焼き込み】TransitEnabled（経路グラフ第1段 Stage C・裁定A3・既定1.0・2026-08-09）を消した＝内陸国（港州ゼロ国）の距離マージンを外国港州トランジットで繋ぎ、利用州の取扱高×TransitTollShare を港所有国へ払う経路は常に有効。
     public Share TransitTollShare = new(0.05);       // Stage C：通行料率＝トランジット利用州の取扱高（LastPortThroughput）比。決済後に利用国国庫→港所有国国庫の移転（運河通行料 MultiNationSim.StepCanals と同型＝Treasury/CumulativeTradeFlow 両建てで保存）。払えない分は国ごとに比例縮小（負債は作らない）。TransitEnabled=0 では読まれない（休眠）
-    public double PortRewireEnabled = 1.0;   // 【点火1.0・2026-08-16＝A/B: 単独34/70/53・条約港風化との合成36/73/51=優加法】全国の港配線（最寄り港/海盆）を四半期末に**無条件で**張り直す＝割譲・分離独立・州昇格に配線が追随（旧＝構築時1回の凍結配線）。0で最寄り港は構築時のみ＝旧挙動と一致（⚠通過港 TransitPort* は係数によらず毎四半期張り直す）。★2026-09-21＝**署名の層を削除**（doc 20260816 案1・状態ゼロ。旧の「2＝毎期無条件」の分岐も畳んだ＝seed 1/6/25 の selfplay 1 200 が sha256 一致）
+    // 【墓標2026-10-18・旗の焼き込み】PortRewireEnabled（既定1.0・点火2026-08-16 A/B：単独34/70/53・条約港風化との合成36/73/51=優加法）を消した＝全国の港配線（最寄り港/海盆）を四半期ごとに領土へ追随して張り直す。
     public double TransportWeightMarginScale = 0.3;   // 財9（輸送費の従量化）：交易マージンの従量成分の強度。0で従価一律の現行と厳密一致・>0で margin に TransportWeight(g)/RefPrice(g) 比例の従量部を加算＝石炭/穀物の長距離交易が前鉄道期に立たない
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: ThrottlePrepassUsesRealThreshold  財10（保護バイアス）：輸送スロットルの事前パスの輸入閾値。0で従来の裸マージン＝保護国のthrottleが過小→輸出が巻き添え・1で本パスと同式(tar×TariffProtect+cornPen+blockadeBias)に共通化。>0.5で発火
     public double WorldPriceInitFromRefPrice = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**   // 財11（世界価格の初期値）：0で全財1.0初期化（現行）・1でCatalog.RefPricesから初期化＝開始数年の高額財交易の凍結を解消。>0.5で発火。MultiNationSim側でコンストラクタへ渡す配線が要る（既定省略時は0で現行と厳密一致）
@@ -2610,8 +2610,8 @@ public sealed class Coefficients
     public double SpecialistExitBanPrefScale = 0.0;
     public Share ImmigrationSelectiveFrac = new(0.5);   // 選別：受入上限を半分に
     public Share ImmigrationClosedFrac = new(0.2);      // 閉鎖：受入上限を2割に（★完全ゼロにしない＝密航・家族呼び寄せ・特例は史実にも残った）
-    public double TradeWeightDynamic = 1.0;   // 外1（A-中6・**2026-07-23点火＝取扱高駆動へ書き換え**）：TradeWeightを四半期ごと貿易取扱高（輸出+輸入額のEMA）シェアから再計算。0=1789の0.15+0.10×Industrializationを固定維持（恒等）。GDP駆動は開放度を無視して1913年の米・清・露を過大にするため取扱高へ変更。★(194) 読み手が増えた＝ArmyShape の海路の接触（艦隊の注意の重み＝TradeValueSmoothed÷平均）＝0 にすると平滑の量が更新されず、海路の接触は黙って重み1（旧）へ戻る（(197) 反証役 vq1#9）
-    public double TradeWeightBase = 0.15;   // 外1：動的TradeWeightのベース（TradeWeightDynamic>0でのみ使用。現行式の切片に対応。#17較正）
+    // 【墓標2026-10-18・旗の焼き込み】TradeWeightDynamic（外1・A-中6・既定1.0・2026-07-23 点火＝取扱高駆動へ書き換え）を消した＝TradeWeight は四半期ごとの貿易取扱高（輸出+輸入額の EMA）のシェアから導く（旧＝1789年の値で凍結）。TradeWeightBase は残る。
+    public double TradeWeightBase = 0.15;   // 外1：動的TradeWeightのベース（現行式の切片に対応。#17較正）
     public double TradeWeightGdpSlope = 0.10;   // 外1：動的TradeWeightの相対取扱高シェア(世界平均1)への傾き（同上。#17較正）
     public double CanalTollTrafficRate = 0.02;   // 外6：取扱高あたり通行料率（通航トン数課金の実効レート。旧CanalTollRate/CanalTollByTraffic/CanalTollByRouteは02断線走査2026-07-28のルート判定一本化で削除済み＝この係数が唯一の実効レバー。#17較正）
     public Share CanalInvestReturns = new(0.5);   // 外7：運河建設拠出国へ通行料を持分比で配当する割合(0..1)＋交戦中の拠出停止。0=現行の全額扼者・無条件拠出（恒等）
@@ -2651,8 +2651,8 @@ public sealed class Coefficients
     //   ⚠積分は常に走る（読み手が無ければ厳密恒等＝savetest で往復）。DominanceIsStock=0 では独立判定は従来の「pressure>閾値 かつ pressure>hold」のまま＝厳密恒等。
     // ★陸グラフの地理2本（作者指摘2026-09-05「陸上取引の一部が内海を無視している」「山脈などのバリアは正しく機能しているか」・監査＝docs/202609/20260905_陸路の水域横断とバリア監査）。
     //   ⚠PathGraph は静的構築なので `new Coefficients()` で読む（POB_COEF の上書きは静的に効く）。0＝従来の張り方＝厳密恒等。
-    public double LandEdgesAvoidWater = 1.0;   /* ★点火2026-09-05＝0.0→1.0・陸の辺は水を渡らない（作者指摘2026-09-05） */   // 1＝陸の辺の内部（格子の半分刻み・海グラフと同じ作法）に**連続3格子（≈33km）以上の水**があれば張らない。同じ陸塊の内側の海（地中海・黒海・バルト・黄海・ベンガル湾・メキシコ湾…）を歩かない。河口・湖沼・収縮の帯（各≤2格子）は通る。監査＝304/1087本が水を渡っていた
-    public double BarrierWallSegments = 1.0;   /* ★点火2026-09-05＝0.0→1.0・バリアの壁を線分に（作者指摘2026-09-05） */   // 1＝同じ山脈名（語幹）のバリア点を WallLinkKm 以内で結んだ**線分**も壁とし、辺の大圏弧が交差すれば張らない（峠を端点とする辺は免除・地元免除は線分に効かせない）。監査＝点の壁は隙間だらけ（アルプス518km・カフカス578km）で19本が隙間を抜け、9本が地元免除で山脈を縦断していた
+    // 【墓標2026-10-18・旗の焼き込み】LandEdgesAvoidWater（既定1.0・点火2026-09-05・作者指摘「陸上取引の一部が内海を無視している」）を消した＝陸の辺は水を渡らない（迂回路があれば辺の距離にする）。
+    // 【墓標2026-10-18・旗の焼き込み】BarrierWallSegments（既定1.0・点火2026-09-05・作者指摘「山脈などのバリアは正しく機能しているか」）を消した＝同じ山脈名（語幹）のバリア点を線分の壁にして、壁を横切る辺を張らない。
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
 
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）

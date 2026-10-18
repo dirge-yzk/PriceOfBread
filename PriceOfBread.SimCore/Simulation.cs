@@ -617,7 +617,7 @@ public sealed class Simulation
     ///   ②先に旧配線を消す＝港州0になった国は NearestPortName="" が残り、BilateralMarket が通過港（TransitPort*）分岐へ落ちる
     ///    （doc §1-4「S1是正と通過港配布は同時でないと交易から完全脱落」の受け皿。張り直しは MultiNationSim.RewirePorts が毎四半期強制する）。
     ///   SeaBasin は消さない＝港州0の国の内陸州は旧海盆を保持（未決9a=保守側：封鎖・冬季閉鎖の帯の連続性を優先。港が戻れば次の再配線で追随）。
-    ///   呼び出しは PortRewireEnabled>0.5 の内側のみ（**点火1.0・2026-08-16**。0では本モードに1命令も入らない＝構築時経路は従来とビット一致）。
+    ///   呼び出しは毎四半期の張り直し（MultiNationSim.RewirePorts）のみ（旧の旗 PortRewireEnabled は点火2026-08-16・2026-10-18 焼き込み）。
     ///   決定論＝盤面（州集合と座標）だけから決まる・RNG不使用・同率は従来どおり先着（州リスト順＝決定論）。</summary>
     internal static void WirePortDistances(List<Region> regions, bool rewire = false)
     {
@@ -1378,7 +1378,7 @@ public sealed class Simulation
     ///   ・農制＝自作農（farmLordShare=0）＝北西部条例/ホームステッドの物理。プランテーション上書き（PlantationRentShare）も適用しない（昇格の定義＝入植者多数の州）
     ///   ・市場在庫＝0 で開始（CatalogEconomy の初期200を持たせない）＝「AI国庫×初期市場在庫200の開幕工業化バースト」（indprobe実測2026-07-27）を新州で再現しない
     ///   ・Tier既定=Integrated（議席あり・植民地維持費なし。tier 引数で Colonial も渡せる＝開始時の一括昇格）・Core にはしない（「ゲーム中のコア化はしない」の規則どおり＝HomeProvinces1914 計器の分子定義を守る）
-    ///   ・港州（IsPort）＝⚠是正2026-08-28：landmass.json の coastal（沿岸か否かの一次データ）から引く（未登録は旧挙動どおり true へ倒す）。座標は Climate.CityCoord（史実の積出港・landmass 機械検証済み）。既存内陸州の最寄り港は再配線しない（既存州の挙動を動かさない。⚠PortRewireEnabled>0.5 では MultiNationSim.RewirePorts が四半期末に WirePortDistances を張り直す＝新港が最寄りなら切り替わる・doc 20260812_港の配線を領土に追随させる）
+    ///   ・港州（IsPort）＝⚠是正2026-08-28：landmass.json の coastal（沿岸か否かの一次データ）から引く（未登録は旧挙動どおり true へ倒す）。座標は Climate.CityCoord（史実の積出港・landmass 機械検証済み）。既存内陸州の最寄り港は再配線しない（既存州の挙動を動かさない。⚠毎四半期 MultiNationSim.RewirePorts が四半期末に WirePortDistances を張り直す＝新港が最寄りなら切り替わる・doc 20260812_港の配線を領土に追随させる）
     ///   ・州の Culture/Religion＝首都州と同じ（入植者多数＝本国文化が主流になった州。現地住民の民族の実体は CoreEthnicShare=0 が担う＝分離圧力・同化・国民意識が既存機構で働く）</summary>
     internal static Region PromoteColonyToRegion(World w, Coefficients coef, Colony col, RegionTier tier = RegionTier.Integrated)
     {

@@ -401,7 +401,6 @@ public static class PathGraph
     {
         var a = Nodes[i]; var b = Nodes[j];
         pathKm = Geo.DistanceKm(a.Lat, a.Lon, b.Lat, b.Lon);
-        if (!(GeoCoef.LandEdgesAvoidWater > 0)) return false;   // 器0＝厳密恒等（判定に入らない）
         if (!ArcCrossesWater(a.Lat, a.Lon, b.Lat, b.Lon)) return false;
         static (double X, double Y, double Z) Norm((double X, double Y, double Z) v) { double l = Math.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z); return l > 1e-15 ? (v.X / l, v.Y / l, v.Z / l) : v; }
         static (double X, double Y, double Z) Cross3((double X, double Y, double Z) u, (double X, double Y, double Z) v) => (u.Y * v.Z - u.Z * v.Y, u.Z * v.X - u.X * v.Z, u.X * v.Y - u.Y * v.X);
@@ -443,7 +442,6 @@ public static class PathGraph
 
     private static (int, int)[] BuildWalls()
     {
-        if (!(GeoCoef.BarrierWallSegments > 0)) return [];
         var byStem = new Dictionary<string, List<int>>();
         for (int i = 0; i < Nodes.Length; i++)
             if (Nodes[i].Kind == "barrier") { var st = Stem(Nodes[i].Name); if (!byStem.TryGetValue(st, out var l)) byStem[st] = l = []; l.Add(i); }

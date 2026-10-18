@@ -68,7 +68,7 @@ public static class Climate
     }
 
     /// <summary>この四半期にその港が凍っているか。Q1（1〜3月）が真冬・Q4（10〜12月）がその手前。
-    /// 凍結は四半期の粒度で判定する（清算は月に1度＝TradeMonthlyClearing・同じ四半期の3回の清算に同じ判定が効く）。</summary>
+    /// 凍結は四半期の粒度で判定する（清算は月に1度・同じ四半期の3回の清算に同じ判定が効く）。</summary>
     public static bool PortFrozen(double lat, double lon, int quarterOfYear)
     {
         int n = WinterFrozenQuarters(lat, lon);

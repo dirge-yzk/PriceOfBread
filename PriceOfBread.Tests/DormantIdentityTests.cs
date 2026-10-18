@@ -234,6 +234,8 @@ public class DormantIdentityTests
         "ArmyShapeEnabled", "ColonialRegionCession", "ConscriptionScalesWithWar", "EnableFormations", "CultureFormationGate", "CultureFormationNeedsGain", "FormationCapitalMove", "ImposeRegimeEnabled", "PeaceInterventionEnabled", "PeaceInterventionProbe", "InterventionRefusalSymmetric", "InterventionRefusalWar", "RankBracketsMerged", "SubmitCountsAllies", "ThreatUsesColonyValue", "TradeTreatyEnabled", "VassalDefectionUsesSubmitMeasure", "VassalTransferOnCrush", "WarMilitancyViaTarget", "WarExhaustionMilitancy", "WarMilitancyRatePerMonth", "WarNeedsReach", "WarWearinessDecays", "FrozenTensionDecays", "AntiImperialCoversRegions", "ContinentalLandReach", "LandReachKm", "ColonyCaptureReachGate", "RationingGate", "UnificationWarEnabled", "WarLuckNeedsContact",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 人3（出生・台帳・窃盗）と交4（DiscoveryTierGate）
         "FertilityAffectsBirthsOnly", "FertileWomenBirths", "CoupleLimitedBirths", "TradeLedgerFix", "CrimeVictimBasis", "DiscoveryTierGate",
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 交5（LandRouteEnabled を除く）。LandRouteEnabled は TransitTests・TradeClearingTests が陸路を切る環境固定に使うので残した
+        "TradeMonthlyClearing", "WinterPortFreeze", "TradeWeightDynamic", "TradeAccessNormalized", "LandEdgesAvoidWater", "BarrierWallSegments", "TransportShareByPotential", "TransportEnabled", "TransitEnabled", "PortRewireEnabled",
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

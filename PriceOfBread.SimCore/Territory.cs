@@ -346,7 +346,7 @@ public static class Territory
         //   清算はそれを州の取り分（Transport.RegionShare）で配る＝州が使っていた分は、その州の港と線路にある物。
         //   旧＝移し替えで容量は送り手に全部残った＝建国の新しい国は船腹0・鉄道0で生まれ（fff9f01 の10種＝生まれ≥1000 の新しい国の最初の8四半期は4分の3以上で輸出0）、
         //   送り手の残る州は同じ容量を少ない州で分けた（取り分の窓落ち）。新＝出ていく前の取り分（清算と同じ規則）で送り手から引き、受け手へ足す（建国は呼び手が新しい国へ）。
-        //   残る州の容量は変わらない（潜在量比例＝既定の TransportShareByPotential=1 では、送り手の容量×(1−s) を残る州の潜在量で分け直す＝前と同じ）。活動していない州は取り分0。
+        //   残る州の容量は変わらない（潜在量比例＝旧の旗 TransportShareByPotential=1 の既定の形では、送り手の容量×(1−s) を残る州の潜在量で分け直す＝前と同じ）。活動していない州は取り分0。
         double sh = r.State == RegionState.Active ? Transport.RegionShare(Transport.ShareBasis(from, from.Coef), r) : 0.0;
         if (!(sh > 0)) sh = 0;   // 否定形＝NaN は移さない側へ（取り分は定義上 0..1）
         double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;

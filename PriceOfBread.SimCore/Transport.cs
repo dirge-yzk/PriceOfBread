@@ -10,7 +10,6 @@ public static class Transport
 {
     public static void Step(World w, Coefficients c)
     {
-        if (!c.TransportEnabled) return;   // TradeEnabledに依存しない（多国シムは InternationalMarket 経由・TradeEnabled=false のため）
         w.RailCapacity = System.Math.Max(0, w.RailCapacity * (1 - c.TransportDecay));   // 減耗（鉄道は0スタート）
         w.ShipCapacity = System.Math.Max(0, w.ShipCapacity * (1 - c.TransportDecay));
         double target = w.TotalPopulation * c.TransportTargetPerPop;   // 経済規模に応じた目標容量
@@ -68,22 +67,22 @@ public static class Transport
 
     /// <summary>★州の取り分の規則の1本（2026-09-30 (118)）＝国の輸送の容量のうち州が使う割合の基底（国ごと）。
     /// 清算（BilateralMarket の港と鉄道の容量）と州の移し替え（<see cref="Territory.TransferRegion"/>＝容量が州と一緒に移る）が同じ規則を読む。
-    /// 均等割り＝活動州の数の逆数・潜在量比例の度合い＝TransportShareByPotential（0..1）・潜在量の和＝活動州の LastTradePotential（負は0・四半期の最初の清算が書いた値＝2026-09-30 (130)）。
+    /// 均等割り＝活動州の数の逆数・潜在量比例（旧の旗 TransportShareByPotential=1 は 2026-10-18 に焼き込み）・潜在量の和＝活動州の LastTradePotential（負は0・四半期の最初の清算が書いた値＝2026-09-30 (130)）。
     /// 潜在量の和が痩せたら（開幕・実績なし）均等へ倒す＝<see cref="RegionShare"/> が読む。</summary>
-    internal static (double Even, double KPot, double TotalPot) ShareBasis(World w, Coefficients c)
+    internal static (double Even, double TotalPot) ShareBasis(World w, Coefficients c)
     {
         int activeCount = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active) activeCount++;
         double evenShare = activeCount > 0 ? 1.0 / activeCount : 1.0;
-        double kPot = PoliticalQuantities.Clamp01(c.TransportShareByPotential);
         double totalPot = 0;
-        if (kPot > 0) foreach (var r in w.Regions) if (r.State == RegionState.Active) totalPot += System.Math.Max(0, r.LastTradePotential);
-        return (evenShare, kPot, totalPot);
+        foreach (var r in w.Regions) if (r.State == RegionState.Active) totalPot += System.Math.Max(0, r.LastTradePotential);
+        return (evenShare, totalPot);
     }
 
-    /// <summary>州の取り分＝(1−k)×均等＋k×州の潜在量÷潜在量の和（潜在量の和≦1e-9 か k＝0 なら均等）。基底は <see cref="ShareBasis"/>。</summary>
-    internal static double RegionShare((double Even, double KPot, double TotalPot) b, Region r)
-        => b.KPot > 0 && b.TotalPot > 1e-9 ? (1.0 - b.KPot) * b.Even + b.KPot * System.Math.Max(0, r.LastTradePotential) / b.TotalPot : b.Even;
+    /// <summary>州の取り分＝州の潜在量÷潜在量の和（潜在量の和≦1e-9 なら均等）。基底は <see cref="ShareBasis"/>。
+    /// （旧の式 (1−k)×均等＋k×州の潜在量÷潜在量の和 は k=1 で (1−1)×均等＝0 を足していた〔均等が有限なら厳密恒等〕。）</summary>
+    internal static double RegionShare((double Even, double TotalPot) b, Region r)
+        => b.TotalPot > 1e-9 ? System.Math.Max(0, r.LastTradePotential) / b.TotalPot : b.Even;
 
     /// <summary>★移ってきた容量を受け取る（2026-09-30 (118)）＝割譲・再併合・建国で州と一緒に来た鉄道と船。汽船の割合は容量で加重して混ぜる
     /// （汽船の割合は容量の在庫に占める汽船＝Step の注記と同じ定義）。</summary>

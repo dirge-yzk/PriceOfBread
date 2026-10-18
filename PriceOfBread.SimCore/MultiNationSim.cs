@@ -94,7 +94,7 @@ public sealed class MultiNationSim
             // 故地への復帰（OriginPowerId 一致＝再征服・回復）は記帳0＝清の太平天国回復型が帯へ戻れる。書くだけ＝力学は読まない。
             foreach (var r0 in sim.World.Regions) r0.OriginPowerId = power.Id;
         }
-        WireTransitPorts();   // Stage C（裁定A3）：内陸国の外国港トランジット候補＝全国が出揃った後の国境跨ぎ配線（WirePortDistances は国内のみ）。TransitEnabled=0 では読まれない＝恒等
+        WireTransitPorts();   // Stage C（裁定A3）：内陸国の外国港トランジット候補＝全国が出揃った後の国境跨ぎ配線（WirePortDistances は国内のみ）。旧の旗 TransitEnabled は 2026-10-18 に焼き込み
         // 清・インド・東南アジア・近東・中央アジア・北アフリカ温帯は実国化（Phase 3・world.json 駆動）＝抽象 Power は廃止（上の configs ループが生成）。
         // 能動侵略の抽象標的（段C・案Y）：Nation=null・Gdp=0＝ThreatTension を生まず自動では緊張も溜まらない＝Invade 動詞でのみ取れる。熱帯内陸（アシャンティ/ソコト/コンゴ）はマラリア付き（硬直でなく実コストで律速）。
         // 抽象標的・史実ライバル・従属・海峡運河は WorldData.Setup()（world.json、無ければ BootstrapSetup）へデータ化。順序厳守＝Power.Id は Powers.Count で連番付与＝配列順が挙動を決める。
@@ -107,7 +107,6 @@ public sealed class MultiNationSim
         }
         _nextPowerId = Diplomacy.Powers.Count;   // ★建国スポーンはここから単調採番（起動時のId=Powers.Countの連番と同じ値で始まり、以後は欠番があっても戻らない）
 
-        Diplomacy.TradeAccessNormalizedGate = _coef.TradeAccessNormalized;   // ★貿易復活④：交易アクセスの正規化ゲート（0=旧式ビット恒等）
         SeedRivalries(setup);   // 初期の史実ライバル（必要悪：これが無いと ThreatTension/Ideology だけでは戦争が点火せず＝load-bearing な初期条件）
         SeedDependencies(setup);   // 初期の史実従属（属国一本化）＝シャムの朝貢属国・ムガル傀儡
 
@@ -173,7 +172,7 @@ public sealed class MultiNationSim
     /// ・現所有国の解決（征服で動く）と交戦判定は四半期側（InternationalMarket.Step）＝ここは距離だけ。
     /// ・到達不能（別陸塊・孤立成分）は候補にしない＝内陸国は定義上どこかの大陸にいるので通常は必ず届く。
     /// ・植民地昇格などで後から生まれる州・分離独立の新国家は初期配線の対象外だが、下の RewirePorts が四半期ごとに盤面から張り直す。
-    /// ・TransitEnabled=0 ではどこからも読まれない＝厳密恒等（既定1.0＝点火済み）。決定論＝距離同率は港州名の序数順。</summary>
+    /// ・（旧の旗 TransitEnabled=1.0 は点火済み・2026-10-18 に焼き込み。）決定論＝距離同率は港州名の序数順。</summary>
     // ★港の配線を領土に追随させる（W3・2026-08-13／案1へ簡素化・2026-09-21・doc 20260812_港の配線を領土に追随させる・20260816_港配線の簡素化案）。
     //
     // 旧＝トランジットの配線は**構築時に1回**しか張られず、内陸国が港を割譲されても外国港への通行料を払い続け、
@@ -188,14 +187,12 @@ public sealed class MultiNationSim
     //   Locked 沿岸辺境＝ウラジオストク）は **2026-08-26 の辺境の廃止（Simulation.cs:571-573）で盤面から消えている**＝構築時 Locked の州は無い。
 
     /// <summary>港の配線を盤面から張り直す（四半期末に1回・無状態＝doc 20260816 案1）。冪等＝盤面だけから決まる・RNG不使用。
-    /// ★PortRewireEnabled>0.5（既定1.0＝点火2026-08-16）：領土（active州の集合）へ追随して WirePortDistances を張り直す（是正1）。
-    ///   0 では最寄り港を張り直さない＝構築時1回の凍結配線（旧挙動）。
+    /// ★領土（active州の集合）へ追随して WirePortDistances を張り直す（是正1・旧の旗 PortRewireEnabled は点火2026-08-16・2026-10-18 焼き込み）。
     /// 通過港は係数によらず毎四半期張り直す（是正3＝港州0になった国へ WireTransitPorts の hasPort 現在判定で配布・
-    /// 内陸州だけの移動でも移動州の TransitPort* が現所有構成で引き直る）。TransitEnabled=0 では誰も配線を読まない＝張り直しても挙動不変。</summary>
+    /// 内陸州だけの移動でも移動州の TransitPort* が現所有構成で引き直る）。</summary>
     private void RewirePorts()
     {
-        if (_coef.PortRewireEnabled > 0.5)
-            for (int i = 0; i < Nations.Count; i++) Simulation.WirePortDistances(Nations[i].World.Regions, rewire: true);
+        for (int i = 0; i < Nations.Count; i++) Simulation.WirePortDistances(Nations[i].World.Regions, rewire: true);
         foreach (var n in Nations)
             foreach (var r in n.World.Regions) { r.TransitPortName = ""; r.TransitPort2Name = ""; r.TransitLandKm = 0; r.TransitLand2Km = 0; }
         WireTransitPorts();
@@ -756,11 +753,11 @@ public sealed class MultiNationSim
         if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
 
         bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
-        // ★月次清算（2026-08-22・TradeMonthlyClearing）：量の式が月次規模（LastDemand/LastProduced/TargetStock）を読むのに清算が四半期1回＝
+        // ★月次清算（2026-08-22・旧の旗 TradeMonthlyClearing は 2026-10-18 に焼き込み）：量の式が月次規模（LastDemand/LastProduced/TargetStock）を読むのに清算が四半期1回＝
         //   単位混在（年間輸出≤年産出の1.67%の算術天井の半分はこれ）。四半期の第1・第2月末にも清算する＝全国 Simulation.MonthSettle の後＝
         //   scale/Stock 更新済み・Invariants 検査後＝四半期末の既存呼び出し（下）と同じ相対順序。0＝追加呼び出しゼロ＝ビット恒等。
         //   第1清算（月0）だけ四半期累計（LastPortThroughput）をリセット＝四半期末の読み手（港湾投資・保険・通行料・ArmyShape）の物差しを保つ。
-        if (_coef.TradeMonthlyClearing > 0 && !quarterDone && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0)
+        if (!quarterDone && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0)
         {
             int monthIdx = (_dayInQuarter + 1) / Calendar.DaysPerMonth - 1;   // 0 or 1（2＝四半期末は下の既存呼び出し）
             ProbeSnap();
@@ -784,7 +781,7 @@ public sealed class MultiNationSim
             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
             foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
             StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の目標（陸軍の不安）・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
-            UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
+            UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期
             if (!DiplomacyFrozen)
             {
                 Diplomacy.BeginQuarterSyncWindow();   // ★同じ瞬間の3回＝GDP の同期を使い回す窓（2026-09-30 計算量の予算・恒等＝Diplomacy.SyncGdp）
@@ -795,7 +792,7 @@ public sealed class MultiNationSim
             // ★助走中は巨大建造物を進めない（2026-08-10 追加裁定＝能力の凍結）。着工も進捗も完成効果（工業化度・耕地・送電容量）も
             //   「年月をかけて建つ」もの＝暦の進まない助走で建ててはいけない。1783年は技術ゲートでほぼ全件が未解禁＝需要への影響も無い。
             if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }   // 巨大建造物：保有国を解決し国庫から資材＋労働を買って建て、完成したら州へ恒久効果を貼る（2026-07-28）
-            { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: !(_coef.TradeMonthlyClearing > 0)); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
+            { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: false); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）
             // 移民は助走では動かさない（2026-08-10）。移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。
@@ -1568,7 +1565,6 @@ public sealed class MultiNationSim
     // 英の山形（1870年前後ピーク24-25%→1913年約14%）も独米の台頭も、禁輸/交戦の痛み・関税報復の観測重みに一切反映されなかった。
     private void UpdateTradeWeights()
     {
-        if (_coef.TradeWeightDynamic <= 0) return;
         double total = 0; int count = 0;
         foreach (var p in Diplomacy.Powers)
             if (p.Nation is { } nw)

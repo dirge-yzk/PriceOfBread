@@ -1022,7 +1022,7 @@ public sealed class World
     }
     public double LastImportValue { get; internal set; }   // 診断：直近四半期の輸入額（世界価格建て）＝関税予想の課税ベース
     public double LastExportValue { get; internal set; }   // 直近の清算の越境の輸出額（ExportsByGood の和・同じ国の州どうしは数えない＝2026-09-27 回4-1）＝ダンピング補助の対象・交易比重・輸出利害
-    public double TradeValueSmoothed { get; internal set; }   // A-中6（史実検証2026-07-22）：貿易取扱高（輸出+輸入額）のEMA＝動的TradeWeightの駆動変数（TradeWeightDynamic>0でのみ更新）
+    public double TradeValueSmoothed { get; internal set; }   // A-中6（史実検証2026-07-22）：貿易取扱高（輸出+輸入額）のEMA＝動的TradeWeightの駆動変数
     // 国債（§財政）：赤字を借金で賄う。国内＝資本家の余剰貯蓄（工場投資とクラウディングアウト）、海外＝開放度に応じ。
     // 売り切れない＝部分的債務不履行（焦げ付き）。対外債の不履行＝介入（正統性↓＋貸し手有利の緊縮）。
     public MoneyStock GovDebt { get; internal set; }       // 国債残高

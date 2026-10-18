@@ -6,7 +6,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>経路グラフ第1段 Stage C（03 §11-6・裁定A3・2026-08-09）：内陸国トランジットの番人。
-/// 休眠恒等（TransitEnabled=0 既定）は既存フルスイートが番人（新コードは全て TransitEnabled>0.5 ゲートの内側）。
+/// （旧の旗 TransitEnabled は 2026-10-18 に焼き込み。）
 /// ここでは (1)構築時静的の配線 (2)点火時の距離置換 (3)通行料の保存移転 (4)交戦時の迂回→フォールバック を固定する。</summary>
 public class TransitTests
 {
@@ -28,7 +28,6 @@ public class TransitTests
         //   旧・却下理由（2026-08-09＝内陸国の高コスト化にAI財政が適応できず損失financing 6,965%）は解消
         //   （二国間の実測バッチで硬性ゲート緑・フラグ0）。0で通年フォールバック無しの非接続へ戻る。
         var c = new Coefficients();
-        Assert.Equal(1.0, c.TransitEnabled);
         Assert.Equal(0.05, c.TransitTollShare.Value);   // 通行料率＝取扱高の5%（港所有国の国庫へ）
     }
 
@@ -83,28 +82,21 @@ public class TransitTests
     }
 
     [Fact]
-    public void 点火で内陸国州の距離が首都基準フォールバックより改善する()
+    public void 内陸国州は隣国の港を借りた3脚の経路を持つ()
     {
-        var off = new MultiNationSim(World3(), seed: 7) { DiplomacyFrozen = true };
         var on = new MultiNationSim(World3(), seed: 7) { DiplomacyFrozen = true };
-        off.Coef.TransitEnabled = 0.0;   // OFF側を明示＝将来の点火で対照が無言で壊れない（2026-08-09の空洞化3件と同型の予防）
-        on.Coef.TransitEnabled = 1.0;
         // ⚠2026-08-28：陸路直行（LandRouteEnabled=1 が既定）で内陸州は**陸路の経路を持つ**ようになった＝
         //   このテストの前提「港に繋がらない内陸州は経路を持たない（距離0）」が設計どおり崩れた。
         //   検証対象は**トランジット機構**（隣国の港を借りる3脚）なので、陸路を落として旧前提の世界で検証する（制度テストと同じ環境固定の作法）。
-        off.Coef.LandRouteEnabled = 0.0;
         on.Coef.LandRouteEnabled = 0.0;
-        off.Run(1); on.Run(1);
-        var rOff = off.Nations[0].World.Regions[0];   // ベルン
+        on.Run(1);
         var rOn = on.Nations[0].World.Regions[0];
-        Assert.Equal("", rOff.LastTransitPortName);                 // 休眠＝トランジット不使用（旧フォールバック）
         Assert.Equal("ジェノヴァ", rOn.LastTransitPortName);        // 点火＝第1候補経由
         // ★二国間交易への置換（2026-08-11）で判定を取り直した。
         //   旧＝世界の重心までの「首都基準フォールバック」があり、港の無い内陸州もそれで交易できていたので
         //       「トランジットの3脚 < 首都基準」を比べていた。重心を廃した今、比べる相手が存在しない。
         //   新＝港に繋がらない内陸州は**そもそも海上交易の経路を持たない**（距離0＝未接続）。
         //       トランジットは「経路が無い」を「隣国の港を借りた実経路」に変える機構＝これが本来の意味。
-        Assert.Equal(0.0, rOff.LastTradeDistanceKm);                // 休眠＝経路なし
         Assert.True(rOn.LastTradeDistanceKm > 0, "点火してもトランジットの経路が立たない");
         // 3脚の下限＝陸脚×LandSeaCostRatio（同式であることの下限チェック）
         Assert.True(rOn.LastTradeDistanceKm >= rOn.TransitLandKm * on.Coef.LandSeaCostRatio,
@@ -115,7 +107,6 @@ public class TransitTests
     public void 通行料は利用国国庫から港所有国国庫へ移転し保存する()
     {
         var sim = new MultiNationSim(World3(), seed: 11) { DiplomacyFrozen = true };
-        sim.Coef.TransitEnabled = 1.0;
         // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけになった。この世界（スイス・ジェノヴァ・トスカーナ）の組は全て陸で繋がり、
         //   ベルンの荷は陸路の直行が勝つ（ジェノヴァ行きもリヴォルノ行きも＝港を通らない＝通行料は立たない・正しい）。検証対象は通行料の移転と保存なので、
         //   上のテストと同じく陸路を落として、借りた港を通る経路だけの世界で検証する（環境固定の作法）。
@@ -157,7 +148,6 @@ public class TransitTests
     public void 交戦中は第2候補へ迂回し両方交戦なら旧フォールバックへ退避する()
     {
         var sim = new MultiNationSim(World3(), seed: 13) { DiplomacyFrozen = true };
-        sim.Coef.TransitEnabled = 1.0;
         var swiss = sim.Nations[0].World; var genoa = sim.Nations[1].World; var tuscany = sim.Nations[2].World;
         var bern = swiss.Regions[0];
         sim.Run(1);

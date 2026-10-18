@@ -47,7 +47,7 @@ public static class ArmyShape
         //   英の海の必要量が他国の2倍程度に留まった（(192) の史実比較の桁の NG＝普÷英の艦隊 1815-24 19.8倍・日÷英 20.4倍・清÷英の海軍力 1904-13 45倍）。
         //   相対重み（平均で割る）＝列方向の正規化（注意配分）の形は変えない＝世界の必要量の総和は世界の戦力の総和より小さいまま（縮小写像）。交易の無い国は艦隊の注意を受けない（海を越えて来る陸軍は残る）。
         //   ⚠(197) 反証役 vq1#9：列の分母は u(j)＋Σ重みつきの値＝重みを平均で割っても内向きの u との比は動く＝交易の大きい国の近くの艦隊ほど外向きの注意の総量が増える（総量は「変えない」ではない）。
-        //   TradeValueSmoothed は TradeWeightDynamic>0 のときだけ更新される（MultiNationSim.UpdateTradeWeights）＝その係数を0にすると平均が0＝重み1（旧）へ黙って戻る。
+        //   TradeValueSmoothed は毎四半期 MultiNationSim.UpdateTradeWeights が更新する（旧の旗 TradeWeightDynamic は 2026-10-18 に焼き込み）。
         //   平滑の量（1四半期の禁輸・封鎖で跳ねない）・国内の沿岸の海路（港の取扱高に入る清と日の州どうしの海の荷）は数えない＝他国と接しない。
         var contact = new double[n];
         double contactSum = 0;

@@ -3266,7 +3266,6 @@ if (args.Length > 0 && args[0] == "africaprobe")
 if (args.Length > 0 && args[0] == "freezeprobe")
 {
     var simF = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    System.Console.WriteLine($"WinterPortFreeze={simF.Coef.WinterPortFreeze}");
     System.Console.WriteLine($"{"港",-16}{"国",-12}{"緯度",7}{"経度",8}{"閉じる四半期",12}");
     int frozen = 0;
     foreach (var n in simF.Nations)
@@ -3297,7 +3296,7 @@ if (args.Length > 0 && args[0] == "transitprobe")
     foreach (var n in simT.Nations)
         foreach (var r in n.World.Regions)
             if (r.State == RegionState.Active && r.IsPort) owner.TryAdd(r.Name, n.World.SelfPower?.Name ?? "?");
-    System.Console.WriteLine($"TransitEnabled={simT.Coef.TransitEnabled}　通行料率={simT.Coef.TransitTollShare.Value:P0}");
+    System.Console.WriteLine($"通行料率={simT.Coef.TransitTollShare.Value:P0}");
     System.Console.WriteLine($"{"州",-14}{"国",-12}{"借りた港",-14}{"港の所有国",-12}{"陸路km",8}{"通行料/期",12}");
     int used = 0, unlinked = 0;
     foreach (var n in simT.Nations)

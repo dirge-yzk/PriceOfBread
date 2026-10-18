@@ -691,12 +691,10 @@ public sealed class Diplomacy
     /// 反覇権封じ込め（B2）：明白な覇権国は合従側の市場から締め出され、覇権度に比例して追加でアクセスを失う。
     /// ★貿易復活④（2026-08-15・99_実装ログ§4-19）：TradeWeight は「世界平均=1」正規化の相対値（平均≈0.25・61カ国の総和≈15）＝
     /// シェアではない。旧式はシェアのつもりで引き算＝**平均的な相手4カ国と禁輸/交戦で床0.10**（実測＝英仏露普清が全員恒久床＝世界貿易死の主犯）。
-    /// 正規化＝lost/Σ全相手weight＝禁輸4/60カ国≈7%喪失の史実スケール。ゲートは構築時に Coefficients.TradeAccessNormalized から写す（0＝旧式ビット恒等）。</summary>
-    public double TradeAccessNormalizedGate;
+    /// 正規化＝lost/Σ全相手weight＝禁輸4/60カ国≈7%喪失の史実スケール。（旧の旗 TradeAccessNormalized は 2026-10-18 に焼き込み＝旧式の単純和は削除。）</summary>
     public double TradeAccess(Power fr)
     {
         double lost = 0;
-        if (TradeAccessNormalizedGate > 0)
         {
             double sum = 0;
             foreach (var p in Powers)
@@ -707,9 +705,6 @@ public sealed class Diplomacy
                 }
             lost = sum > 1e-9 ? lost / sum : 0;
         }
-        else
-            foreach (var p in Powers)
-                if (p != fr && (HasEmbargo(fr, p) || AtWar(fr, p))) lost += p.TradeWeight;
         if (fr == _hegemon) lost += _hegemonContainLost;   // 反覇権の経済封じ込め（覇権国だけが市場アクセスを失う＝大陸封鎖型）
         return Math.Clamp(1.0 - lost, 0.1, 1.0);
     }

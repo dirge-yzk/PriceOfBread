@@ -190,17 +190,12 @@ public sealed partial class InternationalMarket
         var tr = sc.Tr; int tc = 0;   // ★(347) 州の表（旧＝一覧に足してから配列へ写していた＝清算のたびに一覧と配列を2つ作った）。足りなければ伸ばす
         // Stage C（裁定A3）：内陸国トランジット＝自国に港が無い州は外国の港を借りる。旧経路と同じ候補（構築時の上位2港）を読み、
         //   現所有国と交戦中なら次候補へ。借りた州は下で通行料（取扱高×TransitTollShare）を港所有国へ払う。
-        bool transitOn = c.TransitEnabled > 0.5;
-        Dictionary<string, int>? transitPortOwner = null;
-        List<(int user, int owner, Region r)>? transitUses = null;
-        if (transitOn)
-        {
-            transitPortOwner = sc.TransitPortOwner; transitPortOwner.Clear();
-            for (int i2 = 0; i2 < nn; i2++)
-                foreach (var r2 in nations[i2].World.Regions)
-                    if (r2.State == RegionState.Active && r2.IsPort) transitPortOwner.TryAdd(r2.Name, i2);
-            transitUses = sc.TransitUses; transitUses.Clear();
-        }
+        //   （旧の旗 TransitEnabled は 2026-10-18 に焼き込み。）
+        var transitPortOwner = sc.TransitPortOwner; transitPortOwner.Clear();
+        for (int i2 = 0; i2 < nn; i2++)
+            foreach (var r2 in nations[i2].World.Regions)
+                if (r2.State == RegionState.Active && r2.IsPort) transitPortOwner.TryAdd(r2.Name, i2);
+        var transitUses = sc.TransitUses; transitUses.Clear();
         var natHostility = ClearScratch.Fit(ref sc.NatHostility, nn);   // 下の国のループが全要素を書く
         var natAnyHostile = ClearScratch.Fit(ref sc.NatAnyHostile, nn);
         var suezOkN = ClearScratch.Fit(ref sc.SuezOkN, nn); var panOkN = ClearScratch.Fit(ref sc.PanOkN, nn);
@@ -213,7 +208,7 @@ public sealed partial class InternationalMarket
             bool any = false; foreach (var hv in natHostility[i]) if (hv > 1e-9) { any = true; break; }
             natAnyHostile[i] = any;
             double natAccess = W.ExternalTradeAccess();
-            // ★(4) 潜在量比例の配分（TransportShareByPotential・既定1.0＝潜在量比例。0で均等割り）。前期の LastTradePotential を読む。
+            // ★(4) 潜在量比例の配分（旧の旗 TransportShareByPotential は 2026-10-18 に焼き込み）。前期の LastTradePotential を読む。
             //   規則は1本（Transport.ShareBasis／RegionShare＝州の移し替えで容量が州と一緒に移るときも同じ割合・2026-09-30 (118)）。分母が痩せたら（開幕・実績なし）均等へ倒す＝立ち上がりの跳躍なし
             var shareBasis = Transport.ShareBasis(W, c);
             // ★B-06（2026-09-03 点火・旗 TransportBaselineIsLand は 2026-09-26 に焼き込み）：鉄道以前の基礎容量は**陸**（道路・河川）。
@@ -237,20 +232,20 @@ public sealed partial class InternationalMarket
                     var pc = Climate.CityCoord(r.NearestPortName);
                     if (pc.Lat != 0 || pc.Lon != 0) { lat = pc.Lat; lon = pc.Lon; landKm = r.PortLandKm; linked = true; }
                 }
-                else if (transitOn && !r.IsPort && r.TransitPortName.Length > 0)
+                else if (!r.IsPort && r.TransitPortName.Length > 0)
                 {
                     r.LastTransitPortName = "";
                     for (int cix = 0; cix < 2; cix++)
                     {
                         string tName = cix == 0 ? r.TransitPortName : r.TransitPort2Name;
                         double tKm = cix == 0 ? r.TransitLandKm : r.TransitLand2Km;
-                        if (tName.Length == 0 || !transitPortOwner!.TryGetValue(tName, out int oi)) continue;
+                        if (tName.Length == 0 || !transitPortOwner.TryGetValue(tName, out int oi)) continue;
                         if (oi != i && dip is { } dT && W.SelfPower is { } spT && nations[oi].World.SelfPower is { } opT && dT.IsAtWar(spT, opT)) continue;   // 交戦＝この港は通れない
                         var pcT = Climate.CityCoord(tName);
                         if (pcT.Lat == 0 && pcT.Lon == 0) continue;
                         lat = pcT.Lat; lon = pcT.Lon; landKm = tKm; linked = true;
                         r.LastTransitPortName = tName;
-                        if (oi != i) transitUses!.Add((i, oi, r));   // 自国港化していれば通行料なし
+                        if (oi != i) transitUses.Add((i, oi, r));   // 自国港化していれば通行料なし
                         break;
                     }
                 }
@@ -261,13 +256,13 @@ public sealed partial class InternationalMarket
                 // ★実バグ修正（2026-08-21・貿易の第2の栓ワークフローが検出）：W.Quarter の値域は {1,2,3,4}（Simulation.QuarterEnd で 4→1 へ巻き戻し）だが、
                 //   Climate.PortFrozen は 0基準（Q1=0 が真冬・Q4=3）を期待する。旧＝ずれのせいで**凍結2四半期の港は真夏の Q3 にだけ凍り、
                 //   凍結1四半期の港（リガ等）は一度も凍らなかった**。−1 で 0基準へ合わせる。
-                if (linked && c.WinterPortFreeze > 0.5 && Climate.PortFrozen(lat, lon, W.Quarter - 1)) { linked = false; r.LastPortFrozen = true; }
+                if (linked && Climate.PortFrozen(lat, lon, W.Quarter - 1)) { linked = false; r.LastPortFrozen = true; }
                 else r.LastPortFrozen = false;
-                double portBonus = c.TransportEnabled ? c.PortCapToThroughput * r.PortCapacity : 0;
+                double portBonus = c.PortCapToThroughput * r.PortCapacity;
                 double inlandRail = railToPort;
                 if (!r.IsPort && c.InlandPortDistanceDecay > 1e-12 && r.NearestPortDistanceKm > 1e-9)
                     inlandRail = railToPort / (1.0 + c.InlandPortDistanceDecay * r.NearestPortDistanceKm / Diplomacy.DistanceNormKm);
-                double cap = c.TransportEnabled ? (r.IsPort ? shipEff : Math.Min(inlandRail, shipEff)) + portBonus : double.MaxValue;
+                double cap = (r.IsPort ? shipEff : Math.Min(inlandRail, shipEff)) + portBonus;
                 r.LastTransportCap = cap;   // ★純テレメトリ（式の二重定義をしない）
                 // ★(1.5)：陸直行のために**州自身の座標**も持つ（上の lat/lon は最寄り港へ置き換えられている）。
                 //   ★港に繋がらない内陸州も陸路なら交易できる＝旧は linked=false で**交易から完全に除外**されていた
@@ -606,7 +601,7 @@ public sealed partial class InternationalMarket
         // ★国際市場の間引き（作者裁定 2026-09-29 の3・(6)）：前の清算で成約が無かった買い手の行（州×財）は眠る＝月次の清算では回さない。
         //   起こす理由＝①四半期の最初の清算で値段の差が運賃を超えているか軽く確かめる（下の 1b の打ち切り＝最良の売り手の着値の下界 ≧ 自州価格なら O(1) で終わる）
         //   ②この月にその財が足りなかった（Market.LastShortage＞0＝飢饉の輸入を遅らせない）。前の清算で成約したか＝Market.PrevImport（EconomyStep が月初に写す前の月の輸入）
-        //   ＝新しい状態を持たない。⚠四半期に1回の清算（TradeMonthlyClearing=0）は毎回が四半期の最初＝間引かない。
+        //   ＝新しい状態を持たない。（旧の旗 TradeMonthlyClearing は 2026-10-18 に焼き込み＝清算は常に月次。）
         // ★不足で起きたが成約しない行を眠らせる（2026-09-30 計算量の予算 第2回・近似・作者裁定「起きている物だけ回す」）：②で起きた行（前の月に輸入が無く不足だけ）が
         //   前の走査で成約しなかった（Market.ClearFailLp＝その時の自州価格）なら、自州価格がその値を超えて上がるまで眠る＝起こす理由は「自州価格と着値の差が買い手の側から開いた」。
         //   売り手の側（在庫の出現・積出し価格・関税・運賃）で差が開いた分は①の四半期の最初の清算が拾う（印はそこで全て消す）＝遅れは (108) の間引きと同じく最長2か月。
@@ -619,7 +614,7 @@ public sealed partial class InternationalMarket
         //   ②月の清算で、行の番が来た時に買い手の州の輸送の容量が尽きている（capLeft÷重量≦1e-12＝下の成約の量 qA の上限）行は1件も成約できない（ソースから決まる）。
         //     旧＝有効な売り手を回って潜在量だけを書いていた（自州価格が上がれば起きる＝起こす理由が効かない行）。①で月の清算の潜在量は読まれない＝回さない。
         //     印は走査して成約しなかった行と同じ（自州価格）。計器（(130)・5種の全長・読むだけ）＝月の清算の充填の 35% がこの行（清算の充填の全体の 18.9%）。
-        bool thin = c.TradeMonthlyClearing > 0 && !firstClearingOfQuarter;
+        bool thin = !firstClearingOfQuarter;
         if (!thin)
             for (int i = 0; i < nn; i++)
                 foreach (var rC in nations[i].World.Regions)
