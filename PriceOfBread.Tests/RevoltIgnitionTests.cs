@@ -1770,8 +1770,8 @@ public class RevoltIgnitionTests
 
     /// <summary>★(410)（(407) の申し送り ②）上の番人は旗 <c>MandateOverStockFromLegitimacy</c> を 0 に固定している（旧の経路〔壁の一歩は永遠に通らない〕）。
     /// 既定（旗 1・(405) で採用）の世界の対：反対を押し切る代価が b を超える一歩（壁の一歩）でも、**その一歩が今通るときだけ**目標は施行中になる＝空手形は既定の経路でも閉じている。
-    /// 同じ盤面（1789 年の仏・人頭税を下げる目標・b を 0.3 に固定して代価 ＞ b の壁にする・床は盤面で 0.2）で、政治資本の在庫 S と正統性だけを動かす：
-    /// ①満タン（S＝0）で正統性を 0.05 刻みで掃引し、各点で〈壁の式（代価 ≦ 正統性−床）〉と門の可否と施行中の述語が一致（通る点と通らない点の両側があること）／
+    /// 同じ盤面（1789 年の仏・人頭税を下げる目標・b を 0.3 に固定して代価 ＞ b の壁にする）で、政治資本の在庫 S と正統性だけを動かす：
+    /// ①満タン（S＝0）で正統性を 0.05 刻みで掃引し、各点で〈壁の式（代価 ≦ 正統性の二乗＝(409) で採った払える量 avail^2・この四半期の請求済みは 0）〉と門の可否と施行中の述語が一致（通る点と通らない点の両側があること）／
     /// ②述語は今その一歩が通るときだけ真（空手形の封じ）／③S が少しでも使われていれば正統性が十分でも通らない（壁は満タンのときだけ）。
     /// 代価は正統性に依って動く（純支持が正統性を読む）ので、各点の代価は門の照会から取る。</summary>
     [Fact]
@@ -1781,13 +1781,12 @@ public class RevoltIgnitionTests
         var w = sim.World;
         w.PollTax = 2.0 / 3.0; w.Policy.PollTaxTarget = 1.0 / 3.0;
         Assert.Equal(1.0, w.Coef.MandateOverStockFromLegitimacy);          // 既定は採用値（この番人は旗を触らない）
-        w.Coef.MandateOverStockLegitFloor = 0.2;                            // 床は盤面で置く（既定 0.4 だと必要な正統性が 1 を超える＝代価 0.617＋0.4）
-        double floor = w.Coef.MandateOverStockLegitFloor;
+        Assert.Equal(2.0, w.Coef.MandateOverStockLegitPower);              // ★(412) 既定は採用値（(409) 払える量＝avail^2・床の係数は削除した）。期待は下で指数 2 のリテラルから独立に組む
         w.PoliticalCapitalMax = 0.3;                                        // b を固定（Step の前に World が持つ値）。代価は 0.3 を超える＝壁の一歩（下で確かめる）
         w.MandateSpentNew = 0;
         var next = Government.NextStage(w, PolicyAxis.PollTax, increasing: false);
 
-        // ⚠代価は正統性に依って動く（純支持が正統性を読む）＝正統性を動かすたびに、その盤面の代価を門の照会から取る。期待は〈壁の式〉（満タンで 代価 ≦ 正統性−床）を盤面ごとに独立に当てる。
+        // ⚠代価は正統性に依って動く（純支持が正統性を読む）＝正統性を動かすたびに、その盤面の代価を門の照会から取る。期待は〈壁の式〉（満タンで 代価 ≦ 正統性²）を盤面ごとに独立に当てる。
         (bool gate, bool enacting, double cost) At(double spent, double legitimacy)
         {
             w.MandateSpent = spent; w.Legitimacy = legitimacy;
@@ -1799,8 +1798,9 @@ public class RevoltIgnitionTests
         {
             var s = At(0, legit);                                           // ①満タン（S＝0）
             Assert.True(s.cost > w.PoliticalCapitalMax, $"盤面の前提の破れ：この一歩は壁（代価 {s.cost} ＞ b {w.PoliticalCapitalMax}）でない（正統性 {legit}）");
-            bool expect = s.cost <= legit - floor;                           // 壁の一歩は満タンで正統性が代価＋床を払えるときだけ
-            Assert.True(s.gate == expect, $"満タンの壁の一歩の可否が壁の式と違う（正統性 {legit}・代価 {s.cost}・床 {floor}・gate {s.gate}）");
+            Assert.Equal(0.0, w.MandateSpentNew);                            // この四半期の請求済み 0＝avail は正統性そのもの
+            bool expect = s.cost <= legit * legit;                           // 壁の一歩は満タンで代価が正統性の二乗以下のときだけ（★(412) (409) の形へ書き換えた）
+            Assert.True(s.gate == expect, $"満タンの壁の一歩の可否が壁の式と違う（正統性 {legit}・代価 {s.cost}・払える量 {legit * legit}・gate {s.gate}）");
             Assert.True(s.enacting == s.gate, $"施行中の述語が門と違う（正統性 {legit}・gate {s.gate}・施行中 {s.enacting}）");   // ②空手形の封じ＝述語は今その一歩が通るときだけ真
             if (s.gate) { open++; if (double.IsNaN(openLegit)) openLegit = legit; } else closed++;
         }

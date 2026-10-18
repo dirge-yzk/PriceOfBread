@@ -13,7 +13,7 @@ public class ReformPathTests
     private static Simulation Board()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-        sim.World.Coef.MandateOverStockFromLegitimacy = 0; sim.World.Coef.MandateOverStockLegitPower = 1;   // ★(405) 既定は採用値（1／0.4）。D1 の機構の番人は旧の経路〔旗 0・床なし〕を土台に、各テストが旗を明示して見る
+        sim.World.Coef.MandateOverStockFromLegitimacy = 0; sim.World.Coef.MandateOverStockLegitPower = 1;   // ★既定は採用値（旗 1・指数 2＝(409)）。Board() は旗 0・指数 1（払える量 avail＝旧の床なしと同値）を土台に、各テストが旗と指数を明示して見る
         sim.Run(8);
         return sim;
     }

@@ -2835,9 +2835,9 @@ public sealed class Coefficients
     // ★(404) 専制の改革の経路・2-2（事前登録 measurements/rf_20261018_prereg.txt D1）：0＝旧（代価が b を超える一歩は満タンでも永遠に通らない壁）／>0＝その壁の一歩だけを値段にする
     //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）。
     //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。0 で厳密恒等。
-    public double MandateOverStockFromLegitimacy = 1;   // ★(405) 採用（腕 BF と同じ世界・既定 1）：0 は旧の経路（壁の一歩は永遠に通らない）。腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった
+    public double MandateOverStockFromLegitimacy = 1;   // ★(405) 採用（腕 BF と同じ世界・既定 1）：0 は旧の経路（壁の一歩は永遠に通らない）。腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった（★(409) で床は消え、払える量は下の MandateOverStockLegitPower の比例の形）
     // ★(409) 採用（腕 B・既定 2）：壁の一歩で払える正統性の量 = avail^p（avail＝正統性−この四半期の請求済み・0〜1）。(405) の床 0.4（閾値）を消してこの比例の形に置き換えた（README §1-8・設計思想⑧）。
-    //   avail^p は avail の連続な単調関数で段差が無い。p＝2 は床なし（avail）より厳しく、旧の床 0.4（avail−0.4）より全域で緩い（avail²−avail+0.4＞0）。払った後の残りは avail(1−avail)＞0＝壁の一歩では 0 に届かない。
+    //   avail^p は avail の連続な単調関数で段差が無い。p＝2 は床なし（avail）より厳しく、旧の床 0.4（avail−0.4）より全域で緩い（avail²−avail+0.4＞0）。払った後の残りは avail(1−avail)≧0＝avail＜1 なら正・★(412) 反証役の訂正：avail が 1 に近いと一歩でほぼ 0 まで燃える（(409) の腕 B の実測＝代価÷avail の最大 0.955・壁の一歩の行の正統性の最小 0.047・事前登録 P2 の見立ては外れた）。
     //   指数 2 は AI の選択で〈確証なし〉（B3＝3・B4＝4 の腕でも止める線に当たらなかった）。p が 0 以下か NaN なら壁の一歩は通らない（閉じる側・fail-open にしない）。旗 MandateOverStockFromLegitimacy＞0 のときだけ読む。
     //   床の係数 MandateOverStockLegitFloor は削除した（閾値を残さない）。
     public double MandateOverStockLegitPower = 2;
