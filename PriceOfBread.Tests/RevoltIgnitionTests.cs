@@ -1770,9 +1770,10 @@ public class RevoltIgnitionTests
 
     /// <summary>★(410)（(407) の申し送り ②）上の番人は旗 <c>MandateOverStockFromLegitimacy</c> を 0 に固定している（旧の経路〔壁の一歩は永遠に通らない〕）。
     /// 既定（旗 1・(405) で採用）の世界の対：反対を押し切る代価が b を超える一歩（壁の一歩）でも、**その一歩が今通るときだけ**目標は施行中になる＝空手形は既定の経路でも閉じている。
-    /// 同じ盤面（1789 年の仏・人頭税を下げる目標）で、政治資本の在庫 S と正統性だけを動かす：①満タン（S＝0）で正統性が代価＋床を払える→通る（施行中）／
-    /// ②満タンでも正統性が代価＋床に 1% 届かない→通らない（施行中でない）／③S が少しでも使われている（S＞0）→通らない（壁は満タンのときだけ）。
-    /// 期待は盤面の側（正統性を代価＋床の上下 1% に置く）から決め、述語と門の両方がそれに従うこと、①の一歩が本当に壁（S＋代価 ＞ b）であることを見る。</summary>
+    /// 同じ盤面（1789 年の仏・人頭税を下げる目標・b を 0.3 に固定して代価 ＞ b の壁にする・床は盤面で 0.2）で、政治資本の在庫 S と正統性だけを動かす：
+    /// ①満タン（S＝0）で正統性を 0.05 刻みで掃引し、各点で〈壁の式（代価 ≦ 正統性−床）〉と門の可否と施行中の述語が一致（通る点と通らない点の両側があること）／
+    /// ②述語は今その一歩が通るときだけ真（空手形の封じ）／③S が少しでも使われていれば正統性が十分でも通らない（壁は満タンのときだけ）。
+    /// 代価は正統性に依って動く（純支持が正統性を読む）ので、各点の代価は門の照会から取る。</summary>
     [Fact]
     public void 法の経路_既定の経路でも施行中の述語は壁の一歩が今通るときだけ真()
     {
@@ -1782,25 +1783,30 @@ public class RevoltIgnitionTests
         Assert.Equal(1.0, w.Coef.MandateOverStockFromLegitimacy);          // 既定は採用値（この番人は旗を触らない）
         w.Coef.MandateOverStockLegitFloor = 0.2;                            // 床は盤面で置く（既定 0.4 だと必要な正統性が 1 を超える＝代価 0.617＋0.4）
         double floor = w.Coef.MandateOverStockLegitFloor;
-        w.PoliticalCapitalMax = 0.3;                                        // b を固定（Step の前に World が持つ値）
+        w.PoliticalCapitalMax = 0.3;                                        // b を固定（Step の前に World が持つ値）。代価は 0.3 を超える＝壁の一歩（下で確かめる）
         w.MandateSpentNew = 0;
         var next = Government.NextStage(w, PolicyAxis.PollTax, increasing: false);
-        // 代価は門の照会が返す（S を巨大にしても代価は同じ式で返る）
-        w.MandateSpent = 1e9;
-        var probe = Government.GateInfo(w, PolicyAxis.PollTax, increasing: false, next);
-        double cost = probe.Cost;
-        Assert.True(cost > w.PoliticalCapitalMax, $"盤面の前提の破れ：この一歩は壁（代価 {cost} ＞ b {w.PoliticalCapitalMax}）でない");
 
-        (bool gate, bool enacting) At(double spent, double legitimacy)
+        // ⚠代価は正統性に依って動く（純支持が正統性を読む）＝正統性を動かすたびに、その盤面の代価を門の照会から取る。期待は〈壁の式〉（満タンで 代価 ≦ 正統性−床）を盤面ごとに独立に当てる。
+        (bool gate, bool enacting, double cost) At(double spent, double legitimacy)
         {
             w.MandateSpent = spent; w.Legitimacy = legitimacy;
-            return (Government.GateInfo(w, PolicyAxis.PollTax, increasing: false, next).Ok, Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
+            var g = Government.GateInfo(w, PolicyAxis.PollTax, increasing: false, next);
+            return (g.Ok, Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false), g.Cost);
         }
-        var open = At(0, cost + floor + 0.01);
-        var shortLegit = At(0, cost + floor - 0.01);
-        var used = At(0.001, cost + floor + 0.01);
-        Assert.True(open.gate && open.enacting, $"満タンで正統性が代価＋床を払える一歩が通らない（gate {open.gate}・施行中 {open.enacting}）");
-        Assert.False(shortLegit.gate); Assert.False(shortLegit.enacting);   // 正統性が代価＋床に届かない＝空手形
-        Assert.False(used.gate); Assert.False(used.enacting);               // 満タンでない（S＞0）＝壁は通らない＝空手形
+        int open = 0, closed = 0; double openLegit = double.NaN;
+        for (double legit = 0.05; legit <= 1.0001; legit += 0.05)
+        {
+            var s = At(0, legit);                                           // ①満タン（S＝0）
+            Assert.True(s.cost > w.PoliticalCapitalMax, $"盤面の前提の破れ：この一歩は壁（代価 {s.cost} ＞ b {w.PoliticalCapitalMax}）でない（正統性 {legit}）");
+            bool expect = s.cost <= legit - floor;                           // 壁の一歩は満タンで正統性が代価＋床を払えるときだけ
+            Assert.True(s.gate == expect, $"満タンの壁の一歩の可否が壁の式と違う（正統性 {legit}・代価 {s.cost}・床 {floor}・gate {s.gate}）");
+            Assert.True(s.enacting == s.gate, $"施行中の述語が門と違う（正統性 {legit}・gate {s.gate}・施行中 {s.enacting}）");   // ②空手形の封じ＝述語は今その一歩が通るときだけ真
+            if (s.gate) { open++; if (double.IsNaN(openLegit)) openLegit = legit; } else closed++;
+        }
+        Assert.True(open > 0 && closed > 0, $"正統性の掃引が片側だけ（通る {open}・通らない {closed}）＝壁の式を両側から見ていない");
+        var used = At(0.001, 1.0);                                           // ③在庫が少しでも使われている（S＞0）＝満タンでない＝壁は通らない（正統性が十分でも）
+        Assert.True(At(0, 1.0).gate, "前提の破れ：正統性 1.0・満タンで壁の一歩が通らない");
+        Assert.False(used.gate); Assert.False(used.enacting);
     }
 }
