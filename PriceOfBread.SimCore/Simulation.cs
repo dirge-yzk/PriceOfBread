@@ -951,9 +951,6 @@ public sealed class Simulation
 
     private const double FarmLaborPerOutput = Catalog.FarmLaborPerOutput;   // 自家農家の産出1単位あたりの農業労働力
 
-    // 技術→工場生産性の逓減：技術水準がこの閾値（較正域）までは線形、超過分は緩やかな傾きで逓減（高技術でも生産性が暴走しない）。
-    private const double TechProdDiminishKnee = 2.0;    // 逓減が始まる技術水準（Math.Min の上限＝Math.Max の基準）
-    private const double TechProdDiminishSlope = 0.3;   // 閾値超の技術1あたりの追加生産性（逓減後の傾き）
 
     /// <summary>カタログ経済（市場・生産者）を1地域ぶん生成。地域ごとに独立した市場・状態を持つ（複数地域は別インスタンス）。
     /// 役務（労働力・教育・医療・行政）の生産者は担い手popの添字が地域構成で違うため、呼び出し側が <see cref="AddServiceProducers"/> で足す。
@@ -2294,24 +2291,7 @@ public sealed class Simulation
                     r.Pops[r.SoldierPopIndex].UnemploymentRate = new Share(1.0 - payRate * soldierPayFill);   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
                 r.StateBuildQueue *= payRate; r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
-                // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）
-                // 労働時間→工場出力（連続・倍率排除②）：労働供給は労働時間に比例しつつ疲労で逓減（h=14で1.0、短いほど産出↓）。死亡率↓は人口動態で別途。
-                double whOut = Math.Pow(World.WorkHoursValue / WorkHours.Unlimited.Hours(), World.Coef.LaborFatigueExp)
-                             * Math.Max(0.0, 1.0 - World.Coef.LaborFatiguePenalty * Math.Max(0.0, World.WorkHoursValue - WorkHours.Twelve.Hours()));   // 12h超は過労で産出頭打ち〜微減（LaborFatiguePenalty=0で旧＝単調増）
-                // ※児童労働の出力係数(clOut)は廃止：子供の実体化により労働供給そのもの（EconomyStep の労働係数）で表現される（二重計上の防止）
-                double union = World.LaborUnion switch { LaborUnionLaw.Tolerated => World.Coef.LaborUnionToleratedOutputMul, LaborUnionLaw.Controlled => World.Coef.LaborUnionControlledOutputMul, _ => 1.0 };   // 労働組合容認＝賃上げ/ストで工場出力↓（資本が反対する理由。不満緩和は別途）
-                // no-graduated-unrest-stages（最小dormant）：本国の労働争議＝減産の土台。植民地の旧い型の産出の怠業（ColonialUnrestSupplyHit・2026-10-18 に削除）と同型を本国に開く。
-                // 組合容認かつ地域平均闘争度が中間閾値超で操業停止（賃上げ要求）。0（対照腕）で乗数1.0＝不発・既定0.25でlive（台帳訂正2026-07-12）。
-                if (World.Coef.StrikeProductionHit > 0 && World.LaborUnion != LaborUnionLaw.Illegal)
-                {
-                    double rmil = 0, rsz = 0; foreach (var mp in r.Pops) { rmil += mp.Size * mp.Militancy; rsz += mp.Size; }
-                    double avgMil = rsz > 1e-9 ? rmil / rsz : 0;
-                    double strikeIntensity = Math.Max(0, avgMil - World.Coef.StrikeMilitancyThreshold);
-                    union *= PoliticalQuantities.Clamp01(1.0 - strikeIntensity * World.Coef.StrikeProductionHit);
-                }
-                // 満足度への直接バフ（時短whWell・福祉WelfareSatComponent・年金PensionWellbeing）は物理削除2026-08-21（思想⑨＝支出/法は財を経ずに満足度を動かさない。
-                // 作者裁定8/19「満足度という値を捨てて生活水準＝買えたかのみ」）。時短は出力減 whOut・福祉/年金は現金給付（→消費→生活水準）としてのみ残る。
-                double techProd = (1.0 + Math.Min(World.TechLevel, TechProdDiminishKnee) + Math.Max(0.0, World.TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
+                double techProd = World.TechProductivity(r);   // ★(416) 式は World.TechProductivity へ抜き出した（技術の逓減・労働時間・労働組合・罷業の乗数）
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
                 if (Instruments.On) Instruments.PreEconomy(World, r);   // 計器（読むだけ・(265)）：段5 の上限の入力＝大衆の月初の貯蓄
                 EconomyStep.Run(r, World.Coef, techProd, World.Bank, World);   // §9-A/B/C（active 地域ごと）

@@ -154,6 +154,7 @@ public class RuleSharesFormTests
     public void D3_外国持分は四半期の月だけ風化する()
     {
         var sim = Concert();
+        foreach (var n in sim.Nations) n.World.Coef.ScoreFromWorldShare = 0;   // ★(416) 四半期の月の風化の機構を旧の国力の物差し〔英＝比 1〕で測る
         var diplo = sim.Diplomacy;
         var britain = diplo.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス")).Nation!;
         var c = britain.Coef;

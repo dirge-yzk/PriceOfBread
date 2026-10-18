@@ -779,7 +779,8 @@ public sealed class MultiNationSim
         {
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
-            foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
+            if (Nations.Count > 0 && Nations[0].World.Coef.ScoreFromWorldShare > 0) NationalScore.StepStandingAll(Nations.ConvertAll(n => n.World));   // ★(416) 旗＞0：世界の総量を 1 回だけ求めて全国の在庫を寄せる
+            else foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
             StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の目標（陸軍の不安）・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期
             if (!DiplomacyFrozen)

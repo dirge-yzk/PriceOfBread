@@ -1559,6 +1559,7 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make(CoverageSeed);
+                foreach (var n0 in sim.Nations) { n0.World.Coef.ScoreFromWorldShare = 0; n0.World.Coef.AiModernizeFromReturn = 0; }   // ★(416) 場面の前提〔構造と飢えの両方が立つ世界〕を旧の既定で保つ（法律タブの照会の機構を測る番人）
                 foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 壁の一歩を閉じた世界〔壁は通らない・符号 2 の構造〕の分割を見る番人＝指数を 0 に明示（既定は 2・旧の旗 0 と同じ振る舞い＝盤面の軌道も変わらない）
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)

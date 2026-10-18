@@ -44,6 +44,7 @@ public class TransportInstrumentTests
         // ★(393) 隔離：この番人が測るのは運賃の記帳の閉じ方であって政治ではない。経路の表は国の名を書き出し時に引く＝年の途中で州の持ち主が変わる首都の蜂起（内戦）が立つと、
         //   成約時の越境の印（国の添字）と食い違う（0.006%）。首都の蜂起が立たないよう拮抗の帯を 0 にして、即時の政変に倒す。
         foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
+        sim.DiplomacyFrozen = true;   // ★(416) 同じ隔離：AI の工業化と国力の物差しの点火で戦争による割譲が動くと、年の途中で州の持ち主が変わる年の越境の印の食い違い〔0.03%〕が出る。この番人は運賃の記帳の閉じ方を測る＝外交を止める
         Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
         Instruments.Phase(sim, 1789UL, "warm");

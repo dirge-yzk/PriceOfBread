@@ -1,0 +1,121 @@
+# (416) 1 シードの記録（採否に使わない）：score_s＝旗 0 の A の計器（seed 1・200 四半期・8 国の計器つき）が出した〈もし新しい物差しなら〉と、modsig_s＝B の canary（旗 3＋1）の信号
+== score_s 1790 n= 65
+ 新しい国力の上位10（国・旧の順位・新しい点）: [('清', 7, 24.9), ('マラータ同盟', 3, 8.1), ('イギリス', 1, 8.0), ('フランス', 11, 4.9), ('ロシア', 39, 4.2), ('オーストリア', 13, 4.1), ('オスマン', 32, 3.9), ('日本', 10, 3.4), ('アメリカ', 8, 2.9), ('ハイデラバード', 17, 2.5)]
+ 旧の国力の上位10（国・旧の点）: [('イギリス', 98.0), ('スペイン', 42.0), ('マラータ同盟', 34.0), ('シク連邦', 27.0), ('アワド', 27.0), ('ライン諸邦', 27.0), ('清', 24.0), ('アメリカ', 24.0), ('ネーデルラント', 22.0), ('日本', 22.0)]
+   清        旧  7   24.1 新  1  24.93 | 6項 0.249 0.106 0.229 0.168 0.316 0.428
+   イギリス     旧  1   97.6 新  3   8.04 | 6項 0.033 0.092 0.121 0.175 0.042 0.019
+   フランス     旧 11   20.4 新  4   4.86 | 6項 0.058 0.042 0.067 0.038 0.054 0.033
+   ロシア      旧 39    9.1 新  5   4.25 | 6項 0.071 0.046 0.041 0.026 0.030 0.040
+   アメリカ     旧  8   23.8 新  9   2.89 | 6項 0.005 0.018 0.074 0.055 0.013 0.007
+   日本       旧 10   21.9 新  8   3.41 | 6項 0.037 0.036 0.031 0.018 0.043 0.040
+   オスマン     旧 32   10.3 新  7   3.92 | 6項 0.053 0.046 0.045 0.025 0.033 0.032
+   プロイセン    旧 12   19.7 新 17   1.47 | 6項 0.010 0.025 0.022 0.013 0.012 0.006
+   オーストリア   旧 13   18.3 新  6   4.12 | 6項 0.048 0.041 0.062 0.033 0.035 0.028
+   エチオピア    旧 15   16.8 新 27   0.68 | 6項 0.006 0.006 0.004 0.014 0.006 0.005
+== score_s 1800 n= 65
+ 新しい国力の上位10（国・旧の順位・新しい点）: [('清', 11, 30.0), ('マラータ同盟', 4, 6.1), ('オーストリア', 19, 6.0), ('フランス', 8, 5.3), ('オスマン', 44, 4.3), ('アメリカ', 5, 3.8), ('イギリス', 2, 3.1), ('プロイセン', 17, 3.1), ('ロシア', 34, 2.8), ('シク連邦', 7, 2.6)]
+ 旧の国力の上位10（国・旧の点）: [('スペイン', 48.0), ('イギリス', 46.0), ('ライン諸邦', 42.0), ('マラータ同盟', 41.0), ('アメリカ', 39.0), ('内陸ベンガル王国', 39.0), ('シク連邦', 39.0), ('フランス', 37.0), ('日本', 34.0), ('アワド', 34.0)]
+   清        旧 11   29.1 新  1  29.96 | 6項 0.128 0.281 0.279 0.367 0.316 0.427
+   イギリス     旧  2   45.9 新  7   3.11 | 6項 0.018 0.021 0.048 0.048 0.034 0.017
+   フランス     旧  8   36.5 新  4   5.27 | 6項 0.035 0.035 0.071 0.099 0.049 0.029
+   ロシア      旧 34   17.7 新  9    2.8 | 6項 0.064 0.019 0.018 0.008 0.032 0.027
+   アメリカ     旧  5   39.3 新  6   3.83 | 6項 0.041 0.031 0.071 0.057 0.020 0.010
+   日本       旧  9   34.4 新 11   2.43 | 6項 0.019 0.015 0.021 0.007 0.043 0.041
+   オスマン     旧 44   14.5 新  5    4.3 | 6項 0.052 0.041 0.048 0.050 0.038 0.030
+   プロイセン    旧 17   25.3 新  8   3.07 | 6項 0.039 0.027 0.050 0.038 0.018 0.013
+   オーストリア   旧 19   23.3 新  3   6.02 | 6項 0.096 0.058 0.077 0.067 0.037 0.026
+   エチオピア    旧 15   27.9 新 37   0.42 | 6項 0.003 0.003 0.003 0.006 0.005 0.005
+== score_s 1810 n= 69
+ 新しい国力の上位10（国・旧の順位・新しい点）: [('清', 2, 28.7), ('マラータ同盟', 12, 14.8), ('フランス', 6, 5.3), ('オスマン', 47, 3.4), ('アメリカ', 5, 3.2), ('オーストリア', 15, 3.1), ('シク連邦', 3, 2.9), ('アワド', 20, 2.5), ('イギリス', 1, 2.5), ('ロシア', 39, 2.5)]
+ 旧の国力の上位10（国・旧の点）: [('イギリス', 51.0), ('清', 51.0), ('シク連邦', 48.0), ('共和制イギリス', 47.0), ('アメリカ', 46.0), ('フランス', 45.0), ('ライン諸邦', 45.0), ('プロイセン', 44.0), ('スペイン', 41.0), ('ザクセン', 41.0)]
+   清        旧  2   50.8 新  1  28.74 | 6項 0.091 0.231 0.266 0.385 0.318 0.434
+   イギリス     旧  1   51.2 新  9   2.52 | 6項 0.012 0.033 0.044 0.030 0.023 0.011
+   フランス     旧  6   44.9 新  3   5.33 | 6項 0.109 0.034 0.057 0.057 0.040 0.023
+   ロシア      旧 39   23.6 新 10   2.49 | 6項 0.026 0.016 0.020 0.026 0.036 0.026
+   アメリカ     旧  5   46.1 新  5   3.19 | 6項 0.007 0.041 0.061 0.047 0.024 0.012
+   日本       旧 14   38.7 新 11   2.34 | 6項 0.015 0.010 0.018 0.012 0.044 0.041
+   オスマン     旧 47   20.8 新  4   3.44 | 6項 0.047 0.030 0.029 0.032 0.039 0.029
+   プロイセン    旧  8   44.0 新 15   1.81 | 6項 0.010 0.011 0.027 0.030 0.019 0.011
+   オーストリア   旧 15   38.5 新  6   3.07 | 6項 0.023 0.016 0.035 0.047 0.038 0.025
+   エチオピア    旧 13   38.8 新 33   0.46 | 6項 0.002 0.005 0.005 0.006 0.005 0.004
+== score_s 1820 n= 64
+ 新しい国力の上位10（国・旧の順位・新しい点）: [('清', 2, 27.0), ('マラータ同盟', 5, 10.7), ('イギリス', 1, 5.5), ('日本', 16, 4.3), ('オスマン', 28, 4.2), ('フランス', 6, 3.5), ('アメリカ', 4, 3.3), ('サルデーニャ＝ピエモンテ', 22, 3.2), ('ロシア', 45, 3.2), ('スペイン', 34, 3.1)]
+ 旧の国力の上位10（国・旧の点）: [('イギリス', 74.0), ('清', 65.0), ('プロイセン', 55.0), ('アメリカ', 54.0), ('マラータ同盟', 52.0), ('フランス', 51.0), ('シク連邦', 51.0), ('ザクセン', 49.0), ('ライン諸邦', 48.0), ('エチオピア', 48.0)]
+   清        旧  2   64.7 新  1  26.96 | 6項 0.114 0.241 0.204 0.290 0.320 0.448
+   イギリス     旧  1   73.8 新  3   5.48 | 6項 0.024 0.109 0.078 0.063 0.037 0.018
+   フランス     旧  6   51.5 新  6   3.51 | 6項 0.051 0.024 0.047 0.037 0.034 0.018
+   ロシア      旧 45   31.1 新  9   3.17 | 6項 0.046 0.019 0.031 0.029 0.038 0.027
+   アメリカ     旧  4   54.4 新  7    3.3 | 6項 0.017 0.041 0.065 0.038 0.025 0.012
+   日本       旧 16   44.0 新  4   4.32 | 6項 0.052 0.079 0.026 0.016 0.045 0.042
+   オスマン     旧 28   37.2 新  5   4.22 | 6項 0.036 0.035 0.064 0.050 0.040 0.028
+   プロイセン    旧  3   55.3 新 12   2.79 | 6項 0.022 0.019 0.047 0.038 0.026 0.015
+   オーストリア   旧 12   45.9 新 11   2.97 | 6項 0.037 0.014 0.030 0.034 0.039 0.025
+   エチオピア    旧 10   47.8 新 32   0.49 | 6項 0.003 0.002 0.009 0.007 0.005 0.004
+== score_s 1832 n= 64
+ 新しい国力の上位10（国・旧の順位・新しい点）: [('清', 3, 36.2), ('マラータ同盟', 23, 12.5), ('オスマン', 18, 4.4), ('日本', 36, 3.9), ('イギリス', 1, 3.4), ('オーストリア', 39, 3.3), ('ロシア', 45, 2.8), ('プロイセン', 7, 2.4), ('シク連邦', 15, 2.3), ('アワド', 38, 2.2)]
+ 旧の国力の上位10（国・旧の点）: [('イギリス', 88.0), ('アメリカ', 68.0), ('清', 65.0), ('エチオピア', 58.0), ('ブハラ', 57.0), ('フランス', 56.0), ('プロイセン', 56.0), ('バイエルン', 56.0), ('ポーランド', 56.0), ('ライン諸邦', 55.0)]
+   清        旧  3   65.2 新  1  36.23 | 6項 0.598 0.290 0.220 0.289 0.322 0.454
+   イギリス     旧  1   88.4 新  5   3.41 | 6項 0.038 0.055 0.032 0.033 0.030 0.017
+   フランス     旧  6   55.8 新 13   2.08 | 6項 0.006 0.011 0.036 0.027 0.028 0.016
+   ロシア      旧 45   46.1 新  7    2.8 | 6項 0.014 0.015 0.030 0.036 0.043 0.031
+   アメリカ     旧  2   68.2 新 12   2.18 | 6項 0.003 0.023 0.034 0.030 0.028 0.014
+   日本       旧 36   49.3 新  4   3.93 | 6項 0.030 0.023 0.043 0.050 0.049 0.041
+   オスマン     旧 18   53.4 新  3   4.45 | 6項 0.071 0.022 0.053 0.048 0.043 0.030
+   プロイセン    旧  7   55.7 新  8   2.43 | 6項 0.020 0.011 0.049 0.029 0.023 0.014
+   オーストリア   旧 39   48.1 新  6   3.31 | 6項 0.034 0.031 0.034 0.033 0.040 0.027
+   エチオピア    旧  4   57.9 新 23   0.64 | 6項 0.001 0.004 0.013 0.011 0.005 0.004
+== modsig_s (B canary) イギリス
+ Q 0 1783 meanInd 0.09 returnShare 0.321 indGapOld 0.963 gross 1.16 hurdle 0.78 eligible 31 stance 4 gapUsed 0.332 frac 0.0265
+ Q 1 1783 meanInd 0.09 returnShare 0.314 indGapOld 0.963 gross 1.16 hurdle 0.79 eligible 31 stance 4 gapUsed 0.320 frac 0.0256
+ Q 2 1783 meanInd 0.1 returnShare 0.343 indGapOld 0.962 gross 1.16 hurdle 0.76 eligible 31 stance 4 gapUsed 0.313 frac 0.0251
+ Q 4 1784 meanInd 0.1 returnShare 0.369 indGapOld 0.961 gross 1.17 hurdle 0.73 eligible 31 stance 4 gapUsed 0.356 frac 0.0285
+ Q 8 1785 meanInd 0.11 returnShare 0.403 indGapOld 0.957 gross 1.21 hurdle 0.72 eligible 31 stance 4 gapUsed 0.421 frac 0.0337
+ Q 20 1788 meanInd 0.12 returnShare 0.487 indGapOld 0.951 gross 1.31 hurdle 0.7 eligible 31 stance 4 gapUsed 0.484 frac 0.0387
+ Q 40 1793 meanInd 0.23 returnShare 0.572 indGapOld 0.91 gross 1.55 hurdle 0.7 eligible 31 stance 4 gapUsed 0.561 frac 0.0449
+ Q 80 1803 meanInd 1.89 returnShare 0.511 indGapOld 0.246 gross 2.74 hurdle 0.69 eligible 28 stance 4 gapUsed 0.770 frac 0.0616
+ Q 120 1813 meanInd 2.68 returnShare 0.318 indGapOld 0.0 gross 2.78 hurdle 0.7 eligible 30 stance 4 gapUsed 0.294 frac 0.0235
+ Q 199 1833 meanInd 4.57 returnShare 0.259 indGapOld 0.0 gross 1.68 hurdle 0.69 eligible 35 stance 4 gapUsed 0.558 frac 0.0447
+== modsig_s (B canary) フランス
+ Q 0 1783 meanInd 0.05 returnShare 0.4 indGapOld 0.98 gross 1.18 hurdle 0.71 eligible 13 stance 4 gapUsed 0.398 frac 0.0318
+ Q 1 1783 meanInd 0.06 returnShare 0.4 indGapOld 0.977 gross 1.17 hurdle 0.7 eligible 13 stance 4 gapUsed 0.399 frac 0.0319
+ Q 2 1783 meanInd 0.07 returnShare 0.398 indGapOld 0.974 gross 1.17 hurdle 0.7 eligible 13 stance 4 gapUsed 0.399 frac 0.0319
+ Q 4 1784 meanInd 0.09 returnShare 0.42 indGapOld 0.965 gross 1.16 hurdle 0.7 eligible 13 stance 4 gapUsed 0.395 frac 0.0316
+ Q 8 1785 meanInd 0.13 returnShare 0.394 indGapOld 0.949 gross 1.14 hurdle 0.69 eligible 13 stance 4 gapUsed 0.396 frac 0.0317
+ Q 20 1788 meanInd 0.26 returnShare 0.488 indGapOld 0.898 gross 1.21 hurdle 0.69 eligible 13 stance 4 gapUsed 0.435 frac 0.0348
+ Q 40 1793 meanInd 0.46 returnShare 0.571 indGapOld 0.815 gross 1.37 hurdle 0.7 eligible 13 stance 4 gapUsed 0.567 frac 0.0453
+ Q 80 1803 meanInd 1.53 returnShare 0.487 indGapOld 0.387 gross 1.43 hurdle 0.7 eligible 14 stance 4 gapUsed 0.652 frac 0.0522
+ Q 120 1813 meanInd 2.09 returnShare 0.553 indGapOld 0.187 gross 2.05 hurdle 0.68 eligible 12 stance 4 gapUsed 0.424 frac 0.0339
+ Q 199 1833 meanInd 4.92 returnShare 0.384 indGapOld 0.0 gross 1.6 hurdle 0.69 eligible 10 stance 4 gapUsed 0.428 frac 0.0342
+== modsig_s (B canary) 清
+ Q 0 1783 meanInd 0.0 returnShare 0.416 indGapOld 0.999 gross 1.2 hurdle 0.7 eligible 26 stance 1 gapUsed 0.416 frac 0.0625
+ Q 1 1783 meanInd 0.0 returnShare 0.415 indGapOld 0.998 gross 1.2 hurdle 0.7 eligible 26 stance 4 gapUsed 0.415 frac 0.0332
+ Q 2 1783 meanInd 0.01 returnShare 0.414 indGapOld 0.997 gross 1.19 hurdle 0.7 eligible 26 stance 4 gapUsed 0.414 frac 0.0331
+ Q 4 1784 meanInd 0.01 returnShare 0.412 indGapOld 0.995 gross 1.19 hurdle 0.7 eligible 26 stance 4 gapUsed 0.412 frac 0.0330
+ Q 8 1785 meanInd 0.04 returnShare 0.398 indGapOld 0.983 gross 1.16 hurdle 0.7 eligible 26 stance 4 gapUsed 0.404 frac 0.0323
+ Q 20 1788 meanInd 0.33 returnShare 0.246 indGapOld 0.869 gross 0.93 hurdle 0.7 eligible 26 stance 4 gapUsed 0.238 frac 0.0190
+ Q 40 1793 meanInd 0.54 returnShare 0.228 indGapOld 0.782 gross 0.91 hurdle 0.7 eligible 26 stance 4 gapUsed 0.335 frac 0.0268
+ Q 80 1803 meanInd 1.23 returnShare 0.159 indGapOld 0.51 gross 0.85 hurdle 0.7 eligible 31 stance 4 gapUsed 0.095 frac 0.0076
+ Q 120 1813 meanInd 1.59 returnShare 0.057 indGapOld 0.384 gross 0.9 hurdle 0.7 eligible 31 stance 4 gapUsed 0.099 frac 0.0079
+ Q 199 1833 meanInd 4.77 returnShare 0.007 indGapOld 0.0 gross 0.97 hurdle 0.71 eligible 35 stance 4 gapUsed 0.009 frac 0.0007
+== modsig_s (B canary) 日本
+ Q 0 1783 meanInd 0.01 returnShare 0.414 indGapOld 0.997 gross 1.19 hurdle 0.7 eligible 8 stance 1 gapUsed 0.417 frac 0.0625
+ Q 1 1783 meanInd 0.01 returnShare 0.412 indGapOld 0.996 gross 1.19 hurdle 0.7 eligible 8 stance 4 gapUsed 0.414 frac 0.0331
+ Q 2 1783 meanInd 0.02 returnShare 0.409 indGapOld 0.994 gross 1.18 hurdle 0.7 eligible 8 stance 4 gapUsed 0.411 frac 0.0329
+ Q 4 1784 meanInd 0.03 returnShare 0.404 indGapOld 0.989 gross 1.17 hurdle 0.7 eligible 8 stance 4 gapUsed 0.406 frac 0.0325
+ Q 8 1785 meanInd 0.05 returnShare 0.393 indGapOld 0.979 gross 1.15 hurdle 0.7 eligible 8 stance 4 gapUsed 0.395 frac 0.0316
+ Q 20 1788 meanInd 0.3 returnShare 0.324 indGapOld 0.879 gross 1.04 hurdle 0.7 eligible 8 stance 4 gapUsed 0.342 frac 0.0273
+ Q 40 1793 meanInd 0.85 returnShare 0.201 indGapOld 0.66 gross 0.9 hurdle 0.7 eligible 8 stance 4 gapUsed 0.202 frac 0.0162
+ Q 80 1803 meanInd 1.16 returnShare 0.239 indGapOld 0.537 gross 0.95 hurdle 0.7 eligible 8 stance 4 gapUsed 0.247 frac 0.0197
+ Q 120 1813 meanInd 2.19 returnShare 0.105 indGapOld 0.152 gross 0.78 hurdle 0.69 eligible 8 stance 4 gapUsed 0.107 frac 0.0086
+ Q 199 1833 meanInd 4.48 returnShare 0.017 indGapOld 0.0 gross 0.58 hurdle 0.68 eligible 10 stance 4 gapUsed 0.015 frac 0.0012
+== modsig_s (B canary) ロシア
+ Q 0 1783 meanInd 0.0 returnShare 0.415 indGapOld 0.999 gross 1.2 hurdle 0.7 eligible 28 stance 1 gapUsed 0.417 frac 0.0625
+ Q 1 1783 meanInd 0.01 returnShare 0.412 indGapOld 0.997 gross 1.19 hurdle 0.7 eligible 28 stance 4 gapUsed 0.414 frac 0.0331
+ Q 2 1783 meanInd 0.01 returnShare 0.409 indGapOld 0.996 gross 1.18 hurdle 0.7 eligible 28 stance 4 gapUsed 0.411 frac 0.0329
+ Q 4 1784 meanInd 0.02 returnShare 0.391 indGapOld 0.994 gross 1.18 hurdle 0.7 eligible 28 stance 4 gapUsed 0.398 frac 0.0318
+ Q 8 1785 meanInd 0.03 returnShare 0.356 indGapOld 0.99 gross 1.16 hurdle 0.7 eligible 28 stance 4 gapUsed 0.358 frac 0.0286
+ Q 20 1788 meanInd 0.09 returnShare 0.346 indGapOld 0.964 gross 1.11 hurdle 0.7 eligible 28 stance 4 gapUsed 0.349 frac 0.0279
+ Q 40 1793 meanInd 0.16 returnShare 0.222 indGapOld 0.935 gross 1.05 hurdle 0.7 eligible 28 stance 4 gapUsed 0.342 frac 0.0273
+ Q 80 1803 meanInd 0.3 returnShare 0.206 indGapOld 0.878 gross 1.07 hurdle 0.7 eligible 29 stance 4 gapUsed 0.303 frac 0.0242
+ Q 120 1813 meanInd 1.25 returnShare 0.251 indGapOld 0.515 gross 1.2 hurdle 0.7 eligible 31 stance 4 gapUsed 0.352 frac 0.0282
+ Q 199 1833 meanInd 4.74 returnShare 0.109 indGapOld 0.0 gross 0.86 hurdle 0.68 eligible 34 stance 4 gapUsed 0.176 frac 0.0141

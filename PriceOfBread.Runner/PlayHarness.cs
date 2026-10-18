@@ -365,7 +365,7 @@ internal static class PlayHarness
         foreach (var n in sim.Nations.OrderByDescending(x => x.World.ScoreStanding).Take(10))
         {
             var xw = n.World;
-            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F0} 工業{xw.MeanIndustrialization,6:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
+            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F0} 工業{xw.MeanIndustrialization,6:F2} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
         }
 
         sb.AppendLine();

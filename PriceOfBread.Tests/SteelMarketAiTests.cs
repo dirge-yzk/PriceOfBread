@@ -74,6 +74,7 @@ public class SteelMarketAiTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
         var w = sim.World;
+        w.Coef.AiModernizeFromReturn = 0;   // ★(416) この番人は旧の包絡〔EffectiveIndCeiling〕の機構を測る（既定 3 では包絡を読まない＝旧の腕だけ）
         foreach (var r in w.Regions) r.Industrialization = 3.0;   // 定数包絡2.5を**超えた**世界＝旧実装は投資を完全に止める
         Assert.True(w.MeanIndustrialization >= 2.5,
             $"テスト前提が崩れた：平均工業化度が{w.MeanIndustrialization:F2}（2.5以上が前提＝飽和側で測る）");
