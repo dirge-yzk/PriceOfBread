@@ -80,7 +80,7 @@ public static class ArmyShape
                 //   蒸気補給・兵站・医療の技術の無い大陸国の大軍は海を越えて運べない（2026-07-12 の遠征技術ゲートの物理）＝脅威の側でも同じ規則で読む
                 //   （旧＝制海権だけ＝双方の艦隊が小さい間は制海権 0.5 で清の大軍の半分が日本へ届く脅威に見え、清と日が互いを海の脅威と見て艦隊を積んだ＝(192) 申し送り3）。
                 double proj = dip.Projection(ps[j], ps[i], c);
-                bool cross = dip.IsSeaCrossing(ps[j], ps[i], c);
+                bool cross = dip.IsSeaCrossing(ps[j], ps[i]);
                 hrLand[j * n + i] = h * (border[j * n + i] + (cross ? 0 : proj));
                 hrCross[j * n + i] = cross ? h * proj * dip.ExpeditionLift(ps[j], ps[i], c) : 0;
                 double sea = 0;

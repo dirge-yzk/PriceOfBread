@@ -432,74 +432,10 @@ public partial class GameViewModel
                 }
             }
 
-        // ── 植民地：宗主国⇄植民地の資源/補給線（2026-08-02・作者指摘「植民地から導線が伸びていない。
-        //    もしかして植民地が港でないから、本国に資源が流れていないのでは？」）。
-        //    ★経済の実体は流れている＝EconomyStep の植民地輸入が**首都市場へ毎月直接** Stock+=（港ゲートは無い。
-        //      律速は ColonialAccess＝制海と ColonialOutput＝開発度だけ）。**描いていなかっただけ**なので、
-        //      国ペアの重力と同じカーネル（相手側 Tw＝act の既定 1.0）で描く＝新しい定数を置かない。
-        // ★★2026-08-16：宗主側の端点を**首都から「海へ出る口」へ**移した（作者報告「陸地を横断する海路が描かれている」）。
-        // ⚠2026-08-11に国どうしの交易線では直した「内陸の首都から航路が生える」を、**この植民地ループだけが取りこぼしていた**。
-        //   実測（mapedges）＝モスクワ→フィンランド湾口が陸上868km・マドリード→アルボラン海が381km・パリ→イギリス海峡東が157km＝
-        //   ロシア/スペイン/フランスの首都から大陸を横断する青い線が出ていた（首都が港でない国はすべて同じ症状）。
-        //   ★端点の規約は交易線と1本に揃える＝①自国の港州 ②借りている港 ③どちらも無ければ描かない。
-        // ⚠この節が読むのは sp.ColonyList（昇格前の Colony のみ）。開幕の昇格（旧の旗 ColoniesAreRegions は 2026-10-18 に焼き込み）で開始時の
-        //   植民地は最初から州（RegionTier.Colonial）として w.Regions に入り、実交易は上の陸脚/海路ループが
-        //   （LastPortThroughput/ExportsByGood 経由で）既に描いている＝この節は未昇格の植民地だけの残り経路。
+        // ── 植民地：宗主国⇄植民地の資源/補給線（2026-08-02）＝★(410) 物理削除。この節の足切り（植民地線の流通量＝Region.ColonialSupply〔首都州に毎月着く供給駆動の産出〕が貿易タブの一覧に出る財）は
+        //   ColonialSupply に書き手が無く常に null だった＝shownRes が空で国ごとに continue し、線も接ぎ木も 1 本も描かれなかった。ColonialSupply ごと消した。
+        //   植民地は州（RegionTier.Colonial）として w.Regions に入り、実交易は上の陸脚/海路ループが LastPortThroughput／ExportsByGood 経由で描く。
         var colStitchCoord = new Dictionary<string, (double, double)>();
-        foreach (var sim in _sim.Nations)
-        {
-            var w = sim.World;
-            if (w.SelfPower is not { } sp || sp.ColonyList.Count == 0) continue;
-            if (!gateOf.TryGetValue(w, out var gt)) continue;   // 海へ出る口が無い＝航路を描かない（交易線と同じ規約）
-            // ★★2026-08-16：**実際に届いている財が無い植民地の線は描かない**（作者指示＝貿易一覧と同じ規則）。
-            // ⚠植民地線の流通量＝<c>Region.ColonialSupply</c>（首都州に毎月着く供給駆動の産出）。判定は貿易タブの
-            //   「植民地直送」節と同一（数量>1e-9 かつ 月額が £0.0k に丸まらない）＝一覧に出ない財しか持たない植民地は
-            //   線も持たない。★財の単位でしか実測が無い（個々の植民地の寄与は台帳に残らない）ので、
-            //   「一覧に出る財」を集めて、その財を産する植民地だけを描く＝一覧と地図で同じものが見える。
-            var shownRes = new HashSet<int>();
-            foreach (var rr in w.Regions)
-            {
-                if (rr.State != RegionState.Active || rr.ColonialSupply is not { } cs) continue;
-                for (int gi = 0; gi < cs.Length && gi < Catalog.Goods.Length; gi++)
-                {
-                    if (!(cs[gi] > 1e-9)) continue;
-                    double pg = gi < _sim.Market.Price.Count ? System.Math.Max(_sim.Market.Price[gi], 1e-9)
-                              : gi < Catalog.RefPrices.Length ? Catalog.RefPrices[gi] : 1.0;
-                    if (FlowShown(cs[gi] * pg)) shownRes.Add(gi);
-                }
-            }
-            if (shownRes.Count == 0) continue;   // 直送が一覧に1行も出ない＝この国の植民地線は描かない
-            double tw = sp.TradeWeight;
-            foreach (var col in sp.ColonyList)
-            {
-                if (System.Math.Abs(col.Latitude) < 1e-9 && System.Math.Abs(col.Longitude) < 1e-9) continue;   // 座標未登録＝描かない（維持費と同じ規約）
-                bool delivers = false;
-                foreach (int res in col.Resources ?? []) if (shownRes.Contains(res)) { delivers = true; break; }
-                if (!delivers) continue;   // 一覧に出る財を1つも産していない＝運んでいる物が無い
-                double km = SimCore.SeaGraph.SeaDistanceKm(gt.Lat, gt.Lon, col.Latitude, col.Longitude, chokes.Suez, chokes.Panama);
-                if (!(km > 0)) continue;   // ⚠否定形＝NaN は描かない
-                double wij = tw * half / (half + km);
-                if (!(wij > 1e-6)) continue;
-                var path = SimCore.SeaGraph.RoutePath(gt.Lat, gt.Lon, col.Latitude, col.Longitude, chokes.Suez, chokes.Panama);
-                for (int k = 1; k < path.Count; k++)
-                    if (seaIx.TryGetValue(path[k - 1], out int a2) && seaIx.TryGetValue(path[k], out int b2)) Bump(sea, a2, b2, wij);
-                if (path.Count > 0)
-                {
-                    if (seaIx.TryGetValue(path[0], out int sn0))   // 宗主側の端点＝海へ出る口（旧＝首都）
-                    {
-                        var key = (gt.Name, sn0);
-                        stitch[key] = stitch.TryGetValue(key, out double v0) ? v0 + wij : wij;
-                    }
-                    if (seaIx.TryGetValue(path[^1], out int sn1))   // 植民地側の端点（座標はフォールバック表で解決）
-                    {
-                        var key = (col.Name, sn1);
-                        stitch[key] = stitch.TryGetValue(key, out double v1) ? v1 + wij : wij;
-                        colStitchCoord[col.Name] = (col.Latitude, col.Longitude);
-                    }
-                }
-            }
-        }
-
         // ── 接ぎ木：港州がどこから海へ出るか。
         // ⚠**航路が通っている海ノードに繋がる港だけ**を描く（2026-08-02・作者報告「描画に失敗している個所がある」
         //   「スエズも未開通なのに直前まで線が来ている」）。港ごとに無条件で描いていたため、
@@ -561,8 +497,8 @@ public partial class GameViewModel
                       Panama: _sim.Diplomacy.ChokeOpenFor(SimCore.Diplomacy.PanamaIdPublic, null));
         // ⚠積算し直す年（RouteRefreshYears おき）にだけ線を組み直す。**_routeUseYear で早期returnを判定してはいけない**
         //   ——積算を飛ばした年は _routeUseYear が古いままなので、毎四半期に線を組み直すことになる（カク付きの再発）。
-        // ★2026-08-16：助走（StartWarmupQuarters）中は外交・植民地が凍結され ColonialSupply が未生成＝植民地線の月額が £0.0k で
-        //   全部足切りされる。RouteRefreshYears おきの再構築だと開始から5年間ずっと植民地線が出ないので、
+        // ★2026-08-16：助走（StartWarmupQuarters）中は外交・植民地が凍結され交易の流れが未生成＝線の月額が £0.0k で
+        //   全部足切りされる（★(410) 旧文の植民地線の供給 ColonialSupply は削除した）。RouteRefreshYears おきの再構築だと開始から5年間ずっと線が出ないので、
         //   **助走明けの最初の年だけ1年で組み直す**（線が出てからは通常の周期へ戻る＝毎四半期の再構築にはならない）。
         int refreshYears = _routeRebuilds < 2 ? 1 : RouteRefreshYears;
         bool rebuildRoutes = chokes != _edgeChokes || _landUse is null || _sim.Year - _routeUseYear >= refreshYears;

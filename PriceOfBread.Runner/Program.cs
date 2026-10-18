@@ -3950,49 +3950,7 @@ if (args.Length > 0 && args[0] == "mapflow")
             }
         }
 
-    // ── ③植民地線。足切り＝首都州に着く ColonialSupply（貿易タブ「植民地直送」と同じ規則）
-    int colAll = 0, colCut = 0;
-    double colMaxVal = 0; string colMaxWho = "";   // 診断：直送の月額の最大（0本になる時にそれが「本当に微量」なのかを見る）
-    foreach (var simF in msF.Nations)
-    {
-        var wF = simF.World;
-        if (wF.SelfPower is not { } spF || spF.ColonyList.Count == 0) continue;
-        if (!gateOfF.TryGetValue(wF, out var gtF)) continue;
-        var shownRes = new HashSet<int>();
-        foreach (var rr in wF.Regions)
-        {
-            if (rr.State != RegionState.Active || rr.ColonialSupply is not { } cs) continue;
-            for (int gi = 0; gi < cs.Length && gi < Catalog.Goods.Length; gi++)
-            {
-                if (!(cs[gi] > 1e-9)) continue;
-                double pg = gi < msF.Market.Price.Count ? Math.Max(msF.Market.Price[gi], 1e-9)
-                          : gi < Catalog.RefPrices.Length ? Catalog.RefPrices[gi] : 1.0;
-                if (cs[gi] * pg > colMaxVal) { colMaxVal = cs[gi] * pg; colMaxWho = $"{spF.Name}/{Catalog.Goods[gi].Name}"; }
-                if (ShownF(cs[gi] * pg)) shownRes.Add(gi);
-            }
-        }
-        double twF = spF.TradeWeight;
-        foreach (var col in spF.ColonyList)
-        {
-            if (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) continue;
-            double km = SeaGraph.SeaDistanceKm(gtF.Lat, gtF.Lon, col.Latitude, col.Longitude, suezF, panamaF);
-            if (!(km > 0)) continue;
-            double wij = twF * halfF / (halfF + km);
-            if (!(wij > 1e-6)) continue;
-            bool delivers = false;
-            foreach (int res in col.Resources ?? []) if (shownRes.Contains(res)) { delivers = true; break; }
-            colAll++; if (delivers) colCut++;
-            var path = SeaGraph.RoutePath(gtF.Lat, gtF.Lon, col.Latitude, col.Longitude, suezF, panamaF);
-            for (int k = 1; k < path.Count; k++)
-                if (seaIxF.TryGetValue(path[k - 1], out int a2) && seaIxF.TryGetValue(path[k], out int b2))
-                { AddE(seaAll, a2, b2, wij); if (delivers) AddE(seaCut, a2, b2, wij); }
-            if (path.Count > 0)
-            {
-                if (seaIxF.TryGetValue(path[0], out int sn0)) { AddS(stitchAll, gtF.Name, sn0, wij); if (delivers) AddS(stitchCut, gtF.Name, sn0, wij); }
-                if (seaIxF.TryGetValue(path[^1], out int sn1)) { AddS(stitchAll, col.Name, sn1, wij); if (delivers) AddS(stitchCut, col.Name, sn1, wij); }
-            }
-        }
-    }
+    // ── ③植民地線＝★(410) 物理削除（足切りの元の Region.ColonialSupply に書き手が無く常に null＝shownRes が空で線も接ぎ木も 1 本も立たなかった）。
 
     // ── ④港州の接ぎ木。足切り＝港の取扱高 LastPortThroughput（月額）。⚠**足切り後の**航路が通る海ノードだけに接ぐ
     var usedAll = new HashSet<int>(); foreach (var k in seaAll.Keys) { usedAll.Add(k.Item1); usedAll.Add(k.Item2); }
@@ -4015,7 +3973,6 @@ if (args.Length > 0 && args[0] == "mapflow")
     Console.WriteLine($"  陸脚(内陸州→港)　　 足切り前 {legAll}　→ 後 {legCut}（消える {legAll - legCut}）");
     Console.WriteLine($"  交易線(国ペア)　　　 足切り前 {pairAll}　→ 後 {pairCut}（消える {pairAll - pairCut}）");
     Console.WriteLine($"  　うち交易のある国　 {actF.Count(a => a.Keep)} / {actF.Count}");
-    Console.WriteLine($"  植民地線(宗主⇄植民地) 足切り前 {colAll}　→ 後 {colCut}（消える {colAll - colCut}）　直送の月額の最大 {MoneyF(colMaxVal)}({colMaxWho})");
     Console.WriteLine($"  港の接ぎ木　　　　　 足切り前 {portAll}　→ 後 {portCut}（消える {portAll - portCut}）");
     Console.WriteLine($"## 実際に描かれる線（辺の本数＝地図に出る本数）");
     Console.WriteLine($"  陸路　 {landAll.Count} → {landCut.Count}（消える {landAll.Count - landCut.Count}・残率 {(landAll.Count > 0 ? landCut.Count * 100.0 / landAll.Count : 0):F0}%）");

@@ -2178,7 +2178,7 @@ public sealed class Diplomacy
     /// 印度・中央アジアの「従属はするが宗主が史実と違う」逸脱（宗主一致exact40%の主因）を生んでいた。
     /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(194) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
     internal double ExpeditionLift(Power great, Power target, Coefficients c)
-        => great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target, c)
+        => great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target)
            ? Math.Clamp(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0)
            : 1.0;
 
@@ -3208,7 +3208,7 @@ public sealed class Diplomacy
     /// ★制海権は相補（SeaControl(a,b)+SeaControl(b,a)=1）なので、閾値0.5では**押せるのは高い側だけ**＝海戦に勝った側だけが上陸する。
     /// ⚠双方が海軍ゼロなら SeaControl は 0.5 を返すが、NavalPower>0 の条件で**両者とも上陸不可**にする（船が無ければ海は渡れない）。</summary>
     public double LandingGate(Power attacker, Power defender, Coefficients c)
-        => c.SeaInvasionControlMin <= 0 || !IsSeaCrossing(attacker, defender, c) ? 1.0
+        => c.SeaInvasionControlMin <= 0 || !IsSeaCrossing(attacker, defender) ? 1.0
            : attacker.NavalPower > 1e-9 && SeaControl(attacker, defender) >= c.SeaInvasionControlMin ? 1.0 : 0.0;
 
     /// <summary>★陸戦が成立するか（上陸ゲートの**正しい適用形**・2026-08-01 の敵対的レビューで是正）。
@@ -3308,7 +3308,7 @@ public sealed class Diplomacy
     /// 旧・Geo.ContinentOf（矩形5分岐）は島の概念が無く旧世界の全島嶼をユーラシアへ接着＝85.6%の国対が陸続き・英がボルネオへ陸路侵略・
     /// マダガスカルが船なしで大陸侵攻・4ゲート（ExpeditionLift/Projection減衰/CanInvadeの船と制海権/輸送船消費）が同時に無効化されていた。
     /// 第4段4-4の趣旨（露→満州は陸続き＝ユーラシア同一陸塊）は保存される（旧の旗 ContinentalLandReach と旧・海盆×LandReachKm判定は 2026-10-18 に削除）。</summary>
-    public bool IsSeaCrossing(Power x, Power y, Coefficients c)
+    public bool IsSeaCrossing(Power x, Power y)   // ★(410) 使わない引数 Coefficients を外した（旧の旗 ContinentalLandReach の削除の後は係数を読まない）
     {
         if (x.Nation is not { } xw) return false;   // 抽象標的は投射しない（守る側）
         var (tlat, tlon, _) = TargetPoint(x, y);
@@ -3344,7 +3344,7 @@ public sealed class Diplomacy
                 }
         }
         double decay = 1.0 / (1.0 + c.DistanceWarDecay * km / DistanceNormKm);
-        if (IsSeaCrossing(x, y, c))
+        if (IsSeaCrossing(x, y))
             decay *= SeaControl(x, y);   // 海越え＝制海権の分だけ陸軍を揚陸できる（0..1）。制海権を握れぬ内陸国は海外へ戦力を届けられない
         return decay;
     }

@@ -30,7 +30,7 @@ public static class Climate
     public static bool CottonSuitable(double lat) => System.Math.Abs(lat) <= CottonBeltLatMax;
     private const double CottonBeltLatMax = 37.0;    // 第7段第1波①点火（2026-07-28・#17較正後の世界で再点火＝過去2次差し戻し#132は帯のみが理由・テスト側障壁は解消済み）。
     // 無霜期間180-200日の代理＝米南部・印・エジプト・華中以南のみ綿花適地。ランカシャー綿花飢饉が構造的に可能になり
-    // 毛織/亜麻の代替レシピ・植民地の海上リードタイム（ColonialImportLagMonths）が存在理由を取り戻す。90.0で旧＝全球適地
+    // 毛織/亜麻の代替レシピ・植民地の海上リードタイム（ColonialImportLagMonths・★(410) 係数ごと削除済み＝空の枝だった）が存在理由を取り戻す。90.0で旧＝全球適地
 
     /// <summary>州の主食自給免除（食料安全保障）：この主食は賦存に乏しい州でも減産しない（自給ぶんは作る）。気候帯で主食セットが切り替わる。</summary>
     public static bool StapleSelfSufficient(int goodId, double lat, double lon) => goodId switch

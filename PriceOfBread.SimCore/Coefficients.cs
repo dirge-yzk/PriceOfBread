@@ -2498,7 +2498,7 @@ public sealed class Coefficients
     public double MaintLaborRate = 0.3;   // 経18（係数化・中立）：インフラ保守1単位あたりの労働力(火夫・荷役)消費率。既定0.3=旧直書きと同値
     public double GridReplaceRate = 0.002;   // 経18（係数化・中立）：送電網の置換需要率。既定0.002=旧直書きと同値。※二重計上ではない（第2段2-9訂正3・2026-07-27）＝GridDecayRate と**相殺する対**（決済は減価の前）。ただし2本が (1−x) 関係で結ばれていないため片方だけ動かすと定常が崩れる＝動かす時は必ずセットで
     public double GridDecayRate = 0.998;   // 経18（係数化・中立）：送電網の経年劣化率(毎月GridCapacityに乗算)。既定0.998=旧直書きと同値。GridReplaceRate の対（上の注記参照＝セットでのみ動かす）
-    public double ColonialImportLagMonths = 1.0;   // 経19→第7段第1波点火（2026-07-28・綿花ゲートの後＝順序厳守）：植民地輸入の遅延月数(0..1連続近似)。1で今月発注分を1ヶ月遅延＝綿花飢饉型の価格スパイクが立つ。パイプライン配線済み。0=即月充足で旧恒等
+    // 【墓標(410)・恒等の削除】ColonialImportLagMonths（経19・植民地輸入の海上リードタイム・1.0）を消した＝EconomyStep の `ColonialResources is {} cres` の枝は空の配列を回すだけだった（多国の植民地財は植民地の州が自分で産んで売る）。Region.ColonialSupply・ColonialOutput・ColonialImportPipeline も同時に物理削除。
     // **点火2026-07-31（07_再設計 第2弾2b・A3裁定「入れるべき（恐慌が大きくなるが正しい）」）**：タンス預金の2段階。
     //   静的＝手元現金は常に1割。動的＝銀行の信用が崩れるほど引き出しが増える（ratio_eff = ratio × (1 + HoardPanicWeight×(1−Confidence))）
     //   ＝退蔵↑→準備↓→与信上限↓→さらに信用収縮の自己強化（B3自己成就期待の銀行版）。★Bank.Gold は導出のまま＝二重ソースにしない（07 §3の再結論）。

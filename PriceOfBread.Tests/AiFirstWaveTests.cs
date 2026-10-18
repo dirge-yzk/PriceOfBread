@@ -141,7 +141,7 @@ public class AiFirstWaveTests
         Assert.Equal(0.0, lc);   // 植民地戦争の負けは存亡でない（国を持たない相手は本国へ来ない）
         // (d) 海越えで艦の無い敵＝上陸の門0＝規模0・敗色は存亡に数えない
         dip.Wars.Clear();
-        Assert.True(dip.IsSeaCrossing(pr, gb, c), "前提：プロイセン→英は海越え");
+        Assert.True(dip.IsSeaCrossing(pr, gb), "前提：プロイセン→英は海越え");
         Assert.Equal(0.0, dip.LandingGate(pr, gb, c));
         dip.Wars.Add(new War { A = gb, B = pr, Score = -0.9 });
         Assert.Equal(0.0, dip.WarScale(gb, c, out double ld));

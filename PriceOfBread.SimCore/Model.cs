@@ -998,11 +998,8 @@ public sealed class Region
     public double ColonialAccess = 1.0;               // 植民地素材の入手率（植民地保有×制海＝封鎖で下がる §6.1）
     public int[] Resources = [];                      // この州の強み資源 good.Id（NationConfig の Provinces で指定＝産出が増産される財）。UIの地域表示に使う
     public string Culture = "", Religion = "";        // 州の主流文化・宗教の自由文字列ラベル（漢/ウイグル/儒仏/イスラム…）。データ先行＝文化/宗教システム未実装でも保持（[[successor-culture-religion-vision]]）
-    public int[]? ColonialResources;                  // この国の植民地が産する固有資源の good.Id（史実・1780）。null＝全植民地財（単一国テスト用の従来挙動）
-    public double ColonialOutput = 1.0;               // 植民地の産出率（開発度の飽和曲線。初期≈0で投資が遅れて実る。null時は1.0＝従来）
+    public int[]? ColonialResources;                  // この国の植民地が産する固有資源の good.Id（史実・1780）。null＝全植民地財（単一国テスト用の従来挙動）。空の配列＝多国の世界（★(410) ここから入る物は無い・印だけ）
     public double OpiumAddiction;                     // アヘン中毒度（1人あたり需要の上乗せ）。消費するほど増える＝供給が需要を生む正のフィードバック（実験）
-    public double[]? ColonialSupply;                  // 各財の植民地産出（供給駆動・毎期）。保有植民地×固有資源×産出率。需要と無関係に流入＝過剰なら価格暴落
-    public double[]? ColonialImportPipeline;          // 経19（海上リードタイム）：前月発注済み未着の植民地輸入量（good.Id添字・1段）。null または ColonialImportLagMonths=0 で従来の即時加算＝中立
     public double[]? ConstructionCarryover;           // 経17（建設Leontief端数の繰越・good.Id添字・1段）：先月の建設束で律速成分に律速され使い残した非律速資材。null なら従来どおり全消費
     public double SocialSecurity;                     // 社会保障（公共医療）の水準（World から複製。医薬品消費に使う）
     public double HarvestFactor = 1.0;                // 今年の豊作/不作（World から複製。主食RGO産出と自給に乗算）

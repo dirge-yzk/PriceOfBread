@@ -376,7 +376,7 @@ public static class Formations
         {
             if (power.Nation is not { } w) continue;   // 抽象標的は対象外
             FormationRule? best = null;
-            foreach (var rule in Enumerate(c))
+            foreach (var rule in Enumerate())
             {
                 if (rule.Tier <= power.FormationTier) continue;   // 一方向性：州を失っても名は戻らない（変名は名乗り＝領土の関数でない）
                 if (best is not null && rule.Tier <= best.Tier) continue;   // 既に見つけた候補より低い段位は無視（最高Tierを選ぶ・同Tierは配列先着）
@@ -439,7 +439,7 @@ public static class Formations
     }
 
     /// <summary>変名規則の列挙（器2026-08-01）：手書き40ルール ＋文化から自動生成した規則（旧の旗 CultureFormationGate は 2026-10-18 に焼き込み）。</summary>
-    public static IEnumerable<FormationRule> Enumerate(Coefficients c)
+    public static IEnumerable<FormationRule> Enumerate()   // ★(410) 使わない引数 Coefficients を外した（旧の旗 CultureFormationGate の焼き込みの後は係数を読まない）
     {
         foreach (var r in Rules) yield return r;
         foreach (var r in CultureRealms.Rules) yield return r;
@@ -459,7 +459,7 @@ public static class Formations
     {
         if (p.Nation is null) return null;
         FormationRule? best = null;
-        foreach (var r in Enumerate(c))
+        foreach (var r in Enumerate())
         {
             if (c.UnificationV1Only > 0 && System.Array.IndexOf(UnificationV1, r.NewName) < 0) continue;   // ★AUD-06：0で名指しリストを外し変体表の全ルールへ一般化（作者裁定2026-09-03）
             if (r.Tier <= p.FormationTier) continue;          // 既に同格以上を成立済み

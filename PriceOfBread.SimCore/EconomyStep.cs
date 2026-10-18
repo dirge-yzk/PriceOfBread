@@ -584,39 +584,10 @@ public static class EconomyStep
         }
 
         // 植民地素材の輸入（植民地と制海で供給）。封鎖/植民地喪失で ColonialAccess↓→枯渇（§6.1）。
-        if (region.ColonialResources is { } cres)
-        {
-            // 経19（往復を閉じる）：パイプライン状態は係数有効時のみ遅延確保＝月跨ぎで Region に保持され pipe[gid] が先月の書込みを読む（読み出し⇄書き込みが閉じる）。
-            // ColonialImportLagMonths=1.0（点火2026-07-28）。0なら確保せず null のまま＝下段の即時加算のみ＝旧恒等（この地域が首都市場で全植民地財を受けるので首都州の pipe に一元化）。
-            if (coef.ColonialImportLagMonths > 0 && region.ColonialImportPipeline is null)
-                region.ColonialImportPipeline = new double[region.Markets.Length];
-            // 多国：保有植民地の固有資源（任意の財＝原料も完成財も）を産出率（開発度の飽和曲線）で輸入。初期≈0で投資が遅れて実る。
-            foreach (int gid in cres)
-            {
-                if (gid < 0 || gid >= region.Markets.Length) continue;
-                var m = region.Markets[gid];
-                double demandTarget = Math.Max(m.LastDemand, m.TargetStock) * region.ColonialAccess * region.ColonialOutput;
-                double demandGap = Math.Max(0, demandTarget - m.Stock);
-                double prodPush = region.ColonialSupply != null ? region.ColonialSupply[gid] : 0;   // 供給駆動の産出（需要と無関係に毎期流入）
-                double import = Math.Max(demandGap, prodPush);   // 産出が需要を超えれば在庫が膨らみ価格が暴落（フラッディング）
-                // 経19（海上リードタイム・点火1.0）：今月発注分を1段パイプライン（先月発注分を今月着荷）へ回し海上遅延を表現＝綿花飢饉型の価格スパイクが立つ。
-                // lag は 0..1 の連続近似（1で満額を1ヶ月遅延）として blend。0 なら即月＝旧恒等。
-                if (coef.ColonialImportLagMonths > 0 && region.ColonialImportPipeline is { } pipe && gid < pipe.Length)
-                {
-                    double lag = PoliticalQuantities.Clamp01(coef.ColonialImportLagMonths);
-                    double arrive = (1.0 - lag) * import + lag * pipe[gid];   // 今月着荷＝即時分＋先月パイプライン分
-                    pipe[gid] = import;                                        // 今月発注分を来月へ繰越
-                    m.Stock += arrive;
-                    m.LastImport += arrive;
-                }
-                else
-                {
-                    m.Stock += import;
-                    m.LastImport += import;
-                }
-            }
-        }
-        else
+        // ★(410) 恒等の削除：多国の世界（ColonialResources が空の配列）はここで入れる物が無い＝植民地財は植民地の州（首都州とは別の州）が自分で産んで売る。
+        //   旧の `ColonialResources is { } cres` の枝は空の配列を毎月回すだけだった（書き手が無く常に null の供給駆動の産出 Region.ColonialSupply・
+        //   常に 1.0 の産出率 Region.ColonialOutput・海上リードタイムのパイプライン Region.ColonialImportPipeline／係数 ColonialImportLagMonths ごと物理削除）。
+        if (region.ColonialResources is null)
         {
             // 単一国（テスト）：従来どおり全植民地財を入手率で輸入（産出率1.0）。
             foreach (var good in region.Goods)

@@ -2087,7 +2087,7 @@ public sealed class World
         // ★即応度は Power.Military に既に入っている（Diplomacy の戦力合成）＝ここでもう一度掛けない（2026-09-29 処理の一元化 段3 G・旧＝即応度の二乗で比べた）。
         if (SelfPower.Military < Coef.InvadeMilitaryFactor * target.Military) { reason = "兵力が不足"; return false; }
         // 海越え標的のみ船と制海権を要する（B-1）。陸続き標的（南独・満州・朝鮮など近接陸軍国の陸路侵攻）は船・制海権を免除＝距離減衰のみで律速。
-        bool seaCrossing = Diplomacy.IsSeaCrossing(SelfPower, target, Coef);
+        bool seaCrossing = Diplomacy.IsSeaCrossing(SelfPower, target);
         if (seaCrossing)
         {
             if (InvShipStock() < InvadeShipReq(target)) { reason = "船が不足"; return false; }
@@ -2109,7 +2109,7 @@ public sealed class World
         if (!CanInvade(target, out _)) return false;
         if (interest != null) interest.PlayerInterest = true;   // 植民地単位の侵略：狙った州を講和で優先的に取る（複数植民地の勢力で有効）
         ExpansionWill -= InvadeWillCost(target);
-        if (Diplomacy!.IsSeaCrossing(SelfPower!, target, Coef))   // 海越えのみ輸送船を消費（陸続きの陸路侵攻は船を使わない・B-1）
+        if (Diplomacy!.IsSeaCrossing(SelfPower!, target))   // 海越えのみ輸送船を消費（陸続きの陸路侵攻は船を使わない・B-1）
         {
             double need = InvadeShipReq(target), have = InvShipStock();   // 船は遠征で使い減り（在庫比で按分して need ぶん買う）
             if (have > 1e-9)

@@ -713,7 +713,7 @@ public class MilitaryTests
         var sim = Frozen152("イギリス", "日本");
         var dip = sim.Diplomacy; var c = sim.Coef;
         var uk = sim.Nations[0].World.SelfPower!; var jp = sim.Nations[1].World.SelfPower!;
-        Assert.True(dip.IsSeaCrossing(jp, uk, c) && dip.IsSeaCrossing(uk, jp, c), "前提が崩れた：英日が海越えでない");
+        Assert.True(dip.IsSeaCrossing(jp, uk) && dip.IsSeaCrossing(uk, jp), "前提が崩れた：英日が海越えでない");
         foreach (var p in new[] { uk, jp }) { p.NavalShare = new Share(0); Assert.True(p.Military > 0, "前提が崩れた：軍が無い"); }   // 艦隊の注意配分を0に（海の必要量＝海越えの陸軍だけ）
         foreach (var r in sim.Nations[0].World.Regions) r.LastPortThroughput = 0;
         foreach (var r in sim.Nations[1].World.Regions) r.LastPortThroughput = 0;
@@ -1045,7 +1045,7 @@ public class MilitaryTests
         var frw = sim.Nations[0].World;
         var fr = frw.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
         foreach (var p in new[] { fr, es, uk }) p.NavalShare = new Share(0);   // 静的な海軍＝軍×海軍シェア＝0（艦隊の注意配分を0に）
-        Assert.True(ArmyShape.Borders([fr, es], c)[1] > 0 && dip.IsSeaCrossing(fr, uk, c), "前提が崩れた：仏西が陸の国境で接し仏英が海越え、でない");
+        Assert.True(ArmyShape.Borders([fr, es], c)[1] > 0 && dip.IsSeaCrossing(fr, uk), "前提が崩れた：仏西が陸の国境で接し仏英が海越え、でない");
         ArmyShape.Compute(dip, c);
         double esLand0 = es.NeedLand, ukSea0 = uk.NeedSea;
         Assert.True(esLand0 > 0 && ukSea0 > 0, $"前提が崩れた：西の陸の必要量 {esLand0}・英の海の必要量 {ukSea0}");

@@ -640,7 +640,7 @@ public class WarThemeTests
         var dip = sim.Diplomacy;
         var uk = sim.Nations[0].World; var ukP = uk.SelfPower!; var frP = sim.Nations[1].World.SelfPower!;
         var c = uk.Coef;
-        Assert.True(c.SeaInvasionControlMin > 0 && dip.IsSeaCrossing(frP, ukP, c), "前提が崩れた：英仏の間が海越えでない");
+        Assert.True(c.SeaInvasionControlMin > 0 && dip.IsSeaCrossing(frP, ukP), "前提が崩れた：英仏の間が海越えでない");
         ukP.NavalShare = new Share(0); frP.NavalShare = new Share(0);   // どちらの海軍も0＝どちらも上陸できない＝陸戦は起きない
         Assert.False(dip.LandBattleHappens(ukP, frP, c), "前提が崩れた：海軍0でも上陸できる");
         Assert.True(frP.LandPower > 0 && ukP.LandPower > 0, "前提が崩れた：陸軍が無い");
