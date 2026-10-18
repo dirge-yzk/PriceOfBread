@@ -1,5 +1,10 @@
 """(404) 専制の改革の経路（00-REFORM）の読み手（読むだけ）。事前登録 measurements/rf_20261018_prereg.txt の [4] 止める線・[5] 記録の線・追記2 の定義どおり。
-使い方：python an_rf404.py A=<出力>/ins B=<出力>/ins N1=<出力>/ins N2=<出力>/ins [BF=<出力>/ins] [sec=lock,leg,col,top,r1,r2,r3,r4,r5,r6,r8,d2]
+使い方：python an_rf404.py A=<出力>/ins B=<出力>/ins N1=<出力>/ins N2=<出力>/ins [BF=<出力>/ins] [B3=…] [B4=…] [sec=lock,leg,col,top,r1,r2,r3,r4,r5,r6,r8,d2,rw]
+  ★(409) の追記：節 rw＝rw の事前登録 [5] の R3（払った後の正統性の最小）・R7（形が噛んだ試みの数・壁の一歩の cost÷avail の分布）。
+  ★R の番号の対応（rw 事前登録 [5] → この読み手の節。この読み手の節名の R は rf(404) の事前登録のもの＝取り違えない）：
+        rw R1（開幕の壁の一歩・開幕後の間隔）→ 節 r5（q≤4／q＞4）と r2（開幕の正統性）｜rw R2（法の施行の年）→ 節 r1｜rw R3（正統性の分布・払った後の avail）→ 節 r2 と rw｜rw R4（政変）→ 節 r3｜
+        rw R5（識字）→ 節 r4｜rw R6（凍結）→ 節 r5 と r6｜rw R7（形が噛んだ回数）→ 節 rw｜rw R8（首位・英仏・計算量）→ 節 top と r8（計算量は `.cost`）。
+  ★(409) 腕の名前：ヌル腕は A・N1・N2 だけ。B・B3・B4（指数 2・3・4）・BF はヌルに含めない（名前の先頭一致ではなく完全一致）。
   読む表＝reform_s・nation_s（<出力>/ins の *_s<種>.tsv）。腕の結果を見てから式を書かない＝式は事前登録の定義だけ。
   ヌル腕＝A・N1・N2（BF・B はヌルに含めない）。[止]＝止める線に使う物差し／[記]＝記録（採否に使わない）。
   行の重み：reform_s は挙げた 8 国が毎四半期・他の全ての国は年末だけ＝全国の比は年末の行（q%4==3）だけで数える（全ての国が 1 行ずつ＝一様の重み）。
@@ -147,29 +152,49 @@ def sec_leg(arms):
         res[a.name] = (n_low, n_all, n_au_low, n_au)
         print(f'  {a.name}：全ての国 {n_low}/{n_all}（{n_low / max(1, n_all):.3%}）・専制系 {n_au_low}/{n_au}（{n_au_low / max(1, n_au):.3%}）・種ごとの件数 {per_seed}')
     nm = max((res[n][2] / max(1, res[n][3]) for n in ('A', 'N1', 'N2') if n in res), default=float('nan'))
+    nc = max((res[n][0] for n in ('A', 'N1', 'N2') if n in res), default=float('nan'))   # 単位 2＝全ての国×年末の行の件数（政体に依らない・分母を処置が動かさない）
     for a in arms:
         if a.name in ('A', 'N1', 'N2'):
             continue
         r = res[a.name][2] / max(1, res[a.name][3])
-        print(f'  → {a.name}：専制系の比 {r:.3%}／ヌル腕の最大 {nm:.3%}＝{r / nm if nm > 0 else float("inf"):.2f} 倍（線は 2 倍以上）' + ('　★線に当たる' if (nm > 0 and r >= 2 * nm) or (nm == 0 and r > 0.005) else ''))
+        h1 = (nm > 0 and r >= 2 * nm) or (nm == 0 and r > 0.005)
+        c = res[a.name][0]
+        h2 = (nc > 0 and c >= 2 * nc and c - nc > 2 * math.sqrt(nc)) or (nc == 0 and c >= 5)
+        print(f'  → {a.name}：単位 1＝専制系の比 {r:.3%}／ヌル腕の最大 {nm:.3%}＝{r / nm if nm > 0 else float("inf"):.2f} 倍（線は 2 倍以上）' + ('　◆' if h1 else '') +
+              f'｜単位 2＝全ての国の件数 {c}／ヌル腕の最大 {nc}（線は 2 倍以上かつ差が 2√最大 を超える・最大 0 なら 5 件以上）' + ('　◆' if h2 else ''))
+        print(f'      判定＝両方の単位が当たったときだけ★線に当たる：' + ('★線に当たる' if h1 and h2 else ('片方だけ（記録・採否に使わない）' if h1 or h2 else '当たらない')))
 
 
 def sec_col(arms):
-    print('=== [止 ⑥①] 同じ国が毎回壊れる：最大人口 5000 千人以上の国が、最大から最後の人口が半分未満になった種の数（国名ごと・8/10 以上が線）===')
+    print('=== [止 ⑥①] 同じ国が毎回壊れる：最大人口 5000 千人以上の国が、最大から最後の人口が半分未満になった・または最後の四半期まで残らなかった種の数（国名ごと・同名の個体は 1 種で 1 回・8/10 以上が線・ヌル腕は 2/10 以下）===')
+    res = {}
     for a in arms:
-        cnt = collections.Counter()
+        cnt = collections.defaultdict(set)   # 国名 -> 壊れた種の集合（同名の個体が 2 つある種も 1 回）
         for s in a.seeds:
+            rows_all = a.nat(s)
+            qmax = max(r['quarter'] for r in rows_all)
             by = collections.defaultdict(list)
-            for r in a.nat(s):
+            for r in rows_all:
                 by[r['nationUid']].append(r)
             for uid, rows in by.items():
                 rows.sort(key=lambda r: r['quarter'])
                 mx = max(r['populationK'] for r in rows)
-                if mx >= 5000 and rows[-1]['quarter'] >= 600 and rows[-1]['populationK'] < 0.5 * mx:
-                    cnt[rows[-1]['nation']] += 1
+                if mx >= 5000 and (rows[-1]['quarter'] < qmax or rows[-1]['populationK'] < 0.5 * mx):
+                    cnt[rows[-1]['nation']].add(s)
             a.drop(s)
-        top = cnt.most_common(6)
+        res[a.name] = {n: len(v) for n, v in cnt.items()}
+        top = sorted(res[a.name].items(), key=lambda kv: -kv[1])[:6]
         print(f'  {a.name}：' + ('・'.join(f'{n} {c}/{len(a.seeds)}' for n, c in top) if top else '無し') + ('　★8/10 以上あり' if any(c >= 8 for _, c in top) else ''))
+    nulls = [res[n] for n in ('A', 'N1', 'N2') if n in res]
+    for a in arms:
+        if a.name in ('A', 'N1', 'N2'):
+            continue
+        hit = []
+        for n, c in res[a.name].items():
+            nm = max((x.get(n, 0) for x in nulls), default=0)
+            if c >= 8 and nm <= 2:
+                hit.append(f'{n}（{c}/{len(a.seeds)}・ヌル腕の最大 {nm}）')
+        print(f'  → {a.name}：線に当たる国 ' + ('・'.join(hit) + '　★線に当たる' if hit else '無し（8/10 以上かつヌル腕が 2/10 以下の国は無い）'))
 
 
 def sec_top(arms):
@@ -371,7 +396,30 @@ def sec_d2(arms):
         print(f'  {a.name}：行 {n}・Religious の行 {rel}・財源が立つ行 {pos}・購入の和 ' + ' '.join(f'{k}:{v:.1f}' for k, v in buy.most_common(8)))
 
 
-SECS = {'lock': sec_lock, 'leg': sec_leg, 'col': sec_col, 'top': sec_top, 'r1': sec_r1, 'r2': sec_r2, 'r3': sec_r3, 'r4': sec_r4, 'r5': sec_r5, 'r6': sec_r6, 'r8': sec_r8, 'd2': sec_d2}
+def sec_rw(arms):
+    print('=== [記 rw R3/R7] 形が噛んだ試みの数（wallLegitBlockedCount＝試みの数・旗 1 の世界でだけ「正統性の側」と読める）・壁の一歩の cost÷avail の分布・壁の一歩の行の正統性の最小（四半期末・払った後の回復を含む）===')
+    for a in arms:
+        blk = blk_late = 0; shares = []; legs = []; passes = 0; nopass_cols = False
+        for s in a.seeds:
+            for r in a.reform(s):
+                if 'wallLegitBlockedCount' not in r:
+                    nopass_cols = True
+                    continue
+                q = int(r['quarter'])
+                if q > 3:
+                    blk += int(r['wallLegitBlockedCount'])
+                    blk_late += int(r['wallLegitBlockedCount']) if q > 4 else 0
+                if int(r['wallPassCount']) > 0:
+                    passes += int(r['wallPassCount'])
+                    if r['wallPassCostShareOfAvailMax'] > 0:
+                        shares.append(r['wallPassCostShareOfAvailMax'])
+                    legs.append(r['legitimacyShare'])
+        if nopass_cols and not shares and not blk:
+            print(f'  {a.name}：列が無い（m407 以前の表）'); continue
+        print(f'  {a.name}：噛んだ試み（q＞3）{blk}（うち q＞4 {blk_late}）｜壁の一歩の行 {len(shares)}・一歩の数 {passes}｜cost÷avail 中央値 {med(shares):.3f}・90% 点 {quant(shares, 0.9):.3f}・最大 {max(shares, default=float("nan")):.3f}｜壁の一歩の行の正統性 最小 {min(legs, default=float("nan")):.3f}・5% 点 {quant(legs, 0.05):.3f}・中央値 {med(legs):.3f}')
+
+
+SECS = {'lock': sec_lock, 'leg': sec_leg, 'col': sec_col, 'top': sec_top, 'r1': sec_r1, 'r2': sec_r2, 'r3': sec_r3, 'r4': sec_r4, 'r5': sec_r5, 'r6': sec_r6, 'r8': sec_r8, 'd2': sec_d2, 'rw': sec_rw}
 
 
 def main():
