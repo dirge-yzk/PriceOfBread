@@ -1815,7 +1815,7 @@ public sealed class Simulation
                 double q = pr.Output * pr.Scale;
                 if (!(q > 0)) continue;
                 if (pr.RecipeName == "職人") { artOut[pr.GoodId] += q; oldOut[pr.GoodId] += q; oldName[pr.GoodId] ??= "職人"; }
-                else if (pr.DiscoveryRow >= 0) { newOut[pr.GoodId] += q; newName[pr.GoodId] ??= pr.RecipeName; }
+                else if (pr.DiscoveryRow >= 0 && !(pr.DiscoveryRow == Discovery.SyntheticDyeRow && !(World.Coef.DiscoveryEngineerHalfPerMonth > 0))) { newOut[pr.GoodId] += q; newName[pr.GoodId] ??= pr.RecipeName; }   // ★(415) 旗0の合成染料は行が無かった旧と同じ分類（従来の製法）
                 else { oldOut[pr.GoodId] += q; oldName[pr.GoodId] ??= (pr.RecipeName.Length > 0 ? pr.RecipeName : "従来の製法"); }
             }
             for (int g = 0; g < nGoods; g++)
