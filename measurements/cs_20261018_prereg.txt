@@ -76,3 +76,10 @@
 
 [9] 触る行（並行の線との衝突の見込み）
   BilateralMarket.cs（ClearScratch の欄 3 本・InternationalMarket の欄 1 本と計器 3 本・thin の直後の旗の宣言・助走のない番の準備・財のループの頭の stapleG・売り手の位置の書き込み・買い手行の入り口の番の判定と覚えの選択・売り手の走査の 1 行・成約の覚えの記録・top-of-loop の探し直し・行の終わりの覚えの作成）／Coefficients.cs（OpeningFiscalAlign の次に旗 3 本）／Model.cs（Market.ClearPartners・Region.ClearSellerPos／ClearSellerStamp）／Tests（ClearingScopeTests.cs 新規・DormantIdentityTests.cs の休眠表に旗 3 本）／measurements（cs_20261018_prereg.txt）。別の線が BilateralMarket.cs の清算を触ると同じ行で衝突しうる（特に買い手行の入り口と成約の記帳）。
+
+[10] 追記1（測る前・形のコードを書いた後・腕は未実行）
+  ① 覚えの人数 K は売り手の数（高々 州の数）を超えない／番の N は 100 万を超えない（POB_COEF の極端な値で配列が膨らまないための守り・旗 0 の経路には入らない）。
+  ② 足した印字 1 行（計器の列は 0 本）：POB_TIME の印字に 番でなくて飛ばした行（CntIdleSkips）・覚えで絞った行（CntScopeRows）・覚えが尽きて探し直した行（CntScopeFallbacks）を足した（PriceOfBread.Runner/Program.cs）。R8 の読み先。
+  ③ 記録の線 R9（新）＝輸送の容量の取り分の偏り：番人の盤面づくりで分かった事＝港州の輸送の容量の取り分は前の清算の潜在量に比例する（TransportShareByPotential 既定 1）。①は覚えの相手に買いを寄せる＝取り分が相手の港州へ寄る向きの帰還が強まりうる（片方向の錠の疑い・README 1-8）。国ごとの港州の取り分の最大÷平均（B−A）を後半の読み手で出す。止める線ではない（記録）。この偏りで探し直しの割合（R5）が上がるかも合わせて読む。
+  ④ 番人は 14 本（旗 0 と同じ経路・番・起こす理由 3 つ・主食の線・助走・thin は触らない・覚えの先頭の優先・探し直しで旗 0 と 1 ビット同じ・覚えの無い行・最初の清算は旗に依らない・人数と重複・作業領域・四半期の持ち越し）。突然変異は 9 種（番の判定／PrevImport／LastShortage／主食の線／覚えの消去／探し直し／覚えの目印／覚えの記録／thin の条件）。うち 8 種は最初の番人で赤。覚えの消去を消す変異だけが最初は生き残った（番人が最初の清算の頭の消去を見ていなかった）ため、番人 1 本（前の四半期の覚えは次の四半期に持ち越さない）を足して赤になることを確かめた。
+  ⑤ census の限り（§1 の上限）：1 種・作業用ビルド・読むだけ。成績表の裏づけではない。

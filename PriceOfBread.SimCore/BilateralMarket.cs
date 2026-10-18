@@ -631,7 +631,7 @@ public sealed partial class InternationalMarket
         //   商人は取引のある相手から買う（情報の限り）・相手探しは四半期に 1 回（最初の清算）。
         //   覚えは作業領域（Market.ClearPartners・[NonSerialized]・ClearFailLp と同じ型）＝四半期の最初の清算が全て消して作り直す（四半期の境のセーブは次の清算が最初の清算＝作り直す）。最初の清算に成約しなかった行・覚えの無い行は今のとおり全ての売り手を見る。
         bool scopeOn = c.ClearingPartnerScope >= 1;
-        int scopeK = scopeOn ? (int)c.ClearingPartnerScope : 0;
+        int scopeK = scopeOn ? (int)Math.Min(c.ClearingPartnerScope, Math.Max(tc, 1)) : 0;   // 覚えの人数は売り手の数（高々 tc）を超えない
         int[] member = scopeOn ? ClearScratch.FitZero(ref sc.Member, tc) : sc.Member;   // 売り手の位置ごとの目印（財の売り手は高々 tc 人）
         int rowStamp = 0;   // 行の通し番号（この清算の中で増える・目印の配列は清算ごとに 0 から）
         Region[] dealtTmp = scopeOn ? ClearScratch.Fit(ref sc.DealtTmp, scopeK) : sc.DealtTmp;
@@ -653,7 +653,7 @@ public sealed partial class InternationalMarket
         //   眠る行＝前の月に輸入が無く（PrevImport）不足も無い（LastShortage）行のうち、番でない行。番＝(四半期の通し番号＋行の鍵)÷N の余りが 0（行ごとに位相が散る＝全行が同じ四半期に起きない）。
         //   起こす理由＝取引があった（PrevImport）・不足があった（LastShortage＝飢饉の輸入を遅らせない）・番が来た。新しい状態は持たない（暦と名前と財の番号から導く）。
         //   助走（暦が止まる）では番が動かない＝使わない。
-        int idleN = c.ClearingIdleSearchQuarters >= 2 && !nations[0].World.WarmupFrozen ? (int)c.ClearingIdleSearchQuarters : 0;
+        int idleN = c.ClearingIdleSearchQuarters >= 2 && !nations[0].World.WarmupFrozen ? (int)Math.Min(c.ClearingIdleSearchQuarters, 1e6) : 0;
         uint idleQ = 0; uint[] idleKey = sc.IdleKey; bool idleStapleOnly = c.ClearingIdleShortageWakesStaplesOnly > 0;
         if (idleN > 0)
         {

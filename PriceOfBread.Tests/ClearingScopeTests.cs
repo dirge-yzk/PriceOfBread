@@ -297,6 +297,29 @@ public class ClearingScopeTests
     }
 
     [Fact]
+    public void 前の四半期の覚えは次の四半期に持ち越さない()
+    {
+        // 覚えを作った四半期の次の四半期の最初の清算で、その行が飛ばされる（買えない）と覚えは作り直されない。覚えが残っていれば次の月の清算がそれで絞る＝消えていなければ旗 0 と違う
+        int xi = FirstDealt();
+        double FromX(int K)
+        {
+            var (sim, g, sellers, buyer, wp) = AfterFirstClearing(K);
+            var m = buyer.Markets[g];
+            if (K > 0) Assert.NotNull(m.ClearPartners);
+            double demand = m.LastDemand;
+            m.LastDemand = 0;   // 次の四半期の最初の清算ではこの行は需要が無く飛ばされる（覚えを作り直せない）
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+            Assert.Null(m.ClearPartners);   // 最初の清算の頭で消えている
+            m.LastDemand = demand; m.PrevImport = 1; m.LastImport = 0; m.Stock = 0;
+            foreach (var r in sellers) { var sm = r.Markets[g]; sm.LastExport = 0; sm.LastImport = 0; }
+            sellers[xi].Markets[g].Price = 1.0 * wp;
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+            return sellers[xi].Markets[g].LastExport;
+        }
+        Assert.Equal(BitConverter.DoubleToInt64Bits(FromX(0)), BitConverter.DoubleToInt64Bits(FromX(1)));
+    }
+
+    [Fact]
     public void 四半期の最初の清算は覚えを消して作り直す()
     {
         // 次の四半期の最初の清算の頭で覚えが消える＝その清算は旗に依らず同じ（旗 0 と旗 1 の双子が 1 ビットも違わない）
