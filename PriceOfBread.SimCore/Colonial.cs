@@ -48,7 +48,7 @@ public static class Colonial
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;
         double shipBurden = 0, quinineWant = 0;
         double colUnitPop = w.Diplomacy is { } dipM && dipM.ColonyUnitPop > 1e-9 ? dipM.ColonyUnitPop : 1.0;   // 質量の単位（千人）＝初期の植民地の平均の住民数（旧＝質量→個数の錨 InitialColonyMass ÷ 係数 ColonialPopScale）
-        // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList に居ないので、
+        // ★植民地の州昇格（2026-08-26・旧の旗 ColoniesAreRegions は 2026-10-18 に焼き込み）：昇格した植民地は ColonyList に居ないので、
         //   **同じ式**を植民地格の州にも当てる＝帝国の過伸展のコストが昇格で消えない。
         //   ⚠単位を揃える：人口ウェイトは col.Population と同じ物差しへ戻す（PopSize = Population × ColonyUnitPop の逆）。
         //   ⚠二重計上は起きない＝昇格の瞬間に ColonyList から Remove されるので、どちらか一方にしか居ない。
@@ -60,14 +60,13 @@ public static class Colonial
             shipBurden += c.ColonyShipOccupyPerDist * massDist;   // 距離×質量に比例の海運占有（帆船の船腹の目盛り＝下で汽船の分を軽くする）
             if (malarial) quinineWant += c.MalariaQuininePerColony;   // マラリア地は風土病鎮静にキニーネを要する（供給が実コスト）
         }
-        if (c.ColoniesAreRegions > 0)
-            foreach (var cr in w.Regions)
-            {
-                if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
-                var ccr = Places.Coord(cr.Name);
-                double pw = cr.SumPopulation() / colUnitPop;   // col.Population と同じ物差しへ戻す
-                AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
-            }
+        foreach (var cr in w.Regions)
+        {
+            if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
+            var ccr = Places.Coord(cr.Name);
+            double pw = cr.SumPopulation() / colUnitPop;   // col.Population と同じ物差しへ戻す
+            AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
+        }
         double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // 機関の時代係数（民間の汽船と同じ1本＝Transport.Step）
         double steam = w.ShipSteamShare.Value;
         double steamMult = c.ShipTier2CapMult * Discovery.GoodGate(r, c.ShipTier2GoodId) / era;   // R4②：汽船1単位の容量倍（Transport.BuyToward と同じ式・era≥0.05＝EraFactor の床で有限）

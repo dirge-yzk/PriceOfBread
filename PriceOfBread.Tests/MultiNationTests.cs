@@ -8,8 +8,7 @@ namespace PriceOfBread.Tests;
 /// 複数国家の並列シミュレーション（§6.1 国際層）の検証。4国家モデル（仏・日・英・米）が
 /// 独立した94財経済を回しつつ共有外交で相互作用する。各国の保存則・決定論・差別化・戦争の作動を確かめる。
 /// </summary>
-// ⚠2026-08-28：戦闘ログ書式・覇権緊張の2件は ColoniesAreRegions=0 で環境固定＝検証対象は機構（ログ書式・緊張の集中）であって
-//   植民地の政治ではない。昇格を入れると4カ国世界の戦争軌道が変わり、200四半期で戦闘が1件も起きない世界線に入る（実測）。
+// （戦闘ログ書式・覇権緊張の2件は旧の旗 ColoniesAreRegions=0 で環境固定していた〔2026-08-28〜〕が、2026-10-18 に旗を焼き込んだ際に固定を外して緑のまま＝軌道が変わった後の木では固定は要らなかった。）
 /// ★2026-10-17（開発の高速化）：番人を4つのクラスへ分けた（xUnit はクラスごとに並列）。共有の道具と同じ走行（Lazy＝1回だけ回す）はここ。
 internal static class MultiNationShared
 {
@@ -315,7 +314,7 @@ public class MultiNationTests3
     [Fact]
     public void 戦闘ログは日付が二重にならない書式で出る()
     {
-        var sim = new MultiNationSim(FourNations(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
+        var sim = new MultiNationSim(FourNations(), seed: 1789);
         sim.Run(200);
         System.Collections.Generic.List<string> Battles() => sim.Diplomacy.Log.Where(l => l.Contains("陸戦で") || l.Contains("海戦で")).ToList();
         // ★(388) 戦いが起きる時期は軌道で動く（開幕の国庫が史実の比になった後は 200 か月で戦いの無い軌道があった）＝書式の番人なので戦いが出るまで進める（上限 1200 か月）
@@ -403,7 +402,7 @@ public class MultiNationTests4
         //   29,193 対 29,326 に反転した（緊張の内訳の脅威でも 929 対 1,562＝日本のほうが大きい国になった）。英が覇権を保つかは創発＝帯が見る。
         //   ⇒ 本義だけを測る：英が初期条件（史実の1783年）で明白な覇権国である最初の10年（40四半期）に、緊張の内訳の「脅威」（TensionReason.Threat）の
         //   累積を比べる（初期の史実ライバルやイデオロギーの緊張は混ぜない）。着手前・(62)・回1-2 単独・合わせた木の4本とも英 149〜175・日本 0。
-        var sim = new MultiNationSim(FourNations(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
+        var sim = new MultiNationSim(FourNations(), seed: 1789);
         sim.Nations[1].World.ParliamentEnabled = false;
         double britThreat = 0, japanThreat = 0;
         var brit = sim.Diplomacy.Powers.First(p => p.BaseName == "イギリス");

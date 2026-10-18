@@ -3123,12 +3123,11 @@ public sealed class Diplomacy
             if (!takePrize && r.Id == 0) continue;   // 境界改定は首都を取らない（takePrize=必要な土地は首都も可）
             double dist = DistToWinner(r);
             if (dist == double.MaxValue) continue;   // 上陸ゲート落ち（渡海が要るのに制海権が無い）＝植民地格でも取れない
-            // ★植民地格の州（2026-08-27・ColoniesAreRegions の付け替え）：旧・植民地奪取（ColonyCapture）は
+            // ★植民地格の州（2026-08-27・旧の旗 ColoniesAreRegions の付け替え）：旧・植民地奪取（ColonyCapture）は
             //   **硬い距離上限を持たず**、射程ゲート（旧の旗 ColonyCaptureReachGate＝海軍あり＋制海権≧SeaInvasionControlMin）だけだった。
             //   州昇格でその土地が CedeTerritory の管轄へ移った今、同じ規則を映さないと**海外植民地の征服が消える**
-            //   （英が七年戦争でカナダを取れない＝首都から4000km圏の外）。⚠ColoniesAreRegions=0 では植民地格の州が
-            //   存在しないので1度も真にならない＝厳密恒等。
-            bool colonialReach = c.ColoniesAreRegions > 0 && r.Tier == RegionTier.Colonial
+            //   （英が七年戦争でカナダを取れない＝首都から4000km圏の外）。
+            bool colonialReach = r.Tier == RegionTier.Colonial
                 && winner.NavalPower > 1e-9 && seaCtl >= c.SeaInvasionControlMin;
             if (constrained && dist > cessionRange && !colonialReach) continue;   // 投射圏外＝割譲候補にしない（圏は技術で伸びる）
             double g = 0;

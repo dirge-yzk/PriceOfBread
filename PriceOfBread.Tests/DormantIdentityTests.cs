@@ -230,7 +230,7 @@ public class DormantIdentityTests
         "IndirectTaxInBudgetBase", "CurrencyReformEnabled", "CapitalMobilityLawGate", "EuphoriaUsesStableReserve", "CoercionSoftCap", "TrilemmaRateGate", "SilverLightDiscipline", "CapitalOpennessTariffWeight",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 政8（既定1.0の旗15本の 0 の枝を削除）と、0 の枝だけで読んでいた NationBuildCivicFloor・NationConsciousnessCoreWeight
         "CivicOpennessEnabled", "DynamicParties", "EarlyElectionEnabled", "ElectionEventEnabled", "PolityLabelFromAxes", "RepublicanDeposition", "CrownFormMutation", "SeatsFrozenBetweenElections", "ParliamentSeatOnOpen", "RoyalistGate", "CrownlessCollapseKeepsRepublic", "SuffrageScopeGate", "SecretBallotGate", "StateReligionGate", "SocialSecurityLawGate", "NationBuildCivicFloor", "NationConsciousnessCoreWeight",
-        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 軍14（ColoniesAreRegions を除く既定1.0の旗の 0 の枝を削除）と、0 の枝だけで読んでいた WarExhaustionMilitancy・WarMilitancyRatePerMonth・LandReachKm
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 軍14（既定1.0の旗の 0 の枝を削除。ColoniesAreRegions だけは下の最後の名簿）と、0 の枝だけで読んでいた WarExhaustionMilitancy・WarMilitancyRatePerMonth・LandReachKm
         "ArmyShapeEnabled", "ColonialRegionCession", "ConscriptionScalesWithWar", "EnableFormations", "CultureFormationGate", "CultureFormationNeedsGain", "FormationCapitalMove", "ImposeRegimeEnabled", "PeaceInterventionEnabled", "PeaceInterventionProbe", "InterventionRefusalSymmetric", "InterventionRefusalWar", "RankBracketsMerged", "SubmitCountsAllies", "ThreatUsesColonyValue", "TradeTreatyEnabled", "VassalDefectionUsesSubmitMeasure", "VassalTransferOnCrush", "WarMilitancyViaTarget", "WarExhaustionMilitancy", "WarMilitancyRatePerMonth", "WarNeedsReach", "WarWearinessDecays", "FrozenTensionDecays", "AntiImperialCoversRegions", "ContinentalLandReach", "LandReachKm", "ColonyCaptureReachGate", "RationingGate", "UnificationWarEnabled", "WarLuckNeedsContact",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 人3（出生・台帳・窃盗）と交4（DiscoveryTierGate）
         "FertilityAffectsBirthsOnly", "FertileWomenBirths", "CoupleLimitedBirths", "TradeLedgerFix", "CrimeVictimBasis", "DiscoveryTierGate",
@@ -240,6 +240,8 @@ public class DormantIdentityTests
         "AiLawGateUnified", "AiLawWriteCoverage", "AiSupplyChainEyes", "AiWorldPriceEntry", "AiProtectiveTariff", "AiBuildGuardRelax", "InvadeShipSeaDistance", "ExternalPressureDerived", "WorldPriceInitFromRefPrice", "CivilWarPredicateUnified",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 財3の最後（SilverStandardGate＝銀本位の主旗）
         "SilverStandardGate",
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 軍14の最後（ColoniesAreRegions＝植民地の州昇格。読み手が多いので最後・環境固定のテストは固定を外して緑)
+        "ColoniesAreRegions",
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

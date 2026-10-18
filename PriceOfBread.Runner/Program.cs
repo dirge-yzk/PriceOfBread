@@ -305,16 +305,15 @@ if (args.Length > 0 && args[0] == "armyshape")
 //   dotnet PriceOfBread.Runner.dll instprobe
 if (args.Length > 0 && args[0] == "instprobe")
 {
-    foreach (var flag in new[] { 0.0, 1.0 })
     {
-        var cf = new Coefficients { ColoniesAreRegions = flag };
+        var cf = new Coefficients();
         var msI = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], 1789UL, null, cf);
         msI.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
         msI.Nations[1].World.ParliamentEnabled = false;
         for (int q = 0; q < 400; q++) msI.StepQuarter();
         var wB = msI.Nations[2].World;
         int colReg = 0; foreach (var rr in wB.Regions) if (rr.Tier == RegionTier.Colonial) colReg++;
-        Console.WriteLine($"ColoniesAreRegions={flag}　英：州{wB.Regions.Count}（うち植民地格{colReg}）　植民地オブジェクト{wB.SelfPower?.ColonyList.Count}");
+        Console.WriteLine($"英：州{wB.Regions.Count}（うち植民地格{colReg}）　植民地オブジェクト{wB.SelfPower?.ColonyList.Count}");
         Console.WriteLine($"   Freedom {wB.Freedom:F3}（閾値 {cf.FrontierFreedomThreshold:F3}）　教育法 {wB.EducationLaw}");
         Console.WriteLine($"   Elite {wB.Elite:F4}　EliteCore {wB.EliteCore:F4}");
         Console.WriteLine($"   特許 {wB.PatentLaw}　株式会社 {wB.JointStock}　鉄道 {wB.Railways}　技術 {wB.TechLevel:F2}");
@@ -5339,7 +5338,7 @@ if (args.Length > 0 && args[0] == "integration")
     Console.WriteLine($"政変：総遷移 {polityChanges.Sum()} 回／内戦を経験 {civilWars}カ国・分離戦 {secessions}カ国");
     int decisive = dip.Powers.Sum(p => p.WarsWon);
     Console.WriteLine($"戦争：総数 {warsSeen.Count}（決定的講和 {decisive}・白紙 {warsSeen.Count - decisive}）");
-    Console.WriteLine($"植民地：割譲（戦争で本国交代）{cessions} 回　（ColonyList経路のみ＝ColoniesAreRegions点火後の州昇格した植民地は数えていない）");
+    Console.WriteLine($"植民地：割譲（戦争で本国交代）{cessions} 回　（ColonyList経路のみ＝州昇格した植民地は数えていない）");
     Console.WriteLine($"運河：" + string.Join("／", dip.Chokepoints.Where(c => c.IsCanal).Select(c => $"{c.Name} {(canalOpenQ.ContainsKey(c.Name) ? $"{1783 + canalOpenQ[c.Name] / 4}年 開通" : "未開通")}")));
     Console.WriteLine($"経路（海峡/運河の封鎖された四半期）：" + string.Join("／", dip.Chokepoints.Select(c => $"{c.Name} {cpBlockedQ.GetValueOrDefault(c.Name)}Q")));
     Console.WriteLine($"極端価格：天井張り付き財の最大数 {maxCeilGoods}（全{ic.Length}カ国合計・植民地原料の構造的天井を含む）");

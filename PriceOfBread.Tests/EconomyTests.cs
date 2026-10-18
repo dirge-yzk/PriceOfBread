@@ -639,7 +639,7 @@ public class EconomyTests
     public void 希少鉱物の産地の賦存は門の無い世界の採掘の能力の合計を保つ_植民地も数える()
     {
         var c = new Coefficients();
-        Assert.True(c.ScarceMineralGate > 0 && c.ColoniesAreRegions > 0, "前提：産地の門と植民地の州化が点火済み");
+        Assert.True(c.ScarceMineralGate > 0, "前提：産地の門が点火済み");
         int k = 0, all = 0;
         foreach (var n in WorldData.Nations())
         {

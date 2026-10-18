@@ -42,8 +42,7 @@ public sealed class MultiNationSim
     }
 
     /// <param name="coef">★2026-08-26：係数を外から渡せるようにした（既定 null＝new Coefficients()＝従来と厳密同値）。
-    /// ⚠**構築時に走る機構**（植民地の州昇格 ColoniesAreRegions）が出来たので、構築後に w.Coef を書き換えても間に合わない。
-    ///   テストが旧経路（Colony オブジェクトの入植者昇格）を検証するには、構築の前に落とす口が要る。</param>
+    /// ⚠**構築時に走る機構**（植民地の州昇格 PromoteAllColonies）があるので、構築後に w.Coef を書き換えても間に合わない場合は、構築の前に係数を渡す口がここ。</param>
     public MultiNationSim(IReadOnlyList<NationConfig> configs, ulong seed, Func<NationConfig, INationAgent>? agentFactory = null, Coefficients? coef = null)
     {
         _coef = coef ?? new Coefficients();
@@ -135,15 +134,15 @@ public sealed class MultiNationSim
         // これが無いと最初の四半期が締まるまで RankOf が既定値=弱小を返し、UI で全国が「弱小」に見える（純関数＝ダイナミクス不変・四半期末に再計算で上書き）。
         Diplomacy.ComputeRanks(_coef);
 
-        // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）＝開始時点で全植民地を州にする。
+        // ★植民地の州昇格（2026-08-26・旧の旗 ColoniesAreRegions は 2026-10-18 に焼き込み）＝開始時点で全植民地を州にする。
         //   ⚠植民地総数の基準線を取る**前**に走らせる＝昇格した分は最初から植民地でない（保存検査の基準線と整合）。
-        if (_coef.ColoniesAreRegions > 0) PromoteAllColonies();
+        PromoteAllColonies();
 
         // 植民地総数の初期値（監査2026-07-12 死12）：Validationの保存検査の基準線＝植民地は移転（戦争・植民地化）と独立（IndependentColoniesへ）だけで増減しない。
         foreach (var p in Diplomacy.Powers) Diplomacy.InitialColonyCount += p.Colonies;
     }
 
-    /// <summary>★開始時点の一括昇格（2026-08-26・ColoniesAreRegions）。入植者昇格（Colonial.Step）と**同じ動詞**を通す
+    /// <summary>★開始時点の一括昇格（2026-08-26・旧の旗 ColoniesAreRegions）。入植者昇格（Colonial.Step）と**同じ動詞**を通す
     /// ＝人口・蓄え・資源賦存・気候ゲート・保存の記帳を二重定義しない。格は Colonial のまま（議会代表なし・維持費あり）。
     /// ⚠同名の州が既に居る国では昇格しない＝州名の一意性（座標表・地図・扼者解決のキー）を守る＝既存ガードと同じ規律。</summary>
     private void PromoteAllColonies()

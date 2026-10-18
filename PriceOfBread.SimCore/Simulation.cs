@@ -709,7 +709,7 @@ public sealed class Simulation
         // ★密閉世界（単国シム＝較正・テスト・sharedWorld=false）では産地ゲートを効かせない（2026-09-06）：運ぶ相手がいない世界で産地を絞るのは
         //   「地理」でなく「欠乏の注入」＝実測で硫黄0→化学→紙→教育→行政力の鎖が絶えた（TaxTests/MobilityTests）。史実の英は硫黄をシチリアから運んだ。
         if (!sharedWorld || !(c.ScarceMineralGate > 0) || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
-        bool withCol = c.ScarceCountsIncludeColonies > 0 && c.ColoniesAreRegions > 0;
+        bool withCol = c.ScarceCountsIncludeColonies > 0;
         EnsureScarceCounts(withCol);
         int k = (withCol ? _scarceCountsWithColonies : _scarceCounts)![good];
         int total = withCol ? _scarceTotalWithColonies : _scarceProvinceTotal;

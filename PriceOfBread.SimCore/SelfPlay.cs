@@ -54,10 +54,10 @@ public static class NationalScore
             //   実測（隔離計器 tiersatprobe・seed1-3×604Q）：分割後の満足度のまま読むと国間の標準偏差が 0.082→0.169（×12 で 0.99→2.02 点）へ倍増し、
             //   列強を決める計器の中で生活水準の重みだけが黙って倍になる。補給の充足は分割前の満足度と同じ量＝重み12の較正がそのまま意味を持つ。
             MeanSupplyFill(w) * SatisfactionWeight,
-            // ★2026-08-28：植民地項を**個数→質量**へ（ColoniesAreRegions>0 のみ・0では従来の個数＝厳密恒等）。
+            // ★2026-08-28：植民地項を**個数→質量**へ（旧の旗 ColoniesAreRegions は 2026-10-18 に焼き込み）。
             //   個数は州追加の細分化で「行を分けただけで増える」＝スペイン常勝22/30の直接の原因だった（単位の非対称）。
             //   質量＝元の Colony.Population 単位（細分化で不変）。旧世界の英植民地8個≒質量8前後＝スケールも概ね保存。
-            (w.Coef.ColoniesAreRegions > 0 ? (w.SelfPower?.ColonyMassUnits() ?? 0) : (w.SelfPower?.Colonies ?? 0)) * ColonyWeight);  // 植民地（帝国の富）
+            (w.SelfPower?.ColonyMassUnits() ?? 0) * ColonyWeight);  // 植民地（帝国の富）
     }
     // 技術（改修2026-06-28・ユーザー指示「技術力で差がでるように」）：技術水準＝1人あたりの発展の柱。欧州の技術優位を国力評価へ直接反映＝大人口だけでは上位に立てない。
     public static double Tech(World w) => w.Coef.ScoreTechWeight * Math.Max(0, w.TechLevel);
@@ -575,11 +575,9 @@ public sealed class UtilityAgent : INationAgent
         //   近代化投資レバーが毎四半期0に潰され、開幕バーストも踏めず Ind 0.33→0.67 に沈んだ（実測 indprobe 120Q）。
         //   飽和は既存の「帝国規模の飽和」定数 ColoniesForFullColonial を再利用（Colonial.cs の反帝世論と同じ写像）＝
         //   新しいスカラーを置かない。守るべき帝国がある事実は残り、規模の無限加算だけが消える。
-        // ★型統合後の旧読み手（wave2b G06#2）：NationalScore.Wealth は ColoniesAreRegions>0 で個数→質量へ切替済み（州細分化で「行を分けただけで増える」個数の是正）。
+        // ★型統合後の旧読み手（wave2b G06#2）：NationalScore.Wealth は個数→質量へ切替済み（州細分化で「行を分けただけで増える」個数の是正）。
         //   ここは旧単位のまま個数を読んでいた＝分子だけ質量へ揃える（換算は Wealth/:1558-1559 と同じ錨＝初期の 個数/質量）。
-        double colonyUnits = w.Coef.ColoniesAreRegions > 0
-            ? (w.SelfPower?.ColonyMassUnits() ?? 0)
-            : (w.SelfPower?.Colonies ?? 0);
+        double colonyUnits = w.SelfPower?.ColonyMassUnits() ?? 0;
         double colonyDefense = ColonyDefenseWeight * w.Coef.ColoniesForFullColonial
                              * Math.Min(1.0, colonyUnits / Math.Max(1.0, w.Coef.ColoniesForFullColonial));
         // 生存効用（改修2026-06-28）：存亡の脅威なら、緊張に出る前から軍拡を強める（弱小・中堅の自衛＝生存目的の行動）。

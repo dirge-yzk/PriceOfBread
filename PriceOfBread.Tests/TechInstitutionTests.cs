@@ -8,11 +8,8 @@ namespace PriceOfBread.Tests;
 /// 技術は社会（エリート・自由・教育）から連続で伸び、多国では世界世界の技術水準へ収束する（後発の優位）。
 /// 宗教教育の社会はエリートが乏しく追いつけない（永遠の二番手）。制度は社会の閾値で解禁・施行される。
 /// </summary>
-// ⚠2026-08-26：構築時の植民地州昇格（ColoniesAreRegions=1 が既定）を落として検証する。
-//   このクラスの検証対象は**制度の閾値**（自由＋公教育＋エリート→特許）であって植民地の政治ではない。
-//   昇格を入れると英の人口が倍増し（植民地11州）、軌道が変わって政変→ブルジョワ独裁→国営報道→Freedom 0.5 となり、
-//   **閾値の機構としては正しく**特許が入らない（instprobe 実測2026-08-26・SuffrageScopeGate=1 でも不変＝ブロック集計の歪みではなく
-//   植民地経済で強くなった近代ブロックの創発）。制度の式を検証するには政治環境を固定するのが正しい。
+// （2026-08-26〜2026-10-18：構築時の植民地州昇格を旧の旗 ColoniesAreRegions=0 で落として検証していた〔昇格で英の人口が倍増し、政変→ブルジョワ独裁→国営報道→Freedom 0.5 で特許が入らない軌道だった〕。
+//   旗の焼き込みの際に固定を外して、このクラスの 4 本は昇格ありの木で緑のまま。）
 public class TechInstitutionTests
 {
     private static NationConfig[] Four() =>
@@ -40,7 +37,7 @@ public class TechInstitutionTests
         // 大きく引き離して伸びる（停滞しない）」＝**宗教固定の対照との相対**で検証し、絶対値は停滞の下限だけを置く。
         var cfg = Four();
         var sim = new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] || c == cfg[3] ? new FreePressPublicEducationPin() : new NullAgent(),
-            coef: new Coefficients { ColoniesAreRegions = 0 });   // ⚠環境固定（クラス冒頭の注記）
+            coef: new Coefficients());
         sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法。綱領は 2026-09-26 に撤去）
         sim.Nations[3].World.ParliamentEnabled = false;
         // 前提の番人＝固定が効いている（効いていなければ主張の入力が崩れている）。
@@ -106,8 +103,8 @@ public class TechInstitutionTests
         // ★(327) pinBritain＝英の報道法・教育法・参政権を毎四半期書き戻す（公教育の自由国の番人と同じ分離手法・既定 false＝他の 2 本の盤面は 1 ビットも変えない）。
         var cfg = Four();
         var sim = pinBritain
-            ? new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] ? new FreePressPublicEducationPin() : new NullAgent(), coef: new Coefficients { ColoniesAreRegions = 0 })
-            : new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
+            ? new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] ? new FreePressPublicEducationPin() : new NullAgent(), coef: new Coefficients())
+            : new MultiNationSim(Four(), seed: 1789, coef: new Coefficients());
         sim.Nations[1].World.ParliamentEnabled = false;
         if (pinBritain) sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法）
         // ★(159) 盤面の前提（主張は同じ）：物を生む行の必要性が動力（労働力の財）の平滑化した値段÷参照価格になり、この4カ国の閉じた世界では動力が参照を超えず

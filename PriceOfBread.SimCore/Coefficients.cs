@@ -656,7 +656,7 @@ public sealed class Coefficients
     //   ⚠0＝1件も昇格しない＝厳密恒等。
     //   ★点火2026-08-26：実測（batch5）＝破綻0/デッドロック0/異常0/**ハーネス不合格0**・exact49%/near81%（基線と同等）・州209→245。
     //     ⚠TradeColonialGoods と**対で**点火した（植民地財の交易解禁の前提が「植民地が自分で産む」こと）。TradeColonialGoods は 2026-09-28 に焼き込み済み。
-    public double ColoniesAreRegions = 1.0;
+    // 【墓標2026-10-18・旗の焼き込み】ColoniesAreRegions（既定1.0・2026-08-26 植民地の州昇格）を消した＝開始時点で全植民地を植民地格の州にする（MultiNationSim.PromoteAllColonies）。0＝Colony オブジェクトのまま持つ旧は git の履歴から戻せる。MultiNationSim のコンストラクタの coef 引数は残る（構築時の係数を外から渡す口）。
     public double ColonyPromotionMinPop = 60;        // 昇格に要る総人口（1単位=1000人）＝北西部条例1787「自由人口6万人で州昇格を申請できる」の一次データ。★2026-09-30 (118)：分離の離脱の力を人の数で測る飽和 N/(N+これ)（N＝州の大衆）にも使う＝州を名乗れる人口の土地は国を名乗る力も半分まで持つ（Politics.CheckSecession）
     // 恐慌の脱植民地化（最終調整2026-06-29・ユーザー選択「破産で植民地喪失」）：本国が深い恐慌（GdpDrawdown 閾値超）に陥ると、財政・軍が崩れ遠方植民地への grip(hold) が失われ、
     // 植民地不満も煽られて離反しやすくなる＝スペイン帝国がナポレオン危機で米州を失った史実型。覇権の構造的優位（植民地）を大恐慌が削る経路。既定0で恒等＝較正中立。
