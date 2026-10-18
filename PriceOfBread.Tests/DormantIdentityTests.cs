@@ -25,6 +25,7 @@ public class DormantIdentityTests
         // ★ClearingIdleSearchQuarters・ClearingPartnerScope（(403) 清算の見る範囲の絞り）は 2026-10-18 に既定 4 へ**点火**（旗 ClearingIdleShortageWakesStaplesOnly は主食の線として無条件へ焼き込み・削除）＝この表から外した。
         // ★OpeningFiscalAlign（(400) 英・蘭の開幕の財政の整合）は 2026-10-18 に 1 で**点火**（既定を 1 へ・止める線に当たらず）＝この表から外した。(405) で焼き込んで旗ごと物理削除した。
         // ★MandateOverStockFromLegitimacy・MandateOverStockLegitFloor（床 0.4）・ParishEduFunded（(404) 専制の改革の経路）は 2026-10-18 (405) に 1／0.4／1 で**点火**（腕 BF・止める線に当たらず）＝この表から外した。
+        "AdminServesStateRule",         // ★(408) 行政費の返り＝官僚の役務の充足 AdminFill を州の国家区分の届き（税と徴兵の届け率・仲介者の取り分・法の浸透）へ結ぶ。0＝3 本とも旧の式のまま＝厳密恒等。点火は腕 B（1）
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
         // ★SymmetricTensionVerb は 2026-09-28 に点火して旗ごと削除（回8-1・dip-04）＝この表から外した。
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
