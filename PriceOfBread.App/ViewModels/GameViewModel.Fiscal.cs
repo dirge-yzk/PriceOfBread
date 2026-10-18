@@ -294,7 +294,7 @@ public partial class GameViewModel
         double earnedAll = 0, earnedElite = 0, headNonPriv = 0, landRent = 0, massSize = 0, oldSize = 0, earnedDelivered = 0;
         foreach (var r in _player.Regions)
         {
-            double regionDelivery = Politics.RuleDelivery(r, c);   // 国庫へ届く割合＝エンジン Fiscal の課税ベースと同じ（国家区分＋在地区分×届け率）
+            double regionDelivery = Politics.RuleDelivery(r, c);   // 国庫へ届く割合＝エンジン Fiscal の課税ベースと同じ（国家区分＋在地区分×届け率・★(408) 以後は国家区分のうち官僚の役務が届かない分も届け率＝今月の AdminFill を読む＝行政費のスライダーの効きは 1 か月遅れて出る）
             foreach (var p in r.Pops)
             {
                 double e = System.Math.Max(0, p.EarnedPerMonth.Value);

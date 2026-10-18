@@ -149,7 +149,7 @@ public static class Military
             if (p.IsSoldier) { sld = true; m += RecruitMen(p); }   // 兵士も徴募元と同じ単位＝徴兵と復員で母数が動かない（(144)）
             else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) m += RecruitMen(p);
         }
-        return sld ? m * Politics.RuleDelivery(r, c) : 0;   // ★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率
+        return sld ? m * Politics.RuleDelivery(r, c) : 0;   // ★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（★(408) 以後は国家区分のうち官僚の役務が届かない分〔1−AdminFill〕も村請け率＝Politics.RuleDelivery）
     }
 
     /// <summary>兵1人の機会費用の分母＝働き盛り（16〜59歳・男女）の人数。兵は働き盛りの男の1人＝世帯の頭数（子供と老人を含む）で割った所得で払うと

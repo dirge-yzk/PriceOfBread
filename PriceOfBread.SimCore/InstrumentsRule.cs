@@ -11,14 +11,15 @@ namespace PriceOfBread.SimCore;
 //   国の列（その国の全ての州の行に同じ値）：serfLawCode・bureaucracyLawCode・landReformLawCode（法の段）／intermediaryDegreeIndex（① 仲介者の権利の残高）／publicOrderIndex（治安）／
 //     stateReachIndex（法の浸透 enforce の値＝Politics.StateReach）／adminEfficiencyIndex（行政効率＝(399) で読み手が計器だけになった）／
 //     treatyPortInForceFlag（条約港が効いているか）・portForeignShare（③ の関税の目減り）／revenuePerMonth・gdpPerMonth（税÷GDP を読み手が組む）／
-//     ruleCutPerMonth（直近月の仲介者の取り分＝納税者→州の貴族・World.LastRuleCut・R6）／stateReachHomeIndex（stateReachIndex を植民地格の州を除いた人口加重で読んだ値・R5）。
+//     ruleCutPerMonth（直近月の仲介者の取り分＝納税者→州の貴族・World.LastRuleCut・R6）／stateReachHomeIndex（植民地格の州を除いた人口加重の RuleReach・R5）。
+//     ⚠(412) (408) 以後（AdminServesStateRule＝1）は stateReachIndex（Politics.StateReach）が州ごとに ×AdminFill を掛け、この列は掛けない＝2 列は別の量（1783 の仏で 0.70 と 0.08）。2 列を比べる読み手は旗 1 の世界では使わない（列の意味を連続に保つため式は変えない）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（Instruments.Quarter の呼び時点）／外国持分の主体名は列にしない（個数だけ）／
 public static partial class Instruments
 {
     internal const string RuleHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\truleStateShare\truleLocalShare\truleForeignShare\truleUngovShare\truleInitLocalShare\tforeignRulerCount\tdominanceShare\tcapitalDistanceKm\treachShare\t"
         + "serfLawCode\tbureaucracyLawCode\tlandReformLawCode\tintermediaryDegreeIndex\tpublicOrderIndex\tstateReachIndex\tadminEfficiencyIndex\ttreatyPortInForceFlag\tportForeignShare\trevenuePerMonth\tgdpPerMonth\truleCutPerMonth\tstateReachHomeIndex";
 
-    /// <summary>stateReachIndex の本国の州だけ版（植民地格の州を除く人口加重の <see cref="Politics.RuleReach"/> の平均・読むだけ）。本体の enforce は読まない（<c>StateReach</c> は植民地格の州も含む）。</summary>
+    /// <summary>本国の州だけの法の到達（植民地格の州を除く人口加重の <see cref="Politics.RuleReach"/> の平均・読むだけ・★(412) 官僚の役務の充足 AdminFill は掛けない＝(408) 以後の stateReachIndex とは別の量）。本体の enforce は読まない（<c>StateReach</c> は植民地格の州も含む）。</summary>
     static double HomeStateReach(World w, Coefficients c)
     {
         double num = 0, den = 0;

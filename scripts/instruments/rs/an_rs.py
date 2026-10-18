@@ -327,7 +327,7 @@ def main():
         P('  %s %s\t平均 %.3f（行 %d）' % (n, rg, m, c))
     # R11（追記3）徴兵の母数と公共財の到達：rule_s の既存の列から読み手が組む（コードを変えない）。B（RuleSharesTaxBase=1・RuleSharesReach=1）の式のまま。
     #   徴兵の母数（Military.RegionManpower の掛け率）＝国家区分＋在地区分×(1−PrivilegeTaxDiscount=0.7)＝Politics.RuleDelivery(g=1)・公共財の到達＝国家区分＝Politics.RuleReach(g=1)。
-    #   A（旗 0）では実際の掛け率は 1.0（この表の値は B でだけ意味がある）。popK で人口加重（兵の母数の重みは徴募元の男＝人口に比例とみなす近似）。
+    #   A（旗 0）では実際の掛け率は 1.0（この表の値は B でだけ意味がある）。⚠(412) (408) 以後の世界（AdminServesStateRule=1）では RuleDelivery が AdminFill も読む＝この表の掛け率は (399) の式のまま（実際の掛け率より大きく出る）。popK で人口加重（兵の母数の重みは徴募元の男＝人口に比例とみなす近似）。
     P('\n== R11 徴兵の母数の掛け率（国家区分＋在地区分×0.7）／公共財の到達（国家区分）・人口加重・20 年ごとの種の中央値（B の式。A では実際は 1.0）==')
     for n in focus:
         row = []

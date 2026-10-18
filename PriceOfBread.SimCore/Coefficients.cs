@@ -2674,7 +2674,7 @@ public sealed class Coefficients
     // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md）：州の4区分（国家・在地・外国・無統治）を
     //   DominanceSpeed で目標へ寄せる。(399) で点火（旗 RuleSharesEnabled・RuleSharesReach・RuleSharesTaxBase・RuleLocalFromRights・RuleUngovFromReach・ColonyRuleFromData・TaxLeakByRule・LawReachByRule は物理削除＝常時）：
     //   目標＝国家〔残り〕／在地〔開幕のデータ×仲介者の権利の残高 Privileges.IntermediaryDegree〕／外国〔講和で積まれた持分の合計〕／無統治〔(1−治安)×(1−到達)〕。
-    //   公共財（教育の財源・年金）と法の浸透の到達＝国家区分（Politics.RuleReach）・課税ベースと徴兵ベース＝国家区分＋在地区分×(1−PrivilegeTaxDiscount)（Politics.RuleDelivery）。
+    //   公共財（教育の財源・年金）と法の浸透の到達＝国家区分（Politics.RuleReach）・課税ベースと徴兵ベース＝国家区分＋在地区分×(1−PrivilegeTaxDiscount)（Politics.RuleDelivery）。★(408) 以後（AdminServesStateRule＝1）は国家区分×(d＋(1−d)×AdminFill)＋在地区分×d（d＝1−PrivilegeTaxDiscount）＝役務が届かない国家区分の分も仲介者を通る。
     //   在地の仲介者の取り分は納税者→州の貴族へ（領主権の台帳）。汚職の財政の漏れ・条約港の個数の機構・法の浸透の門（行政効率÷LawEnforcementAdminGate）は物理削除した。
     // ★支配度の一般化 段5（§6/§6d・2026-09-07 器・(399) で点火）：条約港の講和で敗者の最大港州に勝者の持分（外国区分）をこれだけ積む。国力比で連続に風化（DominanceSpeed）。
     //   条約港は個数の機構でなく州の外国区分で表す（作者 2026-10-16：条約港は廃止・州の支配度で表現）。関税の目減りと屈辱・移民法の外圧の述語（付与の半分以上）は持分から読む。0＝持分なし（条約港が無い世界）。
@@ -2695,10 +2695,10 @@ public sealed class Coefficients
     // ★(399) 支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（事前登録 measurements/rs_20261018_prereg.txt・点火の組＝腕 B・旗は物理削除した）。
     //   在地の目標＝RuleInit[1]×Privileges.IntermediaryDegree（官僚制度法と土地改革の max・農奴解放の法は読まない）／無統治の目標＝(1−秩序)×(1−到達)（到達＝1÷(1＋DistanceWarDecay×km÷DistanceNormKm)）／
     //   植民地の州は places.json の rule（開始時のデータ）／法の浸透＝活きている州の人口で重みづけた RuleReach の平均。
-    // ★(408) 行政費の返り（事前登録 measurements/ar_20261018_prereg.txt・旗 AdminServesStateRule＝既定 0＝旧）：官僚の役務の実物 Region.AdminFill を州の国家区分の届きへ結ぶ（腕 B＝1）。
+    // ★(408) 行政費の返り（事前登録 measurements/ar_20261018_prereg.txt・旗 AdminServesStateRule＝★既定 1〔(408) 後半で点火〕・0＝旧の式）：官僚の役務の実物 Region.AdminFill を州の国家区分の届きへ結ぶ（腕 B＝1）。
     //   (399) で汚職の漏れと法の浸透の門を消した後、行政費は税にも法の届きにも返らなかった（行政費 0 で歳入を浮かせられる）。>0 のとき：
     //   ・Politics.RuleDelivery（税と徴兵の届け率）＝R0×(d＋(1−d)×f)＋R1×d（f＝AdminFill・d＝1−PrivilegeTaxDiscount）＝役務が届かない国家区分の分は在地の仲介者を通る（取り分が d に減る・最大 (1−d)×R0）。
-    //   ・Fiscal.TaxScan の仲介者の取り分＝(R1＋R0×(1−f))×(1−d)＝国庫に届かなくなった分は州の領主へ移る（納税者の払う総額 R0＋R1 は旗に依らず同じ＝保存）。
+    //   ・Fiscal.TaxScan の仲介者の取り分＝(R1＋R0×(1−f))×(1−d)＝国庫に届かなくなった分は州の領主へ移る（納税者の払う総額 R0＋R1 が旗に依らず同じなのは**領主の居る州だけ**・★(412) 領主〔貴族 POP〕の居ない州では取り分は 0＝落ちた税は納税者の手元に残る＝減税として働く・開幕の英は人口の 0.66 がこの州）。
     //   ・Politics.StateReach（法の浸透）＝人口加重の RuleReach×f。RuleReach 自体（年金・教育費の到達）には掛けない（教育→識字→登用→行政の正帰還の環・EduReachFromAdmin の注）。
     //   新しい倍率も状態も置かない。〈確証なし〉＝請負人の取り分に PrivilegeTaxDiscount を共有した点。0 で 3 本とも旧の式の文字列のまま（ビット恒等）。
     //   ★2026-10-18 (408) 後半で既定 1 へ**点火**（止める線 ⑥①〜④・発散・空洞化・計算量・クラッシュのどれにも当たらず・成績表3枚は新しい基線）。0 は旧の式（A の腕）。

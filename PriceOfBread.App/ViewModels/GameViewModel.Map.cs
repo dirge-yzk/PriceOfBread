@@ -285,7 +285,6 @@ public partial class GameViewModel
     private Dictionary<(int A, int B), double>? _landUse;
     private Dictionary<(int A, int B), double>? _seaUse;
     private Dictionary<(string Port, int Node), double>? _stitchUse;   // 港→最寄り海ノードの接ぎ木（航路の出入口）
-    private Dictionary<string, (double Lat, double Lon)>? _stitchCoord;   // 接ぎ木端点の座標フォールバック（植民地＝CityCoord に無い・2026-08-02）
     private int _routeUseYear = int.MinValue;
     private int _routeRebuilds;   // 積算し直した回数。★最初の2回だけ1年周期（助走中は植民地の直送が未生成で線が全部足切りされ、5年周期だと開始から5年間ずっと植民地線が出ない）
 
@@ -435,7 +434,6 @@ public partial class GameViewModel
         // ── 植民地：宗主国⇄植民地の資源/補給線（2026-08-02）＝★(410) 物理削除。この節の足切り（植民地線の流通量＝Region.ColonialSupply〔首都州に毎月着く供給駆動の産出〕が貿易タブの一覧に出る財）は
         //   ColonialSupply に書き手が無く常に null だった＝shownRes が空で国ごとに continue し、線も接ぎ木も 1 本も描かれなかった。ColonialSupply ごと消した。
         //   植民地は州（RegionTier.Colonial）として w.Regions に入り、実交易は上の陸脚/海路ループが LastPortThroughput／ExportsByGood 経由で描く。
-        var colStitchCoord = new Dictionary<string, (double, double)>();
         // ── 接ぎ木：港州がどこから海へ出るか。
         // ⚠**航路が通っている海ノードに繋がる港だけ**を描く（2026-08-02・作者報告「描画に失敗している個所がある」
         //   「スエズも未開通なのに直前まで線が来ている」）。港ごとに無条件で描いていたため、
@@ -458,7 +456,7 @@ public partial class GameViewModel
                 var key = (rr.Name, sn);
                 stitch[key] = stitch.TryGetValue(key, out double v) ? v + 1.0 : 1.0;
             }
-        _landUse = land; _seaUse = sea; _stitchUse = stitch; _stitchCoord = colStitchCoord;
+        _landUse = land; _seaUse = sea; _stitchUse = stitch;
     }
 
     // passages.json 由来の海の辺（手置きの通路）＝琥珀で描く対象。⚠**辺の集合は静的**（プロセス中不変）なので1回だけ組む。
@@ -612,12 +610,7 @@ public partial class GameViewModel
         {
             if (!(kv.Value > 0)) continue;   // 積算0以下は描かない（番人・否定形＝NaNも落とす）
             var pc = SimCore.Climate.CityCoord(kv.Key.Port);
-            if (System.Math.Abs(pc.Lat) < 1e-9 && System.Math.Abs(pc.Lon) < 1e-9)
-            {
-                // 植民地の端点＝CityCoord（州の表）に無い＝植民地座標のフォールバック（2026-08-02）
-                if (_stitchCoord is { } cc2 && cc2.TryGetValue(kv.Key.Port, out var colPos)) pc = (colPos.Lat, colPos.Lon);
-                else continue;   // 座標未登録は描かない
-            }
+            if (System.Math.Abs(pc.Lat) < 1e-9 && System.Math.Abs(pc.Lon) < 1e-9) continue;   // 座標未登録は描かない（★(412) 植民地の座標のフォールバックは (410) で植民地線ごと消えた＝空の辞書だけ残っていた）
             var sn = SimCore.SeaGraph.Nodes[kv.Key.Node];
             var (px, py) = MapData.Project(pc.Lat, pc.Lon);
             var (sx, sy) = MapData.Project(sn.Lat, sn.Lon);
