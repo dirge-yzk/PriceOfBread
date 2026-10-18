@@ -1,0 +1,38 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_cs\PriceOfBread.SimCore\EconomyStep.cs(1491,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_cs\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_cs\PriceOfBread.SimCore\Instruments.cs(2151,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_cs\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\cs403\art_cs\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\cs403\art_cs\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\cs403\art_cs\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\cs403\art_cs\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:04:20.65]     PriceOfBread.Tests.TransitTests.交戦中は第2候補へ迂回し両方交戦なら旧フォールバックへ退避する [FAIL]
+[xUnit.net 00:04:20.70]     PriceOfBread.Tests.TransitTests.通行料は利用国国庫から港所有国国庫へ移転し保存する [FAIL]
+  失敗 PriceOfBread.Tests.TransitTests.交戦中は第2候補へ迂回し両方交戦なら旧フォールバックへ退避する [22 ms]
+  エラー メッセージ:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  スタック トレース:
+     at PriceOfBread.Tests.TransitTests.交戦中は第2候補へ迂回し両方交戦なら旧フォールバックへ退避する() in D:\PoB_work\wt_cs\PriceOfBread.Tests\TransitTests.cs:line 182
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.TransitTests.通行料は利用国国庫から港所有国国庫へ移転し保存する [2 ms]
+  エラー メッセージ:
+   トランジット州の交易が立たなかった（テスト前提の破れ）
+  スタック トレース:
+     at PriceOfBread.Tests.TransitTests.通行料は利用国国庫から港所有国国庫へ移転し保存する() in D:\PoB_work\wt_cs\PriceOfBread.Tests\TransitTests.cs:line 144
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     2、合格:  1366、スキップ:     0、合計:  1368、期間: 9 m 54 s - PriceOfBread.Tests.dll (net10.0)
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\cs403\art_cs\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\cs403\art_cs\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\cs403\art_cs\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\cs403\art_cs\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 6 s - PriceOfBread.Tests.dll (net10.0)

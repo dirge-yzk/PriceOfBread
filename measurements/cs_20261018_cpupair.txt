@@ -1,0 +1,8 @@
+﻿start 10/18/2026 15:49:24
+round 1 A cpu=397 B cpu=371 (last poll before exit)
+round 2 A cpu=387 B cpu=382 (last poll before exit)
+end 10/18/2026 15:59:49
+﻿start 10/18/2026 16:04:40
+round 3 A cpu=556 B cpu=537 (last poll before exit)
+round 4 A cpu=492 B cpu=455 (last poll before exit)
+end 10/18/2026 16:41:53

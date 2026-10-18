@@ -115,6 +115,7 @@ public class TransitTests
     public void 通行料は利用国国庫から港所有国国庫へ移転し保存する()
     {
         var sim = new MultiNationSim(World3(), seed: 11) { DiplomacyFrozen = true };
+        sim.Coef.ClearingIdleSearchQuarters = 1;   // ★(403) 通行の機構の試験は全ての行が探す世界で見る（既定の 4 だと取引も不足も無い行は番の四半期だけ探す）
         sim.Coef.TransitEnabled = 1.0;
         // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけになった。この世界（スイス・ジェノヴァ・トスカーナ）の組は全て陸で繋がり、
         //   ベルンの荷は陸路の直行が勝つ（ジェノヴァ行きもリヴォルノ行きも＝港を通らない＝通行料は立たない・正しい）。検証対象は通行料の移転と保存なので、
@@ -157,6 +158,7 @@ public class TransitTests
     public void 交戦中は第2候補へ迂回し両方交戦なら旧フォールバックへ退避する()
     {
         var sim = new MultiNationSim(World3(), seed: 13) { DiplomacyFrozen = true };
+        sim.Coef.ClearingIdleSearchQuarters = 1;   // ★(403) 通行の機構の試験は全ての行が探す世界で見る（既定の 4 だと取引も不足も無い行は番の四半期だけ探す）
         sim.Coef.TransitEnabled = 1.0;
         var swiss = sim.Nations[0].World; var genoa = sim.Nations[1].World; var tuscany = sim.Nations[2].World;
         var bern = swiss.Regions[0];
