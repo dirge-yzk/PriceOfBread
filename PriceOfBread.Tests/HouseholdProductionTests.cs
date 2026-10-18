@@ -74,9 +74,9 @@ public class HouseholdProductionTests
     }
 
     [Fact]
-    public void 既定は休眠で職人の比と自己費用は手書きの値のまま()
+    public void 既定は点火で職人の比と自己費用は手書きの値のまま()
     {
-        Assert.Equal(0.0, new Coefficients().HouseholdProductionEnabled);
+        Assert.Equal(1.0, new Coefficients().HouseholdProductionEnabled);   // (418) 後半で点火（0 は旧＝腕 A）
         Assert.Equal(0.6, Simulation.HandcraftProductivityRatio);
         Assert.Equal(0.35, Simulation.HandcraftSelfCost);
         Assert.Equal("家内工業", Simulation.HouseholdRecipeName);
@@ -124,13 +124,16 @@ public class HouseholdProductionTests
     [Fact]
     public void 旗1では昇格した植民地の州にも同じ8本が入る()
     {
+        // ⚠既定が 1 になったので、MultiNationSim の coef が届かない本土の州〔各国の ToScenario の既定の係数＝1〕には旗 0 でも行が入る。
+        //   植民地の州〔MultiNationSim の coef で建つ〕の分だけが旗で増減する＝行を持つ州の数の差で確かめる。
         var sim = Multi(1.0);
-        int colonies = 0;
+        int on = 0;
         foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
-            if (r.Producers.Any(p => p.RecipeName == "家内工業")) { colonies++; AssertHomeRows(r); }
-        Assert.True(colonies > 10, "前提が崩れた：行を持つ植民地の州が少ない");
+            if (r.Producers.Any(p => p.RecipeName == "家内工業")) { on++; AssertHomeRows(r); }
         var off = Multi(0.0);
-        foreach (var n in off.Nations) foreach (var r in n.World.Regions) Assert.DoesNotContain(r.Producers, p => p.RecipeName == "家内工業");
+        int offCount = 0;
+        foreach (var n in off.Nations) foreach (var r in n.World.Regions) if (r.Producers.Any(p => p.RecipeName == "家内工業")) offCount++;
+        Assert.True(on - offCount > 10, $"前提が崩れた：旗 1 で増える植民地の州が少ない（{offCount} → {on}）");
     }
 
     [Fact]
