@@ -2261,14 +2261,10 @@ public sealed class Coefficients
     //   （重さ＝(利払い−MaxInterestShareOfRevenue×歳入)÷利払い・余裕の因子＝安全水準÷(安全水準＋国庫)。符号の段差でなく大きさに比例＝§1-8）。外れたら旧の枝（狭める／保つ）。抽選は専用の World.AiRng（係数 0 では引かない）。
     public int MonopolyBurdenPushMode = 1;
 
-    // ★(400) 英・蘭の開幕の財政の整合（旗 1 本・2026-10-18 に既定 1 で**点火**＝止める線に当たらず・測った記録 measurements/op400_20261018_*）：>0 で次の 2 つを同時に開ける（重ねる物は 1 本の腕）。0＝旧の挙動（腕 A・m397 と全行一致）。
-    //   (1) 専売の開幕の段をデータから（NationConfig.OpeningStateMonopolyTier〔world.json の英・蘭＝3〕）：助走の始めに置き、助走の間は教義の段との max で保つ。
-    //       助走の終わりの歳入が段 3 の物になり、開幕の国庫（歳入×月数）も段 3 の歳入で数え直される（World.RebaseOpeningFiscal は変えない）。
-    //   (2) AI の工場の着工の門（SelfPlay.TryBuildFacility）：着工しようとする工事の月の出費（工賃＋素材）を、今ある工事の月の出費に足してから上限（FacilityBuildOutlayShare×安全水準）と比べる。
-    //       超えるなら**その州は飛ばす**（機構の BuildFactory／SetStateTarget は変えない＝AI の判断だけ）。
-    //   0＝(1)(2) とも 1 命令も違わない。採否は measurements/op_20261018_prereg.txt。
-    //   値の割り方（追記2・測る前に固定）：1＝(1)(2) 両方（腕 B）／2＝(1) だけ（切り分けの B1）／3＝(2) だけ（切り分けの B2）。同じ木で値だけ違う。
-    public double OpeningFiscalAlign = 1;
+    // 墓標（2026-10-18 (405)）：旗 OpeningFiscalAlign（(400) 英・蘭の開幕の財政の整合）は既定 1 で点火済みだったので**焼き込んで物理削除**した（旧の経路〔旗 0・2・3〕は消えた）。
+    //   残った形＝(1) 専売の開幕の段をデータから（NationConfig.OpeningStateMonopolyTier〔world.json の英・蘭＝3〕を助走の始めに置き、助走の間は教義の段との max で保つ）
+    //   ＋(2) AI の工場の着工の門（SelfPlay.TryBuildFacility）が、着工しようとする工事の月の出費（工賃＋素材）を今ある工事の月の出費に足してから上限（FacilityBuildOutlayShare×安全水準）と比べる。
+    //   測った記録＝measurements/op400_20261018_*・焼き込みの恒等＝measurements/*bi405*。
 
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）

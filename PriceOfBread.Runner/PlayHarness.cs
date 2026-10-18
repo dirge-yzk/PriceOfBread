@@ -201,11 +201,13 @@ internal static class PlayHarness
 
         double pop = 0, urbanPop = 0, lit = 0, cons = 0, savings = 0;
         var byClass = new Dictionary<int, (double size, double lit, double sat, double mil, double sav)>();
+        var classNames = new SortedDictionary<int, string>();   // ★(405) 階級の番号→名前の表（POP の ClassName の最初の非空）＝報告の階級を番号でなく名前で読める
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
+                if (p.ClassName.Length > 0 && !classNames.ContainsKey(p.ClassId)) classNames[p.ClassId] = p.ClassName;
                 pop += p.Size; if (p.IsUrban) urbanPop += p.Size;
                 lit += p.Literacy * p.Size; cons += p.Consciousness * p.Size;
                 savings += p.Savings.Value;
@@ -298,11 +300,12 @@ internal static class PlayHarness
 
         sb.AppendLine();
         sb.AppendLine("---- 階級（人数／識字／生活水準／闘争度）----");
+        sb.AppendLine("  階級の名前表： " + string.Join(" ／ ", classNames.Select(kv => $"{kv.Key}={kv.Value}")));
         foreach (var kv in byClass.OrderByDescending(x => x.Value.size).Take(14))
         {
             var (size, l, st, m2, sv) = kv.Value;
             double sz = Math.Max(1, size);
-            sb.AppendLine($"  階級{kv.Key,2}  {size,12:N0}  識字{l / sz,5:P0}  水準{st / sz,6:F3}  闘争{m2 / sz,6:F3}  貯蓄{sv,12:N0}");
+            sb.AppendLine($"  階級{kv.Key,2} {(classNames.TryGetValue(kv.Key, out var cn) ? cn : "？"),-8}  {size,12:N0}  識字{l / sz,5:P0}  水準{st / sz,6:F3}  闘争{m2 / sz,6:F3}  貯蓄{sv,12:N0}");
         }
 
         sb.AppendLine();
@@ -343,7 +346,8 @@ internal static class PlayHarness
 
     /// <summary>プレイヤーの動作（World のメソッド＝UIのボタンと同じ口）。書式：
     /// !factory 州名 財名 ／ !sell 州名 財名 ／ !subsidy 州名 財名 率 ／
-    /// !state 州名 財名 段 ／ !monopoly 財名 入|切 ／ !bias 財名 -1|0|1</summary>
+    /// !state 州名 財名 段 ／ !monopoly 財名 入|切|on|off|1|0|true|false ／ !bias 財名 -1|0|1 ／
+    /// ★(405) 外交（UI の緊張・侵略・統一戦争・調停のボタンと同じ口）：!provoke 国名（緊張を上げる）／!ease 国名（緊張を下げる）／!invade 国名 [狙う植民地名] ／!unify 国名 ／!mediate 国名A 国名B</summary>
     private static string RunVerb(World w, string line)
     {
         string[] a = line[1..].Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -358,6 +362,7 @@ internal static class PlayHarness
             foreach (var g in w.Region.Goods) if (g.Name == name) return g.Id;
             return -1;
         }
+        Power? PowerOf(string name) => w.Diplomacy?.Powers.Find(p => p.Name == name || p.BaseName == name);   // ★(405) 変名の国も旧名で引ける（UI の FindPower と同じ両受け）
         try
         {
             switch (a[0])
@@ -401,7 +406,12 @@ internal static class PlayHarness
                 {
                     int gi = GoodOf(a[1]); if (gi < 0) return $"⚠財が無い: {a[1]}";
                     // ★2026-09-20：率は引数に取らない（材ごとの ON/OFF だけ）＝生産タブのチェックボックスと同じ1本を叩く。
-                    bool on = a[2] is "1" or "on" or "true";
+                    // ★(405) 入/切の語を両方受け、どちらでもない語は黙って OFF にせず拒む（旧は 1／on／true 以外が全て OFF で、書式の `入` が切になった）。
+                    if (a.Length < 3) return "⚠専売は `!monopoly 財名 入|切`";
+                    bool on;
+                    if (a[2] is "1" or "on" or "true" or "入") on = true;
+                    else if (a[2] is "0" or "off" or "false" or "切") on = false;
+                    else return $"⚠専売の指定が読めない: {a[2]}（入|切|on|off|1|0|true|false）";
                     bool moved = w.SetStateMonopolyOn(gi, on);
                     return $"専売 {a[1]} = {(on ? "入" : "切")}{(moved ? "" : "（変化なし／政治が通さない）")}";
                 }
@@ -411,6 +421,49 @@ internal static class PlayHarness
                     int b = int.Parse(a[2], CultureInfo.InvariantCulture);
                     w.SetTradeBias(gi, b);
                     return $"売買方針 {a[1]} = {b}";
+                }
+                // ---- ★(405) 外交の動詞（00-HARN）：UI のボタンと同じ口を叩く。可否は本体の述語が返す理由をそのまま出す（第二の基準を作らない）----
+                case "provoke":
+                case "ease":
+                {
+                    if (a.Length < 2) return $"⚠`!{a[0]} 国名`";
+                    if (PowerOf(a[1]) is not { } t) return $"⚠国が無い: {a[1]}";
+                    if (w.Diplomacy is null || w.SelfPower is null) return "⚠外交なし";
+                    bool ok = a[0] == "provoke" ? w.Diplomacy.RaiseTension(w.SelfPower, t, w.Coef) : w.Diplomacy.EaseTension(w.SelfPower, t, w.Coef);
+                    string verb = a[0] == "provoke" ? "挑発" : "緩和";
+                    return ok ? $"{verb} {t.Name}: 緊張を{(a[0] == "provoke" ? "上げた" : "下げた")}（{w.Coef.TensionActionRampMonths}か月かけて反映・今 {w.Diplomacy.Tension(w.SelfPower, t):F1}）"
+                              : $"⚠{verb} {t.Name} 不可（同じ格の国どうしだけ・自国か国家のない相手は不可）";
+                }
+                case "invade":
+                {
+                    if (a.Length < 2) return "⚠`!invade 国名 [狙う植民地名]`";
+                    if (PowerOf(a[1]) is not { } t) return $"⚠国が無い: {a[1]}";
+                    Colony? aim = null;
+                    if (a.Length > 2)
+                    {
+                        aim = t.ColonyList.FirstOrDefault(c2 => c2.Name == a[2]);
+                        if (aim is null) return $"⚠{t.Name} に狙う植民地が無い: {a[2]}";
+                    }
+                    if (!w.CanInvade(t, out string why)) return $"⚠侵略 {t.Name} 不可（{why}）";
+                    return w.Invade(t, aim) ? $"侵略 {t.Name}: 実行{(aim is not null ? $"（狙い先 {aim.Name}）" : "")}" : $"⚠侵略 {t.Name} 不可";
+                }
+                case "unify":
+                {
+                    if (a.Length < 2) return "⚠`!unify 国名`";
+                    if (PowerOf(a[1]) is not { } t) return $"⚠国が無い: {a[1]}";
+                    if (!w.CanUnificationWar(t, out string why)) return $"⚠統一戦争 {t.Name} 不可（{why}）";
+                    return w.DeclareUnificationWarOn(t) ? $"統一戦争 {t.Name}: 宣戦" : $"⚠統一戦争 {t.Name} 不可";
+                }
+                case "mediate":
+                {
+                    if (a.Length < 3) return "⚠`!mediate 国名A 国名B`（交戦中の2国）";
+                    if (PowerOf(a[1]) is not { } pa) return $"⚠国が無い: {a[1]}";
+                    if (PowerOf(a[2]) is not { } pb) return $"⚠国が無い: {a[2]}";
+                    if (w.Diplomacy is null || w.SelfPower is null) return "⚠外交なし";
+                    var war = w.Diplomacy.Wars.FirstOrDefault(x => (x.A == pa && x.B == pb) || (x.A == pb && x.B == pa));
+                    if (war is null) return $"⚠{pa.Name} と {pb.Name} の戦争が無い";
+                    string? refusal = w.Diplomacy.PlayerOfferPeace(w.SelfPower, war, w.Coef);
+                    return refusal is null ? $"調停 {pa.Name}/{pb.Name}: 提案した（結果は出来事の記録）" : $"⚠調停 {pa.Name}/{pb.Name} 不可（{refusal}）";
                 }
                 default: return $"⚠不明な動作: {a[0]}";
             }
