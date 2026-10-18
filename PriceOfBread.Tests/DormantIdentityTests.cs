@@ -91,8 +91,7 @@ public class DormantIdentityTests
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
         // ★B-03（WarFeverUsesBudgetShare）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
         // ★B-06（TransportBaselineIsLand）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
-        "AiModernizeFromReturn",        // (416) AI の近代化投資の信号を設備の収益へ（段 1〜3）。既定 0＝旧（集計の工業化度の天井）。採るまで休眠
-        "ScoreFromWorldShare",          // (416) 国力の物差しを世界の総量に対する本国の割合へ。既定 0＝旧。採るまで休眠
+        // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**・ScoreFromWorldShare（(416) 国力の物差しを世界の総量の割合へ）は 1 で**点火**（止める線に当たらず・ScoreFromWorldShare は作者の裁定待ちのまま推奨で点火）＝この表から外した。
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

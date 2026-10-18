@@ -136,6 +136,7 @@ public static class NationalScore
         return ShareScores(l)[l.IndexOf(w)];
     }
 
+    // ★(416) 以下の旧の国力の式（Military・Wealth・Finance・Tech と規模偏重の是正）は旗 ScoreFromWorldShare＝0 の腕〔OfOld〕だけが使う（既定 1 では Of は世界の総量に対する割合を返す）。削除は旧の腕を捨てる線。
     // 規模偏重の是正（ユーザ指定）：GDP（＝人口×生産＝規模に比例）と軍（兵数＝人口に比例）の比重を下げ、
     // 1人あたりの発展度（技術・工業化・生活水準・金融の深さ）の比重を上げる＝大人口だけで上位に立てないようにする。
     // 改修2026-06-28：技術項を追加し、軍を逓減キャップ・GDP逓減を強化＝**19世紀の欧州の技術優位を国力評価に反映**（清の人口361M一強の是正・ユーザー指示「技術力で差がでるように」）。
@@ -201,7 +202,7 @@ public enum Doctrine { Balanced, Militarist, Industrialist, Modernizer }
 public sealed class UtilityAgent : INationAgent
 {
     // マジックナンバー命名（挙動不変・値据え置き）。※既存の c.Xxx 参照値・per-stance の政策設定値・自明値・εは対象外。
-    private const double IndustrializationCeiling = 2.5;        // 後発工業化の設計包絡（投資を絞る目標上限）
+    private const double IndustrializationCeiling = 2.5;        // 後発工業化の設計包絡（投資を絞る目標上限）。★(416) 旗 AiModernizeFromReturn≧1（既定 3）ではレバー〔Apply・AutoModernizationFrac〕の分母に使われない（旗 2 以上ではダンピングの後発判定にも使われない）＝0 の腕〔旧〕だけが読む
     private const double MilitaristBaseUtility = 2.5;           // 軍国教義の軍拡ベース効用
     private const double MilitaristEscapeThreshold = 0.5;       // 軍国の脱出弁：この国庫逼迫度からベース効用を減衰し始める（幅も同値）
     private const double IndustrializationRoomTarget = 4.0;     // 工業化余地の到達目標（★鋼市場診断#1 2026-08-16：AiIndustrialCeilingFrontier はここに触れない＝スタンス選択の目標は投資の物理上限と別判断・記録のみ）

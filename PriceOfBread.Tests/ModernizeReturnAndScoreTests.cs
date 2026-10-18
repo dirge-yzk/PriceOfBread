@@ -128,7 +128,7 @@ public class ModernizeReturnAndScoreTests
     {
         // 旗 0：包絡＝max(2.5, α×前線)＝前線 0 と 50 で率が変わる（プレイヤーの工業化が AI の止める所を引っ張る汚染）。
         var w0 = Neutral(Four(), 0, 0.5);
-        w0.Coef.AiIndustrialCeilingFrontier = 0.6;
+        w0.Coef.AiIndustrialCeilingFrontier = 0.6; w0.Coef.AiModernizeFromReturn = 0;   // 既定は 3（点火後）＝旧の腕は 0 を明示
         w0.IndustrialFrontier = 0; double a0 = UtilityAgent.AutoModernizationFrac(w0, 0);
         w0.IndustrialFrontier = 50; double b0 = UtilityAgent.AutoModernizationFrac(w0, 0);
         Assert.True(b0 > a0 + 1e-9, "旗 0 の前提が崩れた：前線が上がっても包絡が開かない");
@@ -262,6 +262,7 @@ public class ModernizeReturnAndScoreTests
         var sim = Four();
         sim.Run(2);
         var ws = sim.Nations.ConvertAll(n => n.World);
+        foreach (var w in ws) w.Coef.ScoreFromWorldShare = 0;   // 既定は 1（点火後）＝旧の腕は 0 を明示
         // 旗 0：Of＝従来の和・Scores＝Of の並び
         for (int i = 0; i < ws.Count; i++)
         {
