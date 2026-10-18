@@ -241,6 +241,20 @@ public class PlayHarnessTests
         Assert.True(sim2.Diplomacy.IsDependentOf(me2, target2));
     }
 
+    // ===== 再征服の既定 =====
+
+    /// <summary>play は新規開始でも state.bin からの再開でも、再生（play-replay）でも、再征服（ForceUnlock）を常時 ON にする（App の InitAfterSimReady と同じ＝ForceUnlock はセーブに載らない）。
+    /// Run／Replay は盤面を外から渡せない（作業フォルダと世界の構築を持つ）ので、ソースに 3 つの入口それぞれの設定行があることを見る（消すと再開した play だけ再征服が止まる型の事故を防ぐ）。</summary>
+    [Fact]
+    public void 再征服の既定_playの新規と再開と再生の入口に設定の行がある()
+    {
+        string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "PlayHarness.cs"));
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(src, @"world\.ForceUnlock = true;").Count);   // Run（新規も再開も同じ行を通る）と Replay
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(src, @"var world = sim\.Nations\[playerIndex\]\.World;\s*?
+\s*world\.ForceUnlock = true;").Count);
+        Assert.True(src.IndexOf("world.ForceUnlock = true;", StringComparison.Ordinal) < src.IndexOf("decision.txt", src.IndexOf("world.ForceUnlock = true;", StringComparison.Ordinal), StringComparison.Ordinal), "決定の適用より前に再征服を立てていない");
+    }
+
     // ===== 待っている問いかけの 1 行 =====
 
     [Fact]
