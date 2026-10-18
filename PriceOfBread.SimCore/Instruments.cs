@@ -200,6 +200,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Anc; public bool AncHeader;                         // (369) 扶養力の錨の表（国×四半期）
         public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public System.IO.StreamWriter? Sec; public bool SecHeader;                         // (395) 州の分離の内訳の表（国×四半期×州）
+        public System.IO.StreamWriter? Csc; public bool CscHeader;                         // (403) 清算の見る範囲の絞りの表（年×国×役×行の種類）
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
         public readonly Dictionary<(int Uid, int Win), CeAcc> CeN = new();                 // (345) 国の個体×窓（40四半期）ごとの必需の割合の影の積算
     }
@@ -1601,7 +1602,7 @@ public static partial class Instruments
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
-        if (time == "warm") TrClear(sim);   // (380) 助走の月の成約を数えない
+        if (time == "warm") { TrClear(sim); ScopeClear(sim); }   // (380)(403) 助走の月の成約を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
 
@@ -1650,6 +1651,7 @@ public static partial class Instruments
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
+        ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1664,6 +1666,7 @@ public static partial class Instruments
         CeTable(sk);      // (345)
         BurScanTable(sk, sim);   // (389)
         TransportClose(sk, sim);   // (380) 年の途中で終わった残り
+        ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)

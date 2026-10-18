@@ -54,6 +54,7 @@ public class CalendarTests
     /// ファイルごとの数を見る＝1つ消して別のファイルに1つ足すと赤。</summary>
     private static readonly System.Collections.Generic.Dictionary<string, int> BareConversionSites = new()
     {
+        ["BilateralMarket.cs"] = 1,   // 通し四半期（年×4＋四半期・暦の添字・(403) ②の番）
         ["Coefficients.cs"] = 1,   // 1950 年の断面の四半期数（期間）
         ["CrownParliament.cs"] = 1,   // 在任の四半期数÷（年数×4）（期間）
         ["Diplomacy.cs"] = 1,   // 順位の更新の間隔（四半期数→月数）

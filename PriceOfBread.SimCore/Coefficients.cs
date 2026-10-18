@@ -2266,6 +2266,14 @@ public sealed class Coefficients
     //   ＋(2) AI の工場の着工の門（SelfPlay.TryBuildFacility）が、着工しようとする工事の月の出費（工賃＋素材）を今ある工事の月の出費に足してから上限（FacilityBuildOutlayShare×安全水準）と比べる。
     //   測った記録＝measurements/op400_20261018_*・焼き込みの恒等＝measurements/*bi405*。
 
+    // ★(403) 清算の見る範囲の絞り（結果の変わる高速化・2026-10-18 採用＝旗を既定へ焼き込んだ・測った登録 measurements/cs_20261018_prereg.txt）。
+    //   ClearingIdleSearchQuarters（②・N）：前の月に輸入が無く、不足も無いか主食でない財の不足だけの買い手行（州×財）は N 四半期に 1 回だけ、四半期の最初の清算で売り手を探す（行ごとに位相が散る）。
+    //   作者案（2026-09-26）〈年に1度だけ回し、取引があれば復活〉＝4。N が 1 以下なら全ての行が毎四半期探す。主食（GoodTier.Staple か麦の連鎖）の不足は番に関わらず起こす。
+    public double ClearingIdleSearchQuarters = 4;
+    //   ClearingPartnerScope（①・K）：四半期の 2・3 月目の清算で、その四半期の最初の清算に成約した買い手行は、その清算で相手にした売り手（先の K 人・1 以上）から先に買い、
+    //   覚えの売り手が尽きたら全ての売り手を探し直す。覚えは作業領域（セーブに載らない・四半期の最初の清算が作り直す）。最初の清算の走査は変えない。AI の置き（確証なし）。
+    public double ClearingPartnerScope = 4;
+
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）
     public const int FidelityQuarters1820 = 152;             // ★E-08 多断面（作者提案2026-09-04）：Maddison の基準年＝1820年12月（(1820−1783)×4+4）

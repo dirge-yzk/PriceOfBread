@@ -1,0 +1,27 @@
+census 1（seed 1・selfplay 1 668・作業用ビルド c76fb85＋計器・読むだけ）
+[CS] clr=0 fillsSellerNoPrevExport=175649888 fillsSellerPrevExport=56749799 dealsNoPE=15861553 dealsPE=41885749 dealWgNoPE=43209190.9 dealWgPE=95806152.8
+[CS] clr=1 fillsSellerNoPrevExport=174465554 fillsSellerPrevExport=68054446 dealsNoPE=25461005 dealsPE=81617945 dealWgNoPE=66610733.3 dealWgPE=193698068.8
+[CS] full import rows=2398479 scanned=2286584 fills=71709432 dealtRows=1720851 deals=38319494 distinct=2298632 fillsInDealt=57745633 fillsInUndealt=13963799 over[K=1,2,3,4,8,16]=69422848,67311281,65358718,63537078,57174257,46694483
+[CS] full shortOnly rows=4012303 scanned=3430397 fills=82040196 dealtRows=621873 deals=12017519 distinct=761499 fillsInDealt=18187639 fillsInUndealt=63852557 over[K=1,2,3,4,8,16]=78609799,75581751,72839313,70332318,61918779,49371328
+[CS] full idle rows=15660964 scanned=3852831 fills=78650059 dealtRows=298267 deals=7410289 distinct=411956 fillsInDealt=12482877 fillsInUndealt=66167182 over[K=1,2,3,4,8,16]=74797228,71458051,68450285,65719812,56540717,43053969
+[CS] thin import rows=5146609 scanned=4746550 fills=155599952 dealtRows=3758195 deals=85228137 distinct=5070902 fillsInDealt=130579201 fillsInUndealt=25020751 over[K=1,2,3,4,8,16]=150853402,146453217,142362332,138535050,125046330,102604626
+[CS] thin shortOnly rows=5563652 scanned=3647938 fills=86920048 dealtRows=1152158 deals=21850813 distinct=1403576 fillsInDealt=32758117 fillsInUndealt=54161931 over[K=1,2,3,4,8,16]=83272110,80046511,77116599,74433036,65333072,51758562
+[CS] thin idle rows=0 scanned=0 fills=0 dealtRows=0 deals=0 distinct=0 fillsInDealt=0 fillsInUndealt=0 over[K=1,2,3,4,8,16]=0,0,0,0,0,0
+
+census 2（同じ木＋覚えの当たり・主食の内訳の計器）
+[CS3] clr=0 cls=0 dealsByPrevMemRank <1,<2,<3,<4,<8,anyInPrev,notInPrev: 14571365,2095274,877614,454935,620593,209134,19490579 weights: 30488346,9205800,4470874,2647593,4047041,1467098,44859545
+[CS3] clr=0 cls=1 dealsByPrevMemRank <1,<2,<3,<4,<8,anyInPrev,notInPrev: 266427,23981,9656,4788,6759,1793,11704115 weights: 346396,64144,35712,28690,28273,12007,20749147
+[CS3] clr=0 cls=2 dealsByPrevMemRank <1,<2,<3,<4,<8,anyInPrev,notInPrev: 291107,69988,26882,14704,17282,3874,6986452 weights: 713551,224666,94794,77554,109623,23528,19320960
+[CS3] clr=1 cls=0 dealsByPrevMemRank <1,<2,<3,<4,<8,anyInPrev,notInPrev: 32521756,4786190,1935968,998120,1326750,427555,43231798 weights: 72044458,20797645,10110229,5729264,8313698,3171214,101625618
+[CS3] clr=1 cls=1 dealsByPrevMemRank <1,<2,<3,<4,<8,anyInPrev,notInPrev: 318161,22081,8792,3683,4752,1003,21492341 weights: 299326,51898,22001,13446,25153,3362,38101489
+[CS3] clr=1 cls=2 dealsByPrevMemRank <1,<2,<3,<4,<8,anyInPrev,notInPrev: 0,0,0,0,0,0,0 weights: 0,0,0,0,0,0,0
+[CS3] clr=0 shortOnly staple/grain fills=3592811 rows=160245 nonStaple fills=78447385 rows=3621736
+[CS3] clr=1 shortOnly staple/grain fills=3728216 rows=181206 nonStaple fills=83191832 rows=3820103
+[CS] clr=0 fillsSellerNoPrevExport=175649888 fillsSellerPrevExport=56749799 dealsNoPE=15861553 dealsPE=41885749 dealWgNoPE=43209190.9 dealWgPE=95806152.8
+[CS] clr=1 fillsSellerNoPrevExport=174465554 fillsSellerPrevExport=68054446 dealsNoPE=25461005 dealsPE=81617945 dealWgNoPE=66610733.3 dealWgPE=193698068.8
+[CS] full import rows=2398479 scanned=2286584 fills=71709432 dealtRows=1720851 deals=38319494 distinct=2298632 fillsInDealt=57745633 fillsInUndealt=13963799 over[K=1,2,3,4,8,16]=69422848,67311281,65358718,63537078,57174257,46694483
+[CS] full shortOnly rows=4012303 scanned=3430397 fills=82040196 dealtRows=621873 deals=12017519 distinct=761499 fillsInDealt=18187639 fillsInUndealt=63852557 over[K=1,2,3,4,8,16]=78609799,75581751,72839313,70332318,61918779,49371328
+[CS] full idle rows=15660964 scanned=3852831 fills=78650059 dealtRows=298267 deals=7410289 distinct=411956 fillsInDealt=12482877 fillsInUndealt=66167182 over[K=1,2,3,4,8,16]=74797228,71458051,68450285,65719812,56540717,43053969
+[CS] thin import rows=5146609 scanned=4746550 fills=155599952 dealtRows=3758195 deals=85228137 distinct=5070902 fillsInDealt=130579201 fillsInUndealt=25020751 over[K=1,2,3,4,8,16]=150853402,146453217,142362332,138535050,125046330,102604626
+[CS] thin shortOnly rows=5563652 scanned=3647938 fills=86920048 dealtRows=1152158 deals=21850813 distinct=1403576 fillsInDealt=32758117 fillsInUndealt=54161931 over[K=1,2,3,4,8,16]=83272110,80046511,77116599,74433036,65333072,51758562
+[CS] thin idle rows=0 scanned=0 fills=0 dealtRows=0 deals=0 distinct=0 fillsInDealt=0 fillsInUndealt=0 over[K=1,2,3,4,8,16]=0,0,0,0,0,0

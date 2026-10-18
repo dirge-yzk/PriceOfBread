@@ -561,6 +561,8 @@ if (args.Length > 0 && args[0] == "timeprobe")
         long rsAll = rsN + rsR + rsD + rsB, rowsAll = PriceOfBread.SimCore.InternationalMarket.CntBuyers;
         Console.WriteLine($"  無効な売り手を訪ねない: 行ごと飛ばした {rsAll}（買い手行の {(rowsAll > 0 ? 100.0 * rsAll / rowsAll : 0):F1}%＝不足なし {rsN}・参照価格0 {rsR}・需要0 {rsD}・予算0 {rsB}）"
             + $"　lp で打ち切り {PriceOfBread.SimCore.InternationalMarket.CntCutLp}　楔の下界で飛ばした売り手 {PriceOfBread.SimCore.InternationalMarket.CntWedgeSkips}");
+        // ★(403) 清算の見る範囲の絞り（係数 ClearingIdleSearchQuarters／ClearingPartnerScope）：番でなくて飛ばした行・覚えで絞った行・覚えが尽きて全ての売り手を探し直した行。
+        Console.WriteLine($"  清算の見る範囲の絞り: 番でなくて飛ばした行 {PriceOfBread.SimCore.InternationalMarket.CntIdleSkips}　覚えで絞った行 {PriceOfBread.SimCore.InternationalMarket.CntScopeRows}　覚えが尽きて探し直した行 {PriceOfBread.SimCore.InternationalMarket.CntScopeFallbacks}　覚えに無くて辿っただけの売り手 {PriceOfBread.SimCore.InternationalMarket.CntScopeWalk}");
         // ★国内価格の旬次（2026-09-26 A3）：機構が本当に働いたか＝閉じた式で進んだ財の割合（1−e）・日次に落ちた理由・打ち切りで省いた日数（1−f）。
         //   助走も含む（計器は構築から数える）。検算＝閉じた式＋日次の理由の和＝財の歩／日次の回＋省いた日＝日次に落ちた財×h（刻み1は×1）。
         long mfSteps = MarketFlow.CntGoodSteps, mfCg = MarketFlow.CntClosedGoods, mfCs = MarketFlow.CntClosedService, mfCp = MarketFlow.CntClosedPinned;
