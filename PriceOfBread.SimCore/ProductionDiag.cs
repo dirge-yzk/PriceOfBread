@@ -370,7 +370,7 @@ public static class ProductionDiag
     /// <b>⚠「作れるが今は作っていない」財との区別</b>＝②で外れる。技術ゲートが1つでも開いていれば、
     /// 採算割れで生産が0でも価格もシェアも意味を持つ（従来どおり数字を出す）＝この2状態は別物。
     ///
-    /// ★<see cref="EconomyStep"/> の産出スナップ（<see cref="Coefficients.PhantomOutputSnapFloor"/>）が
+    /// ★<see cref="EconomyStep"/> の産出スナップが
     ///   未発明の産出を厳密に0にするので、①は「幻の残り火」で偽になることがない（両者は同じ技術ゲートを読む）。</summary>
     public static bool[] UnavailableGoods(MultiNationSim sim, Coefficients coef)
     {

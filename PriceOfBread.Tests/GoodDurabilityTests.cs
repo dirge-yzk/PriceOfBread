@@ -163,7 +163,6 @@ public class GoodDurabilityTests
     {
         var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var w = sim.Nations[0].World; var r = w.Region; var c = w.Coef;
-        Assert.True(c.ConstructionMaterialCarryover > 0, "前提が崩れた：持ち越しが切れている");
         int[] gids = [c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId];
         const double big = 1e12;   // 今月の余り（在庫の桁）に比べて桁違いに大きい持ち越しを置く＝残る割合だけがほぼそのまま見える
         r.ConstructionCarryover = new double[r.Markets.Length];

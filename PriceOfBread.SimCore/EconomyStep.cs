@@ -456,7 +456,7 @@ public static class EconomyStep
     }
 
     /// <summary>★(186) 生産者の眠り（計算量の予算・近似＝2026-10-03 推奨で進めた）＝0 回す・1 眠った・2 目覚めた。
-    /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（技術ゲート0の月の操業規模0）・産出が0（<see cref="Coefficients.PhantomOutputSnapFloor"/>）に
+    /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（技術ゲート0の月の操業規模0）・産出が0（産出のスナップ）に
     ///   置かれた工場と産地。その月の生産者の段（労働の重み・供給・投入の需要と決済・投入の充足・所得と操業規模と採算）を全て飛ばす
     ///   ＝門が0 の間は能力が0（供給①の boost が門を掛ける）＝産出も投入も0 で、旧の段が動かしていたのは平滑の量（労働の重み・採算・蒸気と電化と効率化材の率・補助の依存）と、
     ///   作り手の居ない月の売上の按分（生産者の数で割る）だけ＝按分は回した生産者だけで割る（全てが眠っていれば生産者の居ない財＝商人へ）。
@@ -471,7 +471,7 @@ public static class EconomyStep
     ///   ③全ての生産者が眠った財は生産者の数が0＝その月の売上の全額が商人へ（2026-07-22 の直しが塞いだ「国内在庫の処分代金まで商人へ」の型がこの財で開き直る・お金は保存）。</summary>
     internal static byte SleepState(Region region, Producer s, Coefficients coef)
     {
-        if (!(coef.PhantomOutputSnapFloor > 0) || s.Scale != 0 || s.Output != 0 || s.Bankrupt
+        if (s.Scale != 0 || s.Output != 0 || s.Bankrupt
             || s.BuiltScale > Eps || s.ConstructionLeft > 0 || s.SiteRow >= 0
             || s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length || Catalog.Goods[s.GoodId].Tier == GoodTier.Service) return 0;
         return Discovery.Gate(region, s) > 0 ? (byte)2 : (byte)1;
@@ -859,12 +859,11 @@ public static class EconomyStep
             // ②目標が立たない月の残り火＝在庫の実用スケール（TargetStockFloor＝需要0の財に置く在庫目標の下限）未満なら0。
             //   ⚠ target>0 は対象外＝本当に少量作っている州の産出は殺さない（判定は目標であって産出ではない）。
             // 産出0は既に正規の状態（倒産工場の Output=0 と同じ）＝再点火は DesiredOutput（=能力×採算）駆動のトリクルが担うので
-            // 「0にすると二度と立ち上がらない」経路は無い。PhantomOutputSnapFloor=0 で①②とも不発＝現行と厳密恒等。
-            if (coef.PhantomOutputSnapFloor > 0)
+            // 「0にすると二度と立ち上がらない」経路は無い。（旗 PhantomOutputSnapFloor は 2026-10-18 に焼き込み＝①②は常に走る。）
             {
                 bool unInvented = !baumol && !(gate > 0);   // 否定形＝NaN も未発明側へ倒す
                 if (unInvented) s.Output = 0;
-                else if (!(target > 0) && s.Output < coef.PhantomOutputSnapFloor * coef.TargetStockFloor) s.Output = 0;
+                else if (!(target > 0) && s.Output < coef.TargetStockFloor) s.Output = 0;
             }
             produced[s.GoodId] += s.Output;
         }
@@ -881,7 +880,7 @@ public static class EconomyStep
         double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の門＝機関車の発見（(150)・RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
         double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // 運用コスト監査2026-08-16 #4：空軍・輜重の燃料（原油）。need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）
         double stateConLaborUnits = 0;   // 経5：国家建設ぶんの同・労働需要量（国庫負担）
-        // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。決済で built の計算に足し戻す。ConstructionMaterialCarryover=1.0（点火2026-08-01）。0なら確保せず null＝繰越適用0で旧恒等
+        // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。決済で built の計算に足し戻す。点火2026-08-01
         double[]? conCarryApplied = null;
         int conWorker = -1;   // 建設の工賃の受け手（工場労働者）
         foreach (var pw in region.Producers) if (pw.GoodId == Catalog.LaborId) { conWorker = pw.LaborPopIndex; break; }
@@ -948,23 +947,13 @@ public static class EconomyStep
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
             // 今月はその手持ち分だけ investDemand を控除＝新規購入を減らす（既に先月支払い済み＝金銭は先月に計上済み・二重支払いなし）。控除した量は決済で built に足し戻す（手持ち資材が工業化に結実）。
-            // 0 では region.ConstructionCarryover を確保せず・conCarryApplied=null＝控除も足し戻しも0＝旧恒等。
-            if (coef.ConstructionMaterialCarryover > 0)
-            {
-                region.ConstructionCarryover ??= new double[ng];
-                conCarryApplied ??= new double[ng];
-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.SteelGoodId, coef.ConsSteel * construction);
-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.MachineGoodId, coef.ConsMachine * construction);
-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.CementGoodId, coef.ConsCement * construction);
-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.LumberGoodId, coef.ConsLumber * construction);
-            }
-            else
-            {
-                investDemand[coef.SteelGoodId] += coef.ConsSteel * construction;
-                investDemand[coef.MachineGoodId] += coef.ConsMachine * construction;
-                investDemand[coef.CementGoodId] += coef.ConsCement * construction;
-                investDemand[coef.LumberGoodId] += coef.ConsLumber * construction;
-            }
+            // （旗 ConstructionMaterialCarryover は 2026-10-18 に焼き込み＝繰越の経路は常に走る。）
+            region.ConstructionCarryover ??= new double[ng];
+            conCarryApplied ??= new double[ng];
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.SteelGoodId, coef.ConsSteel * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.MachineGoodId, coef.ConsMachine * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.CementGoodId, coef.ConsCement * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.LumberGoodId, coef.ConsLumber * construction);
             // 経5（労働の二重雇用・点火2026-07-28・2026-09-28 に旗 ConstructionLaborViaMarket と旧経路を削除）：建設工賃を労働力財の investDemand（保守要員と同経路）へ回し、
             // 建設ブームが労働需給を逼迫させ賃金クランプ・失業に効く。労働量＝工賃予算/労働価格で換算（材料cost比例の工賃を労働財の量へ）。
             // 決済（下段）では conLaborUnits×ration[Labor]×労働価格を投資家/国庫が支払い revenue[Labor] へ計上＝インフラ保守の決済と同型（支払い＝労働pop受取で保存）。
@@ -1868,14 +1857,14 @@ public static class EconomyStep
                     if (p.GoodNeed > Eps)
                     {
                         // 経2（飢饉の深さ）：自給充足の収穫係数。従来は局地 HarvestFactor のみ＝作物病害(CropHealth)・緯度帯天候(WeatherBandFactor)・土地逓減(landFactor)が
-                        // 高自給の貧農の自家消費に届かず、ジャガイモ胴枯病型の飢饉の核心層が病害を免れていた。SubsistenceHarvestFullExposure=0 なら
-                        // subFactor=HarvestFactor＝旧と厳密一致。=1（★ 既定＝点火済み）で市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
+                        // 高自給の貧農の自家消費に届かず、ジャガイモ胴枯病型の飢饉の核心層が病害を免れていた。（旗 SubsistenceHarvestFullExposure は 2026-10-18 に焼き込み）
+                        // 市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
                         double subFactor = region.HarvestFactor;
-                        if (staple && coef.SubsistenceHarvestFullExposure > 0)
+                        if (staple)
                         {
                             double crop = region.CropHealth is { } ch && gi < ch.Length ? ch[gi] : 1.0;   // 主食id(=gi)の作物健全度（病虫害）
                             double fullFactor = region.HarvestFactor * region.WeatherBandFactor * crop * regionLandFactor;   // 市場向けと同じ収穫係数
-                            subFactor = (1.0 - coef.SubsistenceHarvestFullExposure) * region.HarvestFactor + coef.SubsistenceHarvestFullExposure * fullFactor;
+                            subFactor = fullFactor;
                         }
                         double sub = staple ? p.GoodNeed * p.Subsistence * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
                         double met = sub + Math.Min(qty, p.GoodNeed - sub);
@@ -1971,7 +1960,7 @@ public static class EconomyStep
         if (cap && construction > 0)
         {
             int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
-            // 経17：新規購入量(*Got)は「今月立てた需要＝Cons×construction−充当繰越」×配給＝investDemand と厳密に一致させる（充当分を引かないと支払いが需要を上回り金銭が漏れる）。conCarryApplied=null（係数0）なら控除0＝旧恒等。
+            // 経17：新規購入量(*Got)は「今月立てた需要＝Cons×construction−充当繰越」×配給＝investDemand と厳密に一致させる（充当分を引かないと支払いが需要を上回り金銭が漏れる）。
             double sApp = conCarryApplied?[sg] ?? 0, mApp = conCarryApplied?[mg] ?? 0, cApp = conCarryApplied?[cg] ?? 0, lApp = conCarryApplied?[lg] ?? 0;
             double sGot = Math.Max(0, coef.ConsSteel * construction - sApp) * ration[sg];
             double mGot = Math.Max(0, coef.ConsMachine * construction - mApp) * ration[mg];
@@ -2029,10 +2018,10 @@ public static class EconomyStep
             //   ・耐久財は実質スタックでき、生鮮なら数か月で消える＝**財の性質が保管期間を決める**（新しい分類も新しい定数も置かない）
             //   ・手持ちが増えるほど新規購入（investDemand）が減る＝**自己制限的で有界**（新しい上限を置く必要がない）
             //   ・腐敗は手持ちを減らすだけで支払いを伴わない＝**ロスは金を生まない**（市場側の腐敗と同一の会計。財収支にも触れない＝市場外のバッファ）
-            if (coef.ConstructionMaterialCarryover > 0 && region.ConstructionCarryover is { } carry)
+            if (region.ConstructionCarryover is { } carry)
             {
                 void KeepMaterial(int gid, double eff, double cons)
-                    => carry[gid] = (carry[gid] + coef.ConstructionMaterialCarryover * Math.Max(0, eff - built * cons)) * Catalog.DurabilityOf(gid);
+                    => carry[gid] = (carry[gid] + Math.Max(0, eff - built * cons)) * Catalog.DurabilityOf(gid);
                 KeepMaterial(sg, sEff, coef.ConsSteel);
                 KeepMaterial(mg, mEff, coef.ConsMachine);
                 KeepMaterial(cg, cEff, coef.ConsCement);
@@ -2520,9 +2509,9 @@ public static class EconomyStep
             if (subEff > Eps && margin < 0) margin *= 1.0 - subEff;   // 率ぶんだけ損失を緩和（満額=採算0の底上げ＝旧ONと同値・部分率は深い赤字なら倒産もありうる）。レバー2の実効率＝国庫負担と操業維持が同じ率で細る（整合）
             // 経3：BuiltScale が ScaleMax を超えると floor>ScaleMax で Math.Clamp が min>max→ArgumentException（工場を多数建てると BuiltScale が累積して踏む）。floor を ScaleMax でキャップして例外を防ぐ（BuiltScale≤ScaleMax の通常域では不変＝テスト不変）。
             // ★カテゴリ別の供給弾力性（2026-08-14・作者裁定）：鉱山・畑は工場のようには伸びない。
-            //   上限＝鉱脈/土地の有限性（均衡の制約）・速度＝坑道/開墾の年単位（時定数）。ゲート0で catMax=ScaleMax・catSpeed=ScaleAdjustSpeed＝厳密恒等。
+            //   上限＝鉱脈/土地の有限性（均衡の制約）・速度＝坑道/開墾の年単位（時定数）。魚と工場は ScaleMax・ScaleAdjustSpeed のまま。
             double catMax = coef.ScaleMax, catSpeed = coef.ScaleAdjustSpeed;
-            if (coef.RgoElasticityGate > 0 && s.IsRgo && s.GoodId != Catalog.FishId)
+            if (s.IsRgo && s.GoodId != Catalog.FishId)
             {
                 catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
                 catSpeed = coef.ScaleAdjustSpeed * coef.RgoScaleSpeedFactor;
@@ -2542,8 +2531,8 @@ public static class EconomyStep
             double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac.Value)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
             // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
             // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
-            double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限（ゲート0＝ScaleMax＝恒等）
-            s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度（ゲート0＝ScaleAdjustSpeed＝恒等）
+            double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限
+            s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度
             // ★幻の工場（**live**・2026-08-11点火／旧の旗 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
             // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。

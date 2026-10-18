@@ -224,6 +224,8 @@ public class DormantIdentityTests
         "RgoCapitalShare", "StateShareCounterOnly",   // 投資家が畑と鉱山の面積を広げる枝（StateShareCounterOnly=1 の点火 2026-08-30 以来一度も走らない）と、それを止めていた旗
         "TechGatedScaleZero",   // Q1＝幻の工場の旗の 0 の枝（作者 2026-10-18「全て推奨」）
         "IndustrializedTechThreshold", "IndustrializedUrbanThreshold", "CalibQuarters",   // 単国の経路の較正（Calibration・Sweep・ClassifyPath）とその物差し
+        // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 経16（既定1.0の旗の 0 の枝を削除・式は1の側だけ）
+        "PhantomOutputSnapFloor", "ConstructionMaterialCarryover", "SubsistenceHarvestFullExposure", "RgoElasticityGate",
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

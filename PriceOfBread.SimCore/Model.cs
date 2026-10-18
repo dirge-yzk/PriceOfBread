@@ -1000,7 +1000,7 @@ public sealed class Region
     public double OpiumAddiction;                     // アヘン中毒度（1人あたり需要の上乗せ）。消費するほど増える＝供給が需要を生む正のフィードバック（実験）
     public double[]? ColonialSupply;                  // 各財の植民地産出（供給駆動・毎期）。保有植民地×固有資源×産出率。需要と無関係に流入＝過剰なら価格暴落
     public double[]? ColonialImportPipeline;          // 経19（海上リードタイム）：前月発注済み未着の植民地輸入量（good.Id添字・1段）。null または ColonialImportLagMonths=0 で従来の即時加算＝中立
-    public double[]? ConstructionCarryover;           // 経17（建設Leontief端数の繰越・good.Id添字・1段）：先月の建設束で律速成分に律速され使い残した非律速資材。null または ConstructionMaterialCarryover=0 で従来どおり全消費＝中立
+    public double[]? ConstructionCarryover;           // 経17（建設Leontief端数の繰越・good.Id添字・1段）：先月の建設束で律速成分に律速され使い残した非律速資材。null なら従来どおり全消費
     public double SocialSecurity;                     // 社会保障（公共医療）の水準（World から複製。医薬品消費に使う）
     public double HarvestFactor = 1.0;                // 今年の豊作/不作（World から複製。主食RGO産出と自給に乗算）
     public double LastSubsistenceOutput;   // 人2補完（2026-07-11）：この州の今月の主食**自給**産出Σ（市場外・無償＝Market.LastProducedに載らない）。扶養力の生産アンカーの分子欠落（自給7割の農業国で分子過小→capacity崩落）を埋める。EconomyStep月初にリセット
