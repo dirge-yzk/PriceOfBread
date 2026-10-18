@@ -2,7 +2,7 @@ namespace PriceOfBread.SimCore;
 
 /// <summary>
 /// 犯罪と抑止（治安）。秩序＝実効治安維持力（Coercion＝基礎×正統性×財政充足）の人口カバレッジ＝警察の手が回っているか。
-/// 秩序が崩れると、貧しく不満な大衆が富を「闇で再分配」する＝窃盗（被害者の貯蓄から取られ〔額は CrimeVictimBasis＝既定は前の月の所得×犯罪率〕困窮大衆へ。純移転＝保存則安全）。
+/// 秩序が崩れると、貧しく不満な大衆が富を「闇で再分配」する＝窃盗（被害者の貯蓄から取られ〔額は前の月の所得×犯罪率〕困窮大衆へ。純移転＝保存則安全）。
 /// これにより治安維持力は革命鎮圧（Politics）だけでなく**日常の役割**を持つ：弱い国家・破産国家・恐慌下で犯罪が湧き、
 /// 人口が育つほど治安には治安維持力の増強が要る（警察も人口比で要る）。1789の既定構成では秩序≈1＝犯罪ほぼ0（既定中立）。
 /// </summary>
@@ -39,7 +39,7 @@ public static class Crime
             worstRate = Math.Max(worstRate, crimeRate);
             if (crimeRate <= 1e-9 || criminal <= 1e-9) continue;   // 受け手（困窮大衆）が実質不在なら盗まない＝盗んだpoolが再分配されず消える保存則違反の防止（leakhunt 2026-07-09）
 
-            // 窃盗：全階級が被害に遭い（被害の式は CrimeVictimBasis で分かれる・既定 1＝前の月の所得×犯罪率を貯蓄で頭打ち）、取られた分は困窮大衆（犯罪者の母体）へ流れる（純移転＝保存）。
+            // 窃盗：全階級が被害に遭い（被害＝前の月の所得×犯罪率を貯蓄で頭打ち。旧の旗 CrimeVictimBasis=0〔貯蓄×犯罪率〕は 2026-10-18 に焼き込み）、取られた分は困窮大衆（犯罪者の母体）へ流れる（純移転＝保存）。
             // 【重要】受取重みは満足度ペナルティ適用『前』の Satisfaction で計算する（分母 criminal と同一基準）。
             // 満足度ペナルティを先に適用すると Σweight≠criminal となり done>pool＝残差が負値で末尾popから恣意的控除（貯蓄が負へ）になるため、
             // 貨幣移転を満足度ペナルティより先に済ませ、両者の基準を厳密に揃える。
@@ -50,7 +50,7 @@ public static class Crime
             var stolen = new List<double>(r.Pops.Count);
             foreach (var p in r.Pops)
             {
-                double steal = c.CrimeVictimBasis > 0 ? Math.Min(Math.Max(0, Calendar.OneMonthOf(p.LastEarnedPerMonth).Value) * crimeRate, Math.Max(0, p.Savings.Value)) : Math.Max(0, p.Savings.Value) * crimeRate;   // ★(327) 既定 1＝被害＝min(前の月の所得×率, 貯蓄)＝所得に比例する流れ（盗める量は目の前の所得で頭打ち）。0＝旧＝貯蓄×率（在庫に比例）
+                double steal = Math.Min(Math.Max(0, Calendar.OneMonthOf(p.LastEarnedPerMonth).Value) * crimeRate, Math.Max(0, p.Savings.Value));   // ★(327) 既定 1＝被害＝min(前の月の所得×率, 貯蓄)＝所得に比例する流れ（盗める量は目の前の所得で頭打ち）。0＝旧＝貯蓄×率（在庫に比例）
                 stolen.Add(steal);
                 pool += steal;
             }

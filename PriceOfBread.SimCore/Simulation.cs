@@ -2396,7 +2396,7 @@ public sealed class Simulation
     /// </summary>
     // ①Phase3：出産可能女性プール（成人のうち非老年×女性比率）。BirthWeight と InitialFertileShare 捕捉で共有＝t=0 正規化と実行時重みが同一式（Σbirths=net の保存を厳密化）。
     // 人5（徴兵で出生が増える符号逆転の解消）：素の女性プール（∝女性）は、成人男性だけ抜く徴兵で残留popの女性比率が上がると出生配分が「増える」＝史実（夫不在で出生急減）と逆。
-    // CoupleLimitedBirths=0 で女性の数に比例・1で「カップル律速」＝少数側の性 min(女,男)×2 に律速。
+    // カップル律速＝少数側の性 min(女,男)×2 に律速（旧の旗 CoupleLimitedBirths〔0＝女性の数に比例〕は 2026-10-18 に焼き込み）。
     // 徴兵で男が抜けると min(女,男) の男側が縮み出生が減る＝カップル（夫婦）が律速資源＝WWI 仏の出生半減を再現。Wave1 の FertileShareFloor（重み膨張の防止）と整合。
     // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：15〜49歳の女×カップル律速（同じ15〜49歳の男との少数側）。旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比。
     //   起点合わせは要らない＝InitialFertileShare（t=0 の各 POP の値）で正規化する。標準の分母（FertileAbsoluteBlend）は標準のピラミッドをこの式に通した値（旧 FertileShareStd）。
@@ -2404,13 +2404,12 @@ public sealed class Simulation
     private static double FertilePoolOf(double[] ages, Coefficients c)
     {
         double f = Pop.AgeShareOf(ages, 15, 50, 1), m = Pop.AgeShareOf(ages, 15, 50, 0);
-        return f + c.CoupleLimitedBirths * (2.0 * Math.Min(f, m) - f);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
+        return f + (2.0 * Math.Min(f, m) - f);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）。⚠式の形は旧のまま（f+(2min−f) は 2min と最終ビットが違いうる）
     }
     // ①Phase3：国の出生の**総数**と州の中の階級への配り方の鍵（★2026-10-01 (143) から州への配り方は今の出産可能のプール×規模＝DemographicStep）。false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。既定 true で女性プール律速。
     // true で「出産可能女性プール」に律速し、各popの t=0 値で正規化＝標準構成（子供0.3・老年0・女性0.5）では Size と恒等＝較正中立。
     private static double BirthWeight(Pop p, Coefficients c)
     {
-        if (!c.FertileWomenBirths) return p.Size;
         double fertile = FertilePool(p, c);
         double init = p.InitialFertileShare.Value > 0 ? p.InitialFertileShare.Value : Math.Max(c.FertileShareFloor.Value, fertile);   // フロアを現実的下限へ引き上げ可能に（1e-6 だと捕捉時 fertile≈0 の pop の重みが桁違いに膨張＝出生集中バグ）
         double w = p.Size * fertile / init;
@@ -2419,14 +2418,14 @@ public sealed class Simulation
         // 蓄積で構成が正常化すると**分母凍結のまま分子 fertile が育ち恒久出生倍率（実測2.1倍＝聖職者爆発182→8362）**になる
         //（「比のガードは絶対値で書かない」と同族＝docs/202608/20260815_失業プールと社会移動_部分完了.md「点火直後の回帰」節）。
         // 是正形＝分母を**全pop共通の定数1本**へ：FertilePool(標準構成)＝(1−0.3子供)×0.5女性=FertileShareStd(0.35)を、FertilePool と同じ
-        // カップル律速項に通した 0.35×(1+CoupleLimitedBirths)（標準構成では couple=1.0）。標準popの重み=Size を保つ＝総出生の物差し
+        // カップル律速項に通した 0.35×2（標準構成では couple=1.0）。標準popの重み=Size を保つ＝総出生の物差し
         //（totalBirths=CBR×fertility×Σ重み）を動かさない。時間・年号は一切読まない＝現行より単純。
         // fertile≈0 のpopは共通分母では分子側で重み≈0＝膨張の恐れがなく自然に安全（FertileShareFloor は旧経路の捕捉時分母にのみ残る）。
         // Σbirths=net の保存（回復期の按分・totalDeaths=totalBirths−net）は既存の仕組みをそのまま通る＝配分の重みが変わるだけ＝人口保存不変。
         // ゲート0＝下の分岐に入らず w をそのまま返す＝旧popごと凍結分母とビット恒等／1＝(1−b)w+b·wStd で wStd へ厳密に全置換。
         if (c.FertileAbsoluteBlend > 0)
         {
-            double wStd = p.Size * fertile / FertilePoolOf(Pop.StdAgesRef, c);   // 標準のピラミッドの出産可能プール（旧＝FertileShareStd×(1＋CoupleLimitedBirths)＝同じ式の標準の構成）
+            double wStd = p.Size * fertile / FertilePoolOf(Pop.StdAgesRef, c);   // 標準のピラミッドの出産可能プール（旧＝FertileShareStd×2＝同じ式の標準の構成）
             w = (1.0 - c.FertileAbsoluteBlend) * w + c.FertileAbsoluteBlend * wStd;
         }
         return w;
@@ -2493,12 +2492,10 @@ public sealed class Simulation
             {
                 var mk = r.Markets[g.Id];
                 stapleOutput += mk.LastProduced;
-                // ★S2台帳衛生（TradeLedgerFix・2026-08-30）：LastImport/Export は月初(:EconomyStep)でゼロ化→清算で積むため、
+                // ★S2台帳衛生（旧の旗 TradeLedgerFix・2026-08-30）：LastImport/Export は月初(:EconomyStep)でゼロ化→清算で積むため、
                 //   この読み手（人口ステップ）の位置では**常に0か当月断片**＝FoodAnchorNetImport が発火不能だった（全経路マップ:282）。
-                //   ON＝前清算の完全な値（PrevImport/Export）を読む。0＝旧式＝厳密恒等
-                stapleNetImport += c.TradeLedgerFix > 0
-                    ? mk.PrevImport - mk.PrevExport
-                    : mk.LastImport - mk.LastExport;   // B-高1：主食の純輸入（輸出国は負＝食料を送り出す分だけ自国の扶養力は下がる）
+                //   前清算の完全な値（PrevImport/Export）を読む（旧の旗 TradeLedgerFix は 2026-10-18 に焼き込み）。
+                stapleNetImport += mk.PrevImport - mk.PrevExport;   // B-高1：主食の純輸入（輸出国は負＝食料を送り出す分だけ自国の扶養力は下がる）
             }
             if (r.ArableLand < 1e8)   // 人2b：空き土地の集計（センチネル除外）
             {
@@ -2578,9 +2575,9 @@ public sealed class Simulation
         double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost);
         // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
-        // FertilityAffectsBirthsOnly=0 で netFertility==fertility＝現行と厳密一致・1で net の収束速度から fertility を外し 1.0（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立。
-        double netFertility = fertility + c.FertilityAffectsBirthsOnly * (1.0 - fertility);
-        double net = c.PopGrowthRatePerMonth.Value * netFertility * pop * (1.0 - pop / capacity);   // ロジスティック：均衡＝扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は FertilityAffectsBirthsOnly で切り離せる
+        // net の収束速度から fertility を外す（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立（旧の旗 FertilityAffectsBirthsOnly は 2026-10-18 に焼き込み。
+        //  旧の netFertility＝fertility+1.0×(1−fertility) は fertility∈[0.5,∞) で厳密に 1.0＝FertilityFloor が 0.5 以上である限り恒等）。
+        double net = c.PopGrowthRatePerMonth.Value * pop * (1.0 - pop / capacity);   // ロジスティック：均衡＝扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は無い（出生側だけが fertility を持つ）
         World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // ★人口診断拡張（2026-08-21・純記帳）：出生率倍率と空き土地ブースト＝仏過大/英過小の因子分解用
         var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
         double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
@@ -2592,13 +2589,13 @@ public sealed class Simulation
         {
             massPop += p.Size;
             massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // ★(143) 平常の死の配分鍵＝年齢の構成で重みを付けた規模
-            if (c.FertileWomenBirths && p.InitialFertileShare.Value < 0)
+            if (p.InitialFertileShare.Value < 0)
                 p.InitialFertileShare = new Share(Math.Max(c.FertileShareFloor.Value, FertilePool(p, c)));   // t=0 の出産可能女性プールを各popの相対基準として捕捉（BirthWeight と同一式＝人5 のカップル律速も t=0 正規化に反映）
 
             double bwp = BirthWeight(p, c);
             massBirthWeight += bwp;   // ①Phase3：国の出生の総数の物差し（既定は Size＝massBirthWeight==massPop）
             regBW[ri] += bwp;
-            double key = c.FertileWomenBirths ? p.Size * FertilePool(p, c) : p.Size;
+            double key = p.Size * FertilePool(p, c);
             regKey[ri] += key; massBirthKey += key;
         }
         if (massPop < 1e-9) return;

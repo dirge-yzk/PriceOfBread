@@ -684,7 +684,7 @@ public static class Catalog
     /// <summary>★(336) 流れG ② 系統×段階：行ごとの前提の行の添字（−1＝前提なし＝系統の根）＝<see cref="DiscoveryRow.After"/> の名前を引く。
     /// 辺の表と前提の木は AI の推奨。作者 2026-10-02「すべて推奨でよい。」（(177)）が掛かるのは AI の推奨〈引きなし・判定は各系統の次の段だけ〉の一句まで。★(344) 辺の表 8 本（腕 B）に 作者 2026-10-15「特に違和感はないです。これでいきましょう。」＝表の承認（出典の頁は未確認）。
     /// ⚠辺を張る基準：子の投入が親の運び手の財（<see cref="Discovery.CarriersByRow"/>）の唯一の出口なら、子のゲートは親の伝わりの取引の道を作りで閉じる（機関車・汽船 ← 蒸気機関＝蒸気機関を未解禁の国は SteamEngineId の需要が0）
-    /// ＝measurements/ln_20261015_prereg.txt [14-2]。★(344) 表は 8 本（(336) の 20 本から、機関車・汽船・石炭火力ほかの 12 本を外した＝腕 B）・係数 <see cref="Coefficients.DiscoveryTierGate"/>（既定 1）が0なら読まれない。⚠機関車・汽船 ← 蒸気機関は伝わりの道（段2）を直してから再導入する（(338) [15]）。
+    /// ＝measurements/ln_20261015_prereg.txt [14-2]。★(344) 表は 8 本（(336) の 20 本から、機関車・汽船・石炭火力ほかの 12 本を外した＝腕 B）（旧の旗 DiscoveryTierGate は 2026-10-18 に焼き込み）。⚠機関車・汽船 ← 蒸気機関は伝わりの道（段2）を直してから再導入する（(338) [15]）。
     /// 構築で表の誤りを止める（前提の名前が表に無い・自分自身・輪）。⚠<see cref="Discoveries"/> の後ろに置く（静的初期化は書いた順）。</summary>
     public static readonly int[] DiscoveryAfter = BuildDiscoveryAfter();
     private static int[] BuildDiscoveryAfter()

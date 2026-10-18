@@ -793,7 +793,7 @@ public sealed class Market
     public double LastShortage;
     public double LastImport;   // 今期の輸入量（§5.1・財収支に算入）
     public double LastExport;   // 今期の輸出量
-    public double PrevImport;   // ★S2台帳衛生（TradeLedgerFix・2026-08-30）：前清算の輸入量。ゼロ化(:EconomyStep)直前に退避＝清算外の読み手（人口の主食純輸入）が常に0を見る非対称の是正。読み手はTradeLedgerFix>0のみ
+    public double PrevImport;   // ★S2台帳衛生（旧の旗 TradeLedgerFix・2026-08-30）：前清算の輸入量。ゼロ化(:EconomyStep)直前に退避＝清算外の読み手（人口の主食純輸入）が常に0を見る非対称の是正。読み手はTradeLedgerFix>0のみ
     public double PrevExport;   // 同・前清算の輸出量
     /// <summary>前期の総需要（消費＋投入）。次期の労働配分の重み（持続・リセットしない）。★書き込みで印を立てる（<see cref="LastProduced"/> と同じ）。</summary>
     public double LastDemand

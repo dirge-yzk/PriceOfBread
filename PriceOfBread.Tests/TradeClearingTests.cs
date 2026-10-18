@@ -59,7 +59,6 @@ public class TradeClearingTests
         // ★2026-08-30 点火宣言（batch10段階測定＝貿易/GDP 0.5%→42〜66%・開放度次元が初の非ゼロ・本国96.7/経済41.2）
         var c = new Coefficients();
         Assert.Equal(1.0, c.TradeMonthlyClearing);
-        Assert.Equal(1.0, c.TradeLedgerFix);
         Assert.Equal(1.0, c.PriceLawSeesExports);
     }
 

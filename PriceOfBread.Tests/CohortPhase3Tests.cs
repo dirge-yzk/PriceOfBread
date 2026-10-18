@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// ①年齢コホート Phase3（dormant 着地）の配線検証。
-/// 既定（OldLaborFactor=1.0・FertileWomenBirths=false）は現行と厳密一致＝較正中立（123テスト本体が担保）。
+/// 既定（OldLaborFactor=1.0）は現行と厳密一致＝較正中立（123テスト本体が担保）。（旧の旗 FertileWomenBirths は 2026-10-18 に焼き込み。）
 /// ここでは**有効化した時に保存則・境界が壊れず、意図した方向に効く**ことを確認する（#17 の較正再走前の安全網）。
 /// </summary>
 public class CohortPhase3Tests
@@ -16,8 +16,6 @@ public class CohortPhase3Tests
     {
         var c = new Coefficients();
         Assert.Equal(0.75, c.OldLaborFactor);       // 【史実値へ2026-08-08作者裁定＝19世紀の高齢労働参加×体力減。0.6は経済較正が拒否→0.75】旧0.92(2026-07-18)
-        Assert.True(c.FertileWomenBirths);           // 第(iii)段有効化＝出生が出産可能女性プールに律速（失われた世代の伝播）
-        Assert.Equal(1.0, c.CoupleLimitedBirths);    // 第(iii)段有効化＝カップル律速（徴兵で出生が増える符号逆転の解消・セット必須）
         Assert.Equal(0.05, c.FertileShareFloor.Value);     // 第(iii)段有効化＝プール正規化の下限フロア（出生集中の防止・セット必須）
     }
 
@@ -26,7 +24,6 @@ public class CohortPhase3Tests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());   // 多州＝州内移民で OldShare 運搬も通る
         sim.World.Coef.OldLaborFactor = 0.2;          // 老年はほぼ引退（労働供給から外れる）
-        sim.World.Coef.FertileWomenBirths = true;     // 出生を出産可能女性プールに律速
         double p0 = sim.World.TotalPopulation;
         var ex = Record.Exception(() => sim.Run(200));   // 50年：コホート形成＋移民＋飢饉まで含めて回す
         Assert.Null(ex);   // §11.6（保存・境界）が全ティック保持＝有効化しても破れない

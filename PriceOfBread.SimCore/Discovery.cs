@@ -10,8 +10,8 @@ public enum WarDomain { None, Land, Sea, Air }
 /// <summary>発見の表の1行（<see cref="Catalog.Discoveries"/>）＝名前・財・レシピ（""＝既定のレシピ）・分野・年代（10年刻み）・新兵器の分野・代替する物。
 /// <paramref name="Replaces"/>＝その行が生み出す物が代替する物（作者 2026-10-02＝必要性はその値段の高さ・★(165) 新しいレシピで作る費用と比べる・<see cref="Discovery"/> の ReplacedStrength）＝<see cref="Catalog.ReplacesOwn"/>（製法＝その行の財そのもの）・
 /// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
-/// <paramref name="After"/>＝★(336) 系統×段階の前提の行の名前（""＝前提なし＝系統の根〔段1〕）。係数 <see cref="Coefficients.DiscoveryTierGate"/> が正のとき、前提の行がまだの国ではこの行を判定しない（点数0・飛ばして先の段を解禁しない）。
-/// 系統＝根の行（前提のない行）から枝分かれする木・段＝根からの深さ（<see cref="Catalog.DiscoveryTier"/>）＝系統と段は前提の1本から導く（別に持たない）。係数が0なら読まない（★(344) 既定は 1）。</summary>
+/// <paramref name="After"/>＝★(336) 系統×段階の前提の行の名前（""＝前提なし＝系統の根〔段1〕）。前提の行がまだの国ではこの行を判定しない（点数0・飛ばして先の段を解禁しない）。
+/// 系統＝根の行（前提のない行）から枝分かれする木・段＝根からの深さ（<see cref="Catalog.DiscoveryTier"/>）＝系統と段は前提の1本から導く（別に持たない）。（旧の旗 DiscoveryTierGate は 2026-10-18 に焼き込み。）</summary>
 public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "");
 
 /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
@@ -382,7 +382,6 @@ public static class Discovery
         var rows = Catalog.Discoveries;
         int nr = rows.Length, ng = Catalog.Goods.Length;
         var res = new Terms[nr];
-        bool tierGate = c.DiscoveryTierGate > 0;   // ★(336) 否定形でなく肯定形＝NaN・負は偽（判定する側＝旧の挙動）
         // --- 国の集計（財ごと・稼働中の州の和）：国内の産出・輸入・需要・需要で重みを付けた値段・作れるか（門の開いた生産者が居る）---
         var refP = Catalog.RefPrices;
         var prod = new double[ng]; var imp = new double[ng]; var dem = new double[ng]; var pxd = new double[ng];   // imp＝州の輸入−輸出の和＝国の純輸入（同じ国の州どうしの積み出しは打ち消す）
@@ -456,8 +455,7 @@ public static class Discovery
         for (int row = 0; row < nr; row++)
         {
             if (!includeKnown && Known(w.Discovered, row)) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
-            if (tierGate)   // ★(336) 系統×段階：前提の行がまだの国はこの行を判定しない（点数0・伝わりも読まない）
-            {
+            {   // ★(336) 系統×段階：前提の行がまだの国はこの行を判定しない（点数0・伝わりも読まない。旧の旗 DiscoveryTierGate は (344) で既定1→2026-10-18 に焼き込み）
                 int after = Catalog.DiscoveryAfter[row];
                 if (after >= 0 && !Known(w.Discovered, after)) continue;
             }

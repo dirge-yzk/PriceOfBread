@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(336) 流れG ② 系統×段階の番人（係数 <see cref="Coefficients.DiscoveryTierGate"/>・★(344) 既定 1＝点火）。
+/// <summary>★(336) 流れG ② 系統×段階の番人（★(344) 点火・旧の旗 DiscoveryTierGate は 2026-10-18 に焼き込み）。
 /// 形は AI の推奨〈引きなし・判定は各系統の次の段だけ〉に 作者 2026-10-02「すべて推奨でよい。」（(177)）。辺の表 8 本（腕 B）は AI の推奨に 作者 2026-10-15「特に違和感はないです。これでいきましょう。」（出典の頁は未確認）：前提の行がまだの国ではその行を判定しない（点数 0）・飛ばして先の段を解禁しない。
 /// 期待値は表（<see cref="Catalog.DiscoveryAfter"/>）から作らない＝下の辺の一覧（史実の依存の順・事前登録 measurements/ln_20261015_prereg.txt [1] の表と同じ手書き）と、
 /// 解禁の順序（k 回の判定で段 k までしか開かない）の関係で書く。</summary>
@@ -43,7 +43,6 @@ public class DiscoveryTierTests
     [Fact]
     public void 既定は点火で表の辺は手書きの一覧と一致し木で輪が無い()
     {
-        Assert.Equal(1.0, new Coefficients().DiscoveryTierGate);
         var fromTable = Catalog.Discoveries.Where(d => d.After.Length > 0).Select(d => (d.Name, d.After)).OrderBy(x => x.Name, System.StringComparer.Ordinal).ToArray();
         var byHand = Edges.OrderBy(x => x.Child, System.StringComparer.Ordinal).ToArray();
         Assert.Equal(byHand.Select(x => (x.Child, x.Parent)).ToArray(), fromTable);
@@ -70,10 +69,10 @@ public class DiscoveryTierTests
             }
     }
 
-    /// <summary>前提がまだの行は、接触が最大・技術が十分でも点数 0 で解禁せず（係数 1）、係数 0 なら同じ盤面で解禁する。前提の行がある国は前提の無い行と同じ点数。
+    /// <summary>前提がまだの行は、接触が最大・技術が十分でも点数 0 で解禁しない。前提の行がある国は前提の無い行と同じ点数。
     /// ★(344) 機関車の辺を外した（腕 B）ので、内燃機関 ← 蒸気機関で試す。</summary>
     [Fact]
-    public void 係数が正なら前提がまだの行は判定せず係数0なら判定する()
+    public void 前提がまだの行は判定せず前提が開いた次の判定で開く()
     {
         var sim = Board();
         var w = Nation(sim, "清");
@@ -82,29 +81,15 @@ public class DiscoveryTierTests
         w.TechLevel = 20;   // 技術力は最大
         var contact = new double[Catalog.Discoveries.Length]; System.Array.Fill(contact, 1e6);   // 伝わりは最大（技術力70＋伝わり70≧100）
         var view = new Discovery.WorldView(contact);
-        var off = Discovery.Evaluate(w, view, new Coefficients { DiscoveryTierGate = 0.0 });
-        Assert.True(off[child].Score >= Discovery.GateScore, $"前提が崩れた（係数0で内燃機関が届かない {off[child]}）");
-        var on = Discovery.Evaluate(w, view, new Coefficients { DiscoveryTierGate = 1.0 });
+        var on = Discovery.Evaluate(w, view, new Coefficients());
         Assert.Equal(0.0, on[child].Score);
         Assert.True(on[steam].Score >= Discovery.GateScore, "前提の無い行（蒸気機関）が判定されない");
-        // 前提の無い行・前提が既知の行は係数に依らず同じ点数（ビット一致）
-        for (int r = 0; r < off.Length; r++)
-        {
-            int a = Catalog.DiscoveryAfter[r];
-            if (w.Discovered[r] || (a >= 0 && !w.Discovered[a])) continue;
-            Assert.Equal(off[r], on[r]);
-        }
-        // Step：係数1（既定）では内燃機関は開かず、蒸気機関が開いた次の判定で開く／係数0では一度に開く
+        // Step：蒸気機関だけが開き内燃機関は同じ判定では開かない（連鎖で同時に開かない）／蒸気機関が開いた次の判定で内燃機関が開く
         var w1 = Nation(Board(), "清"); w1.Discovered[steam] = false; w1.Discovered[child] = false; w1.TechLevel = 20;
-        var w0 = Nation(Board(), "清"); w0.Discovered[steam] = false; w0.Discovered[child] = false; w0.TechLevel = 20;
-        Assert.Equal(1.0, w1.Coef.DiscoveryTierGate);
-        var coef0 = w0.Coef; coef0.DiscoveryTierGate = 0.0;
-        Discovery.Step(w0, view, coef0);
-        Assert.True(w0.Discovered[child] && w0.Discovered[steam], "係数0：前提を読まず一度に開くはず");
         Discovery.Step(w1, view, w1.Coef);
-        Assert.True(w1.Discovered[steam] && !w1.Discovered[child], "係数1：蒸気機関だけが開き内燃機関は同じ判定では開かない（連鎖で同時に開かない）");
+        Assert.True(w1.Discovered[steam] && !w1.Discovered[child], "蒸気機関だけが開き内燃機関は同じ判定では開かない（連鎖で同時に開かない）");
         Discovery.Step(w1, view, w1.Coef);
-        Assert.True(w1.Discovered[child], "係数1：蒸気機関が開いた次の判定で内燃機関が開く");
+        Assert.True(w1.Discovered[child], "蒸気機関が開いた次の判定で内燃機関が開く");
     }
 
     /// <summary>接触・技術を最大にして判定を k 回通すと、段 k までの行だけが開く（段の順に1段ずつ）＝段を飛ばした解禁が無い。期待の段は手書きの辺から数える。</summary>
@@ -117,7 +102,7 @@ public class DiscoveryTierTests
         w.TechLevel = 50;
         var contact = new double[Catalog.Discoveries.Length]; System.Array.Fill(contact, 1e6);
         var view = new Discovery.WorldView(contact);
-        var coef = w.Coef; coef.DiscoveryTierGate = 1.0;
+        var coef = w.Coef;
         var judged = new System.Collections.Generic.List<int>();
         for (int r = 0; r < Catalog.Discoveries.Length; r++)
             if (!Discovery.IsSpread(Catalog.Discoveries[r].Field)) judged.Add(r);   // 制度と思想は伝わりが到達＝この盤面では開かない

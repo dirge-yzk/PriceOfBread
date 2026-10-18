@@ -60,7 +60,7 @@ public sealed class Coefficients
          ＝**輸出する州ほど罰される非対称**（用量反応×100腕が2.91%で飽和した正体の有力候補＝天井でなくこの均衡）。0＝旧式を逐語に通る＝ビット恒等。
        どちらも 0/1 の構造スイッチ（中間値に意味なし＝運用禁止）。 */
     public double TradeMonthlyClearing = 1.0;   // ★点火2026-08-30（貿易数量則ラウンド・batch10段階測定→フルスタック採用）
-    public double TradeLedgerFix = 1.0;     // S2台帳衛生（案E・2026-08-30）：人口の主食純輸入をゼロ化前の前清算値（Market.PrevImport/Export）で読む。0＝旧（常に0を見る＝発火不能）＝厳密恒等
+    // 【墓標2026-10-18・旗の焼き込み】TradeLedgerFix（S2台帳衛生・案E・既定1.0・点火2026-08-30）を消した＝人口の主食純輸入はゼロ化前の前清算値（Market.PrevImport/Export）で読む（旧＝常に0を見る＝発火不能）。
     // 【墓標2026-09-26・旗の焼き込み（econ-15・x-01・0-3）】TradeArbitrageClearing（S4主フラグ・点火2026-08-30＝世界貿易/GDP 0.5%→42〜66%）と TradeCapacityHard（S4-1＝容量を同期制約に）
     //   ＝BilateralMarket は水準式の裁定清算と同期容量制約だけになった。旧経路（定数速度×自州規模）と、その専用の係数 TradeSpeed・TradeArbitrageMax・TradeBuyerScaleMult・TradeSellerFlowMult も削除
     // ★価格振動の根①（作者観察2026-09-07「硫黄が400%と34%で往復」・4レンズ→反証で確定）：日次価格則の供給項が LastProduced+LastImport だけで
@@ -464,10 +464,10 @@ public sealed class Coefficients
     //   多国シムでは治安維持力は兵数×即応度から出る（CoercionPerSoldier・2026-06-23の一本化）ので400は現れない。値の妥当性は多国側で測り直すこと。
     public double CrimeOrderPerPop = 0.8;        // 治安の必要治安維持力（人口あたり強度）。秩序＝Coercion÷(基準人口×これ)＝Coercion/800（既定治安維持力400で≈0.5＝平時は微小・不況/不満で発火）。0.4は治安維持力400で秩序1.0に飽和し犯罪が死んでいた→0.8で活性化
     public double CrimeBase = 0.01;              // 秩序が完全に崩れた時の月次窃盗率の上限（被害者の基数に掛ける率・基数は下の CrimeVictimBasis）
-    // ★(327) 窃盗の被害の基数。1＝min(被害者の前の月の所得×犯罪率, 貯蓄)（所得に比例する流れ・既定）／0＝被害者の貯蓄×犯罪率（旧＝在庫に比例する流れ）。
+    // ★(327) 窃盗の被害の基数＝min(被害者の前の月の所得×犯罪率, 貯蓄)（所得に比例する流れ）。
     //   旧は貯蓄が月収の約 90 か月分ある英の大衆から毎月貯蓄の数%を取る形＝窃盗が大衆の支出の 2〜3 割を支える作り物だった（窃盗の純受け取り÷大衆の支出 0.318〔Q5〜Q40〕）。規模の史実の出典は無い（measurements/ta_20261014_prereg.txt [2]・推定）。
     //   犯罪率の上限は月 CrimeBase×(1＋CrimeUrbanWeight)（変えない）。(323) の腕 T と全行一致（(327)）。
-    public int CrimeVictimBasis = 1;
+    // 【墓標2026-10-18・旗の焼き込み】CrimeVictimBasis（既定1）を消した＝窃盗の被害は min(被害者の前の月の所得×犯罪率, 貯蓄)（旧 0＝貯蓄×犯罪率〔在庫に比例〕は git の履歴から戻せる）。
     public double CrimeMilitancyWeight = 1.0;    // 犯罪率に効く「貧しく不満な大衆」の重み（闘争度×不充足）
     public double CrimeUrbanWeight = 0.6;        // B-4：都市化（過密スラム・匿名性・相対的剥奪）が犯罪を増幅＝犯罪率×(1+これ×都市人口比)。19世紀ロンドン/パリのスラム犯罪
     // === テーマG（社会・不満・格差・犯罪）＝**大半が有効化済み**（CorruptionLegitimacyErosion は (383) で物理削除・CrimeSatPenalty/CrimeWealthFear は (384) で削除〔犯罪→満足度の直の減算は窃盗の移しで貯蓄を通って充足に既に入る〕・StrikeMilitancyThresholdの土台のみ残／InequalityMilitancyは段2で削除）。台帳訂正2026-07-12（監査 死22）===
@@ -541,7 +541,7 @@ public sealed class Coefficients
     // ★物理削除2026-08-21【墓標・再点火禁止】：PensionSatBonus（旧0.10→8/17に0）＝年金の満足度フラット加算（Region.PensionWellbeing・読み手ごと削除）。
     //   作者裁定2026-08-17「年金を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝年金の効果は現金給付（PensionCostRatePerMonth＝国庫→老年→消費→生活水準）だけが担う。
     public double EduPerChild = 0.06 / Pop.StdShare(5, 15);   // 学齢（5〜14歳）の子供1人あたりの教育の必要量＝人口あたり0.06（旧＝子供比0.3×0.2）÷標準のピラミッドの5〜14歳（0.225）＝約0.267（★2026-09-30 段4e 後半＝年齢の層・起点合わせ＝1783年の需要は旧と同じ）
-    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（★2026-09-30 段4e 後半＝15〜49歳の女×カップル律速・年齢の層・旧＝(1−ChildShare−OldShare)×FemaleShare）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
+    // 【墓標2026-10-18・旗の焼き込み】FertileWomenBirths（①Phase3・既定 true〔台帳訂正2026-07-12：有効化済み〕）を消した＝各 pop の出生量は Size×出産可能プール/InitialFertileShare に常に律速（旧＝Size 比例の対照腕）。
     public double FertilityBase = 1.0;           // 出生率の基礎倍率（無学の社会＝従来の較正値そのまま＝中立）
     public double FertilityLitSlope = 0.55;      // 女性の識字で出生率が**下がる**幅＝人口転換の因果（女子教育→少子化。多産側の加速は医療＝死亡率低下が担当）
     public double FertilityFloor = 0.5;          // 出生率の下限（先進社会でも人口は緩やかに増える）
@@ -1870,11 +1870,7 @@ public sealed class Coefficients
                                                     //   ＝判定の線の内側・Q11 の錨の差の平均＝新製品＝同じ種1〜5 で r154 8.7→11.9年（★(160) 同じ種の組へ直した・10種の値 14.6年）。
                                                     //   旧 0.8＝強度は満足した消費者の厚み（Σ人数×満足度÷人口・作者裁定 Q13）＝作者 2026-10-02 の一般則で代替する物の値段へ置き換えた
     public double DiscoveryContactHalf = 0.05;      // 伝わりの半分点＝接触（その行を解禁済みの国から買った運び手の財の額÷世界のその財の取引額＋呼んだ技師÷自国の専門職）がこの値で35
-    /// <summary>★(336) 流れG ② 系統×段階（★(344) 合流で既定 0→1 に点火＝**有効**・0＝旧の挙動〔前提を読まない〕）：正のとき、発見の表の行 <see cref="DiscoveryRow.After"/>（前提の行）がまだの国ではその行を判定しない（点数 0・伝わりも読まない）
-    /// ＝〈判定は各系統の次の段だけ・飛ばして先の段を解禁しない〉（形＝AI の推奨〈引きなし・判定は各系統の次の段だけ〉に 作者 2026-10-02「すべて推奨でよい。」（(177)）。辺の表 8 本＝AI の推奨〔腕 B・事前登録 measurements/ln_20261015_prereg.txt [14-3]〕に 作者 2026-10-15「特に違和感はないです。これでいきましょう。」＝表の承認・出典の頁は未確認）。前提を持つ行＝内燃機関（←蒸気機関）・装甲艦（←汽船）・弩級戦艦（←装甲艦）・戦車・軍用機・自動車（←内燃機関）・自転車（←加硫ゴム）・ラジオ（←電化製品）
-    /// （<see cref="Catalog.DiscoveryAfter"/>）。前提の行が解禁した判定の次の四半期から判定する（同じ四半期の判定は判定の前の解禁の集合で読む＝連鎖で同時に開かない）。
-    /// 0 では <see cref="Discovery.Score"/> の行ループの頭の1つの条件が偽になるだけ（式・順序は変えない）。実装＝<see cref="Discovery"/> の Score。</summary>
-    public double DiscoveryTierGate = 1.0;
+    // 【墓標2026-10-18・旗の焼き込み】DiscoveryTierGate（★(336) 流れG ② 系統×段階・(344) 合流で既定 0→1 に点火）を消した＝前提の行がまだの国では発見の表のその行を判定しない（辺の表 8 本）。0＝前提を読まない旧は git の履歴から戻せる。
     /// <summary>★(320) 平滑化した値段（<see cref="World.DiscoveryPrice"/>）の最初の値（流れG・★(388) 既定1＝採用〔止める線に当たらなかった・measurements/bk_20261017_prereg.txt〕・0＝旧＝最初の観測の瞬間の値で始める）。
     /// 0より大きい（既定）と、まだ値段の履歴を持たない国（開幕の最初の判定・建国した国）の平滑化した値段を、その国の<b>自然価格</b>（その財を作る門の開いたレシピのうち最も安いものの費用
     /// ＝自己費用×自己費用の物価水準÷物価水準＋Σ投入×投入の自然価格・<see cref="Discovery.NaturalPrior"/>）から始め、最初の観測は他の四半期と同じ率（<see cref="Discovery.PriceSmoothingQ"/>）で入れる。
@@ -2462,7 +2458,7 @@ public sealed class Coefficients
     // 【墓標2026-09-28・段2-1】WelfarePensionClampToTreasury（財1＝福祉・年金を国庫残高で律速）を削除＝福祉・年金は請求×r（Fiscal）。
     public double FisherDeflationFloor = -0.02;   // 財4：Fisher期待インフレ項の下限。0.0=旧Max(0,·)と同値でデフレ遮断（数値中立）／負値-0.02程度でデフレ側を軽く通し「デフレ→低名目金利」を成立
     public double PrizeLossProrated = 1.0;   // 外4（拿捕賞金の連合按分）：victimの総海運損失(raidLoss)を制海権を握る全交戦raiderの海軍力比で按分。0=按分なし（各raiderが総額基準＝現行の二重取り恒等）/1=完全按分（合計が総損失を超えない）。PrizeCargoShare>0のときのみ作用
-    public Share FertileShareFloor = new(0.05);   // 人6：出産可能女性プール（FertileWomenBirths）の相対基準の下限フロア。**0.05で有効化済み**（台帳訂正2026-07-12・旧注記「既定1e-6＝中立」は誤り）。捕捉時fertile≈0のpopで重みが桁違いに膨張し出生が集中するのを防ぐ（FertileWomenBirths=trueの経路でのみ作用）
+    public Share FertileShareFloor = new(0.05);   // 人6：出産可能女性プールの相対基準の下限フロア。**0.05で有効化済み**（台帳訂正2026-07-12・旧注記「既定1e-6＝中立」は誤り）。捕捉時fertile≈0のpopで重みが桁違いに膨張し出生が集中するのを防ぐ（出生の配分に常に作用）
 
     // === リアリティ監査 2026-07-02 Wave2（経済・金融の機構）===
     // 点火状況は各行参照。経18/経12の一部は「直書き定数の係数化」で値同一＝中立。
@@ -2580,8 +2576,8 @@ public sealed class Coefficients
     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
     // 点火状況は各行参照。1州較正harnessでは加重=非加重・老年なし（旧 OldShare=0・★2026-09-30 段4e 後半で年齢の層へ＝全 POP が標準のピラミッドから始まる）・複数州なしで恒等になるよう設計。
     public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」の間でブレンド。0=baselineアンカー(天井約2.5倍)で現行と厳密一致・1で実食料産出から再構成＝19世紀の人口爆発(英4倍/米23倍)とpop>capacityの補償死倒錯を解消。乗数束上限撤去・耕地×技術アンカー・再較正は#17残件
-    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝15〜49歳の女と男・年齢の層）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
-    public double FertilityAffectsBirthsOnly = 1.0;   // 人7（出生率倍率の死亡側混線）：第4段4-6で単独点火（2026-07-27）＝「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消。旧・M8試験の破綻1/30は OldLaborFactor=0.5 との抱き合わせで、相方はその後0.75で単独点火済み＝前提消滅→単独再測定へ。netFertility=fertility+これ×(1−fertility)。0で旧（死亡側もfertility比例）
+    // 【墓標2026-10-18・旗の焼き込み】CoupleLimitedBirths（人5・既定1.0）を消した＝出産可能プールは女性比例でなくカップル律速 2×min(女,男)（15〜49歳）。式の形 f+(2min−f) は旧のまま残した。
+    // 【墓標2026-10-18・旗の焼き込み】FertilityAffectsBirthsOnly（人7・既定1.0・第4段4-6で単独点火 2026-07-27）を消した＝ロジスティック純増 net の収束速度から fertility を外し（出生側のみ fertility を残す）、「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消する形に固定。旧の netFertility は fertility∈[0.5,∞) で厳密に 1.0。
     // （人9 の局地飢饉の絶対水準ゲート FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除＝飢えの死は POP の絶対の充足〔FamineDeathFillFloor〕だけが門）
     public double OverworkMortalityWeight = 0.015;   /* トレードオフ化2026-07-06:有効化。短時間側 OverworkHealthSlope=0.015 と対称の初期値＝無制限14hで扶養力−0.03（=+19%産出 whOut の対価）。0で旧挙動・要較正再走 */   // 人12（14hの健康被害が12hと同値）：WorkHoursCapacityの長時間側の超過死亡項。扶養力に−これ×max(0,hours−12)を加算。0=現行（Max(0,12−hours)の片側のみ）と厳密一致・>0で12h超に人口動態コスト
     public double EpidemicIntraCountrySpread = 0.5;   /* #17有効化 */   // 人14（疫病の州間伝播）：TriggerEpidemicの感染窓中に最過密州から次過密州へ与える二次スパイクの減衰致死率倍率。0=単一最過密州のみ（現行と厳密一致）・>0で次過密州へdeathFrac×これの二次死亡（1832コレラのパリ→リヨン型）。新規RNG消費なし（決定論不変）。1州世界は不発
