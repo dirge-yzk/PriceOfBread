@@ -287,23 +287,27 @@ public partial class GameViewModel
     public HeaderStat TechHover => StatG("", "技術水準", _histTech, v => v.ToString("F2"), 0, $"技術水準 {_player.TechLevel:F2}");
 
     // === 予算予想（経済タブ）：Fiscal.Step と同じ式を「今の目標（段ボタンで置いた値）＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
-    // 収入＝各税の粗収入×汚職控除。支出＝利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
+    // 収入＝各税の粗収入×国庫へ届く割合（支配度の区分）。支出＝利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
     private void UpdateForecast()
     {
         var c = _player.Coef;
-        double earnedAll = 0, earnedElite = 0, headNonPriv = 0, landRent = 0, massSize = 0, oldSize = 0;
+        double earnedAll = 0, earnedElite = 0, headNonPriv = 0, landRent = 0, massSize = 0, oldSize = 0, earnedDelivered = 0;
         foreach (var r in _player.Regions)
+        {
+            double regionDelivery = Politics.RuleDelivery(r, c);   // 国庫へ届く割合＝エンジン Fiscal の課税ベースと同じ（国家区分＋在地区分×届け率）
             foreach (var p in r.Pops)
             {
                 double e = System.Math.Max(0, p.EarnedPerMonth.Value);
                 earnedAll += e;
+                earnedDelivered += e * regionDelivery;
                 if ((p.IsModernElite || p.Closed) && !p.IsSoldier) earnedElite += e;
                 if (!p.Closed && !p.IsSoldier) headNonPriv += p.Size;
                 if (p.LandRentPerMonth.Value > 0) landRent += p.LandRentPerMonth.Value;
                 if (!p.Closed && !p.IsModernElite) massSize += p.Size;
                 if (!p.IsSoldier) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 年金の受け手＝60歳以上（エンジン Fiscal と同じ・年齢の層）
             }
-        double leak = 1.0 - c.CorruptionMax.Value * _player.EffectiveCorruption;   // 汚職控除＝エンジン Fiscal の leak と同じ正準定義 World.EffectiveCorruption を直読み（C2-C5撤去2026-08-16：旧式(1−行政)×(1−清廉度)はV2恒久ONで撤去＝清廉度読みのままだと監視(OversightV2)の効いた国の税収を過小表示していた）
+        }
+        double leak = earnedAll > 1e-9 ? earnedDelivered / earnedAll : 1.0;   // 国庫へ届く割合（所得で重みづけた州の RuleDelivery の平均）。汚職の財政の漏れは (399) で物理削除した（税の漏れは支配度の区分）
         double gIncome = _player.Policy.IncomeTaxTarget * earnedAll * leak;
         double gProg = _player.Policy.ProgressiveTaxTarget * earnedElite * leak;
         double gPoll = c.PollTaxRate * _player.Policy.PollTaxTarget * headNonPriv * leak;

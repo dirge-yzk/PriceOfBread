@@ -3063,7 +3063,7 @@ if (args.Length > 0 && args[0] == "tariffprobe")
             var parts = new System.Collections.Generic.List<string>();
             foreach (var (who, wt2) in PriceOfBread.SimCore.PolicyPreferences.SupportBreakdown(w2, PriceOfBread.SimCore.PolicyAxis.Tariff, increasing: true))
                 if (System.Math.Abs(wt2) > 0.01) parts.Add($"{who}{wt2:+0.00;-0.00}");
-            System.Console.WriteLine($"  {nm}: 関税{w2.Tariff:P0} 目標{w2.Policy.TariffTarget:P0} 報復偏倚{w2.TariffRetaliationBias:+0.00;-0.00} 条約港{w2.TreatyPortsGranted} 与党{w2.GoverningParty} 輸出/GDP{(w2.NominalGdpPerMonth.Value > 1e-9 ? w2.LastExportValue / w2.NominalGdpPerMonth.Value : 0):P1} 純支持{net:+0.00;-0.00} ＝ {string.Join(" ", parts)}");
+            System.Console.WriteLine($"  {nm}: 関税{w2.Tariff:P0} 目標{w2.Policy.TariffTarget:P0} 報復偏倚{w2.TariffRetaliationBias:+0.00;-0.00} 与党{w2.GoverningParty} 輸出/GDP{(w2.NominalGdpPerMonth.Value > 1e-9 ? w2.LastExportValue / w2.NominalGdpPerMonth.Value : 0):P1} 純支持{net:+0.00;-0.00} ＝ {string.Join(" ", parts)}");
         }
     }
     return;
@@ -5626,12 +5626,12 @@ if (args.Length > 0 && args[0] == "refprobe")
 }
 if (args.Length > 0 && args[0] == "ruleprobe")
 {
-    // ★支配度の一般化 段1 の計器（2026-09-06）：主要国の4区分（国家・在地・外国・無統治）の人口加重平均。POB_COEF="RuleSharesEnabled=1" で走らせる。
+    // ★支配度の一般化 段1 の計器（2026-09-06）：主要国の4区分（国家・在地・外国・無統治）の人口加重平均。(399) で区分は点火済み（常時動く）。
     int rq = ArgInt(args, 1, 200), rint = ArgInt(args, 2, 40);
     var rm = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
     rm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     string[] watch = ["清", "イギリス", "フランス", "ロシア", "日本", "オスマン", "プロイセン", "スペイン"];
-    Console.WriteLine($"=== ruleprobe（RuleSharesEnabled={new Coefficients().RuleSharesEnabled}）：4区分 [国家/在地/外国/無統治]（人口加重）===");
+    Console.WriteLine($"=== ruleprobe：4区分 [国家/在地/外国/無統治]（人口加重）===");
     for (int q = 1; q <= rq; q++)
     {
         rm.StepQuarter();
@@ -7050,7 +7050,7 @@ if (args.Length > 0 && args[0] == "crimecorrupt")
             var w = cm.Nations[i].World;
             double burSav = 0, burSz = 0;
             foreach (var p in w.AllPops()) if (p.ClassId == 8) { burSav += p.Savings.Value; burSz += p.Size; }
-            Console.WriteLine($"  {w.SelfPower?.Name,-8} 秩序{w.PublicOrder:P0} 犯罪率{w.CrimeRate:P2}（最大{maxCrime[i]:P2}） 治安維持力{w.Coercion:F0} | 行政効率{w.AdminEfficiency:P0} 汚職漏れ{w.LastTaxLeak,8:F0} 官僚貯蓄/人{(burSz > 0.01 ? burSav / burSz : 0),8:F0}");
+            Console.WriteLine($"  {w.SelfPower?.Name,-8} 秩序{w.PublicOrder:P0} 犯罪率{w.CrimeRate:P2}（最大{maxCrime[i]:P2}） 治安維持力{w.Coercion:F0} | 行政効率{w.AdminEfficiency:P0} 官僚貯蓄/人{(burSz > 0.01 ? burSav / burSz : 0),8:F0}");
         }
     }
     return;

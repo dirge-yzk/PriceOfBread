@@ -40,9 +40,9 @@ public static class Fiscal
         //   ⚠V2を切って旧式へ戻す道はこの撤去で消滅（裁定済み・20260814_汚職をサブシステムにする§10）。監視は法（報道/資格任用/議会予算権）で買う＝金で直接買う清廉度は無い。
 
         // 税収（§3.4）：所得税＋人頭税＋土地税。いずれも今月の所得/地代に課税し国庫へ。可処分所得を削る（§3.1）。
-        // 所得税は率をそのまま課す＝**行政の弱さは下の汚職leakが額で表す**（査定機構が未熟な国は取り立てた金が国庫に届かない）。
+        // 所得税は率をそのまま課す＝**取りきれない分は支配度の区分が表す**（国家区分でない分は国庫に届かない・RuleDelivery）。
         // 徴収は手持ち貯蓄まで（所得を消費し尽くした薄貯蓄の階級が負にならない）。専売は EconomyStep（購入時に上乗せ）。
-        double revenue = 0;   // 倍率排除：土地税の landEff（行政力→徴収効率の別倍率）を撤去。行政不足の徴収漏れは下の汚職leakに一本化（所得税と同方式・二重計上の解消）
+        double revenue = 0;   // 倍率排除：土地税の landEff（行政力→徴収効率の別倍率）を撤去。徴収の漏れは支配度の区分（RuleDelivery）に一本化（所得税と同方式・二重計上の解消）
         // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：課税への同意（下の consent）が読む声を「政治的国民への算入率」で加重
         // ＝植民地格の州・本国の非中核popの徴税力に参政権と同じ梯子を適用（代表なくして課税なしの植民地版＝印紙法1765）。
         // 走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。gate=0 では配列を作らず1命令も走らない＝厳密恒等（⚠既定は1.0＝点火2026-09-06）。
@@ -50,13 +50,13 @@ public static class Fiscal
         //     添字が合わなければ黙って旧挙動へ倒していた〔集合の定義がずれると黙って外れる〕）。列は pops と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える。集合＝国家会計の集合（絞らない）。
         var scan = TaxScan.Of(w, c);
         var pops = scan.Pops;
-        List<double>? scopeInc = scan.ScopeInc, ruleMul = scan.RuleMul, ruleCut = scan.RuleCut; List<Pop?>? ruleLord = scan.RuleLord;
+        List<double>? scopeInc = scan.ScopeInc; List<double> ruleMul = scan.RuleMul, ruleCut = scan.RuleCut; List<Pop?> ruleLord = scan.RuleLord;
         // ★AUD-07（2026-09-03）：身分制免税の駆動量＝王権の取り分（PrivilegeFromCrownShare=0 の既定では**呼ばない**＝1命令も増えない恒等）。
         double crownShareForPrivilege = c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
-        // ★支配度の一般化 段3（作者採用 §5・2026-09-07）：課税ベース＝国家区分＋在地区分×届け率（RuleDelivery）。在地の仲介者の取り分
+        // ★支配度の一般化 段3（作者採用 §5・2026-09-07・(399) で点火）：課税ベース＝国家区分＋在地区分×届け率（RuleDelivery）。在地の仲介者の取り分
         //   （在地区分×免税率×あるべき税）は納税者→その州の貴族へ移転（保存）し領主権の台帳へ。無統治・外国区分からは取れない。
-        //   走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。RuleSharesTaxBase=0 では配列を作らず1命令も走らない＝厳密恒等。
-        //   （列 ruleMul・ruleCut・ruleLord は上の 1 周で作る＝RuleSharesTaxBase=0 では作らない）
+        //   税の漏れは支配度の側にある（国庫へ届く分と在地の貴族の分に割る）＝官僚への汚職の漏れは (399) で物理削除した。
+        //   走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。（列 ruleMul・ruleCut・ruleLord は上の 1 周で作る）
         // ★支払いの一元化 段3-4（2026-09-30・B6・作者裁定 Q4＝処理の一元化 段4d）：**POP の義務は1本の率**。税（所得・累進・人頭・土地）と十分の一税と領主の取り分を
         //   POP ごとに全部集め、r_p＝min(1, 払える額÷請求の和)（払える額＝max(0, 貯蓄)）を全ての請求に同じに掛ける＝優先順位を作らない（国家の支払い率と同じ規則の POP 版）。
         //   旧＝所得→累進→人頭→土地の順に残りの貯蓄で切り、十分の一税は税の後の残りから（別の関数 Privileges.CollectTithe・国家が教会に優先）。
@@ -75,6 +75,7 @@ public static class Fiscal
         double titheCollected = 0;
         // ★2026-09-30 段4g：払い手と自分の請求（1本の率を掛けた後）を集め、走査の後に移し方の1本で取る（払い手の重み＝自分の請求・払い手ごとの1本の率＝Q4）。
         //   旧＝走査の中で貯蓄を手で引き（税＋取り分＋十分の一税）、国庫は合計を1回で足した（国庫の片側の記帳）・十分の一税は按分の本体を直に呼んだ。
+        w.LastRuleCut = 0;   // ★(399) 診断：今月の仲介者の取り分の総額（計器 rule_s の ruleCutPerMonth・読むだけ）
         var taxPayers = new List<Pop>(); var taxClaim = new List<double>();
         var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
         for (int pi = 0; pi < pops.Count; pi++)
@@ -115,29 +116,28 @@ public static class Fiscal
                 if (scopeInc is not null) voice *= scopeInc[pi];
                 consent = 1.0 - c.TaxConsentWeight * (1.0 - voice);
             }
-            // 所得税：全階級の所得への定率課税。率そのまま課し、行政不足の徴収漏れは下の汚職leakが担う（土地税と同方式・2026-09-12 の天井廃止で経路は1本だけ）。
+            // 所得税：全階級の所得への定率課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（土地税と同方式・2026-09-12 の天井廃止で経路は1本だけ）。
             // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarnedPerMonth＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
             //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
             //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
             double tax = w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
                 Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
-            // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ汚職leak）。富裕が強く抵抗（PolicyPreferences）。
+            // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ支配度の区分）。富裕が強く抵抗（PolicyPreferences）。
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
                 tax += w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth.Value) * consent;
             // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
             if (w.PollTax > 1e-9 && p.IsCommoner)
                 tax += c.PollTaxRate * w.PollTax * p.Size;
-            // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、行政不足の徴収漏れは汚職leakが担う（所得税と同方式）。
+            // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（所得税と同方式）。
             if (w.LandTax > 1e-9 && p.LandRentPerMonth.Value > 0)
                 tax += (w.LandTax * p.LandRentPerMonth * privBase).Value;   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
-            // 仲介者の取り分（支配度 段3・休眠 RuleSharesTaxBase=0）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
+            // 仲介者の取り分（支配度 段3）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
             double cut = 0; Pop? lord = null;
-            if (ruleMul is not null)
             {
                 double full = tax;
                 tax = full * ruleMul[pi];
-                if (ruleLord![pi] is { } lp && !ReferenceEquals(lp, p) && full * ruleCut![pi] > 1e-12) { cut = full * ruleCut[pi]; lord = lp; }
+                if (ruleLord[pi] is { } lp && !ReferenceEquals(lp, p) && full * ruleCut[pi] > 1e-12) { cut = full * ruleCut[pi]; lord = lp; }
             }
             double tithe = clergy is not null && Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? (titheRate * p.LastEarnedPerMonth).Value : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
             double claims = tax + cut + tithe;
@@ -149,6 +149,7 @@ public static class Fiscal
             {
                 // 仲介者の取り分（納税者→貴族＝移し方の1本・所得にも書く）。受け手は重み1（在地の貴族1人＝頭数に依らない＝旧と同じ）。
                 double moved = World.Transfer((w, [p]), (w, [lord], [1.0]), cut, income: true);
+                w.LastRuleCut += moved;   // ★(399) 診断（読むだけ）
                 if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Seigneurial, moved);
             }
             if (tax > 0) { taxPayers.Add(p); taxClaim.Add(tax); }
@@ -156,41 +157,10 @@ public static class Fiscal
             titheCollected += tithe;
             revenue += tax;
         }
-        // 汚職：行政（官僚の役務）が足りないと税収の一部が国庫に届かず役人の懐へ消える（pop→官僚の移転＝保存）。
-        // 官僚を増やし行政を買う（AdminBudget）ほど漏れが減る＝「軍事費の行政版」。行政財の無い世界は AdminEfficiency=1.0＝漏れなし。
-        // ★汚職再設計C1（20260814_汚職をサブシステムにする【一部】.md・点火2026-08-15 ign_corr）：
-        //   V2＝(1−行政)×(1−監視noisy-or)＝World.EffectiveCorruption の正準定義を直読み（定義の一本化）。
-        // ★撤去2026-08-16（C2-C5）：旧式OFF枝（(1−行政)×(1−清廉度)＋civicGraft別項）を物理削除＝V2恒久ON裁定済みで到達不能の死骸だった。
-        //   civicGraft（低国民意識×代議制の構造汚職の床）は V2 では「議会の予算権」（OversightV2 の第3因子）が担う＝別項を持たない。
-        //   ⚠NationalConsciousnessCorruptionWeight 係数自体は存続＝読者が別に2箇所生きている（World.civicCarriesEthnic の二重計上回避ゲート・CrownParliament の国民意識蓄積チャネル）。
-        double leak = revenue * c.CorruptionMax.Value * w.EffectiveCorruption;
-        w.LastTaxLeak = leak;   // 診断：汚職漏れの実額
-        double delivered = 0;
-        if (leak > 1e-12)
-        {
-            var bureaucrats = new List<Pop>();
-            foreach (var p in pops) if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier) bureaucrats.Add(p);   // ClassId 8＝官僚
-            if (bureaucrats.Count > 0)
-            {
-                // 官僚が実際に受け取れた分だけ歳入から漏れる（官僚popが存在してもSize≈0なら受け手不在＝移し方の1本が動かさない＝漏れない）。
-                // ★2026-09-30 段4g：納税者→官僚の移し方の1本（払い手の重み＝自分の税の請求＝受け手が2つ〔官僚と国庫〕の1つ目）。旧＝国庫の取り分から按分の本体を直に呼んだ。
-                delivered = World.Transfer((w, taxPayers), (w, bureaucrats, null), leak, fromWeights: taxClaim);
-                // ★特権台帳（段1・観測）：既得の官職の取り分＝官僚へ渡った汚職の分×身分の度合い（猟官1／資格任用0.5／専門0＝PowerShares.PrivilegeIntact と同じ物差し）
-                if (c.PrivilegeLedgerEnabled > 0)
-                    Privileges.Record(w, Privileges.VestedOffice, delivered * Privileges.EstateDegree(w));
-                // ★8b：汚職所得は【官職という財産からの地代】＝LandRent へ記帳し rentier=rent/(rent+earned) を押し上げる
-                //   →官僚が改革（自分の収入源の廃止）に反対する回路の入力＝改革への抵抗が国名なしで出る（doc §5・★(373) 制度疲労のスカラーは物理削除）。
-                //   ⚠金は上の Distribute（Savings）で移動済み＝ここは所得の**分類**の記帳のみ（金は二重に湧かない）。
-                //   （撤去2026-08-16 C2-C5：V2恒久ONにつき CorruptionCoreV2>0 ガードを外し無条件化＝挙動恒等）
-                if (delivered > 1e-12)
-                {
-                    double bsum = 0; foreach (var b in bureaucrats) bsum += b.Size;
-                    if (bsum > 1e-9) foreach (var b in bureaucrats) b.LandRentPerMonth += new MoneyPerMonth(delivered * (b.Size / bsum));
-                }
-            }
-        }
-        // 国庫の取り分＝税の請求の和−官僚へ漏れた分（納税者→国庫の移し方の1本・払い手の重み＝自分の税の請求＝受け手の2つ目）。動いた額が純税収。
-        revenue = World.Transfer((w, taxPayers), (w, null, null), revenue - delivered, TreasuryCat.Tax, fromWeights: taxClaim);
+        // ★(399) 汚職の財政の漏れ（納税者→官僚の移転・税収×CorruptionMax×EffectiveCorruption）は物理削除した（実装ログ (387) が作者の裁定として記録した方針〔原文は未確認〕）。
+        //   税の漏れは支配度の側にある＝上の RuleDelivery が国庫へ届く分と在地の貴族の分に割る。官僚 POP への汚職所得（LandRent への記帳）と特権の台帳の 既得の官職 の記帳もこの漏れと一緒に無くなった。
+        // 国庫の取り分＝税の請求の和（納税者→国庫の移し方の1本・払い手の重み＝自分の税の請求）。動いた額が純税収。
+        revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
 
         // 十分の一税（教会税）：大衆（非特権・非兵士＝農民・労働者・職人）の所得の TitheRate を聖職者が受け取る。
         // 公教育に教育の担い手を奪われても食える恒常収入（要望）。pop→聖職者の移転＝国庫を通さず基礎貨幣保存。
@@ -566,12 +536,11 @@ public static class Fiscal
             {                       // 給付側だけ除外していた＝分子分母の非対称）、Distribute作法どおり端数は最後の受け手へ・受け手不在は国庫残置（保存）。
                 var elderly = new List<Pop>(); var elderW = new List<double>();
                 double elderSize = 0, reachW = 0;
-                // ★支配度 段4（2026-09-07）：給付の到達＝州の国家区分（RuleReach）。g=0 で重み1＝旧と同じ受け手・同じ順序（AllPops＝州順→pop順）。
+                // ★支配度 段4（2026-09-07・(399) で点火）：給付の到達＝州の国家区分（RuleReach）。受け手の順序は AllPops＝州順→pop順。
                 //   届かない分は国庫残置（受け手不在と同じ作法＝保存）。
-                bool reachOn = c.RuleSharesReach > 0;
                 foreach (var rg in w.Regions)
                 {
-                    double reach = reachOn ? Politics.RuleReach(rg, c) : 1.0;
+                    double reach = Politics.RuleReach(rg);
                     foreach (var p in rg.Pops)
                     {
                         double os = p.AgeShare(60, double.PositiveInfinity);
@@ -744,35 +713,31 @@ public static class Fiscal
     /// 利払いと減債の国内の脚が読む（持ち手＝保有が正の POP・重み＝保有・端数は最後の持ち手）。持ち手不在（保有の和≈0）なら移し方の1本は動かさない＝国庫残置（保存）。</summary>
     /// <summary>★(351) 課税の走査＝POP の一覧と、POP ごとの並行の列（課税への同意の算入率・領主への届き方・領主の取り分・その州の領主）を**同じ 1 周**で作る（州の並び→州の中の POP の並び＝国家会計の集合）。
     /// 列は <see cref="Pops"/> と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える（旧＝pops を平らにする周と並行の配列を別のなぞりで埋める周が別で、数が合わなければ黙って旧挙動へ倒していた）。
-    /// 列の有無は旧と同じ門：<see cref="ScopeInc"/>＝SuffrageScopeGate&gt;0 かつ TaxConsentWeight&gt;0／<see cref="RuleMul"/>・<see cref="RuleCut"/>・<see cref="RuleLord"/>＝RuleSharesTaxBase&gt;0（門が閉じていれば作らない・その分の命令は走らない）。</summary>
+    /// 列の有無：<see cref="ScopeInc"/>＝SuffrageScopeGate&gt;0 かつ TaxConsentWeight&gt;0 のときだけ作る／<see cref="RuleMul"/>・<see cref="RuleCut"/>・<see cref="RuleLord"/>＝常に作る（(399) で支配度の区分を点火）。</summary>
     internal sealed class TaxScan
     {
         internal readonly List<Pop> Pops = [];
-        internal List<double>? ScopeInc, RuleMul, RuleCut;
-        internal List<Pop?>? RuleLord;
+        internal List<double>? ScopeInc;
+        internal readonly List<double> RuleMul = [], RuleCut = [];
+        internal readonly List<Pop?> RuleLord = [];
 
         internal static TaxScan Of(World w, Coefficients c)
         {
             var s = new TaxScan();
-            bool scopeOn = c.SuffrageScopeGate > 0 && c.TaxConsentWeight > 0, ruleOn = c.RuleSharesTaxBase > 0;
-            double ruleG = 0, ruleDeliver = 1.0;
-            if (ruleOn) { ruleG = c.RuleSharesTaxBase; ruleDeliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value); }
+            bool scopeOn = c.SuffrageScopeGate > 0 && c.TaxConsentWeight > 0;
+            double ruleDeliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value);
             if (scopeOn) s.ScopeInc = [];
-            if (ruleOn) { s.RuleMul = []; s.RuleCut = []; s.RuleLord = []; }
             foreach (var r in w.Regions)
             {
-                Pop? lord = null; double mul = 1.0, cut = 0;
-                if (ruleOn)
-                {
-                    foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }   // その州の領主＝最初の貴族
-                    mul = Politics.RuleDelivery(r, c, ruleG);
-                    cut = r.Rule.Length == 4 ? ruleG * PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - ruleDeliver) : 0;
-                }
+                Pop? lord = null;
+                foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }   // その州の領主＝最初の貴族
+                double mul = Politics.RuleDelivery(r, c);
+                double cut = r.Rule.Length == 4 ? PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - ruleDeliver) : 0;
                 foreach (var p in r.Pops)
                 {
                     s.Pops.Add(p);
                     s.ScopeInc?.Add(InterestGroups.SuffrageInclusion(w, r, p));
-                    if (ruleOn) { s.RuleMul!.Add(mul); s.RuleCut!.Add(lord is not null ? cut : 0); s.RuleLord!.Add(lord); }
+                    s.RuleMul.Add(mul); s.RuleCut.Add(lord is not null ? cut : 0); s.RuleLord.Add(lord);
                 }
             }
             return s;

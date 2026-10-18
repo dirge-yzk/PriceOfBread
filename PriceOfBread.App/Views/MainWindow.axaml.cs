@@ -280,7 +280,7 @@ public partial class MainWindow : Window
                 await Task.Delay(700);
                 Capture(dir, "03e_地図_州名帯.png");
             }
-            // ★州パネル（2026-09-07 作者指示「政治・支配度は半円で」）：州をピン留めして撮る＝支配度の半円（区分が動く世界＝POB_COEF RuleSharesEnabled=1 で出る）とピンの表示の無人確認
+            // ★州パネル（2026-09-07 作者指示「政治・支配度は半円で」）：州をピン留めして撮る＝支配度の半円（(399) で区分は常に動く）とピンの表示の無人確認
             //   ★F7：州○の廃止＝自国の首都の座標を塗り分けのセルで当てる（クリックと同じ MapHitAt）
             var pin = gvm.PlayerCapitalCanvas() is { } pc ? gvm.MapHitAt(pc.X, pc.Y) : default;
             if (pin.Region is not null && pin.Hover is not null)

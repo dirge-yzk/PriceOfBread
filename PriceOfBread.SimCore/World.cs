@@ -39,12 +39,8 @@ public sealed class World
     public Coefficients Coef { get; }
 
     public long Tick { get; internal set; }
-    // ★条約港（2026-08-04・作者仕様(4)）。**この国が相手に開かされた**港の数。
-    //   史実の不平等条約の中身は「開港」と「関税自主権の喪失」で、後者がゲーム上の実体
-    //   （南京条約1842＝5港開港＋関税を協定率に固定／安政条約1858＝同型）。
-    //   ＝港の数が増えるほど**自国の関税が効かなくなる**。最恵国待遇で特権は全列強へ広がったので、
-    //     許与した相手だけでなく**全ての相手に対して**効く＝二国間テーブルを持たない（モデルの粒度と一致）。
-    public int TreatyPortsGranted;
+    /// <summary>★(399) 不平等条約（条約港）が効いているか＝港州の外国持分が付与の大きさの半分以上（屈辱の項・移民法の外圧の唯一の入口・<see cref="Politics.TreatyPortInForce"/>）。条約港は個数の機構でなく州の外国区分で表す。</summary>
+    internal bool UnequalTreatyInForce => Politics.TreatyPortInForce(this, Coef);
     /// <summary>この国が誰かと交戦中か（2026-08-04・戦時の維持費下限ロック用）。多国以外は常に false＝較正中立。</summary>
     public bool AtWarNow => Diplomacy is { } d && SelfPower is { } sp && d.AtWarAny(sp);
     // ★財ごとの売買方針（2026-08-04・作者仕様(3)「高く買う/安く売る」）。
@@ -202,7 +198,6 @@ public sealed class World
     public double Expertise { get; internal set; }                    // 専門人材率（UI 語彙）。TechEducation が Elite と同時に計算
     public double WorldFrontierExpertise { get; internal set; }       // 世界の専門人材率の先端（MultiNationSim が配る）
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
-    public double SeigneurialDegree0 { get; internal set; } = -1;   // ★支配度の一般化 段1：1783年の未解放度（在地の目標の分母）。負＝未設定（最初の四半期に Politics が書く）
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
     public double Elite { get; internal set; }        // エリート水準（識字×世俗度）。技術を駆動（教育2段階の到達点）
     // ★本国のエリート水準（2026-08-26・植民地の州昇格に伴う分母の是正）。植民地格の州を除いた同じ式。
@@ -388,7 +383,7 @@ public sealed class World
     public bool WomenEducationLaw => WomenRights >= WomenRightsLaw.Education;
     /// <summary>女性参政権が成立しているか（＝梯子が最上段）。男女普通選挙(Universal)の前提。</summary>
     public bool WomenSuffrage => WomenRights >= WomenRightsLaw.Suffrage;
-    public double LastTaxLeak { get; internal set; }          // 直近月の汚職漏れ（税収×腐敗率×実効汚職＝官僚の懐へ）。診断用
+    public double LastRuleCut { get; internal set; }          // ★(399) 直近月の仲介者の取り分（納税者→州の貴族）。診断用（計器 rule_s が読む）
     // ★撤去2026-08-16（掃除キューC2-C5）：汚職根絶レバーの旧機構＝AntiCorruptionSpending（根絶費）・CleanGovernance（清廉度ストック）・
     //   LastAntiCorruptionCost（診断）を物理削除。汚職V2恒久ONの裁定済み（20260814_汚職をサブシステムにする§10）＝V2では全て不読の死骸だった。
     // 実効汚職（正規化・0..1）＝(1−行政効率)×(1−監視noisy-or)。汚職の**正準定義**（変数統合監査2026-07-13 C1・V2点火2026-08-15）。standalone読み（SelfPlay等）はこれを参照＝定義同期を構造保証。

@@ -1478,8 +1478,8 @@ public sealed class Simulation
             //   （内陸植民地が landmass.json 未登録なら再び海港になる）＝fail-closed（false）へ倒し、ログで沈黙を避ける。
             Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
             Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える
-            Rule = [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝間接統治（在地1.0）から始める（段2で支配度と同じ物理で国家区分が育つ）
-            RuleInit = [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
+            Rule = Places.RuleOf(col.Name) is { } colRule0 ? colRule0 : [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝places.json の rule（開始時のデータ・土地の側）から始める（無い名前は間接統治〔在地1.0〕・段2で支配度と同じ物理で国家区分が育つ）
+            RuleInit = Places.RuleOf(col.Name) is { } colRule1 ? colRule1 : [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
             Terrain = Places.TerrainOf(col.Name),   // ★(3) 地形タグ（昇格植民地も同じ1枚の表から）
             Resources = [.. col.Resources], Culture = w.Region.Culture, Religion = w.Region.Religion,
             ArableLand = Math.Max(1.0, peasantSize) * LandHeadroom,   // 本土州と同じ規則（耕地賦存＝初期農民×余裕）
@@ -1917,10 +1917,9 @@ public sealed class Simulation
 
         // 労働時間の連続追従（倍率排除②）：実労働時間 WorkHoursValue は法定上限（WorkHours enum のアンカー）へ毎月収束する。
         // 法は離散（8/10/12時間法を議会が可決）だが現場の労働時間は連続で追従＝移行期は中間値を取り、産出・厚生・健康が滑らかに動く。
-        // 第6段6-8a（2026-07-28）執行の飢餓：先進方向（短縮・禁止・保持確立）の浸透は監督官が要る＝行政力でゲート
-        //（法は残して監督官を切る反動＝1802徒弟法の空文化。緩和方向は即時＝規制撤廃に監督官は不要）。LawEnforcementAdminGate=0で恒等。
-        double enforce = World.Coef.LawEnforcementAdminGate > 0
-            ? Math.Min(1.0, World.AdminEfficiency / World.Coef.LawEnforcementAdminGate) : 1.0;
+        // 法の浸透の速さ enforce＝浸透の遅れは 行政の購入量の不足でなく 〈その土地を国家が統治している割合〉＝州の人口で重みづけた RuleReach の平均（法は国家の区分の範囲にだけ届く）。
+        //   ★(399) で旧の門（第6段6-8a の執行の飢餓＝行政効率÷LawEnforcementAdminGate）を物理削除した（先進方向〔短縮・禁止・保持確立〕の浸透だけが掛かる・緩和方向は即時＝規制撤廃に監督官は不要）。
+        double enforce = Politics.StateReach(World, World.Coef);
         double hoursTarget = World.WorkHours.Hours();
         World.WorkHoursValue += World.Coef.WorkHoursFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0) * (hoursTarget - World.WorkHoursValue);
         // 賃金保持・児童労働合法度の連続追従（倍率排除④）：法は離散だが社会への浸透は連続（女性の賃金保持の確立／児童労働禁止の取締り）。
@@ -2097,7 +2096,7 @@ public sealed class Simulation
                 // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
                     : World.EducationLaw == EducationLaw.Public ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)
-                    * Politics.RuleReach(r, World.Coef);   // ★支配度 段4（2026-09-07）：公共財の到達＝国家区分に比例（RuleSharesReach=0 で ×1＝恒等）。0 で従来
+                    * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
                 if (r.EducationProducerIndex >= 0)
                 {
                     var ep = r.Producers[r.EducationProducerIndex];

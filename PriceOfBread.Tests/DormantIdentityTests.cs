@@ -48,11 +48,7 @@ public class DormantIdentityTests
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
-        "RuleSharesEnabled",            // 支配度の一般化 段1＝州の4区分の積分（観測のみ）＝0で従来
         "ProjectionUsesLand",           // 支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
-        "RuleSharesReach",              // 支配度 段4＝公共財の到達を国家区分に比例（教育の財源率・年金）
-        "RuleSharesTaxBase",            // 支配度 段3＝課税・徴兵ベースを区分へ（仲介者の取り分は貴族へ）
-        "ForeignRuleFromTreaty",        // 支配度 段5＝条約港→外国持分（観測のみ）
         // ★MusketRecipeEnabled（前期の軍需レシピ）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
         "SilverRushEnabled",            // 銀の後期産地＝シルバーラッシュ（0＝解禁も富鉱化もしない）
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝鉱脈で割らない＝厳密恒等

@@ -788,29 +788,27 @@ public partial class GameViewModel
         // ★支配度 §7（州パネル・2026-09-07 作者指示「半円で」）＋2026-09-23 作者指示「支配度は常に表示・切り替え不要／円は縦の幅が半分」：
         //   4区分の半円（箱 幅70×高さ36・底辺の中点(35,35)・半径34＝旧 140×72 の縦半分）＋外周の帯＝国家区分の10年前（半径32・線）。
         //   色＝国家:鋼青・在地勢力:褐・外国勢力:琥珀・無統治:淡墨（政治タブの金/錆と衝突させない）。値は凡例に数字で。
-        // ★4区分を何から作るか（2026-09-23）：
-        //   ・「国家」＝live な rg.Dominance。Politics.cs:1797-1805 の積分は**常に走る**（RuleSharesEnabled とは無関係）＝毎四半期動く唯一の量。
-        //   ・残り（1−支配度）は rg.Rule の 在地/外国/無統治 の**比**で配る。Rule は RuleSharesEnabled=0 の間 Politics.cs:1810 が積分しない＝
-        //     初期構成（world.json の rule）のまま動かないので、「動く量」ではなく**残りの内訳の型紙**としてだけ使う。
-        //   ・⚠2026-09-23 ㊱で rule は**全61カ国＋州165件**へ入った（旧＝英・露・オスマン・清の4カ国だけ＝残り57カ国が Rule=[1,0,0,0]）。
-        //     いまは比の元がどの州にも在るので、残りは 在地/外国/無統治 の実データの比で割れる。比の元が無い州（3成分の和が0）は残りが丸ごと「無統治」。
-        //     0% はそのまま 0% と出す＝**無い値をUIで作らない**。
-        //   ⚠エンジンの目標式（Politics.cs:1820-1825＝治安カバレッジ×…）をここへ書き写さない。同じ量の定義がエンジンとUIの2本になるのが最も再発するバグ型。
-        double dom = rg.Dominance;
-        if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
-        double rest = 1.0 - dom;
-        double sLocal = 0, sForeign = 0, sUngov = 0;
+        // ★4区分を何から作るか（(399) で更新）：区分は (399) で点火した＝rg.Rule が毎四半期 Politics.CheckSecession で目標へ寄る live な量（合計 1・州の課税・徴兵・公共財・法の浸透が読む）。
+        //   国家・在地・外国・無統治をそのまま出す（0% はそのまま 0% と出す＝**無い値をUIで作らない**）。Rule が無い（4 要素でない）州だけ、国家＝支配度 rg.Dominance・残りは無統治。
+        //   ⚠エンジンの目標式（Politics.cs の CheckSecession＝仲介者の権利の残高・首都からの到達・外国持分）をここへ書き写さない。同じ量の定義がエンジンとUIの2本になるのが最も再発するバグ型。
+        double dom, fLocal = 0, fForeign = 0, fUngov = 0;
         if (rg.Rule.Length == 4)
         {
-            sLocal = rg.Rule[1]; sForeign = rg.Rule[2]; sUngov = rg.Rule[3];
-            if (!(sLocal > 0)) sLocal = 0;
-            if (!(sForeign > 0)) sForeign = 0;
-            if (!(sUngov > 0)) sUngov = 0;
+            double s0 = rg.Rule[0], s1 = rg.Rule[1], s2 = rg.Rule[2], s3 = rg.Rule[3];
+            if (!(s0 > 0)) s0 = 0;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
+            if (!(s1 > 0)) s1 = 0;
+            if (!(s2 > 0)) s2 = 0;
+            if (!(s3 > 0)) s3 = 0;
+            double sAll = s0 + s1 + s2 + s3;
+            if (sAll > 1e-9) { dom = s0 / sAll; fLocal = s1 / sAll; fForeign = s2 / sAll; fUngov = s3 / sAll; }
+            else { dom = 0; fUngov = 1.0; }
         }
-        double sSum = sLocal + sForeign + sUngov;
-        double fLocal, fForeign, fUngov;
-        if (sSum > 1e-9) { fLocal = rest * sLocal / sSum; fForeign = rest * sForeign / sSum; fUngov = rest * sUngov / sSum; }
-        else { fLocal = 0; fForeign = 0; fUngov = rest; }
+        else
+        {
+            dom = rg.Dominance;
+            if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;
+            fUngov = 1.0 - dom;
+        }
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
         string rs = HalfSlice(35, 35, 34, 0, f1), rl = HalfSlice(35, 35, 34, f1, f2), rf = HalfSlice(35, 35, 34, f2, f3), ru = HalfSlice(35, 35, 34, f3, 1.0);
         string rb = "", rbText = "";

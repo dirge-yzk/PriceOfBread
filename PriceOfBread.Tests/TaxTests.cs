@@ -63,7 +63,7 @@ public class TaxTests
             sim.Run(1);   // 前の月の所得（LastEarnedPerMonth）を立てる＝双子は同じ種で同じ軌道
             var w = sim.World;
             w.TaxRate = new Share(0); w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
-            w.Coef.TitheRate = new Share(0); w.Coef.CorruptionMax = new Share(0);
+            w.Coef.TitheRate = new Share(0); foreach (var rg0 in w.Regions) rg0.Rule = [1.0, 0.0, 0.0, 0.0];   // 国家が全域を治める（支配度の区分で目減りしない）
             w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
             foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = new MoneyStock(0); pp.SetSavings(System.Math.Max(pp.Savings.Value, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1
@@ -162,12 +162,12 @@ public class TaxTests
     }
 
     [Fact]
-    public void 所得税の取り立ては行政力に応じて漏れる()   // (b) 2026-09-12 FIX1＝廃止した天井の置き換えが live であることの番人
+    public void 所得税の取り立ては支配度の区分に応じて国庫へ届く()   // (b) 2026-09-12 FIX1＝廃止した天井の置き換えが live であることの番人（(399) で汚職の漏れから支配度の区分へ）
     {
         // 旧・主張「所得税は行政力に応じて徐々に**上限**を得る」は廃止（率を削る天井＝二重計上）。
-        // 新・主張＝行政力は**率**でなく**額**に効く：同じ TaxRate でも、行政が空の国は取り立てた金が国庫へ届かない
-        //   （Fiscal の汚職漏れ＝revenue × CorruptionMax × EffectiveCorruption、EffectiveCorruption=(1−AdminEfficiency)(1−OversightV2)）。
-        // 2本の腕は完全に同一の世界（同一決定論）で、行政の充足（Region.AdminFill）だけを変えて Fiscal を1回踏む＝漏れを隔離して測る。
+        // 新・主張＝支配は**率**でなく**額**に効く：同じ TaxRate でも、国家の区分が小さい国は取り立てた金が国庫へ届かない
+        //   （Fiscal の課税ベース＝国家区分＋在地区分×届け率〔Politics.RuleDelivery〕。(399) で旧の汚職の財政の漏れ revenue × CorruptionMax × EffectiveCorruption は物理削除）。
+        // 2本の腕は完全に同一の世界（同一決定論）で、州の4区分だけを変えて Fiscal を1回踏む＝届き方を隔離して測る。
         Simulation Build()
         {
             var s = new Simulation(NationConfig.Britain().ToScenario(19), new NullAgent());
@@ -180,18 +180,16 @@ public class TaxTests
         var high = Build(); var low = Build();
         Assert.Equal(high.World.TaxRate, low.World.TaxRate);   // 分岐前は完全同一
         Assert.True(high.World.TaxRate.Value > 0.1, $"前提が崩れた：所得税が立っていない＝漏れを測れない（{high.World.TaxRate.Value:F3}）");
-        foreach (var r in high.World.Regions) r.AdminFill = 1.0;   // 行政の行き届いた国
-        foreach (var r in low.World.Regions) r.AdminFill = 0.0;    // 官僚の役務が買えていない国
+        foreach (var r in high.World.Regions) r.Rule = [1.0, 0.0, 0.0, 0.0];   // 国家が全域を治める国
+        foreach (var r in low.World.Regions) r.Rule = [0.2, 0.2, 0.1, 0.5];    // 国家の区分が小さい国（半分が無統治）
         int cat = (int)TreasuryCat.Tax;   // 書き手は Fiscal の徴税の移し方の1本（納税者→国庫・区分 Tax・2026-10-01 段4g＝旧 w.Pay(TreasuryCat.Tax, revenue)）1箇所だけ＝他の歳出入と混ざらない
         double hb = high.World.TreasuryLedger[cat], lb = low.World.TreasuryLedger[cat];
         Fiscal.Step(high.World, high.World.Coef);
         Fiscal.Step(low.World, low.World.Coef);
         double hTax = high.World.TreasuryLedger[cat] - hb, lTax = low.World.TreasuryLedger[cat] - lb;
         Assert.True(hTax > 0, $"前提が崩れた：税収が立っていない（{hTax:F0}）");
-        Assert.True(lTax < hTax, $"行政が空の国でも同額が国庫に届いた＝行政力が取り立てに効いていない（行き届いた{hTax:F0} vs 空{lTax:F0}）");
-        Assert.True(low.World.LastTaxLeak > high.World.LastTaxLeak,
-            $"漏れが行政力で増えていない（行き届いた{high.World.LastTaxLeak:F0} vs 空{low.World.LastTaxLeak:F0}）");
-        Assert.Equal(high.World.TaxRate, low.World.TaxRate);   // 率は1ミリも変わらない＝行政は率でなく額に効く（天井の不在）
+        Assert.True(lTax < hTax, $"国家の区分が小さい国でも同額が国庫に届いた＝区分が取り立てに効いていない（全域{hTax:F0} vs 小さい国{lTax:F0}）");
+        Assert.Equal(high.World.TaxRate, low.World.TaxRate);   // 率は1ミリも変わらない＝支配は率でなく額に効く（天井の不在）
     }
 
     /// <summary>★所得税の**導入**は払えない請求が起こす（2026-09-30 (127)）＝所得税の無い国（率0）が段を上げられるのは国家の支払い率 r＜1 の時だけ・

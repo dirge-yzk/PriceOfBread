@@ -255,25 +255,24 @@ public class MilitaryTests
         Assert.True(checkedRegions > 0 && capitals == sim.Nations.Count);
     }
 
-    /// <summary>#7（2026-09-11）：徴兵目標の母数は Politics.RuleDelivery 倍（RuleSharesTaxBase>0・在地区分の村請け）。届き方0.5なら目標兵数も半分＝
-    /// 同じ盤面で兵士の到達量が対照腕（g=0＝×1＝DormantIdentity の恒等）より小さい。App のヘッダー/政治タブの目標兵数はこの1本を読む。</summary>
+    /// <summary>#7（2026-09-11）：徴兵目標の母数は Politics.RuleDelivery 倍（在地区分の村請け・(399) で常時）。届き方0.5なら目標兵数も半分＝
+    /// 同じ盤面で兵士の到達量が対照腕（国家区分が全域＝×1）より小さい。App のヘッダー/政治タブの目標兵数はこの1本を読む。</summary>
     [Fact]
     public void 徴兵の母数は支配度の届き方で縮む()
     {
-        static (double before, double after, World w) Arm(double g)
+        static (double before, double after, World w) Arm(double reach)
         {
             var sim = new Simulation(OpeningFixture.Named("フランス").ToScenario(1789), new NullAgent());   // ★(332) 開幕の国庫・国債を絶対額で持つ盤面
             var w = sim.World;
-            w.Coef.RuleSharesTaxBase = g;
             w.Coef.MilitaryEnvelopeShare = new Share(1e9);   // ★(155) 定員＝人口の側（上限割合×母数）で読む（払える予算が律速にならない）
-            foreach (var r in w.Regions) r.Rule = [0.5, 0.0, 0.5, 0.0];   // 国家区分5割・在地区分0（村請け無し）＝届き方 0.5
+            foreach (var r in w.Regions) r.Rule = [reach, 0.0, 1.0 - reach, 0.0];   // 国家区分 reach・在地区分0（村請け無し）＝届き方 reach
             double before = w.SoldierSizeK();
             Military.Step(w, w.Coef, atWar: false);
             return (before, w.SoldierSizeK(), w);
         }
-        var off = Arm(0.0); var on = Arm(1.0);
-        Assert.Equal(1.0, Politics.RuleDelivery(off.w.Region, off.w.Coef, 0.0));
-        Assert.Equal(0.5, Politics.RuleDelivery(on.w.Region, on.w.Coef, 1.0));
+        var off = Arm(1.0); var on = Arm(0.5);
+        Assert.Equal(1.0, Politics.RuleDelivery(off.w.Region, off.w.Coef));
+        Assert.Equal(0.5, Politics.RuleDelivery(on.w.Region, on.w.Coef));
         Assert.Equal(off.before, on.before);
         Assert.True(on.after < off.after, $"母数が半分なのに兵数が縮まない（対照 {off.before:F1}→{off.after:F1}／本腕 {on.before:F1}→{on.after:F1}）");
     }

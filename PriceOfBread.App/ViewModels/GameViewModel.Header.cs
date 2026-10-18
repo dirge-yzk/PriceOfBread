@@ -107,7 +107,7 @@ public partial class GameViewModel
                     else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) pool += p.Size;
                 }
                 soldiers += sld;
-                manpower += (pool + sld) * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase);   // 兵役の母数＝Military.Step と同一（州ごとの支配度 段3・RuleSharesTaxBase=0 で ×1）
+                manpower += (pool + sld) * Politics.RuleDelivery(r, c);   // 兵役の母数＝Military.Step と同一（州ごとの支配度 段3）
             }
             if (!(soldiers > 0)) return "—";
             // Military.Step の目標兵数と同一式（母数＝農民＋都市労働者＋現役の兵士）。★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ（Military.cs:187 と同じ述語）
@@ -261,10 +261,8 @@ public partial class GameViewModel
     }
     // 移民の収支はヘッダーの人口 Stat へ統合（POPタブから移動・専用プロパティ撤去2026-07-12）。
 
-    // 実効汚職率＝歳入からの漏れ率。★汚職V2点火（2026-08-15）：正準定義 World.EffectiveCorruption を読む
-    // （旧＝(1−行政)(1−清廉度)のVM内複製＝点火後は誤表示だった。監察上限（span）は旧機構ごと不読＝表示も撤去）。
-    private double EffectiveCorruption() =>
-        _player.Coef.CorruptionMax.Value * _player.EffectiveCorruption;
+    // 実効汚職＝正準定義 World.EffectiveCorruption を読む（(1−行政)×(1−監視)・0..1）。★(399) で汚職の財政の漏れ（歳入からの漏れ）は物理削除した＝漏れ率ではなく汚職の度合い。
+    private double EffectiveCorruption() => _player.EffectiveCorruption;
 
     private void SampleYearStats()
     {
