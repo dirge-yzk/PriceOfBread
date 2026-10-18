@@ -50,15 +50,18 @@ def listed_name(n):
 
 
 def read_tsv(path, cols=None):
+    """タブ区切りを行ごとに split で読む（csv モジュールより速い・表に引用符は無い）。必要な列だけを辞書にする。"""
     with open(path, encoding='utf-8', newline='') as f:
-        r = csv.reader(f, delimiter='\t')
-        hdr = next(r)
+        hdr = f.readline().rstrip('\r\n').split('\t')
         idx = {h: i for i, h in enumerate(hdr)}
-        want = cols or hdr
-        ii = [idx[c] for c in want if c in idx]
-        names = [c for c in want if c in idx]
-        for row in r:
-            yield {n: row[i] for n, i in zip(names, ii) if i < len(row)}
+        names = [c for c in (cols or hdr) if c in idx]
+        ii = [idx[c] for c in names]
+        n = len(hdr)
+        for line in f:
+            row = line.rstrip('\r\n').split('\t')
+            if len(row) < n:
+                continue
+            yield {nm: row[i] for nm, i in zip(names, ii)}
 
 
 def seeds_of(d, tbl):

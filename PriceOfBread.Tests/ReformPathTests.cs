@@ -13,8 +13,24 @@ public class ReformPathTests
     private static Simulation Board()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.World.Coef.MandateOverStockFromLegitimacy = 0; sim.World.Coef.MandateOverStockLegitFloor = 0;   // ★(405) 既定は採用値（1／0.4）。D1 の機構の番人は旧の経路〔旗 0・床なし〕を土台に、各テストが旗を明示して見る
         sim.Run(8);
         return sim;
+    }
+
+    [Fact]
+    public void D0_既定は採用値_旗1_床0点4_教区学校の財源1()
+    {
+        var c = new Coefficients();
+        Assert.Equal(1.0, c.MandateOverStockFromLegitimacy);
+        Assert.Equal(0.4, c.MandateOverStockLegitFloor);
+        Assert.Equal(1.0, c.ParishEduFunded);
+        // 既定の盤面でも門が走る（床 0.4：払った後の正統性が 0.4 を下回る壁の一歩は通らない）
+        var w = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent()).World;
+        w.PoliticalCapitalMax = 0.3; w.MandateSpent = 0; w.MandateSpentNew = 0;
+        w.Legitimacy = 0.9;
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.5));     // 払った後 0.4＝床ちょうど
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.51));   // 払った後 0.39＜床
     }
 
     // ---------------------------------------------------------------- D1：壁の一歩を値段にする（Government.PoliticalCapitalAffords）----------------------------------------------------------------
@@ -24,7 +40,7 @@ public class ReformPathTests
     {
         var w = Board().World;
         w.PoliticalCapitalMax = 0.3; w.MandateSpent = 0; w.MandateSpentNew = 0; w.Legitimacy = 0.9;
-        Assert.Equal(0.0, w.Coef.MandateOverStockFromLegitimacy);    // 既定は 0
+        Assert.Equal(0.0, w.Coef.MandateOverStockFromLegitimacy);    // Board() が旧の経路〔旗 0〕に置いている
         Assert.False(Government.PoliticalCapitalAffords(w, 0.495), "旗 0 で壁の一歩が通った＝旧の門が変わっている");
         w.Coef.MandateOverStockFromLegitimacy = 1;
         Assert.True(Government.PoliticalCapitalAffords(w, 0.495), "旗 1 でも壁の一歩が通らない");
@@ -52,7 +68,7 @@ public class ReformPathTests
         var w = Board().World;
         w.Coef.MandateOverStockFromLegitimacy = 1;
         w.PoliticalCapitalMax = 0.25; w.MandateSpent = 0; w.MandateSpentNew = 0;   // 2 進で正確に表せる値（境界が丸めに左右されない）
-        Assert.Equal(0.0, w.Coef.MandateOverStockLegitFloor);        // 既定は床なし
+        Assert.Equal(0.0, w.Coef.MandateOverStockLegitFloor);        // Board() が床なしに置いている
         w.Legitimacy = 0.75;
         Assert.True(Government.PoliticalCapitalAffords(w, 0.5));       // 床 0：正統性 0.75 から壁の一歩 0.5 を払える
         w.Coef.MandateOverStockLegitFloor = 0.25;
