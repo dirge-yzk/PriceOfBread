@@ -2872,7 +2872,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
             + $" {EpLaw(PolicyAxis.SerfEmancipation, (int)w.SerfEmancipation, (int)w.Policy.SerfEmancipation, (int)ReformLevel.Full, "農奴解放")}"
             + $" 地租目標{w.Policy.LandTaxTarget:F2} 教育費目標{w.Policy.EducationSpendingTarget:F2}");
         // ★N2（2026-09-21）：政治資本を在庫 a/b で出す。b は毎四半期 Government.Step の頭で World に置かれる（2026-09-21 ㉖で旗を焼き込み）。
-        //   ⚠点火の証拠は「テスト緑」でも「帯が動いた」でもなく **門が実際に否決した回数**＝上の EpLaw の理由行（「政治資本の残りが不足」）を数えること。
+        //   ⚠点火の証拠は「テスト緑」でも「帯が動いた」でもなく **門が実際に否決した回数**＝上の EpLaw の理由行（「政治資本の残りが不足」・★(420) (419) 以後は壁の一歩の否決が「正統性が不足」と別の文言で出る＝両方を数える）を数えること。
         Console.WriteLine($"      ブロック：伝統{blocT:F3} 近代{blocM:F3} 大衆{blocMass:F3}　正統性{w.Legitimacy:F2}"
             + $" 政治資本{Math.Max(0, w.PoliticalCapitalMax - w.MandateSpent):F3}/{w.PoliticalCapitalMax:F3}（目減り{w.MandateSpent:F2} 実行度{PoliticalQuantities.PoliticalCapitalRate(w):F2}）"
             + $" 政治予算{w.PoliticalPushBudget:F2} 行政力{w.AdminEfficiency:F2} 議会統制{w.ParliamentControl:F2} 国庫{w.Treasury,12:F0} 一人当たりGDP{(tot > 1 ? w.GdpPerMonth / tot : 0):F4}");
@@ -8579,7 +8579,7 @@ if (args.Length > 0 && args[0] == "test8")
             .Select(x => $"{x.Key}{100 * x.S / tot:F0}%"));
         string regions = string.Join("/", w.Regions.Where(r => r.State == RegionState.Active).Select(r => r.Name));
         Console.WriteLine($"\n#{rk} {w.SelfPower?.Name ?? w.Region.Name}  国力{NationalScore.Of(w):F0}  満足{NationalScore.MeanSatisfaction(w):F2}");
-        {   // 国力内訳＝現行スコア式（NationalScore.Of＝軍+富+金融+技術）から生成（監査2026-07-12 死13：旧＝古い係数の手書き式で実際の得点内訳と食い違い、バランス作業を誤誘導していた）
+        {   // 国力内訳＝現行スコア式（旗 ScoreFromWorldShare＝0〔既定・(420)〕の NationalScore.Of＝OfOld＝軍+富+金融+技術・★旗 1 では Of は 6 項の割合で、この内訳は旧の物差しの値）から生成（監査2026-07-12 死13：旧＝古い係数の手書き式で実際の得点内訳と食い違い、バランス作業を誤誘導していた）
             var (gdpScale, indT8, satT8, colT8) = NationalScore.WealthParts(w);   // 内訳＝正典の1本（2026-09-11 #15）
             Console.WriteLine($"  国力内訳: 軍{NationalScore.Military(w):F1} ＋ 富{NationalScore.Wealth(w):F1}（GDP逓減{gdpScale:F1}+工業{indT8:F1}+生活{satT8:F1}+植民{colT8:F1}）＋ 金融{NationalScore.Finance(w):F1} ＋ 技術{NationalScore.Tech(w):F1} ＝ {NationalScore.Of(w):F1}");
         }

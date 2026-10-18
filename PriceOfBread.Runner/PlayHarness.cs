@@ -57,7 +57,7 @@ internal static class PlayHarness
         }
 
         var world = sim.Nations[playerIndex].World;
-        world.ForceUnlock = true;   // ★(419) 再征服は常時ON（App の InitAfterSimReady と同じ＝新規でも state.bin からの再開でも。ForceUnlock はセーブに載らない）
+        world.ForceUnlock = true;   // ★(419) 再征服は常時ON（App の InitAfterSimReady と同じ＝新規でも state.bin からの再開でも。★(420) 訂正：ForceUnlock はセーブに載る〔World の自動プロパティ＝SaveGame が全インスタンスフィールドを辿る〕＝(419) より前の state.bin と ForceUnlock=false の決定をこの行が上書きする）
 
         // ---- 2) 決定の適用（キー=値／NationPolicy のフィールド名）----
         string decPath = Path.Combine(dir, "decision.txt");
@@ -173,7 +173,8 @@ internal static class PlayHarness
         try
         {
             // ⚠World 直下のプレイヤーレバー（NationPolicy に無い。UIはスライダー/ボタンで持つ）
-            if (key is "ModernizationFrac" or "Mobilized" or "ForceUnlock")
+            // ★(420) ForceUnlock は外した（App は 2026-08-24 にレバーを撤去・play は入口で常に true にする＝App と同じ口だけを残す）
+            if (key is "ModernizationFrac" or "Mobilized")
             {
                 var wf = typeof(World).GetProperty(key, BindingFlags.Public | BindingFlags.Instance)!;
                 object oldv = wf.GetValue(world)!;

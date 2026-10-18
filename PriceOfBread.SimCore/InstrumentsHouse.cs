@@ -12,11 +12,13 @@ namespace PriceOfBread.SimCore;
 //   homeLaborWeightShare の分母は眠った行を除かない（眠った行は LaborWeight を平滑のまま持つ＝取り分を低く読む側・手仕事の行は眠らない）。
 public static partial class Instruments
 {
-    static readonly (string Key, int GoodId)[] HouseGoods =
-    [
-        ("Clothing", Catalog.ClothingId), ("Furniture", Catalog.FurnitureId), ("PreservedMeat", Catalog.PreservedMeatId), ("DriedFish", Catalog.DriedFishId),
-        ("Beer", Catalog.BeerId), ("Spirits", Catalog.SpiritsId), ("Cheese", Catalog.CheeseId), ("LeatherGoods", Catalog.LeatherGoodsId),
-    ];
+    // ★(420) 反証役 ce〔bv〕低：財の並びは本体の 1 本（Simulation.HouseholdGoods）を読む＝写しを持たない。ここは列名の鍵だけ（同じ添字・数が違えば型の初期化で止まる）。
+    static readonly string[] HouseKeys = ["Clothing", "Furniture", "PreservedMeat", "DriedFish", "Beer", "Spirits", "Cheese", "LeatherGoods"];
+    // 計器が動くときだけ組む（型の初期化の順に触れない＝計器を出さない走りの初期化は旧と同じ）。
+    static (string Key, int GoodId)[]? _houseGoods;
+    static (string Key, int GoodId)[] HouseGoods => _houseGoods ??= HouseKeys.Length == Simulation.HouseholdGoods.Length
+        ? HouseKeys.Select((k, i) => (k, Simulation.HouseholdGoods[i])).ToArray()
+        : throw new System.InvalidOperationException("house_s の列名の鍵の数が Simulation.HouseholdGoods と違う");
 
     internal static string HouseHeaderText()
     {

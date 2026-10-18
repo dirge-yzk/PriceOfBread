@@ -32,7 +32,14 @@ public class PhantomProductionTests
     [Fact]
     public void 技術未解禁の財は産出が厳密に0()
     {
-        var sim = RunWorld(12);
+        var sim = RunWorld(11);
+        // ★(420) 反証役 dt〔bv〕低：退場の除外は〈最後の四半期の判定で後継が見つかった行〉だけ（1 期のずれ）。それより前に退場した行が産出を続ければ赤。
+        var knownBefore = new HashSet<(Region, int)>();
+        foreach (var n in sim.Nations)
+            foreach (var region in n.World.Regions)
+                for (int row = 0; row < Catalog.Discoveries.Length; row++)
+                    if (Discovery.Known(region.Discovered, row)) knownBefore.Add((region, row));
+        sim.StepQuarter();
         int gated = 0;
         foreach (var n in sim.Nations)
             foreach (var region in n.World.Regions)
@@ -45,7 +52,7 @@ public class PhantomProductionTests
                     double gate = Discovery.Gate(region, s);
                     if (gate > 0) continue;
                     // ★(415) 退場したレシピ（後継を発見した）は、退場が判定の段（四半期の終わり）で起きてから次の月の産出スナップ（EconomyStep の unInvented＝門0 で Output＝0）までの1期のずれ＝この番人の主題（未発明の財を1単位も作らない）の外。既定では後継（転炉鋼ほか）が1783年に開き、12四半期の中で退場が起きる（基点は1818年で窓の外）
-                    if (s.RetiredByRow >= 0 && Discovery.Known(region.Discovered, s.RetiredByRow)) continue;
+                    if (s.RetiredByRow >= 0 && Discovery.Known(region.Discovered, s.RetiredByRow) && !knownBefore.Contains((region, s.RetiredByRow))) continue;
                     gated++;
                     Assert.True(s.Output == 0.0,
                         $"{n.World.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}"
@@ -118,7 +125,16 @@ public class PhantomProductionTests
     {
         int steel = GoodId("鋼");
         var on = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-        for (int q = 0; q < 8; q++) on.StepQuarter();
+        for (int q = 0; q < 7; q++) on.StepQuarter();
+        // ★(420) 合流で見つけた（dt＋ce＋sc を重ねた木で初めて赤）：最後の四半期の終わりに門が替わった生産者は 1 期のずれ（門の判定は四半期の終わり・Scale を 0 にするのは月の操業）＝主張の外。
+        //   替わる道は 2 つ＝その四半期の判定での発見・退場と、州の持ち主の交代（Region.Discovered は持ち主の配列への参照＝新しい持ち主の解禁で読む・例＝シュリーランガパトナの鋼と小銃）。
+        //   ①は〈前の四半期の終わりにも門が閉じていた〉生産者・②は〈前の四半期の終わりにも門が開いていた〉生産者だけで見る（どちらも門が 1 四半期そろった物）。
+        var openBefore = new HashSet<Producer>();
+        foreach (var n in on.Nations)
+            foreach (var region in n.World.Regions)
+                foreach (var s in region.Producers)
+                    if (s.GoodId >= 0 && Discovery.Gate(region, s) > 0) openBefore.Add(s);
+        on.StepQuarter();
 
         // ①技術ゲートが0の財（役務以外）は操業規模0／②ゲートが開いている財は0にしない
         int zeroed = 0, kept = 0;
@@ -132,9 +148,10 @@ public class PhantomProductionTests
                     if (Catalog.Goods[s.GoodId].Tier == GoodTier.Service) continue;
                     if (Discovery.Gate(region, s) > 0)
                     {
-                        if (s.GoodId == steel && !s.Bankrupt) { Assert.True(s.Scale > 0, $"{region.Name}の鋼が誤って0にされた"); kept++; }
+                        if (s.GoodId == steel && !s.Bankrupt && openBefore.Contains(s)) { Assert.True(s.Scale > 0, $"{region.Name}の鋼が誤って0にされた"); kept++; }
                         continue;
                     }
+                    if (openBefore.Contains(s)) continue;   // ★(420) この四半期の終わりに閉じた（1 期のずれ）
                     zeroed++;
                     Assert.True(s.Scale == 0.0,
                         $"{n.World.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name} は技術ゲート0なのに操業規模 {s.Scale}");

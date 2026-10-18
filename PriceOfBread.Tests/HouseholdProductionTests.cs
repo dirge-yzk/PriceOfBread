@@ -7,8 +7,8 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(418) 日用品の自給（00-CE2 案 B）の番人（事前登録 measurements/ce_20261019_prereg.txt の D1〜D8）。
-/// 旗 <c>HouseholdProductionEnabled</c>＝農家の手仕事を実の生産者の行（<c>RecipeName</c>＝〈家内工業〉・8 財）にする。期待値は本体の表（<c>Simulation.HouseholdRecipes</c>）から作らず、
-/// 事前登録の D3 の手書きの表（財→原料と量）と、職人の工房の手計算の値（衣料の生産性 1.8×7×0.6・自己費用 0.35）で書く（同語反復にしない）。
+/// 旗 <c>HouseholdProductionEnabled</c>＝農家の手仕事を実の生産者の行（<c>RecipeName</c>＝〈家内工業〉・8 財）にする。期待値は本体の表（<c>Simulation.HouseholdGoods</c> と財の表の投入）から作らず、
+/// 下の手書きの表（財→財の表の投入と量＝工場の連鎖の最後の一段・(418) 追記3 の形 ③）と、職人の工房の手計算の値（衣料の生産性 1.8×7×0.6・自己費用 0.35）で書く（同語反復にしない）。
 /// 機構と不変条件の番人であって、創発の主張（手仕事の産出の割合・日用品の充足）は成績表と計器 <c>house_s</c> が見る。
 /// ⚠州の構築時の旗：MultiNationSim の <c>coef</c> は各国の Simulation には届かない（各国は <c>cfg.ToScenario</c> の既定の係数＝POB_COEF だけが届く）＝本土の州は <c>Scenario.Coef</c> を直に差して建てる（下の <c>Nation</c>）。
 /// 昇格した植民地の州は MultiNationSim の <c>coef</c> で建つ（下の <c>Multi</c>）。

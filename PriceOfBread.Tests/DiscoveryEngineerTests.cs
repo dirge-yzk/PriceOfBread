@@ -36,14 +36,15 @@ public class DiscoveryEngineerTests
 
     private const double TestHalf = 5.0;   // 検査用の A0（較正値ではない）
 
-    /// <summary>1四半期だけ回した盤面。係数は国ごとの World.Coef に書く（MultiNationSim へ渡す係数は国の World に届かない＝構築時に読む係数は SeedCompatRows の検査で別に見る）。</summary>
+    /// <summary>1四半期だけ回した盤面。係数は国ごとの World.Coef に書く（MultiNationSim へ渡す係数は国の World に届かない＝構築時に読む係数は SeedCompatRows の検査で別に見る）。
+    /// ★(420) 反証役 dt〔bv〕中：係数は最初の四半期の前に書く（旧は 1 四半期を既定〔(415) 後半で 3.42〕で回してから書いた＝旗0の盤面が旗正の 1 四半期を経ていた）。</summary>
     private static MultiNationSim Board(double half)
     {
         var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
-        sim.StepQuarter();
         sim.Coef.DiscoveryEngineerHalfPerMonth = half;   // 多国の判定が読む共有の係数
         foreach (var n in sim.Nations) n.World.Coef.DiscoveryEngineerHalfPerMonth = half;
-        if (!(half > 0)) foreach (var n in sim.Nations) Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（構築は既定の係数を読むので、旗を0にした盤面は互換の解禁を後から呼ぶ）
+        if (!(half > 0)) foreach (var n in sim.Nations) Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（構築は既定の係数を読むので、旗を0にした盤面は互換の解禁を最初の判定の前に呼ぶ）
+        sim.StepQuarter();
         return sim;
     }
 

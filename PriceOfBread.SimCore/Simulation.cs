@@ -3077,7 +3077,7 @@ public sealed class Simulation
         Catalog.BeerId, Catalog.SpiritsId, Catalog.CheeseId, Catalog.LeatherGoodsId,
     ];
 
-    /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 <see cref="Coefficients.HouseholdProductionEnabled"/>＝0（既定）では**先頭で戻る**＝Producers の件数も順序も不変（厳密恒等）。
+    /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 <see cref="Coefficients.HouseholdProductionEnabled"/>＝0 では**先頭で戻る**＝Producers の件数も順序も不変（厳密恒等）。★既定は 1（(418) 後半で点火）。
     /// &gt;0 のとき、財を作る州（その財の行が既にある）に、職人の工房（<see cref="AddArtisanProducers"/>）と同じ型の行を <see cref="HouseholdGoods"/> の 1 財 1 本ずつ足す：担い手＝所有者＝農民（既存の RGO の行の担い手から読む）・
     /// 投入＝財の表の投入（職人と同じ＝工場の連鎖の最後の一段）に**農業労働力を自家農家（RGO）の行と同じ量だけ**足す・生産性＝財の生産性×全連鎖の倍率×<see cref="HandcraftProductivityRatio"/>・自己費用＝<see cref="HandcraftSelfCost"/>・規模 1.0・産出 30（職人と同じ）。
     /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。
