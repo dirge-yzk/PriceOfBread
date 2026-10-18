@@ -1300,7 +1300,8 @@ public class FiscalTests
         Assert.Equal(prev0 + f, bw.PrevForeignDebt.Value, 6);   // 借入の月に繰上げ済みの印も上がる
         bw.Coef.ForeignBondCapacity = new Share(0);   // 残りの月は借りない
         sim.StepQuarter();
-        Assert.True(Math.Abs(bw.FxRate - lw.FxRate) > 0.01, $"前提が崩れた：普と英の為替が同じ（{bw.FxRate}・{lw.FxRate}）");
+        // ★(420) 合わせた木で為替の差が 0.009 に縮んで前提だけが赤（軌道の移動）。換算しない突然変異は差の分（相対で約 1%）だけ期待とずれる＝許し 1e-9 に対し十分＝前提は〈為替が違う〉（1e-6 を超える）で足りる
+        Assert.True(Math.Abs(bw.FxRate - lw.FxRate) > 1e-6, $"前提が崩れた：普と英の為替が同じ（{bw.FxRate}・{lw.FxRate}）");
         Assert.True(bw.ForeignDebt.Value - fd0 > 0.5 * f, "前提が崩れた：貸し手が払えなかった");
         double expect = (bw.ForeignDebt.Value - fd0) * bw.FxRate / lw.FxRate;   // 債権国は英だけ＝英の債権の動き＝普の対外債の動きの金の値打ち
         Assert.True(Math.Abs(lw.ForeignBondClaims.Value - cl0 - expect) <= 1e-9 * Math.Max(1.0, expect), $"英の債権の動き {lw.ForeignBondClaims.Value - cl0} ≠ 普の対外債の動きの金の値打ち {expect}");
