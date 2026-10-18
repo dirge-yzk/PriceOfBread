@@ -13,28 +13,24 @@ public class ReformPathTests
     private static Simulation Board()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-        sim.World.Coef.MandateOverStockFromLegitimacy = 0; sim.World.Coef.MandateOverStockLegitFloor = 0;   // ★(405) 既定は採用値（1／0.4）。D1 の機構の番人は旧の経路〔旗 0・床なし〕を土台に、各テストが旗を明示して見る
+        sim.World.Coef.MandateOverStockFromLegitimacy = 0; sim.World.Coef.MandateOverStockLegitPower = 1;   // ★(405) 既定は採用値（1／0.4）。D1 の機構の番人は旧の経路〔旗 0・床なし〕を土台に、各テストが旗を明示して見る
         sim.Run(8);
         return sim;
     }
 
     [Fact]
-    public void D0_既定は採用値_旗1_床0点4_教区学校の財源1()
+    public void D0_既定は採用値_旗1_指数2_教区学校の財源1()
     {
         var c = new Coefficients();
         Assert.Equal(1.0, c.MandateOverStockFromLegitimacy);
-        Assert.Equal(0.4, c.MandateOverStockLegitFloor);
-        Assert.Equal(0.0, c.MandateOverStockLegitPower);      // ★(409) 比例の形は器だけ（既定 0＝今の床の式）
+        Assert.Equal(2.0, c.MandateOverStockLegitPower);      // ★(409) 採用：払える量＝avail²（(405) の床 0.4 は削除した）
         Assert.Equal(1.0, c.ParishEduFunded);
-        // 既定の盤面でも門が走る（床 0.4：払った後の正統性が 0.4 を下回る壁の一歩は通らない）
+        // 既定の盤面でも門が走る（二乗：avail＝0.7 の払える量は 0.49）
         var w = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent()).World;
-        w.PoliticalCapitalMax = 0.3; w.MandateSpent = 0; w.MandateSpentNew = 0;
-        w.Legitimacy = 0.9;
-        Assert.True(Government.PoliticalCapitalAffords(w, 0.5));     // 払った後 0.4＝床ちょうど
-        Assert.False(Government.PoliticalCapitalAffords(w, 0.51));   // 払った後 0.39＜床
+        w.Legitimacy = 0.9; w.MandateSpentNew = 0.2;                     // この四半期に 0.2 を請求済み＝残りは 0.7
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.485));
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.495));      // 0.7² ＝ 0.49 を超える
     }
-
-    // ---------------------------------------------------------------- D1：壁の一歩を値段にする（Government.PoliticalCapitalAffords）----------------------------------------------------------------
 
     [Fact]
     public void D1_旗0では代価がbを超える一歩は正統性が満タンでも通らない_旗1では通る()
@@ -64,21 +60,21 @@ public class ReformPathTests
     }
 
     [Fact]
-    public void D1_床の変種_払ったあとの正統性が床を下回るなら通さない_既定0は床なし()
+    public void D1_指数が0以下かNaNなら壁の一歩は閉じる_旗0も壁()
     {
-        var w = Board().World;
+        var w = Board().World;                                        // Board() は指数 1（払える量＝avail）に置いている
         w.Coef.MandateOverStockFromLegitimacy = 1;
         w.PoliticalCapitalMax = 0.25; w.MandateSpent = 0; w.MandateSpentNew = 0;   // 2 進で正確に表せる値（境界が丸めに左右されない）
-        Assert.Equal(0.0, w.Coef.MandateOverStockLegitFloor);        // Board() が床なしに置いている
         w.Legitimacy = 0.75;
-        Assert.True(Government.PoliticalCapitalAffords(w, 0.5));       // 床 0：正統性 0.75 から壁の一歩 0.5 を払える
-        w.Coef.MandateOverStockLegitFloor = 0.25;
-        Assert.True(Government.PoliticalCapitalAffords(w, 0.5));       // 払った後 0.25＝床ちょうど（境界は含む）
-        w.Coef.MandateOverStockLegitFloor = 0.26;
-        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));      // 床の方が高いと通らない
-        w.Coef.MandateOverStockFromLegitimacy = 0;
-        w.Coef.MandateOverStockLegitFloor = 0;
-        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));      // 旗 0 は床に関わらず壁
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.5));       // 指数 1：正統性 0.75 から壁の一歩 0.5 を払える
+        w.Coef.MandateOverStockLegitPower = 0;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));      // 指数 0 は閉じる（床の旧の式へは落ちない）
+        w.Coef.MandateOverStockLegitPower = -1;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));
+        w.Coef.MandateOverStockLegitPower = double.NaN;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));
+        w.Coef.MandateOverStockLegitPower = 1; w.Coef.MandateOverStockFromLegitimacy = 0;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));      // 旗 0 は指数に関わらず壁
     }
 
     [Fact]
@@ -300,26 +296,23 @@ public class ReformPathTests
     private static World PowerBoard(double power, double legit, double spentNew = 0, double b = 0.005)
     {
         var w = Board().World;
-        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitFloor = 0.4; w.Coef.MandateOverStockLegitPower = power;
+        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitPower = power;
         w.PoliticalCapitalMax = b; w.MandateSpent = 0; w.MandateSpentNew = spentNew; w.Legitimacy = legit;
         return w;
     }
 
     [Fact]
-    public void P1_形が割れる盤面_床は否で二乗は可_床は読まない()
+    public void P1_形が割れる盤面_二乗は可_指数0は閉じる()
     {
-        // avail＝0.75：床 0.4 の払える量は 0.35・二乗は 0.5625
-        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(0, 0.75), 0.55));    // p＝0＝今の床の式
+        // avail＝0.75：二乗の払える量は 0.5625（旧の床 0.4 なら 0.35 で 0.55 は否だった）
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(0, 0.75), 0.55));    // p＝0＝閉じる（床の旧の式は削除した）
         Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.75), 0.55));
         Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.75), 0.57));    // 二乗の上限 0.5625 を超える
-        var w = PowerBoard(2, 0.75); w.Coef.MandateOverStockLegitFloor = 0.99;          // 床は p＞0 では読まない
-        Assert.True(Government.PoliticalCapitalAffords(w, 0.55));
-        // 床 0.4 が通す所は二乗も通す（全域で床より緩い）：avail＝0.5 で床の払える量 0.1
-        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(0, 0.5), 0.09));
+        // 旧の床 0.4 が通した所は二乗も通す（全域で旧の床より緩い）：avail＝0.5 で旧の床の払える量 0.1
         Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.5), 0.09));
-        // 床は avail＝0.4 以下で何も通さないが、二乗は 0.16 まで通す
-        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(0, 0.4), 0.01));
+        // 旧の床は avail＝0.4 以下で何も通さなかったが、二乗は 0.16 まで通す
         Assert.True(Government.PoliticalCapitalAffords(PowerBoard(2, 0.4), 0.15));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.4), 0.17));
     }
 
     [Fact]
@@ -370,17 +363,16 @@ public class ReformPathTests
     }
 
     [Fact]
-    public void P5_NaNは閉じる側へ倒れる_pがNaNなら旧の式へ落ちる()
+    public void P5_NaNは閉じる側へ倒れる_pがNaNか負でも閉じる()
     {
         Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.9), double.NaN));
         Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, double.NaN), 0.5));
         Assert.False(Government.PoliticalCapitalAffords(PowerBoard(2, 0.9, double.NaN), 0.5));
         var w = PowerBoard(2, 0.9); w.MandateSpent = double.NaN;
         Assert.False(Government.PoliticalCapitalAffords(w, 0.5));
-        // p が NaN／負なら旧の式（床 0.4）：avail＝0.75 で払える量 0.35
-        Assert.True(Government.PoliticalCapitalAffords(PowerBoard(double.NaN, 0.75), 0.34));
-        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(double.NaN, 0.75), 0.36));
-        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(-1, 0.75), 0.36));
+        // p が NaN／負なら閉じる（fail-open にしない・旧の床の式へは落ちない）
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(double.NaN, 0.75), 0.34));
+        Assert.False(Government.PoliticalCapitalAffords(PowerBoard(-1, 0.75), 0.34));
     }
 
     /// <summary>4 本の脚が同じ盤面で同じ可否を返す（二乗が通す盤面と通さない盤面の両方）。通る盤面では代価の全額を 2 台帳へ 1 回だけ記帳する。</summary>
@@ -390,7 +382,7 @@ public class ReformPathTests
         var w = Board().World;
         var (axis, inc, level, cost) = PolicyPoliticsTests.FindOpposedStep(w);
         w.Coef.MandateWeight = 0.001;
-        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitFloor = 0; w.Coef.MandateOverStockLegitPower = 2;
+        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitPower = 2;
         double b = PoliticalQuantities.PoliticalCapitalMax(w);
         Assert.True(cost > b && cost < 0.9, $"テスト前提が崩れた：代価 {cost} が b {b} 超・0.9 未満でない");
         // 通さない盤面：cost ≦ L（床なしなら通る）だが cost ＞ L²
@@ -419,7 +411,7 @@ public class ReformPathTests
         (World w, double cur, double next) Run(double legit)
         {
             var w = Board().World;
-            w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitFloor = 0; w.Coef.MandateOverStockLegitPower = 2; w.Coef.MandateWeight = 0.001;
+            w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitPower = 2; w.Coef.MandateWeight = 0.001;
             w.Legitimacy = legit; w.MandateSpentNew = 0; w.MandateSpent = 0; w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
             double cur = w.Tariff;
             double next = (double)move.Invoke(null, new object[] { cur, Math.Max(0.0, cur - 0.4), w.Coef, w, PolicyAxis.Tariff, 1.0, true, false })!;

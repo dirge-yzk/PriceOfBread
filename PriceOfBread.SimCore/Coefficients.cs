@@ -2815,7 +2815,7 @@ public sealed class Coefficients
     //   b＝支持と権力の大きさ（<see cref="PoliticalQuantities.PoliticalCapitalMax"/>＝「どれだけ大きなことができるか」）。
     //   回復＝毎期 b/MandateRefillQuarters×実行度（<see cref="PoliticalQuantities.PoliticalCapitalRate"/>＝「どれだけ頻繁に決められるか」）だけ S を**線形に**減らし0で止める。
     //   ⚠作者は漸近回復を却下した（「b 付近で極端に低速になるのは好ましくない」「使えば使うほど事実上の法改正が進むのも違和感」）。
-    //   押し切りの門は S+代価 ≤ b（<see cref="Government.PoliticalCapitalAffords"/>＝**純支持<0 の枝の中だけ**）。消費の式は現行のまま。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・床 MandateOverStockLegitFloor）。
+    //   押し切りの門は S+代価 ≤ b（<see cref="Government.PoliticalCapitalAffords"/>＝**純支持<0 の枝の中だけ**）。消費の式は現行のまま。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
     // ★裁定S1（2026-09-21）＝**余白の門 θ の退役**。
     //   <see cref="Government"/> の MandateMargin が非憲法級に +∞ を返す＝θ を読む4本の脚（施行・照会・点灯・スライダー）が
     //   同時に「通す側」へ倒れ、**反対を押し切る一歩の門は在庫ひとつだけ**になる（門を2つから1つへ＝削減の向き）。
@@ -2828,14 +2828,11 @@ public sealed class Coefficients
     //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）。
     //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。0 で厳密恒等。
     public double MandateOverStockFromLegitimacy = 1;   // ★(405) 採用（腕 BF と同じ世界・既定 1）：0 は旧の経路（壁の一歩は永遠に通らない）。腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった
-    // 　その床（腕 BF・既定 0.4／0＝床なし＝腕 B）：壁の一歩を払ったあとの正統性がこの値を下回るなら通さない（`cost <= 正統性 − 請求済み − これ`）。旗 MandateOverStockFromLegitimacy＞0 のときだけ読む。
-    //   0 の B は開幕の最初の四半期に全ての国が壁の一歩を払い正統性を 0.3〜0.9 燃やす（canary で 53 カ国・事前登録 追記1）＝その変種の腕で値を決める。新しい数字は置かない
-    //   （腕で既存の閾値 ReformFromAboveLegitThreshold〔0.4〕などを当てる）。数字の出所は AI の推奨・〈確証なし〉。
-    // ★(409) 床を比例の形に（事前登録 measurements/rw_20261018_prereg.txt [1]）：0＝今の床の式（上）／p＞0＝壁の一歩で払える量を avail^p にする（avail＝正統性−この四半期の請求済み・0〜1）。床は読まない。
-    //   avail^p は avail の連続な単調関数で、段差が無い（床は avail＝床 で 0 から立ち上がる）。p＝2 は床 0.4 より全域で緩く（avail²−avail+0.4＞0）床なしより厳しい。払った後の残りは avail(1−avail)＞0＝壁の一歩では 0 に届かない。
-    //   指数の選択（2・3）は AI の推奨・〈確証なし〉。採ったら床の係数 MandateOverStockLegitFloor を削除して閾値を残さない。0 で厳密恒等。
-    public double MandateOverStockLegitPower = 0;
-    public double MandateOverStockLegitFloor = 0.4;   // ★(405) 採用（腕 BF・既定 0.4）：閾値の形で README §1-8・設計思想⑧と緊張する＝作者に聞く Q6（出所は AI の推奨・既存の閾値 ReformFromAboveLegitThreshold と同じ値・〈確証なし〉）。0 に倒すと腕 B
+    // ★(409) 採用（腕 B・既定 2）：壁の一歩で払える正統性の量 = avail^p（avail＝正統性−この四半期の請求済み・0〜1）。(405) の床 0.4（閾値）を消してこの比例の形に置き換えた（README §1-8・設計思想⑧）。
+    //   avail^p は avail の連続な単調関数で段差が無い。p＝2 は床なし（avail）より厳しく、旧の床 0.4（avail−0.4）より全域で緩い（avail²−avail+0.4＞0）。払った後の残りは avail(1−avail)＞0＝壁の一歩では 0 に届かない。
+    //   指数 2 は AI の選択で〈確証なし〉（B3＝3・B4＝4 の腕でも止める線に当たらなかった）。p が 0 以下か NaN なら壁の一歩は通らない（閉じる側・fail-open にしない）。旗 MandateOverStockFromLegitimacy＞0 のときだけ読む。
+    //   床の係数 MandateOverStockLegitFloor は削除した（閾値を残さない）。
+    public double MandateOverStockLegitPower = 2;
 
     // === 王権議会P0＝内部状態化 2026-07-10（出典＝設計doc「王権議会_史実精査」§3新規1-6/§4結論/§4-b協力度2次元/§5判断③・「設計メモ」§2段階(i)）===
     // ⚠嘘コメント是正（作業リスト2第2段2-1・2026-07-27）：旧見出し「全て休眠＝挙動への影響ゼロ」は**偽**＝P0導入時の記述のまま放置されていた。
