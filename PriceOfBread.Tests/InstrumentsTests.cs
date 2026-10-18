@@ -1556,6 +1556,7 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make(CoverageSeed);
+                foreach (var n0 in sim.Nations) { n0.World.Coef.ScoreFromWorldShare = 0; n0.World.Coef.AiModernizeFromReturn = 0; }   // ★(416) 場面の前提〔構造と飢えの両方が立つ世界〕を旧の既定で保つ（法律タブの照会の機構を測る番人）
                 foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔壁は永遠に通らない・符号 2 の構造〕の分割を見る番人＝旗を 0 に明示（既定は採用値 1）
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)

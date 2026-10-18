@@ -14,6 +14,7 @@ public class TreatyPortLapseTests
     {
         var cfgs = WorldData.Nations();
         var sim = new MultiNationSim(cfgs, 1789UL, _ => new NullAgent());
+        foreach (var n in sim.Nations) n.World.Coef.ScoreFromWorldShare = 0;   // ★(416) この番人は風化の速さの機構〔旧の国力の物差しで英＝最強級＝比 1〕を測る。新しい物差しでの向きは ModernizeReturnAndScoreTests の S3
         var diplo = sim.Diplomacy;
         var britain = diplo.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス"));
         Assert.NotNull(britain.Nation);
