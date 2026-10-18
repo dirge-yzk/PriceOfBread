@@ -1685,7 +1685,7 @@ public static class Politics
         return !(v > 0 && v <= 1.0) ? 1.0 : v;
     }
 
-    /// <summary>★(399) 法の浸透＝活きている州の人口で重みづけた <see cref="RuleReach"/> の平均（労働時間・女性の賃金保持・児童労働の追従の速さ）。人口が正の州が無ければ 1.0。行政効率は読まない（★(408) 旗 AdminServesStateRule＞0 のときは州ごとの RuleReach に官僚の役務の充足 AdminFill を掛ける）。</summary>
+    /// <summary>★(399) 法の浸透＝活きている州の人口で重みづけた <see cref="RuleReach"/> の平均（労働時間・女性の賃金保持・児童労働の追従の速さ）。人口が正の州が無ければ 1.0。行政効率は読まない（★(408) 州ごとの RuleReach に官僚の役務の充足 AdminFill を掛ける）。</summary>
     internal static double StateReach(World w, Coefficients c)
     {
         double num = 0, den = 0;
@@ -1694,7 +1694,7 @@ public static class Politics
             if (r.State != RegionState.Active) continue;
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
-            num += c.AdminServesStateRule > 0 ? pop * (RuleReach(r) * PoliticalQuantities.Clamp01(r.AdminFill)) : pop * RuleReach(r); den += pop;   // ★(408) 旗＞0：国家区分の中でも官僚の役務が届く分にしか法は施行されない（RuleReach 自体には掛けない）
+            num += pop * (RuleReach(r) * PoliticalQuantities.Clamp01(r.AdminFill)); den += pop;   // ★(408) 国家区分の中でも官僚の役務が届く分にしか法は施行されない（RuleReach 自体には掛けない）
         }
         return den > 0 ? num / den : 1.0;
     }
@@ -1755,15 +1755,13 @@ public static class Politics
 
     /// <summary>★支配度の一般化 段3（作者採用 §5・2026-09-07・(399) で点火）：課税・徴兵の到達＝国家区分＋在地区分×届け率。
     /// 届け率＝1−PrivilegeTaxDiscount（在地の仲介者＝徴税請負/村請けの取り分は免税率と同じ既存の物差し＝新しい数を作らない）。無統治・外国区分からは取れない。Rule が無い州は1。
-    /// ★(408) 旗 AdminServesStateRule＞0：国家区分のうち官僚の役務の充足（Region.AdminFill）が届かない分は在地の仲介者を通る＝R0×(d＋(1−d)×f)＋R1×d（Fiscal.TaxScan の仲介者の取り分が同じ分を領主へ移す）。</summary>
+    /// ★(408) 国家区分のうち官僚の役務の充足（Region.AdminFill）が届かない分は在地の仲介者を通る＝R0×(d＋(1−d)×f)＋R1×d（Fiscal.TaxScan の仲介者の取り分が同じ分を領主へ移す）。</summary>
     internal static double RuleDelivery(Region r, Coefficients c)
     {
         if (r.Rule.Length != 4) return 1.0;
         double deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value);
-        double v;
-        if (c.AdminServesStateRule > 0)   // ★(408) 国家区分のうち官僚の役務が届く分 f は全額届き、届かない分 1−f は在地の仲介者を通る（届け率 d）。f＝1 で旧と同じ値。NaN の AdminFill は 0（Clamp01）
-            v = PoliticalQuantities.Clamp01(r.Rule[0]) * (deliver + (1.0 - deliver) * PoliticalQuantities.Clamp01(r.AdminFill)) + PoliticalQuantities.Clamp01(r.Rule[1]) * deliver;
-        else v = PoliticalQuantities.Clamp01(r.Rule[0]) + PoliticalQuantities.Clamp01(r.Rule[1]) * deliver;
+        // ★(408) 国家区分のうち官僚の役務が届く分 f は全額届き、届かない分 1−f は在地の仲介者を通る（届け率 d）。f＝1 で (399) の式（R0＋R1×d）と同じ値。NaN の AdminFill は 0（Clamp01）
+        double v = PoliticalQuantities.Clamp01(r.Rule[0]) * (deliver + (1.0 - deliver) * PoliticalQuantities.Clamp01(r.AdminFill)) + PoliticalQuantities.Clamp01(r.Rule[1]) * deliver;
         return !(v >= 0 && v <= 1) ? 1.0 : v;
     }
 

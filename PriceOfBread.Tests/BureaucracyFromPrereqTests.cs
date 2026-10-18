@@ -129,14 +129,14 @@ public class BureaucracyFromPrereqTests
     public void 旗2は政治の門が通る見込みのある法だけ数える()
     {
         // 政治の門が閉じる盤面（開幕の政治資本の残りが足りない）：旗 1 は目標を上げ、旗 2 は上げない
-        var w1 = Board(1.0); w1.PoliticalLockEnabled = true; w1.Coef.MandateOverStockFromLegitimacy = 0; Want(w1, PolicyAxis.Antitrust);   // ★(405) 旧の経路〔壁の一歩は永遠に通らない〕を見る番人＝旗を 0 に明示（既定は採用値 1）
+        var w1 = Board(1.0); w1.PoliticalLockEnabled = true; w1.Coef.MandateOverStockLegitPower = 0; Want(w1, PolicyAxis.Antitrust);   // ★(405)(419) 壁の一歩を閉じた世界〔旧の旗 0＝壁の一歩は永遠に通らない〕を見る番人＝払える量の指数を 0 に明示（既定は 2）
         PolicyPreferences.Profile? sh = null;
         var gate = Government.GateInfo(w1, PolicyAxis.Antitrust, true, 1, ref sh, BureaucracyLaw.MeritExam);
         Assert.False(gate.Ok);                       // 前提の盤面（変われば読み直す）
-        Assert.Equal("政治資本の残りが不足", gate.Reason);
+        Assert.Equal("政治資本の残りが不足", gate.Reason);   // ★(419) 指数 0 で壁を閉じた世界＝正統性がいくらあっても通らない＝理由は〈正統性が不足〉でなく従来のまま
         Follow(w1);
         Assert.Equal(BureaucracyLaw.MeritExam, w1.Policy.Bureaucracy);
-        var w2 = Board(2.0); w2.PoliticalLockEnabled = true; w2.Coef.MandateOverStockFromLegitimacy = 0; Want(w2, PolicyAxis.Antitrust);
+        var w2 = Board(2.0); w2.PoliticalLockEnabled = true; w2.Coef.MandateOverStockLegitPower = 0; Want(w2, PolicyAxis.Antitrust);
         Follow(w2);
         Assert.Equal(BureaucracyLaw.Spoils, w2.Policy.Bureaucracy);
         // 政治の門が開く盤面（純支持の門を外す）：旗 2 も上げる

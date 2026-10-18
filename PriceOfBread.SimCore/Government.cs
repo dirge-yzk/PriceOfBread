@@ -6,7 +6,7 @@
 /// ＝「力ある団体が嫌う法は通らない」。参政権はブルジョワが制限選挙で梯子を外す（近代エリートの選好が反転）。
 /// **政治資本の在庫**（2026-09-21 裁定S1・㉖で既定化）：純支持が負の一歩は、残り a＝max(0, b−S) が代価に届くときだけ押し切れる
 /// （<see cref="PoliticalCapitalAffords"/>）。押し切った分だけ目減り S（<see cref="World.MandateSpent"/>）が積もり正統性も燃える（Politics が減算）＝自己制限的。
-/// ★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
+/// ★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
 /// 憲法級（参政権等）だけは硬い「純支持＞0」（在庫では押せない）。旧＝余白 θ=MandateWeight×(正統性−0.5)（2026-07-09〜09-21）。
 /// 法整備はもう即時可決しない＝AI/プレイヤーの意図は政治のゲートを通る（NullAgent は目標＝現状で不動＝後方互換）。
 /// </summary>
@@ -450,7 +450,7 @@ public static class Government
     /// 統合した「女性の権利」は最上段（選挙権）だけが憲法級で、財産権・教育権の段は普通の政策として政治資本で押せる。
     /// 軸単位のままだと財産権の段まで政治資本不可になり、統合が政治の難度を勝手に上げてしまう。</param>
     /// <remarks>★裁定S1（2026-09-21）：<b>余白の門 θ は退役した</b>。反対を押し切る一歩の門は<b>政治資本の在庫ひとつだけ</b>
-    /// （<see cref="PoliticalCapitalAffords"/>＝S+代価 ≤ b）＝門を2つから1つへ減らす（削減の向き）。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
+    /// （<see cref="PoliticalCapitalAffords"/>＝S+代価 ≤ b）＝門を2つから1つへ減らす（削減の向き）。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
     /// 退役の理由は係数ではなく構造：旧 θ は1歩の代価を <c>θ×MandateSpendRate</c> で頭打ちにし、b も同じ2係数
     /// （MandateWeight×MandateSpendRate）で作られるので<b>両辺で打ち消し合い</b>、満タンなら必ず最も高い一歩を6本以上払えた
     /// ＝在庫の門が一度も噛まなかった（2026-09-21 ㉓検証＝selfplay-batch 10 の4腕と eduprobe で在庫の否決0件／同じ eduprobe で余白の否決100件）。
@@ -460,7 +460,7 @@ public static class Government
     /// 唯一の除算 <c>−θ/costMul</c> は安全＝<see cref="ReversalCostMul"/> は必ず<b>有限かつ ≥1.0</b> を返す
     /// （<c>IrreversibleLaws ≥ 1.0</c> の禁止段でも 1.0 を返し、禁止そのものは <see cref="BlockedByIrreversibility"/> が先に止める）。</para>
     /// <para>結果（裁定が望んだもの）：代価が θ で頭打ちされないので<b>強く反対される改革は高く、貯めてから通す</b>ことになり、
-    /// b の小さい国（低正統性・発言権を持つ層の支持が薄い）は<b>永久に通せない</b>＝S2「床の保証の廃止」（⚠旗 0 の経路の記述。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）＝永久ではない）。
+    /// b の小さい国（低正統性・発言権を持つ層の支持が薄い）は<b>永久に通せない</b>＝S2「床の保証の廃止」（⚠旗 0 の経路の記述。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）＝永久ではない）。
     /// 旧体制の罠（正統性&lt;0.5 で人気の法さえ滞る非対称＝旧 MandateNegativeScale・係数は㉖で削除）も θ ごと退役し、
     /// その役目は <c>b = MandateWeight×MandateSpendRate×(正統性+支持)</c> の小ささが負う＝同じ史実を係数1本少なく出す。</para>
     /// <para>⚠憲法級（参政権・秘密投票・女性の権利の選挙権段）は <b>0</b> を返す＝硬い「純支持&gt;0」のまま
@@ -492,6 +492,12 @@ public static class Government
         int cur = CurrentStage(w, a);
         return cur == int.MaxValue ? (increasing ? 1 : 0) : cur + (increasing ? 1 : -1);
     }
+
+    /// <summary>★(419) 上げる向きの次の一歩が無いほど既に最上段か（段の法＝現在段が <c>Top</c> 以上・税と支出の段＝最上段・軍事費＝最上段）。Runner の報告が〈最上段〉と書くための照会（副作用なし・段を持たない軸は偽）。</summary>
+    internal static bool AtTopStage(World w, PolicyAxis a)
+        => RateLawByAxis.TryGetValue(a, out var rate) ? TaxStage(a, rate.Get(w)) >= TaxLawStages
+         : a == PolicyAxis.Coercion ? MilitaryStage(w.MilitarySpending.Value) >= MilitaryLawStages
+         : LevelLawByAxis.TryGetValue(a, out var law) && law.Get(w) >= law.Top;
 
     /// <summary>第6段6-1：開いた戦線数＝目標≠現在の政治軸（マンデートゲート/政治ロックを通る軸のみ。機械追従・無抵抗レバー
     /// ＝金利/行政費/治安維持力の武力統合は数えない）。スライダーは5%量子化を跨ぐ差のみ戦線と数える。</summary>
@@ -564,12 +570,11 @@ public static class Government
     internal static bool PoliticalCapitalAffords(World w, double cost)
     {
         if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true;
-        // ★(404) 壁の一歩だけを値段にする（旗 MandateOverStockFromLegitimacy＞0・事前登録 rf_20261018_prereg.txt D1）：代価が b そのものを超える一歩は在庫が満タンでも届かない＝待っても永遠に通らない壁だった
+        // ★(404) 壁の一歩だけを値段にする（事前登録 rf_20261018_prereg.txt D1）：代価が b そのものを超える一歩は在庫が満タンでも届かない＝待っても永遠に通らない壁だった
         //   （README §1-8 片方向の錠なし・歯止めは値段と費用で）。値段＝①在庫を使い切る（S＝0 の満タンのときだけ・その後 S＝代価で長く空く）②正統性が代価を払えること（この四半期に請求済みの MandateSpentNew を引く）。
-        //   正統性の減算は Spend が記帳する MandateSpentNew→Politics.Step の 1 回だけ（新しい減算を足さない）。代価≦b の一歩は上の式のまま（時間の値段）。旗 0 は下の 1 行で旧と同じ偽。
+        //   正統性の減算は Spend が記帳する MandateSpentNew→Politics.Step の 1 回だけ（新しい減算を足さない）。代価≦b の一歩は上の式のまま（時間の値段）。
         //   ⚠否定形：S・正統性・代価のどれかが NaN なら比較が偽＝閉じる側へ倒れる。
         //   ここへ来た時点で S+代価 ＞ b。S≦0（満タン）ならそれは 代価＞b と同じ＝壁の一歩（S＞0 なら普通の一歩の在庫不足か壁の一歩の在庫の使いかけ＝どちらも待つ）。
-        if (!(w.Coef.MandateOverStockFromLegitimacy > 0)) return false;
         // ★(409) 比例の形（採用・既定 p＝2）：払える量＝avail^p（avail＝正統性−この四半期の請求済み）。段差・床は無い。p が NaN／0 以下なら `>` が偽＝閉じる（床の旧の式は削除した）。avail が NaN／0 以下でも閉じる。
         double power = w.Coef.MandateOverStockLegitPower;
         if (!(power > 0)) return false;
@@ -822,7 +827,10 @@ public static class Government
         // ★在庫の門（N2・2026-09-21）＝純支持が負で**残りが代価に届かない**場合（S1 以後、非憲法級の否決はすべてこれ）。
         //   理由は別の文字列にする＝計器（Runner の法の門）が「賛成不足で否決（憲法級の硬い門）」と「残高で否決」を数え分けられる。
         //   ⚠SelfPlay.GateLaw の barred（前提DAG・不可逆）には**入らない**文言＝AIは目標を畳まない（0の吸収状態を作らない・P5）。
-        if (ok && net < 0 && !PoliticalCapitalAffords(w, cost)) return (false, cost, ReasonNoCapitalStock);
+        //   ★(419) 門の理由の分割（(407) 申し送り）：壁の一歩〔満タン S≦0 で代価＞b〕が正統性の側の式（avail^p）で止まったときは ReasonNoLegitimacy（在庫を貯めても通らない・正統性が要る）、
+        //   それ以外（普通の一歩の在庫不足・壁の一歩の在庫の使いかけ・壁を閉じた世界〔指数が 0 以下＝正統性がいくらあっても通らない〕）は ReasonNoCapitalStock。
+        //   分類だけ＝Ok の経路の算術は不変（計器 RfBlocked の wallLegitBlockedCount と同じ条件〔S≦0 かつ 代価＞b〕に、壁が開いていること〔指数＞0〕を足した）。
+        if (ok && net < 0 && !PoliticalCapitalAffords(w, cost)) return (false, cost, w.Coef.MandateOverStockLegitPower > 0 && w.MandateSpent <= 0 && cost > w.PoliticalCapitalMax ? ReasonNoLegitimacy : ReasonNoCapitalStock);
         return (ok, cost, ok ? "" : ReasonNoMandate);
     }
 
@@ -833,6 +841,11 @@ public static class Government
     public const string ReasonNoMandate = "賛成不足";
     /// <summary>★N2（2026-09-21）在庫の門の否決＝支持では通るが残り a が代価に届かない。法律タブは上と同じく定型句として扱う（必要量はホバーの数字が出す）。</summary>
     public const string ReasonNoCapitalStock = "政治資本の残りが不足";
+    /// <summary>★(419) 壁の一歩（満タン S≦0 で代価＞b）が正統性の側の式（avail^p）で止まった否決。在庫を貯めても通らない＝正統性が要る（上の <see cref="ReasonNoCapitalStock"/> は待てば通る）。法律タブは定型句として扱う（行には出さない）。</summary>
+    public const string ReasonNoLegitimacy = "正統性が不足";
+
+    /// <summary>★(419) 政治の門（賛成不足・在庫の不足・正統性の不足）の理由か。前提法・不可逆で止まった理由はここに含まれない＝法律タブと Runner の報告が「前提で止まった」を判定する単一の述語（<see cref="PlayText.IsPrereqStop"/> がこれを使う）。</summary>
+    public static bool IsPoliticalGateReason(string reason) => reason == ReasonNoMandate || reason == ReasonNoCapitalStock || reason == ReasonNoLegitimacy;
 
     // 政治資本の消費を両台帳へ記帳：MandateSpent＝目減り S（Politics.Step が b/MandateRefillQuarters×実行度で線形に回復）／MandateSpentNew＝今期増分
     // （ストック正統性の一回限り減算用＝LegitimacyIsStock有効時の二重計上排除。Politics.Step が読んで毎期ゼロ化）。

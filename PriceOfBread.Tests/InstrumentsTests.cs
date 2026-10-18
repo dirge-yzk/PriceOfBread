@@ -1417,7 +1417,7 @@ public class InstrumentsTests
                         bool inc = ti > ci; int next = ci + (inc ? 1 : -1);
                         var gi = Government.GateInfo(w, law.Axis, inc, next);
                         if (gi.Reason == Government.ReasonNoMandate) expect[i] = 1;
-                        else if (gi.Reason == Government.ReasonNoCapitalStock) expect[i] = 2;
+                        else if (gi.Reason == Government.ReasonNoCapitalStock || gi.Reason == Government.ReasonNoLegitimacy) expect[i] = 2;   // ★(419) 在庫の否決は 2 種の理由〔残りの不足・壁の一歩の正統性の不足〕に割れた＝計器の符号は 2 のまま
                         else if (gi.Ok) expect[i] = gi.Cost > 0 ? (next == ti ? 8 : 4) : (next == ti ? 7 : 3);
                     }
                     Instruments.Configure(dir, "*");
@@ -1451,7 +1451,7 @@ public class InstrumentsTests
     [Fact]
     public void 政治資本の台帳が閉じ符号2の分割が列から組み直した門の式と合う() => PoliticalCapitalLedger(oldPath: true);
 
-    /// <summary>★(410)（(407) の申し送り ②）上の番人は旗 <c>MandateOverStockFromLegitimacy</c> を 0（旧の経路〔S＋代価 ≦ b でしか通らない〕）に固定している＝既定（旗 1・(405) で採用）の世界で同じ台帳の恒等を見る対。
+    /// <summary>★(410)（(407) の申し送り ②）上の番人は払える量の指数 <c>MandateOverStockLegitPower</c> を 0（壁の一歩を閉じた世界＝(405) 以前の旗 0 と同じ振る舞い・(419) で旗は焼き込み〔指数 0 で `!(power>0)` が閉じる〕）に固定している＝既定（壁の一歩が値段で通る・(405) で採用）の世界で同じ台帳の恒等を見る対。
     /// 台帳の恒等式（Step の目減りの差＝段の法の払い＋連続の軸の払い）は経路に依らない＝そのまま。門の式の組み直しだけが変わる：
     /// 符号 2（在庫で否決）は旗に依らず S＋代価 ＞ b（壁の一歩の枝は否決を減らすだけ）・払って通った 4／8 は S＋代価 ≦ b **または** 払う前の S が 0 の満タン（壁の一歩・代価が b を超えてよい）。
     /// 何もしない番人は必ず緑になる＝壁の枝が本当に起きた（払う前の S が 0 で S＋代価 ＞ b のまま払って通った戦線が 1 本以上）ことを数える。</summary>
@@ -1465,7 +1465,7 @@ public class InstrumentsTests
         try
         {
             var sim = Make();
-            if (oldPath) foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔S＋代価 ≦ b でしか通らない〕の台帳の恒等を見る＝旗を 0 に明示（既定は採用値 1）
+            if (oldPath) foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 壁の一歩を閉じた世界〔S＋代価 ≦ b でしか通らない・旧の旗 0 と同じ〕の台帳の恒等を見る＝指数を 0 に明示（既定は 2）
             Instruments.Configure(dir, "*");
             try { RunMatch(sim, 40, instr: true); }
             finally { Instruments.Configure(null, null); }
@@ -1556,7 +1556,7 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make(CoverageSeed);
-                foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔壁は永遠に通らない・符号 2 の構造〕の分割を見る番人＝旗を 0 に明示（既定は採用値 1）
+                foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 壁の一歩を閉じた世界〔壁は通らない・符号 2 の構造〕の分割を見る番人＝指数を 0 に明示（既定は 2・旧の旗 0 と同じ振る舞い＝盤面の軌道も変わらない）
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)
                 {
@@ -1576,7 +1576,7 @@ public class InstrumentsTests
                             if (ci == ti || law.Enact != null) continue;
                             bool inc = ti > ci;
                             var gi = Government.GateInfo(w, law.Axis, inc, ci + (inc ? 1 : -1));
-                            if (gi.Reason == Government.ReasonNoCapitalStock) ex[i] = gi.Cost;
+                            if (gi.Reason == Government.ReasonNoCapitalStock || gi.Reason == Government.ReasonNoLegitimacy) ex[i] = gi.Cost;
                         }
                         return ex;
                     }

@@ -1745,7 +1745,7 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World;
         w.PollTax = 2.0 / 3.0; w.Policy.PollTaxTarget = 1.0 / 3.0;
-        w.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔壁の一歩は永遠に通らない〕を見る番人＝旗を 0 に明示（既定は採用値 1）
+        w.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 壁の一歩を閉じた世界〔旧の旗 0＝壁の一歩は永遠に通らない〕を見る番人＝払える量の指数を 0 に明示（既定は 2）
         // ⚠旧の対照「ゲート0＝常に false」は旗とともに退役（2026-09-20 段の点火）。
         // ★空手形の封じ（2026-09-12 反証）：門が閉じている向きは目標を置いても施行中ではない＝Move が1ミリも動かさないので
         //   毎月の取り立ては1ミリも変わらない（1789年の仏＝国庫が痩せた国で人頭税を下げる純支持は負）。
@@ -1768,8 +1768,8 @@ public class RevoltIgnitionTests
         }
     }
 
-    /// <summary>★(410)（(407) の申し送り ②）上の番人は旗 <c>MandateOverStockFromLegitimacy</c> を 0 に固定している（旧の経路〔壁の一歩は永遠に通らない〕）。
-    /// 既定（旗 1・(405) で採用）の世界の対：反対を押し切る代価が b を超える一歩（壁の一歩）でも、**その一歩が今通るときだけ**目標は施行中になる＝空手形は既定の経路でも閉じている。
+    /// <summary>★(410)（(407) の申し送り ②）上の番人は払える量の指数 <c>MandateOverStockLegitPower</c> を 0 に固定している（壁の一歩を閉じた世界＝(419) で焼き込んだ旧の旗 0）。
+    /// 既定（壁の一歩が値段で通る・(405) で採用）の世界の対：反対を押し切る代価が b を超える一歩（壁の一歩）でも、**その一歩が今通るときだけ**目標は施行中になる＝空手形は既定の経路でも閉じている。
     /// 同じ盤面（1789 年の仏・人頭税を下げる目標・b を 0.3 に固定して代価 ＞ b の壁にする）で、政治資本の在庫 S と正統性だけを動かす：
     /// ①満タン（S＝0）で正統性を 0.05 刻みで掃引し、各点で〈壁の式（代価 ≦ 正統性の二乗＝(409) で採った払える量 avail^2・この四半期の請求済みは 0）〉と門の可否と施行中の述語が一致（通る点と通らない点の両側があること）／
     /// ②述語は今その一歩が通るときだけ真（空手形の封じ）／③S が少しでも使われていれば正統性が十分でも通らない（壁は満タンのときだけ）。
@@ -1780,7 +1780,6 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World;
         w.PollTax = 2.0 / 3.0; w.Policy.PollTaxTarget = 1.0 / 3.0;
-        Assert.Equal(1.0, w.Coef.MandateOverStockFromLegitimacy);          // 既定は採用値（この番人は旗を触らない）
         Assert.Equal(2.0, w.Coef.MandateOverStockLegitPower);              // ★(412) 既定は採用値（(409) 払える量＝avail^2・床の係数は削除した）。期待は下で指数 2 のリテラルから独立に組む
         w.PoliticalCapitalMax = 0.3;                                        // b を固定（Step の前に World が持つ値）。代価は 0.3 を超える＝壁の一歩（下で確かめる）
         w.MandateSpentNew = 0;

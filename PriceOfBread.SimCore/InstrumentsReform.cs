@@ -3,10 +3,10 @@ namespace PriceOfBread.SimCore;
 // ---------------------------------------------------------------- (404) 専制の改革の経路の表 reform_s（読むだけ・恒等） ----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsRule.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない（欄は計器の WState）。INS=1 のときだけ動く。
 // 目的＝事前登録 measurements/rf_20261018_prereg.txt の記録の線 R1〜R8（専制の国の法の動き・正統性の分布・壁を通った一歩の数と代価・識字・教区学校への国庫の購入）を読む。
-// 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。人口が 0 の国は出さない。旗 0 でも出す（A の表＝旧の世界の壁と空振りの表）。
+// 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。人口が 0 の国は出さない。（旗 MandateOverStockFromLegitimacy は (419) で焼き込み〔常に有効〕）。
 // 列（単位は接尾辞：Share＝0〜1・Index＝無次元の量・Count＝件数・PerMonth＝月あたりの流れ・Code＝法の段の整数）：
 //   legitimacyShare／mandateStockIndex（目減り S）／mandateMaxIndex（最大量 b）／mandateSpentNewIndex（この四半期の末の今期増分＝Politics.Step が減算する前の値ではなく後の 0 になりうる）／supportShare（b を作る支持 sup）／
-//   wallPassCount・wallPassLawCount・wallPassSliderCount・wallPassCostIndex（前の行からこの行までの間〔挙げた国は 1 四半期・他の国は 4 四半期〕に旗 MandateOverStockFromLegitimacy の壁の分岐で通った一歩の数〔法・スライダーの内訳〕と代価の和）／
+//   wallPassCount・wallPassLawCount・wallPassSliderCount・wallPassCostIndex（前の行からこの行までの間〔挙げた国は 1 四半期・他の国は 4 四半期〕に壁の分岐で通った一歩の数〔法・スライダーの内訳〕と代価の和）／
 //   educationLawCode・educationSpendingShare／parishFundingShare（CompulsoryEduFunding の州の人口加重平均）／educationBuyPerMonth（国庫が教育に払った額＝CumEducationCost の前の行からの差を月数で割る）／literacyShare（人口加重の識字・兵士を除く）／
 //   suffrageLawCode・censorshipLawCode・landReformLawCode・bureaucracyLawCode・serfLawCode・polityCode／militaryPushIndex（MilitaryPush＝S を粛清の記憶として読む）・coopParliamentCrownIndex（S を紛争記憶として読む）／blockedLawCount・blockedSliderCount（資本の門で止まった一歩・旗に依らず数える）・blockedWhileFrozenCount（うち S＞b で止まった数＝壁の一歩の後の凍結）／wallPassAxes（壁を通った一歩の軸名・なければ -）。
 //   ★(409) 末尾に 2 列：wallPassCostShareOfAvailMax（前の行からこの行までに壁の分岐で通った一歩の cost÷avail の最大〔avail＝正統性−請求済み〕・通った一歩が無ければ 0）／wallLegitBlockedCount（満タン〔S≦0〕で代価＞b なのに正統性の側の式で止まった**試みの数**〔MandateGate と Move の呼びのたびに数える＝止まった同じ法を毎四半期に試し直せば重ねて数える＝別々の一歩の数ではない〕。旗に依らず数えるが、**「正統性の側で止まった」と読めるのは旗 MandateOverStockFromLegitimacy＝1 の世界だけ**〔旗 0 では在庫だけで止まった試みも数える〕）。
@@ -17,10 +17,10 @@ public static partial class Instruments
         + "educationLawCode\teducationSpendingShare\tparishFundingShare\teducationBuyPerMonth\tliteracyShare\tsuffrageLawCode\tcensorshipLawCode\tlandReformLawCode\tbureaucracyLawCode\tserfLawCode\tpolityCode\t"
         + "militaryPushIndex\tcoopParliamentCrownIndex\tblockedLawCount\tblockedSliderCount\tblockedWhileFrozenCount\twallPassAxes\twallPassCostShareOfAvailMax\twallLegitBlockedCount";
 
-    /// <summary>壁の分岐で通った一歩（<see cref="Government.PoliticalCapitalAffords"/> の旗 &gt; 0 の第 2 枝）を数える。呼び手は払う前（Spend の前）に呼ぶ＝S は払う前の値。旗 0 では条件が偽で何も数えない。</summary>
+    /// <summary>壁の分岐で通った一歩（<see cref="Government.PoliticalCapitalAffords"/> の第 2 枝）を数える。呼び手は払う前（Spend の前）に呼ぶ＝S は払う前の値。</summary>
     internal static void WallPass(World w, double cost, bool law, PolicyAxis a)
     {
-        if (!(w.Coef.MandateOverStockFromLegitimacy > 0) || !(cost > w.PoliticalCapitalMax) || w.MandateSpent + cost <= w.PoliticalCapitalMax) return;
+        if (!(cost > w.PoliticalCapitalMax) || w.MandateSpent + cost <= w.PoliticalCapitalMax) return;
         var st = S(w);
         if (law) st.RfWallLaw++; else st.RfWallSlider++;
         st.RfWallCost += cost;

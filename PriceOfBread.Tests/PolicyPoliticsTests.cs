@@ -1293,7 +1293,7 @@ public class PolicyPoliticsTests
     private static Simulation CapitalBoard()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-        sim.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 既定は採用値（壁の一歩を値段にする）。この盤面の番人は〈在庫の門だけ・壁は永久に通らない〉旧の経路を見る＝旗を 0 に明示（新しい経路は ReformPathTests）
+        sim.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 既定は採用値（壁の一歩を値段にする）。この盤面の番人は〈在庫の門だけ・壁は永久に通らない〉世界を見る＝払える量の指数を 0 に明示（旧の旗 0 と同じ振る舞い・壁の一歩の経路は ReformPathTests）
         sim.Run(8);
         return sim;
     }
@@ -1657,7 +1657,7 @@ public class PolicyPoliticsTests
     public void S1_余白の門は退役し非憲法級は正統性に依らず在庫だけで決まる()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-        sim.World.Coef.MandateOverStockFromLegitimacy = 0;   // ★(405) 旧の経路〔在庫の門だけ〕を見る番人＝旗を 0 に明示
+        sim.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 在庫の門だけの世界〔壁の一歩を閉じた・旧の旗 0〕を見る番人＝払える量の指数を 0 に明示
         sim.Run(8);
         var w = sim.World;
         int opposed = 0, opposedLowLeg = 0;

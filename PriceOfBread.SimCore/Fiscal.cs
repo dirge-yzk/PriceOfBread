@@ -729,9 +729,7 @@ public static class Fiscal
                 foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }   // その州の領主＝最初の貴族
                 double mul = Politics.RuleDelivery(r, c);
                 double cut = r.Rule.Length == 4
-                    ? (c.AdminServesStateRule > 0   // ★(408) 旗＞0：役務が届かない国家区分の分 R0×(1−f) も仲介者の取り分へ（RuleDelivery の落ちた分と同額＝納税者の払う総額は旗に依らない＝ただし領主の居る州だけ・★(412) 領主が居ない州は下の lord＝null で取り分 0＝落ちた分は納税者に残る）
-                        ? (PoliticalQuantities.Clamp01(r.Rule[1]) + PoliticalQuantities.Clamp01(r.Rule[0]) * (1.0 - PoliticalQuantities.Clamp01(r.AdminFill))) * (1.0 - ruleDeliver)
-                        : PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - ruleDeliver))
+                    ? (PoliticalQuantities.Clamp01(r.Rule[1]) + PoliticalQuantities.Clamp01(r.Rule[0]) * (1.0 - PoliticalQuantities.Clamp01(r.AdminFill))) * (1.0 - ruleDeliver)   // ★(408) 役務が届かない国家区分の分 R0×(1−f) も仲介者の取り分へ（RuleDelivery の落ちた分と同額＝納税者の払う総額 R0＋R1 は不変＝ただし領主の居る州だけ・★(412) 領主が居ない州は下の lord＝null で取り分 0＝落ちた分は納税者に残る）
                     : 0;
                 foreach (var p in r.Pops)
                 {

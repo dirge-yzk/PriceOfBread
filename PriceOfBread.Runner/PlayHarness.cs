@@ -13,6 +13,7 @@ namespace PriceOfBread.Runner;
 ///
 /// ★ 使い方： dotnet PriceOfBread.Runner.dll play &lt;作業dir&gt; [国名=清] [進める四半期数=4] [seed=1789]
 ///   1) &lt;dir&gt;/state.bin が無ければ新規開始（★App と同じ手順＝プレイヤー国だけ NullAgent・IsPlayer・専売0・StartWarmup）
+///   (419) 画面の問いかけ（最後通牒・参戦要請・国内の危機・総選挙の公示）に答える動詞は `!ultimatum`・`!callarms`・`!election`（`!crisis` は内容の照会のみ）。全国工場の目標は `!target`・巨大建造物の着工は `!mega`。待っている問いかけと使える動詞は報告の 2 行目。
 ///   2) &lt;dir&gt;/decision.txt があれば `キー=値` 行を **NationPolicy へリフレクションで**適用し、decision.applied.txt へ退避
 ///      ⚠ NationPolicy は「**目標値**」であって結果ではない（現在値は World 側＝利益集団の力で律速して漸進）
 ///      ＝UI と同じ口を叩いているだけで、政治の律速は迂回していない
@@ -56,6 +57,7 @@ internal static class PlayHarness
         }
 
         var world = sim.Nations[playerIndex].World;
+        world.ForceUnlock = true;   // ★(419) 再征服は常時ON（App の InitAfterSimReady と同じ＝新規でも state.bin からの再開でも。ForceUnlock はセーブに載らない）
 
         // ---- 2) 決定の適用（キー=値／NationPolicy のフィールド名）----
         string decPath = Path.Combine(dir, "decision.txt");
@@ -136,6 +138,7 @@ internal static class PlayHarness
         foreach (var n in sim.Nations) n.TelemetryEnabled = false;
         sim.StartWarmup();
         var world = sim.Nations[playerIndex].World;
+        world.ForceUnlock = true;   // ★(419) play と同じ（再生が play の軌道から外れないように）
         Console.WriteLine($"再生開始： {playerName} seed {seed}　スクリプト {script.Count}時点・最終 {lastY}Q{lastQ}");
 
         int appliedN = 0, guard = 0;
@@ -225,6 +228,7 @@ internal static class PlayHarness
         double N = Math.Max(1, pop);
 
         sb.AppendLine($"================ {w.Year}年 Q{w.Quarter}　{sp.Name} ================");
+        sb.AppendLine(PromptsLine(w, sp));   // ★(419) 待っている問いかけと使える動詞（1 行）
         sb.AppendLine($"政体 {w.Polity}　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
         sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
         // ★(410) 00-HARN の残り：闘争度は 5 本の目標の和（クランプ前）へ速さ σ で追う在庫＝ヘッダーの闘争度と和は一致しない。画面の階級のホバーと同じ名前・同じ 0.5% 未満の省略。
@@ -341,6 +345,21 @@ internal static class PlayHarness
         if (sp.PendingWar is { } pw) sb.AppendLine($"  ⚠★最後通牒の待ち： {pw.Name}（要求を受け入れる／開戦）");
         if (sp.PendingCallToArms is { } ca) sb.AppendLine($"  ⚠★参戦要請の待ち： {ca.Caller.Name} が {ca.Enemy.Name} と交戦（受ける／断る）");
 
+        // ★(419) 巨大建造物（自国が建設地の州を持つもの・生産タブの一覧と同じ集合）。着工は `!mega 名前`
+        {
+            var megas = sim.Diplomacy.Megaprojects.Where(m => ReferenceEquals(m.Owner, sp)).OrderBy(m => m.Name, StringComparer.Ordinal).ToList();
+            if (megas.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("---- 巨大建造物（自国が建設地）→ !mega 名前 ----");
+                foreach (var m in megas)
+                {
+                    var host = w.Regions.FirstOrDefault(r => r.State == RegionState.Active && r.Name == m.Host);
+                    sb.AppendLine($"  {m.Name,-14} {m.Host,-10} {MegaStateText(w, m)}　見積 {(host is null ? 0 : Megaprojects.EstimateCost(host, m, coef)):N0}　着工{(Megaprojects.CanStart(w, m) ? "可" : "不可")}");
+                }
+            }
+        }
+
         sb.AppendLine();
         sb.AppendLine("---- 世界（国力上位10）----");
         foreach (var n in sim.Nations.OrderByDescending(x => x.World.ScoreStanding).Take(10))
@@ -366,7 +385,7 @@ internal static class PlayHarness
     /// !factory 州名 財名 ／ !sell 州名 財名 ／ !subsidy 州名 財名 率 ／
     /// !state 州名 財名 段 ／ !monopoly 財名 入|切|on|off|1|0|true|false ／ !bias 財名 -1|0|1 ／
     /// ★(405) 外交（UI の緊張・侵略・統一戦争・調停のボタンと同じ口）：!provoke 国名（緊張を上げる）／!ease 国名（緊張を下げる）／!invade 国名 [狙う植民地名] ／!unify 国名 ／!mediate 国名A 国名B</summary>
-    private static string RunVerb(World w, string line)
+    internal static string RunVerb(World w, string line)
     {
         string[] a = line[1..].Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (a.Length == 0) return "⚠空の動作";
@@ -464,8 +483,12 @@ internal static class PlayHarness
                         if (aim is null) return $"⚠{t.Name} に狙う植民地が無い: {a[2]}";
                     }
                     if (!w.CanInvade(t, out string why)) return $"⚠侵略 {t.Name} 不可（{why}）";
-                    // ★(407) 反証役 bi〔v〕中：CanInvade が通った後の Invade の false は〈相手が屈服を拒んだ＝開戦〉（World.Invade の Subjugate）＝余剰戦力・缶詰・船・キニーネは払われ、戦争が始まっている
-                    return w.Invade(t, aim) ? $"侵略 {t.Name}: 屈服させた{(aim is not null ? $"（狙い先 {aim.Name}）" : "")}" : $"侵略 {t.Name}: 拒否＝開戦（相手が屈服を拒んだ・余剰戦力と遠征の物資は払った）";
+                    // ★(419) 屈服か開戦かは戻り値でなく**世界の状態**で読む：Diplomacy.Subjugate は屈服でも拒否〔開戦〕でも true を返す（拒否の枝も StartWar の後に return true）＝Invade の戻り値は〈実行した〉であって〈屈服した〉ではない。
+                    //   旧は (407) 反証役 bi〔v〕中の読み〈false＝拒否＝開戦〉を採ったが、false は CanInvade が落ちたときだけ＝開戦の枝は一度も出なかった（(410) の煙の試験で全標的が〈屈服〉に見えた理由）。開戦は交戦の有無で決める。
+                    if (!w.Invade(t, aim)) return $"⚠侵略 {t.Name} 不可（実行できなかった）";
+                    return w.Diplomacy!.IsAtWar(w.SelfPower!, t)
+                        ? $"侵略 {t.Name}: 拒否＝開戦（相手が屈服を拒んだ・余剰戦力と遠征の物資は払った）"
+                        : $"侵略 {t.Name}: 屈服させた{(aim is not null ? $"（狙い先 {aim.Name}）" : "")}";
                 }
                 case "unify":
                 {
@@ -485,11 +508,93 @@ internal static class PlayHarness
                     string? refusal = w.Diplomacy.PlayerOfferPeace(w.SelfPower, war, w.Coef);
                     return refusal is null ? $"調停 {pa.Name}/{pb.Name}: 提案した（結果は出来事の記録）" : $"⚠調停 {pa.Name}/{pb.Name} 不可（{refusal}）";
                 }
+                // ---- ★(419) 画面の問いかけに答える動詞（App の Popups と同じ口を叩く＝第二の基準を作らない）。待ちが無いときは何もしない ----
+                case "ultimatum":   // App: WarAccept／WarDeclareGo（開戦は総動員のチェックを先に World.Mobilized へ書く）
+                {
+                    if (w.SelfPower is not { PendingWar: { } foe } me || w.Diplomacy is null) return "⚠最後通牒の待ちが無い";
+                    if (a.Length < 2 || a[1] is not ("受諾" or "受け入れる" or "開戦")) return "⚠`!ultimatum 受諾|開戦 [総動員|総動員なし]`";
+                    bool fight = a[1] == "開戦";
+                    if (a.Length > 2)
+                    {
+                        if (!fight) return "⚠総動員の指定は開戦のときだけ（受諾では総動員に触れない）";
+                        if (a[2] == "総動員") w.Mobilized = true; else if (a[2] == "総動員なし") w.Mobilized = false; else return $"⚠総動員の指定が読めない: {a[2]}（総動員|総動員なし）";
+                    }
+                    w.Diplomacy.ResolvePendingWar(me, fight, w.Coef);
+                    return fight ? $"最後通牒 {foe.Name}: 開戦（総動員 {(w.Mobilized ? "入" : "切")}・結果は出来事の記録）" : $"最後通牒 {foe.Name}: 要求を受け入れた（緊張を下げ正統性を払う・結果は出来事の記録）";
+                }
+                case "callarms":   // App: CallToArmsAccept／CallToArmsRefuse
+                {
+                    if (w.SelfPower is not { PendingCallToArms: { } call } me || w.Diplomacy is null) return "⚠参戦要請の待ちが無い";
+                    if (a.Length < 2 || a[1] is not ("受ける" or "断る")) return "⚠`!callarms 受ける|断る`";
+                    bool join = a[1] == "受ける";
+                    w.Diplomacy.ResolveCallToArms(me, join, w.Coef);
+                    return join ? $"参戦要請 {call.Caller.Name}→{call.Enemy.Name}: 受けた（結果は出来事の記録）" : $"参戦要請 {call.Caller.Name}→{call.Enemy.Name}: 断った（{call.Caller.Name} との緊張が同盟破棄の水準へ・結果は出来事の記録）";
+                }
+                case "election":   // App: ElectionBack／ElectionAbstain（既定の注ぐ割合は App のスライダーの既定 0.2）
+                {
+                    if (w.PendingElection is not { } ev) return "⚠総選挙の公示の待ちが無い";
+                    if (a.Length < 2) return "⚠`!election <番号|思想名の一部> [注ぐ割合=0.2]` または `!election 棄権`";
+                    if (a[1] is "棄権" or "静観") { w.ResolveElection(-1, 0); return "総選挙: 棄権（どの思想にも加担しない）"; }
+                    int slot = int.TryParse(a[1], NumberStyles.None, CultureInfo.InvariantCulture, out int sn) ? sn : Array.FindIndex(ev.AgendaLabels, l => l.Contains(a[1], StringComparison.Ordinal));
+                    if (slot < 0 || slot >= ev.AgendaIdeologies.Length) return $"⚠公示に無い加担先: {a[1]}（{string.Join(" ／ ", ev.AgendaLabels.Select((l, i) => $"{i}={l}"))}）";
+                    double lever = 0.2;
+                    if (a.Length > 2 && !double.TryParse(a[2], NumberStyles.Float, CultureInfo.InvariantCulture, out lever)) return $"⚠注ぐ割合が読めない: {a[2]}";
+                    double amount = w.ElectionSpendOf(lever), effect = w.ElectionPushEffectOf(lever);
+                    int backed0 = w.ElectionsBacked;
+                    w.ResolveElection(ev.AgendaIdeologies[slot], lever);
+                    return w.ElectionsBacked > backed0
+                        ? $"総選挙: {ev.AgendaLabels[slot]} に加担（注ぐ割合 {lever:P0}・資金 {amount:N0}・効き {effect:P0}）"
+                        : $"⚠総選挙: {ev.AgendaLabels[slot]} への加担は不成立（余白を超える逆風・注ぐ額 0・効き 0 のいずれか＝金は払っていない）";
+                }
+                case "crisis":   // App: FactionClose は世界に何も書かない通知。答えは法の目標（キー=値）＝ここは内容の照会だけ
+                {
+                    if (w.PendingFactionCrisis is not { } fc) return "⚠国内の危機の待ちが無い";
+                    return $"国内の危機: {Factions.DisplayName(fc)}（規模 {fc.Size:N0}千人・闘争度 {fc.AvgMilitancy:P0}）　要求: {w.PendingFactionCrisisDemands}　［通知のみ＝答えは同じ法の目標をキー=値で置く］";
+                }
+                case "target":   // App: StepFactoryTargetAll（▲▼＝分母 Planned を ±1・ここでは ▲|▼|+n|-n|=n）
+                {
+                    if (a.Length < 3) return "⚠`!target 財名 ▲|▼|+n|-n|=n`（全国の工場の目標＝分母）";
+                    int gi = GoodOf(a[1]); if (gi < 0) return $"⚠財が無い: {a[1]}";
+                    var c0 = w.FactoryCounter(gi);
+                    int target;
+                    if (a[2] == "▲") target = c0.Planned + 1;
+                    else if (a[2] == "▼") target = c0.Planned - 1;
+                    else if (a[2].StartsWith("=") && int.TryParse(a[2][1..], NumberStyles.None, CultureInfo.InvariantCulture, out int absT)) target = absT;
+                    else if ((a[2].StartsWith("+") || a[2].StartsWith("-")) && int.TryParse(a[2], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int dT)) target = c0.Planned + dT;
+                    else return $"⚠目標の指定が読めない: {a[2]}（▲|▼|+n|-n|=n）";
+                    w.SetFactoryTarget(gi, target);
+                    var c1 = w.FactoryCounter(gi);
+                    return $"全国工場の目標 {a[1]}: 分母 {c0.Planned}→{c1.Planned}（国営 {c1.State}・民営 {c1.Private}・建設予定 {c1.Pending}・上限 {w.FactoryTargetMax}）";
+                }
+                case "mega":   // App: StartMega → Megaprojects.TryStart
+                {
+                    if (a.Length < 2) return "⚠`!mega 建造物名`（自国が建設地を持つもの）";
+                    var mp = w.Diplomacy?.Megaprojects.FirstOrDefault(m => m.Name == a[1] && ReferenceEquals(m.Owner, w.SelfPower));
+                    if (mp is null) return $"⚠自国が建設地の建造物に無い: {a[1]}";
+                    if (!Megaprojects.TryStart(w, mp)) return $"⚠着工 {a[1]} 不可（{MegaStateText(w, mp)}）";
+                    return $"着工 {a[1]}（{MegaStateText(w, mp)}）";
+                }
                 default: return $"⚠不明な動作: {a[0]}";
             }
         }
         catch (Exception ex) { return $"⚠動作失敗 {line}（{ex.GetType().Name}: {ex.Message}）"; }
     }
+
+    /// <summary>★(419) 待っている問いかけ（画面ならポップアップが出ている問い）と、それに答える動詞・使える動詞を 1 行で。待ちの有無は本体の状態（<c>PendingWar</c> ほか）をそのまま読む。</summary>
+    internal static string PromptsLine(World w, Power sp)
+    {
+        var ps = new List<string>();
+        if (sp.PendingWar is { } foe) ps.Add($"最後通牒（{foe.Name}）→ !ultimatum 受諾 ／ !ultimatum 開戦 [総動員|総動員なし]");
+        if (sp.PendingCallToArms is { } ca) ps.Add($"参戦要請（{ca.Caller.Name} が {ca.Enemy.Name} と交戦）→ !callarms 受ける ／ !callarms 断る");
+        if (w.PendingFactionCrisis is { } fc) ps.Add($"国内の危機（{Factions.DisplayName(fc)}・要求 {w.PendingFactionCrisisDemands}）→ 通知のみ＝同じ法の目標をキー=値で置く（!crisis で内容）");
+        if (w.PendingElection is { } ev)
+            ps.Add($"総選挙の公示→ !election <番号|思想名の一部> [注ぐ割合=0.2] ／ !election 棄権　［{string.Join(" ／ ", ev.AgendaLabels.Select((l, i) => $"{i}={l}"))}］（0.2 なら資金 {w.ElectionSpendOf(0.2):N0}・効き {w.ElectionPushEffectOf(0.2):P0}）");
+        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !mega !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !crisis";
+    }
+
+    /// <summary>★(419) 巨大建造物の状態（データだけ＝着工の可否の理由を再導出しない。可否は <see cref="Megaprojects.CanStart"/> の 1 本）。</summary>
+    private static string MegaStateText(World w, Megaproject mp)
+        => $"{(mp.IsComplete ? "完成" : mp.Started ? $"建設中 {(mp.BuildUnits > 1e-9 ? Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0):P0}" : "未着工")}・技術 {w.TechLevel:F2}／必要 {mp.TechGate:F2}";
 
     /// <summary>★(410) 闘争度の目標の 5 本（人口加重の和 <paramref name="sum"/>÷<paramref name="size"/>）を画面のホバーと同じ名前・同じ 0.5% 未満の省略で並べる（多い順）。1 本も無ければ「なし」。</summary>
     private static string MilParts(double[] sum, double size)
@@ -500,10 +605,11 @@ internal static class PlayHarness
     }
 
     /// <summary>★(410) 政治の軸の次の一歩（強化の向き）の門を、法律タブのホバーの 2 行目と同じ文言で（<see cref="PlayText.NextStepLine"/>）。照会は副作用なし。</summary>
-    private static string GateText(World w, PolicyAxis ax)
+    internal static string GateText(World w, PolicyAxis ax)
     {
         try
         {
+            if (Government.AtTopStage(w, ax)) return "最上段";   // ★(419) 上げる向きの次の段が無い軸は門を照会せず〈最上段〉（存在しない段への照会が出した嘘の理由を出さない）
             var (ok, cost, reason) = Government.GateInfo(w, ax, true, Government.NextStage(w, ax, true));
             return PlayText.NextStepLine(ok, cost, reason);
         }

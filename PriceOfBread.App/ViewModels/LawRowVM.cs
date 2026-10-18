@@ -111,7 +111,7 @@ public sealed partial class LawRowVM : ObservableObject
         //   ★2026-09-21 ㉖：ReasonNoMandate（憲法級の硬い門＝賛成不足）も早期returnしない＝勢力の賛否（合計が純支持）を出す。ただし2行目は
         //     「政治資本消費:n　不足」ではなく理由そのもの（政治資本をいくら貯めても開かない門を政治資本の不足と言わない）。
         //   文字列は Government の const が単一ソース（生成側と比較側で散らせない＝2026-08-22 の作者指示が壊れる事故の型）。
-        if (!ok && reason.Length > 0 && reason != Government.ReasonNoMandate && reason != Government.ReasonNoCapitalStock)
+        if (PlayText.IsPrereqStop(ok, reason))
             return head + "\n制定:不可\n" + PlayText.FormatPrereq(reason);
         // ★2026-08-02（作者指摘「政治資本の消費なしと政治資本0の差がわからない」）：**常に同じ書式**にまとめる。
         //   0でも「政治資本消費:0」と出せば、0という値なのか対象外なのかで迷わない。
@@ -165,7 +165,7 @@ public sealed partial class LawRowVM : ObservableObject
             //   ⚠他の理由（前提法・政体の制約など）はそのまま出す＝消すのはこの定型句だけ。
             //   ★N2（2026-09-21）：在庫の門の否決も同じ定型句扱い＝行には出さない（必要な政治資本はホバーの数字・残り a/b は政治タブの行が出す）。
             Detail = ok ? (cost > 0.001 ? $"政治資本 {cost * 100:F0}" : "")
-                        : (reason == Government.ReasonNoMandate || reason == Government.ReasonNoCapitalStock ? "" : reason);
+                        : (Government.IsPoliticalGateReason(reason) ? "" : reason);
         }
         OnPropertyChanged(nameof(CurrentLevel));
         OnPropertyChanged(nameof(TargetLevel));

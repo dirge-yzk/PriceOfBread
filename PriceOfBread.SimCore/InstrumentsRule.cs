@@ -12,7 +12,7 @@ namespace PriceOfBread.SimCore;
 //     stateReachIndex（法の浸透 enforce の値＝Politics.StateReach）／adminEfficiencyIndex（行政効率＝(399) で読み手が計器だけになった）／
 //     treatyPortInForceFlag（条約港が効いているか）・portForeignShare（③ の関税の目減り）／revenuePerMonth・gdpPerMonth（税÷GDP を読み手が組む）／
 //     ruleCutPerMonth（直近月の仲介者の取り分＝納税者→州の貴族・World.LastRuleCut・R6）／stateReachHomeIndex（植民地格の州を除いた人口加重の RuleReach・R5）。
-//     ⚠(412) (408) 以後（AdminServesStateRule＝1）は stateReachIndex（Politics.StateReach）が州ごとに ×AdminFill を掛け、この列は掛けない＝2 列は別の量（1783 の仏で 0.70 と 0.08）。2 列を比べる読み手は旗 1 の世界では使わない（列の意味を連続に保つため式は変えない）。
+//     ⚠(412) (408) 以後は stateReachIndex（Politics.StateReach）が州ごとに ×AdminFill を掛け、この列は掛けない＝2 列は別の量（1783 の仏で 0.70 と 0.08）。2 列を比べる読み手は旗 1 の世界では使わない（列の意味を連続に保つため式は変えない）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（Instruments.Quarter の呼び時点）／外国持分の主体名は列にしない（個数だけ）／
 public static partial class Instruments
 {

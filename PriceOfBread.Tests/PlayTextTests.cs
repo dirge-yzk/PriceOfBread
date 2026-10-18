@@ -14,9 +14,31 @@ public class PlayTextTests
         Assert.Equal("制定:可能（政治資本消費:0）", PlayText.GateLine(true, 0, ""));
         Assert.Equal("制定:不可（政治資本消費:107　不足）", PlayText.GateLine(false, 1.07, Government.ReasonNoCapitalStock));
         Assert.Equal("制定:不可（賛成不足）", PlayText.GateLine(false, 0, Government.ReasonNoMandate));
+        // ★(419) 壁の一歩が正統性で止まったときは必要量の数字に〈正統性が不足〉を添える（在庫の不足の〈不足〉と別の文言）
+        Assert.Equal("制定:不可（政治資本消費:49　正統性が不足）", PlayText.GateLine(false, 0.49, Government.ReasonNoLegitimacy));
         // 文言の出所は Government の const（生成側と比較側で散らさない）＝const の値そのものを固定する
         Assert.Equal("政治資本の残りが不足", Government.ReasonNoCapitalStock);
         Assert.Equal("賛成不足", Government.ReasonNoMandate);
+        Assert.Equal("正統性が不足", Government.ReasonNoLegitimacy);
+    }
+
+    [Fact]
+    public void 前提で止まったかの述語は1本_政治の門の3つの理由は前提ではない()
+    {
+        // 政治の門（賛成不足・在庫の不足・正統性の不足）は前提でない／前提法・不可逆の理由は前提／通る・理由なしは前提でない
+        foreach (var r in new[] { Government.ReasonNoMandate, Government.ReasonNoCapitalStock, Government.ReasonNoLegitimacy })
+        {
+            Assert.True(Government.IsPoliticalGateReason(r));
+            Assert.False(PlayText.IsPrereqStop(false, r));
+        }
+        foreach (var r in new[] { "教育法（公教育以上）が前提", "後退不能（支持層が確立済み）", "戦時のみ緩和可", "前段階が必要" })
+        {
+            Assert.False(Government.IsPoliticalGateReason(r));
+            Assert.True(PlayText.IsPrereqStop(false, r));
+            Assert.False(PlayText.IsPrereqStop(true, r));   // 通るなら前提で止まっていない
+        }
+        Assert.False(PlayText.IsPrereqStop(false, ""));
+        Assert.Equal("制定:不可（政治資本消費:12　正統性が不足）", PlayText.NextStepLine(false, 0.12, Government.ReasonNoLegitimacy));   // 前提の整形へ分かれない
     }
 
     [Fact]

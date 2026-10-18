@@ -35,7 +35,7 @@ public class GenderTests
         // 法→参加率の配線を直接検証（0.4→0.7＝労働供給の能力+2割）。
         // ※産出・賃金の均衡比較は120四半期の軌道分岐（政治・産業構成の違い）に埋もれて脆いため、機構の検証に留める。
         //   ★(383) 浸透は法の浸透の門で追従する（旧は移動平均）＝120 四半期では 0.7 の手前（0.692）にいることがある。★(399) 門〔LawEnforcementAdminGate〕は削除済み＝浸透は活きている州の人口で重みづけた国家の区分で読む（(402)）。配線は〈基線 0.4 を明らかに超え 0.7 を越えない〉で見る。
-        Assert.InRange(reformed.World.Region.FemaleParticipation, 0.5, 0.7 + 1e-9);   // ★(408) 追従は法の浸透×官僚の役務の充足で進む（旗 AdminServesStateRule 既定 1）＝120 四半期では 0.6 前後（旧 0.69）。0.4 から確かに上がる配線の確認に留める
+        Assert.InRange(reformed.World.Region.FemaleParticipation, 0.5, 0.7 + 1e-9);   // ★(408) 追従は法の浸透×官僚の役務の充足で進む（(408) の行政費の返り・旗は (419) で焼き込み）＝120 四半期では 0.6 前後（旧 0.69）。0.4 から確かに上がる配線の確認に留める
         Assert.Equal(0.4, baseline.World.Region.FemaleParticipation, 2);
     }
 

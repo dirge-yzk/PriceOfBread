@@ -284,7 +284,7 @@ public static class PoliticalQuantities
     ///     在庫の門は selfplay-batch 10 の4腕と eduprobe で**一度も噛まなかった**＝裁定の「支持の薄い独裁は大改革を押し切れない」の否定そのもの。
     ///   ⇒ S1 で θ を退役（<see cref="Government"/> の MandateMargin が非憲法級に +∞ を返す）＝代価の頭打ちが消え、
     ///     門の可否は <c>|純支持|×後退倍率 ＞ MandateWeight×(正統性+sup)</c>（MandateSpendRate は両辺で消える）で決まる。
-    ///     実測（隔離計器・seed1・604四半期）では置こうとした一歩の 70.1% が**満タンでも払えない**＝b の小さい国は永久に通せない＝S2 が望んだ姿（⚠(405) より前の記述。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕））。
+    ///     実測（隔離計器・seed1・604四半期）では置こうとした一歩の 70.1% が**満タンでも払えない**＝b の小さい国は永久に通せない＝S2 が望んだ姿（⚠(405) より前の記述。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕））。
     ///   ⚠P4（進行不能にしない）の担保は床の保証ではなく**門の置き場所**＝門は純支持&lt;0 の枝の中にしかない
     ///     （<see cref="Government.PoliticalCapitalAffords"/> の注記）＝代価0の一歩は S がいくつでも必ず通る。
     ///   MandateWeight に比例するので「在庫ハンマー」（AiFirstWaveTests の MandateWeight=50＝b≈30）でも b が同時に膨らむ。

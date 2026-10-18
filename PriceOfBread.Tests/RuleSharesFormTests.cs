@@ -253,12 +253,13 @@ public class RuleSharesFormTests
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             sim.Run(1);
             var w = sim.World; var c = w.Coef;
-            c.AdminServesStateRule = 0;   // ★(408) 0.78／0.12 は役務が満額の式（旗 1 の経路は AdminServesRuleTests の G2）＝旗 0 で移転の保存を固定する
+            // ★(408)(419) 0.78／0.12 は役務が満額（AdminFill＝1）の式（充足が欠ける州の取り分は AdminServesRuleTests の G2）＝充足を 1 に固定して移転の保存を見る（下の foreach）
             Assert.Equal(0.3, c.PrivilegeTaxDiscount.Value, 12);   // 前提（届け率 0.7 の元）
             w.TaxRate = new Share(0.1); c.TitheRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             foreach (var r in w.Regions)
             {
                 r.Rule = split ? [0.5, 0.4, 0.1, 0.0] : [1.0, 0.0, 0.0, 0.0];
+                r.AdminFill = 1.0;
                 foreach (var p in r.Pops) p.SetSavings(Math.Max(p.Savings.Value, 100.0 * Math.Max(0, p.LastEarnedPerMonth.Value)));   // 全員が請求を満額払える（払えない分の按分を外す）
             }
             if (split)   // 前提：税を払う POP のいる活きている州には全て領主（規模のある貴族）がいる＝取り分が捨てられない
@@ -296,7 +297,7 @@ public class RuleSharesFormTests
     {
         var w = France(_ => { }).World;
         var act = w.Regions.Where(r => r.State == RegionState.Active).ToList();
-        foreach (var r in w.Regions) r.AdminFill = 1.0;   // ★(408) 官僚の役務は満額（旗 1 の項は 1 で旧と同じ式）
+        foreach (var r in w.Regions) r.AdminFill = 1.0;   // ★(408) 官僚の役務は満額（充足の項は 1 で (399) の式と同じ値）
         foreach (var r in act) r.Rule = [0.0, 1.0, 0.0, 0.0];
         act[0].Rule = [1.0, 0.0, 0.0, 0.0];
         double popAll = act.Sum(r => r.SumPopulation());
@@ -313,12 +314,13 @@ public class RuleSharesFormTests
         Assert.Equal(0.15, new Coefficients().WomenRightsFollowSpeed, 12);   // 前提（既定の追従の速さ）。期待値は手計算のリテラル＝1−(1−0.15×到達)^3（月次の追従が 3 回）
         foreach (var (reach, want) in new[] { (0.2, 0.087327), (1.0, 0.385875) })
         {
-            var sim = France(c => c.AdminServesStateRule = 0);   // ★(408) 追従の速さ∝R0 は役務が満額の式（月次で充足が動くので旗 0 で固定。旗 1 は AdminServesRuleTests の G4）
+            var sim = France(_ => { });
             var w = sim.World;
             foreach (var r in w.Regions) r.Rule = [reach, 1.0 - reach, 0.0, 0.0];
             w.WomenRights = WomenRightsLaw.Property;
             w.WomenWageRetention = 0.0;
-            sim.StepQuarter();   // 月次の追従が 3 回
+            // ★(408)(419) 追従の速さ∝R0×充足。充足 AdminFill は月次で動く＝1 日ごとに全州を 1 に置き直して 1 四半期（月次の追従 3 回）を踏む（充足が満額の式の literal）
+            for (int d = 0; d < Calendar.DaysPerQuarter; d++) { foreach (var r in w.Regions) r.AdminFill = 1.0; sim.StepDay(); }
             Assert.Equal(want, w.WomenWageRetention, 9);
         }
     }

@@ -4,8 +4,8 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// ★(404) 専制の改革の経路（旗 <see cref="Coefficients.MandateOverStockFromLegitimacy"/>・<see cref="Coefficients.ParishEduFunded"/>・
-/// 事前登録 measurements/rf_20261018_prereg.txt D1・D2）の番人。見るのは機構と不変条件だけ（成績表の主張は書かない）。
+/// ★(404) 専制の改革の経路（壁の一歩＝<see cref="Coefficients.MandateOverStockLegitPower"/>・<see cref="Coefficients.ParishEduFunded"/>・
+/// 事前登録 measurements/rf_20261018_prereg.txt D1・D2）の番人。★(419) 旗 MandateOverStockFromLegitimacy は焼き込み（常に有効）＝旧の経路〔壁の一歩は永遠に通らない〕を見る盤面は払える量の指数 0（`!(power>0)` で閉じる）で作る。見るのは機構と不変条件だけ（成績表の主張は書かない）。
 /// 期待値は数値のリテラルで書く（同じ関数から作らない）。ON 経路は <c>w.Coef.X=</c> で書く（World.Coef は国ごと別インスタンス）。
 /// </summary>
 public class ReformPathTests
@@ -13,16 +13,15 @@ public class ReformPathTests
     private static Simulation Board()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-        sim.World.Coef.MandateOverStockFromLegitimacy = 0; sim.World.Coef.MandateOverStockLegitPower = 1;   // ★既定は採用値（旗 1・指数 2＝(409)）。Board() は旗 0・指数 1（払える量 avail＝旧の床なしと同値）を土台に、各テストが旗と指数を明示して見る
+        sim.World.Coef.MandateOverStockLegitPower = 1;   // ★既定は採用値（指数 2＝(409)）。Board() は指数 1（払える量 avail＝旧の床なしと同値）を土台に、各テストが指数を明示して見る
         sim.Run(8);
         return sim;
     }
 
     [Fact]
-    public void D0_既定は採用値_旗1_指数2_教区学校の財源1()
+    public void D0_既定は採用値_指数2_教区学校の財源1()
     {
         var c = new Coefficients();
-        Assert.Equal(1.0, c.MandateOverStockFromLegitimacy);
         Assert.Equal(2.0, c.MandateOverStockLegitPower);      // ★(409) 採用：払える量＝avail²（(405) の床 0.4 は削除した）
         Assert.Equal(1.0, c.ParishEduFunded);
         // 既定の盤面でも門が走る（二乗：avail＝0.7 の払える量は 0.49）
@@ -33,21 +32,20 @@ public class ReformPathTests
     }
 
     [Fact]
-    public void D1_旗0では代価がbを超える一歩は正統性が満タンでも通らない_旗1では通る()
+    public void D1_指数0なら代価がbを超える一歩は正統性が満タンでも通らない_指数があれば通る()
     {
         var w = Board().World;
         w.PoliticalCapitalMax = 0.3; w.MandateSpent = 0; w.MandateSpentNew = 0; w.Legitimacy = 0.9;
-        Assert.Equal(0.0, w.Coef.MandateOverStockFromLegitimacy);    // Board() が旧の経路〔旗 0〕に置いている
-        Assert.False(Government.PoliticalCapitalAffords(w, 0.495), "旗 0 で壁の一歩が通った＝旧の門が変わっている");
-        w.Coef.MandateOverStockFromLegitimacy = 1;
-        Assert.True(Government.PoliticalCapitalAffords(w, 0.495), "旗 1 でも壁の一歩が通らない");
+        w.Coef.MandateOverStockLegitPower = 0;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.495), "指数 0 で壁の一歩が通った＝旧の壁〔永遠に通らない〕と同じに閉じていない");
+        w.Coef.MandateOverStockLegitPower = 1;
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.495), "指数 1 でも壁の一歩が通らない");
     }
 
     [Fact]
-    public void D1_正統性が代価を払えなければ旗1でも通らない_請求済みの分は引く()
+    public void D1_正統性が代価を払えなければ壁の一歩は通らない_請求済みの分は引く()
     {
         var w = Board().World;
-        w.Coef.MandateOverStockFromLegitimacy = 1;
         w.PoliticalCapitalMax = 0.3; w.MandateSpent = 0; w.MandateSpentNew = 0;
         w.Legitimacy = 0.1;
         Assert.False(Government.PoliticalCapitalAffords(w, 0.495));      // 無い物は払えない
@@ -60,10 +58,9 @@ public class ReformPathTests
     }
 
     [Fact]
-    public void D1_指数が0以下かNaNなら壁の一歩は閉じる_旗0も壁()
+    public void D1_指数が0以下かNaNなら壁の一歩は閉じる()
     {
         var w = Board().World;                                        // Board() は指数 1（払える量＝avail）に置いている
-        w.Coef.MandateOverStockFromLegitimacy = 1;
         w.PoliticalCapitalMax = 0.25; w.MandateSpent = 0; w.MandateSpentNew = 0;   // 2 進で正確に表せる値（境界が丸めに左右されない）
         w.Legitimacy = 0.75;
         Assert.True(Government.PoliticalCapitalAffords(w, 0.5));       // 指数 1：正統性 0.75 から壁の一歩 0.5 を払える
@@ -73,15 +70,12 @@ public class ReformPathTests
         Assert.False(Government.PoliticalCapitalAffords(w, 0.5));
         w.Coef.MandateOverStockLegitPower = double.NaN;
         Assert.False(Government.PoliticalCapitalAffords(w, 0.5));
-        w.Coef.MandateOverStockLegitPower = 1; w.Coef.MandateOverStockFromLegitimacy = 0;
-        Assert.False(Government.PoliticalCapitalAffords(w, 0.5));      // 旗 0 は指数に関わらず壁
     }
 
     [Fact]
-    public void D1_満タンでなければ旗1でも壁の一歩は通らない_待てば通る()
+    public void D1_満タンでなければ壁の一歩は通らない_待てば通る()
     {
         var w = Board().World;
-        w.Coef.MandateOverStockFromLegitimacy = 1;
         w.PoliticalCapitalMax = 0.3; w.MandateSpentNew = 0; w.Legitimacy = 0.9;
         w.MandateSpent = 0.01;
         Assert.False(Government.PoliticalCapitalAffords(w, 0.495), "在庫を少しでも使っている国が壁の一歩を通した＝S＝0 の条件が効いていない");
@@ -90,30 +84,29 @@ public class ReformPathTests
     }
 
     [Fact]
-    public void D1_代価がb以下の普通の一歩は旗0と旗1で同じ可否_境目の両側()
+    public void D1_代価がb以下の普通の一歩は指数0と指数1で同じ可否_境目の両側()
     {
         var w = Board().World;
         w.PoliticalCapitalMax = 0.5; w.MandateSpentNew = 0; w.Legitimacy = 0.9;   // 2 進で正確に表せる値（境目の比較が丸めに左右されない）
-        foreach (double flag in new[] { 0.0, 1.0 })
+        foreach (double p in new[] { 0.0, 1.0 })
         {
-            w.Coef.MandateOverStockFromLegitimacy = flag;
+            w.Coef.MandateOverStockLegitPower = p;
             w.MandateSpent = 0.25;
-            Assert.True(Government.PoliticalCapitalAffords(w, 0.25), $"旗 {flag}：S+代価=b ちょうどは通る");
-            Assert.False(Government.PoliticalCapitalAffords(w, 0.26), $"旗 {flag}：代価≦b でも在庫が足りなければ通らない（時間の値段はそのまま）");
+            Assert.True(Government.PoliticalCapitalAffords(w, 0.25), $"指数 {p}：S+代価=b ちょうどは通る");
+            Assert.False(Government.PoliticalCapitalAffords(w, 0.26), $"指数 {p}：代価≦b でも在庫が足りなければ通らない（時間の値段はそのまま）");
             w.MandateSpent = 0;
-            Assert.True(Government.PoliticalCapitalAffords(w, 0.5), $"旗 {flag}：満タンで代価=b ちょうどは通る");
+            Assert.True(Government.PoliticalCapitalAffords(w, 0.5), $"指数 {p}：満タンで代価=b ちょうどは通る");
         }
-        w.Coef.MandateOverStockFromLegitimacy = 0; w.MandateSpent = 0;
-        Assert.False(Government.PoliticalCapitalAffords(w, 0.5000001));    // b を超えた途端に壁（旗 0）
-        w.Coef.MandateOverStockFromLegitimacy = 1;
-        Assert.True(Government.PoliticalCapitalAffords(w, 0.5000001));     // 旗 1 は連続につながる
+        w.Coef.MandateOverStockLegitPower = 0; w.MandateSpent = 0;
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.5000001));    // b を超えた途端に壁（指数 0＝旧の壁）
+        w.Coef.MandateOverStockLegitPower = 1;
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.5000001));     // 指数 1 は連続につながる
     }
 
     [Fact]
     public void D1_NaNは閉じる側へ倒れる()
     {
         var w = Board().World;
-        w.Coef.MandateOverStockFromLegitimacy = 1;
         w.PoliticalCapitalMax = 0.3; w.MandateSpent = 0; w.MandateSpentNew = 0; w.Legitimacy = 0.9;
         Assert.False(Government.PoliticalCapitalAffords(w, double.NaN));
         w.Legitimacy = double.NaN;
@@ -137,7 +130,8 @@ public class ReformPathTests
         Assert.True(cost < 0.95, $"テスト前提が崩れた：代価 {cost} が正統性に届かない");
         w.PoliticalCapitalMax = b; w.MandateSpent = 0;
 
-        // 旗 0：3 本とも否
+        // 指数 0（旧の壁）：3 本とも否。壁を閉じた世界は正統性がいくらあっても通らない＝理由は〈正統性が不足〉でなく〈政治資本の残りが不足〉のまま（(419) 門の理由の分割）
+        w.Coef.MandateOverStockLegitPower = 0;
         var g0 = Government.GateInfo(w, axis, inc, level);
         Assert.False(g0.Ok);
         Assert.Equal(Government.ReasonNoCapitalStock, g0.Reason);
@@ -148,11 +142,11 @@ public class ReformPathTests
         Assert.Equal(before, PolicyPoliticsTests.LawLevel(w, axis));          // 施行も 1 段も動かない
         Assert.True(w.MandateSpentNew < cost - 1e-12);
 
-        // 旗 1：3 本とも可。施行は代価の全額を 2 台帳へ 1 回だけ記帳する（新しい減算を足さない）
-        w.Coef.MandateOverStockFromLegitimacy = 1;
+        // 指数 1：3 本とも可。施行は代価の全額を 2 台帳へ 1 回だけ記帳する（新しい減算を足さない）
+        w.Coef.MandateOverStockLegitPower = 1;
         w.MandateSpent = 0; w.MandateSpentNew = 0;
         var g1 = Government.GateInfo(w, axis, inc, level);
-        Assert.True(g1.Ok, $"旗 1 でも照会が否：{g1.Reason}");
+        Assert.True(g1.Ok, $"指数 1 でも照会が否：{g1.Reason}");
         Assert.True(Government.CanStep(w, axis, inc));
         Government.Step(w, w.Coef);
         Assert.Equal(level, PolicyPoliticsTests.LawLevel(w, axis));            // 施行された
@@ -164,21 +158,20 @@ public class ReformPathTests
     }
 
     [Fact]
-    public void D1_憲法級の軸は旗1でも通らない()
+    public void D1_憲法級の軸は壁の一歩でも通らない()
     {
         var w = Board().World;
-        w.Coef.MandateOverStockFromLegitimacy = 1;
         w.Coef.MandateWeight = 0.001; w.Legitimacy = 0.95; w.MandateSpent = 0; w.MandateSpentNew = 0;
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
-        // 参政権の拡大（純支持が負の盤面）：硬い純支持＞0 の門は在庫の門と別＝旗 1 は触らない
+        // 参政権の拡大（純支持が負の盤面）：硬い純支持＞0 の門は在庫の門と別＝壁の一歩は触らない
         var g = Government.GateInfo(w, PolicyAxis.Suffrage, true, Government.NextStage(w, PolicyAxis.Suffrage, true));
         if (!g.Ok) Assert.Equal(Government.ReasonNoMandate, g.Reason);          // 否決の理由は「賛成不足」（在庫の文言ではない）
         else Assert.Equal(0.0, g.Cost);                                          // 通るなら代価 0（純支持が正）
     }
 
-    /// <summary>b の小さい国（S2 の番人と同じ盤面）：旗 0 は何四半期待っても通らず、旗 1 は満タンで通る。待つ時間の値段が代価に比例して長いこと。</summary>
+    /// <summary>b の小さい国（S2 の番人と同じ盤面）：指数 0（旧の壁）は何四半期待っても通らず、指数 1 は満タンで通る。待つ時間の値段が代価に比例して長いこと。</summary>
     [Fact]
-    public void D1_S2の盤面_旗1は満タンで通りその後の在庫は代価に比例して長く空く()
+    public void D1_S2の盤面_壁の一歩は満タンで通りその後の在庫は代価に比例して長く空く()
     {
         var w = Board().World; var c = w.Coef;
         var (axis, inc, level, cost0) = PolicyPoliticsTests.FindOpposedStep(w);
@@ -187,11 +180,12 @@ public class ReformPathTests
         w.PoliticalCapitalMax = b; w.MandateSpent = 0;
         var g = Government.GateInfo(w, axis, inc, level);
         Assert.True(g.Cost > b);
+        c.MandateOverStockLegitPower = 0;
         for (int q = 0; q < 2 * (int)c.MandateRefillQuarters; q++) { w.ParliamentControl = 0; Politics.Step(w, c); }
-        Assert.False(Government.PoliticalCapitalAffords(w, g.Cost));              // 旗 0＝永久に通らない
-        c.MandateOverStockFromLegitimacy = 1;
+        Assert.False(Government.PoliticalCapitalAffords(w, g.Cost));              // 指数 0（旧の壁）＝永久に通らない
+        c.MandateOverStockLegitPower = 1;
         w.Legitimacy = 0.95; w.MandateSpentNew = 0; w.MandateSpent = 0;
-        Assert.True(Government.PoliticalCapitalAffords(w, g.Cost));               // 旗 1＝通る
+        Assert.True(Government.PoliticalCapitalAffords(w, g.Cost));               // 指数 1＝通る
         // 払う（Spend は変えない）＝S は代価の全額 → 回復は b/40 ずつ：0 に戻るまで ceil(cost/(b/40)) 四半期
         w.MandateSpent = g.Cost;
         int n = 0;
@@ -199,6 +193,31 @@ public class ReformPathTests
         int expected = (int)Math.Ceiling(g.Cost / (b / c.MandateRefillQuarters));
         Assert.InRange(n, expected - 1, expected + 1);
         Assert.True(n > (int)c.MandateRefillQuarters, "壁の一歩の後の在庫が 40 四半期より早く戻っている＝時間の値段が代価に比例していない");
+    }
+
+    /// <summary>★(419) 門の理由の分割：壁の一歩（満タン S＝0 で代価＞b）が正統性で止まったときだけ〈正統性が不足〉・在庫の使いかけ（S＞0）と壁を閉じた世界（指数 0）は〈政治資本の残りが不足〉のまま。分類だけで可否（Ok）は変えない。</summary>
+    [Fact]
+    public void D3_壁の一歩が正統性で止まると理由は正統性が不足_在庫の不足と別の文言_可否は不変()
+    {
+        var w = Board().World;
+        var (axis, inc, level, cost) = PolicyPoliticsTests.FindOpposedStep(w);
+        w.Coef.MandateWeight = 0.001; w.Coef.MandateOverStockLegitPower = 2;
+        double b = PoliticalQuantities.PoliticalCapitalMax(w);
+        Assert.True(cost > b && cost < 0.9, $"テスト前提が崩れた：代価 {cost} が b {b} 超・0.9 未満でない");
+        w.PoliticalCapitalMax = b; w.MandateSpentNew = 0;
+        w.Legitimacy = 0.5 * (cost + Math.Sqrt(cost)); w.MandateSpent = 0;       // cost ≦ L だが cost ＞ L²＝二乗の払える量に届かない
+        Assert.True(cost <= w.Legitimacy && cost > w.Legitimacy * w.Legitimacy, "テスト前提が崩れた：盤面が正統性の二乗の線の内側にない");
+        var g = Government.GateInfo(w, axis, inc, level);
+        Assert.False(g.Ok);
+        Assert.Equal(Government.ReasonNoLegitimacy, g.Reason);                    // 満タン・壁が開いている・正統性が足りない
+        w.MandateSpent = 1e-6;                                                    // 在庫の使いかけ＝待てば満タンに戻る
+        Assert.Equal(Government.ReasonNoCapitalStock, Government.GateInfo(w, axis, inc, level).Reason);
+        w.MandateSpent = 0; w.Coef.MandateOverStockLegitPower = 0;                 // 壁を閉じた世界＝正統性がいくらあっても通らない
+        var closed = Government.GateInfo(w, axis, inc, level);
+        Assert.False(closed.Ok); Assert.Equal(Government.ReasonNoCapitalStock, closed.Reason);
+        w.Coef.MandateOverStockLegitPower = 2; w.Legitimacy = 0.99;                // 払える量が代価を超える＝通る（理由は空）
+        var open = Government.GateInfo(w, axis, inc, level);
+        Assert.True(open.Ok); Assert.Equal("", open.Reason);
     }
 
     // ---------------------------------------------------------------- D2：宗教教育でも国庫が教育を買う（Simulation の CompulsoryEduFunding）----------------------------------------------------------------
@@ -266,16 +285,16 @@ public class ReformPathTests
         Assert.InRange(clean.Legitimacy - spent.Legitimacy, 0.4, 0.5 + 1e-9);   // 2 四半期目に新たな減算は無い（差は 0.5 のまま〔再生が低い側で大きい分だけ微小に縮む〕・二重なら 1.0）
     }
 
-    /// <summary>スライダーの脚（Move・private なので反射で直に呼ぶ）：b が極小の国で関税を反対の向きへ大きく押す（純支持＜0・代価＞b）。旗 0 は 1 ミリも動かず、旗 1 は S＝0 の満タンで動いて S を b より上へ・両台帳へ同額を記帳する。
+    /// <summary>スライダーの脚（Move・private なので反射で直に呼ぶ）：b が極小の国で関税を反対の向きへ大きく押す（純支持＜0・代価＞b）。指数 0（旧の壁）は 1 ミリも動かず、指数 1 は S＝0 の満タンで動いて S を b より上へ・両台帳へ同額を記帳する。
     /// （Government.Step 経由にしないのは、先に走る別のスライダーの小さな代価で S＞0 になり壁の一歩が通らない四半期があるため＝Step 経由では脚を孤立して見られない。）</summary>
     [Fact]
-    public void D1_スライダーの脚も同じ壁を値段にする_旗0は動かず旗1は動く()
+    public void D1_スライダーの脚も同じ壁を値段にする_指数0は動かず指数1は動く()
     {
         var move = typeof(Government).GetMethod("Move", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-        (World w, double cur, double next) Run(double flag)
+        (World w, double cur, double next) Run(double power)
         {
             var w = Board().World;
-            w.Coef.MandateOverStockFromLegitimacy = flag; w.Coef.MandateWeight = 0.001;
+            w.Coef.MandateOverStockLegitPower = power; w.Coef.MandateWeight = 0.001;
             w.Legitimacy = 0.95; w.MandateSpentNew = 0; w.MandateSpent = 0; w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
             double cur = w.Tariff;
             double next = (double)move.Invoke(null, new object[] { cur, Math.Max(0.0, cur - 0.4), w.Coef, w, PolicyAxis.Tariff, 1.0, true, false })!;
@@ -283,10 +302,10 @@ public class ReformPathTests
         }
         Assert.True(PolicyPreferences.NetSupport(Board().World, PolicyAxis.Tariff, false) < 0, "テスト前提が崩れた：関税を下げる押しの純支持が負でない");
         var off = Run(0); var on = Run(1);
-        Assert.Equal(off.cur, off.next);                                     // 旗 0：払えない押しはスライダーも 1 ミリも動かない
+        Assert.Equal(off.cur, off.next);                                     // 指数 0：払えない押しはスライダーも 1 ミリも動かない
         Assert.Equal(0.0, off.w.MandateSpent);
-        Assert.True(on.next < on.cur, "旗 1 のスライダーの壁の一歩が通っていない");
-        Assert.True(on.w.MandateSpent > on.w.PoliticalCapitalMax, "旗 1 のスライダーの壁の一歩が S を b より上へ記帳していない");
+        Assert.True(on.next < on.cur, "指数 1 のスライダーの壁の一歩が通っていない");
+        Assert.True(on.w.MandateSpent > on.w.PoliticalCapitalMax, "指数 1 のスライダーの壁の一歩が S を b より上へ記帳していない");
         Assert.Equal(on.w.MandateSpent, on.w.MandateSpentNew, 9);
     }
 
@@ -296,7 +315,7 @@ public class ReformPathTests
     private static World PowerBoard(double power, double legit, double spentNew = 0, double b = 0.005)
     {
         var w = Board().World;
-        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitPower = power;
+        w.Coef.MandateOverStockLegitPower = power;
         w.PoliticalCapitalMax = b; w.MandateSpent = 0; w.MandateSpentNew = spentNew; w.Legitimacy = legit;
         return w;
     }
@@ -382,7 +401,7 @@ public class ReformPathTests
         var w = Board().World;
         var (axis, inc, level, cost) = PolicyPoliticsTests.FindOpposedStep(w);
         w.Coef.MandateWeight = 0.001;
-        w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitPower = 2;
+        w.Coef.MandateOverStockLegitPower = 2;
         double b = PoliticalQuantities.PoliticalCapitalMax(w);
         Assert.True(cost > b && cost < 0.9, $"テスト前提が崩れた：代価 {cost} が b {b} 超・0.9 未満でない");
         // 通さない盤面：cost ≦ L（床なしなら通る）だが cost ＞ L²
@@ -411,7 +430,7 @@ public class ReformPathTests
         (World w, double cur, double next) Run(double legit)
         {
             var w = Board().World;
-            w.Coef.MandateOverStockFromLegitimacy = 1; w.Coef.MandateOverStockLegitPower = 2; w.Coef.MandateWeight = 0.001;
+            w.Coef.MandateOverStockLegitPower = 2; w.Coef.MandateWeight = 0.001;
             w.Legitimacy = legit; w.MandateSpentNew = 0; w.MandateSpent = 0; w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
             double cur = w.Tariff;
             double next = (double)move.Invoke(null, new object[] { cur, Math.Max(0.0, cur - 0.4), w.Coef, w, PolicyAxis.Tariff, 1.0, true, false })!;

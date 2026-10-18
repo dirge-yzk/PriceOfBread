@@ -13,7 +13,11 @@ public static class PlayText
     public static string GateLine(bool ok, double cost, string reason)
         => ok ? $"制定:可能（政治資本消費:{cost * 100:F0}）"
         : reason == Government.ReasonNoCapitalStock ? $"制定:不可（政治資本消費:{cost * 100:F0}　不足）"
+        : reason == Government.ReasonNoLegitimacy ? $"制定:不可（政治資本消費:{cost * 100:F0}　{reason}）"   // ★(419) 壁の一歩が正統性で止まった＝必要量の数字に〈正統性が不足〉を添える（在庫の不足と別の文言）
         : $"制定:不可（{reason}）";
+
+    /// <summary>★(419) 前提法・不可逆で止まったか（＝政治の門〔賛成不足・在庫・正統性〕以外の理由が出ている）。法律タブ（<c>LawRowVM</c>）と Runner の報告（<see cref="NextStepLine"/>）が同じ 1 本を呼ぶ。</summary>
+    public static bool IsPrereqStop(bool ok, string reason) => !ok && reason.Length > 0 && !Government.IsPoliticalGateReason(reason);
 
     /// <summary>前提未達の理由文を「◯◯:△△」レイアウトへ整形（作者指示2026-08-15）。
     /// 「◯◯（△△）が前提」→「前提 ◯◯:△△」のパターン変換のみ。合わない文（プロレタリア独裁のみ 等）はそのまま返す＝安全側。</summary>
@@ -33,7 +37,7 @@ public static class PlayText
     /// <summary>次の一歩の門を 1 行で言う（Runner の報告・法の段のホバーの 2 行目と同じ分岐）。
     /// 前提・不可逆で止まったとき（理由が在庫の門でも賛成不足でもない）は「制定:不可　<see cref="FormatPrereq"/>」、それ以外は <see cref="GateLine"/>。</summary>
     public static string NextStepLine(bool ok, double cost, string reason)
-        => !ok && reason.Length > 0 && reason != Government.ReasonNoMandate && reason != Government.ReasonNoCapitalStock
+        => IsPrereqStop(ok, reason)
             ? "制定:不可　" + FormatPrereq(reason)
             : GateLine(ok, cost, reason);
 }

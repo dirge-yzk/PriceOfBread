@@ -2695,14 +2695,14 @@ public sealed class Coefficients
     // ★(399) 支配の4区分の点火＋条約港の廃止＋汚職の財政の漏れと法の浸透の門の削除（事前登録 measurements/rs_20261018_prereg.txt・点火の組＝腕 B・旗は物理削除した）。
     //   在地の目標＝RuleInit[1]×Privileges.IntermediaryDegree（官僚制度法と土地改革の max・農奴解放の法は読まない）／無統治の目標＝(1−秩序)×(1−到達)（到達＝1÷(1＋DistanceWarDecay×km÷DistanceNormKm)）／
     //   植民地の州は places.json の rule（開始時のデータ）／法の浸透＝活きている州の人口で重みづけた RuleReach の平均。
-    // ★(408) 行政費の返り（事前登録 measurements/ar_20261018_prereg.txt・旗 AdminServesStateRule＝★既定 1〔(408) 後半で点火〕・0＝旧の式）：官僚の役務の実物 Region.AdminFill を州の国家区分の届きへ結ぶ（腕 B＝1）。
-    //   (399) で汚職の漏れと法の浸透の門を消した後、行政費は税にも法の届きにも返らなかった（行政費 0 で歳入を浮かせられる）。>0 のとき：
+    // ★(408) 行政費の返り（事前登録 measurements/ar_20261018_prereg.txt・旗 AdminServesStateRule は (419) で焼き込み〔常に 1〕）：官僚の役務の実物 Region.AdminFill を州の国家区分の届きへ結ぶ（腕 B）。
+    //   (399) で汚職の漏れと法の浸透の門を消した後、行政費は税にも法の届きにも返らなかった（行政費 0 で歳入を浮かせられる）。(408) 以後：
     //   ・Politics.RuleDelivery（税と徴兵の届け率）＝R0×(d＋(1−d)×f)＋R1×d（f＝AdminFill・d＝1−PrivilegeTaxDiscount）＝役務が届かない国家区分の分は在地の仲介者を通る（取り分が d に減る・最大 (1−d)×R0）。
-    //   ・Fiscal.TaxScan の仲介者の取り分＝(R1＋R0×(1−f))×(1−d)＝国庫に届かなくなった分は州の領主へ移る（納税者の払う総額 R0＋R1 が旗に依らず同じなのは**領主の居る州だけ**・★(412) 領主〔貴族 POP〕の居ない州では取り分は 0＝落ちた税は納税者の手元に残る＝減税として働く・開幕の英は人口の 0.66 がこの州）。
+    //   ・Fiscal.TaxScan の仲介者の取り分＝(R1＋R0×(1−f))×(1−d)＝国庫に届かなくなった分は州の領主へ移る（納税者の払う総額 R0＋R1 が変わらないのは**領主の居る州だけ**・★(412) 領主〔貴族 POP〕の居ない州では取り分は 0＝落ちた税は納税者の手元に残る＝減税として働く・開幕の英は人口の 0.66 がこの州）。
     //   ・Politics.StateReach（法の浸透）＝人口加重の RuleReach×f。RuleReach 自体（年金・教育費の到達）には掛けない（教育→識字→登用→行政の正帰還の環・EduReachFromAdmin の注）。
-    //   新しい倍率も状態も置かない。〈確証なし〉＝請負人の取り分に PrivilegeTaxDiscount を共有した点。0 で 3 本とも旧の式の文字列のまま（ビット恒等）。
-    //   ★2026-10-18 (408) 後半で既定 1 へ**点火**（止める線 ⑥①〜④・発散・空洞化・計算量・クラッシュのどれにも当たらず・成績表3枚は新しい基線）。0 は旧の式（A の腕）。
-    public double AdminServesStateRule = 1.0;
+    //   新しい倍率も状態も置かない。〈確証なし〉＝請負人の取り分に PrivilegeTaxDiscount を共有した点。
+    //   ★2026-10-18 (408) 後半で既定 1 へ**点火**（止める線 ⑥①〜④・発散・空洞化・計算量・クラッシュのどれにも当たらず・成績表3枚は新しい基線）。
+    // 【墓標2026-10-19 (419)・旗の焼き込み】AdminServesStateRule（(408)・既定 1）を消した＝RuleDelivery・TaxScan の仲介者の取り分・StateReach の 3 本は常に役務の充足 AdminFill を通る（旧の式〔0〕は物理削除）。
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。
@@ -2811,7 +2811,7 @@ public sealed class Coefficients
     //   目盛りの候補（S1 点火後の実測分布から導出・代価の中央0.2408／p75 0.3297／p90 0.4348・中央(正統性+支持)=中央b/(0.3×0.5)=1.2027）：
     //     0.30＝現行維持（満タンでも払えない一歩が70.1%）／0.40＝中央値規準（≒50%）／0.55＝p75規準／0.72＝p90規準（W＝代価の分位÷(0.5×1.2027)）。
     //     ⚠上げると b も回復量 b/MandateRefillQuarters も同率で上がる＝「大改革を可能にする」と「改革を速くする」が同じ1本に乗る。
-    public double MandateWeight = 0.3;          // 在庫 b の目盛り（上の注記）＝b=これ×MandateSpendRate×(正統性+支持)。0＝b=0＝反対を押し切る一歩は全て否決（純支持≥0 の一歩は通る・⚠旗 MandateOverStockFromLegitimacy=0 の世界の記述＝(405) 以後は満タンで正統性が払えれば壁の一歩として通る）。選挙の余白 θ_e=これ×(正統性−0.5)（World.ResolveElection・SelfPlay.DecideElection＝S を触らない別通貨）も同じ1本を読む
+    public double MandateWeight = 0.3;          // 在庫 b の目盛り（上の注記）＝b=これ×MandateSpendRate×(正統性+支持)。0＝b=0＝反対を押し切る一歩は全て否決（純支持≥0 の一歩は通る・⚠(405) 以前〔旗 MandateOverStockFromLegitimacy=0 の世界・(419) で焼き込み〕の記述＝(405) 以後は満タンで正統性が払えれば壁の一歩として通る）。選挙の余白 θ_e=これ×(正統性−0.5)（World.ResolveElection・SelfPlay.DecideElection＝S を触らない別通貨）も同じ1本を読む
     // MandateNegativeScale（旧＝正統性<0.5 の負側 θ の減衰0.5＝「滞るが不能ではない」）は 2026-09-21 ㉖で係数ごと削除＝θ の算術が退役して読み手が消えた。
     public double MandateSpendRate = 0.5;       // 押し切った一歩（純支持<0）の政治資本消費＝|純支持|×これを MandateSpent へ累積。正統性↓＝実効治安維持力(BaseCoercion×Legitimacy×funding)も連動して弱まる＝押し切る統治は治安維持力も削る（意図した結合）
     // MandateRecoveryRate（旧＝目減り S の四半期指数減衰率。2026-07-26 に LegitimacyRegenRate から分離・2026-08-04 に作者指摘「政治資本のたまりが早く、
@@ -2823,7 +2823,7 @@ public sealed class Coefficients
     //   b＝支持と権力の大きさ（<see cref="PoliticalQuantities.PoliticalCapitalMax"/>＝「どれだけ大きなことができるか」）。
     //   回復＝毎期 b/MandateRefillQuarters×実行度（<see cref="PoliticalQuantities.PoliticalCapitalRate"/>＝「どれだけ頻繁に決められるか」）だけ S を**線形に**減らし0で止める。
     //   ⚠作者は漸近回復を却下した（「b 付近で極端に低速になるのは好ましくない」「使えば使うほど事実上の法改正が進むのも違和感」）。
-    //   押し切りの門は S+代価 ≤ b（<see cref="Government.PoliticalCapitalAffords"/>＝**純支持<0 の枝の中だけ**）。消費の式は現行のまま。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・MandateOverStockFromLegitimacy＝1・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
+    //   押し切りの門は S+代価 ≤ b（<see cref="Government.PoliticalCapitalAffords"/>＝**純支持<0 の枝の中だけ**）。消費の式は現行のまま。★(407) 注の一巡：(405) 以後は代価が b を超える一歩も満タン（S＝0）で正統性が払えれば通る（壁の一歩・払える量 avail^MandateOverStockLegitPower〔(409) で床 0.4 から置き換え〕）。
     // ★裁定S1（2026-09-21）＝**余白の門 θ の退役**。
     //   <see cref="Government"/> の MandateMargin が非憲法級に +∞ を返す＝θ を読む4本の脚（施行・照会・点灯・スライダー）が
     //   同時に「通す側」へ倒れ、**反対を押し切る一歩の門は在庫ひとつだけ**になる（門を2つから1つへ＝削減の向き）。
@@ -2832,13 +2832,13 @@ public sealed class Coefficients
     //   ⚠憲法級（参政権等）だけは 0 を返す＝硬い「純支持>0」＝2026-08-04 の裁定をそのまま保存（弁 ConstitutionalMandateScale は 2026-09-26 に削除＝dorm-50）。
     // ★主フラグ PoliticalCapitalStock（N2/S1・0/1）は 2026-09-21 ㉖で 1.0 を焼き込んで削除＝在庫の門・線形回復・θ の退役が既定（旧の余白の門と指数減衰の枝は削除）。
     public double MandateRefillQuarters = 40;    // 空から満タンまでの四半期数（作者裁定＝実行度が最大のとき10年）。実行度 ≥ 1/(1+2.667)≈0.273 なので最悪でも ≈147四半期＝0の吸収状態を作らない
-    // ★(404) 専制の改革の経路・2-2（事前登録 measurements/rf_20261018_prereg.txt D1）：0＝旧（代価が b を超える一歩は満タンでも永遠に通らない壁）／>0＝その壁の一歩だけを値段にする
+    // ★(404) 専制の改革の経路・2-2（事前登録 measurements/rf_20261018_prereg.txt D1）：その壁の一歩だけを値段にする（旧は代価が b を超える一歩が満タンでも永遠に通らない壁だった）
     //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）。
-    //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。0 で厳密恒等。
-    public double MandateOverStockFromLegitimacy = 1;   // ★(405) 採用（腕 BF と同じ世界・既定 1）：0 は旧の経路（壁の一歩は永遠に通らない）。腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった（★(409) で床は消え、払える量は下の MandateOverStockLegitPower の比例の形）
+    //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。
+    // 【墓標2026-10-19 (419)・旗の焼き込み】MandateOverStockFromLegitimacy（(405) で採用・既定 1）を消した＝壁の一歩は常に値段で通る（0 は旧の経路〔壁の一歩は永遠に通らない〕。同じ振る舞いは MandateOverStockLegitPower＝0 で閉じる〔`!(power>0)` で fail-closed〕）。(405) の腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった（★(409) で床は消え、払える量は下の MandateOverStockLegitPower の比例の形）
     // ★(409) 採用（腕 B・既定 2）：壁の一歩で払える正統性の量 = avail^p（avail＝正統性−この四半期の請求済み・0〜1）。(405) の床 0.4（閾値）を消してこの比例の形に置き換えた（README §1-8・設計思想⑧）。
     //   avail^p は avail の連続な単調関数で段差が無い。p＝2 は床なし（avail）より厳しく、旧の床 0.4（avail−0.4）より全域で緩い（avail²−avail+0.4＞0）。払った後の残りは avail(1−avail)≧0＝avail＜1 なら正・★(412) 反証役の訂正：avail が 1 に近いと一歩でほぼ 0 まで燃える（(409) の腕 B の実測＝代価÷avail の最大 0.955・壁の一歩の行の正統性の最小 0.047・事前登録 P2 の見立ては外れた）。
-    //   指数 2 は AI の選択で〈確証なし〉（B3＝3・B4＝4 の腕でも止める線に当たらなかった）。p が 0 以下か NaN なら壁の一歩は通らない（閉じる側・fail-open にしない）。旗 MandateOverStockFromLegitimacy＞0 のときだけ読む。
+    //   指数 2 は AI の選択で〈確証なし〉（B3＝3・B4＝4 の腕でも止める線に当たらなかった）。p が 0 以下か NaN なら壁の一歩は通らない（閉じる側・fail-open にしない）。
     //   床の係数 MandateOverStockLegitFloor は削除した（閾値を残さない）。
     public double MandateOverStockLegitPower = 2;
 
