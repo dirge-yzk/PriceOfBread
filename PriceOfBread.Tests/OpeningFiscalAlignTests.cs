@@ -252,6 +252,40 @@ public class OpeningFiscalAlignTests
     }
 
     [Fact]
+    public void 別の州に立っていて未着工の意志の月の出費も今ある出費として数える()
+    {
+        // 州 A に未着工の意志（StateTarget＞現在の棟数・ConstructionLeft＝0）、州 B に候補。上限を〈A の見積り＋B の見積りの半分〉に置く＝A の意志を数えれば B は上限を超えて押されず、
+        // 数えなければ（最初の集計の見積りを落とすと）B は押される。意志が無ければ B は押される（対照）。
+        (World W, Producer Cand, double Cap, double EstA, double EstB) Setup(bool withWill)
+        {
+            var w = FourNations().Nations[0].World;
+            Room(w);
+            var rgA = w.Regions[0]; var rgB = w.Regions[1];
+            var other = Pick(rgA); var cand = Pick(rgB);
+            Plant(rgB, cand);
+            double eA = UtilityAgent.NewFacilityOutlayPerMonth(w, rgA, other), eB = UtilityAgent.NewFacilityOutlayPerMonth(w, rgB, cand);
+            double targetCap = eA + 0.5 * eB;
+            double months = w.Coef.FiscalStressBufferMonths;
+            double buffer = targetCap / 0.10;   // Cap(w)＝0.10×安全水準
+            w.LastAdminClaimPerMonth = new MoneyPerMonth(buffer / months - (w.LastInterestPerMonth + w.LastMilitaryClaimPerMonth).Value);
+            w.SetTreasuryRaw(1.5 * UtilityAgent.FiscalBufferOf(w));
+            if (withWill) other.StateTarget = World.StateUnits(other, w.Coef) + 1;
+            return (w, cand, Cap(w), eA, eB);
+        }
+
+        var s = Setup(withWill: true);
+        Assert.True(Math.Abs(s.Cap - (s.EstA + 0.5 * s.EstB)) <= 1e-6 * s.Cap, $"前提：上限が見積りの和の途中に置けた（{s.Cap}）");
+        Assert.True(s.EstA >= 0.5 * s.EstB && s.EstB < s.Cap, "前提：B の見積りは単独では上限の内（A の意志を数えないと通る）");
+        Assert.True(UtilityAgent.FiscalBufferOf(s.W) >= Catalog.FactorySpec(s.Cand.GoodId).Cost, "前提：身の丈ゲートを通る安全水準");
+        new UtilityAgent().DecideQuarter(s.W);
+        Assert.Equal(0, s.Cand.StateTarget);   // A の未着工の意志の見積りを今ある出費に足すと上限を超える＝B は押さない
+
+        var c = Setup(withWill: false);
+        new UtilityAgent().DecideQuarter(c.W);
+        Assert.Equal(1, c.Cand.StateTarget);   // 対照：意志が無ければ同じ上限で B は押される
+    }
+
+    [Fact]
     public void 着工を拒まれた意志の出費も上限に数える()
     {
         // 英の Q0 で起きたこと：建材の採算などで着工を拒まれた意志は monthlyBuild に載らず、全州に意志が立ち、月次の再挑戦が上限の約 3 倍の工事を着工した（診断）。
