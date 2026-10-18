@@ -18,6 +18,7 @@ public class DiscoveryScoreTests
     {
         var sim = coef is null ? new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent())
                                : new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent(), coef);
+        LegacyDiscovery.Apply(sim);   // ★(415) この類の番人は技術水準を操作して前提を作る＝旧の式（旗0）の盤面。既定の経路は DiscoveryEngineerTests
         sim.StepQuarter();
         return sim;
     }
@@ -171,7 +172,7 @@ public class DiscoveryScoreTests
                 var w = n.World; string name = w.SelfPower?.BaseName ?? "";
                 var cfg = WorldData.Nations().First(c => c.Name == name);
                 for (int r = 0; r < Catalog.Discoveries.Length; r++)
-                    Assert.True(w.Discovered[r] == cfg.KnownDiscoveries.Contains(Catalog.Discoveries[r].Name),
+                    Assert.True(w.Discovered[r] == cfg.KnownDiscoveries.Contains(Catalog.Discoveries[r].Name),   // ★(415) 合成染料の行は旗 DiscoveryEngineerHalfPerMonth が正（既定）なら開幕で解禁しない＝データどおり
                         $"{when}：{name} の {Catalog.Discoveries[r].Name} がデータと違う（{w.Discovered[r]}）");
             }
         }

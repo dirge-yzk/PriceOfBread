@@ -155,6 +155,7 @@ public class MilitaryTests
         //   （備蓄があると国家の調達が在庫を引き下げる間は価格が参照より下がったままでマスケットの産出が立たない＝英では60か月の備蓄が24四半期たっても残る〔rifprobe〕＝備蓄の試験は ArsenalOpeningTests）。
         var sc = NationConfig.Britain().ToScenario(29);
         sc.Coef.InitialArsenalMonths = 0;
+        sc.Coef.DiscoveryEngineerHalfPerMonth = 0;   // ★(415) 旧の式（旗0）＝既定では転炉鋼が1783年に開いてマスケットが退場する。この試験の主題は〈鋼の無い時代の並存レシピ〉
         var sim = new Simulation(sc, new NullAgent());
         var r = sim.World.Region;
         var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");

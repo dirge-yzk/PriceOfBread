@@ -41,6 +41,59 @@ public static class Discovery
     public static double DifficultyOf(int decade, Coefficients c)
         => c.DiscoveryTechPerDecade * (decade - Catalog.DiscoveryBaseDecade) / 10.0;
 
+    /// <summary>★(415) 生産者が雇った高度労働力の月あたりの量＝実産出（前の月・充足を経た値）×高度労働力の投入の産出1単位あたりの量。工場でない生産者（投入に高度労働力が無い）は0。
+    /// 否定形＝NaN・負の産出は0。<see cref="Score"/> が門の開いた生産者についてだけ財ごとに足す（新しい状態を持たない・設計思想⑩）。</summary>
+    internal static double EngineerUse(Producer p)
+    {
+        double o = p.Output;
+        if (!(o > 0)) return 0;
+        foreach (var inp in p.Inputs)
+            if (inp.GoodId == Catalog.AdvLaborId) return inp.QtyPerOutput > 0 ? o * inp.QtyPerOutput : 0;
+        return 0;
+    }
+
+    /// <summary>★(415) 行の親の産業の技師の量（月あたり・事前登録 [3-1]）＝親の財（製法の行は行の財・新製品は <see cref="DiscoveryRow.Replaces"/> の財・財でない <c>Replaces</c> の行は行の財）と、
+    /// 行の代表のレシピの投入（労働力・高度労働力・農業労働力を除く）の財について、財ごとの雇用 <paramref name="eng"/>（<see cref="EngineerUse"/> の国の和）を足す。同じ財は1度だけ。</summary>
+    internal static double ParentEngineers(int row, Producer rp, double[] eng)
+    {
+        var d = Catalog.Discoveries[row];
+        int g0 = d.Replaces >= 0 ? d.Replaces : d.Good;
+        double a = g0 >= 0 && g0 < eng.Length ? eng[g0] : 0;
+        foreach (var inp in rp.Inputs)
+        {
+            int g = inp.GoodId;
+            if (g < 0 || g >= eng.Length || g == g0 || g == Catalog.LaborId || g == Catalog.AdvLaborId || g == Catalog.FarmLaborId) continue;
+            a += eng[g];
+        }
+        return a;
+    }
+
+    /// <summary>★(415) 開幕の互換の解禁（<see cref="Simulation"/> の構築が開幕の既知の発見の後に1度呼ぶ）＝旗 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/> が0以下のあいだ、
+    /// 行が無かった旧と同じにするため合成染料の行を解禁済みにする。旗が正なら何もしない（見つかるまで作れない）。</summary>
+    internal static void SeedCompatRows(World w)
+    {
+        if (SyntheticDyeRow >= 0 && !(w.Coef.DiscoveryEngineerHalfPerMonth > 0)) w.Discovered[SyntheticDyeRow] = true;
+    }
+
+    /// <summary>★(415) 行ごとの親の産業の技師の量（月あたり・求めない行〔制度と思想・この国に代表の生産者が居ない・稼働中の州が無い〕は NaN）。読むだけ＝判定が読む量と同じ <see cref="Score"/> の中の値（番人と計器が読む）。</summary>
+    internal static double[] ParentEngineersByRow(World w, WorldView? view, Coefficients c)
+    {
+        var a = new double[Catalog.Discoveries.Length];
+        Score(w, view, c, includeKnown: true, null, null, a, out _, out _);
+        return a;
+    }
+
+    /// <summary>★(415) 技師の比∈[0,1]＝<c>A÷(A＋A0×d)</c>（A0＝<see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/>・d＝(行の年代−1780)÷10）。d が0以下の行は1（今の <c>diff</c>＝0 の比1と同じ）。
+    /// 技師が居ない（A が0・NaN）産業は0。A に対して単調に増え1を超えない・同じ A なら d が大きいほど小さい（天井も床も作らない＝飽和の形）。否定形で NaN は0へ。</summary>
+    internal static double EngineerFactor(int row, double a, Coefficients c)
+    {
+        double d = (Catalog.Discoveries[row].Decade - Catalog.DiscoveryBaseDecade) / 10.0;
+        if (!(d > 0)) return 1.0;
+        if (!(a > 0)) return 0.0;
+        double f = a / (a + c.DiscoveryEngineerHalfPerMonth * d);
+        return !(f > 0) ? 0.0 : f > 1.0 ? 1.0 : f;
+    }
+
     public static bool Known(bool[]? known, int row) => row >= 0 && known is not null && row < known.Length && known[row];
 
     /// <summary>★世界のゲート（2026-10-01 (150)・設計 §0-A の 5 の残り）＝財に紐づかない産業の門（工場の蒸気動力・鉄道・近代港湾・冷蔵）も発見の表の行で開く
@@ -53,6 +106,8 @@ public static class Discovery
     public static readonly int SteamRow = Catalog.DiscoveryRowOf(Catalog.LaborId, "蒸気機関");
     public static readonly int LocomotiveRow = Catalog.DiscoveryRowOf(Catalog.LocomotiveId, "");
     public static readonly int ReeferRow = Catalog.DiscoveryRowOf(Catalog.RefrigeratorId, "");
+    /// <summary>★(415) 並存レシピ〈合成染料〉（アニリン1856）の行。旗 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/> が0以下のあいだは全ての国が開幕で解禁済みにする（旧＝行が無く1783年から作れた＝今と1ビットも違わない互換）。</summary>
+    public static readonly int SyntheticDyeRow = Catalog.DiscoveryRowOf(Catalog.DyeId, "合成染料");
     public static bool SteamPower(bool[]? known) => Known(known, SteamRow);
     public static bool RailTransport(bool[]? known) => Known(known, LocomotiveRow);
     public static bool Refrigeration(bool[]? known) => Known(known, ReeferRow);
@@ -368,12 +423,13 @@ public static class Discovery
 
     /// <summary>点数の本体（読むだけ）。平滑化した値段（<see cref="World.DiscoveryPrice"/>）は判定の段の頭で <see cref="AdvancePrice"/> が四半期に1歩進める（画面・計器・判定はここで読むだけ）。</summary>
     private static Terms[] Score(World w, WorldView? view, Coefficients c, bool includeKnown, double[]? realPrice = null, (double Replaced, double Cost)[]? ratioOut = null)
-        => Score(w, view, c, includeKnown, realPrice, ratioOut, out _, out _);
+        => Score(w, view, c, includeKnown, realPrice, ratioOut, null, out _, out _);
 
     /// <summary>★(171) 点数の本体＋その判定の値段の帳と国の需要を返す（産地の発見の判定 <see cref="SiteTerms"/> が同じ帳を読む＝発見の表と同じ値段の読み方・1回の判定で帳を2度作らない）。
     /// 稼働中の州が無い国は帳を作らない（null）。</summary>
+    /// <param name="engineerOut">★(415) 計器だけ＝行ごとの親の産業の技師の量（月あたり・求めない行は NaN）。旗が0でも書く（census）。</param>
     private static Terms[] Score(World w, WorldView? view, Coefficients c, bool includeKnown, double[]? realPrice, (double Replaced, double Cost)[]? ratioOut,
-                                 out PriceBook? bookOut, out double[]? demOut)
+                                 double[]? engineerOut, out PriceBook? bookOut, out double[]? demOut)
     {
         bookOut = null; demOut = null;
         double[]? contact = view?.Contact;
@@ -387,6 +443,9 @@ public static class Discovery
         var prod = new double[ng]; var imp = new double[ng]; var dem = new double[ng]; var pxd = new double[ng];   // imp＝州の輸入−輸出の和＝国の純輸入（同じ国の州どうしの積み出しは打ち消す）
         var canMake = new bool[ng];
         var rep = new Producer?[nr];
+        bool engOn = c.DiscoveryEngineerHalfPerMonth > 0;   // ★(415) 技術力を技師の量から求める旗（半分点を兼ねる・0以下＝今の式）
+        double[]? eng = engOn || engineerOut is not null ? new double[ng] : null;   // 財ごとの高度労働力の雇用（月あたり）＝旗が正か計器のときだけ
+        if (engineerOut is not null) System.Array.Fill(engineerOut, double.NaN);
         var recipes = new List<Producer>?[ng];   // ★(165) 財ごとの、この国で門の開いたレシピ（レシピの名前ごとに最初の生産者）＝市場の値段が無い財を作る費用で読む（PriceBook）
         int nAct = Aggregate(w, ng, prod, imp, dem, pxd);
         double maxInd = 0;   // 州の最大工業化度（株式会社の必要性＝立っている工業資本の大きさ・旧の閾値と同じ量）
@@ -400,6 +459,7 @@ public static class Discovery
                 if (row >= 0 && rep[row] is null) rep[row] = p;
                 if (p.GoodId < 0 || p.GoodId >= ng || !(Gate(r, p) > 0)) continue;
                 canMake[p.GoodId] = true;
+                if (eng is not null) eng[p.GoodId] += EngineerUse(p);   // ★(415) 門の開いた生産者が雇った高度労働力（月あたり）を財ごとに足す
                 var lr = recipes[p.GoodId] ??= new List<Producer>(2);
                 bool seen = false; foreach (var q in lr) if (q.RecipeName == p.RecipeName) { seen = true; break; }
                 if (!seen) lr.Add(p);
@@ -464,9 +524,14 @@ public static class Discovery
             var rp = rep[row];
             if (!spread && rp is null) continue;   // この国に代表の生産者が居ない行（その国では使えないレシピ）
             // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
-            double diff = Difficulty(row, c);
-            double ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
-            ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+            //   ★(415) 旗 DiscoveryEngineerHalfPerMonth が正のとき、製法と新製品と新兵器の行は技術水準を読まない（下の技師の比 EngineerFactor）。制度と思想の行は今のまま（親の産業が定義できない・事前登録 [3-3]）。
+            double ratio = 1.0;
+            if (spread || !engOn)
+            {
+                double diff = Difficulty(row, c);
+                ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+                ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+            }
             if (spread)
             {
                 double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis);
@@ -488,7 +553,9 @@ public static class Discovery
                 wSum += wt; wDom += wt * dom;
             }
             double push = wSum > 0 ? wDom / wSum : 1.0;
-            double tech = TermMax * ratio * push;
+            double aRow = eng is not null ? ParentEngineers(row, rp!, eng) : double.NaN;   // ★(415) 親の産業の技師の量（旗が正か計器のときだけ求める）
+            if (engineerOut is not null && row < engineerOut.Length) engineerOut[row] = aRow;
+            double tech = TermMax * (engOn ? EngineerFactor(row, aRow, c) : ratio) * push;
             // 必要性＝70×強度÷(強度＋分野の半分点)（設計 §1A-4）
             double s = 0, half = 1;
             switch (d.Field)
@@ -862,7 +929,14 @@ public static class Discovery
         }
         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
         var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
-        var terms = Score(w, view, c, includeKnown: false, null, ro, out var book, out var dem);
+        var eo = Instruments.On ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
+        var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
+        if (eo is not null && Calendar.QuarterIndexOfTick(w.Tick) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
+        {
+            var all = ParentEngineersByRow(w, view, c);
+            for (int row = 0; row < all.Length && row < known.Length; row++)
+                if (!double.IsNaN(all[row])) Instruments.EngineerRow("T", w, row, all[row], known[row] ? double.NaN : terms[row].Tech, known[row]);
+        }
         if (ro is not null)   // (320) 計器だけ＝まだ解禁していない蒸気機関と機関車の軌道（四半期ごと）
         {
             if (!known[SteamRow]) Instruments.DiscoveryTrace(w, SteamRow, terms[SteamRow], ro[SteamRow]);
@@ -873,6 +947,7 @@ public static class Discovery
             if (known[row] || !(terms[row].Score >= GateScore)) continue;
             known[row] = true;
             if (ro is not null) Instruments.DiscoveryEvent(w, row, terms[row], ro[row]);   // (320) 計器だけ
+            if (eo is not null && !double.IsNaN(eo[row])) Instruments.EngineerRow("E", w, row, eo[row], terms[row].Tech, false);   // (415) 計器だけ
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
@@ -910,7 +985,7 @@ public static class Discovery
     /// <param name="partsOut">計器だけ＝[0] 人の数 N・[1] その財の値段・[2] その国で今のレシピで掘る費用（立たない値は <see cref="NoPrice"/>）。</param>
     public static Terms SiteTerms(World w, Region r, Producer p, Coefficients c, double[]? realPrice = null, WorldView? view = null, double[]? partsOut = null)
     {
-        Score(w, view ?? w.LastDiscoveryView, c, includeKnown: false, realPrice, null, out var book, out var dem);
+        Score(w, view ?? w.LastDiscoveryView, c, includeKnown: false, realPrice, null, null, out var book, out var dem);
         if (book is null || dem is null) return default;   // 稼働中の州が無い国（判定もしない）
         return SiteTerms(w, r, p, c, book, dem, partsOut);
     }
@@ -927,7 +1002,7 @@ public static class Discovery
             if (any) break;
         }
         if (!any) return;
-        Score(w, w.LastDiscoveryView, c, includeKnown: false, null, null, out var book, out var dem);
+        Score(w, w.LastDiscoveryView, c, includeKnown: false, null, null, null, out var book, out var dem);
         if (book is null || dem is null) return;
         var parts = new double[3];
         foreach (var r in w.Regions)
@@ -946,9 +1021,13 @@ public static class Discovery
     private static Terms SiteTerms(World w, Region r, Producer p, Coefficients c, PriceBook book, double[] dem, double[]? partsOut)
     {
         var site = Catalog.Sites[p.SiteRow];
-        double diff = DifficultyOf(site.Decade, c);
-        double ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
-        ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+        double ratio = 1.0;   // ★(415) 旗 DiscoveryEngineerHalfPerMonth が正なら比を外し人の厚み N÷(N＋N0) だけ（技術水準を読まない）
+        if (!(c.DiscoveryEngineerHalfPerMonth > 0))
+        {
+            double diff = DifficultyOf(site.Decade, c);
+            ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+            ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+        }
         double people = 0;
         foreach (var q in r.Pops)
         {

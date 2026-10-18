@@ -22,6 +22,9 @@ public static class Calendar
     // ⚠名前は「何あたりの量を何あたりへ直すか」＝割り算と掛け算を裸で書かない。中身は呼び元が書いていた式そのまま（1回の除算か乗算＝丸めを変えない）。
     // ⚠合成するときは1本ずつ通す（PerYearToPerMonth(PerQuarterToPerYear(x)) は x×4÷12 であって x÷3 とビット一致するとは限らない）。
     // ⚠流れ（円/月）にも率（/月）にも同じ関数を使う＝掛け算と割り算の向きが同じため。在庫（残高）は換算しない（月と年を掛け割りしない）。例外は <see cref="OneMonthOf"/>＝1か月分の流れを在庫の型へ直す1本（Pop の月末の精算が貯蓄へ足す所・掛け算も丸めも無い）。⚠double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock のコンストラクタ）は型で守っていない（(251) 反証役 vm#1）。
+    /// <summary>★(415) 暦の日（Tick）→開始からの四半期の通し番号（計器の間引き用）。量の換算ではない（率・流れの換算の関数とは別）。</summary>
+    public static int QuarterIndexOfTick(long tick) => (int)(tick / DaysPerQuarter);
+
     public static double PerYearToPerMonth(double perYear) => perYear / MonthsPerYear;
     public static double PerMonthToPerYear(double perMonth) => perMonth * MonthsPerYear;
     public static double PerQuarterToPerMonth(double perQuarter) => perQuarter / MonthsPerQuarter;

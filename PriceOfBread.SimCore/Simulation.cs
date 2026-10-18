@@ -214,6 +214,8 @@ public sealed class Simulation
             if (row < 0) throw new System.InvalidOperationException($"開幕の既知の発見「{name}」は発見の表に無い（world.json の knownDiscoveries）");
             World.Discovered[row] = true;
         }
+        // ★(415) 合成染料の行の互換：技師の量から技術力を求める旗（DiscoveryEngineerHalfPerMonth）が0以下のあいだは全ての国が開幕で解禁済み（行が無かった旧と同じ＝1783年から作れる）。正なら発見で開く。
+        Discovery.SeedCompatRows(World);
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
         World.SetMilitarySpending(new Share(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget)),
@@ -1813,7 +1815,7 @@ public sealed class Simulation
                 double q = pr.Output * pr.Scale;
                 if (!(q > 0)) continue;
                 if (pr.RecipeName == "職人") { artOut[pr.GoodId] += q; oldOut[pr.GoodId] += q; oldName[pr.GoodId] ??= "職人"; }
-                else if (pr.DiscoveryRow >= 0) { newOut[pr.GoodId] += q; newName[pr.GoodId] ??= pr.RecipeName; }
+                else if (pr.DiscoveryRow >= 0 && !(pr.DiscoveryRow == Discovery.SyntheticDyeRow && !(World.Coef.DiscoveryEngineerHalfPerMonth > 0))) { newOut[pr.GoodId] += q; newName[pr.GoodId] ??= pr.RecipeName; }   // ★(415) 旗0の合成染料は行が無かった旧と同じ分類（従来の製法）
                 else { oldOut[pr.GoodId] += q; oldName[pr.GoodId] ??= (pr.RecipeName.Length > 0 ? pr.RecipeName : "従来の製法"); }
             }
             for (int g = 0; g < nGoods; g++)
