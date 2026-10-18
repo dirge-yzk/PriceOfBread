@@ -61,7 +61,7 @@ public class CalendarTests
         ["Instruments.cs"] = 1,   // 計器の月の添字（日→月）
         ["MultiNationSim.cs"] = 3,   // 月の添字・外交の月の通し番号・残部の再併合の期間（年数→四半期数）
         ["Privileges.cs"] = 1,   // 年の指数平均を月で畳む刻み（1/12 年）
-        ["SelfPlay.cs"] = 1,   // 10 年の窓（四半期数）
+        ["SelfPlay.cs"] = 2,   // 10 年の窓（四半期数）・建設期間（四半期数→日数＝NewFacilityOutlayPerMonth の工賃の式〔BuildFactory と同じ重複〕・(400)）
         ["Simulation.cs"] = 2,   // 収穫の年の添字・外交の月の通し番号
         ["World.cs"] = 3,   // 建設期間（四半期数→日数・月数）
     };

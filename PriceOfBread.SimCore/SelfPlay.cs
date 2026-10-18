@@ -1159,6 +1159,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
         //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
         bool relax = w.Coef.AiBuildGuardRelax > 0;
+        bool outlayGate = w.Coef.OpeningFiscalAlign > 0 && w.Coef.OpeningFiscalAlign != 2;   // ★(400) 着工しようとする工事の月の出費も上限と比べる（下の 2 か所）。旗 1〔両方〕か 3〔門だけ〕のとき。0〔旧〕・2〔段だけ〕では走らない
         if (relax ? !(w.FiscalFundingRatio.Value >= 1) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
         // ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
         //   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
@@ -1182,6 +1183,7 @@ public sealed class UtilityAgent : INationAgent
                 }
                 int pw = Math.Max(0, pr0.StateTarget - World.StateUnits(pr0, w.Coef));
                 pendingWill += pw;
+                if (outlayGate && pw > 0 && pr0.ConstructionLeft <= 0) { double e0 = NewFacilityOutlayPerMonth(w, rg0, pr0); monthlyBuild += e0 > 0 ? e0 : 0; }   // ★(400) 旗＞0：立てた意志がまだ着工していない（建材の採算などで拒まれ、月次の再挑戦 StepStateTargets を待つ）工事は、これから払う月の出費の見積りを数える（旧は着工した工事だけ数え、拒まれた意志の出費は上限に現れない＝英は Q0 に 31 州へ意志を立て、月次の再挑戦が上限の約 3 倍の工事を着工した）
                 if (pendingRegion is not null) pendingRegion[ri0] += pw;
             }
         }
@@ -1266,7 +1268,7 @@ public sealed class UtilityAgent : INationAgent
             if (bestR >= 0)
             {
                 var bp = World.FindFactory(w.Regions[bestR], bestG);   // SetStateTarget が掴むのと同じ1本（代替レシピの取り違えでカウンターが噛み合わない事故を作らない）
-                if (bp is not null) w.SetStateTarget(bestR, bestG, World.StateUnits(bp, w.Coef) + 1);
+                if (bp is not null && !(outlayGate && !(monthlyBuild + NewFacilityOutlayPerMonth(w, w.Regions[bestR], bp) <= outlayCap))) w.SetStateTarget(bestR, bestG, World.StateUnits(bp, w.Coef) + 1);   // ★(400) 旗＞0：新しい工事の月の出費を足して上限を超えるなら押さない（否定形＝NaN も押さない側）
             }
             return;
         }
@@ -1279,13 +1281,27 @@ public sealed class UtilityAgent : INationAgent
             if (monthlyBuild > outlayCap) break;
             var bp = World.FindFactory(w.Regions[ri], bestGr[ri]);
             if (bp is null) continue;
+            double est = outlayGate ? NewFacilityOutlayPerMonth(w, w.Regions[ri], bp) : 0;
+            if (outlayGate && !(monthlyBuild + est <= outlayCap)) continue;   // ★(400) 旗＞0：今ある工事（と未着工の意志）の月の出費に、これから立てる工事の月の出費を足して上限を超えるならこの州は飛ばす（continue＝後ろの州の小さい工事は塞がない・否定形＝NaN も飛ばす）
             w.SetStateTarget(ri, bestGr[ri], World.StateUnits(bp, w.Coef) + 1);
             if (bp.ConstructionLeft > 0)
             {
                 monthlyBuild += Calendar.PerDayToPerMonth(bp.ConstructionPayPerDay);
                 monthlyBuild += World.ConstructionMaterialPerMonth(w.Regions[ri], bp, w.Coef);
             }   // その月に始まった工事だけを律速へ（拒まれた月は目標が残り月次で再挑戦＝従来どおり）
+            else if (outlayGate) monthlyBuild += est > 0 ? est : 0;   // ★(400) 旗＞0：着工を拒まれた意志も月次の再挑戦で着工する＝見積りを足す（次の州の判断が見る）
         }
+    }
+
+    /// <summary>★(400) これから着工する国営工場の工事の月の出費＝工賃（<see cref="World.BuildFactory"/> と同じ式）＋素材（着工後の律速の加算と同じ <see cref="World.ConstructionMaterialPerMonth"/>）。
+    /// 着工の門（<see cref="TryBuildFacility"/>・旗 OpeningFiscalAlign＞0）が、今ある工事の月の出費 monthlyBuild に足してから上限と比べる。
+    /// ⚠工賃の式は BuildFactory／CanBuildFactory と同じテキストの重複（3 つ目）＝恒等の証明を増やさないため関数にくくり出していない。着工後の加算（ConstructionPayPerDay＝この payPerDay）と値が同じことは番人が見る。</summary>
+    internal static double NewFacilityOutlayPerMonth(World w, Region rg, Producer bp)
+    {
+        var spec = Catalog.FactorySpec(bp.GoodId);
+        double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
+        double payPerDay = (1.0 - w.Coef.FactoryMaterialFrac.Value) * spec.Cost / days;
+        return Calendar.PerDayToPerMonth(payPerDay) + World.ConstructionMaterialPerMonth(rg, bp, w.Coef);
     }
 
     /// <summary>巨大建造物の着工（2026-08-02）。★作者裁定＝**着工はプレイヤーの判断**とし、AIの挙動は動詞の導入前と同じにする。
@@ -1500,6 +1516,7 @@ public sealed class UtilityAgent : INationAgent
             else if (w.Treasury.Value > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
             else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }
+        else if (w.OpeningStateMonopolyTier > 0 && w.Coef.OpeningFiscalAlign > 0 && w.Coef.OpeningFiscalAlign != 3) stateMonopTier = Math.Max(stateMonopTier, w.OpeningStateMonopolyTier);   // ★(400) 助走の間は専売の開幕の段（world.json・旗 OpeningFiscalAlign＞0）を保つ＝教義の段は床のまま max（助走の始めに置いた段を助走の各四半期の教義が下げて消さない）。規則なしの国・旗 0 ではこの行は走らない
         // ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。
         //   ⚠旧はここが w.StateMonopolyMargins[] へ直書きしていた（天井の自動導出を避けるための意図的な迂回）＝P5の破れ。天井が消えたので迂回の理由も消えた。
         if (Instruments.On) Instruments.MonopolyDecision(w, w.StateMonopolyTier, Math.Clamp(stateMonopTier, 0, World.StateMonopolyMaxTier));   // 計器（読むだけ・(265)）：専売の段（今の段→置く段・Clamp は SetStateMonopolyTier と同じ）
