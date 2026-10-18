@@ -727,7 +727,7 @@ public sealed class UtilityAgent : INationAgent
             //     閉鎖へは届かず、閉鎖の下では必ず「開放へ戻す」線を下回った＝1783年の鎖国が1〜2四半期で開国した（(75) §5）。
             //   ★開く向きはここに書かない＝流入の圧力が無い間は現状維持（PolicyPreferences の「流入ゼロの国では争点にならない」と同じ読み）。
             //     開くのは資本の要求（危機の要求＝この後の Parliament.TargetCrisisDemands／内戦の講和＝Politics.ConcedeToFaction）か外圧だけ。
-            //     外圧＝不平等条約で港を開かされていること（TreatyPortsGranted＞0＝講和が積む既存の数・南京条約1842／安政条約1858／江華島条約1876）。
+            //     外圧＝不平等条約で港を開かされていること（World.UnequalTreatyInForce＝港州の外国持分が付与の半分以上・南京条約1842／安政条約1858／江華島条約1876）。
             //   どの向きも StepLawToward＝法律タブ（LawRowVM）と同じ Government.GateInfo を通る。
             double inflowRate = w.TotalPopulation > 1e-9 ? System.Math.Max(0, w.LastImmigration) / w.TotalPopulation : 0;
             double unemployment = PolicyPreferences.AvgUnemployment(w);   // 唯一定義（旧＝口だけ複製を2026-09-11 #13 で畳んだ）

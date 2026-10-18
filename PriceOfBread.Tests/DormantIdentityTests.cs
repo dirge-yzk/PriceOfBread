@@ -47,16 +47,7 @@ public class DormantIdentityTests
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
-        "RuleSharesEnabled",            // 支配度の一般化 段1＝州の4区分の積分（観測のみ）＝0で従来
         "ProjectionUsesLand",           // 支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
-        "RuleSharesReach",              // 支配度 段4＝公共財の到達を国家区分に比例（教育の財源率・年金）
-        "RuleSharesTaxBase",            // 支配度 段3＝課税・徴兵ベースを区分へ（仲介者の取り分は貴族へ）
-        "ForeignRuleFromTreaty",        // 支配度 段5＝条約港→外国持分（観測のみ）
-        "RuleLocalFromRights",          // ★(399) ①在地の目標を仲介者の権利の残高（官僚制度法と土地改革の max）へ＝農奴解放の法から切り離す。事前登録 measurements/rs_20261018_prereg.txt
-        "RuleUngovFromReach",           // ★(399) ②無統治の目標を (1−治安)×(1−首都からの到達) へ
-        "ColonyRuleFromData",           // ★(399) ④昇格する植民地の州も places.json の rule（開始時のデータ）を通す
-        "TaxLeakByRule",                // ★(399) ⑤a 汚職の財政の漏れを消す（税の経路は支配度の区分）
-        "LawReachByRule",               // ★(399) ⑤b 法の浸透の門を国家の区分の人口加重の平均へ
         // ★MusketRecipeEnabled（前期の軍需レシピ）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
         "SilverRushEnabled",            // 銀の後期産地＝シルバーラッシュ（0＝解禁も富鉱化もしない）
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝鉱脈で割らない＝厳密恒等

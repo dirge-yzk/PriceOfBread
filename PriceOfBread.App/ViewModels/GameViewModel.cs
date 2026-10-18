@@ -48,7 +48,7 @@ public partial class GameViewModel : ViewModelBase
     private System.Collections.Generic.Dictionary<(long, long), string>? _prevWars;   // 戦争の開戦/終戦エッジ（Id対→表示名）
     private void Annal(string icon, string text) => _annals.Add(new AnnalRow(EventDate(), icon, text));
     // 自国の転機通知の前回値（法律・税解禁・与党・金本位・ランク・疫病・制度・デフォルト）
-    private Suffrage _pfSuf; private EducationLaw _pfEdu; private CensorshipLaw _pfCen; private LaborUnionLaw _pfUni; private WorkHours _pfWh; private int _pfTreatyPorts;   // 条約港の残数（自然失効＝減少の通知用・案A 2026-08-16）
+    private Suffrage _pfSuf; private EducationLaw _pfEdu; private CensorshipLaw _pfCen; private LaborUnionLaw _pfUni; private WorkHours _pfWh; private bool _pfTreatyPortInForce;   // 条約港が効いているか（自然失効＝真から偽への通知用・案A 2026-08-16・(399) で港州の外国持分から読む）
     private bool _pfChild; private WomenRightsLaw _pfWomenRights; private ReformLevel _pfCorn, _pfLand, _pfSerf, _pfPen;   // ★女性の権利（統合法・2026-08-10）＝旧・財産権/参政権の2boolを1段へ
     private SocialSecurityLaw _pfSS;   // 社会保障法の段（弧3-3・2026-07-24＝段の変わり目をニュースに残す）
     private ColonialSuffrageLaw _pfColSuf; private MigrantNativeSuffrageLaw _pfMigSuf;   // 参政権の範囲2法（2026-08-16）

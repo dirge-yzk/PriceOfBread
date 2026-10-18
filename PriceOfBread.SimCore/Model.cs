@@ -1070,13 +1070,13 @@ public sealed class Region
     //   保有開始年の一次データは world.json の heldSince（ProvinceSpec.HeldSince）＝構築時に格と支配度の初期値へ1回だけ使う。移転の付け直しは Territory.Rehome（割譲は支配度を動かさない・独立の確定で1）。
     public double Dominance = 1.0;                    // ★E-06 支配度（ストック・0..1・2026-09-05）：Politics.CheckSecession が毎四半期 (引き留め−離脱圧力)×DominanceSpeed で積分。初期値＝保有年数÷DominanceMatureYears。DominanceIsStock>0 のとき 0 で独立
     // ★支配度の一般化（作者採用2026-09-06・段1＝器と観測のみ）：州の4区分（0=国家・1=在地権力・2=外国・3=無統治・合計1・保存対象）。
-    //   初期値＝州データ（ProvinceSpec.Rule）→ 国既定（NationConfig.Rule）→ 無ければ 国家1.0（現行と同じ挙動）。RuleSharesEnabled=0 では積分せず誰も読まない。
+    //   初期値＝州データ（ProvinceSpec.Rule）→ 国既定（NationConfig.Rule）→ 無ければ 国家1.0（現行と同じ挙動）。(399) で点火：Politics.CheckSecession が毎四半期 DominanceSpeed で目標へ寄せる。
     public double[] Rule = [1.0, 0.0, 0.0, 0.0];
-    public double[] RuleInit = [1.0, 0.0, 0.0, 0.0];   // 構築時の写し（在地の目標＝RuleInit[1]×現在の未解放度÷初期の未解放度＝法が動いた分だけ動く）
+    public double[] RuleInit = [1.0, 0.0, 0.0, 0.0];   // 構築時の写し（在地の目標＝RuleInit[1]×仲介者の権利の残高 Privileges.IntermediaryDegree）
     // ★支配度 段5（§6/§6d・2026-09-07 器）：外国区分の「誰の」持分＝主体つきの並列配列（鍵＝Power.BaseName＝不変・辞書は使わない＝セーブ形式）。
-    //   合計が Rule[2]（外国）の目標。ForeignRuleFromTreaty=0 では誰も書かない＝空＝厳密恒等。段8で Dependency/割譲/植民地をこの読み出しへ畳む。
+    //   合計が Rule[2]（外国）の目標。書き手＝講和の条約港の付与（Diplomacy）。段8で Dependency/割譲/植民地をこの読み出しへ畳む。
     // ★支配度 §7（州パネル・2026-09-07）：国家区分の年次リング（11本＝今年を書いた後の最古が**ちょうど10年前**。10本だと9年前になる＝レビュー是正）。
-    //   RuleSharesEnabled>0 のときだけ Politics が書く＝休眠で誰も触らない。負値＝未記録。
+    //   Politics.CheckSecession が書く。負値＝未記録。
     public double[] RuleStateYears = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
     public int RuleStateHead;          // 次に書く位置（リング）
     public int RuleStateLastYear = -1; // 最後に書いた年（年に1回）

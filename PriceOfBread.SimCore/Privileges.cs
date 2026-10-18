@@ -22,7 +22,7 @@ public static class Privileges
     /// <summary>領主権の残高＝農奴解放の未解放度（なし1／限定0.5／全面0）＝PowerShares.PrivilegeIntact と同じ物差し。
     /// ★農民の移動の自由（入植の送り元・社会移動の農村の池・農村→都市の流れ）は 1−これ（2026-09-28 処理の一元化 段1＝旧は同じ switch の写しが6箇所）。</summary>
     public static double SeigneurialDegree(World w) => w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
-    /// <summary>★(399) 仲介者（徴税請負・藩・ザミーンダール・土司・領主の裁判権）が握る権利の残高∈[0,1]＝在地の区分の目標を決める量（<c>RuleLocalFromRights</c>）。
+    /// <summary>★(399) 仲介者（徴税請負・藩・ザミーンダール・土司・領主の裁判権）が握る権利の残高∈[0,1]＝在地の区分の目標を決める量（<c>Politics.CheckSecession</c>）。
     /// 官職と徴税の私有〔<see cref="EstateDegree"/>＝官僚制度法 猟官1／資格任用0.5／専門0＝台帳の 既得の官職〕と地代を取る権利〔土地改革の法 なし1／限定0.5／全面0〕の大きい方＝どちらかが残る限り仲介者の権利は残る。
     /// 農奴解放の法は読まない（人の身分の法であって州の支配の法ではない・作者 2026-10-16）。開幕は全ての国で土地改革＝なし＝1.0。純関数・新しい状態なし。</summary>
     public static double IntermediaryDegree(World w)

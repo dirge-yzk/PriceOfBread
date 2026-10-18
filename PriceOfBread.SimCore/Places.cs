@@ -77,7 +77,7 @@ public static class Places
             _ => SimCore.Terrain.Plain,
         } : SimCore.Terrain.Plain;
 
-    /// <summary>★(399) 名前→開始時の支配の4区分（植民地の州の rule のデータ・土地の側）。無い・4 要素でない・合計が 1 でない行は null＝呼び手は旧の既定へ倒す。<c>ColonyRuleFromData&gt;0</c> のときだけ呼ばれる。</summary>
+    /// <summary>★(399) 名前→開始時の支配の4区分（植民地の州の rule のデータ・土地の側）。無い・4 要素でない・合計が 1 でない行は null＝呼び手は一律の在地 1.0（間接統治）へ倒す。昇格する植民地の州（<c>Simulation.PromoteColonyToRegion</c>）が読む。</summary>
     public static double[]? RuleOf(string name)
         => ByName.TryGetValue(name, out var p) && p.Rule is { Length: 4 } r && r[0] >= 0 && r[1] >= 0 && r[2] >= 0 && r[3] >= 0 && System.Math.Abs(r[0] + r[1] + r[2] + r[3] - 1.0) < 1e-9
             ? (double[])r.Clone() : null;

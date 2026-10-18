@@ -111,7 +111,7 @@ def main():
                 e[1] = max(e[1], y)
                 e[2] = max(e[2], fo)
                 e[3].add(si)
-            if r['treatyPortsGrantedCount'] != '0':
+            if r.get('treatyPortsGrantedCount', '0') != '0':   # (399) の採用で列を消した＝新しい出力には無い（旧の腕 A〔measurements/rs399_20261018_*〕の出力にはある）
                 e = port_old.setdefault(n, [y, set()])
                 e[0] = min(e[0], y)
                 e[1].add(si)
@@ -350,7 +350,7 @@ def main():
         for (si, q, nn), r in nat_rows.items():
             if nn != n or qcount[(si, n)] < 0.9 * maxq:
                 continue
-            a.append(max(0.0, 1.0 - 0.25 * f(r['treatyPortsGrantedCount'])))
+            a.append(max(0.0, 1.0 - 0.25 * f(r.get('treatyPortsGrantedCount', '0'))))
             b.append(1.0 - f(r['portForeignShare']))
         fm = lambda v: ('%.3f/%.2f' % (sum(1 for x in v if x < 0.9999) / len(v), min(v))) if v else '-'
         P('  %s\tA式 %s\tB式 %s' % (n, fm(a), fm(b)))

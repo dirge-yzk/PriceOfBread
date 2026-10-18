@@ -505,52 +505,27 @@ public sealed class Diplomacy
     // NationalScore の相対閾値で動的分類（数に限りなし）。抽象勢力(Nation==null)は常に弱小。四半期(月次)に再計算しキャッシュ。
     // ランクはラベルのみ＝同盟・戦争・従属は不変。アクションの可否（同ランク間の緊張上下/同盟・列強→弱小の植民地化）に使う。
     /// <summary>条約港の自然失効（案A・作者裁定2026-08-16）：不平等条約は「力の差が続く間だけ有効」。
-    /// TreatyPortLapseYears 年ごとの全国一斉検査（無状態＝monthの剰余で判定・クールダウンのフィールドを作らない）で、
-    /// 国力（軍事+生産＝NationalScoreの既存成分）が最強列強比 TreatyPortLapseRatio 以上の国の条約港が1港ずつ風化する
-    /// ＝日本の条約改正（1899/1911＝近代化を背景に条約が消えた）が動詞なしで創発。AI対称は構造（同じ検査が全国に走る）。
-    /// 失効は年代記＋（自国なら）通知のみ＝緊張は上げない（最小構成・作者裁定の「例外を作らない」）。
-    /// TreatyPortLapseRatio=0.5点火（2026-08-16）。0なら1命令も走らない厳密恒等（OFF対照はPOB_COEF）。</summary>
+    /// ★(399) 条約港は個数の機構でなく州の外国区分（講和で敗者の最大の港州に積まれる勝者の持分）で表す（作者 2026-10-16：条約港は廃止・州の支配度で表現）。
+    /// 外国持分の風化＝連続形（刻みも一斉検査も無し）：対最強列強の国力比（軍事+生産＝NationalScoreの既存成分）が TreatyPortLapseRatio に近づくほど速く
+    /// DominanceSpeed（四半期あたり）で0へ寄る＝日本の条約改正（1899/1911＝近代化を背景に条約が消えた）が動詞なしで創発。AI対称は構造（同じ検査が全国に走る）。
+    /// この関数は毎月呼ばれるので 四半期の月（month % MonthsPerQuarter == 0）だけ風化させる（旧の器は毎月 DominanceSpeed を掛けて 3 倍速だった）。
+    /// 失効は年代記のみ＝緊張は上げない（最小構成・作者裁定の「例外を作らない」）。TreatyPortLapseRatio が 0 以下なら風化しない。</summary>
     internal void TreatyPortLapse(Coefficients c, int month)
     {
         if (c.TreatyPortLapseRatio.Value <= 0) return;
-        // ★支配度 段5（§6・2026-09-07 器）：外国持分の風化＝連続形（刻みも一斉検査も無し）。対最強列強の国力比が TreatyPortLapseRatio に近づくほど速く
-        //   DominanceSpeed で0へ寄る（持続条件＝勝者の投射は段8）。ForeignRuleFromTreaty=0 では持分が無い＝1命令も走らない。
-        //   ★(399) 単位の是正：DominanceSpeed は四半期あたり＝この関数は毎月呼ばれるので 四半期の月（month % MonthsPerQuarter == 0）だけ風化させる（旧の器は点火すると 3 倍速だった）。
-        //   旗 > 0 では個数の枝（4 年ごとの一斉検査）を走らせずここで戻る（旗 0 は下へ落ちて旧のまま）。
-        if (c.ForeignRuleFromTreaty > 0)
-        {
-            if (month % Calendar.MonthsPerQuarter != 0) return;
-            double topC = 0;
-            foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, NationalScore.Military(gw) + NationalScore.Wealth(gw));
-            if (topC > 1e-9)
-                foreach (var p in Powers)
-                {
-                    if (p.Nation is not { } w) continue;
-                    double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / topC;
-                    double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
-                    if (!(fade > 0)) continue;
-                    foreach (var r in w.Regions)
-                        for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
-                }
-            return;
-        }
-        int spanMonths = System.Math.Max(1, (int)Calendar.YearsToMonths(c.TreatyPortLapseYears));
-        if (month <= 0 || month % spanMonths != 0) return;   // month0（開幕）は検査しない＝初期盤面に条約港は無く、開幕跳躍も作らない
-        double top = 0;
-        foreach (var p in Powers)
-            if (p.Nation is { } gw && RankOf(p) == PowerRank.Great)
-                top = System.Math.Max(top, NationalScore.Military(gw) + NationalScore.Wealth(gw));
-        if (top <= 1e-9) return;
-        foreach (var p in Powers)
-        {
-            if (p.Nation is not { } w || w.TreatyPortsGranted <= 0) continue;
-            double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / top;
-            if (ratio >= c.TreatyPortLapseRatio.Value)
+        if (month % Calendar.MonthsPerQuarter != 0) return;
+        double topC = 0;
+        foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, NationalScore.Military(gw) + NationalScore.Wealth(gw));
+        if (topC > 1e-9)
+            foreach (var p in Powers)
             {
-                w.TreatyPortsGranted--;
-                Log.Add($"{_year} {p.Name}の条約港が失効（残{w.TreatyPortsGranted}港・対最強列強の国力比{ratio:P0}）");   // 力の均衡が不平等条約を風化させた
+                if (p.Nation is not { } w) continue;
+                double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / topC;
+                double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
+                if (!(fade > 0)) continue;
+                foreach (var r in w.Regions)
+                    for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
             }
-        }
     }
 
     internal void ComputeRanks(Coefficients c)
@@ -3017,15 +2992,10 @@ public sealed class Diplomacy
                     && Geo.DistanceKm(wf.Latitude, wf.Longitude, lf.Latitude, lf.Longitude) > c.TreatyPortWinnerDistanceKm;
                 if (c.EnableDependency && crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
                 {
-                    // ★(399) ForeignRuleFromTreaty>0：条約港の個数の機構を使わない（TreatyPortsGranted は増えない・関税の目減りと読み手は州の外国持分から）。旗 0 は旧のまま。
-                    if (c.ForeignRuleFromTreaty > 0) Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（賠償{rep:F0}・戦勝点{absScore:0.00}）");
-                    else
-                    {
-                    dw.TreatyPortsGranted++;   // 関税自主権を1段失う（最恵国待遇で特権は全列強へ波及＝相手を選ばない）
-                    Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（第{dw.TreatyPortsGranted}港・賠償{rep:F0}・戦勝点{absScore:0.00}）");
-                    }
-                    // ★支配度 段5（§6・2026-09-07 器）：条約港＝敗者の最大の港州に勝者の持分（外国区分）を積む。個数の式（TreatyPortsGranted）は点火まで残す＝観測のみ。
-                    if (c.ForeignRuleFromTreaty > 0)
+                    // ★条約港の廃止（(399)・作者 2026-10-16：条約港は廃止・州の支配度で表現）：個数の機構（旧 TreatyPortsGranted）は無い。
+                    //   敗者の最大の港州に勝者の持分（外国区分）を積む＝関税の目減り（InternationalMarket.TreatyPortTariffScale）と屈辱・移民法の外圧（World.UnequalTreatyInForce）は州の外国持分から読む。
+                    //   持分は国力比で連続に風化する（TreatyPortLapse）。最恵国待遇で特権が全列強へ波及する史実は、持分を勝者ごとに足し上げ合計（上限1）で受けることで表す。
+                    Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（賠償{rep:F0}・戦勝点{absScore:0.00}）");
                     {
                         Region? port = null;
                         foreach (var r in dw.Regions)
