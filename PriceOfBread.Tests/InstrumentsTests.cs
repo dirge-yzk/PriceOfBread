@@ -24,7 +24,7 @@ public class InstrumentsTests
     //   開幕の段を持たない形〔規則なし＝教義の段が助走から決める＝旧の開幕〕へ戻す（旗の焼き込み〔405〕の後は旗でなく設定の欄で戻す）。計器が軌道を変えない・形が正しい、の確かめには開幕の財政の形は関係しない。
     private static MultiNationSim Make(ulong seed = 1789UL)
     {
-        var uk = NationConfig.Britain(); uk.OpeningStateMonopolyTier = 0;
+        var uk = NationConfig.Britain().ShallowClone(); uk.OpeningStateMonopolyTier = 0;   // ★(407) 写しに書く＝共有の世界データ（WorldData の型初期化の配列）を書き換えない（旧＝(405) は共有の英を 0 にした＝同じテストの工程の後の全ての試験の英が段なしになり、接触の内訳の番人が並びで赤になった）
         return new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent());
     }
 
@@ -1827,7 +1827,8 @@ public class InstrumentsTests
                     Assert.Equal((double)unpaidM, Col(nh, r, "unpaidBeforeDevaluationMonthsCount"));
                     if (obs > 0)
                     {
-                        Assert.True(Near(unpaidSum / obs, Col(nh, r, "unpaidBeforeDevaluationMeanShare"))); Assert.True(Near(unpaidMax, Col(nh, r, "unpaidBeforeDevaluationMaxShare")));
+                        // ★(407) 組み直しは G10 で書いた月の列（請求・払える額・借入）の引き算から＝桁落ちで 1e-10 級の誤差が乗る（合わせた木の英 Q4 で max 0.0198687497 対 列 0.01986874935・差 3.8e-10）＝月の行の照合（上の 1e-8 の絶対の線）と同じ線で比べる
+                        Assert.True(Math.Abs(unpaidSum / obs - Col(nh, r, "unpaidBeforeDevaluationMeanShare")) <= 1e-8); Assert.True(Math.Abs(unpaidMax - Col(nh, r, "unpaidBeforeDevaluationMaxShare")) <= 1e-8);
                         Assert.True(Near(devSum / obs, Col(nh, r, "devaluedToClaimMeanShare"))); Assert.True(Near(devMax, Col(nh, r, "devaluedToClaimMaxShare")));
                     }
                     Assert.True(Col(nh, r, "interestShareOver067MonthsCount") <= Col(nh, r, "interestAtLimitMonthsCount"), "仏の線を超えた月が限界に届いた月より多い");

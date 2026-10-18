@@ -1,0 +1,11 @@
+# (407) 合わせた木のテスト（Release・隔離ビルド D:/PoB_work/m407/art_suite）
+## 1 回目（木 6ca12723）：赤 2＝InstrumentsTests の 2 本（下）
+[xUnit.net 00:07:51.61]     PriceOfBread.Tests.InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される [FAIL]
+[xUnit.net 00:09:26.07]     PriceOfBread.Tests.InstrumentsTests.借入の門の周りの列が試合の月ごとの行から組み直した数に合う [FAIL]
+失敗!   -失敗:     2、合格:  1339、スキップ:     0、合計:  1341、期間: 10 m 2 s - PriceOfBread.Tests.dll (net10.0)
+  ・接触の内訳＝(405) の InstrumentsTests.Make が共有の世界データの英の OpeningStateMonopolyTier を 0 に書き換えていた＝同じ工程の後の試験の英が段なし（並びで赤・単独で緑）→ ShallowClone の写しに書く形へ直した
+  ・借入の門の周りの列＝G10 で書いた月の列の引き算から組み直す値の桁落ち（英 Q4 の max 0.0198687497 対 列 0.01986874935）→ 月の行の照合と同じ 1e-8 の絶対の線へ
+## 2 回目（直した後）
+成功!   -失敗:     0、合格:  1341、スキップ:     0、合計:  1341、期間: 10 m 7 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 25 s - PriceOfBread.Tests.dll (net10.0)
