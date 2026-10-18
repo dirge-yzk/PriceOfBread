@@ -1335,7 +1335,7 @@ public sealed class UtilityAgent : INationAgent
                 if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
-                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る）
+                p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（★(399) 汚職の財政の漏れは削除済み＝行政費は税にも法の浸透にも返らない・何を返すかは作者に聞く Q8＝(402)）
                 p.IncomeTaxTarget = 0.25;   // 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
                 p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.3; p.PollTaxTarget = 0;   // 近代税制へ移行（人頭税は廃止）
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
@@ -1366,7 +1366,7 @@ public sealed class UtilityAgent : INationAgent
                 break;
             case Stance.Fiscal:
                 p.IncomeTaxTarget = Government.IncomeTaxTop; p.EducationSpendingTarget = 0.2;   // ★錨2026-09-18＝所得税の教義最大＝段の最上段（35%＝1918年の英標準税率30%超）
-                p.AdminSpendingTarget = 0.3;    // 緊縮＝行政費も削る（汚職が増える代償）
+                p.AdminSpendingTarget = 0.3;    // 緊縮＝行政費も削る（★(399) 以後は税の漏れの代償は無い・Q8＝(402)）
                 p.PollTaxTarget = 0.3; p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.4;   // 取れる所から全部取る（緊縮財政）
                 stateMonopTier = 3;   // 日用品まで広く課税（旧の率0.4）
                 p.SocialSecurityTarget = 0.1;   // 金利は下の反景気循環ブロックが一元的に決める（旧・緊縮の高金利0.4は死書き込み＝監査2026-07-12 死10で削除）
@@ -1503,7 +1503,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠潤沢の減税（RelieveOpulence・8四半期分の線）は使わない＝あちらは率への連続倍率・こちらは広さの1段＝同じ線に乗せると国庫が数年分積もるまで狭まらない
         //     （probe seed 1＝英が段3→4・蘭が段3 に張り付き 1784 の歳入÷年GDP 18・24%）。
         //   ⚠狭める側は教義の広さより下へ行かない＝旧 RelieveOpulence の注記が退けた「段を落とす翻訳」（床が無い・毎期 教義−1段）にならない。
-        //   ⚠開始前の助走（World.WarmupFrozen）は今の広さを積まない＝教義の広さのまま（助走は借りない＝r＜1 は「借りられない」助走の作りもの・
+        //   ⚠開始前の助走（World.WarmupFrozen）は今の広さを積まない＝教義の広さのまま〔★(400) ただし NationConfig の OpeningStateMonopolyTier を持つ国（英・蘭）は助走の間その段を教義との max で保つ＝下の else の行・(402)〕（助走は借りない＝r＜1 は「借りられない」助走の作りもの・
         //     広げた記憶は年月が経って積み上がる量＝国庫・国債・法と同じ門）。
         if (!w.WarmupFrozen)
         {

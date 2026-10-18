@@ -314,7 +314,7 @@ public class PoorPopBriberyTests
         SetLastSatisfaction(bur, 0.0);            // 無給同然の官僚（清の胥吏）
         w.Coef.CorruptionPoorOfficialWeight = 100.0;   // 極端な重み
         Assert.Equal(0.0, w.OfficialWelfareFill);
-        Assert.Equal(1.0, w.EffectiveCorruption);      // 0..1 の外へ出ない＝CorruptionMax が漏れの上限である意味が壊れない
+        Assert.Equal(1.0, w.EffectiveCorruption);      // 0..1 の外へ出ない（★(399) で CorruptionMax と財政の漏れは削除済み＝読み手は画面と計器だけ・(402)）
     }
 
     // ============ (h) 決定論 ============

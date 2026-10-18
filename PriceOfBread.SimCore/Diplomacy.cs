@@ -509,7 +509,7 @@ public sealed class Diplomacy
     /// 外国持分の風化＝連続形（刻みも一斉検査も無し）：対最強列強の国力比（軍事+生産＝NationalScoreの既存成分）が TreatyPortLapseRatio に近づくほど速く
     /// DominanceSpeed（四半期あたり）で0へ寄る＝日本の条約改正（1899/1911＝近代化を背景に条約が消えた）が動詞なしで創発。AI対称は構造（同じ検査が全国に走る）。
     /// この関数は毎月呼ばれるので 四半期の月（month % MonthsPerQuarter == 0）だけ風化させる（旧の器は毎月 DominanceSpeed を掛けて 3 倍速だった）。
-    /// 失効は年代記のみ＝緊張は上げない（最小構成・作者裁定の「例外を作らない」）。TreatyPortLapseRatio が 0 以下なら風化しない。</summary>
+    /// 緊張は上げない（最小構成・作者裁定の「例外を作らない」）。★(399) 以後の連続の風化は年代記に1行も書かない（旧の失効の記帳は個数の機構と一緒に消えた・(402)）。TreatyPortLapseRatio が 0 以下なら風化しない。</summary>
     internal void TreatyPortLapse(Coefficients c, int month)
     {
         if (c.TreatyPortLapseRatio.Value <= 0) return;

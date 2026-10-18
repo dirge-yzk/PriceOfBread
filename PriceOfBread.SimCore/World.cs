@@ -406,7 +406,7 @@ public sealed class World
             if (!(shortfall > 0)) return core;                 // 基準以上に払えている／NaN＝上乗せなし（否定形）
             double v = core * (1.0 + w * shortfall);
             if (!(v > core)) return core;                      // NaN・非増加はコアへ
-            return v > 1.0 ? 1.0 : v;                          // 実効汚職は0..1＝CorruptionMax が漏れの上限である意味を壊さない
+            return v > 1.0 ? 1.0 : v;                          // 実効汚職は0..1（★(399) で CorruptionMax と財政の漏れは削除済み＝読み手は画面と計器だけ・(402)）
         }
     }
 
