@@ -116,29 +116,29 @@ public class DiscoveryEngineerTests
         Assert.True(positive > 20, $"技師の量が正の行が少なすぎる（{positive}）＝産出か投入の読みが死んでいる");
     }
 
-    /// <summary>T4：全ての非制度・非思想の行で、親の産業に技師を雇いうる生産者（高度労働力の投入を持つ）が居る＝技術力が構造的に 0 に張り付く行が無い。
-    /// （動力の電動機・機関車・新兵器・合成染料・合成ゴムなど、同じ財か置き換える財だけでは技師が居ない行を、投入の財で塞いだ形の番人。）
-    /// ⚠壊し方＝投入の財を親に入れない → 電動機・機関車・合成染料などで赤。</summary>
+    /// <summary>T4：本体の <see cref="Discovery.ParentEngineers"/> を、開幕の英の盤面で門の開いた高度労働力の雇い手（生産者の財）の集合に1ずつ置いた配列で呼ぶ＝親の産業（行の財か置き換える財・代表のレシピの労働でない投入の財）に雇い手が1つでも居る行は A＞0 になる。
+    /// 開幕に雇い手が親の産業に居ない行は、別の発見が先に要る連鎖（名簿 <see cref="NeedsEarlierDiscovery"/>）として手書きで固定する（名簿の外で A＝0 の行が出たら赤・名簿の行が A＞0 になっても赤＝名簿が古い）。
+    /// ⚠壊し方＝本体の ParentEngineers が投入の財を親に入れない → 機関車（置き換える物が財でない）などで赤。T4 が守るのは〈親の定義が構造として A＞0 になりうる〉ことだけで、〈発見の前に A が正になる〉ことは census が見る。</summary>
+    private static readonly string[] NeedsEarlierDiscovery = ["電動機"];   // 電力の工場（石炭火力・石油火力の発見）が先に要る＝census でも A＝0（6/6 件）の既知の連鎖
+
     [Fact]
-    public void 全ての非制度非思想の行で_親の産業に技師を雇いうる生産者が居る()
+    public void 親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる()
     {
         var sim = BoardOff.Value;
         var w = Nation(sim, "イギリス");
-        var hiring = new HashSet<int>();   // 高度労働力の投入を持つ生産者の財（門に関わらず＝構造）
-        foreach (var rg in w.Regions) foreach (var p in rg.Producers) if (AdvQty(p) > 0) hiring.Add(p.GoodId);
-        var empty = new List<string>();
+        var eng = new double[Catalog.Goods.Length];
+        foreach (var rg in w.Regions) foreach (var p in rg.Producers)
+            if (AdvQty(p) > 0 && Discovery.Gate(rg, p) > 0 && p.GoodId >= 0 && p.GoodId < eng.Length) eng[p.GoodId] = 1;
+        var zero = new List<string>();
         for (int row = 0; row < Catalog.Discoveries.Length; row++)
         {
             var d = Catalog.Discoveries[row];
             if (Discovery.IsSpread(d.Field)) continue;
             var rp = w.Regions.Where(rg => rg.State == RegionState.Active).SelectMany(rg => rg.Producers).FirstOrDefault(p => p.DiscoveryRow == row);
-            if (rp is null) { empty.Add($"{d.Name}（イギリスに代表の生産者が居ない）"); continue; }
-            var goods = new HashSet<int> { d.Replaces >= 0 ? d.Replaces : d.Good };
-            foreach (var inp in rp.Inputs)
-                if (inp.GoodId != Catalog.LaborId && inp.GoodId != Catalog.AdvLaborId && inp.GoodId != Catalog.FarmLaborId) goods.Add(inp.GoodId);
-            if (!goods.Any(hiring.Contains)) empty.Add(d.Name);
+            Assert.True(rp is not null, $"{d.Name}：イギリスに代表の生産者が居ない");
+            if (!(Discovery.ParentEngineers(row, rp!, eng) > 0)) zero.Add(d.Name);
         }
-        Assert.True(empty.Count == 0, "親の産業に技師を雇いうる生産者が居ない行：" + string.Join("・", empty));
+        Assert.Equal(NeedsEarlierDiscovery.OrderBy(x => x), zero.OrderBy(x => x));
     }
 
     /// <summary>T3：旗が0のとき、制度と思想の行の技術力は今の式そのもの（70×min(1, 技術水準÷難易度)）で、他の行は 70×min(1, 技術水準÷難易度) を超えない（押しは1以下）。

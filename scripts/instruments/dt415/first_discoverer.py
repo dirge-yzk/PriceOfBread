@@ -9,6 +9,7 @@
 import collections, csv, os, statistics, sys
 
 SPREAD = {"特許", "株式会社", "社会主義", "共産主義", "帝国主義", "ファシズム"}
+EXCLUDED = {"合成染料"}  # 旗0は開幕で解禁済みで E 行が無く、旗が正では E 行が入る＝分母が揃わないので両側から除く（反証役の点検）
 
 
 def main():
@@ -17,6 +18,7 @@ def main():
     first = collections.defaultdict(list)  # row -> [(year, quarter, nation, seed, small)]
     small_total = 0
     rows_total = 0
+    unseeded = 0  # 開幕に居ない国（独立・建国で生まれた国）が最初の発見者の件数＝小国の数えには入れず別に出す
     for s in range(1, nseeds + 1):
         pop0 = {}
         with open(os.path.join(root, f"nation_s{s}.tsv"), encoding="utf-8") as fh:
@@ -34,9 +36,15 @@ def main():
                 if key not in best or t < best[key][0]:
                     best[key] = (t, r["nation"])
         for row, (t, nat) in best.items():
-            small = pop0.get(nat, med + 1) < med
+            if row in EXCLUDED:
+                continue
+            known = nat in pop0
+            small = known and pop0[nat] < med
             first[row].append((t[0], t[1], nat, s, small))
             if row not in SPREAD:
+                if not known:
+                    unseeded += 1
+                    continue
                 rows_total += 1
                 small_total += 1 if small else 0
     print("row\tn\tmedianYear\tsmallFirst\tfirstNations")
@@ -44,7 +52,7 @@ def main():
         yrs = [x[0] for x in lst]
         nat = collections.Counter(x[2] for x in lst).most_common(4)
         print(f"{row}\t{len(lst)}\t{statistics.median(yrs):.1f}\t{sum(1 for x in lst if x[4])}\t" + "・".join(f"{n}{c}" for n, c in nat))
-    print(f"# 非制度・非思想の行で小国が最初の発見者になった件数（種×行）：{small_total}／{rows_total}")
+    print(f"# 非制度・非思想の行で小国が最初の発見者になった件数（種×行・開幕に居た国だけ・合成染料を除く）：{small_total}／{rows_total}＝比 {small_total / rows_total:.3f}（開幕に居ない国が最初の発見者：{unseeded} 件は別）" if rows_total else "# 該当なし")
 
 
 if __name__ == "__main__":
