@@ -3086,31 +3086,28 @@ public sealed class Simulation
     /// <summary>農家の手仕事の行の RecipeName（職人の `"職人"` と衝突しない＝職人の没落の計器は数えない・FacilityBuildScore が候補から外す述語）。</summary>
     internal const string HouseholdRecipeName = "家内工業";
 
-    /// <summary>★(418) 農家の手仕事の 8 財と投入（手書きの表・産出 1 単位あたり）。工場の連鎖の入力〔綿布←綿花・製材←木・革←畜産＋木・肉←畜産・小麦粉←麦〕を、家が一段の加工を自分でやる形に原料へ展開した値
-    /// （事前登録 measurements/ce_20261019_prereg.txt の D3・AI の読み＝〈確証なし〉）。文化の札も国の分岐も無い＝財の表から読んだ値だけ。</summary>
-    internal static readonly (int GoodId, Input[] Inputs)[] HouseholdRecipes =
+    /// <summary>★(418) 農家の手仕事の 8 財（衣料・家具・加工肉・干物・ビール・蒸留酒・チーズ・革製品）。投入は財の表（工場の連鎖の最後の一段）そのまま＝職人の工房と同じ <c>d.Inputs</c>＝手書きの展開の表を持たない
+    /// （最初の形は連鎖を原料まで展開した手書きの表だったが、中間の段の付加価値を払わないので工場の行より構造的に安く、canary で 8 財のうち 4 財をほぼ 100% 取った＝連鎖の圧縮が根）。
+    /// 外した財＝化学薬品など工業の投入を要する物（紙・陶磁器・石鹸・缶詰・防水布・医薬品・キニーネ・書籍・新聞・ガス・自転車・ラジオ）と、輸入・商品作物の地理に偏る物（茶・コーヒー・灯油・煙草）。AI の読み＝〈確証なし〉。</summary>
+    internal static readonly int[] HouseholdGoods =
     [
-        (Catalog.ClothingId,      [new Input(Catalog.CottonId, 0.6), new Input(Catalog.DyeId, 0.2)]),
-        (Catalog.FurnitureId,     [new Input(Catalog.TimberId, 0.645), new Input(Catalog.LivestockId, 0.15)]),
-        (Catalog.PreservedMeatId, [new Input(Catalog.LivestockId, 0.36), new Input(Catalog.WheatId, 0.3)]),
-        (Catalog.DriedFishId,     [new Input(Catalog.FishId, 0.7), new Input(Catalog.SaltId, 0.2)]),
-        (Catalog.BeerId,          [new Input(Catalog.WheatId, 0.5)]),
-        (Catalog.SpiritsId,       [new Input(Catalog.WheatId, 0.6)]),
-        (Catalog.CheeseId,        [new Input(Catalog.LivestockId, 0.6)]),
-        (Catalog.LeatherGoodsId,  [new Input(Catalog.LivestockId, 0.25), new Input(Catalog.TimberId, 0.075), new Input(Catalog.FurId, 0.2), new Input(Catalog.DyeId, 0.2)]),
+        Catalog.ClothingId, Catalog.FurnitureId, Catalog.PreservedMeatId, Catalog.DriedFishId,
+        Catalog.BeerId, Catalog.SpiritsId, Catalog.CheeseId, Catalog.LeatherGoodsId,
     ];
 
     /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 <see cref="Coefficients.HouseholdProductionEnabled"/>＝0（既定）では**先頭で戻る**＝Producers の件数も順序も不変（厳密恒等）。
-    /// &gt;0 のとき、財を作る州（その財の行が既にある）に、職人の工房（<see cref="AddArtisanProducers"/>）と同じ自営の型の行を 1 財 1 本ずつ足す：担い手＝所有者＝農民（既存の RGO の行の担い手から読む）・
-    /// 生産性＝財の生産性×全連鎖の倍率×<see cref="HandcraftProductivityRatio"/>・自己費用＝<see cref="HandcraftSelfCost"/>・規模 1.0・産出 30（職人と同じ）・労働力も高度労働力も雇わない。
-    /// 農民の時間の値段は、農民の能力を RGO の行と分け合う零和分割（EconomyStep の prodW／laborTotalW）が担う＝新しい状態も倍率も置かない。表に無い RecipeName＝発見の門 1＝眠らない。</summary>
+    /// &gt;0 のとき、財を作る州（その財の行が既にある）に、職人の工房（<see cref="AddArtisanProducers"/>）と同じ型の行を <see cref="HouseholdGoods"/> の 1 財 1 本ずつ足す：担い手＝所有者＝農民（既存の RGO の行の担い手から読む）・
+    /// 投入＝財の表の投入（職人と同じ＝工場の連鎖の最後の一段）に**農業労働力を自家農家（RGO）の行と同じ量だけ**足す・生産性＝財の生産性×全連鎖の倍率×<see cref="HandcraftProductivityRatio"/>・自己費用＝<see cref="HandcraftSelfCost"/>・規模 1.0・産出 30（職人と同じ）。
+    /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。
+    /// ②次は農業労働力を投入に置いたが投入は連鎖を原料まで展開した手書きの表＝中間の段の付加価値を払わず、工場の行より構造的に安い（canary で 4 財がほぼ 100%）。③今の形＝財の表の投入そのまま＋農業労働力。
+    /// 農民の時間の値段は、農業労働力の賃金が RGO の行と手仕事の行の両方の付加価値（EconomyStep の零和分割の重み）に同じ向きで効く形で担う＝新しい状態も倍率も置かない。表に無い RecipeName＝発見の門 1＝眠らない。</summary>
     private static void AddHouseholdProducers(List<Producer> producers, Coefficients coef)
     {
         if (!(coef.HouseholdProductionEnabled > 0)) return;
         int peasantIdx = -1;
         foreach (var pr in producers) if (pr.IsRgo) { peasantIdx = pr.LaborPopIndex; break; }
         if (peasantIdx < 0) return;   // RGO の無い世界（最小シナリオ）は不発
-        foreach (var (gid, inputs) in HouseholdRecipes)
+        foreach (int gid in HouseholdGoods)
         {
             if (!producers.Exists(p => p.GoodId == gid)) continue;   // その財を作らない世界は不発
             var d = Catalog.Goods[gid];
@@ -3118,9 +3115,9 @@ public sealed class Simulation
             {
                 GoodId = gid, RecipeName = HouseholdRecipeName,
                 Productivity = d.Productivity * FullChainProductivityScale * HandcraftProductivityRatio,
-                Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,
+                Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 職人と同じ自己費用 0.35（工場の最後の一段を手でやる行＝工場より遅く高い）
                 LaborPopIndex = peasantIdx, OwnerPopIndex = peasantIdx, RentShare = default,
-                Inputs = [.. inputs],
+                Inputs = [.. d.Inputs, new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],   // 財の表の投入（職人と同じ）＋農家の時間を市場で買う（RGO の行と同じ 1 本＝賃金が両方の付加価値に同じ向きで効く）
             });
         }
     }

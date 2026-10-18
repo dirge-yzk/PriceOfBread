@@ -12,7 +12,8 @@ namespace PriceOfBread.Tests;
 /// 機構と不変条件の番人であって、創発の主張（手仕事の産出の割合・日用品の充足）は成績表と計器 <c>house_s</c> が見る。
 /// ⚠州の構築時の旗：MultiNationSim の <c>coef</c> は各国の Simulation には届かない（各国は <c>cfg.ToScenario</c> の既定の係数＝POB_COEF だけが届く）＝本土の州は <c>Scenario.Coef</c> を直に差して建てる（下の <c>Nation</c>）。
 /// 昇格した植民地の州は MultiNationSim の <c>coef</c> で建つ（下の <c>Multi</c>）。
-/// ⚠突然変異（それぞれ赤になることを確かめた）：投入 1 本の入れ替え（衣料の染料→塩）／担い手を農民から貴族へ／旗の読み落とし（先頭の return を外す）／FacilityBuildScore の述語を外す／職人の比 0.6 を 0.5 に。</summary>
+/// ★点検後の形：財の表の投入に農業労働力を最後の投入として足す（RGO と同じ規則に載せる）。
+/// ⚠突然変異（それぞれ赤になることを確かめた）：投入 1 本の入れ替え（衣料の染料→塩）／担い手を農民から貴族へ／旗の読み落とし（先頭の return を外す）／FacilityBuildScore の述語を外す／職人の比 0.6 を 0.5 に／農業労働力の投入を外す／FindFactory の述語を外す。</summary>
 public class HouseholdProductionTests
 {
     /// <summary>本土の州だけの 1 国の世界（旗は Scenario.Coef に差す＝州の構築時に届く）。</summary>
@@ -32,17 +33,17 @@ public class HouseholdProductionTests
     private static MultiNationSim Multi(double flag)
         => new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83, coef: new Coefficients { HouseholdProductionEnabled = flag }) { DiplomacyFrozen = true };
 
-    /// <summary>事前登録 D3 の手書きの表（産出 1 単位あたり）。</summary>
+    /// <summary>手書きの表（産出 1 単位あたり・財の表の factory の投入を見て手で書いた＝工場の連鎖の最後の一段）。</summary>
     private static readonly (int Good, (int In, double Q)[] Inputs)[] Expected =
     [
-        (Catalog.ClothingId,      [(Catalog.CottonId, 0.6), (Catalog.DyeId, 0.2)]),
-        (Catalog.FurnitureId,     [(Catalog.TimberId, 0.645), (Catalog.LivestockId, 0.15)]),
-        (Catalog.PreservedMeatId, [(Catalog.LivestockId, 0.36), (Catalog.WheatId, 0.3)]),
+        (Catalog.ClothingId,      [(Catalog.CottonClothId, 0.6), (Catalog.DyeId, 0.2)]),
+        (Catalog.FurnitureId,     [(Catalog.LumberId, 0.6), (Catalog.LeatherId, 0.3)]),
+        (Catalog.PreservedMeatId, [(Catalog.MeatId, 0.6), (Catalog.FlourId, 0.3)]),
         (Catalog.DriedFishId,     [(Catalog.FishId, 0.7), (Catalog.SaltId, 0.2)]),
         (Catalog.BeerId,          [(Catalog.WheatId, 0.5)]),
         (Catalog.SpiritsId,       [(Catalog.WheatId, 0.6)]),
         (Catalog.CheeseId,        [(Catalog.LivestockId, 0.6)]),
-        (Catalog.LeatherGoodsId,  [(Catalog.LivestockId, 0.25), (Catalog.TimberId, 0.075), (Catalog.FurId, 0.2), (Catalog.DyeId, 0.2)]),
+        (Catalog.LeatherGoodsId,  [(Catalog.LeatherId, 0.5), (Catalog.FurId, 0.2), (Catalog.DyeId, 0.2)]),
     ];
 
     private static void AssertHomeRows(Region r)
@@ -53,19 +54,21 @@ public class HouseholdProductionTests
         {
             var row = rows[k];
             Assert.Equal(Expected[k].Good, row.GoodId);
-            Assert.Equal(Expected[k].Inputs.Length, row.Inputs.Count);
-            for (int j = 0; j < row.Inputs.Count; j++)
+            Assert.Equal(Expected[k].Inputs.Length + 1, row.Inputs.Count);   // 原料＋農業労働力 1 本
+            for (int j = 0; j < Expected[k].Inputs.Length; j++)
             {
                 Assert.Equal(Expected[k].Inputs[j].In, row.Inputs[j].GoodId);
                 Assert.Equal(Expected[k].Inputs[j].Q, row.Inputs[j].QtyPerOutput);
             }
-            // 労働力・高度労働力・農業労働力は雇わない（自営）
-            Assert.DoesNotContain(row.Inputs, i => i.GoodId == Catalog.LaborId || i.GoodId == Catalog.AdvLaborId || i.GoodId == Catalog.FarmLaborId);
+            // 工場の労働力・高度労働力は雇わない。農業労働力は RGO の行と同じ量（手書きの 0.4＝自家農家の産出 1 単位あたり）を最後の 1 本で買う
+            Assert.DoesNotContain(row.Inputs, i => i.GoodId == Catalog.LaborId || i.GoodId == Catalog.AdvLaborId);
+            Assert.Equal(Catalog.FarmLaborId, row.Inputs[^1].GoodId);
+            Assert.Equal(0.4, row.Inputs[^1].QtyPerOutput);
             // 担い手＝所有者＝農民
             Assert.Equal(row.LaborPopIndex, row.OwnerPopIndex);
             Assert.Equal(PopClass.Peasant, r.Pops[row.LaborPopIndex].ClassId);
             Assert.False(row.BuysLabor); Assert.False(row.IsRgo);
-            Assert.Equal(1.0, row.Scale); Assert.Equal(30.0, row.Output); Assert.Equal(0.35, row.MarginalCost); Assert.Equal(0.0, row.RentShare.Value);
+            Assert.Equal(1.0, row.Scale); Assert.Equal(30.0, row.Output); Assert.Equal(0.35, row.MarginalCost); Assert.Equal(0.0, row.RentShare.Value);   // 自己費用は職人と同じ 0.35（手書き）
         }
         Assert.Equal(1.8 * 7.0 * 0.6, rows[0].Productivity, 12);   // 衣料の生産性＝手計算 1.8×7×0.6
     }
@@ -163,6 +166,27 @@ public class HouseholdProductionTests
                 Assert.False(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, def).Score), "前提が崩れた：既定の行まで候補外（NaN の理由が述語でなくなった）");
             }
         Assert.True(seen > 10);
+    }
+
+    [Fact]
+    public void 国営の工場の動詞が掴む個体は手仕事の行にならない()
+    {
+        int checkedGoods = 0;
+        foreach (var w in Worlds(1.0))
+        {
+            var r = w.Regions[0];
+            foreach (var gid in new[] { Catalog.ClothingId, Catalog.BeerId, Catalog.CheeseId })
+            {
+                var def = r.Producers.First(p => p.GoodId == gid && p.RecipeName != "家内工業" && p.RecipeName != "職人");
+                Assert.NotEqual("家内工業", World.FindFactory(r, gid)!.RecipeName);
+                // 既定の行の門を閉じても（未発見の産地の扱い）、動詞は手仕事の行へ付け替わらない＝門が閉じた既定の行（または職人）を返す
+                int row = def.SiteRow; bool found = def.SiteFound;
+                def.SiteRow = 0; def.SiteFound = false;
+                try { Assert.NotEqual("家内工業", World.FindFactory(r, gid)!.RecipeName); checkedGoods++; }
+                finally { def.SiteRow = row; def.SiteFound = found; }
+            }
+        }
+        Assert.Equal(6, checkedGoods);
     }
 
     [Fact]

@@ -6,9 +6,10 @@ namespace PriceOfBread.SimCore;
 // 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。人口が 0 の国は出さない。列（単位は接尾辞：Count＝件数・Share＝0〜1・PerMonth＝その月の産出の量）：
 //   quarter／year／nation／homeRowsCount（活きた州の〈家内工業〉の行の数）／homeLaborWeightShare（人口加重・州ごとの〈家内工業〉の行の LaborWeight×Scale ÷ 農民の担う非役務の全ての行の LaborWeight×Scale＝能力を分け合う零和分割の取り分）／
 //   財ごと 8 本の homeOutput<財>PerMonth（〈家内工業〉の行の Output の活きた州の和）・allOutput<財>PerMonth（その財の全ての行の Output の和）・homeShare<財>（前者÷後者・後者が 0 なら nan）／
-//   farmLaborBoughtPerMonth（農業労働力の市場の LastSold の和）・farmLaborProducedPerMonth（同 LastProduced の和）。
+//   farmLaborBoughtPerMonth（農業労働力の市場の LastSold の和）・farmLaborProducedPerMonth（同 LastProduced の和）・homeFarmLaborUsePerMonth（〈家内工業〉の行が買う農業労働力の推定＝Σ Output×農業労働力の投入量・買いの内訳を市場は分けないので産出から掛けた値）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／州の単純和（人口加重は能力の取り分だけ）／LaborWeight は平滑の信念で、実際の fraction（prodW／laborTotalW）は労働の重みが 0 のとき 1／行の数に退く（その退きは読まない）／
-//   農業労働力の LastSold は RGO と手仕事の行の買い分の合算で、手仕事の行の買い分は分けない（手仕事の行は労働力を買わない設計＝D2・買いの二重は能力の取り分の側にだけ出る）。
+//   農業労働力の LastSold は RGO と手仕事の行の買い分の合算（手仕事の行の買い分は homeFarmLaborUsePerMonth が産出からの推定で別に出す）／
+//   homeLaborWeightShare の分母は眠った行を除かない（眠った行は LaborWeight を平滑のまま持つ＝取り分を低く読む側・手仕事の行は眠らない）。
 public static partial class Instruments
 {
     static readonly (string Key, int GoodId)[] HouseGoods =
@@ -21,7 +22,7 @@ public static partial class Instruments
     {
         var cols = new List<string> { "quarter", "year", "nation", "homeRowsCount", "homeLaborWeightShare" };
         foreach (var (key, _) in HouseGoods) { cols.Add("homeOutput" + key + "PerMonth"); cols.Add("allOutput" + key + "PerMonth"); cols.Add("homeShare" + key); }
-        cols.Add("farmLaborBoughtPerMonth"); cols.Add("farmLaborProducedPerMonth");
+        cols.Add("farmLaborBoughtPerMonth"); cols.Add("farmLaborProducedPerMonth"); cols.Add("homeFarmLaborUsePerMonth");
         return string.Join('\t', cols);
     }
 
@@ -30,7 +31,7 @@ public static partial class Instruments
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         int nGoods = HouseGoods.Length;
         var home = new double[nGoods]; var all = new double[nGoods];
-        double den = 0, shareNum = 0, bought = 0, produced = 0; int rows = 0;
+        double den = 0, shareNum = 0, bought = 0, produced = 0, homeLabor = 0; int rows = 0;
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -41,7 +42,7 @@ public static partial class Instruments
             foreach (var pr in r.Producers)
             {
                 bool isHome = pr.RecipeName == Simulation.HouseholdRecipeName;
-                if (isHome) { rows++; lp = pr.LaborPopIndex; }
+                if (isHome) { rows++; lp = pr.LaborPopIndex; foreach (var inp in pr.Inputs) if (inp.GoodId == Catalog.FarmLaborId) homeLabor += pr.Output * inp.QtyPerOutput; }
                 for (int k = 0; k < nGoods; k++)
                     if (pr.GoodId == HouseGoods[k].GoodId) { all[k] += pr.Output; if (isHome) home[k] += pr.Output; }
             }
@@ -60,7 +61,7 @@ public static partial class Instruments
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var cols = new List<string> { I(q), I(w.Year), NameOf(w), I(rows), F(den > 0 ? shareNum / den : 0.0) };
         for (int k = 0; k < nGoods; k++) { cols.Add(F(home[k])); cols.Add(F(all[k])); cols.Add(F(all[k] > 0 ? home[k] / all[k] : double.NaN)); }
-        cols.Add(F(bought)); cols.Add(F(produced));
+        cols.Add(F(bought)); cols.Add(F(produced)); cols.Add(F(homeLabor));
         sk.House ??= Open("house", seed);
         if (!sk.HouseHeader) { sk.House.WriteLine(HouseHeaderText()); sk.HouseHeader = true; }
         sk.House.WriteLine(string.Join('\t', cols));
