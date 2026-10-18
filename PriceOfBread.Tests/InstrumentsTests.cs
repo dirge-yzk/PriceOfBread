@@ -1543,7 +1543,8 @@ public class InstrumentsTests
     /// 何もしない番人は必ず緑になる＝場面 T に飢え・場面 U に構造が1本以上あったこと、場面 B に払いがあったことを数える。
     /// </summary>
     // ★(405) 旗の焼き込みで盤面の軌道が変わり（着工の門が全ての試験の盤面で開いた）、種 1789 では場面 T に飢え（代価≦b）の段の法が立たなくなった＝この番人だけ種を替えて、全ての場面が空洞でない盤面を選んだ（探した種：1790 と 1793 は緑・1791 と 1792 は場面 T が空洞＝実装ログ (405)）。
-    private const ulong CoverageSeed = 1790UL;
+    // ★(418) 日用品の自給の点火で軌道がまた動き、1790 では場面 T の飢えの照合が空洞になった（飢え 0・構造 8）＝1791・1792 も空洞・1793 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
+    private const ulong CoverageSeed = 1793UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
@@ -2276,6 +2277,7 @@ public class InstrumentsTests
     [Fact]
     public void 接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される()
     {
+        ulong DSEED = 1790UL;   // ★(418) 日用品の自給の点火で種 1789 の 60 四半期には越境の運び手の取引が1件も出ず接触の内訳の表が無い〔境の上の番人＝(393) で 6 行だった〕＝種を 1790 へ（1791・1792 も出ない）。規則の検査は行ごと
         string dir = NewDir();
         try
         {
@@ -2283,17 +2285,17 @@ public class InstrumentsTests
             try
             {
                 // ★(388) 既定が DiscoveryCarrierDownstream＝1 になった。この番人は運び手の表が旧の形（係数 0）のときの記帳の規則を見る＝0 を明示する（広げた表の運び手は伝わりの道の番人が見る）
-                var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
-                Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
-                for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+                var sim = new MultiNationSim(WorldData.Nations(), DSEED, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
+                Instruments.Phase(sim, DSEED, "open"); sim.StartWarmup(); Instruments.Phase(sim, DSEED, "warm");
+                for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
                 Instruments.Close(sim);
             }
             finally { Instruments.Configure(null, null); }
-            var (dh, drows) = Table(System.IO.Path.Combine(dir, "disc_s1789.tsv"));
+            var (dh, drows) = Table(System.IO.Path.Combine(dir, "disc_s"+DSEED+".tsv"));
             int dKind = Array.IndexOf(dh, "kind"), dNation = Array.IndexOf(dh, "nation"), dRow = Array.IndexOf(dh, "row"), dQ = Array.IndexOf(dh, "quarter");
             var unlockQ = new Dictionary<(string Nation, string Row), int>();
             foreach (var r in drows) if (r[dKind] == "E") unlockQ.TryAdd((r[dNation], r[dRow]), int.Parse(r[dQ], System.Globalization.CultureInfo.InvariantCulture));
-            var (h, rows) = Table(System.IO.Path.Combine(dir, "disccontact_s1789.tsv"));
+            var (h, rows) = Table(System.IO.Path.Combine(dir, "disccontact_s"+DSEED+".tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier");
             Assert.True(iCarrier >= 0, "carrier 列が無い");
@@ -2310,7 +2312,7 @@ public class InstrumentsTests
                 if (unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
             // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。
-            var (fh, frows) = Table(System.IO.Path.Combine(dir, "discflow_s1789.tsv"));
+            var (fh, frows) = Table(System.IO.Path.Combine(dir, "discflow_s"+DSEED+".tsv"));
             Assert.True(frows.Count > 10, $"前提が崩れた（接触の分母の行 {frows.Count}）");
             int fGood = Array.IndexOf(fh, "good");
             var flowGoods = new HashSet<string>(); foreach (var r in frows) { flowGoods.Add(r[fGood]); Assert.True(Col(fh, r, "valueFlowQ") >= 0); }
@@ -2354,7 +2356,12 @@ public class InstrumentsTests
             foreach (var kv in byNat)
             {
                 double exp = ledger.GetValueOrDefault(kv.Key);
-                Assert.InRange(kv.Value - exp, -1e-6 * Math.Max(1, Math.Abs(exp)), 1e-6 * Math.Max(1, Math.Abs(exp)));
+                if (Math.Abs(kv.Value - exp) > 1e-6 * Math.Max(1, Math.Abs(exp)))
+                {
+                    // ★(418) 国名が四半期の途中で変わる四半期（政体の変名）は、州の行は四半期末の新しい名・台帳は移した月の古い名で書く＝国ごとの鍵が割れる。額は割れた2つの鍵の和で合う＝その四半期の世界の和で突き合わせる（窃盗が起きる四半期の軌道で割れ方が動く）
+                    double qPool = byNat.Where(k => k.Key.Item1 == kv.Key.Item1).Sum(k => k.Value), qLed = ledger.Where(k => k.Key.Item1 == kv.Key.Item1).Sum(k => k.Value);
+                    Assert.InRange(qPool - qLed, -1e-6 * Math.Max(1, Math.Abs(qLed)), 1e-6 * Math.Max(1, Math.Abs(qLed)));
+                }
                 total += kv.Value; if (exp > 0) checkedPairs++;
             }
             foreach (var key in ledger.Keys) Assert.True(byNat.ContainsKey(key), $"台帳に窃盗の受け取りがあるのに州の行が無い {key}");

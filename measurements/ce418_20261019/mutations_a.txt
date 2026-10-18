@@ -1,0 +1,56 @@
+# 注：farmlabor_qty〔置換の対象が 4 か所で未適用〕・flag_unread・buildscore_pred〔MSYS が // を / に変えてビルドが通らず前の変異の dll を試験〕は無効＝mutations_b.txt で当て直した。ほかの 3 本〔owner_noble・ratio_0_5・drop_cheese〕は有効。
+ビルドに成功しました。
+SAVETEST: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+LEAKHUNT: leakhunt 完走（seed=1・80四半期・助走つき・保存則違反なし） 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: ('new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],', 4)
+MUT farmlabor_qty: 成功!   -失敗:     0、合格:     8、スキップ:     0、合�
+MUT owner_noble: 失敗!   -失敗:     2、合格:     6、スキップ:     0、合�
+D:\PoB_work\wt_ce\PriceOfBread.SimCore\Simulation.cs(3106,9): error CS1525: '/' は無効です [D:\PoB_work\wt_ce\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_ce\PriceOfBread.SimCore\Simulation.cs(3106,14): error CS1002: ; が必要です [D:\PoB_work\wt_ce\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+MUT flag_unread: 失敗!   -失敗:     2、合格:     6、スキップ:     0、合�
+D:\PoB_work\wt_ce\PriceOfBread.SimCore\SelfPlay.cs(1118,9): error CS1525: '/' は無効です [D:\PoB_work\wt_ce\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_ce\PriceOfBread.SimCore\SelfPlay.cs(1118,14): error CS1002: ; が必要です [D:\PoB_work\wt_ce\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+MUT buildscore_pred: 失敗!   -失敗:     2、合格:     6、スキップ:     0、合�
+MUT ratio_0_5: 失敗!   -失敗:     4、合格:     4、スキップ:     0、合�
+MUT drop_cheese: 失敗!   -失敗:     2、合格:     6、スキップ:     0、合�
+ビルドに成功しました。
+ M PriceOfBread.Tests/FullChainTests.cs
+ M PriceOfBread.Tests/InstrumentsTests.cs
+ M PriceOfBread.Tests/MilitaryTests.cs
+ M PriceOfBread.Tests/MultiNationTests.cs
+ M PriceOfBread.Tests/WriterRatchetTests.cs
+ M "docs/202609/00_\346\234\252\347\235\200\346\211\213_\351\203\250\345\210\206\345\256\237\350\243\205_\345\267\256\343\201\227\346\210\273\343\201\227_\344\270\200\350\246\247_20260906.md"
+ M "docs/202609/99_\345\256\237\350\243\205\343\203\255\343\202\260_20260903.md"
+ M docs/CURRENT.md
+ M measurements/ce_20261019_prereg.txt
+?? measurements/b10_20261019_ce418
+?? measurements/b10_20261019_ce418.cost
+?? measurements/b10_20261019_ce418.manifest
+?? measurements/b10_20261019_ce418_B_ins
+?? measurements/b10_20261019_ce418_B_ins.cost
+?? measurements/b10_20261019_ce418_B_ins.manifest
+?? measurements/b10_20261019_ce418_ins
+?? measurements/b10_20261019_ce418_ins.cost
+?? measurements/b10_20261019_ce418_ins.manifest
+?? measurements/b5_20261019_ce418
+?? measurements/b5_20261019_ce418.cost
+?? measurements/b5_20261019_ce418.manifest
+?? measurements/b5_20261019_ce418_A
+?? measurements/b5_20261019_ce418_A.cost
+?? measurements/b5_20261019_ce418_A.manifest
+?? measurements/ce418_20261019/canary2_form2_selfplay_s1_q160.txt
+?? measurements/ce418_20261019/canary3_form3_selfplay_s1_q160.txt
+?? measurements/ce418_20261019/lk3.txt
+?? measurements/ce418_20261019/ng_B/
+?? measurements/ce418_20261019/res/
+?? measurements/ce418_20261019/sv3.txt
+?? measurements/ce418_20261019_ins_sha256.txt
+?? scripts/instruments/ce418/rd_arms.py
+?? scripts/instruments/ce418/rd_ce.py
+?? scripts/instruments/ce418/rd_cmp.py
+?? scripts/instruments/ce418/rd_house.py
+?? scripts/instruments/ce418/rd_house2.py
+?? scripts/instruments/ce418/rd_px.py
+MUTDONE

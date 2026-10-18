@@ -314,7 +314,7 @@ public class MultiNationTests3
     [Fact]
     public void 戦闘ログは日付が二重にならない書式で出る()
     {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
+        var sim = new MultiNationSim(FourNations(), seed: 1790UL);   // ★(418) 日用品の自給の点火で種 1789 は 1200 か月でも戦いが出なかった〔書式の番人＝戦いが出る種へ・1790・1791 は出る・1792 は出ない〕
         sim.Run(200);
         System.Collections.Generic.List<string> Battles() => sim.Diplomacy.Log.Where(l => l.Contains("陸戦で") || l.Contains("海戦で")).ToList();
         // ★(388) 戦いが起きる時期は軌道で動く（開幕の国庫が史実の比になった後は 200 か月で戦いの無い軌道があった）＝書式の番人なので戦いが出るまで進める（上限 1200 か月）
