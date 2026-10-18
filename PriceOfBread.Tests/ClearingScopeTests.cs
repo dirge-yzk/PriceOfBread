@@ -7,14 +7,14 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(403) 清算の見る範囲の絞り（結果の変わる高速化・旗 3 本）の番人。測る前の登録＝measurements/cs_20261018_prereg.txt。
+/// <summary>(403) 清算の見る範囲の絞り（結果の変わる高速化・採用して既定へ焼き込んだ）の番人。測る前の登録＝measurements/cs_20261018_prereg.txt。
 /// ②<c>ClearingIdleSearchQuarters</c>＝取引も不足も無かった買い手行は N 四半期に 1 回だけ、四半期の最初の清算で売り手を探す
 /// （<c>ClearingIdleShortageWakesStaplesOnly</c>＝不足が起こす行を主食に限る）。
 /// ①<c>ClearingPartnerScope</c>＝四半期の 2・3 月目の清算で、最初の清算に成約した行は覚えの売り手（K 人）から先に買い、尽きたら全ての売り手を探す。
-/// 既定は全て 0（今の挙動）。0 のときに今と 1 ビットも違わないことは成績表 3 枚の全行一致が証明する（ここではしない）。
-/// ここは機構が働いていること（ゲート緑の嘘を避ける）と、覚えが作業領域であること・覚えが尽きたら旗 0 と同じになることを見る。
+/// 2026-10-18 に採用して既定へ焼き込んだ（N＝ClearingIdleSearchQuarters 既定 4・K＝ClearingPartnerScope 既定 4・主食の線は無条件）。旧の挙動との 1 ビット一致は旗のあった木の成績表 3 枚が証明した（ここでは対照を〈N=1＝全ての行が毎四半期探す〉と〈覚えの無い行〉で書く）。
+/// ここは機構が働いていること（ゲート緑の嘘を避ける）と、覚えが作業領域であること・覚えが尽きたらN=1 と同じ（か覚えの無い行と同じ）になることを見る。
 /// 盤面＝イギリスとフランス（港州が 3 つ以上）・売り手 3 州（価格 0.5・0.6・0.7 倍・在庫は厚い）・買い手（高値・需要大・在庫ゼロ）。
-/// 買い手の全てが成約できるわけではない（連結しない州・容量）＝成約できる買い手の集合は旗 0 の最初の清算で決める（<see cref="Baseline"/>）。
+/// 買い手の全てが成約できるわけではない（連結しない州・容量）＝成約できる買い手の集合はN=1 の最初の清算で決める（<see cref="Baseline"/>）。
 /// ⚠突然変異（測った）：番の判定を消す／PrevImport の起こす理由を消す／LastShortage の起こす理由を消す／主食の線を消す／覚えで絞る条件から thin を消す／探し直しを消す／覚えの目印を消す。</summary>
 public class ClearingScopeTests
 {
@@ -26,6 +26,7 @@ public class ClearingScopeTests
         var sim = new MultiNationSim(Cfg(), seed: 1789) { DiplomacyFrozen = true };
         sim.Coef.WinterPortFreeze = 0;   // 暦で凍る港が成約を左右しない（四半期ごとに盤面の成約できる行が変わらない）
         sim.Coef.TransportShareByPotential = 0;   // 輸送の容量の取り分が前の清算の潜在量で動かない（2 回目の清算で売り手の容量が偏らない）
+        sim.Coef.ClearingIdleSearchQuarters = 1;   // ②は各試験が自分で入れる（既定 4 だと最初の清算で番でない行が飛ばされる）
         coef?.Invoke(sim.Coef);
         var gd = sim.Nations[0].World.Region.Goods
             .First(x => !x.IsColonial && !x.NonTradeable && (staple ? (x.Tier == GoodTier.Staple || x.GrainChain) : (x.Tier != GoodTier.Staple && !x.GrainChain))
@@ -66,7 +67,7 @@ public class ClearingScopeTests
         foreach (var r in buyers) { var m = r.Markets[g]; m.PrevImport = 1; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; }
     }
 
-    /// <summary>旗 0 の最初の清算で成約する買い手の添字の集合（連結しない州・容量で成約できない買い手を除く）。②の試験はこの集合の上で見る。</summary>
+    /// <summary>N=1 の最初の清算で成約する買い手の添字の集合（連結しない州・容量で成約できない買い手を除く）。②の試験はこの集合の上で見る。</summary>
     private static HashSet<int> Baseline(bool staple = false)
     {
         var (sim, g, _, buyers) = Board(3, staple: staple);
@@ -100,11 +101,11 @@ public class ClearingScopeTests
     {
         const int N = 4;
         var t0 = Baseline();
-        Assert.True(t0.Count >= 8, $"旗 0 で成約する買い手が少なすぎる（{t0.Count}）＝盤面の前提の破れ");
+        Assert.True(t0.Count >= 8, $"N=1 で成約する買い手が少なすぎる（{t0.Count}）＝盤面の前提の破れ");
         var perQuarter = Enumerable.Range(1, N).Select(q => TradedIndices(N, q, null)).ToList();
         foreach (var i in t0)
             Assert.True(perQuarter.Count(s => s.Contains(i)) == 1, $"買い手 {i} が N 四半期に {perQuarter.Count(s => s.Contains(i))} 回探した（1 回のはず）");
-        foreach (var s in perQuarter) Assert.True(s.IsSubsetOf(t0), "旗 0 で成約しない買い手が成約した");
+        foreach (var s in perQuarter) Assert.True(s.IsSubsetOf(t0), "N=1 で成約しない買い手が成約した");
         // 位相が散る＝1 つの四半期に全行が起きない（全行が同じ四半期に起きるなら高速化にならない）
         Assert.All(perQuarter, s => Assert.True(s.Count < t0.Count, "全ての行が同じ四半期に起きた＝位相が散っていない"));
         Assert.True(perQuarter.Count(s => s.Count > 0) >= 2, "番が 1 つの四半期にしか来ない");
@@ -116,31 +117,27 @@ public class ClearingScopeTests
         const int N = 4;
         var t0 = Baseline();
         for (int q = 1; q <= N; q++)
-            Assert.True(TradedIndices(N, q, WakeByImport).SetEquals(t0), $"四半期 {q}：起こす理由（取引があった）で旗 0 と同じ行が探していない");
+            Assert.True(TradedIndices(N, q, WakeByImport).SetEquals(t0), $"四半期 {q}：起こす理由（取引があった）でN=1 と同じ（か覚えの無い行と同じ）行が探していない");
     }
 
     [Fact]
-    public void 不足のあった行は番でなくても探す()
+    public void 主食の不足のあった行は番でなくても探す()
     {
         const int N = 4;
-        var t0 = Baseline();
-        for (int q = 1; q <= N; q++)
-            Assert.True(TradedIndices(N, q, WakeByShortage).SetEquals(t0), $"四半期 {q}：起こす理由（不足）で旗 0 と同じ行が探していない＝飢饉の輸入を遅らせる");
-    }
-
-    [Fact]
-    public void 主食でない財の不足だけの行は旗で番の四半期だけ探し主食は不足で起こす()
-    {
-        const int N = 4;
-        var t0 = Baseline();
-        var perQuarter = Enumerable.Range(1, N).Select(q => TradedIndices(N, q, WakeByShortage, c => c.ClearingIdleShortageWakesStaplesOnly = 1)).ToList();
-        foreach (var i in t0)
-            Assert.True(perQuarter.Count(set => set.Contains(i)) == 1, $"主食でない財の不足だけの行 {i} が N 四半期に {perQuarter.Count(set => set.Contains(i))} 回探した（1 回のはず）");
-        // 主食は不足で起こす＝旗 1 でも旗 0 と同じ行が毎四半期探す
         var s0 = Baseline(staple: true);
         Assert.True(s0.Count >= 8, $"主食の盤面で成約する買い手が少なすぎる（{s0.Count}）");
         for (int q = 1; q <= N; q++)
-            Assert.True(TradedIndices(N, q, WakeByShortage, c => c.ClearingIdleShortageWakesStaplesOnly = 1, staple: true).SetEquals(s0), $"四半期 {q}：主食の不足で起こしていない");
+            Assert.True(TradedIndices(N, q, WakeByShortage, staple: true).SetEquals(s0), $"四半期 {q}：主食の不足で N=1 と同じ行が探していない＝飢饉の輸入を遅らせる");
+    }
+
+    [Fact]
+    public void 主食でない財の不足だけの行は番の四半期だけ探す()
+    {
+        const int N = 4;
+        var t0 = Baseline();
+        var perQuarter = Enumerable.Range(1, N).Select(q => TradedIndices(N, q, WakeByShortage)).ToList();
+        foreach (var i in t0)
+            Assert.True(perQuarter.Count(set => set.Contains(i)) == 1, $"主食でない財の不足だけの行 {i} が N 四半期に {perQuarter.Count(set => set.Contains(i))} 回探した（1 回のはず）");
     }
 
     [Fact]
@@ -150,12 +147,12 @@ public class ClearingScopeTests
         const int N = 4;
         var t0 = Baseline();
         int q = 1;
-        var turn = TradedIndices(N, q, WakeByShortage, c => c.ClearingIdleShortageWakesStaplesOnly = 1);
+        var turn = TradedIndices(N, q, WakeByShortage);
         var offTurn = t0.Where(i => !turn.Contains(i)).ToList();
         Assert.True(offTurn.Count >= 2 && turn.Count >= 1, "番でない行と番の行が両方要る（盤面の前提）");
         HashSet<int> Month2(double priceUp)
         {
-            var (sim, g, sellers, buyers) = Board(3, c => { c.ClearingIdleSearchQuarters = N; c.ClearingIdleShortageWakesStaplesOnly = 1; });
+            var (sim, g, sellers, buyers) = Board(3, c => c.ClearingIdleSearchQuarters = N);
             SetCalendar(sim, 1800, q);
             WakeByShortage(buyers, g);
             sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
@@ -182,7 +179,7 @@ public class ClearingScopeTests
     [Fact]
     public void 四半期の2回目以降の清算は今のまま取引の無い行を眠らせる()
     {
-        // ②は四半期の最初の清算の話＝2・3 回目（thin）の挙動は旗に依らず今のまま（取引も不足も無い行は眠る）
+        // ②は四半期の最初の清算の話＝2・3 回目（thin）の挙動はK に依らず今のまま（取引も不足も無い行は眠る）
         var (sim, g, _, buyers) = Board(3, c => c.ClearingIdleSearchQuarters = 4);
         SetCalendar(sim, 1800, 1);
         sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
@@ -195,16 +192,17 @@ public class ClearingScopeTests
     /// <summary>買い手 1 つの盤面で最初の清算を回し、次の月の盤面（買い手を起こす・流れを 0 へ）を作る。</summary>
     private static (MultiNationSim sim, int g, List<Region> sellers, Region buyer, double wp) AfterFirstClearing(int K)
     {
-        var (sim, g, sellers, buyers) = Board(3, c => c.ClearingPartnerScope = K, nBuyers: 1);
+        var (sim, g, sellers, buyers) = Board(3, c => c.ClearingPartnerScope = Math.Max(K, 1), nBuyers: 1);   // K=0＝覚えを消した行（覚えの無い行の対照）
         SetCalendar(sim, 1800, 1);
         double wp = buyers[0].Markets[g].Price / 8.0;
         sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
         Assert.True(sellers.Sum(r => r.Markets[g].LastExport) > 1e-9, "最初の清算で買い手が成約していない（盤面の前提の破れ）");
+        if (K == 0) buyers[0].Markets[g].ClearPartners = null;
         NextMonth(g, sellers, buyers);
         return (sim, g, sellers, buyers[0], wp);
     }
 
-    /// <summary>最初の清算で最初に相手にした売り手の添字（K=1 の覚えの先頭）。最初の清算は旗に依らないので、旗 0 の走りの x にも使える。</summary>
+    /// <summary>最初の清算で最初に相手にした売り手の添字（K=1 の覚えの先頭）。最初の清算はK に依らないので、覚えの無い走りの x にも使える。</summary>
     private static int FirstDealt()
     {
         var (_, g, sellers, buyer, _) = AfterFirstClearing(1);
@@ -229,13 +227,13 @@ public class ClearingScopeTests
             detail += $" K={K}:[" + string.Join(",", sellers.Select((r, i) => $"{(i == xi ? "X" : "-")}{r.Name}:exp{r.Markets[g].LastExport:F1}/price{r.Markets[g].Price / wp:F2}/stock{r.Markets[g].Stock:F0}/target{r.Markets[g].TargetStock:F0}")) + $" 買い手 {buyer.Name} の輸入 {buyer.Markets[g].LastImport:F1}]";
             return sellers[xi].Markets[g].LastExport;
         }
-        // 買い手は 1 つの売り手から売り手の価格静止の量までしか買えない＝高くなった X にも旗 0 では余りが回る。旗 1 は X から先に買う＝X の取り分が増える
+        // 買い手は 1 つの売り手から売り手の価格静止の量までしか買えない＝高くなった X にも覚えの無い行では余りが回る。覚えのある行は X から先に買う＝X の取り分が増える
         double off = FromX(0), on = FromX(1);
-        Assert.True(on > off * (1 + 1e-9) + 1e-9, $"覚えの売り手から先に買っていない（旗 0 の X の取り分 {off}・旗 1 {on}）{detail}");
+        Assert.True(on > off * (1 + 1e-9) + 1e-9, $"覚えの売り手から先に買っていない（覚えの無い行の X の取り分 {off}・覚えのある行 {on}）{detail}");
     }
 
     [Fact]
-    public void 覚えの売り手が尽きたら全ての売り手を探して旗0と同じになる()
+    public void 覚えの売り手が尽きたら全ての売り手を探して覚えの無い行と同じになる()
     {
         int xi = FirstDealt();
         List<double> Run(int K)
@@ -259,36 +257,36 @@ public class ClearingScopeTests
         Assert.True(a.Any(v => v > 0), "盤面が空");
         for (int i = 0; i < a.Count; i++)
         {
-            Assert.True(BitConverter.DoubleToInt64Bits(a[i]) == BitConverter.DoubleToInt64Bits(b[i]), $"K=1 と旗 0 が {i} 番目で違う（{a[i]} 対 {b[i]}）");
-            Assert.True(BitConverter.DoubleToInt64Bits(a[i]) == BitConverter.DoubleToInt64Bits(c5[i]), $"K=5 と旗 0 が {i} 番目で違う（{a[i]} 対 {c5[i]}）");
+            Assert.True(BitConverter.DoubleToInt64Bits(a[i]) == BitConverter.DoubleToInt64Bits(b[i]), $"K=1 と覚えの無い行が {i} 番目で違う（{a[i]} 対 {b[i]}）");
+            Assert.True(BitConverter.DoubleToInt64Bits(a[i]) == BitConverter.DoubleToInt64Bits(c5[i]), $"K=5 と覚えの無い行が {i} 番目で違う（{a[i]} 対 {c5[i]}）");
         }
     }
 
     [Fact]
     public void 覚えの無い行は2回目の清算でも全ての売り手を見る()
     {
-        // 最初の清算を飛ばした盤面（覚えが無い）：旗 1 でも旗 0 と同じ（より安い売り手から買う）
+        // 最初の清算を飛ばした盤面（覚えが無い）：K が違っても同じ（より安い売り手から買う）
         (double fromA, double fromB) Run(int K)
         {
-            var (sim, g, sellers, buyers) = Board(3, c => c.ClearingPartnerScope = K, nBuyers: 1);
+            var (sim, g, sellers, buyers) = Board(3, c => c.ClearingPartnerScope = Math.Max(K, 1), nBuyers: 1);
             SetCalendar(sim, 1800, 1);
             NextMonth(g, sellers, buyers);
             sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
             return (sellers[0].Markets[g].LastExport, sellers[1].Markets[g].LastExport);
         }
         var off = Run(0); var on = Run(1);
-        Assert.True(off.fromA > 1e-9, "旗 0 で A から買っていない（対照の破れ）");
+        Assert.True(off.fromA > 1e-9, "覚えの無い行で A から買っていない（対照の破れ）");
         Assert.Equal(off.fromA, on.fromA, 12);
         Assert.Equal(off.fromB, on.fromB, 12);
     }
 
     [Fact]
-    public void 最初の清算の結果は旗に依らない()
+    public void 最初の清算の結果はKに依らない()
     {
         // ①は四半期の 2・3 回目だけ変える＝最初の清算（全ての売り手を見る）は K に依らず同じ
         static List<double> Snap(int K)
         {
-            var (sim, g, _, _) = Board(3, c => c.ClearingPartnerScope = K);
+            var (sim, g, _, _) = Board(3, c => c.ClearingPartnerScope = Math.Max(K, 1));
             SetCalendar(sim, 1800, 1);
             sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
             var l = new List<double>();
@@ -351,7 +349,7 @@ public class ClearingScopeTests
     [Fact]
     public void 四半期の最初の清算は覚えを消して作り直す()
     {
-        // 次の四半期の最初の清算の頭で覚えが消える＝その清算は旗に依らず同じ（旗 0 と旗 1 の双子が 1 ビットも違わない）
+        // 次の四半期の最初の清算の頭で覚えが消える＝その清算はK に依らず同じ（覚えのある行と無い行の双子が 1 ビットも違わない）
         int xi = FirstDealt();
         (double fromX, double imported) Run(int K)
         {
@@ -369,7 +367,7 @@ public class ClearingScopeTests
 }
 
 /// <summary>(403 追記3) ①の価格の効果を機構として固定する番人＝覚えで絞った行は、候補表が覚えの売り手だけなので次善の着値が無い／少ない
-/// ＝単価 unitA（次善の着値と自州価格の小さい方）が自州価格へ寄る。旗 0 の月の行（全ての売り手を見る）は次善の着値で払う。
+/// ＝単価 unitA（次善の着値と自州価格の小さい方）が自州価格へ寄る。覚えの無い月の行（全ての売り手を見る）は次善の着値で払う。
 /// これは〈輸入国から輸出国への移転〉を起こす（事前登録 追記3・測る前）。期待値は盤面の側（買い手の自州価格＝参照価格の 8 倍を測る前に決めた値）から書き、計器の計算とは別の出所。
 /// 計器（<c>Instruments.ScopeGet</c>）を入れ替えるので Instruments の収集に入れる（他の計器の番人と並ばない）。</summary>
 [Collection("Instruments")]
@@ -382,7 +380,7 @@ public class ClearingScopePriceTests
         try
         {
             var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789) { DiplomacyFrozen = true };
-            sim.Coef.WinterPortFreeze = 0; sim.Coef.TransportShareByPotential = 0; sim.Coef.ClearingPartnerScope = K;
+            sim.Coef.WinterPortFreeze = 0; sim.Coef.TransportShareByPotential = 0; sim.Coef.ClearingPartnerScope = Math.Max(K, 1); sim.Coef.ClearingIdleSearchQuarters = 1;
             var gd = sim.Nations[0].World.Region.Goods.First(x => !x.IsColonial && !x.NonTradeable && x.Tier != GoodTier.Staple && !x.GrainChain && Array.IndexOf(sim.Coef.MilitaryExportGoods, x.Id) < 0);
             int g = gd.Id; double wp = sim.Market.Price[g];
             var all = new List<Region>();
@@ -402,6 +400,7 @@ public class ClearingScopePriceTests
             Assert.True(sellers.Sum(r => r.Markets[g].LastExport) > 1e-9, "最初の清算で成約していない（盤面の前提の破れ）");
             var mem = buyer!.Markets[g].ClearPartners;
             int xi = K > 0 ? sellers.IndexOf(mem![0]) : -1;
+            if (K == 0) buyer.Markets[g].ClearPartners = null;   // 覚えの無い行の対照
             double lp = buyer.Markets[g].Price;
             foreach (var r in sellers) { var m = r.Markets[g]; m.LastExport = 0; m.LastImport = 0; }
             { var m = buyer.Markets[g]; m.PrevImport = 1; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; }
@@ -416,16 +415,16 @@ public class ClearingScopePriceTests
     }
 
     [Fact]
-    public void 覚えで絞った行は単価が自州価格へ寄り旗0の月の行は次善の着値で払う()
+    public void 覚えで絞った行は単価が自州価格へ寄り覚えの無い月の行は次善の着値で払う()
     {
         var off = Month2(0, -1);
-        Assert.True(off.qty > 1e-9, "旗 0 の月の行が成約していない");
-        Assert.True(off.unit < off.lp * 0.999, $"旗 0 の月の行の単価 {off.unit} が自州価格 {off.lp} に張り付いている（対照の破れ）");
+        Assert.True(off.qty > 1e-9, "覚えの無い月の行が成約していない");
+        Assert.True(off.unit < off.lp * 0.999, $"覚えの無い月の行の単価 {off.unit} が自州価格 {off.lp} に張り付いている（対照の破れ）");
         Assert.True(off.unit >= off.best * (1 - 1e-12), "単価が最良の着値を下回る");
         var on = Month2(1, -1);   // 覚えの売り手は 1 人＝次善の着値が無い＝単価は自州価格
         Assert.True(on.qty > 1e-9, "覚えで絞った月の行が成約していない");
         Assert.Equal(on.lp, on.unit, 9);
-        Assert.True(on.unit > off.unit * 1.01, $"覚えで絞った行の単価 {on.unit} が旗 0 の行 {off.unit} より高くなっていない（価格の移転が機構として働いていない）");
+        Assert.True(on.unit > off.unit * 1.01, $"覚えで絞った行の単価 {on.unit} が覚えの無い行 {off.unit} より高くなっていない（価格の移転が機構として働いていない）");
     }
 
     [Fact]

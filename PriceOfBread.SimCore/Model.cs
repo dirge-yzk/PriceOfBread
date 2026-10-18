@@ -826,7 +826,7 @@ public sealed class Market
     /// 前にこの行（州×財の買い手）を走査して成約しなかったときの自州価格（金建て）。0＝印なし（成約した・門で飛ばした・四半期の最初の清算で消す）。
     /// 読むのは月の清算（四半期の2・3回目）の間引きだけ＝不足だけで起きた行は、自州価格がこの値を超えて上がるまで眠る（<see cref="InternationalMarket"/>）。</summary>
     [System.NonSerialized] internal double ClearFailLp;
-    /// <summary>★(403) 旗 <c>ClearingPartnerScope</c>（既定 0＝書かれない）：この四半期の最初の清算で成約した買い手行の相手（相手にした売り手・先の K 人）。
+    /// <summary>★(403) 係数 <c>ClearingPartnerScope</c>（既定 4）：この四半期の最初の清算で成約した買い手行の相手（相手にした売り手・先の K 人）。
     /// 作業領域（[NonSerialized]・セーブに載らない・状態ではない）。書くのは最初の清算の走査（<see cref="InternationalMarket"/>）だけ・最初の清算が全て消して作り直す・読むのは四半期の 2・3 月目の清算（thin）だけ。null＝覚えなし＝全ての売り手を見る。</summary>
     [System.NonSerialized] internal Region[]? ClearPartners;
     public double ReservationWage;  // 留保賃金＝労働者が慣れた賃金の下限（労働財のみ使用）。賃上げに速く・賃下げに遅く追従＝下方硬直の創発源
@@ -1164,7 +1164,7 @@ public sealed class Region
     /// <summary>死んでいない財の一覧＝Goods の順のうち「需要も産出も 1e-9 未満」でない財（MarketFlow.StepDay が読む＝死んだ財は今も continue で動かさない＝回さないだけ）。</summary>
     [System.NonSerialized] internal Good[]? LiveGoods;
     [System.NonSerialized] internal bool LiveDirty;
-    /// <summary>★(403) 旗 <c>ClearingPartnerScope</c> の作業領域（[NonSerialized]）：この財の清算で、この州が売り手の何番目か（<see cref="ClearSellerStamp"/> が今の財の通し番号と同じときだけ有効）。</summary>
+    /// <summary>★(403) 係数 <c>ClearingPartnerScope</c> の作業領域（[NonSerialized]）：この財の清算で、この州が売り手の何番目か（<see cref="ClearSellerStamp"/> が今の財の通し番号と同じときだけ有効）。</summary>
     [System.NonSerialized] internal int ClearSellerPos;
     [System.NonSerialized] internal int ClearSellerStamp;
     /// <summary>印が立っていれば（または未作成なら）作り直す。作るときに市場へ宛先（この州）を付ける。</summary>

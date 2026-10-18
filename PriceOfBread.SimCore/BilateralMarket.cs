@@ -19,7 +19,7 @@ public sealed partial class InternationalMarket
     internal static long TimeListsTicks, TimeClearTicks;   // 財ごとの (a)平均+売買リスト構築 (b)買い手清算ループ の累計（Stopwatch の刻み。⚠2026-09-26 是正＝旧は財ごとに ElapsedMilliseconds を足して端数を捨てていた＝1財1ms未満の清算がほぼ0に丸められ、高速化の後は「清算ループ」が実時間の数分の1しか数えなかった）
     internal static long CntGoods, CntBuyers, CntRollIters, CntScanSteps, CntSkips, CntFills, CntDeals;
     // ★無効な売り手を訪ねない（2026-09-26・高速化・厳密恒等）の計器：1a＝行ごと飛ばした買い手行（条件別）／1b＝自州価格 lp で打ち切った回数／1c＝国境の楔の下界で飛ばした売り手
-    internal static long CntIdleSkips, CntScopeRows, CntScopeFallbacks, CntScopeWalk;   // ★(403) 旗 ClearingIdleSearchQuarters／ClearingPartnerScope の計器（POB_TIME のみ・純カウンタ）：番でなくて飛ばした行・覚えで絞った行・覚えが尽きて全ての売り手を探し直した回数
+    internal static long CntIdleSkips, CntScopeRows, CntScopeFallbacks, CntScopeWalk;   // ★(403) 係数 ClearingIdleSearchQuarters／ClearingPartnerScope の計器（POB_TIME のみ・純カウンタ）：番でなくて飛ばした行・覚えで絞った行・覚えが尽きて全ての売り手を探し直した回数
     internal static long CntRowSkipNeed, CntRowSkipRef, CntRowSkipDead, CntRowSkipBudget, CntCutLp, CntWedgeSkips;
     // ★計算量の台帳（2026-09-30・<see cref="CostLedger"/>）＝清算が見た件数（買い手行・着値の充填）。⚠作業領域＝セーブに載らない（[NonSerialized]）・シミュの値はこれを1つも読まない。
     //   インスタンスのフィールド＝バッチで並列に回る別の試合と混ざらない（上の static の計器は POB_TIME の単独実行専用）。
@@ -76,7 +76,7 @@ public sealed partial class InternationalMarket
     }
 
     /// <summary>売り手候補1件（財ごとに作り直す小さな配列＝毎月の割り当てを避けるため上限で確保して使い回す）。</summary>
-    [System.NonSerialized] private int _scopeStamp;   // ★(403) 旗 ClearingPartnerScope：財の清算ごとの通し番号（Region.ClearSellerStamp と照らす・結果に効かない）
+    [System.NonSerialized] private int _scopeStamp;   // ★(403) 係数 ClearingPartnerScope：財の清算ごとの通し番号（Region.ClearSellerStamp と照らす・結果に効かない）
     private bool LastPairWasLand;   // ★陸路可視化：直近 PairKm の勝者が陸直行か（Step 内でのみ読み書き・純テレメトリ）
 
     private readonly struct Seller(int node, double price, double stock)
@@ -128,9 +128,9 @@ public sealed partial class InternationalMarket
         public bool[] Bill = [];
         public Pop?[] PortOwner = [];
         public Market[] MktOf = [];
-        public Region[] DealtTmp = [];   // ★(403) 旗 ClearingPartnerScope：1 行の覚えの下書き
-        public int[] Member = [];   // ★(403) 旗 ClearingPartnerScope：行の相手の目印（売り手の位置→行の通し番号）。旗 0 では触らない
-        public uint[] IdleKey = [];   // ★(403) 旗 ClearingIdleSearchQuarters：州ごとの決定論の鍵（名前の FNV-1a）。旗 0 では触らない
+        public Region[] DealtTmp = [];   // ★(403) 係数 ClearingPartnerScope：1 行の覚えの下書き
+        public int[] Member = [];   // ★(403) 係数 ClearingPartnerScope：行の相手の目印（売り手の位置→行の通し番号）。月の清算が無い設定では触らない
+        public uint[] IdleKey = [];   // ★(403) 係数 ClearingIdleSearchQuarters：州ごとの決定論の鍵（名前の FNV-1a）。N が 1 以下では触らない
         public List<Seller> Sellers = [];
         public List<(int Node, double Price)> Buyers = [];
 
@@ -152,7 +152,7 @@ public sealed partial class InternationalMarket
             Array.Clear(Underwriters, 0, nn); Array.Clear(ShipOwners, 0, nn); Array.Clear(GoodById, 0, gc);
             Array.Clear(NatHostility, 0, nn); Array.Clear(ExpByGood, 0, nn); Array.Clear(ImpByGood, 0, nn);
             Sellers.Clear(); Buyers.Clear(); PortStart.Clear(); TransitPortOwner.Clear(); TransitUses.Clear();
-            Array.Clear(DealtTmp);   // ★(403) 旗 ClearingPartnerScope の下書き（Region の参照を握り続けない・旗 0 では長さ 0）
+            Array.Clear(DealtTmp);   // ★(403) 係数 ClearingPartnerScope の下書き（Region の参照を握り続けない）
         }
     }
     [System.ThreadStatic] private static ClearScratch? _clearScratch;
@@ -626,19 +626,19 @@ public sealed partial class InternationalMarket
         //     旧＝有効な売り手を回って潜在量だけを書いていた（自州価格が上がれば起きる＝起こす理由が効かない行）。①で月の清算の潜在量は読まれない＝回さない。
         //     印は走査して成約しなかった行と同じ（自州価格）。計器（(130)・5種の全長・読むだけ）＝月の清算の充填の 35% がこの行（清算の充填の全体の 18.9%）。
         bool thin = c.TradeMonthlyClearing > 0 && !firstClearingOfQuarter;
-        // ★(403) 旗 ClearingPartnerScope（>=1・既定 0＝この塊は 1 命令も走らない）：四半期の 2・3 月目の清算（thin）で、同じ四半期の最初の清算に成約した買い手行は、
+        // ★(403) 係数 ClearingPartnerScope（K・既定 4）：四半期の 2・3 月目の清算（thin）で、同じ四半期の最初の清算に成約した買い手行は、
         //   その清算で相手にした売り手（先の K 人）から先に買う。覚えの売り手が尽きた（在庫・容量が無い・着値が合わない）ら全ての売り手を探し直す＝覚えは先に当たる相手であって、買えない口実ではない。
         //   商人は取引のある相手から買う（情報の限り）・相手探しは四半期に 1 回（最初の清算）。
         //   覚えは作業領域（Market.ClearPartners・[NonSerialized]・ClearFailLp と同じ型）＝四半期の最初の清算が全て消して作り直す（四半期の境のセーブは次の清算が最初の清算＝作り直す）。最初の清算に成約しなかった行・覚えの無い行は今のとおり全ての売り手を見る。
-        bool scopeOn = c.ClearingPartnerScope >= 1;
-        int scopeK = scopeOn ? (int)Math.Min(c.ClearingPartnerScope, Math.Max(tc, 1)) : 0;   // 覚えの人数は売り手の数（高々 tc）を超えない
+        bool scopeOn = c.TradeMonthlyClearing > 0;   // 覚えを読むのは月の清算（thin）だけ＝月の清算が無い設定では作らない
+        int scopeK = (int)Math.Min(Math.Max(c.ClearingPartnerScope, 1), Math.Max(tc, 1));   // 覚えの人数は 1 人以上・売り手の数（高々 tc）以下
         int[] member = scopeOn ? ClearScratch.FitZero(ref sc.Member, tc) : sc.Member;   // 売り手の位置ごとの目印（財の売り手は高々 tc 人）
         int rowStamp = 0;   // 行の通し番号（この清算の中で増える・目印の配列は清算ごとに 0 から）
         Region[] dealtTmp = scopeOn ? ClearScratch.Fit(ref sc.DealtTmp, scopeK) : sc.DealtTmp;
         if (!thin)
             for (int i = 0; i < nn; i++)
                 foreach (var rC in nations[i].World.Regions)
-                    foreach (var mC in rC.Markets) { mC.ClearFailLp = 0; if (scopeOn) mC.ClearPartners = null; }   // ①＝全ての行を確かめ直す（前の四半期の印を残さない・★(403) 旗 ClearingPartnerScope の覚えも消して作り直す）
+                    foreach (var mC in rC.Markets) { mC.ClearFailLp = 0; if (scopeOn) mC.ClearPartners = null; }   // ①＝全ての行を確かめ直す（前の四半期の印を残さない・★(403) 係数 ClearingPartnerScope の覚えも消して作り直す）
 
         var sellers = sc.Sellers;
         var buyers = sc.Buyers;
@@ -648,13 +648,13 @@ public sealed partial class InternationalMarket
         //   値は同じ式・同じ入力（走査のあいだ価格は書かれない）＝同じ値。読むのは連結した州（linked）だけ＝書くのも連結した州だけ。
         var mktOf = ClearScratch.Fit(ref sc.MktOf, tc); var lpOf = ClearScratch.Fit(ref sc.LpOf, tc);   // 連結した州だけ書く・連結した州だけ読む
 
-        // ★(403) 旗 ClearingIdleSearchQuarters（>=2・既定 0＝この塊は 1 命令も走らない）：取引のない買い手行は N 四半期に 1 回だけ、四半期の最初の清算で相手探しをする。
+        // ★(403) 係数 ClearingIdleSearchQuarters（N・既定 4・N が 1 以下なら全ての行が毎四半期探す）：取引のない買い手行は N 四半期に 1 回だけ、四半期の最初の清算で相手探しをする。
         //   作者 2026-09-26 の案〈年に1度だけ回し、取引があれば復活〉の系（N=4＝年に 1 度）。今も四半期の 2・3 月目は取引のない行を眠らせている（上の thin）＝新しいのは四半期の最初の清算。
         //   眠る行＝前の月に輸入が無く（PrevImport）不足も無い（LastShortage）行のうち、番でない行。番＝(四半期の通し番号＋行の鍵)÷N の余りが 0（行ごとに位相が散る＝全行が同じ四半期に起きない）。
         //   起こす理由＝取引があった（PrevImport）・不足があった（LastShortage＝飢饉の輸入を遅らせない）・番が来た。新しい状態は持たない（暦と名前と財の番号から導く）。
         //   助走（暦が止まる）では番が動かない＝使わない。
         int idleN = c.ClearingIdleSearchQuarters >= 2 && !nations[0].World.WarmupFrozen ? (int)Math.Min(c.ClearingIdleSearchQuarters, 1e6) : 0;
-        uint idleQ = 0; uint[] idleKey = sc.IdleKey; bool idleStapleOnly = c.ClearingIdleShortageWakesStaplesOnly > 0;
+        uint idleQ = 0; uint[] idleKey = sc.IdleKey;
         if (idleN > 0)
         {
             idleQ = (uint)(nations[0].World.Year * Calendar.QuartersPerYear + nations[0].World.Quarter - 1);
@@ -758,12 +758,12 @@ public sealed partial class InternationalMarket
                 var m = mktOf[t];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
-                if (idleN > 0 && !thin && !(m.PrevImport > 0) && (!(m.LastShortage > 0) || (idleStapleOnly && !stapleG)))
-                {   // ★(403) 取引も不足も無かった行（旗 ClearingIdleShortageWakesStaplesOnly＞0 なら、主食でない財の不足だけの行も）は番の四半期だけ相手を探す（番でなければ飛ばす・走査して成約しなかった行と同じ印 ClearFailLp＝自州価格 を書く＝2・3 月目に不足だけで起きた行が走査し直さない）
+                if (idleN > 0 && !thin && !(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG))
+                {   // ★(403) 取引も不足も無かった行（主食でない財の不足だけの行も＝主食〔GoodTier.Staple か麦の連鎖〕の不足だけが番に関わらず起こす〔飢饉の輸入を遅らせない〕）は番の四半期だけ相手を探す（番でなければ飛ばす・走査して成約しなかった行と同じ印 ClearFailLp＝自州価格 を書く＝2・3 月目に不足だけで起きた行が走査し直さない）
                     uint hh = idleKey[t] ^ ((uint)g * 0x9E3779B1u); hh ^= hh >> 15; hh *= 0x2C1B3C6Du; hh ^= hh >> 12;
                     if ((hh + idleQ) % (uint)idleN != 0) { if (MultiNationSim.TimeOn) CntIdleSkips++; if (Instruments.On) Instruments.ScopeSkip(this, nations[tr[t].nation].World); m.ClearFailLp = lp; continue; }   // 走査して成約しなかった行と同じ印（2・3 月目は第 2 の門で眠る＝自州価格が上がれば起きる）
                 }
-                bool restrict = false; int dealtN = 0;   // ★(403) 旗 ClearingPartnerScope：覚えのある行（四半期の 2・3 月目）は覚えの売り手だけを見る
+                bool restrict = false; int dealtN = 0;   // ★(403) 係数 ClearingPartnerScope：覚えのある行（四半期の 2・3 月目）は覚えの売り手だけを見る
                 if (scopeOn && thin && m.ClearPartners is { } pmem)
                 {
                     restrict = true; rowStamp++; if (MultiNationSim.TimeOn) CntScopeRows++;

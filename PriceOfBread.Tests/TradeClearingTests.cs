@@ -18,6 +18,7 @@ public class TradeClearingTests
     private static (MultiNationSim sim, int good, Region seller, Region seller2, List<Region> buyers) Make(params NationConfig[] cfg)
     {
         var sim = new MultiNationSim(cfg.Length > 0 ? cfg : TwoPorts(), seed: 1789) { DiplomacyFrozen = true };
+        sim.Coef.ClearingIdleSearchQuarters = 1;   // ★(403) 清算の機構の試験は全ての行が探す世界で見る（既定の 4 だと取引も不足も無い行は最初の清算で番の四半期だけ探す＝ClearingScopeTests が見る）
         var gd = sim.Nations[0].World.Region.Goods
             .First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain
                         && Array.IndexOf(sim.Coef.MilitaryExportGoods, g.Id) < 0);
