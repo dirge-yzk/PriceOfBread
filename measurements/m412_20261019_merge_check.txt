@@ -1,0 +1,4 @@
+# (412) 合流の門の記録（読むだけ）2026-10-19
+## 合流 1 の木（ht＋ar・commit 90253459・SOURCE-HASH d530e9a2841849d5）
+- 計器つき 10 種 measurements/b10_20261019_m412a_ins と ar の採用の成績表 measurements/b10_20261018_m408_ins：cmp でファイル全体が同じ（1d8f22eceabb46266fa9c0ce44840f504911e8fc / 1d8f22eceabb46266fa9c0ce44840f504911e8fc）
+- 計器の生の表 430 本（基準 D:/PoB_work/keep_408/m408_ins も 430 本）：同じ 420・違う 10（ burscan_s1.tsv burscan_s10.tsv burscan_s2.tsv burscan_s3.tsv burscan_s4.tsv burscan_s5.tsv burscan_s6.tsv burscan_s7.tsv burscan_s8.tsv burscan_s9.tsv）＝違うのは burscan（実時間の秒）だけ

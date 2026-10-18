@@ -1,0 +1,24 @@
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イギリス海峡東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→日本南方沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ニューヨーク沖（同じ組は以後省略）
+…（中略・PROBE の行）…
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→南太平洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→南太平洋西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋西→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マラッカ北口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ナミビア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ナミビア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ナミビア沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アリューシャン南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アリューシャン南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アリューシャン南→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マラッカ北口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋西→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ケープ東方（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ケープ東方→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ケープ東方→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 パナマ湾→カスピ北（同じ組は以後省略）
+leakhunt 完走（seed=1789・668四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
