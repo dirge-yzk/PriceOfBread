@@ -1,0 +1,9 @@
+清 rows 6680 | legitimacy min 0.144 p5 0.483 p25 0.750 med 0.873 | militancyMean max 0.797 p99 0.656 p90 0.416 med 0.168  >0.3:1535 >0.5:332
+フランス rows 6680 | legitimacy min 0.053 p5 0.304 p25 0.607 med 0.767 | militancyMean max 0.856 p99 0.593 p90 0.381 med 0.208  >0.3:1505 >0.5:215
+イギリス rows 6680 | legitimacy min 0.000 p5 0.103 p25 0.399 med 0.619 | militancyMean max 0.817 p99 0.709 p90 0.541 med 0.365  >0.3:4745 >0.5:1104
+ロシア rows 6680 | legitimacy min 0.000 p5 0.219 p25 0.532 med 0.741 | militancyMean max 0.884 p99 0.718 p90 0.459 med 0.207  >0.3:2136 >0.5:449
+オスマン rows 6680 | legitimacy min 0.000 p5 0.235 p25 0.546 med 0.765 | militancyMean max 0.886 p99 0.697 p90 0.466 med 0.242  >0.3:2321 >0.5:492
+プロイセン rows 6680 | legitimacy min 0.057 p5 0.369 p25 0.648 med 0.813 | militancyMean max 0.763 p99 0.571 p90 0.351 med 0.153  >0.3:1070 >0.5:161
+オーストリア rows 6680 | legitimacy min 0.000 p5 0.308 p25 0.618 med 0.794 | militancyMean max 0.826 p99 0.625 p90 0.429 med 0.246  >0.3:2204 >0.5:314
+日本 rows 6680 | legitimacy min 0.064 p5 0.466 p25 0.741 med 0.884 | militancyMean max 0.778 p99 0.644 p90 0.417 med 0.164  >0.3:1643 >0.5:319
+アメリカ rows 1670 | legitimacy min 0.204 p5 0.513 p25 0.780 med 0.898 | militancyMean max 0.784 p99 0.595 p90 0.399 med 0.191  >0.3:362 >0.5:57

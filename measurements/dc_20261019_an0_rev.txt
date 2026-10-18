@@ -1,0 +1,4 @@
+secession rows 1141568 goFlag=1 total 95 militancyMeanIndex>0.5 rows 149548
+[('イギリス', 86), ('清', 5), ('スペイン', 3), ('シャム', 1)]
+polity transitions (8 INS nations x10 seeds) 3407 [('プロイセン', 97), ('モロッコ', 84), ('コンゴ王国', 83), ('ダホメ王国', 82), ('ボルヌ帝国', 81), ('ライン諸邦', 78), ('イエメン', 76), ('ポルトガル', 75), ('トスカーナ', 73)]
+nation_s rows with civilWarMonths>0: 4702
