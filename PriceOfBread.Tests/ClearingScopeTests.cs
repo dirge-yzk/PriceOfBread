@@ -367,3 +367,73 @@ public class ClearingScopeTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(off.imported), BitConverter.DoubleToInt64Bits(on.imported));
     }
 }
+
+/// <summary>(403 追記3) ①の価格の効果を機構として固定する番人＝覚えで絞った行は、候補表が覚えの売り手だけなので次善の着値が無い／少ない
+/// ＝単価 unitA（次善の着値と自州価格の小さい方）が自州価格へ寄る。旗 0 の月の行（全ての売り手を見る）は次善の着値で払う。
+/// これは〈輸入国から輸出国への移転〉を起こす（事前登録 追記3・測る前）。期待値は盤面の側（買い手の自州価格＝参照価格の 8 倍を測る前に決めた値）から書き、計器の計算とは別の出所。
+/// 計器（<c>Instruments.ScopeGet</c>）を入れ替えるので Instruments の収集に入れる（他の計器の番人と並ばない）。</summary>
+[Collection("Instruments")]
+public class ClearingScopePriceTests
+{
+    private static (double unit, double lp, double best, long fb, double qAfter, double qty, double fromOthers) Month2(int K, double xStockSlack)
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_csc_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789) { DiplomacyFrozen = true };
+            sim.Coef.WinterPortFreeze = 0; sim.Coef.TransportShareByPotential = 0; sim.Coef.ClearingPartnerScope = K;
+            var gd = sim.Nations[0].World.Region.Goods.First(x => !x.IsColonial && !x.NonTradeable && x.Tier != GoodTier.Staple && !x.GrainChain && Array.IndexOf(sim.Coef.MilitaryExportGoods, x.Id) < 0);
+            int g = gd.Id; double wp = sim.Market.Price[g];
+            var all = new List<Region>();
+            foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) if (r.State == RegionState.Active) all.Add(r); }
+            var sellers = all.Where(r => r.IsPort).Take(3).ToList();
+            Region? buyer = null;
+            foreach (var r in all)
+            {
+                var m = r.Markets[g]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0; m.PrevImport = 0; m.PrevExport = 0; m.LastShortage = 0;
+                int si = sellers.IndexOf(r);
+                if (si >= 0) { m.Price = (0.5 + 0.005 * si) * wp; m.Stock = 1e6; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 1e5; }   // 売り手の価格が近い＝2 人目の下界が最良の着値の下に入る（遠いと旗 0 でも次善を見る前に打ち切る＝単価は自州価格）
+                else if (buyer is null) { m.Price = 8.0 * wp; m.Stock = 0; m.TargetStock = 50; m.LastDemand = 500; m.LastProduced = 0; buyer = r; }
+                else { m.Price = wp; m.Stock = 0; m.TargetStock = 0; }
+            }
+            foreach (var n in sim.Nations) { n.World.Year = 1800; n.World.Quarter = 1; }
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+            Assert.True(sellers.Sum(r => r.Markets[g].LastExport) > 1e-9, "最初の清算で成約していない（盤面の前提の破れ）");
+            var mem = buyer!.Markets[g].ClearPartners;
+            int xi = K > 0 ? sellers.IndexOf(mem![0]) : -1;
+            double lp = buyer.Markets[g].Price;
+            foreach (var r in sellers) { var m = r.Markets[g]; m.LastExport = 0; m.LastImport = 0; }
+            { var m = buyer.Markets[g]; m.PrevImport = 1; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; }
+            // 最初の清算の計器の蓄えは月の行と混ざらないよう、月の行の種類だけを読む
+            if (K > 0 && xStockSlack >= 0) sellers[xi].Markets[g].Stock = sellers[xi].Markets[g].TargetStock + xStockSlack;   // 覚えの相手は少ししか売れない
+            sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+            var got = Instruments.ScopeGet(sim, K > 0 ? 3 : 2);
+            double others = 0; for (int i = 0; i < sellers.Count; i++) if (i != xi) others += sellers[i].Markets[g].LastExport;
+            return (got.QUnit / Math.Max(got.Qty, 1e-300), lp, got.QBest / Math.Max(got.Qty, 1e-300), got.FallbackRows, got.QAfterFallback, got.Qty, others);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void 覚えで絞った行は単価が自州価格へ寄り旗0の月の行は次善の着値で払う()
+    {
+        var off = Month2(0, -1);
+        Assert.True(off.qty > 1e-9, "旗 0 の月の行が成約していない");
+        Assert.True(off.unit < off.lp * 0.999, $"旗 0 の月の行の単価 {off.unit} が自州価格 {off.lp} に張り付いている（対照の破れ）");
+        Assert.True(off.unit >= off.best * (1 - 1e-12), "単価が最良の着値を下回る");
+        var on = Month2(1, -1);   // 覚えの売り手は 1 人＝次善の着値が無い＝単価は自州価格
+        Assert.True(on.qty > 1e-9, "覚えで絞った月の行が成約していない");
+        Assert.Equal(on.lp, on.unit, 9);
+        Assert.True(on.unit > off.unit * 1.01, $"覚えで絞った行の単価 {on.unit} が旗 0 の行 {off.unit} より高くなっていない（価格の移転が機構として働いていない）");
+    }
+
+    [Fact]
+    public void 覚えの売り手が少しだけ売って尽きたら全ての売り手を探し直し残りを買う()
+    {
+        var on = Month2(1, 1e-3);
+        Assert.True(on.fb >= 1, "覚えが尽きて探し直した行が無い（盤面の前提の破れ）");
+        Assert.True(on.qAfter > 1e-9, "探し直しの後の成約が無い");
+        Assert.True(on.fromOthers > 1e-9, "覚えの外の売り手から買っていない");
+    }
+}
