@@ -14,6 +14,7 @@ namespace PriceOfBread.Runner;
 /// ★ 使い方： dotnet PriceOfBread.Runner.dll play &lt;作業dir&gt; [国名=清] [進める四半期数=4] [seed=1789]
 ///   1) &lt;dir&gt;/state.bin が無ければ新規開始（★App と同じ手順＝プレイヤー国だけ NullAgent・IsPlayer・専売0・StartWarmup）
 ///   (419) 画面の問いかけ（最後通牒・参戦要請・国内の危機・総選挙の公示）に答える動詞は `!ultimatum`・`!callarms`・`!election`（`!crisis` は内容の照会のみ）。全国工場の目標は `!target`・巨大建造物の着工は `!mega`。待っている問いかけと使える動詞は報告の 2 行目。
+///   (442) 6 番目の引数に `要約` を付けると標準出力は先頭 60 行＋前回の報告に無かった行だけ（report.txt は全文）。
 ///   (442) 画面が時間を止める待ち（最後通牒・参戦要請・総選挙の公示・国内の危機）が立っていると、その四半期で進むのを止めて報告の先頭に待ちと答える動詞を書く（答えるまで進まない＝画面と同じ。国内の危機は通知＝この呼び出しの最初に立っていた札と別の札が立ったときだけ止める）
 ///   2) &lt;dir&gt;/decision.txt があれば `キー=値` 行を **NationPolicy へリフレクションで**適用し、decision.applied.txt へ退避
 ///      ⚠ NationPolicy は「**目標値**」であって結果ではない（現在値は World 側＝利益集団の力で律速して漸進）
@@ -98,13 +99,37 @@ internal static class PlayHarness
         var sb = new StringBuilder();
         AppendStopNote(sb, world, world.SelfPower!, steps, stepped);   // ★(442) 先頭の行＝時間を止めたとき（待ちと答える動詞）
         WriteReport(sb, sim, playerIndex, applied, logStart, ledBefore);
-        File.WriteAllText(Path.Combine(dir, "report.txt"), sb.ToString(), Utf8NoBom);
-        Console.Write(sb.ToString());
+        string reportPath = Path.Combine(dir, "report.txt");
+        string prevReport = File.Exists(reportPath) ? File.ReadAllText(reportPath) : "";   // ★(442) 要約モードの比べる側（書き換える前に読む）
+        File.WriteAllText(reportPath, sb.ToString(), Utf8NoBom);
+        // ★(442) 6 番目の引数が `要約`（または `summary`）なら画面（標準出力）には先頭 SummaryHeadLines 行＋前回の報告に無かった行だけを出す。report.txt は常に全文。既定（引数なし）は従来どおり全文。
+        Console.Write(args.Length > 5 && args[5] is "要約" or "summary" ? SummaryText(sb.ToString(), prevReport) : sb.ToString());
 
         // ---- 5) 保存 ----
         world.Explain = null;   // ★(435) 説明台帳は保存に載せない（World.Explain は [NonSerialized] でなく、載せると state.bin が約 3KB 増え旧版と比べられない）＝再開のたびに上で付け直す。これで state.bin は台帳を付けない旧版とバイト一致
         using (var fs = File.Create(statePath)) SaveGame.Save(sim, fs);
         return 0;
+    }
+
+    /// <summary>★(442) 要約モードの標準出力の行数（先頭から）。</summary>
+    internal const int SummaryHeadLines = 60;
+    /// <summary>★(442) 報告の要約＝先頭 <see cref="SummaryHeadLines"/> 行＋<paramref name="previous"/>（前回の報告）に同じ行が無い新しい行（順は報告の順・先頭で出した行は繰り返さない）。前回が空なら全文。
+    /// 表示の道具＝report.txt は全文のまま・世界に触れない。</summary>
+    internal static string SummaryText(string current, string previous)
+    {
+        if (previous.Length == 0) return current;
+        var cur = current.Replace("\r\n", "\n").Split('\n');
+        var old = new HashSet<string>(previous.Replace("\r\n", "\n").Split('\n'), StringComparer.Ordinal);
+        var sb = new StringBuilder();
+        int head = Math.Min(SummaryHeadLines, cur.Length);
+        for (int i = 0; i < head; i++) sb.AppendLine(cur[i]);
+        int changed = 0, skipped = cur.Length - head;
+        var diff = new StringBuilder();
+        for (int i = head; i < cur.Length; i++)
+            if (cur[i].Length > 0 && !old.Contains(cur[i])) { diff.AppendLine(cur[i]); changed++; }
+        sb.AppendLine($"---- 要約：先頭 {head} 行のあと、前回の報告に無かった行 {changed} 行（残り {skipped} 行のうち・全文は report.txt）----");
+        sb.Append(diff);
+        return sb.ToString();
     }
 
     /// <summary>ReplayAgent（清レポ提案・2026-08-31）： dotnet PriceOfBread.Runner.dll play-replay &lt;dir&gt; [国名=清] [seed=1789] [追加四半期=0]

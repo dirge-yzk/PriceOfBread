@@ -658,4 +658,19 @@ public class PlayHarnessTests
         Assert.Contains("StepUntilWait(sim, playerIndex, steps)", run);
         Assert.DoesNotContain("sim.StepQuarter()", run);
     }
+    [Fact]
+    public void 要約_前回が無ければ全文_あれば先頭の行と前回に無かった行だけ()
+    {
+        string nl = ((char)10).ToString();
+        string prev = string.Join(nl, Enumerable.Range(0, 100).Select(i => $"行{i}"));
+        Assert.Equal(prev, PlayHarness.SummaryText(prev, ""));                      // 前回が無い＝全文
+        var cur = Enumerable.Range(0, 100).Select(i => i == 5 ? "行5・変" : i == 70 ? "行70・変" : $"行{i}").ToArray();
+        string sum = PlayHarness.SummaryText(string.Join(nl, cur), prev);
+        Assert.Contains("行5・変", sum);                                            // 先頭 60 行の中の変更は先頭の部分に出る
+        Assert.Contains("行59", sum); Assert.DoesNotContain("行60" + nl, sum);        // 61 行目以降は差分だけ
+        Assert.Contains($"前回の報告に無かった行 1 行（残り {100 - PlayHarness.SummaryHeadLines} 行のうち", sum);
+        Assert.Contains("行70・変", sum);
+        Assert.DoesNotContain("行80", sum);                                         // 変わっていない行は出さない
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Matches(sum, "行70・変").Count);
+    }
 }
