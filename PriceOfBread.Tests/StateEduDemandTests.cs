@@ -80,6 +80,20 @@ public class StateEduDemandTests
     }
 
     [Fact]
+    public void 一部だけ取れた月は取れなかった分だけを足す_買えた分を二重に数えない()
+    {
+        var (a, wa) = OneMonth(0, 150.0);
+        var (b, _) = OneMonth(1, 150.0);
+        int e = Catalog.EducationId;
+        double price = a.Markets[e].Price;
+        double bought = StateSpentEdu(a) / price;                                       // 取れた量（支払い＝量×値段）
+        double want = Funding * Need(wa, p => p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker);
+        Assert.True(bought > 0 && bought < want, $"前提が崩れた：一部だけ取れた月でない（取れた {bought}・買いたい {want}）");
+        Assert.Equal(StateSpentEdu(a), StateSpentEdu(b));                               // 購入は旗に依らず同じ
+        Assert.Equal(want - bought, b.Markets[e].LastDemand - a.Markets[e].LastDemand, 9);   // 足す量＝買いたい分 − 取れた分（取れた分は旧の経路が足している）
+    }
+
+    [Fact]
     public void 旗1で供給が尽きた月は教育の値段が旗0より上がる_買いたい分が値段に出る()
     {
         var (a, wa) = OneMonth(0, 0.001);
