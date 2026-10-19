@@ -1,0 +1,28 @@
+# (437) 読む線：波17 の線の重なり（opus・読むだけ・基点 main e1973001 の grep・腕なし・コードは変えていない）
+# ★2026-10-19 (443) 合流で記録を main へ（線の報告から合流が起こした写し）
+
+## 表
+| 組 | 重なるファイル:関数 | 深さ | 処置 |
+|---|---|---|---|
+| pw × gs | MultiNationSim.cs：pw＝AdvanceDiscoveryPrices（595 付近に UpdateFoodFactors を 1 行）／gs＝触るなら StepDay の交易網の引力の注入（889〜920・TradePartnerStandardBalance）。Coefficients.cs：旗の追加（pw＝PowerRebuild の節／gs＝2745 AiLawGateFromBoard の節） | 浅い（別関数・別の節） | 同時に走らせる |
+| pw × dp | World.cs：pw＝フィールド FoodRelPrice（196 付近・セーブに載る＝SaveGame.cs も）／dp＝Invade（2161〜2195）・AddProximityTension。Coefficients.cs：旗（dp＝1382 WarDeclareTension／1442 ProximityTensionMax の節） | 浅い（別関数） | 同時に走らせる |
+| gs × dp | なし（gs＝SelfPlay.cs:963-967,1036 GoldWishFromBoard・GoldLiteracyLine(255)・InstrumentsLawGate.cs。dp＝Diplomacy.cs・World.cs）。Coefficients.cs の旗だけ（別の節） | なし〜浅い | 同時に走らせる |
+| 3 本 × CostLedger | MultiNationSim.cs:1975-1977（Count = 23）・Names[]・UnitMicros[]・WriterRatchetTests.cs の [InlineData(CostLedger.…)] の表 | 深い（同じ式）＝各自が 23 を足して Count=24 と書けば必ず衝突 | 番号を先に割り当てて解消（下）。defer は不要 |
+| dp × hx | 参戦要請の待ち：dp＝Diplomacy.cs の寿命（書き手 JoinAllies 1757・消し手 RemovePower 424・ResolveCallToArms 1766／EndWar 3199 に掃除が無いのが残る根）／hx＝PlayHarness.cs の Run の歩み（31〜101）を待ちで止める・PromptsLine（727〜748） | 浅い（別ファイル）・意味は同じ量 | 担当を分ける（notes） |
+| pw × hx | EconomyStep.cs：pw＝Run の中の 741〜838（能力 809）・911・1373・1963・2564・2795／hx ②の改名 DomesticServiceUsesIncomeElasticity＝1547・1574（＋Coefficients.cs:2500・テスト 4 本） | 浅い（同じ Run の別の行・機械的な改名） | 同時に走らせる（hx を先に main へ入れれば pw の付け直しで吸収） |
+| 全線 × テスト | DormantIdentityTests.cs（旗の一覧）・PlayHarnessTests.cs（dp・hx）・WriterRatchetTests.cs | 浅い（同じ一覧の隣の行） | 合流で手で並べる |
+
+CostLedger の番号（先に割り当て）：23＝pw〈動力：機械のレシピの注文と決済（生産者×月）〉（PowerMachines.PlaceOrders／Settle＝(378) で台帳に入っていない新しい州×月の走査）。24＝gs の予備（GoldWishFromBoard は国×四半期に 1 回＝新しい行は要らない見込み）。25＝dp の予備（AddProximityTension は既存・参戦要請の掃除は戦争×月で軽い＝要らない見込み）。hx は 0（恒等）。読む線は 0。
+
+計算量の事前登録（余り 23.5 秒＝m436 225.0／上限 248.5）：pw ≦10 秒・gs ≦1 秒・dp ≦2 秒・残り約 10 秒は揺れの幅（m436 のヌル腕 222.4〜225.8＝±2.6 秒）と合成の分。合計 13 秒＜23.5 秒。
+
+## 注（要旨）
+1. CostLedger の予約：予約しない場合は 23 を pw だけが使い、gs・dp は行を足さない。→ (443) 実際：hx は予約しなかった・pw が 23 を使った（枝 pv）・gs・dp は行を足さなかった。pv は採らなかったので main の Count は 23 のまま。
+2. pw の前提：基点 af06c35 からの付け直しが最初の作業。〈時計が直っていない〉と名乗る。時計を直す形は Discovery.cs の同じ関数＝次の波へ。
+3. dp は 3 片：dp-a 参戦要請の残り（プレイヤーにしか積まれない＝AI だけのバッチでは腕 A が全行一致の見込み）／dp-b World.Invade の拒否の枝（AI の軌道が動く）／dp-c 緊張が上限でも宣戦が無い（まず読む＝4 条件のどれが偽か）。
+4. dp-a と hx（play を待ちで止める）の持ち主：Diplomacy.cs の寿命は dp、PlayHarness.cs の Run の止め方は hx。
+5. 浅い重なり：Coefficients.cs の旗は各線が自分の節に。DormantIdentityTests.cs と PlayHarnessTests.cs は合流で手で並べる。pw の World.FoodRelPrice はセーブに載る＝savetest 必須。
+6. 〈機構が狙いどおり働いたか〉の数字（案）：pw＝工場労働者の POP の所得が消えない・能力が設備で決まる割合・転炉鋼・機関車・汽船の開く年が 1783〜84 年に寄らない。gs＝金に移る国の順が貿易相手と金の準備の順。dp-b＝屈服の枝だけに近接の緊張（拒否の枝の増分 0）。
+7. 合成後のアブレーションは旗の値を変えて回すだけ＝どの線とも重ならない。
+
+出所：MultiNationSim.cs:1975・EconomyStep.cs:809・SelfPlay.cs:967・World.cs:2161-2195・Diplomacy.cs:424,1463,1757,3199・App/ViewModels/GameViewModel.cs:380・measurements/b10_20261017_pw378_*_ins.cost・measurements/b10_20261019_m436*.cost（いずれも基点 e1973001 の行番号）。

@@ -1,0 +1,10 @@
+# (443) 合流の突然変異（合わせた木 a565492a・隔離ビルド D:/PoB_work/m443/mut・Release）
+## M-coord：World.Invade で標的の座標を Subjugate の後に取る（dp の焼き込み後の番人＝反証役 dp〔bv〕低#7）＝赤
+  失敗 PriceOfBread.Tests.DiplomacyPendingTests.屈服の枝の積む量は標的の勢力圏までの距離で減衰する [5 s]
+  失敗 PriceOfBread.Tests.DiplomacyPendingTests.抽象標的の屈服でも近接の緊張が積まれる_座標は屈服の前に取る_拒否の枝と同じ量 [659 ms]
+  失敗 PriceOfBread.Tests.InvadeInstrumentTests.侵略の表は屈服か拒否かと積んだ量を行に残す [520 ms]
+失敗!   -失敗:     3、合格:     7、スキップ:     0、合計:    10、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+## M-stopnote：PlayHarness.AppendStopNote の書き分けを外す（常に〈答えるまで〉）＝赤（合流 2 の新しい番人）
+  失敗 PriceOfBread.Tests.PlayHarnessTests.時間を止める待ち_国内の危機だけで止めたときは通知と書き_答えを求めない [4 s]
+失敗!   -失敗:     1、合格:    29、スキップ:     0、合計:    30、期間: 1 m 12 s - PriceOfBread.Tests.dll (net10.0)
+## 戻した木（a565492a）で焦点の 101 本が緑＝D:/PoB_work/m443/tests_focus.txt
