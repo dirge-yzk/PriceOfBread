@@ -1,0 +1,5 @@
+# (451) 合わせた木（8fe8e6ce＝SimCore・App・Runner は成績表の木 b60cb7b8 と同じ・tests.sh の隔離ビルド・Release）
+フルスイート（Category!=FullLength）：成功!   -失敗:     0、合格:  1492、スキップ:     0、合計:  1492、期間: 8 m 47 s - PriceOfBread.Tests.dll (net10.0)
+FullLength：成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 2 s - PriceOfBread.Tests.dll (net10.0)
+焦点の試験（合流 2b の後・Instruments・WriterRatchet・PlayHarness・ScoreReader・ModernizeReturnAndScore・TreatyPortLapse・RuleSharesForm・DormantIdentity）：成功!   -失敗:     0、合格:   167
+数え方：1495 本（普段 1492＝m443 の 1476＋hz2 10＋sp 6・FullLength 3）

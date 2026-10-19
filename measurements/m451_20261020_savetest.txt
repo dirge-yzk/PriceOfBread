@@ -1,0 +1,4 @@
+# (451) 合わせた木（8fe8e6ce＝SimCore・App・Runner は成績表の木 b60cb7b8 と同じ・差は Tests だけ）
+SOURCE-HASH: bc13a134705d8883
+保存 43.1MB（548ms）／読込 425ms（300四半期時点）
+savetest OK：12四半期後も全63カ国が継続系列と一致（最大相対差 0.0E+000）
