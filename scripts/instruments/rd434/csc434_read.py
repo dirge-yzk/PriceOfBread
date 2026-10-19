@@ -1,12 +1,13 @@
-# ★(434) 清算の片方向の錠の読み手（読むだけ・シミュを回さない）。事前登録 measurements/cl_20261019_prereg.txt の [4]〜[6]。
-# 使い方：PYTHONUTF8=1 python csc434_read.py <計器の生のフォルダ> [N=4] [種の数=10]
-# csc_s<seed>.tsv の末尾の列（throttledRowsCount ほか）から、国×時代で次を出す：
+# ★(434) 清算の片方向の錠の読み手（読むだけ・シミュを回さない）。事前登録 measurements/cl_20261019_prereg.txt の [4]〜[6]・追記 1・追記 2。
+# 使い方：PYTHONUTF8=1 python csc434_read.py --A <既定の腕の計器の生のフォルダ> [--N 4] [--seeds 10]
+# csc_s<seed>.tsv の末尾の列（throttledRowsCount ほか）から、国×時代で次を出す（census＝A だけから出す）：
 #   律速の州の行の割合（種類 1 の行・種類 4 の飛ばした行）・欠けた潜在量の割合 L（種類 1 の素の潜在量×(N−1)÷(種類 0＋種類 1×N)）・
 #   (ii) が増やす走査の見積り（(N−1)×律速の州の種類 1 の行と充填）と増える秒（充填の単価 0.10014 µs・種の数で割る）。
-# 旗 1 の腕では種類 1 の素の量は同じ・足した量（potAddedPerYear）が重みを含む＝P_B÷P_A も出す（第 3 引数に A のフォルダ）。
+# ⚠B との比（P_B÷P_A・T1′・T4 ほか）は judge434.py が出す（この読み手は A だけ）。旗 1 の腕では (ii) が種類 1 に律速の州の行を全部足すので、種類 1 の素の量は A と同じにならない。
 import csv, sys, collections
-d = sys.argv[1]; N = int(sys.argv[2]) if len(sys.argv) > 2 else 4; SEEDS = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-dA = sys.argv[4] if len(sys.argv) > 4 else None
+import argparse
+ap = argparse.ArgumentParser(); ap.add_argument('--A', required=True); ap.add_argument('--N', type=int, default=4); ap.add_argument('--seeds', type=int, default=10)
+ag = ap.parse_args(); d = ag.A; N = ag.N; SEEDS = ag.seeds
 FILL_US = 0.10014
 NAT = ['清', 'ロシア', 'イギリス', 'フランス', 'プロイセン', 'オーストリア', 'オスマン', '日本']
 def era(y): return '1784-1829' if y < 1830 else '1830-1869' if y < 1870 else '1870-1950'
@@ -28,7 +29,7 @@ def load(folder):
                     a[c] += float(r[c])
     return acc, n
 A, nA = load(d)
-B = load(dA)[0] if dA else None
+B = None
 print(f'folder={d} seeds={nA} N={N}')
 print('nation era | cls1 rows thr% | cls4 skipped rows thr% | thrShare(cls1 pot) | L(lost pot share) | (ii) extra rows/seed fills/seed sec/seed')
 tot_sec = 0.0

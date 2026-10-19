@@ -13,7 +13,7 @@ namespace PriceOfBread.SimCore;
 //   単価の比（unitA÷最良の着値）が覚えで絞った行（3）で旗 0 の行（2）より上がるなら、①は輸入国から輸出国へ価格の移転を起こしている（事前登録 追記3）。
 // ★(434) 清算の片方向の錠（旗 ClearingIdleThrottledScan・ClearingIdlePotentialReweight）で末尾に足した列（既存の 14 列と並びは不変）：
 //   throttledRowsCount＝買い手の州が律速（前の四半期の最初の清算で LastTradeThrottle＜1）の行（種類 4 では飛ばした行のうち律速の州の行）・throttledDealtRowsCount・throttledQtyPerYear＝うち成約の行と数量・
-//   fillsCount・throttledFillsCount＝その種類の行が行った着値の充填の件数（台帳の「清算：着値の充填」の内訳）・potRawPerYear＝行が潜在量へ足そうとした素の量（Σ(doneQ+newUnmet)×Wg・重みを掛ける前）・
+//   fillsCount・throttledFillsCount＝その種類の行が行った着値の充填の件数（台帳の`清算：着値の充填`の内訳）・potRawPerYear＝行が潜在量へ足そうとした素の量（Σ(doneQ+newUnmet)×Wg・重みを掛ける前）・
 //   potAddedPerYear＝実際に買い手の州の潜在量へ足した量（前後の差・重みを含む）・throttledPotRawPerYear＝うち律速の州の素の量。潜在量を書くのは最初の清算（種類 0・1）だけ。種類 1 の素の量×(N−1) が種類 4 の飛ばした分の不偏な見積り。
 // ⚠限界：①種類 4 の行数は走査した行と同じ母集団ではない（1a の門で飛ばした行は数えない）。②数量は財の単位が混ざる（国×年の和＝財の構成の変化を拾う。比は財の構成の違いも含む）。③ 助走の月は数えない（TrClear と同じ）。
 public static partial class Instruments
