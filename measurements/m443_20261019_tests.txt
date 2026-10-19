@@ -1,0 +1,4 @@
+# (443) 合わせた木（a565492a＝SimCore・Runner・Tests は成績表の木と同じ・tests.sh の隔離ビルド・Release）
+フルスイート（Category!=FullLength）：成功!   -失敗:     0、合格:  1476、スキップ:     0、合計:  1476、期間: 8 m 41 s - PriceOfBread.Tests.dll (net10.0)
+FullLength：成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 9 s - PriceOfBread.Tests.dll (net10.0)
+焦点の試験（合流 2 の変更を入れた作業ツリー・コミットの前・PlayHarness・DiplomacyPending・InvadeInstrument・ColonyPromotion・DormantIdentity・WriterRatchet）：成功!   -失敗:     0、合格:   101、スキップ:     0、合計:   101、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
