@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// (423) 線 lt の番人（事前登録 measurements/lt_20261019_prereg.txt [8]）。旗 <c>AiLawGateFromBoard</c>＝工業化度を読む AI の法の門（金本位・反トラスト・同業組合）を盤面の実物へ置き換える。
-/// 期待値は線の数値のリテラル（識字 0.6・都市 1/3 と 1/2）で書く（実装の定数から作らない＝同語反復にしない）。
+/// 期待値は線の数値のリテラル（識字 0.75・都市 1/3 と 1/2）で書く（実装の定数から作らない＝同語反復にしない）。
 /// </summary>
 public class LawGateFromBoardTests
 {
@@ -36,16 +36,16 @@ public class LawGateFromBoardTests
     // ================= L1 金の門 =================
 
     [Fact]
-    public void 金の願いは旗1で本国の識字0_6を読む()
+    public void 金の願いは旗1で本国の識字0_75を読む()
     {
         var w = Four().Nations[0].World;   // フランス＝銀で始まる
         w.Coef.AiLawGateFromBoard = 1;
         Assert.Equal(MonetaryStandardLaw.Silver, w.MonetaryLaw);
-        SetLiteracy(w, 0.59); Assert.False(UtilityAgent.GoldWishFromBoard(w));
-        SetLiteracy(w, 0.61); Assert.True(UtilityAgent.GoldWishFromBoard(w));
+        SetLiteracy(w, 0.74); Assert.False(UtilityAgent.GoldWishFromBoard(w));
+        SetLiteracy(w, 0.76); Assert.True(UtilityAgent.GoldWishFromBoard(w));
         // 配線：DecideQuarter が MonetaryTarget に写す（金 2・銀 1）
-        SetLiteracy(w, 0.59); new UtilityAgent().DecideQuarter(w); Assert.Equal(1, w.Policy.MonetaryTarget);
-        SetLiteracy(w, 0.61); new UtilityAgent().DecideQuarter(w); Assert.Equal(2, w.Policy.MonetaryTarget);
+        SetLiteracy(w, 0.74); new UtilityAgent().DecideQuarter(w); Assert.Equal(1, w.Policy.MonetaryTarget);
+        SetLiteracy(w, 0.76); new UtilityAgent().DecideQuarter(w); Assert.Equal(2, w.Policy.MonetaryTarget);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class LawGateFromBoardTests
         SetLiteracy(w, 0.3);
         SetIndustrialization(w, 5.0);   // 州の上限＝旧の閾 3.5 を大きく越える
         w.Coef.AiLawGateFromBoard = 1;
-        new UtilityAgent().DecideQuarter(w); Assert.Equal(1, w.Policy.MonetaryTarget);   // 識字 0.3＜0.6＝工業化度が 5 でも望まない
+        new UtilityAgent().DecideQuarter(w); Assert.Equal(1, w.Policy.MonetaryTarget);   // 識字 0.3＜0.75＝工業化度が 5 でも望まない
         w.Coef.AiLawGateFromBoard = 0;
         new UtilityAgent().DecideQuarter(w); Assert.Equal(2, w.Policy.MonetaryTarget);   // 旧：工業化度 5＞3.5＝望む
         SetIndustrialization(w, 3.4);
@@ -82,9 +82,9 @@ public class LawGateFromBoardTests
         var home = w.Regions.First(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial);
         // 先頭の本国の州だけを本国に残し、他の州は植民地格にして識字 0.9 を置く
         foreach (var r in w.Regions) { r.Tier = r == home ? RegionTier.Core : RegionTier.Colonial; foreach (var p in r.Pops) p.Literacy = r == home ? 0.8 : 0.9; }
-        Assert.True(UtilityAgent.GoldWishFromBoard(w));   // 本国 0.8＞0.6
+        Assert.True(UtilityAgent.GoldWishFromBoard(w));   // 本国 0.8＞0.75
         foreach (var p in home.Pops) p.Literacy = 0.2;
-        Assert.False(UtilityAgent.GoldWishFromBoard(w));  // 植民地が 0.9 でも本国 0.2＜0.6（植民地を数えると 0.9 に近く真になる）
+        Assert.False(UtilityAgent.GoldWishFromBoard(w));  // 植民地が 0.9 でも本国 0.2＜0.75（植民地を数えると 0.9 に近く真になる）
     }
 
     // ================= L2 反トラストの門 =================

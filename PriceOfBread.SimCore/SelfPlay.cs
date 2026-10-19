@@ -252,7 +252,7 @@ public sealed class UtilityAgent : INationAgent
     private const double ForceUnlockMilitancyCeiling = 0.4;             // 02断線走査2026-07-28：この闘争度以上では制圧を強行しない（全pop闘争度↑が革命を招く）
     private const double TrustbustIndThreshold = 0.75;                  // 02断線走査2026-07-28：独占解体（シャーマン法級）を目標に置く工業化度
     // ★(423) 旗 AiLawGateFromBoard（既定 0＝旧）の線 3 本。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
-    internal const double GoldLiteracyLine = 0.6;                    // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が多数派の上＝過半に余裕を足した線）
+    internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
     internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
     internal const double TrustbustUrbanLine = 0.5;                  // 独占の解体を目標に置く本国の都市の割合（都市が過半）
     private const double CompulsoryEduBufferMult = 3.0;     // 義務教育の財政バッファ倍率
@@ -963,7 +963,7 @@ public sealed class UtilityAgent : INationAgent
     /// <summary>旧の金本位の願い＝金の法の国は降りない ‖ 工業化度＞GoldStandardIndThreshold。</summary>
     internal static bool GoldWishOld(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
 
-    /// <summary>新の金本位の願い（旗≧1）＝金の法の国は降りない ‖ 本国の平均識字＞<see cref="GoldLiteracyLine"/>。分母 0・NaN は偽（否定形でなく比較が偽に落ちる側＝望まない）。</summary>
+    /// <summary>新の金本位の願い（旗≧1）＝金の法の国は降りない ‖ 本国の平均識字＞<see cref="GoldLiteracyLine"/>（0.75）。分母 0・NaN は偽（否定形でなく比較が偽に落ちる側＝望まない）。</summary>
     internal static bool GoldWishFromBoard(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > GoldLiteracyLine;
 
     /// <summary>本国（植民地格を除く）の活きている州の都市人口の割合。人口 0 は 0。</summary>
