@@ -101,3 +101,17 @@
   Diplomacy.cs（CRLF）：`EndWar`・`TriggerWars` の else 枝・`Subjugate` の戻り値と注／World.cs：`Invade` の 1 行と注・`AddProximityTension`／Coefficients.cs：近接の緊張の節に旗 1 本／Instruments.cs：`DipState` の欄・書き手・`Close` の表／
   Runner：`PendingProbe.cs`（新）・Program.cs の分岐 1 行／Tests：新しい試験ファイル 1・`DormantIdentityTests.cs`（旗の表に 1 行・混在の改行＝バイト編集）／PriceOfBread.App/マニュアル.html:227。
   同時に走る線との重なり：pw・gs は同じ関数に触らない。hx は PlayHarness.cs（dp は触らない）。CostLedger の予約番号は使わない。
+
+[9] 追記 1（2026-10-19・形の実装中の発見。腕を回す前の訂正。コミットは形のコミットに同梱）
+  発見：`Diplomacy.Subjugate` の屈服（抽象標的）は `target.ColonyList.Clear()` で植民地を攻者の州へ移す。旧の `AddProximityTension` は屈服の**後**に標的の座標を取る＝抽象標的が屈服した件は座標が空で近接の緊張が 0。
+        旧が効いていたのは拒否〔開戦〕の枝（植民地が標的に残る）と、屈服後も首都が残る実在の弱小国だけだった。旧の注の意図〈屈服して領土を得たときのみ〉と旧の実装は、抽象標的では逆だった（実装の欠陥）。
+        確かめた根拠：番人 `DiplomacyPendingTests.旗0は旧のとおり拒否の枝でだけ効き…` が、旗 0 の抽象標的の屈服で近接の緊張が厳密 0・拒否で正になることを見る（期待は 〈ColonyList が空〉という別の述語から立てた対照）。
+  形の訂正（D3）：旗 `ProximityTensionOnSubmitOnly`＞0 のとき (a) 拒否の枝は積まない (b) 屈服の枝の標的の座標は**屈服の前**に取る。旗 0 は旧のまま（屈服の後の座標・両方の枝）。(b) が無いと旗 1 は抽象標的の近接の緊張をすべて消してしまう。
+  狙いの数字の訂正（[4] D3）：
+      T1（変わらず）拒否の行の `proximityAdded` の和＝厳密 0、かつ拒否の行の `proximityWouldHave`（旧の規則なら積んだ量）が正の行が B の 10 種の延べで ≥1。
+      T2（訂正）屈服の行：実在の弱小国標的では `proximityAdded` ＝ `proximityWouldHave`。抽象標的では `proximityWouldHave`＝0（旧は無反応）で `proximityAdded`＞0 の行が ≥1（旗 1 が新しく反応させた屈服）。0 なら〈機構を踏んでいない〉。
+      T3（訂正）旗 0 の対照（m436 と同じ木の計器つき 1 本〔A の計器つき〕か同等）では全行 `proximityAdded` ＝ `proximityWouldHave`。
+      記録：屈服の行を〈抽象標的／実在の弱小国〉に分けた件数・各の積んだ量の和。
+  影響の読み（AI の推測）：AI の侵略の多くは抽象標的の植民地化。旗 1 は近接の緊張の発生源を〈拒否＝開戦の枝〉から〈屈服＝併合の枝〉へ反転させる。近接の列強との緊張が、領土を取ったときに積まれる向きになる。
+      軌道への効きは小さくないかもしれない（R1・R2 で記録）。止める線と確証の区分（確証なし）は変わらない。
+  計器の列（足した）：`invade_s<seed>.tsv`＝year・invader・target・submitted・proximityAdded・proximityWouldHave（試合の終わりに書く・既存の表は 1 列も変えない）。

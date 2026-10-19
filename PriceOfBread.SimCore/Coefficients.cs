@@ -1440,6 +1440,9 @@ public sealed class Coefficients
     // 近接緊張（グレートゲーム）：侵略した標的が、ある列強の本国/植民地（＝勢力圏）に近いほど、その列強との緊張が上がる
     public double ProximityTensionRange   = 3000.0; // この距離(km)内の列強が反応（隣接で最大、距離に比例して減衰）
     public double ProximityTensionMax     = 35.0;   // 隣接(距離0)時の緊張上乗せ
+    // ★(440) 侵略の近接の緊張（World.Invade の AddProximityTension）を屈服の枝だけにする器（既定 0＝旧のまま屈服でも拒否〔開戦〕でも積む・>0 で屈服のときだけ）。
+    //   拒否の枝は開戦そのものが帰結で、その上に〈勢力圏への接近〉の緊張を重ねない（二重の罰）。事前登録 measurements/dp_20261019_prereg.txt・確証なし（AI の推奨）。採るときは旗を焼き込んで削除する。
+    public double ProximityTensionOnSubmitOnly = 0.0;
     // 海峡・運河（チョークポイント）：運河開通で輸送が短絡、支配国との戦争で封鎖→迂回（輸送費↑＝サプライチェーン崩壊）。distF への加算
     // 運河は資本家（投資家pop）が建設＝累計投資が総額に達すると開通（年でなく投資で開く。富裕な工業国ほど速い）。投資家→自国popで保存
     // 巨大建造物§4-1（2026-07-28）：SuezBuildCost/PanamaBuildCost/SuezTechGate/PanamaTechGate の4本は**個体別の値**なので world.json（chokepoints[].buildCost/.techGate）へ移設し削除した。

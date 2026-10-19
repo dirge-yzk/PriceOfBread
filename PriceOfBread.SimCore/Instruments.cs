@@ -20,6 +20,7 @@
 /// <item><c>fm_s&lt;seed&gt;.tsv</c> ★(371) 流れM の計器 2 本（実装は <c>InstrumentsFm.cs</c>・国×四半期＝挙げた国は毎四半期・他の全ての国は年末）：①戦時の軍事費の純支持（<c>militaryMoveNetSupportIndex</c>）の項への分解（街頭の 3 ブロック・議会・軍）と、戦争の規模・存亡・戦場の強さ・兵士の人口比。②海の金の割合の分母 max(陸の必要量＋内の守り, 自国の軍の大きさ) の組成（陸の必要量を本国どうしの国境・植民地を含む国境・国境でない投射に、内の守りを人口・不穏度・質に分け、どちらが分母を決めているか）。読み手 <c>scripts/instruments/fm/an_fm.py</c>。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
+/// <item><c>invade_s&lt;seed&gt;.tsv</c> ★(440) 侵略 1 回ごと（年・攻者・標的・屈服か・近接の緊張に積んだ量・旧の規則なら積んだはずの量。試合の終わりに書く）。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
 /// </list>
 /// 開幕（構築直後 <c>open</c>）と助走の直後（<c>warm</c>）の断面は class と stock に全ての国で出る。初期値の一覧は Runner の <c>initdump</c>。
@@ -238,6 +239,7 @@ public static partial class Instruments
     {
         public readonly List<(int Year, War War)> Wars = new();
         public readonly Dictionary<(int Year, string Nation), double[]> Cas = new();   // [0]＝月数 [1]＝兵士の月和（千人×月）[2]＝戦死（千人）
+        public readonly List<(int Year, string Invader, string Target, bool Submitted, double Added, double WouldHave)> Invades = new();   // (440) 侵略 1 回ごと
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, DipState> Dips = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, Sink> Sinks = new();
@@ -1016,6 +1018,10 @@ public static partial class Instruments
     }
     /// <summary>戦争を立てた所（<c>Diplomacy.AddBelligerent</c> の <c>Wars.Add</c> の直後）：試合の終わりに戦死と月数を読む。</summary>
     internal static void WarStarted(Diplomacy dip, War war, int year) => Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war));
+    /// <summary>(440) 侵略 1 回（<c>World.Invade</c> が <c>Diplomacy.Subjugate</c> を終えた所）：屈服したか・近接の緊張に積んだ量・旧の規則（屈服でも拒否でも積む）なら積んだはずの量。
+    /// 読むだけ（旗 <c>ProximityTensionOnSubmitOnly</c> が 0 なら積んだ量＝旧の量）。試合の終わりに <c>invade_s</c> へ書く。</summary>
+    internal static void Invaded(Diplomacy dip, int year, Power invader, Power target, bool submitted, double added, double wouldHave)
+        => Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), submitted, added, wouldHave));
     /// <summary>月の戦死（<c>Diplomacy.WarCasualties</c>）：(年, 国)ごとの月数・兵士の月和・戦死の和（戦死は兵士の上限をかけた後の量）。</summary>
     internal static void Casualty(Diplomacy dip, int year, Power p, double soldierPop, double dead)
     {
@@ -2031,6 +2037,12 @@ public static partial class Instruments
             wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK");
             foreach (var (year, war) in dip.Wars)
                 wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB)));
+        }
+        using (var iv = Open("invade", sk.Seed))
+        {
+            iv.WriteLine("year	invader	target	submitted	proximityAdded	proximityWouldHave");
+            foreach (var (year, invader, target, submitted, added, wouldHave) in dip.Invades)
+                iv.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), invader, target, submitted ? "1" : "0", F(added), F(wouldHave)));
         }
         using (var cs = Open("casualty", sk.Seed))
         {

@@ -991,6 +991,11 @@ if (args.Length > 0 && args[0] == "threatprobe")
 }
 
 if (args.Length > 0 && args[0] == "play-replay") { PriceOfBread.Runner.PlayHarness.Replay(args); return; }   // ReplayAgent（2026-08-31）＝decision.raw.txt からの決定論再生
+if (args.Length > 0 && args[0] == "pendprobe")   // (440) 外交の待ちの寿命の機構の確認（答えずに全四半期・読むだけ）
+{
+    PriceOfBread.Runner.PendingProbe.Run(args);
+    return;
+}
 if (args.Length > 0 && args[0] == "play")
 {
     PriceOfBread.Runner.PlayHarness.Run(args);

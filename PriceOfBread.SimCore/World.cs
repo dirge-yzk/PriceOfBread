@@ -2156,8 +2156,9 @@ public sealed class World
     /// （2026-09-29 処理の一元化 段3 K・区分＝戦費）。⚠旧＝首都の市場の在庫を直に `*=`・`-=` で消した＝代金も台帳も無く缶詰・キニーネ・船が痕跡なく消えた。
     /// 実効戦力が屈服線を超えれば屈服（抽象標的＝植民地を接収／実在の弱小国＝属国化）、超えなければ拒否＝開戦。
     /// 戦争自体は他国戦争と同一処理（StepWars/ResolvePeace）。
-    /// ★(427) 戻り値の読み方：<c>CanInvade</c> を通って実行したか（通らなければ false＝何も消費しない）。**屈服と開戦を区別しない**＝<see cref="Diplomacy.Subjugate"/> は屈服でも拒否〔開戦〕でも true を返す。
-    /// 屈服か開戦かは戻り値でなく交戦の有無（<c>Diplomacy.IsAtWar</c>）か属国化の有無で読む（Runner の `!invade` はそう読む）。</summary>
+    /// ★(427) 戻り値の読み方：<c>CanInvade</c> を通って実行したか（通らなければ false＝何も消費しない）。**屈服と開戦を区別しない**（屈服でも拒否〔開戦〕でも true）。
+    /// 屈服か開戦かは戻り値でなく交戦の有無（<c>Diplomacy.IsAtWar</c>）か属国化の有無で読む（Runner の `!invade` はそう読む）。
+    /// ★(440) <see cref="Diplomacy.Subjugate"/> の戻り値は〈屈服したか〉に直した（<c>Invade</c> の戻り値は変えない）。近接の緊張は旗 `ProximityTensionOnSubmitOnly`＞0 のとき屈服の枝だけで積む。</summary>
     public bool Invade(Power target, Colony? interest = null)
     {
         if (!CanInvade(target, out _)) return false;
@@ -2187,12 +2188,19 @@ public sealed class World
                 KillPops(soldiers, null, total, violent: false);
             }
         }
-        bool ok = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所
-        if (ok) AddProximityTension(target);   // 勢力圏の衝突＝近接列強と緊張↑（グレートゲーム）。★(427) 注の訂正：ok は Subjugate の戻り値＝屈服でも開戦でも true なので、実際は拒否〔開戦〕の枝でも加算される（旧の注は〈屈服して領土を得たときのみ〉）。挙動のまま・意図を決めて直すのは挙動の線（00一覧 (420) の申し送り⑥）
+        // 勢力圏の衝突＝近接列強と緊張↑（グレートゲーム）。★(427) 注の訂正：旧は Subjugate の戻り値が屈服でも開戦でも true だったので、拒否〔開戦〕の枝でも加算されていた（旧の注は〈屈服して領土を得たときのみ〉）。
+        // ★(440) 旗 ProximityTensionOnSubmitOnly（既定 0＝旧のまま両方の枝で加算・座標は屈服の後）＞0 なら屈服の枝だけ＝拒否の枝は開戦そのものが帰結で、その上に勢力圏への接近の緊張を重ねない。
+        //   併せて、屈服の枝の標的の座標は**屈服の前**に取る（抽象標的は屈服で植民地が攻者の州へ移り ColonyList が空になる＝後に取ると緊張が 0 で、旧は拒否の枝でだけ効いていた）。
+        //   計器だけ、旧の規則（屈服の後の座標・両方の枝）での量も読む（apply=false で何も書かない）。
+        bool onSubmitOnly = Coef.ProximityTensionOnSubmitOnly > 0;
+        var pointsBefore = onSubmitOnly ? ProximityTargetPoints(target) : null;
+        bool submitted = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所
+        double proximityAdded = !onSubmitOnly ? AddProximityTension(target) : submitted ? AddProximityTension(target, true, pointsBefore) : 0;
+        if (Instruments.On) Instruments.Invaded(Diplomacy, Year, SelfPower!, target, submitted, proximityAdded, onSubmitOnly ? AddProximityTension(target, false) : proximityAdded);
         // ★A2-1（2026-09-26）：兵の疫病死と植民地の州化は信用の「月の中の定数」の入力＝表から外し、次の日次で求め直させる。
         //   AI は四半期末（境界相）にしか呼ばないので何も変わらない。プレイヤーは月の途中で呼べる＝旧と同じく翌日から新しい値を読む。
         Simulation.CreditMonth.Remove(this);
-        return ok;
+        return true;
     }
 
     // 旧 CanColonize / Colonize / ColonizeCostFor は撤去（作者裁定2026-08-23＝侵略と植民地化の1本化）。
@@ -2221,13 +2229,10 @@ public sealed class World
     /// <summary>P4：統一戦争の実行（同盟・宗主の参戦連鎖は既存の StartWar に乗る）。</summary>
     public bool DeclareUnificationWarOn(Power target) => CanUnificationWar(target, out _) && Diplomacy!.DeclareWar(SelfPower!, target, Coef);
 
-    /// <summary>近接緊張（段C・グレートゲーム）：侵略した標的が、ある列強の本国/植民地（勢力圏）に近いほど、その列強との緊張を上げる。
-    /// 例：満州を取れば近接の日本・清が、エジプトなら近接のオスマンが反応。地図不要（座標のみ）。</summary>
-    private void AddProximityTension(Power target)
+    /// <summary>標的の座標集合＝ColonyList（抽象植民地）＋実在国なら首都＋州化済みの植民地州（Tier==Colonial）。
+    /// 型統合後の旧読み手の是正（G05#7）：旧はColonyListのみ＝開幕の昇格（旧の旗 ColoniesAreRegions）で州化した植民地標的が近接緊張ゼロだった。</summary>
+    private static List<(double Lat, double Lon)> ProximityTargetPoints(Power target)
     {
-        if (Diplomacy is not { } dip || SelfPower is null) return;
-        // 標的の座標集合＝ColonyList（抽象植民地）＋実在国なら首都＋州化済みの植民地州（Tier==Colonial）。
-        // 型統合後の旧読み手の是正（G05#7）：旧はColonyListのみ＝開幕の昇格（旧の旗 ColoniesAreRegions）で州化した植民地標的が近接緊張ゼロだった。
         var targetPoints = new List<(double Lat, double Lon)>();
         foreach (var tc in target.ColonyList) targetPoints.Add((tc.Latitude, tc.Longitude));
         if (target.Nation is { } tw)
@@ -2237,6 +2242,19 @@ public sealed class World
                 if (tr.State == RegionState.Active && tr.Tier == RegionTier.Colonial)
                 { var trc = Places.Coord(tr.Name); targetPoints.Add((trc.Lat, trc.Lon)); }
         }
+        return targetPoints;
+    }
+
+    /// <summary>近接緊張（段C・グレートゲーム）：侵略した標的が、ある列強の本国/植民地（勢力圏）に近いほど、その列強との緊張を上げる。
+    /// 例：満州を取れば近接の日本・清が、エジプトなら近接のオスマンが反応。地図不要（座標のみ）。
+    /// ★(440) 戻り値＝積んだ（<paramref name="apply"/> が偽なら積むはずだった）量の和。偽は計器が旧の規則での量を読むためで、緊張には何も書かない。
+    /// <paramref name="targetPoints"/>＝標的の座標を呼び手が先に取っていればそれを使う（null＝今の標的から取る＝旧）。
+    /// ⚠抽象標的が屈服すると植民地は攻者の州へ接収され <c>target.ColonyList</c> が空になる＝屈服の**後**に取ると座標が無く積む緊張が 0 になる（旧は拒否〔植民地が残る〕の枝でだけ効いていた）。</summary>
+    private double AddProximityTension(Power target, bool apply = true, List<(double Lat, double Lon)>? targetPoints = null)
+    {
+        if (Diplomacy is not { } dip || SelfPower is null) return 0;
+        double total = 0;
+        targetPoints ??= ProximityTargetPoints(target);
         foreach (var q in dip.Powers)
         {
             if (q == SelfPower || q.Nation is not { } qw) continue;
@@ -2253,9 +2271,14 @@ public sealed class World
             // ★時代関数化（掃討第2波2026-08-13）：電信（1870s）で遠方の危機が即座に本国へ届く＝近接の緊張が届く距離が伸びる（既定0で×1＝恒等）
             double tensionRange = Coef.ProximityTensionRange * Coef.EraFactor(WorldTechLevel, Coef.EraTensionRange);
             if (km < tensionRange)
-                dip.AddTension(SelfPower, q, Coef.ProximityTensionMax * (1 - km / tensionRange), TensionReason.Proximity);   // 増分（0..200）で積む＝蓄積した脅威緊張を壊さず、近接の連続侵略が開戦閾値へ到達できる
+            {
+                double increment = Coef.ProximityTensionMax * (1 - km / tensionRange);
+                total += increment;
+                if (apply) dip.AddTension(SelfPower, q, increment, TensionReason.Proximity);   // 増分（0..200）で積む＝蓄積した脅威緊張を壊さず、近接の連続侵略が開戦閾値へ到達できる
+            }
 
         }
+        return total;
     }
 
     /// <summary>国営持分（利潤も赤字も国庫が受け取る割合）＝<see cref="EconomyStep"/> が所得分配で読む式**そのもの**。
