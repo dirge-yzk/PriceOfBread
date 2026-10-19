@@ -1,0 +1,42 @@
+# (444) 読む線：波 18 の線の重なり（opus・読むだけ・基点 main 1a11ebc の grep・腕なし・コードは変えていない）
+# ★2026-10-20 (451) 合流が線の報告から起こした写し（行番号は main 1a11ebc のもの）。AI の読み・作者の承認は未確認。
+
+■ 各線が触る見込みの場所（grep で確かめた）
+| 線 | ファイル:関数（行） |
+|---|---|
+| pw | EconomyStep.Run（:480 の引数 productivityMultiplier・:688 の indMult・:751-752 の boost の式〈ElecBoost・EffBoost・SteamBoost〉・:809 の能力の式〈FactoryCapacityFromPlant の頭数の項〉・:888 の InvestmentReturn の呼び・:1330/:1335/:1349 の電化・蒸気・効率化の判断・:2507 の Scale の更新・Scratch :25-75）／EconomyStep.EffectiveQty :2756・MineralSelfCost :2745／MarketFlow.StepDay :79（賃金の天井）・:133（帯の中心）／Simulation.cs :2297（Run の呼び）・AddAlternateRecipes／Discovery.PriceBook.Cost :813／Coefficients :507・:513・:521／Model.cs／Instruments.cs（power_s）／新規 PowerMachines.cs（枝 pv）／CostLedger |
+| md | EconomyStep.Run の消費（:1462 付近に層の予算の走査を新設・POP の需要 :1608-1610 の affordable・役務の配分の払い :1690-1704・一般の払い :1800 台・NeedMet の台帳 :1850 台・Scratch）／Simulation.DemographicStep :2432（識字÷HealthcareEducationGate）／Coefficients :1795／Instruments・InstrumentsPop（Ce 列）／CostLedger |
+| ed | EconomyStep.Run の役務の配分のブロック（:1708-1735 義務教育・:1739-1758 高等教育・:1759 ration・m.LastDemand）／MarketFlow.StepDay :97 |
+| cp | EconomyStep.Run の決算（:2449-2456 の赤字の分け方・:2462 の持ち主への計上）／Meritocracy.Step :295-325（:316 の没落）／CostLedger（形によっては不要） |
+| sc | Coefficients :2750（ScoreFromWorldShare）／SelfPlay.cs の NationalScore :7-200（Of :19・TermsOf :49・ShareScores :75）／Diplomacy.ComputeRanks :530・ShareScoreByPower :569／MultiNationSim :782／App の GameViewModel.Header・Refresh／PlayText.cs :85／PlayHarness.WriteReport :423-426 |
+| hz2（恒等） | Discovery.Step :938・:950（EngineerRow の呼び）／Instruments.EngineerRow／PlayHarness.WriteReport :236〜／docs |
+
+■ 重なる組と深さ
+| 組 | 重なる場所 | 深さ | 処置 |
+|---|---|---|---|
+| md × ed | EconomyStep.Run の役務の配分のブロックの中（md は :1690-1704 の払いの行・ed は直前の remaining・available と :1708-1758） | 深い | ed を次の波へ |
+| pw × cp | EconomyStep.Run の決算ループ（cp :2449-2462・pw :2507）。pw の機械のレシピは RentShare＝1 で持ち主＝投資家＝機械の赤字は cp の :2456・:2462 を通る | 条件つき（コードは浅い・意味は深い） | 両方走らせる（条件は notes の(1)） |
+| pw × ed | MarketFlow.StepDay（pw :79・:133／ed :97） | 浅い | ed は defer |
+| pw × md | EconomyStep.Run（生産の段と消費の段）・Scratch の欄と確保の行（:25-75） | 浅い（文字の衝突だけ） | notes |
+| pw × sc | SelfPlay.cs は同じファイルで別の関数・PlayHarness.cs:426 の 1 本の書式文字列に両方の量・sc の Energy の項は pw で変わる | 浅い | notes |
+| pw × hz2 | Discovery.cs（PriceBook.Cost :813 と Step :938/:950）・Instruments.cs | 浅い | notes |
+| sc × hz2 | PlayHarness.WriteReport :423-426・PlayText.cs | 浅い | notes |
+| md × hz2 | Instruments.cs（Sink の宣言・開く・Dispose・見出しの段） | 浅い | notes |
+| cp × md／cp × sc／md × sc | 共有の行なし | なし | — |
+| 全ての線 | CostLedger の const・Names・単価／Coefficients の各節／DormantIdentityTests の表／WriterRatchetTests の宣言の表 | 浅い（必ず文字の衝突） | 番号を先に割り当てる |
+
+■ CostLedger の番号（main は ParticipationPops＝22・Count＝23）：pw＝23・md＝24・cp＝25・sc＝26・hz2＝27・Count＝28（採らない線があれば合流の順に詰める）。
+  ★(451) 合流：採った sp・hz2 は台帳の行を足していない＝Count は 23 のまま（割り当ては使われなかった）。
+
+■ 計算量の余り 23.0 秒の割り当て：pw 8.0 秒／md 0.5 秒／cp 1.0 秒／sc 2.0 秒／hz2 0 秒（計器だけ）／ed 0 秒（defer）／予備 11.5 秒。
+
+■ notes（要約）
+(1) pw × cp：cp が OwnerPopIndex か RentShare を書くなら深い（pw の後か次の波へ）。赤字の分け方と没落だけなら浅いが、pw と合わせた腕は必須。
+(2) md の形の出どころ：枝 ce2 は手元にも origin にも無い・形は枝 ce5（基点 15f2e219）＝載せ直して行番号を取り直す。HealthcareEducationGate の削除は Simulation.DemographicStep :2432。
+(3) pw × sc：pw は MeanIndustrialization・TechLevel を消さない＝NationalScore の WealthParts・Tech には触らない。sc は旗 0 の腕 OfOld を残す。PlayHarness.cs:426 の書式は合流で手で直す。
+(4) sc を旗 1 にすると忠実度の列強軸・首位確定の物差しが変わる＝合流では sc の効きを他の線と分けて読む（sc だけ抜いた腕を 1 本）。
+  ★(451) 合流：採った挙動の線は sp だけ＝sp を抜いた木＝hz2 だけの木＝m443（hz2 の恒等の証明）＝新しく回す腕は要らない。
+(5) pw × hz2：hz2 の新しいレシピの費用の列は PriceBook.Cost を呼ぶ（写さない）。hz2 の恒等は pw の旗 0 でだけ成り立つ。
+(6) pw × md：Scratch の欄と RentScratch の確保の行で文字が衝突（別の行に足せば避けられる）。
+(7) 各線の事前登録に〈機構が狙いどおり働いたか〉の数字を書く。旗を旧の盤面に固定して番人の赤を避けるのは禁止。清の強さは採否の理由にしない（作者 2026-10-19）。
+(8) ed の申し送り：国家の教育の需要を配分の前に入れる形は、md の層の差し引きが main に入った後の木で役務の順位のループと一緒に設計する。MarketFlow.StepDay :97 は pw の採否が決まってから。
