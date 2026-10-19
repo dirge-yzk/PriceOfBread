@@ -6,7 +6,7 @@
 import csv, sys, os, glob, statistics, collections
 src = sys.argv[1]
 out = sys.argv[2] if len(sys.argv) > 2 else None
-WIN = {"Q8-39": (8, 39), "Q40-159": (40, 159), "Q160-399": (160, 399)}
+WIN = {"Q8-39": (8, 39), "Q40-159": (40, 159), "Q160-399": (160, 399), "Q400-667": (400, 667)}
 def fl(x):
     try: return float(x)
     except Exception: return float("nan")

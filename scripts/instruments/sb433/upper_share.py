@@ -1,9 +1,9 @@
-# (433) 買えた量の上位(rank≠0)割合を spend_s から出す。rank: 大衆(0)=1,2,11,12 / 近代エリート(1)=3,4,7,8,9,10,13 / その他(2)=0,5,6（svcbuy_s の rank 列から確認した対応）
+# (433) 買えた量の上位(rank≠0)割合を spend_s から出す。rank: 大衆(0)=1,2,11,12 / 近代エリート(1)=3,4,7,8,9,10 / その他(2)=0,5,6（svcbuy_s の rank 列から確認した対応）
 import csv,sys,glob,statistics,collections,os
 src=sys.argv[1]
-RANK0={1,2,11,12,14}
+RANK0={1,2,11,12}   # 階級 13・14 は spend_s の家事奉仕に出ない（確認済み）
 PICK={'清','ロシア','オスマン','フランス','イギリス','プロイセン','オーストリア','日本'}
-WIN={"Q8-39":["2"],"Q40-159":["3"],"Q160-399":["4","5","6","7"]}
+WIN={"Q8-39":["2"],"Q40-159":["3"],"Q160-399":["4","5","6","7"],"Q400-667":["8"]}
 res=collections.defaultdict(list)
 for path in sorted(glob.glob(os.path.join(src,"spend_s*.tsv"))):
     acc=collections.defaultdict(float)
