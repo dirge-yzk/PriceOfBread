@@ -989,6 +989,7 @@ public sealed class Region
     public Share GarrisonShare;                      // 駐屯州調達（課題6）：この州の装備需要・予算の全国シェア（月次・Simulationが設定）
     public double SoldierPayBudget;                   // 今期の兵力調達の予算（兵士給与。Simulation が設定）
     public double CompulsoryEduFunding;               // 義務教育の財源率（教育費スライダー）。popが買えない教育の何割を国庫が買い与えるか。0＝義務教育でない
+    public double DiagEduNeed, DiagEduPriv, DiagEduAvail, DiagEduWant, DiagEduTake, DiagHigherWant, DiagHigherTake;   // ★(452) 診断（読むだけ・計器 ed_s 用・INS=1 のときだけ EconomyStep が月ごとに上書き）：教育の必要量・民間の買いたい量・供給（在庫＋産出）・国庫の買いたい分・取れた分、高等教育の買いたい分・取れた分（いずれも非兵士の和・直近の月の値）
     public double GridCapacity;                       // 送電容量（地域内）。電力はこの容量までしか工場に届かない＝電化には送電網への投資が要る
     public double LastElecWant;                       // 前期の電力需要（送電網の増設判断に使う）
     public double[]? StateMonopolyMargins;             // 材ごとの専売の上乗せ率（World 参照）。★作者裁定2026-09-20＝0 か標準率の2値だけ（国ごとの率＝旧 Region.StateMonopoly は物理削除）。実効＝率×(1−StateMonopolyLeakMax×(1−AdminFill))（2026-09-30 (127)）

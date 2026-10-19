@@ -1,0 +1,12 @@
+# (452) 後半 突然変異の再走（腕の前の直しの後の木 f8126066・番人 StateEduDemandTests 9 本＋StateEduDemandInstrumentTests 1 本）
+# ⚠M9 の初回は GREEN(!)＝mut.py のフィルタ（FullyQualifiedName~StateEduDemandTests）が新しいクラス StateEduDemandInstrumentTests を拾わなかったため（番人の穴ではなくフィルタの穴）。フィルタを ~StateEduDemand に直して M9 を再走して RED。
+M1 教育：足す行を落とす	RED	['失敗!   -失敗:     5、合格:     4、スキップ:     0、合計:     9、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']
+M2 教育：供給が尽きた月の入口を旗で開けない	RED	['失敗!   -失敗:     4、合格:     5、スキップ:     0、合計:     9、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']
+M3 教育：尽きた月の未充足を充足から数える（二重計上）	RED	['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']
+M4 教育：買えた分を引かずに want 全部を足す	RED	['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']
+M5 旗を無視して常に足す	RED	['失敗!   -失敗:     6、合格:     3、スキップ:     0、合計:     9、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M6 高等教育：入口を旗で開けない	RED	['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']
+M7 高等教育：足す行を落とす	RED	['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']
+M8 教育：購入を壊す（旧の take を want の半分にする）	RED	['失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']
+--- M9 再走（フィルタ修正後）
+M9 計器の対称：教育の入口を計器で開けない（旗 0 の計器が尽きた月の買いたい分を出さない）	RED	['失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 951 ms - PriceOfBread.Tests.dll (net10.0)']

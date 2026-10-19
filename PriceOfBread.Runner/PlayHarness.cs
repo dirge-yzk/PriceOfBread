@@ -294,7 +294,7 @@ internal static class PlayHarness
         sb.AppendLine();
         sb.AppendLine("---- 財政 ----");
         sb.AppendLine($"所得税 {w.TaxRate:P0}　人頭税 {w.PollTax:P0}　土地税 {w.LandTax:P0}　累進 {w.ProgressiveTax:P0}　専売の負担 {w.StateMonopolyBreadth:P0}（実効 {w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:P0}）");
-        sb.AppendLine($"関税 {w.Tariff:P0}　教育費 {w.EducationSpending:P0}　行政費 {w.AdminSpending:P0}　社会保障 {w.SocialSecurity:P0}");
+        sb.AppendLine($"関税 {w.Tariff:P0}　{PlayText.EducationSpendingText(w)}　行政費 {w.AdminSpending:P0}　社会保障 {w.SocialSecurity:P0}");   // ★(452) 教育費の名乗りは App と同じ関数
         // ★(410) 00-HARN の残り（プレイの報告 2-3）：教育費の目標は法と支配度を通った後の**実効**でしか国庫の購入にならない（Simulation の CompulsoryEduFunding・払い率を掛けた後の値）。
         //   目標を払っているつもりで実効 0 の国（Religious で教区学校への補助が無い・支配度が届かない）を報告で読めるようにする。
         {
