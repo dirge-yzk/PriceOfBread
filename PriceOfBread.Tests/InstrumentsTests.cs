@@ -1604,7 +1604,8 @@ public class InstrumentsTests
     // ★(423) AiLawGateFromBoard の点火〔既定 3〕で軌道がまた動き、1793 では場面 T の飢えの照合が空洞になった（飢え 0・構造 7）＝1796 も空洞（飢え 0・構造 6）・1794 と 1795 で全ての場面が空洞でない（種の選び直しは (405)(418) と同じ作法・探した種：1793 空洞・1794 緑・1795 緑・1796 空洞）。
     // ★(433) 家事奉仕の買い手の点火〔DomesticServiceMarketRation 1・指数 2〕で軌道がまた動き、1794 では場面 T の飢えの照合が空洞になった（飢え 0・構造 5）＝1795（構造 8）・1796（構造 4）・1798（構造 5）・1800（構造 6）も空洞・1797 と 1799 で全ての場面が空洞でない（種の選び直しは (405)(418)(423) と同じ作法）。
     // ★(431) 不満度の二量分離の点火〔ParticipationDiscontent 既定 1・闘争度の目標から生活の項を外す〕で軌道がまた動き、1794 では場面 T の飢えの照合が空洞になった（飢え 0・構造 8）＝1795（構造 6）・1796（構造 8）も空洞・1797 で全ての場面が空洞でない（種の選び直し。旧の既定へ固定して赤を避けない）。
-    private const ulong CoverageSeed = 1797UL;
+    // ★(449) 国力の物差しの点火〔ScoreFromWorldShare 既定 1〕で軌道がまた動き、1797 では場面 T の飢えの照合が空洞になった（飢え 0・構造 6）＝1798（構造 7）も空洞・1799 で全ての場面が空洞でない（種の選び直し。旧の既定へ固定して赤を避けない）。
+    private const ulong CoverageSeed = 1799UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
@@ -1617,7 +1618,7 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make(CoverageSeed);
-                foreach (var n0 in sim.Nations) { n0.World.Coef.ScoreFromWorldShare = 0; n0.World.Coef.AiModernizeFromReturn = 0; }   // ★(416) 場面の前提〔構造と飢えの両方が立つ世界〕を旧の既定で保つ（法律タブの照会の機構を測る番人）
+                foreach (var n0 in sim.Nations) { n0.World.Coef.AiModernizeFromReturn = 0; }   // ★(416) 場面の前提〔構造と飢えの両方が立つ世界〕を旧の既定で保つ（法律タブの照会の機構を測る番人）。★(449) 国力の物差しは既定の新しい側のまま〔旧の旗に固定しない〕
                 foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 壁の一歩を閉じた世界〔壁は通らない・符号 2 の構造〕の分割を見る番人＝指数を 0 に明示（既定は 2・旧の旗 0 と同じ振る舞い＝盤面の軌道も変わらない）
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)

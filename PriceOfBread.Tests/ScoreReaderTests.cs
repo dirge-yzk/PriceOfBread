@@ -130,7 +130,8 @@ public class ScoreReaderTests
     {
         // 61 カ国の世界（定員制の分岐）。助走の前後で旧の国力は大きく動く（市場が回る）ので、取り直しが通る突然変異〔門を常に真にする〕なら旗 0 でもランクが動く。
         var off = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
-        Assert.Equal(0, off.Coef.ScoreFromWorldShare);
+        off.Coef.ScoreFromWorldShare = 0;   // 旧の腕〔旗 0〕を明示（既定は 1＝2026-10-20 に点火）
+        foreach (var n in off.Nations) n.World.Coef.ScoreFromWorldShare = 0;
         var before = off.Diplomacy.Powers.Select(p => off.Diplomacy.RankOf(p)).ToArray();
         off.StartWarmup();
         Assert.Equal(before, off.Diplomacy.Powers.Select(p => off.Diplomacy.RankOf(p)).ToArray());   // 取り直しの行を通らない＝旧と同じ（恒等の底は 5 種の成績表の全行一致）
