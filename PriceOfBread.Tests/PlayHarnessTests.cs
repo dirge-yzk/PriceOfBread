@@ -857,4 +857,17 @@ public class PlayHarnessTests
         foreach (string stale in new[] { "DepressionExitDrawdown", "DepressionSevereDrawdown", "> DepressionDrawdown" })
         { Assert.DoesNotContain(stale, news); Assert.DoesNotContain(stale, vm); }
     }
+
+    [Fact]
+    public void pendprobeの門は本体のWarGateOpenを呼ぶ_4つの門の組み直しが残っていない_P3の古い待ちの塞がれは2四半期続けての数も出す()
+    {
+        // (440) 反証役 dp〔bv〕記録#9：本体の判定（Diplomacy.WarGateOpen）と計器の判定が 2 本あった＝片方だけ直ると計器が嘘をつく。計器は本体の 1 本を呼ぶ。
+        string root = GoodIdGuardTests.RepoRoot();
+        string probe = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.Runner", "PendingProbe.cs"));
+        Assert.Contains("d.WarGateOpen(a, b, c)", probe);
+        Assert.DoesNotContain("c.WarDeclareTension && !d.IsAtWar", probe);                 // 緊張・交戦・厭戦・従属・到達を組み直した式が残っていない
+        Assert.Contains("blockedStaleTwo", probe);                                         // P3(b) の 2 四半期続けての数（過渡の 1 四半期か残るかを分ける）
+        string dip = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.SimCore", "Diplomacy.cs"));
+        Assert.Contains("internal bool WarGateOpen(Power a, Power b, Coefficients c)", dip);   // Runner から呼べる（InternalsVisibleTo）
+    }
 }
