@@ -1,0 +1,7 @@
+M1 律速の条件を落とす => RED ['失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 5 s - PriceOfBread.Tests.dll (net10.0)'] []
+M2 NaN を律速から外す => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 7 s - PriceOfBread.Tests.dll (net10.0)'] []
+M3 重みを落とす => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)'] []
+M4 重みを買い手側だけに => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 7 s - PriceOfBread.Tests.dll (net10.0)'] []
+M5 (ii) の起こした行にも重み => RED ['失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)'] []
+M6 旗0でも N 倍 => RED ['失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)'] []
+M7 番の門が (ii) を無視 => RED ['失敗!   -失敗:     4、合格:     4、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)'] []
