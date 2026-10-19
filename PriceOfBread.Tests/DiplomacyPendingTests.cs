@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// (440) 線 dp：外交の待ち（参戦要請・最後通牒）の寿命と、侵略の近接の緊張（事前登録 measurements/dp_20261019_prereg.txt の G1〜G4）。
+/// (440) 線 dp：外交の待ち（参戦要請・最後通牒）の寿命と、侵略の近接の緊張の標的の座標（事前登録 measurements/dp_20261019_prereg.txt の G1〜G5・追記 4 で形を直した）。
 /// 期待は本体の別の述語から作る（戦争の一覧・緊張の値）＝待ちを下ろす同じ式を写さない。
 /// 何もしない機構は必ず緑になるので、各テストは〈下りる〉と〈下りない〉の両方（対照）を同じ盤面で見る。
 /// </summary>
@@ -44,41 +44,71 @@ public class DiplomacyPendingTests
         Assert.True(foe.PendingCallToArms is not null, "続いている戦争の待ちが月を進めて消えた");
     }
 
+    /// <summary>プロイセン（プレイヤー）の緊張を保つ（歩みの中の減衰を打ち消す）。保った組の門が開く（水準以上）ことを確かめる。</summary>
+    private static void Hold(Diplomacy dip, Power me, Power foe, Coefficients c)
+    {
+        double t = dip.Tension(me, foe);
+        if (t < 190) dip.AddTension(me, foe, 190 - t, TensionReason.Threat);
+        Assert.True(dip.Tension(me, foe) >= c.WarDeclareTension, "前提が崩れた：保った緊張が水準を下回っている");
+    }
+
     [Fact]
-    public void 最後通牒の待ちは根拠の門が閉じると消え_開いているあいだは残る()
+    public void 最後通牒の待ちは根拠の門が閉じても消えない_答えずに待ちが消える道は無い()
     {
         var sim = Board(); var dip = sim.Diplomacy; var c = sim.Coef;
         var me = sim.Nations[1].World.SelfPower!;        // プロイセン（プレイヤー）
         var cold = sim.Nations[2].World.SelfPower!;      // フランス＝緊張が水準未満（根拠が消えている）
-        var hot = sim.Nations[3].World.SelfPower!;       // ロシア＝緊張が水準以上（門が開く）
         me.IsPlayer = true;
         Assert.True(dip.Tension(me, cold) < c.WarDeclareTension, "前提が崩れた：開幕の緊張が水準を下回っていない");
-        void Hold()   // 緊張を 190 に保つ（歩みの中の減衰を打ち消す）
-        {
-            double t = dip.Tension(me, hot);
-            if (t < 190) dip.AddTension(me, hot, 190 - t, TensionReason.Threat);
-            Assert.True(dip.Tension(me, hot) >= c.WarDeclareTension, "前提が崩れた：保った緊張が水準を下回っている");
-        }
-
-        // (1) 門が閉じた相手への待ちは下りる。(2) その間に門が開いた別の相手が時計を満たすと、翌月以降に積まれる（塞がれの解消）。
         me.PendingWar = cold;
-        Hold(); dip.Step(c, sim.Rng, 1);
-        Assert.True(me.PendingWar is null, "根拠の門が閉じた最後通牒の待ちが残っている");
-        for (int i = 1; i < c.WarTriggerMonths; i++)
+        // 四半期の末（3・6・9・12 月）を含めて 1 年歩んでも、置き換える相手が居なければ待ちはそのまま（AI の組は時計が満ちた月に即開戦する＝プレイヤーだけが免れる道を作らない）
+        for (int m = 1; m <= 12; m++) dip.Step(c, sim.Rng, m);
+        Assert.True(me.PendingWar == cold, "根拠の門が閉じただけで最後通牒の待ちが消えた（答えずに待ちが消える道がある）");
+    }
+
+    [Fact]
+    public void 根拠の閉じた待ちは_門が開いて時計が満ちた別の組で置き換わる()
+    {
+        var sim = Board(); var dip = sim.Diplomacy; var c = sim.Coef;
+        var me = sim.Nations[1].World.SelfPower!;        // プロイセン（プレイヤー）
+        var cold = sim.Nations[2].World.SelfPower!;      // フランス＝根拠が消えた待ちの相手
+        var hot = sim.Nations[3].World.SelfPower!;       // ロシア＝緊張が水準以上（門が開く）
+        me.IsPlayer = true;
+        me.PendingWar = cold;
+        for (int i = 0; i < c.WarTriggerMonths - 1; i++)
         {
-            Assert.True(me.PendingWar is null, "時計が満ちる前に最後通牒が積まれた");   // 時計が満ちるまでは何も積まれない
-            Hold(); dip.Step(c, sim.Rng, NonQuarterMonths[i]);
+            Hold(dip, me, hot, c); dip.Step(c, sim.Rng, NonQuarterMonths[i]);
+            Assert.True(me.PendingWar == cold, "時計が満ちる前に待ちが置き換わった");   // 時計が満ちるまでは何も動かない
         }
-        Assert.True(me.PendingWar == hot, "門が開いて時計が満ちたのに最後通牒が積まれない（塞がれの解消）");
+        Hold(dip, me, hot, c); dip.Step(c, sim.Rng, NonQuarterMonths[c.WarTriggerMonths - 1]);
+        Assert.True(me.PendingWar == hot, "門が開いて時計が満ちたのに、根拠の消えた待ちが枡を塞いだまま（塞がれの解消）");
         Assert.False(dip.IsAtWar(me, hot));   // 最後通牒＝プレイヤーの組は宣戦でなく待ちになる
-        // (3) 門が開いている待ちは歩んでも消えない
-        Hold(); dip.Step(c, sim.Rng, 1);
-        Assert.True(me.PendingWar == hot, "門が開いている最後通牒の待ちが歩みで消えた");
-        // (4) 根拠が消える（緊張が水準未満）と下りる
-        dip.AddTension(me, hot, -200, TensionReason.Threat);
-        Assert.True(dip.Tension(me, hot) < c.WarDeclareTension, "前提が崩れた：緊張を下げ切れていない");
-        dip.Step(c, sim.Rng, 2);
-        Assert.True(me.PendingWar is null, "根拠が消えた（緊張が水準未満の）最後通牒の待ちが残っている");
+        // 置き換わった待ちは、門が開いているあいだ歩んでも残る
+        Hold(dip, me, hot, c); dip.Step(c, sim.Rng, 1);
+        Assert.True(me.PendingWar == hot, "門が開いている最後通牒の待ちが歩みで動いた");
+    }
+
+    [Fact]
+    public void 根拠のある待ちは別の有効な組に取られない_空の枡には積まれる()
+    {
+        // 対照：枡が空なら、門が開いて時計が満ちたイギリスの組が積まれる（イギリスの組の門が開く盤面であることの証拠）
+        var simA = Board(); var dipA = simA.Diplomacy; var cA = simA.Coef;
+        var meA = simA.Nations[1].World.SelfPower!; var brA = simA.Nations[0].World.SelfPower!;
+        meA.IsPlayer = true;
+        for (int i = 0; i < cA.WarTriggerMonths; i++) { Hold(dipA, meA, brA, cA); dipA.Step(cA, simA.Rng, NonQuarterMonths[i]); }
+        Assert.True(meA.PendingWar == brA, "前提が崩れた：空の枡にイギリスの最後通牒が積まれない（この盤面ではイギリスの組の門が開かない）");
+
+        // 本体：枡にはロシア（門が開いている）。イギリスの門も開いて時計が満ちるが、有効な待ちは取られない
+        var sim = Board(); var dip = sim.Diplomacy; var c = sim.Coef;
+        var me = sim.Nations[1].World.SelfPower!; var br = sim.Nations[0].World.SelfPower!; var ru = sim.Nations[3].World.SelfPower!;
+        me.IsPlayer = true;
+        me.PendingWar = ru;
+        for (int i = 0; i < c.WarTriggerMonths + 2; i++)
+        {
+            Hold(dip, me, ru, c); Hold(dip, me, br, c);
+            dip.Step(c, sim.Rng, i < NonQuarterMonths.Length ? NonQuarterMonths[i] : 1);
+        }
+        Assert.True(me.PendingWar == ru, "根拠のある（門が開いている）最後通牒の待ちが別の組に取られた");
     }
 
     [Fact]
@@ -92,12 +122,12 @@ public class DiplomacyPendingTests
         dip.AddTension(me, hot, 190, TensionReason.Threat);
         double cold = dip.Tension(a, b);
         Assert.True(cold < c.WarDeclareTension, "前提が崩れた：AI どうしの組の緊張が水準を下回っていない");
-        dip.Step(c, sim.Rng, 1);   // AI どうしの組（英×仏）の門は閉じている＝else 枝が走るが、プレイヤーの待ち（プロイセン×ロシア）には触れない
+        dip.Step(c, sim.Rng, 1);   // AI どうしの組（英×仏）の門は閉じている＝プレイヤーの待ち（プロイセン×ロシア）には触れない
         Assert.True(me.PendingWar == hot, "AI どうしの組の走査でプレイヤーの有効な待ちが動いた");
         Assert.True(a.PendingWar is null && b.PendingWar is null && hot.PendingWar is null, "AI の国に最後通牒の待ちが積まれた");
     }
 
-    // ===== 侵略の近接の緊張（G3・G4）=====
+    // ===== 侵略の近接の緊張の標的の座標（G3・G4）=====
 
     private static MultiNationSim TwoNations()
     {
@@ -117,7 +147,7 @@ public class DiplomacyPendingTests
         var w = sim.Nations[0].World; var me = w.SelfPower!; var fr = sim.Nations[1].World.SelfPower!; var c = w.Coef;
         var target = InvasionTarget(sim);
         Assert.NotNull(target);
-        c.ProximityTensionOnSubmitOnly = flag;
+        c.ProximityTensionPointsBeforeSubmit = flag;
         c.ProximityTensionRange = range;   // フランスが標的の勢力圏に入る距離にする（増分が正になる盤面）
         w.ExpansionWill = 1e12; w.FiscalFundingRatio = new Share(1.0);
         target.Military = 100;
@@ -135,9 +165,9 @@ public class DiplomacyPendingTests
     }
 
     [Fact]
-    public void 旗0は旧のとおり拒否の枝でだけ効き_旗1は屈服の枝だけで同じ量を積む()
+    public void 旗0は旧のとおり抽象標的の屈服で積まず_旗1は屈服の前の座標で積む_拒否の枝は旗に依らない()
     {
-        // 旧（旗 0）：抽象標的は屈服で植民地が攻者の州へ移り座標が空になる＝屈服の枝は 0・拒否の枝（植民地が標的に残る）だけ正。旗 1：屈服の前に座標を取って屈服の枝だけ積む。
+        // 旧（旗 0）：抽象標的は屈服で植民地が攻者の州へ移り座標が空になる＝屈服の枝は 0・拒否の枝（植民地が標的に残る）だけ正。旗 1：座標を屈服の前に取る＝屈服の枝も積む。拒否の枝は座標が動かない＝旗に依らず同じ。
         var (subm0, p0, r0, _, _) = InvadeOnce(submit: true, flag: 0);
         var (subm0r, pr0, rr0, simR0, tgtR0) = InvadeOnce(submit: false, flag: 0);
         var (subm1, p1, r1, _, _) = InvadeOnce(submit: true, flag: 1);
@@ -145,10 +175,10 @@ public class DiplomacyPendingTests
         Assert.True(subm0 && subm1); Assert.False(subm0r); Assert.False(subm1r);   // 屈服は戦争にならず、拒否は戦争になる
         Assert.True(simR0.Diplomacy.IsAtWar(simR0.Nations[0].World.SelfPower!, tgtR0));
         Assert.True(simR1.Diplomacy.IsAtWar(simR1.Nations[0].World.SelfPower!, tgtR1));
-        Assert.Equal(0.0, p0);                     // 旗 0 の屈服＝旧の欠陥（植民地を接収した後に座標を取る）の対照
+        Assert.Equal(0.0, p0);                     // 旗 0 の屈服＝旧の欠陥（植民地を接収した後に座標を取る）の対照。旗を焼き込むときはこの行を書き直す
         Assert.True(pr0 > 0, "旗 0 の拒否の枝は旧のとおり積む（対照）");
-        Assert.True(p1 > 0, "旗 1 の屈服の枝は積む");
-        Assert.Equal(0.0, pr1);                    // 旗 1 の拒否の枝は厳密 0
+        Assert.True(p1 > 0, "旗 1 の屈服の枝は積む（機構を踏んだ証拠）");
+        Assert.Equal(pr0, pr1, 9);                 // 拒否の枝は旗に依らず同じ量（座標が屈服の前後で動かない）
         Assert.Equal(pr0, p1, 9);                  // 同じ標的の座標・同じ列強＝枝が違っても積む量は同じ（座標を屈服の前に取った分）
         Assert.True(r0 && rr0 && r1 && rr1, "Invade の戻り値は旗にも枝にも依らず true（実行したか）");
     }
@@ -173,9 +203,14 @@ public class DiplomacyPendingTests
     [Fact]
     public void 旗1の屈服の枝の積む量は標的の勢力圏までの距離で減衰する()
     {
-        double near = InvadeOnce(submit: true, flag: 1, range: 1_000_000).Proximity;
-        double far = InvadeOnce(submit: true, flag: 1, range: 2_000_000).Proximity;
-        Assert.True(near > 0 && far > near, $"距離減衰の向きが崩れた（範囲 100万 km={near}・200万 km={far}）");
+        // 範囲を地球上の距離（最大 約 2 万 km）の桁にする。増分 = 最大 × (1 − 距離/範囲) の線形：2 つの範囲の増分から距離を逆算して 2 つが一貫することを見る（距離の幾何は写さない）
+        double max = new Coefficients().ProximityTensionMax;
+        double a = InvadeOnce(submit: true, flag: 1, range: 25_000).Proximity;
+        double b = InvadeOnce(submit: true, flag: 1, range: 50_000).Proximity;
+        Assert.True(a > 0 && b > a, $"距離減衰の向きが崩れた（範囲 2.5 万 km={a}・5 万 km={b}）");
+        double kmA = 25_000 * (1 - a / max), kmB = 50_000 * (1 - b / max);
+        Assert.InRange(kmA, 0, 20_100);   // 地球上の最大距離（約 2 万 km）以内
+        Assert.Equal(kmA, kmB, 3);        // 同じ盤面＝同じ距離（線形の式が崩れれば 2 つの逆算がずれる）
     }
 }
 
@@ -198,7 +233,7 @@ public class InvadeInstrumentTests
                 var w = sim.Nations[0].World; var me = w.SelfPower!; var c = w.Coef;
                 Instruments.Phase(sim, 1789UL, "open");
                 var target = sim.Diplomacy.Powers.Find(p => p.Nation is null && p.ColonyList.Count > 0 && sim.Diplomacy.RankOf(p) == PowerRank.Minor && sim.Diplomacy.Suzerain(p) is null)!;
-                c.ProximityTensionOnSubmitOnly = 1; c.ProximityTensionRange = 1_000_000;
+                c.ProximityTensionPointsBeforeSubmit = 1; c.ProximityTensionRange = 1_000_000;
                 w.ExpansionWill = 1e12; w.FiscalFundingRatio = new Share(1.0);
                 target.Military = 100; me.Military = submit ? 1e9 : c.InvadeMilitaryFactor * target.Military * 1.001;
                 foreach (int g in new[] { Catalog.SailingShipId, Catalog.SteamshipId, Catalog.CannedFoodId, Catalog.QuinineId }) w.Region.Markets[g].Stock = 1e6;
@@ -209,17 +244,21 @@ public class InvadeInstrumentTests
                 header = lines[0].Split('\t');
                 rows.Add(lines[1].Split('\t'));
                 Assert.Equal(2, lines.Length);   // 侵略 1 回＝データ行 1
-                Assert.Equal(7, header.Length);
+                Assert.Equal(9, header.Length);
             }
             int iNat = Array.IndexOf(header, "targetIsNation"), iSub = Array.IndexOf(header, "submitted"), iAdd = Array.IndexOf(header, "proximityAdded"), iWould = Array.IndexOf(header, "proximityWouldHave");
+            int iAddT = Array.IndexOf(header, "addedToTarget"), iWouldT = Array.IndexOf(header, "wouldHaveToTarget");
+            Assert.True(iNat >= 0 && iSub >= 0 && iAdd >= 0 && iWould >= 0 && iAddT >= 0 && iWouldT >= 0, "表の列の名前が足りない");
             Assert.Equal("1", rows[0][iSub]); Assert.Equal("0", rows[1][iSub]);
             Assert.Equal("0", rows[0][iNat]); Assert.Equal("0", rows[1][iNat]);   // どちらも抽象標的
             double D(string s) => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture);
             Assert.True(D(rows[0][iAdd]) > 0, "旗 1 の屈服の行の積んだ量が正でない");
             Assert.Equal(0.0, D(rows[0][iWould]));   // 旧の規則（屈服の後の座標）では抽象標的の屈服は 0＝旗 1 の新しい反応
-            Assert.Equal(0.0, D(rows[1][iAdd]));      // 拒否（旗 1）＝積まない
-            Assert.True(D(rows[1][iWould]) > 0, "拒否の行の〈旧の規則なら積んだ量〉が正でない（機構を踏んでいない）");
-            Assert.Equal(D(rows[0][iAdd]), D(rows[1][iWould]), 9);   // 同じ座標・同じ列強＝枝が違っても同じ量
+            Assert.True(D(rows[1][iAdd]) > 0, "拒否の行の積んだ量が正でない（拒否の枝は旗 1 でも積む）");
+            Assert.Equal(D(rows[1][iAdd]), D(rows[1][iWould]), 9);   // 拒否の枝は座標が動かない＝積んだ量＝旧の量
+            Assert.Equal(D(rows[0][iAdd]), D(rows[1][iAdd]), 9);     // 同じ座標・同じ列強＝枝が違っても同じ量
+            Assert.Equal(0.0, D(rows[0][iAddT])); Assert.Equal(0.0, D(rows[1][iAddT]));   // 抽象標的は列強でない＝標的自身の組には積まれない
+            Assert.Equal(0.0, D(rows[0][iWouldT])); Assert.Equal(0.0, D(rows[1][iWouldT]));
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
