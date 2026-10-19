@@ -11,6 +11,10 @@ namespace PriceOfBread.SimCore;
 //   qtyPerYear＝成約の数量の和・qtyTimes…＝数量で重みを付けた和：UnitPrice＝実際に払う単価 unitA（次善の着値と自州価格の小さい方）・BestDelivered＝最良の着値・LocalPrice＝買い手の自州価格・
 //   SellerShipPrice＝売り手の受取（積出し価格 sA）。qtyAfterFallbackPerYear＝探し直しの後の成約の数量。
 //   単価の比（unitA÷最良の着値）が覚えで絞った行（3）で旗 0 の行（2）より上がるなら、①は輸入国から輸出国へ価格の移転を起こしている（事前登録 追記3）。
+// ★(434) 清算の片方向の錠（旗 ClearingIdleThrottledScan・ClearingIdlePotentialReweight）で末尾に足した列（既存の 14 列と並びは不変）：
+//   throttledRowsCount＝買い手の州が律速（前の四半期の最初の清算で LastTradeThrottle＜1）の行（種類 4 では飛ばした行のうち律速の州の行）・throttledDealtRowsCount・throttledQtyPerYear＝うち成約の行と数量・
+//   fillsCount・throttledFillsCount＝その種類の行が行った着値の充填の件数（台帳の`清算：着値の充填`の内訳）・potRawPerYear＝行が潜在量へ足そうとした素の量（Σ(doneQ+newUnmet)×Wg・重みを掛ける前）・
+//   potAddedPerYear＝実際に買い手の州の潜在量へ足した量（前後の差・重みを含む）・throttledPotRawPerYear＝うち律速の州の素の量。潜在量を書くのは最初の清算（種類 0・1）だけ。種類 1 の素の量×(N−1) が種類 4 の飛ばした分の不偏な見積り。
 // ⚠限界：①種類 4 の行数は走査した行と同じ母集団ではない（1a の門で飛ばした行は数えない）。②数量は財の単位が混ざる（国×年の和＝財の構成の変化を拾う。比は財の構成の違いも含む）。③ 助走の月は数えない（TrClear と同じ）。
 public static partial class Instruments
 {
@@ -18,6 +22,9 @@ public static partial class Instruments
     {
         public long Rows, DealtRows, Deals, FallbackRows;
         public double Qty, QUnit, QBest, QLp, QSell, QAfterFallback;
+        // ★(434) 清算の片方向の錠の計器：買い手の州が律速（前の四半期の最初の清算で LastTradeThrottle＜1）の行・着値の充填の件数・潜在量（素の量と実際に足した量）。買い手の役（role 0）だけが持つ。
+        public long ThrRows, ThrDealtRows, Fills, ThrFills;
+        public double ThrQty, PotRaw, PotAdded, ThrPotRaw;
     }
     sealed class CscState
     {
@@ -34,17 +41,31 @@ public static partial class Instruments
     }
 
     /// <summary>走査した買い手行の終わり（<c>BilateralMarket</c>・読むだけ）。<paramref name="cls"/>＝行の種類（0〜3）・<paramref name="dealt"/>＝1 件でも成約したか・<paramref name="fell"/>＝覚えが尽きて探し直したか。</summary>
-    internal static void ScopeRow(InternationalMarket m, World buyer, int cls, bool dealt, bool fell)
+    internal static void ScopeRow(InternationalMarket m, World buyer, int cls, bool dealt, bool fell, bool thr, long fills)
     {
         var a = CscOf(m, buyer, 0, cls);
         a.Rows++; if (dealt) a.DealtRows++; if (fell) a.FallbackRows++;
+        a.Fills += fills;
+        if (thr) { a.ThrRows++; if (dealt) a.ThrDealtRows++; a.ThrFills += fills; }
     }
-    /// <summary>番でなくて飛ばした行（種類 4）。</summary>
-    internal static void ScopeSkip(InternationalMarket m, World buyer) => CscOf(m, buyer, 0, 4).Rows++;
+    /// <summary>番でなくて飛ばした行（種類 4）。<paramref name="thr"/>＝買い手の州が律速か（飛ばした行のうち律速の州の行が (ii) の起こす母集団）。</summary>
+    internal static void ScopeSkip(InternationalMarket m, World buyer, bool thr)
+    {
+        var a = CscOf(m, buyer, 0, 4);
+        a.Rows++; if (thr) a.ThrRows++;
+    }
+    /// <summary>潜在量の記帳 1 件（買い手の役）。<paramref name="raw"/>＝行が足そうとした素の量（重みを掛ける前）・<paramref name="added"/>＝実際に買い手の州の潜在量へ足した量（重みを含む・前後の差）。</summary>
+    internal static void ScopePot(InternationalMarket m, World buyer, int cls, bool thr, double raw, double added)
+    {
+        var a = CscOf(m, buyer, 0, cls);
+        a.PotRaw += raw; a.PotAdded += added;
+        if (thr) a.ThrPotRaw += raw;
+    }
     /// <summary>成約 1 件（買い手の国の役 B と売り手の国の役 S）。</summary>
-    internal static void ScopeDeal(InternationalMarket m, World buyer, World seller, int cls, bool afterFallback, double qty, double unit, double bestDelivered, double localPrice, double sellerShipPrice)
+    internal static void ScopeDeal(InternationalMarket m, World buyer, World seller, int cls, bool afterFallback, double qty, double unit, double bestDelivered, double localPrice, double sellerShipPrice, bool thr)
     {
         var b = CscOf(m, buyer, 0, cls);
+        if (thr) b.ThrQty += qty;
         b.Deals++; b.Qty += qty; b.QUnit += qty * unit; b.QBest += qty * bestDelivered; b.QLp += qty * localPrice; b.QSell += qty * sellerShipPrice;
         if (afterFallback) b.QAfterFallback += qty;
         var s = CscOf(m, seller, 1, cls);
@@ -61,10 +82,19 @@ public static partial class Instruments
         return (rows, fb, deals, qty, qu, qb, ql, qf);
     }
 
+    /// <summary>番人用（(434)）：買い手の役（role 0）の行の種類 <paramref name="cls"/> の蓄えの全ての国の和（律速の州の行・着値の充填・律速の州の充填・律速の州の成約の数量・素の潜在量・実際に足した潜在量・律速の州の素の潜在量）。</summary>
+    internal static (long ThrRows, long Fills, long ThrFills, double ThrQty, double PotRaw, double PotAdded, double ThrPotRaw) ScopeGetThr(MultiNationSim sim, int cls)
+    {
+        long tr = 0, f = 0, tf = 0; double tq = 0, pr = 0, pa = 0, tpr = 0;
+        if (CscAccs.TryGetValue(sim.Market, out var s))
+            foreach (var kv in s.Map) if (kv.Key.Role == 0 && kv.Key.Cls == cls) { var a = kv.Value; tr += a.ThrRows; f += a.Fills; tf += a.ThrFills; tq += a.ThrQty; pr += a.PotRaw; pa += a.PotAdded; tpr += a.ThrPotRaw; }
+        return (tr, f, tf, tq, pr, pa, tpr);
+    }
+
     /// <summary>助走の直後：助走の月の成約を数えない。</summary>
     internal static void ScopeClear(MultiNationSim sim) { if (CscAccs.TryGetValue(sim.Market, out var s)) s.Map.Clear(); }
 
-    const string CscHeader = "year\tnation\troleCode\tclassCode\trowsCount\tdealtRowsCount\tdealsCount\tfallbackRowsCount\tqtyPerYear\tqtyTimesUnitPrice\tqtyTimesBestDelivered\tqtyTimesLocalPrice\tqtyTimesSellerShipPrice\tqtyAfterFallbackPerYear";
+    const string CscHeader = "year\tnation\troleCode\tclassCode\trowsCount\tdealtRowsCount\tdealsCount\tfallbackRowsCount\tqtyPerYear\tqtyTimesUnitPrice\tqtyTimesBestDelivered\tqtyTimesLocalPrice\tqtyTimesSellerShipPrice\tqtyAfterFallbackPerYear\tthrottledRowsCount\tthrottledDealtRowsCount\tthrottledQtyPerYear\tfillsCount\tthrottledFillsCount\tpotRawPerYear\tpotAddedPerYear\tthrottledPotRawPerYear";
 
     /// <summary>年の終わり（と試合の終わりの残り）：蓄えを行にして書き、0 へ戻す。</summary>
     static void ScopeFold(Sink sk, ulong seed, int q, MultiNationSim sim, bool force = false)
@@ -80,7 +110,9 @@ public static partial class Instruments
             var a = kv.Value;
             sk.Csc.WriteLine(string.Join('\t', TrI(year), kv.Key.Nation, TrI(kv.Key.Role), TrI(kv.Key.Cls),
                 a.Rows.ToString(System.Globalization.CultureInfo.InvariantCulture), a.DealtRows.ToString(System.Globalization.CultureInfo.InvariantCulture), a.Deals.ToString(System.Globalization.CultureInfo.InvariantCulture), a.FallbackRows.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                F(a.Qty), F(a.QUnit), F(a.QBest), F(a.QLp), F(a.QSell), F(a.QAfterFallback)));
+                F(a.Qty), F(a.QUnit), F(a.QBest), F(a.QLp), F(a.QSell), F(a.QAfterFallback),
+                a.ThrRows.ToString(System.Globalization.CultureInfo.InvariantCulture), a.ThrDealtRows.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a.ThrQty),
+                a.Fills.ToString(System.Globalization.CultureInfo.InvariantCulture), a.ThrFills.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a.PotRaw), F(a.PotAdded), F(a.ThrPotRaw)));
         }
         s.Map.Clear();
     }

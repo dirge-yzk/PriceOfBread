@@ -1444,9 +1444,12 @@ public class InstrumentsTests
             int[] seenA = new int[10], seenB = new int[10], seenC = new int[10]; int compared = 0;
             // 場面 A＝政治資本を使い切らせる（在庫の巨大な目減り）：賛成不足・在庫不足の固定。場面 B＝政治資本が潤沢（目減りが巨大な負）：反対を押し切る一歩は払って通る（代価＞0）
             // ★(275) 場面 C＝場面 B と同じ4本を一段先の目標にする＝同じ一歩（None→Limited）が払って通り目標に届く（符号 8）。反証役 v（(274)）：払って届いた側の写像（LevelResult の 8）を突然変異で殺す場面が無かった
-            foreach (var (spent, seen, scene) in new[] { (1e12, seenA, 'A'), (-1e12, seenB, 'B'), (-1e12, seenC, 'C') })
+            //   ★(434) 場面 A は種を替えて足す：賛成不足〔符号 1〕と在庫不足〔符号 2〕の両方が出る盤面は種ごとの軌道に依存する（清算の片方向の錠の点火で 1789 の盤面は在庫不足だけになった）＝
+            //   両方が見えるまで次の種を足す（見えた後は走らない）。旧の旗の盤面へ固定せず、突き合わせは全ての種で同じ（期待は法律タブの照会から作る）。
+            foreach (var (spent, seen, scene, seed) in new[] { (1e12, seenA, 'A', 1789UL), (1e12, seenA, 'A', 1790UL), (1e12, seenA, 'A', 1791UL), (1e12, seenA, 'A', 1792UL), (-1e12, seenB, 'B', 1789UL), (-1e12, seenC, 'C', 1789UL) })
             {
-                var sim = Make();
+                if (scene == 'A' && seenA[1] > 0 && seenA[2] > 0) continue;
+                var sim = Make(seed);
                 RunMatch(sim, 60, instr: false);
                 foreach (var nation in sim.Nations)
                 {

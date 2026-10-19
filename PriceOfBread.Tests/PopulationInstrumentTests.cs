@@ -255,7 +255,9 @@ public class PopulationInstrumentTests
                 if (!double.IsNaN(l60)) { double l60x = Instruments.PopL60(Col(h, r, "mu6PerYear"), Col(h, r, "mu7PerYear")); Assert.True(Math.Abs(l60x - l60) <= 1e-8 * Math.Abs(l60x), $"余命 {l60} が率から作り直した {l60x} に合わない"); l60Rows++; }
                 else Assert.True(!(Col(h, r, "mu6PerYear") > 0) || !(Col(h, r, "mu7PerYear") > 0), "余命が NaN なのに層 6・7 の死の率が正");
                 double tfr = Col(h, r, "tfrProxy"); if (!double.IsNaN(tfr)) { Assert.InRange(tfr, 0, 15); finiteTfr++; }
-                Assert.True(Col(h, r, "cbrPerMille") >= 0 && Col(h, r, "popK") > 0);
+                // ★(434) 粗出生率は窓の人口×月が 0 の行（その窓の途中で建国した国の最初の年末の行・InstrumentsPop の pm が NaN）では NaN と自己申告する＝NaN を許すのは出生も 0 のときだけ
+                double cbrV = Col(h, r, "cbrPerMille");
+                Assert.True((double.IsNaN(cbrV) ? Col(h, r, "birthsK") == 0 : cbrV >= 0) && Col(h, r, "popK") > 0, $"人口の行が壊れている {r[4]} q={r[1]} popK={Col(h, r, "popK")} cbrPerMille={cbrV} birthsK={Col(h, r, "birthsK")}");
                 if (tot > 0) withDeaths++;
                 double v = Col(h, r, "vNoUtilityIndex"); if (!double.IsNaN(v)) { finiteV++; if (v < 0) vNeg = true; }
                 double m = Col(h, r, "marriedMNewShare"); if (!double.IsNaN(m)) { Assert.InRange(m, 0, 0.85); mOk = true; }
