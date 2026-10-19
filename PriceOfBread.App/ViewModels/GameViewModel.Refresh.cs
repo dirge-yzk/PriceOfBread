@@ -74,7 +74,7 @@ public partial class GameViewModel
             //   忠実度ハーネスの照合と同じ物差し＝画面と帯が同じものを見る。⚠月次リフレッシュ×61カ国×自国POP走査＝軽い。
             Polity? derived = pow.Nation is { } dnw ? PowerAffinity.PolityFromShares(dnw) : (Polity?)null;
             string name = SecessionNames.DisplayName(pow, derived, _sim.Diplomacy.Wars);   // 政体で変わる国号（イギリス共和国 等）・政体をめぐる内戦の間は両陣営が頭書き＋国名（表は SimCore の1か所）
-            string score = pow.Nation != null ? scoreByPower[pow.Id].ToString("F0") : "—";
+            string score = pow.Nation != null ? scoreByPower[pow.Id].ToString("F1") : "—";
             string polity = PolityRegimeJa(derived);   // ★導出政体（同上）
             // 低い＝多民族/多宗派（移民を引く・分離圧力）。宗教統一は民族統一と対称の派生スカラー＝州宗教の最大シェア（#62で露出）
             string unity = pow.Nation is { EthnicEnabled: true } nn ? $"民族統一 {nn.EthnicUnity:P0}　宗教統一 {nn.ReligiousUnity:P0}" : "";
@@ -126,7 +126,7 @@ public partial class GameViewModel
             string detail = $"{name}({rank})　{polity}";
             if (pow.Nation is { } nw)
             {
-                detail += $"\n列強スコア:{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F0}"));
+                detail += $"\n列強スコア:{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F1}"));
                 if (unity.Length > 0) detail += "\n" + unity;
                 // 主流の文化/宗教（州ラベルの人口加重多数派）＝下の「民族の隔たり/宗教の隔たり」の素（#62）
                 if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化: {pow.Culture}　宗教: {pow.Religion}";

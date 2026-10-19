@@ -28,7 +28,7 @@ public partial class NationSelectViewModel : ViewModelBase
     {
         var all = WorldData.Nations();
         var coef = new Coefficients();
-        var (rank, score, soldiers) = NationBrief.Opening(all, coef);   // 世界を1つ組んでエンジンに数えさせる(実測 約0.5秒・開始時のランクと国力と兵の数は不変)＝難易度の安全の項も同じ世界の兵を読む
+        var (rank, score, soldiers) = NationBrief.Opening(all, coef);   // 世界を1つ組んでエンジンに数えさせる(★(449) 旗 ScoreFromWorldShare＞0〔既定 1〕は助走を通すので実測 約6.5秒・旗 0 は約0.5秒・開始時のランクと国力と兵の数は不変)＝難易度の安全の項も同じ世界の兵を読む
         var diff = NationBrief.Difficulties(all, coef, soldiers);
         var reco = new List<(NationChoice Card, double Ease)>();
         var others = new List<(NationChoice Card, double Score)>();

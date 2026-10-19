@@ -662,7 +662,7 @@ public class PlayHarnessTests
             Assert.Equal(0, PlayHarness.Run(["play", dir, "日本", "2", "1789"]));
             string moved = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "report.txt"));
             Assert.StartsWith("=====", moved);                                   // 答えれば止めの行は出ない
-            Assert.Contains(" から 2 四半期・", moved); Assert.Contains("景気の出来事（画面と同じ判定）：", moved); Assert.Contains("戦争： 開始時に交戦中", moved);   // (450) 期間の節（Run が期間の記録を渡している）
+            Assert.Contains(" から 2 四半期・", moved); Assert.Contains("景気の出来事（画面と同じ関数・前の判定は呼び出しの頭から）：", moved); Assert.Contains("戦争： 開始時に交戦中", moved);   // (450) 期間の節（Run が期間の記録を渡している）
             Assert.Contains("MilitarySpendingTarget: ", moved);                  // 合計の 1 本は置ける
             Assert.Contains("⚠ArmyUpkeepTarget は置けない", moved);                // 陸海の 1 本は拒まれて「適用した決定」に残る
             using (var fs = System.IO.File.OpenRead(state)) Assert.Equal(q0 + 2, QuarterIndex(SaveGame.Load(fs).Nations[pi].World));
@@ -749,10 +749,10 @@ public class PlayHarnessTests
         SetGdpCycle(w, 2.0, 1.0, 0.6);                         // 落ち込み 0.40
         string r = Report(sim);
         Assert.Contains("実質GDP（参照価格建て・月）", r);
-        Assert.Contains("景気の判定（画面と同じ・1 人あたり）： 恐慌", r);
+        Assert.Contains("景気の判定（画面と同じ関数・1 人あたり・前の判定は呼び出しの頭から）： 恐慌", r);
         Assert.Contains("名目GDP は物価を含む＝景気の判定には使わない", r);
         SetGdpCycle(w, 2.0, 1.0, 0.95);                        // 落ち込み 0.05
-        Assert.Contains("景気の判定（画面と同じ・1 人あたり）： 平常", Report(sim));
+        Assert.Contains("景気の判定（画面と同じ関数・1 人あたり・前の判定は呼び出しの頭から）： 平常", Report(sim));
     }
 
     [Fact]

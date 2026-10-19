@@ -262,7 +262,7 @@ public class ModernizeReturnAndScoreTests
         var sim = Four();
         sim.Run(2);
         var ws = sim.Nations.ConvertAll(n => n.World);
-        foreach (var w in ws) w.Coef.ScoreFromWorldShare = 0;   // ★(420) 既定は 0 へ戻した（作者の裁定待ち）＝旧の腕は 0 を明示（既定に依らない）
+        foreach (var w in ws) w.Coef.ScoreFromWorldShare = 0;   // 旧の腕は 0 を明示（既定に依らない・★(449) 既定は 1 へ点火した）
         // 旗 0：Of＝従来の和・Scores＝Of の並び
         for (int i = 0; i < ws.Count; i++)
         {

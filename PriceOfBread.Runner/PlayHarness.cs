@@ -220,7 +220,7 @@ internal static class PlayHarness
                 return $"{key}: {oldv} → {nv}　（★World直下のレバー）";
             }
             // ★(450) 読む線 (441) 問い3 §2-21：画面が操作させるのは軍事費の**合計**の 1 本（段ボタン＝MilitarySpendingTarget）だけ。陸海の比は毎四半期の頭に AI と同じ関数（SetNavalUpkeepShare）が置き直す
-            //   （作者 2026-09-23）＝陸海を別々に置くと〈置いていない目標が動く〉。陸海の 2 本は拒み、合計は NationPolicy のプロパティ（比を保って按分）で置く。
+            //   （作者 2026-09-23）＝陸海を別々に置くと〈置いていない目標が動く〉。陸海の 2 本は拒み、合計は NationPolicy のプロパティ（比を保って按分）で置く（★(451) 拒む形は AI の判断・作者の承認は未確認＝作者の裁定は海軍の比率のレバーの撤去まで）。
             if (key is "ArmyUpkeepTarget" or "NavyUpkeepTarget")
                 return $"⚠{key} は置けない：画面が操作させるのは軍事費の合計の 1 本 `MilitarySpendingTarget=0〜1`（段ボタンは 0.25／0.5／0.75／1）。陸海の比は毎四半期の頭に AI と同じ関数が置き直す（作者 2026-09-23）";
             if (key == "MilitarySpendingTarget")
@@ -321,7 +321,7 @@ internal static class PlayHarness
         var outlayCats = warNetIn ? OutlayCats.Where(c => c != TreasuryCat.WarCost).ToArray() : OutlayCats;
         sb.AppendLine("収入（開始からの累計" + (ledBefore is null ? "のみ" : "・括弧は直近の 1 四半期") + "） " + string.Join(" ", incomeCats.Where(c => Math.Abs(led[(int)c]) > 0.5 || (ledBefore is not null && Math.Abs(led[(int)c] - ledBefore[(int)c]) > 0.5)).Select(Cat)));
         sb.AppendLine("支出（開始からの累計" + (ledBefore is null ? "のみ" : "・括弧は直近の 1 四半期") + "） " + string.Join(" ", outlayCats.Where(c => Math.Abs(led[(int)c]) > 0.5 || (ledBefore is not null && Math.Abs(led[(int)c] - ledBefore[(int)c]) > 0.5)).Select(Cat)));
-        sb.AppendLine("  （正味）の区分は入りと出の差し引き＝StateFactory は国営工場の収益から赤字の肩代わりを引いた値・WarCost は賠償の受取から戦費を引いた値。累計が減ることも符号が変わることもある（累計が正の WarCost は収入の行に置く）。");
+        sb.AppendLine("  （正味）の区分は入りと出の差し引き＝StateFactory は国営工場の収益から赤字の肩代わりを引いた値（国営工場の売却代金・国営持分の取り分も同じ区分に入る）・WarCost は賠償の受取から戦費を引いた値。累計が減ることも符号が変わることもある（累計が正の WarCost は収入の行に置く）。");
 
         sb.AppendLine();
         sb.AppendLine("---- 法（現在値 ／ 目標値・現在と目標が違う法は ⇒ で目標を添える）----");
@@ -443,7 +443,7 @@ internal static class PlayHarness
         foreach (var n in sim.Nations.OrderByDescending(x => x.World.ScoreStanding).Take(10))
         {
             var xw = n.World;
-            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F0} 工業{xw.MeanIndustrialization,6:F2} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
+            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F1} 工業{xw.MeanIndustrialization,6:F2} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
         }
 
         sb.AppendLine();
@@ -833,7 +833,7 @@ internal static class PlayHarness
         return (stepped, ledBefore);
     }
 
-    /// <summary>★(450) play が 1 回の呼び出しで進めた期間の記録（読むだけ・世界に新しい状態を足さない＝呼び出しの中だけで持つ）。景気の出来事は画面と同じ判定
+    /// <summary>★(450) play が 1 回の呼び出しで進めた期間の記録（読むだけ・世界に新しい状態を足さない＝呼び出しの中だけで持つ）。景気の出来事は画面と同じ関数（★(451) 前の判定は呼び出しの頭で〈入りの水準だけ〉から置き直す＝画面の _prevDepression は四半期をまたいで持つので、落ち込みが回復と入りの間で呼び出しをまたぐと語が画面と違いうる）
     /// （<see cref="SelfPlayMatch.InDepression"/>・初期値は画面が国を読み込んだときと同じ〈入りの水準〉だけで判定）で入りと回復の四半期を拾う。戦争は進める前の終戦の記録の写しとの差で拾う
     /// （報告の〈交戦〉は呼び出しの終わりの瞬間の状態だけで、宗主としての自動参戦などで期間中に起きて終わった戦争を見落とした＝読む線 (441) 問い3 §2-19）。</summary>
     internal sealed class PlayPeriod
@@ -878,7 +878,7 @@ internal static class PlayHarness
         double dd = w.GdpPcDrawdown.Value;
         bool inDep = period?.InDepression ?? SelfPlayMatch.InDepression(false, dd);
         sb.AppendLine($"実質GDP（参照価格建て・月） {w.GdpPerMonth.Value:N0}（平滑 {w.GdpTrend:N0}・ピーク {w.GdpPeak:N0}＝総額の落ち込み {w.GdpDrawdown.Value:P1}）　1 人あたり実質（平滑） {w.GdpPcTrend:G4}／ピーク {w.GdpPcPeak:G4}＝ピーク比の落ち込み {dd:P1}"
-            + $"　景気の判定（画面と同じ・1 人あたり）： {(inDep ? SelfPlayMatch.DepressionWord(dd) : "平常")}（入り {SelfPlayMatch.DepressionEnterDrawdown:P0} 超・回復 {SelfPlayMatch.DepressionExitDrawdown:P0} 以下・恐慌 {SelfPlayMatch.GreatDepressionDrawdown:P0} 超）　※名目GDP は物価を含む＝景気の判定には使わない");
+            + $"　景気の判定（画面と同じ関数・1 人あたり・前の判定は呼び出しの頭から）： {(inDep ? SelfPlayMatch.DepressionWord(dd) : "平常")}（入り {SelfPlayMatch.DepressionEnterDrawdown:P0} 超・回復 {SelfPlayMatch.DepressionExitDrawdown:P0} 以下・恐慌 {SelfPlayMatch.GreatDepressionDrawdown:P0} 超）　※名目GDP は物価を含む＝景気の判定には使わない");
     }
 
     /// <summary>★(450) この呼び出しで進めた期間の景気の出来事と戦争（期間の記録があるときだけ）。戦争は進める前の終戦の記録との差＋開始時と今の交戦相手。
@@ -889,7 +889,7 @@ internal static class PlayHarness
         var dip = sim.Diplomacy;
         sb.AppendLine();
         sb.AppendLine($"---- この呼び出しで進めた期間（{period.StartYear}年 Q{period.StartQuarter} から {period.Stepped} 四半期・今 {w.Year}年 Q{w.Quarter}）----");
-        sb.AppendLine("景気の出来事（画面と同じ判定）： " + (period.EconomyEvents.Count == 0 ? $"なし（期間中の最大の落ち込み {period.WorstDrawdown:P0}）" : string.Join(" ／ ", period.EconomyEvents) + $"（期間中の最大の落ち込み {period.WorstDrawdown:P0}）"));
+        sb.AppendLine("景気の出来事（画面と同じ関数・前の判定は呼び出しの頭から）： " + (period.EconomyEvents.Count == 0 ? $"なし（期間中の最大の落ち込み {period.WorstDrawdown:P0}）" : string.Join(" ／ ", period.EconomyEvents) + $"（期間中の最大の落ち込み {period.WorstDrawdown:P0}）"));
         string NameOf(long id) => dip.Powers.FirstOrDefault(o => o.Id == id)?.Name ?? $"（国 {id}・消滅）";
         var ended = dip.EndedWars.Where(r => !period.EndedBefore.Contains(r) && (r.AId == sp.Id || r.BId == sp.Id)).ToList();
         var now = PlayPeriod.FoesAtWar(dip, sp);

@@ -2097,7 +2097,7 @@ public static class SelfPlayMatch
     public const double DepressionEnterDrawdown = 0.20;               // 恐慌（景気後退）入り＝ピーク比の収縮がこれ超
     public const double DepressionExitDrawdown = 0.08;                // 回復＝ここまで戻れば脱出（入り0.20／出0.08の2値＝境界の点滅を止める）
     public const double GreatDepressionDrawdown = 0.25;               // 大恐慌（ピーク比収縮）＝画面の語も「恐慌」（以下は「景気後退」）
-    // ★(450) 景気後退の判定の唯一の定義の続き（読む線 (441) 問い3 §2-5）：画面（GameViewModel の通知・年代記・外交ホバー）と Runner の play の報告が同じ 2 値のヒステリシスと語を呼ぶ
+    // ★(450) 景気後退の判定の 1 組（読む線 (441) 問い3 §2-5）：画面（GameViewModel の通知・年代記・外交ホバー）と Runner の play の報告が同じ 2 値のヒステリシスと語を呼ぶ（★(451) 自己対戦の採点〔このファイルの採点の式〕と Runner の Program の計器は別の式＝出口の等号が違う〔dd＜出口〕・寄せると成績表が変わりうるので別の線）
     //   （旧＝判定が App の GameViewModel.News にだけあり、play の報告は名目 GDP だけで景気後退の出来事を出せなかった）。引数 drawdownPerCapita＝World.GdpPcDrawdown（1人あたり）。
     /// <summary>景気後退の最中か（入りと出が別の水準の 2 値）。<paramref name="wasIn"/>＝前の判定で景気後退の最中だったか。</summary>
     public static bool InDepression(bool wasIn, double drawdownPerCapita) => wasIn ? drawdownPerCapita > DepressionExitDrawdown : drawdownPerCapita > DepressionEnterDrawdown;

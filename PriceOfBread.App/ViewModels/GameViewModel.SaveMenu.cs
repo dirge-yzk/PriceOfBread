@@ -227,7 +227,7 @@ public partial class GameViewModel
             {
                 Order = $"{s.Order}",
                 Name = s.Name,
-                Score = s.Score.ToString("F0"),
+                Score = s.Score.ToString("F1"),   // ★(451) 新しい物差し（全国の合計 100）は小国が 1 未満＝F0 では差が読めない（PlayText の内訳と同じ F1）
                 Polity = PolityRegimeJa(s.Polity),   // 導出政体＝ヘッダーのPolityTextと同じ物差し（2026-08-21作者裁定）
                 Population = PopFmt(s.Population),   // 内部単位=千人（他10）
                 Industry = s.Industry.ToString("F2"),
