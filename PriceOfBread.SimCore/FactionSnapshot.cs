@@ -35,18 +35,21 @@ public static class FactionSnapshot
     /// <summary>クラスタリングの共有核（F2表示とF3永続化が同じ束ね方を使う＝決定論・World非変更）。
     /// 参加した pop を（州×ブロック×イデオロギー主軸）で束ね、規模降順（同点=挿入順）で返す。規模フィルタは呼び手が行う。
     /// ★段3（二量分離・2026-09-09）＝**参加の述語は不満度**（<see cref="Coefficients.ParticipationDiscontent"/>）。
-    /// 既定0では旧＝「闘争度 &gt; <see cref="MilitancyThreshold"/>」の二値（ビット恒等）。</summary>
-    internal static List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> ComputeClusters(World w)
+    /// ★(431) 既定 1（不満度で参加）。0 では旧＝「闘争度 &gt; <see cref="MilitancyThreshold"/>」の二値（差し戻し口）。
+    /// <paramref name="countCost"/>＝計算量の台帳（診断）へ件数を足すか。**エンジンの呼び手（Factions.Step）だけ true**＝画面の表示（Compute）は足さない（World 非変更の約束と、画面と headless で台帳が分かれる型を避ける）。</summary>
+    internal static List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> ComputeClusters(World w, bool countCost = false)
     {
         var clusters = new Dictionary<(int Region, int Bloc, int Ideo), (Region Region, double Size, double MilSum)>();
         var order = new List<(int Region, int Bloc, int Ideo)>();   // 挿入順（規模同点の決定論的タイブレーク）
         var (coord, lawGap) = MembershipContext(w);
+        int seen = 0;   // ★(417) 計算量の台帳（診断）：参加の述語を問うた POP の数（旗が正のときだけ台帳へ足す＝旧の二値は不満度を1度も計算しない）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.Size <= 1e-9) continue;
+                seen++;
                 double part = Participation(w, p, coord, lawGap);
                 if (!(part > 0)) continue;   // 否定形＝NaN も「参加しない」側へ（旧の二値では NaN は 1.0 になるのでここには落ちない）
                 var (bloc, ideo) = BlocIdeo(p);
@@ -58,6 +61,7 @@ public static class FactionSnapshot
                 else { clusters[key] = (r, p.Size * part, p.Militancy * p.Size * part); order.Add(key); }
             }
         }
+        if (countCost && w.Coef.ParticipationDiscontent > 0) w.Cost[CostLedger.ParticipationPops] += seen;   // 計算量の台帳（診断）：エンジンの呼び手で旗が正のときだけ（旗 0 は件数 0）
         var result = new List<(Region, int, int, double, double)>(order.Count);
         foreach (var key in SortBySizeDesc(order, clusters))
         {
@@ -69,19 +73,26 @@ public static class FactionSnapshot
 
     /// <summary>参加の述語の文脈＝**国の量**を pop ループの外で1回だけ取る（<see cref="Participation"/>／<see cref="BlocIdeo"/> と対）。
     /// ★段3：不満度は pop の純関数だが、政体座標と法の隔たりは国の量（Politics.Discontent の注意書きと同じ作法・キャッシュは作らない＝World に置いた導出量は記憶になる）。
-    /// ⚠既定（ParticipationDiscontent=0）では両方とも1度も計算しない＝旧経路のコストのまま。
+    /// ⚠ParticipationDiscontent=0 の世界では参加の側は1度も計算しない（思想の更新は常に計算する）。
     /// ⚠**同一ティック内の時点差は仕様**：闘争度ループは前期の参照点（LivingRef）で失望を測り、ここは更新後の参照点で測る
     ///   （Politics.Step の順＝闘争度→Factions.Step）。不満度は「記憶を持たず**今**の盤面を読む」量なので、これは分子と分母の非対称ではなく定義どおり
     ///   （差は LivingRefSpeed=0.03＝ギャップの3%）。
     /// 読み手＝<see cref="ComputeClusters"/> と武器の市場購入（EconomyStep・RebelArmsMarketEnabled&gt;0 のみ）＝運動の頭数と資金が**同じ述語**で数えられる。</summary>
-    internal static (double[] Coord, double[] LawGap) MembershipContext(World w)
+    internal static (double[] Coord, double[] LawGap) MembershipContext(World w) => MembershipContext(w, w.Coef.ParticipationDiscontent > 0);
+
+    /// <summary>★(431) 文脈の取り出しの本体（<paramref name="byDiscontent"/>＝不満度を読む世界か）。思想の更新（★(436) 注：旧の旗 <c>DiscontentSplit</c> は (431) で焼き込んで削除＝常に）も同じ取り方を通る＝座標と法の隔たりの出し方を2か所に書かない。
+    /// <c>false</c> では何も計算しない（空の配列）。</summary>
+    internal static (double[] Coord, double[] LawGap) MembershipContext(World w, bool byDiscontent)
     {
         var c = w.Coef;
-        bool byDiscontent = c.ParticipationDiscontent > 0;
         double[] coord = byDiscontent ? PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c) : [];
         double[] lawGap = byDiscontent && c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
         return (coord, lawGap);
     }
+
+    /// <summary>★(431) pop 1つの不満度∈[0,1]（<see cref="MembershipContext(World)"/> の文脈つき）＝参加の述語と思想の更新が**同じ呼び**を通る（束の法の隔たりの引き方を1か所に）。</summary>
+    internal static double DiscontentOf(World w, Pop p, double[] coord, double[] lawGap)
+        => Politics.Discontent(w, w.Coef, p, coord, lawGap.Length > 0 ? lawGap[PolicyPreferences.BlocOf(p)] : 0);
 
     /// <summary>pop 1つの参加∈[0,1]＝運動の頭数を数える**唯一の述語**。旧＝二値（NaN の闘争度は旧と同じく「参加」側へ倒す＝`p.Militancy &lt;= θ` が偽になるのと同値）。
     /// 新（ParticipationDiscontent&gt;0）＝max(不満度, 闘争度)＝不満度が動力・闘争度が上書き（作者裁定2026-09-09 その2①）。</summary>
@@ -89,7 +100,7 @@ public static class FactionSnapshot
     {
         var c = w.Coef;
         return c.ParticipationDiscontent > 0
-            ? Math.Max(Politics.Discontent(w, c, p, coord, lawGap.Length > 0 ? lawGap[PolicyPreferences.BlocOf(p)] : 0), p.Militancy)
+            ? Math.Max(DiscontentOf(w, p, coord, lawGap), p.Militancy)
             : p.Militancy <= MilitancyThreshold ? 0.0 : 1.0;
     }
 

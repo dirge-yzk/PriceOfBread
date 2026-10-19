@@ -398,8 +398,8 @@ public partial class GameViewModel
     public string FactionProximityHeader => _player.Coef.RevoltIgnitionIntensity > 0 ? "近接度" : "戦力比";
 
     // 国内勢力（F2・設計メモ2026-07-09 §3 Phase2）：運動に参加したpopを地域×階級×イデオロギー主軸で観察（読み取り専用・World非変更）。
-    // ⚠参加の述語はエンジン側の1本（FactionSnapshot.ComputeClusters）＝既定は「闘争度>0.5」の二値、
-    //   ParticipationDiscontent>0（二量分離 段3・2026-09-09）では max(不満度, 闘争度) の**重み**＝規模は「参加した頭数」になる。
+    // ⚠参加の述語はエンジン側の1本（FactionSnapshot.ComputeClusters）＝既定（ParticipationDiscontent＝1・2026-10-19 (431)）は max(不満度, 闘争度) の**重み**＝規模は「参加した頭数」になる。
+    //   ParticipationDiscontent=0 は旧の「闘争度>0.5」の二値。
     // 表示＝機械生成名・規模・平均闘争度・要求top-3（法をゲートする同じPref表から導出）。蜂起への対処は国内危機イベント（蜂起寸前にポップアップ）が唯一の入口＝ここは表示のみ。
     private void RefreshFactions()
     {

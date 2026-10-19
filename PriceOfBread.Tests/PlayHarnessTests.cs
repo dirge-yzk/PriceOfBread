@@ -498,7 +498,9 @@ public class PlayHarnessTests
     }
 
     [Fact]
-    public void 不満度の本体は闘争度の先頭の2項と同じ_生活の失望と法の隔たりの和でクランプの前()
+    public void 不満度の本体は生活の失望と法の隔たりの和でクランプの前()
+    // ★(436) 合流：(431) の二量分離で闘争度の目標の先頭は法の項だけ（生活の項は不満度だけ）＝旧の名の〈闘争度の先頭の2項と同じ〉は外した。
+    //   闘争度の内訳（MilLiving＝0・MilVoice＝法の項）は DiscontentSplitTests が手計算で見る。本体の署名は (431) の形（物差しの距離を渡す）。
     {
         var (_, w, _, _, _) = Board();
         var c = w.Coef;
@@ -515,8 +517,8 @@ public class PlayHarnessTests
             double pd2 = 0; for (int i = 0; i < 4; i++) { double x = ideal[i] - regime[i]; pd2 += x * x; }
             double gap = Math.Min(p.Consciousness, p.Literacy) * (1.0 - Politics.EffectiveVoice(w, c, p)) * Math.Sqrt(pd2) * 0.5;
             double wantLiving = c.WantWeight * Politics.LivingWant(p, c), wantVoice = c.PoliticalDistanceWeight * gap;
-            double raw = Politics.DiscontentRaw(w, c, p, regime, 0, false, out double living, out double voice);
-            Assert.Equal(wantLiving, living); Assert.Equal(wantVoice, voice); Assert.Equal(wantLiving + wantVoice, raw);
+            double raw = Politics.DiscontentRaw(w, c, p, Math.Sqrt(pd2) * 0.5);
+            Assert.Equal(wantLiving + wantVoice, raw);
             double d = Politics.Discontent(w, c, p, regime, 0);
             Assert.Equal(!(raw > 0) ? 0 : raw > 1 ? 1 : raw, d);
         }
@@ -524,8 +526,8 @@ public class PlayHarnessTests
         // 物差しを法の隔たりに替えると距離は lawGap そのもの
         var p0 = w.AllPops().First(p => Politics.EffectiveVoice(w, c, p) < 1);
         p0.Consciousness = 0.6; p0.Literacy = 0.5;   // 開幕は意識が 0 に近い＝距離の項が効く盤面を置く（等号が 0＝0 の空振りにならない）
-        Politics.DiscontentRaw(w, c, p0, regime, 0.4, true, out _, out double v2);
-        Assert.Equal(c.PoliticalDistanceWeight * (Math.Min(p0.Consciousness, p0.Literacy) * (1.0 - Politics.EffectiveVoice(w, c, p0)) * 0.4), v2);
+        double v2 = Politics.DiscontentRaw(w, c, p0, 0.4);
+        Assert.Equal(c.WantWeight * Politics.LivingWant(p0, c) + c.PoliticalDistanceWeight * (Math.Min(p0.Consciousness, p0.Literacy) * (1.0 - Politics.EffectiveVoice(w, c, p0)) * 0.4), v2);
     }
 
     [Fact]

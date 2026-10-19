@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(329) 線(2)(3)（取り込み元 (302)）：奢侈品と家事奉仕の欲しい量の所得弾力（階級単位）の番人。
-/// 係数 <c>LuxuryIncomeElasticity</c>＝ε・<c>DomesticServiceUsesIncomeElasticity</c>＝家事奉仕を同じ式に入れる切り替え。
+/// 係数 <c>LuxuryIncomeElasticity</c>＝ε・<c>DomesticServiceUsesIncomeElasticity</c>＝家事奉仕を同じ式に入れる切り替え（★(436) 注：(433) 以後は 1 以外で f に掛ける指数・既定 2）。
 /// 世界の1人あたり実質所得＝<see cref="World.WorldRealIncomePerCapitaPerMonth"/>（MultiNationSim が毎月配る）・買い手の POP の r＝(前の月の確定した所得÷物価÷人数)÷世界の値。
 /// 期待値は手の算術（コードの式を呼ばない・同じ出所から作らない）。事前登録＝measurements/de_20261014_prereg.txt（取り込み元 measurements/s2_20261013_prereg.txt）。
 /// 突然変異（実装を一時的に壊して赤を確かめる・結果は実装ログ (329)）：①人口加重を単純平均に ②為替を掛ける（(299) の二重の割り算の形）③物価で割らない ④二重に割る

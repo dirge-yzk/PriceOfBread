@@ -228,7 +228,7 @@ public sealed class Pop
                                           // NationConsciousnessPerPop=1.0（既定）でlive・0（対照腕）では誰も読み書きしない＝厳密恒等。-1＝未捕捉（国の値は配らない＝配ると平均が変わる）
 
     // --- 不満（闘争度）の要因内訳（診断・UI表示用。Politics.Step が毎期記録。計算には不使用＝較正中立）。各値は target への寄与ぶん ---
-    public double MilLiving;   // 生活水準の不足（want＝1−満足度）
+    public double MilLiving;   // 生活水準の不足（want＝1−満足度）★(431) 二量分離の後は常に 0（生活の項は闘争度の目標に入らない＝不満度だけが持つ・欄は hw との約束で残す・表示の付け替えは UI の回）
     public double MilVoice;    // 政治的疎外（意識×発言権の無さ×理想と体制の乖離）
     public double MilWar;      // 厭戦（戦争の長期化）
     public double MilNation;   // 民族的地位（★段2で一本鎖＝少数派 (1−中核度) のみ）

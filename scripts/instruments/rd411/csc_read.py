@@ -1,4 +1,5 @@
 # ★(411) 読む線（opus・読むだけ・2026-10-18）の読み手の写し＝(412) 合流で scratchpad から scripts/instruments/rd411/ へ移した（README §1-2 道具は scripts/instruments/）。
+# ★(436) 計器の限界：清算の係数 ClearingIdleThrottledScan＝1（(434) 以後の既定）の生では種類 1 に律速の州の起こした行が混ざる＝欠けた割合の見積りは過大に出る（throttledRowsCount を除いて読む）。
 # 清算の見る範囲（csc_s）から、四半期の最初の清算で番が飛ばした行の欠けた量を見積もる（成約の量×3＝N=4 の系統抽出）。引数＝計器の生のフォルダ（例 D:/PoB_work/keep_407/m407_ins）。
 # シミュを回さない・計器の TSV を読むだけ。
 import csv,sys,collections

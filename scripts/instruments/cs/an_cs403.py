@@ -1,3 +1,4 @@
+# ★(436) 計器の限界：清算の係数 ClearingIdleThrottledScan＝1（(434) 以後の既定）の生では種類 1 に律速の州の起こした行が混ざる＝欠けた割合の見積りは過大に出る（throttledRowsCount を除いて読む）。
 """(403) 清算の見る範囲の絞り（旗 ClearingIdleSearchQuarters・ClearingPartnerScope）の読み手（読むだけ）。事前登録 measurements/cs_20261018_prereg.txt の [5] 記録の線 R4・R5・R9・R10（追記3 ②④）。
 使い方：PYTHONUTF8=1 python -X utf8 -I scripts/instruments/cs/an_cs403.py A=<出力>/ins B=<出力>/ins N1=<出力>/ins N2=<出力>/ins [B1=… B2=…] [sec=csc,port]
 読む表＝csc_s<種>.tsv（InstrumentsScope.cs・全ての国・年ごと）と port_s<種>.tsv（POB_INSTRUMENTS_NATIONS に挙げた国だけ・四半期ごと）。標準ライブラリだけ。採否には使わない（記録の線）。

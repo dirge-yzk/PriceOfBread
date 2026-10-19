@@ -264,9 +264,9 @@ public class PolicyPoliticsTests
     }
 
     [Fact]
-    public void 段3_参加の述語は既定で闘争度の二値である()   // (a) 既定＝旧＝ビット恒等の側（不満度を1度も読まない）
+    public void 段3_旗0の参加の述語は闘争度の二値である()   // (a) 旗 0＝旧＝ビット恒等の側（不満度を1度も読まない）
     {
-        Assert.Equal(0.0, new Coefficients().ParticipationDiscontent);   // ★既定は休眠（点火したら本アサートも直す＝表が休眠の一覧）
+        Assert.Equal(1.0, new Coefficients().ParticipationDiscontent);   // ★既定は 1（2026-10-19 (431) で点火）。以下は旗 0 の旧の二値を踏む
 
         var (below, popB) = 参加の盤面(militancy: 0.30, drop: 0);   // 閾値0.5の下＝1人も数えられない
         below.Coef.ParticipationDiscontent = 0;

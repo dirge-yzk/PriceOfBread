@@ -46,11 +46,19 @@ public static class Ideologies
         // ★国民意識→ナショナリズム（休眠）の国民意識もループ前に1回（add-05・2026-09-26）：World.NationalConsciousness は全POPを走査する＝
         //   ループの中で読むと点火した瞬間に POP 数の2乗になっていた。読む値（各POPの Size と国民意識）はこのループで書かれない＝厳密恒等。
         double ncForNationalism = w.Coef.NationalismFromConsciousness > 0 ? System.Math.Max(0, w.NationalConsciousness) : 0;
+        // ★(431) 二量分離の完成：思想の入力 mil＝max(不満度, 闘争度)。不満度は Politics.Discontent（参加の述語と同じ呼び・文脈は POP のループの外で1回）。
+        //   ⚠POP の理想点を読む＝BaseWeights が r（IdeologyShares）を書き換える**前**に求める（ループの頭）。
+        var (dCoord, dLawGap) = FactionSnapshot.MembershipContext(w, true);
+        int dSeen = 0;
         foreach (var p in w.AllPops())
         {
             var r = p.IdeologyShares;
+            // ★(431) 不満度は**BaseWeights の前**に求める：BaseWeights は r（＝p.IdeologyShares そのもの）を 0 クリアして階級の基底で上書きする＝後ろで読むと理想点が前期の確定したシェアでなく途中の値になる。
+            dSeen++;
+            double disc = FactionSnapshot.DiscontentOf(w, p, dCoord, dLawGap);
             double rich = BaseWeights(p, r, meanWealth, w.Coef);          // 平均超の富（0..3＝失う物）
             double cons = p.Consciousness, mil = p.Militancy;
+            if (disc > mil) mil = disc;   // 否定形＝NaN の闘争度はそのまま
             // 啓蒙・過激化は**加算**（基盤0からでも生まれる＝農民でも意識が上がれば自由主義が芽生える）。
             // 倍率排除/長い裾：反動の Closed ハードコードを廃し**相対的富（失う物）から連続化**。富裕ほど旧秩序を脅かす急進左派を恐れ反動化
             // ＝1848のブルジョワ反動。進歩傾向（意識→自由/共和、闘争→左派）は失う物の少ない層ほど強い＝(1−執着)。
@@ -110,6 +118,7 @@ public static class Ideologies
             }
             Normalize(r);
         }
+        w.Cost[CostLedger.ParticipationPops] += dSeen;   // 計算量の台帳（診断）：思想の入力で不満度を問うた POP の数
     }
 
     /// <summary>
