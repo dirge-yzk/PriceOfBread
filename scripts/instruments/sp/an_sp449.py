@@ -6,7 +6,7 @@ python an_sp449.py <計器の出力ディレクトリ> [--mech=max|median] [--ta
       q=0 の rankInForce と q=0 の rankShare から定員制で引いた階級との不一致の数（定員 7・5・7）／q=0 → q=3 の rankInForce の変わり（記録）／usedTerms（記録）
   G3：ハワイ王国・エチオピアが rankShare 10 以内の年×種の割合（rankOld でも）
   G5：条約港の風化の係数 Clamp01(比÷0.5)。比＝treatyStrength÷基準。基準は rankInForce==Great の treatyStrength の最大〔max〕か中央値〔median・上側の中央＝添字 n÷2〕。
-      foreignShare>0 の国の平均（機構が働く場所）と全国の平均。--mech で今の木の機構がどちらの基準かを名乗る（旗 0＝max・旗 1＝median）。
+      foreignShare>0 の国の平均（機構が働く場所）と全国の平均。--mech で今の木の機構がどちらの基準かを名乗る（旧の旗 0＝max・旗 1＝median・★(456) 旗は焼き込んで消えた＝今の木は median）。
   R1：清・英・米・日・露・普の rankShare の中央値（最小〜最大）"""
 import sys, os, glob, statistics
 

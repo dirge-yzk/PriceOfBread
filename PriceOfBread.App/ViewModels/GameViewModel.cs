@@ -174,7 +174,7 @@ public partial class GameViewModel : ViewModelBase
     private readonly List<double> _histMandate = new();   // 政治資本（MandateSpent）の年次履歴（ヘッダーホバー・2026-07-16）
     private readonly List<double> _histTreasury = new();  // 国庫の年次履歴（ヘッダー国庫のホバーグラフ・2026-07-16）
     // ★2026-08-13（作者指摘「信用が非常に大切というのがUIからわからない」＋ヘッダー監査）：
-    //   国力スコア＝軍事＋豊かさ＋金融＋技術、豊かさ＝GDP+工業化×9+満足度×12+植民地×1.5。
+    //   国力スコア＝軍事＋豊かさ＋金融＋技術、豊かさ＝GDP+工業化×9+満足度×12+植民地×1.5。〔★(457) この式は (449) で世界の総量に対する割合の 6 項へ置き換わり (456) で消えた＝今の国力は NationalScore.ShareScores・旧の式は計器 Instruments.OldScore だけ〕
     //   この7項のうち**工業化・金融・対外信用の3つがヘッダーに無かった**。とくに工業化はスコア最大の重み(×9)で
     //   本作の主題そのものなのに、自国の全体値を出す場所がUIのどこにも無かった（敵国は外交ホバー・州別は生産ホバーに有る）。
     private readonly List<double> _histInd = new(), _histCredit = new(), _histFin = new();

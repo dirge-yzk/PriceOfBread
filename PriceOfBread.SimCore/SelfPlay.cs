@@ -1,8 +1,8 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>
-/// 国力（列強の総合指数）＝人口（規模）＋軍隊（軍事力）＋豊かさ（経済規模・近代産業・生活水準・植民地）。
-/// 列強ランキングの基準＝勝利条件。大国（人口・軍・富）が上位に立つ史実的な序列を表す。重みは調整可。
+/// 国力（列強の総合指数）＝世界の総量に対する本国の割合を 6 項（兵・軍事費・鉄の産出・動力の消費・都市人口・総人口）で均等に平均した値（全国の合計 100・★(449) 点火・(456) で旧の 4 項の式を消した）。
+/// 列強ランキングの基準＝勝利条件。
 /// </summary>
 public static class NationalScore
 {
@@ -162,13 +162,12 @@ public static class NationalScore
         return res;
     }
 
-    /// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の世界の一覧。外交盤が無い単独の世界は自分だけ。</summary>
-    internal static List<World> NationWorldsOf(World w) => NationWorldsOf(w.Diplomacy, w);
-
-    /// <summary>★(456) 外交盤を明示する形（画面・play の内訳の文字列は渡された盤を読む）。<paramref name="d"/> が無いか盤に居ない世界は自分だけ。</summary>
-    internal static List<World> NationWorldsOf(Diplomacy? d, World w)
+    /// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の世界の一覧。外交盤が無い単独の世界は自分だけ。
+    /// ★(457) 外交盤を明示する多重定義は消した（呼び手は全て世界自身の盤＝MultiNationSim が sim.World.Diplomacy に共有の盤を入れる・反証役 hy3〔v〕低#6）。</summary>
+    internal static List<World> NationWorldsOf(World w)
     {
         var l = new List<World>();
+        var d = w.Diplomacy;
         if (d is not null) foreach (var p in d.Powers) if (p.Nation is { } nw) l.Add(nw);
         if (!l.Contains(w)) { l.Clear(); l.Add(w); }   // 盤に居ない世界（単独のテスト・較正）＝総量は自分だけ
         return l;
@@ -705,7 +704,7 @@ public sealed class UtilityAgent : INationAgent
         //   近代化投資レバーが毎四半期0に潰され、開幕バーストも踏めず Ind 0.33→0.67 に沈んだ（実測 indprobe 120Q）。
         //   飽和は既存の「帝国規模の飽和」定数 ColoniesForFullColonial を再利用（Colonial.cs の反帝世論と同じ写像）＝
         //   新しいスカラーを置かない。守るべき帝国がある事実は残り、規模の無限加算だけが消える。
-        // ★型統合後の旧読み手（wave2b G06#2）：NationalScore.Wealth は個数→質量へ切替済み（州細分化で「行を分けただけで増える」個数の是正）。
+        // ★型統合後の旧読み手（wave2b G06#2）：NationalScore.Wealth は個数→質量へ切替済み（州細分化で「行を分けただけで増える」個数の是正）〔★(457) NationalScore.Wealth は (456) で消えた・錨の換算はここに残る〕。
         //   ここは旧単位のまま個数を読んでいた＝分子だけ質量へ揃える（換算は Wealth/:1558-1559 と同じ錨＝初期の 個数/質量）。
         double colonyUnits = w.SelfPower?.ColonyMassUnits() ?? 0;
         double colonyDefense = ColonyDefenseWeight * w.Coef.ColoniesForFullColonial

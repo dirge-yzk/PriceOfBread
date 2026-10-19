@@ -271,7 +271,7 @@ public class DiscoveryEngineerTests
     }
 
     /// <summary>T5：発見の技術力が技術水準を読むコード行は Discovery.cs の自分の 2 か所だけ（表の比と産地の比＝どちらも旗が正なら読まない）。
-    /// 全体の本数は固定しない（別の線が <c>NationalScore.Tech</c> などの読み手を消すため）。コメントの言及は数えない。
+    /// 全体の本数は固定しない（別の線が読み手を消すため・<c>NationalScore.Tech</c> は (456) で消えた）。コメントの言及は数えない。
     /// ⚠壊し方＝Discovery.cs に 3 か所目の <c>w.TechLevel</c> を足す → 赤。</summary>
     [Fact]
     public void 発見の技術力が技術水準を読むのは自分の2か所だけ()

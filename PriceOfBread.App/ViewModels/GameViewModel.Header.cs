@@ -221,7 +221,7 @@ public partial class GameViewModel
     }
 
     // 自国の国力スコア4分解（勝利条件の可視化・2026-07-15）：軍事/生産の豊かさ/金融/技術＋首位との差。国名/地位のホバーに出す（順位だけでは何を伸ばせば良いか読めない）。
-    public string PlayerScoreTip => PlayText.ScoreBreakdownText(_player, _sim.Diplomacy);   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
+    public string PlayerScoreTip => PlayText.ScoreBreakdownText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
     // 反体制派の戦力比＝動員（改革派＋急進派）÷鎮圧（治安維持力×人口）。100%超＝鎮圧を上回る＝政変圏
     //（Politics.Transition の `challenge <= coerce なら政体は動かない` と同じ不等式＝表示と点火が同じ物差し）。
     // ★2026-08-16 作者指摘「マイナスの軍事力は意味が通らない」の是正：旧＝(challenge−coerce)/(challenge+coerce) の

@@ -51,12 +51,14 @@ public class ScoreReaderTests
         //   のためだけに Instruments.OldScore（InstrumentsScore.cs）が持つ。NationalScore に旧の項を戻す・旗を戻す・OldScore を他のファイルから読む、のどれも赤にする。
         //   金融〔NationalScore.Finance〕は画面の与信の履歴の系列〔GameViewModel.Header.cs〕と旧の和〔OldScore.Of〕が読む＝国力の読み手ではない（その 2 つだけ許す）。
         var forbidden = new Regex(@"\b(OfOld|TreatyStrengthOld|LegacyLines|LegacyLabels|ScoreFromWorldShare)\b|NationalScore\.(Military|Wealth|Tech|WealthParts)\b");
+        var decl = new Regex(@"\bstatic\s+[\w<>\[\](),?\s]*?\b(Military|Wealth|Tech|WealthParts)\s*\(");   // ★(457) 修飾なしで呼ぶ旧の項の宣言も禁じる（計器の OldScore だけ許す・反証役 hy3〔v〕低#3）
         var finance = new Regex(@"NationalScore\.Finance\b");
         var oldScore = new Regex(@"\bOldScore\b");
         var bad = new List<string>();
         foreach (var (name, ln, code) in SourceLines())
         {
             foreach (Match m in forbidden.Matches(code)) bad.Add($"{name}:{ln} {m.Value}");
+            if (name != "InstrumentsScore.cs") foreach (Match m in decl.Matches(code)) bad.Add($"{name}:{ln} {m.Value}");
             if (finance.IsMatch(code) && name != "GameViewModel.Header.cs" && name != "InstrumentsScore.cs") bad.Add($"{name}:{ln} NationalScore.Finance");
             if (oldScore.IsMatch(code) && name != "InstrumentsScore.cs") bad.Add($"{name}:{ln} OldScore");
         }
@@ -87,7 +89,7 @@ public class ScoreReaderTests
             Assert.Equal(sc[i], NationalScore.BreakdownOf(ws[i]).Sum(l => l.Points), 9);   // 国ごとに引く道も同じ
         }
         // ホバーの文字列：6 項の行と、合計＝国力・首位との差＝同じ Scores の最大との差
-        var text = PlayText.ScoreBreakdownText(ws[0], sim.Diplomacy);
+        var text = PlayText.ScoreBreakdownText(ws[0]);
         foreach (var lab in new[] { "兵の数", "軍事費", "鉄の産出", "動力の消費", "都市の人口", "総人口" }) Assert.Contains(lab + " ", text);
         Assert.DoesNotContain("生産の豊かさ", text);
         Assert.Contains($"合計 {sc[0]:F1}", text);

@@ -782,6 +782,31 @@ public class WarThemeTests
         }
     }
 
+    // ★(457) 反証役 hy3〔v〕中#1：終戦の記録の判定（EndWar が置く Verdict）の regimeWar の引数を押さえる。上の試験は VerdictOf を自分で呼ぶ＝EndWar を通らない。
+    //   ここは国の除去（RemovePower）＝終戦の 1 本 EndWar を通して記録を作り、記録の Verdict を読む。期待値は政体の内戦の規則の表から（VerdictOf を呼ばない）：
+    //   政体の内戦で小さな非 0 の戦勝点＝勝者（反乱側の押し＝B・政府の押し＝A）・ちょうど 0＝白紙・分離独立は白紙の帯なら白紙。
+    //   ⚠壊し方＝EndWar の regimeWar を false にする → 政体の内戦の小さな戦勝点が白紙になり赤。
+    [Fact]
+    public void 終戦の記録の判定は政体の内戦の小さな戦勝点を勝者と書く()
+    {
+        foreach (var (score, secession, expect) in new[]
+                 { (-0.10, false, WarVerdict.BWon),    // 反乱側の押し（親＝A の負）
+                   (0.10, false, WarVerdict.AWon),     // 政府の押し
+                   (0.0, false, WarVerdict.Blank),     // 押し合えなかった
+                   (-0.10, true, WarVerdict.Blank) })  // 分離独立の白紙の帯
+        {
+            var (sim, fr, rebel, war) = CivilWarBoard();
+            Assert.True(Math.Abs(score) < sim.Coef.WhitePeaceScore, "前提が崩れた：白紙の帯の戦勝点ではない");
+            war.Score = score; war.CivilWarSecession = secession;
+            int n0 = sim.Diplomacy.EndedWars.Count;
+            sim.Diplomacy.RemovePower(rebel, sim.Coef);
+            Assert.Equal(n0 + 1, sim.Diplomacy.EndedWars.Count);
+            var rec = sim.Diplomacy.EndedWars[^1];
+            Assert.Equal((fr.SelfPower!.Id, rebel.Id), (rec.AId, rec.BId));
+            Assert.Equal(expect, rec.Verdict);
+        }
+    }
+
     [Fact]
     public void 分離戦の調停は独立で終わり政体の内戦は調停されない()
     {

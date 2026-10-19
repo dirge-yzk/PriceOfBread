@@ -90,9 +90,9 @@ public static class PlayText
 
     /// <summary>自国の国力の内訳＋首位との差（画面の国名・地位のホバー <c>PlayerScoreTip</c> と Runner の報告が同じ 1 本）。
     /// ★(449) 内訳は <see cref="NationalScore.Breakdowns"/> の 1 本（6 項の割合の点）。合計も首位も同じ <see cref="NationalScore.Scores"/> の値＝内訳と首位との差が同じ物差しを見る（(435) で見つけた混在を直した）。</summary>
-    public static string ScoreBreakdownText(World player, Diplomacy dip)
+    public static string ScoreBreakdownText(World player)
     {
-        var ws = NationalScore.NationWorldsOf(dip, player);   // 実在の国の世界の一覧（盤に居ない世界は自分だけ）＝外交のランクと同じ集合
+        var ws = NationalScore.NationWorldsOf(player);   // 実在の国の世界の一覧（盤に居ない世界は自分だけ）＝外交のランクと同じ集合
         int ip = ws.IndexOf(player);
         var sc = NationalScore.Scores(ws);
         var lines = NationalScore.Breakdowns(ws)[ip];

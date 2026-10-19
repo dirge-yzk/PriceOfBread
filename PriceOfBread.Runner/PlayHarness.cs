@@ -406,7 +406,7 @@ internal static class PlayHarness
         sb.AppendLine("  識字（階級の層ごとの平均）： " + string.Join(" ", PlayText.ClassLayerMeans(w, p => p.Literacy).Select(x => $"{x.Layer} {x.Mean:P0}")));
         sb.AppendLine("  満足度（階級の層ごとの平均）： " + string.Join(" ", PlayText.ClassLayerMeans(w, p => p.Satisfaction).Select(x => $"{x.Layer} {x.Mean:P0}")));
         sb.AppendLine("  政治資本： " + PlayText.PoliticalCapitalTip(w).Replace("\n", "　"));
-        sb.AppendLine("  国力の内訳（自国）： " + PlayText.ScoreBreakdownText(w, sim.Diplomacy).Replace("\n", "　"));
+        sb.AppendLine("  国力の内訳（自国）： " + PlayText.ScoreBreakdownText(w).Replace("\n", "　"));
 
         sb.AppendLine();
         sb.AppendLine("---- 州（上位10・工業化順）----");
@@ -486,7 +486,7 @@ internal static class PlayHarness
         sb.AppendLine("  順位 国名           国力 政体             人口        工業化度");
         foreach (var r in rows.Where(r => r.Order <= 10 || r.IsPlayer))
             sb.AppendLine($"  {r.Order,3}{(r.IsPlayer ? "★" : " ")} {r.Name,-12} {r.Score,6:F0} {PlayText.PolityRegimeJa(r.Polity),-8} {r.Population,12:N0} {r.Industry,8:F2}");
-        sb.AppendLine("  自国の国力の内訳： " + PlayText.ScoreBreakdownText(w, sim.Diplomacy).Replace("\n", "　"));
+        sb.AppendLine("  自国の国力の内訳： " + PlayText.ScoreBreakdownText(w).Replace("\n", "　"));
     }
 
     /// <summary>★(435) 全ての法の現在値と目標値（旧は目標だけの法が多く、労組・女性・官僚・国有化・資本移動ほかの現在値が空欄だった）。現在値は World・目標値は NationPolicy の同じ名前の欄
