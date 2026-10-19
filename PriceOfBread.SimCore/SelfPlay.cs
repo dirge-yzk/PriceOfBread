@@ -986,11 +986,14 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    /// <summary>新の反トラストの目標（旗≧2）＝本国の都市の割合＞1/3 で談合禁止・＞1/2 で独占の解体・それ以下は書かない（null）。</summary>
+    /// <summary>新の反トラストの目標（旗≧2）＝本国の都市の割合＞1/2 で独占の解体・＞1/3 で談合禁止・それ以下は書かない（null）。
+    /// ⚠下げる目標を書かない：1/3〜1/2 の帯で現行の法がすでに談合禁止以上なら書かない（現行を保つ）。都市の割合は 1870 年以後に 1/2 を割る国が多い〔m420 の本国のみ・英 9／10 種・仏 10／10 種〕
+    /// ＝入力が可逆なので、帯で CartelBan を書くと施行済みの独占の解体を引き下げる目標が立つ（史実に法の廃止は無い）。旧の工業化度は戦争の摩耗以外で下がらず、旧の式も実質同じ向き（事前登録 追記3）。</summary>
     internal static AntitrustLaw? AntitrustTargetFromBoard(World w)
     {
         double u = HomeUrbanShare(w);
-        if (u > AntitrustUrbanLine) return u > TrustbustUrbanLine ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;
+        if (u > TrustbustUrbanLine) return AntitrustLaw.Trustbust;
+        if (u > AntitrustUrbanLine) return w.Antitrust >= AntitrustLaw.CartelBan ? null : AntitrustLaw.CartelBan;
         return null;
     }
 
@@ -1002,12 +1005,14 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    /// <summary>新の同業組合の目標（旗≧3）＝GuildLawGate＞0 かつ本国の都市の割合＞1/3 で制限・＞1/2 で廃止・それ以外は書かない（null）。</summary>
+    /// <summary>新の同業組合の目標（旗≧3）＝GuildLawGate＞0 かつ本国の都市の割合＞1/2 で廃止・＞1/3 で制限・それ以外は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// （帯で現行の法がすでに制限以上なら書かない＝廃止済みの組合の保護を戻す目標を立てない）。</summary>
     internal static GuildLaw? GuildTargetFromBoard(World w)
     {
         if (!(w.Coef.GuildLawGate > 0)) return null;
         double u = HomeUrbanShare(w);
-        if (u > AntitrustUrbanLine) return u > TrustbustUrbanLine ? GuildLaw.None : GuildLaw.Limited;
+        if (u > TrustbustUrbanLine) return GuildLaw.None;
+        if (u > AntitrustUrbanLine) return w.Guild >= GuildLaw.Limited ? null : GuildLaw.Limited;
         return null;
     }
 

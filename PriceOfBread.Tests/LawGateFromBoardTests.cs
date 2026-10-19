@@ -103,6 +103,26 @@ public class LawGateFromBoardTests
     }
 
     [Fact]
+    public void 反トラストと同業組合の新しい目標は下げる向きに書かない()
+    {
+        // 帯（1/3〜1/2）：現行の法がすでに談合禁止以上なら書かない（独占の解体を談合禁止へ引き下げる目標を立てない）。1/2 超は常に上の段。
+        var w = Four().Nations[0].World;
+        w.Coef.AiLawGateFromBoard = 3; w.Coef.GuildLawGate = 1;
+        SetHomeUrban(w, 0.42);
+        w.Antitrust = AntitrustLaw.None;      Assert.Equal(AntitrustLaw.CartelBan, UtilityAgent.AntitrustTargetFromBoard(w));
+        w.Antitrust = AntitrustLaw.CartelBan; Assert.Null(UtilityAgent.AntitrustTargetFromBoard(w));
+        w.Antitrust = AntitrustLaw.Trustbust; Assert.Null(UtilityAgent.AntitrustTargetFromBoard(w));   // 引き下げの CartelBan を書かない
+        w.Guild = GuildLaw.Full;    Assert.Equal(GuildLaw.Limited, UtilityAgent.GuildTargetFromBoard(w));
+        w.Guild = GuildLaw.Limited; Assert.Null(UtilityAgent.GuildTargetFromBoard(w));
+        w.Guild = GuildLaw.None;    Assert.Null(UtilityAgent.GuildTargetFromBoard(w));                  // 廃止済みの保護を戻す Limited を書かない
+        SetHomeUrban(w, 0.7);
+        w.Antitrust = AntitrustLaw.CartelBan; Assert.Equal(AntitrustLaw.Trustbust, UtilityAgent.AntitrustTargetFromBoard(w));   // 1/2 超は上の段へ
+        w.Guild = GuildLaw.Limited;           Assert.Equal(GuildLaw.None, UtilityAgent.GuildTargetFromBoard(w));
+        SetHomeUrban(w, 0.2);
+        w.Antitrust = AntitrustLaw.Trustbust; Assert.Null(UtilityAgent.AntitrustTargetFromBoard(w));   // 1/3 を割っても書かない（現行を保つ）
+    }
+
+    [Fact]
     public void 反トラストの配線は旗2から_旗1では旧の工業化度のまま()
     {
         AntitrustLaw Target(double flag, double ind, double urban)
