@@ -209,10 +209,11 @@ public class InvadeInstrumentTests
                 header = lines[0].Split('\t');
                 rows.Add(lines[1].Split('\t'));
                 Assert.Equal(2, lines.Length);   // 侵略 1 回＝データ行 1
-                Assert.Equal(6, header.Length);
+                Assert.Equal(7, header.Length);
             }
-            int iSub = Array.IndexOf(header, "submitted"), iAdd = Array.IndexOf(header, "proximityAdded"), iWould = Array.IndexOf(header, "proximityWouldHave");
+            int iNat = Array.IndexOf(header, "targetIsNation"), iSub = Array.IndexOf(header, "submitted"), iAdd = Array.IndexOf(header, "proximityAdded"), iWould = Array.IndexOf(header, "proximityWouldHave");
             Assert.Equal("1", rows[0][iSub]); Assert.Equal("0", rows[1][iSub]);
+            Assert.Equal("0", rows[0][iNat]); Assert.Equal("0", rows[1][iNat]);   // どちらも抽象標的
             double D(string s) => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture);
             Assert.True(D(rows[0][iAdd]) > 0, "旗 1 の屈服の行の積んだ量が正でない");
             Assert.Equal(0.0, D(rows[0][iWould]));   // 旧の規則（屈服の後の座標）では抽象標的の屈服は 0＝旗 1 の新しい反応
