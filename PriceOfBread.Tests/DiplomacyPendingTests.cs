@@ -263,6 +263,44 @@ public class InvadeInstrumentTests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
+    [Fact]
+    public void 標的が実在の国なら標的自身の組にも満額が積まれ_計器の列に分けて残る()
+    {
+        // 標的が実在の弱小国（スウェーデン）＝その首都が攻者の勢力圏の走査でも標的の座標でもある（距離 0）＝標的自身の組へ満額（ProximityTensionMax）が積まれる。
+        // 期待は係数の定義値（満額 × (1 − 0/範囲)＝満額）から作る＝走査の幾何を写さない。第三国（フランス）の分は標的自身の分を引いた残り。
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_invade_nat_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Instruments.Configure(dir, null);
+            foreach (bool submit in new[] { true, false })
+            {
+                var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("スウェーデン")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+                sim.StepQuarter();
+                var w = sim.Nations[0].World; var me = w.SelfPower!; var c = w.Coef;
+                Instruments.Phase(sim, 1789UL, "open");
+                var target = sim.Diplomacy.Powers.Find(p => p.Name == "スウェーデン")!;
+                Assert.True(target.Nation is not null && sim.Diplomacy.RankOf(target) == PowerRank.Minor, "前提が崩れた：標的が実在の弱小国でない");
+                c.ProximityTensionRange = 25_000;   // 地球上のどの組も範囲に入る
+                w.ExpansionWill = 1e12; w.FiscalFundingRatio = new Share(1.0);
+                target.Military = 100; me.Military = submit ? 1e9 : c.InvadeMilitaryFactor * target.Military * 1.001;
+                foreach (int g in new[] { Catalog.SailingShipId, Catalog.SteamshipId, Catalog.CannedFoodId, Catalog.QuinineId }) w.Region.Markets[g].Stock = 1e6;
+                Assert.True(w.CanInvade(target, out string why), why);
+                Assert.Equal(submit, sim.Diplomacy.ColonizeForce(me, target, c) >= sim.Diplomacy.SubmitLine(target, c));   // 前提＝枝が狙いどおり
+                w.Invade(target);
+                Instruments.Close(sim);
+                var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "invade_s1789.tsv"));
+                var header = lines[0].Split('	'); var row = lines[1].Split('	');
+                double D(string name) => double.Parse(row[Array.IndexOf(header, name)], System.Globalization.CultureInfo.InvariantCulture);
+                Assert.Equal("1", row[Array.IndexOf(header, "targetIsNation")]);
+                Assert.Equal(c.ProximityTensionMax, D("addedToTarget"), 9);        // 距離 0＝満額
+                Assert.True(D("proximityAdded") >= D("addedToTarget"), "合計が標的自身の分を下回る");
+                Assert.Equal(D("proximityAdded"), D("proximityWouldHave"), 9);     // 座標が動かない枝＝旗 0 でも積んだ量＝旧の量
+                Assert.Equal(D("addedToTarget"), D("wouldHaveToTarget"), 9);
+            }
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
     private static MultiNationSim TwoNationsForInstrument()
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
