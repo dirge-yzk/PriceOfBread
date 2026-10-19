@@ -63,13 +63,19 @@ public static class PlayText
     public readonly record struct EndingStandingRow(int Order, string Name, double Score, Polity Polity, double Population, double Industry, bool IsPlayer);
 
     /// <summary>終局を過ぎたか（画面は <c>Calendar.StartYear + 経過日 / 年の日数 &gt;= EndYear</c> で最終ランキングを出す。世界の暦は同じ年＝<c>w.Year &gt;= EndYear</c>）。</summary>
-    public static bool IsEnded(World w) => w.Year >= Calendar.EndYear;
+    public static bool IsEnded(World w) => IsEnded(w.Year);
+
+    /// <summary>★(456) 暦年が終局に入ったか（<c>year &gt;= Calendar.EndYear</c> の唯一の定義）。画面は表示暦の年〔<c>Calendar.StartYear + 経過日 / Calendar.DaysPerYear</c>〕を渡す（App は SimCore の暦を持たず経過日で数えるため）。</summary>
+    public static bool IsEnded(int year) => year >= Calendar.EndYear;
+
+    /// <summary>★(456) 終戦の結果の語（画面の終わった戦争の一覧・終戦の報せ・play の報告が同じ 1 本）。勝ち true＝勝利・負け false＝敗北・白紙 null＝白紙講和。判定は <see cref="EndedWarRecord.VerdictOf"/>（記録の <see cref="EndedWarRecord.WonBy"/>）。</summary>
+    public static string WarResultWord(bool? won) => won is null ? "白紙講和" : won.Value ? "勝利" : "敗北";
 
     /// <summary>最終ランキング（国力 <see cref="NationalScore.Of"/> の降順）。画面の終局の表（<c>ShowEnding</c>）と Runner の報告が同じこの 1 本を読む。</summary>
     public static List<EndingStandingRow> EndingStandings(IEnumerable<World> worlds, World player)
     {
         var wl = worlds.ToList();
-        var sc = NationalScore.Scores(wl);   // ★(449) 国力は全国分を 1 回で（旗＞0 で国ごとに世界の総量を求め直さない・旗 0 は国ごとの Of と同じ値）
+        var sc = NationalScore.Scores(wl);   // ★(449) 国力は全国分を 1 回で（国ごとに世界の総量を求め直さない）
         var order = Enumerable.Range(0, wl.Count).OrderByDescending(k => sc[k]).ToList();   // 安定な降順＝旧の OrderByDescending(Of) と同じ並び
         var rows = new List<EndingStandingRow>(wl.Count);
         for (int i = 0; i < order.Count; i++)
@@ -83,13 +89,11 @@ public static class PlayText
     }
 
     /// <summary>自国の国力の内訳＋首位との差（画面の国名・地位のホバー <c>PlayerScoreTip</c> と Runner の報告が同じ 1 本）。
-    /// ★(449) 内訳は <see cref="NationalScore.Breakdowns"/> の 1 本（旗 0＝旧の 4 項〔軍事・生産の豊かさ・金融・技術〕・旗＞0＝6 項の割合の点）。合計も首位も同じ <see cref="NationalScore.Scores"/> の値＝内訳と首位との差が同じ物差しを見る（(435) で見つけた混在を直した）。</summary>
+    /// ★(449) 内訳は <see cref="NationalScore.Breakdowns"/> の 1 本（6 項の割合の点）。合計も首位も同じ <see cref="NationalScore.Scores"/> の値＝内訳と首位との差が同じ物差しを見る（(435) で見つけた混在を直した）。</summary>
     public static string ScoreBreakdownText(World player, Diplomacy dip)
     {
-        var ws = new List<World>();
-        foreach (var q in dip.Powers) if (q.Nation is { } qw) ws.Add(qw);
+        var ws = NationalScore.NationWorldsOf(dip, player);   // 実在の国の世界の一覧（盤に居ない世界は自分だけ）＝外交のランクと同じ集合
         int ip = ws.IndexOf(player);
-        if (ip < 0) { ws.Clear(); ws.Add(player); ip = 0; }   // 盤に居ない世界＝自分だけ（NationalScore.NationWorldsOf と同じ規約）
         var sc = NationalScore.Scores(ws);
         var lines = NationalScore.Breakdowns(ws)[ip];
         double mine = sc[ip], top = 0; string topName = "";

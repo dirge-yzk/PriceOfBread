@@ -560,6 +560,7 @@ public class WarThemeTests
         var rec = Assert.Single(System.Linq.Enumerable.Skip(sim.Diplomacy.EndedWars, ended0), r => r.AId == es.SelfPower!.Id && r.BId == rebel.Id);
         Assert.Equal(0.3, rec.Score);
         Assert.Equal(7, rec.Months);
+        Assert.Equal(WarVerdict.AWon, rec.Verdict);   // ★(456) 終戦の記録は判定を持つ（戦勝点 0.3 は白紙の線 0.25 以上＝A〔スペイン〕の勝ち）・国の除去で閉じた戦争も同じ EndWar の 1 本
     }
 
     [Fact]
@@ -773,6 +774,11 @@ public class WarThemeTests
             Assert.Equal(reint, sim.Diplomacy.PendingReintegrations.Count == 1);
             if (reint) Assert.Equal(rebelWon, sim.Diplomacy.PendingReintegrations[0].RebelWon);
             Assert.Equal(rump, rebel.Nation!.RumpParentName.Length > 0);
+            // ★(456) 終戦の判定の 1 本（画面と play の報告が読む）は講和の実際の枝と同じ：分断〔rump〕＝白紙・再併合〔reint〕＝反乱側の勝ちなら B・政府の勝ちなら A
+            //   （期待値は上の表〔講和が実際に通った枝〕から。VerdictOf の出力から作らない）。政体の内戦は戦勝点ちょうど 0 だけが白紙。
+            var verdict = EndedWarRecord.VerdictOf(score, regimeWar: !secession, sim.Coef.WhitePeaceScore);
+            Assert.Equal(rump, verdict == WarVerdict.Blank);
+            if (reint) Assert.Equal(rebelWon, verdict == WarVerdict.BWon);   // 親＝A・反乱国＝B
         }
     }
 

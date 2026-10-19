@@ -1,0 +1,14 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_hy3\PriceOfBread.SimCore\EconomyStep.cs(1448,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_hy3\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_hy3\PriceOfBread.SimCore\Instruments.cs(2218,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_hy3\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\hy3_456\build_chk\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\hy3_456\build_chk\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\hy3_456\build_chk\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\hy3_456\build_chk\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:  1493、スキップ:     0、合計:  1493、期間: 9 m 19 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 6 s - PriceOfBread.Tests.dll (net10.0)

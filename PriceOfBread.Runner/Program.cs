@@ -3191,8 +3191,9 @@ if (args.Length > 0 && args[0] == "rankprobe")
     for (int q = 0; q < qsR; q++) simR2.StepQuarter();
     var dipR = simR2.Diplomacy;
     var rows = simR2.Nations.Select(n => n.World).Where(w => w.SelfPower is not null)
-        .Select(w => (W: w, S: NationalScore.Of(w), B: NationalScore.BreakdownOf(w)))   // ★(449) 内訳は NationalScore の 1 本（旗に従う）
+        .Select(w => (W: w, S: NationalScore.Of(w), B: NationalScore.BreakdownOf(w)))   // ★(449) 内訳は NationalScore の 1 本
         .OrderByDescending(x => x.S).ToList();
+    if (rows.Count == 0) { System.Console.WriteLine("国力の行が無い（実在の国が 0）"); return; }   // ★(456) 国が 0 の世界で rows[0] に落ちない
     System.Console.WriteLine($"seed={sdR}　{simR2.Nations[0].World.Year}年　（列強の定員={simR2.Coef.GreatPowerCount}）");
     System.Console.WriteLine($"{"順",3}{"国",-16}{"スコア",8}" + string.Join("", rows[0].B.Select(l => $"{l.Label,10}")) + $"{"GDP",10}{"工業化",7}{"満足",7}{"植民地",6}");
     void Line(int rank, (World W, double S, NationalScore.ScoreLine[] B) x)
@@ -6748,8 +6749,8 @@ if (args.Length > 0 && args[0] == "score")
     sm.WarmupEconomy(6);
     for (int q = 0; q < sq; q++) sm.StepQuarter();
     Console.WriteLine($"--- {sm.Nations[0].World.Year}年 国力スコアの内訳 ---");
-    // ★(449) 内訳は NationalScore.Breakdowns の 1 本（旗 0＝軍事・生産の豊かさ・金融・技術／旗＞0＝6 項の割合の点）。旧の富の 4 つの小項〔GDP・工業・満足・植民〕は旗 0 の腕〔OfOld〕の中身で、ここでは出さない。
-    var scoreWs = sm.Nations.Select(x => x.World).ToList();
+    // ★(449)(456) 内訳は NationalScore.Breakdowns の 1 本（6 項の割合の点）。
+    var scoreWs = NationalScore.NationWorldsOf(sm.Nations[0].World);   // ★(456) 総量の集合は外交のランクと同じ（Power.Nation が非 null の国）
     var scoreSc = NationalScore.Scores(scoreWs); var scoreBd = NationalScore.Breakdowns(scoreWs);
     Console.WriteLine("国        総力  " + string.Join(" ", scoreBd[0].Select(l => l.Label)));
     foreach (int ix in Enumerable.Range(0, scoreWs.Count).OrderByDescending(k => scoreSc[k]))
@@ -6913,7 +6914,7 @@ if (args.Length > 0 && args[0] == "scorebreak")
     sbsim.Diplomacy.Log.Enabled = false;
     while (sbsim.Year < 1914) sbsim.StepQuarter();
     var rows = new List<(string Name, double Total, NationalScore.ScoreLine[] B)>();
-    var sbWs = sbsim.Nations.Select(x => x.World).ToList();   // ★(449) 内訳は NationalScore.Breakdowns の 1 本（旗に従う・全国分を 1 回で）
+    var sbWs = sbsim.Nations.Count > 0 ? NationalScore.NationWorldsOf(sbsim.Nations[0].World) : [];   // ★(456) 総量の集合は外交のランクと同じ（国が 0 の世界でも落ちない）   // ★(449) 内訳は NationalScore.Breakdowns の 1 本（全国分を 1 回で）
     var sbSc = NationalScore.Scores(sbWs); var sbBd = NationalScore.Breakdowns(sbWs);
     for (int ix = 0; ix < sbWs.Count; ix++)
     {
@@ -6921,6 +6922,7 @@ if (args.Length > 0 && args[0] == "scorebreak")
         rows.Add((sp.BaseName, sbSc[ix], sbBd[ix]));
     }
     rows.Sort((a, b) => b.Total.CompareTo(a.Total));
+    if (rows.Count == 0) { Console.WriteLine("国力の行が無い（実在の国が 0）"); return; }   // ★(456) 国が 0 の世界で rows[0] に落ちない
     Console.WriteLine("順位	国	合計	" + string.Join("	", rows[0].B.Select(l => l.Label)));
     int rank = 0;
     var refs = new HashSet<string> { "イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "オーストリア", "日本", "オスマン", "清" };
@@ -7707,7 +7709,7 @@ if (args.Length > 0 && args[0] == "noviceprobe")
     }
 
     Console.WriteLine($"=== noviceprobe seed={nvSeed} 国={nvNation}{(nvOff.Count > 0 ? " 除外手=" + string.Join(",", nvOff.OrderBy(x => x)) : "")} ===");
-    Console.WriteLine("列＝年,順位,スコア,内訳の項（NationalScore.BreakdownOf の順＝旗 0 は軍事・富・金融・技術／旗＞0 は兵の数・軍事費・鉄の産出・動力の消費・都市の人口・総人口）,工業化度,国庫（順位＝NationalScore.Standing の序列・全国家中／#行＝イベント）");
+    Console.WriteLine("列＝年,順位,スコア,内訳の項（NationalScore.BreakdownOf の順＝兵の数・軍事費・鉄の産出・動力の消費・都市の人口・総人口）,工業化度,国庫（順位＝NationalScore.Standing の序列・全国家中／#行＝イベント）");
     Console.WriteLine("--- 試合1: 初心者スクリプト ---");
     Console.WriteLine("年,順位,スコア,内訳の項…,工業化度,国庫");
     Console.Out.Flush();
@@ -8587,7 +8589,7 @@ if (args.Length > 0 && args[0] == "test8")
             .Select(x => $"{x.Key}{100 * x.S / tot:F0}%"));
         string regions = string.Join("/", w.Regions.Where(r => r.State == RegionState.Active).Select(r => r.Name));
         Console.WriteLine($"\n#{rk} {w.SelfPower?.Name ?? w.Region.Name}  国力{NationalScore.Of(w):F0}  満足{NationalScore.MeanSatisfaction(w):F2}");
-        Console.WriteLine("  国力内訳: " + string.Join(" ＋ ", NationalScore.BreakdownOf(w).Select(l => $"{l.Label}{l.Points:F1}")) + $" ＝ {NationalScore.Of(w):F1}");   // ★(449) 内訳は NationalScore.BreakdownOf の 1 本（旗に従う）
+        Console.WriteLine("  国力内訳: " + string.Join(" ＋ ", NationalScore.BreakdownOf(w).Select(l => $"{l.Label}{l.Points:F1}")) + $" ＝ {NationalScore.Of(w):F1}");   // ★(449) 内訳は NationalScore.BreakdownOf の 1 本
         Console.WriteLine($"  人口{w.TotalPopulation:N0}（{popStr}）  植民地{pw?.Colonies ?? 0}");
         Console.WriteLine($"  工業{w.Region.TotalIndustrialization:F2} 技術{w.TechLevel:F2} 識字{w.AllPops().Sum(p => p.Literacy * p.Size) / Math.Max(1, w.TotalPopulation):P0} 制度[特許{(w.PatentLaw ? "○" : "×")} 株式{(w.JointStock ? "○" : "×")} 鉄道{(w.Railways ? "○" : "×")}]");
         Console.WriteLine($"  輸送[鉄道容量{w.RailCapacity:F0} 船容量{w.ShipCapacity:F0}  港州{w.Regions.Count(r => r.IsPort)}/{w.Regions.Count(r => r.State == RegionState.Active)}]");

@@ -521,9 +521,9 @@ public sealed class MultiNationSim
         //   （(165)＝主要国の全てが1784年に蒸気機関・データの史実〔英だけ〕と食い違った）。
         ShareWorldDiscovered();
         OpenForces();
-        // ★(449) 開幕のランクの取り直し（旗 ScoreFromWorldShare＞0 のときだけ＝旗 0 はこの 1 行を通らず旧と厳密恒等）：コンストラクタの ComputeRanks は市場が 1 度も回る前＝鉄の産出・動力の消費・軍事費が 0 で
+        // ★(449)(456) 開幕のランクの取り直し（旗 ScoreFromWorldShare は焼き込んだ＝助走のある通常の開始は必ず通る）：コンストラクタの ComputeRanks は市場が 1 度も回る前＝鉄の産出・動力の消費・軍事費が 0 で
         //   国力の 6 項が 3 項（兵・都市人口・総人口）に退化し、助走は外交を凍結する（DiplomacyFrozen）ので次の ComputeRanks は暦で 1 年後＝最初の 1 年の外交はこの退化したランクで動いた。助走の直後（流れの値が出そろった盤面）で 1 度だけ取り直す（純関数・乱数なし）。
-        if (_coef.ScoreFromWorldShare > 0) Diplomacy.ComputeRanks(_coef);
+        Diplomacy.ComputeRanks(_coef);
         RebaselineInvariants();
     }
     private bool _startWarmupDone;
@@ -783,8 +783,8 @@ public sealed class MultiNationSim
         {
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
-            if (Nations.Count > 0 && Nations[0].World.Coef.ScoreFromWorldShare > 0) NationalScore.StepStandingAll(Nations.ConvertAll(n => n.World));   // ★(416) 旗＞0：世界の総量を 1 回だけ求めて全国の在庫を寄せる
-            else foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
+            NationalScore.StepStandingAll(Nations.ConvertAll(n => n.World));   // ★(416)(456) 世界の総量を 1 回だけ求めて全国の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
+            // （★(456) 国ごとに求め直す旧の経路は旗と一緒に消えた＝この 1 行コメントは行番号を動かさないための穴埋め〔計器 flow_s が MultiNationSim.cs の行番号を鍵にする〕）
             StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の目標（陸軍の不安）・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期
             if (!DiplomacyFrozen)

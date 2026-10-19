@@ -1,0 +1,21 @@
+# (456) 突然変異（新しい番人の赤を確かめる・各変異を入れた木で該当の試験を回し、戻した）
+## 変異 X（6 つを同時に入れた 1 本・赤になった試験は変異ごとに別々＝帰属は試験名で一意）
+M1 NationBrief に旗の名前の文字列 → ScoreReaderTests.旧の国力の式と旗は復活しない
+M2 TreatyPortLapse の基準を中央値→最大 → ScoreReaderTests.条約港の風化は列強の中央値を基準にする
+M3 IsEnded(int) の >= を > → WarVerdictTests.終局の判定… と PlayHarnessTests.報告_終局は暦がEndYearに入ってから…
+M4 WarResultWord の勝利と敗北を入れ替え → WarVerdictTests.結果の語… と PlayHarnessTests.報告_期間中に終わった戦争は…
+M5 EndWar の Verdict を常に Blank → WarThemeTests.除かれた国の第三国との戦争は終戦の記録に残る
+M6 ResolvePeace の blank を旧の式 |s|<白紙の線 に戻す → WarThemeTests.政体の内戦は小さな戦勝点でも勝者で終わり…
+  失敗 PriceOfBread.Tests.PlayHarnessTests.報告_期間中に終わった戦争は自国側の視点で出し_始まる前の記録と他国どうしは出さない [64 ms]
+  失敗 PriceOfBread.Tests.PlayHarnessTests.報告_終局は暦がEndYearに入ってから最終の順位と自国の内訳を出す_画面と同じ関数 [291 ms]
+  失敗 PriceOfBread.Tests.ScoreReaderTests.旧の国力の式と旗は復活しない_旧の列を読むのは計器だけである [315 ms]
+  失敗 PriceOfBread.Tests.ScoreReaderTests.条約港の風化は列強の中央値を基準にする [29 s]
+  失敗 PriceOfBread.Tests.WarThemeTests.政体の内戦は小さな戦勝点でも勝者で終わり_押し合えない膠着と分離独立の白紙だけが分断と独立 [57 ms]
+  失敗 PriceOfBread.Tests.WarThemeTests.除かれた国の第三国との戦争は終戦の記録に残る [102 ms]
+  失敗 PriceOfBread.Tests.WarVerdictTests.終局の判定は暦年が終局年に入ったときで_世界の暦と表示暦が同じ関数を通る [23 ms]
+  失敗 PriceOfBread.Tests.WarVerdictTests.結果の語は自国の側から読み_画面と報告が同じ1本である [8 ms]
+失敗!   -失敗:     8、合格:    81、スキップ:     0、合計:    89、期間: 2 m 9 s - PriceOfBread.Tests.dll (net10.0)
+## 変異 Y（VerdictOf が政体の内戦を無視）
+  失敗 PriceOfBread.Tests.WarThemeTests.政体の内戦は小さな戦勝点でも勝者で終わり_押し合えない膠着と分離独立の白紙だけが分断と独立 [31 ms]
+  失敗 PriceOfBread.Tests.WarVerdictTests.白紙の線は既定の0_25_判定は表のとおり [14 ms]
+失敗!   -失敗:     2、合格:    43、スキップ:     0、合計:    45、期間: 41 s - PriceOfBread.Tests.dll (net10.0)

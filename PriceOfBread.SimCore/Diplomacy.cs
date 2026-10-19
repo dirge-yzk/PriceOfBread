@@ -144,17 +144,34 @@ public sealed class War
 }
 
 /// <summary>終戦の記録（UI表示用の純記帳・2026-07-19）：終戦月の最終値（戦勝点・戦死・経過月）は StepWars 内で加算→即 Wars から
-/// 削除されるため、外部（UI）はここから読む。力学は読まない。結果の判定＝|Score|&lt;WhitePeaceScore なら白紙講和・それ以外は符号の側が勝者。</summary>
+/// 削除されるため、外部（UI）はここから読む。力学は読まない。結果の判定＝<see cref="VerdictOf"/> の 1 本（講和 ResolvePeace・画面・play の報告が同じ関数）。</summary>
 public sealed class EndedWarRecord
 {
     public long AId, BId;
     public double Score;      // 最終戦勝点（A側プラス視点・±1.5＝厭戦崩壊の上書き込み）
+    public WarVerdict Verdict;   // ★(456) 終戦の判定（EndWar が VerdictOf で置く）。戦争が消えた後は政体の内戦かどうかが読めない＝記録に残す（講和が使った判定そのもの・導けない量）
     public int Months;
     public double DeadA, DeadB;
     public double CivDeadA, CivDeadB;   // ★2026-09-23：民間人の死（War.CivDeadA/B の終戦時点の写し）
     public int EndYear;       // ★2026-08-13：終戦の暦年（純記帳）。塹壕は「1914以降だけ戦争が伸びる」ことが設計条件なので、
                               //   時代区分で戦争の長さを測れないと点火の可否を判断できない（doc 20260812_塹壕と戦車 T3/T4）。
+
+    /// <summary>★(456) 終戦の判定の唯一の定義（旧は ResolvePeace・画面 2 か所・play の報告の 4 か所に写しがあった）。戦勝点は A 側視点で ±1 にクランプしてから見る。
+    /// 白紙＝|戦勝点|<see cref="Coefficients.WhitePeaceScore"/> 未満。ただし政体の内戦〔<paramref name="regimeWar"/>＝分離独立でない内戦〕は戦勝点がちょうど 0 のときだけ白紙＝0 でなければ押しの大きい側が勝つ
+    /// （<see cref="Diplomacy.ResolvePeace"/> の注のとおり。旧の画面と報告は白紙の線の内側を全て白紙と書いていた）。それ以外は符号の側が勝ち。</summary>
+    public static WarVerdict VerdictOf(double score, bool regimeWar, double whitePeaceScore)
+    {
+        double s = Math.Clamp(score, -1, 1);
+        if (Math.Abs(s) < whitePeaceScore && !(regimeWar && s != 0)) return WarVerdict.Blank;
+        return s > 0 ? WarVerdict.AWon : WarVerdict.BWon;
+    }
+
+    /// <summary>国 <paramref name="id"/> から見た結果＝勝ち true・負け false・白紙 null。</summary>
+    public bool? WonBy(long id) => Verdict == WarVerdict.Blank ? null : (Verdict == WarVerdict.AWon) == (AId == id);
 }
+
+/// <summary>★(456) 終戦の判定（<see cref="EndedWarRecord.VerdictOf"/>）：白紙・A 側の勝ち・B 側の勝ち。</summary>
+public enum WarVerdict { Blank, AWon, BWon }
 
 /// <summary>海峡・運河（§B）。自然海峡は最初から開通、運河は host 領土の保有国の資本家が投資して建設＝開通。
 /// 扼者＝host 植民地を保有する国（征服で交代）。扼者と交戦中の国はこの咽喉を通れず迂回（輸送費↑＝サプライチェーン崩壊）。</summary>
@@ -502,7 +519,7 @@ public sealed class Diplomacy
     // ランクはラベルのみ＝同盟・戦争・従属は不変。アクションの可否（同ランク間の緊張上下/同盟・列強→弱小の植民地化）に使う。
     /// <summary>条約港の自然失効（案A・作者裁定2026-08-16）：不平等条約は「力の差が続く間だけ有効」。
     /// ★(399) 条約港は個数の機構でなく州の外国区分（講和で敗者の最大の港州に積まれる勝者の持分）で表す（作者 2026-10-16：条約港は廃止・州の支配度で表現）。
-    /// 外国持分の風化＝連続形（刻みも一斉検査も無し）：対列強の国力比（★(449) 旗 ScoreFromWorldShare＞0〔既定 1〕＝世界の総量に対する割合の国力÷列強の中央値／旗 0＝軍事+生産〔NationalScoreの既存成分〕÷最強の列強）が TreatyPortLapseRatio に近づくほど速く
+    /// 外国持分の風化＝連続形（刻みも一斉検査も無し）：対列強の国力比（★(449)(456) 世界の総量に対する割合の国力÷列強の中央値）が TreatyPortLapseRatio に近づくほど速く
     /// DominanceSpeed（四半期あたり）で0へ寄る＝日本の条約改正（1899/1911＝近代化を背景に条約が消えた）が動詞なしで創発。AI対称は構造（同じ検査が全国に走る）。
     /// この関数は毎月呼ばれるので 四半期の月（month % MonthsPerQuarter == 0）だけ風化させる（旧の器は毎月 DominanceSpeed を掛けて 3 倍速だった）。
     /// 緊張は上げない（最小構成・作者裁定の「例外を作らない」）。★(399) 以後の連続の風化は年代記に1行も書かない（旧の失効の記帳は個数の機構と一緒に消えた・(402)）。TreatyPortLapseRatio が 0 以下なら風化しない。</summary>
@@ -510,20 +527,19 @@ public sealed class Diplomacy
     {
         if (c.TreatyPortLapseRatio.Value <= 0) return;
         if (month % Calendar.MonthsPerQuarter != 0) return;
-        // ★(416) 旗 ScoreFromWorldShare＞0：力の差＝世界の総量に対する本国の割合の国力（NationalScore.ShareScores）。向きは同じ（自国÷列強の最大・近いほど風化が速い）。0＝従来の 2 項（軍事＋生産の豊かさ・NationalScore.TreatyStrengthOld＝旧の腕の中身）のまま。
-        var shareScore = c.ScoreFromWorldShare > 0 ? ShareScoreByPower() : null;
-        double Strength(Power p, World w) => shareScore is not null ? shareScore[p.Id] : NationalScore.TreatyStrengthOld(w);
+        // ★(416)(456) 力の差＝世界の総量に対する本国の割合の国力（NationalScore.ScoresByPower＝外交のランクと同じ 1 本）。向きは同じ（自国÷列強の基準・近いほど風化が速い）。
+        var shareScore = NationalScore.ScoresByPower(this);
         double topC = 0;
-        var greatStrength = shareScore is not null ? new List<double>() : null;
-        foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) { double sg = Strength(p, gw); topC = System.Math.Max(topC, sg); greatStrength?.Add(sg); }
-        // ★(449) 旗＞0 の側だけ、比の基準を〈最強の列強〉から〈列強の中央値〉へ（Q6 の推奨・AI の決め・確証なし）。世界の総量に対する割合の国力は首位の 1 国（清）が飛び抜けるので、最大を基準にすると他の全ての国の比が 0.1 前後に沈み、
-        //   風化の係数 Clamp01(比÷0.5) が実質 0 になって条約の持分が消えない（機構が止まる）。列強の中央値＝列強が並ぶ水準＝〈列強に近づくほど風化が速い〉の向きは保つ。旗 0 は従来の最大のまま（恒等）。偶数のときは上側の中央（添字 n÷2）。
-        if (greatStrength is { Count: > 0 }) { greatStrength.Sort(); topC = greatStrength[greatStrength.Count / 2]; }
+        var greatStrength = new List<double>();
+        foreach (var p in Powers) if (p.Nation is not null && RankOf(p) == PowerRank.Great) { double sg = shareScore[p.Id]; topC = System.Math.Max(topC, sg); greatStrength.Add(sg); }
+        // ★(449) 比の基準は〈最強の列強〉でなく〈列強の中央値〉（Q6 の推奨・AI の決め・確証なし）。世界の総量に対する割合の国力は首位の 1 国（清）が飛び抜けるので、最大を基準にすると他の全ての国の比が 0.1 前後に沈み、
+        //   風化の係数 Clamp01(比÷0.5) が実質 0 になって条約の持分が消えない（機構が止まる）。列強の中央値＝列強が並ぶ水準＝〈列強に近づくほど風化が速い〉の向きは保つ。偶数のときは上側の中央（添字 n÷2）。
+        if (greatStrength.Count > 0) { greatStrength.Sort(); topC = greatStrength[greatStrength.Count / 2]; }
         if (topC > 1e-9)
             foreach (var p in Powers)
             {
                 if (p.Nation is not { } w) continue;
-                double ratio = Strength(p, w) / topC;
+                double ratio = shareScore[p.Id] / topC;
                 double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
                 if (!(fade > 0)) continue;
                 foreach (var r in w.Regions)
@@ -541,14 +557,14 @@ public sealed class Diplomacy
         // 小さな世界（テスト・較正＝実国12以下）は従来の比率式を維持＝4カ国世界で全員列強になり動学が変わるのを防ぐ。
         _rank.Clear();
         var real = new List<(Power P, double S)>();
-        var shareScore = c.ScoreFromWorldShare > 0 ? ShareScoreByPower() : null;   // ★(416) 旗＞0：総量を 1 回だけ求める（国ごとに求め直さない）
+        var shareScore = NationalScore.ScoresByPower(this);   // ★(416)(456) 総量を 1 回だけ求める（国ごとに求め直さない）
         foreach (var p in Powers)
         {
             // ★慣性は**序列の見え方**（忠実度の列強軸・首位交代・UIの順位）に効かせ、ここ＝外交の実挙動を決める
             //   ランク判定には掛けない（2026-08-02 R5）。R3/R4 の実測で、在庫をここへ通すと植民地化・介入・同盟の
             //   相手が固定され、スペインが6-7/10で最下位に沈む副作用が出た（本国州 0.75→0.58）。
             //   作者の要求は「上位が頻繁に入れ替わらないこと」＝順位の安定であって、外交の相手固定ではない。
-            if (p.Nation is { } w) real.Add((p, shareScore is not null ? shareScore[p.Id] : NationalScore.Of(w)));
+            if (p.Nation is not null) real.Add((p, shareScore[p.Id]));
             else _rank[p.Id] = PowerRank.Minor;   // 抽象勢力＝常に弱小
         }
         if (real.Count > 12)
@@ -567,17 +583,6 @@ public sealed class Diplomacy
         double great = top * c.GreatPowerScoreFraction.Value, minor = top * c.MinorPowerScoreFraction.Value;
         foreach (var (p, s) in real)
             _rank[p.Id] = s >= great ? PowerRank.Great : s < minor ? PowerRank.Minor : PowerRank.Middle;
-    }
-
-    /// <summary>★(416) 旗 ScoreFromWorldShare＞0 の国力を実在の国ぶん 1 回で求める（Power.Id → 国力）。世界の総量は実在の国（Nation が非 null）の和。</summary>
-    private Dictionary<int, double> ShareScoreByPower()
-    {
-        var ps = new List<Power>(); var ws = new List<World>();
-        foreach (var p in Powers) if (p.Nation is { } nw) { ps.Add(p); ws.Add(nw); }
-        var sc = NationalScore.ShareScores(ws);
-        var d = new Dictionary<int, double>(ps.Count);
-        for (int i = 0; i < ps.Count; i++) d[ps[i].Id] = sc[i];
-        return d;
     }
 
     /// <summary>この勢力のランク（列強/中堅/弱小）。未算出なら弱小。</summary>
@@ -2768,7 +2773,8 @@ public sealed class Diplomacy
         //   ⚠戦勝点がちょうど0＝この戦線で一度も押し合えなかった（接触なし・崩壊の講和で届いていない）＝届かない者どうしの分断はそのまま。
         //   ⚠分離独立の戦争の白紙＝独立の確定は今のまま（ベルギー1831・ギリシャ1830）。旧＝|戦勝点|<WhitePeaceScore の政体の内戦はすべて分断（r103 で22件・英が繰り返し割れた）。
         bool regimeWar = cwRebel is not null && !war.CivilWarSecession;
-        if (Math.Abs(s) < c.WhitePeaceScore && cwRebel is not null && !(regimeWar && s != 0))   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
+        bool blank = EndedWarRecord.VerdictOf(war.Score, regimeWar, c.WhitePeaceScore) == WarVerdict.Blank;   // ★(456) 終戦の判定の 1 本（画面・play の報告も同じ関数を読む）
+        if (blank && cwRebel is not null)   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
         {
             Log.Add($"{_year} {cwParent!.Name}の内戦は膠着のまま終わった＝分断（{cwRebel.Name}が存続）");
             // ★分断の記録と首都（2026-09-28 処理の一元化 段2 束3）：政体をめぐる内戦の分断の回数（SelfPlay の「内戦分裂」＝旧経路の国家分裂の計器を戦争の形へ）。
@@ -2784,7 +2790,7 @@ public sealed class Diplomacy
             ConfirmIndependence(cwParent, cwRebel, c);
             return;
         }
-        if (Math.Abs(s) < c.WhitePeaceScore && !regimeWar)   // 戦勝点が小さい＝白紙講和（得るものなし）。政体の内戦は上の注記どおり勝者の枝へ
+        if (blank)   // 戦勝点が小さい＝白紙講和（得るものなし）。政体の内戦は上の注記どおり勝者の枝へ〔内戦の白紙は上の枝で終わっている〕
         {
             Log.Add($"{_year} {war.A.Name}×{war.B.Name} 白紙講和（戦勝点{s:+0.00;-0.00}）");
             return;
@@ -3220,7 +3226,7 @@ public sealed class Diplomacy
     {
         // 終戦記録（UI用の純記帳・2026-07-19）：削除前の最終値を保存。リングは256件で頭打ち（決定論の丸め）。
         //   ★2026-09-28（処理の一元化 段2 C）：StepWars からここへ移した＝国の除去で閉じた戦争にも記録が残る。講和（ResolvePeace）は戦争の欄を書かない＝講和の前後で同じ値。
-        EndedWars.Add(new EndedWarRecord { AId = war.A.Id, BId = war.B.Id, Score = war.Score, Months = war.Months, EndYear = _year, DeadA = war.DeadA, DeadB = war.DeadB, CivDeadA = war.CivDeadA, CivDeadB = war.CivDeadB });
+        EndedWars.Add(new EndedWarRecord { AId = war.A.Id, BId = war.B.Id, Score = war.Score, Months = war.Months, Verdict = EndedWarRecord.VerdictOf(war.Score, war.CivilWarParent is not null && !war.CivilWarSecession, c.WhitePeaceScore), EndYear = _year, DeadA = war.DeadA, DeadB = war.DeadB, CivDeadA = war.CivDeadA, CivDeadB = war.CivDeadB });
         if (EndedWars.Count > EndedWarRingCapacity) EndedWars.RemoveAt(0);
         long k = Key(war.A, war.B);
         _embargo.Remove(k);                            // 戦争終結で強制禁輸も解除

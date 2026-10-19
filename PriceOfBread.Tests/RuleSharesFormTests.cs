@@ -154,7 +154,7 @@ public class RuleSharesFormTests
     public void D3_外国持分は四半期の月だけ風化する()
     {
         var sim = Concert();
-        // ★(449) 既定の物差し〔旗 ScoreFromWorldShare＝1・基準は列強の中央値〕で測る。最強の列強は比が 1 以上＝風化の係数が張り付く。旧の旗の盤面に固定しない。
+        // ★(449) 物差し〔世界の総量に対する割合の国力・基準は列強の中央値〕で測る。最強の列強は比が 1 以上＝風化の係数が張り付く。旧の旗の盤面に固定しない。
         var diplo = sim.Diplomacy;
         var c = sim.Nations[0].World.Coef;
         diplo.ComputeRanks(c);

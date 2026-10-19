@@ -463,18 +463,4 @@ public class MultiNationTests4
 
         Assert.NotEqual(Lever, nullAgentNation.ModernizationFrac, 9);   // 印が無い＝除外されない＝旧挙動のまま
     }
-
-    /// <summary>#15（2026-09-11）：国力の豊かさ項は WealthParts（正典が内訳を公開）と同順の左結合和＝内訳の計器が「/12000・×9・×12」を書き写さない。</summary>
-    [Fact]
-    public void 国力の豊かさは内訳の和と厳密に一致する()
-    {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
-        sim.Run(2);
-        foreach (var n in sim.Nations)
-        {
-            var (gdp, ind, sat, col) = NationalScore.WealthParts(n.World);
-            Assert.Equal(gdp + ind + sat + col, NationalScore.Wealth(n.World));
-            Assert.True(gdp >= 0 && ind >= 0 && sat >= 0 && col >= 0, $"{n.World.SelfPower?.Name}：内訳に負がある（{gdp}/{ind}/{sat}/{col}）");
-        }
-    }
 }

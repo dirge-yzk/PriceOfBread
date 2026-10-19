@@ -46,7 +46,7 @@ public partial class GameViewModel
         // ★並びはランクが第一キー（作者指摘2026-08-11「ランクと順位が一致しない」）。
         //   原因＝一覧は**今の国力**で並べ、ランクは年1回の再分類（RankUpdateIntervalQuarters=4）の結果なので、
         //   その間に国力が入れ替わると「中堅なのに列強より上」が起こる。ランクで束ねてから国力で並べれば定義上ずれない。
-        var scoreByPower = NationalScore.ScoresByPower(_sim.Diplomacy);   // ★(449) 国力は全国分を 1 回で（一覧の並び・カード・順位が同じ値を読む・旗＞0 で国ごとに世界の総量を求め直さない）
+        var scoreByPower = NationalScore.ScoresByPower(_sim.Diplomacy);   // ★(449) 国力は全国分を 1 回で（一覧の並び・カード・順位が同じ値を読む・国ごとに世界の総量を求め直さない）
         var linesByPower = NationalScore.BreakdownsByPower(_sim.Diplomacy);   // 同じ国の内訳（ホバーの詳細が読む）
         var powers = _sim.Diplomacy.Powers
             .OrderByDescending(p => (int)_sim.Diplomacy.RankOf(p))
@@ -122,7 +122,7 @@ public partial class GameViewModel
             double tVal = isMe ? 0 : TensionPct(_sim.Diplomacy.Tension(me, pow)) * 100.0;   // 色も同じ物差し（100=開戦）
             IBrush tBrush = isMe ? Brushes.Gray : tVal < 35 ? TensionLow : tVal < 70 ? TensionMid : TensionHigh;
 
-            // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝旗 0 は軍事・生産の豊かさ・金融・技術／旗＞0 は 6 項の割合の点）＋緊張が高まっている要因。
+            // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝6 項の割合の点）＋緊張が高まっている要因。
             string detail = $"{name}({rank})　{polity}";
             if (pow.Nation is { } nw)
             {
@@ -374,10 +374,11 @@ public partial class GameViewModel
             double civSelf = rec is null ? tr.LastCivDeadSelf : rec.AId == me.Id ? rec.CivDeadA : rec.CivDeadB;
             double civEnemy = rec is null ? tr.LastCivDeadEnemy : rec.AId == me.Id ? rec.CivDeadB : rec.CivDeadA;
             int months = rec?.Months ?? (tr.LastMonths + 1);
-            string result = rec is not null
-                ? (Math.Abs(rec.Score) < _player.Coef.WhitePeaceScore ? "白紙講和" : scEnd > 0 ? "勝利" : "敗北")
-                : me.WarsWon > tr.Won0 && me.WarsLost == tr.Lost0 ? "勝利"
-                : me.WarsLost > tr.Lost0 && me.WarsWon == tr.Won0 ? "敗北" : "白紙講和";
+            // ★(456) 結果は終戦記録の判定（EndedWarRecord.VerdictOf＝講和 ResolvePeace と同じ 1 本）。記録が無いときだけ勝敗回数の増分で推す。語は PlayText.WarResultWord の 1 本（play の報告と同じ）
+            bool? won = rec is not null ? rec.WonBy(me.Id)
+                : me.WarsWon > tr.Won0 && me.WarsLost == tr.Lost0 ? true
+                : me.WarsLost > tr.Lost0 && me.WarsWon == tr.Won0 ? false : null;
+            string result = PlayText.WarResultWord(won);
             tr.CostShare += costShareMonth;   // 終戦月の戦費（軍の支出は終戦月も立つ＝取りこぼし補填）。分母は継続分＋終戦分＝その月の全戦線
             PastWarRows.Insert(0, new PastWarRow
             {
@@ -397,9 +398,9 @@ public partial class GameViewModel
                     + $"戦死　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Money(tr.CostShare)}\n\n"
-                    + (tr.Civil ? CivilWarOutcome(tr, scEnd)
-                       : Math.Abs(scEnd) < _player.Coef.WhitePeaceScore ? "得たもの:なし(白紙講和)"
-                       : scEnd > 0 ? "得たもの:賠償金"
+                    + (tr.Civil ? CivilWarOutcome(tr, won)
+                       : won is null ? "得たもの:なし(白紙講和)"
+                       : won.Value ? "得たもの:賠償金"
                        : "失ったもの:賠償金");
                 WarEndPopupOpen = true;
             }

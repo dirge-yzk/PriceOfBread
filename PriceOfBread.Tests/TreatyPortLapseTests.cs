@@ -14,7 +14,7 @@ public class TreatyPortLapseTests
     {
         var cfgs = WorldData.Nations();
         var sim = new MultiNationSim(cfgs, 1789UL, _ => new NullAgent());
-        // ★(449) 既定の物差し（旗 ScoreFromWorldShare＝1・比の基準は列強の中央値）で測る。最強の列強は比が 1 以上＝風化の係数が張り付く（旧の腕の英と同じ位置）。旧の旗の盤面に固定しない。
+        // ★(449) 物差し（世界の総量に対する割合の国力・比の基準は列強の中央値）で測る。最強の列強は比が 1 以上＝風化の係数が張り付く（旧の腕の英と同じ位置）。旧の旗の盤面に固定しない。
         var diplo = sim.Diplomacy;
         var c0 = sim.Nations[0].World.Coef;
         diplo.ComputeRanks(c0);

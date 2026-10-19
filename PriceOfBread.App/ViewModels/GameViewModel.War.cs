@@ -74,12 +74,12 @@ public partial class GameViewModel
     }
     private readonly Dictionary<long, WarTrack> _warTracks = new();
     // 内戦の終戦の得失（エンジンの戦後処理 Diplomacy.ResolvePeace の枝と同じ分け方＝分断／独立の確定／再併合〔反乱の勝ち＝政体の転換・同じ政体なら要求の受諾〕）。
-    private string CivilWarOutcome(WarTrack tr, double scEnd)
+    private string CivilWarOutcome(WarTrack tr, bool? won)   // ★(456) 勝ち／負け／白紙は終戦の判定の 1 本（EndedWarRecord.VerdictOf＝政体の内戦は戦勝点がちょうど 0 のときだけ白紙）
     {
         string foe = tr.EnemyName;
-        if (System.Math.Abs(scEnd) < _player.Coef.WhitePeaceScore)
+        if (won is null)
             return tr.MeParent ? $"失ったもの:{foe}の州(分断)" : "得たもの:独立(分断)";
-        if (scEnd > 0)
+        if (won.Value)
             return tr.MeParent ? $"得たもの:{foe}の再併合"
                  : tr.Secession ? "得たもの:独立"
                  : tr.Demand ? "得たもの:要求の受諾" : "得たもの:政体の転換";

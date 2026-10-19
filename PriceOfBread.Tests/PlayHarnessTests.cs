@@ -760,19 +760,19 @@ public class PlayHarnessTests
     {
         var (sim, w, me, foe, third) = Board();
         var dip = sim.Diplomacy;
-        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = foe.Id, Score = 0.9, Months = 5, EndYear = 1790, DeadA = 1, DeadB = 2 });   // 期間の前＝出さない
+        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = foe.Id, Score = 0.9, Verdict = WarVerdict.AWon, Months = 5, EndYear = 1790, DeadA = 1, DeadB = 2 });   // 期間の前＝出さない
         var p = new PlayHarness.PlayPeriod(); p.Begin(w);
-        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = foe.Id, Score = 0.8, Months = 14, EndYear = 1799, DeadA = 1200, DeadB = 3400 });     // 自国が A・勝ち
-        dip.EndedWars.Add(new EndedWarRecord { AId = third.Id, BId = me.Id, Score = 0.9, Months = 30, EndYear = 1801, DeadA = 500, DeadB = 700 });      // 自国が B・A の大勝＝負け
-        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = third.Id, Score = 0.1, Months = 3, EndYear = 1802, DeadA = 10, DeadB = 20 });         // 白紙の線（0.25）未満
-        dip.EndedWars.Add(new EndedWarRecord { AId = foe.Id, BId = third.Id, Score = 0.7, Months = 9, EndYear = 1803, DeadA = 9, DeadB = 9 });          // 他国どうし＝出さない
+        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = foe.Id, Score = 0.8, Verdict = WarVerdict.AWon, Months = 14, EndYear = 1799, DeadA = 1200, DeadB = 3400 });     // 自国が A・勝ち
+        dip.EndedWars.Add(new EndedWarRecord { AId = third.Id, BId = me.Id, Score = 0.9, Verdict = WarVerdict.AWon, Months = 30, EndYear = 1801, DeadA = 500, DeadB = 700 });      // 自国が B・A の大勝＝負け
+        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = third.Id, Score = 0.1, Verdict = WarVerdict.Blank, Months = 3, EndYear = 1802, DeadA = 10, DeadB = 20 });         // 白紙の線（0.25）未満＝判定は白紙（★(456) 記録の判定を読む）
+        dip.EndedWars.Add(new EndedWarRecord { AId = foe.Id, BId = third.Id, Score = 0.7, Verdict = WarVerdict.AWon, Months = 9, EndYear = 1803, DeadA = 9, DeadB = 9 });          // 他国どうし＝出さない
         var sb = new System.Text.StringBuilder();
         PlayHarness.WriteReport(sb, sim, 0, new System.Collections.Generic.List<string>(), 0, null, p);
         string r = sb.ToString();
         Assert.Contains("期間中に終わった戦争 3 件", r);
-        Assert.Contains($"  {foe.Name}と 1798年ごろ〜1799年（14か月）　勝ち（自国側の戦勝点 +0.80）　戦死 自国 1,200・相手 3,400", r);        // 1799 − 14÷12(=1)＝1798
-        Assert.Contains($"  {third.Name}と 1799年ごろ〜1801年（30か月）　負け（自国側の戦勝点 -0.90）　戦死 自国 700・相手 500", r);          // 自国が B＝戦死の取り方が逆
-        Assert.Contains("白紙（自国側の戦勝点 +0.10）", r);
+        Assert.Contains($"  {foe.Name}と 1798年ごろ〜1799年（14か月）　勝利（自国側の戦勝点 +0.80）　戦死 自国 1,200・相手 3,400", r);        // 1799 − 14÷12(=1)＝1798
+        Assert.Contains($"  {third.Name}と 1799年ごろ〜1801年（30か月）　敗北（自国側の戦勝点 -0.90）　戦死 自国 700・相手 500", r);          // 自国が B＝戦死の取り方が逆
+        Assert.Contains("白紙講和（自国側の戦勝点 +0.10）", r);
         Assert.DoesNotContain("1790年", r);
         Assert.DoesNotContain("1803年", r);
         Assert.Contains("---- この呼び出しで進めた期間（", r);

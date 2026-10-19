@@ -293,7 +293,7 @@ public partial class GameViewModel : ViewModelBase
         // ⚠_histInd/_histCredit/_histFin（2026-08-13）は配列の**先頭**に挿入した＝この並びより前のセーブは全系列が3つずれて黙って読まれる（SaveMagic は POBSAVE1 のまま＝互換扱いのまま非互換）。
         List<double>[] targets = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini, _histDis];   // ★2026-09-23：不満度 _histDis を**末尾**に追加（旧セーブは hist.Length=17 で止まる＝不満度だけ空で再開）
         for (int i = 0; i < targets.Length && i < hist.Length; i++) targets[i].AddRange(hist[i]);
-        _endingShown = Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear >= Calendar.EndYear;   // 終局後のセーブでランキングを再表示しない。表示暦基準（★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した。旧＝助走4四半期ぶんエンジンが1年先行＝監査2026-07-11 他9）。★1950延長2026-09-22＝終局は表示暦が EndYear（1950年1月1日）に入った時＝GameQuarters 経過＝自己対戦と同じ四半期（旧＝EndYear+1で自己対戦より4四半期長かった）
+        _endingShown = PlayText.IsEnded(Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear);   // 終局後のセーブでランキングを再表示しない。表示暦基準（★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した。旧＝助走4四半期ぶんエンジンが1年先行＝監査2026-07-11 他9）。★1950延長2026-09-22＝終局は表示暦が EndYear（1950年1月1日）に入った時＝GameQuarters 経過＝自己対戦と同じ四半期（旧＝EndYear+1で自己対戦より4四半期長かった）
         // 戦争UIの追跡状態を復元（レビュー2026-07-19）：戦費按分・勝敗基準・終わった戦争の残置＝ロードで途切れない。
         // InitAfterSimReady 内の初回 Refresh より前に適用（既存の交戦が「新規の敵」として再基準化されない）。
         if (warUi is not null)
@@ -484,7 +484,7 @@ public partial class GameViewModel : ViewModelBase
                 DetectEvents();
                 // _satHistory（四半期満足度＝旧SatBars用）は読者消滅につき削除（監査2026-07-12 死16/他20。年次の満足度グラフ_histSatが現役）
                 if (_player.Year > _lastSampledYear) { _lastSampledYear = _player.Year; SampleYearStats(); }   // 年次グラフの採点（年が変わった四半期に1回）
-                if (!_endingShown && Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear >= Calendar.EndYear) ShowEnding();   // 終局：**表示暦**の1949年12月が終わったら（＝GameQuarters 経過）ランキング（以後は観戦続行可）。★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した（旧＝助走で+1年先行し、表示上の最終年が丸ごと失われていた＝監査2026-07-11 他9）
+                if (!_endingShown && PlayText.IsEnded(Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear)) ShowEnding();   // 終局：**表示暦**の1949年12月が終わったら（＝GameQuarters 経過）ランキング（以後は観戦続行可）。★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した（旧＝助走で+1年先行し、表示上の最終年が丸ごと失われていた＝監査2026-07-11 他9）
                 { var swQ = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: true); PerfQuarterRefreshMs += swQ.Elapsed.TotalMilliseconds; }          // 四半期＝地図含む全再構築（政策・議会・所有権が変わる層）
             }
             else if (monthCrossed) { var swM = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: false); PerfMonthRefreshMs += swM.Elapsed.TotalMilliseconds; }   // 月次＝地図以外（生産グラフ・POP・外交・州＝MonthSettle の層）

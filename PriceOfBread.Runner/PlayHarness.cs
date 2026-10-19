@@ -882,7 +882,7 @@ internal static class PlayHarness
     }
 
     /// <summary>★(450) この呼び出しで進めた期間の景気の出来事と戦争（期間の記録があるときだけ）。戦争は進める前の終戦の記録との差＋開始時と今の交戦相手。
-    /// 終戦の記録（<see cref="EndedWarRecord"/>）は戦勝点が A 側視点・結果は白紙の線（<see cref="Coefficients.WhitePeaceScore"/>）未満なら白紙・それ以外は符号の側が勝ち。開戦の年は終戦の年−経過月から引いた近似。</summary>
+    /// 終戦の記録（<see cref="EndedWarRecord"/>）は戦勝点が A 側視点・結果は記録の判定（<see cref="EndedWarRecord.VerdictOf"/>＝講和が使った 1 本・語は <see cref="PlayText.WarResultWord"/>）。開戦の年は終戦の年−経過月から引いた近似。</summary>
     private static void AppendPeriod(StringBuilder sb, MultiNationSim sim, World w, Power sp, PlayPeriod? period)
     {
         if (period is null) return;
@@ -898,7 +898,7 @@ internal static class PlayHarness
         {
             bool isA = r.AId == sp.Id;
             double mine = isA ? r.Score : -r.Score;   // 自国側から見た戦勝点
-            string result = Math.Abs(r.Score) < w.Coef.WhitePeaceScore ? "白紙" : mine > 0 ? "勝ち" : "負け";
+            string result = PlayText.WarResultWord(r.WonBy(sp.Id));   // ★(456) 画面と同じ語・同じ判定（EndedWarRecord.VerdictOf＝講和が使った判定そのもの）
             sb.AppendLine($"  {NameOf(isA ? r.BId : r.AId)}と {r.EndYear - r.Months / 12}年ごろ〜{r.EndYear}年（{r.Months}か月）　{result}（自国側の戦勝点 {mine:+0.00;-0.00}）　戦死 自国 {(isA ? r.DeadA : r.DeadB):N0}・相手 {(isA ? r.DeadB : r.DeadA):N0}");
         }
     }

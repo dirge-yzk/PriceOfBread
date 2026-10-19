@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// (416) 線 sc の番人（事前登録 measurements/sc_20261019_prereg.txt [6]）。
 /// ①旗 <c>AiModernizeFromReturn</c>＝AI の近代化投資を止める信号を、集計の工業化度の天井でなく設備の限界収益（私的な投資家と同じ式）から出す。
-/// ②旗 <c>ScoreFromWorldShare</c>＝国力を世界の総量に対する本国の割合の 6 項にする。
+/// ②国力＝世界の総量に対する本国の割合の 6 項（旗 <c>ScoreFromWorldShare</c> は (456) で焼き込んだ）。
 /// 期待値は手計算の数値のリテラルで書く（実装の関数から作らない＝同語反復にしない）。
 /// </summary>
 public class ModernizeReturnAndScoreTests
@@ -257,36 +257,27 @@ public class ModernizeReturnAndScoreTests
     }
 
     [Fact]
-    public void 旗0の国力は従来の式のままで_旗1の国力は割合になり_単独の世界は100か0である()
+    public void 国力は割合で_全国の合計は100で_単独の世界は100か0である()
     {
+        // ★(456) 旗 ScoreFromWorldShare は焼き込んだ（旧の腕の対照は消えた＝割合の国力が唯一の物差し）
         var sim = Four();
         sim.Run(2);
         var ws = sim.Nations.ConvertAll(n => n.World);
-        foreach (var w in ws) w.Coef.ScoreFromWorldShare = 0;   // 旧の腕は 0 を明示（既定に依らない・★(449) 既定は 1 へ点火した）
-        // 旗 0：Of＝従来の和・Scores＝Of の並び
-        for (int i = 0; i < ws.Count; i++)
-        {
-            Assert.Equal(NationalScore.OfOld(ws[i]), NationalScore.Of(ws[i]));
-            Assert.Equal(NationalScore.OfOld(ws[i]), NationalScore.Scores(ws)[i]);
-        }
-        foreach (var w in ws) w.Coef.ScoreFromWorldShare = 1;
         var sc = NationalScore.Scores(ws);
         Assert.Equal(100.0, sc.Sum(), 6);
         for (int i = 0; i < ws.Count; i++) Assert.Equal(sc[i], NationalScore.Of(ws[i]), 9);   // Of（世界の総量を自分で求める道）と Scores（呼び手が求める道）が同じ値
         // 外交盤の無い単独の世界＝総量は自分だけ＝正の項の割合は全て 1 → 100
         var solo = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
-        solo.World.Coef.ScoreFromWorldShare = 1;
         Assert.Equal(100.0, NationalScore.Of(solo.World), 9);
     }
 
     [Fact]
-    public void 条約港の風化は旗1で新しい国力の列強との比を読む()
+    public void 条約港の風化は新しい国力の列強との比を読む()
     {
         // 最強の列強（ランク Great の最大）に近い国ほど速く外国持分が風化する。旧（Military＋Wealth）と同じ向き。
         var sim = Four();
         sim.Run(1);
         var d = sim.Diplomacy;
-        foreach (var n in sim.Nations) n.World.Coef.ScoreFromWorldShare = 1;
         var c = sim.Nations[0].World.Coef;
         c.TreatyPortLapseRatio = new Share(0.5); c.DominanceSpeed = 0.5;
         // 最強の列強以外の国の州に外国持分を積む
