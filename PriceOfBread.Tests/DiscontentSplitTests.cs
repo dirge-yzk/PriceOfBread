@@ -172,6 +172,36 @@ public class DiscontentSplitTests
     }
 
     [Fact]
+    public void 旗1の思想の入力の不満度は更新の前のシェアの理想点で測る_参加の述語と同じ呼びの値()
+    {
+        // 意識・識字を 0.9 にして法の項（理想点に依る）を立てる。旗 1 の世界 X で更新の前に参加の述語と同じ呼び（DiscontentOf）で POP ごとの不満度 d を取り、
+        // 旗 0 の同じ盤面 R の闘争度を max(d, 闘争度) に置く。更新後のシェアがビット一致なら、思想の入力は更新の前の理想点で測っている
+        // （BaseWeights が r＝IdeologyShares を 0 クリアして上書きした後で読むと理想点が途中の値になり、一致しない）。
+        World Make()
+        {
+            var w = Board(drop: 0.5, militancy: 0.1);
+            foreach (var r in w.Regions) foreach (var p in r.Pops) { p.Consciousness = 0.9; p.Literacy = 0.9; }
+            return w;
+        }
+        var wX = Make(); wX.Coef.DiscontentSplit = 1.0;
+        var wR = Make();
+        var (coord, gap) = FactionSnapshot.MembershipContext(wX, true);
+        var px = wX.AllPops().ToList(); var pr = wR.AllPops().ToList();
+        Assert.Equal(px.Count, pr.Count);
+        int lawVoiced = 0;
+        for (int i = 0; i < px.Count; i++)
+        {
+            double d = FactionSnapshot.DiscontentOf(wX, px[i], coord, gap);
+            if (d > 0.4 + 1e-9) lawVoiced++;   // 生活の項 0.8×0.5＝0.4 を超える＝法の項が立っている
+            pr[i].Militancy = Math.Max(d, px[i].Militancy);
+        }
+        Assert.True(lawVoiced > 50, $"法の項が立った POP が少ない {lawVoiced}＝この番人は理想点を見ていない");
+        Ideologies.UpdateShares(wX); Ideologies.UpdateShares(wR);
+        for (int i = 0; i < px.Count; i++)
+            Assert.True(px[i].IdeologyShares.SequenceEqual(pr[i].IdeologyShares), $"POP {i} のシェアが違う");
+    }
+
+    [Fact]
     public void 旗1の思想の入力は旗0と違う世界を作る_旗0とのシェアの差がある()
     {
         // 不満度が闘争度を上回る盤面（0.4 ＞ 0.1）で、旗 1 のシェアは旗 0 と違う（旗が何もしない＝休眠の自明な緑を避ける）。

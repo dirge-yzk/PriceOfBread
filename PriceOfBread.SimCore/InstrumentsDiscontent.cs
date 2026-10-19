@@ -17,6 +17,7 @@ namespace PriceOfBread.SimCore;
 //   clusterCountMil・milSumMilK（重みが闘争度だけのときの運動体の数と、足切りを越えた運動体の MilSum の和）・milSumOldK・milSumNewK（旧と新の同じ和＝FactionStrength の素）／
 //   facCohGateCount（結束が蜂起の門 FactionCohesionFightThreshold 以上の運動体の数）・facCohMutCount（結束が 0.3 以上＝変異ロールの門 Factions.MutationCohesionGate のリテラル）・
 //   facStrongCount（結束が門以上で FactionStrength が 保持力＋郷勇 を超える運動体の数＝点火の 2 本の門のうち旗が効く側）・strengthRatioMaxIndex（その運動体の FactionStrength÷(保持力＋郷勇) の最大。無ければ 0）。
+//   ★(431) partDenK（参加の側の全 POP の規模の和＝dGtMShare の分母。人口の割合を人口で重みづけて読むため）。
 //   保持力は今の盤面から Politics.EffectiveCoerce と Politics.LocalizedHold で再計算（CheckFactionRevolt と同じ式・今期の導出値）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／不満度は今の盤面から再計算（FactionSnapshot の注の〈同一ティック内の時点差は仕様〉と同じ）／運動体の数は足切りの後／
 //   旗 1 の世界では clusterCountNew・partNewK が実際の Factions.Step の入力と一致し、旗 0 の世界では〈旗を立てたらこうなる〉の反事実になる（同じ世界の同じ瞬間の 2 通りの数え方）。
@@ -25,7 +26,7 @@ public static partial class Instruments
     internal const string DcontHeaderText = "quarter\tyear\tnation\tmassPopK\tsatMeanShare\tdiscontentMeanShare\tmilitancyMeanShare\tmilLivingMeanShare\tmilVoiceMeanShare\tmilWarMeanShare\tmilNationMeanShare\tmilFamineMeanShare\t"
         + "chronicShortageMeanShare\tlivingDropMeanIndex\thighSatHighMilShare\tpartOldK\tpartNewK\tdGtMShare\tclusterCountOld\tclusterCountNew\tclusterAvgMilOldIndex\tclusterAvgMilNewIndex\t"
         + "factionsCount\tfactionsMutatedCount\tfactionsMaxCohesionIndex\tfactionRevoltsCum\t"
-        + "partMilK\tclusterCountMil\tmilSumOldK\tmilSumMilK\tmilSumNewK\tfacCohGateCount\tfacCohMutCount\tfacStrongCount\tstrengthRatioMaxIndex";
+        + "partMilK\tclusterCountMil\tmilSumOldK\tmilSumMilK\tmilSumNewK\tfacCohGateCount\tfacCohMutCount\tfacStrongCount\tstrengthRatioMaxIndex\tpartDenK";
 
     /// <summary>事前登録 R5 のリテラル（満足度がこれ以上かつ闘争度がこれを超える POP を〈水準が高いのに闘争度が高い〉と数える）。</summary>
     internal const double DcontHighSat = 0.6, DcontHighMil = 0.5;
@@ -108,6 +109,6 @@ public static partial class Instruments
         sk.Dcont.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), F(mass), F(sat / m), F(dis / m), F(mil / m), F(mLiving / m), F(mVoice / m), F(mWar / m), F(mNation / m), F(mFamine / m),
             F(chronic / m), F(drop / m), F(hiHi / m), F(partOld), F(partNew), F(partDen > 0 ? dGtM / partDen : double.NaN), I(nOld), I(nNew), F(avgOld), F(avgNew),
             I(w.Factions.Count), I(fMut), F(fMaxCoh), I(w.FactionRevolts),
-            F(partMil), I(nMil), F(msOld), F(msMil), F(msNew), I(fGate), I(fMutGate), I(fStrong), F(ratioMax)));
+            F(partMil), I(nMil), F(msOld), F(msMil), F(msNew), I(fGate), I(fMutGate), I(fStrong), F(ratioMax), F(partDen)));
     }
 }

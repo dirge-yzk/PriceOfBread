@@ -4,7 +4,7 @@
   1 つ渡す＝その腕（B）の T1〜T3。2 つ渡す＝B（先）と A（後）を並べる（A では T3 は対照＝0 でないのが正しい）。
 事前登録 measurements/dq_20261019_prereg.txt [4]：
   T1 U ＝ Σ(partNewK − partMilK) ÷ Σ partMilK（挙げた 8 国×全行×全種）。狙い U ≥ 5%（枝 dc の B は 0.6%）。0.6%〜5% は〈部分的に働いた〉。
-  T2 D ＝ 8 国の全行の dGtMShare の単純平均。狙い D ＞ 0.12。
+  T2（追記2）D ＝ 枝 dc の小国 3 国（ハワイ・ダホメ・コンゴ）の年末の行の dGtMShare の単純平均（3 国まとめて）。狙い D ＞ 0.121（dc の B の最大）。8 国の平均・人口で重みづけた割合は記録。
   T3 B の全行（8 国の毎四半期＋他の全ての国の年末）の milLivingMeanShare が厳密に 0。
 ⚠限界（この読み手が自己申告する）：dcont_s は四半期末の断面で、不満度は今の盤面から再計算した値（思想の更新・参加の述語の瞬間とは LivingRef の更新分〈ギャップの 3%〉だけずれる）／
   partMilK・partNewK は同じ世界の同じ瞬間の 2 通りの数え方（B の世界では実際の参加の重みは partNewK）／8 国以外の国は年末の行だけ（T3 の対象には入る・T1 T2 には入れない）／
@@ -62,11 +62,28 @@ def aim(tag, d):
     for n in NATIONS:
         if n in per and per[n][1] > 0:
             print('   %-8s U＝%.4f' % (n, (per[n][0] - per[n][1]) / per[n][1]))
-    # T2
+    # T2（追記2）：枝 dc の小国（ハワイ王国・ダホメ王国・コンゴ王国）の年末の行の dGtMShare の行の単純平均（dc の B は 0.112・0.121・0.108）
+    SMALL = {'ハワイ王国': 0.112, 'ダホメ王国': 0.121, 'コンゴ王国': 0.108}
+    sm_all = []
+    print('T2 小国（枝 dc と同じ国・同じ物差し＝全ての年末の行の dGtMShare の単純平均）  [狙い：3 国まとめて ＞ 0.121＝dc の B の最大]')
+    for n, ref in SMALL.items():
+        v = [fl(r['dGtMShare']) for r in rows if n in r['nation']]
+        v = [x for x in v if x == x]
+        sm_all += v
+        print('   %-8s 行 %5d  平均 %.4f（dc の B は %.3f）' % (n, len(v), sum(v) / len(v) if v else float('nan'), ref))
+    D = sum(sm_all) / len(sm_all) if sm_all else float('nan')
+    print('   3 国まとめて D ＝ %.4f' % D)
+    # 記録：大国 8 国の平均（行の単純平均）と人口で重みづけた割合（partDenK がある表だけ）
     dg = [fl(r['dGtMShare']) for r in big]
     dg_ok = [v for v in dg if v == v]
-    D = sum(dg_ok) / len(dg_ok) if dg_ok else float('nan')
-    print('T2 D＝8 国の全行の dGtMShare の単純平均 ＝ %.4f  [狙い ＞ 0.12]' % D)
+    print('   記録：8 国の全行の dGtMShare の単純平均 ＝ %.4f' % (sum(dg_ok) / len(dg_ok) if dg_ok else float('nan')))
+    if big and 'partDenK' in big[0]:
+        num = den = 0.0
+        for r in big:
+            g, w_ = fl(r['dGtMShare']), fl(r['partDenK'])
+            if g == g and w_ == w_:
+                num += g * w_; den += w_
+        print('   記録：8 国の人口で重みづけた割合 Σ(dGtMShare×partDenK)÷ΣpartDenK ＝ %.4f' % (num / den if den > 0 else float('nan')))
     for n in NATIONS:
         v = [fl(r['dGtMShare']) for r in big if r['nation'] == n]
         v = [x for x in v if x == x]
@@ -77,7 +94,7 @@ def aim(tag, d):
     mx = max((abs(fl(r['milLivingMeanShare'])) for r in rows), default=float('nan'))
     print('T3 milLivingMeanShare が 0 でない行 ＝ %d／%d（最大の絶対値 %.3g）  [B の狙い＝0 件。A では 0 件でないのが正しい]' % (len(nz), len(rows), mx))
     t1 = 'PASS' if U >= 0.05 else ('PARTIAL' if U > 0.006 else 'MISS')
-    print('判定の素（報告で止める線と合わせる）：T1=%s・T2=%s・T3=%s' % (t1, 'PASS' if D > 0.12 else 'MISS', 'PASS' if not nz else 'MISS'))
+    print('判定の素（報告で止める線と合わせる）：T1=%s・T2=%s・T3=%s' % (t1, 'PASS' if D > 0.121 else 'MISS', 'PASS' if not nz else 'MISS'))
     return U, D, len(nz)
 
 

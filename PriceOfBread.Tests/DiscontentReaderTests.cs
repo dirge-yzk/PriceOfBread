@@ -230,6 +230,7 @@ public class DiscontentReaderTests
         Near(0.8 * hi + 0.4 * lo, col("partNewK"), "partNewK");                 // 低い方は max(0.4, 0.2)＝0.4
         Near(0.2 * lo, col("partNewK") - col("partMilK"), "不満度が先行した分");   // partNewK−partMilK＝(0.4−0.2)×低い方の規模
         Near(lo / total, col("dGtMShare"), "dGtMShare");
+        Near(total, col("partDenK"), "partDenK");                               // (431) 参加の側の全 POP の規模の和＝dGtMShare の分母
         // 運動体の MilSum の和（足切り 1% を越えた運動体だけ）の上限・順序：Σ 闘争度×規模×重み。重みが闘争度だけ＜重みが max（低い方だけ増える）。
         Assert.True(col("milSumMilK") > 0 && col("milSumMilK") <= 0.64 * hi + 0.04 * lo + 1e-6, $"milSumMilK {col("milSumMilK")}");
         Assert.True(col("milSumNewK") <= 0.64 * hi + 0.08 * lo + 1e-6, $"milSumNewK {col("milSumNewK")}");
