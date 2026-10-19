@@ -512,6 +512,7 @@ public sealed class MultiNationSim
         _startWarmupDone = true;
         int quarters = quartersOverride ?? _coef.StartWarmupQuarters;
         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
+        //   ⚠(449) 助走なし（quarters<=0）では下の取り直しも通らない＝旗＞0 でも開幕のランクは構築時の 3 項のまま（市場が回る前の盤面は取り直しても同じ 3 項で意味がない）。助走のある通常の開始だけが取り直す。
         WarmupEconomy(quarters, onQuarter);
         WarmupTech(_coef.StartWarmupTechIterations);
         // ★開幕の既知の集合（(169)）＝データ（NationConfig.KnownDiscoveries＝world.json・1783年より前に史実でその国が使っていた発見）＝構築で置いた（Simulation のコンストラクタ）。

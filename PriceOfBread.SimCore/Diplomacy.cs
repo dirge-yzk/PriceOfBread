@@ -514,7 +514,11 @@ public sealed class Diplomacy
         var shareScore = c.ScoreFromWorldShare > 0 ? ShareScoreByPower() : null;
         double Strength(Power p, World w) => shareScore is not null ? shareScore[p.Id] : NationalScore.TreatyStrengthOld(w);
         double topC = 0;
-        foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, Strength(p, gw));
+        var greatStrength = shareScore is not null ? new List<double>() : null;
+        foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) { double sg = Strength(p, gw); topC = System.Math.Max(topC, sg); greatStrength?.Add(sg); }
+        // ★(449) 旗＞0 の側だけ、比の基準を〈最強の列強〉から〈列強の中央値〉へ（Q6 の推奨・AI の決め・確証なし）。世界の総量に対する割合の国力は首位の 1 国（清）が飛び抜けるので、最大を基準にすると他の全ての国の比が 0.1 前後に沈み、
+        //   風化の係数 Clamp01(比÷0.5) が実質 0 になって条約の持分が消えない（機構が止まる）。列強の中央値＝列強が並ぶ水準＝〈列強に近づくほど風化が速い〉の向きは保つ。旗 0 は従来の最大のまま（恒等）。偶数のときは上側の中央（添字 n÷2）。
+        if (greatStrength is { Count: > 0 }) { greatStrength.Sort(); topC = greatStrength[greatStrength.Count / 2]; }
         if (topC > 1e-9)
             foreach (var p in Powers)
             {

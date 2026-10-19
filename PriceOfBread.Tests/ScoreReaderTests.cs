@@ -128,10 +128,49 @@ public class ScoreReaderTests
     [Fact]
     public void 旗0は助走でランクを取り直さない()
     {
-        var off = Four();
+        // 61 カ国の世界（定員制の分岐）。助走の前後で旧の国力は大きく動く（市場が回る）ので、取り直しが通る突然変異〔門を常に真にする〕なら旗 0 でもランクが動く。
+        var off = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
+        Assert.Equal(0, off.Coef.ScoreFromWorldShare);
         var before = off.Diplomacy.Powers.Select(p => off.Diplomacy.RankOf(p)).ToArray();
-        off.StartWarmup(quartersOverride: 2);
+        off.StartWarmup();
         Assert.Equal(before, off.Diplomacy.Powers.Select(p => off.Diplomacy.RankOf(p)).ToArray());   // 取り直しの行を通らない＝旧と同じ（恒等の底は 5 種の成績表の全行一致）
+        // 取り直しの行が通れば動く盤面であることを確かめる（空振りの番人にしない）：助走の後の旧の国力で定員制のランクを独立に引き直し、構築時と違う国が 1 つ以上ある
+        var c = off.Coef;
+        var order = off.Diplomacy.Powers.Where(p => p.Nation != null).OrderByDescending(p => NationalScore.Of(p.Nation!)).ThenBy(p => p.Id).ToList();
+        int moved = 0;
+        for (int i = 0; i < order.Count; i++)
+        {
+            var want = i < c.GreatPowerCount ? PowerRank.Great
+                     : i < c.GreatPowerCount + c.SecondPowerCount ? PowerRank.Secondary
+                     : i < c.GreatPowerCount + c.SecondPowerCount + c.MiddlePowerCount ? PowerRank.Middle : PowerRank.Minor;
+            if (off.Diplomacy.RankOf(order[i]) != want) moved++;
+        }
+        Assert.True(moved > 0, "旗 0 でも助走の後に引き直すとランクが動く盤面であること（動かないなら、この番人は門の突然変異を見分けられない）");
+    }
+
+    [Fact]
+    public void 旗1の条約港の風化は列強の中央値を基準にする()
+    {
+        // 事前登録 sp_20261020 [1] D4：旗＞0 の側は比の基準＝列強の強さの中央値（上側の中央・添字 n÷2）。旗 0 は最大のまま。
+        var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
+        sim.Coef.ScoreFromWorldShare = 1;
+        foreach (var n in sim.Nations) n.World.Coef.ScoreFromWorldShare = 1;   // 旗の読み元は 2 系統（外交盤の係数と各国の World.Coef）＝POB_COEF は両方に同じ値を置く前提。片方だけ立てると読み手の物差しが食い違う
+        sim.StartWarmup();   // 助走の直後（流れの項が出そろった盤面・開幕のランクの取り直しもここ）
+        var d = sim.Diplomacy;
+        var sc = NationalScore.ScoresByPower(d);   // 旗 1＝世界の総量に対する割合の国力
+        var greatS = d.Powers.Where(p => p.Nation != null && d.RankOf(p) == PowerRank.Great).Select(p => sc[p.Id]).OrderBy(x => x).ToList();
+        double median = greatS[greatS.Count / 2], max = greatS[^1];
+        Assert.True(max > median * 1.2, "列強の最大と中央値が離れている世界でなければ、基準の違いを見分けられない");
+        // 列強でない国のうち、比（÷中央値）が 0.45 未満で最大のものを 1 国選ぶ（比÷0.5 が 1 に張り付かない）
+        var pick = d.Powers.Where(p => p.Nation != null && d.RankOf(p) != PowerRank.Great && sc[p.Id] / median < 0.45).OrderByDescending(p => sc[p.Id]).First();
+        var region = pick.Nation!.Regions[0];
+        region.ForeignRulers = ["測定用"]; region.ForeignShares = [0.8];
+        double ratio = sc[pick.Id] / median;
+        double expected = 0.8 * (1.0 - Math.Min(1.0, ratio / sim.Coef.TreatyPortLapseRatio.Value) * sim.Coef.DominanceSpeed);
+        double withMax = 0.8 * (1.0 - Math.Min(1.0, sc[pick.Id] / max / sim.Coef.TreatyPortLapseRatio.Value) * sim.Coef.DominanceSpeed);
+        Assert.True(Math.Abs(expected - withMax) > 1e-6, "最大を基準にした値と中央値を基準にした値が違う盤面");
+        d.TreatyPortLapse(sim.Coef, 3);
+        Assert.Equal(expected, region.ForeignShares[0], 12);
     }
 
     [Fact]
