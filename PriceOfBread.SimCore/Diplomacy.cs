@@ -1512,7 +1512,8 @@ public sealed class Diplomacy
                     // ★(440) 最後通牒の待ちの寿命：待ちの根拠は〈この組の 4 つの門が開いている〉こと。AI の組が時計を切るのと同じ述語（この else 枝）で、プレイヤーの待ちも下ろす。
                     //   旧＝待ちは ResolvePendingWar と相手の国の除去でしか下りず、積む側は `is null` のときだけ＝根拠が消えても枡が埋まったまま、ほかの相手への最後通牒が積めなかった
                     //   （試しのテストプレイ 報告 1 と 7：1823 年のシャムの待ちが 1950 年まで残り、日本×清は門が全て開いたまま 135 か月宣戦も最後通牒も無かった）。
-                    //   下ろした翌月以降、門が開いて時計が満ちている別の相手があれば積まれる。画面は待ちの間に時間を止める（根拠は動かない）ので画面の遊びは変わらない。バッチにプレイヤーは居ない。
+                    //   下ろした翌月以降、門が開いて時計が満ちている別の相手があれば積まれる。画面は四半期の末に待ちを読んで出す（GameViewModel.DetectDiplomacyPopups）＝四半期の途中で門が閉じた最後通牒は出なくなる（設計どおり・見える変化）。
+                    //   出している間は時間が止まる（根拠は動かない）。バッチにプレイヤーは居ない。
                     if (a.IsPlayer || b.IsPlayer)
                     {
                         var gatePlayer = a.IsPlayer ? a : b; var gateFoe = a.IsPlayer ? b : a;
@@ -3218,7 +3219,8 @@ public sealed class Diplomacy
         long k = Key(war.A, war.B);
         _embargo.Remove(k);                            // 戦争終結で強制禁輸も解除
         // ★(440) 参戦要請の待ちの寿命：待ちは〈元の戦争が続いている間だけ〉ある（状態の持続条件・時計は作らない・新しい状態は無い）。終えた戦争を指す待ちは下ろす。
-        //   画面は待ちの間に時間を止めるので遊びは変わらない。時間が進み続ける経路（Runner の play）では、元の戦争が終わったあとも 1823〜1950 年まで残っていた（試しのテストプレイ 報告 1）。
+        //   画面は四半期ごとに待ちを読んで出す（GameViewModel.DetectDiplomacyPopups）＝四半期の途中で元の戦争が終わった待ちは出なくなる（設計どおり・見える変化）。出している間は時間が止まる。
+        //   時間が進み続ける経路（Runner の play）では、元の戦争が終わったあとも 1823〜1950 年まで残っていた（試しのテストプレイ 報告 1）。
         //   終戦の出口は EndWar の 1 本（国の除去 RemovePower も通る）。バッチにプレイヤーは居ない＝待ちは積まれず、この走査は読むだけ。
         foreach (var q in Powers)
             if (q.PendingCallToArms is { } call && ((call.Caller == war.A && call.Enemy == war.B) || (call.Caller == war.B && call.Enemy == war.A))) q.PendingCallToArms = null;
