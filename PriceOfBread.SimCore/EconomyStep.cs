@@ -1716,7 +1716,7 @@ public static class EconomyStep
                     region.DiagEduNeed = nd; region.DiagEduPriv = pv; region.DiagEduAvail = available; region.DiagEduWant = 0; region.DiagEduTake = 0;   // (452) 計器（読むだけ）
                 }
                 if (insOn && gi == Catalog.HigherEducationId) { region.DiagHigherWant = 0; region.DiagHigherTake = 0; }   // (452) 計器（読むだけ）
-                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront))
+                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn))
                 {
                     double unmet = 0;
                     if (remaining > 1e-12)
@@ -1725,8 +1725,8 @@ public static class EconomyStep
                     }
                     else
                     {
-                        foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ
-                        if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件）
+                        foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（insOn だけの旗 0 は計器のためだけに読む＝購入も需要への加算も無い）
+                        if (stateFront && costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件・計器だけの読みも数えない）
                     }
                     // 財源率（教育費スライダー：満額1.0＝全民就学・半分＝半数就学）も行政の届きも**天井にだけ**効く。
                     // 配分率 gr＝take÷未充足 なので Σ配分＝take が式の形から立つ（下の高等教育ブロックと同じ書き方）。
@@ -1760,7 +1760,7 @@ public static class EconomyStep
                 // ★段③：近代化投資の学費補助。義務教育と**同じ形**だが律速が違う——義務教育は「率」（全民就学が目標）、
                 //   こちらは「額」（予算で買える人数が決まる＝作者裁定「効果を投入額から計算し、投入額上限は収入から計算する」）。
                 //   ⚠買えた分だけ StateSpent へ計上＝**空振りは国庫に残る**（予約 HigherEduFunding は月末に無条件ゼロ化）。
-                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && (remaining > 1e-12 || stateFront) && m.Price > Eps)   // ★(452) 旗 1：供給が尽きた月も買いたい分を求める（教育と同じ型・既定では必要量 0 で休眠）
+                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn) && m.Price > Eps)   // ★(452) 旗 1：供給が尽きた月も買いたい分を求める（教育と同じ型・既定では必要量 0 で休眠）
                 {
                     double unmet = 0;
                     if (remaining > 1e-12)
@@ -1769,8 +1769,8 @@ public static class EconomyStep
                     }
                     else
                     {
-                        foreach (var p in region.Pops) if (p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（民間の買いたい分は popDemand に載っている）
-                        if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）
+                        foreach (var p in region.Pops) if (p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（民間の買いたい分は popDemand に載っている）。insOn だけの旗 0 は計器のためだけに読む
+                        if (stateFront && costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）
                     }
                     double want = Math.Min(unmet, region.HigherEduFunding / m.Price);   // 国庫の買いたい分（予算の天井つき）
                     double take = Math.Min(Math.Min(remaining, unmet), region.HigherEduFunding / m.Price);

@@ -368,7 +368,7 @@ public partial class GameViewModel
         // ★汚職根絶のラベル更新は撤去（汚職V2点火2026-08-15＝表示ごと削除）
         // 国民形成費のレバー行は廃止（2026-07-19）＝国民運動は需要駆動（内訳はヘッダー国民意識の説明API）
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法律タブへ移行・2026-07-30）
-        EduLine = PlayText.EducationSpendingText(_player);   // ★(452) 教育費は額でなく予算の割合と名乗る（play の報告と同じ関数） EduAct = Money(_eduMonthly); EduAmt = Money(_eduMonthly);   // 実績（市場依存＝予想も実績値）
+        EduLine = PlayText.EducationSpendingText(_player); EduAct = Money(_eduMonthly); EduAmt = Money(_eduMonthly);   // ★(452) 教育費は額でなく予算の割合と名乗る（play の報告と同じ関数）。実績（市場依存＝予想も実績値）
         WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Money(aWel); WelAmt = Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
         PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);
         // 見えない出費の可視化（監査2026-07-11 接1）：国庫を実際に動かすのに予算表に現れず「黒字表示なのに国庫が減る」原因だった3項目。

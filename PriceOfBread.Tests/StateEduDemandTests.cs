@@ -12,7 +12,7 @@ public class StateEduDemandTests
     private const double Funding = 0.5;
 
     /// <summary>開幕の英を 1 月だけ回す。poorGroups の階級は貯蓄 0（民間の買いたい量 0・国庫の未充足＝必要量）・他は貯蓄を厚く（予算が拘束しない）。supplyMul は教育の産出の倍率。</summary>
-    private static (Region Region, World World) OneMonth(int flag, double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding)
+    internal static (Region Region, World World) OneMonth(int flag, double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
@@ -28,14 +28,14 @@ public class StateEduDemandTests
         return (r, w);
     }
 
-    private static double Need(World w, Func<Pop, bool> sel)
+    internal static double Need(World w, Func<Pop, bool> sel)
     {
         double t = 0;
         foreach (var p in w.Region.Pops) if (!p.IsSoldier && sel(p)) t += w.Coef.EduPerChild * p.AgeShare(5, 15) * p.Size;
         return t;
     }
 
-    private static double StateSpentEdu(Region r) => r.StateSpent[(int)TreasuryCat.Education];
+    internal static double StateSpentEdu(Region r) => r.StateSpent[(int)TreasuryCat.Education];
 
     [Fact]
     public void 供給が足りる月は旗1も旗0とビットで同じ_国庫は買い_足す量は0()
@@ -160,8 +160,68 @@ public class StateEduDemandTests
     }
 
     [Fact]
+    public void 満額の義務教育で供給が尽き続けても値段は役務の帯の中_国庫の支払いは有限()
+    {
+        // 極：旗 1・国庫が買う率 f＝1（Compulsory 相当）・教育の産出をほぼ 0 にして 12 か月回す。総需要 D(p)＝f·r·N＋(1−f·r)·GD(p) は値段に鈍感になる極。
+        // 教育は役務＝値段の帯は財の PriceCeilFactor でなく賃金の帯（床 WageClampMin・天井 WageClampMax×(1+WageClampIndScale×工業化度)）。発散しない（帯の中・有限）ことを確かめる。
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var w = sim.World; var r = w.Region;
+        w.Coef.StateEduDemandInFront = 1; w.Coef.EduReachFromAdmin = 0;
+        int e = Catalog.EducationId;
+        foreach (var s in r.Producers) if (s.GoodId == e) s.Output *= 0.001;
+        foreach (var p in w.AllPops()) p.SetSavings(0.0);
+        double maxDemand = 0;
+        for (int month = 0; month < 12; month++)
+        {
+            r.CompulsoryEduFunding = 1.0;
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+            maxDemand = Math.Max(maxDemand, r.Markets[e].LastDemand);
+            for (int d = 0; d < 30; d++) MarketFlow.StepDay(r, w.Coef);
+        }
+        double price = r.Markets[e].Price;
+        double rp = Catalog.RefPrices[e] * r.PriceLevel;
+        double lo = rp * w.Coef.WageClampMin, hi = rp * w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * r.Industrialization);
+        Assert.True(price >= lo * 0.99 && price <= hi * 1.01, $"教育の値段 {price} が役務の帯 [{lo}, {hi}] の外");
+        Assert.True(double.IsFinite(r.Markets[e].LastDemand) && double.IsFinite(StateSpentEdu(r)) && double.IsFinite(r.CumEducationCost), "需要・支払い・累計のどれかが有限でない");
+        Assert.True(maxDemand > 0, "前提が崩れた：どの月も教育の需要が立っていない");
+    }
+
+    [Fact]
     public void 旗の既定は0_既存の盤面は動かない()
     {
         Assert.Equal(0, new Coefficients().StateEduDemandInFront);
+    }
+}
+
+/// <summary>(452) 計器の対称：計器 ed_s の〈国庫の買いたい分〉は旗に依らず同じ定義で出る（旗 0 でも供給が尽きた月の買いたい分を診断に書く）。
+/// 旗 0 の計器を出す月は、診断の読み取りだけが増える＝購入・需要・支払いは計器なしの旗 0 とビットで同じ（読むだけ）。Instruments.On は全体の静的な旗なので別の収集（Instruments）で直列に回す。</summary>
+[Collection("Instruments")]
+public class StateEduDemandInstrumentTests
+{
+    [Fact]
+    public void 旗0でも計器は供給が尽きた月の買いたい分を出す_力学は計器なしの旗0とビットで同じ()
+    {
+        int e = Catalog.EducationId;
+        var (plain, wp) = StateEduDemandTests.OneMonth(0, 0.001);                       // 計器なし・旗 0
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ed_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var (a, wa) = StateEduDemandTests.OneMonth(0, 0.001);                       // 計器あり・旗 0
+            var (b, _) = StateEduDemandTests.OneMonth(1, 0.001);                        // 計器あり・旗 1
+            Assert.True(a.Markets[e].LastShortage > 0, "前提が崩れた：教育が不足していない");
+            Assert.Equal(0.0, StateEduDemandTests.StateSpentEdu(a));                    // 前提：供給が尽きて国庫は買えない
+            double expected = 0.5 * StateEduDemandTests.Need(wa, p => p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker);
+            Assert.True(expected > 0);
+            Assert.Equal(expected, a.DiagEduWant, 9);                                   // 旗 0 でも買いたい分が診断に出る（A の計器が B と同じ定義）
+            Assert.Equal(0.0, a.DiagEduTake);
+            Assert.Equal(a.DiagEduWant, b.DiagEduWant);                                 // 旗 0 と旗 1 で診断は同じ量（定義の対称）
+            // 読むだけ：計器の有無で旗 0 の力学は変わらない
+            Assert.Equal(plain.Markets[e].LastDemand, a.Markets[e].LastDemand);
+            Assert.Equal(plain.Markets[e].LastSold, a.Markets[e].LastSold);
+            Assert.Equal(StateEduDemandTests.StateSpentEdu(plain), StateEduDemandTests.StateSpentEdu(a));
+            Assert.Equal(plain.CumEducationCost, a.CumEducationCost);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 }

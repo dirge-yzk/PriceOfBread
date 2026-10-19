@@ -6,12 +6,13 @@ path = os.path.join(wt, 'PriceOfBread.SimCore', 'EconomyStep.cs')
 orig = open(path, 'rb').read()
 M = [
  ('M1 教育：足す行を落とす', '                    if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。', '                    if (false && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。'),
- ('M2 教育：供給が尽きた月の入口を旗で開けない', 'if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront))', 'if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12))'),
- ('M3 教育：尽きた月の未充足を充足から数える（二重計上）', '                        foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ', '                        foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += p.GoodNeed * Math.Max(0, 1.0 - p.EducationFill);   // 旗 1 で供給が尽きた月：予算の足りなさ'),
+ ('M2 教育：供給が尽きた月の入口を旗で開けない', 'if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn))', 'if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || insOn))'),
+ ('M3 教育：尽きた月の未充足を充足から数える（二重計上）', '                        foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（insOn', '                        foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += p.GoodNeed * Math.Max(0, 1.0 - p.EducationFill);   // 旗 1 で供給が尽きた月：予算の足りなさ（insOn'),
  ('M4 教育：買えた分を引かずに want 全部を足す', 'm.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。', 'm.LastDemand += want;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。'),
  ('M5 旗を無視して常に足す', 'bool stateFront = coef.StateEduDemandInFront > 0;', 'bool stateFront = true;'),
- ('M6 高等教育：入口を旗で開けない', '(remaining > 1e-12 || stateFront) && m.Price > Eps)', '(remaining > 1e-12) && m.Price > Eps)'),
+ ('M6 高等教育：入口を旗で開けない', '(remaining > 1e-12 || stateFront || insOn) && m.Price > Eps)', '(remaining > 1e-12 || insOn) && m.Price > Eps)'),
  ('M7 高等教育：足す行を落とす', '                    if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）', '                    if (false && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）'),
+ ('M9 計器の対称：教育の入口を計器で開けない（旗 0 の計器が尽きた月の買いたい分を出さない）', 'if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn))', 'if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront))'),
  ('M8 教育：購入を壊す（旧の take を want の半分にする）', 'double take = Math.Min(remaining, want);', 'double take = Math.Min(remaining, want * 0.5);'),
 ]
 out = []
