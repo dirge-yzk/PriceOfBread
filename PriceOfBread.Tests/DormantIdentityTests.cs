@@ -45,7 +45,7 @@ public class DormantIdentityTests
         "NiterBedEnabled",              // 硝石丘＝硝石の低効率レシピ（財の3分類の再開）＝0で足さない
         // ★ScarceCountsIncludeColonies（希少鉱物の総量保存の k/N に植民地を数える）は 2026-10-04 (197) で**点火**（反証役 vq2#1）＝この表から外した。
         "ConsumeBudgetSavingsRatePerMonth",   // ★(273) 線P 段5＝消費の予算を min(予算, 前月の所得＋貯蓄×d) で切る（EconomyStep.Run ③の入口）。0＝分岐に入らず評価しない＝厳密恒等（d＝0 を式に入れると min(予算, 前月の所得) になり恒等でないのでコードは d＞0 のときだけ評価する）。腕は POB_COEF で置く。
-        // ★LuxuryIncomeElasticity・DomesticServiceUsesIncomeElasticity（(302)(329) 奢侈品と家事奉仕の所得弾力）は 2026-10-14 (331) の合流で**点火**（0.5・1）＝この表から外した。
+        // ★LuxuryIncomeElasticity・DomesticServiceIncomeFactorExponent（(302)(329) 奢侈品と家事奉仕の所得弾力）は 2026-10-14 (331) の合流で**点火**（0.5・1）＝この表から外した。
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
         "PrivilegeMonopolyInLedger",    // 特権システム 段5前半＝特許会社の取り分を台帳へ（記帳のみ）

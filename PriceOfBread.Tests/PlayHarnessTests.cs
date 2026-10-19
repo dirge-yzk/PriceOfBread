@@ -554,4 +554,108 @@ public class PlayHarnessTests
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+    // ===== (442) 画面が時間を止める待ちで play も止まる =====
+
+    private static int QuarterIndex(World w) => w.Year * 4 + w.Quarter;
+
+    [Fact]
+    public void 時間を止める待ち_最後通牒と参戦要請と総選挙の公示が立っていれば一歩も進めず_下ろせば進む()
+    {
+        // 期待は世界の暦（Year・Quarter）から作る＝進めた数を数える関数の戻り値だけを信じない
+        var (sim, w, me, foe, third) = Board();
+        sim.StartWarmup();
+        int q0 = QuarterIndex(w);
+        me.PendingWar = foe;
+        var (s1, led1) = PlayHarness.StepUntilWait(sim, 0, 3);
+        Assert.Equal(0, s1); Assert.Null(led1); Assert.Equal(q0, QuarterIndex(w));
+        me.PendingWar = null;
+        me.PendingCallToArms = (foe, third);
+        Assert.Equal(0, PlayHarness.StepUntilWait(sim, 0, 3).Stepped); Assert.Equal(q0, QuarterIndex(w));
+        me.PendingCallToArms = null;
+        w.PendingElection = new ElectionEvent { AgendaIdeologies = [0, 1], AgendaAxes = [PolicyAxis.Suffrage, PolicyAxis.Censorship], AgendaIncrease = [true, true], AgendaLabels = ["自由主義：参政権", "保守主義：報道"] };
+        Assert.Equal(0, PlayHarness.StepUntilWait(sim, 0, 3).Stepped); Assert.Equal(q0, QuarterIndex(w));
+        w.PendingElection = null;
+        var (s2, led2) = PlayHarness.StepUntilWait(sim, 0, 2);
+        Assert.Equal(2, s2); Assert.NotNull(led2);
+        Assert.Equal(q0 + 2, QuarterIndex(w));
+    }
+
+    [Fact]
+    public void 時間を止める待ち_国内の危機は通知_最初に立っていた札では止めず_別の札が立てば止める()
+    {
+        var (sim, w, me, _, _) = Board();
+        sim.StartWarmup();
+        var f = new FactionState { Region = w.Regions[0], Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        var g = new FactionState { Region = w.Regions[0], Bloc = 2, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        w.Factions.Add(f); w.Factions.Add(g);
+        w.PendingFactionCrisis = f;
+        Assert.Empty(PlayHarness.BlockingWaits(w, me, f));            // 最初に立っていた札（前の報告で見せた）は止めない＝答える動詞が無い通知で行き止まりにならない
+        Assert.Single(PlayHarness.BlockingWaits(w, me, null));        // 新しく立った札は 1 度だけ止める
+        Assert.Single(PlayHarness.BlockingWaits(w, me, g));           // 別の運動の札も止める
+        int q0 = QuarterIndex(w);
+        Assert.Equal(2, PlayHarness.StepUntilWait(sim, 0, 2).Stepped);   // 最初から立っている札があっても進む（通知で永久に止まらない）
+        Assert.Equal(q0 + 2, QuarterIndex(w));
+    }
+
+    [Fact]
+    public void 時間を止める待ち_報告の先頭の行は待ちと答える動詞を出し_止めていなければ何も書かない()
+    {
+        var (sim, w, me, foe, third) = Board();
+        var none = new System.Text.StringBuilder();
+        PlayHarness.AppendStopNote(none, w, me, requested: 3, stepped: 3);
+        Assert.Equal("", none.ToString());
+        me.PendingWar = foe; me.PendingCallToArms = (foe, third);
+        var stopped = new System.Text.StringBuilder();
+        PlayHarness.AppendStopNote(stopped, w, me, requested: 3, stepped: 1);
+        string t = stopped.ToString();
+        Assert.StartsWith("⏸ 時間を止めた：要求 3 四半期のうち 1 四半期だけ進めた", t);
+        Assert.Contains("!ultimatum 受諾", t); Assert.Contains("!callarms 受ける", t);
+        var last = new System.Text.StringBuilder();   // 最後の 1 四半期で立った待ち＝全て進めたが次は答えるまで進めない
+        PlayHarness.AppendStopNote(last, w, me, requested: 3, stepped: 3);
+        Assert.StartsWith("⏸ 次は答えるまで進めない：", last.ToString());
+    }
+
+    [Fact]
+    public void 時間を止める待ち_Runは待ちが立っていると進めず_答えの決定を適用してから進む()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_play_wait_" + Guid.NewGuid().ToString("N"));
+        var so = Console.Out; Console.SetOut(System.IO.TextWriter.Null);
+        try
+        {
+            System.IO.Directory.CreateDirectory(dir);
+            Assert.Equal(0, PlayHarness.Run(["play", dir, "日本", "1", "1789"]));
+            string state = System.IO.Path.Combine(dir, "state.bin");
+            MultiNationSim sim;
+            using (var fs = System.IO.File.OpenRead(state)) sim = SaveGame.Load(fs);
+            int pi = Array.FindIndex(sim.Diplomacy.Powers.ToArray(), p => p.IsPlayer);
+            var me = sim.Diplomacy.Powers[pi];
+            me.PendingWar = sim.Diplomacy.Powers.First(p => !p.IsPlayer && p.Nation is not null);
+            int q0 = QuarterIndex(sim.Nations[pi].World);
+            using (var fs = System.IO.File.Create(state)) SaveGame.Save(sim, fs);
+
+            Assert.Equal(0, PlayHarness.Run(["play", dir, "日本", "3", "1789"]));
+            string stopped = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "report.txt"));
+            Assert.StartsWith("⏸ 時間を止めた：要求 3 四半期のうち 0 四半期だけ進めた", stopped);
+            Assert.Contains("!ultimatum 受諾", stopped);
+            using (var fs = System.IO.File.OpenRead(state)) Assert.Equal(q0, QuarterIndex(SaveGame.Load(fs).Nations[pi].World));   // 保存した世界の暦も進んでいない
+
+            System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "decision.txt"), "!ultimatum 受諾" + (char)10, new System.Text.UTF8Encoding(false));
+            Assert.Equal(0, PlayHarness.Run(["play", dir, "日本", "2", "1789"]));
+            string moved = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "report.txt"));
+            Assert.StartsWith("=====", moved);                                   // 答えれば止めの行は出ない
+            using (var fs = System.IO.File.OpenRead(state)) Assert.Equal(q0 + 2, QuarterIndex(SaveGame.Load(fs).Nations[pi].World));
+        }
+        finally { Console.SetOut(so); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void 時間を止める待ち_Runの進める所は待ちを見る関数を通る()
+    {
+        // Run は新規開始も state.bin からの再開も同じ進め方を通る＝進める所に生の StepQuarter の繰り返しが無く、待ちを見る関数だけがある（Replay は記録の再生で別）
+        string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "PlayHarness.cs"));
+        int runStart = src.IndexOf("public static int Run(", StringComparison.Ordinal), runEnd = src.IndexOf("public static int Replay(", StringComparison.Ordinal);
+        string run = src[runStart..runEnd];
+        Assert.Contains("StepUntilWait(sim, playerIndex, steps)", run);
+        Assert.DoesNotContain("sim.StepQuarter()", run);
+    }
 }

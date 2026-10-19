@@ -1544,7 +1544,7 @@ public static class EconomyStep
             if (!needless) consumedGoods++;
             if (insEnt is not null && !needless) insEnt.GoodBegin(gi, staple || foodNonStaple ? 0 : good.Tier == GoodTier.Daily ? 1 : good.Tier == GoodTier.Luxury ? 2 : 3);   // (345) 計器（読むだけ）：層＝食料・日用品・奢侈品・役務その他
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
-            bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && !habit.Forms) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
+            bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && !habit.Forms) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
             if (!needless)
             foreach (var p in region.Pops)
             {
@@ -1571,7 +1571,7 @@ public static class EconomyStep
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
-                    if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceUsesIncomeElasticity) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
+                    if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceIncomeFactorExponent) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
                     // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
                     // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
                     if (coef.PanicBuyWeight > 0 && staple)

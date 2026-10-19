@@ -14,6 +14,7 @@ namespace PriceOfBread.Runner;
 /// ★ 使い方： dotnet PriceOfBread.Runner.dll play &lt;作業dir&gt; [国名=清] [進める四半期数=4] [seed=1789]
 ///   1) &lt;dir&gt;/state.bin が無ければ新規開始（★App と同じ手順＝プレイヤー国だけ NullAgent・IsPlayer・専売0・StartWarmup）
 ///   (419) 画面の問いかけ（最後通牒・参戦要請・国内の危機・総選挙の公示）に答える動詞は `!ultimatum`・`!callarms`・`!election`（`!crisis` は内容の照会のみ）。全国工場の目標は `!target`・巨大建造物の着工は `!mega`。待っている問いかけと使える動詞は報告の 2 行目。
+///   (442) 画面が時間を止める待ち（最後通牒・参戦要請・総選挙の公示・国内の危機）が立っていると、その四半期で進むのを止めて報告の先頭に待ちと答える動詞を書く（答えるまで進まない＝画面と同じ。国内の危機は通知＝この呼び出しの最初に立っていた札と別の札が立ったときだけ止める）
 ///   2) &lt;dir&gt;/decision.txt があれば `キー=値` 行を **NationPolicy へリフレクションで**適用し、decision.applied.txt へ退避
 ///      ⚠ NationPolicy は「**目標値**」であって結果ではない（現在値は World 側＝利益集団の力で律速して漸進）
 ///      ＝UI と同じ口を叩いているだけで、政治の律速は迂回していない
@@ -89,15 +90,13 @@ internal static class PlayHarness
 
         // ---- 3) 進める ----
         int logStart = sim.Diplomacy.Log.Count;
-        double[]? ledBefore = null;   // ★(435) 直近の 1 四半期の収支＝最後の 1 四半期の直前の累計の写し（台帳は累計＝そのままでは四半期の値が読めなかった）
-        for (int i = 0; i < steps; i++)
-        {
-            if (i == steps - 1) ledBefore = (double[])world.TreasuryLedger.Clone();
-            sim.StepQuarter();
-        }
+        // ★(442) 画面が時間を止める待ち（最後通牒・参戦要請・総選挙の公示・国内の危機）が立ったら、その四半期で進むのを止める（App は問いが開いている間 Playing=false）。
+        //   答えは decision.txt に `!ultimatum`／`!callarms`／`!election` を書いて次の呼び出しで適用される（適用は上の 2) ＝進める前）。
+        var (stepped, ledBefore) = StepUntilWait(sim, playerIndex, steps);
 
         // ---- 4) 報告 ----
         var sb = new StringBuilder();
+        AppendStopNote(sb, world, world.SelfPower!, steps, stepped);   // ★(442) 先頭の行＝時間を止めたとき（待ちと答える動詞）
         WriteReport(sb, sim, playerIndex, applied, logStart, ledBefore);
         File.WriteAllText(Path.Combine(dir, "report.txt"), sb.ToString(), Utf8NoBom);
         Console.Write(sb.ToString());
@@ -723,26 +722,76 @@ internal static class PlayHarness
         _ => null,
     };
 
-    /// <summary>★(419) 待っている問いかけ（画面ならポップアップが出ている問い）と、それに答える動詞・使える動詞を 1 行で。待ちの有無は本体の状態（<c>PendingWar</c> ほか）をそのまま読む。</summary>
-    internal static string PromptsLine(World w, Power sp)
+    /// <summary>★(442) 画面が時間を止める待ちの種類（App の <c>PopupPause</c> を呼ぶポップアップのうち、play に答える動詞があるもの）。</summary>
+    internal enum PlayWait { Ultimatum, CallToArms, Crisis, Election }
+
+    /// <summary>★(419)(442) 待っている問いかけ（画面ならポップアップが出ている問い）とその説明（答える動詞つき）。待ちの有無は本体の状態（<c>PendingWar</c> ほか）をそのまま読む＝報告の 1 行と時間を止める判定が同じ 1 本を使う。</summary>
+    internal static List<(PlayWait Kind, string Text)> PendingItems(World w, Power sp)
     {
-        var ps = new List<string>();
-        // ★(435) 待ちは**答えるまで残る**（本体の状態：Diplomacy.PendingWar／PendingCallToArms は ResolvePendingWar／ResolveCallToArms か相手の除去でしか下りない。画面は待ちの間に時間を止めるが、play は進め続ける＝127 年残った実例）。
-        //   古さは本体の状態から添える（最後通牒＝今の緊張と開戦の水準・参戦要請＝その戦争が今も続いているか）。
+        var ps = new List<(PlayWait, string)>();
+        // ★(435) 待ちは**答えるまで残る**（本体の状態：Diplomacy.PendingWar／PendingCallToArms は ResolvePendingWar／ResolveCallToArms か相手の除去でしか下りない。127 年残った実例）。
+        //   ★(442) play は待ちが立つと進むのを止める（<see cref="StepUntilWait"/>）。古さは本体の状態から添える（最後通牒＝今の緊張と開戦の水準・参戦要請＝その戦争が今も続いているか）。
         if (sp.PendingWar is { } foe)
         {
             double tn = w.Diplomacy is { } dp ? dp.Tension(sp, foe) : 0;
-            ps.Add($"最後通牒（{foe.Name}・今の緊張 {tn:F1}／開戦の水準 {w.Coef.WarDeclareTension:F0}{(tn < w.Coef.WarDeclareTension ? "＝緊張は水準を下回っている古い待ち" : "")}）→ !ultimatum 受諾 ／ !ultimatum 開戦 [総動員|総動員なし]");
+            ps.Add((PlayWait.Ultimatum, $"最後通牒（{foe.Name}・今の緊張 {tn:F1}／開戦の水準 {w.Coef.WarDeclareTension:F0}{(tn < w.Coef.WarDeclareTension ? "＝緊張は水準を下回っている古い待ち" : "")}）→ !ultimatum 受諾 ／ !ultimatum 開戦 [総動員|総動員なし]"));
         }
         if (sp.PendingCallToArms is { } ca)
         {
             bool ongoing = w.Diplomacy is { } dq && dq.IsAtWar(ca.Caller, ca.Enemy);
-            ps.Add($"参戦要請（{ca.Caller.Name} が {ca.Enemy.Name} と交戦・その戦争は{(ongoing ? "続いている" : "既に終わっている＝古い待ち")}）→ !callarms 受ける ／ !callarms 断る");
+            ps.Add((PlayWait.CallToArms, $"参戦要請（{ca.Caller.Name} が {ca.Enemy.Name} と交戦・その戦争は{(ongoing ? "続いている" : "既に終わっている＝古い待ち")}）→ !callarms 受ける ／ !callarms 断る"));
         }
-        if (w.PendingFactionCrisis is { } fc) ps.Add($"国内の危機（{Factions.DisplayName(fc)}・要求 {w.PendingFactionCrisisDemands}）→ 通知のみ＝同じ法の目標をキー=値で置く（!crisis で内容）");
+        if (w.PendingFactionCrisis is { } fc) ps.Add((PlayWait.Crisis, $"国内の危機（{Factions.DisplayName(fc)}・要求 {w.PendingFactionCrisisDemands}）→ 通知のみ＝同じ法の目標をキー=値で置く（!crisis で内容）"));
         if (w.PendingElection is { } ev)
-            ps.Add($"総選挙の公示→ !election <番号|思想名の一部> [注ぐ割合=0.2] ／ !election 棄権　［{string.Join(" ／ ", ev.AgendaLabels.Select((l, i) => $"{i}={l}"))}］（0.2 なら資金 {w.ElectionSpendOf(0.2):N0}・効き {w.ElectionPushEffectOf(0.2):P0}）");
-        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !mega !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !crisis";
+            ps.Add((PlayWait.Election, $"総選挙の公示→ !election <番号|思想名の一部> [注ぐ割合=0.2] ／ !election 棄権　［{string.Join(" ／ ", ev.AgendaLabels.Select((l, i) => $"{i}={l}"))}］（0.2 なら資金 {w.ElectionSpendOf(0.2):N0}・効き {w.ElectionPushEffectOf(0.2):P0}）"));
+        return ps;
+    }
+
+    /// <summary>★(419) 待っている問いかけと、それに答える動詞・使える動詞を 1 行で。</summary>
+    internal static string PromptsLine(World w, Power sp)
+    {
+        var ps = PendingItems(w, sp);
+        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps.Select(p => p.Text)))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !mega !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !crisis";
+    }
+
+    /// <summary>★(442) 進めてはいけない待ち（画面なら問いのポップアップが開いていて時間が止まっている物）。<see cref="PendingItems"/> のうち、
+    /// 最後通牒・参戦要請・総選挙の公示は答えるまで止める（画面は答えるまで閉じられない）。国内の危機は**通知**（答える動詞が無く、画面は閉じれば時間が戻る・同じ運動の札が立っている間は 1 度だけ出す＝App の <c>_crisisShown</c>）
+    /// ＝<paramref name="crisisSeen"/>（この呼び出しの最初に立っていた札・または既に止めた札）と**別の札**が立ったときだけ止める。</summary>
+    internal static List<(PlayWait Kind, string Text)> BlockingWaits(World w, Power sp, FactionState? crisisSeen)
+        => PendingItems(w, sp).Where(p => p.Kind != PlayWait.Crisis || !ReferenceEquals(w.PendingFactionCrisis, crisisSeen)).ToList();
+
+    /// <summary>★(442) 最大 <paramref name="steps"/> 四半期を進める。待ちが立っているなら**その四半期で止める**（立っているものは進める前に確かめる＝前の呼び出しで立って答えられていない待ちも止める）。
+    /// 返すのは進めた四半期の数と、最後に進めた 1 四半期の直前の収支の台帳の写し（一度も進めなければ null）。</summary>
+    internal static (int Stepped, double[]? LedBefore) StepUntilWait(MultiNationSim sim, int playerIndex, int steps)
+    {
+        var world = sim.Nations[playerIndex].World;
+        var sp = world.SelfPower!;
+        FactionState? crisisSeen = world.PendingFactionCrisis;   // 最初に立っている危機の札は前の報告で見せた物＝止めない
+        double[]? ledBefore = null;   // ★(435) 直近の 1 四半期の収支＝最後の 1 四半期の直前の累計の写し（台帳は累計＝そのままでは四半期の値が読めなかった）
+        int stepped = 0;
+        for (int i = 0; i < steps; i++)
+        {
+            if (world.PendingFactionCrisis is null) crisisSeen = null;   // 札が下りたら次の札は新しい
+            if (BlockingWaits(world, sp, crisisSeen).Count > 0) break;
+            ledBefore = (double[])world.TreasuryLedger.Clone();
+            sim.StepQuarter();
+            stepped++;
+        }
+        return (stepped, ledBefore);
+    }
+
+    /// <summary>★(442) 時間を止めた（進めていない四半期が残っている・または進めた先で待ちが立った）ことと、待ちと答える動詞を報告の**先頭**に書く。止めていなければ何も書かない。</summary>
+    internal static void AppendStopNote(StringBuilder sb, World w, Power sp, int requested, int stepped)
+    {
+        var blocked = BlockingWaits(w, sp, null).Where(p => p.Kind != PlayWait.Crisis).Select(p => p.Text).ToList();
+        if (stepped < requested)   // 途中で止めた（待ちが立っている・国内の危機の新しい札を含む）
+        {
+            var all = PendingItems(w, sp).Select(p => p.Text).ToList();
+            sb.AppendLine($"⏸ 時間を止めた：要求 {requested} 四半期のうち {stepped} 四半期だけ進めた（{w.Year}年 Q{w.Quarter}）。待っている問い： {string.Join(" ； ", all)}");
+            sb.AppendLine("   答えを decision.txt に書いて次の呼び出しで進める（画面と同じ：答えるまで時間は進まない）。");
+        }
+        else if (blocked.Count > 0)   // 最後の 1 四半期で待ちが立った（次の呼び出しは答えを適用してから進む）
+            sb.AppendLine($"⏸ 次は答えるまで進めない：{string.Join(" ； ", blocked)}");
     }
 
     /// <summary>★(419) 巨大建造物の状態（データだけ＝着工の可否の理由を再導出しない。可否は <see cref="Megaprojects.CanStart"/> の 1 本）。</summary>

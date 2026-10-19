@@ -17,7 +17,7 @@ public class DomesticServiceRationTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
         w.Coef.LuxuryIncomeElasticity = 0.5;
-        w.Coef.DomesticServiceUsesIncomeElasticity = serviceElasticity;
+        w.Coef.DomesticServiceIncomeFactorExponent = serviceElasticity;
         w.Coef.DomesticServiceMarketRation = ration;
         w.WorldRealIncomePerCapitaPerMonth = 10.0;
         w.PriceLevel = 2.0;
@@ -100,7 +100,7 @@ public class DomesticServiceRationTests
     {
         var c = new Coefficients();
         Assert.Equal(1.0, c.DomesticServiceMarketRation);
-        Assert.Equal(2.0, c.DomesticServiceUsesIncomeElasticity);
+        Assert.Equal(2.0, c.DomesticServiceIncomeFactorExponent);
         // 旗 0 に倒せば優先配分（大衆が先に埋まる）＝旧の挙動へ戻る：番人の本体（旗 0 の別テスト）が担う。
     }
 }
