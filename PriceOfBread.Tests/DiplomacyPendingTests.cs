@@ -141,13 +141,12 @@ public class DiplomacyPendingTests
 
     /// <summary>侵略を 1 回行い、攻者から見て（屈服したか・近接の理由の緊張の和〔攻者×仏〕・Invade の戻り値）を返す。屈服は攻者を圧倒的に強く、拒否は標的の屈服線の下に置いて作る。
     /// 標的は抽象標的（植民地を持つ弱小）＝屈服すると植民地が攻者の州へ移り <c>ColonyList</c> が空になる。</summary>
-    internal static (bool Submitted, double Proximity, bool Ret, MultiNationSim Sim, Power Target) InvadeOnce(bool submit, double flag, double range = 1_000_000)
+    internal static (bool Submitted, double Proximity, bool Ret, MultiNationSim Sim, Power Target) InvadeOnce(bool submit, double range = 1_000_000)
     {
         var sim = TwoNations();
         var w = sim.Nations[0].World; var me = w.SelfPower!; var fr = sim.Nations[1].World.SelfPower!; var c = w.Coef;
         var target = InvasionTarget(sim);
         Assert.NotNull(target);
-        c.ProximityTensionPointsBeforeSubmit = flag;
         c.ProximityTensionRange = range;   // フランスが標的の勢力圏に入る距離にする（増分が正になる盤面）
         w.ExpansionWill = 1e12; w.FiscalFundingRatio = new Share(1.0);
         target.Military = 100;
@@ -165,22 +164,18 @@ public class DiplomacyPendingTests
     }
 
     [Fact]
-    public void 旗0は旧のとおり抽象標的の屈服で積まず_旗1は屈服の前の座標で積む_拒否の枝は旗に依らない()
+    public void 抽象標的の屈服でも近接の緊張が積まれる_座標は屈服の前に取る_拒否の枝と同じ量()
     {
-        // 旧（旗 0）：抽象標的は屈服で植民地が攻者の州へ移り座標が空になる＝屈服の枝は 0・拒否の枝（植民地が標的に残る）だけ正。旗 1：座標を屈服の前に取る＝屈服の枝も積む。拒否の枝は座標が動かない＝旗に依らず同じ。
-        var (subm0, p0, r0, _, _) = InvadeOnce(submit: true, flag: 0);
-        var (subm0r, pr0, rr0, simR0, tgtR0) = InvadeOnce(submit: false, flag: 0);
-        var (subm1, p1, r1, _, _) = InvadeOnce(submit: true, flag: 1);
-        var (subm1r, pr1, rr1, simR1, tgtR1) = InvadeOnce(submit: false, flag: 1);
-        Assert.True(subm0 && subm1); Assert.False(subm0r); Assert.False(subm1r);   // 屈服は戦争にならず、拒否は戦争になる
-        Assert.True(simR0.Diplomacy.IsAtWar(simR0.Nations[0].World.SelfPower!, tgtR0));
-        Assert.True(simR1.Diplomacy.IsAtWar(simR1.Nations[0].World.SelfPower!, tgtR1));
-        Assert.Equal(0.0, p0);                     // 旗 0 の屈服＝旧の欠陥（植民地を接収した後に座標を取る）の対照。旗を焼き込むときはこの行を書き直す
-        Assert.True(pr0 > 0, "旗 0 の拒否の枝は旧のとおり積む（対照）");
-        Assert.True(p1 > 0, "旗 1 の屈服の枝は積む（機構を踏んだ証拠）");
-        Assert.Equal(pr0, pr1, 9);                 // 拒否の枝は旗に依らず同じ量（座標が屈服の前後で動かない）
-        Assert.Equal(pr0, p1, 9);                  // 同じ標的の座標・同じ列強＝枝が違っても積む量は同じ（座標を屈服の前に取った分）
-        Assert.True(r0 && rr0 && r1 && rr1, "Invade の戻り値は旗にも枝にも依らず true（実行したか）");
+        // 抽象標的は屈服で植民地が攻者の州へ移り ColonyList が空になる＝座標を屈服の後に取れば 0（旧の欠陥）。屈服の前に取れば、同じ標的・同じ列強の拒否の枝と同じ量が積まれる。
+        var (subm, pSub, rSub, simS, tgtS) = InvadeOnce(submit: true);
+        var (submR, pRef, rRef, simR, tgtR) = InvadeOnce(submit: false);
+        Assert.True(subm); Assert.False(submR);   // 屈服は戦争にならず、拒否は戦争になる
+        Assert.True(simR.Diplomacy.IsAtWar(simR.Nations[0].World.SelfPower!, tgtR));
+        Assert.True(tgtS.ColonyList.Count == 0, "前提が崩れた：屈服の後も植民地が標的に残っている（旧の欠陥を再現する盤面でない）");   // 屈服の後に座標を取れば空＝0 になる盤面
+        Assert.True(pSub > 0, "抽象標的の屈服で近接の緊張が積まれない（座標を屈服の後に取っている）");
+        Assert.True(pRef > 0, "拒否の枝は積む");
+        Assert.Equal(pRef, pSub, 9);              // 同じ標的の座標・同じ列強＝枝が違っても積む量は同じ
+        Assert.True(rSub && rRef, "Invade の戻り値は枝に依らず true（実行したか）");
     }
 
     [Fact]
@@ -205,8 +200,8 @@ public class DiplomacyPendingTests
     {
         // 範囲を地球上の距離（最大 約 2 万 km）の桁にする。増分 = 最大 × (1 − 距離/範囲) の線形：2 つの範囲の増分から距離を逆算して 2 つが一貫することを見る（距離の幾何は写さない）
         double max = new Coefficients().ProximityTensionMax;
-        double a = InvadeOnce(submit: true, flag: 1, range: 25_000).Proximity;
-        double b = InvadeOnce(submit: true, flag: 1, range: 50_000).Proximity;
+        double a = InvadeOnce(submit: true, range: 25_000).Proximity;
+        double b = InvadeOnce(submit: true, range: 50_000).Proximity;
         Assert.True(a > 0 && b > a, $"距離減衰の向きが崩れた（範囲 2.5 万 km={a}・5 万 km={b}）");
         double kmA = 25_000 * (1 - a / max), kmB = 50_000 * (1 - b / max);
         Assert.InRange(kmA, 0, 20_100);   // 地球上の最大距離（約 2 万 km）以内
@@ -214,12 +209,12 @@ public class DiplomacyPendingTests
     }
 }
 
-/// <summary>(440) 侵略の計器 <c>invade_s</c>：屈服か・積んだ量・旧の規則なら積んだはずの量（G5）。静的な切り替えを使うので他の試験と並べない。</summary>
+/// <summary>(440) 侵略の計器 <c>invade_s</c>：屈服か・積んだ量・標的自身の組に積んだ量（G5）。静的な切り替えを使うので他の試験と並べない。</summary>
 [Collection("Instruments")]
 public class InvadeInstrumentTests
 {
     [Fact]
-    public void 侵略の表は屈服か拒否かと積んだ量と旧の規則での量を行に残す()
+    public void 侵略の表は屈服か拒否かと積んだ量を行に残す()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_invade_" + Guid.NewGuid().ToString("N"));
         try
@@ -233,7 +228,7 @@ public class InvadeInstrumentTests
                 var w = sim.Nations[0].World; var me = w.SelfPower!; var c = w.Coef;
                 Instruments.Phase(sim, 1789UL, "open");
                 var target = sim.Diplomacy.Powers.Find(p => p.Nation is null && p.ColonyList.Count > 0 && sim.Diplomacy.RankOf(p) == PowerRank.Minor && sim.Diplomacy.Suzerain(p) is null)!;
-                c.ProximityTensionPointsBeforeSubmit = 1; c.ProximityTensionRange = 1_000_000;
+                c.ProximityTensionRange = 1_000_000;
                 w.ExpansionWill = 1e12; w.FiscalFundingRatio = new Share(1.0);
                 target.Military = 100; me.Military = submit ? 1e9 : c.InvadeMilitaryFactor * target.Military * 1.001;
                 foreach (int g in new[] { Catalog.SailingShipId, Catalog.SteamshipId, Catalog.CannedFoodId, Catalog.QuinineId }) w.Region.Markets[g].Stock = 1e6;
@@ -244,21 +239,17 @@ public class InvadeInstrumentTests
                 header = lines[0].Split('\t');
                 rows.Add(lines[1].Split('\t'));
                 Assert.Equal(2, lines.Length);   // 侵略 1 回＝データ行 1
-                Assert.Equal(9, header.Length);
+                Assert.Equal(7, header.Length);
             }
-            int iNat = Array.IndexOf(header, "targetIsNation"), iSub = Array.IndexOf(header, "submitted"), iAdd = Array.IndexOf(header, "proximityAdded"), iWould = Array.IndexOf(header, "proximityWouldHave");
-            int iAddT = Array.IndexOf(header, "addedToTarget"), iWouldT = Array.IndexOf(header, "wouldHaveToTarget");
-            Assert.True(iNat >= 0 && iSub >= 0 && iAdd >= 0 && iWould >= 0 && iAddT >= 0 && iWouldT >= 0, "表の列の名前が足りない");
+            int iNat = Array.IndexOf(header, "targetIsNation"), iSub = Array.IndexOf(header, "submitted"), iAdd = Array.IndexOf(header, "proximityAdded"), iAddT = Array.IndexOf(header, "addedToTarget");
+            Assert.True(iNat >= 0 && iSub >= 0 && iAdd >= 0 && iAddT >= 0, "表の列の名前が足りない");
             Assert.Equal("1", rows[0][iSub]); Assert.Equal("0", rows[1][iSub]);
             Assert.Equal("0", rows[0][iNat]); Assert.Equal("0", rows[1][iNat]);   // どちらも抽象標的
             double D(string s) => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture);
-            Assert.True(D(rows[0][iAdd]) > 0, "旗 1 の屈服の行の積んだ量が正でない");
-            Assert.Equal(0.0, D(rows[0][iWould]));   // 旧の規則（屈服の後の座標）では抽象標的の屈服は 0＝旗 1 の新しい反応
-            Assert.True(D(rows[1][iAdd]) > 0, "拒否の行の積んだ量が正でない（拒否の枝は旗 1 でも積む）");
-            Assert.Equal(D(rows[1][iAdd]), D(rows[1][iWould]), 9);   // 拒否の枝は座標が動かない＝積んだ量＝旧の量
+            Assert.True(D(rows[0][iAdd]) > 0, "屈服の行の積んだ量が正でない");
+            Assert.True(D(rows[1][iAdd]) > 0, "拒否の行の積んだ量が正でない");
             Assert.Equal(D(rows[0][iAdd]), D(rows[1][iAdd]), 9);     // 同じ座標・同じ列強＝枝が違っても同じ量
             Assert.Equal(0.0, D(rows[0][iAddT])); Assert.Equal(0.0, D(rows[1][iAddT]));   // 抽象標的は列強でない＝標的自身の組には積まれない
-            Assert.Equal(0.0, D(rows[0][iWouldT])); Assert.Equal(0.0, D(rows[1][iWouldT]));
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
@@ -294,9 +285,7 @@ public class InvadeInstrumentTests
                 Assert.Equal("1", row[Array.IndexOf(header, "targetIsNation")]);
                 Assert.Equal(c.ProximityTensionMax, D("addedToTarget"), 9);        // 距離 0＝満額
                 Assert.True(D("proximityAdded") >= D("addedToTarget"), "合計が標的自身の分を下回る");
-                Assert.Equal(D("proximityAdded"), D("proximityWouldHave"), 9);     // 座標が動かない枝＝旗 0 でも積んだ量＝旧の量
-                Assert.Equal(D("addedToTarget"), D("wouldHaveToTarget"), 9);
-            }
+                            }
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
