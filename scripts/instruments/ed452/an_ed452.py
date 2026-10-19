@@ -88,7 +88,7 @@ def class_series(base, seed):
 def main():
     res = {}
     # ---------------- ed_s ----------------
-    ED_COLS = ['fundingShare', 'stateWantPerMonth', 'stateTakePerMonth', 'stateWantMoneyPerMonth', 'stateTakeMoneyPerMonth', 'shortRegionShare', 'priceOverRefTimesLevelIndex', 'demandSignalPerMonth', 'producedPerMonth', 'soldPerMonth']
+    ED_COLS = ['fundingShare', 'needPerMonth', 'availablePerMonth', 'stateWantPerMonth', 'stateTakePerMonth', 'stateWantMoneyPerMonth', 'stateTakeMoneyPerMonth', 'shortRegionShare', 'priceOverRefTimesLevelIndex', 'demandSignalPerMonth', 'producedPerMonth', 'soldPerMonth']
     edB = {s: load_series(B, s, 'ed', 'nation', 'quarter', ED_COLS, NAT8) for s in range(1, NS + 1)}
     edA = {s: load_series(A, s, 'ed', 'nation', 'quarter', ED_COLS, NAT8) for s in range(1, NS + 1)}
     haveA = any(edA[s] for s in edA)
@@ -116,6 +116,43 @@ def main():
         m = med(vals); r1.append(m)
         if m == m and m >= 0.8: k1 += 1
     print(f'a1 買えた割合（取れた÷買いたい ≧0.8）：{k1}/{NS} {verdict(k1)}  種ごと={[round(x, 3) for x in r1]}')
+    # a7 買えた割合の上がり（金額で束ねた値）：8 国×P2〜P4 の Σ取れた金額÷Σ買いたい金額 の B − A（同じ種）≧ +0.10。国×期の中央で束ねた値の B−A は記録に出す
+    def pooled(ed, s):
+        w = t = 0.0
+        for (n, p), v in ed[s].items():
+            if p not in ('P2', 'P3', 'P4'): continue
+            w += sum(x for x in v['stateWantMoneyPerMonth'] if x == x); t += sum(x for x in v['stateTakeMoneyPerMonth'] if x == x)
+        return t / w if w > 0 else float('nan')
+    def take_ratio(ed, s):
+        vals = []
+        for (n, p), v in ed[s].items():
+            if p not in ('P2', 'P3', 'P4'): continue
+            w = sum(x for x in v['stateWantMoneyPerMonth'] if x == x); t = sum(x for x in v['stateTakeMoneyPerMonth'] if x == x)
+            if w > 0: vals.append(t / w)
+        return med(vals)
+    k7 = 0; r7 = []; r7m = []
+    if haveA:
+        for s in range(1, NS + 1):
+            d = pooled(edB, s) - pooled(edA, s); r7.append(d); r7m.append(take_ratio(edB, s) - take_ratio(edA, s))
+            if d == d and d >= 0.10: k7 += 1
+        print(f'a7 買えた割合の上がり（金額で束ねた値の B−A ≧ +0.10）：{k7}/{NS} {verdict(k7)}  種ごと={[round(x, 3) if x == x else None for x in r7]}  〔記録：国×期の中央で束ねた値の B−A={[round(x, 3) if x == x else None for x in r7m]}〕')
+    # a8 供給の応答：availablePerMonth÷needPerMonth の B÷A（国庫が買う率が正の国×期・P2〜P4 の中央）≧ 1.00
+    k8 = 0; r8 = []
+    if haveA:
+        for s in range(1, NS + 1):
+            vals = []
+            for (n, p), v in edB[s].items():
+                if p not in ('P2', 'P3', 'P4'): continue
+                a = edA[s].get((n, p))
+                if not a: continue
+                def rate(x):
+                    num = med(x['availablePerMonth']); den = med(x['needPerMonth'])
+                    return num / den if den == den and den > 0 else float('nan')
+                rb, ra = rate(v), rate(a)
+                if rb == rb and ra == ra and ra > 0 and med(v['fundingShare']) > 1e-9: vals.append(rb / ra)
+            m = med(vals); r8.append(m)
+            if m == m and m >= 1.0: k8 += 1
+        print(f'a8 供給の応答（供給÷必要量の B÷A ≧ 1.00）：{k8}/{NS} {verdict(k8)}  種ごと={[round(x, 3) if x == x else None for x in r8]}')
     # a2 値段に出る：B÷A（priceOverRefTimesLevelIndex）を a0 の場面があった国×期で P2〜P4 の中央が 1.00〜1.30
     k2 = 0; r2 = []
     if haveA:

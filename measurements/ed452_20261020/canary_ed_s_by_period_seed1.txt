@@ -1,0 +1,45 @@
+== イギリス
+  P1 A: fundingShare=0.01131 needPerMonth=2963 privateDeman=510.1 availablePer=518.2 stateWantPer=4.136 stateTakePer=3.713 shortRegionS=0 demandSignal=512.1 producedPerM=518.2 soldPerMonth=500.9 priceOverRef=1.387
+  P1 B: fundingShare=0.01353 needPerMonth=3062 privateDeman=496.3 availablePer=503.2 stateWantPer=29.82 stateTakePer=4.408 shortRegionS=0.8352 demandSignal=511.3 producedPerM=503.2 soldPerMonth=495.8 priceOverRef=1.886
+  P2 A: fundingShare=0.07374 needPerMonth=1754 privateDeman=735.8 availablePer=742 stateWantPer=40.75 stateTakePer=32.79 shortRegionS=0.1781 demandSignal=778.8 producedPerM=738.6 soldPerMonth=700.3 priceOverRef=1.958
+  P2 B: fundingShare=0.06641 needPerMonth=3142 privateDeman=580.1 availablePer=496.2 stateWantPer=167.3 stateTakePer=77.71 shortRegionS=0.6665 demandSignal=752.4 producedPerM=496.2 soldPerMonth=452 priceOverRef=2.07
+  P3 A: fundingShare=0.1055 needPerMonth=2346 privateDeman=1199 availablePer=1214 stateWantPer=99.98 stateTakePer=82.97 shortRegionS=0.2325 demandSignal=1276 producedPerM=1214 soldPerMonth=1132 priceOverRef=1.541
+  P3 B: fundingShare=0.09929 needPerMonth=4559 privateDeman=1770 availablePer=1986 stateWantPer=270.6 stateTakePer=232.4 shortRegionS=0.4921 demandSignal=2064 producedPerM=1986 soldPerMonth=1918 priceOverRef=1.183
+  P4 A: fundingShare=0.106 needPerMonth=2616 privateDeman=477.4 availablePer=578.1 stateWantPer=179.1 stateTakePer=130.7 shortRegionS=0.4306 demandSignal=610.9 producedPerM=578.1 soldPerMonth=516.1 priceOverRef=1.18
+  P4 B: fundingShare=0.1011 needPerMonth=7931 privateDeman=2418 availablePer=3043 stateWantPer=529.9 stateTakePer=447.9 shortRegionS=0.4569 demandSignal=3038 producedPerM=3043 soldPerMonth=2860 priceOverRef=1.29
+== 清
+  P1 A: fundingShare=0 needPerMonth=2.344e+04 privateDeman=1.072e+04 availablePer=418.2 stateWantPer=0 stateTakePer=0 shortRegionS=nan demandSignal=1.072e+04 producedPerM=418.2 soldPerMonth=418.2 priceOverRef=3.075
+  P1 B: fundingShare=0 needPerMonth=2.344e+04 privateDeman=1.074e+04 availablePer=427.7 stateWantPer=0 stateTakePer=0 shortRegionS=nan demandSignal=1.074e+04 producedPerM=427.7 soldPerMonth=427.7 priceOverRef=3.027
+  P2 A: fundingShare=0.02002 needPerMonth=2.77e+04 privateDeman=5812 availablePer=5984 stateWantPer=301.7 stateTakePer=159.3 shortRegionS=0.3794 demandSignal=5906 producedPerM=5984 soldPerMonth=5817 priceOverRef=1.255
+  P2 B: fundingShare=0.02441 needPerMonth=2.794e+04 privateDeman=5741 availablePer=5991 stateWantPer=556.2 stateTakePer=444.9 shortRegionS=0.4608 demandSignal=5923 producedPerM=5991 soldPerMonth=5823 priceOverRef=1.292
+  P3 A: fundingShare=0.03704 needPerMonth=2.723e+04 privateDeman=2486 availablePer=2779 stateWantPer=694.6 stateTakePer=324 shortRegionS=0.6024 demandSignal=2846 producedPerM=2779 soldPerMonth=2707 priceOverRef=0.8635
+  P3 B: fundingShare=0.03332 needPerMonth=2.692e+04 privateDeman=2454 availablePer=3233 stateWantPer=841.1 stateTakePer=775.9 shortRegionS=0.5582 demandSignal=3283 producedPerM=3233 soldPerMonth=3052 priceOverRef=0.8322
+  P4 A: fundingShare=0.04021 needPerMonth=2.413e+04 privateDeman=1079 availablePer=1372 stateWantPer=824.5 stateTakePer=376.5 shortRegionS=0.7702 demandSignal=1449 producedPerM=1372 soldPerMonth=1344 priceOverRef=0.8468
+  P4 B: fundingShare=0.03939 needPerMonth=2.171e+04 privateDeman=1187 availablePer=2136 stateWantPer=809.8 stateTakePer=784.4 shortRegionS=0.2787 demandSignal=2014 producedPerM=2136 soldPerMonth=1935 priceOverRef=0.8786
+== フランス
+  P1 A: fundingShare=0 needPerMonth=1792 privateDeman=743.4 availablePer=360.7 stateWantPer=0 stateTakePer=0 shortRegionS=0 demandSignal=743.4 producedPerM=360.7 soldPerMonth=357.4 priceOverRef=2.305
+  P1 B: fundingShare=0 needPerMonth=1786 privateDeman=735.4 availablePer=382.3 stateWantPer=0 stateTakePer=0 shortRegionS=0.3666 demandSignal=741 producedPerM=382.3 soldPerMonth=364.9 priceOverRef=2.309
+  P2 A: fundingShare=0.03338 needPerMonth=385.1 privateDeman=128.2 availablePer=109.3 stateWantPer=11 stateTakePer=8.29 shortRegionS=0.1062 demandSignal=131.4 producedPerM=109.3 soldPerMonth=108.7 priceOverRef=1.322
+  P2 B: fundingShare=0.03193 needPerMonth=2065 privateDeman=732.4 availablePer=756.8 stateWantPer=46.53 stateTakePer=35.3 shortRegionS=0.4806 demandSignal=784.6 producedPerM=756.8 soldPerMonth=736.4 priceOverRef=1.203
+  P3 A: fundingShare=0.08394 needPerMonth=396.4 privateDeman=190.5 availablePer=178.3 stateWantPer=13.5 stateTakePer=11.84 shortRegionS=0 demandSignal=202 producedPerM=178.3 soldPerMonth=178.1 priceOverRef=1.963
+  P3 B: fundingShare=0.04374 needPerMonth=2172 privateDeman=1293 availablePer=1346 stateWantPer=35.9 stateTakePer=25.9 shortRegionS=0.5091 demandSignal=1347 producedPerM=1335 soldPerMonth=1265 priceOverRef=1.193
+  P4 A: fundingShare=0.09446 needPerMonth=526.7 privateDeman=315.4 availablePer=311 stateWantPer=3.923 stateTakePer=3.717 shortRegionS=0 demandSignal=323.4 producedPerM=311 soldPerMonth=291.8 priceOverRef=1.505
+  P4 B: fundingShare=0.0487 needPerMonth=1235 privateDeman=463 availablePer=502.9 stateWantPer=33.41 stateTakePer=26.18 shortRegionS=0.4866 demandSignal=496.4 producedPerM=502.9 soldPerMonth=485 priceOverRef=1.259
+== 日本
+  P1 A: fundingShare=0 needPerMonth=2190 privateDeman=943.2 availablePer=153.7 stateWantPer=0 stateTakePer=0 shortRegionS=0 demandSignal=943.2 producedPerM=153.7 soldPerMonth=153.7 priceOverRef=2.515
+  P1 B: fundingShare=0 needPerMonth=2194 privateDeman=954.6 availablePer=159.4 stateWantPer=0 stateTakePer=0 shortRegionS=0.2897 demandSignal=958.2 producedPerM=159.4 soldPerMonth=159.4 priceOverRef=2.434
+  P2 A: fundingShare=0.01654 needPerMonth=3226 privateDeman=977.6 availablePer=990.7 stateWantPer=20.45 stateTakePer=14.99 shortRegionS=0.1611 demandSignal=991.9 producedPerM=990.7 soldPerMonth=969.1 priceOverRef=1.413
+  P2 B: fundingShare=0.01898 needPerMonth=2790 privateDeman=974.7 availablePer=1005 stateWantPer=37.05 stateTakePer=23.86 shortRegionS=0.474 demandSignal=1002 producedPerM=1005 soldPerMonth=962.6 priceOverRef=1.169
+  P3 A: fundingShare=0.02536 needPerMonth=3087 privateDeman=675.4 availablePer=638.4 stateWantPer=36.47 stateTakePer=20.57 shortRegionS=0.3856 demandSignal=695.5 producedPerM=638.4 soldPerMonth=633.3 priceOverRef=1.111
+  P3 B: fundingShare=0.02549 needPerMonth=2905 privateDeman=384.8 availablePer=481.7 stateWantPer=62.84 stateTakePer=57.18 shortRegionS=0.5161 demandSignal=449.5 producedPerM=481.7 soldPerMonth=413.5 priceOverRef=0.8654
+  P4 A: fundingShare=0.04486 needPerMonth=2698 privateDeman=154.6 availablePer=198.3 stateWantPer=90.97 stateTakePer=44.68 shortRegionS=0.7081 demandSignal=197.4 producedPerM=198.3 soldPerMonth=193.3 priceOverRef=1.2
+  P4 B: fundingShare=0.0478 needPerMonth=2546 privateDeman=147.3 availablePer=271.5 stateWantPer=116.3 stateTakePer=110.6 shortRegionS=0.4113 demandSignal=262.1 producedPerM=271.5 soldPerMonth=252.8 priceOverRef=0.9243
+== ロシア
+  P1 A: fundingShare=0 needPerMonth=2392 privateDeman=413.5 availablePer=319 stateWantPer=0 stateTakePer=0 shortRegionS=0 demandSignal=413.5 producedPerM=319 soldPerMonth=302.4 priceOverRef=1.397
+  P1 B: fundingShare=0 needPerMonth=2287 privateDeman=363.7 availablePer=298.9 stateWantPer=0 stateTakePer=0 shortRegionS=1 demandSignal=363.7 producedPerM=298.9 soldPerMonth=288.8 priceOverRef=1.354
+  P2 A: fundingShare=0.02088 needPerMonth=3173 privateDeman=598.2 availablePer=628.7 stateWantPer=39.37 stateTakePer=23.85 shortRegionS=0.4182 demandSignal=626.6 producedPerM=628.7 soldPerMonth=610 priceOverRef=1.13
+  P2 B: fundingShare=0.01875 needPerMonth=2669 privateDeman=490.6 availablePer=545.8 stateWantPer=42.96 stateTakePer=34.86 shortRegionS=0.4862 demandSignal=548.5 producedPerM=545.8 soldPerMonth=537.5 priceOverRef=1.1
+  P3 A: fundingShare=0.03297 needPerMonth=2623 privateDeman=138.6 availablePer=198.3 stateWantPer=68.63 stateTakePer=41.68 shortRegionS=0.6272 demandSignal=195.4 producedPerM=198.3 soldPerMonth=188 priceOverRef=0.7796
+  P3 B: fundingShare=0.0329 needPerMonth=2474 privateDeman=348.4 availablePer=394.1 stateWantPer=71.15 stateTakePer=63.41 shortRegionS=0.4744 demandSignal=425.8 producedPerM=394.1 soldPerMonth=375.3 priceOverRef=0.9103
+  P4 A: fundingShare=0.06863 needPerMonth=2937 privateDeman=655 availablePer=579.9 stateWantPer=118.5 stateTakePer=92.81 shortRegionS=0.2735 demandSignal=804.5 producedPerM=579.9 soldPerMonth=551.6 priceOverRef=2.231
+  P4 B: fundingShare=0.08058 needPerMonth=1864 privateDeman=114.2 availablePer=275.9 stateWantPer=142 stateTakePer=131.9 shortRegionS=0.4523 demandSignal=267.9 producedPerM=275.9 soldPerMonth=249.2 priceOverRef=1.059
