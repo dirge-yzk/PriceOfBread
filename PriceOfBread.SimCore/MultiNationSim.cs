@@ -520,6 +520,9 @@ public sealed class MultiNationSim
         //   （(165)＝主要国の全てが1784年に蒸気機関・データの史実〔英だけ〕と食い違った）。
         ShareWorldDiscovered();
         OpenForces();
+        // ★(449) 開幕のランクの取り直し（旗 ScoreFromWorldShare＞0 のときだけ＝旗 0 はこの 1 行を通らず旧と厳密恒等）：コンストラクタの ComputeRanks は市場が 1 度も回る前＝鉄の産出・動力の消費・軍事費が 0 で
+        //   国力の 6 項が 3 項（兵・都市人口・総人口）に退化し、助走は外交を凍結する（DiplomacyFrozen）ので次の ComputeRanks は暦で 1 年後＝最初の 1 年の外交はこの退化したランクで動いた。助走の直後（流れの値が出そろった盤面）で 1 度だけ取り直す（純関数・乱数なし）。
+        if (_coef.ScoreFromWorldShare > 0) Diplomacy.ComputeRanks(_coef);
         RebaselineInvariants();
     }
     private bool _startWarmupDone;

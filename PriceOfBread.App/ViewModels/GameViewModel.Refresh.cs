@@ -46,9 +46,11 @@ public partial class GameViewModel
         // ★並びはランクが第一キー（作者指摘2026-08-11「ランクと順位が一致しない」）。
         //   原因＝一覧は**今の国力**で並べ、ランクは年1回の再分類（RankUpdateIntervalQuarters=4）の結果なので、
         //   その間に国力が入れ替わると「中堅なのに列強より上」が起こる。ランクで束ねてから国力で並べれば定義上ずれない。
+        var scoreByPower = NationalScore.ScoresByPower(_sim.Diplomacy);   // ★(449) 国力は全国分を 1 回で（一覧の並び・カード・順位が同じ値を読む・旗＞0 で国ごとに世界の総量を求め直さない）
+        var linesByPower = NationalScore.BreakdownsByPower(_sim.Diplomacy);   // 同じ国の内訳（ホバーの詳細が読む）
         var powers = _sim.Diplomacy.Powers
             .OrderByDescending(p => (int)_sim.Diplomacy.RankOf(p))
-            .ThenByDescending(p => p.Nation != null ? NationalScore.Of(p.Nation) : -1).ToList();
+            .ThenByDescending(p => p.Nation != null ? scoreByPower[p.Id] : -1).ToList();
         var me = _sim.Diplomacy.Powers[_playerIndex];
         var myRank = _sim.Diplomacy.RankOf(me);
         // 自国が交戦中の戦争と、その相手国の集合（カード表示・後段の戦争タブ集計の両方が読む＝二重走査をやめる）
@@ -72,7 +74,7 @@ public partial class GameViewModel
             //   忠実度ハーネスの照合と同じ物差し＝画面と帯が同じものを見る。⚠月次リフレッシュ×61カ国×自国POP走査＝軽い。
             Polity? derived = pow.Nation is { } dnw ? PowerAffinity.PolityFromShares(dnw) : (Polity?)null;
             string name = SecessionNames.DisplayName(pow, derived, _sim.Diplomacy.Wars);   // 政体で変わる国号（イギリス共和国 等）・政体をめぐる内戦の間は両陣営が頭書き＋国名（表は SimCore の1か所）
-            string score = pow.Nation != null ? NationalScore.Of(pow.Nation).ToString("F0") : "—";
+            string score = pow.Nation != null ? scoreByPower[pow.Id].ToString("F0") : "—";
             string polity = PolityRegimeJa(derived);   // ★導出政体（同上）
             // 低い＝多民族/多宗派（移民を引く・分離圧力）。宗教統一は民族統一と対称の派生スカラー＝州宗教の最大シェア（#62で露出）
             string unity = pow.Nation is { EthnicEnabled: true } nn ? $"民族統一 {nn.EthnicUnity:P0}　宗教統一 {nn.ReligiousUnity:P0}" : "";
@@ -120,11 +122,11 @@ public partial class GameViewModel
             double tVal = isMe ? 0 : TensionPct(_sim.Diplomacy.Tension(me, pow)) * 100.0;   // 色も同じ物差し（100=開戦）
             IBrush tBrush = isMe ? Brushes.Gray : tVal < 35 ? TensionLow : tVal < 70 ? TensionMid : TensionHigh;
 
-            // ホバー詳細：スコアの内訳（軍事/富/金融/技術）＋緊張が高まっている要因。
+            // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝旗 0 は軍事・生産の豊かさ・金融・技術／旗＞0 は 6 項の割合の点）＋緊張が高まっている要因。
             string detail = $"{name}({rank})　{polity}";
             if (pow.Nation is { } nw)
             {
-                detail += $"\n列強スコア:{score} 軍事:{NationalScore.Military(nw):F0} 生産:{NationalScore.Wealth(nw):F0} 金融:{NationalScore.Finance(nw):F0} 技術:{NationalScore.Tech(nw):F0}";
+                detail += $"\n列強スコア:{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F0}"));
                 if (unity.Length > 0) detail += "\n" + unity;
                 // 主流の文化/宗教（州ラベルの人口加重多数派）＝下の「民族の隔たり/宗教の隔たり」の素（#62）
                 if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化: {pow.Culture}　宗教: {pow.Religion}";
@@ -245,11 +247,11 @@ public partial class GameViewModel
         int myPos = 1;
         if (myRank == PowerRank.Great)
         {
-            double myScore = NationalScore.Of(_player);
+            double myScore = scoreByPower[me.Id];
             foreach (var q in powers)
             {
                 if (q == me || q.Nation is not { } qw || _sim.Diplomacy.RankOf(q) != PowerRank.Great) continue;
-                double qs = NationalScore.Of(qw);
+                double qs = scoreByPower[q.Id];
                 if (qs > myScore || (qs == myScore && q.Id < me.Id)) myPos++;   // 同点は Id で全順序（ComputeRanks と同規約）
             }
         }

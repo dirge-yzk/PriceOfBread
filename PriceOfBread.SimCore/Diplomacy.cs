@@ -510,9 +510,9 @@ public sealed class Diplomacy
     {
         if (c.TreatyPortLapseRatio.Value <= 0) return;
         if (month % Calendar.MonthsPerQuarter != 0) return;
-        // ★(416) 旗 ScoreFromWorldShare＞0：力の差＝世界の総量に対する本国の割合の国力（NationalScore.ShareScores）。向きは同じ（自国÷列強の最大・近いほど風化が速い）。0＝従来の Military＋Wealth のまま。
+        // ★(416) 旗 ScoreFromWorldShare＞0：力の差＝世界の総量に対する本国の割合の国力（NationalScore.ShareScores）。向きは同じ（自国÷列強の最大・近いほど風化が速い）。0＝従来の 2 項（軍事＋生産の豊かさ・NationalScore.TreatyStrengthOld＝旧の腕の中身）のまま。
         var shareScore = c.ScoreFromWorldShare > 0 ? ShareScoreByPower() : null;
-        double Strength(Power p, World w) => shareScore is not null ? shareScore[p.Id] : NationalScore.Military(w) + NationalScore.Wealth(w);
+        double Strength(Power p, World w) => shareScore is not null ? shareScore[p.Id] : NationalScore.TreatyStrengthOld(w);
         double topC = 0;
         foreach (var p in Powers) if (p.Nation is { } gw && RankOf(p) == PowerRank.Great) topC = System.Math.Max(topC, Strength(p, gw));
         if (topC > 1e-9)

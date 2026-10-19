@@ -180,11 +180,15 @@ public static class NationBrief
         var map = new Dictionary<string, string>();
         var score = new Dictionary<string, double>();
         var soldiers = new Dictionary<string, double>();
+        foreach (var p in sim.Diplomacy.Powers) if (p.Nation is not null) soldiers[p.Name] = p.Nation.SoldierSizeK();   // 兵の数は構築直後の値のまま（助走の前＝旧と同じ）
+        // ★(449) 旗 ScoreFromWorldShare＞0 のとき、ランクと国力は助走の直後の盤面から読む（構築時は市場が回る前＝流れの 3 項が 0 で国力が 3 項に退化する。ゲームの開始のランク〔StartWarmup の末尾で取り直す〕と同じ盤面）。
+        //   助走は全長で約 6.5 秒〔開発機・61 カ国〕＝選択画面の構築が 0.5 秒から延びる。旗 0 は通らない（旧と同じ 0.5 秒）。
+        if (sim.Coef.ScoreFromWorldShare > 0) sim.StartWarmup();
+        var scoreByPower = NationalScore.ScoresByPower(sim.Diplomacy);   // ★(449) 国力は全国分を 1 回で（旗＞0 で国ごとに世界の総量を求め直さない）
         foreach (var p in sim.Diplomacy.Powers)
         {
             if (p.Nation is null) continue;
-            score[p.Name] = NationalScore.Of(p.Nation);
-            soldiers[p.Name] = p.Nation.SoldierSizeK();
+            score[p.Name] = scoreByPower[p.Id];
             map[p.Name] = sim.Diplomacy.RankOf(p) switch
             {
                 PowerRank.Great => "列強",

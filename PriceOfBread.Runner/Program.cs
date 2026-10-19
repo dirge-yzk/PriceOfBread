@@ -3191,13 +3191,12 @@ if (args.Length > 0 && args[0] == "rankprobe")
     for (int q = 0; q < qsR; q++) simR2.StepQuarter();
     var dipR = simR2.Diplomacy;
     var rows = simR2.Nations.Select(n => n.World).Where(w => w.SelfPower is not null)
-        .Select(w => (W: w, S: NationalScore.Of(w), M: NationalScore.Military(w), Wl: NationalScore.Wealth(w),
-                      F: NationalScore.Finance(w), T: NationalScore.Tech(w)))
+        .Select(w => (W: w, S: NationalScore.Of(w), B: NationalScore.BreakdownOf(w)))   // ★(449) 内訳は NationalScore の 1 本（旗に従う）
         .OrderByDescending(x => x.S).ToList();
     System.Console.WriteLine($"seed={sdR}　{simR2.Nations[0].World.Year}年　（列強の定員={simR2.Coef.GreatPowerCount}）");
-    System.Console.WriteLine($"{"順",3}{"国",-16}{"スコア",8}{"軍",8}{"豊かさ",8}{"金融",7}{"技術",7}{"GDP",10}{"工業化",7}{"満足",7}{"植民地",6}");
-    void Line(int rank, (World W, double S, double M, double Wl, double F, double T) x)
-        => System.Console.WriteLine($"{rank,3}{x.W.SelfPower!.Name,-16}{x.S,8:F1}{x.M,8:F1}{x.Wl,8:F1}{x.F,7:F1}{x.T,7:F1}"
+    System.Console.WriteLine($"{"順",3}{"国",-16}{"スコア",8}" + string.Join("", rows[0].B.Select(l => $"{l.Label,10}")) + $"{"GDP",10}{"工業化",7}{"満足",7}{"植民地",6}");
+    void Line(int rank, (World W, double S, NationalScore.ScoreLine[] B) x)
+        => System.Console.WriteLine($"{rank,3}{x.W.SelfPower!.Name,-16}{x.S,8:F1}" + string.Join("", x.B.Select(l => $"{l.Points,10:F1}"))
             + $"{x.W.GdpPerMonth,10:F0}{x.W.MeanIndustrialization,7:F2}{NationalScore.MeanSatisfaction(x.W),7:F2}{x.W.SelfPower!.Colonies,6}");
     for (int i = 0; i < Math.Min(12, rows.Count); i++) Line(i + 1, rows[i]);
     System.Console.WriteLine("--- 史実の列強（1914年の8カ国）---");
@@ -6266,7 +6265,7 @@ if (args.Length > 0 && args[0] == "ranking")
         int rank = 1;
         foreach (var w in ranked)
         {
-            Console.WriteLine($"  {rank,2} {w.SelfPower?.Name,-8} 総合{NationalScore.Of(w),6:F1} ｜軍{NationalScore.Military(w),5:F1} 富{NationalScore.Wealth(w),5:F1} 金融{NationalScore.Finance(w),5:F1}（工業{w.Region.TotalIndustrialization,4:F2} 満足{NationalScore.MeanSatisfaction(w),4:F2} 植民地{w.SelfPower?.Colonies ?? 0}）人口{w.TotalPopulation / 1000.0,5:F1}M 政体{PolJa(w.Polity)}");
+            Console.WriteLine($"  {rank,2} {w.SelfPower?.Name,-8} 総合{NationalScore.Of(w),6:F1} ｜" + string.Join(" ", NationalScore.BreakdownOf(w).Select(l => $"{l.Label}{l.Points,5:F1}")) + $"（工業{w.Region.TotalIndustrialization,4:F2} 満足{NationalScore.MeanSatisfaction(w),4:F2} 植民地{w.SelfPower?.Colonies ?? 0}）人口{w.TotalPopulation / 1000.0,5:F1}M 政体{PolJa(w.Polity)}");
             rank++;
         }
     }
@@ -6749,13 +6748,14 @@ if (args.Length > 0 && args[0] == "score")
     sm.WarmupEconomy(6);
     for (int q = 0; q < sq; q++) sm.StepQuarter();
     Console.WriteLine($"--- {sm.Nations[0].World.Year}年 国力スコアの内訳 ---");
-    Console.WriteLine("国        総力   軍事  富計 | GDP項 工業項 満足項 植民項  金融");
-    foreach (var nat in sm.Nations.OrderByDescending(x => NationalScore.Of(x.World)))
+    // ★(449) 内訳は NationalScore.Breakdowns の 1 本（旗 0＝軍事・生産の豊かさ・金融・技術／旗＞0＝6 項の割合の点）。旧の富の 4 つの小項〔GDP・工業・満足・植民〕は旗 0 の腕〔OfOld〕の中身で、ここでは出さない。
+    var scoreWs = sm.Nations.Select(x => x.World).ToList();
+    var scoreSc = NationalScore.Scores(scoreWs); var scoreBd = NationalScore.Breakdowns(scoreWs);
+    Console.WriteLine("国        総力  " + string.Join(" ", scoreBd[0].Select(l => l.Label)));
+    foreach (int ix in Enumerable.Range(0, scoreWs.Count).OrderByDescending(k => scoreSc[k]))
     {
-        var w = nat.World;
-        double mil = NationalScore.Military(w), wealth = NationalScore.Wealth(w), fin = NationalScore.Finance(w);
-        var (gdpT, indT, satT, colT) = NationalScore.WealthParts(w);   // 内訳＝正典の1本（旧＝定数の複製・2026-09-11 #15）
-        Console.WriteLine($"  {w.SelfPower?.Name,-8} {NationalScore.Of(w),5:F0}  {mil,4:F0}  {wealth,4:F0} | {gdpT,4:F0}  {indT,4:F0}  {satT,4:F0}  {colT,4:F0}   {fin,4:F0}（軍{w.SelfPower?.Military:F1} 工業{w.Region.TotalIndustrialization:F1} 植民{w.SelfPower?.Colonies}）");
+        var w = scoreWs[ix];
+        Console.WriteLine($"  {w.SelfPower?.Name,-8} {scoreSc[ix],5:F0}  " + string.Join(" ", scoreBd[ix].Select(l => $"{l.Points,6:F1}")) + $"（軍{w.SelfPower?.Military:F1} 工業{w.Region.TotalIndustrialization:F1} 植民{w.SelfPower?.Colonies}）");
     }
     return;
 }
@@ -6912,23 +6912,23 @@ if (args.Length > 0 && args[0] == "scorebreak")
     foreach (var ns in sbsim.Nations) ns.TelemetryEnabled = false;
     sbsim.Diplomacy.Log.Enabled = false;
     while (sbsim.Year < 1914) sbsim.StepQuarter();
-    var rows = new List<(string Name, double Total, double Mil, double Gdp, double Ind, double Sat, double Col, double Fin, double Tech)>();
-    foreach (var ns in sbsim.Nations)
+    var rows = new List<(string Name, double Total, NationalScore.ScoreLine[] B)>();
+    var sbWs = sbsim.Nations.Select(x => x.World).ToList();   // ★(449) 内訳は NationalScore.Breakdowns の 1 本（旗に従う・全国分を 1 回で）
+    var sbSc = NationalScore.Scores(sbWs); var sbBd = NationalScore.Breakdowns(sbWs);
+    for (int ix = 0; ix < sbWs.Count; ix++)
     {
-        var w = ns.World; var sp = w.SelfPower; if (sp is null) continue;
-        var (gdpScale, ind, sat, col) = NationalScore.WealthParts(w);   // 内訳＝正典の1本（2026-09-11 #15）
-        double mil = NationalScore.Military(w), fin = NationalScore.Finance(w), tech = NationalScore.Tech(w);
-        rows.Add((sp.BaseName, NationalScore.Of(w), mil, gdpScale, ind, sat, col, fin, tech));
+        var sp = sbWs[ix].SelfPower; if (sp is null) continue;
+        rows.Add((sp.BaseName, sbSc[ix], sbBd[ix]));
     }
     rows.Sort((a, b) => b.Total.CompareTo(a.Total));
-    Console.WriteLine("順位	国	合計	軍事	経済規模	工業化	生活	植民地	金融	技術");
+    Console.WriteLine("順位	国	合計	" + string.Join("	", rows[0].B.Select(l => l.Label)));
     int rank = 0;
     var refs = new HashSet<string> { "イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "オーストリア", "日本", "オスマン", "清" };
     foreach (var r in rows)
     {
         rank++;
         if (rank <= 12 || refs.Contains(r.Name))
-            Console.WriteLine($"{rank}	{r.Name}	{r.Total:F1}	{r.Mil:F1}	{r.Gdp:F1}	{r.Ind:F1}	{r.Sat:F1}	{r.Col:F1}	{r.Fin:F1}	{r.Tech:F1}");
+            Console.WriteLine($"{rank}	{r.Name}	{r.Total:F1}	" + string.Join("	", r.B.Select(l => $"{l.Points:F1}")));
     }
     return;
 }
@@ -7697,7 +7697,7 @@ if (args.Length > 0 && args[0] == "noviceprobe")
             {
                 int rank = 1; double myS = NationalScore.Standing(pw);
                 foreach (var n in sim.Nations) if (n.World != pw && NationalScore.Standing(n.World) > myS) rank++;
-                rows.Add($"{pw.Year},{rank},{NationalScore.Of(pw):F1},{NationalScore.Military(pw):F1},{NationalScore.Wealth(pw):F1},{NationalScore.Finance(pw):F1},{NationalScore.Tech(pw):F1},{pw.MeanIndustrialization:F2},{pw.Treasury:F0}");
+                rows.Add($"{pw.Year},{rank},{NationalScore.Of(pw):F1},{string.Join(",", NationalScore.BreakdownOf(pw).Select(l => l.Points.ToString("F1")))},{pw.MeanIndustrialization:F2},{pw.Treasury:F0}");
                 Console.WriteLine(rows[^1]); Console.Out.Flush();   // 行は出た瞬間に確定（溜め書きは全損リスク）
             }
         }
@@ -7707,9 +7707,9 @@ if (args.Length > 0 && args[0] == "noviceprobe")
     }
 
     Console.WriteLine($"=== noviceprobe seed={nvSeed} 国={nvNation}{(nvOff.Count > 0 ? " 除外手=" + string.Join(",", nvOff.OrderBy(x => x)) : "")} ===");
-    Console.WriteLine("列＝年,順位,スコア,軍事,富,金融,技術,工業化度,国庫（順位＝NationalScore.Standing の序列・全国家中／スコア内訳＝SelfPlay.cs:19-64／#行＝イベント）");
+    Console.WriteLine("列＝年,順位,スコア,内訳の項（NationalScore.BreakdownOf の順＝旗 0 は軍事・富・金融・技術／旗＞0 は兵の数・軍事費・鉄の産出・動力の消費・都市の人口・総人口）,工業化度,国庫（順位＝NationalScore.Standing の序列・全国家中／#行＝イベント）");
     Console.WriteLine("--- 試合1: 初心者スクリプト ---");
-    Console.WriteLine("年,順位,スコア,軍事,富,金融,技術,工業化度,国庫");
+    Console.WriteLine("年,順位,スコア,内訳の項…,工業化度,国庫");
     Console.Out.Flush();
     var nvA = NvRun(script: true);
     if (nvOff.Count > 0)
@@ -7718,7 +7718,7 @@ if (args.Length > 0 && args[0] == "noviceprobe")
         return;
     }
     Console.WriteLine("\n--- 試合2: 対照（同シード・全AI） ---");
-    Console.WriteLine("年,順位,スコア,軍事,富,金融,技術,工業化度,国庫");
+    Console.WriteLine("年,順位,スコア,内訳の項…,工業化度,国庫");
     Console.Out.Flush();
     var nvB = NvRun(script: false);
     Console.WriteLine("\n--- サマリ（順位差＝AI−初心者。正＝初心者が上位） ---");
@@ -8587,10 +8587,7 @@ if (args.Length > 0 && args[0] == "test8")
             .Select(x => $"{x.Key}{100 * x.S / tot:F0}%"));
         string regions = string.Join("/", w.Regions.Where(r => r.State == RegionState.Active).Select(r => r.Name));
         Console.WriteLine($"\n#{rk} {w.SelfPower?.Name ?? w.Region.Name}  国力{NationalScore.Of(w):F0}  満足{NationalScore.MeanSatisfaction(w):F2}");
-        {   // 国力内訳＝現行スコア式（旗 ScoreFromWorldShare＝0〔既定・(420)〕の NationalScore.Of＝OfOld＝軍+富+金融+技術・★旗 1 では Of は 6 項の割合で、この内訳は旧の物差しの値）から生成（監査2026-07-12 死13：旧＝古い係数の手書き式で実際の得点内訳と食い違い、バランス作業を誤誘導していた）
-            var (gdpScale, indT8, satT8, colT8) = NationalScore.WealthParts(w);   // 内訳＝正典の1本（2026-09-11 #15）
-            Console.WriteLine($"  国力内訳: 軍{NationalScore.Military(w):F1} ＋ 富{NationalScore.Wealth(w):F1}（GDP逓減{gdpScale:F1}+工業{indT8:F1}+生活{satT8:F1}+植民{colT8:F1}）＋ 金融{NationalScore.Finance(w):F1} ＋ 技術{NationalScore.Tech(w):F1} ＝ {NationalScore.Of(w):F1}");
-        }
+        Console.WriteLine("  国力内訳: " + string.Join(" ＋ ", NationalScore.BreakdownOf(w).Select(l => $"{l.Label}{l.Points:F1}")) + $" ＝ {NationalScore.Of(w):F1}");   // ★(449) 内訳は NationalScore.BreakdownOf の 1 本（旗に従う）
         Console.WriteLine($"  人口{w.TotalPopulation:N0}（{popStr}）  植民地{pw?.Colonies ?? 0}");
         Console.WriteLine($"  工業{w.Region.TotalIndustrialization:F2} 技術{w.TechLevel:F2} 識字{w.AllPops().Sum(p => p.Literacy * p.Size) / Math.Max(1, w.TotalPopulation):P0} 制度[特許{(w.PatentLaw ? "○" : "×")} 株式{(w.JointStock ? "○" : "×")} 鉄道{(w.Railways ? "○" : "×")}]");
         Console.WriteLine($"  輸送[鉄道容量{w.RailCapacity:F0} 船容量{w.ShipCapacity:F0}  港州{w.Regions.Count(r => r.IsPort)}/{w.Regions.Count(r => r.State == RegionState.Active)}]");
