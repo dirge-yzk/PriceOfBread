@@ -1986,7 +1986,7 @@ public static class CostLedger
         "発見：平滑化した値段の歩（国×四半期）",
         "奢侈品と家事奉仕の所得弾力：POP×月（世界の値の配りの走査と買い手の POP ごとの係数）",
         "AI の官僚制度の走査：国×四半期（欲しい法の表の走査と前提・門の照会）",
-        "不満度を読む：POP×国×四半期（参加の述語〔旗 ParticipationDiscontent〕と思想の更新の入力〔旗 DiscontentSplit〕が正のときだけ）",
+        "不満度を読む：POP×国×四半期（参加の述語〔旗 ParticipationDiscontent が正のとき〕と思想の更新の入力〔常に〕）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2034,7 +2034,7 @@ public static class CostLedger
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
     /// それまで .cost の外にあった重さ（(392) の申し送り）を内側へ入れる行＝推定の計算量が約 0.5 秒増える（予算の上限 248.5 秒の内）。</summary>
     public const double AiBureaucracyScanUnitMicros = 12.76;
-    /// <summary>★(417) 参加の述語の単価（マイクロ秒/POP）＝**上限の見積り**（census は無い）。旗 ParticipationDiscontent が正のときだけ件数が立つ（旗 0 は件数 0＝推定は変わらない）。
+    /// <summary>★(417) 参加の述語の単価（マイクロ秒/POP）＝**上限の見積り**（census は無い）。参加の述語は旗 ParticipationDiscontent が正のとき、思想の更新の入力は常に件数が立つ（2026-10-19 (431) 採用後の既定）。
     /// 1.2＝四半期末 POP×国の単価 1.05863（Politics.Step の POP ごとの全費用＝不満度 1 回〔理想点の配列・発言権・生活の欲求〕はその一部）＋運動体の辞書の出し入れ 約 0.14。採ったら B の .cost の実測の CPU 秒の差で取り直す（事前登録 dc_20261019_prereg.txt [7]）。</summary>
     public const double ParticipationUnitMicros = 1.2;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数

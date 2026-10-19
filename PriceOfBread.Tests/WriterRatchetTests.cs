@@ -503,7 +503,10 @@ public class WriterRatchetTests
     // ★2026-10-19 表の更新（(420) 合流＝hz〔恒等〕＋dt〔(415)〕＋ce〔(418)〕＋sc〔(416)・AiModernizeFromReturn 3・ScoreFromWorldShare は 0 へ戻した〕を重ねた木で取り直した＝3 本の軌道の重ね・処理の形は各線と同じ・新しい計数の処理は無い）：
     //   上の 3 段の値はそれぞれの線の木だけの値。合わせた木＝建設：見た生産者（旬）2,076・生産：生産者×月 6,933,159・請求：見た生産者（月）1,177・清算：着値の充填 33,519,715・覇権の判定 3,037,472（m412 の 3,248,529 から −6.5%）。
     //   ほかは許しの内。全長の計器つき10種の推定の計算量は実装ログ (420)。
-    [InlineData(CostLedger.DiploHegemonScans, 3037472L)]
+    // ★2026-10-19 表の更新（(431) 線 dq＝不満度の二量分離の点火〔ParticipationDiscontent 既定 1・闘争度の目標から生活の項を外す・思想の入力が max〕＝最初の40四半期の軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   覇権の判定 3,037,472→4,122,173（+36%＝戦争の形が変わり同盟の候補が居る月が増えた軌道）。全長の計器つき10種では 86.3M→78.1M（−10%・推定 0.41→0.37 秒）＝全体では増えていない（measurements/b10_20261019_dqB_ins.cost）。
+    //   この行は1種40四半期の軌道依存（合流で全線を重ねた木で取り直す）。ほかは許しの内。新しい台帳の行（22番・不満度を読む）は宣言の表を持たない（推定の予算の線で見る）。
+    [InlineData(CostLedger.DiploHegemonScans, 4122173L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]

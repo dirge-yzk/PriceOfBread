@@ -73,7 +73,7 @@ public static class FactionSnapshot
 
     /// <summary>参加の述語の文脈＝**国の量**を pop ループの外で1回だけ取る（<see cref="Participation"/>／<see cref="BlocIdeo"/> と対）。
     /// ★段3：不満度は pop の純関数だが、政体座標と法の隔たりは国の量（Politics.Discontent の注意書きと同じ作法・キャッシュは作らない＝World に置いた導出量は記憶になる）。
-    /// ⚠既定（ParticipationDiscontent=0）では両方とも1度も計算しない＝旧経路のコストのまま。
+    /// ⚠ParticipationDiscontent=0 の世界では参加の側は1度も計算しない（思想の更新は常に計算する）。
     /// ⚠**同一ティック内の時点差は仕様**：闘争度ループは前期の参照点（LivingRef）で失望を測り、ここは更新後の参照点で測る
     ///   （Politics.Step の順＝闘争度→Factions.Step）。不満度は「記憶を持たず**今**の盤面を読む」量なので、これは分子と分母の非対称ではなく定義どおり
     ///   （差は LivingRefSpeed=0.03＝ギャップの3%）。

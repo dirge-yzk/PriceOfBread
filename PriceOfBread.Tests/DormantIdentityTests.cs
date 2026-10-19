@@ -33,10 +33,7 @@ public class DormantIdentityTests
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
                                         //   0＝EconomyStep の枝に入らず（rebelDemand 全0）・法は7箇所全部が素通り・第5因子は掛けない＝厳密恒等。点火は 1.0（0/1の主フラグ）
         // ★FamineDriveGain は 2026-09-22 に 10 で**点火**、NeedTierSplit は同日に旗ごと削除（階層3分割を既定化＝作者裁定2026-09-20）＝この表から外した。
-        "ParticipationDiscontent",      // ★二量分離 段3（2026-09-09）＝参加の述語を不満度へ（読み手は FactionSnapshot.ComputeClusters の1箇所）。
-                                        //   0＝旧＝「闘争度 > MilitancyThreshold(0.5)」の二値＝不満度を1度も読まない（ビット恒等）
-        "DiscontentSplit",              // ★(431) 二量分離の完成＝闘争度の目標から生活の項を外し、思想の更新の入力を max(不満度, 闘争度) に（ParticipationDiscontent と併せて B）。
-                                        //   0＝旧＝目標の頭は生活＋法（不満度の本体 DiscontentRaw）・思想の入力は闘争度のまま（不満度を1度も呼ばない・ビット恒等）
+        // ★ParticipationDiscontent は 2026-10-19 (431) に 1 で**点火**、DiscontentSplit は焼き込んで旗ごと削除（二量分離の完成＝闘争度の目標から生活の項を外し、参加の述語と思想の更新の入力は max(不満度, 闘争度)）。この表から外した。
         "AssimilationRevival",          // ★段4（2026-09-09・§7-7バグa後半）＝民族復興＝抵抗の床を外して符号を反転させる（勾配の差し替え）。
                                         //   0＝床あり＝厳密恒等。点火値 1.0526＝1/0.95（反転点＝ボヘミア1900の識字0.95）
         "NationConsciousnessDerived",   // ★段4（2026-09-09・作者裁定5／§7-7バグb）＝国民意識をストックから**同じ漸化式の不動点**へ。

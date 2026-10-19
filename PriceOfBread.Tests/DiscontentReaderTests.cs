@@ -37,7 +37,7 @@ public class DiscontentReaderTests
     }
 
     [Fact]
-    public void 闘争度の目標の生活の項は落差の0_25に合い_2項の和は不満度の前クランプに等しい()
+    public void 闘争度の目標に生活の項は入らず_不満度の前クランプは落差の0_25に合う()
     {
         var w = Board(drop: 0.25);
         var c = w.Coef;
@@ -51,9 +51,9 @@ public class DiscontentReaderTests
         {
             if (!before.TryGetValue(p, out double d0)) continue;   // Step の中で生まれた POP は比べない
             n++;
-            Assert.Equal(c.WantWeight * 0.25, p.MilLiving, 12);
+            Assert.Equal(0.0, p.MilLiving);                // 2026-10-19 (431)：生活の項は闘争度の目標に入らない（欄のまま厳密に 0）
             Assert.Equal(0.0, p.MilVoice, 12);
-            Assert.Equal(d0, c.WantWeight * 0.25, 12);   // 不満度＝同じ 2 項の和（クランプの内）
+            Assert.Equal(d0, c.WantWeight * 0.25, 12);   // 不満度は生活の項を持つ（意識 0＝法の項 0・クランプの内）
         }
         Assert.True(n > 50, $"比べた POP が少ない {n}");
     }
@@ -126,17 +126,18 @@ public class DiscontentReaderTests
         Assert.Equal(CostLedger.ParticipationUnitMicros, CostLedger.UnitMicros[CostLedger.ParticipationPops]);
         var w = Board(drop: 0.0);
         int expect = ActivePops(w).Count();
+        long b0 = w.Cost[CostLedger.ParticipationPops];   // 盤面を作る Run の中の思想の更新が載せた分（2026-10-19 (431)：思想の入力は常に不満度を問う）からの差分で見る
         w.Coef.ParticipationDiscontent = 0;
         FactionSnapshot.ComputeClusters(w, countCost: true);
-        Assert.Equal(0L, w.Cost[CostLedger.ParticipationPops]);   // 旗 0＝件数 0（推定の計算量は旧と同じ）
+        Assert.Equal(b0, w.Cost[CostLedger.ParticipationPops]);   // 参加の述語の旗 0＝この呼びは件数を足さない（推定の計算量は旧と同じ）
         w.Coef.ParticipationDiscontent = 1.0;
         FactionSnapshot.ComputeClusters(w);
         FactionSnapshot.Compute(w);   // 画面の表示の経路は台帳へ足さない（World 非変更の約束・画面と headless で台帳が分かれない）
-        Assert.Equal(0L, w.Cost[CostLedger.ParticipationPops]);
+        Assert.Equal(b0, w.Cost[CostLedger.ParticipationPops]);
         FactionSnapshot.ComputeClusters(w, countCost: true);
-        Assert.Equal((long)expect, w.Cost[CostLedger.ParticipationPops]);
+        Assert.Equal(b0 + expect, w.Cost[CostLedger.ParticipationPops]);
         FactionSnapshot.ComputeClusters(w, countCost: true);
-        Assert.Equal(2L * expect, w.Cost[CostLedger.ParticipationPops]);   // エンジンの呼びごとに足される
+        Assert.Equal(b0 + 2L * expect, w.Cost[CostLedger.ParticipationPops]);   // エンジンの呼びごとに足される
         // 実際のエンジンの呼び手（Factions.Step）が countCost を立てている＝本番の経路で台帳に載る（引数を落とすと赤）
         Assert.True(w.ParliamentEnabled && w.FactionRng is not null, "前提：Factions.Step が走る世界");
         long before = w.Cost[CostLedger.ParticipationPops];

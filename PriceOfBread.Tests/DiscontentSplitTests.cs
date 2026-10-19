@@ -5,10 +5,11 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// ★(431) 線 dq（不満度の二量分離・00-DISC の続き）の番人。機構と不変条件だけ（創発の主張＝狙いの数字は成績表と計器が見る）。事前登録 measurements/dq_20261019_prereg.txt [6]。
-/// ①既定（DiscontentSplit＝0）：不満度の本体 DiscontentRaw はクランプしない（負の生活の失望が負のまま）・Discontent はそれを [0,1] に切る・Step の MilLiving＋MilVoice＝DiscontentRaw（厳密等号）。
-/// ②旗 1：闘争度の目標から生活の項が消える（MilLiving が厳密 0・目標の差は生活の項の分だけ）・民族/厭戦/飢餓の項は旗に依らず同じ。
-/// ③旗 1：思想の更新の入力が max(不満度, 闘争度)（不満度が大きい POP は闘争度をその値に置いた世界と同じシェア・闘争度が大きい POP は旗 0 と同じ）。旗 0 は不満度を1度も呼ばない。
-/// ④計算量の台帳：思想の更新の分が旗 1 のときだけ載る。
+/// 2026-10-19 に点火（旗 DiscontentSplit は焼き込んで削除）。新しい既定の主張：
+/// ①不満度の本体 DiscontentRaw はクランプしない（負の生活の失望が負のまま）・Discontent はそれを [0,1] に切る。
+/// ②Step の内訳：MilLiving は厳密に 0（生活の項は闘争度の目標に入らない）・MilVoice＝DiscontentRaw−生活の項（手計算）・闘争度は生活の失望の符号と大きさに依らない。
+/// ③好景気の負の失望が飢餓の怒りを打ち消さない。④思想の更新の入力が max(不満度, 闘争度)（不満度の大きい POP は闘争度をその値に置いた世界と同じシェア・更新の前の理想点で測る・不満度が上がれば闘争度が同じでもシェアが動く）。
+/// ⑤計算量の台帳：思想の更新の分が載る。
 /// 期待値はテストの側の手計算のリテラル（WantWeight＝0.8・落差 0.25 など）で、本体と同じ式から作らない。
 /// </summary>
 [Collection("Instruments")]
@@ -54,15 +55,14 @@ public class DiscontentSplitTests
     }
 
     [Fact]
-    public void 既定ではStepの内訳の生活と法の項の和が不満度の本体に厳密に等しい()
+    public void Stepの内訳は生活の項が0で法の項が不満度の本体から生活の項を引いた値に等しい()
     {
-        // 意識を高くして法の項も立てる（正の落差と負の落差の両方の盤面）。別々に作った2つの同一の盤面の一方を Step して内訳の和を取り、
-        // もう一方で更新前に DiscontentRaw を取る（4 軸の距離÷2 はテストの側の手計算）。MilLiving＋MilVoice＝DiscontentRaw（同じ左結合の加算＝ビット一致）。
+        // 意識を高くして法の項も立てる（正の落差と負の落差の両方の盤面）。別々に作った2つの同一の盤面の一方を Step して内訳を取り、
+        // もう一方で更新前に DiscontentRaw を取る（4 軸の距離÷2 はテストの側の手計算）。MilLiving＝0（厳密）・MilVoice＝DiscontentRaw−0.8×落差（手計算のリテラル）。
         foreach (double drop in new[] { 0.25, -0.25 })
         {
             World Make() { var w = Board(drop); foreach (var p in ActivePops(w)) { p.Consciousness = 0.9; p.Literacy = 0.9; } return w; }
             var wa = Make(); var wb = Make();
-            Assert.Equal(0.0, wa.Coef.DiscontentSplit);
             var coord = PoliticalQuantities.DriftedPolityCoord(wa.Polity, wa.Suffrage, wa.Coef);
             var raw = ActivePops(wa).Select(p => Politics.DiscontentRaw(wa, wa.Coef, p, Math.Sqrt(Distance2(p, coord)) / 2.0)).ToList();
             Politics.Step(wb, wb.Coef);
@@ -71,8 +71,8 @@ public class DiscontentSplitTests
             int voiced = 0;
             for (int i = 0; i < pops.Count; i++)
             {
-                Assert.Equal(raw[i], pops[i].MilLiving + pops[i].MilVoice);        // 厳密等号
-                Assert.Equal(0.8 * drop, pops[i].MilLiving, 12);                    // 生活の項の手計算（WantWeight×落差）
+                Assert.Equal(0.0, pops[i].MilLiving);                                  // 生活の項は闘争度の目標に入らない（欄のまま厳密に 0）
+                Assert.Equal(raw[i] - 0.8 * drop, pops[i].MilVoice, 12);               // 法の項＝不満度の本体−生活の項（WantWeight×落差の手計算）
                 if (pops[i].MilVoice > 0) voiced++;
             }
             Assert.True(pops.Count > 50, $"比べた POP が少ない {pops.Count}");
@@ -88,94 +88,70 @@ public class DiscontentSplitTests
     }
 
     [Fact]
-    public void 旗1では闘争度の目標から生活の項だけが消える()
+    public void 闘争度は生活の失望の符号と大きさに依らない()
     {
-        // 闘争度の追従を 1 にして（Militancy＝目標）、旗 0 と旗 1 の同じ盤面を比べる。落差 +0.25 → 生活の項は 0.8×0.25＝0.2（手計算）。
-        double[] mil0 = [], mil1 = [];
-        double[] famine0 = [], famine1 = [], nation0 = [], nation1 = [];
-        foreach (int flag in new[] { 0, 1 })
+        // 闘争度の追従を 1 にして（Militancy＝目標）、落差 +0.25・0・−0.25 の同じ盤面を比べる。意識 0 の盤面なので法・民族・厭戦・飢餓の項は 0 ＝目標は 0 のまま。
+        // 生活の項（0.8×落差＝±0.2）が目標に入っていれば闘争度は 0.2／0（切り）に分かれる。
+        foreach (double drop in new[] { 0.25, 0.0, -0.25 })
         {
-            var w = Board(drop: 0.25, militancy: 0.0);
+            var w = Board(drop, militancy: 0.0);
             w.Coef.MilitancySpeed = 1.0;
-            w.Coef.DiscontentSplit = flag;
             Politics.Step(w, w.Coef);
             var ps = ActivePops(w).ToList();
-            if (flag == 0) { Assert.All(ps, p => Assert.Equal(0.2, p.MilLiving, 12)); mil0 = ps.Select(p => p.Militancy).ToArray(); famine0 = ps.Select(p => p.MilFamine).ToArray(); nation0 = ps.Select(p => p.MilNation).ToArray(); }
-            else { Assert.All(ps, p => Assert.Equal(0.0, p.MilLiving)); mil1 = ps.Select(p => p.Militancy).ToArray(); famine1 = ps.Select(p => p.MilFamine).ToArray(); nation1 = ps.Select(p => p.MilNation).ToArray(); }
-        }
-        Assert.Equal(mil0.Length, mil1.Length);
-        int checkedPops = 0;
-        for (int i = 0; i < mil0.Length; i++)
-        {
-            Assert.Equal(famine0[i], famine1[i]); Assert.Equal(nation0[i], nation1[i]);   // 飢餓・民族の項は旗に依らない
-            if (mil0[i] < 0.999 && mil0[i] > 0.0)   // 上の切りに掛からない POP＝目標の差は生活の項の分（0.2）
-            {
-                Assert.Equal(0.2, mil0[i] - mil1[i], 9);
-                checkedPops++;
-            }
-        }
-        Assert.True(checkedPops > 50, $"目標の差を見た POP が少ない {checkedPops}");
-    }
-
-    [Fact]
-    public void 旗1では負の生活の失望が民族と厭戦と飢餓を打ち消さない()
-    {
-        // 成長期（落差 −0.25）に飢餓の駆動を立てる（平常 FoodRef＝1・今の充足 0.9133…・FamineDriveGain×(平常−充足−起点)＝0.5 になる手計算の置き方）。
-        // 旗 0 は目標の頭が −0.2 なので 飢餓 0.5 から引かれて 0.3・旗 1 は生活の項が無いので 0.5（差はちょうど 0.2＝生活の項の分）。
-        double gain = 0, onset = 0;
-        double[] m0 = [], m1 = [];
-        foreach (int flag in new[] { 0, 1 })
-        {
-            var w = Board(drop: -0.25, militancy: 0.0);
-            gain = w.Coef.FamineDriveGain; onset = w.Coef.FamineDropOnset;
-            Assert.True(gain > 0, "前提：飢餓の駆動が点火している");
-            double fill = 1.0 - onset - 0.5 / gain;   // 駆動 0.5 になる充足（平常 1.0 から）
-            foreach (var p in ActivePops(w)) { p.FoodNeed = 1.0; p.FoodMet = fill; p.FoodRef = 1.0; }
-            w.Coef.MilitancySpeed = 1.0;
-            w.Coef.DiscontentSplit = flag;
-            Politics.Step(w, w.Coef);
-            var ps = ActivePops(w).ToList();
-            Assert.All(ps, p => Assert.Equal(flag == 0 ? -0.2 : 0.0, p.MilLiving, 12));
-            Assert.All(ps, p => Assert.Equal(0.5, p.MilFamine, 9));   // 飢餓の項は旗に依らない
-            if (flag == 0) m0 = ps.Select(p => p.Militancy).ToArray(); else m1 = ps.Select(p => p.Militancy).ToArray();
-        }
-        Assert.Equal(m0.Length, m1.Length);
-        Assert.True(m0.Length > 50);
-        for (int i = 0; i < m0.Length; i++)
-        {
-            Assert.Equal(0.5, m1[i], 9);               // 旗 1＝飢餓だけ（政治の項は意識 0 で 0・民族と厭戦は 0 の盤面）… 他の項が立つ POP は下の差で見る
-            Assert.Equal(0.2, m1[i] - m0[i], 9);       // 打ち消されなくなった分＝生活の項（0.8×0.25）
+            Assert.True(ps.Count > 50);
+            Assert.All(ps, p => { Assert.Equal(0.0, p.MilLiving); Assert.Equal(0.0, p.Militancy, 12); });
         }
     }
 
     [Fact]
-    public void 旗1では思想の更新の入力が不満度と闘争度の大きい方で_旗0は不満度を読まない()
+    public void 負の生活の失望が飢餓の怒りを打ち消さない()
     {
-        // 落差 0.5・意識 0 → 不満度＝0.8×0.5＝0.4（手計算）。闘争度 0.1（不満度が大きい）と 0.9（闘争度が大きい）の 2 つの盤面で、旗 1 の更新後のシェアを
-        // 〈旗 0 で闘争度をその大きい方の値に置いた世界〉のシェアと比べる（同じ決定論の盤面＝ビット一致）。
-        foreach (var (milLow, milHigh) in new[] { (0.1, 0.4), (0.9, 0.9) })
+        // 成長期（落差 −0.25）に飢餓の駆動を立てる（平常 FoodRef＝1・FamineDriveGain×(平常−充足−起点)＝0.5 になる手計算の置き方）。
+        // 生活の項が目標に入っていれば 0.5−0.2＝0.3・入っていなければ 0.5（政治・民族・厭戦は 0 の盤面）。
+        var w = Board(drop: -0.25, militancy: 0.0);
+        double gain = w.Coef.FamineDriveGain, onset = w.Coef.FamineDropOnset;
+        Assert.True(gain > 0, "前提：飢餓の駆動が点火している");
+        double fill = 1.0 - onset - 0.5 / gain;   // 駆動 0.5 になる充足（平常 1.0 から）
+        foreach (var p in ActivePops(w)) { p.FoodNeed = 1.0; p.FoodMet = fill; p.FoodRef = 1.0; }
+        w.Coef.MilitancySpeed = 1.0;
+        Politics.Step(w, w.Coef);
+        var ps = ActivePops(w).ToList();
+        Assert.True(ps.Count > 50);
+        Assert.All(ps, p => { Assert.Equal(0.0, p.MilLiving); Assert.Equal(0.5, p.MilFamine, 9); Assert.Equal(0.5, p.Militancy, 9); });
+    }
+
+    [Fact]
+    public void 思想の更新の入力は不満度と闘争度の大きい方()
+    {
+        // 落差 0.5・意識 0 → 不満度＝0.8×0.5＝0.4（手計算）。闘争度 0.1（不満度が大きい）の盤面のシェアが、闘争度を 0.4 に置いた盤面のシェアとビット一致し
+        // （入力が闘争度だけなら 0.1 と 0.4 で別になる）、闘争度が 0.9 の盤面は不満度に引かれず 0.9 のまま（同じ盤面とビット一致）。
+        foreach (var (milA, milB) in new[] { (0.1, 0.4), (0.9, 0.9) })
         {
-            var wSplit = Board(drop: 0.5, militancy: milLow); wSplit.Coef.DiscontentSplit = 1.0;
-            var wRef = Board(drop: 0.5, militancy: milHigh); wRef.Coef.DiscontentSplit = 0.0;
-            Ideologies.UpdateShares(wSplit);
-            Ideologies.UpdateShares(wRef);
-            var a = wSplit.AllPops().ToList(); var b = wRef.AllPops().ToList();
+            var wA = Board(drop: 0.5, militancy: milA);
+            var wB = Board(drop: 0.5, militancy: milB);
+            Ideologies.UpdateShares(wA);
+            Ideologies.UpdateShares(wB);
+            var a = wA.AllPops().ToList(); var b = wB.AllPops().ToList();
             Assert.Equal(a.Count, b.Count);
             for (int i = 0; i < a.Count; i++)
-                Assert.True(a[i].IdeologyShares.SequenceEqual(b[i].IdeologyShares), $"POP {i} のシェアが違う（闘争度 {milLow}→{milHigh}）");
+                Assert.True(a[i].IdeologyShares.SequenceEqual(b[i].IdeologyShares), $"POP {i} のシェアが違う（闘争度 {milA}→{milB}）");
         }
-        // 旗 0 は不満度を呼ばない：件数 0（台帳）。旗 1 は全 POP の数。
-        var w0 = Board(drop: 0.5); Ideologies.UpdateShares(w0);
-        Assert.Equal(0L, w0.Cost[CostLedger.ParticipationPops]);
-        var w1 = Board(drop: 0.5); w1.Coef.DiscontentSplit = 1.0; Ideologies.UpdateShares(w1);
-        Assert.Equal((long)w1.AllPops().Count(), w1.Cost[CostLedger.ParticipationPops]);
+        // 闘争度が 0.1 と 0.3（どちらも不満度 0.4 より小さい）の盤面は、入力が同じ 0.4 になるのでシェアが一致する。
+        var w1 = Board(drop: 0.5, militancy: 0.1); var w3 = Board(drop: 0.5, militancy: 0.3);
+        Ideologies.UpdateShares(w1); Ideologies.UpdateShares(w3);
+        var p1 = w1.AllPops().ToList(); var p3 = w3.AllPops().ToList();
+        for (int i = 0; i < p1.Count; i++) Assert.True(p1[i].IdeologyShares.SequenceEqual(p3[i].IdeologyShares), $"POP {i}：不満度 0.4 が両方の入力のはず");
+        // 計算量の台帳：思想の更新で不満度を問うた POP の数が載る（盤面を作る Run が載せた分からの差分で見る）。
+        long b0 = w1.Cost[CostLedger.ParticipationPops];
+        Ideologies.UpdateShares(w1);
+        Assert.Equal(b0 + w1.AllPops().Count(), w1.Cost[CostLedger.ParticipationPops]);
     }
 
     [Fact]
-    public void 旗1の思想の入力の不満度は更新の前のシェアの理想点で測る_参加の述語と同じ呼びの値()
+    public void 思想の入力の不満度は更新の前のシェアの理想点で測る_参加の述語と同じ呼びの値()
     {
-        // 意識・識字を 0.9 にして法の項（理想点に依る）を立てる。旗 1 の世界 X で更新の前に参加の述語と同じ呼び（DiscontentOf）で POP ごとの不満度 d を取り、
-        // 旗 0 の同じ盤面 R の闘争度を max(d, 闘争度) に置く。更新後のシェアがビット一致なら、思想の入力は更新の前の理想点で測っている
+        // 意識・識字を 0.9 にして法の項（理想点に依る）を立てる。世界 X で更新の前に参加の述語と同じ呼び（DiscontentOf）で POP ごとの不満度 d を取り、
+        // 同じ盤面 R の闘争度を max(d, 闘争度) に置く。更新後のシェアがビット一致なら、思想の入力は更新の前の理想点で測っている
         // （BaseWeights が r＝IdeologyShares を 0 クリアして上書きした後で読むと理想点が途中の値になり、一致しない）。
         World Make()
         {
@@ -183,7 +159,7 @@ public class DiscontentSplitTests
             foreach (var r in w.Regions) foreach (var p in r.Pops) { p.Consciousness = 0.9; p.Literacy = 0.9; }
             return w;
         }
-        var wX = Make(); wX.Coef.DiscontentSplit = 1.0;
+        var wX = Make();
         var wR = Make();
         var (coord, gap) = FactionSnapshot.MembershipContext(wX, true);
         var px = wX.AllPops().ToList(); var pr = wR.AllPops().ToList();
@@ -202,13 +178,13 @@ public class DiscontentSplitTests
     }
 
     [Fact]
-    public void 旗1の思想の入力は旗0と違う世界を作る_旗0とのシェアの差がある()
+    public void 不満度が上がると闘争度が同じでも思想のシェアが動く()
     {
-        // 不満度が闘争度を上回る盤面（0.4 ＞ 0.1）で、旗 1 のシェアは旗 0 と違う（旗が何もしない＝休眠の自明な緑を避ける）。
-        var w0 = Board(drop: 0.5, militancy: 0.1);
-        var w1 = Board(drop: 0.5, militancy: 0.1); w1.Coef.DiscontentSplit = 1.0;
-        Ideologies.UpdateShares(w0); Ideologies.UpdateShares(w1);
-        var a = w0.AllPops().ToList(); var b = w1.AllPops().ToList();
+        // 闘争度は同じ 0.1。落差 0.5（不満度 0.4）と落差 0（不満度 0）でシェアが違う＝入力が闘争度だけではない（入力が闘争度だけなら一致して緑になってしまう自明さを避ける）。
+        var wHi = Board(drop: 0.5, militancy: 0.1);
+        var wLo = Board(drop: 0.0, militancy: 0.1);
+        Ideologies.UpdateShares(wHi); Ideologies.UpdateShares(wLo);
+        var a = wHi.AllPops().ToList(); var b = wLo.AllPops().ToList();
         int diff = 0;
         for (int i = 0; i < a.Count; i++) if (!a[i].IdeologyShares.SequenceEqual(b[i].IdeologyShares)) diff++;
         Assert.True(diff > 50, $"シェアが変わった POP が少ない {diff}");

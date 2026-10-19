@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 // ---------------------------------------------------------------- (417) 不満度の読み手の表 dcont_s（読むだけ・恒等） ----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsAdmin.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない。INS=1 のときだけ動く。
 // 目的＝事前登録 measurements/dc_20261019_prereg.txt の記録の線 R4〜R8（闘争度の 5 本の内訳・水準が高いのに闘争度が高い割合・参加の述語の旧と新・慣れが吸う量・運動体）を読む。
-// 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。人口が 0 の国は出さない。旗 ParticipationDiscontent に依らず出す（旗 0 の世界でも旧と新の両方の述語で数える）。
+// 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。人口が 0 の国は出さない。旗 ParticipationDiscontent に依らず出す（旗 0 の世界でも旧と新の両方の述語で数える・既定は 1）。
 // 取り方＝Instruments.Quarter から世界の状態を直に読む（本体への hook は 0 行）。不満度は Politics.Discontent を今の盤面で呼び直す（Politics.Step が闘争度を更新した後の LivingRef を読む）。
 // 列（単位は接尾辞：Share＝0〜1・Index＝無次元・K＝千人・Count＝件数。大衆＝Politics.IsMassPop の人口加重。参加の側は FactionSnapshot.ComputeClusters と同じ集合＝活きた州の規模＞0 の全 POP）：
 //   massPopK／satMeanShare（大衆の満足度）／discontentMeanShare（大衆の不満度＝Politics.AvgMassDiscontent と同じ式）／militancyMeanShare（大衆の闘争度）／
