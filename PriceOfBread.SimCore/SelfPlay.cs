@@ -2025,6 +2025,14 @@ public static class SelfPlayMatch
     public const double DepressionEnterDrawdown = 0.20;               // 恐慌（景気後退）入り＝ピーク比の収縮がこれ超
     public const double DepressionExitDrawdown = 0.08;                // 回復＝ここまで戻れば脱出（入り0.20／出0.08の2値＝境界の点滅を止める）
     public const double GreatDepressionDrawdown = 0.25;               // 大恐慌（ピーク比収縮）＝画面の語も「恐慌」（以下は「景気後退」）
+    // ★(450) 景気後退の判定の唯一の定義の続き（読む線 (441) 問い3 §2-5）：画面（GameViewModel の通知・年代記・外交ホバー）と Runner の play の報告が同じ 2 値のヒステリシスと語を呼ぶ
+    //   （旧＝判定が App の GameViewModel.News にだけあり、play の報告は名目 GDP だけで景気後退の出来事を出せなかった）。引数 drawdownPerCapita＝World.GdpPcDrawdown（1人あたり）。
+    /// <summary>景気後退の最中か（入りと出が別の水準の 2 値）。<paramref name="wasIn"/>＝前の判定で景気後退の最中だったか。</summary>
+    public static bool InDepression(bool wasIn, double drawdownPerCapita) => wasIn ? drawdownPerCapita > DepressionExitDrawdown : drawdownPerCapita > DepressionEnterDrawdown;
+    /// <summary>恐慌か（景気後退のうち深い方）。</summary>
+    public static bool IsGreatDepression(double drawdownPerCapita) => drawdownPerCapita > GreatDepressionDrawdown;
+    /// <summary>画面の語（恐慌／景気後退）。</summary>
+    public static string DepressionWord(double drawdownPerCapita) => IsGreatDepression(drawdownPerCapita) ? "恐慌" : "景気後退";
     private const double LateDecisionQuarterFraction = 0.9;           // 決着が遅い（総四半期に対する割合）
     private const double HeatPeakDecay = 0.97;                        // 直近ピーク過熱の減衰
     private const double HarvestBadDecay = 0.9;                       // 直近不作の深さの減衰

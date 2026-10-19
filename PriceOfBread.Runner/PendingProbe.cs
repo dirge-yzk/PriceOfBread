@@ -40,13 +40,13 @@ internal static class PendingProbe
         bool Dep(Power a, Power b) => (bool)inDep.Invoke(d, [a, b])!;
         bool Worth(Power a, Power b) => (bool)worth.Invoke(d, [a, b, c])!;
         int Clock(Power a, Power b) => clockF.GetValueOrDefault((long)keyM.Invoke(d, [a, b])!);
-        bool GateOpen(Power a, Power b) => d.Tension(a, b) >= c.WarDeclareTension && !d.IsAtWar(a, b) && !Weary(a, b) && !Dep(a, b) && Worth(a, b);
+        bool GateOpen(Power a, Power b) => d.WarGateOpen(a, b, c);   // ★(450) 本体の判定の 1 本を呼ぶ（旧は 4 つの門をここに組み直していた＝本体と計器の 2 本・(440) 反証役 dp〔bv〕記録#9）
 
         var player = d.Powers[pi];
-        var sb = new StringBuilder("quarter\tyear\tstaleCalls\tpendingWarGateClosed\tpendingWarStaleTwoQuarters\tgateOpenClockFullSlotEmpty\tgateOpenClockFullSlotEmptyTwoQuarters\tblockedBy\tpairsHot\tbyWeary\tbyDep\tbyWorth\tbyClock\tbyPending\tbyBlocked\tunexplained\n");
-        long staleCalls = 0, closedQ = 0, staleTwo = 0, emptyQ = 0, emptyTwo = 0, blockedQ = 0, blockedStaleQ = 0, replaced = 0, hotPairs = 0, unexplained = 0, raised = 0, droppedWar = 0, droppedCall = 0;
+        var sb = new StringBuilder("quarter\tyear\tstaleCalls\tpendingWarGateClosed\tpendingWarStaleTwoQuarters\tgateOpenClockFullSlotEmpty\tgateOpenClockFullSlotEmptyTwoQuarters\tblockedBy\tblockedStaleTwoQuarters\tpairsHot\tbyWeary\tbyDep\tbyWorth\tbyClock\tbyPending\tbyBlocked\tunexplained\n");
+        long staleCalls = 0, closedQ = 0, staleTwo = 0, emptyQ = 0, emptyTwo = 0, blockedQ = 0, blockedStaleQ = 0, blockedStaleTwo = 0, replaced = 0, hotPairs = 0, unexplained = 0, raised = 0, droppedWar = 0, droppedCall = 0;
         long cWeary = 0, cDep = 0, cWorth = 0, cClock = 0, cPending = 0, cBlocked = 0;
-        bool prevClosed = false; Power? prevPending = null; bool prevEmptyFull = false; bool prevCall = false;
+        bool prevClosed = false; Power? prevPending = null; bool prevEmptyFull = false; bool prevCall = false; bool prevBlockedStale = false;
         for (int q = 0; q < quarters; q++)
         {
             sim.StepQuarter();
@@ -84,6 +84,7 @@ internal static class PendingProbe
                 }
             }
             emptyQ += emptyFull ? 1 : 0; blockedQ += blocked ? 1 : 0; blockedStaleQ += blockedStale ? 1 : 0;
+            bool blockedStaleTwo2 = blockedStale && prevBlockedStale; blockedStaleTwo += blockedStaleTwo2 ? 1 : 0;   // ★(450) 2 四半期の末を続けて〈古い待ちで塞がれ〉（過渡の 1 四半期と区別する・(440) 反証役 dp〔bv〕中#1）
             bool emptyTwo2 = emptyFull && prevEmptyFull; emptyTwo += emptyTwo2 ? 1 : 0;
             hotPairs += hot; cWeary += nWeary; cDep += nDep; cWorth += nWorth; cClock += nClock; cPending += nPending; cBlocked += nBlocked; unexplained += nUnexpl;
             if (prevPending is not null && pw is null) droppedWar++;
@@ -91,14 +92,14 @@ internal static class PendingProbe
             if (pw is not null && prevPending is null) raised++;
             if (pw is not null && prevPending is not null && pw != prevPending) replaced++;   // 根拠の消えた待ちが別の組の最後通牒に置き換わった（答えないので、待ちが変わるのは置き換えか相手の消滅だけ）
             var w0 = sim.Nations[0].World;
-            sb.Append($"{q}\t{w0.Year}\t{stale}\t{(closed ? 1 : 0)}\t{(twoQ ? 1 : 0)}\t{(emptyFull ? 1 : 0)}\t{(emptyTwo2 ? 1 : 0)}\t{(blocked ? 1 : 0)}\t{hot}\t{nWeary}\t{nDep}\t{nWorth}\t{nClock}\t{nPending}\t{nBlocked}\t{nUnexpl}\n");
-            prevClosed = closed; prevPending = pw; prevEmptyFull = emptyFull; prevCall = call is not null;
+            sb.Append($"{q}\t{w0.Year}\t{stale}\t{(closed ? 1 : 0)}\t{(twoQ ? 1 : 0)}\t{(emptyFull ? 1 : 0)}\t{(emptyTwo2 ? 1 : 0)}\t{(blocked ? 1 : 0)}\t{(blockedStaleTwo2 ? 1 : 0)}\t{hot}\t{nWeary}\t{nDep}\t{nWorth}\t{nClock}\t{nPending}\t{nBlocked}\t{nUnexpl}\n");
+            prevClosed = closed; prevPending = pw; prevEmptyFull = emptyFull; prevCall = call is not null; prevBlockedStale = blockedStale;
         }
         if (outPath is not null) File.WriteAllText(outPath, sb.ToString(), PlayHarness.Utf8NoBom);
         Console.WriteLine($"pendprobe {playerName} seed {seed} 四半期 {quarters}（終了 {sim.Nations[0].World.Year}年）");
         Console.WriteLine($"P1 古い参戦要請の待ち（四半期の末に元の戦争が無い）の延べ四半期数 = {staleCalls}");
         Console.WriteLine($"P2（記録）根拠の門が閉じた最後通牒の待ちの延べ四半期数 = {closedQ}／同じ待ちが 2 四半期の末を続けて門閉 = {staleTwo}（置き換える相手が居なければ残る＝消えない設計）");
-        Console.WriteLine($"P3 プレイヤーの組で門が開き時計が満ちたのに、枡が空 = {emptyQ} 延べ四半期（2 四半期続けて = {emptyTwo}）／枡が根拠の消えた待ちで塞がれた = {blockedStaleQ} 延べ四半期（狙い＝どちらも 0）／別の有効な待ちで塞がれた（記録）= {blockedQ - blockedStaleQ}");
+        Console.WriteLine($"P3 プレイヤーの組で門が開き時計が満ちたのに、枡が空 = {emptyQ} 延べ四半期（2 四半期続けて = {emptyTwo}）／枡が根拠の消えた待ちで塞がれた = {blockedStaleQ} 延べ四半期（2 四半期続けて = {blockedStaleTwo}・狙い＝どちらも 0）／別の有効な待ちで塞がれた（記録）= {blockedQ - blockedStaleQ}");
         Console.WriteLine($"P4 機構を踏んだ証拠：最後通牒が積まれた回数 = {raised}／根拠の消えた待ちが別の組の最後通牒に置き換わった回数 = {replaced}／待ちが空になった回数 = {droppedWar}（相手の消滅だけ）／参戦要請の待ちが下りた回数 = {droppedCall}");
         Console.WriteLine($"組×四半期（緊張が水準以上で交戦なし）= {hotPairs}：厭戦 {cWeary}・従属 {cDep}・到達 {cWorth}・継続未満 {cClock}・待ち中 {cPending}・塞がれ {cBlocked}・説明できない {unexplained}（{(hotPairs > 0 ? 100.0 * unexplained / hotPairs : 0):F2}%）");
         return 0;

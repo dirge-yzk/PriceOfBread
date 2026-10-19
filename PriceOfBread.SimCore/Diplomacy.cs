@@ -1455,7 +1455,7 @@ public sealed class Diplomacy
 
     /// <summary>★(440) 宣戦の 4 つの門（緊張が水準以上・交戦中でない・どちらも厭戦でない・従属の組でない・軍が届く）が全て開いているか。<see cref="TriggerWars"/> の判定と、
     /// プレイヤーの最後通牒の待ちの根拠が残っているかの判定が同じ 1 本を読む（純関数＝評価の順と短絡は旧のインラインと同じ）。</summary>
-    private bool WarGateOpen(Power a, Power b, Coefficients c)
+    internal bool WarGateOpen(Power a, Power b, Coefficients c)
     {
         bool weary = a.WarExhaustion > c.WarWearyThreshold || b.WarExhaustion > c.WarWearyThreshold;
         return Tension(a, b) >= c.WarDeclareTension && !AtWar(a, b) && !weary && !InDependency(a, b) && WorthFighting(a, b, c);

@@ -160,7 +160,7 @@ public partial class GameViewModel
                 if (pow.Nation is { } enw)
                 {
                     detail += $"\n経済: GDP {Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
-                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(enw.GdpPcDrawdown.Value > DepressionSevereDrawdown ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
+                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
                 }
             }
             else detail += $"\n残る領土 {pow.ColonyList.Count}";   // 抽象標的＝未接収の植民地数（0=領土なし・奪う物が無い）

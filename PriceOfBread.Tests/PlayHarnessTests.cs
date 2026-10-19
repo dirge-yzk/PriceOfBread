@@ -655,12 +655,16 @@ public class PlayHarnessTests
             string stopped = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "report.txt"));
             Assert.StartsWith("⏸ 時間を止めた：要求 3 四半期のうち 0 四半期だけ進めた", stopped);
             Assert.Contains("!ultimatum 受諾", stopped);
+            Assert.Contains("この呼び出しで進めた期間（", stopped); Assert.Contains(" から 0 四半期・", stopped);   // (450) 一歩も進めなくても期間の節は出る（0 四半期と名乗る）
             using (var fs = System.IO.File.OpenRead(state)) Assert.Equal(q0, QuarterIndex(SaveGame.Load(fs).Nations[pi].World));   // 保存した世界の暦も進んでいない
 
-            System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "decision.txt"), "!ultimatum 受諾" + (char)10, new System.Text.UTF8Encoding(false));
+            System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "decision.txt"), "!ultimatum 受諾" + (char)10 + "MilitarySpendingTarget=0.5" + (char)10 + "ArmyUpkeepTarget=0.9" + (char)10, new System.Text.UTF8Encoding(false));
             Assert.Equal(0, PlayHarness.Run(["play", dir, "日本", "2", "1789"]));
             string moved = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "report.txt"));
             Assert.StartsWith("=====", moved);                                   // 答えれば止めの行は出ない
+            Assert.Contains(" から 2 四半期・", moved); Assert.Contains("景気の出来事（画面と同じ判定）：", moved); Assert.Contains("戦争： 開始時に交戦中", moved);   // (450) 期間の節（Run が期間の記録を渡している）
+            Assert.Contains("MilitarySpendingTarget: ", moved);                  // 合計の 1 本は置ける
+            Assert.Contains("⚠ArmyUpkeepTarget は置けない", moved);                // 陸海の 1 本は拒まれて「適用した決定」に残る
             using (var fs = System.IO.File.OpenRead(state)) Assert.Equal(q0 + 2, QuarterIndex(SaveGame.Load(fs).Nations[pi].World));
         }
         finally { Console.SetOut(so); try { System.IO.Directory.Delete(dir, true); } catch { } }
@@ -673,7 +677,7 @@ public class PlayHarnessTests
         string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "PlayHarness.cs"));
         int runStart = src.IndexOf("public static int Run(", StringComparison.Ordinal), runEnd = src.IndexOf("public static int Replay(", StringComparison.Ordinal);
         string run = src[runStart..runEnd];
-        Assert.Contains("StepUntilWait(sim, playerIndex, steps)", run);
+        Assert.Contains("StepUntilWait(sim, playerIndex, steps, period)", run);   // (450) 期間の記録を渡す
         Assert.DoesNotContain("sim.StepQuarter()", run);
     }
     [Fact]
@@ -690,5 +694,167 @@ public class PlayHarnessTests
         Assert.Contains("行70・変", sum);
         Assert.DoesNotContain("行80", sum);                                         // 変わっていない行は出さない
         Assert.Single(System.Text.RegularExpressions.Regex.Matches(sum, "行70・変"));
+    }
+
+    // ===== (450) 読む線 (441) 問い3 の道具：実質・1 人あたりの落ち込みと景気の判定・期間中の戦争・軍事費は合計の 1 本・収支の正味 =====
+
+    private static void SetGdpCycle(World w, double peak, double pcPeak, double pcTrend)
+    {
+        // 景気循環の 3 値は private set（UpdateGdpCycle だけが書く）＝試験は反射で置く（World の状態を直接決めて、判定の側だけを見る）
+        typeof(World).GetProperty("GdpPeak")!.SetValue(w, peak);
+        typeof(World).GetProperty("GdpPcPeak")!.SetValue(w, pcPeak);
+        typeof(World).GetProperty("GdpPcTrend")!.SetValue(w, pcTrend);
+    }
+
+    [Fact]
+    public void 景気の判定_入りと出は別の水準_語は恐慌の線で分かれる()
+    {
+        // 期待は作者の書いた水準（入り 0.20 超・出 0.08 以下・恐慌 0.25 超＝SelfPlay.cs の注）をそのまま置く
+        Assert.False(SelfPlayMatch.InDepression(false, 0.20)); Assert.True(SelfPlayMatch.InDepression(false, 0.2001));
+        Assert.False(SelfPlayMatch.InDepression(false, 0.15));                         // 入る前は 0.15 では入らない
+        Assert.True(SelfPlayMatch.InDepression(true, 0.15));                           // 入った後は 0.15 でも続く（境界で点滅しない）
+        Assert.True(SelfPlayMatch.InDepression(true, 0.0801)); Assert.False(SelfPlayMatch.InDepression(true, 0.08));
+        Assert.Equal("景気後退", SelfPlayMatch.DepressionWord(0.25)); Assert.Equal("恐慌", SelfPlayMatch.DepressionWord(0.2501));
+        Assert.False(SelfPlayMatch.IsGreatDepression(0.25)); Assert.True(SelfPlayMatch.IsGreatDepression(0.2501));
+    }
+
+    [Fact]
+    public void 期間の記録_景気の入りと回復を画面と同じ2値の判定で拾う()
+    {
+        var (_, w, _, _, _) = Board();
+        SetGdpCycle(w, 2.0, 1.0, 0.7);                         // 落ち込み 0.30（恐慌の線 0.25 の上）
+        Assert.Equal(0.30, w.GdpPcDrawdown.Value, 9);
+        var p = new PlayHarness.PlayPeriod(); p.Begin(w);
+        Assert.True(p.InDepression);                           // 画面が国を読み込んだときと同じ＝入りの水準を超えていれば最中
+        void Next(double trend) { SetGdpCycle(w, 2.0, 1.0, trend); p.AfterStep(w); }
+        Next(0.7); Assert.Empty(p.EconomyEvents);              // 変わらない
+        Next(0.85); Assert.Empty(p.EconomyEvents);             // 落ち込み 0.15＝入りの水準の下だが回復の水準（0.08）の上＝まだ最中（点滅しない）
+        Next(0.95); Assert.Single(p.EconomyEvents); Assert.Contains("景気が回復した", p.EconomyEvents[0]);
+        Next(0.60); Assert.Equal(2, p.EconomyEvents.Count); Assert.Contains("恐慌に入った", p.EconomyEvents[1]);   // 落ち込み 0.40
+        Next(0.90); Next(0.78); Assert.Equal(2, p.EconomyEvents.Count);                                           // 0.10・0.22 は最中のまま
+        Assert.Equal(0.40, p.WorstDrawdown, 9);
+        Assert.Equal(6, p.Stepped);
+        // 平常から入る場合は 0.22＝恐慌の線の下＝景気後退
+        SetGdpCycle(w, 2.0, 1.0, 0.85);
+        var p2 = new PlayHarness.PlayPeriod(); p2.Begin(w);
+        Assert.False(p2.InDepression);
+        SetGdpCycle(w, 2.0, 1.0, 0.78); p2.AfterStep(w);
+        Assert.Single(p2.EconomyEvents); Assert.Contains("景気後退に入った", p2.EconomyEvents[0]);
+    }
+
+    [Fact]
+    public void 報告_実質GDPと1人あたりの落ち込みと景気の判定を出す()
+    {
+        var (sim, w, _, _, _) = Board();
+        SetGdpCycle(w, 2.0, 1.0, 0.6);                         // 落ち込み 0.40
+        string r = Report(sim);
+        Assert.Contains("実質GDP（参照価格建て・月）", r);
+        Assert.Contains("景気の判定（画面と同じ・1 人あたり）： 恐慌", r);
+        Assert.Contains("名目GDP は物価を含む＝景気の判定には使わない", r);
+        SetGdpCycle(w, 2.0, 1.0, 0.95);                        // 落ち込み 0.05
+        Assert.Contains("景気の判定（画面と同じ・1 人あたり）： 平常", Report(sim));
+    }
+
+    [Fact]
+    public void 報告_期間中に終わった戦争は自国側の視点で出し_始まる前の記録と他国どうしは出さない()
+    {
+        var (sim, w, me, foe, third) = Board();
+        var dip = sim.Diplomacy;
+        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = foe.Id, Score = 0.9, Months = 5, EndYear = 1790, DeadA = 1, DeadB = 2 });   // 期間の前＝出さない
+        var p = new PlayHarness.PlayPeriod(); p.Begin(w);
+        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = foe.Id, Score = 0.8, Months = 14, EndYear = 1799, DeadA = 1200, DeadB = 3400 });     // 自国が A・勝ち
+        dip.EndedWars.Add(new EndedWarRecord { AId = third.Id, BId = me.Id, Score = 0.9, Months = 30, EndYear = 1801, DeadA = 500, DeadB = 700 });      // 自国が B・A の大勝＝負け
+        dip.EndedWars.Add(new EndedWarRecord { AId = me.Id, BId = third.Id, Score = 0.1, Months = 3, EndYear = 1802, DeadA = 10, DeadB = 20 });         // 白紙の線（0.25）未満
+        dip.EndedWars.Add(new EndedWarRecord { AId = foe.Id, BId = third.Id, Score = 0.7, Months = 9, EndYear = 1803, DeadA = 9, DeadB = 9 });          // 他国どうし＝出さない
+        var sb = new System.Text.StringBuilder();
+        PlayHarness.WriteReport(sb, sim, 0, new System.Collections.Generic.List<string>(), 0, null, p);
+        string r = sb.ToString();
+        Assert.Contains("期間中に終わった戦争 3 件", r);
+        Assert.Contains($"  {foe.Name}と 1798年ごろ〜1799年（14か月）　勝ち（自国側の戦勝点 +0.80）　戦死 自国 1,200・相手 3,400", r);        // 1799 − 14÷12(=1)＝1798
+        Assert.Contains($"  {third.Name}と 1799年ごろ〜1801年（30か月）　負け（自国側の戦勝点 -0.90）　戦死 自国 700・相手 500", r);          // 自国が B＝戦死の取り方が逆
+        Assert.Contains("白紙（自国側の戦勝点 +0.10）", r);
+        Assert.DoesNotContain("1790年", r);
+        Assert.DoesNotContain("1803年", r);
+        Assert.Contains("---- この呼び出しで進めた期間（", r);
+        string none = Report(sim);   // 期間の記録が無い呼び出し（再生・番人）は節を出さない
+        Assert.DoesNotContain("この呼び出しで進めた期間", none);
+    }
+
+    [Fact]
+    public void 軍事費_操作は合計の1本だけ_陸海の2本は拒み_合計は比を保って按分する()
+    {
+        var cfgs = new[] { NationConfig.Britain(), NationConfig.Prussia(), NationConfig.France() };
+        var sim = new MultiNationSim(cfgs, seed: 1789, cfg => ReferenceEquals(cfg, cfgs[0]) ? new NullAgent() : (INationAgent)new UtilityAgent());
+        var w = sim.Nations[0].World;
+        var pol = w.Policy;
+        pol.ArmyUpkeepTarget = 0.27; pol.NavyUpkeepTarget = 0.03;                      // 海軍の割合は 0.1
+        string ok = PlayHarness.ApplyKeyValue(w, "MilitarySpendingTarget=0.5");
+        Assert.DoesNotContain("⚠", ok);
+        Assert.Equal(0.45, pol.ArmyUpkeepTarget, 9); Assert.Equal(0.05, pol.NavyUpkeepTarget, 9);   // 合計 0.5・比（9:1）を保つ（期待は手計算）
+        string capped = PlayHarness.ApplyKeyValue(w, "MilitarySpendingTarget=3");
+        Assert.Contains("0〜1 に丸めた", capped); Assert.Equal(1.0, pol.MilitarySpendingTarget, 9);
+        pol.ArmyUpkeepTarget = 0.45; pol.NavyUpkeepTarget = 0.05;
+        foreach (string key in new[] { "ArmyUpkeepTarget", "NavyUpkeepTarget" })
+        {
+            string refused = PlayHarness.ApplyKeyValue(w, $"{key}=0.9");
+            Assert.StartsWith("⚠", refused); Assert.Contains("MilitarySpendingTarget", refused);
+        }
+        Assert.Equal(0.45, pol.ArmyUpkeepTarget, 9); Assert.Equal(0.05, pol.NavyUpkeepTarget, 9);   // 拒んだ＝動かない
+        string r = Report(sim);
+        Assert.Contains("軍事費（合計＝操作できる唯一の 1 本 MilitarySpendingTarget）", r);
+        Assert.DoesNotContain("陸軍維持費", r);                                       // 陸海を別々に置く行は報告から消えた
+    }
+
+    [Fact]
+    public void 報告_正味の区分は正味と名乗り_賠償の受け手は収入の行へ_払う側は支出の行へ()
+    {
+        var (sim, w, _, _, _) = Board();
+        var led = w.TreasuryLedger; Array.Clear(led);
+        led[(int)TreasuryCat.WarCost] = 5000; led[(int)TreasuryCat.StateFactory] = -300; led[(int)TreasuryCat.Army] = -100;
+        string Line(string r, string head) => r.Split('\n').First(l => l.StartsWith(head));
+        string r1 = Report(sim);
+        Assert.Contains("WarCost（正味）:5,000", Line(r1, "収入（")); Assert.DoesNotContain("WarCost", Line(r1, "支出（"));
+        Assert.Contains("StateFactory（正味）:-300", Line(r1, "収入（"));
+        led[(int)TreasuryCat.WarCost] = -800;
+        string r2 = Report(sim);
+        Assert.Contains("WarCost（正味）:-800", Line(r2, "支出（")); Assert.DoesNotContain("WarCost", Line(r2, "収入（"));
+        Assert.Contains("差し引き", r2);
+    }
+
+    [Fact]
+    public void 時間を止める待ち_進めた途中で新しい危機の札が立つと次の四半期の前に止まる()
+    {
+        // (443) 反証役 hx〔v〕低#6：最初に立っていた札では止めないが、進めている途中で別の札が立てば次の四半期の前で止める（危機の札は四半期の中でも立つ）
+        var (sim, w, me, _, _) = Board();
+        sim.StartWarmup();
+        var f = new FactionState { Region = w.Regions[0], Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        var g = new FactionState { Region = w.Regions[0], Bloc = 2, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        w.Factions.Add(f); w.Factions.Add(g);
+        w.PendingFactionCrisis = f;
+        int q0 = QuarterIndex(w);
+        var (stepped, led) = PlayHarness.StepUntilWait(sim, 0, 4, null, afterStep: n => { if (n == 1) w.PendingFactionCrisis = g; });
+        Assert.Equal(1, stepped);                              // 1 四半期進めたあとで別の札 g が立った＝次の前で止まる（要求 4）
+        Assert.NotNull(led);
+        Assert.Equal(q0 + 1, QuarterIndex(w));
+        Assert.Same(g, w.PendingFactionCrisis);
+        // 対照：差し込みが無ければ（最初の札のまま）要求どおり進む
+        var (sim2, w2, _, _, _) = Board();
+        sim2.StartWarmup();
+        var f2 = new FactionState { Region = w2.Regions[0], Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        w2.Factions.Add(f2); w2.PendingFactionCrisis = f2;
+        Assert.Equal(2, PlayHarness.StepUntilWait(sim2, 0, 2, null, afterStep: _ => { }).Stepped);
+    }
+
+    [Fact]
+    public void 景気の判定は画面と報告が同じ関数を呼ぶ_App側に水準の写しが残っていない()
+    {
+        string root = GoodIdGuardTests.RepoRoot();
+        string news = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.App", "ViewModels", "GameViewModel.News.cs"));
+        string vm = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.App", "ViewModels", "GameViewModel.cs"));
+        string play = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.Runner", "PlayHarness.cs"));
+        Assert.Contains("SelfPlayMatch.InDepression(", news); Assert.Contains("SelfPlayMatch.DepressionWord(", news);
+        Assert.Contains("SelfPlayMatch.InDepression(", play); Assert.Contains("SelfPlayMatch.DepressionWord(", play);
+        foreach (string stale in new[] { "DepressionExitDrawdown", "DepressionSevereDrawdown", "> DepressionDrawdown" })
+        { Assert.DoesNotContain(stale, news); Assert.DoesNotContain(stale, vm); }
     }
 }

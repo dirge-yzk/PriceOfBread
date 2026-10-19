@@ -77,9 +77,14 @@ public static class Discovery
 
     /// <summary>★(415) 行ごとの親の産業の技師の量（月あたり・求めない行〔制度と思想・この国に代表の生産者が居ない・稼働中の州が無い〕は NaN）。読むだけ＝判定が読む量と同じ <see cref="Score"/> の中の値（番人と計器が読む）。</summary>
     internal static double[] ParentEngineersByRow(World w, WorldView? view, Coefficients c)
+        => ParentEngineersByRow(w, view, c, out _, out _);
+
+    /// <summary>★(450) 同じ 1 回の <see cref="Score"/>（includeKnown）が返す点数の項と、代替する物の値段・新しいレシピの費用も返す（計器の T 行の必要性・代替する物の値段・新しいレシピの費用の 3 列〔解禁済みの行も〕）。読むだけ＝判定の値は同じ。</summary>
+    internal static double[] ParentEngineersByRow(World w, WorldView? view, Coefficients c, out Terms[] terms, out (double Replaced, double Cost)[] ratio)
     {
         var a = new double[Catalog.Discoveries.Length];
-        Score(w, view, c, includeKnown: true, null, null, a, out _, out _);
+        ratio = new (double Replaced, double Cost)[Catalog.Discoveries.Length];
+        terms = Score(w, view, c, includeKnown: true, null, ratio, a, out _, out _);
         return a;
     }
 
@@ -933,9 +938,9 @@ public static class Discovery
         var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
         if (eo is not null && Calendar.QuarterIndexOfTick(w.Tick) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
         {
-            var all = ParentEngineersByRow(w, view, c);
+            var all = ParentEngineersByRow(w, view, c, out var allTerms, out var allRatio);   // ★(450) 必要性・代替する物の値段・新しいレシピの費用も同じ 1 回から（解禁済みの行も）
             for (int row = 0; row < all.Length && row < known.Length; row++)
-                if (!double.IsNaN(all[row])) Instruments.EngineerRow("T", w, row, all[row], known[row] ? double.NaN : terms[row].Tech, known[row]);
+                if (!double.IsNaN(all[row])) Instruments.EngineerRow("T", w, row, all[row], known[row] ? double.NaN : terms[row].Tech, known[row], allTerms[row].Need, allRatio[row]);
         }
         if (ro is not null)   // (320) 計器だけ＝まだ解禁していない蒸気機関と機関車の軌道（四半期ごと）
         {
@@ -947,7 +952,7 @@ public static class Discovery
             if (known[row] || !(terms[row].Score >= GateScore)) continue;
             known[row] = true;
             if (ro is not null) Instruments.DiscoveryEvent(w, row, terms[row], ro[row]);   // (320) 計器だけ
-            if (eo is not null && !double.IsNaN(eo[row])) Instruments.EngineerRow("E", w, row, eo[row], terms[row].Tech, false);   // (415) 計器だけ
+            if (eo is not null && !double.IsNaN(eo[row])) Instruments.EngineerRow("E", w, row, eo[row], terms[row].Tech, false, terms[row].Need, ro![row]);   // (415) 計器だけ
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。

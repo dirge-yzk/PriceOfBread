@@ -2449,4 +2449,56 @@ public class InstrumentsTests
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// (450) 技師の表 <c>engineer_s</c> の末尾の 3 列（needTerm・replaced・cost）。T 行（8 四半期ごと・解禁済みの行も）と E 行（解禁した行）に必要性と、物を生む行の
+    /// 代替する物の値段・新しいレシピの費用が出る。期待は**別の呼び出しの表**から作る＝発見の表 <c>disc_s</c> の T 行（まだ解禁していない蒸気機関と機関車の行・includeKnown なしの 1 回）の
+    /// needTerm・replaced・cost と、同じ四半期・同じ国・同じ行の engineer_s の T 行（includeKnown ありの 1 回）が文字列まで一致する。
+    /// 対照＝照合できた行が 1 本も無ければ赤・解禁済みの行にも代替する物の値段と費用が出る（includeKnown なしの呼び出しの値は解禁済みの行で nan になる）・値の範囲（必要性 0〜70・replaced／cost は nan か観測なし〔-1〕か正）。
+    /// ⚠壊し方＝replaced と cost を取り違える → disc_s と合わず赤／解禁済みの行の代替する物の値段と費用を includeKnown なしの呼び出しから取る → 解禁済みの行が全て nan で赤。
+    /// </summary>
+    [Fact]
+    public void 技師の表の末尾の3列は必要性と代替する物の値段と新しいレシピの費用で_発見の表と合い_解禁済みの行にも出る()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try { RunMatch(Make(), 17, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (eh, er) = Table(System.IO.Path.Combine(dir, "engineer_s1789.tsv"));
+            Assert.Equal(["needTerm", "replaced", "cost"], eh[^3..]);
+            Assert.All(er, r => Assert.Equal(eh.Length, r.Length));
+            var (dh, dr) = Table(System.IO.Path.Combine(dir, "disc_s1789.tsv"));
+            int eKind = Array.IndexOf(eh, "kind"), eQ = Array.IndexOf(eh, "quarter"), eNat = Array.IndexOf(eh, "nation"), eRow = Array.IndexOf(eh, "row"), eKnown = Array.IndexOf(eh, "knownFlag");
+            int eNeed = Array.IndexOf(eh, "needTerm"), eRep = Array.IndexOf(eh, "replaced"), eCost = Array.IndexOf(eh, "cost");
+            int dKind = Array.IndexOf(dh, "kind"), dQ = Array.IndexOf(dh, "quarter"), dNat = Array.IndexOf(dh, "nation"), dRow = Array.IndexOf(dh, "row");
+            int dNeed = Array.IndexOf(dh, "needTerm"), dRep = Array.IndexOf(dh, "replaced"), dCost = Array.IndexOf(dh, "cost");
+            var trace = dr.Where(r => r[dKind] == "T").ToDictionary(r => (r[dQ], r[dNat], r[dRow]));
+            var tRows = er.Where(r => r[eKind] == "T").ToList();
+            Assert.NotEmpty(tRows);
+            int matched = 0;
+            foreach (var e in tRows.Where(r => r[eKnown] == "0"))
+            {
+                if (!trace.TryGetValue((e[eQ], e[eNat], e[eRow]), out var d)) continue;   // 発見の表の T 行は蒸気機関と機関車だけ
+                Assert.Equal(d[dNeed], e[eNeed]); Assert.Equal(d[dRep], e[eRep]); Assert.Equal(d[dCost], e[eCost]);
+                matched++;
+            }
+            Assert.True(matched >= 2, $"発見の表と照合できた T 行が少なすぎる（{matched}）＝検査が空回りしている");
+            foreach (var r in er)
+            {
+                double need = Col(eh, r, "needTerm"), rep = Col(eh, r, "replaced"), cost = Col(eh, r, "cost");
+                Assert.True(need >= 0 && need <= 70.0 + 1e-9, $"必要性が 0〜70 の外（{need}）");
+                Assert.True(double.IsNaN(rep) || rep == Discovery.NoPrice || rep > 0, $"代替する物の値段が nan でも観測なし（-1）でも正でもない（{rep}）");   // -1＝その物の市場が死んでいて観測なし（Discovery.NoPrice）
+                Assert.True(double.IsNaN(cost) || cost == Discovery.NoPrice || cost > 0, $"新しいレシピの費用が nan でも観測なしでも正でもない（{cost}）");
+                Assert.Equal(double.IsNaN(rep), double.IsNaN(cost));                         // 物を生む行だけ（2 つは対）
+            }
+            var known = tRows.Where(r => r[eKnown] == "1").ToList();
+            Assert.NotEmpty(known);                                                          // 対照：解禁済みの行の T 行がある
+            Assert.Contains(known, r => !double.IsNaN(Col(eh, r, "replaced")) && Col(eh, r, "cost") > 0);   // 解禁済みの行にも代替する物の値段と費用が出る（includeKnown なしの呼び出しの値は解禁済みの行で (0,0)＝nan になる）
+            Assert.Contains(tRows, r => Col(eh, r, "needTerm") > 0);                          // 必要性の列が全て 0 ではない（列が空回りしていない）
+            Assert.Contains(tRows, r => !double.IsNaN(Col(eh, r, "replaced")));              // 物を生む行の代替する物の値段が出ている
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

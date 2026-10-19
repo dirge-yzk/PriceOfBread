@@ -89,7 +89,7 @@ public partial class GameViewModel
                 if (p.Nation is { } tw) { _prevPolities[p.Id] = tw.Polity; _prevTerror[p.Id] = tw.TerrorPurgeCumulative; }
             _prevAusterity = _player.AusterityIntensity > AusterityActive;
             _prevDeval = _player.CumulativeDevaluation;
-            _prevDepression = _player.GdpPcDrawdown.Value > DepressionDrawdown;   // ★E2：1人あたり（割譲で総額が落ちただけの国を恐慌と呼ばない）
+            _prevDepression = SelfPlayMatch.InDepression(false, _player.GdpPcDrawdown.Value);   // ★E2：1人あたり（割譲で総額が落ちただけの国を恐慌と呼ばない）
             _prevHeatHot = _player.FinancialHeat > FinancialHeatHot;
             _prevFamine = _player.HarvestFactor < FamineHarvest;
             QueueNews("ev_start", PlayerNationName, 0, 0, true);
@@ -143,14 +143,12 @@ public partial class GameViewModel
             {
                 _prevEconState ??= new System.Collections.Generic.Dictionary<long, (bool Dep, bool Gold, bool Def, bool Fam)>();
                 // ★ヒステリシス（2026-08-23）：入り>0.20／出<0.08＝エンジンの計器（depEnter/depExit）と同じ2値。以前は同一閾値で入りと出を判定＝境界で点滅していた。
-                bool depN = _prevEconState.TryGetValue(id, out var pePrev) && pePrev.Dep
-                    ? w.GdpPcDrawdown.Value > DepressionExitDrawdown
-                    : w.GdpPcDrawdown.Value > DepressionDrawdown;
+                bool depN = SelfPlayMatch.InDepression(_prevEconState.TryGetValue(id, out var pePrev) && pePrev.Dep, w.GdpPcDrawdown.Value);
                 bool famN = w.HarvestFactor < FamineHarvest;
                 if (_prevEconState.TryGetValue(id, out var pe))
                 {
                     // ★語と閾値の1対1（2026-08-23）：>0.25＝恐慌／それ以下＝景気後退＝自国側の通知（ev_depression/ev_recession）と同じ分け方
-                    string word = w.GdpPcDrawdown.Value > DepressionSevereDrawdown ? "恐慌" : "景気後退";   // ★E2：以下この節は1人あたりで統一
+                    string word = SelfPlayMatch.DepressionWord(w.GdpPcDrawdown.Value);   // ★E2：以下この節は1人あたりで統一
                     if (depN && !pe.Dep) { QueueNewsText("📉", $"{powers[i].Name}が{word}に入った（1人あたりの下落{w.GdpPcDrawdown.Value:P0}）", NewsRed, w.Latitude, w.Longitude, false); Annal("📉", $"{powers[i].Name}が{word}（下落{w.GdpPcDrawdown.Value:P0}）"); }
                     else if (!depN && pe.Dep) QueueNewsText("📈", $"{powers[i].Name}の景気が回復した", NewsGreen, w.Latitude, w.Longitude, false);
                     if (w.OnGoldStandard && !pe.Gold) QueueNewsText("🪙", $"{powers[i].Name}が金本位制に加入した", NewsGold, w.Latitude, w.Longitude, false);
@@ -166,8 +164,8 @@ public partial class GameViewModel
         // 自国の経済イベント（突入の瞬間＝エッジのみ）。自国＝距離0＝即時。
         string me = PlayerNationName;
         double dd = _player.GdpPcDrawdown.Value, heat = _player.FinancialHeat, harvest = _player.HarvestFactor;   // ★E2：1人あたりで統一（外国側・初期基準値と同じ物差し）
-        bool depression = _prevDepression ? dd > DepressionExitDrawdown : dd > DepressionDrawdown;   // ★ヒステリシス（2026-08-23）＝外国側と同じ2値
-        if (depression && !_prevDepression) { QueueNews(dd > DepressionSevereDrawdown ? "ev_depression" : "ev_recession", me, 0, 0, true, dd); Annal("📉", dd > DepressionSevereDrawdown ? $"{me}が恐慌（下落{dd:P0}）" : $"{me}が景気後退（下落{dd:P0}）"); }   // ★年代記の語も通知の分岐と一致させる
+        bool depression = SelfPlayMatch.InDepression(_prevDepression, dd);   // ★ヒステリシス（2026-08-23）＝外国側と同じ2値
+        if (depression && !_prevDepression) { QueueNews(SelfPlayMatch.IsGreatDepression(dd) ? "ev_depression" : "ev_recession", me, 0, 0, true, dd); Annal("📉", $"{me}が{SelfPlayMatch.DepressionWord(dd)}（下落{dd:P0}）"); }   // ★年代記の語も通知の分岐と一致させる
         bool famine = harvest < FamineHarvest;
         if (famine && !_prevFamine) QueueNews("ev_famine", me, 0, 0, true, harvest);
         bool heatHot = heat > FinancialHeatHot;

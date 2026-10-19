@@ -82,9 +82,7 @@ public partial class GameViewModel : ViewModelBase
     // ★2026-09-03（AUD-05）：NewsRealtimeYear（暦年1870）は撤去＝報せの速さは前線技術のランプから導く（GameViewModel.News.cs）。
     // 経済イベント検出の閾値（基準化と検出で同値＝ズレると誤発火。UI通知のみ・エンジンとは独立）
     // ★恐慌の閾値は SelfPlayMatch の1組を読む（fis-24・2026-09-26・旧＝同じ値の写し）。入り0.20／出0.08の2値＝境界で「恐慌に入った／回復した」が交互に出る点滅を止める（2026-08-23）
-    private const double DepressionDrawdown = SelfPlayMatch.DepressionEnterDrawdown;        // 1人あたりGDPのドローダウンがこれ超で不況
-    private const double DepressionSevereDrawdown = SelfPlayMatch.GreatDepressionDrawdown;  // これ超は恐慌・以下は景気後退
-    private const double DepressionExitDrawdown = SelfPlayMatch.DepressionExitDrawdown;     // ここまで戻れば回復
+    //   ★(450) 判定そのもの（入り・出の 2 値と恐慌の語）は SelfPlayMatch.InDepression／IsGreatDepression／DepressionWord の 1 組を呼ぶ（Runner の play の報告も同じ関数・旧はここに 3 本の定数の写しと判定式があった）。
     private const double FinancialHeatHot = 0.85;          // 金融過熱の警報
     private const double FamineHarvest = 0.80;             // 収穫係数がこれ未満で飢饉
     private const double AusterityActive = 0.01;           // 緊縮の発動判定

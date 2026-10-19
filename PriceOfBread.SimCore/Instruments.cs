@@ -1918,11 +1918,12 @@ public static partial class Instruments
 
     /// <summary>★(415) 発見の表の行の親の産業の技師の量（<see cref="Discovery.Step"/> の判定・読むだけ）。kind＝E 解禁した行／T 全ての行の軌道（8四半期ごと・解禁済みの行も＝knownFlag 1）。
     /// <paramref name="a"/>＝高度労働力の月あたりの量（<see cref="Discovery.ParentEngineers"/>・旗に関わらず求める）・<paramref name="techTerm"/>＝その四半期の技術力の項（旗が0なら技術水準の式の値）。</summary>
-    internal static void EngineerRow(string kind, World w, int row, double a, double techTerm, bool known)
+    internal static void EngineerRow(string kind, World w, int row, double a, double techTerm, bool known, double needTerm, (double Replaced, double Cost) ratio)
         => S(w).EngRows.Add(string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), Catalog.Discoveries[row].Name,
-            Catalog.Discoveries[row].Decade.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a), F(techTerm), known ? "1" : "0"));
+            Catalog.Discoveries[row].Decade.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a), F(techTerm), known ? "1" : "0",
+            F(needTerm), ratio is (0, 0) ? "nan" : F(ratio.Replaced), ratio is (0, 0) ? "nan" : F(ratio.Cost)));   // ★(450) 末尾の 3 列＝必要性の項・代替する物の値段・新しいレシピの費用（replaced／cost は物を生む行だけ・それ以外は nan・市場が死んでいて観測のない値は -1＝disc_s と同じ）
 
-    /// <summary>★(415) 技師の量の表 <c>engineer_s</c>。列＝kind・quarter・year・nation・row・decade・engineerPerMonth・techTerm・knownFlag（解禁済みの行の techTerm は nan）。census は T の行（8四半期ごと）と E の行（解禁した四半期）から A0 を決める（事前登録 [6]）。</summary>
+    /// <summary>★(415) 技師の量の表 <c>engineer_s</c>。列＝kind・quarter・year・nation・row・decade・engineerPerMonth・techTerm・knownFlag（解禁済みの行の techTerm は nan）・★(450) needTerm・replaced・cost（必要性の項・代替する物の値段・新しいレシピの費用＝T 行は解禁済みの行も・replaced／cost は物を生む行だけ〔他は nan〕）。census は T の行（8四半期ごと）と E の行（解禁した四半期）から A0 を決める（事前登録 [6]）。</summary>
     static void EngineerTable(Sink sk, ulong seed, int q, MultiNationSim sim)
     {
         foreach (var n in sim.Nations)
@@ -1930,7 +1931,7 @@ public static partial class Instruments
             var st = S(n.World);
             if (st.EngRows.Count == 0) continue;
             sk.Eng ??= Open("engineer", seed);
-            if (!sk.EngHeader) { sk.Eng.WriteLine("kind\tquarter\tyear\tnation\trow\tdecade\tengineerPerMonth\ttechTerm\tknownFlag"); sk.EngHeader = true; }
+            if (!sk.EngHeader) { sk.Eng.WriteLine("kind\tquarter\tyear\tnation\trow\tdecade\tengineerPerMonth\ttechTerm\tknownFlag\tneedTerm\treplaced\tcost"); sk.EngHeader = true; }
             foreach (var row in st.EngRows)
             {
                 int tab = row.IndexOf('\t');
