@@ -1834,7 +1834,9 @@ if (args.Length > 0 && args[0] == "silverprobe")
             if (w.MonetaryLaw == MonetaryStandardLaw.Gold && !svEverAu.Contains(bn)) svEverAu.Add(bn);
             if (w.OnGoldStandard) onStd++;
             int t = w.Policy.MonetaryTarget; if (t <= 0) t0++; else if (t == 1) t1++; else t2++;
-            if (w.MeanIndustrialization > svc.GoldStandardIndThreshold) indHi++;
+            // ★(435) 金の門を越えた国＝AI の金本位の願いの門の述語そのもの：旗 AiLawGateFromBoard≧1（既定 3）は本国の平均識字＞GoldLiteracyLine・0 は工業化度＞GoldStandardIndThreshold。
+            //   旧は既定では火を吹かない工業化度の閾を数えていた（(428) の申し送り③・lt の記録）。
+            if (svc.AiLawGateFromBoard >= 1.0 ? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine : w.MeanIndustrialization > svc.GoldStandardIndThreshold) indHi++;
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active) continue;
@@ -1858,7 +1860,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
             }
         }
         Console.WriteLine($"Q{q,3}({1783 + q / 4}) 銀世界={pAg,6:F3} 金世界={pAu,6:F3} 銀/金={(pAu > 1e-9 ? pAg / pAu : 0),6:F3} 銀局所={(agMkt > 0 ? agLocal / agMkt : 0),6:F3}"
-                        + $"　法[不換{lFiat,2}/銀{lAg,2}/金{lAu,2}] 兌換中={onStd,2} 目標[不{t0,2}/銀{t1,2}/金{t2,2}] 工>金閾={indHi,2} 兌換停止累計={susp,3}"
+                        + $"　法[不換{lFiat,2}/銀{lAg,2}/金{lAu,2}] 兌換中={onStd,2} 目標[不{t0,2}/銀{t1,2}/金{t2,2}] 金の門越え={indHi,2} 兌換停止累計={susp,3}"
                         + $"　銀産出={agOut,8:F1} 銀在庫={agStock,9:F0} 金産出={auOut,8:F1} 累積鋳造={minted,11:F0} 銀準備={agRes,9:F0} 金準備={auRes,9:F0} 基礎貨幣={baseM,12:F0} 広義貨幣={broadM,12:F0}"
                         + $"　局所比R={(svRatioCnt > 0 ? Math.Exp(svRatioSum / svRatioCnt) : 0),7:F4} E銀={(svEAgCnt > 0 ? (svEAg / svEAgCnt).ToString("F3") : "-"),6} E金={(svEAuCnt > 0 ? (svEAu / svEAuCnt).ToString("F3") : "-"),6} 床拘束州={svFloorCnt,3}");
         if (q == 0 || q % 160 == 0) Console.WriteLine($"      銀鉱州の保有国と通貨法: {string.Join(" / ", agOwners)}");

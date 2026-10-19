@@ -50,10 +50,19 @@ public static class Megaprojects
 
     /// <summary>着工できるか（2026-08-02）。★プレイヤーのボタンとAIの判断が**この同じ関数**を通る＝AI=プレイヤー対称。
     /// 条件＝機構有効・未完成・未着工・建設地の州を自国が領有・技術水準が足りている。</summary>
-    public static bool CanStart(World w, Megaproject mp) =>
-        w.Coef.MegaprojectEnabled > 0 && !mp.IsComplete && !mp.Started
-        && mp.Owner is { } o && w.SelfPower is { } me && ReferenceEquals(o, me)
-        && w.TechLevel >= mp.TechGate;
+    public static bool CanStart(World w, Megaproject mp) => StartRefusal(w, mp) is null;
+
+    /// <summary>(435) 着工できない理由（できるなら null）。<see cref="CanStart"/> はこれが null かどうかそのもの＝可否の条件と評価の順は旧の条件式と同じ（Runner の play の <c>!mega</c> の拒否の理由が本体の述語から出る・第二の基準を作らない）。
+    /// 文言は定数（AI が毎四半期に呼ぶ経路で文字列を組まない）。</summary>
+    public static string? StartRefusal(World w, Megaproject mp)
+    {
+        if (!(w.Coef.MegaprojectEnabled > 0)) return "巨大建造物の機構が無効";
+        if (mp.IsComplete) return "完成している";
+        if (mp.Started) return "着工済み";
+        if (!(mp.Owner is { } o && w.SelfPower is { } me && ReferenceEquals(o, me))) return "建設地の州を自国が領有していない";
+        if (!(w.TechLevel >= mp.TechGate)) return "技術が足りない";
+        return null;
+    }
 
     /// <summary>着工する（動詞）。条件を満たさなければ何もせず false＝押せてしまう経路が出来ても状態は壊れない。</summary>
     public static bool TryStart(World w, Megaproject mp)

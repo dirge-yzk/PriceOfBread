@@ -164,9 +164,21 @@ public static class Politics
     /// <param name="lawGap">その pop のブロックの法の隔たり∈[0,1]（<see cref="PolicyPreferences.LawGap"/> の該当要素）。既定(=0)では読まれない</param>
     internal static double Discontent(World w, Coefficients c, Pop p, double[] regimeCoord, double lawGap)
     {
+        double d = DiscontentRaw(w, c, p, regimeCoord, lawGap, c.DiscontentLawGap > 0, out _, out _);
+        return !(d > 0) ? 0 : d > 1 ? 1 : d;   // 否定形＝NaN も 0 へ畳む（有限値では Math.Clamp(d,0,1) と厳密同値）
+    }
+
+    /// <summary>★(435) 不満度の 0 と 1 で切らない本体（<see cref="Discontent"/> が切る前の和）＝<c>WantWeight×生活の失望 ＋ PoliticalDistanceWeight×法の隔たり</c>。
+    /// 闘争度の目標（<see cref="Step"/> のループ）の先頭 2 項と**同じ 1 本**（旧は同じ式が 2 か所にあった＝(426) 読む線の発見・二量分離の完成の前段〔恒等〕）。
+    /// <paramref name="living"/>・<paramref name="voice"/> は 2 項それぞれ（闘争度の内訳 <c>Pop.MilLiving</c>・<c>MilVoice</c> がそのまま読む）、戻り値はその和（<c>living + voice</c>）。
+    /// <paramref name="useLawGap"/>＝法の隔たりの物差しを <paramref name="lawGap"/> にするか（<see cref="Discontent"/> は <c>DiscontentLawGap&gt;0</c>）。闘争度のループは常に false＝
+    /// 4軸座標の距離 dist(POPの理想点, <paramref name="regimeCoord"/>)/2（旧と同じ・係数 <c>DiscontentLawGap</c> を点火しても闘争度は動かない）。
+    /// ⚠距離の 0.5 倍は 2 の冪の掛け算で丸めに影響しない＝旧の闘争度の式 <c>wEdu×(1−発言権)×√pd2×0.5</c> と旧の不満度の式 <c>wEdu×(1−発言権)×(√pd2×0.5)</c> は同じビット。</summary>
+    internal static double DiscontentRaw(World w, Coefficients c, Pop p, double[] regimeCoord, double lawGap, bool useLawGap, out double living, out double voice)
+    {
         double wEdu = Math.Min(p.Consciousness, p.Literacy);
         double distance;
-        if (c.DiscontentLawGap > 0) distance = lawGap;
+        if (useLawGap) distance = lawGap;
         else
         {
             double[] ideal = Ideologies.IdealPoint(p.IdeologyShares);
@@ -174,8 +186,9 @@ public static class Politics
             distance = Math.Sqrt(pd2) * 0.5;   // /2＝4軸[0,1]の最大距離2で正規化→[0,1]
         }
         double lawDistance = wEdu * (1.0 - EffectiveVoice(w, c, p)) * distance;
-        double d = c.WantWeight * LivingWant(p, c) + c.PoliticalDistanceWeight * lawDistance;
-        return !(d > 0) ? 0 : d > 1 ? 1 : d;   // 否定形＝NaN も 0 へ畳む（有限値では Math.Clamp(d,0,1) と厳密同値）
+        living = c.WantWeight * LivingWant(p, c);
+        voice = c.PoliticalDistanceWeight * lawDistance;
+        return living + voice;
     }
 
     public static void Step(World w, Coefficients c)
@@ -254,20 +267,16 @@ public static class Politics
             //   分母なし（FoodNeed≈0）・NaN の月は捕捉も更新もしない（否定形の `>= 0` は NaN で false）。
             double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;   // ⚠生の比（飢餓の駆動と同じ・Pop.FoodFill の下限0の切りを通さない＝段4e の申し送り）
             if (p.FoodRef < 0 && foodFill >= 0) p.FoodRef = foodFill;
-            double want = LivingWant(p, c);
             // 政治の空間モデル（voiceless の一般化）：政治的不満＝**意識 ×（1−実効発言権）× dist(POPの理想点, 現政体座標)**。
             // 社会主義の労働者が絶対王政の下にいる＝4軸で遠い＝高い不満／保守的貴族＝近い＝満足。
             // 3つのゲートは全て実利/実状から創発：①意識（無学は政治的に受動＝徳川パス温存）②（1−発言権）＝**平和的回路の有無**（票を持つ層は不満を投票=改革へ流す）③距離（理想と体制の乖離）。
-            double[] ideal = Ideologies.IdealPoint(p.IdeologyShares);
-            double pd2 = 0; for (int i = 0; i < 4; i++) { double x = ideal[i] - regimeCoord[i]; pd2 += x * x; }
             // 1934拡張E5 秘密投票（「紙の参政権」問題の是正）：発言権の**鎮静効果**を「選挙の実在」で変調。
             // ⚠式は <see cref="EffectiveVoice"/> **1本**（段1・2026-09-09）＝不満度の側も同じ発言権を読む。
-            double effVoice = EffectiveVoice(w, c, p);
             // 3層モデル＝連続分割（重みの和が厳密に1）：文盲 1−ℓ → 天命（素朴王政観・MandateBase）／教育 min(意識,ℓ) → 綱領政治（本項）。
             // ⚠中間層（ℓ−教育）の**闘争度への直接加算は段2で削除**（設計メモ §7-3）＝「危険な中間」は原因ではなく層（誰が動くか）であり、
             //   ⑤3層の振る舞い分けが担う。層の重み自体は Politics の他の読み手（天命・不満度）と factionprobe が持っている。
-            double wEdu = Math.Min(p.Consciousness, p.Literacy);
-            double politicalGap = wEdu * (1.0 - effVoice) * Math.Sqrt(pd2) * 0.5;   // /2＝4軸[0,1]の最大距離2で正規化→[0,1]
+            // ★(435) 生活の失望と法の隔たりの 2 項（と意識・発言権・距離）は <see cref="DiscontentRaw"/> の 1 本（不満度と同じ式・旧は 2 か所に同じ式があった）。
+            double discRaw = DiscontentRaw(w, c, p, regimeCoord, 0, false, out double milLiving, out double milVoice);
             // ★段2＝民族項の**一本鎖**（設計メモ §7-3・作者裁定2026-09-09）。⚠旧は同じ民族統一度を3度読んでいた
             //   ＝①国項 UnitySecessionMilitancy×(1−EthnicUnity)×自分の中核度 ②pop項 MinorityMilitancy×(1−中核度) ③上昇鈍化 ×(1−UnityMilitancyRelief×EthnicUnity)。
             //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**なので①③は②の粗い写しにすぎない＝pop解像度の②だけを残す（国平均は②から創発する）。
@@ -289,14 +298,14 @@ public static class Politics
             // ★段2（2026-09-09）で 11項→5項：群衆の熱・失業・格差・危険な中間・革命の波を削除し、民族2項を一本鎖へ畳んだ（設計メモ §2-1/§7-3）。
             // 内訳（診断・UI表示用。target への各寄与ぶんを記録＝計算には不使用・較正中立）。値はすべて target が既に計算済み＝代入5本だけ。
             {
-                p.MilLiving = c.WantWeight * want;
-                p.MilVoice = c.PoliticalDistanceWeight * politicalGap;
+                p.MilLiving = milLiving;
+                p.MilVoice = milVoice;
                 p.MilWar = c.WarWearinessMilitancy * warWeariness;
                 p.MilNation = minorityMil;
                 p.MilFamine = famineMil;
             }
             // 外圧→闘争度の直加算（旧PressureWeight）はC裁定2026-07-09で撤去＝外圧はReformPressureBoost（改革派の力を押す）経路に一本化。
-            double sum = c.WantWeight * want + c.PoliticalDistanceWeight * politicalGap + minorityMil + c.WarWearinessMilitancy * warWeariness + famineMil;
+            double sum = discRaw + minorityMil + c.WarWearinessMilitancy * warWeariness + famineMil;
             double target = !(sum > 0) ? 0 : sum > 1 ? 1 : sum;   // 否定形＝NaN も0へ畳む（Math.Clamp は NaN を通す＝闘争度が NaN 汚染される）。有限値では Math.Clamp(sum,0,1) と厳密同値
             // ★闘争度の追従速度 σ（設計メモ §7-3）＝**上昇の側で決まる**：σ < RegionalRevoltThreshold（1四半期では越えない）かつ
             //   1−(1−σ)² > RegionalRevoltThreshold（2四半期で越える）＝門0.50 では σ∈(0.293, 0.50)。

@@ -1,0 +1,5 @@
+# (435) 線 hw の計器の生 480 表を m428 の生（D:/PoB_work/keep_428/m428_ins）と cmp
+一致 460 表／違う 20 表＝burscan 10（壁時計の seconds 列）＋flow_s 10（呼び出し元の行番号〔sourceLine〕の列だけ）。
+flow_s の違いの中身：全 10 種で値の列（amountPerMonth・eventCount ほか）は 1 行も違わない。違うのは sourceLine だけで、Megaprojects.cs（StartRefusal を足して行がずれた 149→158 ほか）と Politics.cs（DiscontentRaw を足して行がずれた）の行。
+  seed1 12432 行（Megaprojects.cs）・seed2 16662（Politics.cs・Megaprojects.cs）・seed3 13698・seed4 11424・seed5 13314・seed6 9060・seed7 12774（Megaprojects.cs）・seed8 8610・seed9 16488（Megaprojects.cs）・seed10 13932 ／ 行番号以外の違いのある行 0。
+成績表 3 枚（b10・b5・b10_ins）は m428 と cmp でファイル全体が同じ。

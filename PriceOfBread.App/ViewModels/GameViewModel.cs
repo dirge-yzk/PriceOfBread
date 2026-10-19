@@ -91,10 +91,10 @@ public partial class GameViewModel : ViewModelBase
     private const double FillWarnThreshold = 0.95;         // 充足率がこれ未満で不足警告（過密/主食/住居）
     private const double TensionRepromptDrop = 20.0;       // 緊張がこの幅だけ下がると再プロンプト可
     // 階級名（3層分類の文字列比較・複数箇所で使用）
-    private const string CapitalistClass = "資本家";
-    private const string BureaucratClass = "官僚";
-    private const string ArtisanClass = "職人";
-    private const string MerchantClass = "商人";
+    private const string CapitalistClass = PlayText.CapitalistClass;   // ★(435) 階級名の定数は SimCore の 1 か所（Runner の報告と同じ層の分け方）
+    private const string BureaucratClass = PlayText.BureaucratClass;
+    private const string ArtisanClass = PlayText.ArtisanClass;
+    private const string MerchantClass = PlayText.MerchantClass;
 
     [ObservableProperty] private string _dateText = "";
     // ★2026-09-23（作者指示「文字数固定」）：国庫と収支を**2枚に割る**。1枚のままだと箱の右端は止まっても
@@ -603,20 +603,8 @@ public partial class GameViewModel : ViewModelBase
     // 国家ランクの和名（列強/中堅/弱小・改修2026-06-28）。
     private static string RankJa(PowerRank r) => r switch { PowerRank.Great => "列強", PowerRank.Secondary => "準列強", PowerRank.Middle => "中堅", _ => "弱小" };
 
-    // 政体の和名（英語enumをそのまま出さない）。9政体すべてを網羅。
-    private static string PolityRegimeJa(Polity? p) => p switch
-    {
-        Polity.Absolutist => "絶対君主制",
-        Polity.Despotic => "専制君主制",
-        Polity.ConstitutionalMonarchy => "立憲君主制",
-        Polity.Shogunate => "幕府",
-        Polity.Republic => "共和制",
-        Polity.BourgeoisDictatorship => "ブルジョア独裁",
-        Polity.ProletarianDictatorship => "プロレタリア独裁",
-        Polity.MilitaryDictatorship => "軍事独裁",
-        Polity.Anarchy => "無政府",
-        _ => "—",
-    };
+    // 政体の和名（英語enumをそのまま出さない）。9政体すべてを網羅。★(435) 表は SimCore の 1 か所（Runner の報告と同じ）。
+    private static string PolityRegimeJa(Polity? p) => PlayText.PolityRegimeJa(p);
 
     // 政体で変わる国号（イギリス王国／イギリス共和国／…）と内戦の国名（政体の頭書き）の表は SimCore の1か所（SecessionNames・2026-09-28 処理の一元化 段2 束3）。
 }

@@ -221,18 +221,7 @@ public partial class GameViewModel
     }
 
     // 自国の国力スコア4分解（勝利条件の可視化・2026-07-15）：軍事/生産の豊かさ/金融/技術＋首位との差。国名/地位のホバーに出す（順位だけでは何を伸ばせば良いか読めない）。
-    public string PlayerScoreTip
-    {
-        get
-        {
-            double mil = NationalScore.Military(_player), wea = NationalScore.Wealth(_player), fin = NationalScore.Finance(_player), tec = NationalScore.Tech(_player);
-            double mine = mil + wea + fin + tec, top = 0; string topName = "";
-            foreach (var q in _sim.Diplomacy.Powers)
-                if (q.Nation is { } qw) { double s = NationalScore.Of(qw); if (s > top) { top = s; topName = qw.SelfPower?.Name ?? ""; } }
-            string gap = top > mine + 1e-9 ? $"首位 {topName} との差 {top - mine:F1}" : "首位";
-            return $"軍事 {mil:F1}\n生産の豊かさ {wea:F1}\n金融 {fin:F1}\n技術 {tec:F1}\n合計 {mine:F1}　{gap}";
-        }
-    }
+    public string PlayerScoreTip => PlayText.ScoreBreakdownText(_player, _sim.Diplomacy);   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
     // 反体制派の戦力比＝動員（改革派＋急進派）÷鎮圧（治安維持力×人口）。100%超＝鎮圧を上回る＝政変圏
     //（Politics.Transition の `challenge <= coerce なら政体は動かない` と同じ不等式＝表示と点火が同じ物差し）。
     // ★2026-08-16 作者指摘「マイナスの軍事力は意味が通らない」の是正：旧＝(challenge−coerce)/(challenge+coerce) の
@@ -329,10 +318,8 @@ public partial class GameViewModel
     private List<StatTerm> ExplainTerms(string quantity, Func<double, string> fmt)
     {
         var rows = new List<StatTerm>();
-        if (_player.Explain is not { } led) return rows;
-        var terms = led.Get(quantity);
-        foreach (var t in terms.Where(t => Math.Abs(t.Delta) >= 5e-4).OrderByDescending(t => t.Delta))
-            rows.Add(new StatTerm { Text = $"{(t.Delta >= 0 ? "＋" : "−")}{fmt(Math.Abs(t.Delta))}　{t.Reason}", Brush = t.Delta >= 0 ? TermPlus : TermMinus });
+        foreach (var t in PlayText.ExplainTerms(_player, quantity))   // ★(435) 間引きと並べ方・書式は SimCore の 1 本（Runner の play の報告と同じ）
+            rows.Add(new StatTerm { Text = PlayText.SignedLine(t.Delta, t.Reason, fmt), Brush = t.Delta >= 0 ? TermPlus : TermMinus });
         return rows;
     }
 
@@ -366,7 +353,7 @@ public partial class GameViewModel
     // 説明API内訳の共通整形（緑=加算/赤=減算・|Δ|<5e-4は呼び出し側で除外済み前提）。
     private static readonly IBrush TermNeutral = new SolidColorBrush(Color.Parse("#5A4E3C"));
     private static StatTerm Signed(double delta, string reason, Func<double, string> fmt)
-        => new StatTerm { Text = $"{(delta >= 0 ? "＋" : "−")}{fmt(Math.Abs(delta))}　{reason}", Brush = delta >= 0 ? TermPlus : TermMinus };
+        => new StatTerm { Text = PlayText.SignedLine(delta, reason, fmt), Brush = delta >= 0 ? TermPlus : TermMinus };
     private static StatTerm Neutral(string text) => new StatTerm { Text = text, Brush = TermNeutral };
 
     /// <summary>行政力ホバー（作者指示2026-08-15）：説明API内訳の先頭に行政費（財政タブのレバー＝目標/実効）を添える
@@ -415,48 +402,15 @@ public partial class GameViewModel
     // 技術力のホバーは撤去（2026-07-16ユーザー指示＝かっこ・内訳とも不要）。
     // 識字率＝階級ごとの識字率そのもの（上流≈100%・下流が低い等）。人口比の寄与でなく各層の実際の値を出す（2026-07-16修正）。
     private List<StatTerm> LiteracyClassTerms()
-    {
-        var rows = new List<StatTerm>();
-        double[] litMass = new double[3], sz = new double[3];
-        foreach (var p in _player.AllPops())
-        {
-            int layer = (p.Closed || p.ClassName == CapitalistClass) ? 0 : (p.IsModernElite || p.ClassName is BureaucratClass or ArtisanClass or MerchantClass) ? 1 : 2;
-            litMass[layer] += p.Size * p.Literacy; sz[layer] += p.Size;
-        }
-        string[] name = { "上流", "中流", "下流" };
-        for (int i = 0; i < 3; i++) if (sz[i] > 1e-9) rows.Add(Neutral($"{name[i]}　{litMass[i] / sz[i]:P0}"));
-        return rows;
-    }
+        => PlayText.ClassLayerMeans(_player, p => p.Literacy).Select(x => Neutral($"{x.Layer}　{x.Mean:P0}")).ToList();   // ★(435) 3 層の分け方と平均は SimCore の 1 本（Runner の報告と同じ）
 
     // 闘争度＝階級ごとの平均闘争度そのもの（Pop.Militancy＝闘争度のストック）。
     // ⚠不満度は別の導出量（Politics.Discontent）＝2026-09-23にヘッダーの独立した項目になった（闘争度の内訳ではない・同じ数を2つの名前で呼ばない）。
     private List<StatTerm> MilitancyClassTerms()
-    {
-        var rows = new List<StatTerm>();
-        double[] milMass = new double[3], sz = new double[3];
-        foreach (var p in _player.AllPops())
-        {
-            int layer = (p.Closed || p.ClassName == CapitalistClass) ? 0 : (p.IsModernElite || p.ClassName is BureaucratClass or ArtisanClass or MerchantClass) ? 1 : 2;
-            milMass[layer] += p.Size * p.Militancy; sz[layer] += p.Size;
-        }
-        string[] name = { "上流", "中流", "下流" };
-        for (int i = 0; i < 3; i++) if (sz[i] > 1e-9) rows.Add(Neutral($"{name[i]}　{milMass[i] / sz[i]:P0}"));
-        return rows;
-    }
+        => PlayText.ClassLayerMeans(_player, p => p.Militancy).Select(x => Neutral($"{x.Layer}　{x.Mean:P0}")).ToList();
     // 満足度＝階級ごとの平均満足度そのもの（どの階級が不満か）。人口比の寄与でなく各層の実際の値を出す（2026-07-16修正）。
     private List<StatTerm> SatisfactionClassTerms()
-    {
-        var rows = new List<StatTerm>();
-        double[] satMass = new double[3], sz = new double[3];
-        foreach (var p in _player.AllPops())
-        {
-            int layer = (p.Closed || p.ClassName == CapitalistClass) ? 0 : (p.IsModernElite || p.ClassName is BureaucratClass or ArtisanClass or MerchantClass) ? 1 : 2;
-            satMass[layer] += p.Size * p.Satisfaction; sz[layer] += p.Size;
-        }
-        string[] name = { "上流", "中流", "下流" };
-        for (int i = 0; i < 3; i++) if (sz[i] > 1e-9) rows.Add(Neutral($"{name[i]}　{satMass[i] / sz[i]:P0}"));
-        return rows;
-    }
+        => PlayText.ClassLayerMeans(_player, p => p.Satisfaction).Select(x => Neutral($"{x.Layer}　{x.Mean:P0}")).ToList();
     // 人口＝保存則（TotalPopulation=初期+PopulationDelta）で3項＋今四半期の移民の流入/流出（要素ごと）。
     private List<StatTerm> PopulationTerms()
     {

@@ -30,7 +30,7 @@ public partial class GameViewModel
         LoanRateText = $"{_player.LoanRatePerYear:P1}";                                                          // B1：年率換算（唯一の換算地点＝World.LoanRatePerYear）
         if (_player.Bank is { } bank)
         {
-            CoverText = $"{(_player.BroadMoney.Value > 1e-9 ? _player.BaseMoney / _player.BroadMoney : 1.0):P0}";
+            CoverText = PlayText.CoverText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告と同じ）
             HouseholdLoanText = Money(bank.HouseholdLoans.Value);   // ★A-03：POPの個人債務の残高
         }
         else { CoverText = "—"; HouseholdLoanText = "—"; }   // 銀行なし＝兌換系は該当なし

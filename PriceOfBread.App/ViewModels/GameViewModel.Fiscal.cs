@@ -231,8 +231,8 @@ public partial class GameViewModel
 
 
     // 物価水準（インフレ/デフレ＝広義マネー/実質産出）・為替（金平価=100%基準・不換で減価<100%）。財政タブの金融セクションで表示（ヘッダーから移動2026-07-16）。
-    public string PriceLevelText => !_player.MonetaryEnabled ? "—" : _player.PriceLevel.ToString("P0");
-    public string ExchangeRateText => !_player.MonetaryEnabled ? "—" : _player.ExchangeRate.ToString("P0");
+    public string PriceLevelText => PlayText.PriceLevelText(_player);   // ★(435) 文言は SimCore の 1 本（Runner の play の報告と同じ）
+    public string ExchangeRateText => PlayText.ExchangeRateText(_player);
     // ⚠撤去2026-08-23（読み手ゼロ）: 金本位の旧スイッチ一式（GoldStandardWanted/GoldShort/GoldStandardButtonText/ToggleGoldStandard）＝
     //   通貨制度は経済タブの3ボタン（不換紙幣/銀本位/金本位＝EconTab の法の行）へ移行済みで、axaml の束縛が1つも無かった。
     //   ⚠この撤去で「UI規律の唯一の説明文の例外」（加入/離脱の確認モーダル本文）も消える＝説明文は画面から全廃された。

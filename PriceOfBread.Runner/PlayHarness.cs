@@ -25,6 +25,9 @@ namespace PriceOfBread.Runner;
 /// ★ 打った手は decision.log.txt に追記され、後から決定論的に再生できる（ReplayAgent の素材）。</summary>
 internal static class PlayHarness
 {
+    /// <summary>★(435) 報告・決定の記録の書き込みは BOM なしの UTF-8（旧は <c>Encoding.UTF8</c> が先頭に BOM を付け、grep の行頭一致が効かなかった＝初見の試しのテストプレイの報告 §4）。</summary>
+    internal static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
+
     public static int Run(string[] args)
     {
         string dir = args.Length > 1 ? args[1] : "play";
@@ -58,6 +61,7 @@ internal static class PlayHarness
 
         var world = sim.Nations[playerIndex].World;
         world.ForceUnlock = true;   // ★(419) 再征服は常時ON（App の InitAfterSimReady と同じ＝新規でも state.bin からの再開でも。★(420) 訂正：ForceUnlock はセーブに載る〔World の自動プロパティ＝SaveGame が全インスタンスフィールドを辿る〕＝(419) より前の state.bin と ForceUnlock=false の決定をこの行が上書きする）
+        world.Explain = new ExplainLedger();   // ★(435) 説明台帳（App の InitAfterSimReady と同じ＝プレイヤー国だけ常設・本計算はビット恒等〔ExplainTests〕・セーブは非直列化なので再開のたびにここで装着）。正統性・国民意識・行政力・厭戦の内訳を報告に出す。⚠ForceUnlock の行は var world の直後に置く（番人 再征服の既定 が見る）
 
         // ---- 2) 決定の適用（キー=値／NationPolicy のフィールド名）----
         string decPath = Path.Combine(dir, "decision.txt");
@@ -76,24 +80,30 @@ internal static class PlayHarness
                 applied.Add(ApplyKeyValue(world, line));
             }
             File.AppendAllText(Path.Combine(dir, "decision.log.txt"),
-                $"=== {world.Year}Q{world.Quarter} ===\n" + string.Join("\n", applied) + "\n", Encoding.UTF8);
+                $"=== {world.Year}Q{world.Quarter} ===\n" + string.Join("\n", applied) + "\n", Utf8NoBom);
             if (rawKept.Count > 0)
                 File.AppendAllText(Path.Combine(dir, "decision.raw.txt"),
-                    $"@{world.Year}Q{world.Quarter}\n" + string.Join("\n", rawKept) + "\n", Encoding.UTF8);
+                    $"@{world.Year}Q{world.Quarter}\n" + string.Join("\n", rawKept) + "\n", Utf8NoBom);
             File.Move(decPath, Path.Combine(dir, "decision.applied.txt"), overwrite: true);
         }
 
         // ---- 3) 進める ----
         int logStart = sim.Diplomacy.Log.Count;
-        for (int i = 0; i < steps; i++) sim.StepQuarter();
+        double[]? ledBefore = null;   // ★(435) 直近の 1 四半期の収支＝最後の 1 四半期の直前の累計の写し（台帳は累計＝そのままでは四半期の値が読めなかった）
+        for (int i = 0; i < steps; i++)
+        {
+            if (i == steps - 1) ledBefore = (double[])world.TreasuryLedger.Clone();
+            sim.StepQuarter();
+        }
 
         // ---- 4) 報告 ----
         var sb = new StringBuilder();
-        WriteReport(sb, sim, playerIndex, applied, logStart);
-        File.WriteAllText(Path.Combine(dir, "report.txt"), sb.ToString(), Encoding.UTF8);
+        WriteReport(sb, sim, playerIndex, applied, logStart, ledBefore);
+        File.WriteAllText(Path.Combine(dir, "report.txt"), sb.ToString(), Utf8NoBom);
         Console.Write(sb.ToString());
 
         // ---- 5) 保存 ----
+        world.Explain = null;   // ★(435) 説明台帳は保存に載せない（World.Explain は [NonSerialized] でなく、載せると state.bin が約 3KB 増え旧版と比べられない）＝再開のたびに上で付け直す。これで state.bin は台帳を付けない旧版とバイト一致
         using (var fs = File.Create(statePath)) SaveGame.Save(sim, fs);
         return 0;
     }
@@ -139,6 +149,7 @@ internal static class PlayHarness
         sim.StartWarmup();
         var world = sim.Nations[playerIndex].World;
         world.ForceUnlock = true;   // ★(419) play と同じ（再生が play の軌道から外れないように）
+        world.Explain = new ExplainLedger();   // ★(435) play と同じ（内訳の台帳・本計算はビット恒等）
         Console.WriteLine($"再生開始： {playerName} seed {seed}　スクリプト {script.Count}時点・最終 {lastY}Q{lastQ}");
 
         int appliedN = 0, guard = 0;
@@ -156,8 +167,8 @@ internal static class PlayHarness
             sim.StepQuarter();
         }
         var sb = new StringBuilder();
-        WriteReport(sb, sim, playerIndex, [$"（再生・適用 {appliedN} 手）"], 0);
-        File.WriteAllText(Path.Combine(dir, "report.replay.txt"), sb.ToString(), Encoding.UTF8);
+        WriteReport(sb, sim, playerIndex, [$"（再生・適用 {appliedN} 手）"], 0, null);   // 再生は四半期ごとの収支を持たない（累計だけ）
+        File.WriteAllText(Path.Combine(dir, "report.replay.txt"), sb.ToString(), Utf8NoBom);
         Console.Write(sb.ToString());
         Console.WriteLine($"再生完了：{appliedN}手を適用・report.replay.txt へ出力（state.bin は不変）");
         return 0;
@@ -197,7 +208,7 @@ internal static class PlayHarness
         catch (Exception ex) { return $"⚠適用失敗 {key}={val}（{ex.GetType().Name}）"; }
     }
 
-    private static void WriteReport(StringBuilder sb, MultiNationSim sim, int pi, List<string> applied, int logStart)
+    internal static void WriteReport(StringBuilder sb, MultiNationSim sim, int pi, List<string> applied, int logStart, double[]? ledBefore)
     {
         var w = sim.Nations[pi].World;
         var sp = w.SelfPower!;
@@ -230,11 +241,16 @@ internal static class PlayHarness
 
         sb.AppendLine($"================ {w.Year}年 Q{w.Quarter}　{sp.Name} ================");
         sb.AppendLine(PromptsLine(w, sp));   // ★(419) 待っている問いかけと使える動詞（1 行）
-        sb.AppendLine($"政体 {w.Polity}　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
+        // ★(435) 終局（暦が EndYear に入った＝1949 年 12 月が終わった）の最終の順位と自国の内訳＝画面の終局の表と同じ関数。画面と同じく止めはしない（以後も進められる）。
+        if (PlayText.IsEnded(w)) AppendEnding(sb, sim, w);
+        sb.AppendLine($"政体 {PlayText.PolityRegimeJa(PowerAffinity.PolityFromShares(w))}（画面の政体＝権力の取り分からの導出・内部の政体 {w.Polity}）　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
         sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
         // ★(410) 00-HARN の残り：闘争度は 5 本の目標の和（クランプ前）へ速さ σ で追う在庫＝ヘッダーの闘争度と和は一致しない。画面の階級のホバーと同じ名前・同じ 0.5% 未満の省略。
         sb.AppendLine($"闘争度の目標の内訳（大衆・人口加重・和は在庫が追う先）： {MilParts(milMass, massSize)}");
         sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdpPerMonth:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
+        // ★(435) 画面のヘッダー・財政タブにあって報告に無かった物（物価・通貨制度・為替・兌換・行政力・政治資本）。文言は画面と同じ関数（PlayText）。
+        sb.AppendLine($"物価水準 {PlayText.PriceLevelText(w)}　為替 {PlayText.ExchangeRateText(w)}　通貨制度 現在 {w.MonetaryLaw}（兌換に加入 {(w.OnGoldStandard ? "○" : "×")}{(w.GoldStandardSuspendedInCrisis ? "・危機で兌換停止" : "")}） ／ 目標 {(MonetaryStandardLaw)Math.Clamp(w.Policy.MonetaryTarget, 0, 2)}　兌換カバー率 {PlayText.CoverText(w)}（維持線 {w.Coef.GoldCoverMin.Value:P0}）　資本移動 {(w.CapitalControlLaw ? "規制" : "自由")}");
+        sb.AppendLine($"国債残高 {w.GovDebt.Value:N0}　外資信用 {w.CreditRating:P0}　政策金利 目標 {w.Policy.InterestRateTarget:P0}／実効 {w.InterestRate:P0}　貸出金利 {w.LoanRatePerYear.Value:P1}　行政力 {w.AdminEfficiency:P0}　政治資本 {PlayText.PoliticalCapitalText(w)}");
 
         sb.AppendLine();
         sb.AppendLine("---- 財政 ----");
@@ -251,19 +267,22 @@ internal static class PlayHarness
         }
         sb.AppendLine($"★近代化投資 {w.ModernizationFrac:P0}（今四半期の予算 {w.ModernizationBudget():N0}）　総動員 {w.Mobilized}");
         sb.AppendLine($"陸軍維持費 {w.ArmyUpkeep:P0}　海軍維持費 {w.NavyUpkeep:P0}　植民地維持 {w.LastColonialUpkeepPerMonth:N0}");
+        {   // ★(435) 置いた目標（現在値は上の行・税率が目標に追従しない件は現在と目標を並べて読む）
+            var pt = w.Policy;
+            sb.AppendLine($"目標（置いた値）： 所得税 {pt.IncomeTaxTarget:P0}　人頭税 {pt.PollTaxTarget:P0}　土地税 {pt.LandTaxTarget:P0}　累進 {pt.ProgressiveTaxTarget:P0}　関税 {pt.TariffTarget:P0}　教育費 {pt.EducationSpendingTarget:P0}　行政費 {pt.AdminSpendingTarget:P0}　社会保障 {pt.SocialSecurityTarget:P0}　陸軍維持費 {pt.ArmyUpkeepTarget:P0}　海軍維持費 {pt.NavyUpkeepTarget:P0}　近代化投資 {w.ModernizationFrac:P0}");
+        }
 
+        // ★(435) 収支の台帳は**開始からの累計**（区分ごと・収入が正・支出が負）。名乗りを付け、直近の 1 四半期の値を並べる（旧は累計を名乗らず、四半期の値は引き算で出すしかなかった）。
         var led = w.TreasuryLedger;
-        string Cat(TreasuryCat c) => $"{c}:{led[(int)c]:N0}";
-        sb.AppendLine("収入 " + string.Join(" ", new[] { TreasuryCat.Tax, TreasuryCat.Tariff, TreasuryCat.StateMonopoly, TreasuryCat.Borrow, TreasuryCat.StateFactory, TreasuryCat.TributeIn, TreasuryCat.OtherIn }.Where(c => Math.Abs(led[(int)c]) > 0.5).Select(Cat)));
-        sb.AppendLine("支出 " + string.Join(" ", new[] { TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.Admin, TreasuryCat.Education, TreasuryCat.Welfare, TreasuryCat.Pension, TreasuryCat.Modernization, TreasuryCat.Interest, TreasuryCat.DebtRepay, TreasuryCat.FactoryBuild, TreasuryCat.Subsidy, TreasuryCat.Megaproject, TreasuryCat.ColonialUpkeep, TreasuryCat.WarCost, TreasuryCat.OtherOut }.Where(c => Math.Abs(led[(int)c]) > 0.5).Select(Cat)));
+        string Cat(TreasuryCat c) => ledBefore is null ? $"{c}:{led[(int)c]:N0}" : $"{c}:{led[(int)c]:N0}（直近の四半期 {led[(int)c] - ledBefore[(int)c]:+#,0;-#,0;0}）";
+        sb.AppendLine("収入（開始からの累計" + (ledBefore is null ? "のみ" : "・括弧は直近の 1 四半期") + "） " + string.Join(" ", IncomeCats.Where(c => Math.Abs(led[(int)c]) > 0.5 || (ledBefore is not null && Math.Abs(led[(int)c] - ledBefore[(int)c]) > 0.5)).Select(Cat)));
+        sb.AppendLine("支出（開始からの累計" + (ledBefore is null ? "のみ" : "・括弧は直近の 1 四半期") + "） " + string.Join(" ", OutlayCats.Where(c => Math.Abs(led[(int)c]) > 0.5 || (ledBefore is not null && Math.Abs(led[(int)c] - ledBefore[(int)c]) > 0.5)).Select(Cat)));
 
         sb.AppendLine();
-        sb.AppendLine("---- 法（現在値 ／ 目標値）----");
+        sb.AppendLine("---- 法（現在値 ／ 目標値・現在と目標が違う法は ⇒ で目標を添える）----");
         var pol = w.Policy;
-        sb.AppendLine($"初等教育 {w.EducationLaw} ／ {pol.EducationLaw}　　参政権 {w.Suffrage} ／ {pol.Suffrage}　　報道 {w.Censorship} ／ {pol.Censorship}");
-        sb.AppendLine($"穀物法 ／ {pol.CornLaws}　土地改革 ／ {pol.LandReform}　農奴解放 ／ {pol.SerfEmancipation}");
-        sb.AppendLine($"徴兵 ／ {pol.ConscriptionLaw}　官僚 ／ {pol.Bureaucracy}　労組 ／ {pol.LaborUnion}　女性 ／ {pol.WomenRights}");
-        sb.AppendLine($"アヘン保有 ／ {pol.OpiumPossession}　アヘン輸出禁止 ／ {pol.OpiumExportBan}　国教 ／ {pol.StateReligion}　独禁 ／ {pol.Antitrust}");
+        foreach (var chunk in LawStatusRows(w).Chunk(4))
+            sb.AppendLine(string.Join("　　", chunk.Select(r => r.Current == r.Target ? $"{r.Name} {r.Current}" : $"{r.Name} {r.Current} ⇒目標 {r.Target}")));
 
         sb.AppendLine();
         sb.AppendLine("---- 政治：各軸を動かす追い風／向かい風（正＝押せる・負＝抵抗）----");
@@ -331,6 +350,19 @@ internal static class PlayHarness
                 + (milByClass.TryGetValue(kv.Key, out var mcls) ? $"　目標［{MilParts(mcls, size)}］" : ""));   // ★(410) 闘争度の目標の 5 本（画面のホバーと同じ名前）
         }
 
+        // ★(435) 内訳（画面のホバー・POP タブ・政治タブと同じ関数。旧は数字だけで、正統性や闘争度が動く理由が追えなかった＝初見の試しのテストプレイの報告 §1-4）。
+        sb.AppendLine();
+        sb.AppendLine("---- 内訳（画面のホバーと同じ関数）----");
+        AppendExplain(sb, w, "正統性", "Legitimacy", v => v.ToString("F3"), $"{w.Legitimacy:F3}");
+        AppendExplain(sb, w, "国民意識", "NationalConsciousness", v => v.ToString("P1"), $"{w.NationalConsciousnessDisplay:P0}");
+        AppendExplain(sb, w, "行政力", "AdminEfficiency", v => v.ToString("P0"), $"{w.AdminEfficiency:P0}（行政費 目標 {w.Policy.AdminSpendingTarget:P0}／実効 {w.AdminSpending:P0}）");
+        if (w.AtWarNow) AppendExplain(sb, w, "厭戦", "Exhaustion", v => v.ToString("P0"), $"{sp.WarExhaustion:P0}");
+        sb.AppendLine("  闘争度（階級の層ごとの平均）： " + string.Join(" ", PlayText.ClassLayerMeans(w, p => p.Militancy).Select(x => $"{x.Layer} {x.Mean:P0}")));
+        sb.AppendLine("  識字（階級の層ごとの平均）： " + string.Join(" ", PlayText.ClassLayerMeans(w, p => p.Literacy).Select(x => $"{x.Layer} {x.Mean:P0}")));
+        sb.AppendLine("  満足度（階級の層ごとの平均）： " + string.Join(" ", PlayText.ClassLayerMeans(w, p => p.Satisfaction).Select(x => $"{x.Layer} {x.Mean:P0}")));
+        sb.AppendLine("  政治資本： " + PlayText.PoliticalCapitalTip(w).Replace("\n", "　"));
+        sb.AppendLine("  国力の内訳（自国）： " + PlayText.ScoreBreakdownText(w, sim.Diplomacy).Replace("\n", "　"));
+
         sb.AppendLine();
         sb.AppendLine("---- 州（上位10・工業化順）----");
         foreach (var r in w.Regions.Where(x => x.State == RegionState.Active)
@@ -380,6 +412,78 @@ internal static class PlayHarness
             sb.AppendLine("---- 適用した決定 ----");
             foreach (string a in applied) sb.AppendLine($"  {a}");
         }
+
+        // ★(435) !state・!subsidy ほかで使える財の名と州の名（旧は州名を報告の表の上位10だけから、財名を主食と建材だけから推測するしかなかった）。
+        sb.AppendLine();
+        sb.AppendLine("---- 動詞で使える名前（そのまま書く）----");
+        sb.AppendLine("財： " + string.Join(" ", w.Region.Goods.OrderBy(g => g.Id).Select(g => g.Name)));
+        sb.AppendLine("州（自国の稼働中）： " + string.Join(" ", w.Regions.Where(r => r.State == RegionState.Active).Select(r => r.Name)));
+    }
+
+    private static readonly TreasuryCat[] IncomeCats = [TreasuryCat.Tax, TreasuryCat.Tariff, TreasuryCat.StateMonopoly, TreasuryCat.Borrow, TreasuryCat.Devalue, TreasuryCat.StateFactory, TreasuryCat.TributeIn, TreasuryCat.OtherIn];
+    private static readonly TreasuryCat[] OutlayCats = [TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.Admin, TreasuryCat.Education, TreasuryCat.Welfare, TreasuryCat.Pension, TreasuryCat.Modernization, TreasuryCat.AntiCorruption, TreasuryCat.Interest, TreasuryCat.DebtRepay, TreasuryCat.FactoryBuild, TreasuryCat.Subsidy, TreasuryCat.Megaproject, TreasuryCat.ColonialUpkeep, TreasuryCat.TributeOut, TreasuryCat.WarCost, TreasuryCat.OtherOut];
+
+    /// <summary>説明台帳の内訳 1 本（画面の <c>ExplainTerms</c> と同じ <see cref="PlayText.ExplainTerms"/>・<see cref="PlayText.SignedLine"/>）。台帳が空（四半期を 1 つも進めていない）なら名乗って止める。</summary>
+    private static void AppendExplain(StringBuilder sb, World w, string label, string quantity, Func<double, string> fmt, string head)
+    {
+        var terms = PlayText.ExplainTerms(w, quantity);
+        sb.AppendLine($"  {label} {head}： " + (terms.Count == 0 ? "（台帳が空＝四半期を 1 つ進めると出る）" : string.Join(" ／ ", terms.Take(8).Select(t => PlayText.SignedLine(t.Delta, t.Reason, fmt)))));
+    }
+
+    /// <summary>★(435) 終局の最終の順位（画面の終局の表と同じ <see cref="PlayText.EndingStandings"/>）と自国の内訳。上位 10 と自国の行・全国数。</summary>
+    private static void AppendEnding(StringBuilder sb, MultiNationSim sim, World w)
+    {
+        var rows = PlayText.EndingStandings(sim.Nations.Select(n => n.World), w);
+        sb.AppendLine($"★終局： {PriceOfBread.SimCore.Calendar.EndYear}年 最終ランキング（全 {rows.Count} 国・自国 {rows.First(r => r.IsPlayer).Order} 位）　※画面と同じく止めはしない（以後も進められる）");
+        sb.AppendLine("  順位 国名           国力 政体             人口        工業化度");
+        foreach (var r in rows.Where(r => r.Order <= 10 || r.IsPlayer))
+            sb.AppendLine($"  {r.Order,3}{(r.IsPlayer ? "★" : " ")} {r.Name,-12} {r.Score,6:F0} {PlayText.PolityRegimeJa(r.Polity),-8} {r.Population,12:N0} {r.Industry,8:F2}");
+        sb.AppendLine("  自国の国力の内訳： " + PlayText.ScoreBreakdownText(w, sim.Diplomacy).Replace("\n", "　"));
+    }
+
+    /// <summary>★(435) 全ての法の現在値と目標値（旧は目標だけの法が多く、労組・女性・官僚・国有化・資本移動ほかの現在値が空欄だった）。現在値は World・目標値は NationPolicy の同じ名前の欄
+    /// ＝画面の法律タブの行（<c>BuildLaws</c>）と同じ組。新しい法を NationPolicy に足したらここへ足す（番人 <c>PlayHarnessTests</c> が NationPolicy の法の欄が全てここに載るかを見る）。</summary>
+    internal static List<(string Name, string Field, string Current, string Target)> LawStatusRows(World w)
+    {
+        var p = w.Policy;
+        string Ob(bool on) => on ? "あり" : "なし";
+        return
+        [
+            ("初等教育", nameof(NationPolicy.EducationLaw), w.EducationLaw.ToString(), p.EducationLaw.ToString()),
+            ("参政権", nameof(NationPolicy.Suffrage), w.Suffrage.ToString(), p.Suffrage.ToString()),
+            ("植民地参政権", nameof(NationPolicy.ColonialSuffrage), w.ColonialSuffrage.ToString(), p.ColonialSuffrage.ToString()),
+            ("移民原住民参政権", nameof(NationPolicy.MigrantNativeSuffrage), w.MigrantNativeSuffrage.ToString(), p.MigrantNativeSuffrage.ToString()),
+            ("報道", nameof(NationPolicy.Censorship), w.Censorship.ToString(), p.Censorship.ToString()),
+            ("労組", nameof(NationPolicy.LaborUnion), w.LaborUnion.ToString(), p.LaborUnion.ToString()),
+            ("労働時間", nameof(NationPolicy.WorkHours), w.WorkHours.ToString(), p.WorkHours.ToString()),
+            ("児童労働の合法", nameof(NationPolicy.ChildLaborAllowed), Ob(w.ChildLaborAllowed), Ob(p.ChildLaborAllowed)),
+            ("女性の権利", nameof(NationPolicy.WomenRights), w.WomenRights.ToString(), p.WomenRights.ToString()),
+            ("穀物法", nameof(NationPolicy.CornLaws), w.CornLaws.ToString(), p.CornLaws.ToString()),
+            ("土地改革", nameof(NationPolicy.LandReform), w.LandReform.ToString(), p.LandReform.ToString()),
+            ("農奴解放", nameof(NationPolicy.SerfEmancipation), w.SerfEmancipation.ToString(), p.SerfEmancipation.ToString()),
+            ("徴兵", nameof(NationPolicy.ConscriptionLaw), w.ConscriptionLaw.ToString(), p.ConscriptionLaw.ToString()),
+            ("秘密投票", nameof(NationPolicy.SecretBallot), w.SecretBallot.ToString(), p.SecretBallot.ToString()),
+            ("官僚", nameof(NationPolicy.Bureaucracy), w.Bureaucracy.ToString(), p.Bureaucracy.ToString()),
+            ("移民制限", nameof(NationPolicy.ImmigrationRestriction), w.ImmigrationRestriction.ToString(), p.ImmigrationRestriction.ToString()),
+            ("技術者流出禁止", nameof(NationPolicy.SpecialistExitLaw), w.SpecialistExitLaw.ToString(), p.SpecialistExitLaw.ToString()),
+            ("社会保障法", nameof(NationPolicy.SocialSecurityLaw), w.SocialSecurityLaw.ToString(), p.SocialSecurityLaw.ToString()),
+            ("国教", nameof(NationPolicy.StateReligion), w.StateReligion.ToString(), p.StateReligion.ToString()),
+            ("独禁", nameof(NationPolicy.Antitrust), w.Antitrust.ToString(), p.Antitrust.ToString()),
+            ("同業組合", nameof(NationPolicy.Guild), w.Guild.ToString(), p.Guild.ToString()),
+            ("戦時配給", nameof(NationPolicy.WartimeRationing), Ob(w.WartimeRationing), Ob(p.WartimeRationing)),
+            ("軍需輸出の禁止", nameof(NationPolicy.MilitaryExportBan), Ob(w.MilitaryExportBan), Ob(p.MilitaryExportBan)),
+            ("民間の武器購入の禁止", nameof(NationPolicy.CivilianArmsBan), Ob(w.CivilianArmsBan), Ob(p.CivilianArmsBan)),
+            ("鉄道国有化", nameof(NationPolicy.NationalizeRailways), Ob(w.NationalizeRailways), Ob(p.NationalizeRailways)),
+            ("鉱山国有化", nameof(NationPolicy.NationalizeMines), Ob(w.NationalizeMines), Ob(p.NationalizeMines)),
+            ("軍需産業国有化", nameof(NationPolicy.NationalizeMilitary), Ob(w.NationalizeMilitary), Ob(p.NationalizeMilitary)),
+            ("石油国有化", nameof(NationPolicy.NationalizeOil), Ob(w.NationalizeOil), Ob(p.NationalizeOil)),
+            ("電力国有化", nameof(NationPolicy.NationalizeElectricity), Ob(w.NationalizeElectricity), Ob(p.NationalizeElectricity)),
+            ("全て国有化", nameof(NationPolicy.NationalizeAll), Ob(w.NationalizeAll), Ob(p.NationalizeAll)),
+            ("アヘン保有", nameof(NationPolicy.OpiumPossession), w.OpiumPossession.ToString(), p.OpiumPossession.ToString()),
+            ("アヘン輸出禁止", nameof(NationPolicy.OpiumExportBan), Ob(w.OpiumExportBan), Ob(p.OpiumExportBan)),
+            ("通貨制度", nameof(NationPolicy.MonetaryTarget), w.MonetaryLaw.ToString(), ((MonetaryStandardLaw)Math.Clamp(p.MonetaryTarget, 0, 2)).ToString()),
+            ("資本移動の規制", nameof(NationPolicy.CapitalControlTarget), Ob(w.CapitalControlLaw), Ob(p.CapitalControlTarget)),
+        ];
     }
 
     /// <summary>プレイヤーの動作（World のメソッド＝UIのボタンと同じ口）。書式：
@@ -390,6 +494,8 @@ internal static class PlayHarness
     {
         string[] a = line[1..].Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (a.Length == 0) return "⚠空の動作";
+        // ★(435) 引数が足りない書式は添字の例外にせず書式を返す（旧は〈動作失敗…IndexOutOfRange〉）。
+        if (VerbSyntaxOf(a[0]) is { } ar && a.Length < ar.MinWords) return $"⚠書式: {ar.Usage}";
         int RegionOf(string name)
         {
             for (int i = 0; i < w.Regions.Count; i++) if (w.Regions[i].Name == name) return i;
@@ -420,25 +526,40 @@ internal static class PlayHarness
                 case "sell":
                 {
                     int ri = RegionOf(a[1]); int gi = GoodOf(a[2]);
-                    if (ri < 0 || gi < 0) return "⚠州/財が無い";
-                    return $"売却 {a[1]}/{a[2]}: {(w.SellFactory(ri, gi) ? "成立" : "⚠不可")}";
+                    if (ri < 0) return $"⚠州が無い: {a[1]}";
+                    if (gi < 0) return $"⚠財が無い: {a[2]}";
+                    // ★(435) 拒否の理由は本体の述語（CanSellFactory＝SellFactory と同じ 1 本）の理由をそのまま出す
+                    var (sellOk, sellPrice, sellWhy) = w.CanSellFactory(ri, gi);
+                    if (!sellOk) return $"⚠売却 {a[1]}/{a[2]} 不可（{(sellWhy.Length > 0 ? sellWhy : "国営の持分が無い／州が不正")}）";
+                    return w.SellFactory(ri, gi) ? $"売却 {a[1]}/{a[2]}: 成立（買取価格 {sellPrice:N0}）" : $"⚠売却 {a[1]}/{a[2]} 不可（実行できなかった）";
                 }
                 case "subsidy":
                 {
                     int ri = RegionOf(a[1]); int gi = GoodOf(a[2]);
-                    if (ri < 0 || gi < 0) return "⚠州/財が無い";
+                    if (ri < 0) return $"⚠州が無い: {a[1]}";
+                    if (gi < 0) return $"⚠財が無い: {a[2]}";
                     var (ok, priv, why) = w.CanSubsidize(ri, gi);
                     if (!ok) return $"⚠補助金 {a[1]}/{a[2]} 不可：{(why.Length > 0 ? why : "産地なし")}";
-                    double rate = double.Parse(a[3], CultureInfo.InvariantCulture);
+                    if (!double.TryParse(a[3], NumberStyles.Float, CultureInfo.InvariantCulture, out double rate)) return $"⚠率が読めない: {a[3]}（0〜1）";
                     w.SetSubsidyRate(ri, gi, rate);
-                    return $"補助金 {a[1]}/{a[2]} = {rate:P0}（民営持分 {priv:P0}）";
+                    double got = World.FindFactory(w.Regions[ri], gi)?.SubsidyRate.Value ?? 0;   // ★(435) 置いた率を読み戻す（0〜1 に丸められる）
+                    return $"補助金 {a[1]}/{a[2]} = {got:P0}{(Math.Abs(got - rate) > 1e-9 ? $"（要求 {rate:P0} は 0〜1 に丸めた）" : "")}（民営持分 {priv:P0}）";
                 }
                 case "state":
                 {
                     int ri = RegionOf(a[1]); int gi = GoodOf(a[2]);
-                    if (ri < 0 || gi < 0) return "⚠州/財が無い";
-                    int t = int.Parse(a[3], CultureInfo.InvariantCulture);
-                    return $"国有化目標 {a[1]}/{a[2]} → {t}: {(w.SetStateTarget(ri, gi, t) ? "受理" : "⚠不可")}";
+                    if (ri < 0) return $"⚠州が無い: {a[1]}";
+                    if (gi < 0) return $"⚠財が無い: {a[2]}";
+                    if (!int.TryParse(a[3], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int t)) return $"⚠段が読めない: {a[3]}（整数）";
+                    var pf = World.FindFactory(w.Regions[ri], gi);
+                    if (pf is null) return $"⚠国有化目標 {a[1]}/{a[2]} 不可（この州に産地なし）";
+                    int want = Math.Clamp(t, 0, Math.Max(0, w.Coef.StateTargetMax)), units = World.StateUnits(pf, w.Coef);
+                    if (w.SetStateTarget(ri, gi, t)) return $"国有化目標 {a[1]}/{a[2]} → {want}: 受理（今月 1 棟動いた・国営 {units}棟から）";
+                    // ★(435) 動けなかった月：旧は目標を置いたのに〈⚠不可〉と返し、取り消せないと読めた。目標（意志）は置かれ、毎月の再試行で動く＝理由は着工の門〔CanBuildFactory〕／払い下げの門〔CanSellFactory〕の本体の述語から出す
+                    string why = want > units ? (w.CanBuildFactory(ri, gi) is { Ok: false } cb ? cb.Reason : "着工の条件は満たしている（月次の再試行で動く）")
+                               : want < units ? (w.CanSellFactory(ri, gi) is { Ok: false } cs ? (cs.Reason.Length > 0 ? cs.Reason : "払い下げ不可") : "払い下げの条件は満たしている（月次の再試行で動く）")
+                               : "国営の棟数と同じ（動かすものが無い）";
+                    return $"⚠国有化目標 {a[1]}/{a[2]} → {want}{(want != t ? $"（要求 {t} は 0〜{w.Coef.StateTargetMax} に丸めた）" : "")}: 目標は置いたが今月は動けない（{why}）・国営 {units}棟・毎月の再試行で動く";
                 }
                 case "monopoly":
                 {
@@ -451,14 +572,15 @@ internal static class PlayHarness
                     else if (a[2] is "0" or "off" or "false" or "切") on = false;
                     else return $"⚠専売の指定が読めない: {a[2]}（入|切|on|off|1|0|true|false）";
                     bool moved = w.SetStateMonopolyOn(gi, on);
-                    return $"専売 {a[1]} = {(on ? "入" : "切")}{(moved ? "" : "（変化なし／政治が通さない）")}";
+                    return $"専売 {a[1]} = {(on ? "入" : "切")}{(moved ? "" : "（変化なし＝既にその状態）")}";   // ★(435) 旧の〈政治が通さない〉は誤り（専売に政治の門は無い＝2026-09-20）
                 }
                 case "bias":
                 {
                     int gi = GoodOf(a[1]); if (gi < 0) return $"⚠財が無い: {a[1]}";
-                    int b = int.Parse(a[2], CultureInfo.InvariantCulture);
+                    if (!int.TryParse(a[2], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int b)) return $"⚠方針が読めない: {a[2]}（-1|0|1）";
                     w.SetTradeBias(gi, b);
-                    return $"売買方針 {a[1]} = {b}";
+                    int gotB = w.TradeBiasOf(gi);   // ★(435) 置いた値を読み戻す（-1〜1 に丸められる）
+                    return $"売買方針 {a[1]} = {gotB}{(gotB != b ? $"（要求 {b} は -1〜1 に丸めた）" : "")}";
                 }
                 // ---- ★(405) 外交の動詞（00-HARN）：UI のボタンと同じ口を叩く。invade・unify・mediate は本体の述語が返す理由をそのまま出す（第二の基準を作らない）。
                 //   provoke・ease の拒否の理由は本体の述語 Diplomacy.TensionActionRefusal（RaiseTension／EaseTension の門と同じ 1 本）が返す理由をそのまま出す（★(427) 旧は本体の条件の写しの文言＝(407) 反証役 bi〔v〕低#2）----
@@ -565,14 +687,15 @@ internal static class PlayHarness
                     else return $"⚠目標の指定が読めない: {a[2]}（▲|▼|+n|-n|=n）";
                     w.SetFactoryTarget(gi, target);
                     var c1 = w.FactoryCounter(gi);
-                    return $"全国工場の目標 {a[1]}: 分母 {c0.Planned}→{c1.Planned}（国営 {c1.State}・民営 {c1.Private}・建設予定 {c1.Pending}・上限 {w.FactoryTargetMax}）";
+                    return $"全国工場の目標 {a[1]}: 分母 {c0.Planned}→{c1.Planned}{(target != w.FactoryTargetOf(gi) ? $"（要求 {target} は 0〜{w.FactoryTargetMax} に丸めた）" : "")}（国営 {c1.State}・民営 {c1.Private}・建設予定 {c1.Pending}・上限 {w.FactoryTargetMax}）";
                 }
                 case "mega":   // App: StartMega → Megaprojects.TryStart
                 {
                     if (a.Length < 2) return "⚠`!mega 建造物名`（自国が建設地を持つもの）";
                     var mp = w.Diplomacy?.Megaprojects.FirstOrDefault(m => m.Name == a[1] && ReferenceEquals(m.Owner, w.SelfPower));
                     if (mp is null) return $"⚠自国が建設地の建造物に無い: {a[1]}";
-                    if (!Megaprojects.TryStart(w, mp)) return $"⚠着工 {a[1]} 不可（{MegaStateText(w, mp)}）";
+                    if (Megaprojects.StartRefusal(w, mp) is { } megaWhy) return $"⚠着工 {a[1]} 不可（{megaWhy}・{MegaStateText(w, mp)}）";   // ★(435) 理由は本体の述語（CanStart と同じ 1 本）
+                    if (!Megaprojects.TryStart(w, mp)) return $"⚠着工 {a[1]} 不可（実行できなかった）";
                     return $"着工 {a[1]}（{MegaStateText(w, mp)}）";
                 }
                 default: return $"⚠不明な動作: {a[0]}";
@@ -581,12 +704,35 @@ internal static class PlayHarness
         catch (Exception ex) { return $"⚠動作失敗 {line}（{ex.GetType().Name}: {ex.Message}）"; }
     }
 
+    /// <summary>★(435) 動詞ごとの最少の語数（動詞を含む）と書式。足りないときは添字の例外でなく書式を返す。</summary>
+    private readonly record struct VerbSyntax(int MinWords, string Usage);
+    private static VerbSyntax? VerbSyntaxOf(string verb) => verb switch
+    {
+        "factory" => new VerbSyntax(MinWords: 3, Usage: "`!factory 州名 財名`"),
+        "sell" => new VerbSyntax(MinWords: 3, Usage: "`!sell 州名 財名`"),
+        "subsidy" => new VerbSyntax(MinWords: 4, Usage: "`!subsidy 州名 財名 率(0〜1)`"),
+        "state" => new VerbSyntax(MinWords: 4, Usage: "`!state 州名 財名 棟数`"),
+        "monopoly" => new VerbSyntax(MinWords: 2, Usage: "`!monopoly 財名 入|切`"),
+        "bias" => new VerbSyntax(MinWords: 3, Usage: "`!bias 財名 -1|0|1`"),
+        _ => null,
+    };
+
     /// <summary>★(419) 待っている問いかけ（画面ならポップアップが出ている問い）と、それに答える動詞・使える動詞を 1 行で。待ちの有無は本体の状態（<c>PendingWar</c> ほか）をそのまま読む。</summary>
     internal static string PromptsLine(World w, Power sp)
     {
         var ps = new List<string>();
-        if (sp.PendingWar is { } foe) ps.Add($"最後通牒（{foe.Name}）→ !ultimatum 受諾 ／ !ultimatum 開戦 [総動員|総動員なし]");
-        if (sp.PendingCallToArms is { } ca) ps.Add($"参戦要請（{ca.Caller.Name} が {ca.Enemy.Name} と交戦）→ !callarms 受ける ／ !callarms 断る");
+        // ★(435) 待ちは**答えるまで残る**（本体の状態：Diplomacy.PendingWar／PendingCallToArms は ResolvePendingWar／ResolveCallToArms か相手の除去でしか下りない。画面は待ちの間に時間を止めるが、play は進め続ける＝127 年残った実例）。
+        //   古さは本体の状態から添える（最後通牒＝今の緊張と開戦の水準・参戦要請＝その戦争が今も続いているか）。
+        if (sp.PendingWar is { } foe)
+        {
+            double tn = w.Diplomacy is { } dp ? dp.Tension(sp, foe) : 0;
+            ps.Add($"最後通牒（{foe.Name}・今の緊張 {tn:F1}／開戦の水準 {w.Coef.WarDeclareTension:F0}{(tn < w.Coef.WarDeclareTension ? "＝緊張は水準を下回っている古い待ち" : "")}）→ !ultimatum 受諾 ／ !ultimatum 開戦 [総動員|総動員なし]");
+        }
+        if (sp.PendingCallToArms is { } ca)
+        {
+            bool ongoing = w.Diplomacy is { } dq && dq.IsAtWar(ca.Caller, ca.Enemy);
+            ps.Add($"参戦要請（{ca.Caller.Name} が {ca.Enemy.Name} と交戦・その戦争は{(ongoing ? "続いている" : "既に終わっている＝古い待ち")}）→ !callarms 受ける ／ !callarms 断る");
+        }
         if (w.PendingFactionCrisis is { } fc) ps.Add($"国内の危機（{Factions.DisplayName(fc)}・要求 {w.PendingFactionCrisisDemands}）→ 通知のみ＝同じ法の目標をキー=値で置く（!crisis で内容）");
         if (w.PendingElection is { } ev)
             ps.Add($"総選挙の公示→ !election <番号|思想名の一部> [注ぐ割合=0.2] ／ !election 棄権　［{string.Join(" ／ ", ev.AgendaLabels.Select((l, i) => $"{i}={l}"))}］（0.2 なら資金 {w.ElectionSpendOf(0.2):N0}・効き {w.ElectionPushEffectOf(0.2):P0}）");

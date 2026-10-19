@@ -218,26 +218,25 @@ public partial class GameViewModel
     private void ShowEnding()
     {
         _endingShown = true;
-        var ranked = _sim.Nations.Select(n => n.World).OrderByDescending(NationalScore.Of).ToList();
+        // ★(435) 並べ方・導出政体・各列の量は SimCore の 1 本（PlayText.EndingStandings＝Runner の play の最終の順位と同じ関数）。ここは文字と色にするだけ。
+        var ranked = PlayText.EndingStandings(_sim.Nations.Select(n => n.World), _player);
         var rows = new List<EndingRow>();
-        for (int i = 0; i < ranked.Count; i++)
+        foreach (var s in ranked)
         {
-            var w = ranked[i];
-            bool mine = ReferenceEquals(w, _player);
             rows.Add(new EndingRow
             {
-                Order = $"{i + 1}",
-                Name = w.SelfPower?.Name ?? w.Region.Name,
-                Score = NationalScore.Of(w).ToString("F0"),
-                Polity = PolityRegimeJa(PowerAffinity.PolityFromShares(w)),   // 導出政体＝ヘッダーのPolityTextと同じ物差し（2026-08-21作者裁定）
-                Population = PopFmt(w.TotalPopulation),   // 内部単位=千人（他10）
-                Industry = w.MeanIndustrialization.ToString("F2"),
-                RowBrush = mine ? SelfRowHighlight : Brushes.Transparent,
+                Order = $"{s.Order}",
+                Name = s.Name,
+                Score = s.Score.ToString("F0"),
+                Polity = PolityRegimeJa(s.Polity),   // 導出政体＝ヘッダーのPolityTextと同じ物差し（2026-08-21作者裁定）
+                Population = PopFmt(s.Population),   // 内部単位=千人（他10）
+                Industry = s.Industry.ToString("F2"),
+                RowBrush = s.IsPlayer ? SelfRowHighlight : Brushes.Transparent,
             });
         }
         EndingRows = rows;
         EndingAnnals = _annals.ToList();   // 終局年代記（#129）：このプレイの政変・戦争・恐慌・デフォルト・建国の年表
-        EndingTitle = $"{Calendar.EndYear}年 最終ランキング　{PlayerNationName}:{ranked.IndexOf(_player) + 1}位";
+        EndingTitle = $"{Calendar.EndYear}年 最終ランキング　{PlayerNationName}:{ranked.FindIndex(s => s.IsPlayer) + 1}位";
         Playing = false;
         EndingOpen = true;
     }

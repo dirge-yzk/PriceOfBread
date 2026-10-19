@@ -64,6 +64,58 @@ public class InstrumentsTests
 
     private static string NewDir() => System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_instr_" + Guid.NewGuid().ToString("N"));
 
+    /// <summary>★(435) 窃盗の番人の鍵ごとの判定の入力：四半期 <paramref name="quarter"/> に州の持ち主が替わった州の旧い持ち主と新しい持ち主の国名（前の四半期に居なかった州の行の国＝生まれた国も含む）。
+    /// 州は名前で引く（州の名は世界で一意）。分離・建国・割譲・再併合のどれも〈州の持ち主の替わり〉として同じ規則で読む。</summary>
+    internal static HashSet<string> TouchedNations(string[] rh, List<string[]> rr, string quarter)
+    {
+        int iq = Array.IndexOf(rh, "quarter"), inat = Array.IndexOf(rh, "nation"), ireg = Array.IndexOf(rh, "region");
+        string prevQ = (int.Parse(quarter, System.Globalization.CultureInfo.InvariantCulture) - 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var prev = new Dictionary<string, string>();
+        foreach (var r in rr) if (r[iq] == prevQ) prev.TryAdd(r[ireg], r[inat]);
+        var touched = new HashSet<string>();
+        foreach (var r in rr)
+            if (r[iq] == quarter && prev.TryGetValue(r[ireg], out var was) && was != r[inat]) { touched.Add(was); touched.Add(r[inat]); }
+        return touched;
+    }
+
+    /// <summary>★(435) 窃盗の番人の四半期の判定（純関数）：国×四半期の窃盗の額が州の行 <paramref name="pool"/> と貯蓄の書き手の台帳 <paramref name="ledger"/> で割れた鍵の国が全て
+    /// <paramref name="touched"/>（その四半期に州の持ち主が替わった州の旧い／新しい持ち主）に入っていて、その四半期の和が合うなら null、そうでなければ理由。
+    /// 割れた鍵が無ければ null。窃盗の額は州に積み（四半期末の持ち主の行へ）・台帳は盗んだ時点の持ち主へ記帳する＝州の持ち主が四半期の途中で替わると鍵が割れる、が割れてよい唯一の理由。</summary>
+    internal static string? TheftSplitVerdict(string quarter, IReadOnlyDictionary<(string, string), double> pool, IReadOnlyDictionary<(string, string), double> ledger, ISet<string> touched)
+    {
+        var keys = pool.Keys.Concat(ledger.Keys).Where(k => k.Item1 == quarter).Distinct().ToList();
+        double sumPool = 0, sumLed = 0; var mism = new List<(string, string)>();
+        foreach (var k in keys)
+        {
+            double p = pool.GetValueOrDefault(k), l = ledger.GetValueOrDefault(k);
+            sumPool += p; sumLed += l;
+            if (Math.Abs(p - l) > 1e-6 * Math.Max(1, Math.Abs(l))) mism.Add(k);
+        }
+        if (mism.Count == 0) return null;
+        var bad = mism.Where(k => !touched.Contains(k.Item2)).ToList();
+        if (bad.Count > 0) return $"州の持ち主が替わっていない国の窃盗の額が合わない {quarter}：{string.Join(",", bad.Select(k => $"{k.Item2}(州の行 {pool.GetValueOrDefault(k):F4}・台帳 {ledger.GetValueOrDefault(k):F4})"))}";
+        if (Math.Abs(sumPool - sumLed) > 1e-6 * Math.Max(1, Math.Abs(sumLed))) return $"その四半期の窃盗の額の和が合わない {quarter}：州の行 {sumPool:F4}・台帳 {sumLed:F4}";
+        return null;
+    }
+
+    [Fact]
+    public void 窃盗の番人の判定は割れた鍵の国が持ち主の替わった州に結びつくときだけ通す()
+    {
+        string q = "7";
+        (string, string) K(string n) => (q, n);
+        var touched = new HashSet<string> { "A", "B" };
+        // 割れなし
+        Assert.Null(TheftSplitVerdict(q, new Dictionary<(string, string), double> { [K("A")] = 5, [K("C")] = 3 }, new Dictionary<(string, string), double> { [K("A")] = 5, [K("C")] = 3 }, touched));
+        // 既にある 2 国の間の割譲・再併合の型（州の行ではAが多く台帳ではBが多い＝和は合う）＝通す
+        Assert.Null(TheftSplitVerdict(q, new Dictionary<(string, string), double> { [K("A")] = 8, [K("B")] = 2, [K("C")] = 3 }, new Dictionary<(string, string), double> { [K("A")] = 5, [K("B")] = 5, [K("C")] = 3 }, touched));
+        // 持ち主が替わっていない国の鍵が割れる＝取り違え（和が合っていても通さない）
+        Assert.NotNull(TheftSplitVerdict(q, new Dictionary<(string, string), double> { [K("A")] = 5, [K("C")] = 4 }, new Dictionary<(string, string), double> { [K("A")] = 5, [K("B")] = 1, [K("C")] = 3 }, touched));
+        // 触れた国の鍵だけが割れても和が合わない＝漏れ
+        Assert.NotNull(TheftSplitVerdict(q, new Dictionary<(string, string), double> { [K("A")] = 9, [K("C")] = 3 }, new Dictionary<(string, string), double> { [K("A")] = 5, [K("C")] = 3 }, touched));
+        // 別の四半期の行は読まない
+        Assert.Null(TheftSplitVerdict(q, new Dictionary<(string, string), double> { [K("A")] = 5, [("8", "C")] = 99 }, new Dictionary<(string, string), double> { [K("A")] = 5 }, touched));
+    }
+
     private static (string[] Header, List<string[]> Rows) Table(string path)
     {
         var lines = System.IO.File.ReadAllLines(path);
@@ -2371,22 +2423,12 @@ public class InstrumentsTests
                 double exp = ledger.GetValueOrDefault(kv.Key);
                 if (Math.Abs(kv.Value - exp) > 1e-6 * Math.Max(1, Math.Abs(exp)))
                 {
-                    // ★(418) 鍵が割れる四半期がある。額は割れた鍵の和で合う＝その四半期の世界の和で突き合わせる（窃盗が起きる四半期の軌道で割れ方が動く）。
-                    // ★(427) 割れの出所を直した（旧の注は〈政体の変名〉と書いたが、計器の国名は構築時の名 BaseName で改名では替わらない）。本当の出所は州の持ち主が四半期の途中で替わること：
-                    //   分離・建国（MultiNationSim が新しい World と Power を作る）で州が新しい国へ移ると、窃盗の額は州の側（Instruments.Theft は州に積む）で四半期末の持ち主＝新しい国の行へ、
-                    //   台帳は盗んだ時点の持ち主（PopOwner＝RegionOut/RegionIn で付け替わるまでの国）へ記帳される＝帰属の時点が違う。国の個体の番号 nationUid に替えても閉じない（個体が本当に別）。
-                    //   なので〈割れを許すのは、その四半期に生まれた国（前の四半期の州の行に居ない名）が居る四半期だけ〉に絞り、和で合うことを見る。
-                    //   ★(428) 合流（反証役 hy〔v〕低）：判定は四半期ごとで鍵ごとではない＝同じ四半期に別の場所で建国があると、既にある 2 国の間の取り違えは世界の和の検査だけが見る。
-                    //   逆に既にある国どうしの割譲・再併合で州の持ち主が四半期の途中で替わると、差の名が前の四半期に居る名になり誤って赤になりうる（種 1789 の 60 四半期では起きない・旧の SetEquals も同じ脆さ）。
-                    var natPool = byNat.Where(k => k.Key.Item1 == kv.Key.Item1 && k.Value > 0).Select(k => k.Key.Item2).ToHashSet();
-                    var natLed = ledger.Where(k => k.Key.Item1 == kv.Key.Item1 && k.Value > 0).Select(k => k.Key.Item2).ToHashSet();
-                    var delta = new HashSet<string>(natPool); delta.SymmetricExceptWith(natLed);   // 片側にしか居ない名
-                    string prevQ = (int.Parse(kv.Key.Item1, System.Globalization.CultureInfo.InvariantCulture) - 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    var prevNames = rr.Where(r => r[iq] == prevQ).Select(r => r[inat]).ToHashSet();   // 前の四半期の州の行に居た国
-                    Assert.True(delta.Count > 0, $"鍵が割れていない四半期で国ごとの窃盗の額が合わない {kv.Key}：州の行 {kv.Value}・台帳 {exp}");
-                    Assert.True(delta.All(n => !prevNames.Contains(n)), $"その四半期に生まれた国でない名が片側にしか居ない {kv.Key}：{string.Join(",", delta)}");
-                    double qPool = byNat.Where(k => k.Key.Item1 == kv.Key.Item1).Sum(k => k.Value), qLed = ledger.Where(k => k.Key.Item1 == kv.Key.Item1).Sum(k => k.Value);
-                    Assert.InRange(qPool - qLed, -1e-6 * Math.Max(1, Math.Abs(qLed)), 1e-6 * Math.Max(1, Math.Abs(qLed)));
+                    // ★(435) 判定を鍵に結びつけた（旧は四半期ごと・生まれた国だけ許した＝(428) hy〔v〕低）。
+                    //   鍵が割れてよい唯一の理由：窃盗の額は州に積み〔Instruments.Theft・四半期末の持ち主の行へ〕、台帳は盗んだ時点の持ち主〔PopOwner〕へ記帳するので、
+                    //   州の持ち主が四半期の途中で替わる〔分離・建国・割譲・再併合〕と、旧い持ち主と新しい持ち主の鍵が割れる。国の個体の番号に替えても閉じない（個体が本当に別・帰属の時点の問題＝(427)）。
+                    //   よって〈割れた鍵の国は、その四半期に州の持ち主が替わった州の旧い／新しい持ち主〉＋〈その四半期の和は合う〉を見る。
+                    string? verdict = TheftSplitVerdict(kv.Key.Item1, byNat, ledger, TouchedNations(rh, rr, kv.Key.Item1));
+                    Assert.True(verdict is null, verdict);
                 }
                 total += kv.Value; if (exp > 0) checkedPairs++;
             }
