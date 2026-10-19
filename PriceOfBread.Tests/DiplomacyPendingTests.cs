@@ -98,17 +98,17 @@ public class DiplomacyPendingTests
         for (int i = 0; i < cA.WarTriggerMonths; i++) { Hold(dipA, meA, brA, cA); dipA.Step(cA, simA.Rng, NonQuarterMonths[i]); }
         Assert.True(meA.PendingWar == brA, "前提が崩れた：空の枡にイギリスの最後通牒が積まれない（この盤面ではイギリスの組の門が開かない）");
 
-        // 本体：枡にはロシア（門が開いている）。イギリスの門も開いて時計が満ちるが、有効な待ちは取られない
+        // 本体：枡にはイギリス（門が開いている）。ロシアの門も開いて時計が満ちるが、有効な待ちは取られない（組の走査はイギリスの組が先・ロシアの組が後＝後の組が上書きする実装なら赤になる）
         var sim = Board(); var dip = sim.Diplomacy; var c = sim.Coef;
         var me = sim.Nations[1].World.SelfPower!; var br = sim.Nations[0].World.SelfPower!; var ru = sim.Nations[3].World.SelfPower!;
         me.IsPlayer = true;
-        me.PendingWar = ru;
+        me.PendingWar = br;
         for (int i = 0; i < c.WarTriggerMonths + 2; i++)
         {
             Hold(dip, me, ru, c); Hold(dip, me, br, c);
             dip.Step(c, sim.Rng, i < NonQuarterMonths.Length ? NonQuarterMonths[i] : 1);
         }
-        Assert.True(me.PendingWar == ru, "根拠のある（門が開いている）最後通牒の待ちが別の組に取られた");
+        Assert.True(me.PendingWar == br, "根拠のある（門が開いている）最後通牒の待ちが別の組に取られた");
     }
 
     [Fact]
