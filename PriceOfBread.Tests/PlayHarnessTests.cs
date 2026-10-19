@@ -671,6 +671,6 @@ public class PlayHarnessTests
         Assert.Contains($"前回の報告に無かった行 1 行（残り {100 - PlayHarness.SummaryHeadLines} 行のうち", sum);
         Assert.Contains("行70・変", sum);
         Assert.DoesNotContain("行80", sum);                                         // 変わっていない行は出さない
-        Assert.Equal(1, System.Text.RegularExpressions.Regex.Matches(sum, "行70・変").Count);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(sum, "行70・変"));
     }
 }
