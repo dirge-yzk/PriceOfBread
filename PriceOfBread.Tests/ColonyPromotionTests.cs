@@ -42,7 +42,7 @@ public class ColonyPromotionTests
         double popBaseline = w.TotalPopulation - w.PopulationDelta;
         var money = new MoneyConservation(w);
         double before = w.TotalPopulation;
-        Assert.True(sim.Diplomacy.Subjugate(bp, target, sim.Coef));
+        Assert.True(sim.Diplomacy.Subjugate(bp, target, sim.Coef), "前提が崩れた：屈服しなかった（戻り値は屈服したか＝拒否は戦争になって false）");
         Assert.Empty(target.ColonyList);
         foreach (var col in cols)
         {

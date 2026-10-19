@@ -1453,14 +1453,21 @@ public sealed class Diplomacy
     /// <summary>(342) 計器用（読むだけ）：組 (a, b) の緊張のうち、理由が阿片のものの今の値（理由別の台帳 <c>_tensionWhy</c> の1成分）。</summary>
     private double OpiumReasonLevel(Power a, Power b) => _tensionWhy.TryGetValue(Key(a, b), out var w) && w.Length > (int)TensionReason.Opium ? w[(int)TensionReason.Opium] : 0;
 
+    /// <summary>★(440) 宣戦の 4 つの門（緊張が水準以上・交戦中でない・どちらも厭戦でない・従属の組でない・軍が届く）が全て開いているか。<see cref="TriggerWars"/> の判定と、
+    /// プレイヤーの最後通牒の待ちの根拠が残っているかの判定が同じ 1 本を読む（純関数＝評価の順と短絡は旧のインラインと同じ）。</summary>
+    private bool WarGateOpen(Power a, Power b, Coefficients c)
+    {
+        bool weary = a.WarExhaustion > c.WarWearyThreshold || b.WarExhaustion > c.WarWearyThreshold;
+        return Tension(a, b) >= c.WarDeclareTension && !AtWar(a, b) && !weary && !InDependency(a, b) && WorthFighting(a, b, c);
+    }
+
     private void TriggerWars(Coefficients c)
     {
         for (int i = 0; i < Powers.Count; i++)
             for (int j = i + 1; j < Powers.Count; j++)
             {
                 var a = Powers[i]; var b = Powers[j]; long k = Key(a, b);
-                bool weary = a.WarExhaustion > c.WarWearyThreshold || b.WarExhaustion > c.WarWearyThreshold;
-                if (Tension(a, b) >= c.WarDeclareTension && !AtWar(a, b) && !weary && !InDependency(a, b) && WorthFighting(a, b, c))
+                if (WarGateOpen(a, b, c))   // ★(440) 4 つの門の判定を 1 本に（旧は 2 行にインラインで書いていた・式と評価の順は同じ）
                 {
                     _warClock[k] = _warClock.GetValueOrDefault(k) + 1;
                     if (_warClock[k] >= c.WarTriggerMonths)
@@ -1469,7 +1476,13 @@ public sealed class Diplomacy
                         if (a.IsPlayer || b.IsPlayer)
                         {
                             var player = a.IsPlayer ? a : b; var foe = a.IsPlayer ? b : a;
-                            if (player.PendingWar is null) player.PendingWar = foe;   // 待ちを積む（UIが時間停止＝再発火しない）。決着は ResolvePendingWar（開戦 or 緊張を下げて回避）
+                            // 待ちを積む（UIが時間停止＝再発火しない）。決着は ResolvePendingWar（開戦 or 緊張を下げて回避）。
+                            // ★(440) 枡が空か、枡の待ちの根拠（その組の 4 つの門）が閉じているときだけ、門が開いて時計が満ちたこの組で**置き換える**。消すだけの経路は作らない
+                            //   ＝答えずに待ちが消える道は無く（AI の組は時計が満ちた月に即開戦する＝プレイヤーだけ免れない）、有効な待ちは別の有効な組に取られない。
+                            //   旧＝`is null` のときだけ＝根拠が消えた待ちが枡を塞ぎ続け、ほかの相手への最後通牒が積めなかった（試しのテストプレイ 報告 1 と 7：1823 年のシャムの待ちが
+                            //   1950 年まで残り、日本×清は門が全て開いたまま 135 か月宣戦も最後通牒も無かった）。根拠の消えた待ちが**単独で**残る件（置き換える相手が居ない）は
+                            //   画面では起きない（四半期の末に出して答えるまで時間が止まる）・play は答えずに進めるので残る＝ハーネス側の持ち分（記録）。
+                            if (player.PendingWar is null || (player.PendingWar != foe && !WarGateOpen(player, player.PendingWar, c))) player.PendingWar = foe;
                         }
                         else
                         {
@@ -2145,7 +2158,8 @@ public sealed class Diplomacy
     /// <summary>侵略の**結果判定だけ**（作者裁定2026-08-23の1本化）：実効戦力が屈服線を超えれば屈服（抽象標的＝植民地を接収／実在国＝属国化）、
     /// 超えなければ拒否＝開戦。★可否（<see cref="World.CanInvade"/>）・余剰戦力の消費・物資（船/糧食/キニーネ）は呼び出し側の
     /// <see cref="World.Invade"/> が持つ＝**この関数を直接叩く経路は他に無い**（AIもプレイヤーも World.Invade を通る）。
-    /// ★(427) 戻り値は**常に true**（屈服でも拒否〔開戦〕でも）＝屈服か開戦かの区別を持たない。読み手は交戦の有無か属国化の有無で読む。</summary>
+    /// ★(440) 戻り値＝**屈服したか**（屈服〔属国化・併合〕は true・拒否〔開戦〕は false）。旧(427)は常に true で屈服か開戦かを区別できなかった（読み手は交戦の有無か属国化の有無で読んでいた）。
+    /// 呼び手は <see cref="World.Invade"/> の 1 本だけで、計器 `invade_s` の〈屈服か〉の列がこの値を読む。</summary>
     internal bool Subjugate(Power great, Power target, Coefficients c)
     {
         double force = ColonizeForce(great, target, c);   // 到達できねば屈服させられない（距離・制海権・遠征技術＝共通式。宗主の地理2026-07-12で一本化）
@@ -2172,7 +2186,7 @@ public sealed class Diplomacy
         }
         StartWar(great, target, c);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
         Log.Add($"{_year} {target.Name}が{great.Name}の侵略に抗して開戦");
-        return true;
+        return false;
     }
 
     /// <summary>★植民地の受け取りの1本（2026-09-28 処理の一元化 段2 B）＝講和の奪取・無血併合（侵略の屈服）・反乱国の再併合が通る
@@ -3204,6 +3218,12 @@ public sealed class Diplomacy
         if (EndedWars.Count > EndedWarRingCapacity) EndedWars.RemoveAt(0);
         long k = Key(war.A, war.B);
         _embargo.Remove(k);                            // 戦争終結で強制禁輸も解除
+        // ★(440) 参戦要請の待ちの寿命：待ちは〈元の戦争が続いている間だけ〉ある（状態の持続条件・時計は作らない・新しい状態は無い）。終えた戦争を指す待ちは下ろす。
+        //   画面は四半期ごとに待ちを読んで出す（GameViewModel.DetectDiplomacyPopups）＝四半期の途中で元の戦争が終わった待ちは出なくなる（設計どおり・見える変化）。出している間は時間が止まる。
+        //   時間が進み続ける経路（Runner の play）では、元の戦争が終わったあとも 1823〜1950 年まで残っていた（試しのテストプレイ 報告 1）。
+        //   終戦の出口は EndWar の 1 本（国の除去 RemovePower も通る）。バッチにプレイヤーは居ない＝待ちは積まれず、この走査は読むだけ。
+        foreach (var q in Powers)
+            if (q.PendingCallToArms is { } call && ((call.Caller == war.A && call.Enemy == war.B) || (call.Caller == war.B && call.Enemy == war.A))) q.PendingCallToArms = null;
         ResetTensionTo(k, c.PostWarTension, TensionReason.WarResidue);   // 講和で緊張がリセット（やがて再び煽られて再燃＝周期的）。内訳も戦争の遺恨1本へ＝開戦前の理由は戦争で清算された
         // ⚠休戦（講和後の不戦年限）は置かない＝作者裁定 2026-09-26（Q9・09-07「規模で」を置き換え）。再戦の抑えは厭戦（WarWearyThreshold・減衰）と講和後の緊張が担う。
         Wars.RemoveAt(i);

@@ -548,7 +548,7 @@ public class ConservationTests
         Assert.True(people > 0, "前提が崩れた：抽象標的の蝦夷地に住民がいない");
         double pop0 = region.SumPopulation(), delta0 = jp.PopulationDelta;
         int regions0 = jp.Regions.Count, absorbed0 = sim.Diplomacy.AbsorbedColonies;
-        Assert.True(sim.Diplomacy.Subjugate(jp.SelfPower!, ezo, coef));
+        Assert.True(sim.Diplomacy.Subjugate(jp.SelfPower!, ezo, coef), "前提が崩れた：屈服しなかった（戻り値は屈服したか＝拒否は戦争になって false）");
         Assert.Equal(absorbed0 + 1, sim.Diplomacy.AbsorbedColonies);   // 保存検査の第4の出口（Colony オブジェクトは消える）
         Assert.Empty(ezo.ColonyList);
         Assert.Equal(regions0, jp.Regions.Count);   // 同名の州が在る＝新しい州は作らない
