@@ -752,16 +752,16 @@ public sealed partial class InternationalMarket
                 var m = mktOf[t];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
-                double potW = 1.0;   // ★(434) 係数 ClearingIdlePotentialReweight：この行が潜在量 potNew へ足す量の重み（番の標本の行だけ N・旗 0 では常に 1＝下の加算は元の式のまま）
+                double potW = 1.0;   // ★(434) 係数 ClearingIdlePotentialReweight：この行が潜在量 potNew へ足す量の重み（番の標本の行だけ N・旗 0〔差し戻し口〕では常に 1＝下の加算は元の式のまま）
                 if (idleN > 0 && !thin && !(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG))
                 {   // ★(403) 取引も不足も無かった行（主食でない財の不足だけの行も＝主食〔GoodTier.Staple か麦の連鎖〕の不足だけが番に関わらず起こす〔飢饉の輸入を遅らせない〕）は番の四半期だけ相手を探す（番でなければ飛ばす・走査して成約しなかった行と同じ印 ClearFailLp＝自州価格 を書く＝2・3 月目に不足だけで起きた行が走査し直さない）
                     uint hh = idleKey[t] ^ ((uint)g * 0x9E3779B1u); hh ^= hh >> 15; hh *= 0x2C1B3C6Du; hh ^= hh >> 12;
                     bool inTurn = (hh + idleQ) % (uint)idleN == 0;
-                    // ★(434) 係数 ClearingIdleThrottledScan（(ii)・既定 0）：買い手の州が前の四半期の最初の清算で律速だった（LastTradeThrottle＜1・NaN も走査する側）行は、番でなくても走査する
+                    // ★(434) 係数 ClearingIdleThrottledScan（(ii)・既定 1）：買い手の州が前の四半期の最初の清算で律速だった（LastTradeThrottle＜1・NaN も走査する側）行は、番でなくても走査する
                     //   ＝容量が足りない州の潜在量を番の標本に頼らない（潜在量の系統的な過小が律速を隠し、港の拡張を細らせる帰還を断つ）。読むのは前の四半期が書いた値（今の清算は末尾で書き直す）。旗 0 では州の値を読まない。
                     bool wakeThr = c.ClearingIdleThrottledScan > 0 && !(tr[t].r.LastTradeThrottle >= 1.0);
                     if (!inTurn && !wakeThr) { if (MultiNationSim.TimeOn) CntIdleSkips++; if (Instruments.On) Instruments.ScopeSkip(this, nations[tr[t].nation].World, !(tr[t].r.LastTradeThrottle >= 1.0)); m.ClearFailLp = lp; continue; }   // 走査して成約しなかった行と同じ印（2・3 月目は第 2 の門で眠る＝自州価格が上がれば起きる）
-                    // ★(434) 係数 ClearingIdlePotentialReweight（①・既定 0）：番の標本として走査した行（(ii) が起こした行は全数走査＝重み 1）の潜在量は、飛ばした (N−1) 行の分も表す＝N 倍で記帳する（抽出の確率の逆数・両端に同じ重み）
+                    // ★(434) 係数 ClearingIdlePotentialReweight（①・既定 1）：番の標本として走査した行（(ii) が起こした行は全数走査＝重み 1）の潜在量は、飛ばした (N−1) 行の分も表す＝N 倍で記帳する（抽出の確率の逆数・両端に同じ重み）
                     if (inTurn && !wakeThr && c.ClearingIdlePotentialReweight > 0) potW = idleN;
                 }
                 bool restrict = false; int dealtN = 0;   // ★(403) 係数 ClearingPartnerScope：覚えのある行（四半期の 2・3 月目）は覚えの売り手だけを見る
