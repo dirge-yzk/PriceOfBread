@@ -1,0 +1,10 @@
+# (436) フルスイート 1 回目（Category!=FullLength・計器つき 10 種の木 e2655549・隔離ビルド D:/PoB_work/m436/art・Release）
+[xUnit.net 00:08:14.44]     PriceOfBread.Tests.HabitTests.アヘンの表は州と国の行が揃い_国の中毒度は州の和に合い_計器を出しても軌道は変わらない [FAIL]
+失敗!   -失敗:     1、合格:  1458、スキップ:     0、合計:  1459、期間: 8 m 27 s - PriceOfBread.Tests.dll (net10.0)
+# (436) HabitTests の直し（52b6f5d5）の後のフルスイート 2 回目
+成功!   -失敗:     0、合格:  1459、スキップ:     0、合計:  1459、期間: 8 m 43 s - PriceOfBread.Tests.dll (net10.0)
+# (436) FullLength（Category=FullLength）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 37 s - PriceOfBread.Tests.dll (net10.0)
+# (436) 合流 3・4 の後の試験 9 クラス（WriterRatchet・SecessionLaborLawInstrument・PlayHarness・DiscontentSplit・DiscontentReader・DormantIdentity・ClearingThrottleScan・DomesticServiceRation・LuxuryIncome）
+成功!   -失敗:     0、合格:   117、スキップ:     0、合計:   117
+# (436) 突然変異：合流 0〈!state の取り下げの分岐を外す〉→ PlayHarnessTests の新しい番人 1 本だけ赤／合流 5〈Instruments.HabitSold を外す〉→ HabitTests のアヘンの表の番人が赤
