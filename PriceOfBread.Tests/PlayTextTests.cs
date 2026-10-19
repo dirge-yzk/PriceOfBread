@@ -23,6 +23,14 @@ public class PlayTextTests
     }
 
     [Fact]
+    public void 教育費は額でなく予算の割合と名乗る_置いた率と実効の率を並べる()
+    {
+        var w = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
+        w.Policy.EducationSpendingTarget = 0.5; w.EducationSpending = 0.25;
+        Assert.Equal($"教育費（予算の割合） {0.5:P0}　実効 {0.25:P0}", PlayText.EducationSpendingText(w));   // 書式は文化に従う（%の前の空白）＝数の書式だけ同じ書き方   // (452) App の財政の行と play の報告が同じ関数
+    }
+
+    [Fact]
     public void 前提で止まったかの述語は1本_政治の門の3つの理由は前提ではない()
     {
         // 政治の門（賛成不足・在庫の不足・正統性の不足）は前提でない／前提法・不可逆の理由は前提／通る・理由なしは前提でない
