@@ -1,0 +1,9 @@
+START 07:25:50 filter=Category!=FullLength src=D:/PoB_work/ed_452b/src_ED
+build rc=0
+成功!   -失敗:     0、合格:  1503、スキップ:     0、合計:  1503、期間: 8 m 20 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 07:34:45
+--- FullLength
+START 07:34:45 filter=Category=FullLength src=D:/PoB_work/ed_452b/src_ED
+build rc=0
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 57 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 07:38:15
