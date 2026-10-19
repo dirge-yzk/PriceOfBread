@@ -251,6 +251,10 @@ public sealed class UtilityAgent : INationAgent
     private const double ForceUnlockBufferMult = 3.0;                   // 02断線走査2026-07-28：再征服をONにする国庫の余裕（月次義務バッファの倍数）
     private const double ForceUnlockMilitancyCeiling = 0.4;             // 02断線走査2026-07-28：この闘争度以上では制圧を強行しない（全pop闘争度↑が革命を招く）
     private const double TrustbustIndThreshold = 0.75;                  // 02断線走査2026-07-28：独占解体（シャーマン法級）を目標に置く工業化度
+    // ★(423) 旗 AiLawGateFromBoard（既定 3＝2026-10-19 に点火・0＝旧）の線 3 本。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
+    internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
+    internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
+    internal const double TrustbustUrbanLine = 0.5;                  // 独占の解体を目標に置く本国の都市の割合（都市が過半）
     private const double CompulsoryEduBufferMult = 3.0;     // 義務教育の財政バッファ倍率
     private const double WomenPropertyTechThreshold = 1.2; // 女性の権利＝財産権の段を目標に置く技術閾値
     private const double WomenSuffrageTechThreshold = 1.5;// 女性の権利＝選挙権の段を目標に置く技術閾値（財産権より後）
@@ -763,7 +767,7 @@ public sealed class UtilityAgent : INationAgent
     /// <summary>E5/E6の9法へのAI目標書き手（02断線走査2026-07-28）：doctrine から新法の目標を導く。器・効果・主フラグは全て点火済みだったが
     /// 書き手が人間UIのみで、53カ国バッチでは9法が enum 既定値から永久に動かなかった（プロイセン文官改革もソ連国有化も英配給も原理的に不発）。
     /// 実際の施行は政治ゲート（Government.StepEnum/StepBool＝利益集団の抵抗）が決める。</summary>
-    private static void DecideModernLaws(World w, NationPolicy p, Stance s)
+    internal static void DecideModernLaws(World w, NationPolicy p, Stance s)   // internal＝番人テスト（LawGateFromBoardTests）が願いの配線を直に読むためだけ（可視性のみ）
     {
         bool atWar = w.Diplomacy is { } dip && w.SelfPower is { } sp && dip.Wars.Any(war => war.A == sp || war.B == sp);
         p.WartimeRationing = atWar;                                                       // 交戦中のみ配給（平時は解除＝資本の反対を無用に買わない）
@@ -804,11 +808,12 @@ public sealed class UtilityAgent : INationAgent
         // ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
         //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では米 10/10 種が 1951 年まで猟官制（★(389) 段0 の実測で訂正：普は world.json で開幕から資格任用・英は m387 で 10/10 種が 1800 年前後に議会の経路で資格任用へ届く・計器のある 87 国のうち 51 国が 10 種とも最終まで猟官制）＝
         //   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
-        if (w.MeanIndustrialization > AntitrustIndThreshold)
-            p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
+        // ★(423) 旗 AiLawGateFromBoard：≧2＝反トラストの願いを本国の都市の割合へ・≧3＝同業組合も（旧の式は AntitrustTargetOld／GuildTargetOld に畳んだ＝同じ式・同じ順）。
+        if ((w.Coef.AiLawGateFromBoard >= 2.0 ? AntitrustTargetFromBoard(w) : AntitrustTargetOld(w)) is { } antiTarget)
+            p.Antitrust = antiTarget;   // 旧＝工業化＝独占の弊害が政治問題化（シャーマン法1890）・新＝都市の消費者と賃金労働者が多数になる
         // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
-        if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
-            p.Guild = w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
+        if ((w.Coef.AiLawGateFromBoard >= 3.0 ? GuildTargetFromBoard(w) : GuildTargetOld(w)) is { } guildTarget)
+            p.Guild = guildTarget;
         if (w.Polity == Polity.ProletarianDictatorship)
         {   // プロ独裁＝全部門国有化（5部門＋『全て』＝ソ連型計画経済。§11-6d統合後の全点灯）
             p.NationalizeRailways = p.NationalizeMines = p.NationalizeMilitary = p.NationalizeOil
@@ -951,6 +956,66 @@ public sealed class UtilityAgent : INationAgent
         w.ResolveElection(ev.AgendaIdeologies[bestK], lever);
     }
 
+    // ---------------------------------------------------------------- (423) 工業化度を読む法の門と、その置き換え先（旗 AiLawGateFromBoard・事前登録 measurements/lt_20261019_prereg.txt） ----------------------------------------------------------------
+    // 純関数（状態なし・乱数なし）。AI の〈願い〉の側の式で、プレイヤーは法律タブから同じ政治の門（GateAllLawTargets／GateLaw）を通る。IsPlayer・IndustrialFrontier・MeanIndustrialization（新の側）を読まない。
+    // 旧の式は文字列のまま *Old に畳んだ（同じ式・同じ順＝旗 0 でビット恒等）。計器 lawgate_s が旧と新を並べて出す。
+
+    /// <summary>旧の金本位の願い＝金の法の国は降りない ‖ 工業化度＞GoldStandardIndThreshold。</summary>
+    internal static bool GoldWishOld(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+
+    /// <summary>新の金本位の願い（旗≧1）＝金の法の国は降りない ‖ 本国の平均識字＞<see cref="GoldLiteracyLine"/>（0.75）。分母 0・NaN は偽（否定形でなく比較が偽に落ちる側＝望まない）。</summary>
+    internal static bool GoldWishFromBoard(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > GoldLiteracyLine;
+
+    /// <summary>本国（植民地格を除く）の活きている州の都市人口の割合。人口 0 は 0。</summary>
+    internal static double HomeUrbanShare(World w)
+    {
+        double total = 0, urban = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            total += r.SumPopulation(); urban += r.SumUrbanPopulation();
+        }
+        return total > 1e-9 ? urban / total : 0.0;
+    }
+
+    /// <summary>旧の反トラストの目標＝工業化度＞0.5 で談合禁止・＞0.75 で独占の解体・それ以下は書かない（null）。</summary>
+    internal static AntitrustLaw? AntitrustTargetOld(World w)
+    {
+        if (w.MeanIndustrialization > AntitrustIndThreshold)
+            return w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;
+        return null;
+    }
+
+    /// <summary>新の反トラストの目標（旗≧2）＝本国の都市の割合＞1/2 で独占の解体・＞1/3 で談合禁止・それ以下は書かない（null）。
+    /// ⚠下げる目標を書かない：1/3〜1/2 の帯で現行の法がすでに談合禁止以上なら書かない（現行を保つ）。都市の割合は 1870 年以後に 1/2 を割る国が多い〔m420 の本国のみ・英 9／10 種・仏 10／10 種〕
+    /// ＝入力が可逆なので、帯で CartelBan を書くと施行済みの独占の解体を引き下げる目標が立つ（史実に法の廃止は無い）。旧の工業化度は戦争の摩耗以外で下がらず、旧の式も実質同じ向き（事前登録 追記3）。</summary>
+    internal static AntitrustLaw? AntitrustTargetFromBoard(World w)
+    {
+        double u = HomeUrbanShare(w);
+        if (u > TrustbustUrbanLine) return AntitrustLaw.Trustbust;
+        if (u > AntitrustUrbanLine) return w.Antitrust >= AntitrustLaw.CartelBan ? null : AntitrustLaw.CartelBan;
+        return null;
+    }
+
+    /// <summary>旧の同業組合の目標＝GuildLawGate＞0 かつ工業化度＞0.5 で制限・＞0.75 で廃止・それ以外は書かない（null）。</summary>
+    internal static GuildLaw? GuildTargetOld(World w)
+    {
+        if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
+            return w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
+        return null;
+    }
+
+    /// <summary>新の同業組合の目標（旗≧3）＝GuildLawGate＞0 かつ本国の都市の割合＞1/2 で廃止・＞1/3 で制限・それ以外は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// （帯で現行の法がすでに制限以上なら書かない＝廃止済みの組合の保護を戻す目標を立てない）。</summary>
+    internal static GuildLaw? GuildTargetFromBoard(World w)
+    {
+        if (!(w.Coef.GuildLawGate > 0)) return null;
+        double u = HomeUrbanShare(w);
+        if (u > TrustbustUrbanLine) return GuildLaw.None;
+        if (u > AntitrustUrbanLine) return w.Guild >= GuildLaw.Limited ? null : GuildLaw.Limited;
+        return null;
+    }
+
     public void DecideQuarter(World w)
     {
         // 金本位は**発展した交易経済の制度**＝AIは工業化が一定以上で志向（信用→安い外資・貿易円滑の実利が金の足枷の損を上回る）。
@@ -968,7 +1033,7 @@ public sealed class UtilityAgent : INationAgent
         //   （兌換停止＝Fiscal の OnGoldStandard／法を下げる要求＝PolicyPreferences の債務者の側→議会・蜂起の強制施行 Politics）。
         //   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
         // ★銀は誰でも持てる（銀本位doc G4・銀貨は普遍的だった＝清もインドも独も1783年に銀）＝不換の国は銀を志向する（旧の銀の閾 SilverStandardIndThreshold＝0 は常に真＝(210) で削除）。⚠国名も暦年も書かない。
-        bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+        bool goldWish = w.Coef.AiLawGateFromBoard >= 1.0 ? GoldWishFromBoard(w) : GoldWishOld(w);   // ★(423) 旗 AiLawGateFromBoard≧1：工業化度 → 本国の平均識字（旧の式は GoldWishOld に畳んだ）
         w.Policy.MonetaryTarget = goldWish ? 2 : 1;
         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
         // 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は

@@ -187,7 +187,10 @@ public class TransportInstrumentTests
                 if ((int)Col(rh, r, "routeCode") == 1 && Col(rh, r, "valueSeaRouteGoldPerYear") >= Col(rh, r, "valueGoldPerYear") * (1 - 1e-9))
                 {   // 全ての成約が海経由の組：売り手側÷買い手側の運賃 ＝ 両端の（実 km×地形×比）の比（売り手側の分だけが正の組もある＝0 除け）
                     double fs = Col(rh, r, "freightLandSellerSidePartGoldPerYear"), fb = Col(rh, r, "freightLandBuyerSidePartGoldPerYear");
-                    if (els > 0 && elb > 0 && fb > 0) Near(els / elb, fs / fb, 1e-6);
+                    // ★(423) 直し：旧の assert は〈売り手側÷買い手側の運賃＝最後の成約の換算 km の比〉だった。同じ組の成約が複数の経路〔別の港〕を通ると、最後の成約の比と運賃の合計の比は一致しない
+                    //   〔AiLawGateFromBoard の点火で最初の24四半期の軌道が動き、期待 0.63・実際 1.13 で当たった＝旧の盤面では経路が1本だった偶然〕。いつでも成り立つ別の列の組み合わせへ換えた＝運賃は〈運賃率×荷の値打ち×換算 km÷距離の物差し〉で、売り手側・買い手側それぞれにも成り立つ。
+                    double vls = Col(rh, r, "valueTimesEqLandSellerSideKmGoldPerYear"), vlb = Col(rh, r, "valueTimesEqLandBuyerSideKmGoldPerYear");
+                    Near(rate * vls / norm, fs, 1e-6); Near(rate * vlb / norm, fb, 1e-6);
                     if (fs > 0 && Str(rh, r, "sellerNation") != Str(rh, r, "buyerNation")) crossSellerLeg++;
                 }
                 // 陸脚の換算 km ≧ 陸脚の実 km ×（地形の係数の最小 0.15）×（陸÷海の比の最小）
