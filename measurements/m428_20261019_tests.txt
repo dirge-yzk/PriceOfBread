@@ -1,0 +1,10 @@
+# (428) フルスイート（Category!=FullLength・成績表の木 1925d7e6・隔離ビルド D:/PoB_work/m428/art_t・Release）
+成功!   -失敗:     0、合格:  1417、スキップ:     0、合計:  1417、期間: 8 m 26 s - PriceOfBread.Tests.dll (net10.0)
+# (428) FullLength（Category=FullLength）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 23 s - PriceOfBread.Tests.dll (net10.0)
+# (428) 合流 1 の後の試験 6 クラス（TransportInstrumentTests・InstrumentsTests・LawGateFromBoardTests・NationModelTests・TensionPoliticsTests・DormantIdentityTests）
+成功!   -失敗:     0、合格:    74、スキップ:     0、合計:    74、期間: 2 m 38 s - PriceOfBread.Tests.dll (net10.0)
+# (428) 突然変異（写しの木・InstrumentsTransport.cs の TrPair に積む陸脚の運賃と値打ち×換算 km を売り手側と買い手側で入れ替える）＝TransportInstrumentTests
+  失敗 PriceOfBread.Tests.TransportInstrumentTests.運賃の払い手と受け手が別の経路で閉じ_分解と帯が列の別の組み合わせと合う [16 s]
+   期待 0.011164499098814515・実際 89.56962523580205
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 42 s - PriceOfBread.Tests.dll (net10.0)

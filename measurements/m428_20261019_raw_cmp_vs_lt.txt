@@ -1,0 +1,2 @@
+# (428) m428 の計器の生（480 表）と線 lt の採用の生（D:/PoB_work/lt/arms/out_C_10/ins＝b10_20261019_lt_ins）の cmp
+# 同じ 460 表・違う 20 表＝burscan 10（壁時計の seconds の列）・trroute 10（hy〔(427)〕の TrPair の鍵に成約時の国名＝意図した変更）
