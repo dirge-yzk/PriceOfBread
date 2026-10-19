@@ -106,6 +106,21 @@ public class StateEduDemandTests
     }
 
     [Fact]
+    public void 旗1で供給が尽きた月は教育の担い手への労働の配分の重みが増える_翌月の重みは前月の需要を読む()
+    {
+        double LaborWeightSum(int flag)
+        {
+            var (r, w) = OneMonth(flag, 0.001);
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);          // 2 か月目：重み ← 前月の LastDemand（EconomyStep の LaborWeight の更新）
+            double t = 0; int n = 0;
+            foreach (var s in r.Producers) if (s.GoodId == Catalog.EducationId) { t += s.LaborWeight; n++; }
+            Assert.True(n > 0, "前提が崩れた：教育の担い手が無い");
+            return t;
+        }
+        Assert.True(LaborWeightSum(1) > LaborWeightSum(0), "旗 1 の労働の配分の重みが旗 0 より増えていない");
+    }
+
+    [Fact]
     public void 財源率が0なら旗1でも何も足さない_買いたい分は財源率に比例する()
     {
         double Demand(int flag, double funding)
