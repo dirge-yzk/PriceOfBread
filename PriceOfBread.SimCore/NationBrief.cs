@@ -86,7 +86,7 @@ public static class NationBrief
 
     /// <summary>★(235) 開始時の兵の数（千人）＝**構築した世界**の兵士POPの和（World.SoldierSizeK）。(231) で military 欄を外したあと、安全の項は人口（農民＋都市労働者）に比例する写しを読んでいた
     /// ＝構築の播種の式と第二の式を抱えていた。世界を1つ組んで実数を読む（ランクと国力と同じ1本の構築＝<see cref="Opening"/>）。呼び手が同じ世界を何度も組まないよう、引数で受け取れる。</summary>
-    public static Dictionary<string, double> OpeningSoldiers(NationConfig[] all, Coefficients coef) => Opening(all, coef).Soldiers;
+    public static Dictionary<string, double> OpeningSoldiers(NationConfig[] all, Coefficients coef) => OpeningCore(all, coef, warm: false).Soldiers;   // ★(449) 兵の数だけ要る呼び手は助走を通さない（兵の数は構築直後の値＝助走の前・旗に依らず同じ）
 
     /// <summary>同じ陸塊に本国州を持つ他国の軍のうち、上位3つの和（＝取り囲まれの度合い）。
     /// 最大1つでは足りない＝プロイセンは墺2.6・露2.0・仏1.8に**同時に**面しており、最大値だけ見ると
@@ -174,17 +174,24 @@ public static class NationBrief
     /// <summary>★(235) 構築した世界の読み＝開始時のランク・国力・兵の数（千人）。世界の構築は1回だけ（3つを別々に組むと遅いうえ食い違いうる）。選択画面は1度これを呼んで、
     /// 難易度（<see cref="Difficulties"/>）と素点（<see cref="Ease"/>）へ兵の数を渡す。</summary>
     public static (Dictionary<string, string> Ranks, Dictionary<string, double> Scores, Dictionary<string, double> Soldiers)
-        Opening(NationConfig[] all, Coefficients coef)
+        Opening(NationConfig[] all, Coefficients coef) => OpeningCore(all, coef, warm: true);
+
+    private static (Dictionary<string, string> Ranks, Dictionary<string, double> Scores, Dictionary<string, double> Soldiers)
+        OpeningCore(NationConfig[] all, Coefficients coef, bool warm)
     {
         var sim = new MultiNationSim(all, 1789UL, _ => new NullAgent());
         var map = new Dictionary<string, string>();
         var score = new Dictionary<string, double>();
         var soldiers = new Dictionary<string, double>();
+        foreach (var p in sim.Diplomacy.Powers) if (p.Nation is not null) soldiers[p.Name] = p.Nation.SoldierSizeK();   // 兵の数は構築直後の値のまま（助走の前＝旧と同じ）
+        // ★(449) 旗 ScoreFromWorldShare＞0 のとき、ランクと国力は助走の直後の盤面から読む（構築時は市場が回る前＝流れの 3 項が 0 で国力が 3 項に退化する。ゲームの開始のランク〔StartWarmup の末尾で取り直す〕と同じ盤面）。
+        //   助走は全長で約 6.5 秒〔開発機・61 カ国〕＝選択画面の構築が 0.5 秒から延びる。旗 0 は通らない（旧と同じ 0.5 秒）。
+        if (warm && sim.Coef.ScoreFromWorldShare > 0) sim.StartWarmup();
+        var scoreByPower = NationalScore.ScoresByPower(sim.Diplomacy);   // ★(449) 国力は全国分を 1 回で（旗＞0 で国ごとに世界の総量を求め直さない）
         foreach (var p in sim.Diplomacy.Powers)
         {
             if (p.Nation is null) continue;
-            score[p.Name] = NationalScore.Of(p.Nation);
-            soldiers[p.Name] = p.Nation.SoldierSizeK();
+            score[p.Name] = scoreByPower[p.Id];
             map[p.Name] = sim.Diplomacy.RankOf(p) switch
             {
                 PowerRank.Great => "列強",

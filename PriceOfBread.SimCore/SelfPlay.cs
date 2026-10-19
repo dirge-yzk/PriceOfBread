@@ -121,6 +121,78 @@ public static class NationalScore
         else foreach (var w in worlds) StepStanding(w);
     }
 
+    // ===== ★(449) 国力の内訳と国ごとの値の 1 本（旗に従う）＝画面のホバー・国の一覧の詳細・Runner の報告・国名鑑が同じこの 1 本を読む =====
+    // 旧の 4 項（Military・Wealth・Finance・Tech）を NationalScore の外から呼ぶのは旗 0 の腕〔OfOld〕と計器の旧の列だけ（番人 ScoreReaderTests が名指しで許す）。
+    /// <summary>国力の内訳 1 行（ラベルと点）。点の和は <see cref="Scores"/> の国力と同じ（旗 0＝旧の 4 項の左結合和・旗＞0＝6 項の割合の点〔100×割合÷使った項数〕の和）。</summary>
+    public readonly record struct ScoreLine(string Label, double Points);
+
+    private static readonly string[] LegacyLabels = ["軍事", "生産の豊かさ", "金融", "技術"];
+    private static readonly string[] ShareLabels = ["兵の数", "軍事費", "鉄の産出", "動力の消費", "都市の人口", "総人口"];
+
+    private static ScoreLine[] LegacyLines(World w) =>
+        [new(LegacyLabels[0], Military(w)), new(LegacyLabels[1], Wealth(w)), new(LegacyLabels[2], Finance(w)), new(LegacyLabels[3], Tech(w))];
+
+    /// <summary>全国分の内訳（旗は先頭の世界の係数を読む＝<see cref="Scores"/> と同じ）。旗＞0 では世界の総量を 1 回だけ求める。</summary>
+    public static ScoreLine[][] Breakdowns(IReadOnlyList<World> worlds)
+    {
+        int n = worlds.Count;
+        var res = new ScoreLine[n][];
+        if (n > 0 && worlds[0].Coef.ScoreFromWorldShare > 0)
+        {
+            var shares = new double[n][];
+            for (int i = 0; i < n; i++) shares[i] = new double[ScoreTerms.Count];
+            ShareScores(worlds, shares);
+            int used = 0;
+            for (int t = 0; t < ScoreTerms.Count; t++)
+            {
+                double col = 0;
+                for (int i = 0; i < n; i++) col += shares[i][t];
+                if (col > 0) used++;   // 総量が正の項（SharesFromTerms の used と同じ数え方）
+            }
+            for (int i = 0; i < n; i++)
+            {
+                var l = new ScoreLine[ScoreTerms.Count];
+                for (int t = 0; t < l.Length; t++) l[t] = new ScoreLine(ShareLabels[t], used > 0 ? 100.0 * shares[i][t] / used : 0);
+                res[i] = l;
+            }
+        }
+        else for (int i = 0; i < n; i++) res[i] = LegacyLines(worlds[i]);
+        return res;
+    }
+
+    /// <summary>旗 0 の条約港の風化の力の差（<c>Diplomacy.TreatyPortLapse</c> の旧の側＝軍事＋生産の豊かさの 2 項・<see cref="Of"/> の 4 項とは別の和）。旗＞0 では呼ばれない（風化も <see cref="ShareScores"/> を読む）。旧の腕の中身を NationalScore の外へ漏らさないための 1 本。</summary>
+    internal static double TreatyStrengthOld(World w) => Military(w) + Wealth(w);
+
+    /// <summary>この世界の国力の内訳。旗＞0 は外交盤の全国から総量を求める（盤に居ない世界は自分だけ）。旗 0 は自分の 4 項だけ求める。</summary>
+    public static ScoreLine[] BreakdownOf(World w)
+    {
+        if (!(w.Coef.ScoreFromWorldShare > 0)) return LegacyLines(w);
+        var l = NationWorldsOf(w);
+        return Breakdowns(l)[l.IndexOf(w)];
+    }
+
+    /// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の国力（旗に従う）を 1 回で求める（Power.Id → 国力）。画面の一覧・国名鑑は国ごとに <see cref="Of"/> を呼ばずこれを呼ぶ（旗＞0 で国ごとに総量を求め直さない）。</summary>
+    public static Dictionary<int, double> ScoresByPower(Diplomacy d)
+    {
+        var ps = new List<Power>(); var ws = new List<World>();
+        foreach (var p in d.Powers) if (p.Nation is { } nw) { ps.Add(p); ws.Add(nw); }
+        var sc = Scores(ws);
+        var res = new Dictionary<int, double>(ps.Count);
+        for (int i = 0; i < ps.Count; i++) res[ps[i].Id] = sc[i];
+        return res;
+    }
+
+    /// <summary>実在の国の国力の内訳を 1 回で求める（Power.Id → 内訳）。<see cref="ScoresByPower"/> と同じ国の集合。</summary>
+    public static Dictionary<int, ScoreLine[]> BreakdownsByPower(Diplomacy d)
+    {
+        var ps = new List<Power>(); var ws = new List<World>();
+        foreach (var p in d.Powers) if (p.Nation is { } nw) { ps.Add(p); ws.Add(nw); }
+        var bd = Breakdowns(ws);
+        var res = new Dictionary<int, ScoreLine[]>(ps.Count);
+        for (int i = 0; i < ps.Count; i++) res[ps[i].Id] = bd[i];
+        return res;
+    }
+
     /// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の世界の一覧。外交盤が無い単独の世界は自分だけ。</summary>
     internal static List<World> NationWorldsOf(World w)
     {
@@ -136,7 +208,7 @@ public static class NationalScore
         return ShareScores(l)[l.IndexOf(w)];
     }
 
-    // ★(416) 以下の旧の国力の式（Military・Wealth・Finance・Tech と規模偏重の是正）は旗 ScoreFromWorldShare＝0 の腕〔OfOld〕だけが使う（既定 1 では Of は世界の総量に対する割合を返す）。削除は旧の腕を捨てる線。
+    // ★(416)(449) 以下の旧の国力の式（Military・Wealth・Finance・Tech と規模偏重の是正）は旗 ScoreFromWorldShare＝0 の腕〔OfOld・Breakdowns の旗 0 の側・TreatyStrengthOld〕だけが使う（旗＞0 では Of は世界の総量に対する割合を返す）。NationalScore の外から呼べるのは名指しの許可だけ（番人 ScoreReaderTests）。削除は旧の腕を捨てる線。
     // 規模偏重の是正（ユーザ指定）：GDP（＝人口×生産＝規模に比例）と軍（兵数＝人口に比例）の比重を下げ、
     // 1人あたりの発展度（技術・工業化・生活水準・金融の深さ）の比重を上げる＝大人口だけで上位に立てないようにする。
     // 改修2026-06-28：技術項を追加し、軍を逓減キャップ・GDP逓減を強化＝**19世紀の欧州の技術優位を国力評価に反映**（清の人口361M一強の是正・ユーザー指示「技術力で差がでるように」）。

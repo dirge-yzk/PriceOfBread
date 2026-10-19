@@ -154,19 +154,20 @@ public class RuleSharesFormTests
     public void D3_外国持分は四半期の月だけ風化する()
     {
         var sim = Concert();
-        foreach (var n in sim.Nations) n.World.Coef.ScoreFromWorldShare = 0;   // ★(416) 四半期の月の風化の機構を旧の国力の物差し〔英＝比 1〕で測る
+        // ★(449) 既定の物差し〔旗 ScoreFromWorldShare＝1・基準は列強の中央値〕で測る。最強の列強は比が 1 以上＝風化の係数が張り付く。旧の旗の盤面に固定しない。
         var diplo = sim.Diplomacy;
-        var britain = diplo.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス")).Nation!;
-        var c = britain.Coef;
-        var port = britain.Regions.First(r => r.State == RegionState.Active && r.IsPort);
-        Politics.AddForeignShare(port, "テスト国", 0.5);
+        var c = sim.Nations[0].World.Coef;
         diplo.ComputeRanks(c);
+        var sc = NationalScore.ScoresByPower(diplo);
+        var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.State == RegionState.Active && r.IsPort)).OrderByDescending(p => sc[p.Id]).First().Nation!;
+        var port = strongest.Regions.First(r => r.State == RegionState.Active && r.IsPort);
+        Politics.AddForeignShare(port, "テスト国", 0.5);
         diplo.TreatyPortLapse(c, 1);
         Assert.Equal(0.5, port.ForeignShares[0], 12);          // 四半期の月でない＝風化しない（旧の器は毎月 3 倍速だった）
         diplo.TreatyPortLapse(c, 2);
         Assert.Equal(0.5, port.ForeignShares[0], 12);
         diplo.TreatyPortLapse(c, 3);
-        Assert.Equal(0.5 * (1.0 - 0.025), port.ForeignShares[0], 9);   // 列強の英＝国力比が線以上＝DominanceSpeed 0.025 の 1 回分
+        Assert.Equal(0.5 * (1.0 - 0.025), port.ForeignShares[0], 9);   // 最強の列強＝国力比が線以上＝DominanceSpeed 0.025 の 1 回分
         diplo.TreatyPortLapse(c, 4);
         Assert.Equal(0.5 * (1.0 - 0.025), port.ForeignShares[0], 9);   // 次の月は動かない
     }

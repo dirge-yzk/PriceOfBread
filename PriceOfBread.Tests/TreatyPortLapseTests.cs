@@ -14,15 +14,16 @@ public class TreatyPortLapseTests
     {
         var cfgs = WorldData.Nations();
         var sim = new MultiNationSim(cfgs, 1789UL, _ => new NullAgent());
-        foreach (var n in sim.Nations) n.World.Coef.ScoreFromWorldShare = 0;   // ★(416) この番人は風化の速さの機構〔旧の国力の物差しで英＝最強級＝比 1〕を測る。新しい物差しでの向きは ModernizeReturnAndScoreTests の S3
+        // ★(449) 既定の物差し（旗 ScoreFromWorldShare＝1・比の基準は列強の中央値）で測る。最強の列強は比が 1 以上＝風化の係数が張り付く（旧の腕の英と同じ位置）。旧の旗の盤面に固定しない。
         var diplo = sim.Diplomacy;
-        var britain = diplo.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス"));
-        Assert.NotNull(britain.Nation);
-        var port = britain.Nation!.Regions.First(r => r.State == RegionState.Active && r.IsPort);
-        Politics.AddForeignShare(port, "テスト国", 0.5);   // 英の港州に持分（英＝最強級＝国力比 1）
+        var c0 = sim.Nations[0].World.Coef;
+        diplo.ComputeRanks(c0);
+        var sc = NationalScore.ScoresByPower(diplo);
+        var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.State == RegionState.Active && r.IsPort)).OrderByDescending(p => sc[p.Id]).First();
+        var port = strongest.Nation!.Regions.First(r => r.State == RegionState.Active && r.IsPort);
+        Politics.AddForeignShare(port, "テスト国", 0.5);   // 最強級の列強の港州に持分（国力比 ≧ 1）
 
         // OFF側（Ratio=0を明示ピン）
-        var c0 = britain.Nation.Coef;
         c0.TreatyPortLapseRatio = new Share(0);
         diplo.TreatyPortLapse(c0, 48);
         Assert.Equal(0.5, port.ForeignShares[0], 12);
