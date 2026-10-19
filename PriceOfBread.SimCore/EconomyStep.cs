@@ -1571,7 +1571,7 @@ public static class EconomyStep
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
-                    if (incomeElasticGood) desired *= incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）
+                    if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceUsesIncomeElasticity != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceUsesIncomeElasticity) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
                     // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
                     // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
                     if (coef.PanicBuyWeight > 0 && staple)
@@ -1609,6 +1609,7 @@ public static class EconomyStep
                     if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);
                     if (insOn) { insRows++; if (demand < desired - 1e-12) insBound++; insDesired += desired * buyerPrice; insDemand += demand * buyerPrice; }
                     if (insEnt is not null) insEnt.Want(pIdx, marketNeed * priceFactor, desired, demand, buyerPrice);   // (345) 計器（読むだけ）：籠の費用＝欲しい量×買い手の値段
+                    if (insEnt is not null && gi == Catalog.DomesticServiceId) Instruments.SvcBuyWant(region, p, marketNeed * priceFactor, desired, demand);   // (433) 計器（読むだけ）：家事奉仕の階級ごとの欲しい量と買いたい量
                 }
                 p.GoodDemand = demand;
                 popDemand += demand;
@@ -1662,7 +1663,7 @@ public static class EconomyStep
             // ★段③：高等教育も役務の優先配分へ通す（BaseNeed=0 なので条件に明示的に足す）。⚠理由は2つ——
             //   (a)**充足度（Satisfaction）に数えない**のが正しい（大学に行けたことを生活水準に足すのは「支出の直接バフ」＝思想に反する）。
             //   (b)国庫の肩代わり（義務教育）と同じ場所に置ける＝`remaining`（popが買った残り）がそこにしか無い。
-            if (isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId))
+            if (isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId) && !(gi == Catalog.DomesticServiceId && coef.DomesticServiceMarketRation > 0))   // ★(433) 家事奉仕は旗が立つと比例の配給（下の else）へ
             {
                 // === 役務（教育・医療）の優先配分 ===
                 // 「教育は下層POPが優先的に買い、なお余った分を中流が買う」＝中流に届く余剰が高等教育（専門職への転職資格）。
@@ -1688,6 +1689,7 @@ public static class EconomyStep
                         if (ServiceRank(p) != rank) continue;
                         double qty = p.GoodDemand * gr;
                         if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：役務も「自腹で買った分」だけ数える（義務教育の国庫肩代わりは下の別ブロック＝入れない）
+                        if (insEnt is not null && gi == Catalog.DomesticServiceId) Instruments.SvcBuyGot(region, p, qty);   // (433) 計器（読むだけ）：家事奉仕の階級ごとの買えた量
                         double pay = qty * m.Price;
                         p.PaidPerMonth += new MoneyPerMonth(pay);
                         if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, pay);   // (286) 計器（読むだけ）
@@ -1768,7 +1770,7 @@ public static class EconomyStep
                 //   ⚠食料が抜けるのは**満足度の台帳だけ**＝下の FoodMet/FoodNeed の積み上げは同じ量を測り続ける
                 //     ＝飢饉の物理（死亡・疫病・移民・扶養力・天命の dmFood）は1本のままで、移るのは政治的帰結だけ。
                 bool foodTier = staple || foodNonStaple;
-                double needW = foodTier ? 0.0 : good.Tier switch { GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
+                double needW = foodTier || (gi == Catalog.DomesticServiceId && coef.DomesticServiceMarketRation > 0) ? 0.0 : good.Tier switch { GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
                 // 必要の無い財（上の needless）＝どの POP も買う量0・必要0＝このループは支払い・売上・国庫・台帳へ +0.0 を足し（各欄は月初に +0 から積む＝−0 にならない）、
                 //   0 の特権の取り分を捨て（Privileges.Record は正の額だけ）、充足の台帳（GoodNeed>Eps）に入らない＝回さない（作業欄は前の財の値＝読まない）。
                 int insI = -1;   // (345) 計器（読むだけ）：POP の添字
@@ -1779,6 +1781,7 @@ public static class EconomyStep
                     double qty = p.GoodDemand * ration[gi];
                     if (insEnt is not null) insI++;
                     if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
+                    if (insEnt is not null && gi == Catalog.DomesticServiceId) Instruments.SvcBuyGot(region, p, qty);   // (433) 計器（読むだけ）：家事奉仕の階級ごとの買えた量（旗が立ったときの比例の配給）
                     // 経13：補助のベースを基礎価格(m.Price)から税・流通込み総額へ揃える（buyerPrice の (1-insure) と整合）。
                     // 総額ベース（2026-07-19有効化・2026-09-28 に旗 InsuranceSubsidyConsistent ごと焼き込み）＝pay が buyerPrice に一致し予算超過（貯蓄負値化）を解消。保存は成立（pop+国庫＝生産者+商人）。
                     double insureBase = m.Price * (1.0 + (stateMonop + distM));
@@ -2757,5 +2760,5 @@ public static class EconomyStep
 
     /// <summary>役務（教育・医療）の購入優先順位：0=下層（農民・労働者）→ 1=中流（近代エリート）→ 2=上流・閉鎖階級・兵士。
     /// 下層が基礎教育を先に買い、余剰が中流へ届く＝高等教育（専門職への転職資格）の表現。</summary>
-    private static int ServiceRank(Pop p) => Politics.IsMassPop(p) ? 0 : p.IsModernElite ? 1 : 2;
+    internal static int ServiceRank(Pop p) => Politics.IsMassPop(p) ? 0 : p.IsModernElite ? 1 : 2;
 }

@@ -2486,8 +2486,15 @@ public sealed class Coefficients
     public double DemandElasticityMaxLuxury = 2.0;   // 【R1点火2026-07-13＝2.0】経11：奢侈品(Luxury)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で安価工業製品の大量消費化を許す
     // ★(302) 線(2)(3)：奢侈品の欲しい量の所得弾力（作者 2026-10-12 の設計「奢侈品のみ所得弾力をつける」・参照所得は世界の1人あたり実質所得）。無次元の指数 ε。欲しい量 desired に Pow(r, ε) を掛ける（r＝買い手の POP〔州×階級〕の1人あたり実質所得 ÷ 世界の1人あたり実質所得・実質＝名目÷PriceLevel の1本〔FxRate は掛けない＝(299) は為替と物価で二重に割っていた〕・世界の値は MultiNationSim が毎月 World.WorldRealIncomePerCapitaPerMonth へ配る）。対象＝Luxury 階層の非役務の財（アヘンは除く＝必要量が中毒の在庫で決まり所得で決まらない）と、DomesticServiceUsesIncomeElasticity が立つときの家事奉仕。0＝分岐に入らず配りも走らない＝厳密恒等。事前登録 measurements/de_20261014_prereg.txt（取り込み元 s2_20261013_prereg.txt）。★(331) 合流で点火（0.5）＝DormantIdentityTests の表から外した。
     public double LuxuryIncomeElasticity = 0.5;   // ★(302) 上の注。★(331) 合流で既定 0→0.5 に点火（枝 de の腕 B〔b10_20261014_de329B_ins〕の形・ε の大きさは確証なし＝(302) の AI の値）。0＝旧の挙動（分岐に入らず配りも走らない）
+    // ★(433) 値の読み：0＝入れない・1＝同じ式（ε は LuxuryIncomeElasticity と同じ＝今）・1 より大きい値＝家事奉仕だけ指数を ε×その値にする（f＝Pow(r, ε) の冪 Pow(f, 値)＝2 なら ε＝1＝支出が所得に比例）。
     // ★(302) 線(2)：家事奉仕（役務）も上の所得弾力の式に入れる切り替え（0／1・ε は LuxuryIncomeElasticity と同じ）。作者の (2)〔原文は measurements/s2_20261013_prereg.txt の冒頭の引用〕が富裕層に届くには、富裕層の欲しい量が所得で増える必要がある、という AI の読み。0＝入れない＝恒等。
     public double DomesticServiceUsesIncomeElasticity = 1;   // ★(331) 合流で既定 0→1 に点火（腕 B の形）。0＝家事奉仕は弾力の式に入れない＝旧の挙動
+    // ★(433) 線 sb：家事奉仕を役務の優先配分（大衆→近代エリート→その他の順に在庫を埋める＝教育・医療のための〈下層優先〉）から外し、他の財と同じ比例の配給に通す（0／1）。
+    //   根＝役務の優先配分は BaseNeed>0 の役務を全て巻き込む（EconomyStep の `isService[gi] && BaseNeed>0`）。家事奉仕は雇い入れる労働で、教育・医療のような〈下層優先〉の財ではない
+    //   ＝不足の月（売れ残りでなく不足が需要の 2〜3 割）に在庫を大衆が先に取り、貴族・資本家は残りしか買えない（開幕に買い手の 8 割が大衆）。
+    //   1＝比例の配給（他の財と同じ・買いたい量の割合のまま買える）。満足度の台帳には載せない（needW＝0＝今と同じ・役務は充足度に数えない）。新しい状態・倍率なし。
+    //   0＝今の配分＝厳密恒等。事前登録 measurements/sb433_20261019_prereg.txt。
+    public double DomesticServiceMarketRation = 0;
     // ── 所得翻訳ゲート（設計3・2026-08-08 敵対審査済み）：GDP∝人口＝英14位の根＝「生産性↑が需要へ翻訳されない蓋」を、
     //   貯蓄・投資・価格係留のどれにも触れずこの1点で切る。f = min(1 + k·ln(max(1, r)), Cap)、
     //   r = (LastEarnedPerMonth/Size) ÷ basketRef（basketRef＝Staple∪Daily の BaseNeed×RefPrice＝月収が基礎バスケット何個分か）。
