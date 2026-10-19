@@ -1836,7 +1836,8 @@ if (args.Length > 0 && args[0] == "silverprobe")
             int t = w.Policy.MonetaryTarget; if (t <= 0) t0++; else if (t == 1) t1++; else t2++;
             // ★(435) 金の門を越えた国＝AI の金本位の願いの門の述語そのもの：旗 AiLawGateFromBoard≧1（既定 3）は本国の平均識字＞GoldLiteracyLine・0 は工業化度＞GoldStandardIndThreshold。
             //   旧は既定では火を吹かない工業化度の閾を数えていた（(428) の申し送り③・lt の記録）。
-            if (svc.AiLawGateFromBoard >= 1.0 ? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine : w.MeanIndustrialization > svc.GoldStandardIndThreshold) indHi++;
+            //   ★(436) 旗と閾は国の係数 w.Coef から読む（AI の門と同じ出所・POB_COEF の国ごとの上書きでも食い違わない＝反証役 hw〔v〕低#4）。右辺は GoldWishFromBoard／GoldWishOld の〈金本位の法〉の項を除いた門の部分（写し＝門の式を変えたらここも）。
+            if (w.Coef.AiLawGateFromBoard >= 1.0 ? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold) indHi++;
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active) continue;

@@ -440,6 +440,26 @@ public class PlayHarnessTests
     }
 
     [Fact]
+    public void 国有化目標_発見の門が閉じた個体は本体が意志を取り下げる_置いたと書かない()
+    {
+        // ★(436) 反証役 hw〔v〕中#1：World.StepStateTarget は発見の門が閉じた個体の目標を現在の棟数へ戻す（毎月の再試行も無い）。
+        //   旧の文言は〈目標は置いた・毎月の再試行で動く〉と書いていた＝本体の状態と食い違う。play は置かれた目標を本体から読み戻す。
+        var (sim, w, _, _, _) = Board();
+        var (ri, gi) = FactorySite(w, wantFactory: true);
+        string rn = w.Regions[ri].Name, gn = w.Region.Goods.First(g => g.Id == gi).Name;
+        var pf = World.FindFactory(w.Regions[ri], gi)!;
+        int units = World.StateUnits(pf, w.Coef);
+        pf.SiteRow = 0; pf.SiteFound = false;   // 産地の発見の門を閉じる（Discovery.Gate＝0）
+        Assert.False(Discovery.Gate(w.Regions[ri], pf) > 0);
+        string s = PlayHarness.RunVerb(w, $"!state {rn} {gn} {units + 1}");
+        Assert.Equal(units, pf.StateTarget);                       // 本体が取り下げた（目標＝現在の棟数）
+        Assert.Contains("取り下げた", s);
+        Assert.Contains("発見の門が閉じている", s);                // 理由は本体の述語（CanBuildFactory）の文言
+        Assert.DoesNotContain("目標は置いた", s);
+        Assert.DoesNotContain("毎月の再試行で動く", s);
+    }
+
+    [Fact]
     public void 巨大建造物の着工の拒否は理由を返し_CanStartと同じ条件で通る()
     {
         var (sim, w, me, foe, _) = Board();

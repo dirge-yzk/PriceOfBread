@@ -61,7 +61,7 @@ internal static class PlayHarness
 
         var world = sim.Nations[playerIndex].World;
         world.ForceUnlock = true;   // ★(419) 再征服は常時ON（App の InitAfterSimReady と同じ＝新規でも state.bin からの再開でも。★(420) 訂正：ForceUnlock はセーブに載る〔World の自動プロパティ＝SaveGame が全インスタンスフィールドを辿る〕＝(419) より前の state.bin と ForceUnlock=false の決定をこの行が上書きする）
-        world.Explain = new ExplainLedger();   // ★(435) 説明台帳（App の InitAfterSimReady と同じ＝プレイヤー国だけ常設・本計算はビット恒等〔ExplainTests〕・セーブは非直列化なので再開のたびにここで装着）。正統性・国民意識・行政力・厭戦の内訳を報告に出す。⚠ForceUnlock の行は var world の直後に置く（番人 再征服の既定 が見る）
+        world.Explain = new ExplainLedger();   // ★(435) 説明台帳（App の InitAfterSimReady と同じ＝プレイヤー国だけ常設・本計算はビット恒等〔ExplainTests〕・★(436) 訂正：World.Explain はセーブに載る〔[NonSerialized] でない〕ので保存の前に外し〔下の Save の直前〕、再開のたびにここで付け直す）。正統性・国民意識・行政力・厭戦の内訳を報告に出す。⚠ForceUnlock の行は var world の直後に置く（番人 再征服の既定 が見る）
 
         // ---- 2) 決定の適用（キー=値／NationPolicy のフィールド名）----
         string decPath = Path.Combine(dir, "decision.txt");
@@ -553,13 +553,19 @@ internal static class PlayHarness
                     if (!int.TryParse(a[3], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int t)) return $"⚠段が読めない: {a[3]}（整数）";
                     var pf = World.FindFactory(w.Regions[ri], gi);
                     if (pf is null) return $"⚠国有化目標 {a[1]}/{a[2]} 不可（この州に産地なし）";
-                    int want = Math.Clamp(t, 0, Math.Max(0, w.Coef.StateTargetMax)), units = World.StateUnits(pf, w.Coef);
-                    if (w.SetStateTarget(ri, gi, t)) return $"国有化目標 {a[1]}/{a[2]} → {want}: 受理（今月 1 棟動いた・国営 {units}棟から）";
+                    int units = World.StateUnits(pf, w.Coef);
+                    bool moved = w.SetStateTarget(ri, gi, t);
+                    int placed = pf.StateTarget;   // ★(436) 本体が置いた目標を読み戻す（丸めの写しを Runner に持たない＝反証役 hw〔v〕中#1）
+                    string round = placed != t ? $"（要求 {t} は 0〜{w.Coef.StateTargetMax} に丸めた）" : "";
+                    if (moved) return $"国有化目標 {a[1]}/{a[2]} → {placed}{round}: 受理（今月 1 棟動いた・国営 {units}棟から）";
+                    // ★(436) 発見の門が閉じた個体は本体が意志を取り下げる（World.StepStateTarget＝目標を現在の棟数へ戻す・毎月の再試行も無い）＝〈置いた〉と書かない
+                    if (t > units && placed == units && units < w.Coef.StateTargetMax)
+                        return $"⚠国有化目標 {a[1]}/{a[2]} → {t}: 目標は置けない＝取り下げた（{(w.CanBuildFactory(ri, gi) is { Ok: false } cw ? cw.Reason : "着工の門が閉じている")}）・国営 {units}棟のまま・再試行は無い";
                     // ★(435) 動けなかった月：旧は目標を置いたのに〈⚠不可〉と返し、取り消せないと読めた。目標（意志）は置かれ、毎月の再試行で動く＝理由は着工の門〔CanBuildFactory〕／払い下げの門〔CanSellFactory〕の本体の述語から出す
-                    string why = want > units ? (w.CanBuildFactory(ri, gi) is { Ok: false } cb ? cb.Reason : "着工の条件は満たしている（月次の再試行で動く）")
-                               : want < units ? (w.CanSellFactory(ri, gi) is { Ok: false } cs ? (cs.Reason.Length > 0 ? cs.Reason : "払い下げ不可") : "払い下げの条件は満たしている（月次の再試行で動く）")
+                    string why = placed > units ? (w.CanBuildFactory(ri, gi) is { Ok: false } cb ? cb.Reason : "着工の条件は満たしている（月次の再試行で動く）")
+                               : placed < units ? (w.CanSellFactory(ri, gi) is { Ok: false } cs ? (cs.Reason.Length > 0 ? cs.Reason : "払い下げ不可") : "払い下げの条件は満たしている（月次の再試行で動く）")
                                : "国営の棟数と同じ（動かすものが無い）";
-                    return $"⚠国有化目標 {a[1]}/{a[2]} → {want}{(want != t ? $"（要求 {t} は 0〜{w.Coef.StateTargetMax} に丸めた）" : "")}: 目標は置いたが今月は動けない（{why}）・国営 {units}棟・毎月の再試行で動く";
+                    return $"⚠国有化目標 {a[1]}/{a[2]} → {placed}{round}: 目標は置いたが今月は動けない（{why}）・国営 {units}棟・毎月の再試行で動く";
                 }
                 case "monopoly":
                 {
