@@ -15,7 +15,8 @@ namespace PriceOfBread.Runner;
 ///   1) &lt;dir&gt;/state.bin が無ければ新規開始（★App と同じ手順＝プレイヤー国だけ NullAgent・IsPlayer・専売0・StartWarmup）
 ///   (419) 画面の問いかけ（最後通牒・参戦要請・国内の危機・総選挙の公示）に答える動詞は `!ultimatum`・`!callarms`・`!election`（`!crisis` は内容の照会のみ）。全国工場の目標は `!target`・巨大建造物の着工は `!mega`。待っている問いかけと使える動詞は報告の 2 行目。
 ///   (442) 6 番目の引数に `要約` を付けると標準出力は先頭 60 行＋前回の報告に無かった行だけ（report.txt は全文）。
-///   (442) 画面が時間を止める待ち（最後通牒・参戦要請・総選挙の公示・国内の危機）が立っていると、その四半期で進むのを止めて報告の先頭に待ちと答える動詞を書く（答えるまで進まない＝画面と同じ。国内の危機は通知＝この呼び出しの最初に立っていた札と別の札が立ったときだけ止める）
+///   (442) 画面が時間を止める待ちのうち World の状態から読めて答える動詞のある物（最後通牒・参戦要請・総選挙の公示）と国内の危機が立っていると、その四半期で進むのを止めて報告の先頭に待ちと答える動詞を書く（答えるまで進まない。国内の危機は通知＝この呼び出しの最初に立っていた札と別の札が立ったときだけ止める）。
+///   (443) 画面が時間を止めるのに play が止めない物＝既知の違い：緊張のポップアップ（TensionRaise／TensionEase・通知済みの印は App の ViewModel の中だけ）・終戦の通知・内戦の陣営選択。
 ///   2) &lt;dir&gt;/decision.txt があれば `キー=値` 行を **NationPolicy へリフレクションで**適用し、decision.applied.txt へ退避
 ///      ⚠ NationPolicy は「**目標値**」であって結果ではない（現在値は World 側＝利益集団の力で律速して漸進）
 ///      ＝UI と同じ口を叩いているだけで、政治の律速は迂回していない
@@ -747,7 +748,8 @@ internal static class PlayHarness
         _ => null,
     };
 
-    /// <summary>★(442) 画面が時間を止める待ちの種類（App の <c>PopupPause</c> を呼ぶポップアップのうち、play に答える動詞があるもの）。</summary>
+    /// <summary>★(442)(443) play が止める待ちの種類＝App の <c>PopupPause</c> を呼ぶポップアップのうち、World の状態から読めて play に答える動詞がある物（＋通知の国内の危機）。
+    /// 止めない物（既知の違い）：緊張のポップアップ（TensionRaise／TensionEase＝!provoke／!ease は有るが、通知済みの印 <c>_tensionPrompted</c> は App の ViewModel の中だけ）・終戦の通知・内戦の陣営選択。</summary>
     internal enum PlayWait { Ultimatum, CallToArms, Crisis, Election }
 
     /// <summary>★(419)(442) 待っている問いかけ（画面ならポップアップが出ている問い）とその説明（答える動詞つき）。待ちの有無は本体の状態（<c>PendingWar</c> ほか）をそのまま読む＝報告の 1 行と時間を止める判定が同じ 1 本を使う。</summary>
@@ -813,7 +815,9 @@ internal static class PlayHarness
         {
             var all = PendingItems(w, sp).Select(p => p.Text).ToList();
             sb.AppendLine($"⏸ 時間を止めた：要求 {requested} 四半期のうち {stepped} 四半期だけ進めた（{w.Year}年 Q{w.Quarter}）。待っている問い： {string.Join(" ； ", all)}");
-            sb.AppendLine("   答えを decision.txt に書いて次の呼び出しで進める（画面と同じ：答えるまで時間は進まない）。");
+            sb.AppendLine(blocked.Count > 0
+                ? "   答えを decision.txt に書いて次の呼び出しで進める（答えるまで時間は進まない）。"
+                : "   国内の危機の新しい札で止めた＝通知（答える動詞は無い）。次の呼び出しはそのまま進む。");   // ★(443) 危機だけで止めたとき
         }
         else if (blocked.Count > 0)   // 最後の 1 四半期で待ちが立った（次の呼び出しは答えを適用してから進む）
             sb.AppendLine($"⏸ 次は答えるまで進めない：{string.Join(" ； ", blocked)}");

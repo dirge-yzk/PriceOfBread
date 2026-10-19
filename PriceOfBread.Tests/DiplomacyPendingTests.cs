@@ -196,7 +196,7 @@ public class DiplomacyPendingTests
     }
 
     [Fact]
-    public void 旗1の屈服の枝の積む量は標的の勢力圏までの距離で減衰する()
+    public void 屈服の枝の積む量は標的の勢力圏までの距離で減衰する()
     {
         // 範囲を地球上の距離（最大 約 2 万 km）の桁にする。増分 = 最大 × (1 − 距離/範囲) の線形：2 つの範囲の増分から距離を逆算して 2 つが一貫することを見る（距離の幾何は写さない）
         double max = new Coefficients().ProximityTensionMax;

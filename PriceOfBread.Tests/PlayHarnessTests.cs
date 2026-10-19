@@ -613,6 +613,24 @@ public class PlayHarnessTests
         var last = new System.Text.StringBuilder();   // 最後の 1 四半期で立った待ち＝全て進めたが次は答えるまで進めない
         PlayHarness.AppendStopNote(last, w, me, requested: 3, stepped: 3);
         Assert.StartsWith("⏸ 次は答えるまで進めない：", last.ToString());
+        Assert.Contains("答えるまで時間は進まない", t);
+        Assert.DoesNotContain("通知（答える動詞は無い）", t);
+    }
+
+    [Fact]
+    public void 時間を止める待ち_国内の危機だけで止めたときは通知と書き_答えを求めない()
+    {
+        // (443) 反証役 hx〔v〕低#2：危機には答える動詞が無い＝〈答えるまで進まない〉と書くと遊び手が無い答えを探す
+        var (_, w, me, _, _) = Board();
+        var f = new FactionState { Region = w.Regions[0], Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        w.Factions.Add(f);
+        w.PendingFactionCrisis = f;
+        var sb = new System.Text.StringBuilder();
+        PlayHarness.AppendStopNote(sb, w, me, requested: 3, stepped: 1);
+        string t = sb.ToString();
+        Assert.StartsWith("⏸ 時間を止めた：要求 3 四半期のうち 1 四半期だけ進めた", t);
+        Assert.Contains("通知（答える動詞は無い）。次の呼び出しはそのまま進む。", t);
+        Assert.DoesNotContain("答えるまで時間は進まない", t);
     }
 
     [Fact]
