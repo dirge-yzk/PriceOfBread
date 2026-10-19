@@ -96,8 +96,11 @@ public class DomesticServiceRationTests
     }
 
     [Fact]
-    public void 旗の既定は0_今の配分()
+    public void 既定は点火した形_比例の配給と指数2_旗0なら旧の優先配分へ戻せる()
     {
-        Assert.Equal(0.0, new Coefficients().DomesticServiceMarketRation);
+        var c = new Coefficients();
+        Assert.Equal(1.0, c.DomesticServiceMarketRation);
+        Assert.Equal(2.0, c.DomesticServiceUsesIncomeElasticity);
+        // 旗 0 に倒せば優先配分（大衆が先に埋まる）＝旧の挙動へ戻る：番人の本体（旗 0 の別テスト）が担う。
     }
 }

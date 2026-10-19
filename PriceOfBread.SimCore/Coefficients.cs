@@ -2488,13 +2488,13 @@ public sealed class Coefficients
     public double LuxuryIncomeElasticity = 0.5;   // ★(302) 上の注。★(331) 合流で既定 0→0.5 に点火（枝 de の腕 B〔b10_20261014_de329B_ins〕の形・ε の大きさは確証なし＝(302) の AI の値）。0＝旧の挙動（分岐に入らず配りも走らない）
     // ★(433) 値の読み：0＝入れない・1＝同じ式（ε は LuxuryIncomeElasticity と同じ＝今）・1 より大きい値＝家事奉仕だけ指数を ε×その値にする（f＝Pow(r, ε) の冪 Pow(f, 値)＝2 なら ε＝1＝支出が所得に比例）。
     // ★(302) 線(2)：家事奉仕（役務）も上の所得弾力の式に入れる切り替え（0／1・ε は LuxuryIncomeElasticity と同じ）。作者の (2)〔原文は measurements/s2_20261013_prereg.txt の冒頭の引用〕が富裕層に届くには、富裕層の欲しい量が所得で増える必要がある、という AI の読み。0＝入れない＝恒等。
-    public double DomesticServiceUsesIncomeElasticity = 1;   // ★(331) 合流で既定 0→1 に点火（腕 B の形）。0＝家事奉仕は弾力の式に入れない＝旧の挙動
+    public double DomesticServiceUsesIncomeElasticity = 2;   // ★(331) 合流で既定 0→1 に点火（腕 B の形）。★(433) 線 sb で 1→2 に点火（腕 B・止める線に当たらず・T1/T2/T4/T5 合格）＝ε 1（支出が所得に比例）の大きさは確証なし（AI の値）。1＝(331) の形（ε 0.5）・0＝家事奉仕は弾力の式に入れない＝旧の挙動
     // ★(433) 線 sb：家事奉仕を役務の優先配分（大衆→近代エリート→その他の順に在庫を埋める＝教育・医療のための〈下層優先〉）から外し、他の財と同じ比例の配給に通す（0／1）。
     //   根＝役務の優先配分は BaseNeed>0 の役務を全て巻き込む（EconomyStep の `isService[gi] && BaseNeed>0`）。家事奉仕は雇い入れる労働で、教育・医療のような〈下層優先〉の財ではない
     //   ＝不足の月（売れ残りでなく不足が需要の 2〜3 割）に在庫を大衆が先に取り、貴族・資本家は残りしか買えない（開幕に買い手の 8 割が大衆）。
     //   1＝比例の配給（他の財と同じ・買いたい量の割合のまま買える）。満足度の台帳には載せない（needW＝0＝今と同じ・役務は充足度に数えない）。新しい状態・倍率なし。
-    //   0＝今の配分＝厳密恒等。事前登録 measurements/sb433_20261019_prereg.txt。
-    public double DomesticServiceMarketRation = 0;
+    //   0＝旧の配分（優先配分）＝(433) 以前の挙動。事前登録 measurements/sb433_20261019_prereg.txt。★(433) 線 sb で既定 0→1 に点火（腕 B〔配給＋指数 2〕が止める線に当たらず T1・T2・T4・T5 を満たした）。
+    public double DomesticServiceMarketRation = 1;
     // ── 所得翻訳ゲート（設計3・2026-08-08 敵対審査済み）：GDP∝人口＝英14位の根＝「生産性↑が需要へ翻訳されない蓋」を、
     //   貯蓄・投資・価格係留のどれにも触れずこの1点で切る。f = min(1 + k·ln(max(1, r)), Cap)、
     //   r = (LastEarnedPerMonth/Size) ÷ basketRef（basketRef＝Staple∪Daily の BaseNeed×RefPrice＝月収が基礎バスケット何個分か）。
