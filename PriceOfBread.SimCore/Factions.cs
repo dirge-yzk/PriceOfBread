@@ -49,7 +49,7 @@ public static class Factions
         double totalPop = w.TotalPopulation;
         if (totalPop <= 1e-9) return;
 
-        var observed = FactionSnapshot.ComputeClusters(w);   // 共有核＝F2表示と同じ束ね方（決定論）
+        var observed = FactionSnapshot.ComputeClusters(w, countCost: true);   // 共有核＝F2表示と同じ束ね方（決定論）
         // ブロックの意識は bloc（0..2）のみに依存し本Step中は不変＝クラスタごとの再計算を避け遅延キャッシュ（値・走査順は従来と同一）。
         var consciousnessByBloc = new double?[PolicyPreferences.BlocCount];
         // 1) 観測→状態の照合（キー＝州参照×ブロック×主軸）。観測順→状態順の走査＝決定論。
