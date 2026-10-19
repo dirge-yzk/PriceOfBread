@@ -2,6 +2,7 @@
 # 使い方：python mut.py <worktree> <artifacts> <log>   ／ 各変異は適用→テスト→元へ戻す（バイトで読み書き）。
 import subprocess, sys, os
 wt, art, log = sys.argv[1], sys.argv[2], sys.argv[3]
+only = sys.argv[4] if len(sys.argv) > 4 else None   # 例 M9＝その変異だけ回す
 path = os.path.join(wt, 'PriceOfBread.SimCore', 'EconomyStep.cs')
 orig = open(path, 'rb').read()
 M = [
@@ -18,10 +19,11 @@ M = [
 out = []
 try:
     for name, a, b in M:
+        if only and not name.startswith(only): continue
         src = orig.decode('utf-8')
         assert src.count(a) == 1, (name, src.count(a))
         open(path, 'wb').write(src.replace(a, b, 1).encode('utf-8'))
-        r = subprocess.run(['dotnet', 'test', os.path.join(wt, 'PriceOfBread.Tests', 'PriceOfBread.Tests.csproj'), '-c', 'Release', '--artifacts-path', art, '--filter', 'FullyQualifiedName~StateEduDemandTests', '-nologo'], capture_output=True, text=True, encoding='utf-8', errors='replace')
+        r = subprocess.run(['dotnet', 'test', os.path.join(wt, 'PriceOfBread.Tests', 'PriceOfBread.Tests.csproj'), '-c', 'Release', '--artifacts-path', art, '--filter', 'FullyQualifiedName~StateEduDemand', '-nologo'], capture_output=True, text=True, encoding='utf-8', errors='replace')
         tail = [l for l in r.stdout.splitlines() if ('失敗!' in l or '成功!' in l or 'error' in l.lower() and 'CS' in l)]
         verdict = 'RED' if '失敗!' in r.stdout else ('BUILD-ERR' if 'error CS' in r.stdout else 'GREEN(!)')
         out.append(f'{name}\t{verdict}\t{tail[:1]}')

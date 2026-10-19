@@ -187,9 +187,13 @@ public class StateEduDemandTests
     }
 
     [Fact]
-    public void 旗の既定は0_既存の盤面は動かない()
+    public void 旗の既定は1_点火済み_0は旧の経路を比べるために残る()
     {
-        Assert.Equal(0, new Coefficients().StateEduDemandInFront);
+        // 2026-10-20 (452) に点火。既定の世界は買いたい分を値段が読む需要へ足す。旧の盤面（0）は比べる腕のために残る＝上の試験は旗を明示して回す
+        Assert.Equal(1, new Coefficients().StateEduDemandInFront);
+        var (a, _) = OneMonth(0, 0.001);
+        var (b, _) = OneMonth(1, 0.001);
+        Assert.True(b.Markets[Catalog.EducationId].LastDemand > a.Markets[Catalog.EducationId].LastDemand, "既定の経路（1）が旧（0）より買いたい分を足していない");
     }
 }
 

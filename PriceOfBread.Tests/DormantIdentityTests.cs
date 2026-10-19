@@ -21,7 +21,7 @@ public class DormantIdentityTests
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         // ★AiBureaucracyFromPrereq は 2026-10-17 (389) に 2 で**点火**（欲しい法が官僚制度の前提で止まったとき、法律タブの門も通る法だけ官僚制度の目標を上げる）＝この表から外した。
-        "StateEduDemandInFront",        // ★(452) 国庫の教育の買いたい分（取れなかった分も）を値段が読む需要 LastDemand へ足す（EconomyStep.Run の役務の配分の後）。0＝足さない＝厳密恒等（供給が足りる月は旗 1 でも足す量 0）。点火は後半の腕 B
+        // ★StateEduDemandInFront（(452) 国庫の教育の買いたい分を値段が読む需要へ）は 2026-10-20 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
         // ★ClearingIdleThrottledScan・ClearingIdlePotentialReweight（(434) 清算の片方向の錠）は 2026-10-19 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★DomesticServiceMarketRation（(433) 家事奉仕を優先配分から外す）は 2026-10-19 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
