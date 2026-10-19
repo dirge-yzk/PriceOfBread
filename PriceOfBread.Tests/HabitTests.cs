@@ -169,6 +169,9 @@ public class HabitTests
         var uk = sim.Nations[2].World;
         var seeded = uk.Regions.First(r => r.State == RegionState.Active);
         seeded.OpiumAddiction = 0.05;
+        // ★(436) 合流：合わせた木（cl＋sb＋dq の点火）では、この 4 国の試合でロンドンにアヘンが 30 四半期以上届かなくなった（産地の無い盤面で輸入の軌道が動いた・需要は立っている）＝
+        //   販売量の計器の口の番人が軌道に依らないように、種を置いた州の市場にアヘンの在庫を置く（計器なしと計器つきの両方に同じ盤面＝軌道の一致の主張は変わらない）。
+        seeded.Markets[Catalog.OpiumId].Stock = 50;
         try
         {
             if (instr) Instruments.Phase(sim, 1789UL, "open");
