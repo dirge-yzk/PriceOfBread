@@ -21,7 +21,7 @@ public class ClearingScopeTests
     private static NationConfig[] Cfg() => [WorldData.ByName("イギリス"), WorldData.ByName("フランス")];   // 港州が 3 つ以上ある 2 国
 
     /// <summary>売り手 nSellers 州（価格の昇順 0.5・0.6・…倍・在庫は厚い）と、買い手（高値・需要大・在庫ゼロ）。TradeClearingTests.Make と同じ盤面の作り。</summary>
-    private static (MultiNationSim sim, int g, List<Region> sellers, List<Region> buyers) Board(int nSellers, Action<Coefficients>? coef = null, int nBuyers = int.MaxValue, bool staple = false)
+    internal static (MultiNationSim sim, int g, List<Region> sellers, List<Region> buyers) Board(int nSellers, Action<Coefficients>? coef = null, int nBuyers = int.MaxValue, bool staple = false)
     {
         var sim = new MultiNationSim(Cfg(), seed: 1789) { DiplomacyFrozen = true };
         sim.Coef.ClearingIdleSearchQuarters = 1;   // ②は各試験が自分で入れる（既定 4 だと最初の清算で番でない行が飛ばされる）
@@ -55,7 +55,7 @@ public class ClearingScopeTests
         return (sim, gd.Id, sellers, buyers);
     }
 
-    private static void SetCalendar(MultiNationSim sim, int year, int quarter)
+    internal static void SetCalendar(MultiNationSim sim, int year, int quarter)
     {
         foreach (var n in sim.Nations) { n.World.Year = year; n.World.Quarter = quarter; }
     }

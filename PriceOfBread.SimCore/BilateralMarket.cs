@@ -752,10 +752,17 @@ public sealed partial class InternationalMarket
                 var m = mktOf[t];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
+                double potW = 1.0;   // ★(434) 係数 ClearingIdlePotentialReweight：この行が潜在量 potNew へ足す量の重み（番の標本の行だけ N・旗 0 では常に 1＝下の加算は元の式のまま）
                 if (idleN > 0 && !thin && !(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG))
                 {   // ★(403) 取引も不足も無かった行（主食でない財の不足だけの行も＝主食〔GoodTier.Staple か麦の連鎖〕の不足だけが番に関わらず起こす〔飢饉の輸入を遅らせない〕）は番の四半期だけ相手を探す（番でなければ飛ばす・走査して成約しなかった行と同じ印 ClearFailLp＝自州価格 を書く＝2・3 月目に不足だけで起きた行が走査し直さない）
                     uint hh = idleKey[t] ^ ((uint)g * 0x9E3779B1u); hh ^= hh >> 15; hh *= 0x2C1B3C6Du; hh ^= hh >> 12;
-                    if ((hh + idleQ) % (uint)idleN != 0) { if (MultiNationSim.TimeOn) CntIdleSkips++; if (Instruments.On) Instruments.ScopeSkip(this, nations[tr[t].nation].World); m.ClearFailLp = lp; continue; }   // 走査して成約しなかった行と同じ印（2・3 月目は第 2 の門で眠る＝自州価格が上がれば起きる）
+                    bool inTurn = (hh + idleQ) % (uint)idleN == 0;
+                    // ★(434) 係数 ClearingIdleThrottledScan（(ii)・既定 0）：買い手の州が前の四半期の最初の清算で律速だった（LastTradeThrottle＜1・NaN も走査する側）行は、番でなくても走査する
+                    //   ＝容量が足りない州の潜在量を番の標本に頼らない（潜在量の系統的な過小が律速を隠し、港の拡張を細らせる帰還を断つ）。読むのは前の四半期が書いた値（今の清算は末尾で書き直す）。旗 0 では州の値を読まない。
+                    bool wakeThr = c.ClearingIdleThrottledScan > 0 && !(tr[t].r.LastTradeThrottle >= 1.0);
+                    if (!inTurn && !wakeThr) { if (MultiNationSim.TimeOn) CntIdleSkips++; if (Instruments.On) Instruments.ScopeSkip(this, nations[tr[t].nation].World, !(tr[t].r.LastTradeThrottle >= 1.0)); m.ClearFailLp = lp; continue; }   // 走査して成約しなかった行と同じ印（2・3 月目は第 2 の門で眠る＝自州価格が上がれば起きる）
+                    // ★(434) 係数 ClearingIdlePotentialReweight（①・既定 0）：番の標本として走査した行（(ii) が起こした行は全数走査＝重み 1）の潜在量は、飛ばした (N−1) 行の分も表す＝N 倍で記帳する（抽出の確率の逆数・両端に同じ重み）
+                    if (inTurn && !wakeThr && c.ClearingIdlePotentialReweight > 0) potW = idleN;
                 }
                 bool restrict = false; int dealtN = 0;   // ★(403) 係数 ClearingPartnerScope：覚えのある行（四半期の 2・3 月目）は覚えの売り手だけを見る
                 if (thin && m.ClearPartners is { } pmem)
@@ -763,8 +770,9 @@ public sealed partial class InternationalMarket
                     restrict = true; rowStamp++; if (MultiNationSim.TimeOn) CntScopeRows++;
                     foreach (var pr in pmem) if (pr.ClearSellerStamp == gStamp) member[pr.ClearSellerPos] = rowStamp;
                 }
+                bool scopeThr = false; long scopeFill0 = nFill;   // ★(434) 計器（読むだけ）：買い手の州が律速か（LastTradeThrottle＜1）・この行の着値の充填の始めの件数
                 int scopeCls = 0; bool scopeFell = false;   // ★(403) 計器（読むだけ）：行の種類（0 最初・1 最初で眠らせる対象・2 月で前の月に輸入があった行・3 月で覚えで絞った行・5 月で前の月に輸入が無く不足で起きた行）と探し直したか
-                if (Instruments.On) scopeCls = thin ? (restrict ? 3 : (m.PrevImport > 0 ? 2 : 5)) : (!(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG) ? 1 : 0);
+                if (Instruments.On) { scopeCls = thin ? (restrict ? 3 : (m.PrevImport > 0 ? 2 : 5)) : (!(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG) ? 1 : 0); scopeThr = !(tr[t].r.LastTradeThrottle >= 1.0); }
                 m.ClearFailLp = 0;   // 印は走査して成約しなかったときだけ（下の行の終わり）＝門で飛ばした行・成約した行は印なし
                 int ni = tr[t].nation;
                 int bias = nations[ni].World.TradeBiasOf(g);
@@ -943,7 +951,10 @@ public sealed partial class InternationalMarket
                     {
                         double doneQ = qA > 1e-12 ? qA : 0.0;
                         double newUnmet = Math.Min(pot - doneQ, Math.Max(0, X - doneQ - unmetQ));
-                        potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmet) * Wg;
+                        double potBefore = Instruments.On ? potNew[t] : 0.0;   // ★(434) 計器（読むだけ）
+                        if (potW != 1.0) { potNew[t] += (doneQ + newUnmet) * Wg * potW; potNew[snA] += (doneQ + newUnmet) * Wg * potW; }   // ★(434) ①：番の標本の行は N 倍（両端）
+                        else { potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmet) * Wg; }
+                        if (Instruments.On) Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore);   // ★(434) 計器（読むだけ）
                         unmetQ += newUnmet;
                     }
                     if (!(qA > 1e-12))
@@ -984,7 +995,7 @@ public sealed partial class InternationalMarket
                     if (portS > 0) { double rS = vA * portS / exRate[siA]; portRecv[snA] += rS; fxIntended += rS - vA * portS / exRate[ni]; }   // 積出し港の持ち主は自国の通貨で（換算の差は台帳へ）
                     if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
                     freightPool += frG;
-                    if (Instruments.On) Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA);   // ★(403) 計器（読むだけ）
+                    if (Instruments.On) Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr);   // ★(403) 計器（読むだけ）
                     if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni]);   // ★(380) 輸送の段0 の計器（読むだけ）・★(385) 運賃の配りの比を売り手側・買い手側の国で添える
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];   // 売買方針（高く買う）＝積出し価格×楔（旧＝数量×表示用の平均×楔＝R6）
                     // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
@@ -1014,7 +1025,7 @@ public sealed partial class InternationalMarket
                     else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
                 if (!thin && dealtN > 0) { var keep = new Region[dealtN]; Array.Copy(dealtTmp, keep, dealtN); m.ClearPartners = keep; }   // ★(403) 覚え＝最初の清算で相手にした売り手（先の K 人）
-                if (Instruments.On) Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell);   // ★(403) 計器（読むだけ）
+                if (Instruments.On) Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell, scopeThr, nFill - scopeFill0);   // ★(403) 計器（読むだけ）
                 if (!dealtRow) m.ClearFailLp = lp;   // ★走査して成約しなかった＝この自州価格を印に（月の清算で、これを超えて上がるまで眠る＝上の thin の注記）
             }
             costC[CostLedger.ClearingFills] += nFill;   // 計算量の台帳（診断）：この財の着値の充填

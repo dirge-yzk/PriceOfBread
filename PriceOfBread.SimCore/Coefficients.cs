@@ -2280,6 +2280,12 @@ public sealed class Coefficients
     //   ClearingPartnerScope（①・K）：四半期の 2・3 月目の清算で、その四半期の最初の清算に成約した買い手行は、その清算で相手にした売り手（先の K 人・1 以上）から先に買い、
     //   覚えの売り手が尽きたら全ての売り手を探し直す。覚えは作業領域（セーブに載らない・四半期の最初の清算が作り直す）。最初の清算の走査は変えない。AI の置き（確証なし）。
     public double ClearingPartnerScope = 4;
+    // ★(434) 清算の片方向の錠（読む線 (411) 問い 2・測った登録 measurements/cl_20261019_prereg.txt・どちらも既定 0＝今と 1 ビットも違わない）。
+    //   番でない眠る行は潜在量の加算（BilateralMarket の potNew）の手前で飛ばされる＝LastTradePotential は番の行が見た分だけに過小に記帳され、港の拡張・輸送の取り分・機関車の必要性がそれを読む（分子と分母の非対称）。
+    //   ClearingIdleThrottledScan（(ii)・0／1）：1＝買い手の州が前の四半期の最初の清算で律速だった（LastTradeThrottle＜1）行は番でなくても走査する（時計でなく既存の状態の条件で起こす）。
+    //   ClearingIdlePotentialReweight（①・0／1）：1＝番の標本として走査した行の潜在量を ClearingIdleSearchQuarters（N）倍で記帳する（抽出の確率の逆数＝標本から総量を推す重み・買い手の州と売り手の州の両端に同じく）。(ii) が起こした行は全数走査なので重み 1。AI の置き（確証なし）。
+    public double ClearingIdleThrottledScan = 0;
+    public double ClearingIdlePotentialReweight = 0;
 
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）
