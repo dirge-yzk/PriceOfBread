@@ -32,17 +32,16 @@ public class DiplomacyPendingTests
 
         dip.Step(c, sim.Rng, 1);
 
-        Assert.DoesNotContain(ending, dip.Wars);    // 前提＝戦争が本当に終わった（終えなければ検査になっていない）
-        Assert.Contains(lasting, dip.Wars);
-        Assert.Null(me.PendingCallToArms);
-        Assert.Null(russia.PendingCallToArms);
-        var kept = foe.PendingCallToArms;
-        Assert.NotNull(kept);
-        Assert.Same(russia, kept!.Value.Caller); Assert.Same(me, kept.Value.Enemy);
+        // ⚠失敗の表示で国の対象グラフを書き出させない（待ちの組をそのまま Assert に渡すと表示の再帰でテストホストが落ちる）＝真偽で渡す
+        Assert.False(dip.Wars.Contains(ending), "前提が崩れた：戦争が終わっていない（終えなければ検査になっていない）");
+        Assert.True(dip.Wars.Contains(lasting), "前提が崩れた：続くはずの戦争が消えた");
+        Assert.True(me.PendingCallToArms is null, "終えた戦争を指す参戦要請の待ちが残っている");
+        Assert.True(russia.PendingCallToArms is null, "終えた戦争を逆向きに指す参戦要請の待ちが残っている");
+        Assert.True(foe.PendingCallToArms is { } kept && kept.Caller == russia && kept.Enemy == me, "続いている戦争の待ちが消えた");
         // 続いている戦争の待ちは月を進めても残る
         foreach (int m in NonQuarterMonths) dip.Step(c, sim.Rng, m);
-        Assert.Contains(lasting, dip.Wars);
-        Assert.NotNull(foe.PendingCallToArms);
+        Assert.True(dip.Wars.Contains(lasting), "前提が崩れた：続くはずの戦争が月を進めて終わった");
+        Assert.True(foe.PendingCallToArms is not null, "続いている戦争の待ちが月を進めて消えた");
     }
 
     [Fact]
@@ -64,22 +63,22 @@ public class DiplomacyPendingTests
         // (1) 門が閉じた相手への待ちは下りる。(2) その間に門が開いた別の相手が時計を満たすと、翌月以降に積まれる（塞がれの解消）。
         me.PendingWar = cold;
         Hold(); dip.Step(c, sim.Rng, 1);
-        Assert.Null(me.PendingWar);
+        Assert.True(me.PendingWar is null, "根拠の門が閉じた最後通牒の待ちが残っている");
         for (int i = 1; i < c.WarTriggerMonths; i++)
         {
-            Assert.Null(me.PendingWar);   // 時計が満ちるまでは何も積まれない
+            Assert.True(me.PendingWar is null, "時計が満ちる前に最後通牒が積まれた");   // 時計が満ちるまでは何も積まれない
             Hold(); dip.Step(c, sim.Rng, NonQuarterMonths[i]);
         }
-        Assert.Same(hot, me.PendingWar);
+        Assert.True(me.PendingWar == hot, "門が開いて時計が満ちたのに最後通牒が積まれない（塞がれの解消）");
         Assert.False(dip.IsAtWar(me, hot));   // 最後通牒＝プレイヤーの組は宣戦でなく待ちになる
         // (3) 門が開いている待ちは歩んでも消えない
         Hold(); dip.Step(c, sim.Rng, 1);
-        Assert.Same(hot, me.PendingWar);
+        Assert.True(me.PendingWar == hot, "門が開いている最後通牒の待ちが歩みで消えた");
         // (4) 根拠が消える（緊張が水準未満）と下りる
         dip.AddTension(me, hot, -200, TensionReason.Threat);
         Assert.True(dip.Tension(me, hot) < c.WarDeclareTension, "前提が崩れた：緊張を下げ切れていない");
         dip.Step(c, sim.Rng, 2);
-        Assert.Null(me.PendingWar);
+        Assert.True(me.PendingWar is null, "根拠が消えた（緊張が水準未満の）最後通牒の待ちが残っている");
     }
 
     [Fact]
@@ -94,8 +93,8 @@ public class DiplomacyPendingTests
         double cold = dip.Tension(a, b);
         Assert.True(cold < c.WarDeclareTension, "前提が崩れた：AI どうしの組の緊張が水準を下回っていない");
         dip.Step(c, sim.Rng, 1);   // AI どうしの組（英×仏）の門は閉じている＝else 枝が走るが、プレイヤーの待ち（プロイセン×ロシア）には触れない
-        Assert.Same(hot, me.PendingWar);
-        Assert.Null(a.PendingWar); Assert.Null(b.PendingWar); Assert.Null(sim.Nations[3].World.SelfPower!.PendingWar);
+        Assert.True(me.PendingWar == hot, "AI どうしの組の走査でプレイヤーの有効な待ちが動いた");
+        Assert.True(a.PendingWar is null && b.PendingWar is null && hot.PendingWar is null, "AI の国に最後通牒の待ちが積まれた");
     }
 
     // ===== 侵略の近接の緊張（G3・G4）=====
