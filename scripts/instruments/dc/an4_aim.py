@@ -92,7 +92,23 @@ def aim(tag, d):
     # T3
     nz = [r for r in rows if fl(r['milLivingMeanShare']) != 0.0]
     mx = max((abs(fl(r['milLivingMeanShare'])) for r in rows), default=float('nan'))
-    print('T3 milLivingMeanShare が 0 でない行 ＝ %d／%d（最大の絶対値 %.3g）  [B の狙い＝0 件。A では 0 件でないのが正しい]' % (len(nz), len(rows), mx))
+    print('T3（結線の確認＝旗を配線すれば必ず通る・機構が働いた証拠ではない。採否は T1・T2）milLivingMeanShare が 0 でない行 ＝ %d／%d（最大の絶対値 %.3g）  [B の狙い＝0 件。A では 0 件でないのが正しい]' % (len(nz), len(rows), mx))
+    # 追記3 の記録（採否に使わない）：先の力学に届いたか・分母の別の取り方・罷業・T3 は結線の確認
+    nclMil = sum(fl(r['clusterCountMil']) for r in big if fl(r['clusterCountMil']) == fl(r['clusterCountMil']))
+    nclNew = sum(fl(r['clusterCountNew']) for r in big if fl(r['clusterCountNew']) == fl(r['clusterCountNew']))
+    print('記録：運動体の候補の数 clusterCountNew÷clusterCountMil ＝ %.4f／MilSum の比 milSumNewK÷milSumMilK ＝ %.4f（頭数の比 %.4f）' % (
+        nclNew / nclMil if nclMil > 0 else float('nan'), msNew / msMil if msMil > 0 else float('nan'), sNew / sMil if sMil > 0 else float('nan')))
+    if big and 'partDenK' in big[0]:
+        pdg = 0.0
+        for r in big:
+            g, w_ = fl(r['dGtMShare']), fl(r['partDenK'])
+            if g == g and w_ == w_:
+                pdg += g * w_
+        print('記録：T1 の別の分母 Σ(partNewK−partMilK)÷Σ(dGtMShare×partDenK)（不満度が闘争度を上回る POP の人口を分母）＝ %.4f' % ((sNew - sMil) / pdg if pdg > 0 else float('nan')))
+    if big and 'strikeRegions' in big[0]:
+        srg = [fl(r['strikeRegions']) for r in big]; sis = [fl(r['strikeIntensitySum']) for r in big]
+        print('記録：罷業の導出 World.TechProductivity と同じ式（8 国の毎四半期・地域の闘争度が門 0.5 超）：行あたりの地域数の平均 ＝ %.4f／強さの和の行平均 ＝ %.4f／1 地域でも超えた行の割合 ＝ %.4f' % (
+            sum(srg) / len(srg), sum(sis) / len(sis), sum(1 for v in srg if v > 0) / len(srg)))
     t1 = 'PASS' if U >= 0.05 else ('PARTIAL' if U > 0.006 else 'MISS')
     print('判定の素（報告で止める線と合わせる）：T1=%s・T2=%s・T3=%s' % (t1, 'PASS' if D > 0.121 else 'MISS', 'PASS' if not nz else 'MISS'))
     return U, D, len(nz)

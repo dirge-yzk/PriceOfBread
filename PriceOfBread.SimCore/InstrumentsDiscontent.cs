@@ -26,7 +26,7 @@ public static partial class Instruments
     internal const string DcontHeaderText = "quarter\tyear\tnation\tmassPopK\tsatMeanShare\tdiscontentMeanShare\tmilitancyMeanShare\tmilLivingMeanShare\tmilVoiceMeanShare\tmilWarMeanShare\tmilNationMeanShare\tmilFamineMeanShare\t"
         + "chronicShortageMeanShare\tlivingDropMeanIndex\thighSatHighMilShare\tpartOldK\tpartNewK\tdGtMShare\tclusterCountOld\tclusterCountNew\tclusterAvgMilOldIndex\tclusterAvgMilNewIndex\t"
         + "factionsCount\tfactionsMutatedCount\tfactionsMaxCohesionIndex\tfactionRevoltsCum\t"
-        + "partMilK\tclusterCountMil\tmilSumOldK\tmilSumMilK\tmilSumNewK\tfacCohGateCount\tfacCohMutCount\tfacStrongCount\tstrengthRatioMaxIndex\tpartDenK";
+        + "partMilK\tclusterCountMil\tmilSumOldK\tmilSumMilK\tmilSumNewK\tfacCohGateCount\tfacCohMutCount\tfacStrongCount\tstrengthRatioMaxIndex\tpartDenK	strikeRegions	strikeIntensitySum";
 
     /// <summary>事前登録 R5 のリテラル（満足度がこれ以上かつ闘争度がこれを超える POP を〈水準が高いのに闘争度が高い〉と数える）。</summary>
     internal const double DcontHighSat = 0.6, DcontHighMil = 0.5;
@@ -44,9 +44,16 @@ public static partial class Instruments
         var oldCl = new Dictionary<(int, int, int), (double Size, double MilSum)>();
         var newCl = new Dictionary<(int, int, int), (double Size, double MilSum)>();
         var milCl = new Dictionary<(int, int, int), (double Size, double MilSum)>();
+        int strikeRegions = 0; double strikeIntensitySum = 0;   // 追記3：World.TechProductivity の罷業の導出と同じ式（読むだけ・地域の人口加重の闘争度が門を超えた地域の数と超過分の和）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
+            if (c.StrikeProductionHit > 0 && w.LaborUnion != LaborUnionLaw.Illegal)
+            {
+                double rmil = 0, rsz = 0; foreach (var mp in r.Pops) { rmil += mp.Size * mp.Militancy; rsz += mp.Size; }
+                double si = Math.Max(0, (rsz > 1e-9 ? rmil / rsz : 0.0) - c.StrikeMilitancyThreshold);
+                if (si > 0) { strikeRegions++; strikeIntensitySum += si; }
+            }
             foreach (var p in r.Pops)
             {
                 if (p.Size <= 1e-9) continue;
@@ -109,6 +116,6 @@ public static partial class Instruments
         sk.Dcont.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), F(mass), F(sat / m), F(dis / m), F(mil / m), F(mLiving / m), F(mVoice / m), F(mWar / m), F(mNation / m), F(mFamine / m),
             F(chronic / m), F(drop / m), F(hiHi / m), F(partOld), F(partNew), F(partDen > 0 ? dGtM / partDen : double.NaN), I(nOld), I(nNew), F(avgOld), F(avgNew),
             I(w.Factions.Count), I(fMut), F(fMaxCoh), I(w.FactionRevolts),
-            F(partMil), I(nMil), F(msOld), F(msMil), F(msNew), I(fGate), I(fMutGate), I(fStrong), F(ratioMax), F(partDen)));
+            F(partMil), I(nMil), F(msOld), F(msMil), F(msNew), I(fGate), I(fMutGate), I(fStrong), F(ratioMax), F(partDen), I(strikeRegions), F(strikeIntensitySum)));
     }
 }

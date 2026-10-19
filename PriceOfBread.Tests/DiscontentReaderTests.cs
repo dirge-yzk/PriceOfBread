@@ -201,6 +201,33 @@ public class DiscontentReaderTests
     }
 
     [Fact]
+    public void 計器dcont_sの罷業の列は地域の闘争度が門を超えた地域の数と超過分に合う()
+    {
+        // 手計算：全ての POP の闘争度を 0.8 にすると、人口のある活動中の地域ごとに平均 0.8・門 0.5・超過 0.3。組合容認（≠違法）のとき地域の数×0.3 が和。違法なら 0。
+        int regions = 0;
+        var (col, _) = DcontRow(w =>
+        {
+            w.LaborUnion = LaborUnionLaw.Tolerated;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                double sz = 0; foreach (var p in r.Pops) { p.Militancy = 0.8; sz += p.Size; }
+                if (sz > 1e-9) regions++;
+            }
+        });
+        Assert.True(regions > 0);
+        Near(regions, col("strikeRegions"), "strikeRegions");
+        Near(0.3 * regions, col("strikeIntensitySum"), "strikeIntensitySum");
+        var (col2, _) = DcontRow(w =>
+        {
+            w.LaborUnion = LaborUnionLaw.Illegal;
+            foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0.8;
+        });
+        Assert.Equal(0.0, col2("strikeRegions"));   // 違法なら罷業の導出は働かない（World.TechProductivity と同じ門）
+        Assert.Equal(0.0, col2("strikeIntensitySum"));
+    }
+
+    [Fact]
     public void 計器dcont_sは不満度が闘争度を上回る盤面で不満度の分と運動体の門の列に合う()
     {
         // 落差 0.5・意識 0 → 不満度＝WantWeight×0.5＝0.4（手計算・WantWeight＝0.8 は前提として確かめる）。闘争度は 0.8 と 0.2 → 低い方は不満度が先行する。
