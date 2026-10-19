@@ -4,7 +4,7 @@
 #   ・T1：--report の9行目〈金本位の強制離脱（兌換停止）: 総N回〉
 #   ・T2・T4：継承分を除いた金の法の国の数（lawgate_s・年末の行・全国・種の平均）で判定。生の nGoldLaw（metal_s・10 種×4 四半期の平均）も並べる
 #   ・T3：L(1913)＝継承分を含む金の法の国の数（metal_s）・W(1913)＝本国の識字（lawgate_s の literacyHome・兵士を含む）が線を一度でも超えた国の数
-#   ・T8：寿命の中で銀から金へ移った国（その移る行までに金の願い goldTargetKept=2 が立っていた）の数・1 種あたり平均
+#   ・T8：寿命の中で銀から金へ移った国（年末の行の間で金でない→金・同じ国の繰り返しは 1）の数・1 種あたり平均
 #   ・T9：金の願いが立ったまま法が金でない状態が連続 5 年末以上続いた国×種の数・1 種あたり平均
 # 読むだけ。力学を再計算しない。NaN は nan のまま。標準出力は UTF-8。
 import csv, collections, glob, os, re, statistics as st, sys
@@ -100,28 +100,29 @@ def main():
     W = mean(Ws)
 
     # ---- T8・T9
+    ntrans = 0; transall = []
     trans = []; stuck = []; stuck_names = collections.Counter(); trans_names = collections.Counter()
     for s, per in seq.items():
         c = k = 0
         for n, lst in per.items():
-            wished = False; prev = None; run = 0; best = 0
+            prev = None; run = 0; best = 0; moved = False
             for yy, r in lst:
-                if int(r['goldTargetKept']) == 2: wished = True
                 code = int(r['goldLawCode'])
-                if prev is not None and prev != 2 and code == 2 and wished:
-                    c += 1; trans_names[n] += 1
+                if prev is not None and prev != 2 and code == 2:   # 銀から金への移り（年末の行の間）。願いの先立ちは数えない〔移りの経路は政治軸だけ・追記5〕
+                    moved = True; ntrans += 1
                 prev = code
                 if int(r['goldTargetKept']) == 2 and code != 2: run += 1; best = max(best, run)
                 else: run = 0
+            if moved: c += 1; trans_names[n] += 1
             if best >= 5: k += 1; stuck_names[n] += 1
-        trans.append(c); stuck.append(k)
+        trans.append(c); stuck.append(k); transall.append(ntrans); ntrans = 0
     t8 = mean(trans) >= 5
     if 12 <= L <= 40: t3 = '通過'
     elif L < 12 and 12 <= W <= 40: t3 = '門が止めた型（T9 で確かめる）'
     elif L < 12: t3 = '波が死んだ（外れ）'
     else: t3 = '識字の線が効いていない（外れ）'
     P(f'T3 1913 年：L=nGoldLaw={L:.1f}（窓 [12,40]）・W=識字＞{line} を一度でも超えた国の数={W:.1f} → {t3}')
-    P(f'T8 寿命の中で銀から金へ移った国（願いが先に立った）：1 種あたり平均 {mean(trans):.1f}（線 ≧5）→ {"通過" if t8 else "外れ"}　種別 {trans}')
+    P(f'T8 寿命の中で銀から金へ移った国（国の数・同じ国の繰り返しは 1）：1 種あたり平均 {mean(trans):.1f}（線 ≧5）→ {"通過" if t8 else "外れ"}　種別 {trans}　〔記録：移りの回数の合計 1 種あたり平均 {mean(transall):.1f}〕')
     P(f'T9 金の願いが立ったまま法が金でない状態が年末で連続 5 回以上続いた国×種：1 種あたり平均 {mean(stuck):.1f}（門が止めた型を名乗るには ≧5）　種別 {stuck}')
 
     # ---- 採否
