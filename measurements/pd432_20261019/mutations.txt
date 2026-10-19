@@ -1,0 +1,13 @@
+# (432) 線 pd 前半：突然変異（本体を一時的に壊して番人が赤になることを確かめた・壊し方は scripts/instruments/pd432/mut.py）
+# 対象のテスト群：PopulationDeathBoardTests・PopulationDynamicsTests・DiscoveryScoreTests・DiscoveryTierTests。全 11 本が赤（壊した後は元へ戻した＝git status 清浄）。
+M1  州の栄養の掛け目を州に掛けない（nutR を 1.0 に固定）                    → 赤
+M2  栄養の掛け目に〈不足が無いとき 1〉の守りを外す（負の不足を許す）          → 赤
+M3  効き目 η の分子から 1 を外す                                              → 赤
+M4  効き目 η を常に 1 にする                                                  → 赤
+M5  州の栄養の掛け目を死の率へ掛けない（rate *= 1.0）                         → 赤
+M6  旗 1 でも pc の死の水準 PopDeathLevel を使う                              → 赤
+M7  旗 0 の開幕の知識の行の解禁を外す                                         → 赤
+M8  知識の行の放射（既知なら 1）を外す                                        → 赤
+M9  知識の必要性を人口加重の都市化でなく植民地の割合で読む                    → 赤
+M10 衛生の傾きに PopSanitationExcess でなく pc の SanitationCapacityWeight を使う → 初回は緑（番人の穴）→ 衛生の閉じた形の番人を足して赤
+M11 医療の項から η を外す（PopMedEfficacy × doctorCare）                       → 赤

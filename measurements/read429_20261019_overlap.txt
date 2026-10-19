@@ -1,0 +1,32 @@
+# (429) 読む線：波 16 の線の重なり（opus・読むだけ・基点 main f13aae8 の grep・腕なし・コードは変えていない）
+# ★2026-10-19 (436) 合流で記録を main へ（線の報告から合流が起こした写し）。根拠の区分：観測＝枝の diff か main の grep で確かめた／見込み＝計画からの推定。
+
+■ 各線が触る所
+| 線 | ファイル:関数（行） | 根拠 |
+|---|---|---|
+| dc（枝 dq） | Politics.cs:Discontent（165-178・甲で DiscontentRaw を分ける）／Politics.cs:Step の闘争度の目標（250-300：want・MilLiving〜MilFamine・sum）／FactionSnapshot.cs:Participation（88-93）・MembershipContext（77-84）／Ideology.cs の POP ループの mil（53 以下）／Factions.cs:52（countCost）／MultiNationSim.cs:CostLedger（ParticipationPops）／Instruments.cs＋InstrumentsDiscontent.cs／Coefficients.cs | 観測 |
+| dd（枝 dw） | Discovery.cs:Score（tech の式・WorldView のレコード）・WorldEngineersByGood／PoolStage／OwnCapacity・Step（計器）／MultiNationSim.cs（WorldView に engPool を渡す）・CostLedger／InstrumentsPool.cs・Instruments.cs／Coefficients.cs | 観測＋見込み |
+| pd | Simulation.cs:DemographicStep（医療・扶養力）／枝 pc の上なら PopulationDynamics.cs:Step・Discovery.cs:SeedCompatRows・BirthLimitRow・SpreadSource・SpreadNeed・Catalog.cs の発見の表の末尾・World.cs:DiagBirthLimitNeed・CostLedger・Instruments.cs＋InstrumentsPopC.cs | 見込み |
+| sb | EconomyStep.cs:Run の消費のループ（incomeFactorOfPop・incomeElasticGood・GoodNeed の上書きの塊・desired）／Coefficients.cs | 観測＋見込み |
+| cl | BilateralMarket.cs:StepBilateral（番の門・潜在量 potNew・LastTradeThrottle/Potential の書き込み）／Model.cs:Market.ClearFailLp／計器の csc の列 | 観測＋見込み |
+| hw | Runner/PlayHarness.cs（報告・MilParts・動詞）／場合により Runner/Program.cs・SimCore/PlayText.cs | 見込み |
+
+■ 重なる組と深さ
+| 組 | 重なる所 | 深さ | 処置 |
+|---|---|---|---|
+| dc×dd×pd（×cl） | MultiNationSim.cs:CostLedger の const 行・Names・UnitMicros の末尾 | 同じ行（帳簿・機構の式ではない） | defer しない。番号を先に割り当てる（dc=22・dd=23・pd=24・cl=25） |
+| dc×dd×pd×sb | Instruments.cs の欄・Fold・Dispose／DormantIdentityTests.cs の一覧／Coefficients.cs の旗 | 隣り合う行 | 浅い。合流で機械的に解く |
+| dd×pd | Discovery.cs（別の関数）／Catalog.cs の発見の表の末尾 | 同じファイルの別の関数 | 浅い |
+| pd×sb | EconomyStep.cs:Run（sb の式と pd の HealthFill は約 125 行離れている） | 同じ関数の別の式 | 浅い（pd が GoodNeed の上書きの塊に医療を足すならその部分は次の波） |
+| dc×hw | PlayHarness.cs:MilParts・PlayText.MilitancyPartNames（5 本）・GameViewModel.Refresh.cs・PlayTextTests | ファイルをまたぐ約束 | 浅い。dc は 5 本の並びを残し MilLiving は欄のまま 0 |
+| cl×dd | Discovery.cs:861（RailCostIndex）・907-909（LandFreightServed）が LastTradePotential/Throttle を読む | 計測が交絡 | 浅い。合流後に合成後のアブレーション |
+| dc×dd | Discovery.SpreadNeed の workerMil・popMil が闘争度を読む | 計測が交絡（弱い） | 浅い |
+| dc×sb | 家事奉仕の充足が満足度→LivingWant に届く | 計測が交絡 | 浅い |
+
+■ 結論（線の報告の要約）
+- 5 本は同時に走らせてよい（同じ関数の同じ機構の式に触る組は無い＝defer は空）。字面で同じ式は CostLedger の const 行だけ（帳簿）。
+- 計算量の余りは 35.5 秒。dc の腕 B +3.7 秒（(426)）・pc の腕 B +7.5 秒・dd の世界の巡回（台帳に未登録）・cl の census（未定）。
+- 合流の後は合成後のアブレーションが要る（特に dd の T2〈機関車の年〉と dc の〈不満度が先に立った分〉）。
+
+■ (436) 合流で分かったこと（観測）
+- 実際の衝突：hw×dq の Politics.cs（両方が DiscontentRaw を新設＝dq の版を採った）・Instruments.cs の欄（sb×dq）・WriterRatchetTests の表（cl×sb×dq）・DormantIdentityTests（cl×sb）・InstrumentsTests の注（sb×dq）・実装ログの末尾。CostLedger の 22 番は dq だけが使った（dw・pd は採らない）。
