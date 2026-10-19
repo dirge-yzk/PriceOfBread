@@ -1,0 +1,5 @@
+(445) 動力の束の3度目：出典を当てられなかった物（2026-10-20）
+- Devine 1983〈From Shafts to Wires〉の電動機の1馬力あたりの資本費・購入電力の値段・原動機の割合の表：gwern.net の PDF（https://gwern.net/doc/economics/automation/1983-devine.pdf）はスキャンの画像（JBIG2）で、この環境には画像を文字にする道具（pdftoppm・tesseract・PyMuPDF）が無く本文を読めなかった。頁と表の番号は確かめていない。
+- 水車の1馬力あたりの資本費（Hunter 1979〈Waterpower in the Century of the Steam Engine〉の付録の費用の比較・Temin 1966 の表）：検索の要約に数が出ず、本文も読めなかった。
+- 電動機の資本費の数は、上の1906年の論文（EANSW）の PDF 本文が読めず、検索の要約の単一の例だけ（6→3 ポンド/馬力）。
+⇒ 電動の台数/能力 2.0 は史実の比（0.2〜0.4）の上側を採った AI の写し（確証なし）。本文を読める人が確かめて直す（次の担当への申し送り）。

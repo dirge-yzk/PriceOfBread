@@ -1,0 +1,7 @@
+(445) 恒等の確かめ（前半・1 種 200 四半期 seed 1・旗 0）2026-10-20
+基点 1a11ebc（git archive・SOURCE-HASH SOURCE-HASH=392dea7cf6f2a277）と形の木（コミット f78ae64f の SimCore。SOURCE-HASH SOURCE-HASH=21b96a8e53db5c3b）
+素：報告 12214 バイト対 12214 バイト・SOURCE-HASH を含む行を除いて diff 0 行
+計器つき（POB_INSTRUMENTS・既定の国）：報告 12214 対 12214・diff 0 行。計器の表 base 42 本・形 43 本：burscan〔壁時計〕以外は全てバイト一致・形だけに power_s1.tsv が増える〔意図〕
+（SimCore と Runner の 111 本は、この確かめを回した木とコミットの木でハッシュ一致を確かめた）
+
+0

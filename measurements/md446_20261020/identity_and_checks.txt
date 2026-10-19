@@ -1,0 +1,8 @@
+# (446) 線 md 前半：恒等と検証の記録（2026-10-20・形の木 559116ef・SOURCE-HASH 4ba05551de49d651・FILES 314）
+腕 A（旗 0・素の 5 種）：b5_20261020_md446_A ＝ b5_20261019_m443（cmp でファイル全体が一致）。.cost の計数は m443 と同じ（旗 0 は件数 0・推定 225.3 秒）。
+計器つき 1 種（旗 0・seed 1・NATIONS 清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本）：m443_ins の seed 1 と 49 表がバイト一致。違い＝burscan_s1（壁時計）・flow_s1（sourceLine の列だけ・977,050 行）。新しい表＝med_s1。
+savetest 1 40 12：旗 0 と旗 1・1 の両方 OK（最大相対差 0）。leakhunt 1 80 warm（旗 1・1）：完走・保存則違反なし・人口と基礎貨幣の説明できない増減 0。
+フルスイート Category!=FullLength：1484 本緑（1476＋番人 8 本）。
+突然変異：mutations_round1_medonly.txt（医療だけの形）・mutations_round2_med_edu.txt（医療＋教育）＝全て赤。
+canary（採否に使わない）：canary_C_*（医療だけ）・canary_C2_*（医療＋教育）の読み手の出力・canary_literacy_uk_seed1.txt。
+段 0 の読み：stage0_ce_s_m443.txt（ce_s）・stage0_spend_index_m443.txt（spend_s の医療の指数）。

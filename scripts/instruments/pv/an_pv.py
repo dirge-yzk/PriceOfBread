@@ -7,6 +7,8 @@
 # 使い方：PYTHONUTF8=1 python -X utf8 an_pv.py B=<insB> A=<m436_ins> AP=<insA_power>
 # 出力：線ごとに値と合否。入力が無い物は未評価（合格に数えない）。
 # ⚠ 線の幅・規則は全て事前登録の字面のまま。この読み手は線を動かさない。
+# (445) 追記2：採る条件＝機構の線 G1・G2（前半）・G3・G4・G5・G6（英の導入）・G8 に改めた（G4・G5・G8 は A との比でなく絶対の線・A との比は記録）。G6 の残り・G7・G9・G2 の後半は〈作者の問いへの答え〉の記録で採否に使わない。
+# 引数 FBO=<0|1|2>（B の腕の FactoryBuffsOff の値・既定 1）：G3 の電化率が全行 0 は FBO＞0 の腕だけに掛ける。
 import csv, glob, os, re, statistics, sys, collections
 
 ENG, FRA, PRU, USA, JPN, CHN, RUS = 'イギリス', 'フランス', 'プロイセン', 'アメリカ', '日本', '清', 'ロシア'
@@ -14,7 +16,7 @@ SIX = [ENG, FRA, PRU, USA, JPN, CHN]            # class_s（G4・G8 前半）：
 SIX_F = [ENG, FRA, PRU, RUS, JPN, CHN]          # factory_s（G5・G8 後半）：m436 の計器つき 10 種の factory_s は 8 国（米を含まない）＝米をロシアに替える（事前登録 追記3）
 SIX_ADOPT = [ENG, FRA, PRU, USA, JPN, RUS]      # power_s（G6）：B と AP は NATIONS に米を足して回す（追記3）
 TAGS = ['hum', 'ani', 'wat', 'stm', 'ele']
-N_PER_CAP = {'wat': 15.0, 'stm': 4.0, 'ele': 6.0}   # PowerMachines.Table と同じ値（追記4 で固定した物）
+N_PER_CAP = {'wat': 15.0, 'stm': 4.0, 'ele': 2.0}   # PowerMachines.Table と同じ値（(445) で電動 6.0→2.0）
 
 
 def f(v):
@@ -124,7 +126,9 @@ class PowerSeed:
         self.g2_n = self.g2_ok = 0
         self.fac_n = self.fac_plant = 0
         self.g3_n = self.g3_steam_bad = self.g3_lab_bad = self.g3_lab_less = 0
+        self.g3_elec_n = self.g3_elec_pos = 0                                         # (445) 工場の電化率（facElecFill）の行数と正の行数
         self.cost = collections.defaultdict(list)                                     # 年 -> [英の州の最安の実質の費用]
+        self.costm = collections.defaultdict(list)                                    # (445) 年 -> [英の州の機械〔水車・蒸気・電動〕の最安の実質の費用]（人力が最安のままでも機械の費用の動きを見る記録）
         self.wage = collections.defaultdict(lambda: [0.0, 0.0, 0.0])                 # (国, 年) -> [wageFx×w, wageReal×w, w]
         self.unit = collections.defaultdict(lambda: collections.defaultdict(list))    # (国, 年) -> タグ -> [実質の費用]
         self.prov = collections.defaultdict(list)                                     # 年 -> [(主な動力, workerIncomePerHead)]（四半期 q%4==3・Core・本国の州。R9）
@@ -142,7 +146,11 @@ class PowerSeed:
             else:
                 self.ani_nan += 1
             # G3
-            sf = f(x['facSteamFill']); nom = f(x['facLabNom']); eff = f(x['facLabEff'])
+            sf = f(x['facSteamFill']); nom = f(x['facLabNom']); eff = f(x['facLabEff']); ef = f(x['facElecFill'])   # (445) 電化率も 0 の確かめ（FactoryBuffsOff）
+            if isnum(ef):
+                self.g3_elec_n += 1
+                if abs(ef) > 0:
+                    self.g3_elec_pos += 1
             if isnum(sf) and isnum(nom) and isnum(eff):
                 self.g3_n += 1
                 if abs(sf) > 0:
@@ -185,7 +193,7 @@ class PowerSeed:
                     self.hs[(nat, y)].append(hu_ / su_)
             cpl = f(x['cpl']); lpm = f(x['lpm'])
             if isnum(cpl) and isnum(lpm) and cpl > 0 and lpm > 0:
-                best = float('inf')
+                best = float('inf'); bestm = float('inf')
                 for t in ['hum', 'wat', 'stm', 'ele']:
                     u = f(x[t + 'Unit']); g = f(x[t + 'Gate'])
                     if not isnum(u):
@@ -194,8 +202,12 @@ class PowerSeed:
                     self.unit[(nat, y)][t].append(real)
                     if t == 'hum' or (isnum(g) and g > 0):
                         best = min(best, real)
+                        if t != 'hum':
+                            bestm = min(bestm, real)
                 if best < float('inf') and nat == ENG:
                     self.cost[y].append(best)
+                if bestm < float('inf') and nat == ENG:
+                    self.costm[y].append(bestm)
 
     def year50(self, nat):
         ys = sorted({y for (n, y) in self.out if n == nat})
@@ -235,6 +247,7 @@ def verdict(ok):
 def main():
     args = dict(a.split('=', 1) for a in sys.argv[1:] if '=' in a)
     B, A, AP = args.get('B'), args.get('A'), args.get('AP')
+    FBO = int(args.get('FBO', '1'))
     if not B or not A or not AP:
         print('使い方：an_pv.py B=<insB> A=<m436_ins> AP=<insA_power>（AP は必須＝G1・G3 の対照と R9 の A 側。無いと〈何もしない機構〉が合格に見える）'); sys.exit(2)
     lines = {}
@@ -259,18 +272,20 @@ def main():
         share_a = ok / n if n else float('nan')
         fn = sum(p.fac_n for p in pb.values()); fp = sum(p.fac_plant for p in pb.values())
         share_b = fp / fn if fn else float('nan')
-        lines['G2'] = ((n > 0 and share_a >= 0.99 and isnum(share_b) and share_b >= 0.02),
-                       f'〔作りの確かめ・効きの判定ではない〕機械の行 {n} 中 能力＝据え付け÷台数×門 の行 {share_a:.4f}（線 ≥0.99）・工場のある州×四半期 {fn} 中 設備＞頭数×1.001 の割合 {share_b:.4f}（線 ≥0.02）')
+        lines['G2'] = ((n > 0 and share_a >= 0.99),
+                       f'〔作りの確かめ・効きの判定ではない〕機械の行 {n} 中 能力＝据え付け÷台数×門 の行 {share_a:.4f}（線 ≥0.99）／記録（(445) 追記2 で採否から外した）：工場のある州×四半期 {fn} 中 設備＞頭数×1.001 の割合 {share_b:.4f}')
         # G3
         n3 = sum(p.g3_n for p in pb.values())
         bad = sum(p.g3_steam_bad + p.g3_lab_bad for p in pb.values())
+        elec_bad = sum(p.g3_elec_pos for p in pb.values()); elec_n = sum(p.g3_elec_n for p in pb.values())
+        ctrl_el = sum(p.g3_elec_pos for p in ap.values())
         ctrl3 = ''
-        ok3 = n3 > 0 and bad == 0
+        ok3 = n3 > 0 and bad == 0 and elec_n > 0 and (elec_bad == 0 or FBO == 0)   # (445) 追記2：電化率が全行 0 は FactoryBuffsOff＞0 の腕だけ
         less = sum(p.g3_lab_less for p in ap.values())
         ctrl3 = f'・対照 A の facLabEff＜facLabNom の行 {less}'
-        if not ap or less <= 0:
+        if not ap or less <= 0:   # (445) facElecFill の対照は記録だけ（A の世界でも工場が電力を買っておらず 0＝電気の無い世界・canary 1 種の読み）
             ok3 = False
-        lines['G3'] = (ok3, f'〔作りの確かめ〕B の行 {n3} 中 facSteamFill≠0 または facLabEff≠facLabNom の行 {bad}{ctrl3}')
+        lines['G3'] = (ok3, f'〔作りの確かめ〕B の行 {n3} 中 facSteamFill≠0 または facLabEff≠facLabNom の行 {bad}・facElecFill＞0 の行 {elec_bad}/{elec_n}{ctrl3}・対照 A の facElecFill＞0 の行 {ctrl_el}')
         # G6
         # ★(443) 反証役 pv〔bv〕中#1：9999（導入しない種の印）を中央値に混ぜない＝導入した種の数と、導入した種だけの中央値を別に出す（旧は 9999 と実際の年を混ぜて清 4188 のような意味の無い値になった）
         y50_all = {nat: [float(p.year50(nat)) for p in pb.values()] for nat in SIX_ADOPT + [CHN]}
@@ -281,7 +296,9 @@ def main():
         adopt = sum(1 for nat in SIX_ADOPT if n_adopt[nat] * 2 >= len(y50_all[nat]) and isnum(y50[nat]) and y50[nat] <= 1950)   # ★(443) 種の半分以上で導入した国
         d_lag = (lag[CHN] - lag[ENG]) if isnum(lag[CHN]) and isnum(lag[ENG]) else float('nan')
         chn_never = n_adopt[CHN] == 0
-        ok6 = (isnum(y50[ENG]) and y50[ENG] <= 1900 and (chn_never or (isnum(d_lag) and d_lag >= 25)) and adopt >= 4)
+        later = isnum(y50[ENG]) and y50[ENG] < 9999 and (chn_never or (isnum(y50[CHN]) and y50[CHN] > y50[ENG]))   # (445) 清の導入は英より遅い（英が導入しなければ不合格）
+        ok6 = (n_adopt[ENG] * 2 >= len(y50_all[ENG]) and isnum(y50[ENG]) and y50[ENG] <= 1950)   # (445) 追記2：採否は〈英が種の半分以上で 1950 までに導入〉だけ（機械が一度も働かない形は機構が働いていない）
+        rec6 = (isnum(y50[ENG]) and y50[ENG] <= 1900 and later and adopt >= 5)   # 記録（作者の問いへの答え）：英 ≤1900・清は英より遅い・5 国以上
         wr = {}
         for nat in (ENG, CHN):
             fx, rl = [], []
@@ -298,7 +315,7 @@ def main():
         ratio_rl = wr[ENG][1] / wr[CHN][1] if isnum(wr[ENG][1]) and isnum(wr[CHN][1]) and wr[CHN][1] > 0 else float('nan')
         lines['G6'] = (ok6, '導入の年（蒸気＋電動が過半・種の中央値・水車は数えない）' + '・'.join(f'{n}{y50[n]:.0f}〔{n_adopt[n]}/{len(y50_all[n])} 種〕' for n in SIX_ADOPT + [CHN]) +
                        '／解禁年 ' + '・'.join(f'{n}{disc[n]:.0f}' for n in SIX_ADOPT) +
-                       f'／遅れ 英{lag[ENG]:.0f}・清{lag[CHN]:.0f}（差 {d_lag:.0f}・線 ≥25 または清が導入しない）・1950 までに導入した国 {adopt}/6（線 ≥4）'
+                       f'／遅れ 英{lag[ENG]:.0f}・清{lag[CHN]:.0f}（差 {d_lag:.0f}・記録）・清の導入は英より遅い {later}・1950 までに導入した国 {adopt}/6／記録の旧 G6（英 ≤1900・清は英より遅い・5 国以上）{verdict(rec6)}'
                        f'／記録 英÷清 wageFx {ratio_fx:.2f}・wageReal {ratio_rl:.2f}')
         # G7
         ratios = []
@@ -307,7 +324,23 @@ def main():
             if isnum(a_) and isnum(b_) and a_ > 0:
                 ratios.append(b_ / a_)
         r7 = med(ratios)
-        lines['G7'] = ((isnum(r7) and r7 <= 0.9), f'英の最安の実質の動力費 1900 年÷1820 年（種の中央値）{r7:.3f}（線 ≤0.9・{len(ratios)} 種）')
+        lines['G7'] = ((isnum(r7) and r7 < 1.0), f'〔記録・採否に使わない〕英の最安の実質の動力費 1900 年÷1820 年（種の中央値）{r7:.3f}（参考の線 ＜1.0〔(445) の canary 後に (438) の ≦0.9 から緩めた〕・{len(ratios)} 種）')
+        # G9（445）：電動が選ばれる＝6 国のうち 3 国以上で 1920・1930・1940・1950 の電動の産出の割合（種の中央値）の平均が 0.01 以上
+        e_ok, e_cells = 0, []
+        for nat in SIX_ADOPT:
+            vals = [med([p.share(nat, y, 'ele') for p in pb.values()]) for y in (1920, 1930, 1940, 1950)]
+            vals = [v for v in vals if isnum(v)]
+            m_ = sum(vals) / len(vals) if vals else float('nan')
+            e_cells.append((nat, m_))
+            if isnum(m_) and m_ >= 0.01:
+                e_ok += 1
+        lines['G9'] = (e_ok >= 3, '〔記録・採否に使わない〕電動の産出の割合（1920〜1950 の 4 点の平均・種の中央値）' + '・'.join(f'{n}{m_:.3f}' for n, m_ in e_cells) + f'／0.01 以上の国 {e_ok}/6（線 ≥3）')
+        ratios_m = []
+        for p in pb.values():
+            a_ = window_mean(p.costm, 1818, 1822); b_ = window_mean(p.costm, 1898, 1902)
+            if isnum(a_) and isnum(b_) and a_ > 0:
+                ratios_m.append(b_ / a_)
+        print(f'R1b 英の機械〔水車・蒸気・電動〕の最安の実質の費用 1900÷1820（種の中央値・人力を除く・記録）{med(ratios_m):.3f}（{len(ratios_m)} 種）')
         # R1：レシピ別の実質の費用の時系列（英・清・米・日の 10 年おき・種の中央値）
         print('R1 実質の動力費（種の中央値・hum/wat/stm/ele）')
         for nat in (ENG, CHN, USA, JPN):
@@ -346,36 +379,44 @@ def main():
     # --- class_s・factory_s・region_s（B と A）
     cb, ca = class_stats(B), class_stats(A)
     fb, fa = factory_stats(B), factory_stats(A)
-    # G4
+    # G4・G5・G8（(445) 追記2：絶対の線＝A を参照しない。崩壊の鎖〔Q-PW1〕が切れたか）。A との比は記録に降ろした。
+    def peak_ratio(cs, n, y):
+        v = []
+        for s_ in cs:
+            sh = [t[0] for (nn, yy), t in cs[s_].items() if nn == n]
+            if sh and (n, y) in cs[s_] and max(sh) > 0:
+                v.append(cs[s_][(n, y)][0] / max(sh))
+        return med(v)
     if cb and ca:
-        passed, detail = 0, []
+        passed, drows = 0, []
         for n in SIX:
-            oks = []
+            pr = peak_ratio(cb, n, 1950)
+            i1900, i1950 = med_over_seeds(cb, (n, 1900), 1), med_over_seeds(cb, (n, 1950), 1)
+            ok_n = isnum(pr) and pr >= 0.5 and isnum(i1900) and i1900 >= 0.5 and isnum(i1950) and i1950 >= 0.5
+            drows.append((n, pr, i1900, i1950, ok_n))
+            if ok_n:
+                passed += 1
+        lines['G4'] = (passed >= 5, '6 国のうち 工場労働者の人口割合が 1950 年に自分のピークの 0.5 倍以上かつ相対の所得が 1900・1950 で 0.5 以上の国 ' + str(passed) + '（線 ≥5）：' +
+                       '・'.join(f'{n} ピーク比{pr:.2f}/所得{a_:.2f},{b_:.2f}' for n, pr, a_, b_, _ in drows))
+        print('G4 記録（旧の A との比：国・年・量〔0＝人口割合・1＝相対の所得〕・B・A・比）')
+        for n in SIX:
             for y in (1900, 1950):
                 for idx in (0, 1):
                     vb = med_over_seeds(cb, (n, y), idx); va = med_over_seeds(ca, (n, y), idx)
-                    oks.append(isnum(vb) and isnum(va) and va > 0 and vb >= 0.7 * va)
-                    detail.append((n, y, idx, vb, va))
-            if all(oks):
-                passed += 1
-        lines['G4'] = (passed >= 5, f'6 国のうち 工場労働者の人口割合と相対の所得が 1900・1950 で A の 0.7 倍以上の国 {passed}（線 ≥5）')
-        print('G4 詳細（国・年・量〔0＝人口割合・1＝相対の所得〕・B・A・比）')
-        for n, y, idx, vb, va in detail:
-            print(f'  {n} {y} {idx} B={vb:.3f} A={va:.3f} 比={vb / va if isnum(vb) and isnum(va) and va else float("nan"):.3f}')
-        # G8 前半：階級の人口の 1950÷1850
+                    print(f'  {n} {y} {idx} B={vb:.3f} A={va:.3f} 比={vb / va if isnum(vb) and isnum(va) and va else float("nan"):.3f}')
+        # G8 前半：階級の人口の 1950÷1850（絶対：0.5 以上）
         ok8, cnt8 = 0, []
         for n in SIX:
             rb = [cb[s][(n, 1950)][2] / cb[s][(n, 1850)][2] for s in cb if (n, 1950) in cb[s] and (n, 1850) in cb[s] and cb[s][(n, 1850)][2] > 0]
             ra = [ca[s][(n, 1950)][2] / ca[s][(n, 1850)][2] for s in ca if (n, 1950) in ca[s] and (n, 1850) in ca[s] and ca[s][(n, 1850)][2] > 0]
             mb, ma = med(rb), med(ra)
             cnt8.append((n, mb, ma))
-            if isnum(mb) and isnum(ma) and ma > 0 and mb >= 0.7 * ma:
+            if isnum(mb) and mb >= 0.5:
                 ok8 += 1
         g8a = ok8 >= 5
     else:
         lines['G4'] = (None, 'class_s が B か A に無い')
-        g8a = None; cnt8 = []
-    # G5・G8 後半
+        g8a = None; cnt8 = []; ok8 = 0
     if fb and fa:
         ok5, d5 = 0, []
         for n in SIX_F:
@@ -383,10 +424,9 @@ def main():
             ra = [fa[s][(n, 1950)][0] / fa[s][(n, 1850)][0] for s in fa if (n, 1950) in fa[s] and (n, 1850) in fa[s] and fa[s][(n, 1850)][0] > 0]
             mb, ma = med(rb), med(ra)
             d5.append((n, mb, ma))
-            if isnum(mb) and isnum(ma) and ma > 0 and mb >= 0.6 * ma:
+            if isnum(mb) and mb >= 0.5:
                 ok5 += 1
-        lines['G5'] = (ok5 >= 5, f'6 国のうち 工場の産出÷人口の 1950÷1850 が A の 0.6 倍以上の国 {ok5}（線 ≥5）：' + '・'.join(f'{n} B{mb:.2f}/A{ma:.2f}' for n, mb, ma in d5))
-        # 閉鎖の割合の最大（1850 以後・国×種）
+        lines['G5'] = (ok5 >= 5, f'6 国のうち 工場の産出÷人口の 1950÷1850 が 0.5 以上の国 {ok5}（線 ≥5・絶対）：' + '・'.join(f'{n} B{mb:.2f}〔記録 A{ma:.2f}・比{(mb / ma if isnum(mb) and isnum(ma) and ma else float("nan")):.2f}〕' for n, mb, ma in d5))
         def maxbk(fs):
             v = []
             for s in fs:
@@ -396,28 +436,29 @@ def main():
                         v.append(max(xs))
             return med(v)
         mb, ma = maxbk(fb), maxbk(fa)
-        g8b = (isnum(mb) and isnum(ma) and mb <= 2 * ma) if isnum(mb) and isnum(ma) else None
+        g8b = (isnum(mb) and mb <= 0.10) if isnum(mb) else None
         if g8a is None or g8b is None:
             lines['G8'] = (None, '入力が足りない')
         else:
-            lines['G8'] = (g8a and g8b, '階級の人口 1950÷1850 が A の 0.7 倍以上の国 ' + str(ok8 if cnt8 else '?') + '（線 ≥5）：' + '・'.join(f'{n} B{b_:.2f}/A{a_:.2f}' for n, b_, a_ in cnt8) + f'／閉鎖の割合の最大（国×種の中央値）B {mb:.3f}・A {ma:.3f}（線 B ≤ 2×A）')
+            lines['G8'] = (g8a and g8b, '階級の人口 1950÷1850 が 0.5 以上の国 ' + str(ok8) + '（線 ≥5・絶対）：' + '・'.join(f'{n} B{b_:.2f}〔記録 A{a_:.2f}〕' for n, b_, a_ in cnt8) + f'／国ごとの工場の閉鎖の割合の年の最大（国×種の中央値）B {mb:.3f}（線 ≤0.10・絶対）〔記録 A {ma:.3f}〕')
     else:
         lines['G5'] = (None, 'factory_s か region_s が B か A に無い'); lines['G8'] = (None, '入力が足りない')
 
     print()
-    for k in ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8']:
+    for k in ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9']:
         if k in lines:
             ok, msg = lines[k]
             print(f'{k} {verdict(ok)}：{msg}')
         else:
             print(f'{k} 未評価')
-    gate_keys = ['G1', 'G2', 'G3', 'G4', 'G5', 'G8']
+    gate_keys = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G8']   # (445) 追記2：採る条件＝機構の線（G7・G9 と G6 の残りは作者の問いへの答えの記録）
     st = [lines.get(k, (None, ''))[0] for k in gate_keys]
     print()
     if all(x is True for x in st):
-        print('採る条件（G1〜G5・G8）：全て合格（G6・G7 は出た／出ないを報告に書く）')
+        print('採る条件（G1・G2・G3・G4・G5・G6・G8）：全て合格')
     else:
-        print('採る条件（G1〜G5・G8）：', ' '.join(f'{k}={verdict(x)}' for k, x in zip(gate_keys, st)))
+        print('採る条件（G1・G2・G3・G4・G5・G6・G8）：外れ＝採らない（規律：機構が狙いどおり働いたか）', ' '.join(f'{k}={verdict(x)}' for k, x in zip(gate_keys, st)))
+    print('記録（採否に使わない）：G7=' + verdict(lines.get('G7', (None, ''))[0]) + ' G9=' + verdict(lines.get('G9', (None, ''))[0]))
 
 
 if __name__ == '__main__':

@@ -21,13 +21,8 @@ public class ScoreReaderTests
 
     // ================= ① 読み手は 1 本 =================
 
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !File.Exists(Path.Combine(d.FullName, "PriceOfBread.slnx"))) d = d.Parent;
-        Assert.NotNull(d);
-        return d!.FullName;
-    }
+    // ★(451) 合流：出力の場所（AppContext.BaseDirectory）から上へ探す形は隔離ビルド（--artifacts-path がリポジトリの外）で null になって赤だった＝既存の 1 本（ソースの場所から引く）を呼ぶ
+    private static string RepoRoot() => GoodIdGuardTests.RepoRoot();
 
     /// <summary>コメント〔行頭の // と行末の //〕を落とした行（文字列の中に // は無い）。</summary>
     private static string CodeOf(string line)

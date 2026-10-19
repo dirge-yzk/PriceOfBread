@@ -1,0 +1,7 @@
+(445) 検証の記録（2026-10-20・形のコミット f78ae64f の木）
+フルスイート（Release・Category!=FullLength・隔離ビルド）：Passed 1513 / Failed 0 / 11 m 7 s
+FullLength（旗 0・3 本）：Passed 3 / Failed 0 / 6 m 10 s
+焦点のテスト：175 本中 174 本緑・赤 1 本は DormantIdentityTests（旗 FactoryBuffsOff が休眠表に無い）＝足して再走で 13 本緑
+突然変異（FactoryBuffsTests）：M0 緑・M1〜M5 赤
+savetest 1789 300 12：旗 0＝全 63 カ国一致（最大相対差 0）／B の旗の組〔PowerRebuild=3;FactoryCapacityFromPlant=1;FactoryBuffsOff=1〕＝全 61 カ国一致（最大相対差 0）
+leakhunt 1789 120 warm（B の旗の組）：完走・保存則違反なし・説明できない増減＝人口 0 四半期・基礎貨幣 0 四半期

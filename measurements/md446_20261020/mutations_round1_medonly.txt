@@ -1,0 +1,26 @@
+=== M1
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が薄い月_識字の高い大衆の医療の充足は旗0で0_旗1で識字そのもの_満額を取り置ける農民は識字の割合まで買える [44 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+=== M1b
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が薄い月_識字の高い大衆の医療の充足は旗0で0_旗1で識字そのもの_満額を取り置ける農民は識字の割合まで買える [5 ms]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.取り置きは必ず戻る_予算が足りる月の月末の残予算は旗0と同じ_戻し忘れは取り置いた額の分だけ残予算が減る [208 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+=== M2
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が薄い月_識字の高い大衆の医療の充足は旗0で0_旗1で識字そのもの_満額を取り置ける農民は識字の割合まで買える [6 ms]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.識字0の盤面では旗1は旗0とビット一致_全ての欄 [5 ms]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が足りる月の取り置きの総額は識字_x_0_05_x_規模_x_参照価格の和_戻された後の結果は旗0と同じ [5 ms]
+失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+=== M3
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.主食は取り置きに削られない_食料の充足と主食の支払いは旗0と同じ [4 s]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が薄い月_識字の高い大衆の医療の充足は旗0で0_旗1で識字そのもの_満額を取り置ける農民は識字の割合まで買える [6 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+=== M4
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.主食は取り置きに削られない_食料の充足と主食の支払いは旗0と同じ [4 s]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が薄い月_識字の高い大衆の医療の充足は旗0で0_旗1で識字そのもの_満額を取り置ける農民は識字の割合まで買える [20 ms]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.旗1では扶養力の医療から識字_HealthcareEducationGate_の項が落ちる_旗0では残る [15 ms]
+失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+=== M5
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.予算が薄い月_識字の高い大衆の医療の充足は旗0で0_旗1で識字そのもの_満額を取り置ける農民は識字の割合まで買える [5 ms]
+  失敗 PriceOfBread.Tests.MedicalNeedByLiteracyTests.旗1では扶養力の医療から識字_HealthcareEducationGate_の項が落ちる_旗0では残る [34 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
