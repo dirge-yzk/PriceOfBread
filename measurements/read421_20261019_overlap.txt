@@ -1,0 +1,38 @@
+# (421) 読む線：波 15 の線の重なり（opus・読むだけ・基点 main dd982c8 の grep・腕なし・コードは変えていない）
+# ★2026-10-19 (428) 合流が線の報告から起こした写し（報告は構造化の出力だけで、枝もファイルも無かった）。行番号は基点の木。
+
+■ 各線が触る見込み（ファイル:関数）
+| 線 | 触る見込み |
+|---|---|
+| dd | Discovery.cs:Score（446 の eng の集計・555〜558 の push と tech の式）・EngineerFactor(88)・ParentEngineers(57)・EngineerUse(46)・密度の分母を取るなら Aggregate(604)／Coefficients.cs:1896 DiscoveryEngineerHalfPerMonth の節／試験 DiscoveryEngineerTests・DiscoveryScoreTests・DiscoveryTierTests・TechInstitutionTests・MilitaryTests・InstrumentsTests（engineerOut の列）・WriterRatchetTests |
+| lt | SelfPlay.cs:DecideModernLaws(766・807〜811 の反トラストと同業組合の門・250/253 の定数 AntitrustIndThreshold・TrustbustIndThreshold)・SelfPlay.cs:DecideQuarter(954・971 の goldWish)／Coefficients.cs:314 GoldStandardIndThreshold と 3334〜3377 の注／Runner Program.cs:1808・1837（金閾の表示と数え）／試験 NationModelTests:100・GuildLawTests・PolicyPoliticsTests・DormantIdentityTests:51〜53 |
+| sv | EconomyStep.cs:Run の財のループ（1547 incomeElasticGood の家事奉仕・1551 付近の p.GoodNeed・1694 PayService・1840〜1843 NeedMet/NeedTotal）・必要なら 2561 の Satisfaction／Catalog.cs:233 家事奉仕の行／Coefficients.cs:2485〜2490／場合により Simulation.cs:BuildProvince(901)・PromoteColonyToRegion(1471) の使用人の生産者／試験 DomesticServiceProductivityTests・LuxuryIncomeTests・DormantIdentityTests:47/89・WriterRatchetTests |
+| pc | Simulation.cs:DemographicStep(2424〜2580 の扶養力・PopGrowthRatePerMonth・Fertility* の式)・BirthWeight(2393)・FertilePool／Model.cs:215 InitialFertileShare ほか Pop の欄／World.cs:480 FoodRatioProductionSmoothed／SaveGame（消す欄の読み捨て）／〈出生の制限〉の行＝Catalog.cs の発見の表・Discovery.cs:SpreadNeed(161)・Score の spread の枝（528〜545 の SpreadNeed の呼び出し）・World.SpreadReach の長さ／籠＝消費の入口 §1-4 の形なら EconomyStep.cs:Run の財のループの前の前処理／前提の初期値＝world.json・Simulation の開幕の貯蓄／試験 DemographyBirthWeightTests・FamineTests・CapacityAnchorTests・ExplainTests・UnitTypeTests・DormantIdentityTests:218/240 |
+
+■ 組ごとの深さ
+| 組 | 深さ | 重なる所 |
+|---|---|---|
+| dd×lt | 浅い | Coefficients.cs の別の節だけ。lt は SelfPlay、dd は Discovery＝同じ関数なし |
+| dd×sv | 浅い（字面は無し） | 意味の結合だけ：電化製品の行（Catalog.cs:649 Replaces: DomesticServiceId）の必要性が家事奉仕の値段を読む＝sv が値段を動かすと dd の解禁の年が動く |
+| dd×pc | 中 | Discovery.cs:Score の同じ関数・別の枝（dd＝555〜558 の物の行、pc＝spread の枝の SpreadNeed の呼び出し）。Catalog.cs の発見の表の末尾。DiscoveryEngineerTests:248〈合成染料の行は表の末尾〉は pc が行を末尾に足すと赤 |
+| lt×sv | 浅い | DormantIdentityTests の近い行（51〜53 と 47/89）だけ |
+| lt×pc | 無し | — |
+| sv×pc | 中 | 同じ巨大な関数 EconomyStep.Run（sv＝財のループの中の使用人の必要量と台帳、pc＝籠の前処理をここに置く場合はループの前）。同じ式ではない。意味は深い：使用人の衣食住を現物にすると使用人の籠と手取りが変わり、pc の A＝稼ぎ÷籠と子の費用 C が使用人の POP で動く。飢えの超過死亡は州の FoodFill を読む |
+| 全線 | 浅い | Coefficients.cs（各線が自分の節）・WriterRatchetTests の計算量の宣言の表・実装ログ・計算量の余り約 37 秒の取り合い |
+
+同じ関数の同じ式に触る組は無い。defer（次の波へ回す線）は空。
+
+■ 注（条件つき）
+1. pc の条件：籠は EconomyStep.Run に書かない（DemographicStep の中か状態を持たない別の関数で導く）。守れなければ pc を次の波へ。
+2. dd×pc の合流の順：dd が先。〈出生の制限〉の行を末尾に足すなら DiscoveryEngineerTests:248 の主張を名前で引く形に。SpreadSlots・World.SpreadReach の長さが変わる＝pc 側で savetest。
+3. sv×pc の合流の順：sv が先。合流でアブレーション（sv だけ・pc だけ・両方）。
+4. lt の範囲：法の門の 3 本（金本位 971・反トラスト 807〜808・同業組合 810〜811）だけ。MonopolyDissolveInd・CreditDevScale・CapitalIndTarget・TradeWeightIndustrializationSlope・Discovery.Score の maxInd は lt に入れない。
+5. lt×dd の定義の衝突：lt は技師の密度を使わない。
+6. DormantIdentityTests.cs は lt・sv・pc の 3 本が触る＝改行の混ざったファイル・バイトで編集・コミット前に git ls-files --eol。
+7. 正しい挙動の規律：dd は〈清が最初の発見者〉〈1783〜84 年に転炉鋼・機関車・汽船が開く〉が消えたかを狙いに。lt は金本位の強制離脱（sc で 168→429 回）が戻るかを狙いに。sv は使用人の水準が 0 でなくなること・需要の買い手が富裕層の側へ移ることを狙いに。
+8. pc の前提：段C は初期値（00一覧 行 00）の後。開幕の籠÷Y（英 1.13・仏 2.49・清 5.41）は未完（記録）。
+9. 並べる本数：00-P は〈挙動の線は同時に 2 本まで＋恒等 1 本〉。この波は挙動 4 本＋hy＋読む線（CPU の制約として記録だけ）。
+10. 不満度の読み手（読む線）：sv が使用人の Satisfaction を変えうる＝読む線の数字は sv の前の木で読んだと名乗る。hy は Discovery.Score・EconomyStep.Run・DemographicStep・SelfPlay.DecideModernLaws/DecideQuarter を避ける。
+
+■ (428) 合流の答え合わせ
+- 採ったのは hy（恒等）と lt だけ。dd・sv・pc は採らない＝重なりの合流の順（dd→sv→pc）は使わなかった。lt と hy の重なりは試験 2 本（InstrumentsTests・TransportInstrumentTests）で、git の自動の合わせで衝突なし（読みの〈lt×sv 浅い〉〈lt×pc 無し〉のとおり・hy×lt は読みの表に無かった）。

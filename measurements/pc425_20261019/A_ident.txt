@@ -1,0 +1,2 @@
+same=225 diff=10 onlyA=[] onlyM=[]
+diff tables: ['burscan_s1.tsv', 'burscan_s2.tsv', 'burscan_s3.tsv', 'burscan_s4.tsv', 'burscan_s5.tsv', 'flow_s1.tsv', 'flow_s2.tsv', 'flow_s3.tsv', 'flow_s4.tsv', 'flow_s5.tsv']

@@ -1,0 +1,4 @@
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.反トラストの願いは旗2で本国の都市の割合の3分の1と2分の1を読む [33 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.旗1の金の願いは工業化度を読まず_旗0は識字を読まない [33 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.反トラストの配線は旗2から_旗1では旧の工業化度のまま [70 ms]
+失敗!   -失敗:     3、合格:     7、スキップ:     0、合計:    10、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

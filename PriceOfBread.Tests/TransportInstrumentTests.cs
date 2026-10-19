@@ -163,7 +163,7 @@ public class TransportInstrumentTests
             double rate = 0, norm = 0;
             foreach (var r in sr) if (Str(sh, r, "scope") == "Z") { string nm = Str(sh, r, "name"); if (nm == "FreightRatePer10Mm") rate = Col(sh, r, "value"); if (nm == "DistanceNormKm") norm = Col(sh, r, "value"); }
             Assert.True(rate > 0 && norm > 0, "Z の行から運賃率と距離の物差しが読めない");
-            int checkedPairs = 0, withLandLeg = 0, seaPairs = 0, landPairs = 0, crossSellerLeg = 0;
+            int checkedPairs = 0, withLandLeg = 0, seaPairs = 0, landPairs = 0, crossSellerLeg = 0, singleDealPairs = 0;
             foreach (var r in rr)
             {
                 if (Str(rh, r, "sellerRegion").StartsWith("(")) continue;
@@ -191,6 +191,8 @@ public class TransportInstrumentTests
                     //   〔AiLawGateFromBoard の点火で最初の24四半期の軌道が動き、期待 0.63・実際 1.13 で当たった＝旧の盤面では経路が1本だった偶然〕。いつでも成り立つ別の列の組み合わせへ換えた＝運賃は〈運賃率×荷の値打ち×換算 km÷距離の物差し〉で、売り手側・買い手側それぞれにも成り立つ。
                     double vls = Col(rh, r, "valueTimesEqLandSellerSideKmGoldPerYear"), vlb = Col(rh, r, "valueTimesEqLandBuyerSideKmGoldPerYear");
                     Near(rate * vls / norm, fs, 1e-6); Near(rate * vlb / norm, fb, 1e-6);
+                    // ★(428) 合流（反証役 lt〔bv〕低#5）：成約が 1 件の組は経路も 1 本＝旧の比の assert〈売り手側÷買い手側の運賃＝最後の成約の換算 km の比〉が一般に成り立つ。売り手側と買い手側の分け方の取り違えはこの比でしか捕まらない＝1 件の組に限って戻した。
+                    if ((long)Col(rh, r, "dealsCountPerYear") == 1 && els > 0 && elb > 0 && fb > 0) { Near(els / elb, fs / fb, 1e-6); singleDealPairs++; }
                     if (fs > 0 && Str(rh, r, "sellerNation") != Str(rh, r, "buyerNation")) crossSellerLeg++;
                 }
                 // 陸脚の換算 km ≧ 陸脚の実 km ×（地形の係数の最小 0.15）×（陸÷海の比の最小）
@@ -214,6 +216,7 @@ public class TransportInstrumentTests
             foreach (var y in crossPair.Keys) Near(crossPair[y], crossBin.GetValueOrDefault(y), 1e-6);
             foreach (var y in domPair.Keys) Near(domPair[y], domBin.GetValueOrDefault(y), 1e-6);
             Assert.True(checkedPairs >= 50, $"経路の行が少ない {checkedPairs}");
+            Assert.True(singleDealPairs > 0, "成約が 1 件の海経由の組が 1 つも無い＝比の assert が空回り（対照）");
             Assert.True(landPairs > 0 && seaPairs > 0 && withLandLeg > 0, $"陸直行 {landPairs}・海経由 {seaPairs}・陸脚の運賃が正 {withLandLeg}");
             Assert.True(crossSellerLeg > 0, "越境の海経由で売り手側の陸脚の運賃が正の組が 1 つも無い（対照）");
 

@@ -1,0 +1,8 @@
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.同業組合の願いは旗3かつゲート正のときだけ_線は反トラストと同じ [2 s]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.金の願いは本国の識字だけを数える_植民地の識字は数えない [35 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.金の法の国は識字がなくても降りない [10 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.金の願いは旗1で本国の識字0_6を読む [25 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.反トラストの願いは旗2で本国の都市の割合の3分の1と2分の1を読む [26 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.反トラストの配線は旗2から_旗1では旧の工業化度のまま [97 ms]
+  失敗 PriceOfBread.Tests.LawGateFromBoardTests.都市の割合は植民地格の州を数えない [22 ms]
+失敗!   -失敗:     7、合格:     3、スキップ:     0、合計:    10、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

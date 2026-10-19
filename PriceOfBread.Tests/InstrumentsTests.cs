@@ -2375,7 +2375,9 @@ public class InstrumentsTests
                     // ★(427) 割れの出所を直した（旧の注は〈政体の変名〉と書いたが、計器の国名は構築時の名 BaseName で改名では替わらない）。本当の出所は州の持ち主が四半期の途中で替わること：
                     //   分離・建国（MultiNationSim が新しい World と Power を作る）で州が新しい国へ移ると、窃盗の額は州の側（Instruments.Theft は州に積む）で四半期末の持ち主＝新しい国の行へ、
                     //   台帳は盗んだ時点の持ち主（PopOwner＝RegionOut/RegionIn で付け替わるまでの国）へ記帳される＝帰属の時点が違う。国の個体の番号 nationUid に替えても閉じない（個体が本当に別）。
-                    //   なので〈割れてよいのは、その四半期に生まれた国（前の四半期の州の行に居ない名）が絡む鍵だけ〉に絞り、和で合うことを見る。生まれた国が絡まない鍵で額が合わなければ赤。
+                    //   なので〈割れを許すのは、その四半期に生まれた国（前の四半期の州の行に居ない名）が居る四半期だけ〉に絞り、和で合うことを見る。
+                    //   ★(428) 合流（反証役 hy〔v〕低）：判定は四半期ごとで鍵ごとではない＝同じ四半期に別の場所で建国があると、既にある 2 国の間の取り違えは世界の和の検査だけが見る。
+                    //   逆に既にある国どうしの割譲・再併合で州の持ち主が四半期の途中で替わると、差の名が前の四半期に居る名になり誤って赤になりうる（種 1789 の 60 四半期では起きない・旧の SetEquals も同じ脆さ）。
                     var natPool = byNat.Where(k => k.Key.Item1 == kv.Key.Item1 && k.Value > 0).Select(k => k.Key.Item2).ToHashSet();
                     var natLed = ledger.Where(k => k.Key.Item1 == kv.Key.Item1 && k.Value > 0).Select(k => k.Key.Item2).ToHashSet();
                     var delta = new HashSet<string>(natPool); delta.SymmetricExceptWith(natLed);   // 片側にしか居ない名

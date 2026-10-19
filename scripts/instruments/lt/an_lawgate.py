@@ -186,4 +186,30 @@ def main():
     P('R-移った国の名簿（銀→金・種数の合計）：' + '・'.join(f'{n} {c}' for n, c in trans_names.most_common(20)))
     P('R-止まった国の名簿（T9）：' + '・'.join(f'{n} {c}' for n, c in stuck_names.most_common(20)))
 
+    # ---- R-追従（★(428) 合流で足した＝反証役 lt〔bv〕中#1：採否の段の〈願いは識字に追従した〉の数を読み手で再現できるようにする）
+    #   ①1913 年の年末に継承分を除く金の法の国（goldLawCode=2・literacyHome≧0.1）のうち、1913 年までに本国の識字が線を一度でも超えていた国×種の割合
+    #   ②1913 年までに識字が線を超えた国×種のうち、1913 年の年末に金の法の国（継承分を含む）の割合
+    #   ③遅れ＝最初に金の法になった年末 − 最初に識字が線を超えた年末（両方がある国×種）。開幕の最初の年末から金の国（英など）は除いた版も並べる
+    num1 = den1 = num2 = den2 = 0; lag = []; lag_ex = []
+    for s, per in seq.items():
+        for n, lst in per.items():
+            r13 = next((r for yy, r in lst if yy == 1913), None)
+            cross = next((yy for yy, r in lst if float(r['literacyHome']) > line), None)
+            gold = next((yy for yy, r in lst if int(r['goldLawCode']) == 2), None)
+            if r13 is not None:
+                if int(r13['goldLawCode']) == 2 and float(r13['literacyHome']) >= INHERIT_LIT:
+                    den1 += 1; num1 += 1 if (cross is not None and cross <= 1913) else 0
+                if cross is not None and cross <= 1913:
+                    den2 += 1; num2 += 1 if int(r13['goldLawCode']) == 2 else 0
+            if cross is not None and gold is not None:
+                lag.append(gold - cross)
+                if lst and int(lst[0][1]['goldLawCode']) != 2: lag_ex.append(gold - cross)
+    def q3(xs):
+        if len(xs) < 2: return 'nan'
+        qs = st.quantiles(xs, n=4)
+        return f'中央値 {st.median(xs):.0f} 年（四分位 {qs[0]:.0f}〜{qs[2]:.0f}・{len(xs)} 件）'
+    P(f'R-追従① 1913 年の継承分を除く金の法の国のうち識字が線を超えていた割合：{num1}/{den1}' + (f'＝{num1/den1:.0%}' if den1 else ''))
+    P(f'R-追従② 1913 年までに識字が線を超えた国のうち 1913 年に金の法の国の割合：{num2}/{den2}' + (f'＝{num2/den2:.0%}' if den2 else ''))
+    P(f'R-追従③ 金の法の最初の年末 − 識字が線を超えた最初の年末：全て {q3(lag)}・開幕から金の国を除く {q3(lag_ex)}')
+
 main()
