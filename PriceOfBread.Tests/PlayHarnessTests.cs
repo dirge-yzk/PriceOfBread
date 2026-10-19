@@ -709,7 +709,7 @@ public class PlayHarnessTests
     [Fact]
     public void 景気の判定_入りと出は別の水準_語は恐慌の線で分かれる()
     {
-        // 期待は作者の書いた水準（入り 0.20 超・出 0.08 以下・恐慌 0.25 超＝SelfPlay.cs の注）をそのまま置く
+        // 期待は既存の定数の値（入り 0.20 超・出 0.08 以下・恐慌 0.25 超＝SelfPlay.cs の DepressionEnterDrawdown ほか）のリテラル
         Assert.False(SelfPlayMatch.InDepression(false, 0.20)); Assert.True(SelfPlayMatch.InDepression(false, 0.2001));
         Assert.False(SelfPlayMatch.InDepression(false, 0.15));                         // 入る前は 0.15 では入らない
         Assert.True(SelfPlayMatch.InDepression(true, 0.15));                           // 入った後は 0.15 でも続く（境界で点滅しない）
