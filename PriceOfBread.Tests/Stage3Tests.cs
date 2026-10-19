@@ -23,9 +23,11 @@ public class Stage3Tests
     {
         var sim = new Simulation(Stg3(1, EducationLaw.Public, 300, 0.7), new NullAgent());
         sim.Run(400);
-        Assert.Equal(Polity.ConstitutionalMonarchy, sim.World.Polity);   // 漸進改革＝立憲君主制（明治型）
+        // ★2026-10-19 (431)：政体の着地（漸進改革＝立憲君主制か共和政か）は創発の主張で機構の不変条件ではない。不満度が思想の入力に入る新しい既定（二量分離の完成）で共和政へ着地するようになった
+        //   ＝着地の種類の固定を外し（成績表の政体の読みが見る）、機構の主張＝外圧と公教育の下で絶対王政のままではいない・その政体の自由が革新の閾値を越える、を残す。
+        Assert.NotEqual(Polity.Absolutist, sim.World.Polity);   // 外圧＋公教育＝改革の機構が働いて絶対王政から動く
         Assert.True(sim.World.Freedom >= sim.World.Coef.FrontierFreedomThreshold,   // 立憲君主制＝法律(参政権＋自由化報道)から創発した自由が世界の技術水準閾値を越え革新解禁（倍率排除②：政体スカラーでなく法駆動）
-            $"立憲君主制の自由が世界の技術水準閾値に届かない：{sim.World.Freedom}");
+            $"改革後の政体の自由が世界の技術水準閾値に届かない：{sim.World.Freedom}");
     }
 
     [Fact]
