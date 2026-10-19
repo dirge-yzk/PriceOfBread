@@ -1,0 +1,2 @@
+# (442) フルスイート（Category!=FullLength・Release・隔離ビルド D:/PoB_work/hx/art・木 591fe02b 相当＋xUnit 警告の修正 1 行）
+成功!   -失敗:     0、合格:  1465、スキップ:     0、合計:  1465、期間: 14 m 11 s - PriceOfBread.Tests.dll (net10.0)

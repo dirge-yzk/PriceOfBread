@@ -1,7 +1,7 @@
 # (442) 合成後のアブレーション（記録だけ・コードは変えていない・採否に使わない）
 # 木＝m436（main e197300。SimCore・Runner・App は m436 の計器つき 10 種の木 e2655549 と差が無い＝`git diff e2655549 e197300 -- PriceOfBread.SimCore PriceOfBread.Runner PriceOfBread.App` が空）。腕は係数の上書き（POB_COEF）だけ。
 # 計器つき 10 種（種 1〜10・NATIONS＝清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本）。比べる側＝m436 の計器つき 10 種（生 D:/PoB_work/keep_436/m436_ins）とそのヌル腕 N1・N2（keep_436/n1・n2・全部入れる世界の SupplySlope ±1e-8）。
-# 読み手＝scripts/instruments/sb433/judge_sb433.py・rd434/judge434.py・rd434/port434.py・hx442/cl_arms.py・hx442/disc_first.py・nl/an_nl414.py・hol/an_h2.py・ng.sh（基準 rd:measurements/ng436_20261019:m436）。生は読んでから消した（1 本 5.7GB）。
+# 読み手＝scripts/instruments/sb433/judge_sb433.py・rd434/judge434.py・rd434/port434.py・hx442/cl_arms.py・hx442/disc_first.py・nl/an_nl414.py・hol/an_h2.py・ng.sh（基準 rd:measurements/ng436_20261019:m436）。生は読んでから消した（1 本 5.7GB）。小さい表（disc_s・port_s・csc_s・svc_s）は D:/PoB_work/keep_436/hx442_ab/{B1,OFF,II}/ に残した（読み手を回し直せる）。
 
 ## 腕（各 1 本・成績表 measurements/b10_20261019_hx442_<腕>_ins）
   B1  : POB_COEF = DomesticServiceMarketRation=1;DomesticServiceUsesIncomeElasticity=1   ＝ sb の〈配給だけ〉（m436 の既定は配給 1・指数 2。指数を 1 へ戻した）。係数名は旧名（e197300 の木のまま・(442) の改名の前）
