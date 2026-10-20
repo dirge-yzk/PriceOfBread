@@ -27,7 +27,10 @@ public class DiscoveryClockTests
     /// <summary>この盤面の 1 四半期目の世界の合計 W に対し、d＝7 の行が傾斜の真ん中（S＝1/2）に来る W0（＝W÷7）。検査用で較正値ではない。</summary>
     private static readonly Lazy<double> TestClock = new(() => HandWorld(BoardOff.Value) / 7.0);
     private static readonly Lazy<MultiNationSim> BoardOn = new(() => Board(TestClock.Value, TestOwn));
-    private static readonly Lazy<MultiNationSim> BoardMotor = new(() => Board(TestClock.Value, TestOwn, 1.0));   // 電動機の親の旗も正
+    /// <summary>電動機（d＝10）が傾斜の真ん中（S＝1/2）に来る W0（＝W÷10）の盤面を、電動機の親の旗が 0 と正の 2 通り作る（d＝7 用の TestClock では電動機の S が 0 で検査が空回りする）。</summary>
+    private static readonly Lazy<double> TestClockMotor = new(() => HandWorld(BoardOff.Value) / 10.0);
+    private static readonly Lazy<MultiNationSim> BoardMotor = new(() => Board(TestClockMotor.Value, TestOwn, 1.0));
+    private static readonly Lazy<MultiNationSim> BoardMotorOff = new(() => Board(TestClockMotor.Value, TestOwn, 0.0));
 
     private static World Nation(MultiNationSim sim, string name)
         => sim.Nations.Find(n => n.World.SelfPower?.BaseName == name)?.World ?? throw new Xunit.Sdk.XunitException($"{name} が居ない");
@@ -375,26 +378,32 @@ public class DiscoveryClockTests
     public void 電動機の親の産業は別の旗で切り替わる()
     {
         int motor = Row("電動機");
-        var sim = BoardMotor.Value;
-        double w0 = TestClock.Value, wid = sim.Coef.DiscoveryClockRampWidth;
-        double wTot = HandWorld(sim);
         double dd = (Catalog.Discoveries[motor].Decade - 1780) / 10.0;
-        double sHand = System.Math.Clamp((wTot / (w0 * dd) - 1.0) / wid + 0.5, 0.0, 1.0);
-        int steam = 0, compared = 0;
-        foreach (var n in sim.Nations)
+        int differ = 0, positive = 0, compared = 0;
+        foreach (var (sim, flag) in new[] { (BoardMotor.Value, true), (BoardMotorOff.Value, false) })
         {
-            var w = n.World;
-            var rp = RepOf(w, motor);
-            if (rp is null) continue;
-            if (Catalog.DiscoveryAfter[motor] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[motor])) continue;
-            var terms = Discovery.Evaluate(w, w.LastDiscoveryView! with { WorldAdvLabor = wTot }, w.Coef, includeKnown: true);
-            double aSteam = HandA(w, ParentGoods(motor, rp, clock: true)), aOld = HandA(w, ParentGoods(motor, rp, clock: false));
-            double want = Discovery.TermMax * sHand * (aSteam > 0 ? aSteam / (aSteam + TestOwn) : 0.0);
-            Assert.True(System.Math.Abs(terms[motor].Tech - want) <= 1e-9 * System.Math.Max(1.0, want), $"{n.World.SelfPower?.BaseName} 電動機：技術力 {terms[motor].Tech} ≠ {want}（A蒸気={aSteam}・A旧={aOld}）");
-            compared++; if (aSteam > aOld) steam++;
+            double w0 = TestClockMotor.Value, wid = sim.Coef.DiscoveryClockRampWidth;
+            double wTot = HandWorld(sim);
+            double sHand = System.Math.Clamp((wTot / (w0 * dd) - 1.0) / wid + 0.5, 0.0, 1.0);
+            Assert.True(sHand > 0.2 && sHand < 0.8, $"電動機の S が傾斜の途中でない（{sHand}）＝検査が空回りする");
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World;
+                var rp = RepOf(w, motor);
+                if (rp is null) continue;
+                if (Catalog.DiscoveryAfter[motor] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[motor])) continue;
+                var terms = Discovery.Evaluate(w, w.LastDiscoveryView! with { WorldAdvLabor = wTot }, w.Coef, includeKnown: true);
+                double aSteam = HandA(w, ParentGoods(motor, rp, clock: true)), aOld = HandA(w, ParentGoods(motor, rp, clock: false));
+                double a = flag ? aSteam : aOld;
+                double want = Discovery.TermMax * sHand * (a > 0 ? a / (a + TestOwn) : 0.0);
+                Assert.True(System.Math.Abs(terms[motor].Tech - want) <= 1e-9 * System.Math.Max(1.0, want), $"{n.World.SelfPower?.BaseName} 電動機（旗 {flag}）：技術力 {terms[motor].Tech} ≠ {want}（A蒸気={aSteam}・A旧={aOld}）");
+                compared++; if (want > 0) positive++;
+                if (flag && aSteam != aOld) differ++;
+            }
         }
-        Assert.True(compared >= 5, $"比べた国が少なすぎる（{compared}）");
-        Assert.True(steam >= 3, $"蒸気機関の技師が電動機の A を増やす国が少なすぎる（{steam}）＝旗の検査が空回りしている");
+        Assert.True(compared >= 10, $"比べた国×旗が少なすぎる（{compared}）");
+        Assert.True(positive >= 4, $"電動機の技術力が正の国×旗が少なすぎる（{positive}）");
+        Assert.True(differ >= 3, $"蒸気機関の技師が電動機の A を変える国が少なすぎる（{differ}）＝旗の検査が空回りしている");
     }
 }
 
