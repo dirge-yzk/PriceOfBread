@@ -1,0 +1,5 @@
+(474) 政-14 を入れた木（コミット 07d07cdb・SOURCE-HASH f685a8407620eb18）の記録＝恒等でなかったので外した。
+- b10_M_10.txt（素の 10 種）・b5_M_5.txt（先頭 5 試合）・b10_I_10.txt（計器つき）＝m466 の 3 枚と一致しない（種ごとの exact・near は b10_M_10.txt.cost：seed 3 exact 52.5〔基線 50.8〕・seed 8 near 68.9〔70.5〕・seed 9 exact 54.1・near 86.9〔57.4・85.2〕）。
+- base_s3.txt＝基点 128ac2b3 の selfplay 3 668／hp_s3.txt＝07d07cdb／y_s3.txt＝政-14 を除いた木（画-05・画-06 だけ）／x2_s3.txt＝07d07cdb に ApplyDemand の社会保障の分岐の印を足した木。
+  y_s3 は base_s3 と 0 行の差（done 行を除く）・hp_s3 は base と 176 行の差＝原因は政-14 だけ。x2_s3 の印：MARK-APPLYDEMAND-SS 1908 ブハラ cur=0 v=0.15／1911 デリー cur=0 v=0.15
+  （派閥の要求を飲む Politics.ApplyDemand が w.SocialSecurity を 0.15 刻みで書き、次の Government.Step の代入まで福祉の請求に効く）。
