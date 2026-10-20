@@ -9,6 +9,7 @@ namespace PriceOfBread.SimCore;
 //   cheapGoodCount・dearGoodCount（売買の方針が −1・+1 の財の数）／cheapExportValue（−1 の財の ExportsByGood の和＝直近の清算の越境の輸出額・金建て）／cheapProducedRefValue（−1 の財の州の LastProduced×RefPrice の和）／cheapSubsidyPaidCum（売り手の国庫が払った奨励金の累計・旗 0 は 0）／
 //   voteWeightAll・voteWeightScoped（Σ size×FranchiseVoice と、それに SuffrageInclusion を掛けた和＝旗に依らず同じ式）／voteWeightUsed（直近の ComputeVotes が使った重みの合計）／colonialVoteWeight（植民地格の州の FranchiseVoice の重み）／
 //   voteWeightScopedColonialOnly（Σ size×FranchiseVoice×〈植民地格なら SuffrageInclusion・本国格なら 1〉＝旗 1 の議席の重み）／colonialSuffrageLaw・migrantNativeSuffrageLaw（法の段の整数値）／biasSwitchCum・stressFoldCum（売買方針の値が変わった回数と、財政逼迫で畳んだ財の数の累計）／cheapWithNegTariffCount（負の関税が立つ四半期の −1 の財の数）／
+//   seatCons・seatLib・seatSoc・governingParty（確定議席のシェア 3 族と与党の族番号＝議会の量の B÷A′ を読む）／
 //   budgetNegCumPopMonthK・budgetNegCumAmount（消費の財のループの直前に残りの予算が負だった POP×月の人口〔千〕と額の累計・床の直前に撮る＝旗に依らない）。
 // ⚠限界（計器が自己申告する）：①四半期の末の断面と累計・②cheapExportValue は直近の清算の 1 回・③voteWeightUsed は直近の ComputeVotes（毎期）・④budgetNeg は助走の月も数える累計（差を取って読む）・⑤旗 1 では奨励金の分だけ買い手の支払いが減る（輸入額の統計は積出し価格のまま）。
 public static partial class Instruments
@@ -16,7 +17,8 @@ public static partial class Instruments
     internal const string SfHeaderText = "quarter\tyear\tnation\tpensionLevel\telder60K\tsoldierElder60K\tpensionToSoldiersCum\t"
         + "cheapGoodCount\tdearGoodCount\tcheapExportValue\tcheapProducedRefValue\tcheapSubsidyPaidCum\t"
         + "voteWeightAll\tvoteWeightScoped\tvoteWeightUsed\tcolonialVoteWeight\tbudgetNegCumPopMonthK\tbudgetNegCumAmount\t"
-        + "voteWeightScopedColonialOnly\tcolonialSuffrageLaw\tmigrantNativeSuffrageLaw\tbiasSwitchCum\tstressFoldCum\tcheapWithNegTariffCount";
+        + "voteWeightScopedColonialOnly\tcolonialSuffrageLaw\tmigrantNativeSuffrageLaw\tbiasSwitchCum\tstressFoldCum\tcheapWithNegTariffCount\t"
+        + "seatCons\tseatLib\tseatSoc\tgoverningParty";
 
     /// <summary>国の sf_s の行の値（列の順＝<see cref="SfHeaderText"/> の pensionLevel 以後）。番人（テスト）が世界から直に呼べるよう値の組で返す。</summary>
     internal static double[] SfRow(World w)
@@ -48,7 +50,8 @@ public static partial class Instruments
         }
         return [level, elder, soldierElder, w.DiagSfPensionToSoldiersCum, cheapN, dearN, cheapExp, cheapProd, w.DiagSfCheapSubsidyPaidCum,
                 all, scoped, w.DiagSfVoteWeightUsed, colonial, w.DiagSfBudgetNegCumPopMonthK, w.DiagSfBudgetNegCumAmount,
-                scopedCol, (double)(int)w.ColonialSuffrage, (double)(int)w.MigrantNativeSuffrage, w.DiagSfBiasSwitchCum, w.DiagSfStressFoldCum, w.Tariff < 0 ? cheapN : 0.0];
+                scopedCol, (double)(int)w.ColonialSuffrage, (double)(int)w.MigrantNativeSuffrage, w.DiagSfBiasSwitchCum, w.DiagSfStressFoldCum, w.Tariff < 0 ? cheapN : 0.0,
+                w.PartySeats[0], w.PartySeats[1], w.PartySeats[2], (double)w.GoverningParty];
     }
 
     static void SfFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
