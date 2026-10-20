@@ -1,0 +1,8 @@
+(469) 線 mw 前半 種 1 の計器つき走り（恒等の canary・採否に使わない・1 種は恒等の証明ではない）
+木＝コミット 51eab287 と同じ中身（作業フォルダの複製・SOURCE-HASH は b1_20261020_mw469_A_ins.manifest）。旗は全て既定（3 本とも 0）。
+走り方：POB_WORK=D:/PoB_work/mw_469 INS=1 POB_INSTRUMENTS_NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本 bash scripts/instruments/batch.sh run mwA 1 1
+  ★POB_INSTRUMENTS_NATIONS は m466 の計器つき 10 種の名乗り行（b10_20261020_m466_ins.manifest の RUN 行）にある。これを付けない最初の走りは国の選びが違い、計器の表が m466 と一致しなかった（結果は捨てた）。
+比べる側：D:/PoB_work/keep_466/m466_ins の *_s1.tsv（53 表）。sha256 の一覧＝m466_ins_s1_sha256.txt／この走り＝canary_s1_sha256.txt。
+結果：54 表のうち 50 表がバイト一致。違う 3 表は予定どおり：burscan（seconds＝壁時計）・clock（worldTotalPerMonth の C 行＝Stopwatch の累計）・flow（sourceLine＝ソース行番号）。新しい 1 表＝labor_s1（読むだけ）。
+成績表の種 1 の行：exact 44.3・near 80.3＝b5_20261020_m466.cost の seed1（exact 44.3・near 80.3）と同じ。推定の計算量 226.2 秒（m466 の 5 種の平均 226.4）。
+限界：1 種の一致は恒等の証明にならない（README §1-2）。腕 A（計器つき 5 種の成績表が b5_20261020_m466 と全行一致）は後半の担当が回す。
