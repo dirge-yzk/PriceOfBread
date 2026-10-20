@@ -26,7 +26,6 @@ public class InstrumentsTests
     {
         var uk = NationConfig.Britain().ShallowClone(); uk.OpeningStateMonopolyTier = 0;   // ★(407) 写しに書く＝共有の世界データ（WorldData の型初期化の配列）を書き換えない（旧＝(405) は共有の英を 0 にした＝同じテストの工程の後の全ての試験の英が段なしになり、接触の内訳の番人が並びで赤になった）
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent());
-        LegacyDiscovery.Apply(sim);   // ★(415) 計器の番人は種ごとの軌道に依存する物が多い（空洞でないことを数える）＝旧の式（旗0）の盤面で固定。計器自体は式に依らない
         return sim;
     }
 

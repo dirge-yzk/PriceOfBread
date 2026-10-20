@@ -2563,7 +2563,10 @@ public static class EconomyStep
             }
             // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を FactoryBankruptcyAllTiers で解除。
             // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。
-            // 連鎖断絶（軍需上流＝火薬/鉛/帆布の死蔵・永続的脱工業化）は手法B（下の品薄数量再開）＋再点火トリクル（閉鎖しても下流の投入需要は価格シグナルに残る）が受ける＝
+            // 連鎖断絶（軍需上流＝火薬/鉛/帆布の死蔵・永続的脱工業化）は手法B（下の品薄数量再開）が受ける＝閉鎖しても下流の工場の投入需要は市場の LastDemand に残り、供給を上回れば品薄で再開する。
+            // ★(474) 旧の注は〈再点火トリクル（閉鎖しても下流の投入需要は価格シグナルに残る）〉も受けると書いていたが、再点火トリクル（ReignitionDemandFrac＝作りたい量 DesiredOutput の一部を投入として発注し続ける）は
+            //   倒産中の工場には当てはまらない：倒産に入るのは更新後の SmoothedMargin＜FactoryBankruptcyMargin（＜0）の月＝その月の margin＜0＝価格≦限界費用＝profitFactor＝0＝DesiredOutput＝0 で、倒産中は上の continue で産出も 0 に凍る
+            //   （抜け道は国営の工場の民営化〔BuiltScale が 0 になる〕だけ）。
             // 本当に必要な中間財は在庫が尽きた時点で shortage 再開・要らない工場だけが退出したままになる。負債帳消しなし・貨幣非接触（Scale=0のみ）＝保存則不変。
             // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。AllTiers=0で旧挙動（消費最終財 Staple/Daily/Luxury のみ倒産）。
             else if (coef.FactoryBankruptcyEnabled && s.SmoothedMargin < coef.FactoryBankruptcyMargin && s.BuiltScale <= Eps

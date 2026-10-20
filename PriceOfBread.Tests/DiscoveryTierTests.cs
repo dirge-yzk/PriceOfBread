@@ -33,7 +33,6 @@ public class DiscoveryTierTests
     {
         var sim = coef is null ? new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent())
                                : new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent(), coef);
-        LegacyDiscovery.Apply(sim);   // ★(415) この類の番人は技術水準を操作して前提を作る＝旧の式（旗0）の盤面。既定の経路は DiscoveryEngineerTests
         sim.StepQuarter();
         return sim;
     }
@@ -79,14 +78,14 @@ public class DiscoveryTierTests
         var w = Nation(sim, "清");
         int steam = Row("蒸気機関"), child = Row("内燃機関");
         w.Discovered[steam] = false; w.Discovered[child] = false;
-        w.TechLevel = 20;   // 技術力は最大
         var contact = new double[Catalog.Discoveries.Length]; System.Array.Fill(contact, 1e6);   // 伝わりは最大（技術力70＋伝わり70≧100）
-        var view = new Discovery.WorldView(contact);
-        var on = Discovery.Evaluate(w, view, new Coefficients());
+        var view = DiscoveryPremise.OpenClock(new Discovery.WorldView(contact));   // ★(474) 技術力は最大＝時計 S＝1（W が極めて大きい）・自国の項 C＝1（Am を極小に）。旧は w.TechLevel＝20
+        w.Coef.DiscoveryOwnHalfPerMonth = DiscoveryPremise.FullOwnShareAm;
+        var on = Discovery.Evaluate(w, view, w.Coef);
         Assert.Equal(0.0, on[child].Score);
         Assert.True(on[steam].Score >= Discovery.GateScore, "前提の無い行（蒸気機関）が判定されない");
         // Step：蒸気機関だけが開き内燃機関は同じ判定では開かない（連鎖で同時に開かない）／蒸気機関が開いた次の判定で内燃機関が開く
-        var w1 = Nation(Board(), "清"); w1.Discovered[steam] = false; w1.Discovered[child] = false; w1.TechLevel = 20;
+        var w1 = Nation(Board(), "清"); w1.Discovered[steam] = false; w1.Discovered[child] = false; w1.Coef.DiscoveryOwnHalfPerMonth = DiscoveryPremise.FullOwnShareAm;
         Discovery.Step(w1, view, w1.Coef);
         Assert.True(w1.Discovered[steam] && !w1.Discovered[child], "蒸気機関だけが開き内燃機関は同じ判定では開かない（連鎖で同時に開かない）");
         Discovery.Step(w1, view, w1.Coef);
@@ -100,10 +99,10 @@ public class DiscoveryTierTests
         var sim = Board();
         var w = Nation(sim, "清");
         for (int r = 0; r < w.Discovered.Length; r++) w.Discovered[r] = false;
-        w.TechLevel = 50;
         var contact = new double[Catalog.Discoveries.Length]; System.Array.Fill(contact, 1e6);
-        var view = new Discovery.WorldView(contact);
+        var view = DiscoveryPremise.OpenClock(new Discovery.WorldView(contact));   // ★(474) 技術力は最大＝時計 S＝1・自国の項 C＝1（旧は w.TechLevel＝50）
         var coef = w.Coef;
+        coef.DiscoveryOwnHalfPerMonth = DiscoveryPremise.FullOwnShareAm;
         var judged = new System.Collections.Generic.List<int>();
         for (int r = 0; r < Catalog.Discoveries.Length; r++)
             if (!Discovery.IsSpread(Catalog.Discoveries[r].Field)) judged.Add(r);   // 制度と思想は伝わりが到達＝この盤面では開かない

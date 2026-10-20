@@ -18,10 +18,12 @@ public class DiscoveryScoreTests
     {
         var sim = coef is null ? new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent())
                                : new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent(), coef);
-        LegacyDiscovery.Apply(sim);   // ★(415) この類の番人は技術水準を操作して前提を作る＝旧の式（旗0）の盤面。既定の経路は DiscoveryEngineerTests
         sim.StepQuarter();
         return sim;
     }
+
+    /// <summary>★(474) 見つける力の半分点 N0 に置く極めて大きい値＝産地の技術力 70×N÷(N＋N0) が 0 に等しい（旧の盤面の技術水準 0 の代わり・今の機構の係数）。</summary>
+    private const double NoFindingPower = 1e18;
 
     private static World Nation(MultiNationSim sim, string name)
         => sim.Nations.Find(n => n.World.SelfPower?.BaseName == name)?.World ?? throw new Xunit.Sdk.XunitException($"{name} が居ない");
@@ -218,7 +220,8 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>伝わりだけでは届かない・技術力と揃えば届く（設計 §1A-2 の性質）＝必要性の無い行（合成ゴム＝ゴムをまだ作れない国の製法は必要性0）で、
-    /// ①技術水準0・接触は最大（伝わり≈70）→ 届かない ②技術水準を難易度の2倍（技術力 70×押し）＋同じ接触 → 押しが半分以上の国は届く（そういう国が1つは在る）。
+    /// ①時計 S が 0（世界の高度労働力の雇用 W＝0）・接触は最大（伝わり≈70）→ 届かない ②時計 S が 1（W が極めて大きい）＋同じ接触 → 技術力は 70×C（自国の項 C＝親の産業の技師 A÷(A＋Am)）で、
+    /// 自国の項 C を最大（Am を極小・親の産業に技師が居れば C≈1）にした国は届く。技術力の前提は技術水準でなく今の機構の W（<see cref="Discovery.WorldView.WorldAdvLabor"/>）と C で作る（★(474) 旧の盤面〔旗0〕への固定を外した）。
     /// ⚠壊し方＝門を70へ（伝わりだけで届く）→ ①が赤。</summary>
     [Fact]
     public void 伝わりだけでは届かず技術力と揃えば届く()
@@ -227,23 +230,23 @@ public class DiscoveryScoreTests
         int row = Row("合成ゴム");
         var contact = new double[Catalog.Discoveries.Length];
         contact[row] = 1e6;   // 接触は最大（伝わり→70）
-        var view = new Discovery.WorldView(contact);
+        var viewLow = new Discovery.WorldView(contact, WorldAdvLabor: 0);          // 時計 S＝0
+        var viewHigh = new Discovery.WorldView(contact, WorldAdvLabor: DiscoveryPremise.OpenClockW);   // 時計 S＝1
         int tried = 0, reached = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World;
             if (w.Discovered[row] || !(Discovery.Evaluate(w, null, w.Coef)[row].Need == 0)) continue;
             tried++;
-            w.TechLevel = 0;
-            var only = Discovery.Evaluate(w, view, w.Coef)[row];
+            var only = Discovery.Evaluate(w, viewLow, w.Coef)[row];
             Assert.True(only.Transmit > 69.9 && only.Tech == 0 && only.Need == 0, $"前提が崩れた（{only}）");
-            Discovery.Step(w, view, w.Coef);
+            Discovery.Step(w, viewLow, w.Coef);
             Assert.False(w.Discovered[row], $"{w.SelfPower?.Name}：伝わりだけで解禁した");
-            w.TechLevel = Discovery.Difficulty(row, w.Coef) * 2;
-            var both = Discovery.Evaluate(w, view, w.Coef)[row];
+            w.Coef.DiscoveryOwnHalfPerMonth = DiscoveryPremise.FullOwnShareAm;   // 自国の項 C≈1（既定の Am では開幕の技師が少なく C≈1e-4）
+            var both = Discovery.Evaluate(w, viewHigh, w.Coef)[row];
             if (!(both.Score >= Discovery.GateScore)) continue;
             reached++;
-            Discovery.Step(w, view, w.Coef);
+            Discovery.Step(w, viewHigh, w.Coef);
             Assert.True(w.Discovered[row], $"{w.SelfPower?.Name}：技術力と伝わりが揃っても解禁しない（{both}）");
         }
         Assert.True(tried > 10 && reached > 0, $"盤面が空回り（試した国 {tried}・届いた国 {reached}）");
@@ -256,8 +259,7 @@ public class DiscoveryScoreTests
         var sim = Board();
         var w = sim.Nations[0].World;
         int row = Row("ラジオ");
-        w.TechLevel = 0;
-        Assert.True(Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Score < Discovery.GateScore, "前提が崩れた");
+        Assert.True(Discovery.Evaluate(w, DiscoveryPremise.ClosedClock(), w.Coef, includeKnown: true)[row].Score < Discovery.GateScore, "前提が崩れた");   // ★(474) 旧は w.TechLevel＝0（時計 S＝0 が今の機構の技術力 0）
         w.Discovered[row] = true;
         for (int i = 0; i < 3; i++) Discovery.Step(w, null, w.Coef);
         Assert.True(w.Discovered[row]);
@@ -638,8 +640,9 @@ public class DiscoveryScoreTests
             // ★(344) 系統×段階の点火（DiscoveryTierGate＝1）の後は、前提の行（戦車・軍用機←内燃機関・弩級戦艦←装甲艦）がまだの国でこれらの行は判定されない（点数・項は 0）
             //   ＝この試験は損耗の項だけを見る＝前提の行を解禁済みにしてから読む（1四半期の盤面では内燃機関を知る国が無い）。
             foreach (int r in all) { int a = Catalog.DiscoveryAfter[r]; if (a >= 0) n.World.Discovered[a] = true; }
-            var t = Discovery.Evaluate(n.World, null, n.World.Coef, includeKnown: true);
-            if (all.All(r => t[r].Tech > 0)) { w = n.World; break; }   // 6行とも代表の生産者が居る国
+            // ★(474) 代表の生産者が居る行＝損耗を与えたとき必要性が立つ行（旧は技術力が正の行〔技術水準の押し〕＝今の機構では技術力は時計と自国の項で決まり、この試験の主題の損耗の項とは別）
+            var t = Discovery.Evaluate(n.World, new Discovery.WorldView(null, Loss: Enumerable.Repeat(0.5, Discovery.LossDomains).ToArray()), n.World.Coef, includeKnown: true);
+            if (all.All(r => t[r].Need > 0)) { w = n.World; break; }   // 6行とも代表の生産者が居る国
         }
         Assert.NotNull(w);
         double half = w!.Coef.DiscoveryNeedHalfWeapon;
@@ -683,8 +686,8 @@ public class DiscoveryScoreTests
         World? w = null;
         foreach (var n in sim.Nations)
         {
-            var t = Discovery.Evaluate(n.World, null, n.World.Coef, includeKnown: true);
-            if (t[mg].Tech > 0 && n.World.SelfPower is { } sp0 && ArmyShape.LandPotential(sp0) > 0) { w = n.World; break; }
+            var t = Discovery.Evaluate(n.World, new Discovery.WorldView(null, Loss: Enumerable.Repeat(0.5, Discovery.LossDomains).ToArray()), n.World.Coef, includeKnown: true);   // ★(474) 代表の生産者が居る行＝損耗を与えたとき必要性が立つ行（旧は技術力が正の行）
+            if (t[mg].Need > 0 && n.World.SelfPower is { } sp0 && ArmyShape.LandPotential(sp0) > 0) { w = n.World; break; }
         }
         Assert.NotNull(w);
         var sp = w!.SelfPower!;
@@ -789,8 +792,9 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>見つかるまで産まない・見つかったら開く・失われない（2値）＋キナはアンデスだけが開始から（(129) の申し送り）：
-    /// ①アジアのキナ（バタヴィア）の生産者は門0・ペルーの樹皮は門1 ②技術水準0では住民が厚くても届かない（技術力0＋必要性≦70）
-    /// ③技術水準を難易度へ上げ、樹皮の値段を掘る費用の e³ 倍に置くと届いて開く（門1）④技術水準を0へ戻して判定を重ねても開いたまま。
+    /// ①アジアのキナ（バタヴィア）の生産者は門0・ペルーの樹皮は門1 ②見つける力が0では届かない（技術力0＋必要性≦70）
+    /// ③見つける力を戻し、樹皮の値段を掘る費用の e³ 倍に置くと届いて開く（門1）④見つける力を0へ戻して判定を重ねても開いたまま。
+    /// ★(474) 産地の技術力は今の機構では人の厚み N÷(N＋N0) だけ（技術水準を読まない・(415)）＝〈見つける力が0〉は見つける力の半分点 N0 を極めて大きくして作る（旧は技術水準0）。
     /// ⚠壊し方＝門が SiteFound を読まない（常に1）→ ①が赤／判定で SiteFound を戻す → ④が赤。</summary>
     [Fact]
     public void 産地は見つかるまで産まない_見つかったら開いて失われない()
@@ -810,14 +814,14 @@ public class DiscoveryScoreTests
         // 財の解禁（作る門・需要の門）は「場所がまだ知られていない」を「財がまだ発見されていない」と取り違えない
         Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.CinchonaBarkId));
 
-        double tech0 = w.TechLevel;
-        w.TechLevel = 0;
+        double n00 = w.Coef.DiscoverySiteFindHalfPop;
+        w.Coef.DiscoverySiteFindHalfPop = NoFindingPower;   // 見つける力 0（旧は w.TechLevel＝0）
         var t0 = Discovery.SiteTerms(w, r, p, w.Coef);
-        Assert.True(t0.Tech == 0 && t0.Transmit == 0 && t0.Need <= Discovery.TermMax, $"項が範囲の外（{t0}）");
+        Assert.True(t0.Tech < 1e-6 && t0.Transmit == 0 && t0.Need <= Discovery.TermMax, $"項が範囲の外（{t0}）");
         Discovery.Step(w, null, w.Coef);
         Assert.False(p.SiteFound, "技術力0で開いた");
 
-        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, w.Coef) * 2;
+        w.Coef.DiscoverySiteFindHalfPop = n00;   // 見つける力を戻す
         int g = Catalog.Sites[p.SiteRow].Good;
         var b = SiteParts(w, r, p);
         Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・住民 {b.People}）");
@@ -829,11 +833,11 @@ public class DiscoveryScoreTests
         Assert.True(p.SiteFound);
         Assert.Equal(1.0, Discovery.Gate(r, p));
 
-        w.TechLevel = 0;
+        w.Coef.DiscoverySiteFindHalfPop = NoFindingPower;   // 見つける力を 0 へ戻す
         for (int i = 0; i < 3; i++) Discovery.Step(w, null, w.Coef);
         Assert.True(p.SiteFound, "開いた産地が閉じた");
         Assert.Equal(1.0, Discovery.Gate(r, p));
-        w.TechLevel = tech0;
+        w.Coef.DiscoverySiteFindHalfPop = n00;
     }
 
     /// <summary>★(171) 人の厚みは見つける力（技術力の側）＝鉱床は入植者（その国の中核民族の人数）・植林は住民：
@@ -845,7 +849,6 @@ public class DiscoveryScoreTests
     {
         var sim = Board();
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
-        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, w.Coef) * 2;
         var b = SiteParts(w, r, p);
         SiteMarket(w, Catalog.Sites[p.SiteRow].Good, b.Cost * System.Math.Exp(3.0));   // 必要性を立てる（人が居なくても必要性は変わらないことを見る）
         var t0 = Discovery.SiteTerms(w, r, p, w.Coef);
@@ -858,7 +861,6 @@ public class DiscoveryScoreTests
         Assert.False(p.SiteFound, $"入植者0の鉱床が開いた（{t}）");
 
         var (wk, rk, pk) = Site(sim, "ジャワのキナ");
-        wk.TechLevel = Discovery.DifficultyOf(Catalog.Sites[pk.SiteRow].Decade, wk.Coef) * 2;
         double before = Discovery.SiteTerms(wk, rk, pk, wk.Coef).Tech;
         Assert.True(before > 0, "前提が崩れた（植林の技術力0）");
         foreach (var q in rk.Pops) q.CoreEthnicShare = new Share(0);
@@ -866,7 +868,7 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>★(171) 産地の必要性は作者 2026-10-02 の一般則を産地に当てた AI の読み（推奨で進めた・作者の承認は未確認・費用は国の今のレシピ＝産地の富みを読まない＝候補2とは呼ばない＝(172) 反証役 vd4#3）＝ln（その財の平滑化した値段÷その国で今のレシピで掘る費用）を
-    /// 産地の半分点で飽和（発見の表の製法の行と同じ形）・技術力（見つける力）＝70×min(1, 技術水準÷難易度)×N÷(N＋N0)。盤面＝ルイジアナの硫黄（技術水準＝難易度の2倍）：
+    /// 産地の半分点で飽和（発見の表の製法の行と同じ形）・技術力（見つける力）＝70×N÷(N＋N0)（★(474) 技術水準の比は (415) で外れた・旧は 70×min(1, 技術水準÷難易度)×N÷(N＋N0)）。盤面＝ルイジアナの硫黄：
     /// ①硫黄の値段を掘る費用の2倍に置くと必要性＝70×ln2÷(ln2＋産地の半分点)（参照価格は読まない＝掘る費用は参照価格と1%以上違う）
     /// ②掘る費用の0.9倍なら0 ③国内に需要が無ければ（世界の値段が掘る費用の2倍でも）0 ④入植者の数を半分にしても必要性は1ビットも変わらず、技術力は 70×N÷(N＋N0) のとおり
     /// ⑤投入（農業労働力）の値段を2倍にすると掘る費用が上がり必要性が下がる ⑥判定（Step）は届けば開く＝呼び手も同じ値段の帳を読む。
@@ -878,7 +880,6 @@ public class DiscoveryScoreTests
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
         var c = w.Coef;
         int g = Catalog.Sites[p.SiteRow].Good;
-        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
         foreach (var q in r.Pops) q.CoreEthnicShare = new Share(1);
         var b = SiteParts(w, r, p);
         Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・入植者 {b.People}）");
@@ -1298,7 +1299,7 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>製法の行の判定も一過性の値段の跳ねでは開かない（作者裁定 Q12・(150) の番人の穴 M6＝製法の行の判定が瞬間の値段を読む変異が緑だった・(159)・(165) で比べる相手を今の費用へ）。
-    /// 盤面＝英の人絹（技術水準＝難易度の2倍）：平滑化した値段＝瞬間の値段・絹の値段＝人絹の今の費用のすぐ下（必要性0＝門に届かない）→ 瞬間の値段だけを、瞬間なら門に届き平滑なら届かない倍へ跳ねさせて
+    /// 盤面＝英の人絹（★(474) 技術力は今の機構で作る＝時計 S＝1・自国の項 C＝0.8〔技術力 56〕）：平滑化した値段＝瞬間の値段・絹の値段＝人絹の今の費用のすぐ下（必要性0＝門に届かない）→ 瞬間の値段だけを、瞬間なら門に届き平滑なら届かない倍へ跳ねさせて
     /// 判定の段（頭で平滑を1歩・判定）を1回＝開かない（平滑化した値段は1歩だけ動く）。⚠壊し方＝判定が瞬間の値段を読む → 開く＝赤。</summary>
     [Fact]
     public void 製法の行の判定は一過性の値段の跳ねでは開かない()
@@ -1308,18 +1309,19 @@ public class DiscoveryScoreTests
         int row = Row("人絹"), g = Catalog.SilkClothId;
         Assert.False(w.Discovered[row], "前提が崩れた（英が人絹を発見済み）");
         Assert.True(AliveIn(w, g), "前提が崩れた（英の絹織物の市場が死んでいる）");
-        w.TechLevel = Discovery.Difficulty(row, c) * 2;
+        var view = DiscoveryPremise.OpenClock();   // ★(474) 旧は w.TechLevel＝難易度の2倍（旗0の盤面）
+        Assert.True(DiscoveryPremise.OwnShare(w, row, 0.8, view), "前提が崩れた（英の絹織物の産業に高度労働力の雇用が無い＝自国の項 C を立てられない）");
         double pl = w.NominalOf(1.0);
         w.DiscoveryPrice = Discovery.InstantRealPrices(w);   // 平滑化した値段＝瞬間の値段
         var ro = new (double Replaced, double Cost)[Catalog.Discoveries.Length];
-        Discovery.Evaluate(w, null, c, ratioOut: ro);
+        Discovery.Evaluate(w, view, c, ratioOut: ro);
         double cost = ro[row].Cost;   // 人絹の今の費用（絹は人絹の投入でない＝絹の値段を動かしても変わらない）
         Assert.True(cost > 0, "前提が崩れた（人絹の費用が立たない）");
         foreach (var rg in w.Regions) if (rg.State == RegionState.Active) rg.Markets[g].Price = cost * pl * (1.0 - 1e-12);   // 瞬間の値段＝費用のすぐ下
         var inst0 = Discovery.InstantRealPrices(w);
         Assert.Equal(cost, inst0[g], 9);
         w.DiscoveryPrice = (double[])inst0.Clone();   // 平滑化した値段＝瞬間の値段
-        var t0 = Discovery.Evaluate(w, null, c)[row];
+        var t0 = Discovery.Evaluate(w, view, c)[row];
         Assert.True(t0.Need == 0 && t0.Score < Discovery.GateScore, $"前提が崩れた（{t0}）");
         double need = Discovery.GateScore - t0.Tech, h = c.DiscoveryNeedHalfProcess;
         Assert.True(need > 0 && need < Discovery.TermMax, $"前提が崩れた（技術力 {t0.Tech:F1}）");
@@ -1329,14 +1331,14 @@ public class DiscoveryScoreTests
         Assert.True(System.Math.Log(v) > sOpen && System.Math.Log(1.0 + a * (v - 1.0)) < sOpen, "前提が崩れた（跳ねの倍）");
         foreach (var rg in w.Regions) if (rg.State == RegionState.Active) rg.Markets[g].Price *= v;   // 瞬間の値段だけ跳ねる
         var inst1 = Discovery.InstantRealPrices(w);
-        Assert.True(Discovery.Evaluate(w, null, c, realPrice: inst1)[row].Score >= Discovery.GateScore, "前提が崩れた（瞬間の値段でも門に届かない）");
-        Discovery.AdvancePrice(w, c); Discovery.Step(w, null, c);
+        Assert.True(Discovery.Evaluate(w, view, c, realPrice: inst1)[row].Score >= Discovery.GateScore, "前提が崩れた（瞬間の値段でも門に届かない）");
+        Discovery.AdvancePrice(w, c); Discovery.Step(w, view, c);
         Assert.False(w.Discovered[row], "一過性の値段の跳ねで製法が開いた（判定が平滑化した値段を読んでいない）");
         Assert.Equal(inst0[g] + a * (inst1[g] - inst0[g]), w.DiscoveryPrice![g], 12);
     }
 
     /// <summary>判定は一過性の値段の跳ねでは開かない（作者裁定 Q12・(148) の申し送り＝値段の跳ねで必要性が飽和して樹皮と硫黄の産地が早く開いた）。
-    /// 盤面＝ルイジアナの硫黄（技術水準＝難易度の2倍・★(171) 見つける力の人の半分点を入植者の 1/9＝厚み 0.9＝技術力 63）：平滑化した値段を掘る費用に置くと必要性0＝門に届かない・
+    /// 盤面＝ルイジアナの硫黄（★(171) 見つける力の人の半分点を入植者の 1/9＝厚み 0.9＝技術力 63）：平滑化した値段を掘る費用に置くと必要性0＝門に届かない・
     /// 瞬間の値段だけを門の2倍の強度へ跳ねさせて判定を1回＝開かない（平滑化した値段は1歩だけ動く）。⚠壊し方＝判定が瞬間の値段を読む → 開く＝赤。</summary>
     [Fact]
     public void 判定は一過性の値段の跳ねでは開かない()
@@ -1346,7 +1348,6 @@ public class DiscoveryScoreTests
         var sim = Board(coef: new Coefficients { DiscoveryPriceInitFromCost = 0 });
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
         var c = w.Coef; int g = Catalog.Sites[p.SiteRow].Good;
-        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
         foreach (var q in r.Pops) q.CoreEthnicShare = new Share(1);
         var b = SiteParts(w, r, p);
         Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・入植者 {b.People}）");

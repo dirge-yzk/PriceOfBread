@@ -5,22 +5,33 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(415) 旧の式（技術水準÷難易度）の盤面を作る試験用の口。既定（係数 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/> が正）では発見の技術力が技師の量から決まるため、
-/// 技術水準を操作して前提を作る機構の番人（判定の門・段・産地・伝わり）と、軌道に依存する計器の番人は、この口で旗を0にした盤面（構築の直後・最初の判定の前に呼ぶ）で動かす。
-/// 旗0は旧と1ビットも違わない（腕 A で証明）＝それらの番人の盤面は旧と同じ軌道。既定の経路は <see cref="DiscoveryEngineerTests"/> が見る。</summary>
-internal static class LegacyDiscovery
+/// <summary>★(474) 発見の技術力の前提を今の機構（発見の時計の細い傾斜〔(461)〕＝技術力 70×S×C）で作る試験用の口。旧は <c>LegacyDiscovery.Apply</c>（旗 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/>＝0＝旧の式〔技術水準÷難易度〕）に固定して
+/// 技術水準を書き換えて前提を作っていた（(415)）。今の既定では製法・新製品・新兵器の行の技術力が <see cref="Discovery.WorldView.WorldAdvLabor"/>（W＝時計 S の入力）と自国の項 C（親の産業の技師 A÷(A＋Am)）で決まる
+/// ＝前提は W（<see cref="OpenClock"/>・<see cref="ClosedClock"/>）と C（<see cref="OwnShare"/>）で作る。旗は倒さない。</summary>
+internal static class DiscoveryPremise
 {
-    internal static MultiNationSim Apply(MultiNationSim sim)
-    {
-        sim.Coef.DiscoveryEngineerHalfPerMonth = 0;   // 多国の判定（MultiNationSim.StepQuarter の Discovery.Step）は国の World.Coef でなく共有の係数を読む
-        foreach (var n in sim.Nations) Apply(n.World);
-        return sim;
-    }
+    /// <summary>時計 S を 1 にする W（月あたり・W0×d の最大〔d＜50〕より桁違いに大きい）。</summary>
+    internal const double OpenClockW = 1e12;
 
-    internal static void Apply(World w)
+    /// <summary>時計 S＝1（技術力の上限は C）の見え方。<paramref name="v"/> の接触・損耗・市場はそのまま持つ。</summary>
+    internal static Discovery.WorldView OpenClock(Discovery.WorldView? v = null)
+        => v is null ? new Discovery.WorldView(null, WorldAdvLabor: OpenClockW) : v with { WorldAdvLabor = OpenClockW };
+
+    /// <summary>自国の項 C＝A÷(A＋Am) を 1 に近づける Am（極小の正）＝親の産業に技師が居る国（A＞0）は C≈1・技師の居ない国（A＝0）は C＝0 のまま。</summary>
+    internal const double FullOwnShareAm = 1e-9;
+
+    /// <summary>時計 S＝0（W＝0）の見え方＝技術力 0。</summary>
+    internal static Discovery.WorldView ClosedClock(Discovery.WorldView? v = null)
+        => v is null ? new Discovery.WorldView(null, WorldAdvLabor: 0) : v with { WorldAdvLabor = 0 };
+
+    /// <summary>その国のその行の自国の項 C を <paramref name="cTarget"/>∈(0,1) にする＝Am を親の産業の技師 A から逆算して国の係数へ書く（A＝今の盤面の値・時計は開けて測る）。
+    /// A が正でない国は作れない（false）。書くのは国の <see cref="World.Coef"/>（国ごとの別インスタンス）だけ。</summary>
+    internal static bool OwnShare(World w, int row, double cTarget, Discovery.WorldView? v = null)
     {
-        w.Coef.DiscoveryEngineerHalfPerMonth = 0;
-        Discovery.SeedCompatRows(w);   // 旗0の構築と同じ（合成染料の行は開幕で解禁済み）
+        double a = Discovery.ParentEngineersByRow(w, OpenClock(v), w.Coef)[row];
+        if (!(a > 0)) return false;
+        w.Coef.DiscoveryOwnHalfPerMonth = a * (1.0 - cTarget) / cTarget;
+        return true;
     }
 }
 

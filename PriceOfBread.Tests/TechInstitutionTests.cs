@@ -38,7 +38,7 @@ public class TechInstitutionTests
         var cfg = Four();
         var sim = new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] || c == cfg[3] ? new FreePressPublicEducationPin() : new NullAgent(),
             coef: new Coefficients());
-        LegacyDiscovery.Apply(sim);   // ★(415) 旧の式（旗0）＝この試験の主題は教育法と技術水準の伸びで、軌道が発見の技術力の出所で動くと絶対の床 1.10 に髪一重で割れる（既定の経路では 1.031）
+        PinLegacyDiscovery(sim);   // ★(474) 残りの 1 本：旧の盤面（旗0）に固定したまま。下の PinLegacyDiscovery の注
         sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法。綱領は 2026-09-26 に撤去）
         sim.Nations[3].World.ParliamentEnabled = false;
         // 前提の番人＝固定が効いている（効いていなければ主張の入力が崩れている）。
@@ -65,7 +65,7 @@ public class TechInstitutionTests
         }
         Assert.True(pinBroken.Count == 0, $"固定が崩れた四半期 {pinBroken.Count}件（政体の替わった四半期を除く）：" + string.Join("／", pinBroken.Take(5)));
         Assert.True(pinChecked >= 2 * 300 * 9 / 10, $"政体の替わった四半期が多すぎて固定を確かめられない（{pinChecked}/{2 * 300}）");
-        var pinned = RunWithJapanPinnedReligious(300);   // 対照＝宗教教育に固定した日本（同seed・同期間の別世界）
+        var pinned = RunWithJapanPinnedReligious(300, legacy: true);   // 対照＝宗教教育に固定した日本（同seed・同期間の別世界）
         double japanReligious = pinned.Nations[1].World.TechLevel;
         double britain = sim.Nations[2].World.TechLevel, america = sim.Nations[3].World.TechLevel;
         // 期待値再導出（#17・2026-08-08作者許可）：絶対床1.25は軌道ピン化していた（R3安定形＝潤沢判定の是正で
@@ -75,6 +75,21 @@ public class TechInstitutionTests
         Assert.True(america > 1.10, $"アメリカ（自由報道＋公教育に固定）が停滞水準にある t={america:F3}");
         Assert.True(britain > japanReligious * 1.3, $"イギリス（自由報道＋公教育に固定）が宗教固定の対照を引き離せていない 英={britain:F3} 対照={japanReligious:F3}");
         Assert.True(america > japanReligious * 1.3, $"アメリカ（自由報道＋公教育に固定）が宗教固定の対照を引き離せていない 米={america:F3} 対照={japanReligious:F3}");
+    }
+
+    /// <summary>★(474) 旧の盤面（旗 <see cref="Coefficients.DiscoveryEngineerHalfPerMonth"/>＝0＝発見の技術力が技術水準÷難易度）へ固定する（旧 <c>LegacyDiscovery.Apply</c> の中身）。
+    /// <para>**この 1 本（公教育の自由国は世界の技術水準へ到達する）だけが旧の盤面に残る**：他の 4 本の番人クラス〔DiscoveryScoreTests・DiscoveryTierTests・InstrumentsTests・MilitaryTests〕は今の既定
+    /// 〔発見の時計の細い傾斜〕へ書き直した。この番人の主張は技術水準そのもの（t＞1.10・宗教固定の 1.3 倍）で、技術水準の完全削除の線が書き直す対象。今の既定で外すと英が t＝0.982 で凍る
+    /// 〔4 カ国の閉じた世界は世界の高度労働力の雇用 W が開幕で 934（61 カ国は 2076）・時計の W0 は 7854＝d＞0 の行がほとんど開かない。W0 を 0.45 倍にしても t＝0.982 のまま＝時計の縮尺ではない〕。
+    /// 開幕に機関車・汽船だけ与えても割れる（米が 1.10 を割る）・1840 年までの全ての行を与えると緑（暦年で前提を作るのは台本禁止に近い）＝前提の作り方に確証がないので固定のまま記録する。</para></summary>
+    private static void PinLegacyDiscovery(MultiNationSim sim)
+    {
+        sim.Coef.DiscoveryEngineerHalfPerMonth = 0;   // 多国の判定（MultiNationSim.StepQuarter の Discovery.Step）は国の World.Coef でなく共有の係数を読む
+        foreach (var n in sim.Nations)
+        {
+            n.World.Coef.DiscoveryEngineerHalfPerMonth = 0;
+            Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（合成染料の行は開幕で解禁済み）
+        }
     }
 
     /// <summary>統治の固定（試験用・2026-09-21 ㉖）：毎四半期の頭で報道法＝自由報道・教育法＝公教育・参政権＝初期値を**状態と目標の両方**へ書き戻し、
@@ -99,14 +114,14 @@ public class TechInstitutionTests
     // 「宗教教育に**留まる**国は追いつけない」を検証するため、日本の議会を無効化（梯子テストと同じ分離手法）＝
     // NullAgent世界では教育目標が初期値（宗教）のまま動かず、綱領上書きによる転換だけを封じる（政変・経済は生きたまま）。
     // ★2026-09-26（回5-1 項目17）：綱領は撤去＝議会はもう目標を書かない。分離は議席の純支持を切る分として残す。
-    private static MultiNationSim RunWithJapanPinnedReligious(int quarters, bool pinBritain = false)
+    private static MultiNationSim RunWithJapanPinnedReligious(int quarters, bool pinBritain = false, bool legacy = false)
     {
         // ★(327) pinBritain＝英の報道法・教育法・参政権を毎四半期書き戻す（公教育の自由国の番人と同じ分離手法・既定 false＝他の 2 本の盤面は 1 ビットも変えない）。
         var cfg = Four();
         var sim = pinBritain
             ? new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] ? new FreePressPublicEducationPin() : new NullAgent(), coef: new Coefficients())
             : new MultiNationSim(Four(), seed: 1789, coef: new Coefficients());
-        LegacyDiscovery.Apply(sim);   // ★(415) 同上（対照の盤面も旧の式）
+        if (legacy) PinLegacyDiscovery(sim);   // ★(474) 公教育の自由国の番人の対照だけ旧の盤面（同じ旗の腕で比べる）。他の 2 本は今の既定
         sim.Nations[1].World.ParliamentEnabled = false;
         if (pinBritain) sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法）
         // ★(159) 盤面の前提（主張は同じ）：物を生む行の必要性が動力（労働力の財）の平滑化した値段÷参照価格になり、この4カ国の閉じた世界では動力が参照を超えず
