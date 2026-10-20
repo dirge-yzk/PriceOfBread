@@ -1416,6 +1416,18 @@ public static class EconomyStep
             }
         }
 
+        // ★(471) 消費の予算の下限（経-20・旗 ConsumeBudgetFloor）：残りの予算が負の POP（月初の貯蓄が負・BackstopNegativeSavings が月の終わりに埋めるまでの隙間）は買える量が負＝需要が負になり市場を逆に動かす。
+        //   旗 1 で `!(RemainingBudget > 0)` なら 0（否定形＝NaN も 0）。Savings は触らない（貯蓄の記帳は不変）。家計の与信（下の入口B）の不足は床の後の予算から出る。
+        //   INS=1 のときは旗に依らず、床の直前に負だった POP×月の人口と額を診断の欄へ積む（sf_s・読むだけ）。旗 0 かつ INS=0 は何も走らない。
+        if (coef.ConsumeBudgetFloor > 0 || (Instruments.On && world is not null))
+        {
+            foreach (var p in region.Pops)
+            {
+                if (Instruments.On && world is not null && p.RemainingBudget < 0) { world.DiagSfBudgetNegCumPopMonthK += p.Size; world.DiagSfBudgetNegCumAmount -= p.RemainingBudget; }
+                if (coef.ConsumeBudgetFloor > 0 && !(p.RemainingBudget > 0)) p.RemainingBudget = 0;
+            }
+        }
+
         insEnt?.Start();   // (345) 計器（読むだけ）：財のループの直前の残予算・貯蓄・支払い
         // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
         // 消費順＝第1キー tier（エンゲル：生存→日用→贅沢は価格に依らず維持）／第2キー 同tier内の**安い順**。

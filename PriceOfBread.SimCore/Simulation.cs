@@ -2179,6 +2179,8 @@ public sealed class Simulation
         double tradeClaim = World.Tariff < 0 ? World.LastExportValue / erClaim * -World.Tariff : 0;
         if (World.ImportsByGood is { } payImp)
             for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g] / erClaim;
+        if (World.Coef.TradeCheapSellSubsidy > 0 && World.ExportsByGood is { } payExp)   // ★(471) 〈安く売る〉の輸出奨励金の見込み（売り手の国庫が出す s×輸出額）＝+1 の輸入側と対の輸出側（r の分母が片側にならない）
+            for (int g = 0; g < payExp.Length; g++) if (World.TradeBiasOf(g) < 0) tradeClaim += World.Coef.TradeBiasStrength * payExp[g] / erClaim;
         if (Instruments.On) Instruments.Claim(World, Instruments.Item.MegaForeignYieldQ, claims - megaMark);
         claims += tradeClaim / World.Coef.MonthsPerClearing;
         if (Instruments.On) Instruments.Claim(World, Instruments.Item.TradePolicy, tradeClaim / World.Coef.MonthsPerClearing);

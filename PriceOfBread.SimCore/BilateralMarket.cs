@@ -668,6 +668,11 @@ public sealed partial class InternationalMarket
             for (int gi0 = 0; gi0 < gc; gi0++) dens[gi0] = goodById[gi0] is { } gdd ? gdd.RefPrice / Math.Max(1e-9, Catalog.TransportWeight(gi0)) : 0.0;
             Array.Sort(gOrder, (a, b) => dens[b] != dens[a] ? dens[b].CompareTo(dens[a]) : a.CompareTo(b));
         }
+        // ★(471) 〈安く売る〉（交-16・旗 TradeCheapSellSubsidy）＝+1（高く買う）の鏡像の輸出奨励金。売り手の国が −1 を置いた財の**越境**の成約だけ：着値の楔を s 下げ（買い手の敷居）、買い手は積出し価格の (1−s) を払い、
+        //   売り手は満額を受け取り、差 s×積出し価格×r（r＝売り手の国の国家の支払い率）は売り手の国庫が出す（r＜1 の不足は売り手が食う）。率 s ＝ TradeBiasStrength（+1 と同じ・0＜s＜1 の外は働かない）。旗 0 は何も走らない。
+        bool cheapOn = c.TradeCheapSellSubsidy > 0 && c.TradeBiasStrength > 0 && c.TradeBiasStrength < 1;
+        double[]? sellCheap = cheapOn ? new double[nn] : null;   // 財ごとの売り手の国の奨励率（−1 を置いた国だけ s）
+        double[]? subPay = cheapOn ? new double[tc] : null;       // 売り手の州ごとの国庫の払い（売り手の通貨・財の清算の終わりに払う）
         var swSec = MultiNationSim.TimeOn ? System.Diagnostics.Stopwatch.StartNew() : null;   // ★計器（POB_TIME）
         for (int gIdx = 0; gIdx < gc; gIdx++)
         {
@@ -697,6 +702,14 @@ public sealed partial class InternationalMarket
 
             double weightAdd = WeightMarginAdd(g);
             double Wg = Catalog.TransportWeight(g);   // 財の輸送重量（積載・容量の単位）
+            bool cheapG = false;   // ★(471) この財に −1 を置いた国がある（昇順の打ち切りの下界を弱める行・売り手の楔を引く行）
+            if (cheapOn)
+                for (int ci = 0; ci < nn; ci++)
+                {
+                    bool on = nations[ci].World.TradeBiasOf(g) < 0;
+                    sellCheap![ci] = on ? c.TradeBiasStrength : 0.0;
+                    if (on) cheapG = true;
+                }
             bool milGood = Array.IndexOf(c.MilitaryExportGoods, g) >= 0;
 
             // ---- 売り手候補＝出せる在庫のある州の全て。価格の昇順（枝刈りのため） ----
@@ -816,6 +829,7 @@ public sealed partial class InternationalMarket
                 double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
+                if (cheapG) lbMul -= c.TradeBiasStrength;   // ★(471) −1 の売り手の楔（−s）を含めても真の下界のまま（旗 0・−1 の売り手のいない財は旧の式）
                 int candN = 0, resS = headS, resPrev = -1;   // 候補の数／次に調べる売り手（打ち切り位置）とその手前の生存売り手
                 int bestA = -1, bestPos = -1; double bestDelA = double.MaxValue, secondDelA = double.MaxValue, bestKmA = 0;
                 bool keepBest = false;   // (a)：前回の best/second をそのまま使う
@@ -824,7 +838,7 @@ public sealed partial class InternationalMarket
                 //   式と評価順は旧のまま。入力は全て、最良と次善（bestA・bestPos・secondDelA）・この行の定数（t・lp・g・ni）・この清算で不変の表
                 //   （tr・exRate・tar・portOwner・underwriters・候補表の candF・距離の印 kmGen/kmLand）だけ＝成約で動く量（在庫・容量・予算・LastImport・LastExport）は読まない。
                 bool dealConstStale = true;
-                double unitA = 0, rpT = 0, powVal = 0, sellAccB = 0, rpS = 0, frA = 0, sA = 0, dutyA = 0, portT = 0, portS = 0, premA = 0, costA = 0;
+                double unitA = 0, rpT = 0, powVal = 0, sellAccB = 0, rpS = 0, frA = 0, sA = 0, dutyA = 0, portT = 0, portS = 0, premA = 0, costA = 0, sellSubA = 0;   // sellSubA＝★(471) この成約の売り手の奨励率（0＝なし）
                 int snA = 0, siA = 0; Market msA = null!; bool xPriceOn = false, crossA = false, seaA = false;
                 bool dealtRow = false;   // この行で1件でも成約したか（成約しなかった行に印＝ClearFailLp）
                 int guard = 0;
@@ -872,6 +886,7 @@ public sealed partial class InternationalMarket
                             if (restrict && member[s2] != rowStamp) { if (MultiNationSim.TimeOn) CntScopeWalk++; prevS = s2; s2 = nextS![s2]; continue; }   // ★(403) 覚えに無い売り手は見ない（生きている売り手なので prevS を進める＝1c と同じ手）
                             if (MultiNationSim.TimeOn) CntScanSteps++;   // ★計器（各売り手は1行につき1回だけ訪問）
                             double wS2 = tr[sellers[s2].Node].nation == ni ? wedgeHome : wedge;
+                            if (cheapG && tr[sellers[s2].Node].nation != ni) wS2 -= sellCheap![tr[sellers[s2].Node].nation];   // ★(471) 越境の −1 の売り手は着値の楔が s 下がる
                             // ★1c：売り手ごとの下界 Price·((1＋TM·adV)＋楔)≦着値 で無効と分かる売り手（関税・穀物法で閉じた外国の売り手）は、距離と危険料を引かずに飛ばす。
                             //   ⚠生きている売り手なので prevS を進める（進めないと上の連結リストの付け替えが壊れる）。打ち切りの位置は min(bestDelA, lp) で旧と同じ。
                             if (sellers[s2].Price * (baseMul + wS2) >= lp) { if (MultiNationSim.TimeOn) CntWedgeSkips++; prevS = s2; s2 = nextS![s2]; continue; }
@@ -925,12 +940,14 @@ public sealed partial class InternationalMarket
                         //   （関税を上げるほど輸出国への支払いが増える＝帰着が逆）。関税と穀物法の分は通関で輸入国の国庫へ・影の運送は誰にも払わない
                         //   （捌き手の商人が国内で売る値との差として残る）・運賃は積出し価格に掛かり船の持ち主へ。
                         crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
+                        sellSubA = cheapG && crossA ? sellCheap![siA] : 0.0;   // ★(471) 越境の −1 の売り手の奨励率（着値の候補表 candF に入れた −s と同じ値）
                         sA = unitA / candF![bestPos];
                         dutyA = crossA ? duty : 0.0;
                         seaA = !LandNow(t * tc + snA);   // 港湾料と保険料の率（海路の成約だけ）。★(335) KmOf(snA, t) が書いた添字（買い手 t の行・売り手 snA の列）
                         portT = seaA && portOwner[t] is not null ? c.PortFeeRate : 0.0; portS = seaA && portOwner[snA] is not null ? c.PortFeeRate : 0.0;
                         premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
                         costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃＋港湾料＋保険料・自国通貨＝A7）
+                        if (sellSubA > 0) costA = sA * (1 + dutyA + frA + portT + portS + premA - sellSubA) / exRate[ni];   // ★(471) 買い手の実際の支払いは積出し価格の (1−s)（差は売り手の国庫が出す）
                     }
                     // --- 買い手 X（§1-2）：価格静止と物理の2腕 min（低すぎる着値で静止点が無い穴を X_need が塞ぐ）---
                     double xPrice = xPriceOn ? m.LastDemand * powVal - (m.LastProduced + m.LastImport) : 0.0;
@@ -983,14 +1000,23 @@ public sealed partial class InternationalMarket
                     m.Stock += qA; m.LastImport += qA;
                     if (c.DiffusionWeight > 0 && crossA) AccumulatePairFlow(siA, ni, vA, nn);   // ★段7：伝播のペア記帳（国際取引のみ・0＝不読＝恒等）
                     if (crossA) AccumulateDiscovery(nations, c, siA, ni, g, vA);                    // ★段2A：発見の伝わりの記帳（その財を運び手に持つ行＝解禁済みの国からまだの国へ）
-                    double payA = (vA + frG) / exRate[ni];     // 清算所へ（輸入代金＋運賃・買い手の通貨）
+                    double subV = sellSubA > 0 ? vA * sellSubA : 0.0;   // ★(471) 輸出奨励金（金建て）＝積出し価格の額×s
+                    double payA = sellSubA > 0 ? (vA - subV + frG) / exRate[ni] : (vA + frG) / exRate[ni];     // 清算所へ（輸入代金＋運賃・買い手の通貨）。★(471) 奨励金の分は買い手が払わない
                     double dutyPay = vA * dutyA / exRate[ni];  // 国庫へ（関税と穀物法・買い手の通貨）
                     double feePay = vA * (portT + portS + premA) / exRate[ni];   // 清算所へ（港湾料と保険料・買い手の通貨）＝受け手へは清算の終わりに
                     payHouse[t] += payA + feePay; payTariff[t] += dutyPay; budget[t] -= payA + dutyPay + feePay;
                     double recvA = vA / exRate[siA];            // 売り手の受取（売り手の通貨）
-                    rev[snA] += recvA;
-                    if (crossA) { revX[snA] += recvA; expReg[snA] += recvA; }
-                    fxIntended += recvA - payA;                 // 為替の換算の差（運賃の受取は清算の終わりに足す）
+                    double subSell = 0, recvEff = recvA;        // ★(471) 奨励金（売り手の通貨）・売り手が清算所から受け取る額＝満額−r で払えなかった不足（売り手が食う）
+                    if (sellSubA > 0)
+                    {
+                        subSell = subV / exRate[siA];
+                        double subPaid = subSell * nations[siA].World.FiscalFundingRatio.Value;   // 売り手の国庫が実際に出す額（r の分だけ）
+                        recvEff = recvA - subSell + subPaid;
+                        subPay![snA] += subPaid;
+                    }
+                    rev[snA] += recvEff;
+                    if (crossA) { revX[snA] += recvEff; expReg[snA] += recvA; }
+                    fxIntended += sellSubA > 0 ? recvA - subSell - payA : recvA - payA;                 // 為替の換算の差（運賃の受取は清算の終わりに足す）。★(471) 奨励金の分は売り手の国庫から清算所へ入る
                     if (portT > 0) portRecv[t] += vA * portT / exRate[ni];
                     if (portS > 0) { double rS = vA * portS / exRate[siA]; portRecv[snA] += rS; fxIntended += rS - vA * portS / exRate[ni]; }   // 積出し港の持ち主は自国の通貨で（換算の差は台帳へ）
                     if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
@@ -1040,6 +1066,12 @@ public sealed partial class InternationalMarket
                 double comm = 0;
                 if (revX[t] > 0 && rS.MerchantPopIndex >= 0 && rS.MerchantPopIndex < rS.Pops.Count)
                     comm = World.Transfer((null, null), (wS, [rS.Pops[rS.MerchantPopIndex]], null), revX[t] * c.MerchantTradeMargin.Value, TreasuryCat.OtherIn, income: true);
+                if (subPay is not null && subPay[t] > 0)
+                {   // ★(471) 輸出奨励金＝売り手の国庫→清算所（売り手の通貨）。直後の PaySales が受取と一緒に④の持分で分ける
+                    double mv = World.Transfer((wS, null), (null, null, null), subPay[t], TreasuryCat.Subsidy);
+                    if (Instruments.On) wS.DiagSfCheapSubsidyPaidCum += mv;
+                    subPay[t] = 0;
+                }
                 PaySales((null, null), rS, g, rev[t] - comm, wS);
                 rev[t] = 0; revX[t] = 0;
             }

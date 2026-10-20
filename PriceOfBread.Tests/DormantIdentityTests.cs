@@ -98,6 +98,10 @@ public class DormantIdentityTests
         // ★AiLawGateFromBoard（(423) 工業化度を読む AI の法の門を盤面の実物へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
+        "PensionIncludesSoldiers",      // ★(471) 兵士の年金（人-14・0＝旧＝年金の分母と受け手から兵士を外す）。1 は兵士も 60 歳以上の割合で受け取る。腕 B で採否
+        "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
+        "SeatVoteSuffrageScope",        // ★(471) 議席の票に参政権の範囲の算入率を掛ける（政-30・0＝旧）。腕 B で採否
+        "ConsumeBudgetFloor",           // ★(471) 消費の予算の下限（経-20・0＝旧＝負の予算の POP は買える量が負）。腕 B で採否
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

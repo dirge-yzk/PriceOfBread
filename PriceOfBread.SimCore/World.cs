@@ -194,6 +194,9 @@ public sealed class World
     public double[]? DiscoveryPrice;
     /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・損耗の強さ＝画面と計器が同じ3項を出すため・★(159) 人件費の世界の平均は削除）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
     [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
+    // ★(471) 計器 sf_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを1つも読まない）：兵士へ届いた年金の累計・売り手の国庫が払った〈安く売る〉の補助の累計（自国通貨）・
+    //   直近の ComputeVotes が使った票の重みの合計・床の直前に残りの予算が負だった POP×月の人口〔千〕と額の累計。
+    [System.NonSerialized] internal double DiagSfPensionToSoldiersCum, DiagSfCheapSubsidyPaidCum, DiagSfVoteWeightUsed, DiagSfBudgetNegCumPopMonthK, DiagSfBudgetNegCumAmount;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
@@ -576,7 +579,7 @@ public sealed class World
     public double ElectionPushHalfPoint()
     {
         double voters = 0;
-        foreach (var p in AllPops()) voters += p.Size * InterestGroups.FranchiseVoice(p, Suffrage, Coef);
+        foreach (var (rg, p) in AllPopsWithRegion()) voters += p.Size * InterestGroups.SeatVoice(this, rg, p, Suffrage);   // ★(471) 議席の票と同じ 1 本（Parliament が数える重み）
         if (!(voters > 0)) return 0;
         double pop = TotalPopulation;
         if (!(pop > 0)) return 0;
@@ -590,9 +593,9 @@ public sealed class World
         if (!(incSum > 0) || !(sizeSum > 0)) return Coef.ElectionPushHalfPerVoter * voters * incomePerHead;   // 所得の分布が立たない世界（t=0・経済なし）＝全国一律へ退避
         double meanPerHead = incSum / sizeSum;
         double weighted = 0;
-        foreach (var p in AllPops())
+        foreach (var (rg, p) in AllPopsWithRegion())   // ★(471) 同上
         {
-            double voice = InterestGroups.FranchiseVoice(p, Suffrage, Coef);
+            double voice = InterestGroups.SeatVoice(this, rg, p, Suffrage);
             if (!(voice > 0)) continue;
             weighted += voice * ((1.0 - bribeW) * p.Size + bribeW * (System.Math.Max(0, p.LastEarnedPerMonth.Value) / meanPerHead));
         }
@@ -650,9 +653,9 @@ public sealed class World
         // ＝金は票を持つ者に渡る（制限選挙では名望家へのパトロネジ・普通選挙では大衆へ薄く）。受け手不在（有権者ゼロ）＝動かさない（国庫に残る）。
         // ★段4g（2026-09-30）：旧＝国庫から全額を引き、配れなかった額を戻す2行（国庫の片側の記帳）。
         var voters = new List<Pop>(); var voice = new List<double>();
-        foreach (var p in AllPops())
+        foreach (var (rg, p) in AllPopsWithRegion())   // ★(471) 選挙資金の受け手の重みも議席の票と同じ 1 本
         {
-            double v = p.Size * InterestGroups.FranchiseVoice(p, Suffrage, Coef);
+            double v = p.Size * InterestGroups.SeatVoice(this, rg, p, Suffrage);
             if (v <= 1e-9) continue;
             voters.Add(p); voice.Add(v);
         }
