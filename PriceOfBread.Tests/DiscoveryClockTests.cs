@@ -371,6 +371,36 @@ public class DiscoveryClockTests
         Assert.True(CostLedger.UnitMicros[CostLedger.DiscoveryWorldScans] > 0);
     }
 
+    /// <summary>新しい既定（係数に何も書かない盤面）で、開幕の世界の高度労働力の雇用 W は d＝2 の行の傾斜の下端 W0×2×(1−w/2) より小さい＝d＞0 の行は 1783 年のうちに 1 本も開かない（時計が 1783 年の洪水を止める＝狙い T0・T1）。
+    /// 期待値は手計算の不等式（W0 の既定は 7854.08・d の最小は 2・w は 0.1 → 下端 14,923）と、行ごとの解禁の有無（制度と思想の行・d≦0 の行・データで開幕に解禁済みの行は除く）。
+    /// ⚠壊し方＝既定を W0＝0 に戻す（(415) の式へ → 転炉鋼・機関車が 1783 年に開く）・傾斜の下端を W0×d より下げる → 赤。</summary>
+    [Fact]
+    public void 新しい既定では1783年のうちにd正の行は1本も開かない()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        var before = sim.Nations.Select(n => n.World.Discovered is { } k ? (bool[])k.Clone() : new bool[Catalog.Discoveries.Length]).ToList();   // 開幕に解禁済みの行（データの既知の集合）
+        for (int q = 0; q < 4; q++) sim.StepQuarter();
+        double wTot = HandWorld(sim);
+        var c = sim.Coef;
+        Assert.True(c.DiscoveryClockWorldPerMonth > 0 && c.DiscoveryOwnHalfPerMonth > 0, "新しい既定で時計の形が点いていない");
+        Assert.True(wTot < c.DiscoveryClockWorldPerMonth * 2.0 * (1.0 - c.DiscoveryClockRampWidth / 2.0), $"開幕の W {wTot} が d＝2 の傾斜の下端以上＝この検査の前提が崩れた");
+        int checkedRows = 0, opened = 0;
+        for (int i = 0; i < before.Count; i++)   // 分離・建国で増えた国は数えない（開幕の国だけ）
+        {
+            var w = sim.Nations[i].World;
+            for (int row = 0; row < Catalog.Discoveries.Length; row++)
+            {
+                var d = Catalog.Discoveries[row];
+                if (Discovery.IsSpread(d.Field) || d.Decade <= Catalog.DiscoveryBaseDecade) continue;
+                if (row < before[i].Length && before[i][row]) continue;
+                checkedRows++;
+                if (Discovery.Known(w.Discovered, row)) { opened++; }
+            }
+        }
+        Assert.True(checkedRows > 1000, $"確かめた国×行が少なすぎる（{checkedRows}）");
+        Assert.Equal(0, opened);
+    }
+
     /// <summary>電動機の親の産業は時計の形とは別の旗（<see cref="Coefficients.DiscoveryClockMotorParent"/>）＝時計の形（W0 が正）だけでは蒸気機関の財を足さず、旗も正のときだけ足す。
     /// 旗が正の盤面の電動機の技術力は 70×S×C で、A は蒸気機関の財の技師＋電力の投入（番人の側で生産者をたどって組む）。旗が 0 の盤面では今の規則の A。
     /// ⚠壊し方＝旗を見ず時計の形のとき常に蒸気機関の財にする → 旗が 0 の盤面（BoardOn）の電動機の検査で赤。旗が正でも足さない → 本検査で赤。</summary>
