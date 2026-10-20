@@ -1,0 +1,17 @@
+    0 エラー
+== M1 門を外す（常に発注） ==
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.旗0は倒産中の工場も請求され_旗1だけ倒産中の請求と件数が0になる_倒産していない工場は請求され続ける [673 ms]
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.需要の側も同じ量だけ消える_倒産中の工場の投入の需要は旗0より_frac_かける作りたい量かける係数_だけ小さい_他の工場の投入は不変 [37 ms]
+失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 806 ms - PriceOfBread.Tests.dll (net10.0)
+    0 エラー
+== M2 倒産の向きを反転 ==
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.旗0は倒産中の工場も請求され_旗1だけ倒産中の請求と件数が0になる_倒産していない工場は請求され続ける [707 ms]
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.需要の側も同じ量だけ消える_倒産中の工場の投入の需要は旗0より_frac_かける作りたい量かける係数_だけ小さい_他の工場の投入は不変 [39 ms]
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.倒産していない世界では旗0と旗1はビットで同じ [37 ms]
+失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 861 ms - PriceOfBread.Tests.dll (net10.0)
+    0 エラー
+== M3 旗を無視して常に倒産中を外す ==
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.旗0は倒産中の工場も請求され_旗1だけ倒産中の請求と件数が0になる_倒産していない工場は請求され続ける [731 ms]
+  失敗 PriceOfBread.Tests.BankruptRestartOrderTests.需要の側も同じ量だけ消える_倒産中の工場の投入の需要は旗0より_frac_かける作りたい量かける係数_だけ小さい_他の工場の投入は不変 [44 ms]
+失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 884 ms - PriceOfBread.Tests.dll (net10.0)
+done

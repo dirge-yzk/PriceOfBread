@@ -1,0 +1,8 @@
+(462) 線 ca：canary の恒等と旗 1 の差（計器つき 1 種・seed 1 と seed 2・読み取りだけ・採否に使わない）
+木：枝 ca の先端（コード f37737e6 の木）。A＝旗 0（既定）・B＝POB_COEF=BankruptNoRestartOrder=1。NATIONS＝清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本。生は読み終えてから消した（ca_s の表だけ ca_s_{A,B}_seed{1,2}.tsv に残した）。
+
+A と基線 m457_ins（D:/PoB_work/keep_457/m457_ins）：seed 1・seed 2 とも、m457_ins にある 52 表のうち 51 表がバイト一致。違いは burscan_s*.tsv（壁時計の 1 列）だけ。A にだけある表は新しい ca_s（53 表目）。
+B と A：seed 1・seed 2 とも、ca_s を含む 52 表がバイト一致。違いは burscan_s*.tsv（壁時計）だけ。成績表（b1_*.txt）の違いは名乗りの POB_COEF の 1 行だけ。
+→ 旗 1 は seed 1 と seed 2 の 668 四半期の全期間・全 61 カ国で、どの表の値も 1 ビットも変えなかった（力学の差が 1 度でも出れば計器の表は混沌で食い違う）。
+ca_s（A・旗 0）：trickleBillBankruptPerMonth の和＝0（seed 1・seed 2・8 国×全四半期の断面）・trickleBillActivePerMonth の和＝3.30e7（seed 1）・3.05e7（seed 2）。
+推定の計算量：A・B とも 232.0 秒（seed 1・名目 248.5 秒の内・旗 1 は倒産中の生産者の 1 回の計算を飛ばすだけで件数は同じ）。
