@@ -581,7 +581,22 @@ public sealed class MultiNationSim
             // ★(159) 平滑化した値段（作者裁定 Q12）を全ての国で先に1歩進めてから判定する（判定は読むだけ＝書き手は判定の段の頭の1か所）。
             //   ★(165) 世界の平滑化した値段（導出量）も同じ段の頭で1回だけ求めて全ての国の判定へ渡す。
             var market = AdvanceDiscoveryPrices();
-            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market), _coef);
+            // ★(461) 世界の高度労働力の雇用の合計 W（技術力の時計 S・全ての財の和・全ての国と行で共通の 1 つのスカラー）＝旗 DiscoveryClockWorldPerMonth が正（技師の形の上）か計器のときだけ
+            //   全ての国を 1 巡して求め、各国の判定へ渡す（導出量・状態ではない・読むだけ）。台帳 DiscoveryWorldScans は旗が正のときだけ数える（計器だけの巡回は軌道の外）。
+            double? worldAdv = null;
+            bool clockOn = _coef.DiscoveryEngineerHalfPerMonth > 0 && _coef.DiscoveryClockWorldPerMonth > 0 && _coef.DiscoveryClockRampWidth > 0;
+            if (clockOn || Instruments.On)
+            {
+                long ct0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                worldAdv = Discovery.WorldAdvLabor(Nations.Select(s => s.World), out long scanned);
+                if (clockOn) Cost[CostLedger.DiscoveryWorldScans] += scanned;   // 計算量の台帳（診断）：世界の合計の巡回で訪れた生産者
+                if (Instruments.On)
+                {
+                    _clockTicks += System.Diagnostics.Stopwatch.GetTimestamp() - ct0; _clockVisits += scanned;
+                    if (Calendar.QuarterIndexOfTick(Nations[0].World.Tick) % 8 == 0) Instruments.ClockSample(this, worldAdv.Value, _clockTicks, _clockVisits);   // (461) 計器だけ
+                }
+            }
+            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv), _coef);
             ShareWorldDiscovered();
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
@@ -1923,6 +1938,7 @@ public sealed class MultiNationSim
     //   ⚠作業領域＝セーブに載らない（[NonSerialized]＝SaveGame が辿らない）・シミュの値はどれも読まない。
     [System.NonSerialized] private long[]? _cost;
     [System.NonSerialized] private long[]? _costDeparted;
+    [System.NonSerialized] private long _clockTicks, _clockVisits;   // ★(461) 計器だけ＝世界の合計の巡回の累計（Stopwatch の刻み・訪れた生産者）。軌道は読まない
     internal long[] Cost => _cost ??= new long[CostLedger.Count];
 
     /// <summary>★この試合の計算量の台帳の合計（<see cref="CostLedger"/> の添字）＝共有層（この層・外交・国際市場）＋今の全ての国＋再併合で消えた国。
@@ -1978,7 +1994,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, Count = 23;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, Count = 24;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -1991,6 +2007,7 @@ public static class CostLedger
         "奢侈品と家事奉仕の所得弾力：POP×月（世界の値の配りの走査と買い手の POP ごとの係数）",
         "AI の官僚制度の走査：国×四半期（欲しい法の表の走査と前提・門の照会）",
         "不満度を読む：POP×国×四半期（参加の述語〔旗 ParticipationDiscontent が正のとき〕と思想の更新の入力〔常に〕）",
+        "発見：世界の高度労働力の雇用の合計の巡回（訪れた生産者×四半期・時計の形が正のときだけ）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2033,6 +2050,7 @@ public static class CostLedger
         LuxuryRatioUnitMicros,   // ★(299) 奢侈品の所得比：国×活きている州の POP を1回なぞる（所得と人口の和）＝census は無い（ε＝0 では走らず件数 0）＝同じ形の走査（GDP の和の1要素あたり 0.0155 µs）から置いた推定。採ったら B の .cost の実測で取り直す
         AiBureaucracyScanUnitMicros,   // ★(395) AI の官僚制度の走査：SelfPlay.BureaucracyFollowsWants の1回（国×四半期）＝(389) の burscan の壁時計の中央÷呼びの数（下の定数の注記）
         ParticipationUnitMicros,   // ★(417)(431) 不満度を読む：FactionSnapshot.ComputeClusters が問うた POP 1つ（Politics.Discontent 1回＋運動体の辞書の出し入れ）か、Ideologies.UpdateShares が回した POP 1つ（Politics.Discontent 1回）＝census は無い・上限の見積り（下の定数の注記）
+        DiscoveryWorldScanUnitMicros,   // ★(461) 発見：世界の合計の巡回＝Discovery.WorldAdvLabor の 1 生産者あたり（暫定の見積り・予備計測で確かめる）
     ];
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
@@ -2041,6 +2059,10 @@ public static class CostLedger
     /// <summary>★(417) 参加の述語の単価（マイクロ秒/POP）＝**上限の見積り**（census は無い）。参加の述語は旗 ParticipationDiscontent が正のとき、思想の更新の入力は常に件数が立つ（2026-10-19 (431) 採用後の既定）。
     /// 1.2＝四半期末 POP×国の単価 1.05863（Politics.Step の POP ごとの全費用＝不満度 1 回〔理想点の配列・発言権・生活の欲求〕はその一部）＋運動体の辞書の出し入れ 約 0.14。採ったら B の .cost の実測の CPU 秒の差で取り直す（事前登録 dc_20261019_prereg.txt [7]）。</summary>
     public const double ParticipationUnitMicros = 1.2;
+    /// <summary>★(461) 世界の合計の巡回の単価（マイクロ秒/訪れた生産者）＝**暫定の見積り**（枝 dw の (430) が同じプロセスの中で巡回と発見の判定〔台帳の単価 98.1 µs/国×四半期〕を交互に計った比で割り戻した値 0.030〜0.045 の上限寄りの丸め・静かな環境での独立した実測ではない＝未検証）。
+    /// 巡回は技師を雇わない生産者（一次産品の大半）で門の照会を飛ばす。全長 668 四半期の訪れた生産者は約 3,340 万（dw の腕 B の件数）＝推定 約 2.0 秒（事前登録 measurements/dk_20261020_prereg.txt [8]・上限 5 秒）。
+    /// ⚠予備計測の clock_s の C 行（Stopwatch の累計）は負荷で膨らむ値で単価に使わない（記録）。</summary>
+    public const double DiscoveryWorldScanUnitMicros = 0.06;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数
     /// （census の計器 inj_c186・種1・668四半期・r182 の木〔586b80e〕5回＝19.87／19.61／19.01／19.49／20.02 µs・眠りの木5回＝19.89／19.59／19.42／19.62／19.81 µs の平均 19.63）。
     /// ⚠ (159)(165) から「共有層：国×四半期」の中の小さい分と書いていたが、その単価（(136)(146) の census）は AdvancePrice の前に取った＝数えていなかった（(182) の申し送り）。</summary>

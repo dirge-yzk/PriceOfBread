@@ -11,8 +11,9 @@ public enum WarDomain { None, Land, Sea, Air }
 /// <paramref name="Replaces"/>＝その行が生み出す物が代替する物（作者 2026-10-02＝必要性はその値段の高さ・★(165) 新しいレシピで作る費用と比べる・<see cref="Discovery"/> の ReplacedStrength）＝<see cref="Catalog.ReplacesOwn"/>（製法＝その行の財そのもの）・
 /// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
 /// <paramref name="After"/>＝★(336) 系統×段階の前提の行の名前（""＝前提なし＝系統の根〔段1〕）。前提の行がまだの国ではこの行を判定しない（点数0・飛ばして先の段を解禁しない）。
-/// 系統＝根の行（前提のない行）から枝分かれする木・段＝根からの深さ（<see cref="Catalog.DiscoveryTier"/>）＝系統と段は前提の1本から導く（別に持たない）。（旧の旗 DiscoveryTierGate は 2026-10-18 に焼き込み。）</summary>
-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "");
+/// 系統＝根の行（前提のない行）から枝分かれする木・段＝根からの深さ（<see cref="Catalog.DiscoveryTier"/>）＝系統と段は前提の1本から導く（別に持たない）。（旧の旗 DiscoveryTierGate は 2026-10-18 に焼き込み。）
+/// ★(461) <paramref name="EngineerParent"/>＝時計の形（<see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正）のときだけ、親の産業の技師を数える財（−1＝今の規則〔製法は行の財・新製品は Replaces の財〕）。カタログのデータ（国別でない）・必要性の <c>Replaces</c> は触らない。</summary>
+public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "", int EngineerParent = -1);
 
 /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
 /// ★段2A（2026-10-01・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1A-2）：**発見は2値**・国ごと・行（レシピ）ごとに毎四半期
@@ -53,11 +54,12 @@ public static class Discovery
     }
 
     /// <summary>★(415) 行の親の産業の技師の量（月あたり・事前登録 [3-1]）＝親の財（製法の行は行の財・新製品は <see cref="DiscoveryRow.Replaces"/> の財・財でない <c>Replaces</c> の行は行の財）と、
-    /// 行の代表のレシピの投入（労働力・高度労働力・農業労働力を除く）の財について、財ごとの雇用 <paramref name="eng"/>（<see cref="EngineerUse"/> の国の和）を足す。同じ財は1度だけ。</summary>
-    internal static double ParentEngineers(int row, Producer rp, double[] eng)
+    /// 行の代表のレシピの投入（労働力・高度労働力・農業労働力を除く）の財について、財ごとの雇用 <paramref name="eng"/>（<see cref="EngineerUse"/> の国の和）を足す。同じ財は1度だけ。
+    /// ★(461) <paramref name="clockParent"/>＝時計の形（<see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正）のとき、行が持つ親の産業の欄 <see cref="DiscoveryRow.EngineerParent"/>（電動機＝蒸気機関の財）を使う。既定（偽）は今の規則。</summary>
+    internal static double ParentEngineers(int row, Producer rp, double[] eng, bool clockParent = false)
     {
         var d = Catalog.Discoveries[row];
-        int g0 = d.Replaces >= 0 ? d.Replaces : d.Good;
+        int g0 = clockParent && d.EngineerParent >= 0 ? d.EngineerParent : d.Replaces >= 0 ? d.Replaces : d.Good;   // ★(461) 時計の形（W0 が正）のときだけ、行が親の産業を別に定める（電動機＝蒸気機関の財）
         double a = g0 >= 0 && g0 < eng.Length ? eng[g0] : 0;
         foreach (var inp in rp.Inputs)
         {
@@ -96,6 +98,69 @@ public static class Discovery
         if (!(d > 0)) return 1.0;
         if (!(a > 0)) return 0.0;
         double f = a / (a + c.DiscoveryEngineerHalfPerMonth * d);
+        return !(f > 0) ? 0.0 : f > 1.0 ? 1.0 : f;
+    }
+
+    /// <summary>★(461) 世界の高度労働力の雇用の合計 W（月あたり・全ての財の和）＝全ての国の稼働中の州の、ゲートの開いた生産者の <see cref="EngineerUse"/> の和。時計 S の W＝全ての行・全ての国で同じ 1 つのスカラー。
+    /// 導出量（新しい状態を作らない）。国の並び・州・生産者の順に足す＝決定的。<paramref name="visited"/>＝訪れた生産者の数（計算量の台帳の件数・診断）。
+    /// 先に雇用を見て、技師を雇わない生産者（一次産品の大半）は門の照会を飛ばす（0 を足す・足さないは和のビットを変えない）。</summary>
+    internal static double WorldAdvLabor(IEnumerable<World> worlds, out long visited)
+    {
+        double total = 0; long n = 0;
+        foreach (var w in worlds)
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Producers)
+                {
+                    n++;
+                    double u = EngineerUse(p);
+                    if (!(u > 0) || p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || !(Gate(r, p) > 0)) continue;
+                    total += u;
+                }
+            }
+        visited = n;
+        return total;
+    }
+
+    /// <summary>★(461) 財ごとの国の技師の雇用（月あたり・計器だけが読む国別の A_n の表の土台）＝<see cref="Score"/> の代表の生産者の走査が国ごとに足す <c>eng</c> と同じ規則（州の状態・財の範囲・ゲート）。</summary>
+    internal static double[] EngineersByGood(World w)
+    {
+        var eng = new double[Catalog.Goods.Length];
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+            {
+                if (p.GoodId < 0 || p.GoodId >= eng.Length || !(Gate(r, p) > 0)) continue;
+                eng[p.GoodId] += EngineerUse(p);
+            }
+        }
+        return eng;
+    }
+
+    /// <summary>★(461) 時計 S∈[0,1]＝<c>clamp((W÷(W0×d)−1)÷w＋1/2, 0, 1)</c>（細ランプ・W＝世界の高度労働力の雇用の合計〔全ての財の和・全ての行と国で共通〕・W0＝<see cref="Coefficients.DiscoveryClockWorldPerMonth"/>・
+    /// w＝<see cref="Coefficients.DiscoveryClockRampWidth"/>・d＝(行の年代−1780)÷10）。W＝W0·d で 1/2・W0·d·(1−w/2) で 0・W0·d·(1+w/2) で 1。
+    /// d が0以下の行は1・W が0以下か NaN は0（否定形）・W0 か w が正でなければ0（呼び手は <c>poolOn</c> で先に除く）。W に対して単調に増え1を超えない・同じ W なら d が大きいほど小さい。暦の年も国の名前も読まない。</summary>
+    internal static double ClockStage(int row, double w, Coefficients c)
+    {
+        double d = (Catalog.Discoveries[row].Decade - Catalog.DiscoveryBaseDecade) / 10.0;
+        if (!(d > 0)) return 1.0;
+        double w0 = c.DiscoveryClockWorldPerMonth, width = c.DiscoveryClockRampWidth;
+        if (!(w > 0) || !(w0 > 0) || !(width > 0)) return 0.0;
+        double s = (w / (w0 * d) - 1.0) / width + 0.5;
+        return !(s > 0) ? 0.0 : s > 1.0 ? 1.0 : s;
+    }
+
+    /// <summary>★(461)(430) 自国の項 C∈[0,1]＝<c>A÷(A＋Am)</c>（A＝自国のその発見の親の産業の技師・Am＝<see cref="Coefficients.DiscoveryOwnHalfPerMonth"/>）。d が0以下の行は1・A が0以下か NaN は0。
+    /// 有界の飽和＝大国の絶対量で先取りせず、産業の無い国は0・小さな工房の国は A÷Am で抑える。人口を読まない。</summary>
+    internal static double OwnCapacity(int row, double a, Coefficients c)
+    {
+        double d = (Catalog.Discoveries[row].Decade - Catalog.DiscoveryBaseDecade) / 10.0;
+        if (!(d > 0)) return 1.0;
+        if (!(a > 0)) return 0.0;
+        double am = c.DiscoveryOwnHalfPerMonth > 0 ? c.DiscoveryOwnHalfPerMonth : 0;   // 否定形＝NaN・負は0（A が正なら1）
+        double f = a / (a + am);
         return !(f > 0) ? 0.0 : f > 1.0 ? 1.0 : f;
     }
 
@@ -241,8 +306,10 @@ public static class Discovery
     /// ＝国の中の値だが、記帳は判定で捨てる＝画面と計器が判定と同じ3項を読むためにここへ載せる（<see cref="World.LastDiscoveryView"/>）。
     /// ★<paramref name="Market"/>（(165)→(169)）＝世界の市場（<see cref="WorldMarket"/>＝その四半期に市場が生きている国の平滑化した値段と重み）＝自国に市場の値段が無い財（作らず輸入もしない）を
     /// 「輸入すれば払う値段」＝着値（売り手の値段＋運賃＋関税＝<see cref="WorldMarket.Landed"/>）で読む（<see cref="ReplacedStrength"/>）。画面と計器は平均（<see cref="WorldMarket.Average"/>）。
-    /// 判定の段の頭で全ての国の平滑化した値段を進めた直後に求める導出量（状態ではない）。単独の世界は null（他国が無い）。</summary>
-    public sealed record WorldView(double[]? Contact, double[]? Loss = null, WorldMarket? Market = null);
+    /// 判定の段の頭で全ての国の平滑化した値段を進めた直後に求める導出量（状態ではない）。単独の世界は null（他国が無い）。
+    /// ★(461) <paramref name="WorldAdvLabor"/>＝世界の高度労働力の雇用の合計（全ての国・全ての財の <see cref="EngineerUse"/> の和・月あたり・<see cref="Discovery.WorldAdvLabor"/>）＝技術力の時計 S の W（<see cref="ClockStage"/>）。
+    ///   旗 <see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正か計器のときだけ <see cref="MultiNationSim"/> が求めて渡す導出量（状態ではない）。無ければ（単独の世界）W は自国の全ての財の和へ倒す。</summary>
+    public sealed record WorldView(double[]? Contact, double[]? Loss = null, WorldMarket? Market = null, double? WorldAdvLabor = null);
 
     /// <summary>★(169) 世界の市場（判定の段の頭で1回組む導出量・状態ではない＝<see cref="WorldPrices"/>）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段と重み（その国の産出＝売っている量）。
     /// ・<see cref="Average"/>＝平滑化した値段を重みで平均した世界の値段（財ごと・どの国にも市場が無い財は <see cref="NoPrice"/>）＝画面と計器が読む（(165) の世界の値段と同じ）。
@@ -449,6 +516,7 @@ public static class Discovery
         var canMake = new bool[ng];
         var rep = new Producer?[nr];
         bool engOn = c.DiscoveryEngineerHalfPerMonth > 0;   // ★(415) 技術力を技師の量から求める旗（半分点を兼ねる・0以下＝今の式）
+        bool poolOn = engOn && c.DiscoveryClockWorldPerMonth > 0 && c.DiscoveryClockRampWidth > 0;   // ★(461) 時計を世界の高度労働力の雇用の合計の細ランプから・自国の項を有界の飽和にする旗（技師の形の上に重なる・d＞0 の行は押しを掛けない）
         double[]? eng = engOn || engineerOut is not null ? new double[ng] : null;   // 財ごとの高度労働力の雇用（月あたり）＝旗が正か計器のときだけ
         if (engineerOut is not null) System.Array.Fill(engineerOut, double.NaN);
         var recipes = new List<Producer>?[ng];   // ★(165) 財ごとの、この国で門の開いたレシピ（レシピの名前ごとに最初の生産者）＝市場の値段が無い財を作る費用で読む（PriceBook）
@@ -471,6 +539,12 @@ public static class Discovery
             }
         }
         if (nAct == 0) return res;
+        double wClock = double.NaN;   // ★(461) 時計の W＝世界の高度労働力の雇用の合計（全ての行・国で共通・旗が正のときだけ）。単独の世界は自国の全ての財の和
+        if (poolOn)
+        {
+            if (view?.WorldAdvLabor is { } wv) wClock = wv;
+            else { wClock = 0; foreach (double e in eng!) wClock += e; }
+        }
         // 値段＝平滑化した実質の値段（作者裁定 Q12・World.DiscoveryPrice）。瞬間の値（InstantReal）は需要で重みを付けた州の値段÷物価水準・死んだ市場は観測なし・末尾の1欄は陸の輸送の値段。
         double[] real;
         if (realPrice is { } rpx && rpx.Length >= ng) real = rpx;
@@ -558,9 +632,10 @@ public static class Discovery
                 wSum += wt; wDom += wt * dom;
             }
             double push = wSum > 0 ? wDom / wSum : 1.0;
-            double aRow = eng is not null ? ParentEngineers(row, rp!, eng) : double.NaN;   // ★(415) 親の産業の技師の量（旗が正か計器のときだけ求める）
+            double aRow = eng is not null ? ParentEngineers(row, rp!, eng, poolOn) : double.NaN;   // ★(415) 親の産業の技師の量（旗が正か計器のときだけ求める）
             if (engineerOut is not null && row < engineerOut.Length) engineerOut[row] = aRow;
-            double tech = TermMax * (engOn ? EngineerFactor(row, aRow, c) : ratio) * push;
+            double tech = poolOn && d.Decade > Catalog.DiscoveryBaseDecade ? TermMax * ClockStage(row, wClock, c) * OwnCapacity(row, aRow, c)   // ★(461) 世界の時計 S（細ランプ・全ての行・国で共通の W）× 自国の最低限の産業 C（押しは A の中に入っている）。d≦0 の行は下の今の式
+                                                                            : TermMax * (engOn ? EngineerFactor(row, aRow, c) : ratio) * push;
             // 必要性＝70×強度÷(強度＋分野の半分点)（設計 §1A-4）
             double s = 0, half = 1;
             switch (d.Field)
@@ -953,6 +1028,7 @@ public static class Discovery
             known[row] = true;
             if (ro is not null) Instruments.DiscoveryEvent(w, row, terms[row], ro[row]);   // (320) 計器だけ
             if (eo is not null && !double.IsNaN(eo[row])) Instruments.EngineerRow("E", w, row, eo[row], terms[row].Tech, false, terms[row].Need, ro![row]);   // (415) 計器だけ
+            if (eo is not null && !double.IsNaN(eo[row])) Instruments.ClockOpened(w, row, eo[row], view?.WorldAdvLabor ?? double.NaN);   // (461) 計器だけ
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
