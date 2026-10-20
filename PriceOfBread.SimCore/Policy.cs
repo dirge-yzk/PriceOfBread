@@ -101,6 +101,12 @@ public enum AntitrustLaw { None, CartelBan, Trustbust }
 /// 軸の増＝剥離（自由化）。GuildLawGate=0 では法が動かない＝恒等。</summary>
 public enum GuildLaw { Full, Limited, None }
 
+/// <summary>★最低賃金法（線 lw (459)・作者 2026-10-20）：独立した法・量の段（労働時間 <see cref="WorkHours"/> と同じ作り＝他の法の前提を持たず政治の門だけで1段ずつ）。
+/// 段の名は作者の原文〈「なし」「生存」「生活」「充足」〉。床＝その州の労働者の階級の必要量×その州の今の値段の籠
+/// （生存＝食料／生活＝食料＋日用品／充足＝食料＋日用品＋嗜好品・<see cref="MinimumWageFloor.BasketPerPerson"/>）。軸の増＝強める。
+/// 史実の目安（解禁の順序の出所・年のタイマーは作らない）＝NZ 1894・ヴィクトリア 1896・英 Trade Boards 1909・米 FLSA 1938。MinimumWageLawGate=0 では法が動かない＝恒等。</summary>
+public enum MinimumWageLaw { None, Subsistence, Living, Sufficiency }
+
 /// <summary>通貨制度の法（銀本位doc G4・2026-08-13・3段）。不換紙幣→**銀本位**→金本位。
 /// ★階段の順序が意味を持つ：1期1段しか動けないので、⚠不換から一気に金へは飛べない（史実＝日本1871銀→1897金・独1871銀→金）。
 /// （旧の旗 SilverStandardGate は 2026-08-21 銀本位ラウンドで点火・2026-10-18 に焼き込み＝旧・2値の bool〔不換⇄金〕の経路は削除。）
@@ -183,6 +189,7 @@ public sealed class NationPolicy
     public StateReligionLaw StateReligion = StateReligionLaw.StateChurch;    // 国教法（1934拡張E6・3段）。寛容ほど十分の一税↓＋宗教分裂の抵抗↓
     public AntitrustLaw Antitrust = AntitrustLaw.None;                       // 独占禁止法（1934拡張E6・3段）。強いほど独占レント↓＝大衆生活水準↑・エリート収入↓。AntitrustGate=0で恒等
     public GuildLaw Guild = GuildLaw.Full;                                   // ★同業組合法（特権 段4・3段）。既定＝保護（1783年の全国＝ギルドあり）。GuildLawGate=0 で恒等
+    public MinimumWageLaw MinimumWage = MinimumWageLaw.None;                 // ★最低賃金法（線 lw (459)・4段）。既定＝なし。MinimumWageLawGate=0 では法が動かない＝恒等
     public bool WartimeRationing = false;                                    // 戦時配給法（1934拡張E6・あり/なし）。戦時のみ発火＝海上封鎖の厭戦（飢餓）を公平配給で緩和（英国型）だが自由派/資本が反対（価格統制）。
     public bool MilitaryExportBan = false;                                   // 軍需輸出の法（禁制品doc C5・2026-07-30・許可/禁止）。禁止＝緊張が MilitaryExportTensionThreshold 以上の相手へ武器を売らない（**相手は法が選ぶ**＝手動管理なし）。既定＝許可
     public bool CivilianArmsBan = false;                                     // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11・許可/禁止）。禁止＝反乱勢力の武器購入が Contraband.LeakFraction(AdminFill) だけ漏れる（取り締まれた分だけ買えない）。既定＝許可。RebelArmsMarketEnabled=0 で法は動かない＝恒等
@@ -257,7 +264,7 @@ public sealed class NationPolicy
         TariffTarget = o.TariffTarget; InterestRateTarget = o.InterestRateTarget;
         MonetaryTarget = o.MonetaryTarget; CapitalControlTarget = o.CapitalControlTarget;
         CornLaws = o.CornLaws; LandReform = o.LandReform; SerfEmancipation = o.SerfEmancipation;
-        ConscriptionLaw = o.ConscriptionLaw; SecretBallot = o.SecretBallot; Bureaucracy = o.Bureaucracy; SocialSecurityLaw = o.SocialSecurityLaw; StateReligion = o.StateReligion; Antitrust = o.Antitrust; Guild = o.Guild; WartimeRationing = o.WartimeRationing; MilitaryExportBan = o.MilitaryExportBan;
+        ConscriptionLaw = o.ConscriptionLaw; SecretBallot = o.SecretBallot; Bureaucracy = o.Bureaucracy; SocialSecurityLaw = o.SocialSecurityLaw; StateReligion = o.StateReligion; Antitrust = o.Antitrust; Guild = o.Guild; MinimumWage = o.MinimumWage; WartimeRationing = o.WartimeRationing; MilitaryExportBan = o.MilitaryExportBan;
         CivilianArmsBan = o.CivilianArmsBan;   // ★民間の武器購入の法（2026-09-11）＝Clone/CopyFrom の運搬漏れは開始盤面復元で目標が落ちる罠
         NationalizeRailways = o.NationalizeRailways; NationalizeMines = o.NationalizeMines; NationalizeMilitary = o.NationalizeMilitary;
         NationalizeOil = o.NationalizeOil; NationalizeElectricity = o.NationalizeElectricity; NationalizeAll = o.NationalizeAll;

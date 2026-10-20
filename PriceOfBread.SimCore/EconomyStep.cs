@@ -809,7 +809,7 @@ public static class EconomyStep
             s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
             double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // 自己費用（×自己費用の物価水準＝P の遅い趨勢×州の乗数・2026-09-27 (73)）＋投入費（名目）
             double price = region.Markets[s.GoodId].Price;
-            double profitFactor = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
+            double profitFactor = ProfitFactor(s, price, mc, coef);   // ★(459)(469) 採算の率の唯一の定義（LaborFloorOffGate＝0 では旧の式を逐語で通る）
             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
             // 経16：当期産出は前期充足率(LastInputFill)で決まる（作者裁定2026-08-01＝恒久。当期の在庫カバーでも律速する旗 CurrentInputFillGates は 2026-09-26 に削除＝dorm-50）。
             double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
@@ -2766,6 +2766,20 @@ public static class EconomyStep
             c += market.Markets[inp.GoodId].Price * EffectiveQty(s, home, inp, coef);
         return c;
     }
+
+    /// <summary>採算の率 profitFactor の**唯一の定義**（供給の段①と <see cref="ProductionDiag"/> の稼働率の内訳が同じ関数を読む＝式が2か所で割れない・(459) 線 lw で 1 本化・(469) 線 mw で撤去の分岐を足した）。
+    /// 既定（<see cref="Coefficients.LaborFloorOffGate"/>＝0）は旧の式を逐語で通る＝ビット恒等：price≦mc なら 0・そうでなければ min(1,(price−mc)/(mc×SupplySlope))。
+    /// ゲート＞0 のとき**人力の労働力・農業労働力**（<see cref="IsHumanLaborSupply"/>）だけ崖（隠れた最低賃金＝自己費用×物価水準）を外す＝値段が正なら 1（供給は能力いっぱい・価格に応じない）。
+    /// 否定形＝NaN／非正の値段は 0 側（Math.Min/Max は NaN を除去しない）。技師と動力 4 本は投入費を持つ企業の採算／上限にいる財＝対象外（事前登録 §2 [F1]）。</summary>
+    internal static double ProfitFactor(Producer s, double price, double mc, Coefficients coef)
+    {
+        if (coef.LaborFloorOffGate > 0 && IsHumanLaborSupply(s)) return price > 0 ? 1.0 : 0.0;
+        return price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
+    }
+
+    /// <summary>人力の労働の供給＝労働力・農業労働力の生産者のうち、レシピ名が空（人力）で投入を持たないもの。畜力・蒸気機関・電動・水車は投入費を持つ企業の採算＝対象外。技師（高度労働力）も対象外。</summary>
+    internal static bool IsHumanLaborSupply(Producer s)
+        => (s.GoodId == Catalog.LaborId || s.GoodId == Catalog.FarmLaborId) && s.RecipeName.Length == 0 && s.Inputs.Count == 0;
 
     /// <summary>生産者の**自己費用**（1単位の付加価値費用＝<see cref="Producer.MarginalCost"/>）を**価格と同じ単位**で返す＝
     /// RGO・工場・役務・労働の**全ての生産者**の唯一の入口。

@@ -114,6 +114,7 @@ public partial class GameViewModel
         Add("国教", PolicyAxis.StateReligion, ["国教のみ", "内心の自由", "信仰の自由", "国家無神論"], () => (int)w.StateReligion, () => (int)p.StateReligion, v => p.StateReligion = (StateReligionLaw)v);   // 国家無神論＝前提DAGでプロレタリア独裁のみ（例外①）
         Add("独占禁止", PolicyAxis.Antitrust, ["規制なし", "談合禁止", "独占の解体"], () => (int)w.Antitrust, () => (int)p.Antitrust, v => p.Antitrust = (AntitrustLaw)v, () => c.AntitrustGate > 0);
         Add("同業組合", PolicyAxis.Guild, ["保護", "制限", "廃止"], () => (int)w.Guild, () => (int)p.Guild, v => p.Guild = (GuildLaw)v, () => c.GuildLawGate > 0);   // ★特権 段4（2026-09-07）
+        Add("最低賃金", PolicyAxis.MinimumWage, ["なし", "生存", "生活", "充足"], () => (int)w.MinimumWage, () => (int)p.MinimumWage, v => p.MinimumWage = (MinimumWageLaw)v, () => c.MinimumWageLawGate > 0);   // ★線 lw (459)（2026-10-20）：ゲート0＝非表示
         Add("戦時配給", PolicyAxis.WartimeRationing, ["なし", "あり"], () => w.WartimeRationing ? 1 : 0, () => p.WartimeRationing ? 1 : 0, v => p.WartimeRationing = v == 1);
         Add("軍需輸出", PolicyAxis.MilitaryExport, ["許可", "禁止"], () => w.MilitaryExportBan ? 1 : 0, () => p.MilitaryExportBan ? 1 : 0, v => p.MilitaryExportBan = v == 1);   // 禁制品doc C5（2026-07-30）：禁止＝緊張の高い相手へは売らない（相手は法が選ぶ）
         Add("民間の武器購入", PolicyAxis.CivilianArms, ["許可", "禁止"], () => w.CivilianArmsBan ? 1 : 0, () => p.CivilianArmsBan ? 1 : 0, v => p.CivilianArmsBan = v == 1, () => c.RebelArmsMarketEnabled > 0);   // ★反乱勢力の武器購入（2026-09-11）＝禁止しても Contraband.LeakFraction で漏れる。RebelArmsMarketEnabled=0 では行を出さない（効かないレバーを置かない＝同業組合と同じ作法）。AIは SelfPlay.DecideModernLaws が同じ法を同じ条件で動かす＝対称
@@ -145,7 +146,7 @@ public partial class GameViewModel
         var groups = new (string Header, string[] Titles)[]
         {
             ("政治参加", ["参政権", "植民地参政権", "移民原住民参政権", "秘密投票", "報道", "国教"]),   // 参政権の範囲2法（2026-08-16）＝参政権の直後。見出しは先頭の「参政権」（常設行）に付く＝gate=0で2行が消えても見出しは残る
-            ("教育と労働", ["教育", "労働組合", "労働時間", "児童労働"]),   // ★2026-09-23：社会保障は財政タブへ移設（WelfareLaw）＝この群から外す。見出しは先頭の「教育」に付くので見出しは残る
+            ("教育と労働", ["教育", "労働組合", "労働時間", "児童労働", "最低賃金"]),   // ★2026-09-23：社会保障は財政タブへ移設（WelfareLaw）＝この群から外す。見出しは先頭の「教育」に付くので見出しは残る
             ("身分と土地", ["女性の権利", "穀物法", "土地改革", "農奴解放"]),
             ("国家と軍", ["徴兵法", "戦時配給", "軍需輸出"]),
             ("統治機構", ["官僚制度", "独占禁止"]),

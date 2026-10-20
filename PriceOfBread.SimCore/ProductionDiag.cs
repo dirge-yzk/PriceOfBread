@@ -312,7 +312,7 @@ public static class ProductionDiag
                 nProd++;
                 double mc = EconomyStep.MineralSelfCost(s, region, coef, w) + EconomyStep.InputCostPerUnit(s, region, region, coef);      // EconomyStep ①供給の mc（同じ関数・生産者は region 所属＝home==market）
                 double price = region.Markets[s.GoodId].Price;
-                double profit = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));   // 同 profitFactor
+                double profit = EconomyStep.ProfitFactor(s, price, mc, coef);   // 同 profitFactor（★(459) 唯一の定義を読む）
                 double fill = s.LastInputFill;                                                    // 同（労働込み）
                 double invAdj = 1.0;
                 if (coef.InventoryAdjustGain > 0)                                                 // 同 メッツラー在庫循環

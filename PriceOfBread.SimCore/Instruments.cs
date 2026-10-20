@@ -212,6 +212,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Reform; public bool ReformHeader;                   // (404) 専制の改革の経路の表（国×四半期）
         public System.IO.StreamWriter? AdmRule; public bool AdmRuleHeader;                 // (408) 行政費の返りの表（国×四半期）
         public System.IO.StreamWriter? Ed; public bool EdHeader;                           // (452) 国家の教育の需要の表 ed_s（国×四半期）
+        public System.IO.StreamWriter? Lab; public bool LabHeader;                         // (459) 労働の値段の表 labor_s（国×四半期）
         public System.IO.StreamWriter? House; public bool HouseHeader;                     // (418) 農家の手仕事の表（国×四半期）
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // (416) 近代化投資の信号の表（国×四半期）・国力の旧と新の表（国×年末）
         public System.IO.StreamWriter? LawGate; public bool LawGateHeader;                 // (423) 法の門の旧と新の表（国×四半期）
@@ -1662,6 +1663,7 @@ public static partial class Instruments
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
             AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
             EdFold(sk, seed, w, q, picked, yearEnd);        // (452) 国家の教育の需要の表（買いたい量・取れた量・供給が尽きた州の割合・値段）
+            LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
             HouseFold(sk, seed, w, q, picked, yearEnd);     // (418) 農家の手仕事の表（行の産出の割合と農民の能力の取り分）
             ModFold(sk, seed, w, st, q, picked, yearEnd);   // (416) AI の近代化投資の信号の表（旧の gap と新しい信号）
             LawGateFold(sk, seed, w, q, picked, yearEnd);   // (423) 法の門の旧と新の表（金本位・反トラスト・同業組合の願い）
@@ -1723,6 +1725,7 @@ public static partial class Instruments
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
         sk.AdmRule?.Dispose(); sk.AdmRule = null;   // (408)
         sk.Ed?.Dispose(); sk.Ed = null;   // (452)
+        sk.Lab?.Dispose(); sk.Lab = null;   // (459)
         sk.House?.Dispose(); sk.House = null;   // (418)
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // (416)
         sk.LawGate?.Dispose(); sk.LawGate = null;   // (423)
