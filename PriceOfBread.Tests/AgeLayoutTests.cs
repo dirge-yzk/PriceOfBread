@@ -304,6 +304,19 @@ public class AgeLayoutTests
     }
 
     [Fact]
+    public void 十歳までの生存の指数は層の幅に応じて_八層は10掛ける層0の率()
+    {
+        double[] mu8 = [0.03, 0.02, 0.01, 0.01, 0.01, 0.02, 0.05, 0.2];
+        Assert.Equal(10.0 * 0.03, Instruments.PopS10Exponent(AgeLayout.Bands8, mu8), 15);
+        // 11層：0歳(1年)×μ0＋1〜5歳(5年)×μ1＋6〜9歳(10歳未満の4年)×μ2・11歳以上は入らない
+        double[] mu11 = [0.2, 0.02, 0.03, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9];
+        Assert.Equal(1 * 0.2 + 5 * 0.02 + 4 * 0.03, Instruments.PopS10Exponent(AgeLayout.Bands11, mu11), 12);
+        // 率が NaN の層（人年 0）は、その層が10歳の内にあるときだけ NaN を運ぶ
+        mu11[3] = double.NaN; Assert.False(double.IsNaN(Instruments.PopS10Exponent(AgeLayout.Bands11, mu11)));
+        mu11[2] = double.NaN; Assert.True(double.IsNaN(Instruments.PopS10Exponent(AgeLayout.Bands11, mu11)));
+    }
+
+    [Fact]
     public void 世代の混ぜは大人の境が21歳()
     {
         var p = new Pop { Size = 1000, Ages = Pop.StdAges(AgeLayout.Bands11) };
