@@ -51,9 +51,7 @@ public class DormantIdentityTests
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
         "PrivilegeMonopolyInLedger",    // 特権システム 段5前半＝特許会社の取り分を台帳へ（記帳のみ）
         "GuildLawGate",                 // 特権システム 段4＝同業組合法の主ゲート（法が動かない）
-        "LaborFloorOffGate",            // ★(469) 線 mw＝人力の労働の供給の崖（price≦mc で 0）の撤去（0＝今の崖の式を逐語で通る＝隠れた最低賃金のまま）
-        "LaborBandFloorOffGate",        // ★(469) 線 mw＝労働 3 財の賃金の帯の下側（WageClampMin）の撤去（0＝今の漸近形のまま）
-        "MinimumWageLawGate",           // ★(459)(469) 線 lw／mw＝最低賃金法の主ゲート（0＝法が動かず Pref＝0・床を足さない）
+        // ★LaborFloorOffGate・LaborBandFloorOffGate・MinimumWageLawGate（(469) 労働の下限の撤去と最低賃金法）は 2026-10-20 (475) の合流で 2・1・1 へ**点火**＝この表から外した。
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）

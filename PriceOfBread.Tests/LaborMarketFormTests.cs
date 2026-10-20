@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>★(469) 線 mw：労働の下限の撤去（崖 <see cref="Coefficients.LaborFloorOffGate"/>・帯の床 <see cref="Coefficients.LaborBandFloorOffGate"/>）と最低賃金法（<see cref="PolicyAxis.MinimumWage"/>）の番人。
 /// ★(459) 線 lw の法の軸の番人を土台にし、留保賃金の広がり σ の番人を撤去の番人へ置き換えた。
-/// 既定（3 本の旗が 0）は今の挙動と厳密恒等（成績表の全行一致は腕 A が見る）＝ここは機構の形と、軸の配線の漏れを見る。
+/// ★(475) 合流で既定を倒した（2・1・1）。旗 0 は (475) より前の挙動と厳密恒等（成績表の全行一致は線の腕 A が見た）＝ここは機構の形と、軸の配線の漏れを見る。
 /// 期待値は実装と同じ出所から作らない：旧の式はテストの中に書き直した参照実装、軸の件数は表ごとに別の出所（列挙・表・文言・方針の欄の反射）から数える。</summary>
 public class LaborMarketFormTests
 {
@@ -19,9 +19,7 @@ public class LaborMarketFormTests
     [Fact]
     public void 崖の撤去のゲートが0なら採算の率は旧の式とビットで一致する()
     {
-        var c = new Coefficients();
-        Assert.Equal(0.0, c.LaborFloorOffGate);
-        Assert.Equal(0.0, c.LaborBandFloorOffGate);
+        var c = new Coefficients { LaborFloorOffGate = 0, LaborBandFloorOffGate = 0 };   // ★(475) 既定は倒した（2・1・1）＝旧の崖は旗 0 で選ぶ
         foreach (int g in new[] { Catalog.LaborId, Catalog.FarmLaborId, Catalog.AdvLaborId, Catalog.SteelId })
             foreach (double mc in new[] { 0.1, 0.35, 1.7 })
                 foreach (double k in new[] { 0.0, 0.5, 0.97, 1.0, 1.03, 1.2, 1.5, 1.51, 3.0, 40.0 })
@@ -29,28 +27,6 @@ public class LaborMarketFormTests
                     double price = mc * k;
                     Assert.Equal(OldProfitFactor(price, mc, c.SupplySlope), EconomyStep.ProfitFactor(Human(g), price, mc, c));
                 }
-    }
-
-    [Fact]
-    public void 崖の撤去が正なら人力の労働力と農業労働力だけが値段が正なら能力いっぱいになる()
-    {
-        var c = new Coefficients { LaborFloorOffGate = 1 };
-        double mc = 0.35;
-        // 人力＝崖が消える：mc 以下でも・mc の半分でも供給は能力いっぱい（旧は 0）
-        foreach (int g in new[] { Catalog.LaborId, Catalog.FarmLaborId })
-        {
-            foreach (double k in new[] { 1e-6, 0.5, 1.0, 1.2, 40.0 })
-                Assert.Equal(1.0, EconomyStep.ProfitFactor(Human(g), mc * k, mc, c));
-            Assert.Equal(0.0, OldProfitFactor(mc * 0.5, mc, c.SupplySlope));   // 旧では 0（対照）
-            // 否定形＝値段が NaN・0・負なら働かない側
-            foreach (double bad in new[] { double.NaN, 0.0, -1.0 }) Assert.Equal(0.0, EconomyStep.ProfitFactor(Human(g), bad, mc, c));
-        }
-        // 対象外＝旧のまま：畜力・蒸気（レシピ名あり）・投入を持つ人力・技師・工場
-        var animal = new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力" };
-        var withInput = new Producer { GoodId = Catalog.LaborId, RecipeName = "", Inputs = [new Input(Catalog.SteelId, 0.1)] };
-        foreach (var s in new[] { animal, withInput, Human(Catalog.AdvLaborId), Human(Catalog.SteelId) })
-            foreach (double k in new[] { 0.5, 1.0, 1.2, 2.0 })
-                Assert.Equal(OldProfitFactor(mc * k, mc, c.SupplySlope), EconomyStep.ProfitFactor(s, mc * k, mc, c));
     }
 
     [Fact]
@@ -73,9 +49,10 @@ public class LaborMarketFormTests
             Assert.True(EconomyStep.ProfitFactor(Human(g), mc, mc, c) > 0.5);                       // 旧は mc で 0（対照）
             foreach (double bad in new[] { double.NaN, 0.0, -1.0 }) Assert.Equal(0.0, EconomyStep.ProfitFactor(Human(g), bad, mc, c));
         }
-        // 対象外は旧のまま（1 のときと同じ）
+        // 対象外＝旧のまま：畜力・蒸気（レシピ名あり）・投入を持つ人力・技師・工場（★(475) 形 1 の番人を消したときにこちらへ移した）
         var animal = new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力" };
-        foreach (var s in new[] { animal, Human(Catalog.AdvLaborId), Human(Catalog.SteelId) })
+        var withInput = new Producer { GoodId = Catalog.LaborId, RecipeName = "", Inputs = [new Input(Catalog.SteelId, 0.1)] };
+        foreach (var s in new[] { animal, withInput, Human(Catalog.AdvLaborId), Human(Catalog.SteelId) })
             foreach (double k in new[] { 0.5, 1.0, 1.2, 2.0 })
                 Assert.Equal(OldProfitFactor(mc * k, mc, slope), EconomyStep.ProfitFactor(s, mc * k, mc, c));
     }
@@ -93,25 +70,6 @@ public class LaborMarketFormTests
     }
 
     [Fact]
-    public void 世界の崖の撤去が正なら労働の値段は自己費用の下を通り産出は能力に張り付き_保存則と有限性は保たれる()
-    {
-        var a = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var b = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        b.World.Coef.LaborFloorOffGate = 1;
-        var moneyB = new MoneyConservation(b.World);
-        a.Run(8); b.Run(8);
-        moneyB.Check(b.World);
-        Assert.True(double.IsFinite(LaborPrice(b)) && LaborPrice(b) > 0);
-        // 旧の盤面の創発（旧の世界の値段が自己費用の直上に居る）は番人に固定しない＝腕の N0（labor_s）が読む（機構のテストを旧の盤面に固定しない・(469) 追記 3）
-        // 撤去した世界では値段が自己費用を下回る（下限が消えた証拠・事前登録 N0）
-        Assert.True(LaborPrice(b) < HumanLaborMc(b) * 0.9, $"崖が外れていない（値段 {LaborPrice(b):F4}・自己費用 {HumanLaborMc(b):F4}）");
-        // 供給は能力いっぱい：売りに出た量（産出）が旧の世界より大きい（この小さな世界は能力が需要の 4% 増し程度＝桁の違いは多国の世界で腕が見る）
-        var rb = b.World.Region; var ra = a.World.Region;
-        Assert.True(rb.Markets[Catalog.LaborId].LastProduced > 1.1 * ra.Markets[Catalog.LaborId].LastProduced, $"産出が増えていない（旧 {ra.Markets[Catalog.LaborId].LastProduced:F3}・新 {rb.Markets[Catalog.LaborId].LastProduced:F3}・需要 {rb.Markets[Catalog.LaborId].LastDemand:F3}・能力 {rb.Producers.Where(p => EconomyStep.IsHumanLaborSupply(p) && p.GoodId == Catalog.LaborId).Sum(p => p.Capacity):F3}）");
-        // 失業（1−売れた量÷産出）の跳びは能力が需要の約 20 倍の多国の世界の話（事前登録 §0 ③）＝この小さな世界では確かめず、腕の labor_s が読む
-    }
-
-    [Fact]
     public void 世界の崖の撤去が2でも労働の値段は自己費用の下を通り_保存則と有限性は保たれる()
     {
         var b = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
@@ -124,11 +82,16 @@ public class LaborMarketFormTests
     }
 
     [Fact]
-    public void 既定の3つの旗が0なら明示の0と同じ軌道()
+    public void 既定の3つの旗は2と1と1で明示と同じ軌道()
     {
+        // ★(475) 合流で既定を倒した（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」）＝既定が黙って戻ると赤
+        var c = new Coefficients();
+        Assert.Equal(2.0, c.LaborFloorOffGate);
+        Assert.Equal(1.0, c.LaborBandFloorOffGate);
+        Assert.Equal(1.0, c.MinimumWageLawGate);
         var a = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var b = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        b.World.Coef.LaborFloorOffGate = 0.0; b.World.Coef.LaborBandFloorOffGate = 0.0; b.World.Coef.MinimumWageLawGate = 0.0;
+        b.World.Coef.LaborFloorOffGate = 2.0; b.World.Coef.LaborBandFloorOffGate = 1.0; b.World.Coef.MinimumWageLawGate = 1.0;
         a.Run(4); b.Run(4);
         Assert.Equal(LaborPrice(a), LaborPrice(b));
         Assert.Equal(a.World.Region.Markets[Catalog.FarmLaborId].Price, b.World.Region.Markets[Catalog.FarmLaborId].Price);
@@ -334,6 +297,7 @@ public class LaborMarketFormTests
     {
         var none = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var gateOnly = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        none.World.Coef.MinimumWageLawGate = 0;   // ★(475) 既定は 1＝閉じた側を明示する
         gateOnly.World.Coef.MinimumWageLawGate = 1;
         none.Run(4); gateOnly.Run(4);
         Assert.Equal(LaborPrice(none), LaborPrice(gateOnly));
@@ -347,7 +311,7 @@ public class LaborMarketFormTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        Assert.Equal(0.0, w.Coef.MinimumWageLawGate);
+        w.Coef.MinimumWageLawGate = 0;   // ★(475) 既定は 1＝閉じた側を明示する
         var e = PolicyPreferences.Build(w);
         for (int b = 0; b < PolicyPreferences.BlocCount; b++) Assert.Equal(0.0, PolicyPreferences.Pref(PolicyAxis.MinimumWage, b, e, w));
         // 段の法の表の門（施行と戦線の両方）が閉じている（前提が無い軸では GateInfo は純支持 0 で通るため、門は表の Open が持つ）

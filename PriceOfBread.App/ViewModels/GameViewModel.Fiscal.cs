@@ -286,7 +286,9 @@ public partial class GameViewModel
     ///   （点列は SeriesView のキャッシュ＝年が変わるまで実体を作り直さない。Points は HeaderStat.SafePoints で必ず非null）。</summary>
     public HeaderStat TechHover => StatG("", "技術水準", _histTech, v => v.ToString("F2"), 0, $"技術水準 {_player.TechLevel:F2}");
 
-    // === 予算予想（経済タブ）：Fiscal.Step と同じ式を「今の目標（段ボタンで置いた値）＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
+    // === 予算予想（経済タブ）：「今の目標（段ボタンで置いた値）＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
+    //   ⚠★(475) 反証役 hp〔v〕中#1：税の予想の 4 列（gIncome〜gLand）は税率×課税ベース×届く割合の旧の式のまま＝エンジン（Fiscal.Step）の査定〔同意・免税・払える割合・犯罪者の除外〕と同じ式ではない。
+    //     実効の列（aIncome〜aLand）はエンジンの診断を読む＝2 列の規則が違う（申し送り：予想の列もエンジンの査定の関数を目標の率で呼ぶ形へ）。
     // 収入＝各税の粗収入×国庫へ届く割合（支配度の区分）。支出＝利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
     private void UpdateForecast()
     {

@@ -995,7 +995,7 @@ public sealed class Coefficients
     //   （日本の条約改正1899/1911＝近代化を背景に条約が風化した、が創発）。AI対称は構造（同じ検査が全国に走る）。
     public Share TreatyPortLapseRatio = new(0.5);         // 【点火0.5・2026-08-16＝A/B: 単独35/69/51・港配線との合成36/73/51=near+5優加法。法−5は記録・監視】ゲート兼閾値：国力（軍事+生産＝NationalScore既存成分）÷最強列強 がこれ以上なら条約港が風化。0＝1命令も走らない厳密恒等（片道ラチェット）
     public double TreatyPortReparationMult = 2.5;     // 条約港の講和での賠償倍率（「多額の賠償金」＝属国化の代わりに金と通商特権を取る）
-    public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝輸出の敷居を25%上げる。0で厳密恒等
+    public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝（旗 TradeCheapSellSubsidy＞0 のとき）売り手の国の財の着値の楔を25%下げ、差を国庫が払う（★(475) 注を実装に合わせた・反証役 sf〔bv〕低#5）。0で厳密恒等
     // ★(471) 〈安く売る〉（交-16）：0＝旧（清算は +1 の高く買うしか読まない＝−1 は効かない）／1＝−1 を +1 の鏡像として読む＝売り手の国が −1 を置いた財の越境の成約で、着値の楔を s（=TradeBiasStrength）下げ、買い手は積出し価格の (1−s) を払い、
     //   売り手は満額を受け取り、差 s×積出し価格×r は売り手の国庫が出す（輸出奨励金・r＜1 の不足は売り手が食う）。越境だけ（AI の決め）。AI とプレイヤーは同じ `World.SetTradeBias` を通る。0 で厳密恒等。事前登録 measurements/sf471_20261020_prereg.txt。
     public int TradeCheapSellSubsidy = 0;
@@ -3281,14 +3281,16 @@ public sealed class Coefficients
     // ★特権システム 段5前半（2026-09-07）：P5 特許会社（茶の独占レント＝資本家の取り分）を台帳へ記帳（金の流れは変えない。制度疲労の導出は2026-10-16に削除）。0＝記帳なし＝恒等。
     //   P6 徴兵免除は「取り分＝金の移転」が無い（兵役の回避）＝台帳の単位に乗らない＝作者裁定待ち（動員ベースの歪みだけなら既存の徴兵プール除外が担っている）。
     public double PrivilegeMonopolyInLedger = 0.0;
-    // ★(469) 線 mw：労働の下限の撤去と最低賃金法（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」「生活にかかるコストは最低賃金法でカバーすべき」）。3 本とも 0＝今の挙動と厳密恒等。事前登録 measurements/mw469_20261020_prereg.txt。
+    // ★(469) 線 mw：労働の下限の撤去と最低賃金法（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」「生活にかかるコストは最低賃金法でカバーすべき」）。3 本とも 0＝(475) より前の挙動と厳密恒等。事前登録 measurements/mw469_20261020_prereg.txt。
     //   LaborFloorOffGate：> 0 のとき、人力の 労働力・農業労働力（EconomyStep.IsHumanLaborSupply）の採算の率 profitFactor の崖〈price≦mc で 0〉を外す（確証なし）。技師（高度労働力）と動力 4 本は今のまま。
-    //     崖 mc（自己費用×物価水準）は〈床〉であると同時に人力の供給曲線の全体＝外し方が弾力を決める（事前登録 §0・追記 1）。1＝供給は価格に応じず能力いっぱい（弾力ゼロ・字義の読み）／2＝原点を通る線形 min(1, price／(mc×(1＋SupplySlope)))（弾力を残す）。弾力の調整そのもの（留保賃金の広がり）は別の線（作者「調整が必要」）。
+    //     崖 mc（自己費用×物価水準）は〈床〉であると同時に人力の供給曲線の全体＝外し方が弾力を決める（事前登録 §0・追記 1）。正＝原点を通る線形 min(1, price／(mc×(1＋SupplySlope)))（弾力を残す）。弾力の調整そのもの（留保賃金の広がり）は別の線（作者「調整が必要」）。
     //   LaborBandFloorOffGate：> 0 のとき、労働 3 財の賃金の帯の下側（WageClampMin＝0.15×物価水準の漸近形）を外す（下限は Eps だけ）。教育・医療の役務の枝は触らない。崖を外した後に次に縛る床＝外すと値段が日に 1.4〜1.5% ずつ落ち続ける見込み（事前登録 §6 P3）。
     //   MinimumWageLawGate：> 0 のとき最低賃金法（PolicyAxis.MinimumWage・なし／生存／生活／充足）が動く（Government の表・AI の目標・要求・綱領・UI）。床＝その州の労働者の籠×人数÷人力の能力の和（MinimumWageFloor.PerUnit・能力ベース 1 つ・確証なし）。0＝法は None のまま動かず効かない。
-    public double LaborFloorOffGate = 0.0;
-    public double LaborBandFloorOffGate = 0.0;
-    public double MinimumWageLawGate = 0.0;
+    //   ★(475) 合流で3本とも既定を倒した（2・1・1）＝作者 2026-10-20「弾力は調整が必要ですが、下限は最低賃金法に移したので、差し戻す必要はありません。」「理由のない底よりは、底なしの方が健全です。」
+    //     形 1（弾力ゼロ）の分岐は同じ合流で消した＝LaborFloorOffGate は 0（旧の崖）／正（形 2）の2値。形 2 の勾配 1/(1.5mc)（旧 1/(0.5mc)）は AI の選び（確証なし）＝弾力の調整は別の線。
+    public double LaborFloorOffGate = 2.0;
+    public double LaborBandFloorOffGate = 1.0;
+    public double MinimumWageLawGate = 1.0;
     // ★特権システム 段4（作者設計 §4-1 P4・2026-09-07）：同業組合法（GuildLaw 保護/制限/廃止）。主ゲート＝法が動く（Government/AI目標/要求経路/UI）。0＝法が Full のまま動かず・効き先も0＝厳密恒等。
     public double GuildLawGate = 0.0;
     //   取り分＝職人の自営レシピの財への上乗せ（買い手価格×これ×法の度合×職人の供給シェア＝消費者→職人・台帳へ）。0＝上乗せなし。点火の値は梯子で（独占レント MonopolyRentPremium と同じ桁が目安）
