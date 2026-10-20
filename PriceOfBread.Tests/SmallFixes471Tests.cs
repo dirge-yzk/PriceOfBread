@@ -353,11 +353,11 @@ public class SmallFixes471Tests
     }
 
     [Fact]
-    public void SeatVoiceは旗0でFranchiseVoiceそのもの_旗1で算入率を掛ける()
+    public void SeatVoiceは旗0でFranchiseVoiceそのもの_旗1は植民地格の州だけ_旗2は全部に算入率を掛ける()
     {
         foreach (var law in new[] { ColonialSuffrageLaw.None, ColonialSuffrageLaw.OwnNationals, ColonialSuffrageLaw.Full })
         {
-            var (w0, c0) = SeatBoard(0, law); var (w1, c1) = SeatBoard(1, law);
+            var (w0, c0) = SeatBoard(0, law); var (w1, c1) = SeatBoard(1, law); var (w2, c2) = SeatBoard(2, law);
             int n0 = 0;
             foreach (var (rg, p) in w0.AllPopsWithRegion())
             {
@@ -365,13 +365,51 @@ public class SmallFixes471Tests
                 n0++;
             }
             Assert.True(n0 > 0);
+            int colonialSeen = 0;
             foreach (var (rg, p) in w1.AllPopsWithRegion())
             {
-                double expected = InterestGroups.FranchiseVoice(p, w1.Suffrage, w1.Coef) * InterestGroups.SuffrageInclusion(w1, rg, p);
-                Assert.Equal(expected, InterestGroups.SeatVoice(w1, rg, p, w1.Suffrage));
+                double fv = InterestGroups.FranchiseVoice(p, w1.Suffrage, w1.Coef);
+                if (rg.Tier == RegionTier.Colonial)
+                {
+                    colonialSeen++;
+                    double incl = law switch { ColonialSuffrageLaw.None => 0.0, ColonialSuffrageLaw.Full => 1.0, _ => p.CoreEthnicShare.Value };   // 手の算術（法の段から）
+                    Assert.Equal(fv * incl, InterestGroups.SeatVoice(w1, rg, p, w1.Suffrage));
+                }
+                else Assert.Equal(fv, InterestGroups.SeatVoice(w1, rg, p, w1.Suffrage));   // 本国格には旗 1 は及ばない
             }
-            _ = c0; _ = c1;
+            Assert.True(colonialSeen > 0);
+            foreach (var (rg, p) in w2.AllPopsWithRegion())
+                Assert.Equal(InterestGroups.FranchiseVoice(p, w2.Suffrage, w2.Coef) * InterestGroups.SuffrageInclusion(w2, rg, p), InterestGroups.SeatVoice(w2, rg, p, w2.Suffrage));
+            _ = c0; _ = c1; _ = c2;
         }
+    }
+
+    private static (Region, Pop) FirstMainlandVoter(World w)
+    {
+        foreach (var (rg, p) in w.AllPopsWithRegion())
+            if (rg.Tier != RegionTier.Colonial && InterestGroups.FranchiseVoice(p, w.Suffrage, w.Coef) > 0) return (rg, p);
+        throw new InvalidOperationException("本国格に票を持つ POP が無い");
+    }
+
+    [Fact]
+    public void 本国格の非中核の住民は移民原住民参政権_なし_でも旗1の議席の重みを減らされない_旗2は減らす()
+    {
+        var (w1, _) = SeatBoard(1, ColonialSuffrageLaw.None);
+        var (w2, _) = SeatBoard(2, ColonialSuffrageLaw.None);
+        foreach (var w in new[] { w1, w2 }) w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;   // 本国格の非中核の住民は算入率 = 中核度
+        int seen = 0;
+        foreach (var (rg, p) in w1.AllPopsWithRegion())
+        {
+            if (rg.Tier == RegionTier.Colonial) continue;
+            p.CoreEthnicShare = new Share(0.4); seen++;
+        }
+        foreach (var (rg, p) in w2.AllPopsWithRegion()) if (rg.Tier != RegionTier.Colonial) p.CoreEthnicShare = new Share(0.4);
+        Assert.True(seen > 0);
+        var m1 = FirstMainlandVoter(w1);
+        double fv = InterestGroups.FranchiseVoice(m1.Item2, w1.Suffrage, w1.Coef);
+        Assert.Equal(fv, InterestGroups.SeatVoice(w1, m1.Item1, m1.Item2, w1.Suffrage));          // 旗 1：本国格は触らない
+        var m2 = FirstMainlandVoter(w2);
+        Assert.Equal(fv * 0.4, InterestGroups.SeatVoice(w2, m2.Item1, m2.Item2, w2.Suffrage), 12);   // 旗 2：中核度 0.4 を掛ける（手の算術）
     }
 
     // ================================================================ ④ 経-20 予算の下限 ================================================================
@@ -441,5 +479,55 @@ public class SmallFixes471Tests
         var ex = Record.Exception(() => EconomyStep.Run(r1, w1.Coef, 1.0, w1.Bank, w1));
         _ = ex;   // NaN の貯蓄の世界は別の不変条件が先に落ちうる＝例外は問わず、需要が NaN でないことだけ見る
         Assert.All(r1.Markets, m => Assert.False(double.IsNaN(m.LastDemand)));
+    }
+
+    [Fact]
+    public void 月初の床は家計の与信の分岐の前_負の穴を借りて埋めて買う形を避ける()
+    {
+        // 旗 0：残りの予算 −5e4 の POP は shortfall = (desired − 負の予算/値段)×値段 に負の穴の分が乗る＝その分まで借りる。旗 1：月初に 0 へ止めるので借りる額は欲しい額の分だけ。
+        long debtOf(int flag)
+        {
+            var (r, w, p) = BudgetBoard(flag, -5e4);
+            w.Coef.PopDebtDriven = 1; w.Coef.HouseholdCreditMonths = 12; w.Coef.HouseholdCreditStapleOnly = 1;
+            p.LastEarnedPerMonth = new MoneyPerMonth(1e9);   // 枠は大きい（借りる額は shortfall で決まる）
+            double d0 = p.Debt.Value;
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+            return (long)Math.Round((p.Debt.Value - d0) * 1000);
+        }
+        long d0 = debtOf(0), d1 = debtOf(1);
+        Assert.True(d0 > d1, $"旗 0 の借入 {d0} が旗 1 の {d1} より大きいはず（負の穴の分）");
+    }
+
+    [Fact]
+    public void 方針の値が変わった回数は計器の欄に数える_同じ値を置き直しても増えない()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
+        sim.Run(2);
+        var w = sim.World;
+        WithIns<int>(() =>
+        {
+            double b = w.DiagSfBiasSwitchCum;
+            w.SetTradeBias(3, -1); w.SetTradeBias(3, -1); w.SetTradeBias(3, 0); w.SetTradeBias(3, 0);
+            Assert.Equal(2.0, w.DiagSfBiasSwitchCum - b);   // 0→−1・−1→0 の 2 回だけ
+            return 0;
+        });
+    }
+
+    [Fact]
+    public void 立場の土台の高齢は旗1で兵士の老年と兵士の人口が分子と分母の両方に入る()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
+        sim.Run(6);
+        var w = sim.World;
+        var s = w.AllPops().First(p => p.IsSoldier);
+        s.Size = 1000; s.Ages = new double[2 * Pop.AgeBands]; s.Ages[2 * 6] = 1.0;   // 全員 60〜69 歳の男の兵士
+        int bloc = PolicyPreferences.BlocOf(s);
+        w.Coef.PensionIncludesSoldiers = 0; var a = PolicyPreferences.ComputeBuildSums(w);
+        w.Coef.PensionIncludesSoldiers = 1; var b = PolicyPreferences.ComputeBuildSums(w);
+        double sold = w.AllPops().Where(p => p.IsSoldier && PolicyPreferences.BlocOf(p) == bloc).Sum(p => p.Size);
+        double soldOld = w.AllPops().Where(p => p.IsSoldier && PolicyPreferences.BlocOf(p) == bloc).Sum(p => p.Size * p.AgeShare(60, double.PositiveInfinity));
+        Assert.Equal(sold, b.BlocPop[bloc] - a.BlocPop[bloc], 6);     // 分母に兵士の人口
+        Assert.Equal(soldOld, b.Old[bloc] - a.Old[bloc], 6);          // 分子に兵士の老年
+        Assert.True(soldOld >= 1000 - 1e-6);
     }
 }

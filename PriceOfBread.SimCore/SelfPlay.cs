@@ -1270,7 +1270,7 @@ public sealed class UtilityAgent : INationAgent
         bool broke = FiscalStressOf(w) > TradeBiasStressCeiling;
         for (int g = 0; g < Catalog.Goods.Length; g++)
         {
-            if (broke) { if (w.TradeBiasOf(g) != 0) w.SetTradeBias(g, 0); continue; }   // 金が無い時は全部畳む
+            if (broke) { if (w.TradeBiasOf(g) != 0) { w.SetTradeBias(g, 0); if (Instruments.On) w.DiagSfStressFoldCum++; } continue; }   // 金が無い時は全部畳む（★(471) 計器：畳んだ財の数）
             double stock = 0, target = 0;
             foreach (var r in w.Regions)
             {

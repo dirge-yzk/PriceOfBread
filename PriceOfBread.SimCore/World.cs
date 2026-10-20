@@ -45,7 +45,9 @@ public sealed class World
     public bool AtWarNow => Diplomacy is { } d && SelfPower is { } sp && d.AtWarAny(sp);
     // ★財ごとの売買方針（2026-08-04・作者仕様(3)「高く買う/安く売る」）。
     //   +1＝高く買う（国庫が差額を上乗せして他国より優先して引き込む）／−1＝安く売る（買い手のつかない余剰を国庫負担で放流）／0＝なし。
-    //   ⚠既存の関税ダンピング（負の関税＝**全財一律**の輸出補助）と同じ保存経路（国庫→商人）に載せる＝新しい金の出口を作らない。
+    //   ⚠+1＝輸入側：捌き手（買い手側の商人）が差額 s×積出し価格を上乗せし、国庫が出す（Fiscal の請求 tradeClaim の輸入側）。
+    //   ★(471) −1＝輸出側（旗 TradeCheapSellSubsidy）：越境の成約で、売り手の国の財の着値の楔を s 下げ（買い手は積出し価格の (1−s) を払う）、売り手は満額を受け取る。差 s×積出し価格×r は売り手の国庫が出す＝国庫→清算所→売り手の生産者の道（BilateralMarket の記帳）。
+    //     既存の関税ダンピング（負の関税＝**全財一律**の輸出補助）とは別の経路（国庫→商人でなく国庫→清算所）。同じ財・同じ四半期に両方が立つと輸出補助が 2 つ重なる（sf_s の cheapWithNegTariffCount で読む）。旗 0 では −1 は何も変えない。
     //   ⚠プレイヤーもAIも同じ配列を書く＝対称。null/空なら全て0＝厳密恒等。
     public sbyte[] GoodTradeBias = [];
     public int TradeBiasOf(int goodId) => (uint)goodId < (uint)GoodTradeBias.Length ? GoodTradeBias[goodId] : 0;
@@ -54,6 +56,7 @@ public sealed class World
     {
         if ((uint)goodId >= (uint)Catalog.Goods.Length) return;
         if (GoodTradeBias.Length < Catalog.Goods.Length) Array.Resize(ref GoodTradeBias, Catalog.Goods.Length);
+        if (Instruments.On && GoodTradeBias[goodId] != (sbyte)Math.Clamp(bias, -1, 1)) DiagSfBiasSwitchCum++;   // ★(471) 計器（読むだけ）
         GoodTradeBias[goodId] = (sbyte)Math.Clamp(bias, -1, 1);
     }
     // ★財ごとの**全国の工場目標棟数**（作者要望2026-09-07 (1)）＝生産タブの財カードに出る分母。
@@ -197,6 +200,8 @@ public sealed class World
     // ★(471) 計器 sf_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを1つも読まない）：兵士へ届いた年金の累計・売り手の国庫が払った〈安く売る〉の補助の累計（自国通貨）・
     //   直近の ComputeVotes が使った票の重みの合計・床の直前に残りの予算が負だった POP×月の人口〔千〕と額の累計。
     [System.NonSerialized] internal double DiagSfPensionToSoldiersCum, DiagSfCheapSubsidyPaidCum, DiagSfVoteWeightUsed, DiagSfBudgetNegCumPopMonthK, DiagSfBudgetNegCumAmount;
+    // ★(471) 追記 2：売買方針の値が変わった回数の累計・財政逼迫で全ての方針を畳んだ財の数の累計（AI の閾値の往復を読む計器・INS=1 のときだけ・セーブに載らない）。
+    [System.NonSerialized] internal double DiagSfBiasSwitchCum, DiagSfStressFoldCum;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）

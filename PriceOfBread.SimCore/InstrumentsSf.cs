@@ -8,26 +8,28 @@ namespace PriceOfBread.SimCore;
 //   pensionLevel（年金の法の段 0／0.5／1）／elder60K・soldierElder60K（兵士以外・兵士の 60 歳以上）／pensionToSoldiersCum（兵士へ届いた年金の累計・旗 0 は 0）／
 //   cheapGoodCount・dearGoodCount（売買の方針が −1・+1 の財の数）／cheapExportValue（−1 の財の ExportsByGood の和＝直近の清算の越境の輸出額・金建て）／cheapProducedRefValue（−1 の財の州の LastProduced×RefPrice の和）／cheapSubsidyPaidCum（売り手の国庫が払った奨励金の累計・旗 0 は 0）／
 //   voteWeightAll・voteWeightScoped（Σ size×FranchiseVoice と、それに SuffrageInclusion を掛けた和＝旗に依らず同じ式）／voteWeightUsed（直近の ComputeVotes が使った重みの合計）／colonialVoteWeight（植民地格の州の FranchiseVoice の重み）／
+//   voteWeightScopedColonialOnly（Σ size×FranchiseVoice×〈植民地格なら SuffrageInclusion・本国格なら 1〉＝旗 1 の議席の重み）／colonialSuffrageLaw・migrantNativeSuffrageLaw（法の段の整数値）／biasSwitchCum・stressFoldCum（売買方針の値が変わった回数と、財政逼迫で畳んだ財の数の累計）／cheapWithNegTariffCount（負の関税が立つ四半期の −1 の財の数）／
 //   budgetNegCumPopMonthK・budgetNegCumAmount（消費の財のループの直前に残りの予算が負だった POP×月の人口〔千〕と額の累計・床の直前に撮る＝旗に依らない）。
 // ⚠限界（計器が自己申告する）：①四半期の末の断面と累計・②cheapExportValue は直近の清算の 1 回・③voteWeightUsed は直近の ComputeVotes（毎期）・④budgetNeg は助走の月も数える累計（差を取って読む）・⑤旗 1 では奨励金の分だけ買い手の支払いが減る（輸入額の統計は積出し価格のまま）。
 public static partial class Instruments
 {
     internal const string SfHeaderText = "quarter\tyear\tnation\tpensionLevel\telder60K\tsoldierElder60K\tpensionToSoldiersCum\t"
         + "cheapGoodCount\tdearGoodCount\tcheapExportValue\tcheapProducedRefValue\tcheapSubsidyPaidCum\t"
-        + "voteWeightAll\tvoteWeightScoped\tvoteWeightUsed\tcolonialVoteWeight\tbudgetNegCumPopMonthK\tbudgetNegCumAmount";
+        + "voteWeightAll\tvoteWeightScoped\tvoteWeightUsed\tcolonialVoteWeight\tbudgetNegCumPopMonthK\tbudgetNegCumAmount\t"
+        + "voteWeightScopedColonialOnly\tcolonialSuffrageLaw\tmigrantNativeSuffrageLaw\tbiasSwitchCum\tstressFoldCum\tcheapWithNegTariffCount";
 
     /// <summary>国の sf_s の行の値（列の順＝<see cref="SfHeaderText"/> の pensionLevel 以後）。番人（テスト）が世界から直に呼べるよう値の組で返す。</summary>
     internal static double[] SfRow(World w)
     {
         double level = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
-        double elder = 0, soldierElder = 0, all = 0, scoped = 0, colonial = 0;
+        double elder = 0, soldierElder = 0, all = 0, scoped = 0, colonial = 0, scopedCol = 0;
         foreach (var (rg, p) in w.AllPopsWithRegion())
         {
             double os = p.Size * p.AgeShare(60, double.PositiveInfinity);
             if (p.IsSoldier) soldierElder += os; else elder += os;
             double v = p.Size * InterestGroups.FranchiseVoice(p, w.Suffrage, w.Coef);
             all += v; scoped += v * InterestGroups.SuffrageInclusion(w, rg, p);
-            if (rg.Tier == RegionTier.Colonial) colonial += v;
+            if (rg.Tier == RegionTier.Colonial) { colonial += v; scopedCol += v * InterestGroups.SuffrageInclusion(w, rg, p); } else scopedCol += v;
         }
         int ng = Catalog.Goods.Length;
         double cheapN = 0, dearN = 0, cheapExp = 0, cheapProd = 0;
@@ -45,7 +47,8 @@ public static partial class Instruments
             }
         }
         return [level, elder, soldierElder, w.DiagSfPensionToSoldiersCum, cheapN, dearN, cheapExp, cheapProd, w.DiagSfCheapSubsidyPaidCum,
-                all, scoped, w.DiagSfVoteWeightUsed, colonial, w.DiagSfBudgetNegCumPopMonthK, w.DiagSfBudgetNegCumAmount];
+                all, scoped, w.DiagSfVoteWeightUsed, colonial, w.DiagSfBudgetNegCumPopMonthK, w.DiagSfBudgetNegCumAmount,
+                scopedCol, (double)(int)w.ColonialSuffrage, (double)(int)w.MigrantNativeSuffrage, w.DiagSfBiasSwitchCum, w.DiagSfStressFoldCum, w.Tariff < 0 ? cheapN : 0.0];
     }
 
     static void SfFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)

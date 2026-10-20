@@ -1418,12 +1418,14 @@ public static class EconomyStep
 
         // ★(471) 消費の予算の下限（経-20・旗 ConsumeBudgetFloor）：買える量 affordable ＝ 残りの予算÷値段 に下の止めが無いと、残りの予算が負の POP は買う量が負＝需要が負になり市場を逆に動かす。
         //   負の予算は 2 通りで立つ：①月初の貯蓄が負（BackstopNegativeSavings が月の終わりに埋めるまでの隙間・m466_ins では塵だけ）②**財のループの途中**で前の財の支払いに予算を使い切った POP の丸めの残り（−1e-14 の桁・m466_ins の negativeDemandPerMonth の塵の出所）。
-        //   どちらも買う場所（下の `affordable`）で止める＝旗 1 で `!(affordable > 0)` なら 0（否定形＝NaN も 0・Savings と RemainingBudget は触らない）。
+        //   旗 1 は 2 か所で止める：①月初（ここ・家計の与信の分岐の前＝負の穴を借りて埋めて買う形を避ける）②買う場所（下の `affordable`＝②の塵は月初の床では届かない）。Savings は触らない。
         //   ここは INS=1 のときだけ、財のループの直前に残りの予算が負だった POP×月の人口と額を診断の欄へ積む（旗に依らない・sf_s・読むだけ）。
         if (Instruments.On && world is not null)
             foreach (var p in region.Pops)
                 if (p.RemainingBudget < 0) { world.DiagSfBudgetNegCumPopMonthK += p.Size; world.DiagSfBudgetNegCumAmount -= p.RemainingBudget; }
         bool budgetFloor = coef.ConsumeBudgetFloor > 0;
+        if (budgetFloor)   // 月初の床（追記 2 の訂正 6）：家計の与信の分岐（下の `shortfall`）が負の残りの予算の穴まで借りて買わない（Savings は触らない＝貯蓄の記帳は不変・否定形＝NaN も 0）
+            foreach (var p in region.Pops) if (!(p.RemainingBudget > 0)) p.RemainingBudget = 0;
 
         insEnt?.Start();   // (345) 計器（読むだけ）：財のループの直前の残予算・貯蓄・支払い
         // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
