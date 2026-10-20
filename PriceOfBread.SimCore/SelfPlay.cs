@@ -1014,22 +1014,6 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    /// <summary>★最低賃金法の目標（線 lw (459)）＝MinimumWageLawGate＞0 かつ本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
-    /// （帯で現行の法がすでにその段以上なら書かない＝施行済みの床を引き下げる目標を立てない）。賛否の出所＝PolicyPreferences（大衆が賛成・資本が反対）が目標の施行を政治ゲートで決める。
-    /// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
-    internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
-    {
-        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
-        MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
-        return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
-    }
-
-    /// <summary>本国の都市の割合から、AI が最低賃金法に置く段（<see cref="MinimumWageTargetFromBoard"/> の純関数の部分）。NaN は否定形で None 側。</summary>
-    internal static MinimumWageLaw MinimumWageWant(double urbanShare)
-        => urbanShare > MinimumWageSufficiencyUrbanLine ? MinimumWageLaw.Sufficiency
-         : urbanShare > TrustbustUrbanLine ? MinimumWageLaw.Living
-         : urbanShare > AntitrustUrbanLine ? MinimumWageLaw.Subsistence : MinimumWageLaw.None;
-
     /// <summary>旧の同業組合の目標＝GuildLawGate＞0 かつ工業化度＞0.5 で制限・＞0.75 で廃止・それ以外は書かない（null）。</summary>
     internal static GuildLaw? GuildTargetOld(World w)
     {
@@ -1048,6 +1032,22 @@ public sealed class UtilityAgent : INationAgent
         if (u > AntitrustUrbanLine) return w.Guild >= GuildLaw.Limited ? null : GuildLaw.Limited;
         return null;
     }
+
+    /// <summary>★最低賃金法の目標（線 lw (459)）＝MinimumWageLawGate＞0 かつ本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// （帯で現行の法がすでにその段以上なら書かない＝施行済みの床を引き下げる目標を立てない）。賛否の出所＝PolicyPreferences（大衆が賛成・資本が反対）が目標の施行を政治ゲートで決める。
+    /// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
+    internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
+    {
+        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
+        MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
+        return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
+    }
+
+    /// <summary>本国の都市の割合から、AI が最低賃金法に置く段（<see cref="MinimumWageTargetFromBoard"/> の純関数の部分）。NaN は否定形で None 側。</summary>
+    internal static MinimumWageLaw MinimumWageWant(double urbanShare)
+        => urbanShare > MinimumWageSufficiencyUrbanLine ? MinimumWageLaw.Sufficiency
+         : urbanShare > TrustbustUrbanLine ? MinimumWageLaw.Living
+         : urbanShare > AntitrustUrbanLine ? MinimumWageLaw.Subsistence : MinimumWageLaw.None;
 
     public void DecideQuarter(World w)
     {
