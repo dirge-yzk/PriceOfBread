@@ -184,7 +184,7 @@ def main():
     t3b = small_w / small_tot if small_tot else float("nan")
     print(f"T3b 小国（開幕の人口が種の中央値未満）が最初の発見者になる比：{t3b:.3f}（{small_w:.2f}/{small_tot:.2f}・開幕に居ない国 {unseeded:.2f} 件は別）（狙い≧0.05）→ {'通過' if t3b >= 0.05 else '外れ'}" if small_tot else "T3b 該当なし")
     top = wnat.most_common(8)
-    print(f"T4 清の比：{wnat.get('清', 0.0) / wtot:.3f}（狙い≦0.20）・最大の 1 国：{top[0][0]} {top[0][1] / wtot:.3f}（狙い≦0.35）・上位 " + "・".join(f"{n}{c / wtot:.3f}" for n, c in top) + f"（重みの合計 {wtot:.2f}）")
+    print(f"T4 清の比：{wnat.get('清', 0.0) / wtot:.3f}（記録だけ・事前登録では狙い≦0.20 の目安）・最大の 1 国：{top[0][0]} {top[0][1] / wtot:.3f}（記録だけ・目安≦0.35）・上位 " + "・".join(f"{n}{c / wtot:.3f}" for n, c in top) + f"（重みの合計 {wtot:.2f}）")
     # T5
     never = sorted(r for r in allrows if r not in rows_seen)
     print(f"T5 どの種でも開かない行：{len(never)} 本（狙い≦11）→ {'通過' if len(never) <= 11 else '外れ'}：{'・'.join(never)}（行の全体 {len(allrows)} 本{'・--rows= から' if rows_dir else ''}）")

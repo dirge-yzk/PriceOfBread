@@ -12,7 +12,7 @@ public enum WarDomain { None, Land, Sea, Air }
 /// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
 /// <paramref name="After"/>＝★(336) 系統×段階の前提の行の名前（""＝前提なし＝系統の根〔段1〕）。前提の行がまだの国ではこの行を判定しない（点数0・飛ばして先の段を解禁しない）。
 /// 系統＝根の行（前提のない行）から枝分かれする木・段＝根からの深さ（<see cref="Catalog.DiscoveryTier"/>）＝系統と段は前提の1本から導く（別に持たない）。（旧の旗 DiscoveryTierGate は 2026-10-18 に焼き込み。）
-/// ★(461) <paramref name="EngineerParent"/>＝時計の形（<see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正）のときだけ、親の産業の技師を数える財（−1＝今の規則〔製法は行の財・新製品は Replaces の財〕）。カタログのデータ（国別でない）・必要性の <c>Replaces</c> は触らない。</summary>
+/// ★(461) <paramref name="EngineerParent"/>＝時計の形（<see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正）で、さらに <see cref="Coefficients.DiscoveryClockMotorParent"/> が正のときだけ（既定 0）、親の産業の技師を数える財（−1＝今の規則〔製法は行の財・新製品は Replaces の財〕）。カタログのデータ（国別でない）・必要性の <c>Replaces</c> は触らない。</summary>
 public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "", int EngineerParent = -1);
 
 /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
@@ -539,7 +539,7 @@ public static class Discovery
             }
         }
         if (nAct == 0) return res;
-        double wClock = double.NaN;   // ★(461) 時計の W＝世界の高度労働力の雇用の合計（全ての行・国で共通・旗が正のときだけ）。単独の世界は自国の全ての財の和
+        double wClock = double.NaN;   // ★(461) 時計の W＝世界の高度労働力の雇用の合計（全ての行・国で共通・旗が正のときだけ）。単独の世界は自国の全ての財の和（⚠ W0 は世界の和で較正した値＝単独の世界では d＞0 の行が開きにくい〈推測〉・★(466) 製品の試合〔App と Runner の selfplay・play〕は MultiNationSim を通る＝単独の世界は Runner の診断の動詞とテストだけ）
         if (poolOn)
         {
             if (view?.WorldAdvLabor is { } wv) wClock = wv;

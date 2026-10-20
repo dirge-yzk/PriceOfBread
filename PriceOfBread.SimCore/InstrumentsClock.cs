@@ -6,7 +6,7 @@ namespace PriceOfBread.SimCore;
 // 行（kind 列）：W＝8四半期ごとの世界の合計 W（全ての財の和・行は `*`）／T＝同じ標本の全ての非制度・非思想の行の国別の A（ownNation は `*`）／E＝国が行を解禁した四半期のその国の A_n と W／C＝世界の合計の巡回の累計（worldTotalPerMonth 列＝秒・holders 列＝訪れた生産者）。
 //   列：kind／quarter／year／row／decade／worldTotalPerMonth（W・月あたり。C 行は秒）／holders（A＞0 の国の数。C 行は訪れた生産者）／ownNation／ownPerMonth（E のみ）／top1Nation／top1PerMonth／britainPerMonth／francePerMonth／prussiaPerMonth／chinaPerMonth（T のみ）。
 // ⚠限界（計器が自己申告する）：A は `Score` の代表の生産者（その行の最初の生産者）の投入から親の財を定める＝国によって代表のレシピが違えば A も違う（T の行は全ての国の最初の生産者で 1 本に定める）／
-//   四半期の末の断面／国の名前は表示名（建国・改称で別の名前になる）／電動機の A は時計の形の定め（蒸気機関の財）で数える（旗 0 の世界でも）。
+//   四半期の末の断面／国の名前は表示名（建国・改称で別の名前になる）／電動機の A は旗 DiscoveryClockMotorParent が正のときだけ蒸気機関の財で数える（既定 0＝今の規則＝電動機の行の財）。★(466) 合流で dd5eeabb の切り離しに合わせて直した。
 public static partial class Instruments
 {
     internal static string ClockHeaderText()

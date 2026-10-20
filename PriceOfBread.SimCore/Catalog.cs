@@ -627,7 +627,7 @@ public static class Catalog
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
         new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),         // アップルトン1882・ナイアガラ1895
         new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880), // パーソンズ1884
-        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880, EngineerParent: SteamEngineId),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）   // ★(461) 時計の形（DiscoveryClockWorldPerMonth が正）のときだけ、親の産業の技師＝蒸気機関の財（電動機が置き換えた工場の原動機の産業）。電力の産業は立つまで 0 で錠になる（確証なし・事前登録 dk_20261020_prereg.txt [2]）
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880, EngineerParent: SteamEngineId),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）   // ★(461) 時計の形（DiscoveryClockWorldPerMonth が正）で、さらに別の旗 DiscoveryClockMotorParent が正のときだけ（既定 0）、親の産業の技師＝蒸気機関の財（電動機が置き換えた工場の原動機の産業）。電力の産業は立つまで 0 で錠になる（確証なし・事前登録 dk_20261020_prereg.txt [2]）
         new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),                  // シャルドネ1891・ビスコース1892
         new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),        // §1A-5 の表
         new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
