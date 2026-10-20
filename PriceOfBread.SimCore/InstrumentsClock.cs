@@ -54,7 +54,7 @@ public static partial class Instruments
             var named = new double[names.Length];
             for (int i = 0; i < nations.Count; i++)
             {
-                double a = Discovery.ParentEngineers(row, rp, engN[i], clockParent: true);
+                double a = Discovery.ParentEngineers(row, rp, engN[i], clockParent: nations[i].World.Coef.DiscoveryClockMotorParent > 0);
                 if (a > 0) holders++;
                 if (a > top1) { top1 = a; top1Name = NameOf(nations[i].World); }
                 string nm = NameOf(nations[i].World);

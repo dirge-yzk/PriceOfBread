@@ -55,7 +55,7 @@ public static class Discovery
 
     /// <summary>★(415) 行の親の産業の技師の量（月あたり・事前登録 [3-1]）＝親の財（製法の行は行の財・新製品は <see cref="DiscoveryRow.Replaces"/> の財・財でない <c>Replaces</c> の行は行の財）と、
     /// 行の代表のレシピの投入（労働力・高度労働力・農業労働力を除く）の財について、財ごとの雇用 <paramref name="eng"/>（<see cref="EngineerUse"/> の国の和）を足す。同じ財は1度だけ。
-    /// ★(461) <paramref name="clockParent"/>＝時計の形（<see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正）のとき、行が持つ親の産業の欄 <see cref="DiscoveryRow.EngineerParent"/>（電動機＝蒸気機関の財）を使う。既定（偽）は今の規則。</summary>
+    /// ★(461) <paramref name="clockParent"/>＝別の旗 <see cref="Coefficients.DiscoveryClockMotorParent"/> が正（時計の形の上）のとき、行が持つ親の産業の欄 <see cref="DiscoveryRow.EngineerParent"/>（電動機＝蒸気機関の財）を使う。既定（偽）は今の規則。</summary>
     internal static double ParentEngineers(int row, Producer rp, double[] eng, bool clockParent = false)
     {
         var d = Catalog.Discoveries[row];
@@ -632,7 +632,7 @@ public static class Discovery
                 wSum += wt; wDom += wt * dom;
             }
             double push = wSum > 0 ? wDom / wSum : 1.0;
-            double aRow = eng is not null ? ParentEngineers(row, rp!, eng, poolOn) : double.NaN;   // ★(415) 親の産業の技師の量（旗が正か計器のときだけ求める）
+            double aRow = eng is not null ? ParentEngineers(row, rp!, eng, poolOn && c.DiscoveryClockMotorParent > 0) : double.NaN;   // ★(461) 電動機の親の産業は別の旗（既定 0＝今の規則）。★(415) 親の産業の技師の量（旗が正か計器のときだけ求める）
             if (engineerOut is not null && row < engineerOut.Length) engineerOut[row] = aRow;
             double tech = poolOn && d.Decade > Catalog.DiscoveryBaseDecade ? TermMax * ClockStage(row, wClock, c) * OwnCapacity(row, aRow, c)   // ★(461) 世界の時計 S（細ランプ・全ての行・国で共通の W）× 自国の最低限の産業 C（押しは A の中に入っている）。d≦0 の行は下の今の式
                                                                             : TermMax * (engOn ? EngineerFactor(row, aRow, c) : ratio) * push;

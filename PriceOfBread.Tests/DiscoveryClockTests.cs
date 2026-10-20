@@ -14,11 +14,11 @@ public class DiscoveryClockTests
     private const double TestOwn = 6.0;   // 検査用の Am（較正値ではない）
     private const double TestWidth = 0.1;
 
-    private static MultiNationSim Board(double clock, double own)
+    private static MultiNationSim Board(double clock, double own, double motor = 0)
     {
         var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
-        sim.Coef.DiscoveryClockWorldPerMonth = clock; sim.Coef.DiscoveryOwnHalfPerMonth = own;   // 多国の判定が読む共有の係数
-        foreach (var n in sim.Nations) { n.World.Coef.DiscoveryClockWorldPerMonth = clock; n.World.Coef.DiscoveryOwnHalfPerMonth = own; }
+        sim.Coef.DiscoveryClockWorldPerMonth = clock; sim.Coef.DiscoveryOwnHalfPerMonth = own; sim.Coef.DiscoveryClockMotorParent = motor;   // 多国の判定が読む共有の係数
+        foreach (var n in sim.Nations) { n.World.Coef.DiscoveryClockWorldPerMonth = clock; n.World.Coef.DiscoveryOwnHalfPerMonth = own; n.World.Coef.DiscoveryClockMotorParent = motor; }
         sim.StepQuarter();
         return sim;
     }
@@ -27,6 +27,7 @@ public class DiscoveryClockTests
     /// <summary>この盤面の 1 四半期目の世界の合計 W に対し、d＝7 の行が傾斜の真ん中（S＝1/2）に来る W0（＝W÷7）。検査用で較正値ではない。</summary>
     private static readonly Lazy<double> TestClock = new(() => HandWorld(BoardOff.Value) / 7.0);
     private static readonly Lazy<MultiNationSim> BoardOn = new(() => Board(TestClock.Value, TestOwn));
+    private static readonly Lazy<MultiNationSim> BoardMotor = new(() => Board(TestClock.Value, TestOwn, 1.0));   // 電動機の親の旗も正
 
     private static World Nation(MultiNationSim sim, string name)
         => sim.Nations.Find(n => n.World.SelfPower?.BaseName == name)?.World ?? throw new Xunit.Sdk.XunitException($"{name} が居ない");
@@ -189,7 +190,7 @@ public class DiscoveryClockTests
                 if (Catalog.DiscoveryAfter[row] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[row])) continue;   // 前提の行がまだの国は判定しない（点数 0）
                 double dd = (d.Decade - 1780) / 10.0;
                 if (!(dd > 0)) { d0++; continue; }   // d≦0 の行は下の別の検査
-                double a = HandA(w, ParentGoods(row, rp, clock: true));
+                double a = HandA(w, ParentGoods(row, rp, clock: c.DiscoveryClockMotorParent > 0));   // 電動機の親は別の旗（この盤面は 0＝今の規則）
                 double sHand = System.Math.Clamp((wTot / (w0 * dd) - 1.0) / wid + 0.5, 0.0, 1.0);
                 double cHand = a > 0 ? a / (a + TestOwn) : 0.0;
                 double want = Discovery.TermMax * sHand * cHand;
@@ -365,6 +366,35 @@ public class DiscoveryClockTests
         Assert.Equal(23, CostLedger.DiscoveryWorldScans);        // 重なりの読みの指定：dk＝23・lw＝24（22 は main の不満度を読む行）
         Assert.Equal(CostLedger.DiscoveryWorldScanUnitMicros, CostLedger.UnitMicros[CostLedger.DiscoveryWorldScans]);
         Assert.True(CostLedger.UnitMicros[CostLedger.DiscoveryWorldScans] > 0);
+    }
+
+    /// <summary>電動機の親の産業は時計の形とは別の旗（<see cref="Coefficients.DiscoveryClockMotorParent"/>）＝時計の形（W0 が正）だけでは蒸気機関の財を足さず、旗も正のときだけ足す。
+    /// 旗が正の盤面の電動機の技術力は 70×S×C で、A は蒸気機関の財の技師＋電力の投入（番人の側で生産者をたどって組む）。旗が 0 の盤面では今の規則の A。
+    /// ⚠壊し方＝旗を見ず時計の形のとき常に蒸気機関の財にする → 旗が 0 の盤面（BoardOn）の電動機の検査で赤。旗が正でも足さない → 本検査で赤。</summary>
+    [Fact]
+    public void 電動機の親の産業は別の旗で切り替わる()
+    {
+        int motor = Row("電動機");
+        var sim = BoardMotor.Value;
+        double w0 = TestClock.Value, wid = sim.Coef.DiscoveryClockRampWidth;
+        double wTot = HandWorld(sim);
+        double dd = (Catalog.Discoveries[motor].Decade - 1780) / 10.0;
+        double sHand = System.Math.Clamp((wTot / (w0 * dd) - 1.0) / wid + 0.5, 0.0, 1.0);
+        int steam = 0, compared = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            var rp = RepOf(w, motor);
+            if (rp is null) continue;
+            if (Catalog.DiscoveryAfter[motor] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[motor])) continue;
+            var terms = Discovery.Evaluate(w, w.LastDiscoveryView! with { WorldAdvLabor = wTot }, w.Coef, includeKnown: true);
+            double aSteam = HandA(w, ParentGoods(motor, rp, clock: true)), aOld = HandA(w, ParentGoods(motor, rp, clock: false));
+            double want = Discovery.TermMax * sHand * (aSteam > 0 ? aSteam / (aSteam + TestOwn) : 0.0);
+            Assert.True(System.Math.Abs(terms[motor].Tech - want) <= 1e-9 * System.Math.Max(1.0, want), $"{n.World.SelfPower?.BaseName} 電動機：技術力 {terms[motor].Tech} ≠ {want}（A蒸気={aSteam}・A旧={aOld}）");
+            compared++; if (aSteam > aOld) steam++;
+        }
+        Assert.True(compared >= 5, $"比べた国が少なすぎる（{compared}）");
+        Assert.True(steam >= 3, $"蒸気機関の技師が電動機の A を増やす国が少なすぎる（{steam}）＝旗の検査が空回りしている");
     }
 }
 
