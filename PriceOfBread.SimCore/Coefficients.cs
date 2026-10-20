@@ -3276,8 +3276,8 @@ public sealed class Coefficients
     //   P6 徴兵免除は「取り分＝金の移転」が無い（兵役の回避）＝台帳の単位に乗らない＝作者裁定待ち（動員ベースの歪みだけなら既存の徴兵プール除外が担っている）。
     public double PrivilegeMonopolyInLedger = 0.0;
     // ★(469) 線 mw：労働の下限の撤去と最低賃金法（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」「生活にかかるコストは最低賃金法でカバーすべき」）。3 本とも 0＝今の挙動と厳密恒等。事前登録 measurements/mw469_20261020_prereg.txt。
-    //   LaborFloorOffGate：> 0 のとき、人力の 労働力・農業労働力（EconomyStep.IsHumanLaborSupply）の採算の率 profitFactor の崖〈price≦mc で 0〉を外す＝供給は価格に応じず能力いっぱい（確証なし）。技師（高度労働力）と動力 4 本は今のまま。
-    //     崖 mc（自己費用×物価水準）は〈床〉でなく人力の供給曲線の全体＝外すと供給の弾力は広がらずゼロになる（事前登録 §0）。弾力そのものは変えない（作者「調整が必要」＝別の線）。
+    //   LaborFloorOffGate：> 0 のとき、人力の 労働力・農業労働力（EconomyStep.IsHumanLaborSupply）の採算の率 profitFactor の崖〈price≦mc で 0〉を外す（確証なし）。技師（高度労働力）と動力 4 本は今のまま。
+    //     崖 mc（自己費用×物価水準）は〈床〉であると同時に人力の供給曲線の全体＝外し方が弾力を決める（事前登録 §0・追記 1）。1＝供給は価格に応じず能力いっぱい（弾力ゼロ・字義の読み）／2＝原点を通る線形 min(1, price／(mc×(1＋SupplySlope)))（弾力を残す）。弾力の調整そのもの（留保賃金の広がり）は別の線（作者「調整が必要」）。
     //   LaborBandFloorOffGate：> 0 のとき、労働 3 財の賃金の帯の下側（WageClampMin＝0.15×物価水準の漸近形）を外す（下限は Eps だけ）。教育・医療の役務の枝は触らない。崖を外した後に次に縛る床＝外すと値段が日に 1.4〜1.5% ずつ落ち続ける見込み（事前登録 §6 P3）。
     //   MinimumWageLawGate：> 0 のとき最低賃金法（PolicyAxis.MinimumWage・なし／生存／生活／充足）が動く（Government の表・AI の目標・要求・綱領・UI）。床＝その州の労働者の籠×人数÷人力の能力の和（MinimumWageFloor.PerUnit・能力ベース 1 つ・確証なし）。0＝法は None のまま動かず効かない。
     public double LaborFloorOffGate = 0.0;

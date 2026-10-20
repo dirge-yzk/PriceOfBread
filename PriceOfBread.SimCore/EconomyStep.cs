@@ -2769,11 +2769,19 @@ public static class EconomyStep
 
     /// <summary>採算の率 profitFactor の**唯一の定義**（供給の段①と <see cref="ProductionDiag"/> の稼働率の内訳が同じ関数を読む＝式が2か所で割れない・(459) 線 lw で 1 本化・(469) 線 mw で撤去の分岐を足した）。
     /// 既定（<see cref="Coefficients.LaborFloorOffGate"/>＝0）は旧の式を逐語で通る＝ビット恒等：price≦mc なら 0・そうでなければ min(1,(price−mc)/(mc×SupplySlope))。
-    /// ゲート＞0 のとき**人力の労働力・農業労働力**（<see cref="IsHumanLaborSupply"/>）だけ崖（隠れた最低賃金＝自己費用×物価水準）を外す＝値段が正なら 1（供給は能力いっぱい・価格に応じない）。
+    /// ゲート＞0 のとき**人力の労働力・農業労働力**（<see cref="IsHumanLaborSupply"/>）だけ崖（隠れた最低賃金＝自己費用×物価水準）を外す。崖は床であると同時に供給曲線の全体＝外し方が弾力を決める（事前登録 §0・追記 1）：
+    ///  ・1＝値段が正なら 1（供給は価格に応じず能力いっぱい＝弾力ゼロ・字義の読み）。
+    ///  ・2＝原点を通る線形 min(1, price／(mc×(1＋SupplySlope)))（崖の線形を原点へ移し、満額になる値段 mc×(1＋SupplySlope) は旧と同じ＝弾力を残す。新しい係数なし）。
     /// 否定形＝NaN／非正の値段は 0 側（Math.Min/Max は NaN を除去しない）。技師と動力 4 本は投入費を持つ企業の採算／上限にいる財＝対象外（事前登録 §2 [F1]）。</summary>
     internal static double ProfitFactor(Producer s, double price, double mc, Coefficients coef)
     {
-        if (coef.LaborFloorOffGate > 0 && IsHumanLaborSupply(s)) return price > 0 ? 1.0 : 0.0;
+        if (coef.LaborFloorOffGate > 0 && IsHumanLaborSupply(s))
+        {
+            if (!(price > 0)) return 0.0;
+            if (!(coef.LaborFloorOffGate >= 2)) return 1.0;
+            double full = mc * (1.0 + coef.SupplySlope);   // 満額になる値段（旧と同じ位置）
+            return full > 0 ? Math.Min(1.0, price / full) : (full == 0 ? 1.0 : 0.0);
+        }
         return price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
     }
 

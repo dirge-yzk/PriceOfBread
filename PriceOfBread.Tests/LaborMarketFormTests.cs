@@ -53,6 +53,33 @@ public class LaborMarketFormTests
                 Assert.Equal(OldProfitFactor(mc * k, mc, c.SupplySlope), EconomyStep.ProfitFactor(s, mc * k, mc, c));
     }
 
+    [Fact]
+    public void 崖の撤去が2なら人力の供給は原点を通る線形で満額の値段は旧と同じ_弾力を残す()
+    {
+        var c = new Coefficients { LaborFloorOffGate = 2 };
+        double mc = 0.35, slope = c.SupplySlope;
+        foreach (int g in new[] { Catalog.LaborId, Catalog.FarmLaborId })
+        {
+            double prev = -1;
+            foreach (double k in new[] { 1e-6, 0.01, 0.1, 0.5, 1.0, 1.2, 1.4999, 1.5, 3.0, 40.0 })
+            {
+                double expect = System.Math.Min(1.0, k / (1.0 + slope));   // テストの側に書いた参照（満額＝旧と同じ mc×(1＋SupplySlope)・原点を通る）
+                double pf = EconomyStep.ProfitFactor(Human(g), mc * k, mc, c);
+                Assert.Equal(expect, pf, 12);
+                Assert.True(pf >= prev, "単調でない");
+                prev = pf;
+            }
+            Assert.Equal(1.0, EconomyStep.ProfitFactor(Human(g), mc * (1 + slope), mc, c), 12);   // 旧の満額の位置
+            Assert.True(EconomyStep.ProfitFactor(Human(g), mc, mc, c) > 0.5);                       // 旧は mc で 0（対照）
+            foreach (double bad in new[] { double.NaN, 0.0, -1.0 }) Assert.Equal(0.0, EconomyStep.ProfitFactor(Human(g), bad, mc, c));
+        }
+        // 対象外は旧のまま（1 のときと同じ）
+        var animal = new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力" };
+        foreach (var s in new[] { animal, Human(Catalog.AdvLaborId), Human(Catalog.SteelId) })
+            foreach (double k in new[] { 0.5, 1.0, 1.2, 2.0 })
+                Assert.Equal(OldProfitFactor(mc * k, mc, slope), EconomyStep.ProfitFactor(s, mc * k, mc, c));
+    }
+
     // ---------------------------------------------------------------- 世界の中
 
     private static double LaborPrice(Simulation sim) => sim.World.Region.Markets[Catalog.LaborId].Price;
@@ -83,6 +110,18 @@ public class LaborMarketFormTests
         var rb = b.World.Region; var ra = a.World.Region;
         Assert.True(rb.Markets[Catalog.LaborId].LastProduced > 1.1 * ra.Markets[Catalog.LaborId].LastProduced, $"産出が増えていない（旧 {ra.Markets[Catalog.LaborId].LastProduced:F3}・新 {rb.Markets[Catalog.LaborId].LastProduced:F3}・需要 {rb.Markets[Catalog.LaborId].LastDemand:F3}・能力 {rb.Producers.Where(p => EconomyStep.IsHumanLaborSupply(p) && p.GoodId == Catalog.LaborId).Sum(p => p.Capacity):F3}）");
         // 失業（1−売れた量÷産出）の跳びは能力が需要の約 20 倍の多国の世界の話（事前登録 §0 ③）＝この小さな世界では確かめず、腕の labor_s が読む
+    }
+
+    [Fact]
+    public void 世界の崖の撤去が2でも労働の値段は自己費用の下を通り_保存則と有限性は保たれる()
+    {
+        var b = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        b.World.Coef.LaborFloorOffGate = 2;
+        var moneyB = new MoneyConservation(b.World);
+        b.Run(8);
+        moneyB.Check(b.World);
+        Assert.True(double.IsFinite(LaborPrice(b)) && LaborPrice(b) > 0);
+        Assert.True(LaborPrice(b) < HumanLaborMc(b) * 0.9, $"崖が外れていない（値段 {LaborPrice(b):F4}・自己費用 {HumanLaborMc(b):F4}）");
     }
 
     [Fact]
