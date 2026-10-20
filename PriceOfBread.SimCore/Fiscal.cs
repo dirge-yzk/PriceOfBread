@@ -77,6 +77,7 @@ public static class Fiscal
         //   旧＝走査の中で貯蓄を手で引き（税＋取り分＋十分の一税）、国庫は合計を1回で足した（国庫の片側の記帳）・十分の一税は按分の本体を直に呼んだ。
         w.LastRuleCut = 0;   // ★(399) 診断：今月の仲介者の取り分の総額（計器 rule_s の ruleCutPerMonth・読むだけ）
         var taxPayers = new List<Pop>(); var taxClaim = new List<double>();
+        double paidInc = 0, paidProg = 0, paidPoll = 0, paidLand = 0;   // ★(474) 税の種類ごとの実際に取れた額（予算表の実効・読むだけ）
         var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
         for (int pi = 0; pi < pops.Count; pi++)
         {
@@ -121,17 +122,18 @@ public static class Fiscal
             //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
             //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
             double tax = w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
+            double kInc = tax, kProg = 0, kPoll = 0, kLand = 0;   // ★(474) 税の種類ごとの査定（所得・累進・人頭・土地）＝予算表の実効が読む診断。tax は下で同じ順に足す（和のビットは旧と同じ）
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
                 Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
             // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ支配度の区分）。富裕が強く抵抗（PolicyPreferences）。
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
-                tax += w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth.Value) * consent;
+            { kProg = w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth.Value) * consent; tax += kProg; }
             // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
             if (w.PollTax > 1e-9 && p.IsCommoner)
-                tax += c.PollTaxRate * w.PollTax * p.Size;
+            { kPoll = c.PollTaxRate * w.PollTax * p.Size; tax += kPoll; }
             // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（所得税と同方式）。
             if (w.LandTax > 1e-9 && p.LandRentPerMonth.Value > 0)
-                tax += (w.LandTax * p.LandRentPerMonth * privBase).Value;   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+            { kLand = (w.LandTax * p.LandRentPerMonth * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
             // 仲介者の取り分（支配度 段3）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
             double cut = 0; Pop? lord = null;
             {
@@ -145,6 +147,7 @@ public static class Fiscal
             double held = Math.Max(0, p.Savings.Value);
             double rp = held >= claims ? 1.0 : held / claims;   // 1本の率（払える額が足りれば 1＝全額）
             tax *= rp; cut *= rp; tithe *= rp;
+            { double f = ruleMul[pi] * rp; paidInc += kInc * f; paidProg += kProg * f; paidPoll += kPoll * f; paidLand += kLand * f; }   // ★(474) 種類ごとの実際に取れた額（査定×国庫へ届く割合×払える割合）
             if (lord is not null && cut > 0)
             {
                 // 仲介者の取り分（納税者→貴族＝移し方の1本・所得にも書く）。受け手は重み1（在地の貴族1人＝頭数に依らない＝旧と同じ）。
@@ -161,6 +164,8 @@ public static class Fiscal
         //   税の漏れは支配度の側にある＝上の RuleDelivery が国庫へ届く分と在地の貴族の分に割る。官僚 POP への汚職所得（LandRent への記帳）と特権の台帳の 既得の官職 の記帳もこの漏れと一緒に無くなった。
         // 国庫の取り分＝税の請求の和（納税者→国庫の移し方の1本・払い手の重み＝自分の税の請求）。動いた額が純税収。
         revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+        w.LastTaxIncomePerMonth = new MoneyPerMonth(paidInc); w.LastTaxProgressivePerMonth = new MoneyPerMonth(paidProg);   // ★(474) 診断（読むだけ）：種類ごとの実際の税収（和＝台帳の Tax）
+        w.LastTaxPollPerMonth = new MoneyPerMonth(paidPoll); w.LastTaxLandPerMonth = new MoneyPerMonth(paidLand);
 
         // 十分の一税（教会税）：大衆（非特権・非兵士＝農民・労働者・職人）の所得の TitheRate を聖職者が受け取る。
         // 公教育に教育の担い手を奪われても食える恒常収入（要望）。pop→聖職者の移転＝国庫を通さず基礎貨幣保存。

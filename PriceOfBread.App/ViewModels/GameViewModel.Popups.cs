@@ -260,14 +260,7 @@ public partial class GameViewModel
     private void BuildTensionActionTips(Power me, Power foe)
     {
         var c = _player.Coef;
-        int neighbors = 0; double spreadSum = 0;
-        if (c.ProvokeProximitySpread > 0 && foe.Nation is { } fw)
-            foreach (var q in _sim.Diplomacy.Powers)
-                if (q != me && q != foe && q.Nation is { } qw && !_sim.Diplomacy.IsAtWar(me, q))
-                {
-                    double km = Geo.DistanceKm(qw.Latitude, qw.Longitude, fw.Latitude, fw.Longitude);
-                    if (km < c.ProximityTensionRange) { neighbors++; spreadSum += c.ActionTensionStep * c.ProvokeProximitySpread * (1 - km / c.ProximityTensionRange); }   // 隣接で最大・距離に比例して減衰（Diplomacy.SpreadProvocationTension と同じ形）
-                }
+        var (neighbors, spreadSum) = _sim.Diplomacy.PreviewProvocationSpread(me, foe, c);   // ★(474) 近隣への波及はエンジンの 1 本を読む（旧は距離の式を画面に書き写していた）
         TensionProvokeTip = $"緊張 +{c.ActionTensionStep:F0}({c.TensionActionRampMonths}ヶ月かけて)"
             + (neighbors > 0 ? $"　近隣 {neighbors}カ国へ波及 計+{spreadSum:F0}" : "")
             + "\n" + PoliticsLines(Diplomacy.PreviewTensionPolitics(me, foe, TensionPoliticsKind.Provoke, c));

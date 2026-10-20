@@ -155,7 +155,7 @@ public class FiscalTests
         sim.Run(1);
         var w = sim.World;
         w.TaxRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;   // 歳入0＝汚職の漏れも0
-        w.SocialSecurity = 0; w.Pension = ReformLevel.None;                    // 福祉・年金（借入スタックの出費上限に依存＝双子で食い違う）を止める
+        w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;                    // ★(474) 福祉水準・年金は法の段から読む導出値＝救貧法で 0・年金なし。 福祉・年金（借入スタックの出費上限に依存＝双子で食い違う）を止める
         w.Coef.ForeignBondCapacity = new Share(0);                                        // 全額を国内の投資家が引き受ける
         // 初期の国債（world.json の govDebt＝1783年の英の国債 年GDP の約1.1・2026-09-29）と保有を消す＝国債の流れは番人が起こしたものだけ（金は動かない＝請求権と記録だけ）
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
@@ -532,7 +532,7 @@ public class FiscalTests
         new BondLedger().Check(fr);
         // 仏の財政を静める（歳入・福祉が0＝国庫の出入りは減債だけ）＋利子0（元本だけを見る）＋余剰の全額で減債
         fr.TaxRate = new Share(0); fr.PollTax = 0; fr.LandTax = 0; fr.ProgressiveTax = 0;
-        fr.SocialSecurity = 0; fr.Pension = ReformLevel.None;
+        fr.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;   // ★(474) 福祉水準 0・年金なし（法の段から読む導出値）
         fr.GovBondRatePerYear = new RatePerYear(0); fr.GovAvgCouponPerYear = new RatePerYear(0); fr.Coef.BondRepayFracPerMonth = new RatePerMonth(1.0);
         var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
         var base0 = Array.ConvertAll(all, w => w.BaseMoney);

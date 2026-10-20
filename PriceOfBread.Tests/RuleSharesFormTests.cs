@@ -257,7 +257,7 @@ public class RuleSharesFormTests
             var w = sim.World; var c = w.Coef;
             // ★(408)(419) 0.78／0.12 は役務が満額（AdminFill＝1）の式（充足が欠ける州の取り分は AdminServesRuleTests の G2）＝充足を 1 に固定して移転の保存を見る（下の foreach）
             Assert.Equal(0.3, c.PrivilegeTaxDiscount.Value, 12);   // 前提（届け率 0.7 の元）
-            w.TaxRate = new Share(0.1); c.TitheRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.SocialSecurity = 0; w.Pension = ReformLevel.None;
+            w.TaxRate = new Share(0.1); c.TitheRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;
             foreach (var r in w.Regions)
             {
                 r.Rule = split ? [0.5, 0.4, 0.1, 0.0] : [1.0, 0.0, 0.0, 0.0];

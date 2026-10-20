@@ -339,13 +339,15 @@ public partial class GameViewModel
         //   予算表の他の行と同じ作法（接14＝UIの自前近似をやめエンジンの式を読む）に揃える＝World.ModernizationBudget が唯一の出所。
         double ind = Calendar.PerQuarterToPerMonth(_player.ModernizationBudget());   // 四半期→月割
 
-        // 実効額（税行のみ現在の実効レート×同じ課税ベース）。支出側の実効は接14（監査2026-07-11・2026-07-25実装）＝
+        // 実効額（★(474) 税行もエンジンの種類ごとの実際の税収を読む）。支出側の実効は接14（監査2026-07-11・2026-07-25実装）＝
         // UIの自前近似をやめ、エンジンが予算表向けに書く実績診断（World.LastMilitaryClaimPerMonth等・Fiscalは月次実行＝当月値）を読む。
         // UI式とエンジン式の将来的な乖離（間接税の基数算入・裁量余剰の平滑化等を近似が追い損ねる問題）を構造的に断つ。
-        double aIncome = _player.TaxRate.Value * earnedAll * leak;
-        double aProg = _player.ProgressiveTax * earnedElite * leak;
-        double aPoll = c.PollTaxRate * _player.PollTax * headNonPriv * leak;
-        double aLand = _player.LandTax * landRent * leak;
+        // ★(474) 税の行の実効もエンジンの診断を読む（Fiscal.Step の徴税の走査が書く種類ごとの実際の税収＝課税への同意・身分の免税・国庫へ届く割合・払える割合を含む）。
+        //   旧は税率×課税ベース×漏れの自前の式で、同意・免税・払える割合を落として国庫の実際の歳入と合わなかった。
+        double aIncome = _player.LastTaxIncomePerMonth.Value;
+        double aProg = _player.LastTaxProgressivePerMonth.Value;
+        double aPoll = _player.LastTaxPollPerMonth.Value;
+        double aLand = _player.LastTaxLandPerMonth.Value;
         double netA = aIncome + aProg + aPoll + aLand;
         double aMilGoods = _player.LastMilitaryClaimPerMonth.Value;   // 軍需の請求（陸海の維持費の比で割る）
         double aSoldier = (_player.LastSoldierPayPerMonth * _player.FiscalFundingRatio).Value;   // 兵の給与＝請求×国家の支払い率 r（(140) から請求どおりの賃金で払う）＝陸軍の行だけ（(144) 反証の指摘＝海軍の比で割らない）

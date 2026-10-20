@@ -108,7 +108,7 @@ public sealed class World
     public ReformLevel CornLaws { get; internal set; }       // 穀物法（現在値・なし/限定的/全面）：主食穀物の輸入を阻む＝高いパン（地主保護）。議会で段階的に可決/撤廃
     public ReformLevel LandReform { get; internal set; }     // 土地改革（現在値・なし/限定的/全面）：地代取り分を縮小し農民へ再分配
     public ReformLevel SerfEmancipation { get; internal set; }  // 農奴解放（現在値・なし/限定的/全面）：農奴制の地代取り分を小作へ
-    public ReformLevel Pension { get; internal set; }        // 年金（①年齢コホート）＝SocialSecurityLaw からの導出値（Government.Step が毎期 Pension段→Full／それ以外→None を代入。Limited は取らない）。Fiscal の年金給付が読む
+    public ReformLevel Pension => SocialSecurityLaw == SocialSecurityLaw.Pension ? ReformLevel.Full : ReformLevel.None;        // 年金（①年齢コホート）＝SocialSecurityLaw から読む導出値（★(474) 旧は Government.Step が毎期代入して貯めていた欄〔思想⑩〕。Pension段→Full／それ以外→None。Limited は取らない）。Fiscal の年金給付が読む
     public ConscriptionLaw ConscriptionLaw { get; internal set; } = ConscriptionLaw.Selective;   // 徴兵法（現在値・志願/選抜/全国の3値・2026-08-01）。既定 Selective＝選抜以上で戦時徴兵（Military）＝旧2値の「徴兵」と同値
     //   ★(178) 戦前の徴兵法（戦時の非常の法＝作者 2026-10-03「全て推奨でよい」で採った推奨「戦時に上げた徴兵法は戦後に戻る」・形は (168) のパッチ）＝交戦に入った四半期の徴兵法の段（int）・-1＝平時（記録なし）。書き手＝Government.Step だけ
     //   （交戦中で記録が無ければ今の段を記録・戦争が終わった四半期に、今の段が記録より上なら記録の段へ戻して消す）。読み手は Government.Step と
@@ -219,7 +219,7 @@ public sealed class World
 
     // --- 政府・政策（介入レバー。Policy＝目標、以下は利益集団の力で律速された現在値）---
     public NationPolicy Policy { get; internal set; } = new();
-    public double SocialSecurity { get; internal set; }  // 社会保障（0..1・現在値）
+    public double SocialSecurity => (int)SocialSecurityLaw / (double)Government.SocialSecurityMaxLevel;  // 社会保障（0..1・現在値）＝社会保障法の段から読む導出値（★(474) 旧は Government.Step が毎期代入して貯めていた欄〔思想⑩〕）
     public double AdminSpending { get; internal set; } = 0.5;  // 行政費（0..1・現在値）。官僚の役務「行政」の調達予算＝官僚の給与。低い＝汚職（税収が漏れる）
     // --- 税制の拡張（現在値）。土地税は最初から開いている（検地台帳の錠は (383) で物理削除）。所得税・累進に行政力の天井/解禁は無い（2026-09-12 廃止＝徴収の実効は汚職漏れ）---
     public double PollTax { get; internal set; }          // 人頭税（0..1）。行政不要・確実・逆進的（閉鎖階級は免除＝特権）
@@ -381,6 +381,12 @@ public sealed class World
     /// <summary>女性参政権が成立しているか（＝梯子が最上段）。男女普通選挙(Universal)の前提。</summary>
     public bool WomenSuffrage => WomenRights >= WomenRightsLaw.Suffrage;
     public double LastRuleCut { get; internal set; }          // ★(399) 直近月の仲介者の取り分（納税者→州の貴族）。診断用（計器 rule_s が読む）
+    /// <summary>★(474) 直近月の税の種類ごとの実際の税収（所得税・累進課税・人頭税・土地税＝<see cref="Fiscal.Step"/> の徴税の走査が POP ごとの査定×国庫へ届く割合〔支配度の区分〕×払える割合で足す）。診断（読むだけ）＝予算表の実効が読む
+    /// （旧は画面が税率×課税ベース×漏れを自前で計算し、課税への同意・身分の免税・払える割合を落としていた）。4 つの和は台帳の <see cref="TreasuryCat.Tax"/> の月の動きと一致する。</summary>
+    public MoneyPerMonth LastTaxIncomePerMonth { get; internal set; }
+    public MoneyPerMonth LastTaxProgressivePerMonth { get; internal set; }
+    public MoneyPerMonth LastTaxPollPerMonth { get; internal set; }
+    public MoneyPerMonth LastTaxLandPerMonth { get; internal set; }
     // ★撤去2026-08-16（掃除キューC2-C5）：汚職根絶レバーの旧機構＝AntiCorruptionSpending（根絶費）・CleanGovernance（清廉度ストック）・
     //   LastAntiCorruptionCost（診断）を物理削除。汚職V2恒久ONの裁定済み（20260814_汚職をサブシステムにする§10）＝V2では全て不読の死骸だった。
     // 実効汚職（正規化・0..1）＝(1−行政効率)×(1−監視noisy-or)。汚職の**正準定義**（変数統合監査2026-07-13 C1・V2点火2026-08-15）。standalone読み（SelfPlay等）はこれを参照＝定義同期を構造保証。
@@ -461,7 +467,7 @@ public sealed class World
         Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
         SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
         ConscriptionPreWar = src.ConscriptionPreWar;   // ★(178) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
-        Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
+        WorkHoursValue = src.WorkHoursValue;   // ★(474) 年金・福祉水準は社会保障法の段から読む導出値＝上の LevelLaws の写しに含まれる
         Policy.CopyFrom(src.Policy);
     }
     // 運用コスト監査2026-08-16（#1 海軍の運用燃料・休眠）：燃料充足のEMA（1.0=制約なし）。

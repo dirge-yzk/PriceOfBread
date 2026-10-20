@@ -551,20 +551,21 @@ public partial class GameViewModel
             double BaseWear(int b) => baseStock && b < c.MilitaryWearRatesPerMonth.Length ? c.MilitaryWearRatesPerMonth[b] : 1.0;
             bool BaseDurable(int b) => BaseWear(b) < 1.0;
             // ⚠目標には**陸海の再配分を必ず掛ける**＝エンジンの EconomyStep.BaseArmsTarget と同一（分子と分母を同じ規則に）。
-            double BaseTarget(int b) => r.MilitaryScalePeace * milRates[b] * MilMul(c.MilitaryGoods[b]) / Math.Max(1e-6, BaseWear(b));
-            double BaseHeld(int b) => r.ArmsStock is { } bd && bd.TryGetValue(c.MilitaryGoods[b], out double bv) ? bv : BaseTarget(b);
+            // ★(474) 目標在庫・在庫の読み・発注量・見積はエンジンの関数を呼ぶ（EconomyStep.BaseArmsTarget・ArmsOnHand・TierQty・TierCost＝写しを持たない）。
+            //   旧は同じ式を画面に書き写し、上位段は開幕の在庫を 0・基本段は開いた武器庫の無い財を目標と読み（エンジンと逆）、見積は陸海の乗数（艦は 0）を落としていた。
+            double BaseTarget(int b) => EconomyStep.BaseArmsTarget(r.MilitaryScalePeace, milRates[b], BaseWear(b), MilMul(c.MilitaryGoods[b]));
+            double BaseHeld(int b) => EconomyStep.ArmsOnHand(r, c.MilitaryGoods[b], BaseTarget(b));
             // 予算の充足（EconomyStep）：残余カスケード（pro rata の器 MilitaryProcureProRata は 2026-09-26 に削除）。
-            double estCost = 0;
-            for (int b = 0; b < c.MilitaryGoods.Length; b++) estCost += r.MilitaryScale * milRates[b] * Price(c.MilitaryGoods[b]);
+            double estCost = EconomyStep.TierCost(r, c, c.MilitaryGoods, milRates, false);   // 基本段の見積（陸海の乗数込み・エンジンの estCost と同じ1本）
             double signalBudget = r.MilitaryBudgetCeiling;   // EconomyStep と同じ＝Budget ≤ Ceiling は Simulation の書き手の単調性で成立（旧 Math.Max(Ceiling, Budget) と同値・2026-09-11 M4）
             double afford = estCost > Eps ? Math.Min(1.0, r.MilitaryAffordRaw) : 0.0;
             // 耐久装備の目標在庫と発注（EconomyStep）
             double wear = Math.Max(1e-6, c.ArmsWearRatePerMonth.Value);
             double warWear = wear * (1.0 + c.ArmsWarWearScale * Math.Max(0, r.MilitaryWarMultLast - 1.0));
             bool stock = c.ArmsStockEnabled > 0;
-            double StockTarget(double rate) => r.MilitaryScalePeace * rate / wear;
-            double Held(int g) => r.ArmsStock?.GetValueOrDefault(g) ?? 0.0;
-            double StockOrder(int g, double rate) => Math.Max(0, StockTarget(rate) - Held(g));
+            double StockTarget(int g, double rate) => EconomyStep.BaseArmsTarget(r.MilitaryScalePeace, rate, c.ArmsWearRatePerMonth.Value, MilMul(g));   // ★(474) 上位段の目標在庫（エンジンの TierQty の目標と同じ1本）
+            double Held(int g, double rate) => EconomyStep.ArmsOnHand(r, g, StockTarget(g, rate));
+            double StockOrder(int g, double rate) => EconomyStep.TierQty(r, c, g, rate, true, MilMul(g));
 
             // 段1＝基本装備（★2026-08-26 以降は耐久＝在庫／消耗＝フローの混在。BaseArmsStockEnabled=0 では全て従来のフロー行）
             var tier1 = new List<ArmyNeedRow>();
@@ -608,27 +609,21 @@ public partial class GameViewModel
             if (EconomyStep.AllPresent(c.MilitaryQualityGoods, ng))
             {
                 double remaining = Math.Max(0, r.MilitaryBudget - estCost * afford);
-                double qCost = 0;
-                for (int b = 0; b < c.MilitaryQualityGoods.Length; b++)
-                    qCost += (stock ? StockOrder(c.MilitaryQualityGoods[b], qRates[b]) : r.MilitaryScale * qRates[b]) * Price(c.MilitaryQualityGoods[b]);
+                double qCost = EconomyStep.TierCost(r, c, c.MilitaryQualityGoods, qRates, true);   // ★(474) 上位段の見積（エンジンの OrderTier と同じ1本）
                 double qAfford = qCost > Eps ? Math.Min(1.0, remaining / qCost) : 0.0;
                 AddGroup(rows, "上位装備", TierRows("上位", c.MilitaryQualityGoods, qRates, qAfford));
 
                 if (EconomyStep.AllPresent(c.MilitaryTier3Goods, ng))
                 {
                     double remaining3 = Math.Max(0, remaining - qCost * qAfford);
-                    double t3Cost = 0;
-                    for (int b = 0; b < c.MilitaryTier3Goods.Length; b++)
-                        t3Cost += (stock ? StockOrder(c.MilitaryTier3Goods[b], t3Rates[b]) : r.MilitaryScale * t3Rates[b]) * Price(c.MilitaryTier3Goods[b]);
+                    double t3Cost = EconomyStep.TierCost(r, c, c.MilitaryTier3Goods, t3Rates, true);   // ★(474) 最上位段の見積（同上）
                     double t3Afford = t3Cost > Eps ? Math.Min(1.0, remaining3 / t3Cost) : 0.0;
                     AddGroup(rows, "最上位装備", TierRows("最上位", c.MilitaryTier3Goods, t3Rates, t3Afford));
 
                     if (EconomyStep.AllPresent(c.MilitaryAirGoods, ng))
                     {
                         double remainingA = Math.Max(0, remaining3 - t3Cost * t3Afford);
-                        double aCost = 0, airFuelNeed = 0;
-                        for (int b = 0; b < c.MilitaryAirGoods.Length; b++)
-                            aCost += r.MilitaryScale * airRates[b] * Price(c.MilitaryAirGoods[b]);
+                        double aCost = EconomyStep.TierCost(r, c, c.MilitaryAirGoods, airRates, false), airFuelNeed = 0;   // ★(474) 空軍段の見積（エンジンの aCost と同じ1本）
                         if (c.AirFuelRate > 0 && Catalog.CrudeOilId < ng)   // 空軍の燃料（EconomyStep・★2026-08-29点火＝既定0.045。=0なら行なし）
                         {
                             double afNeed = r.MilitaryScale * c.AirFuelRate;
@@ -705,9 +700,9 @@ public partial class GameViewModel
                     if (Unavail(g) || MilMul(g) == 0.0) continue;   // ★(189) 艦は陸の装備の段に出さない（艦隊の節）
                     if (stock)
                     {
-                        double need = StockTarget(rates[b]);
+                        double need = StockTarget(g, rates[b]);
                         if (!(need > Eps)) continue;
-                        double have = Held(g), order = StockOrder(g, rates[b]);
+                        double have = Held(g, rates[b]), order = StockOrder(g, rates[b]);
                         string tip = $"単価 {Money(Price(g))}　今月の発注 {MilQty(order * tierAfford * MilMul(g) * PriceAfford(g))}"
                                    + $"\n月次の摩耗 {Math.Min(0.9, warWear):P1}　予算の充足 {tierAfford:P0}　市場の配給 {Ration(g):P0}";
                         list.Add(NeedRow(tag + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, MilQty, "", need * Price(g)));

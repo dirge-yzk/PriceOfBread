@@ -2081,7 +2081,16 @@ public sealed class Diplomacy
     /// 相手だけでなく近所全体を巻き込む。地域の軍拡は既存経路（脅威下の大軍許容→軍事費→軍需財）から創発（直接の軍需ブーストは二重計上のため置かない）。</summary>
     private void SpreadProvocationTension(Power actor, Power target, double baseStep, Coefficients c)
     {
-        if (c.ProvokeProximitySpread <= 0 || target.Nation is not { } tw) return;
+        foreach (var (q, amount) in ProvocationSpreadTargets(actor, target, baseStep, c))
+            AddTension(actor, q, amount, TensionReason.ProvocationSpread);
+    }
+
+    /// <summary>★(474) 挑発の近隣波及の相手と量（純関数・副作用なし）＝<see cref="SpreadProvocationTension"/>（本体）と <see cref="PreviewProvocationSpread"/>（UI のボタン脇の見積もり）が**この 1 本**を読む
+    /// （旧は UI が距離の式を書き写していた）。相手＝標的の近隣（本国間 ProximityTensionRange の内側）で、自国でも標的でもなく国家を持ち、挑発者と交戦中でない国。量＝baseStep×ProvokeProximitySpread×(1−距離÷範囲)。
+    /// 並びは <see cref="Powers"/> の順（本体の足す順と同じ）。</summary>
+    private IEnumerable<(Power Neighbor, double Amount)> ProvocationSpreadTargets(Power actor, Power target, double baseStep, Coefficients c)
+    {
+        if (c.ProvokeProximitySpread <= 0 || target.Nation is not { } tw) yield break;
         foreach (var q in Powers)
         {
             if (q == actor || q == target || q.Nation is not { } qw) continue;
@@ -2090,8 +2099,16 @@ public sealed class Diplomacy
             //   旧＝範囲の内側は距離によらず一律＝範囲の縁の国も隣国と同じだけ挑発者を敵視した。
             double km = Geo.DistanceKm(qw.Latitude, qw.Longitude, tw.Latitude, tw.Longitude);
             if (km < c.ProximityTensionRange)
-                AddTension(actor, q, baseStep * c.ProvokeProximitySpread * (1 - km / c.ProximityTensionRange), TensionReason.ProvocationSpread);
+                yield return (q, baseStep * c.ProvokeProximitySpread * (1 - km / c.ProximityTensionRange));
         }
+    }
+
+    /// <summary>★(474) 挑発のボタン脇の見積もり＝標的の近隣のうち波及を受ける国の数と、波及の緊張の合計（1 回押したときの量＝baseStep は <see cref="Coefficients.ActionTensionStep"/>）。UI が読む。</summary>
+    public (int Neighbors, double Sum) PreviewProvocationSpread(Power actor, Power target, Coefficients c)
+    {
+        int n = 0; double sum = 0;
+        foreach (var (_, amount) in ProvocationSpreadTargets(actor, target, c.ActionTensionStep, c)) { n++; sum += amount; }
+        return (n, sum);
     }
 
     /// <summary>★(427) 挑発・緩和ができない理由（できるなら null）＝<see cref="RaiseTension"/>・<see cref="EaseTension"/> の門の条件の**唯一の置き場**（自国・国家のない相手・束 <see cref="Bracket"/> の違う相手は不可）。

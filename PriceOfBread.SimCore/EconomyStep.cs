@@ -307,7 +307,7 @@ public static class EconomyStep
     /// （<c>warWear × target ＝ 平時規模 × レート × 陸海の再配分</c>）＝新しい数を作らない。
     /// ⚠陸海の再配分（<paramref name="milMul"/>）を**必ず掛ける**＝分子（発注）と分母（目標）で同じ再配分を通す
     /// （E1で是正したのと同型の非対称をここで作り直さない）。平時規模＝国軍は Region.MilitaryScalePeace・反乱勢力は参加人数の換算（同じ式）。</summary>
-    private static double BaseArmsTarget(double scalePeace, double rate, double wear, double milMul)
+    internal static double BaseArmsTarget(double scalePeace, double rate, double wear, double milMul)   // ★(474) internal＝軍事タブ（App）が写さず呼ぶ
         => scalePeace * rate * milMul / Math.Max(1e-6, wear);
 
     // 【墓標2026-10-03 (189)】FleetCostShare（一律レートが含意する海のコストシェア＝陸海の再配分 ProcureMul と反乱勢力の陸への上乗せの分母）＝
@@ -348,7 +348,7 @@ public static class EconomyStep
     /// 消耗品の段（基本・空軍）は false で呼ぶ＝従来どおりフロー。</param>
     /// <param name="rates">★発見の解禁度を掛けた後の原単位表（<see cref="DiscoveredRates"/>）。</param>
     /// ★(189) 陸海の乗数は <see cref="LandMul"/>（艦は0＝陸の装備の段は艦を買わない）。旧＝陸海の再配分（ProcureMul）の海と陸の乗数を引数で受けた。
-    private static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)
+    internal static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)   // ★(474) internal＝軍事タブ（App）が写さず呼ぶ
     {
         double cost = 0;
         bool stock = durable && coef.ArmsStockEnabled > 0;
@@ -368,13 +368,18 @@ public static class EconomyStep
     ///   ＝基本段の <see cref="BaseArmsTarget"/> と同じ式。⚠旧＝(A*−在庫)⁺ の**発注にだけ**掛け、充足の分母には掛けなかった＝港の無い国の装甲艦・弩級戦艦は
     ///   発注0なのに分母に残り、理想の形が海を望む国は在庫が目標で止まって満たされなかった（E1 で基本段を是正したのと同型の非対称）。
     ///   在庫の読みも基本段と同じ（<see cref="ArmsHeld"/>＝開幕の武器庫の未初期化は目標・開いた武器庫の無い財は0）。</summary>
-    private static double TierQty(Region region, Coefficients coef, int gid, double rate, bool stock, double mul)
+    internal static double TierQty(Region region, Coefficients coef, int gid, double rate, bool stock, double mul)   // ★(474) internal＝軍事タブ（App）が写さず呼ぶ
     {
         if (!stock) return region.MilitaryScale * rate * mul;
         double target = BaseArmsTarget(region.MilitaryScalePeace, rate, coef.ArmsWearRatePerMonth.Value, mul);
-        double have = region.ArmsStock is { } held ? ArmsHeld(held, gid, target, false) : target;   // 武器庫が一度も開いていない＝開幕の軍（ArmsHeld）
+        double have = ArmsOnHand(region, gid, target);
         return Math.Max(0, target - have);
     }
+
+    /// <summary>★(474) 武器庫の在庫の読み＝武器庫が一度も開いていない（<see cref="Region.ArmsStock"/> が null＝開幕の軍）なら目標・開いた武器庫は財の在庫（無い財は 0）。<see cref="TierQty"/> の読みと軍事タブ（App）の在庫の読みの唯一の置き場
+    /// （旧は App が別の写しを持ち、上位段は開幕の在庫を 0・基本段は開いた武器庫の無い財を目標と読んでいた＝エンジンと逆）。基本段の決済は同じ規則を <see cref="ArmsHeld"/> に直に渡す（<c>opening</c> はその月の頭の ArmsStock が null）。</summary>
+    internal static double ArmsOnHand(Region region, int gid, double target)
+        => region.ArmsStock is { } held ? ArmsHeld(held, gid, target, false) : target;   // 武器庫が一度も開いていない＝開幕の軍（ArmsHeld）
 
     // 【墓標2026-10-03 (189)】ProcureMul（軍需の陸海の再配分＝海の乗数＝理想の海の割合÷一律レートの海の割合・陸の乗数＝残り・総額は保存・港の無い国は海0で陸へ上乗せ）＝
     //   作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」が現物で効いていなかった入口の1つ（(187) の反証役 va1#1＝軍艦の購入が兵の頭数×海の割合）。

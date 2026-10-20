@@ -7838,8 +7838,8 @@ if (args.Length > 0 && args[0] == "lawaudit2")
                              w => { w.WorkHours = WorkHours.Unlimited; w.Policy.WorkHours = WorkHours.Unlimited; }, w => NationalScore.MeanSatisfaction(w));
     L2("土地改革", "GDP", w => { w.LandReform = ReformLevel.None; w.Policy.LandReform = ReformLevel.None; },
                             w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.GdpPerMonth.Value);
-    L2("社会保障", "満足", w => { w.SocialSecurity = 0; w.Policy.SocialSecurityTarget = 0; },
-                             w => { w.SocialSecurity = 0.8; w.Policy.SocialSecurityTarget = 0.8; }, w => NationalScore.MeanSatisfaction(w));
+    L2("社会保障", "満足", w => { w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw; w.Policy.SocialSecurityTarget = 0; },
+                             w => { w.SocialSecurityLaw = SocialSecurityLaw.Unemployment; w.Policy.SocialSecurityTarget = 0.8; }, w => NationalScore.MeanSatisfaction(w));
     L2("児童労働", "GDP", w => w.Policy.ChildLaborAllowed = false, w => w.Policy.ChildLaborAllowed = true, w => w.GdpPerMonth.Value);
     L2("検閲", "識字", w => { w.Censorship = CensorshipLaw.FreePress; w.Policy.Censorship = CensorshipLaw.FreePress; },
                          w => { w.Censorship = CensorshipLaw.StatePressOnly; w.Policy.Censorship = CensorshipLaw.StatePressOnly; }, w => PoliticalQuantities.AvgLiteracy(w));   // 識字＝正典の1本（旧 La2Lit は分離州も数えていた・2026-09-11 M8）
@@ -7909,7 +7909,7 @@ if (args.Length > 0 && args[0] == "lawaudit")
     P("人頭税", "歳入", w => w.Policy.PollTaxTarget = 0, w => w.Policy.PollTaxTarget = 0.8, w => w.LastRevenuePerMonth.Value);
     P("専売", "歳入", w => w.SetStateMonopolyTier(0), w => w.SetStateMonopolyTier(PriceOfBread.SimCore.World.StateMonopolyMaxTier), w => w.LastRevenuePerMonth.Value);   // ★2026-09-20：腕は率でなく対象の広さ（無課税↔全消費財）
     P("土地税", "歳入", w => w.Policy.LandTaxTarget = 0, w => w.Policy.LandTaxTarget = 0.8, w => w.LastRevenuePerMonth.Value);
-    P("社会保障", "満足", w => { w.SocialSecurity = 0; w.Policy.SocialSecurityTarget = 0; }, w => { w.SocialSecurity = 0.8; w.Policy.SocialSecurityTarget = 0.8; }, w => NationalScore.MeanSatisfaction(w));
+    P("社会保障", "満足", w => { w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw; w.Policy.SocialSecurityTarget = 0; }, w => { w.SocialSecurityLaw = SocialSecurityLaw.Unemployment; w.Policy.SocialSecurityTarget = 0.8; }, w => NationalScore.MeanSatisfaction(w));
     P("教育費", "識字", w => { w.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationSpendingTarget = 0; }, w => { w.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationSpendingTarget = 1.0; }, w => PoliticalQuantities.AvgLiteracy(w));
     P("武力(軍事費)", "兵数", w => w.Policy.MilitarySpendingTarget = 0.1, w => w.Policy.MilitarySpendingTarget = 0.9, w => w.SoldierSizeK());
     P("武力→治安維持力", "治安維持力", w => w.Policy.MilitarySpendingTarget = 0.1, w => w.Policy.MilitarySpendingTarget = 0.9, w => w.BaseCoercion);
@@ -7933,7 +7933,7 @@ if (args.Length > 0 && args[0] == "lawaudit")
     //   **実体（政治を通った現実＝GoldStandardLaw）も書く**。Fiscal が読むのは後者（World.GoldStandardLaw）。
     P("金本位", "兌換", w => { w.Policy.MonetaryTarget = 0; w.MonetaryLaw = MonetaryStandardLaw.Fiat; },
                        w => { w.Policy.MonetaryTarget = 2; w.MonetaryLaw = MonetaryStandardLaw.Gold; }, w => w.Convertibility);
-    P("保険", "保険補填", w => { w.SocialSecurity = 0; w.Policy.SocialSecurityTarget = 0; }, w => { w.SocialSecurity = 0.8; w.Policy.SocialSecurityTarget = 0.8; }, w => w.Region.InsuranceCoverage);
+    P("保険", "保険補填", w => { w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw; w.Policy.SocialSecurityTarget = 0; }, w => { w.SocialSecurityLaw = SocialSecurityLaw.Unemployment; w.Policy.SocialSecurityTarget = 0.8; }, w => w.Region.InsuranceCoverage);
     P("参政権", "満足", w => { w.Suffrage = Suffrage.None; w.Policy.Suffrage = Suffrage.None; }, w => { w.Suffrage = Suffrage.AdultMale; w.Policy.Suffrage = Suffrage.AdultMale; }, w => NationalScore.MeanSatisfaction(w));
 
     Console.WriteLine("=== スライダー・法律の機能検査（A/B対照・英・240四半期）===");
