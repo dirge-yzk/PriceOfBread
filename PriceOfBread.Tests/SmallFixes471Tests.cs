@@ -210,6 +210,30 @@ public class SmallFixes471Tests
     }
 
     [Fact]
+    public void 為替が等しい世界では_奨励金の取引で清算所に残る額が0_買い手は奨励金の分を払わず売り手の国庫が出す()
+    {
+        // 両国の通貨が金と等しい（換算の差が 0）なら、清算所に入る額（買い手の支払い＋売り手の国庫の奨励金）と出る額（売り手の受取）は一致する＝世界の名目の基礎貨幣は動かない。
+        // 買い手が奨励金の分まで払ってしまう（二重に払う）と、清算所に差が残り換算の台帳 CumulativeFxResidual が動く（台帳は支払いの側から作るので、国ごとの保存だけでは見えない）。
+        double mWin = double.NaN;
+        for (double m = 0.80; m <= 1.40001 && double.IsNaN(mWin); m += 0.02)
+            if (Run(m, 0, -1) <= 1e-9 && Run(m, 1, -1) > 1e-9) mWin = m;
+        Assert.False(double.IsNaN(mWin));
+        var (sim, g, frBuyers) = CheapBoard(mWin, 1, -1, s =>
+        {
+            s.Nations[0].World.ExchangeRate = 1.0; s.Nations[1].World.ExchangeRate = 1.0;
+            s.Coef.PortFeeRate = 0; s.Coef.MarinePremiumRate = 0;
+        });
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        double bm0 = (uk.BaseMoney + fr.BaseMoney).Value, fx0 = sim.Diplomacy.CumulativeFxResidual, t0 = uk.Treasury.Value;
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+        Assert.True(Imported(frBuyers, g) > 1e-9 && uk.DiagSfCheapSubsidyPaidCum >= 0);
+        Assert.True(t0 - uk.Treasury.Value > 1e-9, "売り手の国庫が減っていない（前提の破れ）");
+        double scale = Math.Max(1.0, uk.ExportsByGood![g]);
+        Assert.True(Math.Abs(sim.Diplomacy.CumulativeFxResidual - fx0) <= 1e-9 * scale, $"為替が等しいのに換算の台帳が動いた（{sim.Diplomacy.CumulativeFxResidual - fx0}）＝買い手と売り手と国庫の勘定が合っていない");
+        Assert.True(Math.Abs((uk.BaseMoney + fr.BaseMoney).Value - bm0) <= 1e-9 * scale, "為替が等しいのに世界の名目の基礎貨幣が動いた");
+    }
+
+    [Fact]
     public void 為替が1でないときも奨励金の取引は国ごと_世界で保存する()
     {
         double mWin = double.NaN;
