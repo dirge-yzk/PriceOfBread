@@ -287,33 +287,22 @@ public partial class GameViewModel
     public HeaderStat TechHover => StatG("", "技術水準", _histTech, v => v.ToString("F2"), 0, $"技術水準 {_player.TechLevel:F2}");
 
     // === 予算予想（経済タブ）：「今の目標（段ボタンで置いた値）＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
-    //   ⚠★(475) 反証役 hp〔v〕中#1：税の予想の 4 列（gIncome〜gLand）は税率×課税ベース×届く割合の旧の式のまま＝エンジン（Fiscal.Step）の査定〔同意・免税・払える割合・犯罪者の除外〕と同じ式ではない。
-    //     実効の列（aIncome〜aLand）はエンジンの診断を読む＝2 列の規則が違う（申し送り：予想の列もエンジンの査定の関数を目標の率で呼ぶ形へ）。
-    // 収入＝各税の粗収入×国庫へ届く割合（支配度の区分）。支出＝利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
+    //   ★(481) 税の予想の 4 列（gIncome〜gLand）はエンジンの徴税の走査と同じ査定の関数を目標の率で呼ぶ（Fiscal.ForecastTax＝課税への同意・身分の免税・前の月の所得・国庫へ届く割合・仲介者の取り分・払える割合・犯罪者の除外）。
+    //     旧は税率×今月の所得×届く割合の自前の式で、実効の列（aIncome〜aLand＝エンジンの診断）とは別の規則だった（反証役 hp〔v〕中#1）。
+    // 収入＝各税の査定×国庫へ届く割合（支配度の区分）×払える割合。支出＝利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
     private void UpdateForecast()
     {
         var c = _player.Coef;
-        double earnedAll = 0, earnedElite = 0, headNonPriv = 0, landRent = 0, massSize = 0, oldSize = 0, earnedDelivered = 0;
+        double massSize = 0, oldSize = 0;
         foreach (var r in _player.Regions)
         {
-            double regionDelivery = Politics.RuleDelivery(r, c);   // 国庫へ届く割合＝エンジン Fiscal の課税ベースと同じ（国家区分＋在地区分×届け率・★(408) 以後は国家区分のうち官僚の役務が届かない分も届け率＝今月の AdminFill を読む＝行政費のスライダーの効きは 1 か月遅れて出る）
             foreach (var p in r.Pops)
             {
-                double e = System.Math.Max(0, p.EarnedPerMonth.Value);
-                earnedAll += e;
-                earnedDelivered += e * regionDelivery;
-                if ((p.IsModernElite || p.Closed) && !p.IsSoldier) earnedElite += e;
-                if (!p.Closed && !p.IsSoldier) headNonPriv += p.Size;
-                if (p.LandRentPerMonth.Value > 0) landRent += p.LandRentPerMonth.Value;
                 if (!p.Closed && !p.IsModernElite) massSize += p.Size;
                 oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 年金の受け手＝60歳以上（エンジン Fiscal と同じ 1 本の述語・年齢の層）
             }
         }
-        double leak = earnedAll > 1e-9 ? earnedDelivered / earnedAll : 1.0;   // 国庫へ届く割合（所得で重みづけた州の RuleDelivery の平均）。汚職の財政の漏れは (399) で物理削除した（税の漏れは支配度の区分）
-        double gIncome = _player.Policy.IncomeTaxTarget * earnedAll * leak;
-        double gProg = _player.Policy.ProgressiveTaxTarget * earnedElite * leak;
-        double gPoll = c.PollTaxRate * _player.Policy.PollTaxTarget * headNonPriv * leak;
-        double gLand = _player.Policy.LandTaxTarget * landRent * leak;
+        var (gIncome, gProg, gPoll, gLand) = Fiscal.ForecastTax(_player, c, _player.Policy.IncomeTaxTarget, _player.Policy.ProgressiveTaxTarget, _player.Policy.PollTaxTarget, _player.Policy.LandTaxTarget);
         double net = gIncome + gProg + gPoll + gLand;
         // 関税：直近の貿易額（世界価格建て・国際市場は清算単位（四半期清算=3ヶ月／月次清算=1ヶ月）＝MonthsPerClearing で月割）×レートで予想。正=輸入関税収入／負=輸出補助（ダンピング＝コスト）。
         double tImpVal = _player.LastImportValue / (double)c.MonthsPerClearing, tExpVal = _player.LastExportValue / (double)c.MonthsPerClearing;   // 清算単位→月割（月次清算に追随・2026-08-22）

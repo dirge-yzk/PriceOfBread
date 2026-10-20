@@ -495,12 +495,15 @@ if (args.Length > 0 && args[0] == "armsdebug")
         var simD = msD.Nations.FirstOrDefault(x => (x.World.SelfPower?.Name ?? "") == dName);
         if (simD is null) { Console.WriteLine($"{q + 1},（{dName} は不在）"); continue; }
         var wD = simD.World; var rD = wD.Region; var cD = wD.Coef;
+        // ★(481) 目標在庫と在庫の読みはエンジンの関数を呼ぶ（EconomyStep.BaseArmsTarget・ArmsOnHand・DiscoveredRates・LandMul＝写しを持たない・hp〔v〕低#5）。
+        //   旧の写しは原単位に発見の解禁度を掛けず・陸海の乗数を落とし・開いた武器庫に無い財を目標と読んだ（エンジンは 0）＝診断の出力だけが変わりうる（軌道は動かない）。
+        double[] milRatesD = EconomyStep.DiscoveredRates(rD, cD, cD.MilitaryGoods, cD.MilitaryRates);
         double Tgt(int b)
         {
             double wr = b < cD.MilitaryWearRatesPerMonth.Length ? cD.MilitaryWearRatesPerMonth[b] : 1.0;
-            return !(cD.BaseArmsStockEnabled > 0) || !(wr < 1.0) ? 0 : rD.MilitaryScalePeace * cD.MilitaryRates[b] / Math.Max(1e-6, wr);
+            return !(cD.BaseArmsStockEnabled > 0) || !(wr < 1.0) ? 0 : EconomyStep.BaseArmsTarget(rD.MilitaryScalePeace, milRatesD[b], wr, EconomyStep.LandMul(cD, cD.MilitaryGoods[b]));
         }
-        double Held(int b) => rD.ArmsStock is { } dd && dd.TryGetValue(cD.MilitaryGoods[b], out double v) ? v : Tgt(b);
+        double Held(int b) => EconomyStep.ArmsOnHand(rD, cD.MilitaryGoods[b], Tgt(b));
         double t0 = Tgt(0), h0 = Held(0), t2 = Tgt(2), h2 = Held(2);
         int prodN = 0, bankN = 0; double marN = 0, marD = 0;
         foreach (var pr in rD.Producers)

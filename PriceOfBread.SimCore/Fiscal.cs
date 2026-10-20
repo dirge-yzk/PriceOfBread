@@ -52,7 +52,7 @@ public static class Fiscal
         var pops = scan.Pops;
         List<double>? scopeInc = scan.ScopeInc; List<double> ruleMul = scan.RuleMul, ruleCut = scan.RuleCut; List<Pop?> ruleLord = scan.RuleLord;
         // ★AUD-07（2026-09-03）：身分制免税の駆動量＝王権の取り分（PrivilegeFromCrownShare=0 の既定では**呼ばない**＝1命令も増えない恒等）。
-        double crownShareForPrivilege = c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
+        double crownShareForPrivilege = CrownShareForPrivilege(w, c);
         // ★支配度の一般化 段3（作者採用 §5・2026-09-07・(399) で点火）：課税ベース＝国家区分＋在地区分×届け率（RuleDelivery）。在地の仲介者の取り分
         //   （在地区分×免税率×あるべき税）は納税者→その州の貴族へ移転（保存）し領主権の台帳へ。無統治・外国区分からは取れない。
         //   税の漏れは支配度の側にある（国庫へ届く分と在地の貴族の分に割る）＝官僚への汚職の漏れは (399) で物理削除した。
@@ -82,58 +82,13 @@ public static class Fiscal
         for (int pi = 0; pi < pops.Count; pi++)
         {
             var p = pops[pi]; if (p.IsCriminal) continue;   // ★(366) 犯罪者は申告せず頭数も把握されない＝所得税・累進・人頭税・土地税・十分の一税の請求を立てない（盗んだ金に所得税が掛かるのを防ぐ）。犯罪者の POP が無い世界では偽＝恒等
-            // C-高4（史実検証2026-07-22）：身分制免税＝旧体制（絶対王政/専制/幕府）では閉鎖階級（貴族・聖職）の課税ベースが過少査定される
-            //（taille réelle・ユンカーの Grundsteuer 免除。完全免除でなく割引＝vingtième は貴族にも課された）。立憲/共和/軍政では特権消滅。
-            // PrivilegeTaxDiscount=0 で privBase=1.0＝乗算恒等（IEEE754で×1.0は厳密）。所得税と土地税の両方に掛ける（土地税だけ塞がないと同じ金が逃げ道を替えるだけ）。
-            // ★AUD-07（2026-09-03）：政体ラベルの集合判定 → 王権の取り分に比例する連続量へ（PrivilegeFromCrownShare=0 で旧＝厳密恒等）。
-            double privBase = Privileges.TaxAssessment(w, c, p, crownShareForPrivilege);   // ★特権台帳へ移設（2026-09-06・式はビット同一）
-            // ★課税への同意（2026-08-04・作者指摘「政治がゲームに与える影響が小さすぎる」）。
-            //   ── なぜ要るか ────────────────────────────────────────────────────
-            //   実測（lawaudit2）＝参政権を「なし」から「男性普通」へ広げると **正統性−52%・歳入−13.7%・国力+1.4%**。
-            //   政体を絶対王政→共和制にしても **国力−4.3%**（満足+14%と歳入−45%/技術−25%が相殺）。
-            //   ＝**民主化が純粋なコスト**で、政治的変革が国力に何も返さない。これが「政治がゲームに効かない」の実体だった。
-            //   史実は逆で、代議制の国家は絶対王政より**多く**取れた（英は仏の約2倍を1人あたりで徴収した。
-            //   議会が同意した税だから払われた＝「代表なくして課税なし」の裏面）。
-            //   ── 何を足したか ──────────────────────────────────────────────────
-            //   **発言権のない者からは取りきれない**（脱税・隠匿・抵抗・徴収費）。係数は既存の <see cref="InterestGroups.FranchiseVoice"/>
-            //   ＝議会の票と**同じ量**を使う＝新しい判断を持ち込まない（参政権の段と階級だけから導く）。
-            //   ⚠**人頭税と土地税には掛けない**：どちらも**源泉で力ずくで取る税**で同意を要さない。
-            //     人頭税は頭数に課す（だから逆進的で、専制の税だった）。土地税＝地租も、生産の現場で在地の仲介者
-            //     （徴税請負・ザミンダール・ティマール）が取り立てるもので、納税者の申告にも同意にも依存しない。
-            //     同意が要るのは**申告に基づく近代税**＝所得税と累進課税（英1799年の所得税は毎年議会の更新を要した）。
-            //     この非対称がそのまま政治の選択になる＝参政権を絞る国は逆進的な人頭税と地租に頼るしかなく、
-            //     広げた国は所得税という弾力的な税源を開く。**倍率でなく税源の切り替えとして効く。**
-            //   ⚠実測（2026-08-04）：当初は土地税にも掛けたが、税源が地租と人頭税しかない農業専制国
-            //     （ビルマ/エチオピア/アワド/アラビア/ネパール/シャム）の歳入が消えて忠実度が各−30〜−50pt へ崩れた。
-            //     史実の彼らは弱い財政国家ではあったが徴税不能ではない＝**区分が粗すぎた**ための崩れで、係数の大小の話ではない。
-            //   ⚠身分制免税（privBase）とは別物＝あちらは「査定の特権」（旧体制の貴族）・こちらは「徴収の同意」（払う側全員）。
-            //   ⚠TaxConsentWeight=0 で consent=1.0＝乗算恒等（IEEE754で×1.0は厳密）＝休眠。
-            //   参政権の範囲2法（2026-08-16）：scopeInc（政治的国民への算入率）が非nullなら声に乗算＝植民地州/非中核popは
-            //   算入されるまで「発言権のない者」側＝同意が立たず所得税/累進が取りきれない。null（gate=0）＝現行の式そのまま。
-            double consent = 1.0;
-            if (c.TaxConsentWeight > 0)
-            {
-                double voice = InterestGroups.FranchiseVoice(p, w.Suffrage, c);
-                if (scopeInc is not null) voice *= scopeInc[pi];
-                consent = 1.0 - c.TaxConsentWeight * (1.0 - voice);
-            }
-            // 所得税：全階級の所得への定率課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（土地税と同方式・2026-09-12 の天井廃止で経路は1本だけ）。
-            // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarnedPerMonth＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
-            //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
-            //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
-            double tax = w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
-            double kInc = tax, kProg = 0, kPoll = 0, kLand = 0;   // ★(474) 税の種類ごとの査定（所得・累進・人頭・土地）＝予算表の実効が読む診断。tax は下で同じ順に足す（和のビットは旧と同じ）
+            // 課税の査定（身分制免税・課税への同意・所得税・累進課税・人頭税・土地税）は AssessPop の 1 本（根拠のコメントの全文もそちら）。★(481) 予算表の予想も同じ関数を目標の率で呼ぶ。
+            var asd = AssessPop(w, c, p, crownShareForPrivilege, scopeInc is null ? null : scopeInc[pi], w.TaxRate.Value, w.ProgressiveTax, w.PollTax, w.LandTax);
+            double privBase = asd.PrivBase, consent = asd.Consent;
+            double tax = asd.Total;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
+            double kInc = asd.Income, kProg = asd.Progressive, kPoll = asd.Poll, kLand = asd.Land;   // ★(474) 税の種類ごとの査定（所得・累進・人頭・土地）＝予算表の実効が読む診断。tax は同じ順に足した和（ビットは旧と同じ）
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
                 Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
-            // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ支配度の区分）。富裕が強く抵抗（PolicyPreferences）。
-            if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
-            { kProg = w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth.Value) * consent; tax += kProg; }
-            // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
-            if (w.PollTax > 1e-9 && p.IsCommoner)
-            { kPoll = c.PollTaxRate * w.PollTax * p.Size; tax += kPoll; }
-            // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（所得税と同方式）。
-            if (w.LandTax > 1e-9 && p.LandRentPerMonth.Value > 0)
-            { kLand = (w.LandTax * p.LandRentPerMonth * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
             // 仲介者の取り分（支配度 段3）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
             double cut = 0; Pop? lord = null;
             {
@@ -141,11 +96,10 @@ public static class Fiscal
                 tax = full * ruleMul[pi];
                 if (ruleLord[pi] is { } lp && !ReferenceEquals(lp, p) && full * ruleCut[pi] > 1e-12) { cut = full * ruleCut[pi]; lord = lp; }
             }
-            double tithe = clergy is not null && Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? (titheRate * p.LastEarnedPerMonth).Value : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
+            double tithe = clergy is not null ? TitheClaim(p, titheRate) : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
             double claims = tax + cut + tithe;
             if (!(claims > 0)) continue;   // 否定形＝NaN の請求は立てない
-            double held = Math.Max(0, p.Savings.Value);
-            double rp = held >= claims ? 1.0 : held / claims;   // 1本の率（払える額が足りれば 1＝全額）
+            double rp = PayRate(p, claims);   // 1本の率（払える額が足りれば 1＝全額）
             tax *= rp; cut *= rp; tithe *= rp;
             { double f = ruleMul[pi] * rp; paidInc += kInc * f; paidProg += kProg * f; paidPoll += kPoll * f; paidLand += kLand * f; }   // ★(474) 種類ごとの実際に取れた額（査定×国庫へ届く割合×払える割合）
             if (lord is not null && cut > 0)
@@ -750,6 +704,109 @@ public static class Fiscal
             }
             return s;
         }
+    }
+
+    /// <summary>★(481) 1 POP の税の査定（身分制免税・課税への同意・所得税・累進課税・人頭税・土地税の 4 種の請求）＝<see cref="Step"/> の徴税の走査と予算表の予想（<see cref="ForecastTax"/>）の**唯一の定義**。
+    /// 率は引数（Step は今の率 w.TaxRate・w.ProgressiveTax・w.PollTax・w.LandTax、予想は目標の率）。式と評価の順は旧の徴税の走査の中の逐語（Total は所得税→累進→人頭→土地の順に足す）。
+    /// <paramref name="scopeInc"/>＝この POP の政治的国民への算入率（<see cref="TaxScan.ScopeInc"/>・TaxConsentWeight が 0 のときは null）。</summary>
+    internal static TaxAssessed AssessPop(World w, Coefficients c, Pop p, double crownShare, double? scopeInc, double incomeRate, double progressiveRate, double pollRate, double landRate)
+    {
+        // C-高4（史実検証2026-07-22）：身分制免税＝旧体制（絶対王政/専制/幕府）では閉鎖階級（貴族・聖職）の課税ベースが過少査定される
+        //（taille réelle・ユンカーの Grundsteuer 免除。完全免除でなく割引＝vingtième は貴族にも課された）。立憲/共和/軍政では特権消滅。
+        // PrivilegeTaxDiscount=0 で privBase=1.0＝乗算恒等（IEEE754で×1.0は厳密）。所得税と土地税の両方に掛ける（土地税だけ塞がないと同じ金が逃げ道を替えるだけ）。
+        // ★AUD-07（2026-09-03）：政体ラベルの集合判定 → 王権の取り分に比例する連続量へ（PrivilegeFromCrownShare=0 で旧＝厳密恒等）。
+        double privBase = Privileges.TaxAssessment(w, c, p, crownShare);   // ★特権台帳へ移設（2026-09-06・式はビット同一）
+        // ★課税への同意（2026-08-04・作者指摘「政治がゲームに与える影響が小さすぎる」）。
+        //   ── なぜ要るか ────────────────────────────────────────────────────
+        //   実測（lawaudit2）＝参政権を「なし」から「男性普通」へ広げると **正統性−52%・歳入−13.7%・国力+1.4%**。
+        //   政体を絶対王政→共和制にしても **国力−4.3%**（満足+14%と歳入−45%/技術−25%が相殺）。
+        //   ＝**民主化が純粋なコスト**で、政治的変革が国力に何も返さない。これが「政治がゲームに効かない」の実体だった。
+        //   史実は逆で、代議制の国家は絶対王政より**多く**取れた（英は仏の約2倍を1人あたりで徴収した。
+        //   議会が同意した税だから払われた＝「代表なくして課税なし」の裏面）。
+        //   ── 何を足したか ──────────────────────────────────────────────────
+        //   **発言権のない者からは取りきれない**（脱税・隠匿・抵抗・徴収費）。係数は既存の <see cref="InterestGroups.FranchiseVoice"/>
+        //   ＝議会の票と**同じ量**を使う＝新しい判断を持ち込まない（参政権の段と階級だけから導く）。
+        //   ⚠**人頭税と土地税には掛けない**：どちらも**源泉で力ずくで取る税**で同意を要さない。
+        //     人頭税は頭数に課す（だから逆進的で、専制の税だった）。土地税＝地租も、生産の現場で在地の仲介者
+        //     （徴税請負・ザミンダール・ティマール）が取り立てるもので、納税者の申告にも同意にも依存しない。
+        //     同意が要るのは**申告に基づく近代税**＝所得税と累進課税（英1799年の所得税は毎年議会の更新を要した）。
+        //     この非対称がそのまま政治の選択になる＝参政権を絞る国は逆進的な人頭税と地租に頼るしかなく、
+        //     広げた国は所得税という弾力的な税源を開く。**倍率でなく税源の切り替えとして効く。**
+        //   ⚠実測（2026-08-04）：当初は土地税にも掛けたが、税源が地租と人頭税しかない農業専制国
+        //     （ビルマ/エチオピア/アワド/アラビア/ネパール/シャム）の歳入が消えて忠実度が各−30〜−50pt へ崩れた。
+        //     史実の彼らは弱い財政国家ではあったが徴税不能ではない＝**区分が粗すぎた**ための崩れで、係数の大小の話ではない。
+        //   ⚠身分制免税（privBase）とは別物＝あちらは「査定の特権」（旧体制の貴族）・こちらは「徴収の同意」（払う側全員）。
+        //   ⚠TaxConsentWeight=0 で consent=1.0＝乗算恒等（IEEE754で×1.0は厳密）＝休眠。
+        //   参政権の範囲2法（2026-08-16）：scopeInc（政治的国民への算入率）が非nullなら声に乗算＝植民地州/非中核popは
+        //   算入されるまで「発言権のない者」側＝同意が立たず所得税/累進が取りきれない。null（gate=0）＝現行の式そのまま。
+        double consent = 1.0;
+        if (c.TaxConsentWeight > 0)
+        {
+            double voice = InterestGroups.FranchiseVoice(p, w.Suffrage, c);
+            if (scopeInc is { } si) voice *= si;
+            consent = 1.0 - c.TaxConsentWeight * (1.0 - voice);
+        }
+        // 所得税：全階級の所得への定率課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（土地税と同方式・2026-09-12 の天井廃止で経路は1本だけ）。
+        // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarnedPerMonth＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
+        //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
+        //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
+        double tax = incomeRate * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
+        double kInc = tax, kProg = 0, kPoll = 0, kLand = 0;   // ★(474) 税の種類ごとの査定（所得・累進・人頭・土地）＝予算表の実効が読む診断。tax は下で同じ順に足す（和のビットは旧と同じ）
+        // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ支配度の区分）。富裕が強く抵抗（PolicyPreferences）。
+        if (progressiveRate > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
+        { kProg = progressiveRate * Math.Max(0, p.LastEarnedPerMonth.Value) * consent; tax += kProg; }
+        // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
+        if (pollRate > 1e-9 && p.IsCommoner)
+        { kPoll = c.PollTaxRate * pollRate * p.Size; tax += kPoll; }
+        // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（所得税と同方式）。
+        if (landRate > 1e-9 && p.LandRentPerMonth.Value > 0)
+        { kLand = (landRate * p.LandRentPerMonth * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+        return new TaxAssessed(privBase, consent, kInc, kProg, kPoll, kLand, tax);
+    }
+
+    /// <summary>★(481) <see cref="AssessPop"/> の結果（4 種の請求・身分制免税の係数・課税への同意・和）。</summary>
+    internal readonly record struct TaxAssessed(double PrivBase, double Consent, double Income, double Progressive, double Poll, double Land, double Total);
+
+    /// <summary>身分制免税の駆動量＝王権の取り分（PrivilegeFromCrownShare・PrivilegeTaxDiscount が 0 の既定では**呼ばない**＝1 命令も増えない恒等）。<see cref="Step"/>・<see cref="ForecastTax"/>・<see cref="Privileges.Degree"/> の 1 本。</summary>
+    internal static double CrownShareForPrivilege(World w, Coefficients c)
+        => c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
+
+    /// <summary>十分の一税の請求（大衆の前の月の所得×率）。聖職が居ない国は呼ばない（<see cref="Step"/> の clergy と <see cref="ForecastTax"/> の同じ判定）。</summary>
+    internal static double TitheClaim(Pop p, double titheRate)
+        => Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? (titheRate * p.LastEarnedPerMonth).Value : 0;
+
+    /// <summary>POP の義務の 1 本の率 r_p＝払える額（貯蓄の正の部）÷請求の和（足りれば 1）。税・仲介者の取り分・十分の一税に同じに掛かる。</summary>
+    internal static double PayRate(Pop p, double claims)
+    {
+        double held = Math.Max(0, p.Savings.Value);
+        return held >= claims ? 1.0 : held / claims;
+    }
+
+    /// <summary>★(481) 予算表の税の予想（月あたり）＝目標の率で今の盤面を徴税したら取れる額の種類ごとの和。<see cref="Step"/> の徴税の走査と同じ骨格
+    /// （課税の査定 <see cref="AssessPop"/>・国庫へ届く割合・仲介者の取り分・十分の一税・払える割合 <see cref="PayRate"/>）を、お金を動かさずに数える。
+    /// 旧の画面の式（税率×課税ベース×届く割合）は課税への同意・身分の免税・払える割合・犯罪者の除外を落とし、実効の列（エンジンの診断）とは別の規則だった（hp〔v〕中#1）。
+    /// 番人＝目標の率に今の率を渡すと Step の診断 <see cref="World.LastTaxIncomePerMonth"/> ほかと一致（<c>EngineReadIdentityTests</c>）。</summary>
+    internal static (double Income, double Progressive, double Poll, double Land) ForecastTax(World w, Coefficients c, double incomeRate, double progressiveRate, double pollRate, double landRate)
+    {
+        var scan = TaxScan.Of(w, c);
+        var pops = scan.Pops;
+        double crownShare = CrownShareForPrivilege(w, c);
+        double titheRate = c.TitheRate.Value * Privileges.TitheDegree(w, c);
+        bool clergy = false;
+        if (titheRate > 1e-9) foreach (var p in pops) if (p.ClassId == PopClass.Clergy && p.Size > 1e-9) { clergy = true; break; }
+        double paidInc = 0, paidProg = 0, paidPoll = 0, paidLand = 0;
+        for (int pi = 0; pi < pops.Count; pi++)
+        {
+            var p = pops[pi]; if (p.IsCriminal) continue;
+            var a = AssessPop(w, c, p, crownShare, scan.ScopeInc is null ? null : scan.ScopeInc[pi], incomeRate, progressiveRate, pollRate, landRate);
+            double tax = a.Total * scan.RuleMul[pi], cut = 0;
+            if (scan.RuleLord[pi] is { } lp && !ReferenceEquals(lp, p) && a.Total * scan.RuleCut[pi] > 1e-12) cut = a.Total * scan.RuleCut[pi];
+            double claims = tax + cut + (clergy ? TitheClaim(p, titheRate) : 0);
+            if (!(claims > 0)) continue;
+            double f = scan.RuleMul[pi] * PayRate(p, claims);
+            paidInc += a.Income * f; paidProg += a.Progressive * f; paidPoll += a.Poll * f; paidLand += a.Land * f;
+        }
+        return (paidInc, paidProg, paidPoll, paidLand);
     }
 
     private static (List<Pop> Holders, List<double> Held) BondHolders(List<Pop> pops)

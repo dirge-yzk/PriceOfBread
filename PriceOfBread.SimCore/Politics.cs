@@ -299,7 +299,7 @@ public static class Politics
             // ★E-05段3（2026-09-03）：格を見ず**算入率**で連続に緩める＝本国州は中核度≈1でほぼ0まで消え、植民地は中核度≈0でほとんど残る
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝＝移民原住民参政権「あり」で本国州だけ0 は削除）。
             if (w.EthnicEnabled)
-                minorityMil *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, milReg));
+                minorityMil *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, milReg));
             // [PORT:P1] ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
             //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では起きないが半年続けば大量の反乱軍」が**係数の値では表現できない**証明だった＝利得ごと作り直す。
             //   ★2026-09-22 回B：駆動は**平常（FoodRef）からの急な落ち込み**を測る（式は <see cref="FamineDrive"/> の1本・起点と利得の導出は係数のコメント）。
@@ -1475,7 +1475,7 @@ public static class Politics
             //   新＝格を見ず、上の少数派の地位不満と**同じ算入率**を使う＝規則は1本（作者裁定「法側で制御したい」）。
             //   ⚠本国州も同じ式を通るが、中核度≈1＝算入率≈1＝圧力≈0への割引＝**従来ここに来ていなかった州の挙動は実質変わらない**。
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝は削除）
-            pressure *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, r));
+            pressure *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));
             // ★幽霊の国の根（2026-09-30 (118)・推奨で進めた）：**離脱の力は人の数で測る**（反乱を起こすのは人）。
             //   旧＝圧力は1人あたりの量（関税の乖離×州の平均闘争度×文化）だけで州の人口に依らず、引き留めは国の人口と治安維持力（人の数 coerce）で測る
             //   ＝分子と分母が別の単位。州の間の移民で大衆が数人まで抜けた州（小さな植民地の州）も人口3千の州と同じ圧力で離れ、
@@ -1694,7 +1694,8 @@ public static class Politics
     ///   （英領インドはウェストミンスターに議席なし／仏領アルジェリアのコロンはパリに議席あり）。
     ///   ⇒ これを法で表すなら「編入するか植民地のままか」という別の決定が要る＝**J-009 の裁定待ち**。
     /// </summary>
-    internal static double SuffrageInclusion(World w, Region r)
+    // ★(481) 旧名 SuffrageInclusion。InterestGroups.SuffrageInclusion(w, r, p)（POP ごと・植民地格の州は植民地参政権の法を読む）とは別の問い＝これは格を見ない州の平均の算入率。同名の 2 本を 1 本へ畳むのは挙動の線（分離圧力と少数派の地位不満の読みが動く・Q-sf2）。
+    internal static double RegionAvgSuffrageInclusion(World w, Region r)
         => w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : AvgRegionCoreShare(r);
 
     /// <summary>★(399) ② 州への国家の到達∈(0,1]＝首都（国の座標）からの大圏距離で減衰する＝<c>CheckSecession</c> の投射と同じ形・同じ係数（DistanceWarDecay・DistanceNormKm）。

@@ -163,6 +163,7 @@ public static class MarketFlow
                     }
                     m.ReservationWage = RW;
                     m.Price = P;
+                    if (Instruments.On) Instruments.LwStep(region, gi, P, mwFloor);   // ★(481) 計器（読むだけ）：書いた直後の値段とそのとき使った床（labor_s の N2 の診断）
                     if (h == 1) nStep1++; else nLabor++;
                     nRun += run; nSkip += h - run;
                 }

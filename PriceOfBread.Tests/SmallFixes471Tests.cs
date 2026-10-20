@@ -312,16 +312,84 @@ public class SmallFixes471Tests
         Assert.True(Enumerable.Range(0, 3).Any(i => Math.Abs(vN[i] - vF[i]) > 1e-6), "法を変えても議席が動かない（述語が読まれていない）");
     }
 
+    /// <summary>半減点は有権者数に比例する：期待値は手の算術（係数×Σ〔規模×発言権〕×一人あたり名目所得）で作り、植民地参政権「なし」は植民地格の州の住民を数えず、「全面」は数える。
+    /// ★(481) 旧は〈なし＜全面 または 全面の半減点が 0 以下〉と書いていて、半減点が 0 の盤面では何も確かめなかった（反証役 sf〔bv〕低#5）。前提（半減点が正）を先に確かめる。
+    /// ⚠突然変異「半減点の有権者数が議席の票でなく FranchiseVoice の和を読む」で、なし の側が手計算と食い違って赤。</summary>
     [Fact]
     public void 議席の票の述語は_選挙資金の有権者数にも同じ_1本_を通る()
     {
         var (wN, colN) = SeatBoard(ColonialSuffrageLaw.None);
         var (wF, _) = SeatBoard(ColonialSuffrageLaw.Full);
-        // 半減点は有権者数に比例する。植民地なしは、植民地の州の住民の分だけ有権者数が減る＝半減点が下がる。
-        Assert.True(wN.ElectionPushHalfPoint() < wF.ElectionPushHalfPoint() || !(wF.ElectionPushHalfPoint() > 0));
+        double Hand(World w, bool excludeColonial)
+        {
+            double voters = 0;
+            foreach (var (rg, p) in w.AllPopsWithRegion())
+            {
+                if (excludeColonial && rg.Tier == RegionTier.Colonial) continue;
+                voters += p.Size * InterestGroups.FranchiseVoice(p, w.Suffrage, w.Coef);
+            }
+            return w.Coef.ElectionPushHalfPerVoter * voters * (w.NominalGdpPerMonth.Value / w.TotalPopulation);
+        }
+        foreach (var w in new[] { wN, wF })
+        {
+            Assert.Equal(0.0, w.Coef.ElectionBribePovertyWeight);   // 買収の富加重は休眠＝半減点は有権者数に比例する単純な式
+            Assert.True(Hand(w, false) > 0, "前提が崩れた：手計算の半減点が 0 以下（盤面に所得か有権者が無い）");
+        }
         double voteColony = 0;
         foreach (var (rg, p) in wN.AllPopsWithRegion()) if (ReferenceEquals(rg, colN)) voteColony += p.Size * InterestGroups.FranchiseVoice(p, wN.Suffrage, wN.Coef);
         Assert.True(voteColony > 0, "前提が崩れた：植民地にした州に有権者が居ない");
+        Assert.Equal(Hand(wF, false), wF.ElectionPushHalfPoint(), 9);   // 全面＝算入率 1＝誰も除かない
+        Assert.Equal(Hand(wN, true), wN.ElectionPushHalfPoint(), 9);    // なし＝植民地格の州の住民を数えない
+        Assert.True(wN.ElectionPushHalfPoint() < wF.ElectionPushHalfPoint());
+    }
+
+    /// <summary>選挙資金の受け手の重みも議席の票と同じ 1 本：配られた額は手計算の重み（規模×発言権×〔植民地格なら算入率〕）の比に合い、植民地参政権「なし」では植民地格の州の住民には 1 銭も届かない。
+    /// ★(481) 申し送り ⑥（反証役 sf〔bv〕低#5：選挙資金の受け手の番人が無かった）。期待値は盤面の POP と法の段から手で作る（World.ResolveElection の受け手の式を呼ばない）。
+    /// ⚠突然変異「受け手の重みが FranchiseVoice のまま〔算入率を掛けない〕」で なし の側が赤。</summary>
+    [Fact]
+    public void 選挙資金は議席の票と同じ重みの有権者に配られ_植民地参政権なしでは植民地の住民に届かない()
+    {
+        foreach (var law in new[] { ColonialSuffrageLaw.None, ColonialSuffrageLaw.Full })
+        {
+            var (w, colony) = SeatBoard(law);
+            // 加担できる議題を探す（純支持が最も大きい軸）。純支持が負なら余白の窓を開く（ElectionAiTests の OpenMandateWindow と同じ手）
+            PolicyAxis bestAxis = default; bool bestInc = true; double bestNet = double.NegativeInfinity;
+            foreach (PolicyAxis a in Enum.GetValues<PolicyAxis>())
+                foreach (bool inc in new[] { true, false })
+                {
+                    double net = PolicyPreferences.NetSupport(w, a, inc);
+                    if (net > bestNet) { bestNet = net; bestAxis = a; bestInc = inc; }
+                }
+            if (bestNet < 0) { w.Legitimacy = 1.0; w.MandateSpent = 0; w.Coef.MandateWeight = 3.0 * (-bestNet); }
+            w.FiscalFundingRatio = new Share(1.0);
+            Assert.True(w.FiscalCapacityPerMonth.Value > 0, "前提が崩れた：裁量余剰が 0＝注ぐ原資が無い");
+            w.PendingElection = new ElectionEvent { AgendaIdeologies = [0], AgendaAxes = [bestAxis], AgendaIncrease = [bestInc], AgendaLabels = ["試験の看板"] };
+            var pops = new List<(Region, Pop)>(); foreach (var (rg0, p0) in w.AllPopsWithRegion()) pops.Add((rg0, p0));
+            var before = pops.Select(t => t.Item2.Savings.Value).ToArray();
+            w.ResolveElection(0, 0.5);
+            double amount = w.ElectionLastSpend;
+            Assert.True(amount > 0, "前提が崩れた：加担が成立していない");
+            double[] weight = pops.Select(t =>
+            {
+                double v = t.Item2.Size * InterestGroups.FranchiseVoice(t.Item2, w.Suffrage, w.Coef);
+                if (t.Item1.Tier != RegionTier.Colonial) return v;
+                return law == ColonialSuffrageLaw.None ? 0.0 : v;   // 手の算術（法の段から）：なし＝0・全面＝1
+            }).ToArray();
+            double total = weight.Sum();
+            Assert.True(total > 0);
+            double paidSum = 0; int colonialPaid = 0, colonialVoters = 0;
+            for (int i = 0; i < pops.Count; i++)
+            {
+                double gain = pops[i].Item2.Savings.Value - before[i];
+                paidSum += gain;
+                double expected = amount * weight[i] / total;
+                Assert.InRange(gain, expected - 1e-6 * Math.Max(1.0, amount), expected + 1e-6 * Math.Max(1.0, amount));
+                if (ReferenceEquals(pops[i].Item1, colony)) { colonialVoters++; if (gain > 1e-9) colonialPaid++; }
+            }
+            Assert.Equal(amount, paidSum, 6);   // 国庫から出た額がそのまま受け手に届く（保存）
+            Assert.True(colonialVoters > 0);
+            if (law == ColonialSuffrageLaw.None) Assert.Equal(0, colonialPaid); else Assert.True(colonialPaid > 0);
+        }
     }
 
     [Fact]

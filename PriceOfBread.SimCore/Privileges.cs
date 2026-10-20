@@ -63,7 +63,7 @@ public static class Privileges
     public static double Degree(World w, Coefficients c, int kind) => kind switch
     {
         Tithe => TitheDegree(w, c),
-        TaxExemption => TaxExemptionDegree(w, c, c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0),   // Fiscal.cs の crownShareForPrivilege と同じ式・同じガード（既定は呼ばない）
+        TaxExemption => TaxExemptionDegree(w, c, Fiscal.CrownShareForPrivilege(w, c)),   // Fiscal.Step・予算表の予想と同じ 1 本（既定は PowerAffinity を呼ばない）
         VestedOffice => EstateDegree(w),
         Seigneurial => SeigneurialDegree(w),
         Monopoly => MonopolyDegree(w, c),

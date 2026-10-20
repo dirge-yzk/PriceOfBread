@@ -253,6 +253,42 @@ public class LaborMarketFormTests
         Assert.Equal(0.0, MinimumWageFloor.PerUnit(r, Catalog.LaborId, MinimumWageLaw.None));
     }
 
+    /// <summary>★(481) 床の値の番人（反証役 mw〔bv〕低#5・籠が独立か）：籠を〈region.Goods を回して層で選ぶ式〉で数え直さず、**手で組んだ盤面**から手の算術で期待値を作る。
+    /// 盤面＝需要を全部 0 にしたうえで 4 つだけ立て（パン＝主食 0.5×2・衣料＝日用品 0.2×5・ワイン＝奢侈 0.1×10・各 1.0）、除かれるべき 2 つを置く（米＝主食だが需要 0・教育＝役務で需要あり）。
+    /// 期待＝なし 0／生存 1.0／生活 2.0／充足 3.0。床の単位は〈籠×担い手の人数÷人力の能力〉。
+    /// ⚠突然変異「層の対応を 1 段ずらす〔生存に日用品を入れる〕」「需要の立たない財を数える」「役務を数える」「担い手の人数を掛けない」で赤。</summary>
+    [Fact]
+    public void 籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(2);
+        var r = sim.World.Region;
+        foreach (var g in r.Goods) r.Markets[g.Id].LastDemand = 0;
+        void Set(int id, GoodTier tier, double need, double price, double demand)
+        {
+            var g = r.GoodOf(id)!; g.Tier = tier; g.BaseNeed = need;
+            r.Markets[id].Price = price; r.Markets[id].LastDemand = demand;
+        }
+        Set(Catalog.BreadId, GoodTier.Staple, 0.5, 2.0, 1.0);
+        Set(Catalog.ClothingId, GoodTier.Daily, 0.2, 5.0, 1.0);
+        Set(Catalog.WineId, GoodTier.Luxury, 0.1, 10.0, 1.0);
+        Set(Catalog.RiceId, GoodTier.Staple, 0.4, 100.0, 0.0);       // 主食だが誰も需要しない＝数えない
+        Set(Catalog.EducationId, GoodTier.Service, 0.3, 7.0, 1.0);   // 役務＝籠に入れない
+        Assert.Equal(0.0, MinimumWageFloor.BasketPerPerson(r, MinimumWageLaw.None));
+        Assert.Equal(1.0, MinimumWageFloor.BasketPerPerson(r, MinimumWageLaw.Subsistence), 12);
+        Assert.Equal(2.0, MinimumWageFloor.BasketPerPerson(r, MinimumWageLaw.Living), 12);
+        Assert.Equal(3.0, MinimumWageFloor.BasketPerPerson(r, MinimumWageLaw.Sufficiency), 12);
+        var human = r.Producers.Where(x => x.GoodId == Catalog.LaborId && x.RecipeName.Length == 0 && !x.Bankrupt).ToList();
+        int lp = human[0].LaborPopIndex;
+        double cap = human.Where(x => x.LaborPopIndex == lp).Sum(x => x.Capacity);
+        double size = r.Pops[lp].Size;
+        Assert.True(cap > 0 && size > 0);
+        Assert.Equal(2.0 * size / cap, MinimumWageFloor.PerUnit(r, Catalog.LaborId, MinimumWageLaw.Living), 12);
+        Assert.Equal(3.0 * size / cap, MinimumWageFloor.PerUnit(r, Catalog.LaborId, MinimumWageLaw.Sufficiency), 12);
+        Assert.Equal(1.0 * size / cap, MinimumWageFloor.AbsFloor(r, Catalog.LaborId, double.MaxValue, MinimumWageLaw.Subsistence), 12);
+        Assert.Equal(0.5 * size / cap, MinimumWageFloor.AbsFloor(r, Catalog.LaborId, 0.5 * size / cap, MinimumWageLaw.Living), 12);   // 天井で削る（天井が低ければ天井）
+    }
+
     [Fact]
     public void 日次の価格の歩は法の床を下から効かせ_Noneと対象外の財は旧と同じ()
     {
@@ -568,6 +604,107 @@ public class LaborInstrumentTests
                     var row = all.Last(r => r[System.Array.IndexOf(h, "quarter")] == q.ToString() && r[System.Array.IndexOf(h, "nation")] == nat);
                     Assert.InRange(Col(h, row, col), exp - tol, exp + tol);
                 }
+            }
+            finally { Instruments.Close(sim); }
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>★(481) N2 の診断の列（stepBelowShare・floorEndOverStepIndex・priceEndOverStepIndex・belowNoStepShare・belowPriceMovedShare・belowFloorMovedShare）：
+    /// 歩（MarketFlow.StepDay）を直に呼んで最後の歩の記録を作り、歩の後に盤面を動かしてから表を書かせる。期待値は盤面の側（値段・人数・床を表の外で数える）から作る。
+    /// 場面：1＝歩だけ（歩の後は何も動かさない）／2＝歩の後に値段を床の 0.5 倍へ落とす（値段が動いた）／3＝歩の後に担い手の人数を 1.5 倍にする（床が上がった）／4＝歩が無い四半期に値段を床の 0.5 倍へ（歩の記録が古い）。
+    /// ⚠突然変異「原因の分け方の不等号を逆にする」「歩の印〔Fresh〕を下ろさない」「歩の記録の値段を歩の前の値段で残す」で赤。</summary>
+    [Fact]
+    public void N2の診断の列は最後の歩の直後の値段と床を残し_四半期末の床の下を原因に分ける()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_lwn2_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], 1789UL, _ => new UtilityAgent());
+            Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, 1789UL, "warm");
+            var w = sim.Nations[0].World;
+            string nat = Instruments.NameOf(w);
+            try
+            {
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 0);
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 1);
+                w.MinimumWage = MinimumWageLaw.Living;
+                static double HumanCap(Region r) => r.Producers.Where(x => x.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(x) && !x.Bankrupt).Sum(x => x.Capacity);
+                var list = new List<Region>();
+                double den = 0;
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active) continue;
+                    var human = r.Producers.FirstOrDefault(x => x.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(x) && !x.Bankrupt);
+                    double cap = HumanCap(r);
+                    if (human is null || !(cap > 0) || human.LaborPopIndex < 0 || human.LaborPopIndex >= r.Pops.Count || !(r.Markets[Catalog.LaborId].Price > 0)) continue;
+                    list.Add(r); den += cap;
+                }
+                Assert.True(den > 0);
+                double FloorNow(Region r)
+                {
+                    double ceiling = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * (w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * r.Industrialization));
+                    return MinimumWageFloor.AbsFloor(r, Catalog.LaborId, ceiling, w.MinimumWage);
+                }
+                var expects = new List<(int q, string col, double exp, double tol)>();
+                var nBelow = new Dictionary<int, double>();   // 場面ごとの床の下の割合（下で正を確かめる）
+                void Scene(int q, bool step, Action prep, Action tweak, double below_priceMoved, double below_floorMoved, double below_noStep)
+                {
+                    var ps = new Dictionary<Region, double>();
+                    prep();
+                    if (step)
+                        foreach (var r in list) { MarketFlow.StepDay(r, w.Coef, 1, null, true, w.MinimumWage); ps[r] = r.Markets[Catalog.LaborId].Price; }
+                    tweak();
+                    // 盤面の側から期待値：四半期末に床×0.90 未満の州の能力と、歩の直後の値段÷四半期末の値段の能力加重の平均
+                    double bw = 0, seenCap = 0, ratioW = 0;
+                    foreach (var r in list)
+                    {
+                        double cap = HumanCap(r), f = FloorNow(r), price = r.Markets[Catalog.LaborId].Price;
+                        if (f > 0 && price < f * 0.90) bw += cap;
+                        if (step && ps[r] > 0) { seenCap += cap; ratioW += cap * (price / ps[r]); }
+                    }
+                    expects.Add((q, "enactedBelowFloorShare", bw / den, 1e-6));
+                    expects.Add((q, "belowPriceMovedShare", below_priceMoved * bw / den, 1e-6));
+                    expects.Add((q, "belowFloorMovedShare", below_floorMoved * bw / den, 1e-6));
+                    expects.Add((q, "belowNoStepShare", below_noStep * bw / den, 1e-6));
+                    expects.Add((q, "stepBelowShare", 0.0, 1e-9));   // 歩は床の下に値段を残さない（床を下から効かせる）
+                    if (step) expects.Add((q, "priceEndOverStepIndex", ratioW / seenCap, 1e-6));
+                    if (step && q == 2) expects.Add((q, "floorEndOverStepIndex", 1.0, 0.02));   // 歩の後に何も動かさなければ、床は同じ歩の中の他の財の値段の動きの分しかずれない
+                    Instruments.Quarter(sim, 1789UL, q);
+                    nBelow[q] = bw / den;
+                }
+                // 歩の前に値段と留保賃金を床の 0.01 倍へ置く＝歩が床まで引き上げた値段が最後の歩の記録になる（実際の世界の床は値段の約 0.06 倍で、そのままでは歩の後も床より十分上にいる）
+                void Low() { foreach (var r in list) { double f = FloorNow(r); if (f > 0) { var m = r.Markets[Catalog.LaborId]; m.Price = f * 0.01; m.ReservationWage = m.Price; } } }
+                void None() { }
+                void Drop() { foreach (var r in list) { double f = FloorNow(r); if (f > 0) r.Markets[Catalog.LaborId].Price = f * 0.5; } }
+                var sizes = new Dictionary<Region, double>();
+                int LpOf(Region r) => r.Producers.First(x => x.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(x) && !x.Bankrupt).LaborPopIndex;
+                void Grow() { foreach (var r in list) r.Pops[LpOf(r)].Size *= 1.5; }
+                // 実際の世界では床は州の天井で削られる州が多い＝担い手の人数を 0.05 倍にして床を天井の十分下へ置く（場面 4 の床の上昇が天井に隠れない）。最後に戻す
+                foreach (var r in list) { sizes[r] = r.Pops[LpOf(r)].Size; r.Pops[LpOf(r)].Size *= 0.05; }
+                Scene(2, true, Low, None, 0, 0, 0);          // 歩だけ（歩が値段を床まで引き上げて残す）
+                Scene(3, true, Low, Drop, 1, 0, 0);          // 歩の後に値段が落ちた
+                Scene(4, true, Low, Grow, 0, 1, 0);          // 歩の後に床が上がった
+                Scene(5, false, None, Drop, 0, 0, 1);         // 歩が無い四半期（記録が古い）
+                foreach (var r in list) r.Pops[LpOf(r)].Size = sizes[r];
+                Instruments.Close(sim);
+                Assert.True(nBelow[2] == 0.0 && nBelow[3] > 0 && nBelow[4] > 0 && nBelow[5] > 0, $"前提が崩れた：場面の床の下の割合 {string.Join(',', nBelow.Select(kv => kv.Key.ToString() + "=" + kv.Value.ToString("G4")))}");
+                var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "labor_s1789.tsv"));
+                var h = lines[0].Split('\t');
+                var all = lines.Skip(1).Select(l => l.Split('\t')).ToList();
+                foreach (var (q, col, exp, tol) in expects)
+                {
+                    var row = all.Last(r => r[System.Array.IndexOf(h, "quarter")] == q.ToString() && r[System.Array.IndexOf(h, "nation")] == nat);
+                    Assert.InRange(Col(h, row, col), exp - tol, exp + tol);
+                }
+                // 場面 4（歩が無い）は歩の比の列が空（分母 0＝nan）、場面 3 は歩の後に床が上がった分だけ 1 を超える
+                var r4 = all.Last(r => r[System.Array.IndexOf(h, "quarter")] == "5" && r[System.Array.IndexOf(h, "nation")] == nat);
+                Assert.True(double.IsNaN(Col(h, r4, "floorEndOverStepIndex")) && double.IsNaN(Col(h, r4, "priceEndOverStepIndex")));
+                var r3 = all.Last(r => r[System.Array.IndexOf(h, "quarter")] == "4" && r[System.Array.IndexOf(h, "nation")] == nat);
+                Assert.True(Col(h, r3, "floorEndOverStepIndex") > 1.05, $"歩の後に床が上がった場面で floorEndOverStepIndex が {Col(h, r3, "floorEndOverStepIndex")}");
             }
             finally { Instruments.Close(sim); }
         }

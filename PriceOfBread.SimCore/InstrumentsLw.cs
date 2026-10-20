@@ -14,6 +14,11 @@ namespace PriceOfBread.SimCore;
 //   ★(469) 追記 3 で足した 6 列：enactedNearFloorShare（法が施行されているとき、値段が〈機構と同じ天井で削った床〉×1.05 以下＝床に座るか床の下の州の能力の割合・N1）・
 //   enactedBelowFloorShare（同じ床の 0.90 倍を値段が下回る州の能力の割合・N2）・{plain|farm}RealPriceMinIndex（値段÷州の物価水準の州の中の最小・発散の観測 (i)）・
 //   {plain|farm}TinyPriceRegionShare（値段÷州の物価水準が 1e-3 未満の州の能力の割合・発散の観測 (i)）。
+//   ★(481) 追記 6 列（N2＝施行行の床の下の診断・MarketFlow.StepDay が人力の労働の値段を書いた直後の値段とそのとき使った床を残し、四半期末の断面と並べる）：
+//   stepBelowShare（最後の歩の直後に値段が〈その歩の床〉×0.90 未満だった州の能力の割合＝歩が床を守れていたか）・
+//   floorEndOverStepIndex（四半期末の床÷最後の歩の床を能力で重み付け＝歩の後に床が上がったか）・priceEndOverStepIndex（四半期末の値段÷最後の歩の直後の値段＝歩の後に値段が動いたか）・
+//   belowNoStepShare／belowPriceMovedShare／belowFloorMovedShare（四半期末に床×0.90 未満の州の能力を原因に分けた割合：最後の歩が無い〔印が古い・床なし〕／歩の直後は床×0.90 以上だったのに値段が落ちた／歩の直後の値段が四半期末の床×0.90 未満＝床が上がった）。
+//   3 つの和は enactedBelowFloorShare と一致する。分母は enactedBelowFloorShare と同じ（法が施行されている州の能力）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／賃金の支払いは売れた量×値段の近似で、賃金→農民の所得の割合は class_s の農民の earnedPerMonth との比で読む／mc は市場の州の乗数まで含む自己費用の式をそのまま読む／人力の生産者が無い州は行に数えない。
 public static partial class Instruments
 {
@@ -21,7 +26,21 @@ public static partial class Instruments
         + "plainCapPerMonth\tplainDemandPerMonth\tplainSoldPerMonth\tplainPriceOverMcIndex\tplainRealPriceIndex\tplainProfitMeanShare\tplainWageBillPerMonth\tplainUnemploymentShare\t"
         + "farmCapPerMonth\tfarmDemandPerMonth\tfarmSoldPerMonth\tfarmPriceOverMcIndex\tfarmRealPriceIndex\tfarmProfitMeanShare\tfarmWageBillPerMonth\tfarmUnemploymentShare\t"
         + "plainFloor0OverSubsIndex\tplainFloor0OverLivIndex\tplainFloor0OverSuffIndex\tplainFloor1OverSubsIndex\tplainFloor1OverLivIndex\tplainFloor1OverSuffIndex\tenactedBindShare"
-        + "\tenactedNearFloorShare\tenactedBelowFloorShare\tplainRealPriceMinIndex\tplainTinyPriceRegionShare\tfarmRealPriceMinIndex\tfarmTinyPriceRegionShare";
+        + "\tenactedNearFloorShare\tenactedBelowFloorShare\tplainRealPriceMinIndex\tplainTinyPriceRegionShare\tfarmRealPriceMinIndex\tfarmTinyPriceRegionShare"
+        + "\tstepBelowShare\tfloorEndOverStepIndex\tpriceEndOverStepIndex\tbelowNoStepShare\tbelowPriceMovedShare\tbelowFloorMovedShare";
+
+    /// <summary>★(481) N2 の診断の蓄え＝州ごとの最後の歩（人力の労働の値段を <c>MarketFlow.StepDay</c> が書いた直後）の値段とそのとき使った床（0＝床なし）。シミュの状態ではない（ConditionalWeakTable の先例・セーブに載らない）。
+    /// Fresh＝前の四半期の折り込み以後に歩があった印（折り込みで下ろす）。</summary>
+    private sealed class LwStepRec { public double Price, Floor; public bool Fresh; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, LwStepRec> LwSteps = new();
+
+    /// <summary>★(481) 計器の hook（読むだけ）：<c>MarketFlow.StepDay</c> の人力の労働（工場労働）の枝の最後で、書いた直後の値段 <paramref name="price"/> と使った床 <paramref name="floor"/>（法が None なら 0）を残す。</summary>
+    internal static void LwStep(Region r, int goodId, double price, double floor)
+    {
+        if (goodId != Catalog.LaborId) return;
+        var rec = LwSteps.GetOrCreateValue(r);
+        rec.Price = price; rec.Floor = floor; rec.Fresh = true;
+    }
 
     private sealed class LwAcc
     {
@@ -34,7 +53,8 @@ public static partial class Instruments
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var c = w.Coef;
         var plain = new LwAcc(); var farm = new LwAcc();
-        var fl = new double[6]; double flW = 0, bindW = 0, bindCap = 0, nearW = 0, belowW = 0;   // fl[0..2]＝能力ベースの 生存・生活・充足／fl[3..5]＝実雇用ベース
+        var fl = new double[6]; double flW = 0, bindW = 0, bindCap = 0, nearW = 0, belowW = 0;
+        double stBelowW = 0, stFloorCap = 0, stFloorRatioW = 0, stPriceRatioW = 0, stSeenCap = 0, noStepW = 0, priceMovedW = 0, floorMovedW = 0;   // ★(481) N2 の診断   // fl[0..2]＝能力ベースの 生存・生活・充足／fl[3..5]＝実雇用ベース
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -60,7 +80,22 @@ public static partial class Instruments
                 double fl0 = MinimumWageFloor.AbsFloor(r, Catalog.LaborId, ceil, w.MinimumWage);
                 if (fl0 > 0 && price <= fl0 * 1.05) nearW += capP;
                 if (fl0 > 0 && price < fl0 * 0.90) belowW += capP;
+                // ★(481) N2 の診断：最後の歩の直後の値段と床を、四半期末の断面（price・fl0）と並べる
+                bool seen = LwSteps.TryGetValue(r, out var srec) && srec.Fresh;
+                if (seen)
+                {
+                    stSeenCap += capP;
+                    if (srec!.Floor > 0) { stFloorCap += capP; if (srec.Price < srec.Floor * 0.90) stBelowW += capP; stFloorRatioW += capP * (fl0 / srec.Floor); }
+                    if (srec.Price > 0) stPriceRatioW += capP * (price / srec.Price);
+                }
+                if (fl0 > 0 && price < fl0 * 0.90)
+                {
+                    if (!seen || !(srec!.Floor > 0)) noStepW += capP;
+                    else if (srec.Price >= fl0 * 0.90) priceMovedW += capP;
+                    else floorMovedW += capP;
+                }
             }
+            if (LwSteps.TryGetValue(r, out var srec2)) srec2.Fresh = false;
         }
         double Div(double a, double b) => b > 0 ? a / b : double.NaN;
         sk.Lab ??= Open("labor", seed);
@@ -75,11 +110,13 @@ public static partial class Instruments
         cols.Add(F(bindCap > 0 ? bindW / bindCap : 0.0));
         cols.Add(F(bindCap > 0 ? nearW / bindCap : 0.0));
         cols.Add(F(bindCap > 0 ? belowW / bindCap : 0.0));
+        var tailCols = new[] { F(bindCap > 0 ? stBelowW / bindCap : 0.0), F(Div(stFloorRatioW, stFloorCap)), F(Div(stPriceRatioW, stSeenCap)), F(bindCap > 0 ? noStepW / bindCap : 0.0), F(bindCap > 0 ? priceMovedW / bindCap : 0.0), F(bindCap > 0 ? floorMovedW / bindCap : 0.0) };
         foreach (var a in new[] { plain, farm })
         {
             cols.Add(F(a.MinReal));
             cols.Add(F(Div(a.TinyCap, a.CapW)));
         }
+        cols.AddRange(tailCols);
         sk.Lab.WriteLine(string.Join('\t', cols));
     }
 

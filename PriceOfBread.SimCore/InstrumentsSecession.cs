@@ -56,7 +56,7 @@ public static partial class Instruments
             consF = Math.Max(0, 1.0 - c.SecessionConsciousnessWeight * nc);
             pressure *= consF;
         }
-        double incl = PoliticalQuantities.Clamp01(Politics.SuffrageInclusion(w, r));
+        double incl = PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(w, r));
         double suffF = 1.0 - incl;
         pressure *= suffF;
         double crowd = Politics.RegionCrowd(r);

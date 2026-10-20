@@ -84,6 +84,70 @@ public class EngineReadIdentityTests
         Assert.Equal(0.0, w.LastTaxIncomePerMonth.Value + w.LastTaxProgressivePerMonth.Value + w.LastTaxPollPerMonth.Value + w.LastTaxLandPerMonth.Value);
     }
 
+    // ===== (481) 予算表の税の予想（hp〔v〕中#1）：予想の列も徴税の走査と同じ査定の関数を目標の率で呼ぶ =====
+
+    /// <summary>予想（Fiscal.ForecastTax）に今の率を渡し、お金を動かす前の盤面で求める。その後に同じ盤面で Fiscal.Step を走らせ、診断（種類ごとの実際の税収）と並べる。
+    /// 盤面は 3 つ：①全員が払える・国家が全域を治める ②仲介者の取り分が立つ（国家区分 0.5・在地 0.3 の州に領主）・官僚の役務は 6 割・十分の一税あり・貯蓄が薄い POP が混じる（払える割合が 1 未満）③課税への同意を外す。
+    /// 期待値は〈走らせた結果の診断〉＝予想の骨格（仲介者の取り分・十分の一税・払える割合）が徴税の走査とずれると赤になる。
+    /// ⚠突然変異「予想が十分の一税を請求に数えない」「予想が仲介者の取り分を請求に数えない」「予想が払える割合を掛けない」「予想が犯罪者を除かない」で赤（盤面 ②）。</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void 予算表の税の予想は今の率を渡すと同じ月の徴税の診断と合う(int board)
+    {
+        var w = FiscalBoard();
+        w.TaxRate = new Share(0.1); w.ProgressiveTax = 0.2; w.PollTax = Government.PollTaxTop; w.LandTax = 0.2;
+        if (board == 2)
+        {
+            w.Coef.TitheRate = new Share(0.1);
+            foreach (var rg in w.Regions) { rg.Rule = [0.5, 0.3, 0.1, 0.1]; rg.AdminFill = 0.6; }
+            int k = 0, crim = 0, nonCore = 0;
+            w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;   // 非中核の住民は算入率＝中核度（課税への同意の声が減る）
+            foreach (var rg in w.Regions) foreach (var pp in rg.Pops)
+            {
+                if ((k++ % 3) == 0) pp.SetSavings(1e-3 * pp.Size);   // 3 人に 1 人は貯蓄が薄い＝請求が払える額を超える
+                if ((k % 4) == 0) { pp.CoreEthnicShare = new Share(0.3); nonCore++; }
+                if ((k % 7) == 0 && pp.ClassId != PopClass.Noble && pp.ClassId != PopClass.Clergy && pp.LastEarnedPerMonth.Value > 0) { pp.ClassId = PopClass.Criminal; crim++; }   // 犯罪者は申告せず頭数も把握されない（請求を立てない）
+            }
+            Assert.True(crim > 0 && nonCore > 0, "前提が崩れた：犯罪者か非中核の POP が無い");
+            Assert.True(Privileges.TitheDegree(w, w.Coef) > 0 && w.AllPops().Any(p => p.ClassId == PopClass.Clergy && p.Size > 1e-9), "前提が崩れた：十分の一税が立たない");
+            Assert.True(w.Regions.Any(rg => rg.Pops.Any(p => p.ClassId == PopClass.Noble && !p.IsSoldier && p.Size > 1e-9)), "前提が崩れた：領主が居ない");
+        }
+        if (board == 3) w.Coef.TaxConsentWeight = 0;
+        var f = Fiscal.ForecastTax(w, w.Coef, w.TaxRate.Value, w.ProgressiveTax, w.PollTax, w.LandTax);
+        Run(w);
+        double a = w.LastTaxIncomePerMonth.Value, b = w.LastTaxProgressivePerMonth.Value, c = w.LastTaxPollPerMonth.Value, d = w.LastTaxLandPerMonth.Value;
+        Assert.True(a > 0 && b > 0 && c > 0 && d > 0, $"前提が崩れた：診断が正でない（所得 {a}・累進 {b}・人頭 {c}・土地 {d}）");
+        Assert.InRange(f.Income, a - Near(a), a + Near(a));
+        Assert.InRange(f.Progressive, b - Near(b), b + Near(b));
+        Assert.InRange(f.Poll, c - Near(c), c + Near(c));
+        Assert.InRange(f.Land, d - Near(d), d + Near(d));
+    }
+
+    /// <summary>予想は目標の率で変わる：率が 0 の税は 0・人頭税は〈一律額×目標の率×払う頭数〉の手計算に合い、所得税は率に比例する（払える割合 1・課税への同意と免税は率に依らない）。
+    /// 旧の画面の式は今月の所得（EarnedPerMonth）を読んだ＝徴税の走査が読む前の月の所得（LastEarnedPerMonth）とは別の量だった。</summary>
+    [Fact]
+    public void 予算表の税の予想は目標の率に応じて動く_人頭税は手計算と合い所得税は比例する()
+    {
+        var w = FiscalBoard();
+        var zero = Fiscal.ForecastTax(w, w.Coef, 0, 0, 0, 0);
+        Assert.Equal((0.0, 0.0, 0.0, 0.0), (zero.Income, zero.Progressive, zero.Poll, zero.Land));
+        double heads = w.AllPops().Where(p => p.IsCommoner && !p.IsCriminal).Sum(p => p.Size);
+        var half = Fiscal.ForecastTax(w, w.Coef, 0, 0, 0.5 * Government.PollTaxTop, 0);
+        double expected = w.Coef.PollTaxRate * 0.5 * Government.PollTaxTop * heads;
+        Assert.True(expected > 0, "前提が崩れた：払う頭数が 0");
+        Assert.InRange(half.Poll, expected - Near(expected), expected + Near(expected));
+        Assert.Equal(0.0, half.Income + half.Progressive + half.Land);
+        var r1 = Fiscal.ForecastTax(w, w.Coef, 0.1, 0, 0, 0); var r2 = Fiscal.ForecastTax(w, w.Coef, 0.2, 0, 0, 0);
+        Assert.True(r1.Income > 0);
+        Assert.InRange(r2.Income, 2 * r1.Income - Near(r1.Income), 2 * r1.Income + Near(r1.Income));
+        // 今月の所得（EarnedPerMonth）を動かしても予想は動かない（読むのは確定した前の月の所得）
+        foreach (var p in w.AllPops()) p.EarnedPerMonth = new MoneyPerMonth(p.EarnedPerMonth.Value * 7 + 1e6);
+        var r3 = Fiscal.ForecastTax(w, w.Coef, 0.1, 0, 0, 0);
+        Assert.Equal(r1.Income, r3.Income);
+    }
+
     // ===== 画-06：軍事タブが読むエンジンの関数 =====
 
     private static Region CapitalRegion(out Coefficients c)
