@@ -117,7 +117,7 @@ public sealed partial class InternationalMarket
         public List<(int user, int owner, Region r)> TransitUses = [];
         public Good?[] GoodById = [];
         public double[] ExRate = [], Tar = [], Corn = [], MilExportAcc = [], ShipShare = [], ImportVal = [], ExportVal = [], PartnerStd = [], PartnerBal = [], PartnerTot = [], PremRecv = [];
-        public bool[] Oban = [], Oexban = [], NatAnyHostile = [], SuezOkN = [], PanOkN = [], Ok = [];
+        public bool[] Oban = [], Oexban = [], NatAnyHostile = [], SuezOkN = [], PanOkN = [], Ok = [], CheapAfter = [];
         public double[][] NatHostility = [], ImpTop = [], ExpTop = [], ExpByGood = [], ImpByGood = [];
         public TrEntry[] Tr = new TrEntry[512];
         public int[] SeaNodeOf = [], LandNode = [], NextS = [], CandS = [];
@@ -736,6 +736,13 @@ public sealed partial class InternationalMarket
             if (sellers.Count == 0) continue;
             sellers.Sort((a, b) => a.Price != b.Price ? a.Price.CompareTo(b.Price) : string.CompareOrdinal(tr[a.Node].r.Name, tr[b.Node].r.Name));   // ★買い手ソート(:515)と統一＝カルチャ非依存の決定論的タイブレーク（wave2b是正）
 
+            bool[]? cheapAfter = null;   // ★(471) 売り手の位置 s 以後（s を含む）に −1 の売り手がいるか（昇順の打ち切りの下界を弱めるのはこの位置だけ＝−1 の財は余りもの＝安い側＝先頭に寄るので、後ろは強い下界のまま）
+            if (cheapG)
+            {
+                cheapAfter = ClearScratch.Fit(ref sc.CheapAfter, sellers.Count);
+                bool has = false;
+                for (int s = sellers.Count - 1; s >= 0; s--) { if (sellCheap![tr[sellers[s].Node].nation] > 0) has = true; cheapAfter[s] = has; }
+            }
             var left = ClearScratch.Fit(ref sc.Left, sellers.Count);   // 売り手ごとの残り（出せる量から成約ごとに減る）
             for (int s = 0; s < sellers.Count; s++) left[s] = sellers[s].Stock;
             int headS = 0;   // 先頭の生存売り手（価格昇順の死んだ接頭辞を跨ぐ）
@@ -829,7 +836,7 @@ public sealed partial class InternationalMarket
                 double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
-                if (cheapG) lbMul -= c.TradeBiasStrength;   // ★(471) −1 の売り手の楔（−s）を含めても真の下界のまま（旗 0・−1 の売り手のいない財は旧の式）
+                double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;   // ★(471) −1 の売り手の楔（−s）を含めても真の下界のまま。使うのは〈自分以後に −1 の売り手がいる位置〉だけ（旗 0・−1 の売り手のいない財・最後の −1 の売り手より後は旧の式）
                 int candN = 0, resS = headS, resPrev = -1;   // 候補の数／次に調べる売り手（打ち切り位置）とその手前の生存売り手
                 int bestA = -1, bestPos = -1; double bestDelA = double.MaxValue, secondDelA = double.MaxValue, bestKmA = 0;
                 bool keepBest = false;   // (a)：前回の best/second をそのまま使う
@@ -880,7 +887,7 @@ public sealed partial class InternationalMarket
                             // 昇順の打ち切り。★1b：下界 Price·lbMul≦着値（浮動小数でも成り立つ＝旧の打ち切りが頼る不等式と同じ）と価格の昇順から、
                             //   Price·lbMul≧lp の位置から先は全員無効。旧が lp より先まで走るのは有効な売り手が候補表に1人もいない（bestDelA≧lp）ときだけで、
                             //   そのとき余分に訪ねるのは全員無効＝有効な売り手がいる間は bestDelA<lp なので打ち切りの位置は旧と同じ。
-                            double lbv = sellers[s2].Price * lbMul;
+                            double lbv = sellers[s2].Price * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul);
                             if (lbv >= bestDelA) break;
                             if (lbv >= lp) { if (MultiNationSim.TimeOn) CntCutLp++; break; }
                             if (restrict && member[s2] != rowStamp) { if (MultiNationSim.TimeOn) CntScopeWalk++; prevS = s2; s2 = nextS![s2]; continue; }   // ★(403) 覚えに無い売り手は見ない（生きている売り手なので prevS を進める＝1c と同じ手）
