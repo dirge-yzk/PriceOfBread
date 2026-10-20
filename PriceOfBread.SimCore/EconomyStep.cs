@@ -1416,17 +1416,14 @@ public static class EconomyStep
             }
         }
 
-        // ★(471) 消費の予算の下限（経-20・旗 ConsumeBudgetFloor）：残りの予算が負の POP（月初の貯蓄が負・BackstopNegativeSavings が月の終わりに埋めるまでの隙間）は買える量が負＝需要が負になり市場を逆に動かす。
-        //   旗 1 で `!(RemainingBudget > 0)` なら 0（否定形＝NaN も 0）。Savings は触らない（貯蓄の記帳は不変）。家計の与信（下の入口B）の不足は床の後の予算から出る。
-        //   INS=1 のときは旗に依らず、床の直前に負だった POP×月の人口と額を診断の欄へ積む（sf_s・読むだけ）。旗 0 かつ INS=0 は何も走らない。
-        if (coef.ConsumeBudgetFloor > 0 || (Instruments.On && world is not null))
-        {
+        // ★(471) 消費の予算の下限（経-20・旗 ConsumeBudgetFloor）：買える量 affordable ＝ 残りの予算÷値段 に下の止めが無いと、残りの予算が負の POP は買う量が負＝需要が負になり市場を逆に動かす。
+        //   負の予算は 2 通りで立つ：①月初の貯蓄が負（BackstopNegativeSavings が月の終わりに埋めるまでの隙間・m466_ins では塵だけ）②**財のループの途中**で前の財の支払いに予算を使い切った POP の丸めの残り（−1e-14 の桁・m466_ins の negativeDemandPerMonth の塵の出所）。
+        //   どちらも買う場所（下の `affordable`）で止める＝旗 1 で `!(affordable > 0)` なら 0（否定形＝NaN も 0・Savings と RemainingBudget は触らない）。
+        //   ここは INS=1 のときだけ、財のループの直前に残りの予算が負だった POP×月の人口と額を診断の欄へ積む（旗に依らない・sf_s・読むだけ）。
+        if (Instruments.On && world is not null)
             foreach (var p in region.Pops)
-            {
-                if (Instruments.On && world is not null && p.RemainingBudget < 0) { world.DiagSfBudgetNegCumPopMonthK += p.Size; world.DiagSfBudgetNegCumAmount -= p.RemainingBudget; }
-                if (coef.ConsumeBudgetFloor > 0 && !(p.RemainingBudget > 0)) p.RemainingBudget = 0;
-            }
-        }
+                if (p.RemainingBudget < 0) { world.DiagSfBudgetNegCumPopMonthK += p.Size; world.DiagSfBudgetNegCumAmount -= p.RemainingBudget; }
+        bool budgetFloor = coef.ConsumeBudgetFloor > 0;
 
         insEnt?.Start();   // (345) 計器（読むだけ）：財のループの直前の残予算・貯蓄・支払い
         // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
@@ -1617,6 +1614,7 @@ public static class EconomyStep
                         }
                     }
                     double affordable = p.RemainingBudget / buyerPrice;   // 税込みの実効価格で買える量
+                    if (budgetFloor && !(affordable > 0)) affordable = 0;   // ★(471) 買える量の下の止め（否定形＝NaN も 0）
                     demand = Math.Min(desired, affordable);
                     if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);
                     if (insOn) { insRows++; if (demand < desired - 1e-12) insBound++; insDesired += desired * buyerPrice; insDemand += demand * buyerPrice; }

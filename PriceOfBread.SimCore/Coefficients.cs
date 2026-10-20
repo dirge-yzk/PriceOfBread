@@ -2283,8 +2283,8 @@ public sealed class Coefficients
     // ★(273) 消費の予算の上限（線P・段5）＝EconomyStep.Run の月初の予算 RemainingBudget を min(RemainingBudget, 前月の所得 + 貯蓄 × d) で切る（全ての POP・再点火の発注と反乱の武器を差し引いた後・財のループの前）。
     //   d＞0 の月率（貯蓄のうち1か月に消費へ回してよい割合）。0＝切らない（既定＝予算は月初の貯蓄そのもの＝d＝0 を式に入れると min(予算, 前月の所得) になり恒等でない＝コードは d＞0 のときだけ評価する）。採否未定（実装ログ (273)）。
     public RatePerMonth ConsumeBudgetSavingsRatePerMonth = new(0);
-    // ★(471) 消費の予算の下限（経-20）：0＝旧（月初の貯蓄が負の POP は残りの予算が負＝買える量が負）／1＝消費の財のループの直前に `!(RemainingBudget > 0)` なら 0（否定形＝NaN も 0・Savings は触らない）。
-    //   m466_ins では月初の貯蓄が負の POP は塵だけ（−1e-14）＝創発の量は動かない見込みの fail-closed の番。0 で厳密恒等。事前登録 measurements/sf471_20261020_prereg.txt。
+    // ★(471) 消費の予算の下限（経-20）：0＝旧（残りの予算が負の POP は買える量が負＝需要が負）／1＝買える量 affordable（EconomyStep の消費の財のループ）を `!(affordable > 0)` なら 0（否定形＝NaN も 0・Savings と残りの予算は触らない）。
+    //   負の予算の出所は月初の貯蓄が負（m466_ins では塵だけ）と、財のループの途中で予算を使い切った POP の丸めの残り（−1e-14）＝どちらも買う場所で止める。創発の量は動かない見込みの fail-closed の番。0 で厳密恒等。事前登録 measurements/sf471_20261020_prereg.txt（追記 1）。
     public int ConsumeBudgetFloor = 0;
 
     // ★(337) 流れF AI の応答（利払いの重さを読む）を比例の形で（★(388) 既定 1＝採用・0＝旧の挙動〔腕の比較と番人のための旧の経路〕）：
