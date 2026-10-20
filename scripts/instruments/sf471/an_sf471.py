@@ -87,7 +87,8 @@ def main():
             if n in spend and spend[n] > 0 and len(rs) > 300:   # 挙げた国（毎四半期の行がある国）
                 rr.append(fl(rs[-1]['cheapSubsidyPaidCum']) / spend[n])
         g2p = med(rr)
-        res["G2'"][sd] = (g2p <= 0.05, f'median paid/spend over {len(rr)} nations={g2p:.4f} max={max(rr) if rr else float("nan"):.4f}')
+        if not rr: res["G2'"][sd] = (False, '未測（fiscal_s が無い＝挙げた国の指定なしの回）')
+        else: res["G2'"][sd] = (g2p <= 0.05, f'median paid/spend over {len(rr)} nations={g2p:.4f} max={max(rr) if rr else float("nan"):.4f}')
         # ---- G0-3' 場面：植民地格の重みの割合（1850 年以後・A′）
         cnt = 0; vals = {}
         for n, rs in an.items():
@@ -128,8 +129,8 @@ def main():
         extra['parl'][sd] = parl
         # ---- 往復の計器（記録）
         def fin(rs, c): return fl(rs[-1][c])
-        sw = {n: (fin(bn[n], 'biasSwitchCum'), fin(an[n], 'biasSwitchCum'), fin(bn[n], 'stressFoldCum'), fin(an[n], 'stressFoldCum')) for n in bn if n in an and len(bn[n]) > 300}
-        ov = {n: (statistics.fmean(fl(r['cheapWithNegTariffCount']) for r in bn[n]), statistics.fmean(fl(r['cheapGoodCount']) for r in bn[n])) for n in bn if len(bn[n]) > 300}
+        sw = {n: (fin(bn[n], 'biasSwitchCum'), fin(an[n], 'biasSwitchCum'), fin(bn[n], 'stressFoldCum'), fin(an[n], 'stressFoldCum')) for n in bn if n in an and len(bn[n]) > 40}
+        ov = {n: (statistics.fmean(fl(r['cheapWithNegTariffCount']) for r in bn[n]), statistics.fmean(fl(r['cheapGoodCount']) for r in bn[n])) for n in bn if len(bn[n]) > 40}
         extra['switch'][sd] = (sw, ov)
         # ---- G4 / 価格（B・A′）
         negB = negA = float('nan')
@@ -170,11 +171,12 @@ def main():
     for sd in sorted(extra['switch']):
         sw, ov = extra['switch'][sd]
         ks = [k for k in ('清', 'ロシア', 'オスマン', 'フランス', 'イギリス', 'プロイセン', 'オーストリア', '日本') if k in sw]
+        print(f'  seed {sd} 全国の中央値: switch B/A {med([v[0] for v in sw.values()]):.0f}/{med([v[1] for v in sw.values()]):.0f} fold B/A {med([v[2] for v in sw.values()]):.0f}/{med([v[3] for v in sw.values()]):.0f} negtar/cheap {med([v[0] for v in ov.values()]):.1f}/{med([v[1] for v in ov.values()]):.1f}')
         print(f'  seed {sd}: ' + ' | '.join(f'{k} sw {sw[k][0]:.0f}/{sw[k][1]:.0f} fold {sw[k][2]:.0f}/{sw[k][3]:.0f} negtar {ov[k][0]:.1f}/{ov[k][1]:.1f}' for k in ks))
     for tag in ('costB', 'costA'):
         if tag in opt and os.path.exists(opt[tag]):
             txt = open(opt[tag], encoding='utf-8', errors='replace').read()
-            m = re.search(r'推定[^0-9]*([0-9]+\.[0-9]+)', txt)
-            print(tag, opt[tag], m.group(0) if m else txt[:200])
+            m = re.search(r'推定の計算量（1試合）: ([0-9]+[.][0-9]+)', txt)
+            print(tag, opt[tag], '推定', m.group(1) if m else txt[:200])
 
 main()

@@ -10,10 +10,6 @@
 /// </summary>
 public static class Fiscal
 {
-    /// <summary>★(471) 年金の受け手になれる POP か（人-14）＝兵士以外、旗 <see cref="Coefficients.PensionIncludesSoldiers"/> が 1 なら兵士も。年金の請求の分母（oldSize）・受け手の一覧・App の予算表の見込みが読む 1 本（分子と分母を割らない）。
-    /// 作者 2026-09-28「兵士が年金を受け取れないのは違和感がある」。旗 0 は旧の `!p.IsSoldier` と同値。</summary>
-    public static bool PensionEligible(Pop p, Coefficients c) => c.PensionIncludesSoldiers > 0 || !p.IsSoldier;
-
     // マジックナンバー命名（挙動不変・値据え置き）
     private const double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 c.GoldStandardMinFunding とは別（ヒステリシス）
     private const double ForeignBondYieldRatioCap = 3.0;     // 対外債容量の信認の倍率クランプ上限（BondBaseRatePerYear/GovBondRatePerYear の上限＝2026-09-29 に向きを是正）
@@ -531,7 +527,7 @@ public static class Fiscal
         double pensionLevel = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
         if (pensionLevel > 1e-9)
         {
-            double oldSize = 0; foreach (var p in pops) if (PensionEligible(p, c)) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 老年＝60歳以上（年齢の層・段4e 後半）。★(471) 受け手の述語は PensionEligible の 1 本（分母と受け手が同じ規則）
+            double oldSize = 0; foreach (var p in pops) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 老年＝60歳以上（年齢の層・段4e 後半）。★(471) 兵士も受け手（旧は兵士を外していた）＝分母と受け手が同じ規則
             double pensionReq = c.PensionCostRatePerMonth * pensionLevel * oldSize;
             double pensionClaim = Math.Min(pensionReq, (c.WelfareRevenueShare * w.FiscalCapacityPerMonth).Value);   // 福祉と同じ裁量余剰から（請求）
             double pensionCost = pensionClaim * payRate;   // 払うのは請求×r（福祉と同じ・2026-09-28 段2-1＝SpendingCapFactor と国庫残高のクランプを撤去）
@@ -548,7 +544,7 @@ public static class Fiscal
                     foreach (var p in rg.Pops)
                     {
                         double os = p.AgeShare(60, double.PositiveInfinity);
-                        if (PensionEligible(p, c) && os > 1e-9) { elderly.Add(p); elderW.Add(p.Size * os * reach); elderSize += p.Size * os; reachW += p.Size * os * reach; }
+                        if (os > 1e-9) { elderly.Add(p); elderW.Add(p.Size * os * reach); elderSize += p.Size * os; reachW += p.Size * os * reach; }
                     }
                 }
                 // ★支払いの一元化 段2-3（E1・2026-09-29）：按分の本体 World.Distribute へ畳んだ（旧＝式 pensionCost×w/Σ の結合順が本体と違い、到達の枝は端数を寄せなかった＝同じ支払いに端数規則が2つ）。

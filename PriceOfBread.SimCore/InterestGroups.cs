@@ -111,14 +111,12 @@ public static class InterestGroups
         return gate * fem;
     }
 
-    /// <summary>★(471) 議席の票の発言権（政-30）＝<see cref="FranchiseVoice"/>（旗 <see cref="Coefficients.SeatVoteSuffrageScope"/> が 0）／旗 1＝植民地格の州の POP にだけ植民地参政権の算入率 <see cref="SuffrageInclusion(World, Region, Pop)"/> を掛ける（植民地の住民が本国の議席を生まない）／旗 2＝全ての POP に掛ける（本国格の非中核の住民も・記録用）。
+    /// <summary>★(471) 議席の票の発言権（政-30）＝<see cref="FranchiseVoice"/>。植民地格の州の POP にだけ植民地参政権の算入率 <see cref="SuffrageInclusion(World, Region, Pop)"/> を掛ける（植民地の住民が本国の議席を生まない）。本国格の POP は <see cref="FranchiseVoice"/> のまま（非中核の住民への算入は作者の問い Q-sf2 の答え待ち）。
     /// Parliament の議席の票 3 か所（<c>SupportBase</c>・<c>ComputeVotes</c>・<c>BuildElectionEvent</c>）と、同じ重みを読む World の 3 か所（<c>ElectionPushHalfPoint</c> の有権者数と富の重み・<c>ResolveElection</c> の選挙資金の受け手）が読む 1 本
-    /// ＝票の分子と分母・金の受け手が同じ規則（分子と分母の非対称を作らない）。発言権（<see cref="PoliticalWeight"/>）には掛けない（SuffrageScopeVoice の墓標＝発言権は票の前提にしない）。旗 0 は <see cref="FranchiseVoice"/> そのもの（1 ビットも変えない）。</summary>
+    /// ＝票の分子と分母・金の受け手が同じ規則（分子と分母の非対称を作らない）。発言権（<see cref="PoliticalWeight"/>）には掛けない（SuffrageScopeVoice の墓標＝発言権は票の前提にしない）。</summary>
     public static double SeatVoice(World w, Region r, Pop p, Suffrage s)
     {
         double v = FranchiseVoice(p, s, w.Coef);
-        int flag = w.Coef.SeatVoteSuffrageScope;
-        if (flag <= 0) return v;
-        return flag >= 2 || r.Tier == RegionTier.Colonial ? v * SuffrageInclusion(w, r, p) : v;
+        return r.Tier == RegionTier.Colonial ? v * SuffrageInclusion(w, r, p) : v;
     }
 }

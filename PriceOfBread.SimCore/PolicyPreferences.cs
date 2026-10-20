@@ -162,7 +162,7 @@ public static class PolicyPreferences
             double rn = System.Math.Max(0, p.LandRentPerMonth.Value); o.Rent[b] += rn; o.Tr += rn;
             double inc = System.Math.Max(0, p.EarnedPerMonth.Value); o.Income[b] += inc; o.Ti += inc;
             if (p.IsCommoner) { o.Poll[b] += p.Size; o.Tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
-            if (Fiscal.PensionEligible(p, w.Coef)) { o.Old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); o.BlocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）。★(471) 受益者の述語は Fiscal.PensionEligible の 1 本（Old は BlocPop の比にしか使われない＝分子と分母を同じ規則で）
+            { o.Old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); o.BlocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）。★(471) 兵士も数える（年金の受け手と同じ集合。Old は BlocPop の比にしか使われない＝分子と分母が同じ規則）
         }
         return o;
     }

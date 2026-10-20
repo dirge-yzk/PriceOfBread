@@ -304,7 +304,7 @@ public partial class GameViewModel
                 if (!p.Closed && !p.IsSoldier) headNonPriv += p.Size;
                 if (p.LandRentPerMonth.Value > 0) landRent += p.LandRentPerMonth.Value;
                 if (!p.Closed && !p.IsModernElite) massSize += p.Size;
-                if (PriceOfBread.SimCore.Fiscal.PensionEligible(p, _player.Coef)) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 年金の受け手＝60歳以上（エンジン Fiscal と同じ 1 本の述語・年齢の層）
+                oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 年金の受け手＝60歳以上（エンジン Fiscal と同じ 1 本の述語・年齢の層）
             }
         }
         double leak = earnedAll > 1e-9 ? earnedDelivered / earnedAll : 1.0;   // 国庫へ届く割合（所得で重みづけた州の RuleDelivery の平均）。汚職の財政の漏れは (399) で物理削除した（税の漏れは支配度の区分）
