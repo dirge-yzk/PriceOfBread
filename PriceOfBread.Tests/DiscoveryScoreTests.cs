@@ -22,8 +22,8 @@ public class DiscoveryScoreTests
         return sim;
     }
 
-    /// <summary>★(474) 見つける力の半分点 N0 に置く極めて大きい値＝産地の技術力 70×N÷(N＋N0) が 0 に等しい（旧の盤面の技術水準 0 の代わり・今の機構の係数）。</summary>
-    private const double NoFindingPower = 1e18;
+    /// <summary>★(474) 見つける力の半分点 N0 に置く無限大＝産地の技術力 70×N÷(N＋N0) が厳密に 0（旧の盤面の技術水準 0 の代わり・今の機構の係数）。</summary>
+    private const double NoFindingPower = double.PositiveInfinity;
 
     private static World Nation(MultiNationSim sim, string name)
         => sim.Nations.Find(n => n.World.SelfPower?.BaseName == name)?.World ?? throw new Xunit.Sdk.XunitException($"{name} が居ない");
@@ -794,7 +794,7 @@ public class DiscoveryScoreTests
     /// <summary>見つかるまで産まない・見つかったら開く・失われない（2値）＋キナはアンデスだけが開始から（(129) の申し送り）：
     /// ①アジアのキナ（バタヴィア）の生産者は門0・ペルーの樹皮は門1 ②見つける力が0では届かない（技術力0＋必要性≦70）
     /// ③見つける力を戻し、樹皮の値段を掘る費用の e³ 倍に置くと届いて開く（門1）④見つける力を0へ戻して判定を重ねても開いたまま。
-    /// ★(474) 産地の技術力は今の機構では人の厚み N÷(N＋N0) だけ（技術水準を読まない・(415)）＝〈見つける力が0〉は見つける力の半分点 N0 を極めて大きくして作る（旧は技術水準0）。
+    /// ★(474) 産地の技術力は今の機構では人の厚み N÷(N＋N0) だけ（技術水準を読まない・(415)）＝〈見つける力が0〉は見つける力の半分点 N0 を無限大にして作る（旧は技術水準0）。
     /// ⚠壊し方＝門が SiteFound を読まない（常に1）→ ①が赤／判定で SiteFound を戻す → ④が赤。</summary>
     [Fact]
     public void 産地は見つかるまで産まない_見つかったら開いて失われない()
@@ -817,7 +817,7 @@ public class DiscoveryScoreTests
         double n00 = w.Coef.DiscoverySiteFindHalfPop;
         w.Coef.DiscoverySiteFindHalfPop = NoFindingPower;   // 見つける力 0（旧は w.TechLevel＝0）
         var t0 = Discovery.SiteTerms(w, r, p, w.Coef);
-        Assert.True(t0.Tech < 1e-6 && t0.Transmit == 0 && t0.Need <= Discovery.TermMax, $"項が範囲の外（{t0}）");
+        Assert.True(t0.Tech == 0 && t0.Transmit == 0 && t0.Need <= Discovery.TermMax, $"項が範囲の外（{t0}）");
         Discovery.Step(w, null, w.Coef);
         Assert.False(p.SiteFound, "技術力0で開いた");
 
