@@ -1,0 +1,112 @@
+# (471) 事前登録：小さな独立の直し 4 件（兵士の年金・安く売る・植民地の議席・予算の下限）・前半＝段 0・形・事前登録まで
+# 書いた時点：2026-10-20。腕は 1 本も回していない。この文書が枝 sf の最初のコミット（SimCore と Tests のコードを 1 行も含まない）。書いたモデル Claude Sonnet 5.5。
+# 木：基点 main 128ac2b3（基準の成績表 m466）。枝 sf・worktree D:/PoB_work/wt_sf・作業フォルダ D:/PoB_work/sf_471。仮番号 (471)。
+# 引用の決まり：「」は作者の原文だけ。AI の線・推奨は〈〉かバッククォートで書く。報告では「帯」を「成績表」と言う。
+# 出所：洗い出しの精査（枝 tri2・docs/202610/20261018/20261018_見落としと放置の設計書の洗い出し.md の §2-0b・各行 L100〜103・L283・L312・L365）。作者 2026-10-20「推奨でよい」（待たずに入れる 47 件の入れ方）。
+#   人-14 の中身だけは作者の原文あり：作者 2026-09-28「兵士が年金を受け取れないのは違和感がある」。他の 3 件の形は AI の推奨（tri2 の doc の〈形〉の欄）を作者が「推奨でよい」で採った物＝形は作者が採った、細部（率・越境だけ・r の掛け方）は AI の決め〈確証なし〉。
+# ⚠この文書の決め（F・G）の細部は AI の推奨。作者の承認は未確認。
+
+[0] 形が〈尾〉か〈入口〉か（(455) の教訓：形の段に観測量を合わせる）
+  ★4 件とも〈尾の形〉。どれも開幕の跳ね（(464) の工業化度・貯蓄の取り崩し）にも資本家の消滅（入口）にも効かない。局所の量（年金の受け手・輸出の奨励・議席の重み・予算の下限）を直す。
+  → 門の観測量は局所の量（兵士の年金の受取・−1 の財の輸出・議席の重み・負の予算）。exact・near・NG・勝者・清の強さは狙いにしない（記録だけ・〈動かない〉と予想。動く場合は議席と年金が国の政治へ届く経路）。
+
+[1] この線がやること（指示と外れる所）
+  指示：①年金の受給者から兵士を外す条件を 2 か所とも消す／②〈安く売る〉−1 を売り手の側の補助として +1 と対称に清算で読む（AI とプレイヤーが同じ口）／③議席の票にも SuffrageInclusion と同じ規則を掛ける／④予算の下を 0 で止める（否定形・NaN も止める側）。4 件を 1 本の腕 B で。新しい倍率・状態を作らない。この担当は段 0・形（旗 0 で恒等）・事前登録までで、腕は回さない。
+  外れ 1（旗 4 本）：指示は〈既定で恒等〉。README の設計思想③は〈裁定済みの挙動変更は直接入れる〉だが、指示の文が旗 0 での恒等の証明を求める。旗 4 本（`PensionIncludesSoldiers`・`TradeCheapSellSubsidy`・`SeatVoteSuffrageScope`・`ConsumeBudgetFloor`・int・既定 0）で入れる。採ったら焼き込む（旗と else 枝を消す）。4 本に分ける理由＝止める線に当たったときの切り分けが腕 1 本の旗の組み替えで済む。
+  外れ 2（年金の読み手）：指示は Fiscal.cs:530・547 の 2 か所。同じ述語 `!p.IsSoldier` は PolicyPreferences.cs:165（年金の賛否の重みの高齢人口）・App GameViewModel.Fiscal.cs:307（予算表の見込み）・Tests CohortPhase3Tests:48・FamineTests:202 にもある。
+        → 述語を 1 本 `Fiscal.PensionEligible(Pop p, Coefficients c)` に畳み、Fiscal の 2 か所と App:307 が同じ 1 本を読む（分子と分母を割らない）。PolicyPreferences:165 は〈年金法への賛否の重み〉であって給付の受け手の集合ではない＝触らない（報告に〈読み手として残した〉）。Tests の 2 本は旗 0 では緑のまま＝触らない。
+  外れ 3（A′）：腕 A は 5 種の plain だが、B の狙い（G2 の −1 の財の輸出の比べる側・G3 の場面・G1 の場面）を読む列は m466_ins に無い。新しい表 `sf_s` を足し、比べる側を A′＝旗 0・計器つき 10 種（先頭 5 種の成績表が b5 を兼ねる）にする（ed452・ca462 の先例）。A を別に回さない。作者に聞く物 Q-sf1（推奨＝よい）。
+  外れ 4（予算の下限は〈場面がほぼ無い〉）：[3] ④。機構でなく fail-closed の番。創発の量は〈動かない見込み〉と予告し、番人（負の貯蓄の POP を作る）で確かめる。
+
+[2] 形（F1〜F5・AI の推奨）
+  F1（人-14 兵士の年金・旗 `PensionIncludesSoldiers`）
+      `Fiscal.PensionEligible(p, c)` ＝ `c.PensionIncludesSoldiers > 0 || !p.IsSoldier`。Fiscal の分母（:530）と受け手（:547）と App:307 がこれを読む。旗 0 は旧の式 `!p.IsSoldier` と同値（短絡の順だけ）。
+      受け手の重みは `p.Size × os × reach`（os＝60 歳以上の割合）のまま。兵士は `Simulation.cs:2618` の `StepAges` で年を取る（自然の死は外）。
+  F2（交-16 安く売る・旗 `TradeCheapSellSubsidy`）〈+1 の鏡像＝輸出奨励金〉
+      ・読む値：売り手の国 `nations[siA].World.TradeBiasOf(g) < 0` かつ越境（`siA != ni`）の成約だけ。率 s ＝ `c.TradeBiasStrength`（+1 と同じ 0.25・新しい係数なし）。〈越境だけ〉は +1（境を問わない）との非対称＝AI の決め〈確証なし〉（観測量が〈輸出が増える〉であり、自国州どうしの売買は輸出でない）。
+      ・競争：着値の楔 `wS2`（BilateralMarket.cs:874）を売り手ごとに引く＝越境の −1 の売り手は `wS2 −= s`。昇順の打ち切りの下界 `lbMul`（:818）は真の下界でなくなる＝旗 1 で、その財に −1 の売り手がいる行（財ごとに 1 回作る国別の表）だけ `lbMul` を `Math.Min(wedge, wedgeHome) − s` で引く（旗 0 と −1 の売り手のいない財は旧の式）。1c の売り手ごとの下界（:880 付近）も同じ `wS2` を読む。
+      ・支払い：買い手は積出し価格の額を `vA × (1 − s)` ＋運賃で払う（`payA`・`costA`・`budget[t]` の減算を揃える。関税・港湾料・保険料の基礎は `vA` のまま〈+1 と同じ〉）。売り手は満額 `recvA` を受け取る。差 `s × vA` は売り手の国庫が出す＝`(売り手の国, 国庫) → 世界の外` へ `s × vA × r_売り手`（r＝`FiscalFundingRatio`・区分 Subsidy）。r＜1 の不足は売り手が食う（`rev[snA] += recvA − sub×(1−r)`＝+1 で捌き手が食うのと対称）。為替の台帳 `fxIntended` は `(recvA − sub) − payA`。
+      ・予算の見込み：Simulation.cs:2181 の `tradeClaim` に −1 の側を足す（直近の清算の `ExportsByGood[g]`〈越境の輸出額・FOB〉× s ÷ 為替・−1 の財）。+1 の輸入側しか数えないと r の分母が片側（分子と分母の非対称）。
+      ・AI とプレイヤー：どちらも `World.SetTradeBias`（SelfPlay.cs:1283・GameViewModel.Production.cs:1145）を通る＝清算の読みは 1 本・AI の判断（在庫が目標の 2 倍超・財政逼迫でない）は触らない。
+      ・史実：英の穀物輸出奨励金（1689〜1814）・独の砂糖輸出奨励金（1870 年代〜1902）。出典は未確認〈一般知識〉。
+  F3（政-30 植民地の議席・旗 `SeatVoteSuffrageScope`）
+      `Parliament` の票の重み 3 か所（:157 `SupportBase`・:192 `ComputeVotes`・:446 `BuildElectionEvent`）を `voters = p.Size × FranchiseVoice(p, eff, c)` から `× InterestGroups.SuffrageInclusion(w, r, p)` を掛けた形へ（旗 1 のとき）。使うのは InterestGroups の 3 引数（植民地格の分岐を持つ方）＝Politics.SuffrageInclusion(w, r) ではない。
+      列挙は `w.AllPops()` → `w.AllPopsWithRegion()`（AllPops は AllPopsWithRegion の薄い包み〈World.cs:1635〉＝州順→POP 順で同じ＝浮動小数の和の順が変わらない）。
+      同じ重みを読む World.cs:579（`ElectionPushHalfPoint` の有権者数）・:595・:655（選挙資金の受け手）にも同じ 1 本の述語 `InterestGroups.SeatVoice(w, r, p, eff)` を通す（注に〈Parliament と同じ重み〉とある読み手＝ずれを残さない）。旗 0 は `FranchiseVoice` のまま。
+      触らない：Politics.cs:137 `EffectiveVoice`（不満度の法の隔たり）・Ideology.cs:312・PowerAffinity.cs・InterestGroups の発言権（`SuffrageScopeVoice` は 2026-09-26 に〈発言権は票の前提にしない〉と削除済み〈Coefficients.cs:3175〉＝その裁定を覆さない。議席の票と発言権は別の量）。
+  F4（経-20 予算の下限・旗 `ConsumeBudgetFloor`）
+      EconomyStep.cs の消費の財のループの直前（予算の上限 (273) の後・`insEnt?.Start()` の前）で、旗 1 のとき `foreach p: if (!(p.RemainingBudget > 0)) p.RemainingBudget = 0;`（否定形＝NaN も 0）。
+      ここに置く理由：①家計の与信の分岐（:1596）は `p.RemainingBudget` から不足 shortfall を出す＝床を食う前に置くと〈負の貯蓄を埋めるために借りて買えない〉を避ける（Savings は触らない＝貯蓄の記帳は不変）。②読み手の計器（271）は床の前の値を撮れない＝sf_s が床の直前に診断の欄へ積む（旗に依らず）。
+  F5 計器 `sf_s`（新規 `InstrumentsSf.cs`・INS=1・国×四半期〔挙げた国は毎四半期・他は年末〕・旗に依らず出す）の列（実装のコミットで確定し、変えたら追記で列挙する）：
+        quarter・year・nation・pensionLevel・elder60K（兵士以外の 60 歳以上〔千人〕）・soldierElder60K（兵士の 60 歳以上）・pensionToSoldiersCum（兵士へ届いた年金の累計・旗 0 は 0）・
+        cheapGoodCount・dearGoodCount・cheapExportValue（−1 の財の `ExportsByGood` の和・直近の清算）・cheapProducedRefValue（−1 の財の州の `LastProduced × RefPrice` の和）・cheapSubsidyPaidCum（売り手の国庫が払った累計・旗 0 は 0）・
+        voteWeightAll（Σ size × FranchiseVoice）・voteWeightScoped（Σ size × FranchiseVoice × SuffrageInclusion）・voteWeightUsed（`ComputeVotes` が実際に使った重みの合計＝診断の欄〈NonSerialized〉）・colonialVoteWeight（植民地格の州の重み）・
+        budgetNegCumPopMonthK（床の直前に `RemainingBudget`＜0 だった POP×月の人口〔千〕の累計）・budgetNegCumAmount（その負の額の累計の絶対値）。
+        限界（計器が自己申告する）：①四半期の末の断面と累計・②voteWeightUsed は直近の `ComputeVotes`（毎期）の値・③cheapExportValue は直近の清算（四半期の末の月の 1 回）・④旗 1 でも voteWeightAll・Scoped は旗に依らず同じ式で出す・⑤助走の月は 0。
+
+[3] 段 0 の読み（読むだけ・2026-10-20・m466_ins の 10 種・D:/PoB_work/keep_466/m466_ins/ce_s*.tsv）
+  ④ 予算の下限（経-20）：ce_s の `negativeDemandPerMonth`（負の需要の額・消費のループの 1 行ごと）の 10 種の和は −2.2e-9〜−4.4e-9（種ごと）＝**塵**。`savingsStartStock`＜0 の行は 10 種のうち seed 1 が 1 行（最小 −1.1e-14）・seed 10 が 7 行（最小 −9.5e-15）・seed 2 は 0 行（先頭 3 種の読み）＝月初の貯蓄が負の POP は**浮動小数の塵だけ**。→ 負の予算は実在の場面として立たない（BackstopNegativeSavings が月の終わりに埋める〈Simulation.cs:2936〉）。この線の ④ は創発の量を動かさない見込み＝fail-closed の番（将来の経路が負の貯蓄を残したときの保険）。
+     ⚠ `budgetEndNegativePopK`（ce_s・10 種で 7.8e5〜1.5e6 popK・種あたり 3700〜5300 行）は**別の現象**＝消費のループの中で支払いが予算を超えて月末に負になる（EconomyStep.cs:1697・1830・1839）。F4 の床（月初）では 0 にならない。**狙いの数字にしない**。
+  ① 兵士の年金（人-14）：pop_s は兵士を除く（InstrumentsPop.cs:158）＝兵士の 60 歳以上は m466_ins に列が無い。兵士は 20〜39 歳の男で始まり（Model.cs `SoldierAges`）、`StepAges` で年を取る・自然の死が外・徴募で補う＝老年に達するには数十年。**場面の大きさは未測**（sf_s の `soldierElder60K` を A′ で読む）。
+  ② 安く売る（交-16）：AI は在庫が目標の 2 倍を超え・財政逼迫（FiscalStress）が 0.4 以下の財に −1 を置く（SelfPlay.cs:1277〜1283）。現行の清算は +1 しか読まない（BilateralMarket.cs:778〜779）＝−1 を置いても何も変わらない。**−1 の財・国の頻度は未測**（sf_s の `cheapGoodCount` を A′ で読む）。
+  ③ 植民地の議席（政-30）：議席の重み（`Parliament.ComputeVotes`）は州の格も法も読まない。除外される重みの割合は**未測**（sf_s の `voteWeightAll` と `voteWeightScoped` を A′ で読む。両方とも旗に依らない式）。参考：既定の植民地参政権は `None`（InterestGroups.cs:81）＝植民地格の州の算入率は 0、本国の州は中核の割合（`CoreEthnicShare`）か 1。
+
+[4] 算術（狙いが届くかを回す前に確かめる・必要性の確認）と向き
+  ① 年金：受け手の分母に兵士の老年が増える＝1 人あたりの給付は薄まる（請求 `PensionCostRatePerMonth × level × oldSize` は oldSize に比例して増える＝総額も増える・上限は福祉の余剰 `WelfareRevenueShare × FiscalCapacityPerMonth`）。兵士の老年が少なければ B≒A。向き＝総額が増える→国庫の負担が増える（正の帰還なし・上限あり）。
+  ② 安く売る：旗 1 で −1 の財の越境の買い手の着値が下がる（楔 −s）＝輸出が増える・売り手の国庫の負担 `s × vA × r`。上限の見積り：s ＝ 0.25・−1 の財の輸出額が国の輸出の 20% なら、国庫の負担は輸出額の 5%。**発散の経路**：負担 → 財政逼迫（FiscalStress＞0.4）→ AI が −1 を畳む（SelfPlay.cs:1273）＝自己制限。プレイヤーは畳まなければ負担が続く（国庫の自由）。
+  ③ 議席：旗 1 で植民地格の州と非中核の住民の重みが減る→議席のシェアが本国の中核の住民の思想に寄る。重みの合計が減る（`ElectionPushHalfPoint` の有権者数も同じ述語＝半減点が下がり選挙資金の効きが上がる向き）。有権者が 0 になる国は `voters ≤ 1e-9` の既存の退避（保守に 1）に落ちる。
+  ④ 床：負の予算の POP が（塵を除き）無いので動かない見込み。
+
+[5] 腕（同じ木・係数だけ違う。基準の成績表 m466・生の計器 D:/PoB_work/keep_466/m466_ins）
+  A′ ＝ 旗 4 本とも 0（既定）・**計器つき 10 種**（`INS=1`・NATIONS は m466_ins と同じ）。**先頭 5 種の成績表も出す**（POB_FIRST5_OUT）。
+      役目：①恒等＝報告が `b10_20261020_m466_ins`（全行）と、先頭 5 種が `b5_20261020_m466` と、名乗り行の SOURCE-HASH を除いて一致・生の表 51 が m466_ins と（sf_s・burscan を除き）バイト一致。②sf_s の基準（G0・G2・比べる側）。
+      ★指示の腕 A（5 種）との食い違い：A′ の先頭 5 種の成績表が b5 を兼ねるので A を別に回さない（Q-sf1・推奨＝よい）。
+  B ＝ A′ ＋ `POB_COEF="PensionIncludesSoldiers=1;TradeCheapSellSubsidy=1;SeatVoteSuffrageScope=1;ConsumeBudgetFloor=1"`。**計器つき 10 種**。読み手 `scripts/instruments/sf471/an_sf471.py <B の ins> <A′ の ins>`（後半の担当が足す）。
+  ヌル腕：回さない。m466 の n1・n2（measurements/b10_20261020_m466_n1_ins・n2_ins・生は D:/PoB_work/keep_466/n1・n2）を共有。読むのは NG の判定（確証なし×バランス破壊）のときだけ。**4 件とも作者が「推奨でよい」で採った形**（人-14 は中身も作者の原文）＝ヌル腕を読まない。
+  1 テーマ 1 計測：B 1 本。止める線に当たったときだけ切り分け（旗を 1 本ずつ戻す）。生の計器の TSV は採否が決まるまで D:/PoB_work/keep_sf471 に残す。
+  D: の空きを腕の前に確かめる（15GB 未満は待つ）。
+
+[6] 止める線（README〈止める線の改め〉2026-10-17・指示文）
+  ① 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest・進行不能（完走 10/10 でない）。特に F2 は国庫と清算所と売り手の台帳をまたぐ＝番人と leakhunt で保存を確かめる。
+  ② 発散：金利・人口・値段が桁で暴走（教育・主食の値段が開幕期の 10 倍超など）。F2 の売り手の国庫の負担が国庫の支出の桁で暴走しないこと。
+  ③ 州の空洞化：移民によるピークの 1/10 未満が 1 件でも（`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`・例外の名簿はヌークだけ）。m466 は 0 件（1/4 未満 16 件は記録）。
+  ④ 推定の計算量 ＞248.5 秒（名目・死守）。m466 は 226.6 秒＝余り 約 22 秒（他の線と分け合う）。この線の使う量は [9]。
+  ⑤ 機構と不変条件のテストの赤（AI とプレイヤーの対称・保存・セーブの往復ほか）。史実の桁を固定したテストの赤は止める線でない（記録）。
+  ⑥ 〈歴史的に正しい挙動だと確証がなく、かつバランスを破壊する〉の両方：4 件とも形は作者が採った＝NG の判定にヌル腕を読まない。〈バランスを壊す〉の物差しは README の止める線の改めに従い ①〜④ だけ。
+  記録だけ（採否に使わない）：exact・near・NG・補給崩壊・史実の線・常勝・人口の倍率・政体の年・清の強さ・カオス性。
+
+[7] 読む表（B と A′）
+  sf_s（[2] F5）・ce_s（negativeDemandPerMonth・budgetEndNegativePopK＝参考）・fiscal_s（claimPensionPerMonth・claimTradePolicyPerMonth）・goods_s（exportsValuePerClearing）・nation_s（国力・政体）・ideology_s（政党の議席があれば）。
+  期：P1＝1783〜99（Q0〜Q67）・P2＝1800〜49（Q68〜Q267）・P3＝1850〜99（Q268〜Q467）・P4＝1900〜49（Q468〜Q667）。
+  国の期の値は、期の中の四半期の平均→種どうしの中央値。比（B÷A′）は同じ種どうしで取り、種の中央値を読む。
+
+[8] 〈機構が狙いどおり働いたか〉の判定の段（狙いの数字を先に置く。外れたら採らない）
+  各狙い g は B の計器つき 10 種のうち何種が満たすかで判定：7 種以上＝当たり・4〜6＝部分・3 以下＝外れ。判定は件ごと（旗ごと）に独立。
+  方針：**機構が働く場面（G0）が無い件は B を A′ と区別できない**。人-14 は作者の裁定の中身（確証あり）＝場面が小さくても採否は止める線だけで決める（焼き込みは害がなければ採る）。他の 3 件の形は AI の細部を含む（確証なし）＝G が外れたら採らない。
+  G0-1（人-14・場面）：A′ の `soldierElder60K ÷ (elder60K + soldierElder60K)`（年金の法がある国・Q≧100 の四半期の平均）の種の中央値 ≧ 0.001（0.1% は AI の置いた数〈確証なし〉）。外れ＝場面が小さい（B≒A′ と予告）。
+  G1（人-14・形が働いた）：B の `pensionToSoldiersCum` ＞ 0 の国が 1 つ以上（≧ 7 種）かつ A′ では全国 0（厳密）。番人が盤面で確かめる：兵士だけの 60 歳以上の POP を置いて旗 1 で受取 ＞ 0・旗 0 で 0。受け手の重みの和と国庫の減りが保存する。
+  G0-2（交-16・場面）：A′ の `cheapGoodCount ＞ 0` の国×四半期が 8 国の合計で 100 以上（種の中央値）。外れ＝AI が −1 をほとんど置かない（B≒A′）。
+  G2（交-16・形が働いた・直接の量）：−1 が立つ国×四半期の `cheapExportValue ÷ cheapProducedRefValue` の和どうしの比 B÷A′ ≧ 1.0（種の中央値）かつ、国別の比が 1.05 以上の国が 1 つ以上（≧ 7 種）。補助の払い `cheapSubsidyPaidCum` ＞ 0（B）／＝ 0（A′・厳密）。
+     〔軌道が分かれるので同じ四半期どうしの対にしない。−1 の立つ期の輸出率の和どうしの比で読む〕
+  G2′（交-16・負担の上限）：`cheapSubsidyPaidCum` の増分 ÷ 国庫の支出（fiscal_s の請求の和）の 8 国・種の中央値 ≦ 0.05。超えるなら部分（発散の経路が AI の自己制限で閉じていない）。
+  G0-3（政-30・場面）：A′ の `1 − voteWeightScoped ÷ voteWeightAll`（1850 年以後の四半期の平均）が 0.01 以上の国が 3 つ以上（種の中央値）。外れ＝除外される重みが小さい。
+  G3（政-30・形が働いた・厳密）：B の `voteWeightUsed ÷ voteWeightScoped` が 0.97〜1.03（全国×四半期の 95% 以上）かつ A′ の `voteWeightUsed ÷ voteWeightAll` が 0.97〜1.03。番人が盤面で厳密に確かめる（植民地格の州の POP を置き、植民地参政権 None→Full で VoteShares が動く・期待値は 2 POP の思想比から手計算）。
+  G4（経-20・形が働いた）：B の ce_s `negativeDemandPerMonth` ＝ 0（全国・全四半期・10 種・厳密＝塵も 0）。A′ は −1e-9 の塵（[3] ④）。番人が負の貯蓄の POP を作って、旗 1 で全ての財の需要 ≧ 0・旗 0 で需要 ＜ 0 が立つことを確かめる。**創発の量（消費・価格）は〈動かない見込み〉**と予告する（A′ と B の goods_s の価格の中央値の比が 0.99〜1.01）。
+  総合：件ごとに G0 → G の順に読む。採否は件ごと（旗ごと）。4 件の合成の腕 B で止める線に当たったら、旗を 1 本ずつ戻す切り分け（1 テーマ 1 計測の例外）。
+
+[9] 計算量（約 22 秒の余りのうち この線の上限 +0.5 秒・指示文の割り当て）
+  ①は定数の述語＝0。③は票の走査で 1 POP ごとに `SuffrageInclusion` 1 回（POP×期。`Parliament.Step` が毎期 `ComputeVotes` を呼ぶ〈Parliament.cs:52〉＝POP 数 ×668 期のオーダー・分岐は小さい）。④は消費の財のループの直前に POP×月の 1 周（既存の `foreach p` と同じ桁・旗 1 だけ）。
+  ②が本体：旗 1 で `lbMul` が弱くなる行（その財に −1 の売り手がいる行）の走査が増える。台帳の `ClearingFills`（着値の充填）が増える分だけ推定が増える。財ごとの国別の表（61 国 × 138 財）は清算ごとに 1 回＝定数。
+     見積り：−1 の財・国は少数（AI の条件が厳しい・[3] ②）＝増える行は全体の 1% 未満と予想。+0.5 秒は ClearingFills の 1% 増（推定で約 +0.5 秒）に当たる。**B で .cost の推定を読む**（＞ 226.6 + 0.5 なら超過を実装ログに書く）。
+  新しい台帳の番号なし（ip の 24・mw の 25 と衝突しない）。
+
+[10] 触る行（並行の線との重なり・実装のコミットで確定して実装ログへ）
+  Fiscal.cs（:530・:547・述語の本体）・App/GameViewModel.Fiscal.cs:307・Parliament.cs（:157・:192・:446）・World.cs（:579・:595・:655）・InterestGroups.cs（`SeatVoice` の追加）・BilateralMarket.cs（:778 付近の売り手の国の表・:818・:874・:880 付近・:944〜1000 の記帳・:1038 付近の清算・:1086 付近の支払い）・Simulation.cs:2181（`tradeClaim` の −1 の側）・EconomyStep.cs（消費のループの直前〈:1415 の後〉）・Coefficients.cs（関連する係数の隣に 4 行・ファイルの末尾に足さない）・Model.cs（Region の診断の欄・World の診断の欄）・Instruments.cs（Sink の欄 1 行・Fold の呼び 1 行・Dispose 1 行）・新規 InstrumentsSf.cs・新規 Tests・DormantIdentityTests.cs の休眠の表の末尾に 4 行。
+  ip（動力）・rs（ゴム）・mw（最低賃金・次の波）とは別の関数・別の財布。文字の衝突の見込み：Instruments.cs の 3 箇所・DormantIdentityTests.cs の表の末尾・Coefficients.cs（隣に置く＝ip・rs が末尾に足すなら衝突しない）。
+
+[11] AI の決め〈確証なし〉と作者に聞く物
+  ・F2 の率 s ＝ TradeBiasStrength（+1 と同じ 0.25）／越境だけ／r を掛けて不足は売り手が食う／関税の基礎は vA のまま。
+  ・F3 の 4 か所（World.cs の 3 か所）に同じ述語を通す範囲／発言権（SuffrageScopeVoice の墓標）は覆さない。
+  ・F1 の PolicyPreferences:165 を触らない範囲。
+  ・A′（計器つき 10 種）を A（5 種）の代わりにする：Q-sf1（推奨＝よい）。
+  ・G0 の閾値（0.001・100・0.01）は AI の置いた数。外れ＝場面が小さい（採らないでなく〈B≒A′〉と読む）。
