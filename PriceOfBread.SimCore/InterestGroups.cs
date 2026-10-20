@@ -110,4 +110,13 @@ public static class InterestGroups
         double fem = s >= Suffrage.Universal ? 1.0 : a21 > 1e-300 ? 1.0 - p.AgeShare(21, double.PositiveInfinity, 1) / a21 : 0.5;
         return gate * fem;
     }
+
+    /// <summary>★(471) 議席の票の発言権（政-30）＝<see cref="FranchiseVoice"/>。植民地格の州の POP にだけ植民地参政権の算入率 <see cref="SuffrageInclusion(World, Region, Pop)"/> を掛ける（植民地の住民が本国の議席を生まない）。本国格の POP は <see cref="FranchiseVoice"/> のまま（非中核の住民への算入は作者の問い Q-sf2 の答え待ち）。
+    /// Parliament の議席の票 3 か所（<c>SupportBase</c>・<c>ComputeVotes</c>・<c>BuildElectionEvent</c>）と、同じ重みを読む World の 3 か所（<c>ElectionPushHalfPoint</c> の有権者数と富の重み・<c>ResolveElection</c> の選挙資金の受け手）が読む 1 本
+    /// ＝票の分子と分母・金の受け手が同じ規則（分子と分母の非対称を作らない）。発言権（<see cref="PoliticalWeight"/>）には掛けない（SuffrageScopeVoice の墓標＝発言権は票の前提にしない）。</summary>
+    public static double SeatVoice(World w, Region r, Pop p, Suffrage s)
+    {
+        double v = FranchiseVoice(p, s, w.Coef);
+        return r.Tier == RegionTier.Colonial ? v * SuffrageInclusion(w, r, p) : v;
+    }
 }

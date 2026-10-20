@@ -152,9 +152,9 @@ public static class Parliament
     {
         var by = new Dictionary<string, (double v, double c, double l, double s)>();
         var eff = w.Suffrage;
-        foreach (var p in w.AllPops())
+        foreach (var (rg, p) in w.AllPopsWithRegion())   // ★(471) 議席の票は SeatVoice の 1 本（州を持つ列挙・順は AllPops と同じ）
         {
-            double voters = p.Size * InterestGroups.FranchiseVoice(p, eff, w.Coef);
+            double voters = p.Size * InterestGroups.SeatVoice(w, rg, p, eff);
             if (voters <= 1e-9) continue;
             double pc = 0, pl = 0, ps = 0;
             for (int i = 0; i < Ideologies.Count; i++)
@@ -187,9 +187,9 @@ public static class Parliament
         // 動的政党（国民政党＝イデオロギー単位）の票田＝その思想への全国票。
         bool dynamic = w.Parties.Count > 3;
         var ideoRaw = new double[Ideologies.Count];
-        foreach (var p in w.AllPops())
+        foreach (var (rg, p) in w.AllPopsWithRegion())   // ★(471) 議席の票は SeatVoice の 1 本（州を持つ列挙・順は AllPops と同じ）
         {
-            double voters = p.Size * InterestGroups.FranchiseVoice(p, eff, w.Coef);
+            double voters = p.Size * InterestGroups.SeatVoice(w, rg, p, eff);
             if (voters <= 1e-9) continue;
             var s = p.IdeologyShares;
             // 第5段5-1（2026-07-27）：思想→3族の写像を PoliticalQuantities.FamilyOf に一元化（保守=伝統0+反動1+ナショ4+帝国8+ファシズム9+王党派10・自由=2+3・社会=5+6+7＝従来と同値）。
@@ -212,6 +212,7 @@ public static class Parliament
             }
         }
         double t = cons + lib + soc; if (t < 1e-9) t = 1;
+        if (Instruments.On) w.DiagSfVoteWeightUsed = cons + lib + soc;   // ★(471) 計器（読むだけ）：この期の票の重みの合計（sf_s の voteWeightUsed）
         double v0 = cons / t, v1 = lib / t, v2 = soc / t;   // 全国得票率（純比例）
         // 政9：得票→議席の制度歪み（第一党ボーナス＝小選挙区の死票の近似）。ElectoralDistortion（既定0.3）：0で純比例（恒等）。
         // >0で得票率を凸変換（v^(1+γ) を再正規化）＝第一党の議席プレミアム・小党の過小代表。プロイセン三級選挙制・単純小選挙区の歪みを一係数で。
@@ -441,9 +442,9 @@ public static class Parliament
     {
         var eff = w.Suffrage;
         var ideoRaw = new double[Ideologies.Count];
-        foreach (var p in w.AllPops())
+        foreach (var (rg, p) in w.AllPopsWithRegion())   // ★(471) 議席の票は SeatVoice の 1 本（州を持つ列挙・順は AllPops と同じ）
         {
-            double voters = p.Size * InterestGroups.FranchiseVoice(p, eff, w.Coef);
+            double voters = p.Size * InterestGroups.SeatVoice(w, rg, p, eff);
             if (voters <= 1e-9) continue;
             var s = p.IdeologyShares;
             double sum = 0; for (int i = 0; i < Ideologies.Count; i++) sum += s[i];

@@ -1,0 +1,216 @@
+====================================================================================================
+G0-1: 10/10 種が満たす → 当たり
+    seed 1: ○ median soldierElderShare=0.01802 (n=477)
+    seed 2: ○ median soldierElderShare=0.01279 (n=366)
+    seed 3: ○ median soldierElderShare=0.01752 (n=247)
+    seed 4: ○ median soldierElderShare=0.01592 (n=445)
+    seed 5: ○ median soldierElderShare=0.01062 (n=415)
+    seed 6: ○ median soldierElderShare=0.01397 (n=591)
+    seed 7: ○ median soldierElderShare=0.01313 (n=339)
+    seed 8: ○ median soldierElderShare=0.01277 (n=396)
+    seed 9: ○ median soldierElderShare=0.00696 (n=745)
+    seed 10: ○ median soldierElderShare=0.00442 (n=358)
+G1: 10/10 種が満たす → 当たり
+    seed 1: ○ B>0 nations=15 A>0 nations=0
+    seed 2: ○ B>0 nations=26 A>0 nations=0
+    seed 3: ○ B>0 nations=14 A>0 nations=0
+    seed 4: ○ B>0 nations=15 A>0 nations=0
+    seed 5: ○ B>0 nations=15 A>0 nations=0
+    seed 6: ○ B>0 nations=13 A>0 nations=0
+    seed 7: ○ B>0 nations=13 A>0 nations=0
+    seed 8: ○ B>0 nations=17 A>0 nations=0
+    seed 9: ○ B>0 nations=14 A>0 nations=0
+    seed 10: ○ B>0 nations=13 A>0 nations=0
+G0-2: 10/10 種が満たす → 当たり
+    seed 1: ○ A cheap nation-quarters=10660
+    seed 2: ○ A cheap nation-quarters=10405
+    seed 3: ○ A cheap nation-quarters=10564
+    seed 4: ○ A cheap nation-quarters=10483
+    seed 5: ○ A cheap nation-quarters=10541
+    seed 6: ○ A cheap nation-quarters=10212
+    seed 7: ○ A cheap nation-quarters=10694
+    seed 8: ○ A cheap nation-quarters=10712
+    seed 9: ○ A cheap nation-quarters=10580
+    seed 10: ○ A cheap nation-quarters=10585
+G2: 10/10 種が満たす → 当たり
+    seed 1: ○ pooled B/A=1.535 nations>=1.05: 45/69 paidNations B=81 A=0
+    seed 2: ○ pooled B/A=1.362 nations>=1.05: 39/73 paidNations B=85 A=0
+    seed 3: ○ pooled B/A=1.509 nations>=1.05: 45/68 paidNations B=94 A=0
+    seed 4: ○ pooled B/A=1.727 nations>=1.05: 57/74 paidNations B=90 A=0
+    seed 5: ○ pooled B/A=1.170 nations>=1.05: 34/73 paidNations B=89 A=0
+    seed 6: ○ pooled B/A=1.544 nations>=1.05: 48/69 paidNations B=91 A=0
+    seed 7: ○ pooled B/A=1.429 nations>=1.05: 48/66 paidNations B=70 A=0
+    seed 8: ○ pooled B/A=1.292 nations>=1.05: 39/72 paidNations B=88 A=0
+    seed 9: ○ pooled B/A=1.142 nations>=1.05: 44/67 paidNations B=78 A=0
+    seed 10: ○ pooled B/A=1.615 nations>=1.05: 52/72 paidNations B=84 A=0
+G2': 0/10 種が満たす → 外れ
+    seed 1: × median paid/spend over 0 nations=nan max=nan
+    seed 2: × median paid/spend over 0 nations=nan max=nan
+    seed 3: × median paid/spend over 0 nations=nan max=nan
+    seed 4: × median paid/spend over 0 nations=nan max=nan
+    seed 5: × median paid/spend over 0 nations=nan max=nan
+    seed 6: × median paid/spend over 0 nations=nan max=nan
+    seed 7: × median paid/spend over 0 nations=nan max=nan
+    seed 8: × median paid/spend over 0 nations=nan max=nan
+    seed 9: × median paid/spend over 0 nations=nan max=nan
+    seed 10: × median paid/spend over 0 nations=nan max=nan
+G0-3': 10/10 種が満たす → 当たり
+    seed 1: ○ nations with colonialShare>=0.01: 6  フランス=0.001 日本=0.000 イギリス=0.261 ロシア=0.000 プロイセン=0.000 オスマン=0.000 オーストリア=0.003 清=0.016
+    seed 2: ○ nations with colonialShare>=0.01: 10  フランス=0.045 日本=0.025 イギリス=0.483 ロシア=0.000 プロイセン=0.000 オスマン=0.000 オーストリア=0.000 清=0.038
+    seed 3: ○ nations with colonialShare>=0.01: 6  フランス=0.001 日本=0.000 イギリス=0.252 ロシア=0.010 プロイセン=0.000 オスマン=0.000 オーストリア=0.000 清=0.028
+    seed 4: ○ nations with colonialShare>=0.01: 13  フランス=0.054 日本=0.000 イギリス=0.455 ロシア=0.045 プロイセン=0.000 オスマン=0.000 オーストリア=0.127 清=0.001
+    seed 5: ○ nations with colonialShare>=0.01: 6  フランス=0.001 日本=0.000 イギリス=0.258 ロシア=0.000 プロイセン=0.267 オスマン=0.000 オーストリア=0.000 清=0.001
+    seed 6: ○ nations with colonialShare>=0.01: 8  フランス=0.088 日本=0.069 イギリス=0.667 ロシア=0.000 プロイセン=0.000 オスマン=0.001 オーストリア=0.000 清=0.004
+    seed 7: ○ nations with colonialShare>=0.01: 9  フランス=0.000 日本=0.000 イギリス=0.442 ロシア=0.000 プロイセン=0.000 オスマン=0.000 オーストリア=0.000 清=0.000
+    seed 8: ○ nations with colonialShare>=0.01: 7  フランス=0.015 日本=0.000 イギリス=0.199 ロシア=0.000 プロイセン=0.000 オスマン=0.000 オーストリア=0.001 清=0.007
+    seed 9: ○ nations with colonialShare>=0.01: 7  フランス=0.059 日本=0.010 イギリス=0.353 ロシア=0.000 プロイセン=0.000 オスマン=0.000 オーストリア=0.000 清=0.000
+    seed 10: ○ nations with colonialShare>=0.01: 6  フランス=0.017 日本=0.000 イギリス=0.525 ロシア=0.000 プロイセン=0.000 オスマン=0.036 オーストリア=0.000 清=0.000
+G3': 10/10 種が満たす → 当たり
+    seed 1: ○ B 92.3% vs A 91.7%
+    seed 2: ○ B 92.5% vs A 90.7%
+    seed 3: ○ B 91.6% vs A 91.9%
+    seed 4: ○ B 91.1% vs A 91.5%
+    seed 5: ○ B 92.8% vs A 91.0%
+    seed 6: ○ B 90.9% vs A 92.8%
+    seed 7: ○ B 91.6% vs A 92.4%
+    seed 8: ○ B 91.1% vs A 90.9%
+    seed 9: ○ B 90.9% vs A 91.3%
+    seed 10: ○ B 91.1% vs A 92.3%
+G5: 10/10 種が満たす → 当たり
+    seed 1: ○ colonialSuffrage moved nations B=5 A=4 migrantNative moved B=0
+    seed 2: ○ colonialSuffrage moved nations B=6 A=4 migrantNative moved B=0
+    seed 3: ○ colonialSuffrage moved nations B=3 A=7 migrantNative moved B=0
+    seed 4: ○ colonialSuffrage moved nations B=6 A=6 migrantNative moved B=0
+    seed 5: ○ colonialSuffrage moved nations B=1 A=3 migrantNative moved B=0
+    seed 6: ○ colonialSuffrage moved nations B=2 A=4 migrantNative moved B=0
+    seed 7: ○ colonialSuffrage moved nations B=1 A=4 migrantNative moved B=0
+    seed 8: ○ colonialSuffrage moved nations B=2 A=5 migrantNative moved B=0
+    seed 9: ○ colonialSuffrage moved nations B=2 A=5 migrantNative moved B=0
+    seed 10: ○ colonialSuffrage moved nations B=6 A=6 migrantNative moved B=1
+価格比: 10/10 種が満たす → 当たり
+    seed 1: ○ median B/A price (nation,good,half-century)=0.9907 n=600
+    seed 2: ○ median B/A price (nation,good,half-century)=1.0000 n=690
+    seed 3: ○ median B/A price (nation,good,half-century)=1.0000 n=1170
+    seed 4: ○ median B/A price (nation,good,half-century)=0.9954 n=780
+    seed 5: ○ median B/A price (nation,good,half-century)=1.0003 n=630
+    seed 6: ○ median B/A price (nation,good,half-century)=1.0000 n=510
+    seed 7: ○ median B/A price (nation,good,half-century)=1.0000 n=480
+    seed 8: ○ median B/A price (nation,good,half-century)=1.0005 n=990
+    seed 9: ○ median B/A price (nation,good,half-century)=1.0000 n=810
+    seed 10: ○ median B/A price (nation,good,half-century)=1.0028 n=930
+====================================================================================================
+G4（ce_s negativeDemandPerMonth の和：B は厳密に 0 のはず・A′ は塵）
+    seed 1: B=0 A=-1.01e-09
+    seed 2: B=0 A=-1.53e-09
+    seed 3: B=0 A=-9.73e-10
+    seed 4: B=0 A=-8.1e-10
+    seed 5: B=0 A=-1e-09
+    seed 6: B=0 A=-1.17e-09
+    seed 7: B=0 A=-8.11e-10
+    seed 8: B=0 A=-1.01e-09
+    seed 9: B=0 A=-9.06e-10
+    seed 10: B=0 A=-8.06e-10
+議会の量（1850 年以後・8 国・B−A′ の議席シェアの平均差〔保守,自由,社会〕と与党の族の月数 B/A）
+  seed 1
+    清: dSeat=(+0.009,-0.094,+0.085) gov B={0: 47, 1: 54} A={0: 61, 1: 40}
+    ロシア: dSeat=(-0.040,-0.109,+0.150) gov B={0: 44, 1: 57} A={0: 39, 1: 62}
+    オスマン: dSeat=(-0.044,+0.009,+0.035) gov B={0: 46, 1: 55} A={0: 53, 1: 48}
+    フランス: dSeat=(+0.053,-0.126,+0.073) gov B={0: 40, 1: 61} A={0: 33, 1: 68}
+    イギリス: dSeat=(+0.045,-0.093,+0.048) gov B={0: 60, 1: 41} A={1: 101}
+    プロイセン: dSeat=(-0.022,-0.093,+0.116) gov B={0: 8, 1: 93} A={0: 2, 1: 99}
+    オーストリア: dSeat=(-0.008,-0.058,+0.066) gov B={0: 45, 1: 56} A={0: 72, 1: 29}
+    日本: dSeat=(+0.014,-0.029,+0.015) gov B={0: 45, 1: 20, 2: 36} A={0: 23, 1: 36, 2: 42}
+  seed 2
+    清: dSeat=(-0.053,+0.048,+0.006) gov B={0: 50, 1: 51} A={0: 61, 1: 40}
+    ロシア: dSeat=(-0.005,-0.064,+0.068) gov B={0: 26, 1: 28, 2: 47} A={0: 36, 1: 36, 2: 29}
+    オスマン: dSeat=(+0.003,-0.141,+0.138) gov B={0: 21, 1: 76, 2: 4} A={0: 21, 1: 80}
+    フランス: dSeat=(-0.025,-0.013,+0.037) gov B={1: 101} A={0: 25, 1: 76}
+    イギリス: dSeat=(-0.047,-0.100,+0.147) gov B={0: 11, 1: 63, 2: 27} A={0: 18, 1: 83}
+    プロイセン: dSeat=(-0.110,+0.086,+0.023) gov B={0: 2, 1: 99} A={0: 66, 1: 35}
+    オーストリア: dSeat=(-0.000,+0.001,-0.001) gov B={0: 8, 1: 93} A={0: 47, 1: 50, 2: 4}
+    日本: dSeat=(+0.044,-0.061,+0.017) gov B={0: 84, 1: 17} A={0: 81, 1: 20}
+  seed 3
+    清: dSeat=(+0.116,-0.026,-0.090) gov B={0: 101} A={0: 42, 1: 59}
+    ロシア: dSeat=(-0.010,+0.015,-0.005) gov B={0: 21, 1: 80} A={0: 40, 1: 61}
+    オスマン: dSeat=(-0.027,-0.055,+0.082) gov B={0: 34, 1: 67} A={0: 61, 1: 40}
+    フランス: dSeat=(+0.037,-0.152,+0.115) gov B={0: 42, 1: 54, 2: 5} A={1: 101}
+    イギリス: dSeat=(+0.036,+0.021,-0.058) gov B={0: 3, 1: 98} A={1: 101}
+    プロイセン: dSeat=(-0.019,-0.009,+0.028) gov B={0: 10, 1: 91} A={0: 3, 1: 98}
+    オーストリア: dSeat=(+0.051,-0.000,-0.051) gov B={0: 13, 1: 76, 2: 12} A={0: 44, 1: 33, 2: 24}
+    日本: dSeat=(-0.021,-0.037,+0.058) gov B={0: 72, 1: 29} A={0: 101}
+  seed 4
+    清: dSeat=(+0.092,-0.063,-0.028) gov B={0: 93, 1: 8} A={0: 55, 1: 46}
+    ロシア: dSeat=(-0.020,+0.030,-0.009) gov B={0: 36, 1: 65} A={0: 44, 1: 57}
+    オスマン: dSeat=(-0.002,+0.082,-0.080) gov B={0: 6, 1: 95} A={0: 48, 1: 53}
+    フランス: dSeat=(-0.050,+0.032,+0.018) gov B={0: 27, 1: 74} A={0: 49, 1: 52}
+    イギリス: dSeat=(+0.013,-0.074,+0.060) gov B={1: 101} A={0: 36, 1: 65}
+    プロイセン: dSeat=(+0.012,-0.118,+0.106) gov B={0: 27, 1: 74} A={0: 3, 1: 98}
+    オーストリア: dSeat=(-0.026,+0.047,-0.022) gov B={0: 47, 1: 54} A={0: 60, 1: 41}
+    日本: dSeat=(-0.030,-0.017,+0.047) gov B={0: 34, 1: 67} A={0: 96, 1: 5}
+  seed 5
+    清: dSeat=(-0.146,-0.056,+0.202) gov B={0: 36, 1: 20, 2: 45} A={0: 101}
+    ロシア: dSeat=(+0.026,+0.074,-0.100) gov B={0: 24, 1: 77} A={0: 32, 1: 65, 2: 4}
+    オスマン: dSeat=(-0.031,+0.033,-0.002) gov B={1: 101} A={0: 24, 1: 77}
+    フランス: dSeat=(+0.037,-0.106,+0.069) gov B={0: 75, 1: 26} A={0: 22, 1: 79}
+    イギリス: dSeat=(+0.004,+0.017,-0.022) gov B={0: 4, 1: 97} A={1: 101}
+    プロイセン: dSeat=(-0.049,+0.079,-0.030) gov B={0: 63, 1: 34, 2: 4} A={0: 24, 1: 77}
+    オーストリア: dSeat=(+0.063,+0.063,-0.125) gov B={0: 81, 1: 20} A={0: 41, 1: 32, 2: 28}
+    日本: dSeat=(-0.040,+0.035,+0.005) gov B={0: 101} A={0: 101}
+  seed 6
+    清: dSeat=(+0.106,-0.042,-0.064) gov B={0: 101} A={0: 36, 1: 65}
+    ロシア: dSeat=(+0.005,-0.009,+0.003) gov B={0: 32, 1: 69} A={0: 30, 1: 71}
+    オスマン: dSeat=(-0.020,-0.003,+0.022) gov B={0: 29, 1: 72} A={0: 31, 1: 70}
+    フランス: dSeat=(+0.015,-0.002,-0.013) gov B={0: 26, 1: 75} A={0: 42, 1: 59}
+    イギリス: dSeat=(+0.018,-0.067,+0.049) gov B={0: 15, 1: 86} A={1: 101}
+    プロイセン: dSeat=(-0.002,-0.029,+0.031) gov B={0: 3, 1: 98} A={0: 3, 1: 98}
+    オーストリア: dSeat=(-0.039,-0.007,+0.046) gov B={0: 54, 1: 47} A={0: 68, 1: 33}
+    日本: dSeat=(-0.044,+0.022,+0.022) gov B={0: 50, 1: 51} A={0: 97, 1: 4}
+  seed 7
+    清: dSeat=(+0.002,-0.017,+0.015) gov B={0: 47, 1: 54} A={0: 61, 1: 40}
+    ロシア: dSeat=(+0.033,-0.072,+0.039) gov B={0: 12, 1: 89} A={0: 45, 1: 56}
+    オスマン: dSeat=(+0.030,-0.068,+0.038) gov B={0: 53, 1: 48} A={0: 98, 1: 3}
+    フランス: dSeat=(+0.003,-0.012,+0.010) gov B={1: 101} A={0: 33, 1: 68}
+    イギリス: dSeat=(-0.013,-0.047,+0.059) gov B={1: 101} A={1: 81, 2: 20}
+    プロイセン: dSeat=(-0.017,+0.061,-0.044) gov B={0: 3, 1: 98} A={0: 85, 1: 16}
+    オーストリア: dSeat=(+0.017,+0.052,-0.069) gov B={0: 28, 1: 73} A={0: 4, 1: 97}
+    日本: dSeat=(+0.050,-0.025,-0.024) gov B={0: 101} A={0: 95, 1: 6}
+  seed 8
+    清: dSeat=(+0.061,-0.063,+0.002) gov B={0: 70, 1: 31} A={0: 53, 1: 48}
+    ロシア: dSeat=(-0.040,+0.017,+0.023) gov B={0: 49, 1: 52} A={0: 62, 1: 39}
+    オスマン: dSeat=(+0.018,-0.028,+0.010) gov B={0: 15, 1: 86} A={0: 67, 1: 34}
+    フランス: dSeat=(-0.076,+0.039,+0.037) gov B={0: 64, 1: 37} A={0: 86, 1: 15}
+    イギリス: dSeat=(+0.007,+0.058,-0.064) gov B={0: 20, 1: 81} A={0: 34, 1: 67}
+    プロイセン: dSeat=(+0.122,-0.117,-0.005) gov B={0: 70, 1: 31} A={0: 5, 1: 96}
+    オーストリア: dSeat=(+0.096,-0.075,-0.022) gov B={0: 101} A={0: 27, 1: 74}
+    日本: dSeat=(+0.011,-0.007,-0.004) gov B={0: 77, 1: 24} A={0: 78, 1: 23}
+  seed 9
+    清: dSeat=(+0.047,+0.022,-0.069) gov B={0: 53, 1: 48} A={0: 34, 1: 56, 2: 11}
+    ロシア: dSeat=(-0.028,+0.076,-0.048) gov B={0: 36, 1: 65} A={0: 47, 1: 54}
+    オスマン: dSeat=(+0.000,+0.064,-0.064) gov B={0: 94, 1: 7} A={0: 75, 1: 26}
+    フランス: dSeat=(-0.070,+0.065,+0.005) gov B={0: 41, 1: 60} A={0: 76, 1: 25}
+    イギリス: dSeat=(+0.026,-0.015,-0.011) gov B={0: 53, 1: 48} A={0: 78, 1: 23}
+    プロイセン: dSeat=(-0.003,+0.097,-0.095) gov B={0: 6, 1: 95} A={0: 2, 1: 99}
+    オーストリア: dSeat=(+0.056,+0.047,-0.103) gov B={0: 97, 1: 4} A={0: 47, 1: 54}
+    日本: dSeat=(-0.012,+0.015,-0.003) gov B={0: 70, 1: 31} A={0: 95, 1: 6}
+  seed 10
+    清: dSeat=(-0.044,-0.047,+0.091) gov B={0: 50, 1: 51} A={0: 101}
+    ロシア: dSeat=(+0.085,+0.003,-0.088) gov B={0: 101} A={0: 41, 1: 60}
+    オスマン: dSeat=(+0.025,+0.019,-0.044) gov B={0: 97, 1: 4} A={0: 70, 1: 31}
+    フランス: dSeat=(-0.061,+0.069,-0.008) gov B={0: 25, 1: 76} A={0: 65, 1: 36}
+    イギリス: dSeat=(-0.024,+0.095,-0.072) gov B={1: 101} A={0: 49, 1: 52}
+    プロイセン: dSeat=(-0.024,-0.037,+0.061) gov B={0: 6, 1: 95} A={0: 4, 1: 97}
+    オーストリア: dSeat=(+0.053,-0.031,-0.022) gov B={0: 70, 1: 31} A={0: 44, 1: 41, 2: 16}
+    日本: dSeat=(-0.048,+0.029,+0.019) gov B={0: 77, 1: 24} A={0: 94, 1: 7}
+売買方針の往復（国ごと：biasSwitchCum B/A・stressFoldCum B/A 〔最終行〕・B の cheapWithNegTariff 平均/cheapGood 平均）
+  seed 1: 
+  seed 2: 
+  seed 3: 
+  seed 4: 
+  seed 5: 
+  seed 6: 
+  seed 7: 
+  seed 8: 
+  seed 9: 
+  seed 10: 
+costB b10_B_10.txt.cost 推定÷実測の CPU）: 37.8
+costA b10_Ap_10.txt.cost 推定÷実測の CPU）: 38.9

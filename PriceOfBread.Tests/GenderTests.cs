@@ -241,7 +241,7 @@ public class AgeStructureTests
     public void 年金の利害は標準のピラミッドより老いた分だけ()   // 設計書 §4-1「PensionOldWeight を標準の値で割り直す」＝起点合わせ
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
-        foreach (var q in w.AllPops()) if (!q.IsSoldier) q.Ages = Pop.StdAges();   // 標準のピラミッド（構築時の徴兵で農民と労働者の男20〜39 が少し抜けている＝揃える）
+        foreach (var q in w.AllPops()) q.Ages = Pop.StdAges();   // 標準のピラミッド（構築時の徴兵で農民と労働者の男20〜39 が少し抜けている＝揃える。★(471) 兵士も年金の受益者に数える＝兵士も揃える）
         var on = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
         double k = w.Coef.PensionOldWeight;
         w.Coef.PensionOldWeight = 0;
@@ -249,7 +249,7 @@ public class AgeStructureTests
         Assert.Equal(off.Mass, on.Mass, 12);   // 1783年（全ての POP が標準のピラミッド）は受益者項0＝旧の開幕（老年比0）と同じ
         Assert.Equal(off.Trad, on.Trad, 12);
         w.Coef.PensionOldWeight = k;
-        foreach (var q in w.AllPops()) if (!q.IsSoldier) q.Ages = [0.1, 0.1, 0.08, 0.08, 0.07, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.04, 0.04];   // 60歳以上 18%
+        foreach (var q in w.AllPops()) q.Ages = [0.1, 0.1, 0.08, 0.08, 0.07, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.04, 0.04];   // 60歳以上 18%
         var aged = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
         Assert.Equal(off.Mass + k * (0.18 - Pop.StdShare(60, double.PositiveInfinity)), aged.Mass, 9);   // 老いた分だけ年金を推す
     }
