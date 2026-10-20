@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 /// <summary>★年齢の層の器（2026-10-21 (478)・死の側の段1・設計 docs/202610/20261015/20261015_人口の作り替え_出生と死亡_設計.md §2-2・事前登録 measurements/dz478_20261021_prereg.txt）
 /// ＝層の数・下端・幅・標準のピラミッド・大人の境を1か所に持つ。層の番号を使う述語は全て年齢の述語として書く（この器の値から引く）。
 /// <see cref="Bands8"/>＝今の10歳刻み8層（0〜9・10〜19・…・60〜69・70以上）／<see cref="Bands11"/>＝作者の刻み（0／1〜5／6〜10／11〜15／16〜20／21〜30／31〜40／41〜50／51〜60／61〜70／71以上）。
-/// どちらを使うかはプロセス全体で1つ（環境変数 <c>POB_AGE_BANDS</c>＝未設定か8→<see cref="Bands8"/>・11→<see cref="Bands11"/>・ほかは例外）＝<see cref="Pop.Layout"/>。
+/// どちらを使うかはプロセス全体で1つ（環境変数 <c>POB_AGE_BANDS</c>＝未設定か11→<see cref="Bands11"/>〔2026-10-21 に既定を作者の11層へ〕・8→<see cref="Bands8"/>〔旧の8層＝以前の成績表の再現用〕・ほかは例外）＝<see cref="Pop.Layout"/>。
 /// 計算の読み口（<see cref="Pop.AgeShareOf"/> ほか）は配列の長さ（2×層の数）から器を引く＝グローバルを読まない（11層の算術を同じプロセスの番人が直接叩ける）。
 /// ⚠8層の定数は旧の式と**同じ double**にしてある（下端 10.0×b・幅 10.0・幅×12＝120.0）＝旧の `ov / 10.0`・`band / 120.0` と1ビットも違わない（既定の恒等の根）。</summary>
 public sealed class AgeLayout
@@ -64,12 +64,12 @@ public sealed class AgeLayout
     public static AgeLayout OfLength(int length)
         => length == 2 * 8 ? Bands8 : length == 2 * 11 ? Bands11 : throw new ArgumentException($"年齢の層の配列の長さが不正（{length}）＝16（8層）か22（11層）");
 
-    /// <summary>環境変数 POB_AGE_BANDS を1回だけ読む（<see cref="Pop.Layout"/>）。未設定か空か 8 → 8層／11 → 11層／ほかは例外。</summary>
+    /// <summary>環境変数 POB_AGE_BANDS を1回だけ読む（<see cref="Pop.Layout"/>）。未設定か空か 11 → 11層／8 → 旧の8層／ほかは例外。</summary>
     internal static AgeLayout FromEnvironment() => Parse(Environment.GetEnvironmentVariable("POB_AGE_BANDS"));
 
-    /// <summary>環境変数の値の読み（純関数＝番人がプロセスの環境を触らずに叩く）：null・空・"8" → 8層／"11" → 11層／ほかは例外（空白つきも不可）。</summary>
+    /// <summary>環境変数の値の読み（純関数＝番人がプロセスの環境を触らずに叩く）：null・空・"11" → 11層／"8" → 旧の8層／ほかは例外（空白つきも不可）。</summary>
     internal static AgeLayout Parse(string? v)
-        => string.IsNullOrEmpty(v) || v == "8" ? Bands8 : v == "11" ? Bands11 : throw new InvalidOperationException($"POB_AGE_BANDS は 8 か 11（{v}）");
+        => string.IsNullOrEmpty(v) || v == "11" ? Bands11 : v == "8" ? Bands8 : throw new InvalidOperationException($"POB_AGE_BANDS は 8 か 11（{v}）");
 
     /// <summary>層 <paramref name="b"/> と [lo, hi) の重なり（層の幅に対する割合・層の中は一様）。最上層は分けない（lo が下端以下で hi が無限大のときだけ全部）。</summary>
     internal double Overlap(int b, double lo, double hi)

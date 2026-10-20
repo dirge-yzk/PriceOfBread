@@ -70,10 +70,10 @@ def g15(X, label):
     for n in N8:
         r = [LX[s][n] / LA[s][n] for s in LA if s in LX and n in LA[s] and n in LX[s] and LA[s][n] > 0]
         if not r: w(f"  {n}: データ無し"); continue
-        m = st.median(r); good = 0.5 <= m <= 2
-        ok += good
+        m = st.median(r); inside = 0.5 <= m <= 2
+        ok += inside
         early = sorted(s for s in LA if s in LX and (LA[s]["_qn"].get(n, 0) != LA[s]["_q"] or LX[s]["_qn"].get(n, 0) != LX[s]["_q"]))
-        w(f"  {n}\t{m:.3f}\t{'内' if good else '外'}\t（種 {len(r)}・範囲 {min(r):.3f}〜{max(r):.3f}）" + (f"　★最後の行が最終四半期でない種 {early}（併合・消滅の比は発散と読まない）" if early else ""))
+        w(f"  {n}\t{m:.3f}\t{'内' if inside else '外'}\t（種 {len(r)}・範囲 {min(r):.3f}〜{max(r):.3f}）" + (f"　★最後の行が最終四半期でない種 {early}（併合・消滅の比は発散と読まない）" if early else ""))
     w(f"  内の国: {ok}/8" + (f" → {'通る' if ok >= 6 else '外れ'}" if label == "B" else "（記録）") + f"　最終四半期 A={sorted({v['_q'] for v in LA.values()})} {label}={sorted({v['_q'] for v in LX.values()})}")
 
 Br = g13(B, "B"); g15(B, "B")

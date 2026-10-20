@@ -30,14 +30,15 @@ public class AgeLayoutTests
         Assert.Throws<ArgumentException>(() => AgeLayout.OfLength(18));
         // 作者の刻み：0／1〜5／6〜10／11〜15／16〜20／21〜30／31〜40／41〜50／51〜60／61〜70／71以上（下端 0・1・6・11・16・21・31・41・51・61・71）
         Assert.Equal([0.0, 1.0, 6.0, 11.0, 16.0, 21.0, 31.0, 41.0, 51.0, 61.0, 71.0], AgeLayout.Bands11.Lower);
-        // 既定（環境変数なし）の世界は8層
-        Assert.Equal(8, Pop.Layout.Bands);
-        Assert.Equal(16, new Pop().Ages.Length);
+        // 既定（環境変数なし）の世界は作者の11層（2026-10-21 採用）・環境変数で選んだ値に合う
+        Assert.Same(AgeLayout.Bands11, AgeLayout.Parse(null));
+        Assert.Same(AgeLayout.Parse(Environment.GetEnvironmentVariable("POB_AGE_BANDS")), Pop.Layout);
+        Assert.Equal(2 * Pop.Layout.Bands, new Pop().Ages.Length);
     }
 
     [Theory]
-    [InlineData(null, 8)] [InlineData("", 8)] [InlineData("8", 8)] [InlineData("11", 11)]
-    public void 環境変数の読みは_未設定か8は8層_11は11層(string? v, int bands) => Assert.Equal(bands, AgeLayout.Parse(v).Bands);
+    [InlineData(null, 11)] [InlineData("", 11)] [InlineData("8", 8)] [InlineData("11", 11)]
+    public void 環境変数の読みは_未設定か11は11層_8は旧の8層(string? v, int bands) => Assert.Equal(bands, AgeLayout.Parse(v).Bands);
 
     [Theory]
     [InlineData("9")] [InlineData("eleven")] [InlineData("11 ")] [InlineData("0")]
@@ -177,12 +178,12 @@ public class AgeLayoutTests
             OldAgeOneMonth(n0, nOld); Pop.AgeOneMonth(n0, nNew);
             for (int k = 0; k < 16; k++) Assert.Equal(BitConverter.DoubleToInt64Bits(nOld[k]), BitConverter.DoubleToInt64Bits(nNew[k]));
         }
-        var mo = OldMortalityWeights(Cbr); var mn = Pop.MortalityWeights(Cbr);
+        var mo = OldMortalityWeights(Cbr); var mn = Pop.MortalityWeights(Cbr, AgeLayout.Bands8);
         for (int k = 0; k < 16; k++) Assert.Equal(BitConverter.DoubleToInt64Bits(mo[k]), BitConverter.DoubleToInt64Bits(mn[k]));
         // 標準・兵士・大人に入る流れ・災害の重み
-        var std = Pop.StdAges();
+        var std = Pop.StdAges(AgeLayout.Bands8);
         for (int b = 0; b < 8; b++) Assert.Equal(BitConverter.DoubleToInt64Bits(0.5 * P8[b]), BitConverter.DoubleToInt64Bits(std[2 * b]));
-        var sol = Pop.SoldierAges(); double s23 = P8[2] + P8[3];
+        var sol = Pop.SoldierAges(AgeLayout.Bands8); double s23 = P8[2] + P8[3];
         Assert.Equal(P8[2] / s23, sol[4]); Assert.Equal(P8[3] / s23, sol[6]);
         Assert.Equal(OldOutflow(std[2]) + OldOutflow(std[3]), Pop.EnteringAdultsMonthlyOf(std));
         var dw = new double[16]; Pop.DisasterWeights(dw, 0.4);
@@ -287,7 +288,7 @@ public class AgeLayoutTests
         for (int b = 0; b < 5; b++) { Assert.Equal(b2[2 * b] * 0.1, b2[2 * b] - a2[2 * b], 9); Assert.Equal(b2[2 * b + 1] * 0.1, b2[2 * b + 1] - a2[2 * b + 1], 9); }   // 20歳以下の層：全層に比例（移る100人は1/10）
         for (int b = 5; b < 11; b++) Assert.True((b2[2 * b + 1] - a2[2 * b + 1]) < (b2[2 * b] - a2[2 * b]), $"層 {b} の女の移る人数が男より少なくない");
         // 送り手と受け手の器が違えば止める（国をまたぐ移動の整合）
-        Assert.Throws<InvalidOperationException>(() => Pop.Blend(new Pop { Size = 100, Ages = Pop.StdAges(AgeLayout.Bands11) }, new Pop { Size = 100 }, 10));
+        Assert.Throws<InvalidOperationException>(() => Pop.Blend(new Pop { Size = 100, Ages = Pop.StdAges(AgeLayout.Bands11) }, new Pop { Size = 100, Ages = Pop.StdAges(AgeLayout.Bands8) }, 10));
     }
 
     [Fact]

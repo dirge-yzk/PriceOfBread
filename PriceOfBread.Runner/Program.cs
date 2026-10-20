@@ -8161,8 +8161,8 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     Console.WriteLine($"=== バッチ自己対戦 seeds {seedBase}..{seedBase + (ulong)b.N - 1}（各{gq}四半期{(ir is { } v ? $"・金利{v:F2}" : "")}）===");
     if (PriceOfBread.SimCore.Coefficients.OverrideSummary() is { Length: > 0 } ov)
         Console.WriteLine($"★係数の上書き（POB_COEF）: {ov}");   // 走行条件の名乗り＝ヘッダーを突き合わせてから数字を読む
-    if (PriceOfBread.SimCore.Pop.Layout.Bands != 8)
-        Console.WriteLine($"★年齢の層の数（POB_AGE_BANDS）: {PriceOfBread.SimCore.Pop.Layout.Bands}");   // (478) 8層（既定）では出さない＝既定の報告は1バイトも変わらない
+    if (PriceOfBread.SimCore.Pop.Layout.Bands != 11)
+        Console.WriteLine($"★年齢の層の数（POB_AGE_BANDS）: {PriceOfBread.SimCore.Pop.Layout.Bands}");   // (478) 11層（既定）では出さない＝既定の報告は1バイトも変わらない
     Console.WriteLine($"破綻（未完走）: {b.Breakdowns}/{b.N}");
     Console.WriteLine($"平均 首位確定: Q{b.AvgDecisionQuarter:F0}/{gq}    平均首位交代: {b.AvgLeadChanges:F1}回");
     Console.WriteLine($"デッドロック発生: {b.Deadlocks}/{b.N}    終盤決着(最終1割の四半期): {b.LateDecisions}/{b.N}    異常総数: {b.TotalAnomalies}");   // #135（2026-07-25）：終盤までもつれるのはバランス目標（独走不可）の達成＝病理でない（Round2で異常から除外済み）＝ラベルも情報系へ

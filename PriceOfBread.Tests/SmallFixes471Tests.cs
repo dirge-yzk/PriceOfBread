@@ -49,7 +49,7 @@ public class SmallFixes471Tests
         foreach (var p in w.AllPops()) if (p.IsSoldier) { if (s is null) s = p; p.Ages = Pop.SoldierAges(); }   // 全ての兵士を 20〜39 歳へ（元から混じる極少の老年を消す）
         Assert.NotNull(s);   // 前提：仏の盤面に兵士の POP の器がある
         s!.Size = soldierSize;
-        s.Ages = new double[2 * Pop.AgeBands]; s.Ages[2 * 6] = 1.0;   // その 1 つだけ全員 60〜69 歳の男
+        s.Ages = new double[2 * Pop.Layout.Bands]; s.Ages[2 * Pop.Layout.OldBandA] = 1.0;   // その 1 つだけ全員 60 代（8層は 60〜69 歳・11層は 61〜70 歳）の男
         var b = new PensionBoard { Sim = sim, W = w, Soldier = s };
         foreach (var p in w.AllPops())
         {
@@ -455,7 +455,7 @@ public class SmallFixes471Tests
         sim.Run(6);
         var w = sim.World;
         var s = w.AllPops().First(p => p.IsSoldier);
-        s.Size = 1000; s.Ages = new double[2 * Pop.AgeBands]; s.Ages[2 * 6] = 1.0;   // 全員 60〜69 歳の男の兵士
+        s.Size = 1000; s.Ages = new double[2 * Pop.Layout.Bands]; s.Ages[2 * Pop.Layout.OldBandA] = 1.0;   // 全員 60 代（8層は 60〜69 歳・11層は 61〜70 歳）の男の兵士
         int bloc = PolicyPreferences.BlocOf(s);
         var sums = PolicyPreferences.ComputeBuildSums(w);
         double all = w.AllPops().Where(p => PolicyPreferences.BlocOf(p) == bloc).Sum(p => p.Size);                                                      // 手の算術：兵士も含む全員

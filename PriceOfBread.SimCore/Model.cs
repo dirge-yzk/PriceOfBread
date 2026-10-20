@@ -214,7 +214,7 @@ public sealed class Pop
     public double InitialWork = -1.0;    // 労働供給の初期値（t=0 の work＝成人男女参加＋児童労働）。倍率排除②：旧 work/0.64 の正規化定数を「各popの初期労働供給」へ一般化（標準構成なら0.64＝中立）。-1=未捕捉（初回 EconomyStep で確定）
     public Share InitialFertileShare = new Share(-1.0);  // ①Phase3：出産可能女性プールの初期値（t=0 の出産可能プール＝Simulation.FertilePool・年齢の層から読む）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
     /// <summary>★年齢の層（2026-09-30 段4e 後半・設計 docs/202609/20260929/20260929_年齢の層_人口ピラミッドと世代の流れ_設計_未着手.md・作者裁定 2026-09-29＝C 案）＝
-    /// 層（<see cref="Layout"/>＝既定は10歳刻み8層〔0〜9・10〜19・…・60〜69・70以上〕・POB_AGE_BANDS=11 で作者の11層）×男女の**割合**（合計1・8層で16本・11層で22本・添字＝層×2＋性〔0＝男・1＝女〕）。人数は Size×割合＝Size が主
+    /// 層（<see cref="Layout"/>＝既定は作者の11層〔0／1〜5／6〜10／…／61〜70／71以上〕・POB_AGE_BANDS=8 で旧の10歳刻み8層〔0〜9・10〜19・…・60〜69・70以上〕）×男女の**割合**（合計1・8層で16本・11層で22本・添字＝層×2＋性〔0＝男・1＝女〕）。人数は Size×割合＝Size が主
     /// （年齢を指定しない死と移動は何もしなくても全層に比例）。読み口は <see cref="AgeShare"/> の1本。
     /// 書き手＝加齢と出生と平常の死（<see cref="StepAges"/>＝Simulation.DemographicStep・兵士も年を取る）・年齢を選ぶ死（<see cref="World.KillPops"/> の年齢の重み）・
     /// 人の移し方の1本（<see cref="Blend"/>＝移る組の構成）・初期の構成（標準のピラミッド・兵士・職業の性比）。
@@ -462,9 +462,7 @@ public sealed class Pop
     // ★2026-10-21 (478)：層の数・下端・幅・標準のピラミッド・大人の境は <see cref="AgeLayout"/> が持つ（8層〔今〕と11層〔作者の刻み〕・プロセス全体で1つ＝<see cref="Layout"/>）。
     //   配列を読む関数（<see cref="AgeShareOf"/>・<see cref="StepAges"/>・<see cref="KillAges"/>・<see cref="AgeOneMonth"/>・<see cref="DisasterWeights"/>・<see cref="EnteringAdultsMonthlyOf"/>）は
     //   配列の長さから器を引く。新しい配列を作る関数（<see cref="StdAges()"/>・<see cref="SoldierAges()"/>・<see cref="MortalityWeights(double)"/>）は <see cref="Layout"/> を読む。
-    /// <summary>旧の10歳刻み8層の層の数（8層の器の数）。⚠SimCore の本体は読まない（層の数は <see cref="Layout"/>.Bands）＝番人が既定の8層で書いた箇所だけが読む。</summary>
-    public const int AgeBands = 8;
-    /// <summary>★年齢の層の器（プロセス全体で1つ）＝環境変数 POB_AGE_BANDS（未設定か8→今の8層・11→作者の11層）。</summary>
+    /// <summary>★年齢の層の器（プロセス全体で1つ）＝環境変数 POB_AGE_BANDS（未設定か11→作者の11層・8→旧の10歳刻み8層）。</summary>
     public static readonly AgeLayout Layout = AgeLayout.FromEnvironment();
     /// <summary>標準のピラミッドを作った安定人口の年の増加率（表の前提＝設計書 §3-1 の「年0.5%増」）。死の年齢の重み（<see cref="MortalityWeights(double)"/>）だけが読む。</summary>
     internal const double StdPyramidGrowth = 0.005;

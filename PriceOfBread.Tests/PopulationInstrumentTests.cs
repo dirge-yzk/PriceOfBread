@@ -85,8 +85,9 @@ public class PopulationInstrumentTests
             // 飢えの死は災害の重み（0〜9 と 60 以上が 2 倍）＝子供（層 0）の死の割合が平常のみの比より高い。平常のみの比は同じ盤面の平常の層別を持たないので、
             // 層 0 の死÷全層の死 が、層 0 の人年÷全層の人年 より大きい（子供は人口の割合以上に死ぬ）ことを見る。
             double expo = 0; foreach (var e in a.BandExposure) expo += e;
+            int top = Pop.Layout.Bands - 1;   // 最上層（8層は 70 以上・11層は 71 以上）
             Assert.True(a.BandDeaths[0] / bandSum > a.BandExposure[0] / expo, "子供の死の割合が人口の割合以下（年齢の重みが hook に載っていない）");
-            Assert.True(a.BandDeaths[7] / bandSum > a.BandExposure[7] / expo, "70 以上の死の割合が人口の割合以下");
+            Assert.True(a.BandDeaths[top] / bandSum > a.BandExposure[top] / expo, "最上層の死の割合が人口の割合以下");
             // 15〜49 歳の女の人年は人年の一部
             Assert.InRange(a.FertileWomenMonths, 0.05 * a.PopMonths, 0.5 * a.PopMonths);
         }
@@ -101,15 +102,18 @@ public class PopulationInstrumentTests
         var sim = new Simulation(Famine(1), new NullAgent());
         var w = sim.World;
         var p = w.Regions.SelectMany(r => r.Pops).First(x => x.Size > 0);
-        for (int k = 0; k < p.Ages.Length; k++) p.Ages[k] = 1.0 / 16;
-        Span<double> dw = stackalloc double[2 * Pop.AgeBands];
+        var lay = Pop.Layout; int nb = lay.Bands;
+        for (int k = 0; k < p.Ages.Length; k++) p.Ages[k] = 1.0 / (2 * nb);
+        Span<double> dw = stackalloc double[2 * nb];
         Pop.DisasterWeights(dw, 1.0);
         var a = Instruments.PopAccOf(w); a.Clear(w);
         double d = 1e-3 * p.Size;   // 小さい＝どの層も尽きない（配り直しが起きない）
         Instruments.DemoFamine(w, p, d, dw);
-        // 重み 2 の層（0・6・7）は 2 本×2＝4、重み 1 の層（1〜5）は 2 本×1＝2、合計 3×4＋5×2＝22
-        double[] expect = [4.0 / 22, 2.0 / 22, 2.0 / 22, 2.0 / 22, 2.0 / 22, 2.0 / 22, 4.0 / 22, 4.0 / 22];
-        for (int b = 0; b < Pop.AgeBands; b++)
+        // 重み 2 の層（下端が 10 歳未満か 60 歳以上＝8層は 0・6・7／11層は 0・1・6・61・71 以上）は 2 本×2＝4、ほかの層は 2 本×1＝2（年齢の述語で数える＝層の番号を直書きしない）
+        double[] expect = new double[nb]; double tot = 0;
+        for (int b = 0; b < nb; b++) { expect[b] = (lay.Lower[b] < 10.0 || lay.Lower[b] >= 60.0) ? 4.0 : 2.0; tot += expect[b]; }
+        for (int b = 0; b < nb; b++) expect[b] /= tot;   // 8層は 合計 3×4＋5×2＝22
+        for (int b = 0; b < nb; b++)
             Assert.True(Math.Abs(a.BandDeaths[b] - expect[b] * d) <= 1e-9 * d, $"層 {b} の飢えの死 {a.BandDeaths[b] / d:F6}×d が手の分数 {expect[b]:F6}×d に合わない（災害の重みが hook に載っていない）");
         Assert.Equal(d, a.DeathsFamine, 12);
         Assert.Equal(0, a.DeathsNormal);
@@ -131,7 +135,7 @@ public class PopulationInstrumentTests
             var w = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // 外の出所：年齢の重み（1人あたりの相対の死亡率）
             double mu0 = a.BandDeaths[0] / a.BandExposure[0];
             Assert.True(mu0 > 0);
-            for (int b = 1; b < Pop.AgeBands; b++)
+            for (int b = 1; b < Pop.Layout.Bands; b++)
             {
                 double ratio = a.BandDeaths[b] / a.BandExposure[b] / mu0, expect = w[2 * b] / w[0];
                 Assert.True(Math.Abs(ratio - expect) <= 0.05 * expect, $"層 {b} の死の率の比 {ratio:F4} が年齢の重みの比 {expect:F4} に合わない");
@@ -241,7 +245,7 @@ public class PopulationInstrumentTests
             foreach (var r in nRows)
             {
                 // 層別の死の和＝平常＋飢え
-                double bands = 0; for (int k = 0; k < 8; k++) bands += Col(h, r, "deathsBand" + k + "K");
+                double bands = 0; for (int k = 0; k < Pop.Layout.Bands; k++) bands += Col(h, r, "deathsBand" + k + "K");
                 double tot = Col(h, r, "deathsNormalK") + Col(h, r, "deathsFamineK");
                 Assert.True(Math.Abs(bands - tot) <= 1e-9 * Math.Max(1, tot), $"層別の死の和 {bands} が平常＋飢え {tot} に合わない");
                 Assert.True(Col(h, r, "deathsBand0K") <= tot + 1e-9);
@@ -250,10 +254,11 @@ public class PopulationInstrumentTests
                 Assert.True(!(oth < -1e-9 * Math.Max(1, tot)), $"疫病ほかの死 {oth} が負＝hook が平常か飢えの死を数え過ぎている");
                 double s10 = Col(h, r, "s10Share"); if (!double.IsNaN(s10)) Assert.InRange(s10, 0, 1 + 1e-12);
                 Assert.Equal(double.IsNaN(Col(h, r, "mu0PerYear")), double.IsNaN(s10));
-                if (!double.IsNaN(s10)) Assert.True(Math.Abs(Math.Exp(-10.0 * Col(h, r, "mu0PerYear")) - s10) <= 1e-8, "s10 が e^(−10μ0) に合わない");                                     // 10 歳まで生き残る確率＝e^(−10μ0)
-                double l60 = Col(h, r, "l60Years");
-                if (!double.IsNaN(l60)) { double l60x = Instruments.PopL60(Col(h, r, "mu6PerYear"), Col(h, r, "mu7PerYear")); Assert.True(Math.Abs(l60x - l60) <= 1e-8 * Math.Abs(l60x), $"余命 {l60} が率から作り直した {l60x} に合わない"); l60Rows++; }
-                else Assert.True(!(Col(h, r, "mu6PerYear") > 0) || !(Col(h, r, "mu7PerYear") > 0), "余命が NaN なのに層 6・7 の死の率が正");
+                // 10 歳まで生き残る確率＝e^(−Σ層の死の率×その層が 0〜10 歳に占める年数)（8層は 0〜9 歳の層 10 年＝e^(−10μ0)・11層は 0 歳 1 年・1〜5 歳 5 年・6〜10 歳 4 年〔10 歳の誕生日まで〕）＝年齢の境からの手の算術
+                if (!double.IsNaN(s10)) { double ex = 0; var lay = Pop.Layout; for (int k = 0; k < lay.Bands - 1; k++) { double yrs = Math.Min(10.0, lay.Upper[k]) - Math.Max(0.0, lay.Lower[k]); if (yrs > 0) ex += Col(h, r, "mu" + k + "PerYear") * yrs; } Assert.True(Math.Abs(Math.Exp(-ex) - s10) <= 1e-8, "s10 が e^(−Σμ×年数) に合わない"); }
+                double l60 = Col(h, r, "l60Years"); int oa = Pop.Layout.OldBandA, ob = Pop.Layout.OldBandB;   // 60 歳以後の余命を読む 2 層（8層は 6・7＝60〜69・70以上／11層は 9・10＝61〜70・71以上）
+                if (!double.IsNaN(l60)) { double l60x = Instruments.PopL60(Col(h, r, "mu" + oa + "PerYear"), Col(h, r, "mu" + ob + "PerYear")); Assert.True(Math.Abs(l60x - l60) <= 1e-8 * Math.Abs(l60x), $"余命 {l60} が率から作り直した {l60x} に合わない"); l60Rows++; }
+                else Assert.True(!(Col(h, r, "mu" + oa + "PerYear") > 0) || !(Col(h, r, "mu" + ob + "PerYear") > 0), "余命が NaN なのに老いた 2 層の死の率が正");
                 double tfr = Col(h, r, "tfrProxy"); if (!double.IsNaN(tfr)) { Assert.InRange(tfr, 0, 15); finiteTfr++; }
                 // ★(434) 粗出生率は窓の人口×月が 0 の行（その窓の途中で建国した国の最初の年末の行・InstrumentsPop の pm が NaN）では NaN と自己申告する＝NaN を許すのは出生も 0 のときだけ
                 double cbrV = Col(h, r, "cbrPerMille");
@@ -273,15 +278,17 @@ public class PopulationInstrumentTests
             var (ah, arows) = Table(System.IO.Path.Combine(dir, "age_s1789.tsv"));
             Assert.All(arows, r => Assert.Equal(ah.Length, r.Length));
             var aN = arows.Where(r => r[0] == "N").ToList(); var aB = arows.Where(r => r[0] == "B").ToList();
-            Assert.Equal(nRows.Count, aN.Count); Assert.Equal(8 * aN.Count, aB.Count);
+            int nbands = Pop.Layout.Bands; var layout = Pop.Layout;
+            Assert.Equal(nRows.Count, aN.Count); Assert.Equal(nbands * aN.Count, aB.Count);
             var popByKey = nRows.ToDictionary(r => (r[1], r[4]));
             foreach (var r in aN)
             {
                 var pr = popByKey[(r[1], r[4])];
-                Assert.Equal(8.0, Col(ah, r, "bands"));
+                Assert.Equal((double)nbands, Col(ah, r, "bands"));
                 double pk = Col(ah, r, "popK");
                 Assert.True(Math.Abs(Col(ah, r, "sumBandsMinusPopK")) <= 1e-9 * pk, $"層の和が人口に合わない {r[4]} q={r[1]}");
-                Assert.True(double.IsNaN(Col(ah, r, "infantDeathsPerBirth")) && double.IsNaN(Col(ah, r, "infantShare")), "8層で乳児の列が nan でない");
+                if (nbands == 8) Assert.True(double.IsNaN(Col(ah, r, "infantDeathsPerBirth")) && double.IsNaN(Col(ah, r, "infantShare")), "8層で乳児の列が nan でない");
+                else Assert.True(!double.IsNaN(Col(ah, r, "infantShare")) && Col(ah, r, "infantShare") > 0, "11層で乳児の割合が出ていない");
                 Assert.Equal(Col(h, pr, "share0to14"), Col(ah, r, "share0to14"), 9);
                 Assert.Equal(Col(h, pr, "share60plus"), Col(ah, r, "old60plusShare"), 9);
                 Assert.True(Col(ah, r, "work15to64Share") > 0.2 && Col(ah, r, "old65plusShare") >= 0);
@@ -290,18 +297,18 @@ public class PopulationInstrumentTests
             foreach (var g in aB.GroupBy(r => (r[1], r[4])))
             {
                 var pr = popByKey[g.Key]; var bs = g.ToList();
-                Assert.Equal(8, bs.Count);
-                Assert.Equal(Enumerable.Range(0, 8).Select(i => (double)i), bs.Select(r => Col(ah, r, "bandIndex")));
+                Assert.Equal(nbands, bs.Count);
+                Assert.Equal(Enumerable.Range(0, nbands).Select(i => (double)i), bs.Select(r => Col(ah, r, "bandIndex")));
                 double dsum = bs.Sum(r => Col(ah, r, "deathsK")), dpop = Col(h, pr, "deathsNormalK") + Col(h, pr, "deathsFamineK");
                 Assert.True(Math.Abs(dsum - dpop) <= 1e-9 * Math.Max(1, dpop), $"層の死の和 {dsum} が pop_s の平常＋飢え {dpop} に合わない");
                 Assert.Equal(Col(h, pr, "birthsK"), Col(ah, bs[0], "birthsK"), 9);   // 出生は層 0 の行だけに載る
                 Assert.All(bs.Skip(1), r => Assert.Equal(0.0, Col(ah, r, "birthsK")));
-                for (int b = 0; b < 8; b++)
+                for (int b = 0; b < nbands; b++)
                 {
                     double m1 = Col(h, pr, "mu" + b + "PerYear"), m2 = Col(ah, bs[b], "muPerYear");
                     Assert.True(double.IsNaN(m1) ? double.IsNaN(m2) : Math.Abs(m1 - m2) <= 1e-9, $"層 {b} の死の率が pop_s と違う {m1} {m2}");
                 }
-                Assert.Equal(0.0, Col(ah, bs[0], "lowerAge")); Assert.Equal(70.0, Col(ah, bs[7], "lowerAge")); Assert.True(double.IsPositiveInfinity(Col(ah, bs[7], "upperAge")));
+                Assert.Equal(0.0, Col(ah, bs[0], "lowerAge")); Assert.Equal(layout.Lower[nbands - 1], Col(ah, bs[nbands - 1], "lowerAge")); Assert.True(double.IsPositiveInfinity(Col(ah, bs[nbands - 1], "upperAge")));
             }
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
