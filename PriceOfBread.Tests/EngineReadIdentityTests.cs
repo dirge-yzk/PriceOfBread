@@ -4,56 +4,10 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(474) 恒等の線 3 件（政-14・画-05・画-06）の番人。成績表が旧と全行一致であることは別（バッチ）。ここは〈導出に変えた欄が法の段の手計算と合う〉〈予算表の税の実効を読む診断が国庫の台帳と合う〉
+/// <summary>★(474) 恒等の線 2 件（画-05・画-06）の番人（政-14 は恒等でなく外した＝実装ログ (474)）。成績表が旧と全行一致であることは別（バッチ）。ここは〈予算表の税の実効を読む診断が国庫の台帳と合う〉
 /// 〈軍事タブと挑発のボタン脇が読むエンジンの関数が手計算と合う〉を、期待値を別の出所（手で書いた数・台帳・実際の機構）から作って見る。</summary>
 public class EngineReadIdentityTests
 {
-    // ===== 政-14：年金と福祉水準は社会保障法の段から読む導出値 =====
-
-    /// <summary>福祉水準＝段÷3（救貧法 0・労災 1/3・失業保険 2/3・年金 1）・年金は年金の段だけが満額。期待値は手で書いた数（World の式から作らない）。
-    /// ⚠突然変異「年金を失業保険の段から満額」「福祉水準の分母を 4」で赤。</summary>
-    [Fact]
-    public void 福祉水準と年金は社会保障法の段から読む導出値()
-    {
-        var w = new Simulation(NationConfig.France().ToScenario(3), new NullAgent()).World;
-        (SocialSecurityLaw Law, double Level, ReformLevel Pension)[] table =
-        [
-            (SocialSecurityLaw.PoorLaw, 0.0, ReformLevel.None),
-            (SocialSecurityLaw.WorkersComp, 1.0 / 3.0, ReformLevel.None),
-            (SocialSecurityLaw.Unemployment, 2.0 / 3.0, ReformLevel.None),
-            (SocialSecurityLaw.Pension, 1.0, ReformLevel.Full),
-        ];
-        foreach (var (law, level, pension) in table)
-        {
-            w.SocialSecurityLaw = law;
-            Assert.Equal(level, w.SocialSecurity, 15);
-            Assert.Equal(pension, w.Pension);
-        }
-    }
-
-    /// <summary>建国（<see cref="World.CopyLawsFrom"/>）は法の段を写すだけで福祉水準と年金は親と同じに読める／政体の助走の退避（<see cref="GovernanceSnapshot"/>）は法を戻す。
-    /// ⚠突然変異「CopyLawsFrom が社会保障法を写さない」「退避が法を戻さない」で赤。</summary>
-    [Fact]
-    public void 建国と退避は法の段を運び福祉水準と年金はそれに従う()
-    {
-        var parent = new Simulation(NationConfig.France().ToScenario(5), new NullAgent()).World;
-        var child = new Simulation(NationConfig.Britain().ToScenario(6), new NullAgent()).World;
-        parent.SocialSecurityLaw = SocialSecurityLaw.Unemployment;
-        child.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;
-        child.CopyLawsFrom(parent);
-        Assert.Equal(SocialSecurityLaw.Unemployment, child.SocialSecurityLaw);
-        Assert.Equal(2.0 / 3.0, child.SocialSecurity, 15);
-        Assert.Equal(ReformLevel.None, child.Pension);
-
-        var snap = GovernanceSnapshot.Capture(parent);
-        parent.SocialSecurityLaw = SocialSecurityLaw.Pension;
-        Assert.Equal(ReformLevel.Full, parent.Pension);
-        snap.RestoreTo(parent);
-        Assert.Equal(SocialSecurityLaw.Unemployment, parent.SocialSecurityLaw);
-        Assert.Equal(2.0 / 3.0, parent.SocialSecurity, 15);
-        Assert.Equal(ReformLevel.None, parent.Pension);
-    }
-
     // ===== 画-05：予算表の税の実効は徴税の走査が書く種類ごとの実際の税収 =====
 
     private static World FiscalBoard()
@@ -64,7 +18,7 @@ public class EngineReadIdentityTests
         w.TaxRate = new Share(0); w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = 0;
         w.Coef.TitheRate = new Share(0);
         foreach (var rg in w.Regions) { rg.Rule = [1.0, 0.0, 0.0, 0.0]; rg.AdminFill = 1.0; }   // 国家が全域を治め、官僚の役務も満額届く
-        w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;
+        w.SocialSecurity = 0; w.Pension = ReformLevel.None;   // 福祉・年金を止める（税の診断と直交）
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
         foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = new MoneyStock(0); pp.SetSavings(System.Math.Max(pp.Savings.Value, 0) + 1e3 * pp.Size); }   // 全員が払える＝払える割合は 1
         w.FiscalFundingRatio = new Share(1.0);

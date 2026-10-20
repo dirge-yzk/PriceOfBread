@@ -24,7 +24,7 @@ public sealed class GovernanceSnapshot
     // 財政（現在値）
     private Share _navalUpkeepShare;   // ★陸海の維持費の按分（2026-08-04）＝軍事費だけ戻すと海軍が消える
     private Share _military;
-    private SocialSecurityLaw _socialLaw; private double _admin, _pollTax, _landTax, _tariff,
+    private double _social, _admin, _pollTax, _landTax, _tariff,
                    _interestRate, _eduSpending, _progressiveTax;
     private Share _taxRate, _fiscalFunding;
     // 国庫
@@ -42,7 +42,7 @@ public sealed class GovernanceSnapshot
             _childLaborAllowed = w.Policy.ChildLaborAllowed,
             _freedom = w.Freedom, _polity = w.Polity, _baseCoercion = w.BaseCoercion, _coercion = w.Coercion, _legitimacy = w.Legitimacy,
             _crown = w.Crown, _seizure = w.Seizure, _parliamentControl = w.ParliamentControl,
-            _socialLaw = w.SocialSecurityLaw, _admin = w.AdminSpending, _pollTax = w.PollTax, _landTax = w.LandTax, _progressiveTax = w.ProgressiveTax,
+            _social = w.SocialSecurity, _admin = w.AdminSpending, _pollTax = w.PollTax, _landTax = w.LandTax, _progressiveTax = w.ProgressiveTax,
             _military = w.MilitarySpending, _navalUpkeepShare = w.NavalSpendShare, _tariff = w.Tariff, _interestRate = w.InterestRate,
             _eduSpending = w.EducationSpending, _taxRate = w.TaxRate, _fiscalFunding = w.FiscalFundingRatio,
             _treasury = w.Treasury.Value,
@@ -61,8 +61,7 @@ public sealed class GovernanceSnapshot
         w.ChildLaborLegal = _childLaborAllowed ? 1.0 : 0.0;          // 児童労働の合法度も法のアンカーへ戻す（倍率排除④）
         w.Freedom = _freedom; w.Polity = _polity; w.BaseCoercion = _baseCoercion; w.Coercion = _coercion; w.Legitimacy = _legitimacy;
         w.Crown = _crown; w.Seizure = _seizure; w.ParliamentControl = _parliamentControl;
-        w.SocialSecurityLaw = _socialLaw; w.AdminSpending = _admin;   // ★(474) 福祉水準 w.SocialSecurity は社会保障法の段から読む導出値＝法を戻す
-        w.PollTax = _pollTax; w.LandTax = _landTax; w.ProgressiveTax = _progressiveTax;
+        w.SocialSecurity = _social; w.AdminSpending = _admin; w.PollTax = _pollTax; w.LandTax = _landTax; w.ProgressiveTax = _progressiveTax;
         w.SetMilitarySpending(_military, _navalUpkeepShare); w.Tariff = _tariff; w.InterestRate = _interestRate;
         w.EducationSpending = _eduSpending; w.TaxRate = _taxRate; w.FiscalFundingRatio = _fiscalFunding;
         w.RebaseTreasury(_treasury);   // 助走で動いた分は台帳ごと捨てる（暦の外＝歴史に属さない）

@@ -125,7 +125,7 @@ public class PrivilegeDisplayTests
         w.StateReligion = StateReligionLaw.StateChurch;
         c.TitheRate = new Share(0.05); foreach (var rg0 in w.Regions) rg0.Rule = [1.0, 0.0, 0.0, 0.0];   // 国家が全域を治める（支配度の区分で目減りしない）
         w.TaxRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
-        w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;   // ★(474) 福祉水準・年金は社会保障法の段から読む導出値＝救貧法で 0・年金なし
+        w.SocialSecurity = 0; w.Pension = ReformLevel.None;
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
         var pops = new System.Collections.Generic.List<Pop>(w.AllPops());
         foreach (var p in pops) p.BondHoldings = new MoneyStock(0);

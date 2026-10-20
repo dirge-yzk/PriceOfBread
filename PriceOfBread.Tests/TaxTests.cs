@@ -64,7 +64,7 @@ public class TaxTests
             var w = sim.World;
             w.TaxRate = new Share(0); w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
             w.Coef.TitheRate = new Share(0); foreach (var rg0 in w.Regions) { rg0.Rule = [1.0, 0.0, 0.0, 0.0]; rg0.AdminFill = 1.0; }   // 国家が全域を治め、官僚の役務も満額届く（支配度の区分でも行政の充足〔★(408) 旗 1〕でも目減りしない）
-            w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;   // ★(474) 福祉水準・年金は社会保障法の段から読む導出値＝救貧法で 0・年金なし
+            w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
             foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = new MoneyStock(0); pp.SetSavings(System.Math.Max(pp.Savings.Value, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1
             w.FiscalFundingRatio = new Share(1.0);

@@ -44,7 +44,7 @@ public class AdminServesRuleTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(1);
         var w = sim.World;
-        w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;   // ★(474) 福祉水準・年金は社会保障法の段から読む導出値＝救貧法で 0・年金なし w.Coef.ForeignBondCapacity = new Share(0);
+        w.SocialSecurity = 0; w.Pension = ReformLevel.None; w.Coef.ForeignBondCapacity = new Share(0);
         w.TaxRate = new Share(0.1); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
         w.Coef.TitheRate = new Share(0); w.Coef.TaxConsentWeight = 0;   // 請求は査定の全額
         return w;

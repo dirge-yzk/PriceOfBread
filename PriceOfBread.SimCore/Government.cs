@@ -124,7 +124,8 @@ public static class Government
             {
                 p.SocialSecurityLaw = (SocialSecurityLaw)t;
                 w.SocialSecurityLaw = (SocialSecurityLaw)StepLevel((int)w.SocialSecurityLaw, t, w, PolicyAxis.SocialSecurity);
-                // ★(474) 福祉水準 w.SocialSecurity と年金 w.Pension は社会保障法の段から読む導出値（World）＝ここで貯めない。年金は第4段に吸収（別年金法は廃止）
+                w.SocialSecurity = (int)w.SocialSecurityLaw / (double)SocialSecurityMaxLevel;
+                w.Pension = w.SocialSecurityLaw == SocialSecurityLaw.Pension ? ReformLevel.Full : ReformLevel.None;   // 年金を第4段に吸収（別年金法は廃止）
             }),
         new(PolicyAxis.ConscriptionLaw, w => (int)w.ConscriptionLaw, (w, v) => w.ConscriptionLaw = (ConscriptionLaw)v, (w, p) => (int)p.ConscriptionLaw, 2, Stage: 2),   // 徴兵法（E5）：志願兵→徴兵制（旧支配層/軍が推進・大衆が抵抗）
         new(PolicyAxis.SecretBallot, w => (int)w.SecretBallot, (w, v) => w.SecretBallot = (SecretBallotLaw)v, (w, p) => (int)p.SecretBallot, 1),   // 秘密投票法（E5）：公開→秘密（旧支配層が抵抗・近代/大衆が推進）

@@ -288,6 +288,7 @@ public class PlayHarnessTests
         w.CornLaws = ReformLevel.None;
         Assert.False(Government.AtTopStage(w, PolicyAxis.CornLaws));
         Assert.StartsWith("制定:", PlayHarness.GateText(w, PolicyAxis.CornLaws));
+        w.Pension = ReformLevel.None;
         Assert.False(Government.AtTopStage(w, PolicyAxis.LandTax));      // 税の段（最上段は税の目標＝3 段目）
         w.LandTax = 1.0;
         Assert.True(Government.AtTopStage(w, PolicyAxis.LandTax));

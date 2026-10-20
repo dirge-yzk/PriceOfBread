@@ -1584,7 +1584,7 @@ public class RevoltIgnitionTests
         // 梯子を社会保障の段（労災→失業）まで登らせる：失業の段は官僚制度（資格任用以上）が前提（Government.LawPrereq）＝政治ロックを外しても通らない
         w.CornLaws = ReformLevel.None; p.CornLaws = w.CornLaws;
         w.WorkHours = WorkHours.Eight; p.WorkHours = w.WorkHours;
-        w.SocialSecurityLaw = SocialSecurityLaw.WorkersComp; p.SocialSecurityTarget = 1 / 3.0;
+        w.SocialSecurityLaw = SocialSecurityLaw.WorkersComp; w.SocialSecurity = 1 / 3.0; p.SocialSecurityTarget = 1 / 3.0;
         Assert.True(w.Bureaucracy < BureaucracyLaw.MeritExam, "前提が崩れた：官僚制度が既に資格任用以上");
         Assert.Equal(F1Ladder[2], F1NextRung(w));
         w.PoliticalLockEnabled = false;
@@ -1624,7 +1624,7 @@ public class RevoltIgnitionTests
         var w = F1_譲歩の盤面(); var p = w.Policy;
         w.CornLaws = ReformLevel.None; p.CornLaws = w.CornLaws;
         w.WorkHours = WorkHours.Eight; p.WorkHours = w.WorkHours;
-        w.SocialSecurityLaw = SocialSecurityLaw.Pension; p.SocialSecurityTarget = 1.0;
+        w.SocialSecurityLaw = SocialSecurityLaw.Pension; w.SocialSecurity = 1.0; p.SocialSecurityTarget = 1.0;
         w.SerfEmancipation = ReformLevel.Full; p.SerfEmancipation = w.SerfEmancipation;
         w.Suffrage = Suffrage.AdultMale; p.Suffrage = w.Suffrage;
         Assert.Null(F1NextRung(w));

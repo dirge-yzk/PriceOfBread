@@ -1280,7 +1280,7 @@ public static class Politics
             // ★女性の権利の梯子（統合法・2026-08-10）：勢力の経済決着による直接施行も**段を飛ばさない**（StepEnumAxis が前提DAG＝StagePrereq で切り下げる）。
             PolicyAxis.WomenRights => StepEnumAxis((int)w.WomenRights, 3, v => { w.WomenRights = (WomenRightsLaw)v; p.WomenRights = w.WomenRights; }),
             PolicyAxis.IncomeTax => Slide(w.TaxRate.Value, v => { w.TaxRate = new Share(v); p.IncomeTaxTarget = v; }, staged: true),   // ★R1：段
-            PolicyAxis.SocialSecurity => Slide(w.SocialSecurity, v => { p.SocialSecurityTarget = v; }),   // ⚠社会保障は既に法（Government が SocialSecurityLaw を StepEnum）＝段の対象外。★(474) 福祉水準 w.SocialSecurity は法の段から読む導出値＝書くのは目標だけ（旧は w.SocialSecurity にも書き、次の Government.Step の代入で上書きされた）
+            PolicyAxis.SocialSecurity => Slide(w.SocialSecurity, v => { w.SocialSecurity = v; p.SocialSecurityTarget = v; }),   // ⚠社会保障は既に法（Government が SocialSecurityLaw を StepEnum）＝段の対象外
             PolicyAxis.Tariff => Slide(w.Tariff, v => { w.Tariff = v; p.TariffTarget = v; }),   // ⚠関税は R3 で段の対象外
             PolicyAxis.PollTax => Slide(w.PollTax, v => { w.PollTax = v; p.PollTaxTarget = v; }, staged: true),                               // ★R1：段
             PolicyAxis.ProgressiveTax => Slide(w.ProgressiveTax, v => { w.ProgressiveTax = v; p.ProgressiveTaxTarget = v; }, staged: true),   // ★R1：段
