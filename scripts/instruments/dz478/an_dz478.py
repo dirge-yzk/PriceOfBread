@@ -1,11 +1,19 @@
 # (478) 線 dz：age_s（B 行・N 行）を読んで事前登録 [8] の G1-0・G1-1・G1-4・G1-6 を出す。層の数が 11 のときの 0 歳の層を読む（8 層は乳児の列が nan）。
 # 使い方: PYTHONUTF8=1 python -I an_dz478.py <計器の生のフォルダ> [出力のファイル]    （種の中央値＝フォルダにある age_s<seed>.tsv 全部の中央値）
+# 層の数が 11 でない（または age_s が無い）フォルダは読まずに終了コード 2。age_s の死は平常と飢えだけ（疫病・戦死は入らない＝追記 2 [B3]）。
 import csv, sys, glob, re, statistics as st, collections
 NATIONS = ["イギリス", "フランス", "プロイセン", "ロシア", "日本", "清"]
 ERAS = [("P1", 1783, 1799), ("P2", 1800, 1849), ("P3", 1850, 1899), ("P4", 1900, 1949)]
 D = sys.argv[1]
 out = open(sys.argv[2], "w", encoding="utf-8", newline="\n") if len(sys.argv) > 2 else sys.stdout
 files = sorted(glob.glob(f"{D}/age_s*.tsv"))
+bands_seen = set()
+for fp in files:
+    with open(fp, encoding="utf-8") as f:
+        for r in csv.DictReader(f, delimiter="\t"):
+            if r["scope"] == "N": bands_seen.add(int(r["bands"]))
+if bands_seen != {11} or not files:
+    sys.stderr.write(f"!! age_s の層の数が 11 でない（{sorted(bands_seen)}・ファイル {len(files)}）＝読まない\n"); sys.exit(2)
 per_seed = []
 g10_bad = 0; g10_rows = 0
 for fp in files:
@@ -47,3 +55,26 @@ for n in NATIONS:
         cbrs = [r[3] / (r[4] / 4.0) for r in rows]; cbr = st.median(cbrs)
         exp = cbr * (1 - imr / 2)
         out.write(f"{n}\t{pname}\t11\t{s0:.4f}\t{cbr:.4f}\t{imr:.4f}\t{exp:.4f}\t{s0 / exp:.3f}\t{d05:.3f}\n")
+
+# ---- 線ごとの通過数（登録 [8]：6 国のうち 5 国以上）
+out.write("\n通過数（期間・種の中央値の国別の値が線の内にある国の数）\n")
+def collect(pname, col):
+    res = {}
+    for n in NATIONS:
+        rows = []
+        for acc in per_seed:
+            k = acc.get((n, pname))
+            if not k or k["w"] == 0 or k["bands"] != 11 or k["births"] <= 0: continue
+            s0 = k["pop0share"] / k["pop"]; imr = k["dead0"] / k["births"]
+            d05 = (k["dead0"] + k["dead1"]) / k["dead"] if k["dead"] > 0 else float("nan")
+            cbr = k["births"] / (k["pop"] / 4.0)
+            rows.append({"imr": imr, "d05": d05, "g11": s0 / (cbr * (1 - imr / 2))})
+        if rows: res[n] = st.median(r[col] for r in rows)
+    return res
+for pname in ("P1", "P3"):
+    v = collect(pname, "imr"); ok = sum(1 for x in v.values() if 0.05 <= x <= 0.40)
+    out.write(f"G1-4 乳児死亡 0.05〜0.40  {pname}: {ok}/{len(v)}（5 以上で通る）  " + " ".join(f"{n}={x:.3f}" for n, x in v.items()) + "\n")
+v = collect("P1", "g11"); ok = sum(1 for x in v.values() if 0.8 <= x <= 1.2)
+out.write(f"G1-1 0.8〜1.2  P1: {ok}/{len(v)}（5 以上で通る）  " + " ".join(f"{n}={x:.3f}" for n, x in v.items()) + "\n")
+v = collect("P1", "d05"); ok = sum(1 for x in v.values() if 0.5 * 0.26 <= x <= 1.5 * 0.26)
+out.write(f"G1-6 0〜5 歳の死の割合 0.13〜0.39  P1: {ok}/{len(v)}（5 以上で通る）  " + " ".join(f"{n}={x:.3f}" for n, x in v.items()) + "\n")

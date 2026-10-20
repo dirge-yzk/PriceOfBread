@@ -70,14 +70,14 @@ public class AgeLayoutTests
     }
 
     [Fact]
-    public void 十一層の死の重みは乳児が最も重く_二十代が最も軽い()
+    public void 十一層の死の重みは乳児が六十歳未満で最も重く_老いは単調に重い()
     {
         var mw = Pop.MortalityWeights(Cbr, AgeLayout.Bands11);
         Assert.Equal(0.1617, mw[0], 3);                                                    // 0歳の層 μ0≈0.162（乳児死亡 μ0÷(1+μ0+g)≈13.9%）
         Assert.Equal(0.1386, mw[0] / (1 + mw[0] + G), 3);
-        int argmin = 0; for (int b = 1; b < 11; b++) if (mw[2 * b] < mw[2 * argmin]) argmin = b;
-        Assert.Equal(5, argmin);                                                           // 21〜30歳が最も低い
+        for (int b = 1; b < 9; b++) Assert.True(mw[0] > mw[2 * b]);                        // 乳児が 60 歳未満の層で最大（61〜70 歳の層 0.057 と 71 以上 0.216 は別）
         Assert.True(mw[2 * 10] > mw[2 * 9] && mw[2 * 9] > mw[2 * 8]);                       // 老いは単調に重い
+        // ⚠最小の層の位置（今は 21〜30 歳）は補間した標準のピラミッドの帰結で、前近代の生命表〔10〜14 歳が最小〕の形ではない＝不変条件として固定しない（追記 2 [B4]）
     }
 
     // ---- ① 標準のピラミッドが12か月の出生と死で動かない（両方の器）----
