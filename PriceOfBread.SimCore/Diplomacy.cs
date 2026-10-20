@@ -400,7 +400,7 @@ public sealed class Diplomacy
     private const int EndedWarRingCapacity = 256;             // 終戦記録リングの容量
 
     /// <summary>★将校の戦死の年齢の重み（2026-09-30 段4e 後半・設計書 §2-4）＝男の20〜49歳だけ（1人あたり1・ほか0＝尽きれば残りの全員から＝TakeWeighted）。</summary>
-    private static readonly double[] OfficerAgeWeights = [0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+    private static readonly double[] OfficerAgeWeights = Pop.MaleAgeWeights(Pop.Layout, 20, 50);   // ★(478) 層の器から（8層は旧の 16 本の並び [0,0,0,0,1,0,1,0,1,0,…] と同じ・11層は 20〜49歳に重なる割合）
 
     private static long Key(Power a, Power b) => a.Id < b.Id ? ((long)a.Id << 32) | (uint)b.Id : ((long)b.Id << 32) | (uint)a.Id;
     private static long DirKey(Power suzerain, Power dependent) => ((long)suzerain.Id << 32) | (uint)dependent.Id;   // 有向（非対称関係用）

@@ -1161,7 +1161,7 @@ public sealed class World
         // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
         // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
         //   POP の中は年齢の重み（0〜9 と 60以上に (1＋DisasterAgeMortalityExcess)）。旧＝POP の間の重みが子供比＋老年比を読み、POP の中の年齢の運搬も同じ脆弱さを読んだ＝2度（思想⑨）。
-        var aw = new double[2 * Pop.AgeBands];
+        var aw = new double[2 * Pop.Layout.Bands];
         Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
         var pops = wr.Pops; var wts = new List<double>(pops.Count); double totalD = 0;
         foreach (var p in pops)
@@ -1638,7 +1638,7 @@ public sealed class World
         foreach (var p in AllPops())
         {
             if (!(p.Size > 0)) continue;
-            e += p.Size * p.EnteringAdultsMonthly(); a += p.Size * p.AgeShare(20, double.PositiveInfinity);
+            e += p.Size * p.EnteringAdultsMonthly(); a += p.Size * p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity);   // ★(478) 大人の境は器の値（8層で20歳・11層で21歳＝大人に入る流れの上端と同じ）
         }
         e *= months;
         return a + e > 1e-9 ? e / (a + e) : Pop.StdReplacementRate(months);

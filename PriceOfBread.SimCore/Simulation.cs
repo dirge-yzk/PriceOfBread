@@ -2606,7 +2606,7 @@ public sealed class Simulation
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
         bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）
-        Span<double> disasterW = stackalloc double[2 * Pop.AgeBands];
+        Span<double> disasterW = stackalloc double[2 * Pop.Layout.Bands];
         Pop.DisasterWeights(disasterW, c.DisasterAgeMortalityExcess);   // 飢えの超過死亡の年齢の重み（災害死と同じ）
         for (int ri = 0; ri < regions.Count; ri++)
         {

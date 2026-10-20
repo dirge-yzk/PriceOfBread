@@ -180,19 +180,19 @@ if (args.Length > 0 && args[0] == "popprobe")
             double lit = 0, sz = 0;
             foreach (var pp in w.AllPops()) { lit += pp.Literacy * pp.Size; sz += pp.Size; }
             // ★年齢の層（2026-09-30 段4e 後半・計器）：兵士を含む全ての POP の人数の和＝国のピラミッド（層ごと・性ごと）と世代の置き換わり率（四半期＝20歳になる人÷(大人＋入る人)）
-            var ageN = new double[2 * Pop.AgeBands]; double entQ = 0, adultsQ = 0;
+            var ageN = new double[2 * Pop.Layout.Bands]; double entQ = 0, adultsQ = 0;   // ★(478) 層の数は器（Pop.Layout）から・大人の境も器の値（8層で20歳・11層で21歳）
             foreach (var pp in w.AllPops())
             {
                 for (int k = 0; k < ageN.Length; k++) ageN[k] += pp.Ages[k] * pp.Size;
-                entQ += 3.0 * pp.EnteringAdultsMonthly() * pp.Size; adultsQ += pp.AgeShare(20, double.PositiveInfinity) * pp.Size;
+                entQ += 3.0 * pp.EnteringAdultsMonthly() * pp.Size; adultsQ += pp.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity) * pp.Size;
             }
             double ageT = 0; foreach (var x in ageN) ageT += x;
-            double[] ageSh = new double[2 * Pop.AgeBands];
+            double[] ageSh = new double[2 * Pop.Layout.Bands];
             for (int k = 0; k < ageN.Length; k++) ageSh[k] = ageT > 1e-9 ? ageN[k] / ageT : 0;
             string ageCols = $"{100 * Pop.AgeShareOf(ageSh, 0, 15, -1):F1},{100 * Pop.AgeShareOf(ageSh, 15, 65, -1):F1},{100 * Pop.AgeShareOf(ageSh, 60, double.PositiveInfinity, -1):F1},{100 * Pop.AgeShareOf(ageSh, 65, double.PositiveInfinity, -1):F1}";
-            for (int b = 0; b < Pop.AgeBands; b++) ageCols += $",{100 * (ageSh[2 * b] + ageSh[2 * b + 1]):F1}";
-            double adF = Pop.AgeShareOf(ageSh, 20, double.PositiveInfinity, 1), adA = Pop.AgeShareOf(ageSh, 20, double.PositiveInfinity, -1);
+            double adF = Pop.AgeShareOf(ageSh, Pop.Layout.AdultAge, double.PositiveInfinity, 1), adA = Pop.AgeShareOf(ageSh, Pop.Layout.AdultAge, double.PositiveInfinity, -1);
             ageCols += $",{(adA > 1e-12 ? adF / adA : 0):F3},{(adultsQ + entQ > 1e-9 ? 100 * entQ / (adultsQ + entQ) : 0):F3}";
+            for (int b = 0; b < Pop.Layout.Bands; b++) ageCols += $",{100 * (ageSh[2 * b] + ageSh[2 * b + 1]):F1}";   // ★(478) 層ごとの列は末尾（層の数が変わっても集計の列の位置は動かない）
             double popHome = 0;   // ★初期州集合ベースの人口（征服で得た州を除外＝「領土不変な定義」の実装。失った州は自然に落ちる）
             if (initRegions.TryGetValue(pw.BaseName, out var ir))
                 foreach (var rr in w.Regions) if (rr.State == RegionState.Active && ir.Contains(rr)) popHome += rr.SumPopulation();
@@ -8161,6 +8161,8 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     Console.WriteLine($"=== バッチ自己対戦 seeds {seedBase}..{seedBase + (ulong)b.N - 1}（各{gq}四半期{(ir is { } v ? $"・金利{v:F2}" : "")}）===");
     if (PriceOfBread.SimCore.Coefficients.OverrideSummary() is { Length: > 0 } ov)
         Console.WriteLine($"★係数の上書き（POB_COEF）: {ov}");   // 走行条件の名乗り＝ヘッダーを突き合わせてから数字を読む
+    if (PriceOfBread.SimCore.Pop.Layout.Bands != 8)
+        Console.WriteLine($"★年齢の層の数（POB_AGE_BANDS）: {PriceOfBread.SimCore.Pop.Layout.Bands}");   // (478) 8層（既定）では出さない＝既定の報告は1バイトも変わらない
     Console.WriteLine($"破綻（未完走）: {b.Breakdowns}/{b.N}");
     Console.WriteLine($"平均 首位確定: Q{b.AvgDecisionQuarter:F0}/{gq}    平均首位交代: {b.AvgLeadChanges:F1}回");
     Console.WriteLine($"デッドロック発生: {b.Deadlocks}/{b.N}    終盤決着(最終1割の四半期): {b.LateDecisions}/{b.N}    異常総数: {b.TotalAnomalies}");   // #135（2026-07-25）：終盤までもつれるのはバランス目標（独走不可）の達成＝病理でない（Round2で異常から除外済み）＝ラベルも情報系へ
@@ -8506,6 +8508,46 @@ if (args.Length > 0 && args[0] == "milablate")
 }
 
 // === 自動テストプレイ（自己対戦）モード： dotnet run -- selfplay [seed] ===
+// ★(478) agebench [回数=2000000] [組=3]：8層と11層の「1 POP×月」の年齢の仕事（死の重みの内積・読み手の AgeShare 10回・StepAges 1回）の時間を、同じプロセスで交互（A B B A）に測る。
+//   読むだけ（SimCore の出力に触れない）。事前登録 measurements/dz478_20261021_prereg.txt [9] の単価の増分の見積り（台帳の行は足さない＝この測りと B の .cost の覆う割合で読む）。
+if (args.Length > 0 && args[0] == "agebench")
+{
+    int iters = ArgInt(args, 1, 2_000_000), sets = ArgInt(args, 2, 3);
+    AgeLayout[] lays = [AgeLayout.Bands8, AgeLayout.Bands11];
+    double sink = 0;
+    double Run(AgeLayout l)
+    {
+        var pop = new Pop { Size = 1000, Ages = Pop.StdAges(l) }; var mortW = Pop.MortalityWeights(0.035, l);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        for (int i = 0; i < iters; i++)
+        {
+            double s = 0; for (int k = 0; k < mortW.Length; k++) s += mortW[k] * pop.Ages[k];   // AgeMortalityIndex
+            var a = pop.Ages;
+            s += Pop.AgeShareOf(a, 15, 65, 0) + Pop.AgeShareOf(a, 15, 65, 1) + Pop.AgeShareOf(a, 65, double.PositiveInfinity, 0) + Pop.AgeShareOf(a, 65, double.PositiveInfinity, 1)
+               + Pop.AgeShareOf(a, 10, 15, -1) + Pop.AgeShareOf(a, 5, 15, -1) + Pop.AgeShareOf(a, 60, double.PositiveInfinity, -1) + Pop.AgeShareOf(a, 16, 60, 0)
+               + Pop.AgeShareOf(a, 15, 50, 1) + Pop.AgeShareOf(a, 15, 50, 0);                                                                                                                   // 読み手（労働・児童・学齢・年金・兵役・出産）
+            double births = 0.035 / 12 * pop.Size, deaths = 0.030 / 12 * pop.Size;
+            pop.StepAges(pop.Size, births, deaths, mortW); pop.Size += births - deaths;
+            if (pop.Size > 1e6) pop.Size = 1000;   // 規模を暴走させない（割合の更新の時間だけを測る）
+            sink += s;
+        }
+        sw.Stop();
+        return sw.Elapsed.TotalMilliseconds * 1e6 / iters;   // ns / POP×月
+    }
+    Run(lays[0]); Run(lays[1]);   // 暖機
+    var ns = new double[2][]; for (int i = 0; i < 2; i++) ns[i] = new double[sets];
+    for (int s = 0; s < sets; s++)
+    {
+        int[] order = s % 2 == 0 ? [0, 1, 1, 0] : [1, 0, 0, 1];
+        var acc = new double[2]; var cnt = new int[2];
+        foreach (int li in order) { acc[li] += Run(lays[li]); cnt[li]++; }
+        for (int i = 0; i < 2; i++) ns[i][s] = acc[i] / cnt[i];
+        Console.WriteLine($"組 {s + 1}: 8層 {ns[0][s]:F1} ns・11層 {ns[1][s]:F1} ns・増分 {ns[1][s] - ns[0][s]:F1} ns（比 {ns[1][s] / ns[0][s]:F3}）");
+    }
+    double m8 = ns[0].OrderBy(x => x).ElementAt(sets / 2), m11 = ns[1].OrderBy(x => x).ElementAt(sets / 2);
+    Console.WriteLine($"中央値: 8層 {m8:F1} ns・11層 {m11:F1} ns・増分 {m11 - m8:F1} ns / POP×月 → 全長 1 試合（POP×月 約 847 万）で {(m11 - m8) * 8.475e6 / 1e9:F2} 秒（sink {sink:G3}）");
+    return;
+}
 if (args.Length > 0 && args[0] == "selfplay")
 {
     ulong sd = ArgUlong(args, 1, 1);

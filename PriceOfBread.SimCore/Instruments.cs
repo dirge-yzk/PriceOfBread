@@ -199,6 +199,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Opium; public bool OpiumHeader;                     // (342) アヘンの表（州×四半期の行 R と国×四半期の行 N）
         public System.IO.StreamWriter? Ce; public bool CeHeader;                           // (345) 消費の入口の表（国×四半期×階級の行 C と国×窓×財の行 N）
         public System.IO.StreamWriter? PopS; public bool PopSHeader;                       // (361) 人口の表（国×四半期の行 N と国×四半期×階級の行 C）
+        public System.IO.StreamWriter? AgeS; public bool AgeSHeader;                       // (478) 年齢の層の表（国×四半期×層の行 B と国×四半期の行 N）
         public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
         public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
@@ -1715,6 +1716,7 @@ public static partial class Instruments
         sk.Opium?.Dispose(); sk.Opium = null;   // (342)
         sk.Ce?.Dispose(); sk.Ce = null;   // (345)
         sk.PopS?.Dispose(); sk.PopS = null;   // (361)
+        sk.AgeS?.Dispose(); sk.AgeS = null;   // (478)
         sk.Fm?.Dispose(); sk.Fm = null;       // (371)
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)

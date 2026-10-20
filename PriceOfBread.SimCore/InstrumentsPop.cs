@@ -18,12 +18,12 @@ public static partial class Instruments
     /// <summary>子の費用の年数（設計 doc §2-4(c)）：籠 15 年・教育 10 年（5〜14 歳）・稼ぎ 5 年（10〜14 歳）。</summary>
     internal const double PopChildBasketYears = 15.0, PopChildEduYears = 10.0, PopChildWorkYears = 5.0;
 
-    /// <summary>国×窓の蓄え（DemographicStep の POP のループの hook が積む・行を書いたら0へ戻す）。層は 10 歳刻み 8 本（男女計）。</summary>
+    /// <summary>国×窓の蓄え（DemographicStep の POP のループの hook が積む・行を書いたら0へ戻す）。層は <c>Pop.Layout</c> の層（8層は10歳刻み8本・11層は作者の刻み・男女計）。</summary>
     internal sealed class PopAcc
     {
         public int Months, RecoveringMonths, NoMotherMonths;
         public double PopMonths, Births, DeathsNormal, DeathsFamine, FertileWomenMonths;
-        public readonly double[] BandDeaths = new double[Pop.AgeBands], BandExposure = new double[Pop.AgeBands];
+        public readonly double[] BandDeaths = new double[Pop.Layout.Bands], BandExposure = new double[Pop.Layout.Bands];
         public double Diag0Births, Diag0Deaths, Diag0War;   // 前の行を書いた時の World.DiagBirths／DiagDeaths／WarDeadCumulative（差分で取る）
         public void Clear(World w)
         {
@@ -49,17 +49,18 @@ public static partial class Instruments
     internal static void DemoPop(World w, Pop p, double size0, double births, double deaths, double[] mortW)
     {
         var a = PAcc(w);
-        Span<double> n0 = stackalloc double[2 * Pop.AgeBands];
+        int nb = p.Ages.Length, nbands = Pop.Layout.Bands;
+        Span<double> n0 = stackalloc double[AgeLayout.MaxSlots]; n0 = n0[..nb];
         for (int k = 0; k < n0.Length; k++) n0[k] = p.Ages[k] * size0;
         a.PopMonths += size0; a.Births += births; a.DeathsNormal += deaths; a.FertileWomenMonths += size0 * p.AgeShare(15, 50, 1);
-        for (int b = 0; b < Pop.AgeBands; b++) a.BandExposure[b] += n0[2 * b] + n0[2 * b + 1];
+        for (int b = 0; b < nbands; b++) a.BandExposure[b] += n0[2 * b] + n0[2 * b + 1];
         if (deaths > 0)
         {
-            Span<double> tmp = stackalloc double[2 * Pop.AgeBands];
-            Span<double> took = stackalloc double[2 * Pop.AgeBands];
+            Span<double> tmp = stackalloc double[AgeLayout.MaxSlots]; tmp = tmp[..nb];
+            Span<double> took = stackalloc double[AgeLayout.MaxSlots]; took = took[..nb];
             n0.CopyTo(tmp);
             Pop.TakeWeighted(tmp, took, mortW, deaths);
-            for (int b = 0; b < Pop.AgeBands; b++) a.BandDeaths[b] += took[2 * b] + took[2 * b + 1];
+            for (int b = 0; b < nbands; b++) a.BandDeaths[b] += took[2 * b] + took[2 * b + 1];
         }
     }
 
@@ -67,12 +68,13 @@ public static partial class Instruments
     internal static void DemoFamine(World w, Pop p, double d, ReadOnlySpan<double> disasterW)
     {
         var a = PAcc(w);
-        Span<double> n = stackalloc double[2 * Pop.AgeBands];
-        Span<double> took = stackalloc double[2 * Pop.AgeBands];
+        int nb = p.Ages.Length;
+        Span<double> n = stackalloc double[AgeLayout.MaxSlots]; n = n[..nb];
+        Span<double> took = stackalloc double[AgeLayout.MaxSlots]; took = took[..nb];
         for (int k = 0; k < n.Length; k++) n[k] = p.Ages[k] * p.Size;
         Pop.TakeWeighted(n, took, disasterW, d);
         a.DeathsFamine += d;
-        for (int b = 0; b < Pop.AgeBands; b++) a.BandDeaths[b] += took[2 * b] + took[2 * b + 1];
+        for (int b = 0; b < Pop.Layout.Bands; b++) a.BandDeaths[b] += took[2 * b] + took[2 * b + 1];
     }
 
     // ---------------------------------------------------------------- 影の式（段B・純関数＝番人が手の算術で突き合わせる） ----------------------------------------------------------------
@@ -120,7 +122,19 @@ public static partial class Instruments
         return new PopShadowOut(e, cb, ce, c, o, u1, v, psi, g, ck, a, m, tfr);
     }
 
-    /// <summary>層 b（10 歳刻み）の月初の人数に対する年あたりの死の率（平常＋飢え）。人年が 0 は NaN。</summary>
+    /// <summary>★(478) 10 歳まで生き残る確率の指数＝Σ(層の10歳までの年数×その層の死の率)。8層は層 0 が 10 年＝<c>10.0×μ0</c>（旧の式と同じ double）。人年 0 の層（率が NaN）は、その層が10歳の内にあるときだけ NaN を運ぶ。</summary>
+    internal static double PopS10Exponent(AgeLayout lay, double[] mu)
+    {
+        double e = 0.0;
+        for (int b = 0; b < lay.Bands - 1; b++)
+        {
+            double years = lay.Overlap(b, 0.0, 10.0) * lay.Width[b];
+            if (years > 0) e += years * mu[b];
+        }
+        return e;
+    }
+
+    /// <summary>層 b の月初の人数に対する年あたりの死の率（平常＋飢え）。人年が 0 は NaN。</summary>
     static double PopMu(PopAcc a, int b) => a.BandExposure[b] > 0 ? a.BandDeaths[b] / a.BandExposure[b] * 12.0 : double.NaN;
 
     /// <summary>60 歳以後の余命（年）＝層 6（60〜69）と層 7（70 以上）の死の率から閉じた形：(1−e^−10μ6)÷μ6＋e^−10μ6÷μ7。率が正でなければ NaN（平常の死が 0 の回復期の四半期は NaN になる＝計器の限界）。</summary>
@@ -138,13 +152,15 @@ public static partial class Instruments
         public double Size, Adult, Pool, FertWomen, Kids, Women2049, School, ClrW, ClrDen, EduFillW, LitW, PriceW, PubW, W0014, W60;
     }
 
-    const string PopHeader = "scope\tquarter\tyear\tnationUid\tnation\tclassId\tclassName\tmonthsCount\t"
+    /// <summary>★(478) 層ごとの列（deathsBand{b}K・mu{b}PerYear）は <c>Pop.Layout</c> の層の数だけ（8層は今の見出しとバイトで同じ・11層は 0〜10）。層 b の年齢は新しい表 age_s の下端・上端で読む。</summary>
+    static readonly string PopHeader = "scope\tquarter\tyear\tnationUid\tnation\tclassId\tclassName\tmonthsCount\t"
         + "popK\tpopMeanK\tshare0to14\tfertileWomenShare\tshare60plus\t"
-        + "birthsK\tdeathsNormalK\tdeathsFamineK\tdeathsOtherK\twarDeadK\tcbrPerMille\tcdrPerMille\tcdrNormalPerMille\tdeathsBand0K\tdeathsBand1K\tdeathsBand2K\tdeathsBand3K\tdeathsBand4K\tdeathsBand5K\tdeathsBand6K\tdeathsBand7K\t"
-        + "mu0PerYear\tmu1PerYear\tmu2PerYear\tmu3PerYear\tmu4PerYear\tmu5PerYear\tmu6PerYear\tmu7PerYear\ts10Share\tl60Years\ttfrProxy\trecoveringMonths\tnoMotherMonths\t"
+        + "birthsK\tdeathsNormalK\tdeathsFamineK\tdeathsOtherK\twarDeadK\tcbrPerMille\tcdrPerMille\tcdrNormalPerMille\t"
+        + string.Concat(Enumerable.Range(0, Pop.Layout.Bands).Select(b => $"deathsBand{b}K\t"))
+        + string.Concat(Enumerable.Range(0, Pop.Layout.Bands).Select(b => $"mu{b}PerYear\t")) + "s10Share\tl60Years\ttfrProxy\trecoveringMonths\tnoMotherMonths\t"
         + "adultShare\tyAdultPerMonth\tbasketPerMonth\tchildLaborRateShare\tchildEarningsE\tchildBasketCost\teduCostFull\tnEduFillShare\tnEduLitShare\tpublicEduShare\tchildCostC\toldAgeO\tdirectUtilityU1\t"
         + "pensionPiShare\tsurvivingChildrenNs\tvNoUtilityIndex\tpsiBreakevenIndex\tgOfVShare\tknowledgeShare\tcKnownShare\tmarriedMNewShare\ttfrShadow\tpoolK\tshadowBirthsPerYearK";
-    const int PopFlowCols = 29;   // 見出しの birthsK〜noMotherMonths の列の数（C 行は空）
+    static readonly int PopFlowCols = 13 + 2 * Pop.Layout.Bands;   // 見出しの birthsK〜noMotherMonths の列の数（8層で29・C 行は空）
 
     static void PopFold(Sink sk, ulong seed, World w, WState st, int q, bool picked, bool yearEnd)
     {
@@ -156,9 +172,12 @@ public static partial class Instruments
         // ---- 四半期の末の断面（兵士以外の POP・稼働していない州も含む＝DemographicStep が回す集合と同じ）
         var cls = new PopCls[NC]; var names = new string?[NC];
         double popK = 0, w0014 = 0, wFert = 0, w60 = 0, oldSz = 0;
+        var lay = Pop.Layout; var bandStock = new double[lay.Bands];   // ★(478) 層ごとの四半期末の人数（千人・兵士以外）
+        double aWork = 0, aOld65 = 0;
         foreach (var (rg, p) in w.AllPopsWithRegion())
         {
             if (p.IsSoldier) continue;
+            { var ag = p.Ages; double sz0 = p.Size; for (int b2 = 0; b2 < lay.Bands; b2++) bandStock[b2] += sz0 * (ag[2 * b2] + ag[2 * b2 + 1]); aWork += sz0 * p.AgeShare(15, 65); aOld65 += sz0 * p.AgeShare(65, double.PositiveInfinity); }
             int k = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
             var cl = cls[k] ??= new PopCls(); names[k] ??= p.ClassName;
             double s = p.Size;
@@ -174,9 +193,9 @@ public static partial class Instruments
         if (!(popK > 0)) { a.Clear(w); return; }   // 死んだ国（人口 0）は行を出さない
 
         // ---- 国全体の死の率（層別）・10 歳までの生存・60 歳以後の余命
-        var mu = new double[Pop.AgeBands]; for (int b = 0; b < mu.Length; b++) mu[b] = PopMu(a, b);
-        double s10 = Math.Exp(-10.0 * mu[0]);   // 率が NaN（人年 0）なら NaN
-        double l60 = PopL60(mu[6], mu[7]);
+        var mu = new double[lay.Bands]; for (int b = 0; b < mu.Length; b++) mu[b] = PopMu(a, b);
+        double s10 = Math.Exp(-PopS10Exponent(lay, mu));   // 率が NaN（人年 0）なら NaN。⚠8層は 10.0×μ0（旧と同じ）／11層は 1×μ0＋5×μ1＋4×μ2（10歳までの年数×その層の率）
+        double l60 = PopL60(mu[lay.OldBandA], mu[lay.OldBandB]);   // 8層で層 6・7（60〜69・70以上）／11層で層 9・10（61〜70・71以上＝60歳の1年ぶんのずれは限界）
         // ---- 籠は ce_s の供給後の籠（階級×国・EntryCtx が助走後の月に毎月積む）を読む。CeFold が戻す前
         var ceC = st.CeC;
         double nBasket = 0, nSize = 0;
@@ -255,8 +274,8 @@ public static partial class Instruments
         nrow.Append('\t').Append(F(popK)).Append('\t').Append(F(a.PopMonths > 0 ? a.PopMonths / mo : double.NaN)).Append('\t').Append(F(w0014 / popK)).Append('\t').Append(F(wFert / popK)).Append('\t').Append(F(w60 / popK));
         nrow.Append('\t').Append(F(births)).Append('\t').Append(F(a.DeathsNormal)).Append('\t').Append(F(a.DeathsFamine)).Append('\t').Append(F(other)).Append('\t').Append(F(dWar))
             .Append('\t').Append(F(cbr)).Append('\t').Append(F(cdr)).Append('\t').Append(F(cdrN));
-        for (int b = 0; b < Pop.AgeBands; b++) nrow.Append('\t').Append(F(a.BandDeaths[b]));   // 層別の死（平常＋飢え・千人）
-        for (int b = 0; b < Pop.AgeBands; b++) nrow.Append('\t').Append(F(mu[b]));
+        for (int b = 0; b < lay.Bands; b++) nrow.Append('\t').Append(F(a.BandDeaths[b]));   // 層別の死（平常＋飢え・千人）
+        for (int b = 0; b < lay.Bands; b++) nrow.Append('\t').Append(F(mu[b]));
         nrow.Append('\t').Append(F(s10)).Append('\t').Append(F(l60)).Append('\t').Append(F(tfrProxy)).Append('\t').Append(I(a.RecoveringMonths)).Append('\t').Append(I(a.NoMotherMonths));
         nrow.Append('\t').Append(Wv(ADS)).Append('\t').Append(Wv(YA)).Append('\t').Append(Wv(BK)).Append('\t').Append(Wv(CLR)).Append('\t').Append(Wv(E)).Append('\t').Append(Wv(CB)).Append('\t').Append(Wv(EF))
             .Append('\t').Append(Wv(NF)).Append('\t').Append(Wv(NL)).Append('\t').Append(Wv(PU)).Append('\t').Append(Wv(CC)).Append('\t').Append(Wv(O)).Append('\t').Append(Wv(U1));
@@ -279,6 +298,28 @@ public static partial class Instruments
                 .Append('\t').Append(F(x.CKnown)).Append('\t').Append(F(x.MNew)).Append('\t').Append(F(x.TfrShadow)).Append('\t').Append(F(cl.Pool)).Append('\t').Append(F(cl.Pool * (PopTfrNatural / PopFertileYears) * x.MNew * x.CKnown));
             sk.PopS.WriteLine(sb.ToString());
         }
+
+        // ---- ★(478) 新しい表 age_s（死の側の段1・事前登録 measurements/dz478_20261021_prereg.txt [2] F8）＝層ごとの行 B と国の行 N。旗（POB_AGE_BANDS）に依らず出す。
+        //   B 行：層 b の下端・上端の年齢・四半期末の人数（千人・兵士以外）・窓の人年（千人年＝窓の月初の人数の和÷12）・窓の死（平常＋飢え）・窓の出生（0 番の層だけ）・年あたりの死の率。
+        //   N 行：層の数・兵士以外の人口・Σ層−人口（0 のはず）・層に依らない集計（0〜14 歳・15〜64 歳〔働き手〕・60 歳以上・65 歳以上の割合＝8層と11層で同じ年齢の範囲を指す）・
+        //   乳児の死の出生に対する割合（0 歳だけの層をもつ器だけ＝8層は nan）・0 歳の層の人口割合（同）。
+        //   限界：四半期末の断面と窓の合計・兵士は含まない（DemographicStep の出生と死の対象と同じ集合）・8層では乳児の列は nan。
+        sk.AgeS ??= Open("age", seed);
+        if (!sk.AgeSHeader) { sk.AgeS.WriteLine(AgeHeader); sk.AgeSHeader = true; }
+        string ahead(string scope) => string.Join('\t', scope, I(q), I(year), I(st.Uid), nation);
+        double bandSum = 0; foreach (var x in bandStock) bandSum += x;
+        for (int b = 0; b < lay.Bands; b++)
+        {
+            double upper = b < lay.Bands - 1 ? lay.Upper[b] : double.PositiveInfinity;
+            sk.AgeS.WriteLine(ahead("B") + '\t' + string.Join('\t', I(b), F(lay.Lower[b]), F(upper), F(bandStock[b]), F(a.BandExposure[b] / 12.0), F(a.BandDeaths[b]), F(b == 0 ? a.Births : 0.0), F(mu[b]))
+                + new string('\t', 9));
+        }
+        bool infantBand = lay.Width[0] == 1.0;
+        sk.AgeS.WriteLine(ahead("N") + new string('\t', 8) + '\t' + string.Join('\t', I(lay.Bands), F(popK), F(bandSum - popK), F(w0014 / popK), F(aWork / popK), F(w60 / popK), F(aOld65 / popK),
+            infantBand && a.Births > 0 ? F(a.BandDeaths[0] / a.Births) : "nan", infantBand ? F(bandStock[0] / popK) : "nan"));
         a.Clear(w);
     }
+
+    const string AgeHeader = "scope\tquarter\tyear\tnationUid\tnation\tbandIndex\tlowerAge\tupperAge\tcountK\tpersonYearsK\tdeathsK\tbirthsK\tmuPerYear\t"
+        + "bands\tpopK\tsumBandsMinusPopK\tshare0to14\twork15to64Share\told60plusShare\told65plusShare\tinfantDeathsPerBirth\tinfantShare";
 }
