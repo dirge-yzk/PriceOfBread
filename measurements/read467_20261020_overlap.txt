@@ -1,0 +1,26 @@
+(467) 読む線：波21 の線の重なり（opus・読むだけ・基点 main 128ac2b の grep・腕なし・コードは変えていない）
+★2026-10-20 (475) 合流の担当が線の報告から起こした写し（要点）。
+
+[表] 組ごとの共有（main 128ac2b の行）と処置
+- ip×mw ① EconomyStep.cs:MineralSelfCost（2782〜2791）：ip（pw3 の形）が頭に PowerOn かつ労働の財の早い return を置く／mw が own＝MarginalCost×CostPriceLevel×LocalPriceMultiplier（労働の隠れた下限）を外す＝同じ式（深）→ mw を次の波へ（★(475) ip を採らなかったので重なりは消えた・mw は MineralSelfCost に触れない形〔ProfitFactor〕で入った）
+- ip×mw ② Discovery.cs:PriceBook.Cost（812〜817）：深 → 同上
+- ip×mw ③ MarketFlow.cs:StepDay（79・81・134〜151）：effWageMax の工業化度の項（ip）と労働の帯の床（mw）＝同じ帯の式（深）→ 同上
+- ip×mw ④ EconomyStep.cs:Run の供給の段①（750〜751・808〜812）：中（隣の文）
+- ip×mw ⑤ 決算（2513〜2514／2534〜2535）：浅
+- ip×mw ⑥ Simulation.cs:AddServiceProducers：浅
+- ip×mw ⑦ SelfPlay.cs（976〜1016）：浅（文の衝突だけ）→ mw は置く場所をずらす
+- ip×rs ①〜④（Simulation.cs・Discovery.cs の Score／PriceBook.Cost・world.json・Coefficients.cs の末尾ほか）：浅（意味の結合＝rs の G0 を ip が動かす）→ 合流では合成の腕を 1 本（★(475) 両方とも採らなかった＝不要）
+- ip×sf ①②：浅／なし
+- ip×hp：DiscoveryScoreTests・InstrumentsTests・TechInstitutionTests・DiscoveryTierTests（LegacyDiscovery.Apply の番人 5 本）＝深（同じテスト）→ hp は ip へ畳む（★実際は hp が独立の恒等の線として 4 本を書き直し、TechInstitutionTests の 1 本だけ旧の盤面に残した）
+- rs×sf・rs×hp・mw×sf：なし／浅
+- 設計の線・読む線：コードに触らない
+
+[defer]（読む線の推奨・AI）
+- mw → 波22（根は ip×mw の ①②③）。★(475) 指揮役の指示と作者の依頼〈差し戻す必要はありません〉で mw は前半・後半とも走り、ip を採らなかったので合流で入れた（既定を倒した）。
+- hp → ip に畳む。★実際は独立の線として走った（同じテストを ip は触っていない＝衝突なし）。
+
+[notes の要点]
+- ip への条件：pw3 を土台・PowerRebuild＝3 の側だけ・賃金の食料の因子 6 か所は持ち込まない・MineralSelfCost の早い return は機械のレシピだけ・MarketFlow:79 は工業化度の項だけ消す（WageClampMax は触らない）・読み手の一覧に App・Runner・Megaprojects ほかを入れる・事前登録の狙いに pv の G4 と pw3 の G6 の通過を書く。
+- CostLedger：main は Count＝24（23＝DiscoveryWorldScans）。24＝ip（動力）・25＝mw に予約。★(475) ip を採らなかった＝mw の MinimumWageBasketScans は 24 のまま（Count＝25）。
+- 計算量の割り当て（余り 21.9 秒）：ip +10.0・rs +4.5・sf +0.5・mw 0（次の波の見込み +0.4〜4）＝合計 15.0。★実測：mw +16.9（世界が大きくなった分が主）・sf（①③④）−0.2・sf② +6.1（採らない）。
+- 記録：(466) は〈lw の B′ を動力の据え付けの直しの前に〉を推奨していた＝この波は ip を優先した（食い違い）。

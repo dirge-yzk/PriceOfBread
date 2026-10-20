@@ -1,0 +1,8 @@
+# (475) 最終の木（SimCore・App・Runner は a3fdfa41 と同じ・試験 1 本〔WriterRatchetTests〕と docs・measurements だけ違う）・Release・隔離ビルド D:/PoB_work/m475/build
+## フルスイート（Category!=FullLength）
+成功!   -失敗:     0、合格:  1565、スキップ:     0、合計:  1565、期間: 9 m 46 s - PriceOfBread.Tests.dll (net10.0)
+（最初の走り：失敗 4・合格 1561＝WriterRatchetTests の計算量の件数の表 4 行〔建設・請求・清算の着値の充填・覇権の判定〕＝合流 7 で宣言して緑）
+## FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 10 s - PriceOfBread.Tests.dll (net10.0)
+## 突然変異
+MinimumWageLawGate の既定を 0 へ → 赤 2 本（LaborMarketFormTests.既定の3つの旗は2と1と1で明示と同じ軌道・DormantIdentityTests.既定ゼロの係数は休眠表か台帳のどちらかに載っている）→ 戻した（git diff 空）

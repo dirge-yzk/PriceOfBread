@@ -1,0 +1,11 @@
+(475) 門 G-sf：hp＋sf の木（8ce3e4e7・SOURCE-HASH 8d19849606bfcdac）の計器つき 10 種（NATIONS 8 国）
+成績表 vs measurements/b10_20261020_sf471_ins：diff 0 行（全文一致）
+生の表 vs D:/PoB_work/keep_sf471/ins_N：
+SAME 510 DIFF 30 ONLY_A 0 ONLY_B 0
+DIFF kinds ['burscan', 'clock', 'flow']
+DIFF not in skip []
+onlyA [] onlyB []
+flow seeds differing (sourceLine col dropped, rows sorted): 0
+推定の計算量：
+  名前	件数	単価（µs）	推定（秒）
+推定の計算量（1試合）: 226.4 秒　覆う割合（推定÷実測の CPU）: 41.3 %（★下がったら数えていない重い処理が増えた合図）
