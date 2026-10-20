@@ -2349,9 +2349,10 @@ public class InstrumentsTests
             {
                 // ★(388) 既定が DiscoveryCarrierDownstream＝1 になった。この番人は運び手の表が旧の形（係数 0）のときの記帳の規則を見る＝0 を明示する（広げた表の運び手は伝わりの道の番人が見る）
                 var sim = new MultiNationSim(WorldData.Nations(), DSEED, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
+                // ★(461) 発見の時計（既定で点火）は機関車の解禁を 1810 年代へ置く＝運び手の取引が出るまで 60 四半期（〜1798 年）では足りず、160 四半期（〜1823 年）まで回す（時計を切る固定はしない）。
                 foreach (var n0 in sim.Nations) openNames.Add(n0.World.SelfPower?.BaseName ?? "");
                 Instruments.Phase(sim, DSEED, "open"); sim.StartWarmup(); Instruments.Phase(sim, DSEED, "warm");
-                for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
+                for (int q = 0; q < 160; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
                 Instruments.Close(sim);
             }
             finally { Instruments.Configure(null, null); }

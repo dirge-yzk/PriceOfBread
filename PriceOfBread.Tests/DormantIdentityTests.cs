@@ -97,6 +97,7 @@ public class DormantIdentityTests
         // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。
         // ★AiLawGateFromBoard（(423) 工業化度を読む AI の法の門を盤面の実物へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
+        "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

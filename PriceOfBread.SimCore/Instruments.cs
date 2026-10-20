@@ -80,6 +80,7 @@ public static partial class Instruments
         public readonly List<string> SiteRows = new();     // (316) 産地の判定の行（開いた行 O・開く前の軌道 T）＝四半期の末に site_s へ書く
         public readonly List<string> DiscRows = new();     // (320) 発見の表の行の出来事（E）と蒸気機関・機関車の軌道（T）＝四半期の末に disc_s へ書く
         public readonly List<string> EngRows = new();      // (415) 発見の表の行の親の産業の技師の量（解禁した行 E・まだの行の軌道 T）＝四半期の末に engineer_s へ書く（T は8四半期ごと）
+        public readonly List<string> ClockRows = new();    // (461) 発見の時計の表 clock_s の行（W・T・C 8四半期ごと・E 解禁した行）＝四半期の末に書く（InstrumentsClock.cs）
         public readonly List<string> DiscFlowRows = new();   // (360) 世界の越境の取引額（接触の分母）：蒸気機関・機関車の行の運び手の財ごと・四半期の末に discflow_s へ（Nations[0] の世界に貯める）
         public readonly Dictionary<(int Row, string Seller, int Good), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
@@ -188,6 +189,7 @@ public static partial class Instruments
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
         public System.IO.StreamWriter? Site, Metal; public bool SiteHeader, MetalHeader;   // (316) 産地の判定の行・世界の金銀の行
         public System.IO.StreamWriter? Eng; public bool EngHeader;                         // (415) 発見の表の行の親の産業の技師の量（census）
+        public System.IO.StreamWriter? Clock; public bool ClockHeader;                     // (461) 発見の時計の表（census）
         public System.IO.StreamWriter? Disc; public bool DiscHeader;                     // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         public System.IO.StreamWriter? DiscFlow; public bool DiscFlowHeader;               // (360) 接触の分母（運び手の財ごとの世界の越境の取引額）
         public System.IO.StreamWriter? DiscContact; public bool DiscContactHeader;         // (328) 伝わりの接触の内訳（買い手×行×売り手）
@@ -1678,6 +1680,7 @@ public static partial class Instruments
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
+        ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
@@ -1699,6 +1702,7 @@ public static partial class Instruments
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
+        sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;

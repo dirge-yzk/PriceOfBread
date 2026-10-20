@@ -268,7 +268,7 @@ public class SecessionLaborLawInstrumentTests
         Assert.Equal(CostLedger.Count, CostLedger.Names.Length);
         Assert.Equal(CostLedger.Count, CostLedger.UnitMicros.Length);
         Assert.True(CostLedger.AiBureaucracyScans < CostLedger.Count);   // この行は表の中にある（★(417) 行が後ろに足されても赤にならない形へ＝複数の線が行を足すので合流のたびに直さない）
-        Assert.Equal(CostLedger.ParticipationPops + 1, CostLedger.Count);   // ★(436) 合流：最後の行を名指しする（反証役 dq〔bv〕中#1＝緩めた主張は常に真で何も確かめない）＝行を足す線は ここを直す
+        Assert.Equal(CostLedger.DiscoveryWorldScans + 1, CostLedger.Count);   // ★(461) 23＝発見の世界の合計の巡回（lw は 24）／★(436) 合流：最後の行を名指しする（反証役 dq〔bv〕中#1＝緩めた主張は常に真で何も確かめない）＝行を足す線は ここを直す
         Assert.Equal(CostLedger.AiBureaucracyScanUnitMicros, CostLedger.UnitMicros[CostLedger.AiBureaucracyScans]);
         Assert.True(CostLedger.UnitMicros.All(u => u > 0 && double.IsFinite(u)), "単価が 0 以下か有限でない行がある");
         var (dir, sim) = Run(8);

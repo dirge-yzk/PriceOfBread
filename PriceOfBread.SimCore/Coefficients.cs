@@ -1903,6 +1903,12 @@ public sealed class Coefficients
     public double DiscoveryEngineerHalfPerMonth = 3.42; // ★(415) 発見の技術力の置き換え（段3・既定で点火）＝技術力＝70×A÷(A＋これ×d)×押し（A＝その発見の親の産業の生産者が雇った高度労働力の月あたりの量・d＝(行の年代−1780)÷10・d≦0 の行は 1）。
                                                     //   正（既定 3.42）＝技術水準を読まない（制度と思想の行を除く）。産地は人の厚み N÷(N＋DiscoverySiteFindHalfPop) だけ。0以下＝旧の式（技術水準÷難易度）のまま＝旗を兼ねる（合成染料の行も開幕で解禁済み・測定専用の逆戻し）。
                                                     //   値 3.42 は census（事前登録 measurements/dt_20261019_prereg.txt [6]・追記 4）の中央値（AI の定め・確証なし）。親の産業の定め方は同 [3]（確証なし）。腕 B の結果は measurements/dt_20261019_arms.txt。
+    public double DiscoveryClockWorldPerMonth = 7854.08;  // ★(461) 発見の時計の細い傾斜（枝 dk・★2026-10-20 腕 B の採用で既定 0→7854.08＝予備計測の規則から。0 以下＝旗＝(415) の式のまま）＝d＞0 の行の技術力＝70×S×C・S＝clamp((W÷(これ×d)−1)÷DiscoveryClockRampWidth＋1/2, 0, 1)
+                                                    //   （W＝世界の高度労働力の雇用の合計〔全ての財の和・月あたり・全ての行と国で共通の時計〕・d＝(行の年代−1780)÷10＝W がこれ×d で 1/2・幅の両端で 0 と 1）。正のとき (415) の式〈A÷(A＋DiscoveryEngineerHalfPerMonth×d)×押し〉を d＞0 の行で置き換える（押しは掛けない・d≦0 の行は今の式）。
+                                                    //   値は予備計測の規則（事前登録 measurements/dk_20261020_prereg.txt [5]）から追記する（AI の定め・確証なし）。
+    public double DiscoveryClockRampWidth = 0.1;    // ★(461) 同・傾斜の幅 w（無次元・S が 0 から 1 に動く W の幅は W0·d·w）。DiscoveryClockWorldPerMonth が正のときだけ読む。0.1 は制度の細ランプの先例（幅 0.2 の広ランプは列強の再現を下げた）で掃引しない。
+    public double DiscoveryOwnHalfPerMonth = 12.5677;     // ★(461) 同・（★2026-10-20 腕 B の採用で既定 0→12.5677＝予備計測の規則から）C＝自国の親の産業の技師 A÷(A＋これ)（有界の飽和＝大国の絶対量で先取りせず、産業の無い国・小さい工房の国は抑える）。単位は W0 と同じ。DiscoveryClockWorldPerMonth が正のときだけ読む。
+    public double DiscoveryClockMotorParent = 0;    // ★(461) 同・正のとき（かつ DiscoveryClockWorldPerMonth が正）電動機の行の親の産業の技師を蒸気機関の財にする（既定 0＝今の規則＝電力の産業が立つまで電動機の A は 0）。時計の形とは別の旗＝反証役の指摘（親の変更が時計の効きと混ざる）で切り離した。出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。
                                                     //   0.5＝技術力70（特許＝1780年代＝難易度0）なら強度 0.375 で届く＝旧の特許の閾値（中核エリート 0.4・傾斜 0.35〜0.45）と同じ所（推奨で決めた）
     public double DiscoveryNeedHalfIdea = 0.2;      // ★(152) 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35。
