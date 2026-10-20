@@ -1,0 +1,4 @@
+# (457) 合わせた木（SimCore・App・Runner・Tests は fc446ff2＝成績表の木と同じ・作業ツリーの差は docs と measurements だけ）・隔離ビルド D:/PoB_work/m457/suite・Release
+フルスイート（Category!=FullLength）: 成功!   -失敗:     0、合格:  1505、スキップ:     0、合計:  1505、期間: 8 m 25 s - PriceOfBread.Tests.dll (net10.0)
+FullLength（Category=FullLength）: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 11 s - PriceOfBread.Tests.dll (net10.0)
+焦点の試験（合流 2 の後）: 成功!   -失敗:     0、合格:   131、スキップ:     0、合計:   131、期間: 43 s - PriceOfBread.Tests.dll (net10.0)

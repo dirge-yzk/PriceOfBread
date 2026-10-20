@@ -1,0 +1,3 @@
+# (457) 合わせた木（fc446ff2 の SimCore・Runner・隔離ビルド D:/PoB_work/m457/rb）・savetest 1789 300 12
+保存 43.3MB（616ms）／読込 434ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）

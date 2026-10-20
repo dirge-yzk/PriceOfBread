@@ -1,0 +1,369 @@
+## 蒸気機関
+  イギリス   | k1.0 N0 Tnan r0.43 c0.47 ln-0.09 | k1.0 N0 Tnan r0.44 c0.47 ln-0.07 | k1.0 N0 Tnan r0.36 c0.42 ln-0.17 | k1.0 N0 Tnan r0.32 c0.39 ln-0.21 | k1.0 N0 Tnan r0.31 c0.40 ln-0.24
+  フランス   | k0.6 N0 T70 r0.44 c0.51 ln-0.18 | k1.0 N0 T70 r0.36 c0.45 ln-0.23 | k1.0 N0 Tnan r0.31 c0.39 ln-0.21 | k1.0 N0 Tnan r0.32 c0.38 ln-0.19 | k1.0 N0 Tnan r0.34 c0.39 ln-0.16
+  プロイセン  | k0.5 N0 T70 r0.44 c0.52 ln-0.16 | k0.6 N0 T70 r0.36 c0.44 ln-0.18 | k0.7 N0 T70 r0.33 c0.39 ln-0.18 | k0.8 N0 T70 r0.32 c0.38 ln-0.16 | k1.0 N0 T64 r0.33 c0.38 ln-0.14
+  アメリカ   | k0.5 N0 T70 r0.56 c0.67 ln-0.17 | k0.6 N0 T70 r0.39 c0.48 ln-0.20 | k0.9 N0 T70 r0.29 c0.36 ln-0.19 | k1.0 N0 Tnan r0.39 c0.47 ln-0.20 | k1.0 N0 Tnan r0.24 c0.33 ln-0.29
+  ロシア    | k0.6 N0 T70 r0.42 c0.48 ln-0.13 | k0.8 N0 T70 r0.41 c0.48 ln-0.19 | k1.0 N0 T70 r0.28 c0.36 ln-0.22 | k1.0 N0 Tnan r0.30 c0.37 ln-0.20 | k1.0 N0 Tnan r0.35 c0.42 ln-0.16
+  清      | k1.0 N0 Tnan r0.46 c0.59 ln-0.36 | k1.0 N0 Tnan r0.40 c0.47 ln-0.14 | k1.0 N0 Tnan r0.30 c0.37 ln-0.19 | k1.0 N0 Tnan r0.29 c0.36 ln-0.20 | k1.0 N0 Tnan r0.32 c0.38 ln-0.17
+  日本     | k0.5 N0 T70 r0.43 c0.56 ln-0.21 | k0.5 N0 T70 r0.40 c0.46 ln-0.16 | k0.7 N0 T70 r0.33 c0.39 ln-0.19 | k0.8 N0 T70 r0.29 c0.35 ln-0.18 | k0.8 N0 T70 r0.34 c0.38 ln-0.13
+  オスマン   | k0.8 N0 T70 r0.45 c0.56 ln-0.20 | k0.9 N0 T70 r0.40 c0.51 ln-0.24 | k1.0 N0 T70 r0.30 c0.39 ln-0.25 | k1.0 N0 Tnan r0.30 c0.37 ln-0.20 | k1.0 N0 Tnan r0.35 c0.40 ln-0.16
+## 甜菜糖
+  イギリス   | k0.7 N0 T56 r2.25 c2.23 ln-0.07 | k1.0 N0 Tnan r1.43 c1.81 ln-0.22 | k1.0 N0 Tnan r1.27 c1.50 ln-0.21 | k1.0 N0 Tnan r1.12 c1.43 ln-0.20 | k1.0 N0 Tnan r1.03 c1.32 ln-0.26
+  フランス   | k0.8 N29 T55 r2.87 c2.27 ln+0.14 | k1.0 N0 Tnan r1.44 c1.62 ln-0.09 | k1.0 N0 Tnan r1.24 c1.40 ln-0.12 | k1.0 N0 Tnan r1.09 c1.36 ln-0.24 | k1.0 N0 Tnan r1.08 c1.41 ln-0.28
+  プロイセン  | k0.9 N45 T1 r3.06 c2.10 ln+0.37 | k1.0 N0 Tnan r1.54 c1.66 ln-0.04 | k1.0 N0 Tnan r1.42 c1.46 ln-0.04 | k1.0 N0 Tnan r1.18 c1.39 ln-0.17 | k1.0 N0 Tnan r1.15 c1.41 ln-0.20 nD0.1
+  アメリカ   | k0.7 N39 T21 r3.92 c2.92 ln+0.26 | k1.0 N18 Tnan r1.97 c1.84 ln+0.07 | k1.0 N0 Tnan r0.92 c1.26 ln-0.34 | k1.0 N0 Tnan r1.22 c1.65 ln-0.30 | k1.0 N0 Tnan r0.88 c1.02 ln-0.17
+  ロシア    | k0.9 N49 T6 r2.93 c2.01 ln+0.46 | k1.0 N3 Tnan r1.75 c1.74 ln+0.01 | k1.0 N0 Tnan r1.19 c1.30 ln-0.08 | k1.0 N0 Tnan r1.08 c1.30 ln-0.19 | k1.0 N0 Tnan r1.22 c1.51 ln-0.22
+  清      | k0.8 N41 T58 r2.86 c2.02 ln+0.29 | k1.0 N5 Tnan r1.65 c1.65 ln+0.02 | k1.0 N0 Tnan r1.05 c1.32 ln-0.24 | k1.0 N0 Tnan r0.98 c1.30 ln-0.27 | k1.0 N0 Tnan r0.95 c1.30 ln-0.32
+  日本     | k0.9 N46 T2 r3.29 c2.24 ln+0.38 | k1.0 N8 Tnan r1.73 c1.71 ln+0.03 | k1.0 N0 Tnan r1.27 c1.45 ln-0.11 | k1.0 N0 Tnan r1.02 c1.28 ln-0.21 | k1.0 N0 Tnan r1.04 c1.40 ln-0.28
+  オスマン   | k0.8 N50 T21 r3.39 c2.10 ln+0.50 | k1.0 N7 Tnan r1.74 c1.76 ln+0.02 | k1.0 N0 Tnan r1.32 c1.38 ln-0.03 | k1.0 N0 Tnan r1.06 c1.26 ln-0.18 | k1.0 N0 Tnan r1.16 c1.39 ln-0.17
+## 魚の缶詰
+  イギリス   | k0.0 N0 T47 rnan c1.28 ln+nan nD1.0 | k0.0 N0 T49 r8.88 c1.17 ln+2.03 nD1.0 | k0.1 N0 T58 r1.27 c1.13 ln+0.08 nD0.9 | k0.1 N0 T69 r0.91 c0.83 ln+0.07 nD0.9 | k0.1 N0 T68 r0.99 c1.00 ln-0.02 nD0.9
+  フランス   | k0.0 N0 T62 rnan c1.48 ln+nan nD1.0 | k0.0 N0 T67 r2.34 c1.19 ln+0.68 nD1.0 | k0.1 N0 T68 r1.12 c1.00 ln+0.11 nD0.9 | k0.1 N0 T67 r0.97 c0.90 ln+0.06 nD0.9 | k0.1 N0 T67 r1.03 c1.05 ln-0.06 nD0.9
+  プロイセン  | k0.0 N0 T49 rnan c1.44 ln+nan nD1.0 | k0.0 N0 T58 r2.36 c1.06 ln+0.82 nD1.0 | k0.1 N0 T62 r1.12 c0.98 ln+0.15 nD0.9 | k0.1 N0 T58 r1.14 c1.02 ln+0.10 nD0.9 | k0.1 N0 T54 r1.21 c1.15 ln+0.08 nD0.9
+  アメリカ   | k0.0 N0 T53 rnan c1.72 ln+nan nD1.0 | k0.0 N0 T66 r2.12 c1.00 ln+0.75 nD1.0 | k0.1 N0 T67 r0.90 c0.88 ln-0.05 nD0.9 | k0.1 N0 T67 r1.12 c1.10 ln+0.01 nD0.9 | k0.1 N0 T67 r0.73 c0.75 ln-0.01 nD0.9
+  ロシア    | k0.0 N0 T56 rnan c1.22 ln+nan nD1.0 | k0.0 N0 T66 r2.50 c1.06 ln+0.79 nD1.0 | k0.1 N0 T68 r0.86 c0.83 ln+0.08 nD0.9 | k0.1 N0 T68 r0.84 c0.88 ln-0.03 nD0.9 | k0.1 N0 T69 r0.90 c0.99 ln-0.08 nD0.9
+  清      | k0.0 N0 T66 rnan cnan ln+nan nD1.0 | k0.0 N0 T69 r2.33 c0.96 ln+0.89 nD1.0 | k0.1 N0 T70 r0.98 c0.94 ln+0.04 nD0.9 | k0.1 N0 T70 r0.84 c0.88 ln-0.05 nD0.9 | k0.1 N0 T69 r0.77 c0.90 ln-0.17 nD0.9
+  日本     | k0.0 N0 T55 rnan cnan ln+nan nD1.0 | k0.0 N0 T64 r3.02 c1.12 ln+1.01 nD1.0 | k0.1 N0 T68 r1.20 c1.09 ln+0.10 nD0.9 | k0.1 N0 T67 r0.87 c0.91 ln+0.06 nD0.9 | k0.1 N0 T67 r0.79 c0.95 ln-0.19 nD0.9
+  オスマン   | k0.0 N0 T54 rnan c1.39 ln+nan nD1.0 | k0.0 N0 T66 r2.43 c1.19 ln+0.72 nD1.0 | k0.1 N0 T68 r1.26 c1.14 ln+0.09 nD0.9 | k0.1 N0 T67 r0.78 c0.80 ln-0.07 nD0.9 | k0.1 N0 T68 r0.87 c1.01 ln-0.12 nD0.9
+## キニーネの単離
+  イギリス   | k0.9 N48 T3 r18.60 c11.84 ln+0.45 | k1.0 N32 Tnan r4.99 c4.48 ln+0.16 | k1.0 N35 Tnan r2.17 c1.92 ln+0.20 | k1.0 N47 Tnan r2.36 c1.93 ln+0.40 | k1.0 N46 Tnan r1.87 c1.24 ln+0.38
+  フランス   | k0.6 N56 T33 r35.51 c15.90 ln+0.81 | k1.0 N27 Tnan r11.04 c9.71 ln+0.12 | k1.0 N6 Tnan r3.81 c4.67 ln+0.02 | k1.0 N0 Tnan r1.85 c2.02 ln-0.07 | k1.0 N0 Tnan r1.64 c1.68 ln-0.03
+  プロイセン  | k0.5 N58 T22 r34.62 c13.60 ln+0.96 | k1.0 N33 Tnan r9.67 c7.35 ln+0.17 | k1.0 N0 Tnan r2.81 c3.15 ln-0.08 | k1.0 N0 Tnan r1.59 c1.84 ln-0.19 | k1.0 N0 Tnan r1.40 c1.55 ln-0.13
+  アメリカ   | k0.5 N57 T21 r36.57 c14.57 ln+0.85 | k1.0 N49 Tnan r14.89 c8.56 ln+0.47 | k1.0 N18 Tnan r2.93 c2.97 ln+0.07 | k1.0 N35 Tnan r5.28 c3.75 ln+0.20 | k1.0 N52 Tnan r2.31 c1.46 ln+0.57
+  ロシア    | k0.6 N58 T24 r36.14 c11.76 ln+0.94 | k1.0 N33 Tnan r11.06 c8.64 ln+0.18 | k1.0 N0 Tnan r2.77 c4.16 ln-0.25 | k1.0 N0 Tnan r1.88 c2.78 ln-0.34 | k1.0 N0 Tnan r2.27 c2.57 ln-0.01
+  清      | k0.8 N56 T34 r31.48 c14.74 ln+0.77 | k1.0 N46 Tnan r15.73 c9.68 ln+0.38 | k1.0 N0 Tnan r3.74 c5.04 ln-0.20 | k1.0 N0 Tnan r2.62 c2.81 ln-0.06 | k1.0 N0 Tnan r2.00 c2.14 ln-0.09
+  日本     | k0.6 N56 T28 r35.28 c16.31 ln+0.78 | k1.0 N42 Tnan r10.65 c7.78 ln+0.29 | k1.0 N0 Tnan r3.37 c4.49 ln-0.16 | k1.0 N0 Tnan r1.56 c1.60 ln-0.10 | k1.0 N0 Tnan r1.54 c1.69 ln-0.22
+  オスマン   | k0.6 N58 T20 r39.20 c12.24 ln+0.99 | k1.0 N32 Tnan r10.29 c7.91 ln+0.17 | k1.0 N0 Tnan r3.77 c5.31 ln-0.17 | k1.0 N0 Tnan r1.71 c1.97 ln-0.13 | k1.0 N0 Tnan r1.90 c1.95 ln-0.13
+## 黄鉄鉱法
+  イギリス   | k0.9 N53 T0 r2.71 c1.33 ln+0.63 | k1.0 N16 Tnan r1.44 c1.38 ln+0.06 | k1.0 N0 Tnan r1.23 c1.24 ln-0.01 | k1.0 N14 Tnan r1.22 c1.20 ln+0.05 | k1.0 N0 Tnan r1.06 c1.14 ln-0.04
+  フランス   | k0.9 N59 T0 r4.02 c1.39 ln+1.05 | k1.0 N25 Tnan r1.54 c1.37 ln+0.11 | k1.0 N20 Tnan r1.32 c1.22 ln+0.08 | k1.0 N5 Tnan r1.17 c1.15 ln+0.01 | k1.0 N0 Tnan r1.14 c1.19 ln-0.03
+  プロイセン  | k0.8 N48 T8 r2.23 c1.38 ln+0.42 | k1.0 N29 Tnan r1.57 c1.34 ln+0.15 | k1.0 N25 Tnan r1.34 c1.22 ln+0.11 | k1.0 N9 Tnan r1.23 c1.15 ln+0.03 | k1.0 N0 Tnan r1.11 c1.15 ln-0.03
+  アメリカ   | k0.8 N56 T7 r4.03 c1.78 ln+0.78 | k1.0 N35 Tnan r1.84 c1.47 ln+0.20 | k1.0 N0 Tnan r0.97 c1.03 ln-0.01 | k1.0 N0 Tnan r1.17 c1.39 ln-0.17 | k1.0 N0 Tnan r0.74 c0.90 ln-0.18
+  ロシア    | k0.9 N57 T2 r2.82 c1.17 ln+0.88 | k1.0 N28 Tnan r1.59 c1.36 ln+0.13 | k1.0 N19 Tnan r1.17 c1.07 ln+0.07 | k1.0 N0 Tnan r1.03 c1.07 ln-0.01 | k1.0 N0 Tnan r1.26 c1.28 ln-0.03
+  清      | k0.9 N59 T9 r3.66 c1.32 ln+1.10 | k1.0 N35 Tnan r1.59 c1.27 ln+0.20 | k1.0 N6 Tnan r1.10 c1.08 ln+0.02 | k1.0 N0 Tnan r1.06 c1.07 ln-0.01 | k1.0 N0 Tnan r1.00 c1.11 ln-0.10
+  日本     | k0.9 N58 T0 r3.40 c1.29 ln+0.96 | k1.0 N36 Tnan r1.63 c1.34 ln+0.21 | k1.0 N15 Tnan r1.29 c1.21 ln+0.05 | k1.0 N0 Tnan r1.05 c1.05 ln-0.01 | k1.0 N0 Tnan r1.00 c1.13 ln-0.11
+  オスマン   | k0.9 N55 T5 r2.90 c1.32 ln+0.76 | k1.0 N27 Tnan r1.75 c1.51 ln+0.13 | k1.0 N21 Tnan r1.34 c1.21 ln+0.09 | k1.0 N0 Tnan r1.10 c1.11 ln-0.00 | k1.0 N0 Tnan r1.17 c1.22 ln-0.03
+## 木材パルプ製紙
+  イギリス   | k0.7 N20 T46 r1.79 c1.47 ln+0.08 | k1.0 N0 Tnan r1.15 c1.26 ln-0.07 | k1.0 N0 Tnan r0.93 c1.07 ln-0.10 | k1.0 N0 Tnan r0.90 c1.00 ln-0.08 | k1.0 N0 Tnan r0.80 c0.95 ln-0.17
+  フランス   | k0.7 N34 T48 r2.09 c1.56 ln+0.19 | k1.0 N16 Tnan r1.19 c1.11 ln+0.06 | k1.0 N10 Tnan r1.01 c0.98 ln+0.03 | k1.0 N0 Tnan r0.92 c0.96 ln-0.03 | k1.0 N0 Tnan r0.93 c0.97 ln-0.06
+  プロイセン  | k0.4 N52 T31 r2.44 c1.41 ln+0.57 | k1.0 N22 Tnan r1.21 c1.11 ln+0.09 | k1.0 N12 Tnan r1.06 c1.01 ln+0.04 | k1.0 N0 Tnan r0.96 c0.97 ln-0.04 | k1.0 N0 Tnan r0.88 c0.97 ln-0.12
+  アメリカ   | k0.5 N40 T29 r2.63 c1.88 ln+0.26 | k1.0 N32 Tnan r1.42 c1.18 ln+0.17 | k1.0 N0 Tnan r0.85 c0.86 ln-0.01 | k1.0 N0 Tnan r1.05 c1.10 ln-0.07 | k1.0 N0 Tnan r0.71 c0.73 ln-0.02
+  ロシア    | k0.7 N52 T34 r2.03 c1.26 ln+0.56 | k1.0 N24 Tnan r1.20 c1.06 ln+0.11 | k1.0 N8 Tnan r0.89 c0.86 ln+0.03 | k1.0 N0 Tnan r0.77 c0.84 ln-0.09 | k1.0 N0 Tnan r0.94 c0.97 ln-0.04
+  清      | k1.0 N43 Tnan r2.14 c1.33 ln+0.32 | k1.0 N17 Tnan r1.13 c1.07 ln+0.06 | k1.0 N0 Tnan r0.79 c0.90 ln-0.14 | k1.0 N0 Tnan r0.74 c0.89 ln-0.18 | k1.0 N0 Tnan r0.68 c0.89 ln-0.27
+  日本     | k0.7 N41 T46 r2.04 c1.47 ln+0.28 | k1.0 N17 Tnan r1.19 c1.11 ln+0.07 | k1.0 N0 Tnan r0.93 c0.97 ln-0.06 | k1.0 N0 Tnan r0.77 c0.89 ln-0.13 | k1.0 N0 Tnan r0.70 c0.90 ln-0.24
+  オスマン   | k0.7 N50 T31 r2.33 c1.51 ln+0.51 | k1.0 N10 Tnan r1.29 c1.25 ln+0.03 | k1.0 N0 Tnan r0.96 c0.98 ln-0.01 | k1.0 N0 Tnan r0.84 c0.92 ln-0.10 | k1.0 N0 Tnan r0.88 c1.00 ln-0.13
+## 過リン酸石灰
+  イギリス   | k0.0 N0 T39 r1.02 c1.49 ln-0.37 | k0.0 N0 T48 r0.80 c0.97 ln-0.25 | k0.0 N0 T51 r0.59 c0.83 ln-0.31 | k0.1 N0 T66 r0.58 c0.78 ln-0.28 | k0.2 N0 T65 r0.54 c0.71 ln-0.26
+  フランス   | k0.0 N0 T51 r1.07 c2.10 ln-0.65 | k0.0 N0 T61 r0.72 c0.95 ln-0.27 | k0.0 N0 T64 r0.64 c0.82 ln-0.26 | k0.1 N0 T58 r0.59 c0.77 ln-0.24 nD0.1 | k0.2 N0 T62 r0.59 c0.75 ln-0.28
+  プロイセン  | k0.0 N0 T32 r1.16 c1.34 ln-0.17 | k0.0 N0 T52 r0.76 c0.96 ln-0.22 | k0.0 N0 T54 r0.68 c0.84 ln-0.22 nD0.1 | k0.0 N0 T42 r0.63 c0.77 ln-0.20 nD0.1 | k0.0 N0 T47 r0.56 c0.74 ln-0.27 nD0.1
+  アメリカ   | k0.0 N0 T38 r1.30 c2.23 ln-0.48 | k0.0 N0 T60 r0.90 c1.11 ln-0.22 | k0.0 N0 T56 r0.56 c0.64 ln-0.17 | k0.0 N0 T67 r0.68 c0.82 ln-0.18 | k0.3 N0 T68 r0.50 c0.51 ln-0.06
+  ロシア    | k0.0 N0 T43 r1.05 c1.55 ln-0.41 | k0.0 N0 T58 r0.78 c1.01 ln-0.26 | k0.0 N0 T65 r0.56 c0.73 ln-0.27 | k0.1 N0 T62 r0.50 c0.68 ln-0.32 | k0.2 N0 T67 r0.62 c0.82 ln-0.29
+  清      | k0.0 N0 T65 r1.29 c1.94 ln-0.34 | k0.0 N0 T69 r0.80 c1.00 ln-0.21 | k0.0 N0 T69 r0.55 c0.72 ln-0.25 | k0.0 N0 T69 r0.52 c0.69 ln-0.27 | k0.2 N0 T69 r0.49 c0.69 ln-0.35
+  日本     | k0.0 N0 T47 r1.25 c1.82 ln-0.40 | k0.0 N0 T58 r0.84 c1.02 ln-0.19 | k0.0 N0 T65 r0.66 c0.82 ln-0.23 | k0.0 N0 T62 r0.54 c0.68 ln-0.22 | k0.1 N0 T61 r0.51 c0.69 ln-0.30
+  オスマン   | k0.0 N0 T42 r1.28 c1.62 ln-0.22 | k0.0 N0 T59 r0.83 c1.09 ln-0.27 | k0.0 N0 T65 r0.62 c0.82 ln-0.28 | k0.1 N0 T61 r0.55 c0.71 ln-0.29 | k0.2 N0 T65 r0.56 c0.77 ln-0.31
+## 転炉鋼
+  イギリス   | k1.0 N43 Tnan r3.51 c2.47 ln+0.33 | k1.0 N33 Tnan r2.75 c2.29 ln+0.18 | k1.0 N26 Tnan r2.22 c2.04 ln+0.12 | k1.0 N25 Tnan r2.17 c1.98 ln+0.11 | k1.0 N19 Tnan r2.03 c1.86 ln+0.08
+  フランス   | k1.0 N41 Tnan r3.55 c2.64 ln+0.28 | k1.0 N21 Tnan r2.46 c2.27 ln+0.08 | k1.0 N14 Tnan r2.11 c2.00 ln+0.05 | k1.0 N12 Tnan r1.90 c1.85 ln+0.04 | k1.0 N0 Tnan r1.80 c1.84 ln-0.01
+  プロイセン  | k0.9 N40 T20 r3.54 c2.70 ln+0.26 | k1.0 N11 Tnan r2.38 c2.29 ln+0.04 | k1.0 N5 Tnan r2.05 c2.03 ln+0.01 | k1.0 N0 Tnan r1.89 c1.89 ln-0.00 | k1.0 N0 Tnan r1.72 c1.77 ln-0.05
+  アメリカ   | k1.0 N37 T34 r4.40 c3.25 ln+0.22 | k1.0 N24 Tnan r2.92 c2.61 ln+0.11 | k1.0 N13 Tnan r1.77 c1.70 ln+0.05 | k1.0 N0 Tnan r2.05 c2.06 ln-0.01 | k1.0 N17 Tnan r1.62 c1.48 ln+0.07
+  ロシア    | k1.0 N44 T34 r3.31 c2.43 ln+0.34 | k1.0 N18 Tnan r2.51 c2.30 ln+0.07 | k1.0 N8 Tnan r1.81 c1.74 ln+0.03 | k1.0 N0 Tnan r1.66 c1.66 ln-0.01 | k1.0 N0 Tnan r1.92 c1.94 ln-0.02
+  清      | k1.0 N51 Tnan r5.09 c3.03 ln+0.52 | k1.0 N26 Tnan r2.52 c2.24 ln+0.11 | k1.0 N4 Tnan r1.74 c1.72 ln+0.01 | k1.0 N0 Tnan r1.68 c1.68 ln-0.00 | k1.0 N0 Tnan r1.57 c1.67 ln-0.05
+  日本     | k1.0 N46 Tnan r4.16 c2.77 ln+0.38 | k1.0 N26 Tnan r2.61 c2.35 ln+0.12 | k1.0 N3 Tnan r1.98 c1.94 ln+0.01 | k1.0 N3 Tnan r1.71 c1.71 ln+0.01 | k1.0 N0 Tnan r1.54 c1.67 ln-0.08
+  オスマン   | k1.0 N46 T31 r4.20 c2.94 ln+0.38 | k1.0 N20 Tnan r2.80 c2.58 ln+0.08 | k1.0 N12 Tnan r2.10 c1.99 ln+0.04 | k1.0 N3 Tnan r1.80 c1.79 ln+0.01 | k1.0 N0 Tnan r1.73 c1.84 ln-0.05
+## 石油灯油
+  イギリス   | k0.1 N0 T29 r1.09 c1.17 ln-0.09 | k0.6 N0 T40 r0.80 c1.16 ln-0.39 | k1.0 N0 T44 r0.59 c0.89 ln-0.40 | k1.0 N0 Tnan r0.56 c0.86 ln-0.43 | k1.0 N0 Tnan r0.54 c0.83 ln-0.46
+  フランス   | k0.0 N0 T46 r1.16 c1.31 ln-0.10 | k0.4 N0 T55 r0.75 c1.13 ln-0.42 | k0.7 N0 T57 r0.65 c1.01 ln-0.45 | k1.0 N0 T56 r0.60 c0.96 ln-0.46 | k1.0 N0 Tnan r0.61 c0.97 ln-0.47
+  プロイセン  | k0.0 N0 T22 r1.18 c1.28 ln-0.07 | k0.0 N0 T33 r0.78 c1.11 ln-0.39 | k0.0 N0 T34 r0.69 c1.03 ln-0.41 | k0.1 N0 T27 r0.64 c0.96 ln-0.43 | k0.2 N0 T27 r0.59 c0.94 ln-0.47
+  アメリカ   | k0.0 N0 T30 r1.38 c1.60 ln-0.18 | k0.1 N0 T49 r0.91 c1.13 ln-0.20 | k0.4 N0 T52 r0.56 c0.79 ln-0.35 | k1.0 N0 T51 r0.68 c1.05 ln-0.45 | k1.0 N0 Tnan r0.44 c0.69 ln-0.44
+  ロシア    | k0.0 N0 T28 r1.14 c1.21 ln-0.04 | k0.1 N0 T50 r0.78 c1.10 ln-0.38 | k0.5 N0 T60 r0.56 c0.88 ln-0.46 | k0.9 N0 T55 r0.49 c0.83 ln-0.50 | k1.0 N0 Tnan r0.63 c0.99 ln-0.45
+  清      | k0.9 N2 T62 r1.41 c1.36 ln+0.01 | k1.0 N0 Tnan r0.76 c1.06 ln-0.35 | k1.0 N0 Tnan r0.53 c0.85 ln-0.47 | k1.0 N0 Tnan r0.52 c0.84 ln-0.47 | k1.0 N0 Tnan r0.48 c0.82 ln-0.56
+  日本     | k0.0 N0 T36 r1.36 c1.40 ln-0.02 | k0.9 N0 T59 r0.84 c1.17 ln-0.34 | k1.0 N0 Tnan r0.67 c1.00 ln-0.42 | k1.0 N0 Tnan r0.54 c0.85 ln-0.45 | k1.0 N0 Tnan r0.51 c0.87 ln-0.54
+  オスマン   | k0.1 N0 T29 r1.35 c1.42 ln-0.01 | k0.4 N0 T56 r0.83 c1.20 ln-0.39 | k0.4 N0 T58 r0.62 c0.97 ln-0.42 | k0.9 N0 T56 r0.56 c0.88 ln-0.45 | k1.0 N0 Tnan r0.57 c0.93 ln-0.47
+## 石油ケロシン
+  イギリス   | k0.6 N47 T28 r1.09 c0.74 ln+0.40 | k1.0 N16 Tnan r0.80 c0.74 ln+0.06 | k1.0 N9 Tnan r0.59 c0.58 ln+0.03 | k1.0 N8 Tnan r0.56 c0.55 ln+0.03 | k1.0 N0 Tnan r0.54 c0.54 ln-0.02
+  フランス   | k0.5 N45 T41 r1.16 c0.81 ln+0.36 | k1.0 N17 Tnan r0.75 c0.70 ln+0.06 | k1.0 N11 Tnan r0.65 c0.62 ln+0.04 | k1.0 N6 Tnan r0.60 c0.60 ln+0.02 | k1.0 N0 Tnan r0.61 c0.61 ln-0.01
+  プロイセン  | k0.3 N46 T17 r1.18 c0.79 ln+0.39 | k0.8 N23 T29 r0.78 c0.69 ln+0.10 | k0.9 N18 T14 r0.69 c0.64 ln+0.07 | k1.0 N13 Tnan r0.64 c0.60 ln+0.05 | k1.0 N0 Tnan r0.59 c0.59 ln-0.01
+  アメリカ   | k0.1 N41 T29 r1.38 c1.00 ln+0.28 | k0.3 N39 T49 r0.91 c0.72 ln+0.25 | k0.9 N25 T52 r0.56 c0.51 ln+0.11 | k1.0 N0 Tnan r0.68 c0.67 ln+0.00 | k1.0 N5 Tnan r0.44 c0.44 ln+0.02
+  ロシア    | k0.5 N48 T25 r1.14 c0.77 ln+0.44 | k1.0 N20 Tnan r0.78 c0.70 ln+0.08 | k1.0 N7 Tnan r0.56 c0.55 ln+0.02 | k1.0 N0 Tnan r0.49 c0.53 ln-0.05 | k1.0 N1 Tnan r0.63 c0.63 ln+0.00
+  清      | k1.0 N50 Tnan r1.41 c0.84 ln+0.52 | k1.0 N23 Tnan r0.76 c0.68 ln+0.10 | k1.0 N0 Tnan r0.53 c0.54 ln-0.01 | k1.0 N0 Tnan r0.52 c0.53 ln-0.01 | k1.0 N0 Tnan r0.48 c0.54 ln-0.13
+  日本     | k0.2 N49 T35 r1.36 c0.86 ln+0.45 | k1.0 N28 T47 r0.84 c0.73 ln+0.13 | k1.0 N16 Tnan r0.67 c0.62 ln+0.06 | k1.0 N5 Tnan r0.54 c0.53 ln+0.02 | k1.0 N0 Tnan r0.51 c0.56 ln-0.09
+  オスマン   | k0.6 N49 T26 r1.35 c0.89 ln+0.46 | k1.0 N21 Tnan r0.83 c0.75 ln+0.09 | k1.0 N17 Tnan r0.62 c0.60 ln+0.06 | k1.0 N4 Tnan r0.56 c0.55 ln+0.01 | k1.0 N0 Tnan r0.57 c0.59 ln-0.02
+## 鉄筋コンクリート
+  イギリス   | k0.0 N0 T33 r1.42 c1.75 ln-0.20 | k0.0 N0 T48 r1.02 c1.53 ln-0.38 | k0.0 N0 T57 r0.87 c1.09 ln-0.21 | k0.0 N0 T66 r0.77 c1.02 ln-0.26 | k0.0 N0 T65 r0.67 c0.97 ln-0.35
+  フランス   | k0.0 N1 T44 r1.62 c1.59 ln+0.00 | k0.0 N0 T58 r0.92 c1.20 ln-0.25 | k0.0 N0 T63 r0.80 c1.00 ln-0.21 | k0.0 N0 T61 r0.73 c0.90 ln-0.20 | k0.0 N0 T60 r0.73 c0.89 ln-0.24
+  プロイセン  | k0.0 N18 T25 r1.65 c1.58 ln+0.07 | k0.0 N0 T35 r0.99 c1.12 ln-0.12 | k0.0 N0 T44 r0.86 c0.98 ln-0.13 | k0.0 N0 T40 r0.78 c0.92 ln-0.16 | k0.0 N0 T28 r0.65 c0.86 ln-0.23
+  アメリカ   | k0.0 N0 T32 r1.81 c1.97 ln-0.07 | k0.0 N0 T54 r1.23 c1.33 ln-0.08 | k0.0 N0 T60 r0.74 c0.82 ln-0.13 | k0.0 N0 T59 r0.79 c0.99 ln-0.25 | k0.0 N0 T62 r0.56 c0.76 ln-0.30
+  ロシア    | k0.1 N0 T33 r1.09 c1.44 ln-0.37 nD0.1 | k0.6 N0 T56 r1.04 c1.21 ln-0.20 | k0.6 N0 T62 r0.68 c0.85 ln-0.24 | k0.6 N0 T64 r0.59 c0.80 ln-0.29 | k0.6 N0 T65 r0.72 c0.95 ln-0.30
+  清      | k0.0 N0 T59 r2.81 c1.55 ln+0.72 nD0.9 | k0.3 N0 T68 r1.46 c1.11 ln+0.27 nD0.7 | k0.7 N0 T68 r0.68 c0.82 ln-0.22 nD0.1 | k0.7 N0 T69 r0.59 c0.78 ln-0.27 | k0.7 N0 T68 r0.53 c0.78 ln-0.36
+  日本     | k0.0 N35 T34 r2.12 c1.74 ln+0.20 | k0.0 N0 T49 r1.15 c1.21 ln-0.05 | k0.0 N0 T62 r0.81 c0.97 ln-0.17 | k0.0 N0 T56 r0.65 c0.82 ln-0.23 | k0.0 N0 T59 r0.55 c0.78 ln-0.35
+  オスマン   | k0.0 N0 T32 r1.52 c1.76 ln-0.03 | k0.0 N0 T54 r1.09 c1.30 ln-0.18 | k0.0 N0 T62 r0.79 c0.97 ln-0.19 | k0.0 N0 T60 r0.68 c0.86 ln-0.23 | k0.0 N0 T64 r0.65 c0.86 ln-0.28
+## クロムなめし
+  イギリス   | k0.6 N52 T20 r1.08 c0.62 ln+0.57 | k1.0 N22 Tnan r0.71 c0.64 ln+0.09 | k1.0 N16 Tnan r0.55 c0.54 ln+0.06 | k1.0 N8 Tnan r0.50 c0.50 ln+0.03 | k1.0 N0 Tnan r0.46 c0.48 ln-0.03
+  フランス   | k0.4 N49 T29 r1.05 c0.65 ln+0.46 | k1.0 N21 Tnan r0.62 c0.57 ln+0.09 | k1.0 N15 Tnan r0.54 c0.51 ln+0.05 | k1.0 N7 Tnan r0.50 c0.50 ln+0.02 | k1.0 N0 Tnan r0.50 c0.52 ln-0.03
+  プロイセン  | k0.2 N49 T10 r1.04 c0.66 ln+0.48 | k1.0 N24 T20 r0.64 c0.58 ln+0.10 | k1.0 N20 Tnan r0.56 c0.52 ln+0.08 | k1.0 N15 Tnan r0.53 c0.50 ln+0.06 | k1.0 N0 Tnan r0.51 c0.52 ln-0.03
+  アメリカ   | k0.0 N45 T19 r1.21 c0.81 ln+0.36 | k0.5 N39 T38 r0.79 c0.61 ln+0.25 | k1.0 N20 Tnan r0.48 c0.46 ln+0.08 | k1.0 N0 Tnan r0.57 c0.61 ln-0.06 | k1.0 N0 Tnan r0.39 c0.38 ln-0.00
+  ロシア    | k0.4 N51 T17 r1.03 c0.58 ln+0.55 | k0.9 N23 T33 r0.67 c0.60 ln+0.10 | k1.0 N12 Tnan r0.48 c0.45 ln+0.04 | k1.0 N0 Tnan r0.44 c0.46 ln-0.03 | k1.0 N0 Tnan r0.53 c0.54 ln-0.03
+  清      | k1.0 N54 Tnan r1.18 c0.65 ln+0.69 | k1.0 N29 Tnan r0.67 c0.58 ln+0.14 | k1.0 N4 Tnan r0.48 c0.48 ln+0.01 | k1.0 N0 Tnan r0.46 c0.46 ln-0.02 | k1.0 N0 Tnan r0.44 c0.49 ln-0.12
+  日本     | k0.4 N53 T25 r1.23 c0.63 ln+0.63 | k1.0 N32 Tnan r0.71 c0.60 ln+0.17 | k1.0 N15 Tnan r0.57 c0.52 ln+0.06 | k1.0 N7 Tnan r0.48 c0.46 ln+0.02 | k1.0 N0 Tnan r0.46 c0.52 ln-0.12
+  オスマン   | k0.5 N52 T16 r1.20 c0.63 ln+0.59 | k1.0 N24 Tnan r0.71 c0.64 ln+0.10 | k1.0 N18 Tnan r0.52 c0.49 ln+0.07 | k1.0 N7 Tnan r0.48 c0.47 ln+0.02 | k1.0 N0 Tnan r0.50 c0.52 ln-0.04
+## 無煙火薬
+  イギリス   | k0.5 N31 T29 r1.93 c1.28 ln+0.16 | k1.0 N0 T30 r0.94 c0.95 ln-0.00 | k1.0 N22 Tnan r0.90 c0.85 ln+0.09 | k1.0 N45 Tnan r1.14 c0.82 ln+0.35 | k1.0 N44 Tnan r1.00 c0.73 ln+0.33
+  フランス   | k0.3 N41 T35 r2.51 c1.72 ln+0.29 | k1.0 N29 T42 r1.07 c0.93 ln+0.14 | k1.0 N30 Tnan r0.96 c0.81 ln+0.15 | k1.0 N27 Tnan r0.86 c0.77 ln+0.12 | k1.0 N9 Tnan r0.86 c0.77 ln+0.05 nD0.2
+  プロイセン  | k0.3 N55 T19 r2.69 c1.21 ln+0.73 | k1.0 N29 Tnan r1.07 c0.94 ln+0.14 | k1.0 N28 Tnan r0.94 c0.83 ln+0.13 | k1.0 N23 Tnan r0.85 c0.76 ln+0.10 | k1.0 N0 Tnan r0.72 c0.74 ln-0.01
+  アメリカ   | k0.3 N45 T19 r2.68 c1.97 ln+0.36 | k1.0 N39 T44 r1.43 c1.11 ln+0.25 | k1.0 N28 Tnan r0.74 c0.64 ln+0.13 | k1.0 N28 Tnan r1.14 c0.88 ln+0.25 nD0.3 | k1.0 N51 Tnan r0.98 c0.53 ln+0.61 nD0.3
+  ロシア    | k0.5 N52 T21 r2.67 c1.26 ln+0.59 nD0.1 | k1.0 N34 Tnan r1.21 c0.97 ln+0.18 | k1.0 N25 Tnan r0.81 c0.71 ln+0.11 | k1.0 N12 Tnan r0.72 c0.69 ln+0.04 | k1.0 N14 Tnan r0.92 c0.82 ln+0.07 nD0.1
+  清      | k0.7 N46 T49 r2.26 c1.39 ln+0.45 nD0.2 | k1.0 N41 Tnan r1.28 c0.96 ln+0.29 | k1.0 N26 Tnan r0.79 c0.71 ln+0.12 | k1.0 N22 Tnan r0.76 c0.68 ln+0.09 | k1.0 N11 Tnan r0.72 c0.70 ln+0.04
+  日本     | k0.2 N51 T30 r2.68 c1.58 ln+0.54 | k0.9 N38 T41 r1.25 c0.98 ln+0.24 | k1.0 N22 Tnan r0.89 c0.81 ln+0.09 | k1.0 N21 Tnan r0.73 c0.67 ln+0.08 | k1.0 N0 Tnan r0.66 c0.69 ln-0.05 nD0.1
+  オスマン   | k0.3 N50 T21 r2.31 c1.39 ln+0.55 nD0.1 | k1.0 N36 Tnan r1.32 c1.08 ln+0.21 | k1.0 N28 Tnan r0.94 c0.82 ln+0.14 | k1.0 N17 Tnan r0.75 c0.71 ln+0.07 | k1.0 N0 Tnan r0.79 c0.76 ln+0.03 nD0.2
+## 水力発電
+  イギリス   | k0.1 N0 T24 r2.73 c4.43 ln-0.48 nD0.8 | k0.2 N0 T35 r2.25 c4.00 ln-0.58 nD0.7 | k0.3 N0 T38 r1.76 c3.17 ln-0.58 nD0.7 | k0.3 N0 T58 r1.78 c3.15 ln-0.57 nD0.7 | k0.3 N0 T56 r1.65 c2.89 ln-0.58 nD0.7
+  フランス   | k0.0 N0 T33 r3.25 c5.11 ln-0.53 nD0.9 | k0.2 N0 T46 r2.16 c3.58 ln-0.55 nD0.7 | k0.3 N0 T51 r1.75 c3.16 ln-0.58 nD0.7 | k0.3 N0 T35 r1.48 c2.73 ln-0.61 nD0.7 | k0.3 N0 T46 r1.43 c2.60 ln-0.60 nD0.7
+  プロイセン  | k0.0 N0 T15 r3.06 c5.29 ln-0.54 nD0.9 | k0.0 N0 T25 r2.12 c3.65 ln-0.55 nD0.9 | k0.1 N0 T31 r1.81 c3.14 ln-0.54 nD0.8 | k0.2 N0 T19 r1.59 c2.89 ln-0.59 nD0.8 | k0.2 N0 T15 r1.33 c2.48 ln-0.60 nD0.8
+  アメリカ   | k0.0 N0 T21 rnan c6.13 ln+nan nD1.0 | k0.0 N0 T45 r4.56 c4.82 ln+0.03 nD1.0 | k0.3 N0 T37 r1.85 c2.96 ln-0.56 nD0.7 | k0.3 N0 T50 r1.87 c3.10 ln-0.57 nD0.7 | k0.3 N0 T53 r1.20 c2.14 ln-0.59 nD0.7
+  ロシア    | k0.0 N0 T26 r2.71 c4.89 ln-0.57 nD0.9 | k0.1 N0 T47 r2.47 c4.30 ln-0.56 nD0.7 | k0.1 N0 T53 r1.51 c2.83 ln-0.60 nD0.7 | k0.3 N0 T47 r1.38 c2.67 ln-0.62 nD0.7 | k0.3 N0 T60 r1.43 c2.61 ln-0.59 nD0.7
+  清      | k0.1 N0 T52 r4.08 c6.13 ln-0.42 nD0.8 | k0.1 N0 T66 r2.26 c3.90 ln-0.55 nD0.7 | k0.3 N0 T66 r1.44 c2.67 ln-0.61 nD0.7 | k0.3 N0 T67 r1.33 c2.50 ln-0.64 nD0.7 | k0.3 N0 T66 r1.31 c2.47 ln-0.62 nD0.7
+  日本     | k0.0 N0 T25 rnan cnan ln+nan nD1.0 | k0.1 N0 T42 r2.49 c4.06 ln-0.53 nD0.8 | k0.2 N0 T56 r1.65 c2.92 ln-0.57 nD0.7 | k0.3 N0 T42 r1.38 c2.59 ln-0.62 nD0.7 | k0.3 N0 T44 r1.22 c2.32 ln-0.63 nD0.7
+  オスマン   | k0.1 N0 T23 r3.53 c6.10 ln-0.46 nD0.8 | k0.2 N0 T44 r2.64 c4.61 ln-0.56 nD0.7 | k0.3 N0 T51 r1.96 c3.45 ln-0.55 nD0.7 | k0.3 N0 T46 r1.45 c2.71 ln-0.62 nD0.7 | k0.3 N0 T52 r1.63 c2.90 ln-0.58 nD0.7
+## 蒸気タービン
+  イギリス   | k0.2 N0 T24 r2.73 c2.11 ln+0.29 nD0.8 | k0.3 N0 T35 r2.25 c1.98 ln+0.12 nD0.7 | k0.3 N0 T42 r1.76 c1.63 ln+0.12 nD0.7 | k0.3 N0 T59 r1.78 c1.64 ln+0.11 nD0.7 | k0.3 N0 T57 r1.65 c1.47 ln+0.09 nD0.7
+  フランス   | k0.1 N0 T32 r3.25 c2.34 ln+0.27 nD0.9 | k0.3 N0 T46 r2.16 c1.84 ln+0.13 nD0.7 | k0.3 N0 T52 r1.75 c1.62 ln+0.09 nD0.7 | k0.3 N0 T41 r1.48 c1.43 ln+0.04 nD0.7 | k0.3 N0 T47 r1.43 c1.39 ln+0.03 nD0.7
+  プロイセン  | k0.0 N0 T15 r3.06 c2.42 ln+0.23 nD0.9 | k0.1 N0 T24 r2.12 c1.88 ln+0.12 nD0.9 | k0.2 N0 T30 r1.81 c1.63 ln+0.12 nD0.8 | k0.2 N0 T19 r1.59 c1.46 ln+0.07 nD0.8 | k0.2 N0 T15 r1.33 c1.37 ln-0.02 nD0.8
+  アメリカ   | k0.0 N0 T21 rnan c2.77 ln+nan nD1.0 | k0.0 N0 T45 r4.56 c2.33 ln+0.72 nD1.0 | k0.3 N0 T37 r1.85 c1.50 ln+0.14 nD0.7 | k0.3 N0 T50 r1.87 c1.66 ln+0.09 nD0.7 | k0.3 N0 T53 r1.20 c1.11 ln+0.08 nD0.7
+  ロシア    | k0.1 N0 T24 r2.71 c2.20 ln+0.21 nD0.9 | k0.3 N0 T43 r2.47 c2.13 ln+0.11 nD0.7 | k0.3 N0 T51 r1.51 c1.43 ln+0.09 nD0.7 | k0.3 N0 T48 r1.38 c1.42 ln+0.02 nD0.7 | k0.3 N0 T60 r1.43 c1.45 ln+0.01 nD0.7
+  清      | k0.2 N0 T51 r4.08 c2.65 ln+0.46 nD0.8 | k0.3 N0 T65 r2.26 c1.92 ln+0.15 nD0.7 | k0.3 N0 T66 r1.44 c1.39 ln+0.06 nD0.7 | k0.3 N0 T67 r1.33 c1.30 ln+0.03 nD0.7 | k0.3 N0 T66 r1.31 c1.35 ln-0.03 nD0.7
+  日本     | k0.0 N0 T25 rnan cnan ln+nan nD1.0 | k0.2 N0 T42 r2.49 c1.98 ln+0.18 nD0.8 | k0.3 N0 T55 r1.65 c1.52 ln+0.09 nD0.7 | k0.3 N0 T43 r1.38 c1.33 ln+0.04 nD0.7 | k0.3 N0 T44 r1.22 c1.26 ln-0.02 nD0.7
+  オスマン   | k0.1 N0 T22 r3.53 c2.61 ln+0.31 nD0.8 | k0.3 N0 T41 r2.64 c2.31 ln+0.13 nD0.7 | k0.3 N0 T52 r1.96 c1.72 ln+0.12 nD0.7 | k0.3 N0 T46 r1.45 c1.39 ln+0.06 nD0.7 | k0.3 N0 T53 r1.63 c1.53 ln+0.06 nD0.7
+## 電動機
+  イギリス   | k0.0 N0 T0 r0.43 c0.83 ln-0.59 nC0.8 | k0.0 N0 T0 r0.44 c0.73 ln-0.53 nC0.7 | k0.0 N0 T0 r0.36 c0.58 ln-0.58 nC0.7 | k0.0 N0 T0 r0.32 c0.59 ln-0.57 nC0.7 | k0.0 N0 T0 r0.31 c0.54 ln-0.57 nC0.7
+  フランス   | k0.0 N0 T0 r0.44 c1.01 ln-0.63 nC0.9 | k0.0 N0 T0 r0.36 c0.67 ln-0.64 nC0.7 | k0.0 N0 T0 r0.31 c0.56 ln-0.55 nC0.7 | k0.0 N0 T0 r0.32 c0.51 ln-0.47 nC0.7 | k0.0 N0 T0 r0.34 c0.50 ln-0.42 nC0.7
+  プロイセン  | k0.0 N0 T0 r0.44 c0.94 ln-0.64 nC0.9 | k0.0 N0 T0 r0.36 c0.67 ln-0.60 nC0.9 | k0.0 N0 T0 r0.33 c0.59 ln-0.56 nC0.8 | k0.0 N0 T0 r0.32 c0.52 ln-0.49 nC0.8 | k0.0 N0 T0 r0.33 c0.47 ln-0.37 nC0.8
+  アメリカ   | k0.0 N0 T0 r0.56 cnan ln+nan nC1.0 | k0.0 N0 T0 r0.39 c1.29 ln-1.17 nC1.0 | k0.0 N0 T0 r0.29 c0.60 ln-0.62 nC0.7 | k0.0 N0 T0 r0.39 c0.63 ln-0.50 nC0.7 | k0.0 N0 T0 r0.24 c0.42 ln-0.53 nC0.7
+  ロシア    | k0.0 N0 T0 r0.42 c0.90 ln-0.63 nC0.9 | k0.0 N0 T0 r0.41 c0.78 ln-0.55 nC0.7 | k0.0 N0 T0 r0.28 c0.50 ln-0.56 nC0.7 | k0.0 N0 T0 r0.30 c0.50 ln-0.43 nC0.7 | k0.0 N0 T0 r0.35 c0.50 ln-0.41 nC0.7
+  清      | k0.0 N0 T0 r0.46 c1.16 ln-0.87 nC0.8 | k0.0 N0 T0 r0.40 c0.72 ln-0.56 nC0.7 | k0.0 N0 T0 r0.30 c0.49 ln-0.48 nC0.7 | k0.0 N0 T0 r0.29 c0.45 ln-0.43 nC0.7 | k0.0 N0 T0 r0.32 c0.47 ln-0.39 nC0.7
+  日本     | k0.0 N0 T0 r0.43 cnan ln+nan nC1.0 | k0.0 N0 T0 r0.40 c0.78 ln-0.63 nC0.8 | k0.0 N0 T0 r0.33 c0.54 ln-0.51 nC0.7 | k0.0 N0 T0 r0.29 c0.47 ln-0.46 nC0.7 | k0.0 N0 T0 r0.34 c0.45 ln-0.31 nC0.7
+  オスマン   | k0.0 N0 T0 r0.45 c1.09 ln-0.74 nC0.8 | k0.0 N0 T0 r0.40 c0.82 ln-0.64 nC0.7 | k0.0 N0 T0 r0.30 c0.59 ln-0.64 nC0.7 | k0.0 N0 T0 r0.30 c0.49 ln-0.50 nC0.7 | k0.0 N0 T0 r0.35 c0.55 ln-0.44 nC0.7
+## 人絹
+  イギリス   | k0.0 N0 T38 r1.20 c2.16 ln-0.59 | k0.0 N0 T47 r0.91 c1.48 ln-0.46 | k0.0 N0 T51 r0.81 c1.22 ln-0.38 | k0.0 N0 T65 r0.79 c1.15 ln-0.39 | k0.0 N0 T64 r0.71 c1.04 ln-0.40
+  フランス   | k0.0 N0 T51 r1.30 c2.85 ln-0.77 | k0.0 N0 T60 r0.86 c1.38 ln-0.46 | k0.0 N0 T63 r0.73 c1.19 ln-0.47 | k0.0 N0 T59 r0.70 c1.10 ln-0.44 | k0.0 N0 T61 r0.71 c1.09 ln-0.46
+  プロイセン  | k0.0 N0 T31 r1.40 c1.98 ln-0.36 | k0.0 N0 T50 r0.91 c1.40 ln-0.42 | k0.0 N0 T52 r0.80 c1.23 ln-0.42 | k0.0 N0 T39 r0.75 c1.14 ln-0.42 | k0.0 N0 T42 r0.68 c1.08 ln-0.45
+  アメリカ   | k0.0 N0 T41 r1.67 c3.08 ln-0.56 | k0.0 N0 T60 r1.12 c1.62 ln-0.37 | k0.0 N0 T55 r0.70 c0.96 ln-0.35 | k0.0 N0 T66 r0.82 c1.19 ln-0.36 | k0.0 N0 T67 r0.53 c0.77 ln-0.36
+  ロシア    | k0.0 N0 T40 r1.34 c2.17 ln-0.49 | k0.0 N0 T57 r0.97 c1.43 ln-0.40 | k0.0 N0 T63 r0.67 c1.05 ln-0.44 | k0.0 N0 T60 r0.64 c0.98 ln-0.42 | k0.0 N0 T66 r0.75 c1.17 ln-0.42
+  清      | k0.0 N0 T64 r1.83 c2.81 ln-0.43 | k0.0 N0 T68 r0.96 c1.44 ln-0.41 | k0.0 N0 T69 r0.67 c1.04 ln-0.43 | k0.0 N0 T69 r0.63 c0.99 ln-0.45 | k0.0 N0 T69 r0.64 c0.98 ln-0.42
+  日本     | k0.0 N0 T46 r1.54 c2.59 ln-0.51 | k0.0 N0 T57 r0.96 c1.49 ln-0.45 | k0.0 N0 T64 r0.74 c1.18 ln-0.48 | k0.0 N0 T60 r0.64 c0.99 ln-0.44 | k0.0 N0 T59 r0.62 c0.98 ln-0.46
+  オスマン   | k0.0 N0 T40 r1.60 c2.39 ln-0.39 | k0.0 N0 T59 r1.00 c1.57 ln-0.44 | k0.0 N0 T65 r0.74 c1.18 ln-0.46 | k0.0 N0 T59 r0.69 c1.05 ln-0.44 | k0.0 N0 T64 r0.68 c1.11 ln-0.45
+## 石油火力
+  イギリス   | k0.1 N0 T21 r2.73 c4.11 ln-0.39 nD0.8 | k0.2 N0 T33 r2.25 c3.75 ln-0.51 nD0.7 | k0.3 N0 T37 r1.76 c2.90 ln-0.50 nD0.7 | k0.3 N0 T57 r1.78 c2.90 ln-0.47 nD0.7 | k0.3 N0 T54 r1.65 c2.64 ln-0.50 nD0.7
+  フランス   | k0.0 N0 T30 r3.25 c4.68 ln-0.42 nD0.9 | k0.2 N0 T43 r2.16 c3.41 ln-0.50 nD0.7 | k0.3 N0 T49 r1.75 c3.01 ln-0.54 nD0.7 | k0.3 N0 T35 r1.48 c2.62 ln-0.57 nD0.7 | k0.3 N0 T44 r1.43 c2.51 ln-0.56 nD0.7
+  プロイセン  | k0.0 N0 T13 r3.06 c4.83 ln-0.46 nD0.9 | k0.0 N0 T22 r2.12 c3.48 ln-0.50 nD0.9 | k0.1 N0 T28 r1.81 c3.02 ln-0.50 nD0.8 | k0.2 N0 T17 r1.59 c2.78 ln-0.55 nD0.8 | k0.2 N0 T13 r1.33 c2.43 ln-0.58 nD0.8
+  アメリカ   | k0.0 N0 T18 rnan c5.52 ln+nan nD1.0 | k0.0 N0 T42 r4.56 c4.36 ln+0.11 nD1.0 | k0.3 N0 T33 r1.85 c2.75 ln-0.47 nD0.7 | k0.3 N0 T48 r1.87 c2.92 ln-0.48 nD0.7 | k0.3 N0 T51 r1.20 c2.02 ln-0.53 nD0.7
+  ロシア    | k0.0 N0 T23 r2.71 c4.44 ln-0.48 nD0.9 | k0.1 N0 T44 r2.47 c3.99 ln-0.51 nD0.7 | k0.1 N0 T51 r1.51 c2.69 ln-0.54 nD0.7 | k0.3 N0 T44 r1.38 c2.60 ln-0.57 nD0.7 | k0.3 N0 T58 r1.43 c2.52 ln-0.55 nD0.7
+  清      | k0.1 N0 T50 r4.08 c5.43 ln-0.30 nD0.8 | k0.1 N0 T65 r2.26 c3.62 ln-0.48 nD0.7 | k0.3 N0 T66 r1.44 c2.53 ln-0.54 nD0.7 | k0.3 N0 T66 r1.33 c2.39 ln-0.59 nD0.7 | k0.3 N0 T66 r1.31 c2.38 ln-0.57 nD0.7
+  日本     | k0.0 N0 T22 rnan cnan ln+nan nD1.0 | k0.1 N0 T39 r2.49 c3.79 ln-0.46 nD0.8 | k0.2 N0 T54 r1.65 c2.79 ln-0.52 nD0.7 | k0.3 N0 T39 r1.38 c2.47 ln-0.58 nD0.7 | k0.3 N0 T41 r1.22 c2.24 ln-0.60 nD0.7
+  オスマン   | k0.1 N0 T20 r3.53 c5.39 ln-0.37 nD0.8 | k0.2 N0 T41 r2.64 c4.31 ln-0.49 nD0.7 | k0.3 N0 T49 r1.96 c3.22 ln-0.49 nD0.7 | k0.3 N0 T43 r1.45 c2.56 ln-0.56 nD0.7 | k0.3 N0 T50 r1.63 c2.77 ln-0.54 nD0.7
+## 窒素固定
+  イギリス   | k0.0 N0 T15 r1.02 c1.31 ln-0.37 nC0.8 | k0.0 N0 T24 r0.80 c1.13 ln-0.36 nC0.7 | k0.1 N0 T28 r0.59 c0.87 ln-0.45 nC0.7 | k0.1 N0 T33 r0.58 c0.89 ln-0.43 nC0.7 | k0.1 N0 T34 r0.54 c0.80 ln-0.39 nC0.7
+  フランス   | k0.0 N0 T21 r1.07 c1.65 ln-0.25 nC0.9 | k0.0 N0 T29 r0.72 c1.02 ln-0.39 nC0.7 | k0.0 N0 T32 r0.64 c0.88 ln-0.33 nC0.7 | k0.1 N0 T30 r0.59 c0.80 ln-0.34 nD0.1 nC0.6 | k0.1 N0 T31 r0.59 c0.77 ln-0.34 nC0.7
+  プロイセン  | k0.0 N0 T10 r1.16 c1.46 ln-0.22 nC0.9 | k0.0 N0 T22 r0.76 c1.06 ln-0.25 nC0.9 | k0.0 N0 T23 r0.68 c0.93 ln-0.28 nD0.1 nC0.7 | k0.0 N0 T16 r0.63 c0.82 ln-0.22 nD0.1 nC0.7 | k0.0 N0 T20 r0.56 c0.73 ln-0.30 nD0.1 nC0.7
+  アメリカ   | k0.0 N0 T13 r1.30 cnan ln+nan nC1.0 | k0.0 N0 T27 r0.90 c1.69 ln-0.66 nC0.9 | k0.0 N0 T27 r0.56 c0.87 ln-0.32 nC0.7 | k0.1 N0 T34 r0.68 c0.91 ln-0.31 nC0.7 | k0.1 N0 T36 r0.50 c0.60 ln-0.21 nC0.7
+  ロシア    | k0.0 N0 T16 r1.05 c1.34 ln-0.26 nC0.9 | k0.0 N0 T27 r0.78 c1.22 ln-0.29 nC0.7 | k0.0 N0 T32 r0.56 c0.79 ln-0.28 nC0.7 | k0.1 N0 T30 r0.50 c0.76 ln-0.32 nC0.7 | k0.1 N0 T34 r0.62 c0.78 ln-0.33 nC0.7
+  清      | k0.0 N0 T33 r1.29 c1.91 ln-0.36 nC0.8 | k0.0 N0 T36 r0.80 c1.11 ln-0.28 nC0.7 | k0.0 N0 T36 r0.55 c0.75 ln-0.29 nC0.7 | k0.0 N0 T36 r0.52 c0.70 ln-0.29 nC0.7 | k0.1 N0 T36 r0.49 c0.72 ln-0.40 nC0.7
+  日本     | k0.0 N0 T18 r1.25 cnan ln+nan nC1.0 | k0.0 N0 T26 r0.84 c1.20 ln-0.29 nC0.8 | k0.0 N0 T33 r0.66 c0.84 ln-0.25 nC0.7 | k0.0 N0 T31 r0.54 c0.73 ln-0.25 nC0.7 | k0.1 N0 T30 r0.51 c0.70 ln-0.33 nC0.7
+  オスマン   | k0.0 N0 T15 r1.28 c1.66 ln-0.30 nC0.8 | k0.0 N0 T28 r0.83 c1.27 ln-0.33 nC0.7 | k0.0 N0 T32 r0.62 c0.93 ln-0.32 nC0.7 | k0.1 N0 T30 r0.55 c0.75 ln-0.30 nC0.7 | k0.1 N0 T32 r0.56 c0.86 ln-0.30 nC0.7
+## 合成ゴム
+  イギリス   | k0.0 N0 T22 rnan c1.81 ln+nan nD1.0 | k0.0 N0 T33 rnan c1.22 ln+nan nD1.0 | k0.1 N0 T39 r2.71 c1.05 ln+1.03 nD0.9 | k0.1 N0 T60 r1.05 c1.01 ln-0.07 nD0.9 | k0.1 N0 T60 r0.80 c0.92 ln-0.09 nD0.9
+  フランス   | k0.0 N0 T32 rnan c2.50 ln+nan nD1.0 | k0.0 N0 T47 rnan c1.22 ln+nan nD1.0 | k0.1 N0 T55 r1.35 c1.05 ln-0.01 nD0.9 | k0.1 N0 T47 r0.92 c0.99 ln-0.05 nD0.9 | k0.1 N0 T53 r0.85 c0.98 ln-0.11 nD0.9
+  プロイセン  | k0.0 N0 T16 rnan c1.64 ln+nan nD1.0 | k0.0 N0 T36 rnan c1.23 ln+nan nD1.0 | k0.1 N0 T39 r1.24 c1.08 ln+0.07 nD0.9 | k0.1 N0 T24 r0.84 c1.00 ln-0.03 nD0.9 | k0.1 N0 T29 r0.73 c0.95 ln-0.22 nD0.9
+  アメリカ   | k0.0 N0 T21 rnan c2.68 ln+nan nD1.0 | k0.0 N0 T47 rnan c1.41 ln+nan nD1.0 | k0.1 N0 T40 r1.13 c0.83 ln+0.15 nD0.9 | k0.1 N0 T63 r0.81 c1.07 ln-0.04 nD0.9 | k0.1 N0 T66 r0.58 c0.67 ln-0.04 nD0.9
+  ロシア    | k0.0 N0 T21 rnan c1.85 ln+nan nD1.0 | k0.0 N0 T39 rnan c1.28 ln+nan nD1.0 | k0.1 N0 T54 r0.91 c0.94 ln-0.03 nD0.9 | k0.1 N0 T50 r0.69 c0.88 ln-0.16 nD0.9 | k0.1 N0 T61 r0.85 c1.06 ln-0.12 nD0.9
+  清      | k0.0 N0 T56 rnan c2.28 ln+nan nD1.0 | k0.0 N0 T65 rnan c1.26 ln+nan nD1.0 | k0.1 N0 T67 r0.89 c0.92 ln-0.07 nD0.9 | k0.1 N0 T67 r0.83 c0.89 ln-0.14 nD0.9 | k0.1 N0 T67 r0.70 c0.89 ln-0.24 nD0.9
+  日本     | k0.0 N0 T27 rnan c2.17 ln+nan nD1.0 | k0.0 N0 T41 rnan c1.29 ln+nan nD1.0 | k0.1 N0 T54 r1.05 c1.05 ln+0.09 nD0.9 | k0.1 N0 T45 r0.92 c0.88 ln-0.03 nD0.9 | k0.1 N0 T48 r0.71 c0.90 ln-0.17 nD0.9
+  オスマン   | k0.0 N0 T21 rnan c1.94 ln+nan nD1.0 | k0.0 N0 T43 rnan c1.38 ln+nan nD1.0 | k0.1 N0 T57 r1.44 c1.06 ln+0.11 nD0.9 | k0.1 N0 T48 r0.81 c0.93 ln-0.08 nD0.9 | k0.1 N0 T58 r0.84 c1.00 ln-0.13 nD0.9
+## ガス灯
+  イギリス   | k0.8 N36 T41 r0.94 c0.63 ln+0.43 | k1.0 N2 Tnan r0.69 c0.66 ln+0.01 | k1.0 N0 Tnan r0.51 c0.60 ln-0.16 | k1.0 N0 Tnan r0.48 c0.55 ln-0.09 | k1.0 N0 Tnan r0.46 c0.54 ln-0.14
+  フランス   | k0.8 N35 T48 r0.99 c0.66 ln+0.39 | k1.0 N2 Tnan r0.64 c0.63 ln+0.01 | k1.0 N0 Tnan r0.56 c0.56 ln-0.00 | k1.0 N0 Tnan r0.51 c0.55 ln-0.04 | k1.0 N0 Tnan r0.52 c0.57 ln-0.10
+  プロイセン  | k0.8 N37 T24 r1.01 c0.65 ln+0.44 | k1.0 N10 Tnan r0.67 c0.62 ln+0.07 | k1.0 N7 Tnan r0.59 c0.56 ln+0.05 | k1.0 N0 Tnan r0.55 c0.54 ln+0.00 | k1.0 N0 Tnan r0.51 c0.54 ln-0.09
+  アメリカ   | k0.7 N30 T30 r1.18 c0.84 ln+0.30 | k1.0 N18 Tnan r0.78 c0.68 ln+0.14 | k1.0 N3 Tnan r0.48 c0.49 ln+0.02 | k1.0 N0 Tnan r0.59 c0.66 ln-0.13 | k1.0 N0 Tnan r0.38 c0.42 ln-0.10
+  ロシア    | k0.8 N39 T43 r0.98 c0.58 ln+0.51 | k1.0 N1 Tnan r0.67 c0.65 ln+0.00 | k1.0 N0 Tnan r0.48 c0.50 ln-0.05 | k1.0 N0 Tnan r0.42 c0.51 ln-0.17 | k1.0 N0 Tnan r0.54 c0.61 ln-0.12
+  清      | k1.0 N45 Tnan r1.21 c0.65 ln+0.71 | k1.0 N5 Tnan r0.65 c0.62 ln+0.03 | k1.0 N0 Tnan r0.46 c0.51 ln-0.12 | k1.0 N0 Tnan r0.45 c0.50 ln-0.12 | k1.0 N0 Tnan r0.41 c0.54 ln-0.29
+  日本     | k0.9 N42 T44 r1.16 c0.63 ln+0.60 | k1.0 N16 Tnan r0.72 c0.64 ln+0.11 | k1.0 N0 Tnan r0.58 c0.57 ln-0.01 | k1.0 N0 Tnan r0.47 c0.49 ln-0.07 | k1.0 N0 Tnan r0.44 c0.55 ln-0.22
+  オスマン   | k0.8 N41 T41 r1.16 c0.64 ln+0.57 | k1.0 N1 Tnan r0.71 c0.70 ln+0.01 | k1.0 N0 Tnan r0.53 c0.56 ln-0.02 | k1.0 N0 Tnan r0.48 c0.52 ln-0.09 | k1.0 N0 Tnan r0.49 c0.58 ln-0.15
+## 缶詰
+  イギリス   | k0.0 N10 T57 r1.76 c1.71 ln+0.07 | k0.0 N0 T60 r1.33 c1.34 ln-0.01 | k0.1 N0 T64 r1.05 c1.10 ln-0.02 | k0.1 N1 T69 r1.00 c1.01 ln+0.00 | k0.1 N0 T69 r0.91 c0.93 ln-0.02
+  フランス   | k0.0 N20 T64 r1.82 c1.56 ln+0.16 | k0.0 N8 T68 r1.24 c1.17 ln+0.05 | k0.0 N9 T69 r1.09 c1.03 ln+0.06 | k0.1 N6 T68 r0.98 c0.96 ln+0.04 | k0.1 N0 T68 r0.98 c0.97 ln-0.00
+  プロイセン  | k0.0 N25 T54 r1.99 c1.58 ln+0.22 | k0.0 N13 T63 r1.30 c1.18 ln+0.09 | k0.0 N13 T64 r1.17 c1.05 ln+0.09 | k0.1 N10 T62 r1.06 c0.99 ln+0.06 | k0.1 N0 T61 r0.95 c0.95 ln-0.02
+  アメリカ   | k0.0 N23 T59 r2.25 c1.86 ln+0.19 | k0.0 N16 T67 r1.54 c1.37 ln+0.12 | k0.1 N12 T68 r0.97 c0.91 ln+0.09 | k0.1 N0 T68 r1.09 c1.11 ln-0.03 | k0.1 N0 T69 r0.77 c0.76 ln-0.00
+  ロシア    | k0.0 N19 T59 r1.80 c1.54 ln+0.15 | k0.0 N8 T67 r1.32 c1.24 ln+0.05 | k0.1 N6 T69 r0.93 c0.90 ln+0.04 | k0.1 N0 T68 r0.79 c0.85 ln-0.08 | k0.1 N0 T69 r1.03 c1.02 ln-0.02
+  清      | k0.0 N23 T67 r2.19 c1.82 ln+0.20 | k0.0 N15 T70 r1.37 c1.22 ln+0.11 | k0.0 N0 T70 r0.87 c0.91 ln-0.03 | k0.1 N0 T70 r0.77 c0.87 ln-0.11 | k0.1 N0 T70 r0.71 c0.87 ln-0.20
+  日本     | k0.0 N26 T59 r2.10 c1.67 ln+0.23 | k0.0 N16 T67 r1.45 c1.28 ln+0.11 | k0.0 N7 T69 r1.10 c1.04 ln+0.04 | k0.1 N1 T68 r0.89 c0.89 ln+0.01 | k0.1 N0 T68 r0.75 c0.89 ln-0.18
+  オスマン   | k0.0 N25 T57 r2.09 c1.72 ln+0.22 | k0.0 N9 T68 r1.40 c1.32 ln+0.06 | k0.0 N11 T69 r1.06 c0.99 ln+0.07 | k0.1 N3 T68 r0.94 c0.93 ln+0.02 | k0.1 N0 T69 r0.94 c0.97 ln-0.04
+## 汽船
+  イギリス   | k1.0 N59 Tnan r46.60 c5.26 ln+2.16 | k1.0 N42 Tnan r6.61 c3.59 ln+0.59 | k1.0 N0 Tnan r2.62 c3.05 ln-0.12 | k1.0 N0 Tnan r2.43 c3.12 ln-0.19 | k1.0 N0 Tnan r2.25 c2.77 ln-0.21
+  フランス   | k1.0 N48 T46 r14.03 c5.35 ln+0.89 | k1.0 N5 Tnan r3.79 c3.60 ln+0.03 | k1.0 N0 Tnan r2.77 c2.99 ln-0.08 | k1.0 N0 Tnan r2.47 c2.61 ln-0.09 | k1.0 N0 Tnan r2.29 c2.50 ln-0.09
+  プロイセン  | k0.1 N4 T35 r5.75 c5.31 ln+0.02 | k0.1 N0 T50 r3.41 c3.51 ln-0.01 | k0.2 N3 T49 r3.00 c2.91 ln+0.02 | k0.3 N7 T39 r2.72 c2.56 ln+0.05 | k0.4 N2 T39 r2.26 c2.25 ln+0.01
+  アメリカ   | k0.1 N0 T46 r6.72 c7.01 ln-0.11 | k0.3 N0 T62 r3.86 c4.60 ln-0.16 | k0.9 N0 T64 r2.49 c2.43 ln-0.05 | k1.0 N0 Tnan r2.56 c2.91 ln-0.15 | k1.0 N0 Tnan r1.94 c2.53 ln-0.25
+  ロシア    | k0.8 N53 T40 r16.20 c4.79 ln+1.23 | k1.0 N0 Tnan r3.94 c3.81 ln-0.00 | k1.0 N0 Tnan r2.40 c2.55 ln-0.06 | k1.0 N0 Tnan r2.02 c2.33 ln-0.11 | k1.0 N0 Tnan r2.39 c2.71 ln-0.14
+  清      | k1.0 N0 Tnan r8.29 c8.33 ln-0.18 nD0.1 | k1.0 N0 Tnan r3.28 c4.15 ln-0.16 | k1.0 N0 Tnan r2.22 c2.52 ln-0.12 | k1.0 N0 Tnan r2.11 c2.44 ln-0.14 | k1.0 N0 Tnan r1.83 c2.31 ln-0.22
+  日本     | k0.2 N0 T50 r6.68 c6.91 ln-0.09 | k0.3 N0 T58 r3.43 c4.03 ln-0.15 | k0.3 N0 T65 r2.72 c2.86 ln-0.06 | k0.6 N0 T60 r2.29 c2.30 ln-0.01 | k0.7 N0 T61 r1.87 c2.12 ln-0.11
+  オスマン   | k0.8 N0 T36 r6.71 c6.14 ln-0.02 | k1.0 N0 Tnan r3.46 c4.37 ln-0.21 | k1.0 N0 Tnan r2.56 c3.02 ln-0.16 | k1.0 N0 Tnan r2.37 c2.46 ln-0.08 | k1.0 N0 Tnan r2.20 c2.42 ln-0.10
+## 機関車
+  イギリス   | k0.9 N56 T50 r4.82 c1.03 ln+1.63 | k1.0 N61 Tnan r7.49 c0.39 ln+2.81 | k1.0 N60 Tnan r5.02 c0.37 ln+2.40 | k1.0 N56 Tnan r2.16 c0.39 ln+1.54 | k1.0 N58 Tnan r2.24 c0.33 ln+1.87
+  フランス   | k0.9 N50 T35 r1.20 c0.44 ln+1.04 | k1.0 N55 Tnan r1.52 c0.39 ln+1.44 | k1.0 N55 Tnan r1.68 c0.40 ln+1.48 | k1.0 N54 Tnan r1.48 c0.40 ln+1.38 nC0.1 | k1.0 N54 Tnan r1.30 c0.36 ln+1.33 nC0.1
+  プロイセン  | k0.9 N52 T11 r1.05 c0.34 ln+1.15 | k1.0 N53 Tnan r1.02 c0.31 ln+1.22 | k1.0 N51 Tnan r1.02 c0.34 ln+1.11 nC0.2 | k1.0 N51 Tnan r1.02 c0.34 ln+1.10 nC0.2 | k1.0 N52 Tnan r1.02 c0.32 ln+1.19 nC0.2
+  アメリカ   | k0.9 N53 T32 r1.32 c0.36 ln+1.29 | k1.0 N56 Tnan r1.55 c0.33 ln+1.55 | k1.0 N59 Tnan r2.74 c0.32 ln+2.13 | k1.0 N56 Tnan r1.80 c0.34 ln+1.67 | k1.0 N55 Tnan r1.45 c0.33 ln+1.49
+  ロシア    | k0.9 N53 T28 r1.04 c0.31 ln+1.24 | k1.0 N55 Tnan r1.07 c0.26 ln+1.43 | k1.0 N55 Tnan r1.10 c0.25 ln+1.51 | k1.0 N56 Tnan r1.10 c0.23 ln+1.60 | k1.0 N57 Tnan r1.31 c0.24 ln+1.79
+  清      | k1.0 N48 Tnan r1.15 c0.49 ln+0.85 | k1.0 N53 Tnan r1.38 c0.38 ln+1.28 | k1.0 N54 Tnan r1.49 c0.36 ln+1.40 | k1.0 N55 Tnan r1.48 c0.36 ln+1.42 | k1.0 N56 Tnan r1.66 c0.35 ln+1.55
+  日本     | k0.9 N46 T34 r1.28 c0.64 ln+0.75 | k1.0 N53 Tnan r1.71 c0.52 ln+1.22 | k1.0 N55 Tnan r2.66 c0.55 ln+1.51 | k1.0 N55 Tnan r1.98 c0.50 ln+1.49 | k1.0 N57 Tnan r2.17 c0.42 ln+1.75
+  オスマン   | k0.9 N52 T25 r1.08 c0.35 ln+1.14 | k1.0 N54 Tnan r1.20 c0.31 ln+1.35 | k1.0 N55 Tnan r1.41 c0.31 ln+1.51 | k1.0 N55 Tnan r1.33 c0.32 ln+1.43 | k1.0 N55 Tnan r1.36 c0.31 ln+1.47
+## 加硫ゴム
+  イギリス   | k0.0 N20 T26 r1.56 c1.26 ln+0.18 | k0.0 N0 T41 r1.02 c1.14 ln-0.10 | k0.1 N0 T49 r0.79 c0.93 ln-0.10 | k0.1 N0 T55 r0.73 c0.91 ln-0.21 | k0.1 N0 T59 r0.66 c0.78 ln-0.15
+  フランス   | k0.0 N0 T14 r1.52 c1.29 ln-0.08 nC0.9 | k0.0 N0 T20 r0.89 c0.87 ln+0.10 nC0.8 | k0.0 N0 T21 r0.78 c0.98 ln-0.01 nC0.8 | k0.0 N0 T22 r0.72 c0.80 ln-0.14 nC0.9 | k0.0 N0 T24 r0.72 c0.78 ln-0.07 nC0.9
+  プロイセン  | k0.0 N0 T6 r1.50 cnan ln+nan nC1.0 | k0.0 N0 T12 r0.92 cnan ln+nan nC1.0 | k0.0 N0 T13 r0.81 c7.05 ln-1.70 nC1.0 | k0.0 N0 T12 r0.77 cnan ln+nan nC1.0 | k0.0 N0 T12 r0.73 cnan ln+nan nC1.0
+  アメリカ   | k0.0 N0 T12 r1.75 cnan ln+nan nC1.0 | k0.0 N0 T21 r1.13 cnan ln+nan nC1.0 | k0.0 N0 T22 r0.70 c1.05 ln-0.21 nC0.9 | k0.0 N0 T24 r0.82 cnan ln+nan nC1.0 | k0.0 N0 T25 r0.55 cnan ln+nan nC1.0
+  ロシア    | k0.0 N0 T10 r1.48 cnan ln+nan nC1.0 | k0.0 N0 T19 r0.97 cnan ln+nan nC1.0 | k0.0 N0 T24 r0.69 c6.49 ln-1.64 nC1.0 | k0.0 N0 T22 r0.63 cnan ln+nan nC1.0 | k0.0 N0 T25 r0.76 c0.66 ln+0.09 nC1.0
+  清      | k0.0 N0 T19 r1.70 c1.59 ln-0.10 nC0.8 | k0.0 N0 T20 r0.97 c1.01 ln-0.03 nC0.7 | k0.0 N0 T20 r0.69 c0.88 ln-0.21 nC0.8 | k0.0 N0 T20 r0.66 c0.75 ln-0.15 nC0.8 | k0.0 N0 T28 r0.63 c0.79 ln-0.25 nC0.9
+  日本     | k0.0 N0 T15 r1.78 cnan ln+nan nC1.0 | k0.0 N0 T22 r1.03 cnan ln+nan nC1.0 | k0.0 N0 T25 r0.81 c7.10 ln-1.60 nC1.0 | k0.0 N0 T24 r0.69 cnan ln+nan nC1.0 | k0.0 N0 T23 r0.66 cnan ln+nan nC1.0
+  オスマン   | k0.0 N0 T10 r1.73 cnan ln+nan nC1.0 | k0.0 N0 T17 r1.02 cnan ln+nan nC1.0 | k0.0 N0 T18 r0.76 c6.80 ln-1.60 nC1.0 | k0.0 N0 T22 r0.70 cnan ln+nan nC1.0 | k0.0 N0 T24 r0.71 cnan ln+nan nC1.0
+## ダイナマイト
+  イギリス   | k0.1 N2 T33 r1.83 c1.44 ln+0.01 | k0.1 N0 T42 r0.89 c0.97 ln-0.07 | k0.2 N11 T42 r0.85 c0.83 ln+0.07 | k0.6 N30 T62 r1.08 c0.80 ln+0.31 | k0.9 N29 T59 r0.95 c0.72 ln+0.28
+  フランス   | k0.0 N18 T42 r2.38 c2.00 ln+0.14 | k0.0 N11 T55 r1.02 c0.95 ln+0.07 | k0.0 N12 T60 r0.91 c0.82 ln+0.08 | k0.0 N10 T55 r0.81 c0.77 ln+0.06 | k0.0 N0 T58 r0.81 c0.78 ln-0.01 nD0.2
+  プロイセン  | k0.0 N42 T24 r2.55 c1.31 ln+0.61 | k0.0 N10 T45 r1.01 c0.96 ln+0.07 | k0.0 N10 T47 r0.89 c0.84 ln+0.07 | k0.0 N5 T36 r0.81 c0.78 ln+0.04 | k0.0 N0 T40 r0.68 c0.75 ln-0.07
+  アメリカ   | k0.0 N25 T29 r2.55 c2.15 ln+0.22 | k0.0 N23 T54 r1.36 c1.12 ln+0.19 | k0.0 N11 T50 r0.70 c0.64 ln+0.08 | k0.4 N13 T64 r1.08 c0.86 ln+0.24 nD0.3 | k0.8 N38 T67 r0.92 c0.53 ln+0.57 nD0.3
+  ロシア    | k0.0 N35 T31 r2.53 c1.43 ln+0.43 nD0.1 | k0.0 N15 T51 r1.15 c1.00 ln+0.11 | k0.1 N6 T60 r0.77 c0.73 ln+0.04 | k0.1 N0 T54 r0.68 c0.69 ln-0.02 | k0.3 N0 T64 r0.87 c0.81 ln+0.01 nD0.1
+  清      | k0.3 N26 T59 r2.14 c1.52 ln+0.32 nD0.2 | k0.5 N24 T67 r1.21 c0.99 ln+0.20 | k0.5 N8 T68 r0.75 c0.72 ln+0.05 | k0.5 N5 T68 r0.72 c0.69 ln+0.03 | k0.5 N0 T68 r0.68 c0.69 ln-0.01
+  日本     | k0.0 N35 T36 r2.54 c1.76 ln+0.39 | k0.0 N19 T50 r1.18 c1.01 ln+0.15 | k0.0 N5 T60 r0.85 c0.82 ln+0.03 | k0.0 N3 T55 r0.70 c0.68 ln+0.02 | k0.1 N0 T56 r0.62 c0.69 ln-0.10 nD0.1
+  オスマン   | k0.0 N33 T31 r2.19 c1.51 ln+0.37 nD0.1 | k0.0 N20 T52 r1.25 c1.08 ln+0.16 | k0.0 N11 T62 r0.90 c0.82 ln+0.08 | k0.0 N2 T55 r0.72 c0.72 ln+0.01 | k0.0 N0 T62 r0.75 c0.77 ln-0.04 nD0.2
+## 冷蔵
+  イギリス   | k0.0 N0 T42 r3.70 c4.14 ln-0.04 | k0.0 N0 T49 r2.79 c2.80 ln-0.02 | k0.0 N0 T53 r2.20 c2.43 ln-0.10 | k0.0 N0 T66 r2.10 c2.41 ln-0.14 | k0.0 N0 T66 r1.92 c2.19 ln-0.11
+  フランス   | k0.0 N0 T51 r3.84 c4.97 ln-0.21 | k0.0 N0 T63 r2.62 c2.84 ln-0.09 | k0.0 N0 T64 r2.28 c2.44 ln-0.07 | k0.0 N0 T57 r2.07 c2.22 ln-0.07 | k0.0 N0 T62 r2.07 c2.10 ln-0.05
+  プロイセン  | k0.0 N0 T34 r4.19 c4.42 ln-0.03 | k0.0 N0 T52 r2.73 c2.81 ln-0.01 | k0.0 N2 T54 r2.45 c2.41 ln+0.01 | k0.0 N2 T45 r2.23 c2.18 ln+0.01 | k0.0 N0 T47 r2.01 c1.97 ln-0.01
+  アメリカ   | k0.0 N0 T42 r4.73 c5.86 ln-0.12 | k0.0 N0 T60 r3.23 c3.49 ln-0.07 | k0.0 N0 T59 r2.05 c2.05 ln-0.03 | k0.0 N0 T67 r2.29 c2.41 ln-0.06 | k0.0 N0 T68 r1.63 c1.74 ln-0.06
+  ロシア    | k0.0 N0 T41 r3.78 c4.35 ln-0.19 | k0.0 N0 T59 r2.78 c3.00 ln-0.08 | k0.0 N0 T65 r1.96 c2.14 ln-0.09 | k0.0 N0 T64 r1.67 c1.92 ln-0.15 | k0.0 N0 T67 r2.16 c2.26 ln-0.10
+  清      | k0.0 N0 T63 r4.61 c6.59 ln-0.35 | k0.0 N0 T69 r2.88 c3.01 ln-0.05 | k0.0 N0 T69 r1.83 c2.03 ln-0.10 | k0.0 N0 T69 r1.62 c1.96 ln-0.19 | k0.0 N0 T69 r1.50 c1.89 ln-0.23
+  日本     | k0.0 N0 T44 r4.41 c5.66 ln-0.22 | k0.0 N0 T58 r3.05 c3.13 ln-0.03 | k0.0 N0 T66 r2.31 c2.34 ln-0.03 | k0.0 N0 T63 r1.88 c1.99 ln-0.05 | k0.0 N0 T63 r1.58 c1.87 ln-0.17
+  オスマン   | k0.0 N0 T42 r4.40 c5.57 ln-0.18 | k0.0 N0 T61 r2.95 c3.28 ln-0.10 | k0.0 N0 T66 r2.24 c2.44 ln-0.09 | k0.0 N0 T62 r1.99 c2.09 ln-0.08 | k0.0 N0 T66 r1.99 c2.06 ln-0.05
+## 石炭火力
+  イギリス   | k0.2 N56 T25 r10.61 c2.01 ln+1.66 | k0.3 N0 T38 r1.74 c1.73 ln-0.02 | k0.3 N0 T47 r1.36 c1.59 ln-0.14 | k0.3 N0 T61 r1.27 c1.53 ln-0.15 | k0.3 N0 T58 r1.18 c1.42 ln-0.12
+  フランス   | k0.1 N45 T37 r4.48 c2.17 ln+0.74 | k0.3 N0 T50 r1.69 c1.73 ln-0.03 | k0.3 N0 T54 r1.46 c1.53 ln-0.05 | k0.3 N0 T45 r1.32 c1.38 ln-0.05 | k0.3 N0 T51 r1.34 c1.39 ln-0.05
+  プロイセン  | k0.1 N52 T19 r7.46 c2.18 ln+1.19 | k0.1 N2 T29 r1.69 c1.70 ln+0.01 | k0.2 N1 T34 r1.50 c1.50 ln+0.00 | k0.2 N2 T24 r1.40 c1.36 ln+0.01 | k0.2 N0 T21 r1.27 c1.31 ln-0.02
+  アメリカ   | k0.0 N52 T25 r9.19 c2.75 ln+1.18 | k0.0 N0 T48 r2.03 c2.09 ln-0.02 | k0.3 N0 T45 r1.27 c1.26 ln-0.01 | k0.3 N0 T55 r1.55 c1.65 ln-0.06 | k0.3 N0 T56 r1.03 c1.10 ln-0.07
+  ロシア    | k0.1 N53 T26 r6.92 c2.04 ln+1.22 | k0.3 N0 T49 r1.77 c1.79 ln-0.02 | k0.3 N0 T56 r1.26 c1.32 ln-0.05 | k0.3 N0 T52 r1.13 c1.26 ln-0.09 | k0.3 N0 T62 r1.41 c1.54 ln-0.08
+  清      | k0.2 N21 T55 r3.38 c2.84 ln+0.17 | k0.3 N0 T67 r1.73 c1.77 ln-0.02 | k0.3 N0 T68 r1.23 c1.29 ln-0.05 | k0.3 N0 T68 r1.20 c1.25 ln-0.04 | k0.3 N0 T67 r1.14 c1.34 ln-0.13
+  日本     | k0.0 N47 T29 r5.45 c2.62 ln+0.80 | k0.2 N2 T49 r1.87 c1.86 ln+0.01 | k0.3 N0 T59 r1.53 c1.49 ln-0.02 | k0.3 N0 T52 r1.22 c1.26 ln-0.04 | k0.3 N0 T51 r1.19 c1.29 ln-0.07
+  オスマン   | k0.2 N54 T24 r9.59 c2.54 ln+1.32 | k0.3 N0 T48 r1.89 c2.00 ln-0.05 | k0.3 N0 T56 r1.43 c1.52 ln-0.04 | k0.3 N0 T52 r1.27 c1.35 ln-0.05 | k0.3 N0 T56 r1.31 c1.42 ln-0.06
+## 送電網
+  イギリス   | k0.3 N56 T28 r16.56 c3.41 ln+1.57 | k0.5 N4 T32 r2.72 c2.64 ln+0.02 | k0.5 N0 T48 r2.12 c2.34 ln-0.09 | k0.5 N0 T61 r1.99 c2.25 ln-0.11 | k0.6 N0 T55 r1.84 c2.07 ln-0.08
+  フランス   | k0.2 N43 T39 r6.99 c3.80 ln+0.63 | k0.5 N3 T54 r2.63 c2.60 ln+0.02 | k0.5 N2 T58 r2.27 c2.23 ln+0.01 | k0.5 N4 T54 r2.06 c2.00 ln+0.02 | k0.6 N9 T54 r2.09 c1.95 ln+0.06
+  プロイセン  | k0.1 N51 T22 r11.64 c3.81 ln+1.08 | k0.1 N5 T32 r2.64 c2.60 ln+0.03 | k0.2 N5 T37 r2.35 c2.25 ln+0.03 | k0.2 N8 T25 r2.18 c2.03 ln+0.05 | k0.2 N10 T23 r1.98 c1.90 ln+0.07
+  アメリカ   | k0.1 N51 T27 r14.34 c4.75 ln+1.11 | k0.3 N0 T51 r3.17 c3.23 ln-0.01 | k0.5 N4 T51 r1.98 c1.93 ln+0.02 | k0.5 N4 T57 r2.42 c2.31 ln+0.02 | k0.6 N1 T61 r1.60 c1.62 ln+0.00
+  ロシア    | k0.2 N51 T28 r10.81 c3.54 ln+1.07 | k0.4 N3 T52 r2.77 c2.74 ln+0.02 | k0.4 N1 T58 r1.97 c1.96 ln+0.00 | k0.5 N0 T60 r1.76 c1.79 ln-0.01 | k0.6 N4 T62 r2.20 c2.09 ln+0.02
+  清      | k0.2 N0 T56 r5.28 c5.34 ln-0.01 | k0.4 N0 T68 r2.69 c2.74 ln-0.01 | k0.5 N3 T68 r1.93 c1.87 ln+0.02 | k0.5 N5 T68 r1.87 c1.82 ln+0.03 | k0.6 N0 T67 r1.78 c1.82 ln-0.02
+  日本     | k0.0 N43 T32 r8.50 c4.55 ln+0.65 | k0.3 N4 T51 r2.92 c2.85 ln+0.02 | k0.5 N10 T60 r2.39 c2.16 ln+0.06 | k0.5 N5 T51 r1.90 c1.84 ln+0.03 | k0.6 N6 T51 r1.85 c1.78 ln+0.04
+  オスマン   | k0.3 N52 T24 r14.96 c4.50 ln+1.12 | k0.5 N0 T51 r2.95 c3.06 ln-0.00 | k0.5 N3 T57 r2.24 c2.24 ln+0.02 | k0.5 N2 T52 r1.99 c1.96 ln+0.01 | k0.6 N8 T58 r2.05 c1.94 ln+0.05
+## 電化製品
+  イギリス   | k0.1 N0 T20 r9.74 c4.41 ln+0.99 nC0.8 | k0.3 N0 T25 r13.54 c3.93 ln+1.25 nC0.7 | k0.3 N0 T30 r14.21 c3.13 ln+1.55 nC0.7 | k0.3 N0 T46 r13.42 c3.10 ln+1.60 nC0.7 | k0.3 N0 T44 r12.95 c2.87 ln+1.70 nC0.7
+  フランス   | k0.1 N0 T28 r10.55 c5.44 ln+0.88 nC0.9 | k0.3 N0 T37 r11.92 c3.53 ln+1.21 nC0.7 | k0.3 N0 T41 r12.59 c3.08 ln+1.26 nC0.7 | k0.3 N0 T32 r11.25 c2.67 ln+1.36 nC0.7 | k0.3 N0 T37 r11.82 c2.57 ln+1.45 nC0.7
+  プロイセン  | k0.0 N0 T14 r10.49 c5.21 ln+0.76 nC0.9 | k0.1 N0 T21 r10.79 c3.66 ln+1.14 nC0.9 | k0.2 N0 T26 r10.82 c3.16 ln+1.29 nC0.8 | k0.2 N0 T15 r7.94 c2.85 ln+1.09 nC0.8 | k0.2 N0 T13 r7.82 c2.60 ln+0.88 nC0.8
+  アメリカ   | k0.0 N0 T18 r13.50 cnan ln+nan nC1.0 | k0.2 N0 T35 r13.77 c5.17 ln+1.01 nC1.0 | k0.3 N0 T31 r10.34 c3.07 ln+1.27 nC0.7 | k0.3 N0 T39 r11.92 c3.14 ln+1.31 nC0.7 | k0.3 N0 T42 r11.43 c2.12 ln+1.60 nC0.7
+  ロシア    | k0.1 N0 T22 r8.96 c4.74 ln+0.71 nC0.9 | k0.3 N0 T36 r12.09 c4.24 ln+1.18 nC0.7 | k0.3 N0 T40 r11.42 c2.76 ln+1.47 nC0.7 | k0.3 N0 T36 r8.39 c2.53 ln+1.45 nC0.7 | k0.4 N0 T46 r13.74 c2.55 ln+1.59 nC0.7
+  清      | k0.2 N0 T42 r9.18 c7.30 ln+0.32 nC0.8 | k0.3 N0 T50 r10.98 c3.86 ln+1.03 nC0.7 | k0.3 N0 T50 r7.05 c2.62 ln+1.00 nC0.7 | k0.4 N0 T50 r6.10 c2.44 ln+0.77 nC0.7 | k0.5 N0 T50 r7.39 c2.40 ln+1.16 nC0.7
+  日本     | k0.0 N0 T21 r8.05 cnan ln+nan nC1.0 | k0.2 N0 T34 r9.13 c4.24 ln+0.88 nC0.8 | k0.3 N0 T43 r8.63 c2.87 ln+0.93 nC0.7 | k0.3 N0 T34 r4.63 c2.51 ln+0.48 nC0.7 | k0.3 N0 T35 r7.78 c2.28 ln+1.17 nC0.7
+  オスマン   | k0.1 N0 T19 r8.38 c6.05 ln+0.52 nC0.8 | k0.3 N0 T35 r12.72 c4.56 ln+1.14 nC0.7 | k0.3 N0 T41 r13.21 c3.36 ln+1.44 nC0.7 | k0.3 N0 T36 r9.57 c2.63 ln+1.36 nC0.7 | k0.3 N0 T41 r10.25 c2.88 ln+1.39 nC0.7
+## 機関銃
+  イギリス   | k0.0 N31 T37 rnan cnan ln+nan | k0.1 N32 T46 rnan cnan ln+nan | k0.6 N32 T40 rnan cnan ln+nan | k0.9 N30 T64 rnan cnan ln+nan | k1.0 N30 Tnan rnan cnan ln+nan
+  フランス   | k0.0 N20 T47 rnan cnan ln+nan | k0.1 N20 T59 rnan cnan ln+nan | k0.4 N20 T60 rnan cnan ln+nan | k0.8 N22 T41 rnan cnan ln+nan | k0.9 N23 T57 rnan cnan ln+nan
+  プロイセン  | k0.0 N33 T27 rnan cnan ln+nan | k0.0 N34 T38 rnan cnan ln+nan | k0.2 N34 T44 rnan cnan ln+nan | k0.6 N35 T26 rnan cnan ln+nan | k0.8 N34 T25 rnan cnan ln+nan
+  アメリカ   | k0.0 N27 T35 rnan cnan ln+nan | k0.0 N13 T56 rnan cnan ln+nan | k0.4 N12 T52 rnan cnan ln+nan | k0.6 N13 T58 rnan cnan ln+nan | k0.9 N12 T65 rnan cnan ln+nan
+  ロシア    | k0.0 N26 T40 rnan cnan ln+nan | k0.1 N27 T58 rnan cnan ln+nan | k0.4 N29 T60 rnan cnan ln+nan | k0.9 N29 T51 rnan cnan ln+nan | k1.0 N25 Tnan rnan cnan ln+nan
+  清      | k0.0 N14 T61 rnan cnan ln+nan | k0.0 N8 T68 rnan cnan ln+nan | k0.2 N7 T69 rnan cnan ln+nan | k0.7 N8 T69 rnan cnan ln+nan | k1.0 N9 Tnan rnan cnan ln+nan
+  日本     | k0.0 N0 T38 rnan cnan ln+nan | k0.0 N0 T53 rnan cnan ln+nan | k0.2 N0 T63 rnan cnan ln+nan | k0.5 N0 T54 rnan cnan ln+nan | k0.8 N0 T57 rnan cnan ln+nan
+  オスマン   | k0.0 N27 T37 rnan cnan ln+nan | k0.0 N23 T56 rnan cnan ln+nan | k0.4 N22 T59 rnan cnan ln+nan | k0.8 N22 T51 rnan cnan ln+nan | k1.0 N22 T59 rnan cnan ln+nan
+## 化学兵器
+  イギリス   | k0.0 N31 T22 rnan cnan ln+nan | k0.0 N32 T33 rnan cnan ln+nan | k0.0 N32 T37 rnan cnan ln+nan | k0.1 N30 T59 rnan cnan ln+nan | k0.2 N30 T57 rnan cnan ln+nan
+  フランス   | k0.0 N20 T32 rnan cnan ln+nan | k0.0 N20 T47 rnan cnan ln+nan | k0.0 N20 T55 rnan cnan ln+nan | k0.0 N22 T49 rnan cnan ln+nan | k0.0 N23 T52 rnan cnan ln+nan
+  プロイセン  | k0.0 N33 T16 rnan cnan ln+nan | k0.0 N34 T36 rnan cnan ln+nan | k0.0 N34 T39 rnan cnan ln+nan | k0.0 N35 T26 rnan cnan ln+nan | k0.0 N34 T31 rnan cnan ln+nan
+  アメリカ   | k0.0 N27 T21 rnan cnan ln+nan | k0.0 N13 T47 rnan cnan ln+nan | k0.0 N12 T43 rnan cnan ln+nan | k0.0 N13 T63 rnan cnan ln+nan | k0.0 N12 T66 rnan cnan ln+nan
+  ロシア    | k0.0 N26 T21 rnan cnan ln+nan | k0.0 N27 T39 rnan cnan ln+nan | k0.0 N29 T53 rnan cnan ln+nan | k0.0 N29 T49 rnan cnan ln+nan | k0.2 N25 T60 rnan cnan ln+nan
+  清      | k0.0 N14 T56 rnan cnan ln+nan | k0.0 N8 T65 rnan cnan ln+nan | k0.0 N7 T67 rnan cnan ln+nan | k0.0 N8 T68 rnan cnan ln+nan | k0.0 N9 T67 rnan cnan ln+nan
+  日本     | k0.0 N0 T27 rnan cnan ln+nan | k0.0 N0 T40 rnan cnan ln+nan | k0.0 N0 T55 rnan cnan ln+nan | k0.0 N0 T47 rnan cnan ln+nan | k0.0 N0 T48 rnan cnan ln+nan
+  オスマン   | k0.0 N27 T21 rnan cnan ln+nan | k0.0 N23 T43 rnan cnan ln+nan | k0.0 N22 T57 rnan cnan ln+nan | k0.0 N22 T49 rnan cnan ln+nan | k0.0 N22 T58 rnan cnan ln+nan
+## 合成染料
+  イギリス   | k0.0 N0 T32 r0.58 c2.19 ln-1.25 | k0.0 N0 T43 r0.48 c1.33 ln-0.93 | k0.0 N0 T45 r0.44 c1.14 ln-0.97 | k0.0 N0 T64 r0.39 c1.10 ln-1.01 | k0.0 N0 T63 r0.39 c0.99 ln-0.92
+  フランス   | k0.0 N0 T42 r0.61 c3.13 ln-1.63 | k0.0 N0 T55 r0.51 c1.35 ln-0.97 | k0.0 N0 T61 r0.44 c1.16 ln-0.95 | k0.0 N0 T55 r0.44 c1.07 ln-0.87 | k0.0 N0 T58 r0.45 c1.06 ln-0.83
+  プロイセン  | k0.0 N0 T25 r0.60 c1.91 ln-1.08 | k0.0 N0 T47 r0.51 c1.36 ln-0.98 | k0.0 N0 T49 r0.46 c1.19 ln-0.96 | k0.0 N0 T36 r0.44 c1.10 ln-0.88 | k0.0 N0 T42 r0.45 c1.03 ln-0.83
+  アメリカ   | k0.0 N0 T31 r0.76 c3.27 ln-1.36 | k0.0 N0 T55 r0.56 c1.59 ln-1.01 | k0.0 N0 T50 r0.41 c0.89 ln-0.82 | k0.0 N0 T66 r0.52 c1.13 ln-0.75 | k0.0 N0 T68 r0.33 c0.70 ln-0.77
+  ロシア    | k0.0 N0 T31 r0.50 c2.28 ln-1.51 | k0.0 N0 T49 r0.52 c1.42 ln-0.99 | k0.0 N0 T60 r0.41 c1.03 ln-0.92 | k0.0 N0 T56 r0.40 c0.95 ln-0.87 | k0.0 N0 T65 r0.47 c1.15 ln-0.89
+  清      | k0.0 N0 T62 r0.53 c2.88 ln-1.85 | k0.0 N0 T67 r0.47 c1.41 ln-1.08 | k0.0 N0 T68 r0.41 c1.00 ln-0.87 | k0.0 N0 T69 r0.41 c0.96 ln-0.85 | k0.0 N0 T68 r0.41 c0.95 ln-0.83
+  日本     | k0.0 N0 T38 r0.53 c2.70 ln-1.66 | k0.0 N0 T50 r0.50 c1.44 ln-1.07 | k0.0 N0 T61 r0.45 c1.15 ln-0.94 | k0.0 N0 T55 r0.41 c0.94 ln-0.84 | k0.0 N0 T56 r0.43 c0.95 ln-0.79
+  オスマン   | k0.0 N0 T31 r0.55 c2.37 ln-1.41 | k0.0 N0 T52 r0.56 c1.54 ln-1.00 | k0.0 N0 T63 r0.44 c1.16 ln-0.98 | k0.0 N0 T55 r0.42 c1.00 ln-0.86 | k0.0 N0 T63 r0.46 c1.07 ln-0.85
+## 内燃機関
+  イギリス   | k0.2 N11 T38 r8.65 c7.68 ln+0.07 | k0.8 N0 T44 r5.49 c5.85 ln-0.08 | k0.9 N0 T46 r4.90 c4.97 ln-0.04 | k1.0 N4 T65 r5.15 c4.96 ln+0.02 | k1.0 N2 Tnan r4.48 c4.56 ln+0.01
+  フランス   | k0.0 N16 T52 r8.82 c7.78 ln+0.12 | k0.7 N9 T55 r5.96 c5.63 ln+0.06 | k0.9 N2 T34 r4.91 c4.84 ln+0.01 | k0.9 N0 T23 r4.19 c4.39 ln-0.03 | k0.9 N0 T16 r3.87 c4.17 ln-0.08
+  プロイセン  | k0.0 N21 T29 r9.51 c7.99 ln+0.17 | k0.0 N7 T41 r5.68 c5.48 ln+0.04 | k0.3 N0 T45 r4.64 c4.74 ln-0.02 | k0.5 N0 T30 r3.94 c4.27 ln-0.07 | k0.4 N0 T26 r3.40 c3.89 ln-0.11
+  アメリカ   | k0.0 N20 T37 r11.68 c10.27 ln+0.16 | k0.4 N16 T57 r8.03 c7.04 ln+0.12 | k0.8 N0 T46 r3.81 c4.07 ln-0.04 | k0.9 N0 T53 r4.54 c4.84 ln-0.02 | k1.0 N18 Tnan r4.28 c3.63 ln+0.14
+  ロシア    | k0.0 N17 T45 r8.08 c7.37 ln+0.13 | k0.4 N13 T57 r6.28 c5.78 ln+0.09 | k0.6 N0 T60 r4.17 c4.22 ln-0.02 | k0.8 N0 T52 r3.67 c3.82 ln-0.04 | k1.0 N0 Tnan r4.16 c4.52 ln-0.07
+  清      | k0.9 N33 T62 r17.40 c12.27 ln+0.35 | k0.9 N21 T68 r7.05 c5.90 ln+0.17 | k0.9 N2 T69 r4.07 c3.99 ln+0.01 | k0.9 N1 T70 r3.91 c3.87 ln+0.01 | k1.0 N0 Tnan r3.58 c3.71 ln-0.05
+  日本     | k0.0 N25 T40 r12.71 c9.86 ln+0.22 | k0.5 N9 T54 r6.69 c6.25 ln+0.06 | k0.9 N0 T55 r4.89 c4.77 ln-0.01 | k0.9 N0 T47 r3.64 c3.93 ln-0.08 | k1.0 N0 Tnan r3.24 c3.67 ln-0.12
+  オスマン   | k0.0 N19 T39 r10.75 c9.86 ln+0.15 | k0.5 N15 T55 r7.21 c6.49 ln+0.11 | k0.8 N3 T59 r4.90 c4.84 ln+0.02 | k0.9 N0 T45 r3.85 c4.16 ln-0.05 | k1.0 N0 Tnan r3.73 c4.02 ln-0.08
+## 装甲艦
+  イギリス   | k0.2 N34 T38 rnan cnan ln+nan | k1.0 N29 T44 rnan cnan ln+nan | k1.0 N29 Tnan rnan cnan ln+nan | k1.0 N36 Tnan rnan cnan ln+nan | k1.0 N33 Tnan rnan cnan ln+nan
+  フランス   | k0.2 N31 T43 rnan cnan ln+nan | k1.0 N29 T59 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  プロイセン  | k0.0 N36 T26 rnan cnan ln+nan | k0.0 N24 T33 rnan cnan ln+nan | k0.7 N25 T47 rnan cnan ln+nan | k1.0 N23 Tnan rnan cnan ln+nan | k0.9 N25 T17 rnan cnan ln+nan
+  アメリカ   | k0.0 N30 T33 rnan cnan ln+nan | k0.8 N29 T42 rnan cnan ln+nan | k1.0 N28 T45 rnan cnan ln+nan | k1.0 N32 Tnan rnan cnan ln+nan | k1.0 N32 Tnan rnan cnan ln+nan
+  ロシア    | k0.1 N32 T40 rnan cnan ln+nan | k0.7 N28 T55 rnan cnan ln+nan | k1.0 N26 T61 rnan cnan ln+nan | k1.0 N27 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  清      | k0.2 N28 T58 rnan cnan ln+nan | k0.9 N28 T67 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  日本     | k0.0 N28 T37 rnan cnan ln+nan | k0.4 N28 T47 rnan cnan ln+nan | k0.8 N27 T63 rnan cnan ln+nan | k1.0 N28 T47 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  オスマン   | k0.1 N31 T35 rnan cnan ln+nan | k0.9 N28 T46 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+## 弩級戦艦
+  イギリス   | k0.6 N33 T30 rnan cnan ln+nan | k1.0 N29 T40 rnan cnan ln+nan | k1.0 N29 Tnan rnan cnan ln+nan | k1.0 N36 Tnan rnan cnan ln+nan | k1.0 N33 Tnan rnan cnan ln+nan
+  フランス   | k0.8 N34 T54 rnan cnan ln+nan | k1.0 N29 T52 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  プロイセン  | - | - | k0.5 N24 T46 rnan cnan ln+nan | k1.0 N23 T55 rnan cnan ln+nan | k0.9 N25 T36 rnan cnan ln+nan
+  アメリカ   | - | k0.9 N29 T59 rnan cnan ln+nan | k1.0 N28 T64 rnan cnan ln+nan | k1.0 N32 Tnan rnan cnan ln+nan | k1.0 N32 Tnan rnan cnan ln+nan
+  ロシア    | k0.5 N32 T52 rnan cnan ln+nan | k0.7 N28 T52 rnan cnan ln+nan | k0.9 N26 T59 rnan cnan ln+nan | k1.0 N27 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  清      | k0.7 N28 T65 rnan cnan ln+nan | k1.0 N28 T67 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+  日本     | k1.0 N46 Tnan rnan cnan ln+nan | k0.9 N28 T54 rnan cnan ln+nan | k1.0 N27 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k0.9 N28 T63 rnan cnan ln+nan
+  オスマン   | k0.8 N36 T55 rnan cnan ln+nan | k0.8 N28 T50 rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan | k1.0 N28 Tnan rnan cnan ln+nan
+## ラジオ
+  イギリス   | k0.0 N0 T55 r3.89 c4.37 ln-0.07 | k0.0 N0 T59 r3.36 c3.87 ln-0.10 | k0.0 N0 T40 r2.55 c2.74 ln-0.09 | k0.0 N0 T66 r2.63 c2.93 ln-0.12 | k0.0 N0 T66 r2.21 c2.67 ln-0.17
+  フランス   | k0.0 N0 T59 r4.54 c7.97 ln-0.40 | k0.0 N0 T63 r2.88 c3.77 ln-0.24 | k0.0 N0 T66 r2.43 c2.83 ln-0.14 | k0.0 N0 T61 r2.15 c2.46 ln-0.17 | k0.0 N0 T63 r2.06 c2.33 ln-0.09
+  プロイセン  | k0.0 N0 T43 r5.47 c18.61 ln-0.89 | k0.0 N0 T48 r3.11 c3.39 ln-0.12 | k0.0 N0 T56 r2.68 c2.96 ln-0.09 | k0.0 N0 T56 r2.41 c2.67 ln-0.09 | k0.0 N0 T48 r1.83 c2.10 ln-0.13
+  アメリカ   | k0.0 N0 T10 r5.24 c71.80 ln-2.62 | k0.0 N0 T17 r4.12 c32.98 ln-1.97 | k0.0 N0 T64 r2.47 c2.81 ln-0.10 | k0.0 N0 T64 r2.25 c2.74 ln-0.15 | k0.0 N0 T65 r1.73 c1.92 ln-0.12
+  ロシア    | k0.0 N0 T50 r4.65 c15.28 ln-1.14 | k0.0 N0 T63 r3.40 c4.15 ln-0.14 | k0.0 N0 T66 r2.28 c2.61 ln-0.14 | k0.0 N0 T65 r1.97 c2.35 ln-0.17 | k0.0 N0 T66 r2.03 c2.36 ln-0.17
+  清      | k0.0 N0 T68 r5.57 c18.36 ln-1.08 | k0.0 N0 T69 r3.35 c3.74 ln-0.11 | k0.0 N0 T69 r1.97 c2.34 ln-0.17 | k0.0 N0 T69 r1.83 c2.28 ln-0.20 | k0.0 N0 T69 r1.70 c2.15 ln-0.27
+  日本     | - | k0.0 N0 T61 r3.44 c6.01 ln-0.51 | k0.0 N0 T65 r2.33 c2.68 ln-0.13 | k0.0 N0 T63 r1.98 c2.30 ln-0.14 | k0.0 N0 T61 r1.62 c2.02 ln-0.21
+  オスマン   | k0.0 N0 T55 r5.20 c15.40 ln-1.17 | k0.0 N0 T63 r3.75 c4.23 ln-0.13 | k0.0 N0 T67 r2.72 c3.09 ln-0.12 | k0.0 N0 T63 r2.08 c2.41 ln-0.15 | k0.0 N0 T67 r2.33 c2.58 ln-0.11
+## 自動車
+  イギリス   | k0.0 N0 T39 r5.48 cnan ln+nan nC1.0 | k0.0 N0 T51 r4.74 cnan ln+nan nC1.0 | k0.0 N0 T58 r3.70 c4.49 ln-0.33 nC0.9 | k0.1 N0 T63 r3.49 c4.28 ln-0.16 nC0.9 | k0.1 N0 T63 r3.29 c3.52 ln-0.15 nC0.9
+  フランス   | k0.0 N0 T47 r5.17 cnan ln+nan nC1.0 | k0.0 N0 T58 r4.19 cnan ln+nan nC1.0 | k0.0 N0 T62 r3.79 c4.39 ln-0.11 nC0.9 | k0.1 N0 T60 r3.45 c3.52 ln-0.08 nC0.9 | k0.1 N0 T59 r3.49 c3.21 ln-0.03 nC0.9
+  プロイセン  | - | k0.0 N0 T51 r4.12 cnan ln+nan nC1.0 | k0.0 N0 T52 r4.11 c4.21 ln-0.01 nC0.7 | k0.2 N0 T50 r3.76 c3.16 ln+0.03 nC0.8 | k0.2 N0 T39 r3.47 c3.07 ln+0.05 nC0.8
+  アメリカ   | - | k0.0 N0 T56 r4.69 cnan ln+nan nC1.0 | k0.0 N0 T57 r3.32 c3.76 ln+0.01 nC0.9 | k0.1 N0 T59 r3.98 c3.45 ln+0.11 nC0.9 | k0.1 N0 T61 r2.83 c2.45 ln+0.10 nC0.9
+  ロシア    | k0.0 N0 T55 r6.54 cnan ln+nan nC1.0 | k0.0 N0 T60 r4.82 cnan ln+nan nC1.0 | k0.0 N0 T63 r3.19 c3.50 ln-0.08 nC0.9 | k0.1 N0 T62 r3.07 c2.64 ln-0.03 nC0.9 | k0.1 N0 T64 r3.75 c3.26 ln-0.00 nC0.9
+  清      | k0.0 N0 T58 r8.87 cnan ln+nan nC1.0 | k0.0 N0 T65 r4.77 cnan ln+nan nC1.0 | k0.0 N0 T66 r3.26 c3.48 ln-0.07 nC0.9 | k0.1 N0 T66 r3.08 c2.93 ln+0.01 nC0.9 | k0.1 N0 T66 r2.94 c3.07 ln-0.04 nC0.9
+  日本     | - | k0.0 N0 T53 r4.73 cnan ln+nan nC1.0 | k0.0 N0 T61 r4.06 cnan ln+nan nC1.0 | k0.0 N0 T58 r3.11 cnan ln+nan nC1.0 | k0.0 N0 T58 r3.11 cnan ln+nan nC1.0
+  オスマン   | k0.0 N0 T53 r6.92 cnan ln+nan nC1.0 | k0.0 N0 T58 r4.80 cnan ln+nan nC1.0 | k0.0 N0 T62 r3.75 c4.71 ln-0.08 nC0.9 | k0.1 N0 T59 r3.36 c3.24 ln-0.04 nC0.9 | k0.1 N0 T61 r3.39 c3.23 ln+0.04 nC0.9
+## 戦車
+  イギリス   | k0.0 N25 T33 rnan cnan ln+nan | k0.0 N32 T46 rnan cnan ln+nan | k0.2 N33 T53 rnan cnan ln+nan | k0.7 N30 T63 rnan cnan ln+nan | k0.9 N30 T63 rnan cnan ln+nan
+  フランス   | k0.0 N23 T30 rnan cnan ln+nan | k0.0 N20 T54 rnan cnan ln+nan | k0.1 N19 T58 rnan cnan ln+nan | k0.5 N21 T55 rnan cnan ln+nan | k0.9 N22 T49 rnan cnan ln+nan
+  プロイセン  | - | k0.0 N33 T39 rnan cnan ln+nan | k0.0 N32 T47 rnan cnan ln+nan | k0.5 N33 T45 rnan cnan ln+nan | k0.7 N32 T14 rnan cnan ln+nan
+  アメリカ   | - | k0.0 N13 T53 rnan cnan ln+nan | k0.1 N12 T50 rnan cnan ln+nan | k0.2 N13 T54 rnan cnan ln+nan | k0.5 N12 T57 rnan cnan ln+nan
+  ロシア    | k0.0 N27 T51 rnan cnan ln+nan | k0.0 N29 T58 rnan cnan ln+nan | k0.2 N28 T60 rnan cnan ln+nan | k0.5 N27 T53 rnan cnan ln+nan | k0.9 N25 T64 rnan cnan ln+nan
+  清      | k0.0 N14 T54 rnan cnan ln+nan | k0.0 N8 T66 rnan cnan ln+nan | k0.0 N7 T67 rnan cnan ln+nan | k0.2 N8 T68 rnan cnan ln+nan | k0.7 N9 T67 rnan cnan ln+nan
+  日本     | - | k0.0 N0 T40 rnan cnan ln+nan | k0.0 N0 T57 rnan cnan ln+nan | k0.3 N0 T45 rnan cnan ln+nan | k0.5 N0 T44 rnan cnan ln+nan
+  オスマン   | k0.0 N28 T50 rnan cnan ln+nan | k0.0 N21 T55 rnan cnan ln+nan | k0.2 N22 T59 rnan cnan ln+nan | k0.5 N23 T50 rnan cnan ln+nan | k0.7 N22 T56 rnan cnan ln+nan
+## 軍用機
+  イギリス   | k0.0 N25 T20 rnan cnan ln+nan | k0.0 N32 T36 rnan cnan ln+nan | k0.0 N32 T48 rnan cnan ln+nan | k0.0 N30 T58 rnan cnan ln+nan | k0.2 N30 T57 rnan cnan ln+nan
+  フランス   | k0.0 N23 T35 rnan cnan ln+nan | k0.0 N19 T46 rnan cnan ln+nan | k0.0 N19 T51 rnan cnan ln+nan | k0.0 N21 T53 rnan cnan ln+nan | k0.2 N22 T52 rnan cnan ln+nan
+  プロイセン  | - | k0.0 N33 T43 rnan cnan ln+nan | k0.0 N32 T41 rnan cnan ln+nan | k0.0 N33 T33 rnan cnan ln+nan | k0.0 N32 T31 rnan cnan ln+nan
+  アメリカ   | - | k0.0 N13 T45 rnan cnan ln+nan | k0.0 N11 T46 rnan cnan ln+nan | k0.0 N12 T53 rnan cnan ln+nan | k0.2 N12 T57 rnan cnan ln+nan
+  ロシア    | k0.0 N27 T34 rnan cnan ln+nan | k0.0 N28 T46 rnan cnan ln+nan | k0.0 N28 T55 rnan cnan ln+nan | k0.0 N27 T54 rnan cnan ln+nan | k0.2 N25 T61 rnan cnan ln+nan
+  清      | k0.0 N14 T51 rnan cnan ln+nan | k0.0 N8 T57 rnan cnan ln+nan | k0.0 N7 T59 rnan cnan ln+nan | k0.0 N8 T67 rnan cnan ln+nan | k0.2 N8 T67 rnan cnan ln+nan
+  日本     | - | k0.0 N0 T41 rnan cnan ln+nan | k0.0 N0 T52 rnan cnan ln+nan | k0.0 N0 T47 rnan cnan ln+nan | k0.2 N0 T46 rnan cnan ln+nan
+  オスマン   | k0.0 N26 T34 rnan cnan ln+nan | k0.0 N20 T44 rnan cnan ln+nan | k0.0 N21 T52 rnan cnan ln+nan | k0.0 N22 T52 rnan cnan ln+nan | k0.1 N21 T56 rnan cnan ln+nan
+## 自転車
+  イギリス   | - | - | k0.0 N0 T55 r2.02 c3.01 ln-0.44 | k0.0 N0 T66 r2.27 c2.68 ln-0.18 | k0.0 N0 T65 r1.88 c2.18 ln-0.17
+  フランス   | - | - | - | - | -
+  プロイセン  | - | - | - | - | -
+  アメリカ   | - | - | - | - | -
+  ロシア    | - | - | - | - | -
+  清      | - | - | - | - | -
+  日本     | - | - | - | - | -
+  オスマン   | - | - | - | - | -

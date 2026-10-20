@@ -1,0 +1,5 @@
+(457) 合流の突然変異（新しい番人だけ・合流 2 の木 fc446ff2 の写し D:/PoB_work/m457/mut_src・隔離ビルド・Release）
+MV：Diplomacy.cs EndWar の Verdict の regimeWar を false（`VerdictOf(war.Score, false, c.WhitePeaceScore)`）
+  → WarThemeTests.終戦の記録の判定は政体の内戦の小さな戦勝点を勝者と書く＝赤（Assert.Equal() Failure: Expected BWon）・戻した
+MD：SelfPlay.cs の NationalScore に `internal static double Wealth(World w) => 0;` を足す
+  → ScoreReaderTests.旧の国力の式と旗は復活しない_旧の列を読むのは計器だけである＝赤（SelfPlay.cs:14 static double Wealth(）・戻した
