@@ -6,3 +6,4 @@
 結果：54 表のうち 50 表がバイト一致。違う 3 表は予定どおり：burscan（seconds＝壁時計）・clock（worldTotalPerMonth の C 行＝Stopwatch の累計）・flow（sourceLine＝ソース行番号）。新しい 1 表＝labor_s1（読むだけ）。
 成績表の種 1 の行：exact 44.3・near 80.3＝b5_20261020_m466.cost の seed1（exact 44.3・near 80.3）と同じ。推定の計算量 226.2 秒（m466 の 5 種の平均 226.4）。
 限界：1 種の一致は恒等の証明にならない（README §1-2）。腕 A（計器つき 5 種の成績表が b5_20261020_m466 と全行一致）は後半の担当が回す。
+追記：clock の C 行 worldTotalPerMonth は InstrumentsClock.cs:48 の Stopwatch の累計（書き手を確認）。走りの終了コード 1（ハーネス不合格 1/1）は m466 の 10 種でも同じ（10/10）。.cost は 25 行・新しい行〈最低賃金の籠の走査〉の件数 0。
