@@ -1,0 +1,260 @@
+(468) 線 ip 段0：工業化度（Region.Industrialization ほか）の書き手と読み手の全数表（grep・シミュは回していない）
+基点 128ac2b・書いた日 2026-10-20・書いたモデル Claude Sonnet 5.5・読み手の置き換え先の番号は measurements/ip_20261020_prereg.txt の [3] の番号。
+探した語：Industrialization（TotalIndustrialization・ProductiveIndustrialization・MeanIndustrialization・CumStateIndustrialization・CumPrivateIndustrialization・NationConfig.Industrialization・IndustrializationPopWeighted を含む）・indMult・OldVintageCapital・StrandedVintage。
+対象：PriceOfBread.SimCore/*.cs・PriceOfBread.App/**/*.cs,*.axaml・PriceOfBread.Runner/*.cs・PriceOfBread.Tests/*.cs（bin と obj を除く）・SimCore の json。
+分類は行の字面から機械的に付けた（書き手＝代入・複合代入・読み手＝それ以外のコード・宣言＝欄と係数の宣言・計器と検証＝Instruments*.cs と Validation.cs と PlayText.cs・コメント＝コメントだけの行）。1 行に書き手と読み手が両方ある行は書き手に数える。
+
+== 件数 ==
+  PriceOfBread.App	comment	6
+  PriceOfBread.App	display	13
+  PriceOfBread.Runner	comment	1
+  PriceOfBread.Runner	runner-report	36
+  PriceOfBread.SimCore	comment	42
+  PriceOfBread.SimCore	declaration	10
+  PriceOfBread.SimCore	instrument-display	18
+  PriceOfBread.SimCore	reader	57
+  PriceOfBread.SimCore	writer	17
+  PriceOfBread.Tests	comment	2
+  PriceOfBread.Tests	test	46
+  合計	PriceOfBread.App=19	PriceOfBread.Runner=37	PriceOfBread.SimCore=144	PriceOfBread.Tests=48
+  json：world.json の "industrialization" 7 本（国の入力データ＝残す）・megaprojects.json の "effectTarget": "Industrialization" 16 件（効きの先を設備の資本の部分へ）。
+
+== SimCore：書き手 ==
+Diplomacy.cs:2530	18 設備の資本の部分を同率で削る	rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
+EconomyStep.cs:668	6 削除（開発度の記憶）／設備の減価（IndDepreciation）	region.Industrialization *= 1.0 - dep;
+EconomyStep.cs:669	6 削除（開発度の記憶）／設備の減価（IndDepreciation）	region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
+EconomyStep.cs:679	6 削除（ヴィンテージの移行・座礁）	region.OldVintageCapital = newOld;
+EconomyStep.cs:680	6 削除（ヴィンテージの移行・座礁）	region.Industrialization -= migrate;
+EconomyStep.cs:682	6 削除（ヴィンテージの移行・座礁）	region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
+EconomyStep.cs:2016	18 設備の資本の部分へ（民間の建設の決済）	region.Industrialization += privateIndGain;
+EconomyStep.cs:2017	18 設備の資本の部分へ（民間の建設の決済）	region.CumPrivateIndustrialization += privateIndGain;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
+EconomyStep.cs:2084	18 設備の資本の部分へ（国家建設の決済）	region.Industrialization += built * coef.IndPerConstruction;
+EconomyStep.cs:2085	18 設備の資本の部分へ（国家建設の決済）	region.CumStateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝国家建設分の累積（純カウンタ・力学は読まない）
+Megaprojects.cs:240	18 効きの先を設備の資本の部分へ	r.Industrialization += Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+Simulation.cs:547	18 開幕＝設備の資本の部分（0）	Industrialization = 0.0,      // 1789＝前工業（工業化度0から投資で積む）
+Simulation.cs:924	18 開幕＝設備の資本の部分（world.json の値から A と同じ曲線）	Industrialization = cfg.Industrialization * (p.IndShare >= 0 ? p.IndShare : share),   // ★IndShare（一次データ）があれば産業地理で按分・無ければ従来の人口比
+Simulation.cs:1486	18 開幕＝設備の資本の部分（0）	CapitalEnabled = true, Industrialization = 0.0,
+Simulation.cs:2311	18 設備の資本の部分を同率で削る（恐慌）	r.Industrialization *= scrapKeep;
+Simulation.cs:2312	18 設備の資本の部分を同率で削る（恐慌）	r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
+Simulation.cs:2313	18 設備の資本の部分を同率で削る（恐慌）	r.StrandedVintage *= scrapKeep;
+
+== SimCore：力学の読み手 ==
+CapitalMarket.cs:80	13 導出量	double headroom = System.Math.Max(0, c.CapitalIndTarget - w[i].MeanIndustrialization);   // 改修2026-06-28：首都州のみ→全州平均（外資は国全体の工業化ギャップで流入先を選ぶ）
+Credit.cs:87	12 導出量	double dev = PoliticalQuantities.Clamp01((month?.MeanInd ?? w.MeanIndustrialization) / c.CreditDevScale);           // 0=前工業（露清）〜1=工業化（英独）
+Discovery.cs:528	14 導出量	if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
+EconomyStep.cs:410	4 削除	: premium * Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd)) * r.MonopolyRentFactor;   // 独占禁止法（E6）で×倍率（規制なし=1.0＝恒等・談合禁止
+EconomyStep.cs:565	5 削除	? PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧
+EconomyStep.cs:663	6 削除（開発度の記憶）／設備の減価（IndDepreciation）	double totNow = region.Industrialization + region.OldVintageCapital;
+EconomyStep.cs:676	6 削除（ヴィンテージの移行・座礁）	double migrate = region.Industrialization * coef.VintageMigrateRate;
+EconomyStep.cs:677	6 削除（ヴィンテージの移行・座礁）	double newOld = region.OldVintageCapital + migrate;
+EconomyStep.cs:678	6 削除（ヴィンテージの移行・座礁）	region.VintageTechLevel = newOld > Eps ? (region.VintageTechLevel * region.OldVintageCapital + region.TechLevel * migrate) / newOld : region.TechLevel
+EconomyStep.cs:684	6 削除（ヴィンテージの移行・座礁）	double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
+EconomyStep.cs:688	1 削除（indMult=1）	double indMult = cap
+EconomyStep.cs:750	1 削除（indMult=1）	: isLabor ? indMult * gate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
+EconomyStep.cs:751	1 削除（indMult=1）	: productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + c
+EconomyStep.cs:956	7 削除	double stateHeadroomUnits = Math.Max(0, (coef.IndustryInvestRegionCap - region.TotalIndustrialization) / Math.Max(Eps, coef.IndPerConstruction));   //
+EconomyStep.cs:1013	11 導出量	maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費を食う＝先行国の足枷。ヴィンテージ2026-07-10）
+EconomyStep.cs:2688	8 設備の傾きへ	double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07
+Ideology.cs:151	16 導出量の最大	double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
+MarketFlow.cs:79	2 削除（項を 0）	double effWageMax = coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
+Megaprojects.cs:237	18 効きの先を設備の資本の部分へ	case "Industrialization":
+Megaprojects.cs:251	18 効きの先を設備の資本の部分へ	"Industrialization" => r.Industrialization,
+Meritocracy.cs:458	9 導出量	double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
+MultiNationSim.cs:30	19 国の入力データ（開幕の資本の置き場）＝残す	private const double TradeWeightIndustrializationSlope = 0.10;   // 工業化度あたりの交易比重の増分（初期国のみ）
+MultiNationSim.cs:78	19 国の入力データ（開幕の資本の置き場）＝残す	TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業
+MultiNationSim.cs:861	16 導出量の最大	foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
+NationBrief.cs:128	19 国の入力データ＝残す	double load = PoliticalQuantities.Clamp01((c.Provinces.Length + c.InitialColonies.Length + 3.0 * c.Industrialization) / 25.0);
+PopDecision.cs:43	9 導出量	double indForCap = region.TotalIndustrialization;   // 都市化天井は立っている建屋・雇用基盤の総量＝新旧合計（座礁しても街は残る。ヴィンテージ休眠時は恒等・2026-07-10）
+PopDecision.cs:46	9 導出量	if (region.UrbanIndSmoothed < 0) region.UrbanIndSmoothed = region.TotalIndustrialization;   // 初回＝現在値から開始（ジャンプなし）
+PopDecision.cs:47	9 導出量	region.UrbanIndSmoothed += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - region.UrbanIndSmoothed);
+SelfPlay.cs:217	17 触らない（旧の腕・既定の腕は実物の量を読む）	private const double IndustrializationCeiling = 2.5;        // 後発工業化の設計包絡（投資を絞る目標上限）。★(416) 旗 AiModernizeFromReturn≧1（既定 3）ではレバー〔Apply・AutoModernizati
+SelfPlay.cs:220	17 触らない（旧の腕・既定の腕は実物の量を読む）	private const double IndustrializationRoomTarget = 4.0;     // 工業化余地の到達目標（★鋼市場診断#1 2026-08-16：AiIndustrialCeilingFrontier はここに触れない＝スタンス選択の目標は投資の物理上限と別
+SelfPlay.cs:465	17 触らない（旧の腕・既定の腕は実物の量を読む）	indGap = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
+SelfPlay.cs:480	17 触らない（旧の腕・既定の腕は実物の量を読む）	if (!(a > 0)) return IndustrializationCeiling;   // 0＝厳密恒等（否定形＝NaNも休眠側）。★既定は点火0.6＝この枝は通らない
+SelfPlay.cs:482	17 触らない（旧の腕・既定の腕は実物の量を読む）	return f > IndustrializationCeiling ? f : IndustrializationCeiling;   // NaN/未注入(0)は定数側へ倒す
+SelfPlay.cs:687	17 触らない（旧の腕・既定の腕は実物の量を読む）	double indRoom = w.Coef.AiModernizeFromReturn >= 3.0 ? IndustrializationRoomTarget * w.ModernizeReturnShare()   // ★(416) 旗≧3：余地＝目盛り 4.0×設備の収益の持ち分（4.0
+SelfPlay.cs:688	17 触らない（旧の腕・既定の腕は実物の量を読む）	: Math.Max(0, IndustrializationRoomTarget - w.MeanIndustrialization); // 工業化の余地（到達可能な目標≈均衡3.7。達成後はuIndが下がり教義の道へ）。改修2026-06-28：首都州のみ→全州平均（首都州が崩れてもAIが投資
+SelfPlay.cs:976	17 触らない（旧の腕・既定の腕は実物の量を読む）	internal static bool GoldWishOld(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+SelfPlay.cs:996	17 触らない（旧の腕・既定の腕は実物の量を読む）	if (w.MeanIndustrialization > AntitrustIndThreshold)
+SelfPlay.cs:997	17 触らない（旧の腕・既定の腕は実物の量を読む）	return w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;
+SelfPlay.cs:1015	17 触らない（旧の腕・既定の腕は実物の量を読む）	if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
+SelfPlay.cs:1016	17 触らない（旧の腕・既定の腕は実物の量を読む）	return w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
+SelfPlay.cs:1796	17 触らない（旧の腕・既定の腕は実物の量を読む）	indGap = PoliticalQuantities.Clamp01((indCeil - w.MeanIndustrialization) / indCeil);
+SelfPlay.cs:1828	17 触らない（旧の腕・既定の腕は実物の量を読む）	&& (w.Coef.AiModernizeFromReturn >= 2.0 ? retShare > 0 : w.MeanIndustrialization < IndustrializationCeiling))   // ★(416) 旗≧2：後発＝設備の収益がまだ立つ（信号＞0）
+SelfPlay.cs:1919	20 導出量をそのまま読む（報告）	string Name, double Score, double Tech, double Industrialization, double Satisfaction, int Colonies, double Gdp,
+SelfPlay.cs:2123	20 導出量をそのまま読む（報告）	w.MeanIndustrialization, NationalScore.MeanSatisfaction(w), w.SelfPower?.Colonies ?? 0, w.GdpPerMonth.Value,
+SelfPlay.cs:2211	20 導出量をそのまま読む（暴走の監視・既定の出力を変えない）	if (!(w.Region.TotalIndustrialization is >= 0 and <= 10))   // 否定形＝NaN も異常に数える（有限値では旧 `> 10 or < 0` と同値）
+SelfPlay.cs:2212	20 導出量をそのまま読む（暴走の監視・既定の出力を変えない）	anomalies.Add($"Q{q + 1} {w.Region.Name}: 工業化度が異常（{w.Region.TotalIndustrialization:F2}）");   // 暴走監視は新旧合計（ヴィンテージ2026-07-10）
+Simulation.cs:1594	12 導出量（信用へ渡す）	box.Value = (World.NominalGdpPerMonth.Value, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
+Simulation.cs:2467	10 導出量	avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。2026-07-10）
+Simulation.cs:2469	10 導出量	indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
+Simulation.cs:2493	10 導出量	avgInd += c.IndustrializationPopWeighted * (indPopWeighted - avgInd);
+Territory.cs:165	20 診断	Console.Error.WriteLine($"[非有限診断] Territory.Opportunity {r.Name}={o}　pop={r.SumPopulation()} 賃金P={r.WagePremium} 工業={r.TotalIndustrialization} 住居={r.H
+World.cs:1141	15 導出量	double oldDev = Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィ
+World.cs:1206	15 導出量	double oldDev = Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);
+World.cs:1969	7 削除	internal bool StateInvestEligible(Region r) => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrializatio
+World.cs:1975	7 削除	double head = Math.Max(0, cap - r.TotalIndustrialization);   // 上限までの余地＝これ以上は積めない州へ注がない
+World.cs:2601	導出の平均（人口加重）＝導出量の定義	foreach (var r in Regions) if (r.State == RegionState.Active) { double p = r.SumPopulation(); total += p; w += p * r.TotalIndustrialization; }   // 新旧
+World.cs:2602	導出の平均（人口加重）＝導出量の定義	return total > 1e-9 ? w / total : Region.TotalIndustrialization;
+
+== SimCore：宣言 ==
+Coefficients.cs:2626	宣言（係数）	public double IndustrializationPopWeighted = 1.0;   /* #17有効化 */   // 人16（工業化度の人口加重）：DemographicStepの出生率・扶養力に効く工業化度を非加重州平均(avgInd)から人口加重平均(ΣInd×rpop/Σ
+Model.cs:912	宣言（欄は焼き込みで導出量の置き場へ）	public double Industrialization;                  // 工業化度（地域集約の資本）。投資で積み、生産性と都市化上限を上げる
+Model.cs:941	宣言（欄は焼き込みで導出量の置き場へ）	public double CumStateIndustrialization;
+Model.cs:942	宣言（欄は焼き込みで導出量の置き場へ）	public double CumPrivateIndustrialization;
+Model.cs:971	宣言（欄は焼き込みで導出量の置き場へ）	public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。VintageMigrateRateで経年蓄積・技術差で座礁。0（対照腕）で単層恒等・既定0.005で二層l
+Model.cs:974	宣言（欄は焼き込みで導出量の置き場へ）	public double StrandedVintage;                    // 今月の座礁量＝VintageObsolescence×OldVintageCapital×techGap（EconomyStepが月次更新・OldVintageCapital以下）。生産性チャネ
+Model.cs:980	宣言（欄は焼き込みで導出量の置き場へ）	public double TotalIndustrialization => Industrialization + OldVintageCapital;
+Model.cs:981	宣言（欄は焼き込みで導出量の置き場へ）	public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
+NationConfig.cs:69	19 国の入力データ＝残す	public double Industrialization = 0.0;
+World.cs:2596	導出の平均（人口加重）＝導出量の定義	public double MeanIndustrialization
+
+== SimCore：計器と検証と表示だけ（既定の出力を変えない＝旗の下） ==
+Instruments.cs:1329	20 導出量をそのまま読む（計器・既定の出力を変えない）	if (!sk.ConsHeader) { sk.Cons.WriteLine("quarter\tyear\tnation\tregion\ttier\tactiveFlag\tpopulationK\tinvestorSizeK\tinvestorSavingsStock\tcapitalist
+Instruments.cs:1341	20 導出量をそのまま読む（計器・既定の出力を変えない）	sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), r.State == RegionState.Active ? "1" : "0", F(pop), F(invSize),
+InstrumentsCapacity.cs:90	20 導出量をそのまま読む（計器・既定の出力を変えない）	double ind = r.ProductiveIndustrialization;
+InstrumentsLawGate.cs:13	20 導出量をそのまま読む（計器・既定の出力を変えない）	internal const string LawGateHeaderText = "quarter
+InstrumentsLawGate.cs:27	20 導出量をそのまま読む（計器・既定の出力を変えない）	F(w.MeanIndustrialization), F(PoliticalQuantities.AvgLiteracy(w, coreOnly: true)), F(UtilityAgent.HomeUrbanShare(w))));
+InstrumentsModernize.cs:14	20 導出量をそのまま読む（計器・既定の出力を変えない）	internal const string ModSigHeaderText = "quarter
+InstrumentsModernize.cs:27	20 導出量をそのまま読む（計器・既定の出力を変えない）	double gapOld = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
+InstrumentsModernize.cs:38	20 導出量をそのまま読む（計器・既定の出力を変えない）	sk.ModSig.WriteLine(string.Join('
+InstrumentsScore.cs:12	20 導出量をそのまま読む（計器・既定の出力を変えない）	internal const string ScoreHeaderText = "quarter
+InstrumentsScore.cs:44	20 導出量をそのまま読む（計器・既定の出力を変えない）	F(w.MeanIndustrialization), F(w.TechLevel), F(w.TotalPopulation), I(rOld[i] <= great ? 1 : 0), I(rNew[i] <= great ? 1 : 0),
+InstrumentsScore.cs:58	20 導出量をそのまま読む（計器・既定の出力を変えない）	private const double IndustrializationWeight = 9.0;   // 近代産業の重み
+InstrumentsScore.cs:73	20 導出量をそのまま読む（計器・既定の出力を変えない）	w.MeanIndustrialization * IndustrializationWeight,        // 近代産業（1人あたりの発展度＝非規模）。比重↑ 8→9。改修2026-06-28：首都州のみ→全州人口加重平均（多州国の脱工業化誤認を解消）
+PlayText.cs:86	20 導出量をそのまま読む（計器・既定の出力を変えない）	w.TotalPopulation, w.MeanIndustrialization, ReferenceEquals(w, player)));
+Validation.cs:12	20 導出量をそのまま読む（計器・既定の出力を変えない）	double Industrialization,
+Validation.cs:34	20 導出量をそのまま読む（計器・既定の出力を変えない）	double IndustrializationSpread,   // 工業化度の最大−最小（技術駆動の差別化の証拠）
+Validation.cs:128	20 導出量をそのまま読む（計器・既定の出力を変えない）	w.Region.Name, w.TechLevel, r.TotalIndustrialization,   // 工業化の差別化ガードも新旧合計で測る（ヴィンテージ2026-07-10）
+Validation.cs:169	20 導出量をそのまま読む（計器・既定の出力を変えない）	foreach (var x in nations) { indMax = Math.Max(indMax, x.Industrialization); indMin = Math.Min(indMin, x.Industrialization); }
+Validation.cs:236	20 導出量をそのまま読む（計器・既定の出力を変えない）	Higher("工業化の差別化", m.IndustrializationSpread, 0.50, 0.20);
+
+== SimCore：コメントだけの行（ファイルごとの件数） ==
+  Coefficients.cs	10
+  Diplomacy.cs	1
+  EconomyStep.cs	6
+  Ideology.cs	1
+  InstrumentsLawGate.cs	1
+  InstrumentsModernize.cs	1
+  InstrumentsScore.cs	1
+  MarketFlow.cs	1
+  Model.cs	6
+  MultiNationSim.cs	2
+  NationConfig.cs	2
+  SelfPlay.cs	2
+  Simulation.cs	3
+  World.cs	5
+
+== App（表示）：ファイルごとの行数（コメントを除く） ==
+  GameViewModel.Header.cs	3
+  GameViewModel.Map.cs	3
+  GameViewModel.Production.cs	4
+  GameViewModel.Refresh.cs	2
+  ProductionTab.axaml	1
+
+== Runner（報告）：ファイルごとの行数（コメントを除く） ==
+  PlayHarness.cs	3
+  Program.cs	33
+
+== Tests：ファイルごとの行数（コメントを除く） ==
+  AiFirstWaveTests.cs	1
+  DiscoveryScoreTests.cs	4
+  FactoryIdeologyInstrumentTests.cs	1
+  FiscalTests.cs	1
+  FranceTests.cs	4
+  FuelOperatingCostTests.cs	1
+  IndustryThemeTests.cs	1
+  InstrumentsTests.cs	1
+  LawGateFromBoardTests.cs	10
+  MegaprojectCatalogTests.cs	2
+  ModernizeReturnAndScoreTests.cs	7
+  MultiNationTests.cs	4
+  NationModelTests.cs	1
+  ProductionDiagTests.cs	1
+  ScalarDeletionTests.cs	1
+  StartWarmupTests.cs	1
+  StateEduDemandTests.cs	1
+  SteelMarketAiTests.cs	3
+  TerritoryTests.cs	1
+
+== App・Runner の行（コメントを除く） ==
+ViewModels/GameViewModel.Header.cs:273	20 導出量をそのまま読む（表示）	_histInd.Add(_player.MeanIndustrialization);
+ViewModels/GameViewModel.Header.cs:392	20 導出量をそのまま読む（表示）	private List<StatTerm> IndustrializationTerms()
+ViewModels/GameViewModel.Header.cs:396	20 導出量をそのまま読む（表示）	foreach (var r in _player.Regions) if (r.State == RegionState.Active) list.Add((r.Name, r.Industrialization));
+ViewModels/GameViewModel.Map.cs:136	20 導出量をそのまま読む（表示）	labelCands.Add((cx, cy, $"{MapData.En(rg.Name)}({rg.TotalIndustrialization * 70:F1})", 0, rg.TotalIndustrialization, ProvinceNameBrush));   // ★2026-0
+ViewModels/GameViewModel.Map.cs:687	20 導出量をそのまま読む（表示）	"Industrialization" => "工業化",
+ViewModels/GameViewModel.Map.cs:761	20 導出量をそのまま読む（表示）	info.Lines.Add(new MapHoverLine { Text = $"開発度: {rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
+ViewModels/GameViewModel.Production.cs:796	20 導出量をそのまま読む（表示）	public string ProdRegionHeadTip => $"工業化　{_player.MeanIndustrialization:P0}\n" + string.Join("\n", IndustrializationTerms().Select(t => t.Text));
+ViewModels/GameViewModel.Production.cs:1033	20 導出量をそのまま読む（表示）	CapitalTip = rg.OldVintageCapital > 1e-9
+ViewModels/GameViewModel.Production.cs:1034	20 導出量をそのまま読む（表示）	? $"工業化資本 {rg.TotalIndustrialization:F1}=新鋭 {rg.Industrialization:F1}+旧世代 {rg.OldVintageCapital:F1}\n座礁 {rg.StrandedVintage:F1}　旧世代の据付技術 {rg.VintageTe
+ViewModels/GameViewModel.Production.cs:1254	20 導出量をそのまま読む（表示）	"ArableLand" => "耕地", "GridCapacity" => "送電容量", "Industrialization" => "工業化", "Prestige" => "威信", _ => t,
+ViewModels/GameViewModel.Refresh.cs:164	20 導出量をそのまま読む（表示）	detail += $"\n経済: GDP {Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
+ViewModels/GameViewModel.Refresh.cs:286	20 導出量をそのまま読む（表示）	StatG($"工業化:{_player.MeanIndustrialization:P0}", "工業化", _histInd, v => v.ToString("P0"), 84),   // ★2026-08-31：％表示
+Tabs/ProductionTab.axaml:305	20 導出量をそのまま読む（表示）	式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
+PriceOfBread.Runner/PlayHarness.cs:414	20 導出量をそのまま読む（報告・既定の出力を変えない）	.OrderByDescending(x => x.TotalIndustrialization).Take(10))
+PriceOfBread.Runner/PlayHarness.cs:415	20 導出量をそのまま読む（報告・既定の出力を変えない）	sb.AppendLine($"  {r.Name,-14} 人口{r.SumPopulation(),11:N0} 工業{r.TotalIndustrialization,6:F2}/{coef.IndustryInvestRegionCap:F1} 着工予約{r.StateBuildQueue,
+PriceOfBread.Runner/PlayHarness.cs:446	20 導出量をそのまま読む（報告・既定の出力を変えない）	sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F1} 工業{xw.MeanIndustrialization,6:F2} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.Te
+PriceOfBread.Runner/Program.cs:203	20 導出量をそのまま読む（報告・既定の出力を変えない）	$"{w.MeanIndustrialization:F2},{w.UrbanShare:F3},{(sz > 1e-9 ? lit / sz : 0):F3},{w.SocialSecurity:F3},{(int)w.LandReform}," +
+PriceOfBread.Runner/Program.cs:878	20 導出量をそのまま読む（報告・既定の出力を変えない）	foreach (var r in w.Regions) System.Console.WriteLine($"  [{r.State}] 「{r.Name}」 Ind={r.Industrialization:F3}");
+PriceOfBread.Runner/Program.cs:909	20 導出量をそのまま読む（報告・既定の出力を変えない）	System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustria
+PriceOfBread.Runner/Program.cs:1845	20 導出量をそのまま読む（報告・既定の出力を変えない）	if (w.Coef.AiLawGateFromBoard >= 1.0 ? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine : w.MeanIndustrialization > 
+PriceOfBread.Runner/Program.cs:1877	20 導出量をそのまま読む（報告・既定の出力を変えない）	svTop.Add((n.World.SelfPower?.BaseName ?? "?", n.World.MeanIndustrialization,
+PriceOfBread.Runner/Program.cs:1899	20 導出量をそのまま読む（報告・既定の出力を変えない）	svLine.Append($"{w.SelfPower?.BaseName ?? "?"}:{law}({w.MeanIndustrialization:F2}/{w.Policy.MonetaryTarget}/{w.Convertibility:F2}/開{svOpen:F3}/引{w.Tra
+PriceOfBread.Runner/Program.cs:1944	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"Q{q,3} {name,-6} RGO {cnt,3}件 Scale計={sc,7:F1} 国営持分={(sc > 1e-9 ? bs / sc : 0),6:P1} 産出={op,9:F0}　工場 産出={fo,9:F0} 国営持分={(fs > 1e-9
+PriceOfBread.Runner/Program.cs:2615	20 導出量をそのまま読む（報告・既定の出力を変えない）	Row(nm, rk + "工業化度", tm, r.Industrialization, "度");
+PriceOfBread.Runner/Program.cs:2632	20 導出量をそのまま読む（報告・既定の出力を変えない）	indSum += r.Industrialization; portCap += r.PortCapacity;
+PriceOfBread.Runner/Program.cs:3176	20 導出量をそのまま読む（報告・既定の出力を変えない）	System.Console.WriteLine($"{w.SelfPower!.Name,-14}{w.TechLevel,7:F2}{w.Elite,7:F3}{(sz > 0 ? lit / sz : 0),6:P0}{w.EducationLaw,-11}{w.Censorship,-15}
+PriceOfBread.Runner/Program.cs:3201	20 導出量をそのまま読む（報告・既定の出力を変えない）	+ $"{x.W.GdpPerMonth,10:F0}{x.W.MeanIndustrialization,7:F2}{NationalScore.MeanSatisfaction(x.W),7:F2}{x.W.SelfPower!.Colonies,6}");
+PriceOfBread.Runner/Program.cs:5017	20 導出量をそのまま読む（報告・既定の出力を変えない）	void Snap(int c) { var rows = Enumerable.Range(0, N).Select(i => { var w = m.Nations[i].World; return (idx: i, score: NationalScore.Of(w), pol: w.Poli
+PriceOfBread.Runner/Program.cs:5183	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  {r + 1,2}. {Name(i),-8} スコア{NationalScore.Of(w),5:F0}　{PolJa(w.Polity),-10}　工業化{w.Region.TotalIndustrialization,4:F2}　人口{w.Total
+PriceOfBread.Runner/Program.cs:5313	20 導出量をそのまま読む（報告・既定の出力を変えない）	var ranked = im.Nations.Select(n => (n.World.SelfPower?.Name, Score: NationalScore.Of(n.World), Pol: n.World.Polity, n.World.Region.TotalIndustrializa
+PriceOfBread.Runner/Program.cs:5315	20 導出量をそのまま読む（報告・既定の出力を変えない）	foreach (var t in ranked) Console.WriteLine($"  {rank++,2}. {t.Item1,-16} スコア{t.Score,5:F0}　{PolJa(t.Pol)}　工業化{t.TotalIndustrialization:F2}");
+PriceOfBread.Runner/Program.cs:6154	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  {w.SelfPower?.Name,-8} 政体{w.Polity,-22} 主食{bread,7:P0} 国庫{w.Treasury / 1000,7:F0}k 人頭税{w.PollTax:P0} 軍事費{w.MilitarySpending:P0} 
+PriceOfBread.Runner/Program.cs:6179	20 導出量をそのまま読む（報告・既定の出力を変えない）	indMax = System.Math.Max(indMax, r.TotalIndustrialization);
+PriceOfBread.Runner/Program.cs:6228	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"Q{q,3}   " + string.Join("  ", counts) + $"   主食最高{breadMax,7:P0}  仏工業化{fr.Region.TotalIndustrialization,5:F2} 英工業化{br.Region.Tota
+PriceOfBread.Runner/Program.cs:6269	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  {rank,2} {w.SelfPower?.Name,-8} 総合{NationalScore.Of(w),6:F1} ｜" + string.Join(" ", NationalScore.BreakdownOf(w).Select(l => $"{l
+PriceOfBread.Runner/Program.cs:6301	20 導出量をそのまま読む（報告・既定の出力を変えない）	gdp[k] = gdp.GetValueOrDefault(k) + s.Gdp; ind[k] = ind.GetValueOrDefault(k) + s.Industrialization;
+PriceOfBread.Runner/Program.cs:6485	20 導出量をそのまま読む（報告・既定の出力を変えない）	indMax = Math.Max(indMax, n.World.MeanIndustrialization);   // 助走で「時間なしに工業化が進む」度合いの見張り（延長の主な副作用）
+PriceOfBread.Runner/Program.cs:6553	20 導出量をそのまま読む（報告・既定の出力を変えない）	foreach (var n in wpSim.Nations) indAfter = Math.Max(indAfter, n.World.MeanIndustrialization);
+PriceOfBread.Runner/Program.cs:6582	20 導出量をそのまま読む（報告・既定の出力を変えない）	double ind = n.World.Region.TotalIndustrialization;
+PriceOfBread.Runner/Program.cs:6759	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  {w.SelfPower?.Name,-8} {scoreSc[ix],5:F0}  " + string.Join(" ", scoreBd[ix].Select(l => $"{l.Points,6:F1}")) + $"（軍{w.SelfPower?
+PriceOfBread.Runner/Program.cs:7040	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"{w.Year}
+PriceOfBread.Runner/Program.cs:7141	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"{y}
+PriceOfBread.Runner/Program.cs:7316	20 導出量をそのまま読む（報告・既定の出力を変えない）	$"{(wAll > 1e-9 ? wArms / wAll * 100 : 0):F2},{r.Industrialization:F2}");
+PriceOfBread.Runner/Program.cs:7702	20 導出量をそのまま読む（報告・既定の出力を変えない）	rows.Add($"{pw.Year},{rank},{NationalScore.Of(pw):F1},{string.Join(",", NationalScore.BreakdownOf(pw).Select(l => l.Points.ToString("F1")))},{pw.MeanI
+PriceOfBread.Runner/Program.cs:8052	20 導出量をそのまま読む（報告・既定の出力を変えない）	double tb = s2.World.Treasury.Value, indb = s2.World.Region.TotalIndustrialization;
+PriceOfBread.Runner/Program.cs:8061	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  完成後の鋼工場 稼働{steel.Scale * 100:F0}% 四半期損益{steel.LastRevenue - steel.LastCost:N0}　工業化 {indb:F2}→{s2.World.Region.TotalIndustrializa
+PriceOfBread.Runner/Program.cs:8520	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  {st.Name,-10} 国力{st.Score,6:F0}  人口{st.Population,7:N0} 軍{st.Military,4:F1} 戦死累計{st.WarDead,7:N0} 工業{st.Industrialization,4:F1} 
+PriceOfBread.Runner/Program.cs:8594	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"  工業{w.Region.TotalIndustrialization:F2} 技術{w.TechLevel:F2} 識字{w.AllPops().Sum(p => p.Literacy * p.Size) / Math.Max(1, w.TotalPopu
+PriceOfBread.Runner/Program.cs:8682	20 導出量をそのまま読む（報告・既定の出力を変えない）	Console.WriteLine($"{n.Name,-10}{n.TechLevel,6:F2}{n.Industrialization,7:F2}{n.MeanSatisfaction,6:F2}" +
+
+== 関連の語（Coefficients.cs の宣言を除く・SimCore のコード行の数と場所） ==
+  Mechanization	3	EconomyStep.cs:686 EconomyStep.cs:2795 Model.cs:970
+  UrbanIndSmoothed	5	Meritocracy.cs:458 Model.cs:1016 PopDecision.cs:46 PopDecision.cs:47 PopDecision.cs:48
+  IndustrialFrontier	5	Ideology.cs:151 InstrumentsModernize.cs:38 MultiNationSim.cs:862 SelfPlay.cs:481 World.cs:199
+  VintageTechLevel	3	EconomyStep.cs:678 EconomyStep.cs:681 Model.cs:973
+  DevelopmentPeak	4	EconomyStep.cs:664 EconomyStep.cs:665 EconomyStep.cs:666 Model.cs:972
+  WageClampIndScale	1	MarketFlow.cs:79
+  MonopolyDissolveInd	1	EconomyStep.cs:410
+  CreditDevScale	1	Credit.cs:87
+  CapitalIndTarget	1	CapitalMarket.cs:80
+  RefrigerationIndOnset	1	EconomyStep.cs:565
+  IndustryInvestRegionCap	4	EconomyStep.cs:956 Megaprojects.cs:240 World.cs:1969 World.cs:1974
+  InfraMaintRate	1	EconomyStep.cs:1013
+  IdeologyGateIndScale	1	Ideology.cs:153
+  UrbanPerInd	2	Meritocracy.cs:459 PopDecision.cs:50
+  IndProductivityGain	2	EconomyStep.cs:689 EconomyStep.cs:2689
+  IndProductivityScale	2	EconomyStep.cs:689 EconomyStep.cs:2688
+  VintageMigrateRate	2	EconomyStep.cs:674 EconomyStep.cs:676
+  VintageObsolescence	1	EconomyStep.cs:682
+  LaborSaveRate	2	EconomyStep.cs:686 EconomyStep.cs:2795
+  LaborSaveIndHalf	1	EconomyStep.cs:686
+  DevelopmentMemory	2	EconomyStep.cs:661 EconomyStep.cs:666
+  EpidemicSanitationHalf	2	World.cs:1141 World.cs:1206
+  GoldStandardIndThreshold	1	SelfPlay.cs:976
+  IndCapitalCost	1	EconomyStep.cs:2690
+  IndTechLeverage	1	EconomyStep.cs:2691
+  IndPerConstruction	13	EconomyStep.cs:844 EconomyStep.cs:910 EconomyStep.cs:911 EconomyStep.cs:912 EconomyStep.cs:913 EconomyStep.cs:914 EconomyStep.cs:956 EconomyStep.cs:2013 EconomyStep.cs:2084 EconomyStep.cs:2085 EconomyStep.cs:2735 EconomyStep.cs:2737 EconomyStep.cs:2742
+  IndCapitalOutputYears	2	EconomyStep.cs:2737 EconomyStep.cs:2740
+
+== ラチェットの基準値（旗の段階・WriterRatchetTests に載せる）：SimCore の書き手の行数 17（Industrialization・OldVintageCapital・StrandedVintage への代入・複合代入・コメントを除く）。焼き込みで 0 ==

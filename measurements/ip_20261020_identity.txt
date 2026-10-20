@@ -1,0 +1,7 @@
+(468) 恒等の確かめ（前半・1 種 200 四半期 seed 1・旗 0）2026-10-20
+基点 128ac2b（git archive・SOURCE-HASH 4a7a358d6ad5a96d）と形の木（コミット 9d2c7ef8 の SimCore・SOURCE-HASH e4e5cd895e1a9bec）
+素：報告 12310 バイト対 12310 バイト・SOURCE-HASH を含む行を除いて diff 0 行
+計器つき（POB_INSTRUMENTS・既定の国）：報告 12310 対 12310・diff 0 行。計器の表 base 44 本・形 45 本：burscan〔壁時計〕と clock〔C 行＝Stopwatch の列〕以外は全てバイト一致（clock は C 行を除くと一致）・形だけに power_s1.tsv が増える〔意図〕
+（形 3 の木 c56fef72 でも同じ確かめを一度行い同じ結果。形 4 の後に回し直したのがこの記録）
+⚠1 種は恒等の証明の全てではない＝5 種・10 種・計器つき 10 種の成績表 3 枚が m466 と全行一致するのは後半の担当の腕 A。
+生は D:/PoB_work/ip_468/id/（base_*・form_*）

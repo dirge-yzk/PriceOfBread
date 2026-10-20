@@ -1,0 +1,16 @@
+(468) 検証の記録（2026-10-20・形 4 の木 9d2c7ef8＝SimCore・Tests・Runner・App はこの木・docs と measurements だけ後のコミットで足した・Release・隔離ビルド D:/PoB_work/ip_468/art_suite）
+## フルスイート（Category!=FullLength）
+成功!   -失敗:     0、合格:  1567、スキップ:     0、合計:  1567、期間: 24 m 41 s（基点 m466 の 1516 本＋この線の 51 本＝IndustrializationOffTests 15・PowerRebuildTests 15・FactoryPlantTests・FactoryBuffsTests・PowerLedgerTests ほか）
+## FullLength（3 本）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 8 m 50 s
+## 突然変異（IndustrializationOffTests・枝の複製 D:/PoB_work/ip_468/mut で 1 本ずつ入れて戻す）
+M1 投資が載らない／M2 indMult を残す／M3 賃金の天井の項を残す／M4 州の上限を残す／M5 減価なし／M6 独占の解体を残す／M7 摩耗なし／M8 設備の更新を呼ばない／M9 私的投資を載せない／M10 国家建設を載せない／M11 機械化度を残す／M12 ヴィンテージを残す／M13 設備 K を頭数に書き直さない：基準は緑・13 本全て赤
+## savetest 1789 300 12
+旗 0：全 73 カ国が継続系列と一致（最大相対差 0）
+B の旗の組（PowerRebuild=3;FactoryCapacityFromPlant=1;FactoryBuffsOff=1;IndustrializationOff=1）：全 61 カ国が継続系列と一致（最大相対差 0）
+## leakhunt 1789（668 四半期）
+旗 0：完走・保存則違反なし・世界の台帳の説明できない増減＝人口 0・基礎貨幣 0
+PowerRebuild=3;FactoryCapacityFromPlant=1;FactoryBuffsOff=1（工業化度の削除なし）：完走・説明できない増減＝人口 0・基礎貨幣 0
+IndustrializationOff=1 だけ（400 四半期）：完走・説明できない増減＝人口 0・基礎貨幣 0
+**B の旗の組（4 本）：完走・「保存則違反なし」と出るが、世界の台帳の説明できない増減＝人口 0・基礎貨幣 4 四半期（累計 −3268.8＝Q388〜Q391〔1880 年〕の −1137.2・−1132.5・−562.6・−436.4）**。同じ 4 四半期が 400 四半期の走りでも出る（決定論）。
+⚠止める線の候補（保存則）：旗の組み合わせでだけ出る（動力の束だけ・工業化度の削除だけではどちらも 0）。月の段の PROBE は 1879〜1881 年に 国際市場 の ΔW が負（−46〜−526 → 次第に縮む）。原因は未特定（この回は切り分けていない）＝腕 B の前に後半の担当が切り分ける（候補：PowerMachines.Settle の払いと売上・導出量が大きい州〔最大 20.9〕を読む信用／外資の吸い寄せ・合資会社）。生は D:/PoB_work/ip_468/id/lk_B_full.txt・lk_B400.txt。
