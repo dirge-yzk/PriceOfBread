@@ -10,18 +10,23 @@ namespace PriceOfBread.SimCore;
 //   {plain|farm}PriceOverMcIndex（値段÷自己費用 mc〔EconomyStep.ProfitFactor が読む mc と同じ式〕を能力で重み付け）・{plain|farm}RealPriceIndex（値段÷州の物価水準を能力で重み付け）・{plain|farm}ProfitMeanShare（EconomyStep.ProfitFactor を能力で重み付け）・
 //   {plain|farm}WageBillPerMonth（売れた量×値段の和＝賃金の支払いの近似）・{plain|farm}UnemploymentShare（担い手 POP の失業率を人数で重み付け）／
 //   plainFloor{0|1}Over{Subs|Liv|Suff}Index（法の床〔MinimumWageFloor の籠を段ごとに仮に置いたもの〕÷今の値段を能力で重み付け・0＝能力ベース・1＝実雇用ベース）／
-//   enactedBindShare（法が施行されているとき、床〔係数の読みどおり〕が今の値段を上回る州の能力の割合・法が None なら 0）。
+//   enactedBindShare（法が施行されているとき、床〔係数の読みどおり〕が今の値段を上回る州の能力の割合・法が None なら 0・四半期末の断面で天井を知らない弱い読み＝記録だけ）／
+//   ★(469) 追記 3 で足した 6 列：enactedNearFloorShare（法が施行されているとき、値段が〈機構と同じ天井で削った床〉×1.05 以下＝床に座るか床の下の州の能力の割合・N1）・
+//   enactedBelowFloorShare（同じ床の 0.90 倍を値段が下回る州の能力の割合・N2）・{plain|farm}RealPriceMinIndex（値段÷州の物価水準の州の中の最小・発散の観測 (i)）・
+//   {plain|farm}TinyPriceRegionShare（値段÷州の物価水準が 1e-3 未満の州の能力の割合・発散の観測 (i)）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／賃金の支払いは売れた量×値段の近似で、賃金→農民の所得の割合は class_s の農民の earnedPerMonth との比で読む／mc は市場の州の乗数まで含む自己費用の式をそのまま読む／人力の生産者が無い州は行に数えない。
 public static partial class Instruments
 {
     internal const string LwHeaderText = "quarter\tyear\tnation\tlawCode\t"
         + "plainCapPerMonth\tplainDemandPerMonth\tplainSoldPerMonth\tplainPriceOverMcIndex\tplainRealPriceIndex\tplainProfitMeanShare\tplainWageBillPerMonth\tplainUnemploymentShare\t"
         + "farmCapPerMonth\tfarmDemandPerMonth\tfarmSoldPerMonth\tfarmPriceOverMcIndex\tfarmRealPriceIndex\tfarmProfitMeanShare\tfarmWageBillPerMonth\tfarmUnemploymentShare\t"
-        + "plainFloor0OverSubsIndex\tplainFloor0OverLivIndex\tplainFloor0OverSuffIndex\tplainFloor1OverSubsIndex\tplainFloor1OverLivIndex\tplainFloor1OverSuffIndex\tenactedBindShare";
+        + "plainFloor0OverSubsIndex\tplainFloor0OverLivIndex\tplainFloor0OverSuffIndex\tplainFloor1OverSubsIndex\tplainFloor1OverLivIndex\tplainFloor1OverSuffIndex\tenactedBindShare"
+        + "\tenactedNearFloorShare\tenactedBelowFloorShare\tplainRealPriceMinIndex\tplainTinyPriceRegionShare\tfarmRealPriceMinIndex\tfarmTinyPriceRegionShare";
 
     private sealed class LwAcc
     {
         public double Cap, Demand, Sold, PxMcW, RealW, ProfW, Bill, UnW, UnDen, CapW;
+        public double MinReal = double.PositiveInfinity, TinyCap;   // ★(469) 追記 3：州の中の実質の値段の最小・実質の値段が 1e-3 未満の州の能力
     }
 
     static void LwFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
@@ -29,7 +34,7 @@ public static partial class Instruments
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var c = w.Coef;
         var plain = new LwAcc(); var farm = new LwAcc();
-        var fl = new double[6]; double flW = 0, bindW = 0, bindCap = 0;   // fl[0..2]＝能力ベースの 生存・生活・充足／fl[3..5]＝実雇用ベース
+        var fl = new double[6]; double flW = 0, bindW = 0, bindCap = 0, nearW = 0, belowW = 0;   // fl[0..2]＝能力ベースの 生存・生活・充足／fl[3..5]＝実雇用ベース
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -50,6 +55,11 @@ public static partial class Instruments
             {
                 bindCap += capP;
                 if (MinimumWageFloor.PerUnit(r, Catalog.LaborId, w.MinimumWage) > price) bindW += capP;
+                // ★(469) 追記 3：床は機構（MarketFlow.StepDay）と同じ天井で削った値（AbsFloor・天井＝参照価格×物価水準×EffWageMax）で読む。縛り＝値段が床の 1.05 倍以下／床の下＝値段が床の 0.90 倍未満
+                double ceil = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * MarketFlow.EffWageMax(r, c);
+                double fl0 = MinimumWageFloor.AbsFloor(r, Catalog.LaborId, ceil, w.MinimumWage);
+                if (fl0 > 0 && price <= fl0 * 1.05) nearW += capP;
+                if (fl0 > 0 && price < fl0 * 0.90) belowW += capP;
             }
         }
         double Div(double a, double b) => b > 0 ? a / b : double.NaN;
@@ -63,6 +73,13 @@ public static partial class Instruments
             cols.AddRange([F(a.Cap), F(a.Demand), F(a.Sold), F(Div(a.PxMcW, a.CapW)), F(Div(a.RealW, a.CapW)), F(Div(a.ProfW, a.CapW)), F(a.Bill), F(Div(a.UnW, a.UnDen))]);
         for (int k = 0; k < 6; k++) cols.Add(F(Div(fl[k], flW)));
         cols.Add(F(bindCap > 0 ? bindW / bindCap : 0.0));
+        cols.Add(F(bindCap > 0 ? nearW / bindCap : 0.0));
+        cols.Add(F(bindCap > 0 ? belowW / bindCap : 0.0));
+        foreach (var a in new[] { plain, farm })
+        {
+            cols.Add(F(a.MinReal));
+            cols.Add(F(Div(a.TinyCap, a.CapW)));
+        }
         sk.Lab.WriteLine(string.Join('\t', cols));
     }
 
@@ -85,6 +102,12 @@ public static partial class Instruments
             a.ProfW += s.Capacity * EconomyStep.ProfitFactor(s, price, mc, c);
         }
         if (lp < 0) return;
+        if (cap > 0 && r.PriceLevel > 0)
+        {   // ★(469) 追記 3：州の粒度の実質の値段（発散の観測 (i)）
+            double real = price / r.PriceLevel;
+            if (real < a.MinReal) a.MinReal = real;
+            if (real < 1e-3) a.TinyCap += cap;
+        }
         a.Cap += cap; a.Demand += m.LastDemand; a.Sold += m.LastSold; a.Bill += m.LastSold * price;
         if (lp < r.Pops.Count) { double sz = r.Pops[lp].Size; a.UnW += sz * r.Pops[lp].UnemploymentRate.Value; a.UnDen += sz; }
     }

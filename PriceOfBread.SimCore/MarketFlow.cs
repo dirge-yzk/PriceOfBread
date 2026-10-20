@@ -76,7 +76,7 @@ public static class MarketFlow
         // ★2026-09-08（10-4c の残り＝賃金側）：賃金の天井 effWageMax は coef と region.Industrialization だけで決まり、
         //   この foreach は市場（m.*）しか書かない＝**財ループ不変**（月次で動くが、StepDay 1回の中では定数）。
         //   よって天井/床の対数も財ごとに Math.Log を呼ぶ必要がない＝役務1財あたり2回→州1回へ。渡す double は同一＝ビット恒等。
-        double effWageMax = coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
+        double effWageMax = EffWageMax(region, coef);
         double lnCeilWage = System.Math.Log(effWageMax);
         double lnFloorWage = -System.Math.Log(coef.WageClampMin);
         // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
@@ -330,6 +330,10 @@ public static class MarketFlow
         double flow = (eD - eS) / (eD + eS + Eps);
         return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
     }
+
+    /// <summary>賃金の天井の倍率＝WageClampMax×(1＋WageClampIndScale×工業化度)（参照価格×物価水準に掛ける）。StepDay（州1回に巻き上げ）と計器 labor_s（法の床を機構と同じ天井で削って読む）が同じ式を読む1本（(469)・式は1文字も変えない＝ビット恒等）。</summary>
+    internal static double EffWageMax(Region region, Coefficients coef)
+        => coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
 
     /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
     private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);

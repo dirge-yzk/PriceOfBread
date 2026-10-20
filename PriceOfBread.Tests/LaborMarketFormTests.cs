@@ -102,8 +102,7 @@ public class LaborMarketFormTests
         a.Run(8); b.Run(8);
         moneyB.Check(b.World);
         Assert.True(double.IsFinite(LaborPrice(b)) && LaborPrice(b) > 0);
-        // 非空虚の対照：旧の世界では値段は崖（自己費用）の直上に居る（崖が値段を決めている）
-        Assert.True(LaborPrice(a) >= HumanLaborMc(a) * 0.97, $"前提が崩れた：旧の世界の値段 {LaborPrice(a):F4} が自己費用 {HumanLaborMc(a):F4} の直上に居ない");
+        // 旧の盤面の創発（旧の世界の値段が自己費用の直上に居る）は番人に固定しない＝腕の N0（labor_s）が読む（機構のテストを旧の盤面に固定しない・(469) 追記 3）
         // 撤去した世界では値段が自己費用を下回る（下限が消えた証拠・事前登録 N0）
         Assert.True(LaborPrice(b) < HumanLaborMc(b) * 0.9, $"崖が外れていない（値段 {LaborPrice(b):F4}・自己費用 {HumanLaborMc(b):F4}）");
         // 供給は能力いっぱい：売りに出た量（産出）が旧の世界より大きい（この小さな世界は能力が需要の 4% 増し程度＝桁の違いは多国の世界で腕が見る）
@@ -540,5 +539,106 @@ public class LaborInstrumentTests
             Assert.True(pos > 4 * Q / 2, $"能力が正の行が少ない {pos}（hook が空振り）");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>法が施行された世界で、縛りの列（N1・N2）は〈値段÷機構と同じ天井で削った床〉の閾値（1.05・0.90）で決まり、州の粒度の列は〈値段÷物価水準〉の閾値（1e-3）で決まる。
+    /// 期待値は表の外で作る：床は MinimumWageFloor.AbsFloor を世界から直に呼び（天井は参照価格×物価水準×天井の倍率を別に組む）、値段を床の倍率に置いてから表を書かせ、分母（能力のある州）を数え直す。</summary>
+    [Fact]
+    public void 縛りの列は値段と床の比の閾値で決まり_州の粒度の列は実質の値段の閾値で決まる()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_lwb_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], 1789UL, _ => new UtilityAgent());
+            Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, 1789UL, "warm");
+            var w = sim.Nations[0].World;
+            string nat = Instruments.NameOf(w);
+            try
+            {
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 0);
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 1);
+                w.MinimumWage = MinimumWageLaw.Living;
+                static double HumanCap(Region r) => r.Producers.Where(s => s.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(s) && !s.Bankrupt).Sum(s => s.Capacity);
+                // 能力のある州の分母と、床が立つ州の分子（表の外で数える）
+                var list = new List<(Region r, double floor)>();
+                double den = 0, num = 0;
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active) continue;
+                    var human = r.Producers.FirstOrDefault(s => s.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(s) && !s.Bankrupt);
+                    double cap = HumanCap(r);
+                    if (human is null || !(cap > 0) || human.LaborPopIndex < 0 || human.LaborPopIndex >= r.Pops.Count || !(r.Markets[Catalog.LaborId].Price > 0)) continue;
+                    double ceiling = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * (w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * r.Industrialization));
+                    double f = MinimumWageFloor.AbsFloor(r, Catalog.LaborId, ceiling, w.MinimumWage);
+                    den += cap; if (f > 0) num += cap;
+                    list.Add((r, f));
+                }
+                Assert.True(den > 0 && num > 0, $"前提が崩れた：床の立つ州が無い（分母 {den}・分子 {num}）");
+                // 表は閉じるまで書き手が掴んでいる＝四半期ごとに値段を置いて表を書かせ、期待値を控え、閉じてから読む
+                var checks = new List<(int q, string col, double exp, double tol)>();
+                // (四半期, 値段÷床, 縛り〔1.05 以下〕の割合の倍率, 床の下〔0.90 未満〕の倍率)
+                foreach (var (q, scale, near, below) in new[] { (2, 0.95, 1.0, 0.0), (3, 0.5, 1.0, 1.0), (4, 1.5, 0.0, 0.0), (5, 1.04, 1.0, 0.0), (6, 1.06, 0.0, 0.0), (7, 0.89, 1.0, 1.0) })
+                {
+                    foreach (var (r, f) in list) if (f > 0) r.Markets[Catalog.LaborId].Price = f * scale;
+                    Instruments.Quarter(sim, 1789UL, q);
+                    checks.Add((q, "enactedNearFloorShare", num / den * near, 1e-6));
+                    checks.Add((q, "enactedBelowFloorShare", num / den * below, 1e-6));
+                }
+                // 州の粒度の列：値段を物価水準の 0.5e-3 倍／2e-3 倍に置く
+                foreach (var (q, real, tiny) in new[] { (8, 0.5e-3, 1.0), (9, 2e-3, 0.0) })
+                {
+                    foreach (var r in w.Regions) if (r.State == RegionState.Active) r.Markets[Catalog.LaborId].Price = real * r.PriceLevel;
+                    Instruments.Quarter(sim, 1789UL, q);
+                    checks.Add((q, "plainTinyPriceRegionShare", tiny, 1e-9));
+                    checks.Add((q, "plainRealPriceMinIndex", real, real * 1e-8));
+                }
+                Instruments.Close(sim);
+                var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "labor_s1789.tsv"));
+                var h = lines[0].Split('\t');
+                var all = lines.Skip(1).Select(l => l.Split('\t')).ToList();
+                foreach (var (q, col, exp, tol) in checks)
+                {
+                    var row = all.Last(r => r[System.Array.IndexOf(h, "quarter")] == q.ToString() && r[System.Array.IndexOf(h, "nation")] == nat);
+                    Assert.InRange(Col(h, row, col), exp - tol, exp + tol);
+                }
+            }
+            finally { Instruments.Close(sim); }
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>人力の述語の一本化：投入を持つ人力の行（IsHumanLaborSupply でない）は床の分母（能力の和）に数えない。</summary>
+    [Fact]
+    public void 床の分母は供給の式と同じ述語で数え_投入を持つ人力の行を数えない()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(2);
+        var r = sim.World.Region;
+        const MinimumWageLaw law = MinimumWageLaw.Living;
+        double before = MinimumWageFloor.PerUnit(r, Catalog.LaborId, law);
+        Assert.True(before > 0);
+        var human = r.Producers.First(s => s.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(s) && !s.Bankrupt);
+        // 同じ POP に載る、投入を持つ人力の行（レシピ名は空）を足す＝旧の述語（レシピ名が空）なら分母に入って床が下がる
+        var extra = new Producer { GoodId = Catalog.LaborId, RecipeName = "", LaborPopIndex = human.LaborPopIndex, Capacity = human.Capacity * 3.0 };
+        extra.Inputs.Add(new Input(Catalog.LaborId, 0.1));
+        Assert.False(EconomyStep.IsHumanLaborSupply(extra));
+        r.Producers.Add(extra);
+        Assert.Equal(before, MinimumWageFloor.PerUnit(r, Catalog.LaborId, law));
+    }
+
+    /// <summary>天井の倍率の1本：StepDay と計器が読む EffWageMax は、係数と工業化度から別に組んだ式と等しい。</summary>
+    [Fact]
+    public void 賃金の天井の倍率は係数と工業化度から組んだ式と等しい()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        foreach (double ind in new[] { 0.0, 0.3, 1.7 })
+        {
+            r.Industrialization = ind;
+            Assert.Equal(c.WageClampMax * (1 + c.WageClampIndScale * ind), MarketFlow.EffWageMax(r, c));
+        }
     }
 }
