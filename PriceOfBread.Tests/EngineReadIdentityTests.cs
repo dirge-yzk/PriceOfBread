@@ -158,7 +158,7 @@ public class EngineReadIdentityTests
         Assert.Equal(2, n);
         Assert.Equal(expected, sum, 9);
         // 実際の機構：挑発して反映の月数だけ回す＝近隣（蘭・普・墺）への挑発者の緊張の増分の和が見積もりの和
-        double Tension3() => new[] { 2, 3, 4 }.Sum(i => sim.Diplomacy.Tension(actor, P(i)));
+        double Tension3() => sim.Diplomacy.Tension(actor, P(2)) + sim.Diplomacy.Tension(actor, P(3)) + sim.Diplomacy.Tension(actor, P(4));
         double before = Tension3();
         Assert.True(sim.Diplomacy.RaiseTension(actor, target, c), "前提が崩れた（挑発できない）");
         for (int m = 0; m < c.TensionActionRampMonths + 2; m++) sim.Diplomacy.StepTensionRamp(c);
