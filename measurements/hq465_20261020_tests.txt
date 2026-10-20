@@ -1,0 +1,4 @@
+# (465) hq テスト（Release・隔離ビルド D:/PoB_work/hq_465/build・コミット 187a9886）
+成功!   -失敗:     0、合格:  1505、スキップ:     0、合計:  1505、期間: 16 m 28 s - PriceOfBread.Tests.dll (net10.0)
+FullLength:
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 6 s - PriceOfBread.Tests.dll (net10.0)
