@@ -19,6 +19,7 @@ namespace PriceOfBread.SimCore;
 //   floorEndOverStepIndex（四半期末の床÷最後の歩の床を能力で重み付け＝歩の後に床が上がったか）・priceEndOverStepIndex（四半期末の値段÷最後の歩の直後の値段＝歩の後に値段が動いたか）・
 //   belowNoStepShare／belowPriceMovedShare／belowFloorMovedShare（四半期末に床×0.90 未満の州の能力を原因に分けた割合：最後の歩が無い〔印が古い・床なし〕／歩の直後は床×0.90 以上だったのに値段が落ちた／歩の直後の値段が四半期末の床×0.90 未満＝床が上がった）。
 //   3 つの和は enactedBelowFloorShare と一致する。分母は enactedBelowFloorShare と同じ（法が施行されている州の能力）。
+//   ⚠限界（追記 6 列）：歩の記録の印 Fresh は折り込みが下ろす＝その国が折り込まれない四半期（挙げた国以外の年末でない四半期）は印が残り、次の折り込みは数四半期ぶんの歩のうち最後の 1 回を見る／折り込みの途中で飛ばす州（能力 0・担い手なし・値段 0 以下）は印が下りず古い印のまま次へ持ち越す（belowNoStepShare を少なく数えうる）／歩の記録は工場労働（LaborId）だけ・農業労働は持たない。
 // ⚠限界（計器が自己申告する）：四半期の末の断面／賃金の支払いは売れた量×値段の近似で、賃金→農民の所得の割合は class_s の農民の earnedPerMonth との比で読む／mc は市場の州の乗数まで含む自己費用の式をそのまま読む／人力の生産者が無い州は行に数えない。
 public static partial class Instruments
 {
