@@ -165,7 +165,7 @@ for s, rr in LA.items():
             d2n += 1
             if r1 < 0.35:
                 d2 += 1; d2list.append((s, n, r1))
-print('== [D1] 州の実質の値段 <1e-3×物価水準 が能力の 5% 以上を 8 四半期以上続けた 国×種： %d / %d（%s）  → %s（基準 ≤5%%）' % (d1, tot, fmt(d1 / tot if tot else float('nan')), '発散なし' if d1 <= 0.05 * tot else '発散（止める線）'))
+print('== [D1] 州の実質の値段 <1e-3×物価水準 が能力の 5%% 以上を 8 四半期以上続けた 国×種： %d / %d（%s）  → %s（基準 ≤5%%）' % (d1, tot, fmt(d1 / tot if tot else float('nan')), '発散なし' if d1 <= 0.05 * tot else '発散（止める線）'))
 if d1list:
     print('   ' + ' '.join('s%d:%s(%dq)' % x for x in d1list[:20]))
 print('== [D2] 実質の値段の 1941-50 ÷ 1931-40 <0.35 の 国×種： %d / %d（%s）  → %s（基準 ≤5%%）' % (d2, d2n, fmt(d2 / d2n if d2n else float('nan')), '不動点に着いた' if d2 <= 0.05 * d2n else '落ち続けている（止める線）'))
