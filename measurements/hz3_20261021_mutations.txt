@@ -1,0 +1,34 @@
+M1 生存の籠に日用品を入れる => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborMarketFormTests.籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る [2 s]
+M2 需要の立たない財を数える => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborMarketFormTests.籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る [2 s]
+M3 役務を籠に入れる => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborMarketFormTests.籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る [3 s]
+M4 床に担い手の人数を掛けない => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborMarketFormTests.籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る [2 s]
+M5 予想が十分の一税を請求に数えない => 赤 1 本 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.EngineReadIdentityTests.予算表の税の予想は今の率を渡すと同じ月の徴税の診断と合う(board: 2) [23 ms]
+M6 予想が仲介者の取り分を請求に数えない => 赤 1 本 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.EngineReadIdentityTests.予算表の税の予想は今の率を渡すと同じ月の徴税の診断と合う(board: 2) [36 ms]
+M7 予想が払える割合を掛けない => 赤 1 本 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.EngineReadIdentityTests.予算表の税の予想は今の率を渡すと同じ月の徴税の診断と合う(board: 2) [39 ms]
+M8 予想が犯罪者を除かない => 緑(見逃し) 0 本 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M9 予想が算入率を渡さない => 緑(見逃し) 0 本 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M10 人頭税の査定が一律額を掛けない => 赤 1 本 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.EngineReadIdentityTests.予算表の税の予想は目標の率に応じて動く_人頭税は手計算と合い所得税は比例する [2 s]
+M11 半減点の有権者が FranchiseVoice の和 => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.SmallFixes471Tests.議席の票の述語は_選挙資金の有権者数にも同じ_1本_を通る [3 s]
+M12 選挙資金の受け手が FranchiseVoice => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.SmallFixes471Tests.選挙資金は議席の票と同じ重みの有権者に配られ_植民地参政権なしでは植民地の住民に届かない [2 s]
+M13 N2 の原因の不等号を逆にする => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborInstrumentTests.N2の診断の列は最後の歩の直後の値段と床を残し_四半期末の床の下を原因に分ける [8 s]
+M14 歩の印を下ろさない => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborInstrumentTests.N2の診断の列は最後の歩の直後の値段と床を残し_四半期末の床の下を原因に分ける [7 s]
+M15 歩の記録の値段が半分 => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborInstrumentTests.N2の診断の列は最後の歩の直後の値段と床を残し_四半期末の床の下を原因に分ける [7 s]
+M16 歩の記録の床が 0 => 赤 1 本 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+      失敗 PriceOfBread.Tests.LaborInstrumentTests.N2の診断の列は最後の歩の直後の値段と床を残し_四半期末の床の下を原因に分ける [8 s]
+MUTATION-END
+--- 追記：M8（予想が犯罪者を除かない）と M9（予想が算入率を渡さない）は上の初回の走りでは見逃した（盤面 2 に犯罪者も非中核の POP も無かった）。
+    番人の盤面 2 に〈犯罪者に変えた POP〉と〈中核度 0.3 の POP〉を足して再走：M8・M9 とも赤（EngineReadIdentityTests.予算表の税の予想は今の率を渡すと同じ月の徴税の診断と合う）。
+    最終の 16 か所は全て赤。突然変異は一時的にソースを書き換え、隔離でない通常のビルド（--artifacts-path D:/PoB_work/hz3/build_t）で試験を回して元へ戻した（git status で戻りを確認）。

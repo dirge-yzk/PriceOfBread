@@ -1,0 +1,2 @@
+armsdebug 1 イギリス 1 260（変更前の Runner と変更後の Runner）：diff 0 行・262 行同じ
+0

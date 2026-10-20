@@ -1,0 +1,8 @@
+# フルスイート（Category!=FullLength・Release・隔離ビルド）
+
+成功!   -失敗:     0、合格:  1572、スキップ:     0、合計:  1572、期間: 11 m 15 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 04:35:34
+# FullLength
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 22 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 04:43:43
