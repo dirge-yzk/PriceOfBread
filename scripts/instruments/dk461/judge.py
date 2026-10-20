@@ -153,6 +153,10 @@ def main():
         ys = [first[(s, row)][0][0] if (s, row) in first else math.inf for s in range(1, nseeds + 1)]
         m = statistics.median(ys)
         print(f"   {row}\t{'開かない' if math.isinf(m) else f'{m:.1f}'}\t（開いた種 {sum(1 for y in ys if not math.isinf(y))}/{nseeds}・年 {sorted(y for y in ys if not math.isinf(y))}）")
+    # TT（事前登録 追記 2・採否の門）：転炉鋼の最初の解禁の年の種の中央値が 1820 年以上（census で d＝7 の行が S＝1 になる年は 1819・行の年代 1850・基準 1783）。開かない種は ∞。
+    _ys_t = [first[(s_, "転炉鋼")][0][0] if (s_, "転炉鋼") in first else math.inf for s_ in range(1, nseeds + 1)]
+    _mt = statistics.median(_ys_t)
+    print(f"TT 転炉鋼の最初の解禁の年の種の中央値：{'開かない' if math.isinf(_mt) else f'{_mt:.1f}'}（狙い≧1820・基準 1783）→ {'通過' if _mt >= 1820 else '外れ'}")
     # T3, T4
     wnat = collections.Counter(); wtot = 0.0
     small_w = small_tot = 0.0; unseeded = 0.0
@@ -237,6 +241,7 @@ def main():
             _c85 = [t[1785] for t in _wc.values() if 1785 in t]
             if _c85:
                 w85 = statistics.median(_c85); w85_note = "census の 1785 年（登録の W85）"
+        t7ok = max(wm.values()) / w85 >= 10
         print(f"T7 腕の W の最大÷W85 ＝ {max(wm.values()) / w85:.2f}（W85＝{w85:.5g}・{w85_note}・狙い≧10）")
         if census:
             wc = wtraj(census)
@@ -244,6 +249,10 @@ def main():
             for y in (1849, 1899):
                 if y in wm and y in cm:
                     print(f"T7 {y} 年の W：腕 {wm[y]:.5g}・census {cm[y]:.5g}・比 {wm[y] / cm[y]:.3f}（狙い≧0.5）")
+                    if not wm[y] / cm[y] >= 0.5: t7ok = False
+                else:
+                    t7ok = False
+            print(f"T7 合否（1849・1899 年の比が 0.5 以上・最大÷W85 が 10 以上）→ {'通過' if t7ok else '外れ'}（作りの上で通る線＝機構が働いた証拠に数えない）")
         else:
             print("T7 census の出力フォルダ（--census=）が無い＝比べられない")
     else:
@@ -288,7 +297,7 @@ def main():
             opened += 1
             if statistics.median(ys) < dec_of[r_] - 40:
                 early += 1
-    print(f"T9（名乗りの段・採否に使わない）d≧10 の行 {len(late)} 本のうち開いた {opened} 本・行の年代の 40 年より前に開いた {early} 本（開いた行の {early / opened:.2f}）" if opened else f"T9 d≧10 の行 {len(late)} 本のうち開いた行が無い")
+    print(f"T9（事前登録 追記 2・採否の門）d≧10 の行 {len(late)} 本のうち開いた {opened} 本・行の年代の 40 年より前に開いた {early} 本（開いた行の {early / opened:.2f}・狙い≦0.50・基準 11/16＝0.69）→ {'通過' if early / opened <= 0.50 else '外れ'}" if opened else f"T9 d≧10 の行 {len(late)} 本のうち開いた行が無い→ 外れ")
     print("T6 計算量はこの読み手の外（.cost・clock_s の C 行の秒・台帳の行 23 を手で読む）")
     # 記録だけ
     print("--- 記録だけ（採否に使わない）---")
