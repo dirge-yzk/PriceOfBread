@@ -1,0 +1,25 @@
+q20 elapsed 8.2s
+q40 elapsed 13.7s
+q60 elapsed 18.9s
+q80 elapsed 23.9s
+q100 elapsed 28.3s
+q120 elapsed 32.9s
+q140 elapsed 37.3s
+q160 elapsed 41.8s
+q180 elapsed 46.1s
+q200 elapsed 50.4s
+q220 elapsed 54.8s
+q240 elapsed 59.1s
+q260 elapsed 63.4s
+q280 elapsed 67.8s
+q300 elapsed 72.1s
+q320 elapsed 76.4s
+q340 elapsed 80.7s
+q360 elapsed 85.0s
+q380 elapsed 89.1s
+q400 elapsed 93.2s
+done mode=B quarters=400 wall=93.3s -> D:/PoB_work/bk473/B1.tsv
+
+real	1m34.663s
+user	0m0.015s
+sys	0m0.015s
