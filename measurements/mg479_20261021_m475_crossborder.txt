@@ -1,0 +1,8 @@
+# annual pct of pop out/in, median over seeds
+アメリカ P1: out 0.022 in 0.003 | P2: out 0.155 in 0.002 | P3: out 0.167 in 0.004 | P4: out 0.007 in 0.000
+イギリス P1: out 0.031 in 0.013 | P2: out 0.020 in 0.008 | P3: out 0.016 in 0.008 | P4: out 0.015 in 0.000
+フランス P1: out 0.001 in 0.001 | P2: out 0.000 in 0.008 | P3: out 0.001 in 0.014 | P4: out 0.001 in 0.007
+プロイセン P1: out 0.000 in 0.008 | P2: out 0.001 in 0.014 | P3: out 0.004 in 0.013 | P4: out 0.006 in 0.002
+ポルトガル P1: out 0.003 in 0.002 | P2: out 0.008 in 0.019 | P3: out 0.002 in 0.039 | P4: out 0.002 in 0.017
+ロシア P1: out 0.008 in 0.017 | P2: out 0.008 in 0.003 | P3: out 0.006 in 0.008 | P4: out 0.012 in 0.007
+清 P1: out 0.000 in 0.001 | P2: out 0.002 in 0.001 | P3: out 0.001 in 0.002 | P4: out 0.001 in 0.002

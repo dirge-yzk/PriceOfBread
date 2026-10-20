@@ -1,0 +1,6 @@
+# (479) 後半 腕 A（旗 2 本とも 0・計器つき 5 種・INS=1 batch.sh run A 5・NATIONS は m475_ins と同じ 8 国・木 01879436〔SOURCE-HASH 96eeac3e4bee4679〕）の恒等の確かめ
+# 基準＝measurements/b5_20261020_m475（10 種の走りの先頭 5 試合）と D:/PoB_work/keep_475/m475_ins（計器つき 10 種の生・種 1〜5）。
+1. 報告：b5_20261021_mg479_A_ins は b5_20261020_m475 と diff でファイル全体が空（名乗り行の SOURCE-HASH は報告の本体になく .manifest にだけある）。exact 43.6・near 83.0（5 種の平均）。
+2. 計器の生の表：種 1〜5 の 275 表を m475_ins と cmp＝バイト一致。違うのは burscan（壁時計）・clock（Stopwatch の累計）・flow（呼び出しの行番号の列）の 3 種だけ。
+   flow_s は sourceLine の列を除くと 5 種とも行ごとに一致（並べ替えて比べても一致）。新しい表は mg_s だけ（旗 0 でも出る）。
+3. 推定の計算量 236.7 秒（m475 は 238.1 秒）。

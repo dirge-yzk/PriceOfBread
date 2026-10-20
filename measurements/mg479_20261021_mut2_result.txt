@@ -1,0 +1,23 @@
+mutated N1_�^���̔�L�����^���Ȃ��ɓ|�� PriceOfBread.SimCore/Territory.cs
+== N1_運賃の非有限を運賃なしに倒す
+[xUnit.net 00:00:07.26]     PriceOfBread.Tests.MigrationPassageTests.渡航費の単価は籠と運賃の率に比例し立たなければ払えない側 [FAIL]
+  失敗 PriceOfBread.Tests.MigrationPassageTests.渡航費の単価は籠と運賃の率に比例し立たなければ払えない側 [4 ms]
+[xUnit.net 00:00:10.35]     PriceOfBread.Tests.MigrationPassageTests.運賃の率が非有限なら国をまたぐ流れは0 [FAIL]
+  失敗 PriceOfBread.Tests.MigrationPassageTests.運賃の率が非有限なら国をまたぐ流れは0 [184 ms]
+失敗!   -失敗:     2、合格:    15、スキップ:     0、合計:    17、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+mutated N2_���̉^����D�̎�����֕��� PriceOfBread.SimCore/MultiNationSim.cs
+== N2_陸の運賃を船の持ち主へ払う
+[xUnit.net 00:00:12.74]     PriceOfBread.Tests.MigrationPassageTests.陸の脚の運賃は送出国の商人へ払われる [FAIL]
+  失敗 PriceOfBread.Tests.MigrationPassageTests.陸の脚の運賃は送出国の商人へ払われる [224 ms]
+失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+mutated N3_pf�𗤂̋r�ɂ��|���� PriceOfBread.SimCore/Territory.cs
+== N3_pfを陸の脚にも掛ける
+[xUnit.net 00:00:11.97]     PriceOfBread.Tests.MigrationPassageTests.実効kmは海の脚だけがpfで縮み陸の脚は実効比で割高 [FAIL]
+  失敗 PriceOfBread.Tests.MigrationPassageTests.実効kmは海の脚だけがpfで縮み陸の脚は実効比で割高 [3 ms]
+失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+mutated N4_���̎�������|���Ȃ� PriceOfBread.SimCore/Territory.cs
+== N4_陸の実効比を掛けない
+[xUnit.net 00:00:11.31]     PriceOfBread.Tests.MigrationPassageTests.実効kmは海の脚だけがpfで縮み陸の脚は実効比で割高 [FAIL]
+  失敗 PriceOfBread.Tests.MigrationPassageTests.実効kmは海の脚だけがpfで縮み陸の脚は実効比で割高 [32 ms]
+失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+done

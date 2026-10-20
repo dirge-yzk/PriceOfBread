@@ -1,0 +1,49 @@
+(476) 重なりの読み（波22・読むだけの担当・opus・2026-10-21）＝線の報告から (484) 合流の担当が起こした写し
+基点＝main c6160136（(475) 合流 9・bcac5f9 の後）。grep だけで読んだ。コードは変えていない。
+
+■ 表
+| 組 | 共有するファイル:関数（行） | 深さ | 処置 |
+|---|---|---|---|
+| p4×dz | Simulation.cs：p4＝AddAlternativeRecipes（1010〜1340）と CatalogEconomy（775〜783）／dz＝FertilePool〜DemographicStep（2387〜2675）。関数が別。EconomyStep.Run の techProd（productivityMultiplier）は p4 の範囲外（ip の載せ直しの側）＝dz の労働供給の段（774〜795）とは重ならない | 浅 | 同時に走らせてよい |
+| p4×mg | MultiNationSim.cs：p4 は共有層の発見の呼びに触る可能性がある／mg＝MigrateBetweenNations（1653〜1764）・MoveMigrants・MoveAbroad（1768〜1812）。関数が別 | 浅〜無し | 同時でよい |
+| p4×ma | 文は共有しない。意味の結合だけ＝MinimumWageFloor.InBasket は GoodTier を読む（p4 が日用品か嗜好品の層の新しい財を足すと籠が変わる。レシピを足すだけなら変わらない） | 無し | 同時でよい |
+| dz×mg | Model.cs：Pop.Blend（381〜413）。dz は中身を書き換える（BlendAges 419〜446 の `b<2`〈20 歳以上＝添字 2〉・BandOverlap）。mg は呼び手だけ（MultiNationSim:1800・Territory:267 MoveBetweenRegions・PopDecision:77・Meritocracy:663）。Simulation.cs：mg の serfFree と PopDecision.Run・Territory.Step の呼び（2355〜2361）は dz の DemographicStep の呼び（2366）の隣だが、dz はその呼びに触らない。MilitaryTests.cs：dz は 424・454・1273、mg は 519 | 浅（条件つき） | 同時でよい。ただし mg は Blend に選抜の引数（年齢・財産）を足さない。足すなら dz と同じ式＝深に上がり、mg を次の波へ |
+| dz×ma | 共有なし（SelfPlay は年齢を読まない） | 無し | 同時でよい |
+| mg×ma | SelfPlay.cs：DecideQuarter の中。ma＝832〜833（最低賃金の目標を置く所）と MinimumWageTargetFromBoard／MinimumWageWant（1039〜1050）と GateAllLawTargets:382。移民制限法の AI（845〜870）は lawCap と同じ係数（ImmigrationReceiveCapPerQuarter×法の率）を自前で書き直している。mg の範囲に AI は無い | 浅（条件つき） | 同時でよい。mg が lawCap の形を変えるときは SelfPlay:851〜866 も同じ形に直す必要がある（分子と分母の非対称）＝中に上がる。ma の行とは約 15 行離れていて、文は別 |
+| hz3×dz | Runner/Program.cs：hz3＝armsdebug（477〜530）／dz＝年齢の列（183〜194）。Military.cs：hz3 がエンジン側に作る armsdebug の関数／dz の AgeShare の読み手（161・373・388）。App の GameViewModel.Fiscal.cs:289〜320：hz3 は予想の列をエンジンの査定に置き換えるブロック／その中の 309（60 歳以上 AgeShare）は dz が触らなければ衝突しない。Fiscal.cs：hz3 の税の査定の抜き出し（Step の 100〜140）／dz の年金の年齢（535・551） | 浅 | 同時でよい。dz は読み手の境界を書き換えない |
+| hz3×ma | MinimumWageFloor.cs：hz3 の N2 の診断の列（StepDay の直後の値段と床を読むだけ）が PerUnit／AbsFloor を読む。ma も SelfPlay から PerUnit を呼ぶ可能性がある＝定義と呼び手の関係 | 浅 | hz3 は PerUnit／AbsFloor の引数の形を変えない |
+| hz3×p4・hz3×mg | 共有なし | 無し | ― |
+| 全線共通① | MultiNationSim.cs:1995〜2030 の CostLedger（`Count` の行と Names／UnitMicros の末尾）。2 本以上が行を足すと、必ず文の衝突になる | 浅（文だけ） | 番号を先に決め、合流のときに番号の順で並べる |
+| 全線共通② | Coefficients.cs（旗の追加）・DormantIdentityTests.cs（mg が MigrationFarePerkKm:178・SerfGateCoversPool:44 を表から外す／ma か p4 の新しい旗は末尾） | 浅 | 旗は各線の主題の係数の隣に置く（mg は 2637〜2642・dz は 540〜554・p4 は 1869〜1898）。ファイルの末尾には置かない |
+
+■ CostLedger の番号（今の main は Count＝25・24＝MinimumWageBasketScans）
+- 25＝ip の予約（(475) の申し送り④）。触らない。
+- 26＝p4（新しい行の判定や工程の行の走査を常に回すときだけ使う。行を足すだけなら DiscoveryUnitMicros 98.1 を取り直す）。
+- 27＝dz（22 本の年齢の層の歩を分けて数えるときだけ使う。分けないなら、月次の POP×月〔7〕と四半期末〔13〕の単価を取り直す）。
+- 28＝mg（財産の門や農奴の門を組ごとに走査するときだけ使う。組の数が同じなら移民〔16〕の単価を取り直す）。
+- ma は新しい番号を持たない。PerUnit を AI から呼ぶなら 24 に件数を足す（同じ走査・同じ単価 0.02）。
+- hz3 は恒等。計器と Runner だけなので数えない。
+- 番号を使わなかった線がある場合は、合流のときに詰める（`Count` は使った数で決める）。
+
+■ 計算量の割り当て（余り＝248.5−238.1＝10.4 秒）
+| 線 | 割り当て | 根拠（m475 の .cost） |
+|---|---|---|
+| p4 | 3.0 秒 | 発見の判定は今 4.14 秒。行を 2〜3 割足すと +0.8〜1.2 秒。そこに新しいレシピの生産者が起きてからの生産（0.526µs×生産者×月）と清算の行が加わる |
+| dz | 1.0 秒 | 年齢の層が 16 本→22 本になり、StepAges・BlendAges・KillAges が約 1.4 倍。月次の POP×月（14.73 秒）の中の小さな割合 |
+| mg | 1.5 秒 | 移民の組は今 1.33 秒。組ごとの門を足して倍になると +1.3 秒が上限 |
+| ma | 1.0 秒 | 失業を読むだけなら 0 秒（PolicyPreferences.AvgUnemployment は 861 で既に計算している）。床÷値段にして全ての国×四半期×州で PerUnit を回すと約 2 秒＝上限を超える |
+| hz3 | 0 秒 | 恒等 |
+| 予備 | 3.9 秒 | 軌道が変わる分。(475) では mw が見込み 0 秒に対し、世界が大きくなって +16.9 秒だった。dz（人口）と mg（州の人口の分布）は軌道の危険が大きい |
+合計 6.5 秒＋予備 3.9 秒＝10.4 秒。ip の +10 秒（(467) の見込み）は、この余りに入らない。
+
+■ 結論と条件
+- 4 本の間に〈同じ関数の同じ式〉は無かった。defer は空。深に上がる条件は 2 つ：
+  1. mg が Pop.Blend／BlendAges に選抜の引数を足すと dz と同じ式＝深。mg は財産の門を流量を決める側に置く（MigrateBetweenNations の段4 の運賃の枝と Territory.Movable）。年齢の選抜はこの波では入れない（記録だけ）。
+  2. mg が lawCap の形を変えると SelfPlay:851〜866 も一緒に直す必要がある＝ma と中の重なり。
+- dz の性格：作者の 11 層の境界（0・1・6・11・16・21・31・41・51・61・71）と今の読み手の境界（5・10・15・20・50・60・65）は 16 と 21 だけ一致＝〈恒等で入る段〉は成り立たない。推奨＝AgeShare(lo,hi,sex) を唯一の読み口のまま残し BandOverlap を境界の配列で一般化。Runner/Program.cs の層ごとの列は末尾か別のファイルへ。Ages の長さが変わる＝savetest が必須。
+- mg への申し送り：Territory.MigrationDecay と MultiNationSim:1710 は WorldTechLevel を読む（技術水準の削除が後でここを潰す）・農奴の門は 3 つの経路に同じ門・MigrationFarePerkKm は休眠（旧の試験で seed 3 の Size が NaN の記録）。
+- ma への申し送り：何を読むかを事前登録へ・〈下げる目標を書かない〉の扱い（片方向の錠）・GateLaw の中には触らない。
+- hz3 への申し送り：恒等の線・MinimumWageFloor の引数の形は変えない・App の 309（年金の年齢）は今の式のまま。
+- 確かめていないこと：各線の作りは線の名前と範囲の説明と今の main の grep から推定。計算量の数は m475 の .cost（推定 243.9 秒・spg の前）からの見込みで census は取っていない。
+
+■ (484) 合流の注：実際の合流で文の衝突は実装ログの末尾だけ（hz3×dz の Runner/Program.cs・SmallFixes471Tests.cs は自動で合わさった）。採ったのは hz3・dz だけ＝深の条件 1・2 は起きなかった。dz の計算量は割り当て 1.0 秒に対し、対のプローブで層の数の単価の増分が約 8 秒（台帳に行が無い＝推定に載らない）。

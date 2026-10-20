@@ -1,0 +1,57 @@
+# (480) 後半：保存則の穴の診断（2026-10-21・読むだけの診断の写しで特定・直しは InternationalMarket.PaySales の 1 枝）
+## きっかけ
+既定 MinimumWageAiFromFloor を 1 に倒した木のフルスイートで ConservationTests.世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない（FullLength）が赤＝Q181〜184（1828〜29 年）4/668 四半期・累計 -2439.9。
+leakhunt 1789 668 warm：旗 0＝世界の台帳 0 四半期／旗 1＝基礎貨幣 5 四半期（Q180〜184・累計 -2858.4）。前半の leakhunt（旗 1・warm なし）は通っていた＝助走つきでだけ当たる。
+[PROBE世界] は 国際市場(月) の ΔW が 1827〜29 年に負（-49〜-310/月）。
+## 根
+診断の写し（Runner の leakhunt 190 四半期 warm・PaySales の末尾に「清算所が払い手で moved < amount」を stderr へ出す 1 行を足した写し＝本体には入れていない）が 29 行を出した：
+全て 州=中核ベンガル 財4 totalOut=0（その財の売り手の生産者が居ない）・to=1（商人 1 本）・moved=0.000・merIdx=9・merSize=0.000000（商人 POP の人数が 0）・州の人口は約 2.6 万。
+PaySales は売り手の生産者が居ない州では商人 POP（居なければ全 POP）へ渡す。商人 POP の添字は立つが人数が 0（階級が絶えた）だと Transfer の受け手の重みの和が 0 で何も動かさない（受け手不在＝払い手に残る）。
+払い手が清算所 (null,null) だと「残る」先が無く、買い手が既に清算所へ払い込んだ額が世界から消える（-49〜-310/月）。
+(475) 実装ログ §9 ④ と ip の記録（国際市場(月) の ΔW が負・原因未特定）はこれと同じ型の疑い（推測）。
+## 直し
+InternationalMarket.cs PaySales の to.Count==0 の枝：商人を受け手にする条件に Size > 1e-9 を足し、居なければ既存の全 POP（頭数）へ落とす。倍率・係数・順序は触らない。
+番人 PaySalesMerchantTests 2 本（商人 0 人でも州の貯蓄の増分の和が払った額に等しい／商人が立つ州は従来どおり商人が受け取る）。突然変異（Size の条件を外す）で赤を確認。
+## 旗 0 への影響
+旗 0・seed 1789・668 四半期の診断の写し：[DIAG売上] 0 行＝このバグは旗 0 の 1789 では撃たない（ma の軌道が露出させた潜在バグ）。他の種は腕 A2（旗 0・直しを入れた木・5 種）が b5_20261020_m475 と全行一致かで確かめる。
+## 診断の写しの場所
+D:/PoB_work/ma_480/diag/src（写し・本体と別）／出力 lk.err。
+## [DIAG売上] の行（旗 1・1789・Q190 まで）
+[DIAG売上] y1826 国1 州=中核ベンガル 財4 amount=14.020 moved=0.000 to=1 totalOut=0.000 popsSum=25915.978 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1826 国1 州=中核ベンガル 財4 amount=19.145 moved=0.000 to=1 totalOut=0.000 popsSum=25924.850 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=24.080 moved=0.000 to=1 totalOut=0.000 popsSum=25882.298 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=48.757 moved=0.000 to=1 totalOut=0.000 popsSum=25890.637 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=49.457 moved=0.000 to=1 totalOut=0.000 popsSum=25900.855 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=59.308 moved=0.000 to=1 totalOut=0.000 popsSum=25910.675 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=102.455 moved=0.000 to=1 totalOut=0.000 popsSum=25922.165 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=92.080 moved=0.000 to=1 totalOut=0.000 popsSum=25932.699 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=95.933 moved=0.000 to=1 totalOut=0.000 popsSum=25944.478 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=99.323 moved=0.000 to=1 totalOut=0.000 popsSum=25957.142 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=93.854 moved=0.000 to=1 totalOut=0.000 popsSum=25970.050 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=91.523 moved=0.000 to=1 totalOut=0.000 popsSum=25930.072 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=131.285 moved=0.000 to=1 totalOut=0.000 popsSum=25936.335 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1827 国1 州=中核ベンガル 財4 amount=141.128 moved=0.000 to=1 totalOut=0.000 popsSum=25945.587 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=146.065 moved=0.000 to=1 totalOut=0.000 popsSum=25903.611 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=218.204 moved=0.000 to=1 totalOut=0.000 popsSum=25897.742 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=193.950 moved=0.000 to=1 totalOut=0.000 popsSum=25902.580 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=208.890 moved=0.000 to=1 totalOut=0.000 popsSum=25855.279 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=309.894 moved=0.000 to=1 totalOut=0.000 popsSum=25827.883 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=191.222 moved=0.000 to=1 totalOut=0.000 popsSum=25825.162 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=235.979 moved=0.000 to=1 totalOut=0.000 popsSum=25771.867 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=280.449 moved=0.000 to=1 totalOut=0.000 popsSum=25747.326 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=195.237 moved=0.000 to=1 totalOut=0.000 popsSum=25739.608 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=147.816 moved=0.000 to=1 totalOut=0.000 popsSum=25676.419 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=165.464 moved=0.000 to=1 totalOut=0.000 popsSum=25640.390 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1828 国1 州=中核ベンガル 財4 amount=145.961 moved=0.000 to=1 totalOut=0.000 popsSum=25631.412 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1829 国1 州=中核ベンガル 財4 amount=146.837 moved=0.000 to=1 totalOut=0.000 popsSum=25611.450 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1829 国1 州=中核ベンガル 財4 amount=94.626 moved=0.000 to=1 totalOut=0.000 popsSum=25548.154 merIdx=9 merSize=0.000000 nPops=13
+[DIAG売上] y1829 国1 州=中核ベンガル 財4 amount=116.649 moved=0.000 to=1 totalOut=0.000 popsSum=25520.011 merIdx=9 merSize=0.000000 nPops=13
+
+## 追記（2026-10-21・腕 A3 と枝に入る回数の診断）
+腕 A3＝旗 0（既定 0・上書きなし）＋この直し・5 種の成績表は b5_20261020_m475 と全行一致しない（seed ごとの exact/near も全て違う）。腕 A2（旗 0 を POB_COEF で明示）も同じ値＝上書きの影響ではない。
+計器つき A3 の labor_s の plainRealPriceMinIndex<1e-3 の行は 5 種で [230, 206, 121, 363, 96]（m475 は [30, 13, 10, 19, 17]）＝旗 0 でも 6〜20 倍。
+診断の写し（leakhunt 2 668 warm・旗 0・PaySales の商人 Size≦1e-9 の枝に入った回数を払い手の種類別に stderr へ出す）：
+  枝に入った回数 52,279＝POP が払い手 52,190（額 108,783）／国庫が払い手 41（額 177）／清算所が払い手 48（額 59.17）。
+  POP が払い手＝Procure の買い手（商人・投資家が汽船の燃料・船・線路を買う）。受け手が居ないと Transfer は 0 を返し、買い手は貯蓄を減らさず在庫だけが減っていた＝**代金を払わずに財を得ていた**（貨幣は消えない・財の側の穴）。
+  直しは受け手を全 POP に広げるので、この 108,783 が初めて払われる＝基線を大きく動かす。保存則の穴（世界から貨幣が消える）は清算所が払い手の 48 回・59.17 だけ。
+→ 直しは過剰。保存則の穴だけを閉じる形（払い手が清算所のときだけ全 POP へ）と、財の側の穴（POP・国庫が払い手のとき払わずに財を得る）は別の問いとして分ける。前者は 59 規模でも軌道（カオス）は動くので、基線の取り直し（新しい m 系列）が前提。

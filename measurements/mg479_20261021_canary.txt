@@ -1,0 +1,8 @@
+# (479) 恒等の短い試走：selfplay 1 200（旗 2 本とも既定 0）
+# 基線の木 bcac5f94（SOURCE-HASH 66a39976262d3822）と本木（SOURCE-HASH 9a411a248a13a65e）の出力は 12068 バイトで全バイト一致（cmp）。
+# 1 種の一致は恒等の証明ではない（README §1-3）。腕 A（5 種）は後半の担当。
+cmp: IDENTICAL
+3ec3216d368e460503d7d2511df0892d */d/PoB_work/mg_479/can_base.txt
+3ec3216d368e460503d7d2511df0892d */d/PoB_work/mg_479/can_mg.txt
+# 最終の木（SOURCE-HASH 61b53663fc099108・NonSerialized と size0 の形に直した後）でも同じ試走を回した：cmp 一致
+3ec3216d368e460503d7d2511df0892d */d/PoB_work/mg_479/can_mg2.txt

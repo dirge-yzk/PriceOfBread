@@ -1,0 +1,11 @@
+# (480) 後半：フルスイートの記録（Release・隔離ビルド・FullLength 3 本を含む＝フィルタなし）
+## 最終の木（枝 ma・既定 0・コードは df0cff51 と同じ）
+成功!   -失敗:     0、合格:  1575、スキップ:     0、合計:  1575、期間: 14 m 40 s - PriceOfBread.Tests.dll (net10.0)
+## 既定 1＋広い直し（9fbdcc6b）の木＝採らなかった木
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 530) [< 1 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2757412) [< 1 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 286) [< 1 ms]
+失敗 PriceOfBread.Tests.ConservationTests.世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない [5 m 53 s]
+失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [1 m 9 s]
+失敗!   -失敗:     5、合格:  1570、スキップ:     0、合計:  1575、期間: 19 m 46 s - PriceOfBread.Tests.dll (net10.0)
+   ・上の赤 5 本のうち、WriterRatchetTests の 3 本（計算量の宣言を 10% 超えて下げた）と InstrumentsTests の場面 T の種（1799→1800）は先例どおりの直しで緑にした（枝 ma-adopt-broadfix）。ConservationTests（FullLength の貨幣の番人）が保存則の本物の赤＝根は PaySales（measurements/ma480_20261021_leak_paysales.txt）。
