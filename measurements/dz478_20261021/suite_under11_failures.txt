@@ -1,0 +1,23 @@
+# (478) POB_AGE_BANDS=11 でフルスイート（Category!=FullLength・Release）を回した結果。1588 本中 21 本が赤（1567 緑）。旗 8（既定）のフルスイートは別（suite8）。
+# 分類：層の数・標準の値を 8 層で書いた番人 = AgeStructureTests 9本・MilitaryTests 1本（WorkingMenStdShare 0.2765）・PopulationInstrumentTests 3本・AgeLayoutTests 3本（Pop.Layout が 8 と書いた物）／20歳と21歳の読み手の境 = MobilityTests 性別運搬（技師の女性比 0.033＝16〜20歳の層の20歳の1/5を読む）／軌道が変わって主張が外れた創発の番人 = TechInstitutionTests 1本・InstrumentsTests 2本（接触の内訳・符号2）・WriterRatchetTests 1本（国×四半期の件数）
+  失敗 PriceOfBread.Tests.AgeStructureTests.読み手の起点合わせは標準のピラミッドで旧の値を保つ
+  失敗 PriceOfBread.Tests.AgeStructureTests.加齢は規模を変えず毎月120分の1を上の層へ送る
+  失敗 PriceOfBread.Tests.AgeStructureTests.標準のピラミッドは1783年の出生と死の年齢の重みで動かない
+  失敗 PriceOfBread.Tests.AgeStructureTests.疫病の死は年齢の脆弱さを1度だけ読む
+  失敗 PriceOfBread.Tests.AgeStructureTests.将校の戦死は貴族の男20から49歳から
+  失敗 PriceOfBread.Tests.AgeStructureTests.移し方は層と性ごとの人数を保存し選抜の無い移動は送り手を動かさない
+  失敗 PriceOfBread.Tests.AgeStructureTests.災害死は子供と老年に厚く総数は規模どおり
+  失敗 PriceOfBread.Tests.AgeStructureTests.試合の中で年齢の層は壊れず兵士は男だけ
+  失敗 PriceOfBread.Tests.AgeStructureTests.世代の流れは大人と20歳になる若者を人数で混ぜる
+  失敗 PriceOfBread.Tests.MilitaryTests.兵を単位にした較正は同じ比で読み替える
+  失敗 PriceOfBread.Tests.MobilityTests.性別運搬は閉じた専門職へ女性を運ばず教師へは運ぶ
+  失敗 PriceOfBread.Tests.AgeLayoutTests.十一層の移し方は層と性ごとの人数を保存し_徴兵は男の20から39歳_性別の門は21歳以上
+  失敗 PriceOfBread.Tests.AgeLayoutTests.八層の読み口と加齢と死の重みは旧の実装とビットで同じ
+  失敗 PriceOfBread.Tests.AgeLayoutTests.器の定数は番人の写しと一致し_和は1_層の数と配列の長さが合う
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 21, declared: 3677)
+  失敗 PriceOfBread.Tests.TechInstitutionTests.制度は社会の発展で施行され宗教国は特許を自力で見つけない
+  失敗 PriceOfBread.Tests.PopulationInstrumentTests.走行で全ての国に行が出て_窓の和が台帳に合い_計器を出しても軌道は変わらない
+  失敗 PriceOfBread.Tests.PopulationInstrumentTests.hookで層別の死が総数に閉じ_既存の台帳に合い_飢えの死が子供と老人に厚い
+  失敗 PriceOfBread.Tests.PopulationInstrumentTests.飢えのhookは災害の重みで層を取る_手の算術
+  失敗 PriceOfBread.Tests.InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される
+  失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う

@@ -214,7 +214,7 @@ public sealed class Pop
     public double InitialWork = -1.0;    // 労働供給の初期値（t=0 の work＝成人男女参加＋児童労働）。倍率排除②：旧 work/0.64 の正規化定数を「各popの初期労働供給」へ一般化（標準構成なら0.64＝中立）。-1=未捕捉（初回 EconomyStep で確定）
     public Share InitialFertileShare = new Share(-1.0);  // ①Phase3：出産可能女性プールの初期値（t=0 の出産可能プール＝Simulation.FertilePool・年齢の層から読む）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
     /// <summary>★年齢の層（2026-09-30 段4e 後半・設計 docs/202609/20260929/20260929_年齢の層_人口ピラミッドと世代の流れ_設計_未着手.md・作者裁定 2026-09-29＝C 案）＝
-    /// 10歳刻み8層（0〜9・10〜19・…・60〜69・70以上）×男女の**割合**16本（合計1・添字＝層×2＋性〔0＝男・1＝女〕）。人数は Size×割合＝Size が主
+    /// 層（<see cref="Layout"/>＝既定は作者の11層〔0／1〜5／6〜10／…／61〜70／71以上〕・POB_AGE_BANDS=8 で旧の10歳刻み8層〔0〜9・10〜19・…・60〜69・70以上〕）×男女の**割合**（合計1・8層で16本・11層で22本・添字＝層×2＋性〔0＝男・1＝女〕）。人数は Size×割合＝Size が主
     /// （年齢を指定しない死と移動は何もしなくても全層に比例）。読み口は <see cref="AgeShare"/> の1本。
     /// 書き手＝加齢と出生と平常の死（<see cref="StepAges"/>＝Simulation.DemographicStep・兵士も年を取る）・年齢を選ぶ死（<see cref="World.KillPops"/> の年齢の重み）・
     /// 人の移し方の1本（<see cref="Blend"/>＝移る組の構成）・初期の構成（標準のピラミッド・兵士・職業の性比）。
@@ -418,20 +418,23 @@ public sealed class Pop
     /// 性別の門＝20歳以上の層の女性を <paramref name="femaleAccess"/> 倍（男はその分だけ多く＝層の人数は送り手の比のまま）。いる人数を超えては移らない（<see cref="TakeWeighted"/>）。</summary>
     private static void BlendAges(Pop from, Pop to, double n, double s0, double t0, bool draft, double draftLo, double draftHi, double femaleAccess)
     {
-        Span<double> took = stackalloc double[2 * AgeBands];
+        int nb = from.Ages.Length;   // 2×層の数（送り手と受け手は同じ器＝プロセス全体で1つ）
+        if (to.Ages.Length != nb) throw new InvalidOperationException($"年齢の層の器が送り手と受け手で違う（{nb} と {to.Ages.Length}）");
+        var L = AgeLayout.OfLength(nb);
+        Span<double> took = stackalloc double[AgeLayout.MaxSlots]; took = took[..nb];
         bool female = !draft && !double.IsNaN(femaleAccess);
         if (!draft && !female)
             for (int k = 0; k < took.Length; k++) took[k] = from.Ages[k] * n;
         else
         {
-            Span<double> cnt = stackalloc double[2 * AgeBands];
-            Span<double> w = stackalloc double[2 * AgeBands];
+            Span<double> cnt = stackalloc double[AgeLayout.MaxSlots]; cnt = cnt[..nb];
+            Span<double> w = stackalloc double[AgeLayout.MaxSlots]; w = w[..nb];
             for (int k = 0; k < cnt.Length; k++) cnt[k] = from.Ages[k] * s0;
-            for (int b = 0; b < AgeBands; b++)
+            for (int b = 0; b < L.Bands; b++)
             {
-                if (draft) { w[2 * b] = BandOverlap(b, draftLo, draftHi); w[2 * b + 1] = 0; continue; }
+                if (draft) { w[2 * b] = L.Overlap(b, draftLo, draftHi); w[2 * b + 1] = 0; continue; }
                 w[2 * b] = w[2 * b + 1] = 1.0;
-                if (b < 2) continue;
+                if (b < L.AdultFirstBand) continue;
                 double t = from.Ages[2 * b] + from.Ages[2 * b + 1];
                 double phi = t > 1e-300 ? from.Ages[2 * b + 1] / t : 0;
                 w[2 * b + 1] = femaleAccess;
@@ -440,7 +443,7 @@ public sealed class Pop
             TakeWeighted(cnt, took, w, n);
             if (s0 - n > 1e-12) from.SetAgesFromCounts(cnt);
         }
-        Span<double> dst = stackalloc double[2 * AgeBands];
+        Span<double> dst = stackalloc double[AgeLayout.MaxSlots]; dst = dst[..nb];
         for (int k = 0; k < dst.Length; k++) dst[k] = to.Ages[k] * t0 + took[k];
         to.SetAgesFromCounts(dst);
     }
@@ -456,40 +459,52 @@ public sealed class Pop
     }
 
     // ==== 年齢の層（2026-09-30 段4e 後半・<see cref="Ages"/>）====================================================
-    /// <summary>年齢の層の数（10歳刻み・最後は70以上）。</summary>
-    public const int AgeBands = 8;
-    /// <summary>★標準の前近代ピラミッド（男女計・設計書 §3-1 の表＝データ＝思想②の「データ」）＝平均寿命30前後・年0.5%増の安定人口
-    /// （15歳未満 35.3%・60歳以上 7.5%＝英1781 約35%・瑞1750 約32%）。1783年の全ての POP の初期の構成（作者裁定 Q2＝標準1枚を全国に＝国の差は模型の出生と死が作る）。</summary>
-    internal static readonly double[] StdPyramid = [0.255, 0.195, 0.160, 0.130, 0.105, 0.080, 0.050, 0.025];
-    /// <summary>標準のピラミッドを作った安定人口の年の増加率（表の前提＝設計書 §3-1 の「年0.5%増」）。死の年齢の重み（<see cref="MortalityWeights"/>）だけが読む。</summary>
+    // ★2026-10-21 (478)：層の数・下端・幅・標準のピラミッド・大人の境は <see cref="AgeLayout"/> が持つ（8層〔今〕と11層〔作者の刻み〕・プロセス全体で1つ＝<see cref="Layout"/>）。
+    //   配列を読む関数（<see cref="AgeShareOf"/>・<see cref="StepAges"/>・<see cref="KillAges"/>・<see cref="AgeOneMonth"/>・<see cref="DisasterWeights"/>・<see cref="EnteringAdultsMonthlyOf"/>）は
+    //   配列の長さから器を引く。新しい配列を作る関数（<see cref="StdAges()"/>・<see cref="SoldierAges()"/>・<see cref="MortalityWeights(double)"/>）は <see cref="Layout"/> を読む。
+    /// <summary>★年齢の層の器（プロセス全体で1つ）＝環境変数 POB_AGE_BANDS（未設定か11→作者の11層・8→旧の10歳刻み8層）。</summary>
+    public static readonly AgeLayout Layout = AgeLayout.FromEnvironment();
+    /// <summary>標準のピラミッドを作った安定人口の年の増加率（表の前提＝設計書 §3-1 の「年0.5%増」）。死の年齢の重み（<see cref="MortalityWeights(double)"/>）だけが読む。</summary>
     internal const double StdPyramidGrowth = 0.005;
 
-    /// <summary>標準のピラミッドの16本（読むだけの写し）＝起点合わせの物差し（<see cref="StdShare"/>）。</summary>
+    /// <summary>標準のピラミッドの割合（読むだけの写し・<see cref="Layout"/> の器）＝起点合わせの物差し（<see cref="StdShare"/>）。</summary>
     internal static readonly double[] StdAgesRef = StdAges();
     /// <summary>標準のピラミッドでの <see cref="AgeShare"/>＝読み手の起点合わせ（1783年の値を旧と揃える）の物差し＝新しい数0。</summary>
     internal static double StdShare(double lo, double hi, int sex = -1) => AgeShareOf(StdAgesRef, lo, hi, sex);
 
-    /// <summary>標準のピラミッド（男女は各層で半々）の16本＝全ての POP の初期値。</summary>
-    internal static double[] StdAges()
+    /// <summary>標準のピラミッド（男女は各層で半々）＝全ての POP の初期値（<see cref="Layout"/> の器）。</summary>
+    internal static double[] StdAges() => StdAges(Layout);
+    internal static double[] StdAges(AgeLayout l)
     {
-        var a = new double[2 * AgeBands];
-        for (int b = 0; b < AgeBands; b++) a[2 * b] = a[2 * b + 1] = 0.5 * StdPyramid[b];
+        var a = new double[2 * l.Bands];
+        for (int b = 0; b < l.Bands; b++) a[2 * b] = a[2 * b + 1] = 0.5 * l.Pyramid[b];
         return a;
     }
 
-    /// <summary>兵士 POP の初期の構成＝男の20〜29 と 30〜39 に標準のピラミッドの比（16:13＝設計書 §3-1）。</summary>
-    internal static double[] SoldierAges()
+    /// <summary>兵士 POP の初期の構成＝男の20〜39歳の2層に標準のピラミッドの比（8層で 20〜29:30〜39＝16:13・設計書 §3-1／11層で 21〜30:31〜40）。</summary>
+    internal static double[] SoldierAges() => SoldierAges(Layout);
+    internal static double[] SoldierAges(AgeLayout l)
     {
-        var a = new double[2 * AgeBands];
-        double s = StdPyramid[2] + StdPyramid[3];
-        a[4] = StdPyramid[2] / s; a[6] = StdPyramid[3] / s;
+        var a = new double[2 * l.Bands];
+        double s = l.Pyramid[l.SoldierBandA] + l.Pyramid[l.SoldierBandB];
+        a[2 * l.SoldierBandA] = l.Pyramid[l.SoldierBandA] / s; a[2 * l.SoldierBandB] = l.Pyramid[l.SoldierBandB] / s;
         return a;
     }
 
-    /// <summary>職業 POP の性比（設計書 §3-1）＝20歳以上の層の男女を職業の女性比 <paramref name="female"/> で分ける（0〜19 は半々のまま）。</summary>
+    /// <summary>★男の [<paramref name="lo"/>, <paramref name="hi"/>) 歳だけに重みを置く年齢の重み（2×層の数本・男＝層との重なりの割合・女＝0）＝将校の戦死の年齢の重み（Diplomacy）。
+    /// 8層の (20, 50) は 層 2・3・4 の男が 1・ほか 0（旧の 16 本の並びと同じ）。重みは尽きれば残りの全員から取る（<see cref="TakeWeighted"/>）。</summary>
+    internal static double[] MaleAgeWeights(AgeLayout l, double lo, double hi)
+    {
+        var w = new double[2 * l.Bands];
+        for (int b = 0; b < l.Bands; b++) w[2 * b] = l.Overlap(b, lo, hi);
+        return w;
+    }
+
+    /// <summary>職業 POP の性比（設計書 §3-1）＝20歳以上の層〔<see cref="AgeLayout.AdultFirstBand"/> 以上〕の男女を職業の女性比 <paramref name="female"/> で分ける（それより下は半々のまま）。</summary>
     internal void SetAdultFemaleShare(double female)
     {
-        for (int b = 2; b < AgeBands; b++)
+        var l = AgeLayout.OfLength(Ages.Length);
+        for (int b = l.AdultFirstBand; b < l.Bands; b++)
         {
             double t = Ages[2 * b] + Ages[2 * b + 1];
             Ages[2 * b] = t * (1.0 - female); Ages[2 * b + 1] = t * female;
@@ -497,46 +512,34 @@ public sealed class Pop
     }
 
     /// <summary>★年齢の読み口の1本：<paramref name="lo"/> 歳から <paramref name="hi"/> 歳（含まない）・性 <paramref name="sex"/>（0＝男・1＝女・負＝男女計）の割合。
-    /// 層の中は一様として按分（重なり÷10）。70以上の層は分けない（lo≤70 かつ hi＝∞ のときだけ全部）。人数は Size×これ。</summary>
+    /// 層の中は一様として按分（重なり÷層の幅）。最上層は分けない（lo が下端以下かつ hi＝∞ のときだけ全部）。人数は Size×これ。</summary>
     public double AgeShare(double lo, double hi, int sex = -1) => AgeShareOf(Ages, lo, hi, sex);
 
     internal static double AgeShareOf(double[] a, double lo, double hi, int sex)
     {
+        var l = AgeLayout.OfLength(a.Length);
         double s = 0;
-        for (int b = 0; b < AgeBands; b++)
+        for (int b = 0; b < l.Bands; b++)
         {
-            double ov = BandOverlap(b, lo, hi);
+            double ov = l.Overlap(b, lo, hi);
             if (ov > 0) s += ov * (sex < 0 ? a[2 * b] + a[2 * b + 1] : a[2 * b + sex]);
         }
         return s;
     }
 
-    /// <summary>層 <paramref name="b"/> と [lo, hi) の重なり（層の幅に対する割合）。70以上の層は分けない。</summary>
-    internal static double BandOverlap(int b, double lo, double hi)
-    {
-        if (b == AgeBands - 1) return lo <= 10 * b && double.IsPositiveInfinity(hi) ? 1.0 : 0.0;
-        double bl = 10 * b, ov = Math.Min(hi, bl + 10) - Math.Max(lo, bl);
-        return ov > 0 ? ov / 10.0 : 0.0;
-    }
-
-    /// <summary>★加齢の流れの1本（月次）＝層 b から上の層へ1か月に出ていく人数＝層の中は一様（層の人数÷10歳×1/12＝1/120・設計書 §2-2）。
-    /// ★4e-1 の計器で選んだ（2026-09-30）：改良案の「層の上の端の密度＝隣の層との平均」は、開いた70以上の層が大きくなると 60〜69 を吸い出した
-    ///   （上の層の人数が下の層の出ていく流れを決める＝物理でない・英仏普の1850〜1914年に 60〜69 が 0.5〜3%・70以上が 10〜20%）。一様は層の中の誤差（若い側が厚い層で出ていく流れを多めに数える）を
-    ///   死の年齢の重み（標準のピラミッドが動かない重み＝同じ1本から導く）が吸う＝1783年の構成は動かない。
-    /// 加齢（<see cref="StepAges"/>）・死の年齢の重みの導出（<see cref="MortalityWeights"/>）・世代の置き換わり（<see cref="EnteringAdultsMonthly"/>）が同じ1本を読む。</summary>
-    internal static double AgingOutflow(double band) => band / 120.0;
-
-    /// <summary>★平常の死の年齢の重み（1人あたりの相対の死亡率・16本）＝標準のピラミッドが、模型の1783年の出生（粗出生率 <paramref name="crudeBirthRate"/>）と表の増加率の下で
+    /// <summary>★平常の死の年齢の重み（1人あたりの相対の死亡率・2×層の数本）＝標準のピラミッドが、模型の1783年の出生（粗出生率 <paramref name="crudeBirthRate"/>）と表の増加率の下で
     /// 動かない重み（設計書 §3-3・作者裁定 Q3＝層の比から導く・新しい数0・旧 OldMortalityWeight を置き換える）。μ_b＝(入る流れ−出る流れ)÷n_b−増加率（年）。
-    /// 死因別の死（9-2）までの近似＝率の水準は模型の総数（出生−純増）が決め、これは層への配り方だけ。</summary>
-    internal static double[] MortalityWeights(double crudeBirthRate)
+    /// 死因別の死（9-2）までの近似＝率の水準は模型の総数（出生−純増）が決め、これは層への配り方だけ。
+    /// ★(478)：11層でも同じ規則（層の幅の表から）＝今の重みを写さず標準のピラミッドから導き直す（写すと標準が動かない条件が崩れる）。</summary>
+    internal static double[] MortalityWeights(double crudeBirthRate) => MortalityWeights(crudeBirthRate, Layout);
+    internal static double[] MortalityWeights(double crudeBirthRate, AgeLayout l)
     {
-        var w = new double[2 * AgeBands];
+        var w = new double[2 * l.Bands];
         double inflow = crudeBirthRate;
-        for (int b = 0; b < AgeBands; b++)
+        for (int b = 0; b < l.Bands; b++)
         {
-            double outflow = b < AgeBands - 1 ? Calendar.PerMonthToPerYear(AgingOutflow(StdPyramid[b])) : 0.0;
-            double mu = (inflow - outflow) / StdPyramid[b] - StdPyramidGrowth;
+            double outflow = b < l.Bands - 1 ? Calendar.PerMonthToPerYear(l.Outflow(b, l.Pyramid[b])) : 0.0;
+            double mu = (inflow - outflow) / l.Pyramid[b] - StdPyramidGrowth;
             if (!(mu > 0)) mu = 0;   // 死亡率は負にならない（否定形＝NaN も0）
             w[2 * b] = w[2 * b + 1] = mu;
             inflow = outflow;
@@ -544,19 +547,20 @@ public sealed class Pop
         return w;
     }
 
-    /// <summary>★1か月の年齢の層（Simulation.DemographicStep の POP のループ・月次）：月初の規模 <paramref name="size0"/> の人数から、加齢（<see cref="AgingOutflow"/>）・
-    /// 出生（0〜9 の男女へ半々＝作者裁定 Q11）・平常の死（年齢の重み <paramref name="mortW"/>）の流れを**全て月初の人数から同時に**数えて動かし（設計書 §2-2「前の値から同時に」）、
+    /// <summary>★1か月の年齢の層（Simulation.DemographicStep の POP のループ・月次）：月初の規模 <paramref name="size0"/> の人数から、加齢（<see cref="AgeLayout.Outflow"/>）・
+    /// 出生（0歳〔8層では0〜9歳〕の層の男女へ半々＝作者裁定 Q11）・平常の死（年齢の重み <paramref name="mortW"/>）の流れを**全て月初の人数から同時に**数えて動かし（設計書 §2-2「前の値から同時に」）、
     /// 割合へ戻す＝標準のピラミッドは1783年の出生と死で丸めを除いて動かない（順に進めると月の中の順の2次の誤差が10年で 1e-4 残る）。Size は呼び手が書く（これは構成だけ）。
     /// <paramref name="deaths"/>＝実際に減った人数（負人口の保護の後）。層が死で尽きた月（大きな死）は0で止める（割合は合計で割る）。</summary>
     internal void StepAges(double size0, double births, double deaths, double[] mortW)
     {
-        Span<double> n0 = stackalloc double[2 * AgeBands];
-        Span<double> n = stackalloc double[2 * AgeBands];
+        int nb = Ages.Length;
+        Span<double> n0 = stackalloc double[AgeLayout.MaxSlots]; n0 = n0[..nb];
+        Span<double> n = stackalloc double[AgeLayout.MaxSlots]; n = n[..nb];
         for (int k = 0; k < n.Length; k++) n[k] = n0[k] = Ages[k] * size0;
         if (deaths > 0)
         {
-            Span<double> tmp = stackalloc double[2 * AgeBands];
-            Span<double> took = stackalloc double[2 * AgeBands];
+            Span<double> tmp = stackalloc double[AgeLayout.MaxSlots]; tmp = tmp[..nb];
+            Span<double> took = stackalloc double[AgeLayout.MaxSlots]; took = took[..nb];
             n0.CopyTo(tmp);
             TakeWeighted(tmp, took, mortW, deaths);
             for (int k = 0; k < n.Length; k++) n[k] -= took[k];
@@ -570,19 +574,22 @@ public sealed class Pop
     /// <summary>★年齢を選ぶ死（人数の上）：月初の規模 <paramref name="sizeBefore"/> から <paramref name="d"/> 人を1人あたりの重み <paramref name="w"/> の比で層×性から取り、割合へ戻す（Size は呼び手が書く）。</summary>
     internal void KillAges(double sizeBefore, double d, ReadOnlySpan<double> w)
     {
-        Span<double> n = stackalloc double[2 * AgeBands];
-        Span<double> took = stackalloc double[2 * AgeBands];
+        int nb = Ages.Length;
+        Span<double> n = stackalloc double[AgeLayout.MaxSlots]; n = n[..nb];
+        Span<double> took = stackalloc double[AgeLayout.MaxSlots]; took = took[..nb];
         for (int k = 0; k < n.Length; k++) n[k] = Ages[k] * sizeBefore;
         TakeWeighted(n, took, w, d);
         SetAgesFromCounts(n);
     }
 
-    /// <summary>災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上に (1＋<paramref name="excess"/>)・ほかは1（設計書 §2-4・旧の子供と老年の超過 DisasterAgeMortalityExcess と同じ数）。</summary>
+    /// <summary>災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9歳〔下端が10歳未満の層〕と60歳以上〔下端が60歳以上の層〕に (1＋<paramref name="excess"/>)・ほかは1
+    /// （設計書 §2-4・旧の子供と老年の超過 DisasterAgeMortalityExcess と同じ数）。層の数は <paramref name="w"/> の長さ（2×層の数）。</summary>
     internal static void DisasterWeights(Span<double> w, double excess)
     {
-        for (int b = 0; b < AgeBands; b++)
+        var l = AgeLayout.OfLength(w.Length);
+        for (int b = 0; b < l.Bands; b++)
         {
-            double v = b == 0 || b >= 6 ? 1.0 + excess : 1.0;
+            double v = l.Lower[b] < 10.0 || l.Lower[b] >= 60.0 ? 1.0 + excess : 1.0;
             w[2 * b] = w[2 * b + 1] = v;
         }
     }
@@ -590,10 +597,11 @@ public sealed class Pop
     /// <summary>1か月の加齢（人数の上・層ごと・性ごと）＝月初の人数 <paramref name="n0"/> から流れを数えて <paramref name="n"/> を動かす（前の値から同時に）。</summary>
     internal static void AgeOneMonth(ReadOnlySpan<double> n0, Span<double> n)
     {
-        for (int b = 0; b < AgeBands - 1; b++)
+        var l = AgeLayout.OfLength(n.Length);
+        for (int b = 0; b < l.Bands - 1; b++)
             for (int s = 0; s < 2; s++)
             {
-                double o = AgingOutflow(n0[2 * b + s]);
+                double o = l.Outflow(b, n0[2 * b + s]);
                 n[2 * b + s] -= o; n[2 * b + 2 + s] += o;
             }
     }
@@ -631,9 +639,13 @@ public sealed class Pop
         for (int k = 0; k < n.Length; k++) Ages[k] = n[k] > 0 ? n[k] / s : 0.0;
     }
 
-    /// <summary>★世代の置き換わり（1か月）＝20歳になって大人に入る人の割合（10〜19 の層から 20〜29 へ出ていく1か月の流れ÷規模）＝加齢と同じ1本（<see cref="AgingOutflow"/>）。</summary>
+    /// <summary>★世代の置き換わり（1か月）＝大人に入る人の割合（8層では10〜19歳の層から20〜29歳へ・11層では16〜20歳の層から21〜30歳へ出ていく1か月の流れ÷規模）＝加齢と同じ1本（<see cref="AgeLayout.Outflow"/>）。</summary>
     internal double EnteringAdultsMonthly() => EnteringAdultsMonthlyOf(Ages);
-    internal static double EnteringAdultsMonthlyOf(double[] a) => AgingOutflow(a[2]) + AgingOutflow(a[3]);
+    internal static double EnteringAdultsMonthlyOf(double[] a)
+    {
+        var l = AgeLayout.OfLength(a.Length);   // ★(478) 大人に入る前の最後の層（8層で10〜19歳・11層で16〜20歳）の男女の出る流れ
+        return l.Outflow(l.EntryBand, a[2 * l.EntryBand]) + l.Outflow(l.EntryBand, a[2 * l.EntryBand + 1]);
+    }
 
     /// <summary>★世代の流れで大人の性質を混ぜる1本（2026-09-30 段4e 後半 4e-3・設計書 §5-1・作者裁定 2026-09-29「人が運ぶ記憶は年齢の層の入れ替わりで減衰」）：
     /// <paramref name="months"/> か月のあいだに20歳になって大人に入る若者 E が伝わった値 <paramref name="xIn"/> を持ち込み、入る前の大人 A（20歳以上）と混ざった後の値
@@ -641,14 +653,14 @@ public sealed class Pop
     /// ⚠性質は大人に1値（作者裁定 Q5＝大人の境は20歳）。読み手＝識字の下がる側（TechEducation）・就学履歴（Politics.SchoolingConversion）。</summary>
     internal double GenerationalMix(double x, double xIn, int months)
     {
-        double e = months * EnteringAdultsMonthly(), a = AgeShare(20, double.PositiveInfinity);
+        double e = months * EnteringAdultsMonthly(), a = AgeShare(AgeLayout.OfLength(Ages.Length).AdultAge, double.PositiveInfinity);
         return a + e > 1e-300 ? (a * x + e * xIn) / (a + e) : x;
     }
 
     /// <summary>★標準のピラミッドの世代の置き換わり率（<paramref name="months"/> か月）＝E÷(A＋E)。国の無い抽象の勢力の記憶（外交の遺恨）が読む＝新しい数0。</summary>
     internal static double StdReplacementRate(int months)
     {
-        double e = months * EnteringAdultsMonthlyOf(StdAgesRef), a = AgeShareOf(StdAgesRef, 20, double.PositiveInfinity, -1);
+        double e = months * EnteringAdultsMonthlyOf(StdAgesRef), a = AgeShareOf(StdAgesRef, Layout.AdultAge, double.PositiveInfinity, -1);
         return e / (a + e);
     }
 }

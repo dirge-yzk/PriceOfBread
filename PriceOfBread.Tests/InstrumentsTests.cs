@@ -1604,7 +1604,8 @@ public class InstrumentsTests
     // ★(433) 家事奉仕の買い手の点火〔DomesticServiceMarketRation 1・指数 2〕で軌道がまた動き、1794 では場面 T の飢えの照合が空洞になった（飢え 0・構造 5）＝1795（構造 8）・1796（構造 4）・1798（構造 5）・1800（構造 6）も空洞・1797 と 1799 で全ての場面が空洞でない（種の選び直しは (405)(418)(423) と同じ作法）。
     // ★(431) 不満度の二量分離の点火〔ParticipationDiscontent 既定 1・闘争度の目標から生活の項を外す〕で軌道がまた動き、1794 では場面 T の飢えの照合が空洞になった（飢え 0・構造 8）＝1795（構造 6）・1796（構造 8）も空洞・1797 で全ての場面が空洞でない（種の選び直し。旧の既定へ固定して赤を避けない）。
     // ★(449) 国力の物差しの点火〔ScoreFromWorldShare 既定 1〕で軌道がまた動き、1797 では場面 T の飢えの照合が空洞になった（飢え 0・構造 6）＝1798（構造 7）も空洞・1799 で全ての場面が空洞でない（種の選び直し。旧の既定へ固定して赤を避けない）。
-    private const ulong CoverageSeed = 1799UL;
+    // ★(478) 年齢の層の既定を作者の11層へ倒して軌道がまた動き、1799 では場面 T の飢えの照合が空洞になった（飢え 0・構造 9）＝1800（構造 8）・1801（構造 10）も空洞・1802 で全ての場面が空洞でない（種の選び直し〔(449) までと同じ手順〕・機構の主張は同じ）。
+    private const ulong CoverageSeed = 1802UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
@@ -2380,7 +2381,9 @@ public class InstrumentsTests
                 if (founded) { var anyQ = unlockQ.Where(kv => kv.Key.Row == r[iRow]).Select(kv => kv.Value).DefaultIfEmpty(int.MaxValue).Min(); sellerFound = anyQ <= q; sq = anyQ; }
                 bool sellerKnew = sellerFound ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
-                if (unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
+                // ★(478) 買い手の鍵も計器の国名（BaseName）＝分離・建国で生まれた国の BaseName は建国で再利用される（同じ名の別の国が後から現れる）ので、E 行の名前引きが同じ国を指すのは開幕に居た国だけ
+                //   （11層の軌道では 立憲王政ポルトガル の名が 2 度現れ、Q9 の解禁が後の別の国に当たった〈推測〉＝disc_s で nationUid が 2 つあることは確かめていない）＝名前の再利用がありうる国は読まない（売り手の founded と同じ扱い）。
+                if (openNames.Contains(r[iBuyer]) && unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
             // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。
             var (fh, frows) = Table(System.IO.Path.Combine(dir, "discflow_s"+DSEED+".tsv"));

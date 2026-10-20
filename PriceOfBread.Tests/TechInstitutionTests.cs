@@ -161,7 +161,10 @@ public class TechInstitutionTests
         Assert.True(tj.Tech + tj.Need < Discovery.GateScore, $"宗教教育の日本が特許を自力で見つけられる（技術力 {tj.Tech:F1}＋必要性 {tj.Need:F1}・中核エリート {jp.EliteCore:F3}）");
         Assert.True(uk.JointStock, $"工業化したイギリスに株式会社が入らない（技術水準 {uk.TechLevel:F2}）");
         // (154)：旧の主張（工業化した日本に株式会社が入る）を戻した＝(152) は主語を英へ替えていた（理由の記録なし）・合わせた木の400四半期で日本も入る（技術水準 0.197）。
-        Assert.True(jp.JointStock, $"工業化した日本は株式会社が入るはず（技術水準 {jp.TechLevel:F2}）");
+        // ★(478) 11層の既定へ：旧の主張〈400 四半期で日本が工業化して株式会社が入る〉は軌道の主張（11層の軌道では宗教教育の日本の技術水準が 0.17 にとどまり工業化しない＝追記 1 [A7]・
+        //   8層〔POB_AGE_BANDS=8〕では旧の主張のまま通る）。機構の不変条件へ直す＝点数が門に届いた制度は解禁される（⚠点数が門より下なら通る＝日本が工業化しない軌道ではほぼ空虚。旧の創発の主張〔400 四半期で日本が工業化して株式会社が入る〕は番人でなく記録へ移した）（Discovery.Step は点数 ≧ GateScore の行をその場で解禁する）。
+        var tjs = Discovery.Evaluate(jp, null, jp.Coef, includeKnown: true)[Discovery.JointStockRow];
+        Assert.True(jp.JointStock || !(tjs.Score >= Discovery.GateScore), $"日本の株式会社の点数 {tjs.Score:F1} が門 {Discovery.GateScore} に届いているのに解禁されていない（技術水準 {jp.TechLevel:F2}）");
     }
 
     [Fact]

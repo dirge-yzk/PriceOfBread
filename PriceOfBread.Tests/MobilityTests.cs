@@ -246,7 +246,7 @@ public class MobilityTests
         var teacher = r.Pops[r.TeacherPopIndex];
         worker.Literacy = 1.0; worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size); worker.SetAdultFemaleShare(0.6);
         eng.SetAdultFemaleShare(0.02); teacher.SetAdultFemaleShare(0.25);   // 初期符号化と同じ性別分離（技師0.02・教師0.25＝20歳以上の層）
-        static double Fem(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) / p.AgeShare(20, double.PositiveInfinity);
+        static double Fem(Pop p) => p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity, 1) / p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity);   // 大人の境（8層は20歳・11層は21歳＝性別の門 SetAdultFemaleShare と同じ層の境）
         foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; }
         eng.EarnedPerMonth = new MoneyPerMonth(10.0 * eng.Size); teacher.EarnedPerMonth = new MoneyPerMonth(10.0 * teacher.Size);
         double engSize0 = eng.Size, teaSize0 = teacher.Size;
@@ -272,7 +272,7 @@ public class MobilityTests
     {
         // ★年齢の層（2026-09-30 段4e 後半）：性は層の中＝移し方は層×性の人数を足すだけ＝成人数で混ぜる形が構造で出る
         static double FemaleAdults(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) * p.Size;
-        static double Fem(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) / p.AgeShare(20, double.PositiveInfinity);
+        static double Fem(Pop p) => p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity, 1) / p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity);   // 大人の境（8層は20歳・11層は21歳＝性別の門 SetAdultFemaleShare と同じ層の境）
         var from = new Pop { Size = 100, Ages = [0.125, 0.125, 0.125, 0.125, 0.25, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };   // 子供（0〜19）が半分・大人は男女半々
         var to = new Pop { Size = 100, Ages = [0, 0, 0, 0, 0.8, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };   // 子供がいない・大人の女性比 0.2
         double fem0 = FemaleAdults(from) + FemaleAdults(to);

@@ -614,7 +614,8 @@ public class MilitaryTests
     public void 兵を単位にした較正は同じ比で読み替える()
     {
         var c = new Coefficients(); double u = Military.WorkingMenStdShare;
-        Assert.Equal(0.2765, u, 12);
+        // 標準のピラミッドの男16〜59の手の値（層の器ごと）：8層＝0.2765（0.5×(0.195×0.4＋0.160＋0.130＋0.105＋0.080)）／11層＝0.2731（0.5×(0.0903＋0.1568＋0.1273＋0.1025＋0.0770×0.9)）
+        Assert.Equal(Pop.Layout.Bands == 8 ? 0.2765 : 0.2731, u, Pop.Layout.Bands == 8 ? 12 : 4);
         Assert.Equal(250.0, c.SoldiersPerMilitary / u, 9);
         Assert.Equal(5.0, c.CoercionPerSoldier * u, 9);
         Assert.Equal(0.18, c.MilitaryUpkeepScale * u, 12);

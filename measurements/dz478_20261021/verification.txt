@@ -1,0 +1,6 @@
+# (478) 検証の記録（木 74230e86 +番人の追加・Release・隔離ビルド）
+フルスイート Category!=FullLength（旗 0）: 成功!   -失敗:     0、合格:  1589、スキップ:     0、合計:  1589、期間: 10 m 8 s - PriceOfBread.Tests.dll (net10.0)
+FullLength（旗 0）: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 26 s - PriceOfBread.Tests.dll (net10.0)
+FullLength（POB_AGE_BANDS=11）: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 57 s - PriceOfBread.Tests.dll (net10.0)
+savetest 1 40 12（8 層）: OK 最大相対差 0／（11 層）: OK 最大相対差 0
+leakhunt 1 80 warm（8 層・11 層とも）: 完走・保存則違反なし・人口 0 四半期・基礎貨幣 0 四半期
