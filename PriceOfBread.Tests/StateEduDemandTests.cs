@@ -217,9 +217,9 @@ public class StateEduDemandInstrumentTests
             Assert.Equal(0.0, StateEduDemandTests.StateSpentEdu(a));                    // 前提：供給が尽きて国庫は買えない
             double expected = 0.5 * StateEduDemandTests.Need(wa, p => p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker);
             Assert.True(expected > 0);
-            Assert.Equal(expected, a.DiagEduWant, 9);                                   // 旗 0 でも買いたい分が診断に出る（A の計器が B と同じ定義）
-            Assert.Equal(0.0, a.DiagEduTake);
-            Assert.Equal(a.DiagEduWant, b.DiagEduWant);                                 // 旗 0 と旗 1 で診断は同じ量（定義の対称）
+            Assert.Equal(expected, Instruments.EdDiagOf(a).Want, 9);                                   // 旗 0 でも買いたい分が診断に出る（A の計器が B と同じ定義）
+            Assert.Equal(0.0, Instruments.EdDiagOf(a).Take);
+            Assert.Equal(Instruments.EdDiagOf(a).Want, Instruments.EdDiagOf(b).Want);                                 // 旗 0 と旗 1 で診断は同じ量（定義の対称）
             // 読むだけ：計器の有無で旗 0 の力学は変わらない
             Assert.Equal(plain.Markets[e].LastDemand, a.Markets[e].LastDemand);
             Assert.Equal(plain.Markets[e].LastSold, a.Markets[e].LastSold);

@@ -11,7 +11,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// (449) 線 sp の番人（事前登録 measurements/sp_20261020_prereg.txt [6]）＝国力の物差し（世界の総量に対する本国の割合）。★(456) 旗 ScoreFromWorldShare を焼き込んで旧の腕を消した。
 /// ①国力の読み手が 1 本（旧の 4 項・旧の腕・旗の復活を禁じる）／②内訳の 1 本（6 項の点の和が国力）／③開幕のランクの取り直し（助走の直後に 6 項とも総量が正）／
-/// ④条約港の風化は列強の中央値を基準にする／⑤外交のランクと風化と国力の一覧が同じ 1 本（NationalScore.ScoresByPower）を読む。
+/// ④条約港の風化は列強の中央値を基準にする／⑤総量の集合は実在の国〔Power.Nation が非 null〕だけで、抽象の勢力が盤に居ても動かない（(465) 作り直し）。
 /// 期待値は手計算のリテラルか独立の式で書く（実装の関数の出力から作らない＝同語反復にしない）。
 /// </summary>
 public class ScoreReaderTests
@@ -159,28 +159,55 @@ public class ScoreReaderTests
     // ================= ⑤ 総量の集合は 1 つ =================
 
     [Fact]
-    public void 国力の一覧と内訳と世界ごとの値は同じ集合の総量を読む()
+    public void 国力の総量の集合は実在の国だけで_抽象の勢力が盤に居ても動かない()
     {
-        // 外交のランク・条約港の風化（Diplomacy）と画面・play（NationalScore.ScoresByPower／BreakdownsByPower）と国ごとの Of が、実在の国〔Power.Nation が非 null〕の和という同じ総量を読む。
-        var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
-        sim.StartWarmup();
+        // ★(465) 作り直し（旧は ScoresByPower と Scores を同じ集合から呼ぶ同語反復だった＝反証役 hy3〔v〕低#4）。盤に Power.Nation が null の勢力〔抽象的な外国＝大きな軍事力〕を足し、
+        //   総量の集合（外交のランク・画面・play・Runner の score／scorebreak が読む NationalScore.NationWorldsOf）が実在の 4 国だけであること・抽象の勢力が総量にも一覧にも混ざらないこと・
+        //   国力が独立の式（各国の項の素の量 TermsOf から 100×量÷総量÷使う項の数）と一致することを押さえる。期待は実装の集合の関数から作らない（盤の Powers を直に走査する）。
+        var sim = Four();
+        sim.Run(2);
         var d = sim.Diplomacy;
+        var real = sim.Nations.ConvertAll(n => n.World);
+        var abs = new Power { Id = d.Powers.Max(p => p.Id) + 1, Name = "抽象", BaseName = "抽象", Military = 1e6 };   // Nation == null
+        d.Powers.Add(abs);
+        Assert.Null(abs.Nation);   // 前提：盤に実在でない勢力が居る
+        Assert.True(d.Powers.Count > real.Count);
+
+        // 集合：盤の Powers を直に走査した実在の国と同じ順序・同じ顔ぶれ
+        var expectedSet = new List<World>();
+        foreach (var p in d.Powers) if (p.Nation != null) expectedSet.Add(p.Nation);
+        Assert.Equal(4, expectedSet.Count);
+        var got = NationalScore.NationWorldsOf(real[0]);
+        Assert.Equal(expectedSet.Count, got.Count);
+        for (int i = 0; i < got.Count; i++) Assert.Same(expectedSet[i], got[i]);
+
+        // 独立の式
+        var terms = expectedSet.Select(NationalScore.TermsOf).ToArray();
+        var tot = new double[6];
+        foreach (var t in terms) for (int k = 0; k < 6; k++) tot[k] += t[k];
+        int used = tot.Count(x => x > 0);
+        Assert.True(used > 0);
         var byPower = NationalScore.ScoresByPower(d);
         var bdByPower = NationalScore.BreakdownsByPower(d);
-        var ws = d.Powers.Where(p => p.Nation != null).Select(p => p.Nation!).ToList();
-        var direct = NationalScore.Scores(ws);   // 実在の国の世界の一覧から直に引く道
+        Assert.DoesNotContain(abs.Id, byPower.Keys);
+        Assert.DoesNotContain(abs.Id, bdByPower.Keys);
+        Assert.Equal(expectedSet.Count, byPower.Count);
         double sum = 0;
-        for (int i = 0; i < ws.Count; i++)
+        for (int i = 0; i < expectedSet.Count; i++)
         {
-            int id = ws[i].SelfPower!.Id;
-            Assert.Equal(direct[i], byPower[id], 9);
-            Assert.Equal(direct[i], NationalScore.Of(ws[i]), 9);
-            Assert.Equal(direct[i], bdByPower[id].Sum(l => l.Points), 9);
-            sum += direct[i];
+            double want = 0; for (int k = 0; k < 6; k++) want += 100.0 * terms[i][k] / tot[k] / used;
+            int id = expectedSet[i].SelfPower!.Id;
+            Assert.Equal(want, byPower[id], 9);
+            Assert.Equal(want, NationalScore.Of(expectedSet[i]), 9);
+            Assert.Equal(want, bdByPower[id].Sum(l => l.Points), 9);
+            Assert.Contains($"合計 {want:F1}", PlayText.ScoreBreakdownText(expectedSet[i]));
+            sum += want;
         }
         Assert.Equal(100.0, sum, 6);   // 全国の合計は 100（総量が正の項だけを均等に平均するため）
-        // 外交のランクはこの値の降順（定員制）＝上位 GreatPowerCount が列強
-        var order = d.Powers.Where(p => p.Nation != null).OrderByDescending(p => byPower[p.Id]).ThenBy(p => p.Id).Take(sim.Coef.GreatPowerCount).ToList();
-        Assert.All(order, p => Assert.Equal(PowerRank.Great, d.RankOf(p)));
+        // 盤に居ない世界（単独の試験・較正）は自分だけを総量にする＝盤の国は混ざらない
+        var lone = new World(new List<Region>(), new Coefficients());
+        var loneSet = NationalScore.NationWorldsOf(lone);
+        Assert.Single(loneSet);
+        Assert.Same(lone, loneSet[0]);
     }
 }

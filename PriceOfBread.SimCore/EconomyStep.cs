@@ -1713,9 +1713,9 @@ public static class EconomyStep
                 {
                     double nd = 0, pv = 0;
                     foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) { nd += p.GoodNeed; pv += p.GoodDemand; }
-                    region.DiagEduNeed = nd; region.DiagEduPriv = pv; region.DiagEduAvail = available; region.DiagEduWant = 0; region.DiagEduTake = 0;   // (452) 計器（読むだけ）
+                    Instruments.EdBegin(region, nd, pv, available);   // (452) 計器（読むだけ）：診断は計器の側の蓄え（(465) で Region から移した）
                 }
-                if (insOn && gi == Catalog.HigherEducationId) { region.DiagHigherWant = 0; region.DiagHigherTake = 0; }   // (452) 計器（読むだけ）
+                if (insOn && gi == Catalog.HigherEducationId) Instruments.HigherEdSet(region, 0, 0);   // (452) 計器（読むだけ）
                 if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn))
                 {
                     double unmet = 0;
@@ -1755,7 +1755,7 @@ public static class EconomyStep
                         m.LastDemand += take;             // 国家購入も需要として記録（次期の労働配分の重み）
                     }
                     if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。供給が足りる月は want == boughtQty で 0 を足さない）
-                    if (insOn) { region.DiagEduWant = want; region.DiagEduTake = boughtQty; }   // (452) 計器（読むだけ）
+                    if (insOn) Instruments.EdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 // ★段③：近代化投資の学費補助。義務教育と**同じ形**だが律速が違う——義務教育は「率」（全民就学が目標）、
                 //   こちらは「額」（予算で買える人数が決まる＝作者裁定「効果を投入額から計算し、投入額上限は収入から計算する」）。
@@ -1793,7 +1793,7 @@ public static class EconomyStep
                         m.LastDemand += take;
                     }
                     if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）
-                    if (insOn) { region.DiagHigherWant = want; region.DiagHigherTake = boughtQty; }   // (452) 計器（読むだけ）
+                    if (insOn) Instruments.HigherEdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 ration[gi] = totalDemand > 1e-12 ? Math.Min(1.0, sold / totalDemand) : 0;
             }
