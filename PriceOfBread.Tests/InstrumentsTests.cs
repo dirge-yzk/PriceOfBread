@@ -2382,7 +2382,7 @@ public class InstrumentsTests
                 bool sellerKnew = sellerFound ? sq <= q : (r[iSeller] == "イギリス" && r[iRow] == "蒸気機関");
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
                 // ★(478) 買い手の鍵も計器の国名（BaseName）＝分離・建国で生まれた国の BaseName は建国で再利用される（同じ名の別の国が後から現れる）ので、E 行の名前引きが同じ国を指すのは開幕に居た国だけ
-                //   （11層の軌道では 立憲王政ポルトガル の名が 2 度現れ、Q9 の解禁が後の別の国に当たった）＝名前の再利用がありうる国は読まない（売り手の founded と同じ扱い）。
+                //   （11層の軌道では 立憲王政ポルトガル の名が 2 度現れ、Q9 の解禁が後の別の国に当たった〈推測〉＝disc_s で nationUid が 2 つあることは確かめていない）＝名前の再利用がありうる国は読まない（売り手の founded と同じ扱い）。
                 if (openNames.Contains(r[iBuyer]) && unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
             // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。
