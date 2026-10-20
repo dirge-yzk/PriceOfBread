@@ -1,11 +1,10 @@
-# (474) 最終の木（SimCore・App・Runner は SOURCE-HASH d896bfbe80016599 の木と同じ・以後は EngineReadIdentityTests の整数の配列の直しと docs だけ）・Release・隔離ビルド D:/PoB_work/hp_474/build
-## フルスイート（Category!=FullLength）＝最後の木（DiscoveryScoreTests の見つける力 0 を無限大で作る直しの後）の回し直し
-成功!   -失敗:     0、合格:  1522、スキップ:     0、合計:  1522、期間: 9 m 46 s - PriceOfBread.Tests.dll (net10.0)
-
-## 1 回目（整数の配列の直しの前）：1521 本合格・赤 1＝GoodIdGuardTests.数値の財idは書かない（EngineReadIdentityTests の整数の配列 new[] { 2, 3, 4 }）→ 直して 49 本（GoodIdGuardTests＋EngineReadIdentityTests）緑・フルスイートを回し直した
+# (474) 枝 hp のテストの記録（Release・隔離ビルド D:/PoB_work/hp_474/build・SimCore・App・Runner は SOURCE-HASH d896bfbe80016599 の木と同じ・以後の変更はテストと docs だけ）
+## フルスイート（Category!=FullLength）1 回目（EngineReadIdentityTests の整数の配列 new[] { 2, 3, 4 } を直す前）
   失敗 PriceOfBread.Tests.GoodIdGuardTests.数値の財idは書かない [12 s]
 失敗!   -失敗:     1、合格:  1521、スキップ:     0、合計:  1522、期間: 10 m 42 s - PriceOfBread.Tests.dll (net10.0)
-## FullLength
-成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 15 s - PriceOfBread.Tests.dll (net10.0)
-## 最後の木（見つける力 0 を無限大で作る直しの後）のフルスイート
+## フルスイート 2 回目（整数の配列の直しの後）
+成功!   -失敗:     0、合格:  1522、スキップ:     0、合計:  1522、期間: 9 m 46 s - PriceOfBread.Tests.dll (net10.0)
+## フルスイート 3 回目＝最後の木（DiscoveryScoreTests の見つける力 0 を無限大で作る直しの後）
 成功!   -失敗:     0、合格:  1522、スキップ:     0、合計:  1522、期間: 22 m 52 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength（1 回目の木）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 15 s - PriceOfBread.Tests.dll (net10.0)
