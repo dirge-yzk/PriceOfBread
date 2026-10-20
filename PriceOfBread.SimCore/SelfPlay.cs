@@ -266,6 +266,7 @@ public sealed class UtilityAgent : INationAgent
     // ★(423) 旗 AiLawGateFromBoard（既定 3＝2026-10-19 に点火・0＝旧）の線 3 本。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
     internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
     internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
+    internal const double MinimumWageSufficiencyUrbanLine = 2.0 / 3.0;   // ★最低賃金法（線 lw (459)）の充足を目標に置く本国の都市の割合（都市が3分の2＝賃金労働が圧倒的多数・AI の選択・確証なし）
     internal const double TrustbustUrbanLine = 0.5;                  // 独占の解体を目標に置く本国の都市の割合（都市が過半）
     private const double CompulsoryEduBufferMult = 3.0;     // 義務教育の財政バッファ倍率
     private const double WomenPropertyTechThreshold = 1.2; // 女性の権利＝財産権の段を目標に置く技術閾値
@@ -378,6 +379,7 @@ public sealed class UtilityAgent : INationAgent
         GateLaw(ref shared, w, PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)p.Bureaucracy, (int)BureaucracyLaw.Professional, v => p.Bureaucracy = (BureaucracyLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Antitrust, (int)w.Antitrust, (int)p.Antitrust, (int)AntitrustLaw.Trustbust, v => p.Antitrust = (AntitrustLaw)v);
         if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);   // ★特権 段4
+        if (w.Coef.MinimumWageLawGate > 0) GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・ゲート0では目標を整形しない＝恒等）
         GateLaw(ref shared, w, PolicyAxis.WartimeRationing, w.WartimeRationing ? 1 : 0, p.WartimeRationing ? 1 : 0, 1, v => p.WartimeRationing = v != 0);
         GateLaw(ref shared, w, PolicyAxis.MilitaryExport, w.MilitaryExportBan ? 1 : 0, p.MilitaryExportBan ? 1 : 0, 1, v => p.MilitaryExportBan = v != 0);
         if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(ref shared, w, PolicyAxis.CivilianArms, w.CivilianArmsBan ? 1 : 0, p.CivilianArmsBan ? 1 : 0, 1, v => p.CivilianArmsBan = v != 0);   // ★民間の武器購入の法（2026-09-11）
@@ -826,6 +828,9 @@ public sealed class UtilityAgent : INationAgent
         // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
         if ((w.Coef.AiLawGateFromBoard >= 3.0 ? GuildTargetFromBoard(w) : GuildTargetOld(w)) is { } guildTarget)
             p.Guild = guildTarget;
+        // ★最低賃金法（線 lw (459)）：賃金労働者（本国の都市人口）が多数になった国は床を求める。反トラスト・同業組合と同じ線（新しい数を作らない・AI の選び＝確証なし）。ゲート0＝目標を書かない＝恒等
+        if (MinimumWageTargetFromBoard(w) is { } mwTarget)
+            p.MinimumWage = mwTarget;
         if (w.Polity == Polity.ProletarianDictatorship)
         {   // プロ独裁＝全部門国有化（5部門＋『全て』＝ソ連型計画経済。§11-6d統合後の全点灯）
             p.NationalizeRailways = p.NationalizeMines = p.NationalizeMilitary = p.NationalizeOil
@@ -1027,6 +1032,22 @@ public sealed class UtilityAgent : INationAgent
         if (u > AntitrustUrbanLine) return w.Guild >= GuildLaw.Limited ? null : GuildLaw.Limited;
         return null;
     }
+
+    /// <summary>★最低賃金法の目標（線 lw (459)）＝MinimumWageLawGate＞0 かつ本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// （帯で現行の法がすでにその段以上なら書かない＝施行済みの床を引き下げる目標を立てない）。賛否の出所＝PolicyPreferences（大衆が賛成・資本が反対）が目標の施行を政治ゲートで決める。
+    /// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
+    internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
+    {
+        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
+        MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
+        return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
+    }
+
+    /// <summary>本国の都市の割合から、AI が最低賃金法に置く段（<see cref="MinimumWageTargetFromBoard"/> の純関数の部分）。NaN は否定形で None 側。</summary>
+    internal static MinimumWageLaw MinimumWageWant(double urbanShare)
+        => urbanShare > MinimumWageSufficiencyUrbanLine ? MinimumWageLaw.Sufficiency
+         : urbanShare > TrustbustUrbanLine ? MinimumWageLaw.Living
+         : urbanShare > AntitrustUrbanLine ? MinimumWageLaw.Subsistence : MinimumWageLaw.None;
 
     public void DecideQuarter(World w)
     {

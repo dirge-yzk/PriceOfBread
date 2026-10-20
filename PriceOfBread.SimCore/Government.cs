@@ -142,6 +142,7 @@ public static class Government
             FrontOpen: w => w.Polity != Polity.ProletarianDictatorship),
         new(PolicyAxis.Antitrust, w => (int)w.Antitrust, (w, v) => w.Antitrust = (AntitrustLaw)v, (w, p) => (int)p.Antitrust, 2, Stage: 2),   // 独占禁止法（E6）：規制なし→談合禁止→独占の解体（独占レント保有層が抵抗）
         new(PolicyAxis.Guild, w => (int)w.Guild, (w, v) => w.Guild = (GuildLaw)v, (w, p) => (int)p.Guild, 2, Stage: 2, Open: w => w.Coef.GuildLawGate > 0),   // ★同業組合法（特権 段4・2026-09-07）：保護→制限→廃止（職人が抵抗）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.MinimumWage, w => (int)w.MinimumWage, (w, v) => w.MinimumWage = (MinimumWageLaw)v, (w, p) => (int)p.MinimumWage, 3, Stage: 2, Open: w => w.Coef.MinimumWageLawGate > 0),   // ★最低賃金法（線 lw (459)・2026-10-20）：なし→生存→生活→充足（独立した量の段・他の法の前提なし・賃金労働者が推し資本が抵抗する）。ゲート0＝法が動かない＝恒等
         new(PolicyAxis.WartimeRationing, w => w.WartimeRationing ? 1 : 0, (w, v) => w.WartimeRationing = v == 1, (w, p) => p.WartimeRationing ? 1 : 0, 1),   // 戦時配給法（E6・あり/なし）：戦時のみ発火（資本が反対）
         new(PolicyAxis.MilitaryExport, w => w.MilitaryExportBan ? 1 : 0, (w, v) => w.MilitaryExportBan = v == 1, (w, p) => p.MilitaryExportBan ? 1 : 0, 1),   // 軍需輸出の法（禁制品doc C5・2026-07-30）：武器で稼ぐ資本が禁止に反対＝軍需産業の大きい国ほど通らない・軸の増＝禁止
         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：旧支配層が禁止を推し近代/大衆が抵抗。ゲート0＝法が動かない＝恒等。軸の増＝禁止。
@@ -709,6 +710,7 @@ public static class Government
                 // 独占禁止 ← 官僚制度（資格任用以上）。カルテルを摘発するには縁故でない執行機関が要る（米ICC1887→シャーマン法1890の順）。
                 if (targetLevel >= (int)AntitrustLaw.CartelBan && (bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam) return (false, "官僚制度（資格任用以上）が前提");
                 break;
+            // 最低賃金法（線 lw (459)・作者 2026-10-20 〈組合の法とは独立の軸〉）：他の法の前提を持たない（労働時間と同じ作り）＝政治の門（純支持・政治資本）だけが段を決める。
             case PolicyAxis.Nationalization:
             case PolicyAxis.NationalizationAll:
                 // 国有化 ← 官僚制度（資格任用以上）。国が現業を経営するには官僚機構が要る（縁故任用の国有化は略奪になる）。

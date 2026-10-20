@@ -51,6 +51,8 @@ public enum PolicyAxis
     CivilianArms,                                                                   // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11・末尾追加＝列挙順を動かさない）。軸の増＝**禁止**。
                                                                                     //   旧支配層＝武力の独占の防衛者として禁止を望み・近代/大衆＝自衛と蜂起の手段として許可を望む（地位/権力軸の型）。
                                                                                     //   休眠 RebelArmsMarketEnabled=0 では Pref=0＝要求リストにも綱領にも載らない（Guild と同じ防壁）
+    MinimumWage,                                                                    // ★最低賃金法（線 lw (459)・2026-10-20・末尾追加＝列挙順を動かさない）。軸の増＝**強める**（なし→生存→生活→充足）。
+                                                                                    //   大衆（賃金労働）が賛成・資本（雇う側）と旧支配層（農業の雇い主）が反対。休眠 MinimumWageLawGate=0 では Pref=0＝要求リストにも綱領にも載らない（Guild と同じ防壁）
 }
 
 /// <summary>
@@ -261,6 +263,9 @@ public static class PolicyPreferences
             case PolicyAxis.CivilianArms:     // 民間の武器購入の禁止（2026-09-11）＝旧支配層が禁止を望み（武力の独占＝現秩序の防衛・英1819六法）・近代/大衆が許可を望む（自衛と蜂起の手段＝国民衛兵1789）。
                                               // 地位/権力軸の型（検閲・秘密投票と同じ±1）＝保有から導く量が無い軸。⚠RebelArmsMarketEnabled=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（Guild と同じ休眠の防壁）
                 return w.Coef.RebelArmsMarketEnabled > 0 ? (trad ? 1.0 : -1.0) : 0.0;
+            case PolicyAxis.MinimumWage:      // 最低賃金法（線 lw (459)・2026-10-20）＝賃金労働者（大衆）が賛成・雇う側の資本（近代）が反対・農業の雇い主（旧支配層）は弱く反対。符号の出所＝労働組合（LaborUnion）と同型（作者の向きを AI が写した形・確証なし）。
+                                              // ⚠MinimumWageLawGate=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（Guild と同じ休眠の防壁）
+                return w.Coef.MinimumWageLawGate > 0 ? (mass ? 1.0 : modern ? -1.0 : -0.5) : 0.0;
             case PolicyAxis.WartimeRationing: // 戦時配給（E6）＝国家/軍が総力戦の統制として支持・資本が価格統制で反対（大衆は中立＝公平配給だが統制も伴う）
                 return trad ? 0.5 : modern ? -0.5 : 0;
             case PolicyAxis.MilitaryExport:   // 軍需輸出の禁止（C5・2026-07-30）＝武器を作って売る資本が利益から反対。強さは**軍需財の生産額シェア**から創発

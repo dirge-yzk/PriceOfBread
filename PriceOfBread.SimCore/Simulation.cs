@@ -1578,7 +1578,7 @@ public sealed class Simulation
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
-                if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow, cost, monthStartSpan);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす（月の2旬目以降は不動点に着いた張り付いた財を眠らせる）
+                if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow, cost, monthStartSpan, World.MinimumWage);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす（月の2旬目以降は不動点に着いた張り付いた財を眠らせる）
             }
         ProbeCheck("日次価格");
         if (spanStart) World.StepConstruction(hFlow);                               // 工場建設の進捗（旬の初日に h 日ぶん・労務費を働いた日数ぶん払って進む）

@@ -1994,7 +1994,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, Count = 24;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, Count = 25;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2008,6 +2008,7 @@ public static class CostLedger
         "AI の官僚制度の走査：国×四半期（欲しい法の表の走査と前提・門の照会）",
         "不満度を読む：POP×国×四半期（参加の述語〔旗 ParticipationDiscontent が正のとき〕と思想の更新の入力〔常に〕）",
         "発見：世界の高度労働力の雇用の合計の巡回（訪れた生産者×四半期・時計の形が正のときだけ）",
+        "最低賃金の籠の走査：床を求めた回の（州の財＋生産者）の走査（法が施行されているときだけ）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2051,6 +2052,7 @@ public static class CostLedger
         AiBureaucracyScanUnitMicros,   // ★(395) AI の官僚制度の走査：SelfPlay.BureaucracyFollowsWants の1回（国×四半期）＝(389) の burscan の壁時計の中央÷呼びの数（下の定数の注記）
         ParticipationUnitMicros,   // ★(417)(431) 不満度を読む：FactionSnapshot.ComputeClusters が問うた POP 1つ（Politics.Discontent 1回＋運動体の辞書の出し入れ）か、Ideologies.UpdateShares が回した POP 1つ（Politics.Discontent 1回）＝census は無い・上限の見積り（下の定数の注記）
         DiscoveryWorldScanUnitMicros,   // ★(461) 発見：世界の合計の巡回＝Discovery.WorldAdvLabor の 1 生産者あたり（暫定の見積り・予備計測で確かめる）
+        MinimumWageBasketScanUnitMicros,   // ★(469) 最低賃金の籠の走査＝MinimumWageFloor.PerUnit の 1 回の中の（財 1 件の層の判定と値段の積＋生産者 1 件の判定）あたり（**上限の見積り**・census は無い・法の旗が正のときだけ件数が立つ）
     ];
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
@@ -2063,6 +2065,8 @@ public static class CostLedger
     /// 巡回は技師を雇わない生産者（一次産品の大半）で門の照会を飛ばす。全長 668 四半期の訪れた生産者は約 3,340 万（dw の腕 B の件数）＝推定 約 2.0 秒（事前登録 measurements/dk_20261020_prereg.txt [8]・上限 5 秒）。
     /// ⚠予備計測の clock_s の C 行（Stopwatch の累計）は負荷で膨らむ値で単価に使わない（記録）。</summary>
     public const double DiscoveryWorldScanUnitMicros = 0.06;
+    /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。</summary>
+    public const double MinimumWageBasketScanUnitMicros = 0.02;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数
     /// （census の計器 inj_c186・種1・668四半期・r182 の木〔586b80e〕5回＝19.87／19.61／19.01／19.49／20.02 µs・眠りの木5回＝19.89／19.59／19.42／19.62／19.81 µs の平均 19.63）。
     /// ⚠ (159)(165) から「共有層：国×四半期」の中の小さい分と書いていたが、その単価（(136)(146) の census）は AdvancePrice の前に取った＝数えていなかった（(182) の申し送り）。</summary>

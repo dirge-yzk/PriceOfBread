@@ -518,6 +518,7 @@ internal static class PlayHarness
             ("国教", nameof(NationPolicy.StateReligion), w.StateReligion.ToString(), p.StateReligion.ToString()),
             ("独禁", nameof(NationPolicy.Antitrust), w.Antitrust.ToString(), p.Antitrust.ToString()),
             ("同業組合", nameof(NationPolicy.Guild), w.Guild.ToString(), p.Guild.ToString()),
+            ("最低賃金", nameof(NationPolicy.MinimumWage), w.MinimumWage.ToString(), p.MinimumWage.ToString()),
             ("戦時配給", nameof(NationPolicy.WartimeRationing), Ob(w.WartimeRationing), Ob(p.WartimeRationing)),
             ("軍需輸出の禁止", nameof(NationPolicy.MilitaryExportBan), Ob(w.MilitaryExportBan), Ob(p.MilitaryExportBan)),
             ("民間の武器購入の禁止", nameof(NationPolicy.CivilianArmsBan), Ob(w.CivilianArmsBan), Ob(p.CivilianArmsBan)),

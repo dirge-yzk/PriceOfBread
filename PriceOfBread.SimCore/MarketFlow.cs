@@ -64,7 +64,7 @@ public static class MarketFlow
     /// 起こす理由＝月の境（月次決算・清算が需給・在庫・輸入を書き直す＝次の月の最初の旬は全ての財を回して印を作り直す）。タイマーではない
     /// （入力の書き手が境界相だけ＝月の中では変わらない・census）。眠っている間の値段は不動点から相対 約2.5e-8 の内（打ち切りの上界）＝月次決算と建設が読む値の誤差もこの内。
     /// ⚠印は作業領域＝セーブに載らない。四半期の境でセーブしたとき、次の歩は月の最初の旬＝印を作り直す（往復は一致）。月の途中でロードすると、その月の残りは起きたまま回る（差は上界の内）。</remarks>
-    public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null, bool monthStart = true)
+    public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null, bool monthStart = true, MinimumWageLaw minWage = MinimumWageLaw.None)
     {
         int h = days;
         double div = coef.PriceFlowDailyDiv;
@@ -76,7 +76,7 @@ public static class MarketFlow
         // ★2026-09-08（10-4c の残り＝賃金側）：賃金の天井 effWageMax は coef と region.Industrialization だけで決まり、
         //   この foreach は市場（m.*）しか書かない＝**財ループ不変**（月次で動くが、StepDay 1回の中では定数）。
         //   よって天井/床の対数も財ごとに Math.Log を呼ぶ必要がない＝役務1財あたり2回→州1回へ。渡す double は同一＝ビット恒等。
-        double effWageMax = coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
+        double effWageMax = EffWageMax(region, coef);
         double lnCeilWage = System.Math.Log(effWageMax);
         double lnFloorWage = -System.Math.Log(coef.WageClampMin);
         // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
@@ -132,6 +132,16 @@ public static class MarketFlow
                     // 持続失業（超過供給）では目標がじわじわ下がり留保賃金も遅れて切り下がる＝名目賃金は下がりにくいが永久には張り付かない。
                     // ★旬次（A3）：労働（3財＝生きた財の約3%）は初回は閉じた式を使わない＝日次の写像を h 回（打ち切りつき）＝旬の終わりの賃金と
                     //   留保賃金（＝失業）は日次と一致する。Rise/Fall は1日あたりの定数（÷div しない）なので、閉じた式にするなら相ごとの形が要る（設計 §2）。
+                    // ★(459) 線 lw：最低賃金法の床（その州の労働者の生活費・名目の絶対値）。法が None（既定・MinimumWageLawGate＝0 では動かない）のときは 0＝下の分岐に入らない＝旧と1ビットも変わらない。
+                    //   帯の外（SoftBand の後）で下から切る＝帯の錨（参照価格 wrp）に依らず、床が錨より高くても帯が退化しない。⚠前計算の lnFloorWage は教育・医療の役務の枝も読む＝書き換えない。
+                    double mwFloor = 0;
+                    if (minWage != MinimumWageLaw.None && MinimumWageFloor.Applies(minWage, gi))
+                    {
+                        mwFloor = MinimumWageFloor.AbsFloor(region, gi, wrp * effWageMax, minWage);
+                        if (cost is not null) cost[CostLedger.MinimumWageBasketScans] += region.Goods.Count + region.Producers.Count;   // 計算量の台帳（診断）：床を求めた回の（財の走査＋生産者の走査）
+                    }
+                    // ★(469) 線 mw：帯の下側（WageClampMin）の撤去。ゲート 0（既定）では下の分岐に入らない＝旧と1ビットも変わらない。教育・医療の役務の枝は別の枝＝触らない。
+                    bool bandFloorOff = coef.LaborBandFloorOffGate > 0;
                     double P = m.Price, RW = m.ReservationWage;
                     int run = 0;
                     while (run < h)
@@ -142,7 +152,11 @@ public static class MarketFlow
                         if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
                         double rwSpeed = target >= rw ? coef.ReservationWageRise : coef.ReservationWageFall;
                         rw += (target - rw) * rwSpeed;
-                        double p1 = SoftBandLn(System.Math.Max(target, rw), wrp, lnFloorWage, lnCeilWage, k);   // 賃金の床/天井＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
+                        double want = System.Math.Max(target, rw);
+                        double p1 = bandFloorOff && want < wrp
+                            ? System.Math.Max(want, Eps)   // ★(469) 帯の下側を外す＝参照より下は漸近形を通さない（下限は Eps だけ・参照 wrp で連続＝SoftBandLn(wrp)＝wrp）
+                            : SoftBandLn(want, wrp, lnFloorWage, lnCeilWage, k);   // 賃金の床/天井＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
+                        if (mwFloor > 0 && p1 < mwFloor) p1 = mwFloor;   // ★(459) 法の床（帯の外・下から）
                         bool still = Same(p1, P) && Same(rw, RW);
                         P = p1; RW = rw;
                         if (still) break;
@@ -316,6 +330,10 @@ public static class MarketFlow
         double flow = (eD - eS) / (eD + eS + Eps);
         return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
     }
+
+    /// <summary>賃金の天井の倍率＝WageClampMax×(1＋WageClampIndScale×工業化度)（参照価格×物価水準に掛ける）。StepDay（州1回に巻き上げ）と計器 labor_s（法の床を機構と同じ天井で削って読む）が同じ式を読む1本（(469)・式は1文字も変えない＝ビット恒等）。</summary>
+    internal static double EffWageMax(Region region, Coefficients coef)
+        => coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
 
     /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
     private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);
