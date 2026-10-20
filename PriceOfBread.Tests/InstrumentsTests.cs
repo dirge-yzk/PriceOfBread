@@ -2349,12 +2349,10 @@ public class InstrumentsTests
             {
                 // ★(388) 既定が DiscoveryCarrierDownstream＝1 になった。この番人は運び手の表が旧の形（係数 0）のときの記帳の規則を見る＝0 を明示する（広げた表の運び手は伝わりの道の番人が見る）
                 var sim = new MultiNationSim(WorldData.Nations(), DSEED, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });   // 運び手の財（蒸気機関の財）の越境の買いが出るには全ての国の世界が要る
-                // ★(461) 発見の時計（既定で点火）は蒸気機関の越境の伝わりを遅らせ、最初の 60 四半期には越境の運び手の取引が出ない（種 1790〜1806 の 17 本で接触の内訳の表が 0〜1 行）。この番人の主題は接触の記帳の規則であって時計ではない
-                //   ＝時計を切って（W0＝0＝(415) の式）接触が出る盤面で規則を見る（共有の係数と国の係数の両方に書く）。時計を入れた世界の伝わりの遅れは成績表（T2・T5）が見る。
-                sim.Coef.DiscoveryClockWorldPerMonth = 0; foreach (var nz in sim.Nations) nz.World.Coef.DiscoveryClockWorldPerMonth = 0;
+                // ★(461) 発見の時計（既定で点火）は機関車の解禁を 1810 年代へ置く＝運び手の取引が出るまで 60 四半期（〜1798 年）では足りず、160 四半期（〜1823 年）まで回す（時計を切る固定はしない）。
                 foreach (var n0 in sim.Nations) openNames.Add(n0.World.SelfPower?.BaseName ?? "");
                 Instruments.Phase(sim, DSEED, "open"); sim.StartWarmup(); Instruments.Phase(sim, DSEED, "warm");
-                for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
+                for (int q = 0; q < 160; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
                 Instruments.Close(sim);
             }
             finally { Instruments.Configure(null, null); }
