@@ -729,6 +729,21 @@ public static class Catalog
         return -1;
     }
 
+    /// <summary>★(spg) 既定のレシピ（空の名前）の行＝<see cref="DiscoveryRowOf"/>(good, "") と同じ値を財ごとに前もって引いた表（発見の表は静的で変わらない）。
+    /// 財の解禁（<see cref="Discovery.GoodGates"/>・<see cref="Discovery.GoodGate"/>）が生産者の居ない財ごとに毎月この線形の走査をしていた分（結果は同じ）。</summary>
+    public static int DefaultDiscoveryRowOf(int good)
+    {
+        var t = _defaultRowOfGood ??= BuildDefaultRows();   // 並んで作っても同じ中身＝どちらが残っても同じ
+        return (uint)good < (uint)t.Length ? t[good] : DiscoveryRowOf(good, "");
+    }
+    private static int[]? _defaultRowOfGood;
+    private static int[] BuildDefaultRows()
+    {
+        var t = new int[Goods.Length];
+        for (int g = 0; g < t.Length; g++) t[g] = DiscoveryRowOf(g, "");
+        return t;
+    }
+
     /// <summary>発見の表の行の添字を名前で（財を持たない制度と思想の行）。無ければ −1。</summary>
     public static int DiscoveryRowNamed(string name) => System.Array.FindIndex(Discoveries, d => d.Name == name);
 

@@ -263,7 +263,7 @@ public static class Discovery
         double best = -1;
         foreach (var pr in r.Producers)
             if (pr.GoodId == gid && !Unfound(pr)) { double g = Gate(r, pr); if (g > best) best = g; }
-        if (best < 0) { int row = Catalog.DiscoveryRowOf(gid, ""); best = row < 0 ? 1.0 : Known(r.Discovered, row) ? 1.0 : 0.0; }
+        if (best < 0) { int row = Catalog.DefaultDiscoveryRowOf(gid); best = row < 0 ? 1.0 : Known(r.Discovered, row) ? 1.0 : 0.0; }
         return !(best > 0) ? 0.0 : System.Math.Min(1.0, best);
     }
 
@@ -282,7 +282,7 @@ public static class Discovery
         for (int g = 0; g < n; g++)
         {
             double b = into[g];
-            if (b < 0) { int row = Catalog.DiscoveryRowOf(g, ""); b = row < 0 ? 1.0 : Known(known, row) ? 1.0 : 0.0; }
+            if (b < 0) { int row = Catalog.DefaultDiscoveryRowOf(g); b = row < 0 ? 1.0 : Known(known, row) ? 1.0 : 0.0; }
             into[g] = !(b > 0) ? 0.0 : System.Math.Min(1.0, b);
         }
     }

@@ -833,6 +833,8 @@ public sealed partial class InternationalMarket
                 if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; continue; }   // 支払能力0＝pot≦0（この清算の中で増えない）
                 if (thin && !(capLeft[t] / Math.Max(1e-9, Wg) > 1e-12)) { m.ClearFailLp = lp; continue; }   // ★(130)②買い手の容量が尽きた行＝成約できない（qA の上限）・月の清算の潜在量は読まれない＝回さない。印は走査して成約しなかった行と同じ（上の (130) の注記・否定形＝NaN も回さない）
                 if (candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = sc.CandS = new int[cn0]; candD = sc.CandD = new double[cn0]; candK = sc.CandK = new double[cn0]; candF = sc.CandF = new double[cn0]; }
+                int rowBase = t * tc; bool hostileRow = natAnyHostile[ni];   // ★(spg) 走査の局所の写し（KmOf・PairRisk の添字の行と、PairRisk の最初の枝＝買い手の国 ni＝tr[t].nation）
+                double tMargin = c.TransportMargin, dMarginScale = c.DistanceMarginScale, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
                 double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
@@ -866,7 +868,11 @@ public sealed partial class InternationalMarket
                         }
                         // 打ち切り位置から同じ規則で走査を続ける（初回は headS から＝旧の走査そのもの）
                         int s2 = resS, prevS = resPrev;
-                        while (s2 < sellers.Count)
+                        // ★(spg) 着値の充填の高速化（値は同じ・読む順も同じ＝ビット恒等）：距離と危険料の表の当たり（KmOf・PairRisk の最初の枝）をここで読み、外れのときだけ関数を呼ぶ（表の書き方は同じ）。
+                        //   州の表 tr・距離と危険料の表は局所関数と比較の匿名関数が捕まえる＝閉包の欄＝この走査の間に差し替わらない参照と定数を局所へ写す。同じ負荷で並べた 1 種 120 四半期で行の段 −18%。
+                        var sellSpan = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(sellers);
+                        var trL = tr; var kmTabL = kmTab; var kmGenL = kmGen; int kmGL = kmG; var riskTabL = riskTab;
+                        while (s2 < sellSpan.Length)
                         {
                             if (left[s2] <= 1e-12)
                             {   // ★連結リスト圧縮：left は財の清算内で単調減少＝尽きたら戻らない。外すのは旧走査でも必ず continue した
@@ -876,7 +882,9 @@ public sealed partial class InternationalMarket
                                 if (prevS < 0) headS = nxS; else nextS[prevS] = nxS;
                                 s2 = nxS; continue;
                             }
-                            if (capLeft[sellers[s2].Node] <= 1e-12)
+                            ref readonly var sel = ref sellSpan[s2];
+                            int sn = sel.Node;
+                            if (capLeft[sn] <= 1e-12)
                             {   // ★容量切れの売り手も同じく外す（2026-09-26）：capLeft は清算の中で減る一方（成約ごとに qA×Wg＞0 を引く）＝一度尽きたら
                                 //   以後この財の全ての買い手で必ず continue する純no-op（旧＝財をまたいで全ての買い手・全ての反復で踏み直していた）。
                                 if (MultiNationSim.TimeOn) CntSkips++;   // ★計器
@@ -887,25 +895,30 @@ public sealed partial class InternationalMarket
                             // 昇順の打ち切り。★1b：下界 Price·lbMul≦着値（浮動小数でも成り立つ＝旧の打ち切りが頼る不等式と同じ）と価格の昇順から、
                             //   Price·lbMul≧lp の位置から先は全員無効。旧が lp より先まで走るのは有効な売り手が候補表に1人もいない（bestDelA≧lp）ときだけで、
                             //   そのとき余分に訪ねるのは全員無効＝有効な売り手がいる間は bestDelA<lp なので打ち切りの位置は旧と同じ。
-                            double lbv = sellers[s2].Price * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul);
+                            double selP = sel.Price;
+                            double lbv = selP * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul);
                             if (lbv >= bestDelA) break;
                             if (lbv >= lp) { if (MultiNationSim.TimeOn) CntCutLp++; break; }
                             if (restrict && member[s2] != rowStamp) { if (MultiNationSim.TimeOn) CntScopeWalk++; prevS = s2; s2 = nextS![s2]; continue; }   // ★(403) 覚えに無い売り手は見ない（生きている売り手なので prevS を進める＝1c と同じ手）
                             if (MultiNationSim.TimeOn) CntScanSteps++;   // ★計器（各売り手は1行につき1回だけ訪問）
-                            double wS2 = tr[sellers[s2].Node].nation == ni ? wedgeHome : wedge;
-                            if (cheapG && tr[sellers[s2].Node].nation != ni) wS2 -= sellCheap![tr[sellers[s2].Node].nation];   // ★(471) 越境の −1 の売り手は着値の楔が s 下がる
+                            int sNat = trL[sn].nation;
+                            double wS2 = sNat == ni ? wedgeHome : wedge;
+                            if (cheapG && sNat != ni) wS2 -= sellCheap![sNat];   // ★(471) 越境の −1 の売り手は着値の楔が s 下がる
                             // ★1c：売り手ごとの下界 Price·((1＋TM·adV)＋楔)≦着値 で無効と分かる売り手（関税・穀物法で閉じた外国の売り手）は、距離と危険料を引かずに飛ばす。
                             //   ⚠生きている売り手なので prevS を進める（進めないと上の連結リストの付け替えが壊れる）。打ち切りの位置は min(bestDelA, lp) で旧と同じ。
-                            if (sellers[s2].Price * (baseMul + wS2) >= lp) { if (MultiNationSim.TimeOn) CntWedgeSkips++; prevS = s2; s2 = nextS![s2]; continue; }
+                            if (selP * (baseMul + wS2) >= lp) { if (MultiNationSim.TimeOn) CntWedgeSkips++; prevS = s2; s2 = nextS![s2]; continue; }
                             if (MultiNationSim.TimeOn) CntFills++;   // ★計器（着値の計算）
                             nFill++;
-                            double km2 = KmOf(sellers[s2].Node, t);
-                            double risk2 = PairRisk(sellers[s2].Node, t);
-                            double bb2 = gd.Tier == GoodTier.Staple ? c.BlockadeStapleBias * risk2 : 0.0;
-                            double mar2 = c.TransportMargin * (1.0 + c.DistanceMarginScale * km2 / Diplomacy.DistanceNormKm) * adValoremRev
+                            int ix = rowBase + sn;   // KmOf・PairRisk と同じ添字（買い手 t の行・売り手 sn の列）
+                            double km2 = kmTabL[ix];
+                            if (km2 >= 0) kmGenL[ix] = kmGL; else km2 = KmOf(sn, t);   // ★(spg) KmOf の当たりの枝そのもの（外れは KmOf が求めて表に書く）
+                            double risk2 = 0;   // ★(spg) PairRisk の最初の2つの枝（買い手の国に敵が無い＝0・表に当たり＝その値）。外れだけ PairRisk を呼ぶ
+                            if (hostileRow) { double rc = riskTabL[ix]; risk2 = rc >= 0 ? rc : PairRisk(sn, t); }
+                            double bb2 = stapleTier ? blockStaple * risk2 : 0.0;
+                            double mar2 = tMargin * (1.0 + dMarginScale * km2 / Diplomacy.DistanceNormKm) * adValoremRev
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
-                            double del2 = sellers[s2].Price * fac2;
+                            double del2 = selP * fac2;
                             if (del2 < double.MaxValue)
                             {
                                 candS[candN] = s2; candD![candN] = del2; candK![candN] = km2; candF![candN] = fac2;
