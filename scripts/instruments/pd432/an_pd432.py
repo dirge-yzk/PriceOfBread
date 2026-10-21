@@ -3,7 +3,7 @@
 使い方：PYTHONUTF8=1 python an_pd432.py <腕 B の計器の出力> [--base <基線 m428_ins の計器の出力>]
 ・種ごとに T1〜T4・T6・T8・T9 を判定し、10 種のうち何種で満たしたかを数える（7 以上＝当たり・4〜6＝部分・3 以下＝外れ）。
 ・期間：1783〜99（Q13 以後＝開幕の補償死 Q0〜Q12 を除く）・1850〜99・1900〜49（1950 年を含めない）。各期間の値は 種ごとの四半期の中央値。
-・T1 英の mu0（pop_s scope=N の mu0PerYear）が 3 期間で単調に下がり、1900〜49÷1783〜99 ≦ 0.85。
+・T1 英の mu0（pop_s scope=N の muFrom0PerYear）が 3 期間で単調に下がり、1900〜49÷1783〜99 ≦ 0.85。
 ・T2 英の 15 歳の余命（popc_s の lifeExpectancy15Years＝シミュが結婚の入力に使う量そのもの）が単調に伸び、1900〜49−1783〜99 ≧ +4 年。
 ・T3 英の mu0 の比（1900〜49÷1783〜99）＜ mu4 の同じ比。
 ・T4 1900〜49 に 英の e15 ＞ 清の e15 + 3 年（記録寄り＝Q の差を含む構造）。
@@ -15,6 +15,10 @@
 ・記録だけ：T5 の代わりの食い違い、栄養と飢えの重なり、栄養→初婚の年齢の相関、英の粗死亡、国の表。
 """
 import csv, glob, math, os, statistics, sys, collections
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'pop'))
+import age_guard as _age_guard
+_age_guard.require_bands8_argv()   # (490) 8 層（10 歳刻み）の pop_s だけを前提にする＝11 層の生なら止める
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -91,7 +95,7 @@ def load_nation(d, seed, nation):
             if r['scope'] != 'N' or r['nation'] != nation:
                 continue
             q = int(r['quarter'])
-            P[q] = dict(year=int(r['year']), mu0=num(r['mu0PerYear']), mu4=num(r['mu4PerYear']), cdr=num(r['cdrPerMille']), cbr=num(r['cbrPerMille']),
+            P[q] = dict(year=int(r['year']), mu0=num(r['muFrom0PerYear']), mu4=num(r['muFrom40PerYear']), cdr=num(r['cdrPerMille']), cbr=num(r['cbrPerMille']),
                         dnorm=num(r['deathsNormalK']), dfam=num(r['deathsFamineK']), popK=num(r['popK']))
     if cf:
         for r in rows(cf):

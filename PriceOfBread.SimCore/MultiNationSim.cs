@@ -1994,7 +1994,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, Count = 25;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, Count = 26;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2009,6 +2009,7 @@ public static class CostLedger
         "不満度を読む：POP×国×四半期（参加の述語〔旗 ParticipationDiscontent が正のとき〕と思想の更新の入力〔常に〕）",
         "発見：世界の高度労働力の雇用の合計の巡回（訪れた生産者×四半期・時計の形が正のときだけ）",
         "最低賃金の籠の走査：床を求めた回の（州の財＋生産者）の走査（法が施行されているときだけ）",
+        "年齢の層の歩：POP×月×（層の数−8）（8層の算術は月次・消費の単価の中。作者の 11 層の増分だけ・8層では 0 件）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2057,6 +2058,7 @@ public static class CostLedger
         ParticipationUnitMicros,   // ★(417)(431) 不満度を読む：FactionSnapshot.ComputeClusters が問うた POP 1つ（Politics.Discontent 1回＋運動体の辞書の出し入れ）か、Ideologies.UpdateShares が回した POP 1つ（Politics.Discontent 1回）＝census は無い・上限の見積り（下の定数の注記）
         DiscoveryWorldScanUnitMicros,   // ★(461) 発見：世界の合計の巡回＝Discovery.WorldAdvLabor の 1 生産者あたり（暫定の見積り・予備計測で確かめる）
         MinimumWageBasketScanUnitMicros,   // ★(469) 最低賃金の籠の走査＝MinimumWageFloor.PerUnit の 1 回の中の（財 1 件の層の判定と値段の積＋生産者 1 件の判定）あたり（**上限の見積り**・census は無い・法の旗が正のときだけ件数が立つ）
+        AgeBandExtraUnitMicros,   // ★(490) 年齢の層の歩：POP×月×（層の数−8）あたり（**上限の見積り**・census は無い・dz〔(478)〕の対のプローブの残りから置いた＝下の定数の注記）。8層では件数 0
     ];
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
@@ -2069,6 +2071,12 @@ public static class CostLedger
     /// 巡回は技師を雇わない生産者（一次産品の大半）で門の照会を飛ばす。全長 668 四半期の訪れた生産者は約 3,340 万（dw の腕 B の件数）＝推定 約 2.0 秒（事前登録 measurements/dk_20261020_prereg.txt [8]・上限 5 秒）。
     /// ⚠予備計測の clock_s の C 行（Stopwatch の累計）は負荷で膨らむ値で単価に使わない（記録）。</summary>
     public const double DiscoveryWorldScanUnitMicros = 0.06;
+    /// <summary>★(490) 年齢の層の歩の単価（マイクロ秒/件＝POP×月×〔層の数−8〕）＝**上限の見積り**（census は無い）。(478) 線 dz の対のプローブ（seed 1・668 四半期・素の走り・同じ時間帯に 8 層と 11 層を並べた・
+    /// `measurements/dz478_20261021_prereg.txt` の B9 の節）が、数えていなかった処理（実測の CPU−台帳の推定）を 56.9→69.9 秒と読み、件数の比 1.086 で伸ばすと 61.8 秒＝残り約 8 秒（CPU・+2.9%）を〈層の数の単価〉と置き、
+    /// 推定の単位では約 6 秒（覆う割合 約 0.7 で換算）。その 6 秒を 1 試合の POP×月（約 842 万＝台帳「月次：POP×月」の件数）×3 層（11−8）= 約 2,527 万で割った 0.24。
+    /// ⚠この残りは 1 組の対の差で、agebench（月次の POP 1 人あたりの年齢の算術だけ＝93〜139 ns/POP×月＝3 層分に直すと 0.031〜0.046 µs/件）の約 5〜8 倍＝清算・消費の中の AgeShare の呼び（活動に比例）を取りこぼしていた可能性（推測・未検証）。
+    /// 8 層（POB_AGE_BANDS=8）では件数が 0＝旧の推定と同じ。取り直すのは同じ負荷の対を複数組（次の回・agebench を清算・消費の中の呼びまで広げる）。</summary>
+    public const double AgeBandExtraUnitMicros = 0.24;
     /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。</summary>
     public const double MinimumWageBasketScanUnitMicros = 0.02;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数

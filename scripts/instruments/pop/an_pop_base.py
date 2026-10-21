@@ -10,6 +10,10 @@ pop_s<seed>.tsv の N 行から、初期の年（既定 1783〜1789）の全て�
 ⚠ 標準のピラミッド・出生率 0.035・増加率 0.005 は SimCore/Model.cs と Coefficients.cs の値の写し（変わったら直す）。
 """
 import csv, glob, math, os, sys
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'pop'))
+import age_guard as _age_guard
+_age_guard.require_bands8_argv()   # (490) 8 層（10 歳刻み）の pop_s だけを前提にする＝11 層の生なら止める
 
 STD = [0.255, 0.195, 0.160, 0.130, 0.105, 0.080, 0.050, 0.025]
 GROWTH = 0.005
@@ -58,7 +62,7 @@ def main():
                 if not (mo > 0) or num(r[ix['recoveringMonths']]) > 0.25 * mo:
                     continue
                 popm = num(r[ix['popMeanK']]) * mo   # 人×月
-                bd = [num(r[ix['deathsBand%dK' % b]]) for b in range(8)]
+                bd = [num(r[ix['deathsFrom%dK' % (10 * b)]]) for b in range(8)]
                 mu = [num(r[ix['mu%dPerYear' % b]]) for b in range(8)]
                 if any(math.isnan(x) for x in bd + mu) or not (popm > 0):
                     continue

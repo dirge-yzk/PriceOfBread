@@ -511,7 +511,7 @@ public static class EconomyStep
             nRun++;
             if (z == 2) { s.SteamFill = 0; s.ElecFill = 0; s.EffFill = 0; s.SubsidyDependence = 0; }   // 目覚めた＝産出0 の月の平滑の極限（蒸気・電化・効率化材は買わない＝0・補助の依存は赤字でない月に減る＝0）
         }
-        if (costL is not null) { costL[CostLedger.ProducerMonths] += nRun; costL[CostLedger.MonthlyPops] += region.Pops.Count; }
+        if (costL is not null) { costL[CostLedger.ProducerMonths] += nRun; costL[CostLedger.MonthlyPops] += region.Pops.Count; costL[CostLedger.AgeBandExtraPops] += (long)region.Pops.Count * (Pop.Layout.Bands - 8); }   // ★(490) 年齢の層の歩＝8 層の増分だけ（8層は 0）
         var goodGate = scratch.GoodGate;
         Discovery.GoodGates(region, goodGate, ng, region.Discovered);   // ★財の解禁（段2A＝レシピの解禁の最大・生産者の居ない財は既定のレシピの行）＝電化・効率化材（作るか・使うかの国の判断）
         var demandGate = scratch.DemandGate;

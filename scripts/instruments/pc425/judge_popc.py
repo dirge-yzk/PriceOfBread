@@ -8,6 +8,10 @@
   popc_s の国名は表示名（政体で変わる）＝共和制・立憲王政などの接頭辞を他の名前の末尾と一致するなら外して束ねる。popc_s は挙げた国だけ四半期ごと・他は年末に 4 四半期ぶんの行。
 """
 import csv, glob, math, os, statistics, sys, collections
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'pop'))
+import age_guard as _age_guard
+_age_guard.require_bands8_argv()   # (490) 8 層（10 歳刻み）の pop_s だけを前提にする＝11 層の生なら止める
 
 csv.field_size_limit(1 << 30)
 if hasattr(sys.stdout, 'reconfigure'):
@@ -68,7 +72,7 @@ def pop_rows(d, seed):
     out = []
     for r in rows:
         out.append(dict(nation=nm(r['nation']), uid=r['nationUid'], q=int(r['quarter']), year=int(r['year']), months=fl(r['monthsCount']), popK=fl(r['popK']),
-                        cbr=fl(r['cbrPerMille']), cdr=fl(r['cdrPerMille']), cdrN=fl(r['cdrNormalPerMille']), tfr=fl(r['tfrProxy']), mu0=fl(r['mu0PerYear']),
+                        cbr=fl(r['cbrPerMille']), cdr=fl(r['cdrPerMille']), cdrN=fl(r['cdrNormalPerMille']), tfr=fl(r['tfrProxy']), mu0=fl(r['muFrom0PerYear']),
                         rec=fl(r['recoveringMonths']), dN=fl(r['deathsNormalK']), dF=fl(r['deathsFamineK']), dO=fl(r['deathsOtherK']), b=fl(r['birthsK'])))
     return out
 

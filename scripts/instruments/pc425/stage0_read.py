@@ -1,5 +1,9 @@
 # 段0：開幕の前提を m420 の生（pop_s）から読む。読むだけ。
 import csv, glob, math, statistics, sys, collections
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'pop'))
+import age_guard as _age_guard
+_age_guard.require_bands8_argv()   # (490) 8 層（10 歳刻み）の pop_s だけを前提にする＝11 層の生なら止める
 sys.stdout.reconfigure(encoding='utf-8')
 D = sys.argv[1]
 NAT = ['イギリス','フランス','プロイセン','オーストリア','ロシア','日本','清','ネーデルラント','ポルトガル','スペイン']

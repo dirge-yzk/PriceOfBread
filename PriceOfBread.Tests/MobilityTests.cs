@@ -267,19 +267,30 @@ public class MobilityTests
     /// （成人の女性の数が保存される）。旧＝5つの写し（州の中・社会移動・州の間・越境・招聘）が子供込みの規模で重み付けた＝子供比の違う組では女性の数がずれた
     /// （Military の G11#2 の直しが5つに届いていなかった）。盤面＝子供の多い村（子供比 0.5・女性比 0.5）から子供のいない POP（女性比 0.2）へ40人。
     /// ⚠突然変異「規模で重み付ける」で赤。</summary>
-    [Fact]
-    public void 人の移し方は女性比を成人数で混ぜ成人の女性の数を保存する()
+    [Theory]
+    [InlineData(8)]
+    [InlineData(11)]
+    public void 人の移し方は女性比を成人数で混ぜ成人の女性の数を保存する(int bands)
     {
         // ★年齢の層（2026-09-30 段4e 後半）：性は層の中＝移し方は層×性の人数を足すだけ＝成人数で混ぜる形が構造で出る
-        static double FemaleAdults(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) * p.Size;
-        static double Fem(Pop p) => p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity, 1) / p.AgeShare(Pop.Layout.AdultAge, double.PositiveInfinity);   // 大人の境（8層は20歳・11層は21歳＝性別の門 SetAdultFemaleShare と同じ層の境）
-        var from = new Pop { Size = 100, Ages = [0.125, 0.125, 0.125, 0.125, 0.25, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };   // 子供（0〜19）が半分・大人は男女半々
-        var to = new Pop { Size = 100, Ages = [0, 0, 0, 0, 0.8, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };   // 子供がいない・大人の女性比 0.2
+        // ★(490) 配列は層の器（配列の長さから引く）で組む＝8層でも11層でも同じ主張（旧は 8 層の 16 本を直書きし、11 層の既定のプロセスでも 8 層の算術を叩いていた）。環境変数に依らず 2 つの器を並べて回す
+        var lay = bands == 8 ? AgeLayout.Bands8 : AgeLayout.Bands11;
+        double[] Mix(double kids, double adultMale, double adultFemale)   // 子供（大人に入る年齢より下の層）に kids を層の数で均等・大人の最初の層に男女を置く（和 = kids + adultMale + adultFemale）
+        {
+            var a = new double[2 * lay.Bands];
+            for (int b = 0; b < lay.AdultFirstBand; b++) { a[2 * b] = kids / lay.AdultFirstBand / 2.0; a[2 * b + 1] = kids / lay.AdultFirstBand / 2.0; }
+            a[2 * lay.AdultFirstBand] = adultMale; a[2 * lay.AdultFirstBand + 1] = adultFemale;
+            return a;
+        }
+        double FemaleAdults(Pop p) => Pop.AgeShareOf(p.Ages, lay.AdultAge, double.PositiveInfinity, 1) * p.Size;
+        double Fem(Pop p) => Pop.AgeShareOf(p.Ages, lay.AdultAge, double.PositiveInfinity, 1) / Pop.AgeShareOf(p.Ages, lay.AdultAge, double.PositiveInfinity, -1);   // 大人の境（8層は20歳・11層は21歳＝性別の門 SetAdultFemaleShare と同じ層の境）
+        var from = new Pop { Size = 100, Ages = Mix(0.5, 0.25, 0.25) };   // 子供が半分・大人は男女半々
+        var to = new Pop { Size = 100, Ages = Mix(0.0, 0.8, 0.2) };   // 子供がいない・大人の女性比 0.2
         double fem0 = FemaleAdults(from) + FemaleAdults(to);
         Pop.Blend(from, to, 40);
         // 受け手＝大人 100＋20（移る40人のうち大人20）・女性 20＋10 → 30/120＝0.25（規模で重み付けると (0.2×100＋0.5×40)/140＝0.2857）
         Assert.Equal(0.25, Fem(to), 12);
-        Assert.Equal(20.0 / 140.0, to.AgeShare(0, 20), 12);
+        Assert.Equal(20.0 / 140.0, Pop.AgeShareOf(to.Ages, 0, lay.AdultAge, -1), 12);
         Assert.Equal(0.5, Fem(from), 12);   // 選抜の無い移動は送り手の構成を1ビットも動かさない
         Assert.Equal(fem0, FemaleAdults(from) + FemaleAdults(to), 9);
     }

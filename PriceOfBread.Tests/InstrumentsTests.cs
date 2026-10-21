@@ -2360,9 +2360,14 @@ public class InstrumentsTests
             int dKind = Array.IndexOf(dh, "kind"), dNation = Array.IndexOf(dh, "nation"), dRow = Array.IndexOf(dh, "row"), dQ = Array.IndexOf(dh, "quarter");
             var unlockQ = new Dictionary<(string Nation, string Row), int>();
             foreach (var r in drows) if (r[dKind] == "E") unlockQ.TryAdd((r[dNation], r[dRow]), int.Parse(r[dQ], System.Globalization.CultureInfo.InvariantCulture));
+            // ★(490) 買い手は国の個体（nationUid）で引く：nation の名前（BaseName）は分離・建国で再利用される（11層の軌道で 立憲王政ポルトガル が同じ種に 1〜5 個の国の個体として現れる〈m478 の nation_s で確かめた〉）ので名前引きは別の国の解禁に当たりうる
+            int dUid = Array.IndexOf(dh, "nationUid"); Assert.True(dUid >= 0, "disc_s に nationUid の列が無い");
+            var unlockQByUid = new Dictionary<(string Uid, string Row), int>();
+            foreach (var r in drows) if (r[dKind] == "E") { Assert.NotEqual("0", r[dUid]); unlockQByUid.TryAdd((r[dUid], r[dRow]), int.Parse(r[dQ], System.Globalization.CultureInfo.InvariantCulture)); }
             var (h, rows) = Table(System.IO.Path.Combine(dir, "disccontact_s"+DSEED+".tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
-            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier");
+            int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier"), iBuyerUid = Array.IndexOf(h, "buyerUid");
+            Assert.True(iBuyerUid >= 0, "disccontact_s に buyerUid の列が無い");
             Assert.True(iCarrier >= 0, "carrier 列が無い");
             Assert.True(rows.Count >= 5, $"前提が崩れた（接触の内訳の行 {rows.Count}）");   // ★(393) 10 → 5：兵の保持力の分けで軌道が動き、60 四半期の接触の行が 6 に減った（規則の検査は行ごとなので 5 行あれば空ではない）
             foreach (var r in rows)
@@ -2383,7 +2388,9 @@ public class InstrumentsTests
                 Assert.True(sellerKnew, $"売り手 {r[iSeller]} は Q{q} の時点で {r[iRow]} を解禁していない");
                 // ★(478) 買い手の鍵も計器の国名（BaseName）＝分離・建国で生まれた国の BaseName は建国で再利用される（同じ名の別の国が後から現れる）ので、E 行の名前引きが同じ国を指すのは開幕に居た国だけ
                 //   （11層の軌道では 立憲王政ポルトガル の名が 2 度現れ、Q9 の解禁が後の別の国に当たった〈推測〉＝disc_s で nationUid が 2 つあることは確かめていない）＝名前の再利用がありうる国は読まない（売り手の founded と同じ扱い）。
-                if (openNames.Contains(r[iBuyer]) && unlockQ.TryGetValue((r[iBuyer], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]} は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
+                //   ★(490) 買い手の鍵を国の個体（buyerUid ↔ disc_s の nationUid）にした＝名前の再利用の穴が無い＝開幕に居た国に限らず全ての買い手を読む（旧は openNames に含まれる国だけ）
+                Assert.NotEqual("0", r[iBuyerUid]);
+                if (unlockQByUid.TryGetValue((r[iBuyerUid], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]}（個体 {r[iBuyerUid]}）は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
             // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。
             var (fh, frows) = Table(System.IO.Path.Combine(dir, "discflow_s"+DSEED+".tsv"));

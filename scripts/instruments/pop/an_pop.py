@@ -7,6 +7,10 @@
 ・⚠ 史実の数は設計 doc §4-1 の【推】（出典の頁は見ていない）。比は目安。
 """
 import csv, glob, os, sys, math, collections, statistics
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'pop'))
+import age_guard as _age_guard
+_age_guard.require_bands8_argv()   # (490) 8 層（10 歳刻み）の pop_s だけを前提にする＝11 層の生なら止める
 
 ERAS = [(1783, 1800), (1800, 1850), (1850, 1900), (1900, 1951)]
 DEFAULT = ['イギリス', 'フランス', 'ドイツ', 'プロイセン', 'オーストリア', 'ロシア', '日本', '清', 'アメリカ', 'インド', 'ネーデルラント', 'ポルトガル', 'スペイン']
@@ -74,7 +78,7 @@ def main():
     print(f'# 国 {len(allnames)} 本（行数の多い順に先頭 8）：' + ' '.join(f'{k}:{v}' for k, v in allnames.most_common(8)))
 
     # ---- 表1：流れ（粗出生・粗死亡・合計出生率の代理・層0の死の率・10歳までの生存・60歳の余命）
-    cols1 = ['cbrPerMille', 'cdrPerMille', 'tfrProxy', 'mu0PerYear', 's10Share', 'l60Years', 'share60plus', 'recoveringMonths']
+    cols1 = ['cbrPerMille', 'cdrPerMille', 'tfrProxy', 'muFrom0PerYear', 's10Share', 'l60Years', 'share60plus', 'recoveringMonths']
     print('\n## 表1 流れ（時代ごとの (種×四半期) の中央値）')
     print('国\t時代\t行（平常/全）\t' + '\t'.join(c.replace('PerMille', '‰').replace('PerYear', '/年') for c in cols1) + '\t余命NaN率')
     for nm in names:

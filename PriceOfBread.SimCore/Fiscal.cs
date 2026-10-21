@@ -785,7 +785,10 @@ public static class Fiscal
     /// <summary>★(481) 予算表の税の予想（月あたり）＝目標の率で今の盤面を徴税したら取れる額の種類ごとの和。<see cref="Step"/> の徴税の走査と同じ骨格
     /// （課税の査定 <see cref="AssessPop"/>・国庫へ届く割合・仲介者の取り分・十分の一税・払える割合 <see cref="PayRate"/>）を、お金を動かさずに数える。
     /// 旧の画面の式（税率×課税ベース×届く割合）は課税への同意・身分の免税・払える割合・犯罪者の除外を落とし、実効の列（エンジンの診断）とは別の規則だった（hp〔v〕中#1）。
-    /// 番人＝目標の率に今の率を渡すと Step の診断 <see cref="World.LastTaxIncomePerMonth"/> ほかと一致（<c>EngineReadIdentityTests</c>）。</summary>
+    /// 番人＝目標の率に今の率を渡すと Step の診断 <see cref="World.LastTaxIncomePerMonth"/> ほかと一致（<c>EngineReadIdentityTests</c>）。
+    /// ⚠限界（★(490)・hz3〔v〕低#1・数式を直す前の注）：払える割合 <see cref="PayRate"/> は走査の**開始時点**の貯蓄で数える。実効の Step は走査の途中で前の POP の払いが受け手（領主・仲介者・聖職者）の貯蓄に入り、
+    /// 後ろの POP がその受け手でもあるとき（払い手と受け手が同じ州に居て受け手の貯蓄が薄いとき）その分だけ払える割合が実効より小さく出うる＝予想は実効の下側に偏りうる。番人（今の率で実効と一致）の盤面ではこの差が出ていない（差の大きさは未測定・指摘は hz3〔v〕の読みで、実効との差を実測した記録は無い）。
+    /// 直すなら Step と同じ順で走査の途中の移転を数える（お金を動かさず受け手の貯蓄の複製を持つ）＝式の追加で挙動を変えない恒等の線の外（画面の予想の数字だけ動く）。</summary>
     internal static (double Income, double Progressive, double Poll, double Land) ForecastTax(World w, Coefficients c, double incomeRate, double progressiveRate, double pollRate, double landRate)
     {
         var scan = TaxScan.Of(w, c);

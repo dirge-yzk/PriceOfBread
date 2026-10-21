@@ -7,6 +7,10 @@
 ・⚠ pop_s は旗 1 でも DemoPop を呼ぶので窓の和は有効。popc_s は旗 1 の走行にしか無い。人口加重の平均（popK）で国をまとめる世界の値を最後に出す。
 """
 import csv, glob, math, os, statistics, sys, collections
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'pop'))
+import age_guard as _age_guard
+_age_guard.require_bands8_argv()   # (490) 8 層（10 歳刻み）の pop_s だけを前提にする＝11 層の生なら止める
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -60,7 +64,7 @@ def main():
             if r['scope'] != 'N': continue
             P[(r['nation'], s, int(r['quarter']))].update(
                 year=int(r['year']), popK=num(r['popK']), cbr=num(r['cbrPerMille']), cdr=num(r['cdrPerMille']), tfr=num(r['tfrProxy']),
-                mu0=num(r['mu0PerYear']), s10=num(r['s10Share']), months=num(r['monthsCount']), fertW=num(r['fertileWomenShare']))
+                mu0=num(r['muFrom0PerYear']), s10=num(r['s10Share']), months=num(r['monthsCount']), fertW=num(r['fertileWomenShare']))
     for s, rows in popc.items():
         for r in rows:
             P[(r['nation'], s, int(r['quarter']))].update(

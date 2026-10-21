@@ -1966,11 +1966,11 @@ public static partial class Instruments
     {
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Disc ??= Open("disc", seed);
-        if (!sk.DiscHeader) { sk.Disc.WriteLine("kind\tquarter\tyear\tnation\trow\ttechTerm\tneedTerm\ttransmitTerm\treplaced\tcost\ttechLevel"); sk.DiscHeader = true; }
+        if (!sk.DiscHeader) { sk.Disc.WriteLine("kind\tquarter\tyear\tnation\trow\ttechTerm\tneedTerm\ttransmitTerm\treplaced\tcost\ttechLevel\tnationUid"); sk.DiscHeader = true; }
         foreach (var n in sim.Nations)
         {
             var st = S(n.World);
-            foreach (var row in st.DiscRows) { int tab = row.IndexOf('\t'); sk.Disc.WriteLine(row.Substring(0, tab + 1) + I(q) + row.Substring(tab)); }
+            foreach (var row in st.DiscRows) { int tab = row.IndexOf('\t'); sk.Disc.WriteLine(row.Substring(0, tab + 1) + I(q) + row.Substring(tab) + '\t' + I(st.Uid)); }   // ★(490) 末尾の nationUid＝国の個体（nation は BaseName＝建国で再利用される）
             st.DiscRows.Clear();
             if (ReferenceEquals(n, sim.Nations[0]) && st.DiscFlowRows.Count > 0)   // (360) 接触の分母（世界の値＝1 国の世界に貯めた行を 1 度だけ）
             {
@@ -1982,9 +1982,9 @@ public static partial class Instruments
             if (st.DiscContact.Count > 0)   // (328) 接触の内訳（買い手の国の個体×行×売り手の国）
             {
                 sk.DiscContact ??= Open("disccontact", seed);
-                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	carrier	valuePerQuarter"); sk.DiscContactHeader = true; }
+                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	carrier	valuePerQuarter	buyerUid"); sk.DiscContactHeader = true; }
                 foreach (var ((crow, seller, cgood), v) in st.DiscContact.OrderBy(kv => kv.Key.Row).ThenBy(kv => kv.Key.Seller, StringComparer.Ordinal).ThenBy(kv => kv.Key.Good))
-                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, Catalog.Goods[cgood].Name, F(v)));
+                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, Catalog.Goods[cgood].Name, F(v), I(st.Uid)));   // ★(490) 末尾の buyerUid＝買い手の国の個体
                 st.DiscContact.Clear();
             }
         }

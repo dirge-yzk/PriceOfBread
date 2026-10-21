@@ -152,12 +152,16 @@ public static partial class Instruments
         public double Size, Adult, Pool, FertWomen, Kids, Women2049, School, ClrW, ClrDen, EduFillW, LitW, PriceW, PubW, W0014, W60;
     }
 
-    /// <summary>★(478) 層ごとの列（deathsBand{b}K・mu{b}PerYear）は <c>Pop.Layout</c> の層の数だけ（8層は今の見出しとバイトで同じ・11層は 0〜10）。層 b の年齢は新しい表 age_s の下端・上端で読む。</summary>
+    /// <summary>★(490) 層ごとの列の名前は層の番号でなく**層の下端の年齢**を持つ（deathsFrom{下端}K・muFrom{下端}PerYear）。(478) の 11 層で層の番号の意味が変わり（8層の mu0＝0〜9歳・11層の mu0＝0歳）、
+    /// 名前を変えずに意味が変わった旧の読み手（層の番号を 8 層のものと読む）が黙って誤読する穴を、名前を変えて**探しても無い＝止まる**形にした。旧の名前（deathsBand{b}K・mu{b}PerYear）はこの木では出ない。
+    /// 8層の下端は 0・10・…・70（deathsFrom0K・…・deathsFrom70K）／11層は 0・1・6・11・16・21・31・41・51・61・71。読み手は <c>scripts/instruments/pop/age_guard.py</c> の require_bands8 で 8 層だけを前提にする。</summary>
+    internal static string PopBandTag(AgeLayout l, int b) => ((int)l.Lower[b]).ToString(System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>★(478)(490) 層ごとの列（deathsFrom{下端}K・muFrom{下端}PerYear）は <c>Pop.Layout</c> の層の数だけ。層 b の上端は新しい表 age_s の下端・上端で読む。</summary>
     static readonly string PopHeader = "scope\tquarter\tyear\tnationUid\tnation\tclassId\tclassName\tmonthsCount\t"
         + "popK\tpopMeanK\tshare0to14\tfertileWomenShare\tshare60plus\t"
         + "birthsK\tdeathsNormalK\tdeathsFamineK\tdeathsOtherK\twarDeadK\tcbrPerMille\tcdrPerMille\tcdrNormalPerMille\t"
-        + string.Concat(Enumerable.Range(0, Pop.Layout.Bands).Select(b => $"deathsBand{b}K\t"))
-        + string.Concat(Enumerable.Range(0, Pop.Layout.Bands).Select(b => $"mu{b}PerYear\t")) + "s10Share\tl60Years\ttfrProxy\trecoveringMonths\tnoMotherMonths\t"
+        + string.Concat(Enumerable.Range(0, Pop.Layout.Bands).Select(b => $"deathsFrom{PopBandTag(Pop.Layout, b)}K\t"))
+        + string.Concat(Enumerable.Range(0, Pop.Layout.Bands).Select(b => $"muFrom{PopBandTag(Pop.Layout, b)}PerYear\t")) + "s10Share\tl60Years\ttfrProxy\trecoveringMonths\tnoMotherMonths\t"
         + "adultShare\tyAdultPerMonth\tbasketPerMonth\tchildLaborRateShare\tchildEarningsE\tchildBasketCost\teduCostFull\tnEduFillShare\tnEduLitShare\tpublicEduShare\tchildCostC\toldAgeO\tdirectUtilityU1\t"
         + "pensionPiShare\tsurvivingChildrenNs\tvNoUtilityIndex\tpsiBreakevenIndex\tgOfVShare\tknowledgeShare\tcKnownShare\tmarriedMNewShare\ttfrShadow\tpoolK\tshadowBirthsPerYearK";
     static readonly int PopFlowCols = 13 + 2 * Pop.Layout.Bands;   // 見出しの birthsK〜noMotherMonths の列の数（8層で29・C 行は空）

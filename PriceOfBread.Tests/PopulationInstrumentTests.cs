@@ -245,20 +245,20 @@ public class PopulationInstrumentTests
             foreach (var r in nRows)
             {
                 // 層別の死の和＝平常＋飢え
-                double bands = 0; for (int k = 0; k < Pop.Layout.Bands; k++) bands += Col(h, r, "deathsBand" + k + "K");
+                double bands = 0; for (int k = 0; k < Pop.Layout.Bands; k++) bands += Col(h, r, "deathsFrom" + Instruments.PopBandTag(Pop.Layout, k) + "K");
                 double tot = Col(h, r, "deathsNormalK") + Col(h, r, "deathsFamineK");
                 Assert.True(Math.Abs(bands - tot) <= 1e-9 * Math.Max(1, tot), $"層別の死の和 {bands} が平常＋飢え {tot} に合わない");
-                Assert.True(Col(h, r, "deathsBand0K") <= tot + 1e-9);
+                Assert.True(Col(h, r, "deathsFrom0K") <= tot + 1e-9);
                 // ★(363) 反証役 pa〔v〕低#3：deathsOtherK は〈台帳の差−平常−飢え〉の残差＝窓の和の一致だけでは hook の数え過ぎが残差の負に隠れる＝負でないことを見る
                 double oth = Col(h, r, "deathsOtherK");
                 Assert.True(!(oth < -1e-9 * Math.Max(1, tot)), $"疫病ほかの死 {oth} が負＝hook が平常か飢えの死を数え過ぎている");
                 double s10 = Col(h, r, "s10Share"); if (!double.IsNaN(s10)) Assert.InRange(s10, 0, 1 + 1e-12);
-                Assert.Equal(double.IsNaN(Col(h, r, "mu0PerYear")), double.IsNaN(s10));
+                Assert.Equal(double.IsNaN(Col(h, r, "muFrom0PerYear")), double.IsNaN(s10));
                 // 10 歳まで生き残る確率＝e^(−Σ層の死の率×その層が 0〜10 歳に占める年数)（8層は 0〜9 歳の層 10 年＝e^(−10μ0)・11層は 0 歳 1 年・1〜5 歳 5 年・6〜10 歳 4 年〔10 歳の誕生日まで〕）＝年齢の境からの手の算術
-                if (!double.IsNaN(s10)) { double ex = 0; var lay = Pop.Layout; for (int k = 0; k < lay.Bands - 1; k++) { double yrs = Math.Min(10.0, lay.Upper[k]) - Math.Max(0.0, lay.Lower[k]); if (yrs > 0) ex += Col(h, r, "mu" + k + "PerYear") * yrs; } Assert.True(Math.Abs(Math.Exp(-ex) - s10) <= 1e-8, "s10 が e^(−Σμ×年数) に合わない"); }
+                if (!double.IsNaN(s10)) { double ex = 0; var lay = Pop.Layout; for (int k = 0; k < lay.Bands - 1; k++) { double yrs = Math.Min(10.0, lay.Upper[k]) - Math.Max(0.0, lay.Lower[k]); if (yrs > 0) ex += Col(h, r, "muFrom" + Instruments.PopBandTag(lay, k) + "PerYear") * yrs; } Assert.True(Math.Abs(Math.Exp(-ex) - s10) <= 1e-8, "s10 が e^(−Σμ×年数) に合わない"); }
                 double l60 = Col(h, r, "l60Years"); int oa = Pop.Layout.OldBandA, ob = Pop.Layout.OldBandB;   // 60 歳以後の余命を読む 2 層（8層は 6・7＝60〜69・70以上／11層は 9・10＝61〜70・71以上）
-                if (!double.IsNaN(l60)) { double l60x = Instruments.PopL60(Col(h, r, "mu" + oa + "PerYear"), Col(h, r, "mu" + ob + "PerYear")); Assert.True(Math.Abs(l60x - l60) <= 1e-8 * Math.Abs(l60x), $"余命 {l60} が率から作り直した {l60x} に合わない"); l60Rows++; }
-                else Assert.True(!(Col(h, r, "mu" + oa + "PerYear") > 0) || !(Col(h, r, "mu" + ob + "PerYear") > 0), "余命が NaN なのに老いた 2 層の死の率が正");
+                if (!double.IsNaN(l60)) { double l60x = Instruments.PopL60(Col(h, r, "muFrom" + Instruments.PopBandTag(Pop.Layout, oa) + "PerYear"), Col(h, r, "muFrom" + Instruments.PopBandTag(Pop.Layout, ob) + "PerYear")); Assert.True(Math.Abs(l60x - l60) <= 1e-8 * Math.Abs(l60x), $"余命 {l60} が率から作り直した {l60x} に合わない"); l60Rows++; }
+                else Assert.True(!(Col(h, r, "muFrom" + Instruments.PopBandTag(Pop.Layout, oa) + "PerYear") > 0) || !(Col(h, r, "muFrom" + Instruments.PopBandTag(Pop.Layout, ob) + "PerYear") > 0), "余命が NaN なのに老いた 2 層の死の率が正");
                 double tfr = Col(h, r, "tfrProxy"); if (!double.IsNaN(tfr)) { Assert.InRange(tfr, 0, 15); finiteTfr++; }
                 // ★(434) 粗出生率は窓の人口×月が 0 の行（その窓の途中で建国した国の最初の年末の行・InstrumentsPop の pm が NaN）では NaN と自己申告する＝NaN を許すのは出生も 0 のときだけ
                 double cbrV = Col(h, r, "cbrPerMille");
@@ -273,7 +273,7 @@ public class PopulationInstrumentTests
             Assert.True(finiteV > 0 && mOk && l60Rows > 0, "影の列に値の入った行が無い＝籠か年齢の読みが来ていない");
             // C 行：影の列に値が入った行がある・流れの列は空
             Assert.True(cRows.Any(r => !double.IsNaN(Col(h, r, "vNoUtilityIndex"))), "C 行の影が全て NaN");
-            Assert.All(cRows, r => Assert.True(double.IsNaN(Col(h, r, "birthsK")) && double.IsNaN(Col(h, r, "mu0PerYear"))));
+            Assert.All(cRows, r => Assert.True(double.IsNaN(Col(h, r, "birthsK")) && double.IsNaN(Col(h, r, "muFrom0PerYear"))));
             // ★(478) age_s（層ごとの行 B と国の行 N）：層の和＝人口・層ごとの死の和と出生が pop_s の N 行と合う・8層では乳児の列は nan・集計の年齢の範囲は pop_s と同じ
             var (ah, arows) = Table(System.IO.Path.Combine(dir, "age_s1789.tsv"));
             Assert.All(arows, r => Assert.Equal(ah.Length, r.Length));
@@ -305,7 +305,7 @@ public class PopulationInstrumentTests
                 Assert.All(bs.Skip(1), r => Assert.Equal(0.0, Col(ah, r, "birthsK")));
                 for (int b = 0; b < nbands; b++)
                 {
-                    double m1 = Col(h, pr, "mu" + b + "PerYear"), m2 = Col(ah, bs[b], "muPerYear");
+                    double m1 = Col(h, pr, "muFrom" + Instruments.PopBandTag(layout, b) + "PerYear"), m2 = Col(ah, bs[b], "muPerYear");
                     Assert.True(double.IsNaN(m1) ? double.IsNaN(m2) : Math.Abs(m1 - m2) <= 1e-9, $"層 {b} の死の率が pop_s と違う {m1} {m2}");
                 }
                 Assert.Equal(0.0, Col(ah, bs[0], "lowerAge")); Assert.Equal(layout.Lower[nbands - 1], Col(ah, bs[nbands - 1], "lowerAge")); Assert.True(double.IsPositiveInfinity(Col(ah, bs[nbands - 1], "upperAge")));

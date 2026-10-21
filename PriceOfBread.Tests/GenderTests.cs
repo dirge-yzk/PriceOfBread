@@ -144,6 +144,20 @@ public class AgeStructureTests
     private static double LowerOfBandAt(double age) => L.Lower[BandAt(age)];
     /// <summary>年齢 <paramref name="age"/> を含む層の上端（最上層は無限大）。</summary>
     private static double UpperOfBandAt(double age) { int b = BandAt(age); return b == L.Bands - 1 ? double.PositiveInfinity : L.Upper[b]; }
+    /// <summary>★(490) 60歳以上の割合がちょうど <paramref name="oldShare"/> の構成（男女半々・和1）。60歳をまたぐ層（11層の 51〜60 歳の層）には質量を置かない＝層の中は一様に読まれるので、またぐ層の一部が 60 歳以上に混ざらない。
+    /// 若い層（上端が 60 歳以下）に残りを均等に、老いた層（下端が 60 歳以上）に <paramref name="oldShare"/> を均等に置く。期待の算術は器の定数でなく「老年の割合」そのもの。</summary>
+    private static double[] OldShareAges(double oldShare)
+    {
+        var a = new double[2 * L.Bands]; var young = new List<int>(); var old = new List<int>();
+        for (int b = 0; b < L.Bands; b++)
+        {
+            double up = b == L.Bands - 1 ? double.PositiveInfinity : L.Upper[b];
+            if (up <= 60) young.Add(b); else if (L.Lower[b] >= 60) old.Add(b);
+        }
+        foreach (int b in young) a[2 * b] = a[2 * b + 1] = (1.0 - oldShare) / young.Count / 2.0;
+        foreach (int b in old) a[2 * b] = a[2 * b + 1] = oldShare / old.Count / 2.0;
+        return a;
+    }
     /// <summary>指定の層だけに質量を置いた構成（男女半々・和1）。</summary>
     private static double[] MassIn(params int[] bands) { var a = new double[2 * L.Bands]; foreach (int b in bands) { a[2 * b] = 0.5 / bands.Length; a[2 * b + 1] = 0.5 / bands.Length; } return a; }
     /// <summary>標準のピラミッドの若い層（大人に入る層まで）を半分にして老いた構成（男女半々・和1）。</summary>
@@ -268,7 +282,7 @@ public class AgeStructureTests
         Assert.Equal(off.Mass, on.Mass, 12);   // 1783年（全ての POP が標準のピラミッド）は受益者項0＝旧の開幕（老年比0）と同じ
         Assert.Equal(off.Trad, on.Trad, 12);
         w.Coef.PensionOldWeight = k;
-        foreach (var q in w.AllPops()) q.Ages = [0.1, 0.1, 0.08, 0.08, 0.07, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.04, 0.04];   // 60歳以上 18%
+        foreach (var q in w.AllPops()) q.Ages = OldShareAges(0.18);   // 60歳以上 18%（★(490) 層の器から組む＝8層でも11層でも同じ読み〔旧は 8 層の 16 本を直書き〕）
         var aged = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
         Assert.Equal(off.Mass + k * (0.18 - Pop.StdShare(60, double.PositiveInfinity)), aged.Mass, 9);   // 老いた分だけ年金を推す
     }
