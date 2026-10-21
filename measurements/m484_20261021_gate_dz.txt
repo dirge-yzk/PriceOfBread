@@ -1,0 +1,14 @@
+# (484) 門 G-dz：hz3＋dz の木（ec701874・SOURCE-HASH 2731d3964debe6a4）の成績表と生を dz の成績表（木 88bfb1c1 系）と比べた
+# 読み手 scripts/instruments/m484/cmpband.py（2 行目〈★年齢の層の数〉・〈前回の基線〉の行・〈前回比／前回値なし〉の尾を除いて比べる）・cmpraw.py（burscan・clock は壁時計・flow は sourceLine の列・labor は hz3 の 6 列を除いて比べる）
+# 基線の写し：この合流は (475) と同じ固定の 1a3c227:.pob-fidelity-baseline.tsv（m466 の値）を腕ごとに渡した（batch.sh run）。dz の 3 枚は ma の上書きつきの基線を渡した＝〈前回比〉の段だけ違う
+## 素10種：b10_P_10.txt vs measurements/b10_20261021_dz478
+lines 182 vs 182 diffs 0
+## 5種：b5_P.txt vs measurements/b5_20261021_dz478
+lines 182 vs 182 diffs 0
+## 計器つき10種：b10_F_10.txt vs measurements/b10_20261021_dz478_B_ins
+lines 182 vs 182 diffs 0
+## 素10種 vs 計器つき10種（この合流の 2 本）：cmp
+ファイル全体でバイト一致
+## 生 560 表：D:/PoB_work/m484/out_F_10/ins vs D:/PoB_work/keep_dz478/m478_ins
+same 520 differ 40
+Counter({('wallclock', 'burscan'): 10, ('wallclock', 'clock'): 10, ('colsok', 'flow'): 10, ('colsok', 'labor'): 10})
