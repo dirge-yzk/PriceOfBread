@@ -1,0 +1,7 @@
+# (487) 恒等の短い試走：selfplay 1 200（旗 2 本とも既定 0）
+# 基準の木 d679924 と、c2 fab71f50・c3 b0aa1aef（POB_INSTRUMENTS なし／あり）の出力は 12722 バイトで全バイト一致（cmp）。データ前の木。
+# 1 種の一致は恒等の証明ではない（README §1-3）。腕 A（5 種・c3 の木）は後半の担当。
+66994cdce9ec1a5b0d1426cf0c9db63a *D:/PoB_work/mg2_487/can_base.txt
+66994cdce9ec1a5b0d1426cf0c9db63a *D:/PoB_work/mg2_487/can_c2.txt
+66994cdce9ec1a5b0d1426cf0c9db63a *D:/PoB_work/mg2_487/can_c3.txt
+66994cdce9ec1a5b0d1426cf0c9db63a *D:/PoB_work/mg2_487/can_c3_ins.txt

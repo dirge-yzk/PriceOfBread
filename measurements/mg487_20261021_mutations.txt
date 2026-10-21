@@ -1,0 +1,10 @@
+# (487) 突然変異（番人が赤になることの確認・全て元へ戻した）
+M1 InstrumentsMg.MgEnd で合計を畳まない（accT.Merge(run.Total) を空に）→ MigrationInstrumentTests.mg_sの合計の行… が赤
+M2 InstrumentsMg.MgDomMoved の農村と都市を入れ替え → MigrationInstrumentTests.農奴の門は… (flags: True) が赤
+M3 world.json のラオスの限定を消す（既定の全面になる）→ SerfInitialDataTests.世界データの農奴解放の初期値は… が赤
+M4 NationConfig.InitialSerfEmancipation の既定を なし へ戻す → InitialDefaultsTests（動かした既定の値の固定・既定と同じ値のキー）と SerfInitialDataTests 3 本が赤
+（旧枝 mg の突然変異 13 本の記録は measurements/mg479_20261021_mut2_result.txt。MigrationPassageTests 17 本は載せ直したが、この枝では突然変異を再実行していない）
+# 後半（11 層の木 c8・MigrationPassageTests／SerfInitialDataTests／MigrationInstrumentTests の 25 本が元で緑）
+M5 MultiNationSim 運賃を船の持ち主へ払わない（else PayShipOwners → else { }）→ MigrationPassageTests.運賃は船の持ち主へ払われ… が赤（1 本）
+M6 払える割合のクランプを外し運賃以下でも止めない（Clamp01(afP) → 1.0）→ MigrationPassageTests.旗1は貯蓄が運賃に届かない層を動かさない・運賃が高いほど国をまたぐ流れは細る が赤（2 本）
+M7 Territory.SerfMigrationFactor を常に 1 → 農奴の門に関する 6 本が赤（SerfInitialDataTests 2・MigrationPassageTests 3・MigrationInstrumentTests 1）

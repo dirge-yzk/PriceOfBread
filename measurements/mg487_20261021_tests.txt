@@ -1,0 +1,9 @@
+# (487) テスト（c4 の木 5113b0af・Release・隔離ビルド D:/PoB_work/mg2_487/build）
+## Category!=FullLength
+
+成功!   -失敗:     0、合格:  1621、スキップ:     0、合計:  1621、期間: 13 m 59 s - PriceOfBread.Tests.dll (net10.0)
+exit 0
+## Category=FullLength
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 8 m 6 s - PriceOfBread.Tests.dll (net10.0)
+exit 0

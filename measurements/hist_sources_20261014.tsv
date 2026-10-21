@@ -36,3 +36,12 @@
 最初の鉄道	日本	1872	新橋（江戸）＝横浜	—	—	Wikipedia Rail transport in Japan（取得して本文で確認）	https://en.wikipedia.org/wiki/Rail_transport_in_Japan	二次（本文）	(365)
 最初の鉄道	清	1876	呉淞鉄道（上海・1876-07・営業した最初）。長続きした最初は唐胥鉄道（開平）1881	—	—	Wikipedia History of rail transport in China（取得して本文で確認）	https://en.wikipedia.org/wiki/History_of_rail_transport_in_China	二次（本文）	(365) 呉淞は後に撤去。判定は 1876 を使う
 最初の鉄道	シャム	1893	パクナム鉄道（バンコク〜サムットプラカーン）・公開は 1894 とする記述もある	—	—	Wikipedia Rail transport in Thailand（取得して本文で確認）	https://en.wikipedia.org/wiki/Rail_transport_in_Thailand	二次（本文・1893/1894 の揺れ）	(365)
+飢饉の死の中身（dx488）	アイルランド	1846-1851	大飢饉の死の大部分は病（発疹チフス・回帰熱・赤痢・下痢）	—	—	Mokyr & O Grada 2002, What do people die of during famines, European Review of Economic History 6	—	二次・頁未確認（【推】）	(488) 飢えは病の率の掛け目という形の根拠。設計書 §2-3・§7
+超過死亡（dx488）	アイルランド	1846-1851	約100万（人口 約850万）	人	人口	同上（Mokyr & O Grada 2002）・O Grada 2009 Famine: A Short History	—	二次・頁未確認（【推】）	(488) 飢えの凸さ k=6 は AI の決め〈出典の裏づけなし〉。出典の数は国全体で年 約2.4%（約100万÷約850万を 1846-51 年の約6年で割る）で、充足 0.5 の州で年 約10% にするには充足の仮定（アイルランドの平均の充足 0.55 前後）が別に要る＝その仮定は出典に無い
+完全な飢えの生存（dx488）	—	—	約1〜3か月	月	—	生理学の通説	—	通説・【推】	(488) 完全な飢え（充足 0）の全病の和の年の率 6（約2か月）の根拠
+英の粗死亡（dx488）	英	1780年代/1840-70/1900前後/1930年代	約26〜28/約22/18→15/約12	‰	—	Wrigley & Schofield 1981・Mitchell, International Historical Statistics	—	二次・頁未確認（【推】）	(488) 記録として並べる（採否に使わない）
+英の乳児死亡（dx488）	英	1896-1900/1911-15/1930	156/109/60	‰	出生	Wellcome Library の医務官報告の表	—	原典の再掲（設計書 §7）	(488) 記録として並べる（採否に使わない）
+前近代の生命表の年齢の形（dx488）	—	—	乳児が最大・10〜14 歳が最小・51 歳以上でゴンペルツの形に増える	—	—	Coale & Demeny 1983, Regional Model Life Tables and Stable Populations（West の表）・Gompertz 1825	—	原典・頁未確認（【推】）	(488) 病の表の年齢の形の向き（表の数字は AI の決め〈確証なし〉）
+病の年齢の形（腸の病・呼吸器の病）（dx488）	英	19世紀	0歳・1〜5歳と老いに厚い	—	—	Woods 2000, The Demography of Victorian England and Wales・Preston & Haines 1991, Fatal Years	—	二次・頁未確認（【推】）	(488) 腸の病・呼吸器の病の年齢の形
+結核の年齢の形と取り分（dx488）	英	1850年代	16〜40 歳に山・全死亡の 約15%	—	—	Dubos 1952, The White Plague・McKeown 1976, The Modern Rise of Population・Szreter 1988	—	二次・頁未確認（【推】）	(488) 結核の年齢の形（表の水準は水準 L で置き直す）
+マラリアの年齢の形（dx488）	—	—	0〜5 歳に重い・免疫は子のうちに得る	—	—	Dobson 1997, Malaria in England・Curtin 1989, Death by Migration	—	二次・頁未確認（【推】）	(488) 土地のデータ（Region.Malarial の州だけ）

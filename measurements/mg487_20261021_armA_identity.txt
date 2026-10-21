@@ -1,0 +1,4 @@
+# (487) 腕 A（c3 b0aa1aef の木・旗 2 本とも 0・データ前・計器つき 5 種・NATIONS 8 国・POB_WORK=D:/PoB_work/mg2_run）の恒等の証明
+報告 b5_20261021_mg487_A が b5_20261021_m484 と SOURCE-HASH の行を除いて全 181 行バイト一致（diff 0 行）。
+生の表：out_A_5/ins の種 1〜5 の 265 本が D:/PoB_work/keep_484/m484_ins の同じ表とバイト一致（burscan・clock・flow・新しい表 mgdom_s・mg_s を除く）。食い違い 0 本。
+判定：旗 0・データ前の c3 の木は基準 m484 と恒等（5 種）。生の表は証明の後に削除（ディスク計画）。

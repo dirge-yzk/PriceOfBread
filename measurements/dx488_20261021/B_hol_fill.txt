@@ -1,0 +1,11 @@
+events 37
+飢え 37 fill early median 0.743 fill late median 0.671 rose in 4 fell in 29 flat 4
+earned per capita early median 0.243 late 0.06
+スペイン サンタフェ fill 0.73 -> 0.65 pop ratio late/early 0.13
+ポルトガル ゴイアス fill 0.8 -> 0.67 pop ratio late/early 0.14
+スペイン アスンシオン fill 0.79 -> 0.68 pop ratio late/early 0.13
+イギリス イキトス fill 0.68 -> 0.67 pop ratio late/early 0.97
+イギリス サンタフェ fill 0.66 -> 0.59 pop ratio late/early 0.92
+スペイン プンタアレナス fill 0.78 -> 0.71 pop ratio late/early 0.15
+ポルトガル ゴイアス fill 0.76 -> 0.64 pop ratio late/early 0.14
+ポルトガル クイアバ fill 0.73 -> 0.69 pop ratio late/early 0.14

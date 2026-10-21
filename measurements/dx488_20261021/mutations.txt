@@ -1,0 +1,13 @@
+# (488) 突然変異（番人 DiseaseDeathTests 15 本・各行は〈変えた式〉→〈赤になった本数／15〉・変えた後は git checkout で戻した）
+M1  Disease.Starvation の指数 6→4（d2*d2*d2 → d2*d2）                         → 赤 1
+M2  DiseaseDemography の出生から ÷標準のプールを外す                           → 赤 1
+M3  DiseaseDemography の人口の台帳 += Σ増分 を += 0 に                         → 赤 1
+M4  PopDecision の旗 1 の門を常に偽に                                          → 赤 1
+M5  Disease.HasWaterworks の判定を反転（水道局が無い州を有ると読む）           → 赤 1
+M6  World.ApplyEpidemicDeaths の旗 1 の衛生の枝を外す                          → 赤 1
+M7  Disease.RatesPerYear の飢えの項を 0 に                                      → 赤 5
+M8  結核の表の層 3 を 0.0018→0.0118（年齢の形・最小の層を壊す）                → 赤 3
+M9  DiseaseDemography の飢えの割合を使わず飢えなしの割合を使う                 → 最初は緑（番人が弱かった＝同じ州の対の比較が丸め誤差の差で通っていた）→ 差に 5% の幅を要求し、判定の係数への無感応の番人に〈旗 1 でも飢えは人口を減らす〉の前提を足して 赤 2
+M10 Simulation の分岐の return を外す（旧の扶養力の経路も同じ月に走る）        → 赤 2
+
+# 注：M1〜M10 は水準 L=0.576 の木（形のコミット 1f7f8d1c）で回した。番人の検出力は Level に依らない（水準を 1.0946 にした後は番人 15 本が緑のまま・25 本の再走で確認）。

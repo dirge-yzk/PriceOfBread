@@ -1,0 +1,4 @@
+# (487) leakhunt 1789 200（POB_COEF=MigrationPassageCost=1;SerfGateCoversMigration=1・c4 の木 5113b0af）。[PROBE世界] 国際金融 の行は診断（判定は世界の台帳）で 50 行（m484 と同じ型）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）（上書き MigrationPassageCost=1 SerfGateCoversMigration=1）
+exit 0
