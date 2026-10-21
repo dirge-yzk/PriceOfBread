@@ -1777,7 +1777,7 @@ public sealed class Simulation
         else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // ★(153) 損耗の記帳は判定で捨てる（助走は判定しない＝捨てるだけ・多国は MultiNationSim の共有層が捨てる）
         // （研究C＝制度の施行 Institutions.Step は 2026-10-01 (152) に削除＝特許・株式会社・鉄道は発見の表の行の2値〔World.PatentLaw ほか〕を読むだけ）
         Politics.Step(World, World.Coef);                   // §9-E
-        Meritocracy.Step(World, World.Coef);                // 社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
+        if (!(warm && World.BakeRun?.StopSocialMobility == true)) Meritocracy.Step(World, World.Coef);                // ★(490) 焼く試走の腕だけ止める（BakeRun は焼く側以外は null＝旧と同じ）／社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
         if (!warm) World.TickExpansionWill();                // 膨張意欲の累積（案Y・段B）。助走で10年ぶん貯めて開幕に侵略が噴くのを防ぐ＝時間の経過そのもの
         World.UpdateGdpCycle();   // 景気循環トラッカー更新（次四半期のAIの反景気循環的金融政策の入力）
         World.UpdatePriceLevel(World.Coef);   // 物価水準（数量説）＝広義マネー/実質産出の伸び差でインフレ/デフレ
@@ -2355,7 +2355,7 @@ public sealed class Simulation
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
-            if (r.State == RegionState.Active)
+            if (r.State == RegionState.Active && !(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
         ProbeCheck("月次政治");
         if (!World.WarmupFrozen) Territory.Step(World, World.Coef);      // §5.2/§A-8（解錠＋地域間移民）。助走中は止める＝州の解錠も国内移住も「時間が経って起きる」こと

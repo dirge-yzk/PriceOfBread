@@ -512,6 +512,7 @@ public sealed class MultiNationSim
         _startWarmupDone = true;
         int quarters = quartersOverride ?? _coef.StartWarmupQuarters;
         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
+        if (_coef.OpeningBakeEnabled > 0) OpeningBake.Apply(this);   // ★(490) 開幕の焼き込み（既定 0＝表を開きもしない）＝構築直後の盤面に焼いた状態を書いてから助走（今の 20 四半期）に入る
         //   ⚠(449) 助走なし（quarters<=0）では下の取り直しも通らない＝（★(456) 旗は焼き込んだ＝常に）開幕のランクは構築時の 3 項のまま（市場が回る前の盤面は取り直しても同じ 3 項で意味がない）。助走のある通常の開始だけが取り直す。
         WarmupEconomy(quarters, onQuarter);
         WarmupTech(_coef.StartWarmupTechIterations);

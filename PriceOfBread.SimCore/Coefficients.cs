@@ -1914,6 +1914,8 @@ public sealed class Coefficients
     public double DiscoveryClockRampWidth = 0.1;    // ★(461) 同・傾斜の幅 w（無次元・S が 0 から 1 に動く W の幅は W0·d·w）。DiscoveryClockWorldPerMonth が正のときだけ読む。0.1 は制度の細ランプの先例（幅 0.2 の広ランプは列強の再現を下げた）で掃引しない。
     public double DiscoveryOwnHalfPerMonth = 12.5677;     // ★(461) 同・（★2026-10-20 腕 B の採用で既定 0→12.5677＝予備計測の規則から）C＝自国の親の産業の技師 A÷(A＋これ)（有界の飽和＝大国の絶対量で先取りせず、産業の無い国・小さい工房の国は抑える）。単位は W0 と同じ。DiscoveryClockWorldPerMonth が正のときだけ読む。
     public double DiscoveryClockMotorParent = 0;    // ★(461) 同・正のとき（かつ DiscoveryClockWorldPerMonth が正）電動機の行の親の産業の技師を蒸気機関の財にする（既定 0＝今の規則＝電力の産業が立つまで電動機の A は 0）。時計の形とは別の旗＝反証役の指摘（親の変更が時計の効きと混ざる）で切り離した。出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）。
+    public double OpeningBakeEnabled = 0;           // ★(490) 開幕の焼き込み（<see cref="OpeningBake"/>）の読み込みの旗。0＝表（opening_bake.json）を開きもしない＝厳密恒等。正のとき <see cref="MultiNationSim.StartWarmup"/> の頭で 1 回、凍結を解いた試走で落ち着いた盤面（州×レシピの能力・州の資本・州×財の在庫と値段・州×階級の貯蓄）を構築直後の盤面に書く
+                                                    //   （鍵が今の世界と全て一致しなければ例外）。**倒さない**（焼くのは工業化度の削除の後＝(464) の順）。測りの名乗りは焼いた表の頭書き（SOURCE-HASH・入力のハッシュ・試走の四半期数）。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。
                                                     //   0.5＝技術力70（特許＝1780年代＝難易度0）なら強度 0.375 で届く＝旧の特許の閾値（中核エリート 0.4・傾斜 0.35〜0.45）と同じ所（推奨で決めた）
     public double DiscoveryNeedHalfIdea = 0.2;      // ★(152) 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35。

@@ -1128,7 +1128,7 @@ public static partial class Instruments
 
     // ---------------------------------------------------------------- (262) 貯蓄の書き手の台帳（階級の ΔSavings の出どころ・読むだけ） ----------------------------------------------------------------
 
-    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の5本だけ（<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>。開幕の貯蓄の置き直し〔旧 RebaseSavingsTo〕は削除した）。
+    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の5本だけ（★(490) 7本目 <c>Pop.ApplyBakedSavings</c>＝開幕の焼き込みの読み込みは旗 OpeningBakeEnabled が正のときだけ呼ばれ、この台帳には載らない〔旗 0 では書かれない・計器つき×旗 1 の組は〈開幕〉と〈助走の直後〉の階級の在庫の差が台帳に閉じない＝旗を倒すとき SavKind を足す〕。以下は旧の5本の数え方＝<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>。開幕の貯蓄の置き直し〔旧 RebaseSavingsTo〕は削除した）。
     /// Settle＝月末の精算（所得−支出）／Give＝受け取り（所得に書かない）／GiveIncome＝受け取り（所得にも書く）／Take＝払い（支出に書かない）／CarryOut・CarryIn＝人と動くお金（階級・州・国をまたぐ運搬）／Rebase＝国が替わる換算。</summary>
     internal enum SavKind : byte { Settle, Give, GiveIncome, Take, CarryOut, CarryIn, Rebase, RegionOut, RegionIn }
     static readonly string[] SavKindNames = ["settle", "give", "giveIncome", "take", "carryOut", "carryIn", "rebase", "regionOut", "regionIn"];

@@ -131,6 +131,9 @@ public sealed class Pop
     /// 外の書き手は移し方の1本（<see cref="World.Transfer"/>＝相手を名乗る）を通す＝片側だけの記帳は型で書けない。初期化子（<c>new Pop { Savings = … }</c>＝構築）は <c>init</c>。</summary>
     public MoneyStock Savings { get => _savings; init => _savings = value; }
     private MoneyStock _savings;
+    /// <summary>★(490) 貯蓄の書き手の 7 本目：開幕の焼き込みの読み込み（<see cref="OpeningBake.Apply"/>）だけが呼ぶ。旗 <c>OpeningBakeEnabled</c> が 0 では呼ばれない。貯蓄が変わるので基礎貨幣の基準線は呼び手が取り直す。
+    /// 計器の貯蓄の台帳（<c>Instruments.Sav</c>）には載らない＝計器つき×旗 1 の組は flow_s の貯蓄の台帳が焼き込みの書き込みを知らない（旗は倒さない・採るときに SavKind を足す）。</summary>
+    internal void ApplyBakedSavings(double value) => _savings = new MoneyStock(value);
     /// <summary>個人債務（設計＝docs/202608/20260802_POPの個人債務_部分完了.md・2026-08-02）。⚠**貨幣ではない**——
     /// <see cref="Bank.HouseholdLoans"/>（そちらが貨幣）の内訳＝「誰の分か」を持つ記録である。
     /// ⚠★<c>World.OutstandingLoans</c> に足してはならない（両方足すと貨幣が二重に消える）。

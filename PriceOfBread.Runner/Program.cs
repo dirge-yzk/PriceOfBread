@@ -6425,6 +6425,8 @@ if (args.Length > 0 && args[0] == "earlyprobe220")
     return;
 }
 
+if (args.Length > 0 && args[0] == "bakeopen") { BakeOpenRun.Run(args); return; }   // ★(490) 開幕の焼き込みの道具（凍結を解いた試走→opening_bake.json）
+
 if (args.Length > 0 && args[0] == "warmupprobe")
 {
     ulong wpSeed = args.Length > 1 && ulong.TryParse(args[1], out var wps) ? wps : 1789UL;

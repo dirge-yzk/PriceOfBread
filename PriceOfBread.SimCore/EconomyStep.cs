@@ -496,7 +496,7 @@ public static class EconomyStep
         //   ⚠金は従来どおり動く（投資家／国庫→建材の生産者）＝貯蓄も国庫も溜まらず、解凍直後の反動バーストが立たない。
         //     物量も従来どおり消費される＝MoneyConservation/GoodsBalance は不変（月次 CheckInvariants が番人）。
         //   world==null（較正セル・単体テスト）は常に false＝厳密恒等。
-        bool warmFrozen = world?.WarmupFrozen == true;
+        bool warmFrozen = world?.WarmupFrozen == true && world.BakeRun?.ThawCapacity != true;   // ★(490) 焼く試走の腕だけ能力の凍結を外す（BakeRun は焼く側以外は null＝旧と同じ）
         var scratch = RentScratch(ng, np, region.Pops.Count);
         // ★(186) 計算量の予算＝眠った生産者は今月の生産者の段を全て飛ばす（近似・<see cref="SleepState"/>）。目覚めた月は眠りの間に止めた平滑の量を極限へ追いつかせる。
         //   計数「生産：生産者×月」は回した生産者だけ（眠った生産者は数えない）。

@@ -887,7 +887,7 @@ public class UnitTypeTests
     [Fact]
     public void 在庫のお金をdoubleから作る所の数は宣言のとおり()
     {
-        const int Declared = 63;   // (375)：64→63＝Model.cs の Pop.RebaseSavingsTo(double)〔(273) の置き直しの貯蓄を MoneyStock にする1件〕を置き直しのモードと一緒に削除した → (273)：63→64 → 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
+        const int Declared = 64;   // ★(490)：63→64＝Model.cs の Pop.ApplyBakedSavings〔開幕の焼き込みの読み込みが貯蓄の値を表の数から作る 1 件＝残高の設定であって月の流れの決算ではない。旗 OpeningBakeEnabled が 0 では呼ばれない〕 → (375)：64→63＝Model.cs の Pop.RebaseSavingsTo(double)〔(273) の置き直しの貯蓄を MoneyStock にする1件〕を置き直しのモードと一緒に削除した → (273)：63→64 → 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
         //   増えた理由（(252) の+6＝どれも double の流れ・取引の額・換算の結果を在庫の型へ入れる継ぎ目で、月の流れの決算ではない）：
         //   Bank 1＝家計の貸しと返しの動いた額を個人債務へ（Bank.Lend）／Diplomacy 2＝払えなかった貢納と賠償を対外債へ記帳する額（Fiscal.BookForeignDebt の引数が在庫の型になり呼び手が包む）／
         //   Fiscal +2＝減債で減る対外債（Math.Max の結果）・起債で資本家が払った額の保有（(251) の GovDebt 側の1件は対外債の側と共有して増やしていない・BookForeignDebt の引数は型になり −1）／

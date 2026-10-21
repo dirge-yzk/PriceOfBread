@@ -223,6 +223,12 @@ public class PopulationInstrumentTests
             Assert.Equal(Digest(off), Digest(on));   // 読むだけ＝全ビット一致（年齢の層も含む）
             var (h, rows) = Table(System.IO.Path.Combine(dir, "pop_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
+            // ★(490) 層ごとの列の名前は層の下端の年齢（手で書いた数）：8層は 0・10・…・70／11層は 0・1・6・11・16・21・31・41・51・61・71。名前の組み立てを実装の関数から作らない（旧の名前 deathsBand／mu{番号} は無い）
+            int[] lowers = Pop.Layout.Bands == 8 ? [0, 10, 20, 30, 40, 50, 60, 70] : [0, 1, 6, 11, 16, 21, 31, 41, 51, 61, 71];
+            int d0 = Array.IndexOf(h, "deathsFrom0K"), m0 = Array.IndexOf(h, "muFrom0PerYear");
+            Assert.True(d0 >= 0 && m0 >= 0);
+            for (int k = 0; k < lowers.Length; k++) { Assert.Equal(d0 + k, Array.IndexOf(h, $"deathsFrom{lowers[k]}K")); Assert.Equal(m0 + k, Array.IndexOf(h, $"muFrom{lowers[k]}PerYear")); }
+            Assert.DoesNotContain(h, c => c.StartsWith("deathsBand", StringComparison.Ordinal) || (c.StartsWith("mu", StringComparison.Ordinal) && c.EndsWith("PerYear", StringComparison.Ordinal) && !c.StartsWith("muFrom", StringComparison.Ordinal) && c != "muPerYear"));
             var nRows = rows.Where(r => r[0] == "N").ToList(); var cRows = rows.Where(r => r[0] == "C").ToList();
             Assert.NotEmpty(cRows);
             // 全ての国に行が出る：最後の年末（q=11）に、人口のある全ての国の N 行がある

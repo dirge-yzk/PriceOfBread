@@ -12,6 +12,8 @@
     <!-- 財カタログ（レシピ・tier・需要）の真実源。Catalog.Goods が読む（Catalog.cs）。dumpgoods コマンドで C#定義から再生成・編集後は rebuild で反映 -->
     <EmbeddedResource Include="goods.json" />
     <EmbeddedResource Include="megaprojects.json" />
+    <!-- ★(490) 開幕の焼き込みの表（凍結を解いた試走で落ち着いた盤面・鍵は名前）。旗 OpeningBakeEnabled が正のときだけ開く。Runner の bakeopen で焼き直す -->
+    <EmbeddedResource Include="opening_bake.json" />
     <!-- 陸塊テーブル（03地理 手順0）：260地点の陸塊ID＝陸続き判定の真実源。Landmass.cs が読む（裁定A1＝C#フォールバック無し）。編集後は rebuild で反映 -->
     <EmbeddedResource Include="landmass.json" />
     <EmbeddedResource Include="places.json" />   <!-- ★場所の一元表（2026-08-26）＝座標の唯一の出所。Places.cs が読む -->

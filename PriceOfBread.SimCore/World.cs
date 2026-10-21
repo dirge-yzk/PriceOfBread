@@ -100,6 +100,8 @@ public sealed class World
     /// 政治は <see cref="PoliticsEnabled"/>=false、外交は <see cref="MultiNationSim.DiplomacyFrozen"/> で別途凍結される。</para>
     /// <para>本編では常に false＝読み手の分岐は全て偽＝厳密恒等。<see cref="MultiNationSim.WarmupEconomy"/> だけが立てて必ず戻す。</para></summary>
     public bool WarmupFrozen { get; internal set; }
+    /// <summary>★(490) 開幕の焼き込みの試走の腕（<see cref="OpeningBake.RunOptions"/>・焼く側の Runner の bakeopen だけが立てる＝null が遊ぶ側・測る側＝何も変わらない）。作業用の選択でシミュの状態ではない（セーブに載らない）。</summary>
+    [System.NonSerialized] public OpeningBake.RunOptions? BakeRun;
 
     // --- 国レベル（§A-1／§9-H・段2）。法整備の「現在値」は利益集団の力のゲートで目標へ漸進（§9-E）---
     public EducationLaw EducationLaw { get; internal set; }
