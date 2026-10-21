@@ -2823,6 +2823,7 @@ public sealed class Simulation
             //   輸入の捌き手（州の商人・不在は州の頭数＝PaySales の生産者のいない在庫の枝と同じ）へ＝旧は輸入の在庫も今月の産出の比で国内の鉱山へ払った。
             //   国内に鉱山の無い州（床モード）は全てが捌き手へ（旧＝商人・不在は投資家）。払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。
             //   受け手のいない分は買わない（量を減らす）＝旧＝商人も投資家も居なければ買わなかった。
+            //   ★(486) 商人 POP が居ても人数が 0（階級が絶えた）なら受け手不在＝買わない（PaySales の保存則の穴の直しは払い手が清算所で**鋳造でない**ときだけ全 POP へ回す。鋳造は従来どおり＝貨幣は消えない）。
             double imp = Math.Max(0, m.PrevImport + m.LastImport), prodQ = Math.Max(0, m.LastProduced);
             double impShare = totOut > 1e-12 ? (imp + prodQ > 0 ? imp / (imp + prodQ) : 0.0) : 1.0;
             double want = qty * price;

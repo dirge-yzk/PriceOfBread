@@ -268,6 +268,12 @@ public sealed class UtilityAgent : INationAgent
     internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
     internal const double MinimumWageSufficiencyUrbanLine = 2.0 / 3.0;   // ★最低賃金法（線 lw (459)）の充足を目標に置く本国の都市の割合（都市が3分の2＝賃金労働が圧倒的多数・AI の選択・確証なし）
     internal const double TrustbustUrbanLine = 0.5;                  // 独占の解体を目標に置く本国の都市の割合（都市が過半）
+    // ★(480) 線 ma（旗 MinimumWageAiFromFloor ＞ 0）の最低賃金法の線 4 本。AI の選び・確証なし（事前登録 measurements/ma480_20261021_prereg.txt [2] F2）。上げる線と下げる線を分け、間は現状維持（徴兵法の (193) と同じ作法）。
+    //   1/3・1/2 は AI の既存の線（AntitrustUrbanLine・TrustbustUrbanLine）と同じ族の数。失業の線は法が None の行の分布から（失業 1/4 は約 95%・1/2 は 99% の外）。
+    internal const double MinimumWageUnempLowerLine = 0.5;           // 下げる：本国の労働の失業がこの割合以上で、かつ今の段の床が縛る広がりが下の線以上
+    internal const double MinimumWageBindLowerMin = 0.5;             // 下げる：今の段の床が縛る広がり（本国の能力のうち値段が床の 1.05 倍以下の州の割合）がこれ以上
+    internal const double MinimumWageUnempRaiseLine = 0.25;          // 上げる：失業がこの割合未満（下げる線の半分＝間の帯は現状維持）
+    internal const double MinimumWageBindRaiseMax = 1.0 / 3.0;       // 上げる：次の段の床が縛る広がりがこれ以下（賃金が次の段の籠をおおむね払えている＝法は生活費を書き留めるだけで広くは縛らない）
     private const double CompulsoryEduBufferMult = 3.0;     // 義務教育の財政バッファ倍率
     private const double WomenPropertyTechThreshold = 1.2; // 女性の権利＝財産権の段を目標に置く技術閾値
     private const double WomenSuffrageTechThreshold = 1.5;// 女性の権利＝選挙権の段を目標に置く技術閾値（財産権より後）
@@ -829,8 +835,12 @@ public sealed class UtilityAgent : INationAgent
         if ((w.Coef.AiLawGateFromBoard >= 3.0 ? GuildTargetFromBoard(w) : GuildTargetOld(w)) is { } guildTarget)
             p.Guild = guildTarget;
         // ★最低賃金法（線 lw (459)）：賃金労働者（本国の都市人口）が多数になった国は床を求める。反トラスト・同業組合と同じ線（新しい数を作らない・AI の選び＝確証なし）。ゲート0＝目標を書かない＝恒等
-        if (MinimumWageTargetFromBoard(w) is { } mwTarget)
-            p.MinimumWage = mwTarget;
+        {   // ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。計器の欄は読むだけ。
+            var mwChosen = MinimumWageTargetChosen(w);
+            if (Instruments.On) w.DiagMaTargetOrd = mwChosen is { } mwOrd ? (int)mwOrd : -1;
+            if (mwChosen is { } mwTarget)
+                p.MinimumWage = mwTarget;
+        }
         if (w.Polity == Polity.ProletarianDictatorship)
         {   // プロ独裁＝全部門国有化（5部門＋『全て』＝ソ連型計画経済。§11-6d統合後の全点灯）
             p.NationalizeRailways = p.NationalizeMines = p.NationalizeMilitary = p.NationalizeOil
@@ -1041,6 +1051,41 @@ public sealed class UtilityAgent : INationAgent
         if (!(w.Coef.MinimumWageLawGate > 0)) return null;
         MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
         return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
+    }
+
+    /// <summary>★(480) 線 ma：最低賃金法の目標の選び方の入口（Apply が呼ぶ 1 本）。旗 <see cref="Coefficients.MinimumWageAiFromFloor"/> が 0 なら今の <see cref="MinimumWageTargetFromBoard"/>（無変更）・＞0 なら <see cref="MinimumWageTargetFromFloor"/>。</summary>
+    internal static MinimumWageLaw? MinimumWageTargetChosen(World w)
+        => w.Coef.MinimumWageAiFromFloor > 0 ? MinimumWageTargetFromFloor(w) : MinimumWageTargetFromBoard(w);
+
+    /// <summary>★(480) 線 ma：盤面の実物から最低賃金法の目標を選ぶ（旗 MinimumWageAiFromFloor ＞ 0）。MinimumWageLawGate＝0 では書かない。
+    /// 読むもの＝本国の州の労働の失業（<see cref="MinimumWageFloor.ReadHomeLabor"/>）と、床が縛る広がり（<see cref="MinimumWageFloor.BindShare"/>）。広がりは必要な向きの 1 本だけ求める
+    /// （失業が下げる線以上なら今の段・上げる線未満なら次の段。両方は同時に立たない＝財の走査は高々 1 回）。計算量の台帳（MinimumWageBasketScans）に走査の件数を足す。
+    /// 書き方は <see cref="MinimumWageFloorWant"/>（純関数）。新しい状態・倍率を作らない。</summary>
+    internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)
+    {
+        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
+        var cost = w.Cost;
+        var h = MinimumWageFloor.ReadHomeLabor(w, cost);
+        double u = h.Unemployment;
+        var cur = w.MinimumWage;
+        double bCur = double.NaN, bNext = double.NaN;
+        if (u >= MinimumWageUnempLowerLine && cur > MinimumWageLaw.None) bCur = MinimumWageFloor.BindShare(h, cur, cost);
+        if (u < MinimumWageUnempRaiseLine && cur < MinimumWageLaw.Sufficiency) bNext = MinimumWageFloor.BindShare(h, cur + 1, cost);
+        return MinimumWageFloorWant(cur, u, bCur, bNext);
+    }
+
+    /// <summary>★(480) 線 ma：最低賃金法の目標の純関数（盤面の読みを引数で受ける）。
+    /// 下げる＝施行中で、失業が下げる線以上かつ今の段の床が縛る広がりが下げる線以上（床が失業を作っている）→ 今の段−1。
+    /// 上げる＝充足の手前で、失業が上げる線未満かつ次の段の床が縛る広がりが 0 以上〜上げる上限以下（賃金が次の段の籠をおおむね払えている＝床を足しても広くは縛らない）→ 今の段+1。
+    /// （(480) 追記 1：初版は〈0 超＝籠を割る賃金が実在する〉を願いの出所にしたが、canary で施行国が 17→1 に死んだ〈法を要る貧しい国ほど通す力が無い〉ので外した。）
+    /// それ以外は今の段（前に置いた目標を現状へ戻す）。失業が読めない（NaN）なら null（何も書かない）。広がりの NaN は条件が偽＝現状維持の側。</summary>
+    internal static MinimumWageLaw? MinimumWageFloorWant(MinimumWageLaw cur, double unemployment, double bindCur, double bindNext)
+    {
+        if (double.IsNaN(unemployment)) return null;
+        if (cur > MinimumWageLaw.None && unemployment >= MinimumWageUnempLowerLine && bindCur >= MinimumWageBindLowerMin) return cur - 1;
+        // ★bindNext >= 0 は NaN の除けでしかない（広がりは 0〜1 の割合＝実質の条件は bindNext <= 上限だけ）。上げる願いは 0 のとき（次の段の床が誰の賃金も縛らない）にも立つ＝AI の選び（確証なし）。
+        if (cur < MinimumWageLaw.Sufficiency && unemployment < MinimumWageUnempRaiseLine && bindNext >= 0 && bindNext <= MinimumWageBindRaiseMax) return cur + 1;
+        return cur;
     }
 
     /// <summary>本国の都市の割合から、AI が最低賃金法に置く段（<see cref="MinimumWageTargetFromBoard"/> の純関数の部分）。NaN は否定形で None 側。</summary>

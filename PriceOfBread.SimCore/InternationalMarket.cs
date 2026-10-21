@@ -114,7 +114,18 @@ public sealed partial class InternationalMarket
         {
             if (r is null) return 0;   // 国として買う役務の担い手がいない＝動かさない（払い手に残る）
             stateCut = 0; wt = null;
-            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) to.Add(r.Pops[r.MerchantPopIndex]);
+            // ★(486) 保存則の穴を閉じた（狭い形・(480) の診断 measurements/ma480_20261021_leak_paysales.txt）：払い手が清算所 (null,null) で鋳造でなく、商人 POP の人数が 0（階級が絶えた）だと、
+            //   受け手の重みの和が 0 で移し方の1本は動かさず、買い手が清算所へ払い込んだ額が世界から消えた（払い手に「残る」先が無い）。その場合だけ州の全 POP（頭数）へ渡す。
+            //   払い手が POP・国庫のときは従来どおり（受け手不在なら動かさず払い手に残る＝代金を払わずに財を得る別の穴は 00-PAY の作者の問い）。
+            //   鋳造（minted＝Simulation.MintGold）も従来どおり：商人 0 人なら受け手不在で何も鋳造しない（paid=0 で買わない）＝貨幣は消えない・穴ではない。直すと鋳造の量が変わる。
+            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count)
+            {
+                bool merchantEmpty = !(r.Pops[r.MerchantPopIndex].Size > 1e-9);   // 否定形＝NaN も〈人数が立たない〉側へ
+                bool clearing = from.W is null && from.Pops is null;
+                if (Instruments.On && merchantEmpty) PayDiag.CountEmptyMerchant(w, clearing, from.Pops is not null, minted, amount);
+                if (!merchantEmpty || !clearing || minted) to.Add(r.Pops[r.MerchantPopIndex]);
+                else to.AddRange(r.Pops);   // 重み null＝頭数
+            }
             else to.AddRange(r.Pops);   // 重み null＝頭数
         }
         double moved = 0;
@@ -122,6 +133,7 @@ public sealed partial class InternationalMarket
         if (stateCut > 0)
             moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, outside: minted ? World.Outside.Mint : World.Outside.Border, routeFile: routeFile, routeLine: routeLine);
         moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, outside: minted ? World.Outside.Mint : World.Outside.Border, routeFile: routeFile, routeLine: routeLine);
+        if (Instruments.On && from.W is null && from.Pops is null && amount - moved > 1e-9) PayDiag.CountUnmoved(w, minted, amount - moved);   // ★(486) 計器（読むだけ）：清算所が払うはずの額に満たなかった分（鋳造でない分は直した後も消える額＝0 であるべき）
         // ⚠(173) の確かめ：輸出代金の RGO の地代は地代（LandRent＝土地税の課税ベース）に書かない（c5 の後半は残り）＝清算は全ての国の月次決算（Fiscal）の後に着き、
         //   LandRent は次の月の頭（EconomyStep の月頭）で0へ戻る＝ここで書いても土地税に一度も載らない。載せるには所得税の LastEarnedPerMonth（(108) 段3-1）と同じ
         //   「前の月の全ての地代」を Fiscal が読む形が要る（新しい状態＝別の回）。

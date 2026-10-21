@@ -205,6 +205,10 @@ public sealed class World
     [System.NonSerialized] internal double DiagSfPensionToSoldiersCum, DiagSfCheapSubsidyPaidCum, DiagSfVoteWeightUsed, DiagSfBudgetNegCumPopMonthK, DiagSfBudgetNegCumAmount;
     // ★(471) 追記 2：売買方針の値が変わった回数の累計・財政逼迫で全ての方針を畳んだ財の数の累計（AI の閾値の往復を読む計器・INS=1 のときだけ・セーブに載らない）。
     [System.NonSerialized] internal double DiagSfBiasSwitchCum, DiagSfStressFoldCum;
+    // ★(486) 計器 pay_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：PaySales の〈商人 POP の人数が 0〉の枝に入った回数と額の累計（InstrumentsPay.cs）。
+    [System.NonSerialized] internal double[]? DiagPay;
+    // ★(480) 計器 ma_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：この四半期に AI の最低賃金法の規則が p に書いた目標の序数（書かなかった＝−1）。
+    [System.NonSerialized] internal int DiagMaTargetOrd = -1;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
