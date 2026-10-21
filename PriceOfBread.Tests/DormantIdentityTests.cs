@@ -100,6 +100,7 @@ public class DormantIdentityTests
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
+        "MinimumWageAiFromFloor",       // ★(480) AI が最低賃金法に置く目標を盤面の実物（本国の労働の失業と床が縛る広がり）から選ぶ旗（0＝今の規則〈本国の都市の割合の線〉・下げる目標を書かない）。腕 B で 1。
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

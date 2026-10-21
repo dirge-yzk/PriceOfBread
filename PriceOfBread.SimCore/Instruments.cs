@@ -216,6 +216,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Sf; public bool SfHeader;                           // (471) 小さな独立の直し 4 件の表 sf_s（国×四半期）
         public System.IO.StreamWriter? Lab; public bool LabHeader;                         // (459) 労働の値段の表 labor_s（国×四半期）
         public System.IO.StreamWriter? Pay; public bool PayHeader;                         // (486) 売上の払いの保存則の穴の表 pay_s（国×四半期・累計）
+        public System.IO.StreamWriter? Ma; public bool MaHeader;                           // (480) 最低賃金法の AI の判断の表 ma_s（国×四半期）
         public System.IO.StreamWriter? House; public bool HouseHeader;                     // (418) 農家の手仕事の表（国×四半期）
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // (416) 近代化投資の信号の表（国×四半期）・国力の旧と新の表（国×年末）
         public System.IO.StreamWriter? LawGate; public bool LawGateHeader;                 // (423) 法の門の旧と新の表（国×四半期）
@@ -1669,6 +1670,7 @@ public static partial class Instruments
             SfFold(sk, seed, w, q, picked, yearEnd);        // (471) 兵士の年金・安く売る・議席の重み・負の予算の表
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
+            MaFold(sk, seed, w, q, picked, yearEnd);        // (480) 最低賃金法の AI の判断の表（失業・床が縛る広がり・今と新しい規則の目標）
             HouseFold(sk, seed, w, q, picked, yearEnd);     // (418) 農家の手仕事の表（行の産出の割合と農民の能力の取り分）
             ModFold(sk, seed, w, st, q, picked, yearEnd);   // (416) AI の近代化投資の信号の表（旧の gap と新しい信号）
             LawGateFold(sk, seed, w, q, picked, yearEnd);   // (423) 法の門の旧と新の表（金本位・反トラスト・同業組合の願い）
@@ -1734,6 +1736,7 @@ public static partial class Instruments
         sk.Sf?.Dispose(); sk.Sf = null;   // (471)
         sk.Lab?.Dispose(); sk.Lab = null;   // (459)
         sk.Pay?.Dispose(); sk.Pay = null;   // (486)
+        sk.Ma?.Dispose(); sk.Ma = null;   // (480)
         sk.House?.Dispose(); sk.House = null;   // (418)
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // (416)
         sk.LawGate?.Dispose(); sk.LawGate = null;   // (423)
