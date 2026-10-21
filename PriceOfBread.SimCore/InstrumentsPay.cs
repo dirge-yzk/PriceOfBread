@@ -43,6 +43,15 @@ internal static class PayDiag
     internal static void CountEmptyMerchant(World w, bool clearing, bool popPayer, bool minted, double amount)
         => Add(w, clearing ? (minted ? MintEmpty : FixHit) : popPayer ? PopEmpty : TreasEmpty, amount);
 
+    /// <summary>一度でも居た国の World の累計の和を 1 行の文字で返す（leakhunt が INS=1 のときだけ呼ぶ・読むだけ。leakhunt は計器の表を出さないので、直しの枝に入ったかを H1 が読む口）。</summary>
+    internal static string Summary(IEnumerable<World> worlds)
+    {
+        var t = new double[Len];
+        foreach (var w in worlds) if (w.DiagPay is { } a) for (int k = 0; k < Len; k++) t[k] += a[k];
+        string F(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        return $"pay_s 累計（一度でも居た国の和）：fixHit {F(t[FixHit])}回・額{F(t[FixHit + 1])}／mintEmpty {F(t[MintEmpty])}回・額{F(t[MintEmpty + 1])}／popEmpty {F(t[PopEmpty])}回・額{F(t[PopEmpty + 1])}／treasEmpty {F(t[TreasEmpty])}回・額{F(t[TreasEmpty + 1])}／clearUnmoved {F(t[ClearUnmoved])}回・額{F(t[ClearUnmoved + 1])}／mintUnmoved {F(t[MintUnmoved])}回・額{F(t[MintUnmoved + 1])}";
+    }
+
     /// <summary>清算所が払うはずの額に満たなかった（不足 <paramref name="shortfall"/>）。</summary>
     internal static void CountUnmoved(World w, bool minted, double shortfall) => Add(w, minted ? MintUnmoved : ClearUnmoved, shortfall);
 }

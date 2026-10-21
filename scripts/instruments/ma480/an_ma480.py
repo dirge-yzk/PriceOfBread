@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # (480) 線 ma 後半の読み手＝事前登録 measurements/ma480_20261021_prereg.txt [8]（G0〜G7）と追記 3（G6b 類別・G8・絶対数）を腕 B の計器の生から読む（読むだけ）。
-# 使い方：python an_ma480.py <B の ins のフォルダ> <基準 m475_ins のフォルダ> [種の数=10]
-#   例）python an_ma480.py D:/PoB_work/ma_480/out_B_10/ins D:/PoB_work/keep_475/m475_ins
+# 使い方：python an_ma480.py <B の ins のフォルダ> <基準 m484_ins のフォルダ> [種の数=10] [ヌル腕のフォルダ n1 n2 …]
+#   例）python an_ma480.py D:/PoB_work/pf_486/out_B/ins D:/PoB_work/keep_484/m484_ins 10 D:/PoB_work/keep_484/n1 D:/PoB_work/keep_484/n2
+# (486) で G1・G2 の判定を事前登録 pf486 [8]＋追記 3 に合わせた（基準は引数の側から読む・ヌル腕の幅の外を当たりとする）。
 # 失業の定義は 1 本＝labor_s の plainUnemploymentShare。縛る行＝enactedNearFloorShare>0.5。施行行＝lawCode>0。
 import csv, sys, collections, io, statistics, math
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -68,27 +69,43 @@ for s in range(1, N + 1):
     tot['bothA_rows'] += len(ea); tot['bothA_U'] += sum(1 for r in ea if r['u'] > 0.5)
     tot['bothB_rows'] += len(eb); tot['bothB_U'] += sum(1 for r in eb if r['u'] > 0.5)
     print(f"seed{s}: 施行した国 A {len(a['first'])} B {len(b['first'])}（両方 {len(both)}）／施行行 A {len(a['enc'])} B {len(b['enc'])}／縛る行 A {len(a['bind'])} B {len(b['bind'])}／最高の段 A {a['maxlv']} B {b['maxlv']}／法の下がり A {a['down']} B {b['down']}／1800 年より前の施行 A {sum(1 for y in a['first'].values() if y < 1800)} B {sum(1 for y in b['first'].values() if y < 1800)}")
-for tag, name in (('A', '基準 m475'), ('B', '腕 B')):
+for tag, name in (('A', '基準 m484'), ('B', '腕 B')):
     t = tot
     print(f"{name}: 縛る行 {t[tag+'bind']}（G0 {'成立' if t[tag+'bind'] >= 50 else '不成立'}）／縛る行の失業>0.5 {t[tag+'bindU']}（比 {ratio(t[tag+'bindU'], t[tag+'bind']):.3f}）／施行行 {t[tag+'enc']}／施行行の失業>0.5 {t[tag+'encU']}（比 {ratio(t[tag+'encU'], t[tag+'enc']):.3f}）／施行行の農業失業>0.5 {t[tag+'encFU']}（比 {ratio(t[tag+'encFU'], t[tag+'enc']):.3f}）")
     print(f"   施行した国の合計 {t[tag+'nat']}／5 国以上の種 {t[tag+'seedsGE5']}／1800 年より前の施行 {t[tag+'pre1800']}／法の下がり（全国・10 種）{t[tag+'down']}")
     print(f"   止める線②の材料：plainRealPriceMinIndex<1e-3 の行の割合 {ratio(t[tag+'pminLow'], t[tag+'rows']):.5f}／plainTinyPriceRegionShare の平均 {ratio(t[tag+'tinySum'], t[tag+'tinyN']):.5f}")
 print(f"両腕で施行した国に絞った施行行の失業>0.5：A {tot['bothA_U']}/{tot['bothA_rows']}={ratio(tot['bothA_U'], tot['bothA_rows']):.3f}  B {tot['bothB_U']}/{tot['bothB_rows']}={ratio(tot['bothB_U'], tot['bothB_rows']):.3f}")
 g1 = ratio(tot['Bbind' + 'U'], tot['Bbind']); g2 = ratio(tot['BencU'], tot['Benc'])
+# (486) 事前登録 [8]＋追記 3：基準は m484_ins の 10 種（引数 2）。幅＝基準と第 3・第 4 引数のヌル腕（m484 の n1・n2）のプールの比の最小〜最大。
+#   当たり＝比が幅の最小より下で、絶対数も基準より減る／部分（効果未確認）＝基準より下がるが幅の内、または比は下がっても絶対数が増える／外れ＝基準以上かG0不成立。
+def pooled(d):
+    c = collections.Counter()
+    for s in range(1, N + 1):
+        st = lstats(labor(d, s))
+        c['bind'] += len(st['bind']); c['bindU'] += sum(1 for r in st['bind'] if r['u'] > 0.5)
+        c['enc'] += len(st['enc']); c['encU'] += sum(1 for r in st['enc'] if r['u'] > 0.5)
+    return c
+nullc = [pooled(d.rstrip('/') + '/') for d in sys.argv[4:]] if len(sys.argv) > 4 else []
+def band(key_u, key_n):
+    rs = [ratio(tot['A' + key_u], tot['A' + key_n])] + [ratio(c[key_u], c[key_n]) for c in nullc]
+    return min(rs), max(rs)
+b1 = band('bindU', 'bind'); b2 = band('encU', 'enc')
+print(f"基準の側のプール：縛る行 {tot['Abind']}（失業>0.5 {tot['AbindU']}＝{ratio(tot['AbindU'], tot['Abind']):.3f}）／施行行 {tot['Aenc']}（失業>0.5 {tot['AencU']}＝{ratio(tot['AencU'], tot['Aenc']):.3f}）")
+for i, c in enumerate(nullc):
+    print(f"ヌル腕{i+1}のプール：縛る行 {c['bind']}（{ratio(c['bindU'], c['bind']):.3f}＝{c['bindU']}/{c['bind']}）／施行行 {c['enc']}（{ratio(c['encU'], c['enc']):.3f}＝{c['encU']}/{c['enc']}）")
+print(f"雑音の幅（基準とヌル腕の比の最小〜最大）：G1 {b1[0]:.3f}〜{b1[1]:.3f}／G2 {b2[0]:.3f}〜{b2[1]:.3f}")
 def g1v():
     if tot['Bbind'] < 50: return '外れ（G0 不成立＝判定不能）'
-    if g1 <= 0.50: v = '当たり'
-    elif g1 <= 0.70: v = '部分'
-    else: v = '外れ'
-    if v == '当たり' and tot['BbindU'] > tot['AbindU']: v = '部分（比は当たりでも絶対数が m475 の 443 より増えた）'
-    return v
+    if not (g1 < ratio(tot['AbindU'], tot['Abind'])): return '外れ'
+    if g1 < b1[0] and tot['BbindU'] < tot['AbindU']: return '当たり（幅の外）'
+    if g1 < b1[0]: return '部分（比は幅の外だが絶対数が基準の %d より増えた）' % tot['AbindU']
+    return '部分＝機構の効果は未確認（比は基準より下だが雑音の幅の内）'
 def g2v():
-    if g2 <= 0.097: v = '当たり'
-    elif g2 <= 0.15: v = '部分'
-    else: v = '外れ'
-    if v == '当たり' and tot['BencU'] > tot['AencU']: v = '部分（比は当たりでも絶対数が m475 の 598 より増えた）'
-    return v
-print(f"G0 縛る行の合計 B {tot['Bbind']}（≧50）／G1 {g1:.3f}＝{g1v()}／G2 {g2:.3f}＝{g2v()}")
+    if not (g2 < ratio(tot['AencU'], tot['Aenc'])): return '外れ'
+    if g2 < b2[0] and tot['BencU'] < tot['AencU']: return '当たり（幅の外）'
+    if g2 < b2[0]: return '部分（比は幅の外だが絶対数が基準の %d より増えた）' % tot['AencU']
+    return '部分＝機構の効果は未確認（比は基準より下だが雑音の幅の内）'
+print(f"G0 縛る行の合計 B {tot['Bbind']}（≧50）／G1 {g1:.3f}＝{g1v()}／G2 {g2:.3f}＝{g2v()}／記録：G1 が 0.50 以下か {g1 <= 0.5}")
 g3 = tot['BseedsGE5']
 print(f"G3 5 国以上の種 {g3}/10＝{'当たり' if g3 >= 7 else ('部分' if g3 >= 4 else '外れ')}（床であって機構の証拠ではない）／施行した国の中央（種ごと）{med([len(lstB[s]['first']) for s in lstB])}")
 
@@ -124,6 +141,8 @@ for s in range(1, N + 1):
                 if bc == bc and bcc == bcc:
                     capDiff['n'] += 1
                     if abs(bc - bcc) > 1e-9: capDiff['differ'] += 1
+                    if (bc >= 0.5) != (bcc >= 0.5): capDiff['flip'] += 1
+                    if c == 'down': capDiff['downN'] += 1; capDiff['downFlip'] += 1 if (bcc != bcc or bcc < 0.5) else 0
             prev = r
         if sw >= 2: oscN += 1
     seedsDown += sd; seedsUp += su; osc[s] = oscN
@@ -136,7 +155,7 @@ def g6v(c, line):
 print(f"G6b 上げ {g6v('up', 0.90)}（線 0.90）／現状維持 {g6v('hold', 0.70)}（線 0.70）／下げ {g6v('down', 1.0)}（件数 {cnt['down']}・一致 {agree['down']}・記録だけ）")
 print(f"G4 下げの目標が書かれた種 {seedsDown}/10＝{'当たり' if seedsDown >= 7 else ('部分' if seedsDown >= 4 else '外れ')}／G5 上げの目標が書かれた種 {seedsUp}/10＝{'当たり' if seedsUp >= 7 else ('部分' if seedsUp >= 4 else '外れ')}")
 print(f"G7 往復（4 四半期以内に上げと下げが入れ替わる回数が 2 回以上の国）種ごと {osc}／3 国以上の種 {sum(1 for v in osc.values() if v >= 3)}")
-print(f"天井の効いた州：bindCur と bindCurCapped が食い違う行 {capDiff['differ']}/{capDiff['n']}={ratio(capDiff['differ'], capDiff['n']):.4f}")
+print(f"天井の効いた州：bindCur と bindCurCapped が食い違う行 {capDiff['differ']}/{capDiff['n']}={ratio(capDiff['differ'], capDiff['n']):.4f}／下げの判定（bindCur≧0.5）が天井つきの読みでは変わる行 {capDiff['flip']}／下げの目標が書かれた行のうち天井つきの読みでは縛りが 0.5 未満の行 {capDiff['downFlip']}/{capDiff['downN']}（記録・採否に使わない）")
 
 print('\n=== nation_s（G8・戦線の希釈・同じ 8 国）===')
 def nat(d, s):
@@ -168,4 +187,4 @@ for tag, d in (('A', A), ('B', B)):
             if r['activeFlag'] == '1': c[int(r['quarter'])] += 1
         qs = sorted(c)
         fin.append((c[qs[-1]] if qs else 0, mean([c[q] for q in qs])))
-    print(f"{'基準 m475' if tag == 'A' else '腕 B'}：最終四半期の有効な州の数 {[f[0] for f in fin]}／時間平均 {[round(f[1]) for f in fin]}")
+    print(f"{'基準 m484' if tag == 'A' else '腕 B'}：最終四半期の有効な州の数 {[f[0] for f in fin]}／時間平均 {[round(f[1]) for f in fin]}")

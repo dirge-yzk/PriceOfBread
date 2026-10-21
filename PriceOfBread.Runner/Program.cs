@@ -3483,6 +3483,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
         }
         // （退蔵結晶化の IW 不変条件は 2026-09-26 に削除＝結晶資産 Pop.IlliquidWealth ごと消えた・dorm-24）
         System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期{(lwarm ? "・助走つき" : "")}・保存則違反なし）");
+        if (PriceOfBread.SimCore.Instruments.On) System.Console.WriteLine(PriceOfBread.SimCore.PayDiag.Summary(lseen.Select(n => n.World)));   // (486) INS=1 のときだけ＝直しの枝に入ったか（H1）
         System.Console.WriteLine($"世界の台帳：説明できない増減＝人口 {lPopBad}四半期（累計 {lPopSum:+0.0;-0.0}）・基礎貨幣 {lMoneyBad}四半期（累計 {lMoneySum:+0.0;-0.0}）"
                                  + (Coefficients.OverrideSummary() is { Length: > 0 } lov ? $"（上書き {lov}）" : ""));
     }
