@@ -63,7 +63,7 @@ def main():
                     continue
                 popm = num(r[ix['popMeanK']]) * mo   # 人×月
                 bd = [num(r[ix['deathsFrom%dK' % (10 * b)]]) for b in range(8)]
-                mu = [num(r[ix['mu%dPerYear' % b]]) for b in range(8)]
+                mu = [num(r[ix['muFrom%dPerYear' % (10 * b)]]) for b in range(8)]
                 if any(math.isnan(x) for x in bd + mu) or not (popm > 0):
                     continue
                 used += 1

@@ -125,6 +125,10 @@ public class OpeningBakeTests
         muts["生産者の欠け"] = Edit(t, r => r["nationTable"]![nk]!["regions"]![rk]!["pr"]!.AsArray().RemoveAt(0));
         muts["POPの欠け"] = Edit(t, r => r["nationTable"]![nk]!["regions"]![rk]!["pop"]!.AsArray().RemoveAt(0));
         muts["財の欠け"] = Edit(t, r => r["goods"]!.AsArray().RemoveAt(0));
+        // ★(491) 欄の並び（反証役 hz4〔v〕低#3）：同じ長さのまま 2 つの欄を入れ替える
+        static void Swap01(System.Text.Json.Nodes.JsonArray a) { var x0 = a[0]!.GetValue<string>(); var x1 = a[1]!.GetValue<string>(); a[0] = x1; a[1] = x0; }
+        muts["資本の欄の並び"] = Edit(t, r => Swap01(r["capNames"]!.AsArray()));
+        muts["生産者の欄の並び"] = Edit(t, r => Swap01(r["producerNames"]!.AsArray()));
         foreach (var (name, mt) in muts)
         {
             Assert.NotEqual(t, mt);   // 変異が当たっている
@@ -139,7 +143,7 @@ public class OpeningBakeTests
     }
 
     /// <summary>同梱の表（埋め込みの opening_bake.json）の番人：①鍵が今の世界と全て一致（世界のデータ〔州・レシピ・財・階級〕を変えたら焼き直す＝赤になるのが仕様）
-    /// ②頭書きが〈収束した試走〉を名乗る（上限で打ち切った表を同梱しない）③旗 1 の助走が通り、貯蓄が旗 0 と違う（読み込みが実際に効く）④旗 0 の助走は同じ長さでも表を読まない＝貯蓄は構築直後と同じ。</summary>
+    /// ②頭書きが〈収束した試走〉を名乗る（上限で打ち切った表を同梱しない）③旗 1 の助走が通り、貯蓄が旗 0 と違う（読み込みが実際に効く）④旗 0 の助走は同じ長さでも表を読まない（★(491) 反証役 hz4〔v〕低#5＝ここで見るのは旗 0 の貯蓄が正であることと、③の旗 1 と違うこと＝構築直後との一致は確かめていない）。</summary>
     [Fact]
     public void 同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う()
     {

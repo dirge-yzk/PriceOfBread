@@ -92,5 +92,6 @@ public static class BakeOpenRun
         Console.WriteLine($"bakeopen seed={seed} quarters={res.Quarters} converged={res.Converged} cap={cap} wall={sw.Elapsed.TotalSeconds:F1}s bytes={new FileInfo(outPath).Length} -> {outPath}");
     }
 
+    // ★(491) 反証役 hz4〔v〕低#6 は OpeningBake.NationKey を呼べと言うが、あちらは Power の無い国で例外を投げる＝ここは収束の判定の 8 国の絞りだけ＝鍵の立たない国は飛ばす（寛容な写しを残す）
     static string OpeningBake_NationKey(World w) => w.SelfPower?.BaseName ?? "";
 }

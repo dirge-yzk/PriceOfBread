@@ -1,3 +1,4 @@
+# ★(491) 既定の表の農奴解放を Full へ（(487) で NationConfig の既定を なし→全面 へ反転した＝旧の None のままだと既定と同じ値のキーを外す処理が露・普・波の明示の None を外してしまう・反証役 mg2〔bv〕低#5）
 import json,re,sys,io
 P='D:/PoB_work/wt_def/PriceOfBread.SimCore/world.json'
 raw=open(P,'rb').read()
@@ -6,7 +7,7 @@ txt=raw.decode('utf-8')
 before_cr=txt.count('\r'); before_lines=txt.count('\n')
 doc=json.loads(txt)
 # NationConfig の C# 既定値（この回の後）。None＝既定の「無い」（キーが無ければ null）
-D={'merchant':400,'artisan':800,'literacy':0.23,'clergyFrac':0.4,'intelligentsiaFrac':0.35,'peasantSubsistence':0.7,'polity':'Absolutist','education':'Religious','coercion':400,'treasury':200000,'govDebt':0,'pollTaxStage':1,'landTaxStage':1,'bureaucracy':'Spoils','institutionalDecay':0,'nationalConsciousness0':-1,'initialMassMilitancy':0,'initialTariff':0.4,'industrialization':0,'initialColonies':[],'initialSuffrage':'None','initialCensorship':'StatePressOnly','initialCornLaws':'Full','initialSerfEmancipation':'None','initialImmigration':'Open','initialConscription':'Selective','initialMonetaryLaw':'Silver','knownDiscoveries':[],'broadMoneyToGdp':0,'initialInterestRate':0.25,'latitude':0,'longitude':0,'farmLordShare':0.6,'culturalGoodId':54,'nobility':0,'peasant':0,'worker':0,'bourgeois':0,'professional':0,'provinces':[]}
+D={'merchant':400,'artisan':800,'literacy':0.23,'clergyFrac':0.4,'intelligentsiaFrac':0.35,'peasantSubsistence':0.7,'polity':'Absolutist','education':'Religious','coercion':400,'treasury':200000,'govDebt':0,'pollTaxStage':1,'landTaxStage':1,'bureaucracy':'Spoils','institutionalDecay':0,'nationalConsciousness0':-1,'initialMassMilitancy':0,'initialTariff':0.4,'industrialization':0,'initialColonies':[],'initialSuffrage':'None','initialCensorship':'StatePressOnly','initialCornLaws':'Full','initialSerfEmancipation':'Full','initialImmigration':'Open','initialConscription':'Selective','initialMonetaryLaw':'Silver','knownDiscoveries':[],'broadMoneyToGdp':0,'initialInterestRate':0.25,'latitude':0,'longitude':0,'farmLordShare':0.6,'culturalGoodId':54,'nobility':0,'peasant':0,'worker':0,'bourgeois':0,'professional':0,'provinces':[]}
 OLD={**D,'initialTariff':0.0,'initialCornLaws':'None','farmLordShare':0.5,'culturalGoodId':-1}
 NEW=D
 def eff(n,k,dflt): return n[k] if k in n else dflt.get(k)

@@ -2,7 +2,7 @@
 # (490) 開幕の焼き込みの焼き直し：隔離ビルドの Runner の bakeopen を回して opening_bake.json の候補を書く。
 #   使い方：bash scripts/instruments/hz4_490/bake.sh <出力.json> [種=1] [上限の四半期=200]
 #   - 木の SOURCE-HASH は measure.sh の src_manifest と同じ数え方（*.cs *.json *.axaml *.csproj *.slnx・bin/obj/docs/dist/.vs/.git/measurements/uishot を除く）で求め、環境変数 POB_SOURCE_HASH で頭書きへ渡す。
-#     ⚠ 木には今の opening_bake.json（埋め込みの表）が入っている＝焼き直しのたびに頭書きの sourceHash は変わる（表の本文が同じかは sourceHash の行を除いて比べる）。
+#     ⚠ 木には今の opening_bake.json（埋め込みの表）が入っている＝焼き直しのたびに頭書きの sourceHash は変わる（表の本文が同じかは sourceHash の行と generated の行〔UTC の日付＝日をまたぐと変わる〕を除いて比べる・(491) 反証役 hz4〔v〕低#6）。
 #   - 出力の隣に <出力>.series.tsv（試走の四半期ごとの能力の和と日用品の値段の中央値＝収束の判定の入力）。
 #   - 焼いたら PriceOfBread.SimCore/opening_bake.json へ置いて再ビルド（旗は倒さない）。読み込みの旗は Coefficients.OpeningBakeEnabled（POB_COEF="OpeningBakeEnabled=1"）。
 #   - 環境変数 POB_WORK（作業フォルダ・D: 側）が必須。隔離ビルドは $POB_WORK/bake_build。

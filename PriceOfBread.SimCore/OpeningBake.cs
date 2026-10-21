@@ -222,12 +222,22 @@ public static class OpeningBake
         sim.RebaselineInvariants();   // 貯蓄が変わった＝基礎貨幣（貯蓄＋国庫−貸出）が変わる＝保存則の基準線を取り直す
     }
 
+    static bool NamesMatch(JsonElement root, string prop, string[] names)
+    {
+        if (!root.TryGetProperty(prop, out var a) || a.ValueKind != JsonValueKind.Array || a.GetArrayLength() != names.Length) return false;
+        for (int i = 0; i < names.Length; i++) if (a[i].GetString() != names[i]) return false;
+        return true;
+    }
+
     /// <summary>表と盤面の鍵の突き合わせ（双方向）。空＝一致。盤面は書かない。</summary>
     internal static List<string> Validate(MultiNationSim sim, JsonDocument doc)
     {
         var errs = new List<string>();
         var root = doc.RootElement;
         if (!root.TryGetProperty("format", out var f) || f.GetString() != Format) { errs.Add($"format が {Format} でない"); return errs; }
+        // ★(491) 欄の並びも鍵（反証役 hz4〔v〕低#3＝Apply は添字で直書き＝同じ長さのまま欄を入れ替えると値が黙って別の欄に入る）
+        if (!NamesMatch(root, "capNames", CapNames)) errs.Add($"資本の欄の並びが世界と違う（世界 {string.Join(',', CapNames)}）");
+        if (!NamesMatch(root, "producerNames", ProducerNames)) errs.Add($"生産者の欄の並びが世界と違う（世界 {string.Join(',', ProducerNames)}）");
         int ng = Catalog.Goods.Length;
         if (!root.TryGetProperty("goods", out var goods)) { errs.Add("空の表（まだ焼いていない）"); return errs; }
         if (goods.GetArrayLength() != ng) errs.Add($"財の数 表 {goods.GetArrayLength()} ≠ 世界 {ng}");
