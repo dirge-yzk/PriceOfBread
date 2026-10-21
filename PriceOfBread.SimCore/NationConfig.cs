@@ -78,7 +78,7 @@ public sealed class NationConfig
     public Suffrage InitialSuffrage = Suffrage.None;                       // 英米蘭＝制限選挙（Census）／他＝なし
     public CensorshipLaw InitialCensorship = CensorshipLaw.StatePressOnly; // 米蘭＝自由報道／英＝検閲付／他＝国家報道のみ
     public ReformLevel InitialCornLaws = ReformLevel.Full;                 // 穀物法：地主保護の農業国＝全面（英の穀物法・既定〔61国のうち56国〕）／自由貿易・輸出国＝なし（蘭米）
-    public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
+    public ReformLevel InitialSerfEmancipation = ReformLevel.Full;         // 農奴解放：既定＝全面（法による土地・領主への縛りが無い＝61国のうち38国）／封建残滓・土地への縛り＝限定（仏・日・墺・西・独諸邦・デンマークほか20国）／世襲の人身の隷属＝なし（露・普・波）。★(487) 作者 2026-10-21「農奴制の初期値→推奨」：旧は既定＝なし（51国が農奴制の扱いだった）。3区分の基準と国別の根拠は measurements/mg487_20261021_prereg.txt [3]
     public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
     // ★徴兵法の初期値（(178)・作者 2026-10-03「全て推奨でよい」で採った推奨「開幕の徴兵法を史実のデータで」・分類は (168) の下調べ＝1783 年の制度・国ごとの制度と年と出典は実装ログ (178) の表）：常備軍が志願・世襲の武人・傭兵・部族の兵で、国家が平民を籤や割当てで
     //   兵営へ取らない国＝志願制（英〔陸軍は志願・民兵の籤は本土の防衛で別〕・米・日〔世襲の武士〕・清〔八旗・緑営＝世襲と志願〕・蘭・オスマン〔イェニチェリとティマール・徴兵は1843/48〕ほか）／

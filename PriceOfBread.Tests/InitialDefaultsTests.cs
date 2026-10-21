@@ -81,6 +81,7 @@ public class InitialDefaultsTests
         Assert.Equal(0.6, d.FarmLordShare);
         Assert.Equal(Catalog.BreadId, d.CulturalGoodId);
         Assert.Equal(ReformLevel.Full, d.InitialCornLaws);
+        Assert.Equal(ReformLevel.Full, d.InitialSerfEmancipation);   // ★(487) 既定を なし→全面 へ（61国のうち38国が全面・世界データは なし／限定 だけを明示する）
         Assert.Equal(0.4, d.InitialTariff);
         Assert.Equal(0.25, d.InitialInterestRate);
     }
