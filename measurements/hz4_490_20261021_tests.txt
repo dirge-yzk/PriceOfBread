@@ -1,0 +1,6 @@
+## フルスイート（Category!=FullLength・Release・隔離ビルド D:/PoB_work/hz4_490/build_ft・成績表の走りの後に単独で）
+失敗!   -失敗:     1、合格:  1606、スキップ:     0、合計:  1607、期間: 14 m 42 s - PriceOfBread.Tests.dll (net10.0)
+（初回の赤 1 本＝SecessionLaborLawInstrumentTests.計算量の台帳のAIの官僚制度の走査の行…が〈最後の行＝Count−1〉を固定していた→〈表の中にある〉へ直して同クラス 5 本緑。フルスイートは回し直していない）
+## FullLength（Category=FullLength）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 55 s - PriceOfBread.Tests.dll (net10.0)
+## POB_AGE_BANDS=8 の対象テスト（AgeLedger・PopulationInstrument・AgeStructure・Mobility・OpeningBake・SecessionLaborLawInstrument）：成功 46 本・失敗 0（1 m 18 s）

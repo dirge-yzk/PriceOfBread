@@ -1,0 +1,3 @@
+same 500 differ 60
+Counter({('wallclock', 'burscan'): 10, ('wallclock', 'clock'): 10, ('colsok', 'disc'): 10, ('colsok', 'disccontact'): 10, ('colsok', 'flow'): 10, ('colsok', 'pop'): 10})
+BAD 0
