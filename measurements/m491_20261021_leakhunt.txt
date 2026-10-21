@@ -1,0 +1,20 @@
+== leak_1789_668
+leakhunt 完走（seed=1789・668四半期・保存則違反なし）
+pay_s 累計（一度でも居た国の和）：fixHit 0回・額0／mintEmpty 0回・額0／popEmpty 9847回・額29795.32／treasEmpty 21回・額0／clearUnmoved 0回・額0／mintUnmoved 0回・額0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+PROBE行 551
+== leak_1789_668_warm
+leakhunt 完走（seed=1789・668四半期・助走つき・保存則違反なし）
+pay_s 累計（一度でも居た国の和）：fixHit 269回・額66666.09／mintEmpty 0回・額0／popEmpty 35248回・額107025.13／treasEmpty 0回・額0／clearUnmoved 0回・額0／mintUnmoved 0回・額0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+PROBE行 662
+== leak_2_668_warm
+leakhunt 完走（seed=2・668四半期・助走つき・保存則違反なし）
+pay_s 累計（一度でも居た国の和）：fixHit 0回・額0／mintEmpty 0回・額0／popEmpty 32052回・額87964.09／treasEmpty 1回・額0.02／clearUnmoved 0回・額0／mintUnmoved 0回・額0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+PROBE行 661
+== leak_6_668_warm
+leakhunt 完走（seed=6・668四半期・助走つき・保存則違反なし）
+pay_s 累計（一度でも居た国の和）：fixHit 603回・額330055.99／mintEmpty 0回・額0／popEmpty 25268回・額62762.54／treasEmpty 160回・額0.04／clearUnmoved 0回・額0／mintUnmoved 0回・額0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+PROBE行 662

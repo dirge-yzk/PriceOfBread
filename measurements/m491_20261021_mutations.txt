@@ -1,0 +1,4 @@
+# (491) 合流の突然変異（反証役 hz4〔v〕低#3・低#4 の処置・木＝合流 1 ea94b623＋直し・Release・隔離ビルド D:/PoB_work/m491/tbuild・filter OpeningBake）
+M491-1  OpeningBake.NamesMatch を常に真にする（欄の並びの検査を外す）→ 赤 1（鍵が1つでも違えば何も書かずに例外_国_州_財_生産者の財_階級＝変異〈資本の欄の並び〉〈生産者の欄の並び〉で Validate が空）・合格 7
+M491-2  OpeningBake.Apply の sim.RebaselineInvariants() を消す → 赤 2（同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う／読み込んだ後も助走が通り貯蓄の保存則の基準線を取り直している）・合格 6
+戻した木の同じ filter：合格 8・赤 0（ほかに SecessionLaborLaw・MinimumWageAiFloor・PaySalesMerchant・DormantIdentity を含む 31 本が合格）

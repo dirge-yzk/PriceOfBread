@@ -1,0 +1,33 @@
+# (485) 波23 の重なりの読み（読むだけの担当・行は main d679924）の写し＝(491) 合流で main へ置いた。
+# 結論：3 本（pf・mg・dx）の間に、同じ関数の同じ式に触る組はない。defer は空。中の重なりは、どれも恒等の線 hz4 との間。
+# (491) の帰結：pf は採った・mg2 はデータ（農奴制の初期値）だけ採った（旗 2 本・台帳の行 25/26・計器 mgdom_s は枝 mg2 に残す）・dx は採らない＝下の〈台帳の番号〉の 26〜28 は使われず、main の台帳は 0〜25（25＝hz4 の年齢の層の歩）。
+
+| 組 | 重なる ファイル:関数（行は main d679924） | 深さ | 扱い |
+|---|---|---|---|
+| pf×mg | MinimumWageFloor.cs：ma は PerUnit を LaborSupply に分け、ReadHomeLabor・BindShare を足す。mg は BasketPerPerson（29行）を呼ぶだけ（MultiNationSim の 1721行・2007行） | 浅い | 並走してよい |
+| pf×mg | InternationalMarket.PaySales（117行）は pf だけ。mg の運賃は World.Transfer（PayShipOwners・PayCarriers）＝PaySales を通らない | なし | — |
+| pf×mg | Coefficients.cs・Instruments.cs の Sink/Fold/Dispose・DormantIdentityTests.cs・World.cs | 浅い | 合流で機械的に解く |
+| pf×dx | PaySales と Simulation.DemographicStep は別の関数。World.cs は ma の欄（約205行）と dx の ApplyEpidemicDeaths（1154〜1200行） | 浅い | 並走してよい |
+| mg×dx | PopDecision.Run：農奴の門（58〜59行）と飢饉の門（66行）が同じ flow を変える。mg はコードに触らない（world.json が 59行の serfFree の入力を変えるだけ） | 浅い〜中 | 並走してよい（dx は門を PopDecision.Run の中に留める） |
+| mg×dx | mg：Territory.Step（97〜110行）・Movable・MigrateBetweenNations（1653〜1830行）・MoveMigrants・MoveAbroad。dx の段2 はどれにも触らない | 浅い | 並走してよい |
+| mg×dx | Coefficients.cs：dx は扶養力の係数と飢饉の係数を消す。mg は 2636行に足す | 浅い | 合流で機械的に解く |
+| mg×dx | world.json：mg は initialSerfEmancipation を直す。dx は触らない | 浅い | dx は world.json を書かない |
+| hz4×mg×dx | MultiNationSim.cs の CostLedger（Count・Names・UnitMicros の末尾） | 同じ行 | 番号を先に決める |
+| hz4×dx | InstrumentsPop.PopHeader：hz4 は層の列名を変える。dx は deathsFamineK の意味を変える | 中 | hz4 が先、dx はその上に載せ直す |
+| hz4×dx | 台帳の意味：hz4 の行〈年齢の層の仕事〉と dx の行〈POP×月×層〉 | 中（二重に数える恐れ） | hz4 は AgeShare の呼びだけを数える |
+| hz4×mg | 焼き込みの道具と world.json | 浅い | hz4 は作り直した world.json をコミットしない |
+| dx×hz4（bk） | Simulation.MonthSettle の 2350〜2370行 | 中 | dx はこの塊の順番を変えない |
+| 読む線×各線 | コードに触らない | なし | — |
+
+台帳の番号（案）：25 hz4（年齢の層）・26 dx・27 mg（運賃の払い）・28 mg（経路の表・要るときだけ）・pf は既存の 24・29〜 次の波（dx の段3）。
+計算量の割り当て（推奨）：pf 1.0・mg 2.3・dx 2.5・hz4 0（25番で未計上の約8秒が見えるようになる）・合計 5.8 秒（上限側 7.0）。
+
+notes（要旨）：
+- dx の条件：門の置き換えを PopDecision.Run（66行）の中に留める。Territory.Step の差の計算と MigrateBetweenNations の飢えの行に触らない（触れば mg を次の波へ）。
+- 合流の順（推奨）：pf → hz4 → mg と dx。pf を先にする理由＝PaySales の穴は商人 POP が 0 になると開く。dx と mg は階級が絶える回数を増やしうる。
+- pf の直しでは鋳造の経路（Simulation.MintGold）を外す（!minted）。同じ型の穴の候補＝mg の ShipOwnerBook.Ok。
+- mg：データの直しは旗の後ろに無い＝旗 0 の腕 A は m484 と一致しない。データは Privileges.SeigneurialDegree の全ての読み手に効く（国民皆兵の門・PowerShares・領主権の台帳・Meritocracy・PopDecision・法の通りやすさ）。
+- dx：段2 は〈工業化度の削除と焼き込みの後〉の設計＝この波では順が逆。病の表は world.json に置かない。
+- hz4：25 は AgeShare の読み手だけ。hz4 が入ると推定は約 242.8 秒の見込み。
+- 合成した後：pf・mg・dx は労働の市場と人口の配置を動かす＝合流後にアブレーションを 1 回。
+- 波の外の条件：ip（技術水準と工業化度の削除）をこの波で入れるなら mg の旗 0 の枝（MigrationDecay・EraFactor）が消える。
