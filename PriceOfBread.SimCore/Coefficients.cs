@@ -3298,6 +3298,9 @@ public sealed class Coefficients
     //   プレイヤーと同じ法の門（GateLaw → Government.GateInfo）を通る＝目標を置くだけ。MinimumWageLawGate＝0 では目標を書かない（旗の値に依らない）。
     //   ★(486) 2026-10-21 に 1 で**点火**（保存則の狭い直し〔PaySales〕の上で腕 B・止める線に当たらず・事前登録 measurements/pf486_20261021_prereg.txt）。0 に戻せば今の都市の割合の規則（旧の関数 MinimumWageTargetFromBoard は焼き込みまで残す）。
     public double MinimumWageAiFromFloor = 1.0;
+    // ★(497) 線 mw：最低賃金法の AI の書き戻し（反証役 pf〔bv〕中#1・事前登録 measurements/mw497_20261023_prereg.txt）。0＝今の形＝規則の結果が現行法と同じ四半期は現行法を書く（前の四半期に立っていた目標を現行法へ戻す＝(193)(199) の〈線の間では今の段へ戻す〉の写し）。
+    //   > 0＝規則の結果が現行法と同じなら何も書かない（null＝同業組合・反トラストの軸と同じ〈変えないときは null〉）＝前に置いた目標が残る。入口は UtilityAgent.MinimumWageTargetFromFloor の末尾の 1 か所。AI の選び・確証なし。MinimumWageAiFromFloor＝0 では読まれない。
+    public double MinimumWageAiHoldTarget = 0.0;
     // ★特権システム 段4（作者設計 §4-1 P4・2026-09-07）：同業組合法（GuildLaw 保護/制限/廃止）。主ゲート＝法が動く（Government/AI目標/要求経路/UI）。0＝法が Full のまま動かず・効き先も0＝厳密恒等。
     public double GuildLawGate = 0.0;
     //   取り分＝職人の自営レシピの財への上乗せ（買い手価格×これ×法の度合×職人の供給シェア＝消費者→職人・台帳へ）。0＝上乗せなし。点火の値は梯子で（独占レント MonopolyRentPremium と同じ桁が目安）

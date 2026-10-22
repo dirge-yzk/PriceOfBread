@@ -253,4 +253,102 @@ public class MinimumWageAiFloorTests
         Assert.False(Government.ProtectedLaw(w, PolicyAxis.MinimumWage));
         Assert.False(Government.BlockedByIrreversibility(w, PolicyAxis.MinimumWage, regressive: true));
     }
+
+    // ---------------------------------------------------------------- ★(497) 線 mw：旗 MinimumWageAiHoldTarget（間の帯で現行法を書き戻さない）
+
+    [Fact]
+    public void 旗Holdは現行法と同じ結果のときだけ書かない_上げと下げと読めないは旗に依らない()
+    {
+        var w = Build().World;
+        w.Coef.MinimumWageAiFromFloor = 1;
+        var all3 = new[] { 3.0 };                                    // 値段＝床の 3 倍（縛らない）
+        void Both(MinimumWageLaw? flag0, MinimumWageLaw? flag1, string what)
+        {
+            w.Coef.MinimumWageAiHoldTarget = 0; Assert.True(flag0 == UtilityAgent.MinimumWageTargetFromFloor(w), $"旗 0 の {what}");
+            w.Coef.MinimumWageAiHoldTarget = 1; Assert.True(flag1 == UtilityAgent.MinimumWageTargetFromFloor(w), $"旗 1 の {what}");
+        }
+        w.MinimumWage = MinimumWageLaw.Living;
+        SetBoard(w, 2, all3, 0.3);                                   // 失業が上げる線 1/4 と下げる線 1/2 の間＝現状維持
+        Both(MinimumWageLaw.Living, null, "間の帯");
+        w.MinimumWage = MinimumWageLaw.None;
+        Both(MinimumWageLaw.None, null, "間の帯（なし）");
+        SetBoard(w, 1, all3, 0.1);                                   // 失業が低く縛りが無い＝上げる
+        Both(MinimumWageLaw.Subsistence, MinimumWageLaw.Subsistence, "上げ");
+        w.MinimumWage = MinimumWageLaw.Sufficiency;                  // 充足から上は無い＝現状維持
+        SetBoard(w, 3, all3, 0.1);
+        Both(MinimumWageLaw.Sufficiency, null, "充足の現状維持");
+        w.MinimumWage = MinimumWageLaw.Living;                       // 縛って失業が高い＝下げる
+        SetBoard(w, 2, new[] { 0.95 }, 0.8);
+        Both(MinimumWageLaw.Subsistence, MinimumWageLaw.Subsistence, "下げ");
+        foreach (var r in Home(w)) r.Markets[Catalog.LaborId].Price = double.NaN;   // 失業が読めない＝元から書かない
+        Both(null, null, "読めない");
+        w.Coef.MinimumWageLawGate = 0;                               // 法のゲート 0 は旗に依らず書かない
+        Both(null, null, "ゲート 0");
+    }
+
+    /// <summary>ブロック（DecideModernLaws の最低賃金法）を含む Apply を、手で組んだ盤面（失業 0.3＝間の帯）で通す。立っていた目標 standing を p.MinimumWage に置いてから。</summary>
+    private static World ApplyWithStanding(double holdFlag, MinimumWageLaw cur, MinimumWageLaw standing)
+    {
+        var w = Build().World;
+        w.Coef.MinimumWageAiFromFloor = 1;
+        w.Coef.MinimumWageAiHoldTarget = holdFlag;
+        w.MinimumWage = cur;
+        SetBoard(w, (int)cur == 0 ? 1 : (int)cur, new[] { 3.0 }, 0.3);
+        w.Policy.MinimumWage = standing;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+        return w;
+    }
+
+    [Fact]
+    public void 立っていた目標は旗Holdの間の帯でApplyを通っても残り_旗0では現行法へ戻る()
+    {
+        // 現行法＝なし・立っていた目標＝生存（要求・規則が前の四半期に置いた 1 段）・失業 0.3（間の帯）。期待値は規則から作らない（手で立てた目標が残るか）。
+        var w0 = ApplyWithStanding(0, MinimumWageLaw.None, MinimumWageLaw.Subsistence);
+        Assert.Equal(MinimumWageLaw.None, w0.Policy.MinimumWage);          // 旧＝書き戻す
+        var w1 = ApplyWithStanding(1, MinimumWageLaw.None, MinimumWageLaw.Subsistence);
+        Assert.Equal(MinimumWageLaw.Subsistence, w1.Policy.MinimumWage);   // 新＝残る（Apply 末尾の門の畳み〔GateAllLawTargets〕も壊さない）
+        // 下げの目標が立っていても同じ（現行法＝生活・立っていた目標＝生存）
+        Assert.Equal(MinimumWageLaw.Living, ApplyWithStanding(0, MinimumWageLaw.Living, MinimumWageLaw.Subsistence).Policy.MinimumWage);
+        Assert.Equal(MinimumWageLaw.Subsistence, ApplyWithStanding(1, MinimumWageLaw.Living, MinimumWageLaw.Subsistence).Policy.MinimumWage);
+        // 立っていた目標が無ければ（目標＝現行法）旗に依らず現行法のまま
+        Assert.Equal(MinimumWageLaw.None, ApplyWithStanding(0, MinimumWageLaw.None, MinimumWageLaw.None).Policy.MinimumWage);
+        Assert.Equal(MinimumWageLaw.None, ApplyWithStanding(1, MinimumWageLaw.None, MinimumWageLaw.None).Policy.MinimumWage);
+    }
+
+    [Fact]
+    public void 要求が置き直している間は旗に依らず目標が残り_旗が効くのは要求が下りた後()
+    {
+        // 州一揆の譲歩（PendingRevoltDemand）が最低賃金法の引き上げを記録している間は、Apply の末尾の TargetCrisisDemands が毎期置き直す＝規則が書き戻しても旗 0 でも残る。
+        foreach (double flag in new[] { 0.0, 1.0 })
+        {
+            var w = Build().World;
+            w.Coef.MinimumWageAiFromFloor = 1; w.Coef.MinimumWageAiHoldTarget = flag;
+            w.PoliticalLockEnabled = false;                                // 門が通る世界（置く/置かないは GateInfo）
+            w.MinimumWage = MinimumWageLaw.None;
+            SetBoard(w, 1, new[] { 3.0 }, 0.3);                            // 間の帯＝規則は現行法を書く（旗 0）か書かない（旗 1）
+            var (ok, _, why) = Government.GateInfo(w, PolicyAxis.MinimumWage, increasing: true, 1);
+            Assert.True(ok, $"前提が崩れた：最低賃金法の 1 段目が門を通らない（{why}）");
+            w.PendingRevoltDemand = (int)PolicyAxis.MinimumWage + 1;
+            UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+            Assert.Equal(MinimumWageLaw.Subsistence, w.Policy.MinimumWage);   // 旗に依らず要求の目標が最後の言葉
+            w.PendingRevoltDemand = 0;                                         // 要求が下りた（危機の終わり・法は動いていない）
+            UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+            Assert.Equal(flag > 0 ? MinimumWageLaw.Subsistence : MinimumWageLaw.None, w.Policy.MinimumWage);   // 旗 1 だけ目標が残る
+        }
+    }
+
+    [Fact]
+    public void 計器の数えは立っていた目標を書き直し_書き戻し_向き変え_書かず残るに分ける()
+    {
+        var w = Build().World;
+        var N = MinimumWageLaw.None; var S = MinimumWageLaw.Subsistence; var L = MinimumWageLaw.Living; var F = MinimumWageLaw.Sufficiency;
+        w.MinimumWage = L;
+        Instruments.MaCount(w, L, L);                                  // 立っていない（prior==cur）＝決定だけ数える
+        Instruments.MaCount(w, F, F);                                  // 立っていて同じ値を書き直した
+        Instruments.MaCount(w, F, L);                                  // 立っていて現行法へ書き戻した
+        Instruments.MaCount(w, F, S);                                  // 立っていて別の値（現行法でも立っていた目標でもない）
+        Instruments.MaCount(w, S, null);                               // 立っていて何も書かない
+        Instruments.MaCount(w, N, null);
+        Assert.Equal((6, 5, 1, 1, 1, 2), (w.DiagMaDecisions, w.DiagMaStanding, w.DiagMaKept, w.DiagMaErased, w.DiagMaFlipped, w.DiagMaCarried));
+    }
 }
