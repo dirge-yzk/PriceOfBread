@@ -114,3 +114,10 @@
 (7) 形のメカニクス（実装で確かめる所）：①重みのループに倒産の適格な個体の除外（prodW＝0・laborCount に数えない）を旗 1 だけで足す ②SmoothedMargin は門が開いて Scale＝0 の個体でも毎月更新される（EconomyStep.cs の採算の行・眠りの月は極限値）＝配りの重みの出所として使える（実装で番人にする）③倒産しても設備が残る個体は眠らない（SleepState の条件 `Bankrupt` で 0 を返す＝今のまま）④国家の工場の完成（World.cs:1835）は適格な個体にだけ `Scale += FactoryBuildScale` を足す（旗 1）。
 (8) 触る行の追加：Simulation.cs（恐慌の廃棄の枝・2 か所）・Megaprojects.cs:240 の呼び。DormantIdentityTests.cs と WriterRatchetTests.cs は行末が混在（i/mixed）＝Edit ツールだけで触る。
 (9) 実行の決まり：この前半で 5 種の腕 A は回さない（指示「腕は回さない」）。恒等の確かめ＝旗 0 の経路に 1 命令も増えていない根拠（差分の読み）＋ 1 種・短距離（200 四半期）の素と計器つきを基点と cmp（(468) §5 の型）。5 種と 10 種の全行一致は後半の担当。
+
+[追記 2]（2026-10-23・形の実装の後・腕の前・書いたモデル Claude Sonnet 5.5）形を実装した上での記録。コードに合わせた置き換えと、事前登録に無かった実装上の取り決め。
+(1) 実装した形：新しい部品 `FactoryEquipment`（SimCore/FactoryEquipment.cs）＝Eligible・On・Depreciate・Scrap・Distribute・Candidate。旗は `Coefficients.RecipeEquipment`・`IndustrializationOff`（既定 0・DormantIdentityTests の一覧に入れた）。EconomyStep の変更は全て `eqOn`（暦が進む月かつ旗が正）か `indOff` の枝の中で、旗 0 の経路は式・順序とも変えていない。
+(2) 設備の書き手は Scale について 4 つだけ（減価・購入の配り・国家の工場の完成・恐慌の廃棄）＋門が 0 の個体の Scale＝0（旧から残る行）。BuiltScale は減価・廃棄・完成・接収／払い下げ（持分の付け替え）。
+(3) 計算量の台帳 26 `RecipeEquipmentScans`＝配りが 1 回走るたびに州の生産者の数。単価は上限の見積り 0.02 µs/件（census は無い）。件数の上限＝（建設の束が買われた州×月）×州の生産者の数。事前登録 [7] の〈≦1.1 秒〉は州の全生産者（眠った個体を含む）を数える形に直した＝上限の見積りは台帳の ProducerMonths（約 1.08 億）よりおよそ 2 倍の母数×配りの月の割合で、最悪 約 4 秒・見込み 1 秒前後。腕 B の .cost の実測で取り直す。指示の割り当て 5.0 秒の内。
+(4) 計器の列：eq_s（国×四半期）＝quarter・year・nation・flagLevel・pointsBought・equipInstalled・scaleSum・builtSum・scaleMax・scaleMaxGood・eligibleCount・gateOpenCount・bankruptCount・indMean・indMax。eqr_s（国×レシピ×四半期・同じ財に適格なレシピが 2 つ以上ある財だけ）＝quarter・year・nation・good・recipe・scaleSum・shareOfGood・builtSum・gateOpenRegions。〈eq_r〉の名前は eqr_s にした（ファイル名 eqr_s<種>.tsv）。既存の表の列は変えていない。読み手 scripts/instruments/eq495/an_eq.py。
+(5) 番人（FactoryEquipmentTests）：設備を持つ生産者の分類・配りの手計算（φ・基準・利幅比例・赤字は 0・倒産と未発見は受け取らない・全員赤字は等分・基準は一棟の下限・点が 0／NaN／負は配らない・配り先が無ければ 0）・台帳の件数・減価と廃棄の持分保存・購入が無ければ設備は減価でしか動かない（走らせた盤面で (1−dep)^月数に一致）・旗 0 の対照（自由な伸びが残る）・倒産しても設備を消さず重みを持たない・倍率の削除（賃金の天井・独占・ヴィンテージの 3 つ・機械化度・人力の能力の比が indMult の式）・国家の工場の完成が設備に足される・T0 ラチェット。

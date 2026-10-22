@@ -43,6 +43,8 @@ CLS = {
 def cls_of(path, text):
     for (p, k), v in CLS.items():
         if p == path and k in text: return v
+    if "public double Scale = 1.0" in text or "Scale = isFactory" in text or "Output = 30, Scale = 1.0" in text: return "構築時の初期値（生産者の初期化子＝設備の開幕の置き場。工場 0.05・職人と自家農家 1.0・旗1の助走は旧の規則で自由に伸びる）"
+    if "ApplyEndowment(" in text: return "賦存の適用（産地の RGO の面積＝適格でない）＝今のまま"
     if path.startswith("PriceOfBread.Tests/"): return "試験（設定）"
     if path.startswith("PriceOfBread.Runner/"): return "Runner（設定・診断）"
     return "※手で分類が必要"

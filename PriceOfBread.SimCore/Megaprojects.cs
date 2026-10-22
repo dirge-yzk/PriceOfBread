@@ -237,7 +237,9 @@ public static class Megaprojects
             case "Industrialization":
                 // ★州上限（IndustryInvestRegionCap）は投資の**入口**（World.ApplyModernizationInvestment 国庫投資・EconomyStep の StateBuildQueue ヘッドルーム。手動建設 BuildIndustry は2026-09-26に削除）
                 // でしか効いておらず、状態への直接加算は素通りする（設計書§6 地雷#4）。上限は「プレイヤー/AI共通のルール」と宣言されているので建造物にも適用する。
-                r.Industrialization += Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+                double indAdd = Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+                if (c.RecipeEquipment > 0) FactoryEquipment.Distribute(r, c, indAdd, r.TotalIndustrialization, null);   // ★(495) 同じ点を適格な個体の設備にも同じ割合で足す（在庫に足す前の値で φ を出す）
+                r.Industrialization += indAdd;
                 break;
             default: break;   // 未知の効かせ先＝不発（データが無い/違う＝不発の原則）
         }

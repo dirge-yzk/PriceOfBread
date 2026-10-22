@@ -9,13 +9,13 @@ SimCore/EconomyStep.cs:2569	門が0（未発見・退場）＝設備が無い／
 SimCore/EconomyStep.cs:2578	旗1・適格＝Scale は据え置き（再参入で設備を作り直さない）	if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; s.Scale = coef.FactoryReentryScale; }
 SimCore/EconomyStep.cs:2593	門が0（未発見・退場）＝設備が無い／廃棄＝旗1でも今のまま	s.Bankrupt = true; s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）
 SimCore/OpeningBake.cs:216	開幕の焼き込みの読み込み（旗 OpeningBakeEnabled 既定0）＝今のまま	p.Scale = row[1].GetDouble(); p.BuiltScale = row[2].GetDouble(); p.SmoothedMargin = row[3].GetDouble(); p.Bankrupt = row[4].GetDouble() != 0;
-SimCore/Simulation.cs:983	※手で分類が必要	Scale = isFactory ? 0.05 : 1.0,        // 工場は操業規模を低く開始（全財がScale1.0で立たない＝初期は工場がほぼ無い）
-SimCore/Simulation.cs:1146	※手で分類が必要	Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 1789＝職人が現役の主役（工場は0.5/0.05から育つ）
+SimCore/Simulation.cs:983	構築時の初期値（生産者の初期化子＝設備の開幕の置き場。工場 0.05・職人と自家農家 1.0・旗1の助走は旧の規則で自由に伸びる）	Scale = isFactory ? 0.05 : 1.0,        // 工場は操業規模を低く開始（全財がScale1.0で立たない＝初期は工場がほぼ無い）
+SimCore/Simulation.cs:1146	構築時の初期値（生産者の初期化子＝設備の開幕の置き場。工場 0.05・職人と自家農家 1.0・旗1の助走は旧の規則で自由に伸びる）	Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 1789＝職人が現役の主役（工場は0.5/0.05から育つ）
 SimCore/Simulation.cs:2080	教区学校＝役務は適格でない＝今のまま	if (!parishOn) ep.Scale = 0;
 SimCore/Simulation.cs:2081	公立学校＝役務は適格でない＝今のまま	if (!publicOn) pub.Scale = 0;
 SimCore/Simulation.cs:2309	家畜の徴発＝RGO は適格でない＝今のまま	lpr.Scale = Math.Max(0, lpr.Scale * (1.0 - World.Coef.WarLivestockRequisition * Math.Min(1.0, r.LastWarIntensity)));
 SimCore/Simulation.cs:2319	旗1・適格＝同じ個体の Scale にも同じ割合を掛ける（持分が動かない）	fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）…
-SimCore/Simulation.cs:3103	※手で分類が必要	Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 職人と同じ自己費用 0.35（工場の最後の一段を手でやる行＝工場より遅く高い）
+SimCore/Simulation.cs:3103	構築時の初期値（生産者の初期化子＝設備の開幕の置き場。工場 0.05・職人と自家農家 1.0・旗1の助走は旧の規則で自由に伸びる）	Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 職人と同じ自己費用 0.35（工場の最後の一段を手でやる行＝工場より遅く高い）
 SimCore/World.cs:1835	旗1・適格＝Scale にも FactoryBuildScale を足す（国営の設備も買った分だけ）	p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
 SimCore/World.cs:2393	払い下げ＝持分の付け替え（Scale 不変）＝今のまま	p.BuiltScale = Math.Max(0, p.BuiltScale - Coef.FactoryBuildScale);   // 1棟ぶん民営化（残る棟は国営のまま）
 SimCore/World.cs:2394	払い下げ＝持分の付け替え＝今のまま	if (p.BuiltScale <= 1e-9) { p.BuiltScale = 0; p.SubsidyRate = default; }   // 売り切った時だけ補助金も外れる（旧挙動と同値）

@@ -2313,9 +2313,10 @@ public sealed class Simulation
                     r.Industrialization *= scrapKeep;
                     r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
                     r.StrandedVintage *= scrapKeep;
+                    if (World.Coef.RecipeEquipment > 0) FactoryEquipment.Scrap(r, scrapKeep);   // ★(495) 恐慌の廃棄は適格な個体の設備（Scale と BuiltScale）にも同じ割合
                     if (World.Coef.DepressionScrapsBuiltScale > 0 && scrapKeep < 1)
                         foreach (var fp in r.Producers)
-                            if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9)
+                            if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9 && !(World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)))
                                 fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
                 }
                 // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、

@@ -334,7 +334,7 @@ public static class MarketFlow
 
     /// <summary>賃金の天井の倍率＝WageClampMax×(1＋WageClampIndScale×工業化度)（参照価格×物価水準に掛ける）。StepDay（州1回に巻き上げ）と計器 labor_s（法の床を機構と同じ天井で削って読む）が同じ式を読む1本（(469)・式は1文字も変えない＝ビット恒等）。</summary>
     internal static double EffWageMax(Region region, Coefficients coef)
-        => coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
+        => coef.WageClampMax * (1 + coef.WageClampIndScale * (coef.IndustrializationOff > 0 ? 0.0 : region.Industrialization));   // ★(495) 旗 IndustrializationOff では工業化度の項を 0（WageClampMax の固定の天井は残す）
 
     /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
     private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);
