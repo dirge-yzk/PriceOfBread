@@ -120,3 +120,6 @@
 [訂正 2] 計器の列：ma_s の末尾 6 列（cumDecisions・cumStanding・cumKept・cumErased・cumFlipped・cumCarried）。ブロックの位置は Apply の最低賃金法のブロックの `MinimumWageTargetChosen` の直後（p に書く前）。
 [訂正 3] 触った行（実装のコミットで確定）：Coefficients.cs＝`MinimumWageAiFromFloor` の直後に 3 行（旗 1 本＋注 2 行）／SelfPlay.cs＝`MinimumWageTargetFromFloor` の末尾 2 行・Apply の最低賃金法のブロックの計器の行 1 行／
       World.cs＝`DiagMaTargetOrd` の直後に 2 行／InstrumentsMa.cs＝列 6 本と `MaCount` 1 関数／Tests＝MinimumWageAiFloorTests.cs の末尾・DormantIdentityTests.cs の休眠の表に 1 行（`OpeningBakeEnabled` の並びの後ろ）。
+[読み 1] 突然変異（4 本・隔離ビルド・`MinimumWageAiFloorTests` 11 本・記録 measurements/mw497_20261023_mutations.txt）：M1 旗を見ずに常に null＝5 本赤／M2 旗を無視して want を返す＝3 本赤／M3 条件の反転（want≠cur で null）＝3 本赤／M4 旗が正なら常に null（上げ・下げも消す）＝1 本赤（旗の分岐の表）。全て現行の木へ戻して差分なし。
+      番人の名：旗Holdは現行法と同じ結果のときだけ書かない_上げと下げと読めないは旗に依らない／立っていた目標は旗Holdの間の帯でApplyを通っても残り_旗0では現行法へ戻る／要求が置き直している間は旗に依らず目標が残り_旗が効くのは要求が下りた後／計器の数えは立っていた目標を書き直し_書き戻し_向き変え_書かず残るに分ける。
+      M1（書き戻し 0）は構成上の 0（同語反復）＝機構が働いたかは M2〜M5 で読む。
