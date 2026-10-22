@@ -218,6 +218,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Pay; public bool PayHeader;                         // (486) 売上の払いの保存則の穴の表 pay_s（国×四半期・累計）
         public System.IO.StreamWriter? Ma; public bool MaHeader;                           // (480) 最低賃金法の AI の判断の表 ma_s（国×四半期）
         public System.IO.StreamWriter? House; public bool HouseHeader;                     // (418) 農家の手仕事の表（国×四半期）
+        public System.IO.StreamWriter? Chem, ChemGood; public bool ChemHeader, ChemGoodHeader;   // (493) 硫酸とソーダ灰の表（挙げた国×四半期×{ルブラン法・ソルベー法・電解・黄鉄鉱法}／×{硫酸・ソーダ灰}）
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // (416) 近代化投資の信号の表（国×四半期）・国力の旧と新の表（国×年末）
         public System.IO.StreamWriter? LawGate; public bool LawGateHeader;                 // (423) 法の門の旧と新の表（国×四半期）
         public System.IO.StreamWriter? SvcBuy; public bool SvcBuyHeader;                   // (433) 家事奉仕の買い手の表（国×四半期×階級）
@@ -1672,6 +1673,7 @@ public static partial class Instruments
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
             MaFold(sk, seed, w, q, picked, yearEnd);        // (480) 最低賃金法の AI の判断の表（失業・床が縛る広がり・今と新しい規則の目標）
             HouseFold(sk, seed, w, q, picked, yearEnd);     // (418) 農家の手仕事の表（行の産出の割合と農民の能力の取り分）
+            ChemFold(sk, seed, w, q, picked);               // (493) 硫酸とソーダ灰の表（新しい製法の産出の割合・財の産出と需要と値段）
             ModFold(sk, seed, w, st, q, picked, yearEnd);   // (416) AI の近代化投資の信号の表（旧の gap と新しい信号）
             LawGateFold(sk, seed, w, q, picked, yearEnd);   // (423) 法の門の旧と新の表（金本位・反トラスト・同業組合の願い）
             SvcBuyFold(sk, seed, w, q, picked);   // (433) 家事奉仕の買い手の表（階級ごとの欲しい量・予算で絞った量・買えた量・州の月の和を戻す）
@@ -1738,6 +1740,7 @@ public static partial class Instruments
         sk.Pay?.Dispose(); sk.Pay = null;   // (486)
         sk.Ma?.Dispose(); sk.Ma = null;   // (480)
         sk.House?.Dispose(); sk.House = null;   // (418)
+        sk.Chem?.Dispose(); sk.Chem = null; sk.ChemGood?.Dispose(); sk.ChemGood = null;   // (493)
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // (416)
         sk.LawGate?.Dispose(); sk.LawGate = null;   // (423)
         sk.SvcBuy?.Dispose(); sk.SvcBuy = null;   // (433)

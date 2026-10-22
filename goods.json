@@ -514,7 +514,11 @@
     "inputs": [
       {
         "goodId": 7,
-        "qtyPerOutput": 1
+        "qtyPerOutput": 0.8
+      },
+      {
+        "goodId": 9,
+        "qtyPerOutput": 0.2
       },
       {
         "goodId": 1,
@@ -538,11 +542,15 @@
     "inputs": [
       {
         "goodId": 8,
-        "qtyPerOutput": 1
+        "qtyPerOutput": 0.7
       },
       {
         "goodId": 7,
-        "qtyPerOutput": 0.3
+        "qtyPerOutput": 0.2028
+      },
+      {
+        "goodId": 128,
+        "qtyPerOutput": 0.15
       }
     ],
     "isColonial": false,
@@ -554,7 +562,7 @@
   },
   {
     "id": 33,
-    "name": "化学薬品",
+    "name": "硫酸",
     "tier": "Intermediate",
     "baseNeed": 0,
     "elasticity": 0.4,
@@ -562,15 +570,15 @@
     "inputs": [
       {
         "goodId": 5,
-        "qtyPerOutput": 0.6
+        "qtyPerOutput": 0.8
+      },
+      {
+        "goodId": 108,
+        "qtyPerOutput": 0.1
       },
       {
         "goodId": 1,
-        "qtyPerOutput": 0.5
-      },
-      {
-        "goodId": 6,
-        "qtyPerOutput": 0.4
+        "qtyPerOutput": 0.6
       }
     ],
     "isColonial": false,
@@ -597,7 +605,7 @@
         "qtyPerOutput": 0.1
       },
       {
-        "goodId": 1,
+        "goodId": 11,
         "qtyPerOutput": 0.15
       }
     ],
@@ -1022,7 +1030,11 @@
       },
       {
         "goodId": 33,
-        "qtyPerOutput": 0.1
+        "qtyPerOutput": 0.05
+      },
+      {
+        "goodId": 128,
+        "qtyPerOutput": 0.0406
       }
     ],
     "isColonial": false,
@@ -1066,7 +1078,11 @@
       },
       {
         "goodId": 42,
-        "qtyPerOutput": 0.3
+        "qtyPerOutput": 0.2688
+      },
+      {
+        "goodId": 6,
+        "qtyPerOutput": 0.05
       }
     ],
     "isColonial": false,
@@ -1281,8 +1297,8 @@
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 33,
-        "qtyPerOutput": 0.3
+        "goodId": 128,
+        "qtyPerOutput": 0.2434
       }
     ],
     "isColonial": false,
@@ -1380,7 +1396,11 @@
     "inputs": [
       {
         "goodId": 33,
-        "qtyPerOutput": 0.5
+        "qtyPerOutput": 0.25
+      },
+      {
+        "goodId": 128,
+        "qtyPerOutput": 0.2028
       },
       {
         "goodId": 16,
@@ -2032,7 +2052,11 @@
     "inputs": [
       {
         "goodId": 33,
-        "qtyPerOutput": 0.443
+        "qtyPerOutput": 0.2336
+      },
+      {
+        "goodId": 19,
+        "qtyPerOutput": 0.45
       }
     ],
     "isColonial": false,
@@ -2344,11 +2368,7 @@
       },
       {
         "goodId": 46,
-        "qtyPerOutput": 0.537
-      },
-      {
-        "goodId": 10,
-        "qtyPerOutput": 0.2
+        "qtyPerOutput": 0.5616
       }
     ],
     "isColonial": false,
@@ -2527,8 +2547,12 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 33,
-        "qtyPerOutput": 0.6
+        "goodId": 6,
+        "qtyPerOutput": 0.7
+      },
+      {
+        "goodId": 78,
+        "qtyPerOutput": 0.2025
       },
       {
         "goodId": 108,
@@ -2623,8 +2647,8 @@
         "qtyPerOutput": 0.43
       },
       {
-        "goodId": 33,
-        "qtyPerOutput": 0.3
+        "goodId": 1,
+        "qtyPerOutput": 0.6444
       }
     ],
     "isColonial": false,
@@ -2643,6 +2667,26 @@
     "productivity": 2,
     "inputs": [],
     "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1,
+    "wearRatePerMonth": 0.03,
+    "use": "Consumed"
+  },
+  {
+    "id": 128,
+    "name": "ソーダ灰",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 11,
+        "qtyPerOutput": 2
+      }
+    ],
+    "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
     "nutrition": -1,

@@ -20,7 +20,7 @@ public enum GoodUse { Consumed, Held }
 /// **意味のある所は3入力を許可**（例：缶詰＝肉+鉄+塩）。**複数レシピ＝同じ財に複数の生産者**
 /// （例：電力＝石炭火力 or 石油火力、労働力＝人力 or 蒸気機関 or 電化）：市場が安いレシピを選ぶ
 /// （採算の良い生産者が操業規模と売上シェアを奪う）＝「A+B+(C or D)」は燃料違いの並存レシピで表現。
-/// ハブ財（石炭・鋼・化学薬品）は相方を必ず変える（反モノカルチャー）。
+/// ハブ財（石炭・鋼・硫酸）は相方を必ず変える（反モノカルチャー）。
 /// 気候ゲート財（IsColonial）は賦存州（Resources に列挙）だけが産する＝供給の偏在が地理から創発。
 /// 建設（工場/鉄道/艦隊）は財でなく束消費（別系統＝EconomyStep の工業化投資が鋼+機械+セメント+製材を食う）。
 /// </summary>
@@ -88,10 +88,10 @@ public static class Catalog
         new(SteelId, "鋼",       GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(IronId,1.0), I(CoalId,0.659)], WearRatePerMonth: 0.005),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 コークス0.4→石炭0.659（参照価格を保つ換算）
         new(CopperId, "銅",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(CopperOreId,1.0), I(CoalId,0.659)], WearRatePerMonth: 0.005),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 コークス0.4→石炭0.659。⚠銅鉱は畳まない＝原料→製錬の行程（スウォンジーがコーンウォール・チリ・キューバの鉱石を製錬＝作者裁定 2026-09-29「加工は畳まない」）
         new(LeadId, "鉛",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(LeadOreId,1.0), I(CoalId,0.659)], WearRatePerMonth: 0.005),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 コークス0.4→石炭0.659（銅と同じ理由で鉛鉱は残す）
-        new(CementId, "セメント", GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(LimestoneId,1.0), I(CoalId,0.4)], WearRatePerMonth: 0.005),
-        new(GlassId, "ガラス",   GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(SilicaSandId,1.0), I(LimestoneId,0.3)], WearRatePerMonth: 0.005),
-        new(ChemicalsId, "化学薬品", GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(SulfurId,0.6), I(CoalId,0.5), I(SaltId,0.4)], WearRatePerMonth: 0.03),   // 硫黄＋石炭＋塩（ルブラン法＝塩+硫酸→ソーダ灰＝19世紀重化学の基幹）。塩の工業需要が生まれ化学連鎖が一段深くなる
-        new(GunpowderId, "火薬",     GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(SaltpeterId,0.75), I(SulfurId,0.10), I(CoalId,0.15)], WearRatePerMonth: 0.03),   // 黒色火薬＝硝石(75%)＋硫黄(10%)＋石炭(15%＝木炭の抽象)。史実配合比。総投入量1.0保存＝硝石/硫黄/石炭は同一RGO RefPriceのため火薬RefPriceは不変。化学薬品を要さない近世の火薬（1789から作れる）。無煙火薬は化学薬品ベースの並存レシピで晩期に。硝石を欠く国は輸入硝石に律される（英のベンガル独占）
+        new(CementId, "セメント", GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(LimestoneId,0.8), I(ClayId,0.2), I(CoalId,0.4)], WearRatePerMonth: 0.005),   // ★(493) G15：ポルトランドセメントは石灰石＋粘土（石灰石だけでは生石灰）。粘土 0.2 は石灰石 1→0.8 と入れ替え（採取どうし＝参照価格は同じ）
+        new(GlassId, "ガラス",   GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(SilicaSandId,0.7), I(LimestoneId,0.2028), I(SodaAshId,0.15)], WearRatePerMonth: 0.005),   // ★(493) G6：ソーダ石灰ガラスの融剤はソーダ灰。足した分は珪砂 1→0.7・石灰石 0.3→0.2028 で払う（費用中立＝旧の参照価格 1.052 を保つ）
+        new(SulfuricAcidId, "硫酸", GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(SulfurId,0.8), I(SaltpeterId,0.1), I(CoalId,0.6)], WearRatePerMonth: 0.03),   // ★(493) 鉛室法（ローバック 1746）＝硫黄を焼き硝石を触媒にする。質量 1.5＝旧の化学薬品（硫黄 0.6＋石炭 0.5＋塩 0.4）と同じ＝参照価格 1.16 を保つ。旧は塩を含み酸の行からアルカリが出る形（作者 2026-10-21〜23 の最低ライン）。黄鉄鉱法は並存（Simulation）
+        new(GunpowderId, "火薬",     GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(SaltpeterId,0.75), I(SulfurId,0.10), I(TimberId,0.15)], WearRatePerMonth: 0.03),   // ★(493) G5：黒色火薬の炭は木炭＝木から（鉱物の石炭は炭にならない）。採取どうし＝参照価格は同じ   // 黒色火薬＝硝石(75%)＋硫黄(10%)＋石炭(15%＝木炭の抽象)。史実配合比。総投入量1.0保存＝硝石/硫黄/石炭は同一RGO RefPriceのため火薬RefPriceは不変。化学薬品を要さない近世の火薬（1789から作れる）。無煙火薬は化学薬品ベースの並存レシピで晩期に。硝石を欠く国は輸入硝石に律される（英のベンガル独占）
         new(LumberId, "製材",     GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(TimberId,1.0)], WearRatePerMonth: 0.02),
         new(CottonClothId, "綿布",     GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(CottonId,1.0)], WearRatePerMonth: 0.02),
         new(CanvasId, "帆布",     GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(HempId,1.0)], WearRatePerMonth: 0.02),
@@ -118,9 +118,9 @@ public static class Catalog
         new(LuxuryClothingId, "高級衣料", GoodTier.Luxury,       0.10, 0.9, 1.5, [I(SilkClothId,0.4), I(WoolenClothId,0.3), I(FurId,0.3)], WearRatePerMonth: 0.02),   // 絹＋毛織＋毛皮（裏地/襟巻＝上流の冬季奢侈）。毛皮の最大の吸収先
         new(FurnitureId, "家具",     GoodTier.Daily,        0.16, 0.6, 1.7, [I(LumberId,0.6), I(LeatherId,0.3)], WearRatePerMonth: 0.005, Use: GoodUse.Held),
         new(LuxuryFurnitureId, "高級家具", GoodTier.Luxury,       0.10, 0.9, 1.5, [I(LumberId,0.5), I(SilkClothId,0.3), I(FurId,0.2)], WearRatePerMonth: 0.005, Use: GoodUse.Held),   // 製材＋絹＋毛皮（敷物/椅子張り＝富裕邸宅の調度）
-        new(PaperId, "紙",       GoodTier.Daily,        0.10, 0.6, 1.8, [I(TimberId,1.404), I(ChemicalsId,0.1)], WearRatePerMonth: 0.02),   // 既定＝木材パルプ製紙（解禁の表の onset 0.5）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：パルプ（木0.8 の素通し）を畳む＝旧 パルプ1.0→木1.404（参照価格の比）
+        new(PaperId, "紙",       GoodTier.Daily,        0.10, 0.6, 1.8, [I(TimberId,1.404), I(SulfuricAcidId,0.05), I(SodaAshId,0.0406)], WearRatePerMonth: 0.02),   // ★(493) 化学パルプ＝亜硫酸法（酸）とソーダ法・クラフト法（アルカリ）の両方（半々・費用中立）   // 既定＝木材パルプ製紙（解禁の表の onset 0.5）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：パルプ（木0.8 の素通し）を畳む＝旧 パルプ1.0→木1.404（参照価格の比）
         new(BreadId, "パン",     GoodTier.Staple,       0.55, 0.3, 2.0, [I(FlourId,1.0)], WearRatePerMonth: 0.25),   // 野菜(108)の追加で総食料を概ね不変に保つため 0.80→0.55（差分は野菜へ）
-        new(PreservedMeatId, "加工肉",   GoodTier.Daily,        0.12, 0.5, 1.8, [I(MeatId,0.6), I(FlourId,0.3)], Nutrition: 1.0, WearRatePerMonth: 0.06),   // ★塊1：食卓の動物性タンパク（生肉48は中間財のまま＝塩漬け/干物/缶詰にしてから食べる19世紀）。FoodIncludesAnimalProtein=0では不読
+        new(PreservedMeatId, "加工肉",   GoodTier.Daily,        0.12, 0.5, 1.8, [I(MeatId,0.6), I(FlourId,0.2688), I(SaltId,0.05)], Nutrition: 1.0, WearRatePerMonth: 0.06),   // ★(493) G11：塩漬けに塩が無かった。塩 0.05 は小麦粉 0.3→0.2688 で払う（費用中立）   // ★塊1：食卓の動物性タンパク（生肉48は中間財のまま＝塩漬け/干物/缶詰にしてから食べる19世紀）。FoodIncludesAnimalProtein=0では不読
         new(DriedFishId, "干物",     GoodTier.Daily,        0.10, 0.5, 1.9, [I(FishId,0.7), I(SaltId,0.2)], Nutrition: 1.0, WearRatePerMonth: 0.03),   // ★塊1：同上（魚の保存食）
         new(CannedFoodId, "缶詰",     GoodTier.Daily,        0.10, 0.6, 1.7, [I(MeatId,0.6), I(IronId,0.25), I(TinOreId,0.05), I(SaltId,0.2)], WearRatePerMonth: 0.005),   // 肉＋ブリキ(鉄に錫めっき=鉄0.25+錫0.05)＋塩。錫は缶の数%の薄膜＝低係数。錫の最大の出口
         new(BeerId, "ビール",   GoodTier.Daily,        0.12, 0.7, 1.9, [I(WheatId,0.5)], WearRatePerMonth: 0.06),
@@ -129,13 +129,13 @@ public static class Catalog
         new(TobaccoId, "煙草",     GoodTier.Daily,        0.08, 0.7, 1.9, [I(TobaccoLeafId,1.0)], WearRatePerMonth: 0.03),
         new(LeatherGoodsId, "革製品",   GoodTier.Daily,        0.08, 0.6, 1.7, [I(LeatherId,0.5), I(FurId,0.2), I(DyeId,0.2)], WearRatePerMonth: 0.005),   // 革＋毛皮(裏地/防寒小物)＋染料。毛皮のDaily緩衝出口（不況時の暴落抑制）
         new(PorcelainId, "陶磁器",   GoodTier.Daily,        0.07, 0.6, 1.7, [I(ClayId,0.6), I(SilicaSandId,0.3)], WearRatePerMonth: 0.005),   // 粘土＋珪砂（長石/珪石）＝窯業の一次製品。旧ガラス(36)投入は誤り（ガラスと陶磁器は別系統）を是正
-        new(SoapId, "石鹸",     GoodTier.Daily,        0.08, 0.6, 1.8, [I(PalmOilId,0.5), I(ChemicalsId,0.3)], WearRatePerMonth: 0.005),
+        new(SoapId, "石鹸",     GoodTier.Daily,        0.08, 0.6, 1.8, [I(PalmOilId,0.5), I(SodaAshId,0.2434)], WearRatePerMonth: 0.005),   // ★(493) 鹸化はアルカリ（苛性ソーダ＝ソーダ灰＋石灰）。量 0.2434＝0.3×旧の化学薬品 1.16÷ソーダ灰 1.43（費用中立）
         new(ChocolateId, "チョコレート", GoodTier.Luxury,   0.05, 0.9, 1.5, [I(CocoaId,0.5), I(SugarId,0.4)], WearRatePerMonth: 0.03),
         new(TeaId, "茶",       GoodTier.Daily,        0.07, 0.8, 2.2, [], true, WearRatePerMonth: 0.03),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：茶葉を畳む（A群・作者裁定 2026-09-29「茶は畳んでよい」）＝茶そのものを植民地の採取（RGO・賦存州だけが産する）に。生産性は茶葉の2.2（茶葉1.0＝茶1.0）
         new(CoffeeId, "コーヒー", GoodTier.Daily,        0.07, 0.8, 2.2, [], true, WearRatePerMonth: 0.03),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：コーヒー豆を畳む（同上）＝コーヒーを植民地の採取に。生産性はコーヒー豆の2.2
         new(WaterproofClothId, "防水布",   GoodTier.Daily,        0.05, 0.7, 1.6, [I(RubberId,0.5), I(CottonClothId,0.4)], WearRatePerMonth: 0.02),
-        new(MedicineId, "医薬品",   GoodTier.Daily,        0.108, 0.6, 1.6, [I(ChemicalsId,0.5), I(FruitId,0.3)], WearRatePerMonth: 0.03),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：包帯（必要0.04・綿布0.5）を畳んで必要へ足す（作者裁定 Q8）＝0.08＋0.04×参照価格の比（0.76÷1.07）＝0.108（支出を保つ）
-        new(QuinineId, "キニーネ", GoodTier.Daily,        0.04, 0.7, 1.6, [I(CinchonaBarkId,0.5), I(ChemicalsId,0.3)], WearRatePerMonth: 0.03),   // ★2026-09-30 (129)（作者裁定 2026-09-30＝財の削減 (123) で畳んだ金鶏樹皮を戻す・元の裁定 2026-09-29「加工は畳まない。植民地材→本国に輸送→加工の行程を飛ばすべきではない」）：キニーネは**本国の工場**で樹皮から抽出する（既定のレシピ＝単離・解禁の表の既定の行 0.5＝ペルティエとカヴァントゥ 1820 パリ）。樹皮はアンデスからカディス・ロンドン・アムステルダム（樹皮の競売）へ運ばれ、欧州の工場で硫酸キニーネにした（植民地側の工場はバンドン 1896）。単離の前は代替のレシピ「樹皮の粉末」（Simulation.AddAdvancedProducers）
+        new(MedicineId, "医薬品",   GoodTier.Daily,        0.108, 0.6, 1.6, [I(SulfuricAcidId,0.25), I(SodaAshId,0.2028), I(FruitId,0.3)], WearRatePerMonth: 0.03),   // ★(493) 酸・塩基・その塩の全般＝両方（半々・費用中立。硫酸 0.25＝0.5×1/2、ソーダ灰 0.2028＝0.25×1.16÷1.43）   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：包帯（必要0.04・綿布0.5）を畳んで必要へ足す（作者裁定 Q8）＝0.08＋0.04×参照価格の比（0.76÷1.07）＝0.108（支出を保つ）
+        new(QuinineId, "キニーネ", GoodTier.Daily,        0.04, 0.7, 1.6, [I(CinchonaBarkId,0.5), I(SulfuricAcidId,0.3)], WearRatePerMonth: 0.03),   // ★(493) 製品は硫酸キニーネ＝酸。仮（作者の推奨 2026-10-22＝キニーネは材から消して医薬品の発見へ・死の側の段3 の線の後）   // ★2026-09-30 (129)（作者裁定 2026-09-30＝財の削減 (123) で畳んだ金鶏樹皮を戻す・元の裁定 2026-09-29「加工は畳まない。植民地材→本国に輸送→加工の行程を飛ばすべきではない」）：キニーネは**本国の工場**で樹皮から抽出する（既定のレシピ＝単離・解禁の表の既定の行 0.5＝ペルティエとカヴァントゥ 1820 パリ）。樹皮はアンデスからカディス・ロンドン・アムステルダム（樹皮の競売）へ運ばれ、欧州の工場で硫酸キニーネにした（植民地側の工場はバンドン 1896）。単離の前は代替のレシピ「樹皮の粉末」（Simulation.AddAdvancedProducers）
         new(ApplianceId, "電化製品", GoodTier.Luxury,       0.10, 0.9, 1.3, [I(ElectricityId,0.5), I(MachineryId,0.363), I(CopperId,0.3)], WearRatePerMonth: 0.005, Use: GoodUse.Held),   // 電力＋機械＋銅(巻線/配線/端子)＝電化製品の導体。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.5→機械0.363（コスト中立）
 
         // === 最終財：軍事・輸送・奢侈（≤2入力）===
@@ -194,8 +194,8 @@ public static class Catalog
         new(VegetableId, "野菜",     GoodTier.Staple,       0.25, 0.4, 3.0, [], WearRatePerMonth: 0.2),
 
         // === RGO効率化材（任意の増強材＝電化と同型。profit-gateで「費用＜増収」を構造的に保証）===
-        // 肥料：作物RGO（麦・野菜・果実・綿花・麻・染料・葉煙草・米）の増収。化学薬品＋硫黄（過リン酸/硝酸系）。
-        new(FertilizerId, "肥料",     GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(ChemicalsId,0.443)], WearRatePerMonth: 0.005),   // ★重み＝コスト中立（2026-09-05）：0.35×RefPrice(37)1.16+0.2×RefPrice(5)0.54＝0.514 → 0.514/1.16＝0.443＝肥料の参照価格を旧のまま保つ（7/28較正＝1842年以降に馬を駆逐、を壊さない）。0.55（総重量据え置き）は◎18→13・清70%で差し戻し   // ★E-15b（2026-09-05・史実）：過リン酸石灰は硫酸（＝化学薬品）で作る＝元素硫黄を直接食わない（旧 I(37,0.35)+I(5,0.2)＝硫黄の地理ゲート下で肥料がゲート0の7%に落ちる主因）。入力の総重量0.55は据え置き   // 02断線走査（2026-07-28）：0.5/0.3→0.35/0.2＝参照価格1.07→約0.75で馬0.91を1842年以降に駆逐（型F是正・goods.json同時更新）
+        // 肥料：作物RGO（麦・野菜・果実・綿花・麻・染料・葉煙草・米）の増収。硫酸＋畜産の骨（過リン酸石灰系・(493) 以後）。
+        new(FertilizerId, "肥料",     GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(SulfuricAcidId,0.2336), I(LivestockId,0.45)], WearRatePerMonth: 0.005),   // ★(493) G3：過リン酸石灰は骨（燐）を硫酸で溶かす。骨は畜産 0.45・硫酸 0.2336（旧の化学薬品 0.443 の価値 0.514 を保つ＝(0.514−0.45×0.54)÷1.16）   // ★重み＝コスト中立（2026-09-05）：0.35×RefPrice(37)1.16+0.2×RefPrice(5)0.54＝0.514 → 0.514/1.16＝0.443＝肥料の参照価格を旧のまま保つ（7/28較正＝1842年以降に馬を駆逐、を壊さない）。0.55（総重量据え置き）は◎18→13・清70%で差し戻し   // ★E-15b（2026-09-05・史実）：過リン酸石灰は硫酸（＝化学薬品）で作る＝元素硫黄を直接食わない（旧 I(37,0.35)+I(5,0.2)＝硫黄の地理ゲート下で肥料がゲート0の7%に落ちる主因）。入力の総重量0.55は据え置き   // 02断線走査（2026-07-28）：0.5/0.3→0.35/0.2＝参照価格1.07→約0.75で馬0.91を1842年以降に駆逐（型F是正・goods.json同時更新）
         // 飼料：畜産RGOの増産（濃厚飼料＝農業革命の核）。麦を原料＝麦に生産的な吸収先。漁業=帆船・鉱山=工具は既存財を再利用。
         new(FodderId, "飼料",     GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(WheatId,0.6)], WearRatePerMonth: 0.06),
         // 上下水道（#4 施設化）：都市の衛生インフラ＝役務(流通不可)。資材(セメント+鋼)を消費する施設(工場)が産み、国家が行政費で調達。
@@ -224,7 +224,7 @@ public static class Catalog
         new(FurId, "毛皮",     GoodTier.Intermediate, 0.0, 0.5, 2.0, [], WearRatePerMonth: 0.02),
         // 銀：貴金属(4)を金/銀に分割（4=金へ転用・銀を新設）。銀＝メキシコ/ポトシ/中欧。宝飾(89)・時計(90)の銀器。鉱物RGO。金本位は Bank.Gold（抽象準備）で good参照なし＝分割は宝飾/時計のみに影響。
         new(SilverId, "銀",       GoodTier.Intermediate, 0.0, 0.5, 2.0, [], WearRatePerMonth: 0.005),
-        // グアノ：ペルー沖チンチャ諸島の海鳥糞＝19世紀の高窒素肥料の主役(1840s-)。植民地RGO(賦存=ペルーのみ・isColonial)。肥料(109)の並存レシピ「グアノ肥料」で接続＝ペルー保有国のみ安価・他国は合成肥料(化学薬品+硫黄)＝非保有国を壊さない。
+        // グアノ：ペルー沖チンチャ諸島の海鳥糞＝19世紀の高窒素肥料の主役(1840s-)。植民地RGO(賦存=ペルーのみ・isColonial)。肥料(109)の並存レシピ「グアノ肥料」で接続＝ペルー保有国のみ安価・他国は合成肥料(硫酸+畜産の骨)＝非保有国を壊さない。
         new(GuanoId, "グアノ",   GoodTier.Intermediate, 0.0, 0.6, 2.2, [], true, WearRatePerMonth: 0.03),
         // #16 tier3 軍需（陸=戦車・海=弩級戦艦）：tier2(機関銃104/装甲艦105)を圧倒する質的乗数。解禁＝発見の表の行（2026-10-01 段2A＝戦車1910年代・弩級戦艦1900年代＝旧は連鎖の深さの門）・高RefPrice＝富裕/軍国国のみ装備。
         new(TankId, "戦車",     GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(CombustionEngineId,0.6), I(ArtilleryId,0.4)], WearRatePerMonth: 0.005),   // 鋼＋内燃機関＋火砲＝装軌装甲戦闘車（WWI末）。デ6：精密工作機械(106)を内燃機関(125)へ差し替え＝原動機の連鎖深に律速され1910s代まで解禁されない
@@ -233,7 +233,7 @@ public static class Catalog
         new(DomesticServiceId, "家事奉仕", GoodTier.Service, 0.06, 0.7, 1.0, [], NonTradeable: true, WearRatePerMonth: 1.0),
         // デ6：内燃機関（石油時代の原動機＝ガソリン/ディーゼル機関・実用化1900s〜）。鋼＋精密工作機械＋原油（石油燃料系＝ドレーク油井1859の下流）。
         // 戦車(122)の入力に差し込む（上）ことで、戦車が内燃機関の深い連鎖に律速され WWI 期(1910s)まで解禁されない＝機関銃(1884)/装甲艦(1860)と同時解禁だった時代錯誤を構造から是正（★2026-10-01 段2A：時期は発見の表の年代・内燃機関を作っていない国は技術の押しが下がる）。id は末尾に追加（RefPriceは反復収束のため上流参照でも可）＝既存idの連番を崩さない。
-        new(CombustionEngineId, "内燃機関", GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(MachineryId,0.537), I(CrudeOilId,0.2)], WearRatePerMonth: 0.005),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.5→機械0.537
+        new(CombustionEngineId, "内燃機関", GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(MachineryId,0.5616)], WearRatePerMonth: 0.005),   // ★(493) G10：原油は機関の材料でなく燃料（燃料は使い手の側に既にある）。外した分は機械へ費用中立（0.537＋0.2×0.54÷4.394）   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.5→機械0.537
         // 住居（家賃＝家計の最大固定費・生活費テーマの核心）：2026-07-19ユーザー裁定「家を材にする」＝役務→**通常財（日用品）**。
         // 製材＋石灰（1783年から生産可能な建材＝木造漆喰）を消費する建設業が供給＝非役務財の標準生産者ループに乗る
         // （全州に生産者・工場建設/補助金/生産タブのグラフ・価格が上がれば供給が伸びる＝住宅不足が市場で自律解消）。
@@ -245,8 +245,8 @@ public static class Catalog
         // ★2026-10-01 段2A：化学法の解禁は発見の表の過リン酸石灰（1840年代・2値）。⚠ 種1 の試走では誰も発見しない（堆肥・グアノより割高＝割高さが0以下）＝申し送り。
         new(HorseId, "馬",       GoodTier.Intermediate, 0.0, 0.5, 1.6, [I(LivestockId,0.6), I(FodderId,0.4)], WearRatePerMonth: 0.04),
         // ダイナマイト（ノーベル1867・発見の表の1860年代）：鉱山発破の第3ブースター候補＝工具/火薬より晩期に安い爆薬（無煙火薬0.85より早い）。
-        // 化学薬品0.5→0.4（B6レビュー2026-07-19）：0.5ではRefPrice0.96で黒色火薬0.89に負け競争窓がほぼ無かった＝0.4で1867〜の勝ち筋を開く。
-        new(DynamiteId, "ダイナマイト", GoodTier.Intermediate, 0.0, 0.5, 1.4, [I(ChemicalsId,0.4), I(SaltpeterId,0.1)], WearRatePerMonth: 0.005),
+        // 化学薬品〔(493) で硫酸〕0.5→0.4（B6レビュー2026-07-19）：0.5ではRefPrice0.96で黒色火薬0.89に負け競争窓がほぼ無かった＝0.4で1867〜の勝ち筋を開く。
+        new(DynamiteId, "ダイナマイト", GoodTier.Intermediate, 0.0, 0.5, 1.4, [I(SulfuricAcidId,0.4), I(SaltpeterId,0.1)], WearRatePerMonth: 0.005),   // ★(493) 混酸（硝酸＋硫酸）でニトログリセリン＝酸
         // 自転車（安全型1885〜・発見の表の1880年代）：労働者の移動手段＝日用財。ゴム(50・加硫1839ゲート)に民需の出口を与える。
         new(BicycleId, "自転車",   GoodTier.Daily, 0.04, 0.5, 1.2, [I(SteelId,0.5), I(RubberId,0.3), I(MachineryId,0.218)], WearRatePerMonth: 0.005, Use: GoodUse.Held),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.3→機械0.218
         // === 1934拡張E2（2026-07-19ユーザー裁定）＝戦間期の時代財。id末尾追加（RefPrice反復収束で安全・連番不変）===
@@ -255,8 +255,8 @@ public static class Catalog
         // 戦闘機（同調機銃＝1915フォッカー・onset=1.0）：飛行機＋機関銃。空軍tierの主装備。（★onset は旧＝2026-10-01 段2A から解禁は発見の表の行）
         // 自動車（T型量産1908〜・旧 生産onset=0.95/需要onset=1.0＝2026-10-01 段2A から発見の表の1890年代・需要は世界の解禁の和）：内燃機関＋鋼＋ゴム。富裕の耐久財＋軍の輜重（馬と併存＝WWIも馬匹依存）。
         new(AutomobileId, "自動車",   GoodTier.Luxury, 0.05, 0.9, 1.2, [I(CombustionEngineId,0.6), I(SteelId,0.4), I(RubberId,0.2)], WearRatePerMonth: 0.005, Use: GoodUse.Held),
-        // 化学兵器（毒ガス弾＝1915イーペル・旧 onset=1.0＝2026-10-01 段2A から発見の表の1910年代〔陸〕）：化学薬品＋硝石。空軍tierで調達＝相互保有は厭戦の泥沼・片側保有は戦死優位。
-        new(ChemicalWeaponId, "化学兵器", GoodTier.Producer, 0.0, 0.4, 1.2, [I(ChemicalsId,0.6), I(SaltpeterId,0.2)], WearRatePerMonth: 0.005),
+        // 化学兵器（毒ガス弾＝1915イーペル・旧 onset=1.0＝2026-10-01 段2A から発見の表の1910年代〔陸〕）：(493) 以後は塩＋電力＋硝石〔旧は化学薬品＋硝石〕。空軍tierで調達＝相互保有は厭戦の泥沼・片側保有は戦死優位。
+        new(ChemicalWeaponId, "化学兵器", GoodTier.Producer, 0.0, 0.4, 1.2, [I(SaltId,0.7), I(ElectricityId,0.2025), I(SaltpeterId,0.2)], WearRatePerMonth: 0.005),   // ★(493) G8：塩素は食塩電解（塩＋電力）から。硫酸にもソーダ灰にも塩素は無い。費用中立（0.6×1.16＝0.7×0.54＋0.2025×1.571）
         // === 1934拡張E3（2026-07-19）＝国民意識の財化 ===
         // 新聞：紙＋機械部品（手引き印刷機は1783から・パルプ紙0.5で安価化）。需要は識字比例（EconomyStep特例）＝
         // 「読める者だけが新聞を買い結社に集う」（旧Fiscal需要駆動拠出の物理化）。NewsFill→国民意識＋政治意識（検閲で内容が痩せる）。
@@ -274,7 +274,7 @@ public static class Catalog
         //   ⚠入力を精密工作機械にするのは史実（圧縮式冷凍機は高精度の圧縮機が要る＝リンデ1876）であると同時に、
         //   **解禁時期を連鎖の深さから自動で出す**ため（浅い連鎖だと FreeDepth=6 に収まって自動ゲートが不発になる既知の穴）。
         //   ⚠電力を入力にしない＝初期の冷凍機は**蒸気駆動**。電力を入れると家庭用電気冷蔵庫（1920s）まで50年遅れる。
-        new(RefrigeratorId, "冷蔵庫",   GoodTier.Luxury, 0.06, 0.9, 1.3, [I(MachineryId,0.430), I(ChemicalsId,0.3)], WearRatePerMonth: 0.005, Use: GoodUse.Held),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.4→機械0.430
+        new(RefrigeratorId, "冷蔵庫",   GoodTier.Luxury, 0.06, 0.9, 1.3, [I(MachineryId,0.430), I(CoalId,0.6444)], WearRatePerMonth: 0.005, Use: GoodUse.Held),   // ★(493) G9：冷媒のアンモニア（リンデ 1876）は塩基でガス液＝石炭から。費用中立（0.3×1.16÷0.54）   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.4→機械0.430
         // ⚠冷蔵肉という財は**作らない**（2026-09-04・作者指摘で撤回）。
         //   ★代わりに**加工肉の代替レシピ**（肉＋冷蔵庫）を足す＝新しい財を増やさず、
         //   加工肉の需要は既に較正済みのまま使える。⇒ 実装は Simulation の代替レシピ注入（石油灯油と同じ作法）。
@@ -283,6 +283,10 @@ public static class Catalog
         // 金鶏樹皮：アンデス（ペルー・ボリビア・エクアドル）の森で剥いだキナの樹皮＝植民地の採取（気候ゲート）。本国へ運ばれ、欧州の工場でキニーネにした
         //   （元の裁定 2026-09-29「加工は畳まない。植民地材→本国に輸送→加工の行程を飛ばすべきではない」）。値は畳む前と同じ（生産性2.0・弾力0.6）。
         new(CinchonaBarkId, "金鶏樹皮", GoodTier.Intermediate, 0.0,  0.6, 2.0, [], true, WearRatePerMonth: 0.03),
+        // === 2026-10-23 (493) 化学薬品を酸とアルカリに割った（作者 2026-10-21〜23「「硫酸」と「ソーダ灰」は2つに分けましょう。少し強引に見えます。」・材の粒度の最低ライン＝酸の材料からアルカリが生産されてはならない）＝id 末尾追加 ===
+        // ソーダ灰：既定＝草木灰・海藻灰（木 2.0＝歩留まりの低い高価な灰。参照価格 1.43）。ルブラン法（塩＋硫酸＋石灰石＋石炭）・ソルベー法（塩＋石灰石＋石炭）・電解（塩＋電力）は発見の行の並存レシピ（Simulation）。
+        //   順序（番人）：草木灰 1.430 ＞ ルブラン法 1.207 ＞ 電解 1.091 ＞ ソルベー法 0.971（参照価格の単位費用）。量は AI の推奨（measurements/gd_20261023_prereg.txt [2][11]）。
+        new(SodaAshId, "ソーダ灰", GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(TimberId,2.0)], WearRatePerMonth: 0.03),
     ];
 
     /// <summary>真実源＝埋め込みリソース <c>goods.json</c>（world.json と同型）。未生成時は上の C# 定義 <see cref="BuiltinGoods"/> にフォールバック。
@@ -396,7 +400,7 @@ public static class Catalog
     public const int FurId = 109;              // 毛皮（罠猟＝野生個体。WeatherExposure が漁獲と同じ0.35なのも同じ理由）
     public const int SaltId = 6;               // 塩（王室のgabelle＝法的独占の対象）
     public const int TeaId = 66;               // 茶（東インド会社独占＝法的独占の対象）
-    public const int ChemicalsId = 33;         // 化学薬品
+    public const int SulfuricAcidId = 33;      // 硫酸（★(493)：旧 化学薬品 を酸とアルカリに割った＝酸の側が 33 を引き継ぐ。作者 2026-10-21〜23「「硫酸」と「ソーダ灰」は2つに分けましょう。」）
     public const int CrudeOilId = 10;          // 原油（掘削1859〜）
     public const int WheatId = 15;             // 麦（乾燥穀粒）
     public const int RailId = 48;              // 線路（鉄道の軌条）
@@ -495,6 +499,7 @@ public static class Catalog
     public const int AutomobileId = 121;         // 自動車
     public const int ChemicalWeaponId = 122;     // 化学兵器
     public const int RefrigeratorId = 126;       // 冷蔵庫
+    public const int SodaAshId = 128;          // ソーダ灰（★(493)：旧 化学薬品 のアルカリの側＝末尾に足した新しい財・既存の財の番号は変えない。草木灰・ルブラン法・ソルベー法・電解）
     public const int CinchonaBarkId = 127;       // 金鶏樹皮（★2026-09-30 (129)：財の削減 (123) で畳んだのを戻した＝id は末尾に足した＝既存の財の番号は変えない）
 
     /// <summary>役務の参照価格（費用基準）。在庫を持てない純フロー市場は価格が発振しやすいので、
@@ -512,7 +517,7 @@ public static class Catalog
     {
         ElectricityId => 0.15,                                              // 発電所＝技師の塊
         MachineryId or SteamEngineId or ApplianceId or SteamshipId or WarshipId or LocomotiveId or GridId or MachineGunId or IroncladId or TankId or DreadnoughtId or CombustionEngineId => 0.10,   // 機械部品・機械・蒸気機関・発電機・電化製品・汽船・軍艦・機関車・送電網・機関銃・装甲艦・精密工作機械・戦車・弩級戦艦・内燃機関
-        IronId or SteelId or CopperId or LeadId or CementId or GlassId or ChemicalsId or GunpowderId => 0.05,   // 製錬・窯業・化学（石炭を焚く重工業）
+        IronId or SteelId or CopperId or LeadId or CementId or GlassId or SulfuricAcidId or SodaAshId or GunpowderId => 0.05,   // 製錬・窯業・化学（石炭を焚く重工業）
         _ => 0.02,                                               // 軽工業＝監督・保守の最小限
     };
 
@@ -575,7 +580,7 @@ public static class Catalog
         ElectricityId or ApplianceId or LocomotiveId or SteamshipId or WarshipId or GridId or HigherEducationId => ("先端", 180_000, 20),   // 発電機・電力・電化製品・機関車・汽船・軍艦・送電網・大学（高等教育136）＝高額/長期
         MachineryId or SteamEngineId or RailId or CombustionEngineId => ("機械", 110_000, 12),   // 機械部品・工具・機械・蒸気機関・線路・精密工作機械・内燃機関
         ArtilleryId or RifleId or AmmunitionId or SailingShipId             => ("軍需", 90_000,  8),    // 火砲・小銃・弾薬・帆船
-        IronId or SteelId or CopperId or LeadId or CementId or GlassId or ChemicalsId or GunpowderId or HealthcareId => ("重工業", 70_000, 8),   // 製鉄・化学・窯業・病院（医療95＝重工業相当）
+        IronId or SteelId or CopperId or LeadId or CementId or GlassId or SulfuricAcidId or SodaAshId or GunpowderId or HealthcareId => ("重工業", 70_000, 8),   // 製鉄・化学・窯業・病院（医療95＝重工業相当）
         EducationId => ("軽工業", 30_000, 4),                                 // 学校（教育94）＝軽工業の組を明示（既定と同じ組＝値は不変）
         _ => ("軽工業", 30_000, 4),                                  // 繊維・食品・日用・奢侈＝安価/短期
     };
@@ -616,7 +621,7 @@ public static class Catalog
         new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),                  // アシャール1801・大陸封鎖1806〜（作者 2026-09-28 提案①の採用＝地理差でなく発見）
         new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),          // 缶詰の第2レシピ（アペール法1809）
         new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),              // ペルティエ＝カヴァントゥ1820（単離の前は樹皮の粉末＝地理差）
-        new("黄鉄鉱法", ChemicalsId, "黄鉄鉱法", DiscoveryField.Process, 1830),          // 1838年の硫黄危機の後（旧 SulfurFromPyriteOnset）
+        new("黄鉄鉱法", SulfuricAcidId, "黄鉄鉱法", DiscoveryField.Process, 1830),          // 1838年の硫黄危機の後（旧 SulfurFromPyriteOnset）
         new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),                // 砕木1840s（その前はぼろ布製紙＝地理差）
         new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),             // ロース1842（その前は厩肥・グアノ＝地理差）
         new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),                        // ベッセマー1856（その前は坩堝鋼・錬鉄レール＝地理差）
@@ -670,6 +675,10 @@ public static class Catalog
         new("ファシズム", NoGood, "", DiscoveryField.Idea, 1920),         // 伊1919〜22・独1933
         // --- 末尾に足した行（既存の行の添字を動かさない）---
         new("合成染料", DyeId, "合成染料", DiscoveryField.Process, 1850), // ★(415) アニリン（パーキン1856）＝染料の第2レシピ。旧＝行が無く1783年から作れた穴。係数 DiscoveryEngineerHalfPerMonth が0以下のあいだは開幕で解禁済み（Simulation）
+        // --- ★(493) ソーダ灰の製法（草木灰が既定＝1783 年から。新しい製法は発見の行・量と順序は measurements/gd_20261023_prereg.txt [2]）---
+        new("ルブラン法", SodaAshId, "ルブラン法", DiscoveryField.Process, 1790),               // ルブラン 1791（塩＋硫酸＋石灰石＋石炭）。ナトリウムは塩から＝硫酸は塩を分ける薬（線を割らない）
+        new("ソルベー法", SodaAshId, "ソルベー法", DiscoveryField.Process, 1860),               // ソルベー 1861〜クイエ 1864・ブラナー・モンド 1874（塩＋石灰石＋石炭・硫黄なし）
+        new("電解", SodaAshId, "電解", DiscoveryField.Process, 1890, After: "石炭火力"),          // 塩水の電解の工業生産 1892（塩＋電力・苛性ソーダと塩素。アルカリとして 1 財に畳む）
     ];
     /// <summary>財を持たない発見の行（制度と思想）の財の欄（<see cref="DiscoveryRowOf"/> は負の財を探さない＝名前で <see cref="DiscoveryRowNamed"/>）。</summary>
     public const int NoGood = -1;

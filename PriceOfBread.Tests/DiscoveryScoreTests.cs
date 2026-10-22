@@ -227,7 +227,7 @@ public class DiscoveryScoreTests
     public void 伝わりだけでは届かず技術力と揃えば届く()
     {
         var sim = Board();
-        int row = Row("合成ゴム");
+        int row = Row("窒素固定");   // ★(493) 合成ゴムは化学薬品でなく電力（開幕に技師が居ない）を材料にした＝親の産業の技師が居る別の工程の行（ハーバーボッシュ＝硫酸＋電力）で同じ性質を見る
         var contact = new double[Catalog.Discoveries.Length];
         contact[row] = 1e6;   // 接触は最大（伝わり→70）
         var viewLow = new Discovery.WorldView(contact, WorldAdvLabor: 0);          // 時計 S＝0
@@ -345,8 +345,8 @@ public class DiscoveryScoreTests
         Assert.Equal(0.0, Needs(px)[silk]);
         var other = (double[])basePx.Clone(); other[gs] = 2.0 * cS; other[Catalog.HorseId] *= 5.0;   // 関係の無い財（馬）だけ高い
         Assert.Equal(NeedOf(silk, System.Math.Log(2.0)), Needs(other)[silk], 9);
-        var dearIn = (double[])basePx.Clone(); dearIn[gs] = 2.0 * cS; dearIn[Catalog.LumberId] *= 3.0;   // 投入（製材）が高い＝費用が上がる
-        Assert.True(repS.Inputs.Any(i => i.GoodId == Catalog.LumberId), "前提が崩れた（人絹の投入に製材が無い）");
+        var dearIn = (double[])basePx.Clone(); dearIn[gs] = 2.0 * cS; dearIn[Catalog.TimberId] *= 3.0;   // 投入（木）が高い＝費用が上がる（★(493) 人絹のパルプは製材でなく木から）
+        Assert.True(repS.Inputs.Any(i => i.GoodId == Catalog.TimberId), "前提が崩れた（人絹の投入に木が無い）");
         Assert.Equal(NeedOf(silk, System.Math.Log(2.0 * cS / CostByHand(w, repS, dearIn))), Needs(dearIn)[silk], 9);
         // ②新製品＝ガス灯（代替する物＝灯油・換算の比＝ガスの参照価格÷灯油の参照価格）
         int gas = Row("ガス灯");
@@ -434,7 +434,7 @@ public class DiscoveryScoreTests
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
-        int ng = Catalog.Goods.Length, silk = Row("人絹"), gs = Catalog.SilkClothId, gl = Catalog.LumberId;
+        int ng = Catalog.Goods.Length, silk = Row("人絹"), gs = Catalog.SilkClothId, gl = Catalog.TimberId;   // ★(493) 人絹のパルプは製材でなく木から（G14）
         var px = (double[])w.DiscoveryPrice!.Clone();
         for (int i = 0; i < ng; i++) if (!(px[i] >= 0)) px[i] = Catalog.RefPrices[i];
         var repS = RepOf(w, silk);

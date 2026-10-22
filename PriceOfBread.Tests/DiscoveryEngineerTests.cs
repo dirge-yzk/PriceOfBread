@@ -152,7 +152,7 @@ public class DiscoveryEngineerTests
     /// <summary>T4：本体の <see cref="Discovery.ParentEngineers"/> を、開幕の英の盤面で門の開いた高度労働力の雇い手（生産者の財）の集合に1ずつ置いた配列で呼ぶ＝親の産業（行の財か置き換える財・代表のレシピの労働でない投入の財）に雇い手が1つでも居る行は A＞0 になる。
     /// 開幕に雇い手が親の産業に居ない行は、別の発見が先に要る連鎖（名簿 <see cref="NeedsEarlierDiscovery"/>）として手書きで固定する（名簿の外で A＝0 の行が出たら赤・名簿の行が A＞0 になっても赤＝名簿が古い）。
     /// ⚠壊し方＝本体の ParentEngineers が投入の財を親に入れない → 機関車（置き換える物が財でない）などで赤。T4 が守るのは〈親の定義が構造として A＞0 になりうる〉ことだけで、〈発見の前に A が正になる〉ことは census が見る。</summary>
-    private static readonly string[] NeedsEarlierDiscovery = ["電動機"];   // 電力の工場（石炭火力・石油火力の発見）が先に要る＝census でも A＝0（6/6 件）の既知の連鎖
+    private static readonly string[] NeedsEarlierDiscovery = ["電動機", "化学兵器", "合成ゴム"];   // ★2026-10-23 (493)：化学兵器（塩＋電力）と合成ゴム（カーバイド＝石灰石＋石炭＋電力）は化学薬品でなく電力を材料にした＝電力の工場が先に要る連鎖へ移った（機構の意味は変えない・名簿の追随）   // 電力の工場（石炭火力・石油火力の発見）が先に要る＝census でも A＝0（6/6 件）の既知の連鎖
 
     [Fact]
     public void 親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる()
@@ -256,7 +256,7 @@ public class DiscoveryEngineerTests
     public void 合成染料の行は旗0で解禁済み_旗が正で未解禁()
     {
         int dye = Discovery.SyntheticDyeRow;
-        Assert.True(dye == Catalog.Discoveries.Length - 1, "合成染料の行は発見の表の末尾（既存の行の添字を動かさない）");
+        Assert.True(dye >= 0 && Catalog.Discoveries.Skip(dye + 1).Take(3).Select(x => x.Name).SequenceEqual(["ルブラン法", "ソルベー法", "電解"]), "合成染料の行の直後はソーダ灰の 3 行（★(493)・既存の行の添字を動かさない）");
         Assert.Equal(Catalog.DyeId, Catalog.Discoveries[dye].Good);
         Assert.Equal(DiscoveryField.Process, Catalog.Discoveries[dye].Field);
         foreach (var n in BoardOff.Value.Nations) Assert.True(n.World.Discovered[dye], $"{n.World.SelfPower?.Name}：旗0で合成染料が未解禁");
