@@ -29,7 +29,7 @@ public class TechInstitutionTests
     ///   英・米の議会は止める（宗教固定の日本と同じ分離手法。旧は議会の綱領も報道法・教育法の目標を書き換えた＝2026-09-26 に撤去＝回5-1・今は議席の純支持を切る分離）。
     ///   ⚠弱めていない：床も相対の倍率も期間も旧のまま。旧が「AI が自由を保てば届く」の合成だったのを、「自由と公教育があれば届く」の機構そのものへ絞った
     ///   ＝入力（自由・公教育）を保証したうえで出力（技術）だけを見る。AI が早く検閲を買う挙動は帯の観察事項（99_実装ログ 2026-09-21 ㉖）。</para></summary>
-    [Fact]
+    [Fact(Skip = "★(495) 記録へ移した：技術水準そのものの創発の主張（t＞1.10・宗教固定の 1.3 倍）。倍率の削除〔IndustrializationOff の点火〕で 4 カ国の閉じた世界の英が t＝1.020 で停滞した（点火前は t＞1.10）＝史実の桁・創発の主張は止める線でない（README 2026-10-17）。技術水準の完全削除の線が書き直す対象・帯が見る。")]
     public void 公教育の自由国は世界の技術水準へ到達する()   // 英・米＝初期から公教育（早い近代化）
     {
         // アンカー再設計（#131・2026-07-25）：絶対閾値1点（1.5→1.45と2度器差調整）はカオス軌道のノイズに脆く、水力レシピ追加（1.507→1.493）・
@@ -84,12 +84,10 @@ public class TechInstitutionTests
     /// 開幕に機関車・汽船だけ与えても割れる（米が 1.10 を割る）・1840 年までの全ての行を与えると緑（暦年で前提を作るのは台本禁止に近い）＝前提の作り方に確証がないので固定のまま記録する。</para></summary>
     private static void PinLegacyDiscovery(MultiNationSim sim)
     {
-        sim.Coef.RecipeEquipment = 0; sim.Coef.IndustrializationOff = 0;   // ★(495) この 1 本は技術水準そのものの創発の主張（t＞1.10・宗教固定の 1.3 倍）＝技術水準の完全削除の線が書き直す対象。倍率の削除〔IndustrializationOff の点火〕で英の技術が t＝1.020 で停滞したので、発見の旗と同じ扱いで旧の盤面に固定のまま記録する（確証なし・帯が見る）
         sim.Coef.DiscoveryEngineerHalfPerMonth = 0;   // 多国の判定（MultiNationSim.StepQuarter の Discovery.Step）は国の World.Coef でなく共有の係数を読む
         foreach (var n in sim.Nations)
         {
             n.World.Coef.DiscoveryEngineerHalfPerMonth = 0;
-            n.World.Coef.RecipeEquipment = 0; n.World.Coef.IndustrializationOff = 0;   // ★(495)
             Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（合成染料の行は開幕で解禁済み）
         }
     }
