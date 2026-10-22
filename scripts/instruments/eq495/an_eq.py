@@ -30,6 +30,13 @@ for sd in seeds:
     byn = collections.defaultdict(list)
     for r in rows(os.path.join(d, f"eq_s{sd}.tsv")):
         byn[r["nation"]].append(r)
+    # 領土の入れ替え（同じ四半期に 1 州失い 1 州得ると個体の数は同じ）を region_s の州の集合で見分ける（挙げた国＝毎四半期の行がある国だけ）
+    regset = collections.defaultdict(set)
+    rp = os.path.join(d, f"region_s{sd}.tsv")
+    quarterly = {n for n, rs_ in byn.items() if len(rs_) > 300}
+    if os.path.exists(rp):
+        for r in rows(rp):
+            if r["nation"] in quarterly: regset[(r["nation"], int(r["quarter"]))].add(r["region"])
     for n, rs in byn.items():
         rs.sort(key=lambda r: int(r["quarter"]))
         first_q[(sd, n)] = int(rs[0]["quarter"])
@@ -47,11 +54,15 @@ for sd in seeds:
                 c1_rows += 1
                 if ins < -1e-12 or not math.isfinite(ins): c1_neg += 1
                 if ins <= 0: c1_noinst += 1
-            dm = fnum(r["distDriftMax"]); c3a_worst = max(c3a_worst, dm if math.isfinite(dm) else float("inf")); c3a_n += 1
-            if not (dm <= 1e-9): c3a_bad += 1
-            short_sum += int(fnum(r["renormShort"]))
+            dm = fnum(r["distDriftMax"]); c3a_n += 1
+            rsh = int(fnum(r["renormShort"])); short_sum += rsh
+            if rsh == 0:
+                c3a_worst = max(c3a_worst, dm if math.isfinite(dm) else float("inf"))
+                if not (dm <= 1e-9): c3a_bad += 1   # 薄めきれなかった行（renormShort＞0）は別の列＝ここには数えない
             if prev is not None and int(r["quarter"]) == int(prev["quarter"]) + 1:
-                if r["eligibleCount"] != prev["eligibleCount"] or r["activeRegionCount"] != prev["activeRegionCount"]:
+                q_ = int(r["quarter"])
+                swapped = (n, q_) in regset and (n, q_ - 1) in regset and regset[(n, q_)] != regset[(n, q_ - 1)]
+                if r["eligibleCount"] != prev["eligibleCount"] or r["activeRegionCount"] != prev["activeRegionCount"] or swapped:
                     c3b_skip += 1; prev = r; continue   # 領土の移り変わり（州が国をまたぐ）で個体・州の数が変わった四半期は国の合計では比べられない
                 dS = ss - fnum(prev["scaleSum"])
                 led = fnum(r["completedScale"]) - fnum(r["dismantledScale"]) + fnum(r["distNetScale"]) + fnum(r["retiredNetScale"])
@@ -60,8 +71,8 @@ for sd in seeds:
                 if err > 1e-6: c3b_viol += 1; c3b_rows.append((err, sd, n, int(r["quarter"]), dS, led, ss))
             prev = r
 print(f"C1 配りが設備になった：購入のあった国×四半期 {c1_rows}・設備が足されなかった {c1_noinst}（{c1_noinst / max(1, c1_rows):.4%}）・負か非有限 {c1_neg}（0 が合格）")
-print(f"C3a 配りと退場で民間の持分の合計が保たれる：国×四半期 {c3a_n} 行のうち 1 回ごとの相対差の最大が 1e-9 を超えた {c3a_bad} 行（0 が合格）・最悪 {c3a_worst:.3g}・薄めきれなかった回数の和 {short_sum}（記録）")
-print(f"C3b 台帳の恒等：連続した四半期 {c3b_n} 件（個体・州の数が変わった {c3b_skip} 件は除く）のうち ΔscaleSum が書き手の台帳の和と相対 1e-6 を超えて違った {c3b_viol} 件（0 が合格）・最悪 {c3b_worst:.3g}")
+print(f"C3a 配りと退場で民間の持分の合計が保たれる：国×四半期 {c3a_n} 行のうち、薄めきれた行（renormShort＝0）で 1 回ごとの相対差の最大が 1e-9 を超えた {c3a_bad} 行（0 が合格）・最悪 {c3a_worst:.3g}・薄めきれなかった回数の和 {short_sum}（記録）")
+print(f"C3b 台帳の恒等：連続した四半期 {c3b_n} 件（個体・州の数が変わった／州の入れ替えがあった {c3b_skip} 件は除く）のうち ΔscaleSum が書き手の台帳の和と相対 1e-6 を超えて違った {c3b_viol} 件（0 が合格）・最悪 {c3b_worst:.3g}")
 for err, sd, n, q, dS, led, ss in sorted(c3b_rows, reverse=True)[:8]:
     print(f"   C3b の外れ（相対差 {err:.3g}）：種{sd} {n} 四半期{q} ΔScaleSum={dS:.6g} 台帳の和={led:.6g} ScaleSum={ss:.6g}")
 print(f"S2 発散：適格な個体 1 件あたりの設備の合計÷最初の行の最大 {s2_ratio:.3f}（{s2_nation}・線 2 以下）・国の設備の合計の最大 {scale_sum_max:.4g}・設備の最大（個体）{scale_max_all:.4g}（記録）・州の在庫の最大 {ind_max_all:.4g}（線 10）")
