@@ -38,7 +38,7 @@ public class HouseholdProductionTests
     [
         (Catalog.ClothingId,      [(Catalog.CottonClothId, 0.6), (Catalog.DyeId, 0.2)]),
         (Catalog.FurnitureId,     [(Catalog.LumberId, 0.6), (Catalog.LeatherId, 0.3)]),
-        (Catalog.PreservedMeatId, [(Catalog.MeatId, 0.6), (Catalog.FlourId, 0.3)]),
+        (Catalog.PreservedMeatId, [(Catalog.MeatId, 0.6), (Catalog.FlourId, 0.2688), (Catalog.SaltId, 0.05)]),   // ★(493) G11：塩漬けに塩を足した（小麦粉 0.3→0.2688・塩 0.05＝費用中立・家内工業の行は工場の連鎖の最後の一段を写す）
         (Catalog.DriedFishId,     [(Catalog.FishId, 0.7), (Catalog.SaltId, 0.2)]),
         (Catalog.BeerId,          [(Catalog.WheatId, 0.5)]),
         (Catalog.SpiritsId,       [(Catalog.WheatId, 0.6)]),
