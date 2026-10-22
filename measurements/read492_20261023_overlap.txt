@@ -1,0 +1,46 @@
+(492) 重なりの読み（波24・読むだけ・基点 main 8c8f987a・コードは変えていない・シミュもテストも回していない）
+写し：(500) 合流の担当が線の報告から写した（書いたモデルは読む担当・この写しは Claude Opus 5.5）
+
+■ 結論
+- この波で同時に走らせる挙動の線は gd・op・eq・mw の 4 本。nd（必要性を古いやり方の費用で）だけを次の波へ回す。
+- nd を回す理由（どちらか 1 つで次の波へ）：
+  ① 熱風炉と自動ミュールは鉄と綿布の既定のレシピを写す。op はその既定（コークス製鉄・機械紡績）を新しい発見の行の後ろへ移す＝nd の After と写し元は op の行に乗る（前提）。
+  ② nd の分子と分母は Discovery.PriceBook.Cost を呼ぶ。eq はその同じ関数の式を変える（枝 ip の diff で確かめた）。(489) の自己申告も〈①が入ってから 5 行を判定し直す〉。
+- gd・op・eq・mw の間に、同じ関数の同じ式を触る組は無い（同じファイルの別の場所か、弱い前提だけ）。
+
+■ 各線が触る見込みの場所（grep）
+- gd：goods.json（33 を硫酸へ・128 ソーダ灰を末尾）／Catalog.cs（BuiltinGoods・ChemicalsId・AdvLaborPerOutput・FactorySpec・Discoveries の黄鉄鉱法と末尾の新しい行）／Simulation.cs（AddAlternateRecipes の黄鉄鉱法の段・AddAdvancedProducers の使い手）／Runner Program.cs／Tests（FullChainTests・GoodIdGuardTests・GoodDurabilityTests）／opening_bake.json（焼き直し）
+- op：Catalog.cs（Discoveries の末尾）／Simulation.cs（AddAdvancedProducers・knownDiscoveries の適用）／Discovery.cs（SeedCompatRows）／world.json／Coefficients.cs に旗 1 本・DormantIdentityTests
+- eq：EconomyStep.cs（操業規模の更新・LaborWeight／prodW）／PlantCapital.cs・PowerMachines.cs／Simulation.cs／Discovery.cs（PriceBook.Cost・Score の maxInd）／World.cs／Diplomacy.cs・Megaprojects.cs・MarketFlow.cs／Model.cs／CostLedger／OpeningBake.CapNames（消すなら）
+- mw：SelfPlay.cs（MinimumWageFloorWant の受け・番人）
+- nd：Discovery.cs（ReplacedStrength・PriceBook.Cost）／Catalog.cs（熱風炉・自動ミュール・三段膨張）／ProcessRows.cs
+
+■ 重なる組と深さ
+- op×nd：前提（深い）→ nd を次の波へ
+- eq×nd：同じ関数の同じ式＋前提（深い）→ nd を次の波へ
+- gd×nd：浅い〜前提 → nd を次の波へ
+- gd×op：浅い（Catalog.Discoveries の末尾・文字の衝突だけ）→ 同時に走らせる・末尾は gd が先・op が後
+- gd×eq：前提（弱い・gd の新しい生産者の Scale 0.05 を eq が〈据え付けた台数〉に読む・opening_bake.json）→ 同時に走らせる・合流で焼き直しと合成の腕で解く
+- op×eq：前提（弱い）→ 同時に走らせる
+- eq×mw：浅い（SelfPlay.cs の別の場所）→ 同時に走らせる
+- rc（読む線）・hz5（恒等）：無し〜浅い（hz5 は先に main へ）
+
+■ CostLedger の番号（main の最後＝25・Count＝26）
+- eq＝26（枝 ip の PowerMachines=24 は main の MinimumWageBasketScans とぶつかる＝付け替える）・設備の注文を別にするなら 27
+- op は要るときだけ 28・gd は要るときだけ 29・mw は既存の 24・nd は次の波
+
+■ 計算量（m491 の推定 239.7 秒・名目の余り 8.8 秒・ヌル腕の揺れ ±3 秒）
+- eq 5.0 秒・gd 2.0 秒・op 1.0 秒・mw 0 秒＝合計 8.0 秒（見積り・census の単価から）
+
+■ 事前登録に書くことの推奨（読む担当の推奨・作者の承認は未確認）
+- op の〈旗 0＝恒等〉は自動では成り立たない（新しい生産者は旗が正のときだけ足す・新しい行は旗 0 で全ての国を既知に）。op は化学の財に触れない。
+- gd はソルベー法と電解を持つ。熱風炉・自動ミュール・三段膨張は cherry-pick しない（nd の物）。キニーネの化学薬品の投入は仮に硫酸へ。
+- gd は財の鍵を変える＝枝の上で焼き直す。eq が Region の欄を消すなら焼き直す。
+- mw は恒等ではない（p.MinimumWage の書き手は SelfPlay のほかに Parliament.cs と GateLaw）。
+- 狙いの数字は〈機構が働いたか〉だけ（gd＝保存と 2 段の鎖・op＝門・eq＝設備の増えが配った束を超えない・mw＝向き）。
+
+■ 合流の順の推奨：hz5 → gd → op → eq → mw。最後に合成の腕を 1 本（合成した後のアブレーション）。
+
+■ 限界：コードは変えていない。ファイルと関数は grep と枝 gr・ip・p4 の diff からの見込み。秒の数は census の単価からの見積り。
+
+■ (500) の注（合流の担当）：実際の結果＝op は採らない（M3 で外れ）・mw は前提不成立で閉じた（コードの差 0）・nd は次の波。台帳 26＝eq（RecipeEquipmentScans）。計算量の見積り 8.0 秒に対し、実測は gd ＋5.9 秒（腕 B）・eq 単独で推定 248.3 秒（＋8.6 秒）＝見積りを大きく超えた。

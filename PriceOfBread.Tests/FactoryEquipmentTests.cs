@@ -208,6 +208,26 @@ public class FactoryEquipmentTests
         Assert.Equal(2L * r.Producers.Count, cost[CostLedger.RecipeEquipmentScans]);
     }
 
+    /// <summary>★(500) 合流で足した番人（反証役 eq〔bv〕低#5）：薄めきれない経路（混ざった個体の民間の持分だけで目標を超えた＝k の分子が負）は国営の持分を持たない個体に触らない（k＝1）。
+    /// 期待は盤面に自分で置いた数からの手計算（基準＝Σ Scale＝3.5・φ＝1÷(0＋1)＝1・配る合計 3.5 を利幅の正の 1 個体〔混ざった個体〕へ）。</summary>
+    [Fact]
+    public void 配り_薄めきれないときは国営の持分を持たない個体に触らない()
+    {
+        var w = Make(12, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
+        ps[0].Scale = 3.0; ps[0].BuiltScale = 1.0; ps[0].SmoothedMargin = 1.0;   // 混ざった個体：民間 2.0・国営 1.0
+        ps[1].Scale = 0.5;                                                       // 国営の持分を持たない個体：利幅 0＝配りの重み 0
+        double given = FactoryEquipment.Distribute(r, w.Coef, 1.0, 0.0, null);
+        // 手計算：配った後の混ざった個体 6.5（民間 5.5）＞ 目標の民間の合計 2.5（2.0＋0.5）＝k の分子 2.5−5.5＝−3＜0＝薄めきれない＝触らない。
+        Assert.Equal(3.5, given, 12);
+        Assert.Equal(6.5, ps[0].Scale, 12);
+        Assert.Equal(1.0, ps[0].BuiltScale, 12);
+        Assert.Equal(0.5, ps[1].Scale, 12);      // k を当てる変異では負か 0 になる
+        Assert.Equal(0.0, ps[2].Scale, 12);
+        Assert.Equal(0.0, ps[3].Scale, 12);
+    }
+
     private static double PrivateOfSet(Region r)
         => r.Producers.Where(p => FactoryEquipment.InSet(r, p)).Sum(p => Math.Max(0.0, p.Scale - p.BuiltScale));
 
