@@ -101,8 +101,8 @@ internal static class FactoryEquipment
     }
 
     /// <summary>薄める集合（flags≥1＝適格で発見の門が開いた個体）の民間の持分の合計を <paramref name="target"/> へ戻す。国営の持分を持つ個体（BuiltScale＞1e-9＝混ざった工場）は動かさず、
-    /// 国営の持分を持たない個体の Scale に 1 つの係数 k＝(target−混ざった個体の民間の持分の和)÷(国営の持分を持たない個体の Scale の和) を掛ける。k の分子が負なら 0 倍（薄めきれない＝shortfall）、
-    /// 分母が 0 に近ければ薄める先が無い（全て国営か混ざった個体＝shortfall）。戻り値＝達した合計と target の相対差（<paramref name="dScale"/>＝この関数が変えた Scale の合計）。</summary>
+    /// 国営の持分を持たない個体の Scale に 1 つの係数 k＝(target−混ざった個体の民間の持分の和)÷(国営の持分を持たない個体の Scale の和) を掛ける。k の分子が 0 以下なら触らない（薄めきれない＝shortfall）、
+    /// 分母が 0 に近ければ薄める先が無い（全て国営か混ざった個体＝shortfall）。どちらも k＝1（触らない）。戻り値＝達した合計と target の相対差（<paramref name="dScale"/>＝この関数が変えた Scale の合計）。</summary>
     private static double Renormalize(List<Producer> ps, byte[] flags, double target, out double dScale, out bool shortfall)
     {
         double pMixed = 0, pPure = 0;
@@ -114,7 +114,7 @@ internal static class FactoryEquipment
             else if (s.Scale > 0) pPure += s.Scale;
         }
         double need = target - pMixed;
-        double k = pPure > 1e-12 ? (need > 0 ? need / pPure : 0.0) : 1.0;
+        double k = pPure > 1e-12 && need > 0 ? need / pPure : 1.0;   // 薄めきれない（混ざった個体だけで目標を超えた・全てが国営か混ざった個体）ときは触らない＝一度の購入で国営の持分を持たない個体を全滅させない（shortfall に数える）
         dScale = 0;
         if (pPure > 1e-12 && k != 1.0)
             for (int i = 0; i < ps.Count; i++)

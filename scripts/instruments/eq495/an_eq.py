@@ -73,7 +73,7 @@ for sd in seeds:
     p = os.path.join(d, f"eqr_s{sd}.tsv")
     if not os.path.exists(p): continue
     for r in rows(p):
-        ser[(sd, r["nation"], r["good"], r["recipe"])][int(r["quarter"])] = (fnum(r["shareOfGood"]), fnum(r["scaleSum"]), int(fnum(r["gateOpenRegions"])), fnum(r["marginSum"]))
+        ser[(sd, r["nation"], r["good"], r["recipe"])][int(r["quarter"])] = (fnum(r["shareOfGood"]), fnum(r["scaleSum"]), int(fnum(r["gateOpenRegions"])), fnum(r["marginSum"]), fnum(r["builtSum"]))
 by_good = collections.defaultdict(list)
 for (sd, n, g, rc), s_ in ser.items():
     by_good[(sd, n, g)].append((rc, s_))
@@ -111,6 +111,7 @@ for (sd, n, g), lst in by_good.items():
         if fnum(r1["completedScale"]) != 0 or fnum(r1["dismantledScale"]) != 0 or fnum(r1["retiredNetScale"]) != 0: continue
         cur = [(rc, s_.get(q), s_.get(q1)) for rc, s_ in lst if q in s_ and q1 in s_]
         if len(cur) < 2: continue
+        if any(c0[4] > 1e-9 or c1[4] > 1e-9 for _, c0, c1 in cur): continue   # 国営の持分を持つ工場がある財は除く（混ざった工場は薄めない形＝利幅の割合が低くても設備の割合が落ちない）
         mt = sum(c0[3] for _, c0, _ in cur)
         if not (mt > 1e-9): continue
         for rc, c0, c1 in cur:
