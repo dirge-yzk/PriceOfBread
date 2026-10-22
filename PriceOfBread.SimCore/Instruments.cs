@@ -213,6 +213,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Reform; public bool ReformHeader;                   // (404) 専制の改革の経路の表（国×四半期）
         public System.IO.StreamWriter? AdmRule; public bool AdmRuleHeader;                 // (408) 行政費の返りの表（国×四半期）
         public System.IO.StreamWriter? Ed; public bool EdHeader;                           // (452) 国家の教育の需要の表 ed_s（国×四半期）
+        public System.IO.StreamWriter? EqS, EqR; public bool EqSHeader, EqRHeader;          // (495) レシピごとの設備の表 eq_s（国×四半期）・eqr_s（国×レシピ×四半期）
         public System.IO.StreamWriter? Sf; public bool SfHeader;                           // (471) 小さな独立の直し 4 件の表 sf_s（国×四半期）
         public System.IO.StreamWriter? Lab; public bool LabHeader;                         // (459) 労働の値段の表 labor_s（国×四半期）
         public System.IO.StreamWriter? Pay; public bool PayHeader;                         // (486) 売上の払いの保存則の穴の表 pay_s（国×四半期・累計）
@@ -1668,6 +1669,7 @@ public static partial class Instruments
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
             AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
             EdFold(sk, seed, w, q, picked, yearEnd);        // (452) 国家の教育の需要の表（買いたい量・取れた量・供給が尽きた州の割合・値段）
+            EqFold(sk, seed, w, q, picked, yearEnd);        // (495) レシピごとの設備の表（旗 RecipeEquipment が正のときだけ行を出す・蓄えは毎四半期戻す）
             SfFold(sk, seed, w, q, picked, yearEnd);        // (471) 兵士の年金・安く売る・議席の重み・負の予算の表
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
@@ -1735,6 +1737,7 @@ public static partial class Instruments
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
         sk.AdmRule?.Dispose(); sk.AdmRule = null;   // (408)
         sk.Ed?.Dispose(); sk.Ed = null;   // (452)
+        sk.EqS?.Dispose(); sk.EqS = null; sk.EqR?.Dispose(); sk.EqR = null;   // (495)
         sk.Sf?.Dispose(); sk.Sf = null;   // (471)
         sk.Lab?.Dispose(); sk.Lab = null;   // (459)
         sk.Pay?.Dispose(); sk.Pay = null;   // (486)

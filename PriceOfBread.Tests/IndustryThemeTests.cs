@@ -37,11 +37,22 @@ public class IndustryThemeTests
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);   // §11.6 保存・境界が全ティック保持
         Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "テーマH有効化で人口保存が破れた");
-        // 配線確認：機械化度・旧世代資本が立つ（工業化が進む実国で）
-        bool mechWired = sim.World.Regions.Any(r => r.State == RegionState.Active && r.Mechanization > 0);
-        bool vintageWired = sim.World.Regions.Any(r => r.OldVintageCapital > 0);
-        Assert.True(mechWired, "LaborSaveRate>0でも機械化度が立たない＝EffectiveQtyへの配線不全");
-        Assert.True(vintageWired, "VintageMigrateRate>0でも旧世代資本が積まれない＝二層化の配線不全");
+        // ★(495) 点火後の既定（IndustrializationOff＝1）：機械化度・旧世代資本は旗が止める（作者 2026-10-16〈倍率は全て削除〉）＝立たないことを確かめる
+        Assert.True(sim.World.Regions.All(r => !(r.Mechanization > 0)), "旗 IndustrializationOff が正なのに機械化度が立った");
+        Assert.True(sim.World.Regions.All(r => !(r.OldVintageCapital > 0)), "旗 IndustrializationOff が正なのに旧世代資本が積まれた");
+        // 旧の枝（旗 0・焼き込みで削除するまで残る）の配線確認：機械化度・旧世代資本が立つ（工業化が進む実国で）。保存則と境界も同じく保たれる。
+        var sim0 = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
+        var c0 = sim0.World.Coef;
+        c0.IndustrializationOff = 0; c0.RecipeEquipment = 0;
+        c0.InventoryAdjustGain = 0.3; c0.LaborSaveRate = 0.3; c0.LaborSaveIndHalf = 1.0; c0.VintageMigrateRate = 0.02; c0.VintageObsolescence = 0.5; c0.HousingMigrationFriction = 0.5;
+        double q0 = sim0.World.TotalPopulation;
+        var ex0 = Record.Exception(() => sim0.Run(200));
+        Assert.Null(ex0);
+        Assert.True(Math.Abs(sim0.World.TotalPopulation - (q0 + sim0.World.PopulationDelta)) < 1e-6 * q0, "テーマH有効化（旧の枝）で人口保存が破れた");
+        bool mechWired = sim0.World.Regions.Any(r => r.State == RegionState.Active && r.Mechanization > 0);
+        bool vintageWired = sim0.World.Regions.Any(r => r.OldVintageCapital > 0);
+        Assert.True(mechWired, "LaborSaveRate>0でも機械化度が立たない＝EffectiveQtyへの配線不全（旧の枝）");
+        Assert.True(vintageWired, "VintageMigrateRate>0でも旧世代資本が積まれない＝二層化の配線不全（旧の枝）");
     }
 
     [Fact]

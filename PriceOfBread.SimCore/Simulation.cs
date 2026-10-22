@@ -2336,7 +2336,11 @@ public sealed class Simulation
                     if (World.Coef.DepressionScrapsBuiltScale > 0 && scrapKeep < 1)
                         foreach (var fp in r.Producers)
                             if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9)
+                            {
+                                double builtBefore = fp.BuiltScale;
                                 fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
+                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);   // ★(495) 設備を持つ個体は国営の持分が減った分だけ Scale も減る   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
+                            }
                 }
                 // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、
                 //   専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた＝財政タブで軍需・行政・教育・建設・補助・国営の損益の区分が出なかった。

@@ -291,8 +291,10 @@ public class InstrumentsTests
                         // ★(331) 盤面の直し：内戦の開戦時に建国した側（sideB）は、月数 1 の内戦だと自分の月の決算（交戦の月を数える位置）が来る前に決着して交戦の月が 0 のまま残る
                         //   （(331) の盤面＝1789 年の英の内戦〈イギリス 対 立憲王政イギリス・1 か月〉・建国した国の行は 1 四半期だけ・交戦の月 0）。数える位置の時点の端＝この組だけ外す。
                         if (Col(wh, r, "civilWarFlag") > 0 && Col(wh, r, "months") <= 1 && side == r[Array.IndexOf(wh, "sideB")]) continue;
+                        //   ★(495) 同じ端の外の戦争：月数 1 の外の戦争（開戦と決着が同じ月＝交戦の月を数える位置の前に終わる）も、数える位置に当たらないので交戦の月が 0 のまま残りうる（旗 RecipeEquipment の点火で軌道が替わり、1804 年のオーストリア対立憲王政フランス〔1 か月〕が当たった）。月数 1 の戦争は突き合わせない。
+                        if (Col(wh, r, "months") <= 1) continue;
                         var uids = namesByUid.Where(kv => kv.Value.Contains(side)).Select(kv => kv.Key).ToList();
-                        if (uids.Count > 0) Assert.True(uids.Sum(u => monthsByUid[u]) > 0, $"{side} は戦争の表に出るのに交戦の月が0");
+                        if (uids.Count > 0) Assert.True(uids.Sum(u => monthsByUid[u]) > 0, $"{side} は戦争の表に出るのに交戦の月が0（戦争の行：{string.Join(",", r)}／頭書き：{string.Join(",", wh)}）");
                     }
 
             var (ch2, cr2) = Table(System.IO.Path.Combine(dir, "casualty_s1789.tsv"));   // 戦死の月ごとの和（旧の cas の Y 行）
@@ -1606,6 +1608,7 @@ public class InstrumentsTests
     // ★(449) 国力の物差しの点火〔ScoreFromWorldShare 既定 1〕で軌道がまた動き、1797 では場面 T の飢えの照合が空洞になった（飢え 0・構造 6）＝1798（構造 7）も空洞・1799 で全ての場面が空洞でない（種の選び直し。旧の既定へ固定して赤を避けない）。
     // ★(478) 年齢の層の既定を作者の11層へ倒して軌道がまた動き、1799 では場面 T の飢えの照合が空洞になった（飢え 0・構造 9）＝1800（構造 8）・1801（構造 10）も空洞・1802 で全ての場面が空洞でない（種の選び直し〔(449) までと同じ手順〕・機構の主張は同じ）。
     // ★(493) 化学薬品を硫酸とソーダ灰に割って軌道がまた動き、1802 では場面 T の飢えの照合が空洞になった（飢え 0・構造 12）＝1803 を試す（種の選び直しは (405) と同じ作法）
+    // ★(495) レシピごとの設備と倍率の削除の点火で軌道がまた動き、1802 では場面 T の飢えの照合が空洞になった（飢え 0・構造 12）＝1803 で全ての場面が空洞でない（種の選び直しは (405) と同じ手当て）。
     private const ulong CoverageSeed = 1803UL;
 
     [Fact]

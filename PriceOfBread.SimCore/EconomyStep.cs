@@ -412,7 +412,7 @@ public static class EconomyStep
     /// MonopolyRentPremium ≤ Eps では 0（旧 Privileges 側の `!(x > 0)` ガードを正典の `> Eps` に統一＝差は 0&lt;Premium≤1e-9 の帯だけ・既定0.15で同値）。</summary>
     internal static double MonopolyDegree(Region r, Coefficients c, double premium)
         => !(c.MonopolyRentPremium > Eps) ? 0
-         : premium * Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd)) * r.MonopolyRentFactor;   // 独占禁止法（E6）で×倍率（規制なし=1.0＝恒等・談合禁止/解体で縮小）
+         : premium * (c.IndustrializationOff > 0 ? 1.0 : Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd))) * r.MonopolyRentFactor;   // ★(495) 旗 IndustrializationOff では工業化度による解体の項を 1（解体は独占禁止法の係数 MonopolyRentFactor に任せる）   // 独占禁止法（E6）で×倍率（規制なし=1.0＝恒等・談合禁止/解体で縮小）
 
     /// <summary>買い手が払う価格の楔＝<c>(1+stateMonop+distM+monRent+guildRent)×(1−insure)</c> の5項。**唯一定義**（2026-09-11 M5）＝
     /// <see cref="Run"/> の消費ループ（需要と決済）・<see cref="ProductionDiag.ExplainPrice"/>（生産タブの価格積み上げ）・
@@ -497,6 +497,8 @@ public static class EconomyStep
         //     物量も従来どおり消費される＝MoneyConservation/GoodsBalance は不変（月次 CheckInvariants が番人）。
         //   world==null（較正セル・単体テスト）は常に false＝厳密恒等。
         bool warmFrozen = world?.WarmupFrozen == true && world.BakeRun?.ThawCapacity != true;   // ★(490) 焼く試走の腕だけ能力の凍結を外す（BakeRun は焼く側以外は null＝旧と同じ）
+        bool eqOn = FactoryEquipment.On(coef, warmFrozen);   // ★(495) レシピごとの設備（旗 RecipeEquipment が正・暦が進む月だけ。助走は旧の規則）
+        bool indOff = coef.IndustrializationOff > 0;           // ★(495) 工業化度の倍率の読み手の削除（旗 IndustrializationOff が正）
         var scratch = RentScratch(ng, np, region.Pops.Count);
         // ★(186) 計算量の予算＝眠った生産者は今月の生産者の段を全て飛ばす（近似・<see cref="SleepState"/>）。目覚めた月は眠りの間に止めた平滑の量を極限へ追いつかせる。
         //   計数「生産：生産者×月」は回した生産者だけ（眠った生産者は数えない）。
@@ -567,7 +569,7 @@ public static class EconomyStep
         // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。工業国ほど効く。
         // ★冷蔵の門＝発見の表の「冷蔵」の行（2026-10-01 (150)・旧＝工業化度の傾斜だけ＝発見と関係なく開いた）。効きの大きさは立っている設備の規模の傾斜のまま。
         double refrigeration = coef.RefrigerationEffect > 0 && Discovery.Refrigeration(region.Discovered)
-            ? PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
+            ? (coef.IndustrializationOff > 0 ? 1.0 : PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan)) : 0;   // ★(495) 旗 IndustrializationOff では発見の門が開けば傾斜なしの 1   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
         foreach (var good in region.Goods)
             if (good.WearRatePerMonth > 0)
             {
@@ -647,6 +649,7 @@ public static class EconomyStep
             double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
             if (sleep[pi] == 2) s.LaborWeight = rentR * sellR;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
             else s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
+            if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }   // ★(495) 倒産しても設備は残る（Scale は据え置き）＝労働は取らない（旧は Scale=0 が重みを 0 にした）
             prodW[pi] = s.LaborWeight * s.Scale;
             if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
             laborTotalW[s.LaborPopIndex] += prodW[pi];
@@ -663,7 +666,7 @@ public static class EconomyStep
             // ピークから離れるほど物理減価を緩め、0へ漸近させる（資本を注入しない＝保存則・単調性に非接触）。
             // DevelopmentMemory=0 で dep は coef.IndDepreciation そのもの＝式も掛順も不変＝厳密恒等。
             double dep = coef.IndDepreciation;
-            if (coef.DevelopmentMemory > 0)
+            if (coef.DevelopmentMemory > 0 && !indOff)   // ★(495) 旗 IndustrializationOff では開発度の記憶（技術水準の側の項）を読まない
             {
                 double totNow = region.Industrialization + region.OldVintageCapital;
                 if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
@@ -676,7 +679,7 @@ public static class EconomyStep
         // ヴィンテージ資本（no-vintage-capital-depreciation・有効化2026-07-10キュー5）：現世代の一部を旧世代へ経年させ、旧世代は現Techとの差(techGap)に比例して座礁＝生産性に寄与しない。
         // 技術先行国ほど据付時Techと現Techの乖離が積み上がり旧資本が足枷に・後発は新鋭資本で競り勝つ（実力ベース首位交代の本命機構）。
         // 両係数0でOldVintageCapital=StrandedVintage=0・effInd=Industrialization＝現行と厳密恒等。座礁は月次再計算の割引（ストック破壊ではない）＝Tech停滞国では旧資本がフル寄与のまま。
-        if (cap && coef.VintageMigrateRate > 0 && !warmFrozen)
+        if (cap && coef.VintageMigrateRate > 0 && !warmFrozen && !indOff)   // ★(495) 旗 IndustrializationOff ではヴィンテージの移行・座礁（技術水準を読む）を走らせない
         {
             double migrate = region.Industrialization * coef.VintageMigrateRate;
             double newOld = region.OldVintageCapital + migrate;
@@ -688,9 +691,9 @@ public static class EconomyStep
         }
         double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
         // 機械化度（技術的失業 no-labor-saving-tech-unemployment の駆動）：稼働資本の飽和カーブ∈[0,1)。LaborSaveRate=0で0固定＝EffectiveQtyで未使用＝中立。座礁した旧世代は稼働しない＝控除後を読む。
-        region.Mechanization = coef.LaborSaveRate > 0 ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;
+        region.Mechanization = coef.LaborSaveRate > 0 && !indOff ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;   // ★(495) 旗 IndustrializationOff では機械化度 0
         // 工業化由来の生産性は逓減（飽和カーブ）。固定上限を持たずに頭打ちになるので、上限を外しても発散しない。
-        double indMult = cap
+        double indMult = cap && !indOff   // ★(495) 旗 IndustrializationOff では能力の倍率 indMult＝1.0（作者 2026-10-16〈倍率は全て削除〉）
             ? 1.0 + coef.IndProductivityGain * effInd / (1.0 + effInd / coef.IndProductivityScale)
             : 1.0;
 
@@ -2029,6 +2032,7 @@ public static class EconomyStep
             double privateIndGain = built * privateIndPerConstruction;   // (301) 決済の 3 か所（工業化度・その累積・RGO の面積）が同じ積を読む＝計画と同じ 1 束の工業化度（番人 InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる）
             if (!warmFrozen)
             {
+                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, privateIndGain, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, privateIndGain, eqInst); }   // ★(495) 同じ購入を適格な個体の設備にも同じ割合で足す（在庫に足す前の値で φ を出す）
                 region.Industrialization += privateIndGain;
                 region.CumPrivateIndustrialization += privateIndGain;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
             }
@@ -2097,6 +2101,7 @@ public static class EconomyStep
             revenue[lg] += lGot * clearPrice[lg];
             if (!warmFrozen)   // ★助走：国家建設も材料は買って払うが能力にはしない（資本家経路と同じ理屈・同じ扱い＝AIとプレイヤーで非対称にしない）
             {
+                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, built * coef.IndPerConstruction, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, built * coef.IndPerConstruction, eqInst); }   // ★(495) 国家の近代化も同じ配り（設備の持ち主は民間のまま）
                 region.Industrialization += built * coef.IndPerConstruction;
                 region.CumStateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝国家建設分の累積（純カウンタ・力学は読まない）
             }
@@ -2557,7 +2562,8 @@ public static class EconomyStep
             // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
             // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
             double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限
-            s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度
+            bool eqS = eqOn && FactoryEquipment.Eligible(s);   // ★(495) 設備を持つ生産者（旗 RecipeEquipment が正・暦が進む月）＝Scale は据え付けた設備で、ただでは伸び縮みしない
+            if (!eqS) s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度
             // ★幻の工場（**live**・2026-08-11点火／旧の旗 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
             // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。
@@ -2566,7 +2572,10 @@ public static class EconomyStep
             // （旧の旗 TechGatedScaleZero〔0＝不発の旧挙動〕は 2026-10-18 に 0 の枝ごと削除＝作者「全て推奨」。基線は git の履歴から戻せる。）
             if (Catalog.Goods[gi].Tier != GoodTier.Service
                 && !(Discovery.Gate(region, s) > 0))   // 否定形＝NaN も「作れない」側へ倒す
-                s.Scale = 0;
+            {
+                if (eqS && s.Scale > 0) FactoryEquipment.Retire(region, s, costL, insOn ? world : null);   // ★(495) 退場する設備を同じ州の他の個体へ比例で戻す（Scale は 0 になる）
+                else s.Scale = 0;
+            }
 
             // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）
             if (sleep[pi] == 2) s.SmoothedMargin = margin;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
@@ -2575,7 +2584,7 @@ public static class EconomyStep
             {
                 // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。
                 bool shortage = region.Markets[gi].LastDemand > region.Markets[gi].LastProduced + region.Markets[gi].Stock;
-                if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; s.Scale = coef.FactoryReentryScale; }
+                if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; if (!eqS) s.Scale = coef.FactoryReentryScale; }   // ★(495) 設備を持つ個体は据え置き
             }
             // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を FactoryBankruptcyAllTiers で解除。
             // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。
@@ -2590,7 +2599,7 @@ public static class EconomyStep
                      && (coef.FactoryBankruptcyAllTiers > 0
                          || (Catalog.Goods[gi].Tier != GoodTier.Producer && Catalog.Goods[gi].Tier != GoodTier.Intermediate)))
             {
-                s.Bankrupt = true; s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）
+                s.Bankrupt = true; if (!eqS) s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）。★(495) 設備を持つ個体は Scale を消さない（重みのループが倒産を除く）
             }
         }
 
