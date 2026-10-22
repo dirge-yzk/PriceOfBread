@@ -22,7 +22,7 @@ print(f"種 {seeds}")
 
 # ---- C1・C3・S2（eq_s） ----
 # C1：購入のあった国×四半期に設備が足された（installed＞0）。C3：適格な個体の Scale の合計の変化＝BuiltScale の合計の変化（民間の持分の合計は購入で増えない・事前登録 追記 3）。
-c1_rows = c1_noinst = c1_neg = 0; c3_n = c3_viol = 0; c3_worst = 0.0; c3_rows = []; s2_ratio = 0.0; s2_nation = ''; scale_max_all = 0.0; ind_max_all = 0.0; scale_sum_max = 0.0
+c1_rows = c1_noinst = c1_neg = 0; c3_n = c3_viol = c3_moved = 0; c3_worst = 0.0; c3_rows = []; s2_ratio = 0.0; s2_nation = ''; scale_max_all = 0.0; ind_max_all = 0.0; scale_sum_max = 0.0
 for sd in seeds:
     byn = collections.defaultdict(list)
     for r in rows(os.path.join(d, f"eq_s{sd}.tsv")):
@@ -30,10 +30,11 @@ for sd in seeds:
     for n, rs in byn.items():
         rs.sort(key=lambda r: int(r["quarter"]))
         prev = None
-        first_ss = fnum(rs[0]["scaleSum"]) if rs else float("nan")
+        first_ss = fnum(rs[0]["scaleSum"]) / max(1.0, fnum(rs[0]["eligibleCount"])) if rs else float("nan")
         for r in rs:
             pts, ins = fnum(r["pointsBought"]), fnum(r["equipInstalled"])
-            if first_ss > 0 and fnum(r["scaleSum"]) / first_ss > s2_ratio: s2_ratio = fnum(r["scaleSum"]) / first_ss; s2_nation = f"{n}(種{sd}・四半期{r['quarter']})"
+            per = fnum(r["scaleSum"]) / max(1.0, fnum(r["eligibleCount"]))   # 適格な個体 1 件あたり（領土の移り変わりで国の個体数が変わっても比べられる）
+            if first_ss > 0 and per / first_ss > s2_ratio: s2_ratio = per / first_ss; s2_nation = f"{n}(種{sd}・四半期{r['quarter']})"
             ss, bs = fnum(r["scaleSum"]), fnum(r["builtSum"])
             scale_max_all = max(scale_max_all, fnum(r["scaleMax"])); ind_max_all = max(ind_max_all, fnum(r["indMax"])); scale_sum_max = max(scale_sum_max, ss)
             if pts > 0:
@@ -42,16 +43,17 @@ for sd in seeds:
                 if ins <= 0: c1_noinst += 1
             if prev is not None and int(r["quarter"]) == int(prev["quarter"]) + 1:
                 dS = ss - fnum(prev["scaleSum"]); dB = bs - fnum(prev["builtSum"])
+                if fnum(r["eligibleCount"]) != fnum(prev["eligibleCount"]): c3_moved += 1; prev = r; continue   # 領土の移り変わり（州が国をまたぐ）で個体の数が変わった四半期は国の合計では比べられない
                 c3_n += 1
                 err = abs(dS - dB) / max(1.0, abs(ss))
                 c3_worst = max(c3_worst, err)
                 if err > 1e-6: c3_viol += 1; c3_rows.append((err, sd, n, int(r["quarter"]), dS, dB, ss))
             prev = r
 print(f"C1 配りが設備になった：購入のあった国×四半期 {c1_rows}・設備が足されなかった {c1_noinst}（{c1_noinst / max(1, c1_rows):.4%}）・負か非有限 {c1_neg}")
-print(f"C3 尺度が増えない：連続四半期 {c3_n} 件のうち 設備の合計の変化が国営の持分の合計の変化と相対 1e-6 を超えて違った {c3_viol} 件（0 が合格）・最悪の相対差 {c3_worst:.3g}")
+print(f"C3 尺度が増えない：連続四半期 {c3_n} 件（個体の数が変わった〔州が国をまたいだ〕{c3_moved} 件は除く）のうち 設備の合計の変化が国営の持分の合計の変化と相対 1e-6 を超えて違った {c3_viol} 件（0 が合格）・最悪の相対差 {c3_worst:.3g}")
 for err, sd, n, q, dS, dB, ss in sorted(c3_rows, reverse=True)[:8]:
     print(f"   C3 の外れ（相対差 {err:.3g}）：種{sd} {n} 四半期{q} ΔScaleSum={dS:.6g} ΔBuiltSum={dB:.6g} ScaleSum={ss:.6g}")
-print(f"S2 発散：国の設備の合計÷最初の行の最大 {s2_ratio:.3f}（{s2_nation}・線 2 以下）・国の設備の合計の最大 {scale_sum_max:.4g}・設備の最大（個体）{scale_max_all:.4g}（記録）・州の在庫の最大 {ind_max_all:.4g}（線 10）")
+print(f"S2 発散：適格な個体 1 件あたりの設備の合計÷最初の行の最大 {s2_ratio:.3f}（{s2_nation}・線 2 以下）・国の設備の合計の最大 {scale_sum_max:.4g}・設備の最大（個体）{scale_max_all:.4g}（記録）・州の在庫の最大 {ind_max_all:.4g}（線 10）")
 
 # ---- V1・D1（eqr） ----
 share_series = collections.defaultdict(dict)   # (seed,nation,good,recipe) -> {quarter: (share, scale)}

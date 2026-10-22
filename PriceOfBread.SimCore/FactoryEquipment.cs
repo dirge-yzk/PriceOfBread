@@ -7,8 +7,7 @@ namespace PriceOfBread.SimCore;
 /// <para>⚠**Scale は州の資本の中の取り分（相対）**＝適格な個体の Scale の合計は購入で増えない（民間の持分の合計を保つ＝事前登録 追記 3）。尺度が増えないので、開幕の工業化度が小さい州で設備の大きさが桁で膨らむ（canary で 最大 6.3e6）ことも、国営の 1 棟（FactoryBuildScale）が薄まることも起きない。
 /// 民間の古い設備は〈購入に薄められる〉で相対的に減る（購入が減価を補う定常では (1−減価) の割合で入れ替わる）。</para>
 /// <para>⚠Scale は同じ担い手 POP を取り合う工場の間の労働の取り分の重み（EconomyStep の prodW＝LaborWeight×Scale）で、Capacity の総量は変えない。
-/// ⚠設備の合計は州の在庫 <see cref="Region.Industrialization"/> と同じ割合で増え・同じ係数で減る（二重の表現・尺度は 1 本＝事前登録 追記 1）。設備の持ち主の区別は BuiltScale（国営持分）÷Scale が持ち、
-/// 減価と廃棄は両方に同じ係数を掛けて持分を動かさない。AI の設計＝確証なし。</para></summary>
+/// ⚠配りの大きさは州の在庫 <see cref="Region.Industrialization"/> に足される点の割合 φ で決まる（二重の表現＝事前登録 追記 1 (1)・追記 3）。設備の持ち主の区別は BuiltScale（国営持分）÷Scale が持つ。AI の設計＝確証なし。</para></summary>
 internal static class FactoryEquipment
 {
     /// <summary>設備を持つ生産者か（BuysLabor の工場＝産地〔IsRgo〕・役務・職人・労働の財の並存レシピを除く）。</summary>
@@ -18,7 +17,7 @@ internal static class FactoryEquipment
     /// <summary>設備の規則が働く月か＝旗が正で、助走の凍結中でない（助走は初期値を作る道具＝旧の規則のまま走り、その終わりの Scale を 1783 年の設備と読む）。</summary>
     internal static bool On(Coefficients c, bool warmFrozen) => c.RecipeEquipment > 0 && !warmFrozen;
 
-    /// <summary>国営の休止中の設備の廃棄（恐慌）＝BuiltScale が <paramref name="after"/> に減った分だけ Scale からも引く（民間の持分を動かさない）。呼び手は BuiltScale を更新する前の値を渡す。</summary>
+    /// <summary>国営の休止中の設備の廃棄（恐慌）＝BuiltScale が <paramref name="builtBefore"/> から減った分だけ Scale からも引く（民間の持分を動かさない）。呼び手は BuiltScale を更新する前の値を渡す。</summary>
     internal static void Dismantle(Producer s, double builtBefore)
     {
         double drop = builtBefore - s.BuiltScale;
