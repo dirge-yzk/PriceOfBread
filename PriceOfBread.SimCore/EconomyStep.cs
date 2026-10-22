@@ -1385,6 +1385,10 @@ public static class EconomyStep
             if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（投入も蒸気も電化も0・財の生産者の数にも入れない）
             var s = region.Producers[pi];
             producerCount[s.GoodId]++;
+            // ★(spi) 休んだ生産者（この月の産出0・作りたい量0＝採算の率0）は下の段が 0 を足すか 0 を書くだけ＝飛ばす（恒等）：
+            //   投入の需要 Output×eq＝0・再点火 max(0, 割合×作りたい量−産出)×eq＝0（trickleFill は 0 のまま）・電化と蒸気の量 Output×…＝0（消した配列のまま 0）・
+            //   効率化材の量 Output×…＝0（effChosen は −1 のまま＝読み手は effNeed＞0 のときだけ選んだ財を読む）。財の生産者の数（上）は数える。
+            if (s.Output == 0 && s.DesiredOutput == 0) continue;
             foreach (var inp in s.Inputs)
             {
                 double eq = EffectiveQty(s, region, inp, coef);
@@ -2032,6 +2036,17 @@ public static class EconomyStep
         {
             if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（投入費0）
             var s = region.Producers[pi];
+            if (s.Output == 0 && s.DesiredOutput == 0)
+            {   // ★(spi) 休んだ生産者（上の投入の段で飛ばした個体と同じ条件＝この 2 つの段の間に産出と作りたい量は書かれない）＝代金は全て 0（量が 0）・
+                //   電力・石炭・効率化材の量も 0＝下の 3 つの充足の平滑は目標 0 へ同じ式で寄せる（状態はこの 3 つと投入費だけ）。
+                double elecStep0 = coef.FillInertia * (0 - s.ElecFill);
+                if (elecStep0 < 0) elecStep0 *= 1.0 - coef.ElecFillIrreversibility;
+                s.ElecFill += elecStep0;
+                s.SteamFill += coef.FillInertia * (0 - s.SteamFill);
+                s.EffFill += coef.FillInertia * (0 - s.EffFill);
+                inputCost[pi] = 0;
+                continue;
+            }
             double ic = 0;
             double trickleBill = 0;   // ★再点火発注の代金（2026-08-01）。持ち主の持ち出し＝工場の営業費用ではないので ic には入れない
             foreach (var inp in s.Inputs)
