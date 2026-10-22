@@ -1901,7 +1901,7 @@ public class InstrumentsTests
                         if (claims > 0)
                         {
                             double u = Math.Max(0, claims - (p0 + bor)) / claims, d = Math.Max(0, dev) / claims;
-                            obs++; unpaidSum += u; devSum += d; if (u > 0) unpaidM++; unpaidMax = Math.Max(unpaidMax, u); devMax = Math.Max(devMax, d);
+                            obs++; unpaidSum += u; devSum += d; if (Col(fh, x, "unpaidBeforeDevaluationShare") > 0) unpaidM++; unpaidMax = Math.Max(unpaidMax, u); devMax = Math.Max(devMax, d);   // ★(500) 月の数は月の列の符号で数える＝生の列（請求・払える額・借入）の引き算は TSV の往復で桁落ちの正が乗る（合成の木〔gd＋eq〕の英 Q19 の月 58：請求 11287.69049＝払える額＋借入 で真の 0 を正と数えた）・値の一致は上の 1e-8 で見る
                             Assert.True(Math.Abs(u - Col(fh, x, "unpaidBeforeDevaluationShare")) <= 1e-8, $"月の列が生の列から組み直した値に合わない（{g.Key} Q{q} 組み直し {u:G17}・列 {Col(fh, x, "unpaidBeforeDevaluationShare"):G17}・請求 {claims:G17}・払える額 {p0:G17}・借入 {bor:G17}）");
                         }
                     }

@@ -1,0 +1,1 @@
+M500-1 FactoryEquipment.Renormalize の k の分子の正の条件を外す（need>0 を落とす）→ FactoryEquipmentTests 28 本中 赤 1（配り_薄めきれないときは国営の持分を持たない個体に触らない）・他 27 は緑＝新しい番人だけが捕まえた。戻して緑。
