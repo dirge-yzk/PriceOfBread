@@ -28,11 +28,11 @@ public class FactoryEquipmentTests
         => w.Regions.Where(r => r.State == RegionState.Active).SelectMany(r => r.Producers).Where(FactoryEquipment.Eligible);
 
     [Fact]
-    public void 旗は既定0で倒さない()
+    public void 旗は既定1で点火済み_旗0は旧の規則への戻し先()
     {
         var c = new Coefficients();
-        Assert.Equal(0.0, c.RecipeEquipment);
-        Assert.Equal(0.0, c.IndustrializationOff);
+        Assert.Equal(1.0, c.RecipeEquipment);          // 2026-10-23 点火（事前登録 追記 6）
+        Assert.Equal(1.0, c.IndustrializationOff);
     }
 
     [Fact]

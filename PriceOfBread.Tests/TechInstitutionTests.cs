@@ -84,10 +84,12 @@ public class TechInstitutionTests
     /// 開幕に機関車・汽船だけ与えても割れる（米が 1.10 を割る）・1840 年までの全ての行を与えると緑（暦年で前提を作るのは台本禁止に近い）＝前提の作り方に確証がないので固定のまま記録する。</para></summary>
     private static void PinLegacyDiscovery(MultiNationSim sim)
     {
+        sim.Coef.RecipeEquipment = 0; sim.Coef.IndustrializationOff = 0;   // ★(495) この 1 本は技術水準そのものの創発の主張（t＞1.10・宗教固定の 1.3 倍）＝技術水準の完全削除の線が書き直す対象。倍率の削除〔IndustrializationOff の点火〕で英の技術が t＝1.020 で停滞したので、発見の旗と同じ扱いで旧の盤面に固定のまま記録する（確証なし・帯が見る）
         sim.Coef.DiscoveryEngineerHalfPerMonth = 0;   // 多国の判定（MultiNationSim.StepQuarter の Discovery.Step）は国の World.Coef でなく共有の係数を読む
         foreach (var n in sim.Nations)
         {
             n.World.Coef.DiscoveryEngineerHalfPerMonth = 0;
+            n.World.Coef.RecipeEquipment = 0; n.World.Coef.IndustrializationOff = 0;   // ★(495)
             Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（合成染料の行は開幕で解禁済み）
         }
     }

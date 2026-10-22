@@ -430,7 +430,8 @@ public class ProductionDiagTests4
             double deg = EconomyStep.MonopolyDegree(r, c, 1.0);
             Assert.Equal(EconomyStep.MonopolyDegree(r, c, c.MonopolyRentPremium), salt.MonopolyRent);   // 唯一定義＝厳密一致
             Assert.True(System.Math.Abs(salt.MonopolyRent - c.MonopolyRentPremium * deg) <= 1e-12, $"Ind={ind}：塩のレント {salt.MonopolyRent} ≠ Premium×度合 {c.MonopolyRentPremium * deg}");
-            if (ind >= c.MonopolyDissolveInd) { Assert.Equal(0.0, salt.MonopolyRent); Assert.Equal(0.0, deg); }
+            if (c.IndustrializationOff > 0) { Assert.Equal(1.0, deg); Assert.Equal(c.MonopolyRentPremium, salt.MonopolyRent); }   // ★(495) 点火後の既定＝工業化度で独占は解体しない（解体は独占禁止法の係数 MonopolyRentFactor に任せる）
+            else if (ind >= c.MonopolyDissolveInd) { Assert.Equal(0.0, salt.MonopolyRent); Assert.Equal(0.0, deg); }
             else Assert.True(salt.MonopolyRent > 0 && deg > 0, $"Ind={ind}：近代化前なのに独占レントが立たない");
             Assert.True(Privileges.MonopolyDegree(w, c) >= deg, "表示（Active 州の最大）が首都の度合を下回る");
             Assert.Equal(0.0, ProductionDiag.ExplainPrice(w, r, Catalog.LaborId).MonopolyRent);   // 独占レントの財以外は0

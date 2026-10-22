@@ -1,0 +1,23 @@
+M01 φ=g（割合にしない） → 失敗!   -失敗:     2、合格:    25、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配り_国営の持分を持つ個体は薄めない_,PriceOfBread.Tests.FactoryEquipmentTests.配り_配る合計は在庫に対する割合_個体
+M02 倒産も受け取る → 失敗!   -失敗:     2、合格:    25、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配り_点が0やNaNなら配らない_配り,PriceOfBread.Tests.FactoryEquipmentTests.配り_倒産と未発見の個体は受け取らない
+M04 廃棄が Scale から引かれない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.国営の休止中の設備の廃棄は民間の持分を
+M05 自由な伸びが戻る → 失敗!   -失敗:     4、合格:    23、スキップ:     0、合計:    27、期間: 2 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倒産の遷移で設備が消えない_深い赤字の,PriceOfBread.Tests.FactoryEquipmentTests.倒産しても設備を消さず労働配分の重みは,PriceOfBread.Tests.FactoryEquipmentTests.動いている世界で門が閉じた個体の設備は,PriceOfBread.Tests.FactoryEquipmentTests.旗1で購入も完成も廃棄も無ければ設備は
+M06 indMult が旗で消えない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_旗で人力の労働の能力が工業
+M07 倒産の重み除外なし → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 2 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倒産した適格な個体は労働配分の重みを持
+M08 完成で Scale を足さない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.国家の工場の完成は適格な個体の設備にも
+M09 全員赤字の等分をやめる → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 3 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配り_倒産と未発見の個体は受け取らない
+M10 基準が一棟の下限を持たない → 失敗!   -失敗:     2、合格:    25、スキップ:     0、合計:    27、期間: 2 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配り_州に民間の設備が無ければ尺度が育,PriceOfBread.Tests.FactoryEquipmentTests.配り_倒産と未発見の個体は受け取らない
+M11 賃金の天井が旗で消えない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 2 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_旗で能力の倍率と賃金の天井
+M13 独占の解体が旗で消えない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_旗で能力の倍率と賃金の天井
+M14 ヴィンテージが旗で止まらない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_走らせてもヴィンテージの3
+M15 機械化度が旗で消えない → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_走らせてもヴィンテージの3
+M16 倒産で Scale を消す → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.倒産の遷移で設備が消えない_深い赤字の
+M17 薄めない（尺度が増える） → 失敗!   -失敗:     5、合格:    22、スキップ:     0、合計:    27、期間: 2 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配りと退場は民間の持分の合計を保つ_手,PriceOfBread.Tests.FactoryEquipmentTests.配り_国営の持分を持つ個体は薄めない_,PriceOfBread.Tests.FactoryEquipmentTests.動いている世界で門が閉じた個体の設備は,PriceOfBread.Tests.FactoryEquipmentTests.配り_配る合計は在庫に対する割合_個体,PriceOfBread.Tests.FactoryEquipmentTests.退場_門が閉じた個体の民間の持分は同じ
+M18 国営の持分を持つ個体も薄める → 失敗!   -失敗:     4、合格:    23、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配りと退場は民間の持分の合計を保つ_手,PriceOfBread.Tests.FactoryEquipmentTests.配り_国営の持分を持つ個体は薄めない_,PriceOfBread.Tests.FactoryEquipmentTests.配り_他の個体の購入では混ざった工場の,PriceOfBread.Tests.FactoryEquipmentTests.退場_門が閉じた個体の民間の持分は同じ
+M19 混ざった個体の民間の持分を目標から引かない → 失敗!   -失敗:     3、合格:    24、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配りと退場は民間の持分の合計を保つ_手,PriceOfBread.Tests.FactoryEquipmentTests.配り_国営の持分を持つ個体は薄めない_,PriceOfBread.Tests.FactoryEquipmentTests.退場_門が閉じた個体の民間の持分は同じ
+M20 門が閉じた個体も受け取る → 失敗!   -失敗:     3、合格:    24、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.配りと退場は民間の持分の合計を保つ_手,PriceOfBread.Tests.FactoryEquipmentTests.配り_発見の門が閉じた個体は受け取らな,PriceOfBread.Tests.FactoryEquipmentTests.配り_倒産と未発見の個体は受け取らない
+M21 退場が他の個体へ戻さない → 失敗!   -失敗:     2、合格:    25、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.動いている世界で門が閉じた個体の設備は,PriceOfBread.Tests.FactoryEquipmentTests.ラチェット_倍率と操業規模と技術水準の
+M22 退場の目標に消えた取り分を足さない → 失敗!   -失敗:     2、合格:    25、スキップ:     0、合計:    27、期間: 1 s - PriceOfBread.Tests.dl | PriceOfBread.Tests.FactoryEquipmentTests.動いている世界で門が閉じた個体の設備は,PriceOfBread.Tests.FactoryEquipmentTests.退場_門が閉じた個体の民間の持分は同じ
+M23 民間の設備が無い州で消す → 成功!   -失敗:     0、合格:    27、スキップ:     0、合計:    27、期間: 945 ms - PriceOfBread.Tests | 
+M24 台帳が 3 周でなく 1 周 → 失敗!   -失敗:     1、合格:    26、スキップ:     0、合計:    27、期間: 881 ms - PriceOfBread.Tests | PriceOfBread.Tests.FactoryEquipmentTests.配りは計算量の台帳に州の生産者の数だけ
+MUT-DONE
