@@ -2368,6 +2368,12 @@ public class InstrumentsTests
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             int iQ = Array.IndexOf(h, "quarter"), iBuyer = Array.IndexOf(h, "buyer"), iRow = Array.IndexOf(h, "row"), iSeller = Array.IndexOf(h, "seller"), iCarrier = Array.IndexOf(h, "carrier"), iBuyerUid = Array.IndexOf(h, "buyerUid");
             Assert.True(iBuyerUid >= 0, "disccontact_s に buyerUid の列が無い");
+            // ★(499) 売り手も国の個体（sellerUid）で名乗る：記帳の鍵が個体なので、同じ名（BaseName）の別の国の売りが 1 行に合算されない。個体の名前の引きは別の表（nation_s の nationUid↔nation）で作る
+            int iSellerUid = Array.IndexOf(h, "sellerUid"); Assert.True(iSellerUid >= 0, "disccontact_s に sellerUid の列が無い");
+            var (nh, nrows) = Table(System.IO.Path.Combine(dir, "nation_s"+DSEED+".tsv"));
+            int nUid = Array.IndexOf(nh, "nationUid"), nName = Array.IndexOf(nh, "nation");
+            Assert.True(nUid >= 0 && nName >= 0, "nation_s に nationUid／nation の列が無い");
+            var nameOfUid = new Dictionary<string, string>(); foreach (var nr in nrows) nameOfUid[nr[nUid]] = nr[nName];
             Assert.True(iCarrier >= 0, "carrier 列が無い");
             Assert.True(rows.Count >= 5, $"前提が崩れた（接触の内訳の行 {rows.Count}）");   // ★(393) 10 → 5：兵の保持力の分けで軌道が動き、60 四半期の接触の行が 6 に減った（規則の検査は行ごとなので 5 行あれば空ではない）
             foreach (var r in rows)
@@ -2390,6 +2396,9 @@ public class InstrumentsTests
                 //   （11層の軌道では 立憲王政ポルトガル の名が 2 度現れ、Q9 の解禁が後の別の国に当たった〈推測〉＝disc_s で nationUid が 2 つあることは確かめていない）＝名前の再利用がありうる国は読まない（売り手の founded と同じ扱い）。
                 //   ★(490) 買い手の鍵を国の個体（buyerUid ↔ disc_s の nationUid）にした＝名前の再利用の穴が無い＝開幕に居た国に限らず全ての買い手を読む（旧は openNames に含まれる国だけ）
                 Assert.NotEqual("0", r[iBuyerUid]);
+                Assert.NotEqual("0", r[iSellerUid]);
+                Assert.Equal(r[iSeller], nameOfUid[r[iSellerUid]]);   // ★(499) 売り手の個体の名前は売り手の列と一致（個体の番号が別の国を指していない）
+                Assert.Equal(r[iBuyer], nameOfUid[r[iBuyerUid]]);
                 if (unlockQByUid.TryGetValue((r[iBuyerUid], r[iRow]), out int bq)) Assert.True(bq >= q, $"買い手 {r[iBuyer]}（個体 {r[iBuyerUid]}）は Q{bq} に {r[iRow]} を解禁済みなのに Q{q} に記帳された");
             }
             // (360) 接触の分母 discflow_s：運び手の財ごとの世界の越境の取引額。既定の運び手の表（係数 0）は蒸気機関の財だけ＝その財の行があり額が非負。分子（接触の内訳の額）の財は分母の財の部分集合。

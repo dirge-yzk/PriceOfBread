@@ -142,6 +142,40 @@ public class OpeningBakeTests
         }
     }
 
+    /// <summary>★(499) 入力のハッシュの番人（反証役 hz4〔v〕低#3）：鍵が同じで値だけ違う入力（world.json の値の直し）で古い表が黙って読まれない。
+    /// ①同梱の表の頭書きの inputHash が今の埋め込みの資源のハッシュと一致する（期待は <see cref="OpeningBake.InputHash"/> でなく、ここで別の組み立て〔連結してから 1 回ハッシュ〕で作る）
+    /// ②頭書きの inputHash だけを変えた表は検証が赤・読み込みは例外で盤面を 1 ビットも変えない（鍵は全て一致している＝他の理由で赤にならない対照つき）
+    /// 旗 0 が表を読まないことは別の番人（旗は既定0で表を開かずに助走へ入り…）。突然変異＝<see cref="OpeningBake.Validate"/> の入力のハッシュの検査を消すと ②が赤。</summary>
+    [Fact]
+    public void 表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない()
+    {
+        var asm = typeof(OpeningBake).Assembly;
+        using var cat = new MemoryStream();
+        foreach (var n in asm.GetManifestResourceNames().Where(x => !x.EndsWith("opening_bake.json", StringComparison.Ordinal)).OrderBy(x => x, StringComparer.Ordinal))
+        {
+            using var rs = asm.GetManifestResourceStream(n)!;
+            using var buf = new MemoryStream(); rs.CopyTo(buf);
+            cat.Write(System.Text.Encoding.UTF8.GetBytes(n)); cat.Write(System.Security.Cryptography.SHA256.HashData(buf.ToArray()));
+        }
+        string expected = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(cat.ToArray())).ToLowerInvariant()[..16];
+        Assert.Equal(expected, OpeningBake.EmbeddedDoc.RootElement.GetProperty("header").GetProperty("inputHash").GetString());   // 同梱の表は今の入力で焼いてある
+        Assert.Equal(expected, OpeningBake.InputHash());
+
+        string t = Short.Value;   // 今の入力で焼いた短い表（鍵・欄の並びは全て一致）
+        using (var ok = JsonDocument.Parse(t)) Assert.Empty(OpeningBake.Validate(Fresh(), ok));   // 対照：頭書きを直す前は緑
+        string stale = t.Replace("\"inputHash\":" + Q(expected), "\"inputHash\":" + Q("0000000000000000"));
+        Assert.NotEqual(t, stale);   // 変異が当たっている
+        using var doc = JsonDocument.Parse(stale);
+        var sim = Fresh();
+        string snap = OpeningBake.Capture(sim, new OpeningBake.Header("t", "t", 1, 0, false, 0, "t", "t"));
+        var errs = OpeningBake.Validate(sim, doc);
+        Assert.Single(errs);   // 赤の理由は入力のハッシュだけ
+        Assert.Contains("入力のハッシュ", errs[0]);
+        var ex = Assert.Throws<InvalidOperationException>(() => OpeningBake.Apply(sim, doc));
+        Assert.Contains("今の世界と合わない", ex.Message);
+        Assert.Equal(snap, OpeningBake.Capture(sim, new OpeningBake.Header("t", "t", 1, 0, false, 0, "t", "t")));   // 盤面は 1 ビットも変わらない
+    }
+
     /// <summary>同梱の表（埋め込みの opening_bake.json）の番人：①鍵が今の世界と全て一致（世界のデータ〔州・レシピ・財・階級〕を変えたら焼き直す＝赤になるのが仕様）
     /// ②頭書きが〈収束した試走〉を名乗る（上限で打ち切った表を同梱しない）③旗 1 の助走が通り、貯蓄が旗 0 と違う（読み込みが実際に効く）④旗 0 の助走は同じ長さでも表を読まない（★(491) 反証役 hz4〔v〕低#5＝ここで見るのは旗 0 の貯蓄が正であることと、③の旗 1 と違うこと＝構築直後との一致は確かめていない）。</summary>
     [Fact]

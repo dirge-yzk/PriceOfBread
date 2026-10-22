@@ -82,7 +82,7 @@ public static partial class Instruments
         public readonly List<string> EngRows = new();      // (415) 発見の表の行の親の産業の技師の量（解禁した行 E・まだの行の軌道 T）＝四半期の末に engineer_s へ書く（T は8四半期ごと）
         public readonly List<string> ClockRows = new();    // (461) 発見の時計の表 clock_s の行（W・T・C 8四半期ごと・E 解禁した行）＝四半期の末に書く（InstrumentsClock.cs）
         public readonly List<string> DiscFlowRows = new();   // (360) 世界の越境の取引額（接触の分母）：蒸気機関・機関車の行の運び手の財ごと・四半期の末に discflow_s へ（Nations[0] の世界に貯める）
-        public readonly Dictionary<(int Row, string Seller, int Good), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
+        public readonly Dictionary<(int Row, string Seller, World SellerWorld, int Good), double> DiscContact = new();   // (328) 伝わりの接触の内訳：買い手のこの国が未解禁の蒸気機関・機関車の運び手の財を、解禁済みの売り手の国から買った額（金建て・四半期の和）＝四半期の末に disccontact_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public double OpTensionAdded, OpTensionLevelMax; public int OpTensionPairMonths;   // ★(342) 禁令中の国が輸出国との組へ積んだアヘンの緊張（四半期の和・件数・積んだ直後の組の値の最大）
         public double LuxPopMonths, LuxNonPosPopMonths, LuxInvalidPopMonths, LuxNonPosSizeSum;   // (329) 奢侈品の所得弾力：f＝1 に倒れた POP×月の累計（読むだけ・四半期の終わりに nation_s へ）
@@ -1921,7 +1921,7 @@ public static partial class Instruments
     internal static void DiscoveryContact(World buyer, World seller, int row, int good, double value)
     {
         if (!(value > 0) || Catalog.Discoveries[row].Name is not ("蒸気機関" or "機関車")) return;
-        var acc = S(buyer).DiscContact; var key = (row, NameOf(seller), good);   // (360) 運び手の財（買った財）も名乗る＝伝わりの道で機関車・汽船が蒸気機関の行の運び手になる分を読む
+        var acc = S(buyer).DiscContact; var key = (row, NameOf(seller), seller, good);   // (360) 運び手の財（買った財）も名乗る＝伝わりの道で機関車・汽船が蒸気機関の行の運び手になる分を読む
         acc[key] = acc.TryGetValue(key, out double cur) ? cur + value : value;
     }
 
@@ -1988,9 +1988,9 @@ public static partial class Instruments
             if (st.DiscContact.Count > 0)   // (328) 接触の内訳（買い手の国の個体×行×売り手の国）
             {
                 sk.DiscContact ??= Open("disccontact", seed);
-                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	carrier	valuePerQuarter	buyerUid"); sk.DiscContactHeader = true; }
-                foreach (var ((crow, seller, cgood), v) in st.DiscContact.OrderBy(kv => kv.Key.Row).ThenBy(kv => kv.Key.Seller, StringComparer.Ordinal).ThenBy(kv => kv.Key.Good))
-                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, Catalog.Goods[cgood].Name, F(v), I(st.Uid)));   // ★(490) 末尾の buyerUid＝買い手の国の個体
+                if (!sk.DiscContactHeader) { sk.DiscContact.WriteLine("quarter	year	buyer	row	seller	carrier	valuePerQuarter	buyerUid	sellerUid"); sk.DiscContactHeader = true; }
+                foreach (var ((crow, seller, sellerW, cgood), v) in st.DiscContact.OrderBy(kv => kv.Key.Row).ThenBy(kv => kv.Key.Seller, StringComparer.Ordinal).ThenBy(kv => kv.Key.Good).ThenBy(kv => S(kv.Key.SellerWorld).Uid))
+                    sk.DiscContact.WriteLine(string.Join('	', I(q), I(n.World.Year), NameOf(n.World), Catalog.Discoveries[crow].Name, seller, Catalog.Goods[cgood].Name, F(v), I(st.Uid), I(S(sellerW).Uid)));   // ★(490) 末尾の buyerUid＝買い手の国の個体・★(499) その後ろの sellerUid＝売り手の国の個体（seller は BaseName＝建国で再利用される。記帳の鍵も個体で分ける＝同じ名の別の国の売りが 1 行に合算されない）。全ての国の四半期の行（採番）は DiscTable より前に書かれる
                 st.DiscContact.Clear();
             }
         }

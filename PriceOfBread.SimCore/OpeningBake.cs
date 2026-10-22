@@ -40,7 +40,8 @@ public static class OpeningBake
     // ───────────────────────────── 入力のハッシュ ─────────────────────────────
 
     /// <summary>世界のデータの入力のハッシュ＝SimCore の埋め込みの資源（world.json・goods.json・places.json ほか。opening_bake.json 自身を除く）を名前順に並べた sha256 の先頭 16 桁。
-    /// 違うだけでは赤にしない（<see cref="Apply"/> は鍵の一致だけを見る）＝名乗りに書いて、焼いた木と今の木の入力が同じかを人が読む。</summary>
+    /// ★(499) 表の頭書きの inputHash と違えば <see cref="Validate"/> が赤にする（旗 1 の読み込み〔<see cref="Apply"/>〕と同梱の表の番人だけ＝旗 0 の助走は表を読まない）。
+    /// 鍵（州・生産者・財・階級の並びと名前）は同じまま値だけ変わる入力の直し（農奴制の初期値のような world.json の値の変更）は鍵では見つからず、表の値が古いまま黙って読まれるため。</summary>
     public static string InputHash()
     {
         var asm = typeof(OpeningBake).Assembly;
@@ -235,6 +236,10 @@ public static class OpeningBake
         var errs = new List<string>();
         var root = doc.RootElement;
         if (!root.TryGetProperty("format", out var f) || f.GetString() != Format) { errs.Add($"format が {Format} でない"); return errs; }
+        // ★(499) 入力のハッシュ（反証役 hz4〔v〕低#3）：鍵が同じで値だけ違う入力（world.json の値の直し）で古い表が黙って読まれるのを止める＝焼き直しを強いる
+        string inputNow = InputHash();
+        if (!root.TryGetProperty("header", out var hdr) || !hdr.TryGetProperty("inputHash", out var ih) || ih.GetString() != inputNow)
+            errs.Add($"入力のハッシュが違う（表 {(root.TryGetProperty("header", out var h0) && h0.TryGetProperty("inputHash", out var i0) ? i0.GetString() : "なし")} ≠ 世界 {inputNow}）＝焼き直す（scripts/instruments/hz4_490/bake.sh）");
         // ★(491) 欄の並びも鍵（反証役 hz4〔v〕低#3＝Apply は添字で直書き＝同じ長さのまま欄を入れ替えると値が黙って別の欄に入る）
         if (!NamesMatch(root, "capNames", CapNames)) errs.Add($"資本の欄の並びが世界と違う（世界 {string.Join(',', CapNames)}）");
         if (!NamesMatch(root, "producerNames", ProducerNames)) errs.Add($"生産者の欄の並びが世界と違う（世界 {string.Join(',', ProducerNames)}）");

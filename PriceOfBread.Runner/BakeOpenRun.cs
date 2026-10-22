@@ -76,7 +76,7 @@ public static class BakeOpenRun
             double sumCap = 0; var pxs = new List<double>();
             foreach (var n in sim.Nations)
             {
-                string nk = OpeningBake_NationKey(n.World);
+                string nk = OpeningBake.NationKey(n.World);
                 if (!Main8.Any(m => nk.StartsWith(m, StringComparison.Ordinal))) continue;
                 var (cp, px) = Measure(n.World);
                 sumCap += cp; if (double.IsFinite(px)) pxs.Add(px);
@@ -91,7 +91,4 @@ public static class BakeOpenRun
         File.WriteAllText(seriesPath, series.ToString(), new UTF8Encoding(false));
         Console.WriteLine($"bakeopen seed={seed} quarters={res.Quarters} converged={res.Converged} cap={cap} wall={sw.Elapsed.TotalSeconds:F1}s bytes={new FileInfo(outPath).Length} -> {outPath}");
     }
-
-    // ★(491) 反証役 hz4〔v〕低#6 は OpeningBake.NationKey を呼べと言うが、あちらは Power の無い国で例外を投げる＝ここは収束の判定の 8 国の絞りだけ＝鍵の立たない国は飛ばす（寛容な写しを残す）
-    static string OpeningBake_NationKey(World w) => w.SelfPower?.BaseName ?? "";
 }
