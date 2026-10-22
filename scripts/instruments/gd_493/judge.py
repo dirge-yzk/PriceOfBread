@@ -322,12 +322,12 @@ for Y in (1783, 1790, 1800, 1830, 1860, 1900, 1930, 1950):
     P(f'  {Y}: 旧の中央値 {fmt(med(ro), 3)}  新の中央値 {fmt(med(rn), 3)}  比の中央値 {fmt(med(rr), 3)}（n={len(rr)}）')
 
 P('\n[R5] 下流・材の価格の新÷旧の中央値（同じ種・国・四半期・記録・採否に使わない）。(a) pxgoods_s＝8 国の実質〔priceMean÷物価水準〕・開幕 1783〜1794 だけ（その表の範囲）。(b) goods_s＝その表に出る国（8 国ではない）の名目 priceMean・10 年刻み')
-GOODS = ['石鹸', '紙', 'ガラス', '医薬品', '肥料', 'ダイナマイト', '絹織物', '染料', '加工肉', '缶詰', 'セメント', '内燃機関', '冷蔵庫', '砂糖', 'ゴム', '火薬', '化学兵器', '木', '硝石', '硫黄', '塩', '石炭', '石灰石', '銅鉱']
+WATCH = ['石鹸', '紙', 'ガラス', '医薬品', '肥料', 'ダイナマイト', '絹織物', '染料', '加工肉', '缶詰', 'セメント', '内燃機関', '冷蔵庫', '砂糖', 'ゴム', '火薬', '化学兵器', '木', '硝石', '硫黄', '塩', '石炭', '石灰石', '銅鉱']
 def load_px(d, s_):
     st_ = {}
     r = rows(d, 'pxgoods_s', s_)
     for x in (r or []):
-        if x['goodName'] in GOODS and x['nation'] in NAT8 and x['time'].startswith('q'):
+        if x['goodName'] in WATCH and x['nation'] in NAT8 and x['time'].startswith('q'):
             lv = fl(x['regionPriceLevelMeanIndex'])
             st_[(s_, x['nation'], x['goodName'], int(x['time'][1:]))] = fl(x['priceMean']) / lv if lv > 0 else float('nan')
     return st_
@@ -335,14 +335,14 @@ def load_g(d, s_, qs):
     st_ = {}
     r = rows(d, 'goods_s', s_)
     for x in (r or []):
-        if x['goodName'] in GOODS:
+        if x['goodName'] in WATCH:
             q = int(x['quarter'])
             if q in qs:
                 st_[(s_, x['nation'], x['goodName'], q)] = fl(x['priceMean'])
     return st_
 def table(gold, gnew, qlist, label):
     P('  ' + label + '  財   ' + ' '.join(f'{1783 + q // 4:>6}' for q in qlist))
-    for g in GOODS:
+    for g in WATCH:
         cells = []
         for q in qlist:
             rr = []
