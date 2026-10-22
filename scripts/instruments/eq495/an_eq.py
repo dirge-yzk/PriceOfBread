@@ -20,8 +20,9 @@ if not seeds:
     print("表なし（eq_s*.tsv が無い＝旗 RecipeEquipment が 0 の走り）"); sys.exit(0)
 print(f"種 {seeds}")
 
-# ---- C1・C2・S2（eq_s） ----
-c1_rows = c1_noinst = c1_neg = 0; ratio = []; c2_viol = c2_n = 0; scale_max_all = 0.0; ind_max_all = 0.0
+# ---- C1・C3・S2（eq_s） ----
+# C1：購入のあった国×四半期に設備が足された（installed＞0）。C3：適格な個体の Scale の合計の変化＝BuiltScale の合計の変化（民間の持分の合計は購入で増えない・事前登録 追記 3）。
+c1_rows = c1_noinst = c1_neg = 0; c3_n = c3_viol = 0; c3_worst = 0.0; c3_rows = []; s2_ratio = 0.0; s2_nation = ''; scale_max_all = 0.0; ind_max_all = 0.0; scale_sum_max = 0.0
 for sd in seeds:
     byn = collections.defaultdict(list)
     for r in rows(os.path.join(d, f"eq_s{sd}.tsv")):
@@ -29,40 +30,36 @@ for sd in seeds:
     for n, rs in byn.items():
         rs.sort(key=lambda r: int(r["quarter"]))
         prev = None
+        first_ss = fnum(rs[0]["scaleSum"]) if rs else float("nan")
         for r in rs:
             pts, ins = fnum(r["pointsBought"]), fnum(r["equipInstalled"])
+            if first_ss > 0 and fnum(r["scaleSum"]) / first_ss > s2_ratio: s2_ratio = fnum(r["scaleSum"]) / first_ss; s2_nation = f"{n}(種{sd}・四半期{r['quarter']})"
             ss, bs = fnum(r["scaleSum"]), fnum(r["builtSum"])
-            scale_max_all = max(scale_max_all, fnum(r["scaleMax"])); ind_max_all = max(ind_max_all, fnum(r["indMax"]))
+            scale_max_all = max(scale_max_all, fnum(r["scaleMax"])); ind_max_all = max(ind_max_all, fnum(r["indMax"])); scale_sum_max = max(scale_sum_max, ss)
             if pts > 0:
                 c1_rows += 1
                 if ins < -1e-12 or not math.isfinite(ins): c1_neg += 1
                 if ins <= 0: c1_noinst += 1
-                else: ratio.append(ins / pts)
             if prev is not None and int(r["quarter"]) == int(prev["quarter"]) + 1:
-                if pts == 0 and bs <= fnum(prev["builtSum"]) * (1 + 1e-9) + 1e-12:
-                    c2_n += 1
-                    if ss > fnum(prev["scaleSum"]) * (1 + 1e-9) + 1e-9: c2_viol += 1
+                dS = ss - fnum(prev["scaleSum"]); dB = bs - fnum(prev["builtSum"])
+                c3_n += 1
+                err = abs(dS - dB) / max(1.0, abs(ss))
+                c3_worst = max(c3_worst, err)
+                if err > 1e-6: c3_viol += 1; c3_rows.append((err, sd, n, int(r["quarter"]), dS, dB, ss))
             prev = r
-print(f"C1 配りが設備になった：購入のあった国×四半期 {c1_rows}・設備が足されなかった {c1_noinst}（{c1_noinst / max(1, c1_rows):.4%}）・負か非有限 {c1_neg}・installed÷points の中央値 {st.median(ratio) if ratio else float('nan'):.4g}")
-print(f"C2 買わないと増えない：購入も国営の完成も無い連続四半期 {c2_n} 件のうち設備の合計が増えた {c2_viol} 件（0 が合格）")
-print(f"S2 発散：設備の最大（個体）{scale_max_all:.4g}（線 100）・州の在庫の最大 {ind_max_all:.4g}（線 10）")
+print(f"C1 配りが設備になった：購入のあった国×四半期 {c1_rows}・設備が足されなかった {c1_noinst}（{c1_noinst / max(1, c1_rows):.4%}）・負か非有限 {c1_neg}")
+print(f"C3 尺度が増えない：連続四半期 {c3_n} 件のうち 設備の合計の変化が国営の持分の合計の変化と相対 1e-6 を超えて違った {c3_viol} 件（0 が合格）・最悪の相対差 {c3_worst:.3g}")
+for err, sd, n, q, dS, dB, ss in sorted(c3_rows, reverse=True)[:8]:
+    print(f"   C3 の外れ（相対差 {err:.3g}）：種{sd} {n} 四半期{q} ΔScaleSum={dS:.6g} ΔBuiltSum={dB:.6g} ScaleSum={ss:.6g}")
+print(f"S2 発散：国の設備の合計÷最初の行の最大 {s2_ratio:.3f}（{s2_nation}・線 2 以下）・国の設備の合計の最大 {scale_sum_max:.4g}・設備の最大（個体）{scale_max_all:.4g}（記録）・州の在庫の最大 {ind_max_all:.4g}（線 10）")
 
 # ---- V1・D1（eqr） ----
-v1_n = v1_viol = 0; share_series = collections.defaultdict(dict)   # (seed,nation,good,recipe) -> {quarter: (share, scale)}
+share_series = collections.defaultdict(dict)   # (seed,nation,good,recipe) -> {quarter: (share, scale)}
 for sd in seeds:
     p = os.path.join(d, f"eqr_s{sd}.tsv")
     if not os.path.exists(p): continue
     for r in rows(p):
         share_series[(sd, r["nation"], r["good"], r["recipe"])][int(r["quarter"])] = (fnum(r["shareOfGood"]), fnum(r["scaleSum"]))
-keep120 = (1 - dep) ** 120
-for key, ser in share_series.items():
-    qs = sorted(ser)
-    qset = set(qs)
-    for q in qs:
-        if q + 40 in qset and ser[q][1] > 1e-6:
-            v1_n += 1
-            if ser[q + 40][1] < ser[q][1] * keep120 * (1 - 1e-6): v1_viol += 1
-print(f"V1 ヴィンテージ（国×レシピ・+40 四半期の設備÷今の設備 ≧ (1−減価)^120={keep120:.4f}）：対 {v1_n}・下回った {v1_viol}（{v1_viol / max(1, v1_n):.3%}。州の廃棄・退場・戦場の要求を含む＝0 でなくても読み方は報告に書く）")
 # D1：同じ国×財で最初に現れたレシピ以外（後から現れたレシピ）の割合の +4…+40 四半期の中央値
 by_good = collections.defaultdict(list)
 for (sd, n, g, rc), ser in share_series.items():

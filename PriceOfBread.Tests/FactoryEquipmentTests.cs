@@ -65,7 +65,7 @@ public class FactoryEquipmentTests
     }
 
     [Fact]
-    public void 配り_増える合計は在庫に対する割合_個体へは利幅に比例_保存()
+    public void 配り_配る合計は在庫に対する割合_個体へは利幅に比例_民間の合計は薄めて保つ()
     {
         var w = Make(12, 1, 0).World;
         var (r, ps) = FourProducers(w);
@@ -75,13 +75,16 @@ public class FactoryEquipmentTests
         double[] before = ps.Select(p => p.Scale).ToArray();
         double g = 0.03, ind = 0.27;
         double given = FactoryEquipment.Distribute(r, w.Coef, g, ind, null);
-        // 手計算：基準＝Σ Scale＝4（FactoryBuildScale 0.5 より大きい）・φ＝0.03÷(0.27＋0.03)＝0.1・増える合計＝0.4・重み＝1:3:0:4＝8 分の 1・3・0・4
-        Assert.Equal(0.4, given, 12);
-        Assert.Equal(0.4 * 1.0 / 8.0, ps[0].Scale - before[0], 12);
-        Assert.Equal(0.4 * 3.0 / 8.0, ps[1].Scale - before[1], 12);
-        Assert.Equal(0.0, ps[2].Scale - before[2], 12);
-        Assert.Equal(0.4 * 4.0 / 8.0, ps[3].Scale - before[3], 12);
-        Assert.Equal(given, ps.Sum(p => p.Scale) - before.Sum(), 12);   // 保存：配った合計＝個体の増えの和
+        // 手計算：基準＝Σ Scale＝4（FactoryBuildScale 0.5 より大きい）・φ＝0.03÷(0.27＋0.03)＝0.1・配る合計＝0.4・重み＝1:3:0:4＝8 分の 1・3・0・4 → 配った後 1.05・2.15・1.0・0.2（合計 4.4）。
+        // 民間の持分の合計を保つ（尺度を増やさない）ので全員を 4÷4.4 倍へ薄める → 0.954545…・1.954545…・0.909090…・0.181818…（合計 4）。
+        Assert.Equal(0.4, given, 12);                                  // 戻り値＝配った合計（薄める前）
+        double k = 4.0 / 4.4;
+        Assert.Equal(1.05 * k, ps[0].Scale, 12);
+        Assert.Equal(2.15 * k, ps[1].Scale, 12);
+        Assert.Equal(1.0 * k, ps[2].Scale, 12);                        // 赤字の個体は受け取らず、薄められるだけ
+        Assert.Equal(0.20 * k, ps[3].Scale, 12);
+        Assert.Equal(before.Sum(), ps.Sum(p => p.Scale), 12);          // 尺度が増えない＝適格な個体の Scale の合計は購入の前後で同じ
+        Assert.True(ps[3].Scale > before[3], "利幅の高い個体の取り分が増えない");
     }
 
     [Fact]
@@ -101,6 +104,41 @@ public class FactoryEquipmentTests
         Assert.True(got.Count >= 3);
         Assert.All(got, p => Assert.Equal(given / got.Count, p.Scale, 12));   // 全員が赤字（重み 0）＝等分
         Assert.DoesNotContain(got, p => p.Bankrupt || !(Discovery.Gate(r, p) > 0));
+    }
+
+    [Fact]
+    public void 配り_発見の門が閉じた個体は受け取らない()
+    {
+        var w = Make(18, 1, 0).World;
+        Region? reg = null; Producer? closed = null;
+        foreach (var r in w.Regions)
+        {
+            closed = r.Producers.FirstOrDefault(p => FactoryEquipment.Eligible(p) && !(Discovery.Gate(r, p) > 0));
+            if (closed is not null) { reg = r; break; }
+        }
+        Assert.NotNull(closed);   // 開幕に未発見の工場のレシピが無い盤面は想定外
+        closed!.SmoothedMargin = 100.0; closed.Scale = 0;
+        foreach (var p in reg!.Producers) if (FactoryEquipment.Eligible(p) && !ReferenceEquals(p, closed)) { p.Scale = 1.0; p.SmoothedMargin = 0.1; }
+        FactoryEquipment.Distribute(reg, w.Coef, 0.5, 0.5, null);
+        Assert.Equal(0.0, closed.Scale);   // 門が閉じた個体は（利幅が桁違いに高くても）設備を受け取らない
+    }
+
+    [Fact]
+    public void 配り_国営の持分は動かさず民間の持分だけを薄める_合計は保たれる()
+    {
+        var w = Make(17, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
+        ps[0].Scale = 3.0; ps[0].BuiltScale = 1.0; ps[0].SmoothedMargin = 1.0;   // 国営 1・民間 2
+        ps[1].Scale = 1.0; ps[1].BuiltScale = 0.0; ps[1].SmoothedMargin = 1.0;   // 民間 1
+        ps[2].SmoothedMargin = -1; ps[3].SmoothedMargin = -1; ps[2].Bankrupt = true; ps[3].Bankrupt = true;
+        // Σ＝4・国営 B＝1・民間 P＝3。φ＝0.5÷(0.5＋0.5)＝0.5 → 配る合計 4×0.5＝2.0（利幅 1:1 → 各 1.0）→ 民間は ps[0] 3.0・ps[1] 2.0（合計 5.0）→ 3÷5 倍に薄める。
+        double given = FactoryEquipment.Distribute(r, w.Coef, 0.5, 0.5, null);
+        Assert.Equal(2.0, given, 12);
+        Assert.Equal(1.0, ps[0].BuiltScale, 12);                        // 国営の持分は動かさない
+        Assert.Equal(1.0 + 3.0 * 0.6, ps[0].Scale, 12);                 // 民間 (3−1＋配り 1.0)×0.6＝1.8 に国営 1
+        Assert.Equal(2.0 * 0.6, ps[1].Scale, 12);                       // 民間 (1＋配り 1.0)×0.6＝1.2
+        Assert.Equal(4.0, ps.Sum(p => p.Scale), 12);                    // 合計は購入の前後で同じ
     }
 
     [Fact]
@@ -129,25 +167,27 @@ public class FactoryEquipmentTests
     }
 
     [Fact]
-    public void 減価と廃棄は_Scale_と_BuiltScale_に同じ係数を掛け持分を動かさない()
+    public void 国営の休止中の設備の廃棄は民間の持分を動かさない()
     {
         var w = Make(16, 1, 0).World;
         var (r, ps) = FourProducers(w);
-        ps[0].Scale = 2.0; ps[0].BuiltScale = 0.5;
-        ps[1].Scale = 1.0; ps[1].BuiltScale = 1.0;
+        ps[0].Scale = 2.0; ps[0].BuiltScale = 0.5;      // 民間 1.5・国営 0.5
         var rgo = r.Producers.First(p => p.IsRgo); double rgoScale = rgo.Scale, rgoBuilt = rgo.BuiltScale;
-        FactoryEquipment.Depreciate(r, 0.01);
-        Assert.Equal(1.98, ps[0].Scale, 12); Assert.Equal(0.495, ps[0].BuiltScale, 12);
-        Assert.Equal(0.99, ps[1].Scale, 12); Assert.Equal(0.99, ps[1].BuiltScale, 12);
-        Assert.Equal(0.25, ps[0].BuiltScale / ps[0].Scale, 12);   // 持分は動かない
-        FactoryEquipment.Scrap(r, 0.9);
-        Assert.Equal(1.782, ps[0].Scale, 12); Assert.Equal(0.4455, ps[0].BuiltScale, 12);
-        Assert.Equal(1.0, ps[1].BuiltScale / ps[1].Scale, 12);
+        double before = ps[0].BuiltScale;
+        ps[0].BuiltScale *= 0.8;                        // 恐慌の廃棄（Simulation が掛ける）を模した
+        FactoryEquipment.Dismantle(ps[0], before);
+        Assert.Equal(1.5, ps[0].Scale - ps[0].BuiltScale, 12);          // 廃棄でも民間の持分は動かない
+        Assert.Equal(0.4, ps[0].BuiltScale, 12);
+        Assert.Equal(1.9, ps[0].Scale, 12);                              // 廃棄された国営の分だけ Scale が減る
         Assert.Equal(rgoScale, rgo.Scale); Assert.Equal(rgoBuilt, rgo.BuiltScale);   // 産地には触れない
+        // BuiltScale が増えた（国営の完成ではない異常）場合は Scale を引かない
+        double b2 = ps[1].BuiltScale; double s2 = ps[1].Scale;
+        FactoryEquipment.Dismantle(ps[1], b2 - 1.0);
+        Assert.Equal(s2, ps[1].Scale, 12);
     }
 
     [Fact]
-    public void 旗1で購入が無ければ設備は減価でしか減らず増えない_自由な伸びは働かない()
+    public void 旗1で購入も完成も廃棄も無ければ設備は動かない_自由な伸びは働かない()
     {
         var sim = Make(21, 1, 0);
         var w = sim.World;
@@ -156,17 +196,24 @@ public class FactoryEquipmentTests
         w.Coef.DepressionScrapRate = 0;        // 恐慌の廃棄を止める
         sim.Run(1);                            // 最初の月の門の整理（未発見の個体の Scale=0）を済ませる
         var start = new Dictionary<Producer, double>();
-        foreach (var p in Eligibles(w)) if (p.Scale > 0.01) start[p] = p.Scale;
+        var owner = new Dictionary<Producer, Region>();
+        var built0 = new Dictionary<Producer, double>();
+        foreach (var r in w.Regions.Where(r => r.State == RegionState.Active))
+            foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p) && p.Scale > 0.01) { start[p] = p.Scale; owner[p] = r; built0[p] = p.BuiltScale; }
         Assert.True(start.Count > 20, $"設備のある適格な個体が少ない {start.Count}");
         int quarters = 4;
         sim.Run(quarters);
-        double keep = Math.Pow(1.0 - w.Coef.IndDepreciation, 3 * quarters);
         int checkedN = 0;
         foreach (var (p, s0) in start)
         {
-            if (p.Scale == 0) continue;        // 門の閉鎖（退場）で消えた個体は対象外
+            if (!(Discovery.Gate(owner[p], p) > 0)) continue;        // 門の閉鎖（退場）の個体だけ対象外（Scale＝0 は設備が無い）。倒産で消えた個体は対象に残す＝倒産の遷移が Scale を消せば赤
+            Assert.True(p.Scale > 0, $"門が開いているのに設備が消えた（倒産の遷移が Scale を 0 にした？） {p.GoodId} {s0}→{p.Scale} 倒産={p.Bankrupt}");
             Assert.True(p.Scale <= s0 * (1 + 1e-12), $"購入が無いのに設備が増えた {p.GoodId} {s0}→{p.Scale}");
-            Assert.Equal(s0 * keep, p.Scale, 9);   // 減るのは減価だけ（倒産しても Scale を消さない）
+            double b0 = built0[p];
+            // 購入も国営の完成も廃棄も無ければ設備は一切動かない（時間の経過では民間も国営も摩耗しない）＝国営の持分 BuiltScale÷Scale も動かない。倒産しても Scale を消さない。
+            Assert.Equal(s0, p.Scale, 9);
+            Assert.Equal(b0, p.BuiltScale, 9);
+            if (s0 > 1e-9) Assert.Equal(b0 / s0, p.BuiltScale / p.Scale, 9);
             checkedN++;
         }
         Assert.True(checkedN > 15, $"検証できた個体が少ない {checkedN}");
@@ -194,10 +241,10 @@ public class FactoryEquipmentTests
         sim.Run(1);
         var (r, ps) = FourProducers(w);
         var p = ps[0];
-        p.Scale = 1.5; p.Bankrupt = true;
+        p.Scale = 1.5; p.BuiltScale = 0; p.Bankrupt = true;
         sim.Run(1);
         Assert.True(p.Scale > 0, "倒産で設備が消えた（旧の Scale=0 が旗 1 でも走っている）");
-        Assert.Equal(1.5 * Math.Pow(1.0 - w.Coef.IndDepreciation, 3) , p.Scale, 6);   // 再参入しても据え置き（FactoryReentryScale 0.3 に置き換わらない）
+        Assert.Equal(1.5, p.Scale, 9);   // 再参入しても据え置き（FactoryReentryScale 0.3 に置き換わらない）・設備は時間の経過では動かない
     }
 
     [Fact]
@@ -251,6 +298,20 @@ public class FactoryEquipmentTests
             if (flag > 0) Assert.Equal(1.0 + w.Coef.FactoryBuildScale, p.Scale, 12);   // 国営の設備も買った分だけ
             else Assert.Equal(1.0, p.Scale, 12);                                       // 旗 0＝完成では Scale を足さない（床が引き上げる）
         }
+    }
+
+    [Fact]
+    public void 倒産の遷移で設備が消えない_深い赤字の個体は倒産しても_Scale_を保つ()
+    {
+        var sim = Make(24, 1, 0);
+        var w = sim.World;
+        w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;
+        var (r, ps) = FourProducers(w);
+        var p = ps[0];
+        p.BuiltScale = 0; p.Scale = 2.0; p.SmoothedMargin = -100.0; p.Bankrupt = false;
+        for (int d = 0; d < 31; d++) sim.StepDay();
+        Assert.True(p.Bankrupt, "深い赤字なのに倒産の遷移が起きなかった（試験の前提が崩れた）");
+        Assert.True(Math.Abs(p.Scale - 2.0) < 1e-9, $"倒産で設備が消えた／置き換わった Scale={p.Scale}（旧の Scale=0 や再参入の 0.3 が旗 1 でも走っている）");
     }
 
     [Fact]
@@ -316,7 +377,7 @@ public class FactoryEquipmentTests
     [Theory]
     [InlineData(@"\bindMult\b", 3)]   // 能力の倍率 indMult（宣言 1・使う式 2）＝旗 IndustrializationOff が 1.0 に落とす
     [InlineData(@"\.(OldVintageCapital|StrandedVintage|VintageTechLevel)\s*(\+=|-=|\*=|/=|=(?![=>]))", 8)]   // ヴィンテージの 3 つの書き手（旗 IndustrializationOff が移行と座礁を止める）
-    [InlineData(@"\.Scale\s*(\+=|-=|\*=|/=|=(?![=>]))", 13)]   // Producer.Scale の書き手（適格な個体の自由な伸びは旗 RecipeEquipment が止める。設備の規則の書き手 FactoryEquipment・World の完成を含む）
+    [InlineData(@"\.Scale\s*(\+=|-=|\*=|/=|=(?![=>]))", 13)]   // Producer.Scale の書き手（適格な個体の自由な伸びは旗 RecipeEquipment が止める。設備の規則の書き手 FactoryEquipment〔配り・摩耗・廃棄〕・World の完成を含む。）
     public void ラチェット_倍率と操業規模と技術水準の側の書き手は増えない(string pattern, int ceiling)
     {
         int n = CountLines(pattern);

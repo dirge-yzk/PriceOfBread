@@ -674,7 +674,6 @@ public static class EconomyStep
                     dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
             }
             region.Industrialization *= 1.0 - dep;
-            if (eqOn) FactoryEquipment.Depreciate(region, dep);   // ★(495) 設備（適格な個体の Scale と BuiltScale）にも州の在庫と同じ減価の係数を掛ける
             region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
         }
         // ヴィンテージ資本（no-vintage-capital-depreciation・有効化2026-07-10キュー5）：現世代の一部を旧世代へ経年させ、旧世代は現Techとの差(techGap)に比例して座礁＝生産性に寄与しない。
