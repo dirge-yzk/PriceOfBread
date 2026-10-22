@@ -1,0 +1,147 @@
+(495) 線 eq 段0：生産者の操業規模 Scale と BuiltScale、および工業化度の書き手と読み手の全数表（grep・シミュは回していない）
+基点 8c8f987a・書いた日 2026-10-23・書いたモデル Claude Sonnet 5.5・生成器 scripts/instruments/eq495/step0.py（git grep・コメント行を除く・分類は主な行を手で付けた辞書＋字面）
+探した語：Scale／BuiltScale（Producer の欄）・Industrialization／TotalIndustrialization／ProductiveIndustrialization／OldVintageCapital／StrandedVintage／VintageTechLevel／indMult／MeanIndustrialization。対象：SimCore・App・Runner・Tests の .cs。
+
+== (A) Producer.Scale／BuiltScale の書き手 ==
+SimCore/Discovery.cs:1151	産地（鉱床）の発見＝RGO は適格でない＝今のまま	if (p.Scale < 1.0) p.Scale = 1.0;
+SimCore/EconomyStep.cs:2560	旗1・適格＝使わない（束の購入・減価・完成・廃棄だけが変える）／旗0＝今のまま	s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度
+SimCore/EconomyStep.cs:2569	門が0（未発見・退場）＝設備が無い／廃棄＝旗1でも今のまま	s.Scale = 0;
+SimCore/EconomyStep.cs:2578	旗1・適格＝Scale は据え置き（再参入で設備を作り直さない）	if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; s.Scale = coef.FactoryReentryScale; }
+SimCore/EconomyStep.cs:2593	門が0（未発見・退場）＝設備が無い／廃棄＝旗1でも今のまま	s.Bankrupt = true; s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）
+SimCore/OpeningBake.cs:216	開幕の焼き込みの読み込み（旗 OpeningBakeEnabled 既定0）＝今のまま	p.Scale = row[1].GetDouble(); p.BuiltScale = row[2].GetDouble(); p.SmoothedMargin = row[3].GetDouble(); p.Bankrupt = row[4].GetDouble() != 0;
+SimCore/Simulation.cs:983	※手で分類が必要	Scale = isFactory ? 0.05 : 1.0,        // 工場は操業規模を低く開始（全財がScale1.0で立たない＝初期は工場がほぼ無い）
+SimCore/Simulation.cs:1146	※手で分類が必要	Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 1789＝職人が現役の主役（工場は0.5/0.05から育つ）
+SimCore/Simulation.cs:2080	教区学校＝役務は適格でない＝今のまま	if (!parishOn) ep.Scale = 0;
+SimCore/Simulation.cs:2081	公立学校＝役務は適格でない＝今のまま	if (!publicOn) pub.Scale = 0;
+SimCore/Simulation.cs:2309	家畜の徴発＝RGO は適格でない＝今のまま	lpr.Scale = Math.Max(0, lpr.Scale * (1.0 - World.Coef.WarLivestockRequisition * Math.Min(1.0, r.LastWarIntensity)));
+SimCore/Simulation.cs:2319	旗1・適格＝同じ個体の Scale にも同じ割合を掛ける（持分が動かない）	fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）…
+SimCore/Simulation.cs:3103	※手で分類が必要	Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 職人と同じ自己費用 0.35（工場の最後の一段を手でやる行＝工場より遅く高い）
+SimCore/World.cs:1835	旗1・適格＝Scale にも FactoryBuildScale を足す（国営の設備も買った分だけ）	p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
+SimCore/World.cs:2393	払い下げ＝持分の付け替え（Scale 不変）＝今のまま	p.BuiltScale = Math.Max(0, p.BuiltScale - Coef.FactoryBuildScale);   // 1棟ぶん民営化（残る棟は国営のまま）
+SimCore/World.cs:2394	払い下げ＝持分の付け替え＝今のまま	if (p.BuiltScale <= 1e-9) { p.BuiltScale = 0; p.SubsidyRate = default; }   // 売り切った時だけ補助金も外れる（旧挙動と同値）
+SimCore/World.cs:2597	接収＝持分の付け替え（Scale 不変）＝今のまま	p.BuiltScale += take;
+Tests/FactoryCounterTests.cs:82	試験（設定）	p.BuiltScale = w.Coef.FactoryBuildScale * 2;       // 国営2棟が既に建っている
+Tests/FactoryTierTests.cs:211	試験（設定）	q!.BuiltScale = 1.0;
+Tests/FuelOperatingCostTests.cs:423	試験（設定）	foreach (var pr in r.Producers) if (pr.GoodId == Catalog.CrudeOilId) { pr.LaborWeight = 1e6; pr.Scale = 1.0; }
+Tests/FuelOperatingCostTests.cs:450	試験（設定）	foreach (var pr in r.Producers) if (pr.GoodId == Catalog.CrudeOilId) { pr.LaborWeight = 1e6; pr.Scale = 1.0; }   // 同上＝原油が産出されている前提
+Tests/InstrumentsTests.cs:557	試験（設定）	old.BuiltScale = 3 * fbs; old.StateTarget = 3;
+Tests/InstrumentsTests.cs:558	試験（設定）	succ!.BuiltScale = 1 * fbs; succ.StateTarget = 1;
+Tests/InstrumentsTests.cs:959	試験（設定）	p!.BuiltScale = 2 * fbs; p.StateTarget = 2;
+Tests/StateFactoryTests.cs:79	試験（設定）	p.BuiltScale = 2 * w.Coef.FactoryBuildScale;
+Tests/StateFactoryTests.cs:128	試験（設定）	p.BuiltScale = 0;
+Tests/StateFactoryTests.cs:156	試験（設定）	p.BuiltScale = w.Coef.FactoryBuildScale;
+Tests/StateFactoryTests.cs:179	試験（設定）	p.BuiltScale = w.Coef.FactoryBuildScale;
+Tests/StateFactoryTests.cs:206	試験（設定）	p.Scale = 2.0; p.BuiltScale = 1.0;
+Tests/StateFactoryTests.cs:212	試験（設定）	p.BuiltScale = p.Scale;
+Tests/StateFactoryTests.cs:230	試験（設定）	p.BuiltScale = p.Scale;                          // 建設が完成して国営100%になった
+Tests/StateFactoryTests.cs:259	試験（設定）	if (stateOwned) { p.BuiltScale = s.World.Coef.ScaleMax; p.StateTarget = World.StateUnits(p, s.World.Coef); }
+Tests/StateFactoryTests.cs:313	試験（設定）	p.BuiltScale = p.Scale;
+Tests/StateFactoryTests.cs:408	試験（設定）	p.BuiltScale = w.Coef.FactoryBuildScale * 2;          // 国営2棟が既に建っている
+Tests/StateFactoryTests.cs:463	試験（設定）	if (!(p.Scale > 1e-6)) p.Scale = 1.0;
+Tests/StateFactoryTests.cs:464	試験（設定）	p.BuiltScale = 0.5 * p.Scale;                                         // 国営持分 1/2
+Tests/StateFactoryTests.cs:529	試験（設定）	if (!(p.Scale > 1e-6)) p.Scale = 1.0;
+Tests/StateFactoryTests.cs:530	試験（設定）	p.BuiltScale = 0.5 * p.Scale;
+Tests/StateFactoryTests.cs:625	試験（設定）	old.BuiltScale = w.Coef.FactoryBuildScale;            // 旧レシピに国営の持分が残っている
+Tests/SteelMarketAiTests.cs:247	試験（設定）	pr!.Scale = 0; pr.Output = asleep ? 0 : 1e-6;   // 眠った個体／産出を残した個体（眠りの条件から外れる）＝どちらも門は閉じている
+Tests/SteelMarketAiTests.cs:274	試験（設定）	if (p.GoodId == gid) { p.SmoothedMargin = -0.5; p.Scale = Math.Max(p.Scale, 1.0); p.Bankrupt = false; }
+Tests/SteelMarketAiTests.cs:302	試験（設定）	if (p.GoodId == gid) { p.SmoothedMargin = 0.5; p.Scale = Math.Max(p.Scale, 1.0); }   // 黒字＝押されていない
+件数（層別）：SimCore=17，Tests=25
+
+-- 生産者の構築時の初期値（Producer の初期化子）49 行：工場 0.05・自家農家と職人 1.0。旗1の助走（!warmFrozen でない間）は旧の規則で自由に伸びる＝助走の終わりの値が開幕の設備（[0]⑥）
+   SimCore/Model.cs:704	public double Scale = 1.0;     // 操業規模（企業の参入退出）。採算で伸縮：採算良→拡張・採算悪→縮小（≒閉鎖）。労働配分の重みに掛かり、閉鎖工場は労働を採算の良い財へ解放（§9-A 仕組み4）
+   SimCore/Simulation.cs:457	producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "石油火力", Productivity = 1.4 * FullChainProducti…
+   SimCore/Simulation.cs:461	producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", Productivity = 1.4 * FullChainProducti…
+   SimCore/Simulation.cs:464	producers.Add(new Producer { GoodId = Catalog.CannedFoodId, RecipeName = "魚の缶詰", Productivity = 1.7 * FullChainProductiv…
+   SimCore/Simulation.cs:983	Scale = isFactory ? 0.05 : 1.0,        // 工場は操業規模を低く開始（全財がScale1.0で立たない＝初期は工場がほぼ無い）
+   SimCore/Simulation.cs:1029	producers.Add(new Producer { GoodId = Catalog.SteelId, RecipeName = "坩堝鋼", Productivity = 0.9 * FullChainProductivitySca…
+   …（同じ形の行が続く）
+
+== (B) Producer.Scale の読み手（書き手を除く・SimCore と App のみ全行・Runner は件数） ==
+SimCore/EconomyStep.cs:479	if (s.Scale != 0 || s.Output != 0 || s.Bankrupt
+SimCore/EconomyStep.cs:650	prodW[pi] = s.LaborWeight * s.Scale;
+SimCore/EconomyStep.cs:731	if (coef.EduProducersCoexist > 0 && s.GoodId == Catalog.EducationId && !(s.Scale > 0)) fraction = 0;
+SimCore/InstrumentsCapacity.cs:105	if (s.Scale == 0 && s.Output == 0) { nIdle++; continue; }
+SimCore/InstrumentsCapacity.cs:133	built += s.BuiltScale; opScale += s.Scale;
+SimCore/InstrumentsHouse.cs:56	double wgt = pr.LaborWeight * pr.Scale; if (!(wgt > 0)) continue;
+SimCore/OpeningBake.cs:152	sb.Append('[').Append(p.GoodId.ToString(CultureInfo.InvariantCulture)).Append(',').Append(Num(p.Scale)).Append(',').Append(Num(p.BuiltScale)).Append(',').Append(Num(p.Smo…
+SimCore/SelfPlay.cs:1295	double sc = Math.Max(0, pr.Scale);
+SimCore/Simulation.cs:1813	double q = pr.Output * pr.Scale;
+SimCore/World.cs:2310	double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale / Math.Max(p.Scale, 1e-9)) : 0.0;
+SimCore/World.cs:2440	? (int)Math.Round(Math.Max(0, p.Scale - p.BuiltScale) / c.FactoryBuildScale, MidpointRounding.AwayFromZero)
+SimCore/World.cs:2441	: (p.Scale - p.BuiltScale > 1e-9 ? 1 : 0);
+SimCore/World.cs:2591	double want = Coef.NationalizationStateShare.Value * p.Scale;
+SimCore/World.cs:2593	if (!(gap > 1e-9) || !(p.Scale > 1e-9)) return;
+SimCore/World.cs:2594	double resist = Coef.SeizureResistanceWeight * capitalPower * (gap / p.Scale);   // 奪われる持分が大きいほど強く抵抗する
+SimCore/World.cs:2596	double take = Math.Min(gap, Coef.NationalizationSeizureRate * p.Scale);
+SimCore/World.cs:2599	double share = take / p.Scale;
+Runner：15 行（診断・報告のみ＝力学に入らない）
+読み手の旗1での扱い：EconomyStep:650 prodW＝LaborWeight×Scale（労働配分の重み）が唯一の力学の読み手＝設備が重みになる／World.cs の StateFrac・PrivateUnitsOf・Seize＝BuiltScale÷Scale の持分（Scale と BuiltScale を同じ割合で動かして保つ）／SleepState＝Scale=0 かつ産出0 で眠る／Simulation:1813 と SelfPlay:1295 は記録・AI の読み。
+
+== (C) 工業化度（Industrialization・OldVintageCapital・StrandedVintage・VintageTechLevel）の書き手 ==
+SimCore/Coefficients.cs:1064	public double VintageMigrateRate = 0.005;     // ヴィンテージ資本（no-vintage-capital-depreciation）：現世代→旧世代の月次経年率。0.005＝半減期約11.6年（19世紀設備の世代交代）。0で二層化せずOldVintageCapital=0（現行恒等）
+SimCore/Diplomacy.cs:2547	rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
+SimCore/EconomyStep.cs:673	region.Industrialization *= 1.0 - dep;
+SimCore/EconomyStep.cs:674	region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
+SimCore/EconomyStep.cs:683	region.VintageTechLevel = newOld > Eps ? (region.VintageTechLevel * region.OldVintageCapital + region.TechLevel * migrate) / newOld : region.TechLevel;
+SimCore/EconomyStep.cs:684	region.OldVintageCapital = newOld;
+SimCore/EconomyStep.cs:685	region.Industrialization -= migrate;
+SimCore/EconomyStep.cs:687	region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
+SimCore/EconomyStep.cs:2032	region.Industrialization += privateIndGain;
+SimCore/EconomyStep.cs:2100	region.Industrialization += built * coef.IndPerConstruction;
+SimCore/Megaprojects.cs:240	r.Industrialization += Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+SimCore/Model.cs:988	public double VintageTechLevel;                   // 旧世代資本の据付時平均技術水準。現TechLevelとの差(techGap)が座礁度を決める。OldVintageCapital=0で未使用
+SimCore/Model.cs:989	public double StrandedVintage;                    // 今月の座礁量＝VintageObsolescence×OldVintageCapital×techGap（EconomyStepが月次更新・OldVintageCapital以下）。生産性チャネルのみが差し引く。OldVintageC…
+SimCore/NationConfig.cs:69	public double Industrialization = 0.0;
+SimCore/OpeningBake.cs:208	r.Industrialization = cap[0].GetDouble(); r.OldVintageCapital = cap[1].GetDouble(); r.VintageTechLevel = cap[2].GetDouble(); r.StrandedVintage = cap[3].GetDouble();
+SimCore/Simulation.cs:547	Industrialization = 0.0,      // 1789＝前工業（工業化度0から投資で積む）
+SimCore/Simulation.cs:924	Industrialization = cfg.Industrialization * (p.IndShare >= 0 ? p.IndShare : share),   // ★IndShare（一次データ）があれば産業地理で按分・無ければ従来の人口比
+SimCore/Simulation.cs:1486	CapitalEnabled = true, Industrialization = 0.0,
+SimCore/Simulation.cs:2313	r.Industrialization *= scrapKeep;
+SimCore/Simulation.cs:2314	r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
+SimCore/Simulation.cs:2315	r.StrandedVintage *= scrapKeep;
+書き手の行数（SimCore）：21
+
+== (C2) 倍率として読む 8 か所（旗 IndustrializationOff の削除対象・事前登録 [3] の 1〜8）：基点の行 ==
+1 indMult	SimCore/EconomyStep.cs:693	double indMult = cap
+2 effWageMax	SimCore/MarketFlow.cs:79	double effWageMax = EffWageMax(region, coef);
+3 Mechanization	SimCore/EconomyStep.cs:691	region.Mechanization = coef.LaborSaveRate > 0 ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;
+4 MonopolyDissolveInd	SimCore/EconomyStep.cs:415	: premium * Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd)) * r.MonopolyRentFactor;   // 独占禁止法（E6）で×倍率（規制なし=1…
+5 Refrigeration	SimCore/EconomyStep.cs:570	? PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan) : 0;   // 冷蔵チェーンは立って…
+6 DevelopmentMemory／Vintage	SimCore/EconomyStep.cs:666	if (coef.DevelopmentMemory > 0)
+6 DevelopmentMemory／Vintage	SimCore/EconomyStep.cs:671	dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
+6 DevelopmentMemory／Vintage	SimCore/EconomyStep.cs:679	if (cap && coef.VintageMigrateRate > 0 && !warmFrozen)
+6 DevelopmentMemory／Vintage	SimCore/EconomyStep.cs:681	double migrate = region.Industrialization * coef.VintageMigrateRate;
+6 DevelopmentMemory／Vintage	SimCore/EconomyStep.cs:687	region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
+7 IndustryInvestRegionCap	SimCore/EconomyStep.cs:961	double stateHeadroomUnits = Math.Max(0, (coef.IndustryInvestRegionCap - region.TotalIndustrialization) / Math.Max(Eps, coef.IndPerConstructi…
+7 IndustryInvestRegionCap	SimCore/Megaprojects.cs:240	r.Industrialization += Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+7 IndustryInvestRegionCap	SimCore/World.cs:1990	internal bool StateInvestEligible(Region r) => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndust…
+7 IndustryInvestRegionCap	SimCore/World.cs:1995	double cap = Coef.IndustryInvestRegionCap;
+8 InvestmentReturn sat	SimCore/EconomyStep.cs:2707	double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィン…
+8 InvestmentReturn sat	SimCore/SelfPlay.cs:693	double sat = NationalScore.MeanSatisfaction(w);
+
+== (C3) 在庫として読む 8 か所（触らない）：基点の行 ==
+9 都市化の天井	SimCore/Meritocracy.cs:459	double maxShare = Math.Clamp(c.BaseUrbanCap + indForCap * c.UrbanPerInd, 0, MaxUrbanShareCap);
+9 都市化の天井	SimCore/PopDecision.cs:50	double maxUrbanShare = Math.Clamp(coef.BaseUrbanCap + indForCap * coef.UrbanPerInd, 0, MaxUrbanShareCap);
+10 扶養力	SimCore/Simulation.cs:2459	double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）。IndustrializationPopWeighted=1で非加重avgIndを置換
+10 扶養力	SimCore/Simulation.cs:2469	avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。2026-07-10）
+10 扶養力	SimCore/Simulation.cs:2495	avgInd += c.IndustrializationPopWeighted * (indPopWeighted - avgInd);
+11 インフラ保守	SimCore/EconomyStep.cs:1018	maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費を食う＝先行国の足枷。ヴィンテージ2026-07-10）
+12 信用の深さ	SimCore/Credit.cs:87	double dev = PoliticalQuantities.Clamp01((month?.MeanInd ?? w.MeanIndustrialization) / c.CreditDevScale);           // 0=前工業（露清）〜1=工業化（英独）
+13 外資の吸い寄せ	SimCore/CapitalMarket.cs:80	double headroom = System.Math.Max(0, c.CapitalIndTarget - w[i].MeanIndustrialization);   // 改修2026-06-28：首都州のみ→全州平均（外資は国全体の工業化ギャップで流入先を選ぶ）
+14 合資会社	SimCore/Discovery.cs:231	private static double SpreadNeed(int row, World w, double maxInd, double workerMil, double colonialShare, double popMil, ref double crisis)
+14 合資会社	SimCore/Discovery.cs:235	else if (row == JointStockRow) s = maxInd;
+14 合資会社	SimCore/Discovery.cs:524	double maxInd = 0;   // 州の最大工業化度（株式会社の必要性＝立っている工業資本の大きさ・旧の閾値と同じ量）
+14 合資会社	SimCore/Discovery.cs:528	if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
+14 合資会社	SimCore/Discovery.cs:616	double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis);
+15 疫病の衛生の代理	SimCore/World.cs:1162	double oldDev = Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の…
+15 疫病の衛生の代理	SimCore/World.cs:1227	double oldDev = Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);
+16 世界最先端	SimCore/Ideology.cs:151	double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
+16 世界最先端	SimCore/InstrumentsModernize.cs:38	sk.ModSig.WriteLine(string.Join('	', I(q), I(w.Year), NameOf(w), F(w.MeanIndustrialization), F(ceil), F(w.IndustrialFrontier), F(gapOld), F(…
+16 世界最先端	SimCore/MultiNationSim.cs:863	foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
+16 世界最先端	SimCore/SelfPlay.cs:489	double f = a * w.IndustrialFrontier;
+
+== 層別の件数（全参照・コメントを含む）==
+  SimCore	全参照 148	コメントを除く 118
+  App	全参照 18	コメントを除く 12
+  Runner	全参照 37	コメントを除く 36
+  Tests	全参照 53	コメントを除く 51
