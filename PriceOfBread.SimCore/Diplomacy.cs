@@ -610,9 +610,12 @@ public sealed class Diplomacy
         // ⚠旧 `!(d == d)` から書き換え（2026-09-03・意味は同一）。コンパイラが CS1718「同じ変数と比較されました」を出し続け、
         //   **本物の自己比較バグを警告の海に埋める**ため。⚠規律「ガードは否定形で書く」は**閾値**の話であって、
         //   NaN そのものを見る場所は `double.IsNaN` の方が意図が明示的（否定形が要るのは `!(x > t)` のような比較の側）。
-        double old = _tension.GetValueOrDefault(k);
+        // ★(spt) 表を1回だけ引く（恒等）：旧＝GetValueOrDefault で読み、インデクサで書く＝2回引いた。今＝無ければ 0 で入れた入れ物へ ref で書く
+        //   （旧も無い鍵はこの書き込みで入った＝入る時点と順は同じ・増分が 0 でも入る）。
+        ref double slot = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_tension, k, out _);
+        double old = slot;
         double now = Math.Clamp(old + d, 0, 200);
-        _tension[k] = now;
+        slot = now;
         if (now != old) Why(k)[(int)reason] += now - old;
         return now - old;
     }
@@ -622,6 +625,12 @@ public sealed class Diplomacy
     {
         double old = _tension.GetValueOrDefault(k);
         _tension[k] = v;
+        CoolWhy(k, old, v);
+    }
+
+    /// <summary>★(spt) 冷める書き込みの内訳の側（<see cref="CoolTensionTo"/> と <see cref="DriftTension"/> が読む1本）。old＝書く前の緊張・v＝書いた緊張。</summary>
+    private void CoolWhy(long k, double old, double v)
+    {
         if (!_tensionWhy.TryGetValue(k, out var w)) return;
         if (!(old > 1e-12)) { System.Array.Clear(w); return; }   // 元が0＝内訳も0（否定形＝NaNもここへ倒す）
         double f = v / old;
@@ -639,10 +648,15 @@ public sealed class Diplomacy
 
     private double[] Why(long k)
     {
-        if (!_tensionWhy.TryGetValue(k, out var w)) { w = new double[TensionReasonCount]; _tensionWhy[k] = w; }
-        else if (w.Length < TensionReasonCount) { System.Array.Resize(ref w, TensionReasonCount); _tensionWhy[k] = w; }   // 旧セーブ（末尾TensionReason追加前の短い配列）を新添字で書けるように伸ばす
+        // ★(spt) 表を1回だけ引く（恒等）：旧＝TryGetValue で読み、無ければインデクサで入れた＝2回引いた（入る時点と順は同じ）。
+        ref double[]? w = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_tensionWhy, k, out bool had);
+        if (!had || w is null) w = new double[TensionReasonCount];
+        else if (w.Length < TensionReasonCount) System.Array.Resize(ref w, TensionReasonCount);   // 旧セーブ（末尾TensionReason追加前の短い配列）を新添字で書けるように伸ばす（ref＝表の入れ物を書き換える）
         return w;
     }
+
+    /// <summary>★(spt) 番人用（読むだけ）：緊張の表の鍵の並び（挿入の順＝<see cref="DriftTension"/> が回す順）。</summary>
+    internal List<long> TensionKeysInOrder() => new(_tension.Keys);
 
     /// <summary>緊張の内訳＝理由別の寄与を大きい順に（合計は <see cref="Tension"/> に一致する）。UIの緊張モーダルと番人テストが読む。</summary>
     public List<(TensionReason Reason, double Value)> TensionBreakdown(Power a, Power b)
@@ -3427,22 +3441,32 @@ public sealed class Diplomacy
         foreach (var d in DependentsOf(x)) if (d.Nation is { } dw) yield return dw;
     }
 
+    /// <summary>★(spt) <see cref="DriftTension"/> の冷ます書き込み＝<see cref="CoolTensionTo"/> と同じ（入れ物は鍵 k の既にある入れ物・old＝その値）。</summary>
+    private void CoolSlot(long k, ref double slot, double old, double v)
+    {
+        slot = v;
+        CoolWhy(k, old, v);
+    }
+
     private void DriftTension(Coefficients c)
     {
         var keys = new List<long>(_tension.Keys);
         foreach (var k in keys)
         {
-            double t = _tension[k];   // 各分岐は高々1回書く＝この読みで足りる
+            // ★(spt) 表を1回だけ引く（恒等）：旧＝ここで読み、冷ます書き込み（CoolTensionTo）がもう1回読んで書いた＝鍵ごとに3回引いた。
+            //   今＝入れ物を ref で持ち、冷ますときはそこへ書く（下の分岐の判定 CannotDeclareWar・DefeatedShock・遺恨は緊張の表に入れない＝入れ物は動かない）。
+            ref double slot = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrNullRef(_tension, k);
+            double t = slot;   // 各分岐は高々1回書く＝この読みで足りる
             if (t < c.HighTensionBand)   // 高緊張帯（既定100）未満のみ薄れる。100以上は下の例外に当たらない限り戦争まで下がらない（休戦の凍結は 2026-09-26 に削除＝Q9）
-                CoolTensionTo(k, Math.Max(0, t - c.TensionDecay));
+                CoolSlot(k, ref slot, t, Math.Max(0, t - c.TensionDecay));
             // 外11：開戦経路が塞がれた（従属＝TriggerWars で永久に開戦できない）ペアは、緊張≥100 が上限付近でデッドロックし同盟不可/宥和対象判定を恒久的に歪める。
             // そうしたペアの≥100緊張に微小減衰を許す（開戦で解消されない以上ゆっくり冷める。旧の旗 FrozenTensionDecays=1.0 は 2026-10-18 に焼き込み）。
             else if (t >= c.HighTensionBand && CannotDeclareWar(k))
-                CoolTensionTo(k, Math.Max(0, t - c.FrozenTensionDecayRate));
+                CoolSlot(k, ref slot, t, Math.Max(0, t - c.FrozenTensionDecayRate));
             // 機能9-1（2026-07-28）ハイエナ抑制：敗戦ショックの高い国が絡むペアは緊張≥100でも減衰＝直近に倒れた国は保護される
             //（普仏戦争後の仏が連続で食われない・列強の焦土均衡）。窓＝DefeatShockDecay（数年で切れる）。機能9-2（凍結条件拡張）とは二者択一＝本案採用。0で恒等。
             else if (c.DefeatShockTensionRelief > 0 && t >= c.HighTensionBand && DefeatedShock(k) is var shock && shock >= c.DefeatShockProtectMin)
-                CoolTensionTo(k, Math.Max(0, t - c.DefeatShockTensionRelief * shock));
+                CoolSlot(k, ref slot, t, Math.Max(0, t - c.DefeatShockTensionRelief * shock));
             // ★★ラチェット解消（2026-08-01・固定値を置かない形へ再設計）：上の3つの例外に当たらない一般の高緊張ペアも冷める。
             // ⚠ただし**冷める速さは定数で与えない**（作者指示「0.2といった固定値は採用したくない・何かしらの値を絡めたい」）。
             //   速さ＝**平時の減衰 × (1 − 遺恨)**。遺恨は下の _grudge＝講和時の復讐心で1に立ち、**失地と同じ半減期**（LostLandHalflifeQuarters＝80四半期＝20年＝アルザス）で薄れる。
@@ -3452,7 +3476,7 @@ public sealed class Diplomacy
             else if (c.HighTensionDecayRate > 0 && t >= c.HighTensionBand)
             {
                 double rate = c.TensionDecay * c.HighTensionDecayRate * (1.0 - PoliticalQuantities.Clamp01(_grudge.GetValueOrDefault(k)));
-                if (rate > 0) CoolTensionTo(k, Math.Max(0, t - rate));
+                if (rate > 0) CoolSlot(k, ref slot, t, Math.Max(0, t - rate));
             }
         }
         // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。HighTensionDecayRate=0 では _grudge が空のまま＝ループ0回。
