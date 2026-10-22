@@ -2319,7 +2319,7 @@ public sealed class Simulation
                             {
                                 double builtBefore = fp.BuiltScale;
                                 fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
-                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore);   // ★(495) 設備を持つ個体は国営の持分が減った分だけ Scale も減る   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
+                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);   // ★(495) 設備を持つ個体は国営の持分が減った分だけ Scale も減る   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
                             }
                 }
                 // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、

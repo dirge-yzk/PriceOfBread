@@ -2032,7 +2032,7 @@ public static class EconomyStep
             double privateIndGain = built * privateIndPerConstruction;   // (301) 決済の 3 か所（工業化度・その累積・RGO の面積）が同じ積を読む＝計画と同じ 1 束の工業化度（番人 InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる）
             if (!warmFrozen)
             {
-                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, privateIndGain, region.TotalIndustrialization, costL); if (insOn) Instruments.EquipmentBought(world!, region, privateIndGain, eqInst); }   // ★(495) 同じ購入を適格な個体の設備にも同じ割合で足す（在庫に足す前の値で φ を出す）
+                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, privateIndGain, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, privateIndGain, eqInst); }   // ★(495) 同じ購入を適格な個体の設備にも同じ割合で足す（在庫に足す前の値で φ を出す）
                 region.Industrialization += privateIndGain;
                 region.CumPrivateIndustrialization += privateIndGain;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
             }
@@ -2101,7 +2101,7 @@ public static class EconomyStep
             revenue[lg] += lGot * clearPrice[lg];
             if (!warmFrozen)   // ★助走：国家建設も材料は買って払うが能力にはしない（資本家経路と同じ理屈・同じ扱い＝AIとプレイヤーで非対称にしない）
             {
-                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, built * coef.IndPerConstruction, region.TotalIndustrialization, costL); if (insOn) Instruments.EquipmentBought(world!, region, built * coef.IndPerConstruction, eqInst); }   // ★(495) 国家の近代化も同じ配り（設備の持ち主は民間のまま）
+                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, built * coef.IndPerConstruction, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, built * coef.IndPerConstruction, eqInst); }   // ★(495) 国家の近代化も同じ配り（設備の持ち主は民間のまま）
                 region.Industrialization += built * coef.IndPerConstruction;
                 region.CumStateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝国家建設分の累積（純カウンタ・力学は読まない）
             }
@@ -2572,7 +2572,10 @@ public static class EconomyStep
             // （旧の旗 TechGatedScaleZero〔0＝不発の旧挙動〕は 2026-10-18 に 0 の枝ごと削除＝作者「全て推奨」。基線は git の履歴から戻せる。）
             if (Catalog.Goods[gi].Tier != GoodTier.Service
                 && !(Discovery.Gate(region, s) > 0))   // 否定形＝NaN も「作れない」側へ倒す
-                s.Scale = 0;
+            {
+                if (eqS && s.Scale > 0) FactoryEquipment.Retire(region, s, costL, insOn ? world : null);   // ★(495) 退場する設備を同じ州の他の個体へ比例で戻す（Scale は 0 になる）
+                else s.Scale = 0;
+            }
 
             // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）
             if (sleep[pi] == 2) s.SmoothedMargin = margin;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ

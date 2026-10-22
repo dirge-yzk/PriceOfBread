@@ -1917,7 +1917,7 @@ public sealed class Coefficients
     public double OpeningBakeEnabled = 0;           // ★(490) 開幕の焼き込み（<see cref="OpeningBake"/>）の読み込みの旗。0＝表（opening_bake.json）を開きもしない＝厳密恒等。正のとき <see cref="MultiNationSim.StartWarmup"/> の頭で 1 回、凍結を解いた試走で落ち着いた盤面（州×レシピの能力・州の資本・州×財の在庫と値段・州×階級の貯蓄）を構築直後の盤面に書く
                                                     //   （鍵が今の世界と全て一致しなければ例外）。**倒さない**（焼くのは工業化度の削除の後＝(464) の順）。測りの名乗りは焼いた表の頭書き（SOURCE-HASH・入力のハッシュ・試走の四半期数）。
     public double RecipeEquipment = 0;              // ★(495) レシピごとの設備（事前登録 measurements/eq495_20261023_prereg.txt）。0＝今の規則（操業規模 Scale は利幅を目標にただで伸び縮みする）＝厳密恒等。正のとき、**暦が進む月だけ**（助走は旧の規則）、設備を持つ生産者
-                                                    //   （<see cref="RecipeEquipment.Eligible"/>＝BuysLabor の非 RGO・非役務の工場）の Scale は〈据え付けた設備〉になり、減価・購入（工業化度の在庫に足される点を同じ割合で配る）・国家の工場の完成・恐慌の廃棄でしか動かない（ScaleMax・ScaleFloor・利幅の目標・倒産の Scale=0・再参入の FactoryReentryScale は働かない）。
+                                                    //   （<see cref="FactoryEquipment.Eligible"/>＝BuysLabor の非 RGO・非役務の工場）の Scale は〈据え付けた設備〉になり、購入（工業化度の在庫に足される点を同じ割合で配り、民間の持分の合計を保つよう薄める）・国家の工場の完成・恐慌の廃棄・退場（発見の門が閉じた設備を同じ州へ戻す）でしか動かない＝時間の経過では摩耗しない（ScaleMax・ScaleFloor・利幅の目標・倒産の Scale=0・再参入の FactoryReentryScale は働かない）。
                                                     //   Capacity は変えない（Scale は同じ担い手 POP を取り合う工場の間の労働の取り分の重み）。AI の設計＝確証なし。
     public double IndustrializationOff = 0;         // ★(495) 工業化度の倍率の読み手の削除（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」）。0＝今のまま＝厳密恒等。正のとき、能力の倍率 indMult・賃金の天井の工業化度の項・機械化度・独占の解体・冷蔵の傾斜・開発度の記憶とヴィンテージ（技術水準を読む 3 つ）が働かない。
                                                     //   州の在庫 Region.Industrialization とその書き手・在庫として読む 8 か所と州の上限 IndustryInvestRegionCap は残す（上限の削除は延期＝事前登録 追記 1 (2)）。

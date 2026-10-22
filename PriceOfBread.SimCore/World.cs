@@ -1833,7 +1833,7 @@ public sealed class World
                 if (p.ConstructionLeft <= 1e-9)
                 {
                     p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale;
-                    if (Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(p)) p.Scale += Coef.FactoryBuildScale;   // ★(495) 国営の設備も買った分だけ（旗 0 は床 BuiltScale が Scale を引き上げる）
+                    if (Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(p)) { p.Scale += Coef.FactoryBuildScale; if (Instruments.On) Instruments.EquipmentCompleted(this, Coef.FactoryBuildScale); }   // ★(495) 国営の設備も買った分だけ（旗 0 は床 BuiltScale が Scale を引き上げる）
                     p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
                     if (Instruments.On) Instruments.FacilityCompleted(this, r, p);   // 読むだけの計器（(260)・既定は出さない）
                 }

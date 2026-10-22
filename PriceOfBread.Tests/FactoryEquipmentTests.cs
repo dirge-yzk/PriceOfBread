@@ -124,21 +124,145 @@ public class FactoryEquipmentTests
     }
 
     [Fact]
-    public void 配り_国営の持分は動かさず民間の持分だけを薄める_合計は保たれる()
+    public void 配り_国営の持分を持つ個体は薄めない_国営の持分を持たない個体だけが薄まり民間の合計は保たれる()
     {
         var w = Make(17, 1, 0).World;
         var (r, ps) = FourProducers(w);
         foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
-        ps[0].Scale = 3.0; ps[0].BuiltScale = 1.0; ps[0].SmoothedMargin = 1.0;   // 国営 1・民間 2
-        ps[1].Scale = 1.0; ps[1].BuiltScale = 0.0; ps[1].SmoothedMargin = 1.0;   // 民間 1
+        ps[0].Scale = 3.0; ps[0].BuiltScale = 1.0; ps[0].SmoothedMargin = 0.5;   // 混ざった工場：国営 1・民間 2
+        ps[1].Scale = 1.0; ps[1].BuiltScale = 0.0; ps[1].SmoothedMargin = 1.5;   // 民間 1
         ps[2].SmoothedMargin = -1; ps[3].SmoothedMargin = -1; ps[2].Bankrupt = true; ps[3].Bankrupt = true;
-        // Σ＝4・国営 B＝1・民間 P＝3。φ＝0.5÷(0.5＋0.5)＝0.5 → 配る合計 4×0.5＝2.0（利幅 1:1 → 各 1.0）→ 民間は ps[0] 3.0・ps[1] 2.0（合計 5.0）→ 3÷5 倍に薄める。
-        double given = FactoryEquipment.Distribute(r, w.Coef, 0.5, 0.5, null);
-        Assert.Equal(2.0, given, 12);
+        // 手計算：Σ Scale＝4・φ＝0.1÷(0.4＋0.1)＝0.2・配る合計 4×0.2＝0.8・利幅 0.5:1.5＝1:3 → ps[0] へ 0.2・ps[1] へ 0.6。
+        // 民間の持分の合計（前）P＝(3−1)＋1＝3。配った後：ps[0] の民間 2.2（混ざった工場）・ps[1] 1.6。国営の持分を持たない個体だけ k＝(3−2.2)÷1.6＝0.5 を掛ける → ps[1]＝0.8。
+        double given = FactoryEquipment.Distribute(r, w.Coef, 0.1, 0.4, null);
+        Assert.Equal(0.8, given, 12);
         Assert.Equal(1.0, ps[0].BuiltScale, 12);                        // 国営の持分は動かさない
-        Assert.Equal(1.0 + 3.0 * 0.6, ps[0].Scale, 12);                 // 民間 (3−1＋配り 1.0)×0.6＝1.8 に国営 1
-        Assert.Equal(2.0 * 0.6, ps[1].Scale, 12);                       // 民間 (1＋配り 1.0)×0.6＝1.2
-        Assert.Equal(4.0, ps.Sum(p => p.Scale), 12);                    // 合計は購入の前後で同じ
+        Assert.Equal(3.2, ps[0].Scale, 12);                             // 混ざった工場は自分への購入を受けるだけ（薄めない）＝国営の持分 1÷3.2 は自分への購入でだけ下がる
+        Assert.Equal(0.8, ps[1].Scale, 12);
+        Assert.Equal(4.0, ps.Sum(p => p.Scale), 12);                    // 尺度が増えない（合計は購入の前後で同じ）
+        Assert.Equal(3.0, (ps[0].Scale - ps[0].BuiltScale) + ps[1].Scale, 12);   // 民間の持分の合計は保たれる
+    }
+
+    [Fact]
+    public void 配り_他の個体の購入では混ざった工場の国営の持分の割合が動かない()
+    {
+        var w = Make(25, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
+        ps[0].Scale = 3.0; ps[0].BuiltScale = 1.0; ps[0].SmoothedMargin = 0;      // 利幅 0＝受け取らない（重みは 0）
+        ps[1].Scale = 1.0; ps[1].SmoothedMargin = 2.0;                            // 受け取る側
+        ps[2].Bankrupt = true; ps[3].Bankrupt = true;
+        double shareBefore = ps[0].BuiltScale / ps[0].Scale;
+        FactoryEquipment.Distribute(r, w.Coef, 0.1, 0.4, null);
+        Assert.Equal(shareBefore, ps[0].BuiltScale / ps[0].Scale, 12);            // 国営の持分は取引か自分への購入でしか動かない
+        Assert.True(ps[1].Scale > 0);
+    }
+
+    [Fact]
+    public void 配り_州に民間の設備が無ければ尺度が育つ_薄める先が無い()
+    {
+        var w = Make(26, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
+        ps[0].SmoothedMargin = 1.0;
+        double given = FactoryEquipment.Distribute(r, w.Coef, 0.1, 0.0, null);
+        Assert.True(given > 0);
+        Assert.Equal(given, ps[0].Scale, 12);   // 民間の設備が 0 の州は消さずに育つ（設備を持てなくなる行き止まりを作らない）
+    }
+
+    [Fact]
+    public void 退場_門が閉じた個体の民間の持分は同じ州の薄める集合へ比例で戻る_国営の持分を持つ個体は動かない()
+    {
+        var w = Make(27, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
+        ps[0].Scale = 3.0; ps[0].BuiltScale = 1.0;     // 混ざった工場（動かない）
+        ps[1].Scale = 1.0; ps[2].Scale = 3.0;          // 国営の持分を持たない個体
+        // 退場する個体：門が閉じた適格な個体（盤面から探して Scale を置く）
+        var closed = r.Producers.FirstOrDefault(p => FactoryEquipment.Eligible(p) && !(Discovery.Gate(r, p) > 0));
+        Assert.NotNull(closed);
+        closed!.Scale = 2.0; closed.BuiltScale = 0;
+        double pdBefore = (ps[0].Scale - ps[0].BuiltScale) + ps[1].Scale + ps[2].Scale;   // 2＋1＋3＝6
+        FactoryEquipment.Retire(r, closed, null);
+        // 目標 6＋2＝8・混ざった個体の民間 2・国営の持分を持たない個体の Scale の和 4 → k＝(8−2)÷4＝1.5
+        Assert.Equal(0.0, closed.Scale, 12);
+        Assert.Equal(3.0, ps[0].Scale, 12); Assert.Equal(1.0, ps[0].BuiltScale, 12);
+        Assert.Equal(1.5, ps[1].Scale, 12); Assert.Equal(4.5, ps[2].Scale, 12);
+        Assert.Equal(pdBefore + 2.0, (ps[0].Scale - ps[0].BuiltScale) + ps[1].Scale + ps[2].Scale, 12);
+        Assert.Equal(0.0, ps[3].Scale, 12);
+    }
+
+    [Fact]
+    public void 退場_戻す先が無ければ設備は消える_国営の持分はScaleから引かない()
+    {
+        var w = Make(28, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p)) { p.Scale = 0; p.BuiltScale = 0; p.SmoothedMargin = 0; }
+        var closed = r.Producers.FirstOrDefault(p => FactoryEquipment.Eligible(p) && !(Discovery.Gate(r, p) > 0));
+        Assert.NotNull(closed);
+        closed!.Scale = 2.0; closed.BuiltScale = 0.5;   // 民間 1.5・国営 0.5
+        var cost = new long[CostLedger.Count];
+        FactoryEquipment.Retire(r, closed, cost);
+        Assert.Equal(0.0, closed.Scale, 12);
+        Assert.All(ps, p => Assert.Equal(0.0, p.Scale, 12));    // 戻す先（民間の設備を持つ個体）が無い＝消える（尺度を増やさない）
+        Assert.Equal(2L * r.Producers.Count, cost[CostLedger.RecipeEquipmentScans]);
+    }
+
+    private static double PrivateOfSet(Region r)
+        => r.Producers.Where(p => FactoryEquipment.InSet(r, p)).Sum(p => Math.Max(0.0, p.Scale - p.BuiltScale));
+
+    [Fact]
+    public void 配りと退場は民間の持分の合計を保つ_手計算でない盤面の性質_国営の持分は動かない()
+    {
+        // 決定的な擬似乱数で盤面を 40 通り作る（混ざった工場・国営だけの工場・倒産・利幅の符号を混ぜる）。期待は盤面に置いた数の和（実装と別の出所）。
+        var w = Make(61, 1, 0).World;
+        var (r, ps) = FourProducers(w);
+        var elig = r.Producers.Where(FactoryEquipment.Eligible).ToList();
+        ulong x = 0x9E3779B97F4A7C15UL;
+        double U() { x ^= x << 13; x ^= x >> 7; x ^= x << 17; return (x >> 11) / (double)(1UL << 53); }
+        for (int t = 0; t < 40; t++)
+        {
+            foreach (var p in elig)
+            {
+                bool open = Discovery.Gate(r, p) > 0;
+                double u = U();
+                p.Scale = open ? U() * 4.0 : 0.0;
+                p.BuiltScale = u < 0.25 && open ? Math.Min(p.Scale, U()) : 0.0;
+                p.Bankrupt = U() < 0.2;
+                p.SmoothedMargin = (U() - 0.4) * 3.0;
+            }
+            double pd = PrivateOfSet(r), tot = elig.Sum(p => p.Scale);
+            var built = elig.Select(p => p.BuiltScale).ToArray();
+            double given = FactoryEquipment.Distribute(r, w.Coef, 0.02 + U() * 0.2, 0.1 + U() * 2, null);
+            if (pd > 1e-9 && given > 0 && elig.Where(p => FactoryEquipment.InSet(r, p) && !(p.BuiltScale > 1e-9) && p.Scale > 1e-9).Any())
+                Assert.True(Math.Abs(PrivateOfSet(r) - pd) <= 1e-9 * Math.Max(1, pd) || elig.Where(p => FactoryEquipment.InSet(r, p) && p.BuiltScale > 1e-9).Sum(p => Math.Max(0.0, p.Scale - p.BuiltScale)) > pd,
+                    $"民間の持分の合計が動いた t={t} {pd}→{PrivateOfSet(r)}");   // 薄めきれない（混ざった工場だけで目標を超えた）ときだけ例外
+            Assert.Equal(built, elig.Select(p => p.BuiltScale).ToArray());   // 配りは国営の持分に触れない
+            Assert.True(elig.All(p => p.Scale >= 0 && double.IsFinite(p.Scale)));
+            _ = tot;
+        }
+    }
+
+    [Fact]
+    public void 動いている世界で門が閉じた個体の設備は同じ州へ戻る_民間の持分の合計は退場で動かない()
+    {
+        var sim = Make(62, 1, 0);
+        var w = sim.World;
+        w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;   // 購入と廃棄を止める
+        sim.Run(1);
+        Region? reg = null; Producer? closed = null;
+        foreach (var r in w.Regions.Where(r => r.State == RegionState.Active))
+        {
+            closed = r.Producers.FirstOrDefault(p => FactoryEquipment.Eligible(p) && !(Discovery.Gate(r, p) > 0));
+            if (closed is not null && PrivateOfSet(r) > 1.0) { reg = r; break; }
+            closed = null;
+        }
+        Assert.NotNull(closed);
+        closed!.Scale = 2.5; closed.BuiltScale = 0;       // 退場すべき設備を置く
+        double pd = PrivateOfSet(reg!);
+        for (int d = 0; d < 31; d++) sim.StepDay();
+        Assert.Equal(0.0, closed.Scale, 12);                                   // 作れない工場は設備を持たない
+        Assert.Equal(pd + 2.5, PrivateOfSet(reg!), 9);                         // 消えた取り分は同じ州の他の個体へ（購入が無く廃棄も完成も無い月）
     }
 
     [Fact]
@@ -162,8 +286,8 @@ public class FactoryEquipmentTests
         var (r, _) = FourProducers(w);
         var cost = new long[CostLedger.Count];
         FactoryEquipment.Distribute(r, w.Coef, 0.1, 0.5, cost);
-        Assert.Equal(r.Producers.Count, cost[CostLedger.RecipeEquipmentScans]);
-        Assert.Equal(r.Producers.Count, cost.Sum());   // 他の行には足さない
+        Assert.Equal(3L * r.Producers.Count, cost[CostLedger.RecipeEquipmentScans]);   // 合計・配り・薄めの 3 周
+        Assert.Equal(3L * r.Producers.Count, cost.Sum());   // 他の行には足さない
     }
 
     [Fact]
@@ -306,6 +430,7 @@ public class FactoryEquipmentTests
         var sim = Make(24, 1, 0);
         var w = sim.World;
         w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;
+        sim.Run(1);                            // 最初の月の門の整理（退場する個体の設備を戻す）を済ませる＝この試験の盤面を動かさない
         var (r, ps) = FourProducers(w);
         var p = ps[0];
         p.BuiltScale = 0; p.Scale = 2.0; p.SmoothedMargin = -100.0; p.Bankrupt = false;
@@ -377,7 +502,7 @@ public class FactoryEquipmentTests
     [Theory]
     [InlineData(@"\bindMult\b", 3)]   // 能力の倍率 indMult（宣言 1・使う式 2）＝旗 IndustrializationOff が 1.0 に落とす
     [InlineData(@"\.(OldVintageCapital|StrandedVintage|VintageTechLevel)\s*(\+=|-=|\*=|/=|=(?![=>]))", 8)]   // ヴィンテージの 3 つの書き手（旗 IndustrializationOff が移行と座礁を止める）
-    [InlineData(@"\.Scale\s*(\+=|-=|\*=|/=|=(?![=>]))", 13)]   // Producer.Scale の書き手（適格な個体の自由な伸びは旗 RecipeEquipment が止める。設備の規則の書き手 FactoryEquipment〔配り・摩耗・廃棄〕・World の完成を含む。）
+    [InlineData(@"\.Scale\s*(\+=|-=|\*=|/=|=(?![=>]))", 14)]   // Producer.Scale の書き手（適格な個体の自由な伸びは旗 RecipeEquipment が止める。設備の規則の書き手 FactoryEquipment〔配り・薄め・退場・廃棄〕・World の完成を含む。(495) 後半＝退場の Retire が 1 行増えた〔13→14〕。）
     public void ラチェット_倍率と操業規模と技術水準の側の書き手は増えない(string pattern, int ceiling)
     {
         int n = CountLines(pattern);
