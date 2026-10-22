@@ -837,7 +837,7 @@ public sealed class UtilityAgent : INationAgent
         // ★最低賃金法（線 lw (459)）：★(486) から既定は旗 MinimumWageAiFromFloor＝1＝盤面の規則（本国の労働の失業と床が縛る広がり・線 4 本・AI の選び＝確証なし）。旗 0 の旧の規則＝賃金労働者（本国の都市人口）が多数になった国は床を求める（反トラスト・同業組合と同じ線）。ゲート0＝目標を書かない＝恒等
         {   // ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。計器の欄は読むだけ。
             var mwChosen = MinimumWageTargetChosen(w);
-            if (Instruments.On) { Instruments.MaCount(w, p.MinimumWage, mwChosen); w.DiagMaTargetOrd = mwChosen is { } mwOrd ? (int)mwOrd : -1; }   // ★(497) 計器の数え（読むだけ）：書く前の p.MinimumWage（prior）と規則の結果で、立っていた目標が書き戻されたかを数える
+            if (Instruments.On) w.DiagMaTargetOrd = mwChosen is { } mwOrd ? (int)mwOrd : -1;
             if (mwChosen is { } mwTarget)
                 p.MinimumWage = mwTarget;
         }
@@ -1071,8 +1071,7 @@ public sealed class UtilityAgent : INationAgent
         double bCur = double.NaN, bNext = double.NaN;
         if (u >= MinimumWageUnempLowerLine && cur > MinimumWageLaw.None) bCur = MinimumWageFloor.BindShare(h, cur, cost);
         if (u < MinimumWageUnempRaiseLine && cur < MinimumWageLaw.Sufficiency) bNext = MinimumWageFloor.BindShare(h, cur + 1, cost);
-        var want = MinimumWageFloorWant(cur, u, bCur, bNext);
-        return w.Coef.MinimumWageAiHoldTarget > 0 && want == cur ? null : want;   // ★(497) 旗 MinimumWageAiHoldTarget＞0：現行法と同じなら書かない（前に置いた目標が残る）。0＝want をそのまま返す（無変更）
+        return MinimumWageFloorWant(cur, u, bCur, bNext);
     }
 
     /// <summary>★(480) 線 ma：最低賃金法の目標の純関数（盤面の読みを引数で受ける）。

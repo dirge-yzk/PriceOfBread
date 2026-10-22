@@ -209,8 +209,6 @@ public sealed class World
     [System.NonSerialized] internal double[]? DiagPay;
     // ★(480) 計器 ma_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：この四半期に AI の最低賃金法の規則が p に書いた目標の序数（書かなかった＝−1）。
     [System.NonSerialized] internal int DiagMaTargetOrd = -1;
-    // ★(497) 線 mw：ma_s の末尾 6 列の累計（読むだけ・INS=1 のときだけ数える・セーブに載らない・シミュの値はこれを読まない）。最低賃金法のブロックの直前の p.MinimumWage（prior）・現行法（cur）・規則の結果（chosen）から、InstrumentsMa.MaCount が数える。
-    [System.NonSerialized] internal int DiagMaDecisions, DiagMaStanding, DiagMaKept, DiagMaErased, DiagMaFlipped, DiagMaCarried;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
