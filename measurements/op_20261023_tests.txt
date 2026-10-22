@@ -1,0 +1,5 @@
+# (494) 線 op 後半：フルスイート（Category!=FullLength・Release・隔離ビルド・Gate の直しと番人 1 本の後）
+成功!   -失敗:     0、合格:  1633、スキップ:     0、合計:  1633、期間: 12 m 2 s
+# 普段 1622 + OpeningProcessRowsTests 11 本。FullLength・leakhunt は回していない（採らないので保存則に触れる変更を倒していない・旗は休眠）。
+# 突然変異：Discovery.Gate の null の窓の条件を false にすると OpeningProcessRowsTests の null の窓の番人が赤（戻して緑）。
+# 旗 1 の腕 B の報告は Gate の直す前と直した後で cmp により全バイト一致（直しは旗 1 の軌道を変えなかった）。

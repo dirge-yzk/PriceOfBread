@@ -1,0 +1,16 @@
+# (494) 線 op 前半の検証（2026-10-23・書いたモデル Claude Sonnet 5.5・腕 A・B は回していない）
+## canary（旗 0・seed 1・668 四半期）＝恒等の事故の検出（1 種＝恒等の証明ではない）
+- 基線の木（main 8c8f987a・SOURCE-HASH 659ba220fc640545＝m491 の成績表の木と同じ）と op の木（SOURCE-HASH 5bd33d49a04069cd）の `selfplay 1 668` の出力が cmp で全バイト一致。
+- 同梱の読み：CarriersByRow の freeUse（prereg [3]）の読みは外れていない（一致）。診断の〈制度/発見の解禁の数〉の行は IsCompatRow で数えないので +2 にならない。
+## フルスイート（Category!=FullLength・Release・隔離ビルド）
+- 1 回目：1631 本中 2 本赤（BreakDetectionTests.並存レシピは既定レシピの解禁を迂回しない／DiscoveryScoreTests.開幕の既知の発見はデータで_助走は点数で足さない）。どちらも新しい行の入った表への追随（古いやり方を公認の早期の橋に宣言・旗 0 の互換の行を除く）。機構の意味は変えていない。
+- 追随の後：該当の番人群（BreakDetection・DiscoveryScore・OpeningProcessRows・OpeningBake・DormantIdentity）65 本緑。ほかの 1629 本は 1 回目で緑（追随は 2 つの試験だけ）。普段の本数 1622＋9＝1631（FullLength 3 は回していない＝保存則に触れない）。
+## 突然変異（OpeningProcessRowsTests・それぞれ赤を確認して戻した）
+- M1 旗の読み落とし（OpeningProcessRows.Add の先頭の return を外す）＝赤 1（既定は休眠で旗0は手紡ぎを足さず…）。
+- M2 紡績の割合を 1.0＝赤 1（手紡ぎの形は労働力の投入だけが…）。
+- M3 SeedCompatRows の機械紡績の行を外す＝赤 1（旗0は全ての国が両方を解禁済み…）。
+- M4 IsCompatRow の旗の条件を外す＝赤 1（互換の行の述語は…）。
+## savetest（1789 300 12）
+- 旗 0：OK（全 63 カ国が継続系列と一致・最大相対差 0）＝op_20261023_savetest_flag0.txt。旗 1 の指定（POB_COEF）：OK＝op_20261023_savetest_flag1.txt（⚠savetest の経路が POB_COEF を読んだかは確かめていない＝旗 1 の往復の確証は番人側の 旗1の門 で見ている）。
+## 触っていない物
+- leakhunt・FullLength・成績表 3 枚・NG の集合は回していない（腕の前・保存則に触れない・旗 0 は canary で一致）。
