@@ -18,7 +18,7 @@ public class GoodDurabilityTests
         Catalog.SugarCaneId => 0.10,                                                                 // サトウキビ
         Catalog.WheatId or Catalog.FlourId or Catalog.TobaccoLeafId or Catalog.PreservedMeatId or Catalog.BeerId or Catalog.FodderId or Catalog.MaizeId or Catalog.RiceId => 0.06,                    // 麦・小麦粉・葉煙草・加工肉・ビール・飼料・トウモロコシ・米（乾燥穀粒）。デ9：米(102)は従来defaultに落ち0.005＝鋼並みの保存性で米在庫が永久滞留し価格床を作りえた。乾燥穀粒0.06へ（麦・トウモロコシと一貫）
         Catalog.HorseId => 0.04,                                                                // 馬（B6レビュー2026-07-19）：生体在庫の飼養損耗＝金属既定0.005に落とすと馬余りが半永久滞留し価格床になる。革(0.02)と飼料(0.06)の間
-        Catalog.TimberId or Catalog.SilkId or Catalog.CinchonaBarkId or Catalog.PalmOilId or Catalog.CocoaId or Catalog.ChemicalsId or Catalog.GunpowderId or Catalog.DriedFishId or Catalog.TobaccoId
+        Catalog.TimberId or Catalog.SilkId or Catalog.CinchonaBarkId or Catalog.PalmOilId or Catalog.CocoaId or Catalog.SulfuricAcidId or Catalog.SodaAshId or Catalog.GunpowderId or Catalog.DriedFishId or Catalog.TobaccoId
             or Catalog.ChocolateId or Catalog.TeaId or Catalog.CoffeeId or Catalog.MedicineId or Catalog.QuinineId or Catalog.CheeseId or Catalog.GuanoId => 0.03,                    // 木・生糸・嗜好品原料・薬・化学・パルプ・チーズ・グアノ等（半生鮮）
         Catalog.CottonId or Catalog.HempId or Catalog.DyeId or Catalog.RawRubberId or Catalog.LumberId or Catalog.CottonClothId or Catalog.CanvasId or Catalog.WoolId or Catalog.WoolenClothId or Catalog.SilkClothId or Catalog.LeatherId or Catalog.SugarId
             or Catalog.RubberId or Catalog.ClothingId or Catalog.LuxuryClothingId or Catalog.PaperId or Catalog.WaterproofClothId or Catalog.FurId => 0.02,                     // 繊維・木材・紙・革・砂糖・衣料・毛皮等
@@ -30,7 +30,7 @@ public class GoodDurabilityTests
     [Fact]
     public void 全ての財で表の損耗の率は旧のswitchの値とビットまで同じ()
     {
-        Assert.Equal(128, Catalog.Goods.Length);   // 財を足したらこの数と期待値の写しを見直す
+        Assert.Equal(129, Catalog.Goods.Length);   // 財を足したらこの数と期待値の写しを見直す
         var bad = new List<string>();
         for (int i = 0; i < Catalog.Goods.Length; i++)
         {

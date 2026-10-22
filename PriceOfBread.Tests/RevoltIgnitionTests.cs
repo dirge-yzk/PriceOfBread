@@ -727,10 +727,10 @@ public class RevoltIgnitionTests
     {
         // 2腕の違いは**民兵の札だけ**（係数は両腕とも既定＝a=0 で戦力にも死の配分にも触れない＝労働だけが動く）。
         var none = 段5_反乱国家を建てる(new Coefficients(), militiaShare: 0, quarters: 2, frozen: true);
-        var armed = 段5_反乱国家を建てる(new Coefficients(), militiaShare: 0.5, quarters: 2, frozen: true);
+        var armed = 段5_反乱国家を建てる(new Coefficients(), militiaShare: 0.9, quarters: 2, frozen: true);   // ★(493) 0.5→0.9：軌道が動き、0.5 では州の労働の需要が供給の残りより小さく抜けが産出に現れなかった（0.5＝6248≥なし 6210・0.9＝1847）。札が供給へ届く機構は 0.9 で確かめる
         Assert.True(none.HomeLabor > 0, "前提が崩れた：反乱州で労働力が産出されていない");
         Assert.True(armed.HomeLabor < none.HomeLabor,
-            $"民兵が労働から抜けていない（民兵0.5 {armed.HomeLabor:F2} ≥ 民兵0 {none.HomeLabor:F2}）＝札が労働供給へ届いていない");
+            $"民兵が労働から抜けていない（民兵0.9 {armed.HomeLabor:F2} ≥ 民兵0 {none.HomeLabor:F2}）＝札が労働供給へ届いていない");
     }
 
     // ★地方の建国は厭戦0から・開戦で両陣営を自国の POP で測る（2026-09-29 線2＝(100) の申し送り2・4）。

@@ -17,6 +17,7 @@ public class DiscoveryTierTests
         ("戦車", "内燃機関"), ("軍用機", "内燃機関"), ("自動車", "内燃機関"),
         ("自転車", "加硫ゴム"),
         ("ラジオ", "電化製品"),
+        ("電解", "石炭火力"),   // ★2026-10-23 (493)：塩水の電解は石炭火力の電力が先に要る（ソーダ灰の並存レシピ）
     ];
 
     private static int Row(string name) => System.Array.FindIndex(Catalog.Discoveries, d => d.Name == name);

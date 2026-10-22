@@ -70,7 +70,7 @@ public class GoodIdGuardTests
             (Catalog.LeadId, "鉛"),
             (Catalog.CementId, "セメント"),
             (Catalog.GlassId, "ガラス"),
-            (Catalog.ChemicalsId, "化学薬品"),
+            (Catalog.SulfuricAcidId, "硫酸"),   // ★2026-10-23 (493)：旧 化学薬品 の酸の側（番号は 33 のまま）
             (Catalog.GunpowderId, "火薬"),
             (Catalog.LumberId, "製材"),
             (Catalog.CottonClothId, "綿布"),
@@ -165,6 +165,7 @@ public class GoodIdGuardTests
             (Catalog.HigherEducationId, "高等教育"),
             (Catalog.RefrigeratorId, "冷蔵庫"),
             (Catalog.CinchonaBarkId, "金鶏樹皮"),   // ★2026-09-30 (129)：戻した財は末尾（既存の番号は変えない）
+            (Catalog.SodaAshId, "ソーダ灰"),   // ★2026-10-23 (493)：旧 化学薬品 のアルカリの側＝末尾（128）
         ];
         // 表の1行ずつ：定数の値の財の名前が、手で書いた名前と同じ（ずれたら、どの定数かを名指しする）
         var constName = ConstantsByValue();
@@ -259,7 +260,7 @@ public class GoodIdGuardTests
     /// <summary>この規則はこのファイルでだけ許す（定義の表そのもの）。</summary>
     private static readonly (string Rule, string File)[] RuleFiles =
     [
-        ("const int …Id = n", "PriceOfBread.SimCore/Catalog.cs"),   // 財の番号の定義（128 本・①の表と goods.json が検査する）
+        ("const int …Id = n", "PriceOfBread.SimCore/Catalog.cs"),   // 財の番号の定義（129 本・①の表と goods.json が検査する）
     ];
 
     /// <summary>当たり1件。Pos＝走査した文字列の中の位置（同じ位置の同じ文字列に2つの規則が当たったら1件に数える）。</summary>

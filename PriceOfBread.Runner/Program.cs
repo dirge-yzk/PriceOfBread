@@ -1094,7 +1094,7 @@ if (args.Length > 0 && args[0] == "selfsuff")
     for (int i2 = 0; i2 < 8 && i2 < names.Count; i2++) Console.WriteLine($"    {names[i2].Item1}  {names[i2].Item2}種類　自給率{names[i2].Item3:P0}");
     // ★2026-09-04（E-13の採用判定用）：硫黄鎖の世界産出＝地理ゲートで「産地集中→運べない→下流が消える」（2026-08-13の差し戻し理由）が再発していないかを直接見る。
     {
-        string[] watch = { "硫黄", "化学薬品", "火薬", "硝石", "肥料", "マッチ", "染料", "硫酸" };
+        string[] watch = { "硫黄", "ソーダ灰", "火薬", "硝石", "肥料", "マッチ", "染料", "硫酸" };   // ★(493) 化学薬品を硫酸とソーダ灰に割った
         Console.WriteLine("★硫黄鎖の世界産出（活動州の LastProduced 合計・作っている州数・平均価格/RefPrice）:");
         foreach (var wn in watch)
         {
@@ -1118,7 +1118,7 @@ if (args.Length > 0 && args[0] == "selfsuff")
             // ★2026-09-06（E-13 の価格高止まりの診断）：需要・在庫・販売の世界合計と、価格/Ref の中央値・5倍超の州数（平均が少数の外れ値に引かれていないか）
             Console.WriteLine($"    {wn,-6} 産出 {prod,12:F0}　生産州 {nProd,4}　価格/Ref 平均{(nPx > 0 ? pxSum / nPx : 0),6:F2} 中央{pxMed,6:F2} 5倍超{nHigh,3}州　需要 {dem,10:F0}　販売 {sold,10:F0}　在庫 {stock,10:F0}");
         }
-        // ★E-15 受け入れ用：化学薬品(37)のレシピ別の産出＝黄鉄鉱法が実際に動いているか（生産者の LastOutput×Scale 相当は持たないので Output×Scale×Productivity の近似でなく、Producer.Output の合計＝直近の産出量）。
+        // ★E-15 受け入れ用（★(493) 硫酸とソーダ灰に割った）：硫酸(33)・ソーダ灰(128)のレシピ別の産出＝黄鉄鉱法が実際に動いているか（生産者の LastOutput×Scale 相当は持たないので Output×Scale×Productivity の近似でなく、Producer.Output の合計＝直近の産出量）。
         {
             var byRecipe = new Dictionary<string, (double Out, int N, int Active)>();
             foreach (var n2 in ssm.Nations)
@@ -1127,13 +1127,13 @@ if (args.Length > 0 && args[0] == "selfsuff")
                     if (r2.State != RegionState.Active) continue;
                     foreach (var pr in r2.Producers)
                     {
-                        if (pr.GoodId != Catalog.ChemicalsId) continue;
-                        string key = pr.RecipeName.Length > 0 ? pr.RecipeName : "既定（ルブラン法）";
+                        if (pr.GoodId != Catalog.SulfuricAcidId && pr.GoodId != Catalog.SodaAshId) continue;
+                        string key = pr.GoodId == Catalog.SulfuricAcidId ? "硫酸・" + (pr.RecipeName.Length > 0 ? pr.RecipeName : "鉛室法（既定）") : "ソーダ灰・" + (pr.RecipeName.Length > 0 ? pr.RecipeName : "草木灰（既定）");
                         var cur = byRecipe.TryGetValue(key, out var v) ? v : (0, 0, 0);
                         byRecipe[key] = (cur.Out + pr.Output * pr.Scale, cur.N + 1, cur.Active + (pr.Output * pr.Scale > 1e-9 && !pr.Bankrupt ? 1 : 0));
                     }
                 }
-            Console.WriteLine("★化学薬品(37)のレシピ別（Output×Scale の合計・生産者数・稼働数）:");
+            Console.WriteLine("★硫酸(33)・ソーダ灰(128)のレシピ別（Output×Scale の合計・生産者数・稼働数）:");
             foreach (var kv in byRecipe) Console.WriteLine($"    {kv.Key,-12} {kv.Value.Out,12:F0}　生産者 {kv.Value.N,4}　稼働 {kv.Value.Active,4}");
         }
     }
