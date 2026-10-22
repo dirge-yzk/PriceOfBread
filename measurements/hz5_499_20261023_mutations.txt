@@ -1,0 +1,6 @@
+M12 disc_s の nationUid が 0: RED(OK) 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 4 m 43 s - PriceOfBread.Tests.dll (net10.0)
+M13 disccontact_s の buyerUid が 0: RED(OK) 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 6 m 25 s - PriceOfBread.Tests.dll (net10.0)
+M18 disccontact_s の sellerUid が 0: RED(OK) 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 4 m 22 s - PriceOfBread.Tests.dll (net10.0)
+M19 disccontact_s の sellerUid が買い手の個体: RED(OK) 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 m 11 s - PriceOfBread.Tests.dll (net10.0)
+M17 検証が入力のハッシュを見ない: RED(OK) 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 37 s - PriceOfBread.Tests.dll (net10.0)
+done
