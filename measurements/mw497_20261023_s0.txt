@@ -1,0 +1,16 @@
+s1 {'pairs': 5336, 'rule_erased_net': 101, 'rule_kept': 4711, 'standing': 4812, 'standing_rule': 4812}
+s2 {'pairs': 5336, 'rule_erased_net': 80, 'rule_kept': 4777, 'standing': 4857, 'standing_rule': 4857}
+s3 {'other_null': 327, 'pairs': 5336, 'rule_erased_net': 103, 'rule_kept': 3881, 'rule_null': 1, 'standing': 4312, 'standing_other': 327, 'standing_rule': 3985}
+s4 {'pairs': 5336, 'rule_erased_net': 104, 'rule_kept': 4748, 'standing': 4852, 'standing_rule': 4852}
+s5 {'pairs': 5336, 'rule_erased_net': 143, 'rule_kept': 4383, 'standing': 4526, 'standing_rule': 4526}
+s6 {'pairs': 5336, 'rule_erased_net': 86, 'rule_kept': 4774, 'standing': 4860, 'standing_rule': 4860}
+s7 {'pairs': 5336, 'rule_erased_net': 151, 'rule_kept': 4294, 'standing': 4445, 'standing_rule': 4445}
+s8 {'pairs': 5336, 'rule_erased_net': 124, 'rule_kept': 4639, 'standing': 4763, 'standing_rule': 4763}
+s9 {'pairs': 5336, 'rule_erased_net': 139, 'rule_kept': 4663, 'standing': 4802, 'standing_rule': 4802}
+s10 {'pairs': 5336, 'rule_erased_net': 85, 'rule_kept': 4872, 'standing': 4957, 'standing_rule': 4957}
+TOTAL {'other_null': 327, 'pairs': 53360, 'rule_erased_net': 1116, 'rule_kept': 45742, 'rule_null': 1, 'standing': 47186, 'standing_other': 327, 'standing_rule': 46859}
+P1 {'rule_erased_net': 342, 'rule_kept': 2937}
+P2 {'other_null': 94, 'rule_erased_net': 275, 'rule_kept': 14335, 'rule_null': 1}
+P3 {'other_null': 200, 'rule_erased_net': 236, 'rule_kept': 14726}
+P4 {'other_null': 33, 'rule_erased_net': 263, 'rule_kept': 13744}
+正味で消えた回数の多い国（10 種合計） [('イギリス', 247), ('フランス', 213), ('オーストリア', 212), ('オスマン', 162), ('ロシア', 131), ('プロイセン', 100), ('清', 30), ('日本', 21)]
