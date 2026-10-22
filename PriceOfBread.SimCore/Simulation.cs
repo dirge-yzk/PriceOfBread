@@ -1585,10 +1585,13 @@ public sealed class Simulation
         int hFlow = World.Coef.PriceFlowStepDays;
         if (hFlow < 1 || Calendar.DaysPerMonth % hFlow != 0)
             throw new System.InvalidOperationException($"PriceFlowStepDays={hFlow} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
-        bool priceDay = (_dayInQuarter + 1) % hFlow == 0;
+        int hPrice = World.Coef.PriceOnlyStepDays > 0 ? World.Coef.PriceOnlyStepDays : hFlow;   // ★(spg2) ① 国内価格だけの刻み（0＝同じ旬）
+        if (Calendar.DaysPerMonth % hPrice != 0)
+            throw new System.InvalidOperationException($"PriceOnlyStepDays={hPrice} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
+        bool priceDay = (_dayInQuarter + 1) % hPrice == 0;
         bool spanStart = _dayInQuarter % hFlow == 0;   // 旬の初日（建設と信用＝S3c）
         long[]? cost = priceDay || spanStart ? World.Cost : null;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
-        bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hFlow;   // ★月の最初の旬（2026-09-30 計算量の予算 第2回）＝張り付いた財の眠りの印を作り直す旬（MarketFlow.StepDay の remarks）
+        bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hPrice;   // ★月の最初の旬（2026-09-30 計算量の予算 第2回）＝張り付いた財の眠りの印を作り直す旬（MarketFlow.StepDay の remarks）
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -1598,7 +1601,7 @@ public sealed class Simulation
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
-                if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow, cost, monthStartSpan, World.MinimumWage);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす（月の2旬目以降は不動点に着いた張り付いた財を眠らせる）
+                if (priceDay) MarketFlow.StepDay(r, World.Coef, hPrice, cost, monthStartSpan, World.MinimumWage);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす（月の2旬目以降は不動点に着いた張り付いた財を眠らせる）
             }
         ProbeCheck("日次価格");
         if (spanStart) World.StepConstruction(hFlow);                               // 工場建設の進捗（旬の初日に h 日ぶん・労務費を働いた日数ぶん払って進む）
