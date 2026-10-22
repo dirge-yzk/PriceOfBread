@@ -1,0 +1,25 @@
+M1_flag_always_on
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.立っていた目標は旗Holdの間の帯でApplyを通っても残り_旗0では現行法へ戻る [55 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.旗Holdは現行法と同じ結果のときだけ書かない_上げと下げと読めないは旗に依らない [28 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.要求が置き直している間は旗に依らず目標が残り_旗が効くのは要求が下りた後 [46 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.床が縛って失業が高ければ下げ_縛らなければ下げず_失業が低ければ縛っていても下げない [31 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.失業が低く次の段が広くは縛らなければ上げ_広ければ上げない [34 ms]
+失敗!   -失敗:     5、合格:     6、スキップ:     0、合計:    11、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+
+M2_flag_ignored
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.立っていた目標は旗Holdの間の帯でApplyを通っても残り_旗0では現行法へ戻る [71 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.旗Holdは現行法と同じ結果のときだけ書かない_上げと下げと読めないは旗に依らない [36 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.要求が置き直している間は旗に依らず目標が残り_旗が効くのは要求が下りた後 [46 ms]
+失敗!   -失敗:     3、合格:     8、スキップ:     0、合計:    11、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+
+M3_inverted
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.立っていた目標は旗Holdの間の帯でApplyを通っても残り_旗0では現行法へ戻る [78 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.旗Holdは現行法と同じ結果のときだけ書かない_上げと下げと読めないは旗に依らない [36 ms]
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.要求が置き直している間は旗に依らず目標が残り_旗が効くのは要求が下りた後 [50 ms]
+失敗!   -失敗:     3、合格:     8、スキップ:     0、合計:    11、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+
+M4_null_all_when_flag
+  失敗 PriceOfBread.Tests.MinimumWageAiFloorTests.旗Holdは現行法と同じ結果のときだけ書かない_上げと下げと読めないは旗に依らない [21 ms]
+失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+
+restored

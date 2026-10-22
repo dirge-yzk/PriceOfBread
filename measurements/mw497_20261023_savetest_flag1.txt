@@ -1,0 +1,4 @@
+## savetest 1789 300 12（POB_COEF=MinimumWageAiHoldTarget=1・木 d3bd7b4a）
+保存 47.7MB（1002ms）／読込 1110ms（300四半期時点）
+savetest OK：12四半期後も全65カ国が継続系列と一致（最大相対差 0.0E+000）
+rc=0
