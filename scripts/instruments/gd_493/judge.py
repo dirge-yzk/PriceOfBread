@@ -7,7 +7,9 @@ import csv, sys, statistics as st, collections, math
 NEW = sys.argv[1]
 OLD = sys.argv[2] if len(sys.argv) > 2 else 'D:/PoB_work/keep_491/m491_ins'
 NS = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-SEEDS = range(1, NS + 1)
+# (500) 追記 4：種の起点（新しい種 11〜20 の腕を読む）
+SB = int(sys.argv[4]) if len(sys.argv) > 4 else 1
+SEEDS = range(SB, SB + NS)
 HOR = 668
 NAT8 = ['清', 'ロシア', 'オスマン', 'フランス', 'イギリス', 'プロイセン', 'オーストリア', '日本']
 
@@ -123,6 +125,7 @@ def share(s, row, nat, q):
 def t3(row, seeds_use, label):
     pairs = []
     pre_viol = []
+    pre_join = []
     pre_max = 0.0
     for s in seeds_use:
         for nat in NAT8:
@@ -130,12 +133,15 @@ def t3(row, seeds_use, label):
             if q0 is None:
                 continue
             # 開く前
+            qd = chemi[s].get((row, nat), {})
             for q in range(0, q0):
                 v = share(s, row, nat, q)
                 if not isn(v):
                     pre_max = max(pre_max, v)
                     if v > 1e-3:
-                        pre_viol.append((s, nat, q, v))
+                        # (500) 追記 4：その四半期に recipeProducersCount が前の四半期より増えた（州が国に入った）組は除く＝別に数える
+                        joined = (q - 1) in qd and q in qd and int(qd[q]['recipeProducersCount']) > int(qd[q - 1]['recipeProducersCount'])
+                        (pre_join if joined else pre_viol).append((s, nat, q, v))
             if q0 + 24 > HOR or q0 == 0:
                 continue
             head = mean([share(s, row, nat, q) for q in range(q0, q0 + 5)])
@@ -144,7 +150,7 @@ def t3(row, seeds_use, label):
                 continue
             pairs.append((s, nat, q0, head, tail))
     up = sum(1 for p in pairs if p[4] > p[3])
-    P(f'  {label}：開いた組 {len(pairs)}  尾が頭より大きい {up}  割合 {fmt(up / len(pairs) if pairs else float("nan"), 3)}  開く前の最大 {fmt(pre_max)}  開く前 >1e-3 の件数 {len(pre_viol)} {pre_viol[:3]}')
+    P(f'  {label}：開いた組 {len(pairs)}  尾が頭より大きい {up}  割合 {fmt(up / len(pairs) if pairs else float("nan"), 3)}  開く前の最大 {fmt(pre_max)}  開く前 >1e-3 の件数（州の加入の四半期を除く） {len(pre_viol)} {pre_viol[:3]}  除いた加入の四半期 {len(pre_join)} {pre_join[:5]}')
     return pairs, pre_viol, up
 
 P('\n[T3] 尾の向き（判定＝ソルベー法の割合・開いた後 16〜24 四半期の平均 ＞ 開いた直後 0〜4 四半期の平均 の組が過半・開く前は全て ≦1e-3）')
@@ -392,5 +398,6 @@ for d_ in diffs:
 if not diffs:
     P('   差なし')
 
-with open('D:/PoB_work/gd_493/judge_out.txt', 'w', encoding='utf-8') as f:
+import os
+with open(os.environ.get('JUDGE_OUT', 'D:/PoB_work/gd_493/judge_out.txt'), 'w', encoding='utf-8') as f:
     f.write('\n'.join(out) + '\n')
