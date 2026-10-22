@@ -1,0 +1,8 @@
+# (spt500) eq の台帳 26〈RecipeEquipmentScans〉の単価の census（合流の担当の依頼・2026-10-23）
+# 木＝m500（01909807）＋緊張の表の恒等の手（spt）＋FactoryEquipment.Distribute／Retire の区間の Stopwatch（一時の木 D:/PoB_work/eqc・コミットしない）。全長 1 種 seed 1・668 四半期・他の測り（10 種のバッチ 2 本）と重なった。
+# 件数は台帳と同じ数え方（Distribute 3×州の生産者・Retire 2×州の生産者・台帳を持つ呼びだけ）。eligibleShare＝Distribute の州の生産者のうち設備を持つ生産者の割合。
+EQ seconds:1.636 items:322580591 calls:635791 eligibleShare:0.673 unitMicros:0.00507
+EQ seconds:1.129 items:322580591 calls:635791 eligibleShare:0.673 unitMicros:0.00350
+EQ seconds:1.950 items:322580591 calls:635791 eligibleShare:0.673 unitMicros:0.00604
+# 採った単価：0.02（上限の見積り）→0.00604（控えめな端）。推定は約 −4.5 秒（10 種の件数 3.24 億件×差）。
+# 恒等で軽くする案：本体は 1 試合 1.1〜2.0 秒＝軽くしても −1 秒の桁＝送らない。

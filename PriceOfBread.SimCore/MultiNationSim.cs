@@ -2082,7 +2082,9 @@ public static class CostLedger
     public const double AgeBandExtraUnitMicros = 0.24;
     /// <summary>★(495) レシピごとの設備の配りの単価（マイクロ秒/件＝配りが 1 回走るたびに州の生産者の数）＝**上限の見積り**（census は無い）。配りは州の生産者を 3 周（合計〔適格かどうかの判定＋発見の門〕・配り・薄め）、退場は 2 周するだけで、熱いループには足さない。★(495) 後半の実測：1 試合 約 3.2 億件×0.02＝6.47 秒（事前登録の割り当て 5.0 秒を超えた・census は無い）。
     /// 同じ形の走査の単価 建設：見た生産者 0.013・GDP の和 0.0155 より少し重い 0.02 を置く。件数の上限＝（建設の束が買われた州×月）×州の生産者の数。腕 B の .cost の実測で取り直す。</summary>
-    public const double RecipeEquipmentScanUnitMicros = 0.02;
+    /// ★2026-10-23 (spt500・合流の担当の依頼)：census＝m500 の木（＋緊張の表の恒等の手）で FactoryEquipment.Distribute・Retire の区間を Stopwatch で計った秒÷件数（台帳と同じ数え方）・全長 1 種（seed 1・668 四半期）×3 回
+    ///   ＝0.00507／0.00350／0.00604 µs（他の測りと重なった）の控えめな端 0.00604（件数 3.23 億・推定 約 6.5→約 1.9 秒）。件数のうち適格な生産者は 67%。記録 measurements/spt500_20261023_eqcensus.txt。
+    public const double RecipeEquipmentScanUnitMicros = 0.00604;
     /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。★(486) 旗 MinimumWageAiFromFloor が正のときは AI の判断の読み（本国の州の生産者と財の走査・国×四半期）の件数も同じ台帳に立つ（法が無くても）。</summary>
     public const double MinimumWageBasketScanUnitMicros = 0.02;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数
