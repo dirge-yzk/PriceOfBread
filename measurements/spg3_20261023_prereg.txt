@@ -1,0 +1,6 @@
+# (spg3) ① 国内価格だけの刻み PriceOnlyStepDays＝15 を m500 の上へ載せ直し・既定を倒す（2026-10-23・枝 spg3・基点 01909807＝m500・書いたモデル Claude Opus 5.5）
+# フォーク元の採否（2026-10-23）：「(a) ① PriceOnlyStepDays＝15：採ります。既定を倒します」・回す物＝計器つき10種・素の10種・5種・savetest・leakhunt・フルスイート・FullLength。
+- 止める線：破綻・発散・州の空洞化（ピークの1/10未満）・機構の試験の赤。高速化の線：exact か near が m500 のヌル腕（N1・N2）の幅の外へ 10pt 以上落ちたら止める・補給崩壊が m500 の 2 倍を超えたら止める。
+- 比べる側：m500（b10_20261023_m500_ins）と N1・N2（_n1_ins・_n2_ins・生は D:/PoB_work/keep_500）。記録の読み手 scripts/instruments/spg2/spg2_metrics.py（計器の国は 9 か国＝8 国＋アメリカ）。
+- 基線（10 種の和・spg2_metrics）：補給崩壊 m500 29・N1 71・N2 97。
+- WriterRatchetTests の件数の表 4 行を宣言（財の歩 −31%・日次の写像 +3.0%・着値の充填 +3.0%・覇権の判定 −14%）。
