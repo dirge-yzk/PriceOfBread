@@ -217,6 +217,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? EqS, EqR; public bool EqSHeader, EqRHeader;          // (495) レシピごとの設備の表 eq_s（国×四半期）・eqr_s（国×レシピ×四半期）
         public System.IO.StreamWriter? Sf; public bool SfHeader;                           // (471) 小さな独立の直し 4 件の表 sf_s（国×四半期）
         public System.IO.StreamWriter? Lab; public bool LabHeader;                         // (459) 労働の値段の表 labor_s（国×四半期）
+        public System.IO.StreamWriter? Wc, WcReg; public bool WcHeader, WcRegHeader;        // (514) 賃金の天井の表 wcap_s（国×くくり×四半期）・wcapreg_s（縛った州×くくり×四半期）
         public System.IO.StreamWriter? Pay; public bool PayHeader;                         // (486) 売上の払いの保存則の穴の表 pay_s（国×四半期・累計）
         public System.IO.StreamWriter? Ma; public bool MaHeader;                           // (480) 最低賃金法の AI の判断の表 ma_s（国×四半期）
         public System.IO.StreamWriter? House; public bool HouseHeader;                     // (418) 農家の手仕事の表（国×四半期）
@@ -1410,6 +1411,7 @@ public static partial class Instruments
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
     internal static void MonthClose(World w)
     {
+        WcMonth(w);   // (514) 賃金の天井の表の蓄え（読むだけ・助走の月は読まない）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
@@ -1674,6 +1676,7 @@ public static partial class Instruments
             EqFold(sk, seed, w, q, picked, yearEnd);        // (495) レシピごとの設備の表（旗 RecipeEquipment が正のときだけ行を出す・蓄えは毎四半期戻す）
             SfFold(sk, seed, w, q, picked, yearEnd);        // (471) 兵士の年金・安く売る・議席の重み・負の予算の表
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
+            WcFold(sk, seed, w, q, picked, yearEnd);        // (514) 賃金の天井の表（月末の役務の値段が帯のどこにいたか・縛った州）
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
             MaFold(sk, seed, w, q, picked, yearEnd);        // (480) 最低賃金法の AI の判断の表（失業・床が縛る広がり・今と新しい規則の目標）
             HouseFold(sk, seed, w, q, picked, yearEnd);     // (418) 農家の手仕事の表（行の産出の割合と農民の能力の取り分）
@@ -1743,6 +1746,7 @@ public static partial class Instruments
         sk.EqS?.Dispose(); sk.EqS = null; sk.EqR?.Dispose(); sk.EqR = null;   // (495)
         sk.Sf?.Dispose(); sk.Sf = null;   // (471)
         sk.Lab?.Dispose(); sk.Lab = null;   // (459)
+        sk.Wc?.Dispose(); sk.Wc = null; sk.WcReg?.Dispose(); sk.WcReg = null;   // (514)
         sk.Pay?.Dispose(); sk.Pay = null;   // (486)
         sk.Ma?.Dispose(); sk.Ma = null;   // (480)
         sk.House?.Dispose(); sk.House = null;   // (418)
