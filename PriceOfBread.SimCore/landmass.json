@@ -396,5 +396,6 @@
  {"name": "アジャクシオ", "kind": "state", "lat": 41.95, "lon": 8.75, "landmass": "corsica", "coastal": true},
  {"name": "ラス・パルマス", "kind": "state", "lat": 28.15, "lon": -15.75, "landmass": "gran-canaria", "coastal": true},
  {"name": "モルッカ諸島", "kind": "colony", "lat": -3.05, "lon": 128.15, "landmass": "seram", "coastal": true},
- {"name": "バハマ諸島", "kind": "colony", "lat": 24.95, "lon": -78.15, "landmass": "andros", "coastal": true}
+ {"name": "バハマ諸島", "kind": "colony", "lat": 24.95, "lon": -78.15, "landmass": "andros", "coastal": true},
+ {"name": "パラワン", "kind": "colony", "lat": 9.95, "lon": 118.35, "landmass": "palawan", "coastal": true}
 ]

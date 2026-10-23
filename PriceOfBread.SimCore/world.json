@@ -1735,6 +1735,13 @@
      "name": "サンボアンガ",
      "resources": [],
      "popK": 50
+    },
+    {
+     "name": "パラワン",
+     "resources": [
+      11
+     ],
+     "popK": 10
     }
    ],
    "initialSerfEmancipation": "Limited",
