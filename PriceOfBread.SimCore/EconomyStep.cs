@@ -34,7 +34,77 @@ public static class EconomyStep
         public bool[] IsStaple = [], IsService = [];
         public double[] GoodGate = [], DemandGate = [];   // ★財の解禁（段2A・2026-10-01）＝Discovery.GoodGates を月の Run の頭で1回（国の解禁＝電化・効率化材／世界の解禁の和＝需要）
         public Good[] ConsumeOrder = [];
+        public double[] PopNorm = [], FoodOvf = [], FoodDfc = [];   // ★(504) 食料の台帳を主食の和へ：POP ごとの配り直しの係数・過分・不足（旗①②が正の月だけ確保・ゼロ化）
+        public double[] StapleSubst = [], StapleSelf = [];          // ★(504) 主食の財ごと（添字＝財の番号）の相対価格の冪と自給の係数
+        public int[] StapleIds = []; public double[] StapleE = [];  // ★(504) 州の主食の財の番号と基礎の必要量（解禁の門の後）
     }
+    /// <summary>主食の交差弾力の冪＝(主食の幾何平均 ÷ 自分の値段比)^CrossElasticity（旧は消費の財のループの中の 2 行。★(504) 前計算と同じ関数を呼ぶために取り出した＝算術は 1 文字も変えない）。</summary>
+    private static double CrossSubstitution(double usePrice, double refPrice, double stapleMeanRatio, double crossElasticity)
+    {
+        double ownRatio = usePrice / Math.Max(refPrice, Eps);
+        return Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), crossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
+    }
+
+    /// <summary>主食の自給の収穫係数＝市場向けRGOと同じ三重積（州の収穫係数×緯度帯天候×その主食の作物の健全度×土地係数）。旧は決済の段の中の 3 行。
+    /// ★(504) 需要の段（旗 HarvestShortfallToMarket）と前計算が同じ関数を呼ぶために取り出した＝積の順は 1 文字も変えない。</summary>
+    private static double StapleHarvestFactor(Region region, int gi, double regionLandFactor)
+    {
+        double crop = region.CropHealth is { } ch && gi < ch.Length ? ch[gi] : 1.0;   // 主食id(=gi)の作物健全度（病虫害）
+        return region.HarvestFactor * region.WeatherBandFactor * crop * regionLandFactor;   // 市場向けと同じ収穫係数
+    }
+
+    /// <summary>★(504) ①の締めで POP の FoodMet に足す量＝過分 <paramref name="ovf"/>（自給＋買えた量が必要量を超えた分の和）と不足 <paramref name="dfc"/>（届かなかった分の和）の小さい方
+    /// （＝min(Σ(自給＋買えた量), Σ必要量) と旧の財ごとの頭打ちの和との差）。不足が必要量 <paramref name="foodNeed"/> の 1e-9 以下（足し算の丸めの 1 ulp）か、過分が 0 以下（否定形でなく正のときだけ＝NaN は足さない）なら 0
+    /// ＝満たされた POP は旧と 1 ビットも違わない。</summary>
+    internal static double StapleLedgerCarry(double ovf, double dfc, double foodNeed)
+        => ovf > 0 && dfc > Eps * foodNeed ? (ovf < dfc ? ovf : dfc) : 0.0;
+
+    /// <summary>★(504) 食料の台帳を主食の和へ（事前登録 measurements/fd504_20261023_prereg.txt の[2]）：消費の財のループの前に 1 回。旗①②③のどれかが正の月だけ呼ぶ（全て 0 の月は呼ばない＝厳密恒等）。
+    /// 主食の財ごとの相対価格の冪 subst と自給の係数 self（旗③が正なら 収穫係数〔下は 0〕・0 なら 1）を作業配列に置き、旗②が正なら POP ごとの配り直しの係数 norm＝S0／S1 を求める
+    /// （S0＝Σ_g e_g×max(0, 1−自給率×self_g)＝市場に出す必要量の和・S1＝同じ和に subst_g を掛けた和）。S1 が正でない・有限でないときは norm＝1（否定形）。
+    /// POP ごとの過分・不足の作業配列（旗①）はここでゼロにする。計器（fdd≠null）には州の収穫係数の平均と旧の挟みが縛っていた重みの割合を置く。</summary>
+    private static void StapleFoodPrepare(Region region, Coefficients coef, Scratch scratch, double[] demandGate, double stapleMeanRatio, double regionLandFactor, int ng,
+        bool ledger, bool rebalance, bool shortfall, Instruments.FdDiag? fdd)
+    {
+        int np = region.Pops.Count;
+        if (scratch.PopNorm.Length < np) { scratch.PopNorm = new double[np]; scratch.FoodOvf = new double[np]; scratch.FoodDfc = new double[np]; }
+        else { System.Array.Clear(scratch.FoodOvf, 0, np); System.Array.Clear(scratch.FoodDfc, 0, np); }
+        if (scratch.StapleSubst.Length < ng) { scratch.StapleSubst = new double[ng]; scratch.StapleSelf = new double[ng]; }
+        int n = 0;
+        foreach (var g in region.Goods) if (g.Tier == GoodTier.Staple && g.Id < ng) n++;
+        if (scratch.StapleIds.Length < n) { scratch.StapleIds = new int[n]; scratch.StapleE = new double[n]; }
+        double[] subst = scratch.StapleSubst, self = scratch.StapleSelf, es = scratch.StapleE; int[] ids = scratch.StapleIds;
+        int k = 0;
+        double eSum = 0, hSum = 0, hwSum = 0, bindSum = 0;
+        foreach (var g in region.Goods)
+        {
+            if (g.Tier != GoodTier.Staple || g.Id >= ng) continue;
+            int id = g.Id;
+            double f = StapleHarvestFactor(region, id, regionLandFactor);
+            self[id] = shortfall ? (double.IsFinite(f) ? Math.Max(0.0, f) : 1.0) : 1.0;   // 追記 2：豊作も凶作も対称（自給の産出 sub＝必要量×自給率×収穫係数 と同じ向き）。非有限は 1（旧）へ倒れる
+            subst[id] = CrossSubstitution(Math.Max(region.Markets[id].Price, Eps), g.RefPrice, stapleMeanRatio, coef.CrossElasticity);
+            double e = (g.BaseNeed + Habit.StockOf(region, Habit.Of(coef, id))) * demandGate[id];   // 消費の財のループの effBaseNeed と同じ式（主食に医薬・住居・動物性の補正は無い）
+            ids[k] = id; es[k] = e; k++;
+            if (fdd is not null)
+            {
+                eSum += e; hSum += e * f; hwSum += e * StapleHarvestFactor(region, id, 1.0);
+                if (subst[id] < coef.PriceFactorMin || subst[id] > coef.PriceFactorMax) bindSum += e;
+            }
+        }
+        if (rebalance)
+        {
+            var norm = scratch.PopNorm;
+            for (int i = 0; i < np; i++)
+            {
+                double s = region.Pops[i].Subsistence, s0 = 0, s1 = 0;
+                for (int j = 0; j < k; j++) { int id = ids[j]; double m = es[j] * Math.Max(0.0, 1.0 - s * self[id]); s0 += m; s1 += m * subst[id]; }
+                double r = s0 / s1;
+                norm[i] = s1 > 0 && double.IsFinite(r) ? r : 1.0;
+            }
+        }
+        if (fdd is not null) { fdd.HarvestMean = eSum > 0 ? hSum / eSum : double.NaN; fdd.WeatherHarvestMean = eSum > 0 ? hwSum / eSum : double.NaN; fdd.LandFactor = regionLandFactor; fdd.ClampBindShare = eSum > 0 ? bindSum / eSum : double.NaN; }
+    }
+
     [System.ThreadStatic] private static Scratch? _scratch;
     private static Scratch RentScratch(int ng, int np, int npops)
     {
@@ -1486,6 +1556,19 @@ public static class EconomyStep
         foreach (var p in region.Pops) if (p.ClassId >= popClassLen) popClassLen = p.ClassId + 1;
         // ★特権 段4（同業組合・2026-09-07）：職人の自営レシピの財ごとの供給シェア。唯一定義＝GuildShares（ProductionDiag も同じものを呼ぶ）
         double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
+        // ★(504) 食料の台帳を主食の和へ（事前登録 measurements/fd504_20261023_prereg.txt）。旗①②③が全て 0 の月は下の塊の中を 1 行も走らない（厳密恒等）。
+        bool fdLedger = coef.StapleLedgerSum > 0;
+        bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.StapleElasticityZero > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
+        bool fdShortfall = coef.HarvestShortfallToMarket > 0;
+        bool fdAny = fdLedger || fdRebalance || fdShortfall;
+        Instruments.FdDiag? fdd = fdAny && Instruments.On ? Instruments.FdBegin(region) : null;   // (504) 計器（読むだけ）
+        double[] fdSelf = [], fdNorm = [], fdOvf = [], fdDfc = [];
+        if (fdAny)
+        {
+            StapleFoodPrepare(region, coef, scratch, demandGate, stapleMeanRatio, regionLandFactor, ng, fdLedger, fdRebalance, fdShortfall, fdd);
+            fdSelf = scratch.StapleSelf; fdNorm = scratch.PopNorm; fdOvf = scratch.FoodOvf; fdDfc = scratch.FoodDfc;
+            if (costL is not null && (fdLedger || fdRebalance)) costL[CostLedger.StapleLedgerPops] += (long)region.Pops.Count * ((fdRebalance ? 1 : 0) + (fdLedger ? 1 : 0));   // 計算量の台帳：前計算 1 段＋決済後の締め 1 段
+        }
         int consumedGoods = 0;   // POP のループを回した財（必要の無い財を除く）＝計算量の台帳の「消費：POP×財」（財のループの後にまとめて足す）
         for (int coi = 0; coi < ngoods; coi++)
         {
@@ -1535,7 +1618,7 @@ public static class EconomyStep
                 && !habit.Active
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
             // ★必要の無い財は楔・価格弾力の冪を求めない（計算量・恒等）：下で使うのは POP のループ（needless なら回さない）と後段の POP のループ（同）だけ＝needless の財では値が読まれない。
-            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0;
+            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0, fdOldFactor = 0;
             if (!needless)
             {
                 // 買い手価格の楔5項＝唯一定義 BuyerWedge（ProductionDiag.ExplainPrice／PolicyPreferences.EffectiveStateMonopoly も同じものを呼ぶ・2026-09-11 M5）
@@ -1552,9 +1635,9 @@ public static class EconomyStep
                 double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
                 if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
                 {
-                    double ownRatio = usePrice / Math.Max(good.RefPrice, Eps);
-                    double subst = Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), coef.CrossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
+                    double subst = CrossSubstitution(usePrice, good.RefPrice, stapleMeanRatio, coef.CrossElasticity);
                     priceFactor = Math.Clamp(selfFactor * subst, coef.PriceFactorMin, elasMax);
+                    if (fdRebalance && staple) { fdOldFactor = priceFactor; priceFactor = subst; }   // ★(504) ②：主食の挟み（PriceFactorMin／Max）を外し、POP ごとの norm で欲しい量の和を市場に出す必要量の和へ合わせる（下の desired）
                 }
                 else
                     priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
@@ -1584,11 +1667,13 @@ public static class EconomyStep
                 //   経済の行動であって政治の量ではない＝食料の二重計上にならない（思想⑨）。
                 if (habit.Active)
                     p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(habit.MiseryScale * (1.0 - lastSupply[pIdx])) + Habit.StockOf(region, habit)) * p.Size;
-                double marketNeed = staple ? p.GoodNeed * (1.0 - p.Subsistence) : p.GoodNeed;   // 自給分は市場に出さない（農民）
+                double marketNeed = staple ? (fdShortfall ? p.GoodNeed * Math.Max(0.0, 1.0 - p.Subsistence * fdSelf[gi]) : p.GoodNeed * (1.0 - p.Subsistence)) : p.GoodNeed;   // 自給分は市場に出さない（農民）。★(504) ③（対称の形・追記 2）：市場に出す量＝必要量×max(0, 1−自給率×収穫係数 f)＝凶作（f＜1）は自給の減りを市場で買い、豊作（f＞1）は市場の買いが減る。f は天候・作物の因子と土地係数（慢性の混み）の積＝混んだ州でも市場の需要が上がる〔(508) 反証役 fd〔bv〕低#6 で注を直した〕
                 double demand = 0;
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
+                    if (fdRebalance && staple) desired *= fdNorm[pIdx];   // ★(504) ②：Σ欲しい量＝Σ市場に出す必要量（予算の前）
+                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.Subsistence) * (fdRebalance ? fdOldFactor : priceFactor); }   // (504) 計器（読むだけ）
                     if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceIncomeFactorExponent) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
                     // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
                     // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
@@ -1832,8 +1917,9 @@ public static class EconomyStep
                 int insI = -1;   // (345) 計器（読むだけ）：POP の添字
                 if (insEnt is not null && !needless) insEnt.PayBegin();
                 if (!needless)
-                foreach (var p in region.Pops)
+                for (int fdI = 0; fdI < region.Pops.Count; fdI++)   // ★(504) foreach をそろえた添字つきの for（POP の添字が要る＝旗①の過分・不足の作業配列）
                 {
+                    var p = region.Pops[fdI];
                     double qty = p.GoodDemand * ration[gi];
                     if (insEnt is not null) insI++;
                     if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
@@ -1888,18 +1974,18 @@ public static class EconomyStep
                         // 高自給の貧農の自家消費に届かず、ジャガイモ胴枯病型の飢饉の核心層が病害を免れていた。（旗 SubsistenceHarvestFullExposure は 2026-10-18 に焼き込み）
                         // 市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
                         double subFactor = region.HarvestFactor;
-                        if (staple)
-                        {
-                            double crop = region.CropHealth is { } ch && gi < ch.Length ? ch[gi] : 1.0;   // 主食id(=gi)の作物健全度（病虫害）
-                            double fullFactor = region.HarvestFactor * region.WeatherBandFactor * crop * regionLandFactor;   // 市場向けと同じ収穫係数
-                            subFactor = fullFactor;
-                        }
+                        if (staple) subFactor = StapleHarvestFactor(region, gi, regionLandFactor);   // 市場向けと同じ収穫係数（三重積）
                         double sub = staple ? p.GoodNeed * p.Subsistence * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
                         double met = sub + Math.Min(qty, p.GoodNeed - sub);
                         p.NeedMet += met * needW;
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
                         //   met ≤ GoodNeed（上の met の定義）かつ嗜好は分子=分母＝分子 ≤ 分母は保たれる＝下の Clamp は非拘束のまま（思想⑧）。
                         p.NeedTotal += (good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW;
+                        if (staple && fdAny)   // ★(504) ①：主食の財ごとの過分（自給＋買えた量が必要量を超えた分）と不足を POP ごとに溜める。締めは財のループの後
+                        {
+                            if (fdLedger) { double raw = sub + qty; if (raw > p.GoodNeed) fdOvf[fdI] += raw - p.GoodNeed; else fdDfc[fdI] += p.GoodNeed - raw; }
+                            if (fdd is not null) { fdd.Demand += p.GoodDemand; fdd.Sub += sub; }   // (504) 計器（読むだけ）
+                        }
                         if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; }   // 主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
                         else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。自給subは主食限定のまま（生産アンカーの較正に触らない・doc3-3の裁定）
                     }
@@ -1915,6 +2001,20 @@ public static class EconomyStep
             // ※価格形成（在庫ギャップ＋需給フロー）は日次へ移譲（MarketFlow.StepDay）。月次決算はここまで＝
             //   クリアリングと所得決済（金の動き）だけを担い、価格は鼓動（日次）が需給を読んで少しずつ動かす（三層時計）。
             //   ★2026-09-26 A3：鼓動の刻みは旬（PriceFlowStepDays 日ごとに h 日ぶんを1歩）＝この決算が読む価格は今までと同じ「月の30日ぶん寄せた価格」。
+        }
+        if (fdLedger || fdd is not null)   // ★(504) ①の締め：POP ごとに 過分と不足の小さい方を FoodMet に足す（＝min(Σ(自給+買えた量), Σ必要量)・不足か過分が無い POP は足さない＝旧と 1 ビットも違わない）
+        {
+            for (int fi = 0; fi < region.Pops.Count; fi++)
+            {
+                var p = region.Pops[fi];
+                double oldMet = p.FoodMet;
+                if (fdLedger)
+                {
+                    double carry = StapleLedgerCarry(fdOvf[fi], fdDfc[fi], p.FoodNeed);
+                    if (carry > 0) p.FoodMet += carry;
+                }
+                if (fdd is not null) Instruments.FdPop(fdd, p, oldMet);   // (504) 計器（読むだけ）
+            }
         }
         if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)consumedGoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見た POP×財（必要の無い財を除く）
         if (insOn) Instruments.ConsumeMonth(world!, insRows, insBound, insDesired, insDemand);   // (271) 計器（読むだけ）

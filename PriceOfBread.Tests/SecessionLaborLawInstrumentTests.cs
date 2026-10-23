@@ -268,7 +268,7 @@ public class SecessionLaborLawInstrumentTests
         Assert.Equal(CostLedger.Count, CostLedger.Names.Length);
         Assert.Equal(CostLedger.Count, CostLedger.UnitMicros.Length);
         Assert.True(CostLedger.AiBureaucracyScans < CostLedger.Count);   // この行は表の中にある（★(417) 行が後ろに足されても赤にならない形へ＝複数の線が行を足すので合流のたびに直さない）
-        Assert.Equal(CostLedger.RecipeEquipmentScans + 1, CostLedger.Count);   // ★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝25 は年齢の層の歩・行を足す線は ここを直す／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
+        Assert.Equal(CostLedger.StapleLedgerPops + 1, CostLedger.Count);   // ★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝25 は年齢の層の歩・行を足す線は ここを直す／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
         Assert.Equal(CostLedger.AiBureaucracyScanUnitMicros, CostLedger.UnitMicros[CostLedger.AiBureaucracyScans]);
         Assert.True(CostLedger.UnitMicros.All(u => u > 0 && double.IsFinite(u)), "単価が 0 以下か有限でない行がある");
         var (dir, sim) = Run(8);
