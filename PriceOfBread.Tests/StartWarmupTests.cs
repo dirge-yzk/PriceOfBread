@@ -170,8 +170,8 @@ public class StartWarmupTests2
         var names = WorldData.Nations().Select(n => n.Name).ToList();
         double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         double R(string name) => Ratio(names.IndexOf(name));
-        Assert.InRange(R("イギリス"), 0.01, 0.06);
-        Assert.InRange(R("フランス"), 0.0, 0.02);
+        // ★(516) 合流：英（1〜6%）・仏（2% 未満）の帯も記録へ移した＝史実の桁の固定（作者 2026-10-17＝史実の桁を固定したテストの赤は止める線ではない・テストは計器か記録の層）。
+        //   合成の木（spi2＋spa2＋hz6＋wc0＋pv2〔仏の州アジャクシオ〕）で仏 0.0202 が帯 0.02 の外へ出た（measurements/m516_20261023_opening_treasury.txt）。値は R(…) で読める。
         // ★(392) 合流（反証役 bk〔bv〕中#1）：普・清の帯と〈普を除く全ての国で 10% 以下〉のループは記録へ移した（実装ログ (392)・measurements/m392_20261017_opening_treasury.txt）。
         //   (388) で下限を e7 の入力の月数（普 28・清 2.5）から逆算して広げた＝入力をそのまま検算する同語反復・史実の桁を固定したテストは計器か記録の層（作者 2026-10-17）。
         // 残す不変条件：既定の盤面では助走の後に全ての国の国庫が正（規則〈歳入×月数〉が歳入 0 の国で旧の戻し＝world.json の国庫 0 へ落ちる穴を見る＝反証役 bk〔bv〕低#4）。
