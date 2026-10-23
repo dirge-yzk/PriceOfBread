@@ -167,8 +167,8 @@ public partial class MainWindow : Window
             var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
             foreach (var c in page.GetVisualDescendants().OfType<Control>())
             {
-                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳んだ欄の中身は測り直されない＝前に配った大きさが残る（見えていない物は数えない）
-                if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).OfType<ScrollViewer>().Any()) continue;   // 欄の中の流れの中身は対象外
+                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳まれた欄の中身（親が隠れている）は対象外・畳んだ欄の中身は測り直されない＝前に配った大きさが残る
+                if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).Any(a => a is ScrollViewer or MapPane)) continue;   // 欄の中の流れの中身と、地図の中の絵（箱で切られる）は対象外
                 var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), paneView);
                 if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
                 else if (br is { } q2 && q2.X > ww + 1 && wide.Count < 2) wide.Add($"{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q2.X - ww:F0})");
@@ -357,6 +357,7 @@ public partial class MainWindow : Window
                 }
                 k++;
             }
+            await Page3Shots(gameView, gvm, dir);   // (501) 段3：政治と法・外交と戦争の撮影と確かめ（Views/MainWindow.Page3Shots.cs）
             // 配置の見本：既定・左右に2つ（既定）・上下に2つ・左に1つ右に2つ・4つ・左右の列を畳んだ図
             lay.Reset();
             await Task.Delay(1200);

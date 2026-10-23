@@ -18,8 +18,9 @@ public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int 
     public static StageCell None { get; } = new([], 0, 0, 0, _ => false, _ => null, _ => { });
 }
 
-/// <summary>行の動詞 1 つの中身（侵略・統一戦争・調停・補助金・専売・建設）。押した時に呼ぶのは本体の口だけ。</summary>
-public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null);
+/// <summary>行の動詞 1 つの中身（侵略・統一戦争・調停・補助金・専売・建設）。押した時に呼ぶのは本体の口だけ。
+/// <paramref name="Tip"/>＝押し釦のホバーの文（押せない理由など。null か空なら出さない）。</summary>
+public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null);
 
 /// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。</summary>
 public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts);
@@ -53,8 +54,8 @@ public sealed record TextCell(string Text, string? Tip);
 
 /// <summary>行 1 本の実行時の値。<see cref="Cells"/> は列の並びのまま：数の列＝<see cref="NumberCell"/>・文字の列＝string・
 /// 段の列＝<see cref="StageCell"/>・動詞の列＝<see cref="VerbCell"/>・半円の列＝<see cref="ShareCell"/>。</summary>
-/// <summary><paramref name="GroupTip"/>＝群の見出しにカーソルを合わせた時の文（同じ群の行は同じ文）。</summary>
-public sealed record RowData(string Key, string Name, string? Group, IReadOnlyList<object?> Cells, string? GroupTip = null);
+/// <summary><paramref name="Tip"/>＝行のホバーの文（null か空なら出さない）。<paramref name="Emphasis"/>＝自国の行など目立たせる行。<paramref name="GroupTip"/>＝群の見出しにカーソルを合わせた時の文（同じ群の行は同じ文）。</summary>
+public sealed record RowData(string Key, string Name, string? Group, IReadOnlyList<object?> Cells, string? Tip = null, bool Emphasis = false, string? GroupTip = null);
 
 /// <summary>表を読んだ結果（共通の表・Runner の報告・画面と仕様を知らない AI のテストプレイが同じ物を読む）。</summary>
 public sealed record TableData(string Key, string Name, IReadOnlyList<ColumnInfo> Columns, IReadOnlyList<RowData> Rows);

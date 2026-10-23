@@ -32,19 +32,43 @@ public partial class GameView : UserControl
         Unloaded += OnViewUnloaded;
     }
 
+    private Pages.DiplomacyWarPage? _diploPage;   // 地図を欄として畳み込めるページ（外交と戦争）。作られたら覚える
+    private ViewModels.GameViewModel? _layoutVm;   // 配置の変更を購読したVM（解放用）
+
     /// <summary>枠に置くものの部品（種類ごとに 1 つ・作り直さない）。ページは Views/Pages・地図は MapView。</summary>
     private Control PartOf(Slot slot)
     {
-        if (slot == Slot.Map) return MapView;
-        if (!_pages.TryGetValue(slot, out var c)) _pages[slot] = c = Pages.PageFactory.Create(slot);
+        if (slot == Slot.Map) { _diploPage?.HostMap(null); return MapView; }   // 地図が枠に単独で載る＝外交と戦争の欄から外す（同じ部品は同時に 1 か所にしか置けない）
+        if (!_pages.TryGetValue(slot, out var c))
+        {
+            _pages[slot] = c = Pages.PageFactory.Create(slot);
+            if (c is Pages.DiplomacyWarPage dp) _diploPage = dp;
+        }
         return c;
     }
 
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (DataContext is ViewModels.GameViewModel vm) Splits.Attach(vm.Layout, PartOf);
+        if (_layoutVm is not null) { _layoutVm.Layout.Changed -= SyncMapHost; _layoutVm = null; }
+        if (DataContext is ViewModels.GameViewModel vm)
+        {
+            Splits.Attach(vm.Layout, PartOf);
+            _layoutVm = vm; vm.Layout.Changed += SyncMapHost;   // 外枠（SplitHost）の購読より後に走る＝枠の付け替えが済んでから、地図の置き場を決める
+            SyncMapHost();
+        }
         else Splits.Detach();
+    }
+
+    /// <summary>地図の置き場を決める。地図が単独の枠にあればそこ・無ければ外交と戦争のページの欄（ページが作られていれば。見えていなくても欄が持つ）。
+    /// 地図の部品は盤面に 1 つだけなので、枠から外れたとき（欄に戻るとき）にだけ付け替える。</summary>
+    private void SyncMapHost()
+    {
+        if (_diploPage is null || _layoutVm is null) return;
+        if (_layoutVm.Layout.IsShown(Slot.Map)) { _diploPage.HostMap(null); return; }
+        if (_diploPage.HostsMap || MapView.Parent is not null) return;
+        MapView.DataContext = _layoutVm;   // 枠から外れたとき DataContext を空に戻してあるので、欄の親から受け継げるよう明示する
+        _diploPage.HostMap(MapView);
     }
 
     /// <summary>スペースなどを押したあと、キーの焦点を戻す先（地図が枠にあれば地図の箱・無ければこの画面）。</summary>

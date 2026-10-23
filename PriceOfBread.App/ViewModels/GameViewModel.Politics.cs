@@ -135,10 +135,10 @@ public partial class GameViewModel
     public string CommandLawName { get; private set; } = "";      // 統帥法（王権/分割/議会統制）
     public bool ArmyHoldsCommand { get; private set; }            // ★軍が指揮権を独占（統帥と予算が軍部へ）
     // ★半円グラフ（作者指示2026-09-07「円グラフより半円グラフの方が可視性が高い＝政治・支配度は半円で」・旧2026-08-22 円グラフ）：4枚の扇形の Path データ（SVG 記法→Conv.PathData）。
-    public string PieCrown { get; private set; } = "";
-    public string PieParliament { get; private set; } = "";
-    public string PieArmy { get; private set; } = "";
-    public string PieRevolution { get; private set; } = "";
+    // ★(501) 段3：扇形は Path 文字列でなく共通の半円（Controls/HalfPie）の割合と色の一覧で持つ。色は王権＝金・議会＝鋼青・軍部＝薄墨・革命勢力＝赤褐色（App.axaml の同名のトークンと同じ値）。
+    private static readonly IBrush SliceCrown = new SolidColorBrush(Color.Parse("#8A6A2A")), SliceParliament = new SolidColorBrush(Color.Parse("#3A5A8A")),
+                                   SliceArmy = new SolidColorBrush(Color.Parse("#7A6A55")), SliceRevolution = new SolidColorBrush(Color.Parse("#A0432D"));
+    public IReadOnlyList<HalfPieSlice> PowerSlices { get; private set; } = [];
 
     [ObservableProperty] private string _parliamentControlTip = "";   // 議会統制力の床（この線を越えるとラベルが立憲/共和へ動く）
     // ★政治資本の在庫（作者裁定N2・2026-09-21）：現在 a／最大 b。ホバーは b と実行度の材料のデータ行だけ（説明文なし）。
@@ -146,34 +146,24 @@ public partial class GameViewModel
     [ObservableProperty] private string _politicalCapitalTip = "";
     // ★2026-08-24作者指示：正統性・予算権・統帥権を**小さな半円グラフ**で（大きな半円＝権力の取り分と同じ色の文法・同じ HalfSlice）。
     //   3つとも同じ (王権, 議会, 軍部) の3値＝軍が指揮権を独占している間は軍部100%の1色になる。値は半円の下の1行と ToolTip。
-    [ObservableProperty] private string _legitPieCrown = "";
-    [ObservableProperty] private string _legitPieParliament = "";
-    [ObservableProperty] private string _legitPieArmy = "";
-    [ObservableProperty] private string _budgetPieCrown = "";
-    [ObservableProperty] private string _budgetPieParliament = "";
-    [ObservableProperty] private string _budgetPieArmy = "";
-    [ObservableProperty] private string _commandPieCrown = "";
-    [ObservableProperty] private string _commandPieParliament = "";
-    [ObservableProperty] private string _commandPieArmy = "";
+    [ObservableProperty] private IReadOnlyList<HalfPieSlice> _legitSlices = [];
+    [ObservableProperty] private IReadOnlyList<HalfPieSlice> _budgetSlices = [];
+    [ObservableProperty] private IReadOnlyList<HalfPieSlice> _commandSlices = [];
     [ObservableProperty] private string _legitTopText = "";     // 半円の下＝優勢な側とその割合（内訳はホバー）
     [ObservableProperty] private string _budgetTopText = "";
     [ObservableProperty] private string _commandTopText = "";
     [ObservableProperty] private string _legitTip = "";
     [ObservableProperty] private string _budgetTip = "";
     [ObservableProperty] private string _commandTip = "";
-    // 小半円の寸法＝底辺の中点(30,30)・半径29（箱 幅60×高さ31）。大半円は底辺の中点(70,70)・半径68（箱 幅140×高さ72）＝器と絵を揃える（2026-09-07 半円化）
-    private const double SmallPieC = 30, SmallPieR = 29;
-    /// <summary>王権/議会/軍部の3値から小円の扇形3枚と「優勢な側 n%」の1行を作る（合計が0なら空＝円を描かない）。</summary>
-    private static (string c, string p, string a, string top) SmallPie(double crown, double parl, double army)
+    /// <summary>王権/議会/軍部の3値から小半円の扇形3枚と「優勢な側 n%」の1行を作る（合計が0なら空＝描かない）。</summary>
+    private static (IReadOnlyList<HalfPieSlice> slices, string top) SmallPie(double crown, double parl, double army)
     {
         double sum = crown + parl + army;
-        if (!(sum > 1e-9)) return ("", "", "", "—");
+        if (!(sum > 1e-9)) return ([], "—");
         double fc = crown / sum, fp = parl / sum;
         string top = army >= crown && army >= parl ? $"軍部 {army / sum:P0}"
                    : crown >= parl ? $"王権 {fc:P0}" : $"議会 {fp:P0}";
-        return (HalfPie.Slice(SmallPieC, SmallPieC, SmallPieR, 0, fc),
-                HalfPie.Slice(SmallPieC, SmallPieC, SmallPieR, fc, fc + fp),
-                HalfPie.Slice(SmallPieC, SmallPieC, SmallPieR, fc + fp, 1.0), top);
+        return ([new(fc, SliceCrown), new(fp, SliceParliament), new(army / sum, SliceArmy)], top);
     }
     [ObservableProperty] private string _pcDeltaText = "—";           // 今期の変化＝観測値（前四半期との差）
     [ObservableProperty] private string _pcDeltaTip = "";
@@ -245,9 +235,9 @@ public partial class GameViewModel
             var lp = SmallPie(l2c, l2p, 0);
             var bp = SmallPie(bC, bP, bA);
             var mp = SmallPie(mC, mP, mA);
-            LegitPieCrown = lp.c; LegitPieParliament = lp.p; LegitPieArmy = lp.a; LegitTopText = lp.top;
-            BudgetPieCrown = bp.c; BudgetPieParliament = bp.p; BudgetPieArmy = bp.a; BudgetTopText = bp.top;
-            CommandPieCrown = mp.c; CommandPieParliament = mp.p; CommandPieArmy = mp.a; CommandTopText = mp.top;
+            LegitSlices = lp.slices; LegitTopText = lp.top;
+            BudgetSlices = bp.slices; BudgetTopText = bp.top;
+            CommandSlices = mp.slices; CommandTopText = mp.top;
             // ★2026-09-23：正統性の**説明API（ExplainLedger）の内訳**をこの半円のホバーへ足す（行は増やさない＝既存のセルのホバー）。
             //   理由＝ヘッダーの「正統性」Stat（GameViewModel.Refresh.cs の StatGExplain）が畳まれると ExplainLedger の読み手が
             //   UI から消えて死蔵になる。書式はそのヘッダーと**同じ F3**＝同じ量が2箇所で違う桁に見えない。
@@ -269,13 +259,8 @@ public partial class GameViewModel
             LegitTip = legitTip;
             BudgetTip = $"{BudgetLawName}　{BudgetPowerText}";
             CommandTip = $"{CommandLawName}　{CommandPowerText}";
-            double c1 = ShareCrown, c2 = c1 + ShareParliament, c3 = c2 + ShareArmy;
-            PieCrown = HalfPie.Slice(70, 70, 68, 0, c1);
-            PieParliament = HalfPie.Slice(70, 70, 68, c1, c2);
-            PieArmy = HalfPie.Slice(70, 70, 68, c2, c3);
-            PieRevolution = HalfPie.Slice(70, 70, 68, c3, 1.0);
-            OnPropertyChanged(nameof(PieCrown)); OnPropertyChanged(nameof(PieParliament));
-            OnPropertyChanged(nameof(PieArmy)); OnPropertyChanged(nameof(PieRevolution));
+            PowerSlices = [new(ShareCrown, SliceCrown), new(ShareParliament, SliceParliament), new(ShareArmy, SliceArmy), new(ShareRevolution, SliceRevolution)];
+            OnPropertyChanged(nameof(PowerSlices));
             OnPropertyChanged(nameof(ShareCrown)); OnPropertyChanged(nameof(ShareParliament));
             OnPropertyChanged(nameof(ShareArmy)); OnPropertyChanged(nameof(ShareRevolution));
             OnPropertyChanged(nameof(ShareTip));
@@ -366,7 +351,7 @@ public partial class GameViewModel
     private string GoverningName() => _player.GoverningPartyName.Length > 0 ? _player.GoverningPartyName : PartyName(_player.GoverningParty);
 
 
-    // 反乱勢力の戦力比の色：通常＝反乱規模列と同じ茶／100%超＝蜂起圏＝警告赤（TensionHighと同色）。
+    // 反乱勢力の戦力比の色：通常＝反乱規模列と同じ茶／100%超＝蜂起圏＝警告赤。
     // internal＝ヘッダーの「反体制派の戦力比」（GameViewModel.Header.cs）も同じ2色を読む＝同一の物差しは同一の配色。
     internal static readonly IBrush FactionStrengthCalm = new SolidColorBrush(Color.Parse("#6B5230"));
     internal static readonly IBrush FactionStrengthDanger = new SolidColorBrush(Color.Parse("#A0432D"));
@@ -712,7 +697,7 @@ public partial class GameViewModel
         double fillSum = 0; int fillN = 0;
         foreach (var row in rows) if (row.IsRow) { fillSum += row.FillV; fillN++; }
         double fillAvg = fillN > 0 ? fillSum / fillN : 1.0;
-        ArmyIdealHeader = fillN > 0 ? $"軍事力:{milPos}位(充足{fillAvg:P0})" : $"軍事力:{milPos}位";
+        ArmyIdealHeader = fillN > 0 ? $"軍事力:{milPos}位　充足{fillAvg:P0}" : $"軍事力:{milPos}位";   // ★(501) 段3：かっこの補足を外した（見出しに括弧を書かない）
         ArmyIdealTip = $"順位＝戦力ゲージ（質込み）が自国より大きい国の数＋1\n充足＝下の{fillN}行の平均　即応度 {_player.MilitaryReadiness:P0}";
     }
 

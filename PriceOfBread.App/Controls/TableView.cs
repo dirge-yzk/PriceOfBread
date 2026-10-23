@@ -34,8 +34,8 @@ public sealed class TableView : UserControl
     /// <summary>選んでいる行の鍵（行の背景で示す）。行を選ぶ表（生産ページの財の表）が使う。null なら選ばない。</summary>
     public string? SelectedKey { get => GetValue(SelectedKeyProperty); set => SetValue(SelectedKeyProperty, value); }
 
-    /// <summary>行の余白を押した（動詞の押し釦は除く）。引数は行の鍵。選ぶ表だけが受ける。</summary>
-    public event Action<string>? RowPressed;
+    /// <summary>行の余白（押し釦の外）を押した。引数は行の鍵（国の一覧の行を押すと地図がその国へ動く、など）。</summary>
+    public event Action<string>? RowActivated;
 
     /// <summary>確かめの窓を出す口。確かめの文（<see cref="VerbCell.ConfirmText"/>）を持つ動詞は、押したとき直接は呼ばずにこの口へ渡す（設計 §6-3「押す前に確かめの窓を出す物は出す」）。
     /// 表ごとの口が無ければ <see cref="DefaultConfirm"/>。どちらも無ければ何もしない（確かめ無しの発動を許さない側へ倒す）。</summary>
@@ -102,8 +102,7 @@ public sealed class TableView : UserControl
     /// <summary>選んでいる行の背景を付け直す（行は作り直さない）。</summary>
     private void ApplySelection()
     {
-        var sel = Brush("SandLightBrush", Brushes.Tan);
-        foreach (var kv in _rows) kv.Value.Root.Background = SelectedKey is not null && kv.Key == SelectedKey ? sel : Brushes.Transparent;
+        foreach (var kv in _rows) kv.Value.SetSelected(SelectedKey is not null && kv.Key == SelectedKey);
     }
 
     public TableView()
@@ -178,13 +177,7 @@ public sealed class TableView : UserControl
                 wanted.Add(gh);
             }
             lastGroup = row.Group;
-            if (!_rows.TryGetValue(row.Key, out var rp))
-            {
-                _rows[row.Key] = rp = new RowPresenter(snap.Columns);
-                string rowKey = row.Key;
-                rp.Root.Background = SelectedKey is not null && rowKey == SelectedKey ? Brush("SandLightBrush", Brushes.Tan) : Brushes.Transparent;   // 余白も押せる（背景が無いと当たらない）
-                rp.Root.PointerPressed += (_, e) => { if (e.GetCurrentPoint(rp.Root).Properties.IsLeftButtonPressed) RowPressed?.Invoke(rowKey); };
-            }
+            if (!_rows.TryGetValue(row.Key, out var rp)) _rows[row.Key] = rp = new RowPresenter(this, snap.Columns);
             rp.Update(snap.Columns, row);
             live.Add(row.Key);
             wanted.Add(rp.Root);
@@ -194,9 +187,35 @@ public sealed class TableView : UserControl
         UpdateHeaderMarks(snap);
     }
 
-    private static ColumnDefinition DefinitionOf(ColumnSpec c, int index, bool firstText)
+    /// <summary>残りの幅を全部取る列（1 つだけ）。段の列があれば段の列（段の押し釦は幅が足りなければ折り返す）・無ければ最初の文字の列。</summary>
+    private static int StarIndex(IReadOnlyList<ColumnSpec> cols)
     {
-        if (firstText) return new ColumnDefinition(1, GridUnitType.Star) { MinWidth = c.MinWidth };   // 最初の文字の列＝残りの幅を全部取る
+        for (int i = 0; i < cols.Count; i++) if (cols[i].Kind == ColumnKind.Stage) return i;
+        for (int i = 0; i < cols.Count; i++) if (cols[i].Kind == ColumnKind.Text) return i;
+        return -1;
+    }
+
+    /// <summary>見出しの列と最初の行の列の左端のずれ（撮影の確かめ・設計 §7-3）。列の左端は列の幅の積み上げ＋それぞれの格子の位置（この表の左上から）。行が無ければ null。
+    /// 見出しと行は列の大きさを共有する（<c>SharedSizeGroup</c>）ので、ずれは 0 になるはず。</summary>
+    public (int Columns, double MaxDelta, string Worst)? MeasureAlignment()
+    {
+        var row = _body.Children.OfType<Grid>().FirstOrDefault(g => g.ColumnDefinitions.Count == _header.ColumnDefinitions.Count && g.ColumnDefinitions.Count > 0);
+        if (row is null || _header.ColumnDefinitions.Count == 0) return null;
+        var hp = _header.TranslatePoint(new Point(0, 0), this); var rp = row.TranslatePoint(new Point(0, 0), this);
+        if (hp is null || rp is null) return null;
+        double hx = hp.Value.X, rx = rp.Value.X, maxDelta = 0; string worst = "";
+        for (int i = 0; i < _header.ColumnDefinitions.Count; i++)
+        {
+            double delta = Math.Abs(hx - rx);
+            if (delta > maxDelta) { maxDelta = delta; worst = _headerCells.Length > i ? _headerCells[i].Text ?? "" : i.ToString(); }
+            hx += _header.ColumnDefinitions[i].ActualWidth; rx += row.ColumnDefinitions[i].ActualWidth;
+        }
+        return (_header.ColumnDefinitions.Count, maxDelta, worst);
+    }
+
+    private static ColumnDefinition DefinitionOf(ColumnSpec c, int index, bool star)
+    {
+        if (star) return new ColumnDefinition(1, GridUnitType.Star) { MinWidth = c.MinWidth };   // 残りの幅を全部取る列
         var d = new ColumnDefinition(GridLength.Auto) { MinWidth = c.MinWidth, SharedSizeGroup = "c" + index };
         if (!double.IsPositiveInfinity(c.MaxWidth)) d.MaxWidth = c.MaxWidth;
         return d;
@@ -206,13 +225,11 @@ public sealed class TableView : UserControl
     {
         _header.Children.Clear(); _header.ColumnDefinitions.Clear();
         _headerCells = new TextBlock[snap.Columns.Count];
-        bool firstText = true;
+        int starAt = StarIndex(snap.Columns);
         for (int i = 0; i < snap.Columns.Count; i++)
         {
             var c = snap.Columns[i];
-            bool star = c.Kind == ColumnKind.Text && firstText;
-            if (c.Kind == ColumnKind.Text) firstText = false;
-            _header.ColumnDefinitions.Add(DefinitionOf(c, i, star));
+            _header.ColumnDefinitions.Add(DefinitionOf(c, i, i == starAt));
             var tb = new TextBlock
             {
                 Text = c.Name, FontSize = Small,
@@ -253,29 +270,46 @@ public sealed class TableView : UserControl
     /// <summary>行 1 本の描画（据え置き＝値だけ流す）。列の種類ごとのセルを持つ。</summary>
     private sealed class RowPresenter
     {
-        public readonly Grid Root = new() { Margin = new Thickness(0, 1) };
+        public readonly Grid Root = new() { Margin = new Thickness(0, 1), Background = Brushes.Transparent };   // 透明でも当たる＝行のホバーと押下を受ける
         private Control?[] _cells = [];
         private string _sig = "";
+        private string _key = "";
+        private bool _emphasis, _selected;
+        private readonly TableView _owner;
 
-        public RowPresenter(IReadOnlyList<ColumnSpec> cols) => Layout(cols);
+        public RowPresenter(TableView owner, IReadOnlyList<ColumnSpec> cols)
+        {
+            _owner = owner;
+            Layout(cols);
+            Root.PointerPressed += (_, e) =>
+            {
+                if (!e.GetCurrentPoint(Root).Properties.IsLeftButtonPressed) return;
+                if (e.Source is Visual v && (v is Button || v.FindAncestorOfType<Button>() is not null)) return;   // 押し釦は押し釦の仕事
+                owner.RowActivated?.Invoke(_key);
+            };
+        }
+
+        /// <summary>選んでいる行か（背景で示す）。</summary>
+        public void SetSelected(bool selected) { _selected = selected; Paint(); }
+
+        private void Paint() => Root.Background = _emphasis || _selected ? Brush("SandLightBrush", Brushes.Tan) : Brushes.Transparent;   // 透明でも当たる＝行のホバーと押下を受ける
 
         private void Layout(IReadOnlyList<ColumnSpec> cols)
         {
             _sig = string.Join("|", cols.Select(c => c.Key + ":" + c.Kind));
             Root.Children.Clear(); Root.ColumnDefinitions.Clear();
             _cells = new Control?[cols.Count];
-            bool firstText = true;
-            for (int i = 0; i < cols.Count; i++)
-            {
-                bool star = cols[i].Kind == ColumnKind.Text && firstText;
-                if (cols[i].Kind == ColumnKind.Text) firstText = false;
-                Root.ColumnDefinitions.Add(DefinitionOf(cols[i], i, star));
-            }
+            int starAt = StarIndex(cols);
+            for (int i = 0; i < cols.Count; i++) Root.ColumnDefinitions.Add(DefinitionOf(cols[i], i, i == starAt));
         }
 
         public void Update(IReadOnlyList<ColumnSpec> cols, RowView row)
         {
             if (_sig != string.Join("|", cols.Select(c => c.Key + ":" + c.Kind))) Layout(cols);
+            _key = row.Key;
+            ToolTip.SetTip(Root, string.IsNullOrEmpty(row.Tip) ? null : row.Tip);   // 空なら null＝空の吹き出しを出さない
+            _emphasis = row.Emphasis; _selected = _owner.SelectedKey is not null && row.Key == _owner.SelectedKey;
+            Paint();
             for (int i = 0; i < cols.Count && i < row.Cells.Count; i++)
             {
                 var cell = row.Cells[i];
@@ -286,7 +320,7 @@ public sealed class TableView : UserControl
                     Grid.SetColumn(_cells[i]!, i);
                     Root.Children.Add(_cells[i]!);
                 }
-                Fill(_cells[i]!, spec, cell);
+                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip));
             }
         }
 
@@ -318,13 +352,13 @@ public sealed class TableView : UserControl
 
         private static readonly IBrush[] PiePalette = [Brushes.SteelBlue, Brushes.Goldenrod, Brushes.IndianRed, Brushes.SeaGreen, Brushes.MediumPurple, Brushes.Peru];
 
-        private static void Fill(Control control, ColumnSpec spec, CellView cell)
+        private static void Fill(Control control, ColumnSpec spec, CellView cell, bool rowHasTip)
         {
             switch (control)
             {
                 case TextBlock tb:
                     if (tb.Text != cell.Text) tb.Text = cell.Text;
-                    ToolTip.SetTip(tb, cell.Tip ?? (spec.Kind == ColumnKind.Text ? cell.Text : null));   // 溢れて省略されても全文が読める・目録が文を持つ数と文字はその文
+                    ToolTip.SetTip(tb, cell.Tip ?? (spec.Kind == ColumnKind.Text && !rowHasTip ? cell.Text : null));   // 溢れて省略されても全文が読める・目録が文を持つ数と文字はその文
                     break;
                 case HalfPie pie when cell.Extra is ShareCell sc:
                     pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PiePalette[i % PiePalette.Length])).ToList();
@@ -332,7 +366,8 @@ public sealed class TableView : UserControl
                 case WrapPanel wp when cell.Extra is StageCell st:
                     FillStages(wp, st);
                     break;
-                case Border b when cell.Extra is VerbCell vb:
+                case Border b:
+                    if (cell.Extra is not VerbCell vb) { b.Child = null; ToolTip.SetTip(b, null); break; }   // この行にこの動詞が無い（前の月にはあった行も空にする）
                     if (b.Child is not Button btn)
                     {
                         btn = new Button { Classes = { "mini" } };
@@ -341,6 +376,8 @@ public sealed class TableView : UserControl
                     btn.Content = vb.Name; btn.IsEnabled = vb.Enabled;
                     btn.Tag = vb;   // 押した時に呼ぶのは最新の動詞
                     btn.Click -= OnVerbClick; btn.Click += OnVerbClick;
+                    b.Background = Brushes.Transparent;
+                    ToolTip.SetTip(b, string.IsNullOrEmpty(vb.Tip) ? null : vb.Tip);   // 押せない理由は押し釦の外（無効の釦でもホバーを受ける）に付ける
                     break;
             }
         }

@@ -8,16 +8,16 @@
          行と列は本体の目録（SimCore/Display/FiscalTables）が渡す＝財政の項・段・金融の行を足すときにこの XAML は直さない。
          ページの外側は流れない（長い一覧は表の中だけで流れ、見出しの行は止まる）。 -->
     <ctl:PageGrid x:Name="PageBody">
-        <ctl:Section Key="spend" Title="{Binding SpendTitle}" ScrollBody="False">
+        <ctl:Section Key="spend" Title="{Binding SpendTitle}" Scrolls="False">
             <ctl:TableView Snapshot="{Binding SpendTable}" InnerScroll="True"/>
         </ctl:Section>
-        <ctl:Section Key="income" Title="{Binding IncomeTitle}" ScrollBody="False">
+        <ctl:Section Key="income" Title="{Binding IncomeTitle}" Scrolls="False">
             <ctl:TableView Snapshot="{Binding IncomeTable}" InnerScroll="True"/>
         </ctl:Section>
-        <ctl:Section Key="finance" Title="金融" ScrollBody="False">
+        <ctl:Section Key="finance" Title="金融" Scrolls="False">
             <ctl:TableView Snapshot="{Binding FinanceTable}" InnerScroll="True"/>
         </ctl:Section>
-        <ctl:Section Key="ledger" Title="{Binding LedgerTitle}" ScrollBody="False">
+        <ctl:Section Key="ledger" Title="{Binding LedgerTitle}" Scrolls="False">
             <ctl:TableView Snapshot="{Binding LedgerTable}" InnerScroll="True"/>
         </ctl:Section>
         <ctl:Section Key="debt" Title="国債と外資信用">

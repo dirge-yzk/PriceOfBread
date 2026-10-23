@@ -4,7 +4,15 @@ namespace PriceOfBread.SimCore.Display;
 /// 新しい表を作ったらここへ 1 行足す（足し忘れは番人が見つけない＝表の数の期待をテストが持つ）。</summary>
 public static class TableCatalog
 {
-    public static IReadOnlyList<ITable> All { get; } = [TradeTables.Imports, TradeTables.Exports, MarketTables.Prices, ProductionTables.Goods, ProductionTables.Equipment, ProductionTables.Labor];
+    public static IReadOnlyList<ITable> All { get; } =
+    [
+        TradeTables.Imports, TradeTables.Exports, MarketTables.Prices,
+        ProductionTables.Goods, ProductionTables.Equipment, ProductionTables.Labor,
+        FiscalTables.Finance, FiscalTables.Debt,
+        PopTables.Regions, PopTables.Religion, PopTables.Culture,
+        PoliticsTables.Laws, PoliticsTables.Institutions,
+        DiscoveryTables.Discoveries, DiscoveryTables.Sites,
+    ];
 
     /// <summary>鍵で引く。無ければ null。</summary>
     public static ITable? ByKey(string key) => All.FirstOrDefault(t => t.Key == key);

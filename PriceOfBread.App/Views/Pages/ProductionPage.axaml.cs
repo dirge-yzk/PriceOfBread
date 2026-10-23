@@ -59,7 +59,7 @@ public partial class ProductionPage : UserControl
         SectionFit.Attach(LaborSection, LaborTable);
         SectionFit.Attach(EquipSection, EquipTable);
         // 財の表の行を押す＝その財を選ぶ（盤の財を押したのと同じ動詞）
-        GoodsTable.RowPressed += key => { if (_vm is not null && int.TryParse(key, out int gid)) _vm.SelectProdGood(gid); };
+        GoodsTable.RowActivated += key => { if (_vm is not null && int.TryParse(key, out int gid)) _vm.SelectProdGood(gid); };
         // 盤は視野の幅に追従する（分割の枠の幅に合わせて並べ直す）
         ProdScroll.PropertyChanged += (_, e) => { if (e.Property == Visual.BoundsProperty) FeedViewport(); };
         PageRoot.PropertyChanged += (_, e) => { if (e.Property == Visual.BoundsProperty) ApplyLayout(); };

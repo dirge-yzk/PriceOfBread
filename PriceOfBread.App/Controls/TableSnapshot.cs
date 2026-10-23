@@ -13,7 +13,7 @@ public sealed record ColumnSpec(string Key, string Name, ColumnKind Kind, Unit? 
 public sealed record CellView(string Text, double Sort, object? Extra = null, string? Tip = null);
 
 /// <summary>行 1 本。<see cref="Key"/> は据え置き同期の鍵（値だけ流す）。<see cref="GroupTip"/>＝群の見出しにカーソルを合わせた時の文。</summary>
-public sealed record RowView(string Key, string Name, string? Group, IReadOnlyList<CellView> Cells, string? GroupTip = null);
+public sealed record RowView(string Key, string Name, string? Group, IReadOnlyList<CellView> Cells, string? Tip = null, bool Emphasis = false, string? GroupTip = null);
 
 /// <summary>共通の表へ渡す物（本体が渡した <see cref="TableData"/> を、単位から決まる書式で文字にした結果）。
 /// Avalonia に依らない＝xUnit で読める。表を作り直さず、鍵で値だけ流す（SyncRows の規律）。</summary>
@@ -81,7 +81,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
                     _ => new CellView("", double.NaN),
                 };
             }
-            rows.Add(new RowView(r.Key, r.Name, r.Group, cells, r.GroupTip));
+            rows.Add(new RowView(r.Key, r.Name, r.Group, cells, r.Tip, r.Emphasis, r.GroupTip));
         }
         return new TableSnapshot(data.Key, data.Name, cols, rows);
     }

@@ -66,6 +66,7 @@ public partial class MapPane : UserControl
     private ViewModels.GameViewModel? _vmHooked;   // CenterMap を購読したVM（解放用）
 
     private bool _homed;   // 自国センタリングを一度だけ実行
+    private Size? _lastBox;   // 直前の箱の大きさ（大きさが変わったとき中心を保つ）
 
     private void OnMapLoaded(object? sender, RoutedEventArgs e)
     {
@@ -412,6 +413,9 @@ public partial class MapPane : UserControl
     private void OnHostSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         if (MapHost.Bounds.Width < 1 || MapHost.Bounds.Height < 1) return;
+        // 箱の大きさが変わっても、映している中心は動かさない（地図が欄に畳まれて広さが変わる・分割の境目を動かす）。最初の大きさの決まりは HomeView が持つ。
+        if (_homed && _lastBox is { } prev) { _translate.X += (MapHost.Bounds.Width - prev.Width) / 2; _translate.Y += (MapHost.Bounds.Height - prev.Height) / 2; }
+        _lastBox = MapHost.Bounds.Size;
         (DataContext as ViewModels.GameViewModel)?.SetMapFitScale(MinScale());   // ウィンドウサイズでフィット倍率が変わる＝地名閾値も追従
         if (!_fitted)
         {

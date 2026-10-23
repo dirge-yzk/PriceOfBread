@@ -56,26 +56,11 @@ public partial class GameViewModel : ViewModelBase
     private bool _pfOrderLow;          // 治安崩壊の前回値（接15・2026-07-25＝秩序<50%のエッジ通知）
     private bool _pfGold, _pfDefault, _pfPatent, _pfJoint, _pfEpidemic;
     private int _pfParty; private PowerRank _pfRank;
-    private static readonly IBrush TensionLow = new SolidColorBrush(Color.Parse("#1F5FA8"));    // 緊張 低=青
-    private static readonly IBrush TensionMid = new SolidColorBrush(Color.Parse("#B8860B"));    // 緊張 中=黄
-    private static readonly IBrush TensionHigh = new SolidColorBrush(Color.Parse("#A0432D"));   // 緊張 高=赤（警告赤に統一）
     private static readonly IBrush NewsBlue = new SolidColorBrush(Color.Parse("#4A6A8C"));
     private static readonly IBrush NewsGold = new SolidColorBrush(Color.Parse("#8A6A20"));
     private static readonly IBrush NewsRed = new SolidColorBrush(Color.Parse("#A0432D"));
     private static readonly IBrush NewsGreen = new SolidColorBrush(Color.Parse("#2E7D32"));
-    private static readonly IBrush SelfRowHighlight = new SolidColorBrush(Color.Parse("#C7DCF2"));   // 自国行のハイライト（外交タブ・終局ランキング共用）
-    // 外交タブ・国カードの関係バッジ色（GameViewModel.Refresh.cs）＝固定パレット7色。戦争中は NewsRed／同盟は NewsGreen と同値なので使い回す。
-    private static readonly IBrush BadgeDefault = new SolidColorBrush(Color.Parse("#555555"));
-    private static readonly IBrush BadgeOwnVassal = new SolidColorBrush(Color.Parse("#3A5A8A"));
-    private static readonly IBrush BadgeOwnSuzerain = new SolidColorBrush(Color.Parse("#8A6A2A"));
-    private static readonly IBrush BadgeOtherVassal = new SolidColorBrush(Color.Parse("#7A6A55"));
-    private static readonly IBrush BadgeNoTerritory = new SolidColorBrush(Color.Parse("#8A8070"));
-    // 政体色（外交タブの国カード・PolityColor）＝固定パレット9政体7色。立憲君主制は BadgeOwnVassal、ブルジョア独裁は
-    // BadgeOwnSuzerain、既定(null/無政府)は BadgeDefault と同値なので使い回す。
-    private static readonly IBrush PolityAbsolutist = new SolidColorBrush(Color.Parse("#7A3030"));   // 絶対/専制/幕府
-    private static readonly IBrush PolityRepublic = new SolidColorBrush(Color.Parse("#2E6E5E"));
-    private static readonly IBrush PolityMilitary = new SolidColorBrush(Color.Parse("#5A3A6A"));
-    private static readonly IBrush PolityProletarian = new SolidColorBrush(Color.Parse("#9A2A2A"));
+    private static readonly IBrush SelfRowHighlight = new SolidColorBrush(Color.Parse("#C7DCF2"));   // 自国行のハイライト（終局ランキング）
     // 報せの伝播：遠い国の事件は距離分だけ遅れて届く（配達待ちキュー）。電信の普及（年代）でラグは縮み、1870年に実質リアルタイム。
     private readonly List<PendingNews> _pending = new();
     private sealed record PendingNews(double DeliveryDay, double EventDay, string Icon, string Body, IBrush Color, bool Mine);   // 表示日付＝届いた日・遅延分は「（nヶ月前）」を付す
@@ -468,17 +453,6 @@ public partial class GameViewModel : ViewModelBase
         target.Clear();
         foreach (var d in desired) target.Add(d);
     }
-
-    private static IBrush PolityColor(Polity? p) => p switch
-    {
-        Polity.Absolutist or Polity.Despotic or Polity.Shogunate => PolityAbsolutist,
-        Polity.ConstitutionalMonarchy => BadgeOwnVassal,
-        Polity.Republic => PolityRepublic,
-        Polity.MilitaryDictatorship => PolityMilitary,
-        Polity.BourgeoisDictatorship => BadgeOwnSuzerain,
-        Polity.ProletarianDictatorship => PolityProletarian,
-        _ => BadgeDefault,
-    };
 
     // 国家ランクの和名（列強/中堅/弱小・改修2026-06-28）。
     private static string RankJa(PowerRank r) => r switch { PowerRank.Great => "列強", PowerRank.Secondary => "準列強", PowerRank.Middle => "中堅", _ => "弱小" };
