@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:v="using:PriceOfBread.App.Views"
+             x:Class="PriceOfBread.App.Views.MapPane"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/MapPane.axaml ＝ 地図の欄（(501) 段2a：GameView.axaml の中央の地図と左上の州ホバーの浮き欄を**そのまま**移した）。code-behind は MapPane.axaml.cs。 -->
+        <Grid>
+            <Border x:Name="MapHost" Background="#0B1422" ClipToBounds="True">
+                <Grid x:Name="MapRoot" Width="2000" Height="780" HorizontalAlignment="Left" VerticalAlignment="Top" ClipToBounds="False">
+                    <Canvas x:Name="MapBackground" Width="2000" Height="780" ClipToBounds="False">
+                        <Rectangle Canvas.Left="-2000" Canvas.Top="0" Width="6000" Height="780" Fill="#16314E"/>
+                    </Canvas>
+                    <!-- 政治の塗り分け（2026-09-02作者指示）：所持州から陸を広げ、他国とぶつかるまで＋上限＝州配置の最長間隔。
+                         背景（陸/海）の上・経路グラフの下。東西ループ用に背景と同じ2枚。ヒットテスト無効＝押下は MapHost が受け、
+                         州の当たりはこの塗りの割り当て（GameViewModel.MapHitAt）で取る（★F7・2026-09-28：州○の廃止）。 -->
+                    <Canvas x:Name="MapPolitical" Width="2000" Height="780" ClipToBounds="False" IsHitTestVisible="False">
+                        <Image Source="{Binding PoliticalFillView}" Canvas.Left="0" Canvas.Top="0" Width="2000" Height="780"
+                               Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        <Image Source="{Binding PoliticalFillView}" Canvas.Left="2000" Canvas.Top="0" Width="2000" Height="780"
+                               Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                    </Canvas>
+                    <!-- 03地理 手順1（§6）：陸グラフの辺＝陸路の骨格（最背面・ヒットテスト無効＝クリック不干渉） -->
+                    <!-- 地図の線（陸グラフ・海グラフ）＝**1コントロールで一括描画**（2026-08-01）。
+                         旧は辺1本ごとに <Line/> を生成しており、3,000〜4,000個の視覚要素がズーム/パンのたびに再レイアウトされて重かった。
+                         見た目は変えず、要素数だけ 4,000→1 にする（v:MapEdgeLayer の Render が同じ点・色・太さで描く）。 -->
+                    <v:MapEdgeLayer Edges="{Binding MapEdges}" Width="2000" Height="780" ClipToBounds="False"/>
+                    <!-- 文字（州名・国名・海盆名）＝最前面。★F7（2026-09-28）：州○の廃止で文字は州の座標を中心に置く（GameViewModel.Map.cs）。
+                         ⚠TextBlock は背景が無くても文字の箱で当たる＝押下とホバーを MapHost へ通すため、**ツールチップを持つラベルだけ**当たりを残す
+                           （IsHitTestVisible を Tooltip の有無に結ぶ）。州名/国名（Tooltip=null）＝当たり無し＝その下の州に当たる。
+                           海盆名（BuildMapLabels で Tooltip あり）＝海の上＝州の当たりを邪魔しない。 -->
+                    <ItemsControl ItemsSource="{Binding MapLabels}" ClipToBounds="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Width="2000" Height="780" ClipToBounds="False"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                                <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}" FontSize="{Binding FontSize}" Foreground="{Binding Brush}" LetterSpacing="{Binding LetterSpacing}"
+                                           IsHitTestVisible="{Binding Tooltip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                           FontWeight="Bold" ToolTip.Tip="{Binding Tooltip}" ToolTip.ShowDelay="80"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+
+            <!-- 左上：州ホバーの詳細パネル（サイズ固定・生産物の全リスト・上位品目ハイライト） -->
+            <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"
+                    Background="#E6F2ECDC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="4"
+                    Padding="14,10" Width="500" MaxHeight="640"
+                    IsVisible="{Binding MapHover, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Spacing="3">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding MapHover.Title}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}"/>
+                        <TextBlock Grid.Column="1" Text="ピン留め" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding HoverPinned}"/>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding MapHover.Lines}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontWeight="{Binding Weight}" FontSize="{StaticResource FontEmph}" TextWrapping="{Binding Wrap}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- ★支配度 §7（2026-09-07 作者指示「半円で」）：4区分の半円＋外周の帯（10年前の国家区分）＋凡例。区分が動く世界だけ（HasRule）。
+                         色＝国家:鋼青（議会と同じ「制度」）・在地勢力:褐（Bronze）・外国勢力:琥珀（Amber）・無統治:淡墨＝政治タブ（王権=金・革命=錆）と同時に見えるので金/錆は使わない（レビュー2026-09-07）
+                         ★2026-09-23：①箱を**幅70×高さ36**へ（VM は中心(35,35)・半径34で描いている＝GameViewModel.Map.cs:869。旧140×72だと半円が左上へ寄っていた）
+                         ②10年前の帯は半径32＝線の太さを 2.5→2 ③凡例を2×2の二段組 ④語を「在地」→「在地勢力」「外国」→「外国勢力」
+                         ⑤このブロックを**州の詳細の下へ**（作者指示「円グラフは詳細の下に」） -->
+                    <Grid ColumnDefinitions="Auto,10,*" Margin="0,4,0,0" IsVisible="{Binding MapHover.HasRule}">
+                        <Canvas Grid.Column="0" Width="70" Height="36" Background="Transparent">
+                            <Path Data="{Binding MapHover.RuleState, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource SteelBrush}"/>
+                            <Path Data="{Binding MapHover.RuleLocal, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource BronzeBrush}"/>
+                            <Path Data="{Binding MapHover.RuleForeign, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource AmberBrush}"/>
+                            <Path Data="{Binding MapHover.RuleUngoverned, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource InkFaintBrush}"/>
+                            <Path Data="{Binding MapHover.RuleBand, Converter={x:Static vm:Conv.PathData}}" Stroke="{StaticResource InkBrush}" StrokeThickness="2" Fill="{x:Null}"/>
+                        </Canvas>
+                        <!-- 凡例＝2列×2行（国家/在地勢力 上段・外国勢力/無統治 下段）＋帯の注記は下に全幅で1行 -->
+                        <Grid Grid.Column="2" ColumnDefinitions="*,14,*" RowDefinitions="Auto,Auto,Auto" VerticalAlignment="Center">
+                            <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource SteelBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="国家" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleStateText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="0" Grid.Column="2" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource BronzeBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="在地勢力" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleLocalText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource AmberBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="外国勢力" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleForeignText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="1" Grid.Column="2" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource InkFaintBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="無統治" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleUngovernedText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding MapHover.RuleBandText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding MapHover.RuleBandText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+</UserControl>

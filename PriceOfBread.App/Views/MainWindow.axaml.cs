@@ -19,7 +19,7 @@ public partial class MainWindow : Window
         // 開発ビルドの実地UI確認を無人化する恒久機能（外部の画面操作ツールに依存しない）。
         if (Program.UiShotDir is not null) Opened += (_, _) => RunUiShot(Program.UiShotDir);
         if (Program.PerfOut is not null) Opened += (_, _) => RunPerf(Program.PerfOut);
-        if (Program.BakeMaskOut is not null) Opened += (_, _) => { try { GameView.BakeLandmask(Program.BakeMaskOut, Program.BakeMaskForRoads); } catch (Exception ex) { BootLog.Write("bakemask 失敗: " + ex.Message); } Environment.Exit(0); };
+        if (Program.BakeMaskOut is not null) Opened += (_, _) => { try { MapPane.BakeLandmask(Program.BakeMaskOut, Program.BakeMaskForRoads); } catch (Exception ex) { BootLog.Write("bakemask 失敗: " + ex.Message); } Environment.Exit(0); };
     }
 
     private void Capture(string dir, string name)
@@ -73,7 +73,7 @@ public partial class MainWindow : Window
             lines.Add($"clock	ticks	{gvm.PerfTicks}	elapsed_raw_s	{gvm.PerfElapsedRaw:F1}	elapsed_used_s	{gvm.PerfElapsedUsed:F1}	days	{gvm.PerfDays:F0}	speed	{gvm.PerfSpeedSeen}	wall_s	{sw.Elapsed.TotalSeconds:F1}");
             if (dq > 0) lines.Add($"per_quarter_split_ms	stepday	{gvm.PerfStepDayMs / dq:F0}	daily_refresh	{gvm.PerfDailyMs / dq:F0}	month_refresh	{gvm.PerfMonthRefreshMs / dq:F0}	quarter_refresh	{gvm.PerfQuarterRefreshMs / dq:F0}");
             // フレームms（全景・中心移動）
-            var gv = this.GetVisualDescendants().OfType<GameView>().FirstOrDefault();
+            var gv = this.GetVisualDescendants().OfType<MapPane>().FirstOrDefault();
             async Task<double> FrameMs(Action act)
             {
                 act();
@@ -273,7 +273,7 @@ public partial class MainWindow : Window
             // Escメニュー（2026-09-06・セーブのスロット化の確認）
             gvm.MenuOpen = true; await Task.Delay(300); Capture(dir, "11b_Escメニュー.png"); gvm.MenuOpen = false; await Task.Delay(200);
             // 州名の帯（2026-09-05）＝フィット×4 でパリを中心に＝州名の出方を決定的に撮る（作者裁定＝地図のアイコン類は置かない）。
-            if (this.GetVisualDescendants().OfType<GameView>().FirstOrDefault() is { } gvz)
+            if (this.GetVisualDescendants().OfType<MapPane>().FirstOrDefault() is { } gvz)
             {
                 gvz.SetZoomFactor(4.0);
                 gvm.CenterNationCommand.Execute("フランス");
@@ -289,7 +289,7 @@ public partial class MainWindow : Window
                 gvm.HoverPinned = false; gvm.MapHover = null; await Task.Delay(200);
             }
             // 全景（2026-09-02）＝州名が消えて**国名（英語）**が出る帯。政治の塗り分けの全体像もここで見る。
-            if (this.GetVisualDescendants().OfType<GameView>().FirstOrDefault() is { } gv)
+            if (this.GetVisualDescendants().OfType<MapPane>().FirstOrDefault() is { } gv)
             {
                 gv.ZoomToWorld();
                 await Task.Delay(700);
