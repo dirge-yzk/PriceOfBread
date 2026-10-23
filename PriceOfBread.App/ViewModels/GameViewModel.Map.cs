@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Controls;
 using PriceOfBread.SimCore;
 
 namespace PriceOfBread.App.ViewModels;
@@ -739,10 +740,10 @@ public partial class GameViewModel
             fUngov = 1.0 - dom;
         }
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
-        string rs = HalfSlice(35, 35, 34, 0, f1), rl = HalfSlice(35, 35, 34, f1, f2), rf = HalfSlice(35, 35, 34, f2, f3), ru = HalfSlice(35, 35, 34, f3, 1.0);
+        string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2), rf = HalfPie.Slice(35, 35, 34, f2, f3), ru = HalfPie.Slice(35, 35, 34, f3, 1.0);
         string rb = "", rbText = "";
         double ago = rg.RuleStateTenYearsAgo();
-        if (ago >= 0) { rb = HalfArc(35, 35, 32, ago); rbText = $"10年前の国家 {ago:P0}"; }
+        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {ago:P0}"; }
         var info = new MapHoverInfo
         {
             // ★2026-09-23（作者指摘「フィラデルフィア(アメリカ(シャムの属国))」＝括弧が二重）：州名と国名は**全角スペースで並べる**。

@@ -74,7 +74,7 @@ public static class TradeTables
         => new(key, name, Page.Market, (sim, w) => Lines(sim, w, exports), l => l.Good.ToString(), l => l.Name,
         [
             Col.Text<TradeLine>("name", "財名", l => l.Name),
-            Col.NumberNote<TradeLine>("value", "金額/月", Unit.MoneyPerMonth, l => l.MonthlyValue, l => double.IsNaN(l.PriceRatio) ? "" : $"(×{l.PriceRatio:F2})"),
+            Col.NumberNote<TradeLine>("value", "金額", Unit.MoneyPerMonth, l => l.MonthlyValue, l => double.IsNaN(l.PriceRatio) ? "" : $"(×{l.PriceRatio:F2})"),
             Col.Number<TradeLine>("fraction", fractionName, Unit.Share, l => l.Fraction),
             Col.Text<TradeLine>("partner", partnerName, l => l.Partner),
         ]);

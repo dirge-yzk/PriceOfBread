@@ -9,7 +9,8 @@ public enum Unit
 }
 
 /// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。</summary>
-public sealed record StageCell(IReadOnlyList<string> Labels, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select);
+/// <summary><see cref="Labels"/> の添字 i はエンジン側の段番号 <paramref name="LevelBase"/> + i。<see cref="Current"/>・<see cref="Target"/> はエンジン側の段番号。</summary>
+public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select);
 
 /// <summary>行の動詞 1 つの中身（侵略・統一戦争・調停・補助金・専売・建設）。押した時に呼ぶのは本体の口だけ。</summary>
 public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null);

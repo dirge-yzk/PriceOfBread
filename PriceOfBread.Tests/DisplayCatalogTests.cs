@@ -230,6 +230,29 @@ public class DisplayCatalogTests
         }
     }
 
+    // ===== 表の一覧 =====
+
+    [Fact]
+    public void 表の一覧_表の鍵は重ならず_列の鍵と名前は規則に合い_数の列は単位を持つ()
+    {
+        Assert.Equal(2, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す
+        Assert.Equal(TableCatalog.All.Count, TableCatalog.All.Select(t => t.Key).Distinct().Count());
+        foreach (var t in TableCatalog.All)
+        {
+            Assert.True(DisplayNames.IsValid(t.Name), $"表の名前が規則に合わない: {t.Key}");
+            Assert.NotEmpty(t.ColumnInfos);
+            Assert.Equal(t.ColumnInfos.Count, t.ColumnInfos.Select(c => c.Key).Distinct().Count());
+            foreach (var c in t.ColumnInfos)
+            {
+                Assert.True(DisplayNames.IsValid(c.Name), $"{t.Key} の列の名前が規則に合わない: {c.Name}");
+                if (c.Kind == ColumnKind.Number) Assert.NotNull(c.Unit);   // どの数の列も単位が決まる
+                else Assert.Null(c.Unit);
+            }
+            Assert.Same(t, TableCatalog.ByKey(t.Key));
+        }
+        Assert.Null(TableCatalog.ByKey("存在しない"));
+    }
+
     // ===== 列の作り口 =====
 
     [Fact]

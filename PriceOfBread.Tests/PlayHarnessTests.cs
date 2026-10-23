@@ -374,6 +374,33 @@ public class PlayHarnessTests
     }
 
     [Fact]
+    public void 決定行_画面の名前と段の名前でも置け_NationPolicyの欄名も今までどおり受ける()
+    {
+        var (_, w, _, _, _) = Board();
+        // 画面と同じ名前（報告の法の行と同じ語）
+        var union = PriceOfBread.SimCore.Display.LawCatalog.ByField(nameof(NationPolicy.LaborUnion))!;
+        string before = union.StageName(union.Target(w));
+        Assert.Equal($"労働組合: {before} → 容認", PlayHarness.ApplyKeyValue(w, "労働組合=容認"));
+        Assert.Equal(LaborUnionLaw.Tolerated, w.Policy.LaborUnion);
+        Assert.StartsWith("阿片: ", PlayHarness.ApplyKeyValue(w, "阿片=全面禁止"));
+        Assert.Equal(ReformLevel.Full, w.Policy.OpiumPossession);
+        Assert.True(w.Policy.OpiumExportBan);   // 梯子の最上段は 2 欄を書く
+        Assert.StartsWith("⚠段が読めない", PlayHarness.ApplyKeyValue(w, "労働組合=存在しない段"));
+        Assert.Equal(LaborUnionLaw.Tolerated, w.Policy.LaborUnion);   // 読めない段は何も書かない
+        // 今までの名前（NationPolicy の欄名と enum 名）
+        Assert.StartsWith("LaborUnion: ", PlayHarness.ApplyKeyValue(w, "LaborUnion=Illegal"));
+        Assert.Equal(LaborUnionLaw.Illegal, w.Policy.LaborUnion);
+        Assert.StartsWith("NationalizeOil: ", PlayHarness.ApplyKeyValue(w, "NationalizeOil=true"));
+        Assert.True(w.Policy.NationalizeOil);
+        // 報告の書き込みの口は表の全ての法を受ける（画面の名前と最上段の名前で置いて読み戻す）
+        foreach (var l in PriceOfBread.SimCore.Display.LawCatalog.All)
+        {
+            string top = l.Stages[^1];
+            Assert.DoesNotContain("⚠", PlayHarness.ApplyKeyValue(w, $"{l.Name}={top}"));
+        }
+    }
+
+    [Fact]
     public void 報告_ヘッダーにあって無かった物_物価_通貨制度_為替_兌換_行政力_政治資本_国債_を出す()
     {
         var (sim, w, _, _, _) = Board();

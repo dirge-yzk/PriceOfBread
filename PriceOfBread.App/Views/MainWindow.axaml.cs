@@ -377,6 +377,29 @@ public partial class MainWindow : Window
                 BootLog.Write($"uishot: 盤 {ps.Extent.Width}×{ps.Extent.Height} 視野 {ps.Viewport.Width}×{ps.Viewport.Height} 送り {ps.Offset}");
                 Capture(dir, $"{k++:D2}_生産タブ_盤の右下.png");
             }
+            // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
+            try
+            {
+                string saveDir = Path.Combine(dir, "save_roundtrip");
+                GameViewModel.SaveDirOverride = saveDir;
+                gvm.SaveSlotCommand.Execute("1");
+                var loaded = GameViewModel.TryLoad(1, null, null);
+                string a = gvm.SeriesSummary, b = loaded?.SeriesSummary ?? "（ロード失敗）";
+                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}");
+                loaded?.Shutdown();
+            }
+            catch (Exception ex) { BootLog.Write($"uishot: セーブの往復 失敗 {ex}"); }
+            finally { GameViewModel.SaveDirOverride = null; }
+            // 共通の部品の見本（(501) 段1）：表・線グラフ・半円を固定の見本の値で 1 枚に並べる（部品の見た目を無人で確かめる）。窓の中身を差し替えて撮り、撮ったら戻す。
+            try
+            {
+                var savedContent = Content;
+                Content = UiShotParts.Build();
+                await Task.Delay(900);
+                Capture(dir, $"{k++:D2}_部品の見本.png");
+                Content = savedContent;
+            }
+            catch (Exception ex) { BootLog.Write($"uishot: 部品の見本 失敗 {ex}"); }
             Environment.Exit(0);
         }
         catch (Exception ex)

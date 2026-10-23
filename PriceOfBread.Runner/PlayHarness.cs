@@ -231,6 +231,15 @@ internal static class PlayHarness
                 double gotTotal = world.Policy.MilitarySpendingTarget;
                 return $"{key}: {oldTotal} → {gotTotal}{(Math.Abs(gotTotal - askedTotal) > 1e-9 ? $"（要求 {val} は 0〜1 に丸めた）" : "")}　（軍事費の合計・陸海の比は次の四半期の頭に AI と同じ関数が置き直す）";
             }
+            // ★(501) 段0：報告の法の行と同じ画面の名前と段の名前でも置ける（例 `労働組合=容認`・`阿片=全面禁止`）。本体の法の表（LawCatalog）の 1 本＝画面の段ボタンと同じ書き込み先。NationPolicy の欄名（下の反射）も今までどおり受ける。
+            if (LawCatalog.All.FirstOrDefault(l => l.Name == key) is { } law)
+            {
+                int stage = Array.IndexOf(law.Stages, val);
+                if (stage < 0) return $"⚠段が読めない: {val}（{key} の段：{string.Join("／", law.Stages)}）";
+                string before = law.StageName(law.Target(world));
+                law.SetTarget(world.Policy, law.LevelBase + stage);
+                return $"{key}: {before} → {law.StageName(law.Target(world))}";
+            }
             var f = typeof(NationPolicy).GetField(key, BindingFlags.Public | BindingFlags.Instance);
             if (f is null) return $"⚠不明なレバー: {key}";
             object v;

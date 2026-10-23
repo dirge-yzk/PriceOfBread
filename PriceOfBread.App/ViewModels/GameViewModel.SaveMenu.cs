@@ -16,8 +16,12 @@ public partial class GameViewModel
     // === セーブ/ロード（F5=クイックセーブ・F9=クイックロード・タイトル「続きから」）=====================
     // 中身＝UIエンベロープ（経過日数・年次グラフ）＋SimCoreの汎用グラフ直列化（SaveGame）。ロード後の進行はセーブ時点とビット一致（savetest検証済み）。
 
-    private const string SaveMagic = "POBSAVE1";
-    public static string SaveDir => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PriceOfBread");
+    private const string SaveMagic = "POBSAVE2";   // ★(501) 段1：年次系列を名前と値の組で書く形（POBSAVE1＝位置で並べた配列）。旧版のセーブは読まない（互換は設計思想ではない・2026-09-26）
+    /// <summary>uishot（無人撮影）専用：セーブの往復の確かめだけが一時の置き場へ差し替える（作者の本物のセーブを書き換えない）。通常は null。</summary>
+    internal static string? SaveDirOverride;
+    public static string SaveDir => SaveDirOverride ?? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PriceOfBread");
+    /// <summary>年次系列の名前・点数・和の 1 行（セーブの往復の一致を無人で確かめる＝uishot 専用）。</summary>
+    internal string SeriesSummary => string.Join(",", _series.Keys.Select(k => $"{k}:{_series.Of(k).Count}:{_series.Of(k).Sum():R}"));
     // ★スロット化（作者裁定2026-09-06「プレイヤー側UIはやる」・残作業11-1）：0＝クイック（F5/F9）・1〜3＝Escメニューのスロット。
     public const int SlotCount = 3;
     public static string SlotPath(int slot) => System.IO.Path.Combine(SaveDir, slot == 0 ? "quicksave.pob" : $"slot{slot}.pob");
@@ -57,9 +61,7 @@ public partial class GameViewModel
             using var bw = new System.IO.BinaryWriter(fs, System.Text.Encoding.UTF8, leaveOpen: true);
             bw.Write(SaveMagic);
             bw.Write(_playerIndex); bw.Write(_simDays); bw.Write(_dayInQuarterUI); bw.Write(_lastSampledYear);
-            List<double>[] lists = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini, _histDis];   // 他20：_histFood追加・_histTreasury/_satHistory削除（保存/復元と同一の並び）。末尾に正統性・国民意識（2026-07-15）・政治資本（2026-07-16）・ジニ係数（2026-08-10）・★不満度（2026-09-23＝末尾追加・GameViewModel.cs の targets と同一順）
-            bw.Write(lists.Length);
-            foreach (var l in lists) { bw.Write(l.Count); foreach (var v in l) bw.Write(v); }
+            _series.Write(bw);   // 年次系列は名前と値の組（位置で並べない）
             bw.Flush();
             SaveGame.Save(_sim, fs);
             // 戦争UIの追跡状態（追記ブロック・レビュー2026-07-19）：戦費按分・勝敗基準・終わった戦争の残置。
@@ -95,15 +97,8 @@ public partial class GameViewModel
             using var br = new System.IO.BinaryReader(fs, System.Text.Encoding.UTF8, leaveOpen: true);
             if (br.ReadString() != SaveMagic) return null;
             int pi = br.ReadInt32(); double simDays = br.ReadDouble(); int dq = br.ReadInt32(); int lsy = br.ReadInt32();
-            int nLists = br.ReadInt32();
-            var hist = new List<double>[nLists];
-            for (int i = 0; i < nLists; i++)
-            {
-                int n = br.ReadInt32();
-                var l = new List<double>(n);
-                for (int k = 0; k < n; k++) l.Add(br.ReadDouble());
-                hist[i] = l;
-            }
+            var series = new SeriesStore();
+            series.ReadFrom(br);
             var sim = SaveGame.Load(fs);
             // 戦争UIの追跡状態（追記ブロック・レビュー2026-07-19）。旧セーブは EOF → null＝新規追跡で再開（自動オープンもしない）。
             WarUiSave? warUi = null;
@@ -132,7 +127,7 @@ public partial class GameViewModel
                 }
             }
             catch { warUi = null; }
-            return new GameViewModel(sim, pi, simDays, dq, lsy, hist, onExit, onLoad, warUi);
+            return new GameViewModel(sim, pi, simDays, dq, lsy, series, onExit, onLoad, warUi);
         }
         catch
         {

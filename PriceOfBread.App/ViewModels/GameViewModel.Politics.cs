@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Controls;
 using PriceOfBread.SimCore;
 
 namespace PriceOfBread.App.ViewModels;
@@ -140,27 +141,6 @@ public partial class GameViewModel
     public string PieArmy { get; private set; } = "";
     public string PieRevolution { get; private set; } = "";
 
-    /// <summary>★半円の扇形の Path データ（2026-09-07 作者指示＝円→半円）：底辺の中点 cx,cy・半径 r・開始 frac0〜終了 frac1∈[0,1]。
-    /// 左端（9時）を0・右端（3時）を1として頂点を通り時計回り＝合計1で上半分の半円が閉じる。弧は常に180°以下＝large-arc は0。
-    /// ⚠ほぼ全部（>0.999）は半円で描く。ほぼ0（<0.001）は空＝描かない。政治タブと州パネル（支配度）の両方がこの1本を使う。</summary>
-    internal static string HalfSlice(double cx, double cy, double r, double f0, double f1)
-    {
-        double span = f1 - f0;
-        if (!(span > 0.001)) return "";
-        if (span > 0.999) return System.FormattableString.Invariant($"M {cx - r},{cy} A {r},{r} 0 0 1 {cx + r},{cy} Z");
-        double a0 = f0 * System.Math.PI, a1 = f1 * System.Math.PI;
-        double x0 = cx - r * System.Math.Cos(a0), y0 = cy - r * System.Math.Sin(a0);
-        double x1 = cx - r * System.Math.Cos(a1), y1 = cy - r * System.Math.Sin(a1);
-        return System.FormattableString.Invariant($"M {cx},{cy} L {x0:F2},{y0:F2} A {r},{r} 0 0 1 {x1:F2},{y1:F2} Z");
-    }
-    /// <summary>★半円の外周の帯（線だけ・塗らない）：0〜frac の弧。州パネルの「国家区分の10年前」に使う。</summary>
-    internal static string HalfArc(double cx, double cy, double r, double frac)
-    {
-        if (!(frac > 0.001)) return "";
-        double a1 = System.Math.Min(1.0, frac) * System.Math.PI;
-        double x1 = cx - r * System.Math.Cos(a1), y1 = cy - r * System.Math.Sin(a1);
-        return System.FormattableString.Invariant($"M {cx - r},{cy} A {r},{r} 0 0 1 {x1:F2},{y1:F2}");
-    }
     [ObservableProperty] private string _parliamentControlTip = "";   // 議会統制力の床（この線を越えるとラベルが立憲/共和へ動く）
     // ★政治資本の在庫（作者裁定N2・2026-09-21）：現在 a／最大 b。ホバーは b と実行度の材料のデータ行だけ（説明文なし）。
     [ObservableProperty] private string _politicalCapitalText = "";
@@ -192,9 +172,9 @@ public partial class GameViewModel
         double fc = crown / sum, fp = parl / sum;
         string top = army >= crown && army >= parl ? $"軍部 {army / sum:P0}"
                    : crown >= parl ? $"王権 {fc:P0}" : $"議会 {fp:P0}";
-        return (HalfSlice(SmallPieC, SmallPieC, SmallPieR, 0, fc),
-                HalfSlice(SmallPieC, SmallPieC, SmallPieR, fc, fc + fp),
-                HalfSlice(SmallPieC, SmallPieC, SmallPieR, fc + fp, 1.0), top);
+        return (HalfPie.Slice(SmallPieC, SmallPieC, SmallPieR, 0, fc),
+                HalfPie.Slice(SmallPieC, SmallPieC, SmallPieR, fc, fc + fp),
+                HalfPie.Slice(SmallPieC, SmallPieC, SmallPieR, fc + fp, 1.0), top);
     }
     [ObservableProperty] private string _pcDeltaText = "—";           // 今期の変化＝観測値（前四半期との差）
     [ObservableProperty] private string _pcDeltaTip = "";
@@ -291,10 +271,10 @@ public partial class GameViewModel
             BudgetTip = $"{BudgetLawName}　{BudgetPowerText}";
             CommandTip = $"{CommandLawName}　{CommandPowerText}";
             double c1 = ShareCrown, c2 = c1 + ShareParliament, c3 = c2 + ShareArmy;
-            PieCrown = HalfSlice(70, 70, 68, 0, c1);
-            PieParliament = HalfSlice(70, 70, 68, c1, c2);
-            PieArmy = HalfSlice(70, 70, 68, c2, c3);
-            PieRevolution = HalfSlice(70, 70, 68, c3, 1.0);
+            PieCrown = HalfPie.Slice(70, 70, 68, 0, c1);
+            PieParliament = HalfPie.Slice(70, 70, 68, c1, c2);
+            PieArmy = HalfPie.Slice(70, 70, 68, c2, c3);
+            PieRevolution = HalfPie.Slice(70, 70, 68, c3, 1.0);
             OnPropertyChanged(nameof(PieCrown)); OnPropertyChanged(nameof(PieParliament));
             OnPropertyChanged(nameof(PieArmy)); OnPropertyChanged(nameof(PieRevolution));
             OnPropertyChanged(nameof(ShareCrown)); OnPropertyChanged(nameof(ShareParliament));

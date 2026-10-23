@@ -166,22 +166,28 @@ public partial class GameViewModel : ViewModelBase
     // ヘッダー2行目：国家指標のリスト（一部はホバーで年次推移グラフ）。**行オブジェクトは据え置き＝値だけ更新**
     // （毎月のリスト差し替えは ItemsControl 全再構築＝行の高さが一瞬消え、上部バーが表示/非表示を繰り返して見えた・2026-07-19）。
     public ObservableCollection<HeaderStat> HeaderStats { get; } = new();
-    // 年次時系列（毎年1点・126年ぶん）：ヘッダーのホバーグラフの素
-    private readonly List<double> _histPop = new(), _histGdp = new(), _histProd = new(), _histTech = new(),
-        _histLit = new(), _histSat = new(), _histMil = new(), _histCorr = new();
-    private readonly List<double> _histFood = new();   // 主食充足の年次履歴（ヘッダーホバー）
-    private readonly List<double> _histLeg = new(), _histCons = new();   // 正統性・国民意識の年次履歴（2026-07-15＝説明API/隠れドライバのヘッダーホバー）
-    private readonly List<double> _histMandate = new();   // 政治資本（MandateSpent）の年次履歴（ヘッダーホバー・2026-07-16）
-    private readonly List<double> _histTreasury = new();  // 国庫の年次履歴（ヘッダー国庫のホバーグラフ・2026-07-16）
-    // ★2026-08-13（作者指摘「信用が非常に大切というのがUIからわからない」＋ヘッダー監査）：
-    //   国力スコア＝軍事＋豊かさ＋金融＋技術、豊かさ＝GDP+工業化×9+満足度×12+植民地×1.5。〔★(457) この式は (449) で世界の総量に対する割合の 6 項へ置き換わり (456) で消えた＝今の国力は NationalScore.ShareScores・旧の式は計器 Instruments.OldScore だけ〕
-    //   この7項のうち**工業化・金融・対外信用の3つがヘッダーに無かった**。とくに工業化はスコア最大の重み(×9)で
-    //   本作の主題そのものなのに、自国の全体値を出す場所がUIのどこにも無かった（敵国は外交ホバー・州別は生産ホバーに有る）。
-    private readonly List<double> _histInd = new(), _histCredit = new(), _histFin = new();
-    private readonly List<double> _histGini = new();      // ジニ係数の年次履歴（2026-08-10作者要望）。★2026-09-23にヘッダー表示は撤去したが**採取は残す**（セーブの系列配列に居る＝外すと旧セーブが黙ってずれる）
-    // ★2026-09-23（作者指示「識字率の右に満足度・不満度・闘争度」）：不満度の年次履歴。
-    // ⚠セーブの系列配列（この下の targets と SaveMenu.cs の lists）の**末尾**に足した＝末尾追加だけが安全（途中に挿すと全系列が黙ってずれる）。
-    private readonly List<double> _histDis = new();
+    // 年次時系列（毎年1点・126年ぶん）：ヘッダーのホバーグラフの素。★(501) 段1：名前つきの系列の倉（SeriesStore）が持ち、セーブは名前と値の組で書く
+    //   （旧は18本を配列の位置で書いた＝途中に足すと全系列が黙ってずれた）。系列を足すときは SeriesKeys に名前を1つ足してここに読み口を1行足す。
+    private SeriesStore _series = new();
+    private List<double> _histPop => _series.Of(SeriesKeys.Population);
+    private List<double> _histGdp => _series.Of(SeriesKeys.Gdp);
+    private List<double> _histProd => _series.Of(SeriesKeys.Production);
+    private List<double> _histTech => _series.Of(SeriesKeys.Tech);
+    private List<double> _histLit => _series.Of(SeriesKeys.Literacy);
+    private List<double> _histSat => _series.Of(SeriesKeys.Satisfaction);
+    private List<double> _histMil => _series.Of(SeriesKeys.Militancy);
+    private List<double> _histCorr => _series.Of(SeriesKeys.Corruption);
+    private List<double> _histFood => _series.Of(SeriesKeys.Food);   // 主食充足の年次履歴（ヘッダーホバー）
+    private List<double> _histLeg => _series.Of(SeriesKeys.Legitimacy);   // 正統性・国民意識の年次履歴（2026-07-15＝説明API/隠れドライバのヘッダーホバー）
+    private List<double> _histCons => _series.Of(SeriesKeys.Consciousness);
+    private List<double> _histMandate => _series.Of(SeriesKeys.Mandate);   // 政治資本（MandateSpent）の年次履歴（ヘッダーホバー・2026-07-16）
+    private List<double> _histTreasury => _series.Of(SeriesKeys.Treasury);  // 国庫の年次履歴（ヘッダー国庫のホバーグラフ・2026-07-16）
+    // ★2026-08-13（作者指摘「信用が非常に大切というのがUIからわからない」＋ヘッダー監査）：工業化・金融・対外信用の3系列（国力スコアの項）。
+    private List<double> _histInd => _series.Of(SeriesKeys.Industry);
+    private List<double> _histCredit => _series.Of(SeriesKeys.Credit);
+    private List<double> _histFin => _series.Of(SeriesKeys.Finance);
+    private List<double> _histGini => _series.Of(SeriesKeys.Gini);      // ジニ係数の年次履歴（2026-08-10作者要望）。2026-09-23にヘッダー表示は撤去したが採取は残す
+    private List<double> _histDis => _series.Of(SeriesKeys.Discontent);   // 不満度の年次履歴（2026-09-23 作者指示「識字率の右に満足度・不満度・闘争度」）
     private int _histStartYear = Calendar.StartYear, _lastSampledYear;
 
     /// <summary>年次系列の点列と最小/最大の記憶（2026-08-10）。系列は**1年に1点しか伸びない**のに、
@@ -278,8 +284,9 @@ public partial class GameViewModel : ViewModelBase
 
     // ロード用：復元済みシム＋エンベロープ（UI側の経過日数・年次グラフ・戦争UI状態）から再開。
     private GameViewModel(MultiNationSim sim, int playerIndex, double simDays, int dayInQuarterUI, int lastSampledYear,
-                          List<double>[] hist, Action? onExit, Action? onLoad, WarUiSave? warUi = null)
+                          SeriesStore series, Action? onExit, Action? onLoad, WarUiSave? warUi = null)
     {
+        _series = series;   // セーブから読んだ名前つきの系列をそのまま持つ（足された系列は旧セーブに無い＝空で始まる）
         _playerIndex = playerIndex;
         _onExit = onExit;
         _onLoad = onLoad;
@@ -288,11 +295,7 @@ public partial class GameViewModel : ViewModelBase
         _simDays = simDays;
         _dayInQuarterUI = dayInQuarterUI;
         _lastSampledYear = lastSampledYear;
-        // 監査2026-07-12（他20）：_histFood を追加＝ロード後も食料グラフの凶作履歴が残る（旧＝セーブ漏れで喪失＋年ラベルずれ）。
-        // _satHistory（SatBars削除で読者消滅）はリストごと削除。セーブ形式はビルド内互換のみ（SimCore側と同方針）＝壊れた旧セーブはロード時catchで安全に弾かれる。
-        // ⚠_histInd/_histCredit/_histFin（2026-08-13）は配列の**先頭**に挿入した＝この並びより前のセーブは全系列が3つずれて黙って読まれる（SaveMagic は POBSAVE1 のまま＝互換扱いのまま非互換）。
-        List<double>[] targets = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini, _histDis];   // ★2026-09-23：不満度 _histDis を**末尾**に追加（旧セーブは hist.Length=17 で止まる＝不満度だけ空で再開）
-        for (int i = 0; i < targets.Length && i < hist.Length; i++) targets[i].AddRange(hist[i]);
+        // 年次系列は名前と値の組で復元済み（_series）。旧の位置で並べる配列の注意書き（先頭に挿すと全系列がずれる）は、名前で引く形にした今は不要。
         _endingShown = PlayText.IsEnded(Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear);   // 終局後のセーブでランキングを再表示しない。表示暦基準（★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した。旧＝助走4四半期ぶんエンジンが1年先行＝監査2026-07-11 他9）。★1950延長2026-09-22＝終局は表示暦が EndYear（1950年1月1日）に入った時＝GameQuarters 経過＝自己対戦と同じ四半期（旧＝EndYear+1で自己対戦より4四半期長かった）
         // 戦争UIの追跡状態を復元（レビュー2026-07-19）：戦費按分・勝敗基準・終わった戦争の残置＝ロードで途切れない。
         // InitAfterSimReady 内の初回 Refresh より前に適用（既存の交戦が「新規の敵」として再基準化されない）。
