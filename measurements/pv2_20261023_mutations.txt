@@ -1,0 +1,22 @@
+# (512) 線 pv2 突然変異の記録（PlaceAdditionTests・赤になることを確かめた・各回の後 git checkout で戻した）
+== M1_コペンハーゲンを旧座標へ
+  失敗 PriceOfBread.Tests.PlaceAdditionTests.コペンハーゲンの種はシェランの島に乗りスコーネに吸着しない [6 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+== M2_コルシカのshareを0.005へ
+  失敗 PriceOfBread.Tests.PlaceAdditionTests.足した場所は盤面に一意にあり人口が表どおり_本国の人口の和は州を足しても変わらない [8 s]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+== M3_ラテンの群からコルシカを外す
+== M3_ラテンの群からコルシカを外す
+  失敗 PriceOfBread.Tests.PlaceAdditionTests.コルシカの文化の札はラテンの群に入る [62 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+== M4_チロエの座標を格子の境へ
+  失敗 PriceOfBread.Tests.PlaceAdditionTests.足した場所は座標表と陸塊表で同じ座標_両マスクの陸の格子の中心_別の種と同じ格子にならない [5 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+== M5_カナリアの陸塊idを本土へ
+  失敗 PriceOfBread.Tests.PlaceAdditionTests.足した場所は座標表と陸塊表で同じ座標_両マスクの陸の格子の中心_別の種と同じ格子にならない [81 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+== M6_パラワンの人口を倍へ
+成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+ALLDONE
+== M6'（パラワンの行だけを指して popK 10→20）
+  失敗 PlaceAdditionTests.足した場所は盤面に一意にあり人口が表どおり_本国の人口の和は州を足しても変わらない
