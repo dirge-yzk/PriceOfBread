@@ -30,6 +30,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
         Unit.RatioToGdpYear => 70,
         Unit.People or Unit.Quantity => 40,
         Unit.Count => 24,
+        Unit.PricePerUnit => 40,                                                                 // 「£12.34」6 文字分
         _ => 24,
     };
 

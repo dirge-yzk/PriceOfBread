@@ -23,12 +23,19 @@ public sealed class TableView : UserControl
     public static readonly StyledProperty<TableSnapshot?> SnapshotProperty = AvaloniaProperty.Register<TableView, TableSnapshot?>(nameof(Snapshot));
     public static readonly StyledProperty<bool> FilterableProperty = AvaloniaProperty.Register<TableView, bool>(nameof(Filterable));
     public static readonly StyledProperty<bool> InnerScrollProperty = AvaloniaProperty.Register<TableView, bool>(nameof(InnerScroll));
+    public static readonly StyledProperty<string?> SelectedKeyProperty = AvaloniaProperty.Register<TableView, string?>(nameof(SelectedKey));
 
     public TableSnapshot? Snapshot { get => GetValue(SnapshotProperty); set => SetValue(SnapshotProperty, value); }
     /// <summary>絞り込みの文字の欄を出すか。</summary>
     public bool Filterable { get => GetValue(FilterableProperty); set => SetValue(FilterableProperty, value); }
     /// <summary>中身（行）だけを欄の中で流すか。偽なら行の数だけ高くなる（外側の流れに任せる）。</summary>
     public bool InnerScroll { get => GetValue(InnerScrollProperty); set => SetValue(InnerScrollProperty, value); }
+
+    /// <summary>選んでいる行の鍵（行の背景で示す）。行を選ぶ表（生産ページの財の表）が使う。null なら選ばない。</summary>
+    public string? SelectedKey { get => GetValue(SelectedKeyProperty); set => SetValue(SelectedKeyProperty, value); }
+
+    /// <summary>行の余白を押した（動詞の押し釦は除く）。引数は行の鍵。選ぶ表だけが受ける。</summary>
+    public event Action<string>? RowPressed;
 
     /// <summary>確かめの窓を出す口。確かめの文（<see cref="VerbCell.ConfirmText"/>）を持つ動詞は、押したとき直接は呼ばずにこの口へ渡す（設計 §6-3「押す前に確かめの窓を出す物は出す」）。
     /// 表ごとの口が無ければ <see cref="DefaultConfirm"/>。どちらも無ければ何もしない（確かめ無しの発動を許さない側へ倒す）。</summary>
@@ -64,6 +71,14 @@ public sealed class TableView : UserControl
         SnapshotProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
         FilterableProperty.Changed.AddClassHandler<TableView>((v, _) => { v._filterBox.IsVisible = v.Filterable; v.Rebuild(); });
         InnerScrollProperty.Changed.AddClassHandler<TableView>((v, _) => v.AttachBody());
+        SelectedKeyProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplySelection());
+    }
+
+    /// <summary>選んでいる行の背景を付け直す（行は作り直さない）。</summary>
+    private void ApplySelection()
+    {
+        var sel = Brush("SandLightBrush", Brushes.Tan);
+        foreach (var kv in _rows) kv.Value.Root.Background = SelectedKey is not null && kv.Key == SelectedKey ? sel : Brushes.Transparent;
     }
 
     public TableView()
@@ -82,7 +97,13 @@ public sealed class TableView : UserControl
         _bodyHost.Child = null;
         if (InnerScroll) _bodyHost.Child = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Content = _body };
         else _bodyHost.Child = _body;
+        // 縦の流れの目盛り（細い帯）が最後の列の値に重ならないよう、流れる表は見出しと行の右に同じ空きを置く（見出しと行の列を揃えたまま・余白は中身の Margin）
+        var gap = new Thickness(0, 0, InnerScroll ? ScrollbarGap : 0, 0);
+        _header.Margin = gap; _body.Margin = gap;
     }
+
+    /// <summary>流れる表の右の空き（縦の目盛りの帯が値に重ならない幅）。</summary>
+    private const double ScrollbarGap = 12;
 
     // ---- 資源（App.axaml のトークン。無ければ既定）----
     private static IBrush Brush(string key, IBrush fallback)
@@ -111,7 +132,13 @@ public sealed class TableView : UserControl
                 wanted.Add(gh);
             }
             lastGroup = row.Group;
-            if (!_rows.TryGetValue(row.Key, out var rp)) _rows[row.Key] = rp = new RowPresenter(snap.Columns);
+            if (!_rows.TryGetValue(row.Key, out var rp))
+            {
+                _rows[row.Key] = rp = new RowPresenter(snap.Columns);
+                string rowKey = row.Key;
+                rp.Root.Background = SelectedKey is not null && rowKey == SelectedKey ? Brush("SandLightBrush", Brushes.Tan) : Brushes.Transparent;   // 余白も押せる（背景が無いと当たらない）
+                rp.Root.PointerPressed += (_, e) => { if (e.GetCurrentPoint(rp.Root).Properties.IsLeftButtonPressed) RowPressed?.Invoke(rowKey); };
+            }
             rp.Update(snap.Columns, row);
             live.Add(row.Key);
             wanted.Add(rp.Root);

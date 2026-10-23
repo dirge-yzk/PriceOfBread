@@ -1,4 +1,4 @@
-﻿// GameViewModel.Trade.cs ＝ 貿易タブ＝輸出入一覧・輸送サマリ・条約港。
+﻿// GameViewModel.Trade.cs ＝ 市場・清算・貿易ページ＝財の値段の表・輸出入一覧・輸送サマリ・条約港・清算の線（輸出・輸入・収支の四半期の系列）。
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +20,14 @@ public sealed record TransportRow(string Label, string Value);
 
 public partial class GameViewModel
 {
+    [ObservableProperty] private TableSnapshot _priceTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _exportTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _importTable = TableSnapshot.Empty;
+    // 清算の線＝四半期ごとの輸出・輸入・収支（月割）。名前つきの系列の倉に貯め（セーブは倉が名前と値の組で往復する）、画面へは点列の写しを渡す。
+    private const string ClearingExportKey = "clearing.export", ClearingImportKey = "clearing.import", ClearingBalanceKey = "clearing.balance";
+    [ObservableProperty] private IReadOnlyList<double> _clearingExportSeries = Array.Empty<double>();
+    [ObservableProperty] private IReadOnlyList<double> _clearingImportSeries = Array.Empty<double>();
+    [ObservableProperty] private IReadOnlyList<double> _clearingBalanceSeries = Array.Empty<double>();
     [ObservableProperty] private string _tradeExportTotal = "—";
     [ObservableProperty] private string _tradeImportTotal = "—";
     [ObservableProperty] private string _tradeBalance = "—";
@@ -29,10 +35,27 @@ public partial class GameViewModel
     public bool HasTreatyPorts => TreatyPortLine.Length > 0;
     [ObservableProperty] private List<TransportRow> _transportRows = new();
 
+    /// <summary>清算の線に 1 点足す（見えていない間も途切れさせない）。完了した四半期の数に点が足りない間だけ足す＝同じ四半期に何度呼んでも 1 点・ロード後も二重にならない。
+    /// 決済の前（輸出入の台帳が無い）は足さない。</summary>
+    private void SampleClearingSeries()
+    {
+        var w = _player;
+        if (w.ExportsByGood is null || w.ImportsByGood is null) return;
+        int quarters = (int)_simDays / Calendar.DaysPerQuarter;
+        var ex = _series.Of(ClearingExportKey); var im = _series.Of(ClearingImportKey); var ba = _series.Of(ClearingBalanceKey);
+        if (!(ex.Count < quarters)) return;
+        var (e, i) = TradeTables.Totals(w);
+        double mpc = w.Coef.MonthsPerClearing;
+        ex.Add(e / mpc); im.Add(i / mpc); ba.Add((e - i) / mpc);
+    }
+
     private void RefreshTrade()
     {
+        SampleClearingSeries();
         if (!TabTrade) return;
         var w = _player;
+        PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
+        ClearingExportSeries = _series.Of(ClearingExportKey).ToArray(); ClearingImportSeries = _series.Of(ClearingImportKey).ToArray(); ClearingBalanceSeries = _series.Of(ClearingBalanceKey).ToArray();
 
         // ---- 第1部：輸出入一覧（§3-4テレメトリ＝国際決済の国別×財別額。決済前/単一国は空） ----
         // 行は本体の貿易の表が組む（額の降順・世界価格比・依存度/世界シェア・相手）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing）。
