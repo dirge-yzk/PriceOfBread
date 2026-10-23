@@ -897,6 +897,6 @@ public class PlayHarnessTests
         Assert.DoesNotContain("c.WarDeclareTension && !d.IsAtWar", probe);                 // 緊張・交戦・厭戦・従属・到達を組み直した式が残っていない
         Assert.Contains("blockedStaleTwo", probe);                                         // P3(b) の 2 四半期続けての数（過渡の 1 四半期か残るかを分ける）
         string dip = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.SimCore", "Diplomacy.cs"));
-        Assert.Contains("internal bool WarGateOpen(Power a, Power b, Coefficients c)", dip);   // Runner から呼べる（InternalsVisibleTo）
+        Assert.Contains("internal bool WarGateOpen(Power a, Power b, Coefficients c", dip);   // Runner から呼べる（InternalsVisibleTo）。★(spdip) 末尾に既定 null の引数（交戦中の組の集合）を足した＝閉じ括弧の手前まで見る（d.WarGateOpen(a, b, c) の呼び方は同じ）
     }
 }
