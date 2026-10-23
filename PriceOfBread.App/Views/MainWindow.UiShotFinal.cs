@@ -113,11 +113,11 @@ public partial class MainWindow
             Capture(dir, $"{no():D2}_問題の一覧_全部.png");
             gvm.ExpandAllProblemsForCapture(false);
             await Task.Delay(300);
-            // 種類ごとの先頭の問題を押す（表を持つ種類を先に・最大 5 種類）
+            // 種類ごとの先頭の問題を押す（表を持つ種類を先に・全種類）
             int tried = 0;
             foreach (var g in items.GroupBy(p => p.Kind).OrderByDescending(g => g.First().TableKey.Length > 0).ThenBy(g => (int)g.Key))
             {
-                if (tried++ >= 5) break;
+                if (tried++ >= 9) break;
                 var it = g.First();
                 var row = gvm.ProblemRows.FirstOrDefault(r => r.Key == it.Key);
                 if (row is null) { BootLog.Write($"uishot: 問題を押す {ProblemScan.KindName(g.Key)}「{it.Target}」一覧に行が無い"); continue; }
