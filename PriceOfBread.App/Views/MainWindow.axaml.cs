@@ -335,6 +335,16 @@ public partial class MainWindow : Window
                 gv.ZoomToWorld();
                 await Task.Delay(700);
                 Capture(dir, "03d_地図_全景.png");
+                // ★島の塗り（2026-10-23・作者指摘「四国やルソン島が塗りから漏れている」）：州の無い島へ海を渡る割当（MapFill の段2）を拡大して撮る。
+                gv.SetZoomFactor(6.0);
+                foreach (var (nm, la, lo) in new[] { ("日本", 35.0, 135.0), ("フィリピン", 11.5, 122.5), ("地中海", 38.5, 17.0), ("北欧", 57.0, 14.0), ("カリブ", 18.5, -72.0), ("東インド", -5.0, 120.0) })
+                {
+                    gvm.CenterOnLatLon(la, lo);
+                    await Task.Delay(500);
+                    Capture(dir, $"03g_島_{nm}.png");
+                }
+                gv.ZoomToWorld();
+                await Task.Delay(300);
             }
             // ★(501) 段2：旧の「タブを順に開く」は「ページを順に開く」になった。1 枚の枠に 1 ページずつ（旧のタブの撮影に近い広さ以上）。
             //   ページの外側が縦に流れていない判定（設計 §7-3）を各ページで BootLog に書く。
