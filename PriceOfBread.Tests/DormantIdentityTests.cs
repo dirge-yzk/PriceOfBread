@@ -100,9 +100,8 @@ public class DormantIdentityTests
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
         "OpeningBakeEnabled",           // ★(490) 開幕の焼き込みの読み込み（<see cref="OpeningBake"/>）＝0 で表（opening_bake.json）を開きもしない。倒さない（焼くのは工業化度の削除の後・(464) の順）。鍵の一致と読み込みの往復は OpeningBakeTests
-        "StapleLedgerSum",              // ★(504) 食料の台帳を主食の和へ①（満たせた量の頭打ちを主食の財ごとから和へ）＝0 で今の台帳。点火は事前登録 measurements/fd504_20261023_prereg.txt の腕 B の採否の後
+        // ★StapleLedgerSum・HarvestShortfallToMarket（(504) 食料の台帳を主食の和へ①③）は 2026-10-23 に 1 で**点火**（腕 C・止める線に当たらず）＝この表から外した。②は表に残る。
         "StapleDemandRebalance",        // ★(504) 主食どうしの乗り換えの配り直し②（挟みを外し欲しい量の和を必要量に合わせる）＝0 で今の挟み。点火は同上
-        "HarvestShortfallToMarket",     // ★(504) 凶作で自給が減った分を市場の需要へ③＝0 で今のまま。点火は同上
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
