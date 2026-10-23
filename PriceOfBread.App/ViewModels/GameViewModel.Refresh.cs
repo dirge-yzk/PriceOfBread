@@ -23,23 +23,10 @@ public partial class GameViewModel
         UpdateDate();
         RefreshDaily();   // 国庫の1行は日次と同じ1本（2026-09-11 #19d）＝物価/為替/詳細パネルの価格も同時に最新化
         TreasuryHover = StatG("", "国庫", _histTreasury, Fmt.Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
-        // 技術水準の年次推移（_histTech）は**財政タブの技術効率の行**が読む＝GameViewModel.Fiscal.cs の TechHover（2026-08-15作者裁定の移設先）。
+        // 技術水準の年次推移（_histTech）は財政と貨幣のページの技術水準の線が読む（GameViewModel.Fiscal.cs の TechValues）。
         // ⚠ここで同じものを二度作らない（同じ量を2つの名前で呼ばない）。採取は SampleYearStats の _histTech.Add の1本だけ。
         RefreshTrade();   // 貿易タブ（2026-07-24）：開いている時のみ集計（閉＝即return）
-        // 金融（財政タブ）：「ラベル｜値」の行に分解（旧FinanceText＝1本の連結文字列は折返し位置が不定・ホバー対象が曖昧だった）。
-        InterestLeverLine = $"政策金利 {_player.Policy.InterestRateTarget:P0}　実効 {_player.InterestRate:P0}";   // B1：他11レバーと同じ「目標／実効」の1行ペア
-        LoanRateText = $"{_player.LoanRatePerYear:P1}";                                                          // B1：年率換算（唯一の換算地点＝World.LoanRatePerYear）
-        if (_player.Bank is { } bank)
-        {
-            CoverText = PlayText.CoverText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告と同じ）
-            HouseholdLoanText = Fmt.Money(bank.HouseholdLoans.Value);   // ★A-03：POPの個人債務の残高
-        }
-        else { CoverText = "—"; HouseholdLoanText = "—"; }   // 銀行なし＝兌換系は該当なし
-        LossFinancedText = Fmt.Money(_player.LossFinanced);   // ★A-03：損失の負債化（累積グロス）＝硬性ゲートの分子
-        OnPropertyChanged(nameof(CoverTip));   // 兌換カバー率ホバーの内訳（基礎/広義貨幣）も追従
-
-        // 旧・上部バー用の DebtText/DebtVisible と RegionInfo はXAML未バインドの死構築だったため削除（監査2026-07-12 死14/16）。
-        // 財政劣化の連鎖（対GDP比・対外債務・緊縮・切下げ累計）は財政タブの DebtLine（UpdateForecast）へ統合。
+        // 金融（物価・為替・金利・損失の負債化・家計債務・兌換カバー率）は財政と貨幣のページの金融の表（本体の目録 FiscalTables.Finance）が読む＝ここでは作らない。
 
         if (includeMap) RefreshMap();                  // 地図中心UI：全国の州○を所有国色で再配置（重い＝四半期のみ。月次はスキップ）
 
@@ -495,137 +482,7 @@ public partial class GameViewModel
 
         UpdateForecast();   // 予算予想（支出/収入・実効%・予想額）＝毎tickも更新されるがRefresh時にも即時反映
 
-        // POP＝上流（貴族・聖職・資本家）／中流（専門職・官僚・職人・商人）／下流（労働者・農民・兵士・使用人 他）の3層で表示。
-        // 全州のpopを ClassId で集約（国民全体）。州別の人数はツールチップに内訳表示（パリ:n人 リール:n人…）。数値はすべて「:」で繋ぐ。
-        var popsUpper = new List<PopRow>(); var popsMiddle = new List<PopRow>(); var popsLower = new List<PopRow>();   // 据え置き同期（ホバー中のツールチップを毎月壊さない）
-        var order = new List<int>();
-        var agg = new Dictionary<int, List<(Region Rg, Pop P)>>();
-        foreach (var rg in _player.Regions)
-        {
-            if (rg.State != RegionState.Active) continue;
-            foreach (var p in rg.Pops)
-            {
-                if (!agg.TryGetValue(p.ClassId, out var l)) { agg[p.ClassId] = l = new(); order.Add(p.ClassId); }
-                l.Add((rg, p));
-            }
-        }
-        bool foodShort = _player.Regions.Any(r => r.State == RegionState.Active && r.FoodFill < FillWarnThreshold);
-        double taxBurden = _player.TaxRate.Value + _player.PollTax * 0.5;
-        // ★増減の矢印（作者指示2026-08-16(2)(3)）：四半期境界でのみ規模/失業者の差分を確定（状態は GameViewModel.Pop.cs）。初回は基準化のみ＝矢印なし
-        int popQStamp = _player.Year * Calendar.QuartersPerYear + _player.Quarter;
-        bool popQBoundary = popQStamp != _prevPopQuarterStamp;
-        foreach (int cid in order)
-        {
-            var members = agg[cid];
-            var first = members[0].P;
-            double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
-            double leanC = 0, leanL = 0, leanS = 0;   // 政治意識のある人数の族別内訳（千人・作者指示2026-08-16(1)）＝残りが「なし」
-            double mLiving = 0, mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;   // ★段2＝闘争度の5項（生活の失望/法の隔たり/厭戦/民族/飢餓）
-            double debt = 0;   // ★2026-08-02：個人債務も集計（作者指示「POPに貯蓄と合わせて借金も表示」）
-            // ★満足度セルのホバー（作者指示2026-08-15(2)）：主食と主食以外の充足。需要量はpop規模に比例＝量の総和がそのままsize加重
-            double fMet = 0, fNeed = 0, nMet = 0, nTot = 0;
-            foreach (var (rg, p) in members)
-            {
-                size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt.Value;
-                fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
-                satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
-                double a20 = p.AgeShare(20, double.PositiveInfinity);   // 年齢の層（段4e 後半）：女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
-                femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size; if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
-                mLiving += p.MilLiving * p.Size; mVoice += p.MilVoice * p.Size; mWar += p.MilWar * p.Size;
-                mNation += p.MilNation * p.Size; mFamine += p.MilFamine * p.Size;   // ★段2で失業/群衆/格差/中間/革命の波は項ごと削除（設計メモ §7-3）
-                // ★4区分の畳み込み（作者指示2026-08-16(1)）＝政治意識のある人数を族比で割る（PopIdeologyHeads・GameViewModel.Pop.cs）。
-                //   単位は人数（千人）＝ここで足し込んだ3族と「なし」の合計がその階級の規模に一致する。
-                var (headC, headL, headS) = PopIdeologyHeads(p);
-                leanC += headC; leanL += headL; leanS += headS;
-            }
-            double inv = size > 1e-9 ? 1.0 / size : 0;
-            double sat = satW * inv, mil = milW * inv, litAvg = litW * inv, fem = femW * inv, child = childW * inv, old = oldW * inv, unemp = unempW * inv;
-            double perCap = size > 1e-9 ? sav / size : 0;
-            // ★満足度セルのホバー（作者指示2026-08-15(2)）：主食＝FoodMet/FoodNeed・主食以外＝NeedMet/NeedTotal。
-            //   エンジンと同じくクランプ（EconomyStep の Satisfaction=Clamp(NeedMet/NeedTotal) と同族）。
-            //   ⚠アヘン・インフラ・福祉等の後段の加減点は診断フィールドが無い＝今回は出さない（将来課題）
-            double foodFill = fNeed > 1e-9 ? System.Math.Clamp(fMet / fNeed, 0, 1) : 1.0;
-            // ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝満足度の台帳（NeedMet/NeedTotal）には食料が載っていない＝台帳そのものが「主食以外」。
-            //   ⚠旧の引き算（nTot−fNeed／nMet−fMet）は分子と分母で別の規則（重み付き台帳−重みなしの食料）だった＝分割後に引くと分子が負になる。
-            double othNeed = nTot, othMet = nMet;
-            double othFill = othNeed > 1e-9 ? System.Math.Clamp(othMet / othNeed, 0, 1) : 1.0;
-            string satTip = $"主食の充足:{foodFill:P0}\n主食以外の充足:{othFill:P0}";
-            // ★増減の向き（作者指示2026-08-16(2)(3)）：四半期境界でのみ確定（StampPopDelta・GameViewModel.Pop.cs）＝規模と失業者で同じ物差し。
-            double unempK = size * unemp;   // 失業者数（千人）
-            var (sizeArrow, sizeArrowBrush) = PopTrend(StampPopDelta(_prevPopSize, _popSizeDelta, cid, size, popQBoundary));
-            var (unempArrow, unempArrowBrush) = PopTrend(StampPopDelta(_prevPopUnemp, _popUnempDelta, cid, unempK, popQBoundary));
-            string party = first.Closed ? "保守党" : first.IsModernElite ? "自由党" : "社会党";   // 支持政党＝利益ブロック
-            bool parliamentActive = HasParliament;   // 項9（2026-07-26）：議会（議席）が無い段階では支持政党を出さない（ParliamentTextと同じ判定＝HasParliament。政体条件込み・2026-08-04）
-            // 所得・貯蓄 → 州別の人数(失業込み)を1州1行 → 人口構成 → 失業率/支持政党（すべて「:」区切り）
-            string tip = first.ClassName
-                       + $"\n所得:{Fmt.Money(earned)}　貯蓄:£{perCap:F1}　借金:£{(size > 1e-9 ? debt / size : 0):F1}";   // ★借金＝1人当たり（貯蓄と同じ物差し・2026-08-02）
-            foreach (var (rg, p) in members.Where(m => m.P.Size > 0.5).OrderByDescending(m => m.P.Size))
-            {
-                double un = p.IsSoldier ? 0 : p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の未払いは失業に数えない
-                tip += $"\n{rg.Name}:{Fmt.PopFmtK(p.Size)}" + (un > 0.5 ? $"(失業{Fmt.PopFmtK(un)})" : "");   // 内部単位=千人（他10）。POPタブはk統一（項10）
-            }
-            tip += $"\n女性:{fem:P0}　子供:{child:P0}　老年:{old:P0}"
-                 + $"\n失業率:{unemp:P0}" + (parliamentActive ? $"　支持政党:{party}" : "");
-            // 闘争度の要因内訳：全国size加重の各寄与ぶん（多い順・0.5%未満は省略）。生活水準には操作可能な主因をヒント
-            var milb = new List<(string Label, double V)>
-            {
-                (PlayText.MilitancyPartNames[0], mLiving * inv), (PlayText.MilitancyPartNames[1], mVoice * inv), (PlayText.MilitancyPartNames[2], mWar * inv),   // ★(410) 5 本の名前は PlayText が単一ソース（Runner の play の報告と同じ）
-                (PlayText.MilitancyPartNames[3], mNation * inv), (PlayText.MilitancyPartNames[4], mFamine * inv),
-            };
-            var causes = new List<string>();
-            if (foodShort) causes.Add("主食不足");
-            if (!first.Closed && !first.IsSoldier && taxBurden > 0.30) causes.Add("重税");
-            if (!first.Closed && !first.IsModernElite && _player.WorkHoursValue >= 12 && first.IsUrban) causes.Add("長時間労働");
-            var shown = milb.Where(x => x.V > 0.005).OrderByDescending(x => x.V).ToList();
-            // ★闘争度の要因は闘争度セルのホバーへ移動（作者指示2026-08-15(2)）＝階級名セルの tip からは出さない。
-            //   1本も無い（全要因0.5%以下）なら null＝ツールチップ自体を出さない（空文字だと空の吹き出し）
-            string? milTipText = null;
-            foreach (var (label, v) in shown)
-            {
-                string extra = label == "生活水準の不足" && causes.Count > 0 ? $"({string.Join("、", causes)})" : "";
-                milTipText = (milTipText is null ? "" : milTipText + "\n") + $"・{label}:+{v:P0}{extra}";
-            }
-            // ★4区分（作者指示2026-08-16(1)）：なし＝規模−（保守+自由+社会）＝Σ size×(1−Consciousness)。差で取る＝4列の合計は常に規模と一致する。
-            double leanNone = System.Math.Max(0, size - (leanC + leanL + leanS));
-            var privChips = PopPrivilegeChips(cid);   // ★特権の1行（作者指示2026-09-07(7)(8)）＝法・政体・工業化から導く観測量。先頭が「なし」
-            var row = new PopRow
-            {
-                Class = first.ClassName,
-                ClassId = cid,
-                // ★規模と失業者は別の列（作者フィードバック2026-08-10）。POPタブはk統一（項10）。
-                //   規模は全国人口比を併記「5,430K(12%)」（作者指示2026-08-15(3)・分母=Refresh冒頭のpopTotal）＋増減の矢印（2026-08-16(2)）
-                Size = popTotal > 1e-9 ? Fmt.PopFmtK(size) + $"({size / popTotal:P0})" : Fmt.PopFmtK(size),
-                SizeArrow = sizeArrow,
-                SizeArrowBrush = sizeArrowBrush,
-                // ★失業者も規模と同型「543K(10%)↑」（作者指示2026-08-16(3)）＝()内はこの階級の失業率。丸めて0%の階級は「—」（矢印も出さない）
-                Unemployed = unemp > 0.005 ? Fmt.PopFmtK(unempK) + $"({unemp:P0})" : "—",
-                UnemployedArrow = unemp > 0.005 ? unempArrow : "",
-                UnemployedArrowBrush = unempArrowBrush,
-                Satisfaction = sat.ToString("P0"),
-                Militancy = mil.ToString("P0"),
-                Literacy = litAvg.ToString("P0"),
-                // ★なし/保守/自由/社会の4区分（作者指示2026-08-16(1)・旧「政治意識」列は「なし」の裏返しなので撤去）＝合計100%。
-                //   意識は識字×教育法×都市×報道で伸びる遅い変数（時定数約17年）＝「なし」が減る速さがそのままレバーの効き。
-                LeanNone = (leanNone * inv).ToString("P0"),
-                // ★族ごとに1列（作者フィードバック2026-08-10）＝縦に並ぶので階級間で同じ族を比較できる。
-                LeanConservative = (leanC * inv).ToString("P0"),
-                LeanLiberal = (leanL * inv).ToString("P0"),
-                LeanSocialist = (leanS * inv).ToString("P0"),
-                Tip = tip,
-                SatTip = satTip,
-                MilTip = milTipText,
-            };
-            foreach (var ch in privChips) row.Privileges.Add(ch);
-            bool upper = first.Closed || first.ClassName == CapitalistClass;
-            bool middle = !upper && (first.IsModernElite || first.ClassName is BureaucratClass or ArtisanClass or MerchantClass);
-            (upper ? popsUpper : middle ? popsMiddle : popsLower).Add(row);
-        }
-        if (popQBoundary) _prevPopQuarterStamp = popQStamp;   // 全階級の基準化/確定が済んでからスタンプを進める
-        SyncRows(PopsUpper, popsUpper, r => r.Class, (t, s) => t.CopyFrom(s));
-        SyncRows(PopsMiddle, popsMiddle, r => r.Class, (t, s) => t.CopyFrom(s));
-        SyncRows(PopsLower, popsLower, r => r.Class, (t, s) => t.CopyFrom(s));
-
-        BuildComposition();   // 文化・宗教の構成（#62 表示レイヤー）
+        RefreshPopulation();   // 人口のページ（階級・州・宗教・文化・年齢の層・出生と死）。階級の集約と増減の矢印の差分は見えているかに依らず毎月採る（GameViewModel.Pop.cs）
         BuildParliament();    // 議会の実体（議席・得票・支持基盤・2026-08-04）
 
         // 利益団体（旧支配層/近代エリート/大衆の政治勢力＝富×参政権。POP由来＝政治の主役・革命の駆動）
@@ -660,11 +517,8 @@ public partial class GameViewModel
             });
         }
 
-        // 予算レバーの現在値を通知（ロード時/再描画時）
-        OnPropertyChanged(nameof(ArmyUpkeepLine)); OnPropertyChanged(nameof(NavyUpkeepLine));
-        // ⚠撤去2026-09-23：NavalShare/NavalShareLine への通知＝比のレバーごと廃止（地理が置く）。陸海それぞれの**金額**は上の2行が名乗る。
-        OnPropertyChanged(nameof(Tariff));
-        RefreshLaws();   // 法律タブの段階ボタン行（E8）＋財政の段（R1/R2）：現行段階・改正可否・政治資本コストを毎期更新
+        // 予算レバーの現在値は財政と貨幣のページの表が UpdateForecast で読む（通知は要らない）。
+        RefreshLaws();   // 法律タブの段階ボタン行（E8）：現行段階・改正可否・政治資本コストを毎期更新
         UpdateLawAlert();     // 法律タブの通知＝改革の一歩が「通らない→通る」へ変わったら点灯
         OnPropertyChanged(nameof(PolityText));
         OnPropertyChanged(nameof(CrownText)); OnPropertyChanged(nameof(ParliamentControlText));
@@ -675,16 +529,9 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(PolityMobilizationText)); OnPropertyChanged(nameof(PolityRollbackText));
         OnPropertyChanged(nameof(WarScaleText)); OnPropertyChanged(nameof(WarHomeLosingText));   // ★(195) 総動員の判断の材料（AI と同じ Diplomacy.WarScale）   // 政体パネル（2026-07-24）。総動員時の兵士割合
         OnPropertyChanged(nameof(ParliamentText));
-        OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));
-        OnPropertyChanged(nameof(MobilizeButtonText)); OnPropertyChanged(nameof(CoverVisible));
-        OnPropertyChanged(nameof(LoanRateVisible)); OnPropertyChanged(nameof(HouseholdLoanVisible));   // 金融の条件付きの2行（2026-09-26）
-        OnPropertyChanged(nameof(InterestLever));
-        OnPropertyChanged(nameof(InterestLeverEnabled));   // ★トリレンマ（2026-08-13）：兌換維持＋資本自由へ入った/出た瞬間に掴める/掴めないが切り替わる
-        OnPropertyChanged(nameof(ModernizationInvest));
+        OnPropertyChanged(nameof(MobilizeButtonText));
         // 法律の現行値/支持団体の8本への通知は撤去（2026-08-10）＝2026-08-02の「議会立法」ブロック撤去で購読者が0件になっていた
         // （現行段は法律一覧の濃塗り・賛否は段ボタンのホバーが持つ）。行そのものの追従は上の RefreshLaws が担う。
-        // ⚠撤去2026-09-12/2026-09-20: 社会保障・税・教育費のスライダーへの通知＝段ボタンへ一本化して購読者が0件（段ボタンの追従は上の RefreshLaws）。
-        OnPropertyChanged(nameof(AdminSpending));
         // 制度（法律タブ）：解禁は四半期判定＝状態行を毎期読み直す
         OnPropertyChanged(nameof(Institutions));   // 制度3行（施行/未施行）＝法律と同じ形（2026-08-11）
 

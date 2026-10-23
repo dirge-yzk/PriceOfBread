@@ -46,6 +46,30 @@ public sealed class TableView : UserControl
         confirm(vb);
     }
 
+    /// <summary>段の列の最大の幅（これを超える段の押し釦は欄の中で折り返す）。</summary>
+    public const double StageMaxWidth = 236;
+
+    /// <summary>文字の 1 つのセルの最大の幅（これを超える長い文字は末尾を省略記号にして全文を吹き出しに出す）。</summary>
+    public const double MaxTextWidth = 260;
+
+    /// <summary>見出しの列の左端と、値の列の左端が揃っているかの検査（撮影の判定）。見出しの格子と先頭の行の格子で、列ごとの左端（前の列の幅の和）を比べる。
+    /// 行が無い・まだ測られていない表は測らない（<c>Measured</c>＝0）。</summary>
+    public (int Gaps, int Measured) AlignmentGaps()
+    {
+        var row = _body.Children.OfType<Grid>().FirstOrDefault(g => g.ColumnDefinitions.Count == _header.ColumnDefinitions.Count && g.ColumnDefinitions.Count > 0);
+        if (row is null || !(_header.Bounds.Width > 0)) return (0, 0);
+        int gaps = 0; double hx = 0, rx = 0;
+        for (int i = 0; i < _header.ColumnDefinitions.Count; i++)
+        {
+            if (Math.Abs(hx - rx) > 0.5) gaps++;
+            hx += _header.ColumnDefinitions[i].ActualWidth; rx += row.ColumnDefinitions[i].ActualWidth;
+        }
+        return (gaps, _header.ColumnDefinitions.Count);
+    }
+
+    /// <summary>表の行の数（撮影の検査用）。</summary>
+    public int RowCount => _rows.Count;
+
     private readonly Grid _root = new() { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
     private readonly TextBox _filterBox = new() { Watermark = "", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
@@ -64,6 +88,7 @@ public sealed class TableView : UserControl
         SnapshotProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
         FilterableProperty.Changed.AddClassHandler<TableView>((v, _) => { v._filterBox.IsVisible = v.Filterable; v.Rebuild(); });
         InnerScrollProperty.Changed.AddClassHandler<TableView>((v, _) => v.AttachBody());
+        ScrollXProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplyScrollX());
     }
 
     public TableView()
@@ -76,13 +101,39 @@ public sealed class TableView : UserControl
         AttachBody();
     }
 
+    /// <summary>列が多くて欄の幅に収まらないことがある表は、横に流す（列を黙って切らない）。広い欄では最後の列の右まで広がる。既定は偽（段の押し釦のように折り返せる列を持つ表は、横に流さず折り返す）。
+    /// ⚠横の流れ（Auto）は中身を無限の幅で測る＝折り返しの列は折り返さず 1 行の幅になる。長い文字は <see cref="MaxTextWidth"/> で省略記号にする。</summary>
+    public static readonly StyledProperty<bool> ScrollXProperty = AvaloniaProperty.Register<TableView, bool>(nameof(ScrollX));
+    public bool ScrollX { get => GetValue(ScrollXProperty); set => SetValue(ScrollXProperty, value); }
+    private ScrollViewer? _hscroll;
+
+    private void ApplyScrollX()
+    {
+        if (ScrollX)
+        {
+            _hscroll ??= new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+            Content = null; _hscroll.Content = _root; Content = _hscroll;
+        }
+        else
+        {
+            if (_hscroll is not null) _hscroll.Content = null;
+            Content = _root;
+        }
+    }
+
     private void AttachBody()
     {
         if (_bodyHost.Child is ScrollViewer old) old.Content = null;   // 行の入れ物は同時に 1 か所にしか置けない
         _bodyHost.Child = null;
         if (InnerScroll) _bodyHost.Child = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Content = _body };
         else _bodyHost.Child = _body;
+        // 縦の流れの目盛り（細い帯）が最後の列の値に重ならないよう、流れる表は見出しと行の右に同じ空きを置く（見出しと行の列を揃えたまま・余白は中身の Margin）
+        var gap = new Thickness(0, 0, InnerScroll ? ScrollbarGap : 0, 0);
+        _header.Margin = gap; _body.Margin = gap;
     }
+
+    /// <summary>流れる表の右の空き（縦の目盛りの帯が値に重ならない幅）。</summary>
+    private const double ScrollbarGap = 12;
 
     // ---- 資源（App.axaml のトークン。無ければ既定）----
     private static IBrush Brush(string key, IBrush fallback)
@@ -108,6 +159,7 @@ public sealed class TableView : UserControl
             if (row.Group is { Length: > 0 } g && g != lastGroup)
             {
                 if (!_groups.TryGetValue(g, out var gh)) _groups[g] = gh = MakeGroupHeader(g);
+                ToolTip.SetTip(gh, row.GroupTip);   // 空なら null＝空の吹き出しを出さない
                 wanted.Add(gh);
             }
             lastGroup = row.Group;
@@ -169,6 +221,7 @@ public sealed class TableView : UserControl
 
     private static Control MakeGroupHeader(string group) => new StackPanel
     {
+        Background = Brushes.Transparent,   // 吹き出しの当たり判定（透明でも箱全体が当たる）
         Children =
         {
             new Border { Height = 1, Background = Brush("SandBrush", Brushes.Tan), Margin = new Thickness(0, 6, 0, 2) },
@@ -224,19 +277,19 @@ public sealed class TableView : UserControl
                 case ColumnKind.Number:
                     return new TextBlock
                     {
-                        FontSize = Small, TextAlignment = TextAlignment.Right, Margin = margin, HorizontalAlignment = HorizontalAlignment.Right,
+                        FontSize = Small, TextAlignment = TextAlignment.Right, Margin = margin, HorizontalAlignment = HorizontalAlignment.Right, Background = Brushes.Transparent,
                         Foreground = spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black),
                     };
                 case ColumnKind.Share:
                     return new HalfPie { Radius = 16, Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Stage:
-                    return new WrapPanel { Orientation = Orientation.Horizontal, Margin = margin };
+                    return new WrapPanel { Orientation = Orientation.Horizontal, Margin = margin, MaxWidth = StageMaxWidth };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
                 case ColumnKind.Verb:
                     return new Border { Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 default:
                     return new TextBlock
                     {
-                        FontSize = Small, TextTrimming = TextTrimming.CharacterEllipsis, Margin = margin,
+                        FontSize = Small, TextTrimming = TextTrimming.CharacterEllipsis, Margin = margin, Background = Brushes.Transparent, MaxWidth = MaxTextWidth, HorizontalAlignment = HorizontalAlignment.Left,   // 最大の幅より広い欄でも左に寄せる（中央に寄せない）
                         Foreground = index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray),
                     };
             }
@@ -250,7 +303,7 @@ public sealed class TableView : UserControl
             {
                 case TextBlock tb:
                     if (tb.Text != cell.Text) tb.Text = cell.Text;
-                    ToolTip.SetTip(tb, spec.Kind == ColumnKind.Text ? cell.Text : null);   // 溢れて省略されても全文が読める
+                    ToolTip.SetTip(tb, cell.Tip ?? (spec.Kind == ColumnKind.Text ? cell.Text : null));   // 溢れて省略されても全文が読める・目録が文を持つ数と文字はその文
                     break;
                 case HalfPie pie when cell.Extra is ShareCell sc:
                     pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PiePalette[i % PiePalette.Length])).ToList();

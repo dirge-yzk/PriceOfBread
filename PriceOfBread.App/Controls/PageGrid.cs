@@ -15,7 +15,9 @@ public sealed record SectionSpec(string Key, string Title, int Rank, int MinRows
 
 /// <summary>ページの並べの表（設計 §2-5・§6-9）＝ページごとに 1 つだけ手で書く。欄の宣言と、幅が 3 列のときの欄の置き場（列ごとに上から下の順）。
 /// 2 列・1 列のときは 3 列の並びを左の列から順に下へ積んだ列を、最小の高さの合計が半分になる所で割る（表に書かない）。</summary>
-public sealed record PageTable(IReadOnlyList<SectionSpec> Sections, IReadOnlyList<IReadOnlyList<string>> Columns3);
+/// <param name="ColumnMinWidth">1 列の最小の幅。null（既定）なら幅で決める（1200 以上＝3 列・700 以上＝2 列）。幅の広い表を持つページは、列を増やしすぎない最小の幅を宣言する
+/// （列の数＝幅 ÷ 最小の幅・1〜3 の間・置き場の列の数を超えない）。</param>
+public sealed record PageTable(IReadOnlyList<SectionSpec> Sections, IReadOnlyList<IReadOnlyList<string>> Columns3, double? ColumnMinWidth = null);
 
 /// <summary>欄 1 つの割り当て＝畳むか・高さ（見出しを含む）。</summary>
 public readonly record struct SectionPlace(string Key, bool Collapsed, double Height);
@@ -35,6 +37,14 @@ public static class PagePlan
 
     public static int ColumnCount(double width) => width >= 1200 ? 3 : width >= 700 ? 2 : 1;
 
+    /// <summary>表の宣言（<see cref="PageTable.ColumnMinWidth"/>）を踏まえた列の数。</summary>
+    public static int ColumnCount(double width, PageTable t)
+    {
+        if (t.ColumnMinWidth is not { } min || !(min > 0)) return ColumnCount(width);
+        int n = (int)Math.Floor((width + ColumnGap) / (min + ColumnGap));
+        return Math.Clamp(n, 1, Math.Max(1, Math.Min(3, t.Columns3.Count)));
+    }
+
     public static double MinHeight(SectionSpec s) => HeaderHeight + Math.Max(0, s.MinRows) * RowHeight;
 
     /// <summary>欄を <paramref name="columns"/> 列へ置く。表に無い鍵・重複は例外（宣言の間違いは起動時に落とす）。</summary>
@@ -44,7 +54,7 @@ public static class PagePlan
         foreach (var s in t.Sections) if (!byKey.TryAdd(s.Key, s)) throw new ArgumentException($"欄の鍵が重なっている: {s.Key}");
         var three = t.Columns3.Select(c => (IReadOnlyList<SectionSpec>)c.Select(k => byKey.TryGetValue(k, out var s) ? s : throw new ArgumentException($"表に無い欄: {k}")).ToList()).ToList();
         if (three.SelectMany(c => c).Select(s => s.Key).Distinct().Count() != three.Sum(c => c.Count)) throw new ArgumentException("同じ欄を 2 つの列に置いている");
-        if (columns >= 3 || three.Count <= 1) return columns == 1 ? [three.SelectMany(c => c).ToList()] : three;
+        if (columns >= 3 || columns >= three.Count || three.Count <= 1) return columns == 1 ? [three.SelectMany(c => c).ToList()] : three;
         var flat = three.SelectMany(c => c).ToList();
         if (columns <= 1) return [flat];
         // 2 列：左から順に積み、最小の高さの合計が半分に届いた所で次の列へ（各列に最低 1 つ）
@@ -103,7 +113,7 @@ public static class PagePlan
 
     /// <summary>ページ全体の割り当て。</summary>
     public static IReadOnlyList<IReadOnlyList<SectionPlace>> Plan(PageTable t, double width, double height, ISet<string>? userOpened = null, ISet<string>? userClosed = null)
-        => Arrange(t, ColumnCount(width)).Select(c => PlanColumn(c, height, userOpened, userClosed)).ToList();
+        => Arrange(t, ColumnCount(width, t)).Select(c => PlanColumn(c, height, userOpened, userClosed)).ToList();
 }
 
 /// <summary>ページの欄 1 つ＝見出しの 1 行（名前・開閉の印）と、その下の中身（<see cref="Body"/>）。中身は欄の中だけで縦に流れる（ページの外側は流れない）。見出しを押すと開閉する。
@@ -114,9 +124,14 @@ public sealed class Section : Border
     public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<Section, string>(nameof(Title), "");
     public static readonly StyledProperty<bool> IsCollapsedProperty = AvaloniaProperty.Register<Section, bool>(nameof(IsCollapsed));
 
+    /// <summary>中身を欄の中で流すか。真（既定）＝欄の中身ぜんたいを 1 つの流れに載せる／偽＝中身は欄の残りの高さをそのまま受ける
+    /// （表が自分の中身だけを流して、見出しの行を止めておく時に使う＝流れの中に入れると表は無限の高さを受けて流れなくなる）。</summary>
+    public static readonly StyledProperty<bool> ScrollBodyProperty = AvaloniaProperty.Register<Section, bool>(nameof(ScrollBody), true);
+
     public string Key { get => GetValue(KeyProperty); set => SetValue(KeyProperty, value); }
     public string Title { get => GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
     public bool IsCollapsed { get => GetValue(IsCollapsedProperty); set => SetValue(IsCollapsedProperty, value); }
+    public bool ScrollBody { get => GetValue(ScrollBodyProperty); set => SetValue(ScrollBodyProperty, value); }
 
     /// <summary>欄の中身（XAML では子として書く）。</summary>
     [Avalonia.Metadata.Content]
@@ -130,9 +145,12 @@ public sealed class Section : Border
     private readonly ScrollViewer _body = new() { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
     private readonly Avalonia.Controls.Presenters.ContentPresenter _inner = new() { Margin = new Thickness(8, 4, 12, 6) };   // 余白は中身の Margin（スクロールの Padding はスクロールの範囲に入らない）
 
+    private readonly DockPanel _dock = new();
+
     static Section()
     {
         IsCollapsedProperty.Changed.AddClassHandler<Section>((s, _) => s.Sync());
+        ScrollBodyProperty.Changed.AddClassHandler<Section>((s, _) => s.SyncBodyHost());
         TitleProperty.Changed.AddClassHandler<Section>((s, _) => s._title.Text = s.Title);
     }
 
@@ -148,7 +166,7 @@ public sealed class Section : Border
         };
         header.PointerPressed += (_, e) => { if (e.GetCurrentPoint(header).Properties.IsLeftButtonPressed) HeaderPressed?.Invoke(this); };
         var line = new Border { Height = 1, Background = Brush("SandDarkBrush", Brushes.Tan) };
-        var dock = new DockPanel();
+        var dock = _dock;
         DockPanel.SetDock(header, Dock.Top); DockPanel.SetDock(line, Dock.Top);
         dock.Children.Add(header); dock.Children.Add(line); dock.Children.Add(_body);
         Child = dock;
@@ -160,6 +178,25 @@ public sealed class Section : Border
     {
         _glyph.Text = IsCollapsed ? "▸" : "▾";
         _body.IsVisible = !IsCollapsed;
+        _inner.IsVisible = !IsCollapsed;
+    }
+
+    /// <summary>中身の置き場を切り替える（流れに載せる／欄の残りの高さをそのまま受ける）。</summary>
+    private void SyncBodyHost()
+    {
+        if (ScrollBody)
+        {
+            _dock.Children.Remove(_inner);
+            _body.Content = _inner;
+            if (!_dock.Children.Contains(_body)) _dock.Children.Add(_body);
+        }
+        else
+        {
+            _body.Content = null;
+            _dock.Children.Remove(_body);
+            if (!_dock.Children.Contains(_inner)) _dock.Children.Add(_inner);
+        }
+        Sync();
     }
 
     private static IBrush Brush(string key, IBrush fallback)

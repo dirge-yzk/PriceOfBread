@@ -62,7 +62,6 @@ public partial class GameViewModel
 
     private void BuildParliament()
     {
-        BuildPopTips();   // ★2026-09-24：POPタブのホバー4本（GameViewModel.Pop.cs）。⚠ここに置いた理由＝呼び手は毎Refresh 1回でよく、Refresh.cs はこの枠の持ち物でない（BuildComposition/BuildParliament の並びへ移してよい）
         // ⚠通知は**先に**出す＝false→true へ転じた四半期に画面が追従する（早期returnの後ろに置くと、
         //   議席が0の間は通知が一度も出ず、参政権を得ても議会の節が現れないまま固まる）。
         OnPropertyChanged(nameof(HasParliament));

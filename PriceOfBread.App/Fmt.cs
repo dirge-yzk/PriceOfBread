@@ -23,14 +23,7 @@ public static class Fmt
     //   （F1 の丸め）。戦争タブの戦費は国の月次戦費を戦線数で割った額＝多正面ではこの帯に落ちるので、
     //   作者の画面（英 £82.2/月 ÷ 8戦線 × 4ヶ月 ＝ £41）では**原理的に金額が見えなかった**。
     //   桁に応じて小数を詰める作法は MoneyPerHead と同じ（あちらは1未満の小数まで扱うので刻みが細かい）。
-    public static string Money(double v)
-    {
-        double a = System.Math.Abs(v); string sign = v < 0 ? "-" : "";
-        if (a >= 1e6) return $"{sign}£{a / 1e6:F2}M";
-        if (a >= 1e4) return $"{sign}£{a / 1e3:F0}k";
-        if (a >= 1e3) return $"{sign}£{a / 1e3:F1}k";
-        return $"{sign}£{a:N0}";
-    }
+    public static string Money(double v) => DisplayFormat.Money(v);   // 実体は本体の目録の側（吹き出しの文を本体で組むのに同じ書式が要る）
 
     // 1人あたりの金額（ヘッダーの一人当たりGDP）。Money の k/M 表記は人数で割った桁を全部「£0.0k」に潰すので、桁に応じて小数を詰める。
     public static string MoneyPerHead(double v)
@@ -49,7 +42,7 @@ public static class Fmt
     // POPタブ専用：★2026-08-02「〇K」表記（作者指示）。⚠**「人」だけを外し、k は残す**。
     //   一度 k ごと外して素の人数（31,090,000）にしたのは読み違い＝桁が大きすぎて読めなくなった。
     //   k で割り、単位は大文字K・桁区切りあり（5,430K）＝列の右端が揃い、桁の比較ができる。
-    public static string PopFmtK(double thousands) => thousands.ToString("N0") + "K";
+    public static string PopFmtK(double thousands) => DisplayFormat.PopK(thousands);
 
     // 人数（内部単位=千人・監査2026-07-11 他10）を実人数へ直してから k 単位へ（項目4）。旧 PopFmt は 1000人未満を「500人」と素で出していた。
     public static string People(double thousands) => Qty(thousands * 1000.0);

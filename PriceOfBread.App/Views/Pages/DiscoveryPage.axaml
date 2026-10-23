@@ -1,23 +1,17 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PriceOfBread.App.ViewModels"
-             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.DiscoveryPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/DiscoveryPage.axaml ＝ 発見のページ。移行の間は旧の発見パネルの中身（2段組の行）をそのまま載せる（段3 で発見の表へ組み直す）。 -->
-                <ScrollViewer x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <Grid ColumnDefinitions="*,16,*" Margin="14,10,22,14">
-                        <Grid.Resources>
-                            <DataTemplate x:Key="DiscoveryRow" x:DataType="vm:DiscoveryRow">
-                                <Grid ColumnDefinitions="30,*,46" Margin="0,3,0,3" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="200" Background="Transparent">
-                                    <TextBlock Grid.Column="0" Text="{Binding Kind}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center" Margin="6,0,0,0" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding PctText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                                </Grid>
-                            </DataTemplate>
-                        </Grid.Resources>
-                        <ItemsControl Grid.Column="0" ItemsSource="{Binding DiscoveryLeft}" ItemTemplate="{StaticResource DiscoveryRow}"/>
-                        <ItemsControl Grid.Column="2" ItemsSource="{Binding DiscoveryRight}" ItemTemplate="{StaticResource DiscoveryRow}"/>
-                    </Grid>
-                </ScrollViewer>
+    <!-- Views/Pages/DiscoveryPage.axaml ＝ 発見のページ（(501) 段3）。欄の並べは .axaml.cs の PageTable（設計 §3-3）。
+         行と列は本体の目録（SimCore/Display/DiscoveryTables）が渡す＝発見の行（Catalog.Discoveries）が増えてもこの XAML は直さない。割合は出す・閾値は出さない（作者裁定 2026-09-23）。 -->
+    <ctl:PageGrid x:Name="PageBody">
+        <ctl:Section Key="discovery" Title="発見" ScrollBody="False">
+            <ctl:TableView Snapshot="{Binding DiscoveryTable}" InnerScroll="True" ScrollX="True"/>
+        </ctl:Section>
+        <ctl:Section Key="sites" Title="産地" ScrollBody="False">
+            <ctl:TableView Snapshot="{Binding SiteTable}" InnerScroll="True" ScrollX="True"/>
+        </ctl:Section>
+    </ctl:PageGrid>
 </UserControl>

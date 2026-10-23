@@ -91,6 +91,8 @@ public partial class GameViewModel
         {
             case Slot.Production: TimeIt("生産ページが見えた(RefreshProduction)", RefreshProduction); break;
             case Slot.Market: RefreshTrade(); break;
+            case Slot.FiscalMoney: UpdateForecast(); break;
+            case Slot.Population: RefreshPopulation(); break;
             case Slot.DiplomacyWar: RefreshFactions(); break;
             case Slot.Discovery: RefreshDiscovery(); break;
         }
