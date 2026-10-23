@@ -721,7 +721,7 @@ public static class EconomyStep
             else s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
             if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }   // ★(495) 倒産しても設備は残る（Scale は据え置き）＝労働は取らない（旧は Scale=0 が重みを 0 にした）
             prodW[pi] = s.LaborWeight * s.Scale;
-            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
+            if (Catalog.IsLaborGood(s.GoodId)) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
             laborTotalW[s.LaborPopIndex] += prodW[pi];
             laborCount[s.LaborPopIndex]++;
         }
@@ -793,7 +793,7 @@ public static class EconomyStep
             int lp = s.LaborPopIndex;
             // 労働力・高度労働力の生産者＝階級全体が算出（fraction=1）。工場の能力は従来通り需要シェアで按分し（規模調整）、
             // 実際の雇用（賃金支払い）は役務の購入＝投入充足が律速する。
-            double fraction = s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId ? 1.0
+            double fraction = Catalog.IsLaborGood(s.GoodId) ? 1.0
                 : laborTotalW[lp] > Eps
                     ? prodW[pi] / laborTotalW[lp]   // 均等床 LaborFloorMix は撤去（2026-08-22・作者裁定「ラッダイトは必須」）＝準レントでは価格上昇が自動で重みを戻すので恒久ロックアウトが起きない
                     : laborCount[lp] > 0 ? 1.0 / laborCount[lp] : 1.0;
@@ -892,13 +892,7 @@ public static class EconomyStep
             // 経16：当期産出は前期充足率(LastInputFill)で決まる（作者裁定2026-08-01＝恒久。当期の在庫カバーでも律速する旗 CurrentInputFillGates は 2026-09-26 に削除＝dorm-50）。
             double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
             // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
-            if (coef.InventoryAdjustGain > 0)
-            {
-                var im = region.Markets[s.GoodId];
-                double desiredInv = System.Math.Max(coef.TargetStockFloor, coef.DesiredInventoryCover * im.LastDemand);
-                double invGap = (desiredInv - im.Stock) / (desiredInv + im.Stock + Eps);   // 不足で+・過剰で−・有界
-                target *= System.Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
-            }
+            target *= InventoryAdjust(region, s.GoodId, coef);
             s.Output += coef.SupplyAdjustSpeed * (target - s.Output);
             if (s.Output < 0) s.Output = 0;
             // ★幻の生産の根絶（作者2度指摘・2026-08-10／係数 PhantomOutputSnapFloor に由来の全文）。
@@ -2372,15 +2366,15 @@ public static class EconomyStep
                 region.StateSpent[(int)TreasuryCat.Army] += mfPay;
             }
 
-            // 上位段・tier3 の決済と充足（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）。返り値＝(充足, 陸の充足)。
+            // 上位段・tier3 の決済と充足（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）。返り値＝充足（艦は決済に入らない＝陸の装備だけ）。
             // ★充足は基本段と**同じ1本**（ArmsFillContribution・2026-09-29 段3 F）＝必要量（陸海の再配分を通した want）で重みを付けた「在庫÷目標」。
             //   納入分をストックへ積み、摩耗で減らす（段2a）＝**戦時の9倍はここへ来る**（需要でなく摩耗）。Fill は装備が行き渡っているかであって、その月に何を買えたかではない。
             //   ⚠旧＝Σmin(在庫,目標)÷Σ目標・目標に陸海の再配分なし・未初期化は0（基本段と3点で別の規則）。重みは段の中で同じ比（摩耗率が段の中で一律）＝式の形の違いは再配分の有無だけだった。
             //   1本も要らない段（未発見）は0＝質の乗数を立てない（基本段の「要らなければ1」とは逆＝上位段の充足は乗数の上乗せの量）。
-            (double Fill, double LandFill) SettleTier(int[] goods, double[] rates)
+            double SettleTier(int[] goods, double[] rates)
             {
                 var stock = coef.ArmsStockEnabled > 0 ? (region.ArmsStock ??= new Dictionary<int, double>()) : null;
-                double tWant = 0, tGot = 0, tWantLand = 0, tGotLand = 0;
+                double tWant = 0, tGot = 0;
                 for (int b = 0; b < goods.Length; b++)
                 {
                     int gi = goods[b];
@@ -2398,18 +2392,17 @@ public static class EconomyStep
                     }
                     double held = ArmsFillContribution(region, coef, goods, b, want, got, rates[b], region.MilitaryScalePeace, mul, stock, opening);
                     tWant += want; tGot += held;
-                    if (!tSea) { tWantLand += want; tGotLand += held; }
                 }
-                return (tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0, tWantLand > Eps ? PoliticalQuantities.Clamp01(tGotLand / tWantLand) : 0.0);   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
+                return tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0;   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
             }
 
             // 上位軍需の充足率＝戦力の質的乗数（Diplomacy が Power.Military を 1+Bonus×これ で増幅）
             if (AllPresent(coef.MilitaryQualityGoods, ng))
-                (region.MilitaryQualityFill, region.MilitaryQualityLandFill) = SettleTier(coef.MilitaryQualityGoods, qRates);
+                region.MilitaryQualityFill = SettleTier(coef.MilitaryQualityGoods, qRates);
 
             // #16 tier3軍需の充足率（Power.Military を +MilitaryTier3Bonus×これ で増幅＝最上位の質的乗数）
             if (AllPresent(coef.MilitaryTier3Goods, ng))
-                (region.MilitaryTier3Fill, region.MilitaryTier3LandFill) = SettleTier(coef.MilitaryTier3Goods, t3Rates);
+                region.MilitaryTier3Fill = SettleTier(coef.MilitaryTier3Goods, t3Rates);
 
             // 1934拡張E2：空軍装備の充足率（Diplomacy が AirPower=Military×これ に使う＝空の別枠）。財の解禁前は got 0 ＝ Fill 0。
             if (AllPresent(coef.MilitaryAirGoods, ng))
@@ -2701,18 +2694,16 @@ public static class EconomyStep
                 bool shortage = region.Markets[gi].LastDemand > region.Markets[gi].LastProduced + region.Markets[gi].Stock;
                 if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; if (!eqS) s.Scale = coef.FactoryReentryScale; }   // ★(495) 設備を持つ個体は据え置き
             }
-            // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を FactoryBankruptcyAllTiers で解除。
+            // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を解除（旧の旗 FactoryBankruptcyAllTiers は 2026-10-23 に焼き込み）。
             // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。
             // 連鎖断絶（軍需上流＝火薬/鉛/帆布の死蔵・永続的脱工業化）は手法B（下の品薄数量再開）が受ける＝閉鎖しても下流の工場の投入需要は市場の LastDemand に残り、供給を上回れば品薄で再開する。
             // ★(474) 旧の注は〈再点火トリクル（閉鎖しても下流の投入需要は価格シグナルに残る）〉も受けると書いていたが、再点火トリクル（ReignitionDemandFrac＝作りたい量 DesiredOutput の一部を投入として発注し続ける）は
             //   倒産中の工場には当てはまらない：倒産に入るのは更新後の SmoothedMargin＜FactoryBankruptcyMargin（＜0）の月＝その月の margin＜0＝価格≦限界費用＝profitFactor＝0＝DesiredOutput＝0 で、倒産中は上の continue で産出も 0 に凍る
             //   （抜け道は国営の工場の民営化〔BuiltScale が 0 になる〕だけ）。
             // 本当に必要な中間財は在庫が尽きた時点で shortage 再開・要らない工場だけが退出したままになる。負債帳消しなし・貨幣非接触（Scale=0のみ）＝保存則不変。
-            // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。AllTiers=0で旧挙動（消費最終財 Staple/Daily/Luxury のみ倒産）。
+            // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。
             else if (coef.FactoryBankruptcyEnabled && s.SmoothedMargin < coef.FactoryBankruptcyMargin && s.BuiltScale <= Eps
-                     && Catalog.Goods[gi].Tier != GoodTier.Service
-                     && (coef.FactoryBankruptcyAllTiers > 0
-                         || (Catalog.Goods[gi].Tier != GoodTier.Producer && Catalog.Goods[gi].Tier != GoodTier.Intermediate)))
+                     && Catalog.Goods[gi].Tier != GoodTier.Service)
             {
                 s.Bankrupt = true; if (!eqS) s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）。★(495) 設備を持つ個体は Scale を消さない（重みのループが倒産を除く）
             }
@@ -2929,6 +2920,17 @@ public static class EconomyStep
     /// <summary>人力の労働の供給＝労働力・農業労働力の生産者のうち、レシピ名が空（人力）で投入を持たないもの。畜力・蒸気機関・電動・水車は投入費を持つ企業の採算＝対象外。技師（高度労働力）も対象外。</summary>
     internal static bool IsHumanLaborSupply(Producer s)
         => (s.GoodId == Catalog.LaborId || s.GoodId == Catalog.FarmLaborId) && s.RecipeName.Length == 0 && s.Inputs.Count == 0;
+
+    /// <summary>メッツラー在庫循環の産出目標への乗数（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）＝望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り、不足で1より上・過剰で下。
+    /// InventoryAdjustGain が0以下なら1（項が消える）。①供給の産出目標と生産の診断（ProductionDiag.ExplainUtilization）が同じ1本を読む。</summary>
+    internal static double InventoryAdjust(Region region, int goodId, Coefficients coef)
+    {
+        if (!(coef.InventoryAdjustGain > 0)) return 1.0;
+        var im = region.Markets[goodId];
+        double desiredInv = System.Math.Max(coef.TargetStockFloor, coef.DesiredInventoryCover * im.LastDemand);
+        double invGap = (desiredInv - im.Stock) / (desiredInv + im.Stock + Eps);   // 不足で+・過剰で−・有界
+        return System.Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
+    }
 
     /// <summary>生産者の**自己費用**（1単位の付加価値費用＝<see cref="Producer.MarginalCost"/>）を**価格と同じ単位**で返す＝
     /// RGO・工場・役務・労働の**全ての生産者**の唯一の入口。

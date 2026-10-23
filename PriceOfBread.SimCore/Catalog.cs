@@ -384,6 +384,8 @@ public static class Catalog
     public const int GridId = 90;
     public const int AdvLaborId = 91;
     public const int FarmLaborId = 92;
+    /// <summary>市場で買う3種の労働力（労働・高度労働・農業労働）か。生産者の配分の外・人件費の行（他の役務が投入に混ざっても人件費に紛れ込ませない）・役務の購入者の判定が同じ1本を読む（MarketFlow.StepDay と Discovery.cs の同じ3つ並べは各線の範囲）。</summary>
+    public static bool IsLaborGood(int gid) => gid == LaborId || gid == AdvLaborId || gid == FarmLaborId;
     public const int ElectricityId = 78;   // 電力（NonTradeable）。決済・revenue集計に絡むので生整数でなく名前付き定数で参照（貨幣保存の取りこぼし防止）
     public const int GoldOreId = 4;        // 金鉱（RGO）。産出が貨幣供給(Bank.Gold)に流入＝ゴールドラッシュ
     public const int SilverId = 110;       // 銀（銀本位doc G3・2026-08-13）。銀本位国の造幣局が買う本位金属＝法が変われば需要が現れ・消える

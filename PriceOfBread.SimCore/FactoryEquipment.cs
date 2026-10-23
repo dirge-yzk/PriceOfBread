@@ -1,6 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-/// <summary>★(495) レシピごとの設備（旗 <see cref="Coefficients.RecipeEquipment"/>・既定 0＝呼ばれない＝厳密恒等。事前登録 measurements/eq495_20261023_prereg.txt 追記 5）。
+/// <summary>★(495) レシピごとの設備（旗 <see cref="Coefficients.RecipeEquipment"/>・既定 1＝2026-10-23 に点火済み〔0 にすると呼ばれない＝旧の規則〕。事前登録 measurements/eq495_20261023_prereg.txt 追記 5）。
 /// <para>**設備を持つ生産者**＝<see cref="Eligible"/>＝BuysLabor の非 RGO・非役務の工場。旗が正の月（暦が進む月だけ・助走は旧の規則）、その <see cref="Producer.Scale"/> は〈据え付けた設備〉で、
 /// 動くのは次の 4 つだけ：①購入（<see cref="Distribute"/>＝州の工業化度に足される点を同じ割合で配り、民間の持分の合計を保つよう国営の持分を持たない個体を薄める）
 /// ②国家の工場の完成（World.StepConstruction）③国営の休止中の設備の廃棄（<see cref="Dismantle"/>）④退場（発見の門が閉じた個体の設備を同じ州の他の個体へ比例で戻す＝<see cref="Retire"/>）。

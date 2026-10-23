@@ -62,8 +62,8 @@ public static class PopDecision
         //   旧＝目標の都市の割合は貨幣の所得の差のシグモイド（差0で 0.5）を都市化の上限で切るだけ＝植民地の州は都市の POP が飢えていても上限（0.20）へ引かれ続けた
         //   （(143) の計器・種1 1783-1833＝植民地の工場労働者は州の 12%・失業 60%・主食の充足 0.22〔0.4 未満が 75%〕・所得 0.116／人月〔本国の労働者 1.67〕・農民は自給 70% で充足 0.79）
         //   ＝農民が飢えた都市へ移り飢えの死で消える流しの管＝植民地の州が百年かけて痩せる型の半分（残りは浅い慢性の飢え＝DemographicStep の飢えの深さの率）。
-        //   農村がもっと飢えている時（農村の飢饉で町へ逃げる）と、都市が飢饉の線の上にいる時は、これまでどおり移る。新しい数0（門は飢饉死の門 FamineDeathFillFloor）。
-        if (flow > 0 && urban.FoodFill < coef.FamineDeathFillFloor && urban.FoodFill < rural.FoodFill) flow = 0;
+        //   農村がもっと飢えている時（農村の飢饉で町へ逃げる）と、都市が飢饉の線の上にいる時は、これまでどおり移る。新しい数0（門は FamineMigrationFillGate）。
+        if (flow > 0 && urban.FoodFill < coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill) flow = 0;
         if (flow > 0) Move(rural, urban, flow);     // 農村 → 都市
         else if (flow < 0) Move(urban, rural, -flow); // 都市 → 農村
     }

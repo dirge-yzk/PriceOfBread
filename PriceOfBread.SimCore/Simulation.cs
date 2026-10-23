@@ -2496,7 +2496,7 @@ public sealed class Simulation
             avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。2026-07-10）
             double rpop = r.SumPopulation();
             indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
-            double rsanit = PoliticalQuantities.Clamp01(r.InfraFill + c.SoapSanitationWeight * r.SoapFill + c.ElecInfraSanitationWeight * r.ElecInfraFill);
+            double rsanit = r.Sanitation(c);
             sanitSum += rsanit * rpop; sanitPop += rpop;
             // 人2：この州の主食RGO産出を合計（LastProduced＝需要非クランプの実産出。regionLandFactor[耕地逓減]×農業生産性×HarvestFactor×WeatherBandFactor×CropHealth を既に内包＝「耕地×技術×豊凶の代理」）。
             foreach (var g in r.Goods) if (g.Tier == GoodTier.Staple)

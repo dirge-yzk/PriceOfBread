@@ -1,0 +1,9 @@
+(513) hz6 の番人 Hz6IdentityTests の突然変異（最終の木 3a1125c9 の上・作業ツリーに入れて、ビルドして、赤を確かめて、git checkout で戻した）
+5 本を同時に入れ、5 本の試験が 1 本ずつ別の変異で赤になったことを確かめた（5/5 赤）：
+ M1 PoliticalQuantities.ClampOr の NaN の枝を落とす（(x >= lo ? x : neutral) → x）      → ClampOr_は_NaN_以外で_MathClamp_とビット単位で同じ_NaN_だけ_neutral_へ  赤
+ M2 Catalog.IsLaborGood から農業労働力を外す                                              → 労働の財の述語は労働力と高度労働力と農業労働力の3つだけ  赤
+ M3 Region.Sanitation の電化インフラの項を 0 にする                                       → 衛生の読み口は上下水道と石鹸と電化の上乗せを0から1に収めた手書きの式と同じ  赤
+ M4 EconomyStep.InventoryAdjust の符号を反転（1+gain×gap → 1−gain×gap）                   → 在庫循環の乗数は不足で1より上_過剰で下_ゲイン0なら1  赤
+ M5 World.NavySkill を 0 の定数にする（熟練を1本にした読み口を壊す）                      → 熟練は1本でNavySkillは同じ値を読む  赤
+戻した後：git status が docs 以外に変更なし。
+注：最初の木（コミット 393df458・50376275）の上で行った同種の突然変異 5 本（AtLeast を含む）は AtLeast を消したので記録に使わない。

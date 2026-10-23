@@ -25,7 +25,6 @@ public static class Military
         bool fighting = atWar || w.InCivilWar;   // ★B3：述語1本   // 内戦も実戦（作者仕様「内戦含め戦争で上昇」）
         double train = w.MilitaryTrainingFill;
         w.ArmySkill = NextSkill(w.ArmySkill, train, fighting, c);
-        w.NavySkill = NextSkill(w.NavySkill, train, fighting, c);
     }
 
     /// <summary>★幹部の熟練は新兵で薄まる（2026-10-02 (155)・作者承認 2026-10-01 の「兵士だけの差分」＝幹部の熟練は遅く育ち空洞化で目減り＝推奨で進めた）。
@@ -37,7 +36,6 @@ public static class Military
         if (!(after > before) || !(before >= 0)) return;
         double keep = before / after;
         w.ArmySkill *= keep;
-        w.NavySkill *= keep;
     }
     private static double NextSkill(double skill, double upkeep, bool fighting, Coefficients c)
     {

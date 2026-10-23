@@ -61,7 +61,7 @@ public static partial class Instruments
                 if (!FactoryEquipment.Eligible(s))
                 {
                     if (s.BuysLabor && !s.IsRgo && s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].Tier == GoodTier.Service
-                        && s.GoodId is not (Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId)) wSvc += s.LaborWeight * s.Scale;
+                        && !Catalog.IsLaborGood(s.GoodId)) wSvc += s.LaborWeight * s.Scale;
                     continue;
                 }
                 wElig += s.LaborWeight * s.Scale;

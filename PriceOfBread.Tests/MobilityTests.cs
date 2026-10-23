@@ -62,10 +62,10 @@ public class MobilityTests
     {
         var sim = new Simulation(NationConfig.Russia().ToScenario(47), new NullAgent());   // 宗教法＝教師に職がない
         var r = sim.World.Region;
-        double teacher0 = r.Pops[7].Size;
+        double teacher0 = r.Pops[r.TeacherPopIndex].Size;
         sim.Run(120);
-        Assert.True(r.Pops[7].Size < teacher0 * 0.7,
-            $"職のない教師が転落していない（{teacher0:F0}→{r.Pops[7].Size:F0}）");
+        Assert.True(r.Pops[r.TeacherPopIndex].Size < teacher0 * 0.7,
+            $"職のない教師が転落していない（{teacher0:F0}→{r.Pops[r.TeacherPopIndex].Size:F0}）");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class MobilityTests
         Assert.True(childShare > 0.2, $"成熟社会で子供が払底した（子供比率 {childShare:P0}）＝粗出生の補充が機能していない");
         var edu = r.Markets[Catalog.EducationId];
         Assert.True(edu.LastProduced > 50, $"教育の生産が崩壊した（{edu.LastProduced:F1}）＝就学需要に教師の供給が応えていない");
-        Assert.True(r.Pops[7].Size > 8, $"教師が枯渇した（{r.Pops[7].Size:F0}人）＝給与シグナルが教師に志望者を呼べていない");
+        Assert.True(r.Pops[r.TeacherPopIndex].Size > 8, $"教師が枯渇した（{r.Pops[r.TeacherPopIndex].Size:F0}人）＝給与シグナルが教師に志望者を呼べていない");
     }
 
     [Fact]

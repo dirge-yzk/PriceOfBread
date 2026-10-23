@@ -490,8 +490,8 @@ public sealed class World
     public double NavalFuelFillEma { get; internal set; } = 1.0;
     //   ⚠**約2世代で完全に減衰**＝訓練された世代が退役して失われる（半減期を係数で持つ）。
     //   ⚠効果は最大でも**2倍**＝熟練だけで勝てるようにはしない（作者指示）。
-    public double ArmySkill { get; internal set; }
-    public double NavySkill { get; internal set; }
+    public double ArmySkill { get; internal set; }   // 幹部の熟練（陸と海は同じ1本・幹部は兵士 POP の中＝艦の乗員も同じ兵士）。旧は陸と海の2本を同じ式で進めていて常に等しかった
+    public double NavySkill => ArmySkill;            // 海の読み手の名前（App と計器が読む）＝陸と同じ値
     public double MilitaryReadiness { get; internal set; } = 1.0;  // 軍の即応度（0..1）。兵士の充足×給与funding＝戦力の乗数（SoldierStep が設定）
     public double HarvestFactor { get; internal set; } = 1.0;      // 今年の豊作/不作係数（1±変動。主食RGO産出と自給に乗算。不作＝飢饉→貧農の不満）
     private double[]? _cropHealth;
@@ -1161,7 +1161,7 @@ public sealed class World
     {
         double oldDev = Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィンテージ2026-07-10）
         // 致死率の衛生連動（epidemic-ignores-built-sanitation）：工業化proxyと実衛生財(上下水道+石鹸+電化)をブレンド。EpidemicSanitationWeight=0で旧proxy厳密一致。
-        double realSanit = PoliticalQuantities.Clamp01(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill);
+        double realSanit = wr.Sanitation(c);
         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity.Value * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
         // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
@@ -1225,7 +1225,7 @@ public sealed class World
         }
         if (worst is null) return 0;
         double oldDev = Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);
-        double realSanit = PoliticalQuantities.Clamp01(worst.InfraFill + c.SoapSanitationWeight * worst.SoapFill + c.ElecInfraSanitationWeight * worst.ElecInfraFill);
+        double realSanit = worst.Sanitation(c);
         return (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
     }
 
@@ -2072,7 +2072,7 @@ public sealed class World
         double outlet = PoliticalQuantities.Clamp01(trad + Coef.WarFeverMilitancyGate * mil);
         double diversion = Coef.WarFeverMilitancy * Politics.AvgMassMilitancy(this) * outlet;
         return Coef.WarFeverMilitarism * mil
-             + Coef.WarFeverMilSpend * (Coef.WarFeverUsesBudgetShare > 0 ? PoliticalQuantities.MilitaryBudgetShare(this) : MilitarySpending.Value)   // ★B-03：水準→中央歳出シェア（0で旧＝厳密恒等）
+             + Coef.WarFeverMilSpend * PoliticalQuantities.MilitaryBudgetShare(this)   // ★B-03：軍国主義は水準でなく中央歳出シェアで測る
              + Coef.WarFeverNoble * trad
              + Coef.WarFeverSoldier * soldierShare
              + Coef.WarFeverThreat * threat

@@ -114,7 +114,7 @@ public static partial class Instruments
                 {
                     double ra = inp.GoodId >= 0 && inp.GoodId < r.Markets.Length ? r.Markets[inp.GoodId].LastRation.Value : 1.0;
                     if (ra < minRation) minRation = ra;
-                    if (ProductionDiag.IsLaborGood(inp.GoodId))
+                    if (Catalog.IsLaborGood(inp.GoodId))
                     {
                         hasLabor = true; qtyLabor += inp.QtyPerOutput;
                         int gi = Array.IndexOf(LaborGoodIds, inp.GoodId);

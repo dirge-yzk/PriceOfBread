@@ -116,7 +116,7 @@ public sealed class Coefficients
     // 慢性赤字が Producer≈110万+Intermediate≈90万 生産者・月（肥料/砂糖(甜菜糖)/精密工作機械が主）＝退出できない工場が損失を垂れ流し負債化していた。
     // サプライチェーンの連鎖断絶は手法B（品薄の数量再開＝FactoryReentryMargin/shortage）＋再点火トリクル（死んでも投入需要は残る→価格で蘇生）が受ける。
     // 負債は帳消ししない（Bank.Loansに残る＝銀行信頼へ）・倒産は産出0のみで貨幣非接触＝保存則不変。Service（役務＝学校/病院/役所/労働）は常に免除。0で旧挙動（最終消費財のみ倒産）＝休眠可。
-    public double FactoryBankruptcyAllTiers = 1.0;
+    // 【墓標2026-10-23・旗の焼き込み】FactoryBankruptcyAllTiers（既定1・倒産退出の実効化 2026-07-10）を消した＝倒産の判定は役務以外の全ての段の財に掛かる（旧の0は消費最終財 Staple/Daily/Luxury だけ）。旧は git の履歴から戻せる。
     public double FactoryMarginSmoothing = 0.025;  // 採算EMAの平滑係数（小＝長い移動平均＝一過性の赤字では潰れない。0.025≒3年＝持続的危機のみ倒産）
     public double FactoryBankruptcyMargin = -0.85; // 平滑採算がこれ未満で倒産（原価の15%以下で売り続け＝極度の慢性赤字のみ。死のスパイラル防止）
     public double FactoryReentryMargin = -0.05;    // 倒産中、現採算がこれ超で新規参入（やや赤字でも再開＝恐慌からの早い回復）
@@ -132,7 +132,7 @@ public sealed class Coefficients
     public double FrontierCeiling = 6.0;          // 技術の安全上限（革新は逓減するので実際は届かない＝張り付き防止）
     public double EliteForFullTech = 0.5;         // 基礎採用/革新に要るエリート水準（厳しい＝乏しい社会は失敗型）
     public double TechGrowthRate = 0.015;         // 基礎採用（暗黙の世界水準まで）の線形速さ＝単一国の挙動を温存
-    public double EliteForCatchup = 0.25;         // 世界世界の技術水準からの後追いに要るエリート（緩い＝コピーは発明より易しい＝後発のブースト）
+    public double EliteForCatchup = 0.25;         // 世界の技術水準からの後追いに要るエリート（緩い＝コピーは発明より易しい＝後発のブースト）
     public Share CatchupFraction = new(0.5);          // 後追い採用で届く先端比率＝永遠の二番手（先端に並ぶには自前の革新＝自由＋公教育が要る）。改修2026-06-28：0.7→0.5＝巨大人口の非革新国（清/印）の技術が先端の半分で頭打ち＝欧州の革新優位を実数化（ユーザー指示「技術力で差がでるように」）
     // 後発国のキャッチアップ（最終調整2026-06-29・ユーザー指示「後発国の追い上げで覇権を争えるように」）：**近代化した（自由＋公教育＝FrontierCapable）後発国**は吸収能力が高く、
     // 前線の高い比率まで追い上げられる（Gerschenkron＝独・米が英を追い越す史実）。非近代化の巨人（清/印＝検閲/宗教教育）は CatchupFraction 0.5 据え置き＝置いていかれる（均質化を避け、前線を「争える」状態に）。
@@ -567,7 +567,8 @@ public sealed class Coefficients
                                                        //   深さ 0.18 で旧は年 約15‰（平常の死 28‰ のとき）・新は 約1‰。0＝飢えの超過死亡なし
     public double FamineExcessMortalityExponent = 4.0; // ★2026-10-01 (143) 飢えの超過死亡の凸さ（飢えの深さの指数）＝史実の飢饉の死は栄養の不足に強く凸（浅い慢性の不足は病気との相乗で少し・深い不足は数か月で死ぬ）。
                                                        //   上の較正の4点から（充足 0.6→0.4 で約16倍・0.4→0.2 で約5倍）。1＝深さに比例（(143) の番人＝慢性の充足0.58 の植民地の州が167年でピークの1/10 未満へ落ちる）
-    public double FamineDeathFillFloor = 0.8;          // 第4段4-5点火（2026-07-27）：飢えの超過死亡の絶対水準ゲート＝食料充足がこれ以上のpopは上乗せなし（平常の死だけ）。旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた。1.0で旧恒等。#17較正2026-07-28：0.9→0.8（0.9は限界的な州まで集中対象＝総政変+49の主因・真に飢えた州へ絞る）。⚠★(143) 飢えた都市へ移らない門（PopDecision）もこの線を読む＝この係数を較正し直すと移動の門も一緒に動く（2つの意味が1本・(144) 反証の指摘）
+    public double FamineDeathFillFloor = 0.8;          // 第4段4-5点火（2026-07-27）：飢えの超過死亡の絶対水準ゲート＝食料充足がこれ以上のpopは上乗せなし（平常の死だけ）。旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた。1.0で旧恒等。#17較正2026-07-28：0.9→0.8（0.9は限界的な州まで集中対象＝総政変+49の主因・真に飢えた州へ絞る）。飢えた都市へ移らない門（PopDecision）は別の係数 FamineMigrationFillGate（(144) 反証の指摘で2つの意味を分けた・値は同じ 0.8）
+    public double FamineMigrationFillGate = 0.8;       // 飢えた都市へ移らない門＝都市の食料充足がこれ未満で、かつ農村より低いとき農村から都市への流れを止める（PopDecision・(143)）。飢えの超過死亡の門 FamineDeathFillFloor と値は同じ 0.8 だが別の係数＝片方を較正し直してももう片方は動かない（旧は1本が2つの意味を持っていた）
     // （局地飢饉の相対的剥奪の死 RegionalFamineMortality〔国平均からの州の不足×0.025／月〕は 2026-09-30 (131) に係数ごと削除＝POP の飢えの上乗せと同じ飢えの2本目の死〔思想⑨〕・
     //   植民地の州を開幕から年3%ずつ痩せさせピークの1/10 未満へ落としていた。局地の不作・孤立で飢えた州は、その州の POP の充足が落ちて上乗せが立つ）
     // 作物病虫害（年次・専用RNG＝主系列を乱さない）：病害に弱い作物（ジャガイモ/葡萄/小麦/米/トウモロコシ）に稀に胴枯れ。
@@ -893,7 +894,7 @@ public sealed class Coefficients
     // ★**結論＝この回は休眠へ差し戻す（0/0）。** 機構を作り直してから #17 較正ラウンドで点火する。B3（除数の是正）は恒等なので残す。
     public RatePerYear LoanSpreadPerYear = new(0.0);           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
     public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）。0で無効
-    // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が SoeSaleYears を読む）
+    // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が CreditRepayableYears を読む）
     public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)。0で恒等。BondPriceは既存診断値を配線
     public double DebtDeflationWeight = 4.0;  // フィッシャー民間負債デフレ：デフレ率×レバレッジ(Heat)→信頼目標の下げ（実質債務増→債務者破産→さらにデフレの渦）。MonetaryEnabled時のみ
 
@@ -1145,7 +1146,8 @@ public sealed class Coefficients
     }
     // ★裁定②の安全弁（同日）：AIの工事出費の律速に素材の月次支出を数える旗 FacilityBuildOutlayIncludesMaterial は 2026-09-27（線2）に点火して焼き込み（旗ごと削除）
     //   ＝SelfPlay.TryBuildFacility が常に World.ConstructionMaterialPerMonth を足す（工事費の6割＝FactoryMaterialFrac が律速から漏れていた）。
-    public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）。★2つ目の読み手（A16・2026-09-28）＝与信の上限の「借り手の返せる額」＝投資家の年間所得×これ（Credit.Step）＝同じ「年間所得×年数」の物差し
+    public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）。与信の上限の〈借り手の返せる額〉は別の係数 CreditRepayableYears（A16・2026-09-28 は流用していた・L22 で分けた・値は同じ 5）
+    public double CreditRepayableYears = 5.0;     // 与信の上限の〈借り手の返せる額〉＝投資家の年間所得×これ（Credit.Step・A16）。国営工場の払い下げ価格の年数 SoeSaleYears と値は同じ 5 だが別の係数（旧は SoeSaleYears を流用していた）
     // 工業化由来の生産性＝1 + Gain×工業化度/(1+工業化度/Scale)。固定上限を持たず Scale で逓減（飽和）し頭打ち。
     public double IndProductivityGain = 1.2;      // 低工業化度での生産性の伸び（飽和カーブの初期傾き）
     public double IndProductivityScale = 2.5;     // 生産性の逓減スケール（工業化度がこれを超えると伸びが鈍る）
@@ -1429,13 +1431,7 @@ public sealed class Coefficients
 
     // --- 戦争熱／膨張意欲（案Y・植民地獲得を許容する国内世論。段B＝計算と累積のみ／消費は段Cで配線。値は暫定でsweep対象） ---
     public double WarFeverMilitarism = 0.4;   // ×好戦世論の公共圏（報道自由度×識字×都市化×対外屈辱∈[0,1]）。★2026-08-18＝旧「親軍法ONで満額」の段差を撤去（1914年の熱狂は都市の教育ある中産層／黄色新聞の米1898）
-    // ★2026-09-03（キューB-03／出典 トリアージ 2-B 3-4a・作者裁定2026-08-18 第5項の未回収分）：
-    //   主戦論の軍事費項が**スライダーの水準**（MilitarySpending∈[0,1]）を読んでいる。裁定は「軍国主義は水準でなくシェアで測る」
-    //   （水準では中南米が最小・シェアでは最大＝史実の向き）。1で PoliticalQuantities.MilitaryBudgetShare（中央歳出シェア）へ差し替える。
-    //   ⚠どちらも[0,1]＝係数の目盛りはそのまま。0＝既定＝旧経路＝厳密恒等。
-    public double WarFeverUsesBudgetShare = 1.0;   // ★点火2026-09-03（B-03・単独A/B batch10）＝作者裁定2026-08-18 第5項の未回収分（軍国主義は水準でなくシェア）。
-                                                   //   ⚠全ゲート緑。列強再現率 12.5→18.8／領土本国 61.7→69.2／領土植民地 24.2→35.0／特異度 +1.1。
-                                                   //   ⚠記録＝◎7割帯 19→16／経済規模 20.0→16.3／人口 20.0→15.7。差し戻し口＝この値を0へ。
+    // 【墓標2026-10-23・旗の焼き込み】WarFeverUsesBudgetShare（既定1・B-03 点火 2026-09-03＝作者裁定2026-08-18 第5項〈軍国主義は水準でなくシェア〉）を消した＝主戦論の軍事費項は PoliticalQuantities.MilitaryBudgetShare（中央歳出シェア）を読む（旧の0はスライダーの水準 MilitarySpending）。点火の記録＝列強再現率 12.5→18.8・領土本国 61.7→69.2・領土植民地 24.2→35.0。旧は git の履歴から戻せる。
     public double WarFeverMilSpend   = 0.5;   // ×軍事費(0..1)
     public double WarFeverNoble      = 0.3;   // ×伝統支配層の力（将校貴族＝旧支配層ブロック）
     public double WarFeverSoldier    = 4.0 / Military.WorkingMenStdShare;   // ×兵士人口比（(145) 兵の単位の読み替え＝旧値 4.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
@@ -1564,8 +1560,7 @@ public sealed class Coefficients
                                                       //   差し戻し口＝この値を0へ。   // ★13l地政学（点火済み・作者裁定2026-08-14）：閉鎖海盆の出口を扼する相手への緊張（月・依存度1あたり）。露⇔土（黒海×ボスポラス）・普/瑞⇔丁（バルト×エーレスンド）の受け皿＝経済の内積からは出ない対立（観測4回で≈0・99_実装ログ§4-6）。設計目安はThreatTensionRate同桁（依存1.0の国は覇権国並みに扼者を警戒）。0＝RouteTensionが1命令も走らない厳密恒等（⚠既定は0.10＝2026-09-03に点火済み。旧注記「点火はS2測定キュー」は消化済み＝B-02）
     public double IdeologyTensionRate = 0.22;     // 異なる政体間の緊張（イデオロギー距離1あたり・月）。陣営化の駆動。0.35→0.22＝開戦回数の抑制（覇権の脅威緊張ThreatTensionRateは温存）
     public double IdeologyAffinityRelief = 0.30;  // 同じ政体間の緊張低下（月）。同イデオロギーの親近
-    // 緊張の差分化（民族/宗教/法の隔たり＝陣営化の駆動。EnableCivilizationTension で gate＝較正は単一国合成世界で外交を回さず非波及）。時代適合の重み：民族≳法＞宗教
-    public bool EnableCivilizationTension = true; // 民族/宗教/法の差分緊張の有効化（false で従来＝政体/脅威のみ）
+    // 緊張の差分化（民族/宗教/法の隔たり＝陣営化の駆動。旧の旗 EnableCivilizationTension〔既定 true〕は 2026-10-23 に焼き込み＝常に走る）。時代適合の重み：民族≳法＞宗教
     public double EthnicTensionRate = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループは反目）。月。政体緊張0.22より十分小＝war-spam回避
     public double EthnicAffinityRelief = 0.12;    // 同民族グループ間の緊張低下（月・同一民族はさらに強い）
     public double LawTensionRate = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由主義 vs 反動＝1848型）。月。政体距離と相関するため控えめ
@@ -1578,8 +1573,7 @@ public sealed class Coefficients
     // 再現＝露のバルカン正教保護・聖地管理権争い（クリミアの引き金）・汎イスラム主義（スルタン=カリフ＝オスマン側の同式運用）。台本なし＝州宗教ラベルから創発。
     public double ProtectorTensionRate = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護の緊張（月）＝これ×grievance（相手国内の自宗教州人口比0..1・完全一致のみ＝同族異端はReligionHeresyBonusの領分で重複計上しない）。休眠側の設計値0.02目安＝EthnicTensionRate 0.06/ReligionTensionRate 0.03 の弟分。0=不走行（厳密恒等）
     public double ProtectorInterventionWeight = 0.5;  // 【点火2026-08-09 同上】// 列強介入の動機×(1+これ×grievance)＝介入口実（InterventionMotive の1箇所のみ・新しい介入経路は作らない）。休眠側の設計値0.5目安。0=乗算自体を踏まない（PeaceInterventionEnabled=1.0 live下でも厳密恒等）
-    // 従属関係（属国/衛星国/傀儡）。EnableDependency で gate。
-    public bool EnableDependency = true;          // 属国/衛星国/傀儡の有効化
+    // 従属関係（属国/衛星国/傀儡）。旧の旗 EnableDependency〔既定 true〕は 2026-10-23 に焼き込み＝常に有効。
     public double VassalTributeRate = 0.015;      // 属国/傀儡の貢納＝従属GDP×これを毎四半期 宗主国庫へ（運河通行料の両建てを流用・保存）。搾取だが過大にしない
     public double DependencyAlignmentRelief = 1.2; // 従属-宗主間の緊張を毎月これだけ下げる＝整列（従属は宗主に開戦しない）。衛星=外交整列・属国/傀儡も従属下で反目しない
     public double VassalHoldScale = 0.5;          // 属国の抑え＝宗主の陸軍力×投射(距離減衰)×これ。属国の軍がこれを超え反目が高いと離反（過伸展した帝国は遠方の強い属国を失う）。改修2026-06-28の次元修正で実効化
@@ -3619,7 +3613,9 @@ public sealed class Coefficients
             if (!double.TryParse(part[(eq + 1)..].Trim(), System.Globalization.NumberStyles.Float,
                                  System.Globalization.CultureInfo.InvariantCulture, out double v))
                 throw new ArgumentException($"POB_COEF の値が数値でない: 「{part}」");
-            if (field.FieldType == typeof(int) && !(double.IsFinite(v) && v >= int.MinValue && v <= int.MaxValue))
+            if (!double.IsFinite(v))
+                throw new ArgumentException($"POB_COEF の値が有限でない（NaN/無限大）: {part}");   // 型を問わず（double の係数に NaN が入ると下流のガードが静かに倒れる）
+            if (field.FieldType == typeof(int) && !(v >= int.MinValue && v <= int.MaxValue))
                 throw new ArgumentException($"POB_COEF の値が int の範囲外/非数: 「{part}」");
             list.Add((name, v));
         }

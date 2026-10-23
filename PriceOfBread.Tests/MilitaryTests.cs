@@ -940,8 +940,6 @@ public class MilitaryTests
         Assert.Equal(need0, EconomyStep.MilitaryProcurementNeed(r, c));
         foreach (int g in c.FleetGoodIds) Assert.Equal(0.0, EconomyStep.LandMul(c, g));
         Assert.Equal(1.0, EconomyStep.LandMul(c, Catalog.RifleId));
-        Assert.Equal(r.MilitaryQualityLandFill, r.MilitaryQualityFill);
-        Assert.Equal(r.MilitaryTier3LandFill, r.MilitaryTier3Fill);
     }
 
     /// <summary>★(192)（反証役 vn1#5＝呼び手の側の番人の穴）艦の購入の決済（EconomyStep.Run の海軍の調達）：発注（FleetOrder）を海軍の予算（Region.NavalBudget）で切った量だけ買い、
@@ -1263,7 +1261,7 @@ public class MilitaryTests
             foreach (var p in r.Pops)
                 if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)) { p.UnemploymentRate = new Share(0.3); p.UnemploymentEma = new Share(0.3); }
         }
-        w.ArmySkill = 0.5; w.NavySkill = 0.5;
+        w.ArmySkill = 0.5;
         double s0 = w.SoldierSizeK();
         Meritocracy.Step(w, c);
         double s1 = w.SoldierSizeK(), gained = 0;
@@ -1354,25 +1352,24 @@ public class MilitaryTests
     {
         var w = France155().World; var c = w.Coef;
         w.SetMilitaryUpkeep(new Share(1.0), new Share(0.0));   // 段は最上段（旧の規則なら育つ）
-        w.MilitaryTrainingFill = 0.0; w.ArmySkill = 0.4; w.NavySkill = 0.4;
+        w.MilitaryTrainingFill = 0.0; w.ArmySkill = 0.4;
         Military.StepSkill(w, c, atWar: false);
-        Assert.True(w.ArmySkill < 0.4 && w.NavySkill < 0.4, $"訓練が払われないのに熟練が育った（陸 {w.ArmySkill}・海 {w.NavySkill}）");
+        Assert.True(w.ArmySkill < 0.4, $"訓練が払われないのに熟練が育った（{w.ArmySkill}）");
         w.SetMilitaryUpkeep(new Share(0.0), new Share(0.0));
-        w.MilitaryTrainingFill = 1.0; w.ArmySkill = 0.4; w.NavySkill = 0.4;
+        w.MilitaryTrainingFill = 1.0; w.ArmySkill = 0.4;
         Military.StepSkill(w, c, atWar: false);
         double expect = 0.4 + c.SkillGainRate * (1.0 - c.SkillUpkeepThreshold) * 0.6;
         Assert.Equal(expect, w.ArmySkill, 12);
-        Assert.Equal(expect, w.NavySkill, 12);
+        Assert.Equal(w.ArmySkill, w.NavySkill);   // 海の読み手は同じ値
         // 徴兵の新兵で薄める（呼び手＝Military.Step）
         w.SetMilitarySpending(new Share(0.5), new Share(0.1));
         w.ConscriptionLaw = ConscriptionLaw.Selective; c.MaxSoldierFraction = new Share(c.MaxSoldierFraction.Value * 3); c.MilitaryEnvelopeShare = new Share(1e9);
-        w.ArmySkill = 0.6; w.NavySkill = 0.6;
+        w.ArmySkill = 0.6;
         double before = w.SoldierSizeK();
         Military.Step(w, c, atWar: false);
         double after = w.SoldierSizeK();
         Assert.True(after > before, "前提が崩れた：徴兵で兵が増えない");
         Assert.Equal(0.6 * before / after, w.ArmySkill, 12);
-        Assert.Equal(0.6 * before / after, w.NavySkill, 12);
     }
 
     /// <summary>★(155) 安全保障の不安（エンジンの SecurityThreat）＝相手の養える軍（定員＝選んだ軍事費の段）のうち自国に向く注意配分（(151) の理想の軍隊の形と同じ物差し＝敵意×(国境＋投射)÷(内向き＋相手の全ての向き)）の和。

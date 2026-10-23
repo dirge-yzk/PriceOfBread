@@ -505,7 +505,7 @@ public class WarThemeTests
         Assert.True(Math.Abs(w1.Score) <= s1.Coef.WarPushSpeed, $"月の動き {w1.Score:G17} が WarPushSpeed を超えた＝割合でなく差で測っている");
         // ② 塹壕：英の首都の機関銃を満たす＝仏の押しだけが削られる。割合は削った後の押しで取る
         var (s2, w2) = Board(0.5, 0);
-        w2.B.Nation!.Region.MilitaryQualityLandFill = 1.0; w2.A.Nation!.Region.MilitaryTier3LandFill = 0.0;
+        w2.B.Nation!.Region.MilitaryQualityFill = 1.0; w2.A.Nation!.Region.MilitaryTier3Fill = 0.0;
         s2.Diplomacy.Step(s2.Coef, s2.Rng, month: 61);
         Assert.Single(s2.Diplomacy.Wars);
         double a2 = w2.PushA, b2 = w2.PushB;
@@ -595,7 +595,6 @@ public class WarThemeTests
         var attacker = sim.Nations[0].World.SelfPower!; var suz = sim.Nations[1].World.SelfPower!;
         var dep = sim.Nations[2].World.SelfPower!; var ally = sim.Nations[3].World.SelfPower!;
         var c = OpenChain();
-        Assert.True(c.EnableDependency, "前提が崩れた：属国が無効");
         dip.SetDependency(suz, dep);
         Ally(dip, suz, ally);
         dip.SeedTension(ally, attacker, 100);

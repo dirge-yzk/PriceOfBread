@@ -73,10 +73,10 @@ public class CreditTests
         var t = w.Explain!.Get("CreditTarget");
         return (t[0].Delta, t[0].Delta + t[1].Delta, w.Bank!.Heat, w.Bank.Loans.Value);
     }
-    private static readonly double years = Calendar.MonthsPerYear * new Coefficients().SoeSaleYears;   // 返せる額＝前月の所得×これ
+    private static readonly double years = Calendar.MonthsPerYear * new Coefficients().CreditRepayableYears;   // 返せる額＝前月の所得×これ
     private const double Rich = 1e30;                                                                   // 返せる額が効かない所得
 
-    /// <summary>★与信の上限に借り手の返せる額（作者裁定 A16・E6 の1歩目・2026-09-28）。上限＝「準備×信用乗数」と「首都の投資家の前月の所得×12×SoeSaleYears」の小さい方。
+    /// <summary>★与信の上限に借り手の返せる額（作者裁定 A16・E6 の1歩目・2026-09-28）。上限＝「準備×信用乗数」と「首都の投資家の前月の所得×12×CreditRepayableYears」の小さい方。
     /// 盤面＝英を1四半期温めた世界（銀行と首都の投資家がいる）。投資家の前月の所得と与信の残高だけを置き、Credit.Step を1日回して説明API の内訳（1行目＝与信の上限）と過熱度を読む。
     /// (1) 所得が十分なら上限は準備の上限のまま (2) 返せる額が準備の上限より小さければ上限は返せる額 (3) 所得が半分なら上限も半分・同じ残高で過熱度は倍（債務÷所得）
     /// (4) 最後の貸し手の準備拡張でも実効の上限は返せる額を越えない（対照＝所得が十分なら拡張が効く） (5) 返せる額を越えた残高は回収で下がる（対照＝所得が十分なら下がらない）

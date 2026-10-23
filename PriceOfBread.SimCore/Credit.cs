@@ -105,13 +105,13 @@ public static class Credit
         //   そこへ金が流出すると、与信が国内の貨幣の全部（貯蓄＋国庫）を超えて基礎貨幣が負になる（(79) の英 1853 −1.8M）。
         //   ⚠回収は基礎貨幣を動かさない（投資家の預金と与信が同じ額だけ減る）＝負へ落ちた国は回収では戻らない（戻すのは交易・鋳造・発行＝E6 の2歩目の償却）。
         //   この上限は「与信で負へ落ちる深さ」を返せる額までに押さえるだけ。⚠損失の負債化（Simulation.BackstopNegativeSavings）はこの上限の外で残高を積む。
-        //   返せる額＝首都の投資家（与信の借り手＝下の枝と同じ）の前月の所得×12×SoeSaleYears（国営工場の払い下げ価格と同じ「年間所得×年数」の物差し）。
+        //   返せる額＝首都の投資家（与信の借り手＝下の枝と同じ）の前月の所得×12×CreditRepayableYears（国営工場の払い下げ価格の年数 SoeSaleYears と値は同じ 5・別の係数）。
         //   ⚠NaN は比較が偽＝準備の上限のまま（否定形）。投資家のいない小シナリオ（全POPへ注入する枝）は準備の上限だけ（従来と同じ）。
         //   最後の貸し手は準備を広げるだけ＝返せる額は越えない（下の effMaxLoans でも同じ比較）。過熱度の分母（maxLoans）も返せる額を見る＝所得が落ちると過熱度が上がる（債務÷所得）。
         var home = w.Region;
         double repayable = double.PositiveInfinity;
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
-            repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth.Value)) * c.SoeSaleYears;
+            repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth.Value)) * c.CreditRepayableYears;
         if (Instruments.On) Instruments.CreditCap(w, maxLoans, repayable, days);   // (271) 計器（読むだけ）：準備の側の上限と返せる額のどちらが縛ったか
         if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
@@ -215,8 +215,7 @@ public static class Credit
                 paid = Math.Min(interestDue, Math.Min(Calendar.PerMonthToPerDay(profitTot) * days, tot));
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。
-            // ★保存則：bank.Loans は MoneyConservation の恒等式（BaseMoney = baseline + TradeFlow + GoldMinted + FiatIssued）に
-            //   入っていないので、繰入は貨幣を作らない＝保存に触れない。倒産の既存規律（「負債は帳消ししない・倒産は産出0のみで貨幣非接触」）と同性質。
+            // ★保存則：繰入は与信の創造として預金者へ払う形で保存する（下の是正を読む。初版の〈bank.Loans は保存の恒等式に入っていないので繰入は貨幣を作らない〉は誤りで、残高だけ増やすと BaseMoney が減った）。
             // ★雪だるまは既存機構が止める＝FactoryBankruptcyEnabled（点火済み）と、Loans 増→銀行信頼の低下→与信収縮（ミンスキー）の自己制限。
             // 既定 InterestCapitalization=0 で繰入なし＝案Aのみ（安全側）。1で A+B。
             double unpaidInterest = interestDue - paid;

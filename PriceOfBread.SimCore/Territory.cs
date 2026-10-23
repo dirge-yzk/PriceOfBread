@@ -103,7 +103,7 @@ public static class Territory
                 if (g > gMax) gMax = g;
             }
             if (!(wSum > 0)) continue;
-            double fraction = Math.Clamp(c.RegionMobility * gMax, 0, MaxMigrationFraction);
+            double fraction = PoliticalQuantities.ClampOr(c.RegionMobility * gMax, 0, MaxMigrationFraction, 0.0);   // NaN は動かさない（0）
             size0[s] = new double[active[s].Pops.Count];
             for (int i = 0; i < size0[s].Length; i++) size0[s][i] = active[s].Pops[i].Size;
             for (int d = 0; d < k; d++)

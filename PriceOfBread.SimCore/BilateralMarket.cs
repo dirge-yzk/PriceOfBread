@@ -29,6 +29,10 @@ public sealed partial class InternationalMarket
     /// <summary>★(335) 番人用（テストだけが書く）：真なら成約の反復ごとに〈反復不変の値〉（単価・最良の売り手・運賃・関税・港湾料・払い手の1単位の支払い・価格静止の冪ほか）を求め直す
     /// ＝使い回す前の形。既定 false。<c>TradeClearingTests</c> が使い回し（既定）と求め直しの清算を同じ盤面で比べる（全ての量がビット単位で同じ）。</summary>
     internal static bool DealConstAlwaysStale;
+
+    /// <summary>鎖国の対称化（高関税レジーム＝輸出側も閉じる）の売りの比の掛け率＝max(0, 1−IsolationExportWeight×関税率²)。売り手の国の関税率（負は0）。買い手側の走査と売り手側の走査が同じ1本を読む。</summary>
+    private static double IsolationExportFactor(double tariff, Coefficients c)
+        => System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tariff) * System.Math.Max(0, tariff));
     private const int RolloverGuardMax = 400;   // ロールオーバー反復の停止保証（X は成約ごとに厳密に減る＝通常は数回で終わる。届いたら諦めるだけ＝破綻しない）
     public double[][]? PairFlowQ;
     public double[][]? LastPairFlow;   // ★段7：直近に消費した四半期のペア行列（純テレメトリ＝pairprobe/診断が読む。StepDiffusion がスワップ退避）
@@ -157,7 +161,7 @@ public sealed partial class InternationalMarket
     }
     [System.ThreadStatic] private static ClearScratch? _clearScratch;
 
-    private void StepBilateral(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter = true)
+    private void StepBilateral(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter)
     {
         int gc = _price.Length, nn = nations.Count;
         if (nn == 0) return;   // 参加国なし＝清算なし（下の nations[0] を守る）
@@ -513,7 +517,7 @@ public sealed partial class InternationalMarket
             {
                 var so = new List<Pop>();
                 foreach (var r2 in nations[i2].World.Regions)
-                    if (r2.State == RegionState.Active && r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) so.Add(r2.Pops[r2.MerchantPopIndex]);
+                    if (r2.State == RegionState.Active && r2.MerchantPop is { } merchSo) so.Add(merchSo);
                 if (so.Count == 0) foreach (var r2 in nations[i2].World.Regions) if (r2.State == RegionState.Active) so.AddRange(r2.Pops);
                 double sz = 0; foreach (var p2 in so) sz += p2.Size;
                 shipOwners[i2] = so;
@@ -569,7 +573,7 @@ public sealed partial class InternationalMarket
             var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
                 if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
-            if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]]; bill[t2] = !(r2.Pops[r2.MerchantPopIndex].Debt.Value > 0); }
+            if (r2.MerchantPop is { } merchPay) { payerOf[t2] = [merchPay]; bill[t2] = !(merchPay.Debt.Value > 0); }
             else if (r2.Pops.Count > 0) payerOf[t2] = r2.Pops;
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
             if (bill[t2]) budget[t2] = double.PositiveInfinity;   // ③積荷が担保（量は X が決める）
@@ -594,7 +598,7 @@ public sealed partial class InternationalMarket
                 var w2 = nations[i2].World;
                 if (w2.SelfPower is null) continue;
                 var uw = new List<Pop>(); double uwSize = 0;
-                foreach (var r2 in w2.Regions) if (r2.State == RegionState.Active && r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { uw.Add(r2.Pops[r2.MerchantPopIndex]); uwSize += r2.Pops[r2.MerchantPopIndex].Size; }
+                foreach (var r2 in w2.Regions) if (r2.State == RegionState.Active && r2.MerchantPop is { } merchUw) { uw.Add(merchUw); uwSize += merchUw.Size; }
                 if (uwSize > 1e-9) underwriters[i2] = uw;   // 受け手が居る＝移し方の1本が頭数で配れる（払わせて配れない額を作らない）
             }
         var payTariff = ClearScratch.FitZero(ref sc.PayTariff, tc);  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）
@@ -725,7 +729,7 @@ public sealed partial class InternationalMarket
                 if (lp <= 1e-9 || m.Stock <= 1e-9) continue;
                 int ni = tr[t].nation;
                 double sellAcc = tr[t].access * (milGood ? milExportAcc[ni] : 1.0);
-                if (c.IsolationExportWeight > 0) sellAcc *= System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tar[ni]) * System.Math.Max(0, tar[ni]));   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
+                if (c.IsolationExportWeight > 0) sellAcc *= IsolationExportFactor(tar[ni], c);   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
                 if (g == c.OpiumGoodId && oexban[ni]) sellAcc *= Contraband.LeakFraction(tr[t].r.AdminFill, c);   // 輸出禁止＝取り締まれた分だけ止まる
                 if (sellAcc <= 1e-12) continue;
                 // 出せる量＝在庫−地元1ヶ月分（裁定3＝剥ぎ取り不可）。速度の蓋は無い＝量は買い手の X と売り手の Y_price が決める
@@ -951,7 +955,7 @@ public sealed partial class InternationalMarket
                         xPriceOn = rpT > 1e-9 && unitA > 1e-9;
                         if (xPriceOn) powVal = Math.Pow(rpT / unitA, twoEps);   // 価格静止の量の冪（旧は反復ごとに同じ入力で呼んでいた）
                         sellAccB = tr[snA].access * (milGood ? milExportAcc[siA] : 1.0);
-                        if (c.IsolationExportWeight > 0) sellAccB *= System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tar[siA]) * System.Math.Max(0, tar[siA]));   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
+                        if (c.IsolationExportWeight > 0) sellAccB *= IsolationExportFactor(tar[siA], c);   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
                         if (g == c.OpiumGoodId && oexban[siA]) sellAccB *= Contraband.LeakFraction(tr[snA].r.AdminFill, c);
                         rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
                         frA = freightRate > 1e-12 ? freightRate * bestKmA / Diplomacy.DistanceNormKm : 0.0;
@@ -1084,8 +1088,8 @@ public sealed partial class InternationalMarket
                 if (!(rev[t] > 0)) continue;
                 var rS = tr[t].r; var wS = nations[tr[t].nation].World;
                 double comm = 0;
-                if (revX[t] > 0 && rS.MerchantPopIndex >= 0 && rS.MerchantPopIndex < rS.Pops.Count)
-                    comm = World.Transfer((null, null), (wS, [rS.Pops[rS.MerchantPopIndex]], null), revX[t] * c.MerchantTradeMargin.Value, TreasuryCat.OtherIn, income: true);
+                if (revX[t] > 0 && rS.MerchantPop is { } merchComm)
+                    comm = World.Transfer((null, null), (wS, [merchComm], null), revX[t] * c.MerchantTradeMargin.Value, TreasuryCat.OtherIn, income: true);
                 if (subPay is not null && subPay[t] > 0)
                 {   // ★(471) 輸出奨励金＝売り手の国庫→清算所（売り手の通貨）。直後の PaySales が受取と一緒に④の持分で分ける
                     double mv = World.Transfer((wS, null), (null, null, null), subPay[t], TreasuryCat.Subsidy);
@@ -1157,8 +1161,8 @@ public sealed partial class InternationalMarket
             {
                 var ms = new List<Pop>(); var mw = new List<double>();
                 for (int t = 0; t < tc; t++)
-                    if (tr[t].nation == i && expReg[t] > 0 && tr[t].r.MerchantPopIndex >= 0 && tr[t].r.MerchantPopIndex < tr[t].r.Pops.Count)
-                    { ms.Add(tr[t].r.Pops[tr[t].r.MerchantPopIndex]); mw.Add(expReg[t]); }
+                    if (tr[t].nation == i && expReg[t] > 0 && tr[t].r.MerchantPop is { } merchTar)
+                    { ms.Add(merchTar); mw.Add(expReg[t]); }
                 w0.LastTariffRevenuePerClearing -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[i] * Math.Abs(tar[i]) * w0.FiscalFundingRatio.Value, TreasuryCat.Tariff);
             }
         }
