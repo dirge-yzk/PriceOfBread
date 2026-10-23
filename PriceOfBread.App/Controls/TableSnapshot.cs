@@ -17,7 +17,7 @@ public sealed record RowView(string Key, string Name, string? Group, IReadOnlyLi
 
 /// <summary>共通の表へ渡す物（本体が渡した <see cref="TableData"/> を、単位から決まる書式で文字にした結果）。
 /// Avalonia に依らない＝xUnit で読める。表を作り直さず、鍵で値だけ流す（SyncRows の規律）。</summary>
-public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<ColumnSpec> Columns, IReadOnlyList<RowView> Rows)
+public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<ColumnSpec> Columns, IReadOnlyList<RowView> Rows, Page? Page = null)
 {
     public static TableSnapshot Empty { get; } = new("", "", [], []);
 
@@ -83,7 +83,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
             }
             rows.Add(new RowView(r.Key, r.Name, r.Group, cells, r.Tip, r.Emphasis, r.GroupTip));
         }
-        return new TableSnapshot(data.Key, data.Name, cols, rows);
+        return new TableSnapshot(data.Key, data.Name, cols, rows, data.Page);
     }
 
     /// <summary>並べ替えと絞り込みを掛けた行（表の描き方が使う）。<paramref name="sortColumn"/> が負なら本体の並びのまま。数の列は数で・他は文字で、同値は元の並びのまま。</summary>

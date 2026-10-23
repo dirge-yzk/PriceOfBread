@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PriceOfBread.App.Layout;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
@@ -173,7 +174,7 @@ public partial class GameViewModel : ViewModelBase
     private readonly Dictionary<List<double>, (int N, global::Avalonia.Points Pts, double Min, double Max)> _seriesCache = new();
 
     // ★(501) 段2：4タブの右ドック（ActiveTab・SelectTab・PanelWidth・Tab*）は分割の配置（GameViewModel.Layout.cs の Layout）へ置き換えた。
-    //   ページは常に枠のどれかに置かれる＝「閉じた」状態は無い。旧の Tab*／ProdOpen／DiscoveryOpen は、見えているかを配置から導く読み取り専用の名前として Layout.cs に残る。
+    //   ページは常に枠のどれかに置かれる＝「閉じた」状態は無い。旧の Tab*／ProductionShown／DiscoveryShown は、見えているかを配置から導く読み取り専用の名前として Layout.cs に残る。
 
     // 法律タブの通知（受動レイヤ・裁定2026-07-09「変更可能になった時点で法律タブを光らせる」）：
     // 各法の改革方向の一歩が「通らない→通る」へ変わった四半期に政治タブを点灯（Government.CanStep＝副作用なしの照会）。
@@ -182,11 +183,7 @@ public partial class GameViewModel : ViewModelBase
     private ulong? _lawMovableBits;
     private void UpdateLawAlert()
     {
-        ulong bits = 0; int i = 0;
-        void Ax(PolicyAxis a, bool increasing) { if (Government.CanStep(_player, a, increasing)) bits |= 1UL << i; i++; }
-        Ax(PolicyAxis.Suffrage, true); Ax(PolicyAxis.EducationLaw, true); Ax(PolicyAxis.Censorship, true);
-        Ax(PolicyAxis.LaborUnion, true); Ax(PolicyAxis.ShorterHours, false);   // ★親軍法は2026-08-18に撤去（軍国度＝軍事費×徴兵法の導出量）
-        Ax(PolicyAxis.WomenRights, true); Ax(PolicyAxis.CornLaws, false); Ax(PolicyAxis.LandReform, true); Ax(PolicyAxis.SerfEmancipation, true);
+        ulong bits = ProblemScan.MovableLawBits(_player);   // 動かせる改正の方向の 9 本は本体の目録の 1 本（問題の一覧の「動かせる法」と同じ）
         if (_lawMovableBits is { } prev && (bits & ~prev) != 0 && !Layout.IsShown(Slot.PoliticsLaw)) PoliticsTabAlert = true;   // 初回（ロード/開始直後）は基準線のみ＝点灯しない
         _lawMovableBits = bits;
     }
@@ -227,8 +224,9 @@ public partial class GameViewModel : ViewModelBase
 
     // ロード用：復元済みシム＋エンベロープ（UI側の経過日数・年次グラフ・戦争UI状態）から再開。
     private GameViewModel(MultiNationSim sim, int playerIndex, double simDays, int dayInQuarterUI, int lastSampledYear,
-                          SeriesStore series, Action? onExit, Action? onLoad, WarUiSave? warUi = null)
+                          SeriesStore series, Action? onExit, Action? onLoad, WarUiSave? warUi = null, IReadOnlyList<PinRef>? pins = null)
     {
+        LoadPins(pins);   // ピン留めはセーブの追記ブロック（最初の Refresh より前に置く）
         _series = series;   // セーブから読んだ名前つきの系列をそのまま持つ（足された系列は旧セーブに無い＝空で始まる）
         _playerIndex = playerIndex;
         _onExit = onExit;

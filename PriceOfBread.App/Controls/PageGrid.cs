@@ -213,11 +213,34 @@ public sealed class PageGrid : Panel
         if (e.NewItems is not null) foreach (var c in e.NewItems.OfType<Section>()) { c.HeaderPressed -= OnHeader; c.HeaderPressed += OnHeader; }
     }
 
+    /// <summary>欄を開く（問題の一覧とピン留めの飛び先が畳まれていたとき）。見出しを押して開いたのと同じ扱い（代わりに順位の一番低い開いた欄が畳まれる）。</summary>
+    public void Reveal(string sectionKey)
+    {
+        _userClosed.Remove(sectionKey); _userOpened.Add(sectionKey);
+        InvalidateMeasure();
+        UserStateChanged?.Invoke();
+    }
+
+    /// <summary>プレイヤーが見出しを押して開け閉めした欄が変わった（配置の保存へ渡す）。</summary>
+    public event Action? UserStateChanged;
+    public IReadOnlyCollection<string> UserOpened => _userOpened;
+    public IReadOnlyCollection<string> UserClosed => _userClosed;
+
+    /// <summary>保存された開け閉めを戻す（ページの部品を作った直後）。</summary>
+    public void SetUserState(IEnumerable<string> opened, IEnumerable<string> closed)
+    {
+        _userOpened.Clear(); _userClosed.Clear();
+        foreach (var k in opened) _userOpened.Add(k);
+        foreach (var k in closed) _userClosed.Add(k);
+        InvalidateMeasure();
+    }
+
     private void OnHeader(Section s)
     {
         if (s.IsCollapsed) { _userClosed.Remove(s.Key); _userOpened.Add(s.Key); }
         else { _userOpened.Remove(s.Key); _userClosed.Add(s.Key); }
         InvalidateMeasure();
+        UserStateChanged?.Invoke();
     }
 
     protected override Size MeasureOverride(Size available)

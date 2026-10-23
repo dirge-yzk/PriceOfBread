@@ -77,6 +77,7 @@ public partial class GameViewModel
             }
             bw.Write(PastWarRows.Count);
             foreach (var pw in PastWarRows) { bw.Write(pw.Key); bw.Write(pw.EndDay); bw.Write(pw.Title); bw.Write(pw.Detail); }
+            WritePins(bw);   // ★(501) 段4：ピン留め（追記ブロック・旧セーブには無い＝EOF を許す読み手）
             bw.Flush();
             DeliverNews("💾", slot == 0 ? "セーブした" : $"スロット{slot}にセーブした", NewsBlue, _simDays);
             NotifySlots();   // 初セーブでEscメニューの「ロード」が活性化
@@ -127,7 +128,8 @@ public partial class GameViewModel
                 }
             }
             catch { warUi = null; }
-            return new GameViewModel(sim, pi, simDays, dq, lsy, series, onExit, onLoad, warUi);
+            var pins = warUi is null ? new List<PinRef>() : ReadPins(br);   // 戦争の追記ブロックを読み切れた版だけ（読み切れなければピン留めの位置も分からない）
+            return new GameViewModel(sim, pi, simDays, dq, lsy, series, onExit, onLoad, warUi, pins);
         }
         catch
         {

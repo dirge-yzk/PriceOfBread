@@ -137,7 +137,7 @@ public partial class MapPane : UserControl
 
     // スライダーの硬い上下限は Views/SliderLimit.cs（添付プロパティ）。
 
-    // 生産タブ（ProdScroll のパン・ノード選択）のハンドラは Views/Tabs/ProductionTab.axaml.cs へ移送（2026-08-10のUI分割）。
+    // 生産ページ（ProdScroll のパン・ノード選択）のハンドラは Views/Pages/ProductionPage.axaml.cs にある。
 
     // 背景の世界地図：SVG（Assets/worldmap.svg）の全 <path> を Avalonia の Geometry に解析し、viewBox(2752.766×1537.631)→仮想(2000×780)へ
     // スケールして1枚のビットマップに焼く。それを東西ループ用に3枚（-2000/0/+2000）MapBackground に敷く。外部SVGライブラリに依存しない（描画安定）。

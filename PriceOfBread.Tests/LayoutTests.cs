@@ -162,6 +162,34 @@ public class LayoutTests
     }
 
     [Fact]
+    public void 見出しを押して開け閉めした欄は保存される_往復する_知らないページや空の記録は捨てる_初めの配置に戻すと消える()
+    {
+        var m = new LayoutModel();
+        int changed = 0; m.Changed += () => changed++;
+        m.SetSectionState("Production", ["goods", "goods", "equipment"], ["supply"]);
+        Assert.Equal(1, changed);
+        m.SetSectionState("Production", ["equipment", "goods"], ["supply"]);   // 同じ内容（順が違うだけ）は変わりとしない
+        Assert.Equal(1, changed);
+        var (opened, closed) = m.SectionState("Production");
+        Assert.Equal(["equipment", "goods"], opened);
+        Assert.Equal(["supply"], closed);
+        var back = LayoutModel.FromJson(m.ToJson());
+        Assert.Equal(m.ToJson(), back.ToJson());
+        Assert.Equal(["equipment", "goods"], back.SectionState("Production").Opened);
+        Assert.Empty(back.SectionState("Market").Opened);
+        // 知らないページの記録・空の記録は読まない
+        var junk = LayoutModel.FromJson("{\"Shape\":\"LeftRight\",\"Seats\":[\"Production\",\"Market\",\"FiscalMoney\",\"Population\"],\"Sections\":{\"Nope\":{\"Opened\":[\"a\"],\"Closed\":[]},\"Market\":{\"Opened\":[],\"Closed\":[]}}}");
+        Assert.Empty(junk.SectionState("Market").Opened);
+        Assert.Empty(junk.SectionState("Market").Closed);
+        Assert.DoesNotContain("Nope", junk.ToJson());
+        m.SetSectionState("Production", [], []);   // 全部戻すと記録ごと消える
+        Assert.DoesNotContain("Sections", m.ToJson());
+        m.SetSectionState("Market", [], ["imports"]);
+        m.Reset();
+        Assert.Empty(m.SectionState("Market").Closed);
+    }
+
+    [Fact]
     public void 保存先は上書きできる_撮影と計測は本物の配置を読まず書かない()
     {
         string dir = Path.Combine(Path.GetTempPath(), "pob_layout_test_" + Guid.NewGuid().ToString("N"));

@@ -84,6 +84,23 @@ public sealed class LayoutModel
     public bool LeftOpen { get; private set; } = true;
     public bool RightOpen { get; private set; } = true;
 
+    // ページごとの、プレイヤーが見出しを押して開け閉めした欄（設計 §2-6「畳んだ欄」）。鍵＝ページの名前（<see cref="Slot"/> の名前）。
+    private readonly Dictionary<string, (string[] Opened, string[] Closed)> _sections = new();
+
+    /// <summary>そのページの、プレイヤーが開けた欄・閉じた欄の鍵。</summary>
+    public (IReadOnlyList<string> Opened, IReadOnlyList<string> Closed) SectionState(string page)
+        => _sections.TryGetValue(page, out var s) ? (s.Opened, s.Closed) : ([], []);
+
+    /// <summary>そのページの開け閉めを置く（見出しを押すたび）。変わらなければ何もしない。</summary>
+    public void SetSectionState(string page, IEnumerable<string> opened, IEnumerable<string> closed)
+    {
+        var o = opened.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
+        var c = closed.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
+        if (_sections.TryGetValue(page, out var cur) && cur.Opened.SequenceEqual(o) && cur.Closed.SequenceEqual(c)) return;
+        if (o.Length == 0 && c.Length == 0) _sections.Remove(page); else _sections[page] = (o, c);
+        Raise();
+    }
+
     /// <summary>配置が変わった（形・席・選択・区切り・列の開閉のどれでも）。</summary>
     public event Action? Changed;
 
@@ -154,6 +171,7 @@ public sealed class LayoutModel
         var d = new LayoutModel();
         for (int i = 0; i < _seats.Length; i++) _seats[i] = d._seats[i];
         Shape = d.Shape; Selected = d.Selected; MainRatio = d.MainRatio; SubRatio = d.SubRatio; LeftOpen = d.LeftOpen; RightOpen = d.RightOpen;
+        _sections.Clear();
         Raise();
     }
 
@@ -168,6 +186,14 @@ public sealed class LayoutModel
         public double SubRatio { get; set; } = DefaultSubRatio;
         public bool LeftOpen { get; set; } = true;
         public bool RightOpen { get; set; } = true;
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, SectionDto>? Sections { get; set; }
+    }
+
+    private sealed class SectionDto
+    {
+        public string[] Opened { get; set; } = [];
+        public string[] Closed { get; set; } = [];
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, IncludeFields = false };
@@ -176,6 +202,7 @@ public sealed class LayoutModel
     {
         Shape = Shape.ToString(), Seats = _seats.Select(s => s.ToString()).ToArray(), Selected = Selected,
         MainRatio = MainRatio, SubRatio = SubRatio, LeftOpen = LeftOpen, RightOpen = RightOpen,
+        Sections = _sections.Count == 0 ? null : _sections.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToDictionary(kv => kv.Key, kv => new SectionDto { Opened = kv.Value.Opened, Closed = kv.Value.Closed }),
     }, JsonOptions);
 
     /// <summary>JSON から配置を作る。読めない・不正な物は初めの配置（保存の壊れで画面が出なくなる道を作らない）。</summary>
@@ -198,6 +225,14 @@ public sealed class LayoutModel
             m.MainRatio = Clamp(d.MainRatio, DefaultMainRatio);
             m.SubRatio = Clamp(d.SubRatio, DefaultSubRatio);
             m.LeftOpen = d.LeftOpen; m.RightOpen = d.RightOpen;
+            if (d.Sections is not null)
+                foreach (var (page, s) in d.Sections)
+                {
+                    if (!Enum.TryParse<Slot>(page, out var slot) || !Enum.IsDefined(slot) || s is null) continue;   // 知らないページの記録は捨てる
+                    var o = (s.Opened ?? []).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x, StringComparer.Ordinal).Take(32).ToArray();
+                    var c = (s.Closed ?? []).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x, StringComparer.Ordinal).Take(32).ToArray();
+                    if (o.Length > 0 || c.Length > 0) m._sections[page] = (o, c);
+                }
             return m;
         }
         catch { return new LayoutModel(); }

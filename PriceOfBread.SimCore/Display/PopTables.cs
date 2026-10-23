@@ -198,6 +198,9 @@ public static class PopTables
         return lines.Select((l, i) => (l, i)).OrderBy(t => t.l.Layer).ThenBy(t => t.i).Select(t => t.l).ToList();   // 層ごとにまとめる（層の中は最初に現れた順）
     }
 
+    /// <summary>階級の表の既定の形（増減の矢印を添えない）。目録の一覧と問題の一覧・ピン留めが読む。画面は <see cref="Classes"/> に矢印の関数を渡して使う（行の鍵と列は同じ）。</summary>
+    public static Table<ClassLine> ClassesPlain { get; } = Classes();
+
     /// <summary>階級の表。規模と失業者の後ろに添える増減の矢印は、四半期の差分を採る側（App）が関数で渡す（差分は今の盤面から導けない）。</summary>
     public static Table<ClassLine> Classes(Func<ClassLine, string>? sizeNote = null, Func<ClassLine, string>? unemployedNote = null)
         => new("pop.classes", "階級", Page.Population, (_, w) => ClassLines(w), l => "class." + l.ClassId, l => l.Name,

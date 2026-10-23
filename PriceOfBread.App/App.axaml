@@ -6,7 +6,7 @@
              <!-- ライトテーマ（2026-07-04指示：文字の可読性）。コントロール（ComboBox/Slider/Menu等）もライト配色になる -->
 
     <!-- ★2026-08-10のUI分割：GameView.axaml にあった共有スタイル／共有リソースを**そのまま**ここへ移した（値もセレクタも不変）。
-         Views/Tabs/*.axaml へ切り出したタブは別々の UserControl なので、アプリケーション既定に置かないと Classes が効かない。
+         Views/Pages/*.axaml のページは別々の UserControl なので、アプリケーション既定に置かないと Classes が効かない。
          Application.Styles は FluentTheme の**後ろ**に置く＝従来（UserControl.Styles）と同じくテーマ既定に勝つ。 -->
 
     <Application.DataTemplates>

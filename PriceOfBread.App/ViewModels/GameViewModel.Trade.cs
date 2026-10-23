@@ -55,7 +55,7 @@ public partial class GameViewModel
     private void RefreshTrade()
     {
         SampleClearingSeries();
-        if (!TabTrade) return;
+        if (!MarketShown) return;
         var w = _player;
         PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
         ClearingExportSeries = _series.Of(ClearingExportKey).ToArray(); ClearingImportSeries = _series.Of(ClearingImportKey).ToArray(); ClearingBalanceSeries = _series.Of(ClearingBalanceKey).ToArray();

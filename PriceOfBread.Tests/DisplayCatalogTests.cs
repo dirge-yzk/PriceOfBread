@@ -235,7 +235,7 @@ public class DisplayCatalogTests
     [Fact]
     public void 表の一覧_表の鍵は重ならず_列の鍵と名前は規則に合い_数の列は単位を持つ()
     {
-        Assert.Equal(15, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す（統合：段3 の 3 枝の静的な表を全部載せて 15。状態を持つ表〔支出・収入・国庫の台帳・階級〕は呼ぶ側が行を渡すので載せない）
+        Assert.Equal(16, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す（統合：段3 の 3 枝の静的な表を全部載せて 15＋階級の既定の形で 16。行を呼ぶ側が渡す表〔支出・収入・国庫の台帳〕は載せない）
         Assert.Equal(TableCatalog.All.Count, TableCatalog.All.Select(t => t.Key).Distinct().Count());
         foreach (var t in TableCatalog.All)
         {

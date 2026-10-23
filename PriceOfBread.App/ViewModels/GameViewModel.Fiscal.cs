@@ -97,7 +97,7 @@ public partial class GameViewModel
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法の表へ移行・2026-07-30）
         UpdateDebtHeader();
         SampleFiscalYear();   // 年に 1 回の採取は見えているかに依らない（線は見えた時に写す）
-        if (!TabEcon) return;
+        if (!FiscalShown) return;
         var flows = new FiscalFlows(_eduMonthly, _stateMonopMonthly, _fInMonthly, _fOutMonthly, _ledgerDiff);
         var budget = FiscalTables.Budget(_player, flows);
         SpendTable = SnapFiscal(FiscalTables.Spend(budget));

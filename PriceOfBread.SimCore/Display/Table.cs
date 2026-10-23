@@ -58,7 +58,8 @@ public sealed record TextCell(string Text, string? Tip);
 public sealed record RowData(string Key, string Name, string? Group, IReadOnlyList<object?> Cells, string? Tip = null, bool Emphasis = false, string? GroupTip = null);
 
 /// <summary>表を読んだ結果（共通の表・Runner の報告・画面と仕様を知らない AI のテストプレイが同じ物を読む）。</summary>
-public sealed record TableData(string Key, string Name, IReadOnlyList<ColumnInfo> Columns, IReadOnlyList<RowData> Rows);
+/// <summary><paramref name="Page"/>＝この表が属するページ（ピン留めが元のページへ飛ぶ。表の持ち主が決まらない見本は null）。</summary>
+public sealed record TableData(string Key, string Name, IReadOnlyList<ColumnInfo> Columns, IReadOnlyList<RowData> Rows, Page? Page = null);
 
 /// <summary>行の型に依らない表の口（App の共通の表が型を知らずに読む）。</summary>
 public interface ITable
@@ -108,7 +109,7 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
                 };
             list.Add(new RowData(RowKey(r), RowName(r), Group?.Invoke(r), cells, GroupTip: GroupTip?.Invoke(r)));
         }
-        return new TableData(Key, Name, ColumnInfos, list);
+        return new TableData(Key, Name, ColumnInfos, list, Page);
     }
 }
 

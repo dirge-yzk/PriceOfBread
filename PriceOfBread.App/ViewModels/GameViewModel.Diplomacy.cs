@@ -157,7 +157,7 @@ public partial class GameViewModel
             rows.Add(new RowData(pow.Name, name, rank,
                 [new NumberCell(oi + 1, null), name, badge, new NumberCell(tensionShare, null), invade, unify], detail, isMe));
         }
-        NationTable = TableSnapshot.From(new TableData("diplomacy.nations", "国の一覧", NationColumns, rows));
+        NationTable = TableSnapshot.From(new TableData("diplomacy.nations", "国の一覧", NationColumns, rows, Page.DiplomacyWar));
     }
 
     /// <summary>行クリック＝その国の中心（首都州／なければ最初の植民地）へカメラを移動（View が購読して translate を合わせる）。</summary>

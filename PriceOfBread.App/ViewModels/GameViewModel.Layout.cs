@@ -1,5 +1,5 @@
 // GameViewModel.Layout.cs ＝ 画面の配置（(501) UI の作り直し 段2）。分割の形・各枠のページ・選んでいる枠・左右の列の開閉は LayoutModel が持ち、
-// ここは「何が見えているか」を配置から導く読み取り専用の名前（旧の Tab*／ProdOpen／DiscoveryOpen）と、見えた瞬間の更新・ヘッダーのページの押し釦・
+// ここは「何が見えているか」を配置から導く読み取り専用の名前（旧の Tab*／ProductionShown／DiscoveryShown）と、見えた瞬間の更新・ヘッダーのページの押し釦・
 // 左の列の問題の一覧とピン留めの器を持つ。新しい状態は作らない（見えているかは毎回 Layout から導く）。
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,37 +20,17 @@ public sealed partial class PageButtonVM : ObservableObject
     [ObservableProperty] private bool _war;
 }
 
-/// <summary>問題の一覧の 1 行（設計 §5）。中身は段4（ProblemScan）が入れる＝今は器だけ。</summary>
-public sealed partial class ProblemRow : ObservableObject
-{
-    public string Key { get; init; } = "";
-    [ObservableProperty] private string _kind = "";
-    [ObservableProperty] private string _target = "";
-    [ObservableProperty] private string _sizeText = "";
-    [ObservableProperty] private string _trend = "";
-}
-
-/// <summary>ピン留めの 1 枠（設計 §4-3）。中身は段4が入れる＝今は器だけ。行が消えた枠は薄くして名前だけ残す（Faded）。</summary>
-public sealed partial class PinSlot : ObservableObject
-{
-    public string Key { get; init; } = "";
-    [ObservableProperty] private string _name = "";
-    [ObservableProperty] private string _valuesText = "";
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(Opacity))] private bool _faded;
-    public double Opacity => Faded ? 0.45 : 1.0;
-}
-
 public partial class GameViewModel
 {
     /// <summary>画面の配置。前回の配置を読む（無ければ初めの配置）。撮影と計測は保存先を別へ向けてある（<see cref="LayoutStore.PathOverride"/>）。</summary>
     public LayoutModel Layout { get; } = LayoutStore.Load();
 
     // ---- 見えているか（旧の名前のまま、配置から導く読み取り専用）----
-    public bool ProdOpen => Layout.IsShown(Slot.Production);
-    public bool DiscoveryOpen => Layout.IsShown(Slot.Discovery);
-    public bool TabEcon => Layout.IsShown(Slot.FiscalMoney);
-    public bool TabTrade => Layout.IsShown(Slot.Market);
-    public bool TabWar => Layout.IsShown(Slot.DiplomacyWar);
+    public bool ProductionShown => Layout.IsShown(Slot.Production);
+    public bool DiscoveryShown => Layout.IsShown(Slot.Discovery);
+    public bool FiscalShown => Layout.IsShown(Slot.FiscalMoney);
+    public bool MarketShown => Layout.IsShown(Slot.Market);
+    public bool DiplomacyShown => Layout.IsShown(Slot.DiplomacyWar);
 
     public bool LeftOpen => Layout.LeftOpen;
     public bool LeftClosed => !Layout.LeftOpen;
@@ -58,8 +38,6 @@ public partial class GameViewModel
     public bool RightClosed => !Layout.RightOpen;
 
     public ObservableCollection<PageButtonVM> PageButtons { get; } = new();
-    public ObservableCollection<ProblemRow> ProblemRows { get; } = new();
-    public ObservableCollection<PinSlot> Pins { get; } = new();
 
     private HashSet<Slot> _shownPrev = new();
 

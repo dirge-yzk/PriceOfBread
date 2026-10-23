@@ -15,7 +15,7 @@ namespace PriceOfBread.App.Views.Pages;
 /// <item><term>外交と戦争</term><description>Views/Pages/DiplomacyWarPage.axaml・GameViewModel.Diplomacy.cs・War.cs・Popups.cs の動詞</description></item>
 /// <item><term>発見</term><description>Views/Pages/DiscoveryPage.axaml・GameViewModel.Discovery.cs</description></item>
 /// </list>
-/// 旧のタブ（Views/Tabs/*）は、ページが揃った回にその担当が消す。外枠（GameView.axaml・SplitHost・Layout）と目録の型は 1 人が持つ。</summary>
+/// 旧のタブ（Views/Tabs/*）は全て消した（段3〜統合）。外枠（GameView.axaml・SplitHost・Layout）と目録の型は 1 人が持つ。</summary>
 public static class PageFactory
 {
     public static Control Create(Slot slot) => slot switch

@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -16,7 +17,7 @@ using PriceOfBread.App.Layout;
 using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Views;
-// Views/GameView.axaml.cs ＝ 外枠の code-behind（全画面キー操作）。地図の拡縮/パン・州の当たりは Views/MapPane.axaml.cs（(501) 段2a で移した）。各タブのハンドラは Views/Tabs/*.axaml.cs。
+// Views/GameView.axaml.cs ＝ 外枠の code-behind（全画面キー操作）。地図の拡縮/パン・州の当たりは Views/MapPane.axaml.cs（(501) 段2a で移した）。各ページのハンドラは Views/Pages/*.axaml.cs。
 public partial class GameView : UserControl
 {
     /// <summary>地図の欄。盤面に 1 つだけ（地図の拡縮・パンと VM の拡大率は 1 つの値）。枠に置かれていないときは木に付かないが、生きている（陸の焼きは作った時に 1 回）。</summary>
@@ -43,6 +44,14 @@ public partial class GameView : UserControl
         {
             _pages[slot] = c = Pages.PageFactory.Create(slot);
             if (c is Pages.DiplomacyWarPage dp) _diploPage = dp;
+            // 見出しを押して開け閉めした欄は配置と一緒に保存する（前回の開け閉めを戻し、変わるたびに渡す）
+            if (DataContext is ViewModels.GameViewModel gv && c.GetLogicalDescendants().OfType<Controls.PageGrid>().FirstOrDefault() is { } grid)
+            {
+                string pageKey = slot.ToString();
+                var (opened, closed) = gv.Layout.SectionState(pageKey);
+                grid.SetUserState(opened, closed);
+                grid.UserStateChanged += () => gv.Layout.SetSectionState(pageKey, grid.UserOpened, grid.UserClosed);
+            }
         }
         return c;
     }
@@ -96,6 +105,9 @@ public partial class GameView : UserControl
         {
             _vmHooked = vm;
             Controls.TableView.DefaultConfirm = vm.ConfirmVerb;   // 共通の表の動詞の確かめの口（確かめの文を持つ動詞は、この窓を通らずには発動しない）
+            Controls.PinHost.Current = vm;                         // 表の行・線グラフ・ヘッダーの指標の右クリックのピン留めの受け口
+            vm.FocusRequested += OnFocusRequested;                 // 問題の一覧とピン留めの飛び先（ページの表の行・欄）
+            HeaderStatList.AddHandler(ContextRequestedEvent, OnHeaderContext, RoutingStrategies.Bubble);
             vm.RebuildPoliticalFill();   // 背景（塗りの型紙）は MapPane の構築で焼き済み＝型紙付きで1枚焼き直す
         }
     }
@@ -108,7 +120,38 @@ public partial class GameView : UserControl
         _keyTop = null;
         _heldKey = Key.None;
         Controls.TableView.DefaultConfirm = null;
+        if (ReferenceEquals(Controls.PinHost.Current, _vmHooked)) Controls.PinHost.Current = null;
+        if (_vmHooked is not null) _vmHooked.FocusRequested -= OnFocusRequested;
+        HeaderStatList.RemoveHandler(ContextRequestedEvent, OnHeaderContext);
         _vmHooked = null;
+    }
+
+    /// <summary>ヘッダーの指標の右クリック＝ピン留め／ピン留めを外す。</summary>
+    private void OnHeaderContext(object? sender, ContextRequestedEventArgs e)
+    {
+        if (DataContext is not ViewModels.GameViewModel vm || e.Source is not Control src || src.DataContext is not ViewModels.HeaderStat st) return;
+        var pin = vm.HeaderPin(st);
+        var mi = new MenuItem { Header = vm.IsPinned(pin.Id) ? "ピン留めを外す" : "ピン留め" };
+        mi.Click += (_, _) => vm.Toggle(pin);
+        new MenuFlyout { ItemsSource = new object[] { mi } }.ShowAt(src);
+        e.Handled = true;
+    }
+
+    /// <summary>問題の一覧とピン留めの飛び先：欄を開き（畳まれていれば）、表の行を見える所へ送って目印を付ける。生産の財の表は財を選ぶ（行を押したのと同じ）。
+    /// 部品の配置が済むまで 1 回後ろへ回し、行がまだ無ければ数回だけ待つ。</summary>
+    private void OnFocusRequested(ViewModels.FocusRequest r)
+    {
+        if (!_pages.TryGetValue((Slot)(int)r.Page, out var page)) return;
+        if (r.Section.Length > 0 && page.GetVisualDescendants().OfType<Controls.PageGrid>().FirstOrDefault() is { } grid) grid.Reveal(r.Section);
+        if (r.TableKey == "production.goods" && int.TryParse(r.RowKey, out int gid) && DataContext is ViewModels.GameViewModel vm) vm.SelectProdGoodIfNew(gid);
+        if (r.TableKey.Length > 0) Dispatcher.UIThread.Post(() => FocusRow(page, r, 0), DispatcherPriority.Background);
+    }
+
+    private void FocusRow(Control page, ViewModels.FocusRequest r, int attempt)
+    {
+        var tv = page.GetVisualDescendants().OfType<Controls.TableView>().FirstOrDefault(t => t.Snapshot?.Key == r.TableKey);
+        if (tv?.FocusRow(r.RowKey) == true) return;
+        if (attempt < 4) Dispatcher.UIThread.Post(() => FocusRow(page, r, attempt + 1), DispatcherPriority.Background);
     }
 
     private void OnGlobalKeyDown(object? sender, KeyEventArgs e)

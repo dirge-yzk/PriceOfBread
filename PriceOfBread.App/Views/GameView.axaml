@@ -2,15 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PriceOfBread.App.ViewModels"
              xmlns:v="using:PriceOfBread.App.Views"
-             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="680"
              x:Class="PriceOfBread.App.Views.GameView"
              x:DataType="vm:GameViewModel"
              Background="#EFE8D8" Foreground="{StaticResource InkBrush}" FontFamily="Yu Gothic UI, Meiryo, MS Gothic, sans-serif" FontWeight="Medium">
-    <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・地図・右ドック・通知・モーダル）。各タブの中身は Views/Tabs/*.axaml。 -->
-    <!-- 地図中心UI（ライトテーマ）：常設7タブ＋TABの生産（全画面サプライチェーン）。キー割当は GameView.axaml.cs のタブ切替表を正とする。
+    <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・分割・右の列・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
+    <!-- ページ中心UI（ライトテーマ）：7ページ＋地図を分割に置く。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
          外交＝行にホバーでアクションメニュー・クリックでカメラ移動。侵略/統一戦争＝確認モーダル（侵略は膨張度消費）。実国家間の開戦＝緊張の創発のみ。
          スペース=停止/再開・1〜3=速度。 -->
 
@@ -118,7 +118,7 @@
             <!-- 概況（2行目）：国家指標のリスト。グラフ付き項目はホバーで年次推移 -->
             <!-- ⚠★2列にまたがらせる（2026-08-02）。Grid の列幅は**全行で共有**されるので、行0の右列（速度＋タブ＋日付≈1000px）が
                  行1の左列まで狭めてしまい、概況の末尾（国民意識・軍事力）が切れていた。行1の右列はタブ移動で空なので跨げばよい。 -->
-            <ItemsControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,4,0,0" ItemsSource="{Binding HeaderStats}">
+            <ItemsControl x:Name="HeaderStatList" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,4,0,0" ItemsSource="{Binding HeaderStats}">
                 <!-- ★2026-08-02：**折り返さない**（作者指摘「ヘッダーが2段になっている。これは望んでいない」）。
                      WrapPanel だと項目が増えたぶんだけ段が増え、ヘッダーの高さが勝手に伸びて地図を押し下げていた。
                      StackPanel（横）にして余白と字を詰め、12項目が1段に収まるようにする。
@@ -179,12 +179,14 @@
                                 <ItemsControl ItemsSource="{Binding ProblemRows}" Margin="10,4,10,6">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:ProblemRow">
-                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,2">
-                                                <TextBlock Grid.Column="0" Text="{Binding Kind}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" Margin="0,0,6,0"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Target}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding SizeText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding Trend}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" Margin="4,0,0,0"/>
-                                            </Grid>
+                                            <Button Classes="row" Command="{Binding ActivateCommand}">
+                                                <Grid ColumnDefinitions="*,Auto,16" Margin="0,2">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Kind}" IsVisible="{Binding IsHeader}" Classes="section" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Margin="0,4,0,0"/>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Target}" IsVisible="{Binding IsItem}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" Margin="8,0,0,0"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Trend}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" Margin="4,0,0,0"/>
+                                                </Grid>
+                                            </Button>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -236,11 +238,18 @@
                             <ItemsControl ItemsSource="{Binding Pins}" Margin="10,6,10,8">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:PinSlot">
-                                        <Border BorderBrush="{StaticResource SandBrush}" BorderThickness="1" CornerRadius="3" Padding="8,4" Margin="0,0,0,6" Opacity="{Binding Opacity}">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding ValuesText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
-                                            </StackPanel>
+                                        <Border BorderBrush="{StaticResource SandBrush}" BorderThickness="1" CornerRadius="3" Margin="0,0,0,6" Opacity="{Binding Opacity}">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Button Classes="row" Command="{Binding OpenCommand}" Padding="8,4">
+                                                    <StackPanel Spacing="1">
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Source}" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontTiny}" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding ValuesText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
+                                                        <ctl:LineChart Values="{Binding Line}" IsVisible="{Binding HasLine}" Height="30" ShowLabels="False" Stroke="{StaticResource BlueBrush}" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Grid.Column="1" Classes="mini" Content="外す" Command="{Binding UnpinCommand}" VerticalAlignment="Top" Margin="0,4,4,0"/>
+                                            </Grid>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>

@@ -69,11 +69,11 @@
                         <TextBlock Grid.Column="1" Text="{Binding TradeBalance}" Foreground="{StaticResource InkBrush}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" TextAlignment="Right"/>
                     </Grid>
                     <TextBlock Text="輸出" Classes="dim" FontSize="{StaticResource FontSmall}"/>
-                    <ctl:LineChart x:Name="ExportChart" Values="{Binding ClearingExportSeries}" Stroke="{StaticResource BlueBrush}" Height="46"/>
+                    <ctl:LineChart x:Name="ExportChart" PinKey="chart.clearing.export" PinName="清算の輸出" PinPage="Market" Values="{Binding ClearingExportSeries}" Stroke="{StaticResource BlueBrush}" Height="46"/>
                     <TextBlock Text="輸入" Classes="dim" FontSize="{StaticResource FontSmall}"/>
-                    <ctl:LineChart x:Name="ImportChart" Values="{Binding ClearingImportSeries}" Stroke="{StaticResource RustBrush}" Height="46"/>
+                    <ctl:LineChart x:Name="ImportChart" PinKey="chart.clearing.import" PinName="清算の輸入" PinPage="Market" Values="{Binding ClearingImportSeries}" Stroke="{StaticResource RustBrush}" Height="46"/>
                     <TextBlock Text="収支の線" Classes="dim" FontSize="{StaticResource FontSmall}"/>
-                    <ctl:LineChart x:Name="BalanceChart" Values="{Binding ClearingBalanceSeries}" Stroke="{StaticResource BronzeBrush}" Height="46"/>
+                    <ctl:LineChart x:Name="BalanceChart" PinKey="chart.clearing.balance" PinName="清算の収支" PinPage="Market" Values="{Binding ClearingBalanceSeries}" Stroke="{StaticResource BronzeBrush}" Height="46"/>
                 </StackPanel>
             </ctl:Section.Body>
         </ctl:Section>

@@ -181,7 +181,10 @@ public partial class MainWindow : Window
         // 窓全体：外側の ScrollViewer が無い（枠・列・本体の直下に ScrollViewer が居ない）＝中身の高さが窓を超えない
         double winH = Bounds.Height;
         double gvH = gv.DesiredSize.Height;
-        BootLog.Write($"uishot: 外側の流れ[{tag}] {(ok && gvH <= winH + 1 ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
+        bool outerFlowing = !(ok && gvH <= winH + 1);
+        _gateOuter++; if (outerFlowing) _gateOuterFlowing++;
+        TallyAlignment(host, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
+        BootLog.Write($"uishot: 外側の流れ[{tag}] {(!outerFlowing ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
     }
 
     private async void RunUiShot(string dir)
@@ -189,6 +192,7 @@ public partial class MainWindow : Window
         try
         {
             Directory.CreateDirectory(dir);
+            int crashBefore = CrashLogUiExceptions();   // crash.log の UI の例外の数を前後で数える（総括）
             await Task.Delay(1200);   // タイトル描画待ち
             Capture(dir, "01_タイトル.png");
             BootLog.Write("uishot: 01撮影済み→AutoStart");
@@ -428,7 +432,7 @@ public partial class MainWindow : Window
             // 「商品をクリックするとフリーズする」型の不具合を uishot が一度も踏めていなかった。
             gvm.SelectProdGood(PriceOfBread.SimCore.Catalog.SteelId);   // 鋼（加工財＝工場側。素材だけでなく工場の詳細パネルを踏む）
             await Task.Delay(1200);
-            BootLog.Write($"uishot: 財選択後 CurrentPage={mwvm.CurrentPage?.GetType().Name} ProdOpen={gvm.ProdOpen}");
+            BootLog.Write($"uishot: 財選択後 CurrentPage={mwvm.CurrentPage?.GetType().Name} ProductionShown={gvm.ProductionShown}");
             Capture(dir, $"{k++:D2}_生産タブ_財選択.png");
             // popが直接食べる財も撮る（2026-08-10 項目6）＝用途の先頭に出る「食料」の行は、pop需要のある財でしか撮れない
             // （鋼＝BaseNeed 0 では出ない＝無人撮影の穴だった）。パン(62)＝主食で全州に産地がある。
@@ -452,6 +456,9 @@ public partial class MainWindow : Window
             // 生産ページと市場ページの撮影の段と検査（(501) 段3・Views/UiShotPageP1.cs）
             try { await UiShotPageP1.Run(this, gvm, dir, n => Capture(dir, n), tag => LogOuterFlow(gameView, tag), () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 生産と市場の段 失敗 {ex}"); }
+            // ピン留め・問題の一覧・狭い分割で畳んだ欄の撮影と、飛び先の確かめ（(501) 段4・段5・Views/MainWindow.UiShotFinal.cs）。ピン留めは以後の往復の確かめまで残す
+            try { await ShootFinal(dir, gvm, gameView, () => k++); }
+            catch (Exception ex) { BootLog.Write($"uishot: 最後の段 失敗 {ex}"); }
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
             try
             {
@@ -460,7 +467,8 @@ public partial class MainWindow : Window
                 gvm.SaveSlotCommand.Execute("1");
                 var loaded = GameViewModel.TryLoad(1, null, null);
                 string a = gvm.SeriesSummary, b = loaded?.SeriesSummary ?? "（ロード失敗）";
-                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}");
+                string pa = gvm.PinSummary, pb = loaded?.PinSummary ?? "（ロード失敗）";
+                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・ピン留め {(pa == pb ? "一致" : "不一致")}（{gvm.Pins.Count}枠）・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}\n  ピン {pa}\n  ピン {pb}");
                 loaded?.Shutdown();
             }
             catch (Exception ex) { BootLog.Write($"uishot: セーブの往復 失敗 {ex}"); }
@@ -478,6 +486,7 @@ public partial class MainWindow : Window
                 Content = savedContent;
             }
             catch (Exception ex) { BootLog.Write($"uishot: 部品の見本 失敗 {ex}"); }
+            LogUiShotSummary(crashBefore);
             Environment.Exit(0);
         }
         catch (Exception ex)

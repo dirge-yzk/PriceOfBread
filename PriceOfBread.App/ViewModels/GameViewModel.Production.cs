@@ -628,7 +628,7 @@ public partial class GameViewModel
     /// <summary>詳細パネルだけを更新（価格＝日次。生産統計は四半期の保持値を再利用）。グラフ本体（節点・辺）は作り直さない＝軽量。</summary>
     public void RefreshProdDetail()
     {
-        if (!ProdOpen || _sProd is null) return;
+        if (!ProductionShown || _sProd is null) return;
         ApplyProdDetail(BuildProdDetail(_sProd, _sSold!, _sExp!, _sImp!, _sSubsRate!, _sProdRgo!, _sProdFac!));
     }
 

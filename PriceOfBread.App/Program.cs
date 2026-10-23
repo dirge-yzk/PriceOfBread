@@ -8,6 +8,8 @@ internal static class BootLog
 {
     private static readonly string PathLog = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PriceOfBread", "crash.log");
     private static readonly System.Collections.Generic.List<string> _recent = new();
+    /// <summary>この走りで握った UI スレッドの例外の数（撮影の総括が前後で数える。ファイル crash.log は他のプロセスも書くので、この走りだけの数もここで持つ）。</summary>
+    public static int UiExceptions;
     public static System.Collections.Generic.IReadOnlyList<string> Recent() { lock (_recent) return _recent.ToArray(); }
     public static void Write(string msg)
     {
@@ -92,6 +94,7 @@ sealed class Program
         //   ログに出た例外は必ず根本を直すこと（握り潰しを常態にしない）。
         Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
+            BootLog.UiExceptions++;
             Log($"UIThread例外(握って継続): {e.Exception}");
             e.Handled = true;
         };

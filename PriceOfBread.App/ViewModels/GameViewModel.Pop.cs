@@ -14,7 +14,7 @@ namespace PriceOfBread.App.ViewModels;
 public partial class GameViewModel
 {
     /// <summary>人口のページが見えているか（配置から導く）。</summary>
-    public bool TabPop => Layout.IsShown(Slot.Population);
+    public bool PopulationShown => Layout.IsShown(Slot.Population);
 
     // ---- 表（本体の目録が行と列を渡す）----
     [ObservableProperty] private TableSnapshot _classTable = TableSnapshot.Empty;
@@ -98,7 +98,7 @@ public partial class GameViewModel
         var data = classes.Read(_sim, _player);   // 矢印の差分はこの読みの中で採る（全階級の基準化・確定が済んでからスタンプを進める）
         if (boundary) _prevPopQuarterStamp = stamp;
         SampleDemography();
-        if (!TabPop) return;
+        if (!PopulationShown) return;
         // 規模の吹き出し＝ヘッダーの人口の内訳（保存則の 3 項＋今四半期の移民の流入と流出＋年齢構成）。全国の量なので題の 1 行が「人口 …」と名乗る
         string body = "";
         foreach (var t in PopulationTerms()) body += (body.Length == 0 ? "" : "\n") + t.Text;
