@@ -638,9 +638,10 @@ public sealed class Coefficients
     //   t の空間で〈一定の平行移動＋飽和〉T(t)＝S(t＋c)（張り付いた財の閉じた式 MarketFlow.PinnedClosed と同じ形）。正＝賃金の帯の内側の外で日次へ落ちる役務のうち、
     //   ①値段が参照と同じ側にいて平行移動もその向き（参照をまたがない＝帯の向き L が変わらない）②不動点が見つかり、そこからの対数の距離が 0.1 未満
     //   ③2次のケーニヒスの式の項 |A·e0| が 0.05 未満、のときだけ h 日を1回の式で進める。段0（spg3 の木・seed1・300 四半期）の誤差＝日次に対して最大 2.9e-5（相対）・平均 1.9e-7。
-    public double ServiceClosedFixedPoint = 0;
+    //   ★既定 1（2026-10-23 フォーク元の採否「spa は S1c（ServiceClosedFixedPoint=1・ServiceClosedMaxCurv=0.01・推定 −10.6 秒）を採ります」・20 種で貿易と植民地の交易の 6 項目が S0 の四分位の内）。
+    public double ServiceClosedFixedPoint = 1;
     // ★(spa) A′ の2次の項の上限 |A·e0|（ServiceClosedFixedPoint が正のときだけ読む）。段0（spg3 の木・seed1・300 四半期）＝0.05 で誤差は日次に対して最大 2.9e-5・0.01 で 2.4e-7（使える回の割合は 83%／69%）。
-    public double ServiceClosedMaxCurv = 0.05;
+    public double ServiceClosedMaxCurv = 0.01;   // ★既定 0.01（S1c・同上）
     // ★段2で削除（設計メモ §2-1／§7-3）：UnemploymentMilitancy＝失業の闘争度加算。失業すれば所得が落ちて満足も落ちる＝want と二重計上。
     //   旧コメント自身が「所得成分は WantWeight×(1−Satisfaction) が既に拾う」と書きながら別項を残していた（0.8→0.4 の割引は二重の半減にすぎない）。
     //   恐慌が政治を動かす主回路は 賃金硬直→雇用調整→所得↓→満足↓→want ＝**そのまま生きている**。
