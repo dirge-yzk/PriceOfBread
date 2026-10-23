@@ -190,6 +190,12 @@ public static class MarketFlow
                     }
                     else if (h == 1) nStep1++;
                     else nHard++;
+                    if (closedWage && coef.ServiceClosedFixedPoint > 0 && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc))
+                    {   // ★(spa) A′ 役務の不動点の閉じた式（係数 ServiceClosedFixedPoint の注）＝日次の写像を回さない
+                        m.Price = psc;
+                        nClosedS++;
+                        continue;
+                    }
                     double P = P0;
                     int run = 0;
                     while (run < h)
@@ -358,6 +364,50 @@ public static class MarketFlow
     /// ④需給差の欠けが <see cref="PinnedClosedMaxDeficit"/> 未満 ⑤ニュートン法が収束した、のときだけ（false＝呼び手は日次へ落とす）。
     /// 誤差の上界（census）＝日次に対して最大 2.5e-5（相対）。<paramref name="atRest"/>＝次の1日の動きが <see cref="PinnedTol"/> を切る（日次の打ち切りと同じ判定＝月の残りを眠る印）。
     /// ⚠ 否定形で判定する＝NaN は必ず日次へ落ちる。状態を持たない（局所変数だけ）＝並列の日次相でも決定的。</summary>
+    /// <summary>★(spa) A′ 役務の不動点の閉じた式（係数 <see cref="Coefficients.ServiceClosedFixedPoint"/>）。日次の写像 p′＝SoftBandLn(p·(1＋adj)) は、値段が参照の同じ側にいる間
+    /// t＝ln(p/rp)/L の上で T(t)＝S(t＋c)（c＝ln(1＋adj)/L・S(x)＝x/(1＋x^k)^(1/k)・L＝その側の帯の対数）＝<see cref="PinnedClosed"/> と同じ形（役務は amp を持たない＝c は値段に依らない）。
+    /// 床の側（adj＜0）は符号を返して同じ式で解く。使うのは ①値段と平行移動が参照の同じ側（u0·c≧0＝参照をまたがない＝L が変わらない）②不動点が収束し同じ側
+    /// ③不動点からの対数の距離 &lt; <see cref="PinnedClosedMaxDev"/> ④2次の項 |A·e0| &lt; <see cref="ServiceClosedMaxCurv"/> のときだけ（false＝呼び手は日次へ落とす）。状態を持たない。⚠ 否定形で判定する＝NaN は日次へ。</summary>
+    internal static bool ServiceClosed(double P0, double rp, double adj, double lnFloor, double lnCeil, double k, int h, out double P)
+    {
+        P = P0;
+        if (!(adj > -1) || adj == 0) return false;
+        double u0 = System.Math.Log(System.Math.Max(P0, Eps) / rp);
+        double lnc = System.Math.Log(1 + adj);
+        double sg = lnc > 0 ? 1.0 : -1.0;
+        if (!(u0 * sg >= 0)) return false;                                                        // ①参照をまたがない（値段と平行移動が同じ側）
+        double L = sg > 0 ? lnCeil : lnFloor;
+        if (!(L > Eps)) return false;
+        double c = sg * lnc / L, t0 = sg * u0 / L, t = t0, xk = 0, b = 0, root = 0, x = 0;
+        bool conv = false;
+        for (int it = 0; it < 40; it++)
+        {
+            x = t + c;
+            if (!(x > 0)) return false;
+            xk = System.Math.Pow(x, k); b = 1 + xk; root = System.Math.Pow(b, 1.0 / k);
+            double dt = (x / root - t) / (1.0 / (root * b) - 1);   // f(t)＝S(t＋c)−t・f′＝S′−1＜0
+            t -= dt;
+            if (!(System.Math.Abs(dt) > 1e-13)) { conv = !double.IsNaN(t); break; }   // 収束（1e-13＝誤差の物差し 3e-5 よりずっと小さい・1e-15 では丸めの往復で止まらない回がある）
+        }
+        if (!conv || !(t > 0)) return false;                                                      // ②収束・同じ側
+        double e0 = t0 - t;
+        if (!(System.Math.Abs(e0) * L < PinnedClosedMaxDev)) return false;                       // ③不動点から遠い
+        x = t + c; xk = System.Math.Pow(x, k); b = 1 + xk; root = System.Math.Pow(b, 1.0 / k);
+        double rho = 1.0 / (root * b);
+        double s2 = -(k + 1) * (xk / x) / (root * b * b);
+        double a = s2 / (2 * rho * (1 - rho));
+        if (!(System.Math.Abs(a * e0) < ServiceClosedMaxCurv)) return false;                     // ④2次の式の外（縮みが 1 に近い＝不動点の近くでも曲がりが大きい）
+        double z = System.Math.Pow(rho, h) * (e0 + a * e0 * e0);
+        double eh = z - a * z * z;
+        double p = rp * System.Math.Exp(sg * L * (t + eh));
+        if (!(p > 0) || double.IsInfinity(p)) return false;
+        P = p;
+        return true;
+    }
+
+    /// <summary>★(spa) 役務の閉じた式の2次の項の上限（|A·e0|）。段0（spg3 の木・seed1・300 四半期）＝0.05 で誤差は日次に対して最大 2.9e-5・0.01 で 2.4e-7（使える回の割合は 83%／69%）。</summary>
+    private const double ServiceClosedMaxCurv = 0.05;
+
     private static bool PinnedClosed(double P0, double rp, double u0, double demandRaw, double supply, double gap, Coefficients coef, double div, double L, double k, int h,
                                      out double P, out bool atRest)
     {
