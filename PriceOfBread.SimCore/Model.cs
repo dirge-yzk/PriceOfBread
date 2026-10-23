@@ -937,6 +937,8 @@ public sealed class Region
     public int ResearcherPopIndex = -1;               // 研究者（高等教育を生産＝大学。段②の昇格先）。⚠-1＝研究者POPを持たない世界＝昇格先に数えない＝厳密恒等
     public int SoldierPopIndex = -1;                  // 兵士（国家が雇う＝給与は EconomyStep が所得へ直接・(145) で兵力の市場を削除）
     public int MerchantPopIndex = -1;                 // 商人（流通マージン＋貿易の仲立ちで稼ぎ、商船を買って海運容量を支える）
+    /// <summary>商人の POP（添字が立っていて POP の並びの内にあるときだけ。無ければ null）。清算の商人への手数料・手形の払い手・引き受けの受け手・関税収入の受け手が同じ1本を読む。</summary>
+    internal Pop? MerchantPop => MerchantPopIndex >= 0 && MerchantPopIndex < Pops.Count ? Pops[MerchantPopIndex] : null;
     public int ArtisanPopIndex = -1;                  // 職人（手工業の自営＝工場と並存レシピで競合。敗れると労働者へ転落＝ラッダイト）
     public int ServantPopIndex = -1;                  // 家事使用人（家事奉仕を生産・女性がなりやすい。富裕層の余剰が雇う＝#12）
     public int EducationProducerIndex = -1;           // 教育の生産者の添字（教育法で担い手と生産性を切替）。★器 EduProducersCoexist>0 では [これ]=教区学校・[これ+1]=公立学校（連続 add＝2件目の添字は導出＝新フィールドを持たない）
@@ -982,7 +984,7 @@ public sealed class Region
     // 読み手は EconomyStep の私的投資予算 1本だけ（budget×(1−これ)）。NationalizationSeizureRate=0（★2026-08-29点火で既定0.05）では
     // **書き手が一度も走らない**＝常に0＝厳密恒等。
     public double SeizureChill;
-    public double Mechanization;                      // 機械化度（no-labor-saving-tech-unemployment）：工業化度の飽和カーブ∈[0,1)。LaborSaveRate=0（対照腕）で0固定・既定0.25で EffectiveQty が読む
+    public double Mechanization;                      // 機械化度（no-labor-saving-tech-unemployment）：工業化度の飽和カーブ∈[0,1)。LaborSaveRate=0（対照腕）か旗 IndustrializationOff（既定 1）で0固定＝EffectiveQty の第2因子は1
     public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。VintageMigrateRateで経年蓄積・技術差で座礁。0（対照腕）で単層恒等・既定0.005で二層live
     public double DevelopmentPeak;                    // 開発度の到達最高値（新旧合計の走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
     public double VintageTechLevel;                   // 旧世代資本の据付時平均技術水準。現TechLevelとの差(techGap)が座礁度を決める。OldVintageCapital=0で未使用
@@ -1061,14 +1063,7 @@ public sealed class Region
     // キーは財ID。ArmsStockEnabled=0 では1件も作られない＝厳密恒等。
     public Dictionary<int, double>? ArmsStock;
 
-    // ★陸分の充足率（2026-08-13・塹壕の土台／既存の害の是正）：上位段とtier3は陸海が同居している
-    //   （上位=[機関銃104, 装甲艦105]・tier3=[戦車122, 弩級戦艦123]）。合算の Fill が Power.Military に乗り、
-    //   LandPower = Military×(1−NavalShare) なので **弩級戦艦しか持たない国の陸軍力が+120%される**。
-    //   ★(189)：陸の装備の段は艦を買わない（EconomyStep.LandMul）＝合算の Fill からも艦が外れた（Fill＝陸分）＝Power.Military の質の乗数は陸の装備だけ（艦の段の効きは海軍力の1か所）。
-    //   分類は既存の Coefficients.FleetGoodIds=[86,105,123]（調達側 MilMul と同一の判定）＝新しい表を作らない。
-    //   合算の Fill は据え置く（Power.Military の較正に触れない）＝陸戦の新項だけがこの陸分を読む。
-    public double MilitaryQualityLandFill = 0.0;
-    public double MilitaryTier3LandFill = 0.0;
+    // ★陸分の充足率（2026-08-13）は (189) で上位段・tier3 の決済から艦が外れた時点で合算の Fill と同じ値になった＝別の欄は 2026-10-23 に消した（読み手は Fill を読む）。
     public double MilitaryQualityFill = 0.0;          // 上位軍需（機関銃・装甲艦）の充足率＝戦力の質的乗数（Power.Military を 1+Bonus×これ で増幅。基本装備を整えた残余予算で届く＝富裕/軍国国の強み）
     public RegionTier Tier;                           // ★州の格（植民地のラベル化・2026-08-01）。Colonial は参政権・技術伝播・維持費・割譲到達が読む（Core/Integrated は同じ扱い）
     // ★分離の時点の親の下の格（2026-10-03 (183)・州の格の不変条件＝「植民地格だった州は親へ戻れば植民地格」）。Territory.Rehome が書いて読む＝建国（Seceded）で今の格を写し、

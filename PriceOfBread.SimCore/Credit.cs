@@ -215,8 +215,7 @@ public static class Credit
                 paid = Math.Min(interestDue, Math.Min(Calendar.PerMonthToPerDay(profitTot) * days, tot));
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。
-            // ★保存則：bank.Loans は MoneyConservation の恒等式（BaseMoney = baseline + TradeFlow + GoldMinted + FiatIssued）に
-            //   入っていないので、繰入は貨幣を作らない＝保存に触れない。倒産の既存規律（「負債は帳消ししない・倒産は産出0のみで貨幣非接触」）と同性質。
+            // ★保存則：繰入は与信の創造として預金者へ払う形で保存する（下の是正を読む。初版の〈bank.Loans は保存の恒等式に入っていないので繰入は貨幣を作らない〉は誤りで、残高だけ増やすと BaseMoney が減った）。
             // ★雪だるまは既存機構が止める＝FactoryBankruptcyEnabled（点火済み）と、Loans 増→銀行信頼の低下→与信収縮（ミンスキー）の自己制限。
             // 既定 InterestCapitalization=0 で繰入なし＝案Aのみ（安全側）。1で A+B。
             double unpaidInterest = interestDue - paid;

@@ -221,9 +221,7 @@ public class EquipDiscoveryTests
 
         EconomyStep.Run(r, c, 1.0, w.Bank, w);
 
-        Assert.Equal(1.0, r.MilitaryQualityLandFill);   // 前提＝陸は満ちている
-        Assert.Equal(1.0, r.MilitaryTier3LandFill);
-        Assert.Equal(r.MilitaryQualityLandFill, r.MilitaryQualityFill);   // 港の無い国の海の装備（装甲艦）は分母に入らない
-        Assert.Equal(r.MilitaryTier3LandFill, r.MilitaryTier3Fill);       // 同じ（弩級戦艦）
+        Assert.Equal(1.0, r.MilitaryQualityFill);   // 陸の装備が満ちていれば充足は満額＝港の無い国の海の装備（装甲艦）は分母に入らない
+        Assert.Equal(1.0, r.MilitaryTier3Fill);     // 同じ（弩級戦艦）
     }
 }

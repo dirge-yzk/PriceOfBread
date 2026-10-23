@@ -31,7 +31,7 @@ public static class PopDecision
         if (total <= Eps) return;
 
         // 低温 softmax（2階級＝シグモイド）：都市階級の目標シェア
-        double z = Math.Clamp((incUrban - incRural) / coef.MigrationTemperature, -40, 40);
+        double z = PoliticalQuantities.ClampOr((incUrban - incRural) / coef.MigrationTemperature, -40, 40, 0.0);   // NaN は差なし（0）
         double targetUrban = 1.0 / (1.0 + Math.Exp(-z));
         double curUrban = urban.Size / total;
 

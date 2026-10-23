@@ -2072,7 +2072,7 @@ public sealed class World
         double outlet = PoliticalQuantities.Clamp01(trad + Coef.WarFeverMilitancyGate * mil);
         double diversion = Coef.WarFeverMilitancy * Politics.AvgMassMilitancy(this) * outlet;
         return Coef.WarFeverMilitarism * mil
-             + Coef.WarFeverMilSpend * (Coef.WarFeverUsesBudgetShare > 0 ? PoliticalQuantities.MilitaryBudgetShare(this) : MilitarySpending.Value)   // ★B-03：水準→中央歳出シェア（0で旧＝厳密恒等）
+             + Coef.WarFeverMilSpend * PoliticalQuantities.MilitaryBudgetShare(this)   // ★B-03：軍国主義は水準でなく中央歳出シェアで測る
              + Coef.WarFeverNoble * trad
              + Coef.WarFeverSoldier * soldierShare
              + Coef.WarFeverThreat * threat

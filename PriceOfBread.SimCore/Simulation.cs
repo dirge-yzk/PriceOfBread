@@ -2543,7 +2543,7 @@ public sealed class Simulation
         //（輸入の分子算入は B-高1 で実装済み＝下の foodRatioProduction が FoodAnchorNetImport で加算。ここは max で「農業拡大は天井を押し上げ・輸入国は従来の消費アンカー」）。
         double foodRatioRaw = Math.Max(foodRatioConsumption,
             foodRatioConsumption + c.FoodOutputAnchorProduction * (World.FoodRatioProductionSmoothed - foodRatioConsumption));   // FoodOutputAnchorProduction=0で消費ベースに厳密一致
-        double foodAnchor = baseline * Math.Max(0.3, foodRatioRaw);          // 実食料産出アンカー（下限0.3＝崩壊防止・baseline側と同水準）。生産ベースでは baseline×(実産出/必要)＝扶養人口
+        double foodAnchor = baseline * PoliticalQuantities.AtLeast(foodRatioRaw, 0.3);          // 実食料産出アンカー（下限0.3＝崩壊防止・baseline側と同水準）。生産ベースでは baseline×(実産出/必要)＝扶養人口
         double capacityBaseline = baseline + c.CapacityFromFoodOutput * (foodAnchor - baseline);
         // 人2c 土地アンカー（2026-07-11・#17級の天井撤廃）：capacityBaseline を「初期人口」から**土地が養える人口**へ。
         // landAnchor = Σ耕地/(1−都市化率)＝耕地は農村人口容量の単位（ArableLand=初期農民×余裕の定義）・都市民は農村の食料基盤の上に乗る。
@@ -2567,7 +2567,7 @@ public sealed class Simulation
                                         - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
                                         + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)
                                         - c.PollutionCapacityWeight * World.UrbanShare * avgInd * (1.0 - sanitation)) * WorkHoursCapacity(World.WorkHoursValue, c);   // 衛生は都市で按分＝疫病は過密の問題＋工業化の環境外部性（公害圧＝工業化×都市化×(1−衛生/規制)で超過死亡・上下水道で緩和）。PollutionCapacityWeight=0で従来完全一致
-        capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
+        capacity = PoliticalQuantities.AtLeast(capacity, baseline * 0.3); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
         // ★診断（2026-08-01・純記帳）：扶養力の内訳を外へ出す。popprobe が読む。
         World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // (369) 人口の段が実際に使った錨（純記帳・計器 anchor_s の anchorUsed）
         World.DiagHealthcare = healthcare; World.DiagDoctorCare = doctorCare;
@@ -2583,7 +2583,7 @@ public sealed class Simulation
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。
         double landFertBoost = c.FertilityBase * landRoom;
-        double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost);
+        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);
         // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
         // net の収束速度から fertility を外す（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立（旧の旗 FertilityAffectsBirthsOnly は 2026-10-18 に焼き込み。

@@ -940,8 +940,6 @@ public class MilitaryTests
         Assert.Equal(need0, EconomyStep.MilitaryProcurementNeed(r, c));
         foreach (int g in c.FleetGoodIds) Assert.Equal(0.0, EconomyStep.LandMul(c, g));
         Assert.Equal(1.0, EconomyStep.LandMul(c, Catalog.RifleId));
-        Assert.Equal(r.MilitaryQualityLandFill, r.MilitaryQualityFill);
-        Assert.Equal(r.MilitaryTier3LandFill, r.MilitaryTier3Fill);
     }
 
     /// <summary>★(192)（反証役 vn1#5＝呼び手の側の番人の穴）艦の購入の決済（EconomyStep.Run の海軍の調達）：発注（FleetOrder）を海軍の予算（Region.NavalBudget）で切った量だけ買い、

@@ -39,7 +39,7 @@ public sealed class Power
     internal bool _fleetDriven;   // 艦の在庫から海軍力を立てるか（経済を持ち換算分母がある国＝Diplomacy が毎月立てる）
     internal bool _fleetSeeded;   // 開幕の播種を済ませたか（1度だけ・国別ビット恒等の保証）。★(189) 開幕の後に生まれた国は播かない（艦は湧かない＝買うか州と一緒に来た艦だけ）
     public double[] BasinPresence = new double[Basins.Count];   // 03手順6：海盆別プレゼンス重み（正規化・D1裁定＝交易シェアで自動＝沿岸州取扱高0.5＋植民地価値0.5。空なら首都海盆1）
-    // ★熟練度（2026-08-04・作者仕様(5)）＝同じ兵数でも訓練された軍は強い（最大2倍）。抽象勢力は1.0のまま。
+    // ★熟練度（2026-08-04・作者仕様(5)）＝同じ兵数でも訓練された軍は強い（最大は SkillCombatMultiplier の上限＝1.5 倍）。抽象勢力は1.0のまま。
     public double ArmySkillMul = 1.0, NavySkillMul = 1.0;   // Diplomacy の同期が毎期書く（Power は World を直接見ない設計に合わせる）
     public double LandPower => Military * (1 - NavalShare.Value) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
     // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書く＝live。NeedSea は陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.FleetOrder・(189)）が読む。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
@@ -942,8 +942,8 @@ public sealed class Diplomacy
         RouteTension(c);               // 13l地政学：閉鎖海盆の出口を扼する相手への緊張（RouteDependenceTensionRate=0.10＝点火2026-09-03・0で不走行）
         IdeologyTension(c);            // 異なる政体は反目し同じ政体は親近する（イデオロギーのブロック化）
         OpiumTension(c);               // P3：アヘン禁令国×輸出国の緊張（取締り・没収が敵意を積む＝林則徐→アヘン戦争。主フラグOFFで不走行）
-        if (c.EnableCivilizationTension) { EthnicTension(c); LawTension(c); ReligionTension(c); ProtectorTension(c); }   // 民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionRate=0.02 点火済み・0で不走行）
-        if (c.EnableDependency) StepDependency(c, month);   // 従属の整列(緊張抑制)・貢納(属国→宗主)・離反独立
+        EthnicTension(c); LawTension(c); ReligionTension(c); ProtectorTension(c);   // 民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionRate=0.02 点火済み・0で不走行）
+        StepDependency(c, month);   // 従属の整列(緊張抑制)・貢納(属国→宗主)・離反独立
         TreatyPortLapse(c, month);     // 条約港の自然失効（案A・2026-08-16点火）＝力の差が縮んだ国の不平等条約が風化
         BreakStrainedAlliances(c);     // 緊張が高まった同盟は崩れる→強国は孤立へ
         ApplyHegemonContainment(c);    // 反覇権の経済封じ込め（B2）：明白な覇権国の交易アクセスを覇権度に比例して締める（包囲網の経済的な歯）
@@ -1166,7 +1166,7 @@ public sealed class Diplomacy
             }
     }
 
-    // === 緊張の差分化（民族/宗教/法の隔たり）＝陣営化の駆動。IdeologyTension(政体)の兄弟。EnableCivilizationTension で gate（較正は外交を回さず非波及）===
+    // === 緊張の差分化（民族/宗教/法の隔たり）＝陣営化の駆動。IdeologyTension(政体)の兄弟（旧の旗 EnableCivilizationTension は 2026-10-23 に焼き込み）===
     // 国の主流文化/宗教＝active州ラベルの人口加重多数派。
     private static (string culture, string religion) MajorityCultureReligion(World w)
     {
@@ -1476,7 +1476,7 @@ public sealed class Diplomacy
     /// <summary>(342) 計器用（読むだけ）：組 (a, b) の緊張のうち、理由が阿片のものの今の値（理由別の台帳 <c>_tensionWhy</c> の1成分）。</summary>
     private double OpiumReasonLevel(Power a, Power b) => _tensionWhy.TryGetValue(Key(a, b), out var w) && w.Length > (int)TensionReason.Opium ? w[(int)TensionReason.Opium] : 0;
 
-    /// <summary>★(440) 宣戦の 4 つの門（緊張が水準以上・交戦中でない・どちらも厭戦でない・従属の組でない・軍が届く）が全て開いているか。<see cref="TriggerWars"/> の判定と、
+    /// <summary>★(440) 宣戦の 5 つの門（緊張が水準以上・交戦中でない・どちらも厭戦でない・従属の組でない・軍が届く）が全て開いているか。<see cref="TriggerWars"/> の判定と、
     /// プレイヤーの最後通牒の待ちの根拠が残っているかの判定が同じ 1 本を読む（純関数＝評価の順と短絡は旧のインラインと同じ）。</summary>
     internal bool WarGateOpen(Power a, Power b, Coefficients c)
     {
@@ -1490,7 +1490,7 @@ public sealed class Diplomacy
             for (int j = i + 1; j < Powers.Count; j++)
             {
                 var a = Powers[i]; var b = Powers[j]; long k = Key(a, b);
-                if (WarGateOpen(a, b, c))   // ★(440) 4 つの門の判定を 1 本に（旧は 2 行にインラインで書いていた・式と評価の順は同じ）
+                if (WarGateOpen(a, b, c))   // ★(440) 5 つの門の判定を 1 本に（旧は 2 行にインラインで書いていた・式と評価の順は同じ）
                 {
                     _warClock[k] = _warClock.GetValueOrDefault(k) + 1;
                     if (_warClock[k] >= c.WarTriggerMonths)
@@ -1500,7 +1500,7 @@ public sealed class Diplomacy
                         {
                             var player = a.IsPlayer ? a : b; var foe = a.IsPlayer ? b : a;
                             // 待ちを積む（UIが時間停止＝再発火しない）。決着は ResolvePendingWar（開戦 or 緊張を下げて回避）。
-                            // ★(440) 枡が空か、枡の待ちの根拠（その組の 4 つの門）が閉じているときだけ、門が開いて時計が満ちたこの組で**置き換える**。消すだけの経路は作らない
+                            // ★(440) 枡が空か、枡の待ちの根拠（その組の 5 つの門）が閉じているときだけ、門が開いて時計が満ちたこの組で**置き換える**。消すだけの経路は作らない
                             //   ＝答えずに待ちが消える道は無く（AI の組は時計が満ちた月に即開戦する＝プレイヤーだけ免れない）、有効な待ちは別の有効な組に取られない。
                             //   旧＝`is null` のときだけ＝根拠が消えた待ちが枡を塞ぎ続け、ほかの相手への最後通牒が積めなかった（試しのテストプレイ 報告 1 と 7：1823 年のシャムの待ちが
                             //   1950 年まで残り、日本×清は門が全て開いたまま 135 か月宣戦も最後通牒も無かった）。根拠の消えた待ちが**単独で**残る件（置き換える相手が居ない）は
@@ -1512,7 +1512,7 @@ public sealed class Diplomacy
                         else
                         {
                             // C-高6（史実検証2026-07-22）：AI同士の屈服（第1段＝資産移転なし）。軍事が大きく劣る側は開戦寸前に引く＝
-                            // 緊張を宥和側へ・正統性に小さな傷・同ペアに再屈服クールダウン（ファショダ1898・三国干渉＝力の差が見えた対立は戦わずに引く）。
+                            // 緊張を宥和側へ・正統性に小さな傷（ファショダ1898・三国干渉＝力の差が見えた対立は戦わずに引く。同ペアの再屈服の時間のクールダウンは係数ごと無い）。
                             // プレイヤーの屈服UI（ResolvePendingWar mode=受諾）と同じ帰結＝プレイヤー/AI対等。MilRatio=0 で不読＝旧挙動（即開戦）。
                             // 機能5-①-2（2026-07-28）：比較を単独軍でなく**陣営戦力**（参戦見込みの同盟込み＝JoinAlliesと同一述語）へ＝
                             // 三国協商の一員は独より弱くても屈服しない（旧の旗 SubmitCountsAllies は 2026-10-18 に焼き込み）。
@@ -1668,7 +1668,7 @@ public sealed class Diplomacy
         // 交戦の入口の1本（強制禁輸・同盟は「参加義務なし」＝敵への緊張が高い同盟国だけ参戦＝別の1v1戦争として・両陣営の同盟へ問う）
         AddBelligerent(new War { A = a, B = b }, c, depth: 0);
         // 従属の防衛＝宗主のみ参戦義務（ユーザー指示）。攻守どちらでも従属の宗主は無条件で従属側に参戦。
-        if (c.EnableDependency) { DefendDependent(a, b, c); DefendDependent(b, a, c); }
+        DefendDependent(a, b, c); DefendDependent(b, a, c);
     }
 
     /// <summary>★交戦の入口の1本（2026-09-28 処理の一元化 段2 D）＝戦争を立て（強制禁輸つき）、同盟の連鎖参戦を問う。
@@ -1717,7 +1717,7 @@ public sealed class Diplomacy
         //   （r103 の首都発の内戦 194件の最初の四半期はすべて 政府1.0／反乱国0・3分の1がその四半期のうちに終わった）。
         foreach (var side in (Power[])[parent, rebel])
             if (side.Nation is { } sw) Politics.MeasureMobilization(sw, sw.Coef);
-        if (c.EnableDependency) DefendDependent(parent, rebel, c);
+        DefendDependent(parent, rebel, c);
     }
 
     /// <summary>能動侵略（段C・案Y）：緊張の積み上げを飛ばして標的へ直接宣戦。植民地獲得の能動的動詞。
@@ -1966,7 +1966,7 @@ public sealed class Diplomacy
             {
                 double selfThreat = ThreatScore(p, c);
                 double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor.Value, 1.0 - selfThreat) : 1.0);   // 裁定2：衛星国用 SatelliteFormChance(0.06) の借用を専用係数へ分離（0.06で旧挙動）
-                if (c.EnableDependency && p.Nation is not null && Suzerain(p) is null && rng.NextDouble() < colonizeChance)
+                if (p.Nation is not null && Suzerain(p) is null && rng.NextDouble() < colonizeChance)
                     TryAiSubjugate(p, c);
             }
         }
@@ -2602,7 +2602,7 @@ public sealed class Diplomacy
             // 押し合い＝上の接触の走査で戦線ごとに1回だけ計算した値（mil-11・式は1か所）。
             double aPush = pushA[i], bPush = pushB[i];
             // ★塹壕（2026-08-13・doc 20260812_塹壕と戦車）：守る側の機関銃が壁を作り、攻める側の戦車だけが壁を消す。
-            //   ⚠読むのは**陸分**の充足率（MilitaryQualityLandFill/MilitaryTier3LandFill）。合算を読むと
+            //   ⚠読むのは**陸分**の充足率（MilitaryQualityFill/MilitaryTier3Fill＝艦は決済に入らないので陸の装備だけ）。艦を含む合算を読むと
             //     弩級戦艦で塹壕を破れてしまう（上位段とtier3は陸海が同居している）。
             //   ⚠0 を掛ける形で守らない（相手が非有限なら NaN を作る）＝**分岐**で守り、範囲外は否定形で0へ倒す
             //     （Math.Clamp は NaN を除去しない＝本プロジェクトの教訓）。
@@ -2610,8 +2610,8 @@ public sealed class Diplomacy
             //     接触側にも壁を掛けると塹壕戦が穏やかな戦争になり、狙い（厭戦→革命）が消える。意図的な非対称。
             if (c.TrenchDefenseWeight > 0)
             {
-                double qA = war.A.Nation?.Region.MilitaryQualityLandFill ?? 0, qB = war.B.Nation?.Region.MilitaryQualityLandFill ?? 0;
-                double t3A = war.A.Nation?.Region.MilitaryTier3LandFill ?? 0, t3B = war.B.Nation?.Region.MilitaryTier3LandFill ?? 0;
+                double qA = war.A.Nation?.Region.MilitaryQualityFill ?? 0, qB = war.B.Nation?.Region.MilitaryQualityFill ?? 0;
+                double t3A = war.A.Nation?.Region.MilitaryTier3Fill ?? 0, t3B = war.B.Nation?.Region.MilitaryTier3Fill ?? 0;
                 if (!(qA >= 0 && qA <= 1)) qA = 0;
                 if (!(qB >= 0 && qB <= 1)) qB = 0;
                 if (!(t3A >= 0 && t3A <= 1)) t3A = 0;
@@ -3011,7 +3011,7 @@ public sealed class Diplomacy
                 //   TreatyPortWinnerDistanceKm=6000 live。0で距離を見ない（旧）。
                 bool tooFarToRule = c.TreatyPortWinnerDistanceKm > 0 && winner.Nation is { } wf && loser.Nation is { } lf
                     && Geo.DistanceKm(wf.Latitude, wf.Longitude, lf.Latitude, lf.Longitude) > c.TreatyPortWinnerDistanceKm;
-                if (c.EnableDependency && crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
+                if (crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
                 {
                     // ★条約港の廃止（(399)・作者 2026-10-16：条約港は廃止・州の支配度で表現）：個数の機構（旧 TreatyPortsGranted）は無い。
                     //   敗者の最大の港州に勝者の持分（外国区分）を積む＝関税の目減り（InternationalMarket.TreatyPortTariffScale）と屈辱・移民法の外圧（World.UnequalTreatyInForce）は州の外国持分から読む。
@@ -3027,7 +3027,7 @@ public sealed class Diplomacy
                     }
                     handled = true;
                 }
-                else if (c.EnableDependency && crushing && !ratifyRefused && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
+                else if (crushing && !ratifyRefused && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
                 {
                     if (GovCost(winner, loser, c) >= c.GovCostVassalThreshold)
                     {

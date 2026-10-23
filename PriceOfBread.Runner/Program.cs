@@ -3120,9 +3120,9 @@ if (args.Length > 0 && args[0] == "trenchprobe")
         {
             var cap = nn.World.Region;   // 首都州＝Regions[0]（機構が実際に読む州）
             if (cap is null) continue;
-            ql += cap.MilitaryQualityLandFill; t3 += cap.MilitaryTier3LandFill; n++;
-            if (cap.MilitaryQualityLandFill < 0.01) zero++;
-            if (cap.MilitaryQualityLandFill > 0.9) full++;
+            ql += cap.MilitaryQualityFill; t3 += cap.MilitaryTier3Fill; n++;
+            if (cap.MilitaryQualityFill < 0.01) zero++;
+            if (cap.MilitaryQualityFill > 0.9) full++;
         }
         if (n > 0) fillRows.Add($"{simT3.Nations[0].World.Year,6}  陸上位 {ql / n,6:P1}  陸tier3 {t3 / n,6:P1}   （{n}カ国中 ほぼ0が{zero} 満額が{full}）");
     }

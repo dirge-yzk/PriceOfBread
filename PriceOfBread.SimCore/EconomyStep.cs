@@ -2351,15 +2351,15 @@ public static class EconomyStep
                 region.StateSpent[(int)TreasuryCat.Army] += mfPay;
             }
 
-            // 上位段・tier3 の決済と充足（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）。返り値＝(充足, 陸の充足)。
+            // 上位段・tier3 の決済と充足（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）。返り値＝充足（艦は決済に入らない＝陸の装備だけ）。
             // ★充足は基本段と**同じ1本**（ArmsFillContribution・2026-09-29 段3 F）＝必要量（陸海の再配分を通した want）で重みを付けた「在庫÷目標」。
             //   納入分をストックへ積み、摩耗で減らす（段2a）＝**戦時の9倍はここへ来る**（需要でなく摩耗）。Fill は装備が行き渡っているかであって、その月に何を買えたかではない。
             //   ⚠旧＝Σmin(在庫,目標)÷Σ目標・目標に陸海の再配分なし・未初期化は0（基本段と3点で別の規則）。重みは段の中で同じ比（摩耗率が段の中で一律）＝式の形の違いは再配分の有無だけだった。
             //   1本も要らない段（未発見）は0＝質の乗数を立てない（基本段の「要らなければ1」とは逆＝上位段の充足は乗数の上乗せの量）。
-            (double Fill, double LandFill) SettleTier(int[] goods, double[] rates)
+            double SettleTier(int[] goods, double[] rates)
             {
                 var stock = coef.ArmsStockEnabled > 0 ? (region.ArmsStock ??= new Dictionary<int, double>()) : null;
-                double tWant = 0, tGot = 0, tWantLand = 0, tGotLand = 0;
+                double tWant = 0, tGot = 0;
                 for (int b = 0; b < goods.Length; b++)
                 {
                     int gi = goods[b];
@@ -2377,18 +2377,17 @@ public static class EconomyStep
                     }
                     double held = ArmsFillContribution(region, coef, goods, b, want, got, rates[b], region.MilitaryScalePeace, mul, stock, opening);
                     tWant += want; tGot += held;
-                    if (!tSea) { tWantLand += want; tGotLand += held; }
                 }
-                return (tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0, tWantLand > Eps ? PoliticalQuantities.Clamp01(tGotLand / tWantLand) : 0.0);   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
+                return tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0;   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
             }
 
             // 上位軍需の充足率＝戦力の質的乗数（Diplomacy が Power.Military を 1+Bonus×これ で増幅）
             if (AllPresent(coef.MilitaryQualityGoods, ng))
-                (region.MilitaryQualityFill, region.MilitaryQualityLandFill) = SettleTier(coef.MilitaryQualityGoods, qRates);
+                region.MilitaryQualityFill = SettleTier(coef.MilitaryQualityGoods, qRates);
 
             // #16 tier3軍需の充足率（Power.Military を +MilitaryTier3Bonus×これ で増幅＝最上位の質的乗数）
             if (AllPresent(coef.MilitaryTier3Goods, ng))
-                (region.MilitaryTier3Fill, region.MilitaryTier3LandFill) = SettleTier(coef.MilitaryTier3Goods, t3Rates);
+                region.MilitaryTier3Fill = SettleTier(coef.MilitaryTier3Goods, t3Rates);
 
             // 1934拡張E2：空軍装備の充足率（Diplomacy が AirPower=Military×これ に使う＝空の別枠）。財の解禁前は got 0 ＝ Fill 0。
             if (AllPresent(coef.MilitaryAirGoods, ng))
@@ -2680,18 +2679,16 @@ public static class EconomyStep
                 bool shortage = region.Markets[gi].LastDemand > region.Markets[gi].LastProduced + region.Markets[gi].Stock;
                 if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; if (!eqS) s.Scale = coef.FactoryReentryScale; }   // ★(495) 設備を持つ個体は据え置き
             }
-            // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を FactoryBankruptcyAllTiers で解除。
+            // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を解除（旧の旗 FactoryBankruptcyAllTiers は 2026-10-23 に焼き込み）。
             // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。
             // 連鎖断絶（軍需上流＝火薬/鉛/帆布の死蔵・永続的脱工業化）は手法B（下の品薄数量再開）が受ける＝閉鎖しても下流の工場の投入需要は市場の LastDemand に残り、供給を上回れば品薄で再開する。
             // ★(474) 旧の注は〈再点火トリクル（閉鎖しても下流の投入需要は価格シグナルに残る）〉も受けると書いていたが、再点火トリクル（ReignitionDemandFrac＝作りたい量 DesiredOutput の一部を投入として発注し続ける）は
             //   倒産中の工場には当てはまらない：倒産に入るのは更新後の SmoothedMargin＜FactoryBankruptcyMargin（＜0）の月＝その月の margin＜0＝価格≦限界費用＝profitFactor＝0＝DesiredOutput＝0 で、倒産中は上の continue で産出も 0 に凍る
             //   （抜け道は国営の工場の民営化〔BuiltScale が 0 になる〕だけ）。
             // 本当に必要な中間財は在庫が尽きた時点で shortage 再開・要らない工場だけが退出したままになる。負債帳消しなし・貨幣非接触（Scale=0のみ）＝保存則不変。
-            // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。AllTiers=0で旧挙動（消費最終財 Staple/Daily/Luxury のみ倒産）。
+            // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。
             else if (coef.FactoryBankruptcyEnabled && s.SmoothedMargin < coef.FactoryBankruptcyMargin && s.BuiltScale <= Eps
-                     && Catalog.Goods[gi].Tier != GoodTier.Service
-                     && (coef.FactoryBankruptcyAllTiers > 0
-                         || (Catalog.Goods[gi].Tier != GoodTier.Producer && Catalog.Goods[gi].Tier != GoodTier.Intermediate)))
+                     && Catalog.Goods[gi].Tier != GoodTier.Service)
             {
                 s.Bankrupt = true; if (!eqS) s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）。★(495) 設備を持つ個体は Scale を消さない（重みのループが倒産を除く）
             }
