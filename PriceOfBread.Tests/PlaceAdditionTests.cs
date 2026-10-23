@@ -152,7 +152,8 @@ public class PlaceAdditionTests
     /// <summary>【既知の段差・事前登録 追記 2】コペンハーゲンの港は冬に凍らなくなる（1 四半期→0）。
     /// `Climate.WinterFrozenQuarters` のバルト海の箱は経度 12.5〜31。旧座標 12.57 は箱の中、シェランの両マスクの陸は全て 12.5 より西＝島の中へ置くと箱を西へ出る。
     /// 海路の接ぎ先は動かない（最寄りの海の節点は新旧とも 55,14・バルト海）。この赤＝座標か箱が動いた＝腕 B の記録（デンマークとバルト沿岸国の Q1 の貿易・LastPortFrozen）を取り直す。
-    /// 対照は箱の規則を別の港で引く（リガは凍る）。</summary>
+    /// 対照は箱の規則を別の港で引く（リガは凍る）。
+    /// ⚠ 仕様ではない＝作者の選択待ち（箱の下限を 12.1 ほどへ下げる／今のまま・00一覧 §0-2・(516) 反証役 pv2〔bv〕低#8）。選んだらこの番人を直す。</summary>
     [Fact]
     public void コペンハーゲンの港は冬に凍らない_既知の段差_バルトの他の港は凍る()
     {
@@ -211,6 +212,7 @@ public class PlaceAdditionTests
                 Assert.Equal(want, rs[0].SumPopulation(), want * 1e-9);
                 if (a.Kind == "colony") Assert.Equal(RegionTier.Colonial, rs[0].Tier);
                 if (a.Culture.Length > 0) Assert.Equal(a.Culture, rs[0].Culture);
+                Assert.Equal(a.Res.OrderBy(x => x).ToArray(), rs[0].Resources.OrderBy(x => x).ToArray());   // ★(516) 反証役 pv2〔bv〕低#6：資源の番号を world.json の行と照合する（数の同じ 2 財の入れ替えを捕まえる）
             }
         }
     }

@@ -114,6 +114,7 @@ public static class HistoricalReference
     //   清22→19        ：ウルガ(外蒙古1911独立)・ラサ(チベット1913事実上独立)・台北(1895下関条約)を失う
     //   露13・普4・米3（2026-08-09再導出＝§13でボストン吸収・開始州3）
     //   ・西4・蘭2・仏7・日7・英5・サルデーニャ3＝本土は動かない
+    //   ★(516)：(512) で州を足した 2 国は数え直した＝仏 8（アジャクシオ）・西 5（ラス・パルマス）。植民地の (512) の 4 件（蘭のモルッカ諸島・英のバハマ諸島＝1914 も保持／西のパラワン〔1898 喪失〕・チロエ〔1826 喪失〕）は下の ColonyProvinces1914 に入れていない＝蘭・英は 1 件ずつ甘い向きにずれる（±50% の内・計器の限界として名乗る）。
     // ── 領土（ColonyProvinces1914）＝**初期植民地と同じ粒度**での1914年の海外領の数（±50%） ──────
     //   英11→21：1783の11をほぼ保持し、エジプト・スーダン・ナイジェリア・ゴールドコースト・東アフリカ・ローデシア
     //             ・南アフリカ・ビルマ・マレー・ニュージーランド・セイロンを加える
@@ -351,7 +352,7 @@ public static class HistoricalReference
             Note: "第三共和政。男子普選1848・フェリー義務教育1882・封建的負担は1789廃止。近い＝ブル独裁（ボナパルティズム）/立憲（オルレアン系）",
             PopGrowthOk: (1.25, 1.7),    // 人口帯拡張2026-07-25：1783約27.5M→1914約39.8M＝×1.45。欧州最遅の自然増（出生率の早期低下）。アルザス喪失1871は−4%＝帯内
             GreatPowerOk: true,          // 列強軸2026-07-27：1783も1914も列強（普仏戦争の敗北を挟んでも地位は失わない）
-            Exact1920: [Polity.Republic], Exact1820: [Polity.ConstitutionalMonarchy], Exact1870: [Polity.Republic], GdpRank1820: 5, GdpRank1870: 6, GdpRank1913: 7, HomeProvinces1914: 7, ColonyProvinces1914: 10),   // 08の6次元2026-07-31：Maddison1913の総GDP順位7位／本土7州（アルザス喪失を除けば1914も本土保持＝領土安定国）
+            Exact1920: [Polity.Republic], Exact1820: [Polity.ConstitutionalMonarchy], Exact1870: [Polity.Republic], GdpRank1820: 5, GdpRank1870: 6, GdpRank1913: 7, HomeProvinces1914: 8, ColonyProvinces1914: 10),   // ★(516) 7→8＝(512) で州アジャクシオ（コルシカ・1914 も仏領）を足した。08の6次元2026-07-31：Maddison1913の総GDP順位7位／本土7州（アルザス喪失を除けば1914も本土保持＝領土安定国）
         new("日本", "江戸", [Polity.ConstitutionalMonarchy], [Polity.Despotic],
             Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic], SuzerainsOk1950: ["アメリカ"],   // 1950：1947憲法＝象徴天皇の議会制立憲君主制。1952年4月まで米の占領（SCAP）＝米への従属もexact。近い＝君主が象徴に退いた議会制（共和）
             SuffrageOk: [Suffrage.Census], EducationOk: [EducationLaw.Compulsory], SerfOk: [ReformLevel.Full, ReformLevel.Limited],
@@ -412,7 +413,7 @@ public static class HistoricalReference
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], SerfOk: [ReformLevel.Full, ReformLevel.Limited],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.None],
             Exact1920: [Polity.ConstitutionalMonarchy], Exact1820: [Polity.ConstitutionalMonarchy, Polity.Absolutist], Exact1870: [Polity.ConstitutionalMonarchy], GdpRank1820: 11, GdpRank1870: 10, Note: "王政復古体制（カノバス体制＝寡頭立憲）。男子普選1890（カシキスモで形骸だが法は普選）。近い＝プロヌンシアミエントの世紀＝軍事独裁/カルリスタ絶対王政",
-            PopGrowthOk: (1.6, 2.2), HomeProvinces1914: 4, ColonyProvinces1914: 2, GreatPowerOk: false),   // 人口帯拡張2026-07-25：1783約10.6M→1914約20.5M＝×1.93。本土領土は安定（植民地喪失は本土人口に非算入）
+            PopGrowthOk: (1.6, 2.2), HomeProvinces1914: 5, ColonyProvinces1914: 2, GreatPowerOk: false),   // ★(516) 4→5＝(512) で州ラス・パルマス（カナリア・1914 も西領）を足した。人口帯拡張2026-07-25：1783約10.6M→1914約20.5M＝×1.93。本土領土は安定（植民地喪失は本土人口に非算入）
         new("サルデーニャ＝ピエモンテ", "トリノ", [Polity.ConstitutionalMonarchy], [Polity.Republic],
             Exact1950: [Polity.Republic], Near1950: [Polity.ConstitutionalMonarchy],   // 1950：イタリア共和国（1946国民投票で王政廃止・1948憲法）。近い＝サヴォイア立憲王政の存続（国民投票は54対46）
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], EducationOk: [EducationLaw.Public, EducationLaw.Compulsory],
