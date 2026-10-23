@@ -113,10 +113,13 @@ public sealed class Section : Border
     public static readonly StyledProperty<string> KeyProperty = AvaloniaProperty.Register<Section, string>(nameof(Key), "");
     public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<Section, string>(nameof(Title), "");
     public static readonly StyledProperty<bool> IsCollapsedProperty = AvaloniaProperty.Register<Section, bool>(nameof(IsCollapsed));
+    public static readonly StyledProperty<bool> ScrollsProperty = AvaloniaProperty.Register<Section, bool>(nameof(Scrolls), true);
 
     public string Key { get => GetValue(KeyProperty); set => SetValue(KeyProperty, value); }
     public string Title { get => GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
     public bool IsCollapsed { get => GetValue(IsCollapsedProperty); set => SetValue(IsCollapsedProperty, value); }
+    /// <summary>中身を欄の中で縦に流すか（既定は流す）。偽なら中身は欄の大きさで測られる＝自分で見出しを止めて中身だけ流す表（TableView）や、決まった大きさの絵（地図）を置く欄に使う。</summary>
+    public bool Scrolls { get => GetValue(ScrollsProperty); set => SetValue(ScrollsProperty, value); }
 
     /// <summary>欄の中身（XAML では子として書く）。</summary>
     [Avalonia.Metadata.Content]
@@ -127,12 +130,14 @@ public sealed class Section : Border
 
     private readonly TextBlock _glyph = new() { FontSize = 11, Text = "▾", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
     private readonly TextBlock _title = new() { FontSize = 13, VerticalAlignment = VerticalAlignment.Center };
-    private readonly ScrollViewer _body = new() { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+    private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+    private readonly Border _body = new();   // 中身の入れ物（流す欄は ScrollViewer を、流さない欄は中身そのものを持つ）
     private readonly Avalonia.Controls.Presenters.ContentPresenter _inner = new() { Margin = new Thickness(8, 4, 12, 6) };   // 余白は中身の Margin（スクロールの Padding はスクロールの範囲に入らない）
 
     static Section()
     {
         IsCollapsedProperty.Changed.AddClassHandler<Section>((s, _) => s.Sync());
+        ScrollsProperty.Changed.AddClassHandler<Section>((s, _) => s.MountBody());
         TitleProperty.Changed.AddClassHandler<Section>((s, _) => s._title.Text = s.Title);
     }
 
@@ -140,7 +145,7 @@ public sealed class Section : Border
     {
         _title.Classes.Add("section");
         _glyph.Foreground = Brush("BronzeBrush", Brushes.SaddleBrown);
-        _body.Content = _inner;
+        MountBody();
         var header = new Border
         {
             Height = PagePlan.HeaderHeight, Padding = new Thickness(8, 0), Background = Brush("ParchmentDimBrush", Brushes.Beige), Cursor = new Cursor(StandardCursorType.Hand),
@@ -154,6 +159,13 @@ public sealed class Section : Border
         Child = dock;
         BorderThickness = new Thickness(1); BorderBrush = Brush("SandBrush", Brushes.Tan); Background = Brush("ParchmentBrush", Brushes.Beige);
         ClipToBounds = true;
+    }
+
+    private void MountBody()
+    {
+        _scroll.Content = null; _body.Child = null;   // 中身の入れ物は同時に 1 か所にしか置けない
+        if (Scrolls) { _scroll.Content = _inner; _body.Child = _scroll; }
+        else _body.Child = _inner;
     }
 
     private void Sync()

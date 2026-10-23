@@ -357,6 +357,7 @@ public partial class MainWindow : Window
                 }
                 k++;
             }
+            await Page3Shots(gameView, gvm, dir);   // (501) 段3：政治と法・外交と戦争の撮影と確かめ（Views/MainWindow.Page3Shots.cs）
             // 配置の見本：既定・左右に2つ（既定）・上下に2つ・左に1つ右に2つ・4つ・左右の列を畳んだ図
             lay.Reset();
             await Task.Delay(1200);

@@ -1,4 +1,4 @@
-﻿// GameViewModel.Rows.cs ＝ 各タブの行オブジェクト（NationCard/PopRow/WarRow/HeaderStat…）と地図のDTO。GameViewModel の外側の型。
+﻿// GameViewModel.Rows.cs ＝ 各ページの行オブジェクト（PopRow/WarRow/HeaderStat…）と地図のDTO。GameViewModel の外側の型。
 // ★2026-08-10のUI分割：GameViewModel.cs の末尾にあった型を**そのまま**移した（宣言は1文字も変えていない）。
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,50 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace PriceOfBread.App.ViewModels;
-
-// 外交タブの1行。**可変プロパティ＝毎月の更新は既存行へ値だけ流す**（SyncRows＝行の Button を作り直さない・2026-07-19）。
-// キー＝PowerName（変名・建国・消滅・順位入替の集合変化時のみ作り直し）。コマンドと定数文言は init のまま。
-public sealed partial class NationCard : ObservableObject
-{
-    [ObservableProperty] private string _order = "";       // 順位（スコア降順・1始まり）
-    [ObservableProperty] private string _name = "";
-    public string PowerName { get; init; } = "";    // Power.Name（アクションのCommandParameter＝政体国号でなく生の国名）
-    // ★ランク列は廃止（作者指示2026-08-11）＝順位とランクが食い違って見えるのを、**ランクで区切って並べる**ことで解消した。
-    //   見出し行（---列強--- 等）は同じ一覧に混ぜて持つ＝行の並びと区切りが1つのコレクションで決まる（別リストだと順序がずれうる）。
-    public string Header { get; init; } = "";       // 空＝ふつうの国の行／非空＝見出し行
-    public bool IsHeader => Header.Length > 0;
-    public bool IsRow => Header.Length == 0;
-    [ObservableProperty] private string _tension = "";      // 緊張（％表示／自国は—）
-    [ObservableProperty] private string _detail = "";       // ホバー詳細（スコア内訳＋緊張の要因）
-    [ObservableProperty] private IBrush _color = Brushes.Gray;
-    [ObservableProperty] private string _badge = "";        // 関係バッジ（戦争中/属国/宗主/同盟）。空＝なし
-    [ObservableProperty] private IBrush _badgeBrush = Brushes.Gray;
-    public bool HasBadge => Badge.Length > 0;
-    partial void OnBadgeChanged(string value) => OnPropertyChanged(nameof(HasBadge));
-    [ObservableProperty] private IBrush _rowBrush = Brushes.Transparent;   // 自国行のハイライト背景
-    // 外交アクションの可否（弱小への侵略＝旧「植民地化」と1本化・2026-08-23）。同盟(CanAlly/AllyLabel/AllyCmd)は2026-08-10に撤去＝自動化済みで未バインドだった
-    [ObservableProperty] private bool _showInvade;           // 侵略の表示（標的が弱小なら抽象標的でも実在国でも）
-    [ObservableProperty] private bool _canInvade;
-    [ObservableProperty] private bool _showUnif;           // P4 統一戦争（変体の必要州保有国のみ・主フラグONのゲームのみ）
-    [ObservableProperty] private bool _canUnif;
-    [ObservableProperty] private string? _unifTip;
-    public IRelayCommand? UnifCmd { get; init; }
-    // ボタン文言（クールダウン残りのみ付記）。不可の理由はツールチップ（グレーアウト時）。
-    public string InvadeLabel { get; init; } = "侵略";   // ★2026-08-23作者裁定：弱小への動詞は1つ（実効値は Refresh 側で入れる）
-    [ObservableProperty] private string? _invadeTip;
-    [ObservableProperty] private IBrush _tensionBrush = Brushes.Gray;   // 緊張の色（青→黄→赤）
-    // 左クリックメニューのコマンド（VMのコマンド実体を行に埋める＝ポップアップでも確実にバインドされる）
-    public IRelayCommand? InvadeCmd { get; init; }
-    public IRelayCommand? CenterCmd { get; init; }   // 行クリック＝その国の中心へカメラ移動（メニュー表示と同時）
-    public void CopyFrom(NationCard s)
-    {
-        Order = s.Order; Name = s.Name; Tension = s.Tension; Detail = s.Detail; Color = s.Color;
-        Badge = s.Badge; BadgeBrush = s.BadgeBrush; RowBrush = s.RowBrush;
-        ShowInvade = s.ShowInvade; CanInvade = s.CanInvade;
-        ShowUnif = s.ShowUnif; CanUnif = s.CanUnif; UnifTip = s.UnifTip;
-        InvadeTip = s.InvadeTip; TensionBrush = s.TensionBrush;
-    }
-}
 
 // 戦争タブの1行（自国が交戦中の1戦争＝戦勝点・犠牲者・戦費・厭戦）。キー＝敵Power.Id（変名しても行を差し替えない）。
 /// <summary>他国の戦争への調停（列強の介入・プレイヤー側 2026-09-06）。キー＝"A|B"（Power.Id）。</summary>

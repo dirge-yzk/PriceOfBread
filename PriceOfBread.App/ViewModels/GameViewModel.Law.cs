@@ -1,4 +1,4 @@
-﻿// GameViewModel.Law.cs ＝ 法律タブ＝法の一覧（LawRowVM）の構築・群分け・制度の状態表示。
+﻿// GameViewModel.Law.cs ＝ 政治と法のページ（法の表）＝法の表（共通の表）の構築・段の押し下げの再読込。財政の段（税・支出・レバー）の行（LawRowVM）もここで作る（財政と貨幣のページが読む）。
 // ★2026-08-10のUI分割：GameViewModel.cs から**メンバーを移しただけ**（ロジック・順序とも不変）。
 //   同じ partial class GameViewModel の一部＝どのファイルからでも全メンバーに触れる。
 using System;
@@ -8,6 +8,8 @@ using System.Linq;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Controls;
+using PriceOfBread.App.Layout;
 using PriceOfBread.SimCore;
 using PriceOfBread.SimCore.Display;
 
@@ -17,13 +19,13 @@ public partial class GameViewModel
 {
     // === 法律タブ（1934拡張E8）：段階を横並びボタンで出すデータ駆動リスト。改正可能なら発光・政治資本コスト／不可は理由（LawRowVM）。
     //     休眠中の新法（gate=0）は Visible=false で出さない（UI最小主義＝死んだ行を出さない）。E9でgate点火＝表示。
+    /// <summary>法の行（LawRowVM）。画面の法の表は共通の表（<see cref="LawTable"/>）が描く＝この一覧の読み手は人口のページの特権の根拠の行（Pop.cs）だけ。
+    /// 人口のページが法の表（<see cref="LawCatalog"/>）を直接読むようになったら、この一覧は消せる。</summary>
     public ObservableCollection<LawRowVM> Laws { get; } = new();
     /// <summary>財政タブに置く法（作者指示2026-08-11＝金本位に関する法は経済の画面で扱いたい）。
     /// ★法としての扱いは同じ（議会の政治ゲートを通る＝LawRowVM そのもの）＝置き場所だけが違う。
     /// 法律タブとは**排他**＝同じ法を2箇所に出さない（金本位の二重実装を潰した趣旨をここでも守る）。</summary>
     public ObservableCollection<LawRowVM> EconLaws { get; } = new();
-    public ObservableCollection<LawRowVM> NationalizationLaws { get; } = new();   // 国有化6法（5部門＋『全て』＝§11-6d統合2026-08-15）は法律タブの右列（作者指示2026-08-15で生産タブから移動）
-    public bool NationalizationVisible => _player.Coef.NationalizationGate > 0;   // パネルごとゲート（未点火ならパネル自体を出さない）
 
     // === 財政の段（作者裁定2026-09-12 R1/R2・2026-09-20 点火）：税・支出・軍事費を法と同じ段ボタンにする（税・支出のスライダーは廃止＝段ボタンへ一本化）。
     //     行は財政タブの各項目の直下に**1本ずつ**置く（金額の予測/実効列と交互に並ぶので ItemsControl では組めない）。
@@ -45,23 +47,9 @@ public partial class GameViewModel
     private const int LeverStages = 4;   // レバーの段の**区間数**＝ボタンは5個（Government.TaxLawStages と同じ流儀＝段数を数字で散らさない）
     private LawRowVM[] _fiscalRows = [];
 
-    // === 制度（研究C・2026-08-10 表示を新設）：特許制度・株式会社・鉄道。
-    // これまでUIに状態がゼロだった（特許と株式会社は通知が1度飛ぶだけ・鉄道は通知すら無い）＝**効いているのに見えない**3機構。
-    // ⚠施行の選択化はしない：発見の表の制度の行（特許・株式会社）と「機関車」の行（鉄道）を見つけた四半期にAI/プレイヤーを問わず自動で効く（2026-10-01 (152)・旧＝Institutions.Step）＝
-    //   ボタンを置いても「押すだけ」になる（UI最小主義）。ここは状態の表示のみ。
-    // ⚠エンジンでは**解禁と施行が同じ四半期**に起きる＝「解禁済みだが未施行」という中間状態は存在しない（2状態＝未解禁／施行済み）。
-    // 解禁条件の数値表示は2026-08-11に撤去（L51「★解禁条件の数値は出さない」参照）。
-    // ⚠撤去2026-08-23（読み手ゼロ）: StageLabelOf ＝制度が段ボタン→テキスト表示化（2026-08-15）で役割消滅。private＝バインドからも到達不能だった。
-    /// <summary>制度（特許制度・株式会社・鉄道）＝**法律と同じ形で状態だけを出す**（作者指示2026-08-11）。
-    /// 施行はプレイヤーの操作を受け付けない（条件を満たせばAI/プレイヤーを問わず自動で施行される機構）ので、
-    /// 段ボタンは押せない形で置く＝法律一覧と見た目が揃い、押せる/押せないの違いがそのまま意味になる。
-    /// ★解禁条件の数値は出さない（旧「開発度(最高の州) 8 / 21 で解禁」）＝プレイヤーが直接動かせる量ではない。</summary>
-    public IReadOnlyList<InstitutionRow> Institutions =>
-    [
-        new("特許制度", _player.PatentLaw),
-        new("株式会社", _player.JointStock),
-        new("鉄道", _player.Railways),
-    ];
+    // === 制度（特許制度・株式会社・鉄道）は法の表のページの制度の表（PoliticsTables.Institutions）が映す＝発見の 2 値を読むだけの状態の表示。
+    //     施行の選択化はしない：条件を満たせば AI・プレイヤーを問わず自動で効く（2026-10-01 (152)・旧 Institutions.Step）＝ボタンを置いても「押すだけ」になる。
+    //     エンジンでは解禁と施行が同じ四半期に起きる＝「解禁済みだが未施行」という中間状態は存在しない（2 状態＝未解禁／施行済み）。解禁条件の数値は出さない（2026-08-11）。
 
     private void BuildLaws()
     {
@@ -71,12 +59,11 @@ public partial class GameViewModel
         //   群の見出し（群の最初の行）も表が決める。休眠中の新法（出す条件が偽）は行を作ったうえで Visible=false で出さない。
         foreach (var def in LawCatalog.All)
         {
-            var row = new LawRowVM(w, def) { GroupHeader = def.Slot == LawSlot.Law && LawCatalog.IsGroupHead(def) ? def.Group : "" };
+            var row = new LawRowVM(w, def);
             switch (def.Slot)
             {
                 case LawSlot.Law: Laws.Add(row); break;
                 case LawSlot.Econ: EconLaws.Add(row); break;   // 財政タブへ置く法（金本位・資本移動）
-                case LawSlot.Nationalization: NationalizationLaws.Add(row); break;
                 case LawSlot.Welfare: WelfareLaw = row; break;   // 社会保障は財政タブの金額行の直下
             }
         }
@@ -119,9 +106,33 @@ public partial class GameViewModel
     {
         foreach (var l in Laws) l.Refresh();
         foreach (var l in EconLaws) l.Refresh();
-        foreach (var l in NationalizationLaws) l.Refresh();
         foreach (var l in _fiscalRows) l.Refresh();   // 財政の段（R1/R2）
+        if (Layout.IsShown(Slot.PoliticsLaw)) RefreshLawTables();   // 見えているページだけ更新する
     }
+
+    // === 政治と法のページの表（共通の表）。行は本体の目録（PoliticsTables）が組み、鍵で値だけ流す（表を作り直さない）。
+    [ObservableProperty] private TableSnapshot _lawTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _institutionTable = TableSnapshot.Empty;
+
+    /// <summary>政治と法のページが枠に載った瞬間の更新（以後は見えている間の毎回の Refresh が追従する）。</summary>
+    public void RefreshPoliticsLawPage() => RefreshLawTables();
+
+    /// <summary>法の表と制度の表を読み直す。段の押し釦を押した直後と、ページが見えた瞬間と、見えている間の毎回の更新。</summary>
+    private void RefreshLawTables()
+    {
+        LawTable = TableSnapshot.From(AfterSelect(PoliticsTables.Laws.Read(_sim, _player), RefreshLawTables));
+        InstitutionTable = TableSnapshot.From(PoliticsTables.Institutions.Read(_sim, _player));
+    }
+
+    /// <summary>表の段の押し釦を押した直後に <paramref name="after"/> を呼ぶ形に包む（目標を置いた後の表を読み直す）。置く先は本体の口のまま（AI・議会と同じ門）。</summary>
+    internal static TableData AfterSelect(TableData d, Action after)
+        => d with
+        {
+            Rows = d.Rows.Select(r => r with
+            {
+                Cells = r.Cells.Select(c => c is StageCell st ? st with { Select = v => { st.Select(v); after(); } } : c).ToList(),
+            }).ToList(),
+        };
 
     // ★死コード撤去（2026-08-10）：LawCornText/LawLandReformText/LawSerfText/LawPensionText と
     //   LawCornSupport/LawLandReformSupport/LawSerfSupport/LawPensionSupport（＋private SupportLine）を削除。
@@ -135,10 +146,4 @@ public partial class GameViewModel
     // 緊張の増減は即時。侵略（弱小へ）・統一戦争は確認モーダルを経る。
     private Power? FindPower(string? name) => name is null ? null : _sim.Diplomacy.Powers.Find(p => p.Name == name || p.BaseName == name);   // 両受け＝変名の四半期のCommandParameter（旧名）も引ける
     private Power Me => _sim.Diplomacy.Powers[_playerIndex];
-}
-
-/// <summary>制度の1行＝名前と施行の有無。段ボタンは法律と同じ見た目で、押せない（自動施行の機構だから）。</summary>
-public sealed record InstitutionRow(string Title, bool Enacted)
-{
-    public bool NotEnacted => !Enacted;
 }
