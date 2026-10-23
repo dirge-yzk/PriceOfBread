@@ -231,15 +231,15 @@ public class FiscalPopDiscoveryTablesTests
         };
         var rows = new List<RowData>
         {
-            new("r1", "甲", "群", ["甲", new NumberCell(1200, null, "額の内訳"), NumberCell.Empty], GroupTip: "群の吹き出し"),
-            new("r2", "乙", "群", [new TextCell("乙", "名前の吹き出し"), new NumberCell(double.NaN, null), new NumberCell(0.5, "(x)")], GroupTip: "群の吹き出し"),
+            new("r1", "甲", "群", ["甲", new NumberCell(1200, "額の内訳"), NumberCell.Empty], GroupTip: "群の吹き出し"),
+            new("r2", "乙", "群", [new TextCell("乙", "名前の吹き出し"), new NumberCell(double.NaN), new NumberCell(0.5)], GroupTip: "群の吹き出し"),
         };
         var snap = TableSnapshot.From(new TableData("t", "表", cols, rows));
         Assert.Equal("額の内訳", snap.Rows[0].Cells[1].Tip);
         Assert.Equal("", snap.Rows[0].Cells[2].Text);       // 空欄は「—」でなく何も出さない
         Assert.Equal("—", snap.Rows[1].Cells[1].Text);      // 数でない値は「—」
         Assert.Equal("名前の吹き出し", snap.Rows[1].Cells[0].Tip);
-        Assert.Equal("50%(x)", snap.Rows[1].Cells[2].Text);
+        Assert.Equal("50%", snap.Rows[1].Cells[2].Text);
         Assert.Equal("群の吹き出し", snap.Rows[0].GroupTip);
         var tipped = snap.WithColumnTip("a", "全行");
         Assert.Equal("額の内訳", tipped.Rows[0].Cells[1].Tip);   // 既にある吹き出しは置き換えない

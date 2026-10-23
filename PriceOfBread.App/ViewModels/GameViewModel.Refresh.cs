@@ -118,7 +118,8 @@ public partial class GameViewModel
             //   最長「地位:列強12位」＝13pxで実測84px。
             StatPlain($"地位:{PlayerRankText}", "地位", 84),
             // ★2026-09-23作者指示：「GDPはnk」→「GDP:nk」（この1行だけ「は」で他は全部「名前:値」だった）
-            StatG($"GDP:{Fmt.Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, Fmt.Money, 130, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
+            StatG($"GDP:{Fmt.Money(myGdp)}", "GDP", _histGdp, Fmt.Money, 92, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）。順位は括弧で添えず別の項目（2026-10-23）
+            StatPlain($"GDP順位:{gdpPos}位", "GDP順位", 92),
             // ★2026-09-23作者指示：ジニ係数は撤去（採取 _histGini は残す＝セーブの系列配列に居る）。
             //   ⚠その空きに技術水準を置くのは**差し戻した**＝2026-08-15作者裁定「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」が生きており、
             //     その撤去の記録がすぐ上の行にコメントで残ったまま再設置していた。年次グラフは TechHover で財政タブへ渡す（_histTech の採取は継続）。

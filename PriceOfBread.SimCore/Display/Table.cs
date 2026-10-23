@@ -8,6 +8,8 @@ public enum Unit
     People, Quantity, Count,
     /// <summary>財 1 単位の値段（£0.52 のような小さい金額を小数 2 桁で出す。月・年・在庫の別を持たない単価）。</summary>
     PricePerUnit,
+    /// <summary>倍率（国内価格÷世界価格など。「×0.34」の形・小数 2 桁）。</summary>
+    Multiple,
 }
 
 /// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。</summary>
@@ -27,9 +29,9 @@ public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts)
 
 /// <summary>列＝名前と単位と読み口。説明文の欄は持たない（画面に説明文を書かない）。閾値の欄も持たない。</summary>
 public abstract record Column<TRow>(string Key, string Name);
-/// <summary><paramref name="Note"/>＝数の後ろに添える短い文字（価格比など。null か空なら添えない）。<paramref name="Tip"/>＝その数にカーソルを合わせた時の内訳の文（null なら出さない）。
-/// <paramref name="Hide"/>＝真の行は値を出さない（空欄・数でない値の「—」とは別）。</summary>
-public sealed record NumberColumn<TRow>(string Key, string Name, Unit Unit, Func<TRow, double> Read, string? ExplainKey = null, bool Series = false, Func<TRow, string>? Note = null,
+/// <summary><paramref name="Tip"/>＝その数にカーソルを合わせた時の内訳の文（null なら出さない）。
+/// <paramref name="Hide"/>＝真の行は値を出さない（空欄・数でない値の「—」とは別）。数に添える文字（かっこの添え書き）は持たない＝別の列にする。</summary>
+public sealed record NumberColumn<TRow>(string Key, string Name, Unit Unit, Func<TRow, double> Read, string? ExplainKey = null, bool Series = false,
                                         Func<TRow, string?>? Tip = null, Func<TRow, bool>? Hide = null) : Column<TRow>(Key, Name);
 /// <summary><paramref name="Tip"/>＝その文字にカーソルを合わせた時の文（null なら文字そのもの）。</summary>
 public sealed record TextColumn<TRow>(string Key, string Name, Func<TRow, string> Read, Func<TRow, string?>? Tip = null) : Column<TRow>(Key, Name);
@@ -43,14 +45,15 @@ public enum ColumnKind { Number, Text, Stage, Verb, Share }
 /// <summary>列の実行時の情報（行の型に依らない）。<see cref="Unit"/> は数の列だけ。<see cref="Series"/>＝この列は線グラフの系列になる。</summary>
 public sealed record ColumnInfo(string Key, string Name, ColumnKind Kind, Unit? Unit, bool Series, string? ExplainKey);
 
-/// <summary>数の列の 1 つの値（値と、後ろに添える短い文字と、カーソルを合わせた時の文）。<see cref="Blank"/>＝値を出さない。</summary>
-public sealed record NumberCell(double Value, string? Note, string? Tip = null, bool Blank = false)
+/// <summary>数の列の 1 つの値（値と、カーソルを合わせた時の文）。<see cref="Blank"/>＝値を出さない。<see cref="Ink"/>＝数の文字の色（「#RRGGBB」・null なら列の既定。緊張の青・黄・赤など）。色は説明文ではない。</summary>
+public sealed record NumberCell(double Value, string? Tip = null, bool Blank = false, string? Ink = null)
 {
-    public static NumberCell Empty { get; } = new(double.NaN, null, null, true);
+    public static NumberCell Empty { get; } = new(double.NaN, null, true);
 }
 
-/// <summary>文字の列の 1 つの値（文字と、カーソルを合わせた時の文）。</summary>
-public sealed record TextCell(string Text, string? Tip);
+/// <summary>文字の列の 1 つの値（文字と、カーソルを合わせた時の文）。<see cref="Swatch"/>＝文字の前に出す色の丸（政体の色など・「#RRGGBB」）。
+/// <see cref="BadgeFill"/>＝文字の背景の色（関係のバッジ・「#RRGGBB」。あれば文字は明るい色）。どちらも null なら飾りなし。</summary>
+public sealed record TextCell(string Text, string? Tip, string? Swatch = null, string? BadgeFill = null);
 
 /// <summary>行 1 本の実行時の値。<see cref="Cells"/> は列の並びのまま：数の列＝<see cref="NumberCell"/>・文字の列＝string・
 /// 段の列＝<see cref="StageCell"/>・動詞の列＝<see cref="VerbCell"/>・半円の列＝<see cref="ShareCell"/>。</summary>
@@ -100,7 +103,7 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
             for (int i = 0; i < cells.Length; i++)
                 cells[i] = Columns[i] switch
                 {
-                    NumberColumn<TRow> n => n.Hide?.Invoke(r) == true ? NumberCell.Empty : new NumberCell(n.Read(r), n.Note?.Invoke(r), n.Tip?.Invoke(r)),
+                    NumberColumn<TRow> n => n.Hide?.Invoke(r) == true ? NumberCell.Empty : new NumberCell(n.Read(r), n.Tip?.Invoke(r)),
                     TextColumn<TRow> t => t.Tip is null ? t.Read(r) : new TextCell(t.Read(r), t.Tip(r)),
                     StageColumn<TRow> s => s.Read(r),
                     VerbColumn<TRow> v => v.Read(r),
@@ -135,10 +138,6 @@ public static class Col
     public static NumberColumn<TRow> Of<TRow, TUnit>(string key, string name, Func<TRow, TUnit> read, string? explainKey = null, bool series = false)
         where TUnit : struct, IUnitValue
         => new(key, name, UnitOf(typeof(TUnit)) ?? throw new ArgumentException($"単位の型でない: {typeof(TUnit).Name}"), r => read(r).Value, explainKey, series);
-
-    /// <summary>数の後ろに短い文字を添える数の列（単位は名乗る）。</summary>
-    public static NumberColumn<TRow> NumberNote<TRow>(string key, string name, Unit unit, Func<TRow, double> read, Func<TRow, string> note, Func<TRow, string?>? tip = null)
-        => new(key, name, unit, read, Note: note, Tip: tip);
 
     /// <summary>型の無い数の列（人口・財の量・件数・型の無い割合など）。単位は名乗る。</summary>
     public static NumberColumn<TRow> Number<TRow>(string key, string name, Unit unit, Func<TRow, double> read, string? explainKey = null, bool series = false,

@@ -117,6 +117,41 @@ public class LayoutTests
     }
 
     [Fact]
+    public void 生産の全面_1枚に置き左右の列を畳む_もう一度で前の配置へ戻る_別のページを開いても戻る_保存は前の配置()
+    {
+        var m = new LayoutModel();
+        m.SetShape(SplitShape.Four); m.OpenInSelected(Slot.Discovery); m.Select(2); m.SetRatios(0.4, 0.3);
+        string before = m.ToJson();
+        var seats = m.Seats.ToArray(); int sel = m.Selected;
+        m.ToggleFull(Slot.Production);
+        Assert.True(m.IsFull); Assert.Equal(Slot.Production, m.FullSlot);
+        Assert.Equal(SplitShape.One, m.Shape); Assert.Equal(0, m.Selected); Assert.Equal(Slot.Production, m.SlotAt(0));
+        Assert.False(m.LeftOpen); Assert.False(m.RightOpen);
+        Assert.Equal(before, m.ToJson());              // 保存するのは入る前の配置（全面のまま落ちても次は元の配置）
+        m.ToggleFull(Slot.Production);                 // もう一度で戻る
+        Assert.False(m.IsFull);
+        Assert.Equal(before, m.ToJson());
+        Assert.Equal(seats, m.Seats.ToArray()); Assert.Equal(sel, m.Selected); Assert.Equal(SplitShape.Four, m.Shape);
+        Assert.True(m.LeftOpen && m.RightOpen);
+        // 別のページを開く（キーでも見出しからでも）＝前の配置へ戻ってから開く
+        m.ToggleFull(Slot.Production);
+        m.OpenInSelected(Slot.Market);
+        Assert.False(m.IsFull); Assert.Equal(SplitShape.Four, m.Shape); Assert.Equal(Slot.Market, m.SlotAt(sel));
+        // Esc（LeaveFull）・形の選び直し・列の開け閉め
+        m.ToggleFull(Slot.Production); Assert.True(m.LeaveFull()); Assert.False(m.IsFull); Assert.False(m.LeaveFull());
+        m.ToggleFull(Slot.Production); m.SetShape(SplitShape.LeftRight); Assert.False(m.IsFull); Assert.Equal(SplitShape.LeftRight, m.Shape);
+        m.ToggleFull(Slot.Production); m.SetColumns(true, false);
+        Assert.False(m.IsFull); Assert.Equal(SplitShape.One, m.Shape); Assert.True(m.LeftOpen);   // 列を自分で開けたら全面の印だけ外す（今の配置のまま）
+        // 全面に入るページが席に無くても入れる・戻ると席は元のまま
+        var m2 = new LayoutModel(); m2.OpenInSelected(Slot.Discovery); m2.OpenInSelected(Slot.Map);
+        Assert.False(m2.Seats.Contains(Slot.Production));
+        var seats2 = m2.Seats.ToArray();
+        m2.ToggleFull(Slot.Production); Assert.Equal(Slot.Production, m2.SlotAt(0)); Assert.Equal(4, m2.Seats.Distinct().Count());
+        m2.LeaveFull(); Assert.Equal(seats2, m2.Seats.ToArray());
+        m2.ToggleFull(Slot.Production); m2.Reset(); Assert.False(m2.IsFull);
+    }
+
+    [Fact]
     public void 形を小さくしても席の中身は残る_選んでいる枠は範囲に収まる_見えているものだけが見えている()
     {
         var m = new LayoutModel();

@@ -10,7 +10,7 @@ namespace PriceOfBread.App.Controls;
 public sealed record ColumnSpec(string Key, string Name, ColumnKind Kind, Unit? Unit, double MinWidth, double MaxWidth);
 
 /// <summary>セル 1 つ。<see cref="Text"/>＝画面の文字／<see cref="Sort"/>＝並べ替えの値（数の列は数・文字の列は NaN）／<see cref="Extra"/>＝段・動詞・半円の列の中身（<see cref="StageCell"/> ほか）。</summary>
-public sealed record CellView(string Text, double Sort, object? Extra = null, string? Tip = null);
+public sealed record CellView(string Text, double Sort, object? Extra = null, string? Tip = null, string? Color = null, string? Swatch = null, string? BadgeFill = null);
 
 /// <summary>行 1 本。<see cref="Key"/> は据え置き同期の鍵（値だけ流す）。<see cref="GroupTip"/>＝群の見出しにカーソルを合わせた時の文。</summary>
 public sealed record RowView(string Key, string Name, string? Group, IReadOnlyList<CellView> Cells, string? Tip = null, bool Emphasis = false, string? GroupTip = null);
@@ -41,10 +41,11 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
         Unit.People or Unit.Quantity => 40,
         Unit.Count => 24,
         Unit.PricePerUnit => 40,                                                                 // 「£12.34」6 文字分
+        Unit.Multiple => 36,                                                                     // 「×12.34」6 文字分
         _ => 24,
     };
 
-    /// <summary>本体の表の値を文字にする。数の列は <see cref="Fmt.Of"/>（単位から）＋添え書き・文字の列はそのまま・その他の列は <see cref="CellView.Extra"/> に中身を持つ。</summary>
+    /// <summary>本体の表の値を文字にする。数の列は <see cref="Fmt.Of"/>（単位から）・文字の列はそのまま・その他の列は <see cref="CellView.Extra"/> に中身を持つ。</summary>
     public static TableSnapshot From(TableData data)
     {
         var cols = new List<ColumnSpec>(data.Columns.Count);
@@ -72,8 +73,8 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
                 cells[i] = v switch
                 {
                     NumberCell { Blank: true } => new CellView("", double.NaN),
-                    NumberCell n => new CellView(Fmt.Of(cols[i].Unit ?? Unit.Count, n.Value) + (n.Note ?? ""), n.Value, null, n.Tip),
-                    TextCell tc => new CellView(tc.Text, double.NaN, null, tc.Tip),
+                    NumberCell n => new CellView(Fmt.Of(cols[i].Unit ?? Unit.Count, n.Value), n.Value, null, n.Tip, n.Ink),
+                    TextCell tc => new CellView(tc.Text, double.NaN, null, tc.Tip, null, tc.Swatch, tc.BadgeFill),
                     string s => new CellView(s, double.NaN),
                     StageCell st => new CellView(st.Current - st.LevelBase >= 0 && st.Current - st.LevelBase < st.Labels.Count ? st.Labels[st.Current - st.LevelBase] : "", st.Current, st),
                     VerbCell vb => new CellView(vb.Name, double.NaN, vb),

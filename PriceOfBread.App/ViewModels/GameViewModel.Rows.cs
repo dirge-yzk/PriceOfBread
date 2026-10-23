@@ -158,20 +158,21 @@ public sealed partial class ArmyNeedRow : ObservableObject
     public void CopyFrom(ArmyNeedRow s) { Name = s.Name; Need = s.Need; Have = s.Have; Fill = s.Fill; FillV = s.FillV; FillBrush = s.FillBrush; Tip = s.Tip; Cost = s.Cost; }
 }
 
-// 出来事の1行：アイコン＋本文＋深刻度の色。Mine＝自国が当事者（フィルタ「自国のみ」の判定）。
+// 出来事の1行：アイコン＋本文＋深刻度の色。Mine＝自国が当事者（年表の絞り「自国」の判定）・Great＝列強が関わる（絞り「列強」の判定）。
 public sealed class AlertRow
 {
     public string Icon { get; }
     public string Text { get; }
     public IBrush Color { get; }
     public bool Mine { get; }
-    public AlertRow(string icon, string text, string colorHex, bool mine = false)
+    public bool Great { get; }
+    public AlertRow(string icon, string text, string colorHex, bool mine = false, bool great = false)
     {
         // alerts.csv の color 列が不正（綴り誤り・桁数不足・空）でも落ちない契約を守る＝TryParse で失敗時は中立グレーへ（Make の string.Format 保護と対称）。
         Icon = icon; Text = text;
-        Color = new SolidColorBrush(Avalonia.Media.Color.TryParse(colorHex, out var _col) ? _col : Avalonia.Media.Color.Parse("#808080")); Mine = mine;
+        Color = new SolidColorBrush(Avalonia.Media.Color.TryParse(colorHex, out var _col) ? _col : Avalonia.Media.Color.Parse("#808080")); Mine = mine; Great = great;
     }
-    public AlertRow(string icon, string text, IBrush color, bool mine = false) { Icon = icon; Text = text; Color = color; Mine = mine; }
+    public AlertRow(string icon, string text, IBrush color, bool mine = false, bool great = false) { Icon = icon; Text = text; Color = color; Mine = mine; Great = great; }
 }
 
 // ヘッダー2行目の国家指標1項目。HasGraph の項目はホバーで年次推移の折れ線を出す（データのみ・説明文なし）。

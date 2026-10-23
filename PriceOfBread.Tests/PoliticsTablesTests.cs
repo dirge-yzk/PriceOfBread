@@ -59,8 +59,8 @@ public class PoliticsTablesTests
             {
                 int lv = st.LevelBase + i;
                 Assert.Equal(vm.CanReachAndAfford(lv), st.CanSelect(lv));
-                string expect = vm.StageHint(lv);
-                Assert.Equal(expect.Length > 0 ? expect : null, st.Hover(lv));   // 空なら null＝空の吹き出しを出さない
+                Assert.Equal(vm.StageHint(lv), st.Hover(lv));   // 同じ 1 本（StageGate）・空は null＝空の吹き出しを出さない
+                Assert.NotEqual("", st.Hover(lv));
             }
             // 押すと AI・議会と同じ口（NationPolicy の目標の欄）に置かれる。確かめたら戻す
             var saved = w.Policy.Clone();

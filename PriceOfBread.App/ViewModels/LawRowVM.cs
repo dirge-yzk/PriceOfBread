@@ -19,12 +19,9 @@ public sealed partial class LawStageVM : ObservableObject
     public bool IsCurrent => Row.CurrentLevel == Index;   // 現在施行中の段階（濃い塗り）
     public bool IsTarget => Row.TargetLevel == Index && Row.TargetLevel != Row.CurrentLevel;   // プレイヤーが置いた目標（枠強調）
     public bool Enabled => Row.CanReachAndAfford(Index);  // 前提法が未達 or 政治資本が足りない段階はグレーアウト（押せない）
-    /// <summary>ホバー：必要な政治資本／不可の理由。★2026-09-23：**空なら null を返す**＝Avalonia の ToolTip.Tip は
-    /// null なら吹き出しを出さないが**空文字では空の吹き出しを出す**（PopTab の特権チップが「なし」だけ null にしている作法と同じ）。
-    /// 軸の無い行（財政タブのレバーの5段＝行政費・近代化投資・関税・政策金利の計20ボタン）は代価も賛否も無く
-    /// StageHint が空を返す＝そのまま束縛すると20個の空の吹き出しが出ていた。畳むのはここ1箇所
-    /// （StageHint の戻りは string のまま＝PriceOfBread.Tests の S1 がこの1本を直接読んで行を数えている）。</summary>
-    public string? Hint => Row.StageHint(Index) is { Length: > 0 } h ? h : null;
+    /// <summary>ホバー：必要な政治資本／不可の理由。**空なら null**＝Avalonia の ToolTip.Tip は null なら吹き出しを出さないが空文字では空の吹き出しを出す。
+    /// 軸の無い行（財政のレバーの5段）は代価も賛否も無く null（<see cref="StageGate.Hint"/> が最初から null を返す＝ここで畳まない）。</summary>
+    public string? Hint => Row.StageHint(Index);
     internal void Notify() { OnPropertyChanged(nameof(IsCurrent)); OnPropertyChanged(nameof(IsTarget)); OnPropertyChanged(nameof(Enabled)); OnPropertyChanged(nameof(Hint)); }
 }
 
@@ -40,6 +37,8 @@ public sealed partial class LawRowVM : ObservableObject
     private readonly Func<bool> _visible;
     private readonly int _levelBase;   // 最下段のエンジン段番号（既定0）。軍事費だけ1＝「なし」の段が存在しない（Government.LawPrereq が段0を拒む）
 
+    private readonly string[] _labels;
+
     public string Title { get; }
     public IReadOnlyList<LawStageVM> Stages { get; }
 
@@ -48,7 +47,7 @@ public sealed partial class LawRowVM : ObservableObject
     public LawRowVM(World w, PolicyAxis? axis, string title, string[] labels,
         Func<int> current, Func<int> target, Action<int> setTarget, Func<bool>? visible = null, int levelBase = 0)
     {
-        _w = w; _axis = axis; Title = title;
+        _w = w; _axis = axis; Title = title; _labels = labels;
         _current = current; _target = target; _setTarget = setTarget;
         _visible = visible ?? (() => true);
         _levelBase = levelBase;
@@ -70,16 +69,11 @@ public sealed partial class LawRowVM : ObservableObject
     public int TargetLevel => _target();
     public bool Visible => _visible();
 
-    /// <summary>その段階を制定できるか（前提法DAG）。現行以下（降格）は常に可。前提未達の上位段はグレーアウト。</summary>
-    public bool CanReach(int level) => LawView.CanReach(_w, _axis, CurrentLevel, level);   // 式は本体の目録（LawView）の 1 本
+    /// <summary>制定できるか。前提法DAG＋純支持ゲート＋政治資本の在庫（★2026-09-21 裁定S1：純支持が負の段は残り a が代価に届くときだけ押せる＝GateInfo が施行と同じ1本を読む）。式は <see cref="StageGate"/> の 1 本。</summary>
+    public bool CanReachAndAfford(int level) => StageGate.CanReachAndAfford(_w, _axis, level, CurrentLevel);
 
-    /// <summary>制定できるか。前提法DAG＋純支持ゲート＋政治資本の在庫（★2026-09-21 裁定S1：純支持が負の段は残り a が代価に届くときだけ押せる＝GateInfo が施行と同じ1本を読む）＝AIと同一条件。</summary>
-    public bool CanReachAndAfford(int level) => LawView.CanSelect(_w, _axis, CurrentLevel, level);
-
-    /// <summary>段ボタンのホバー文。1行目=「法律名:段階名」（全分岐共通・作者指示2026-08-15）、
-    /// 2行目=「現在の段階」／「制定:可能（政治資本消費:n）」／「制定:不可（…）」、以降=勢力の賛否。データのみ＝規律準拠。
-    /// ★(501) 段3：本文は本体の目録（<see cref="LawView.StageHint"/>）へ移した（法の表のページと同じ 1 本・文字は 1 字も変えていない。経緯の注もそちら）。</summary>
-    public string StageHint(int level) => LawView.StageHint(_w, _axis, Title, Stages[level - _levelBase].Label, CurrentLevel, level);
+    /// <summary>段ボタンのホバー文。1行目=「法律名:段階名」、2行目=「現在の段階」／「制定:可能（政治資本消費:n）」／「制定:不可（…）」、以降=勢力の賛否。軸の無い行は null。本文は <see cref="StageGate.Hint"/> の 1 本。</summary>
+    public string? StageHint(int level) => StageGate.Hint(_w, _axis, Title, _labels, _levelBase, level, CurrentLevel);
 
     /// <summary>段階ボタンのクリック＝目標をその段へ置く（施行は次tick以降、政治ゲート越しに1段ずつ進む）。</summary>
     [RelayCommand]

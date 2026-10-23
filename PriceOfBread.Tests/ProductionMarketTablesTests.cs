@@ -130,8 +130,10 @@ public class ProductionMarketTablesTests
         // 生産ページ：狭い（1 つの PageGrid）／広い（盤の列と他の欄の列の 2 つ）× 設備の欄の有無。欄は全て 1 度ずつどこかの表に載る
         foreach (bool wide in new[] { false, true })
             foreach (bool equip in new[] { false, true })
+            foreach (bool full in wide ? new[] { false, true } : new[] { false })   // 全面（Q）は広いときだけ・盤の列は供給の網だけ
             {
-                var plans = ProductionPage.BuildPlans(wide, equip);
+                var plans = ProductionPage.BuildPlans(wide, equip, full);
+                if (full) Assert.Equal(["supply"], plans[0].Sections.Select(s => s.Key).ToArray());
                 Assert.Equal(wide ? 2 : 1, plans.Length);
                 var keys = plans.SelectMany(p => p.Sections).Select(s => s.Key).OrderBy(k => k).ToList();
                 var expected = new List<string> { "supply", "goods", "detail", "regions", "labor", "mega" };

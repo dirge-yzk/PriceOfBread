@@ -91,12 +91,14 @@ public partial class GameViewModel
 
     /// <summary>ヘッダーの押し釦＝選んでいる枠へ開く。</summary>
     [RelayCommand]
-    private void OpenSlot(Slot slot) => Layout.OpenInSelected(slot);
+    private void OpenSlot(Slot slot) => OpenSlotByKey(slot, false);   // 押し釦＝キーと同じ（生産は全面）
 
     /// <summary>キー（Shift を足すと次の枠へ開く）。</summary>
     public void OpenSlotByKey(Slot slot, bool toNext)
     {
-        if (toNext) Layout.OpenInNext(slot); else Layout.OpenInSelected(slot);
+        if (toNext) Layout.OpenInNext(slot);
+        else if (slot == Slot.Production) Layout.ToggleFull(Slot.Production);   // 生産のキー＝1 枚の全面（もう一度で前の配置へ）。見出しの一覧から選んだときは分割の中（PaneView.PickSlot は Open を呼ぶ）
+        else Layout.OpenInSelected(slot);
     }
 
     [RelayCommand] private void ToggleLeftColumn() => Layout.SetColumns(!Layout.LeftOpen, Layout.RightOpen);

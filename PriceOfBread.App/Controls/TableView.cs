@@ -59,19 +59,12 @@ public sealed class TableView : UserControl
     /// <summary>文字の 1 つのセルの最大の幅（これを超える長い文字は末尾を省略記号にして全文を吹き出しに出す）。</summary>
     public const double MaxTextWidth = 260;
 
-    /// <summary>見出しの列の左端と、値の列の左端が揃っているかの検査（撮影の判定）。見出しの格子と先頭の行の格子で、列ごとの左端（前の列の幅の和）を比べる。
-    /// 行が無い・まだ測られていない表は測らない（<c>Measured</c>＝0）。</summary>
+    /// <summary>見出しの列の左端と、値の列の左端が揃っているかの検査（撮影の判定）。ずれた列の数と測った列の数。
+    /// 行が無い・まだ測られていない表は測らない（<c>Measured</c>＝0）。測り方は <see cref="MeasureAlignment"/> の 1 本。</summary>
     public (int Gaps, int Measured) AlignmentGaps()
     {
-        var row = _body.Children.OfType<Grid>().FirstOrDefault(g => g.ColumnDefinitions.Count == _header.ColumnDefinitions.Count && g.ColumnDefinitions.Count > 0);
-        if (row is null || !(_header.Bounds.Width > 0)) return (0, 0);
-        int gaps = 0; double hx = 0, rx = 0;
-        for (int i = 0; i < _header.ColumnDefinitions.Count; i++)
-        {
-            if (Math.Abs(hx - rx) > 0.5) gaps++;
-            hx += _header.ColumnDefinitions[i].ActualWidth; rx += row.ColumnDefinitions[i].ActualWidth;
-        }
-        return (gaps, _header.ColumnDefinitions.Count);
+        var m = MeasureAlignment();
+        return m is { } a ? (a.Gaps, a.Columns) : (0, 0);
     }
 
     /// <summary>表の行の数（撮影の検査用）。</summary>
@@ -81,7 +74,7 @@ public sealed class TableView : UserControl
     private readonly TextBox _filterBox = new() { Watermark = "", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
     private readonly StackPanel _body = new() { Spacing = 0 };
-    private readonly Border _bodyHost = new();
+    private readonly Border _bodyHost = new() { ClipToBounds = true };   // 内側で流れる表の行が見出しに重ならない（流した行は見出しの下で切る）
     private readonly Dictionary<string, RowPresenter> _rows = new();
     private readonly Dictionary<string, Control> _groups = new();
     private string _columnSig = "";
@@ -89,6 +82,7 @@ public sealed class TableView : UserControl
     private bool _sortDescending;
     private string _filter = "";
     private TextBlock[] _headerCells = [];
+    private ColumnKind[] _kinds = [];
 
     static TableView()
     {
@@ -222,22 +216,29 @@ public sealed class TableView : UserControl
         return -1;
     }
 
-    /// <summary>見出しの列と最初の行の列の左端のずれ（撮影の確かめ・設計 §7-3）。列の左端は列の幅の積み上げ＋それぞれの格子の位置（この表の左上から）。行が無ければ null。
-    /// 見出しと行は列の大きさを共有する（<c>SharedSizeGroup</c>）ので、ずれは 0 になるはず。</summary>
-    public (int Columns, double MaxDelta, string Worst)? MeasureAlignment()
+    /// <summary>見出しの文字と、最初の行の各セルの中身の位置のずれ（撮影の確かめ・設計 §7-3）。列ごとに、見出しの文字の左端と値の左端（数の列は右端どうし）を、この表の左上からの位置で比べる。
+    /// 列の幅の積み上げでは比べない（見出しと行は列の大きさを共有するので積み上げは構造上いつも一致し、セルが列の中でどこへ寄っているかを見られない）。
+    /// 測れる行が無い表は null。値の無い列（空のセル）は測らない。</summary>
+    public (int Columns, double MaxDelta, string Worst, int Gaps)? MeasureAlignment()
     {
         var row = _body.Children.OfType<Grid>().FirstOrDefault(g => g.ColumnDefinitions.Count == _header.ColumnDefinitions.Count && g.ColumnDefinitions.Count > 0);
-        if (row is null || _header.ColumnDefinitions.Count == 0) return null;
-        var hp = _header.TranslatePoint(new Point(0, 0), this); var rp = row.TranslatePoint(new Point(0, 0), this);
-        if (hp is null || rp is null) return null;
-        double hx = hp.Value.X, rx = rp.Value.X, maxDelta = 0; string worst = "";
-        for (int i = 0; i < _header.ColumnDefinitions.Count; i++)
+        if (row is null || !(_header.Bounds.Width > 0)) return null;
+        double maxDelta = 0; string worst = ""; int gaps = 0, measured = 0;
+        for (int i = 0; i < _header.ColumnDefinitions.Count && i < _headerCells.Length && i < _kinds.Length; i++)
         {
-            double delta = Math.Abs(hx - rx);
-            if (delta > maxDelta) { maxDelta = delta; worst = _headerCells.Length > i ? _headerCells[i].Text ?? "" : i.ToString(); }
-            hx += _header.ColumnDefinitions[i].ActualWidth; rx += row.ColumnDefinitions[i].ActualWidth;
+            var hc = _headerCells[i];
+            var cell = row.Children.FirstOrDefault(c => Grid.GetColumn(c) == i);
+            if (cell is null || !(cell.Bounds.Width > 0)) continue;
+            var hp = hc.TranslatePoint(new Point(0, 0), this); var cp = cell.TranslatePoint(new Point(0, 0), this);
+            if (hp is null || cp is null) continue;
+            bool right = _kinds[i] == ColumnKind.Number;   // 数の列は右揃え＝右端どうし・それ以外は左端どうし
+            double hx = right ? hp.Value.X + hc.Bounds.Width : hp.Value.X, cx = right ? cp.Value.X + cell.Bounds.Width : cp.Value.X;
+            measured++;
+            double delta = Math.Abs(hx - cx);
+            if (delta > 0.5) gaps++;
+            if (delta > maxDelta) { maxDelta = delta; worst = hc.Text ?? i.ToString(); }
         }
-        return (_header.ColumnDefinitions.Count, maxDelta, worst);
+        return measured == 0 ? null : (measured, maxDelta, worst, gaps);
     }
 
     private static ColumnDefinition DefinitionOf(ColumnSpec c, int index, bool star)
@@ -252,6 +253,7 @@ public sealed class TableView : UserControl
     {
         _header.Children.Clear(); _header.ColumnDefinitions.Clear();
         _headerCells = new TextBlock[snap.Columns.Count];
+        _kinds = snap.Columns.Select(c => c.Kind).ToArray();
         int starAt = StarIndex(snap.Columns);
         for (int i = 0; i < snap.Columns.Count; i++)
         {
@@ -354,7 +356,7 @@ public sealed class TableView : UserControl
                     Grid.SetColumn(_cells[i]!, i);
                     Root.Children.Add(_cells[i]!);
                 }
-                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip));
+                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip), i);
             }
         }
 
@@ -372,7 +374,7 @@ public sealed class TableView : UserControl
                 case ColumnKind.Share:
                     return new HalfPie { Radius = 16, Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Stage:
-                    return new WrapPanel { Orientation = Orientation.Horizontal, Margin = margin, MaxWidth = StageMaxWidth };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
+                    return new WrapPanel { Orientation = Orientation.Horizontal, Margin = margin, MaxWidth = StageMaxWidth, HorizontalAlignment = HorizontalAlignment.Left };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
                 case ColumnKind.Verb:
                     return new Border { Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 default:
@@ -386,12 +388,51 @@ public sealed class TableView : UserControl
 
         private static readonly IBrush[] PiePalette = [Brushes.SteelBlue, Brushes.Goldenrod, Brushes.IndianRed, Brushes.SeaGreen, Brushes.MediumPurple, Brushes.Peru];
 
-        private static void Fill(Control control, ColumnSpec spec, CellView cell, bool rowHasTip)
+        private static readonly Dictionary<string, IBrush> InkCache = new();
+
+        /// <summary>「#RRGGBB」の色の筆（同じ色は使い回す）。読めなければ null。</summary>
+        private static IBrush? InkOf(string? hex)
+        {
+            if (string.IsNullOrEmpty(hex)) return null;
+            if (InkCache.TryGetValue(hex, out var b)) return b;
+            if (!Color.TryParse(hex, out var c)) return null;
+            return InkCache[hex] = new SolidColorBrush(c);
+        }
+
+        /// <summary>文字のセルの中身と飾り（色の丸・バッジの背景・数の文字色）。飾りが無いセルは既定の見た目へ戻す（前の月に飾りがあった行も）。</summary>
+        private static void ApplyText(TextBlock tb, ColumnSpec spec, CellView cell, int index)
+        {
+            IBrush defaultInk = spec.Kind == ColumnKind.Number ? (spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black))
+                                                                : index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray);
+            var badge = InkOf(cell.BadgeFill);
+            tb.Foreground = badge is not null ? InkOf("#FFF6E8") ?? Brushes.White : InkOf(cell.Color) ?? defaultInk;
+            tb.Background = badge ?? Brushes.Transparent;
+            tb.Padding = badge is not null ? new Thickness(4, 0) : default;
+            if (InkOf(cell.Swatch) is { } dot)
+            {
+                string sig = cell.Swatch + "|" + cell.Text;
+                if (!Equals(tb.Tag, sig))
+                {
+                    tb.Text = null; tb.Inlines?.Clear();
+                    tb.Inlines ??= new Avalonia.Controls.Documents.InlineCollection();
+                    tb.Inlines.Add(new Avalonia.Controls.Documents.Run("● ") { Foreground = dot });
+                    tb.Inlines.Add(new Avalonia.Controls.Documents.Run(cell.Text));
+                    tb.Tag = sig;
+                }
+            }
+            else
+            {
+                if (tb.Tag is not null) { tb.Inlines?.Clear(); tb.Tag = null; tb.Text = null; }
+                if (tb.Text != cell.Text) tb.Text = cell.Text;
+            }
+        }
+
+        private static void Fill(Control control, ColumnSpec spec, CellView cell, bool rowHasTip, int index)
         {
             switch (control)
             {
                 case TextBlock tb:
-                    if (tb.Text != cell.Text) tb.Text = cell.Text;
+                    ApplyText(tb, spec, cell, index);
                     ToolTip.SetTip(tb, cell.Tip ?? (spec.Kind == ColumnKind.Text && !rowHasTip ? cell.Text : null));   // 溢れて省略されても全文が読める・目録が文を持つ数と文字はその文
                     break;
                 case HalfPie pie when cell.Extra is ShareCell sc:

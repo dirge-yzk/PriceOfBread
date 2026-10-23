@@ -187,6 +187,17 @@ public partial class MainWindow : Window
         BootLog.Write($"uishot: 外側の流れ[{tag}] {(!outerFlowing ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
     }
 
+    /// <summary>撮影の窓を 1920 幅へ（フルスクリーン→最大化の順に試す）。画面の状態で窓の状態が効かない回があったので、大きさを BootLog に残す。</summary>
+    private async Task EnsureBigWindow()
+    {
+        for (int i = 0; i < 3 && Bounds.Width < 1800; i++)
+        {
+            WindowState = i == 1 ? WindowState.Maximized : WindowState.FullScreen;
+            await Task.Delay(900);
+        }
+        BootLog.Write($"uishot: 窓 {Bounds.Width:F0}×{Bounds.Height:F0}（状態 {WindowState}）");
+    }
+
     private async void RunUiShot(string dir)
     {
         try
@@ -232,6 +243,7 @@ public partial class MainWindow : Window
             BootLog.Write("uishot: AutoStart完了");
             await Task.Delay(2500);   // ゲーム画面の構築＋初回Refresh
             if (mwvm.CurrentPage is not GameViewModel gvm) { BootLog.Write("uishot: 遷移失敗でExit(3)"); Capture(dir, "02_遷移失敗.png"); Environment.Exit(3); return; }
+            await EnsureBigWindow();   // 窓が小さいまま（フルスクリーンが効かない）撮ると各ページが狭い枠の絵になる
             Capture(dir, "02_開始直後.png");
             BootLog.Write("uishot: 02撮影済み");
             gvm.SetSpeedCommand.Execute("3");
@@ -459,6 +471,9 @@ public partial class MainWindow : Window
             // ピン留め・問題の一覧・狭い分割で畳んだ欄の撮影と、飛び先の確かめ（(501) 段4・段5・Views/MainWindow.UiShotFinal.cs）。ピン留めは以後の往復の確かめまで残す
             try { await ShootFinal(dir, gvm, gameView, () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 最後の段 失敗 {ex}"); }
+            // 段 6（2026-10-23）：生産の全面（Q）と戻り・年表の 3 つの絞り・外交の地図の欄の首都・流した表（Views/MainWindow.UiShotS6.cs）
+            try { await ShootS6(dir, gvm, gameView, () => k++); }
+            catch (Exception ex) { BootLog.Write($"uishot: 段6 失敗 {ex}"); }
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
             try
             {

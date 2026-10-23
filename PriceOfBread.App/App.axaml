@@ -119,6 +119,7 @@
         </Style>
         <Style Selector="Button.mini.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#3A5A8A"/>
+            <Setter Property="Foreground" Value="#FFF6E8"/>   <!-- 文字の色は枠の中身（ContentPresenter）に直接置く＝ボタンの Foreground だけでは濃い地に濃い字になった（年表の選んだ釦） -->
         </Style>
         <Style Selector="Button.mini.active">
             <Setter Property="Foreground" Value="#FFF6E8"/>

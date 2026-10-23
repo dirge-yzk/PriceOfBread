@@ -101,6 +101,42 @@ public sealed class LayoutModel
         Raise();
     }
 
+    // ---- 全面（生産のキーを押したとき・作者の指示 2026-10-23「生産は大きくあってほしい」）----
+    // 1 枚の枠に置き、左右の列を畳む。入る前の配置の写しを 1 つだけ持ち（これが全面の印）、出るときに戻す。保存するのは写しの方（全面のまま落ちても、次の起動は元の配置）。
+
+    /// <summary>全面に入る前の配置（形・席・選択・区切り・左右の列）。</summary>
+    private sealed record Before(SplitShape Shape, Slot[] Seats, int Selected, double MainRatio, double SubRatio, bool LeftOpen, bool RightOpen);
+    private Before? _before;
+
+    /// <summary>いま全面か（ページを 1 枚の全面に置き、左右の列を畳んでいる）。</summary>
+    public bool IsFull => _before is not null;
+
+    /// <summary>全面にしているページ（全面でなければ null）。</summary>
+    public Slot? FullSlot => IsFull ? _seats[0] : null;
+
+    /// <summary>全面の入り切り。全面でなければ入る（入る前の配置を写す）・全面なら前の配置へ戻る。</summary>
+    public void ToggleFull(Slot slot)
+    {
+        if (IsFull) { LeaveFull(); return; }
+        _before = new Before(Shape, [.. _seats], Selected, MainRatio, SubRatio, LeftOpen, RightOpen);
+        int at = Array.IndexOf(_seats, slot);
+        if (at > 0) (_seats[at], _seats[0]) = (_seats[0], _seats[at]);
+        else if (at < 0) _seats[0] = slot;
+        Shape = SplitShape.One; Selected = 0; LeftOpen = false; RightOpen = false;
+        Raise();
+    }
+
+    /// <summary>全面から前の配置へ戻る。全面でなければ何もしない（戻ったときだけ真）。</summary>
+    public bool LeaveFull()
+    {
+        if (_before is not { } b) return false;
+        _before = null;
+        for (int i = 0; i < _seats.Length; i++) _seats[i] = b.Seats[i];
+        Shape = b.Shape; Selected = b.Selected; MainRatio = b.MainRatio; SubRatio = b.SubRatio; LeftOpen = b.LeftOpen; RightOpen = b.RightOpen;
+        Raise();
+        return true;
+    }
+
     /// <summary>配置が変わった（形・席・選択・区切り・列の開閉のどれでも）。</summary>
     public event Action? Changed;
 
@@ -117,6 +153,7 @@ public sealed class LayoutModel
     /// <summary>枠 <paramref name="pane"/> に <paramref name="slot"/> を開く。別の席にあれば入れ替え、どの席にも無ければ置き換える。開いた枠が選んでいる枠になる。</summary>
     public void Open(Slot slot, int pane)
     {
+        if (LeaveFull()) pane = Selected;   // 全面の間に別のページを開く＝前の配置へ戻り、その配置で選んでいた枠へ開く（全面の枠の番号は使わない）
         pane = Math.Clamp(pane, 0, PaneCount - 1);
         int at = Array.IndexOf(_seats, slot);
         if (at >= 0 && at != pane) (_seats[at], _seats[pane]) = (_seats[pane], _seats[at]);
@@ -142,6 +179,8 @@ public sealed class LayoutModel
     public void SetShape(SplitShape shape)
     {
         if (shape == Shape) return;
+        LeaveFull();   // 分割の形を選び直す＝前の配置へ戻ってから変える
+        if (shape == Shape) return;
         Shape = shape;
         Selected = Math.Min(Selected, PaneCount - 1);
         Raise();
@@ -158,6 +197,7 @@ public sealed class LayoutModel
     public void SetColumns(bool left, bool right)
     {
         if (left == LeftOpen && right == RightOpen) return;
+        _before = null;   // 列を自分で開け閉めした＝全面の印を外す（今の配置のまま）
         LeftOpen = left; RightOpen = right;
         Raise();
     }
@@ -172,6 +212,7 @@ public sealed class LayoutModel
         for (int i = 0; i < _seats.Length; i++) _seats[i] = d._seats[i];
         Shape = d.Shape; Selected = d.Selected; MainRatio = d.MainRatio; SubRatio = d.SubRatio; LeftOpen = d.LeftOpen; RightOpen = d.RightOpen;
         _sections.Clear();
+        _before = null;
         Raise();
     }
 
@@ -200,8 +241,9 @@ public sealed class LayoutModel
 
     public string ToJson() => JsonSerializer.Serialize(new Dto
     {
-        Shape = Shape.ToString(), Seats = _seats.Select(s => s.ToString()).ToArray(), Selected = Selected,
-        MainRatio = MainRatio, SubRatio = SubRatio, LeftOpen = LeftOpen, RightOpen = RightOpen,
+        // 全面の間は入る前の配置を書く（全面は一時の見え方＝次の起動は元の配置から）
+        Shape = (_before?.Shape ?? Shape).ToString(), Seats = (_before?.Seats ?? _seats).Select(s => s.ToString()).ToArray(), Selected = _before?.Selected ?? Selected,
+        MainRatio = _before?.MainRatio ?? MainRatio, SubRatio = _before?.SubRatio ?? SubRatio, LeftOpen = _before?.LeftOpen ?? LeftOpen, RightOpen = _before?.RightOpen ?? RightOpen,
         Sections = _sections.Count == 0 ? null : _sections.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToDictionary(kv => kv.Key, kv => new SectionDto { Opened = kv.Value.Opened, Closed = kv.Value.Closed }),
     }, JsonOptions);
 

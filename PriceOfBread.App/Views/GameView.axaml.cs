@@ -156,6 +156,7 @@ public partial class GameView : UserControl
 
     private void OnGlobalKeyDown(object? sender, KeyEventArgs e)
     {
+        if (Program.UiShotDir is not null) return;   // 無人の撮影の間は本物のキーを受けない（撮影は VM の口を直接呼ぶ＝外から届いたキーで配置が動いて撮影がずれた回があった）
         if (e.Source is ComboBox or TextBox) return;
         if ((e.Source as Control)?.FindAncestorOfType<ComboBox>() is not null) return;   // ComboBox展開中は Source が ComboBoxItem 等になる＝祖先でもガード
         if (DataContext is not ViewModels.GameViewModel vm) return;
@@ -198,7 +199,8 @@ public partial class GameView : UserControl
         }
         // ページと地図のキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」）：割り当ては本体の PageKeys が持つ（Q 生産・W 市場・清算・貿易・E 財政と貨幣・R 人口・A 政治と法・S 外交と戦争・D 発見・F 地図・ZXCV 空き）。
         // 選んでいる枠へ開く。Shift を足すと次の枠へ開く。空きのキーは何もしない。旧の TAB（生産）・Q（財政）・W（法律）などの割り当ては、この表に置き換えた。
-        else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotByKey(slot, (e.KeyModifiers & KeyModifiers.Shift) != 0); e.Handled = true; }
+        else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotByKey(slot, (e.KeyModifiers & KeyModifiers.Shift) != 0); e.Handled = true; }   // 生産（Q）は全面の入り切り・全面の間の別のキーは前の配置へ戻ってから開く（LayoutModel.Open）
+        else if (isPriorityKey) { vm.Layout.LeaveFull(); e.Handled = true; }   // 空きのキー＝何も開かないが、生産の全面からは戻る
         // ESC＝一元処理：開いている物（メニュー→モーダル）を手前から閉じ、何も無ければメニューを開く（ページは常に枠にある＝閉じる物ではない）
         else if (e.Key == Key.Escape) { vm.HandleEscape(); e.Handled = true; }
         // F5＝クイックセーブ／F9＝クイックロード

@@ -109,11 +109,16 @@ public class ProblemScanTests
     {
         var (_, w) = Board();
         ulong bits = ProblemScan.MovableLawBits(w);
+        // 決め打ちの盤面（英・プロイセン・種 1789・8 四半期）に、点灯した方向も消灯した方向もある＝全部点灯・全部消灯で空回りしない
+        int lit = 0;
         for (int i = 0; i < ProblemScan.ReformSteps.Count; i++)
         {
             var (axis, inc) = ProblemScan.ReformSteps[i];
-            Assert.Equal(Government.CanStep(w, axis, inc), (bits & (1UL << i)) != 0);
+            bool on = (bits & (1UL << i)) != 0;
+            Assert.Equal(Government.CanStep(w, axis, inc), on);
+            if (on) lit++;
         }
+        Assert.InRange(lit, 1, ProblemScan.ReformSteps.Count - 1);
     }
 
     [Fact]
@@ -123,7 +128,12 @@ public class ProblemScanTests
         var items = ProblemScan.Scan(sim, w).Where(p => p.Kind == ProblemKind.MovableLaw).ToList();
         ulong bits = ProblemScan.MovableLawBits(w);
         int lit = Enumerable.Range(0, ProblemScan.ReformSteps.Count).Count(i => (bits & (1UL << i)) != 0);
-        Assert.True(items.Count <= lit);
+        Assert.True(lit > 0, "決め打ちの盤面に点灯した方向がある");
+        // 点灯した方向はどれも、画面の行を持つ（出す条件が真の）法に結ばれる＝行の数は点灯した方向の数と同じ
+        for (int i = 0; i < ProblemScan.ReformSteps.Count; i++)
+            if ((bits & (1UL << i)) != 0)
+                Assert.Contains(LawCatalog.All, d => d.Axis == ProblemScan.ReformSteps[i].Axis && d.Slot == LawSlot.Law && d.IsVisible(w));
+        Assert.Equal(lit, items.Count);
         Assert.All(items, p => Assert.True(LawCatalog.ByField(p.RowKey)!.IsVisible(w)));
     }
 }

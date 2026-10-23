@@ -193,12 +193,13 @@
                             </ScrollViewer>
                         </DockPanel>
                         <GridSplitter Grid.Row="1" Background="{StaticResource SandBrush}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
-                        <!-- 年表（旧は地図の左下に浮いていた）。世界（すべて）⇄自国のみの切替。列の幅に合わせて折り返す。 -->
+                        <!-- 年表（旧は地図の左下に浮いていた）。全国（すべて）・列強・自国の切替。列の幅に合わせて折り返す。 -->
                         <DockPanel Grid.Row="2">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="10,6,10,4">
                                 <TextBlock Text="年表" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="世界" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
-                                <Button Classes="mini" Classes.active="{Binding NewsMineOnly}" Content="自国のみ" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
+                                <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="全国" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
+                                <Button Classes="mini" Classes.active="{Binding NewsGreat}" Content="列強" Command="{Binding SetNewsFilterCommand}" CommandParameter="great"/>
+                                <Button Classes="mini" Classes.active="{Binding NewsMine}" Content="自国" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
                             </StackPanel>
                             <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
                             <!-- 余白はスクロールの Padding でなく中身の Margin（Padding はスクロールの範囲に入らない） -->
@@ -244,7 +245,17 @@
                                                     <StackPanel Spacing="1">
                                                         <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                                                         <TextBlock Text="{Binding Source}" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontTiny}" TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding ValuesText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
+                                                        <!-- 数字は組ごとに折り返す（名前と値が別の行に割れない） -->
+                                                        <ItemsControl ItemsSource="{Binding Pairs}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="x:String">
+                                                                    <TextBlock Text="{Binding}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="0,0,12,0"/>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
                                                         <ctl:LineChart Values="{Binding Line}" IsVisible="{Binding HasLine}" Height="30" ShowLabels="False" Stroke="{StaticResource BlueBrush}" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                 </Button>

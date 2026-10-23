@@ -15,6 +15,27 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
+/// <summary>国の一覧の色（旧の外交タブと同じ固定のパレット・「#RRGGBB」）。関係のバッジの背景・政体の色の丸・緊張の青／黄／赤。表の側（TableView）が文字列を筆へ直す。</summary>
+internal static class NationInk
+{
+    public const string War = "#A0432D", Ally = "#2E7D32", OwnVassal = "#3A5A8A", OwnSuzerain = "#8A6A2A", OtherVassal = "#7A6A55", NoTerritory = "#8A8070", Default = "#555555";
+
+    /// <summary>緊張の色（開戦までの近さ。低＝青・中＝黄・高＝赤）。</summary>
+    public static string Tension(double share) => !(share >= 0.35) ? "#1F5FA8" : share < 0.70 ? "#B8860B" : "#A0432D";   // 否定形＝NaN は低い側
+
+    /// <summary>政体の色（導出した政体。立憲君主制は自国の属国と、ブルジョア独裁は自国の宗主と同じ色）。</summary>
+    public static string PolityInk(Polity? p) => p switch
+    {
+        Polity.Absolutist or Polity.Despotic or Polity.Shogunate => "#7A3030",
+        Polity.ConstitutionalMonarchy => OwnVassal,
+        Polity.Republic => "#2E6E5E",
+        Polity.MilitaryDictatorship => "#5A3A6A",
+        Polity.BourgeoisDictatorship => OwnSuzerain,
+        Polity.ProletarianDictatorship => "#9A2A2A",
+        _ => Default,
+    };
+}
+
 public partial class GameViewModel
 {
     // 国の一覧は共通の表（Controls/TableView）。行は国（鍵＝国名）で、ランクごとの群・順位・国名・関係・緊張・動詞（侵略／統一戦争）。
@@ -74,14 +95,14 @@ public partial class GameViewModel
             double tensionShare = isMe ? double.NaN : TensionPct(_sim.Diplomacy.Tension(me, pow));
             // 関係（優先順）：戦争中＞属国/宗主（自国）＞他国の属国＞同盟＞領土なし（帰属の明記・2026-07-19）
             var powSuz = _sim.Diplomacy.Suzerain(pow);
-            string badge = "";
+            string badge = ""; string? badgeFill = null;
             if (isMe) { }
-            else if (war) badge = "戦争中";
-            else if (powSuz == me) badge = "自国の属国";
-            else if (_sim.Diplomacy.Suzerain(me) == pow) badge = "自国の宗主";
-            else if (powSuz is not null) badge = $"{powSuz.Name}の属国";   // 色の無い列なので「属国である」ことを語に含める。長ければ末尾は省略記号（全文は行のホバー）
-            else if (_sim.Diplomacy.HasAlliance(me, pow)) badge = "同盟";
-            else if (pow.Nation is null && pow.ColonyList.Count == 0) badge = "領土なし";   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
+            else if (war) { badge = "戦争中"; badgeFill = NationInk.War; }
+            else if (powSuz == me) { badge = "自国の属国"; badgeFill = NationInk.OwnVassal; }
+            else if (_sim.Diplomacy.Suzerain(me) == pow) { badge = "自国の宗主"; badgeFill = NationInk.OwnSuzerain; }
+            else if (powSuz is not null) { badge = powSuz.Name; badgeFill = NationInk.OtherVassal; }   // 宗主名だけ（長い「○○の属国」は末尾が落ちて別の語になる）。属国であることは色が担い、全文は行のホバーの「関係:」
+            else if (_sim.Diplomacy.HasAlliance(me, pow)) { badge = "同盟"; badgeFill = NationInk.Ally; }
+            else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeFill = NationInk.NoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
             // 外交アクションの可否：弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
             // ★2026-08-23作者裁定：植民地化と侵略は1本（侵略）。標的が弱小なら抽象標的でも実在国でも同じボタン＝エンジンの World.CanInvade にもランク条件は無い（AI と同じ動詞・同じ可否）。
             bool showInvade = !isMe && powRank == PowerRank.Minor;
@@ -155,7 +176,8 @@ public partial class GameViewModel
             object? invade = showInvade ? new VerbCell("侵略", canInvade, () => DiploInvadeCommand.Execute(powName), null, ReasonTip(invReason)) : null;
             object? unify = showUnif ? new VerbCell("統一戦争", canUnif, () => DiploUnifWarCommand.Execute(powName), null, ReasonTip(unifReason)) : null;
             rows.Add(new RowData(pow.Name, name, rank,
-                [new NumberCell(oi + 1, null), name, badge, new NumberCell(tensionShare, null), invade, unify], detail, isMe));
+                [new NumberCell(oi + 1), new TextCell(name, null, Swatch: NationInk.PolityInk(derived)), new TextCell(badge, null, BadgeFill: badgeFill),
+                 new NumberCell(tensionShare, Ink: isMe ? null : NationInk.Tension(tensionShare)), invade, unify], detail, isMe));
         }
         NationTable = TableSnapshot.From(new TableData("diplomacy.nations", "国の一覧", NationColumns, rows, Page.DiplomacyWar));
     }

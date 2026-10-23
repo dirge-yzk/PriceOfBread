@@ -46,8 +46,8 @@ internal static class UiShotParts
 
     public static Control Build()
     {
-        // 表：文字・数・数（添え書き）・半円・段・動詞の 6 種を群つきで
-        string[] labels = ["なし", "低率", "中率", "高率"];
+        // 表：文字（色の丸・バッジつきも）・数（文字色つきも）・半円・段・動詞の種類を群つきで
+        var labels = FiscalCatalog.TaxLabels;   // 段の名前の写しは持たない（目録から引く）
         var columns = new List<ColumnInfo>
         {
             new("name", "名前", ColumnKind.Text, null, false, null),
@@ -65,7 +65,7 @@ internal static class UiShotParts
             double a = (i + 1) * 913.7 * (i % 3 == 0 ? -1 : 1);
             var share = new ShareCell([("国家", 0.55 - i * 0.03), ("在地", 0.25), ("外国", 0.1), ("無統治", 0.1 + i * 0.03)]);
             var stage = new StageCell(labels, 0, i % 4, (i + 1) % 4, l => l != 3, l => l == 3 ? null : $"{names[0]}:{labels[l]}", _ => { });
-            rows.Add(new RowData("r" + i, names[i], i < 5 ? "列強" : "その他", [names[i], new NumberCell(a, i == 1 ? "(×1.05)" : null), new NumberCell(0.04 * i - 0.001, null), new NumberCell(-0.0001 * i, null), share, stage, new VerbCell("侵略", i % 2 == 0, () => { })]));
+            rows.Add(new RowData("r" + i, names[i], i < 5 ? "列強" : "その他", [i % 3 == 0 ? new TextCell(names[i], null, Swatch: "#2E6E5E", BadgeFill: i == 3 ? "#A0432D" : null) : names[i], new NumberCell(a), new NumberCell(0.04 * i - 0.001, Ink: i % 2 == 0 ? "#B8860B" : null), new NumberCell(-0.0001 * i), share, stage, new VerbCell("侵略", i % 2 == 0, () => { })]));
         }
         var snap = TableSnapshot.From(new TableData("sample", "見本", columns, rows));
 

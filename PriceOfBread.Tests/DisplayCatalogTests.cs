@@ -92,7 +92,6 @@ public class DisplayCatalogTests
             prev = g;
         }
         var heads = LawCatalog.In(LawSlot.Law).Where(LawCatalog.IsGroupHead).ToList();
-        Assert.Equal(heads.Count, heads.Select(l => l.Group).Distinct().Count());
         Assert.Equal(new[] { "政治参加", "教育と労働", "身分と土地", "国家と軍", "統治機構", "国境管理" }, heads.Select(l => l.Group).ToArray());
     }
 

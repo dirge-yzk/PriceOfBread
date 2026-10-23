@@ -20,7 +20,7 @@ public partial class ProductionPage : UserControl
     /// <summary>欄の宣言（鍵・名前・畳む順位・最小の行数・余りの高さの重み）と置き場（列ごとに上から下）。順位：供給の網 1・財の表 2・選んだ財 3・州別の工場 4・労働 5・設備 6・巨大建造物 7（数が大きいほど先に見出しの 1 行へ畳まれる）。
     /// 狭いとき＝1 つの PageGrid（全部を 1 列）／広いとき＝盤の列（供給の網・巨大建造物）と他の欄の列（財の表・選んだ財｜州別の工場・労働・設備＝他の列が 700 以上なら 2 列）の 2 つの PageGrid。
     /// 戻り値は [主の表] か [主の表, 側の表]。</summary>
-    public static PageTable[] BuildPlans(bool wide, bool equipment)
+    public static PageTable[] BuildPlans(bool wide, bool equipment, bool full = false)
     {
         var supply = new SectionSpec("supply", "供給の網", 1, MinRows: 14, Weight: 3);
         var goods = new SectionSpec("goods", "財の表", 2, MinRows: 8, Weight: 2);
@@ -39,6 +39,16 @@ public partial class ProductionPage : UserControl
         }
         var side = new System.Collections.Generic.List<SectionSpec> { goods, detail };
         side.AddRange(lower);
+        if (full)
+        {
+            // 全面（Q）：盤だけで左の列を使い切り（高さも幅も盤が主）・巨大建造物は右の列の最後へ。右の列は旧の生産タブの右パネルと同じ固定の幅で 1 列に積む
+            side.Add(mega);
+            return
+            [
+                new PageTable([supply], [["supply"]]),
+                new PageTable(side, [side.Select(s => s.Key).ToList()]),
+            ];
+        }
         return
         [
             new PageTable([supply, mega], [["supply", "mega"]]),
@@ -47,7 +57,12 @@ public partial class ProductionPage : UserControl
     }
 
     private GameViewModel? _vm;
-    private (bool Wide, bool Equipment)? _applied;   // 今の並べ（広い・設備の欄を出すか）
+    private (bool Wide, bool Equipment, bool Full)? _applied;   // 今の並べ（広い・設備の欄を出すか・全面か）
+    private PriceOfBread.App.Layout.LayoutModel? _layout;   // 全面の入り切りを聞く配置（解放用）
+
+    /// <summary>全面のとき、右の列（財の表ほか）の固定の幅。旧の生産タブの右パネルは 530 だったが、左右の縁の釦・枠・欄の縁の分（約 60）が盤の視野を削るので、
+    /// 盤の視野が旧と同じ約 1380（1 行 6 枚）になるようその分を引いた（530 のままでは視野 1306＝5 枚だった）。</summary>
+    public const double FullSideWidth = 440;
 
     public ProductionPage()
     {
@@ -70,8 +85,11 @@ public partial class ProductionPage : UserControl
     private void AttachVm()
     {
         if (_vm is not null) _vm.PropertyChanged -= OnVmChanged;
+        if (_layout is not null) _layout.Changed -= ApplyLayout;
         _vm = DataContext as GameViewModel;
+        _layout = _vm?.Layout;
         if (_vm is not null) _vm.PropertyChanged += OnVmChanged;
+        if (_layout is not null) _layout.Changed += ApplyLayout;
         ApplyLayout();
         FeedViewport();
     }
@@ -86,19 +104,30 @@ public partial class ProductionPage : UserControl
     {
         bool wide = PageRoot.Bounds.Width >= WideWidth;
         bool equipment = _vm?.ProdEquipmentOn ?? true;
-        if (_applied == (wide, equipment)) return;   // 同じ形なら置き直さない（幅が少し動くたびに並べの表を付け直して測り直しを連鎖させない）
-        _applied = (wide, equipment);
+        bool full = wide && (_layout?.IsFull ?? false);   // 全面（Q）のときだけ盤を主にした並べ
+        if (_applied == (wide, equipment, full)) return;   // 同じ形なら置き直さない（幅が少し動くたびに並べの表を付け直して測り直しを連鎖させない）
+        _applied = (wide, equipment, full);
         var sideSections = new Control[] { GoodsSection, DetailSection, RegionsSection, LaborSection, EquipSection };
         var home = wide ? SideGrid : MainGrid;
         foreach (var s in sideSections)
             if (!ReferenceEquals(s.Parent, home)) { (s.Parent as Panel)?.Children.Remove(s); home.Children.Add(s); }
+        var megaHome = full ? SideGrid : MainGrid;   // 巨大建造物は全面のとき右の列の最後（盤の高さを取らない）
+        if (!ReferenceEquals(MegaSection.Parent, megaHome)) { (MegaSection.Parent as Panel)?.Children.Remove(MegaSection); megaHome.Children.Add(MegaSection); }
         EquipSection.IsVisible = equipment;
-        var plans = BuildPlans(wide, equipment);
+        var plans = BuildPlans(wide, equipment, full);
         MainGrid.Table = plans[0];
         SideGrid.Table = wide ? plans[1] : null;
         SideGrid.IsVisible = wide;
-        PageRoot.ColumnDefinitions[0].Width = new GridLength(wide ? MainShare : 1, GridUnitType.Star);
-        PageRoot.ColumnDefinitions[1].Width = new GridLength(wide ? SideShare : 0, wide ? GridUnitType.Star : GridUnitType.Pixel);
+        if (full)
+        {
+            PageRoot.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+            PageRoot.ColumnDefinitions[1].Width = new GridLength(FullSideWidth, GridUnitType.Pixel);
+        }
+        else
+        {
+            PageRoot.ColumnDefinitions[0].Width = new GridLength(wide ? MainShare : 1, GridUnitType.Star);
+            PageRoot.ColumnDefinitions[1].Width = new GridLength(wide ? SideShare : 0, wide ? GridUnitType.Star : GridUnitType.Pixel);
+        }
     }
 
     private void FeedViewport()

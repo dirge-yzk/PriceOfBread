@@ -177,6 +177,7 @@ public partial class GameViewModel
         if (TensionPopupOpen) { TensionIgnore(); return; }   // ✕と同じ（何もせず閉じる）
         if (WarEndPopupOpen) { WarEndAck(); return; }        // ✕／了解と同じ
         if (WarPopupOpen || FactionCrisisOpen || ElectionPopupOpen || CallToArmsOpen) return;   // 選択必須＝Escでは閉じず、メニューも重ねない
+        if (Layout.LeaveFull()) return;   // 生産の全面＝前の配置へ戻る（メニューより先）
         MenuOpen = true;
     }
 

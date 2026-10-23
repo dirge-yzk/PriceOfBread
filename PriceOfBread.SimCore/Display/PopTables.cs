@@ -206,9 +206,12 @@ public static class PopTables
         => new("pop.classes", "階級", Page.Population, (_, w) => ClassLines(w), l => "class." + l.ClassId, l => l.Name,
         [
             Col.Text<ClassLine>("name", "階級", l => l.Name, l => l.Tip),
-            Col.NumberNote<ClassLine>("size", "規模", Unit.People, l => l.Size, l => (l.Share > 0 ? $"({l.Share:P0})" : "") + (sizeNote?.Invoke(l) ?? "")),
-            Col.NumberNote<ClassLine>("unemployed", "失業者", Unit.People, l => l.UnempRate > 0.005 ? l.Unemployed : double.NaN,   // 丸めて 0% の階級は「—」
-                l => { string arrow = unemployedNote?.Invoke(l) ?? ""; return l.UnempRate > 0.005 ? $"({l.UnempRate:P0})" + arrow : ""; }),   // 矢印の差分は表示の有無に依らず全階級で採る
+            Col.Number<ClassLine>("size", "規模", Unit.People, l => l.Size),
+            Col.Number<ClassLine>("sizeShare", "構成比", Unit.Share, l => l.Share > 0 ? l.Share : double.NaN),
+            Col.Text<ClassLine>("sizeTrend", "規模増減", l => sizeNote?.Invoke(l) ?? ""),
+            Col.Number<ClassLine>("unemployed", "失業者", Unit.People, l => l.UnempRate > 0.005 ? l.Unemployed : double.NaN),   // 丸めて 0% の階級は「—」
+            Col.Number<ClassLine>("unempRate", "失業率", Unit.Share, l => l.UnempRate > 0.005 ? l.UnempRate : double.NaN),
+            Col.Text<ClassLine>("unempTrend", "失業増減", l => { string arrow = unemployedNote?.Invoke(l) ?? ""; return l.UnempRate > 0.005 ? arrow : ""; }),   // 矢印の差分は表示の有無に依らず全階級で採る
             Col.Number<ClassLine>("satisfaction", "満足度", Unit.Share, l => l.Satisfaction, tip: l => l.SatisfactionTip),
             Col.Number<ClassLine>("militancy", "闘争度", Unit.Share, l => l.Militancy, tip: l => l.MilitancyTip),
             Col.Number<ClassLine>("literacy", "識字率", Unit.Share, l => l.Literacy),

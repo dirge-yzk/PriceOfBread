@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore.Display;
 
 /// <summary>段の押し釦（<see cref="StageCell"/>）の作り口。段へ動けるか（前提法・政治の門）と、ホバーの文（制定の可否・代価・勢力の賛否）を、
-/// AI と同じ <see cref="Government"/> の門から引く＝表示に第二の判定式を置かない。書き込みは呼び手が渡す口（<see cref="NationPolicy"/> の目標の欄）だけを通る。
+/// AI と同じ <see cref="Government"/> の門から引く＝表示に第二の判定式を置かない。書き込みは呼び手が渡す口（<see cref="NationPolicy"/> の目標の欄・近代化投資の段だけは <see cref="World.ModernizationFrac"/>）だけを通る。
 /// 軸の無い行（財政のレバーの 5 段＝行政費・近代化投資・関税・政策金利）は議会を通らない＝門も代価も賛否も無い。
 /// 盤面は読むだけ（書き込みは <paramref name="setTarget"/> を押した時だけ）。状態を持たない。</summary>
 public static class StageGate

@@ -32,7 +32,7 @@ public sealed record DebtLine(string Key, string Group, string Name, string Valu
 
 /// <summary>財政と貨幣のページの表（設計 §3-3）。支出・収入・国庫の台帳・金融・国債と外資信用。
 /// 予測と実効の額は旧 App の予算予想（<c>UpdateForecast</c>）を本体の目録へ移した物＝式は同じ（税の予想は <see cref="Fiscal.ForecastTax"/>・軍事費の器は <see cref="Military.EnvelopeAt"/> ほか全てエンジンの 1 本を読む）。
-/// 盤面は読むだけ（書き込みは段の押し釦を押した時の <see cref="NationPolicy"/> の目標の欄だけ）・状態を持たない。</summary>
+/// 盤面は読むだけ（書き込みは段の押し釦を押した時だけ。行き先は <see cref="NationPolicy"/> の目標の欄・近代化投資の段だけは <see cref="World.ModernizationFrac"/>）・状態を持たない。</summary>
 public static class FiscalTables
 {
     /// <summary>関税の上限（下限は <see cref="Coefficients.TariffFloor"/>・負＝ダンピング）。</summary>
@@ -243,7 +243,7 @@ public static class FiscalTables
         if (HouseholdLoanVisible(w)) rows.Add(new("householdLoan", "家計債務", w.Bank is { } bank ? DisplayFormat.Money(bank.HouseholdLoans.Value) : "—", StageCell.None, null));
         if (CoverVisible(w))
             rows.Add(new("cover", "兌換カバー率", PlayText.CoverText(w), StageCell.None,
-                w.BroadMoney.Value <= 1e-9 ? null : $"基礎貨幣 {DisplayFormat.Money(w.BaseMoney.Value)}\n広義貨幣 {DisplayFormat.Money(w.BroadMoney.Value)}\n維持線 {w.Coef.GoldCoverMin.Value:P0}"));
+                w.BroadMoney.Value <= 1e-9 ? null : $"基礎貨幣 {DisplayFormat.Money(w.BaseMoney.Value)}\n広義貨幣 {DisplayFormat.Money(w.BroadMoney.Value)}"));
         // 政策金利＝5 段（兌換維持＋資本自由で自分のものでない時は段ごと掴めなくする。行は消さない＝いま金利がいくらかは見えている必要がある）
         var rate = Lever(w, "政策金利", 0, InterestCeil, () => w.InterestRate, () => w.Policy.InterestRateTarget, v => w.Policy.InterestRateTarget = Math.Min(v, InterestCeil));
         if (!InterestLeverEnabled(w)) rate = rate with { CanSelect = _ => false };

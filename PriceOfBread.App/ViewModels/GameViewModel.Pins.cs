@@ -33,12 +33,14 @@ public sealed partial class PinSlot : ObservableObject
     public IRelayCommand UnpinCommand { get; }
     [ObservableProperty] private string _name = "";
     [ObservableProperty] private string _source = "";
-    [ObservableProperty] private string _valuesText = "";
+    /// <summary>数字の組（「列の名前 値」を 1 つずつ）。枠の中では組ごとに折り返す＝名前と値が別の行に割れない。</summary>
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(ValuesText))] private IReadOnlyList<string> _pairs = [];
+    public string ValuesText => string.Join("　", Pairs);
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasLine))] private IReadOnlyList<double>? _line;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(Opacity))] private bool _faded;
     public bool HasLine => Line is { Count: > 1 };
     public double Opacity => Faded ? 0.45 : 1.0;
-    public void CopyFrom(PinSlot s) { Name = s.Name; Source = s.Source; ValuesText = s.ValuesText; Line = s.Line; Faded = s.Faded; }
+    public void CopyFrom(PinSlot s) { Name = s.Name; Source = s.Source; Pairs = s.Pairs; Line = s.Line; Faded = s.Faded; }
 }
 
 public partial class GameViewModel : IPinHost
@@ -60,7 +62,7 @@ public partial class GameViewModel : IPinHost
     public void Toggle(PinRef pin)
     {
         bool pinned = _pinStore.Toggle(pin);
-        if (pinned && !Layout.RightOpen) Layout.SetColumns(Layout.LeftOpen, true);   // 付けたら見える所へ（右の列が畳んであれば開く）
+        if (pinned && !Layout.RightOpen && !Layout.IsFull) Layout.SetColumns(Layout.LeftOpen, true);   // 付けたら見える所へ（右の列が畳んであれば開く）。生産の全面の間は開かない（全面から戻れなくなる＝戻れば見える）
         RefreshPins();
     }
 
@@ -80,7 +82,7 @@ public partial class GameViewModel : IPinHost
         return cache[tableKey] = s;
     }
 
-    private static string ValuesOf(TableSnapshot snap, RowView row)
+    private static IReadOnlyList<string> ValuesOf(TableSnapshot snap, RowView row)
     {
         var parts = new List<string>(PinValueColumns);
         for (int i = 0; i < snap.Columns.Count && i < row.Cells.Count && parts.Count < PinValueColumns; i++)
@@ -90,7 +92,7 @@ public partial class GameViewModel : IPinHost
             if (t.Length == 0 || t == "—") continue;
             parts.Add(snap.Columns[i].Name + " " + t);
         }
-        return string.Join("　", parts);
+        return parts;
     }
 
     private PinSlot ResolvePin(PinRef pin, Dictionary<string, TableSnapshot?> cache)
@@ -103,14 +105,14 @@ public partial class GameViewModel : IPinHost
                     var snap = SnapshotFor(pin.Table, cache);
                     var row = snap?.Rows.FirstOrDefault(r => r.Key == pin.Row);
                     if (snap is null || row is null) { slot.Faded = true; break; }   // 行が消えた＝薄くして名前だけ残す
-                    slot.Name = row.Name; slot.Source = snap.Name; slot.ValuesText = ValuesOf(snap, row);
+                    slot.Name = row.Name; slot.Source = snap.Name; slot.Pairs = ValuesOf(snap, row);
                     break;
                 }
             case PinKind.Header:
                 {
                     var stat = HeaderStats.FirstOrDefault(h => h.Key == pin.Table);
                     if (stat is null) { slot.Faded = true; break; }
-                    slot.ValuesText = stat.Text; slot.Line = stat.Values;
+                    slot.Pairs = stat.Text.Length > 0 ? [stat.Text] : []; slot.Line = stat.Values;
                     break;
                 }
             case PinKind.Chart:
@@ -118,7 +120,7 @@ public partial class GameViewModel : IPinHost
                     if (!_seenCharts.TryGetValue(pin.Table, out var wr) || !wr.TryGetTarget(out var chart) || chart.Values is not { Count: > 0 } vals) { slot.Faded = true; break; }
                     double last = double.NaN;
                     for (int i = vals.Count - 1; i >= 0; i--) if (vals[i] > double.MinValue && vals[i] < double.MaxValue) { last = vals[i]; break; }   // 非有限は否定形で落とす
-                    slot.ValuesText = double.IsNaN(last) ? "" : (chart.LabelFormat?.Invoke(last) ?? last.ToString("0.##", CultureInfo.InvariantCulture));
+                    slot.Pairs = double.IsNaN(last) ? [] : [chart.LabelFormat?.Invoke(last) ?? last.ToString("0.##", CultureInfo.InvariantCulture)];
                     slot.Line = vals.ToArray();
                     break;
                 }

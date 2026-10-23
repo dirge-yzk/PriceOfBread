@@ -14,7 +14,7 @@ public class ControlsTests
     private static Table<R> Sample(params R[] rows) => new("t", "試験", Page.Market, (_, _) => rows, r => r.Key, r => r.Name,
     [
         Col.Text<R>("name", "名前", r => r.Name),
-        Col.NumberNote<R>("amount", "金額", Unit.MoneyPerMonth, r => r.Amount, r => r.Note),
+        Col.Number<R>("amount", "金額", Unit.MoneyPerMonth, r => r.Amount),
         Col.Number<R>("share", "割合", Unit.Share, r => r.Share),
         Col.Text<R>("note", "備考", r => r.Note),
     ], r => r.Grp ?? "");
@@ -36,7 +36,7 @@ public class ControlsTests
         Assert.All(s.Columns.Where(c => c.Kind == ColumnKind.Number), c => Assert.True(c.MinWidth > 0));   // 固定の幅でなく最小幅
         var cells = s.Rows[0].Cells;
         Assert.Equal("茶", cells[0].Text);
-        Assert.Equal("£1.2k/月(×1.50)", cells[1].Text);   // 単位から「£1.2k/月」・添え書きは後ろ
+        Assert.Equal("£1.2k/月", cells[1].Text);   // 単位から「£1.2k/月」（数に添える文字は持たない＝別の列）
         Assert.Equal(1200, cells[1].Sort);
         Assert.Equal("45%", cells[2].Text);
         Assert.True(double.IsNaN(cells[0].Sort));
@@ -194,7 +194,25 @@ public class ControlsTests
             var vals = d.Rows.Select(r => ((NumberCell)r.Cells[1]!).Value).ToList();
             Assert.Equal(vals.OrderByDescending(v => v).ToList(), vals);   // 額の降順
             Assert.Equal(d.Rows.Count, d.Rows.Select(r => r.Key).Distinct().Count());   // 行の鍵が重ならない
-            Assert.All(d.Rows, r => { Assert.Equal(4, r.Cells.Count); Assert.True(((NumberCell)r.Cells[2]!).Value is >= 0 and <= 1.0000001); });
+            Assert.All(d.Rows, r =>
+            {
+                Assert.Equal(5, r.Cells.Count);
+                double ratio = ((NumberCell)r.Cells[2]!).Value;   // 価格比（旧は金額の後ろの「(×0.34)」）＝数でない行は「—」・数なら正
+                Assert.True(double.IsNaN(ratio) || ratio > 0);
+                Assert.True(((NumberCell)r.Cells[3]!).Value is >= 0 and <= 1.0000001);
+            });
         }
+    }
+
+    [Fact]
+    public void 年表の列強の絞り_国名は別の語の一部に当たらない_清は粛清や清算に当たらない()
+    {
+        Assert.True(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("清が日本に宣戦した", "清"));
+        Assert.True(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("日本と清で、恐慌", "清"));
+        Assert.False(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("イギリスで恐怖政治:旧支配層が粛清された", "清"));
+        Assert.False(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("清算の線", "清"));
+        Assert.True(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("イギリスとフランスが開戦", "フランス"));   // 仮名の国名は前後を問わない
+        Assert.True(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("粛清のあと清が", "清"));   // 当たらない所があっても別の所に当たれば真
+        Assert.False(PriceOfBread.App.ViewModels.GameViewModel.MentionsName("", ""));
     }
 }

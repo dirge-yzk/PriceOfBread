@@ -74,7 +74,8 @@ public static class TradeTables
         => new(key, name, Page.Market, (sim, w) => Lines(sim, w, exports), l => l.Good.ToString(), l => l.Name,
         [
             Col.Text<TradeLine>("name", "財名", l => l.Name),
-            Col.NumberNote<TradeLine>("value", "金額", Unit.MoneyPerMonth, l => l.MonthlyValue, l => double.IsNaN(l.PriceRatio) ? "" : $"(×{l.PriceRatio:F2})"),
+            Col.Number<TradeLine>("value", "金額", Unit.MoneyPerMonth, l => l.MonthlyValue),
+            Col.Number<TradeLine>("priceRatio", "価格比", Unit.Multiple, l => l.PriceRatio),   // 取引の単価÷標準の値段（旧は金額の後ろの「(×0.34)」）
             Col.Number<TradeLine>("fraction", fractionName, Unit.Share, l => l.Fraction),
             Col.Text<TradeLine>("partner", partnerName, l => l.Partner),
         ]);

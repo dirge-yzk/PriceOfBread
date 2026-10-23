@@ -43,7 +43,7 @@ public static class FiscalCatalog
     public static IEnumerable<TreasuryCat> Cats(FiscalSide side) => Items.Where(i => i.Side == side).Select(i => i.Cat);
 
     // 語彙は税と支出で分ける（漢字 1 字の略称は使わない）。軍事費は支出の語彙＋最上段が戦時経済。
-    private static readonly string[] TaxLabels = ["なし", "低率", "中率", "高率"];
+    public static readonly string[] TaxLabels =["なし", "低率", "中率", "高率"];
     private static readonly string[] SpendLabels = ["なし", "少額", "中額", "多額"];
 
     // 税の段＝軸ごとの錨（Government.TaxLawTop）を引く 2 本（TaxStage／TaxValue）だけ。現在の段＝施行値の段／目標の段＝目標値の段（Government.CurrentStage と同じ写像）。

@@ -105,6 +105,7 @@ public static class Fmt
             case Unit.Quantity: return Qty(Math.Abs(v) < 50 ? 0.0 : v);   // Qty は k 単位で小数 1 桁＝50 未満は 0.0k
             case Unit.Count: return ZeroAt(v, 0).ToString("N0");
             case Unit.PricePerUnit: { double z = ZeroAt(v, 2); return (z < 0 ? "-£" : "£") + Math.Abs(z).ToString("F2"); }   // 単価＝生産ページの積み上げと同じ £0.00（桁区切りなし・表示の桁で 0 になる負は符号なし）
+            case Unit.Multiple: { double z = ZeroAt(v, 2); return "×" + (z < 0 ? "-" : "") + Math.Abs(z).ToString("F2"); }   // 倍率＝「×0.34」（表示の桁で 0 になる負は符号なし）
             default: return NoValue;
         }
     }

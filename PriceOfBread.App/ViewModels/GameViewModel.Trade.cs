@@ -93,7 +93,7 @@ public partial class GameViewModel
             new("鉄道輸送量", $"{w.RailCapacity:F0}"),
             new("海軍輸送量", $"{w.ShipCapacity:F0}"),
         };
-        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"-{burdenLoss:F0}"));
+        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"−{burdenLoss:F0}"));   // 符号は収支と同じ「−」・桁は他の輸送の行と同じ素の数
         if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料(通商破壊)", $"{w.LastBlockadeRisk:P0}"));
         TransportRows = tRows;
     }

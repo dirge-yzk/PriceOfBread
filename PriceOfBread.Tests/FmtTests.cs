@@ -77,6 +77,10 @@ public class FmtTests
         Assert.Equal("£31.75", Fmt.Of(Unit.PricePerUnit, 31.7499));
         Assert.Equal("£0.00", Fmt.Of(Unit.PricePerUnit, -0.001));   // 表示の桁で 0 になる負の値は符号なしの 0
         Assert.Equal("-£0.52", Fmt.Of(Unit.PricePerUnit, -0.523));
+        Assert.Equal("×0.34", Fmt.Of(Unit.Multiple, 0.3412));   // 倍率は × と小数 2 桁（旧は金額の後ろの「(×0.34)」）
+        Assert.Equal("×2.61", Fmt.Of(Unit.Multiple, 2.612));
+        Assert.Equal("×0.00", Fmt.Of(Unit.Multiple, -0.001));   // 表示の桁で 0 になる負の値は符号なしの 0
+        Assert.Equal("—", Fmt.Of(Unit.Multiple, double.NaN));
     }
 
     [Fact]
