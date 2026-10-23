@@ -6,6 +6,8 @@ public enum Unit
 {
     MoneyStock, MoneyPerMonth, MoneyPerYear, Share, RatePerYear, RatePerMonth, RatePerQuarter, RealGdpPerMonth, RatioToGdpYear,
     People, Quantity, Count,
+    /// <summary>財 1 単位の値段（£0.52 のような小さい金額を小数 2 桁で出す。月・年・在庫の別を持たない単価）。</summary>
+    PricePerUnit,
 }
 
 /// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。</summary>

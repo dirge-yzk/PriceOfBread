@@ -437,6 +437,9 @@ public partial class MainWindow : Window
                 BootLog.Write($"uishot: 盤 {ps.Extent.Width}×{ps.Extent.Height} 視野 {ps.Viewport.Width}×{ps.Viewport.Height} 送り {ps.Offset}");
                 Capture(dir, $"{k++:D2}_生産タブ_盤の右下.png");
             }
+            // 生産ページと市場ページの撮影の段と検査（(501) 段3・Views/UiShotPageP1.cs）
+            try { await UiShotPageP1.Run(this, gvm, dir, n => Capture(dir, n), tag => LogOuterFlow(gameView, tag), () => k++); }
+            catch (Exception ex) { BootLog.Write($"uishot: 生産と市場の段 失敗 {ex}"); }
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
             try
             {

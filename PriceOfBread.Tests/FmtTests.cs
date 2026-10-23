@@ -73,6 +73,10 @@ public class FmtTests
         Assert.Equal("500K", Fmt.Of(Unit.People, 500));
         Assert.Equal("0.4k", Fmt.Of(Unit.Quantity, 400));
         Assert.Equal("3", Fmt.Of(Unit.Count, 3));
+        Assert.Equal("£0.52", Fmt.Of(Unit.PricePerUnit, 0.523));   // 単価は £ と小数 2 桁（生産ページの積み上げ「£0.43」と同じ形）
+        Assert.Equal("£31.75", Fmt.Of(Unit.PricePerUnit, 31.7499));
+        Assert.Equal("£0.00", Fmt.Of(Unit.PricePerUnit, -0.001));   // 表示の桁で 0 になる負の値は符号なしの 0
+        Assert.Equal("-£0.52", Fmt.Of(Unit.PricePerUnit, -0.523));
     }
 
     [Fact]

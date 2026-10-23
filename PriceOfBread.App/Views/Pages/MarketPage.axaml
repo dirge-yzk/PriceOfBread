@@ -1,11 +1,81 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PriceOfBread.App.ViewModels"
-             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.MarketPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ。移行の間は旧の貿易タブを載せる（段3 で組み直す）。 -->
-    <ScrollViewer x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="14,10,22,14"><tabs:TradeTab/></StackPanel>
-    </ScrollViewer>
+    <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ（設計 §3-3）。欄＝財の値段の表・輸入・輸出・輸送・清算の線。
+         欄の並べ（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）は PageGrid が決める（並べの表は MarketPage.axaml.cs）。
+         表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。ページの外側は縦に流れない＝表は欄の中だけで流れ、見出しは止まる（SectionFit）。 -->
+    <ctl:PageGrid x:Name="PageRoot" Margin="6">
+        <!-- 財の値段：自国の市場の財ごとの国内価格・世界価格・価格差・需要・供給・不足。 -->
+        <ctl:Section x:Name="PricesSection" Key="prices" Title="財の値段">
+            <ctl:Section.Body>
+                <ctl:TableView x:Name="PricesTable" Snapshot="{Binding PriceTable}" InnerScroll="True" Filterable="True"/>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 輸入：行は本体の貿易の表。総額は表の下端に固定。 -->
+        <ctl:Section x:Name="ImportsSection" Key="imports" Title="輸入">
+            <ctl:Section.Body>
+                <Grid x:Name="ImportsBody" RowDefinitions="*,Auto">
+                    <ctl:TableView Grid.Row="0" Snapshot="{Binding ImportTable}" InnerScroll="True"/>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Column="0" Text="輸入総額" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding TradeImportTotal}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextAlignment="Right"/>
+                    </Grid>
+                </Grid>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 輸出 -->
+        <ctl:Section x:Name="ExportsSection" Key="exports" Title="輸出">
+            <ctl:Section.Body>
+                <Grid x:Name="ExportsBody" RowDefinitions="*,Auto">
+                    <ctl:TableView Grid.Row="0" Snapshot="{Binding ExportTable}" InnerScroll="True"/>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Column="0" Text="輸出総額" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding TradeExportTotal}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextAlignment="Right"/>
+                    </Grid>
+                </Grid>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 輸送：基本・鉄道・海軍の輸送量と条約港。 -->
+        <ctl:Section x:Name="TransportSection" Key="transport" Title="輸送">
+            <ctl:Section.Body>
+                <StackPanel Spacing="4">
+                    <ItemsControl ItemsSource="{Binding TransportRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TransportRow">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" Classes="dim" FontSize="{StaticResource FontSmall}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding TreatyPortLine}" Foreground="{StaticResource RustBrush}" FontSize="{StaticResource FontSmall}" IsVisible="{Binding HasTreatyPorts}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 清算の線：四半期ごとの輸出・輸入・収支（月割）。 -->
+        <ctl:Section x:Name="ClearingSection" Key="clearing" Title="清算の線">
+            <ctl:Section.Body>
+                <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="収支" Foreground="{StaticResource BronzeBrush}" FontWeight="Bold" FontSize="{StaticResource FontLead}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding TradeBalance}" Foreground="{StaticResource InkBrush}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" TextAlignment="Right"/>
+                    </Grid>
+                    <TextBlock Text="輸出" Classes="dim" FontSize="{StaticResource FontSmall}"/>
+                    <ctl:LineChart x:Name="ExportChart" Values="{Binding ClearingExportSeries}" Stroke="{StaticResource BlueBrush}" Height="46"/>
+                    <TextBlock Text="輸入" Classes="dim" FontSize="{StaticResource FontSmall}"/>
+                    <ctl:LineChart x:Name="ImportChart" Values="{Binding ClearingImportSeries}" Stroke="{StaticResource RustBrush}" Height="46"/>
+                    <TextBlock Text="収支の線" Classes="dim" FontSize="{StaticResource FontSmall}"/>
+                    <ctl:LineChart x:Name="BalanceChart" Values="{Binding ClearingBalanceSeries}" Stroke="{StaticResource BronzeBrush}" Height="46"/>
+                </StackPanel>
+            </ctl:Section.Body>
+        </ctl:Section>
+    </ctl:PageGrid>
 </UserControl>

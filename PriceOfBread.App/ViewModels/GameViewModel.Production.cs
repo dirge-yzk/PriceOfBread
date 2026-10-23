@@ -1,4 +1,4 @@
-﻿// GameViewModel.Production.cs ＝ 生産タブ（TAB全画面）＝サプライチェーンのノード/辺・詳細パネル・着工/補助金/専売のレバー。
+﻿// GameViewModel.Production.cs ＝ 生産ページ（Qキー）＝サプライチェーンのノード/辺・財の表/設備の表/労働の表・詳細・着工/補助金/専売のレバー。
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,11 +6,13 @@ using System.Linq;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Controls;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
-// ===== 生産タブ（TABキー・全画面のサプライチェーン画面）=====
+// ===== 生産ページ（Qキー・(501) 段3＝旧の生産タブ〔TABキー・全画面〕を欄に分けた物）=====
 // 素材（上）→加工財（下）の層状DAG（縦並び・逆ピラミッド＝作者指示2026-08-15。旧は左→右）。ノード＝財カード（世界価格比・工場の棟数と全国目標・稼働率・供給・生産量・過不足）、辺＝レシピ（材料→製品）。
 // 財を選ぶと右パネルに全国の需給・首都価格と世界価格・用途の内訳と、州別の生産・過不足・材料価格・国営工場カウンター、補助金/専売/売買方針を出す。
 // レイアウトは静的（初回に一度だけ計算）：最長経路で層 → 層内は tier→50音順にソート → 幅予算(PRowBudgetW)を超える層は複数行へ分割。
@@ -34,24 +36,15 @@ public partial class GameViewModel
     public ObservableCollection<ProdTierLine> ProdTierLines { get; } = new();
     private Dictionary<int, ProdNode>? _nodeByGood;   // 節点の器（財id→インスタンス）。非nullなら器は構築済み
     [ObservableProperty] private ProdDetail? _prodDetail;
-    /// <summary>財の一覧表（作者指示2026-08-23）＝**財を選んでいない間**だけ右パネルに出す全財の表。
-    /// 列＝材名・価格・稼働率・材料供給・国営工場・民営工場。値は節点カードと同じ1周（RefreshProduction）の集計から作る
-    /// ＝UI に第二の式を置かない。列見出しを押すと昇順⇔降順で並べ替える（同値は材名で決める＝順序が毎月揺れない）。</summary>
-    public ObservableCollection<ProdTableRow> ProdTable { get; } = new();
-    private List<ProdTableRow> _prodTableRows = new();   // 直近の行（並べ替えは表示側だけの操作＝集計を再走させない）
-    private string _prodSortKey = "";                    // 空＝図と同じ並び（財id順）。押した列の名前が入る
-    private bool _prodSortDesc;
-    // 見出しの文字＝押された列だけ矢印が付く（▲昇順／▼降順）
-    public string ProdHeadName => SortHead("材名");
-    public string ProdHeadPrice => SortHead("価格");     // 中身は**世界価格との比**（カードの±%と同式）。列名は短く（作者指示2026-08-24）
-    public string ProdHeadProd => SortHead("生産量");
-    public string ProdHeadExp => SortHead("輸出量");
-    public string ProdHeadImp => SortHead("輸入量");
-    public string ProdHeadUtil => SortHead("稼働率");
-    public string ProdHeadMat => SortHead("材料");
-    public string ProdHeadState => SortHead("国営");
-    public string ProdHeadPriv => SortHead("民営");
-    private string SortHead(string key) => key == _prodSortKey ? key + (_prodSortDesc ? "▼" : "▲") : key;
+    /// <summary>生産ページの 3 つの表（財の表・設備の表・労働の表）。行と列は本体の目録（SimCore/Display/ProductionTables）が名乗り、共通の表（Controls/TableView）が描く。
+    /// 値は盤の節点（財カード）と同じ 1 周（RefreshProduction）の集計から作る＝UI に第二の式を置かない。</summary>
+    [ObservableProperty] private TableSnapshot _prodGoodTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _prodEquipTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _prodLaborTable = TableSnapshot.Empty;
+    /// <summary>財の表で選んでいる行の鍵（財の番号。選んでいなければ null）。</summary>
+    public string? ProdSelectedKey => _prodSelGood >= 0 ? _prodSelGood.ToString() : null;
+    /// <summary>設備の欄を出すか（旗 <see cref="Coefficients.RecipeEquipment"/> が 0 の世界では欄ごと出さない）。</summary>
+    [ObservableProperty] private bool _prodEquipmentOn = true;
     /// <summary>価格グラフ（対世界価格の比）の点列。★ProdDetail が null（財を未選択）でも**必ず非null**を返す＝
     /// Polyline が null を受けて毎フレーム例外を投げる描画クラッシュを構造的に閉じる。</summary>
     /// ★枠は常時表示（作者原則2026-08-10）＝標本が足りない開幕に枠ごと消えて下が跳ねない。点が0本なら何も描かれないだけ。
@@ -61,10 +54,6 @@ public partial class GameViewModel
     partial void OnProdDetailChanged(ProdDetail? value) { OnPropertyChanged(nameof(ProdSparkPoints)); OnPropertyChanged(nameof(ProdSparkGrid)); }
     [ObservableProperty] private double _prodCanvasW = 2200;
     [ObservableProperty] private double _prodCanvasH = 1200;
-    /// <summary>巨大建造物のカードを並べられる帯の幅＝盤幅 −左右余白 −国有化ブロックの予約。
-    /// WrapPanel の Width に渡す＝折返しの位置が <see cref="BuildMegaRows"/> の高さ計算と厳密に一致する。</summary>
-    [ObservableProperty] private double _prodMegaBandW = 1200;
-    private double _prodBoardH;   // 下端の帯を除いた盤の高さ（節点が入る領域）＝帯の高さを後から積み直すために保持
     private int _prodSelGood = -1;
 
     private const double PNodeW = 204, PNodeH = 56, PMargin = 24;
@@ -73,7 +62,9 @@ public partial class GameViewModel
     private const double PRowGapX = 16;
     // 縦の間隔（作者指示2026-08-16「縦に長すぎる」）：同一層の分割行間=28（詰める）・層の境目=40（区切り線とtierラベルの居場所）。
     private const double PRowGapY = 22, PLayerGapY = 32;   // ★2026-09-07 作者指示「行間を少し狭める」＝28→22／40→32（カードの幅と文字は不変）
-    /// <summary>1行の幅予算（作者指示2026-08-15＝盤の横スクロールを封じる）。旧 PMaxPerRow=8（枚数上限）を実効幅からの算出に置換。
+    /// <summary>1行の幅予算の**既定**（盤の視野の幅がまだ分からない間・番人の基準）。(501) 段3 からは分割の枠の幅に盤が追従する＝実際の予算は <see cref="SetProdViewport"/> が視野の幅から導く
+    /// （下の算術は旧の全画面〔右パネル 530 を除いた 1920〕の場合の値＝既定の予算と同じ）。
+    /// 以下は旧の記録（作者指示2026-08-15＝盤の横スクロールを封じる）。旧 PMaxPerRow=8（枚数上限）を実効幅からの算出に置換。
     /// 算術＝想定幅1920 −右パネル530（ProductionTab.axaml の DockPanel.Dock=Right・枠込み）−縦スクロールバーの取り代12
     /// −盤の左右余白 PMargin×2(48) ＝ 1330。1行の最大枚数＝**6枚**（6×204＋5×16＝1304≦1330。カテゴリ余白 PCatGap 26 が
     /// 1つ入っても1330≦1330＝ちょうど収まる。2つ以上入る断片は EnsureProdLayout の実幅判定が分割数を1つ増やす＝枚数が減る。
@@ -110,20 +101,6 @@ public partial class GameViewModel
     /// 切り替わる所に空ける縦の隙間。★見出しの文字は置かない＝並びと余白だけで区切りを示す（凡例の色が語る）。
     /// 行内間隔 PRowGapX(16) の1.6倍強＝「詰まった並び」と「切れ目」が一目で違う。</summary>
     private const double PCatGap = 26;
-    /// <summary>盤の下端に空ける帯（作者フィードバック2026-08-10 項目1）＝国有化・巨大建造物の居場所。
-    /// ★この2枚は**キャンバスの中**（＝ノードと同じ座標空間の右下）に置く＝スクロールで流れて消え、戻れば見える＝材と同じ挙動。
-    ///   旧はビューポート右下に固定していた（スクロールしても追従した）。
-    /// 帯を実際に確保する（節点の位置と重ならないことを議論でなく**寸法**で保証する）＝各列は maxH の中で縦中央揃えなので、
-    /// maxH の下に足したこの帯には節点が1つも入らない。320＝2枚のうち高い方（巨大建造物＝見出し＋一覧260＋余白）＋下余白。</summary>
-    private const double PBlockBand = 320;
-    /// <summary>巨大建造物の**カード**の寸法（作者フィードバック2026-08-10「巨大建造物がスクロールありで微妙な感じになっている。
-    /// これ材のようにカード化して並べられないか？」）。内部スクロール（旧 ScrollViewer MaxHeight=260）を廃し、
-    /// 材の節点（<see cref="PNodeW"/>×<see cref="PNodeH"/>）と同じ「盤の上に並ぶカード」にする。
-    /// 枡は300×92・カード本体は292×84（差の8＝カード間の隙間）。中身は品名（最長「ヴィットーリオ・エマヌエーレ2世記念堂」
-    /// 18字を12ptで2行＝32）＋状態（11pt＝15）＋効果（11pt＝15）＝計64に、余白8と枠2を足して74＜84（10の余裕）。
-    /// 品名の行幅＝292−枠2−余白12−色帯11−着工ボタン約96 ≒ 171px＝12ptの全角14字×2行＝18字の最長名が収まる。
-    /// WrapPanel の ItemWidth/ItemHeight にそのまま渡す＝1行に入る枚数が計算と一致する（下の帯の高さの保証に使う）。</summary>
-    private const double PMegaCardW = 300, PMegaCardH = 92, PMegaHeaderH = 22;
     private const double MaterialFillThreshold = 0.95;   // 材料供給がこれ未満＝ボトルネック/産出律速の表示
     // 価格グラフ（240×64のスパークライン）：中央線＝対世界価格の比1.0。上下それぞれ SparkHalfH に「枠」までを割り当てる。
     private const double SparkMidY = 32.0, SparkHalfH = 30.0;
@@ -182,14 +159,7 @@ public partial class GameViewModel
         _ => PBgInter,
     };
 
-    private static string TierName(GoodTier t) => t switch
-    {
-        GoodTier.Staple => "主食",
-        GoodTier.Daily => "日用品",
-        GoodTier.Luxury => "奢侈品",
-        GoodTier.Producer => "生産財",
-        _ => "素材",
-    };
+    private static string TierName(GoodTier t) => ProductionTables.TierName(t);   // 層の名前は本体の目録の 1 本（財の表の群の見出しと同じ語）
 
     /// <summary>凡例の並び順（素材→主食→日用品→奢侈品→生産財）＝グラフの列の中の第1キー（作者フィードバック2026-08-10 項目2）。
     /// ★ヘッダーの凡例と**同じ順**にする＝色の並びと財の並びが一致する。役務はグラフに無いので最後（保険）。</summary>
@@ -257,6 +227,7 @@ public partial class GameViewModel
     /// 技術不足（blocked）と休止（inactive）は集計の産物なので、直近の値を配列で持ち越す。</summary>
     private void ApplyProdSelection()
     {
+        OnPropertyChanged(nameof(ProdSelectedKey));   // 財の表の選んでいる行
         if (_nodeByGood is null || _pLayout is null) return;
         int sel = _prodSelGood;
         var selIn = sel >= 0 && _pLayout.TryGetValue(sel, out var sn) ? sn.In : (IReadOnlyList<int>)Array.Empty<int>();
@@ -339,7 +310,20 @@ public partial class GameViewModel
         var layers = map.Values.GroupBy(n => n.Layer).OrderBy(g => g.Key)
                         .Select(g => g.OrderBy(n => TierOrder(Catalog.Goods[n.Id].Tier))
                                       .ThenBy(n => nameOf.TryGetValue(n.Id, out var nm) ? nm : "", JaNameComparer).ToList()).ToList();
+        _pLayers = layers;
+        _pLayout = map;
+        PlaceProd(_prodRowBudget);
+    }
 
+    private List<List<PNode>>? _pLayers;
+    private double _prodRowBudget = PRowBudgetW;   // 盤の視野の幅から導いた 1 行の幅予算（既定＝旧の全画面の想定幅）
+    private string _prodPlaceSig = "";             // 直近に置いた並びの署名（同じ並びなら座標を触らない）
+
+    /// <summary>盤の座標を、1 行の幅予算 <paramref name="budget"/> に合わせて置く（層ごとに、全ての断片が予算に収まる最小の分割数）。幅予算は盤の視野の幅から来る＝分割の枠の幅に盤が追従する（旧は全画面の幅 1330 で固定）。
+    /// 並び（各行に入る財）と盤の幅が前回と同じなら何も触らず false を返す。変わったら節点・区切り線・盤の大きさを置き直して true（器があれば呼び手が座標と辺の形を流す）。</summary>
+    private bool PlaceProd(double budget)
+    {
+        var layers = _pLayers!;
         // ★縦並び（作者指示2026-08-15）：層＝**行**として上から座標を振る（上＝素材・下＝最深加工財）。
         //   太い層（素材41本）は複数行へ分割。各行は盤の幅の中で**横中央揃え**＝深い層ほど財が少なく行が短い＝逆ピラミッド。
         // 行の幅＝節点とその間隔に、カテゴリの切れ目の余白（項目3）を足したもの。
@@ -365,7 +349,7 @@ public partial class GameViewModel
                 for (int p = 0; p < parts && fits; p++)
                 {
                     var sc = row.Skip(p * per).Take(per).ToList();
-                    if (sc.Count > 1 && RowWidth(sc) > PRowBudgetW) fits = false;
+                    if (sc.Count > 1 && RowWidth(sc) > budget) fits = false;
                 }
                 if (fits) break;
             }
@@ -377,8 +361,12 @@ public partial class GameViewModel
         }
         double maxW = 0;
         foreach (var (sc, _) in screenRows) maxW = Math.Max(maxW, RowWidth(sc));
+        // 並びと幅が前回と同じなら座標は同じ＝何も触らない（視野の幅が少し動くたびに器を流し直さない）
+        string sig = string.Join(";", screenRows.Select(r => string.Join(",", r.Nodes.Select(n => n.Id)))) + "|" + maxW.ToString("R");
+        if (sig == _prodPlaceSig) return false;
+        _prodPlaceSig = sig;
         double y = PMargin;
-        ProdTierLines.Clear();   // 現在は一度きり（_pLayout ガード）＝再走に備えた防御
+        ProdTierLines.Clear();
         int tier = 1;   // tier番号＝加工の深さ（上=素材=tier1・下ほど数字が大きい=作るのが難しい。作者指示2026-08-16）
         ProdTierLines.Add(new ProdTierLine { X = 0, Y = -1, W = 0, Label = "tier1", LabelX = PMargin, LabelY = 6 });   // 最上層は区切り線なし＝ラベルのみ（上余白24の中）
         for (int r = 0; r < screenRows.Count; r++)
@@ -403,13 +391,9 @@ public partial class GameViewModel
             }
         }
         ProdCanvasW = maxW + PMargin * 2;
-        ProdMegaBandW = Math.Max(PMegaCardW, ProdCanvasW - PMargin * 2);   // 巨大建造物のカードが並べる幅（国有化は法律タブへ移動2026-08-15＝右端の予約228+8を撤去）
-        // ★下端に帯を足す（項目1）＝巨大建造物はキャンバスの**下端**（この帯の中）に置く。
-        //   帯は最下行の下に続く＝節点が1つも入らない＝カードがノードを覆わないことが寸法で閉じる。
-        //   帯の高さは巨大建造物のカードの行数で伸びる（BuildMegaRows が積み直す）＝カードが節点の領域へせり上がらない。
-        _prodBoardH = y - PRowGapY + PMargin;   // 最終行の後に足したのは常に PRowGapY（最下層＝layerEndでもlastRowで狭い側）
-        ProdCanvasH = _prodBoardH + PBlockBand;
-        _pLayout = map;
+        // (501) 段3：巨大建造物は盤の下端の帯でなく、生産ページの自分の欄へ移した＝盤は節点の領域だけ。
+        ProdCanvasH = y - PRowGapY + PMargin;   // 最終行の後に足したのは常に PRowGapY（最下層＝layerEndでもlastRowで狭い側）
+        return true;
     }
 
     /// <summary>節点と辺の**器**を一度だけ作る（2026-08-10）。レイアウトが静的なので、集合も座標も辺の形も不変＝
@@ -425,11 +409,23 @@ public partial class GameViewModel
         {
             int gid = pn.Id;   // 器は静的（作り直さない）＝財idを閉じ込めても別の財を操作しない
             var nd = new ProdNode(() => StepFactoryTargetAll(gid, +1), () => StepFactoryTargetAll(gid, -1))
-            { GoodId = pn.Id, X = pn.X, Y = pn.Y, W = PNodeW, H = PNodeH, Name = Catalog.Goods[pn.Id].Name };
+            { GoodId = pn.Id, W = PNodeW, H = PNodeH, Name = Catalog.Goods[pn.Id].Name };
             byGood[pn.Id] = nd;
             ProdNodes.Add(nd);
         }
-        // 出入りポートを**横**に散らして重なりを軽減（縦並び2026-08-15＝出は下辺・入は上辺）。座標が静的なので一度で足りる。
+        foreach (var pn in lay.Values)
+            foreach (var t in pn.Out) ProdEdges.Add(new ProdEdge { From = pn.Id, To = t });
+        _nodeByGood = byGood;
+        ApplyProdPlacement();
+    }
+
+    /// <summary>置いた座標（<see cref="PlaceProd"/>）を器へ流す＝節点の位置と辺の形。器（節点と辺の実体）は作り直さない。
+    /// ★辺の形は <see cref="StreamGeometry"/> に確定させる。旧は "M…C…" の**文字列**を Path.Data へバインドし、既定コンバータの Geometry.Parse が辺の本数ぶん（165本超）毎回走っていた。</summary>
+    private void ApplyProdPlacement()
+    {
+        var lay = _pLayout!;
+        foreach (var nd in ProdNodes) { var pn = lay[nd.GoodId]; nd.X = pn.X; nd.Y = pn.Y; }
+        // 出入りポートを**横**に散らして重なりを軽減（縦並び2026-08-15＝出は下辺・入は上辺）。
         var outPort = new Dictionary<(int a, int b), double>();
         var inPort = new Dictionary<(int a, int b), double>();
         foreach (var pn in lay.Values)
@@ -441,23 +437,33 @@ public partial class GameViewModel
             for (int i = 0; i < ins.Count; i++)
                 inPort[(ins[i], pn.Id)] = pn.X + PNodeW * (i + 1) / (ins.Count + 1.0);
         }
-        foreach (var pn in lay.Values)
-            foreach (var t in pn.Out)
+        foreach (var e in ProdEdges)
+        {
+            var pn = lay[e.From]; var tn = lay[e.To];
+            double x1 = outPort[(e.From, e.To)], y1 = pn.Y + PNodeH;
+            double x2 = inPort[(e.From, e.To)], y2 = tn.Y;
+            double dyc = Math.Max(28, (y2 - y1) * 0.45);
+            var geo = new StreamGeometry();
+            using (var ctx = geo.Open())
             {
-                var tn = lay[t];
-                double x1 = outPort[(pn.Id, t)], y1 = pn.Y + PNodeH;
-                double x2 = inPort[(pn.Id, t)], y2 = tn.Y;
-                double dyc = Math.Max(28, (y2 - y1) * 0.45);
-                var geo = new StreamGeometry();
-                using (var ctx = geo.Open())
-                {
-                    ctx.BeginFigure(new global::Avalonia.Point(x1, y1), false);
-                    ctx.CubicBezierTo(new global::Avalonia.Point(x1, y1 + dyc), new global::Avalonia.Point(x2, y2 - dyc), new global::Avalonia.Point(x2, y2));
-                    ctx.EndFigure(false);
-                }
-                ProdEdges.Add(new ProdEdge { From = pn.Id, To = t, Data = geo });
+                ctx.BeginFigure(new global::Avalonia.Point(x1, y1), false);
+                ctx.CubicBezierTo(new global::Avalonia.Point(x1, y1 + dyc), new global::Avalonia.Point(x2, y2 - dyc), new global::Avalonia.Point(x2, y2));
+                ctx.EndFigure(false);
             }
-        _nodeByGood = byGood;
+            e.Data = geo;
+        }
+    }
+
+    /// <summary>盤の視野の幅が変わった（分割の枠の幅に盤が追従する）。1 行の幅予算＝視野の幅 − 左右の余白 − 縦の流れの取り代。
+    /// 並びが変わる幅のときだけ節点を置き直す（<see cref="PlaceProd"/>）。盤の中身（財カードの文字と色）は影響を受けない。</summary>
+    public void SetProdViewport(double viewportWidth)
+    {
+        if (!(viewportWidth > 0 && viewportWidth < 1e6)) return;   // 否定形＝NaN・無限は無視
+        // 1 行に最低 3 枚（狭い視野では盤の横の流れで動かす＝1 枚ずつの縦の一列にして層の形を壊さない）
+        double budget = Math.Max(3 * PNodeW + 2 * PRowGapX, viewportWidth - PMargin * 2 - 12);
+        _prodRowBudget = budget;
+        if (_pLayout is null) return;   // 初回の置きは EnsureProdLayout がこの予算で行う
+        if (PlaceProd(budget) && _nodeByGood is not null) ApplyProdPlacement();
     }
 
     // ---- 統計と再構築 ----
@@ -476,7 +482,7 @@ public partial class GameViewModel
     /// ＝「自分で作った量に対してどれだけ余っている／足りていないか」だけを測る。
     /// 生産が事実上0（<see cref="QtyEps"/> 以下）の財は NaN を返す（表示はカードが空・州別テーブルが「—」＝Grid の桁を保つため）。
     /// 100%を超える不足＝消費が生産の2倍以上（差は輸入と在庫の取り崩し）。</summary>
-    private double SurplusRate(double produced, double sold) => produced > QtyEps ? (produced - sold) / produced : double.NaN;
+    private double SurplusRate(double produced, double sold) => ProductionTables.SurplusRate(produced, sold, QtyEps);   // 式は本体の目録の 1 本
 
     /// <summary>過不足率の表示（否定形の判定＝NaN も空へ落とす）。
     /// ★語は符号で切り替える（作者指示2026-09-23「『過不足:n%』は意味が分からないので『余剰n%』『不足n%』を切り替える」）。
@@ -498,137 +504,36 @@ public partial class GameViewModel
     private static string SurplusText(double rate) => !(rate > double.MinValue && rate < double.MaxValue) ? ""
         : (!(rate < 0) ? "余剰" : "不足") + Math.Abs(rate).ToString("0%");
 
-    /// <summary>一覧表の列見出しを押した＝並べ替え。同じ列を再度押すと昇順⇔降順。
-    /// 数量の列は**降順から**（多い順が知りたい列）／材名だけ昇順から始める。</summary>
-    [RelayCommand]
-    private void SortProdTable(string? key)
-    {
-        if (string.IsNullOrEmpty(key)) return;
-        if (key == _prodSortKey) _prodSortDesc = !_prodSortDesc;
-        else { _prodSortKey = key; _prodSortDesc = key != "材名"; }
-        OnPropertyChanged(nameof(ProdHeadName)); OnPropertyChanged(nameof(ProdHeadPrice)); OnPropertyChanged(nameof(ProdHeadProd));
-        OnPropertyChanged(nameof(ProdHeadExp)); OnPropertyChanged(nameof(ProdHeadImp));
-        OnPropertyChanged(nameof(ProdHeadUtil)); OnPropertyChanged(nameof(ProdHeadMat)); OnPropertyChanged(nameof(ProdHeadState)); OnPropertyChanged(nameof(ProdHeadPriv));
-        ApplyProdTableSort();
-    }
-
-    /// <summary>並べ替えて器へ流す。器は据え置き同期（キー＝材名）＝毎月の再集計で行の Border が作り直されない。</summary>
-    private void ApplyProdTableSort()
-    {
-        var rows = _prodTableRows;
-        List<ProdTableRow> ordered = _prodSortKey switch
-        {
-            "材名" => _prodSortDesc ? rows.OrderByDescending(r => r.Name, JaNameComparer).ToList()
-                                    : rows.OrderBy(r => r.Name, JaNameComparer).ToList(),
-            "価格" => SortProdBy(rows, r => r.PriceV),
-            "生産量" => SortProdBy(rows, r => r.ProdV),
-            "輸出量" => SortProdBy(rows, r => r.ExpV),
-            "輸入量" => SortProdBy(rows, r => r.ImpV),
-            "稼働率" => SortProdBy(rows, r => r.UtilV),
-            "材料" => SortProdBy(rows, r => r.MatV),
-            "国営" => SortProdBy(rows, r => r.StateV),
-            "民営" => SortProdBy(rows, r => r.PrivV),
-            _ => rows.OrderBy(r => r.GoodId).ToList(),   // 既定＝財id順（図の層内50音順とは別）
-        };
-        // 節へ束ねる（作者指示2026-09-08）＝並べ替えは節の**中**で効く。見出しは並べ替えの対象にしない。
-        var grouped = new List<ProdTableRow>(ordered.Count + 2);
-        foreach (bool fac in (bool[])[true, false])
-        {
-            bool head = false;
-            foreach (var r in ordered)
-            {
-                if (r.IsFactory != fac) continue;
-                if (!head) { grouped.Add(new ProdTableRow { Header = fac ? "工場生産" : "RGO生産", Name = fac ? "工場生産" : "RGO生産" }); head = true; }
-                grouped.Add(r);
-            }
-        }
-        SyncRows(ProdTable, grouped, r => r.Name, (t, sd) => t.CopyFrom(sd));
-    }
-    // 数量列の並べ替え＝同値は材名で決める（無い値は −1 に畳んであるので、降順では必ず末尾に沈む）
-    private List<ProdTableRow> SortProdBy(List<ProdTableRow> rows, Func<ProdTableRow, double> k)
-        => (_prodSortDesc ? rows.OrderByDescending(k) : rows.OrderBy(k)).ThenBy(r => r.Name, JaNameComparer).ToList();
-
     public void RefreshProduction()
     {
         EnsureProdLayout();
         EnsureProdVisuals();
-        var lay = _pLayout!;
         int n = Catalog.Goods.Length;
-        var prod = new double[n]; var sold = new double[n]; var exp = new double[n]; var imp = new double[n];
-        var cap = new double[n]; var outp = new double[n]; var gate = new double[n];
-        // 生産量の内訳（作者フィードバック2026-08-10 項目4）＝RGO（採取）と工場に分ける。
-        // ★エンジンの実式そのもの＝EconomyStep の produced[gi]（`produced[s.GoodId] += s.Output` ＝倒産は Output=0）を
-        //   Producer.IsRgo で2つに割るだけ＝合計は Market.LastProduced の確定値に一致する。UI に第二の式を置かない。
-        var prodRgo = new double[n]; var prodFac = new double[n];
-        var inpFillW = new double[n];   // 原料充足率（Output加重の LastMaterialFill＝**素材のみ**の配給率。労働込みの LastInputFill は使わない＝労働不足を原料不足と誤帰属しない・レビュー2026-07-19）
-        // 材名の赤（ボトルネック変色）は廃止（作者裁定2026-08-16「材料供給100%でも赤＝意味が読めない・可視性が低い」
-        //   ＝“この材が川下の工場を律速”という表示で、カード自身の数値と食い違って誤読を生んでいた。inputShort配列ごと撤去）
-        var facCnt = new int[n]; var building = new int[n]; var subsRate = new double[n];
-        // 工場の棟数（一覧表の国営/民営列・カードの分子と分母）は**エンジンの1本**（World.FactoryCounter）から取る（2026-09-07）。
-        //   旧はここで州を走査して足していた＝同じ棟数を UI とエンジン（全国工場目標の分子）が別式で持つことになる。
-        var hasProducer = new bool[n];   // 自国のどこかに生産者があるか（米・茶葉等は気候ゲートで生産者ごと無い＝「技術不足」と区別）
-        // 技術不足の判定に使う材料（項目13・2026-08-09）：財ごとの**素材レシピの集合**（労働・役務は除く）。
-        // 代替レシピ（紙＝木材パルプ or ぼろ布／電力＝石炭 or 原油）を個別に持つ＝1本でも生きていれば作れる、を表せる。
-        var recipesOf = new List<List<int>>?[n];
-
-        foreach (var rg in _player.Regions)
-        {
-            if (rg.State != RegionState.Active) continue;
-            int mn = Math.Min(rg.Markets.Length, n);
-            for (int gi = 0; gi < mn; gi++)
-            {
-                var m = rg.Markets[gi];
-                prod[gi] += m.LastProduced; sold[gi] += m.LastSold; exp[gi] += m.LastExport; imp[gi] += m.LastImport;
-            }
-            foreach (var p in rg.Producers)
-            {
-                int gi = p.GoodId;
-                if (gi >= n || !lay.ContainsKey(gi)) continue;
-                hasProducer[gi] = true;
-                double pGate = Discovery.Gate(rg, p);   // 「作れるか」の式はエンジン側1本（Discovery.Gate＝発見の門）から読む
-                gate[gi] = Math.Max(gate[gi], pGate);
-                AddRecipe(recipesOf, gi, p.Inputs);
-                if (p.ConstructionLeft > 0) building[gi]++;
-                if (p.SubsidyRate.Value > subsRate[gi]) subsRate[gi] = p.SubsidyRate.Value;   // 品目の補助率（全州一括適用＝最大値が現在値）
-                if (p.Bankrupt) continue;
-                // 加工財＝真の工場（労働を雇う＝BuysLabor。職人の工房〔Output=30の手工業〕やRGOは除外＝1789に工場が林立して見える誤りを解消）／素材＝産出中のRGO=産地
-                // 産出の足切りは QtyEps（＝TargetStockFloor＝1単位）＝旧の直書き 1 と同値だが、出所を1本に揃える（幻の生産2026-08-10）
-                bool counted = Catalog.Goods[gi].Inputs.Length > 0
-                    ? p.BuysLabor && (p.Output > QtyEps || p.BuiltScale > 1e-9)
-                    : p.Output > QtyEps;
-                if (counted) facCnt[gi]++;
-                cap[gi] += p.Capacity; outp[gi] += p.Output; inpFillW[gi] += p.Output * p.LastMaterialFill;
-                if (p.IsRgo) prodRgo[gi] += p.Output; else prodFac[gi] += p.Output;   // 項目4：RGO生産量／工場生産量（Catalog.RgoFacilityName と同じ判定＝Producer.IsRgo）
-                // ボトルネック検出（律速材料→材名の赤）は廃止（作者裁定2026-08-16＝誤読を生む変色だった）
-            }
-        }
-
-        var techShort = TechShortSet(lay, n, gate, hasProducer, recipesOf, _player.Discovered);
+        // 集計は本体の目録の 1 本（SimCore/Display/ProductionTables）＝盤の節点（財カード）と財の表が同じ 1 周から値を取る。
+        // 生産量の内訳（RGO と工場）・原料充足率・工場の棟数・技術不足の判定・過不足の率の式はそこにある（UI に第二の式を置かない）。
+        var st = ProductionStats.Collect(_player);
+        var prod = st.Prod; var sold = st.Sold; var exp = st.Exp; var imp = st.Imp; var subsRate = st.SubsRate;
+        var prodRgo = st.ProdRgo; var prodFac = st.ProdFac; var hasProducer = st.HasProducer;
         // ★「まだ存在しない財」（作者裁定2026-08-10）＝世界のどこにも生産が無く、どの国も技術的に作れない財。
         //   判定はエンジンの純関数1本（ProductionDiag.UnavailableGoods）＝UI に第二の式を置かない。
-        //   ⚠上の techShort（灰色化）は**自国**の技術で読む＝「他国は作れるが自国は作れない」財は灰色だが、
+        //   ⚠技術不足（灰色化）は**自国**の技術で読む＝「他国は作れるが自国は作れない」財は灰色だが、
         //     価格もシェアも実在する（数字を出す）。この unavail は**世界で誰も作れない**＝数字そのものが無い。
         var unavail = ProductionDiag.UnavailableGoods(_sim, _player.Coef);
+        var all = ProductionTables.AllLines(_sim, _player, st, unavail);
 
         // ノード（ボタン＝品名＋世界価格との差／稼働率:a%　供給:b%／生産:c　過不足:d。縦線の中は工場の棟数と全国目標。地色は tier で最初から明るく、選択で連鎖を強調）
-        var capR = _player.Region;          // 首都州（右パネルの「首都価格」と同じ基準）
-        double exRate = _player.ExchangeRate;   // 輸出入判定と同じ金建て換算＝世界価格と比べられる形に揃える
         var blockedOf = new bool[n]; var inactiveOf = new bool[n];   // 選択だけの塗り直し（ApplyProdSelection）へ持ち越す集計の産物
-        var tableRows = new List<ProdTableRow>(lay.Count);           // 一覧表（財を選んでいない時の右パネル）
-        foreach (var pn in lay.Values)
+        foreach (var ln in all)
         {
-            int gi = pn.Id; var d = Catalog.Goods[gi];
-            // 全国の棟数（国営/民営）と建設予定・予定を含めた総数＝カードの分子と分母・一覧表の列が同じ1本（World.FactoryCounter）
-            var (stU, pvU, pendU, planU) = _player.FactoryCounter(gi);
-            bool isFactory = d.Inputs.Length > 0;
-            bool none = facCnt[gi] == 0 && !(prod[gi] > QtyEps);   // 実用ゼロ（幻の生産2026-08-10）＝旧 0.5 も 1e-9 も同じ物差しへ揃える
-            bool blocked = techShort[gi];      // 技術不足（直接＝ゲート0／伝播＝全レシピの材料が作れない）
-            bool inactive = blocked || (none && !hasProducer[gi]);
-            double util = cap[gi] > QtyEps ? Math.Clamp(outp[gi] / cap[gi], 0, 1) : 0;
+            int gi = ln.Good; var d = Catalog.Goods[gi];
+            // 全国の棟数（国営/民営）と建設予定・予定を含めた総数＝カードの分子と分母・財の表の列が同じ1本（World.FactoryCounter）
+            int stU = ln.State, pvU = ln.Private, pendU = ln.Pending, planU = ln.Planned;
+            bool isFactory = ln.IsFactory, none = ln.None, blocked = ln.Blocked, inactive = ln.Inactive;
+            double util = ln.Util;
             // ★2026-08-10（作者フィードバック項目3）：産出が無い月は**測っていない**＝NaN。表示は 0%（供給の実績がゼロ）、
-            //   赤（starving）は立てない（旧は 1.0＝「材料供給:100%」と出しており、詳細パネルの「—」とも食い違っていた）。
-            double inpFill = outp[gi] > QtyEps ? Math.Clamp(inpFillW[gi] / outp[gi], 0, 1) : double.NaN;
-            double surplusRate = SurplusRate(prod[gi], sold[gi]);   // 過不足＝**生産に対する比**（項目3）。NaN＝生産なし
+            //   赤（starving）は立てない。
+            double inpFill = ln.InpFill;
+            double surplusRate = ln.SurplusRate;   // 過不足＝**生産に対する比**。NaN＝生産なし
             string util1 = none ? (blocked ? "技術不足" : hasProducer[gi] ? "稼働率:0%" : "産地なし")   // ★2026-09-07：棟はあるのに「生産なし」だと縦線の「87/87」と矛盾して読める＝止まっている事実（稼働率0）を他の材と同じ語で書く
                                 : isFactory ? $"稼働率:{util:P0}　供給:{(double.IsNaN(inpFill) ? 0.0 : inpFill):P0}" : $"稼働率:{util:P0}";
             // ★語は「供給」（2026-09-07・作者要望(2)の寸法是正）＝生産コスト欄の材別「供給:n%」と同じ語に揃えた。
@@ -637,12 +542,10 @@ public partial class GameViewModel
             // 工場の棟数は**縦線の中のカウンター**へ移した（2026-09-07・作者要望(1)）＝この行は量だけを持つ
             string prod2 = none ? "" : $"生産:{Fmt.Qty(prod[gi])}";
             string sur2 = none ? "" : SurplusText(surplusRate);
-            // 世界価格との比較（項目3）＝首都価格×為替／世界価格−1。安い＝青・高い＝赤。
+            // 世界価格との比較（項目3）＝首都価格×為替／世界価格−1（本体の目録の PriceGap）。安い＝青・高い＝赤。
             // グラフ本体は四半期再構築なので、この％も四半期（右パネルの首都価格行は日次）。
-            double wpg = gi < _sim.Market.Price.Count ? _sim.Market.Price[gi] : 0;
-            double lpg = gi < capR.Markets.Length ? capR.Markets[gi].Price : 0;
-            bool hasPd = !unavail[gi] && wpg > 1e-6 && lpg > 1e-9;   // まだ存在しない財は世界価格との比を出さない（作者裁定2026-08-10）
-            double pdg = hasPd ? lpg * exRate / wpg - 1.0 : 0;
+            bool hasPd = !double.IsNaN(ln.PriceGap);   // まだ存在しない財は世界価格との比を出さない（作者裁定2026-08-10）
+            double pdg = hasPd ? ln.PriceGap : 0;
             // 稼働率行の赤＝素材が買えず産出が絞られている工場（労働不足は含まない）。材名の赤（ボトルネック変色）は廃止（2026-08-16）
             bool starving = !none && isFactory && inpFill < MaterialFillThreshold;   // NaN（産出なし＝未測定）は false＝赤にしない
             var nd = _nodeByGood![gi];   // 器は据え置き＝値だけ流す（GoodId/X/Y/W/H/品名は静的）
@@ -694,43 +597,14 @@ public partial class GameViewModel
             nd.CanUpFactory = planU < _player.FactoryTargetMax;
             nd.CanDownFactory = planU > stU + pvU + pendU;
             nd.FactoryTip = $"国営 {stU}棟　民営 {pvU}棟　建設予定 {pendU}棟　全国目標 {planU}棟";
-            // 一覧表の1行＝カードと同じ値（世界価格比・稼働率・生産量・材料供給）＋工場の棟数（国営/民営）。
-            // ★2026-08-23作者指示：**国内に存在しない材は行ごと出さない**＝技術不足（blocked）と産地なし（none && !hasProducer）＝
-            //   カードで灰色に沈めていた inactive がそのまま除外条件（産地はあるが今は生産0の材＝鉛鉱の類は**残す**＝設備は在る）。
-            //   これで表の材名が灰色になる行は原理的に消えた＝行の色分けは持たない。
-            if (!inactive)
-            {
-                bool hasMat = isFactory && !double.IsNaN(inpFill);
-                tableRows.Add(new ProdTableRow
-                {
-                    GoodId = gi,
-                    Name = d.Name,
-                    IsFactory = isFactory,
-                    // 価格＝**世界価格との比**（カードの PriceDiff と同一式＝首都価格×為替／世界価格−1）。安い青・高い赤。
-                    Price = hasPd ? pdg.ToString("+0%;-0%;0%") : "—",
-                    PriceV = hasPd ? pdg : double.MinValue,
-                    PriceBrush = pdg <= 0 ? PPriceBelow : PPriceAbove,
-                    Prod = Fmt.Qty(prod[gi]),   // 生産量＝カードと同じ量（Market.LastProduced の全州和）
-                    ProdV = prod[gi],
-                    Exp = Fmt.Qty(exp[gi]),     // 輸出量・輸入量＝詳細パネルの数値ブロックと同じ量（Market.LastExport / LastImport の全州和）
-                    ExpV = exp[gi],
-                    Imp = Fmt.Qty(imp[gi]),
-                    ImpV = imp[gi],
-                    Util = none ? "—" : util.ToString("P0"),
-                    UtilV = none ? -1 : util,
-                    MatFill = hasMat ? inpFill.ToString("P0") : "—",
-                    MatV = hasMat ? inpFill : -1,
-                    StateFac = stU.ToString(),
-                    StateV = stU,
-                    PrivFac = pvU.ToString(),
-                    PrivV = pvU,
-                    SelectCmd = SelectUseGoodCommand,   // 材名クリックでその財の詳細へ（作者要望2026-09-07 (6)＝カードを押したのと同じ動詞）
-                });
-            }
         }
-        _prodTableRows = tableRows;
-        ApplyProdTableSort();
         _sBlocked = blockedOf; _sInactive = inactiveOf;
+        // 財の表・設備の表・労働の表（本体の目録が行と列を名乗る）。財の表は盤の節点と同じ集計から（二度走査しない）。
+        var shown = ProductionTables.ShownLines(all);
+        ProdGoodTable = TableSnapshot.From((ProductionTables.Goods with { Rows = (_, _) => shown }).Read(_sim, _player));
+        ProdEquipTable = TableSnapshot.From(ProductionTables.Equipment.Read(_sim, _player));
+        ProdLaborTable = TableSnapshot.From(ProductionTables.Labor.Read(_sim, _player));
+        ProdEquipmentOn = _player.Coef.RecipeEquipment > 0;
         ApplyProdSelection();   // 選択に依存する見た目（節点の枠/地色/沈み・辺の強調）＝選択だけの塗り直しと同じ経路を通す
 
         BuildMegaRows();
@@ -780,69 +654,8 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(ProdRegionHeadTip));   // 州別の見出しのホバー（工業化の州別上位8）＝get-only なので追従には通知が要る
     }
 
-    /// <summary>財ごとの素材レシピ集合を積む（技術不足の伝播に使う・2026-08-09）。労働・役務は除く＝技術の連鎖は素材だけを辿る。
-    /// 同じ材料列は落とす（同じレシピの生産者が州の数だけ並ぶため）。投入ゼロ（RGO）は空の列＝「材料を要求しない」を表す。</summary>
-    private static void AddRecipe(List<List<int>>?[] recipesOf, int gi, List<Input> inputs)
-    {
-        var list = recipesOf[gi] ??= new List<List<int>>(2);
-        foreach (var have in list) if (SameMats(have, inputs)) return;
-        var mats = new List<int>(inputs.Count);
-        foreach (var inp in inputs) if (IsMaterial(inp.GoodId)) mats.Add(inp.GoodId);
-        list.Add(mats);
-    }
-    private static bool SameMats(List<int> have, List<Input> inputs)
-    {
-        int k = 0;
-        foreach (var inp in inputs)
-        {
-            if (!IsMaterial(inp.GoodId)) continue;
-            if (k >= have.Count || have[k] != inp.GoodId) return false;
-            k++;
-        }
-        return k == have.Count;
-    }
-    // 素材（労働・役務でない実物の投入）か。範囲ガード付き＝goods.json の手編集で範囲外 id が混ざっても落ちない（Catalog の姉妹関数と同じ流儀）
-    private static bool IsMaterial(int gid) => gid >= 0 && gid < Catalog.Goods.Length && Catalog.Goods[gid].Tier != GoodTier.Service;
-
-    /// <summary>技術不足の財（作者仕様2026-08-09 項目13）＝灰色に落とす集合。
-    /// 直接＝発見の門が0（生産者があればその実ゲート、無ければ既定のレシピの行を自国が発見したか＝行が無ければ作れる）。
-    /// 伝播＝**全段**（1段でなく収束するまで）かつ**レシピ単位**＝持っているレシピが全て「作れない材料」を要求する財も作れない。
-    ///   レシピ単位にする理由＝代替レシピ（紙＝木材パルプ or ぼろ布／電力＝石炭 or 原油）が1本でも生きていれば作れるので、
-    ///   出辺を無条件に辿る実装では生きている財まで灰色になる。更新は単調（false→true のみ）＝走査順に依らず収束点は一意。</summary>
-    private static bool[] TechShortSet(Dictionary<int, PNode> lay, int n, double[] gate, bool[] hasProducer, List<List<int>>?[] recipesOf, bool[]? known)
-    {
-        var blocked = new bool[n];
-        foreach (var pn in lay.Values)
-        {
-            int gi = pn.Id;
-            blocked[gi] = !((hasProducer[gi] ? gate[gi] : Catalog.DiscoveryRowOf(gi, "") is int row and >= 0 ? (Discovery.Known(known, row) ? 1.0 : 0.0) : 1.0) > ProductionDiag.TechGateClosed);
-            if (recipesOf[gi] is null && Catalog.Goods[gi].Inputs.Length > 0)
-            {
-                var mats = new List<int>(Catalog.Goods[gi].Inputs.Length);
-                foreach (var inp in Catalog.Goods[gi].Inputs) if (IsMaterial(inp.GoodId)) mats.Add(inp.GoodId);
-                recipesOf[gi] = new List<List<int>> { mats };   // 生産者が1つも無い財は既定レシピで読む（生産コスト欄と同じ流儀）
-            }
-        }
-        for (bool changed = true; changed; )
-        {
-            changed = false;
-            foreach (var pn in lay.Values)
-            {
-                int gi = pn.Id;
-                var rs = recipesOf[gi];
-                if (blocked[gi] || rs is null || rs.Count == 0) continue;
-                bool all = true;
-                foreach (var r in rs)
-                {
-                    bool bad = false;
-                    foreach (int mid in r) if (mid >= 0 && mid < n && blocked[mid]) { bad = true; break; }
-                    if (!bad) { all = false; break; }
-                }
-                if (all) { blocked[gi] = true; changed = true; }
-            }
-        }
-        return blocked;
-    }
+    // 素材（労働・役務でない実物の投入）か（本体の目録の 1 本）
+    private static bool IsMaterial(int gid) => ProductionStats.IsMaterial(gid);
 
     private double LaborRate(Region rg, int labId, int classId)
     {
@@ -1201,16 +1014,6 @@ public partial class GameViewModel
         list.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));   // 決定論の固定順
         MegaRows = list;
         OnPropertyChanged(nameof(HasMegaRows));
-        // ★カードの行数ぶん帯を伸ばす（作者フィードバック2026-08-10）＝内部スクロールを廃した代わりに、
-        //   建設地を多く抱える国（ロンドン・ニューヨーク等）でも**節点と重ならない**ことを寸法で閉じる。
-        //   1行に入る枚数は WrapPanel の ItemWidth と同じ PMegaCardW で割った数＝XAML と計算が同じ数を使う。
-        if (_prodBoardH > 0)
-        {
-            int perRow = Math.Max(1, (int)(ProdMegaBandW / PMegaCardW));
-            int rows = (list.Count + perRow - 1) / perRow;
-            double need = rows > 0 ? PMegaHeaderH + rows * PMegaCardH + PMargin * 2 : 0;
-            ProdCanvasH = _prodBoardH + Math.Max(PBlockBand, need);
-        }
     }
     /// <summary>着工（動詞・2026-08-02）。★AIの StartMegaproject と**同じ Megaprojects.TryStart** を通る＝
     /// プレイヤーだけが持つ経路も、AIだけが持つ経路も作らない。取り消しは無い（半分掘った運河は埋め戻せない）。</summary>
@@ -1570,12 +1373,12 @@ public partial class GameViewModel
 
 // ノード＝財カード（位置は Canvas.Left/Top へ ReflectionBinding）。
 // **可変プロパティ＝毎回の更新は既存インスタンスへ値だけ流す**（器の作り直し＝126枚×約8視覚要素の破棄・再生成を避ける・2026-08-10）。
-// 位置と品名はレイアウトが静的＝init のまま。
+// 品名と大きさは静的＝init のまま。位置は盤の視野の幅に追従して置き直す（(501) 段3＝分割の枠の幅に盤が合わせる）ので可変。
 public sealed partial class ProdNode : ObservableObject
 {
     public int GoodId { get; init; }
-    public double X { get; init; }
-    public double Y { get; init; }
+    [ObservableProperty] private double _x;
+    [ObservableProperty] private double _y;
     public double W { get; init; }
     public double H { get; init; }
     public string Name { get; init; } = "";
@@ -1608,51 +1411,13 @@ public sealed partial class ProdNode : ObservableObject
     [ObservableProperty] private double _opacity = 1.0;
 }
 
-// 一覧表の1行（財を選んでいない時の右パネル・作者指示2026-08-23）。器は据え置き（SyncRows のキー＝材名）＝値だけ流す。
-// 並べ替え用の実数（PriceV/UtilV/MatV/StateV/PrivV）を表示文字と別に持つ＝丸めた文字で並べない（0% と 0.4% が同順にならない）。
-public sealed partial class ProdTableRow : ObservableObject
-{
-    public int GoodId { get; init; }
-    public string Name { get; init; } = "";
-    /// <summary>節の見出し（作者指示2026-09-08「工場生産とRGO生産で分けて出す」）＝空でない行は見出し。
-    /// 見出しを同じコレクションに混ぜるのは <see cref="ArmyNeedRow"/> と同じ作法（別リストにすると並びがずれうる）。</summary>
-    public string Header { get; init; } = "";
-    public bool IsHeader => Header.Length > 0;
-    public bool IsRow => Header.Length == 0;
-    public bool IsFactory { get; init; }   // 節の振り分け＝カードと同じ物差し（d.Inputs.Length > 0）
-    /// <summary>材名クリックの飛び先（作者要望2026-09-07 (6)）＝用途行と同じ動詞（SelectUseGood→SelectProdGood）
-    /// ＝カードを押したのと同じ結果になる。値は不変（init）＝据え置き同期の CopyFrom では流さない。</summary>
-    public IRelayCommand? SelectCmd { get; init; }
-    [ObservableProperty] private string _price = "";        // 世界価格との比（+12%／−8%）
-    [ObservableProperty] private IBrush? _priceBrush;       // 安い青・高い赤（カードと同じ色の文法）
-    [ObservableProperty] private string _prod = "";         // 生産量（k統一）
-    [ObservableProperty] private string _exp = "";          // 輸出量（k統一）
-    [ObservableProperty] private string _imp = "";          // 輸入量（k統一）
-    [ObservableProperty] private string _util = "";
-    [ObservableProperty] private string _matFill = "";
-    [ObservableProperty] private string _stateFac = "";
-    [ObservableProperty] private string _privFac = "";
-    public double PriceV { get; set; } = double.MinValue;
-    public double ProdV { get; set; }
-    public double ExpV { get; set; }
-    public double ImpV { get; set; }
-    public double UtilV { get; set; } = -1;
-    public double MatV { get; set; } = -1;
-    public double StateV { get; set; } = -1;
-    public double PrivV { get; set; } = -1;
-    public void CopyFrom(ProdTableRow s)
-    {
-        Price = s.Price; PriceBrush = s.PriceBrush; Prod = s.Prod; Exp = s.Exp; Imp = s.Imp; Util = s.Util; MatFill = s.MatFill; StateFac = s.StateFac; PrivFac = s.PrivFac;
-        PriceV = s.PriceV; ProdV = s.ProdV; ExpV = s.ExpV; ImpV = s.ImpV; UtilV = s.UtilV; MatV = s.MatV; StateV = s.StateV; PrivV = s.PrivV;
-    }
-}
 
 // 辺＝レシピ（ベジェ曲線）。形（Data）はレイアウトが静的＝一度だけ作る。選択で変わるのは色・太さ・不透明度・重なりだけ。
 public sealed partial class ProdEdge : ObservableObject
 {
     public int From { get; init; }
     public int To { get; init; }
-    public Geometry? Data { get; init; }
+    [ObservableProperty] private Geometry? _data;   // 盤の幅に追従して置き直す（<see cref="GameViewModel.SetProdViewport"/>）
     [ObservableProperty] private IBrush? _stroke;
     [ObservableProperty] private double _thickness = 1.3;
     [ObservableProperty] private double _opacity = 0.42;
