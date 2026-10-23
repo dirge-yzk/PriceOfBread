@@ -52,7 +52,8 @@ public static class MarketFlow
     // ★旬次の計器（2026-09-26 A3）：POB_TIME=1 のときだけ、州ごとの局所の数を出口で足す（既定は足さない）。timeprobe が読む。
     //   財の歩＝この関数が動かした（死んでいない）財の数。閉じた式（財・役務・張り付いた財 (132)）／日次に落ちた理由別の内訳の和は、財の歩の数に一致する。
     //   日次の回＝日次の写像を実際にまわした回数・省いた日＝ビットで止まって打ち切った残りの日数（日次に落ちた財×h＝回＋省いた日）。
-    internal static long CntGoodSteps, CntClosedGoods, CntClosedService, CntClosedPinned,
+    //   ★(spb) 労働の閉じた式＝労働の数（CntDailyLabor）の内訳（閉じた式で進めた労働の歩・1日目は日次で回すので日次の回にも 1 回ずつ入る）。
+    internal static long CntGoodSteps, CntClosedGoods, CntClosedService, CntClosedPinned, CntClosedLabor,
         CntDailyStartBand, CntDailyStartHigh, CntDailyStartService, CntDailyPredBand, CntDailyLabor, CntDailyHardBand, CntDailyNaN, CntDailyStep1,
         CntDailyDaysRun, CntDailyDaysSkipped;
 
@@ -82,7 +83,7 @@ public static class MarketFlow
         // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
         bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
         bool closedWage = h > 1 && lnFloorWage > Eps && lnCeilWage > Eps;
-        long nSteps = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
+        long nSteps = 0, nClosedL = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
@@ -142,6 +143,7 @@ public static class MarketFlow
                     }
                     // ★(469) 線 mw：帯の下側（WageClampMin）の撤去。ゲート 0（既定）では下の分岐に入らない＝旧と1ビットも変わらない。教育・医療の役務の枝は別の枝＝触らない。
                     bool bandFloorOff = coef.LaborBandFloorOffGate > 0;
+                    bool laborClosed = h > 1 && bandFloorOff && coef.LaborClosedForm > 0;   // ★(spb) 案 B（係数 LaborClosedForm の注）
                     double P = m.Price, RW = m.ReservationWage;
                     int run = 0;
                     while (run < h)
@@ -156,10 +158,17 @@ public static class MarketFlow
                         double p1 = bandFloorOff && want < wrp
                             ? System.Math.Max(want, Eps)   // ★(469) 帯の下側を外す＝参照より下は漸近形を通さない（下限は Eps だけ・参照 wrp で連続＝SoftBandLn(wrp)＝wrp）
                             : SoftBandLn(want, wrp, lnFloorWage, lnCeilWage, k);   // 賃金の床/天井＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
+                        bool free1 = laborClosed && run == 1 && want < wrp && !(mwFloor > 0 && p1 < mwFloor);   // ★(spb) 1日目が参照より下で法の床に座っていない
                         if (mwFloor > 0 && p1 < mwFloor) p1 = mwFloor;   // ★(459) 法の床（帯の外・下から）
                         bool still = Same(p1, P) && Same(rw, RW);
                         P = p1; RW = rw;
                         if (still) break;
+                        if (free1 && LaborClosed(P, RW, adj, h - 1, wrp, mwFloor, coef.ReservationWageRise, coef.ReservationWageFall, out double pL))
+                        {   // ★(spb) 残りの h−1 日を閉じた式で（値段と留保賃金は同じ値に座る）
+                            P = pL; RW = pL;
+                            nClosedL++;
+                            break;
+                        }
                     }
                     m.ReservationWage = RW;
                     m.Price = P;
@@ -297,6 +306,7 @@ public static class MarketFlow
             System.Threading.Interlocked.Add(ref CntDailyStartService, nStartSvc);
             System.Threading.Interlocked.Add(ref CntDailyPredBand, nPred);
             System.Threading.Interlocked.Add(ref CntDailyLabor, nLabor);
+            System.Threading.Interlocked.Add(ref CntClosedLabor, nClosedL);
             System.Threading.Interlocked.Add(ref CntDailyHardBand, nHard);
             System.Threading.Interlocked.Add(ref CntDailyNaN, nNaN);
             System.Threading.Interlocked.Add(ref CntDailyStep1, nStep1);
@@ -368,6 +378,35 @@ public static class MarketFlow
     /// t＝ln(p/rp)/L の上で T(t)＝S(t＋c)（c＝ln(1＋adj)/L・S(x)＝x/(1＋x^k)^(1/k)・L＝その側の帯の対数）＝<see cref="PinnedClosed"/> と同じ形（役務は amp を持たない＝c は値段に依らない）。
     /// 床の側（adj＜0）は符号を返して同じ式で解く。使うのは ①値段と平行移動が参照の同じ側（u0·c≧0＝参照をまたがない＝L が変わらない）②不動点が収束し同じ側
     /// ③不動点からの対数の距離 &lt; <see cref="PinnedClosedMaxDev"/> ④2次の項 |A·e0| &lt; <paramref name="maxCurv"/>（係数 <see cref="Coefficients.ServiceClosedMaxCurv"/>）のときだけ（false＝呼び手は日次へ落とす）。状態を持たない。⚠ 否定形で判定する＝NaN は日次へ。</summary>
+    /// <summary>★(spb) 案 B 労働の閉じた式（係数 <see cref="Coefficients.LaborClosedForm"/>）。旬の1日目を日次で回した後の値段 P1・留保賃金 RW1 から、残りの n 日を進めた値段（＝留保賃金）を返す。
+    /// 参照より下（帯の床を外した側）で向きが変わらないときの日次の写像は等比：①品薄 adj≧0（Rise＝1）＝目標 P(1＋adj) が毎日留保賃金以上＝P_n＝P1·(1＋adj)^n
+    /// ②品余り adj＜0（0＜Fall＜1）＝2 日目から値段は留保賃金に座り rw←rw(1＋Fall·adj)＝P_n＝rw2·(1＋Fall·adj)^(n−1)。
+    /// 単調なので〈参照をまたがない〉〈法の床・Eps に届かない〉は端の日だけ見れば足りる。確かめられなければ false（呼び手は日次を続ける）。⚠否定形で判定する＝NaN は日次へ。状態を持たない。</summary>
+    internal static bool LaborClosed(double P1, double RW1, double adj, int n, double wrp, double mwFloor, double rise, double fall, out double P)
+    {
+        P = P1;
+        double g = 1 + adj;
+        if (!(n >= 1) || !(g > 0) || !(RW1 > Eps)) return false;
+        if (adj >= 0)
+        {
+            if (!(rise == 1.0)) return false;                       // 留保賃金がその日の目標に追いつく形だけ（Rise＜1 は留保賃金が遅れる別の形）
+            double t2 = P1 * g;
+            if (!(t2 >= RW1) || !(t2 > Eps)) return false;          // 2 日目も上げの向き（以後は P≧留保賃金・g≧1 で毎日上げ）
+            if (mwFloor > 0 && !(t2 >= mwFloor)) return false;      // 法の床に座らない（単調に上がる＝最初の日だけ見る）
+            double pe = P1 * System.Math.Pow(g, n);
+            if (!(pe < wrp)) return false;                          // 最後の日の want が参照より下（参照をまたがない）
+            P = pe; return true;
+        }
+        if (!(fall > 0 && fall < 1)) return false;
+        double t = P1 * g;
+        if (!(t < RW1)) return false;                               // 2 日目は下げの向き（以後は値段＝留保賃金・g＜1 で毎日下げ）
+        double rw2 = RW1 + (t - RW1) * fall;                        // 日次と同じ式
+        if (!(rw2 < wrp)) return false;                             // 参照より下（以後は単調に下がる）
+        double p = n == 1 ? rw2 : rw2 * System.Math.Pow(1 + fall * adj, n - 1);
+        if (!(p > Eps) || (mwFloor > 0 && !(p >= mwFloor))) return false;   // 最後の日まで Eps と法の床の上（単調に下がる＝最後の日だけ見る）
+        P = p; return true;
+    }
+
     internal static bool ServiceClosed(double P0, double rp, double adj, double lnFloor, double lnCeil, double k, int h, out double P, double maxCurv = 0.05)
     {
         P = P0;
