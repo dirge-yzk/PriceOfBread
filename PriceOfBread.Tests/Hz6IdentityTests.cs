@@ -31,17 +31,6 @@ public class Hz6IdentityTests
     }
 
     [Fact]
-    public void AtLeast_は_NaN_以外で_MathMax_とビット単位で同じ_NaN_だけ_floor_へ()
-    {
-        foreach (double floor in new[] { 0.0, 0.3, -1.0, 1e-9 })
-        {
-            foreach (double x in Grid)
-                Assert.Equal(BitConverter.DoubleToInt64Bits(Math.Max(floor, x)), BitConverter.DoubleToInt64Bits(PoliticalQuantities.AtLeast(x, floor)));
-            Assert.Equal(floor, PoliticalQuantities.AtLeast(double.NaN, floor));
-        }
-    }
-
-    [Fact]
     public void 衛生の読み口は上下水道と石鹸と電化の上乗せを0から1に収めた手書きの式と同じ()
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent()).World;
@@ -56,11 +45,14 @@ public class Hz6IdentityTests
     }
 
     [Fact]
-    public void 労働の財の述語は労働と高度労働と農業労働の3つだけ()
+    public void 労働の財の述語は労働力と高度労働力と農業労働力の3つだけ()
     {
-        var want = new[] { 84, 91, 92 };   // 番号の生の値（Catalog の定数から作らない）
-        for (int id = -2; id < Catalog.Goods.Length + 2; id++)
-            Assert.Equal(want.Contains(id), Catalog.IsLaborGood(id));
+        var want = new[] { "労働力", "高度労働力", "農業労働力" };   // 財の名前から引く（番号の定数から作らない）
+        foreach (var g in Catalog.Goods)
+            Assert.Equal(want.Contains(g.Name), Catalog.IsLaborGood(g.Id));
+        Assert.Equal(3, Catalog.Goods.Count(g => Catalog.IsLaborGood(g.Id)));
+        Assert.False(Catalog.IsLaborGood(-1));
+        Assert.False(Catalog.IsLaborGood(Catalog.Goods.Length));
     }
 
     [Fact]

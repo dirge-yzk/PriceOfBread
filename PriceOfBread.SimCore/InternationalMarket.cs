@@ -174,7 +174,7 @@ public sealed partial class InternationalMarket
 
     /// <summary>関税率（国の関税×条約港の低下を [TariffFloor, 1] に収めた値）＝清算の楔（BilateralMarket）・生産の診断（ProductionDiag）・発見の着値（Discovery＝★(169)）が同じ1本を読む
     /// （(169) に清算と診断の同じ式2本をここへ畳んだ）。</summary>
-    internal static double TariffRate(World w, Coefficients c) => PoliticalQuantities.ClampOr(w.Tariff * TreatyPortTariffScale(w), c.TariffFloor, 1, c.TariffFloor);   // NaN は床へ
+    internal static double TariffRate(World w, Coefficients c) => Math.Clamp(w.Tariff * TreatyPortTariffScale(w), c.TariffFloor, 1);
 
     /// <summary>運賃革命の倍率（A-高2・2026-08-15 に従価の運賃へも）＝1−TransportRevolutionMax×clamp01((前線の技術水準−Onset)÷Span)・TransportRevolutionMax≦0 は1。
     /// 清算（BilateralMarket の運賃の倍率）と発見の着値（Discovery.WorldMarket＝★(169)）が同じ1本を読む（(169) に清算の式をここへ移した）。</summary>

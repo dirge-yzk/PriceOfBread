@@ -11,7 +11,7 @@ MultiNationSim.cs	double paidState = InternationalMarket.PaySales((w, null), r, 
 Simulation.cs	double paid = InternationalMarket.PaySales((null, null), r, metal, want - impPart, World, minted: true);	造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)	
 Transport.cs	InternationalMarket.Procure(w, r, fuelG, want, buyer);	汽船の燃料の買い付け(商人→生産者の持分・Procure)	
 Transport.cs	double buy = InternationalMarket.Procure(w, r, gi, want, investor);	船と線路の買い付け(投資家→生産者の持分・Procure)	
-BilateralMarket.cs	comm = World.Transfer((null, null), (wS, [rS.Pops[rS.MerchantPopIndex]], null), revX[t] * c.MerchantTradeMargin.Value, TreasuryCat.OtherIn, income: true);	商人の交易マージン(世界の外→商人)	
+BilateralMarket.cs	comm = World.Transfer((null, null), (wS, [merchComm], null), revX[t] * c.MerchantTradeMargin.Value, TreasuryCat.OtherIn, income: true);	商人の交易マージン(世界の外→商人)	
 BilateralMarket.cs	World.Transfer((null, null), (nations[i].World, shipOwners[i], null), amt, TreasuryCat.OtherIn, income: true);	船主の運賃(世界の外→船主)	
 BilateralMarket.cs	if (portRecv[t] > 0 && portOwner[t] is { } po) World.Transfer((null, null), (nations[tr[t].nation].World, [po], null), portRecv[t], TreasuryCat.OtherIn, income: true);	港の所有者の収入(世界の外→港主)	
 BilateralMarket.cs	if (premRecv[i] > 0 && underwriters[i] is { } uw) World.Transfer((null, null), (nations[i].World, uw, null), premRecv[i], TreasuryCat.OtherIn, income: true);	保険の引受人の保険料(世界の外→引受人)	
