@@ -112,3 +112,14 @@
 [11] 手順（この前半）
   ①この文書を最初のコミット ②段0＝番人の試験 `PlaceAdditionTests`（M1〜M3 と座標の規則・突然変異でコペンハーゲンを元に戻すと赤）と道具 `scripts/instruments/pv2_512/placemask.py` ③形＝部品ごとのコミット ④焼き直し（`scripts/instruments/hz4_490/bake.sh`・`converged=true` を確かめる）
   ⑤煙試験（canary `selfplay 1 80`・新しい 6 州が盤面にいる）・savetest・影響する試験（GeographyCoverageTests・LandmassTests・ColonyPromotionTests・OpeningBakeTests・WriterRatchetTests・InstrumentsTests）・フルスイート ⑥実装ログ (512)・00一覧・CURRENT。
+
+[追記 1]（2026-10-23・前半の終わり・腕の前＝後半の反証役が [0]〜[11] と合わせて読む）
+  ①コミットの一覧：事前登録 a6f4dcff／段0 d7261211（番人 3 本＋placemask.py）／形①〜⑦ 0694fd62（コペンハーゲン）・bd3c2f22（コルシカ）・f2e9bfd9（カナリア）・31c850f8（モルッカ）・d7711f7b（バハマ）・8aa3fb75（パラワン）・1bf37904（チロエ）／
+     焼き直し 77136a13／試験の追随 44012d8a／docs d9d00796（＋この追記）。部品ごとに分けてあるので M1〜M5 が外れた場所は `git revert <その形のコミット>` で落とせる（opening_bake.json は焼き直しのコミットを最後にもう一度焼き直す）。
+  ②足したのは 6・動かしたのは 1（[0]③の確定）。恒等：腕 A は無い（旗で戻せる形が無い）。段 0 の木は SimCore/Runner を変えていない。
+  ③**[6] への観測量の追加（記録）**：コルシカの民族の項。仏だけの盤面（`DiscontentSplitTests` の `Board`）でコルシカの POP の闘争度の目標が +0.196（`MinorityMilitancy×(1−CoreEthnicShare)`・culture コルシカが仏の主流と違うため・サルデーニャとカタルーニャが同じ形で既に動いている前例）。
+     腕 B の 10 種で〈コルシカの州の反乱・分離独立・空洞化〉の件数を記録する。外れたときの第一手＝culture を フランス へ 1 語直す（形②の world.json の 1 行）。それでも空洞化が出れば形②のコミットを落とす。
+  ④形⑨で数を直した試験（合流で他の線が同じ表を触るなら足し直す）：WriterRatchetTests の宣言の表 5 行（建設 865・清算の買い手行 5,295,444・着値の充填 33,154,111・移民 4,369,684・不満度を読む 291,450）／GoodIdGuardTests の賦存の表（8 財）／
+     InstrumentsTests の網羅の種（1789→1790・1806→1807）／CapacityAnchorTests（英 31454.5・32 州・仏 14 と 8）／PathGraphTests（成分の上限 54）／RuleSharesFormTests（植民地の行 104）／DiscontentSplitTests（民族の項を 0 に置く）。
+  ⑤`.cost` は未取得＝[9] の 4.0 秒＋揺れ 3 秒は見積りのまま。後半が腕 B の `.cost` で確かめる（判定は推定の計算量 ≦ 248.5 秒）。ラチェットの 40 四半期の件数は +2.1〜+4.3% 増えた（領域 +2.0%・移民の組は領域の 2 乗）＝見積りと整合。
+  ⑥前半で回した確かめ：フルスイート 1678 合格・0 失敗（1 スキップは既存）・FullLength 3 合格・savetest OK・leakhunt 保存則違反なし・突然変異 6 本赤・カナリー 2 本完走（形の木は軌道が動く）。
