@@ -201,9 +201,9 @@ public class FoodLedgerTests
         Assert.NotNull(d);
         double expectMarket = 0;
         foreach (var p in r.Pops)
-            for (int i = 0; i < 5; i++) expectMarket += p.Size * E[i] * Math.Max(0.0, 1.0 - p.Subsistence * Math.Min(1.0, F));
+            for (int i = 0; i < 5; i++) expectMarket += p.Size * E[i] * Math.Max(0.0, 1.0 - p.Subsistence * F);
         Assert.True(expectMarket > 0);
-        Assert.Equal(expectMarket, d!.MarketNeed, 9);            // 市場に出す必要量＝必要量×max(0, 1−自給率×min(1, 収穫係数))（独立に組んだ値）
+        Assert.Equal(expectMarket, d!.MarketNeed, 9);            // 市場に出す必要量＝必要量×max(0, 1−自給率×収穫係数)（独立に組んだ値・追記 2 で豊作も対称）
         Assert.Equal(d.MarketNeed, d.Desired, 9);                // 予算の前の欲しい量の和＝市場に出す必要量の和（配り直しが保存する）
         Assert.True(d.DesiredOld < d.MarketNeed * 0.95, $"前提：旧の式は挟みで縮む {d.DesiredOld}/{d.MarketNeed}");
         // ②だけ（③0）なら Σ 必要量×(1−自給率)
@@ -215,7 +215,7 @@ public class FoodLedgerTests
     }
 
     [Fact]
-    public void T4_凶作で市場の主食の需要が増え_平年と豊作では旧と変わらない()
+    public void T4_凶作で市場の主食の需要が増え_豊作で減り_平年では旧と変わらない()
     {
         double Market(double harvest, int shortfall)
         {
@@ -229,7 +229,8 @@ public class FoodLedgerTests
         double bad = Market(0.7, 1), normal = Market(1.0, 1), good = Market(1.3, 1);
         Assert.True(bad > oldMarket * 1.04, $"凶作で市場の需要が増えない {bad} vs {oldMarket}");
         Assert.Equal(oldMarket, normal, 9);   // 平年は旧と同じ
-        Assert.Equal(oldMarket, good, 9);     // 豊作は買う量を減らさない（min(1, 収穫係数)）
+        Assert.True(good < oldMarket * 0.96, $"豊作で市場の需要が減らない {good} vs {oldMarket}");   // 追記 2：豊作は自給の産出が増える＝市場の需要は減る（決済の段の sub と同じ向き）
+        Assert.Equal(oldMarket - rr.Pops.Sum(p => p.Size * E.Sum() * p.Subsistence * 0.3), good, 9);   // 手の算術：自給の増え分 (1.3−1.0) だけ減る
         // 凶作の増え方の手の算術：Σ Size×E×自給率×(1−0.7) だけ増える
         var (_, r7) = Month(c => Flags(c, 0, 0, 1), harvest: 0.7, ins: true);
         double extra = r7.Pops.Sum(p => p.Size * E.Sum() * p.Subsistence * 0.3);

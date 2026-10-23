@@ -11,18 +11,20 @@ namespace PriceOfBread.SimCore;
 //   demandPerMonth（予算の後の買いたい量の和）／subPerMonth（自給で満たした量の和）／oldMetPerMonth（旧の台帳の FoodMet の和）／carryPerMonth（旗①が足した量の和）／
 //   carryPopK（足した POP の人口）／fillOld・fillNew（旧と新の台帳の充足の人口加重平均・FoodNeed が正の POP）／belowOldK・belowNewK（充足が 0.8 未満の人口）／
 //   harvestMean（主食の必要量で重み付けした自給の収穫係数）／subsistenceMean（自給率の FoodNeed 加重）／clampBindShare（旧の挟み〔PriceFactorMin／Max〕が縛っていた主食の必要量の重みの割合）。
+//   追記 2 の列：weatherHarvestMean（HarvestFactor×WeatherBandFactor×作物健全度の必要量加重＝土地係数を除いた天候の凶作）／landFactor（州の土地係数＝慢性の混み）／
+//   overNeedPopK（FoodMet が FoodNeed を 1e-9 超えて上回った POP の人口＝台帳の不変条件 S1 の観測・充足の Clamp01 が隠す違反を数える）／flags（旗①＝1・②＝2・③＝4 の和＝腕の読み分け）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（月ごとの値は読まない）／clampBindShare は相対価格の冪だけで挟みを判定する（StapleElasticityZero＝0 の腕では自己価格弾力の項を含まない近似）／
 //   助走の月と死んだ州は直近の値が残る（活きている州だけを出す）／旗が 0 の腕では行が無い。
 public static partial class Instruments
 {
     internal const string FdHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\tstapleNeedPerMonth\tmarketNeedPerMonth\tdesiredPerMonth\tdesiredOldPerMonth\tdemandPerMonth\tsubPerMonth\toldMetPerMonth\tcarryPerMonth\tcarryPopK\t"
-        + "fillOld\tfillNew\tbelowOldK\tbelowNewK\tharvestMean\tsubsistenceMean\tclampBindShare";
+        + "fillOld\tfillNew\tbelowOldK\tbelowNewK\tharvestMean\tsubsistenceMean\tclampBindShare\tweatherHarvestMean\tlandFactor\toverNeedPopK\tflags";
 
     /// <summary>主食の台帳の蓄え（シミュの状態ではない・セーブに載らない・ConditionalWeakTable の先例）。書くのは EconomyStep の INS=1 の月だけ・読むのは FdFold だけ。</summary>
     internal sealed class FdDiag
     {
-        public double MarketNeed, Desired, DesiredOld, Demand, Sub, OldMet, Carry, CarryPopK, StapleNeed, PopK, FillOldW, FillNewW, FillPopK, BelowOldK, BelowNewK, SubsW;
-        public double HarvestMean = double.NaN, ClampBindShare = double.NaN;
+        public double MarketNeed, Desired, DesiredOld, Demand, Sub, OldMet, Carry, CarryPopK, StapleNeed, PopK, FillOldW, FillNewW, FillPopK, BelowOldK, BelowNewK, SubsW, OverNeedPopK;
+        public double HarvestMean = double.NaN, ClampBindShare = double.NaN, WeatherHarvestMean = double.NaN, LandFactor = double.NaN;
         public bool Written;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, FdDiag> FdDiags = new();
@@ -32,8 +34,8 @@ public static partial class Instruments
     internal static FdDiag FdBegin(Region r)
     {
         var d = FdDiags.GetOrCreateValue(r);
-        d.MarketNeed = d.Desired = d.DesiredOld = d.Demand = d.Sub = d.OldMet = d.Carry = d.CarryPopK = d.StapleNeed = d.PopK = d.FillOldW = d.FillNewW = d.FillPopK = d.BelowOldK = d.BelowNewK = d.SubsW = 0;
-        d.HarvestMean = d.ClampBindShare = double.NaN; d.Written = true;
+        d.MarketNeed = d.Desired = d.DesiredOld = d.Demand = d.Sub = d.OldMet = d.Carry = d.CarryPopK = d.StapleNeed = d.PopK = d.FillOldW = d.FillNewW = d.FillPopK = d.BelowOldK = d.BelowNewK = d.SubsW = d.OverNeedPopK = 0;
+        d.HarvestMean = d.ClampBindShare = d.WeatherHarvestMean = d.LandFactor = double.NaN; d.Written = true;
         return d;
     }
 
@@ -42,6 +44,7 @@ public static partial class Instruments
     {
         d.PopK += p.Size; d.StapleNeed += p.FoodNeed; d.OldMet += oldMet; d.Carry += p.FoodMet - oldMet; d.SubsW += p.Subsistence * p.FoodNeed;
         if (p.FoodMet - oldMet > 0) d.CarryPopK += p.Size;
+        if (p.FoodMet > p.FoodNeed * (1 + 1e-9)) d.OverNeedPopK += p.Size;   // 追記 2：台帳の不変条件 S1（FoodMet≦FoodNeed）の観測。下の Clamp01 は違反を隠すのでここで数える
         if (p.FoodNeed > 1e-9)
         {
             double fo = PoliticalQuantities.Clamp01(oldMet / p.FoodNeed), fn = PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed);
@@ -66,7 +69,8 @@ public static partial class Instruments
             sk.Fd ??= Open("fd", seed);
             if (!sk.FdHeader) { sk.Fd.WriteLine(FdHeaderText); sk.FdHeader = true; }
             sk.Fd.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), F(d.PopK), F(d.StapleNeed), F(d.MarketNeed), F(d.Desired), F(d.DesiredOld), F(d.Demand), F(d.Sub), F(d.OldMet), F(d.Carry), F(d.CarryPopK),
-                F(Div(d.FillOldW, d.FillPopK)), F(Div(d.FillNewW, d.FillPopK)), F(d.BelowOldK), F(d.BelowNewK), F(d.HarvestMean), F(Div(d.SubsW, d.StapleNeed)), F(d.ClampBindShare)));
+                F(Div(d.FillOldW, d.FillPopK)), F(Div(d.FillNewW, d.FillPopK)), F(d.BelowOldK), F(d.BelowNewK), F(d.HarvestMean), F(Div(d.SubsW, d.StapleNeed)), F(d.ClampBindShare), F(d.WeatherHarvestMean), F(d.LandFactor), F(d.OverNeedPopK),
+                I((c.StapleLedgerSum > 0 ? 1 : 0) + (c.StapleDemandRebalance > 0 ? 2 : 0) + (c.HarvestShortfallToMarket > 0 ? 4 : 0))));
         }
     }
 }

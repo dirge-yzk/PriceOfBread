@@ -60,7 +60,7 @@ public static class EconomyStep
         => ovf > 0 && dfc > Eps * foodNeed ? (ovf < dfc ? ovf : dfc) : 0.0;
 
     /// <summary>★(504) 食料の台帳を主食の和へ（事前登録 measurements/fd504_20261023_prereg.txt の[2]）：消費の財のループの前に 1 回。旗①②③のどれかが正の月だけ呼ぶ（全て 0 の月は呼ばない＝厳密恒等）。
-    /// 主食の財ごとの相対価格の冪 subst と自給の係数 self（旗③が正なら min(1, 収穫係数)・0 なら 1）を作業配列に置き、旗②が正なら POP ごとの配り直しの係数 norm＝S0／S1 を求める
+    /// 主食の財ごとの相対価格の冪 subst と自給の係数 self（旗③が正なら 収穫係数〔下は 0〕・0 なら 1）を作業配列に置き、旗②が正なら POP ごとの配り直しの係数 norm＝S0／S1 を求める
     /// （S0＝Σ_g e_g×max(0, 1−自給率×self_g)＝市場に出す必要量の和・S1＝同じ和に subst_g を掛けた和）。S1 が正でない・有限でないときは norm＝1（否定形）。
     /// POP ごとの過分・不足の作業配列（旗①）はここでゼロにする。計器（fdd≠null）には州の収穫係数の平均と旧の挟みが縛っていた重みの割合を置く。</summary>
     private static void StapleFoodPrepare(Region region, Coefficients coef, Scratch scratch, double[] demandGate, double stapleMeanRatio, double regionLandFactor, int ng,
@@ -75,19 +75,19 @@ public static class EconomyStep
         if (scratch.StapleIds.Length < n) { scratch.StapleIds = new int[n]; scratch.StapleE = new double[n]; }
         double[] subst = scratch.StapleSubst, self = scratch.StapleSelf, es = scratch.StapleE; int[] ids = scratch.StapleIds;
         int k = 0;
-        double eSum = 0, hSum = 0, bindSum = 0;
+        double eSum = 0, hSum = 0, hwSum = 0, bindSum = 0;
         foreach (var g in region.Goods)
         {
             if (g.Tier != GoodTier.Staple || g.Id >= ng) continue;
             int id = g.Id;
             double f = StapleHarvestFactor(region, id, regionLandFactor);
-            self[id] = shortfall ? (f < 1.0 ? Math.Max(0.0, f) : 1.0) : 1.0;   // 大小の比較（否定形でない）＝NaN は 1（旧）へ倒れる
+            self[id] = shortfall ? (double.IsFinite(f) ? Math.Max(0.0, f) : 1.0) : 1.0;   // 追記 2：豊作も凶作も対称（自給の産出 sub＝必要量×自給率×収穫係数 と同じ向き）。非有限は 1（旧）へ倒れる
             subst[id] = CrossSubstitution(Math.Max(region.Markets[id].Price, Eps), g.RefPrice, stapleMeanRatio, coef.CrossElasticity);
             double e = (g.BaseNeed + Habit.StockOf(region, Habit.Of(coef, id))) * demandGate[id];   // 消費の財のループの effBaseNeed と同じ式（主食に医薬・住居・動物性の補正は無い）
             ids[k] = id; es[k] = e; k++;
             if (fdd is not null)
             {
-                eSum += e; hSum += e * f;
+                eSum += e; hSum += e * f; hwSum += e * StapleHarvestFactor(region, id, 1.0);
                 if (subst[id] < coef.PriceFactorMin || subst[id] > coef.PriceFactorMax) bindSum += e;
             }
         }
@@ -102,7 +102,7 @@ public static class EconomyStep
                 norm[i] = s1 > 0 && double.IsFinite(r) ? r : 1.0;
             }
         }
-        if (fdd is not null) { fdd.HarvestMean = eSum > 0 ? hSum / eSum : double.NaN; fdd.ClampBindShare = eSum > 0 ? bindSum / eSum : double.NaN; }
+        if (fdd is not null) { fdd.HarvestMean = eSum > 0 ? hSum / eSum : double.NaN; fdd.WeatherHarvestMean = eSum > 0 ? hwSum / eSum : double.NaN; fdd.LandFactor = regionLandFactor; fdd.ClampBindShare = eSum > 0 ? bindSum / eSum : double.NaN; }
     }
 
     [System.ThreadStatic] private static Scratch? _scratch;
