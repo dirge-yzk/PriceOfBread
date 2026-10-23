@@ -1,0 +1,92 @@
+seeds 10
+Z_total {'Z': 28, 'ZA0': 7, 'ZA<1.4': 11, 'ZA<12.6': 9, 'ZA>=12.6': 1}
+Z_per_seed [0, 7, 7, 5, 0, 3, 0, 3, 1, 2]
+first_openers {'n': 430, 'techNeedOK': 430}
+followers {'n': 8294, 'needsTrans': 8113}
+follower_lag_quarters {'median': 9.0, 'p25': 4, 'p75': 36, 'share_le_0': 0.0, 'share_le_1': 0.08102242585001206}
+top10_dispersion {'snapshots': 1264, 'share_need_gt_tech': 0.4462025316455696, 'mean_sd_tech': 2.6532000999478162, 'mean_sd_need': 4.11498701494951}
+steam_follower_open_quarters {'n': 605, 'median': 4, 'p25': 3, 'p75': 4}
+first_opener_qing_share 0.2255813953488372
+H1 1102
+rows_with_ge6_followers 155
+burst_median 0.3
+burst_share_ge_0.5 0.10967741935483871
+rows_with_ge8_in_one_quarter 109
+width_p90_p10_median_quarters 7
+spill {'E_tech_need_alone': 731, 'E_needed_contact': 894, 'E_needed_spill_only': 4815, 'E_needed_both': 2889, 'retire_steel': {'転炉鋼>小銃・他の道で開いた': {'n': 215, 'old_before_pos': 212, 'old_after_zero': 212, 'new_after_over_before_median': 450962.3002301136, 'total_pairs': 212, 'total_after_over_before_median': 0.1239415094425303}, '転炉鋼>小銃・広がりで開いた': {'n': 396, 'old_before_pos': 380, 'old_after_zero': 380, 'new_after_over_before_median': 13.555180015383414, 'total_pairs': 380, 'total_after_over_before_median': 0.46185001945564363}, '転炉鋼>火砲・他の道で開いた': {'n': 215, 'old_before_pos': 215, 'old_after_zero': 215, 'new_after_over_before_median': None, 'total_pairs': 215, 'total_after_over_before_median': 1.4181947625513885e-05}, '転炉鋼>火砲・広がりで開いた': {'n': 396, 'old_before_pos': 384, 'old_after_zero': 384, 'new_after_over_before_median': None, 'total_pairs': 384, 'total_after_over_before_median': 2.858613535515446e-07}, '転炉鋼>蒸気機関・他の道で開いた': {'n': 215, 'old_before_pos': 211, 'old_after_zero': 211, 'new_after_over_before_median': 301917.34553239343, 'total_pairs': 211, 'total_after_over_before_median': 0.7845018427771926}, '転炉鋼>蒸気機関・広がりで開いた': {'n': 396, 'old_before_pos': 351, 'old_after_zero': 351, 'new_after_over_before_median': 134483.78806093757, 'total_pairs': 351, 'total_after_over_before_median': 0.02029732426796752}}, 'E': 9329, 'E_opened_needing_spill': 7704, 'E_no_holders': 430, 'E_no_holders_spill_nonzero': 0, 'G7_census_obs': 1858679, 'G7_extreme_share_all': 0.9399654270586798, 'G7_obs_unknown_with_holders': 87335, 'G7_extreme_share_unknown_with_holders': 0.0038701551497108836, 'known_obs': 425790, 'known_and_output_positive_share': 0.7939406749806243}
+--- 比べる側 D:/PoB_work/keep_508/m508_ins ---
+seeds 10
+Z_total {'Z': 623, 'ZA<1.4': 304, 'ZA0': 158, 'ZA<12.6': 144, 'ZA>=12.6': 17}
+Z_per_seed [106, 74, 78, 0, 0, 227, 0, 67, 0, 71]
+first_openers {'n': 293, 'techNeedOK': 293}
+followers {'n': 3797, 'needsTrans': 3392}
+follower_lag_quarters {'median': 27, 'p25': 5, 'p75': 134, 'share_le_0': 0.0, 'share_le_1': 0.055043455359494335}
+top10_dispersion {'snapshots': 1335, 'share_need_gt_tech': 0.5438202247191011, 'mean_sd_tech': 3.0778908952626876, 'mean_sd_need': 5.437739382044643}
+steam_follower_open_quarters {'n': 565, 'median': 19, 'p25': 3, 'p75': 243}
+first_opener_qing_share 0.26621160409556316
+H1 2460
+rows_with_ge6_followers 132
+burst_median 0.13653308480894688
+burst_share_ge_0.5 0.0
+rows_with_ge8_in_one_quarter 18
+width_p90_p10_median_quarters 200.0
+--- 比べる側 D:/PoB_work/keep_508/n1 ---
+seeds 10
+Z_total {'Z': 762, 'ZA<1.4': 397, 'ZA0': 173, 'ZA<12.6': 178, 'ZA>=12.6': 14}
+Z_per_seed [80, 61, 59, 71, 94, 87, 67, 96, 0, 147]
+first_openers {'n': 377, 'techNeedOK': 377}
+followers {'n': 3686, 'needsTrans': 3349}
+follower_lag_quarters {'median': 25.0, 'p25': 4, 'p75': 123, 'share_le_0': 0.0, 'share_le_1': 0.07080846446011937}
+top10_dispersion {'snapshots': 1379, 'share_need_gt_tech': 0.5380710659898477, 'mean_sd_tech': 2.9974590910525403, 'mean_sd_need': 5.287815237154917}
+steam_follower_open_quarters {'n': 576, 'median': 19.0, 'p25': 3, 'p75': 288}
+first_opener_qing_share 0.21485411140583555
+H1 3395
+rows_with_ge6_followers 126
+burst_median 0.15625
+burst_share_ge_0.5 0.0
+rows_with_ge8_in_one_quarter 26
+width_p90_p10_median_quarters 171.5
+--- 比べる側 D:/PoB_work/keep_508/n2 ---
+seeds 10
+Z_total {'Z': 602, 'ZA0': 110, 'ZA<1.4': 313, 'ZA<12.6': 147, 'ZA>=12.6': 32}
+Z_per_seed [0, 79, 0, 82, 0, 56, 198, 117, 70, 0]
+first_openers {'n': 358, 'techNeedOK': 358}
+followers {'n': 3548, 'needsTrans': 3121}
+follower_lag_quarters {'median': 24.0, 'p25': 5, 'p75': 115, 'share_le_0': 0.0, 'share_le_1': 0.06820744081172492}
+top10_dispersion {'snapshots': 1293, 'share_need_gt_tech': 0.5382830626450116, 'mean_sd_tech': 2.957559131005932, 'mean_sd_need': 5.118010889642498}
+steam_follower_open_quarters {'n': 567, 'median': 19, 'p25': 3, 'p75': 236}
+first_opener_qing_share 0.2206703910614525
+H1 2323
+rows_with_ge6_followers 130
+burst_median 0.14285714285714285
+burst_share_ge_0.5 0.015384615384615385
+rows_with_ge8_in_one_quarter 19
+width_p90_p10_median_quarters 136.5
+--- 腕 A D:/PoB_work/ul_510/out_A_5/ins ---
+seeds 5
+Z_total {'Z': 258, 'ZA<1.4': 133, 'ZA0': 62, 'ZA<12.6': 58, 'ZA>=12.6': 5}
+Z_per_seed [106, 74, 78, 0, 0]
+first_openers {'n': 132, 'techNeedOK': 132}
+followers {'n': 1841, 'needsTrans': 1633}
+follower_lag_quarters {'median': 24, 'p25': 4, 'p75': 122, 'share_le_0': 0.0, 'share_le_1': 0.053775122216186855}
+top10_dispersion {'snapshots': 686, 'share_need_gt_tech': 0.5306122448979592, 'mean_sd_tech': 3.3147549857324137, 'mean_sd_need': 5.494465332380292}
+steam_follower_open_quarters {'n': 288, 'median': 18.0, 'p25': 3, 'p75': 293}
+first_opener_qing_share 0.2803030303030303
+H1 898
+rows_with_ge6_followers 61
+burst_median 0.14285714285714285
+burst_share_ge_0.5 0.0
+rows_with_ge8_in_one_quarter 8
+width_p90_p10_median_quarters 204
+spill {'E_tech_need_alone': 472, 'E_needed_contact': 1789, 'E_needed_spill_only': 0, 'E_needed_both': 0, 'retire_steel': {'転炉鋼>小銃・他の道で開いた': {'n': 257, 'old_before_pos': 257, 'old_after_zero': 257, 'new_after_over_before_median': 93.06271895346423, 'total_pairs': 257, 'total_after_over_before_median': 0.014072418170964357}, '転炉鋼>火砲・他の道で開いた': {'n': 257, 'old_before_pos': 252, 'old_after_zero': 252, 'new_after_over_before_median': 142.93367567213684, 'total_pairs': 252, 'total_after_over_before_median': 6.628347176410556e-07}, '転炉鋼>蒸気機関・他の道で開いた': {'n': 257, 'old_before_pos': 157, 'old_after_zero': 157, 'new_after_over_before_median': 242537.38524369133, 'total_pairs': 157, 'total_after_over_before_median': 0.040981859597515956}}, 'E': 2261, 'E_opened_needing_spill': 0, 'E_no_holders': 2261, 'E_no_holders_spill_nonzero': 0, 'G7_census_obs': 917907, 'G7_extreme_share_all': 1.0, 'G7_obs_unknown_with_holders': 0, 'G7_extreme_share_unknown_with_holders': None, 'known_obs': 97112, 'known_and_output_positive_share': 0.8121653348710767}
+=== 門の判定（腕＝D:/PoB_work/ul_510/out_B_10/ins）===
+PASS G1 Z・A=0 の群・0<A<1.4 の群が比べる側（基線・N1・N2）の最小より小さい {'Z': (28, 602), 'ZA0': (7, 110), 'ZA<1.4': (11, 304)}
+PASS G1b H1（親の産業が立つのに最後まで開かない）が比べる側の最小より小さい (1102, 2323)
+PASS G2 最初の開きは技術力＋必要性≧100 (430, 430)
+PASS G3 遅れの中央値≧2 かつ 1 四半期以内＜50% (9.0, 0.08102242585001206)
+PASS G4 持つ国が 0 の開きで広がりの項が正の件数＝0 (0, 430)
+PASS G5 解禁した国のうち新しいレシピの産出が正の割合＜1（知っていて使わない国がいる） 0.7939406749806243
+PASS G5 記録：腕 B の割合が腕 A より 0.2 以上高くない（高ければ〈使われ方の偏り〉と記録） (0.7939406749806243, 0.8121653348710767)
+FAIL G8 広がりで転炉鋼を開いた国の 小銃・大砲・蒸気機関の産出の和（後÷前）の財ごとの中央値の最小≧0.5 (1115, [0.46185001945564363, 2.858613535515446e-07, 0.02029732426796752])
+PASS G7 記録：広がりが 0 か満点の 0.9 以上のどちらかである割合（持つ国が居る未解禁の観測）＜70% 0.0038701551497108836
+FAIL G6 一斉に開かない（一斉度の中央値＜0.5 かつ 幅の中央値≧8 四半期） (0.3, 7, 'base', [0.13653308480894688, 0.15625, 0.14285714285714285])

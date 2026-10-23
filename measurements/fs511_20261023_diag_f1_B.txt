@@ -1,0 +1,7 @@
+対象の州 621（凶作の行 5 行以上）：旗なし(fillBase)で凶作に反応した州 265（0.427）・旗あり(fillNew) 281（0.452）
+   Colonial：州 353・fillBase で反応 109・fillNew で反応 144
+   Core：州 107・fillBase で反応 81・fillNew で反応 80
+   Integrated：州 161・fillBase で反応 75・fillNew で反応 57
+凶作の行の fillBase 中央値 0.9630／それ以外 0.9837・fillNew 中央値 凶作の行 0.9822／それ以外 1.0000
+凶作の行の平均 fillBase 0.9252／それ以外 0.9589・平均 fillNew 凶作の行 0.9575／それ以外 0.9873
+不足の割合（unmet÷need）の中央値 凶作の行 0.0801／それ以外 0.0377

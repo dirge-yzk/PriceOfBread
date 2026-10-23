@@ -1,0 +1,8 @@
+(511) 線 fs 突然変異の記録（番人 FarmIdleOwnFoodTests 16 本〔Theory 展開後〕・事前登録 T8）。EconomyStep.cs を 1 か所だけ書き換え→`dotnet test --filter FarmIdleOwnFoodTests`→git checkout で戻す。全て赤。
+m1 足す量の min を max に（OwnPlotFromIdle）            → 赤 9 本（T1・T2×4・T3・T4・T6・計器）
+m2 idle から自給率を引かない（二重計上）                 → 赤 7 本（T2×4・T3・T4・T6）
+m3 Output／Capacity を LastSold／LastProduced に（指示の量＝0 に張り付く形）→ 赤 6 本（T2×4・T3・T7）
+m4 idle を全ての POP に立てる（農民だけの門を外す）       → 初回は生き残った（T5 の非農民が全員買えて足す項が 0 だった）＝T5 の盤面を〈非農民も貯蓄 0〉に直して赤 1 本（T5）にした
+m5 足す量の上限（買えなかった量）を外す                   → 赤 2 本（T1・T6）
+自己申告：m4 の初回の生き残りは、番人の盤面が非農民を買える状態に置いていたため（空振りの試験）。T5 に前提（買えない非農民が 1 人以上）を足して直した。
+m6 IdleFarmShare が Output÷Capacity を無視する（idle＝1−自給率）→ 追記 2 の T1b を含む 8 本が赤（T1b・T2×4・T3・T4・T6）。2026-10-23 後半の担当。
