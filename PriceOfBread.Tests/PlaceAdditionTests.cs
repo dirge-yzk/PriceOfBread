@@ -87,6 +87,7 @@ public class PlaceAdditionTests
 
     private static readonly NewPlace[] Added =
     [
+        new NewPlace("アジャクシオ", "state", "フランス", 41.95, 8.75, "corsica", 0.0046, 0, [11, 16, 19], "コルシカ"),
         // @ADDED
     ];
 
@@ -130,31 +131,43 @@ public class PlaceAdditionTests
         }
     }
 
-    /// <summary>盤面に一意にあり、開幕の人口が表どおり。国ごとの人口の和は〈7 階級＋植民地の popK〉に一致（州の share の和が 1・植民地は国の外から足した分だけ増える）。</summary>
+    /// <summary>盤面に一意にあり、開幕の人口が表どおり。州は〈本国の州の人口の和×share〉・植民地は popK。本国の州の人口の和は、州を足しても変わらない
+    /// （基準＝州の分割も植民地も無い同じ国〔Provinces=[]・InitialColonies=[]〕の人口。州の share の和が 1 なら一致）。国の外から足すのは植民地の popK だけ。</summary>
     [Fact]
-    public void 足した場所は盤面に一意にあり人口が表どおり_国の人口の和が保たれる()
+    public void 足した場所は盤面に一意にあり人口が表どおり_本国の人口の和は州を足しても変わらない()
     {
         var nations = Added.Select(a => a.Nation).Distinct().ToArray();
         if (nations.Length == 0) return;
-        var cfgs = nations.Select(WorldData.ByName).ToArray();
-        var sim = new MultiNationSim(cfgs, seed: 83) { DiplomacyFrozen = true };
-        foreach (var cfg in cfgs)
+        foreach (var name in nations)
         {
-            var w = sim.Nations.Single(x => x.World.SelfPower!.BaseName == cfg.Name).World;
-            double classes = cfg.Nobility + cfg.Peasant + cfg.Worker + cfg.Bourgeois + cfg.Professional + cfg.Merchant + cfg.Artisan;
-            double expected = classes + cfg.InitialColonies.Sum(c => c.PopK);
-            double actual = w.Regions.Sum(r => r.SumPopulation());
-            Assert.Equal(expected, actual, expected * 1e-9);
+            var cfg = WorldData.ByName(name);
+            var flat = cfg.ShallowClone(); flat.Provinces = []; flat.InitialColonies = [];
+            double reference = new MultiNationSim([flat], seed: 83) { DiplomacyFrozen = true }.Nations[0].World.Regions.Sum(r => r.SumPopulation());
+            var w = new MultiNationSim([cfg], seed: 83) { DiplomacyFrozen = true }.Nations[0].World;
+            var home = cfg.Provinces.Select(p => p.City).ToHashSet();
+            double homeSum = w.Regions.Where(r => home.Contains(r.Name)).Sum(r => r.SumPopulation());
+            Assert.Equal(reference, homeSum, reference * 1e-9);
             Assert.Equal(1.0, cfg.Provinces.Sum(p => p.Share), 1e-9);
-            foreach (var a in Added.Where(x => x.Nation == cfg.Name))
+            Assert.Equal(reference + cfg.InitialColonies.Sum(c => c.PopK), w.Regions.Sum(r => r.SumPopulation()), reference * 1e-9);
+            foreach (var a in Added.Where(x => x.Nation == name))
             {
                 var rs = w.Regions.Where(r => r.Name == a.Name).ToArray();
                 Assert.Single(rs);
-                double want = a.Kind == "state" ? classes * a.Share : a.PopK;
+                double want = a.Kind == "state" ? reference * a.Share : a.PopK;
                 Assert.Equal(want, rs[0].SumPopulation(), want * 1e-9);
                 if (a.Kind == "colony") Assert.Equal(RegionTier.Colonial, rs[0].Tier);
                 if (a.Culture.Length > 0) Assert.Equal(a.Culture, rs[0].Culture);
             }
         }
+    }
+
+    /// <summary>コルシカの文化の札はラテンの群（サルデーニャ・カタルーニャの前例）。群に無い札は独自の群＝仏の自州が仏と〈穏やかな反目〉になる。</summary>
+    [Fact]
+    public void コルシカの文化の札はラテンの群に入る()
+    {
+        Assert.Equal("ラテン", Diplomacy.CultureGroup("コルシカ"));
+        Assert.Equal(Diplomacy.CultureGroup("フランス"), Diplomacy.CultureGroup("コルシカ"));
+        Assert.Equal(Diplomacy.CultureGroup("サルデーニャ"), Diplomacy.CultureGroup("コルシカ"));
+        Assert.NotEqual(Diplomacy.CultureGroup("ドイツ"), Diplomacy.CultureGroup("コルシカ"));   // 対照：他の群は混ざらない
     }
 }
