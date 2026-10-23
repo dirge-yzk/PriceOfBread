@@ -167,7 +167,7 @@ public partial class MainWindow : Window
             var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
             foreach (var c in page.GetVisualDescendants().OfType<Control>())
             {
-                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsVisible) continue;
+                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳んだ欄の中身は測り直されない＝前に配った大きさが残る（見えていない物は数えない）
                 if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).OfType<ScrollViewer>().Any()) continue;   // 欄の中の流れの中身は対象外
                 var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), paneView);
                 if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
@@ -379,6 +379,7 @@ public partial class MainWindow : Window
             BootLog.Write($"uishot: 配置の往復 {(back.ToJson() == lay.ToJson() ? "一致" : "不一致")}・形 {back.Shape}・席 {string.Join(",", back.Seats)}・割合 {back.MainRatio:F2}");
             lay.Reset();
             await Task.Delay(300);
+            await ShootPagesFiscalPopulationDiscovery(dir, gvm, gameView, lay);   // 段3：財政と貨幣・人口・発見の 3 ページを左右 2・4 分割で撮る（Views/MainWindow.UiShot.P2.cs）
             // 地図が枠に載っていない間の動き（枠から外れた地図に触れない）
             BootLog.Write($"uishot: 地図が枠に無い間 Loaded={gameView.MapView.IsLoaded}・既定の配置の見えているもの={string.Join(",", lay.Shown())}");
             // 緊張モーダル（2026-08-10）：ポップアップ類は無人撮影の穴だった（発火待ちでは撮れない）。
@@ -407,7 +408,7 @@ public partial class MainWindow : Window
             // 発見のページの行数（旧は発見パネル）
             lay.SetShape(SplitShape.One); lay.Open(Slot.Discovery, 0);
             await Task.Delay(600);
-            BootLog.Write($"uishot: 発見のページ 行数={gvm.DiscoveryRows.Count}");
+            BootLog.Write($"uishot: 発見のページ 行数={gvm.DiscoveryTable.Rows.Count}");
             lay.SetShape(SplitShape.One); lay.Open(Slot.Production, 0);
             await Task.Delay(900);
             Capture(dir, $"{k++:D2}_生産タブ.png");

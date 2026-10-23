@@ -184,8 +184,6 @@ public partial class GameViewModel
             return sum <= 1e-9 ? "" : $"改革派 {reform:F1}\n急進派 {radical:F1}\n治安維持力 {coerce:F1}";
         }
     }
-    // 兌換カバー率の内訳（比率＝基礎貨幣÷広義貨幣）。金融テキストのホバー。
-    public string CoverTip => _player.BroadMoney.Value <= 1e-9 ? "" : $"基礎貨幣 {Fmt.Money(_player.BaseMoney.Value)}\n広義貨幣 {Fmt.Money(_player.BroadMoney.Value)}\n維持線 {_player.Coef.GoldCoverMin.Value:P0}";
     // 戦力余剰・好戦世論の内訳（World.WarFever の6項を再構成＋膨張意欲の今四半期増分）。ヘッダー左のホバー。
     public string ExpansionTip
     {
@@ -355,37 +353,16 @@ public partial class GameViewModel
         => new StatTerm { Text = PlayText.SignedLine(delta, reason, fmt), Brush = delta >= 0 ? TermPlus : TermMinus };
     private static StatTerm Neutral(string text) => new StatTerm { Text = text, Brush = TermNeutral };
 
-    /// <summary>行政力ホバー（作者指示2026-08-15）：説明API内訳の先頭に行政費（財政タブのレバー＝目標/実効）を添える
-    /// ＝「行政費→行政財の購入→充足」が内訳の官僚制項に流れ込む関係を、レバーの現在値ごと1画面で読めるように。</summary>
-    private List<StatTerm> AdminTerms()
-    {
-        var terms = ExplainTerms("AdminEfficiency", v => v.ToString("P0"));
-        terms.Insert(0, Neutral($"行政費　目標 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"));
-        return terms;
-    }
-
     // === VM側の内訳ビルダー（SimCore非改変・確定値を横で読み直して構築＝ビット恒等自明）===
-    // ⚠★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：この節の内訳はヘッダーのホバーから外れ、**移送先のタブが呼ぶ**。
-    //   式は**ここにあるものをそのまま呼ぶ**こと（タブ側に第二の式を書き写さない＝同じ量を2つの名前で呼ばない）。
-    //   結線済みの呼び手（2026-09-23に grep で確認・1本も死蔵になっていない）：
-    //     CreditTerms            → GameViewModel.Fiscal.cs の ForeignInTip（財政タブ）
-    //     AdminTerms             → GameViewModel.Fiscal.cs の AdminTip（財政タブ）
+    // ⚠★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：この節の内訳はヘッダーのホバーから外れ、**移送先のページが呼ぶ**。
+    //   式は**ここにあるものをそのまま呼ぶ**こと（ページ側に第二の式を書き写さない＝同じ量を2つの名前で呼ばない）。
+    //   結線済みの呼び手（(501) 段3 の後に grep で確認）：
     //     IndustrializationTerms → GameViewModel.Production.cs の ProdRegionHeadTip（生産タブ・州別上位8）
-    //     PopulationTerms        → GameViewModel.Pop.cs（POPタブ）
-    //     LiteracyClassTerms / SatisfactionClassTerms / MilitancyClassTerms → GameViewModel.Pop.cs（POPタブ・同じ1行で3本）
+    //     PopulationTerms        → GameViewModel.Pop.cs（人口のページの規模の吹き出し）
     //     ExplainTerms("Legitimacy") / ("NationalConsciousness") → GameViewModel.Politics.cs（政治タブ）
+    //   行政力と対外信用の内訳（旧 AdminTerms・CreditTerms）と階級の層ごとの識字率・満足度・闘争度（旧 LiteracyClassTerms ほか）は、本体の目録（SimCore/Display の FiscalTables・PopTables）が組む。
     //   ⚠消す前に必ず grep で呼び手を数えること（この一覧を信じて呼び手0と決めない）。
     // 汚職＝要因の実値を中立表示（行政効率と清廉度が高いほど上限から削られる）。符号分解は誤読を招いたため撤去（2026-07-16）。
-    /// <summary>対外信用の内訳（2026-08-13・作者指摘「信用が非常に大切というのがUIからわからない」）。
-    /// 信用は4項の**積**なので、どれが足を引っ張っているかは積の各項を並べれば一目で分かる。
-    /// 説明文は書かない＝35%という数字が原因を名指しする（既存の文言規律）。</summary>
-    private List<StatTerm> CreditTerms() =>
-    [
-        Neutral($"国債残高　{_player.CreditDebtTerm:P0}"),
-        Neutral($"兌換　{_player.CreditGoldTerm:P0}"),
-        Neutral($"為替　{_player.CreditFxTerm:P0}"),
-        Neutral($"国債の利回り　{_player.CreditBondTerm:P0}"),
-    ];
 
     /// <summary>工業化の内訳＝州別の上位（2026-08-13）。スコア最大の重み(×9)なのに自国の全体値がUIのどこにも無かった。</summary>
     private List<StatTerm> IndustrializationTerms()
@@ -399,17 +376,6 @@ public partial class GameViewModel
     }
 
     // 技術力のホバーは撤去（2026-07-16ユーザー指示＝かっこ・内訳とも不要）。
-    // 識字率＝階級ごとの識字率そのもの（上流≈100%・下流が低い等）。人口比の寄与でなく各層の実際の値を出す（2026-07-16修正）。
-    private List<StatTerm> LiteracyClassTerms()
-        => PlayText.ClassLayerMeans(_player, p => p.Literacy).Select(x => Neutral($"{x.Layer}　{x.Mean:P0}")).ToList();   // ★(435) 3 層の分け方と平均は SimCore の 1 本（Runner の報告と同じ）
-
-    // 闘争度＝階級ごとの平均闘争度そのもの（Pop.Militancy＝闘争度のストック）。
-    // ⚠不満度は別の導出量（Politics.Discontent）＝2026-09-23にヘッダーの独立した項目になった（闘争度の内訳ではない・同じ数を2つの名前で呼ばない）。
-    private List<StatTerm> MilitancyClassTerms()
-        => PlayText.ClassLayerMeans(_player, p => p.Militancy).Select(x => Neutral($"{x.Layer}　{x.Mean:P0}")).ToList();
-    // 満足度＝階級ごとの平均満足度そのもの（どの階級が不満か）。人口比の寄与でなく各層の実際の値を出す（2026-07-16修正）。
-    private List<StatTerm> SatisfactionClassTerms()
-        => PlayText.ClassLayerMeans(_player, p => p.Satisfaction).Select(x => Neutral($"{x.Layer}　{x.Mean:P0}")).ToList();
     // 人口＝保存則（TotalPopulation=初期+PopulationDelta）で3項＋今四半期の移民の流入/流出（要素ごと）。
     private List<StatTerm> PopulationTerms()
     {

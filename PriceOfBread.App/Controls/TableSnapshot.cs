@@ -10,16 +10,26 @@ namespace PriceOfBread.App.Controls;
 public sealed record ColumnSpec(string Key, string Name, ColumnKind Kind, Unit? Unit, double MinWidth, double MaxWidth);
 
 /// <summary>セル 1 つ。<see cref="Text"/>＝画面の文字／<see cref="Sort"/>＝並べ替えの値（数の列は数・文字の列は NaN）／<see cref="Extra"/>＝段・動詞・半円の列の中身（<see cref="StageCell"/> ほか）。</summary>
-public sealed record CellView(string Text, double Sort, object? Extra = null);
+public sealed record CellView(string Text, double Sort, object? Extra = null, string? Tip = null);
 
-/// <summary>行 1 本。<see cref="Key"/> は据え置き同期の鍵（値だけ流す）。</summary>
-public sealed record RowView(string Key, string Name, string? Group, IReadOnlyList<CellView> Cells);
+/// <summary>行 1 本。<see cref="Key"/> は据え置き同期の鍵（値だけ流す）。<see cref="GroupTip"/>＝群の見出しにカーソルを合わせた時の文。</summary>
+public sealed record RowView(string Key, string Name, string? Group, IReadOnlyList<CellView> Cells, string? GroupTip = null);
 
 /// <summary>共通の表へ渡す物（本体が渡した <see cref="TableData"/> を、単位から決まる書式で文字にした結果）。
 /// Avalonia に依らない＝xUnit で読める。表を作り直さず、鍵で値だけ流す（SyncRows の規律）。</summary>
 public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<ColumnSpec> Columns, IReadOnlyList<RowView> Rows)
 {
     public static TableSnapshot Empty { get; } = new("", "", [], []);
+
+    /// <summary>ある列の全ての行に同じ吹き出しの文を付けた写し（本体の目録が持たない App の側の文を載せる口。既に文を持つセルは置き換えない）。</summary>
+    public TableSnapshot WithColumnTip(string columnKey, string? tip)
+    {
+        int ci = -1;
+        for (int i = 0; i < Columns.Count; i++) if (Columns[i].Key == columnKey) { ci = i; break; }
+        if (ci < 0 || string.IsNullOrEmpty(tip)) return this;
+        var rows = Rows.Select(r => r with { Cells = r.Cells.Select((c, i) => i == ci && c.Tip is null ? c with { Tip = tip } : c).ToList() }).ToList();
+        return this with { Rows = rows };
+    }
 
     /// <summary>単位から決まる最小幅（FontSmall=12px で半角の数字 約 6.65px・全角 12px）。</summary>
     public static double MinWidthOf(Unit unit) => unit switch
@@ -61,7 +71,9 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
                 object? v = i < r.Cells.Count ? r.Cells[i] : null;
                 cells[i] = v switch
                 {
-                    NumberCell n => new CellView(Fmt.Of(cols[i].Unit ?? Unit.Count, n.Value) + (n.Note ?? ""), n.Value),
+                    NumberCell { Blank: true } => new CellView("", double.NaN),
+                    NumberCell n => new CellView(Fmt.Of(cols[i].Unit ?? Unit.Count, n.Value) + (n.Note ?? ""), n.Value, null, n.Tip),
+                    TextCell tc => new CellView(tc.Text, double.NaN, null, tc.Tip),
                     string s => new CellView(s, double.NaN),
                     StageCell st => new CellView(st.Current - st.LevelBase >= 0 && st.Current - st.LevelBase < st.Labels.Count ? st.Labels[st.Current - st.LevelBase] : "", st.Current, st),
                     VerbCell vb => new CellView(vb.Name, double.NaN, vb),
@@ -69,7 +81,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
                     _ => new CellView("", double.NaN),
                 };
             }
-            rows.Add(new RowView(r.Key, r.Name, r.Group, cells));
+            rows.Add(new RowView(r.Key, r.Name, r.Group, cells, r.GroupTip));
         }
         return new TableSnapshot(data.Key, data.Name, cols, rows);
     }

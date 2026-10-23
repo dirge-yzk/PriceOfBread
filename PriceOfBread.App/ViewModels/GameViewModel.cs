@@ -100,18 +100,7 @@ public partial class GameViewModel : ViewModelBase
     //   中の収支の桁が動いて読み位置がずれる（＝指摘が消えない）。それぞれが自前の最小幅を持つ。
     [ObservableProperty] private string _treasuryText = "";
     [ObservableProperty] private string _balanceText = "";
-    // 金融セクション（財政タブ）：1本の連結文字列でなく「ラベル｜値」行に分解（銀行なし＝与信残高/兌換系は「—」）。
-    // 金利doc B1（2026-07-30）：金利だけが他11レバーと違い「目標／実効」の1行ペアを持たず、実効が別行に散っていた＝ペアへ統一。
-    // 併せて年率換算（World.LoanRatePerYear）を1行で出す＝無次元レバーの目盛だけでは何%の金利なのかが盤面に無かった。
-    // ★2026-09-26：換算の係数が0のあいだ（今の既定）は行ごと隠す（LoanRateVisible）＝点火まで 0.0% を出さない。
-    [ObservableProperty] private string _interestLeverLine = "";
-    [ObservableProperty] private string _loanRateText = "";
-    // ★2026-09-03（キューA-03／出典 トリアージ 2-A 3-6）：慢性赤字の分子（硬性ゲート LossFinancedRate の材料）と家計債務が
-    //   プレイヤーから完全に見えなかった＝ガラス箱の規律。金融ブロックに2行だけ足す（データのみ・説明文なし）。
-    [ObservableProperty] private string _householdLoanText = "";
-    [ObservableProperty] private string _lossFinancedText = "";
-    // ⚠撤去2026-08-23（読み手ゼロ）: CreditText ＝与信残高はヘッダー金融ホバー（Header.cs の FinanceTerms）が表示。axaml 束縛なし。
-    [ObservableProperty] private string _coverText = "";
+    // 金融（物価・為替・金利・貸出金利・損失の負債化・家計債務・兌換カバー率）は財政と貨幣のページの金融の表（本体の目録 FiscalTables.Finance）が渡す。ここには持たない。
     [ObservableProperty] private string _playerName = "";   // 旧DebtText/DebtVisible（未バインド）は削除＝財政劣化の連鎖はDebtLineへ統合（監査2026-07-12 死14）
     // ★2026-09-23（作者指示「文字数固定」）：地位（列強12位／準列強／中堅／弱小）を国名から割る。
     //   動くのは**地位の側**（順位・ランクは世界の側で変わる）＝ここだけ固定幅にすれば桁ズレは止まる。
@@ -354,7 +343,7 @@ public partial class GameViewModel : ViewModelBase
     private void OnTick(object? sender, EventArgs e)
     {
         ConsumeZoom();   // ホイールが止まった後に1回だけ地図を再構築（ズームの軽量化）
-        if (!Playing) { _tickWatch.Restart(); if (TabEcon) UpdateForecast(); return; }   // 停止中も財政タブ表示中はスライダーの予想値が即応（閉じている間は走らせない＝全州×全pop走査の間引き）
+        if (!Playing) { _tickWatch.Restart(); return; }   // 停止中の財政の予測は、段の押し釦を押した直後に表を読み直す（FiscalTables・毎 tick は組み直さない）
         // ★実測の経過時間で進める（2026-08-03・作者報告「速度3でも時間の進みがかなり遅いが、地図を動かすと時間がちゃんと進む」）。
         //   旧＝「tick は 50ms ごとに来る」前提の固定加算（×0.05）。DispatcherTimer は描画や入力が無いと間引かれるので、
         //   放置中は tick が疎になり**ゲーム内時間そのものが減速**していた。地図を動かすとディスパッチャが活性化して
@@ -424,7 +413,6 @@ public partial class GameViewModel : ViewModelBase
             else { var swR = System.Diagnostics.Stopwatch.StartNew(); RefreshDaily(); PerfDailyMs += swR.Elapsed.TotalMilliseconds; }   // 日次＝価格のみ（物価・国庫・生産詳細＝MarketFlow の層・価格そのものは旬の最終日に動く）
         }
         UpdateDate();           // 毎tick 日付を進める（経過日だけ安く更新＝UIスレッドを塞がず入力が通る）
-        if (TabEcon) UpdateForecast();   // 予想値の毎tick更新は財政タブ表示中のみ（閉じている間は月次/四半期の Refresh 内呼び出しが最新化）
         FlushPending();         // 報せの配達は毎日判定（遠い事件ほど遅れて到着＝距離分のラグ）
     }
 
@@ -433,7 +421,6 @@ public partial class GameViewModel : ViewModelBase
     {
         TreasuryText = $"国庫:{Fmt.Money(_player.Treasury.Value)}";
         BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(_monthDelta))}/月";
-        OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));   // 物価・為替（計算プロパティ）を再読込
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }
 
@@ -446,44 +433,6 @@ public partial class GameViewModel : ViewModelBase
 
     // 行コレクションの据え置き同期（2026-07-19）：キー集合が同じなら既存行へ値だけ流す（並び替えは Move＝コンテナ温存）。
     // 集合が変わった時だけ作り直す。毎月の Clear+再構築は行の Button/ツールチップを破棄し「時間を止めないとボタンが押せない」の主因だった。
-    /// <summary>
-    /// 文化・宗教の構成（#62）：州ラベル(Region.Culture/Religion)を州人口で加重し、シェア降順の表にする。
-    /// World.ReligiousUnity/EthnicUnity は最大シェアだけのスカラーなので、ここでその内訳を開く。読むだけ＝SimCore不変。
-    /// </summary>
-    private void BuildComposition()
-    {
-        var rel = new Dictionary<string, double>();
-        var cul = new Dictionary<string, double>();
-        double total = 0;
-        foreach (var r in _player.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            double p = r.SumPopulation();
-            if (p <= 0) continue;
-            total += p;
-            if (!string.IsNullOrEmpty(r.Religion)) rel[r.Religion] = rel.GetValueOrDefault(r.Religion) + p;
-            if (!string.IsNullOrEmpty(r.Culture)) cul[r.Culture] = cul.GetValueOrDefault(r.Culture) + p;
-        }
-        static List<CompositionRow> Rows(Dictionary<string, double> src, double tot)
-        {
-            var list = new List<CompositionRow>();
-            if (tot <= 1e-9) return list;
-            foreach (var kv in src.OrderByDescending(kv => kv.Value))
-                list.Add(new CompositionRow { Name = kv.Key, Size = Fmt.PopFmtK(kv.Value), Share = (kv.Value / tot).ToString("P0") });   // POPタブはk統一（項10）
-            return list;
-        }
-        SyncRows(ReligionRows, Rows(rel, total), r => r.Name, (t, s) => t.CopyFrom(s));
-        SyncRows(CultureRows, Rows(cul, total), r => r.Name, (t, s) => t.CopyFrom(s));
-        // 02断線走査2026-07-28：児童労働率の可視化＝倍率排除④の創発量（家計困窮×合法度×就学）。法の2値でなく実態が数年かけて落ちる様子＝工場監督官の物語
-        double clSum = 0, clSize = 0;
-        foreach (var r in _player.Regions)
-            foreach (var p in r.Pops)
-                if (!p.IsSoldier && p.AgeShare(10, 15) > 1e-9) { clSum += p.ChildLaborRate.Value * p.Size; clSize += p.Size; }   // 働きうる子供（10〜14歳・年齢の層）のいる POP
-        // ★2026-08-02（作者指示）：「児童労働率」→**児童の就業率**（何の率かが名前で分かる）。合法度は撤去＝
-        //   法の現在値は法律タブの「児童労働」行（禁止/合法）が持っており、ここに出すと同じことを2箇所で言う。
-        ChildLaborLine = clSize > 1e-9 ? $"児童の就業率 {clSum / clSize:P0}" : "";
-        OnPropertyChanged(nameof(ChildLaborLine));
-    }
 
     /// <param name="reorder">既存行を desired の並びへ Move するか。false＝**画面上の並びを動かさない**（値だけキーで突き合わせて流す）。
     /// クリックできる行（生産タブの州別＝着工/売却ボタン）は、押下と離上の間に行が動くと Avalonia が Click を捨てるので false で呼ぶ（2026-08-09）。</param>
