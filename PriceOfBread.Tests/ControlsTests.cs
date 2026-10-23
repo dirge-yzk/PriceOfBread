@@ -98,6 +98,22 @@ public class ControlsTests
     }
 
     [Fact]
+    public void 動詞の振り分け_確かめの文を持つ動詞は確かめの口を通らずには発動しない()
+    {
+        int fired = 0; VerbCell? asked = null;
+        var plain = new VerbCell("補助金", true, () => fired++);
+        var risky = new VerbCell("侵略", true, () => fired++, "目標を侵略する");
+        TableView.DispatchVerb(plain, null);                       // 確かめの文が無い物は口が無くても発動
+        Assert.Equal(1, fired);
+        TableView.DispatchVerb(risky, null);                       // 確かめの文があるのに口が無い＝発動しない（確かめ無しの発動を許さない）
+        Assert.Equal(1, fired);
+        TableView.DispatchVerb(risky, v => asked = v);             // 口があれば口へ渡すだけ（発動は口の先が決める）
+        Assert.Equal(1, fired); Assert.Same(risky, asked);
+        TableView.DispatchVerb(plain, v => asked = v);             // 確かめの文が無い物は口を通らない
+        Assert.Equal(2, fired); Assert.Same(risky, asked);
+    }
+
+    [Fact]
     public void 半円の扇形のPathデータ_旧の関数と同じ_ほぼ0は空_ほぼ全部は半円で閉じる()
     {
         Assert.Equal("", HalfPie.Slice(35, 35, 34, 0.5, 0.5005));

@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Controls;
@@ -28,6 +29,22 @@ public sealed class TableView : UserControl
     public bool Filterable { get => GetValue(FilterableProperty); set => SetValue(FilterableProperty, value); }
     /// <summary>中身（行）だけを欄の中で流すか。偽なら行の数だけ高くなる（外側の流れに任せる）。</summary>
     public bool InnerScroll { get => GetValue(InnerScrollProperty); set => SetValue(InnerScrollProperty, value); }
+
+    /// <summary>確かめの窓を出す口。確かめの文（<see cref="VerbCell.ConfirmText"/>）を持つ動詞は、押したとき直接は呼ばずにこの口へ渡す（設計 §6-3「押す前に確かめの窓を出す物は出す」）。
+    /// 表ごとの口が無ければ <see cref="DefaultConfirm"/>。どちらも無ければ何もしない（確かめ無しの発動を許さない側へ倒す）。</summary>
+    public Action<VerbCell>? ConfirmVerb { get; set; }
+
+    /// <summary>表ごとの口が無いときの既定の口。盤面の画面（GameView）が、ゲームの確かめの窓へ繋ぐ。</summary>
+    public static Action<VerbCell>? DefaultConfirm { get; set; }
+
+    /// <summary>動詞の押下の振り分け（Avalonia に依らない＝番人から直接呼べる）。確かめの文があれば <paramref name="confirm"/> へ渡して終わり・無ければそのまま発動。
+    /// 確かめの文があるのに口が無いときは発動しない（BootLog に残す）。</summary>
+    public static void DispatchVerb(VerbCell vb, Action<VerbCell>? confirm)
+    {
+        if (string.IsNullOrEmpty(vb.ConfirmText)) { vb.Invoke(); return; }
+        if (confirm is null) { BootLog.Write($"動詞「{vb.Name}」は確かめの文を持つが確かめの口が無い＝発動しない"); return; }
+        confirm(vb);
+    }
 
     private readonly Grid _root = new() { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
     private readonly TextBox _filterBox = new() { Watermark = "", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
@@ -256,7 +273,8 @@ public sealed class TableView : UserControl
 
         private static void OnVerbClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Button { Tag: VerbCell vb } && vb.Enabled) vb.Invoke();
+            if (sender is Button { Tag: VerbCell vb } btn && vb.Enabled)
+                DispatchVerb(vb, (btn.FindAncestorOfType<TableView>()?.ConfirmVerb) ?? DefaultConfirm);
         }
 
         private static void FillStages(WrapPanel wp, StageCell st)

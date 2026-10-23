@@ -69,4 +69,16 @@ public partial class GameViewModel
 
     [RelayCommand]
     private void ConfirmCancel() { _confirmDo = null; ConfirmOpen = false; }
+
+    /// <summary>共通の表の動詞（<see cref="PriceOfBread.SimCore.Display.VerbCell"/>）で確かめの文を持つ物の口。既存の確かめの窓に、題＝動詞の名前・本文＝確かめの文を出し、実行で動詞の中身を呼ぶ
+    /// （設計 §6-3）。<see cref="Controls.TableView.DefaultConfirm"/> へ GameView が繋ぐ。</summary>
+    public void ConfirmVerb(PriceOfBread.SimCore.Display.VerbCell vb)
+    {
+        ConfirmTitle = vb.Name;
+        ConfirmBody = vb.ConfirmText ?? "";
+        ConfirmAcceptLabel = vb.Name;
+        ConfirmCan = vb.Enabled;
+        _confirmDo = vb.Invoke;
+        ConfirmOpen = true;
+    }
 }
