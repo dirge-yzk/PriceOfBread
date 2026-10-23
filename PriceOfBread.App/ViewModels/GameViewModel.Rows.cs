@@ -1,4 +1,4 @@
-﻿// GameViewModel.Rows.cs ＝ 各タブの行オブジェクト（NationCard/PopRow/WarRow/HeaderStat…）と地図のDTO。GameViewModel の外側の型。
+﻿// GameViewModel.Rows.cs ＝ 各ページの行オブジェクト（PopRow/WarRow/HeaderStat…）と地図のDTO。GameViewModel の外側の型。
 // ★2026-08-10のUI分割：GameViewModel.cs の末尾にあった型を**そのまま**移した（宣言は1文字も変えていない）。
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,50 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace PriceOfBread.App.ViewModels;
-
-// 外交タブの1行。**可変プロパティ＝毎月の更新は既存行へ値だけ流す**（SyncRows＝行の Button を作り直さない・2026-07-19）。
-// キー＝PowerName（変名・建国・消滅・順位入替の集合変化時のみ作り直し）。コマンドと定数文言は init のまま。
-public sealed partial class NationCard : ObservableObject
-{
-    [ObservableProperty] private string _order = "";       // 順位（スコア降順・1始まり）
-    [ObservableProperty] private string _name = "";
-    public string PowerName { get; init; } = "";    // Power.Name（アクションのCommandParameter＝政体国号でなく生の国名）
-    // ★ランク列は廃止（作者指示2026-08-11）＝順位とランクが食い違って見えるのを、**ランクで区切って並べる**ことで解消した。
-    //   見出し行（---列強--- 等）は同じ一覧に混ぜて持つ＝行の並びと区切りが1つのコレクションで決まる（別リストだと順序がずれうる）。
-    public string Header { get; init; } = "";       // 空＝ふつうの国の行／非空＝見出し行
-    public bool IsHeader => Header.Length > 0;
-    public bool IsRow => Header.Length == 0;
-    [ObservableProperty] private string _tension = "";      // 緊張（％表示／自国は—）
-    [ObservableProperty] private string _detail = "";       // ホバー詳細（スコア内訳＋緊張の要因）
-    [ObservableProperty] private IBrush _color = Brushes.Gray;
-    [ObservableProperty] private string _badge = "";        // 関係バッジ（戦争中/属国/宗主/同盟）。空＝なし
-    [ObservableProperty] private IBrush _badgeBrush = Brushes.Gray;
-    public bool HasBadge => Badge.Length > 0;
-    partial void OnBadgeChanged(string value) => OnPropertyChanged(nameof(HasBadge));
-    [ObservableProperty] private IBrush _rowBrush = Brushes.Transparent;   // 自国行のハイライト背景
-    // 外交アクションの可否（弱小への侵略＝旧「植民地化」と1本化・2026-08-23）。同盟(CanAlly/AllyLabel/AllyCmd)は2026-08-10に撤去＝自動化済みで未バインドだった
-    [ObservableProperty] private bool _showInvade;           // 侵略の表示（標的が弱小なら抽象標的でも実在国でも）
-    [ObservableProperty] private bool _canInvade;
-    [ObservableProperty] private bool _showUnif;           // P4 統一戦争（変体の必要州保有国のみ・主フラグONのゲームのみ）
-    [ObservableProperty] private bool _canUnif;
-    [ObservableProperty] private string? _unifTip;
-    public IRelayCommand? UnifCmd { get; init; }
-    // ボタン文言（クールダウン残りのみ付記）。不可の理由はツールチップ（グレーアウト時）。
-    public string InvadeLabel { get; init; } = "侵略";   // ★2026-08-23作者裁定：弱小への動詞は1つ（実効値は Refresh 側で入れる）
-    [ObservableProperty] private string? _invadeTip;
-    [ObservableProperty] private IBrush _tensionBrush = Brushes.Gray;   // 緊張の色（青→黄→赤）
-    // 左クリックメニューのコマンド（VMのコマンド実体を行に埋める＝ポップアップでも確実にバインドされる）
-    public IRelayCommand? InvadeCmd { get; init; }
-    public IRelayCommand? CenterCmd { get; init; }   // 行クリック＝その国の中心へカメラ移動（メニュー表示と同時）
-    public void CopyFrom(NationCard s)
-    {
-        Order = s.Order; Name = s.Name; Tension = s.Tension; Detail = s.Detail; Color = s.Color;
-        Badge = s.Badge; BadgeBrush = s.BadgeBrush; RowBrush = s.RowBrush;
-        ShowInvade = s.ShowInvade; CanInvade = s.CanInvade;
-        ShowUnif = s.ShowUnif; CanUnif = s.CanUnif; UnifTip = s.UnifTip;
-        InvadeTip = s.InvadeTip; TensionBrush = s.TensionBrush;
-    }
-}
 
 // 戦争タブの1行（自国が交戦中の1戦争＝戦勝点・犠牲者・戦費・厭戦）。キー＝敵Power.Id（変名しても行を差し替えない）。
 /// <summary>他国の戦争への調停（列強の介入・プレイヤー側 2026-09-06）。キー＝"A|B"（Power.Id）。</summary>
@@ -95,79 +51,6 @@ public sealed class PastWarRow
     public string Detail { get; init; } = "";   // 期間・犠牲者・戦費
 }
 
-/// <summary>文化・宗教の構成1行（#62）：ラベル名・人口・全州人口に対するシェア。</summary>
-public sealed partial class CompositionRow : ObservableObject
-{
-    [ObservableProperty] private string _name = "";
-    [ObservableProperty] private string _size = "";
-    [ObservableProperty] private string _share = "";
-    public void CopyFrom(CompositionRow s) { Name = s.Name; Size = s.Size; Share = s.Share; }
-}
-
-/// <summary>POP行の下に横並びになる特権の1語（作者指示2026-09-07(7)(8)）。
-/// 「なし」も同じ1語＝その階級が1つも特権を持たないときだけ墨になる（＝法律タブの段と同じ2状態の見せ方）。
-/// 押せない＝ボタンにしない（2026-08-15作者フィードバック(8)）。値は法・政体・工業化から導く観測量＝新しい状態は持たない。</summary>
-public sealed partial class PrivilegeChip : ObservableObject
-{
-    public string Name { get; init; } = "";   // キー（「なし」または特権名＝Privileges.Names）
-    [ObservableProperty] private bool _held;
-    [ObservableProperty] private string? _tip;   // null＝ツールチップなし（空文字だと空の吹き出し）
-    public bool NotHeld => !Held;
-    partial void OnHeldChanged(bool value) => OnPropertyChanged(nameof(NotHeld));
-}
-
-public sealed partial class PopRow : ObservableObject
-{
-    public string Class { get; init; } = "";   // キー（階級名＝一意）
-    public int ClassId { get; init; }
-    // ★規模＝「5,430K(12%)」＋増減の矢印（作者指示2026-08-16(2)）。旧「増減」列は撤去し向きだけをこのセルの末尾へ畳んだ。
-    //   矢印は四半期境界でのみ確定（GameViewModel.Fiscal.cs の _prevQuarterStamp と同型）＝↑増/→横ばい/↓減・未確定（開始直後）は空文字。
-    //   増=緑/減=赤/横ばい=既定色（TermPlus/TermMinus/TermNeutral＝既存パレット）。矢印だけ別TextBlockなのは色を分けるため。
-    [ObservableProperty] private string _size = "";
-    [ObservableProperty] private string _sizeArrow = "";
-    [ObservableProperty] private IBrush _sizeArrowBrush = Brushes.Gray;
-    // ★失業者は独立した列（作者フィードバック2026-08-10）。旧は規模のセルに「（失業者:5,579K）」と同居しており、
-    //   規模と失業者のどちらの桁を読んでいるのか列で判別できず、階級間の比較もできなかった。
-    //   ★表記は規模と同型「543K(10%)」＋矢印（作者指示2026-08-16(3)）＝()内はその階級の失業率。
-    [ObservableProperty] private string _unemployed = "";
-    [ObservableProperty] private string _unemployedArrow = "";
-    [ObservableProperty] private IBrush _unemployedArrowBrush = Brushes.Gray;
-    [ObservableProperty] private string _satisfaction = "";
-    [ObservableProperty] private string _militancy = "";
-    [ObservableProperty] private string _literacy = "";
-    // ★政治の内訳は「なし/保守/自由/社会」の4区分（作者指示2026-08-16(1)）＝合計100%（旧「政治意識」列は「なし」の裏返しなので撤去）。
-    //   なし＝政治意識のない人数 Size×(1−Consciousness)／族＝Size×Consciousness を IdeologyShares の族比で割ったもの。
-    [ObservableProperty] private string _leanNone = "";
-    [ObservableProperty] private string _leanConservative = "";
-    [ObservableProperty] private string _leanLiberal = "";
-    [ObservableProperty] private string _leanSocialist = "";
-    [ObservableProperty] private string _tip = "";   // 階級名セルのホバー詳細（所得・貯蓄・人口構成・居住・地代）＝2026-08-15に行全体→階級名セルへ
-    // ★セル別ホバー（作者指示2026-08-15(2)）：null＝ツールチップなし（空文字だと空の吹き出しが出る＝MapLabelと同じ罠）。
-    [ObservableProperty] private string? _satTip;    // 満足度セル＝主食/主食以外の充足
-    [ObservableProperty] private string? _milTip;    // 闘争度セル＝要因の内訳（0.5%超のみ降順）
-    // ★特権（作者指示2026-09-07(7)(8)）：その階級が持ちうる特権を1行に横並び（先頭は必ず「なし」）。
-    //   並びは階級で決まり走行中に変わらない（Privileges.Enabled は係数だけで決まる）＝毎月は Held/Tip だけを流す。
-    public ObservableCollection<PrivilegeChip> Privileges { get; } = new();
-    public void CopyFrom(PopRow s)
-    {
-        Size = s.Size; SizeArrow = s.SizeArrow; SizeArrowBrush = s.SizeArrowBrush;
-        Unemployed = s.Unemployed; UnemployedArrow = s.UnemployedArrow; UnemployedArrowBrush = s.UnemployedArrowBrush;
-        Satisfaction = s.Satisfaction; Militancy = s.Militancy; Literacy = s.Literacy;
-        LeanNone = s.LeanNone; LeanConservative = s.LeanConservative; LeanLiberal = s.LeanLiberal; LeanSocialist = s.LeanSocialist;
-        Tip = s.Tip; SatTip = s.SatTip; MilTip = s.MilTip;
-        // 特権：語の並びが同じなら値だけ流す（行と同じ据え置き同期）。並びが変わった場合だけ作り直す。
-        if (Privileges.Count == s.Privileges.Count)
-        {
-            for (int i = 0; i < Privileges.Count; i++)
-            {
-                if (Privileges[i].Name != s.Privileges[i].Name) { Privileges.Clear(); break; }
-                Privileges[i].Held = s.Privileges[i].Held; Privileges[i].Tip = s.Privileges[i].Tip;
-            }
-        }
-        else Privileges.Clear();
-        if (Privileges.Count == 0) foreach (var c in s.Privileges) Privileges.Add(c);
-    }
-}
 
 /// <summary>XAMLの小さな変換（2026-08-04）：与党を太字に・議席率をバー幅に。値だけを写す＝規律準拠。</summary>
 public static class Conv
@@ -275,20 +158,21 @@ public sealed partial class ArmyNeedRow : ObservableObject
     public void CopyFrom(ArmyNeedRow s) { Name = s.Name; Need = s.Need; Have = s.Have; Fill = s.Fill; FillV = s.FillV; FillBrush = s.FillBrush; Tip = s.Tip; Cost = s.Cost; }
 }
 
-// 出来事の1行：アイコン＋本文＋深刻度の色。Mine＝自国が当事者（フィルタ「自国のみ」の判定）。
+// 出来事の1行：アイコン＋本文＋深刻度の色。Mine＝自国が当事者（年表の絞り「自国」の判定）・Great＝列強が関わる（絞り「列強」の判定）。
 public sealed class AlertRow
 {
     public string Icon { get; }
     public string Text { get; }
     public IBrush Color { get; }
     public bool Mine { get; }
-    public AlertRow(string icon, string text, string colorHex, bool mine = false)
+    public bool Great { get; }
+    public AlertRow(string icon, string text, string colorHex, bool mine = false, bool great = false)
     {
         // alerts.csv の color 列が不正（綴り誤り・桁数不足・空）でも落ちない契約を守る＝TryParse で失敗時は中立グレーへ（Make の string.Format 保護と対称）。
         Icon = icon; Text = text;
-        Color = new SolidColorBrush(Avalonia.Media.Color.TryParse(colorHex, out var _col) ? _col : Avalonia.Media.Color.Parse("#808080")); Mine = mine;
+        Color = new SolidColorBrush(Avalonia.Media.Color.TryParse(colorHex, out var _col) ? _col : Avalonia.Media.Color.Parse("#808080")); Mine = mine; Great = great;
     }
-    public AlertRow(string icon, string text, IBrush color, bool mine = false) { Icon = icon; Text = text; Color = color; Mine = mine; }
+    public AlertRow(string icon, string text, IBrush color, bool mine = false, bool great = false) { Icon = icon; Text = text; Color = color; Mine = mine; Great = great; }
 }
 
 // ヘッダー2行目の国家指標1項目。HasGraph の項目はホバーで年次推移の折れ線を出す（データのみ・説明文なし）。
@@ -312,12 +196,14 @@ public sealed partial class HeaderStat : ObservableObject
     public global::Avalonia.Points SafePoints => Points ?? new();
     partial void OnPointsChanged(global::Avalonia.Points value) => OnPropertyChanged(nameof(SafePoints));
     [ObservableProperty] private string _rangeText = "";
+    /// <summary>年次の系列そのもの（ピン留めの小さな線が描く元。系列の実体への参照で、年ごとに伸びる）。グラフを持たない項目は null。</summary>
+    public IReadOnlyList<double>? Values { get; set; }
     // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：説明API内訳（Terms）はヘッダーから撤去した。
     //   内訳の行き先＝外資信用/行政力→財政タブ・正統性/国民意識→政治タブ・人口/識字率/満足度/闘争度→POPタブ。
     public bool HasHover => HasGraph;   // ホバー＝折れ線だけ
     public bool Plain => !HasGraph;     // 素のテキスト（ホバーなし）
     partial void OnHasGraphChanged(bool value) { OnPropertyChanged(nameof(HasHover)); OnPropertyChanged(nameof(Plain)); }
-    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Points = s.Points; RangeText = s.RangeText; }
+    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Points = s.Points; RangeText = s.RangeText; Values = s.Values; }
 }
 
 // 説明API（#63）の内訳1行＝理由＋符号つき寄与量。正の寄与は緑・負は赤で色分け（データ表示＝UI規律に適合）。

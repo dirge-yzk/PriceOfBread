@@ -1,9 +1,11 @@
-﻿// GameViewModel.Trade.cs ＝ 貿易タブ＝輸出入一覧・輸送サマリ・条約港。
+﻿// GameViewModel.Trade.cs ＝ 市場・清算・貿易ページ＝財の値段の表・輸出入一覧・輸送サマリ・条約港・清算の線（輸出・輸入・収支の四半期の系列）。
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using PriceOfBread.App.Controls;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
@@ -11,108 +13,69 @@ namespace PriceOfBread.App.ViewModels;
 // 第1部＝輸出一覧・輸入一覧（額の降順・世界シェア%/輸入依存度%つき）＋ヘッダ行（総額・収支・関税収入）。
 // 第2部＝輸送サマリ（ヘッダから移設した鉄道/船舶＋海運の占有分解）。
 // 全てデータ行のみ（UI恒久規律）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing＝関税予想 Fiscal.cs と同じ単位ヘルパー）。
-// 貿易の1行（作者指定2026-08-11）＝材名／額(世界価格比)／依存度（輸出は世界シェア）／相手。
-// ★2026-09-23：**量（Qty）の列を畳んだ**＝2段組の1段298.5pxでは財名に30.5pxしか残らず、実写（清1900）で
-//   輸入18行中13行・輸出40行中25行が「コー…」「チョ…」で読めなかった。量の情報は隣の列に相対形で残る
-//   （輸入＝依存度＝国内消費に占める輸入量／輸出＝世界シェア＝世界の輸出量に占める自国の量）。算術は TradeTab.axaml。
-public sealed record TradeRow(string Name, string Value, string Extra, string Partner = "");
+// 貿易の行は本体の表（SimCore/Display/TradeTables）が渡し、共通の表（Controls/TableView）が描く（設計 §7-1 段1）。
+// 作者指定2026-08-11＝材名／額(世界価格比)／依存度（輸出は世界シェア）／相手。★2026-09-23：量の列は畳んだ（量の情報は隣の列に相対形で残る）。
 public sealed record TransportRow(string Label, string Value);
 // ⚠撤去2026-08-23（読み手ゼロ）: LogisticsRow／LogisticsRows ＝州別物流表は axaml から外され、VM 側は宣言だけが残っていた（生成コードも無し）。
 
 public partial class GameViewModel
 {
-    [ObservableProperty] private List<TradeRow> _exportRows = new();
-    [ObservableProperty] private List<TradeRow> _importRows = new();
+    [ObservableProperty] private TableSnapshot _priceTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _exportTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _importTable = TableSnapshot.Empty;
+    // 清算の線＝四半期ごとの輸出・輸入・収支（月割）。名前つきの系列の倉に貯め（セーブは倉が名前と値の組で往復する）、画面へは点列の写しを渡す。
+    private const string ClearingExportKey = "clearing.export", ClearingImportKey = "clearing.import", ClearingBalanceKey = "clearing.balance";
+    [ObservableProperty] private IReadOnlyList<double> _clearingExportSeries = Array.Empty<double>();
+    [ObservableProperty] private IReadOnlyList<double> _clearingImportSeries = Array.Empty<double>();
+    [ObservableProperty] private IReadOnlyList<double> _clearingBalanceSeries = Array.Empty<double>();
     [ObservableProperty] private string _tradeExportTotal = "—";
     [ObservableProperty] private string _tradeImportTotal = "—";
     [ObservableProperty] private string _tradeBalance = "—";
     public string TreatyPortLine { get; private set; } = "";   // ★条約港（2026-08-04）。空＝非表示
     public bool HasTreatyPorts => TreatyPortLine.Length > 0;
     [ObservableProperty] private List<TransportRow> _transportRows = new();
-    public bool HasExportRows => ExportRows.Count > 0;
-    public bool HasImportRows => ImportRows.Count > 0;
+
+    /// <summary>清算の線に 1 点足す（見えていない間も途切れさせない）。完了した四半期の数に点が足りない間だけ足す＝同じ四半期に何度呼んでも 1 点・ロード後も二重にならない。
+    /// 決済の前（輸出入の台帳が無い）は足さない。</summary>
+    private void SampleClearingSeries()
+    {
+        var w = _player;
+        if (w.ExportsByGood is null || w.ImportsByGood is null) return;
+        int quarters = (int)_simDays / Calendar.DaysPerQuarter;
+        var ex = _series.Of(ClearingExportKey); var im = _series.Of(ClearingImportKey); var ba = _series.Of(ClearingBalanceKey);
+        if (!(ex.Count < quarters)) return;
+        // この系列を持たないセーブ（段3 より前の版）を読んだ直後：過ぎた四半期は測っていない＝数でない値で埋める（線は非有限の点を飛ばす）。現在値を過去の四半期へ積んで平らな偽の線にしない
+        if (ex.Count == 0 && quarters > 1)
+            for (int q = 1; q < quarters; q++) { ex.Add(double.NaN); im.Add(double.NaN); ba.Add(double.NaN); }
+        var (e, i) = TradeTables.Totals(w);
+        double mpc = w.Coef.MonthsPerClearing;
+        ex.Add(e / mpc); im.Add(i / mpc); ba.Add((e - i) / mpc);
+    }
 
     private void RefreshTrade()
     {
-        if (!TabTrade) return;
+        SampleClearingSeries();
+        if (!MarketShown) return;
         var w = _player;
-        var wp = _sim.Market.Price;
-        int gc = Catalog.Goods.Length;
+        PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
+        ClearingExportSeries = _series.Of(ClearingExportKey).ToArray(); ClearingImportSeries = _series.Of(ClearingImportKey).ToArray(); ClearingBalanceSeries = _series.Of(ClearingBalanceKey).ToArray();
 
         // ---- 第1部：輸出入一覧（§3-4テレメトリ＝国際決済の国別×財別額。決済前/単一国は空） ----
-        var expTmp = new List<(double val, TradeRow row)>();
-        var impTmp = new List<(double val, TradeRow row)>();
-        double expTotal = 0, impTotal = 0;
-        if (w.ExportsByGood is { } eg && w.ImportsByGood is { } ig)
-        {
-            // 世界シェアの分母＝全モデル国の同財輸出額の合計
-            var worldExp = new double[gc];
-            foreach (var n in _sim.Nations)
-                if (n.World.ExportsByGood is { } neg)
-                    for (int g = 0; g < gc && g < neg.Length; g++) worldExp[g] += neg[g];
-            // 相手＝**実際に取引した相手の州**（二国間交易2026-08-11）。エンジンが材ごとに最大額の相手を記録する。
-            //   ⚠旧（世界市場が池だった頃）は相手が存在せず「その財を最も多く出している国」で代用していた＝近似だった。
-            //   二国間の台帳が無い＝まだ置換前の経路（BilateralTrade=0）で走っている場合だけ、その近似へ落ちる。
-            string TopPartner(int g, bool wantExporter)
-            {
-                var mine = wantExporter ? w.ImportFromByGood : w.ExportToByGood;   // 輸入の相手＝売り手／輸出の相手＝買い手
-                if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return mine[g];
-                string best = ""; double bv = 0;
-                foreach (var n in _sim.Nations)
-                {
-                    if (ReferenceEquals(n.World, w)) continue;
-                    var arr = wantExporter ? n.World.ExportsByGood : n.World.ImportsByGood;
-                    if (arr is null || g >= arr.Length || !(arr[g] > bv)) continue;
-                    bv = arr[g]; best = n.World.SelfPower?.Name ?? n.World.Region.Name;
-                }
-                return best;
-            }
-            // ★額が £0.0k に丸まる行は出さない（作者指摘2026-08-11「取引額0の材が並ぶ」）。
-            //   判定は**表示に使う関数そのもの**で行う＝「0と表示されるなら出さない」が定義になり、書式を変えてもずれない。
-            bool Shown(double monthly) => Money(monthly) is not ("£0.0k" or "-£0.0k");
-            double mpc = w.Coef.MonthsPerClearing;   // 清算単位→月割（四半期清算=3・月次清算=1）＝単位ヘルパーに追随（2026-08-23・旧は /3.0 の直書き）
-            // 輸入依存度の分母（財ごとの前期総需要）を先に1パスで積む（財×州の再走査をやめる・全州の合計は順序不変）。
-            var demandByGood = new double[gc];
-            foreach (var r in w.Regions)
-                if (r.State == RegionState.Active)
-                    for (int g = 0; g < gc && g < r.Markets.Length; g++) demandByGood[g] += r.Markets[g].LastDemand;
-            for (int g = 0; g < gc; g++)
-            {
-                double p = g < wp.Count ? Math.Max(wp[g], 1e-9) : 1.0;
-                double dom = g < w.Region.Markets.Length ? w.Region.Markets[g].Price : p;   // 自国（首都州）の相場＝世界価格比の分子
-                string ratio = p > 1e-9 ? $"(×{dom / p:F2})" : "";
-                if (g < eg.Length && eg[g] > 1e-9)
-                {
-                    expTotal += eg[g];
-                    double share = worldExp[g] > 1e-12 ? eg[g] / worldExp[g] : 0;
-                    if (Shown(eg[g] / mpc))
-                        expTmp.Add((eg[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(eg[g] / mpc)}{ratio}", $"{share:P0}", TopPartner(g, false))));
-                }
-                if (g < ig.Length && ig[g] > 1e-9)
-                {
-                    impTotal += ig[g];
-                    double qtyMonthly = ig[g] / p / mpc;   // 輸入依存度＝消費（前期総需要・月次）に占める輸入量（月割）
-                    double demand = demandByGood[g];
-                    double dep = demand > 1e-9 ? Math.Min(1.0, qtyMonthly / demand) : 0;
-                    if (Shown(ig[g] / mpc))
-                        impTmp.Add((ig[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(ig[g] / mpc)}{ratio}", $"{dep:P0}", TopPartner(g, true))));
-                }
-            }
-        }
+        // 行は本体の貿易の表が組む（額の降順・世界価格比・依存度/世界シェア・相手）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing）。
+        ExportTable = TableSnapshot.From(TradeTables.Exports.Read(_sim, w));
+        ImportTable = TableSnapshot.From(TradeTables.Imports.Read(_sim, w));
+        var (expTotal, impTotal) = TradeTables.Totals(w);
         double mpcTot = w.Coef.MonthsPerClearing;
-        ExportRows = expTmp.OrderByDescending(t => t.val).Select(t => t.row).ToList();
-        ImportRows = impTmp.OrderByDescending(t => t.val).Select(t => t.row).ToList();
-        TradeExportTotal = $"{Money(expTotal / mpcTot)}/月";
-        TradeImportTotal = $"{Money(impTotal / mpcTot)}/月";
+        TradeExportTotal = $"{Fmt.Money(expTotal / mpcTot)}/月";
+        TradeImportTotal = $"{Fmt.Money(impTotal / mpcTot)}/月";
         double bal = (expTotal - impTotal) / mpcTot;
-        TradeBalance = $"{(bal >= 0 ? "＋" : "−")}{Money(Math.Abs(bal))}/月";
+        TradeBalance = $"{(bal >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(bal))}/月";
         // ★2026-08-15作者フィードバック(10)：関税行（財政タブと重複）・開放度行は撤去。収支は総額の下の大型表示へ（財政タブと同レイアウト）
         // ★条約港（2026-08-04・作者仕様(4)の可視化）：開かされた港の数と関税自主権の実効低下。0港なら行ごと出さない。
         TreatyPortLine = Politics.ForeignPortShare(w) > 0   // setter は private プロパティへ直接・★(402) 関税が目減りしている間は出す（旧＝UnequalTreatyInForce の半分の線で 0〜0.25 の持分が見えなかった・反証役 rs〔bv〕低#1）
             ? $"条約港　外国持分 {Politics.ForeignPortShare(w):P0}　関税の実効 ×{InternationalMarket.TreatyPortTariffScale(w):F2}"
             : "";
         OnPropertyChanged(nameof(TreatyPortLine)); OnPropertyChanged(nameof(HasTreatyPorts));
-        OnPropertyChanged(nameof(HasExportRows)); OnPropertyChanged(nameof(HasImportRows));
 
         // ⚠撤去2026-08-23（読み手ゼロ）: 植民地直送の節（ColonialRows/HasColonialRows）＝TradeTab.axaml に束縛が無く、VM だけが毎月集計していた。
 
@@ -130,7 +93,7 @@ public partial class GameViewModel
             new("鉄道輸送量", $"{w.RailCapacity:F0}"),
             new("海軍輸送量", $"{w.ShipCapacity:F0}"),
         };
-        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"-{burdenLoss:F0}"));
+        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"−{burdenLoss:F0}"));   // 符号は収支と同じ「−」・桁は他の輸送の行と同じ素の数
         if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料(通商破壊)", $"{w.LastBlockadeRisk:P0}"));
         TransportRows = tRows;
     }

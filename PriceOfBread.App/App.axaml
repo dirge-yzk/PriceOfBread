@@ -6,7 +6,7 @@
              <!-- ライトテーマ（2026-07-04指示：文字の可読性）。コントロール（ComboBox/Slider/Menu等）もライト配色になる -->
 
     <!-- ★2026-08-10のUI分割：GameView.axaml にあった共有スタイル／共有リソースを**そのまま**ここへ移した（値もセレクタも不変）。
-         Views/Tabs/*.axaml へ切り出したタブは別々の UserControl なので、アプリケーション既定に置かないと Classes が効かない。
+         Views/Pages/*.axaml のページは別々の UserControl なので、アプリケーション既定に置かないと Classes が効かない。
          Application.Styles は FluentTheme の**後ろ**に置く＝従来（UserControl.Styles）と同じくテーマ既定に勝つ。 -->
 
     <Application.DataTemplates>
@@ -81,6 +81,30 @@
         <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#DCD0B0"/>
         </Style>
+        <!-- ★(501) 段2：ヘッダーのページの押し釦。枠の太さは常に 2（見えているか＝Active で色だけが変わる＝押し釦の幅が動かない）。
+             Active は alert／war の前に置く＝同じ重さなら後ろが勝つので、動かせる法（金）と交戦（赤）が青より優先される。 -->
+        <Style Selector="Button.tab.page">
+            <Setter Property="Padding" Value="9,4"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Button.tab.page.active">
+            <Setter Property="BorderBrush" Value="#3A5A8A"/>
+            <Setter Property="Background" Value="#D9E2EE"/>
+            <Setter Property="Foreground" Value="#2A2118"/>
+        </Style>
+        <!-- 左右の列の畳み・開きの取っ手（細い押し釦）。 -->
+        <Style Selector="Button.edge">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#6B5230"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.edge:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E4DABE"/>
+        </Style>
         <Style Selector="Button.tab.alert">
             <Setter Property="BorderBrush" Value="#C99A2E"/>
             <Setter Property="BorderThickness" Value="2"/>
@@ -95,6 +119,7 @@
         </Style>
         <Style Selector="Button.mini.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#3A5A8A"/>
+            <Setter Property="Foreground" Value="#FFF6E8"/>   <!-- 文字の色は枠の中身（ContentPresenter）に直接置く＝ボタンの Foreground だけでは濃い地に濃い字になった（年表の選んだ釦） -->
         </Style>
         <Style Selector="Button.mini.active">
             <Setter Property="Foreground" Value="#FFF6E8"/>

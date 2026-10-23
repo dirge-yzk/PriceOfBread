@@ -9,7 +9,9 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Layout;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
@@ -55,26 +57,11 @@ public partial class GameViewModel : ViewModelBase
     private bool _pfOrderLow;          // 治安崩壊の前回値（接15・2026-07-25＝秩序<50%のエッジ通知）
     private bool _pfGold, _pfDefault, _pfPatent, _pfJoint, _pfEpidemic;
     private int _pfParty; private PowerRank _pfRank;
-    private static readonly IBrush TensionLow = new SolidColorBrush(Color.Parse("#1F5FA8"));    // 緊張 低=青
-    private static readonly IBrush TensionMid = new SolidColorBrush(Color.Parse("#B8860B"));    // 緊張 中=黄
-    private static readonly IBrush TensionHigh = new SolidColorBrush(Color.Parse("#A0432D"));   // 緊張 高=赤（警告赤に統一）
     private static readonly IBrush NewsBlue = new SolidColorBrush(Color.Parse("#4A6A8C"));
     private static readonly IBrush NewsGold = new SolidColorBrush(Color.Parse("#8A6A20"));
     private static readonly IBrush NewsRed = new SolidColorBrush(Color.Parse("#A0432D"));
     private static readonly IBrush NewsGreen = new SolidColorBrush(Color.Parse("#2E7D32"));
-    private static readonly IBrush SelfRowHighlight = new SolidColorBrush(Color.Parse("#C7DCF2"));   // 自国行のハイライト（外交タブ・終局ランキング共用）
-    // 外交タブ・国カードの関係バッジ色（GameViewModel.Refresh.cs）＝固定パレット7色。戦争中は NewsRed／同盟は NewsGreen と同値なので使い回す。
-    private static readonly IBrush BadgeDefault = new SolidColorBrush(Color.Parse("#555555"));
-    private static readonly IBrush BadgeOwnVassal = new SolidColorBrush(Color.Parse("#3A5A8A"));
-    private static readonly IBrush BadgeOwnSuzerain = new SolidColorBrush(Color.Parse("#8A6A2A"));
-    private static readonly IBrush BadgeOtherVassal = new SolidColorBrush(Color.Parse("#7A6A55"));
-    private static readonly IBrush BadgeNoTerritory = new SolidColorBrush(Color.Parse("#8A8070"));
-    // 政体色（外交タブの国カード・PolityColor）＝固定パレット9政体7色。立憲君主制は BadgeOwnVassal、ブルジョア独裁は
-    // BadgeOwnSuzerain、既定(null/無政府)は BadgeDefault と同値なので使い回す。
-    private static readonly IBrush PolityAbsolutist = new SolidColorBrush(Color.Parse("#7A3030"));   // 絶対/専制/幕府
-    private static readonly IBrush PolityRepublic = new SolidColorBrush(Color.Parse("#2E6E5E"));
-    private static readonly IBrush PolityMilitary = new SolidColorBrush(Color.Parse("#5A3A6A"));
-    private static readonly IBrush PolityProletarian = new SolidColorBrush(Color.Parse("#9A2A2A"));
+    private static readonly IBrush SelfRowHighlight = new SolidColorBrush(Color.Parse("#C7DCF2"));   // 自国行のハイライト（終局ランキング）
     // 報せの伝播：遠い国の事件は距離分だけ遅れて届く（配達待ちキュー）。電信の普及（年代）でラグは縮み、1870年に実質リアルタイム。
     private readonly List<PendingNews> _pending = new();
     private sealed record PendingNews(double DeliveryDay, double EventDay, string Icon, string Body, IBrush Color, bool Mine);   // 表示日付＝届いた日・遅延分は「（nヶ月前）」を付す
@@ -99,18 +86,7 @@ public partial class GameViewModel : ViewModelBase
     //   中の収支の桁が動いて読み位置がずれる（＝指摘が消えない）。それぞれが自前の最小幅を持つ。
     [ObservableProperty] private string _treasuryText = "";
     [ObservableProperty] private string _balanceText = "";
-    // 金融セクション（財政タブ）：1本の連結文字列でなく「ラベル｜値」行に分解（銀行なし＝与信残高/兌換系は「—」）。
-    // 金利doc B1（2026-07-30）：金利だけが他11レバーと違い「目標／実効」の1行ペアを持たず、実効が別行に散っていた＝ペアへ統一。
-    // 併せて年率換算（World.LoanRatePerYear）を1行で出す＝無次元レバーの目盛だけでは何%の金利なのかが盤面に無かった。
-    // ★2026-09-26：換算の係数が0のあいだ（今の既定）は行ごと隠す（LoanRateVisible）＝点火まで 0.0% を出さない。
-    [ObservableProperty] private string _interestLeverLine = "";
-    [ObservableProperty] private string _loanRateText = "";
-    // ★2026-09-03（キューA-03／出典 トリアージ 2-A 3-6）：慢性赤字の分子（硬性ゲート LossFinancedRate の材料）と家計債務が
-    //   プレイヤーから完全に見えなかった＝ガラス箱の規律。金融ブロックに2行だけ足す（データのみ・説明文なし）。
-    [ObservableProperty] private string _householdLoanText = "";
-    [ObservableProperty] private string _lossFinancedText = "";
-    // ⚠撤去2026-08-23（読み手ゼロ）: CreditText ＝与信残高はヘッダー金融ホバー（Header.cs の FinanceTerms）が表示。axaml 束縛なし。
-    [ObservableProperty] private string _coverText = "";
+    // 金融（物価・為替・金利・貸出金利・損失の負債化・家計債務・兌換カバー率）は財政と貨幣のページの金融の表（本体の目録 FiscalTables.Finance）が渡す。ここには持たない。
     [ObservableProperty] private string _playerName = "";   // 旧DebtText/DebtVisible（未バインド）は削除＝財政劣化の連鎖はDebtLineへ統合（監査2026-07-12 死14）
     // ★2026-09-23（作者指示「文字数固定」）：地位（列強12位／準列強／中堅／弱小）を国名から割る。
     //   動くのは**地位の側**（順位・ランクは世界の側で変わる）＝ここだけ固定幅にすれば桁ズレは止まる。
@@ -166,22 +142,28 @@ public partial class GameViewModel : ViewModelBase
     // ヘッダー2行目：国家指標のリスト（一部はホバーで年次推移グラフ）。**行オブジェクトは据え置き＝値だけ更新**
     // （毎月のリスト差し替えは ItemsControl 全再構築＝行の高さが一瞬消え、上部バーが表示/非表示を繰り返して見えた・2026-07-19）。
     public ObservableCollection<HeaderStat> HeaderStats { get; } = new();
-    // 年次時系列（毎年1点・126年ぶん）：ヘッダーのホバーグラフの素
-    private readonly List<double> _histPop = new(), _histGdp = new(), _histProd = new(), _histTech = new(),
-        _histLit = new(), _histSat = new(), _histMil = new(), _histCorr = new();
-    private readonly List<double> _histFood = new();   // 主食充足の年次履歴（ヘッダーホバー）
-    private readonly List<double> _histLeg = new(), _histCons = new();   // 正統性・国民意識の年次履歴（2026-07-15＝説明API/隠れドライバのヘッダーホバー）
-    private readonly List<double> _histMandate = new();   // 政治資本（MandateSpent）の年次履歴（ヘッダーホバー・2026-07-16）
-    private readonly List<double> _histTreasury = new();  // 国庫の年次履歴（ヘッダー国庫のホバーグラフ・2026-07-16）
-    // ★2026-08-13（作者指摘「信用が非常に大切というのがUIからわからない」＋ヘッダー監査）：
-    //   国力スコア＝軍事＋豊かさ＋金融＋技術、豊かさ＝GDP+工業化×9+満足度×12+植民地×1.5。〔★(457) この式は (449) で世界の総量に対する割合の 6 項へ置き換わり (456) で消えた＝今の国力は NationalScore.ShareScores・旧の式は計器 Instruments.OldScore だけ〕
-    //   この7項のうち**工業化・金融・対外信用の3つがヘッダーに無かった**。とくに工業化はスコア最大の重み(×9)で
-    //   本作の主題そのものなのに、自国の全体値を出す場所がUIのどこにも無かった（敵国は外交ホバー・州別は生産ホバーに有る）。
-    private readonly List<double> _histInd = new(), _histCredit = new(), _histFin = new();
-    private readonly List<double> _histGini = new();      // ジニ係数の年次履歴（2026-08-10作者要望）。★2026-09-23にヘッダー表示は撤去したが**採取は残す**（セーブの系列配列に居る＝外すと旧セーブが黙ってずれる）
-    // ★2026-09-23（作者指示「識字率の右に満足度・不満度・闘争度」）：不満度の年次履歴。
-    // ⚠セーブの系列配列（この下の targets と SaveMenu.cs の lists）の**末尾**に足した＝末尾追加だけが安全（途中に挿すと全系列が黙ってずれる）。
-    private readonly List<double> _histDis = new();
+    // 年次時系列（毎年1点・126年ぶん）：ヘッダーのホバーグラフの素。★(501) 段1：名前つきの系列の倉（SeriesStore）が持ち、セーブは名前と値の組で書く
+    //   （旧は18本を配列の位置で書いた＝途中に足すと全系列が黙ってずれた）。系列を足すときは SeriesKeys に名前を1つ足してここに読み口を1行足す。
+    private SeriesStore _series = new();
+    private List<double> _histPop => _series.Of(SeriesKeys.Population);
+    private List<double> _histGdp => _series.Of(SeriesKeys.Gdp);
+    private List<double> _histProd => _series.Of(SeriesKeys.Production);
+    private List<double> _histTech => _series.Of(SeriesKeys.Tech);
+    private List<double> _histLit => _series.Of(SeriesKeys.Literacy);
+    private List<double> _histSat => _series.Of(SeriesKeys.Satisfaction);
+    private List<double> _histMil => _series.Of(SeriesKeys.Militancy);
+    private List<double> _histCorr => _series.Of(SeriesKeys.Corruption);
+    private List<double> _histFood => _series.Of(SeriesKeys.Food);   // 主食充足の年次履歴（ヘッダーホバー）
+    private List<double> _histLeg => _series.Of(SeriesKeys.Legitimacy);   // 正統性・国民意識の年次履歴（2026-07-15＝説明API/隠れドライバのヘッダーホバー）
+    private List<double> _histCons => _series.Of(SeriesKeys.Consciousness);
+    private List<double> _histMandate => _series.Of(SeriesKeys.Mandate);   // 政治資本（MandateSpent）の年次履歴（ヘッダーホバー・2026-07-16）
+    private List<double> _histTreasury => _series.Of(SeriesKeys.Treasury);  // 国庫の年次履歴（ヘッダー国庫のホバーグラフ・2026-07-16）
+    // ★2026-08-13（作者指摘「信用が非常に大切というのがUIからわからない」＋ヘッダー監査）：工業化・金融・対外信用の3系列（国力スコアの項）。
+    private List<double> _histInd => _series.Of(SeriesKeys.Industry);
+    private List<double> _histCredit => _series.Of(SeriesKeys.Credit);
+    private List<double> _histFin => _series.Of(SeriesKeys.Finance);
+    private List<double> _histGini => _series.Of(SeriesKeys.Gini);      // ジニ係数の年次履歴（2026-08-10作者要望）。2026-09-23にヘッダー表示は撤去したが採取は残す
+    private List<double> _histDis => _series.Of(SeriesKeys.Discontent);   // 不満度の年次履歴（2026-09-23 作者指示「識字率の右に満足度・不満度・闘争度」）
     private int _histStartYear = Calendar.StartYear, _lastSampledYear;
 
     /// <summary>年次系列の点列と最小/最大の記憶（2026-08-10）。系列は**1年に1点しか伸びない**のに、
@@ -191,54 +173,18 @@ public partial class GameViewModel : ViewModelBase
     /// キーは List の参照（系列の実体は生涯1つ）。</summary>
     private readonly Dictionary<List<double>, (int N, global::Avalonia.Points Pts, double Min, double Max)> _seriesCache = new();
 
-    // 4タブ（地図上のドッキングパネル・暗転なし）：外交・経済・POP・法律と政治。空文字＝閉。
-    [ObservableProperty] private string _activeTab = "";
-    public bool PanelOpen => ActiveTab.Length > 0;
-    public bool TabDiplo => ActiveTab == "外交";
-    public bool TabEcon => ActiveTab == "財政";
-    public bool TabPop => ActiveTab == "POP";
-    public bool TabPolitics => ActiveTab == "政治";   // 政治タブ＝王権と議会・政体・政体の実績・政治影響力
-    // ★2026-08-01：法律を独立タブへ分離（法が20→22本に増え、政治タブの右列に収まらなくなった）。
-    // ⚠併せて「国家の変体」の表示を撤去（ユーザー指示）＝読み取り専用の目標表示で、操作も判断も生まなかった。
-    public bool TabLaw => ActiveTab == "法律";      // 法律タブ＝法の一覧と議会立法（F2は下部へ統合2026-07-12）
-    public bool TabWar => ActiveTab == "戦争";   // 戦争タブ（2026-07-19）＝交戦中の戦況＋終わった戦争の残置
-    public bool TabTrade => ActiveTab == "貿易"; // 貿易タブ（2026-07-24）＝輸出入一覧・輸送サマリ・州別物流（外国経済の可視化doc §3-6/§3-7）
-    // ★2026-08-10（作者指示）：国有化と巨大建造物は**生産タブの左下**へ戻す（2026-08-02に法律タブへ出していたものの差し戻し）。
-    //   法律タブの右列は制度（自動施行の3機構）だけになる。
-    // 幅（項4・2026-07-26：財政タブの右端見切れ＝範囲ラベル「＜ 100%」の窮屈と金額の桁上がりに+30の余裕）。
-    // ★2026-08-10（作者裁定）：**全タブ650で統一**。外交のときだけ1280へ広げる分岐は撤去した＝
-    //   フルスクリーン1920でもドックが画面の2/3を占め、地図が見えなくなっていた（外交の2段組は650の中に収める）。
-    public double PanelWidth => 650;
-    partial void OnActiveTabChanged(string value)
-    {
-        OnPropertyChanged(nameof(PanelOpen)); OnPropertyChanged(nameof(TabDiplo)); OnPropertyChanged(nameof(TabEcon));
-        OnPropertyChanged(nameof(TabPop)); OnPropertyChanged(nameof(TabPolitics)); OnPropertyChanged(nameof(TabLaw)); OnPropertyChanged(nameof(TabWar)); OnPropertyChanged(nameof(TabTrade));
-        if (TabWar) RefreshFactions();   // 国内勢力は戦争タブへ移設（2026-07-20）＝開いた瞬間に更新
-        if (TabTrade) RefreshTrade();    // 貿易タブ（2026-07-24）＝開いた瞬間に更新（以後は四半期Refreshで追従）
-        // 巨大建造物の更新は生産タブ側（ToggleProd→RefreshProduction と四半期Refreshの ProdOpen 経路）＝2026-08-10に左下へ戻したので法律タブでは組まない
-    }
-    [RelayCommand]
-    private void SelectTab(string? tab)
-    {
-        ProdOpen = false;   // 生産タブ（全画面）と右ドックは同時に出さない＝QWERで生産タブから抜けられる
-        DiscoveryOpen = false;   // 発見パネルは2026-09-07に右ドックと同寸へ＝同じ矩形に2枚重ねない
-        ActiveTab = ActiveTab == tab ? "" : tab ?? "";   // 同名再指定＝トグルで閉じる
-        if (ActiveTab == "法律") PoliticsTabAlert = false;   // 法改正の通知は法律タブを開いたら消灯
-    }
+    // ★(501) 段2：4タブの右ドック（ActiveTab・SelectTab・PanelWidth・Tab*）は分割の配置（GameViewModel.Layout.cs の Layout）へ置き換えた。
+    //   ページは常に枠のどれかに置かれる＝「閉じた」状態は無い。旧の Tab*／ProductionShown／DiscoveryShown は、見えているかを配置から導く読み取り専用の名前として Layout.cs に残る。
 
     // 法律タブの通知（受動レイヤ・裁定2026-07-09「変更可能になった時点で法律タブを光らせる」）：
     // 各法の改革方向の一歩が「通らない→通る」へ変わった四半期に政治タブを点灯（Government.CanStep＝副作用なしの照会）。
     private bool _politicsTabAlert;
-    public bool PoliticsTabAlert { get => _politicsTabAlert; set { _politicsTabAlert = value; OnPropertyChanged(); } }
+    public bool PoliticsTabAlert { get => _politicsTabAlert; set { _politicsTabAlert = value; OnPropertyChanged(); SyncPageButtons(); } }
     private ulong? _lawMovableBits;
     private void UpdateLawAlert()
     {
-        ulong bits = 0; int i = 0;
-        void Ax(PolicyAxis a, bool increasing) { if (Government.CanStep(_player, a, increasing)) bits |= 1UL << i; i++; }
-        Ax(PolicyAxis.Suffrage, true); Ax(PolicyAxis.EducationLaw, true); Ax(PolicyAxis.Censorship, true);
-        Ax(PolicyAxis.LaborUnion, true); Ax(PolicyAxis.ShorterHours, false);   // ★親軍法は2026-08-18に撤去（軍国度＝軍事費×徴兵法の導出量）
-        Ax(PolicyAxis.WomenRights, true); Ax(PolicyAxis.CornLaws, false); Ax(PolicyAxis.LandReform, true); Ax(PolicyAxis.SerfEmancipation, true);
-        if (_lawMovableBits is { } prev && (bits & ~prev) != 0 && ActiveTab != "政治") PoliticsTabAlert = true;   // 初回（ロード/開始直後）は基準線のみ＝点灯しない
+        ulong bits = ProblemScan.MovableLawBits(_player);   // 動かせる改正の方向の 9 本は本体の目録の 1 本（問題の一覧の「動かせる法」と同じ）
+        if (_lawMovableBits is { } prev && (bits & ~prev) != 0 && !Layout.IsShown(Slot.PoliticsLaw)) PoliticsTabAlert = true;   // 初回（ロード/開始直後）は基準線のみ＝点灯しない
         _lawMovableBits = bits;
     }
     // ⚠撤去2026-08-23（読み手ゼロ）: _buildableGoodIds/_buildableGoodNames ＝旧・工場建設コンボの残骸（着工は生産タブの StepStateTargetAt が現役）。
@@ -278,8 +224,10 @@ public partial class GameViewModel : ViewModelBase
 
     // ロード用：復元済みシム＋エンベロープ（UI側の経過日数・年次グラフ・戦争UI状態）から再開。
     private GameViewModel(MultiNationSim sim, int playerIndex, double simDays, int dayInQuarterUI, int lastSampledYear,
-                          List<double>[] hist, Action? onExit, Action? onLoad, WarUiSave? warUi = null)
+                          SeriesStore series, Action? onExit, Action? onLoad, WarUiSave? warUi = null, IReadOnlyList<PinRef>? pins = null)
     {
+        LoadPins(pins);   // ピン留めはセーブの追記ブロック（最初の Refresh より前に置く）
+        _series = series;   // セーブから読んだ名前つきの系列をそのまま持つ（足された系列は旧セーブに無い＝空で始まる）
         _playerIndex = playerIndex;
         _onExit = onExit;
         _onLoad = onLoad;
@@ -288,11 +236,7 @@ public partial class GameViewModel : ViewModelBase
         _simDays = simDays;
         _dayInQuarterUI = dayInQuarterUI;
         _lastSampledYear = lastSampledYear;
-        // 監査2026-07-12（他20）：_histFood を追加＝ロード後も食料グラフの凶作履歴が残る（旧＝セーブ漏れで喪失＋年ラベルずれ）。
-        // _satHistory（SatBars削除で読者消滅）はリストごと削除。セーブ形式はビルド内互換のみ（SimCore側と同方針）＝壊れた旧セーブはロード時catchで安全に弾かれる。
-        // ⚠_histInd/_histCredit/_histFin（2026-08-13）は配列の**先頭**に挿入した＝この並びより前のセーブは全系列が3つずれて黙って読まれる（SaveMagic は POBSAVE1 のまま＝互換扱いのまま非互換）。
-        List<double>[] targets = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini, _histDis];   // ★2026-09-23：不満度 _histDis を**末尾**に追加（旧セーブは hist.Length=17 で止まる＝不満度だけ空で再開）
-        for (int i = 0; i < targets.Length && i < hist.Length; i++) targets[i].AddRange(hist[i]);
+        // 年次系列は名前と値の組で復元済み（_series）。旧の位置で並べる配列の注意書き（先頭に挿すと全系列がずれる）は、名前で引く形にした今は不要。
         _endingShown = PlayText.IsEnded(Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear);   // 終局後のセーブでランキングを再表示しない。表示暦基準（★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した。旧＝助走4四半期ぶんエンジンが1年先行＝監査2026-07-11 他9）。★1950延長2026-09-22＝終局は表示暦が EndYear（1950年1月1日）に入った時＝GameQuarters 経過＝自己対戦と同じ四半期（旧＝EndYear+1で自己対戦より4四半期長かった）
         // 戦争UIの追跡状態を復元（レビュー2026-07-19）：戦費按分・勝敗基準・終わった戦争の残置＝ロードで途切れない。
         // InitAfterSimReady 内の初回 Refresh より前に適用（既存の交戦が「新規の敵」として再基準化されない）。
@@ -315,6 +259,7 @@ public partial class GameViewModel : ViewModelBase
     // 新規/ロード共通の初期化（シムが確定した後）：通知基準・州リスト・建設可能財・タイマー。
     private void InitAfterSimReady()
     {
+        InitLayout();   // 画面の配置（見えているページの導出・ヘッダーの押し釦）＝最初の Refresh より前
         foreach (var n in _sim.Nations) n.TelemetryEnabled = false;   // UIはTelemetryを読まない＝四半期スナップショットの割当/保持（セーブ肥大の一因）を止める
         _player.Explain = new ExplainLedger();   // 説明API（#63）：プレイヤー国だけに台帳を常設装着＝毎四半期のPolitics.Stepが正統性の内訳を記帳（本計算はビット恒等・ゼロコスト・SaveGameは非直列化なのでロード後もここで再装着）
         _player.ForceUnlock = true;              // ★再征服は常時ON（作者指示2026-08-24＝レバーを撤去）。実費は Territory.Step が持つ（国庫1000/月と全popの闘争度）＝国庫が尽きれば自動で止まる
@@ -357,16 +302,7 @@ public partial class GameViewModel : ViewModelBase
     //   数に混ぜない＝勝勢%・即応%・熟練ツールチップへ分離。数は嘘をつかない（多いが弱い軍＝アヘン戦争が読める）。
     //   Nation を持たない抽象的な外国だけはゲージ×SoldiersPerMilitary で人数へ近似（実POPが無い）。
     private double TroopUnits(Power p) => p.Nation is { } nw ? nw.SoldierSizeK() : p.Military * _player.Coef.SoldiersPerMilitary;
-    private string Troops(Power p) => Men(TroopUnits(p));
-    /// <summary>兵数の書式（units＝1000人単位）。1万人未満は実数、以上は万人（桁に応じて小数を落とす）。</summary>
-    public static string Men(double units)
-    {
-        double men = units * 1000.0;
-        if (men >= 995_000) return $"{men / 10000.0:N0}万人";
-        if (men >= 99_500) return $"{men / 10000.0:F0}万人";
-        if (men >= 9_950) return $"{men / 10000.0:F1}万人";
-        return $"{men:N0}人";
-    }
+    private string Troops(Power p) => Fmt.Men(TroopUnits(p));
 
     /// <summary>緊張の表示値＝**開戦までの近さ**（100%＝宣戦の閾値）。
     /// ⚠★2026-08-02の是正：旧は内部緊張を 0〜100 でクランプして「%」と呼んでいた。ところが
@@ -377,37 +313,6 @@ public partial class GameViewModel : ViewModelBase
     private double TensionPct(double tension)
         => System.Math.Clamp(tension / _player.Coef.WarDeclareTension, 0, 1);
 
-    // ★2026-09-23：最下段を「素のポンド」にした。旧は £1k 未満を全て "£0.0k" に潰しており、**£50未満は必ず「£0.0k」**だった
-    //   （F1 の丸め）。戦争タブの戦費は国の月次戦費を戦線数で割った額＝多正面ではこの帯に落ちるので、
-    //   作者の画面（英 £82.2/月 ÷ 8戦線 × 4ヶ月 ＝ £41）では**原理的に金額が見えなかった**。
-    //   桁に応じて小数を詰める作法は MoneyPerHead と同じ（あちらは1未満の小数まで扱うので刻みが細かい）。
-    public static string Money(double v)
-    {
-        double a = System.Math.Abs(v); string sign = v < 0 ? "-" : "";
-        if (a >= 1e6) return $"{sign}£{a / 1e6:F2}M";
-        if (a >= 1e4) return $"{sign}£{a / 1e3:F0}k";
-        if (a >= 1e3) return $"{sign}£{a / 1e3:F1}k";
-        return $"{sign}£{a:N0}";
-    }
-
-    // 1人あたりの金額（ヘッダーの一人当たりGDP）。Money の k/M 表記は人数で割った桁を全部「£0.0k」に潰すので、桁に応じて小数を詰める。
-    public static string MoneyPerHead(double v)
-        => v >= 100 ? $"£{v:N0}" : v >= 10 ? $"£{v:F1}" : v >= 1 ? $"£{v:F2}" : v >= 0.1 ? $"£{v:F3}" : $"£{v:F4}";
-
-    // 人数表示：内部単位は千人（1=1000人）。単位は k（千）／M（百万）で統一（千・万は廃止・2026-07-12）。
-    // 例：thousands=27000→"27.0M人"、thousands=50→"50k人"、thousands=0.5→"500人"。
-    public static string PopFmt(double thousands)
-    {
-        double people = thousands * 1000.0;
-        if (people >= 1e6) return $"{people / 1e6:0.##}M人";
-        if (people >= 1e3) return $"{people / 1e3:0.#}k人";
-        return $"{people:N0}人";
-    }
-
-    // POPタブ専用：★2026-08-02「〇K」表記（作者指示）。⚠**「人」だけを外し、k は残す**。
-    //   一度 k ごと外して素の人数（31,090,000）にしたのは読み違い＝桁が大きすぎて読めなくなった。
-    //   k で割り、単位は大文字K・桁区切りあり（5,430K）＝列の右端が揃い、桁の比較ができる。
-    public static string PopFmtK(double thousands) => thousands.ToString("N0") + "K";
 
     private double[] _ledgerPrev = new double[(int)TreasuryCat.Count];   // 台帳の前月値（月次差分の基準）
     private double _monthWarCost;      // 今月ぶんの戦費の実払い額（TreasuryLedger の陸軍・海軍・戦費の月次差分の和・符号反転）＝戦争タブが読む（GameViewModel.Refresh.cs）。SampleTreasuryLedgerが_ledgerPrevを上書きする前にOnTickで1回だけ取る
@@ -421,7 +326,7 @@ public partial class GameViewModel : ViewModelBase
     private void OnTick(object? sender, EventArgs e)
     {
         ConsumeZoom();   // ホイールが止まった後に1回だけ地図を再構築（ズームの軽量化）
-        if (!Playing) { _tickWatch.Restart(); if (TabEcon) UpdateForecast(); return; }   // 停止中も財政タブ表示中はスライダーの予想値が即応（閉じている間は走らせない＝全州×全pop走査の間引き）
+        if (!Playing) { _tickWatch.Restart(); return; }   // 停止中の財政の予測は、段の押し釦を押した直後に表を読み直す（FiscalTables・毎 tick は組み直さない）
         // ★実測の経過時間で進める（2026-08-03・作者報告「速度3でも時間の進みがかなり遅いが、地図を動かすと時間がちゃんと進む」）。
         //   旧＝「tick は 50ms ごとに来る」前提の固定加算（×0.05）。DispatcherTimer は描画や入力が無いと間引かれるので、
         //   放置中は tick が疎になり**ゲーム内時間そのものが減速**していた。地図を動かすとディスパッチャが活性化して
@@ -491,16 +396,14 @@ public partial class GameViewModel : ViewModelBase
             else { var swR = System.Diagnostics.Stopwatch.StartNew(); RefreshDaily(); PerfDailyMs += swR.Elapsed.TotalMilliseconds; }   // 日次＝価格のみ（物価・国庫・生産詳細＝MarketFlow の層・価格そのものは旬の最終日に動く）
         }
         UpdateDate();           // 毎tick 日付を進める（経過日だけ安く更新＝UIスレッドを塞がず入力が通る）
-        if (TabEcon) UpdateForecast();   // 予想値の毎tick更新は財政タブ表示中のみ（閉じている間は月次/四半期の Refresh 内呼び出しが最新化）
         FlushPending();         // 報せの配達は毎日判定（遠い事件ほど遅れて到着＝距離分のラグ）
     }
 
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫:{Money(_player.Treasury.Value)}";
-        BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Money(Math.Abs(_monthDelta))}/月";
-        OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));   // 物価・為替（計算プロパティ）を再読込
+        TreasuryText = $"国庫:{Fmt.Money(_player.Treasury.Value)}";
+        BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(_monthDelta))}/月";
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }
 
@@ -513,44 +416,6 @@ public partial class GameViewModel : ViewModelBase
 
     // 行コレクションの据え置き同期（2026-07-19）：キー集合が同じなら既存行へ値だけ流す（並び替えは Move＝コンテナ温存）。
     // 集合が変わった時だけ作り直す。毎月の Clear+再構築は行の Button/ツールチップを破棄し「時間を止めないとボタンが押せない」の主因だった。
-    /// <summary>
-    /// 文化・宗教の構成（#62）：州ラベル(Region.Culture/Religion)を州人口で加重し、シェア降順の表にする。
-    /// World.ReligiousUnity/EthnicUnity は最大シェアだけのスカラーなので、ここでその内訳を開く。読むだけ＝SimCore不変。
-    /// </summary>
-    private void BuildComposition()
-    {
-        var rel = new Dictionary<string, double>();
-        var cul = new Dictionary<string, double>();
-        double total = 0;
-        foreach (var r in _player.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            double p = r.SumPopulation();
-            if (p <= 0) continue;
-            total += p;
-            if (!string.IsNullOrEmpty(r.Religion)) rel[r.Religion] = rel.GetValueOrDefault(r.Religion) + p;
-            if (!string.IsNullOrEmpty(r.Culture)) cul[r.Culture] = cul.GetValueOrDefault(r.Culture) + p;
-        }
-        static List<CompositionRow> Rows(Dictionary<string, double> src, double tot)
-        {
-            var list = new List<CompositionRow>();
-            if (tot <= 1e-9) return list;
-            foreach (var kv in src.OrderByDescending(kv => kv.Value))
-                list.Add(new CompositionRow { Name = kv.Key, Size = PopFmtK(kv.Value), Share = (kv.Value / tot).ToString("P0") });   // POPタブはk統一（項10）
-            return list;
-        }
-        SyncRows(ReligionRows, Rows(rel, total), r => r.Name, (t, s) => t.CopyFrom(s));
-        SyncRows(CultureRows, Rows(cul, total), r => r.Name, (t, s) => t.CopyFrom(s));
-        // 02断線走査2026-07-28：児童労働率の可視化＝倍率排除④の創発量（家計困窮×合法度×就学）。法の2値でなく実態が数年かけて落ちる様子＝工場監督官の物語
-        double clSum = 0, clSize = 0;
-        foreach (var r in _player.Regions)
-            foreach (var p in r.Pops)
-                if (!p.IsSoldier && p.AgeShare(10, 15) > 1e-9) { clSum += p.ChildLaborRate.Value * p.Size; clSize += p.Size; }   // 働きうる子供（10〜14歳・年齢の層）のいる POP
-        // ★2026-08-02（作者指示）：「児童労働率」→**児童の就業率**（何の率かが名前で分かる）。合法度は撤去＝
-        //   法の現在値は法律タブの「児童労働」行（禁止/合法）が持っており、ここに出すと同じことを2箇所で言う。
-        ChildLaborLine = clSize > 1e-9 ? $"児童の就業率 {clSum / clSize:P0}" : "";
-        OnPropertyChanged(nameof(ChildLaborLine));
-    }
 
     /// <param name="reorder">既存行を desired の並びへ Move するか。false＝**画面上の並びを動かさない**（値だけキーで突き合わせて流す）。
     /// クリックできる行（生産タブの州別＝着工/売却ボタン）は、押下と離上の間に行が動くと Avalonia が Click を捨てるので false で呼ぶ（2026-08-09）。</param>
@@ -586,17 +451,6 @@ public partial class GameViewModel : ViewModelBase
         target.Clear();
         foreach (var d in desired) target.Add(d);
     }
-
-    private static IBrush PolityColor(Polity? p) => p switch
-    {
-        Polity.Absolutist or Polity.Despotic or Polity.Shogunate => PolityAbsolutist,
-        Polity.ConstitutionalMonarchy => BadgeOwnVassal,
-        Polity.Republic => PolityRepublic,
-        Polity.MilitaryDictatorship => PolityMilitary,
-        Polity.BourgeoisDictatorship => BadgeOwnSuzerain,
-        Polity.ProletarianDictatorship => PolityProletarian,
-        _ => BadgeDefault,
-    };
 
     // 国家ランクの和名（列強/中堅/弱小・改修2026-06-28）。
     private static string RankJa(PowerRank r) => r switch { PowerRank.Great => "列強", PowerRank.Secondary => "準列強", PowerRank.Middle => "中堅", _ => "弱小" };

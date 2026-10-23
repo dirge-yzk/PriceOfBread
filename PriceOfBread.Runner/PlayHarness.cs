@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.Runner;
 
@@ -229,6 +230,15 @@ internal static class PlayHarness
                 world.Policy.MilitarySpendingTarget = askedTotal;
                 double gotTotal = world.Policy.MilitarySpendingTarget;
                 return $"{key}: {oldTotal} → {gotTotal}{(Math.Abs(gotTotal - askedTotal) > 1e-9 ? $"（要求 {val} は 0〜1 に丸めた）" : "")}　（軍事費の合計・陸海の比は次の四半期の頭に AI と同じ関数が置き直す）";
+            }
+            // ★(501) 段0：報告の法の行と同じ画面の名前と段の名前でも置ける（例 `労働組合=容認`・`阿片=全面禁止`）。本体の法の表（LawCatalog）の 1 本＝画面の段ボタンと同じ書き込み先。NationPolicy の欄名（下の反射）も今までどおり受ける。
+            if (LawCatalog.All.FirstOrDefault(l => l.Name == key) is { } law)
+            {
+                int stage = Array.IndexOf(law.Stages, val);
+                if (stage < 0) return $"⚠段が読めない: {val}（{key} の段：{string.Join("／", law.Stages)}）";
+                string before = law.StageName(law.Target(world));
+                law.SetTarget(world.Policy, law.LevelBase + stage);
+                return $"{key}: {before} → {law.StageName(law.Target(world))}";
             }
             var f = typeof(NationPolicy).GetField(key, BindingFlags.Public | BindingFlags.Instance);
             if (f is null) return $"⚠不明なレバー: {key}";
@@ -468,8 +478,8 @@ internal static class PlayHarness
     /// <summary>★(450) §2-19：台帳の区分の名乗り。入りと出の差し引き（正味）の区分は〈正味〉と添える（<see cref="TreasuryCat.StateFactory"/>＝国営工場の収益−赤字の肩代わり・<see cref="TreasuryCat.WarCost"/>＝賠償の受取−戦費）。</summary>
     private static string CatLabel(TreasuryCat c) => c is TreasuryCat.StateFactory or TreasuryCat.WarCost ? $"{c}（正味）" : c.ToString();
 
-    private static readonly TreasuryCat[] IncomeCats = [TreasuryCat.Tax, TreasuryCat.Tariff, TreasuryCat.StateMonopoly, TreasuryCat.Borrow, TreasuryCat.Devalue, TreasuryCat.StateFactory, TreasuryCat.TributeIn, TreasuryCat.OtherIn];
-    private static readonly TreasuryCat[] OutlayCats = [TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.Admin, TreasuryCat.Education, TreasuryCat.Welfare, TreasuryCat.Pension, TreasuryCat.Modernization, TreasuryCat.AntiCorruption, TreasuryCat.Interest, TreasuryCat.DebtRepay, TreasuryCat.FactoryBuild, TreasuryCat.Subsidy, TreasuryCat.Megaproject, TreasuryCat.ColonialUpkeep, TreasuryCat.TributeOut, TreasuryCat.WarCost, TreasuryCat.OtherOut];
+    private static readonly TreasuryCat[] IncomeCats = FiscalCatalog.Cats(FiscalSide.Income).ToArray();   // ★(501) 台帳の区分の表は本体の FiscalCatalog（並びは同じ）
+    private static readonly TreasuryCat[] OutlayCats = FiscalCatalog.Cats(FiscalSide.Outlay).ToArray();
 
     /// <summary>説明台帳の内訳 1 本（画面の <c>ExplainTerms</c> と同じ <see cref="PlayText.ExplainTerms"/>・<see cref="PlayText.SignedLine"/>）。台帳が空（四半期を 1 つも進めていない）なら名乗って止める。</summary>
     private static void AppendExplain(StringBuilder sb, World w, string label, string quantity, Func<double, string> fmt, string head)
@@ -489,51 +499,12 @@ internal static class PlayHarness
         sb.AppendLine("  自国の国力の内訳： " + PlayText.ScoreBreakdownText(w).Replace("\n", "　"));
     }
 
-    /// <summary>★(435) 全ての法の現在値と目標値（旧は目標だけの法が多く、労組・女性・官僚・国有化・資本移動ほかの現在値が空欄だった）。現在値は World・目標値は NationPolicy の同じ名前の欄
-    /// ＝画面の法律タブの行（<c>BuildLaws</c>）と同じ組。新しい法を NationPolicy に足したらここへ足す（番人 <c>PlayHarnessTests</c> が NationPolicy の法の欄が全てここに載るかを見る）。</summary>
-    internal static List<(string Name, string Field, string Current, string Target)> LawStatusRows(World w)
-    {
-        var p = w.Policy;
-        string Ob(bool on) => on ? "あり" : "なし";
-        return
-        [
-            ("初等教育", nameof(NationPolicy.EducationLaw), w.EducationLaw.ToString(), p.EducationLaw.ToString()),
-            ("参政権", nameof(NationPolicy.Suffrage), w.Suffrage.ToString(), p.Suffrage.ToString()),
-            ("植民地参政権", nameof(NationPolicy.ColonialSuffrage), w.ColonialSuffrage.ToString(), p.ColonialSuffrage.ToString()),
-            ("移民原住民参政権", nameof(NationPolicy.MigrantNativeSuffrage), w.MigrantNativeSuffrage.ToString(), p.MigrantNativeSuffrage.ToString()),
-            ("報道", nameof(NationPolicy.Censorship), w.Censorship.ToString(), p.Censorship.ToString()),
-            ("労組", nameof(NationPolicy.LaborUnion), w.LaborUnion.ToString(), p.LaborUnion.ToString()),
-            ("労働時間", nameof(NationPolicy.WorkHours), w.WorkHours.ToString(), p.WorkHours.ToString()),
-            ("児童労働の合法", nameof(NationPolicy.ChildLaborAllowed), Ob(w.ChildLaborAllowed), Ob(p.ChildLaborAllowed)),
-            ("女性の権利", nameof(NationPolicy.WomenRights), w.WomenRights.ToString(), p.WomenRights.ToString()),
-            ("穀物法", nameof(NationPolicy.CornLaws), w.CornLaws.ToString(), p.CornLaws.ToString()),
-            ("土地改革", nameof(NationPolicy.LandReform), w.LandReform.ToString(), p.LandReform.ToString()),
-            ("農奴解放", nameof(NationPolicy.SerfEmancipation), w.SerfEmancipation.ToString(), p.SerfEmancipation.ToString()),
-            ("徴兵", nameof(NationPolicy.ConscriptionLaw), w.ConscriptionLaw.ToString(), p.ConscriptionLaw.ToString()),
-            ("秘密投票", nameof(NationPolicy.SecretBallot), w.SecretBallot.ToString(), p.SecretBallot.ToString()),
-            ("官僚", nameof(NationPolicy.Bureaucracy), w.Bureaucracy.ToString(), p.Bureaucracy.ToString()),
-            ("移民制限", nameof(NationPolicy.ImmigrationRestriction), w.ImmigrationRestriction.ToString(), p.ImmigrationRestriction.ToString()),
-            ("技術者流出禁止", nameof(NationPolicy.SpecialistExitLaw), w.SpecialistExitLaw.ToString(), p.SpecialistExitLaw.ToString()),
-            ("社会保障法", nameof(NationPolicy.SocialSecurityLaw), w.SocialSecurityLaw.ToString(), p.SocialSecurityLaw.ToString()),
-            ("国教", nameof(NationPolicy.StateReligion), w.StateReligion.ToString(), p.StateReligion.ToString()),
-            ("独禁", nameof(NationPolicy.Antitrust), w.Antitrust.ToString(), p.Antitrust.ToString()),
-            ("同業組合", nameof(NationPolicy.Guild), w.Guild.ToString(), p.Guild.ToString()),
-            ("最低賃金", nameof(NationPolicy.MinimumWage), w.MinimumWage.ToString(), p.MinimumWage.ToString()),
-            ("戦時配給", nameof(NationPolicy.WartimeRationing), Ob(w.WartimeRationing), Ob(p.WartimeRationing)),
-            ("軍需輸出の禁止", nameof(NationPolicy.MilitaryExportBan), Ob(w.MilitaryExportBan), Ob(p.MilitaryExportBan)),
-            ("民間の武器購入の禁止", nameof(NationPolicy.CivilianArmsBan), Ob(w.CivilianArmsBan), Ob(p.CivilianArmsBan)),
-            ("鉄道国有化", nameof(NationPolicy.NationalizeRailways), Ob(w.NationalizeRailways), Ob(p.NationalizeRailways)),
-            ("鉱山国有化", nameof(NationPolicy.NationalizeMines), Ob(w.NationalizeMines), Ob(p.NationalizeMines)),
-            ("軍需産業国有化", nameof(NationPolicy.NationalizeMilitary), Ob(w.NationalizeMilitary), Ob(p.NationalizeMilitary)),
-            ("石油国有化", nameof(NationPolicy.NationalizeOil), Ob(w.NationalizeOil), Ob(p.NationalizeOil)),
-            ("電力国有化", nameof(NationPolicy.NationalizeElectricity), Ob(w.NationalizeElectricity), Ob(p.NationalizeElectricity)),
-            ("全て国有化", nameof(NationPolicy.NationalizeAll), Ob(w.NationalizeAll), Ob(p.NationalizeAll)),
-            ("アヘン保有", nameof(NationPolicy.OpiumPossession), w.OpiumPossession.ToString(), p.OpiumPossession.ToString()),
-            ("アヘン輸出禁止", nameof(NationPolicy.OpiumExportBan), Ob(w.OpiumExportBan), Ob(p.OpiumExportBan)),
-            ("通貨制度", nameof(NationPolicy.MonetaryTarget), w.MonetaryLaw.ToString(), ((MonetaryStandardLaw)Math.Clamp(p.MonetaryTarget, 0, 2)).ToString()),
-            ("資本移動の規制", nameof(NationPolicy.CapitalControlTarget), Ob(w.CapitalControlLaw), Ob(p.CapitalControlTarget)),
-        ];
-    }
+    /// <summary>★(435) 全ての法の現在値と目標値（旧は目標だけの法が多く、労組・女性・官僚・国有化・資本移動ほかの現在値が空欄だった）。
+    /// ★(501) 段0：法の表は本体の <see cref="LawCatalog"/> が 1 本で持つ＝名前も段の名前も画面の法律タブと同じ日本語（旧は自前の名前と英語の型の名前で、画面と 5 つ食い違っていた）。
+    /// 新しい法を NationPolicy に足したら本体の法の表へ足す（番人 <c>PlayHarnessTests</c> が NationPolicy の法の欄が全て表に載るかを見る）。
+    /// <c>Field</c>＝報告の書き込みの口（decision.txt の <c>キー=値</c>）が受ける NationPolicy の欄名（主）／<c>Fields</c>＝その行が読み書きする欄の全て（阿片は 2 欄）。</summary>
+    internal static List<(string Name, string Field, string[] Fields, string Current, string Target)> LawStatusRows(World w)
+        => LawCatalog.All.Select(l => { var (name, cur, tgt) = LawCatalog.StatusRow(l, w); return (name, l.Key, l.Fields, cur, tgt); }).ToList();
 
     /// <summary>プレイヤーの動作（World のメソッド＝UIのボタンと同じ口）。書式：
     /// !factory 州名 財名 ／ !sell 州名 財名 ／ !subsidy 州名 財名 率 ／

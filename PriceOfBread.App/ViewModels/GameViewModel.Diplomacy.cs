@@ -1,21 +1,186 @@
-﻿// GameViewModel.Diplomacy.cs ＝ 外交タブ＝国一覧（2段組）・カメラ移動・侵略/統一戦争/通商条約の確認モーダル。
+﻿// GameViewModel.Diplomacy.cs ＝ 外交と戦争のページ＝国の一覧（共通の表）・カメラ移動・侵略/統一戦争の確認モーダル。
 // ★2026-08-10のUI分割：GameViewModel.cs から**メンバーを移しただけ**（ロジック・順序とも不変）。
 //   同じ partial class GameViewModel の一部＝どのファイルからでも全メンバーに触れる。
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Controls;
+using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
+/// <summary>国の一覧の色（旧の外交タブと同じ固定のパレット・「#RRGGBB」）。関係のバッジの背景・政体の色の丸・緊張の青／黄／赤。表の側（TableView）が文字列を筆へ直す。</summary>
+internal static class NationInk
+{
+    public const string War = "#A0432D", Ally = "#2E7D32", OwnVassal = "#3A5A8A", OwnSuzerain = "#8A6A2A", OtherVassal = "#7A6A55", NoTerritory = "#8A8070", Default = "#555555";
+
+    /// <summary>緊張の色（開戦までの近さ。低＝青・中＝黄・高＝赤）。</summary>
+    public static string Tension(double share) => !(share >= 0.35) ? "#1F5FA8" : share < 0.70 ? "#B8860B" : "#A0432D";   // 否定形＝NaN は低い側
+
+    /// <summary>政体の色（導出した政体。立憲君主制は自国の属国と、ブルジョア独裁は自国の宗主と同じ色）。</summary>
+    public static string PolityInk(Polity? p) => p switch
+    {
+        Polity.Absolutist or Polity.Despotic or Polity.Shogunate => "#7A3030",
+        Polity.ConstitutionalMonarchy => OwnVassal,
+        Polity.Republic => "#2E6E5E",
+        Polity.MilitaryDictatorship => "#5A3A6A",
+        Polity.BourgeoisDictatorship => OwnSuzerain,
+        Polity.ProletarianDictatorship => "#9A2A2A",
+        _ => Default,
+    };
+}
+
 public partial class GameViewModel
 {
-    // 外交タブの国一覧＝**2段組**（2026-08-10作者指示）。順位の並びを列で読む（左列＝上位半分・右列＝残り）ので、
-    // 段ごとに別のコレクションへ分ける（1本を折り返す実装では順位が行方向にジグザグする）。
-    public ObservableCollection<NationCard> NationsLeft { get; } = new();
-    public ObservableCollection<NationCard> NationsRight { get; } = new();
+    // 国の一覧は共通の表（Controls/TableView）。行は国（鍵＝国名）で、ランクごとの群・順位・国名・関係・緊張・動詞（侵略／統一戦争）。
+    // 列は下の NationColumns が名乗る。行は鍵で値だけ流す（SyncRows の規律＝押し釦とホバーを毎月壊さない）。
+    // ★国の行の組み立ては App の状態（確かめの窓・狙い先・地図のカメラ）に依るので、本体の目録（PoliticsTables）ではなくここで TableData を組む。
+    [ObservableProperty] private TableSnapshot _nationTable = TableSnapshot.Empty;
+
+    private static readonly ColumnInfo[] NationColumns =
+    [
+        new("order", "順位", ColumnKind.Number, Unit.Count, false, null),
+        new("name", "国名", ColumnKind.Text, null, false, null),
+        new("relation", "関係", ColumnKind.Text, null, false, null),
+        new("tension", "緊張", ColumnKind.Number, Unit.Share, false, null),
+        new("invade", "侵略", ColumnKind.Verb, null, false, null),
+        new("unify", "統一戦争", ColumnKind.Verb, null, false, null),
+    ];
+
+    /// <summary>外交と戦争のページが見えた瞬間の更新（見えている間は毎月の Refresh が追従する）。国の並びに要る物（国力・ランク・戦争の相手・統一戦争の標的）をここで作り直す。</summary>
+    public void RefreshDiplomacyPage()
+    {
+        var scoreByPower = NationalScore.ScoresByPower(_sim.Diplomacy);
+        var linesByPower = NationalScore.BreakdownsByPower(_sim.Diplomacy);
+        var powers = _sim.Diplomacy.Powers
+            .OrderByDescending(p => (int)_sim.Diplomacy.RankOf(p))
+            .ThenByDescending(p => p.Nation != null ? scoreByPower[p.Id] : -1).ToList();
+        var me = _sim.Diplomacy.Powers[_playerIndex];
+        var warEnemyIds = new HashSet<long>();
+        foreach (var war0 in _sim.Diplomacy.Wars) if (war0.A == me || war0.B == me) warEnemyIds.Add((war0.A == me ? war0.B : war0.A).Id);
+        var unifRule = _player.UnificationRule;
+        var unifTargets = unifRule != null ? Formations.UnificationTargets(_sim.Diplomacy, me, unifRule) : null;
+        BuildNationTable(powers, scoreByPower, linesByPower, me, warEnemyIds, unifTargets);
+        RefreshFactions();
+    }
+
+    /// <summary>国の一覧の表を組む。並び＝ランクが第一キー（作者指摘2026-08-11「ランクと順位が一致しない」）：一覧は今の国力で並べ、ランクは年 1 回の再分類の結果なので、
+    /// その間に国力が入れ替わると「中堅なのに列強より上」が起こる。ランクで束ねてから国力で並べれば定義上ずれない（群＝ランク）。</summary>
+    private void BuildNationTable(List<Power> powers, Dictionary<int, double> scoreByPower, Dictionary<int, NationalScore.ScoreLine[]> linesByPower,
+                                  Power me, HashSet<long> warEnemyIds, List<Power>? unifTargets)
+    {
+        var rows = new List<RowData>(powers.Count);
+        for (int oi = 0; oi < powers.Count; oi++)
+        {
+            var pow = powers[oi];
+            bool isMe = pow == me;
+            bool war = warEnemyIds.Contains(pow.Id);
+            var powRank = _sim.Diplomacy.RankOf(pow);
+            string rank = RankJa(powRank);   // 国家ランク（列強/中堅/弱小・改修2026-06-28）
+            // 導出政体（2026-08-21・作者裁定「権力円グラフから政体を算出し、外交パネルでの表示のみに使う」）：
+            // ラベル（w.Polity）でなく PowerAffinity.PolityFromShares（権力シェアの読み出し）を表示する。
+            Polity? derived = pow.Nation is { } dnw ? PowerAffinity.PolityFromShares(dnw) : (Polity?)null;
+            string name = SecessionNames.DisplayName(pow, derived, _sim.Diplomacy.Wars);   // 政体で変わる国号・政体をめぐる内戦の間は両陣営が頭書き＋国名
+            string score = pow.Nation != null ? scoreByPower[pow.Id].ToString("F1") : "—";
+            string polity = PolityRegimeJa(derived);
+            // 低い＝多民族/多宗派（移民を引く・分離圧力）。宗教統一は民族統一と対称の派生スカラー＝州宗教の最大シェア（#62で露出）
+            string unity = pow.Nation is { EthnicEnabled: true } nn ? $"民族統一 {nn.EthnicUnity:P0}　宗教統一 {nn.ReligiousUnity:P0}" : "";
+            // 緊張：自国は「—」、それ以外は開戦までの近さ（100%＝宣戦の閾値・TensionPct）。交戦は関係の列で示す。
+            double tensionShare = isMe ? double.NaN : TensionPct(_sim.Diplomacy.Tension(me, pow));
+            // 関係（優先順）：戦争中＞属国/宗主（自国）＞他国の属国＞同盟＞領土なし（帰属の明記・2026-07-19）
+            var powSuz = _sim.Diplomacy.Suzerain(pow);
+            string badge = ""; string? badgeFill = null;
+            if (isMe) { }
+            else if (war) { badge = "戦争中"; badgeFill = NationInk.War; }
+            else if (powSuz == me) { badge = "自国の属国"; badgeFill = NationInk.OwnVassal; }
+            else if (_sim.Diplomacy.Suzerain(me) == pow) { badge = "自国の宗主"; badgeFill = NationInk.OwnSuzerain; }
+            else if (powSuz is not null) { badge = powSuz.Name; badgeFill = NationInk.OtherVassal; }   // 宗主名だけ（長い「○○の属国」は末尾が落ちて別の語になる）。属国であることは色が担い、全文は行のホバーの「関係:」
+            else if (_sim.Diplomacy.HasAlliance(me, pow)) { badge = "同盟"; badgeFill = NationInk.Ally; }
+            else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeFill = NationInk.NoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
+            // 外交アクションの可否：弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
+            // ★2026-08-23作者裁定：植民地化と侵略は1本（侵略）。標的が弱小なら抽象標的でも実在国でも同じボタン＝エンジンの World.CanInvade にもランク条件は無い（AI と同じ動詞・同じ可否）。
+            bool showInvade = !isMe && powRank == PowerRank.Minor;
+            string invReason = "";
+            bool canInvade = showInvade && _player.CanInvade(pow, out invReason);
+            if (!showInvade || canInvade) invReason = "";
+            bool showUnif = unifTargets != null && unifTargets.Contains(pow);   // P4：必要州の保有国にのみ表示
+            string unifReason = "";
+            bool canUnif = showUnif && _player.CanUnificationWar(pow, out unifReason);
+            if (!showUnif || canUnif) unifReason = "";
+            double willCost = showInvade ? _player.ExpansionCostFor(pow) : 0;   // ゲート・実消費・表示は同一の式（国力比・2026-08-23）
+            double wcap = _player.Coef.ExpansionWillCap;
+            // 不可の理由（グレーアウト時のツールチップ）：不足系は「必要量（現在値）」で言い換え。
+            string? ReasonTip(string reason) => reason switch
+            {
+                "" => null,
+                "余剰戦力が不足" => $"戦力余剰が{willCost / wcap:P0}必要(現在 {_player.ExpansionWill / wcap:P0})",   // ⚠case の文字列はエンジンの理由（World.CanInvade）＝変えない。変えたのは表示だけ
+                "属国が上限" => $"属国 {_sim.Diplomacy.DependentCount(me)}/{_player.Coef.MaxDependents}",
+                "兵力が不足" => $"兵力が標的の{_player.Coef.InvadeMilitaryFactor:F1}倍必要(自国 {me.Military * _player.MilitaryReadiness:F2}/標的 {pow.Military:F2})",
+                _ => reason,
+            };
+
+            // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝6 項の割合の点）＋緊張が高まっている要因。
+            string detail = $"{name}({rank})　{polity}";
+            if (pow.Nation is { } nw)
+            {
+                detail += $"\n列強スコア:{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F1}"));
+                if (unity.Length > 0) detail += "\n" + unity;
+                // 主流の文化/宗教（州ラベルの人口加重多数派）＝下の「民族の隔たり/宗教の隔たり」の素（#62）
+                if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化: {pow.Culture}　宗教: {pow.Religion}";
+                if (!isMe && me.Nation is not null)
+                {
+                    // 緊張要因＝UIで再導出せず、エンジンの理由別台帳（TensionBreakdown）をそのまま出す（二重真理の解消）。
+                    // 表示名は Diplomacy.TensionReasonJa（多対一）＝同名チャネルは束ねてから並べる（緊張モーダル＝Popups.cs と同じ規約）。
+                    var merged = new List<(string Name, double Value)>();
+                    foreach (var (reason, v) in _sim.Diplomacy.TensionBreakdown(me, pow))
+                    {
+                        string rname = Diplomacy.TensionReasonJa(reason);
+                        int at = merged.FindIndex(x => x.Name == rname);
+                        if (at >= 0) merged[at] = (rname, merged[at].Value + v);
+                        else merged.Add((rname, v));
+                    }
+                    var factors = merged.Where(f => TensionPct(f.Value) >= 0.005).OrderByDescending(f => f.Value).ToList();   // 0%に丸まる寄与は出さない（緊張モーダルと同じ足切り）
+                    if (factors.Count > 0)
+                    {
+                        detail += "\n緊張要因";
+                        foreach (var f in factors)
+                            detail += $"\n・{f.Name} +{TensionPct(f.Value):P0}";
+                    }
+                }
+                // 自国との関係（同盟・禁輸・属国/宗主）＝意思決定情報
+                var rel = new List<string>();
+                if (_sim.Diplomacy.HasAlliance(me, pow)) rel.Add("防衛同盟");
+                if (_sim.Diplomacy.HasEmbargo(me, pow)) rel.Add("禁輸中");
+                if (powSuz == me) rel.Add("自国の属国");
+                else if (powSuz is not null) rel.Add($"{powSuz.Name}の属国");   // 帰属の明記（2026-07-19）：他国の勢力圏もホバーで判る
+                if (_sim.Diplomacy.Suzerain(me) == pow) rel.Add("自国の宗主");
+                if (rel.Count > 0) detail += "\n関係: " + string.Join("　", rel);
+                // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）
+                if (pow.Nation is { } enw)
+                {
+                    detail += $"\n経済: GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
+                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
+                }
+            }
+            else detail += $"\n残る領土 {pow.ColonyList.Count}";   // 抽象標的＝未接収の植民地数（0=領土なし・奪う物が無い）
+            // 通商条約の行は廃止（2026-09-07作者指示）＝締結は Diplomacy.TradeTreaties が四半期に自動で行う（プレイヤーもAIと同じ掃引）
+
+            // 動詞：押すと確かめの窓（既存の DiploInvade／DiploUnifWar）が開く＝窓の中で実行を選ぶ（窓の本文は押した瞬間の値で組む）。この行に無い動詞は空のまま（前の月にあった釦は消える）。
+            string powName = pow.Name;
+            object? invade = showInvade ? new VerbCell("侵略", canInvade, () => DiploInvadeCommand.Execute(powName), null, ReasonTip(invReason)) : null;
+            object? unify = showUnif ? new VerbCell("統一戦争", canUnif, () => DiploUnifWarCommand.Execute(powName), null, ReasonTip(unifReason)) : null;
+            rows.Add(new RowData(pow.Name, name, rank,
+                [new NumberCell(oi + 1), new TextCell(name, null, Swatch: NationInk.PolityInk(derived)), new TextCell(badge, null, BadgeFill: badgeFill),
+                 new NumberCell(tensionShare, Ink: isMe ? null : NationInk.Tension(tensionShare)), invade, unify], detail, isMe));
+        }
+        NationTable = TableSnapshot.From(new TableData("diplomacy.nations", "国の一覧", NationColumns, rows, Page.DiplomacyWar));
+    }
 
     /// <summary>行クリック＝その国の中心（首都州／なければ最初の植民地）へカメラを移動（View が購読して translate を合わせる）。</summary>
     public event Action<double, double>? CenterMap;
@@ -69,4 +234,16 @@ public partial class GameViewModel
 
     [RelayCommand]
     private void ConfirmCancel() { _confirmDo = null; ConfirmOpen = false; }
+
+    /// <summary>共通の表の動詞（<see cref="PriceOfBread.SimCore.Display.VerbCell"/>）で確かめの文を持つ物の口。既存の確かめの窓に、題＝動詞の名前・本文＝確かめの文を出し、実行で動詞の中身を呼ぶ
+    /// （設計 §6-3）。<see cref="Controls.TableView.DefaultConfirm"/> へ GameView が繋ぐ。</summary>
+    public void ConfirmVerb(PriceOfBread.SimCore.Display.VerbCell vb)
+    {
+        ConfirmTitle = vb.Name;
+        ConfirmBody = vb.ConfirmText ?? "";
+        ConfirmAcceptLabel = vb.Name;
+        ConfirmCan = vb.Enabled;
+        _confirmDo = vb.Invoke;
+        ConfirmOpen = true;
+    }
 }

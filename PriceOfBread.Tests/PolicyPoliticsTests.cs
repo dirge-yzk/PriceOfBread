@@ -1723,7 +1723,7 @@ public class PolicyPoliticsTests
         string[] labels = ["0", "1", "2", "3", "4", "5", "6", "7"];
         string Line2(PolicyAxis a, int level) =>
             new PriceOfBread.App.ViewModels.LawRowVM(w, a, "法", labels, () => LawLevel(w, a), () => LawLevel(w, a), _ => { })
-                .StageHint(level).Split('\n')[1];
+                .StageHint(level)!.Split('\n')[1];
         // ① 憲法級（参政権）の否決
         (bool Inc, int Level)? opp = null;
         foreach (bool inc in new[] { true, false })

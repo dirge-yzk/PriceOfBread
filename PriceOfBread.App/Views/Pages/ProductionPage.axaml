@@ -1,0 +1,544 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
+             x:Class="PriceOfBread.App.Views.Pages.ProductionPage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/ProductionPage.axaml ＝ 生産のページ（設計 §3-3・Qキー）。欄＝供給の網（盤）・財の表・選んだ財の詳細・州別の工場・労働の表・設備の表・巨大建造物。
+         旧の生産タブ（全画面の盤＋右の 530 幅のパネル）を欄に分けた物。欄の並べ（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）は PageGrid が決める
+         （並べの表は ProductionPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の ProductionTables）が名乗る。
+         盤は今の物をそのまま移した（共通の部品にしない）：座標は盤の視野の幅に追従して置き直す（GameViewModel.SetProdViewport）。
+         ページの外側は縦に流れない＝表・盤・州別は欄の中だけで流れ、見出しは止まる（SectionFit）。
+         ページが広いとき（1300 以上）は盤の列と他の欄の列の 2 つの PageGrid（盤は幅の約 56%＝1 行に 3 枚以上）、狭いときは 1 つの PageGrid に全部を積む（欄を動かすのは ProductionPage.axaml.cs）。
+         欄は全て MainGrid の子として宣言し、広いときだけ右の SideGrid へ移す。 -->
+    <Grid x:Name="PageRoot" Margin="6" ColumnDefinitions="*,0">
+    <ctl:PageGrid x:Name="MainGrid" Grid.Column="0">
+
+        <!-- 供給の網：素材（上）→加工財（下）の層。線＝レシピ（材料→製品）。ドラッグで動かし、財を押すと選ぶ（同じ財をもう一度押すと解除）。 -->
+        <ctl:Section x:Name="SupplySection" Key="supply" Title="供給の網">
+            <ctl:Section.Body>
+                <Grid x:Name="BoardBody" RowDefinitions="Auto,*">
+                    <WrapPanel Grid.Row="0" Orientation="Horizontal" ItemSpacing="12" LineSpacing="2" Margin="0,0,0,4">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Rectangle Width="10" Height="10" Fill="#7A5A2E" VerticalAlignment="Center"/>
+                            <TextBlock Text="素材" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Rectangle Width="10" Height="10" Fill="#3E7A4E" VerticalAlignment="Center"/>
+                            <TextBlock Text="主食" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Rectangle Width="10" Height="10" Fill="#B8860B" VerticalAlignment="Center"/>
+                            <TextBlock Text="日用品" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Rectangle Width="10" Height="10" Fill="#8A4A8A" VerticalAlignment="Center"/>
+                            <TextBlock Text="奢侈品" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Rectangle Width="10" Height="10" Fill="{StaticResource BlueBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="生産財" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <!-- 技術不足（2026-08-09 項目13）：色は PAccTechShort と同値。tier色を捨てて灰に落ちた財＝今は作れない -->
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Rectangle Width="10" Height="10" Fill="#9A948C" VerticalAlignment="Center"/>
+                            <TextBlock Text="技術不足" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <ScrollViewer Grid.Row="1" x:Name="ProdScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Grid HorizontalAlignment="Center" Width="{Binding ProdCanvasW}" Height="{Binding ProdCanvasH}" Background="#E0D6BA"
+                              PointerPressed="OnProdPanPressed" PointerMoved="OnProdPanMoved" PointerReleased="OnProdPanReleased">
+                    <!-- 盤の地色＝一段暗いベージュ（作者指摘2026-08-16「材カードが背景色と近く可読性が低い」＝明色のカードを浮かせる。ヒット判定は色付きでも有効） -->
+                    <!-- tier区切り線（作者指示2026-08-15）＝層（加工の深さ）が変わる境目の水平1px・盤幅いっぱい。
+                         色は区切りの既定 #C4B48A（詳細パネルの区切り線と同値）。同一層の分割行間には無い（VM が層の境目だけ生成）。
+                         辺・節点より**先**に描く＝線は常に最背面（ベジェや財カードを跨いで前に出ない）。
+                         IsHitTestVisible=False＝ドラッグ移動と財クリックの当たり判定を線が奪わない。 -->
+                    <ItemsControl ItemsSource="{Binding ProdTierLines}" ClipToBounds="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas ClipToBounds="False"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                                <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Rectangle Width="{Binding W}" Height="1" Fill="{StaticResource SandBrush}" IsHitTestVisible="False"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- tierラベル（作者指示2026-08-16）＝各層の左端に tier1, tier2, …（数字が大きいほど加工が深い） -->
+                    <ItemsControl ItemsSource="{Binding ProdTierLines}" ClipToBounds="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><Canvas ClipToBounds="False"/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{ReflectionBinding LabelX}"/>
+                                <Setter Property="Canvas.Top" Value="{ReflectionBinding LabelY}"/>
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Label}" FontSize="{StaticResource FontTiny}" FontWeight="Bold" Foreground="#8A7250" IsHitTestVisible="False"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding ProdEdges}" ClipToBounds="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas ClipToBounds="False"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <!-- 強調した辺を上に描く（2026-08-10）。旧は VM 側で不透明度順に並べ替えていた＝並べ替えは
+                             コンテナの移動を伴い、器を作り直すのと同じ代償を毎回払っていた。重なりは ZIndex で表す。 -->
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="ZIndex" Value="{ReflectionBinding Z}"/>
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Path Data="{Binding Data}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" Opacity="{Binding Opacity}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding ProdNodes}" ClipToBounds="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas ClipToBounds="False"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                                <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- ClipToBounds＝品名＋世界価格差（2026-08-09 項目3）で行が長い財があっても、はみ出しが隣のカードに描かれない -->
+                                <Border Width="{Binding W}" Height="{Binding H}" Background="{Binding Background}"
+                                        BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}"
+                                        CornerRadius="3" Opacity="{Binding Opacity}" ClipToBounds="True"
+                                        PointerPressed="OnProdNodePressed">
+                                    <!-- 縦の余白は 0＝縦線の中に4段（▲/民営/国営/▼）を積むための実寸を作る。
+                                         内寸＝56 −枠1.5×2 ＝53（選択中は枠3.0で50）＝カウンター 12+13+13+12＝50 が収まる
+                                         （2026-09-23 に ＋−の横並び1段を ▲▼ の上下2段へ＝作者の図どおり民営/国営の行を挟む）。
+                                         ★2026-09-23（3度目・撮影で潰れが確定した後）：縦の余白 2 を捨てて 46→**50** を取り、
+                                           配分を 10+13+13+10 から **12+13+13+12** へ組み替えた＝▲▼ の当たり判定が 56×10→56×12。
+                                           ⚠文字の2行は 13px から下げられない（Yu Gothic UI・11px の ink 下端＝「営」12.72px・「国」12.76px・数字12.00px）
+                                             ＝46 のままでは ▲11/民営12/国営12/▼11 しか作れず、三角の潰れを字の潰れに替えるだけになる。50 なら両方入る。
+                                           ⚠余白を削っても本文は痩せない＝右の3行は 15.96(12px)+14.63+14.63＝45.22px で、
+                                             46 のときは上下 0.39px しか無かった余りが 50 では 2.39px＝**本文側の余裕も増える**
+                                             （どちらも縦中央寄せ＝見た目の位置は動かない）。
+                                         横の余白は 5＝本文の可用幅は 204 −枠1.5×2 −5×2 −(縦線56+隙間6) ＝129px／選択中126px
+                                         （GameViewModel.Production.cs の算術と同じ1本）。 -->
+                                    <DockPanel Margin="5,0">
+                                        <!-- ★カテゴリの縦線を工場カウンターへ拡張（作者要望2026-09-07 (1)）＝色は従来どおり tier のアクセント。
+                                             中身＝▲／民営「完成した棟数」／国営「完成した棟数（＋まだ建っていない意志）」／▼。
+                                             ★2026-09-23 作者の図＝増加は上三角・減少は下三角で、民営と国営の2行を上下から挟む
+                                               （旧は＋−を最下段に横並び1段）。▲▼ が動かすのは**全国工場目標**（GameViewModel.Production.cs の
+                                               StepFactoryTargetAll）＝国営行の「+n」だけが動く。民営行は▲▼では動かない。
+                                             ▲を押すと予定が増え、満たすまでエンジンが最も効率の良い州へ国営工場を建てる（州の選び方はAIの物差しと同じ1本）。
+                                             ★Button は押下を Handled にする＝親 Border の OnProdNodePressed（財の選択）と衝突しない。
+                                             ★無効なボタンはツールチップを出せないので枠側に載せる（画面の作法）＝
+                                               「国営 n棟　民営 n棟　建設予定 n棟　予定を含めて n棟」。
+                                             ★▼は予定のうちまだ州へ配っていない分しか削れない＝削る余地が無い時も**押せない状態で出す**
+                                               （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない。
+                                                Button.counter:disabled が地色を保ったまま記号だけ薄い墨にする）。
+                                             ★▲▼ は**字をやめて図形で置く**（2026-09-23・3度目＝撮影で潰れが確定した）。
+                                               字は 11px で行箱 14.63px（hhea の ascender 2210 + descender 514 を 2048分の11）・ink が 8.64px あり、
+                                               枠1×2 を引いた内寸の箱には上下が切られて入る＝実機では ▲ が 2×3px の点・▼ が幅10pxの線にしか写らなかった。
+                                               Path は書体に依らず**指定した寸法そのもの**で出る＝内寸10px の中へ 10×6 の三角を中央に置く（上下に2pxずつ）。
+                                             ★Fill は継承した前景を自分で引く＝Button.counter の #5A4526 と :disabled の #8C7A55 を
+                                               そのまま使う（色の定義は App.axaml の1箇所のまま＝押せない▼が薄い墨になる規則を壊さない）。
+                                               ⚠Shape.Fill は TextElement.Foreground を自動では読まない（:disabled が落とすのは前景だけ）
+                                                 ＝$self の添付プロパティを束ねる1行が要る。ここを書かないと押せない▼が濃いまま出る。
+                                             ★幅56の中身（11px太字の実寸＝Yu Gothic UI Bold の hmtx。漢字11.00・0=6.107・1=4.426・4=6.338・+=7.638・/=4.549）
+                                               ＝「民営100」38.64px・「民営10000」50.85px＝1つ書きにしたので5桁まで収まる。
+                                               国営の2つ書き「国営100/100」は**59.83px＝3.83px超過**で末尾が無言で切れていた（撮影で確定）。
+                                               ⇒ 分母をやめて**残りの意志がある月だけ差分を足す**＝「国営100」38.64px／「国営100+1」50.70px・
+                                                 「国営12+12」50.70px（予定0の月は 100/100 のように同じ値を2度書かない）。
+                                               ★3桁＋2桁（「国営100+12」56.81px〜「国営999+99」60.33px）は超える＝TextTrimming が「国営100+…」と出す
+                                                 （固定幅で無言にクリップさせない）。数は縦線のツールチップに出る。
+                                                 ⚠これは幅では直せない＝二数を置く形はどれも3桁+2桁を56pxに収められない
+                                                   （最も細い区切りでも「国営999/99」57.25px・半角スペースの「国営444 44」56.71px）。 -->
+                                        <Border DockPanel.Dock="Left" Width="56" Background="{Binding Accent}" CornerRadius="1" Margin="0,0,6,0"
+                                                ToolTip.Tip="{Binding FactoryTip}" ToolTip.ShowDelay="200">
+                                            <StackPanel VerticalAlignment="Center">
+                                                <Button Classes="counter" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
+                                                        HorizontalAlignment="Stretch"
+                                                        Command="{Binding UpFactoryCommand}" IsEnabled="{Binding CanUpFactory}">
+                                                    <Path Data="M 0,6 L 5,0 L 10,6 Z" Stretch="Uniform" Width="10" Height="6"
+                                                          Fill="{Binding $self.(TextElement.Foreground)}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
+                                                <TextBlock Text="{Binding PrivateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
+                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding StateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
+                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
+                                                <Button Classes="counter" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
+                                                        HorizontalAlignment="Stretch"
+                                                        Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}">
+                                                    <Path Data="M 0,0 L 10,0 L 5,6 Z" Stretch="Uniform" Width="10" Height="6"
+                                                          Fill="{Binding $self.(TextElement.Foreground)}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center" Spacing="0">
+                                            <!-- 品名の隣＝世界価格との比較（2026-08-09 項目3）。安い＝青・高い＝赤。値が無い財は空文字＝行は詰まらない -->
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{Binding NameBrush}"/>
+                                                <TextBlock Text="{Binding PriceDiff}" FontSize="{StaticResource FontTiny}" FontWeight="Bold" Foreground="{Binding PriceDiffBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Util}" FontSize="{StaticResource FontTiny}" Foreground="{Binding UtilBrush}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{Binding Prod}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}"/>
+                                                <TextBlock Text="{Binding Surplus}" FontSize="{StaticResource FontTiny}" FontWeight="Bold" Foreground="{Binding SurplusBrush}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 財の表：行は本体の生産の表（SimCore/Display/ProductionTables）。財の名前の行を押すとその財の詳細へ。 -->
+        <ctl:Section x:Name="GoodsSection" Key="goods" Title="財の表">
+            <ctl:Section.Body>
+                <ctl:TableView x:Name="GoodsTable" Snapshot="{Binding ProdGoodTable}" SelectedKey="{Binding ProdSelectedKey}" InnerScroll="True" Filterable="True"/>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 選んだ財の詳細：全国の需給・費用の積み上げ・価格・世界価格の線・補助金/専売/売買の方針・用途。 -->
+        <ctl:Section x:Name="DetailSection" Key="detail" Title="選んだ財">
+            <ctl:Section.Body>
+                <StackPanel Spacing="4" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <!-- 見出し行（作者仕様2026-08-10 再構成）＝カテゴリ　材名　価格割合。
+                             価格割合＝対世界価格の比（カードと同じ様式＝安い青・高い赤）。 -->
+                        <!-- ★閉じるボタン（作者指示2026-08-11）＝右パネルだけを畳む。TABでも同じことが起きる（2段で閉じる）。 -->
+                        <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding ProdDetail.Tier}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource BronzeBrush}" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                            <TextBlock Text="{Binding ProdDetail.Title}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
+                            <TextBlock Text="{Binding ProdDetail.PriceDiff}" FontSize="{StaticResource FontBody}" FontWeight="Bold"
+                                       Foreground="{Binding ProdDetail.PriceDiffBrush}" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
+                            <Border IsVisible="{Binding ProdDetail.LegalMonopoly}" Background="#8A5A28" CornerRadius="2" Padding="5,0" VerticalAlignment="Center">
+                                <TextBlock Text="独占" Foreground="#FFF6E8" FontSize="{StaticResource FontTiny}"/>
+                            </Border>
+                        </StackPanel>
+                        <!-- ★2026-09-23：手書きしていた Background/BorderThickness/Padding/Foreground を捨てて App.axaml の
+                             Button.close を呼ぶ（4つとも同値＝Transparent・0・8,2・#6B5230＝BronzeBrush の色そのもの）。
+                             これで Focusable=False が付く＝画面中で**唯一** Focusable を落としていないボタンだった
+                             （押した後スペースキーがこのボタンへ行き、一時停止/再開が効かなくなる）。 -->
+                        <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding CloseProdDetailCommand}"
+                                FontSize="{StaticResource FontBody}" VerticalAlignment="Top"/>
+                        </Grid>
+                        <!-- ①数値ブロック＝**2行**（作者指示2026-08-10）：
+                                 1行目 RGO生産量　工場生産量　輸入量
+                                 2行目 国内消費　輸出量　廃棄率
+                             ★項目の切れ目で折り返す（2026-08-02の Segs を配線・2026-08-09）：日本語は語境界を持たないので
+                             TextWrapping は「輸入量 1.2/k」のように**文字の途中**で割る。全角スペース区切りの断片を WrapPanel に
+                             並べれば折返しは必ず項目の切れ目で起きる。
+                             ★旧「材料供給:n%」の行は廃止＝材別の供給率が下の生産コスト欄の各行に出る（作者指示F）。 -->
+                        <ItemsControl ItemsSource="{Binding ProdDetail.NatSegs}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemSpacing="10"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"/></DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl ItemsSource="{Binding ProdDetail.NatSegs2}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemSpacing="10"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"/></DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <!-- ②シェアは**2行**（作者指示2026-08-10 D）＝「生産シェア n%　〇〇が世界のn%を生産」／
+                             「輸出シェア n%　〇〇が世界のn%を輸出」。首位は生産と輸出で別の国になる（作って自国で食う国／中継する国）。 -->
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding ProdDetail.ProdShareLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
+                                       IsVisible="{Binding ProdDetail.ProdShareLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <TextBlock Text="{Binding ProdDetail.TopProducerLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
+                                       IsVisible="{Binding ProdDetail.TopProducerLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding ProdDetail.ExportShareLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
+                                       IsVisible="{Binding ProdDetail.ExportShareLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <TextBlock Text="{Binding ProdDetail.TopExporterLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
+                                       IsVisible="{Binding ProdDetail.TopExporterLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </StackPanel>
+                        <!-- ⑤価格グラフ（作者仕様2026-08-10）＝首都価格÷世界価格の40四半期。中央の水平線＝世界価格（比1.0）。
+                             ★枠は常に出す＝標本が2点に満たない開幕に枠ごと消えて下が68px跳ねない（点が0本なら空枠）。
+                             ★縦は対数（項目2）＝×1.25/1.5/2/3/5 とその逆数が中心線から等距離に並ぶ。補助線は淡い1px・中心線は濃い2px。
+                               枠（どこまでが上下端か）と段階の一覧はホバーで読む＝グラフの中に文字を置かない。 -->
+                        <TextBlock Text="{Binding ProdDetail.WorldPriceLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" Margin="0,4,0,0"/>
+                        <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="68" HorizontalAlignment="Left"
+                                ToolTip.Tip="{Binding ProdDetail.SparkScaleTip}" ToolTip.ShowDelay="120">
+                            <Canvas Width="240" Height="64" Margin="3,1,0,0" ClipToBounds="True">
+                                <Path Data="{Binding ProdSparkGrid}" Stroke="#DBCDA6" StrokeThickness="1"/>
+                                <Rectangle Canvas.Left="0" Canvas.Top="31" Width="240" Height="2" Fill="#8A7A5E"/>
+                                <Polyline Points="{Binding ProdSparkPoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
+                            </Canvas>
+                        </Border>
+                        <!-- ⑥2段組＝【左】生産にかかるコスト（限界費用の内訳・合計＝生産コスト）／【右】価格の積み上げ（合計＝販売価格）。
+                             どちらもエンジン（ProductionDiag）の実式そのもの＝番人テストが「積み上げ＝実際の値」を固定している
+                             （左＝合計が限界費用 mc に一致／右＝合計が買い手の払う価格に一致）。
+                             「需要と供給」にカーソルを合わせると駆動値（在庫／目標・寡占・関税・穀物法・世界価格）、
+                             「人件費」は労働の内訳、「販売価格」は市場価格（段1の小計）。 -->
+                        <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,6,0,2"/>
+                        <!-- ★合計を**同じ高さで横並び**にする（作者フィードバック2026-08-10）＝2段組は行数が違う
+                             （左＝材の本数＋人件費＋管理・資本費／右＝固定7行）ので、そのままでは「生産コスト:£n」と
+                             「販売価格:£n」の高さがずれていた。両段を VerticalAlignment=Bottom にして**下端で揃える**＝
+                             短い側（多くは左）が下寄せになり、最後の要素どうし＝合計行が必ず同じ高さに来る。
+                             どちらが長くても成り立つ（行が増減しても崩れない）。区切り線と合計の下余白も左右で同値にする。 -->
+                        <Grid ColumnDefinitions="*,8,140">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                                <ItemsControl ItemsSource="{Binding ProdDetail.CostRows}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ProdCostRow">
+                                            <!-- 左＝材名(×数量)は * 列（幅が足りない時に縮むのはここだけ）／右＝供給率・基本価格比・金額は Auto＝切らせない。
+                                                 供給率（作者指示2026-08-10 F）＝その材の配給率（Market.LastRation）。足りていない材だけ赤＝**どの材が足りないか**が1行で読める
+                                                 （旧「材料供給」は素材の最小1本の集計値で、どの材かは分からなかった）。列は常に出す（人件費＝労働の充足／管理・資本費＝「—」）。
+                                                 比の基準は**その材の基本価格**（世界価格ではない・作者フィードバック2026-08-10 項目1）＝右段の積み上げと同じ物差し -->
+                                            <!-- ★供給率は**左寄せ**（作者指示2026-08-11）＝材名のすぐ右に置く。
+                                                 旧は右端へ寄せていたので、どの材の供給かが目で追いにくかった。 -->
+                                            <!-- ★レシピごとに分ける（作者要望2026-09-07 (3)）＝材料行の並びの末尾に、そのレシピの合計行を1本置く。
+                                                 合計行＝左にレシピ式（グアノ×1／硫酸×0.35 ＋ 硫黄×0.25）・右に「生産コスト £n」を右寄せ。
+                                                 レシピが1本の財でも同じ形（従来の器の外の合計は廃止＝どのレシピの合計かが言えなかった）。 -->
+                                            <StackPanel>
+                                                <Grid ColumnDefinitions="Auto,42,*,Auto,Auto" ColumnSpacing="4" Margin="0,1" Background="Transparent"
+                                                      IsVisible="{Binding !IsTotal}"
+                                                      ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" TextTrimming="CharacterEllipsis" MaxWidth="128"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Fill}" FontSize="{StaticResource FontTiny}" Foreground="{Binding FillBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Ratio}" FontSize="{StaticResource FontTiny}" Foreground="{Binding RatioBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="4" Text="{Binding Amount}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right"/>
+                                                </Grid>
+                                                <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,3" IsVisible="{Binding IsTotal}"/>
+                                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0,0,0,2" Background="Transparent"
+                                                      IsVisible="{Binding IsTotal}"
+                                                      ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"
+                                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="{StaticResource FontLead}" FontWeight="Bold"
+                                                               Foreground="{StaticResource InkBrush}" TextAlignment="Right"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                                <ItemsControl ItemsSource="{Binding ProdDetail.PriceStack}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ProdPriceRow">
+                                            <Grid ColumnDefinitions="*,54" Margin="0,1" Background="Transparent"
+                                                  ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+                                                <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,3"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,2" Background="Transparent"
+                                            ToolTip.Tip="{Binding ProdDetail.PriceTotalTip}" ToolTip.ShowDelay="120">
+                                    <TextBlock Text="販売価格:" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource BronzeBrush}"/>
+                                    <TextBlock Text="{Binding ProdDetail.PriceTotalText}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                        <!-- ⑦4つのレバーをスイッチ式ボタンへ統一（作者仕様2026-08-09 項目2）＝1つのボタンのON/OFF。ONは .active の濃い塗り。
+                             補助金ON＝満額・専売ON＝エンジンの標準率（Coefficients.StateMonopolyMargin）。高価でも輸入⇔安価でも輸出は相反するので排他（一方をONにすると他方はOFF）。
+                             ClickMode=Press＝上の行が伸縮してボタンがずれても押下で確定する（離上時の当たり判定に頼らない）。
+                             幅が足りない時は WrapPanel が折る（実測2026-08-04＝4つ横並びは4つ目が見切れた） -->
+                        <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="4" Margin="0,4,0,0">
+                            <!-- 補助金は国営持分に効かない（作者裁定2026-08-10「国営工場は補助金の対象外」）＝国営100%なら無効化する。
+                                 ★無効なボタンはツールチップを出せないので透明Borderで包む（カウンター列と同じ作法）＝
+                                   押せない理由（国営100%／産地なし）と、押せる時に効く持分（民営持分 n%）が読める。 -->
+                            <Border Background="Transparent" ToolTip.Tip="{Binding ProdDetail.SubsidyTip}" ToolTip.ShowDelay="120">
+                                <Button Classes="mini" Classes.active="{Binding ProdDetail.SubsidyOn}" ClickMode="Press"
+                                        IsEnabled="{Binding ProdDetail.CanSubsidize}"
+                                        Content="補助金" Command="{Binding ProdDetail.ToggleSubsidyCommand}"/>
+                            </Border>
+                            <Button Classes="mini" Classes.active="{Binding ProdDetail.MonopolyOn}" ClickMode="Press"
+                                    Content="専売" Command="{Binding ProdDetail.ToggleMonopolyCommand}"/>
+                            <Button Classes="mini" Classes.active="{Binding ProdDetail.BuyDearOn}" ClickMode="Press"
+                                    Content="高価でも輸入" Command="{Binding ProdDetail.ToggleBuyDearCommand}"/>
+                            <Button Classes="mini" Classes.active="{Binding ProdDetail.SellCheapOn}" ClickMode="Press"
+                                    Content="安価でも輸出" Command="{Binding ProdDetail.ToggleSellCheapCommand}"/>
+                        </WrapPanel>
+                        <!-- 設備の節（稼働率・従業員・技術による産出上限・産地）は全廃（作者フィードバック2026-08-10 項目5）＝州別の表と重複。
+                             稼働率の内訳（採算／投入充足／在庫調整／慣性）は州別テーブルの「生産」列のツールチップへ移した。 -->
+                        <!-- 「不足 —」「製品1あたり: …」「月ごとの消費: …」の3行は全廃（作者フィードバック2026-08-10 項目4）＝
+                             どの材がどれだけ要り、いくら払い、どれだけ届いたかは、上の生産コスト欄が材ごとに1行で言っている。
+                             貿易行（輸入依存度・独占上乗せ・首位輸出国・首位輸入国）も同日 項目2で全廃済み。 -->
+        <!-- アヘン中毒度：アヘンのノードを選んだ時だけ表示。★禁令のチェックボックスは廃止（禁制品doc C3/U4・2026-07-30）＝法2本は法律タブ -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding ProdDetail.IsOpium}" Margin="0,4,0,0">
+                            <TextBlock Text="{Binding OpiumLine}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <!-- 用途（2026-07-19）：この財の消費先と今月の実消費量。行クリックでその財へ移動。
+                             ★先頭は**そのまま消費される分**（作者フィードバック2026-08-10 項目6）＝popが直接買った量。
+                               名前はその財のカテゴリ（食料／日用品／奢侈品…）、ホバーで**実際に誰が買ったか**（階級別シェア）。
+                               クリックできない行（飛び先が無い）なのでボタンは無効＝ツールチップは透明Borderに載せる（画面の作法）。 -->
+                        <TextBlock Text="用途" Classes="section" Margin="0,8,0,0" IsVisible="{Binding ProdDetail.HasUses}"/>
+                        <ItemsControl ItemsSource="{Binding ProdDetail.Uses}" IsVisible="{Binding ProdDetail.HasUses}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProdUseRow">
+                                    <!-- 役務の消費先（教育・行政等）＝グラフに無い＝クリック不可（IsEnabled=false・レビュー2026-07-19） -->
+                                    <Border Background="Transparent" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+                                        <Button Classes="row" Command="{Binding SelectCmd}" CommandParameter="{Binding GoodId}" IsEnabled="{Binding CanSelect}">
+                                            <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Classes="use" Classes.unused="{Binding !Used}"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="{StaticResource FontSmall}" Classes="useamt" Classes.unused="{Binding !Used}"/>
+                                            </Grid>
+                                        </Button>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                </StackPanel>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 州別の工場：州ごとの工場・従業員・生産・過不足・材料価格。国営工場の − ＋ が建設の押し釦（目標を上げる＝建てさせる）。 -->
+        <ctl:Section x:Name="RegionsSection" Key="regions" Title="州別の工場">
+            <ctl:Section.Body>
+                <Grid x:Name="RegionsBody" RowDefinitions="Auto,*" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <Grid ColumnDefinitions="*,50,90,40,40,40,40,50" Margin="0,0,12,0">
+                            <!-- 見出し「州名」のホバー＝工業化の州別上位8（2026-09-23）。行は増やさず既にある見出しのセルに載せる。
+                                 式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
+                            <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"
+                                       ToolTip.Tip="{Binding ProdRegionHeadTip}" ToolTip.ShowDelay="200"/>
+                            <TextBlock Grid.Column="1" Text="民営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="2" Text="国営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="6,0,0,0"/>
+                            <TextBlock Grid.Column="3" Text="従業員" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="4" Text="失業者" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="5" Text="生産" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="6" Text="過不足" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="7" Text="材料価格" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                        </Grid>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding ProdDetail.Regions}" Margin="0,0,12,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProdRegionRow">
+                                    <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,2">
+                                        <!-- ★1行（作者フィードバック2026-08-10 項目3）。MinHeight はボタンの高さに固定＝
+                                             カウンターを持たない州（産地なし）の行だけ低くならない＝行の高さが州によって変わらない。 -->
+                                        <Grid ColumnDefinitions="*,50,90,40,40,40,40,50" MinHeight="19">
+                                            <!-- 接17：州名ホバー＝工業化資本の新旧内訳（ヴィンテージ層が休眠なら CapitalTip=null＝出ない） -->
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
+                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                                       ToolTip.Tip="{Binding CapitalTip}" ToolTip.ShowDelay="200"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding PrivFac}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                            <!-- 国営工場＝「− 現在/目標 ＋」（作者フィードバック2026-08-10 項目5でカウンター列を統合）。
+                                                 1カウント＝1棟＝Coefficients.FactoryBuildScale。現在＝実測（World.StateUnits）／目標＝−/＋で動かす当の数。
+                                                 ★無効なボタンはツールチップを出せないので透明Borderで包む＝**常時**「国営n棟／目標n棟／民営n棟」＋
+                                                   進まない月はその理由（建材の採算・国庫不足・技術不足・赤字で買い手がつかない・資本家の資金不足・
+                                                   国有化法の対象・資本家が政府に不満）が読める＝「下げたのに動かない」を無言にしない。
+                                                 ★ClickMode=Press（2026-08-09の着工クリック不発と同じ理由）：詳細パネルは最大20回/秒で値が流れ、
+                                                   上の行の伸縮でボタンが数px動く＝離上時の当たり判定に頼ると押下が黙って捨てられる。
+                                                 ★数字の列は Auto でなく * ＝1桁でも2桁でも ＋/− の位置が動かない（隣の州と縦に揃う）。 -->
+                                            <!-- 左6の余白＝「−」が民営工場の数字と地続きに見えないための隙間（uishot 実測2026-08-10＝「3−」と読めた） -->
+                                            <Border Grid.Column="2" Background="Transparent" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                    ToolTip.Tip="{Binding CounterTip}" ToolTip.ShowDelay="80">
+                                                <Panel>
+                                                    <!-- 産地の無い州は「—」（他の列と同じ埋め方）＝空欄にしない。どちらも同じ 90px の枠に入るので位置は動かない -->
+                                                    <TextBlock Text="{Binding StateFac}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Center"
+                                                               VerticalAlignment="Center" HorizontalAlignment="Stretch" IsVisible="{Binding !HasCounter}"/>
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasCounter}">
+                                                        <Button Grid.Column="0" Classes="counter" Content="-" ClickMode="Press"
+                                                                Command="{Binding DownCommand}" IsEnabled="{Binding CanDown}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding StateFac}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
+                                                                   TextAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Button Grid.Column="2" Classes="counter" Content="+" ClickMode="Press"
+                                                                Command="{Binding UpCommand}" IsEnabled="{Binding CanUp}"/>
+                                                    </Grid>
+                                                </Panel>
+                                            </Border>
+                                            <TextBlock Grid.Column="3" Text="{Binding Emp}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="4" Text="{Binding Idle}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                            <!-- 生産のホバー＝稼働率とその内訳（採算／投入充足／在庫調整／慣性）＝設備欄から移した全国値 -->
+                                            <TextBlock Grid.Column="5" Text="{Binding Prod}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"
+                                                       ToolTip.Tip="{Binding ProdTip}" ToolTip.ShowDelay="200"/>
+                                            <!-- 過不足＝生産に対する比（2026-08-10 項目3）。絶対量（生産・消費・差）はホバーで読む -->
+                                            <TextBlock Grid.Column="6" Text="{Binding Surplus}" FontSize="{StaticResource FontSmall}" Foreground="{Binding SurplusBrush}" TextAlignment="Right" VerticalAlignment="Center"
+                                                       ToolTip.Tip="{Binding SurplusTip}" ToolTip.ShowDelay="200"/>
+                                            <TextBlock Grid.Column="7" Text="{Binding MatCost}" FontSize="{StaticResource FontSmall}" Foreground="{Binding MatCostBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 労働の表：労働・農業労働・高度労働の需要と供給・賃金・最低賃金の床。 -->
+        <ctl:Section x:Name="LaborSection" Key="labor" Title="労働">
+            <ctl:Section.Body>
+                <ctl:TableView x:Name="LaborTable" Snapshot="{Binding ProdLaborTable}" InnerScroll="True"/>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 設備の表：レシピごとの設備（工場の設備の割合・国営の持分・休止中の割合）。旗が 0 の世界では欄ごと出さない。 -->
+        <ctl:Section x:Name="EquipSection" Key="equipment" Title="設備">
+            <ctl:Section.Body>
+                <ctl:TableView x:Name="EquipTable" Snapshot="{Binding ProdEquipTable}" InnerScroll="True"/>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <!-- 巨大建造物：材と同じ大きさのカード。着工は動詞（コストを出してクリック・押せない理由はボタンのホバー）。 -->
+        <ctl:Section x:Name="MegaSection" Key="mega" Title="巨大建造物">
+            <ctl:Section.Body>
+                        <ItemsControl ItemsSource="{Binding MegaRows}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="300" ItemHeight="92"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:MegaRow">
+                                    <!-- 材の節点と同じ作り＝角丸の枠・左の色帯・中に3行。ClipToBounds＝長い品名が隣のカードへはみ出さない。
+                                         情報は移設前と同じ（品名／状態／効果／着工ボタン＋見積・残量・技術のツールチップ）。 -->
+                                    <Border Width="292" Height="84" Background="#F2F5EFDD" BorderBrush="{StaticResource SandDarkBrush}"
+                                            BorderThickness="1" CornerRadius="3" ClipToBounds="True">
+                                        <DockPanel Margin="6,4">
+                                            <Rectangle DockPanel.Dock="Left" Width="5" Fill="{Binding Brush}" Margin="0,0,6,0" RadiusX="1" RadiusY="1"/>
+                                            <!-- 無効なボタンはツールチップを出せないので透明Borderで包む（工場の着工と同じ流儀） -->
+                                            <Border DockPanel.Dock="Right" Background="Transparent" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                    IsVisible="{Binding ShowStart}" ToolTip.Tip="{Binding StartReason}" ToolTip.ShowDelay="80">
+                                                <Button Classes="mini" Content="{Binding StartLabel}" IsEnabled="{Binding CanStart}" Focusable="False"
+                                                        Command="{Binding $parent[ItemsControl].((vm:GameViewModel)DataContext).StartMegaCommand}" CommandParameter="{Binding}"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
+                                                           TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding State}" FontSize="{StaticResource FontTiny}" Foreground="{Binding Brush}"/>
+                                                <TextBlock Text="{Binding Effect}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+            </ctl:Section.Body>
+        </ctl:Section>
+    </ctl:PageGrid>
+    <ctl:PageGrid x:Name="SideGrid" Grid.Column="1" Margin="8,0,0,0" IsVisible="False"/>
+    </Grid>
+</UserControl>
