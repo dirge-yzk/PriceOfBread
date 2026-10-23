@@ -1,0 +1,7 @@
+# cmpraw490.py D:/PoB_work/keep_508/m508_ins <hz6 の最終の木 3a1125c9 の計器つき 10 種の生>（2026-10-23・基準 m508）
+same 600 differ 30 disccontactSplitRows 0
+Counter({('colsok', 'burscan'): 10, ('colsok', 'clock'): 10, ('DIFF', 'flow'): 10})
+('DIFF', 'flow_s1.tsv')
+BAD 10
+
+# flow_s*.tsv の 10 本は sourceLine の列（呼び出しの行番号）だけが違う＝scripts/instruments/hz6_513/flow_noline.py で列を落とすと 10 本とも行の並びまで一致（FLOWBAD 0・行数 1,040,298〜1,102,382）。行番号が動いたのはコードの行が増減したため。burscan・clock は壁時計の列だけ（許した種類）。
