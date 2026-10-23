@@ -47,6 +47,7 @@ public partial class ProductionPage : UserControl
     }
 
     private GameViewModel? _vm;
+    private (bool Wide, bool Equipment)? _applied;   // 今の並べ（広い・設備の欄を出すか）
 
     public ProductionPage()
     {
@@ -85,6 +86,8 @@ public partial class ProductionPage : UserControl
     {
         bool wide = PageRoot.Bounds.Width >= WideWidth;
         bool equipment = _vm?.ProdEquipmentOn ?? true;
+        if (_applied == (wide, equipment)) return;   // 同じ形なら置き直さない（幅が少し動くたびに並べの表を付け直して測り直しを連鎖させない）
+        _applied = (wide, equipment);
         var sideSections = new Control[] { GoodsSection, DetailSection, RegionsSection, LaborSection, EquipSection };
         var home = wide ? SideGrid : MainGrid;
         foreach (var s in sideSections)

@@ -138,14 +138,14 @@ public class ProductionMarketTablesTests
                 if (equip) expected.Add("equipment");
                 Assert.Equal(expected.OrderBy(k => k).ToList(), keys);
                 foreach (var t in plans)
-                    foreach (int cols in new[] { 1, 2, 3 })
+                    foreach (int cols in Enumerable.Range(1, 3))   // 列の数（財の番号ではない）
                     {
                         var arranged = PagePlan.Arrange(t, cols);   // 表に無い鍵・重複は例外
                         Assert.Equal(t.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
                     }
             }
         // 市場ページ
-        foreach (int cols in new[] { 1, 2, 3 })
+        foreach (int cols in Enumerable.Range(1, 3))
         {
             var arranged = PagePlan.Arrange(MarketPage.Plan, cols);
             Assert.Equal(MarketPage.Plan.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());

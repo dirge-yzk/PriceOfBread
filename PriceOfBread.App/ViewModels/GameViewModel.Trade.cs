@@ -44,6 +44,9 @@ public partial class GameViewModel
         int quarters = (int)_simDays / Calendar.DaysPerQuarter;
         var ex = _series.Of(ClearingExportKey); var im = _series.Of(ClearingImportKey); var ba = _series.Of(ClearingBalanceKey);
         if (!(ex.Count < quarters)) return;
+        // この系列を持たないセーブ（段3 より前の版）を読んだ直後：過ぎた四半期は測っていない＝数でない値で埋める（線は非有限の点を飛ばす）。現在値を過去の四半期へ積んで平らな偽の線にしない
+        if (ex.Count == 0 && quarters > 1)
+            for (int q = 1; q < quarters; q++) { ex.Add(double.NaN); im.Add(double.NaN); ba.Add(double.NaN); }
         var (e, i) = TradeTables.Totals(w);
         double mpc = w.Coef.MonthsPerClearing;
         ex.Add(e / mpc); im.Add(i / mpc); ba.Add((e - i) / mpc);
