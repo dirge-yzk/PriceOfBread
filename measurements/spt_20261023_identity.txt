@@ -1,0 +1,8 @@
+# (spt) 緊張の表を1回だけ引く（恒等）の証明（2026-10-23・枝 spt・基点 8c8f987a＝m491・書いたモデル Claude Opus 5.5）
+# フォーク元（2026-10-23）：「AddTension と DriftTension の恒等の案は進めてください」・回す順を保つ点を番人に・突然変異で赤も確かめる。
+- 変更：Diplomacy.AddTensionKeyed（GetValueRefOrAddDefault で1回）・Why（同）・DriftTension（鍵ごとの入れ物を ref で持ち CoolSlot で書く）・CoolTensionTo の内訳の側を CoolWhy へ分けた・番人用の TensionKeysInOrder。
+- 成績表3枚（素の10種 b10_20261023_spt・5種 b5_20261023_spt〔10種の走りの先頭5試合〕・計器つき10種 b10_20261023_spt_ins）が m491 と cmp でファイル全体が一致（計算量の件数も全行同じ）。測った木は 8d7d0392（単価の注記を入れる前）＝単価は .cost だけに効く。
+- 計器の生 580 表：570 一致・違う 20 は burscan（seconds＝壁時計）10・clock（C 行の壁時計の列）10＝列を除くと全行一致。
+- 番人 TensionTableOrderTests：0 へ切られる書き込みでも鍵がその時点で入る・既にある鍵は並びを変えない・1か月の外交の歩の後も並びは同じ。突然変異「動いたときだけ書く」で赤（並びが [3, 4294967298, 17179869191]→[4294967298, 17179869191, 3]）。
+- フルスイート 1623 本合格・FullLength 3 本合格・savetest OK・leakhunt 完走（違反なし・世界の台帳の説明できない増減 0）。
+- 単価：外交：国×月 84.89478→80.794（×0.9517・measurements/spt_20261023_census.txt）＝推定 −0.7 秒（14.33→13.64）。

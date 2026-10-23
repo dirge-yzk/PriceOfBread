@@ -1,0 +1,27 @@
+# (503) 線 pn 前半の検証（2026-10-23・書いたモデル Claude Sonnet 5.5・腕 A・B は回していない）
+## 旗 0 の canary（seed 1・200 四半期・計器つき INS＝POB_INSTRUMENTS・NATIONS 9 国）＝恒等の事故の検出（1 種＝恒等の証明ではない・A の 5 種は後半）
+- 基点の木（枝 de の先端 8c94f1cd・隔離ビルド）と pn の木（nd 段 2 を入れた最後の Runner）の `selfplay 1 200` の出力が全バイト一致（12,047 バイト・SOURCE-HASH の行を除く）。1 回目（nd 段 1 の木）も同じ結果。
+- 計器の生 62 ファイルを cmp：違うのは burscan_s（実時間 1 行）・clock_s（C 行の秒の列 25 行〔違う列は 1 つ〕＋op の 2 行の E 行が 50 行足された）・engineer_s（op の 2 行の E/T 行 3,052 行が足されただけ・消えた行 0）・eqr_s（op の 2 行の財 5,400 行が足されただけ・消えた行 0）。
+  足されたファイル＝procrow_s1.tsv（追加）。残りの 58 ファイルはバイト一致。
+- 焼き込みの表（opening_bake.json）を bake.sh（seed 1・上限 200・114 四半期で収束）で焼き直した。本文は main の表と頭書き 3 行（sourceHash・inputHash・generated）以外が一致。
+## 旗 1 の canary（seed 1・200 四半期・腕の前の目視で採否には使わない）：開いた国の数（engineer_s の E 行・全ての国）
+| 腕 | 蒸気機関 | コークス製鉄 | 機械紡績 |
+|---|---|---|---|
+| 旗 0（基点） | 43 | ― | ― |
+| B2（op＋3 行・nd なし） | 46 | 43 | 27 |
+| B1 nd 段 1 | 1 | 0 | 16 |
+| B1 nd 段 2 | 45 | 1 | 15 |
+- Q7 の古い費用÷新しい費用の中央値（61 国・B1 段 1）：コークス製鉄 0.999・蒸気機関 0.848・黄鉄鉱法 0.887・ルブラン法 0.832・無煙火薬 0.657／機械紡績 1.29・甜菜糖 1.42・木材パルプ製紙 1.39・転炉鋼 2.15。
+- PN0（参照 B2）：段 1 1.4%・段 2 1.3%。
+## 番人と突然変異
+- 焦点の群（ProcessRowsTests・OldRecipeNumeratorTests・OpeningProcessRowsTests・DormantIdentityTests・DiscoveryTierTests・DiscoveryEngineerTests・BreakDetectionTests・DiscoveryScoreTests・OpeningBakeTests）：90 本緑（段 2 の前）→ 段 2 を足した後に nd の群 24 本緑。1 回目は 6 本赤（自動ミュールの綿布の需要・nd の番人 2 本の前提・DiscoveryEngineerTests の休眠の名簿・OpeningBake の入力のハッシュ 2 本）→ 前提の直し・名簿・焼き直しで緑。
+- 突然変異（別の写しの木で赤を確認）：旗の読み落とし／行自身のレシピを除かない／開いたレシピが無いとき市場の値段へ戻す／製法でない行にも当てる／段 2 の除外を外す／熱風炉の石炭を縮めない／三段膨張の石炭を縮めない／自動ミュールの労働を縮めない／ProcessRows.Add の旗を外す。1 回目の突然変異の木は M2・M3 を見逃した（旗を無効にする突然変異が他を隠した・M3 の突然変異が早期の return を残していた）ので、番人を 1 本直し突然変異を作り直して赤を確認した。
+## savetest（1789 300 12）
+- 旗 0：savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+- 旗 1（POB_COEF＝OpeningProcessRowsEnabled=1;ProcessRowsEnabled=1;DiscoveryNeedOldRecipeCost=2）：savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+## フルスイート（Release・隔離ビルド）
+- フルスイート（FullLength を除く）：合格 1688・スキップ 1・失敗 0（合計 1689・46 分）。基点の 1657＋新しい番人。ProcrowInstrumentTests 1 本は走りの後で足し、ProcessRowsTests・OldRecipeNumeratorTests と合わせて 25 本緑（単独）
+## 回していない物
+- 腕 A・B・成績表 3 枚・NG の集合・FullLength・leakhunt・668 四半期の canary（後半の担当・腕の前）。
+## 片付け
+- 計器の生（can_*）と作業フォルダ D:/PoB_work/pn_503 は報告を書いてから消した。数字は上と事前登録の追記 1 に写した。基線の生 D:/PoB_work/keep_500 は触っていない。

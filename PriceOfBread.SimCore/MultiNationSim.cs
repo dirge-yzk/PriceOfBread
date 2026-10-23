@@ -1995,7 +1995,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, Count = 27;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, Count = 28;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2012,6 +2012,7 @@ public static class CostLedger
         "最低賃金の籠の走査：床を求めた回の（州の財＋生産者）の走査（法が施行されているときだけ）＋AI の判断の読み（旗 MinimumWageAiFromFloor が正のときの本国の州の生産者と財の走査・(486)）",
         "年齢の層の歩：POP×月×（層の数−8）（8層の算術は月次・消費の単価の中。作者の 11 層の増分だけ・8層では 0 件）",
         "レシピごとの設備の配り：購入が起きた州×月の生産者の数（旗 RecipeEquipment が正のとき・配りは 3 周・退場は 2 周の走査 1 周につき州の生産者の数）",
+        "主食の台帳と配り直し：POP×月×段（旗 StapleLedgerSum が正のとき決済後の締め 1 段・旗 StapleDemandRebalance が正のとき月の頭の前計算 1 段・(504)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2045,7 +2046,7 @@ public static class CostLedger
         1.73157,   // 月次：POP×月＝月次決算の EconomyStep と請求の外 18.438 秒÷847.5万（州×月の POP）＝1.99345×(1−GDP の割合 0.09941)（(136)）＝1.79528×(1−国内の移民の割合 0.03549)（(146)＝移民の組を下の計数へ分けた）
         0.19264,   // 清算：見た買い手行＝準備・リスト・財の終わり 16.086 秒÷7,651万行（★(340) (335) の前後の census 〔清算の全体−買い手行の foreach〕の比 0.9973＝組の揺れ ±1% の内＝変えない）
         0.08490,   // 清算：着値の充填＝買い手行の段 62.746 秒÷5.211億＝0.11034×0.90760（★(340)＝(335) の成約の反復の持ち回り・距離の表の転置・海ノードの前引きの前後の census 〔買い手行の foreach〕の時間の比）→ ★2026-10-21 (spg)＝0.10014×0.8478（走査の中の距離と危険料の表の当たりを関数を呼ばずに読む〔恒等〕・同じプロセスの月ごとの交互 3 回の買い手行の foreach の時間の比 0.7717〜0.8478 の控えめな端）
-        84.89478,  // 外交：国×月＝（外交 32.057−覇権の判定 11.17 秒）÷16.9万＝113.26019×(1−GDP の割合 0.12321)（(136)）＝99.30487×（外交−覇権の区間の時間の比 10.410÷12.177＝0.85489）（(146)＝変名の判定の順・従属国の列挙の近道）
+        80.79400,  // 外交：国×月＝（外交 32.057−覇権の判定 11.17 秒）÷16.9万＝113.26019×(1−GDP の割合 0.12321)（(136)）＝99.30487×（外交−覇権の区間の時間の比 10.410÷12.177＝0.85489）（(146)＝変名の判定の順・従属国の列挙の近道）→ ★2026-10-23 (spt)＝84.89478×0.9517（緊張の表を1回だけ引く〔恒等〕・同じプロセスの中で旧と新の式を外交の歩ごとに交互・全長1種×3回の Diplomacy.Step の全体の比 0.9289〜0.9517 の控えめな端＝変えていない覇権の判定と脅威の届き方の区間も分母に入る＝控えめ）
         0.004705,  // 外交：覇権の判定の国×国＝11.17 秒÷（13.56万回×85.4²）＝この回の計器（inj_dp・S3c の木）＝0.01035×（覇権の判定の時間の比 1.277÷2.809＝0.45461）（(146)＝従属国の列挙の近道）
         3.36578,   // 四半期首：POP×国＝20.073 秒÷282.5万＝6.51065×(1−GDP の割合 0.31550)（(136)）＝4.45657×(1−減った割合 0.24476)（(146)＝立場の土台〔Build〕の分け合い・連鎖の目の読む個体＝議会・政府・AI の判断の3つの部品の差 4.321 秒÷区間 17.654 秒）
         1.05863,   // 四半期末：POP×国＝4.036 秒÷282.5万＝1.30907×(1−GDP の割合 0.19131)（(136)）
@@ -2062,6 +2063,7 @@ public static class CostLedger
         MinimumWageBasketScanUnitMicros,   // ★(469) 最低賃金の籠の走査＝MinimumWageFloor.PerUnit の 1 回の中の（財 1 件の層の判定と値段の積＋生産者 1 件の判定）あたり（**上限の見積り**・census は無い・法の旗が正のときだけ件数が立つ）
         AgeBandExtraUnitMicros,   // ★(490) 年齢の層の歩：POP×月×（層の数−8）あたり（**上限の見積り**・census は無い・dz〔(478)〕の対のプローブの残りから置いた＝下の定数の注記）。8層では件数 0
         RecipeEquipmentScanUnitMicros,   // ★(495) レシピごとの設備の配り：州の生産者 1 件あたり（**上限の見積り**・census は無い・下の定数の注記）
+        StapleLedgerUnitMicros,   // ★(504) 主食の台帳と配り直し：POP×月×段あたり（**上限の見積り**・census は無い・下の定数の注記）
     ];
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
@@ -2082,7 +2084,12 @@ public static class CostLedger
     public const double AgeBandExtraUnitMicros = 0.24;
     /// <summary>★(495) レシピごとの設備の配りの単価（マイクロ秒/件＝配りが 1 回走るたびに州の生産者の数）＝**上限の見積り**（census は無い）。配りは州の生産者を 3 周（合計〔適格かどうかの判定＋発見の門〕・配り・薄め）、退場は 2 周するだけで、熱いループには足さない。★(495) 後半の実測：1 試合 約 3.2 億件×0.02＝6.47 秒（事前登録の割り当て 5.0 秒を超えた・census は無い）。
     /// 同じ形の走査の単価 建設：見た生産者 0.013・GDP の和 0.0155 より少し重い 0.02 を置く。件数の上限＝（建設の束が買われた州×月）×州の生産者の数。腕 B の .cost の実測で取り直す。</summary>
-    public const double RecipeEquipmentScanUnitMicros = 0.02;
+    /// ★2026-10-23 (spt500・合流の担当の依頼)：census＝m500 の木（＋緊張の表の恒等の手）で FactoryEquipment.Distribute・Retire の区間を Stopwatch で計った秒÷件数（台帳と同じ数え方）・全長 1 種（seed 1・668 四半期）×3 回
+    ///   ＝0.00507／0.00350／0.00604 µs（他の測りと重なった）の控えめな端 0.00604（件数 3.23 億・推定 約 6.5→約 1.9 秒）。件数のうち適格な生産者は 67%。記録 measurements/spt500_20261023_eqcensus.txt。
+    public const double RecipeEquipmentScanUnitMicros = 0.00604;
+    /// <summary>★(504) 主食の台帳と配り直しの単価（マイクロ秒/件＝POP×月×段）＝**上限の見積り**（census は無い）。前計算は POP ごとに主食 5 財の乗算と加算（約 20 演算）、締めは POP ごとに 2 回の比較。
+    /// 形が近い奢侈品と家事奉仕の所得弾力の走査（POP×月・0.0155）より少し重い 0.04 を置く（事前登録 measurements/fd504_20261023_prereg.txt の[7]）。旗①②が全て 0 では件数 0。腕 B の .cost の実測で取り直す。</summary>
+    public const double StapleLedgerUnitMicros = 0.04;
     /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。★(486) 旗 MinimumWageAiFromFloor が正のときは AI の判断の読み（本国の州の生産者と財の走査・国×四半期）の件数も同じ台帳に立つ（法が無くても）。</summary>
     public const double MinimumWageBasketScanUnitMicros = 0.02;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数

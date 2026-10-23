@@ -1,0 +1,88 @@
+(504) 線 fd 段0：主食の代替の余地（pxgoods_s の主食 5 財・国×時点・10 種・上限の見積り）
+入力フォルダ=D:/PoB_work/keep_500/m500_ins ・行群=6120（国×時点×種）・⚠ pxgoods_s は 1783〜1799 年だけを出す表（それ以後の断面は無い）
+列：国／期間／行群の数／主食の不足の割合 ΣS/ΣD の中央値／上限の見積り X の中央値／X の 25%・75%／同時（不足と余りが両方ある）の割合
+アメリカ	1783-1799	680	0.250	0.178	0.027	0.238	0.775
+イギリス	1783-1799	680	0.131	0.114	0.070	0.150	0.849
+オスマン	1783-1799	680	0.304	0.290	0.109	0.311	0.919
+オーストリア	1783-1799	680	0.284	0.230	0.105	0.287	0.888
+フランス	1783-1799	680	0.261	0.224	0.093	0.273	0.818
+プロイセン	1783-1799	680	0.239	0.212	0.141	0.249	0.904
+ロシア	1783-1799	680	0.313	0.169	0.089	0.325	0.913
+日本	1783-1799	680	0.184	0.181	0.163	0.195	0.965
+清	1783-1799	680	0.223	0.223	0.217	0.232	0.984
+
+開幕の断面（時点 w0 と q0・10 種の中央値）：財ごとの 不足/需要 と 在庫/需要
+アメリカ w0	パン 不足0.60 在庫0.06 / 米 不足0.98 在庫0.47 / 野菜 不足0.00 在庫1.47 / ジャガイモ 不足0.30 在庫2.37 / トウモロコシ 不足0.00 在庫6.49	X中央値0.471
+アメリカ q0	パン 不足0.25 在庫0.00 / 米 不足0.56 在庫0.00 / 野菜 不足0.00 在庫0.79 / ジャガイモ 不足0.00 在庫1.63 / トウモロコシ 不足0.00 在庫2.53	X中央値0.191
+イギリス w0	パン 不足0.78 在庫0.00 / 米 不足0.76 在庫0.17 / 野菜 不足0.09 在庫0.46 / ジャガイモ 不足0.25 在庫1.39 / トウモロコシ 不足0.35 在庫2.45	X中央値0.000
+イギリス q0	パン 不足0.24 在庫0.01 / 米 不足0.31 在庫2.67 / 野菜 不足0.00 在庫1.99 / ジャガイモ 不足0.00 在庫1.97 / トウモロコシ 不足0.02 在庫1.93	X中央値0.118
+オスマン w0	パン 不足0.89 在庫0.01 / 米 不足0.84 在庫0.56 / 野菜 不足0.00 在庫2.77 / ジャガイモ 不足0.15 在庫0.86 / トウモロコシ 不足0.00 在庫3.35	X中央値0.598
+オスマン q0	パン 不足0.61 在庫0.00 / 米 不足0.52 在庫0.65 / 野菜 不足0.00 在庫1.94 / ジャガイモ 不足0.00 在庫1.23 / トウモロコシ 不足0.00 在庫1.52	X中央値0.319
+オーストリア w0	パン 不足0.79 在庫0.00 / 米 不足0.99 在庫0.02 / 野菜 不足0.00 在庫2.52 / ジャガイモ 不足0.00 在庫0.61 / トウモロコシ 不足0.00 在庫2.36	X中央値0.570
+オーストリア q0	パン 不足0.43 在庫0.00 / 米 不足0.81 在庫0.00 / 野菜 不足0.03 在庫1.21 / ジャガイモ 不足0.00 在庫2.66 / トウモロコシ 不足0.01 在庫1.82	X中央値0.189
+フランス w0	パン 不足0.85 在庫0.00 / 米 不足0.99 在庫0.14 / 野菜 不足0.00 在庫4.30 / ジャガイモ 不足0.06 在庫1.01 / トウモロコシ 不足0.37 在庫0.89	X中央値0.616
+フランス q0	パン 不足0.35 在庫0.00 / 米 不足0.73 在庫0.05 / 野菜 不足0.00 在庫2.40 / ジャガイモ 不足0.00 在庫2.41 / トウモロコシ 不足0.00 在庫1.91	X中央値0.235
+プロイセン w0	パン 不足0.60 在庫0.00 / 米 不足0.98 在庫0.00 / 野菜 不足0.03 在庫0.68 / ジャガイモ 不足0.13 在庫0.94 / トウモロコシ 不足0.00 在庫3.24	X中央値0.110
+プロイセン q0	パン 不足0.27 在庫0.00 / 米 不足0.74 在庫0.00 / 野菜 不足0.02 在庫1.88 / ジャガイモ 不足0.00 在庫2.03 / トウモロコシ 不足0.01 在庫1.68	X中央値0.194
+ロシア w0	パン 不足0.87 在庫0.07 / 米 不足0.96 在庫0.71 / 野菜 不足0.00 在庫3.95 / ジャガイモ 不足0.00 在庫3.19 / トウモロコシ 不足0.01 在庫7.75	X中央値0.600
+ロシア q0	パン 不足0.54 在庫0.00 / 米 不足0.80 在庫0.00 / 野菜 不足0.00 在庫1.36 / ジャガイモ 不足0.00 在庫1.44 / トウモロコシ 不足0.00 在庫1.85	X中央値0.189
+日本 w0	パン 不足0.89 在庫0.00 / 米 不足0.00 在庫6.02 / 野菜 不足0.00 在庫3.07 / ジャガイモ 不足0.12 在庫0.29 / トウモロコシ 不足0.28 在庫0.65	X中央値0.458
+日本 q0	パン 不足0.55 在庫0.00 / 米 不足0.00 在庫1.45 / 野菜 不足0.00 在庫1.14 / ジャガイモ 不足0.00 在庫1.80 / トウモロコシ 不足0.00 在庫1.25	X中央値0.205
+清 w0	パン 不足0.99 在庫0.00 / 米 不足0.05 在庫5.23 / 野菜 不足0.00 在庫3.74 / ジャガイモ 不足0.01 在庫0.55 / トウモロコシ 不足0.05 在庫0.40	X中央値0.501
+清 q0	パン 不足0.70 在庫0.00 / 米 不足0.02 在庫2.08 / 野菜 不足0.00 在庫1.24 / ジャガイモ 不足0.00 在庫1.06 / トウモロコシ 不足0.00 在庫1.65	X中央値0.232
+
+② 主食の相対価格の挟み（0.4〜1.4）が縛っていた需要の重みの割合と総需要の倍率（pxgoods_s からの近似・国×時点×種の中央値）
+国	期間	行群	縛られた重みの割合	旧の総需要の倍率 Σe·f／Σe	挟みなしの倍率 Σe·subst／Σe（新は 1 に正規化）
+アメリカ	1783-1799	680	0.000	0.886	0.888
+イギリス	1783-1799	680	0.818	0.849	0.869
+オスマン	1783-1799	680	0.264	0.825	0.840
+オーストリア	1783-1799	680	0.318	0.864	0.897
+フランス	1783-1799	680	0.000	0.867	0.868
+プロイセン	1783-1799	680	0.227	0.896	0.906
+ロシア	1783-1799	680	0.318	0.799	0.849
+日本	1783-1799	680	0.000	0.853	0.853
+清	1783-1799	680	0.000	0.843	0.840
+全体：縛られた重みの割合が 0 より大きい行群の割合 0.647・中央値 0.264
+
+書き手・読み手の全数（PriceOfBread.SimCore の *.cs・コメントだけの行は読み手に数えない）：
+書き手 8 行・読み手 32 行
+  書き  EconomyStep.cs:554  p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = 
+  書き  EconomyStep.cs:1903  if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; }
+  書き  EconomyStep.cs:1904  else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }
+  書き  Model.cs:274  public double FoodFill => FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(FoodMet / FoodNeed) : 1.0;
+  書き  Model.cs:1024  public double FoodFill = 1.0;
+  書き  Simulation.cs:2480  World.FoodFill += c.FoodFillSmoothing * (rawFill - prevFood);
+  書き  Simulation.cs:2708  region.FoodFill += c.FoodFillSmoothing * (raw - region.FoodFill);
+  書き  Validation.cs:25  int ActiveRegions = 0, int FoundingRegions = 0, double FoodFill = 0, double PopCount = 0,
+  読み  Diplomacy.cs:1762  || !(aw.FoodFill >= c.AllyJoinFoodMin)
+  読み  Factions.cs:71  double crisis = System.Math.Max(1.0 - reg.FoodFill, w.DefeatShock);
+  読み  Instruments.cs:1822  unemp += p.Size * p.UnemploymentRate.Value; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;   earned += Calendar.OneMont
+  読み  Instruments.cs:2095  foodMetSum += p.FoodMet; foodNeedSum += p.FoodNeed; needMetSum += p.NeedMet; needTotalSum += p.NeedTotal;
+  読み  InstrumentsAnchor.cs:30  I(w.Regions.Count), I(active), I(withAnchor), F(w.DiagCapacity), F(w.DiagCapacityBaseline), F(w.DiagLandAnchor), F(w.FoodFill)));
+  読み  Model.cs:251  public double FoodMet;
+  読み  Model.cs:252  public double FoodNeed;
+  読み  Model.cs:264  double need = FoodNeed + NeedTotal;
+  読み  Model.cs:266  double v = (FoodMet + NeedMet) / need;
+  読み  MultiNationSim.cs:1700  double push = Territory.Opportunity(r, _coef) * Territory.Holding(r, _coef) * r.FoodFill;
+  読み  MultiNationSim.cs:1724  double effFill = src.FoodFill + _coef.FaminePushRegionBlend * (r.FoodFill - src.FoodFill);
+  読み  Politics.cs:125  if (!(c.FamineDriveGain > 0) || !(p.FoodNeed > 1e-9)) return 0;
+  読み  Politics.cs:126  double fill = p.FoodMet / p.FoodNeed;
+  読み  Politics.cs:282  double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;
+  読み  Politics.cs:364  double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
+  読み  Politics.cs:492  w.FamineMemory = w.FamineMemory * c.FamineMemoryDecay + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
+  読み  PopDecision.cs:66  if (flow > 0 && urban.FoodFill < coef.FamineDeathFillFloor && urban.FoodFill < rural.FoodFill) flow = 0;
+  読み  SelfPlay.cs:701  double famine = Math.Max(0, 1.0 - w.FoodFill);
+  読み  SelfPlay.cs:1772  bool famine = !(w.FoodFill >= w.Coef.DynMandateFoodAnchor);
+  読み  Simulation.cs:2457  foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; 
+  読み  Simulation.cs:2471  double prevFood = World.FoodFill;
+  読み  Simulation.cs:2476  World.Explain.Reset("FoodFill");
+  読み  Simulation.cs:2477  World.Explain.Add("FoodFill", "前期の食料充足（穀倉の備蓄）", (1 - c.FoodFillSmoothing) * prevFood);
+  読み  Simulation.cs:2478  World.Explain.Add("FoodFill", "今期の主食需給", c.FoodFillSmoothing * rawFill);
+  読み  Simulation.cs:2564  - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
+  読み  Simulation.cs:2679  double fill = p.FoodFill;
+  読み  Simulation.cs:2706  foreach (var p in region.Pops) { met += p.FoodMet; need += p.FoodNeed; }
+  読み  Territory.cs:241  double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * LandFactor(r, r.SumRuralPopulation(), c);
+  読み  Validation.cs:81  return worst is null ? "" : $"・州{worst.ActiveRegions}/{worst.FoundingRegions}・主食{worst.FoodFill:F2}・人口{worst.PopCount:F0}"
+  読み  Validation.cs:147  Validation.ActiveRegionCount(w), w.FoundingActiveProvinces, w.Region.FoodFill, popS));
+  読み  World.cs:500  public double FoodFill { get; internal set; } = 1.0;
+  読み  World.cs:1177  wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (1.0 - p.FoodFill)) * ageW);
