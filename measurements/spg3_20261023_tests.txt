@@ -1,0 +1,3 @@
+# (spg3) 検証
+## フルスイート（Category!=FullLength・既定 15 の最初の走り）：1655 合格・赤 4（WriterRatchetTests の件数の表＝財の歩・日次の写像・着値の充填・覇権の判定）→ 表を宣言して WriterRatchetTests を回し直し 46 本全て合格（SimCore は同じ・変えたのは試験の表だけ）
+FullLength: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 11 m 43 s - PriceOfBread.Tests.dll (net10.0)
