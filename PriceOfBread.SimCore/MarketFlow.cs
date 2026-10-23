@@ -190,7 +190,7 @@ public static class MarketFlow
                     }
                     else if (h == 1) nStep1++;
                     else nHard++;
-                    if (closedWage && coef.ServiceClosedFixedPoint > 0 && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc))
+                    if (closedWage && coef.ServiceClosedFixedPoint > 0 && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc, coef.ServiceClosedMaxCurv))
                     {   // ★(spa) A′ 役務の不動点の閉じた式（係数 ServiceClosedFixedPoint の注）＝日次の写像を回さない
                         m.Price = psc;
                         nClosedS++;
@@ -367,8 +367,8 @@ public static class MarketFlow
     /// <summary>★(spa) A′ 役務の不動点の閉じた式（係数 <see cref="Coefficients.ServiceClosedFixedPoint"/>）。日次の写像 p′＝SoftBandLn(p·(1＋adj)) は、値段が参照の同じ側にいる間
     /// t＝ln(p/rp)/L の上で T(t)＝S(t＋c)（c＝ln(1＋adj)/L・S(x)＝x/(1＋x^k)^(1/k)・L＝その側の帯の対数）＝<see cref="PinnedClosed"/> と同じ形（役務は amp を持たない＝c は値段に依らない）。
     /// 床の側（adj＜0）は符号を返して同じ式で解く。使うのは ①値段と平行移動が参照の同じ側（u0·c≧0＝参照をまたがない＝L が変わらない）②不動点が収束し同じ側
-    /// ③不動点からの対数の距離 &lt; <see cref="PinnedClosedMaxDev"/> ④2次の項 |A·e0| &lt; <see cref="ServiceClosedMaxCurv"/> のときだけ（false＝呼び手は日次へ落とす）。状態を持たない。⚠ 否定形で判定する＝NaN は日次へ。</summary>
-    internal static bool ServiceClosed(double P0, double rp, double adj, double lnFloor, double lnCeil, double k, int h, out double P)
+    /// ③不動点からの対数の距離 &lt; <see cref="PinnedClosedMaxDev"/> ④2次の項 |A·e0| &lt; <paramref name="maxCurv"/>（係数 <see cref="Coefficients.ServiceClosedMaxCurv"/>）のときだけ（false＝呼び手は日次へ落とす）。状態を持たない。⚠ 否定形で判定する＝NaN は日次へ。</summary>
+    internal static bool ServiceClosed(double P0, double rp, double adj, double lnFloor, double lnCeil, double k, int h, out double P, double maxCurv = 0.05)
     {
         P = P0;
         if (!(adj > -1) || adj == 0) return false;
@@ -396,7 +396,7 @@ public static class MarketFlow
         double rho = 1.0 / (root * b);
         double s2 = -(k + 1) * (xk / x) / (root * b * b);
         double a = s2 / (2 * rho * (1 - rho));
-        if (!(System.Math.Abs(a * e0) < ServiceClosedMaxCurv)) return false;                     // ④2次の式の外（縮みが 1 に近い＝不動点の近くでも曲がりが大きい）
+        if (!(System.Math.Abs(a * e0) < maxCurv)) return false;                     // ④2次の式の外（縮みが 1 に近い＝不動点の近くでも曲がりが大きい）
         double z = System.Math.Pow(rho, h) * (e0 + a * e0 * e0);
         double eh = z - a * z * z;
         double p = rp * System.Math.Exp(sg * L * (t + eh));
@@ -405,8 +405,6 @@ public static class MarketFlow
         return true;
     }
 
-    /// <summary>★(spa) 役務の閉じた式の2次の項の上限（|A·e0|）。段0（spg3 の木・seed1・300 四半期）＝0.05 で誤差は日次に対して最大 2.9e-5・0.01 で 2.4e-7（使える回の割合は 83%／69%）。</summary>
-    private const double ServiceClosedMaxCurv = 0.05;
 
     private static bool PinnedClosed(double P0, double rp, double u0, double demandRaw, double supply, double gap, Coefficients coef, double div, double L, double k, int h,
                                      out double P, out bool atRest)

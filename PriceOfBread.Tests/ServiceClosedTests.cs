@@ -6,8 +6,9 @@ namespace PriceOfBread.Tests;
 /// <summary>★(spa) A′ 役務の不動点の閉じた式（係数 <see cref="Coefficients.ServiceClosedFixedPoint"/>）の番人。
 /// ①帯の端の不動点の近くにいる役務（品薄が続き天井の近くに張り付いた教育）は、旬の1歩を閉じた式で進め、日次の写像を h 回まわした値と相対 3e-5 以内（段0 の物差し＝最大 2.9e-5）。
 /// ②値段が参照より上にいて需給が下へ押す（品余り）＝この旬に参照へ向かう（またぐ）役務は閉じた式を使わず日次へ戻る＝旗の有無で1ビットも違わない。
-/// ⚠参照へ向かう月（値段と平行移動が逆の側）は同じ側に不動点が無い＝〈参照をまたがない〉の判定（u0·c≧0）だけでなく、x＞0・不動点の側（t＞0）・不動点からの距離・2次の項の判定も同じ月を日次へ戻す
-/// （突然変異「u0·c≧0・x＞0・t＞0 の3つを外す」でも②は緑＝距離と2次の項が戻した・measurements/spa_20261023_prereg.txt）。②はその性質（またぐ月は旗の有無で1ビットも違わない）を見る。</summary>
+/// ⚠参照へ向かう月（値段と平行移動が逆の側）は同じ側に不動点が無い＝〈参照をまたがない〉の判定（ServiceClosed の①u0·c≧0）に重なって、次の判定も同じ月を日次へ戻す：
+///   ・x＞0（ニュートン法の中の平行移動の後の距離が正）・②不動点の側（t＞0）・③不動点からの対数の距離（PinnedClosedMaxDev）・④2次の項（ServiceClosedMaxCurv）。
+///   突然変異「①・x＞0・② の3つを外す」でも②は緑（③④が戻した）＝赤にできる突然変異は無い（記録・measurements/spa_20261023_prereg.txt）。②はその性質（またぐ月は旗の有無で1ビットも違わない）を見る。</summary>
 public class ServiceClosedTests
 {
     private static (double flagOff, double flagOn) Step(double priceMult, double demand, double supply, int days, int times)
