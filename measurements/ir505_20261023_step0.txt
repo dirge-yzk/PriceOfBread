@@ -1,0 +1,182 @@
+(505) 線 ir 段0：技術水準・工業化度の読み手の全数表（基点 01909807・現在の木と並べる）
+探した語：TechLevel（WorldTechLevel を含む）・TechProductivity・IndustryInvestRegionCap・TotalIndustrialization・ProductiveIndustrialization・MeanIndustrialization・OldVintageCapital・StrandedVintage・VintageTechLevel・.Industrialization
+対象：PriceOfBread.SimCore/*.cs の非コメント行（// 以降を除く）。分類は scripts/instruments/ir505/step0.py の規則表（ファイル×字面）で機械的。
+記号：A1/A2/B1＝この線が扱う（事前登録 [1]）／C1〜C11＝この回は触らない（行き先と理由は事前登録 [1]）／済＝(495) の旗 IndustrializationOff が削除する／乙＝書き手・物理の量／丙＝計器・入力データ・表示・量の定義／状＝技術水準の状態の更新と運搬／宣言
+
+== 件数（記号別・基点／現在の木）==
+  A1	1	1
+  A2	5	5
+  B1	2	2
+  C1	4	4
+  C10	28	28
+  C2	2	2
+  C3	1	1
+  C4	2	2
+  C5	1	1
+  C6	1	1
+  C7	2	2
+  C8	2	2
+  C9	4	4
+  丙	29	31
+  乙	21	21
+  宣言	7	7
+  済	4	4
+  状	25	25
+  合計	141	143
+
+== 語別の行数（番人のラチェットの基準＝非コメント行・基点／現在の木）==
+  \bTechLevel\b	44	44
+  \bWorldTechLevel\b	13	13
+  \bTechProductivity\b	4	4
+  \bIndustryInvestRegionCap\b	5	6
+  \bTotalIndustrialization\b	26	27
+  \bMeanIndustrialization\b	23	23
+  \bProductiveIndustrialization\b	5	5
+  \.Industrialization\b	19	19
+
+== 現在の木の全数（ファイル:行 ｜ 記号 ｜ 説明 ｜ 字面）==
+EconomyStep.cs:2727	A1	InvestmentReturn の sat → 旗 InvestReturnFromMargin	double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;
+EconomyStep.cs:967	A2	州の上限（国家建設のヘッドルーム・国庫の近代化投資の適格と重み・巨大建造物の効き）→ 旗 InvestRegionCapOff	double stateHeadroomUnits = capOff ? double.PositiveInfinity : Math.Max(0, (coef.IndustryInvestRegionCap - region.TotalIndustrialization) / Math.Max(Eps, coef.IndPerConstruction));
+Megaprojects.cs:240	A2	州の上限（国家建設のヘッドルーム・国庫の近代化投資の適格と重み・巨大建造物の効き）→ 旗 InvestRegionCapOff	double indAdd = FactoryEquipment.CapOffOn(c, false) ? add : Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+World.cs:1992	A2	州の上限（国家建設のヘッドルーム・国庫の近代化投資の適格と重み・巨大建造物の効き）→ 旗 InvestRegionCapOff	internal bool StateInvestEligible(Region r) => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0 && (r.TotalIndustrialization < Coef.IndustryInvestRegionCap || RegionCapOff)
+World.cs:2003	A2	州の上限（国家建設のヘッドルーム・国庫の近代化投資の適格と重み・巨大建造物の効き）→ 旗 InvestRegionCapOff	double cap = Coef.IndustryInvestRegionCap;
+World.cs:2004	A2	州の上限（国庫の按分の重みの余地の因子）→ 旗 InvestRegionCapOff	double head = RegionCapOff ? 1.0 : Math.Max(0, cap - r.TotalIndustrialization);
+World.cs:1162	B1	疫病の衛生の代理 → EpidemicSanitationWeight=1（点火と焼き込みで oldDev を消す）	double oldDev = Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);
+World.cs:1227	B1	疫病の衛生の代理 → EpidemicSanitationWeight=1（点火と焼き込みで oldDev を消す）	double oldDev = Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);
+Meritocracy.cs:458	C1	都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）	double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
+PopDecision.cs:43	C1	都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）	double indForCap = region.TotalIndustrialization;
+PopDecision.cs:46	C1	都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）	if (region.UrbanIndSmoothed < 0) region.UrbanIndSmoothed = region.TotalIndustrialization;
+PopDecision.cs:47	C1	都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）	region.UrbanIndSmoothed += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - region.UrbanIndSmoothed);
+Agents.cs:37	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.TechLevel > SuffrageTechThreshold && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
+ArmyShape.cs:297	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	double techQuality = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * PoliticalQuantities.Clamp01(w.TechLevel / c.TechMilFullLevel);
+BilateralMarket.cs:532	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	for (int i = 0; i < nn; i++) if (nations[i].World.TechLevel > frontierTech) frontierTech = nations[i].World.TechLevel;
+Diplomacy.cs:2246	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	? Math.Clamp(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0)
+Megaprojects.cs:63	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (!(w.TechLevel >= mp.TechGate)) return "技術が足りない";
+Megaprojects.cs:116	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (hw.TechLevel < mp.TechGate) continue;
+Megaprojects.cs:123	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (m2.Started && !m2.IsComplete && m2.Owner is { } o2 && ReferenceEquals(o2, hw.SelfPower) && hw.TechLevel >= m2.TechGate) inProgressHere++;
+MultiNationSim.cs:855	C10	技術ゲート・外圧（AI 側）	double gap = PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));
+MultiNationSim.cs:1332	C10	技術ゲート・外圧（AI 側）	if (w.TechLevel < cp.TechGate) continue;
+SelfPlay.cs:473	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	indGap = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
+SelfPlay.cs:694	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	double techGap = Math.Max(0, w.WorldTechLevel - w.TechLevel);
+SelfPlay.cs:696	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	: Math.Max(0, IndustrializationRoomTarget - w.MeanIndustrialization);
+SelfPlay.cs:991	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	internal static bool GoldWishOld(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+SelfPlay.cs:1011	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.MeanIndustrialization > AntitrustIndThreshold)
+SelfPlay.cs:1012	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	return w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;
+SelfPlay.cs:1030	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
+SelfPlay.cs:1031	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	return w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
+SelfPlay.cs:1564	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))
+SelfPlay.cs:1573	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.TechLevel > WomenPropertyTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Property);
+SelfPlay.cs:1574	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.TechLevel > WomenSuffrageTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Suffrage);
+SelfPlay.cs:1575	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (w.TechLevel > CensusSuffrageTechThreshold && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
+SelfPlay.cs:1862	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	indGap = PoliticalQuantities.Clamp01((indCeil - w.MeanIndustrialization) / indCeil);
+SelfPlay.cs:1894	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	&& (w.Coef.AiModernizeFromReturn >= 2.0 ? retShare > 0 : w.MeanIndustrialization < IndustrializationCeiling))
+SelfPlay.cs:2188	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	return new NationStanding(w.Region.Name, NationalScore.Standing(w), w.TechLevel,
+SelfPlay.cs:2189	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	w.MeanIndustrialization, NationalScore.MeanSatisfaction(w), w.SelfPower?.Colonies ?? 0, w.GdpPerMonth.Value,
+SelfPlay.cs:2277	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	if (!(w.Region.TotalIndustrialization is >= 0 and <= 10))
+SelfPlay.cs:2278	C10	AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）	anomalies.Add($"Q{q + 1} {w.Region.Name}: 工業化度が異常（{w.Region.TotalIndustrialization:F2}）");
+World.cs:1886	C10	近代化の技術差の費用（AI 側）	+ Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0);
+Simulation.cs:2493	C2	扶養力・出生（avgInd）	avgInd += r.TotalIndustrialization; actN++;
+Simulation.cs:2495	C2	扶養力・出生（avgInd）	indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
+EconomyStep.cs:1025	C3	インフラ保守（立っている資本の量に比例する資材の需要）	maintenance = coef.InfraMaintRate * region.TotalIndustrialization;
+Credit.cs:87	C4	信用の深さ（devFactor）	double dev = PoliticalQuantities.Clamp01((month?.MeanInd ?? w.MeanIndustrialization) / c.CreditDevScale);
+Simulation.cs:1614	C4	信用へ渡す MeanInd	box.Value = (World.NominalGdpPerMonth.Value, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
+CapitalMarket.cs:80	C5	外資の吸い寄せ（headroom）	double headroom = System.Math.Max(0, c.CapitalIndTarget - w[i].MeanIndustrialization);
+Discovery.cs:528	C6	合資会社の必要性（立っている資本の大きさ）	if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
+Discovery.cs:611	C7	制度と思想の行の技術力（比＝TechLevel÷難易度）	ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+Discovery.cs:1109	C7	制度と思想の行の技術力（比＝TechLevel÷難易度）	ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+Ideology.cs:151	C8	世界最先端の工業化度（思想の発展度）	double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
+MultiNationSim.cs:862	C8	世界最先端の工業化度の注入	foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
+Simulation.cs:2316	C9	TechProductivity の呼び（月次の経済）	double techProd = World.TechProductivity(r);
+World.cs:2030	C9	TechProductivity の本体と呼び手	double share = EconomyStep.ReturnShare(r, Coef, TechProductivity(r), marginOn, cost);
+World.cs:2041	C9	TechProductivity の本体と呼び手	internal double TechProductivity(Region r)
+World.cs:2060	C9	TechProductivity の技術水準の項（pn と同じ腕で消す）	return (1.0 + Math.Min(TechLevel, TechProdDiminishKnee) + Math.Max(0.0, TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
+Diplomacy.cs:2547	乙	書き手（戦場の摩耗）	rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
+EconomyStep.cs:673	乙	書き手（購入・減価・移行）と配りの φ の分母	double totNow = region.Industrialization + region.OldVintageCapital;
+EconomyStep.cs:678	乙	書き手（購入・減価・移行）と配りの φ の分母	region.Industrialization *= 1.0 - dep;
+EconomyStep.cs:679	乙	書き手（購入・減価・移行）と配りの φ の分母	region.OldVintageCapital *= 1.0 - dep;
+EconomyStep.cs:686	乙	書き手（購入・減価・移行）と配りの φ の分母	double migrate = region.Industrialization * coef.VintageMigrateRate;
+EconomyStep.cs:687	乙	書き手（購入・減価・移行）と配りの φ の分母	double newOld = region.OldVintageCapital + migrate;
+EconomyStep.cs:688	乙	書き手（購入・減価・移行）と配りの φ の分母	region.VintageTechLevel = newOld > Eps ? (region.VintageTechLevel * region.OldVintageCapital + region.TechLevel * migrate) / newOld : region.TechLevel;
+EconomyStep.cs:689	乙	書き手（購入・減価・移行）と配りの φ の分母	region.OldVintageCapital = newOld;
+EconomyStep.cs:690	乙	書き手（購入・減価・移行）と配りの φ の分母	region.Industrialization -= migrate;
+EconomyStep.cs:691	乙	書き手（購入・減価・移行）と配りの φ の分母	double techGap = System.Math.Max(0.0, region.TechLevel - region.VintageTechLevel);
+EconomyStep.cs:692	乙	書き手（購入・減価・移行）と配りの φ の分母	region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
+EconomyStep.cs:2039	乙	書き手（購入・減価・移行）と配りの φ の分母	if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, privateIndGain, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region
+EconomyStep.cs:2040	乙	書き手（購入・減価・移行）と配りの φ の分母	region.Industrialization += privateIndGain;
+EconomyStep.cs:2108	乙	書き手（購入・減価・移行）と配りの φ の分母	if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, built * coef.IndPerConstruction, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBoug
+EconomyStep.cs:2109	乙	書き手（購入・減価・移行）と配りの φ の分母	region.Industrialization += built * coef.IndPerConstruction;
+Megaprojects.cs:241	乙	書き手（配りの φ・巨大建造物の効きの先）	if (c.RecipeEquipment > 0) FactoryEquipment.Distribute(r, c, indAdd, r.TotalIndustrialization, null);
+Megaprojects.cs:242	乙	書き手（配りの φ・巨大建造物の効きの先）	r.Industrialization += indAdd;
+Megaprojects.cs:253	乙	書き手（配りの φ・巨大建造物の効きの先）	"Industrialization" => r.Industrialization,
+Simulation.cs:2333	乙	書き手（恐慌の廃棄）	r.Industrialization *= scrapKeep;
+Simulation.cs:2334	乙	書き手（恐慌の廃棄）	r.OldVintageCapital *= scrapKeep;
+Simulation.cs:2335	乙	書き手（恐慌の廃棄）	r.StrandedVintage *= scrapKeep;
+Coefficients.cs:2839	宣言	係数の宣言	public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */
+Model.cs:986	宣言	欄・導出の宣言	public double OldVintageCapital;
+Model.cs:988	宣言	欄・導出の宣言	public double VintageTechLevel;
+Model.cs:989	宣言	欄・導出の宣言	public double StrandedVintage;
+Model.cs:995	宣言	欄・導出の宣言	public double TotalIndustrialization => Industrialization + OldVintageCapital;
+Model.cs:996	宣言	欄・導出の宣言	public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
+Model.cs:1033	宣言	欄・導出の宣言	public double TechLevel;
+EconomyStep.cs:415	済	(495) 旗 IndustrializationOff が削除する読み手	: premium * (c.IndustrializationOff > 0 ? 1.0 : Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd))) * r.MonopolyRentFactor;
+EconomyStep.cs:574	済	(495) 旗 IndustrializationOff が削除する読み手	? (coef.IndustrializationOff > 0 ? 1.0 : PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan)) : 0;
+EconomyStep.cs:694	済	(495) 生産性チャネル（機械化度と能力の倍率の入力）＝旗 IndustrializationOff の下で使われない	double effInd = region.ProductiveIndustrialization;
+MarketFlow.cs:337	済	(495) 旗 IndustrializationOff が削除する読み手	=> coef.WageClampMax * (1 + coef.WageClampIndScale * (coef.IndustrializationOff > 0 ? 0.0 : region.Industrialization));
+Colonial.cs:70	状	時代関数（世界の技術先端を時代の係数へ）	double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
+Military.cs:321	状	時代関数（世界の技術先端を時代の係数へ）	double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+MultiNationSim.cs:448	状	技術水準の同期（先端の運搬・成長の呼び）	nw.TechLevel = pw.TechLevel; nw.Elite = pw.Elite;
+MultiNationSim.cs:613	状	技術水準の同期（先端の運搬・成長の呼び）	for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); if (worlds[i].TechLevel > frontier) frontier = worlds[i].TechLevel; }
+MultiNationSim.cs:687	状	技術水準の同期（先端の運搬・成長の呼び）	foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
+MultiNationSim.cs:688	状	技術水準の同期（先端の運搬・成長の呼び）	foreach (var n in Nations) n.World.WorldTechLevel = frontier;
+MultiNationSim.cs:844	状	技術水準の同期（先端の運搬・成長の呼び）	foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
+MultiNationSim.cs:845	状	技術水準の同期（先端の運搬・成長の呼び）	foreach (var n in Nations) n.World.WorldTechLevel = frontier;
+MultiNationSim.cs:1278	状	技術水準の同期（先端の運搬・成長の呼び）	double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));
+MultiNationSim.cs:1711	状	技術水準の同期（先端の運搬・成長の呼び）	g *= Territory.MigrationDecay(Geo.DistanceKm(sla, slo, dst[x].Lat, dst[x].Lon), src.WorldTechLevel, _coef);
+Simulation.cs:11	状	技術水準の複製と成長の呼び	double TechLevel, double AvgLiteracy, double Gdp,
+Simulation.cs:2077	状	技術水準の複製と成長の呼び	r.TechLevel = World.TechLevel;
+Simulation.cs:3045	状	技術水準の複製と成長の呼び	World.TechLevel, litSum * inv, gdp,
+TechEducation.cs:117	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	double adoptionCeil = Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac);
+TechEducation.cs:122	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	if (w.TechLevel < catchupTarget)
+TechEducation.cs:123	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	w.TechLevel += adoptRate * (catchupTarget - w.TechLevel);
+TechEducation.cs:125	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	else if (w.TechLevel < baseTarget)
+TechEducation.cs:128	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	w.TechLevel += Math.Min(c.TechGrowthRate * w.Elite, baseTarget - w.TechLevel);
+TechEducation.cs:140	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	/ (1.0 + w.TechLevel / c.InnovationScale);
+TechEducation.cs:141	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	w.TechLevel += innov;
+TechEducation.cs:145	状	技術水準の状態の更新（GrowTech・AbsorptionOf）	w.TechLevel = Math.Min(w.TechLevel, c.FrontierCeiling);
+Transport.cs:42	状	時代関数（世界の技術先端を時代の係数へ）	double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
+World.cs:171	状	技術水準の状態・先端と時代関数	public double TechLevel { get; internal set; }
+World.cs:172	状	技術水準の状態・先端と時代関数	public double WorldTechLevel { get; internal set; }
+World.cs:2304	状	技術水準の状態・先端と時代関数	double tensionRange = Coef.ProximityTensionRange * Coef.EraFactor(WorldTechLevel, Coef.EraTensionRange);
+Instruments.cs:1349	丙	計器・検証・表示（既定の出力を変えない）	sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), r.State == RegionState.Active ? "1" : "0", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industriali
+Instruments.cs:1976	丙	計器・検証・表示（既定の出力を変えない）	F(t.Tech), F(t.Need), F(t.Transmit), ratio is (0, 0) ? "nan" : F(ratio.Replaced), ratio is (0, 0) ? "nan" : F(ratio.Cost), F(w.TechLevel));
+Instruments.cs:2017	丙	計器・検証・表示（既定の出力を変えない）	F(w.TechLevel), F(Discovery.DifficultyOf(site.Decade, w.Coef)), F(parts[0]), F(parts[1]), F(parts[2]), F(t.Tech), F(t.Need));
+Instruments.cs:2427	丙	計器・検証・表示（既定の出力を変えない）	C("techLevelIndex", w.TechLevel); C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
+InstrumentsCapacity.cs:90	丙	計器・検証・表示（既定の出力を変えない）	double ind = r.ProductiveIndustrialization;
+InstrumentsEquipment.cs:58	丙	計器・検証・表示（既定の出力を変えない）	if (r.TotalIndustrialization > indMax) indMax = r.TotalIndustrialization;
+InstrumentsEquipment.cs:83	丙	計器・検証・表示（既定の出力を変えない）	sk.EqS.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), F(w.Coef.RecipeEquipment), F(points), F(installed), F(scaleSum), F(builtSum), F(scaleMax), I(scaleMaxGood), I(elig), I(open), I(bankrupt)
+InstrumentsIndustry.cs:52	丙	計器・検証・表示（既定の出力を変えない）	double ind = r.TotalIndustrialization;
+InstrumentsIndustry.cs:54	丙	計器・検証・表示（既定の出力を変えない）	if (ind > w.Coef.IndustryInvestRegionCap) over5++;
+InstrumentsLawGate.cs:27	丙	計器・検証・表示（既定の出力を変えない）	F(w.MeanIndustrialization), F(PoliticalQuantities.AvgLiteracy(w, coreOnly: true)), F(UtilityAgent.HomeUrbanShare(w))));
+InstrumentsModernize.cs:27	丙	計器・検証・表示（既定の出力を変えない）	double gapOld = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
+InstrumentsModernize.cs:32	丙	計器・検証・表示（既定の出力を変えない）	var (_, _, g, h) = EconomyStep.InvestmentReturn(r, w.Coef, w.TechProductivity(r), w.MarginReturnOn);
+InstrumentsModernize.cs:38	丙	計器・検証・表示（既定の出力を変えない）	sk.ModSig.WriteLine(string.Join('	', I(q), I(w.Year), NameOf(w), F(w.MeanIndustrialization), F(ceil), F(w.IndustrialFrontier), F(gapOld), F(w.ModernizeReturnShare(null)), I(n), F(wsum),
+InstrumentsScore.cs:44	丙	計器・検証・表示（既定の出力を変えない）	F(w.MeanIndustrialization), F(w.TechLevel), F(w.TotalPopulation), I(rOld[i] <= great ? 1 : 0), I(rNew[i] <= great ? 1 : 0),
+InstrumentsScore.cs:73	丙	計器・検証・表示（既定の出力を変えない）	w.MeanIndustrialization * IndustrializationWeight,
+InstrumentsScore.cs:85	丙	計器・検証・表示（既定の出力を変えない）	internal static double Tech(World w) => w.Coef.ScoreTechWeight * Math.Max(0, w.TechLevel);
+MultiNationSim.cs:78	丙	国の入力データ（交易比重）	TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,
+NationBrief.cs:128	丙	国の入力データ	double load = PoliticalQuantities.Clamp01((c.Provinces.Length + c.InitialColonies.Length + 3.0 * c.Industrialization) / 25.0);
+OpeningBake.cs:33	丙	開幕の焼き込み（欄の保存と復元）	internal static readonly string[] CapNames = ["Industrialization", "OldVintageCapital", "VintageTechLevel", "StrandedVintage", "DevelopmentPeak", "GridCapacity", "PriceLevel", "LocalPriceMultiplier"];
+OpeningBake.cs:170	丙	開幕の焼き込み（欄の保存と復元）	static double[] CapValues(Region r) => [r.Industrialization, r.OldVintageCapital, r.VintageTechLevel, r.StrandedVintage, r.DevelopmentPeak, r.GridCapacity, r.PriceLevel, r.LocalPriceMultiplier];
+OpeningBake.cs:209	丙	開幕の焼き込み（欄の保存と復元）	r.Industrialization = cap[0].GetDouble(); r.OldVintageCapital = cap[1].GetDouble(); r.VintageTechLevel = cap[2].GetDouble(); r.StrandedVintage = cap[3].GetDouble();
+PlayText.cs:86	丙	計器・検証・表示（既定の出力を変えない）	w.TotalPopulation, w.MeanIndustrialization, ReferenceEquals(w, player)));
+Simulation.cs:924	丙	開幕の資本の置き場（入力データ）	Industrialization = cfg.Industrialization * (p.IndShare >= 0 ? p.IndShare : share),
+Territory.cs:100	丙	診断の文字列	g *= MigrationDecay(Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]), w.WorldTechLevel, c);
+Territory.cs:165	丙	診断の文字列	Console.Error.WriteLine($"[非有限診断] Territory.Opportunity {r.Name}={o}　pop={r.SumPopulation()} 賃金P={r.WagePremium} 工業={r.TotalIndustrialization} 住居={r.HousingFill} 犯罪={r.CrimeRate} 耕地={r.ArableLand} 生産性
+Validation.cs:11	丙	計器・検証・表示（既定の出力を変えない）	double TechLevel,
+Validation.cs:128	丙	計器・検証・表示（既定の出力を変えない）	w.Region.Name, w.TechLevel, r.TotalIndustrialization,
+Validation.cs:169	丙	計器・検証・表示（既定の出力を変えない）	foreach (var x in nations) { indMax = Math.Max(indMax, x.Industrialization); indMin = Math.Min(indMin, x.Industrialization); }
+World.cs:2629	丙	導出の平均（人口加重）＝量の定義	public double MeanIndustrialization
+World.cs:2634	丙	導出の平均（人口加重）＝量の定義	foreach (var r in Regions) if (r.State == RegionState.Active) { double p = r.SumPopulation(); total += p; w += p * r.TotalIndustrialization; }
+World.cs:2635	丙	導出の平均（人口加重）＝量の定義	return total > 1e-9 ? w / total : Region.TotalIndustrialization;
+
+未分類 0 行

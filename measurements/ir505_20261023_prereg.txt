@@ -1,0 +1,152 @@
+工業化度の削除の後半（前半＝段0・形・事前登録）(505) 事前登録（測る前・結果を見て線を動かさない）
+枝 ir・worktree D:/PoB_work/wt_ir・基点 01909807（成績表 m500：exact 46.7・near 83.9・NG 81〔基準 rd:measurements/ng500_20261023:m500〕・空洞化 1/10 未満 0 件〔1/4 未満 3 件〕・補給崩壊 29・推定の計算量 251.2 秒＝名目の上限 248.5 を 2.7 秒超え〔高速化の合流で戻る見込み・ヌル腕の軌道の揺れ ±3 秒〕）・仮番号 (505)・書いた日 2026-10-23・書いたモデル Claude Sonnet 5.5
+順序：この文書（コード 0 行・最初のコミット）→ 段0 の全数表（measurements/ir505_20261023_step0.txt）→ 形（旗 InvestReturnFromMargin・旗 SanitationFromGoodsOnly）→ 番人と突然変異 → 恒等の確かめ。腕 A・B は 1 本も回さない（後半の担当）。この文書を書いた時点で読んだのは、ソース（grep と該当箇所の読み）・実装ログ (495)(500)・00一覧・枝 ip の段0 の表・読む線 ru の答え（指示文）・m500 の計器つき 10 種の生（D:/PoB_work/keep_500/m500_ins の cons_s・eqr_s・score_s・eq_s を読んだだけ）＝シミュは回していない。
+
+作者の言葉（原文・指示文に写された物と docs に残る物だけ）：
+  ・2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」
+  ・2026-10-16「技術水準・工業化度・制度疲労ですが、これらは「盤面から導く形に置換」ではなく、これらは既に経済側に機能しているので、それを集計してバフ/デバフを与えるのは全て二重計上という判断です。」
+  ・2026-10-14「正しい挙動＞バランスです。バランスを理由には差し戻さない。ただし、それが歴史的に正しい挙動だと確証がなく、かつバランスを破壊するものであればNGとする」
+  ・2026-10-17「史実度の低下は差し戻し理由にはなりません。私はそのような指示はしていない。バランスより正しい挙動を優先してください」
+  ・2026-09-30「州から人が抜けきるというのは現実的ではないです。これは不具合とみなしてください。」
+  ・2026-10-15 計算量「計算資源の上限は必要。適時高速化・最適化を入れる目安としても死守したい。」
+  ・2026-10-23「wave24が完了すれば、25、26と進めてください。トークンは十分にあります。」＝この回の合図。
+それ以外（形・係数・線・幅・計器の列・読み方・読み手の置き換え先・予想）は全て AI の推奨で、作者の承認は未確認。
+
+[0] ⚠ 先頭＝指示から外れた所・名乗り（AI の判断・作者の承認は未確認）
+  ① **この線が消す・導くのは 2 か所だけ**（指示は〈残りの読み手を消し導く〉だったが、読んでみて〈導く先が既存の量の中にある〉と言えたのはこの 2 か所だけ）：
+     (a) `InvestmentReturn` の sat（投資家の期待収益）と州の上限 `IndustryInvestRegionCap`（4 か所）→ 旗 `InvestReturnFromMargin`
+     (b) 疫病の致死率と発生の衛生の代理（World.cs の ApplyEpidemicDeaths・WorstUrbanRegionSanitation の oldDev＝工業化度の飽和）→ 旗 `SanitationFromGoodsOnly`（実の衛生財 InfraFill＋石鹸＋電化だけを読む＝今の EpidemicSanitationWeight を 1 にした値と同じ）
+     残りの読み手は触らない。行き先は [1] の表（理由つき）。**指示の列挙のうち都市化の天井・保守・技術水準の読み手を〈この回は触らない〉に回したのは、指示から外れる所＝先頭に名乗る**。理由は [1]。
+  ② **形（a）の穴を先に言う（m500_ins の生を読んだ結果）**：ru の推奨〈束の実の働き＝(配りの重み−今の持分)×利幅の和〉は、収益が配りの収束で消える。eq の設備は州の資本の中の取り分（相対）で、**生産の式に資本の項が無い**（ru の根 A）。配りの重みは利幅に比例（FactoryEquipment.Distribute）なので、持分が重みに揃えば〈実の働き〉は 0 になる。m500_ins の eqr_s（挙げた 5 国・種 1 と 5）から手で組んだ u（下の定義・国全体のレシピ別の集計・州の分割は無視）は：1783 年に 英 1.2〜1.4・仏 0.5・他 0.0〜0.02、1800 年に 0.0〜0.6、1850 年以降は多くが 0.00〜0.05、**新しいレシピが開いた直後（仏 1820 年 1.5〜1.6・米 1820 年 2.3・清 1880 年 3.4〔種 5〕）だけ 1 を超える**（[3] の表）。係数はそのまま（IndProductivityGain 1.2・IndTechLeverage 2.4・IndCapitalCost 0.7＝書き換えない）。gross＝1.2×u×(1＋2.4×techLev)・hurdle≒0.7 なので、u が 0.05 を割る静かな年代では net＜0 で**投資の希望は 0**・新しいレシピが開いた年代だけ**山のように希望が立つ**と読める。つまり形（a）は〈新しいレシピへ労働を移す投資〉だけを残し、**静かな年代の投資の需要（鋼・機械・セメント・製材・鉄道の資材買い）を消す**予想。これは設計どおりの働き（ru の推奨〈投資は新しいレシピへ労働を移す〉）だが、副作用の予想を [3] に書いた。
+  ③ **副作用の予想（結合）**：州の工業化度の在庫 `Region.Industrialization` は投資の購入の累積（点）で、投資が山になると在庫も山になり減価で減る。**在庫を読む物（都市化の天井・扶養力・インフラ保守・信用の深さ・外資の吸い寄せ・合資会社の必要性・世界最先端の工業化度・国力の旧スコア）は触らない**ので、在庫が m500（1890 年に 4.7〜5.0）より桁で小さい世界を読む。予想：都市化の天井が前工業のまま（BaseUrbanCap 0.20＋Ind×0.08）で都市化が頭打ち・保守の資材需要が細る。**これは設計の副作用であって形の欠陥ではないが、腕 B が〈機構が狙いどおり働いたか〉を満たしても採るかは別**（[4] の結合の記録と、[10] の作者に聞く物）。
+  ④ techLev の項（IndTechLeverage×techLev）は残す：`World.TechProductivity`（技術水準の乗数）が投資の戻りへ渡す物で、TechProductivity は ru の推奨どおり pn（工程の行）と同じ腕で消す＝この線では触らない。残る技術水準の読み手を grep の番人で数え、ラチェットにする（[8]）。**指示の〈技術水準と工業化度の読み手が 0〉は焼き込み後の値**＝旗の段では 0 を主張する番人を置かない（eq の事前登録 [0]② と同じ）。
+  ⑤ 旗は 2 本とも新設・既定 0（1 命令も違わない）。どちらも `RecipeEquipment` が正の月（暦が進む月＝助走を除く）にだけ働く（助走は旧の規則）。
+  ⑥ 重なりの読みの確認（指示 1〜9）：1. MarketFlow.cs:337 に触らない。2. wc は触らない。3. 扶養力の 3 項（Simulation.cs:2563・汚染の項・:2583）に触らない（fd の合流の後か波 26）。4. Discovery.cs の :528 maxInd・:611 は触らない（理由 [1]）。5. pn の領分（TechProductivity と工程の行）に触らない。6. op の SeedCompatRows・Gate の null の窓に触らない。7. 触る行は [9]。8. 計算量は [6]。9. CostLedger は 27 を使う（この枝の Count 27→28・合流で詰める）。
+  ⑦ 作業の決まりの自己申告は報告（実装ログ）に書く。
+
+[1] 範囲と行き先（読み手の全数表は measurements/ir505_20261023_step0.txt・scripts/instruments/ir505/step0.py が 01909807 の木を読んで作る）
+  分け方：（甲）工業化度の在庫が倍率・天井・代理として別の量に掛かる物＝**二重計上の疑い**／（乙）在庫を〈立っている資本の量〉として需要や費用に読む物＝**物理の量**／（丙）計器・表示・入力データ。
+  この線で扱う（甲）：
+    A1 InvestmentReturn の sat（EconomyStep.cs:2716）→ 旗 InvestReturnFromMargin：利幅の差から導く（[2]）
+    A2 州の上限 IndustryInvestRegionCap（EconomyStep.cs:964・World.cs:1992・:1998・Megaprojects.cs:240）→ 同じ旗：外す（設計思想 ⑧）。按分の重みは建設材の手当だけ（上限までの余地の因子を 1 に）
+    B1 疫病の衛生の代理（World.cs の ApplyEpidemicDeaths・WorstUrbanRegionSanitation）→ 旗 SanitationFromGoodsOnly：実の衛生財だけ
+  この回は触らない（行き先と理由）：
+    C1 都市化の天井（PopDecision.cs:43-47・Meritocracy.cs:458）〔甲〕：導く先の候補は住居の充足（HousingFill）と都市の雇用だが、HousingFill は都市化がゲート（HousingUrbanThreshold）を越えるまで 1.0 で、天井を外すと所得差のシグモイドだけが都市化を決める＝歴史の速さを律する物が無くなる。**天井の置き換えは住居と雇用の線で設計する**（HousingFill を流れに掛ける案を候補として記録）。この回は在庫を読むまま＝副作用 [0]③ の主な読み手。
+    C2 扶養力の 3 項（Simulation.cs:2563・汚染の項・:2583 の出生の avgInd）〔甲〕：fd の合流の後か波 26（指示 3）。
+    C3 インフラ保守（EconomyStep.cs:1021・InfraMaintRate×TotalIndustrialization）〔乙〕：立っている資本の量に比例する資材の需要＝物理の量として残す。ただし在庫が小さい世界では需要が細る（[0]③）。
+    C4 信用の深さ（Credit.cs:87・devFactor）〔甲〕：消すと前工業の国の信用乗数が 1.7→3.0 になる（CreditMultiplierDevFloor 0.35）＝貨幣の創出に直結し、返せる額の上限が縛るのは投資家の所得だけ＝**金融の線で設計する**。
+    C5 外資の吸い寄せ（CapitalMarket.cs:80・headroom＝CapitalIndTarget−MeanInd）〔甲〕：収益の素地を A1 の信号（ModernizeReturnShare）に換える案があるが、外資の流れは補給崩壊と保存則の急所＝A1 の挙動を見てから。
+    C6 合資会社の必要性（Discovery.cs:528 maxInd）〔乙〕：必要性＝立っている資本の大きさ＝量として読む（必要性は既存の経済の量から導く骨組みの中にある）。
+    C7 制度と思想の行の技術力（Discovery.cs:611 の w.TechLevel÷難易度）〔技術水準の読み手〕：時計 ClockStage で置き換える案は、W が 4〜5 分の 1 に縮んだ今の時計では制度の行が開かなくなる（ru ＝線 de の領分）。**de の置き直しの後**。:1109 は DiscoveryEngineerHalfPerMonth の既定 3.42 では死んだ枝。
+    C8 世界最先端の工業化度（Ideology.cs:151・MultiNationSim.cs:862）〔甲〕：思想の支持の式の発展度＝政治の線。
+    C9 World.TechProductivity の技術水準の項（World.cs:2050）〔技術水準〕：pn と同じ腕（ru）。
+    C10 SelfPlay の法の門（金本位・独占禁止・ギルド）と AI の梯子・遠征の技術ゲート・巨大建造物の TechGate・運河の TechGate・陸軍の質（ArmyShape.cs:297）・国力の旧スコア：AI 側の読み手の置き換えの線（作者 2026-10-18 の残りタスク (1)）。ip の分類 17＝旧の腕。
+    C11 国の入力データ（world.json の industrialization・NationConfig・TradeWeight）・開幕の資本の置き場・減価・恐慌・戦場の摩耗・配りの φ：残す（丙・乙）。
+  → 技術水準の読み手（\bTechLevel\b）を**この回は 1 本も消さない**（C7・C9・C10 の行き先は上）。grep の番人はラチェット（[8]）。
+
+[2] 形（どれも既定では 1 命令も違わない）
+  旗：`InvestReturnFromMargin`（新・double・既定 0）・`SanitationFromGoodsOnly`（新・double・既定 0）。腕 B の POB_COEF は `InvestReturnFromMargin=1;SanitationFromGoodsOnly=1`。係数は新設しない。
+  働く月：`FactoryEquipment.On(coef, warmFrozen)`（RecipeEquipment が正・助走でない）かつ InvestReturnFromMargin が正。World の読み手（国庫の按分・AI の信号）は World.WarmupFrozen から同じ判定。`SanitationFromGoodsOnly` は助走も含めて常に働く（疫病は助走で走らない・走るなら同じ式）。
+  (a) 利幅の差 u（EconomyStep.MarginGap・純関数・新しい状態を持たない・州の生産者を 1 周）：
+      対象＝FactoryEquipment.Eligible かつ Discovery.Gate(r,s)>0 かつ !Bankrupt の個体（配りの対象と同じ集合）。
+      m_i＝max(0, SmoothedMargin_i)（NaN は 0）・S_i＝max(0, Scale_i)。W＝Σm・T＝ΣS・M2＝Σm²・SM＝ΣS·m。
+      m̄_m＝M2÷W（利幅で重み付けた利幅の平均＝配りの重みで揃えたときの平均利幅）・m̄_S＝SM÷T（今の持分で重み付けた平均利幅）。
+      G＝m̄_m−m̄_S（=Σ(w_i−s_i)m_i・w_i＝m_i÷W・s_i＝S_i÷T＝ru の〈配りの重み−今の持分〉×利幅の和）。**u＝G÷(1＋m̄_S)**＝〈持分を配りの重みに揃えたとき、費用あたりの売上が上がる割合〉。W≦1e-12 または T≦1e-12 または G が正でない（NaN を含む）なら u＝0。上限は置かない（⑧）。
+      gross＝IndProductivityGain×u×(1＋IndTechLeverage×techLev)（旧の IndProductivityGain÷sat² の sat² を u に置き換えただけ・係数は旧の較正のまま）。hurdle は今のまま（IndCapitalCost＋締め出し−金融の熱）。戻りの組の Sat の欄には u を入れる（計器の列 satMean は旗 1 では u の平均）。
+      読み手：EconomyStep.Run（私的な投資）・EconomyStep.ReturnShare → World.ModernizeReturnShare（AI の近代化投資の信号）・計器 modsig。同じ 1 本を通る。
+  (b) 州の上限の削除（旗 1・暦が進む月）：stateHeadroomUnits＝+∞（EconomyStep）／StateInvestEligible は上限の条件を外す／StateInvestWeight の head＝1（重み＝建設材の手当だけ・全州 0 なら ApplyModernizationInvestment の等分の枝が残る）／Megaprojects.ApplyEffect の indAdd＝add。歯止め＝A1 の信号（国庫の近代化投資の総額は ModernizeReturnShare が絞る）・私的な投資の netReturn・予算（投資家の貯蓄）・保守費。**新しい天井は置かない**。
+  (c) 疫病（旗 SanitationFromGoodsOnly＝1）：sanitDev＝realSanit（InfraFill＋SoapSanitationWeight×SoapFill＋ElecInfraSanitationWeight×ElecInfraFill を [0,1] にクランプした値）。oldDev（工業化度の飽和）は読まない。
+  CostLedger：27 `InvestReturnScans`＝MarginGap が見た生産者の数（旗が正の月・Run の私的な投資と World の信号の両方）。Count 28。単価 0.02 µs（census 無し・上限の見積り）。
+  計器：[7]。
+
+[3] 予想（m500_ins の生を読んだだけ・採否に使わない・外れたら外れたと書く）
+  m500_ins の eqr_s（挙げた 5 国・種 1 と 5・scripts/instruments/ir505/gap_from_eqr.py）から手で組んだ u の目安（国全体のレシピ別の集計・州の分割は無視・利幅は 1 州あたりの平均）。
+    年    英(種1/種5)   仏(種1/種5)   清(種1/種5)   日(種1/種5)   米(種1/種5)
+    1783  1.16/1.42     0.45/0.52     0.02/0.02     0.01/0.01     0.02/0.02
+    1800  0.08/0.07     0.04/0.14     0.12/0.59     0.00/0.02     0.02/0.04
+    1820  0.21/1.00     1.62/1.47     0.76/1.96     0.17/0.00     0.03/2.28
+    1850  0.02/0.05     0.01/0.03     0.03/0.04     0.01/0.59     0.00/0.02
+    1880  0.04/0.52     0.00/0.00     0.02/3.42     0.03/0.14     0.01/2.10
+    1913  0.03/0.01     0.03/0.00     0.04/0.03     0.04/0.03     0.11/0.03
+  読み：基線の u は 0.00〜0.05 が多く、新しいレシピが開いた直後に 0.5〜3 に跳ねる。gross＝1.2×u×(1＋2.4×techLev)・hurdle≒0.70 なので、techLev≒0.3（1800 年）で u＞0.35、techLev≒2.5（後期）で u＞0.08 のときだけ net＞0（希望が立つ）。**予想：静かな年代の投資の希望は 0・新しいレシピが開いた年代に希望が山になる**。m500 の希望は net が常に正（cons_s の netReturnMean 0.4〜1.9・英 1800〜20 年代 1.4〜1.9）＝**投資の需要は桁で細る**。
+  副作用の予想：州の工業化度の在庫は山の後に減価で減る＝m500（1890 年に英 4.77・仏 4.94・清 4.59・日 4.83・米 4.95）より小さい世界を在庫の読み手が読む（[0]③）。この予想が外れて在庫が m500 と同じ桁なら、予想の根（u の静かな年代の低さ）が間違いだった。
+  限界（名乗る）：eqr_s は〈発見の行を持つレシピのある財〉だけ・州の分割を無視・cons_s は 1830 年ごろまでしか無い（計器の行の範囲）＝gross の目安は 1820 年までしか組めない。
+
+[4] 狙いの数字（機構の観測量だけ・史実の大きさは記録）と止める線・判定
+  〈機構が狙いどおり働いたか〉の段（採否の前に置く）。外れたら採らない。
+  M1 恒等（腕 A）：旗 0 で素の 5 種の成績表が b5_20261023_m500 と全行バイト一致（SOURCE-HASH の行を除く）・計器つきの旗 0 が b10_20261023_m500_ins と一致。
+  M2 読み手：旗 1 で InvestmentReturn が工業化度の在庫（Industrialization・OldVintageCapital・StrandedVintage）を読まない（単体の番人・在庫を動かして戻りの組が変わらない）。生産者の Scale と SmoothedMargin だけで決まる。
+  M3 向き（同語反復でない観測量）：購入のあった州×月について、次に戻りを求めた回の u が前回の u 以下になった割合（計器 ir_s の dirClosed÷dirPairs）が **0.6 以上**（根拠：利幅は上下に動く＝無作為なら 0.5。配りは持分を重みへ寄せる向きに働く〔eq の D2 0.86〕）。0.5〜0.6＝弱い・0.5 未満＝働いていない（採らない）。
+  M4 上限の削除：旗 1 で StateInvestEligible が TotalIndustrialization＞5 の州でも真（単体）・Megaprojects の indAdd が切られない（単体）・州の工業化度の最大 ≦ 10（発散の線・計器 eq_s の indMax と SelfPlay の異常の行と同じ量）。
+  M5 保存：leakhunt・MoneyConservation・GoodsBalance・savetest の緑（新しい状態を持たない＝savetest は旧と同じ）。投資の束の代金は投資家の貯蓄から（leakhunt の項）。
+  M6 疫病：旗 1 で ApplyEpidemicDeaths の致死率が工業化度に依らず realSanit だけで決まる（単体）。
+  記録（採否に使わない）：①英・仏・米・日・清の工場の産出の年代（m491・m500 との比）②投資の束の量（built の年代別・m500 との比。予想は桁で細る）③州の工業化度の在庫の軌道（予想は m500 より小さい）④都市化率・人口・GDP の年代（副作用の予想の確かめ）⑤希望が立った国×四半期の割合と山の位置（新しいレシピの開いた年との重なり）⑥疫病の死者の総数（旗 SanitationFromGoodsOnly の効き）⑦忠実度（exact・near・NG）。
+  止める線（README のとおり・原因を問わない）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）／発散（金利・人口・値段・州の工業化度が桁で暴走）／州の空洞化（ピークの 1/10 未満・例外の名簿以外・主要国の州は例外にしない）／推定の計算量＞248.5 秒（名目・死守。m500 は 251.2＝上限を超えた状態で始まる＝この線が足す分 [6] を事前登録に書き、合流の後の名目の余りの内に収まるかを見る）／機構と不変条件を守るテストの赤。史実の桁を固定したテストの赤・史実の線・exact・near・NG・補給崩壊の倍化・カオス性は記録。
+  NG にするのは〈歴史的に正しい挙動だと確証がなく、かつバランスを破壊する〉の両方が揃ったときだけ。作者が〈消す〉と裁定した形（倍率・二重計上の削除）は確証あり＝ヌル腕を読まない。**確証なし（AI の設計）**：u の定義（利幅で重み付けた平均と持分で重み付けた平均の差を費用あたりの売上で割る）・techLev の項を残すこと・州の上限を外すときの按分の重み・疫病の代理を実の衛生財だけにすること。〈バランスを壊す〉の物差し（ヌル腕 N1・N2 は m500 のものを共有）＝exact か near がヌル腕から 10pt 以上落ちる・補給崩壊が倍以上・NG の正味がヌル腕の幅の 2 倍を超える。
+
+[5] 腕（作者 2026-10-18 承認の腕の節約）
+  A＝既定（旗 0）・素の 5 種の成績表が b5_20261023_m500 と全行一致＝恒等の合否（`batch.sh run <腕> 5`）。
+  B＝`POB_COEF="InvestReturnFromMargin=1;SanitationFromGoodsOnly=1"`・計器つき 10 種（`INS=1 bash scripts/instruments/batch.sh run <腕>`・NATIONS 清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ）。比べる側＝D:/PoB_work/keep_500/m500_ins。ヌル腕は m500 の n1・n2（measurements/b10_20261023_m500_n1_ins・_n2_ins・要約 m500n_20261023_null.txt）を共有・回さない。
+  切り分け（条件つき・止める線か〈壊す〉に当たり原因が片方の旗と読めるときだけ 1 本）：`SanitationFromGoodsOnly=1` 単独／`InvestReturnFromMargin=1` 単独。結合の確かめ（[0]③）が目的なら、`InvestReturnFromMargin=1` の腕で在庫を読む物の値を記録する（計器 ir_s の indMax・eq_s の indMean と、pop_s・region_s の都市化）。
+  形と事前登録は、腕を回す前に opus の反証役が読む。生の計器の TSV は採否が決まるまで D:/PoB_work に残し、読み終えたらすぐ消す（残すのは基線の生 keep_500 だけ）。
+
+[6] 計算量
+  使う量：MarginGap が見た生産者の数（旗が正の月・cap かつ投資家のいる州の月ごと〔Run〕と AI の信号〔四半期ごとの国×適格な州〕）。1 試合の「生産：生産者×月」8571 万のうち cap 州の分（約 6 割と見て 5000 万）＋信号 数百万＝約 5000〜6000 万件×0.02 µs＝**約 1.0〜1.2 秒**（census 無し・上限の見積り）。事前登録の割り当て **1.5 秒**（指示 8 の枠 5.4 秒のうち pn 5.0 秒を除く余り 0.4 秒を超える見込み＝**合流の後の名目の余り約 12 秒の内に収まるかを先に見る・揺れ ±3 秒**）。収まらなければ、投資家のいない州と予算 0 の月で MarginGap を飛ばす（結果を変えない近道）を足す。
+  旗 0 では件数 0（台帳の行は 0 件・推定は m500 と同じ）。
+
+[7] 計器（読むだけ・恒等・INS=1 のときだけ出す・InstrumentsIndustry.cs）
+  ir_s＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。列：flagReturn（InvestReturnFromMargin）／flagSanit（SanitationFromGoodsOnly）／gapCalls（MarginGap の呼び〔州×月〕）／uSum・uMax／desireCalls（net＞0 の呼び）／desireGapCalls（そのうち u＞0）／dirPairs・dirClosed（購入のあった州×月の次の呼びで u が前回以下だった数＝M3）／indMax（州の TotalIndustrialization の最大）／indOver5（上限 5 を超えた活きている州の数）。
+  蓄えは ConditionalWeakTable（セーブに載らない・力学に何も書かない）。既存の列（cons_s の satMean など）は旗 1 で u の平均を入れる＝列の名前は変えない（読み手は [2] を参照）。
+
+[8] 番人と突然変異（単体・期待は実装と別の出所から作る）
+  G1 InvestmentReturn（旗 1）が在庫を読まない（Industrialization・OldVintageCapital・StrandedVintage を動かしても戻りの組が変わらない）。旗 0 は旧の式のまま（手計算のリテラル）。
+  G2 u の手計算：盤面に置いた 3 個体（Scale と利幅）から u を紙で解いたリテラルと一致・持分が重みに揃っているとき u＝0・利幅が全て 0 以下なら u＝0・倒産と門が閉じた個体は数えない。
+  G3 上限：旗 0 では上限が効く（StateInvestEligible が TotalIndustrialization≧5 で偽）・旗 1 では外れる／Megaprojects の indAdd／StateInvestWeight の head。
+  G4 疫病：旗 1 で致死率の入力が工業化度に依らない・旗 0 は旧のブレンド（EpidemicSanitationWeight 0.6）。
+  G5 助走：助走の間は旗 1 でも旧の規則（InvestmentReturn が旧の式）。
+  G6 ラチェット（読み手の数）：\bTechLevel\b・WorldTechLevel・IndustryInvestRegionCap・TotalIndustrialization・MeanIndustrialization・ProductiveIndustrialization の非コメント行の数が段0 の値を超えない。IndustryInvestRegionCap の使う行は全て旗の名前を含む（宣言を除く）。
+  G7 CostLedger：台帳 27 が MarginGap の走査の数と一致（FactoryEquipmentTests の台帳の型）。
+  突然変異（scripts/instruments/ir505/mut.py）：M1 u の分母から 1 を外す／M2 m̄_S を m̄_m と取り違え／M3 倒産を数える／M4 上限の旗の判定を反転／M5 oldDev を残す／M6 助走でも旗を読む／M7 台帳の足し忘れ。各々が上の番人のどれかで赤になること。
+
+[9] 触る行（並行の線との衝突の注意）
+  Coefficients.cs（旗 2 本の追記）・EconomyStep.cs（:496 の bool 1 本・:896 の呼び・:964・:2713 の関数と MarginGap）・World.cs（:1162・:1227・:1992・:1998・:2020 の呼び）・Megaprojects.cs（:240）・FactoryEquipment.cs（On の隣に MarginOn を 1 本）・MultiNationSim.cs（:1998 の CostLedger の行・Names・UnitMicros・定数）・Instruments.cs（Sink の欄・Fold の呼び・Dispose）・InstrumentsIndustry.cs（新）・InstrumentsModernize.cs（:32 の呼び）・テスト（SecessionLaborLawInstrumentTests.cs:271・ModernizeReturnAndScoreTests は旗 0 のまま）。pn（Simulation.cs:1133・:1813）・fd（EconomyStep.cs:1554・:1584・:1895-1904）・de（Discovery.cs:155-165・:637）には触れない。
+
+[10] 作者に聞く物（本当に迷う物だけ・答えを待たず推奨で進める）
+  Q-IR1：eq の形では生産の式に資本の項が無く、投資は〈新しいレシピへ労働を移す〉働きだけを持つ。この形（利幅の差から導く投資の収益）の帰結として、**新しいレシピが開いた年代以外は投資の需要が細り、州の工業化度の在庫が小さくなる**（[3]）。在庫を読む物（都市化の天井ほか）を導き直す線を先に立てるか、資本を生産の式に入れる（枝 ip の失敗 T8a・T8c と作者の〈既に経済側に機能している〉に反する）か。**推奨＝このまま（資本を生産の式に入れない）・在庫を読む物の導き直しは都市化と住居の線から**。
+
+==================================================================================================================================
+追記 1（2026-10-23・腕 A も B も回す前・コード 0 行のコミット。元の本文 [0]〜[10] は書き換えない。反証役の点検〔高 2・中 4・低 4〕への処置。書いたモデル Claude Sonnet 5.5。形・係数・線・予想は全て AI の推奨で、作者の承認は未確認）
+==================================================================================================================================
+【追記 1-0】先頭の名乗り（元の [0] に重ねて読む）
+  ① **国家建設のヘッドルームを外す（元 [2](b)）は、Round2 の根治〈建設財デフレで国庫が 20 倍の単位に化ける〉の守りを外す**。歯止めとして残るのは、実の購入だけが決済される（StateSpent）・建設材の供給の配給・ModernizeReturnShare が絞る国庫の投資額・私的な側の netReturn と予算・保守費・bundleAfford（高い値段だけを絞る〔StateProcurePriceGate＝1〕＝**安い値段では絞らない**）。**デフレの経路は未対処**＝発散（州の工業化度の最大 10 超）が出たら、上限だけを戻した腕（追記 1-3）で切り分ける。単体の統合テスト〈旗 1 で走らせても有限〉は Run(8)（8 四半期）で短く、この経路は見ていない（自己申告）。
+  ② **形（u）は旧の係数 1.2・0.7 を借りていて、較正が無い**（追記 1-1）。[3] の〈静かな年代の希望 0〉は、形の帰結というより、この単位と係数の組み合わせの産物でありうる。
+  ③ **u は水準でなく差だけを読む**。適格な個体が 1 つの州・利幅が揃った州では、利幅がどれだけ高くても u＝0＝私的な投資の希望は 0（〈全体が儲かる好況〉でも差が無ければ立たない）。これを史実の挙動と言う確証は無い（AI の設計）。腕 B は u＝0 の呼びの数を列に残す（追記 1-2 の zeroCalls）。
+  ④ 元の [4] の M3（向き 0.6 以上）を**取り下げる**（結果を見る前・理由は追記 1-2）。置き換えは追記 1-2 の G-M（機構の番人）と E-M（創発の門）。
+  ⑤ 旗 SanitationFromGoodsOnly を**削除**する（元 [0]① の自己申告どおり、既存の EpidemicSanitationWeight＝1 と同じ値になる〔(1−1)×oldDev＝0×有限＝0〕。リファクタは重複を消す方向）。腕 B は `EpidemicSanitationWeight=1`。焼き込み（既定を 1 に倒す）のとき oldDev と EpidemicSanitationHalf を消す＝その段で疫病の工業化度の読み手が 0 になる。〈疫病の死者が増える向き〉は予想であって確かめていない（推測）。
+  ⑥ 州の上限の削除を別の旗 `InvestRegionCapOff`（新・double・既定 0）へ分ける（元は InvestReturnFromMargin の 1 本）。働く月は設備の規則が働く月（RecipeEquipment が正・助走でない）。腕 B は `InvestReturnFromMargin=1;InvestRegionCapOff=1;EpidemicSanitationWeight=1`。
+  ⑦ 計器 ir_s の列を変える（追記 1-2）。計器の ModFold（InstrumentsModernize.cs）が呼ぶ ModernizeReturnShare は台帳へ数えない（計器つきの腕の .cost が上に偏らないように）。AI の SelfPlay の呼び（四半期に最大 3 回）は力学なので台帳に残す（それが実の量）。
+  ⑧ 引用：「」は作者の原文だけ。元の本文に AI の文を「」で書いた箇所があれば、この追記では〈〉に読み替える。
+
+【追記 1-1】gross の単位（反証役 高 2）
+  束 1 つの実の働きは Distribute の φ＝g÷(Ind＋g) を通る（購入が足す点の割合）。純粋な私的設備だけの州では、購入後の持分は s'＝(s＋φw)÷(1＋φ)（w＝配りの重み）で、差は G'＝G÷(1＋φ)。つまり u は〈持分を全部揃えたときの総利得〉で、束 1 つあたりの戻りではない。
+  紙の導出：旧の gross＝IndProductivityGain÷sat²×(…) は〈稼働資本 IndProductivityScale（2.5）あたりの相対産出の増え〉の限界。同じ単位で束の戻りを書くと、IndProductivityScale 分の点を足したときの φ＝IndProductivityScale÷(Ind＋IndProductivityScale)＝1÷sat を u に掛ける形（gross′＝IndProductivityGain×u÷sat×(…)）。これは **u をそのまま使う今の形より常に小さい**（sat≧1）。
+  二択：(a) gross′ に直す（在庫を φ の分母としてだけ読む。M2 の文言は〈倍率としては読まない・φ の分母としてだけ読む〉に書き換わる）／(b) 今の形（u をそのまま・旧の係数 1.2・0.7 を借りる）。
+  **この回は (b)**（理由：(a) は hurdle 0.7 に対し gross′ が更に小さくなり、希望がほぼ立たない世界になる見込み＝別の線で較正ごと設計し直す物。今 (a) を作って較正するのは範囲外）。(b) の限界：①係数に較正が無い ②[3] の〈桁で細る〉は (b) の産物でありうる（(a) ならさらに細る側）③在庫を読まないのは φ を落としているから成り立つ（M2 は〈在庫を読まない〉でなく〈戻りの式が飽和の曲線を持たない〉と読む）。腕 B の結果が [3] のとおり〈桁で細る〉でも、それは設計の副作用でなく単位の問題でありうる。Q-IR1 に〈単位の問題〉を足す（追記 1-5）。
+
+【追記 1-2】M3 の取り下げと新しい門
+  取り下げの理由：計器の組は〈前の呼びで束を買おうとした〉州（construction＞0）だけを分母にし、construction＞0 は net＞0＝u が hurdle を越えた時だけ立つ。前回 u が高かった州だけを拾って〈次の u が前以下〉を数えるので、平均への回帰で機構が無くても 0.5 を超える。対照の組（net＞0 だが予算 0 で construction＝0）は空：m500_ins の cons_s の全 232,266 行のうち、希望（desiredMoneyPerMonth＞0）が 209,438 行、そのうち計画（plannedMoneyPerMonth）が 0 の行は 1 行（予算が 0 以下の行は 119）。**対照を作れないので M3 は救えない**（書いた時点で読んだ生：D:/PoB_work/keep_500/m500_ins/cons_s*.tsv）。
+  G-M（機構の番人・決定的・創発の門ではない）：購入が u を縮める。①単体：純粋な私的設備だけの盤面（BuiltScale＝0）に Distribute を掛けると、後の u は前より小さい（紙の証明：s'＝(s＋φw)÷(1＋φ)→G'＝G÷(1＋φ)・m̄_S' ≧ m̄_S だから u'＜u〔G＞0 のとき〕）。literal の盤面で手計算と一致させる。②実走：計器 ir_s の guardPairs（Distribute の前後で u を求めた回）と guardNonIncrease（そのうち後の u が前の u 以下〔1e-12 の許容〕だった回）。**判定：guardNonIncrease÷guardPairs ≧ 0.95**。混ざった工場（国営の持分 BuiltScale＞0）は薄められず、u が上がりうる（稀）ので 1.00 は要求しない。0.95 未満は機構が壊れている＝採らない。これは機構の確認であって創発の門ではない（名乗る）。
+  E-M（創発の門）：投資の希望が立つ場所が、新しいレシピの開いた後に偏るか。挙げた 9 国の eqr_s（国×財×レシピ×四半期）から〈新しいレシピが開いた四半期〉＝(国, 財, レシピ) で gateOpenRegions が初めて正になった四半期のうち、四半期番号 0 でなく、レシピの名前が (既定) でない物、を作る。国×四半期が〈その国のいずれかの新しいレシピが開いた四半期から 12 四半期（3 年）以内〉かどうかで ir_s の desireCalls と gapCalls を窓の内と外に分けて合算し、希望率 r_in＝Σ desireCalls÷Σ gapCalls（窓の内）・r_out（窓の外）の比 **R＝r_in÷r_out**。**判定：R ≧ 2.0＝働いた／1.2〜2.0＝弱い／1.2 未満＝働いていない（採らない）**。窓の外の gapCalls が 0 で r_out が定義できないときは判定不能＝記録に回して採らない側で保留し、報告に書く。閾値（12 四半期・2.0・1.2）は AI の目安で根拠は弱い（機会に反応する最低条件）。**窓は予想〔3〕の言い換えなので、R が 1 に近いなら予想の根（新しいレシピが開いた直後だけ山）が外れたと読む**。
+  計器 ir_s の列（新）：flagReturn（InvestReturnFromMargin）／flagCap（InvestRegionCapOff）／epiWeight（EpidemicSanitationWeight）／gapCalls／uSum／uMax／zeroCalls（u＝0 の呼び）／desireCalls／desireGapCalls／plannedCalls／guardPairs／guardNonIncrease／indMax／indOver5。旧の dirPairs・dirClosed・flagSanit は取り下げ。蓄えは四半期ごとでなく、行を書いた時に戻す（他の全ての国は年末にだけ書く＝年間の合算になる・挙げた国は毎四半期書く）。州ごとの前の呼びの辞書（Last）は無くなる。
+
+【追記 1-3】腕（元 [5] に重ねる）
+  A＝旗 0（既定）・素の 5 種（形の直しで木が変わるので、恒等を回し直す）。
+  B＝`POB_COEF="InvestReturnFromMargin=1;InvestRegionCapOff=1;EpidemicSanitationWeight=1"`・計器つき 10 種（種 1〜10・結果を見ていないので新しい種は要らない）。
+  条件つきの切り分け（止める線か〈壊す〉に当たり原因が 1 つの旗と読めるときだけ 1 本）：①州の工業化度の最大が発散（10 超）→ `InvestRegionCapOff` を外した腕（`InvestReturnFromMargin=1;EpidemicSanitationWeight=1`）②疫病の死者・人口の線 → `EpidemicSanitationWeight=1` 単独 ③戻りの形 → `InvestReturnFromMargin=1` 単独。
+
+【追記 1-4】計算量・判定（元 [4][6] に重ねる）
+  m500 の推定が既に名目の上限 248.5 秒を 2.7 秒超えているので、〈推定の計算量＞248.5〉はこの線だけでは満たせない。**止める線は〈この線が足す秒数≦1.5 秒〉（事前登録の割り当て）**：旗 1 の腕 B の .cost の台帳 27（InvestReturnScans）の件数×単価 0.02 µs。ModFold と Distribute の前後の u は台帳に数えない。合流の後の名目の余りに収まるかは別（報告に書く）。
+  判定の手順：〈機構が狙いどおり働いたか〉の段（M1・M2・M4・M5・M6・G-M・E-M）を先に見る。止める線（破綻・発散・空洞化・計算量・機構のテストの赤）。**NG は〈確証なし（AI の設計）〉×〈バランスを壊す〉の両方が揃ったときだけ**（元 [4] のとおり。確証なし＝u の定義・techLev の項を残すこと・州の上限を外すときの按分の重み・疫病の代理を実の衛生財だけにすること・旧の係数を借りること）。〈壊す〉の物差し＝exact か near がヌル腕から 10pt 以上落ちる・補給崩壊の頻度が倍以上・NG の正味がヌル腕の幅の 2 倍を超える。**史実の桁・exact・near・NG の差は記録であって、それだけでは差し戻さない**（〈壊す〉に当たったときだけ確証の段を見る）。
+
+【追記 1-5】作者に聞く物（元 [10] に重ねる）
+  Q-IR1（再掲＋追加）：eq の形では生産の式に資本の項が無い。**追加＝gross の単位の問題**（追記 1-1）：u をそのまま hurdle と比べる形は旧の係数を借りた未較正の形。正直に束あたりの戻りを導くと在庫を φ の分母として読み、希望はさらに細る。腕 B が [3] のとおり〈新しいレシピが開いた年代以外は投資の需要が細る〉なら、**答えを待たず推奨で進めるのでなく、作者の裁定を待つ物に上げる**（在庫を読む物を導き直す線を先に立てるか・資本を生産の式に入れるか・係数を較正し直すか）。推奨＝このまま（資本を生産の式に入れない）・在庫を読む物の導き直しは都市化と住居の線から・係数の較正は別の線。

@@ -1,0 +1,84 @@
+seeds 10
+Z_total {'Z': 155, 'ZA>=12.6': 28, 'ZA<12.6': 63, 'ZA<1.4': 48, 'ZA0': 16}
+Z_per_seed [26, 0, 0, 21, 0, 11, 0, 55, 9, 33]
+first_openers {'n': 465, 'techNeedOK': 465}
+followers {'n': 9380, 'needsTrans': 8952}
+follower_lag_quarters {'median': 6.0, 'p25': 3, 'p75': 29, 'share_le_0': 0.0, 'share_le_1': 0.10010660980810235}
+top10_dispersion {'snapshots': 1244, 'share_need_gt_tech': 0.502411575562701, 'mean_sd_tech': 2.939122398309409, 'mean_sd_need': 4.730769615238361}
+steam_follower_open_quarters {'n': 639, 'median': 24, 'p25': 3, 'p75': 138}
+first_opener_qing_share 0.24086021505376345
+discbuy {'seeds': 10, 'obs': 133169, 'x_old_median': 0.004119019336376664, 'x_new_median': 1.0, 'share_sat': 0.9632346867514211, 'share_sat_thin': 0.8161889095912623, 'share_thin': 0.8072749663960832, 'bound_violations': 0}
+open_quarter_by_row (中央値・first / follower):
+   ガス灯 85.0 89.0
+   キニーネの単離 137.0 147.0
+   クロムなめし 577 535.0
+   ソルベー法 543.5 507.5
+   ダイナマイト 567.0 547.5
+   ルブラン法 54.0 86.5
+   内燃機関 583 611
+   加硫ゴム 514 509.0
+   化学兵器 439 473
+   合成ゴム 439 459
+   弩級戦艦 550 560
+   戦車 609.0 584.5
+   木材パルプ製紙 306.0 315.0
+   機関車 141.0 149
+   機関銃 480.0 523.0
+   水力発電 430 470
+   汽船 143 153.5
+   無煙火薬 530 538.0
+   甜菜糖 252.0 276.0
+   石油ケロシン 380.0 397
+   石油火力 430 470
+   石油灯油 382 413.0
+   石炭火力 408 469.5
+   窒素固定 476 None
+   缶詰 106.5 174.0
+   蒸気タービン 415 470
+   装甲艦 373 394.0
+   軍用機 651 589
+   転炉鋼 360.0 363
+   送電網 408 463.0
+   過リン酸石灰 605 None
+   鉄筋コンクリート 582 615
+   電動機 476 None
+   電化製品 422 425.0
+   電解 476 482
+   魚の缶詰 258.0 101.0
+   黄鉄鉱法 160 167
+--- 比べる側 D:/PoB_work/keep_500/m500_ins ---
+seeds 10
+Z_total {'Z': 1214, 'ZA0': 316, 'ZA<1.4': 476, 'ZA<12.6': 358, 'ZA>=12.6': 64}
+Z_per_seed [66, 211, 0, 235, 169, 130, 92, 115, 0, 196]
+first_openers {'n': 641, 'techNeedOK': 641}
+followers {'n': 6069, 'needsTrans': 5251}
+follower_lag_quarters {'median': 36, 'p25': 6, 'p75': 125, 'share_le_0': 0.0, 'share_le_1': 0.07233481627945296}
+top10_dispersion {'snapshots': 1193, 'share_need_gt_tech': 0.5004191114836547, 'mean_sd_tech': 2.9617355375051053, 'mean_sd_need': 5.03228961094187}
+steam_follower_open_quarters {'n': 613, 'median': 19, 'p25': 3, 'p75': 173}
+first_opener_qing_share 0.16380655226209048
+--- 比べる側 D:/PoB_work/keep_500/n1 ---
+seeds 10
+Z_total {'Z': 1107, 'ZA<1.4': 561, 'ZA0': 263, 'ZA<12.6': 252, 'ZA>=12.6': 31}
+Z_per_seed [245, 76, 61, 209, 105, 0, 144, 124, 82, 61]
+first_openers {'n': 480, 'techNeedOK': 480}
+followers {'n': 4791, 'needsTrans': 4184}
+follower_lag_quarters {'median': 29, 'p25': 5, 'p75': 124, 'share_le_0': 0.0, 'share_le_1': 0.07075767063243582}
+top10_dispersion {'snapshots': 1479, 'share_need_gt_tech': 0.5084516565246788, 'mean_sd_tech': 2.953515954986128, 'mean_sd_need': 4.6193193286554015}
+steam_follower_open_quarters {'n': 593, 'median': 19, 'p25': 3, 'p75': 195}
+first_opener_qing_share 0.20416666666666666
+--- 比べる側 D:/PoB_work/keep_500/n2 ---
+seeds 10
+Z_total {'Z': 925, 'ZA<1.4': 417, 'ZA0': 215, 'ZA>=12.6': 45, 'ZA<12.6': 248}
+Z_per_seed [193, 91, 0, 206, 103, 87, 189, 0, 56, 0]
+first_openers {'n': 491, 'techNeedOK': 491}
+followers {'n': 4821, 'needsTrans': 4146}
+follower_lag_quarters {'median': 26, 'p25': 4, 'p75': 122, 'share_le_0': 0.0, 'share_le_1': 0.07571043352001659}
+top10_dispersion {'snapshots': 1236, 'share_need_gt_tech': 0.5388349514563107, 'mean_sd_tech': 3.136627503905109, 'mean_sd_need': 5.146595071845316}
+steam_follower_open_quarters {'n': 590, 'median': 19.0, 'p25': 3, 'p75': 181}
+first_opener_qing_share 0.1955193482688391
+=== 門の判定（腕＝D:/PoB_work/de_502/out_B_10/ins）===
+PASS G1 Z・A=0 の群・0<A<1.4 の群が比べる側の最小より小さい {'Z': (155, 925), 'ZA0': (16, 215), 'ZA<1.4': (48, 417)}
+PASS G2 最初の開きは技術力＋必要性≧100 (465, 465)
+PASS G3 遅れの中央値≧2 かつ 1 四半期以内＜50% (6.0, 0.10010660980810235)
+PASS G4 x_旧≦x_新≦1（破れ 0） 0
+FAIL G6 飽和（x_新≧0.5）の割合＜50% (0.9632346867514211, 0.8161889095912623, 133169)

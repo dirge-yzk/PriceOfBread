@@ -7,6 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 B, A = sys.argv[1], sys.argv[2]
 NS = int(sys.argv[3]) if len(sys.argv) > 3 else 99
 ROWS = ['コークス製鉄', '機械紡績']
+ALL5 = ROWS + ['熱風炉', '三段膨張', '自動ミュール']   # (503) 追記 3：M1（門が働いた）と M3（発散）は工程の 3 行も読む。M2（追う国の入口）と M4 は op の 2 行だけ（工程の 3 行に追う国の概念は無い）
 TH = {'M2a': 0.25, 'M2b': 0.15, 'M2c': {'コークス製鉄': 0.50, '機械紡績': 0.25}, 'M1': 0.01, 'M3': 10.0}
 
 def rd(path):
@@ -89,6 +90,17 @@ for s in seedsB:
                     if g > 0:
                         alt_den += 1
                         if ash > 0: alt_pos += 1
+for s in seedsB:
+    ser, nm = load_proc(B, s)
+    for (rr, uid), qs in ser.items():
+        if rr in ROWS or rr not in ALL5: continue
+        for q, (kn, d, g, ash, px) in qs.items():
+            if kn == 0:
+                m1den += 1
+                if d > 1e-9: m1num += 1
+                if g > 0:
+                    alt_den += 1
+                    if ash > 0: alt_pos += 1
 print('\n[M2 入口の門]（行ごと・種の中央値）')
 ok = True
 for row in ROWS:
@@ -113,7 +125,7 @@ for row in ROWS:
     print(f'  {row}: ' + ' '.join(f'{(p_n - p_o) / p_n:.2f}' for p_n, p_o in zip(per[row]['n'], per[row]['open']) if p_n))
 
 print('\n[M3 発散の線] 8 四半期の移動中央値の最大 B_max ÷ 腕 A の期間の中央値 A_med > 10×max(1, A_max÷A_med) を発散と数える')
-bad = []; ratios = {r: [] for r in ROWS}
+bad = []; ratios = {r: [] for r in ALL5}
 for s in seedsA:
     sB, nmB = load_proc(B, s); sA, nmA = load_proc(A, s)
     for key in sB:
@@ -125,7 +137,7 @@ for s in seedsA:
         lim = TH['M3'] * max(1.0, amax / amed)
         ratios[key[0]].append(bmax / amed)
         if bmax / amed > lim: bad.append((s, key[0], nmB.get(key[1], '?'), bmax / amed, lim))
-for row in ROWS:
+for row in ALL5:
     r = sorted(ratios[row])
     if r: print(f'  {row}: 件数 {len(r)}・B_max÷A_med の中央値 {med(r):.2f}・90 分位 {r[int(0.9*(len(r)-1))]:.2f}・最大 {r[-1]:.2f}')
 print(f'  発散の件数 {len(bad)}  {"OK" if not bad else "NG"}')
