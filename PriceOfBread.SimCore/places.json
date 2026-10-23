@@ -56,7 +56,7 @@
  {"name": "ケルン", "lat": 50.94, "lon": 6.96, "kind": "state", "terrain": "water_major"},
  {"name": "ケーニヒスベルク", "lat": 54.71, "lon": 20.45, "kind": "state"},
  {"name": "ケープタウン", "lat": -33.9, "lon": 18.4, "kind": "colony", "rule": [0.6, 0.3, 0.0, 0.1]},
- {"name": "コペンハーゲン", "lat": 55.68, "lon": 12.57, "kind": "state"},
+ {"name": "コペンハーゲン", "lat": 55.85, "lon": 12.15, "kind": "state"},
  {"name": "コンゴ", "lat": -5.85, "lon": 13.05, "kind": "target", "terrain": "barren"},
  {"name": "コンスタンティーヌ", "lat": 36.36, "lon": 6.61, "kind": "state"},
  {"name": "コーカンド", "lat": 40.53, "lon": 70.94, "kind": "target", "terrain": "barren"},
@@ -336,5 +336,11 @@
  {"name": "ブリスベン", "lat": -27.5, "lon": 153.0, "kind": "colony", "rule": [0.55, 0.1, 0.0, 0.35]},
  {"name": "ダーウィン", "lat": -12.5, "lon": 130.8, "kind": "colony", "terrain": "barren", "rule": [0.15, 0.35, 0.0, 0.5]},
  {"name": "アリススプリングス", "lat": -23.7, "lon": 133.9, "kind": "colony", "terrain": "barren", "rule": [0.15, 0.35, 0.0, 0.5]},
- {"name": "ホバート", "lat": -42.9, "lon": 147.3, "kind": "colony", "terrain": "forest", "rule": [0.55, 0.1, 0.0, 0.35]}
+ {"name": "ホバート", "lat": -42.9, "lon": 147.3, "kind": "colony", "terrain": "forest", "rule": [0.55, 0.1, 0.0, 0.35]},
+ {"name": "アジャクシオ", "lat": 41.95, "lon": 8.75, "kind": "state", "terrain": "mountain"},
+ {"name": "ラス・パルマス", "lat": 28.15, "lon": -15.75, "kind": "state", "terrain": "hill"},
+ {"name": "モルッカ諸島", "lat": -3.05, "lon": 128.15, "kind": "colony", "terrain": "forest", "rule": [0.6, 0.3, 0.0, 0.1]},
+ {"name": "バハマ諸島", "lat": 24.95, "lon": -78.15, "kind": "colony", "rule": [0.6, 0.3, 0.0, 0.1]},
+ {"name": "パラワン", "lat": 9.95, "lon": 118.35, "kind": "colony", "terrain": "forest", "rule": [0.6, 0.3, 0.0, 0.1]},
+ {"name": "チロエ", "lat": -41.85, "lon": -73.85, "kind": "colony", "terrain": "forest", "rule": [0.5, 0.45, 0.0, 0.05]}
 ]

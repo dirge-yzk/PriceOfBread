@@ -59,7 +59,7 @@
  {"name": "ケルン", "kind": "state", "lat": 50.94, "lon": 6.96, "landmass": "eurasia", "coastal": true},
  {"name": "ケーニヒスベルク", "kind": "state", "lat": 54.71, "lon": 20.45, "landmass": "eurasia", "coastal": true},
  {"name": "ケープタウン", "kind": "colony", "lat": -33.9, "lon": 18.4, "landmass": "africa", "coastal": true},
- {"name": "コペンハーゲン", "kind": "state", "lat": 55.68, "lon": 12.57, "landmass": "zealand-dk", "coastal": true},
+ {"name": "コペンハーゲン", "kind": "state", "lat": 55.85, "lon": 12.15, "landmass": "zealand-dk", "coastal": true},
  {"name": "コーカンド", "kind": "capital", "lat": 40.52, "lon": 70.94, "landmass": "eurasia", "coastal": true},
  {"name": "コーカンド", "kind": "state", "lat": 40.53, "lon": 70.94, "landmass": "eurasia", "coastal": false},
  {"name": "ゴンダール", "kind": "state", "lat": 12.61, "lon": 37.47, "landmass": "africa", "coastal": false},
@@ -108,7 +108,7 @@
  {"name": "ディルイーヤ", "kind": "state", "lat": 24.74, "lon": 46.58, "landmass": "eurasia", "coastal": false},
  {"name": "デリー", "kind": "capital", "lat": 28.6, "lon": 77.2, "landmass": "eurasia", "coastal": true},
  {"name": "デリー", "kind": "state", "lat": 28.61, "lon": 77.21, "landmass": "eurasia", "coastal": false},
- {"name": "デンマーク", "kind": "capital", "lat": 55.68, "lon": 12.57, "landmass": "zealand-dk", "coastal": true},
+ {"name": "デンマーク", "kind": "capital", "lat": 55.85, "lon": 12.15, "landmass": "zealand-dk", "coastal": true},
  {"name": "トアマシナ", "kind": "state", "lat": -18.15, "lon": 49.42, "landmass": "madagascar", "coastal": true},
  {"name": "トゥールーズ", "kind": "state", "lat": 43.6, "lon": 1.44, "landmass": "eurasia", "coastal": false},
  {"name": "トスカーナ", "kind": "capital", "lat": 43.77, "lon": 11.25, "landmass": "eurasia", "coastal": true},
@@ -392,5 +392,11 @@
  {"name": "ブリスベン", "kind": "colony", "lat": -27.5, "lon": 153.0, "landmass": "australia", "coastal": true},
  {"name": "ダーウィン", "kind": "colony", "lat": -12.5, "lon": 130.8, "landmass": "australia", "coastal": true},
  {"name": "アリススプリングス", "kind": "colony", "lat": -23.7, "lon": 133.9, "landmass": "australia", "coastal": false},
- {"name": "ホバート", "kind": "colony", "lat": -42.9, "lon": 147.3, "landmass": "tasmania", "coastal": true}
+ {"name": "ホバート", "kind": "colony", "lat": -42.9, "lon": 147.3, "landmass": "tasmania", "coastal": true},
+ {"name": "アジャクシオ", "kind": "state", "lat": 41.95, "lon": 8.75, "landmass": "corsica", "coastal": true},
+ {"name": "ラス・パルマス", "kind": "state", "lat": 28.15, "lon": -15.75, "landmass": "gran-canaria", "coastal": true},
+ {"name": "モルッカ諸島", "kind": "colony", "lat": -3.05, "lon": 128.15, "landmass": "seram", "coastal": true},
+ {"name": "バハマ諸島", "kind": "colony", "lat": 24.95, "lon": -78.15, "landmass": "andros", "coastal": true},
+ {"name": "パラワン", "kind": "colony", "lat": 9.95, "lon": 118.35, "landmass": "palawan", "coastal": true},
+ {"name": "チロエ", "kind": "colony", "lat": -41.85, "lon": -73.85, "landmass": "chiloe", "coastal": true}
 ]

@@ -189,7 +189,7 @@ public class RuleSharesFormTests
     // ===== D4 ④ 植民地の州も開始時の rule のデータを通す =====
 
     [Fact]
-    public void D4_植民地100件のruleは4要素で合計1で非植民地には無い()
+    public void D4_植民地のruleは4要素で合計1で非植民地には無い()
     {
         int colonies = 0;
         foreach (var p in Places.All)
@@ -205,7 +205,7 @@ public class RuleSharesFormTests
             }
             else Assert.Null(r);
         }
-        Assert.Equal(100, colonies);
+        Assert.Equal(100 + 4, colonies);   // ★(512) 州のデータの追加で植民地の行が +4（モルッカ諸島・バハマ諸島・パラワン・チロエ）。州 2 件は kind＝state
         Assert.Equal(new[] { 0.70, 0.25, 0.0, 0.05 }, Places.RuleOf("ジャマイカ")!);
         Assert.Equal(new[] { 0.15, 0.35, 0.0, 0.50 }, Places.RuleOf("アラスカ")!);
         Assert.Equal(new[] { 0.50, 0.45, 0.0, 0.05 }, Places.RuleOf("中核ベンガル")!);

@@ -25,7 +25,7 @@ public class DiscontentSplitTests
         Assert.Equal(0.8, c.WantWeight);   // 手計算のリテラルの前提
         c.ConsciousnessSpeed = 0;
         foreach (var r in w.Regions)
-            foreach (var p in r.Pops) { p.Militancy = militancy; p.Consciousness = 0; p.Satisfaction = 0.5; p.LivingRef = 0.5 + drop; }
+            foreach (var p in r.Pops) { p.Militancy = militancy; p.Consciousness = 0; p.Satisfaction = 0.5; p.LivingRef = 0.5 + drop; p.CoreEthnicShare = new Share(1); }   // ★(512) 民族の項を明示的に 0 に置く（仏にコルシカの州〔別の文化の札〕が加わり、中核度が 1 でない POP が民族の項を持つ）
         return w;
     }
 

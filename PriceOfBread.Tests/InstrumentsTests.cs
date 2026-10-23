@@ -136,9 +136,10 @@ public class InstrumentsTests
         string dir = NewDir();
         try
         {
-            var off = Make(); RunMatch(off, Quarters, instr: false);
+            // ★(512) 州のデータの追加で軌道が動き、種 1789 では借入の判定の経路を 1 度も通らなかった（対照が赤）＝種 1790 で通る（種の選び直し〔(405)(508) と同じ作法〕・1790〜1793 は全て通った）。
+            var off = Make(1790UL); RunMatch(off, Quarters, instr: false);
             Instruments.Configure(dir, "*");
-            try { var on = Make(); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
+            try { var on = Make(1790UL); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
             finally { Instruments.Configure(null, null); }
 
             // ---- 財政の鎖
@@ -1610,7 +1611,8 @@ public class InstrumentsTests
     // ★(493) 化学薬品を硫酸とソーダ灰に割って軌道がまた動き、1802 では場面 T の飢えの照合が空洞になった（飢え 0・構造 12）＝1803 を試す（種の選び直しは (405) と同じ作法）
     // ★(495) レシピごとの設備と倍率の削除の点火で軌道がまた動き、1802 では場面 T の飢えの照合が空洞になった（飢え 0・構造 12）＝1803 で全ての場面が空洞でない（種の選び直しは (405) と同じ手当て）。
     // ★(508) 合流の木（spt500＋spg3＋fd〔食料の台帳の①③〕）で軌道がまた動き、1803 では場面 T の飢えの照合が空洞になった（飢え 0・構造 9）＝1804（構造 11）・1805（構造 11）も空洞・1806 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法・旧の旗の盤面へ固定して赤を避けない）。
-    private const ulong CoverageSeed = 1806UL;
+    // ★(512) 州のデータの追加で軌道がまた動き、1806 では場面 T の飢えの照合が空洞になった（飢え 0・構造 10）＝1807 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
+    private const ulong CoverageSeed = 1807UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()

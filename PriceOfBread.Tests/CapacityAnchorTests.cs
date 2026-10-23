@@ -52,7 +52,7 @@ public class CapacityAnchorTests
         Assert.Equal(2450.0, pt.PopulationDelta, 6);
         Assert.Equal(2, pt.Regions.Count(r => r.AnchorPopulation > 0)); Assert.Equal(9, pt.Regions.Count(r => r.Tier == RegionTier.Colonial));
         var uk = Of(sim, "イギリス");
-        Assert.Equal(16363.8, AnchorSum(uk), 6); Assert.Equal(31450.5, uk.PopulationDelta, 6);
+        Assert.Equal(16363.8, AnchorSum(uk), 6); Assert.Equal(31454.5, uk.PopulationDelta, 6);   // ★(512) 31450.5→31454.5＝バハマ諸島 4 千の植民地格の州が台帳に入った
     }
 
     [Fact]
@@ -174,8 +174,8 @@ public class CapacityAnchorTests
                 Assert.True(Math.Abs(D("anchorUsed") - D("anchorOld")) <= 1e-9 * D("anchorOld"));   // 領土が動かない 3 四半期は州の和 ＝ 旧の錨（人口の段が使った実値・月初と四半期末で丸めが別＝相対 1e-9）
                 Assert.True(Math.Abs(D("anchorRegions") - D("anchorOld")) <= 1e-9 * D("anchorOld"));
                 Assert.True(D("capacity") > 0);
-                if (row[Ix("nation")] == "イギリス") { Assert.Equal(31.0, D("regionsN")); Assert.Equal(5.0, D("anchorRegionsN")); Assert.Equal(16363.8, D("anchorRegions"), 4); }
-                if (row[Ix("nation")] == "フランス") { Assert.Equal(13.0, D("regionsN")); Assert.Equal(7.0, D("anchorRegionsN")); }
+                if (row[Ix("nation")] == "イギリス") { Assert.Equal(32.0, D("regionsN")); Assert.Equal(5.0, D("anchorRegionsN")); Assert.Equal(16363.8, D("anchorRegions"), 4); }
+                if (row[Ix("nation")] == "フランス") { Assert.Equal(14.0, D("regionsN")); Assert.Equal(8.0, D("anchorRegionsN")); }   // ★(512) 13→14・7→8＝コルシカの州アジャクシオ
             }
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
