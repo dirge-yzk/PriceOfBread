@@ -1503,6 +1503,13 @@
      "name": "マカッサル",
      "resources": [],
      "popK": 150
+    },
+    {
+     "name": "モルッカ諸島",
+     "resources": [
+      26
+     ],
+     "popK": 100
     }
    ],
    "initialSuffrage": "Census",
