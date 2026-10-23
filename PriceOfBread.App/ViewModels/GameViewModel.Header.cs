@@ -24,7 +24,6 @@ public partial class GameViewModel
     }
 
     // 王権と議会（P0〜P2の観測軸・政治タブ「王権と議会」セクション 2026-07-11）
-    private static string Pct(double v) => v.ToString("+0%;-0%;0%");   // −1〜+1を符号つきパーセントへ（王権と議会の協力度）
     // ★政体（2026-08-04）：「統治形態」が **王冠の軸だけ** を出していて、立憲君主制の英が「絶対王政」と表示され、
     //   すぐ下の「議会健全性 65%」と真っ向から矛盾していた。政体は王権×議会の2軸から導かれる合成値＝それを出す。
     //   王冠の形（CrownText）は別行に残す＝2軸のどちらが動いたのかが読める。
@@ -47,7 +46,7 @@ public partial class GameViewModel
     //   ⚠「議会なし」を残すのは CoopParliamentText（協力度＝議会という相手が居ないと定義できない量）だけ＝そちらは伏せたまま。
     public string ParliamentControlText => _player.ParliamentControl < 0 ? "計測前"
         : $"{Math.Clamp(_player.ParliamentControl, 0, 1):P0}";
-    public string CoopParliamentText => _player.ParliamentEnabled && _player.Polity is Polity.ConstitutionalMonarchy or Polity.Republic ? Pct(_player.CoopParliamentCrown) : "議会なし";
+    public string CoopParliamentText => _player.ParliamentEnabled && _player.Polity is Polity.ConstitutionalMonarchy or Polity.Republic ? Fmt.SignedPct(_player.CoopParliamentCrown) : "議会なし";
     // 「世論の王権支持率」の行は撤去（2026-08-09作者フィードバック）＝当時はヘッダーの王権支持度とそのホバーで同じ量が読めた。
     // ⚠2026-08-23にその王権支持度もヘッダーから撤去＝**天命・世論の王権支持率はUIのどこからも読めない**（エンジンは稼働中）。
     //   戻すならここ（政治タブ「王権と議会」節）が元の置き場所。写像（体制への協力度 −1〜+1 → 0〜100%）は Politics 側と同式。
@@ -186,7 +185,7 @@ public partial class GameViewModel
         }
     }
     // 兌換カバー率の内訳（比率＝基礎貨幣÷広義貨幣）。金融テキストのホバー。
-    public string CoverTip => _player.BroadMoney.Value <= 1e-9 ? "" : $"基礎貨幣 {Money(_player.BaseMoney.Value)}\n広義貨幣 {Money(_player.BroadMoney.Value)}\n維持線 {_player.Coef.GoldCoverMin.Value:P0}";
+    public string CoverTip => _player.BroadMoney.Value <= 1e-9 ? "" : $"基礎貨幣 {Fmt.Money(_player.BaseMoney.Value)}\n広義貨幣 {Fmt.Money(_player.BroadMoney.Value)}\n維持線 {_player.Coef.GoldCoverMin.Value:P0}";
     // 戦力余剰・好戦世論の内訳（World.WarFever の6項を再構成＋膨張意欲の今四半期増分）。ヘッダー左のホバー。
     public string ExpansionTip
     {
@@ -418,7 +417,7 @@ public partial class GameViewModel
         double war = _player.WarDeadCumulative;
         double baseP = _player.TotalPopulation - _player.PopulationDelta;
         double other = _player.PopulationDelta + war;   // 戦没を戻した自然増減・移民・領土の累積
-        Func<double, string> pf = v => PopFmt(v);
+        Func<double, string> pf = v => Fmt.PopFmt(v);
         if (Math.Abs(baseP) >= 5e-4) rows.Add(Signed(baseP, "初期人口", pf));
         if (Math.Abs(other) >= 5e-4) rows.Add(Signed(other, "自然増減と移民と領土(累積)", pf));
         if (Math.Abs(war) >= 5e-4) rows.Add(Signed(-war, "戦没と粛清(累積)", pf));

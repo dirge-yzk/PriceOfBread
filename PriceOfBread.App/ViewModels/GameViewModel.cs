@@ -357,16 +357,7 @@ public partial class GameViewModel : ViewModelBase
     //   数に混ぜない＝勝勢%・即応%・熟練ツールチップへ分離。数は嘘をつかない（多いが弱い軍＝アヘン戦争が読める）。
     //   Nation を持たない抽象的な外国だけはゲージ×SoldiersPerMilitary で人数へ近似（実POPが無い）。
     private double TroopUnits(Power p) => p.Nation is { } nw ? nw.SoldierSizeK() : p.Military * _player.Coef.SoldiersPerMilitary;
-    private string Troops(Power p) => Men(TroopUnits(p));
-    /// <summary>兵数の書式（units＝1000人単位）。1万人未満は実数、以上は万人（桁に応じて小数を落とす）。</summary>
-    public static string Men(double units)
-    {
-        double men = units * 1000.0;
-        if (men >= 995_000) return $"{men / 10000.0:N0}万人";
-        if (men >= 99_500) return $"{men / 10000.0:F0}万人";
-        if (men >= 9_950) return $"{men / 10000.0:F1}万人";
-        return $"{men:N0}人";
-    }
+    private string Troops(Power p) => Fmt.Men(TroopUnits(p));
 
     /// <summary>緊張の表示値＝**開戦までの近さ**（100%＝宣戦の閾値）。
     /// ⚠★2026-08-02の是正：旧は内部緊張を 0〜100 でクランプして「%」と呼んでいた。ところが
@@ -377,37 +368,6 @@ public partial class GameViewModel : ViewModelBase
     private double TensionPct(double tension)
         => System.Math.Clamp(tension / _player.Coef.WarDeclareTension, 0, 1);
 
-    // ★2026-09-23：最下段を「素のポンド」にした。旧は £1k 未満を全て "£0.0k" に潰しており、**£50未満は必ず「£0.0k」**だった
-    //   （F1 の丸め）。戦争タブの戦費は国の月次戦費を戦線数で割った額＝多正面ではこの帯に落ちるので、
-    //   作者の画面（英 £82.2/月 ÷ 8戦線 × 4ヶ月 ＝ £41）では**原理的に金額が見えなかった**。
-    //   桁に応じて小数を詰める作法は MoneyPerHead と同じ（あちらは1未満の小数まで扱うので刻みが細かい）。
-    public static string Money(double v)
-    {
-        double a = System.Math.Abs(v); string sign = v < 0 ? "-" : "";
-        if (a >= 1e6) return $"{sign}£{a / 1e6:F2}M";
-        if (a >= 1e4) return $"{sign}£{a / 1e3:F0}k";
-        if (a >= 1e3) return $"{sign}£{a / 1e3:F1}k";
-        return $"{sign}£{a:N0}";
-    }
-
-    // 1人あたりの金額（ヘッダーの一人当たりGDP）。Money の k/M 表記は人数で割った桁を全部「£0.0k」に潰すので、桁に応じて小数を詰める。
-    public static string MoneyPerHead(double v)
-        => v >= 100 ? $"£{v:N0}" : v >= 10 ? $"£{v:F1}" : v >= 1 ? $"£{v:F2}" : v >= 0.1 ? $"£{v:F3}" : $"£{v:F4}";
-
-    // 人数表示：内部単位は千人（1=1000人）。単位は k（千）／M（百万）で統一（千・万は廃止・2026-07-12）。
-    // 例：thousands=27000→"27.0M人"、thousands=50→"50k人"、thousands=0.5→"500人"。
-    public static string PopFmt(double thousands)
-    {
-        double people = thousands * 1000.0;
-        if (people >= 1e6) return $"{people / 1e6:0.##}M人";
-        if (people >= 1e3) return $"{people / 1e3:0.#}k人";
-        return $"{people:N0}人";
-    }
-
-    // POPタブ専用：★2026-08-02「〇K」表記（作者指示）。⚠**「人」だけを外し、k は残す**。
-    //   一度 k ごと外して素の人数（31,090,000）にしたのは読み違い＝桁が大きすぎて読めなくなった。
-    //   k で割り、単位は大文字K・桁区切りあり（5,430K）＝列の右端が揃い、桁の比較ができる。
-    public static string PopFmtK(double thousands) => thousands.ToString("N0") + "K";
 
     private double[] _ledgerPrev = new double[(int)TreasuryCat.Count];   // 台帳の前月値（月次差分の基準）
     private double _monthWarCost;      // 今月ぶんの戦費の実払い額（TreasuryLedger の陸軍・海軍・戦費の月次差分の和・符号反転）＝戦争タブが読む（GameViewModel.Refresh.cs）。SampleTreasuryLedgerが_ledgerPrevを上書きする前にOnTickで1回だけ取る
@@ -498,8 +458,8 @@ public partial class GameViewModel : ViewModelBase
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫:{Money(_player.Treasury.Value)}";
-        BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Money(Math.Abs(_monthDelta))}/月";
+        TreasuryText = $"国庫:{Fmt.Money(_player.Treasury.Value)}";
+        BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(_monthDelta))}/月";
         OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));   // 物価・為替（計算プロパティ）を再読込
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }
@@ -536,7 +496,7 @@ public partial class GameViewModel : ViewModelBase
             var list = new List<CompositionRow>();
             if (tot <= 1e-9) return list;
             foreach (var kv in src.OrderByDescending(kv => kv.Value))
-                list.Add(new CompositionRow { Name = kv.Key, Size = PopFmtK(kv.Value), Share = (kv.Value / tot).ToString("P0") });   // POPタブはk統一（項10）
+                list.Add(new CompositionRow { Name = kv.Key, Size = Fmt.PopFmtK(kv.Value), Share = (kv.Value / tot).ToString("P0") });   // POPタブはk統一（項10）
             return list;
         }
         SyncRows(ReligionRows, Rows(rel, total), r => r.Name, (t, s) => t.CopyFrom(s));

@@ -42,7 +42,7 @@ public partial class GameViewModel
         string body = "";
         foreach (var t in PopulationTerms()) body += (body.Length == 0 ? "" : "\n") + t.Text;
         // 題の1行＝ヘッダーの人口 Stat と同じ名前・同じ書式。階級ごとの規模セルに載る内訳なので、全国の量であることを題が名乗る。
-        PopulationTip = body.Length == 0 ? null : $"人口　{PopFmt(_player.TotalPopulation)}\n" + body;
+        PopulationTip = body.Length == 0 ? null : $"人口　{Fmt.PopFmt(_player.TotalPopulation)}\n" + body;
         var lit = LiteracyClassTerms(); var sat = SatisfactionClassTerms(); var mil = MilitancyClassTerms();
         PopsUpperTip = PopLayerTip("上流", lit, sat, mil);
         PopsMiddleTip = PopLayerTip("中流", lit, sat, mil);

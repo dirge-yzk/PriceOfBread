@@ -135,7 +135,7 @@ public partial class GameViewModel
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
-                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
+                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{Fmt.PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
             if (_prevTerror != null) _prevTerror[id] = w.TerrorPurgeCumulative;
             // 外国経済イベント（外国経済の可視化doc §3-2・2026-07-24）：恐慌入り/回復・金本位の離脱/復帰・デフォルト・大凶作を既存の距離遅延網へ。
             // 自国分は既存の自国エッジ（恐慌/金本位/デフォルト＝即時）が流すため他国のみ＝二重にしない。Id基準＝建国/消滅の国数変動に強い。

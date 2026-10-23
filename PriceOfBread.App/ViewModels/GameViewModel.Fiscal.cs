@@ -8,6 +8,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
@@ -97,23 +98,6 @@ public partial class GameViewModel
     [RelayCommand] private void ReformAtMarket() => _player.RequestCurrencyReform(_player.ExchangeRate);
     [RelayCommand] private void ReformAtPar() => _player.RequestCurrencyReform(1.0);
 
-    private static string LedgerName(TreasuryCat c) => c switch
-    {
-        TreasuryCat.Tax => "税収",                     TreasuryCat.Tariff => "関税",
-        TreasuryCat.StateMonopoly => "専売益",      TreasuryCat.Borrow => "国債の起債",
-        TreasuryCat.Devalue => "通貨切下げ",           TreasuryCat.StateFactory => "国営工場",
-        TreasuryCat.TributeIn => "貢納の受取",         TreasuryCat.OtherIn => "その他の収入",
-        TreasuryCat.Army => "陸軍",                    TreasuryCat.Navy => "海軍",
-        TreasuryCat.Admin => "行政",                   TreasuryCat.Education => "教育",
-        TreasuryCat.Welfare => "社会保障",             TreasuryCat.Pension => "年金",
-        TreasuryCat.Modernization => "近代化投資",     TreasuryCat.AntiCorruption => "汚職の根絶",
-        TreasuryCat.Interest => "国債の利払い",        TreasuryCat.DebtRepay => "国債の償還",
-        TreasuryCat.FactoryBuild => "工場の建設",      TreasuryCat.Subsidy => "補助金",
-        TreasuryCat.Megaproject => "巨大建造物",       TreasuryCat.ColonialUpkeep => "植民地の維持",
-        TreasuryCat.TributeOut => "貢納の支払",        TreasuryCat.WarCost => "戦費",
-        _ => "その他の支出",
-    };
-
     /// <summary>台帳の月次差分を取り、非ゼロの区分だけを行にする（0の行は出さない＝既存の作法）。</summary>
     private void SampleTreasuryLedger()
     {
@@ -125,7 +109,7 @@ public partial class GameViewModel
             double d = now[i] - _ledgerPrev[i];
             bal += d;
             if (System.Math.Abs(d) < 50.0) continue;   // 0の行は出さない＝**表示解像度（£0.1k刻み）で0になる額**は行にしない
-            var row = new LedgerRow { Name = LedgerName((TreasuryCat)i), Amount = Money(System.Math.Abs(d)) };
+            var row = new LedgerRow { Name = FiscalCatalog.LedgerName((TreasuryCat)i), Amount = Fmt.Money(System.Math.Abs(d)) };
             (d >= 0 ? LedgerIn : LedgerOut).Add(row);
         }
         _ledgerPrev = (double[])now.Clone();
@@ -133,7 +117,7 @@ public partial class GameViewModel
         //   →空のときは「—」を1行置く（機能は生きている＝月が進めば実額が並ぶ）
         if (LedgerOut.Count == 0) LedgerOut.Add(new LedgerRow { Name = "—", Amount = "" });
         if (LedgerIn.Count == 0) LedgerIn.Add(new LedgerRow { Name = "—", Amount = "" });
-        LedgerBalanceText = (bal >= 0 ? "+" : "-") + Money(System.Math.Abs(bal));
+        LedgerBalanceText = (bal >= 0 ? "+" : "-") + Fmt.Money(System.Math.Abs(bal));
         // 通貨改革のボタンは**発動条件を満たしたときだけ**出す（押せないボタンを置かない＝UI最小主義）
         var c0 = _player.Coef;
         CurrencyReformVisible = !_player.OnGoldStandard
@@ -348,39 +332,39 @@ public partial class GameViewModel
         double aPen = (_player.LastPensionCostPerMonth * _player.FiscalFundingRatio).Value;
         double aInterest = _player.LastInterestPerMonth.Value;   // R9満期構造の実クーポン込み（UI近似はGovBondRatePerYear直＝乖離しうる）
 
-        InterestLine = "利払い"; InterestAct = Money(aInterest); InterestAmt = Money(interest);
+        InterestLine = "利払い"; InterestAct = Fmt.Money(aInterest); InterestAmt = Fmt.Money(interest);
         // ★陸海それぞれの金額（作者指示2026-08-11）。台帳は陸海で分かれていないので、**エンジン自身の配分**
         //   （World.NavalSpendShare＝NavyUpkeep/(Army+Navy)）で総額を割る＝UIに第二の配分式を置かない。
         //   和は必ず旧「軍事費」の額と一致する（表示を分けただけで金は動いていない）。
         double navShare = _player.NavalSpendShare.Value;
         //   ★(144)：兵の給与は陸軍の行だけ（陸海の比で割るのは軍需の請求だけ）。予定の側も同じ定義＝軍需の目標＋兵の給与の請求（r の前）。
         double pSoldier = _player.LastSoldierPayPerMonth.Value;
-        ArmyAct = Money(aMilGoods * (1 - navShare) + aSoldier); ArmyAmt = Money(mil * (1 - navShare) + pSoldier);
-        NavyAct = Money(aMilGoods * navShare);                  NavyAmt = Money(mil * navShare);
-        AdminLine = $"行政費 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"; AdminAct = Money(aAdmin); AdminAmt = Money(admin);  // 行政調達（官僚の給与×人数×距離の割増）
+        ArmyAct = Fmt.Money(aMilGoods * (1 - navShare) + aSoldier); ArmyAmt = Fmt.Money(mil * (1 - navShare) + pSoldier);
+        NavyAct = Fmt.Money(aMilGoods * navShare);                  NavyAmt = Fmt.Money(mil * navShare);
+        AdminLine = $"行政費 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"; AdminAct = Fmt.Money(aAdmin); AdminAmt = Fmt.Money(admin);  // 行政調達（官僚の給与×人数×距離の割増）
         // ★汚職根絶のラベル更新は撤去（汚職V2点火2026-08-15＝表示ごと削除）
         // 国民形成費のレバー行は廃止（2026-07-19）＝国民運動は需要駆動（内訳はヘッダー国民意識の説明API）
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法律タブへ移行・2026-07-30）
-        EduLine = PlayText.EducationSpendingText(_player); EduAct = Money(_eduMonthly); EduAmt = Money(_eduMonthly);   // ★(452) 教育費は額でなく予算の割合と名乗る（play の報告と同じ関数）。実績（市場依存＝予想も実績値）
-        WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Money(aWel); WelAmt = Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
-        PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);
+        EduLine = PlayText.EducationSpendingText(_player); EduAct = Fmt.Money(_eduMonthly); EduAmt = Fmt.Money(_eduMonthly);   // ★(452) 教育費は額でなく予算の割合と名乗る（play の報告と同じ関数）。実績（市場依存＝予想も実績値）
+        WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Fmt.Money(aWel); WelAmt = Fmt.Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
+        PensionLine = "年金"; PensionAct = Fmt.Money(aPen); PensionAmt = Fmt.Money(pen);
         // 見えない出費の可視化（監査2026-07-11 接1）：国庫を実際に動かすのに予算表に現れず「黒字表示なのに国庫が減る」原因だった3項目。
         double colonialUp = (_player.LastColonialUpkeepPerMonth * _player.FiscalFundingRatio).Value;   // 植民地維持費（補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28／不満の俸給は 2026-09-30 (140) に撤去）
         double tribOut = Calendar.PerQuarterToPerMonth(_player.LastTributeOutPerQuarter * _player.FiscalFundingRatio.Value);   // 属国貢納（支払＝請求×r・四半期→月割）
         double tribIn = Calendar.PerQuarterToPerMonth(_player.LastTributeInPerQuarter);                    // 属国貢納（受取・同）
         ColonialRowVisible = colonialUp > 1e-9;
-        ColonialLine = "植民地維持費"; ColonialAmt = Money(colonialUp);
+        ColonialLine = "植民地維持費"; ColonialAmt = Fmt.Money(colonialUp);
         TributeRowVisible = tribOut > 1e-9;
-        TributeLine = "属国貢納(宗主へ)"; TributeAmt = Money(tribOut);
+        TributeLine = "属国貢納(宗主へ)"; TributeAmt = Fmt.Money(tribOut);
         TributeInRowVisible = tribIn > 1e-9;
-        TributeInAmt = Money(tribIn);
+        TributeInAmt = Fmt.Money(tribIn);
         // ★汚職根絶費の行は撤去（汚職V2点火2026-08-15＝V2では請求ごと死んでいる＝常に0の行を出さない）
         // ★2026-08-15作者指示：技術力をヘッダーから移設＝近代化投資の欄に「技術効率」として表示。
         //   技術効率＝対最先端の遅れ（技術ゲインの残差比例式の駆動項＝遅れているほど£あたりの追いつきが大きい）。
         //   0%＝最先端＝投資しても技術は伸びない（工業化には効く）が一目で読める。
         double lag = _player.WorldTechLevel > 1e-9 ? System.Math.Clamp((_player.WorldTechLevel - _player.TechLevel) / _player.WorldTechLevel, 0, 1) : 0;
         IndLine = $"近代化投資 {_player.ModernizationFrac:P0}　効率 +{lag:P0}";
-        IndAct = Money(ind); IndAmt = Money(ind);   // レバー直結＝実効=予想
+        IndAct = Fmt.Money(ind); IndAmt = Fmt.Money(ind);   // レバー直結＝実効=予想
         // ★コストの内訳ホバー（2026-08-04）：技術の遅れの割増と旧体制の反対（★(373) 制度疲労は削除）＝なぜ同じ%でも高く/細くなるのかの分解（データのみ）
         {
             var (trad, modern, mass) = InterestGroups.Blocs(_player);
@@ -394,28 +378,28 @@ public partial class GameViewModel
         }
         OnPropertyChanged(nameof(AdminTip)); OnPropertyChanged(nameof(ForeignInTip));   // ヘッダーから移した2つの内訳ホバー（IndTip と同じ追従）
         IncomeLine = $"所得税 {_player.Policy.IncomeTaxTarget:P0}　実効 {_player.TaxRate:P0}";
-        IncomeAct = Money(aIncome); IncomeAmt = Money(gIncome);
-        ProgLine = $"累進課税 {_player.Policy.ProgressiveTaxTarget:P0}　実効 {_player.ProgressiveTax:P0}"; ProgAct = Money(aProg); ProgAmt = Money(gProg);
-        PollLine = $"人頭税 {_player.Policy.PollTaxTarget:P0}　実効 {_player.PollTax:P0}"; PollAct = Money(aPoll); PollAmt = Money(gPoll);
-        LandLine = $"土地税 {_player.Policy.LandTaxTarget:P0}　実効 {_player.LandTax:P0}"; LandAct = Money(aLand); LandAmt = Money(gLand);
+        IncomeAct = Fmt.Money(aIncome); IncomeAmt = Fmt.Money(gIncome);
+        ProgLine = $"累進課税 {_player.Policy.ProgressiveTaxTarget:P0}　実効 {_player.ProgressiveTax:P0}"; ProgAct = Fmt.Money(aProg); ProgAmt = Fmt.Money(gProg);
+        PollLine = $"人頭税 {_player.Policy.PollTaxTarget:P0}　実効 {_player.PollTax:P0}"; PollAct = Fmt.Money(aPoll); PollAmt = Fmt.Money(gPoll);
+        LandLine = $"土地税 {_player.Policy.LandTaxTarget:P0}　実効 {_player.LandTax:P0}"; LandAct = Fmt.Money(aLand); LandAmt = Fmt.Money(gLand);
         // ★専売（作者裁定2026-09-20）＝率のレバーは無い（材の選択は生産タブ）。ここに出すのは対象の広さと、そこから出る実効率。
         // ★2026-09-20：「負担」は財の**数**ではなく**家計の買い物のうち専売になっている割合**（奢侈だけの国は数なら22%・負担なら6%）。
         //   掛けた「実効」は真の実効平均率＝PowerShares の常設歳入の項と同じ1本。
         MonopolyLine = $"専売 負担 {_player.StateMonopolyBreadth:P0}　実効 {_player.StateMonopolyBreadth * _player.Coef.StateMonopolyMargin:P0}";
-        MonopolyAct = Money(_stateMonopMonthly); MonopolyAmt = Money(_stateMonopMonthly);   // 実績（市場依存）
+        MonopolyAct = Fmt.Money(_stateMonopMonthly); MonopolyAmt = Fmt.Money(_stateMonopMonthly);   // 実績（市場依存）
         TariffLine = $"関税 {_player.Policy.TariffTarget:P0}　実効 {_player.Tariff:P0}";   // 負値＝ダンピング（輸出補助＝予想額が負）
-        TariffAct = Money(tariffActMonthly); TariffAmt = Money(tariffGross);
-        ForeignInAmt = Money(_fInMonthly);
-        ForeignOutAmt = Money(_fOutMonthly);
+        TariffAct = Fmt.Money(tariffActMonthly); TariffAmt = Fmt.Money(tariffGross);
+        ForeignInAmt = Fmt.Money(_fInMonthly);
+        ForeignOutAmt = Fmt.Money(_fOutMonthly);
 
         double spendTotal = interest + mil + pSoldier + admin + wel + pen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;   // 接1：植民地維持費・貢納を合計へ（根絶費はV2撤去2026-08-15）
         double revTotal = net + tariffGross + _stateMonopMonthly + _fInMonthly + tribIn;
         double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;
         double revActT = netA + tariffActMonthly + _stateMonopMonthly + _fInMonthly + tribIn;
-        SpendTotalText = Money(spendTotal); SpendTotalAct = Money(spendActT);
-        RevenueTotalText = Money(revTotal); RevenueTotalAct = Money(revActT);
+        SpendTotalText = Fmt.Money(spendTotal); SpendTotalAct = Fmt.Money(spendActT);
+        RevenueTotalText = Fmt.Money(revTotal); RevenueTotalAct = Fmt.Money(revActT);
         double bal = revTotal - spendTotal;
-        BudgetBalanceText = (bal >= 0 ? "+" : "-") + Money(Math.Abs(bal));
+        BudgetBalanceText = (bal >= 0 ? "+" : "-") + Fmt.Money(Math.Abs(bal));
 
         // 国債（借入）＝ヘッダーへ移動（借金ボタン廃止・2026-07-21ユーザー指示／借入はエンジンが r＜1 の月に自動・2026-09-28）。中核データ（残高・対GDP・借入数・信認）＋デフォルト予兆。ホバーで内訳。
         // ★(405) 00-UI-R 比の門を相対に：旧は払えない割合 u＝1−r が `>0` なら÷u を出した＝r が 1 をわずかに下回るだけで〈デフォルトまで 5.6億か月〉が出た（絶対値の門）。
@@ -425,15 +409,15 @@ public partial class GameViewModel
         double arrearsLeft = Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyQuarters);
         double gameMonthsLeft = Math.Max(0, Calendar.YearsToMonths(Calendar.EndYear - Calendar.StartYear) - _simDays / Calendar.DaysPerMonth);
         bool showDefaultEta = _player.InsolvencyQuarters > 0 && unpaidShare > 0 && arrearsLeft <= unpaidShare * gameMonthsLeft;
-        DebtHeaderText = $"国債:{Money(_player.GovDebt.Value)}"   /* ★2026-08-02：借入数は非表示（ホバーの内訳で足りる） */
+        DebtHeaderText = $"国債:{Fmt.Money(_player.GovDebt.Value)}"   /* ★2026-08-02：借入数は非表示（ホバーの内訳で足りる） */
                        + (showDefaultEta
                           ? $"　デフォルトまで{Math.Ceiling(arrearsLeft / unpaidShare):F0}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数 */
         // 財7単位フリップ（2026-07-26）：エンジンの金本位資格/金利プレミアムが年換算GDP基準になったのに合わせ、表示も対年GDP（史実の債務比率と直接比較できる単位）
         // 分母＝**年次名目**（月次 NominalGdpPerMonth×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位（旧＝年次実質 Gdp×12 で表示だけ別物差し・2026-09-11 #10）
-        DebtHeaderTip = $"国債 {Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? System.Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
-                       + (_player.ForeignDebt.Value > 1 ? $"\nうち対外 {Money(_player.ForeignDebt.Value)}" : "")
+        DebtHeaderTip = $"国債 {Fmt.Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? System.Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
+                       + (_player.ForeignDebt.Value > 1 ? $"\nうち対外 {Fmt.Money(_player.ForeignDebt.Value)}" : "")
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
-                       + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Money(_player.CumulativeDevaluation)}" : "")
+                       + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Fmt.Money(_player.CumulativeDevaluation)}" : "")
                        + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {_player.FiscalFundingRatio:P0}" : "");
         DebtHeaderBrush = _player.InsolvencyQuarters > 0 ? NewsRed : TermNeutral;
 

@@ -64,7 +64,7 @@ public partial class GameViewModel
     [ObservableProperty] private double _electionPushShare = 0.2;
     partial void OnElectionPushShareChanged(double value) { OnPropertyChanged(nameof(ElectionSpendText)); }
     /// <summary>スライダーの実効値＝注ぐ実額と効き（エンジンと同じ1本の式＝World.ElectionSpendOf/ElectionPushEffectOf を読む）。</summary>
-    public string ElectionSpendText => $"{ElectionPushShare:P0}　資金 {Money(_player.ElectionSpendOf(ElectionPushShare))}　効き {_player.ElectionPushEffectOf(ElectionPushShare):P0}";
+    public string ElectionSpendText => $"{ElectionPushShare:P0}　資金 {Fmt.Money(_player.ElectionSpendOf(ElectionPushShare))}　効き {_player.ElectionPushEffectOf(ElectionPushShare):P0}";
     public System.Collections.ObjectModel.ObservableCollection<ElectionAgendaVm> ElectionAgendas { get; } = [];
     public sealed record ElectionAgendaVm(int Ideology, string Label);
     [RelayCommand] private void ElectionBack(ElectionAgendaVm a) { _player.ResolveElection(a.Ideology, ElectionPushShare); ElectionPopupOpen = false; Refresh(); }
@@ -117,8 +117,8 @@ public partial class GameViewModel
             double legCost = System.Math.Min(_player.Coef.AISubmitLegitCost, _player.Legitimacy);
             WarPopupBody = $"{foe.Name} との緊張が限界に達した。\n"
                 + (issue.Length > 0 ? $"争点:{issue} {topV:F0}/緊張 {tNow:F0}\n\n" : "\n")
-                + $"自軍　陸軍 {Men(myU * (1 - me.NavalShare.Value))}/海軍 {Men(myU * me.NavalShare.Value)}/空軍 {Men(myU * myAirFill)}\n"
-                + $"{foe.Name}　陸軍 {Men(enU * (1 - foe.NavalShare.Value))}/海軍 {Men(enU * foe.NavalShare.Value)}/空軍 {Men(enU * enAirFill)}\n\n"
+                + $"自軍　陸軍 {Fmt.Men(myU * (1 - me.NavalShare.Value))}/海軍 {Fmt.Men(myU * me.NavalShare.Value)}/空軍 {Fmt.Men(myU * myAirFill)}\n"
+                + $"{foe.Name}　陸軍 {Fmt.Men(enU * (1 - foe.NavalShare.Value))}/海軍 {Fmt.Men(enU * foe.NavalShare.Value)}/空軍 {Fmt.Men(enU * enAirFill)}\n\n"
                 + $"戦況予測:勝勢 {o.WinShare:P0}　{win}\n"
                 + $"要求を受け入れる:緊張 {tNow:F0}→{tTo:F0}　王権の正統性 −{legCost:F2}";
             WarPopupMobilize = _player.Mobilized;
@@ -144,7 +144,7 @@ public partial class GameViewModel
         {
             _crisisShown = fc;
             FactionCrisisBody = $"{Factions.DisplayName(fc)} が蜂起の構えを見せている。\n\n"
-                + $"規模 {PopFmt(fc.Size)}　闘争度 {fc.AvgMilitancy:P0}\n"
+                + $"規模 {Fmt.PopFmt(fc.Size)}　闘争度 {fc.AvgMilitancy:P0}\n"
                 + $"要求:{_player.PendingFactionCrisisDemands}";
             FactionCrisisOpen = true;
             return;
@@ -218,9 +218,9 @@ public partial class GameViewModel
         // ★戦力は「自国＋同盟の合計」を先に出し、その内訳を次の行に置く（作者指摘「戦力比較しづらい」）
         string myList = string.Join("・", myAl.Select(x => $"{x.Name} {Troops(x)}(参戦 {System.Math.Clamp(dip.Tension(x, pow) / jtMe, 0, 1):P0})"));
         string foeList = string.Join("・", foeAl.Select(x => $"{x.Name} {Troops(x)}(参戦 {System.Math.Clamp(dip.Tension(x, me) / jtFoe, 0, 1):P0})"));
-        TensionPopupBody = $"{me.Name} {Troops(me)}　+ 同盟 {Men(myAl.Sum(TroopUnits))}";
+        TensionPopupBody = $"{me.Name} {Troops(me)}　+ 同盟 {Fmt.Men(myAl.Sum(TroopUnits))}";
         if (myAl.Count > 0) TensionPopupBody += $"\n{me.Name} の同盟:{myList}";
-        TensionPopupBody += $"\n\n{pow.Name} {Troops(pow)}　+ 同盟 {Men(foeAl.Sum(TroopUnits))}";
+        TensionPopupBody += $"\n\n{pow.Name} {Troops(pow)}　+ 同盟 {Fmt.Men(foeAl.Sum(TroopUnits))}";
         if (foeAl.Count > 0) TensionPopupBody += $"\n{pow.Name} の同盟:{foeList}";
         BuildTensionActionTips(me, pow);   // 2つのボタンのホバー＝緊張量＋政治的帰結の3行（項5・2026-07-27／作者FB②・2026-08-10）
         double ramp = dip.TensionRampRemaining(me, pow);   // 自国が押してまだ反映されていない緊張（回8-1＝待ちの撤去の後はデータだけを出す）
@@ -270,10 +270,9 @@ public partial class GameViewModel
 
     // 政治的帰結の3行（作者指定の形・2026-08-10）。値が0でも行は出す＝押す前に必ず同じ3行が読める。
     private static string PoliticsLines(TensionPoliticsPreview pv)
-        => $"国内{pv.HawkShare:P0}の国粋・帝国主義者からの支持:{Signed(pv.HawkDelta)}\n"
-         + $"国内{pv.DoveShare:P0}の自由・共和主義者派からの支持:{Signed(pv.DoveDelta)}\n"
-         + $"正統性:{Signed(pv.LegitimacyDelta)}";
-    private static string Signed(double v) => (v < 0 ? "-" : "+") + System.Math.Abs(v).ToString("P1");
+        => $"国内{pv.HawkShare:P0}の国粋・帝国主義者からの支持:{Fmt.SignedPct1(pv.HawkDelta)}\n"
+         + $"国内{pv.DoveShare:P0}の自由・共和主義者派からの支持:{Fmt.SignedPct1(pv.DoveDelta)}\n"
+         + $"正統性:{Fmt.SignedPct1(pv.LegitimacyDelta)}";
 
     // 要求を受け入れる＝屈服（緊張を下げて開戦を回避）。総動員には触れない（新たな戦争は始まらない＝進行中の別戦争の動員を巻き込まない・レビュー2026-07-20）。講和時は WarRows.Count==0 で自動解除。
     [RelayCommand] private void WarAccept() { _sim.Diplomacy.ResolvePendingWar(Me, false, _player.Coef); WarPopupOpen = false; Refresh(); }
@@ -319,7 +318,7 @@ public partial class GameViewModel
         string outlook = force >= need ? "屈服の見込み" : "拒否=開戦の見込み";
         ConfirmTitle = "侵略";
         var aimCol = _interestColony is { } ic && t.ColonyList.Contains(ic) ? ic : null;   // 02断線走査2026-07-28：狙い先が標的国の植民地なら講和の優先割譲へ
-        ConfirmBody = $"{t.Name}\n余剰戦力 {WillPct(cost)} を消費　現在 {WillPct(_player.ExpansionWill)}\n実効戦力 {Men(force * _player.Coef.SoldiersPerMilitary)}/必要 {Men(need * _player.Coef.SoldiersPerMilitary)}　→ {outlook}"
+        ConfirmBody = $"{t.Name}\n余剰戦力 {WillPct(cost)} を消費　現在 {WillPct(_player.ExpansionWill)}\n実効戦力 {Fmt.Men(force * _player.Coef.SoldiersPerMilitary)}/必要 {Fmt.Men(need * _player.Coef.SoldiersPerMilitary)}　→ {outlook}"
                       + (aimCol is not null ? $"\n狙い先 {aimCol.Name}" : "")
                       + (can ? "" : $"\n不可:{reason}");
         ConfirmAcceptLabel = "侵略";

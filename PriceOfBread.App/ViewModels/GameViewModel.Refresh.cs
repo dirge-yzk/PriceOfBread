@@ -21,7 +21,7 @@ public partial class GameViewModel
     {
         UpdateDate();
         RefreshDaily();   // 国庫の1行は日次と同じ1本（2026-09-11 #19d）＝物価/為替/詳細パネルの価格も同時に最新化
-        TreasuryHover = StatG("", "国庫", _histTreasury, Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
+        TreasuryHover = StatG("", "国庫", _histTreasury, Fmt.Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
         // 技術水準の年次推移（_histTech）は**財政タブの技術効率の行**が読む＝GameViewModel.Fiscal.cs の TechHover（2026-08-15作者裁定の移設先）。
         // ⚠ここで同じものを二度作らない（同じ量を2つの名前で呼ばない）。採取は SampleYearStats の _histTech.Add の1本だけ。
         RefreshTrade();   // 貿易タブ（2026-07-24）：開いている時のみ集計（閉＝即return）
@@ -31,10 +31,10 @@ public partial class GameViewModel
         if (_player.Bank is { } bank)
         {
             CoverText = PlayText.CoverText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告と同じ）
-            HouseholdLoanText = Money(bank.HouseholdLoans.Value);   // ★A-03：POPの個人債務の残高
+            HouseholdLoanText = Fmt.Money(bank.HouseholdLoans.Value);   // ★A-03：POPの個人債務の残高
         }
         else { CoverText = "—"; HouseholdLoanText = "—"; }   // 銀行なし＝兌換系は該当なし
-        LossFinancedText = Money(_player.LossFinanced);   // ★A-03：損失の負債化（累積グロス）＝硬性ゲートの分子
+        LossFinancedText = Fmt.Money(_player.LossFinanced);   // ★A-03：損失の負債化（累積グロス）＝硬性ゲートの分子
         OnPropertyChanged(nameof(CoverTip));   // 兌換カバー率ホバーの内訳（基礎/広義貨幣）も追従
 
         // 旧・上部バー用の DebtText/DebtVisible と RegionInfo はXAML未バインドの死構築だったため削除（監査2026-07-12 死14/16）。
@@ -161,7 +161,7 @@ public partial class GameViewModel
                 // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）
                 if (pow.Nation is { } enw)
                 {
-                    detail += $"\n経済: GDP {Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
+                    detail += $"\n経済: GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
                             + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
                 }
             }
@@ -233,7 +233,7 @@ public partial class GameViewModel
         // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：ヘッダーのホバーは**折れ線だけ**になった。
         //   ⚠例外は1行だけ＝一人当たりGDPと世界順位（GDPの量なので置き場はGDPのグラフのホバーしかない・作者指示）。
         //   上位5カ国の一人当たりGDPの一覧とティア内訳（主食/日用品/…/素材）は撤去した。
-        string gdpHover = $"GDP　一人当たり {MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
+        string gdpHover = $"GDP　一人当たり {Fmt.MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
         // ★2026-09-23（作者指示「文字数固定」）：各項目の箱の最小幅（画素）。この行は FontBody=13。
         //   下の数値は「1900年前後に出うる最長の文字列」の実寸を2の倍数へ切り上げたもの。
         //     地位:列強12位 84（★2026-09-23に1行目から移設） ／ GDP:£999.99M(61位) 130 ／ 人口:1234.56M人 104 ／
@@ -266,11 +266,11 @@ public partial class GameViewModel
             //   最長「地位:列強12位」＝13pxで実測84px。
             StatPlain($"地位:{PlayerRankText}", "地位", 84),
             // ★2026-09-23作者指示：「GDPはnk」→「GDP:nk」（この1行だけ「は」で他は全部「名前:値」だった）
-            StatG($"GDP:{Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, Money, 130, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
+            StatG($"GDP:{Fmt.Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, Fmt.Money, 130, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
             // ★2026-09-23作者指示：ジニ係数は撤去（採取 _histGini は残す＝セーブの系列配列に居る）。
             //   ⚠その空きに技術水準を置くのは**差し戻した**＝2026-08-15作者裁定「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」が生きており、
             //     その撤去の記録がすぐ上の行にコメントで残ったまま再設置していた。年次グラフは TechHover で財政タブへ渡す（_histTech の採取は継続）。
-            StatG($"人口:{PopFmt(popTotal)}", "人口", _histPop, PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
+            StatG($"人口:{Fmt.PopFmt(popTotal)}", "人口", _histPop, Fmt.PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
             StatG($"識字率:{lit:P0}", "識字率", _histLit, v => v.ToString("P0"), 76),
             StatG($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, v => v.ToString("P0"), 76),
             // ★2026-09-23作者指示「識字率の右に満足度・不満度・闘争度の順」＝足りないのは不満度1つ。
@@ -349,9 +349,9 @@ public partial class GameViewModel
                 Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
                 Forces = $"自軍 {Troops(me)}　即応度 {_player.MilitaryReadiness:P0}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
                 // ★2026-09-23：兵士の戦死と民間人の死を**別の行**で出す（民間は兵の17〜25倍＝1本に足すと兵の戦死が桁で消える）
-                Losses = $"戦死 自国 {PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastDeadEnemy)}" : "")
-                       + $"\n民間人の死 自国 {PopFmt(tr.LastCivDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastCivDeadEnemy)}" : ""),
-                Cost = $"戦費 {Money(tr.CostShare)}",
+                Losses = $"戦死 自国 {Fmt.PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastDeadEnemy)}" : "")
+                       + $"\n民間人の死 自国 {Fmt.PopFmt(tr.LastCivDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastCivDeadEnemy)}" : ""),
+                Cost = $"戦費 {Fmt.Money(tr.CostShare)}",
                 Exhaustion = $"厭戦 自国 {me.WarExhaustion:P0}　相手 {enemy.WarExhaustion:P0}",
                 Terms = ExplainTerms("Exhaustion", v => v.ToString("P0")),   // 自国の厭戦の内訳（説明API#63）
             });
@@ -386,18 +386,18 @@ public partial class GameViewModel
                 EndDay = _simDays,
                 Title = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}　{result}",
                 Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}ヶ月"
-                       + $"\n戦死 自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(deadEnemy)}" : "")
-                       + $"\n民間人の死 自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(civEnemy)}" : "")
-                       + $"\n戦費 {Money(tr.CostShare)}",
+                       + $"\n戦死 自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(deadEnemy)}" : "")
+                       + $"\n民間人の死 自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(civEnemy)}" : "")
+                       + $"\n戦費 {Fmt.Money(tr.CostShare)}",
             });
             // #106 終戦ポップアップ：双方の戦死・戦費・得失を表示（同四半期に複数終戦なら最初の1件）
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")} との戦争が終結した。\n\n"
                     + $"結果:{result}(戦勝点 {scEnd:+0%;-0%;0%})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
-                    + $"戦死　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
-                    + $"民間人の死　自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(civEnemy)}" : "") + "\n"
-                    + $"戦費　{Money(tr.CostShare)}\n\n"
+                    + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
+                    + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"
+                    + $"戦費　{Fmt.Money(tr.CostShare)}\n\n"
                     + (tr.Civil ? CivilWarOutcome(tr, won)
                        : won is null ? "得たもの:なし(白紙講和)"
                        : won.Value ? "得たもの:賠償金"
@@ -557,11 +557,11 @@ public partial class GameViewModel
             bool parliamentActive = HasParliament;   // 項9（2026-07-26）：議会（議席）が無い段階では支持政党を出さない（ParliamentTextと同じ判定＝HasParliament。政体条件込み・2026-08-04）
             // 所得・貯蓄 → 州別の人数(失業込み)を1州1行 → 人口構成 → 失業率/支持政党（すべて「:」区切り）
             string tip = first.ClassName
-                       + $"\n所得:{Money(earned)}　貯蓄:£{perCap:F1}　借金:£{(size > 1e-9 ? debt / size : 0):F1}";   // ★借金＝1人当たり（貯蓄と同じ物差し・2026-08-02）
+                       + $"\n所得:{Fmt.Money(earned)}　貯蓄:£{perCap:F1}　借金:£{(size > 1e-9 ? debt / size : 0):F1}";   // ★借金＝1人当たり（貯蓄と同じ物差し・2026-08-02）
             foreach (var (rg, p) in members.Where(m => m.P.Size > 0.5).OrderByDescending(m => m.P.Size))
             {
                 double un = p.IsSoldier ? 0 : p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の未払いは失業に数えない
-                tip += $"\n{rg.Name}:{PopFmtK(p.Size)}" + (un > 0.5 ? $"(失業{PopFmtK(un)})" : "");   // 内部単位=千人（他10）。POPタブはk統一（項10）
+                tip += $"\n{rg.Name}:{Fmt.PopFmtK(p.Size)}" + (un > 0.5 ? $"(失業{Fmt.PopFmtK(un)})" : "");   // 内部単位=千人（他10）。POPタブはk統一（項10）
             }
             tip += $"\n女性:{fem:P0}　子供:{child:P0}　老年:{old:P0}"
                  + $"\n失業率:{unemp:P0}" + (parliamentActive ? $"　支持政党:{party}" : "");
@@ -593,11 +593,11 @@ public partial class GameViewModel
                 ClassId = cid,
                 // ★規模と失業者は別の列（作者フィードバック2026-08-10）。POPタブはk統一（項10）。
                 //   規模は全国人口比を併記「5,430K(12%)」（作者指示2026-08-15(3)・分母=Refresh冒頭のpopTotal）＋増減の矢印（2026-08-16(2)）
-                Size = popTotal > 1e-9 ? PopFmtK(size) + $"({size / popTotal:P0})" : PopFmtK(size),
+                Size = popTotal > 1e-9 ? Fmt.PopFmtK(size) + $"({size / popTotal:P0})" : Fmt.PopFmtK(size),
                 SizeArrow = sizeArrow,
                 SizeArrowBrush = sizeArrowBrush,
                 // ★失業者も規模と同型「543K(10%)↑」（作者指示2026-08-16(3)）＝()内はこの階級の失業率。丸めて0%の階級は「—」（矢印も出さない）
-                Unemployed = unemp > 0.005 ? PopFmtK(unempK) + $"({unemp:P0})" : "—",
+                Unemployed = unemp > 0.005 ? Fmt.PopFmtK(unempK) + $"({unemp:P0})" : "—",
                 UnemployedArrow = unemp > 0.005 ? unempArrow : "",
                 UnemployedArrowBrush = unempArrowBrush,
                 Satisfaction = sat.ToString("P0"),

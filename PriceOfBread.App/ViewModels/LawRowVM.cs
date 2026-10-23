@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
@@ -61,6 +62,14 @@ public sealed partial class LawRowVM : ObservableObject
         Stages = st;
         Refresh();
     }
+
+    /// <summary>本体の法の表（<see cref="LawDef"/>）の 1 行から作る。読み口と書き込み口は表のもの＝App に第二の式を置かない。</summary>
+    public LawRowVM(World w, LawDef def)
+        : this(w, def.Axis, def.Name, def.Stages, () => def.Current(w), () => def.Target(w), v => def.SetTarget(w.Policy, v), () => def.IsVisible(w), def.LevelBase) { }
+
+    /// <summary>本体の財政の項の表（<see cref="FiscalStage"/>）の 1 行から作る（税・教育費・軍事費の段）。</summary>
+    public LawRowVM(World w, FiscalStage st)
+        : this(w, st.Axis, st.Name, st.Stages, () => st.Current(w), () => st.Target(w), v => st.SetTarget(w.Policy, v), null, st.LevelBase) { }
 
     public int CurrentLevel => _current();
     public int TargetLevel => _target();

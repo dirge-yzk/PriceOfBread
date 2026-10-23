@@ -69,7 +69,7 @@ public partial class GameViewModel
             }
             // ★額が £0.0k に丸まる行は出さない（作者指摘2026-08-11「取引額0の材が並ぶ」）。
             //   判定は**表示に使う関数そのもの**で行う＝「0と表示されるなら出さない」が定義になり、書式を変えてもずれない。
-            bool Shown(double monthly) => Money(monthly) is not ("£0.0k" or "-£0.0k");
+            bool Shown(double monthly) => Fmt.Money(monthly) is not ("£0.0k" or "-£0.0k");
             double mpc = w.Coef.MonthsPerClearing;   // 清算単位→月割（四半期清算=3・月次清算=1）＝単位ヘルパーに追随（2026-08-23・旧は /3.0 の直書き）
             // 輸入依存度の分母（財ごとの前期総需要）を先に1パスで積む（財×州の再走査をやめる・全州の合計は順序不変）。
             var demandByGood = new double[gc];
@@ -86,7 +86,7 @@ public partial class GameViewModel
                     expTotal += eg[g];
                     double share = worldExp[g] > 1e-12 ? eg[g] / worldExp[g] : 0;
                     if (Shown(eg[g] / mpc))
-                        expTmp.Add((eg[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(eg[g] / mpc)}{ratio}", $"{share:P0}", TopPartner(g, false))));
+                        expTmp.Add((eg[g], new TradeRow(Catalog.Goods[g].Name, $"{Fmt.Money(eg[g] / mpc)}{ratio}", $"{share:P0}", TopPartner(g, false))));
                 }
                 if (g < ig.Length && ig[g] > 1e-9)
                 {
@@ -95,17 +95,17 @@ public partial class GameViewModel
                     double demand = demandByGood[g];
                     double dep = demand > 1e-9 ? Math.Min(1.0, qtyMonthly / demand) : 0;
                     if (Shown(ig[g] / mpc))
-                        impTmp.Add((ig[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(ig[g] / mpc)}{ratio}", $"{dep:P0}", TopPartner(g, true))));
+                        impTmp.Add((ig[g], new TradeRow(Catalog.Goods[g].Name, $"{Fmt.Money(ig[g] / mpc)}{ratio}", $"{dep:P0}", TopPartner(g, true))));
                 }
             }
         }
         double mpcTot = w.Coef.MonthsPerClearing;
         ExportRows = expTmp.OrderByDescending(t => t.val).Select(t => t.row).ToList();
         ImportRows = impTmp.OrderByDescending(t => t.val).Select(t => t.row).ToList();
-        TradeExportTotal = $"{Money(expTotal / mpcTot)}/月";
-        TradeImportTotal = $"{Money(impTotal / mpcTot)}/月";
+        TradeExportTotal = $"{Fmt.Money(expTotal / mpcTot)}/月";
+        TradeImportTotal = $"{Fmt.Money(impTotal / mpcTot)}/月";
         double bal = (expTotal - impTotal) / mpcTot;
-        TradeBalance = $"{(bal >= 0 ? "＋" : "−")}{Money(Math.Abs(bal))}/月";
+        TradeBalance = $"{(bal >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(bal))}/月";
         // ★2026-08-15作者フィードバック(10)：関税行（財政タブと重複）・開放度行は撤去。収支は総額の下の大型表示へ（財政タブと同レイアウト）
         // ★条約港（2026-08-04・作者仕様(4)の可視化）：開かされた港の数と関税自主権の実効低下。0港なら行ごと出さない。
         TreatyPortLine = Politics.ForeignPortShare(w) > 0   // setter は private プロパティへ直接・★(402) 関税が目減りしている間は出す（旧＝UnequalTreatyInForce の半分の線で 0〜0.25 の持分が見えなかった・反証役 rs〔bv〕低#1）

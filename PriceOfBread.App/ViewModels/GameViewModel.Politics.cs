@@ -211,9 +211,6 @@ public partial class GameViewModel
     private int _pcGrantPrev;           // 前四半期の下賜回数（World.ReformGrantCount＝上からの改革で床を与えた診断カウンタ）
     private int _pcGrantInQuarter;      // 今期に下賜が起きた回数（ジャンプの説明＝ホバーに出す）
 
-    // 四半期あたりの寄与の書式＝符号つきの百分率（議会統制力そのものが P0 表示＝同じ物差しの上での増減）。
-    private static string Pp(double v) => v.ToString("+0.00%;-0.00%;0.00%");
-    private static string Signed2(double v) => v.ToString("+0.00;-0.00;0.00");
 
     private void BuildPowerStruggle()
     {
@@ -227,7 +224,7 @@ public partial class GameViewModel
             if (_pcQuarterStamp >= 0)
             {
                 double d = pc - _pcPrev;
-                PcDeltaText = Pp(d);
+                PcDeltaText = Fmt.SignedPct2(d);
                 PcDeltaBrush = Math.Abs(d) < 5e-6 ? TermNeutral : d > 0 ? TermPlus : TermMinus;
                 _pcFrom = _pcPrev; _pcDeltaKnown = true;
                 _pcGrantInQuarter = Math.Max(0, w.ReformGrantCount - _pcGrantPrev);
@@ -324,8 +321,8 @@ public partial class GameViewModel
         // ★2026-08-18：給与の乗算は撤去（給与は帰属でなく規律・能力＝即応度を動かす）。即応度は軍事タブの側で見る。
         double lean = CrownParliament.SoldierCrownLean(w);                            // エンジンの関数をそのまま呼ぶ
         double milAff = c.ArmyMilitarismAffinity * PoliticalQuantities.OfficerAppointmentCrownward(w);   // ★2026-08-18＝将校の任免権の所在
-        ArmyLoyaltyText = $"{ArmyAllegianceText}　{Signed2(w.ArmyAllegiance)}";
-        ArmyLoyaltyTip = $"兵士の思想の傾き {Signed2(lean)}　将校の任免権 {Signed2(milAff)}";
+        ArmyLoyaltyText = $"{ArmyAllegianceText}　{Fmt.Signed2(w.ArmyAllegiance)}";
+        ArmyLoyaltyTip = $"兵士の思想の傾き {Fmt.Signed2(lean)}　将校の任免権 {Fmt.Signed2(milAff)}";
         // 政治力＝PolicyPreferences.ArmyPower（係数×兵士の人口比×(1−議会統制力)）。×100＝法律タブの賛否ホバーと同じ目盛り。
         double armyPower = PolicyPreferences.ArmyPower(w);
         ArmyPowerText = (armyPower * 100).ToString("F1");
@@ -338,7 +335,7 @@ public partial class GameViewModel
         {
             // 表示で 0.00% に丸まる項は出さない＝休眠の係数もゲートの閉じた経路もここで落ちる（「効いていない」を数字で語らない）
             if (!(Math.Abs(delta) > 5e-6)) return;
-            rows.Add(new PowerShiftRow { Name = name, Value = Pp(delta), Magnitude = Math.Abs(delta), Tip = tip, Brush = delta >= 0 ? TermPlus : TermMinus });
+            rows.Add(new PowerShiftRow { Name = name, Value = Fmt.SignedPct2(delta), Magnitude = Math.Abs(delta), Tip = tip, Brush = delta >= 0 ? TermPlus : TermMinus });
         }
 
         // ① 破産召集（1789三部会）＝CrownParliament.Step の SummonParliamentRate 節
@@ -352,7 +349,7 @@ public partial class GameViewModel
             && w.Legitimacy > CrownParliament.CrownRollbackLegitimacyMin
             && w.ArmyAllegiance > CrownParliament.CrownRollbackArmyAllegianceMin)
             Add("王権の巻き返し", -c.CrownRollbackRate,
-                $"王権と議会の協力度 {Signed2(w.CoopParliamentCrown)}　正統性 {w.Legitimacy:P0}　軍の忠誠 {Signed2(w.ArmyAllegiance)}");
+                $"王権と議会の協力度 {Fmt.Signed2(w.CoopParliamentCrown)}　正統性 {w.Legitimacy:P0}　軍の忠誠 {Fmt.Signed2(w.ArmyAllegiance)}");
 
         // ③〜⑤ 連続動学（P3b）＝CrownParliament.Step の該当節。外周ゲート（奪取中は凍結）もエンジンと同じ形で持つ。
         if (w.Seizure == SeizureForm.None)
@@ -379,7 +376,7 @@ public partial class GameViewModel
             // ⑤ 軍の圧力（統帥権＝プロイセン憲法紛争1862）＝ArmyPcPressure
             if (c.ArmyPcPressure > 0 && lean > 0)
                 Add("軍の圧力", -c.ArmyPcPressure * lean * armyPower,
-                    $"兵士の思想の傾き {Signed2(lean)}　軍の政治力 {armyPower * 100:F1}");
+                    $"兵士の思想の傾き {Fmt.Signed2(lean)}　軍の政治力 {armyPower * 100:F1}");
         }
 
         rows.Sort((a, b) => b.Magnitude.CompareTo(a.Magnitude));   // 寄与の大きい順（符号でなく大きさ＝押している/押し返しているの主役から読める）
@@ -451,7 +448,7 @@ public partial class GameViewModel
                 {
                     Key = display,
                     Name = display,
-                    Size = PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
+                    Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
                     Cohesion = f.Cohesion.ToString("P0"),
                     Strength = ratio.ToString("P0"),
                     StrengthTip = tip,
@@ -470,7 +467,7 @@ public partial class GameViewModel
             {
                 Key = f.Name,
                 Name = f.Name,
-                Size = PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
+                Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
                 Cohesion = "—",   // スナップショット＝永続FactionState無し＝結束が定義されない
                 Strength = "—",   // スナップショット＝永続FactionState無し＝FactionStrengthが定義されない（結束・変異を持たない）
                 StrengthTip = "",
@@ -523,10 +520,10 @@ public partial class GameViewModel
             //   ★(144)：旧の州の欄 SoldierPayAffordRaw は r の写し（導ける量を貯めていた＝思想⑩）＝欄ごと撤去して r を読む。
             double payFill = Math.Min(1.0, _player.FiscalFundingRatio.Value);
             // ★(149) 反証の指摘：軍事費の段は (145) から平時の兵数を動かさない（装備の予算・即応度・治安維持力を動かす）＝兵の目標の行から装備の行へ移した。
-            string solTip = $"徴募可能人口 {PopFmtK(sol.Manpower)}"
-                          + (sol.Sustain > Eps ? $"\n扶養限界の目標 {PopFmtK(sol.Sustain)}" : "")
+            string solTip = $"徴募可能人口 {Fmt.PopFmtK(sol.Manpower)}"
+                          + (sol.Sustain > Eps ? $"\n扶養限界の目標 {Fmt.PopFmtK(sol.Sustain)}" : "")
                           + $"\n軍事費 {_player.MilitarySpending:P0}　装備の充足 {_player.Region.MilitaryEquipFill:P0}　給与の充足 {payFill:P0}　即応度 {_player.MilitaryReadiness:P0}";   // ★2026-09-03（A-14）：装備の充足を復帰＝エンジンの分母（equipWant）が陸海再配分込みになり、直下の材別行と同じ定義になった（旧＝定義が2つあるので非表示にしていた）
-            rows.Add(NeedRow("兵士", "兵士", sol.Target, sol.Now, sol.Target > Eps ? sol.Now / sol.Target : 1.0, solTip, PopFmtK, ""));
+            rows.Add(NeedRow("兵士", "兵士", sol.Target, sol.Now, sol.Target > Eps ? sol.Now / sol.Target : 1.0, solTip, Fmt.PopFmtK, ""));
         }
 
         // ---- 装備（4段＝EconomyStep の軍需調達と同じ順序・同じ式）----
@@ -581,9 +578,9 @@ public partial class GameViewModel
                     double orderS = r.MilitaryScale * milRates[b];   // ★発注量は従来のフローのまま（在庫化しても発注は変えない）
                     double bWear = Math.Max(1e-6, BaseWear(b));
                     double bWarWear = bWear * (1.0 + c.ArmsWarWearScale * Math.Max(0, r.MilitaryWarMultLast - 1.0));
-                    string tipS = $"単価 {Money(Price(g))}　今月の発注 {MilQty(orderS * afford * MilMul(g) * PriceAfford(g))}"
+                    string tipS = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(orderS * afford * MilMul(g) * PriceAfford(g))}"
                                 + $"\n月次の摩耗 {Math.Min(0.9, bWarWear):P1}　予算の充足 {afford:P0}　市場の配給 {Ration(g):P0}";
-                    tier1.Add(NeedRow("基本" + g, Catalog.Goods[g].Name, needS, haveS, Math.Min(1.0, haveS / needS), tipS, MilQty, "", needS * Price(g)));
+                    tier1.Add(NeedRow("基本" + g, Catalog.Goods[g].Name, needS, haveS, Math.Min(1.0, haveS / needS), tipS, Fmt.MilQty, "", needS * Price(g)));
                     continue;
                 }
                 // ★必要量に陸海の再配分を掛ける（作者報告2026-08-21「軍艦1083%」の是正）。実発注（EconomyStep）は
@@ -662,10 +659,10 @@ public partial class GameViewModel
                     double need = fleetT is { } ft ? ft[k] : 0, have = fleetH[k];
                     if (!(need > Eps) || Unavail(g)) continue;
                     double order = fleetQ is { } fq ? fq[k] * fAfford * PriceAfford(g) : 0;
-                    string tip = $"単価 {Money(Price(g))}　今月の発注 {MilQty(order)}"
+                    string tip = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(order)}"
                                + $"\n海軍の予算の充足 {fAfford:P0}　市場の配給 {Ration(g):P0}"
                                + $"\n乗員の充足 {(_player.SelfPower?.CrewFill ?? 1.0):P0}　海軍維持費 {_player.NavyUpkeep:P0}";
-                    fleetRows.Add(NeedRow("艦隊" + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, MilQty, "", need * Price(g)));
+                    fleetRows.Add(NeedRow("艦隊" + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, Fmt.MilQty, "", need * Price(g)));
                 }
                 AddGroup(rows, "艦隊", fleetRows);
             }
@@ -683,9 +680,9 @@ public partial class GameViewModel
                     {
                         double fill = Math.Clamp(_player.NavalFuelFillEma, 0, 1);
                         string nm = Catalog.Goods[fg].Name + "(艦隊)";
-                        string tip = $"単価 {Money(Price(fg))}　必要額 {Money(want * Price(fg))}/月"
+                        string tip = $"単価 {Fmt.Money(Price(fg))}　必要額 {Fmt.Money(want * Price(fg))}/月"
                                    + $"\n市場の配給 {Ration(fg):P0}　艦隊ゲージ {gauge:F1}　海軍維持費 {_player.NavyUpkeep:P0}";
-                        AddGroup(rows, "運用燃料", new List<ArmyNeedRow> { NeedRow("艦隊燃料", nm, want, want * fill, fill, tip, MilQty, "/月") });
+                        AddGroup(rows, "運用燃料", new List<ArmyNeedRow> { NeedRow("艦隊燃料", nm, want, want * fill, fill, tip, Fmt.MilQty, "/月") });
                     }
                 }
             }
@@ -703,9 +700,9 @@ public partial class GameViewModel
                         double need = StockTarget(g, rates[b]);
                         if (!(need > Eps)) continue;
                         double have = Held(g, rates[b]), order = StockOrder(g, rates[b]);
-                        string tip = $"単価 {Money(Price(g))}　今月の発注 {MilQty(order * tierAfford * MilMul(g) * PriceAfford(g))}"
+                        string tip = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(order * tierAfford * MilMul(g) * PriceAfford(g))}"
                                    + $"\n月次の摩耗 {Math.Min(0.9, warWear):P1}　予算の充足 {tierAfford:P0}　市場の配給 {Ration(g):P0}";
-                        list.Add(NeedRow(tag + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, MilQty, "", need * Price(g)));
+                        list.Add(NeedRow(tag + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, Fmt.MilQty, "", need * Price(g)));
                     }
                     else
                     {
@@ -719,11 +716,11 @@ public partial class GameViewModel
             // 消耗の1行：必要量＝一律レート×陸海の再配分／実際＝必要量×(予算の充足×価格による買い控え×市場の配給)
             ArmyNeedRow FlowRow(string tag, int g, double need, double fill, double budget, double ration, double gate, double mul, double price, string? label = null)
             {
-                string tip = $"単価 {Money(price)}　必要額 {Money(need * price)}/月"
+                string tip = $"単価 {Fmt.Money(price)}　必要額 {Fmt.Money(need * price)}/月"
                            + $"\n予算の充足 {budget:P0}　市場の配給 {ration:P0}"
                            + (gate < 1 - 1e-6 ? $"　価格による買い控え {1 - gate:P0}" : "")
                            + (Math.Abs(mul - 1.0) > 1e-6 ? $"\n陸海の再配分 ×{mul:F2}" : "");
-                return NeedRow(tag + g, label ?? Catalog.Goods[g].Name, need, need * fill, fill, tip, MilQty, "/月", need * price);
+                return NeedRow(tag + g, label ?? Catalog.Goods[g].Name, need, need * fill, fill, tip, Fmt.MilQty, "/月", need * price);
             }
         }
         SyncRows(ArmyNeeds, rows, x => x.Key, (t, s) => t.CopyFrom(s));
@@ -740,15 +737,6 @@ public partial class GameViewModel
         ArmyIdealTip = $"順位＝戦力ゲージ（質込み）が自国より大きい国の数＋1\n充足＝下の{fillN}行の平均　即応度 {_player.MilitaryReadiness:P0}";
     }
 
-    /// <summary>軍需の数量表記。1万以上は生産タブと同じ k/M（Qty）、それ未満は素の数。
-    /// ⚠k単位に一本化しない理由＝軍需の量は数十〜数百のオーダー（1850年の仏＝小銃357/月・馬36/月）で、
-    /// k化すると必要量も実際も「0.0k」に潰れて**数字が情報を持たなくなる**（緊張が常に100%と出ていたのと同型の失敗）。
-    /// 生産タブのk統一は「生産タブが出す量」への裁定＝金額・百分率と同じく、桁が届かない量はその外にある。</summary>
-    private static string MilQty(double v)
-    {
-        double a = Math.Abs(v);
-        return a >= 1e4 ? Qty(v) : a >= 100 ? v.ToString("N0") : v.ToString("F1");
-    }
 
     /// <summary>段の小見出し＋その段の行（必要額の大きい順・1行も無ければ見出しごと出さない＝空の節を作らない）。</summary>
     private static void AddGroup(List<ArmyNeedRow> rows, string header, List<ArmyNeedRow> group)

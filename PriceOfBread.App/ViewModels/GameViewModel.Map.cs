@@ -302,10 +302,10 @@ public partial class GameViewModel
     /// <summary>流通の足切り（作者指示2026-08-16「輸出・輸入量0.0k以下はUIに表示しない方針になったので、
     /// 合わせて流通量0.0K以下の陸路・海路も削除」）。
     /// ★判定は**貿易一覧が使っている関数そのもの**＝月額が £0.0k に丸まる流れは「無かった」として扱う
-    ///   （<c>GameViewModel.Trade.cs</c> 輸出入一覧の <c>Shown</c>／植民地直送の <c>Money(q*p) is not "£0.0k"</c> と同一）。
-    /// ⚠UI に第二の閾値を作らない。<c>Money(0)</c> と比べるので、金額の書式を変えても足切りが自動で追随する
+    ///   （<c>GameViewModel.Trade.cs</c> 輸出入一覧の <c>Shown</c>／植民地直送の <c>Fmt.Money(q*p) is not "£0.0k"</c> と同一）。
+    /// ⚠UI に第二の閾値を作らない。<c>Fmt.Money(0)</c> と比べるので、金額の書式を変えても足切りが自動で追随する
     ///   （数値の 50 を書き写すと書式変更でずれる）。符号は問わない＝絶対値で判定（"-£0.0k" も 0 扱い）。</summary>
-    private static bool FlowShown(double monthlyValue) => Money(System.Math.Abs(monthlyValue)) != Money(0);
+    private static bool FlowShown(double monthlyValue) => Fmt.Money(System.Math.Abs(monthlyValue)) != Fmt.Money(0);
 
     /// <summary>実際に使われた経路を辿り、グラフの辺ごとに使用量を積む。ズームでは呼ばない（重いのはここだけ）。</summary>
     private void BuildRouteUsage((bool Suez, bool Panama) chokes)
@@ -754,7 +754,7 @@ public partial class GameViewModel
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
-        info.Lines.Add(new MapHoverLine { Text = $"人口: {PopFmt(pop)}(失業者: {PopFmt(unemployed)})", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
+        info.Lines.Add(new MapHoverLine { Text = $"人口: {Fmt.PopFmt(pop)}(失業者: {Fmt.PopFmt(unemployed)})", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
         // 開発度（2026-08-02・作者指摘「名前出てない州のプロヴィンスの開発度が見れない」）：ズームを引くと州名ラベル
         // （＝括弧の開発度）が消える／重なり回避で小さい州のラベルは出ないため、ホバーでも同じ値を出す。
         // ★定義も丸めもラベルと完全一致（TotalIndustrialization×70・指標名はUIと通知で完全一致の規約）。2026-08-31にラベルが小数1桁(F1)へ変わったのに合わせる。
@@ -796,7 +796,7 @@ public partial class GameViewModel
             }
         }
         if (rg.IsPort)
-            info.Lines.Add(new MapHoverLine { Text = $"港 容量:{rg.PortCapacity:F0} 取引額:{Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
+            info.Lines.Add(new MapHoverLine { Text = $"港 容量:{rg.PortCapacity:F0} 取引額:{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
         AppendChokepoint(info, rg.Name);   // 海峡/運河のhost州はここに統合表示
         AppendMegaprojects(info, rg.Name);   // ★A-13：巨大建造物も同じ州の情報として統合表示
         AppendWorldShare(info, rg, ownerWorld);
@@ -874,7 +874,7 @@ public partial class GameViewModel
         //   1材は最長でも「ジャガイモ 1234.5k(世界100%)」≈190px でパネルの内幅470px（GameView.axaml:304 Width=500・Padding14）に必ず収まり、
         //   折返しそのものが起きない。2行目以降は全角スペース1つ下げて頭の「生産材:」の続きだと分かる形にする。
         static string Top3(List<(string Name, double Amt, double Share)> src)
-            => src.Count == 0 ? "なし" : string.Join("\n　", src.Take(3).Select(t => $"{t.Name} {Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : t.Share.ToString("P0"))})"));
+            => src.Count == 0 ? "なし" : string.Join("\n　", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : t.Share.ToString("P0"))})"));
         info.Lines.Add(new MapHoverLine { Text = $"生産材: {Top3(top3Prod)}", Brush = HoverText });
         info.Lines.Add(new MapHoverLine { Text = $"輸出材: {Top3(top3Exp)}", Brush = HoverText });
     }

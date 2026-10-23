@@ -355,8 +355,9 @@ public class PlayHarnessTests
     {
         var (sim, w, _, _, _) = Board();
         var rows = PlayHarness.LawStatusRows(w);
-        var named = rows.Select(r => r.Field).ToHashSet();
-        Assert.Equal(rows.Count, named.Count);   // 欄の重複なし
+        var allFields = rows.SelectMany(r => r.Fields).ToList();
+        var named = allFields.ToHashSet();
+        Assert.Equal(allFields.Count, named.Count);   // 欄の重複なし（阿片は 1 行が 2 欄を持つ）
         // 法の欄＝NationPolicy の enum か bool の公開の欄。新しい法を足したらここ（PlayHarness.LawStatusRows）にも足す（足し忘れが赤になる）
         var lawFields = typeof(NationPolicy).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
             .Where(f => f.FieldType.IsEnum || f.FieldType == typeof(bool)).Select(f => f.Name).ToList();
@@ -366,9 +367,10 @@ public class PlayHarnessTests
         w.Policy.LaborUnion = LaborUnionLaw.Tolerated;   // 目標だけ動かす（現在値は据え置き）
         w.Policy.NationalizeOil = true;
         string r = Report(sim);
-        Assert.Contains($"労組 {w.LaborUnion} ⇒目標 Tolerated", r);
-        Assert.Contains("石油国有化 なし ⇒目標 あり", r);
-        Assert.Contains("女性の権利 ", r); Assert.Contains("官僚 ", r); Assert.Contains("資本移動の規制 ", r);
+        // ★(501) 段0：名前も段の名前も画面の法律タブと同じ日本語（本体の法の表 LawCatalog が 1 本で持つ）
+        Assert.Contains($"労働組合 {PriceOfBread.SimCore.Display.LawCatalog.ByField(nameof(NationPolicy.LaborUnion))!.StageName((int)w.LaborUnion)} ⇒目標 容認", r);
+        Assert.Contains("石油国有化 民営 ⇒目標 国有", r);
+        Assert.Contains("女性の権利 ", r); Assert.Contains("官僚制度 ", r); Assert.Contains("資本移動 ", r);
     }
 
     [Fact]
