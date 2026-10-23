@@ -90,6 +90,7 @@ public class PlaceAdditionTests
         new NewPlace("アジャクシオ", "state", "フランス", 41.95, 8.75, "corsica", 0.0046, 0, [11, 16, 19], "コルシカ"),
         new NewPlace("ラス・パルマス", "state", "スペイン", 28.15, -15.75, "gran-canaria", 0.0168, 0, [16, 24], "スペイン"),
         new NewPlace("モルッカ諸島", "colony", "ネーデルラント", -3.05, 128.15, "seram", 0, 100, [26], ""),
+        new NewPlace("バハマ諸島", "colony", "イギリス", 24.95, -78.15, "andros", 0, 4, [6, 20], ""),
         // @ADDED
     ];
 

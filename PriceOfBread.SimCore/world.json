@@ -471,6 +471,14 @@
      "name": "ホバート",
      "resources": [],
      "popK": 5
+    },
+    {
+     "name": "バハマ諸島",
+     "resources": [
+      6,
+      20
+     ],
+     "popK": 4
     }
    ],
    "initialSuffrage": "Census",
