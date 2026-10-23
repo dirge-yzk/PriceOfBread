@@ -1,0 +1,17 @@
+# (501) 重なりの読み（波25・読むだけ・main 01909807 で grep・(508) 合流で写しを main へ）
+## 各線が触る見込み
+- de：Discovery.cs の OwnCapacity（:155-165）・EngineerUse（:47）・ParentEngineers（:59）・Score の tech の行（:635-637）・WorldAdvLabor（:117・:136）。試験 DiscoveryEngineerTests・DiscoveryScoreTests。
+- pn：枝 op（1c48ce3b）の Discovery.cs の SeedCompatRows（:75-85）・Gate（:264）・IsCompatRow（新）／Catalog.cs／OpeningProcessRows.cs（新）／Simulation.cs の生産者の構築（:1133）・製法の分類（:1813）／world.json の knownDiscoveries。nd＝Discovery.ReplacedStrength（:830）・PriceBook.Cost（:854〜）。枝 p4＝ProcessRows.cs・Catalog.cs。
+- fd：EconomyStep.Run の消費の段（:1554 主食の乗り換えの挟み・:1584 marketNeed・:1895-1904 FoodMet・FoodNeed・自給）。下流＝Simulation の人口の段の foodMet／foodNeed（:2531）と World.FoodFill。
+- ir：技術水準（TechEducation・MultiNationSim・SelfPlay・World・Diplomacy・Military:321・Transport:42・Colonial:70・BilateralMarket:532・Discovery.cs:611〔制度の行だけ〕・:1109〔既定 3.42 で死んだ枝〕）。工業化度の在庫（Simulation.cs:2493-2495・:2563 の capacity の式・:2583 の出生の avgInd／World.cs:1162・:1227 疫病／PopDecision.cs:43-47 都市化の天井／EconomyStep.cs:964・World.cs:1992・:1998・Megaprojects.cs:240 州の上限／EconomyStep.cs:1021 保守／InvestmentReturn の sat :2713-2719／Discovery.cs:528 maxInd）。00一覧 161 行は MarketFlow.EffWageMax（:337）を eq の〈読み手の行き先〉の残りに挙げる。
+- wc：MarketFlow.cs の StepDay の lnCeilWage（:79-80）・労働 3 財の SoftBandLn（:158）・EffWageMax（:336-337）／MinimumWageFloor.AbsFloor の天井の引数（:140）／InstrumentsLw.cs:80・InstrumentsMa.cs:26／Coefficients の WageClampMax・WageClampIndScale／試験 4 本。
+## 重なりの表（要約）
+- de×pn：Discovery.cs（別の行）＝pn は de の枝の上・de は :75-85・:264 に触らない。
+- de×ir：Discovery.Score（別の式）＝並行可・合流は de→pn→ir。
+- pn×ir：ru の答えが〈工程の行が伸びの持ち主〉なら ir のその部分は pn の領分。
+- fd×ir：Simulation.cs:2563 の capacity の式（ir＝IndustryCapacityBonus×avgInd と汚染の項／fd＝FoodFill と foodMet／foodNeed）＝ir の扶養力の 3 項は fd の合流の後か波26。
+- ir×wc：MarketFlow.EffWageMax（:337）が同じ式＝**優先の低い wc を波26 へ送った**（defer）。wc は必要性も確かめられていない（m500_ins の labor_s 148,179 行で普通の労働と農業労働の値段÷(参照 0.5×物価水準) が 2.4 超は 17 行・最大 3.0・英 1913 年は約 0.2。限界＝labor_s は国の平均で州の最大を見ない・高度労働力は labor_s にも pxgoods にも無い）＝波26 の wc の段 0 でこの 2 つを腕の前に測る。
+- 他の組は重なり無し。
+## CostLedger・計算量
+- main の最後＝RecipeEquipmentScans 26・Count 27。予約＝de 27・pn 28・fd 29・ir 30（使った線だけ合流で詰める）。結果：fd が 27（StapleLedgerPops）を使った・ir は枝で 27 を使った（採らない＝main に入らない）・de・pn は未使用。
+- 計算量の割り当て（事前）：de 1.0・pn 5.0・fd 1.0・ir 0.5・wc 0＝合計 7.5 秒（合流の後の名目の余り約 12.9 秒の内）。

@@ -169,7 +169,10 @@ public class PopulationInstrumentTests
             var (h, rows) = Table(System.IO.Path.Combine(dir, "pop_s1789.tsv"));
             var mine = rows.Where(r => r[0] == "N" && r[4] == "フランス").ToList();
             Assert.Equal(6, mine.Count);
-            Assert.Equal(fr.WarDeadCumulative - inject0, mine.Sum(r => Col(h, r, "warDeadK")), 9);                                   // 窓の和＝累計
+            double wantDead = fr.WarDeadCumulative - inject0;
+            // ★(508) 合成の木（spt500＋spg3＋fd）でこの 6 四半期の仏に実際の戦死が乗った（窓の和 55.6 千人）＝計器の表は有効数字 10 桁で書く＝6 行の丸めが 1.1e-9 積もり、小数 9 桁の比べが外れた
+            //   ＝許しを表の桁（相対 1e-9×行の数）へ直した（窓が 1 つ落ちる・累計を書くなどの誤りは 1 千人以上の差＝この許しでも赤になる）。
+            Assert.InRange(mine.Sum(r => Col(h, r, "warDeadK")), wantDead - 1e-9 * Math.Max(1, Math.Abs(wantDead)) * mine.Count, wantDead + 1e-9 * Math.Max(1, Math.Abs(wantDead)) * mine.Count);   // 窓の和＝累計
             Assert.True(Col(h, mine[1], "warDeadK") >= 7 && Col(h, mine[3], "warDeadK") >= 3);
             Assert.True(Col(h, mine[2], "warDeadK") < 7, "窓 1 の増分が次の窓にも積まれた＝差分でなく累計を書いている");
         }

@@ -152,4 +152,4 @@ for lab, q in (('1850 年', (1850 - 1783) * 4), ('1900 年', (1900 - 1783) * 4),
         if k in p0 and p0[k] > 0:
             rat[k[1]].append(pb[k] / p0[k])
     mx = max([x for v in rat.values() for x in v] or [float('nan')])
-    print('  人口の倍率 B／基線（%s・国別の種の中央値）：%s・全体の最大 %.3f（S2 の線 10）' % (lab, '、'.join('%s %.3f' % (n, med(v)) for n, v in sorted(rat.items())), mx), file=out)
+    print('  人口の倍率 B／基線（%s・国別の種の中央値）：%s・全体の最大 %.3f（記録・S2 ではない＝同じ種の国どうしの比で領土の移り変わりを含む・S2 は州ごとの scripts/instruments/m508/s2_region.py〔(508) 反証役 fd〔bv〕中#1〕）' % (lab, '、'.join('%s %.3f' % (n, med(v)) for n, v in sorted(rat.items())), mx), file=out)
