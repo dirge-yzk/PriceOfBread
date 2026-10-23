@@ -55,6 +55,9 @@ public partial class MainWindow
             lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.DiplomacyWar, 0);
             await Task.Delay(900);
             var dw = host().Mounted().Select(m => m.Page).OfType<DiplomacyWarPage>().FirstOrDefault();
+            // 直前までのカメラは全景（撮影順の産物）＝自国の名の国の中心へ振る。行を押すと地図が動く経路（CenterNationCommand）の確かめも兼ねる
+            gvm.CenterNationCommand.Execute(gvm.PlayerName.Split('　')[0]);
+            await Task.Delay(600);
             BootLog.Write($"uishot: 地図の往復 1/4 欄に載せた 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・{gameView.MapView.BoxReport()}");
             Capture(dir, "p3_外交と戦争_地図の欄.png");
             lay.SetShape(SplitShape.LeftRight); lay.Open(Slot.Map, 1);

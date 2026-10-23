@@ -167,8 +167,8 @@ public partial class MainWindow : Window
             var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
             foreach (var c in page.GetVisualDescendants().OfType<Control>())
             {
-                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsVisible) continue;
-                if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).OfType<ScrollViewer>().Any()) continue;   // 欄の中の流れの中身は対象外
+                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳まれた欄の中身（親が隠れている）は対象外
+                if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).Any(a => a is ScrollViewer or MapPane)) continue;   // 欄の中の流れの中身と、地図の中の絵（箱で切られる）は対象外
                 var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), paneView);
                 if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
                 else if (br is { } q2 && q2.X > ww + 1 && wide.Count < 2) wide.Add($"{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q2.X - ww:F0})");
