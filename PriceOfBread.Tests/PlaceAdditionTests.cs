@@ -88,6 +88,7 @@ public class PlaceAdditionTests
     private static readonly NewPlace[] Added =
     [
         new NewPlace("アジャクシオ", "state", "フランス", 41.95, 8.75, "corsica", 0.0046, 0, [11, 16, 19], "コルシカ"),
+        new NewPlace("ラス・パルマス", "state", "スペイン", 28.15, -15.75, "gran-canaria", 0.0168, 0, [16, 24], "スペイン"),
         // @ADDED
     ];
 

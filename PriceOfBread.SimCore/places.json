@@ -337,5 +337,6 @@
  {"name": "ダーウィン", "lat": -12.5, "lon": 130.8, "kind": "colony", "terrain": "barren", "rule": [0.15, 0.35, 0.0, 0.5]},
  {"name": "アリススプリングス", "lat": -23.7, "lon": 133.9, "kind": "colony", "terrain": "barren", "rule": [0.15, 0.35, 0.0, 0.5]},
  {"name": "ホバート", "lat": -42.9, "lon": 147.3, "kind": "colony", "terrain": "forest", "rule": [0.55, 0.1, 0.0, 0.35]},
- {"name": "アジャクシオ", "lat": 41.95, "lon": 8.75, "kind": "state", "terrain": "mountain"}
+ {"name": "アジャクシオ", "lat": 41.95, "lon": 8.75, "kind": "state", "terrain": "mountain"},
+ {"name": "ラス・パルマス", "lat": 28.15, "lon": -15.75, "kind": "state", "terrain": "hill"}
 ]

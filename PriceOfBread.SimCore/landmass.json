@@ -393,5 +393,6 @@
  {"name": "ダーウィン", "kind": "colony", "lat": -12.5, "lon": 130.8, "landmass": "australia", "coastal": true},
  {"name": "アリススプリングス", "kind": "colony", "lat": -23.7, "lon": 133.9, "landmass": "australia", "coastal": false},
  {"name": "ホバート", "kind": "colony", "lat": -42.9, "lon": 147.3, "landmass": "tasmania", "coastal": true},
- {"name": "アジャクシオ", "kind": "state", "lat": 41.95, "lon": 8.75, "landmass": "corsica", "coastal": true}
+ {"name": "アジャクシオ", "kind": "state", "lat": 41.95, "lon": 8.75, "landmass": "corsica", "coastal": true},
+ {"name": "ラス・パルマス", "kind": "state", "lat": 28.15, "lon": -15.75, "landmass": "gran-canaria", "coastal": true}
 ]
