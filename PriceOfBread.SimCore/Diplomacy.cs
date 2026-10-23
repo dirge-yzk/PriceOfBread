@@ -700,6 +700,15 @@ public sealed class Diplomacy
     };
     private int AllianceCount(Power p) { int n = 0; foreach (var q in Powers) if (q != p && HasAlliance(p, q)) n++; return n; }
     private bool AtWar(Power a, Power b) { foreach (var w in Wars) if ((w.A == a && w.B == b) || (w.A == b && w.B == a)) return true; return false; }
+    /// <summary>★(spdip) 交戦中の組の鍵の集合（その場で戦争の一覧から作る・状態を持たない）。組を総当たりする段（民族・法・宗教・保護・政体・脅威・宣戦の判定）が関数の頭で1回作り、
+    /// 組ごとの <see cref="AtWar"/>（戦争の一覧の線形の探索）の代わりに引く。国の Id は単調なカウンタ（重ならない）＝<see cref="Key"/> の一致は国の一致と同じ＝返す真偽は AtWar と同じ。
+    /// ⚠一覧が変わる所（開戦＝AddBelligerent・講和＝EndWar）を同じ関数の中で通るとき（宣戦の判定の開戦）は作り直す。</summary>
+    private HashSet<long> WarKeySet()
+    {
+        var s = new HashSet<long>();
+        foreach (var w in Wars) s.Add(Key(w.A, w.B));
+        return s;
+    }
     public bool IsAtWar(Power a, Power b) => AtWar(a, b);   // 公開参照（UIの侵略候補フィルタ・段C）
     /// <summary>この勢力が誰かと交戦中か（2026-08-04・戦時の維持費下限ロック用）。</summary>
     public bool AtWarAny(Power a) { foreach (var w in Wars) if (w.A == a || w.B == a) return true; return false; }
@@ -942,7 +951,7 @@ public sealed class Diplomacy
         RouteTension(c);               // 13l地政学：閉鎖海盆の出口を扼する相手への緊張（RouteDependenceTensionRate=0.10＝点火2026-09-03・0で不走行）
         IdeologyTension(c);            // 異なる政体は反目し同じ政体は親近する（イデオロギーのブロック化）
         OpiumTension(c);               // P3：アヘン禁令国×輸出国の緊張（取締り・没収が敵意を積む＝林則徐→アヘン戦争。主フラグOFFで不走行）
-        EthnicTension(c); LawTension(c); ReligionTension(c); ProtectorTension(c);   // 民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionRate=0.02 点火済み・0で不走行）
+        AffinityTensions(c);   // ★(spdip) 民族・法・宗教・保護の 4 本を 1 回の組の走査で（恒等・AffinityTensions の注）。民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionRate=0.02 点火済み・0で不走行）
         StepDependency(c, month);   // 従属の整列(緊張抑制)・貢納(属国→宗主)・離反独立
         TreatyPortLapse(c, month);     // 条約港の自然失効（案A・2026-08-16点火）＝力の差が縮んだ国の不平等条約が風化
         BreakStrainedAlliances(c);     // 緊張が高まった同盟は崩れる→強国は孤立へ
@@ -1058,7 +1067,7 @@ public sealed class Diplomacy
     private void ThreatTension(Coefficients c)
     {
         if (!ThreatAverages(c, out double avgG, out double avgC, out double avgM)) return;
-        List<Power>? ps = null; double[]? border = null; Dictionary<Power, int>? at = null;   // 国境の表は脅威を持つ国が1つでもあれば1回だけ（ArmyShape.Borders＝理想の軍隊の形と同じ1本）
+        List<Power>? ps = null; double[]? border = null; Dictionary<Power, int>? at = null; HashSet<long>? atWar = null;   // 国境の表は脅威を持つ国が1つでもあれば1回だけ（ArmyShape.Borders＝理想の軍隊の形と同じ1本）
         foreach (var big in Powers)
             if (big.Nation is not null)
             {
@@ -1075,11 +1084,12 @@ public sealed class Diplomacy
                     ps = []; at = [];
                     foreach (var q in Powers) if (q.Nation is not null) { at[q] = ps.Count; ps.Add(q); }
                     border = ArmyShape.Borders(ps, c);
+                    atWar = WarKeySet();   // ★(spdip) 交戦中の組（WarKeySet の注）＝国境の表と同じく脅威を持つ国が1つでもあれば1回だけ
                 }
                 int bi = at![big], n = ps!.Count;
                 Cost[CostLedger.ThreatReachPairs] += n - 1;   // 計算量の台帳（診断）：脅威の届き方は脅威を持つ国×国（自国を除く・交戦中の組も数える＝上限）
                 foreach (var other in Powers)
-                    if (other.Nation is not null && other != big && !AtWar(big, other))
+                    if (other.Nation is not null && other != big && !atWar!.Contains(Key(big, other)))
                     {
                         double reach = ThreatReach(big, other, border[bi * n + at[other]], c);
                         if (reach > 0) AddTension(big, other, c.ThreatTensionRate * threat * reach, TensionReason.Threat);
@@ -1154,11 +1164,12 @@ public sealed class Diplomacy
     // 異なる政体は緊張を高め、同じ政体は下げる（イデオロギーの親近/反目＝陣営化）。経済を持つ国どうしのみ。
     private void IdeologyTension(Coefficients c)
     {
+        var atWar = WarKeySet();   // ★(spdip) 交戦中の組（WarKeySet の注）
         for (int i = 0; i < Powers.Count; i++)
             for (int j = i + 1; j < Powers.Count; j++)
             {
                 var a = Powers[i]; var b = Powers[j];
-                if (a.Nation is not { } na || b.Nation is not { } nb || AtWar(a, b)) continue;
+                if (a.Nation is not { } na || b.Nation is not { } nb || atWar.Contains(Key(a, b))) continue;
                 if (na.Polity == nb.Polity)
                     AddTension(a, b, -c.IdeologyAffinityRelief, TensionReason.Ideology);                                     // 同政体＝親近
                 else
@@ -1218,46 +1229,85 @@ public sealed class Diplomacy
         _ => 0.50,
     };
 
+    // ★(spdip) 民族・法・宗教・保護の緊張（旧 EthnicTension・LawTension・ReligionTension・ProtectorTension の 4 本）を 1 回の組の走査で（恒等）。
+    //   4 本は同じ i<j の順で同じ組の門（どちらも経済を持つ・交戦中でない）を見て、それぞれ自分の組の鍵にだけ加算した＝1 本にしても鍵ごとの加算の順（民族→法→宗教→保護 a→b→保護 b→a）は同じ。
+    //   緊張の上下限（AddTensionKeyed の 0..200）も鍵ごと＝値は 1 ビットも変わらない。⚠表に無い鍵が入る順（辞書の並び）は変わりうる（民族が文化の空の組を飛ばし、法が入れた鍵）＝並びを読むのは
+    //   DriftTension（鍵ごとに独立）とセーブだけ＝シミュの値は変わらない・セーブのバイトは変わりうる。
+    //   文化の群・宗教の家族・保護の人口の表は国ごとに 1 回（旧＝組ごとに引き直した・保護は組ごとに相手国の全ての州と POP を回した）。
     // 異民族グループは反目・同グループ（さらに同一民族）は親近。汎スラヴ(露⇔セルビア)/汎ゲルマン等を創発。
-    private void EthnicTension(Coefficients c)
-    {
-        for (int i = 0; i < Powers.Count; i++)
-            for (int j = i + 1; j < Powers.Count; j++)
-            {
-                var a = Powers[i]; var b = Powers[j];
-                if (a.Nation is null || b.Nation is null || AtWar(a, b)) continue;
-                if (a.Culture.Length == 0 || b.Culture.Length == 0) continue;
-                if (a.Culture == b.Culture) AddTension(a, b, -c.EthnicAffinityRelief, TensionReason.Ethnic);                          // 同一民族＝強い親近
-                else if (CultureGroup(a.Culture) == CultureGroup(b.Culture)) AddTension(a, b, -0.5 * c.EthnicAffinityRelief, TensionReason.Ethnic);  // 同グループ（汎スラヴ等）＝穏やかな親近
-                else AddTension(a, b, c.EthnicTensionRate, TensionReason.Ethnic);                                                     // 異グループ＝反目
-            }
-    }
-
     // 法のリベラル度(World.Freedom 0..1)の差＝自由主義 vs 反動の摩擦（1848型）。政体距離と相関するため控えめ。
-    private void LawTension(Coefficients c)
-    {
-        for (int i = 0; i < Powers.Count; i++)
-            for (int j = i + 1; j < Powers.Count; j++)
-            {
-                var a = Powers[i]; var b = Powers[j];
-                if (a.Nation is not { } na || b.Nation is not { } nb || AtWar(a, b)) continue;
-                AddTension(a, b, c.LawTensionRate * Math.Abs(na.Freedom - nb.Freedom), TensionReason.Law);
-            }
-    }
-
     // 宗教の隔たり：同一宗教は親近、同ファミリー異宗派は異端ボーナス、異ファミリーはファミリー座標距離。1789-1880は小重み（宗教戦争後）。
-    private void ReligionTension(Coefficients c)
+    // P11 同宗教保護の緊張チャネル（2026-08-09・同日点火）：自国と同宗教の州を異宗教の国が支配している＝それ自体が保護利害（ProtectorGrievance と同じ量）。
+    // 対称に走査（AもBも全国家）＝露→オスマン（バルカン正教）とオスマン→露（カフカスのイスラム州）が同じ式で出る＝汎イスラム主義。
+    // ⚠★点火済み（2026-08-09 ign_p11＝0.02）＝既定構成でこのチャネルは毎月走る。0に戻せば保護の分は1命令も実行しない（否定形ガード＝NaNも落とす）。
+    private void AffinityTensions(Coefficients c)
     {
-        for (int i = 0; i < Powers.Count; i++)
-            for (int j = i + 1; j < Powers.Count; j++)
+        int n = Powers.Count;
+        var atWar = WarKeySet();
+        bool protector = c.ProtectorTensionRate > 1e-12;
+        var grp = new string[n]; var fam = new string[n];
+        double[]? popTotal = protector ? new double[n] : null;
+        Dictionary<string, double>?[]? popByRel = protector ? new Dictionary<string, double>?[n] : null;
+        for (int i = 0; i < n; i++)
+        {
+            var p = Powers[i];
+            if (p.Nation is not { } nw) continue;
+            if (p.Culture.Length > 0) grp[i] = CultureGroup(p.Culture);
+            if (p.Religion.Length > 0) fam[i] = ReligionFamily(p.Religion);
+            if (!protector) continue;
+            // ProtectorGrievance の走査を国ごとに 1 回＝活性州の人口の和と、州の宗教ごとの部分和（どちらも州の登録順に足す＝旧の和と同じ順・同じ値）
+            double total = 0; Dictionary<string, double>? byRel = null;
+            foreach (var r in nw.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                double pop = 0; foreach (var pp in r.Pops) pop += pp.Size;
+                if (pop <= 0) continue;
+                total += pop;
+                if (string.IsNullOrEmpty(r.Religion)) continue;   // 旧は相手の宗教（空でない）と一致したときだけ足した＝空の州は誰とも一致しない
+                byRel ??= [];
+                ref double slot = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(byRel, r.Religion, out _);
+                slot += pop;
+            }
+            popTotal![i] = total; popByRel![i] = byRel;
+        }
+        double Grievance(int ia, int ib)   // ＝ProtectorGrievance(Powers[ia], Powers[ib])（どちらも経済を持つ組だけが呼ぶ）
+        {
+            var a = Powers[ia]; var b = Powers[ib];
+            if (a.Religion.Length == 0 || b.Religion.Length == 0) return 0;
+            if (a.Religion == b.Religion) return 0;
+            double total = popTotal![ib];
+            double match = popByRel![ib] is { } t ? t.GetValueOrDefault(a.Religion) : 0;
+            return total > 0 ? match / total : 0;
+        }
+        for (int i = 0; i < n; i++)
+            for (int j = i + 1; j < n; j++)
             {
                 var a = Powers[i]; var b = Powers[j];
-                if (a.Nation is null || b.Nation is null || AtWar(a, b)) continue;
-                if (a.Religion.Length == 0 || b.Religion.Length == 0) continue;
-                if (a.Religion == b.Religion) { AddTension(a, b, -c.ReligionAffinityRelief, TensionReason.Religion); continue; }        // 同一宗教＝親近
-                string fa = ReligionFamily(a.Religion), fb = ReligionFamily(b.Religion);
-                double dist = (fa == fb) ? c.ReligionHeresyBonus : Math.Abs(FamilyCoord(fa) - FamilyCoord(fb)); // 同族異端ボーナス or 異ファミリー座標距離
-                AddTension(a, b, c.ReligionTensionRate * dist, TensionReason.Religion);
+                if (a.Nation is not { } na || b.Nation is not { } nb || atWar.Contains(Key(a, b))) continue;
+                long k = Key(a, b);
+                if (a.Culture.Length != 0 && b.Culture.Length != 0)
+                {
+                    if (a.Culture == b.Culture) AddTensionKeyed(k, -c.EthnicAffinityRelief, TensionReason.Ethnic);                          // 同一民族＝強い親近
+                    else if (grp[i] == grp[j]) AddTensionKeyed(k, -0.5 * c.EthnicAffinityRelief, TensionReason.Ethnic);  // 同グループ（汎スラヴ等）＝穏やかな親近
+                    else AddTensionKeyed(k, c.EthnicTensionRate, TensionReason.Ethnic);                                                     // 異グループ＝反目
+                }
+                AddTensionKeyed(k, c.LawTensionRate * Math.Abs(na.Freedom - nb.Freedom), TensionReason.Law);
+                if (a.Religion.Length != 0 && b.Religion.Length != 0)
+                {
+                    if (a.Religion == b.Religion) AddTensionKeyed(k, -c.ReligionAffinityRelief, TensionReason.Religion);        // 同一宗教＝親近
+                    else
+                    {
+                        string fa = fam[i], fb = fam[j];
+                        double dist = (fa == fb) ? c.ReligionHeresyBonus : Math.Abs(FamilyCoord(fa) - FamilyCoord(fb)); // 同族異端ボーナス or 異ファミリー座標距離
+                        AddTensionKeyed(k, c.ReligionTensionRate * dist, TensionReason.Religion);
+                    }
+                }
+                if (protector)
+                {
+                    double gab = Grievance(i, j), gba = Grievance(j, i);   // 緊張はペア対称ストア＝両方向の利害を同じ鍵へ積む
+                    if (gab > 1e-12) AddTensionKeyed(k, c.ProtectorTensionRate * gab, TensionReason.Protector);
+                    if (gba > 1e-12) AddTensionKeyed(k, c.ProtectorTensionRate * gba, TensionReason.Protector);
+                }
             }
     }
 
@@ -1280,24 +1330,6 @@ public sealed class Diplomacy
             if (r.Religion == a.Religion) match += pop;             // 州religion==religion(a)。上の同宗教ガードにより自動的に !=religion(b)
         }
         return total > 0 ? match / total : 0;
-    }
-
-    // P11 同宗教保護の緊張チャネル（2026-08-09・同日点火）：自国と同宗教の州を異宗教の国が支配している＝それ自体が保護利害。
-    // 対称に走査（AもBも全国家）＝露→オスマン（バルカン正教）とオスマン→露（カフカスのイスラム州）が同じ式で出る＝汎イスラム主義。
-    // EthnicTension/ReligionTension の兄弟（同じ場所・同じ i<j 走査・同じ AddTension クランプ 0..200）。
-    // ⚠★点火済み（2026-08-09 ign_p11＝0.02）＝既定構成でこのチャネルは毎月走る。0に戻せば1命令も実行しない（否定形ガード＝NaNも落とす）。
-    private void ProtectorTension(Coefficients c)
-    {
-        if (!(c.ProtectorTensionRate > 1e-12)) return;
-        for (int i = 0; i < Powers.Count; i++)
-            for (int j = i + 1; j < Powers.Count; j++)
-            {
-                var a = Powers[i]; var b = Powers[j];
-                if (a.Nation is null || b.Nation is null || AtWar(a, b)) continue;
-                double gab = ProtectorGrievance(a, b), gba = ProtectorGrievance(b, a);   // 緊張はペア対称ストア＝両方向の利害を同じ鍵へ積む
-                if (gab > 1e-12) AddTension(a, b, c.ProtectorTensionRate * gab, TensionReason.Protector);
-                if (gba > 1e-12) AddTension(a, b, c.ProtectorTensionRate * gba, TensionReason.Protector);
-            }
     }
 
     // === 統治コスト/親和（従属判断・衛星国判断に再利用＝緊張の距離ロジックと同源）===
@@ -1478,22 +1510,24 @@ public sealed class Diplomacy
 
     /// <summary>★(440) 宣戦の 5 つの門（緊張が水準以上・交戦中でない・どちらも厭戦でない・従属の組でない・軍が届く）が全て開いているか。<see cref="TriggerWars"/> の判定と、
     /// プレイヤーの最後通牒の待ちの根拠が残っているかの判定が同じ 1 本を読む（純関数＝評価の順と短絡は旧のインラインと同じ）。</summary>
-    internal bool WarGateOpen(Power a, Power b, Coefficients c)
+    internal bool WarGateOpen(Power a, Power b, Coefficients c, HashSet<long>? atWar = null)
     {
         bool weary = a.WarExhaustion > c.WarWearyThreshold || b.WarExhaustion > c.WarWearyThreshold;
-        return Tension(a, b) >= c.WarDeclareTension && !AtWar(a, b) && !weary && !InDependency(a, b) && WorthFighting(a, b, c);
+        return Tension(a, b) >= c.WarDeclareTension && !(atWar is null ? AtWar(a, b) : atWar.Contains(Key(a, b))) && !weary && !InDependency(a, b) && WorthFighting(a, b, c);   // ★(spdip) atWar＝呼び手が作った交戦中の組（WarKeySet）・null は旧の探索
     }
 
     private void TriggerWars(Coefficients c)
     {
+        var atWar = WarKeySet();   // ★(spdip) 交戦中の組（WarKeySet の注）＝開戦（StartWar＝同盟の参戦も足す）の後は作り直す
         for (int i = 0; i < Powers.Count; i++)
             for (int j = i + 1; j < Powers.Count; j++)
             {
                 var a = Powers[i]; var b = Powers[j]; long k = Key(a, b);
-                if (WarGateOpen(a, b, c))   // ★(440) 5 つの門の判定を 1 本に（旧は 2 行にインラインで書いていた・式と評価の順は同じ）
+                if (WarGateOpen(a, b, c, atWar))   // ★(440) 5 つの門の判定を 1 本に（旧は 2 行にインラインで書いていた・式と評価の順は同じ）
                 {
-                    _warClock[k] = _warClock.GetValueOrDefault(k) + 1;
-                    if (_warClock[k] >= c.WarTriggerMonths)
+                    ref int clock = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_warClock, k, out _);   // ★(spdip) 表を1回だけ引く（旧＝読む・書く・読むの3回・無い鍵はこの書き込みで入った＝同じ）
+                    clock++;
+                    if (clock >= c.WarTriggerMonths)
                     {
                         // #106：プレイヤーが絡む緊張戦は即発火せず最後通牒へ（UIが「要求を受け入れる／開戦」を出す）。AI同士は従来どおり即開戦＝自己対戦/較正は不変。
                         if (a.IsPlayer || b.IsPlayer)
@@ -1507,7 +1541,7 @@ public sealed class Diplomacy
                             //   画面では起きない（四半期の末に出して答えるまで時間が止まる）・play は答えずに進めるので残る＝ハーネス側の持ち分（記録）。
                             //   ★(443) 反証役 dp〔bv〕低#2：置き換えの条件が重なったときだけ、**表示前の**待ちが別の組に替わる＝組 X との待ちが積まれた月から四半期の末に出るまで（最大 2 か月）に
                             //   X の門が閉じ、同じ間に組 Y の時計が満ちた場合。X の時計は門が閉じた月に 0 に戻るので X との開戦の問いは出ない（AI なら X とは時計が満ちた月に開戦している）＝既知の狭い非対称（頻度は未測定）。
-                            if (player.PendingWar is null || (player.PendingWar != foe && !WarGateOpen(player, player.PendingWar, c))) player.PendingWar = foe;
+                            if (player.PendingWar is null || (player.PendingWar != foe && !WarGateOpen(player, player.PendingWar, c, atWar))) player.PendingWar = foe;
                         }
                         else
                         {
@@ -1540,11 +1574,15 @@ public sealed class Diplomacy
                                 }
                                 Log.Add($"{_year} {weak.Name}が{strong.Name}に屈服（緊張緩和）");
                             }
-                            else { StartWar(a, b, c); _warClock[k] = 0; }
+                            else { StartWar(a, b, c); _warClock[k] = 0; atWar = WarKeySet(); }
                         }
                     }
                 }
-                else _warClock[k] = 0;
+                else
+                {   // ★(spdip) 門が閉じた組の時計は、表に有るときだけ 0 へ（旧＝無い組も 0 で入れた＝読み手は GetValueOrDefault だけ＝値は同じ・表の中身〔0 の鍵の有無〕とセーブのバイトは変わる）
+                    ref int clock0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrNullRef(_warClock, k);
+                    if (!System.Runtime.CompilerServices.Unsafe.IsNullRef(ref clock0)) clock0 = 0;
+                }
             }
     }
 
