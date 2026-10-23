@@ -1,0 +1,7 @@
+# (516) 検証（隔離ビルド・Release）
+フルスイート（Category!=FullLength）1 回目（木 746cde4f＋cp3 の設計書）：失敗 1・合格 1687・スキップ 1・合計 1689（9 分 53 秒）
+  赤＝StartWarmupTests2.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント（仏 0.020194024914563371・帯 0〜0.02）＝史実の桁の固定＝合流 11 で記録へ移した
+StartWarmup の 16 本（合流 11 の後）：合格 16
+フルスイート 2 回目（木 f9318002）：失敗 0・合格 1688・スキップ 1・合計 1689（10 分 1 秒）
+FullLength（Category=FullLength・木 f9318002）：合格 3（3 分 27 秒）
+WriterRatchet・InstrumentsTests・ServiceClosed の 88 本（合流 10 の後）：合格 88

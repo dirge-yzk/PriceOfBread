@@ -1,0 +1,12 @@
+# (516) 合流の恒等の確かめ（SOURCE-HASH と POB_COEF の名乗りの行を除く diff）
+t2＝木 1b745c8e（spi2＋spa2＋hz6＋wc0＋合流 4・5＝pv2 の前）・SOURCE-HASH 51d16c035bf653c3
+  b10_20261023_m516_t2     vs b10_20261023_spa2      ＝diff 0 行（全行一致）
+  b5_20261023_m516_t2      vs b5_20261023_spa2       ＝diff 0 行
+  b10_20261023_m516_t2_ins vs b10_20261023_spa2_ins  ＝diff 0 行
+  ＝spi2・hz6・wc0 と合流 4・5（注と計器の注入の名前）は spa2 の世界でも恒等（spa2 の枝は spi2 を含まない＝spi2 も spa2 の上で恒等）
+  t2 の素の 10 種と計器つき 10 種はファイル全体でバイト一致（cmp）
+m516＝木 746cde4f（t2＋pv2＋焼き込みの表の焼き直し〔旗 0〕＋pv2 の反証役の処置〔HistoricalReference の本国の州の数 仏 7→8・西 4→5〕＋試験の追随）・SOURCE-HASH 89d1ccb8e9ea2e30
+  b10_20261023_m516 と b10_20261023_m516_ins はファイル全体でバイト一致（cmp）
+  spa2 を外す腕 b10_20261023_m516_asp_ins（ServiceClosedFixedPoint=0）vs 線 pv2 の腕 b10_20261023_pv2_ins
+    ＝違いは 115・116 行（領土〈本国〉の一致率の行）だけ＝HistoricalReference の本国の州の数を (512) の州の分だけ直した読み手の差（仏・西）
+    ＝spi2・hz6・wc0 は pv2 の世界でも恒等・ServiceClosedFixedPoint=0 は旧の役務の歩と恒等
