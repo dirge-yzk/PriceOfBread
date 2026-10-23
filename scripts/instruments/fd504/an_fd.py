@@ -107,7 +107,7 @@ print('   参考（旧の M4・プールした中央値）：harvestMean<0.9 の
 m5 = sum(1 for r in rows if r['clampBindShare'] > 0) / len(rows)
 print('M5 ②の挟み：旧の挟みが縛っていた重みが正の行の割合 %.3f（要 ≧0.2）→ %s' % (m5, 'PASS' if m5 >= 0.2 else 'FAIL'), file=out)
 
-allok = (len(bad1) == 0) and (m6 >= 1.0) and m3ok and m4ok and (m5 >= 0.2)
+allok = (len(bad1) == 0) and (m6 >= 1.0) and m3ok and m4ok and (m5 >= 0.2 or not has2)   # 追記 3：M5 は旗②の腕だけ判定に使う
 print('\n機構の判定（M1〜M6・M2 は旗②の腕だけ）：%s' % ('全て通った' if allok else '外れがある（採らない＝事前登録 [5]・追記 2）'), file=out)
 
 print('\n記録（採否に使わない）', file=out)
