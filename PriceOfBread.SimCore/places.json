@@ -56,7 +56,7 @@
  {"name": "ケルン", "lat": 50.94, "lon": 6.96, "kind": "state", "terrain": "water_major"},
  {"name": "ケーニヒスベルク", "lat": 54.71, "lon": 20.45, "kind": "state"},
  {"name": "ケープタウン", "lat": -33.9, "lon": 18.4, "kind": "colony", "rule": [0.6, 0.3, 0.0, 0.1]},
- {"name": "コペンハーゲン", "lat": 55.68, "lon": 12.57, "kind": "state"},
+ {"name": "コペンハーゲン", "lat": 55.85, "lon": 12.15, "kind": "state"},
  {"name": "コンゴ", "lat": -5.85, "lon": 13.05, "kind": "target", "terrain": "barren"},
  {"name": "コンスタンティーヌ", "lat": 36.36, "lon": 6.61, "kind": "state"},
  {"name": "コーカンド", "lat": 40.53, "lon": 70.94, "kind": "target", "terrain": "barren"},

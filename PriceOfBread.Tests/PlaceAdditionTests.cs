@@ -78,4 +78,83 @@ public class PlaceAdditionTests
         Assert.Equal(3, cph.Ring);
         Assert.True(cph.Lon > 12.6, $"旧座標の吸着先はスコーネ側（経度 12.6 より東）のはず：{cph.Lon}");
     }
+
+    // ───────────────────────── 足した場所の表（事前登録 measurements/pv2_20261023_prereg.txt [2][3]） ─────────────────────────
+    // 期待はデータのファイルでなくここ（事前登録の表）から作る。足す部品ごとに 1 行ずつ増やす。
+
+    /// <summary>Kind＝state（州・国の人口の中の配分 Share）／colony（国の人口の外から足す PopK）。Nation＝所有国の world.json の名前。</summary>
+    private sealed record NewPlace(string Name, string Kind, string Nation, double Lat, double Lon, string Landmass, double Share, double PopK, int[] Res, string Culture);
+
+    private static readonly NewPlace[] Added =
+    [
+        // @ADDED
+    ];
+
+    /// <summary>コペンハーゲン：座標を海から島の中（シェランの格子の中心）へ。places・landmass の 2 行・world.json の国の 2 値の 4 箇所が同じ。旧座標はスコーネへ吸着した。</summary>
+    [Fact]
+    public void コペンハーゲンの種はシェランの島に乗りスコーネに吸着しない()
+    {
+        var (lat, lon) = Places.Coord("コペンハーゲン");
+        Assert.Equal((55.85, 12.15), (lat, lon));
+        Assert.True(Landmask.IsLand(lat, lon) && Landmask.IsLandForRoads(lat, lon), "自分の座標が両方のマスクで陸の格子");
+        var s = Seed(lat, lon)!.Value;
+        Assert.Equal(0, s.Ring);
+        Assert.True(s.Lon < 12.3, $"シェランは経度 12.2 より西・スコーネは 12.7 より東：{s.Lon}");
+        Assert.Equal((lat, lon), Landmass.CoordOf("コペンハーゲン"));
+        Assert.Equal((lat, lon), Landmass.CoordOf("デンマーク"));   // capital 行（最初に一致する行）
+        var dk = WorldData.ByName("デンマーク");
+        Assert.Equal((lat, lon), (dk.Latitude, dk.Longitude));
+        Assert.Equal("zealand-dk", Landmass.LandmassOf("コペンハーゲン"));
+        // 旧座標からの移動は 35km 未満（座標の規則：本当の位置に最も近い両マスクの陸の格子の中心）
+        Assert.InRange(Geo.DistanceKm(55.68, 12.57, lat, lon), 30.0, 35.0);
+    }
+
+    [Fact]
+    public void 足した場所は座標表と陸塊表で同じ座標_両マスクの陸の格子の中心_別の種と同じ格子にならない()
+    {
+        foreach (var n in Added)
+        {
+            var (lat, lon) = Places.Coord(n.Name);
+            Assert.Equal((n.Lat, n.Lon), (lat, lon));
+            Assert.Equal((lat, lon), Landmass.CoordOf(n.Name));
+            Assert.Equal(n.Landmass, Landmass.LandmassOf(n.Name));
+            Assert.True(Landmask.IsLand(lat, lon) && Landmask.IsLandForRoads(lat, lon), $"{n.Name}：両方のマスクで陸の格子");
+            Assert.Equal(0, Seed(lat, lon)!.Value.Ring);
+            // 格子の中心＝小数 2 桁で 0.05 の奇数倍（境の座標は浮動小数でずれる）
+            Assert.Equal(5, (int)Math.Round(Math.Abs(lat) * 100) % 10);
+            Assert.Equal(5, (int)Math.Round(Math.Abs(lon) * 100) % 10);
+            Assert.Equal(n.Kind, Places.All.Single(p => p.Name == n.Name).Kind);
+            // 10km の番人の再掲（最寄りの別の場所まで 100km 以上＝島の中で他の種を食わない）
+            double near = Places.All.Where(p => p.Name != n.Name).Min(p => Geo.DistanceKm(lat, lon, p.Lat, p.Lon));
+            Assert.True(near > 100.0, $"{n.Name}：最寄りの別の場所まで {near:F0}km");
+        }
+    }
+
+    /// <summary>盤面に一意にあり、開幕の人口が表どおり。国ごとの人口の和は〈7 階級＋植民地の popK〉に一致（州の share の和が 1・植民地は国の外から足した分だけ増える）。</summary>
+    [Fact]
+    public void 足した場所は盤面に一意にあり人口が表どおり_国の人口の和が保たれる()
+    {
+        var nations = Added.Select(a => a.Nation).Distinct().ToArray();
+        if (nations.Length == 0) return;
+        var cfgs = nations.Select(WorldData.ByName).ToArray();
+        var sim = new MultiNationSim(cfgs, seed: 83) { DiplomacyFrozen = true };
+        foreach (var cfg in cfgs)
+        {
+            var w = sim.Nations.Single(x => x.World.SelfPower!.BaseName == cfg.Name).World;
+            double classes = cfg.Nobility + cfg.Peasant + cfg.Worker + cfg.Bourgeois + cfg.Professional + cfg.Merchant + cfg.Artisan;
+            double expected = classes + cfg.InitialColonies.Sum(c => c.PopK);
+            double actual = w.Regions.Sum(r => r.SumPopulation());
+            Assert.Equal(expected, actual, expected * 1e-9);
+            Assert.Equal(1.0, cfg.Provinces.Sum(p => p.Share), 1e-9);
+            foreach (var a in Added.Where(x => x.Nation == cfg.Name))
+            {
+                var rs = w.Regions.Where(r => r.Name == a.Name).ToArray();
+                Assert.Single(rs);
+                double want = a.Kind == "state" ? classes * a.Share : a.PopK;
+                Assert.Equal(want, rs[0].SumPopulation(), want * 1e-9);
+                if (a.Kind == "colony") Assert.Equal(RegionTier.Colonial, rs[0].Tier);
+                if (a.Culture.Length > 0) Assert.Equal(a.Culture, rs[0].Culture);
+            }
+        }
+    }
 }
