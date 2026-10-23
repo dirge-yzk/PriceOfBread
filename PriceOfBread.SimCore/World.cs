@@ -489,9 +489,9 @@ public sealed class World
     // 書き手＝Military.NavalFuelStep・読み手＝Diplomacy の同期（Power.NavalFuelMul）。どちらも NavalFuelPerGauge>0 のときだけ＝既定0では読み書きゼロ（セーブ往復に載るのみ）＝厳密恒等。
     public double NavalFuelFillEma { get; internal set; } = 1.0;
     //   ⚠**約2世代で完全に減衰**＝訓練された世代が退役して失われる（半減期を係数で持つ）。
-    //   ⚠効果は最大でも**2倍**＝熟練だけで勝てるようにはしない（作者指示）。
+    /   ⚠効果は最大でも 1+SkillCombatMax 倍（既定 1.5 倍＝Military.SkillCombatMultiplier）＝作者指示「最大でも2倍程度の強さに留める」の内＝熟練だけで勝てるようにはしない。
     public double ArmySkill { get; internal set; }   // 幹部の熟練（陸と海は同じ1本・幹部は兵士 POP の中＝艦の乗員も同じ兵士）。旧は陸と海の2本を同じ式で進めていて常に等しかった
-    public double NavySkill => ArmySkill;            // 海の読み手の名前（App と計器が読む）＝陸と同じ値
+    public double NavySkill => ArmySkill;            // 海の読み手の名前（Diplomacy の同期〔NavySkillMul〕と計器 mil2 の注入が読む・App には読み手が無い）＝陸と同じ値
     public double MilitaryReadiness { get; internal set; } = 1.0;  // 軍の即応度（0..1）。兵士の充足×給与funding＝戦力の乗数（SoldierStep が設定）
     public double HarvestFactor { get; internal set; } = 1.0;      // 今年の豊作/不作係数（1±変動。主食RGO産出と自給に乗算。不作＝飢饉→貧農の不満）
     private double[]? _cropHealth;

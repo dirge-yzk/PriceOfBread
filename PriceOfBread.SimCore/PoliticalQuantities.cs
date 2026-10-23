@@ -262,7 +262,7 @@ public static class PoliticalQuantities
 
     /// <summary>NaN を0側へ倒す [0,1] クランプ（否定形＝<see cref="Math.Clamp"/> は NaN を消さない＝memory「NaNとfail-openガード」）。</summary>
     internal static double Clamp01(double x) => !(x > 0) ? 0 : x > 1 ? 1 : x;   // −0.0 も +0.0 へ（規定形＝Ideologies の旧 `!(x >= 0)` 形を吸収・2026-09-11）
-    /// <summary>`Math.Clamp(x, lo, hi)` と NaN 以外の全ての入力で同じ値（−0.0 の符号も保つ）。NaN だけ <paramref name="neutral"/> へ倒す（`Math.Clamp` は NaN をそのまま通す＝この区間の外の値の守りにならない）。</summary>
+    /// <summary>lo≦hi かつ境界が有限のとき、x が NaN 以外なら `Math.Clamp(x, lo, hi)` と同じ値（−0.0 の符号も保つ）。⚠ lo＞hi のとき `Math.Clamp` は例外を投げるがこちらは lo を返す・境界が NaN で x が有限のときは <paramref name="neutral"/> を返す（既定の係数ではどちらも起きない）。NaN だけ <paramref name="neutral"/> へ倒す（`Math.Clamp` は NaN をそのまま通す＝この区間の外の値の守りにならない）。</summary>
     internal static double ClampOr(double x, double lo, double hi, double neutral) => x < lo ? lo : x > hi ? hi : (x >= lo ? x : neutral);
 
     /// <summary>現政体の4軸座標（参加軸を実参政権へドリフト済み）。旧3実装（Politics×2＋CrownParliament）の一元化。返り値は呼び手専有（変更可）。</summary>

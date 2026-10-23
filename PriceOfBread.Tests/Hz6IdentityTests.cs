@@ -55,6 +55,7 @@ public class Hz6IdentityTests
         Assert.False(Catalog.IsLaborGood(Catalog.Goods.Length));
     }
 
+    // 読み口の配線の番人（NavySkill => ArmySkill の定義を確かめるだけ）。旧の 2 本の状態との恒等の根拠は書き手の grep＝基点で NavySkill の書き手は ArmySkill と同じ式の 2 か所（StepSkill・DiluteSkill）だけ（(516) 反証役 hz6〔bv〕低#4）。
     [Fact]
     public void 熟練は1本でNavySkillは同じ値を読む()
     {
