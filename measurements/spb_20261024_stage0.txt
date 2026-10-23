@@ -1,0 +1,23 @@
+完走: ○    勝者: 清（スコア35.6）    首位確定: Q1/668
+ZL day1only calls 45 runs 45 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZL A_rise_below calls 930384 runs 13955734 maxErrP 1.325E-015 maxErrRW 1.325E-015 meanErrP 1.457E-016
+ZL B_fall_below calls 2043679 runs 30655185 maxErrP 2.038E-015 maxErrRW 2.038E-015 meanErrP 4.285E-016
+ZL C_rise_above_closed calls 111254 runs 1668810 maxErrP 2.396E-007 maxErrRW 0.000E+000 meanErrP 8.153E-009
+ZL C_rise_above_noclosed calls 210136 runs 3152040 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZL D_fall_above calls 577185 runs 8657775 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZL E_clamp calls 20531 runs 171546 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZL F_dirflip calls 0 runs 0 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZL G_sidecross calls 9711 runs 145665 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZL H_other calls 501 runs 7491 maxErrP 0.000E+000 maxErrRW 0.000E+000 meanErrP 0.000E+000
+ZM mask 0 calls 45 runs 45
+ZM mask 5 calls 930507 runs 13957555
+ZM mask 6 calls 2044057 runs 30660855
+ZM mask 9 calls 321390 runs 4820850
+ZM mask 10 calls 577185 runs 8657775
+ZM mask 13 calls 4511 runs 67665
+ZM mask 14 calls 5200 runs 78000
+ZM mask 21 calls 11030 runs 33090
+ZM mask 22 calls 9004 runs 135060
+ZM mask 25 calls 335 runs 1002
+ZM mask 26 calls 159 runs 2385
+ZM mask 27 calls 3 runs 9
