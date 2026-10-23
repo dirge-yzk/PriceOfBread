@@ -115,6 +115,55 @@ public class PlaceAdditionTests
         Assert.InRange(Geo.DistanceKm(55.68, 12.57, lat, lon), 30.0, 35.0);
     }
 
+    /// <summary>コペンハーゲンの種の格子の連結成分は小さい島（本土ではない）。シェランの東端は海路用マスクで経度 12.5 より西で終わり、
+    /// 12.5 より東の陸の格子は全てスコーネ（ユーラシアの陸続き）＝経度の閾 12.5 を保つ解は無い。これが赤＝種がスコーネへ逆戻りした。
+    /// 期待は座標の表でなく連結成分の大きさ（事前登録 [3]：シェラン 60 格子・本土は 5000 超で打ち切り）から作る。</summary>
+    [Fact]
+    public void コペンハーゲンの種の連結成分は島で本土ではない()
+    {
+        var (lat, lon) = Places.Coord("コペンハーゲン");
+        var s = Seed(lat, lon)!.Value;
+        int Fill(double la0, double lo0)
+        {
+            const int cap = 5000;
+            static double CLat(int y) => 90.0 - (y + 0.5) * Step;
+            static double CLon(int x) => -180.0 + (x + 0.5) * Step;
+            int y0 = (int)((90.0 - la0) / Step), x0 = (int)Math.Floor((lo0 + 180.0) / Step);
+            var seen = new HashSet<(int, int)> { (y0, x0) }; var st = new Stack<(int, int)>(); st.Push((y0, x0));
+            while (st.Count > 0 && seen.Count < cap)
+            {
+                var (y, x) = st.Pop();
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        if (dy == 0 && dx == 0) continue;
+                        var n = (y + dy, (x + dx + Landmask.Nx) % Landmask.Nx);
+                        if (n.Item1 < 0 || n.Item1 >= Landmask.Ny || seen.Contains(n)) continue;
+                        if (Landmask.IsLand(CLat(n.Item1), CLon(n.Item2))) { seen.Add(n); st.Push(n); }
+                    }
+            }
+            return seen.Count;
+        }
+        int island = Fill(s.Lat, s.Lon);
+        Assert.InRange(island, 20, 500);                        // シェラン（事前登録 [3] は 60 格子）
+        Assert.True(Fill(55.95, 12.75) >= 5000);                // 対照：スコーネ側の格子は上限まで繋がる（打ち切り）
+    }
+
+    /// <summary>【既知の段差・事前登録 追記 2】コペンハーゲンの港は冬に凍らなくなる（1 四半期→0）。
+    /// `Climate.WinterFrozenQuarters` のバルト海の箱は経度 12.5〜31。旧座標 12.57 は箱の中、シェランの両マスクの陸は全て 12.5 より西＝島の中へ置くと箱を西へ出る。
+    /// 海路の接ぎ先は動かない（最寄りの海の節点は新旧とも 55,14・バルト海）。この赤＝座標か箱が動いた＝腕 B の記録（デンマークとバルト沿岸国の Q1 の貿易・LastPortFrozen）を取り直す。
+    /// 対照は箱の規則を別の港で引く（リガは凍る）。</summary>
+    [Fact]
+    public void コペンハーゲンの港は冬に凍らない_既知の段差_バルトの他の港は凍る()
+    {
+        var (lat, lon) = Places.Coord("コペンハーゲン");
+        Assert.True(lon < 12.5, "島の中の座標は箱の西");
+        Assert.Equal(0, Climate.WinterFrozenQuarters(lat, lon));
+        var riga = Places.Coord("リガ");
+        Assert.Equal(1, Climate.WinterFrozenQuarters(riga.Lat, riga.Lon));   // 対照：箱の規則は生きている
+        Assert.Equal(1, Climate.WinterFrozenQuarters(55.68, 12.57));         // 旧座標は凍っていた
+    }
+
     [Fact]
     public void 足した場所は座標表と陸塊表で同じ座標_両マスクの陸の格子の中心_別の種と同じ格子にならない()
     {
