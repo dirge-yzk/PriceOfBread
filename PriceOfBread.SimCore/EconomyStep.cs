@@ -721,7 +721,7 @@ public static class EconomyStep
             else s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
             if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }   // ★(495) 倒産しても設備は残る（Scale は据え置き）＝労働は取らない（旧は Scale=0 が重みを 0 にした）
             prodW[pi] = s.LaborWeight * s.Scale;
-            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
+            if (Catalog.IsLaborGood(s.GoodId)) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
             laborTotalW[s.LaborPopIndex] += prodW[pi];
             laborCount[s.LaborPopIndex]++;
         }
@@ -793,7 +793,7 @@ public static class EconomyStep
             int lp = s.LaborPopIndex;
             // 労働力・高度労働力の生産者＝階級全体が算出（fraction=1）。工場の能力は従来通り需要シェアで按分し（規模調整）、
             // 実際の雇用（賃金支払い）は役務の購入＝投入充足が律速する。
-            double fraction = s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId ? 1.0
+            double fraction = Catalog.IsLaborGood(s.GoodId) ? 1.0
                 : laborTotalW[lp] > Eps
                     ? prodW[pi] / laborTotalW[lp]   // 均等床 LaborFloorMix は撤去（2026-08-22・作者裁定「ラッダイトは必須」）＝準レントでは価格上昇が自動で重みを戻すので恒久ロックアウトが起きない
                     : laborCount[lp] > 0 ? 1.0 / laborCount[lp] : 1.0;
@@ -892,13 +892,7 @@ public static class EconomyStep
             // 経16：当期産出は前期充足率(LastInputFill)で決まる（作者裁定2026-08-01＝恒久。当期の在庫カバーでも律速する旗 CurrentInputFillGates は 2026-09-26 に削除＝dorm-50）。
             double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
             // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
-            if (coef.InventoryAdjustGain > 0)
-            {
-                var im = region.Markets[s.GoodId];
-                double desiredInv = System.Math.Max(coef.TargetStockFloor, coef.DesiredInventoryCover * im.LastDemand);
-                double invGap = (desiredInv - im.Stock) / (desiredInv + im.Stock + Eps);   // 不足で+・過剰で−・有界
-                target *= System.Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
-            }
+            target *= InventoryAdjust(region, s.GoodId, coef);
             s.Output += coef.SupplyAdjustSpeed * (target - s.Output);
             if (s.Output < 0) s.Output = 0;
             // ★幻の生産の根絶（作者2度指摘・2026-08-10／係数 PhantomOutputSnapFloor に由来の全文）。
@@ -2914,6 +2908,17 @@ public static class EconomyStep
     /// <summary>人力の労働の供給＝労働力・農業労働力の生産者のうち、レシピ名が空（人力）で投入を持たないもの。畜力・蒸気機関・電動・水車は投入費を持つ企業の採算＝対象外。技師（高度労働力）も対象外。</summary>
     internal static bool IsHumanLaborSupply(Producer s)
         => (s.GoodId == Catalog.LaborId || s.GoodId == Catalog.FarmLaborId) && s.RecipeName.Length == 0 && s.Inputs.Count == 0;
+
+    /// <summary>メッツラー在庫循環の産出目標への乗数（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）＝望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り、不足で1より上・過剰で下。
+    /// InventoryAdjustGain が0以下なら1（項が消える）。①供給の産出目標と生産の診断（ProductionDiag.ExplainUtilization）が同じ1本を読む。</summary>
+    internal static double InventoryAdjust(Region region, int goodId, Coefficients coef)
+    {
+        if (!(coef.InventoryAdjustGain > 0)) return 1.0;
+        var im = region.Markets[goodId];
+        double desiredInv = System.Math.Max(coef.TargetStockFloor, coef.DesiredInventoryCover * im.LastDemand);
+        double invGap = (desiredInv - im.Stock) / (desiredInv + im.Stock + Eps);   // 不足で+・過剰で−・有界
+        return System.Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
+    }
 
     /// <summary>生産者の**自己費用**（1単位の付加価値費用＝<see cref="Producer.MarginalCost"/>）を**価格と同じ単位**で返す＝
     /// RGO・工場・役務・労働の**全ての生産者**の唯一の入口。

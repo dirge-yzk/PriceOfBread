@@ -106,10 +106,6 @@ public static class ProductionDiag
         public double Rebuilt => MaterialCost + LaborCost + OwnCost;
     }
 
-    /// <summary>労働（市場で買う3種の労働力）か。人件費の行はこの3つだけを集める＝他の役務が投入に混ざっても
-    /// 「人件費」に紛れ込ませない（その役務は名前のついた材料行として出る）。</summary>
-    internal static bool IsLaborGood(int gid) => gid == Catalog.LaborId || gid == Catalog.AdvLaborId || gid == Catalog.FarmLaborId;
-
     /// <summary>表示に使う生産者個体の規約＝**その州の先頭**（エンジンの動詞 SetSubsidy/BuildFactory と同じ個体）。
     /// その州に居なければ国内の active 州を順に探す（レシピと自己費用を実在の個体から取る）。
     /// 所属州も返す＝機械化度（<see cref="Region.Mechanization"/>）は所属州の量で、価格の州（首都）と別（2026-09-11 M2）。</summary>
@@ -198,7 +194,7 @@ public static class ProductionDiag
             for (int i = 0; i < def.Length; i++)
             {
                 double q = def[i].QtyPerOutput, up = Price(def[i].GoodId), am = q * up;
-                rows[i] = new CostItem(def[i].GoodId, q, up, am, IsLaborGood(def[i].GoodId), Fill(def[i].GoodId));
+                rows[i] = new CostItem(def[i].GoodId, q, up, am, Catalog.IsLaborGood(def[i].GoodId), Fill(def[i].GoodId));
                 mat += am;
             }
             return new CostParts(rows, mat, 0.0, 0.0, mat, false, "");
@@ -213,7 +209,7 @@ public static class ProductionDiag
             double qty = EconomyStep.EffectiveQty(s, home, inp, coef);      // 電化・機械化（所属州の度合）の労働節約込み
             double unit = Price(inp.GoodId);
             double amount = qty * unit;
-            bool lab = IsLaborGood(inp.GoodId);
+            bool lab = Catalog.IsLaborGood(inp.GoodId);
             items[i] = new CostItem(inp.GoodId, qty, unit, amount, lab, Fill(inp.GoodId));
             if (lab) labor += amount; else material += amount;
             if (inp.GoodId < 0 || inp.GoodId >= region.Markets.Length) inRange = false;
@@ -314,14 +310,7 @@ public static class ProductionDiag
                 double price = region.Markets[s.GoodId].Price;
                 double profit = EconomyStep.ProfitFactor(s, price, mc, coef);   // 同 profitFactor（★(459) 唯一の定義を読む）
                 double fill = s.LastInputFill;                                                    // 同（労働込み）
-                double invAdj = 1.0;
-                if (coef.InventoryAdjustGain > 0)                                                 // 同 メッツラー在庫循環
-                {
-                    var im = region.Markets[s.GoodId];
-                    double desiredInv = Math.Max(coef.TargetStockFloor, coef.DesiredInventoryCover * im.LastDemand);
-                    double invGap = (desiredInv - im.Stock) / (desiredInv + im.Stock + Eps);
-                    invAdj = Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
-                }
+                double invAdj = EconomyStep.InventoryAdjust(region, s.GoodId, coef);              // 同 メッツラー在庫循環（エンジンと同じ1本）
                 sCap += s.Capacity;
                 sCapP += s.Capacity * profit;
                 sCapPF += s.Capacity * profit * fill;

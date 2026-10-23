@@ -723,7 +723,7 @@ public sealed class Diplomacy
             lost = sum > 1e-9 ? lost / sum : 0;
         }
         if (fr == _hegemon) lost += _hegemonContainLost;   // 反覇権の経済封じ込め（覇権国だけが市場アクセスを失う＝大陸封鎖型）
-        return Math.Clamp(1.0 - lost, 0.1, 1.0);
+        return PoliticalQuantities.ClampOr(1.0 - lost, 0.1, 1.0, 0.1);   // NaN は最も狭いアクセス（床）へ
     }
 
     /// <summary>軍需財だけの輸出アクセス（禁制品doc C5・2026-07-30）。「軍需輸出 禁止」の国は緊張が閾値以上の相手の交易比重を失う。
@@ -733,7 +733,7 @@ public sealed class Diplomacy
         double lost = 0;
         foreach (var p in Powers)
             if (p != fr && p.Nation is not null && Tension(fr, p) >= c.MilitaryExportTensionThreshold) lost += p.TradeWeight;
-        return Math.Clamp(1.0 - lost, c.MilitaryExportAccessFloor, 1.0);
+        return PoliticalQuantities.ClampOr(1.0 - lost, c.MilitaryExportAccessFloor, 1.0, c.MilitaryExportAccessFloor);   // NaN は床へ
     }
 
     // 反覇権の経済封じ込め（B2・最終調整2026-06-29）：明白な覇権国（脅威超過が最大かつ HegemonThreatMin 超）の交易アクセスを、
@@ -1068,7 +1068,7 @@ public sealed class Diplomacy
                 //   ⚠**乗算**＝小国の精鋭は怖くない・大国の精鋭が怖い（規模との積で効く）。陸海の高い方を見る。
                 //   ⚠SkillTensionWeight=0 で ×1.0＝厳密恒等。
                 if (c.SkillTensionWeight > 0 && big.Nation is { } bnw)
-                    threat *= 1.0 + c.SkillTensionWeight * Math.Max(bnw.ArmySkill, bnw.NavySkill);
+                    threat *= 1.0 + c.SkillTensionWeight * bnw.ArmySkill;
                 if (threat <= 0) continue;
                 if (border is null)
                 {
@@ -1839,7 +1839,7 @@ public sealed class Diplomacy
             double avgFriend = friendSum > 1e-9 ? friendlyTariff / friendSum : 0;
             double retaliate = Math.Max(0, avgPartner - w.Tariff);
             double reciprocal = friendSum > 1e-9 ? Math.Max(0, w.Tariff - avgFriend) : 0;
-            w.TariffRetaliationBias = Math.Clamp(c.TariffRetaliation * (retaliate - reciprocal), -c.TariffReactionMax, c.TariffReactionMax);
+            w.TariffRetaliationBias = PoliticalQuantities.ClampOr(c.TariffRetaliation * (retaliate - reciprocal), -c.TariffReactionMax, c.TariffReactionMax, 0.0);   // NaN は反応なし（0）へ
         }
     }
 
@@ -2034,7 +2034,7 @@ public sealed class Diplomacy
             int actorId = (int)(dk >> 32), targetId = (int)(uint)dk;
             Power? actor = Powers.Find(p => p.Id == actorId), target = Powers.Find(p => p.Id == targetId);
             if (actor is null || target is null) { _tensionRamp.Remove(dk); continue; }   // 除去された国（再併合）のならしは消える
-            double d = Math.Clamp(remain, -perMonth, perMonth);
+            double d = PoliticalQuantities.ClampOr(remain, -perMonth, perMonth, 0.0);   // NaN は動かさない（0）
             // ランプの出所は挑発/緩和の2動詞だけ＝符号で判別できる。moved＝上限200・下限0で切った後に実際に動いた量
             double moved = AddTensionKeyed(Key(actor, target), d, d >= 0 ? TensionReason.Provocation : TensionReason.Appeasement);
             // 政治的帰結＝実際に動いた緊張の割合（|moved|÷ActionTensionStep）＝押した総量が同じなら払う総額は押した瞬間の全額払いと同じ・上限で切れた分は払わない
@@ -2257,7 +2257,7 @@ public sealed class Diplomacy
     /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(194) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
     internal double ExpeditionLift(Power great, Power target, Coefficients c)
         => great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target)
-           ? Math.Clamp(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0)
+           ? PoliticalQuantities.ClampOr(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0, c.ExpeditionTechFloor)   // NaN は床へ
            : 1.0;
 
     /// <summary>屈服線＝標的を屈服させるのに要る実効戦力（軍事ゲージ×<see cref="Coefficients.ColonizeSubmitRatio"/>・無防備な標的の床つき）。
@@ -2906,7 +2906,7 @@ public sealed class Diplomacy
                     //   ＝上陸侵攻と同じ原始条件（船が無ければ海は渡れない・SeaControl≧SeaInvasionControlMin は敗者との相対）。
                     //   海軍国（英仏）は圏外でも奪える＝カリブの島の交換（史実）は残る。賠償はこの分岐でも満額入る。
                     if (km > c.CessionMaxDistanceKm && c.CessionMaxDistanceKm > 0
-                        && !(winner.NavalPower > 1e-9 && SeaControl(winner, loser) >= c.SeaInvasionControlMin))
+                        && !CanCrossSea(winner, loser, c))
                     { k++; continue; }
                     cost *= 1 + c.ColonyCaptureDistanceWeight * (km / DistanceNormKm) * (1 - seaControl);
                 }
@@ -2932,7 +2932,7 @@ public sealed class Diplomacy
         //   V1（獲得時州化）点火後も「圧勝した帝国戦争は複数の植民地を再配分する」（七年戦争型）が保たれる。
         //   reach＝colonialReach と同じ規律（海軍あり＋制海権≧SeaInvasionControlMin）・首都(Id0)と最後の1州は対象外。0で不発。
         if (winner.Nation is { } wcw && loser.Nation is { } lcw
-            && winner.NavalPower > 1e-9 && SeaControl(winner, loser) >= c.SeaInvasionControlMin)
+            && CanCrossSea(winner, loser, c))
         {
             int ctaken = captured;   // 旧経路（ColonyList奪取）との合算で ColonyCaptureMax を守る（予算budgetも上で1本化して共有）
             while (ctaken < (int)c.ColonyCaptureMax)
@@ -3294,7 +3294,12 @@ public sealed class Diplomacy
     /// ⚠双方が海軍ゼロなら SeaControl は 0.5 を返すが、NavalPower>0 の条件で**両者とも上陸不可**にする（船が無ければ海は渡れない）。</summary>
     public double LandingGate(Power attacker, Power defender, Coefficients c)
         => c.SeaInvasionControlMin <= 0 || !IsSeaCrossing(attacker, defender) ? 1.0
-           : attacker.NavalPower > 1e-9 && SeaControl(attacker, defender) >= c.SeaInvasionControlMin ? 1.0 : 0.0;
+           : CanCrossSea(attacker, defender, c) ? 1.0 : 0.0;
+
+    /// <summary>海を渡れるか（陸続きかどうかの判定は含まない）＝攻者が艦を持ち、制海権が <see cref="Coefficients.SeaInvasionControlMin"/> 以上。上陸ゲート（<see cref="LandingGate"/>）と、講和の植民地奪取・植民地格の州の割譲の射程が同じ1本を読む
+    /// （植民地格の州の候補を数える所〔CedeTerritory〕だけは、敗者の経済を持たない場合の既定の制海権 0.5 を持つので同じ式を手で書く）。</summary>
+    private bool CanCrossSea(Power attacker, Power defender, Coefficients c)
+        => attacker.NavalPower > 1e-9 && SeaControl(attacker, defender) >= c.SeaInvasionControlMin;
 
     /// <summary>★陸戦が成立するか（上陸ゲートの**正しい適用形**・2026-08-01 の敵対的レビューで是正）。
     /// ⚠初版は押し合いの**両辺**にゲートを掛けたが、制海権は相補（和=1）で閾値は0.5超なので**通れるのは高々片側**＝

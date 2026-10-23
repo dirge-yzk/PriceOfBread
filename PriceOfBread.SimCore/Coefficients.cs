@@ -567,7 +567,8 @@ public sealed class Coefficients
                                                        //   深さ 0.18 で旧は年 約15‰（平常の死 28‰ のとき）・新は 約1‰。0＝飢えの超過死亡なし
     public double FamineExcessMortalityExponent = 4.0; // ★2026-10-01 (143) 飢えの超過死亡の凸さ（飢えの深さの指数）＝史実の飢饉の死は栄養の不足に強く凸（浅い慢性の不足は病気との相乗で少し・深い不足は数か月で死ぬ）。
                                                        //   上の較正の4点から（充足 0.6→0.4 で約16倍・0.4→0.2 で約5倍）。1＝深さに比例（(143) の番人＝慢性の充足0.58 の植民地の州が167年でピークの1/10 未満へ落ちる）
-    public double FamineDeathFillFloor = 0.8;          // 第4段4-5点火（2026-07-27）：飢えの超過死亡の絶対水準ゲート＝食料充足がこれ以上のpopは上乗せなし（平常の死だけ）。旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた。1.0で旧恒等。#17較正2026-07-28：0.9→0.8（0.9は限界的な州まで集中対象＝総政変+49の主因・真に飢えた州へ絞る）。⚠★(143) 飢えた都市へ移らない門（PopDecision）もこの線を読む＝この係数を較正し直すと移動の門も一緒に動く（2つの意味が1本・(144) 反証の指摘）
+    public double FamineDeathFillFloor = 0.8;          // 第4段4-5点火（2026-07-27）：飢えの超過死亡の絶対水準ゲート＝食料充足がこれ以上のpopは上乗せなし（平常の死だけ）。旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた。1.0で旧恒等。#17較正2026-07-28：0.9→0.8（0.9は限界的な州まで集中対象＝総政変+49の主因・真に飢えた州へ絞る）。飢えた都市へ移らない門（PopDecision）は別の係数 FamineMigrationFillGate（(144) 反証の指摘で2つの意味を分けた・値は同じ 0.8）
+    public double FamineMigrationFillGate = 0.8;       // 飢えた都市へ移らない門＝都市の食料充足がこれ未満で、かつ農村より低いとき農村から都市への流れを止める（PopDecision・(143)）。飢えの超過死亡の門 FamineDeathFillFloor と値は同じ 0.8 だが別の係数＝片方を較正し直してももう片方は動かない（旧は1本が2つの意味を持っていた）
     // （局地飢饉の相対的剥奪の死 RegionalFamineMortality〔国平均からの州の不足×0.025／月〕は 2026-09-30 (131) に係数ごと削除＝POP の飢えの上乗せと同じ飢えの2本目の死〔思想⑨〕・
     //   植民地の州を開幕から年3%ずつ痩せさせピークの1/10 未満へ落としていた。局地の不作・孤立で飢えた州は、その州の POP の充足が落ちて上乗せが立つ）
     // 作物病虫害（年次・専用RNG＝主系列を乱さない）：病害に弱い作物（ジャガイモ/葡萄/小麦/米/トウモロコシ）に稀に胴枯れ。
@@ -885,7 +886,7 @@ public sealed class Coefficients
     // ★**結論＝この回は休眠へ差し戻す（0/0）。** 機構を作り直してから #17 較正ラウンドで点火する。B3（除数の是正）は恒等なので残す。
     public RatePerYear LoanSpreadPerYear = new(0.0);           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
     public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）。0で無効
-    // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が SoeSaleYears を読む）
+    // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が CreditRepayableYears を読む）
     public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)。0で恒等。BondPriceは既存診断値を配線
     public double DebtDeflationWeight = 4.0;  // フィッシャー民間負債デフレ：デフレ率×レバレッジ(Heat)→信頼目標の下げ（実質債務増→債務者破産→さらにデフレの渦）。MonetaryEnabled時のみ
 
@@ -1137,7 +1138,8 @@ public sealed class Coefficients
     }
     // ★裁定②の安全弁（同日）：AIの工事出費の律速に素材の月次支出を数える旗 FacilityBuildOutlayIncludesMaterial は 2026-09-27（線2）に点火して焼き込み（旗ごと削除）
     //   ＝SelfPlay.TryBuildFacility が常に World.ConstructionMaterialPerMonth を足す（工事費の6割＝FactoryMaterialFrac が律速から漏れていた）。
-    public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）。★2つ目の読み手（A16・2026-09-28）＝与信の上限の「借り手の返せる額」＝投資家の年間所得×これ（Credit.Step）＝同じ「年間所得×年数」の物差し
+    public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）。与信の上限の〈借り手の返せる額〉は別の係数 CreditRepayableYears（A16・2026-09-28 は流用していた・L22 で分けた・値は同じ 5）
+    public double CreditRepayableYears = 5.0;     // 与信の上限の〈借り手の返せる額〉＝投資家の年間所得×これ（Credit.Step・A16）。国営工場の払い下げ価格の年数 SoeSaleYears と値は同じ 5 だが別の係数（旧は SoeSaleYears を流用していた）
     // 工業化由来の生産性＝1 + Gain×工業化度/(1+工業化度/Scale)。固定上限を持たず Scale で逓減（飽和）し頭打ち。
     public double IndProductivityGain = 1.2;      // 低工業化度での生産性の伸び（飽和カーブの初期傾き）
     public double IndProductivityScale = 2.5;     // 生産性の逓減スケール（工業化度がこれを超えると伸びが鈍る）
@@ -3611,7 +3613,9 @@ public sealed class Coefficients
             if (!double.TryParse(part[(eq + 1)..].Trim(), System.Globalization.NumberStyles.Float,
                                  System.Globalization.CultureInfo.InvariantCulture, out double v))
                 throw new ArgumentException($"POB_COEF の値が数値でない: 「{part}」");
-            if (field.FieldType == typeof(int) && !(double.IsFinite(v) && v >= int.MinValue && v <= int.MaxValue))
+            if (!double.IsFinite(v))
+                throw new ArgumentException($"POB_COEF の値が有限でない（NaN/無限大）: {part}");   // 型を問わず（double の係数に NaN が入ると下流のガードが静かに倒れる）
+            if (field.FieldType == typeof(int) && !(v >= int.MinValue && v <= int.MaxValue))
                 throw new ArgumentException($"POB_COEF の値が int の範囲外/非数: 「{part}」");
             list.Add((name, v));
         }

@@ -997,6 +997,8 @@ public sealed class Region
     public double HousingFill = 1.0;                  // 住居役務の充足率（housing-urban-rent-absent）。移民摩擦に使用。住居財なし/HousingNeedPerUrban=0では1.0＝摩擦なし（従来）
     public double ElecInfraFill;                      // 電化インフラ（上位＝近代都市インフラ）の充足率。満足度＋衛生追加＋送電容量↑。便益は加算なので既定0＝施設の無い世界は便益なし（従来挙動）
     public double ElecInfraBudget;                    // 今期の電化インフラ調達の予算（上下水道と同型。Simulation が設定）
+    /// <summary>衛生＝上下水道の充足＋石鹸の消費＋電化インフラの上乗せを [0,1] に収めた値（人口の段・疫病の致死率・疫病の脆弱層が同じ1本を読む。EconomyStep の医療の需要の行だけは同じ式を手書きで持つ＝食料の台帳の線の範囲）。</summary>
+    internal double Sanitation(Coefficients c) => PoliticalQuantities.Clamp01(InfraFill + c.SoapSanitationWeight * SoapFill + c.ElecInfraSanitationWeight * ElecInfraFill);
     // ★軍の恒常性（2026-07-31・作者提案）：装備と給与の「必要額に対して払えた比率」を**1で切らずに**保持する。
     // 既存の afford は Math.Min(1,…) で切っているため「余裕がある」が読めず、軍を増やすべきか減らすべきかの信号にならなかった。
     // 生の比＝1超で余裕・1未満で不足。Military.Step がこれを見て軍を増減させる（目標を式で決めるのをやめる）。
