@@ -341,5 +341,6 @@
  {"name": "ラス・パルマス", "lat": 28.15, "lon": -15.75, "kind": "state", "terrain": "hill"},
  {"name": "モルッカ諸島", "lat": -3.05, "lon": 128.15, "kind": "colony", "terrain": "forest", "rule": [0.6, 0.3, 0.0, 0.1]},
  {"name": "バハマ諸島", "lat": 24.95, "lon": -78.15, "kind": "colony", "rule": [0.6, 0.3, 0.0, 0.1]},
- {"name": "パラワン", "lat": 9.95, "lon": 118.35, "kind": "colony", "terrain": "forest", "rule": [0.6, 0.3, 0.0, 0.1]}
+ {"name": "パラワン", "lat": 9.95, "lon": 118.35, "kind": "colony", "terrain": "forest", "rule": [0.6, 0.3, 0.0, 0.1]},
+ {"name": "チロエ", "lat": -41.85, "lon": -73.85, "kind": "colony", "terrain": "forest", "rule": [0.5, 0.45, 0.0, 0.05]}
 ]

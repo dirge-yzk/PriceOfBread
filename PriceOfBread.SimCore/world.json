@@ -1742,6 +1742,15 @@
       11
      ],
      "popK": 10
+    },
+    {
+     "name": "チロエ",
+     "resources": [
+      11,
+      20,
+      105
+     ],
+     "popK": 27
     }
    ],
    "initialSerfEmancipation": "Limited",
