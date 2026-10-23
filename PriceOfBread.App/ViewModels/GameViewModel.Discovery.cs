@@ -19,8 +19,6 @@ public sealed record DiscoveryRow(string Name, string Kind, double Pct, string P
 
 public partial class GameViewModel
 {
-    [ObservableProperty] private bool _discoveryOpen;
-
     public List<DiscoveryRow> DiscoveryRows { get; private set; } = [];
 
     // 2段組（作者指示2026-09-23「2段組みに」）。新しい状態変数は作らず <see cref="DiscoveryRows"/> から毎回導く＝真実源は1本のまま。
@@ -28,16 +26,6 @@ public partial class GameViewModel
     private int DiscoveryHalf => (DiscoveryRows.Count + 1) / 2;
     public List<DiscoveryRow> DiscoveryLeft => DiscoveryRows.GetRange(0, DiscoveryHalf);
     public List<DiscoveryRow> DiscoveryRight => DiscoveryRows.GetRange(DiscoveryHalf, DiscoveryRows.Count - DiscoveryHalf);
-
-    [RelayCommand]
-    private void ToggleDiscovery()
-    {
-        DiscoveryOpen = !DiscoveryOpen;
-        // 発見パネルは2026-09-07に右ドックと同寸へ＝同じ矩形に2枚重ねない（生産タブ＝全画面とも同時に出さない）
-        if (DiscoveryOpen) { ActiveTab = ""; ProdOpen = false; RefreshDiscovery(); }
-    }
-
-    [RelayCommand] private void CloseDiscovery() => DiscoveryOpen = false;
 
     /// <summary>発見パネルの再計算（開いている間は四半期リフレッシュから追従）。値は全てエンジンの同じ式を読む＝UIに第二の式を置かない。</summary>
     public void RefreshDiscovery()

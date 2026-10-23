@@ -78,6 +78,9 @@ sealed class Program
                 if (i + 2 < args.Length && int.TryParse(args[i + 2], out int n)) UiShotNation = n;
                 if (i + 3 < args.Length && int.TryParse(args[i + 3], out int y)) UiShotYear = y;
             }
+        // ★(501) 段2：撮影・計測・陸マスクの焼きは、作者の本物の配置（%LOCALAPPDATA%/PriceOfBread/配置.json）を読まず・書かない＝別の場所の配置を使う（毎回、初めの配置から始まる）。
+        if (UiShotDir is not null || PerfOut is not null || BakeMaskOut is not null)
+            Layout.LayoutStore.PathOverride = System.IO.Path.Combine(UiShotDir ?? System.IO.Path.GetTempPath(), "配置_検査用.json");
         // クラッシュログ（GUIサブシステム＝コンソール無しで例外が見えない問題の恒久対策）：
         // 未処理例外を %LOCALAPPDATA%\PriceOfBread\crash.log へ記録してから落ちる（書き手は BootLog.Write の1本）。
         void Log(string msg) => BootLog.Write(msg);

@@ -40,7 +40,6 @@
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
-                    <Button Grid.Column="2" Classes="close" Content="✕" Command="{Binding CloseProdCommand}"/>
                 </Grid>
             </Border>
 

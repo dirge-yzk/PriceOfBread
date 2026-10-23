@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
@@ -14,6 +15,34 @@ internal static class UiShotParts
 {
     private static IBrush B(string key, IBrush fallback)
         => Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var v) && v is IBrush b ? b : fallback;
+
+    /// <summary>ページの欄の並べ（PageGrid）の見本＝同じ表を 3 つの大きさで並べる（広い＝3 列・中＝2 列・狭くて低い＝順位の低い欄が見出しの 1 行へ畳まれる）。
+    /// 欄の中身は固定の行（本体の盤面は読まない）。</summary>
+    public static Control BuildPages()
+    {
+        var table = new PageTable(
+        [
+            new SectionSpec("supply", "供給の網", 1, 8), new SectionSpec("goods", "財の表", 2, 8), new SectionSpec("detail", "選んだ財の詳細", 3, 6),
+            new SectionSpec("factory", "州別の工場", 4, 6), new SectionSpec("equip", "設備", 6, 5), new SectionSpec("mega", "巨大建造物", 7, 4),
+        ], [["supply", "detail"], ["goods", "factory"], ["equip", "mega"]]);
+        Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　£{(i + 1) * 137}.0k/月", Margin = new Thickness(0, 1) }); });
+        PageGrid Make(double w, double h)
+        {
+            var g = new PageGrid { Table = table, Width = w, Height = h };
+            foreach (var sp in table.Sections) g.Children.Add(new Section { Key = sp.Key, Title = sp.Title, Body = Rows(sp.MinRows + 6) });
+            return g;
+        }
+        Border Frame(string caption, PageGrid g) => new()
+        {
+            BorderBrush = B("SandDarkBrush", Brushes.Tan), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 0, 10),
+            Child = new StackPanel { Children = { new TextBlock { Text = caption, FontWeight = FontWeight.Bold, Margin = new Thickness(6, 2), Foreground = B("InkBrush", Brushes.Black) }, g } },
+        };
+        var wide = Make(1280, 330); var mid = Make(900, 330); var narrowLow = Make(560, 250);
+        var panel = new StackPanel { Margin = new Thickness(12), Width = 1300, Children = { Frame("幅 1280・高さ 330：3 列", wide), Frame("幅 900・高さ 330：2 列", mid), Frame("幅 560・高さ 250：1 列（低い欄から畳む）", narrowLow) } };
+        return new Border { Background = B("ParchmentBrush", Brushes.Beige), Child = panel, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+    }
+
+    private static T With<T>(this T x, Action<T> f) { f(x); return x; }
 
     public static Control Build()
     {

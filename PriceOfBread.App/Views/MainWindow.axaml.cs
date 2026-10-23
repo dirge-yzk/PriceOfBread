@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
+using PriceOfBread.App.Layout;
 using PriceOfBread.App.ViewModels;
 using System;
 using System.IO;
@@ -53,6 +54,8 @@ public partial class MainWindow : Window
             for (int i = 0; i < 360 && mwvm.CurrentPage is not GameViewModel; i++) await Task.Delay(250);
             await Task.Delay(1500);
             if (mwvm.CurrentPage is not GameViewModel gvm) { lines.Add("error	盤面に到達しない"); try { System.IO.File.WriteAllLines(outPath, lines); } catch { } Environment.Exit(3); return; }
+            gvm.Layout.SetShape(Layout.SplitShape.One); gvm.Layout.Open(Layout.Slot.Map, 0);   // 計測は地図が枠にある状態（(501) 段2：地図は枠に置かれて初めて見える）
+            await Task.Delay(800);
             lines.Add($"startup_s\t{(DateTime.Now - procStart).TotalSeconds:F1}");
             // 四半期ms（速度3・40四半期）
             static int MonthsOf(string d) { var p = d.Split('/'); return int.TryParse(p[0], out var y) && p.Length > 1 && int.TryParse(p[1], out var mo) ? y * 12 + mo : 0; }
@@ -149,6 +152,38 @@ public partial class MainWindow : Window
         Environment.Exit(0);
     }
 
+    /// <summary>外側が縦に流れていないかの判定（設計 §7-3）を BootLog に書く。各枠について：①ページの中身のうち、欄の中の流れ（ScrollViewer）の外にあるものが枠の外へはみ出していないか
+    /// ②欄の中の流れ（ScrollViewer）の数と、そのうち実際に流れている（中身が枠より長い）数。縦にはみ出したものは名前を出して「流れている」とする。横に切れるものは別に名前を出す（旧のタブの固定幅の列＝段3 で直す物）。外側＝枠・左右の列・窓のどれにも外側の流れが無いこと。</summary>
+    private void LogOuterFlow(GameView gv, string tag)
+    {
+        var host = gv.FindControl<SplitHost>("Splits");
+        if (host is null) { BootLog.Write($"uishot: 外側の流れ[{tag}] 分割の外枠が見つからない"); return; }
+        var parts = new System.Collections.Generic.List<string>();
+        bool ok = true;
+        foreach (var (pane, slot, page) in host.Mounted())
+        {
+            var paneView = host.PaneAt(pane);
+            double hh = paneView.Bounds.Height, ww = paneView.Bounds.Width;
+            var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
+            foreach (var c in page.GetVisualDescendants().OfType<Control>())
+            {
+                if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsVisible) continue;
+                if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).OfType<ScrollViewer>().Any()) continue;   // 欄の中の流れの中身は対象外
+                var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), paneView);
+                if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
+                else if (br is { } q2 && q2.X > ww + 1 && wide.Count < 2) wide.Add($"{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q2.X - ww:F0})");
+            }
+            var scrolls = page.GetVisualDescendants().OfType<ScrollViewer>().ToList();
+            int flowing = scrolls.Count(v => v.Extent.Height > v.Viewport.Height + 1);
+            if (over.Count > 0) ok = false;
+            parts.Add($"{(char)('A' + pane)}:{SlotInfo.Name(slot)} 枠{ww:F0}×{hh:F0} 欄の中で流れる{flowing}/{scrolls.Count}" + (over.Count > 0 ? " 縦にはみ出し " + string.Join(" ", over) : "") + (wide.Count > 0 ? " 横にはみ出し（切れる）" + string.Join(" ", wide) : ""));
+        }
+        // 窓全体：外側の ScrollViewer が無い（枠・列・本体の直下に ScrollViewer が居ない）＝中身の高さが窓を超えない
+        double winH = Bounds.Height;
+        double gvH = gv.DesiredSize.Height;
+        BootLog.Write($"uishot: 外側の流れ[{tag}] {(ok && gvH <= winH + 1 ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
+    }
+
     private async void RunUiShot(string dir)
     {
         try
@@ -221,6 +256,12 @@ public partial class MainWindow : Window
             }
             if (gvm.Playing) gvm.TogglePauseCommand.Execute(null);
             await Task.Delay(500);
+            // ★(501) 段2：地図は分割に単独で置ける 1 つのページ＝地図の撮影は〈1 枚の枠に地図〉で撮る（旧の中央の地図に近い絵）。最初に載せた瞬間に自国を中央へ寄せる（HomeView）。
+            var lay = gvm.Layout;
+            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.Map, 0);
+            await Task.Delay(1500);
+            var gameView = this.GetVisualDescendants().OfType<GameView>().First();
+            BootLog.Write("uishot: " + gameView.MapView.BoxReport());
             Capture(dir, "03_地図_一時停止.png");
             // 州ホバー（左上パネル）＝マウスの無い無人撮影では**開けない**（緊張モーダルのツールチップと同じ制約）。
             // 中身をログへ落として実測する＝生産材/輸出材の上位3材と世界シェアが空でないこと・幻の値でないことを追える。
@@ -295,29 +336,51 @@ public partial class MainWindow : Window
                 await Task.Delay(700);
                 Capture(dir, "03d_地図_全景.png");
             }
-            // ★戦争タブを追加（2026-08-09）：理想の軍隊の充足表・国内勢力・総動員規模が平時でも出る＝
-            //   平時でも中身のあるタブになったので無人撮影の穴を塞ぐ（WarTabVisible は常時true）。
-            string[] tabs = ["財政", "法律", "POP", "政治", "貿易", "外交", "戦争"];
+            // ★(501) 段2：旧の「タブを順に開く」は「ページを順に開く」になった。1 枚の枠に 1 ページずつ（旧のタブの撮影に近い広さ以上）。
+            //   ページの外側が縦に流れていない判定（設計 §7-3）を各ページで BootLog に書く。
             int k = 4;
-            foreach (var tab in tabs)
+            foreach (var slot in SlotInfo.All.Where(x => x != Slot.Map))
             {
-                gvm.SelectTabCommand.Execute(tab);
-                await Task.Delay(700);
-                Capture(dir, $"{k:D2}_タブ_{tab}.png");
-                // 縦に長いタブは最下端まで送った状態も撮る（下端見切れの検証・2026-07-25）
-                var sv = this.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "DockScroll");
+                lay.SetShape(SplitShape.One); lay.Open(slot, 0);
+                await Task.Delay(900);
+                Capture(dir, $"{k:D2}_ページ_{SlotInfo.Name(slot)}.png");
+                LogOuterFlow(gameView, $"1枚 {SlotInfo.Name(slot)}");
+                // 縦に長いページは最下端まで送った状態も撮る（下端見切れの検証・2026-07-25）
+                var sv = this.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "PageScroll");
                 if (sv is not null && sv.Extent.Height > sv.Viewport.Height + 1)
                 {
                     sv.ScrollToEnd();
                     await Task.Delay(400);
-                    Capture(dir, $"{k:D2}b_タブ_{tab}_最下端.png");
+                    Capture(dir, $"{k:D2}b_ページ_{SlotInfo.Name(slot)}_最下端.png");
                     sv.ScrollToHome();
                     await Task.Delay(200);
                 }
                 k++;
-                gvm.SelectTabCommand.Execute(tab);   // トグルで閉じる
-                await Task.Delay(200);
             }
+            // 配置の見本：既定・左右に2つ（既定）・上下に2つ・左に1つ右に2つ・4つ・左右の列を畳んだ図
+            lay.Reset();
+            await Task.Delay(1200);
+            Capture(dir, $"{k++:D2}_配置_既定.png");
+            LogOuterFlow(gameView, "既定の配置");
+            foreach (var shape in new[] { SplitShape.TopBottom, SplitShape.LeftAndRightStack, SplitShape.Four })
+            {
+                lay.SetShape(shape);
+                await Task.Delay(1000);
+                Capture(dir, $"{k++:D2}_配置_{SlotInfo.ShapeName(shape)}.png");
+                LogOuterFlow(gameView, SlotInfo.ShapeName(shape));
+            }
+            lay.SetShape(SplitShape.LeftRight); lay.SetColumns(false, false);
+            await Task.Delay(800);
+            Capture(dir, $"{k++:D2}_配置_左右の列を畳む.png");
+            LogOuterFlow(gameView, "左右の列を畳む");
+            // 境目を動かす（割合の読み書きと保存の確かめ）：割合を変えて配置を JSON に直し、読み直して一致するか
+            lay.SetColumns(true, true); lay.SetRatios(0.4, 0.5);
+            var back = LayoutModel.FromJson(lay.ToJson());
+            BootLog.Write($"uishot: 配置の往復 {(back.ToJson() == lay.ToJson() ? "一致" : "不一致")}・形 {back.Shape}・席 {string.Join(",", back.Seats)}・割合 {back.MainRatio:F2}");
+            lay.Reset();
+            await Task.Delay(300);
+            // 地図が枠に載っていない間の動き（枠から外れた地図に触れない）
+            BootLog.Write($"uishot: 地図が枠に無い間 Loaded={gameView.MapView.IsLoaded}・既定の配置の見えているもの={string.Join(",", lay.Shown())}");
             // 緊張モーダル（2026-08-10）：ポップアップ類は無人撮影の穴だった（発火待ちでは撮れない）。
             // 検出経路と同じ組み立てを通して最も緊張の高い相手で開く＝理由の内訳とボタン脇3行を実画面で確認できる。
             if (gvm.OpenTensionPopupForCapture())
@@ -341,14 +404,11 @@ public partial class MainWindow : Window
                 gvm.TensionIgnoreCommand.Execute(null);
                 await Task.Delay(300);
             }
-            // 発見パネル（F・2026-08-31）も無人で踏む＝行が出ているか・レイアウト崩れがないか
-            gvm.ToggleDiscoveryCommand.Execute(null);
+            // 発見のページの行数（旧は発見パネル）
+            lay.SetShape(SplitShape.One); lay.Open(Slot.Discovery, 0);
             await Task.Delay(600);
-            Capture(dir, $"{k++:D2}_発見パネル.png");
-            BootLog.Write($"uishot: 発見パネル 行数={gvm.DiscoveryRows.Count}");
-            gvm.CloseDiscoveryCommand.Execute(null);
-            await Task.Delay(200);
-            gvm.ToggleProdCommand.Execute(null);
+            BootLog.Write($"uishot: 発見のページ 行数={gvm.DiscoveryRows.Count}");
+            lay.SetShape(SplitShape.One); lay.Open(Slot.Production, 0);
             await Task.Delay(900);
             Capture(dir, $"{k++:D2}_生産タブ.png");
             BootLog.Write($"uishot: 生産タブ撮影済み CurrentPage={mwvm.CurrentPage?.GetType().Name}");
@@ -397,6 +457,9 @@ public partial class MainWindow : Window
                 Content = UiShotParts.Build();
                 await Task.Delay(900);
                 Capture(dir, $"{k++:D2}_部品の見本.png");
+                Content = UiShotParts.BuildPages();
+                await Task.Delay(900);
+                Capture(dir, $"{k++:D2}_部品の見本_ページの欄.png");
                 Content = savedContent;
             }
             catch (Exception ex) { BootLog.Write($"uishot: 部品の見本 失敗 {ex}"); }

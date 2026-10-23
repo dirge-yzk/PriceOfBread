@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Layout;
 using PriceOfBread.SimCore;
 
 namespace PriceOfBread.App.ViewModels;
@@ -197,45 +198,13 @@ public partial class GameViewModel : ViewModelBase
     /// キーは List の参照（系列の実体は生涯1つ）。</summary>
     private readonly Dictionary<List<double>, (int N, global::Avalonia.Points Pts, double Min, double Max)> _seriesCache = new();
 
-    // 4タブ（地図上のドッキングパネル・暗転なし）：外交・経済・POP・法律と政治。空文字＝閉。
-    [ObservableProperty] private string _activeTab = "";
-    public bool PanelOpen => ActiveTab.Length > 0;
-    public bool TabDiplo => ActiveTab == "外交";
-    public bool TabEcon => ActiveTab == "財政";
-    public bool TabPop => ActiveTab == "POP";
-    public bool TabPolitics => ActiveTab == "政治";   // 政治タブ＝王権と議会・政体・政体の実績・政治影響力
-    // ★2026-08-01：法律を独立タブへ分離（法が20→22本に増え、政治タブの右列に収まらなくなった）。
-    // ⚠併せて「国家の変体」の表示を撤去（ユーザー指示）＝読み取り専用の目標表示で、操作も判断も生まなかった。
-    public bool TabLaw => ActiveTab == "法律";      // 法律タブ＝法の一覧と議会立法（F2は下部へ統合2026-07-12）
-    public bool TabWar => ActiveTab == "戦争";   // 戦争タブ（2026-07-19）＝交戦中の戦況＋終わった戦争の残置
-    public bool TabTrade => ActiveTab == "貿易"; // 貿易タブ（2026-07-24）＝輸出入一覧・輸送サマリ・州別物流（外国経済の可視化doc §3-6/§3-7）
-    // ★2026-08-10（作者指示）：国有化と巨大建造物は**生産タブの左下**へ戻す（2026-08-02に法律タブへ出していたものの差し戻し）。
-    //   法律タブの右列は制度（自動施行の3機構）だけになる。
-    // 幅（項4・2026-07-26：財政タブの右端見切れ＝範囲ラベル「＜ 100%」の窮屈と金額の桁上がりに+30の余裕）。
-    // ★2026-08-10（作者裁定）：**全タブ650で統一**。外交のときだけ1280へ広げる分岐は撤去した＝
-    //   フルスクリーン1920でもドックが画面の2/3を占め、地図が見えなくなっていた（外交の2段組は650の中に収める）。
-    public double PanelWidth => 650;
-    partial void OnActiveTabChanged(string value)
-    {
-        OnPropertyChanged(nameof(PanelOpen)); OnPropertyChanged(nameof(TabDiplo)); OnPropertyChanged(nameof(TabEcon));
-        OnPropertyChanged(nameof(TabPop)); OnPropertyChanged(nameof(TabPolitics)); OnPropertyChanged(nameof(TabLaw)); OnPropertyChanged(nameof(TabWar)); OnPropertyChanged(nameof(TabTrade));
-        if (TabWar) RefreshFactions();   // 国内勢力は戦争タブへ移設（2026-07-20）＝開いた瞬間に更新
-        if (TabTrade) RefreshTrade();    // 貿易タブ（2026-07-24）＝開いた瞬間に更新（以後は四半期Refreshで追従）
-        // 巨大建造物の更新は生産タブ側（ToggleProd→RefreshProduction と四半期Refreshの ProdOpen 経路）＝2026-08-10に左下へ戻したので法律タブでは組まない
-    }
-    [RelayCommand]
-    private void SelectTab(string? tab)
-    {
-        ProdOpen = false;   // 生産タブ（全画面）と右ドックは同時に出さない＝QWERで生産タブから抜けられる
-        DiscoveryOpen = false;   // 発見パネルは2026-09-07に右ドックと同寸へ＝同じ矩形に2枚重ねない
-        ActiveTab = ActiveTab == tab ? "" : tab ?? "";   // 同名再指定＝トグルで閉じる
-        if (ActiveTab == "法律") PoliticsTabAlert = false;   // 法改正の通知は法律タブを開いたら消灯
-    }
+    // ★(501) 段2：4タブの右ドック（ActiveTab・SelectTab・PanelWidth・Tab*）は分割の配置（GameViewModel.Layout.cs の Layout）へ置き換えた。
+    //   ページは常に枠のどれかに置かれる＝「閉じた」状態は無い。旧の Tab*／ProdOpen／DiscoveryOpen は、見えているかを配置から導く読み取り専用の名前として Layout.cs に残る。
 
     // 法律タブの通知（受動レイヤ・裁定2026-07-09「変更可能になった時点で法律タブを光らせる」）：
     // 各法の改革方向の一歩が「通らない→通る」へ変わった四半期に政治タブを点灯（Government.CanStep＝副作用なしの照会）。
     private bool _politicsTabAlert;
-    public bool PoliticsTabAlert { get => _politicsTabAlert; set { _politicsTabAlert = value; OnPropertyChanged(); } }
+    public bool PoliticsTabAlert { get => _politicsTabAlert; set { _politicsTabAlert = value; OnPropertyChanged(); SyncPageButtons(); } }
     private ulong? _lawMovableBits;
     private void UpdateLawAlert()
     {
@@ -244,7 +213,7 @@ public partial class GameViewModel : ViewModelBase
         Ax(PolicyAxis.Suffrage, true); Ax(PolicyAxis.EducationLaw, true); Ax(PolicyAxis.Censorship, true);
         Ax(PolicyAxis.LaborUnion, true); Ax(PolicyAxis.ShorterHours, false);   // ★親軍法は2026-08-18に撤去（軍国度＝軍事費×徴兵法の導出量）
         Ax(PolicyAxis.WomenRights, true); Ax(PolicyAxis.CornLaws, false); Ax(PolicyAxis.LandReform, true); Ax(PolicyAxis.SerfEmancipation, true);
-        if (_lawMovableBits is { } prev && (bits & ~prev) != 0 && ActiveTab != "政治") PoliticsTabAlert = true;   // 初回（ロード/開始直後）は基準線のみ＝点灯しない
+        if (_lawMovableBits is { } prev && (bits & ~prev) != 0 && !Layout.IsShown(Slot.PoliticsLaw)) PoliticsTabAlert = true;   // 初回（ロード/開始直後）は基準線のみ＝点灯しない
         _lawMovableBits = bits;
     }
     // ⚠撤去2026-08-23（読み手ゼロ）: _buildableGoodIds/_buildableGoodNames ＝旧・工場建設コンボの残骸（着工は生産タブの StepStateTargetAt が現役）。
@@ -318,6 +287,7 @@ public partial class GameViewModel : ViewModelBase
     // 新規/ロード共通の初期化（シムが確定した後）：通知基準・州リスト・建設可能財・タイマー。
     private void InitAfterSimReady()
     {
+        InitLayout();   // 画面の配置（見えているページの導出・ヘッダーの押し釦）＝最初の Refresh より前
         foreach (var n in _sim.Nations) n.TelemetryEnabled = false;   // UIはTelemetryを読まない＝四半期スナップショットの割当/保持（セーブ肥大の一因）を止める
         _player.Explain = new ExplainLedger();   // 説明API（#63）：プレイヤー国だけに台帳を常設装着＝毎四半期のPolitics.Stepが正統性の内訳を記帳（本計算はビット恒等・ゼロコスト・SaveGameは非直列化なのでロード後もここで再装着）
         _player.ForceUnlock = true;              // ★再征服は常時ON（作者指示2026-08-24＝レバーを撤去）。実費は Territory.Step が持つ（国庫1000/月と全popの闘争度）＝国庫が尽きれば自動で止まる

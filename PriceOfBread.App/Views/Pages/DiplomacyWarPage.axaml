@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             x:Class="PriceOfBread.App.Views.Pages.DiplomacyWarPage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/DiplomacyWarPage.axaml ＝ 外交と戦争のページ。移行の間は旧の外交タブ（上・列見出しは止める）と戦争タブ（下）を載せる（段3 で組み直す。地図の欄はここへ入る）。 -->
+    <Grid RowDefinitions="3*,1,2*">
+        <DockPanel Grid.Row="0">
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,16,*" Margin="14,8,22,0">
+                    <Grid Grid.Column="0" ColumnDefinitions="26,*,58,30">
+                        <TextBlock Grid.Column="0" Text="順位" Classes="section" FontSize="{StaticResource FontSmall}"/>
+                        <TextBlock Grid.Column="1" Text="国名" Classes="section" FontSize="{StaticResource FontSmall}" Margin="14,0,0,0"/>
+                        <TextBlock Grid.Column="3" Text="緊張" Classes="section" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Grid Grid.Column="2" ColumnDefinitions="26,*,58,30">
+                        <TextBlock Grid.Column="0" Text="順位" Classes="section" FontSize="{StaticResource FontSmall}"/>
+                        <TextBlock Grid.Column="1" Text="国名" Classes="section" FontSize="{StaticResource FontSmall}" Margin="14,0,0,0"/>
+                        <TextBlock Grid.Column="3" Text="緊張" Classes="section" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Right"/>
+                    </Grid>
+                </Grid>
+            <ScrollViewer x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="14,10,22,14"><tabs:DiploTab/></StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+        <Border Grid.Row="1" Background="{StaticResource SandDarkBrush}"/>
+        <ScrollViewer x:Name="PageScroll2" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="14,10,22,14"><tabs:WarTab/></StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -16,7 +16,6 @@ namespace PriceOfBread.App.ViewModels;
 // レイアウトは静的（初回に一度だけ計算）：最長経路で層 → 層内は tier→50音順にソート → 幅予算(PRowBudgetW)を超える層は複数行へ分割。
 public partial class GameViewModel
 {
-    [ObservableProperty] private bool _prodOpen;
     // ★★巨大建造物の可視化（2026-08-02・作者指摘「巨大建築物がUI側にない」）。
     // ⚠ App 側の参照が**0件**で、エンジンには megaprojects.json の20件・技術ゲート・進捗・効果が揃っているのに
     //   プレイヤーは存在すら知れなかった（設計書も「最近点火した機構ほど見えない」と同じ穴を指摘していた）。
@@ -236,20 +235,8 @@ public partial class GameViewModel
         if (sw.ElapsedMilliseconds >= 120) BootLog.Write($"⏱ {what} {sw.ElapsedMilliseconds}ms");
     }
 
-    /// <summary>TAB＝**2段で閉じる**（作者指示2026-08-11）。財の詳細を開いていれば、まず詳細だけを閉じる。
-    /// もう一度押すと生産画面ごと閉じて地図へ戻る＝「今見ているものを1つずつ畳む」（Escの作法と同型）。</summary>
-    [RelayCommand]
-    private void ToggleProd()
-    {
-        if (ProdOpen && _prodSelGood >= 0) { SelectProdGood(_prodSelGood); return; }   // 同じ財を渡す＝選択解除（詳細を閉じる）
-        ProdOpen = !ProdOpen;
-        if (ProdOpen) TimeIt("生産タブを開く(RefreshProduction)", RefreshProduction);
-    }
-
     /// <summary>右パネルの閉じるボタン（作者指示2026-08-11）＝詳細だけを畳む。生産画面は開いたまま。</summary>
     [RelayCommand] private void CloseProdDetail() { if (_prodSelGood >= 0) SelectProdGood(_prodSelGood); }
-
-    [RelayCommand] private void CloseProd() => ProdOpen = false;
 
     /// <summary>ノードのクリック＝選択（同じ財の再クリックで解除）。ホバーでは変えない＝クリック時だけ再構築（軽量化）。View の PointerPressed から呼ばれる。
     /// ★選択時の自動スクロール（2026-08-02の ScrollGraphToX）は**廃止**（作者仕様2026-08-09 項目12）＝

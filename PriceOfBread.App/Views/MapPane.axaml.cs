@@ -44,6 +44,22 @@ public partial class MapPane : UserControl
         TryLoadWorldMap();
     }
 
+    /// <summary>地図の箱の寸法と、自国の首都が箱のどこに映っているか（撮影の確かめ・設計 §9「地図の箱の大きさ」）。HomeView 後は首都が箱の中心に来る＝差が数画素以内なら、拡縮・パン・当たりが読む箱の寸法は箱に合っている。
+    /// 横は東西ループ（周期 = 地図の幅 × 倍率）で折り返されるので、差は周期で最も近い値に直して出す。</summary>
+    public string BoxReport()
+    {
+        double w = MapHost.Bounds.Width, h = MapHost.Bounds.Height;
+        if (DataContext is not ViewModels.GameViewModel vm || vm.PlayerCapitalCanvas() is not { } cap) return $"地図の箱 {w:F0}×{h:F0}・首都なし";
+        double s = _scale.ScaleX, period = MapData.MapWidth * s;
+        double sx = cap.X * s + _translate.X, sy = cap.Y * s + _translate.Y;
+        double dx = (sx - w / 2) % period; if (dx > period / 2) dx -= period; if (dx < -period / 2) dx += period;
+        double dy = sy - h / 2;
+        // 縦は地図が極を越えないクランプ（ClampAndWrap）で、高緯度の首都は箱の中心まで寄り切れない＝クランプの端に当たっていればずれではない
+        bool yClamped = Math.Abs(_translate.Y) < 1e-6 || Math.Abs(_translate.Y - (h - MapData.MapHeight * s)) < 1e-6;
+        string verdict = Math.Abs(dx) > 3 ? "　横が中心からずれている" : Math.Abs(dy) <= 3 ? "　中心に合っている" : yClamped ? "　横は中心・縦はクランプの端で寄り切れない" : "　縦が中心からずれている";
+        return $"地図の箱 {w:F0}×{h:F0}・倍率 {s:F2}・首都の画面座標 ({sx:F0},{sy:F0})・箱の中心 ({w / 2:F0},{h / 2:F0})・差 ({dx:F1},{dy:F1}){verdict}";
+    }
+
     /// <summary>地図の箱にキーの焦点を置く（スペースや数字キーが効く）。</summary>
     public void FocusHost() => MapHost.Focus();
 

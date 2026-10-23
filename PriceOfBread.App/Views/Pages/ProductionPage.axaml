@@ -1,0 +1,9 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             x:Class="PriceOfBread.App.Views.Pages.ProductionPage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/ProductionPage.axaml ＝ 生産のページ。移行の間は旧の生産タブをそのまま1ページとして載せる（段3 で組み直す）。 -->
+    <tabs:ProductionTab/>
+</UserControl>

@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             x:Class="PriceOfBread.App.Views.Pages.FiscalMoneyPage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/FiscalMoneyPage.axaml ＝ 財政と貨幣のページ。移行の間は旧の財政タブを載せる（段3 で組み直す）。 -->
+    <ScrollViewer x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="14,10,22,14"><tabs:EconTab/></StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -165,18 +165,16 @@ public partial class GameViewModel
 
     // === Escメニュー・終局・タイトル復帰 ===============================================
 
-    /// <summary>Escキーの一元処理：開いている物を手前から閉じ、何も無ければメニューをトグル。</summary>
+    /// <summary>Escキーの一元処理：開いている物を手前から閉じ、何も無ければメニューをトグル。
+    /// ★(501) 段2：ページは常に枠のどれかに置かれる（閉じる物ではない）＝旧の「発見・生産・タブを閉じる」段は無い。</summary>
     public void HandleEscape()
     {
         if (MenuOpen) { MenuOpen = false; return; }
-        if (DiscoveryOpen) { DiscoveryOpen = false; return; }   // 発見パネル（F）
-        if (ProdOpen) { ProdOpen = false; return; }
         if (ConfirmOpen) { ConfirmCancel(); return; }
         if (EndingOpen) { EndingOpen = false; return; }
         if (TensionPopupOpen) { TensionIgnore(); return; }   // ✕と同じ（何もせず閉じる）
         if (WarEndPopupOpen) { WarEndAck(); return; }        // ✕／了解と同じ
         if (WarPopupOpen || FactionCrisisOpen || ElectionPopupOpen || CallToArmsOpen) return;   // 選択必須＝Escでは閉じず、メニューも重ねない
-        if (ActiveTab.Length > 0) { ActiveTab = ""; return; }
         MenuOpen = true;
     }
 

@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:tabs="using:PriceOfBread.App.Views.Tabs"
+             x:Class="PriceOfBread.App.Views.Pages.PoliticsLawPage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/PoliticsLawPage.axaml ＝ 政治と法のページ。移行の間は旧の法律タブ（上）と政治タブ（下）を載せる。それぞれ欄の中だけで流れる（段3 で組み直す）。 -->
+    <Grid RowDefinitions="3*,1,2*">
+        <ScrollViewer x:Name="PageScroll" Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="14,10,22,14"><tabs:LawTab/></StackPanel>
+        </ScrollViewer>
+        <Border Grid.Row="1" Background="{StaticResource SandDarkBrush}"/>
+        <ScrollViewer x:Name="PageScroll2" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="14,10,22,14"><tabs:PoliticsTab/></StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -86,19 +86,22 @@
                     <!-- タブボタン列＝**速度の左**（2026-08-02ユーザー指示）。ボタンの並び（左から）は主題のまとまり順で固定。
                          ★2026-08-10（作者指示）：E=貿易・S=政治へ入れ替え（旧 E=政治・S=貿易）＝ボタンは動かさずラベルのキーだけ入れ替える。
                          ⚠キーの実体は GameView.axaml.cs の KeyDown。ここは表示ラベルなので**両方を同時に直す**こと。 -->
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Button Classes="tab" Content="TAB:生産" Command="{Binding ToggleProdCommand}"/>
-                        <!-- ★2026-09-23作者指示：発見パネルにもボタンを置く（キー F は GameView.axaml.cs に既存・両方を同時に直すこと） -->
-                        <Button Classes="tab" Content="F:発見" Command="{Binding ToggleDiscoveryCommand}"/>
-                        <Button Classes="tab" Content="{Binding DominanceModeLabel}" Command="{Binding ToggleDominanceModeCommand}" IsVisible="{Binding RuleSharesLive}"/>
-                        <Button Classes="tab" Content="Q:財政" Command="{Binding SelectTabCommand}" CommandParameter="財政"/>
-                        <Button Classes="tab" Classes.alert="{Binding PoliticsTabAlert}" Content="W:法律" Command="{Binding SelectTabCommand}" CommandParameter="法律"/>
-                        <Button Classes="tab" Content="S:政治" Command="{Binding SelectTabCommand}" CommandParameter="政治"/>
-                        <Button Classes="tab" Content="R:外交" Command="{Binding SelectTabCommand}" CommandParameter="外交"/>
-                        <Button Classes="tab" Content="A:POP" Command="{Binding SelectTabCommand}" CommandParameter="POP"/>
-                        <Button Classes="tab" Content="E:貿易" Command="{Binding SelectTabCommand}" CommandParameter="貿易"/>
-                        <Button Classes="tab" Classes.war="{Binding PlayerAtWar}" Content="D:戦争" IsVisible="{Binding WarTabVisible}" Command="{Binding SelectTabCommand}" CommandParameter="戦争"/>
-                    </StackPanel>
+                    <!-- ★(501) 段2：ページの押し釦 8 つ（7 ページと地図）。キーと名前は本体の PageKeys が持つ（作者の指示 QWERASDFZXCV の順）＝ここは並べるだけ。
+                         押すと選んでいる枠へ開く。見えているページは枠の色（Active）・動かせる法がある政治と法は金（Alert）・交戦中の外交と戦争は赤（War）。 -->
+                    <ItemsControl ItemsSource="{Binding PageButtons}" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="6"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PageButtonVM">
+                                <Button Classes="tab page" Classes.active="{Binding Active}" Classes.alert="{Binding Alert}" Classes.war="{Binding War}"
+                                        Content="{Binding Text}"
+                                        Command="{Binding $parent[ItemsControl].((vm:GameViewModel)DataContext).OpenSlotCommand}" CommandParameter="{Binding Slot}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                         <!-- 停止⏸と再生▶で字形幅が違い、内容任せだとボタン幅→速度ボタン列全体が押されて動く。固定幅で根絶（2026-07-25ユーザー指摘） -->
                         <Button Classes="speed" Classes.active="{Binding Playing}" Content="{Binding PlayIcon}" Command="{Binding TogglePauseCommand}"
@@ -157,157 +160,96 @@
             </Grid>
         </Border>
 
-        <!-- コンテンツ（地図＋右ドック）と、その全面を覆う生産タブのオーバーレイ -->
         <Grid Grid.Row="1">
-        <DockPanel>
-
-        <!-- 右：ドッキングパネル -->
-        <Border DockPanel.Dock="Right" Width="{Binding PanelWidth}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1,0,0,0"
-                IsVisible="{Binding PanelOpen}" ZIndex="2">
-            <DockPanel>
-                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,10,8">
-                    <TextBlock Grid.Column="0" Text="{Binding ActiveTab}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding SelectTabCommand}" CommandParameter=""/>
-                </Grid>
-                <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
-                <!-- 列ヘッダーはスクロール外（タブ題の下）に固定＝スクロールしても消えない。Margin は内容側 Margin（14,10,22,14）と同じ左右幅で列を揃える -->
-                <!-- ★2026-08-10：外交は2段組＝見出しも段ごとに置く。外枠（*,16,*）と段の列定義（26,*,58,30）は
-                     DiploTab.axaml の行と**同一の文字列**にする（片方だけ直すと見出しと値がずれる）。
-                     列2＝アクション（植民地化・侵略・統一戦争）に見出しは無い＝ボタンの文言がそのまま見出しになる。 -->
-                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,16,*" Margin="14,8,22,0" IsVisible="{Binding TabDiplo}">
-                    <Grid Grid.Column="0" ColumnDefinitions="26,*,58,30">
-                        <TextBlock Grid.Column="0" Text="順位" Classes="section" FontSize="{StaticResource FontSmall}"/>
-                        <TextBlock Grid.Column="1" Text="国名" Classes="section" FontSize="{StaticResource FontSmall}" Margin="14,0,0,0"/>
-                        <TextBlock Grid.Column="3" Text="緊張" Classes="section" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Right"/>
+        <!-- ★(501) 段2：本体＝左の列（問題の一覧・年表）｜分割（ページ）｜右の列（ピン留め）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
+             旧は中央が地図・右にタブのドック・年表が地図の左下に浮いていた。地図は分割に単独で置ける 1 つのページ（Views/MapPane）。
+             ページの外側の枠・分割の形・境目は Views/SplitHost（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
+        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="*">
+            <!-- 左の列（畳める）。畳むと細い取っ手だけが残り、押すと開く。 -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Border Width="260" IsVisible="{Binding LeftOpen}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,1,0">
+                    <Grid RowDefinitions="*,5,*">
+                        <DockPanel Grid.Row="0">
+                            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="10,6,4,4">
+                                <TextBlock Text="問題の一覧" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Classes="edge" Content="◀" Command="{Binding ToggleLeftColumnCommand}"/>
+                            </Grid>
+                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding ProblemRows}" Margin="10,4,10,6">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ProblemRow">
+                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,2">
+                                                <TextBlock Grid.Column="0" Text="{Binding Kind}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" Margin="0,0,6,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Target}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding SizeText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Trend}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                        <GridSplitter Grid.Row="1" Background="{StaticResource SandBrush}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
+                        <!-- 年表（旧は地図の左下に浮いていた）。世界（すべて）⇄自国のみの切替。列の幅に合わせて折り返す。 -->
+                        <DockPanel Grid.Row="2">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="10,6,10,4">
+                                <TextBlock Text="年表" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="世界" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
+                                <Button Classes="mini" Classes.active="{Binding NewsMineOnly}" Content="自国のみ" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
+                            </StackPanel>
+                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
+                            <!-- 余白はスクロールの Padding でなく中身の Margin（Padding はスクロールの範囲に入らない） -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding Alerts}" Margin="10,4,10,8">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                                                <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="{StaticResource FontEmph}" Margin="0,0,7,0"/>
+                                                <!-- 切らずに折り返す（2026-08-01）。列の幅いっぱいまで -->
+                                                <TextBlock Grid.Column="1" Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="Wrap"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
                     </Grid>
-                    <Grid Grid.Column="2" ColumnDefinitions="26,*,58,30">
-                        <TextBlock Grid.Column="0" Text="順位" Classes="section" FontSize="{StaticResource FontSmall}"/>
-                        <TextBlock Grid.Column="1" Text="国名" Classes="section" FontSize="{StaticResource FontSmall}" Margin="14,0,0,0"/>
-                        <TextBlock Grid.Column="3" Text="緊張" Classes="section" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Right"/>
-                    </Grid>
-                </Grid>
-                <!-- ★見出しは行の列定義を**そのまま複製**する（2026-08-04）。旧＝行だけ列を増やして見出しは5列のままだったので、
-                     見出しの * が広がって「規模」が満足度の上に来る＝**全ての見出しが1列ずつ右へずれていた**。
-                     空の列（値を置かない列）も含めて同一にする＝将来また列を足しても、この2つを同時に直せばズレない。 -->
-                <!-- ★列＝規模／失業者／満足度／闘争度／識字率／なし／保守／自由／社会（作者指示2026-08-16）。
-                     旧「増減」列は規模セル末尾の矢印へ畳み、旧「政治意識」列は「なし」（＝どの族にも属さない人の割合）へ裏返した。
-                     列幅は人数の2列=110・割合の7列=46で統一＝Views/Tabs/PopTab.axaml の行と同一の列定義。 -->
-                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,110,110,46,46,46,46,46,46,46" Margin="14,8,22,0" IsVisible="{Binding TabPop}">
-                    <TextBlock Grid.Column="0" Text="階級" Classes="section" FontSize="{StaticResource FontSmall}"/>
-                    <TextBlock Grid.Column="1" Text="規模" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="2" Text="失業者" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="3" Text="満足度" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="4" Text="闘争度" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="5" Text="識字率" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="6" Text="なし" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="7" Text="保守" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="8" Text="自由" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                    <TextBlock Grid.Column="9" Text="社会" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                </Grid>
-                <!-- 財政タブ右端の見切れ対策（2026-07-25）：横スクロールは廃止＝内容をパネル幅へ強制的に収める（旧Autoは無限幅で測る＝
-                     財政の2列・政治の法律ボタン・収支の大表示が右へ溢れて切れていた）。長いラベルは折返しで吸収（.lever/.dim の TextWrapping）。
-                     余白はScrollViewerのPaddingでなく内容側Marginに置く＝Paddingは描画領域を切るだけでスクロール範囲に入らず、
-                     最下端まで送っても下Padding分だけ最終行が到達不能だった（外交タブ最下国の見切れの正体・2026-07-25） -->
-                <ScrollViewer x:Name="DockScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <Grid Margin="14,10,22,14">
-                        <tabs:DiploTab IsVisible="{Binding TabDiplo}"/>
+                </Border>
+                <Button Classes="edge" IsVisible="{Binding LeftClosed}" Content="▶" Command="{Binding ToggleLeftColumnCommand}" VerticalAlignment="Top" Margin="2,6,0,0"/>
+            </StackPanel>
 
-                        <tabs:EconTab IsVisible="{Binding TabEcon}"/>
+            <!-- 中央＝分割（枠の中にページが載る） -->
+            <v:SplitHost x:Name="Splits" Grid.Column="1"/>
 
-                        <tabs:PopTab IsVisible="{Binding TabPop}"/>
-
-                        <tabs:PoliticsTab IsVisible="{Binding TabPolitics}"/>
-
-                        <tabs:LawTab IsVisible="{Binding TabLaw}"/>
-
-                        <tabs:TradeTab IsVisible="{Binding TabTrade}"/>
-
-                        <tabs:WarTab IsVisible="{Binding TabWar}"/>
-                    </Grid>
-                </ScrollViewer>
-            </DockPanel>
-        </Border>
-
-        <!-- 中央：世界地図＋オーバーレイ -->
-        <v:MapPane x:Name="MapView"/>
-
-        </DockPanel>
-
-        <tabs:ProductionTab IsVisible="{Binding ProdOpen}" ZIndex="8"/>
-
-        <!-- 発見パネル（F・2026-08-31／2026-09-03にF1→Fへ＝項目が増える主役なので単独キーへ）：制度の普及度と時代財の解禁進行＝データのみ（説明文なし） -->
-        <!-- ★2026-09-07（作者要望11「タブサイズを他と合わせる」）：右ドック（DockPanel.Dock="Right" の Border）と
-             幅・高さ・枠線・内容余白の4点を一致させる＝Width は PanelWidth を共有（650の数値リテラルをここに書かない）。
-             増えた行はパネル内のスクロールで受ける。余白は ScrollViewer の Padding でなく内容側 Margin（Padding は extent に入らない）。 -->
-        <Border IsVisible="{Binding DiscoveryOpen}" ZIndex="7" HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                Width="{Binding PanelWidth}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1,0,0,0">
-            <DockPanel>
-                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,10,8">
-                    <TextBlock Grid.Column="0" Text="F:発見" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding CloseDiscoveryCommand}"/>
-                </Grid>
-                <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
-                <!-- ★2026-09-23（作者裁定「バーは廃止」「2段組みに」）：①ProgressBar を撤去して列を詰める（34,*,100,64 → 30,*,46）
-                     ②1列の DiscoveryRows を DiscoveryLeft／DiscoveryRight の2列へ（VM 側の派生プロパティ＝新しい状態は作らない。
-                       左を上から読み切って右へ＝並べ替え ByGate の全順序が2段でも保たれる）。
-                     寸法＝内容幅 650−枠1−左余白14−右余白22＝613px、2段で (613−16)/2＝298.5px、名前欄は 298.5−30−46−左余白6＝216.5px。
-                     最長行「電信・鉄道・汽船（報せの速さ）」は FontBody=13 で 195.0px＝収まる（全角13.00・半角7.21）。
-                     行の高さ＝字13px＋上下余白3+3≒23.4px、1793年仏の53行なら左27行＝約632px（全画面の可用およそ965pxに収まる）。
-                     ⚠可用高さの小さい窓では溢れる＝ScrollViewer は残す。⚠理論上の最長の組（財6字＋製法8字＝208.0px）だけは
-                       名前欄を超えうるので TextTrimming で末尾を「…」にする（無言で切らない）。 -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <Grid ColumnDefinitions="*,16,*" Margin="14,10,22,14">
-                        <Grid.Resources>
-                            <DataTemplate x:Key="DiscoveryRow" x:DataType="vm:DiscoveryRow">
-                                <Grid ColumnDefinitions="30,*,46" Margin="0,3,0,3" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="200" Background="Transparent">
-                                    <TextBlock Grid.Column="0" Text="{Binding Kind}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center" Margin="6,0,0,0" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding PctText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                                </Grid>
-                            </DataTemplate>
-                        </Grid.Resources>
-                        <ItemsControl Grid.Column="0" ItemsSource="{Binding DiscoveryLeft}" ItemTemplate="{StaticResource DiscoveryRow}"/>
-                        <ItemsControl Grid.Column="2" ItemsSource="{Binding DiscoveryRight}" ItemTemplate="{StaticResource DiscoveryRow}"/>
-                    </Grid>
-                </ScrollViewer>
-            </DockPanel>
-        </Border>
-
-        <!-- 左下：出来事。世界（すべて）⇄自国のみの切替。
-             ★生産タブを開いている間は閉じる（作者仕様2026-08-09 項目1）＝同時に開かない。
-               旧は生産タブの上に重なり、グラフの左下（層0＝プランテーション/鉱山）と州別リストの下端を覆っていた。 -->
-        <Border IsVisible="{Binding !ProdOpen}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" ZIndex="8"
-                Background="#F2F5EFDD" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="4"
-                Padding="8,6" Width="660" MinHeight="40" MaxHeight="280" ClipToBounds="True">   <!-- ★2026-08-02：**固定幅**（作者指示「通知が来るとサイズが変更される・最初から固定幅に」）＝Min/Maxをやめて Width を置く -->
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
-                    <TextBlock Text="年表" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="世界" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
-                    <Button Classes="mini" Classes.active="{Binding NewsMineOnly}" Content="自国のみ" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
-                </StackPanel>
-                <!-- ★2026-09-23：246→240。外枠 Border の MaxHeight=280 から 枠1×2＋Padding 6×2＋見出し行（Button.mini の MinHeight=22＋Margin下4＝26）＝40 を引くと
-                     残りは **240**＝ここが取りうる最大。246 は**どの盤面でも効かない数**だった（Border が先に280で頭打ちになり、
-                     ScrollViewer は常に240で配置される）＝実効の値に書き直しただけ。
-                     ⚠**最下行が半分だけ見えるのは不具合ではない**（2026-09-23に実測で前回の診断を訂正）。撮影で測ると
-                       直す前と直した後で枠の高さ278px・最終インク行1062・下端1068が**1画素も変わらない**。
-                       正体は行の高さ25px（FontEmph=14＋Margin上下2）に対し表示域が240＝9.6行ぶんで、10行目が6割だけ出るだけ。
-                       長い報せは折り返して2行ぶん（50px）になるので、**表示域を行高の倍数にしても揃わない**＝スクロールする一覧では常に起こる。 -->
-                <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Alerts}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="7" Margin="0,2">
-                                    <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontEmph}"/>
-                                    <!-- ★2026-08-01：ホバーの文字を撤去し、代わりに**切らずに折り返す**。
-                                         旧は末尾を「…」で切ってツールチップで全文を見せていたが、カーソルを当てないと読めなかった。 -->
-                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="Wrap" MaxWidth="600"/>   <!-- 枠 660 − 余白/アイコン ≒ 600 -->
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </DockPanel>
-        </Border>
+            <!-- 右の列（畳める）＝ピン留め -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button Classes="edge" IsVisible="{Binding RightClosed}" Content="◀" Command="{Binding ToggleRightColumnCommand}" VerticalAlignment="Top" Margin="0,6,2,0"/>
+                <Border Width="300" IsVisible="{Binding RightOpen}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1,0,0,0">
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" Margin="4,6,10,4">
+                            <Button Classes="edge" Content="▶" Command="{Binding ToggleRightColumnCommand}"/>
+                            <TextBlock Grid.Column="1" Text="ピン留め" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </Grid>
+                        <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding Pins}" Margin="10,6,10,8">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:PinSlot">
+                                        <Border BorderBrush="{StaticResource SandBrush}" BorderThickness="1" CornerRadius="3" Padding="8,4" Margin="0,0,0,6" Opacity="{Binding Opacity}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding ValuesText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
 
         <!-- モーダル層（レビュー2026-07-19）：外側Gridの兄弟として配置＝ZIndexが生産タブ(8)・出来事パネル(8)と正しく比較される
              （旧＝地図Grid内部にあり、外側の兄弟である出来事パネルが内側ZIndexに関係なく全モーダルの上に描画されていた） -->

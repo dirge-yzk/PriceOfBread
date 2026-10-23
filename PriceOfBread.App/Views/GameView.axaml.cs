@@ -12,16 +12,45 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using PriceOfBread.App.Layout;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Views;
 // Views/GameView.axaml.cs ＝ 外枠の code-behind（全画面キー操作）。地図の拡縮/パン・州の当たりは Views/MapPane.axaml.cs（(501) 段2a で移した）。各タブのハンドラは Views/Tabs/*.axaml.cs。
 public partial class GameView : UserControl
 {
+    /// <summary>地図の欄。盤面に 1 つだけ（地図の拡縮・パンと VM の拡大率は 1 つの値）。枠に置かれていないときは木に付かないが、生きている（陸の焼きは作った時に 1 回）。</summary>
+    public MapPane MapView { get; } = new();
+
+    private readonly System.Collections.Generic.Dictionary<Slot, Control> _pages = new();
+
     public GameView()
     {
         InitializeComponent();
+        Focusable = true;   // 地図が枠に無いとき、スペースなどのキーの受け皿
         Loaded += OnViewLoaded;
         Unloaded += OnViewUnloaded;
+    }
+
+    /// <summary>枠に置くものの部品（種類ごとに 1 つ・作り直さない）。ページは Views/Pages・地図は MapView。</summary>
+    private Control PartOf(Slot slot)
+    {
+        if (slot == Slot.Map) return MapView;
+        if (!_pages.TryGetValue(slot, out var c)) _pages[slot] = c = Pages.PageFactory.Create(slot);
+        return c;
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is ViewModels.GameViewModel vm) Splits.Attach(vm.Layout, PartOf);
+        else Splits.Detach();
+    }
+
+    /// <summary>スペースなどを押したあと、キーの焦点を戻す先（地図が枠にあれば地図の箱・無ければこの画面）。</summary>
+    private void FocusSink()
+    {
+        if (MapView.IsLoaded) MapView.FocusHost(); else Focus();
     }
 
     private TopLevel? _keyTop;   // キーハンドラを付けた Window（解放用）
@@ -65,12 +94,13 @@ public partial class GameView : UserControl
         if (DataContext is not ViewModels.GameViewModel vm) return;
         // モーダル（確認/Escメニュー/#106外交・戦争・国内危機ポップアップ）表示中はタブ・速度・停止系ショートカットを無視（Esc/F5/F9/F11は従来どおり）
         bool modal = vm.AnyPopupOpen;   // ★2026-08-24：VM側の1本と同じ集合（旧＝ここに列挙していて**選挙モーダルが漏れ**、公示中にスペースで時間が動いた）
-        if (modal && e.Key is Key.Space or Key.Q or Key.W or Key.E or Key.R or Key.A or Key.S or Key.D
-            or (>= Key.D1 and <= Key.D3) or (>= Key.NumPad1 and <= Key.NumPad3)) return;
-        if (modal && e.Key == Key.Tab) { e.Handled = true; return; }   // 生産タブは開かない（既定のフォーカス移動も抑止）
-        if (modal && e.Key == Key.F) { e.Handled = true; return; }     // 発見パネルもモーダル中は開かない
+        // ページと地図のキー（PageKeys.Priority の QWERASDFZXCV＝空きのキーも含む）。モーダル中は何もしない
+        char? letter = e.Key >= Key.A && e.Key <= Key.Z && (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) == 0 ? (char)('A' + (e.Key - Key.A)) : null;
+        bool isPriorityKey = letter is { } lc && PageKeys.Priority.Contains(lc);
+        if (modal && (e.Key is Key.Space or (>= Key.D1 and <= Key.D3) or (>= Key.NumPad1 and <= Key.NumPad3) || isPriorityKey)) return;
+        if (e.Key == Key.Tab) { e.Handled = true; return; }   // Tab は何にも割り当てない（既定のフォーカス移動だけを抑止）。旧の生産のキーは Q に移った
         // 押しっぱなしのリピート（毎秒30回）を捨てる。Avalonia 12 の KeyEventArgs にリピートの印は無いので、握ったキーを1つ覚えて同じキーの再入を捨てる
-        //（Windowsのリピートは最後に押した1キーだけ＝覚えるのは1つで足りる）。これが無いと切り替え系（スペース＝停止/再開・TAB＝生産・F＝発見・F11・Esc）は
+        //（Windowsのリピートは最後に押した1キーだけ＝覚えるのは1つで足りる）。これが無いと切り替え系（スペース＝停止/再開・ページと地図のキー・F11・Esc）は
         // 離した時の状態が押した長さ任せになり、F5/F9 は押している間ずっと保存/読込が走る。
         if (_heldKey != Key.None && e.Key == _heldKey) { e.Handled = true; return; }
         if (e.Key == Key.Space)
@@ -80,7 +110,7 @@ public partial class GameView : UserControl
             // 以後キーが届かない経路ができるから（これまでの MapHost.Focus() の呼び手は Loaded の1回と地図の押下だけだった）。
             // ⚠ フォーカスを奪うので**文字入力欄があるとその入力が切れる**。上のガードで TextBox/ComboBox が Source のときは既に抜けている（現状 TextBox は0個）。
             // スライダーの矢印キー微調整も外れるため、フォーカスを戻すのは**スペースだけ**に限る（他のキーは握るだけ）。
-            MapView.FocusHost();
+            FocusSink();
             e.Handled = true;
         }
         else if (e.Key is >= Key.D1 and <= Key.D3)
@@ -99,24 +129,11 @@ public partial class GameView : UserControl
             if (_keyTop is Window w) w.WindowState = w.WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
             e.Handled = true;
         }
-        // タブのショートカット：Q=財政・W=法律・E=貿易・R=外交・A=POP・S=政治・D=戦争（交戦中のみ）
-        // ★2026-08-02：**よく触る順**に並べ替え（作者指示「主に操作するのは財政、法律」）＝Q:財政 W:法律。
-        // ★2026-08-10（作者指示）：E=貿易・S=政治へ入れ替え（旧 E=政治・S=貿易）。
-        //   ボタンの並び（画面の左から）は変えない＝上段の3番目が S、下段の2番目が E になる。
-        //   ⚠表示ラベルは GameView.axaml のタブボタン列＝**両方を同時に直す**。
-        else if (e.Key == Key.Q) { vm.SelectTabCommand.Execute("財政"); e.Handled = true; }
-        else if (e.Key == Key.W) { vm.SelectTabCommand.Execute("法律"); e.Handled = true; }
-        else if (e.Key == Key.E) { vm.SelectTabCommand.Execute("貿易"); e.Handled = true; }
-        else if (e.Key == Key.R) { vm.SelectTabCommand.Execute("外交"); e.Handled = true; }
-        else if (e.Key == Key.A) { vm.SelectTabCommand.Execute("POP"); e.Handled = true; }
-        else if (e.Key == Key.S) { vm.SelectTabCommand.Execute("政治"); e.Handled = true; }
-        else if (e.Key == Key.D) { vm.SelectTabCommand.Execute("戦争"); e.Handled = true; }   // 戦争タブは常設7タブの1つ（常時表示）
-        // TAB＝生産（全画面のサプライチェーン）。tunnel 段階で横取り＝既定のフォーカス移動を抑止（必ず Handled）
-        else if (e.Key == Key.Tab) { vm.ToggleProdCommand.Execute(null); e.Handled = true; }
-        // ESC＝一元処理：開いている物（メニュー→生産→モーダル→タブ）を手前から閉じ、何も無ければメニューを開く
+        // ページと地図のキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」）：割り当ては本体の PageKeys が持つ（Q 生産・W 市場・清算・貿易・E 財政と貨幣・R 人口・A 政治と法・S 外交と戦争・D 発見・F 地図・ZXCV 空き）。
+        // 選んでいる枠へ開く。Shift を足すと次の枠へ開く。空きのキーは何もしない。旧の TAB（生産）・Q（財政）・W（法律）などの割り当ては、この表に置き換えた。
+        else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotByKey(slot, (e.KeyModifiers & KeyModifiers.Shift) != 0); e.Handled = true; }
+        // ESC＝一元処理：開いている物（メニュー→モーダル）を手前から閉じ、何も無ければメニューを開く（ページは常に枠にある＝閉じる物ではない）
         else if (e.Key == Key.Escape) { vm.HandleEscape(); e.Handled = true; }
-        // F＝発見パネル（2026-09-03作者指示「発見は増加予定なのでFキーに設定する」＝旧F1から移設。反乱は戦争タブへ戻した）
-        else if (e.Key == Key.F) { vm.ToggleDiscoveryCommand.Execute(null); e.Handled = true; }
         // F5＝クイックセーブ／F9＝クイックロード
         else if (e.Key == Key.F5) { vm.SaveGameNowCommand.Execute(null); e.Handled = true; }
         else if (e.Key == Key.F9) { vm.RequestLoadCommand.Execute(null); e.Handled = true; }
