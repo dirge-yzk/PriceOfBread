@@ -335,7 +335,7 @@ PYTHONUTF8=1 python <script>
 | **史実の参照表（1914年）** | `HistoricalReference.cs` |
 | **セーブ/ロード** | `SaveGame.cs` |
 | **診断コマンド（69の動詞）** | `PriceOfBread.Runner/Program.cs` |
-| **UI** | `PriceOfBread.App/Views/GameView.axaml` ／ `ViewModels/GameViewModel.*.cs`（★分野別に分割済み） |
+| **UI** | ★(517) UI の作り直しを main へ＝7 ページ `PriceOfBread.App/Views/Pages/*Page.axaml`（キー Q 生産・W 市場・清算・貿易・E 財政と貨幣・R 人口・A 政治と法・S 外交と戦争・D 発見・F 地図）・分割とピン留め `Views/SplitHost.cs`・`Controls/`（共通の表・線・半円）・外枠 `Views/GameView.axaml` ／ `ViewModels/GameViewModel.*.cs`・**表示の目録（表・法・財政の項・問題の一覧）は本体の `PriceOfBread.SimCore/Display/`**（データが増えても UI を直さずに並ぶ）・撮影の検査 `--uishot`（外側の流れ・表の左端を BootLog へ）・設計書 `docs/202610/20261023/20261023_UIの作り直し_設計.md` |
 
 ⚠ **`file:line` は書かない。** ★★ 座標は書いた瞬間から腐る——**着手前に必ず `grep` で現物を取り直すこと。**
 

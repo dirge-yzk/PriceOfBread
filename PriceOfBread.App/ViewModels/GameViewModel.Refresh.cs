@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PriceOfBread.App.Layout;
 using PriceOfBread.SimCore;
 
 namespace PriceOfBread.App.ViewModels;
@@ -21,24 +22,11 @@ public partial class GameViewModel
     {
         UpdateDate();
         RefreshDaily();   // 国庫の1行は日次と同じ1本（2026-09-11 #19d）＝物価/為替/詳細パネルの価格も同時に最新化
-        TreasuryHover = StatG("", "国庫", _histTreasury, Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
-        // 技術水準の年次推移（_histTech）は**財政タブの技術効率の行**が読む＝GameViewModel.Fiscal.cs の TechHover（2026-08-15作者裁定の移設先）。
+        TreasuryHover = StatG("", "国庫", _histTreasury, Fmt.Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
+        // 技術水準の年次推移（_histTech）は財政と貨幣のページの技術水準の線が読む（GameViewModel.Fiscal.cs の TechValues）。
         // ⚠ここで同じものを二度作らない（同じ量を2つの名前で呼ばない）。採取は SampleYearStats の _histTech.Add の1本だけ。
         RefreshTrade();   // 貿易タブ（2026-07-24）：開いている時のみ集計（閉＝即return）
-        // 金融（財政タブ）：「ラベル｜値」の行に分解（旧FinanceText＝1本の連結文字列は折返し位置が不定・ホバー対象が曖昧だった）。
-        InterestLeverLine = $"政策金利 {_player.Policy.InterestRateTarget:P0}　実効 {_player.InterestRate:P0}";   // B1：他11レバーと同じ「目標／実効」の1行ペア
-        LoanRateText = $"{_player.LoanRatePerYear:P1}";                                                          // B1：年率換算（唯一の換算地点＝World.LoanRatePerYear）
-        if (_player.Bank is { } bank)
-        {
-            CoverText = PlayText.CoverText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告と同じ）
-            HouseholdLoanText = Money(bank.HouseholdLoans.Value);   // ★A-03：POPの個人債務の残高
-        }
-        else { CoverText = "—"; HouseholdLoanText = "—"; }   // 銀行なし＝兌換系は該当なし
-        LossFinancedText = Money(_player.LossFinanced);   // ★A-03：損失の負債化（累積グロス）＝硬性ゲートの分子
-        OnPropertyChanged(nameof(CoverTip));   // 兌換カバー率ホバーの内訳（基礎/広義貨幣）も追従
-
-        // 旧・上部バー用の DebtText/DebtVisible と RegionInfo はXAML未バインドの死構築だったため削除（監査2026-07-12 死14/16）。
-        // 財政劣化の連鎖（対GDP比・対外債務・緊縮・切下げ累計）は財政タブの DebtLine（UpdateForecast）へ統合。
+        // 金融（物価・為替・金利・損失の負債化・家計債務・兌換カバー率）は財政と貨幣のページの金融の表（本体の目録 FiscalTables.Finance）が読む＝ここでは作らない。
 
         if (includeMap) RefreshMap();                  // 地図中心UI：全国の州○を所有国色で再配置（重い＝四半期のみ。月次はスキップ）
 
@@ -61,143 +49,7 @@ public partial class GameViewModel
         var unifRule = _player.UnificationRule;
         var unifTargets = unifRule != null ? Formations.UnificationTargets(_sim.Diplomacy, me, unifRule) : null;
         UnifLine = unifRule != null ? $"統一の機運　目標 {unifRule.NewName}" : "";   // 外交タブ上部の状態表示（機運なし＝非表示）
-        var cards = new List<NationCard>(powers.Count);   // 据え置き同期（SyncRows）：行の Button/ツールチップを毎月破棄しない
-        for (int oi = 0; oi < powers.Count; oi++)
-        {
-            var pow = powers[oi];
-            bool isMe = pow == me;
-            bool war = warEnemyIds.Contains(pow.Id);
-            var powRank = _sim.Diplomacy.RankOf(pow);
-            string rank = RankJa(powRank);   // 国家ランク（列強/中堅/弱小・改修2026-06-28）
-            // ★導出政体（2026-08-21・作者裁定「権力円グラフから政体を算出し、外交パネルでの表示のみに使う」）：
-            //   ラベル（w.Polity）でなく PowerAffinity.PolityFromShares（権力シェアの読み出し）を表示する。
-            //   忠実度ハーネスの照合と同じ物差し＝画面と帯が同じものを見る。⚠月次リフレッシュ×61カ国×自国POP走査＝軽い。
-            Polity? derived = pow.Nation is { } dnw ? PowerAffinity.PolityFromShares(dnw) : (Polity?)null;
-            string name = SecessionNames.DisplayName(pow, derived, _sim.Diplomacy.Wars);   // 政体で変わる国号（イギリス共和国 等）・政体をめぐる内戦の間は両陣営が頭書き＋国名（表は SimCore の1か所）
-            string score = pow.Nation != null ? scoreByPower[pow.Id].ToString("F1") : "—";
-            string polity = PolityRegimeJa(derived);   // ★導出政体（同上）
-            // 低い＝多民族/多宗派（移民を引く・分離圧力）。宗教統一は民族統一と対称の派生スカラー＝州宗教の最大シェア（#62で露出）
-            string unity = pow.Nation is { EthnicEnabled: true } nn ? $"民族統一 {nn.EthnicUnity:P0}　宗教統一 {nn.ReligiousUnity:P0}" : "";
-            // 緊張：自国は「—」、それ以外は**開戦までの近さ**（100%＝宣戦の閾値・TensionPct）。交戦はバッジで示す。
-            string tension = isMe ? "—" : $"{TensionPct(_sim.Diplomacy.Tension(me, pow)):P0}";
-            // 関係バッジ（優先順）：戦争中＞属国/宗主（自国）＞他国の属国＞同盟＞領土なし（帰属の明記・2026-07-19）
-            var powSuz = _sim.Diplomacy.Suzerain(pow);
-            string badge = ""; IBrush badgeBrush = BadgeDefault;
-            if (isMe) { }
-            else if (war) { badge = "戦争中"; badgeBrush = NewsRed; }
-            else if (powSuz == me) { badge = "自国の属国"; badgeBrush = BadgeOwnVassal; }
-            else if (_sim.Diplomacy.Suzerain(me) == pow) { badge = "自国の宗主"; badgeBrush = BadgeOwnSuzerain; }
-            // ★2026-08-01：宗主名を入れると外交タブの行が折り返して太くなる。宗主名はホバーの詳細に残る
-            // ★2026-09-23：バッジ本文は**宗主名だけ**にした（旧＝「○○の属国」・作者指示2026-08-03）。
-            //   実写で MaxWidth 66px（DiploTab.axaml のバッジ）に収まらず「オヨ帝国の属」＝**「の属」という存在しない語**が出ていた。
-            //   固有名詞は途中で切れても固有名詞のままだが「○○の属国」は末尾が落ちると別の語になる。属国であることは色（BadgeOtherVassal）が担う。
-            //   ⚠全文（「○○の属国」）はホバーの詳細の「関係:」行に元から残っている（下の rel.Add）。
-            else if (powSuz is not null) { badge = powSuz.Name; badgeBrush = BadgeOtherVassal; }
-            else if (_sim.Diplomacy.HasAlliance(me, pow)) { badge = "同盟"; badgeBrush = NewsGreen; }
-            else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeBrush = BadgeNoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
-            // 外交アクションの可否：同ランク＝同盟（緊張の増減は#106でポップアップへ移行）／弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
-            // ★2026-08-23作者裁定：植民地化と侵略は**1本**（侵略）。標的が弱小なら抽象標的でも実在国でも同じボタン＝
-            //   自国のランクでボタンが出たり消えたりしない（エンジンの World.CanInvade にもランク条件は無い＝AIと同じ動詞・同じ可否）。
-            // 同盟の可否判定（canTension/canAlly）は削除（2026-08-10 死コード掃除）＝同盟は自動化済みでボタンが無く、算出値の行き先が無かった。
-            bool showInvade = !isMe && powRank == PowerRank.Minor;
-            string invReason = "";
-            bool canInvade = showInvade && _player.CanInvade(pow, out invReason);
-            if (!showInvade || canInvade) invReason = "";
-            bool showUnif = unifTargets != null && unifTargets.Contains(pow);   // P4：必要州の保有国にのみ表示
-            string unifReason = "";
-            bool canUnif = showUnif && _player.CanUnificationWar(pow, out unifReason);
-            if (!showUnif || canUnif) unifReason = "";
-            double willCost = showInvade ? _player.ExpansionCostFor(pow) : 0;   // ゲート・実消費・表示は同一の式（国力比・2026-08-23）
-            double wcap = _player.Coef.ExpansionWillCap;
-            // 不可の理由（グレーアウト時のツールチップ）：不足系は「必要量（現在値）」で言い換え。
-            string? ReasonTip(string reason) => reason switch
-            {
-                "" => null,
-                "余剰戦力が不足" => $"戦力余剰が{willCost / wcap:P0}必要(現在 {_player.ExpansionWill / wcap:P0})",   // ⚠case の文字列は**エンジンの理由**（World.CanInvade:1880）＝変えない。変えたのは表示だけ（2026-09-23「余剰戦力」→「戦力余剰」）
-                "属国が上限" => $"属国 {_sim.Diplomacy.DependentCount(me)}/{_player.Coef.MaxDependents}",
-                "兵力が不足" => $"兵力が標的の{_player.Coef.InvadeMilitaryFactor:F1}倍必要(自国 {me.Military * _player.MilitaryReadiness:F2}/標的 {pow.Military:F2})",
-                _ => reason,
-            };
-            // 緊張の色：低=青→中=黄→高=赤
-            double tVal = isMe ? 0 : TensionPct(_sim.Diplomacy.Tension(me, pow)) * 100.0;   // 色も同じ物差し（100=開戦）
-            IBrush tBrush = isMe ? Brushes.Gray : tVal < 35 ? TensionLow : tVal < 70 ? TensionMid : TensionHigh;
-
-            // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝6 項の割合の点）＋緊張が高まっている要因。
-            string detail = $"{name}({rank})　{polity}";
-            if (pow.Nation is { } nw)
-            {
-                detail += $"\n列強スコア:{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F1}"));
-                if (unity.Length > 0) detail += "\n" + unity;
-                // 主流の文化/宗教（州ラベルの人口加重多数派）＝下の「民族の隔たり/宗教の隔たり」の素（#62）
-                if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化: {pow.Culture}　宗教: {pow.Religion}";
-                if (!isMe && me.Nation is not null)
-                {
-                    // 緊張要因＝UIで再導出せず、エンジンの理由別台帳（TensionBreakdown）をそのまま出す（二重真理の解消）。
-                    // 表示名は Diplomacy.TensionReasonJa（多対一）＝同名チャネルは束ねてから並べる（緊張モーダル＝Popups.cs と同じ規約）。
-                    var merged = new List<(string Name, double Value)>();
-                    foreach (var (reason, v) in _sim.Diplomacy.TensionBreakdown(me, pow))
-                    {
-                        string rname = Diplomacy.TensionReasonJa(reason);
-                        int at = merged.FindIndex(x => x.Name == rname);
-                        if (at >= 0) merged[at] = (rname, merged[at].Value + v);
-                        else merged.Add((rname, v));
-                    }
-                    var factors = merged.Where(f => TensionPct(f.Value) >= 0.005).OrderByDescending(f => f.Value).ToList();   // 0%に丸まる寄与は出さない（緊張モーダルと同じ足切り）
-                    if (factors.Count > 0)
-                    {
-                        detail += "\n緊張要因";
-                        foreach (var f in factors)
-                            detail += $"\n・{f.Name} +{TensionPct(f.Value):P0}";
-                    }
-                }
-                // 自国との関係（同盟・禁輸・属国/宗主）＝意思決定情報
-                var rel = new List<string>();
-                if (_sim.Diplomacy.HasAlliance(me, pow)) rel.Add("防衛同盟");
-                if (_sim.Diplomacy.HasEmbargo(me, pow)) rel.Add("禁輸中");
-                if (powSuz == me) rel.Add("自国の属国");
-                else if (powSuz is not null) rel.Add($"{powSuz.Name}の属国");   // 帰属の明記（2026-07-19）：他国の勢力圏もホバーで判る
-                if (_sim.Diplomacy.Suzerain(me) == pow) rel.Add("自国の宗主");
-                if (rel.Count > 0) detail += "\n関係: " + string.Join("　", rel);
-                // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）
-                if (pow.Nation is { } enw)
-                {
-                    detail += $"\n経済: GDP {Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
-                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
-                }
-            }
-            else detail += $"\n残る領土 {pow.ColonyList.Count}";   // 抽象標的＝未接収の植民地数（0=領土なし・奪う物が無い）
-            // 通商条約の行（ShowTreaty/CanTreaty/TreatyTip）は廃止（2026-09-07作者指示）＝締結は Diplomacy.TradeTreaties が四半期に自動で行う（プレイヤーもAIと同じ掃引）
-            if (oi == 0 || _sim.Diplomacy.RankOf(powers[oi - 1]) != powRank)
-                cards.Add(new NationCard { Header = rank, PowerName = "＿見出し＿" + rank });   // 区切り（PowerNameは同期キー＝国名と衝突しない印）
-            cards.Add(new NationCard
-            {
-                Order = (oi + 1).ToString(),
-                Name = name,
-                PowerName = pow.Name,
-                Tension = tension,
-                Detail = detail,   // ホバー詳細（スコア内訳＋緊張の要因）
-                Color = PolityColor(derived),   // 国号・政体名（name/polity）と同じ導出政体（PolityFromShares）＝色と文字が別の政体を指さない
-                Badge = badge,
-                BadgeBrush = badgeBrush,
-                RowBrush = isMe ? SelfRowHighlight : Brushes.Transparent,   // ライトテーマの自国ハイライト
-                ShowInvade = showInvade,
-                CanInvade = canInvade,
-                ShowUnif = showUnif,
-                CanUnif = canUnif,
-                UnifTip = ReasonTip(unifReason),
-                InvadeLabel = "侵略",   // ★2026-08-23作者裁定：植民地化と1本化＝弱小への動詞はこれ1つ
-                InvadeTip = ReasonTip(invReason),
-                TensionBrush = tBrush,
-                InvadeCmd = DiploInvadeCommand,
-                UnifCmd = DiploUnifWarCommand,
-                CenterCmd = CenterNationCommand,
-            });
-        }
-        // 2段組（2026-08-10）：前半を左段・後半を右段へ。奇数なら左段が1つ多い＝上から詰まって見える。
-        int half = (cards.Count + 1) / 2;
-        SyncRows(NationsLeft, cards.GetRange(0, half), c => c.PowerName, (t, s) => t.CopyFrom(s));
-        SyncRows(NationsRight, cards.GetRange(half, cards.Count - half), c => c.PowerName, (t, s) => t.CopyFrom(s));
-
+        if (Layout.IsShown(Slot.DiplomacyWar)) BuildNationTable(powers, scoreByPower, linesByPower, me, warEnemyIds, unifTargets);   // 国の一覧の表（外交と戦争のページが見えている間だけ）
         double willCap = _player.Coef.ExpansionWillCap;
         ExpansionText = $"戦力余剰:{_player.ExpansionWill / willCap:P0}";   // ★2026-09-23作者指示「余剰戦力」→「戦力余剰」。好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
         // ★政治資本（MandateSpent）のヘッダー表示は撤去（2026-08-15作者確認＝選挙梯子E5で廃止予定・表示部分を前倒し。内部は「紛争記憶」への改名待ち＝E5本体）
@@ -233,7 +85,7 @@ public partial class GameViewModel
         // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：ヘッダーのホバーは**折れ線だけ**になった。
         //   ⚠例外は1行だけ＝一人当たりGDPと世界順位（GDPの量なので置き場はGDPのグラフのホバーしかない・作者指示）。
         //   上位5カ国の一人当たりGDPの一覧とティア内訳（主食/日用品/…/素材）は撤去した。
-        string gdpHover = $"GDP　一人当たり {MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
+        string gdpHover = $"GDP　一人当たり {Fmt.MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
         // ★2026-09-23（作者指示「文字数固定」）：各項目の箱の最小幅（画素）。この行は FontBody=13。
         //   下の数値は「1900年前後に出うる最長の文字列」の実寸を2の倍数へ切り上げたもの。
         //     地位:列強12位 84（★2026-09-23に1行目から移設） ／ GDP:£999.99M(61位) 130 ／ 人口:1234.56M人 104 ／
@@ -266,11 +118,12 @@ public partial class GameViewModel
             //   最長「地位:列強12位」＝13pxで実測84px。
             StatPlain($"地位:{PlayerRankText}", "地位", 84),
             // ★2026-09-23作者指示：「GDPはnk」→「GDP:nk」（この1行だけ「は」で他は全部「名前:値」だった）
-            StatG($"GDP:{Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, Money, 130, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
+            StatG($"GDP:{Fmt.Money(myGdp)}", "GDP", _histGdp, Fmt.Money, 92, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）。順位は括弧で添えず別の項目（2026-10-23）
+            StatPlain($"GDP順位:{gdpPos}位", "GDP順位", 92),
             // ★2026-09-23作者指示：ジニ係数は撤去（採取 _histGini は残す＝セーブの系列配列に居る）。
             //   ⚠その空きに技術水準を置くのは**差し戻した**＝2026-08-15作者裁定「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」が生きており、
             //     その撤去の記録がすぐ上の行にコメントで残ったまま再設置していた。年次グラフは TechHover で財政タブへ渡す（_histTech の採取は継続）。
-            StatG($"人口:{PopFmt(popTotal)}", "人口", _histPop, PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
+            StatG($"人口:{Fmt.PopFmt(popTotal)}", "人口", _histPop, Fmt.PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
             StatG($"識字率:{lit:P0}", "識字率", _histLit, v => v.ToString("P0"), 76),
             StatG($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, v => v.ToString("P0"), 76),
             // ★2026-09-23作者指示「識字率の右に満足度・不満度・闘争度の順」＝足りないのは不満度1つ。
@@ -349,9 +202,9 @@ public partial class GameViewModel
                 Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
                 Forces = $"自軍 {Troops(me)}　即応度 {_player.MilitaryReadiness:P0}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
                 // ★2026-09-23：兵士の戦死と民間人の死を**別の行**で出す（民間は兵の17〜25倍＝1本に足すと兵の戦死が桁で消える）
-                Losses = $"戦死 自国 {PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastDeadEnemy)}" : "")
-                       + $"\n民間人の死 自国 {PopFmt(tr.LastCivDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastCivDeadEnemy)}" : ""),
-                Cost = $"戦費 {Money(tr.CostShare)}",
+                Losses = $"戦死 自国 {Fmt.PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastDeadEnemy)}" : "")
+                       + $"\n民間人の死 自国 {Fmt.PopFmt(tr.LastCivDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastCivDeadEnemy)}" : ""),
+                Cost = $"戦費 {Fmt.Money(tr.CostShare)}",
                 Exhaustion = $"厭戦 自国 {me.WarExhaustion:P0}　相手 {enemy.WarExhaustion:P0}",
                 Terms = ExplainTerms("Exhaustion", v => v.ToString("P0")),   // 自国の厭戦の内訳（説明API#63）
             });
@@ -386,18 +239,18 @@ public partial class GameViewModel
                 EndDay = _simDays,
                 Title = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}　{result}",
                 Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}ヶ月"
-                       + $"\n戦死 自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(deadEnemy)}" : "")
-                       + $"\n民間人の死 自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(civEnemy)}" : "")
-                       + $"\n戦費 {Money(tr.CostShare)}",
+                       + $"\n戦死 自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(deadEnemy)}" : "")
+                       + $"\n民間人の死 自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(civEnemy)}" : "")
+                       + $"\n戦費 {Fmt.Money(tr.CostShare)}",
             });
             // #106 終戦ポップアップ：双方の戦死・戦費・得失を表示（同四半期に複数終戦なら最初の1件）
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")} との戦争が終結した。\n\n"
                     + $"結果:{result}(戦勝点 {scEnd:+0%;-0%;0%})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
-                    + $"戦死　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
-                    + $"民間人の死　自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(civEnemy)}" : "") + "\n"
-                    + $"戦費　{Money(tr.CostShare)}\n\n"
+                    + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
+                    + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"
+                    + $"戦費　{Fmt.Money(tr.CostShare)}\n\n"
                     + (tr.Civil ? CivilWarOutcome(tr, won)
                        : won is null ? "得たもの:なし(白紙講和)"
                        : won.Value ? "得たもの:賠償金"
@@ -437,7 +290,7 @@ public partial class GameViewModel
             NoMediation = MediationRows.Count == 0;
         }
         WarTabVisible = true;   // 戦争タブは常時表示（国内勢力を統合＝戦争がなくても勢力の閲覧/鎮圧に使う・2026-07-20）
-        if (newEnemy && !ProdOpen) ActiveTab = "戦争";   // 開戦＝戦争タブを自動で開く（生産タブ操作中は邪魔しない）
+        if (newEnemy && !Layout.IsShown(Slot.DiplomacyWar) && Layout.SlotAt(Layout.Selected) != Slot.Production) Layout.OpenInSelected(Slot.DiplomacyWar);   // 開戦＝外交と戦争のページを選んでいる枠へ自動で開く（生産を見ている枠は邪魔しない）
 
         // 外交ログ（開戦・講和・同盟・植民地化・独立…）を事件ログへ（新規分のみ）。
         // 日付は yyyy/mm/dd（事件の発生日）。発生地＝本文に最初に現れる国の首都＝遠い事件ほど遅れて届く（QueueNews と同じ距離ラグ）。
@@ -494,137 +347,7 @@ public partial class GameViewModel
 
         UpdateForecast();   // 予算予想（支出/収入・実効%・予想額）＝毎tickも更新されるがRefresh時にも即時反映
 
-        // POP＝上流（貴族・聖職・資本家）／中流（専門職・官僚・職人・商人）／下流（労働者・農民・兵士・使用人 他）の3層で表示。
-        // 全州のpopを ClassId で集約（国民全体）。州別の人数はツールチップに内訳表示（パリ:n人 リール:n人…）。数値はすべて「:」で繋ぐ。
-        var popsUpper = new List<PopRow>(); var popsMiddle = new List<PopRow>(); var popsLower = new List<PopRow>();   // 据え置き同期（ホバー中のツールチップを毎月壊さない）
-        var order = new List<int>();
-        var agg = new Dictionary<int, List<(Region Rg, Pop P)>>();
-        foreach (var rg in _player.Regions)
-        {
-            if (rg.State != RegionState.Active) continue;
-            foreach (var p in rg.Pops)
-            {
-                if (!agg.TryGetValue(p.ClassId, out var l)) { agg[p.ClassId] = l = new(); order.Add(p.ClassId); }
-                l.Add((rg, p));
-            }
-        }
-        bool foodShort = _player.Regions.Any(r => r.State == RegionState.Active && r.FoodFill < FillWarnThreshold);
-        double taxBurden = _player.TaxRate.Value + _player.PollTax * 0.5;
-        // ★増減の矢印（作者指示2026-08-16(2)(3)）：四半期境界でのみ規模/失業者の差分を確定（状態は GameViewModel.Pop.cs）。初回は基準化のみ＝矢印なし
-        int popQStamp = _player.Year * Calendar.QuartersPerYear + _player.Quarter;
-        bool popQBoundary = popQStamp != _prevPopQuarterStamp;
-        foreach (int cid in order)
-        {
-            var members = agg[cid];
-            var first = members[0].P;
-            double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
-            double leanC = 0, leanL = 0, leanS = 0;   // 政治意識のある人数の族別内訳（千人・作者指示2026-08-16(1)）＝残りが「なし」
-            double mLiving = 0, mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;   // ★段2＝闘争度の5項（生活の失望/法の隔たり/厭戦/民族/飢餓）
-            double debt = 0;   // ★2026-08-02：個人債務も集計（作者指示「POPに貯蓄と合わせて借金も表示」）
-            // ★満足度セルのホバー（作者指示2026-08-15(2)）：主食と主食以外の充足。需要量はpop規模に比例＝量の総和がそのままsize加重
-            double fMet = 0, fNeed = 0, nMet = 0, nTot = 0;
-            foreach (var (rg, p) in members)
-            {
-                size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt.Value;
-                fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
-                satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
-                double a20 = p.AgeShare(20, double.PositiveInfinity);   // 年齢の層（段4e 後半）：女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
-                femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size; if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
-                mLiving += p.MilLiving * p.Size; mVoice += p.MilVoice * p.Size; mWar += p.MilWar * p.Size;
-                mNation += p.MilNation * p.Size; mFamine += p.MilFamine * p.Size;   // ★段2で失業/群衆/格差/中間/革命の波は項ごと削除（設計メモ §7-3）
-                // ★4区分の畳み込み（作者指示2026-08-16(1)）＝政治意識のある人数を族比で割る（PopIdeologyHeads・GameViewModel.Pop.cs）。
-                //   単位は人数（千人）＝ここで足し込んだ3族と「なし」の合計がその階級の規模に一致する。
-                var (headC, headL, headS) = PopIdeologyHeads(p);
-                leanC += headC; leanL += headL; leanS += headS;
-            }
-            double inv = size > 1e-9 ? 1.0 / size : 0;
-            double sat = satW * inv, mil = milW * inv, litAvg = litW * inv, fem = femW * inv, child = childW * inv, old = oldW * inv, unemp = unempW * inv;
-            double perCap = size > 1e-9 ? sav / size : 0;
-            // ★満足度セルのホバー（作者指示2026-08-15(2)）：主食＝FoodMet/FoodNeed・主食以外＝NeedMet/NeedTotal。
-            //   エンジンと同じくクランプ（EconomyStep の Satisfaction=Clamp(NeedMet/NeedTotal) と同族）。
-            //   ⚠アヘン・インフラ・福祉等の後段の加減点は診断フィールドが無い＝今回は出さない（将来課題）
-            double foodFill = fNeed > 1e-9 ? System.Math.Clamp(fMet / fNeed, 0, 1) : 1.0;
-            // ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝満足度の台帳（NeedMet/NeedTotal）には食料が載っていない＝台帳そのものが「主食以外」。
-            //   ⚠旧の引き算（nTot−fNeed／nMet−fMet）は分子と分母で別の規則（重み付き台帳−重みなしの食料）だった＝分割後に引くと分子が負になる。
-            double othNeed = nTot, othMet = nMet;
-            double othFill = othNeed > 1e-9 ? System.Math.Clamp(othMet / othNeed, 0, 1) : 1.0;
-            string satTip = $"主食の充足:{foodFill:P0}\n主食以外の充足:{othFill:P0}";
-            // ★増減の向き（作者指示2026-08-16(2)(3)）：四半期境界でのみ確定（StampPopDelta・GameViewModel.Pop.cs）＝規模と失業者で同じ物差し。
-            double unempK = size * unemp;   // 失業者数（千人）
-            var (sizeArrow, sizeArrowBrush) = PopTrend(StampPopDelta(_prevPopSize, _popSizeDelta, cid, size, popQBoundary));
-            var (unempArrow, unempArrowBrush) = PopTrend(StampPopDelta(_prevPopUnemp, _popUnempDelta, cid, unempK, popQBoundary));
-            string party = first.Closed ? "保守党" : first.IsModernElite ? "自由党" : "社会党";   // 支持政党＝利益ブロック
-            bool parliamentActive = HasParliament;   // 項9（2026-07-26）：議会（議席）が無い段階では支持政党を出さない（ParliamentTextと同じ判定＝HasParliament。政体条件込み・2026-08-04）
-            // 所得・貯蓄 → 州別の人数(失業込み)を1州1行 → 人口構成 → 失業率/支持政党（すべて「:」区切り）
-            string tip = first.ClassName
-                       + $"\n所得:{Money(earned)}　貯蓄:£{perCap:F1}　借金:£{(size > 1e-9 ? debt / size : 0):F1}";   // ★借金＝1人当たり（貯蓄と同じ物差し・2026-08-02）
-            foreach (var (rg, p) in members.Where(m => m.P.Size > 0.5).OrderByDescending(m => m.P.Size))
-            {
-                double un = p.IsSoldier ? 0 : p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の未払いは失業に数えない
-                tip += $"\n{rg.Name}:{PopFmtK(p.Size)}" + (un > 0.5 ? $"(失業{PopFmtK(un)})" : "");   // 内部単位=千人（他10）。POPタブはk統一（項10）
-            }
-            tip += $"\n女性:{fem:P0}　子供:{child:P0}　老年:{old:P0}"
-                 + $"\n失業率:{unemp:P0}" + (parliamentActive ? $"　支持政党:{party}" : "");
-            // 闘争度の要因内訳：全国size加重の各寄与ぶん（多い順・0.5%未満は省略）。生活水準には操作可能な主因をヒント
-            var milb = new List<(string Label, double V)>
-            {
-                (PlayText.MilitancyPartNames[0], mLiving * inv), (PlayText.MilitancyPartNames[1], mVoice * inv), (PlayText.MilitancyPartNames[2], mWar * inv),   // ★(410) 5 本の名前は PlayText が単一ソース（Runner の play の報告と同じ）
-                (PlayText.MilitancyPartNames[3], mNation * inv), (PlayText.MilitancyPartNames[4], mFamine * inv),
-            };
-            var causes = new List<string>();
-            if (foodShort) causes.Add("主食不足");
-            if (!first.Closed && !first.IsSoldier && taxBurden > 0.30) causes.Add("重税");
-            if (!first.Closed && !first.IsModernElite && _player.WorkHoursValue >= 12 && first.IsUrban) causes.Add("長時間労働");
-            var shown = milb.Where(x => x.V > 0.005).OrderByDescending(x => x.V).ToList();
-            // ★闘争度の要因は闘争度セルのホバーへ移動（作者指示2026-08-15(2)）＝階級名セルの tip からは出さない。
-            //   1本も無い（全要因0.5%以下）なら null＝ツールチップ自体を出さない（空文字だと空の吹き出し）
-            string? milTipText = null;
-            foreach (var (label, v) in shown)
-            {
-                string extra = label == "生活水準の不足" && causes.Count > 0 ? $"({string.Join("、", causes)})" : "";
-                milTipText = (milTipText is null ? "" : milTipText + "\n") + $"・{label}:+{v:P0}{extra}";
-            }
-            // ★4区分（作者指示2026-08-16(1)）：なし＝規模−（保守+自由+社会）＝Σ size×(1−Consciousness)。差で取る＝4列の合計は常に規模と一致する。
-            double leanNone = System.Math.Max(0, size - (leanC + leanL + leanS));
-            var privChips = PopPrivilegeChips(cid);   // ★特権の1行（作者指示2026-09-07(7)(8)）＝法・政体・工業化から導く観測量。先頭が「なし」
-            var row = new PopRow
-            {
-                Class = first.ClassName,
-                ClassId = cid,
-                // ★規模と失業者は別の列（作者フィードバック2026-08-10）。POPタブはk統一（項10）。
-                //   規模は全国人口比を併記「5,430K(12%)」（作者指示2026-08-15(3)・分母=Refresh冒頭のpopTotal）＋増減の矢印（2026-08-16(2)）
-                Size = popTotal > 1e-9 ? PopFmtK(size) + $"({size / popTotal:P0})" : PopFmtK(size),
-                SizeArrow = sizeArrow,
-                SizeArrowBrush = sizeArrowBrush,
-                // ★失業者も規模と同型「543K(10%)↑」（作者指示2026-08-16(3)）＝()内はこの階級の失業率。丸めて0%の階級は「—」（矢印も出さない）
-                Unemployed = unemp > 0.005 ? PopFmtK(unempK) + $"({unemp:P0})" : "—",
-                UnemployedArrow = unemp > 0.005 ? unempArrow : "",
-                UnemployedArrowBrush = unempArrowBrush,
-                Satisfaction = sat.ToString("P0"),
-                Militancy = mil.ToString("P0"),
-                Literacy = litAvg.ToString("P0"),
-                // ★なし/保守/自由/社会の4区分（作者指示2026-08-16(1)・旧「政治意識」列は「なし」の裏返しなので撤去）＝合計100%。
-                //   意識は識字×教育法×都市×報道で伸びる遅い変数（時定数約17年）＝「なし」が減る速さがそのままレバーの効き。
-                LeanNone = (leanNone * inv).ToString("P0"),
-                // ★族ごとに1列（作者フィードバック2026-08-10）＝縦に並ぶので階級間で同じ族を比較できる。
-                LeanConservative = (leanC * inv).ToString("P0"),
-                LeanLiberal = (leanL * inv).ToString("P0"),
-                LeanSocialist = (leanS * inv).ToString("P0"),
-                Tip = tip,
-                SatTip = satTip,
-                MilTip = milTipText,
-            };
-            foreach (var ch in privChips) row.Privileges.Add(ch);
-            bool upper = first.Closed || first.ClassName == CapitalistClass;
-            bool middle = !upper && (first.IsModernElite || first.ClassName is BureaucratClass or ArtisanClass or MerchantClass);
-            (upper ? popsUpper : middle ? popsMiddle : popsLower).Add(row);
-        }
-        if (popQBoundary) _prevPopQuarterStamp = popQStamp;   // 全階級の基準化/確定が済んでからスタンプを進める
-        SyncRows(PopsUpper, popsUpper, r => r.Class, (t, s) => t.CopyFrom(s));
-        SyncRows(PopsMiddle, popsMiddle, r => r.Class, (t, s) => t.CopyFrom(s));
-        SyncRows(PopsLower, popsLower, r => r.Class, (t, s) => t.CopyFrom(s));
-
-        BuildComposition();   // 文化・宗教の構成（#62 表示レイヤー）
+        RefreshPopulation();   // 人口のページ（階級・州・宗教・文化・年齢の層・出生と死）。階級の集約と増減の矢印の差分は見えているかに依らず毎月採る（GameViewModel.Pop.cs）
         BuildParliament();    // 議会の実体（議席・得票・支持基盤・2026-08-04）
 
         // 利益団体（旧支配層/近代エリート/大衆の政治勢力＝富×参政権。POP由来＝政治の主役・革命の駆動）
@@ -659,11 +382,8 @@ public partial class GameViewModel
             });
         }
 
-        // 予算レバーの現在値を通知（ロード時/再描画時）
-        OnPropertyChanged(nameof(ArmyUpkeepLine)); OnPropertyChanged(nameof(NavyUpkeepLine));
-        // ⚠撤去2026-09-23：NavalShare/NavalShareLine への通知＝比のレバーごと廃止（地理が置く）。陸海それぞれの**金額**は上の2行が名乗る。
-        OnPropertyChanged(nameof(Tariff));
-        RefreshLaws();   // 法律タブの段階ボタン行（E8）＋財政の段（R1/R2）：現行段階・改正可否・政治資本コストを毎期更新
+        // 予算レバーの現在値は財政と貨幣のページの表が UpdateForecast で読む（通知は要らない）。
+        RefreshLaws();   // 法律タブの段階ボタン行（E8）：現行段階・改正可否・政治資本コストを毎期更新
         UpdateLawAlert();     // 法律タブの通知＝改革の一歩が「通らない→通る」へ変わったら点灯
         OnPropertyChanged(nameof(PolityText));
         OnPropertyChanged(nameof(CrownText)); OnPropertyChanged(nameof(ParliamentControlText));
@@ -674,22 +394,16 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(PolityMobilizationText)); OnPropertyChanged(nameof(PolityRollbackText));
         OnPropertyChanged(nameof(WarScaleText)); OnPropertyChanged(nameof(WarHomeLosingText));   // ★(195) 総動員の判断の材料（AI と同じ Diplomacy.WarScale）   // 政体パネル（2026-07-24）。総動員時の兵士割合
         OnPropertyChanged(nameof(ParliamentText));
-        OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));
-        OnPropertyChanged(nameof(MobilizeButtonText)); OnPropertyChanged(nameof(CoverVisible));
-        OnPropertyChanged(nameof(LoanRateVisible)); OnPropertyChanged(nameof(HouseholdLoanVisible));   // 金融の条件付きの2行（2026-09-26）
-        OnPropertyChanged(nameof(InterestLever));
-        OnPropertyChanged(nameof(InterestLeverEnabled));   // ★トリレンマ（2026-08-13）：兌換維持＋資本自由へ入った/出た瞬間に掴める/掴めないが切り替わる
-        OnPropertyChanged(nameof(ModernizationInvest));
+        OnPropertyChanged(nameof(MobilizeButtonText));
         // 法律の現行値/支持団体の8本への通知は撤去（2026-08-10）＝2026-08-02の「議会立法」ブロック撤去で購読者が0件になっていた
         // （現行段は法律一覧の濃塗り・賛否は段ボタンのホバーが持つ）。行そのものの追従は上の RefreshLaws が担う。
-        // ⚠撤去2026-09-12/2026-09-20: 社会保障・税・教育費のスライダーへの通知＝段ボタンへ一本化して購読者が0件（段ボタンの追従は上の RefreshLaws）。
-        OnPropertyChanged(nameof(AdminSpending));
         // 制度（法律タブ）：解禁は四半期判定＝状態行を毎期読み直す
-        OnPropertyChanged(nameof(Institutions));   // 制度3行（施行/未施行）＝法律と同じ形（2026-08-11）
 
-        if (ProdOpen) RefreshProduction();   // 生産タブが開いていれば四半期ごとに統計を追従
-        if (DiscoveryOpen) RefreshDiscovery();   // 発見パネル（F）も同じ追従
-        if (TabWar) RefreshFactions();   // 戦争タブが開いていれば国内勢力を四半期ごとに追従（2026-07-20移設・国内勢力は戦争タブが正位置）
+        if (ProductionShown) RefreshProduction();   // 生産タブが開いていれば四半期ごとに統計を追従
+        if (DiscoveryShown) RefreshDiscovery();   // 発見パネル（F）も同じ追従
+        if (DiplomacyShown) RefreshFactions();   // 外交と戦争のページが見えていれば国内勢力を四半期ごとに追従（2026-07-20移設・国内勢力は戦争タブが正位置）
         // 巨大建造物は生産タブの左下（2026-08-10移設）＝上の RefreshProduction が BuildMegaRows を含む＝ここで別に組まない
+        RefreshProblems(includeMap);   // 左の列の問題の一覧（月ごと・向きの基準は四半期の境で取り直す）
+        RefreshPins();                 // 右の列のピン留め（鍵で引き直す）
     }
 }

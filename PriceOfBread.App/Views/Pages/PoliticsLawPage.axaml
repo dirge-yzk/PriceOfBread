@@ -1,0 +1,239 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
+             x:Class="PriceOfBread.App.Views.Pages.PoliticsLawPage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/PoliticsLawPage.axaml ＝ 政治と法のページ（(501) 段3）。旧の法律タブと政治タブを 1 つのページに組み直した。
+         欄の並べは .axaml.cs の PageTable（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）。ページの外側は縦に流れない。
+         法の表と制度の表は本体の目録（SimCore/Display/LawTables.cs）が行を並べる＝法を足すとき画面は直さない。
+         値の行は共通の部品 StatRow（名前と値とホバー）。半円は共通の HalfPie。-->
+    <ctl:PageGrid x:Name="Sections" Margin="6">
+
+        <!-- 法の表：群ごとに法の名前と段の押し釦。国有化の門が開いている間は末尾に国有化の群。見出しは止めて中身だけ流す -->
+        <ctl:Section Key="law" Title="法の表" Scrolls="False">
+            <ctl:TableView Snapshot="{Binding LawTable}" InnerScroll="True"/>
+        </ctl:Section>
+
+        <!-- 権力の取り分（王権・議会・軍部・革命勢力の連合後のシェア）と、正統性・予算権・統帥権の小さな半円 -->
+        <ctl:Section Key="power" Title="権力">
+            <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="Auto,12,*">
+                    <Border Grid.Column="0" Background="Transparent" ToolTip.ShowDelay="200">
+                        <ToolTip.Tip><TextBlock Text="{Binding ShareTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                        <ctl:HalfPie Radius="68" Slices="{Binding PowerSlices}"/>
+                    </Border>
+                    <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="12,4,*,Auto">
+                            <Rectangle Width="10" Height="10" Fill="{StaticResource GoldBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="王権" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Grid.Column="3" Text="{Binding ShareCrown, StringFormat=P0}" Classes="val" FontSize="{StaticResource FontSmall}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="12,4,*,Auto">
+                            <Rectangle Width="10" Height="10" Fill="{StaticResource SteelBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="議会" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Grid.Column="3" Text="{Binding ShareParliament, StringFormat=P0}" Classes="val" FontSize="{StaticResource FontSmall}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="12,4,*,Auto">
+                            <Rectangle Width="10" Height="10" Fill="{StaticResource InkDimBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="軍部" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Grid.Column="3" Text="{Binding ShareArmy, StringFormat=P0}" Classes="val" FontSize="{StaticResource FontSmall}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="12,4,*,Auto">
+                            <Rectangle Width="10" Height="10" Fill="{StaticResource RustBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="革命勢力" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Grid.Column="3" Text="{Binding ShareRevolution, StringFormat=P0}" Classes="val" FontSize="{StaticResource FontSmall}"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                <!-- 正統性・予算権・統帥権：半円の下は 見出し／優勢な側とその割合／（予算権と統帥権のみ）今の法。内訳の実数はホバー -->
+                <Grid ColumnDefinitions="*,*,*">
+                    <StackPanel Grid.Column="0" Spacing="1" Background="Transparent" ToolTip.ShowDelay="200">
+                        <ToolTip.Tip><TextBlock Text="{Binding LegitTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                        <ctl:HalfPie Radius="29" Slices="{Binding LegitSlices}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="正統性" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding LegitTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="1" Background="Transparent" ToolTip.ShowDelay="200">
+                        <ToolTip.Tip><TextBlock Text="{Binding BudgetTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                        <ctl:HalfPie Radius="29" Slices="{Binding BudgetSlices}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="予算権" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding BudgetTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding BudgetLawName}" Foreground="{StaticResource InkFaintBrush}" FontSize="{StaticResource FontTiny}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="1" Background="Transparent" ToolTip.ShowDelay="200">
+                        <ToolTip.Tip><TextBlock Text="{Binding CommandTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                        <ctl:HalfPie Radius="29" Slices="{Binding CommandSlices}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="統帥権" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding CommandTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding CommandLawName}" Foreground="{StaticResource InkFaintBrush}" FontSize="{StaticResource FontTiny}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="軍が指揮権を独占" Foreground="{StaticResource RustBrush}" FontWeight="Bold" FontSize="{StaticResource FontBody}"
+                           IsVisible="{Binding ArmyHoldsCommand}"/>
+            </StackPanel>
+        </ctl:Section>
+
+        <!-- 王権と議会：政体の名前・望まれている政体・議会統制力・政治資本・協力度・政変圧力（政体が動くかの量） -->
+        <ctl:Section Key="crown" Title="王権と議会">
+            <StackPanel>
+                <ctl:StatRow Label="政体" Value="{Binding PolityText}"/>
+                <ctl:StatRow Label="王冠の形" Value="{Binding CrownText}"/>
+                <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}" Tip="{Binding PolityAttractorTip}"/>
+                <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Tip="{Binding ParliamentControlTip}"/>
+                <ctl:StatRow Label="政治資本" Value="{Binding PoliticalCapitalText}" Tip="{Binding PoliticalCapitalTip}"/>
+                <ctl:StatRow Label="王権と議会の協力度" Value="{Binding CoopParliamentText}"/>
+                <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" Tip="{Binding ChallengeTip}" ValueBrush="{Binding ChallengeBrush}"/>
+            </StackPanel>
+        </ctl:Section>
+
+        <!-- 政体：現政体で効いている量 -->
+        <ctl:Section Key="polity" Title="政体">
+            <StackPanel>
+                <ctl:StatRow Label="経済政策の決定" Value="{Binding PolityEconControlText}"/>
+                <ctl:StatRow Label="国債の信認割引" Value="{Binding PolityBondDiscountText}"/>
+                <ctl:StatRow Label="参政権と報道の剥奪" Value="{Binding PolityRollbackText}"/>
+            </StackPanel>
+        </ctl:Section>
+
+        <!-- 政治影響力：勢力ごとの割合。力の源泉の分解はホバー -->
+        <ctl:Section Key="bloc" Title="政治影響力">
+            <ItemsControl ItemsSource="{Binding Blocs}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:BlocRow">
+                        <ctl:StatRow Label="{Binding Name}" Value="{Binding Percent}" Tip="{Binding Tip}" ValueBrush="{StaticResource BronzeBrush}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ctl:Section>
+
+        <!-- 権力の奪い合い：議会統制力を今期動かした経路（寄与の大きい順）。議会の成立を待たない -->
+        <ctl:Section Key="struggle" Title="権力の奪い合い">
+            <StackPanel>
+                <TextBlock Text="動きなし" Classes="dim" IsVisible="{Binding !HasPowerStruggle}"/>
+                <StackPanel IsVisible="{Binding HasPowerStruggle}">
+                    <ctl:StatRow Label="議会統制力の今期の変化" Value="{Binding PcDeltaText}" Tip="{Binding PcDeltaTip}" ValueBrush="{Binding PcDeltaBrush}"/>
+                    <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}" Tip="{Binding ArmyLoyaltyTip}"/>
+                    <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}" Tip="{Binding ArmyPowerTip}"/>
+                    <!-- 経路の内訳（緑＝議会が得る／赤＝王権と軍が取り返す）。動いていない経路は行を出さない -->
+                    <ItemsControl ItemsSource="{Binding PowerShifts}" Margin="12,0,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PowerShiftRow">
+                                <ctl:StatRow Label="{Binding Name}" Value="{Binding Value}" Tip="{Binding Tip}" ValueBrush="{Binding Brush}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </ctl:Section>
+
+        <!-- 議会：与党と公約・議席と得票・支持基盤・解散。議会の無い政体では「議会なし」 -->
+        <ctl:Section Key="parliament" Title="議会">
+            <StackPanel Spacing="3" Grid.IsSharedSizeScope="True">
+                <TextBlock Text="議会なし" Classes="dim" IsVisible="{Binding !HasParliament}"/>
+                <StackPanel Spacing="3" IsVisible="{Binding HasParliament}">
+                    <TextBlock Text="{Binding NextElectionText}" Classes="val"/>
+                    <TextBlock Text="{Binding ParliamentText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
+                    <!-- 議席（確定＝選挙時のスナップショット）と得票（毎期の世論）は別物＝並ぶ 2 つの数字に見出しを付ける。列は見出しと行で大きさを共有する -->
+                    <Grid Margin="0,2,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="seatName"/>
+                            <ColumnDefinition Width="*" MinWidth="40"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="seatSeats"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="seatVotes"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="2" Text="議席" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                        <TextBlock Grid.Column="3" Text="得票" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding SeatRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SeatRow">
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="seatName"/>
+                                        <ColumnDefinition Width="*" MinWidth="40"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="seatSeats"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="seatVotes"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"
+                                               FontWeight="{Binding IsGov, Converter={x:Static vm:Conv.BoolToWeight}}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Border Grid.Column="1" Background="#E6DEC8" Height="14" VerticalAlignment="Center" CornerRadius="2">
+                                        <Border Background="{Binding Brush}" HorizontalAlignment="Left" CornerRadius="2"
+                                                Width="{Binding SeatFrac, Converter={x:Static vm:Conv.FracToWidth}}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="2" Text="{Binding Seats}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Votes}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- 支持基盤：階級ごとの票の重みと族の割れ方（見出しつきの列） -->
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" MinWidth="40"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="supShare"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="supCons"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="supLib"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="supSoc"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="支持基盤" Classes="section"/>
+                        <TextBlock Grid.Column="1" Text="割合" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                        <TextBlock Grid.Column="2" Text="保守" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                        <TextBlock Grid.Column="3" Text="自由" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                        <TextBlock Grid.Column="4" Text="社会" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding SupportRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SupportRow">
+                                <Grid Margin="0,1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" MinWidth="40"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="supShare"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="supCons"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="supLib"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="supSoc"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Class}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Share}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Cons}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Lib}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding Soc}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Classes="dialog" Content="議会を解散" Command="{Binding DissolveParliamentCommand}"
+                            IsVisible="{Binding CanDissolveParliament}" Margin="0,6,0,0" HorizontalAlignment="Left"
+                            ToolTip.Tip="{Binding DissolveParliamentTip}"/>
+                </StackPanel>
+            </StackPanel>
+        </ctl:Section>
+
+        <!-- 政体の実績（信認⇔失望）：4 系統の固着⇔カオスのドライバ。緑＝信認・赤＝失望のバー -->
+        <ctl:Section Key="regime" Title="政体の実績">
+            <ItemsControl ItemsSource="{Binding RegimeRecords}" Grid.IsSharedSizeScope="True">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RegimeRow">
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="regimeName"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="0,0,8,0"/>
+                            <Border Grid.Column="1" Width="130" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#E4DABE" CornerRadius="2">
+                                <Border Height="10" Width="{Binding BarWidth}" HorizontalAlignment="Left" Background="{Binding Brush}" CornerRadius="2"/>
+                            </Border>
+                            <TextBlock Grid.Column="2" Text="{Binding Value}" Foreground="{Binding Brush}" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ctl:Section>
+
+        <!-- 制度：特許制度・株式会社・鉄道。条件を満たせば自動で施行される＝押す物ではない（状態だけ） -->
+        <ctl:Section Key="institution" Title="制度">
+            <ctl:TableView Snapshot="{Binding InstitutionTable}"/>
+        </ctl:Section>
+    </ctl:PageGrid>
+</UserControl>

@@ -1,7 +1,7 @@
 // GameViewModel.MapFill.cs ＝ 地図の政治塗り分け（作者指示2026-09-02）のVM側。
 // 種（所持州＋植民地）を集めて MapFill へ渡し、焼き上がった1枚を地図の背景の上に敷く。
 // ★F7（2026-09-28）：州○を廃止＝州のホバー・クリックは**この塗りの割り当て**（格子→種→州/植民地）で当てる（MapHitAt）。
-// ⚠塗り自体の規約（陸だけ・上限＝州配置の最長間隔）は MapFill 側の説明を正とする。ここは「いつ焼き直すか」だけ。
+// ⚠塗り自体の規約（陸を広げる・上限＝州配置の最長間隔・種の無い島へは海を渡る）は MapFill 側の説明を正とする。ここは「いつ焼き直すか」だけ。
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -149,6 +149,9 @@ public partial class GameViewModel
         if (t.Col is { } col) return (_colHoverCache.GetValueOrDefault(col), null, t.Aim ? col : null);
         return default;
     }
+
+    /// <summary>uishot 用（2026-10-23）：緯度経度を画面の中央へ（島の塗りの無人の確かめ）。</summary>
+    public void CenterOnLatLon(double lat, double lon) { var (x, y) = MapData.Project(lat, lon); CenterMap?.Invoke(x, y); }
 
     private static ulong Mix(ulong h, ulong v) => (h ^ v) * 1099511628211UL;   // FNV-1a 64
 }

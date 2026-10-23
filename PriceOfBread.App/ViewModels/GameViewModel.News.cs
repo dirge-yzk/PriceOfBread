@@ -16,19 +16,51 @@ public partial class GameViewModel
 {
     // 旧SatBars（満足度チャート）・旧Notifications（外交生ログ）＝XAML未バインドの死構築を削除（監査2026-07-12 死16。満足度はヘッダーの年次グラフ・外交はニュース配達が現役）
     public ObservableCollection<AlertRow> Alerts { get; } = new();   // 出来事（表示中＝フィルタ適用後）
-    // 出来事のフィルタ（2026-07-19）：世界（すべて）⇄自国のみ。全件は _allAlerts に保持し、表示は Alerts へ流す。
+    // 出来事のフィルタ（2026-07-19・2026-10-23 に 3 つへ）：全国（すべて）・列強（列強が関わる出来事）・自国（自国が当事者）。全件は _allAlerts に保持し、表示は Alerts へ流す。
     private readonly List<AlertRow> _allAlerts = new();
     private const int AlertsShown = 25, AlertsKept = 150;
-    [ObservableProperty] private bool _newsMineOnly;
-    public bool NewsWorld => !NewsMineOnly;
-    partial void OnNewsMineOnlyChanged(bool value) { OnPropertyChanged(nameof(NewsWorld)); RebuildAlerts(); }
-    [RelayCommand] private void SetNewsFilter(string? p) => NewsMineOnly = p == "mine";
+    /// <summary>全件（絞りの前）。撮影が絞りごとの件数を数えるために読む。</summary>
+    internal IReadOnlyList<AlertRow> AlertsForCapture => _allAlerts;
+    /// <summary>年表の絞り。"world"＝全国・"great"＝列強・"mine"＝自国。</summary>
+    [ObservableProperty] private string _newsFilter = "world";
+    public bool NewsWorld => NewsFilter == "world";
+    public bool NewsGreat => NewsFilter == "great";
+    public bool NewsMine => NewsFilter == "mine";
+    partial void OnNewsFilterChanged(string value) { OnPropertyChanged(nameof(NewsWorld)); OnPropertyChanged(nameof(NewsGreat)); OnPropertyChanged(nameof(NewsMine)); RebuildAlerts(); }
+    [RelayCommand] private void SetNewsFilter(string? p) => NewsFilter = p is "great" or "mine" ? p : "world";
+    /// <summary>出来事 1 行が今の絞りに合うか。</summary>
+    private bool NewsPasses(bool mine, bool great) => NewsFilter switch { "mine" => mine, "great" => great, _ => true };
+    /// <summary>列強が関わる出来事か。列強の判定は外交の既存の定義（<see cref="Diplomacy.IsGreatPower"/>＝国力の順位）をそのまま使う。
+    /// 本文に名前が出る国（旧名も）に列強がいれば真・自国の出来事は自国が列強のときも真。</summary>
+    private bool InvolvesGreatPower(string body, bool mine)
+    {
+        var dip = _sim.Diplomacy;
+        if (mine && dip.IsGreatPower(dip.Powers[_playerIndex])) return true;
+        foreach (var p in dip.Powers)
+            if (dip.IsGreatPower(p) && (MentionsName(body, p.Name) || (p.BaseName != p.Name && MentionsName(body, p.BaseName)))) return true;
+        return false;
+    }
+
+    /// <summary>本文に国名が出るか。国名の前後が漢字のとき（国名の端も漢字）は別の語の一部とみなす＝「清」が「粛清」「清算」に当たらない。</summary>
+    public static bool MentionsName(string body, string name)
+    {
+        if (name.Length == 0) return false;
+        static bool Han(char c) => c is >= '一' and <= '鿿';
+        for (int at = body.IndexOf(name, StringComparison.Ordinal); at >= 0; at = body.IndexOf(name, at + 1, StringComparison.Ordinal))
+        {
+            int end = at + name.Length;
+            bool headCut = at > 0 && Han(body[at - 1]) && Han(name[0]);
+            bool tailCut = end < body.Length && Han(body[end]) && Han(name[^1]);
+            if (!headCut && !tailCut) return true;
+        }
+        return false;
+    }
     private void RebuildAlerts()
     {
         Alerts.Clear();
         foreach (var a in _allAlerts)
         {
-            if (NewsMineOnly && !a.Mine) continue;
+            if (!NewsPasses(a.Mine, a.Great)) continue;
             Alerts.Add(a);
             if (Alerts.Count >= AlertsShown) break;
         }
@@ -135,7 +167,7 @@ public partial class GameViewModel
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
-                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
+                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{Fmt.PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
             if (_prevTerror != null) _prevTerror[id] = w.TerrorPurgeCumulative;
             // 外国経済イベント（外国経済の可視化doc §3-2・2026-07-24）：恐慌入り/回復・金本位の離脱/復帰・デフォルト・大凶作を既存の距離遅延網へ。
             // 自国分は既存の自国エッジ（恐慌/金本位/デフォルト＝即時）が流すため他国のみ＝二重にしない。Id基準＝建国/消滅の国数変動に強い。
@@ -290,10 +322,10 @@ public partial class GameViewModel
     {
         int lateMonths = (int)System.Math.Round((_simDays - eventDay) / (double)Calendar.DaysPerMonth);
         string suffix = lateMonths >= 1 ? $"({lateMonths}ヶ月前)" : "";
-        var row = new AlertRow(icon, $"{EventDate()} {body}{suffix}", color, mine);
+        var row = new AlertRow(icon, $"{EventDate()} {body}{suffix}", color, mine, InvolvesGreatPower(body, mine));
         _allAlerts.Insert(0, row);
         while (_allAlerts.Count > AlertsKept) _allAlerts.RemoveAt(_allAlerts.Count - 1);
-        if (!NewsMineOnly || mine)
+        if (NewsPasses(mine, row.Great))
         {
             Alerts.Insert(0, row);
             while (Alerts.Count > AlertsShown) Alerts.RemoveAt(Alerts.Count - 1);
