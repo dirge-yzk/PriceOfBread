@@ -1,0 +1,6 @@
+# (spdip2) spdip（外交の月の歩の恒等の高速化 D1〜D4）を m524（48f3247c）の上へ cherry-pick した証明（2026-10-24・枝 spdip2・書いたモデル Claude Opus 5.5）
+- cherry-pick は衝突なし（375a9160 と m524 の間で Diplomacy.cs・MultiNationSim.cs・PlayHarnessTests.cs は変わっていない）。
+- 成績表 3 枚（b10_20261024_spdip2・b5_20261024_spdip2・b10_20261024_spdip2_ins〔9 国〕）が m524（b10_20261024_m524・b5_20261024_m524・b10_20261024_m524_ins）とバイト一致（Python でバイトのまま比較）。
+- 計器の生 680 表：660 が一致・違う 20 表は burscan（seconds の列）と clock（kind=C の行の worldTotalPerMonth＝壁時計）だけ（列を除くと全行一致・基準 D:/PoB_work/keep_524/m524_ins）。
+- フルスイート（FullLength を含む）：失敗 0・合格 1611・スキップ 1。savetest OK（最大相対差 0）。
+- ⚠セーブのバイトは変わる（宣戦の時計の表に 0 の鍵が入らない・緊張の表に新しい鍵が入る順）。外交の単価は 75.284（spdip_20261024_unit_ab.txt）。
