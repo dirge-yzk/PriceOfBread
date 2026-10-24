@@ -18,7 +18,6 @@
 public static class Meritocracy
 {
     private const double Eps = 1e-9;
-    private const double MaxUrbanShareCap = 0.85;   // 都市化率の絶対上限（PopDecision.MaxUrbanShareCap と同値・重複はcross_file_needs参照）
 
     public static void Step(World w, Coefficients c)
     {
@@ -456,7 +455,7 @@ public static class Meritocracy
         double total = rural.Size + urban.Size;
         if (total <= Eps) return 0;
         double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
-        double maxShare = Math.Clamp(c.BaseUrbanCap + indForCap * c.UrbanPerInd, 0, MaxUrbanShareCap);
+        double maxShare = PopDecision.UrbanShareCap(c, indForCap);
         return Math.Max(0, maxShare * total - urban.Size);
     }
 

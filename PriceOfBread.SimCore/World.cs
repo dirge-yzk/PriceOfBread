@@ -637,6 +637,10 @@ public sealed class World
         return x / (1.0 + x);
     }
 
+    /// <summary>選挙の加担の余白＝<c>MandateWeight × (正統性 − 0.5)</c>（生の値＝負や NaN もそのまま返す。呼び手が自分の形で 0 以上へ直す）。
+    /// <see cref="ResolveElection"/>（動かせるかの線）と <c>UtilityAgent.DecideElection</c>（無駄玉を撃たない門）が同じ 1 本を読む（(532) 以前は両方に同じ式の写しがあった）。</summary>
+    internal double ElectionMargin => Coef.MandateWeight * (Legitimacy - 0.5);
+
     /// <summary>★E3：選挙の択の決着。ideology=-1＝何もしない（静観）。
     /// ★E4（2026-08-17）：**プレイヤー（UIのボタン）とAI（UtilityAgent.DecideElection）が共有する唯一の口**
     /// ＝余白の判定も代価の支払いも押し込みの記帳も、どちらの経路でも必ずこの関数を通る。
@@ -663,7 +667,7 @@ public sealed class World
         double net = PolicyPreferences.NetSupport(this, ev.AgendaAxes[slot], ev.AgendaIncrease[slot]);
         if (net < 0)
         {
-            double margin = Coef.MandateWeight * (Legitimacy - 0.5);
+            double margin = ElectionMargin;
             if (-net > System.Math.Max(0, margin)) return;   // 余白超え＝動かせない（史実の政府の力の範囲＝傾きかけた天秤しか押せない）。金も払わない
             Legitimacy = System.Math.Max(0, Legitimacy - (-net) * effect);   // 正統性の項（逆風を押した度合い＝効きに比例）
         }
@@ -1147,12 +1151,21 @@ public sealed class World
         double worst = 0;
         foreach (var r in Regions)
         {
-            if (r.State != RegionState.Active) continue;
-            double rpop = r.SumPopulation(); if (rpop < 1e-9) continue;
-            double us = r.SumUrbanPopulation() / rpop;
+            if (!TryUrbanShare(r, out double us)) continue;
             if (us > worst) worst = us;
         }
         return worst;
+    }
+
+    /// <summary>疫病の「過密」を数える州の都市人口比（都市人口 ÷ 人口）。Active でない州・人口が 1e-9 未満の州は数えない（false）。
+    /// 最も過密な州を探す 3 つの走査（<see cref="MaxUrbanShare"/>・<see cref="WorstUrbanRegionSanitation"/>・<see cref="TriggerEpidemic"/>）が同じ 1 本を読む。</summary>
+    private static bool TryUrbanShare(Region r, out double urbanShare)
+    {
+        urbanShare = 0;
+        if (r.State != RegionState.Active) return false;
+        double rpop = r.SumPopulation(); if (rpop < 1e-9) return false;
+        urbanShare = r.SumUrbanPopulation() / rpop;
+        return true;
     }
 
     /// <summary>1地域に疫病の死亡スパイクを与える（TriggerEpidemic の共通処理を切り出し・人14 の二次伝播で再利用）。
@@ -1218,9 +1231,7 @@ public sealed class World
         Region? worst = null; double worstUrban = 0;
         foreach (var r in Regions)
         {
-            if (r.State != RegionState.Active) continue;
-            double rpop = r.SumPopulation(); if (rpop < 1e-9) continue;
-            double us = r.SumUrbanPopulation() / rpop;
+            if (!TryUrbanShare(r, out double us)) continue;
             if (us > worstUrban) { worstUrban = us; worst = r; }
         }
         if (worst is null) return 0;
@@ -1237,9 +1248,7 @@ public sealed class World
         Region? wr2 = null; double secondUrban = 0;   // 人14：次過密州（州間伝播の二次スパイク先）
         foreach (var r in Regions)
         {
-            if (r.State != RegionState.Active) continue;
-            double rpop = r.SumPopulation(); if (rpop < 1e-9) continue;
-            double us = r.SumUrbanPopulation() / rpop;
+            if (!TryUrbanShare(r, out double us)) continue;
             if (us > worstUrban) { secondUrban = worstUrban; wr2 = wr; worstUrban = us; wr = r; }   // 最過密を更新＝旧最過密が次点へ繰り下がる
             else if (us > secondUrban) { secondUrban = us; wr2 = r; }
         }

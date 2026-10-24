@@ -1590,7 +1590,7 @@ public static class EconomyStep
             if (gi == Catalog.HealthcareId)
             {
                 // 衛生＝上下水道(InfraFill)＋石鹸消費(SoapFill)＋電化インフラ(ElecInfraFill)の上乗せ（公衆衛生＝清潔/電動上水。医療品ほどではない＝控えめ）。施設/石鹸の無い世界は従来どおり疫病なし
-                double sanitation = PoliticalQuantities.Clamp01(region.InfraFill + coef.SoapSanitationWeight * region.SoapFill + coef.ElecInfraSanitationWeight * region.ElecInfraFill);
+                double sanitation = region.Sanitation(coef);
                 double diseasePressure = totalPop > Eps ? (urbanPop / totalPop) * (1.0 - sanitation) : 0;
                 effBaseNeed *= 1.0 + coef.HealthCrowdingBoost * diseasePressure;
             }
@@ -2757,7 +2757,7 @@ public static class EconomyStep
         // 失業＝自分の労働（労働力/農業/高度）の売れ残り率。職の喪失は所得の算術を超えて怒りを生む（Politics が参照。
         // 賃金の下方硬直と対＝不況は価格でなく雇用量で調整される→失業が立つ→社会保障がこれを和らげる＝福祉の意味）。
         foreach (var s in region.Producers)
-            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId
+            if (Catalog.IsLaborGood(s.GoodId)
                 && s.LaborPopIndex >= 0 && s.LaborPopIndex < region.Pops.Count)
             {
                 var m = region.Markets[s.GoodId];

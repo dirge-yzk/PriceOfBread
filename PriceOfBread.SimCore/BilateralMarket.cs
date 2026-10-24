@@ -803,7 +803,7 @@ public sealed partial class InternationalMarket
                 double buyDear = bias > 0 ? c.TradeBiasStrength : 0;
                 double protect = Math.Max(0, tar[ni]);
                 double cornPen = gd.Tier == GoodTier.Staple || gd.GrainChain ? corn[ni] * c.CornLawImportPenalty : 0;   // 穀物法の客体＝主食＋麦の連鎖（旗 CornLawGrainChainGate は 2026-09-26 に焼き込み）
-                double duty = protect * c.TariffProtect + cornPen;   // ★段3-1（econ-07）：関税と穀物法の分＝通関で輸入国の国庫へ入る楔（積出し価格に掛かる）
+                double duty = protect + cornPen;   // ★段3-1（econ-07）：関税と穀物法の分＝通関で輸入国の国庫へ入る楔（積出し価格に掛かる）
                 double wedge = duty - buyDear;   // 買い手側の敷居（関税・穀物法・売買方針）
                 // ★貿易復活①（2026-08-15）：関税・穀物法は**国境の税**＝同国の売り手には掛けない（内国関税は1789仏/1834独関税同盟で消えた制度。
                 //   旧＝自国州からの購入にも関税wedgeが掛かり、国内州間交易まで殺していた＝tradewhy分解の壁の片翼）。

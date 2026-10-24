@@ -1697,7 +1697,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
             double weightAdd = c0.TransportWeightMarginScale > 0 && rp > 1e-9 ? c0.TransportWeightMarginScale * Catalog.TransportWeight(g) / rp * freightRev : 0;
             double margin = c0.TransportMargin * (1.0 + c0.DistanceMarginScale * kmR) + weightAdd * kmR;
             double wedgeEng = eng is not null
-                ? System.Math.Clamp(eng.Tariff, c0.TariffFloor, 1) * c0.TariffProtect
+                ? System.Math.Clamp(eng.Tariff, c0.TariffFloor, 1)
                   + (Catalog.Goods[g].Tier == GoodTier.Staple ? (eng.CornLaws == ReformLevel.Full ? 1.0 : eng.CornLaws == ReformLevel.Limited ? 0.5 : 0) * c0.CornLawImportPenalty : 0)
                 : 0;
             double needRatio = 1.0 + margin + wedgeEng;

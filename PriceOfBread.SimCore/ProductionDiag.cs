@@ -70,7 +70,7 @@ public static class ProductionDiag
         // 残差（需要と供給）を動かしている駆動値。行にはしない＝ホバーで読む。
         var m = goodId >= 0 && goodId < region.Markets.Length ? region.Markets[goodId] : null;
         double stockRatio = m is not null && m.TargetStock > Eps ? m.Stock / m.TargetStock : double.NaN;
-        double tariffWedge = InternationalMarket.TariffRate(w, coef) * coef.TariffProtect;   // BilateralMarket の wedge（protect×TariffProtect）と同式
+        double tariffWedge = InternationalMarket.TariffRate(w, coef);   // BilateralMarket の wedge（protect）と同式
         bool grain = g is not null && (g.Tier == GoodTier.Staple || g.GrainChain);
         double cornWedge = grain ? InternationalMarket.CornFactor(w.CornLaws) * coef.CornLawImportPenalty : 0.0;                                    // BilateralMarket/Trade の cornPen と同式
 
