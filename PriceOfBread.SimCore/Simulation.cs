@@ -1073,6 +1073,20 @@ public sealed class Simulation
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
+        // ★(536) 線 ivf（旗 MachineCastIronRecipe・★2026-10-25 点火＝既定 1。0 にすると 1 件も足さない＝旧の形）：機械（財）の地理差のレシピ〈鋳鉄の機械〉。鋳鉄の機関（上）と同じ型。
+        //   既定の機械は鋼 1.514＋銅 0.57（goods.json）で、鋼を使わないレシピが無い＝1783 年の機械の費用は坩堝鋼の値段（転炉鋼の発見は 1850 年代）で決まる（iv ②・坩堝鋼の機械は参照の約 8.1）。
+        //   史実＝1780 年代の機械は鋳鉄・錬鉄と木材（Dickinson & Jenkins 1927・Hills 1989 は蒸気機関についての文献で、機械一般への換算の根拠ではない）。換算は鋳鉄の機関の比（鉄 1.832÷鋼 1.0992＝1.665）の流用＝鋼 1.514 を鉄 2.52 に置き換える（確証なし・AI の推奨・事前登録 追記 2）。
+        //   参照の費用 4.8046（既定の機械 4.3943 の 1.093 倍）。★(542) 合流（反証役 ivf〔bv〕中#1）：〈転炉鋼の後は費用で鋼のレシピが勝つ〉は数字と合わない＝機械の産出のうち鋳鉄の機械の割合は 1850 年 1.000・1880 年 0.997・1913 年 0.412（腕 C・10 種の中央値）＝1913 年でも約 4 割が鋳鉄（鋼の慢性的な不足で鋼のレシピが費用で勝てない・F2 を落とした G5b と同じ根）。退場の行は置いていない（置くかは作者に聞く物＝00一覧 §0-2）。新しい財なし。生産性は既定の機械と同じ。全ての州に同じ 1 本（国名の分岐なし）。
+        if (coef.MachineCastIronRecipe > 0)
+        {
+            Producer? machineDefault = null;
+            foreach (var pr in producers) if (pr.GoodId == Catalog.MachineryId) { machineDefault = pr; break; }
+            if (machineDefault is not null)   // 機械を作らない世界（最小シナリオ）は不発
+                producers.Add(new Producer { GoodId = Catalog.MachineryId, RecipeName = "鋳鉄の機械",
+                    Productivity = machineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                    LaborPopIndex = machineDefault.LaborPopIndex, OwnerPopIndex = machineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
+                    Inputs = [new Input(Catalog.IronId, 2.52), new Input(Catalog.CopperId, 0.57), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.MachineryId))] });
+        }
         // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
@@ -1719,6 +1733,9 @@ public sealed class Simulation
         // ★(351) 1 周で足す：稼働中の州の POP を州の並びで 1 周し、州ごとの和（rSav・rEarn・rPop）と国の和（nat＝州をまたいで足し続ける）を同時に数える。
         //   旧＝国の和の周と州ごとの和の周の 2 周（同じ集合・同じ順）。各和の足し込みの順は旧と同じ＝1 ビットも変わらない（国の和は州ごとの和の合計ではない＝足し方が違う）。
         double natSav = 0, natEarn = 0, natPop = 0;
+        // ★(536) 線 ivf（旗 RegionalPriceBaseExcludesColonies・★2026-10-25 点火＝既定 1。0 で旧の形）：正のとき〈国平均〉を植民地の格の州を除いた州で取る。本土の州が無い（人口 0）ときは全ての州（今の式）。旗 0 では下の 2 行と 1 分岐が走らず、nat の足し込みは今のまま。
+        bool exColonies = c.RegionalPriceBaseExcludesColonies > 0;
+        double mainSav = 0, mainEarn = 0, mainPop = 0;
         var regSums = new double[World.Regions.Count * 3];
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
@@ -1732,7 +1749,9 @@ public sealed class Simulation
                 rSav += sv; rEarn += ea; rPop += sz;
             }
             regSums[ri * 3] = rSav; regSums[ri * 3 + 1] = rEarn; regSums[ri * 3 + 2] = rPop;
+            if (exColonies && r.Tier != RegionTier.Colonial) { mainSav += rSav; mainEarn += rEarn; mainPop += rPop; }
         }
+        if (exColonies && mainPop > 1e-9) { natSav = mainSav; natEarn = mainEarn; natPop = mainPop; }
         double natPerCap = natPop > 1e-9 ? natSav / natPop : 0;
         double natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;   // 国平均の1人あたり月次所得（QuarterStart時点＝共有層〔戦死・移民・国際市場・資本市場の受け取り〕が直前の月の決算の後に書いた分を含む）
         for (int ri = 0; ri < World.Regions.Count; ri++)

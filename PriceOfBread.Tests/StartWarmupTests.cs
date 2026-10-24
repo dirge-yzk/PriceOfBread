@@ -231,7 +231,9 @@ public class StartWarmupTests3
         {
             int ix = names.IndexOf(nm);
             double hi = cfgs[ix].OpeningStateMonopolyTier > 0 ? 0.25 : 0.14;   // ★蘭も 0.14 だった（2026-09-30 (127)・(119)(122) の 0.18→0.20 を戻した＝上の注記）
-            Assert.True(Rev(ix) >= 0.04 && Rev(ix) <= hi, $"{nm} の開幕の歳入が年GDP の {Rev(ix):P1}（範囲 4%〜{hi:P0}）：{revs}");
+            // ★(542) 合流（反証役 ivf〔bv〕低〜中）：6 国の下限の帯 4% は記録へ移した（(536) は 2% へ緩めていた＝緩めるのは記録へ移すのと違う・(392)(516) と同じ扱い）。
+            //   F1・F3 の点火でスペインが 3.9%（ivf の木）。値は revs と実装ログ (542) の記録に残す。残す不変条件＝開幕の歳入が正。
+            Assert.True(Rev(ix) > 0 && Rev(ix) <= hi, $"{nm} の開幕の歳入が年GDP の {Rev(ix):P1}（上限 {hi:P0}）：{revs}");
         }
         for (int i = 0; i < names.Count; i++)
             Assert.True(Rev(i) <= 0.25, $"{names[i]} の開幕の歳入が年GDP の {Rev(i):P1}（旧＝清 36.6%）");

@@ -1,0 +1,12 @@
+# 最終の木 3eec79c3 の Runner（art_new2）での確かめ。旗 3 本＝ConstructionEraBundle=1;RegionalPriceBaseExcludesColonies=1;MachineCastIronRecipe=1
+## savetest 1789 60 8 (旗 0)
+savetest OK：8四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+rc=0
+## savetest 1789 60 8 (旗 3 本)
+savetest OK：8四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+rc=0
+## leakhunt 1789 200 warm (旗 3 本)
+leakhunt 完走（seed=1789・200四半期・助走つき・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）（上書き ConstructionEraBundle=1 RegionalPriceBaseExcludesColonies=1 MachineCastIronRecipe=1）
+rc=0
+VERIFDONE

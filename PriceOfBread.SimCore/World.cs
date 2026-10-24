@@ -2010,8 +2010,9 @@ public sealed class World
         int sg = co.SteelGoodId, mg = co.MachineGoodId, cg = co.CementGoodId, lg = co.LumberGoodId;
         if (sg >= r.Markets.Length || mg >= r.Markets.Length || cg >= r.Markets.Length || lg >= r.Markets.Length) return head;
         // 建設材の手当＝束を何単位ぶん賄えるか（4材の最小）。在庫ゼロの州は0＝注いでも価格が上がるだけ。
-        double units = Math.Min(Math.Min(r.Markets[sg].Stock / Math.Max(1e-9, co.ConsSteel), r.Markets[mg].Stock / Math.Max(1e-9, co.ConsMachine)),
-                                Math.Min(r.Markets[cg].Stock / Math.Max(1e-9, co.ConsCement), r.Markets[lg].Stock / Math.Max(1e-9, co.ConsLumber)));
+        var bun = EconomyStep.BundleOf(r, co);   // ★(536) 線 ivf：その州のその月の建設の資材の組（旗 ConstructionEraBundle が 0 なら鋼の組＝sg・mg・cg・lg と ConsSteel ほか）。需要と決済が読む組と同じ規則で選ぶ（呼ぶ時点の値段で選び直す＝月の中で値段が動くと需要の側と別の組になりうる・事前登録 追記 2 F）
+        double units = Math.Min(Math.Min(r.Markets[bun.G0].Stock / Math.Max(1e-9, bun.Q0), r.Markets[bun.G1].Stock / Math.Max(1e-9, bun.Q1)),
+                                Math.Min(r.Markets[bun.G2].Stock / Math.Max(1e-9, bun.Q2), r.Markets[bun.G3].Stock / Math.Max(1e-9, bun.Q3)));
         return head * Math.Max(0, units);
     }
 

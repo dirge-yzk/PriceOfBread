@@ -18,6 +18,7 @@
 /// <item><c>ce_s&lt;seed&gt;.tsv</c> ★(345) 消費の入口 段A：予算の3層の材料（<c>scope</c> 列で2種類の行）：<c>C</c>＝国×四半期×階級（挙げた国は毎四半期・他の国は年末の7階級）の月の和を月数で割った額＝使える所得（前の月の確定した所得）・月初の貯蓄と消費の予算・食料／日用品／奢侈品／役務その他の籠の費用（欲しい量×買い手の値段）と予算で切った後の需要と実際の支払い・所得を超えた支払い（貯蓄の取り崩し）・余り（所得−食料の籠−日用品の籠）ほか。<c>N</c>＝国×窓（40四半期）×財の必需の割合の影（導いた値を書くだけ＝力学は読まない・読み手は <c>an_ce.py</c> の N 行の表）。読み手 <c>scripts/instruments/ce/an_ce.py</c>。列は <see cref="CeColNames"/> の注。</item>
 /// <item><c>pop_s&lt;seed&gt;.tsv</c> ★(361) 人口の作り替え 段A・B（<c>scope</c> 列で2種類の行・実装は <c>InstrumentsPop.cs</c>）：<c>N</c>＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）の粗出生・粗死亡（平常・飢え・疫病ほか・戦死は別）・層別（10歳刻み8本）の死と死の率・10歳までの生存・60歳以後の余命・合計出生率の代理・回復期（平常の死が0の月）の数・子の価値 <c>v</c>（ψ＝0）とその項（稼ぎ・費用・老後の扶養）・結婚の割合 <c>m</c> と制限 <c>c</c> と合計出生率の影・影の出生。<c>C</c>＝国×四半期×階級（挙げた国は全階級・他は年末の7階級）の影の項。籠は <c>ce_s</c> の積算を読む。読み手 <c>scripts/instruments/pop/an_pop.py</c>。新しい数（θ・m_max・合計出生率7.5）は計器の const＝力学の係数ではない。</item>
 /// <item><c>fm_s&lt;seed&gt;.tsv</c> ★(371) 流れM の計器 2 本（実装は <c>InstrumentsFm.cs</c>・国×四半期＝挙げた国は毎四半期・他の全ての国は年末）：①戦時の軍事費の純支持（<c>militaryMoveNetSupportIndex</c>）の項への分解（街頭の 3 ブロック・議会・軍）と、戦争の規模・存亡・戦場の強さ・兵士の人口比。②海の金の割合の分母 max(陸の必要量＋内の守り, 自国の軍の大きさ) の組成（陸の必要量を本国どうしの国境・植民地を含む国境・国境でない投射に、内の守りを人口・不穏度・質に分け、どちらが分母を決めているか）。読み手 <c>scripts/instruments/fm/an_fm.py</c>。</item>
+/// <item><c>ivf_s&lt;seed&gt;.tsv</c> ★(536) 初期値の直し（資本の土台）の表（実装は <c>InstrumentsIvf.cs</c>・国×四半期＝挙げた国は Q160 まで毎四半期・他の全ての国は年末）：本土と植民地の州の物価の乗数・賃金の割増・石炭の自己費用と値段・蒸気の限界費用÷労働の値段・労働力の産出÷需要・建設の組（鋼の組と時代の組）の費用÷参照と選ばれた月数と切り替えの回数・束の最低の配給率・鉄と鋼と機械の需給・資本財の能力・鋳鉄の機械の州の数。列の定義と限界は <c>InstrumentsIvf.cs</c> の先頭。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
 /// <item><c>invade_s&lt;seed&gt;.tsv</c> ★(440) 侵略 1 回ごと（年・攻者・標的・標的が実在の国か〔0＝抽象標的〕・屈服か・近接の緊張に積んだ量・そのうち標的自身の組に積んだ量。試合の終わりに書く）。</item>
@@ -202,6 +203,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? AgeS; public bool AgeSHeader;                       // (478) 年齢の層の表（国×四半期×層の行 B と国×四半期の行 N）
         public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
+        public System.IO.StreamWriter? Ivf; public bool IvfHeader;                         // (536) 初期値の直し（資本の土台）の表（国×四半期・InstrumentsIvf.cs）
         public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
         public System.IO.StreamWriter? Bur; public bool BurHeader;                         // (389) AI の官僚制度の判断の表（国×四半期）
         public System.IO.StreamWriter? Coup; public bool CoupHeader;                       // (393) 軍の力の入口の表（国×四半期・第 1 の門を通った行だけ）
@@ -1663,6 +1665,7 @@ public static partial class Instruments
             PopFold(sk, seed, w, st, q, picked, yearEnd);   // (361) 人口の表（籠は ce_s の積算を読む＝CeFold が戻す前）
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
+            IvfFold(sk, seed, w, q, picked, yearEnd);       // (536) 初期値の直し（資本の土台）の表（本土と植民地の物価の乗数・石炭の費用・建設の組の選び・資本財の需給）
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
             CoupFold(sk, seed, w, st, q);   // (393) 軍の力の入口の表
             AnchorFold(sk, seed, w, q, picked, yearEnd);    // (369) 扶養力の錨の表
@@ -1734,6 +1737,7 @@ public static partial class Instruments
         sk.AgeS?.Dispose(); sk.AgeS = null;   // (478)
         sk.Fm?.Dispose(); sk.Fm = null;       // (371)
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
+        sk.Ivf?.Dispose(); sk.Ivf = null;     // (536)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
         sk.Bur?.Dispose(); sk.Bur = null;   // (389)
         sk.Coup?.Dispose(); sk.Coup = null;   // (393)
