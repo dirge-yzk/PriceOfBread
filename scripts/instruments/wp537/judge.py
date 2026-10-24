@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # (537) 線 wp：腕 B の読み手（事前登録 measurements/wp_20261024_prereg.txt の [3] ①〜④ を wp_s から出す）
-# 使い方：python judge.py <腕 B の ins フォルダ> [種の数=10] [種の起点=1]
+# 使い方：PYTHONUTF8=1 python judge.py <腕 B の ins フォルダ> [種の数=10] [種の起点=1]　⚠ `python -I` は付けない（環境変数を無視して出力が cp932 で化ける）
 # 読むだけ（標準ライブラリのみ・標準出力だけ）。判定は ①退場しない ②割合が単調に増える・一斉に乗り換えない ③費用の比と割合の順位相関 ④装備の充足の向き。史実の年・大きさは判定に使わない（記録に年代の表だけ出す）。
 # 単位＝挙げた国×財（小銃・火砲）×種。開いた＝known が 0→1 になった最初の四半期 E。
 import csv, sys, collections, math, statistics as st
