@@ -260,8 +260,6 @@ public sealed class UtilityAgent : INationAgent
     private const double ModernizerWelBias = 1.2;           // 近代化教義：福祉効用の増幅
     private const double CompulsoryEduTechThreshold = 1.0;   // 義務教育の技術閾値
     private const double AntitrustIndThreshold = 0.5;                   // 02断線走査2026-07-28：談合禁止を目標に置く工業化度
-    private const double ForceUnlockBufferMult = 3.0;                   // 02断線走査2026-07-28：再征服をONにする国庫の余裕（月次義務バッファの倍数）
-    private const double ForceUnlockMilitancyCeiling = 0.4;             // 02断線走査2026-07-28：この闘争度以上では制圧を強行しない（全pop闘争度↑が革命を招く）
     private const double TrustbustIndThreshold = 0.75;                  // 02断線走査2026-07-28：独占解体（シャーマン法級）を目標に置く工業化度
     // ★(423) 旗 AiLawGateFromBoard（既定 3＝2026-10-19 に点火・0＝旧）の線 3 本。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
     internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
@@ -1178,11 +1176,6 @@ public sealed class UtilityAgent : INationAgent
         StartMegaproject(w);   // 巨大建造物の着工（2026-08-02）＝恐慌の失業対策／平時は国庫に余裕がある時だけ
         // ★侵略の標的選択は Diplomacy の TryAiSubjugate へ1本化（作者裁定2026-08-23の「植民地化と侵略の1本化」）。
         //   旧＝ここ（毎四半期・戦争熱で選ぶ）と Diplomacy（確率で・富と到達で選ぶ）の2経路が同じ動詞を叩いていた。
-        // 02断線走査2026-07-28：再征服（武力解錠）のAI判断。分離/凍結州の唯一の復帰経路（Territory.cs）なのに書き手ゼロ＝分離が「州の恒久消滅」だった。
-        // 国庫に余裕があり大衆闘争が低い時だけON（制圧は毎月の国庫出血＋全pop闘争度↑＝革命前夜に強行しない）＝南北戦争の再統合・カルリスタ戦争型。
-        w.ForceUnlock = w.Regions.Any(r => r.State == RegionState.Locked)
-            && w.Treasury.Value > ForceUnlockBufferMult * FiscalBufferOf(w)
-            && Politics.AvgMassMilitancy(w) < ForceUnlockMilitancyCeiling;
         // ※国家主導の工業化（AIが1棟単位の手動建設＝旧 BuildIndustry で後発を追い上げる）は実験した結果、ロシアが工業化すると
         //   規模(人口→GDP)で常勝になり競争バランスを壊したため不採用。再採用にはスコアの規模偏重の是正が前提。
     }

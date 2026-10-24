@@ -110,7 +110,6 @@ public class NcOpennessTests(ITestOutputHelper output)
     {
         var sim = new MultiNationSim([WorldData.ByName("スイス"), WorldData.ByName("ジェノヴァ")], seed: 17);
         var src = sim.Nations[0].World; var dst = sim.Nations[1].World;
-        sim.Coef.MigrationFarePerkKm = 0;   // 運賃ゲートを切る（NC混合の検証を貯蓄と独立に）
         var srcR = src.Regions[0]; var dstR = dst.Regions[0];
         foreach (int cls in new[] { PopClass.Peasant, PopClass.Worker })
         {

@@ -702,7 +702,7 @@ public sealed partial class InternationalMarket
             if (cnt == 0) continue;
             double avg = sum / cnt;
             if (avg <= 1e-9) continue;
-            _price[g] = c.WorldPriceStatUnclamped > 0 ? avg : Math.Clamp(avg, gd.RefPrice * PriceBandFloorMul, gd.RefPrice * PriceBandCeilMul);   // 表示用の「世界価格」＝平均価格（★器 WorldPriceStatUnclamped=1 でクランプなし＝偏在財で計器が振り切れない）
+            _price[g] = Math.Clamp(avg, gd.RefPrice * PriceBandFloorMul, gd.RefPrice * PriceBandCeilMul);   // 表示用の「世界価格」＝平均価格（★器 WorldPriceStatUnclamped=1 でクランプなし＝偏在財で計器が振り切れない）
 
             double weightAdd = WeightMarginAdd(g);
             double Wg = Catalog.TransportWeight(g);   // 財の輸送重量（積載・容量の単位）

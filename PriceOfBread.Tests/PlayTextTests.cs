@@ -69,9 +69,9 @@ public class PlayTextTests
     }
 
     [Fact]
-    public void 闘争度の目標の5本の名前は画面のホバーの語と同じ5つで重ならない()
+    public void 闘争度の目標の4本の名前は画面のホバーの語と同じ4つで重ならない()
     {
-        Assert.Equal(["生活水準の不足", "政治的疎外", "厭戦", "民族的地位", "飢餓"], PlayText.MilitancyPartNames);
-        Assert.Equal(5, new System.Collections.Generic.HashSet<string>(PlayText.MilitancyPartNames).Count);
+        Assert.Equal(["政治的疎外", "厭戦", "民族的地位", "飢餓"], PlayText.MilitancyPartNames);
+        Assert.Equal(4, new System.Collections.Generic.HashSet<string>(PlayText.MilitancyPartNames).Count);
     }
 }

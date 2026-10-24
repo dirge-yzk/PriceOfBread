@@ -63,7 +63,7 @@ public enum Ideology
                       //    供給＝**王権から実際に利益を得ている層**（閉鎖階級→特権／近代エリート→恩顧）×政治意識。（旧の旗 RoyalistGate は 2026-08-29 に点火・2026-10-18 に焼き込み）
 }
 
-/// <summary>地域の状態（§A-8）。locked＝pop≈0・市場休眠。開発（資金）か武力で active 化する。</summary>
+/// <summary>地域の状態（§A-8）。locked＝pop≈0・市場休眠。（旧＝開発〔資金〕か武力で active 化する道があった＝(551) 恒等の線 gc1 で解錠の道を削除。本番の盤面は州を Locked にしない＝消すのは古い設計の一覧 B1。）</summary>
 public enum RegionState { Active, Locked }
 
 /// <summary>★技術者流出禁止法（段⑤・2026-08-17）。軸の増＝禁止を強める。3段＝自由／制限／禁止。
@@ -231,12 +231,11 @@ public sealed class Pop
                                           // NationConsciousnessPerPop=1.0（既定）でlive・0（対照腕）では誰も読み書きしない＝厳密恒等。-1＝未捕捉（国の値は配らない＝配ると平均が変わる）
 
     // --- 不満（闘争度）の要因内訳（診断・UI表示用。Politics.Step が毎期記録。計算には不使用＝較正中立）。各値は target への寄与ぶん ---
-    public double MilLiving;   // 生活水準の不足（want＝1−満足度）★(431) 二量分離の後は常に 0（生活の項は闘争度の目標に入らない＝不満度だけが持つ・欄は hw との約束で残す・表示の付け替えは UI の回）
     public double MilVoice;    // 政治的疎外（意識×発言権の無さ×理想と体制の乖離）
     public double MilWar;      // 厭戦（戦争の長期化）
     public double MilNation;   // 民族的地位（★段2で一本鎖＝少数派 (1−中核度) のみ）
     public double MilFamine;   // 飢餓の駆動項の寄与（診断・UI表示用＝力学は読まない）。★2026-09-22 点火（回Bで平常からの落ち込みへ＝FamineDriveGain=30・FamineDropOnset=0.07・階層3分割と対）
-    // ★段2（2026-09-09）で MilJobs/MilCrowd/MilGap/MilMid/MilWave を削除＝闘争度の項ごと消えた（11項→5項・設計メモ §7-3）。
+    // ★段2（2026-09-09）で MilJobs/MilCrowd/MilGap/MilMid/MilWave を削除＝闘争度の項ごと消えた（11項→5項・設計メモ §7-3）。★(551) MilLiving も削除（(431) の二量分離の後は恒久 0＝生活の項は不満度だけが持つ・4項）。
     // MilForeign（外圧→闘争度の直加算の診断）は機構撤去（C裁定2026-07-09＝ReformPressureBoost経路へ一本化）後の恒久0だったため削除（監査2026-07-12 死24）
 
     // --- その月だけの作業用（§9-B/§9-C のループ内）---
@@ -920,7 +919,6 @@ public sealed class Region
                                  // ⚠軍需調達は首都州でしか走らないため、「軍艦は港でしか造れない」を `region.IsPort` で判定すると
                                  //   内陸に首都のある国（仏・露・普・墺・西・サルデーニャ）が永久に艦隊を持てなくなる。造船するのは港だが、発注するのは国である。
     public double CrimeRate;                          // 接16（監査2026-07-11・2026-07-25休眠配線）：州の犯罪率（Crime.Stepが毎月算出＝旧はローカル変数で捨てられ全国最悪値のみ保持）。CrimePushWeight>0で移民pushへ合流
-    public double Infra;                              // インフラ/開発度（locked 解錠の駆動・§2.5）
     public double PriceLevel = 1.0;                   // 物価水準（World の国家物価×地域乗数）。MarketFlow の参照価格アンカー/床天井を rp×これ にスケール＝一般インフレ/デフレ。1.0＝中立
     public double LocalPriceMultiplier = 1.0;         // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）。1人あたり貯蓄（手元現金の厚み）が国平均から乖離する分。現金の厚い金融中心州>1・乏しい辺境州<1。四半期ごとに UpdateRegionalPriceLevels が算出。1州なら1.0＝較正中立
     public double WagePremium = 1.0;                  // 州の労働価格プレミアム（1人あたり月次所得の対国平均比・四半期EMA）。UpdateRegionalPriceLevels が算出・Territory.Opportunity が OpportunityWageWeight で参照＝金鉱州の高賃金→移民殺到（ゴールドラッシュの創発・キュー3）。1州なら比1→1.0＝較正中立

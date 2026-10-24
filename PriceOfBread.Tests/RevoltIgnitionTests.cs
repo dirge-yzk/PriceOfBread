@@ -124,8 +124,8 @@ public class RevoltIgnitionTests
         foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - small; }
         Politics.Step(w, c);
         Assert.Equal(0.0, noble.MilFamine);
-        // 闘争度の移動は**飢餓以外の4項だけ**（内訳の代入5本は target と同じ値）＝σ×(生活+政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
-        Assert.Equal(c.MilitancySpeed * (noble.MilLiving + noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
+        // 闘争度の移動は**飢餓以外の4項だけ**（内訳の代入5本は target と同じ値）＝σ×(政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
+        Assert.Equal(c.MilitancySpeed * (noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
         foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - ramp; }
         Politics.Step(w, c);
         Assert.Equal(0.5, noble.MilFamine, 9);   // 斜路＝線形（クランプ前）＝門0.50に達する落ち込みで駆動ちょうど0.5
@@ -160,11 +160,11 @@ public class RevoltIgnitionTests
         //   主張は「既定の世界で、食料の不足は闘争度を上げる／その入口は飢餓の項だけ（生活の失望＝満足度を読む側は食料で1ビットも動かない）」。
         //   満足度の台帳に食料が載らないこと（経済側）は EconomyTests の番人が見る＝2本で「同じ欠乏が2つの量へ入らない」が閉じる。
         //   ★回B：不足＝平常 1.0 からの急な落ち込み（慢性の低さは駆動しない＝回B番人(b)）。
-        static (double living, double famine, double militancy) Probe(double foodMet)
+        static (double voice, double famine, double militancy) Probe(double foodMet)
         {
             var (w, c, noble) = FamineBoard(foodMet, foodRef: 1.0);
             Politics.Step(w, c);
-            return (noble.MilLiving, noble.MilFamine, noble.Militancy);
+            return (noble.MilVoice, noble.MilFamine, noble.Militancy);
         }
         Assert.True(new Coefficients().FamineDriveGain > 0, "飢餓の駆動が休眠に戻っている（裁定＝分割と対で既定の点火）");
         var fed = Probe(1.0);         // 平常どおり＝落ち込み0＝駆動0
@@ -174,8 +174,8 @@ public class RevoltIgnitionTests
         // (a) 食料の不足は闘争度を上げる。
         Assert.True(starving.militancy > fed.militancy + 1e-9,
                     $"食料の不足が闘争度を上げない（飽食 {fed.militancy:F4} → 飢餓 {starving.militancy:F4}）");
-        // (e) 入口は飢餓の項だけ：生活の失望（満足度を読む項）は食料の有無で1ビットも動かない。
-        Assert.Equal(fed.living, starving.living);
+        // (e) 入口は飢餓の項だけ：飢餓以外の項（ここでは政治の隔たり＝法の項）は食料の有無で1ビットも動かない（生活の項は闘争度の目標に無い＝(551) で Pop.MilLiving の欄ごと削除）。
+        Assert.Equal(fed.voice, starving.voice);
     }
 
     [Fact]

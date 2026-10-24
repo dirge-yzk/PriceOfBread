@@ -45,7 +45,7 @@ def summarize(rows, nations):
             sat=st.median([v for v in col('satMeanShare') if v == v] or [float('nan')]),
             dis=st.median([v for v in col('discontentMeanShare') if v == v] or [float('nan')]),
             mil=st.median([v for v in col('militancyMeanShare') if v == v] or [float('nan')]),
-            liv=st.median([v for v in col('milLivingMeanShare') if v == v] or [float('nan')]),
+            liv=st.median([v for v in [fl(r.get('milLivingMeanShare', 'nan')) for r in rr] if v == v] or [float('nan')]),   # (551) 生活の列は削除済み＝新しい生には無い（旧い生だけ値が出る）
             voi=st.median([v for v in col('milVoiceMeanShare') if v == v] or [float('nan')]),
             war=st.median([v for v in col('milWarMeanShare') if v == v] or [float('nan')]),
             nat=st.median([v for v in col('milNationMeanShare') if v == v] or [float('nan')]),

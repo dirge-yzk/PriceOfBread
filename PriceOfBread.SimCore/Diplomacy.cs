@@ -2027,21 +2027,6 @@ public sealed class Diplomacy
             // 旧＝植民地数のみで、実国のインド諸邦（植民地0・高GDP）より近場の抽象小勢力が常に勝っていた＝英が印度を選ばない構造。
             double econ = c.ColonizeValueGdpPer100k * Math.Max(0, q.GdpPerMonth.Value) / ColonizeGdpNormalizer;
             double value = (q.Colonies + 1 + econ) * proj / (1 + q.Military);   // ★是正（監査2026-09-02 #14/#15）：旧ColonyList.Count読み手＝統合アクセサColoniesへ（州昇格した植民地の過少評価を解消）
-            // ★安保doc手順5（2026-08-30・休眠）：先取り動機＝「Aに取られる前に取る」（近接緊張の鏡像）。
-            //   非経済な緩衝地帯（朝鮮・満洲・アフガン・ペルシャ）こそ争われた＝標的の価値でなく**ライバルの届きやすさ**が動機。
-            //   自国側の近さは proj が既に担う＝鏡像は max(ライバル列強の Projection(A,標的))（既存の物理＝距離減衰×制海権・新定数なし）。
-            //   0＝この分岐を通らない＝厳密恒等。AIの選好のみ（プレイヤーは自分で判断＝魅力式と同じ位置づけ）。
-            if (c.PreemptiveSeizeWeight > 0)
-            {
-                double pre = 0;
-                foreach (var a in Powers)
-                {
-                    if (a == great || a == q || RankOf(a) == PowerRank.Minor) continue;
-                    double pa = Projection(a, q, c);
-                    if (pa > pre) pre = pa;
-                }
-                if (pre > 0 && double.IsFinite(pre)) value *= 1.0 + c.PreemptiveSeizeWeight * pre;
-            }
             if (value > bestScore) { bestScore = value; best = q; }
         }
         if (best is not null) gw.Invade(best);   // ★実行もプレイヤーと同じ動詞（World.Invade＝余剰戦力・船・糧食・キニーネの消費込み）

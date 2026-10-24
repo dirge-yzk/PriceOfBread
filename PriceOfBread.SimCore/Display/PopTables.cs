@@ -25,7 +25,6 @@ public sealed record DemographyStock(double BirthsCum, double DeathsCum, double 
 /// 盤面は読むだけ・状態を持たない。</summary>
 public static class PopTables
 {
-    private const double FillWarnThreshold = 0.95;   // 充足率がこれ未満で不足（過密/主食/住居）
     private static readonly string[] PartyNames = ["保守党", "自由党", "社会党"];
 
     /// <summary>議会（議席）が法に効く政体か（議席が無い段階では支持政党を出さない＝法の効きと同じ判定）。</summary>
@@ -120,8 +119,6 @@ public static class PopTables
         }
         double popTotal = 0;
         foreach (var rp in w.AllPops()) popTotal += rp.Size;
-        bool foodShort = w.Regions.Any(r => r.State == RegionState.Active && r.FoodFill < FillWarnThreshold);
-        double taxBurden = w.TaxRate.Value + w.PollTax * 0.5;
         bool parliamentActive = HasParliament(w);
         var lit = PlayText.ClassLayerMeans(w, p => p.Literacy); var sat = PlayText.ClassLayerMeans(w, p => p.Satisfaction); var mil = PlayText.ClassLayerMeans(w, p => p.Militancy);
         string? LayerTip(int layer)
@@ -140,7 +137,7 @@ public static class PopTables
             var first = members[0].P;
             double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
             double leanC = 0, leanL = 0, leanS = 0;
-            double mLiving = 0, mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;
+            double mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;
             double debt = 0;
             double fMet = 0, fNeed = 0, nMet = 0, nTot = 0;
             foreach (var (rg, p) in members)
@@ -151,7 +148,7 @@ public static class PopTables
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
                 femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size;
                 if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
-                mLiving += p.MilLiving * p.Size; mVoice += p.MilVoice * p.Size; mWar += p.MilWar * p.Size;
+                mVoice += p.MilVoice * p.Size; mWar += p.MilWar * p.Size;
                 mNation += p.MilNation * p.Size; mFamine += p.MilFamine * p.Size;
                 var (headC, headL, headS) = IdeologyHeads(p);
                 leanC += headC; leanL += headL; leanS += headS;
@@ -173,21 +170,16 @@ public static class PopTables
             }
             tip += $"\n女性:{fem:P0}　子供:{child:P0}　老年:{old:P0}"
                  + $"\n失業率:{unemp:P0}" + (parliamentActive ? $"　支持政党:{party}" : "");
-            // 闘争度の要因内訳（全国 size 加重の各寄与・多い順・0.5% 未満は省略）。生活水準の不足には操作可能な主因をヒントに添える
+            // 闘争度の要因内訳（全国 size 加重の各寄与・多い順・0.5% 未満は省略）
             var milb = new List<(string Label, double V)>
             {
-                (PlayText.MilitancyPartNames[0], mLiving * inv), (PlayText.MilitancyPartNames[1], mVoice * inv), (PlayText.MilitancyPartNames[2], mWar * inv),
-                (PlayText.MilitancyPartNames[3], mNation * inv), (PlayText.MilitancyPartNames[4], mFamine * inv),
+                (PlayText.MilitancyPartNames[0], mVoice * inv), (PlayText.MilitancyPartNames[1], mWar * inv),
+                (PlayText.MilitancyPartNames[2], mNation * inv), (PlayText.MilitancyPartNames[3], mFamine * inv),
             };
-            var causes = new List<string>();
-            if (foodShort) causes.Add("主食不足");
-            if (!first.Closed && !first.IsSoldier && taxBurden > 0.30) causes.Add("重税");
-            if (!first.Closed && !first.IsModernElite && w.WorkHoursValue >= 12 && first.IsUrban) causes.Add("長時間労働");
             string? milTip = null;
             foreach (var (label, v) in milb.Where(x => x.V > 0.005).OrderByDescending(x => x.V))
             {
-                string extra = label == "生活水準の不足" && causes.Count > 0 ? $"({string.Join("、", causes)})" : "";
-                milTip = (milTip is null ? "" : milTip + "\n") + $"・{label}:+{v:P0}{extra}";
+                milTip = (milTip is null ? "" : milTip + "\n") + $"・{label}:+{v:P0}";
             }
             double leanNone = Math.Max(0, size - (leanC + leanL + leanS));   // 差で取る＝4 列の合計は常に規模と一致する
             var (held, privTip) = PrivilegeCells(w, cid);

@@ -106,7 +106,6 @@ public class UnitTypeTests
         (typeof(Coefficients), "SoldierMigrationRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "MintFloorBuyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "MintReserveSellRatePerMonth", typeof(RatePerMonth)),
-        (typeof(Coefficients), "ForceUnlockTreasuryCostPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "GdpPerMonth", typeof(RealGdpPerMonth)),   // ★(250) 実質（参照価格×量）。名目は NominalGdpPerMonth（貨幣）＝別の型
         (typeof(World), "NominalGdpPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastRevenuePerMonth", typeof(MoneyPerMonth)),

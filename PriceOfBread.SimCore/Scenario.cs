@@ -56,7 +56,6 @@ public sealed class Scenario
     public double InitialLandTax { get; init; } = 0.0;     // 土地税の初期値（0..1）。開始値（近世絶対王政の根幹＝年貢。確立国家は1789年に既に台帳を持つ）。★(383) 検地台帳の錠は物理削除＝0 でも土地税は最初から押せる
 
     // --- 軍事（§6.1／§A-8 武力解錠・段4e）---
-    public bool ForceUnlock { get; init; } = false;            // locked を武力で速く解錠（国庫出血・闘争度↑）
     public double InitialTreasury { get; init; } = 0.0;        // 初期国庫（武力解錠の原資など）
     public double InitialGovDebt { get; init; } = 0.0;         // 初期国債残高（P5：仏＝米独立戦争債務「重債務だが未破綻」。国内債扱い＝純負債・貨幣非移動で保存中立）
     public BureaucracyLaw InitialBureaucracy { get; init; } = BureaucracyLaw.MeritExam;   // 官僚制度の初期値（2026-08-04）。**単体テスト/較正の既定は MeritExam＝旧と同じ**（行政効率に倍率が乗らない中立点）＝較正harnessは不変。多国は NationConfig が Spoils を渡す

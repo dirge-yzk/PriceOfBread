@@ -5,8 +5,8 @@ namespace PriceOfBread.SimCore;
 /// 生成側と比較側で文字列が散らない作法は <see cref="Government.ReasonNoMandate"/> と同じ（散ると表示が嘘をつく）。</summary>
 public static class PlayText
 {
-    /// <summary>闘争度の目標の 5 本の名前。順は <c>Pop.MilLiving</c>・<c>MilVoice</c>・<c>MilWar</c>・<c>MilNation</c>・<c>MilFamine</c>（Politics の目標の和 sum の 5 項と同じ並び）。</summary>
-    public static readonly string[] MilitancyPartNames = ["生活水準の不足", "政治的疎外", "厭戦", "民族的地位", "飢餓"];
+    /// <summary>闘争度の目標の 4 本の名前。順は <c>Pop.MilVoice</c>・<c>MilWar</c>・<c>MilNation</c>・<c>MilFamine</c>（Politics の目標の和 sum の 4 項と同じ並び）。</summary>
+    public static readonly string[] MilitancyPartNames = ["政治的疎外", "厭戦", "民族的地位", "飢餓"];
 
     /// <summary>法の段のホバーの 2 行目（「制定:可能（政治資本消費:n）」／在庫の門の否決／それ以外の理由）。
     /// <paramref name="reason"/> は <see cref="Government.GateInfo(World, PolicyAxis, bool, int)"/> の理由。前提法・不可逆で止まった理由はここでなく <see cref="FormatPrereq"/>。</summary>

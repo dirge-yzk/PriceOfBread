@@ -703,24 +703,21 @@ public class ConservationTests
         Assert.Equal(10.0, p.Savings.Value);
     }
 
-    /// <summary>★移民の運賃（段2-3 C17）：運賃は**持っている正の持参金から**だけ払う＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
-    /// 旧＝運賃があると max(0, 持参金−運賃) で負の持参金を送出 POP に残し、運賃0では負の持参金も運んだ。⚠突然変異「旧の max(0,…)」で赤。</summary>
+    /// <summary>★移民の負の持参金（段2-3 C17）：負の貯蓄（借越）は移民に付いて行く（持参金＝持っている貯蓄のまま）。
+    /// 旧＝運賃 MigrationFarePerkKm があると max(0, 持参金−運賃) で負の持参金を送出 POP に残した（運賃は 2026-10-25 (551) で削除）。⚠突然変異「負の持参金を送出 POP に残す（max(0,…)）」で赤。</summary>
     [Fact]
-    public void 移民の負の持参金は運賃の有無に関わらず移民に付いて行く()
+    public void 移民の負の持参金は移民に付いて行く()
     {
-        foreach (double fare in new[] { 0.0, 0.1 })
-        {
-            var sim = MigrationBoard(new Coefficients { MigrationFarePerkKm = fare });
-            var src = sim.Nations[0].World; var dst = sim.Nations[2].World;   // 英→米（遠い＝運賃が立つ）
-            var sp = src.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
-            var dp = dst.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
-            sp.SetSavings(-0.5 * sp.Size);   // 借越
-            double flow = 0.01 * sp.Size, carried = sp.Savings.Value * (flow / sp.Size), dp0 = dp.Savings.Value, sp0 = sp.Savings.Value;
-            sim.MoveMigrants(src, dst, src.Regions[0], dst.Regions[0], PopClass.Worker, flow);
-            double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(dp0) + System.Math.Abs(sp0));
-            Assert.True(System.Math.Abs(dp.Savings.Value - dp0 - carried) <= tol, $"運賃 {fare}：受入 POP へ負の持参金 {carried} が運ばれていない（増分 {dp.Savings.Value - dp0}）");
-            Assert.True(System.Math.Abs(sp.Savings.Value - sp0 + carried) <= tol, $"運賃 {fare}：送出 POP に負の持参金が残った");
-        }
+        var sim = MigrationBoard(new Coefficients());
+        var src = sim.Nations[0].World; var dst = sim.Nations[2].World;   // 英→米
+        var sp = src.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+        var dp = dst.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+        sp.SetSavings(-0.5 * sp.Size);   // 借越
+        double flow = 0.01 * sp.Size, carried = sp.Savings.Value * (flow / sp.Size), dp0 = dp.Savings.Value, sp0 = sp.Savings.Value;
+        sim.MoveMigrants(src, dst, src.Regions[0], dst.Regions[0], PopClass.Worker, flow);
+        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(dp0) + System.Math.Abs(sp0));
+        Assert.True(System.Math.Abs(dp.Savings.Value - dp0 - carried) <= tol, $"受入 POP へ負の持参金 {carried} が運ばれていない（増分 {dp.Savings.Value - dp0}）");
+        Assert.True(System.Math.Abs(sp.Savings.Value - sp0 + carried) <= tol, "送出 POP に負の持参金が残った");
     }
 
     /// <summary>★招聘の支度金（段2-3 C16）：受け手＝呼ばれた本人が入った受入州の POP へ人数の比（研究者の分は研究者へ）。
@@ -949,7 +946,6 @@ public class ConservationTests
     public void 越境の持参金と債務は受入国の通貨へ換算され差は換算の台帳へ入る()
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
-        sim.Coef.MigrationFarePerkKm = 0;
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
         uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
         var sp = uk.Regions[0].PopOf(PopClass.Worker)!; var dp = fr.Regions[0].PopOf(PopClass.Worker)!;

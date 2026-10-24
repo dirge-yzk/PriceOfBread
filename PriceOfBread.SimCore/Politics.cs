@@ -181,7 +181,7 @@ public static class Politics
         => c.PoliticalDistanceWeight * LawDistance(w, c, p, distance);
 
     /// <summary>★(431) 不満度の本体（**0 で切らない**）＝生活の項＋法の項。<see cref="Discontent"/> はこれを [0,1] に切るだけ。
-    /// 闘争度の目標（<see cref="Step"/> の sum）の先頭は法の項だけ＝この値から生活の項を引いた物（<c>Pop.MilVoice</c>・生活の項は不満度だけが持つ・<c>Pop.MilLiving</c> は欄のまま 0）。
+    /// 闘争度の目標（<see cref="Step"/> の sum）の先頭は法の項だけ＝この値から生活の項を引いた物（<c>Pop.MilVoice</c>・生活の項は不満度だけが持つ＝闘争度の内訳に生活の欄は無い）。
     /// ⚠成長期は負になりうる（生活の失望が負＝体制への支持）。切るのは呼び手の責任（不満度は [0,1]・闘争度は目標の和を切る）。純関数。</summary>
     internal static double DiscontentRaw(World w, Coefficients c, Pop p, double distance)
     {
@@ -307,11 +307,10 @@ public static class Politics
             //   ★2四半期で門を越える設計は不変：σ=0.30・駆動1.0 なら 0→0.30→0.51 で RegionalRevoltThreshold=0.50 を**2四半期目に**越え、1四半期では越えない。
             //   ★階層3分割と対＝食料は満足度の台帳に載らないので、飢えが政治へ出る経路はこの項の1本だけ（思想⑨）。
             double famineMil = FamineDrive(p, c);
-            // [PORT:P1] 闘争度targetへの寄与（加算項）＝生活の失望／法（政治）の隔たり／民族／厭戦／飢餓の**5本**。新規機構はこのポートに独立加算で接続する。
-            // ★段2（2026-09-09）で 11項→5項：群衆の熱・失業・格差・危険な中間・革命の波を削除し、民族2項を一本鎖へ畳んだ（設計メモ §2-1/§7-3）。
-            // 内訳（診断・UI表示用。target への各寄与ぶんを記録＝計算には不使用・較正中立）。値はすべて target が既に計算済み＝代入5本だけ。
+            // [PORT:P1] 闘争度targetへの寄与（加算項）＝法（政治）の隔たり／民族／厭戦／飢餓の**4本**（生活の失望は不満度だけが持つ＝闘争度の目標に入らない・★(431)(551)）。新規機構はこのポートに独立加算で接続する。
+            // ★段2（2026-09-09）で 11項→5項（★(431) 二量分離で生活の項を外して4項）：群衆の熱・失業・格差・危険な中間・革命の波を削除し、民族2項を一本鎖へ畳んだ（設計メモ §2-1/§7-3）。
+            // 内訳（診断・UI表示用。target への各寄与ぶんを記録＝計算には不使用・較正中立）。値はすべて target が既に計算済み＝代入4本だけ。
             {
-                p.MilLiving = 0.0;   // ★(431) 二量分離＝生活の項は闘争度の目標に入らない（欄のまま 0・hw との約束＝闘争度の内訳の5本の並びと PlayText の名前を変えない）
                 p.MilVoice = voice;
                 p.MilWar = c.WarWearinessMilitancy * warWeariness;
                 p.MilNation = minorityMil;

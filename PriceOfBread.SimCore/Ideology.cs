@@ -43,9 +43,6 @@ public static class Ideologies
         //   ★史実の順序どおり＝1861年の農奴解放が貴族の反動を生み、1876年の秩禄処分が士族反乱を生んだ。
         double privLoss = w.Coef.ReactionFromLoss > 0 ? 1.0 - PowerShares.PrivilegeIntact(w) : 0;
         if (!(privLoss >= 0 && privLoss <= 1)) privLoss = 0;
-        // ★国民意識→ナショナリズム（休眠）の国民意識もループ前に1回（add-05・2026-09-26）：World.NationalConsciousness は全POPを走査する＝
-        //   ループの中で読むと点火した瞬間に POP 数の2乗になっていた。読む値（各POPの Size と国民意識）はこのループで書かれない＝厳密恒等。
-        double ncForNationalism = w.Coef.NationalismFromConsciousness > 0 ? System.Math.Max(0, w.NationalConsciousness) : 0;
         // ★(431) 二量分離の完成：思想の入力 mil＝max(不満度, 闘争度)。不満度は Politics.Discontent（参加の述語と同じ呼び・文脈は POP のループの外で1回）。
         //   ⚠POP の理想点を読む＝BaseWeights が r（IdeologyShares）を書き換える**前**に求める（ループの頭）。
         var (dCoord, dLawGap) = FactionSnapshot.MembershipContext(w, true);
@@ -89,11 +86,6 @@ public static class Ideologies
             // 倍率排除⑥/長い裾：伝統の意識減衰 r[0]*=1−0.7cons を撤去。意識・闘争が r[2..7] を加点し Normalize で総和1へ割られるため伝統シェアは自動低下＝明示倍率は二重計上。正規化に委ねる。
             // 戦争崩壊（1917／敗戦の反動）の厭戦は闘争度経由（Politics）で上の mil 項が拾う＝Ideology からの直接加点は撤去（倍率排除/長い裾）。
             r[4] += nationalismSurge;   // 機能7-1/7-2/8-②/8-⑤：敗戦＋失地＋戦勝＋外圧→ナショナリズム（思想の門・ファシズム式の前＝r[9]の燃料として自動で効く）
-            // 独統一トリガー解錠B（wf_d460b52d調査2・2026-08-08）：国民意識の高い国は平時もナショナリズムが底上げされる
-            // （統一運動＝1848の前提。旧＝ナショはイベント駆動のみで、125年×53カ国で統一閾値0.25に誰も届かなかった）。
-            // ⚠既定0＝加算ごとスキップ＝厳密恒等。国名なし＝国民意識という既存の実数から創発。
-            if (w.Coef.NationalismFromConsciousness > 0)
-                r[4] += w.Coef.NationalismFromConsciousness * ncForNationalism;
             // ★マニフェストの達成（作者指示2026-08-24）＝加担した思想へ支持が乗る（減衰ストック・Parliament.StepManifesto が積む）。
             //   出来事→思想の既存パターン（上の nationalismSurge と同じ位置・同じ物差し〔恐慌→思想の depSoc ほかは (384) で物理削除〕）＝新しい経路を作らない。
             if (w.ManifestoIdeology >= 0 && w.ManifestoIdeology < r.Length && w.ManifestoCredit > 0)

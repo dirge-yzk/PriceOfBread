@@ -82,9 +82,7 @@ public sealed class Coefficients
     //   （売り手側 yPrice は unitA で解く＝非対称）。単一供給の財（硫黄＝両シチリア1州）では unitA=lp なので過剰発注→着値が閾を割ると0＝bang-bang。
     //   1＝買い手も unitA で解く。0＝旧式＝厳密恒等。単独腕 tradeunit で計測。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TradeBuyerSolvesAtUnitPrice＝買い手の静止点を実際に払う単価で解く（2026-09-08 点火・PriceLawSupplyIncludesStock と対）
-    // ★計器（同日）：表示用「世界価格」統計（BilateralMarket の平均価格）の [0.1,10]×参照 クランプ＝偏在財（硫黄・銀）で常に振り切れ、画面の値が嘘になる。
-    //   1＝クランプなしの生の平均。⚠SilverParityFromRatio=0 の旧経路ではこの統計が銀本位国の平価にも流れる＝両者を合わせて測る。0＝旧式＝厳密恒等。
-    public double WorldPriceStatUnclamped = 0.0;
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】WorldPriceStatUnclamped（0＝表示用の世界価格の平均を参照の 0.1〜10 倍へ挟む／1＝挟まない）＝既定 0 の差し戻し・採否未決の休眠を作者の答え〈推奨で消す〉で削除。BilateralMarket の世界価格は常に挟む。挟み自体の扱いは古い設計の一覧 H22。
     public double PriceLawSeesExports = 1.0;   // ★点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
     public int ClearingsPerYear => Calendar.MonthsPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
     public int MonthsPerClearing => 1;                    // 1清算が覆う月数（月割の単位ヘルパー）
@@ -311,7 +309,7 @@ public sealed class Coefficients
     //   ★二つの速度：不満度は記憶を持たないので豊作の四半期に群衆はその場で家に帰り（規模が同じ四半期に縮む）、
     //     闘争度（σ=0.30＝半減期5.8か月）を持つ核だけが半年ほど残る（英1795＝暴動は消えたが急進結社は1799年の団結禁止法まで）。
     public double ParticipationDiscontent = 1.0;   // ★2026-10-19 (431) で点火（枝 dc は不採用・二量分離の完成と束で採用＝闘争度から生活の項を外した世界の述語）。0 は旧の二値（番人が両方を踏む）
-    // ★(431) **二量分離の完成**（2026-10-19 点火・旗 DiscontentSplit は焼き込んで削除）：闘争度の目標から生活の失望の項を外し（Pop.MilLiving は欄のまま 0・目標＝法の項＋民族＋厭戦＋飢餓）、
+    // ★(431) **二量分離の完成**（2026-10-19 点火・旗 DiscontentSplit は焼き込んで削除）：闘争度の目標から生活の失望の項を外し（Pop.MilLiving の欄は (551) で削除・目標＝法の項＋民族＋厭戦＋飢餓）、
     //   思想の更新の入力 mil（Ideologies.UpdateShares）は max(不満度, 闘争度)。参加の述語は上の ParticipationDiscontent（既定 1）が同じ max を読む。
     //   不満度は読むたびに今の盤面から導く（記憶を持たない・新しい状態も倍率も無い）。好景気の負の失望が民族・厭戦・飢餓の怒りを打ち消さなくなる。事前登録・結果＝measurements/dq_20261019_prereg.txt・dq_20261019_arms.txt。
     public double GoldStandardIndThreshold = 3.5;     // AI挙動：金本位を**自力で**志向する工業化の下限（発展した交易経済の制度＝未発展では足枷の損が勝る。era は工業化から創発）。
@@ -913,8 +911,7 @@ public sealed class Coefficients
     public double CoercionMax = 2000;   // 【点火2000・2026-08-16 点火梯子＝★2026-08-16に4000→2000（漸近化と同時）＝挑戦力の理論最大（BaseCoercion換算≈1250）の3.2倍だった壁を等号点の1.6倍へ。旧4000は「不満100%でも革命が代数的に不能」を作っていた。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】         // 治安維持力の上限（旧 Reactionary の最大治安維持力＝史実の最大動員）。装備された大軍でも2000で漸近（CoercionSoftCap）
 
     // --- 領土・地域間移民（§5.2／§A-8・段4c）---
-    public double FrontierDevelopmentRate = 0.01;   // locked 地域のインフラ開発速度（毎月）
-    public double FrontierUnlockThreshold = 1.0;    // インフラがこれを超えたら active 化
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】FrontierDevelopmentRate（0.01＝locked 地域のインフラ開発速度）・FrontierUnlockThreshold（1.0＝インフラがこれを超えたら active 化）＝Territory.Step の locked 州の解錠の道ごと削除（本番の盤面は州を Locked にしない＝読み手は死んだ枝の中だけ）。
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
     // 【墓標2026-10-01 (141)】MigrationSecondDestShare（0.3＝州間移民の第2目的地への分岐率・監査2026-07-05 D2）＝行き先は機会の差の比で全ての州へ（越境移民と同じ規則・Territory.Step）。
     public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本）
@@ -2454,7 +2451,7 @@ public sealed class Coefficients
     //   ★(155)（2026-10-02）単位の読み替え 1.0→16.6＝安全保障の不安の作り直しで脅威比の単位が「州の経済質量の比」から「届く敵意の養える軍÷自国の養える軍（兵の頭数・注意配分）」へ変わった＝
     //   旧の中央値 33.8（腕 S2b の5種・1784-1843 の国×四半期）÷新の中央値 2.04（同じ期間の試走・種1）＝16.6（中央の国の国防項の倍率を保つ）。四分位の幅は旧 7.6倍・新 5.9倍。
     //   ⚠(157)（反証役の指摘）：「単位の換算」ではなく**中央値で合わせた再較正**＝旧の中央値は腕 S2b の5種・新の中央値は試走の種1（240四半期）＝種の組も木も違う・量の中身も変わった（敵意・同盟0・注意配分）。
-    public double PreemptiveSeizeWeight = 0.0;      // ★差し戻し2026-08-30（W2腕=1.0で経済−7.9/人口−9.1・W3合成でも同符号＝先制戦争が緩衝地帯経済を壊す）：AIの侵略標的の魅力×(1+これ×max(ライバル列強のProjection(A,標的)))。再挑戦条件＝0.5以下で内戦一元化ラウンド後に単独A/B
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】PreemptiveSeizeWeight（0＝AI の侵略標的の魅力にライバル列強の Projection を乗せる先取りの動機・2026-08-30 差し戻し〔W2 腕 1.0 で経済−7.9・人口−9.1〕）＝差し戻しの休眠を作者の答え〈推奨で消す〉で削除。
     // 【削除 2026-10-11 (271)】ArmyShapeGauge（Power.Military への艦隊ゲージの合算比・既定 0）＝作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝理想の軍隊の撤去と一緒に。
     // 【削除2026-10-01 (145)】ArmySustainWeight（desired の扶養限界の混合比 k＝0.25・AI が 2026-08-08 の梯子の測定から採った値＝作者設計の梯子 0.25→0.5→1.0 の途中）＝
     //   平時の兵の目標は扶養限界の目標そのもの（k＝1＝梯子の終点）。旧の 0.75 の側（軍事費の段×上限割合×母数）は財政の上限の無い目標で、清の平時の兵を約1,060万（史実 80〜100万）にした根。
@@ -2479,7 +2476,7 @@ public sealed class Coefficients
     // 予算とelasMaxが物理蓋・0=乗算ごとスキップ=厳密恒等。点火0.5
     public double SovietTaxProfile = 1.0;          // ソ連風税制（2026-08-08作者裁定＝完全な計画経済の代替）：プロレタリア独裁は
     // 極端な専売（取引税＝ソ連最大の歳入源。政治の軸ではなく AI の教義が段で置く）と大規模な社会保障・累進最大を目標化。価格配分は触らない（保存則非接触・スタンス目標のみ）。0=恒等
-    public double NationalismFromConsciousness = 0.0;  // 【休眠2026-08-08＝0.03/0.01ともcanary赤。ただし割れたのは「NY産出財数」＝0.01の微小加算でも割れる軌道ピン＝#17期待値再導出の筆頭対象。B自体の再点火は#17とセット】独統一トリガー解錠B：国民意識→ナショナリズムの平時底上げ（統一運動の燃料）。0=厳密恒等・点火帯0.02-0.05
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】NationalismFromConsciousness（0＝国民意識→ナショナリズムの平時底上げ・独統一トリガー解錠B・2026-08-08 休眠）＝#17 の期待値再導出の筆頭だったが、棄却・採否未決の休眠を作者の答え〈推奨で消す〉で削除。Ideology.UpdateShares の国民意識の先読み（ncForNationalism）も消した。
     public double GarrisonProcurement = 0.0;       // 【棄却2026-08-08＝1.0/0.5とも硬性赤（公教育テスト）＝首都市場の需要構成が較正の暗黙土台】課題6（駐屯州調達・審査88/70）。#17全体再較正の再点火候補・0=首都一極=厳密恒等：装備需要と予算の州配分を
     // 首都一極（Id==0のみ）→兵士の駐屯州比例へブレンド（総量保存）。英ですら首都市場ration0.77＝小軍でも供給bindingの解消。
     // 即応の装備充足も兵士加重の全国平均へ（同係数ゲート）。0=首都一極＝厳密恒等・梯子0.5→1.0
@@ -2504,9 +2501,8 @@ public sealed class Coefficients
     public RatePerMonth ConscriptionRatePerMonth = new(0.15);               // 戦時の動員速度（平時より速い）
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
-    public double ForceUnlockRate = 0.10;          // 武力解錠時のインフラ進捗（開発の約10倍速）
-    public MoneyPerMonth ForceUnlockTreasuryCostPerMonth = new(1000);  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
-    public double ForceUnlockMilitancy = 0.03;     // 制圧が pop に与える闘争度（戦争疲弊・§6.1）
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】ForceUnlockRate（0.10＝武力解錠時のインフラ進捗）・ForceUnlockTreasuryCostPerMonth（1000＝制圧の月あたりの軍需の予算・2026-09-30 支払いの段3-2）・ForceUnlockMilitancy（0.03＝制圧が pop に与える闘争度）
+    //   ＝Territory.Step の locked 州の解錠の道ごと削除（World.ForceUnlock・Scenario.ForceUnlock・Region.Infra も同じ線で削除）。
 
     // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（UpkeepDistanceGeneral）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ（それも 2026-09-30 (140) に撤去）
     // 帝国の過伸展は距離の金銭倍率でなく**物理**から創発：遠方植民地ほど補給線が長く、交易の船腹を占有する（下の ColonyShipOccupyPerDist）。
@@ -2688,9 +2684,9 @@ public sealed class Coefficients
     public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
-    // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。両係数とも既定0で厳密恒等（scale=0→減衰1.0・fare=0→運賃なし）。
+    // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。MigrationDistanceScale は既定 10000 で点火済み（scale=0→減衰1.0）。運賃 MigrationFarePerkKm は (551) で削除。
     public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民（★(141) 国内の移民も＝Territory.MigrationDecay の1本・州の座標の間）の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
-    public double MigrationFarePerkKm = 0.0;   /* 休眠。#54再点火試験2026-07-14＝0.1でmassBirthWeightガード後seed3は完走するが、住民が≈0まで流出した国家がゾンビ残存→多国batchでO(N²)膨張→約12倍低速化。要ゾンビ国家清掃（civilian pop→0の国の消滅機構）。R3距離感応が移民リアリティの核心は提供済み＝運賃は保留 */      // 【休眠に戻した2026-07-13(2)＝要追加調査】0=渡航コストなし（厳密恒等）。>0で移民1人が距離比例の運賃(=これ×DistanceKm/1000)を要する＝貯蓄が運賃に満たない最貧層は動けない（貧困の罠）。運賃分は送出経済に残し保存則を閉じる。**点火0.1で保存則は清潔（leakhunt seed1/25/27緑）だがseed3が破綻＝運賃コード外の下流でSize NaN（診断未発火＝affordFrac自体は有限）＝運賃の軌道摂動が潜在NaNバグを露出。距離減衰は完走。運賃コード（IsFinite安全弁）は残置し、潜在NaN特定後に再点火**
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】MigrationFarePerkKm（0＝越境移民の渡航運賃〔距離比例・貯蓄が運賃に満たない層は動けない〕・2026-07-14 の再点火は住民が 0 まで流出した国のゾンビ残存で差し戻し）＝作者の答え〈推奨で消す〉で削除。MoveMigrants の運賃・MoveAbroad の fare 引数・MigrateBetweenNations の払える割合も消した。運賃を入れ直すなら古い設計の一覧 M21 のとおり 1 か所で州の座標から。
     public RatePerQuarter ImmigrationReceiveCapPerQuarter = new(0.012);   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。★回1-2（2026-09-27）：世界プールの上限から国家間移民の受入の上限へ（超えた分は送出州に残る）
     // ★移民制限法の効き（2026-08-01）。⚠既定は Open＝1.0 なのでどちらも読まれない＝厳密恒等。
     // 値の根拠＝米1924年移民法は前年比で流入を約8割削った（年約70万→約16万）＝Closed≈0.2。Selective はその中間（紳士協約1907型の部分制限）。
@@ -3534,10 +3530,7 @@ public sealed class Coefficients
     // 【墓標2026-10-24・休眠の倍率の道の削除 (541)】RentScarcityElasticity（地代の土地稀少弾力＝RGO の実効 RentShare=RentShare×(1+これ×稀少度)・(529) で既定 1.0→0 に下げて休眠）を消した＝産地の取り分は min(生産者の慣習のデータの取り分 RentShare, 州の法の上限 FarmRentCap) の 1 本（EconomyStep.RentShareOf）。弾力の枝は既定 0 で到達しなかった＝成績表は m533 とバイト一致。旧は git の履歴から戻せる（点火の記録＝2026-08-31 ラウンドA・撤回の経緯＝(529)）。
     public double ParliamentStreetSupersede = 0.5;   // ★点火2026-08-31＝議会の二重票の是正（清レポ3-6）：議会がある国では3ブロックの街頭力の半分を議席チャネルへ譲る（党の選好表＝ブロックの選好表なので旧は二重加算＝共和国化で教育法が2.7倍通りにくくなった実測。1.0全譲は法一致−6.2で0.5に裁定＝ラウンドA腕2）。未代表（小営業・軍・国庫）は街頭のまま。0＝旧二重加算
     public double RumpReabsorbYears = 5.0;           // ★点火2026-08-31＝残骸国家の自然再併合：内戦の白紙分断で生まれた国が親GDP1%未満を5年続けたら平和的に再統合（ReabsorbNationsの既存機構＝保存両建て）。親が交戦中/消滅なら持ち越し。0で無効
-    // 出生配分の凍結分母の是正（docs/202608/20260815_失業プールと社会移動_部分完了.md「点火直後の回帰＝聖職者爆発」節・作者裁定＝年代スケール禁止・確立した形で）：
-    // BirthWeight の popごと t=0 凍結分母（InitialFertileShare）は、初期構成が偏ったpop（聖職者F=0.10）が新生児蓄積で構成正常化すると
-    // 分母凍結のまま分子が育ち恒久出生倍率（実測2.1倍）になる罠＝「比のガードは絶対値で書かない」と同族。
-    public double FertileAbsoluteBlend = 0.0;   // ★差し戻し2026-08-30（点火bisect＝幕府転換テスト赤の単独犯・英人口が停滞→縮小0.73×へ）：凍結分母ポンプ（出生2.1倍）は較正の暗黙の土台だった＝是正は**出生率の実再較正とセット**でのみ再点火（AI工業化バーストと同型の扱い）
+    // 【墓標2026-10-25 (551)・恒等の線 gc1】FertileAbsoluteBlend（0＝出生の配分の重みの凍結分母〔InitialFertileShare〕を標準のピラミッドの共通の 1 本へ置き換える混合比・2026-08-30 差し戻し〔英人口が停滞→縮小 0.73×〕）＝作者の答え〈推奨で消す〉で削除。凍結分母そのものの扱いは古い設計の一覧 H25（9-2 と一緒に）。
     // 【削除2026-09-30 段4e 後半】FertileShareStd（標準構成の出産可能プール定数0.35）＝標準のピラミッドの出産可能プール（Simulation.FertilePool に標準の構成を通した値）が置き換えた（設計書 §4-2）。
 
     // ==== 運用コスト監査 2026-08-16（燃料系＝「金は払うが物資を消費しない運用」の物資化。#1海軍燃料のみ休眠・#2#4は点火済み・#3汽船燃料は2026-09-27 に点火）====

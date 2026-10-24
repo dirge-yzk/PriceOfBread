@@ -262,7 +262,6 @@ public partial class GameViewModel : ViewModelBase
         InitLayout();   // 画面の配置（見えているページの導出・ヘッダーの押し釦）＝最初の Refresh より前
         foreach (var n in _sim.Nations) n.TelemetryEnabled = false;   // UIはTelemetryを読まない＝四半期スナップショットの割当/保持（セーブ肥大の一因）を止める
         _player.Explain = new ExplainLedger();   // 説明API（#63）：プレイヤー国だけに台帳を常設装着＝毎四半期のPolitics.Stepが正統性の内訳を記帳（本計算はビット恒等・ゼロコスト・SaveGameは非直列化なのでロード後もここで再装着）
-        _player.ForceUnlock = true;              // ★再征服は常時ON（作者指示2026-08-24＝レバーを撤去）。実費は Territory.Step が持つ（国庫1000/月と全popの闘争度）＝国庫が尽きれば自動で止まる
         _treasuryMStart = _player.Treasury.Value;      // 月次収支の基準（新規/ロード共通）
         PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;   // 国名（首都州名ではなく国名）
         foreach (var rg in _player.Regions) { _prevEduCum += rg.CumEducationCost; _prevStateMonopCum += rg.CumStateMonopolyRevenue; }   // 累積カウンタの基準化（初回表示が過去合計にならない）

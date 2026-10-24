@@ -72,6 +72,16 @@ public class ScalarDeletionTests
     }
 
     [Fact]
+    public void 恒等の削除_2026_10_25_ゴミ変数の1回目の欄は復活しない()
+    {
+        // (551) 恒等の線 gc1：本番の盤面では 1 度も書かれず読まれなかった欄を名前で禁じる（期待値は削除の一覧を手で写した物で、本体の式から作らない）。係数の名前は DormantIdentityTests.RetiredFields が禁じる。
+        Assert.Null(typeof(Region).GetMember("Infra", All).FirstOrDefault());          // 辺境の開発度（locked 州の解錠の駆動）。Region.InfraFill・InfraBudget は上下水道の調達で別物
+        Assert.Null(typeof(World).GetMember("ForceUnlock", All).FirstOrDefault());     // 武力解錠のレバー（読み手は locked 州の解錠の道だけだった）
+        Assert.Null(typeof(Scenario).GetMember("ForceUnlock", All).FirstOrDefault());
+        Assert.Null(typeof(Pop).GetMember("MilLiving", All).FirstOrDefault());         // 闘争度の内訳の生活の欄（(431) の二量分離の後は恒久 0）
+    }
+
+    [Fact]
     public void 汚職の政治の2項は物理削除されている_天命と正統性は実効汚職を読まない()
     {
         // (377) で一度消して止める線に当たり戻した 2 項（天命の汚職の項 dmGraft・腐敗→正統性の侵食）を、作者 2026-10-16「汚職→廃止」と 10-17「史実度の低下は差し戻し理由にはなりません」で

@@ -9,16 +9,15 @@ public class TerritoryTests
     private static Scenario Frontier(ulong s) => new() { Seed = s, Kind = ScenarioKind.FrontierDevelopment };
 
     [Fact]
-    public void 辺境はロックで始まり開発で解錠され移民が流入する()   // §A-8／§A-9
+    public void 辺境へ移民が流入する()   // §A-8／§A-9（旧＝辺境は Locked で始まり開発で解錠された＝(551) で解錠の道を削除。2 州とも最初から Active）
     {
         var sim = new Simulation(Frontier(1), new NullAgent());
         var frontier = sim.World.Regions[1];
-        Assert.Equal(RegionState.Locked, frontier.State);
+        Assert.Equal(RegionState.Active, frontier.State);
         double startPop = frontier.SumPopulation();
 
         sim.Run(400);
 
-        Assert.Equal(RegionState.Active, frontier.State);                       // 解錠
         Assert.True(frontier.SumPopulation() > startPop + 100, $"辺境に移民が入らない（{frontier.SumPopulation():F0}）");
         Assert.True(sim.World.Regions[0].SumPopulation() < 1000, "本土から流出していない");
     }
@@ -58,7 +57,6 @@ public class TerritoryTests
         var sim = new Simulation(Frontier(1), new NullAgent());
         var w = sim.World; var c = w.Coef;
         Region core = w.Regions[0], fr = w.Regions[1];
-        fr.State = RegionState.Active;
         fr.ProductivityBonus = core.ProductivityBonus;   // 差は賃金だけ
         core.WagePremium = 0.25; fr.WagePremium = 4.0;
         fr.Industrialization = 10.0;   // 賃金の高い州には工業も積もっている（工業化度の総量は機会に入らない＝二重計上しない）
@@ -89,7 +87,7 @@ public class TerritoryTests
         var sim = new Simulation(Frontier(1), new NullAgent());
         var w = sim.World; var c = w.Coef;
         Region core = w.Regions[0], fr = w.Regions[1];
-        fr.State = RegionState.Active;   // 辺境＝人口10（千人）・生産性2.5＝最大機会
+        // 辺境＝人口10（千人）・生産性2.5＝最大機会
         double frPop = fr.SumPopulation(), total = core.SumPopulation() + frPop;
         double cap = c.ImmigrationReceiveCapPerQuarter.Value / Calendar.MonthsPerQuarter * frPop * Territory.AbsorbCap(fr, c);
         Assert.True(cap > 0, "前提が崩れた：受け入れの能力が0");

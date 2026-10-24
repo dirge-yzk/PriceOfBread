@@ -95,7 +95,6 @@ public sealed class Simulation
             TaxRate = new Share(scenario.TaxRate),
             PollTax = scenario.InitialPollTax,   // 人頭税＝近世国家の主財源（行政不要）。序盤の国庫を支える（所得税は19世紀までロック）
             LandTax = scenario.InitialLandTax,   // 土地税の開始値（確立国家は開始から徴収）
-            ForceUnlock = scenario.ForceUnlock,
             // 国庫は Pay 経由でしか動かせない（World の台帳・2026-08-13）＝生成時の初期化は下の SetTreasuryRaw で行う。
             GovDebt = new MoneyStock(scenario.InitialGovDebt),   // P5：初期国債（仏＝米独立戦争債務）。純負債＝貨幣非移動・保存中立。GovAvgCouponPerYearはrollover=1で初回Fiscalが市場金利へ上書き
             // ★★予算法・統帥法の初期値（2026-08-20）。⚠**開始時の制度の写し取り**であって実行時の分岐ではない
@@ -281,10 +280,10 @@ public sealed class Simulation
         }];
     }
 
-    /// <summary>段4c：本拠地（active・満杯）＋辺境（locked・豊かな土地）。開発で解錠し移民が流入する（§A-8/§A-9）。</summary>
+    /// <summary>段4c：本拠地（満杯）＋辺境（豊かな土地・人はまばら）の 2 州。移民が辺境へ流入する（§A-8/§A-9）。（旧＝辺境は Locked で、開発で解錠する道があった＝(551) 恒等の線 gc1 で削除）</summary>
     private static List<Region> BuildFrontierDevelopment()
     {
-        Region MakeRegion(int id, string name, RegionState state, double bonus, double capacity, double farmerSize, double savings)
+        Region MakeRegion(int id, string name, double bonus, double capacity, double farmerSize, double savings)
         {
             var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
             var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = farmerSize, Savings = new MoneyStock(savings), Satisfaction = 1.0 };
@@ -292,14 +291,14 @@ public sealed class Simulation
             var market = new Market { Price = 1.0, Stock = 1000, TargetStock = 1000 };
             var region = new Region
             {
-                Id = id, Name = name, State = state, ProductivityBonus = bonus, ArableLand = capacity,
+                Id = id, Name = name, ProductivityBonus = bonus, ArableLand = capacity,
                 Goods = [food], Pops = [farmer], Producers = [rgo], Markets = [market],
             };
         return region;
         }
 
-        var core = MakeRegion(0, "本土", RegionState.Active, bonus: 1.0, capacity: 1000, farmerSize: 1000, savings: 1_000_000);
-        var frontier = MakeRegion(1, "辺境", RegionState.Locked, bonus: 2.5, capacity: 1500, farmerSize: 10, savings: 10_000);
+        var core = MakeRegion(0, "本土", bonus: 1.0, capacity: 1000, farmerSize: 1000, savings: 1_000_000);
+        var frontier = MakeRegion(1, "辺境", bonus: 2.5, capacity: 1500, farmerSize: 10, savings: 10_000);
         return [core, frontier];
     }
 
@@ -2452,7 +2451,7 @@ public sealed class Simulation
     // カップル律速＝少数側の性 min(女,男)×2 に律速（旧の旗 CoupleLimitedBirths〔0＝女性の数に比例〕は 2026-10-18 に焼き込み）。
     // 徴兵で男が抜けると min(女,男) の男側が縮み出生が減る＝カップル（夫婦）が律速資源＝WWI 仏の出生半減を再現。Wave1 の FertileShareFloor（重み膨張の防止）と整合。
     // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：15〜49歳の女×カップル律速（同じ15〜49歳の男との少数側）。旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比。
-    //   起点合わせは要らない＝InitialFertileShare（t=0 の各 POP の値）で正規化する。標準の分母（FertileAbsoluteBlend）は標準のピラミッドをこの式に通した値（旧 FertileShareStd）。
+    //   起点合わせは要らない＝InitialFertileShare（t=0 の各 POP の値）で正規化する。（旧の標準の分母の旗 FertileAbsoluteBlend は (551) で削除）。
     internal static double FertilePool(Pop p, Coefficients c) => FertilePoolOf(p.Ages, c);
     private static double FertilePoolOf(double[] ages, Coefficients c)
     {
@@ -2465,23 +2464,9 @@ public sealed class Simulation
     {
         double fertile = FertilePool(p, c);
         double init = p.InitialFertileShare.Value > 0 ? p.InitialFertileShare.Value : Math.Max(c.FertileShareFloor.Value, fertile);   // フロアを現実的下限へ引き上げ可能に（1e-6 だと捕捉時 fertile≈0 の pop の重みが桁違いに膨張＝出生集中バグ）
-        double w = p.Size * fertile / init;
-        // 凍結分母の是正（休眠 FertileAbsoluteBlend=0・作者裁定2026-08-16＝年代スケール禁止・確立した形で）：
-        // popごとの t=0 凍結分母 init は、初期構成が偏ったpop（聖職者F=0.10）でも捕捉時に重み=Size を保証するが、新生児（F≈0.5）の
-        // 蓄積で構成が正常化すると**分母凍結のまま分子 fertile が育ち恒久出生倍率（実測2.1倍＝聖職者爆発182→8362）**になる
-        //（「比のガードは絶対値で書かない」と同族＝docs/202608/20260815_失業プールと社会移動_部分完了.md「点火直後の回帰」節）。
-        // 是正形＝分母を**全pop共通の定数1本**へ：FertilePool(標準構成)＝(1−0.3子供)×0.5女性=FertileShareStd(0.35)を、FertilePool と同じ
-        // カップル律速項に通した 0.35×2（標準構成では couple=1.0）。標準popの重み=Size を保つ＝総出生の物差し
-        //（totalBirths=CBR×fertility×Σ重み）を動かさない。時間・年号は一切読まない＝現行より単純。
-        // fertile≈0 のpopは共通分母では分子側で重み≈0＝膨張の恐れがなく自然に安全（FertileShareFloor は旧経路の捕捉時分母にのみ残る）。
-        // Σbirths=net の保存（回復期の按分・totalDeaths=totalBirths−net）は既存の仕組みをそのまま通る＝配分の重みが変わるだけ＝人口保存不変。
-        // ゲート0＝下の分岐に入らず w をそのまま返す＝旧popごと凍結分母とビット恒等／1＝(1−b)w+b·wStd で wStd へ厳密に全置換。
-        if (c.FertileAbsoluteBlend > 0)
-        {
-            double wStd = p.Size * fertile / FertilePoolOf(Pop.StdAgesRef, c);   // 標準のピラミッドの出産可能プール（旧＝FertileShareStd×2＝同じ式の標準の構成）
-            w = (1.0 - c.FertileAbsoluteBlend) * w + c.FertileAbsoluteBlend * wStd;
-        }
-        return w;
+        // 凍結分母の是正（旧の旗 FertileAbsoluteBlend＝標準のピラミッドの共通の 1 本へ置き換える混合）は (551) で削除。
+        // popごとの t=0 凍結分母 init は、初期構成が偏った pop でも捕捉時に重み=Size を保証するが、構成が育つと分子だけが伸びる穴が残る＝古い設計の一覧 H25（9-2 と一緒に直す）。
+        return p.Size * fertile / init;
     }
     /// <summary>★平常の死の年齢の指数（2026-10-01 (143)）＝その POP の年齢の構成で平常の死の年齢の重み（<see cref="Pop.MortalityWeights"/>）を平均した値（1人あたりの相対の死亡率）。
     /// 平常の死はこれ×規模の比で POP へ配る＝年寄りの多い POP ほど多く死に、若い POP ほど少なく死ぬ（年齢別の死）。標準のピラミッドでは粗死亡率（出生−表の増加率）。</summary>

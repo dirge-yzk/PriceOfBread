@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// ★(417) 線 dc（不満度の読み手の見直し・00-DISC）の番人。機構と不変条件だけ（創発の主張は成績表と計器が見る）。事前登録 measurements/dc_20261019_prereg.txt [6]。
-/// ①闘争度の目標の 2 項（生活・政治の隔たり）が不満度と同じ式を通る（Step の MilLiving＋MilVoice＝不満度の前クランプ・手計算の 0.25 の落差）＋DiscontentLawGap は闘争度へ広がらない。
+/// ①闘争度の目標の法の項（政治の隔たり）が不満度の法の項と同じ式を通る（Step の MilVoice＝不満度の前クランプ・手計算の 0.25 の落差）＋DiscontentLawGap は闘争度へ広がらない。
 /// ②参加の頭数：闘争度の高い POP と低い POP が旧の二値と新の連続で手計算の和に合う。
 /// ③計算量の台帳：旗 0 で件数 0・旗 1 で問うた POP の数に合う。
 /// ④計器 dcont_s：手計算の盤面で partOldK・partNewK・満足度・不満度が合う。
@@ -51,7 +51,6 @@ public class DiscontentReaderTests
         {
             if (!before.TryGetValue(p, out double d0)) continue;   // Step の中で生まれた POP は比べない
             n++;
-            Assert.Equal(0.0, p.MilLiving);                // 2026-10-19 (431)：生活の項は闘争度の目標に入らない（欄のまま厳密に 0）
             Assert.Equal(0.0, p.MilVoice, 12);
             Assert.Equal(d0, c.WantWeight * 0.25, 12);   // 不満度は生活の項を持つ（意識 0＝法の項 0・クランプの内）
         }
@@ -89,10 +88,9 @@ public class DiscontentReaderTests
         {
             Assert.Equal(expectVoice[i], a[i].MilVoice, 12);   // 手計算（4 軸の距離÷2）に合う
             Assert.Equal(a[i].MilVoice, b[i].MilVoice);   // 旗に依らず同じ（ビット一致）
-            Assert.Equal(a[i].MilLiving, b[i].MilLiving);
             if (a[i].MilVoice > 0) voiced++;
             // 不満度（DiscontentLawGap＝0 の旧経路）の前クランプ＝闘争度の目標の 2 項の和。両方が [0,1] の内なので等しい。
-            double sum = a[i].MilLiving + a[i].MilVoice;
+            double sum = a[i].MilVoice;   // 生活の項は闘争度の目標に入らない（(431)・(551) で Pop.MilLiving の欄も削除）＝目標の先頭は法の項だけ
             Assert.Equal(sum > 1 ? 1.0 : sum, pre[i], 12);
         }
         Assert.True(voiced > 50, $"政治の隔たりが立った POP が少ない {voiced}＝この番人は政治の項を見ていない");

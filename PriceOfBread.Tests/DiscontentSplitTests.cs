@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 /// ★(431) 線 dq（不満度の二量分離・00-DISC の続き）の番人。機構と不変条件だけ（創発の主張＝狙いの数字は成績表と計器が見る）。事前登録 measurements/dq_20261019_prereg.txt [6]。
 /// 2026-10-19 に点火（旗 DiscontentSplit は焼き込んで削除）。新しい既定の主張：
 /// ①不満度の本体 DiscontentRaw はクランプしない（負の生活の失望が負のまま）・Discontent はそれを [0,1] に切る。
-/// ②Step の内訳：MilLiving は厳密に 0（生活の項は闘争度の目標に入らない）・MilVoice＝DiscontentRaw−生活の項（手計算）・闘争度は生活の失望の符号と大きさに依らない。
+/// ②Step の内訳：生活の項は闘争度の目標に入らない（Pop.MilLiving の欄は (551) で削除）・MilVoice＝DiscontentRaw−生活の項（手計算）・闘争度は生活の失望の符号と大きさに依らない。
 /// ③好景気の負の失望が飢餓の怒りを打ち消さない。④思想の更新の入力が max(不満度, 闘争度)（不満度の大きい POP は闘争度をその値に置いた世界と同じシェア・更新の前の理想点で測る・不満度が上がれば闘争度が同じでもシェアが動く）。
 /// ⑤計算量の台帳：思想の更新の分が載る。
 /// 期待値はテストの側の手計算のリテラル（WantWeight＝0.8・落差 0.25 など）で、本体と同じ式から作らない。
@@ -58,7 +58,7 @@ public class DiscontentSplitTests
     public void Stepの内訳は生活の項が0で法の項が不満度の本体から生活の項を引いた値に等しい()
     {
         // 意識を高くして法の項も立てる（正の落差と負の落差の両方の盤面）。別々に作った2つの同一の盤面の一方を Step して内訳を取り、
-        // もう一方で更新前に DiscontentRaw を取る（4 軸の距離÷2 はテストの側の手計算）。MilLiving＝0（厳密）・MilVoice＝DiscontentRaw−0.8×落差（手計算のリテラル）。
+        // もう一方で更新前に DiscontentRaw を取る（4 軸の距離÷2 はテストの側の手計算）。MilVoice＝DiscontentRaw−0.8×落差（手計算のリテラル）。
         foreach (double drop in new[] { 0.25, -0.25 })
         {
             World Make() { var w = Board(drop); foreach (var p in ActivePops(w)) { p.Consciousness = 0.9; p.Literacy = 0.9; } return w; }
@@ -71,7 +71,6 @@ public class DiscontentSplitTests
             int voiced = 0;
             for (int i = 0; i < pops.Count; i++)
             {
-                Assert.Equal(0.0, pops[i].MilLiving);                                  // 生活の項は闘争度の目標に入らない（欄のまま厳密に 0）
                 Assert.Equal(raw[i] - 0.8 * drop, pops[i].MilVoice, 12);               // 法の項＝不満度の本体−生活の項（WantWeight×落差の手計算）
                 if (pops[i].MilVoice > 0) voiced++;
             }
@@ -99,7 +98,7 @@ public class DiscontentSplitTests
             Politics.Step(w, w.Coef);
             var ps = ActivePops(w).ToList();
             Assert.True(ps.Count > 50);
-            Assert.All(ps, p => { Assert.Equal(0.0, p.MilLiving); Assert.Equal(0.0, p.Militancy, 12); });
+            Assert.All(ps, p => { Assert.Equal(0.0, p.Militancy, 12); });
         }
     }
 
@@ -117,7 +116,7 @@ public class DiscontentSplitTests
         Politics.Step(w, w.Coef);
         var ps = ActivePops(w).ToList();
         Assert.True(ps.Count > 50);
-        Assert.All(ps, p => { Assert.Equal(0.0, p.MilLiving); Assert.Equal(0.5, p.MilFamine, 9); Assert.Equal(0.5, p.Militancy, 9); });
+        Assert.All(ps, p => { Assert.Equal(0.5, p.MilFamine, 9); Assert.Equal(0.5, p.Militancy, 9); });
     }
 
     [Fact]

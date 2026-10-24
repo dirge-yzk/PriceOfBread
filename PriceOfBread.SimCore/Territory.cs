@@ -1,8 +1,8 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>
-/// 領土（§5.2／§A-8）。国家は最終版図を最初から保有し、地域は active か locked。
-/// locked 地域はインフラ開発（資金）で active 化し、地域間移民が流入する（地図は増えずロックが開く）。
+/// 領土（§5.2／§A-8）。国家は最終版図を最初から保有する。
+/// （旧＝locked 地域をインフラ開発〔懐柔〕か武力で解錠する道があった。本番の盤面は州を Locked にしないので動かず、(551) 恒等の線 gc1 で削除した。）
 /// 移民は「引力＝土地機会（豊かさ×収容力の空き）− 摩擦＝輸送」で active 地域間を流れる（§2.2.1）。
 /// ＝ロシア型の辺境開発（シベリア鉄道＋移民・§A-9）。pop の規模・貯蓄は保存移動。
 /// </summary>
@@ -13,51 +13,7 @@ public static class Territory
 
     public static void Step(World w, Coefficients c)
     {
-        // 1. locked 地域の解錠（§A-8）：懐柔（開発）か強硬（武力）の択。
-        foreach (var r in w.Regions)
-            if (r.State == RegionState.Locked)
-            {
-                if (w.ForceUnlock)
-                {
-                    // 武力（強硬）：速いが軍需の出血・闘争度↑（§A-8／§6.1 兵力×経済）。
-                    // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8・C7）：制圧の費用は**軍需の購買**＝首都の市場から陸の軍需（基本段の財のうち艦隊の財〔FleetGoodIds〕を除く・
-                    //   発見の解禁度を通した比＝国軍の基本段の調達と同じ比）を月の予算 ForceUnlockTreasuryCostPerMonth ぶん買って消費する（国家の調達の1本 Colonial.BuyUpkeepGood
-                    //   ＝価格の門・国家の支払い率 r・在庫・代金は④の持分・区分＝陸軍〔作者裁定 Q14〕）。進み方と制圧の不満は買えた割合（代金÷予算）に比例＝軍需が無ければ制圧は進まない。
-                    //   旧＝国庫から全POP へ頭数で配った（財を買わない国家支出）・進み方は r だけ。
-                    var cap = w.Region;
-                    double[] unlockRates = EconomyStep.DiscoveredRates(cap, c, c.MilitaryGoods, c.MilitaryRates);
-                    double unlockRateSum = 0;
-                    for (int b = 0; b < c.MilitaryGoods.Length && b < unlockRates.Length; b++)
-                        if (c.MilitaryGoods[b] < cap.Markets.Length && System.Array.IndexOf(c.FleetGoodIds, c.MilitaryGoods[b]) < 0) unlockRateSum += unlockRates[b];
-                    double unlockSpent = 0;
-                    if (unlockRateSum > 1e-12)
-                        for (int b = 0; b < c.MilitaryGoods.Length && b < unlockRates.Length; b++)
-                        {
-                            int g = c.MilitaryGoods[b];
-                            if (g >= cap.Markets.Length || System.Array.IndexOf(c.FleetGoodIds, g) >= 0 || !(unlockRates[b] > 0)) continue;
-                            double price = Math.Max(cap.Markets[g].Price, 1e-9);   // BuyUpkeepGood が払う単価と同じ
-                            unlockSpent += Colonial.BuyUpkeepGood(w, cap, g, (c.ForceUnlockTreasuryCostPerMonth * (unlockRates[b] / unlockRateSum) / price).Value, TreasuryCat.Army) * price;
-                        }
-                    double unlockFill = c.ForceUnlockTreasuryCostPerMonth.Value > 0 ? PoliticalQuantities.Clamp01(unlockSpent / c.ForceUnlockTreasuryCostPerMonth.Value) : 0;
-                    r.Infra += c.ForceUnlockRate * unlockFill;
-                    foreach (var p in w.AllPops())
-                        p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.ForceUnlockMilitancy * unlockFill);   // 制圧の不満（戦争疲弊）＝制圧の進み方（買えた軍需）に比例
-                }
-                else
-                {
-                    // 資金注入（懐柔/開発）：遅いが軋轢小（§2.5/§2.2.1）。
-                    // （旧＝分離独立で失った州 Seceded は対象外だった＝その経路〔単国の世界の単一州の分離〕は 2026-09-28 段2 束3 で削除＝Locked は辺境だけ）
-                    r.Infra += c.FrontierDevelopmentRate;
-                }
-
-                if (r.Infra >= c.FrontierUnlockThreshold)
-                {
-                    r.State = RegionState.Active;
-                    foreach (var m in r.Markets) m.PrevStock = m.Stock;   // 財収支の恒等式を満たす初期化（次月から市場が回る）
-                }
-            }
-
-        // 2. active 地域間の移民（§2.2.1）。
+        // active 地域間の移民（§2.2.1）。
         // ★2026-10-01 (141)：行き先は**機会の差の比で全ての州へ**配り、**距離で減らす**＝越境移民（MultiNationSim.MigrateBetweenNations）と同じ規則。
         //   出る州 s から行き先 d への差 g_sd＝(d の機会−s の残る値打ち−摩擦 TransportFriction)×距離の減衰（MigrationDecay＝越境と同じ1本）。
         //   s の流量の割合＝RegionMobility×最良の行き先の差（上限 MaxMigrationFraction＝流出の上限は1回だけ＝行き先の数に依らない）を g_sd の比で全ての行き先へ
@@ -251,7 +207,7 @@ public static class Territory
             var sp = src.Pops[i];
             // 人4：地域間移民は経済移民＝閉鎖階級（貴族・聖職）・兵士を動かさない（PopDecision:20 の明示除外・越境の !IsSoldier と対称化）。
             // 貴族が毎月世界の技術水準へ経済移民する非対称の解消（★2026-09-26：旗 RegionMigrationExcludesClosed（#17点火）を焼き込み・x-01）。
-            // FrontierDevelopment 較正世界は農民pop単体（Closed/IsSoldier なし）＝TerritoryTests 中立。
+            // FrontierDevelopment 較正世界〔2 州の盤面〕は農民pop単体（Closed/IsSoldier なし）＝TerritoryTests 中立。
             if (sp.Closed || sp.IsSoldier || sp.IsCriminal) continue;   // ★(366) 犯罪者は経済移民の比較（賃金）が当てはまらない＝州の間を動かない（犯罪者の POP が無い世界では偽＝恒等）
             double moveSize = size0[i] * fraction;
             if (!(moveSize > 1e-9)) continue;   // ★否定形＝NaN も弾く（旧 `moveSize <= 1e-9` は NaN で false ＝ Size/Savings を直接 NaN 化していた）。有限値では厳密同値

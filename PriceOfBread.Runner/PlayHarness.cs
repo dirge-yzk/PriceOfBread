@@ -64,8 +64,7 @@ internal static class PlayHarness
         }
 
         var world = sim.Nations[playerIndex].World;
-        world.ForceUnlock = true;   // ★(419) 再征服は常時ON（App の InitAfterSimReady と同じ＝新規でも state.bin からの再開でも。★(420) 訂正：ForceUnlock はセーブに載る〔World の自動プロパティ＝SaveGame が全インスタンスフィールドを辿る〕＝(419) より前の state.bin と ForceUnlock=false の決定をこの行が上書きする）
-        world.Explain = new ExplainLedger();   // ★(435) 説明台帳（App の InitAfterSimReady と同じ＝プレイヤー国だけ常設・本計算はビット恒等〔ExplainTests〕・★(436) 訂正：World.Explain はセーブに載る〔[NonSerialized] でない〕ので保存の前に外し〔下の Save の直前〕、再開のたびにここで付け直す）。正統性・国民意識・行政力・厭戦の内訳を報告に出す。⚠ForceUnlock の行は var world の直後に置く（番人 再征服の既定 が見る）
+        world.Explain = new ExplainLedger();   // ★(435) 説明台帳（App の InitAfterSimReady と同じ＝プレイヤー国だけ常設・本計算はビット恒等〔ExplainTests〕・★(436) 訂正：World.Explain はセーブに載る〔[NonSerialized] でない〕ので保存の前に外し〔下の Save の直前〕、再開のたびにここで付け直す）。正統性・国民意識・行政力・厭戦の内訳を報告に出す。
 
         // ---- 2) 決定の適用（キー=値／NationPolicy のフィールド名）----
         string decPath = Path.Combine(dir, "decision.txt");
@@ -175,7 +174,6 @@ internal static class PlayHarness
         foreach (var n in sim.Nations) n.TelemetryEnabled = false;
         sim.StartWarmup();
         var world = sim.Nations[playerIndex].World;
-        world.ForceUnlock = true;   // ★(419) play と同じ（再生が play の軌道から外れないように）
         world.Explain = new ExplainLedger();   // ★(435) play と同じ（内訳の台帳・本計算はビット恒等）
         Console.WriteLine($"再生開始： {playerName} seed {seed}　スクリプト {script.Count}時点・最終 {lastY}Q{lastQ}");
 
@@ -211,7 +209,6 @@ internal static class PlayHarness
         try
         {
             // ⚠World 直下のプレイヤーレバー（NationPolicy に無い。UIはスライダー/ボタンで持つ）
-            // ★(420) ForceUnlock は外した（App は 2026-08-24 にレバーを撤去・play は入口で常に true にする＝App と同じ口だけを残す）
             if (key is "ModernizationFrac" or "Mobilized")
             {
                 var wf = typeof(World).GetProperty(key, BindingFlags.Public | BindingFlags.Instance)!;
@@ -264,18 +261,18 @@ internal static class PlayHarness
         double pop = 0, urbanPop = 0, lit = 0, cons = 0, savings = 0;
         var byClass = new Dictionary<int, (double size, double lit, double sat, double mil, double sav)>();
         var classNames = new SortedDictionary<int, string>();   // ★(405) 階級の番号→名前の表（POP の ClassName の最初の非空）＝報告の階級を番号でなく名前で読める
-        var milByClass = new Dictionary<int, double[]>();   // ★(410) 闘争度の目標の 5 本（Pop.MilLiving ほか）の人口加重和：階級ごと（画面の階級の表と同じ母集団＝階級の全 POP）
-        var milMass = new double[5]; double massSize = 0;   // ★(410) 同・大衆（ヘッダーの闘争度と同じ母集団＝Politics.IsMassPop）
+        var milByClass = new Dictionary<int, double[]>();   // ★(410) 闘争度の目標の 4 本（Pop.MilVoice ほか・★(551) 生活の欄は削除）の人口加重和：階級ごと（画面の階級の表と同じ母集団＝階級の全 POP）
+        var milMass = new double[4]; double massSize = 0;   // ★(410) 同・大衆（ヘッダーの闘争度と同じ母集団＝Politics.IsMassPop）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.ClassName.Length > 0 && !classNames.ContainsKey(p.ClassId)) classNames[p.ClassId] = p.ClassName;
-                if (!milByClass.TryGetValue(p.ClassId, out var mc)) milByClass[p.ClassId] = mc = new double[5];
-                double[] mp = [p.MilLiving, p.MilVoice, p.MilWar, p.MilNation, p.MilFamine];
-                for (int k = 0; k < 5; k++) mc[k] += mp[k] * p.Size;
-                if (Politics.IsMassPop(p)) { for (int k = 0; k < 5; k++) milMass[k] += mp[k] * p.Size; massSize += p.Size; }
+                if (!milByClass.TryGetValue(p.ClassId, out var mc)) milByClass[p.ClassId] = mc = new double[4];
+                double[] mp = [p.MilVoice, p.MilWar, p.MilNation, p.MilFamine];
+                for (int k = 0; k < 4; k++) mc[k] += mp[k] * p.Size;
+                if (Politics.IsMassPop(p)) { for (int k = 0; k < 4; k++) milMass[k] += mp[k] * p.Size; massSize += p.Size; }
                 pop += p.Size; if (p.IsUrban) urbanPop += p.Size;
                 lit += p.Literacy * p.Size; cons += p.Consciousness * p.Size;
                 savings += p.Savings.Value;
@@ -292,7 +289,7 @@ internal static class PlayHarness
         if (PlayText.IsEnded(w)) AppendEnding(sb, sim, w);
         sb.AppendLine($"政体 {PlayText.PolityRegimeJa(PowerAffinity.PolityFromShares(w))}（画面の政体＝権力の取り分からの導出・内部の政体 {w.Polity}）　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
         sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
-        // ★(410) 00-HARN の残り：闘争度は 5 本の目標の和（クランプ前）へ速さ σ で追う在庫＝ヘッダーの闘争度と和は一致しない。画面の階級のホバーと同じ名前・同じ 0.5% 未満の省略。
+        // ★(410) 00-HARN の残り：闘争度は 4 本の目標の和（クランプ前）へ速さ σ で追う在庫＝ヘッダーの闘争度と和は一致しない。画面の階級のホバーと同じ名前・同じ 0.5% 未満の省略。
         sb.AppendLine($"闘争度の目標の内訳（大衆・人口加重・和は在庫が追う先）： {MilParts(milMass, massSize)}");
         sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdpPerMonth:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
         AppendEconomy(sb, w, period);   // ★(450) §2-5：名目だけでなく実質・1 人あたりの落ち込みと画面と同じ景気の判定
@@ -402,7 +399,7 @@ internal static class PlayHarness
             var (size, l, st, m2, sv) = kv.Value;
             double sz = Math.Max(1, size);
             sb.AppendLine($"  階級{kv.Key,2} {(classNames.TryGetValue(kv.Key, out var cn) ? cn : "？"),-8}  {size,12:N0}  識字{l / sz,5:P0}  水準{st / sz,6:F3}  闘争{m2 / sz,6:F3}  貯蓄{sv,12:N0}"
-                + (milByClass.TryGetValue(kv.Key, out var mcls) ? $"　目標［{MilParts(mcls, size)}］" : ""));   // ★(410) 闘争度の目標の 5 本（画面のホバーと同じ名前）
+                + (milByClass.TryGetValue(kv.Key, out var mcls) ? $"　目標［{MilParts(mcls, size)}］" : ""));   // ★(410) 闘争度の目標の 4 本（画面のホバーと同じ名前）
         }
 
         // ★(435) 内訳（画面のホバー・POP タブ・政治タブと同じ関数。旧は数字だけで、正統性や闘争度が動く理由が追えなかった＝初見の試しのテストプレイの報告 §1-4）。
@@ -895,11 +892,11 @@ internal static class PlayHarness
     private static string MegaStateText(World w, Megaproject mp)
         => $"{(mp.IsComplete ? "完成" : mp.Started ? $"建設中 {(mp.BuildUnits > 1e-9 ? Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0):P0}" : "未着工")}・技術 {w.TechLevel:F2}／必要 {mp.TechGate:F2}";
 
-    /// <summary>★(410) 闘争度の目標の 5 本（人口加重の和 <paramref name="sum"/>÷<paramref name="size"/>）を画面のホバーと同じ名前・同じ 0.5% 未満の省略で並べる（多い順）。1 本も無ければ「なし」。</summary>
+    /// <summary>★(410) 闘争度の目標の 4 本（人口加重の和 <paramref name="sum"/>÷<paramref name="size"/>）を画面のホバーと同じ名前・同じ 0.5% 未満の省略で並べる（多い順）。1 本も無ければ「なし」。</summary>
     private static string MilParts(double[] sum, double size)
     {
         double inv = size > 1e-9 ? 1.0 / size : 0;
-        var shown = Enumerable.Range(0, 5).Select(k => (Name: PlayText.MilitancyPartNames[k], V: sum[k] * inv)).Where(x => x.V > 0.005).OrderByDescending(x => x.V).ToList();
+        var shown = Enumerable.Range(0, 4).Select(k => (Name: PlayText.MilitancyPartNames[k], V: sum[k] * inv)).Where(x => x.V > 0.005).OrderByDescending(x => x.V).ToList();
         return shown.Count == 0 ? "なし" : string.Join(" ", shown.Select(x => $"{x.Name} {x.V:F3}"));
     }
 

@@ -90,8 +90,8 @@ def aim(tag, d):
         if v:
             print('   %-8s 平均 %.4f・p90 %.4f' % (n, sum(v) / len(v), p90(v)))
     # T3
-    nz = [r for r in rows if fl(r['milLivingMeanShare']) != 0.0]
-    mx = max((abs(fl(r['milLivingMeanShare'])) for r in rows), default=float('nan'))
+    nz = [r for r in rows if fl(r.get('milLivingMeanShare', '0')) != 0.0]   # (551) 列は削除済み＝新しい生では 0 件
+    mx = max((abs(fl(r.get('milLivingMeanShare', '0'))) for r in rows), default=float('nan'))
     print('T3（結線の確認＝旗を配線すれば必ず通る・機構が働いた証拠ではない。採否は T1・T2）milLivingMeanShare が 0 でない行 ＝ %d／%d（最大の絶対値 %.3g）  [B の狙い＝0 件。A では 0 件でないのが正しい]' % (len(nz), len(rows), mx))
     # 追記3 の記録（採否に使わない）：先の力学に届いたか・分母の別の取り方・罷業・T3 は結線の確認
     nclMil = sum(fl(r['clusterCountMil']) for r in big if fl(r['clusterCountMil']) == fl(r['clusterCountMil']))

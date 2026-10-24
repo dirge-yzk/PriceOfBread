@@ -1270,7 +1270,6 @@ public sealed class World
 
     // --- 軍事（§6.1／§A-8 武力解錠・段4e）---
     public double LastBlockadeRisk { get; internal set; }   // 03手順7：今期のリスク料（州の取扱高加重平均・0..1）。厭戦・拿捕が読む（旧CommerceRaidFactorの置換）
-    public bool ForceUnlock { get; set; }             // locked 地域を武力で解錠する（速いが国庫出血・闘争度↑）。02断線走査2026-07-28：分離州の唯一の復帰経路なのに書き手ゼロだった＝UIトグル＋AI判断を配線（setter公開）
 
     // --- 外交・戦争（§6.1 国際層）---
     // ★撤去2026-09-06（作者裁定「国と海を紐づけているのが意味不明。港がある州全てから出られてよい」）：国単位の海盆 Basin を削除。海盆は州単位（Region.SeaBasin＝港州は最寄り海ノード・内陸州は最寄り港を継承）だけ。
