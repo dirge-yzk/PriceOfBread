@@ -1,0 +1,7 @@
+('M14 no investment desire', 'KILLED', '失敗:     1、合格:    19', ['失敗 PriceOfBread.Tests.SlotCapacityTests.旗1_建設の予算があれば枠が増える_予算が無ければ損耗だけ_差は買い直しと足し込み [259 ms]'])
+('M17c maintenance cement settle kept', 'SURVIVED', '失敗:     0、合格:    20', [])
+('M20 D4 distribute by margin', 'KILLED', '失敗:     1、合格:    19', ['失敗 PriceOfBread.Tests.SlotCapacityTests.足し込み_束をbで割って希望に比例で配る_利幅には比例しない_Scaleにはdnをκで割った分を足す_他の個体を薄めない [4 ms]'])
+('M21 SlotWant not written', 'KILLED', '失敗:     1、合格:    19', ['失敗 PriceOfBread.Tests.SlotCapacityTests.旗1の試走_頭数の控えは枠に等しい_枠の合計は有限で非負_保存則の例外なし [10 ms]'])
+('M22 no margin fallback', 'KILLED', '失敗:     1、合格:    19', ['失敗 PriceOfBread.Tests.SlotCapacityTests.足し込み_希望が全て0なら利幅に比例で配る [1 ms]'])
+('M23 want ignores grow mul', 'SURVIVED', '失敗:     0、合格:    20', [])
+DONE

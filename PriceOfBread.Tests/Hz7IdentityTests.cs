@@ -61,6 +61,12 @@ public class Hz7IdentityTests
         var (b0, s0) = Manual();
         Assert.Same(pick, b0);
         Assert.Equal(s0, w.MaxUrbanShare(), 12);
+        // ★(533) 3 つ目の走査（WorstUrbanRegionSanitation）も同じ州を選ぶ（反証役 hz7〔v〕低#3）＝選んだ州の衛生の混ぜ方を手で書く
+        {
+            var c = w.Coef;
+            double expect = (1.0 - c.EpidemicSanitationWeight) * Colonial.OutputCurve(pick.TotalIndustrialization, c.EpidemicSanitationHalf) + c.EpidemicSanitationWeight * pick.Sanitation(c);
+            Assert.Equal(expect, w.WorstUrbanRegionSanitation(c), 12);
+        }
         // 最過密の州を Locked にすると、次の州が選ばれる（数えない州の扱いが手書きと同じ）
         Assert.NotNull(b0);   // 前提：この世界には都市の POP を持つ Active の州がある（無ければ番人は空になる）
         Assert.True(s0 > 0);

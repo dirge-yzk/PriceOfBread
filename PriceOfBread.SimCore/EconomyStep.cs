@@ -513,7 +513,7 @@ public static class EconomyStep
     /// <summary>★④の地代の取り分（支払いの一元化 段3-1・2026-09-29＝④の式をここへ移した・国内の売上と輸出代金・輸送財の代金〔InternationalMarket.PaySales〕が同じ1本を読む）。
     /// RGOの地代（封建貢租）は土地改革・農奴解放で上限が下がる＝地主の取り分↓・残りは農民の賃金へ（保存＝rent+wages=valueAdded）。
     /// 上限方式＝元の取り分が低い国（自作農・小作）には効かない＝農奴制国だけ解放が効く（史実）。
-    /// rank5 囲い込みプッシュ（★live 2026-08-31点火・RentScarcityElasticity=1）：RGOの地代取り分を土地の混み具合（稀少度）の増加関数へ
+    /// rank5 囲い込みプッシュ（2026-08-31 点火・★(529) 2026-10-24 に既定 0＝休眠〔RentScarcityElasticity=0・下の if の中だけ〕）：RGOの地代取り分を土地の混み具合（稀少度）の増加関数へ
     /// ＝土地が稀少なほど地主の取り分↑→農民のEarned↓→既存の都市化softmax・失業プールが自然に排出（プッシュ型離農・囲い込みの収奪）。
     /// 稀少度＝landFactor と**同一入力**（ArableLand÷農村人口）の逆数側 max(0, 農村人口/ArableLand−1)＝耕地を超えた分だけ正。
     /// センチネル（ArableLand≥1e8＝合成較正・最小テスト世界）は LandFactor と同じく除外＝0。
