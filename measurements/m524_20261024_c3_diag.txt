@@ -1,0 +1,87 @@
+LRR=0 UB=0 LCF=1 warm=20 light sat=0.4041 heavy sat=0.4045 | heavy pollPaid/mo=1620.17 assessed=2340.22 rate=0.692 massSat L/H=0.4003/0.4008 massSav L/H=2982330.60/2920299.55 revenue L/H=662.1/2281.8
+LRR=0 UB=0 LCF=1 warm=60 light sat=0.1551 heavy sat=0.1532 | heavy pollPaid/mo=1502.58 assessed=2177.98 rate=0.690 massSat L/H=0.0809/0.0771 massSav L/H=179787.53/168490.78 revenue L/H=583.8/2065.4
+LRR=0 UB=0 LCF=1 warm=100 light sat=0.1020 heavy sat=0.0880 | heavy pollPaid/mo=1510.20 assessed=2192.29 rate=0.689 massSat L/H=0.0191/0.0022 massSav L/H=14959.18/12069.20 revenue L/H=570.2/2062.7
+== LRR=0 UB=0 LCF=1 dSat=-0.0154 dMil=0.0937
+   class 1 dSat(sizeW sum over warmups)=-0.0223
+   class 2 dSat(sizeW sum over warmups)=-0.0203
+   class 3 dSat(sizeW sum over warmups)=0.0075
+   class 4 dSat(sizeW sum over warmups)=-0.0066
+   class 7 dSat(sizeW sum over warmups)=0.0038
+   class 8 dSat(sizeW sum over warmups)=-0.0100
+   class 9 dSat(sizeW sum over warmups)=-0.0222
+   class 10 dSat(sizeW sum over warmups)=0.0075
+   class 11 dSat(sizeW sum over warmups)=-0.0130
+   class 12 dSat(sizeW sum over warmups)=-0.0000
+LRR=1 UB=0 LCF=1 warm=20 light sat=0.4047 heavy sat=0.4055 | heavy pollPaid/mo=1627.95 assessed=2351.51 rate=0.692 massSat L/H=0.4009/0.4018 massSav L/H=2770637.06/2710163.43 revenue L/H=964.5/2591.5
+LRR=1 UB=0 LCF=1 warm=60 light sat=0.1387 heavy sat=0.1398 | heavy pollPaid/mo=1510.09 assessed=2188.48 rate=0.690 massSat L/H=0.0584/0.0579 massSav L/H=102490.17/95437.58 revenue L/H=813.3/2287.5
+LRR=1 UB=0 LCF=1 warm=100 light sat=0.0854 heavy sat=0.0855 | heavy pollPaid/mo=1497.59 assessed=2173.67 rate=0.689 massSat L/H=0.0001/0.0001 massSav L/H=9803.99/7375.17 revenue L/H=789.6/2267.2
+== LRR=1 UB=0 LCF=1 dSat=0.0020 dMil=0.1695
+   class 1 dSat(sizeW sum over warmups)=0.0002
+   class 2 dSat(sizeW sum over warmups)=-0.0013
+   class 3 dSat(sizeW sum over warmups)=0.0057
+   class 4 dSat(sizeW sum over warmups)=-0.0150
+   class 7 dSat(sizeW sum over warmups)=0.0046
+   class 8 dSat(sizeW sum over warmups)=-0.0091
+   class 9 dSat(sizeW sum over warmups)=-0.0305
+   class 10 dSat(sizeW sum over warmups)=0.0057
+   class 11 dSat(sizeW sum over warmups)=-0.0210
+   class 12 dSat(sizeW sum over warmups)=-0.0000
+LRR=0 UB=1 LCF=1 warm=20 light sat=0.4041 heavy sat=0.4045 | heavy pollPaid/mo=1620.17 assessed=2340.22 rate=0.692 massSat L/H=0.4003/0.4008 massSav L/H=2982330.60/2920299.55 revenue L/H=662.1/2281.8
+LRR=0 UB=1 LCF=1 warm=60 light sat=0.1551 heavy sat=0.1532 | heavy pollPaid/mo=1502.58 assessed=2177.98 rate=0.690 massSat L/H=0.0809/0.0771 massSav L/H=179787.53/168490.78 revenue L/H=583.8/2065.4
+LRR=0 UB=1 LCF=1 warm=100 light sat=0.1020 heavy sat=0.0880 | heavy pollPaid/mo=1510.20 assessed=2192.29 rate=0.689 massSat L/H=0.0191/0.0022 massSav L/H=14959.18/12069.20 revenue L/H=570.2/2062.7
+== LRR=0 UB=1 LCF=1 dSat=-0.0154 dMil=0.0937
+   class 1 dSat(sizeW sum over warmups)=-0.0223
+   class 2 dSat(sizeW sum over warmups)=-0.0203
+   class 3 dSat(sizeW sum over warmups)=0.0075
+   class 4 dSat(sizeW sum over warmups)=-0.0066
+   class 7 dSat(sizeW sum over warmups)=0.0038
+   class 8 dSat(sizeW sum over warmups)=-0.0100
+   class 9 dSat(sizeW sum over warmups)=-0.0222
+   class 10 dSat(sizeW sum over warmups)=0.0075
+   class 11 dSat(sizeW sum over warmups)=-0.0130
+   class 12 dSat(sizeW sum over warmups)=-0.0000
+LRR=1 UB=1 LCF=1 warm=20 light sat=0.4047 heavy sat=0.4055 | heavy pollPaid/mo=1627.95 assessed=2351.51 rate=0.692 massSat L/H=0.4009/0.4018 massSav L/H=2770637.06/2710163.43 revenue L/H=964.5/2591.5
+LRR=1 UB=1 LCF=1 warm=60 light sat=0.1387 heavy sat=0.1398 | heavy pollPaid/mo=1510.09 assessed=2188.48 rate=0.690 massSat L/H=0.0584/0.0579 massSav L/H=102490.17/95437.58 revenue L/H=813.3/2287.5
+LRR=1 UB=1 LCF=1 warm=100 light sat=0.0854 heavy sat=0.0855 | heavy pollPaid/mo=1497.59 assessed=2173.67 rate=0.689 massSat L/H=0.0001/0.0001 massSav L/H=9803.99/7375.17 revenue L/H=789.6/2267.2
+== LRR=1 UB=1 LCF=1 dSat=0.0020 dMil=0.1695
+   class 1 dSat(sizeW sum over warmups)=0.0002
+   class 2 dSat(sizeW sum over warmups)=-0.0013
+   class 3 dSat(sizeW sum over warmups)=0.0057
+   class 4 dSat(sizeW sum over warmups)=-0.0150
+   class 7 dSat(sizeW sum over warmups)=0.0046
+   class 8 dSat(sizeW sum over warmups)=-0.0091
+   class 9 dSat(sizeW sum over warmups)=-0.0305
+   class 10 dSat(sizeW sum over warmups)=0.0057
+   class 11 dSat(sizeW sum over warmups)=-0.0210
+   class 12 dSat(sizeW sum over warmups)=-0.0000
+LRR=1 UB=1 LCF=0 warm=20 light sat=0.4047 heavy sat=0.4055 | heavy pollPaid/mo=1627.95 assessed=2351.51 rate=0.692 massSat L/H=0.4009/0.4018 massSav L/H=2770637.06/2710163.43 revenue L/H=964.5/2591.5
+LRR=1 UB=1 LCF=0 warm=60 light sat=0.1387 heavy sat=0.1398 | heavy pollPaid/mo=1510.09 assessed=2188.48 rate=0.690 massSat L/H=0.0584/0.0579 massSav L/H=102490.17/95437.58 revenue L/H=813.3/2287.5
+LRR=1 UB=1 LCF=0 warm=100 light sat=0.0854 heavy sat=0.0855 | heavy pollPaid/mo=1497.59 assessed=2173.67 rate=0.689 massSat L/H=0.0001/0.0001 massSav L/H=9803.99/7375.17 revenue L/H=789.6/2267.2
+== LRR=1 UB=1 LCF=0 dSat=0.0020 dMil=0.1695
+   class 1 dSat(sizeW sum over warmups)=0.0002
+   class 2 dSat(sizeW sum over warmups)=-0.0013
+   class 3 dSat(sizeW sum over warmups)=0.0057
+   class 4 dSat(sizeW sum over warmups)=-0.0150
+   class 7 dSat(sizeW sum over warmups)=0.0046
+   class 8 dSat(sizeW sum over warmups)=-0.0091
+   class 9 dSat(sizeW sum over warmups)=-0.0305
+   class 10 dSat(sizeW sum over warmups)=0.0057
+   class 11 dSat(sizeW sum over warmups)=-0.0210
+   class 12 dSat(sizeW sum over warmups)=-0.0000
+LRR=0 UB=0 LCF=0 warm=20 light sat=0.4041 heavy sat=0.4045 | heavy pollPaid/mo=1620.17 assessed=2340.22 rate=0.692 massSat L/H=0.4003/0.4008 massSav L/H=2982330.60/2920299.55 revenue L/H=662.1/2281.8
+LRR=0 UB=0 LCF=0 warm=60 light sat=0.1551 heavy sat=0.1532 | heavy pollPaid/mo=1502.58 assessed=2177.98 rate=0.690 massSat L/H=0.0809/0.0771 massSav L/H=179787.53/168490.78 revenue L/H=583.8/2065.4
+LRR=0 UB=0 LCF=0 warm=100 light sat=0.1020 heavy sat=0.0880 | heavy pollPaid/mo=1510.20 assessed=2192.29 rate=0.689 massSat L/H=0.0191/0.0022 massSav L/H=14959.18/12069.20 revenue L/H=570.2/2062.7
+== LRR=0 UB=0 LCF=0 dSat=-0.0154 dMil=0.0937
+   class 1 dSat(sizeW sum over warmups)=-0.0223
+   class 2 dSat(sizeW sum over warmups)=-0.0203
+   class 3 dSat(sizeW sum over warmups)=0.0075
+   class 4 dSat(sizeW sum over warmups)=-0.0066
+   class 7 dSat(sizeW sum over warmups)=0.0038
+   class 8 dSat(sizeW sum over warmups)=-0.0100
+   class 9 dSat(sizeW sum over warmups)=-0.0222
+   class 10 dSat(sizeW sum over warmups)=0.0075
+   class 11 dSat(sizeW sum over warmups)=-0.0130
+   class 12 dSat(sizeW sum over warmups)=-0.0000
+
+# 突然変異（徴税の移し方 World.Transfer を外す＝払いが起きない）の下での書き直した番人の量：dSav=-0.11390 dSat=-0.00032 dMil=0.05096（外さない木 dSav=-0.33838 dSat=+0.00200 dMil=+0.16949）＝貯蓄の中段は負のまま＝〈実税〉だけに敏感な番人ではない
+# 旗 LandRentResidual 0／1・UnionBargaining 0／1・LaborClosedForm 0／1 の 6 組（同じ 3 つの助走・仏 1789 の単独の世界）。class の番号は PopClass（1 農民・2 労働者・3 資本家・4 技師・8 官僚・11 職人）
