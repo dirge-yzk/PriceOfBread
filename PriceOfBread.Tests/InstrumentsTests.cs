@@ -263,6 +263,7 @@ public class InstrumentsTests
             var monthsByUid = new Dictionary<string, double>();
             var namesByUid = new Dictionary<string, HashSet<string>>();
             var warMonthRows = new List<string>();
+            var rowsByUid = new Dictionary<string, int>(); var firstFour = new HashSet<string>();   // ★(524) 下の端の外（建国した国の行の数）
             foreach (var r in nr)
             {
                 double aw = Col(nh, r, "atWarMonths"), cw = Col(nh, r, "civilWarMonths");
@@ -270,6 +271,7 @@ public class InstrumentsTests
                 string n = r[Array.IndexOf(nh, "nation")], uid = r[Array.IndexOf(nh, "nationUid")];
                 monthsByUid[uid] = monthsByUid.GetValueOrDefault(uid) + aw;
                 (namesByUid.TryGetValue(uid, out var ns) ? ns : namesByUid[uid] = new HashSet<string>()).Add(n);
+                rowsByUid[uid] = rowsByUid.GetValueOrDefault(uid) + 1; if (int.Parse(r[Array.IndexOf(nh, "nationIndex")]) < 4) firstFour.Add(uid);
                 if (aw > 0) warMonthRows.Add(uid);
             }
             foreach (var uid in warMonthRows) Assert.True(namesByUid[uid].Overlaps(inWar), $"{string.Join("/", namesByUid[uid])} に交戦の月が立つのに戦争の表に出ない");
@@ -295,6 +297,10 @@ public class InstrumentsTests
                         //   ★(495) 同じ端の外の戦争：月数 1 の外の戦争（開戦と決着が同じ月＝交戦の月を数える位置の前に終わる）も、数える位置に当たらないので交戦の月が 0 のまま残りうる（旗 RecipeEquipment の点火で軌道が替わり、1804 年のオーストリア対立憲王政フランス〔1 か月〕が当たった）。月数 1 の戦争は突き合わせない。
                         if (Col(wh, r, "months") <= 1) continue;
                         var uids = namesByUid.Where(kv => kv.Value.Contains(side)).Select(kv => kv.Key).ToList();
+                        //   ★(524) 合流の盤面の直し：内戦の開戦時に建国した国が、親の国の外の戦争（相手＝オーストリア・3 か月）を受け継いだまま次の四半期の途中で消えた
+                        //   （(524) の盤面＝1800 年の仏の内戦〈立憲王政フランス・1 か月〉・その国の行は建国の四半期の 1 行だけ〔交戦の月を数える位置の後に建国＝0〕・消えた四半期は行が書かれない＝最初の 4 国でない国は死んだ四半期の行を持たない）。
+                        //   その国の交戦の月は国×四半期の表に載る場所が無い（計器の限界）＝行が 1 つだけの建国した国（最初の 4 国でない）は外す。主張（行がある間の交戦の月と戦争の表の一致）は同じ。
+                        if (uids.Count > 0 && uids.All(u => !firstFour.Contains(u) && rowsByUid.GetValueOrDefault(u) <= 1)) continue;
                         if (uids.Count > 0) Assert.True(uids.Sum(u => monthsByUid[u]) > 0, $"{side} は戦争の表に出るのに交戦の月が0（戦争の行：{string.Join(",", r)}／頭書き：{string.Join(",", wh)}）");
                     }
 

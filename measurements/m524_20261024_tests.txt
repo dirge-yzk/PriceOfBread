@@ -1,0 +1,10 @@
+# (524) 検証（隔離ビルド D:/PoB_work/m524/art・Release）
+フルスイート（Category!=FullLength）1 回目（木 52cb8d19＋未コミットの docs）：失敗 1・合格 1791・スキップ 1・合計 1793（13 分 2 秒）
+  赤＝InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う（立憲王政フランス〔1800 年の仏の内戦で建国・行は建国の四半期の 1 行だけ〕がオーストリアとの外の戦争 3 か月を受け継いだまま次の四半期の途中で消えた＝最初の 4 国でない国は死んだ四半期の行を持たない＝計器の限界）＝単独でも赤（決定的）＝端の外を 1 本足した（合流 5）
+  ⚠この回の前の絞り込み（WriterRatchet・InstrumentsTests・DormantIdentity）の走りはログが途中で切れていた＝InstrumentsTests の全体はフルスイートで確かめた（CoverageSeed 1809 の場面の照合はフルスイートで緑）
+フルスイート 2 回目（端の外の後）：失敗 0・合格 1792・スキップ 1・合計 1793（11 分 24 秒）
+FullLength（Category=FullLength）：合格 3（3 分 58 秒）
+絞り込み（合流 3 の前）：MobilityPushTests・C3 の番人・SbBargainTests・ModernizeReturnAndScoreTests の 28 本：合格 28
+突然変異：①RentShareOf の旗 1c の行を外す→〈既定では土地の稀少度の弾力は産地の取り分に読まれない〉が赤 ②徴税の移し方 World.Transfer を外す→C3 の番人は緑のまま（貯蓄の差 −0.34→−0.11＝中段は実税だけに敏感でない＝記録）
+savetest 1789 300 12：OK（全 61 カ国が継続系列と一致・最大相対差 0）
+leakhunt 1789 668 warm／1789 668：2 本とも完走・保存則違反なし・世界の台帳の説明できない増減 0（人口 0・基礎貨幣 0）
