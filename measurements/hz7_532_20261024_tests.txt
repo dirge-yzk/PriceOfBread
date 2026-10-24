@@ -1,0 +1,7 @@
+START 11:41:42 filter=Category!=FullLength src=/d/PoB_work/wt_hz7
+build rc=0
+成功!   -失敗:     0、合格:  1795、スキップ:     1、合計:  1796、期間: 18 m 16 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 12:00:54
+START 12:00:55 filter=Category=FullLength src=/d/PoB_work/wt_hz7
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 19 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 12:08:04
