@@ -13,16 +13,16 @@ namespace PriceOfBread.SimCore;
 //   betaVa＝β×付加価値の和（÷vaSum で付加価値加重の β）・betaNoStrikeVa＝罷業の力を除いた β×付加価値の和（U5：容認の国で betaVa≧これ）。sSum・uRateSum・vwSum・voSum・strikeSum＝適格な工場×月の S・失業率・V_w（票の声）・V_o（票の声）・m（罷業の力＝容認のときの闘争度）の和（S＝1−(1−V_w÷(V_w+V_o))(1−m)）。
 //   premN・premPos・sVoteSum（追記 4）＝適格な工場×月のうち β＞0 かつ 超過＞0 の数と、そのうち持ち主の減り・労働者の増えが実際に出た数／票の道だけの S（V_w÷(V_w+V_o)）の和。
 //   exportFactory・exportAll＝PaySales（輸出代金・輸送財）が分けた額のうち 工場（BuysLabor の非 RGO）の分と全体（上乗せの入口が無い輸出代金の大きさ＝追記 3 ⑺）。
-// sbr_s（旗 LandRentResidual・国×四半期）：rgoN・rgoVa・rgoRent・rgoWages＝産地×月（付加価値が非負）の数・付加価値・地代（国営の分け前の前）・耕す人への付加価値の残り。
+// sbr_s（産地の地代・国×四半期・(529) で旗 LandRentResidual を撤回し INS のとき常に出す）：rgoN・rgoVa・rgoRent・rgoWages＝産地×月（付加価値が非負）の数・付加価値・地代（国営の分け前の前）・耕す人への付加価値の残り。
 //   selfN・selfVa・selfResid＝所有者の POP＝耕す人の POP の産地（自作農）の数・付加価値・|rent＋wages−付加価値| の和（R1：0）。capN・capErr＝法の上限が 1 未満の産地×月の数と |取り分−上限| の和（R3：0）。
+//   legBreach・customBindN（(529)）＝Σ max(0, 地代÷付加価値−法の上限)（0 のはず＝法の上限の独立の照合）・慣習の取り分が法の上限より低くて効いた産地×月の数。capErr の期待値は RentShareOf を呼ばず min(生産者の RentShare, 法の上限) をその場で書く（自己参照を避ける）。
 //   closedEarned・ruralMassEarned・ruralMassSize＝四半期の末の月の Earned（旧支配層の POP の和・農村の大衆の POP の和・その人数）＝地代の割合が動いたときの所得の記録。landRentLast＝その月の Pop.LandRentPerMonth の和（土地税の課税の元）。
 // sbrreg_s（挙げた国×州×四半期）：crowd＝農村人口÷耕地（ArableLand〈センチネル 1e8 以上は nan〉）・rev・inCost・va・rent・wages＝産地の売上・投入費・付加価値・地代・残りの四半期の和（rent÷rev と crowd の順位相関を記録で読む）。
 // ⚠限界（計器が自分で申告する）：①頭数は能力の式の頭数（Producer.HeadsLastMonth・投入の足りない工場も同じ）②失業率は前の月の値③輸出代金は ④ を通らない（上乗せの入口が無い）④κ は四半期に 1 度更新される運動体の値（Size と Cohesion）を月に読む。
 public static partial class Instruments
 {
     internal const string SbUHeaderText = "quarter\tyear\tnation\tlaw\tsuffrage\tregionMonths\ttolMonths\tctrlMonths\tkappaSum\tmassN\turbanMassSum\tfacScan\teligN\tposN\tguardN\tvaSum\texcessSum\tuSum\townerLoss\twageGain\tbetaVa\tbetaNoStrikeVa\tsSum\tuRateSum\tvwSum\tvoSum\tstrikeSum\texportFactory\texportAll\tpremN\tpremPos\tsVoteSum";
-    internal const string SbRHeaderText = "quarter\tyear\tnation\trgoN\trgoVa\trgoRent\trgoWages\tselfN\tselfVa\tselfResid\tcapN\tcapErr\tclosedEarned\truralMassEarned\truralMassSize\tlandRentLast";
-    internal const string SbRCustomHeaderText = "	legBreach	customBindN";   // ★(529) 旗 LandRentCustomBound が正のときだけ末尾に足す列（旗 0 の生は (520) とバイト一致）：legBreach＝Σ max(0, 地代÷付加価値−法の上限)（0 のはず）・customBindN＝慣習の取り分が法の上限より低くて効いた産地×月の数
+    internal const string SbRHeaderText = "quarter\tyear\tnation\trgoN\trgoVa\trgoRent\trgoWages\tselfN\tselfVa\tselfResid\tcapN\tcapErr\tclosedEarned\truralMassEarned\truralMassSize\tlandRentLast\tlegBreach\tcustomBindN";
     internal const string SbRRegHeaderText = "quarter\tyear\tnation\tregion\tcrowd\trev\tinCost\tva\trent\twages";
 
     private sealed class SbAcc
@@ -65,15 +65,15 @@ public static partial class Instruments
         if (o.Beta > 0 && o.Excess > 0) { a.PremN++; if (rentBefore - rentAfter > 0 && wagesAfter - wagesBefore > 0) a.PremPos++; }   // 工場ごとの前提（β＞0 かつ 超過＞0）と、その工場で持ち主の減りと労働者の増えが実際に出た数（追記 4 の U3'）
     }
 
-    /// <summary>産地×月（付加価値が非負）の地代の分け方を積む（旗 LandRentResidual が正のときだけ呼ばれる）。rent・wages は国営の分け前を引く前の値。</summary>
+    /// <summary>産地×月（付加価値が非負）の地代の分け方を積む（INS のときだけ呼ばれる）。rent・wages は国営の分け前を引く前の値。</summary>
     internal static void SbRgo(World w, Region r, Producer s, double va, double rent, double wages, double ruralPop, double revenue, double inCost)
     {
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.RgoN++; a.RgoVa += va; a.RgoRent += rent; a.RgoWages += wages;
         if (s.OwnerPopIndex == s.LaborPopIndex) { a.SelfN++; a.SelfVa += va; a.SelfResid += Math.Abs(rent + wages - va); }
-        // ★(529) 期待する取り分は RentShareOf を呼ばずにその場で書き直す（エンジン自身の関数と比べる自己参照を避ける・反証役 pf2 高#1）。旗 LandRentCustomBound が 0 なら法の上限そのもの＝(520) の定義と同じ値。
+        // ★(529) 期待する取り分は RentShareOf を呼ばずにその場で書き直す（エンジン自身の関数と比べる自己参照を避ける・反証役 pf2 高#1）。
         double legal = r.FarmRentCap.Value;
-        double cap = w.Coef.LandRentCustomBound > 0 ? Math.Min(s.RentShare.Value, legal) : legal;
+        double cap = Math.Min(s.RentShare.Value, legal);
         if (cap < 1.0 && va > 0) { a.CapN++; a.CapErr += Math.Abs(rent / va - cap); }
         if (va > 0) { a.LegBreach += Math.Max(0.0, rent / va - legal); if (s.RentShare.Value < legal) a.CustomBindN++; }
         var g = SbRegAccs.GetValue(r, _ => new SbRegAcc());
@@ -86,7 +86,6 @@ public static partial class Instruments
     static void SbFold(Sink sk, ulong seed, World w, int q, bool picked)
     {
         var c = w.Coef;
-        if (!(c.UnionBargaining > 0) && !(c.LandRentResidual > 0)) return;
         if (!(w.TotalPopulation > 0)) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var a = SbAccs.GetValue(w, _ => new SbAcc());
@@ -97,7 +96,6 @@ public static partial class Instruments
             sk.SbU.WriteLine(string.Join("\t", I(q), I(w.Year), NameOf(w), I((int)w.LaborUnion), I((int)w.Suffrage), I(a.RegionMonths), I(a.TolMonths), I(a.CtrlMonths), R(a.KappaSum), R(a.MassN), R(a.UrbanMass), R(a.FacScan), I(a.EligN), I(a.PosN), I(a.GuardN),
                 R(a.VaSum), R(a.ExcessSum), R(a.USum), R(a.OwnerLoss), R(a.WageGain), R(a.BetaVa), R(a.BetaNoStrikeVa), R(a.SSum), R(a.URateSum), R(a.VwSum), R(a.VoSum), R(a.StrikeSum), R(a.ExportFactory), R(a.ExportAll), R(a.PremN), R(a.PremPos), R(a.SVoteSum)));
         }
-        if (c.LandRentResidual > 0)
         {
             double closedE = 0, massE = 0, massSize = 0, landRent = 0;
             foreach (var (_, p) in w.AllPopsWithRegion())
@@ -112,9 +110,9 @@ public static partial class Instruments
                     if (!p.IsUrban && PolicyPreferences.BlocOf(p) == 2) { massE += p.EarnedPerMonth.Value; massSize += p.Size; }
             }
             sk.SbR ??= Open("sbr", seed);
-            if (!sk.SbRHeader) { sk.SbR.WriteLine(c.LandRentCustomBound > 0 ? SbRHeaderText + SbRCustomHeaderText : SbRHeaderText); sk.SbRHeader = true; }
+            if (!sk.SbRHeader) { sk.SbR.WriteLine(SbRHeaderText); sk.SbRHeader = true; }
             sk.SbR.WriteLine(string.Join("\t", I(q), I(w.Year), NameOf(w), I(a.RgoN), R(a.RgoVa), R(a.RgoRent), R(a.RgoWages), I(a.SelfN), R(a.SelfVa), R(a.SelfResid), I(a.CapN), R(a.CapErr),
-                R(closedE), R(massE), R(massSize), R(landRent)) + (c.LandRentCustomBound > 0 ? "	" + R(a.LegBreach) + "	" + I(a.CustomBindN) : ""));
+                R(closedE), R(massE), R(massSize), R(landRent), R(a.LegBreach), I(a.CustomBindN)));
             if (picked)
             {
                 sk.SbRReg ??= Open("sbrreg", seed);

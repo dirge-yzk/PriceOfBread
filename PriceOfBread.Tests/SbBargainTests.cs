@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// (520) 交渉の取り分（旗 UnionBargaining）と産地の地代（旗 LandRentResidual）の番人（事前登録 measurements/sb520_20261024_prereg.txt [5]）。
+/// (520) 交渉の取り分（旗 UnionBargaining）と (529) 産地の地代の取り分の番人（事前登録 measurements/sb520_20261024_prereg.txt [5]）。
 /// 期待値は式の出所と別に手で作る（FranchiseVoice の値は参政権を Universal にして 1.0 と置く＝関数を呼び返さない）。
 /// 双子シム（同シードの決定論で同一状態）で 1 か月だけ EconomyStep.Run を直接呼び、旗の有無で所得の分け方の差だけを見る。
 /// </summary>
@@ -27,23 +27,23 @@ public class SbBargainTests
         w.Factions.Add(new FactionState { Region = r, Bloc = 2, Ideo = 0, Size = mass, AvgMilitancy = militancy, Cohesion = coh });
     }
 
-    private static double[] Month(Simulation sim, LaborUnionLaw law, Suffrage suff, double union, double residual)
+    private static double[] Month(Simulation sim, LaborUnionLaw law, Suffrage suff, double union)
     {
         var w = sim.World; var r = w.Region;
         w.LaborUnion = law; w.Suffrage = suff;
-        w.Coef.UnionBargaining = union; w.Coef.LandRentResidual = residual;
+        w.Coef.UnionBargaining = union;
         EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
         var e = new double[r.Pops.Count * 2];
         for (int i = 0; i < r.Pops.Count; i++) { e[2 * i] = r.Pops[i].EarnedPerMonth.Value; e[2 * i + 1] = r.Pops[i].LandRentPerMonth.Value; }
         return e;
     }
 
-    private static (double[] Off, double[] On) Twin(LaborUnionLaw law, Suffrage suff, double coh, double mil, double union, double residual, Action<Simulation>? prep = null)
+    private static (double[] Off, double[] On) Twin(LaborUnionLaw law, Suffrage suff, double coh, double mil, double union, Action<Simulation>? prep = null)
     {
         var off = Warm(); var on = Warm();
         foreach (var s in new[] { off, on }) { Organize(s, coh, mil); prep?.Invoke(s); }
-        var a = Month(off, law, suff, 0, 0);
-        var b = Month(on, law, suff, union, residual);
+        var a = Month(off, law, suff, 0);
+        var b = Month(on, law, suff, union);
         return (a, b);
     }
 
@@ -52,7 +52,7 @@ public class SbBargainTests
     [Fact]
     public void 禁止の国では運動体が強くても所得の分け方は旗0と全く同じ()   // U1
     {
-        var (off, on) = Twin(LaborUnionLaw.Illegal, Suffrage.Universal, 1.0, 0.5, 1, 0);
+        var (off, on) = Twin(LaborUnionLaw.Illegal, Suffrage.Universal, 1.0, 0.5, 1);
         Assert.Equal(off.Length, on.Length);
         for (int i = 0; i < off.Length; i++) Assert.Equal(BitConverter.DoubleToInt64Bits(off[i]), BitConverter.DoubleToInt64Bits(on[i]));
     }
@@ -60,7 +60,7 @@ public class SbBargainTests
     [Fact]
     public void 容認の国では持ち主の取り分が減って労働者へ移り所得の合計は変わらない()   // U2・U3
     {
-        var (off, on) = Twin(LaborUnionLaw.Tolerated, Suffrage.Universal, 1.0, 0.5, 1, 0);
+        var (off, on) = Twin(LaborUnionLaw.Tolerated, Suffrage.Universal, 1.0, 0.5, 1);
         var w = Warm().World;
         int lp = -1, op = -1;
         foreach (var p in w.Region.Producers) if (p.BuysLabor && !p.IsRgo) { lp = p.LaborPopIndex; op = p.OwnerPopIndex; break; }
@@ -75,12 +75,12 @@ public class SbBargainTests
     [Fact]
     public void 統制は罷業の力が無く票があるときだけ正で容認より小さい()   // U5
     {
-        var (offC0, onC0) = Twin(LaborUnionLaw.Controlled, Suffrage.None, 1.0, 0.5, 1, 0);
+        var (offC0, onC0) = Twin(LaborUnionLaw.Controlled, Suffrage.None, 1.0, 0.5, 1);
         Assert.Equal(Total(offC0), Total(onC0), 6);
         // 票が無い統制の国：V_w＝0（罷業の力は容認だけ）→ β＝0 → 所得は旗 0 と同じ
         for (int i = 0; i < offC0.Length; i++) Assert.Equal(BitConverter.DoubleToInt64Bits(offC0[i]), BitConverter.DoubleToInt64Bits(onC0[i]));
-        var (offC, onC) = Twin(LaborUnionLaw.Controlled, Suffrage.Universal, 1.0, 0.5, 1, 0);
-        var (offT, onT) = Twin(LaborUnionLaw.Tolerated, Suffrage.Universal, 1.0, 0.5, 1, 0);
+        var (offC, onC) = Twin(LaborUnionLaw.Controlled, Suffrage.Universal, 1.0, 0.5, 1);
+        var (offT, onT) = Twin(LaborUnionLaw.Tolerated, Suffrage.Universal, 1.0, 0.5, 1);
         var w = Warm().World;
         int lp = -1;
         foreach (var p in w.Region.Producers) if (p.BuysLabor && !p.IsRgo) { lp = p.LaborPopIndex; break; }
@@ -223,122 +223,70 @@ public class SbBargainTests
         Assert.True(mass > 0);
     }
 
-    // ---------------------------------------------------------------- 段1c
+    // ---------------------------------------------------------------- (529) 産地の取り分＝min(慣習のデータの取り分, 法の上限)
+    // (520) の残りの道（旗 LandRentResidual＝取り分は法の上限そのもの）は (529) で撤回した。番人は撤回後の式そのものと、旧の形との差（上限が慣習より高い州）を手の値で守る。
 
-    [Fact]
-    public void 産地の取り分は旗が正のとき法の上限になり工場は変わらない()   // R3
-    {
-        var sim = Warm(); var w = sim.World; var r = w.Region;
-        r.FarmRentCap = new Share(0.4);
-        Producer? rgo = null, fac = null;
-        foreach (var p in r.Producers) { if (p.IsRgo && rgo is null) rgo = p; if (p.BuysLabor && !p.IsRgo && fac is null) fac = p; }
-        Assert.True(rgo is not null && fac is not null);
-        rgo!.RentShare = new Share(0.3);
-        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        w.Coef.LandRentResidual = 0; w.Coef.RentScarcityElasticity = 0;
-        double facOff = EconomyStep.RentShareOf(fac!, r, w.Coef, rural);
-        Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);   // 旗 0 は今の式（生産者の固定の取り分 0.3・上限 0.4 の内側）
-        w.Coef.LandRentResidual = 1;
-        Assert.Equal(0.4, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        Assert.Equal(facOff, EconomyStep.RentShareOf(fac!, r, w.Coef, rural), 12);   // 上限 0.4 の州でも工場の取り分は旗に依らない（産地だけが上限になる）
-        r.FarmRentCap = new Share(1.0);
-        Assert.Equal(1.0, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        Assert.Equal(facOff, EconomyStep.RentShareOf(fac!, r, w.Coef, rural), 12);
-        // AI の土地改革の余地（SelfPlay）は旗に依らず旧のまま＝生産者の RentShare と法の上限の差（追記 3 ⑵）。旗を倒しても生産者の RentShare は書き換わらない
-        Assert.Equal(0.3, rgo.RentShare.Value, 12);
-    }
-
-    [Fact]
-    public void 自作農の所得は変わらず地代の記録だけが増える()   // R1
-    {
-        var (off, on) = Twin(LaborUnionLaw.Illegal, Suffrage.None, 0.0, 0.0, 0, 1, s =>
-        {
-            foreach (var p in s.World.Region.Producers) if (p.IsRgo) { p.RentShare = new Share(0.3); p.OwnerPopIndex = p.LaborPopIndex; }
-        });
-        int n = off.Length / 2;
-        double rentOff = 0, rentOn = 0;
-        for (int i = 0; i < n; i++)
-        {
-            Assert.True(Math.Abs(off[2 * i] - on[2 * i]) <= 1e-9 * Math.Max(1.0, Math.Abs(off[2 * i])), $"自作農の州で POP {i} の所得が変わった（{off[2 * i]} → {on[2 * i]}）");
-            rentOff += off[2 * i + 1]; rentOn += on[2 * i + 1];
-        }
-        Assert.True(rentOn > rentOff, $"自作農の自己地代（土地税の課税の元）が増えない（{rentOff} → {rentOn}）");
-    }
-
-    [Fact]
-    public void 領主と農民の州では地代が増え農民の所得が下がり合計は変わらない()   // R2
-    {
-        var (off, on) = Twin(LaborUnionLaw.Illegal, Suffrage.None, 0.0, 0.0, 0, 1, s =>
-        {
-            foreach (var p in s.World.Region.Producers) if (p.IsRgo) { p.RentShare = new Share(0.5); p.OwnerPopIndex = 0; }
-            s.World.Region.FarmRentCap = new Share(1.0);
-        });
-        Assert.Equal(Total(off), Total(on), 6);
-        Assert.True(on[1] > off[1], $"領主の LandRent が増えない（{off[1]} → {on[1]}）");
-        Assert.True(on[0] > off[0], "領主の所得が増えない");
-    }
-
-    // ---------------------------------------------------------------- (529) 段1c の形 P（旗 LandRentCustomBound）
-
-    private static double[] MonthBound(Simulation sim, double bound)
+    private static double[] MonthRent(Simulation sim)
     {
         var w = sim.World; var r = w.Region;
         w.LaborUnion = LaborUnionLaw.Illegal; w.Suffrage = Suffrage.None;
-        w.Coef.UnionBargaining = 0; w.Coef.LandRentResidual = 1; w.Coef.LandRentCustomBound = bound;
+        w.Coef.UnionBargaining = 0;
         EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
         var e = new double[r.Pops.Count * 2];
         for (int i = 0; i < r.Pops.Count; i++) { e[2 * i] = r.Pops[i].EarnedPerMonth.Value; e[2 * i + 1] = r.Pops[i].LandRentPerMonth.Value; }
         return e;
     }
 
-    private static (double[] Off, double[] On, int LaborIdx) TwinBound(double rentShare, double cap, bool landlord)
+    /// <summary>双子：off は産地の取り分を shareOff（＝上限が慣習より高い州で (520) の残りの道が置いた取り分と同じ値）、on は shareOn（撤回後の慣習の取り分）に置く。</summary>
+    private static (double[] Off, double[] On, int LaborIdx) TwinShare(double shareOff, double shareOn, double cap, bool landlord)
     {
         var off = Warm(); var on = Warm();
-        foreach (var s in new[] { off, on })
+        foreach (var (s, share) in new[] { (off, shareOff), (on, shareOn) })
         {
             Organize(s, 0.0, 0.0);
-            foreach (var p in s.World.Region.Producers) if (p.IsRgo) { p.RentShare = new Share(rentShare); p.OwnerPopIndex = landlord ? 0 : p.LaborPopIndex; }
+            foreach (var p in s.World.Region.Producers) if (p.IsRgo) { p.RentShare = new Share(share); p.OwnerPopIndex = landlord ? 0 : p.LaborPopIndex; }
             s.World.Region.FarmRentCap = new Share(cap);
         }
         int laborIdx = -1; foreach (var p in on.World.Region.Producers) if (p.IsRgo) { laborIdx = p.LaborPopIndex; break; }
-        return (MonthBound(off, 0), MonthBound(on, 1), laborIdx);
+        return (MonthRent(off), MonthRent(on), laborIdx);
     }
 
     [Fact]
-    public void 形Pの産地の取り分は慣習の取り分と法の上限の小さい方で旗0は法の上限のまま()   // M1・M2
+    public void 産地の取り分は慣習の取り分と法の上限の小さい方で工場は上限に依らない()   // M1・M2
     {
         var sim = Warm(); var w = sim.World; var r = w.Region;
-        Producer? rgo = null;
-        foreach (var p in r.Producers) if (p.IsRgo) { rgo = p; break; }
-        Assert.True(rgo is not null);
+        Producer? rgo = null, fac = null;
+        foreach (var p in r.Producers) { if (p.IsRgo && rgo is null) rgo = p; if (p.BuysLabor && !p.IsRgo && fac is null) fac = p; }
+        Assert.True(rgo is not null && fac is not null);
         double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        w.Coef.LandRentResidual = 1;
+        Assert.Equal(0.0, new Coefficients().RentScarcityElasticity);     // 既定は弾力の項を読まない
         rgo!.RentShare = new Share(0.5);
         r.FarmRentCap = new Share(0.75);                                  // 農奴解放が限定的の国（日・墺・仏）：上限が慣習より高い
-        w.Coef.LandRentCustomBound = 0;
-        Assert.Equal(0.75, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        w.Coef.LandRentCustomBound = 1;
         Assert.Equal(0.5, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        r.FarmRentCap = new Share(0.3);                                   // 土地改革が全面：上限が慣習より低い＝今の形と同じ
-        Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        w.Coef.LandRentCustomBound = 0;
+        r.FarmRentCap = new Share(0.3);                                   // 土地改革が全面：上限が慣習より低い
         Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
         rgo.RentShare = new Share(0.85);                                  // ロシア（農奴の現金の床 0.15 を引いた慣習）と未解放（上限 1.0）
         r.FarmRentCap = new Share(1.0);
-        w.Coef.LandRentCustomBound = 1;
         Assert.Equal(0.85, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        w.Coef.LandRentResidual = 0; w.Coef.RentScarcityElasticity = 0;   // 残りの道を倒せば 形 P は読まれない（旗 0 の今の式）
-        Assert.Equal(0.85, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        double facShare = EconomyStep.RentShareOf(fac!, r, w.Coef, rural);
+        r.FarmRentCap = new Share(0.4);
+        Assert.Equal(facShare, EconomyStep.RentShareOf(fac!, r, w.Coef, rural), 12);   // 上限は産地だけを縛る
+        // 弾力の項を点火しても法の上限が天井（稀少な州でも上限を超えない）
+        rgo.RentShare = new Share(0.5); r.FarmRentCap = new Share(0.6); r.ArableLand = rural / 4.0;
+        w.Coef.RentScarcityElasticity = 1.0;
+        Assert.Equal(0.6, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        // AI の土地改革の余地（SelfPlay）が読む生産者の RentShare は書き換わらない
+        Assert.Equal(0.5, rgo.RentShare.Value, 12);
     }
 
     [Fact]
-    public void 形Pは上限が慣習より高い領主と農民の州で農民の所得が増え領主の所得が減り合計は変わらない()   // M3
+    public void 上限が慣習より高い領主と農民の州では耕す人の所得が増え領主の地代が減り合計は変わらない()   // M3
     {
-        var (off, on, laborIdx) = TwinBound(0.5, 1.0, landlord: true);
+        var (off, on, laborIdx) = TwinShare(1.0, 0.5, 1.0, landlord: true);
         Assert.Equal(Total(off), Total(on), 6);
         Assert.True(on[1] < off[1], $"領主の LandRent が減らない（{off[1]} → {on[1]}）");
         Assert.True(on[0] < off[0], "領主の所得が減らない");
-        // 耕す人の POP（産地の LaborPopIndex）の所得の増え＝領主の地代の減り（rent+wages=付加価値の保存・手の値＝(1.0−0.5)×付加価値が両方に出る）。他の階級の所得の増えに紛れない（反証役 pf2 低#6）
+        // 耕す人の POP（産地の LaborPopIndex）の所得の増え＝領主の地代の減り（rent+wages=付加価値の保存・(1.0−0.5)×付加価値が両方に出る）。他の階級の所得の増えに紛れない（反証役 pf2 低#6）
         Assert.True(laborIdx >= 0 && laborIdx < off.Length / 2, "産地の耕す人の POP が見つからない");
         double farmerGain = on[2 * laborIdx] - off[2 * laborIdx], landlordLoss = off[1] - on[1];
         Assert.True(farmerGain > 0, $"耕す人の所得が増えない（{off[2 * laborIdx]} → {on[2 * laborIdx]}）");
@@ -346,9 +294,9 @@ public class SbBargainTests
     }
 
     [Fact]
-    public void 形Pは自作農の所得を変えず土地税の課税の元だけが慣習の取り分へ戻る()   // M3
+    public void 自作農の所得は取り分に依らず土地税の課税の元だけが慣習の取り分へ戻る()   // M3
     {
-        var (off, on, _) = TwinBound(0.3, 1.0, landlord: false);
+        var (off, on, _) = TwinShare(1.0, 0.3, 1.0, landlord: false);
         int n = off.Length / 2;
         double rentOff = 0, rentOn = 0;
         for (int i = 0; i < n; i++)
