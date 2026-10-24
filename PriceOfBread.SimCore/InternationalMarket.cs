@@ -96,6 +96,7 @@ public sealed partial class InternationalMarket
                     if (!Sells(pr, rr, goodId)) continue;
                     double amt = amount * (Math.Max(0, pr.Output) / totalOut);
                     if (!(amt > 0)) continue;
+                    if (coef.UnionBargaining > 0 && Instruments.On) Instruments.SbExport(w, amt, pr.BuysLabor && !pr.IsRgo);   // ★(520) 計器（読むだけ）：上乗せの入口が無い輸出代金の大きさ
                     double rent = EconomyStep.RentShareOf(pr, rr, coef, ruralPop) * amt;
                     double wages = amt - rent;
                     double sc = rent * World.StateProfitShare(pr, rr, coef);

@@ -29,6 +29,8 @@ public class MobilityPushTests
         off.Run(20); on.Run(20);   // 経済を落ち着かせる
         off.World.Coef.RentScarcityElasticity = 0;    // ★点火2026-08-31：OFF側を明示ピン（既定1.0＝明示しないと対照の番人が空洞化する）
         on.World.Coef.RentScarcityElasticity = 0.6;   // 稀少度1.0で実効RentShare 0.5→0.8（FarmRentCap=1.0の内側）
+        //   ★(520) 土地の稀少度の弾力は旗 LandRentResidual が 0 のときだけ読まれる（既定 1＝産地の取り分は法の上限で弾力の項は読まれない）。この番人は弾力の項の ON 経路そのものを見るので 旗 0 の腕を明示する。
+        off.World.Coef.LandRentResidual = 0; on.World.Coef.LandRentResidual = 0;
         foreach (var sim in new[] { off, on })
         {
             var r = sim.World.Region;

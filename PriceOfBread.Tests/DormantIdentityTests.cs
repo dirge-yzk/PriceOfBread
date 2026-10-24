@@ -104,6 +104,7 @@ public class DormantIdentityTests
         "OpeningBakeEnabled",           // ★(490) 開幕の焼き込みの読み込み（<see cref="OpeningBake"/>）＝0 で表（opening_bake.json）を開きもしない。倒さない（焼くのは工業化度の削除の後・(464) の順）。鍵の一致と読み込みの往復は OpeningBakeTests
         // ★StapleLedgerSum・HarvestShortfallToMarket（(504) 食料の台帳を主食の和へ①③）は 2026-10-23 に 1 で**点火**（腕 C・止める線に当たらず）＝この表から外した。②は表に残る。
         "StapleDemandRebalance",        // ★(504) 主食どうしの乗り換えの配り直し②（挟みを外し欲しい量の和を必要量に合わせる）＝0 で今の挟み。点火は同上
+        // ★UnionBargaining・LandRentResidual（(520) 交渉の取り分と産地の地代）は 2026-10-24 に 1 で**点火**（腕 B1″〔種 21〜30〕・B2・合成の腕 B3・止める線に当たらず）＝この表から外した。
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。

@@ -521,6 +521,9 @@ public static class EconomyStep
     /// ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。</summary>
     internal static double RentShareOf(Producer s, Region region, Coefficients coef, double ruralPop)
     {
+        // ★(520) 段1c（旗 LandRentResidual）：産地は〈耕す人の市場の賃金を払った後の残りが持ち主〉＝取り分は法の上限そのもの（既定 1.0）。付加価値は農業労働力の購入を引いた後の額なので、残りの全部が地代（リカードの形）。
+        //   生産者の固定の取り分と土地の稀少度の弾力は読まない。旗 0 は下の式のまま（この行は旗が正のときだけ通る）。
+        if (coef.LandRentResidual > 0 && s.IsRgo) return region.FarmRentCap.Value;
         double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
         if (coef.RentScarcityElasticity > 0 && s.IsRgo)
         {
@@ -2579,6 +2582,10 @@ public static class EconomyStep
         // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園（Colonial.AbsenteeRgo）の地代は不在地主（本国の首都の投資家）のもの＝在地の持ち主の口座ごとに積み、
         //   州の月末の精算の後に移し方の1本で送る（Colonial.RemitAbsenteeRent の注記）。植民地格でない州・世界の無い試験・不在地主の居ない国は null＝何もしない。
         double[]? absentee = world is not null && region.Tier == RegionTier.Colonial && Colonial.AbsenteeOwner(world, region) is not null ? new double[region.Pops.Count] : null;
+        // ★(520) 段1b 交渉の取り分（旗 UnionBargaining・事前登録 sb520 [2]）：法が禁止でない国の州の月だけ、κ と 同じ州の工場の 1 人あたりの付加価値の平均 ā を前走査で求める。旗 0／禁止の国は何も計算しない。
+        bool ubOn = coef.UnionBargaining > 0 && world is not null && world.LaborUnion != LaborUnionLaw.Illegal;
+        UnionBargaining.Ctx ub = default;
+        if (ubOn) { ub = UnionBargaining.Prepare(world!, region, np, sleep, produced, producerCount, revenue, inputCost, insOn); if (insOn) Instruments.SbRegionMonth(world!, in ub); }
         for (int pi = 0; pi < np; pi++)
         {
             if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（売上の按分を受けない・操業規模0 と採算の平滑は止めたまま）
@@ -2611,6 +2618,14 @@ public static class EconomyStep
             {
                 double rentShare = RentShareOf(s, region, coef, ruralPop);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
                 rent = rentShare * valueAdded; wages = valueAdded - rent;
+                if (insOn && coef.LandRentResidual > 0 && s.IsRgo) Instruments.SbRgo(world!, region, s, valueAdded, rent, wages, ruralPop, producerRevenue, inputCost[pi]);   // ★(520) 段1c の計器（読むだけ）
+                if (ubOn)
+                {   // ★(520) 段1b：上乗せを国営／民営に分ける前の rent から引いて賃金へ移す（国営の工場の労働者も交渉の取り分を得る＝国庫が負う）。合計は付加価値のまま。
+                    double ubRent0 = rent, ubWages0 = wages;
+                    var ubo = UnionBargaining.Transfer(ref ub, world!, region, s, sleep[pi], valueAdded, rent);
+                    if (ubo.Transfer > 0) { rent -= ubo.Transfer; wages = valueAdded - rent; }
+                    if (insOn && ubo.Eligible) Instruments.SbFactory(world!, in ubo, valueAdded, ubRent0, rent, ubWages0, wages);
+                }
                 if (stateFrac > 0) { region.StateSpent[(int)TreasuryCat.StateFactory] -= rent * stateFrac; rent *= 1.0 - stateFrac; }   // 国営持分の利潤は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent がそのまま精算＝保存）
             }
             else

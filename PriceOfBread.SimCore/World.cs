@@ -2035,7 +2035,7 @@ public sealed class World
         double whOut = Math.Pow(WorkHoursValue / WorkHours.Unlimited.Hours(), Coef.LaborFatigueExp)
                      * Math.Max(0.0, 1.0 - Coef.LaborFatiguePenalty * Math.Max(0.0, WorkHoursValue - WorkHours.Twelve.Hours()));   // 12h超は過労で産出頭打ち〜微減（LaborFatiguePenalty=0で旧＝単調増）
         // ※児童労働の出力係数(clOut)は廃止：子供の実体化により労働供給そのもの（EconomyStep の労働係数）で表現される（二重計上の防止）
-        double union = LaborUnion switch { LaborUnionLaw.Tolerated => Coef.LaborUnionToleratedOutputMul, LaborUnionLaw.Controlled => Coef.LaborUnionControlledOutputMul, _ => 1.0 };   // 労働組合容認＝賃上げ/ストで工場出力↓（資本が反対する理由。不満緩和は別途）
+        double union = Coef.UnionBargaining > 0 ? 1.0 : LaborUnion switch { LaborUnionLaw.Tolerated => Coef.LaborUnionToleratedOutputMul, LaborUnionLaw.Controlled => Coef.LaborUnionControlledOutputMul, _ => 1.0 };   // 労働組合容認＝賃上げ/ストで工場出力↓（資本が反対する理由。不満緩和は別途）
         // no-graduated-unrest-stages（最小dormant）：本国の労働争議＝減産の土台。植民地の旧い型の産出の怠業（ColonialUnrestSupplyHit・2026-10-18 に削除）と同型を本国に開く。
         // 組合容認かつ地域平均闘争度が中間閾値超で操業停止（賃上げ要求）。0（対照腕）で乗数1.0＝不発・既定0.25でlive（台帳訂正2026-07-12）。
         if (Coef.StrikeProductionHit > 0 && LaborUnion != LaborUnionLaw.Illegal)

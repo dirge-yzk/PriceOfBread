@@ -82,6 +82,8 @@ public class ModernizeReturnAndScoreTests
         w.TechLevel = 2.0; Assert.Equal(3.0, w.TechProductivity(r), 12);
         w.TechLevel = 4.0; Assert.Equal(3.6, w.TechProductivity(r), 12);   // 3＋(4−2)×0.3
         // 労働組合の容認は産出に掛かる（係数を 0.8 に置く）
+        //   ★(520) 組合の産出の乗数は旗 UnionBargaining が正（既定 1）のとき 1.0＝交渉の取り分が代わりを務める。ここは乗数の抜き出しの式そのものを見る番人なので 旗 0 の腕を明示する（既定の盤面は SbBargainTests の U6 が見る）。
+        w.Coef.UnionBargaining = 0;
         w.TechLevel = 0.0; w.LaborUnion = LaborUnionLaw.Tolerated; w.Coef.LaborUnionToleratedOutputMul = 0.8;
         Assert.Equal(0.8, w.TechProductivity(r), 12);
     }
