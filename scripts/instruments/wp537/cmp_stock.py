@@ -11,7 +11,8 @@ def load(D, tbl, cols):
 def fl(x):
     try: return float(x)
     except: return float('nan')
-A='D:/PoB_work/keep_533/m533_ins'; B='D:/PoB_work/wp_round2/out_B_10/ins'
+# 使い方：python cmp_stock.py <基線の ins> <比べる ins>（stock 表の装備充足・小銃と火砲の在庫・陸海軍力の指数を時代別に比べる）
+A=sys.argv[1] if len(sys.argv)>1 else 'D:/PoB_work/keep_533/m533_ins'; B=sys.argv[2] if len(sys.argv)>2 else 'D:/PoB_work/wp_round2/out_DI_10/ins'
 cols=['capitalEquipFillShare','militaryReadinessShare','capitalRifleStock','capitalArtilleryStock','fleetUnitsStock','landPowerIndex','navalPowerIndex']
 a=load(A,'stock',cols); b=load(B,'stock',cols)
 eras=[(1783,1810),(1810,1840),(1840,1873),(1873,1900),(1900,1914),(1914,1950)]
