@@ -224,6 +224,31 @@ public class IvfInitialValuesTests
         Assert.Equal(h1 * Math.Min(Math.Min(50 / 1.0, 100 / 1.5), Math.Min(100 / 0.8, 100 / 0.95)), w1, 9);   // 時代の組の最小＝鉄 50÷1.0
     }
 
+    /// <summary>繰越（建設で使い残した非律速の資材）は、今月の組に居ない財も同じ損耗の率で減る（組が替わった月に倉庫の材が凍らない）。
+    /// 時代の組の月は鋼・機械・セメント、鋼の組の月は鉄・石灰石・粘土が、手持ち 10 から 10×(1−損耗率) へ（期待は財の表の損耗率から手で）。</summary>
+    [Fact]
+    public void 組に居ない財の繰越も損耗する()
+    {
+        double[] Carry(double steelFactor, int[] others)
+        {
+            var sim = Make(NationConfig.Britain(), c => c.ConstructionEraBundle = 1);
+            var w = sim.World; var r = CapitalRegion(w);
+            r.Markets[Catalog.SteelId].Price *= steelFactor; r.Markets[Catalog.MachineryId].Price *= steelFactor;
+            r.Pops[r.InvestorPopIndex].SetSavings(1e9);
+            r.ConstructionCarryover = new double[r.Markets.Length];
+            foreach (int g in new[] { Catalog.SteelId, Catalog.MachineryId, Catalog.CementId, Catalog.IronId, Catalog.LimestoneId, Catalog.ClayId }) r.ConstructionCarryover[g] = 10.0;
+            var ex = Record.Exception(() => EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w));
+            Assert.Null(ex);
+            return others.Select(g => r.ConstructionCarryover[g]).ToArray();
+        }
+        // 財の表の損耗率（goods.json）：鋼・機械・セメント・鉄・石灰石・粘土は全て月 0.5%、製材だけ月 2%
+        const double keep = 1.0 - 0.005;
+        var era = Carry(4.0, new[] { Catalog.SteelId, Catalog.MachineryId, Catalog.CementId });      // 鋼の組が高い → 時代の組 → 鋼の組の財が凍らない
+        foreach (double v in era) Assert.Equal(10.0 * keep, v, 12);
+        var steel = Carry(0.25, new[] { Catalog.IronId, Catalog.LimestoneId, Catalog.ClayId });       // 鋼の組が安い → 鋼の組 → 時代の組の財が凍らない
+        foreach (double v in steel) Assert.Equal(10.0 * keep, v, 12);
+    }
+
     /// <summary>旗 1 の世界を走らせて保存則（Run の月次の検査）が通る（2 四半期）。</summary>
     [Fact]
     public void 旗1の世界を走らせて保存則が通る()

@@ -2172,6 +2172,14 @@ public static class EconomyStep
                 KeepMaterial(mg, mEff, bundle.Q1);
                 KeepMaterial(cg, cEff, bundle.Q2);
                 KeepMaterial(lg, lEff, bundle.Q3);
+                // ★(536) 線 ivf：旗が正のとき、今月の組に居ない財の繰越も同じ損耗の率で減らす（組が替わった月に倉庫の材が腐らず凍る穴を作らない＝上の〈残った手持ちは市場の在庫と同じ損耗〉の続き）。
+                //   時代の組の月は鋼・機械・セメント、鋼の組の月は鉄・石灰石・粘土（製材は両方の組に居る）。旗 0 では走らない＝1 命令も変わらない。
+                if (coef.ConstructionEraBundle > 0)
+                {
+                    void Decay(int gid) { if (gid < carry.Length) carry[gid] *= Catalog.DurabilityOf(gid); }
+                    if (bundle.Era) { Decay(coef.SteelGoodId); Decay(coef.MachineGoodId); Decay(coef.CementGoodId); }
+                    else { Decay(Catalog.IronId); Decay(Catalog.LimestoneId); Decay(Catalog.ClayId); }
+                }
             }
             // 鉄道インフラの決済：投資家が線路・機関車を買って敷設（消費＝死蔵解消・投資家→生産者で保存）
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
