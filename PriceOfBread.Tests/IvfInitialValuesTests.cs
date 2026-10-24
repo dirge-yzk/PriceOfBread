@@ -101,11 +101,16 @@ public class IvfInitialValuesTests
         var s = EconomyStep.BundleOf(r, c1);
         Assert.False(s.Era);
         Assert.Equal(1.0 * 1.5 + 0.15 * 3.0 + 0.4 * 1.0 + 0.5 * 0.8, EconomyStep.BundleCost(r, c1), 12);
-        // 等しい費用 → 鋼の組（等しいときは動かない側）。鋼の組 = 1.0*2+0.15*4+0.4*1+0.5*2=4.0／時代の組 = 1.0*1+1.5*1+0.8*0.5+0.95*0.1=?  → 手で 4.0 に合わせる
-        double clay = (4.0 - (1.0 * 1.0 + 1.5 * 1.0 + 0.8 * 0.5)) / 0.95;
-        SetPrices(r, 2.0, 4.0, 1.0, 2.0, 1.0, 0.5, clay);
-        Assert.Equal(4.0, 1.0 * 2.0 + 0.15 * 4.0 + 0.4 * 1.0 + 0.5 * 2.0, 12);
+        // 等しい費用 → 鋼の組（等しいときは動かない側）。浮動小数の丸めで〈ほぼ等しい〉にならないよう、量を 1.0 と 0 だけにして厳密に等しくする（鋼 3.0×1.0＋0 ＝ 鉄 3.0×1.0＋0）
+        c1.ConsSteel = 1.0; c1.ConsMachine = 0; c1.ConsCement = 0; c1.ConsLumber = 0;
+        c1.ConsEraIron = 1.0; c1.ConsEraLumber = 0; c1.ConsEraLime = 0; c1.ConsEraClay = 0;
+        SetPrices(r, 3.0, 8.0, 2.0, 1.5, 3.0, 0.5, 0.5);
+        Assert.Equal(EconomyStep.ConsBundle.Steel(c1).Cost(r), 3.0 + 0.0 * 8.0 + 0.0 * 2.0 + 0.0 * 1.5, 12);
         Assert.False(EconomyStep.BundleOf(r, c1).Era);
+        SetPrices(r, 3.0, 8.0, 2.0, 1.5, 2.999, 0.5, 0.5);   // 鉄がわずかに安い → 時代の組（等しいの隣は動く）
+        Assert.True(EconomyStep.BundleOf(r, c1).Era);
+        c1.ConsSteel = 1.0; c1.ConsMachine = 0.15; c1.ConsCement = 0.4; c1.ConsLumber = 0.5;
+        c1.ConsEraIron = 1.0; c1.ConsEraLumber = 1.5; c1.ConsEraLime = 0.8; c1.ConsEraClay = 0.95;
         // NaN の価格 → 鋼の組（否定形）
         SetPrices(r, 3.0, 8.0, 2.0, 1.5, double.NaN, 0.5, 0.5);
         Assert.False(EconomyStep.BundleOf(r, c1).Era);
@@ -151,6 +156,30 @@ public class IvfInitialValuesTests
         Assert.Equal(0.95, (d1[3] - d0[3]) / u, 2);
         Assert.Equal(-1.0, (d1[4] - d0[4]) / u, 2);
         Assert.Equal(-0.15, (d1[5] - d0[5]) / u, 2);
+    }
+
+    /// <summary>国家の建設（StateBuildQueue）も同じ組：投資家の私的な建設を止めた州で国庫の予約を積み、旗 1 は時代の組の需要を立て、国庫が払う額は予約の額（工賃を足した上限）に収まる
+    /// （決済が需要と別の組を読むと、時代の組の量に鋼の組の高い値段を掛けて予約を大きく超える）。</summary>
+    [Fact]
+    public void 旗1の国家の建設は時代の組を買い_払いは予約の額に収まる()
+    {
+        (double[] D, double Spent) Month(double flag)
+        {
+            var sim = Make(NationConfig.Britain(), c => c.ConstructionEraBundle = flag);
+            var w = sim.World; var r = CapitalRegion(w);
+            r.Markets[Catalog.SteelId].Price *= 4; r.Markets[Catalog.MachineryId].Price *= 4;
+            r.Pops[r.InvestorPopIndex].SetSavings(0);   // 私的な建設の予算 0
+            r.StateBuildQueue = 100;                     // 国庫の予約（お金）
+            var ex = Record.Exception(() => EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w));
+            Assert.Null(ex);
+            return (new[] { Catalog.IronId, Catalog.SteelId, Catalog.LimestoneId }.Select(g => r.Markets[g].LastDemand).ToArray(), r.StateSpent[(int)TreasuryCat.Modernization]);
+        }
+        var (d0, s0) = Month(0.0); var (d1, s1) = Month(1.0);
+        Assert.True(d1[0] > d0[0], $"鉄の需要が増えない（{d0[0]} → {d1[0]}）");
+        Assert.True(d1[1] < d0[1], $"鋼の需要が減らない（{d0[1]} → {d1[1]}）");
+        Assert.True(d1[2] > d0[2], $"石灰石の需要が増えない（{d0[2]} → {d1[2]}）");
+        double cap = 100 * (1.0 + new Coefficients().ConstructionLaborWageFrac) * 1.1;   // 予約（材料の費用）＋工賃の割合。配給や採算の絞りで届かないことはある（旗 0 は 41）が超えない
+        Assert.True(s1 > 0 && s1 <= cap, $"国庫の払い {s1} が予約 100×(1+工賃の割合) の上限 {cap} に収まらない（旗 0 の払い {s0}）");
     }
 
     /// <summary>工場建設（着工中の生産者）の材料も同じ組：着工中の工場を 1 つ置いた州の月で、旗 1 は時代の組の材料を買う（鉄が旗 0 より増え・鋼が減る）。</summary>
