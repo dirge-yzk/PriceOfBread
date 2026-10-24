@@ -152,7 +152,8 @@ public class WeaponParallelTests
     [Fact]
     public void 計器wp_sの列は固定()
     {
-        Assert.Equal("quarter\tyear\tnation\tgood\tknown\toldGateOpen\toldOutputPerMonth\tnewOutputPerMonth\tnewShare\toldCostPerUnit\tnewCostPerUnit\tgoodPriceMean\tpriceLevel\tcapitalEquipFill\tcapitalReadiness",
+        Assert.Equal("quarter\tyear\tnation\tgood\tknown\toldGateOpen\toldOutputPerMonth\tnewOutputPerMonth\tnewShare\toldCostPerUnit\tnewCostPerUnit\tgoodPriceMean\tpriceLevel\tcapitalEquipFill\tcapitalReadiness"
+            + "\toldBuilt\tnewBuilt\toldStateTarget\tnewStateTarget\toldScale\tnewScale\tregionsBoth\tregionsOldCheaper\toldOutWhereOldCheaper\tnewOutWhereOldCheaper\toldOutWhereNewCheaper\tnewOutWhereNewCheaper",
             Instruments.WpHeaderText());
     }
 }
