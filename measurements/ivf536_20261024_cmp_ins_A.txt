@@ -1,0 +1,7 @@
+# (536) ivf 腕 A（旗 0・NATIONS 12 国）の計器の生の表を基線 m533_ins と比べた（scripts/instruments/ivf536/cmp_ins.py）。
+# 1 行目＝cmp_ins.py の出力（clock・burscan は時間を書く表＝比べない。NATIONS を 9→12 に増やした走りは cons_s など国ごとの積算の表で行の中身が基線と違って見える）：
+一致（バイト）240／増えた国の行を除いて一致 400／不一致 30／揺れる表を除外 10／基線に無い新しいファイル ['ivf_s1.tsv', 'ivf_s10.tsv', 'ivf_s2.tsv', 'ivf_s3.tsv', 'ivf_s4.tsv', 'ivf_s5.tsv', 'ivf_s6.tsv', 'ivf_s7.tsv', 'ivf_s8.tsv', 'ivf_s9.tsv']
+# 不一致 30＝clock_s 10（時間）・cons_s 10・残り 10（表示の上限 20 で名前が出ていない。chk9 の種 1 で違ったのは flow_s だけ＝flow_s 10 の呼び出し位置の行番号の列と推定）。cons_s の違いの原因＝増えた国（スペイン等）が途中で別の国の領土だった州で、毎四半期の行で積算が戻る（走りは同じ）。
+# 確かめ（chk9）：基線と同じ NATIONS（9 国）で種 1 を走らせ（selfplay-batch 1・POB_INSTRUMENTS）、基線の m533_ins の *_s1.tsv と比べた：
+#   burscan・clock を除く 66 表のうち 65 表がバイト一致（cons_s1・age_s1・region_s1 を含む）。違う 1 表 flow_s1 は呼び出し位置の行番号の列（Simulation.cs 2858→2877 など）だけが違う（行番号の列を伏せると 0 行の違い）。
+#   ＝計器の表の違いは NATIONS と行番号の移動だけで、走りは基線と同じ（成績表 3 枚もバイト一致）。

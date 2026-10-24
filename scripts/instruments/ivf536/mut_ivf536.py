@@ -1,7 +1,7 @@
 import subprocess, shutil, os, sys, io
 WT = 'D:/PoB_work/wt_ivf'
-OUT = 'D:/PoB_work/ivf_536/mut/mut.log'
-ART = 'D:/PoB_work/ivf_536/art_mut'
+OUT = 'D:/PoB_work/ivf_536b/mut/mut.log'
+ART = 'D:/PoB_work/ivf_536b/art_mut'
 muts = [
  ('M1 tie-breaks-to-era', 'PriceOfBread.SimCore/EconomyStep.cs', 'return era.Cost(r) < steel.Cost(r) ? era : steel;', 'return era.Cost(r) <= steel.Cost(r) ? era : steel;'),
  ('M2 flag-ignored', 'PriceOfBread.SimCore/EconomyStep.cs', 'if (!(c.ConstructionEraBundle > 0)) return steel;\n', '\n'),
