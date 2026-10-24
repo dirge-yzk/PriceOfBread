@@ -1,0 +1,7 @@
+M1 充足の既定を無視: rc=1 ['  失敗 PriceOfBread.Tests.Hz8IdentityTests.国家の調達の決済と充足は畳む前の3つの式とビット単位で同じで必要が0のときの充足は調達ごとに違う [5 s]', '  エラー メッセージ:', '失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 46 s - PriceOfBread.Tests.dll (net10.0)']
+M2 見積の割増を乱す: rc=1 ['  失敗 PriceOfBread.Tests.Hz8IdentityTests.国家の調達の見積と欲しい量は畳む前の3つの式とビット単位で同じ [19 ms]', '  エラー メッセージ:', '失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 44 s - PriceOfBread.Tests.dll (net10.0)']
+M3 決済の割増を外す: rc=1 ['  失敗 PriceOfBread.Tests.Hz8IdentityTests.国家の調達の決済と充足は畳む前の3つの式とビット単位で同じで必要が0のときの充足は調達ごとに違う [5 s]', '  エラー メッセージ:', '失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 42 s - PriceOfBread.Tests.dll (net10.0)']
+M4 取り分を Max に: rc=1 ['  失敗 PriceOfBread.Tests.SbBargainTests.自作農の所得は取り分に依らず土地税の課税の元だけが慣習の取り分へ戻る [2 s]', '  エラー メッセージ:', '失敗!   -失敗:     4、合格:    13、スキップ:     0、合計:    17、期間: 1 m 8 s - PriceOfBread.Tests.dll (net10.0)']
+M5 作り手の探索を常に真に: rc=1 ['  失敗 PriceOfBread.Tests.Hz8IdentityTests.生産者の探索は財の範囲外と作り手の居ない財で偽 [33 ms]', '  エラー メッセージ:', '失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 1 m 4 s - PriceOfBread.Tests.dll (net10.0)']
+M6 門を掛けない: rc=1 ['  失敗 PriceOfBread.Tests.Hz8IdentityTests.国家の調達の見積と欲しい量は畳む前の3つの式とビット単位で同じ [7 ms]', '  エラー メッセージ:', '失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 1 m 10 s - PriceOfBread.Tests.dll (net10.0)']
+DONE

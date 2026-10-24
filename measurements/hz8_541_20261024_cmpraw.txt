@@ -1,0 +1,14 @@
+same 660 differ 20 disccontactSplitRows 0
+Counter({('colsok', 'burscan'): 10, ('colsok', 'clock'): 10})
+BAD 0
+1 flow-eq-without-sourceLine 1103086
+2 flow-eq-without-sourceLine 1084892
+3 flow-eq-without-sourceLine 1050572
+4 flow-eq-without-sourceLine 1072095
+5 flow-eq-without-sourceLine 1081652
+6 flow-eq-without-sourceLine 1068989
+7 flow-eq-without-sourceLine 1089776
+8 flow-eq-without-sourceLine 1065043
+9 flow-eq-without-sourceLine 1074317
+10 flow-eq-without-sourceLine 1088548
+FLOWBAD 0

@@ -1,0 +1,6 @@
+# (541) 検証（隔離ビルド D:/PoB_work/hz8_round/art・Release・成績表の木 7aae8776 のコード）
+フルスイート（Category!=FullLength）：失敗 0・合格 1798・スキップ 1・合計 1799（21 分 14 秒）
+FullLength（Category=FullLength）：合格 3（8 分 16 秒）
+--list-tests の数 1802＝1799＋3（中止の行なし＝数え漏れなし）
+試験の数の変化：MobilityPushTests −2（弾力の 2 本）・Hz8IdentityTests +5（m533 は 1796＋3）
+突然変異 6 本：hz8_541_20261024_mutations.txt
