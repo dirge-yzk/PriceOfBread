@@ -127,7 +127,7 @@ public static class MarketFlow
                 // 財と同じ対数飽和(SoftBand)＝実質賃金成長・国際賃金格差の圧縮を緩める（旗 WageClampSoftBand＝ハードクランプとの切替は 2026-09-26 に焼き込み）。
                 // R2（賃金天井の工業化連動）：天井を固定WageClampMaxでなく工業化度でスケール＝未工業国は従来の3倍据置・工業国のみ実質賃金が伸びる（史実の産業革命の賃金上昇・国際格差の拡大）。WageClampIndScale=1.0（R2点火2026-07-15）。0でeffWageMax=WageClampMax＝旧恒等。床(Min)は据置（下方硬直の温存）。effWageMax とその対数は州1回に巻き上げ済み
                 double wrp = good.RefPrice * pl;
-                if (gi is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId)
+                if (Catalog.IsLaborGood(gi))
                 {
                     // 下方硬直は固定倍率でなく留保賃金から創発：留保賃金は賃上げに速く・賃下げに遅く追従し、賃金はそれを下限に置く。
                     // 持続失業（超過供給）では目標がじわじわ下がり留保賃金も遅れて切り下がる＝名目賃金は下がりにくいが永久には張り付かない。

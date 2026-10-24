@@ -932,7 +932,7 @@ public sealed class UtilityAgent : INationAgent
         var c = w.Coef;
         if (w.PendingElection is not { } ev) return;
         // 政治資本の余白＝ResolveElection が「動かせるか」に使うのと同じ量（別の物差しを持ち込まない）
-        double margin = c.MandateWeight * (w.Legitimacy - 0.5);
+        double margin = w.ElectionMargin;
         if (!(margin > 0)) margin = 0;   // NaNガードは否定形（Clamp/MaxはNaNを消さない）＝余白なし側へ倒す
         // ★機会費用でレバー（裁量余剰の何%）を決める＝新しい観測を作らない。
         //   ①存亡の切迫：与党族の得票が不信任線の2倍で0・線に触れて1（既存の線そのものを目盛りに使う＝新しい閾値を置かない）

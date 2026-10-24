@@ -11,6 +11,11 @@ public static class PopDecision
     private const double Eps = 1e-9;
     private const double MaxUrbanShareCap = 0.85;   // 都市化天井の絶対上限（§2.4・工業化に追従する天井のハードストップ）
 
+    /// <summary>都市化の天井（都市の人口の割合の上限）＝<c>BaseUrbanCap + 工業化度 × UrbanPerInd</c> を 0〜<see cref="MaxUrbanShareCap"/> に挟んだ値。人口の移動（<see cref="Run"/>）と
+    /// 職の移し（<c>Meritocracy.UrbanHeadroom</c>）が同じ 1 本を読む（(532) 以前は両方に同じ式の写しがあった）。<paramref name="indForCap"/>＝天井が追う工業化度（平滑化の有無は呼び手が決める）。</summary>
+    internal static double UrbanShareCap(Coefficients c, double indForCap)
+        => Math.Clamp(c.BaseUrbanCap + indForCap * c.UrbanPerInd, 0, MaxUrbanShareCap);
+
     /// <param name="serfFree">農奴解放の梯子（None:0/Limited:0.5/Full:1＝Colonial.cs入植と同じ）。rank3 SerfMobilityGate>0 のとき農村→都市流を縛る。既定1.0＝自由。</param>
     public static void Run(Region region, Coefficients coef, double serfFree = 1.0)   // 02断線走査2026-07-28：rng死引数を削除（旧MigrationNoiseはC裁定2026-07-09で撤去済み＝決定論に乱数の誤読を残さない）
     {
@@ -47,7 +52,7 @@ public static class PopDecision
                 region.UrbanIndSmoothed += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - region.UrbanIndSmoothed);
                 indForCap = region.UrbanIndSmoothed;
             }
-            double maxUrbanShare = Math.Clamp(coef.BaseUrbanCap + indForCap * coef.UrbanPerInd, 0, MaxUrbanShareCap);
+            double maxUrbanShare = UrbanShareCap(coef, indForCap);
             if (targetUrban > maxUrbanShare) targetUrban = maxUrbanShare;
         }
 

@@ -455,7 +455,7 @@ public class DiscoveryScoreTests
         double km = Geo.DistanceKm(w.Latitude, w.Longitude, fr.Latitude, fr.Longitude);
         Assert.True(km > 100, $"前提が崩れた（英仏の距離 {km}）");
         double freight = 0.8;   // 運賃革命の倍率（任意の値を渡す）
-        double duty = System.Math.Max(0, InternationalMarket.TariffRate(w, cw)) * cw.TariffProtect;
+        double duty = System.Math.Max(0, InternationalMarket.TariffRate(w, cw));
         double LandedFactor(double d) => 1.0 + cw.TransportMargin * (1.0 + cw.DistanceMarginScale * d / 10_000.0) * freight + duty;
         Discovery.WorldMarket MarketOf(double wl)
         {

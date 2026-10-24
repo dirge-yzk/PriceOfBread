@@ -64,7 +64,7 @@ public static class Discovery
         foreach (var inp in rp.Inputs)
         {
             int g = inp.GoodId;
-            if (g < 0 || g >= eng.Length || g == g0 || g == Catalog.LaborId || g == Catalog.AdvLaborId || g == Catalog.FarmLaborId) continue;
+            if (g < 0 || g >= eng.Length || g == g0 || Catalog.IsLaborGood(g)) continue;
             a += eng[g];
         }
         return a;
@@ -556,8 +556,8 @@ public static class Discovery
         double selfScale = plv > 0 ? w.CostPriceLevel / plv : 1.0;
         if (!(selfScale > 0)) selfScale = 1.0;   // 否定形＝NaN は平価へ
         double railCost = double.NaN;   // 機関車の行を見るときだけ求める
-        // ★(169) 買い手の関税の楔（清算の着値と同じ＝関税率の正の分×TariffProtect・穀物法は主食の連鎖だけ＝発見の行の財には掛けない）＝市場の値段が無い財の着値に足す。
-        double duty = market is null ? 0 : System.Math.Max(0, InternationalMarket.TariffRate(w, w.Coef)) * w.Coef.TariffProtect;
+        // ★(169) 買い手の関税の楔（清算の着値と同じ＝関税率の正の分・穀物法は主食の連鎖だけ＝発見の行の財には掛けない）＝市場の値段が無い財の着値に足す。
+        double duty = market is null ? 0 : System.Math.Max(0, InternationalMarket.TariffRate(w, w.Coef));
         var book = new PriceBook(real, alive, market, recipes, selfScale, w, duty);
         bookOut = book; demOut = dem;
         // 軍事の圧力（新兵器）＝その分野の脅威（相手の強さ）が自国の強さとの和に占める割合∈[0,1)＝理想の軍隊の形（ArmyShape）の陸と海の必要量 ÷（必要量＋自国の陸軍力・海軍力）。空は陸の膠着（設計 §1A-4）。
