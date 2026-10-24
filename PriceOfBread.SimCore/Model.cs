@@ -680,6 +680,9 @@ public sealed class Producer
     public int GoodId;
     public double Productivity;   // 労働1あたり産出（capacity = labor.Size × これ）
     public double Capacity;       // 能力（§9-C が毎月更新）
+    /// <summary>★(519→524) 能力の式の頭数＝担い手の POP の Size×fraction（供給の段が最後に通った月の値・書くだけの控え）。読み手は交渉の取り分（<see cref="UnionBargaining"/>・旗 UnionBargaining が正のとき）。
+    /// 作業領域（[NonSerialized]・セーブに載らない）＝供給の段が毎月書き直す。眠った生産者・倒産中は能力の式を通らない月なので 0。線 sm（枠と機械・(519)・採らない）の欄と書き手だけを持ち込んだ。</summary>
+    [System.NonSerialized] internal double HeadsLastMonth;
     // ★配分信念（2026-08-22・恐慌をAIの賢さで抑える）：期待市場価値 付加価値×売れる量 のEMA（時定数＝SupplyAdjustSpeed）。
     //   生産者はスポット価格でなくこの信念で職を選ぶ＝コブウェブの教科書的減衰（適応的期待）。点火済み（2026-08-22）＝常時書かれる。
     public double LaborWeight;

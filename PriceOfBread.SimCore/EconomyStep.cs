@@ -579,7 +579,7 @@ public static class EconomyStep
             var s = region.Producers[pi];
             byte z = SleepState(region, s, coef);
             sleep[pi] = z;
-            if (z == 1) { s.LastRevenue = 0; s.LastCost = 0; continue; }   // 眠った生産者に売上も費用も無い（旧＝作り手の居ない月の売上の按分を受けた）
+            if (z == 1) { s.LastRevenue = 0; s.LastCost = 0; s.HeadsLastMonth = 0; continue; }   // 眠った生産者に売上も費用も無い（旧＝作り手の居ない月の売上の按分を受けた）。★(519→524) 頭数の控えも 0（能力の式を通らない月）
             nRun++;
             if (z == 2) { s.SteamFill = 0; s.ElecFill = 0; s.EffFill = 0; s.SubsidyDependence = 0; }   // 目覚めた＝産出0 の月の平滑の極限（蒸気・電化・効率化材は買わない＝0・補助の依存は赤字でない月に減る＝0）
         }
@@ -789,7 +789,7 @@ public static class EconomyStep
         {
             if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（産出0 のまま）
             var s = region.Producers[pi];
-            if (s.Bankrupt) { s.Output = 0; continue; }   // 倒産工場は操業停止（産出0。Scale0で労働も配分されない）
+            if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; continue; }   // 倒産工場は操業停止（産出0。Scale0で労働も配分されない）。★(519→524) 頭数の控えも 0
             int lp = s.LaborPopIndex;
             // 労働力・高度労働力の生産者＝階級全体が算出（fraction=1）。工場の能力は従来通り需要シェアで按分し（規模調整）、
             // 実際の雇用（賃金支払い）は役務の購入＝投入充足が律速する。
@@ -885,6 +885,7 @@ public static class EconomyStep
                 boost *= 1.0 + coef.ScaleEconomyGain * u / (u + coef.ScaleEconomyHalf);
             }
             s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
+            s.HeadsLastMonth = region.Pops[lp].Size * fraction;   // ★(519→524) 能力の式の頭数（Size×fraction）の控え＝書くだけ（線 sm の欄と書き手だけを持ち込んだ・能力の式は触らない）。読み手は旗 UnionBargaining が正のときの UnionBargaining の前走査と上乗せだけ
             double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // 自己費用（×自己費用の物価水準＝P の遅い趨勢×州の乗数・2026-09-27 (73)）＋投入費（名目）
             double price = region.Markets[s.GoodId].Price;
             double profitFactor = ProfitFactor(s, price, mc, coef);   // ★(459)(469) 採算の率の唯一の定義（LaborFloorOffGate＝0 では旧の式を逐語で通る）
