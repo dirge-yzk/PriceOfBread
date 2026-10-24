@@ -34,7 +34,7 @@ public class DormantIdentityTests
         // ★AdminServesStateRule（(408) 行政費の返り）は 2026-10-18 に 1 で**点火**（止める線に当たらず）＝この表から外した。
         // ★MandateOverStockLegitPower（(409) 壁の一歩の払える量＝avail^p）は 2026-10-18 に 2 で**点火**（腕 B・止める線に当たらず・同時に床の係数を削除）＝この表から外した。
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
-        "WeaponParallelEnabled",        // ★(537) 退場の廃止と武器の強さ＝旧のレシピは転炉鋼の後も並行・新のレシピ（既定の鋼の小銃・鋼の砲）は強さ k 単位で転炉鋼まで門 0。0＝退場の表のまま（印 NoRetire・OpenedByRow が既定）＝厳密恒等
+        // ★WeaponParallelEnabled は 2026-10-24 (537) に採って旗ごと削除（既定で並行・退場の表も消した）＝この表から外した。
         // ★SymmetricTensionVerb は 2026-09-28 に点火して旗ごと削除（回8-1・dip-04）＝この表から外した。
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
                                         //   0＝EconomyStep の枝に入らず（rebelDemand 全0）・法は7箇所全部が素通り・第5因子は掛けない＝厳密恒等。点火は 1.0（0/1の主フラグ）

@@ -136,10 +136,10 @@ public class InstrumentsTests
         string dir = NewDir();
         try
         {
-            // ★(512) 州のデータの追加で軌道が動き、種 1789 では借入の判定の経路を 1 度も通らなかった（対照が赤）＝種 1790 で通る（種の選び直し〔(405)(508) と同じ作法〕・1790〜1793 は全て通った）。
-            var off = Make(1790UL); RunMatch(off, Quarters, instr: false);
+            // ★(512) 州のデータの追加で軌道が動き、種 1789 では借入の判定の経路を 1 度も通らなかった（対照が赤）＝種 1790 で通る（種の選び直し〔(405)(508) と同じ作法〕。★(537) 武器の並行で軌道がまた動き 1790 では通らなくなった＝1791 で通る（1792 は赤・1793 も通る）・1790〜1793 は全て通った）。
+            var off = Make(1791UL); RunMatch(off, Quarters, instr: false);
             Instruments.Configure(dir, "*");
-            try { var on = Make(1790UL); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
+            try { var on = Make(1791UL); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
             finally { Instruments.Configure(null, null); }
 
             // ---- 財政の鎖
@@ -552,15 +552,15 @@ public class InstrumentsTests
                     if (r.State != RegionState.Active || r.Discovered is null || r.InvestorPopIndex < 0) continue;
                     foreach (var a in r.Producers)
                     {
-                        if (a.RetiredByRow < 0 || a.RetiredByRow >= r.Discovered.Length) continue;
-                        var s = r.Producers.FirstOrDefault(q => q != a && q.GoodId == a.GoodId && q.RetiredByRow < 0 && q.DiscoveryRow < 0);
+                        if (a.OpenedByRow < 0 || a.OpenedByRow >= r.Discovered.Length || Discovery.Known(r.Discovered, a.OpenedByRow)) continue;   // ★(537) 転炉鋼の前は門が閉じている新世代のレシピ＝閉じた持分
+                        var s = r.Producers.FirstOrDefault(q => q != a && q.GoodId == a.GoodId && q.OpenedByRow < 0 && q.DiscoveryRow < 0);
                         if (s is null) continue;
                         rr = r; old = a; succ = s; break;
                     }
                 }
                 Assert.NotNull(old);   // 対照＝退場するレシピと後継が並ぶ州がある
                 foreach (var r in w.Regions) foreach (var q in r.Producers) Assert.False(q.BuiltScale > 1e-9, "組む前から国営の持分がある＝期待値が崩れる");
-                rr!.Discovered![old!.RetiredByRow] = true;   // 後継の発見＝旧レシピの門が閉じる
+                Assert.False(Discovery.Gate(rr!, old!) > 0);   // 閉じた持分（門が閉じた新世代のレシピ）
                 rr.Producers.Remove(old); rr.Producers.Insert(rr.Producers.IndexOf(succ!), old);   // 輪は一覧の順に見る＝旧が先
                 double fbs = w.Coef.FactoryBuildScale;
                 old.BuiltScale = 3 * fbs; old.StateTarget = 3;
@@ -1622,7 +1622,8 @@ public class InstrumentsTests
     // ★(520) 交渉の取り分と産地の地代の点火で軌道がまた動き、1807 では場面 T の飢えの照合が空洞になった（飢え 0・構造 11）＝1808（構造 12）も空洞・1809 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
     // ★(524) 合流の木（spb＋sb）でも 1809 で全ての場面が空洞でない（WriterRatchet・InstrumentsTests・DormantIdentityTests を合成の木で回して確かめた）。
     // ★(529) 産地の取り分を慣習のデータの取り分と法の上限の小さい方へ（Q2 の形の撤回）で軌道がまた動き、1809 では場面 T の飢えの照合が空洞になった（飢え 0・構造 10）＝1810 も空洞（飢え 0・構造 10）・1811 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法・1812・1813 も通る）。
-    private const ulong CoverageSeed = 1811UL;
+    // ★(537) 旧のレシピを退場させず新世代のレシピを転炉鋼まで閉じる（武器の並行）で軌道がまた動き、1811 では場面 T の飢えの照合が空洞になった＝1812 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
+    private const ulong CoverageSeed = 1812UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()

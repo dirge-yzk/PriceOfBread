@@ -6,16 +6,16 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(537) 退場の廃止と武器の強さ（旗 <c>WeaponParallelEnabled</c>・事前登録 measurements/wp_20261024_prereg.txt の [9]）の番人。機構と不変条件だけを見る
-/// （旧が退場しない・新の門・強さの束・印のセーブの往復・旗 0 の恒等）。新しいレシピが徐々に置き換える創発は成績表と計器 wp_s が見る。
-/// ・期待値は本体の定数から作らない：強さの束は同じ木の旗 0 の世界の生産者（Catalog の既定）と並べて、渡した比 k で比べる。
-/// ⚠突然変異（それぞれ赤になることを確かめる）：①NoRetire を立てない ②OpenedByRow を立てない ③強さ k を掛けない（ToWeaponStrength の if (k &gt; 0) を外す） ④旗 0 でも印を立てる。</summary>
+/// <summary>(537) 退場の廃止と武器の強さ（採った＝旗と退場の表は消した・事前登録 measurements/wp_20261024_prereg.txt の [9]）の番人。機構と不変条件だけを見る
+/// （旧が退場しない・新の門・強さの束・印のセーブの往復）。新しいレシピが徐々に置き換える創発は成績表と計器 wp_s が見る。
+/// ・期待値は本体の定数から作らない：強さの束は強さ k=1（束を変えない）の世界の生産者と並べて、渡した比 k で比べる。
+/// ⚠突然変異（それぞれ赤になることを確かめる）：①旧に退場を戻す（Discovery.Gate に後継の発見で 0 を返す枝を足す） ②OpenedByRow を立てない ③強さ k を掛けない（ToWeaponStrength の if (k &gt; 0) を外す）。</summary>
 public class WeaponParallelTests
 {
     // 構築時に読む係数なので Simulation に係数つきの Scenario を渡す（MultiNationSim の係数は国の構築には届かない＝CriminalVesselTests と同じ注意）
-    private static Simulation Make(double flag, double rifleK = 3.0, double artK = 4.0)
+    private static Simulation Make(double rifleK = 3.0, double artK = 4.0)
     {
-        var c = new Coefficients { WeaponParallelEnabled = flag, WeaponStrengthRifle = rifleK, WeaponStrengthArtillery = artK };
+        var c = new Coefficients { WeaponStrengthRifle = rifleK, WeaponStrengthArtillery = artK };
         return new Simulation(new Scenario { Kind = ScenarioKind.Nation, NationConfig = NationConfig.Britain(), Seed = 29, Coef = c }, new NullAgent());
     }
 
@@ -34,28 +34,12 @@ public class WeaponParallelTests
         => EconomyStep.MineralSelfCost(p, r, c, w) + EconomyStep.InputCostPerUnit(p, r, r, c);   // エンジンと同じ限界費用の式
 
     [Fact]
-    public void 旗0では印が全て既定で退場の表のまま()
+    public void 旧は転炉鋼を知っても退場せず産み続ける()
     {
-        var sim = Make(0.0);
-        var w = sim.World; var r = w.Region;
-        var (musket, rifle, castGun, gun, engine, _, row) = Pick(r);
-        foreach (var p in r.Producers) { Assert.False(p.NoRetire); Assert.Equal(-1, p.OpenedByRow); }
-        foreach (var p in new[] { musket, castGun, engine }) Assert.Equal(row, p.RetiredByRow);   // 退場の表は今のまま（後継＝転炉鋼）
-        // 新しいレシピは強さを掛けない：旧の生産性＝既定×MusketProductivity・投入は既定のまま（鋼 0.6／1.0）
-        Assert.Equal(rifle.Productivity * w.Coef.MusketProductivity, musket.Productivity);
-        Assert.Equal(gun.Productivity * w.Coef.MusketProductivity, castGun.Productivity);
-        Assert.Equal(0.6, rifle.Inputs.Single(i => i.GoodId == Catalog.SteelId).QtyPerOutput);
-        Assert.Equal(1.0, gun.Inputs.Single(i => i.GoodId == Catalog.SteelId).QtyPerOutput);
-    }
-
-    [Fact]
-    public void 旗正では旧は転炉鋼を知っても退場せず産み続ける()
-    {
-        var sim = Make(1.0);
+        var sim = Make();
         var w = sim.World; var r = w.Region;
         var (musket, _, castGun, _, engine, _, row) = Pick(r);
         var old = new[] { musket, castGun, engine };
-        foreach (var p in old) { Assert.True(p.NoRetire); Assert.Equal(-1, p.RetiredByRow); }
         r.Discovered = w.Discovered;
         Assert.False(Discovery.Known(w.Discovered, row), "前提が崩れている（転炉鋼が発見済み）");
         foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
@@ -71,9 +55,9 @@ public class WeaponParallelTests
     }
 
     [Fact]
-    public void 旗正では新の門は転炉鋼まで閉じ財の解禁は旧が保つ()
+    public void 新の門は転炉鋼まで閉じ財の解禁は旧が保つ()
     {
-        var sim = Make(1.0);
+        var sim = Make();
         var w = sim.World; var r = w.Region;
         var (_, rifle, _, gun, _, _, row) = Pick(r);
         r.Discovered = w.Discovered;
@@ -86,9 +70,9 @@ public class WeaponParallelTests
     }
 
     [Fact]
-    public void 旗正では新の束は強さの比だけ投入が小さく生産性が大きい()
+    public void 新の束は強さの比だけ投入が小さく生産性が大きい()
     {
-        var off = Make(0.0); var on = Make(1.0, rifleK: 3.0, artK: 4.0);
+        var off = Make(1.0, 1.0); var on = Make(3.0, 4.0);   // k=1＝束を変えない世界と並べる
         var (_, rifle0, _, gun0, _, _, _) = Pick(off.World.Region);
         var (musket1, rifle1, castGun1, gun1, _, _, _) = Pick(on.World.Region);
         void Check(Producer p0, Producer p1, double k)
@@ -103,7 +87,7 @@ public class WeaponParallelTests
             Assert.Equal(p0.MarginalCost, p1.MarginalCost);   // 自己費用は割らない
         }
         Check(rifle0, rifle1, 3.0); Check(gun0, gun1, 4.0);
-        // 旧は旗 0 の既定の生産性から作る（強さを掛ける前の値）
+        // 旧は強さを掛ける前の既定の生産性から作る
         Assert.Equal(rifle0.Productivity * on.World.Coef.MusketProductivity, musket1.Productivity);
         Assert.Equal(gun0.Productivity * on.World.Coef.MusketProductivity, castGun1.Productivity);
     }
@@ -111,12 +95,12 @@ public class WeaponParallelTests
     [Fact]
     public void 参照価格の世界で新は旧より1単位の費用が安く門が無ければ坩堝鋼の値段でも勝つ()
     {
-        var sim = Make(1.0);
+        var sim = Make();
         var w = sim.World; var r = w.Region; var c = w.Coef;
         var (musket, rifle, castGun, gun, _, _, _) = Pick(r);
         for (int g = 0; g < Catalog.RefPrices.Length && g < r.Markets.Length; g++) r.Markets[g].Price = Catalog.RefPrices[g] * r.PriceLevel;
         Assert.True(Mc(rifle, r, c, w) < Mc(musket, r, c, w), "ref 価格で新の小銃が旧より高い");
-        Assert.True(Mc(gun, r, c, w) < Mc(castGun, r, c, w), "ref 価格で新の砲が旧より高い（旗 0 では 4.10 対 2.50 で旧が安い＝強さの比が効いていない）");
+        Assert.True(Mc(gun, r, c, w) < Mc(castGun, r, c, w), "ref 価格で新の砲が旧より高い（強さの比 k=1 では 4.10 対 2.50 で旧が安い＝強さの比が効いていない）");
         // 門が必要な理由：鋼が坩堝鋼の値段（ベッセマー以前）でも新が安い＝門が無ければ 1783 年から新が旧に勝つ
         var crucible = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.RecipeName == "坩堝鋼");
         r.Markets[Catalog.SteelId].Price = Mc(crucible, r, c, w);
@@ -134,7 +118,7 @@ public class WeaponParallelTests
         Assert.True(row >= 0);
         var musket0 = Assert.Single(r0.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
         var rifle0 = Assert.Single(r0.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName != "マスケット");
-        musket0.NoRetire = true; rifle0.OpenedByRow = row;
+        rifle0.OpenedByRow = row;
         using var ms1 = new MemoryStream();
         SaveGame.Save(sim, ms1);
         ms1.Position = 0;
@@ -145,8 +129,7 @@ public class WeaponParallelTests
         var r = sim2.Nations[0].World.Region;
         var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
         var rifle = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName != "マスケット");
-        Assert.True(musket.NoRetire); Assert.Equal(-1, musket.RetiredByRow); Assert.Equal(row, rifle.OpenedByRow);
-        Assert.False(r.Producers.First(p => p.GoodId == Catalog.ArtilleryId).NoRetire);
+        Assert.Equal(row, rifle.OpenedByRow); Assert.Equal(-1, musket.OpenedByRow);
     }
 
     [Fact]

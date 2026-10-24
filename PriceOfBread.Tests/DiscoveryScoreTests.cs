@@ -187,9 +187,9 @@ public class DiscoveryScoreTests
 
     /// <summary>★(169) 1780年代の蒸気機関＝「鋳鉄の機関」（時代のレシピ・前期の軍需と同じ型）：蒸気機関の財の既定のレシピがある全ての州に並び、
     /// 投入は鉄1.832＋銅0.414＋石炭0.4（＋労働力と高度労働力）＝鋼と機械を使わない・参照価格の世界で既定のレシピと同じ費用（1% 以内）・
-    /// 門は転炉鋼の発見までは開き、発見で退く（退場の表）。⚠壊し方＝足さない・鋼か機械を投入にする・退場させない → 赤。</summary>
+    /// 門は転炉鋼の発見の後も開いたまま（退場しない＝★(537) 退場の表は消した）。⚠壊し方＝足さない・鋼か機械を投入にする・転炉鋼で退場させる → 赤。</summary>
     [Fact]
-    public void 一七八〇年代の蒸気機関は鋳鉄の機関で作れ_転炉鋼の発見で退く()
+    public void 一七八〇年代の蒸気機関は鋳鉄の機関で作れ_転炉鋼の後も並ぶ()
     {
         var sim = Board();
         var w = Nation(sim, "フランス");
@@ -209,11 +209,10 @@ public class DiscoveryScoreTests
             // 参照価格の世界の費用＝自己費用＋Σ投入×参照価格（労働力と高度労働力も参照価格）＝既定のレシピと同じ（1% 以内）
             double RefCost(Producer p) => p.MarginalCost + p.Inputs.Sum(i => i.QtyPerOutput * Catalog.RefPrices[i.GoodId]);
             Assert.Equal(1.0, RefCost(ci) / RefCost(def), 2);
-            Assert.Equal(bessemer, ci.RetiredByRow);
             Assert.False(w.Discovered[bessemer], "前提が崩れた（開幕に転炉鋼）");
             Assert.Equal(1.0, Discovery.Gate(rg, ci));
             w.Discovered[bessemer] = true;
-            Assert.Equal(0.0, Discovery.Gate(rg, ci));   // 転炉鋼の発見で退く
+            Assert.Equal(1.0, Discovery.Gate(rg, ci));   // 転炉鋼の発見の後も退かない（並行して作られる）
             w.Discovered[bessemer] = false;
         }
         Assert.True(withDefault > 0, "前提が崩れた（仏に蒸気機関の財の既定のレシピが無い）");

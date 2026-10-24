@@ -603,7 +603,7 @@ public class StateFactoryTests
     }
 
     [Fact]
-    public void 閉じた旧レシピの持分があっても着工と意志は開いた後継に付く()
+    public void 閉じた新世代のレシピの持分があっても着工と意志は開いた旧に付く()
     {
         var w = Warm(2061).World;
         Region? rr = null; int ri = -1; Producer? old = null, succ = null;
@@ -613,14 +613,14 @@ public class StateFactoryTests
             if (r.State != RegionState.Active || r.Discovered is null) continue;
             foreach (var a in r.Producers)
             {
-                if (a.RetiredByRow < 0 || a.RetiredByRow >= r.Discovered.Length) continue;
-                var s = r.Producers.FirstOrDefault(q => q != a && q.GoodId == a.GoodId && q.RetiredByRow < 0 && q.DiscoveryRow < 0);   // 常に開いている後継
+                if (a.OpenedByRow < 0 || a.OpenedByRow >= r.Discovered.Length || Discovery.Known(r.Discovered, a.OpenedByRow)) continue;   // ★(537) 転炉鋼の前は門が閉じている新世代のレシピ
+                var s = r.Producers.FirstOrDefault(q => q != a && q.GoodId == a.GoodId && q.OpenedByRow < 0 && q.DiscoveryRow < 0);   // 常に開いている旧（マスケット・鋳鉄砲）
                 if (s is null) continue;
                 rr = r; ri = i; old = a; succ = s; break;
             }
         }
-        Assert.NotNull(old);                                  // 対照＝退場するレシピと後継が並ぶ州がある
-        rr!.Discovered![old!.RetiredByRow] = true;            // 後継の発見＝旧レシピの門が閉じる
+        Assert.NotNull(old);                                  // 対照＝閉じた新世代のレシピと開いた旧が並ぶ州がある
+        Assert.NotNull(rr!.Discovered);
         Assert.False(Discovery.Gate(rr, old) > 0);
         old.BuiltScale = w.Coef.FactoryBuildScale;            // 旧レシピに国営の持分が残っている
         old.StateTarget = World.StateUnits(old, w.Coef);

@@ -1005,8 +1005,8 @@ public sealed class Simulation
     }
 
     /// <summary>★(537) 新世代の武器のレシピ（既定の鋼の小銃・鋼の砲）の強さ：財の単位を〈戦う強さ〉と読み、同じ投入の束が <paramref name="k"/> 単位になる＝生産性 ×k・投入の量（労働と高度労働を含む全て）÷k
-    /// （自己費用 <see cref="Producer.MarginalCost"/> は割らない）。門＝転炉鋼の発見（退場の表の後継の行・<see cref="Producer.OpenedByRow"/>）まで 0＝時代錯誤の投入を作らない。
-    /// k が正でなければ（NaN を含む）強さは掛けず門だけ置く（否定形）。旗 <see cref="Coefficients.WeaponParallelEnabled"/> が正のときだけ呼ぶ。</summary>
+    /// （自己費用 <see cref="Producer.MarginalCost"/> は割らない）。門＝転炉鋼の発見（<see cref="Producer.OpenedByRow"/>）まで 0＝時代錯誤の投入を作らない。
+    /// k が正でなければ（NaN を含む）強さは掛けず門だけ置く（否定形）。構築時（<c>AddAlternateRecipes</c>）の 2 か所だけが呼ぶ。</summary>
     private static void ToWeaponStrength(Producer p, double k)
     {
         if (k > 0)
@@ -1066,40 +1066,36 @@ public sealed class Simulation
             if (pr.GoodId == Catalog.RifleId && rifleDefault is null) rifleDefault = pr;
             else if (pr.GoodId == Catalog.ArtilleryId && cannonDefault is null) cannonDefault = pr;
         }
-        // ★(537) 旗 WeaponParallelEnabled>0（既定 0＝今のまま）：旧のレシピは退場の表を読まない（NoRetire）・新しいレシピ（既定の鋼の小銃・鋼の砲）は財の単位を強さと読んで同じ投入の束が k 単位（ToWeaponStrength）。
-        //   ⚠旧の生産性は新しいレシピに強さを掛ける前の既定の値から作る（下の2本は Add が先・ToWeaponStrength が後＝旗 0 の式と同じ順序）。
-        bool weaponParallel = coef.WeaponParallelEnabled > 0;
+        // ★(537) 旧のレシピ（マスケット・鋳鉄砲・鋳鉄の機関）は退場しない（退場の表は消した）・新しいレシピ（既定の鋼の小銃・鋼の砲）は財の単位を強さと読んで同じ投入の束が k 単位（ToWeaponStrength）。
+        //   ⚠旧の生産性は新しいレシピに強さを掛ける前の既定の値から作る（下の2本は Add が先・ToWeaponStrength が後＝旧の生産性は強さを掛ける前の値から作る）。
         if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
         {
             producers.Add(new Producer { GoodId = Catalog.RifleId, RecipeName = "マスケット",
                 Productivity = rifleDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = rifleDefault.LaborPopIndex, OwnerPopIndex = rifleDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                Inputs = [new Input(Catalog.IronId, 1.0), new Input(Catalog.LumberId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RifleId))],
-                NoRetire = weaponParallel });
-            if (weaponParallel) ToWeaponStrength(rifleDefault, coef.WeaponStrengthRifle);
+                Inputs = [new Input(Catalog.IronId, 1.0), new Input(Catalog.LumberId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RifleId))] });
+            ToWeaponStrength(rifleDefault, coef.WeaponStrengthRifle);
         }
         if (cannonDefault is not null)
         {
             producers.Add(new Producer { GoodId = Catalog.ArtilleryId, RecipeName = "鋳鉄砲",
                 Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))],
-                NoRetire = weaponParallel });
-            if (weaponParallel) ToWeaponStrength(cannonDefault, coef.WeaponStrengthArtillery);
+                Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))] });
+            ToWeaponStrength(cannonDefault, coef.WeaponStrengthArtillery);
         }
         // ★(169) 1780年代の蒸気機関＝「鋳鉄の機関」（時代のレシピ・前期の軍需と同じ型・推奨で進めた）。既定のレシピ（機械0.726＋石炭0.4）の機械は鋼（転炉鋼の前は坩堝鋼＝5倍高い）
         //   ＝開幕の蒸気機関の財を作る費用が参照の3〜10倍（(165)(167) の腕A・B）＝時代錯誤の投入。史実＝ワットの機関（1776〜1800）は鋳鉄のシリンダー（ウィルキンソンの中ぐり盤1774）・
         //   鋳鉄の梁と弾み車・錬鉄と銅のボイラーで、鋼は使わなかった（Dickinson & Jenkins 1927・Hills 1989）。投入＝既定の機械の中身（鋼1.10＋銅0.41）の鋼を鉄に置き換え、
         //   重さはマスケット（鉄1.0 対 鋼0.6）と同じ比（鋳鉄・錬鉄は同じ強さに鋼の約1.7倍）＝鉄1.832＋銅0.414＋石炭0.4＝参照価格の世界で既定と同じ費用（3.81 対 3.80）。
-        //   退場＝転炉鋼の発見（Catalog の退場の表・高圧と複式の鋼の機関＝性能で退く）。国名の分岐を作らない（全ての州に同じ1本）。
+        //   ★(537) 退場の表は消した＝転炉鋼の後も鋳鉄の機関は並行して作られる（市場が費用で選ぶ）。国名の分岐を作らない（全ての州に同じ1本）。
         Producer? engineDefault = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.SteamEngineId) { engineDefault = pr; break; }
         if (engineDefault is not null)   // 蒸気機関の無い世界（最小シナリオ）は不発
             producers.Add(new Producer { GoodId = Catalog.SteamEngineId, RecipeName = "鋳鉄の機関",
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))],
-                NoRetire = weaponParallel });   // ★(537) 鋳鉄の機関も並行（強さには読み替えない＝動力の束の線の仕事）
+                Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });   // ★(537) 鋳鉄の機関も転炉鋼の後に退かず並行する（強さには読み替えない＝動力の束の線の仕事）
         // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に

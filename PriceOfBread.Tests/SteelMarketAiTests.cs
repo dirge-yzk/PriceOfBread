@@ -237,7 +237,7 @@ public class SteelMarketAiTests
                 foreach (var p in r.Producers)
                 {
                     if (p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
-                    if (p.Bankrupt || p.ConstructionLeft > 0 || p.BuiltScale > 1e-9 || p.SiteRow >= 0 || p.DiscoveryRow < 0 || p.RetiredByRow >= 0 || Discovery.Gate(r, p) > 0) continue;
+                    if (p.Bankrupt || p.ConstructionLeft > 0 || p.BuiltScale > 1e-9 || p.SiteRow >= 0 || p.DiscoveryRow < 0 || Discovery.Gate(r, p) > 0) continue;
                     if (!(Catalog.RefPrices[p.GoodId] > 0) || Catalog.FactorySpec(p.GoodId).Cost > UtilityAgent.FiscalBufferOf(w)) continue;
                     rg = r; pr = p; break;
                 }
@@ -331,7 +331,7 @@ public class SteelMarketAiTests
                 if (ra.State != RegionState.Active) continue;
                 foreach (var p in ra.Producers)
                 {
-                    if (p.DiscoveryRow < 0 || p.RetiredByRow >= 0 || p.SiteRow >= 0 || p.GoodId < 0 || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
+                    if (p.DiscoveryRow < 0 || p.SiteRow >= 0 || p.GoodId < 0 || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
                     if (ra.Producers.Count(q => q.GoodId == p.GoodId) != 1) continue;   // 並存レシピの無い財
                     for (int j = i + 1; j < n.World.Regions.Count && pb is null; j++)
                     {
