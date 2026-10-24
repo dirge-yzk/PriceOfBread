@@ -252,7 +252,8 @@ public static class Discovery
         int row = p.DiscoveryRow;
         double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
         if (p.OpenedByRow >= 0 && !Known(known, p.OpenedByRow)) return 0.0;   // ★(537) 新世代の門（既定の鋼の小銃・鋼の砲＝転炉鋼の発見まで 0・印の無い生産者は −1 でこの行を通らない）
-        return g;   // 退場の表は無い（旧のレシピは後継の発見の後も並行して作られる・市場が強さ1単位あたりの費用で選ぶ）
+        int ret = p.RetiredByRow;   // ★(537) 退場の表に残るのは鋳鉄の機関だけ（武器の旧のレシピは並行して作られる＝退場しない）
+        return ret >= 0 && Known(known, ret) ? 0.0 : g;
     }
 
     /// <summary>財の解禁∈[0,1]＝その州の生産者（レシピ）の門の最大（設計 §1-2＝財の解禁はレシピの解禁の最大）・生産者が居ない財（賦存の無い RGO 等）は既定のレシピの行で読む

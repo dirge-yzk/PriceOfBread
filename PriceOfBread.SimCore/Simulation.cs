@@ -1066,7 +1066,7 @@ public sealed class Simulation
             if (pr.GoodId == Catalog.RifleId && rifleDefault is null) rifleDefault = pr;
             else if (pr.GoodId == Catalog.ArtilleryId && cannonDefault is null) cannonDefault = pr;
         }
-        // ★(537) 旧のレシピ（マスケット・鋳鉄砲・鋳鉄の機関）は退場しない（退場の表は消した）・新しいレシピ（既定の鋼の小銃・鋼の砲）は財の単位を強さと読んで同じ投入の束が k 単位（ToWeaponStrength）。
+        // ★(537) 旧の武器のレシピ（マスケット・鋳鉄砲）は退場しない（退場の表から外した・鋳鉄の機関は残る）・新しいレシピ（既定の鋼の小銃・鋼の砲）は財の単位を強さと読んで同じ投入の束が k 単位（ToWeaponStrength）。
         //   ⚠旧の生産性は新しいレシピに強さを掛ける前の既定の値から作る（下の2本は Add が先・ToWeaponStrength が後＝旧の生産性は強さを掛ける前の値から作る）。
         if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
         {
@@ -1088,14 +1088,14 @@ public sealed class Simulation
         //   ＝開幕の蒸気機関の財を作る費用が参照の3〜10倍（(165)(167) の腕A・B）＝時代錯誤の投入。史実＝ワットの機関（1776〜1800）は鋳鉄のシリンダー（ウィルキンソンの中ぐり盤1774）・
         //   鋳鉄の梁と弾み車・錬鉄と銅のボイラーで、鋼は使わなかった（Dickinson & Jenkins 1927・Hills 1989）。投入＝既定の機械の中身（鋼1.10＋銅0.41）の鋼を鉄に置き換え、
         //   重さはマスケット（鉄1.0 対 鋼0.6）と同じ比（鋳鉄・錬鉄は同じ強さに鋼の約1.7倍）＝鉄1.832＋銅0.414＋石炭0.4＝参照価格の世界で既定と同じ費用（3.81 対 3.80）。
-        //   ★(537) 退場の表は消した＝転炉鋼の後も鋳鉄の機関は並行して作られる（市場が費用で選ぶ）。国名の分岐を作らない（全ての州に同じ1本）。
+        //   退場の表に残る（鋳鉄の機関だけ）。国名の分岐を作らない（全ての州に同じ1本）。
         Producer? engineDefault = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.SteamEngineId) { engineDefault = pr; break; }
         if (engineDefault is not null)   // 蒸気機関の無い世界（最小シナリオ）は不発
             producers.Add(new Producer { GoodId = Catalog.SteamEngineId, RecipeName = "鋳鉄の機関",
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });   // ★(537) 鋳鉄の機関も転炉鋼の後に退かず並行する（強さには読み替えない＝動力の束の線の仕事）
+                Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
         // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に

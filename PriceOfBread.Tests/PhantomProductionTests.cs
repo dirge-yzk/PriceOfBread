@@ -52,6 +52,7 @@ public class PhantomProductionTests
                     double gate = Discovery.Gate(region, s);
                     if (gate > 0) continue;
                     // ★(415) 退場したレシピ（後継を発見した）は、退場が判定の段（四半期の終わり）で起きてから次の月の産出スナップ（EconomyStep の unInvented＝門0 で Output＝0）までの1期のずれ＝この番人の主題（未発明の財を1単位も作らない）の外。既定では後継（転炉鋼ほか）が1783年に開き、12四半期の中で退場が起きる（基点は1818年で窓の外）
+                    if (s.RetiredByRow >= 0 && Discovery.Known(region.Discovered, s.RetiredByRow) && !knownBefore.Contains((region, s.RetiredByRow))) continue;
                     gated++;
                     Assert.True(s.Output == 0.0,
                         $"{n.World.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}"

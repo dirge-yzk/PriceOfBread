@@ -38,8 +38,8 @@ public class WeaponParallelTests
     {
         var sim = Make();
         var w = sim.World; var r = w.Region;
-        var (musket, _, castGun, _, engine, _, row) = Pick(r);
-        var old = new[] { musket, castGun, engine };
+        var (musket, _, castGun, _, _, _, row) = Pick(r);
+        var old = new[] { musket, castGun };   // 武器の旧のレシピ（鋳鉄の機関は退場の表に残る＝下で別に見る）
         r.Discovered = w.Discovered;
         Assert.False(Discovery.Known(w.Discovered, row), "前提が崩れている（転炉鋼が発見済み）");
         foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
@@ -52,6 +52,21 @@ public class WeaponParallelTests
             Assert.True(p.Scale > 0, $"{p.RecipeName}：転炉鋼の後に操業規模 {p.Scale}＝退場している（退場の表では 0 に置かれる）");
             Assert.NotEqual((byte)1, EconomyStep.SleepState(sim.World.Region, p, sim.World.Coef));   // 眠らない
         }
+    }
+
+    /// <summary>鋳鉄の機関は武器と違い退場の表に残る：強さの差を財の単位に持たないので、並行させると鋼も機械も要らない機関が転炉鋼の後も主力に居座る（腕 B の wp_s で新の割合の中央 1.6%）。
+    /// ⚠壊し方＝退場の表から鋳鉄の機関を外す → 赤。</summary>
+    [Fact]
+    public void 鋳鉄の機関は転炉鋼の発見で退く()
+    {
+        var sim = Make();
+        var w = sim.World; var r = w.Region;
+        var (_, _, _, _, engine, _, row) = Pick(r);
+        r.Discovered = w.Discovered;
+        Assert.Equal(row, engine.RetiredByRow);
+        Assert.Equal(1.0, Discovery.Gate(r, engine));
+        w.Discovered[row] = true;
+        Assert.Equal(0.0, Discovery.Gate(r, engine));
     }
 
     [Fact]

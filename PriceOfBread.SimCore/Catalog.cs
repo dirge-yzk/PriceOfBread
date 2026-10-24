@@ -685,8 +685,16 @@ public static class Catalog
     /// <summary>財を持たない発見の行（制度と思想）の財の欄（<see cref="DiscoveryRowOf"/> は負の財を探さない＝名前で <see cref="DiscoveryRowNamed"/>）。</summary>
     public const int NoGood = -1;
 
-    /// <summary>★(537) 並行して作る新世代のレシピ（既定の鋼の小銃・鋼の砲）の門と、計器が読む蒸気機関の対の発見＝転炉鋼（鋼の既定のレシピ）。旧のレシピ（マスケット・鋳鉄砲・鋳鉄の機関）は退場しない
-    /// （旧の〈退場の表〉は 2026-10-24 に消した＝作者 2026-10-24「武器は旧式も新式も並行して作る方式にできませんか？」）。⚠発見の行は足さない（<see cref="Discoveries"/> の添字を動かさない）。</summary>
+    /// <summary>退場（2026-09-27 回2-1 の続き）＝前期のレシピは後継の発見で退く（旧＝TechOnset＝−後継の onset・能力に 1−後継の解禁度）。
+    /// 後継＝既定のレシピ（鋼の機関）を実用にした発見＝転炉鋼。⚠2値＝後継を発見した四半期に退く。
+    /// ★(537) 武器の旧のレシピ（マスケット・鋳鉄砲）は 2026-10-24 にこの表から外した（作者 2026-10-24「武器は旧式も新式も並行して作る方式にできませんか？」＝並行して作られる）。
+    /// 鋳鉄の機関は残す：強さの差を財の単位に持たない（蒸気機関に強さの読み替えは無い）ので、退場させないと鋼も機械も要らない安い機関が 1950 年まで主力に居座る（腕 B の wp_s：転炉鋼の後も新の割合の中央 1.6%・旧÷新の費用 0.92）。</summary>
+    private static readonly (int Good, string Recipe, int SuccessorGood, string SuccessorRecipe)[] Retirements =
+    [
+        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く
+    ];
+
+    /// <summary>★(537) 並行して作る新世代のレシピ（既定の鋼の小銃・鋼の砲）の門と、計器が読む蒸気機関の対の発見＝転炉鋼（鋼の既定のレシピ）。⚠発見の行は足さない（<see cref="Discoveries"/> の添字を動かさない）。</summary>
     private static readonly int[] WeaponSuccessorGoods = [RifleId, ArtilleryId, SteamEngineId];
 
     /// <summary>★(336) 流れG ② 系統×段階：行ごとの前提の行の添字（−1＝前提なし＝系統の根）＝<see cref="DiscoveryRow.After"/> の名前を引く。
@@ -752,6 +760,13 @@ public static class Catalog
 
     /// <summary>発見の表の行の添字を名前で（財を持たない制度と思想の行）。無ければ −1。</summary>
     public static int DiscoveryRowNamed(string name) => System.Array.FindIndex(Discoveries, d => d.Name == name);
+
+    /// <summary>このレシピを退かせる発見の行（無ければ −1）。</summary>
+    public static int RetiredByRowOf(int good, string recipe)
+    {
+        foreach (var (g, r, sg, sr) in Retirements) if (g == good && r == recipe) return DiscoveryRowOf(sg, sr);
+        return -1;
+    }
 
     /// <summary>★(537) 新世代の武器のレシピ（既定の鋼の小銃・鋼の砲）が開く発見の行（転炉鋼＝鋼の既定のレシピ・財が表に無ければ −1）。<c>Simulation.AddAlternateRecipes</c> が <see cref="Producer.OpenedByRow"/> へ置く。
     /// 蒸気機関は計器 <c>wp_s</c> が〈鋳鉄の機関の対の発見〉を読むためだけに載せる（蒸気機関の既定のレシピには門を置かない）。</summary>
