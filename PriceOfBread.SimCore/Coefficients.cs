@@ -1188,6 +1188,21 @@ public sealed class Coefficients
     public int MachineGoodId = Catalog.MachineryId;
     public int CementGoodId = Catalog.CementId;
     public int LumberGoodId = Catalog.LumberId;
+    // ★(536) 線 ivf：建設の資材の束の 2 組目〈時代の組〉（旗 ConstructionEraBundle・既定 0＝鋼の組だけ＝1 ビットも変わらない）。事前登録 measurements/ivf536_20261024_prereg.txt [0] F2。
+    //   正のとき、その州のその月の今の価格の費用が低い方の組を市場が選ぶ（EconomyStep.BundleOf）＝発見の門は足さない。
+    //   根＝1783 年の鋼は坩堝鋼だけ（転炉鋼は 1850 年代の発見）で機械に鋼を使わないレシピが無い＝開幕の束の値段÷参照が英 2.55・仏 4.14・普 4.06・米 3.63・清 6.27（iv ②）。
+    //   時代の組＝鉄 1.0・製材 1.5・石灰石 0.8・粘土 0.95（史実〈推・iv〉：1780 年代の建材は煉瓦・石と石灰の漆喰・木材・鋳鉄と錬鉄。ポルトランドセメントは 1824 年特許・普及 1850 年代）。
+    //   量は〈鋼の組の参照の合計 3.7104 に合わせた較正〉（時代の組の参照の合計 3.7140・＋0.10%）＝確証なし（AI の推奨）。BundleRef は鋼の組のまま（私的な建設の工業化度の較正を動かさない）。
+    public double ConstructionEraBundle = 0;
+    public double ConsEraIron = 1.0;
+    public double ConsEraLumber = 1.5;
+    public double ConsEraLime = 0.8;
+    public double ConsEraClay = 0.95;
+    // ★(536) 線 ivf：州の物価の乗数（LocalPriceMultiplier）と賃金の割増（WagePremium）の〈国平均〉を、植民地の格（RegionTier.Colonial）の州を除いた州で取る（既定 0＝全ての州＝今の形）。事前登録 [0] F1。
+    //   根＝英の国平均の 1 人あたり貯蓄にベンガルなど植民地の 3,000 万人が入り、本土の乗数が 1.379 になる（iv ①）。
+    public double RegionalPriceBaseExcludesColonies = 0;
+    // ★(536) 線 ivf：機械（財）の地理差のレシピ〈鋳鉄の機械〉（鉄 2.52＋銅 0.57・既定 0＝足さない）。事前登録 [0] F3。換算は鋳鉄の機関と同じ型＝既定の機械の鋼 1.514 を鉄 2.52 に置き換える。
+    public double MachineCastIronRecipe = 0;
     // ★段1（2026-09-30・財の削減＝作者裁定 Q2）：工場建設費の素材階層+α FactoryTierMachinePerDepth（出力財の連鎖の深さ×機械の上乗せ・2026-08-09 点火）を撤去＝
     //   深さで時代や難しさを表さない（発見が表す）。建設費の差は FactorySpec（カテゴリの建設費）と建設の束の価格が持つ。
     // 工業化に伴うインフラ敷設（鉄道）＝建設に比例して消費。資本財段（機関車→蒸気機関→機械部品）へ需要が波及し死蔵を解消。

@@ -920,6 +920,7 @@ public static class EconomyStep
         double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
         double monumentConstruction = 0, monumentLaborUnits = 0;
         double stateConstruction = 0;   // プレイヤーの手動建設（国庫負担で同じ束を買う）
+        ConsBundle bundle = ConsBundle.Steel(coef);   // ★(536) 線 ivf：今月のこの州の建設の資材の組（旗 ConstructionEraBundle が 0 なら常に鋼の組＝今の束）。資本家の建設の頭（BundleOf）か下の工場建設の頭で決め、需要・決済・繰越が同じ組を読む
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
         double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の門＝機関車の発見（(150)・RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
@@ -931,7 +932,9 @@ public static class EconomyStep
         foreach (var pw in region.Producers) if (pw.GoodId == Catalog.LaborId) { conWorker = pw.LaborPopIndex; break; }
         if (cap && region.InvestorPopIndex >= 0)
         {
-            double costPerUnit = BundleCost(region, coef);   // 建設の資材の束の費用（K の1本）
+            bundle = BundleOf(region, coef);
+            if (Instruments.On && world is not null) Instruments.IvfChoice(world, region, bundle.Era);   // (536) 計器（読むだけ）：建設の組の選び
+            double costPerUnit = bundle.Cost(region);   // 建設の資材の束の費用（K の1本）
             double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
             // costPerUnit 自体は「材料束の純価格」（下段の stateConstruction が StateBuildQueue の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
@@ -993,10 +996,10 @@ public static class EconomyStep
             // （旗 ConstructionMaterialCarryover は 2026-10-18 に焼き込み＝繰越の経路は常に走る。）
             region.ConstructionCarryover ??= new double[ng];
             conCarryApplied ??= new double[ng];
-            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.SteelGoodId, coef.ConsSteel * construction);
-            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.MachineGoodId, coef.ConsMachine * construction);
-            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.CementGoodId, coef.ConsCement * construction);
-            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.LumberGoodId, coef.ConsLumber * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G0, bundle.Q0 * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G1, bundle.Q1 * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G2, bundle.Q2 * construction);
+            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G3, bundle.Q3 * construction);
             // 経5（労働の二重雇用・点火2026-07-28・2026-09-28 に旗 ConstructionLaborViaMarket と旧経路を削除）：建設工賃を労働力財の investDemand（保守要員と同経路）へ回し、
             // 建設ブームが労働需給を逼迫させ賃金クランプ・失業に効く。労働量＝工賃予算/労働価格で換算（材料cost比例の工賃を労働財の量へ）。
             // 決済（下段）では conLaborUnits×ration[Labor]×労働価格を投資家/国庫が支払い revenue[Labor] へ計上＝インフラ保守の決済と同型（支払い＝労働pop受取で保存）。
@@ -1029,10 +1032,10 @@ public static class EconomyStep
             // （実支払いは決済の StateSpent＝実購入分のみ・Queueは試行毎にゼロ化＝上限超過分の請求は蒸発し、適格なら翌四半期に再請求される）。私的経路は netReturn ゲートが既に有界≈7.4。
             double stateHeadroomUnits = Math.Max(0, (coef.IndustryInvestRegionCap - region.TotalIndustrialization) / Math.Max(Eps, coef.IndPerConstruction));   // 州上限は立っている資本の総量（新旧合計）で判定（ヴィンテージ2026-07-10）
             stateConstruction = Math.Min(stateConstruction, stateHeadroomUnits);
-            investDemand[coef.SteelGoodId] += coef.ConsSteel * stateConstruction;
-            investDemand[coef.MachineGoodId] += coef.ConsMachine * stateConstruction;
-            investDemand[coef.CementGoodId] += coef.ConsCement * stateConstruction;
-            investDemand[coef.LumberGoodId] += coef.ConsLumber * stateConstruction;
+            investDemand[bundle.G0] += bundle.Q0 * stateConstruction;
+            investDemand[bundle.G1] += bundle.Q1 * stateConstruction;
+            investDemand[bundle.G2] += bundle.Q2 * stateConstruction;
+            investDemand[bundle.G3] += bundle.Q3 * stateConstruction;
             // 経5：国家建設の工賃も同経路（国庫負担）＝決済は国庫（StateSpent）が支払う。
             if (Catalog.LaborId < ng && conWorker >= 0)
             {
@@ -1045,10 +1048,10 @@ public static class EconomyStep
             monumentConstruction = costPerUnit > Eps ? region.MonumentBuildQueue / costPerUnit * bundleAfford : 0;   // ★束の採算（2026-08-03）＝国家建設と同じ式
             if (monumentConstruction > 0)
             {
-                investDemand[coef.SteelGoodId] += coef.ConsSteel * monumentConstruction;
-                investDemand[coef.MachineGoodId] += coef.ConsMachine * monumentConstruction;
-                investDemand[coef.CementGoodId] += coef.ConsCement * monumentConstruction;
-                investDemand[coef.LumberGoodId] += coef.ConsLumber * monumentConstruction;
+                investDemand[bundle.G0] += bundle.Q0 * monumentConstruction;
+                investDemand[bundle.G1] += bundle.Q1 * monumentConstruction;
+                investDemand[bundle.G2] += bundle.Q2 * monumentConstruction;
+                investDemand[bundle.G3] += bundle.Q3 * monumentConstruction;
                 if (Catalog.LaborId < ng && conWorker >= 0)
                 {
                     monumentLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * monumentConstruction / lWagePrice;
@@ -1057,7 +1060,7 @@ public static class EconomyStep
             }
             // プレイヤーの工場建設（特定財）＝共通ヘルパーへ抽出（2026-08-09・capゲート穴の閉鎖）。式・順序は抽出前と同一＝
             // CapitalEnabled=true の州ではビット恒等。材料需要は国庫負担の物理＝資本区画の有無と無関係（非cap州は下のelse分岐が同じ式で積む）。
-            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, world);
+            AccumulateFactoryBuild(region, coef, bundle, investDemand, ref factoryBuildUnits, world);
             bool railLoco = coef.RailGoodId < ng && coef.LocoGoodId < ng;
             // 鉄道インフラ：工業化に伴い敷設（線路・機関車を消費）。死蔵解消＋資本財段へ波及（機関車←蒸気機関←機械部品）
             if (railLoco)
@@ -1115,7 +1118,9 @@ public static class EconomyStep
         {
             // capゲート穴の閉鎖（2026-08-09）：資本区画のない州（または投資家pop不在）でも着工中の工場は材料を買う。
             // 従来は材料費ゼロ・工賃のみで完成する抜け道（素材階層+αの導入で価値が増すため恒久閉鎖）。
-            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, world);
+            bundle = BundleOf(region, coef);
+            if (Instruments.On && world is not null) Instruments.IvfChoice(world, region, bundle.Era);   // (536) 計器（読むだけ）
+            AccumulateFactoryBuild(region, coef, bundle, investDemand, ref factoryBuildUnits, world);
         }
 
         // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
@@ -2098,20 +2103,20 @@ public static class EconomyStep
         // === 投資の決済：建設の束を買って工業化度を積む。最も不足する成分が律速（支払い＝各財の売上で保存）===
         if (cap && construction > 0)
         {
-            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
+            int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
             // 経17：新規購入量(*Got)は「今月立てた需要＝Cons×construction−充当繰越」×配給＝investDemand と厳密に一致させる（充当分を引かないと支払いが需要を上回り金銭が漏れる）。
             double sApp = conCarryApplied?[sg] ?? 0, mApp = conCarryApplied?[mg] ?? 0, cApp = conCarryApplied?[cg] ?? 0, lApp = conCarryApplied?[lg] ?? 0;
-            double sGot = Math.Max(0, coef.ConsSteel * construction - sApp) * ration[sg];
-            double mGot = Math.Max(0, coef.ConsMachine * construction - mApp) * ration[mg];
-            double cGot = Math.Max(0, coef.ConsCement * construction - cApp) * ration[cg];
-            double lGot = Math.Max(0, coef.ConsLumber * construction - lApp) * ration[lg];
+            double sGot = Math.Max(0, bundle.Q0 * construction - sApp) * ration[sg];
+            double mGot = Math.Max(0, bundle.Q1 * construction - mApp) * ration[mg];
+            double cGot = Math.Max(0, bundle.Q2 * construction - cApp) * ration[cg];
+            double lGot = Math.Max(0, bundle.Q3 * construction - lApp) * ration[lg];
             // 経17：手持ち繰越(今月控除して充当した分)を各成分に足し戻して built を測る＝手持ち資材が工業化に結実（過小計上と繰越の暴走を防ぐ）。充当0なら加算0＝旧恒等。
             double sEff = sGot + sApp;
             double mEff = mGot + mApp;
             double cEff = cGot + cApp;
             double lEff = lGot + lApp;
-            double built = Math.Min(Math.Min(sEff / Math.Max(Eps, coef.ConsSteel), mEff / Math.Max(Eps, coef.ConsMachine)),
-                                    Math.Min(cEff / Math.Max(Eps, coef.ConsCement), lEff / Math.Max(Eps, coef.ConsLumber)));
+            double built = Math.Min(Math.Min(sEff / Math.Max(Eps, bundle.Q0), mEff / Math.Max(Eps, bundle.Q1)),
+                                    Math.Min(cEff / Math.Max(Eps, bundle.Q2), lEff / Math.Max(Eps, bundle.Q3)));
             // 巨大建造物§3-2（2026-07-28）：**労働もリービッヒ律速に入れる**。従来は労働を買っても built に一切入らず「買えた分だけ払う」だけで、
             // 「資本があっても人がいないと工場は建たない」が成立していなかった。各資材項は sEff/ConsSteel = construction×ration[財] に等しいので、
             // 労働も同型で construction×ration[労働]。★資材は繰り越せるが**労働は繰り越せない**（今月雇えなかった大工は今月働いていない）＝
@@ -2132,7 +2137,8 @@ public static class EconomyStep
             region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);   // 投資家（資本家）が建設を負担（材料＋工賃）
             if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Construction), cost, built, cost);
             if (insOn) Instruments.ConstructionFill(world!, construction, built, ration[sg], ration[mg], ration[cg], ration[lg], conLaborUnits > 0 && Catalog.LaborId < ng ? ration[Catalog.LaborId] : 1.0);   // (286) 計器（読むだけ）：数量＝建った束
-            if (insOn) Instruments.ConsRegionPaid(world!, region, built, cost);   // (289) 計器（読むだけ）：州ごとの建った束と払った額
+            if (insOn) Instruments.ConsRegionPaid(world!, region, built, cost);
+            if (insOn) Instruments.IvfConstruction(world!, region, ration[sg], ration[mg], ration[cg], ration[lg]);   // (536) 計器（読むだけ）：組の 4 成分の配給率の最小   // (289) 計器（読むだけ）：州ごとの建った束と払った額
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];
@@ -2162,10 +2168,10 @@ public static class EconomyStep
             {
                 void KeepMaterial(int gid, double eff, double cons)
                     => carry[gid] = (carry[gid] + Math.Max(0, eff - built * cons)) * Catalog.DurabilityOf(gid);
-                KeepMaterial(sg, sEff, coef.ConsSteel);
-                KeepMaterial(mg, mEff, coef.ConsMachine);
-                KeepMaterial(cg, cEff, coef.ConsCement);
-                KeepMaterial(lg, lEff, coef.ConsLumber);
+                KeepMaterial(sg, sEff, bundle.Q0);
+                KeepMaterial(mg, mEff, bundle.Q1);
+                KeepMaterial(cg, cEff, bundle.Q2);
+                KeepMaterial(lg, lEff, bundle.Q3);
             }
             // 鉄道インフラの決済：投資家が線路・機関車を買って敷設（消費＝死蔵解消・投資家→生産者で保存）
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
@@ -2182,13 +2188,13 @@ public static class EconomyStep
         // 国家の手動建設の決済：買えた建設の束だけ工業化度に変換。支払いは国庫（StateSpent＝国庫→生産者で保存）＝資本家と同じ経路。
         if (cap && stateConstruction > 0)
         {
-            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
-            double sGot = coef.ConsSteel * stateConstruction * ration[sg];
-            double mGot = coef.ConsMachine * stateConstruction * ration[mg];
-            double cGot = coef.ConsCement * stateConstruction * ration[cg];
-            double lGot = coef.ConsLumber * stateConstruction * ration[lg];
-            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, coef.ConsSteel), mGot / Math.Max(Eps, coef.ConsMachine)),
-                                    Math.Min(cGot / Math.Max(Eps, coef.ConsCement), lGot / Math.Max(Eps, coef.ConsLumber)));
+            int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
+            double sGot = bundle.Q0 * stateConstruction * ration[sg];
+            double mGot = bundle.Q1 * stateConstruction * ration[mg];
+            double cGot = bundle.Q2 * stateConstruction * ration[cg];
+            double lGot = bundle.Q3 * stateConstruction * ration[lg];
+            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, bundle.Q0), mGot / Math.Max(Eps, bundle.Q1)),
+                                    Math.Min(cGot / Math.Max(Eps, bundle.Q2), lGot / Math.Max(Eps, bundle.Q3)));
             // 巨大建造物§3-2（2026-07-28・国家経路にも適用）：資本家経路（投資の決済）にだけ労働律速を入れると、**国庫で建てる限り労働ゼロでも建つ**
             // という非対称が残る。段7のニューディールは定義上「国家が建てる」経路なので、ここを外すと「好況時に民間から労働を奪って建設が止まる」側だけが
             // 国家経路で免除され、§3-3 の「建造物と工場が労働を取り合う」が成立しない。
@@ -2225,13 +2231,13 @@ public static class EconomyStep
         //   Diplomacy（個体）はここから見えないため2相方式。
         if (cap && monumentConstruction > 0)
         {
-            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
-            double sGot = coef.ConsSteel * monumentConstruction * ration[sg];
-            double mGot = coef.ConsMachine * monumentConstruction * ration[mg];
-            double cGot = coef.ConsCement * monumentConstruction * ration[cg];
-            double lGot = coef.ConsLumber * monumentConstruction * ration[lg];
-            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, coef.ConsSteel), mGot / Math.Max(Eps, coef.ConsMachine)),
-                                    Math.Min(cGot / Math.Max(Eps, coef.ConsCement), lGot / Math.Max(Eps, coef.ConsLumber)));
+            int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
+            double sGot = bundle.Q0 * monumentConstruction * ration[sg];
+            double mGot = bundle.Q1 * monumentConstruction * ration[mg];
+            double cGot = bundle.Q2 * monumentConstruction * ration[cg];
+            double lGot = bundle.Q3 * monumentConstruction * ration[lg];
+            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, bundle.Q0), mGot / Math.Max(Eps, bundle.Q1)),
+                                    Math.Min(cGot / Math.Max(Eps, bundle.Q2), lGot / Math.Max(Eps, bundle.Q3)));
             if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
@@ -2262,11 +2268,11 @@ public static class EconomyStep
         // 完成は労働力（StepConstruction の日次工賃で BuiltScale を積む）＝ここでは材料の消費と国庫支払いのみ（工業化度は積まない）。
         if (factoryBuildUnits > 0)   // capを外す（2026-08-09）＝需要側と対（factoryBuildUnits>0は材料財の存在を含意）
         {
-            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
-            double sGot = coef.ConsSteel * factoryBuildUnits * ration[sg];
-            double mGot = coef.ConsMachine * factoryBuildUnits * ration[mg];
-            double cGot = coef.ConsCement * factoryBuildUnits * ration[cg];
-            double lGot = coef.ConsLumber * factoryBuildUnits * ration[lg];
+            int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
+            double sGot = bundle.Q0 * factoryBuildUnits * ration[sg];
+            double mGot = bundle.Q1 * factoryBuildUnits * ration[mg];
+            double cGot = bundle.Q2 * factoryBuildUnits * ration[cg];
+            double lGot = bundle.Q3 * factoryBuildUnits * ration[lg];
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
             region.StateSpent[(int)TreasuryCat.FactoryBuild] += cost;   // 材料費は国庫が負担（国庫→生産者で保存）
             revenue[sg] += sGot * clearPrice[sg];
@@ -2801,12 +2807,12 @@ public static class EconomyStep
     /// 「国庫＜1日分の工賃×採算率なら進まない」）と同じ述語。旧＝国庫を見ずに毎月買った＝工賃で止まった工事が材料だけを買い続け、
     /// 取り消しの動詞も無いので国庫が負のまま戻らない吸収状態になった（5年以上の負の国庫22件中20件・分離国が建国の四半期に沈む型）。
     /// 工事はそのまま待ち、国庫が戻れば材料も工賃も再開する。world=null（較正・単体テスト）は国庫が無い＝門なし＝恒等。</summary>
-    private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, World? world)
+    private static void AccumulateFactoryBuild(Region region, Coefficients coef, ConsBundle bundle, double[] investDemand, ref double factoryBuildUnits, World? world)
     {
         // ★材料は工賃と同じ国家の支払い率 r で買う（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分の工賃に満たない月は材料を買わない）を撤去。
         //   工事は r の分だけ進む（World.StepConstruction）＝材料も r の分だけ＝同じ1本の率。世界の無い試験（world=null）は 1。
         double payRate = world?.FiscalFundingRatio.Value ?? 1.0;
-        double costPerUnit = BundleCost(region, coef);   // 建設の資材の束の費用（K の1本）
+        double costPerUnit = bundle.Cost(region);   // 建設の資材の束の費用（K の1本・呼び手が決めた組）
             // プレイヤーの工場建設（特定財）：建設中の生産者は材料を建設期間で徐々に消費（工賃はStepConstructionで日次・国庫）。
         // 素材の必要「量」は参照価格で較正した固定量＝実支払い（下段）は現在の市場価格×量なので、鋼などが高い時期は建設費も上がる（真の素材価格依存）。
         double costPerUnitRef = BundleRef(coef);
@@ -2819,10 +2825,10 @@ public static class EconomyStep
                 double u = coef.FactoryMaterialFrac.Value * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford * payRate;   // 素材の必要量×採算率×r＝支払いは量×現在価格＝真の価格依存
                 if (!(u > Eps)) continue;   // 否定形＝NaN は買わない側
                 factoryBuildUnits += u;
-                investDemand[coef.SteelGoodId] += coef.ConsSteel * u;
-                investDemand[coef.MachineGoodId] += coef.ConsMachine * u;
-                investDemand[coef.CementGoodId] += coef.ConsCement * u;
-                investDemand[coef.LumberGoodId] += coef.ConsLumber * u;
+                investDemand[bundle.G0] += bundle.Q0 * u;
+                investDemand[bundle.G1] += bundle.Q1 * u;
+                investDemand[bundle.G2] += bundle.Q2 * u;
+                investDemand[bundle.G3] += bundle.Q3 * u;
             }
     }
 
@@ -2852,9 +2858,36 @@ public static class EconomyStep
     /// 素材の月次支出（<see cref="World.ConstructionMaterialPerMonth"/>）・巨大建造物の見積り（<see cref="Megaprojects.EstimateCost"/>）＝全て**建てる州**の価格を読む。
     /// ⚠旧＝同じ束を7か所で手書き（価格の床が Eps・1e-9・床なしとばらばら）＝床は Eps（1e-9）の1つ。参照の束は <see cref="BundleRef"/>。
     /// ⚠資材の市場が無い試験世界（財が少ない）は呼び手が id の範囲を確かめる。</summary>
-    internal static double BundleCost(Region r, Coefficients c)
-        => c.ConsSteel * Math.Max(r.Markets[c.SteelGoodId].Price, Eps) + c.ConsMachine * Math.Max(r.Markets[c.MachineGoodId].Price, Eps)
-         + c.ConsCement * Math.Max(r.Markets[c.CementGoodId].Price, Eps) + c.ConsLumber * Math.Max(r.Markets[c.LumberGoodId].Price, Eps);
+    internal static double BundleCost(Region r, Coefficients c) => BundleOf(r, c).Cost(r);
+
+    /// <summary>★(536) 線 ivf：建設の資材の組（4 財×量）。旧の束（鋼・機械・セメント・製材）は <see cref="Steel"/>＝量は <c>ConsSteel</c> ほか・財の id は <c>SteelGoodId</c> ほか。
+    /// 時代の組（鉄・製材・石灰石・粘土）は <see cref="BundleOf"/> が旗 <c>ConstructionEraBundle</c> が正のときだけ返す。需要・決済・繰越は 4 つの枠（G0〜G3・Q0〜Q3）を同じ順に読む＝組が違っても式は同じ。
+    /// 費用 <see cref="Cost"/> は旧の <c>BundleCost</c> の式そのもの（4 項の和は左結合・価格の床は <c>Eps</c>）。</summary>
+    internal readonly struct ConsBundle
+    {
+        public readonly int G0, G1, G2, G3;
+        public readonly double Q0, Q1, Q2, Q3;
+        public readonly bool Era;
+        public ConsBundle(int g0, double q0, int g1, double q1, int g2, double q2, int g3, double q3, bool era)
+        { G0 = g0; Q0 = q0; G1 = g1; Q1 = q1; G2 = g2; Q2 = q2; G3 = g3; Q3 = q3; Era = era; }
+        public static ConsBundle Steel(Coefficients c) => new(c.SteelGoodId, c.ConsSteel, c.MachineGoodId, c.ConsMachine, c.CementGoodId, c.ConsCement, c.LumberGoodId, c.ConsLumber, false);
+        public double Cost(Region r)
+            => Q0 * Math.Max(r.Markets[G0].Price, Eps) + Q1 * Math.Max(r.Markets[G1].Price, Eps)
+             + Q2 * Math.Max(r.Markets[G2].Price, Eps) + Q3 * Math.Max(r.Markets[G3].Price, Eps);
+    }
+
+    /// <summary>★(536) 線 ivf：その州のその月の建設の資材の組（読むだけの導出・状態にしない）。旗 <c>ConstructionEraBundle</c> が 0 なら鋼の組（旧の束）。
+    /// 正のときは今の価格の費用が<b>厳密に低い</b>方の組（等しい・NaN は鋼の組＝否定形）＝市場が選ぶ・発見の門は足さない。時代の組の財の市場が州に無い世界（最小の試験の世界）は鋼の組。
+    /// 呼び手が月に 1 回求め、需要・決済・繰越・工場建設の材料が同じ組を読む（分子と分母が別の組を読まない）。<see cref="BundleRef"/> は鋼の組のまま（較正を動かさない）。</summary>
+    internal static ConsBundle BundleOf(Region r, Coefficients c)
+    {
+        var steel = ConsBundle.Steel(c);
+        if (!(c.ConstructionEraBundle > 0)) return steel;
+        int n = r.Markets.Length;
+        if (!(Catalog.IronId < n && Catalog.LumberId < n && Catalog.LimestoneId < n && Catalog.ClayId < n)) return steel;
+        var era = new ConsBundle(Catalog.IronId, c.ConsEraIron, Catalog.LumberId, c.ConsEraLumber, Catalog.LimestoneId, c.ConsEraLime, Catalog.ClayId, c.ConsEraClay, true);
+        return era.Cost(r) < steel.Cost(r) ? era : steel;
+    }
 
     /// <summary>★国家調達の価格の門∈(0,1]＝財 <paramref name="gid"/> の州の今の価格が参照価格（×物価水準＝実質）よりどれだけ高いかで需要を連続に絞る倍率
     /// （2026-09-30 処理の一元化 段4e K の <c>PriceAfford</c>）。国家の全ての調達（軍需の発注・行政と電力と軍用電力・植民地の補給・海軍の燃料・侵攻の物資・武力解錠＝
