@@ -521,9 +521,7 @@ public static class EconomyStep
     /// ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。</summary>
     internal static double RentShareOf(Producer s, Region region, Coefficients coef, double ruralPop)
     {
-        // ★(520) 段1c（旗 LandRentResidual）：産地は〈耕す人の市場の賃金を払った後の残りが持ち主〉＝取り分は法の上限そのもの（既定 1.0）。付加価値は農業労働力の購入を引いた後の額なので、残りの全部が地代（リカードの形）。
-        //   生産者の固定の取り分と土地の稀少度の弾力は読まない。旗 0 は下の式のまま（この行は旗が正のときだけ通る）。
-        if (coef.LandRentResidual > 0 && s.IsRgo) return region.FarmRentCap.Value;
+        // ★(529) 産地の取り分＝min(生産者の慣習のデータの取り分 RentShare, 州の法の上限 FarmRentCap)（(520) の〈取り分＝法の上限〉の残りの道は撤回した＝上限が慣習より高い国で領主が慣習を超えて取り、農民の満足度の床が深くなった）。弾力の項は RentScarcityElasticity が正のときだけ（既定 0）。
         double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
         if (coef.RentScarcityElasticity > 0 && s.IsRgo)
         {
@@ -2618,7 +2616,7 @@ public static class EconomyStep
             {
                 double rentShare = RentShareOf(s, region, coef, ruralPop);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
                 rent = rentShare * valueAdded; wages = valueAdded - rent;
-                if (insOn && coef.LandRentResidual > 0 && s.IsRgo) Instruments.SbRgo(world!, region, s, valueAdded, rent, wages, ruralPop, producerRevenue, inputCost[pi]);   // ★(520) 段1c の計器（読むだけ）
+                if (insOn && s.IsRgo) Instruments.SbRgo(world!, region, s, valueAdded, rent, wages, ruralPop, producerRevenue, inputCost[pi]);   // ★(520)(529) 産地の地代の計器（読むだけ）
                 if (ubOn)
                 {   // ★(520) 段1b：上乗せを国営／民営に分ける前の rent から引いて賃金へ移す（国営の工場の労働者も交渉の取り分を得る＝国庫が負う）。合計は付加価値のまま。
                     double ubRent0 = rent, ubWages0 = wages;

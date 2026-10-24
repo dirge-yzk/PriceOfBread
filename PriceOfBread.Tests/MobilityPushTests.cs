@@ -12,14 +12,14 @@ namespace PriceOfBread.Tests;
 public class MobilityPushTests
 {
     [Fact]
-    public void 既定係数が方針どおり()   // RentScarcityElasticity=1.0（★2026-08-31点火＝ラウンドA）
+    public void 既定係数が方針どおり()   // RentScarcityElasticity=0（★(529) 2026-10-24 に 1.0→0＝産地の取り分は慣習のデータの取り分と法の上限の小さい方・弾力の項は読まない）
     {
         var c = new Coefficients();
-        Assert.Equal(1.0, c.RentScarcityElasticity);
+        Assert.Equal(0.0, c.RentScarcityElasticity);
     }
 
     [Fact]
-    public void ON経路_土地が混んだ州では農民所得が下がり地主の地代が増える()   // rank5主係数：実効RentShare=RentShare×(1+弾力×稀少度)。★(524) 旗 LandRentResidual=0 の腕だけの番人（既定 1 では弾力の項は読まれない＝下の番人が見る）
+    public void ON経路_土地が混んだ州では農民所得が下がり地主の地代が増える()   // rank5主係数：実効RentShare=RentShare×(1+弾力×稀少度)。★(529) 既定の弾力は 0＝この番人は弾力の項の ON 経路そのものを見る
     {
         // 双子シム（同シード＝決定論で同一状態）：ON側だけ弾力を点火＝差分が機構の効果そのもの。
         // ⚠ロシア＝農奴解放前（FarmRentCap=1.0）を使う。英は農奴解放済みで cap=0.5＝稀少でも貢租を上げられない
@@ -27,10 +27,8 @@ public class MobilityPushTests
         var off = new Simulation(NationConfig.Russia().ToScenario(41), new NullAgent());
         var on = new Simulation(NationConfig.Russia().ToScenario(41), new NullAgent());
         off.Run(20); on.Run(20);   // 経済を落ち着かせる
-        off.World.Coef.RentScarcityElasticity = 0;    // ★点火2026-08-31：OFF側を明示ピン（既定1.0＝明示しないと対照の番人が空洞化する）
+        off.World.Coef.RentScarcityElasticity = 0;    // OFF側を明示ピン（既定 0＝(529)）
         on.World.Coef.RentScarcityElasticity = 0.6;   // 稀少度1.0で実効RentShare 0.5→0.8（FarmRentCap=1.0の内側）
-        //   ★(520) 土地の稀少度の弾力は旗 LandRentResidual が 0 のときだけ読まれる（既定 1＝産地の取り分は法の上限で弾力の項は読まれない）。この番人は弾力の項の ON 経路そのものを見るので 旗 0 の腕を明示する。
-        off.World.Coef.LandRentResidual = 0; on.World.Coef.LandRentResidual = 0;
         foreach (var sim in new[] { off, on })
         {
             var r = sim.World.Region;
@@ -46,26 +44,18 @@ public class MobilityPushTests
             $"土地が混んだ州で地主のLandRentが増えない（OFF {ro.Pops[0].LandRentPerMonth:F1} / ON {rn.Pops[0].LandRentPerMonth:F1}）");
     }
     [Fact]
-    public void 既定では土地の稀少度の弾力は産地の取り分に読まれない()   // ★(524) 合流：旗 LandRentResidual（既定 1・(520)）で弾力の項が経済から外れた＝撤去を名乗る番人（復活を禁じる）
+    public void 既定では産地の取り分は土地の混み具合に依らず慣習の取り分と法の上限の小さい方()   // ★(529) 既定の弾力は 0＝混んだ州でも取り分は動かない（旧〔LandRentResidual=1〕の期間も同じ値）
     {
-        // 既定（LandRentResidual=1）では産地の取り分は州の法の上限そのもの（EconomyStep.RentShareOf の先頭）＝弾力・生産者の RentShare を変えても同じ値。
-        //   上の番人（旗 0 の腕）と同じ双子の盤面で、弾力 0 と 0.6 の所得と地代がビット一致することを見る。
-        var off = new Simulation(NationConfig.Russia().ToScenario(41), new NullAgent());
-        var on = new Simulation(NationConfig.Russia().ToScenario(41), new NullAgent());
-        off.Run(20); on.Run(20);
-        Assert.Equal(1.0, new Coefficients().LandRentResidual);
-        off.World.Coef.RentScarcityElasticity = 0; on.World.Coef.RentScarcityElasticity = 0.6;
-        foreach (var sim in new[] { off, on })
-        {
-            var r = sim.World.Region;
-            double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-            r.ArableLand = rural / 2.0;
-            foreach (var pr in r.Producers) if (pr.IsRgo) { pr.RentShare = new Share(0.5); pr.OwnerPopIndex = 0; }
-            EconomyStep.Run(r, sim.World.Coef);
-        }
-        var ro = off.World.Region; var rn = on.World.Region;
-        Assert.Equal(ro.Pops[1].EarnedPerMonth.Value, rn.Pops[1].EarnedPerMonth.Value);
-        Assert.Equal(ro.Pops[0].LandRentPerMonth.Value, rn.Pops[0].LandRentPerMonth.Value);
-        foreach (var pr in ro.Producers) if (pr.IsRgo) Assert.Equal(ro.FarmRentCap.Value, EconomyStep.RentShareOf(pr, ro, off.World.Coef, 1.0));
+        var sim = new Simulation(NationConfig.Russia().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var r = sim.World.Region; var coef = sim.World.Coef;
+        Assert.Equal(0.0, new Coefficients().RentScarcityElasticity);
+        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
+        r.ArableLand = rural / 2.0;   // 農村人口/耕地=2（稀少度 1.0）
+        foreach (var pr in r.Producers) if (pr.IsRgo) { pr.RentShare = new Share(0.5); }
+        r.FarmRentCap = new Share(1.0);
+        foreach (var pr in r.Producers) if (pr.IsRgo) Assert.Equal(0.5, EconomyStep.RentShareOf(pr, r, coef, rural), 12);
+        r.FarmRentCap = new Share(0.3);
+        foreach (var pr in r.Producers) if (pr.IsRgo) Assert.Equal(0.3, EconomyStep.RentShareOf(pr, r, coef, rural), 12);
     }
 }
