@@ -258,23 +258,20 @@ public class SbBargainTests
         Producer? rgo = null, fac = null;
         foreach (var p in r.Producers) { if (p.IsRgo && rgo is null) rgo = p; if (p.BuysLabor && !p.IsRgo && fac is null) fac = p; }
         Assert.True(rgo is not null && fac is not null);
-        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        Assert.Equal(0.0, new Coefficients().RentScarcityElasticity);     // 既定は弾力の項を読まない
         rgo!.RentShare = new Share(0.5);
         r.FarmRentCap = new Share(0.75);                                  // 農奴解放が限定的の国（日・墺・仏）：上限が慣習より高い
-        Assert.Equal(0.5, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        Assert.Equal(0.5, EconomyStep.RentShareOf(rgo, r, w.Coef), 12);
         r.FarmRentCap = new Share(0.3);                                   // 土地改革が全面：上限が慣習より低い
-        Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef), 12);
         rgo.RentShare = new Share(0.85);                                  // ロシア（農奴の現金の床 0.15 を引いた慣習）と未解放（上限 1.0）
         r.FarmRentCap = new Share(1.0);
-        Assert.Equal(0.85, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
-        double facShare = EconomyStep.RentShareOf(fac!, r, w.Coef, rural);
+        Assert.Equal(0.85, EconomyStep.RentShareOf(rgo, r, w.Coef), 12);
+        double facShare = EconomyStep.RentShareOf(fac!, r, w.Coef);
         r.FarmRentCap = new Share(0.4);
-        Assert.Equal(facShare, EconomyStep.RentShareOf(fac!, r, w.Coef, rural), 12);   // 上限は産地だけを縛る
-        // 弾力の項を点火しても法の上限が天井（稀少な州でも上限を超えない）
-        rgo.RentShare = new Share(0.5); r.FarmRentCap = new Share(0.6); r.ArableLand = rural / 4.0;
-        w.Coef.RentScarcityElasticity = 1.0;
-        Assert.Equal(0.6, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        Assert.Equal(facShare, EconomyStep.RentShareOf(fac!, r, w.Coef), 12);   // 上限は産地だけを縛る
+        // 土地が稀少でも取り分は動かない（弾力の項は (541) で消した）
+        rgo.RentShare = new Share(0.5); r.FarmRentCap = new Share(0.6); r.ArableLand = 1.0;
+        Assert.Equal(0.5, EconomyStep.RentShareOf(rgo, r, w.Coef), 12);
         // AI の土地改革の余地（SelfPlay）が読む生産者の RentShare は書き換わらない
         Assert.Equal(0.5, rgo.RentShare.Value, 12);
     }

@@ -513,22 +513,13 @@ public static class EconomyStep
     /// <summary>★④の地代の取り分（支払いの一元化 段3-1・2026-09-29＝④の式をここへ移した・国内の売上と輸出代金・輸送財の代金〔InternationalMarket.PaySales〕が同じ1本を読む）。
     /// RGOの地代（封建貢租）は土地改革・農奴解放で上限が下がる＝地主の取り分↓・残りは農民の賃金へ（保存＝rent+wages=valueAdded）。
     /// 上限方式＝元の取り分が低い国（自作農・小作）には効かない＝農奴制国だけ解放が効く（史実）。
-    /// rank5 囲い込みプッシュ（2026-08-31 点火・★(529) 2026-10-24 に既定 0＝休眠〔RentScarcityElasticity=0・下の if の中だけ〕）：RGOの地代取り分を土地の混み具合（稀少度）の増加関数へ
-    /// ＝土地が稀少なほど地主の取り分↑→農民のEarned↓→既存の都市化softmax・失業プールが自然に排出（プッシュ型離農・囲い込みの収奪）。
-    /// 稀少度＝landFactor と**同一入力**（ArableLand÷農村人口）の逆数側 max(0, 農村人口/ArableLand−1)＝耕地を超えた分だけ正。
-    /// センチネル（ArableLand≥1e8＝合成較正・最小テスト世界）は LandFactor と同じく除外＝0。
-    /// clamp上限＝既存の物差し FarmRentCap（土地改革/農奴解放の法上限＝解放国では稀少でも貢租を上げられない・≤1.0で賃金非負＝保存不変）。
+    /// ★(529)(541) 産地の取り分＝min(生産者の慣習のデータの取り分 RentShare, 州の法の上限 FarmRentCap)。土地の混み具合では動かない
+    /// （土地の稀少度で取り分を押し上げる弾力 RentScarcityElasticity は (529) で既定 0＝休眠にし、(541) で墓標へ消した＝囲い込みの押し出しは所得の低下を通る既存の機構だけ）。
     /// ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。</summary>
-    internal static double RentShareOf(Producer s, Region region, Coefficients coef, double ruralPop)
+    internal static double RentShareOf(Producer s, Region region, Coefficients coef)
     {
-        // ★(529) 産地の取り分＝min(生産者の慣習のデータの取り分 RentShare, 州の法の上限 FarmRentCap)（(520) の〈取り分＝法の上限〉の残りの道は撤回した＝上限が慣習より高い国で領主が慣習を超えて取り、農民の満足度の床が深くなった）。弾力の項は RentScarcityElasticity が正のときだけ（既定 0）。
-        double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
-        if (coef.RentScarcityElasticity > 0 && s.IsRgo)
-        {
-            double landScarcity = region.ArableLand < 1e8 ? Math.Max(0, ruralPop / Math.Max(1.0, region.ArableLand) - 1.0) : 0;
-            rentShare = System.Math.Min(s.RentShare.Value * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap.Value);
-        }
-        return rentShare;
+        // (520) の〈取り分＝法の上限〉の残りの道は撤回した＝上限が慣習より高い国で領主が慣習を超えて取り、農民の満足度の床が深くなった。
+        return s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
     }
 
     /// <summary>★(186) 生産者の眠り（計算量の予算・近似＝2026-10-03 推奨で進めた）＝0 回す・1 眠った・2 目覚めた。
@@ -1319,41 +1310,33 @@ public static class EconomyStep
             // ★距離の割増（2026-09-30 (135)・作者裁定 2026-09-03 E-05段4「植民地は遠く、それが高額なだけ」）：遠い州の官僚は同じ働きに割増の俸給
             //   ＝国の払う単価は市場の価格×割増（予算も同じ割増＝Simulation）＝充足は割増の無い州と同じ・金額だけ増える（割増ぶんも担い手の売上＝保存）。
             if (world is not null) adminMul = Fiscal.AdminDistanceMul(world, region);
-            double est = adminNeed * Math.Max(region.Markets[Catalog.AdminId].Price, Eps) * adminMul;
-            if (Instruments.On && world is not null) Instruments.AdminNeedPurchase(world, region, est);   // 計器（読むだけ・(265)）
-            double afford = est > Eps ? Math.Min(1.0, region.AdminBudget / est) : 0.0;
             // ★2026-08-13（作者裁定「行政費は汚職などで抜け落ちるが、それ以外は価格相応の働きをするように」）：
             //   買い控えのゲート（PriceAfford）を行政から外す。**予算の制約（afford）は残す**＝それ自体が「価格相応」
             //   （高くなれば同じ金で買える量は減る）。PriceAfford はその上に重ねた「高いから買わない」という**追加の拒否**で、
             //   金を持っていても行政が働かなくなる原因だった。漏れは汚職（Fiscal の leak）が既に担っている。
             //   （旧挙動へ戻す旗 AdminProcurePriceGate は 2026-09-26 に削除＝棚卸し dorm-50）
-            adminWant = adminNeed * afford;
+            adminWant = StateProcureWant(adminNeed, region.Markets[Catalog.AdminId].Price, adminMul, region.AdminBudget, 1.0, out double est);
+            if (Instruments.On && world is not null) Instruments.AdminNeedPurchase(world, region, est);   // 計器（読むだけ・(265)）
             militaryDemand[Catalog.AdminId] += adminWant;   // 国家需要として総需要に算入（軍需と同じ経路）
         }
 
         // 上下水道調達（#4 施設化・行政の公共事業版）：国家が施設の算出する「上下水道」を行政費で買う。充足率＝衛生（過密の疫病を抑える）。
         double infraNeed = 0, infraWant = 0;
-        bool infraProc = false;   // 施設(producer)が在る国だけ＝無い世界は InfraFill=1.0 で疫病なし（従来挙動）
-        if (Catalog.InfrastructureId < ng) foreach (var pr in region.Producers) if (pr.GoodId == Catalog.InfrastructureId) { infraProc = true; break; }
+        bool infraProc = HasProducerOf(region, Catalog.InfrastructureId, ng);   // 施設(producer)が在る国だけ＝無い世界は InfraFill=1.0 で疫病なし（従来挙動）
         if (infraProc)
         {
             infraNeed = coef.InfraNeedPerUrban * urbanPop;
-            double est = infraNeed * Math.Max(region.Markets[Catalog.InfrastructureId].Price, Eps);
-            double afford = est > Eps ? Math.Min(1.0, region.InfraBudget / est) : 0.0;
-            infraWant = infraNeed * afford;   // 上下水道も行政費で買う＝同じ裁定に従う（買い控えのゲートなし）
+            infraWant = StateProcureWant(infraNeed, region.Markets[Catalog.InfrastructureId].Price, 1.0, region.InfraBudget, 1.0, out _);   // 上下水道も行政費で買う＝同じ裁定に従う（買い控えのゲートなし）
             militaryDemand[Catalog.InfrastructureId] += infraWant;   // 国家需要（行政・軍需と同じ経路）
         }
 
         // 電化インフラ調達（上位インフラ・上下水道と同型）：国家が「電化インフラ」を行政費で買う。充足＝満足度＋衛生追加＋送電容量↑。
         double elecInfraNeed = 0, elecInfraWant = 0;
-        bool elecInfraProc = false;
-        if (Catalog.ElecInfraId < ng) foreach (var pr in region.Producers) if (pr.GoodId == Catalog.ElecInfraId) { elecInfraProc = true; break; }
+        bool elecInfraProc = HasProducerOf(region, Catalog.ElecInfraId, ng);
         if (elecInfraProc)
         {
             elecInfraNeed = coef.ElecInfraNeedPerUrban * urbanPop;
-            double est = elecInfraNeed * Math.Max(region.Markets[Catalog.ElecInfraId].Price, Eps);
-            double afford = est > Eps ? Math.Min(1.0, region.ElecInfraBudget / est) : 0.0;
-            elecInfraWant = elecInfraNeed * afford * PriceAfford(Catalog.ElecInfraId);
+            elecInfraWant = StateProcureWant(elecInfraNeed, region.Markets[Catalog.ElecInfraId].Price, 1.0, region.ElecInfraBudget, PriceAfford(Catalog.ElecInfraId), out _);
             militaryDemand[Catalog.ElecInfraId] += elecInfraWant;
         }
 
@@ -2491,31 +2474,22 @@ public static class EconomyStep
         // 行政の決済：国家が買った行政の支払い（→官僚の売上・国庫→官僚で保存）。充足率＝汚職の度合い（Fiscal が税収の漏れに使う）。
         if (adminProc)
         {
-            double got = adminWant * ration[Catalog.AdminId];
-            double pay = got * clearPrice[Catalog.AdminId] * adminMul;   // 単価×距離の割増（上の予算の見積もりと同じ）
-            revenue[Catalog.AdminId] += pay;
-            region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : 0.0;   // ★(383) 必要量 0 の州は〈行政は満額〉でなく 0（fail-closed）
+            double got = SettleStateProcure(region, adminWant, ration[Catalog.AdminId], clearPrice[Catalog.AdminId], adminMul, revenue, Catalog.AdminId);   // 単価×距離の割増（上の予算の見積もりと同じ）
+            region.AdminFill = StateProcureFill(got, adminNeed, 0.0);   // ★(383) 必要量 0 の州は〈行政は満額〉でなく 0（fail-closed）
         } else if (Catalog.AdminId < ng) region.AdminFill = 0.0;   // ★(383) 官僚 POP が居ない州も〈行政は満額〉でなく 0（旧は既定値 1.0 が残った＝fail-open）
 
         // 上下水道の決済：国家が買った上下水道の支払い（→施設＝建設会社の売上・国庫→popで保存）。充足率＝衛生。
         if (infraProc)
         {
-            double got = infraWant * ration[Catalog.InfrastructureId];
-            double pay = got * clearPrice[Catalog.InfrastructureId];
-            revenue[Catalog.InfrastructureId] += pay;
-            region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.InfraFill = infraNeed > Eps ? PoliticalQuantities.Clamp01(got / infraNeed) : 1.0;
+            double got = SettleStateProcure(region, infraWant, ration[Catalog.InfrastructureId], clearPrice[Catalog.InfrastructureId], 1.0, revenue, Catalog.InfrastructureId);
+            region.InfraFill = StateProcureFill(got, infraNeed, 1.0);
         }
 
         // 電化インフラの決済（上下水道と同型）：充足率を保存（満足度＋衛生＋送電容量の便益に使う）。施設の無い世界は ElecInfraFill=0＝便益なし。
         if (elecInfraProc)
         {
-            double got = elecInfraWant * ration[Catalog.ElecInfraId];
-            double pay = got * clearPrice[Catalog.ElecInfraId];
-            revenue[Catalog.ElecInfraId] += pay;
-            region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.ElecInfraFill = elecInfraNeed > Eps ? PoliticalQuantities.Clamp01(got / elecInfraNeed) : 0.0;
+            double got = SettleStateProcure(region, elecInfraWant, ration[Catalog.ElecInfraId], clearPrice[Catalog.ElecInfraId], 1.0, revenue, Catalog.ElecInfraId);
+            region.ElecInfraFill = StateProcureFill(got, elecInfraNeed, 0.0);
         }
 
         // 兵士の給与の決済：名簿の全ての兵の月×請求の単価（SoldierPayBudget＝兵数×民間の賃金×r）＝兵士の所得（国庫→兵士で保存）。★(140) 市場の値では払わない（上の注記）。
@@ -2614,7 +2588,7 @@ public static class EconomyStep
             double stateCover = stateFrac * payRate;
             if (valueAdded >= 0)
             {
-                double rentShare = RentShareOf(s, region, coef, ruralPop);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
+                double rentShare = RentShareOf(s, region, coef);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
                 rent = rentShare * valueAdded; wages = valueAdded - rent;
                 if (insOn && s.IsRgo) Instruments.SbRgo(world!, region, s, valueAdded, rent, wages, ruralPop, producerRevenue, inputCost[pi]);   // ★(520)(529) 産地の地代の計器（読むだけ）
                 if (ubOn)
@@ -2875,6 +2849,39 @@ public static class EconomyStep
         if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
         return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（0=旧恒等・1=満額適用）
     }
+
+    // ---- ★(541) 国家の 3 調達（行政・上下水道・電化インフラ）の共通の形（M14・恒等）。⚠3 つの違いは引数で渡す＝揃えない：
+    //   mul（行政だけ距離の割増・他は 1.0）／gate（電化インフラだけ <see cref="StatePriceAfford"/>・他は 1.0＝行政は 2026-08-13 に外した）／
+    //   必要が 0 のときの充足（行政 0・上下水道 1.0＝施設が在って必要が 0 なら疫病なし・電化インフラ 0）。x×1.0 は浮動小数でも x と同じ。
+
+    /// <summary>州の生産者に財 <paramref name="gid"/> の作り手が居るか（財の範囲外は居ない）。</summary>
+    internal static bool HasProducerOf(Region region, int gid, int ng)
+    {
+        if (gid < ng) foreach (var pr in region.Producers) if (pr.GoodId == gid) return true;
+        return false;
+    }
+
+    /// <summary>国家が買いたい量＝必要×払える割合（予算÷見積）×価格の門。見積＝必要×max(価格, Eps)×mul（<paramref name="est"/> に返す）。予算は据え置き＝買い控えた分の国庫は残る。</summary>
+    internal static double StateProcureWant(double need, double price, double mul, double budget, double gate, out double est)
+    {
+        est = need * Math.Max(price, Eps) * mul;
+        double afford = est > Eps ? Math.Min(1.0, budget / est) : 0.0;
+        return need * afford * gate;
+    }
+
+    /// <summary>決済：買えた量＝買いたい量×配給率。支払い＝買えた量×清算価格×mul を財の売上と国庫の行政費の支出に積む。戻り値＝買えた量。</summary>
+    internal static double SettleStateProcure(Region region, double want, double ration, double clearPrice, double mul, double[] revenue, int gid)
+    {
+        double got = want * ration;
+        double pay = got * clearPrice * mul;
+        revenue[gid] += pay;
+        region.StateSpent[(int)TreasuryCat.Admin] += pay;
+        return got;
+    }
+
+    /// <summary>充足率＝買えた量÷必要（0〜1）。必要が Eps 以下なら <paramref name="whenNoNeed"/>。</summary>
+    internal static double StateProcureFill(double got, double need, double whenNoNeed)
+        => need > Eps ? PoliticalQuantities.Clamp01(got / need) : whenNoNeed;
 
     /// <summary>(300) 線 i1：私的な建設 1 束が上げる工業化度。<c>IndCapitalOutputYears</c>（κ）＝0 なら <c>IndPerConstruction</c>（1 束＝0.01・州の大きさに依らない＝今まで）。
     /// κ＞0 なら <c>1÷N</c>：N＝κ×（州の全 POP の前月の所得を年へ換算）÷（基準の束の費用×(1＋建設の工賃の割合)×州の物価水準）＝工業化度 1 点に要る資本が κ 年分の州の実質の所得（資本産出比）。

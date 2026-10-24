@@ -467,8 +467,7 @@ public class StateFactoryTests
         double amount = 1000.0;
         // ★段3-1（2026-09-29・C4）：輸出代金は④の持分（地代のうち国営持分→国庫・残りの地代→持ち主・賃金→労働）で分け、所得（Earned）も同じ額で書く
         //   （旧 PayExportToProducers＝持ち主へ地代と賃金の区別なく全額・国営持分は代金の全額に掛けた）。
-        double rural = 0; foreach (var q in r.Pops) if (!q.IsUrban) rural += q.Size;
-        double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);   // 工場は労働を投入として買う＝付加価値は全て持ち主の側（rs＝1）
+        double rs = EconomyStep.RentShareOf(p, r, w.Coef);   // 工場は労働を投入として買う＝付加価値は全て持ち主の側（rs＝1）
         var own = r.Pops[p.OwnerPopIndex];
         double t0 = w.Treasury.Value, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings.Value, ownE0 = own.EarnedPerMonth.Value, base0 = w.BaseMoney.Value, tf0 = w.CumulativeTradeFlow.Value;
         double paid = InternationalMarket.PaySales((null, null), r, Catalog.SteelId, amount, w);   // 払い手＝清算所（世界の外）
@@ -485,13 +484,13 @@ public class StateFactoryTests
         foreach (var q in r.Producers)
         {
             if (!q.IsRgo || q.OwnerPopIndex < 0 || q.LaborPopIndex < 0 || q.OwnerPopIndex == q.LaborPopIndex || q.OwnerPopIndex >= r.Pops.Count || q.LaborPopIndex >= r.Pops.Count) continue;
-            double rq = EconomyStep.RentShareOf(q, r, w.Coef, rural);
+            double rq = EconomyStep.RentShareOf(q, r, w.Coef);
             if (rq > 0.01 && rq < 0.99 && World.StateProfitShare(q, r, w.Coef) == 0) { rg = q; break; }
         }
         Assert.True(rg is not null, "前提が崩れた：地代の取り分が 0〜1 の民営の RGO が無い");
         foreach (var q in r.Producers) if (q.GoodId == rg!.GoodId) q.Output = 0;
         rg!.Output = 1.0;
-        double rs2 = EconomyStep.RentShareOf(rg, r, w.Coef, rural);
+        double rs2 = EconomyStep.RentShareOf(rg, r, w.Coef);
         var own2 = r.Pops[rg.OwnerPopIndex]; var lab2 = r.Pops[rg.LaborPopIndex];
         double o20 = own2.Savings.Value, l20 = lab2.Savings.Value, l2e = lab2.EarnedPerMonth.Value;
         InternationalMarket.PaySales((null, null), r, rg.GoodId, amount, w);
@@ -536,8 +535,7 @@ public class StateFactoryTests
         m.PrevImport = imported; m.LastImport = 0; m.LastProduced = 1.0;   // 在庫の出どころ＝輸入 imported：産出 1
         double value = m.Stock * Math.Clamp(w.Coef.MintFloorBuyRatePerMonth.Value, 0, 1) * parity;
         double impPart = value * imported / (imported + 1.0), domestic = value - impPart;
-        double rural = 0; foreach (var q in r.Pops) if (!q.IsUrban) rural += q.Size;
-        double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);
+        double rs = EconomyStep.RentShareOf(p, r, w.Coef);
         double rent = domestic * rs, wages = domestic - rent;
         var expect = new System.Collections.Generic.Dictionary<Pop, double>(ReferenceEqualityComparer.Instance);
         void Add(Pop q, double v) => expect[q] = (expect.TryGetValue(q, out var o) ? o : 0) + v;

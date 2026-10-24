@@ -58,7 +58,7 @@ public sealed partial class InternationalMarket
     //   （受け手・重み・区分・関税の実収の記帳は同じ。受け手へ渡すのは引けた額そのもの＝A4）。
 
     /// <summary>★④の持分で売上を分ける（支払いの一元化 段3-1・C4・2026-09-29）＝市場の外の売上（輸出代金・輸送財の買い付け）を、
-    /// 国内の売上と同じ④の分け方で受け取らせる：その財の生産者の産出の比で分け、地代（RGO は地代の上限と土地の稀少度＝EconomyStep.RentShareOf）
+    /// 国内の売上と同じ④の分け方で受け取らせる：その財の生産者の産出の比で分け、地代（RGO は慣習の取り分と法の上限の小さい方＝EconomyStep.RentShareOf）
     /// のうち国営持分（World.StateProfitShare）は国庫（区分 StateFactory）・残りの地代は持ち主・賃金は労働。**受け取りは Earned を通す**
     /// （所得・信用枠・票・課税の基数＝月次の精算の後の受け取りなので貯蓄と所得を同じ額で書く＝Fiscal の領主の取り分と同じ作法）。
     /// 生産者のいない在庫（輸入の在庫）は捌き手の商人へ（EconomyStep の「生産者のいない財の売上」と同じ規則・商人不在は州の頭数）。
@@ -90,14 +90,13 @@ public sealed partial class InternationalMarket
             {
                 var rr = r ?? w.Regions[ri];
                 if (r is null && rr.State != RegionState.Active) continue;
-                double ruralPop = rr.SumRuralPopulation();
                 foreach (var pr in rr.Producers)
                 {
                     if (!Sells(pr, rr, goodId)) continue;
                     double amt = amount * (Math.Max(0, pr.Output) / totalOut);
                     if (!(amt > 0)) continue;
                     if (coef.UnionBargaining > 0 && Instruments.On) Instruments.SbExport(w, amt, pr.BuysLabor && !pr.IsRgo);   // ★(520) 計器（読むだけ）：上乗せの入口が無い輸出代金の大きさ
-                    double rent = EconomyStep.RentShareOf(pr, rr, coef, ruralPop) * amt;
+                    double rent = EconomyStep.RentShareOf(pr, rr, coef) * amt;
                     double wages = amt - rent;
                     double sc = rent * World.StateProfitShare(pr, rr, coef);
                     if (sc > 0) { stateCut += sc; rent -= sc; }
