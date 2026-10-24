@@ -777,8 +777,11 @@ public sealed class Producer
             return _discRow;
         }
     }
-    /// <summary>このレシピを退かせる発見の行（−1＝退かない）＝前期の軍需（マスケット・鋳鉄砲）は転炉鋼の発見で退く（Catalog の退場の表）。</summary>
+    /// <summary>このレシピを退かせる発見の行（−1＝退かない）＝鋳鉄の機関は転炉鋼の発見で退く（Catalog の退場の表）。★(537) 武器の旧のレシピ（マスケット・鋳鉄砲）は退場の表に無い＝退かない。</summary>
     public int RetiredByRow { get { _ = DiscoveryRow; return _retRow; } }
+    /// <summary>★(537) 新世代の門の印（構築時に <c>Simulation.AddAlternateRecipes</c> だけが置く）＝この発見の行を知るまで門 0（既定の鋼の小銃・鋼の砲＝転炉鋼）。−1＝印なし。旧のレシピ（マスケット・鋳鉄砲・鋳鉄の機関）は退場しない（退場の表は消した）。
+    /// <see cref="Discovery.Gate(Region, Producer, bool[])"/> だけが読む。新しい発見の行は足さない（<see cref="Catalog.Discoveries"/> の添字は動かない）。</summary>
+    public int OpenedByRow = -1;
     [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
     [System.NonSerialized] private string? _discRecipe;
     public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0

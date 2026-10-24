@@ -251,7 +251,8 @@ public static class Discovery
         if (p.SiteRow >= 0 && !p.SiteFound) return 0.0;
         int row = p.DiscoveryRow;
         double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
-        int ret = p.RetiredByRow;
+        if (p.OpenedByRow >= 0 && !Known(known, p.OpenedByRow)) return 0.0;   // ★(537) 新世代の門（既定の鋼の小銃・鋼の砲＝転炉鋼の発見まで 0・印の無い生産者は −1 でこの行を通らない）
+        int ret = p.RetiredByRow;   // ★(537) 退場の表に残るのは鋳鉄の機関だけ（武器の旧のレシピは並行して作られる＝退場しない）
         return ret >= 0 && Known(known, ret) ? 0.0 : g;
     }
 

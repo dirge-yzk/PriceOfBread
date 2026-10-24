@@ -397,7 +397,7 @@ public class ConservationTests
     {
         double Inflow(string name, ImmigrationLaw law, out double capNoAbsorb)
         {
-            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e-7) });
+            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e-8) });   // ★(537) 武器の並行で軌道が動き、1e-7 では開放の流入（0.0013）が上限に届かず閉鎖（0.0003）の上限が開放の流入の 2 割を超えた＝両方で上限が効くよう 1e-8（線は変えていない）。★(542) 合流（反証役 wp〔bv〕低）：この試験は盤面に敏感（上限に張り付かせると〈閉鎖は開放の 2 割以下〉が係数 ImmigrationClosedFrac の検算に近づく）＝元の失敗の数（開放 0.0013・閉鎖 0.0003）を記録に残した
             var dst = sim.Nations.First(n => n.World.SelfPower?.BaseName == name).World;
             dst.ImmigrationRestriction = law;
             capNoAbsorb = sim.Coef.ImmigrationReceiveCapPerQuarter.Value * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac.Value : 1.0);

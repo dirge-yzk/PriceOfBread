@@ -686,13 +686,16 @@ public static class Catalog
     public const int NoGood = -1;
 
     /// <summary>退場（2026-09-27 回2-1 の続き）＝前期のレシピは後継の発見で退く（旧＝TechOnset＝−後継の onset・能力に 1−後継の解禁度）。
-    /// 後継＝既定のレシピ（鋼の後装施条砲・鋼の小銃）を実用にした発見＝転炉鋼。⚠2値＝後継を発見した四半期に退く（普及のなめらかさは市場＝既定のレシピの工場が建つ速さ）。</summary>
+    /// 後継＝既定のレシピ（鋼の機関）を実用にした発見＝転炉鋼。⚠2値＝後継を発見した四半期に退く。
+    /// ★(537) 武器の旧のレシピ（マスケット・鋳鉄砲）は 2026-10-24 にこの表から外した（作者 2026-10-24「武器は旧式も新式も並行して作る方式にできませんか？」＝並行して作られる）。
+    /// 鋳鉄の機関は残す：強さの差を財の単位に持たない（蒸気機関に強さの読み替えは無い）ので、退場させないと鋼も機械も要らない安い機関が 1950 年まで主力に居座る（腕 B の wp_s：転炉鋼の後も新の割合の中央 1.6%・旧÷新の費用 0.92）。</summary>
     private static readonly (int Good, string Recipe, int SuccessorGood, string SuccessorRecipe)[] Retirements =
     [
-        (RifleId, "マスケット", SteelId, ""),
-        (ArtilleryId, "鋳鉄砲", SteelId, ""),
-        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）
+        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く
     ];
+
+    /// <summary>★(537) 並行して作る新世代のレシピ（既定の鋼の小銃・鋼の砲）の門と、計器が読む蒸気機関の対の発見＝転炉鋼（鋼の既定のレシピ）。⚠発見の行は足さない（<see cref="Discoveries"/> の添字を動かさない）。</summary>
+    private static readonly int[] WeaponSuccessorGoods = [RifleId, ArtilleryId, SteamEngineId];
 
     /// <summary>★(336) 流れG ② 系統×段階：行ごとの前提の行の添字（−1＝前提なし＝系統の根）＝<see cref="DiscoveryRow.After"/> の名前を引く。
     /// 辺の表と前提の木は AI の推奨。作者 2026-10-02「すべて推奨でよい。」（(177)）が掛かるのは AI の推奨〈引きなし・判定は各系統の次の段だけ〉の一句まで。★(344) 辺の表 8 本（腕 B）に 作者 2026-10-15「特に違和感はないです。これでいきましょう。」＝表の承認（出典の頁は未確認）。
@@ -764,6 +767,11 @@ public static class Catalog
         foreach (var (g, r, sg, sr) in Retirements) if (g == good && r == recipe) return DiscoveryRowOf(sg, sr);
         return -1;
     }
+
+    /// <summary>★(537) 新世代の武器のレシピ（既定の鋼の小銃・鋼の砲）が開く発見の行（転炉鋼＝鋼の既定のレシピ・財が表に無ければ −1）。<c>Simulation.AddAlternateRecipes</c> が <see cref="Producer.OpenedByRow"/> へ置く。
+    /// 蒸気機関は計器 <c>wp_s</c> が〈鋳鉄の機関の対の発見〉を読むためだけに載せる（蒸気機関の既定のレシピには門を置かない）。</summary>
+    public static int OpenedByRowOf(int good)
+        => System.Array.IndexOf(WeaponSuccessorGoods, good) >= 0 ? DiscoveryRowOf(SteelId, "") : -1;
 
     /// <summary>★産地の発見の表（段2A の続き・2026-10-01 (148)・設計 §9-1 の提案③＝鉱床の発見も同じ骨組みへ〔2026-09-28 作者が採用した提案・文は AI の整理〕＋(129) の申し送り＝アジアの樹皮は植林の発見で〔AI の推奨〕）＝
     /// **場所に結びついた発見**＝1783年の地図に無かった産地（大鉱床・植林）。行＝（名前・場所〔州か植民地の名＝ProvinceSpec.City／Colony.Name〕・財・年代・分野）。

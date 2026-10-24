@@ -136,10 +136,10 @@ public class InstrumentsTests
         string dir = NewDir();
         try
         {
-            // ★(512) 州のデータの追加で軌道が動き、種 1789 では借入の判定の経路を 1 度も通らなかった（対照が赤）＝種 1790 で通る（種の選び直し〔(405)(508) と同じ作法〕・1790〜1793 は全て通った）。
-            var off = Make(1790UL); RunMatch(off, Quarters, instr: false);
+            // ★(512) 州のデータの追加で軌道が動き、種 1789 では借入の判定の経路を 1 度も通らなかった（対照が赤）＝種 1790 で通る（種の選び直し〔(405)(508) と同じ作法〕。★(537) 武器の並行で軌道がまた動き 1790 では通らなくなった＝1791 で通る（1792 は赤・1793〜1795 も通る）・1790〜1793 は全て通った）。
+            var off = Make(1791UL); RunMatch(off, Quarters, instr: false);
             Instruments.Configure(dir, "*");
-            try { var on = Make(1790UL); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
+            try { var on = Make(1791UL); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
             finally { Instruments.Configure(null, null); }
 
             // ---- 財政の鎖
@@ -1622,8 +1622,9 @@ public class InstrumentsTests
     // ★(520) 交渉の取り分と産地の地代の点火で軌道がまた動き、1807 では場面 T の飢えの照合が空洞になった（飢え 0・構造 11）＝1808（構造 12）も空洞・1809 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
     // ★(524) 合流の木（spb＋sb）でも 1809 で全ての場面が空洞でない（WriterRatchet・InstrumentsTests・DormantIdentityTests を合成の木で回して確かめた）。
     // ★(529) 産地の取り分を慣習のデータの取り分と法の上限の小さい方へ（Q2 の形の撤回）で軌道がまた動き、1809 では場面 T の飢えの照合が空洞になった（飢え 0・構造 10）＝1810 も空洞（飢え 0・構造 10）・1811 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法・1812・1813 も通る）。
-    // ★(536) F1（植民地を除く国平均）と F3（鋳鉄の機械）の点火で軌道がまた動き、1811 では場面 T の飢えの照合が空洞になった（飢え 0・構造 11）＝1812（構造 10）も空洞・1813 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
-    private const ulong CoverageSeed = 1813UL;
+    // ★(536) F1（植民地を除く国平均）と F3（鋳鉄の機械）の点火で 1811 の場面 T の飢えの照合が空洞になり 1813 を選んだ・★(537) 武器の並行で 1812 を選んだ（1813・1815 は空洞）。
+    // ★(542) 合流（ivf＋wp を重ねた木）：1812 で全ての場面が空洞でない（InstrumentsTests 14 本が緑）＝1812 を採る（種の選び直しは (405) と同じ作法）。
+    private const ulong CoverageSeed = 1812UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
