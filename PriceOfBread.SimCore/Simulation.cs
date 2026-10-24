@@ -1073,7 +1073,7 @@ public sealed class Simulation
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
-        // ★(536) 線 ivf（旗 MachineCastIronRecipe・既定 0＝1 件も足さない＝厳密恒等）：機械（財）の地理差のレシピ〈鋳鉄の機械〉。鋳鉄の機関（上）と同じ型。
+        // ★(536) 線 ivf（旗 MachineCastIronRecipe・★2026-10-25 点火＝既定 1。0 にすると 1 件も足さない＝旧の形）：機械（財）の地理差のレシピ〈鋳鉄の機械〉。鋳鉄の機関（上）と同じ型。
         //   既定の機械は鋼 1.514＋銅 0.57（goods.json）で、鋼を使わないレシピが無い＝1783 年の機械の費用は坩堝鋼の値段（転炉鋼の発見は 1850 年代）で決まる（iv ②・坩堝鋼の機械は参照の約 8.1）。
         //   史実＝1780 年代の機械は鋳鉄・錬鉄と木材（Dickinson & Jenkins 1927・Hills 1989 は蒸気機関についての文献で、機械一般への換算の根拠ではない）。換算は鋳鉄の機関の比（鉄 1.832÷鋼 1.0992＝1.665）の流用＝鋼 1.514 を鉄 2.52 に置き換える（確証なし・AI の推奨・事前登録 追記 2）。
         //   参照の費用 4.8046（既定の機械 4.3943 の 1.093 倍）＝転炉鋼の後は費用で鋼のレシピが勝つ（退場の行は要らない）。新しい財なし。生産性は既定の機械と同じ。全ての州に同じ 1 本（国名の分岐なし）。
@@ -1733,7 +1733,7 @@ public sealed class Simulation
         // ★(351) 1 周で足す：稼働中の州の POP を州の並びで 1 周し、州ごとの和（rSav・rEarn・rPop）と国の和（nat＝州をまたいで足し続ける）を同時に数える。
         //   旧＝国の和の周と州ごとの和の周の 2 周（同じ集合・同じ順）。各和の足し込みの順は旧と同じ＝1 ビットも変わらない（国の和は州ごとの和の合計ではない＝足し方が違う）。
         double natSav = 0, natEarn = 0, natPop = 0;
-        // ★(536) 線 ivf（旗 RegionalPriceBaseExcludesColonies・既定 0）：正のとき〈国平均〉を植民地の格の州を除いた州で取る。本土の州が無い（人口 0）ときは全ての州（今の式）。旗 0 では下の 2 行と 1 分岐が走らず、nat の足し込みは今のまま。
+        // ★(536) 線 ivf（旗 RegionalPriceBaseExcludesColonies・★2026-10-25 点火＝既定 1。0 で旧の形）：正のとき〈国平均〉を植民地の格の州を除いた州で取る。本土の州が無い（人口 0）ときは全ての州（今の式）。旗 0 では下の 2 行と 1 分岐が走らず、nat の足し込みは今のまま。
         bool exColonies = c.RegionalPriceBaseExcludesColonies > 0;
         double mainSav = 0, mainEarn = 0, mainPop = 0;
         var regSums = new double[World.Regions.Count * 3];

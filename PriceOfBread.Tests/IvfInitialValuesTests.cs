@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// (536) 線 ivf：初期値の直し（資本の土台）の番人。事前登録 <c>measurements/ivf536_20261024_prereg.txt</c>。
-/// 旗 3 本（全て既定 0）：F1 <c>RegionalPriceBaseExcludesColonies</c>（州の物価の乗数と賃金の割増の国平均から植民地の格の州を外す）・
+/// 旗 3 本（F1・F3 は 2026-10-25 に既定 1 へ点火・F2 は採らず既定 0＝休眠）：F1 <c>RegionalPriceBaseExcludesColonies</c>（州の物価の乗数と賃金の割増の国平均から植民地の格の州を外す）・
 /// F2 <c>ConstructionEraBundle</c>（建設の資材の束を 2 組にして州×月で安い方を選ぶ）・F3 <c>MachineCastIronRecipe</c>（機械の地理差のレシピ〈鋳鉄の機械〉）。
 /// 期待値は本体の式の写しでなく<b>手の値</b>で書く（参照価格は Runner の <c>refprice</c> の出力・束の量は事前登録の数字・乗数は州の貯蓄の素の和から）。
 /// 旗は Scenario.Coef に差す（州の構築時に届く＝<c>HouseholdProductionTests</c> の先例）。
@@ -32,9 +32,9 @@ public class IvfInitialValuesTests
     public void 三つの旗の既定は0で_時代の組の量は事前登録のとおり()
     {
         var c = new Coefficients();
-        Assert.Equal(0.0, c.ConstructionEraBundle);
-        Assert.Equal(0.0, c.RegionalPriceBaseExcludesColonies);
-        Assert.Equal(0.0, c.MachineCastIronRecipe);
+        Assert.Equal(0.0, c.ConstructionEraBundle);               // F2＝2026-10-25 に採らない（G5b 外れ）＝休眠
+        Assert.Equal(1.0, c.RegionalPriceBaseExcludesColonies);    // F1＝2026-10-25 点火
+        Assert.Equal(1.0, c.MachineCastIronRecipe);                // F3＝2026-10-25 点火
         Assert.Equal(1.0, c.ConsEraIron); Assert.Equal(1.5, c.ConsEraLumber); Assert.Equal(0.8, c.ConsEraLime); Assert.Equal(0.95, c.ConsEraClay);
         // 鋼の組の量（係数のリテラル）も動かしていない
         Assert.Equal(1.0, c.ConsSteel); Assert.Equal(0.15, c.ConsMachine); Assert.Equal(0.4, c.ConsCement); Assert.Equal(0.5, c.ConsLumber);
@@ -282,7 +282,7 @@ public class IvfInitialValuesTests
     [Fact]
     public void 鋳鉄の機械は旗1でだけ全ての州に1本入り_入力は手の値()
     {
-        var off = Make(NationConfig.Britain(), c => { });
+        var off = Make(NationConfig.Britain(), c => c.MachineCastIronRecipe = 0);
         var on = Make(NationConfig.Britain(), c => c.MachineCastIronRecipe = 1);
         Assert.Equal(0, off.World.Regions.Sum(r => r.Producers.Count(p => p.RecipeName == "鋳鉄の機械")));
         int regions = 0;
