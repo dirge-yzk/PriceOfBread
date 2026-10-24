@@ -523,7 +523,8 @@ public static class EconomyStep
     {
         // ★(520) 段1c（旗 LandRentResidual）：産地は〈耕す人の市場の賃金を払った後の残りが持ち主〉＝取り分は法の上限そのもの（既定 1.0）。付加価値は農業労働力の購入を引いた後の額なので、残りの全部が地代（リカードの形）。
         //   生産者の固定の取り分と土地の稀少度の弾力は読まない。旗 0 は下の式のまま（この行は旗が正のときだけ通る）。
-        if (coef.LandRentResidual > 0 && s.IsRgo) return region.FarmRentCap.Value;
+        if (coef.LandRentResidual > 0 && s.IsRgo)
+            return coef.LandRentCustomBound > 0 ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : region.FarmRentCap.Value;   // ★(529) 旗 LandRentCustomBound：領主は慣習のデータの取り分（農奴の現金の床を引いた farmLordShare）までしか取れない・法の上限はその上の天井。旗 0 は今の形（上限そのもの）
         double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
         if (coef.RentScarcityElasticity > 0 && s.IsRgo)
         {

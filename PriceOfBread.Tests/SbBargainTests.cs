@@ -277,4 +277,82 @@ public class SbBargainTests
         Assert.True(on[1] > off[1], $"領主の LandRent が増えない（{off[1]} → {on[1]}）");
         Assert.True(on[0] > off[0], "領主の所得が増えない");
     }
+
+    // ---------------------------------------------------------------- (529) 段1c の形 P（旗 LandRentCustomBound）
+
+    private static double[] MonthBound(Simulation sim, double bound)
+    {
+        var w = sim.World; var r = w.Region;
+        w.LaborUnion = LaborUnionLaw.Illegal; w.Suffrage = Suffrage.None;
+        w.Coef.UnionBargaining = 0; w.Coef.LandRentResidual = 1; w.Coef.LandRentCustomBound = bound;
+        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+        var e = new double[r.Pops.Count * 2];
+        for (int i = 0; i < r.Pops.Count; i++) { e[2 * i] = r.Pops[i].EarnedPerMonth.Value; e[2 * i + 1] = r.Pops[i].LandRentPerMonth.Value; }
+        return e;
+    }
+
+    private static (double[] Off, double[] On) TwinBound(double rentShare, double cap, bool landlord)
+    {
+        var off = Warm(); var on = Warm();
+        foreach (var s in new[] { off, on })
+        {
+            Organize(s, 0.0, 0.0);
+            foreach (var p in s.World.Region.Producers) if (p.IsRgo) { p.RentShare = new Share(rentShare); p.OwnerPopIndex = landlord ? 0 : p.LaborPopIndex; }
+            s.World.Region.FarmRentCap = new Share(cap);
+        }
+        return (MonthBound(off, 0), MonthBound(on, 1));
+    }
+
+    [Fact]
+    public void 形Pの産地の取り分は慣習の取り分と法の上限の小さい方で旗0は法の上限のまま()   // M1・M2
+    {
+        var sim = Warm(); var w = sim.World; var r = w.Region;
+        Producer? rgo = null;
+        foreach (var p in r.Producers) if (p.IsRgo) { rgo = p; break; }
+        Assert.True(rgo is not null);
+        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
+        w.Coef.LandRentResidual = 1;
+        rgo!.RentShare = new Share(0.5);
+        r.FarmRentCap = new Share(0.75);                                  // 農奴解放が限定的の国（日・墺・仏）：上限が慣習より高い
+        w.Coef.LandRentCustomBound = 0;
+        Assert.Equal(0.75, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        w.Coef.LandRentCustomBound = 1;
+        Assert.Equal(0.5, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        r.FarmRentCap = new Share(0.3);                                   // 土地改革が全面：上限が慣習より低い＝今の形と同じ
+        Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        w.Coef.LandRentCustomBound = 0;
+        Assert.Equal(0.3, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        rgo.RentShare = new Share(0.85);                                  // ロシア（農奴の現金の床 0.15 を引いた慣習）と未解放（上限 1.0）
+        r.FarmRentCap = new Share(1.0);
+        w.Coef.LandRentCustomBound = 1;
+        Assert.Equal(0.85, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+        w.Coef.LandRentResidual = 0; w.Coef.RentScarcityElasticity = 0;   // 残りの道を倒せば 形 P は読まれない（旗 0 の今の式）
+        Assert.Equal(0.85, EconomyStep.RentShareOf(rgo, r, w.Coef, rural), 12);
+    }
+
+    [Fact]
+    public void 形Pは上限が慣習より高い領主と農民の州で農民の所得が増え領主の所得が減り合計は変わらない()   // M3
+    {
+        var (off, on) = TwinBound(0.5, 1.0, landlord: true);
+        Assert.Equal(Total(off), Total(on), 6);
+        Assert.True(on[1] < off[1], $"領主の LandRent が減らない（{off[1]} → {on[1]}）");
+        Assert.True(on[0] < off[0], "領主の所得が減らない");
+        int farmerIdx = -1; double best = 0;
+        for (int i = 1; i < off.Length / 2; i++) { double d = on[2 * i] - off[2 * i]; if (d > best) { best = d; farmerIdx = i; } }
+        Assert.True(farmerIdx >= 0, "どの階級の所得も増えない（耕す人の所得が増えるはず）");
+    }
+
+    [Fact]
+    public void 形Pは自作農の所得を変えず土地税の課税の元だけが慣習の取り分へ戻る()   // M3
+    {
+        var (off, on) = TwinBound(0.3, 1.0, landlord: false);
+        int n = off.Length / 2;
+        double rentOff = 0, rentOn = 0;
+        for (int i = 0; i < n; i++)
+        {
+            Assert.True(Math.Abs(off[2 * i] - on[2 * i]) <= 1e-9 * Math.Max(1.0, Math.Abs(off[2 * i])), $"自作農の州で POP {i} の所得が変わった（{off[2 * i]} → {on[2 * i]}）");
+            rentOff += off[2 * i + 1]; rentOn += on[2 * i + 1];
+        }
+        Assert.True(rentOn < rentOff, $"自作農の自己地代（土地税の課税の元）が慣習へ戻らない（{rentOff} → {rentOn}）");
+    }
 }

@@ -69,7 +69,7 @@ public static partial class Instruments
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.RgoN++; a.RgoVa += va; a.RgoRent += rent; a.RgoWages += wages;
         if (s.OwnerPopIndex == s.LaborPopIndex) { a.SelfN++; a.SelfVa += va; a.SelfResid += Math.Abs(rent + wages - va); }
-        double cap = r.FarmRentCap.Value;
+        double cap = EconomyStep.RentShareOf(s, r, w.Coef, ruralPop);   // ★(529) 効いている取り分（旗 LandRentCustomBound が 0 なら法の上限そのもの＝(520) の定義と同じ値）
         if (cap < 1.0 && va > 0) { a.CapN++; a.CapErr += Math.Abs(rent / va - cap); }
         var g = SbRegAccs.GetValue(r, _ => new SbRegAcc());
         g.Crowd = r.ArableLand < 1e8 ? ruralPop / Math.Max(1.0, r.ArableLand) : double.NaN;
