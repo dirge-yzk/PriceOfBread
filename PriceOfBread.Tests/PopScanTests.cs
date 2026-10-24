@@ -244,6 +244,7 @@ public class PopScanTests
         sim.Run(2);
         var w = sim.World;
         w.Coef.RegionalPriceLevelWeight = 0.3;
+        w.Coef.RegionalPriceBaseExcludesColonies = 0;   // ★(536) 2026-10-25：旧の 2 周の式（写し）は全ての州の平均＝旗 0 の経路との一致を見る（旗 1 は植民地を外す・IvfInitialValuesTests が見る）
         Assert.True(w.Regions.Count >= 4);
         for (int i = 0; i < w.Regions.Count; i++)
             foreach (var p in w.Regions[i].Pops) { p.SetSavings(p.Savings.Value * (1.0 + 0.37 * i) + 0.1 * i); p.EarnedPerMonth = new MoneyPerMonth(p.EarnedPerMonth.Value * (1.0 + 0.21 * i) + 0.3); }
