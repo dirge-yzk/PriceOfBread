@@ -1,0 +1,5 @@
+# (533) spg2_metrics.py の読み（10 種の中央値・collapse は 10 種の和）。記録＝採否に使わない
+arm	collapse	tradeGdp1850	tradeGdp1900	tradeGdp1914	colonialTrade1850	colonialTrade1900	colonialTrade1910	wars	priceFlip	partnersMedian
+m533	38	0.8389	2.194	1.643	6038	1.144e+04	8612	615	45.92	8
+m533_N1	11	1.226	2.339	1.758	1.104e+04	2.033e+04	1.428e+04	558.5	45.86	8
+m533_N2	74	0.9703	2.61	2.117	8256	2.616e+04	2.749e+04	592.5	44.55	8
