@@ -40,20 +40,17 @@ public class IvfInitialValuesTests
         Assert.Equal(1.0, c.ConsSteel); Assert.Equal(0.15, c.ConsMachine); Assert.Equal(0.4, c.ConsCement); Assert.Equal(0.5, c.ConsLumber);
     }
 
-    /// <summary>参照価格は Runner の <c>refprice</c>（5a061a10 の木）の出力を手で写した値＝本体の <c>BundleRef</c> の呼び戻しで作らない。</summary>
+    /// <summary>生きた参照価格（<c>Catalog.RefPrices</c>）から相対の性質だけを見る（反証役の点検 中#4：財の削減や goods.json の直しで絶対値が動いても、二つの組の参照の合計が揃っている性質は保つ。絶対値は記録＝鋼の組 3.7104・時代の組 3.7140・5a061a10）。
+    /// 期待は係数の量×参照価格の手の和で作り、<c>BundleRef</c> の呼び戻しと突き合わせる。</summary>
     [Fact]
     public void 二つの組の参照価格の合計はほぼ等しい()
     {
-        const double steel = 2.1758, machine = 4.3943, cement = 1.1060, lumber = 0.8660, iron = 1.4700, lime = 0.5400, clay = 0.5400, copper = 1.2459;
-        Assert.Equal(steel, Catalog.RefPrices[Catalog.SteelId], 3); Assert.Equal(machine, Catalog.RefPrices[Catalog.MachineryId], 3);
-        Assert.Equal(cement, Catalog.RefPrices[Catalog.CementId], 3); Assert.Equal(lumber, Catalog.RefPrices[Catalog.LumberId], 3);
-        Assert.Equal(iron, Catalog.RefPrices[Catalog.IronId], 3); Assert.Equal(lime, Catalog.RefPrices[Catalog.LimestoneId], 3);
-        Assert.Equal(clay, Catalog.RefPrices[Catalog.ClayId], 3); Assert.Equal(copper, Catalog.RefPrices[Catalog.CopperId], 3);
-        double steelSet = 1.0 * steel + 0.15 * machine + 0.4 * cement + 0.5 * lumber;   // 3.7104
-        double eraSet = 1.0 * iron + 1.5 * lumber + 0.8 * lime + 0.95 * clay;             // 3.7140
-        Assert.Equal(3.7104, steelSet, 3); Assert.Equal(3.7140, eraSet, 3);
-        Assert.True(Math.Abs(eraSet / steelSet - 1.0) < 0.002, "時代の組の参照が鋼の組の参照から 0.2% を超えて離れた");
-        Assert.Equal(steelSet, EconomyStep.BundleRef(new Coefficients()), 3);   // BundleRef は鋼の組のまま（較正を動かさない）
+        double[] rp = Catalog.RefPrices;
+        double steelSet = 1.0 * rp[Catalog.SteelId] + 0.15 * rp[Catalog.MachineryId] + 0.4 * rp[Catalog.CementId] + 0.5 * rp[Catalog.LumberId];
+        double eraSet = 1.0 * rp[Catalog.IronId] + 1.5 * rp[Catalog.LumberId] + 0.8 * rp[Catalog.LimestoneId] + 0.95 * rp[Catalog.ClayId];
+        Assert.True(steelSet > 0 && eraSet > 0);
+        Assert.True(Math.Abs(eraSet / steelSet - 1.0) < 0.002, $"時代の組の参照が鋼の組の参照から 0.2% を超えて離れた（{eraSet} 対 {steelSet}）");
+        Assert.Equal(steelSet, EconomyStep.BundleRef(new Coefficients()), 9);   // BundleRef は鋼の組のまま（較正を動かさない）
     }
 
     // ---------------------------------------------------------------- F2：束の選び
@@ -307,15 +304,16 @@ public class IvfInitialValuesTests
         Assert.True(regions > 0);
     }
 
-    /// <summary>期待は goods.json の既定の機械から手で出す：鋼 1.514→鉄 2.52（×1.665）・銅 0.57 は同じ。参照の費用は 鉄 2.52×1.47＋銅 0.57×1.2459＋付加価値 0.39＝4.8046。</summary>
+    /// <summary>期待は goods.json の既定の機械から手で出す：鋼 1.514→鉄 2.52（×1.665）・銅 0.57 は同じ。付加価値は生きた参照価格の機械から逆算（反証役の点検 中#4：絶対値 4.8046・4.3943 は記録へ移した）。</summary>
     [Fact]
-    public void 鋳鉄の機械の参照の費用は既定の機械の約1_09倍()
+    public void 鋳鉄の機械の参照の費用は既定の機械の近傍()
     {
-        double cast = 2.52 * 1.4700 + 0.57 * 1.2459 + 0.39;
-        double def = 1.514 * 2.1758 + 0.57 * 1.2459 + 0.39;
-        Assert.Equal(4.8046, cast, 3); Assert.Equal(4.3943, def, 3);
-        Assert.Equal(def, Catalog.RefPrices[Catalog.MachineryId], 3);
-        Assert.InRange(cast / def, 1.08, 1.10);
+        double[] rp = Catalog.RefPrices;
+        double def = rp[Catalog.MachineryId];
+        double added = def - 1.514 * rp[Catalog.SteelId] - 0.57 * rp[Catalog.CopperId];   // 付加価値（既定の機械の参照から逆算）
+        double cast = 2.52 * rp[Catalog.IronId] + 0.57 * rp[Catalog.CopperId] + added;
+        Assert.True(added > 0);
+        Assert.InRange(cast / def, 1.0, 1.2);   // 参照では同じ桁（坩堝鋼の機械は市場の値段では鋳鉄の機械より数倍高い＝これがレシピの存在理由）
         Assert.Equal(5.0 / 3.0, 1.832 / (1.514 * 0.726), 3);   // 鋳鉄の機関の換算の比（鉄 1.832÷鋼 1.0992＝5/3）
         Assert.Equal(2.52, 1.514 * 5.0 / 3.0, 1);              // 鋼 1.514 を同じ比で鉄へ（2.523→事前登録は 2.52）
     }
@@ -358,7 +356,7 @@ public class IvfInitialValuesTests
             double perCap = act[i].Pops.Sum(p => p.Savings.Value) / act[i].Pops.Sum(p => p.Size);
             Assert.Equal(Math.Clamp(Math.Pow(perCap / all, wgt), lo, hi), m0[i], 12);    // 旗 0＝全ての州の平均
             Assert.Equal(Math.Clamp(Math.Pow(perCap / main, wgt), lo, hi), m1[i], 12);   // 旗 1＝本土の州の平均
-            if (act[i].Tier == RegionTier.Colonial) { Assert.True(m1[i] <= m0[i] + 1e-12); Assert.Equal(lo, m1[i], 12); }   // 貧しい植民地は下限に座ったまま
+            if (act[i].Tier == RegionTier.Colonial) Assert.True(m1[i] <= m0[i] + 1e-12);   // 植民地の乗数は旗 1 で上がらない（下限に座るかは開幕の盤面の性質＝記録 R10・門にしない）
         }
         int cap = act.FindIndex(r => r.Tier != RegionTier.Colonial);
         Assert.True(Math.Abs(m1[cap] - 1.0) < Math.Abs(m0[cap] - 1.0), "本土の州の乗数が旗 1 で 1 に近づかない");

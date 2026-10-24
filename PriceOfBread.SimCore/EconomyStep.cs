@@ -1119,7 +1119,6 @@ public static class EconomyStep
             // capゲート穴の閉鎖（2026-08-09）：資本区画のない州（または投資家pop不在）でも着工中の工場は材料を買う。
             // 従来は材料費ゼロ・工賃のみで完成する抜け道（素材階層+αの導入で価値が増すため恒久閉鎖）。
             bundle = BundleOf(region, coef);
-            if (Instruments.On && world is not null) Instruments.IvfChoice(world, region, bundle.Era);   // (536) 計器（読むだけ）
             AccumulateFactoryBuild(region, coef, bundle, investDemand, ref factoryBuildUnits, world);
         }
 
