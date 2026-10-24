@@ -138,7 +138,7 @@ def line2(arms):
     print('⑥② 一国の発散（年末の首位の国の世界の実質GDP の取り分・種の中央値）')
     fired = False
     for year in (1850, 1900, 1950):
-        med = {}; same = {}
+        med = {}; same = {}; top = {}
         for a, d in zip(names, arms):
             sh = []; who = defaultdict(int)
             for s in seeds_of(d):
@@ -147,10 +147,12 @@ def line2(arms):
                     sh.append(v); who[n] += 1
             med[a] = statistics.median(sh) if sh else float('nan')
             same[a] = max(who.values()) if who else 0
+            top[a] = max(who, key=who.get) if who else '?'   # ★(542) 首位の国の名前（(516) の申し送り・wp と ul3 の反証役の高）
         nulls = [med['A'], med['N1'], med['N2']]
         width = max(nulls) - min(nulls)
         f = med['B'] > max(nulls) + 2 * width and same['B'] >= 8
         print('   %d  A=%.3f N1=%.3f N2=%.3f B=%.3f  幅=%.3f  同じ首位の種(B)=%d  → %s' % (year, med['A'], med['N1'], med['N2'], med['B'], width, same['B'], '鳴る' if f else '鳴らない'))
+        print('         首位の国（最も多い種の国・種の数）：' + '・'.join('%s=%s %d' % (a, top[a], same[a]) for a in names))
         fired = fired or f
     return fired
 
