@@ -1,0 +1,179 @@
+##### c2
+FR 39
+Traceback (most recent call last):
+  File "D:\PoB_work\sm_519b\show.py", line 12, in <module>
+    print('  q%s %s N=%.0f X=%.0f Out=%.0f a=%.2f idle=%.3f mA=%.0f mW=%.0f mS=%.0f mech=%.3f net=%.3f gross=%.3f pay=%.0f wage=%.3f coal=%.3f desQ=%.0f'%(r['quarter'],r['year'],N,X,O,O/X if X>0 else 0,float(r['idle']),float(r['mAnimal']),float(r['mWater']),float(r['mSteam']),float(r['mechShare']),float(r['netSlots']),float(r['grossSlots']),float(r['payM']),float(r['wageMed']),float(r['coalMed']),float(r['slotDesiredQ'])))
+                                                                                                                                                                                                                                                                                                                                                                                                                      ~^^^^^^^^^^^^^^^^
+KeyError: 'slotDesiredQ'
+##### c4
+FR 119
+  q1 1783 N=4367 X=4686 Out=34591 a=7.38 idle=0.413 mA=591 mW=101 mS=0 mech=0.236 net=3.912 gross=3.985 pay=3025 wage=0.317 coal=0.472 desQ=727
+  q21 1788 N=8553 X=9472 Out=65920 a=6.96 idle=0.509 mA=1206 mW=68 mS=0 mech=0.237 net=1.251 gross=1.293 pay=2442 wage=0.378 coal=0.384 desQ=629
+  q41 1793 N=13149 X=14361 Out=67979 a=4.73 idle=0.696 mA=1665 mW=47 mS=37 mech=0.212 net=4.353 gross=4.459 pay=2425 wage=0.296 coal=0.334 desQ=692
+  q61 1798 N=17880 X=19548 Out=82610 a=4.23 idle=0.750 mA=2252 mW=34 mS=97 mech=0.208 net=2.227 gross=2.269 pay=2774 wage=0.345 coal=0.290 desQ=574
+  q81 1803 N=10037 X=10928 Out=48176 a=4.41 idle=0.797 mA=1246 mW=17 mS=74 mech=0.209 net=30.895 gross=30.962 pay=1750 wage=0.286 coal=0.333 desQ=454
+  q101 1808 N=12421 X=13501 Out=48922 a=3.62 idle=0.844 mA=1505 mW=21 mS=70 mech=0.197 net=1.915 gross=1.986 pay=1740 wage=0.269 coal=0.344 desQ=314
+JP 119
+  q1 1783 N=3032 X=3307 Out=24275 a=7.34 idle=0.407 mA=296 mW=508 mS=0 mech=0.344 net=9.063 gross=9.144 pay=1927 wage=0.362 coal=0.329 desQ=622
+  q21 1788 N=6895 X=7554 Out=45051 a=5.96 idle=0.565 mA=794 mW=340 mS=0 mech=0.245 net=3.063 gross=3.133 pay=2240 wage=0.322 coal=0.334 desQ=596
+  q41 1793 N=10080 X=10952 Out=43172 a=3.94 idle=0.731 mA=1076 mW=229 mS=0 mech=0.203 net=2.435 gross=2.587 pay=1522 wage=0.263 coal=0.329 desQ=504
+  q61 1798 N=13410 X=14435 Out=58101 a=4.03 idle=0.745 mA=1390 mW=158 mS=0 mech=0.182 net=0.991 gross=1.021 pay=1806 wage=0.237 coal=0.332 desQ=568
+  q81 1803 N=16376 X=17640 Out=68644 a=3.89 idle=0.765 mA=1769 mW=119 mS=0 mech=0.182 net=0.894 gross=0.942 pay=1890 wage=0.199 coal=0.315 desQ=542
+  q101 1808 N=19022 X=20472 Out=80522 a=3.93 idle=0.773 mA=2056 mW=93 mS=16 mech=0.178 net=1.160 gross=1.234 pay=2137 wage=0.191 coal=0.315 desQ=596
+UK 119
+  q1 1783 N=3027 X=3247 Out=28187 a=8.68 idle=0.353 mA=297 mW=3 mS=47 mech=0.185 net=0.949 gross=0.976 pay=2535 wage=0.487 coal=0.295 desQ=365
+  q21 1788 N=4970 X=5458 Out=37479 a=6.87 idle=0.526 mA=646 mW=2 mS=44 mech=0.222 net=0.378 gross=0.398 pay=2327 wage=0.595 coal=0.642 desQ=328
+  q41 1793 N=5799 X=6330 Out=22293 a=3.52 idle=0.710 mA=727 mW=1 mS=41 mech=0.209 net=0.338 gross=0.355 pay=1380 wage=0.546 coal=0.574 desQ=247
+  q61 1798 N=7006 X=7675 Out=29900 a=3.90 idle=0.764 mA=879 mW=1 mS=42 mech=0.207 net=0.439 gross=0.443 pay=1376 wage=0.408 coal=0.526 desQ=228
+  q81 1803 N=8038 X=8715 Out=31240 a=3.58 idle=0.828 mA=967 mW=1 mS=41 mech=0.200 net=16.363 gross=16.464 pay=1345 wage=0.312 coal=0.485 desQ=277
+  q101 1808 N=11958 X=12760 Out=37184 a=2.91 idle=0.870 mA=1219 mW=6 mS=62 mech=0.172 net=9.892 gross=10.025 pay=1294 wage=0.227 coal=0.428 desQ=252
+US 119
+  q1 1783 N=793 X=877 Out=6870 a=7.84 idle=0.439 mA=145 mW=64 mS=0 mech=0.366 net=8.565 gross=8.678 pay=746 wage=0.343 coal=0.375 desQ=182
+  q21 1788 N=2095 X=2337 Out=14971 a=6.40 idle=0.659 mA=333 mW=44 mS=5 mech=0.278 net=1.880 gross=1.942 pay=667 wage=0.436 coal=0.328 desQ=160
+  q41 1793 N=3199 X=3569 Out=20184 a=5.66 idle=0.732 mA=455 mW=30 mS=27 mech=0.252 net=2.951 gross=3.022 pay=813 wage=0.437 coal=0.257 desQ=195
+  q61 1798 N=4526 X=5046 Out=27294 a=5.41 idle=0.764 mA=628 mW=21 mS=57 mech=0.247 net=1.014 gross=1.069 pay=964 wage=0.359 coal=0.252 desQ=266
+  q81 1803 N=5949 X=6536 Out=34241 a=5.24 idle=0.794 mA=744 mW=15 mS=72 mech=0.221 net=2.152 gross=2.207 pay=1027 wage=0.263 coal=0.233 desQ=338
+  q101 1808 N=8343 X=9137 Out=44899 a=4.91 idle=0.826 mA=1071 mW=11 mS=79 mech=0.219 net=2.099 gross=2.158 pay=1211 wage=0.214 coal=0.287 desQ=444
+RU 119
+  q1 1783 N=2677 X=2831 Out=17862 a=6.31 idle=0.487 mA=145 mW=406 mS=0 mech=0.266 net=12.078 gross=12.156 pay=1552 wage=0.388 coal=0.324 desQ=520
+  q21 1788 N=5767 X=6345 Out=39059 a=6.16 idle=0.526 mA=674 mW=275 mS=3 mech=0.247 net=3.307 gross=3.355 pay=2063 wage=0.454 coal=0.344 desQ=468
+  q41 1793 N=6631 X=7303 Out=30293 a=4.15 idle=0.686 mA=777 mW=179 mS=25 mech=0.229 net=1.962 gross=2.029 pay=1322 wage=0.299 coal=0.350 desQ=250
+  q61 1798 N=6629 X=7303 Out=25483 a=3.49 idle=0.679 mA=764 mW=108 mS=55 mech=0.221 net=1.978 gross=2.037 pay=1068 wage=0.243 coal=0.346 desQ=227
+  q81 1803 N=8910 X=9572 Out=39663 a=4.14 idle=0.715 mA=939 mW=92 mS=84 mech=0.198 net=9.238 gross=9.313 pay=1672 wage=0.188 coal=0.355 desQ=528
+  q101 1808 N=13774 X=14595 Out=47608 a=3.26 idle=0.798 mA=1386 mW=84 mS=82 mech=0.175 net=2.907 gross=2.969 pay=1667 wage=0.192 coal=0.395 desQ=463
+Qing 119
+  q1 1783 N=19362 X=21169 Out=121269 a=5.73 idle=0.531 mA=787 mW=6166 mS=0 mech=0.434 net=11.364 gross=11.458 pay=13549 wage=0.376 coal=0.386 desQ=4730
+  q21 1788 N=42557 X=46036 Out=208567 a=4.53 idle=0.663 mA=3534 mW=3961 mS=0 mech=0.247 net=4.721 gross=4.798 pay=18863 wage=0.355 coal=0.332 desQ=4914
+  q41 1793 N=63696 X=68598 Out=216275 a=3.15 idle=0.781 mA=5442 mW=2572 mS=6 mech=0.192 net=1.745 gross=1.891 pay=9694 wage=0.266 coal=0.319 desQ=3021
+  q61 1798 N=86067 X=91593 Out=320190 a=3.50 idle=0.767 mA=6754 mW=1688 mS=333 mech=0.161 net=1.962 gross=2.040 pay=14805 wage=0.230 coal=0.327 desQ=4537
+  q81 1803 N=108067 X=114831 Out=492438 a=4.29 idle=0.715 mA=10009 mW=1190 mS=430 mech=0.168 net=7.617 gross=7.688 pay=13543 wage=0.185 coal=0.340 desQ=3981
+  q101 1808 N=124624 X=132966 Out=488672 a=3.68 idle=0.748 mA=12829 mW=927 mS=463 mech=0.179 net=2.175 gross=2.257 pay=13753 wage=0.137 coal=0.305 desQ=3723
+##### c5
+FR 119
+  q1 1783 N=3726 X=4079 Out=30496 a=7.48 idle=0.400 mA=501 mW=99 mS=0 mech=0.229 net=0.003 gross=0.046 pay=2310 wage=0.417 coal=0.456 desQ=30
+  q21 1788 N=2661 X=3025 Out=29298 a=9.68 idle=0.301 mA=455 mW=60 mS=0 mech=0.286 net=0.018 gross=0.066 pay=2223 wage=0.381 coal=0.360 desQ=35
+  q41 1793 N=1934 X=2243 Out=24636 a=10.99 idle=0.287 mA=429 mW=38 mS=0 mech=0.340 net=0.029 gross=0.091 pay=1661 wage=0.303 coal=0.374 desQ=20
+  q61 1798 N=1452 X=1713 Out=23773 a=13.88 idle=0.272 mA=399 mW=30 mS=0 mech=0.399 net=0.054 gross=0.113 pay=2052 wage=0.305 coal=0.400 desQ=20
+  q81 1803 N=703 X=840 Out=13284 a=15.82 idle=0.254 mA=214 mW=9 mS=0 mech=0.423 net=0.108 gross=0.169 pay=891 wage=0.298 coal=0.456 desQ=10
+  q101 1808 N=231 X=276 Out=4338 a=15.71 idle=0.299 mA=73 mW=3 mS=0 mech=0.432 net=0.154 gross=0.250 pay=340 wage=0.237 coal=0.545 desQ=2
+JP 119
+  q1 1783 N=2538 X=2847 Out=20525 a=7.21 idle=0.410 mA=251 mW=501 mS=0 mech=0.367 net=0.028 gross=0.103 pay=1390 wage=0.542 coal=0.344 desQ=34
+  q21 1788 N=1827 X=2098 Out=19715 a=9.40 idle=0.293 mA=236 mW=298 mS=2 mech=0.379 net=0.071 gross=0.147 pay=1378 wage=0.378 coal=0.335 desQ=27
+  q41 1793 N=1338 X=1556 Out=16566 a=10.64 idle=0.267 mA=231 mW=181 mS=3 mech=0.401 net=0.119 gross=0.206 pay=1196 wage=0.321 coal=0.360 desQ=17
+  q61 1798 N=987 X=1154 Out=14395 a=12.47 idle=0.189 mA=205 mW=113 mS=3 mech=0.419 net=0.112 gross=0.200 pay=1210 wage=0.306 coal=0.384 desQ=17
+  q81 1803 N=739 X=871 Out=11695 a=13.42 idle=0.162 mA=180 mW=72 mS=2 mech=0.442 net=0.155 gross=0.239 pay=918 wage=0.232 coal=0.401 desQ=13
+  q101 1808 N=555 X=652 Out=9113 a=13.98 idle=0.150 mA=143 mW=45 mS=2 mech=0.441 net=0.189 gross=0.286 pay=788 wage=0.215 coal=0.424 desQ=10
+UK 119
+  q1 1783 N=2752 X=3005 Out=25114 a=8.36 idle=0.375 mA=279 mW=3 mS=46 mech=0.188 net=0.002 gross=0.012 pay=2246 wage=0.620 coal=0.290 desQ=13
+  q21 1788 N=1911 X=2139 Out=21864 a=10.22 idle=0.285 mA=241 mW=2 mS=38 mech=0.232 net=0.004 gross=0.017 pay=1834 wage=0.640 coal=0.639 desQ=18
+  q41 1793 N=1341 X=1500 Out=16113 a=10.74 idle=0.296 mA=179 mW=1 mS=31 mech=0.241 net=0.168 gross=0.226 pay=1161 wage=0.543 coal=0.580 desQ=12
+  q61 1798 N=951 X=1083 Out=12968 a=11.97 idle=0.253 mA=163 mW=1 mS=25 mech=0.290 net=0.301 gross=0.379 pay=1099 wage=0.502 coal=0.584 desQ=10
+  q81 1803 N=683 X=792 Out=10229 a=12.91 idle=0.243 mA=143 mW=0 mS=21 mech=0.340 net=0.317 gross=0.393 pay=978 wage=0.445 coal=0.628 desQ=8
+  q101 1808 N=483 X=578 Out=7546 a=13.06 idle=0.197 mA=128 mW=0 mS=17 mech=0.410 net=0.193 gross=0.285 pay=891 wage=0.394 coal=0.626 desQ=6
+US 119
+  q1 1783 N=601 X=698 Out=5926 a=8.49 idle=0.385 mA=125 mW=63 mS=0 mech=0.406 net=0.060 gross=0.149 pay=584 wage=0.436 coal=0.398 desQ=7
+  q21 1788 N=455 X=562 Out=7474 a=13.29 idle=0.279 mA=151 mW=41 mS=0 mech=0.528 net=0.658 gross=0.726 pay=456 wage=0.388 coal=0.323 desQ=8
+  q41 1793 N=359 X=452 Out=7037 a=15.55 idle=0.224 mA=144 mW=27 mS=1 mech=0.585 net=0.247 gross=0.320 pay=401 wage=0.300 coal=0.308 desQ=7
+  q61 1798 N=289 X=366 Out=6438 a=17.57 idle=0.206 mA=124 mW=18 mS=2 mech=0.601 net=0.164 gross=0.238 pay=329 wage=0.228 coal=0.321 desQ=6
+  q81 1803 N=235 X=299 Out=5686 a=19.02 idle=0.204 mA=105 mW=12 mS=2 mech=0.609 net=0.326 gross=0.417 pay=337 wage=0.231 coal=0.334 desQ=5
+  q101 1808 N=193 X=247 Out=5155 a=20.87 idle=0.188 mA=90 mW=8 mS=2 mech=0.617 net=0.270 gross=0.355 pay=299 wage=0.227 coal=0.331 desQ=5
+RU 119
+  q1 1783 N=2252 X=2451 Out=14658 a=5.98 idle=0.508 mA=124 mW=400 mS=0 mech=0.289 net=0.107 gross=0.181 pay=996 wage=0.658 coal=0.339 desQ=26
+  q21 1788 N=1587 X=1777 Out=12409 a=6.98 idle=0.434 mA=121 mW=236 mS=18 mech=0.312 net=0.093 gross=0.159 pay=1057 wage=0.461 coal=0.399 desQ=21
+  q41 1793 N=1120 X=1264 Out=10157 a=8.03 idle=0.374 mA=108 mW=144 mS=16 mech=0.322 net=0.195 gross=0.253 pay=722 wage=0.333 coal=0.394 desQ=12
+  q61 1798 N=802 X=906 Out=7708 a=8.51 idle=0.355 mA=98 mW=88 mS=14 mech=0.342 net=0.173 gross=0.231 pay=640 wage=0.244 coal=0.425 desQ=9
+  q81 1803 N=576 X=651 Out=6063 a=9.31 idle=0.314 mA=84 mW=54 mS=12 mech=0.362 net=919.808 gross=919.880 pay=495 wage=0.185 coal=0.491 desQ=115
+  q101 1808 N=348 X=395 Out=3985 a=10.10 idle=0.300 mA=58 mW=28 mS=8 mech=0.380 net=0.707 gross=0.777 pay=496 wage=0.200 coal=0.499 desQ=5
+Qing 119
+  q1 1783 N=16165 X=18348 Out=111791 a=6.09 idle=0.495 mA=639 mW=6103 mS=0 mech=0.481 net=0.041 gross=0.126 pay=10253 wage=0.583 coal=0.408 desQ=248
+  q21 1788 N=11547 X=13311 Out=100756 a=7.57 idle=0.408 mA=940 mW=3557 mS=7 mech=0.466 net=0.157 gross=0.237 pay=9023 wage=0.406 coal=0.383 desQ=194
+  q41 1793 N=8367 X=9735 Out=91696 a=9.42 idle=0.325 mA=1055 mW=2108 mS=12 mech=0.461 net=0.062 gross=0.159 pay=7260 wage=0.318 coal=0.358 desQ=94
+  q61 1798 N=6068 X=7049 Out=82791 a=11.75 idle=0.192 mA=910 mW=1291 mS=13 mech=0.448 net=0.059 gross=0.136 pay=6790 wage=0.299 coal=0.377 desQ=108
+  q81 1803 N=4450 X=5193 Out=59883 a=11.53 idle=0.208 mA=798 mW=782 mS=11 mech=0.445 net=0.113 gross=0.193 pay=5931 wage=0.256 coal=0.400 desQ=88
+  q101 1808 N=3283 X=3815 Out=49528 a=12.98 idle=0.147 mA=656 mW=477 mS=9 mech=0.438 net=0.118 gross=0.191 pay=4722 wage=0.221 coal=0.461 desQ=65
+##### c6
+FR 119
+  q1 1783 N=4639 X=4911 Out=34253 a=6.98 idle=0.445 mA=638 mW=118 mS=0 mech=0.249 net=2.724 gross=2.800 pay=6923 wage=0.377 coal=0.500 desQ=1868
+  q21 1788 N=19275 X=21998 Out=75284 a=3.42 idle=0.757 mA=1677 mW=496 mS=929 mech=0.281 net=0.418 gross=0.458 pay=15212 wage=0.446 coal=0.349 desQ=2306
+  q41 1793 N=29700 X=36220 Out=76181 a=2.10 idle=0.863 mA=937 mW=350 mS=3599 mech=0.316 net=0.110 gross=0.127 pay=5071 wage=0.391 coal=0.298 desQ=1104
+  q61 1798 N=39593 X=47810 Out=118900 a=2.49 idle=0.846 mA=902 mW=310 mS=5353 mech=0.321 net=0.105 gross=0.113 pay=9960 wage=0.359 coal=0.323 desQ=2207
+  q81 1803 N=45368 X=52966 Out=119007 a=2.25 idle=0.868 mA=1038 mW=260 mS=5794 mech=0.306 net=0.311 gross=0.332 pay=7199 wage=0.336 coal=0.554 desQ=3270
+  q101 1808 N=73096 X=76091 Out=131882 a=1.73 idle=0.908 mA=2898 mW=449 mS=7392 mech=0.303 net=0.695 gross=0.725 pay=34439 wage=0.427 coal=0.753 desQ=7884
+JP 119
+  q1 1783 N=3323 X=3505 Out=23281 a=6.64 idle=0.463 mA=292 mW=533 mS=0 mech=0.331 net=5.480 gross=5.565 pay=5327 wage=0.488 coal=0.342 desQ=2158
+  q21 1788 N=15703 X=17591 Out=55584 a=3.16 idle=0.768 mA=675 mW=597 mS=949 mech=0.256 net=1.271 gross=1.337 pay=15921 wage=0.443 coal=0.398 desQ=2403
+  q41 1793 N=27846 X=33852 Out=74378 a=2.20 idle=0.851 mA=243 mW=379 mS=3697 mech=0.311 net=0.317 gross=0.349 pay=14653 wage=0.388 coal=0.313 desQ=2504
+  q61 1798 N=36806 X=44673 Out=80097 a=1.79 idle=0.883 mA=409 mW=260 mS=4968 mech=0.307 net=0.281 gross=0.302 pay=8575 wage=0.295 coal=0.321 desQ=2343
+  q81 1803 N=46965 X=55622 Out=105000 a=1.89 idle=0.881 mA=557 mW=220 mS=6181 mech=0.305 net=0.884 gross=0.926 pay=12690 wage=0.289 coal=0.412 desQ=4485
+  q101 1808 N=66697 X=74388 Out=122701 a=1.65 idle=0.903 mA=1888 mW=492 mS=7535 mech=0.315 net=1.139 gross=1.189 pay=26495 wage=0.431 coal=0.718 desQ=8285
+UK 119
+  q1 1783 N=3108 X=3357 Out=27360 a=8.15 idle=0.394 mA=304 mW=3 mS=59 mech=0.205 net=0.738 gross=0.765 pay=7038 wage=0.564 coal=0.322 desQ=688
+  q21 1788 N=9444 X=11188 Out=45920 a=4.10 idle=0.716 mA=624 mW=2 mS=881 mech=0.306 net=0.525 gross=0.542 pay=11376 wage=0.653 coal=0.673 desQ=1017
+  q41 1793 N=17160 X=20650 Out=50126 a=2.43 idle=0.841 mA=918 mW=33 mS=1955 mech=0.315 net=4.402 gross=4.471 pay=7866 wage=0.571 coal=0.529 desQ=772
+  q61 1798 N=18116 X=21410 Out=46138 a=2.15 idle=0.858 mA=914 mW=11 mS=2020 mech=0.302 net=17.355 gross=17.452 pay=4239 wage=0.522 coal=0.609 desQ=595
+  q81 1803 N=21578 X=24816 Out=51073 a=2.06 idle=0.876 mA=888 mW=10 mS=2189 mech=0.270 net=26.900 gross=26.990 pay=4219 wage=0.382 coal=0.559 desQ=1471
+  q101 1808 N=31911 X=37002 Out=60569 a=1.64 idle=0.918 mA=1262 mW=57 mS=3223 mech=0.267 net=38.860 gross=38.937 pay=11295 wage=0.516 coal=0.478 desQ=1886
+US 119
+  q1 1783 N=898 X=954 Out=6683 a=7.00 idle=0.499 mA=160 mW=73 mS=0 mech=0.375 net=5.925 gross=6.047 pay=1989 wage=0.456 coal=0.397 desQ=530
+  q21 1788 N=5127 X=6149 Out=18393 a=2.99 idle=0.839 mA=206 mW=117 mS=571 mech=0.325 net=0.708 gross=0.768 pay=3973 wage=0.433 coal=0.377 desQ=638
+  q41 1793 N=9094 X=11555 Out=30269 a=2.62 idle=0.868 mA=171 mW=91 mS=1569 mech=0.381 net=1.700 gross=1.761 pay=5180 wage=0.412 coal=0.341 desQ=898
+  q61 1798 N=14214 X=18094 Out=41952 a=2.32 idle=0.895 mA=137 mW=81 mS=2798 mech=0.398 net=1.111 gross=1.151 pay=4404 wage=0.413 coal=0.367 desQ=1001
+  q81 1803 N=17524 X=20449 Out=48610 a=2.38 idle=0.903 mA=189 mW=95 mS=3104 mech=0.388 net=2.631 gross=2.685 pay=4124 wage=0.405 coal=0.563 desQ=1490
+  q101 1808 N=26388 X=30572 Out=61975 a=2.03 idle=0.924 mA=443 mW=186 mS=4105 mech=0.359 net=0.776 gross=0.831 pay=10469 wage=0.361 coal=0.561 desQ=2837
+RU 119
+  q1 1783 N=2837 X=2947 Out=16981 a=5.76 idle=0.531 mA=141 mW=430 mS=0 mech=0.267 net=6.676 gross=6.756 pay=4196 wage=0.557 coal=0.335 desQ=1599
+  q21 1788 N=11041 X=12740 Out=47094 a=3.70 idle=0.714 mA=224 mW=355 mS=1068 mech=0.295 net=3.917 gross=3.971 pay=16099 wage=0.568 coal=0.348 desQ=2111
+  q41 1793 N=13234 X=16261 Out=34185 a=2.10 idle=0.840 mA=386 mW=202 mS=1802 mech=0.341 net=1.880 gross=1.934 pay=5847 wage=0.345 coal=0.331 desQ=943
+  q61 1798 N=10642 X=13131 Out=26258 a=2.00 idle=0.850 mA=290 mW=112 mS=1608 mech=0.352 net=0.460 gross=0.501 pay=2472 wage=0.348 coal=0.336 desQ=361
+  q81 1803 N=13141 X=15950 Out=33719 a=2.11 idle=0.848 mA=354 mW=106 mS=1845 mech=0.328 net=1.004 gross=1.067 pay=2293 wage=0.273 coal=0.350 desQ=515
+  q101 1808 N=19409 X=22886 Out=38120 a=1.67 idle=0.889 mA=551 mW=122 mS=2175 mech=0.274 net=1.062 gross=1.125 pay=3857 wage=0.242 coal=0.362 desQ=1179
+Qing 119
+  q1 1783 N=21323 X=22687 Out=125061 a=5.51 idle=0.551 mA=812 mW=6289 mS=0 mech=0.414 net=6.494 gross=6.589 pay=39037 wage=0.502 coal=0.403 desQ=15228
+  q21 1788 N=78708 X=87033 Out=262489 a=3.02 idle=0.776 mA=2183 mW=4249 mS=4188 mech=0.234 net=2.009 gross=2.085 pay=121806 wage=0.477 coal=0.353 desQ=19314
+  q41 1793 N=161348 X=192554 Out=302165 a=1.57 idle=0.890 mA=638 mW=2499 mS=20082 mech=0.288 net=0.523 gross=0.560 pay=98424 wage=0.406 coal=0.292 desQ=12451
+  q61 1798 N=244706 X=285925 Out=495271 a=1.73 idle=0.880 mA=2248 mW=1568 mS=28450 mech=0.263 net=0.584 gross=0.665 pay=78438 wage=0.221 coal=0.316 desQ=19224
+  q81 1803 N=341836 X=390257 Out=698180 a=1.79 idle=0.876 mA=2943 mW=998 mS=37318 mech=0.245 net=0.833 gross=0.896 pay=68787 wage=0.193 coal=0.298 desQ=22797
+  q101 1808 N=577157 X=610263 Out=1038075 a=1.70 idle=0.887 mA=13302 mW=1841 mS=56755 mech=0.258 net=1.236 gross=1.280 pay=153939 wage=0.230 coal=0.388 desQ=59032
+##### c7
+FR 119
+  q1 1783 N=3723 X=4167 Out=30794 a=7.39 idle=0.408 mA=611 mW=106 mS=0 mech=0.278 net=0.005 gross=0.048 pay=5778 wage=0.417 coal=0.457 desQ=31
+  q21 1788 N=2665 X=3379 Out=33510 a=9.92 idle=0.289 mA=1059 mW=266 mS=0 mech=0.599 net=0.020 gross=0.066 pay=6025 wage=0.388 coal=0.363 desQ=40
+  q41 1793 N=2120 X=2994 Out=32777 a=10.95 idle=0.300 mA=441 mW=172 mS=416 mech=0.633 net=0.011 gross=0.048 pay=7397 wage=0.296 coal=0.363 desQ=22
+  q61 1798 N=1609 X=2631 Out=34296 a=13.03 idle=0.241 mA=182 mW=117 mS=704 mech=0.769 net=0.101 gross=0.163 pay=3099 wage=0.276 coal=0.391 desQ=25
+  q81 1803 N=1246 X=2173 Out=26429 a=12.16 idle=0.331 mA=101 mW=84 mS=703 mech=0.846 net=0.095 gross=0.159 pay=1922 wage=0.273 coal=0.409 desQ=19
+  q101 1808 N=1046 X=1876 Out=27752 a=14.79 idle=0.319 mA=66 mW=63 mS=709 mech=0.937 net=2.879 gross=2.950 pay=1881 wage=0.303 coal=0.425 desQ=26
+JP 119
+  q1 1783 N=2535 X=2863 Out=20297 a=7.09 idle=0.420 mA=277 mW=523 mS=0 mech=0.390 net=0.030 gross=0.105 pay=4211 wage=0.562 coal=0.343 desQ=37
+  q21 1788 N=1792 X=2324 Out=22175 a=9.54 idle=0.287 mA=137 mW=347 mS=198 mech=0.520 net=0.108 gross=0.180 pay=8031 wage=0.405 coal=0.385 desQ=33
+  q41 1793 N=1290 X=2117 Out=22706 a=10.73 idle=0.275 mA=33 mW=198 mS=561 mech=0.764 net=0.104 gross=0.170 pay=5781 wage=0.325 coal=0.362 desQ=21
+  q61 1798 N=985 X=1822 Out=23682 a=12.99 idle=0.170 mA=19 mW=129 mS=634 mech=0.901 net=0.099 gross=0.172 pay=1360 wage=0.265 coal=0.367 desQ=20
+  q81 1803 N=782 X=1390 Out=20219 a=14.54 idle=0.114 mA=13 mW=86 mS=582 mech=1.044 net=0.129 gross=0.204 pay=1012 wage=0.233 coal=0.364 desQ=22
+  q101 1808 N=628 X=1087 Out=15106 a=13.90 idle=0.175 mA=9 mW=57 mS=516 mech=1.153 net=0.266 gross=0.334 pay=903 wage=0.276 coal=0.390 desQ=39
+UK 119
+  q1 1783 N=2751 X=3059 Out=25373 a=8.29 idle=0.381 mA=293 mW=3 mS=57 mech=0.214 net=0.003 gross=0.013 pay=6128 wage=0.619 coal=0.307 desQ=13
+  q21 1788 N=1906 X=2501 Out=26231 a=10.49 idle=0.275 mA=203 mW=2 mS=317 mech=0.443 net=0.004 gross=0.016 pay=8106 wage=0.597 coal=0.657 desQ=19
+  q41 1793 N=942 X=1456 Out=17201 a=11.81 idle=0.258 mA=120 mW=1 mS=362 mech=0.684 net=0.001 gross=0.009 pay=1957 wage=0.412 coal=0.632 desQ=5
+  q61 1798 N=678 X=1144 Out=14153 a=12.37 idle=0.239 mA=69 mW=1 mS=379 mech=0.820 net=0.103 gross=0.155 pay=1127 wage=0.422 coal=0.608 desQ=7
+  q81 1803 N=169 X=278 Out=3428 a=12.33 idle=0.246 mA=13 mW=0 mS=97 mech=0.826 net=0.233 gross=0.280 pay=363 wage=0.428 coal=0.691 desQ=2
+  q101 1808 N=124 X=211 Out=2473 a=11.70 idle=0.280 mA=8 mW=0 mS=85 mech=0.928 net=0.228 gross=0.299 pay=236 wage=0.483 coal=0.625 desQ=2
+US 119
+  q1 1783 N=599 X=717 Out=5989 a=8.35 idle=0.396 mA=153 mW=70 mS=0 mech=0.475 net=0.053 gross=0.140 pay=1657 wage=0.436 coal=0.392 desQ=7
+  q21 1788 N=454 X=643 Out=8520 a=13.25 idle=0.286 mA=144 mW=68 mS=69 mech=0.730 net=0.393 gross=0.458 pay=2342 wage=0.474 coal=0.361 desQ=12
+  q41 1793 N=381 X=654 Out=9550 a=14.60 idle=0.277 mA=46 mW=43 mS=185 mech=0.834 net=0.221 gross=0.267 pay=698 wage=0.354 coal=0.407 desQ=11
+  q61 1798 N=327 X=614 Out=10014 a=16.31 idle=0.240 mA=17 mW=28 mS=213 mech=0.888 net=0.169 gross=0.236 pay=438 wage=0.285 coal=0.290 desQ=11
+  q81 1803 N=290 X=575 Out=10355 a=18.02 idle=0.208 mA=7 mW=19 mS=218 mech=0.920 net=0.129 gross=0.194 pay=386 wage=0.221 coal=0.355 desQ=10
+  q101 1808 N=258 X=528 Out=9807 a=18.57 idle=0.230 mA=6 mW=13 mS=209 mech=0.942 net=0.282 gross=0.353 pay=329 wage=0.290 coal=0.331 desQ=9
+RU 119
+  q1 1783 N=2250 X=2462 Out=14392 a=5.85 idle=0.518 mA=131 mW=420 mS=0 mech=0.305 net=0.079 gross=0.152 pay=3016 wage=0.691 coal=0.338 desQ=28
+  q21 1788 N=1564 X=1928 Out=13663 a=7.09 idle=0.427 mA=79 mW=256 mS=126 mech=0.425 net=0.128 gross=0.193 pay=5578 wage=0.519 coal=0.400 desQ=25
+  q41 1793 N=1100 X=1599 Out=13820 a=8.64 idle=0.341 mA=44 mW=154 mS=299 mech=0.622 net=0.174 gross=0.235 pay=3262 wage=0.317 coal=0.399 desQ=12
+  q61 1798 N=801 X=1334 Out=12014 a=9.00 idle=0.333 mA=16 mW=97 mS=383 mech=0.778 net=224.593 gross=224.650 pay=1260 wage=0.268 coal=0.403 desQ=98
+  q81 1803 N=593 X=884 Out=7978 a=9.02 idle=0.345 mA=8 mW=62 mS=358 mech=1.029 net=14319.853 gross=14319.915 pay=823 wage=0.310 coal=0.429 desQ=5011
+  q101 1808 N=417 X=643 Out=6023 a=9.37 idle=0.344 mA=5 mW=38 mS=293 mech=1.120 net=0.380 gross=0.458 pay=874 wage=0.328 coal=0.509 desQ=15
+Qing 119
+  q1 1783 N=16148 X=18425 Out=111221 a=6.04 idle=0.500 mA=726 mW=6220 mS=0 mech=0.496 net=0.037 gross=0.122 pay=29781 wage=0.614 coal=0.408 desQ=269
+  q21 1788 N=11356 X=14559 Out=105754 a=7.26 idle=0.434 mA=509 mW=3692 mS=1052 mech=0.578 net=0.184 gross=0.263 pay=60205 wage=0.445 coal=0.396 desQ=256
+  q41 1793 N=8122 X=12907 Out=110174 a=8.54 idle=0.396 mA=138 mW=2084 mS=3050 mech=0.778 net=0.123 gross=0.199 pay=28442 wage=0.328 coal=0.361 desQ=101
+  q61 1798 N=5971 X=10687 Out=120621 a=11.29 idle=0.236 mA=101 mW=1293 mS=3387 mech=0.893 net=0.069 gross=0.142 pay=13090 wage=0.267 coal=0.376 desQ=115
+  q81 1803 N=4598 X=8655 Out=108877 a=12.58 idle=0.157 mA=51 mW=802 mS=3108 mech=0.942 net=0.075 gross=0.152 pay=7213 wage=0.255 coal=0.382 desQ=116
+  q101 1808 N=3664 X=6729 Out=81281 a=12.08 idle=0.224 mA=45 mW=501 mS=2685 mech=1.007 net=0.163 gross=0.232 pay=6217 wage=0.289 coal=0.426 desQ=111

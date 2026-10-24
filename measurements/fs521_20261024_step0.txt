@@ -1,0 +1,22 @@
+(521) 段0：旗 0 の 30 世界の leave-one-out の州の人口の最大の比（生成器 scripts/instruments/fs521/s2_pool.py loo・入力 D:/PoB_work/keep_516 の m516_ins・n1・n2・シミュは回していない）
+# mode loo worlds_arm 30 worlds_ref 30 regions_compared 9491
+ratio>10: 0
+ratio>5: 0
+ratio>3: 0
+ratio>2: 3
+ratio>1.5: 9
+  2.166 n1#s7 ワルシャワ q631 peak 14511.2 refmax 6698.0
+  2.158 m516_ins#s8 ローマ q478 peak 4847.2 refmax 2245.8
+  2.067 n1#s9 カトマンズ q482 peak 16132.0 refmax 7804.9
+  1.885 m516_ins#s9 アンタナナリヴ q649 peak 6422.6 refmax 3406.7
+  1.824 n2#s1 クルマン q667 peak 237.9 refmax 130.4
+  1.752 n2#s1 ブラワヨ q602 peak 921.1 refmax 525.8
+  1.639 n1#s3 ヤクーツク q667 peak 1061.7 refmax 647.9
+  1.599 n2#s4 チロエ q667 peak 225.0 refmax 140.7
+  1.545 n1#s3 バルナウル q613 peak 1471.2 refmax 952.1
+  1.477 n1#s1 ウラジオストク q667 peak 8373.4 refmax 5670.6
+  1.470 m516_ins#s5 ヨーテボリ q557 peak 1221.3 refmax 830.7
+  1.456 n2#s9 サラーラ q522 peak 79.4 refmax 54.5
+  1.456 m516_ins#s6 ウォルビスベイ q667 peak 162.6 refmax 111.6
+  1.454 n2#s5 ポズナン q607 peak 4635.1 refmax 3186.8
+  1.411 n2#s7 サンボアンガ q643 peak 371.8 refmax 263.6
