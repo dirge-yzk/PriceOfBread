@@ -22,13 +22,15 @@ public static partial class Instruments
 {
     internal const string SbUHeaderText = "quarter\tyear\tnation\tlaw\tsuffrage\tregionMonths\ttolMonths\tctrlMonths\tkappaSum\tmassN\turbanMassSum\tfacScan\teligN\tposN\tguardN\tvaSum\texcessSum\tuSum\townerLoss\twageGain\tbetaVa\tbetaNoStrikeVa\tsSum\tuRateSum\tvwSum\tvoSum\tstrikeSum\texportFactory\texportAll\tpremN\tpremPos\tsVoteSum";
     internal const string SbRHeaderText = "quarter\tyear\tnation\trgoN\trgoVa\trgoRent\trgoWages\tselfN\tselfVa\tselfResid\tcapN\tcapErr\tclosedEarned\truralMassEarned\truralMassSize\tlandRentLast";
+    internal const string SbRCustomHeaderText = "	legBreach	customBindN";   // ★(529) 旗 LandRentCustomBound が正のときだけ末尾に足す列（旗 0 の生は (520) とバイト一致）：legBreach＝Σ max(0, 地代÷付加価値−法の上限)（0 のはず）・customBindN＝慣習の取り分が法の上限より低くて効いた産地×月の数
     internal const string SbRRegHeaderText = "quarter\tyear\tnation\tregion\tcrowd\trev\tinCost\tva\trent\twages";
 
     private sealed class SbAcc
     {
         public int RegionMonths, TolMonths, CtrlMonths, EligN, PosN, GuardN, RgoN, SelfN, CapN;
         public double PremN, PremPos, SVoteSum, KappaSum, MassN, UrbanMass, FacScan, StrikeSum, ExportFactory, ExportAll, VaSum, ExcessSum, USum, OwnerLoss, WageGain, BetaVa, BetaNoStrikeVa, SSum, URateSum, VwSum, VoSum;
-        public double RgoVa, RgoRent, RgoWages, SelfVa, SelfResid, CapErr;
+        public double RgoVa, RgoRent, RgoWages, SelfVa, SelfResid, CapErr, LegBreach;
+        public int CustomBindN;
     }
     private sealed class SbRegAcc { public double Crowd = double.NaN, Rev, InCost, Va, Rent, Wages; }
     static readonly ConditionalWeakTable<World, SbAcc> SbAccs = new();
@@ -69,8 +71,11 @@ public static partial class Instruments
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.RgoN++; a.RgoVa += va; a.RgoRent += rent; a.RgoWages += wages;
         if (s.OwnerPopIndex == s.LaborPopIndex) { a.SelfN++; a.SelfVa += va; a.SelfResid += Math.Abs(rent + wages - va); }
-        double cap = EconomyStep.RentShareOf(s, r, w.Coef, ruralPop);   // ★(529) 効いている取り分（旗 LandRentCustomBound が 0 なら法の上限そのもの＝(520) の定義と同じ値）
+        // ★(529) 期待する取り分は RentShareOf を呼ばずにその場で書き直す（エンジン自身の関数と比べる自己参照を避ける・反証役 pf2 高#1）。旗 LandRentCustomBound が 0 なら法の上限そのもの＝(520) の定義と同じ値。
+        double legal = r.FarmRentCap.Value;
+        double cap = w.Coef.LandRentCustomBound > 0 ? Math.Min(s.RentShare.Value, legal) : legal;
         if (cap < 1.0 && va > 0) { a.CapN++; a.CapErr += Math.Abs(rent / va - cap); }
+        if (va > 0) { a.LegBreach += Math.Max(0.0, rent / va - legal); if (s.RentShare.Value < legal) a.CustomBindN++; }
         var g = SbRegAccs.GetValue(r, _ => new SbRegAcc());
         g.Crowd = r.ArableLand < 1e8 ? ruralPop / Math.Max(1.0, r.ArableLand) : double.NaN;
         g.Rev += revenue; g.InCost += inCost; g.Va += va; g.Rent += rent; g.Wages += wages;
@@ -107,9 +112,9 @@ public static partial class Instruments
                     if (!p.IsUrban && PolicyPreferences.BlocOf(p) == 2) { massE += p.EarnedPerMonth.Value; massSize += p.Size; }
             }
             sk.SbR ??= Open("sbr", seed);
-            if (!sk.SbRHeader) { sk.SbR.WriteLine(SbRHeaderText); sk.SbRHeader = true; }
+            if (!sk.SbRHeader) { sk.SbR.WriteLine(c.LandRentCustomBound > 0 ? SbRHeaderText + SbRCustomHeaderText : SbRHeaderText); sk.SbRHeader = true; }
             sk.SbR.WriteLine(string.Join("\t", I(q), I(w.Year), NameOf(w), I(a.RgoN), R(a.RgoVa), R(a.RgoRent), R(a.RgoWages), I(a.SelfN), R(a.SelfVa), R(a.SelfResid), I(a.CapN), R(a.CapErr),
-                R(closedE), R(massE), R(massSize), R(landRent)));
+                R(closedE), R(massE), R(massSize), R(landRent)) + (c.LandRentCustomBound > 0 ? "	" + R(a.LegBreach) + "	" + I(a.CustomBindN) : ""));
             if (picked)
             {
                 sk.SbRReg ??= Open("sbrreg", seed);
@@ -125,6 +130,6 @@ public static partial class Instruments
         }
         a.RegionMonths = a.TolMonths = a.CtrlMonths = a.EligN = a.PosN = a.GuardN = a.RgoN = a.SelfN = a.CapN = 0;
         a.PremN = a.PremPos = a.SVoteSum = a.KappaSum = a.MassN = a.UrbanMass = a.FacScan = a.StrikeSum = a.ExportFactory = a.ExportAll = a.VaSum = a.ExcessSum = a.USum = a.OwnerLoss = a.WageGain = a.BetaVa = a.BetaNoStrikeVa = a.SSum = a.URateSum = a.VwSum = a.VoSum = 0;
-        a.RgoVa = a.RgoRent = a.RgoWages = a.SelfVa = a.SelfResid = a.CapErr = 0;
+        a.RgoVa = a.RgoRent = a.RgoWages = a.SelfVa = a.SelfResid = a.CapErr = a.LegBreach = 0; a.CustomBindN = 0;
     }
 }

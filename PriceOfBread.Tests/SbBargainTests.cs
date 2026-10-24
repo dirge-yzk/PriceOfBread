@@ -291,7 +291,7 @@ public class SbBargainTests
         return e;
     }
 
-    private static (double[] Off, double[] On) TwinBound(double rentShare, double cap, bool landlord)
+    private static (double[] Off, double[] On, int LaborIdx) TwinBound(double rentShare, double cap, bool landlord)
     {
         var off = Warm(); var on = Warm();
         foreach (var s in new[] { off, on })
@@ -300,7 +300,8 @@ public class SbBargainTests
             foreach (var p in s.World.Region.Producers) if (p.IsRgo) { p.RentShare = new Share(rentShare); p.OwnerPopIndex = landlord ? 0 : p.LaborPopIndex; }
             s.World.Region.FarmRentCap = new Share(cap);
         }
-        return (MonthBound(off, 0), MonthBound(on, 1));
+        int laborIdx = -1; foreach (var p in on.World.Region.Producers) if (p.IsRgo) { laborIdx = p.LaborPopIndex; break; }
+        return (MonthBound(off, 0), MonthBound(on, 1), laborIdx);
     }
 
     [Fact]
@@ -333,19 +334,21 @@ public class SbBargainTests
     [Fact]
     public void 形Pは上限が慣習より高い領主と農民の州で農民の所得が増え領主の所得が減り合計は変わらない()   // M3
     {
-        var (off, on) = TwinBound(0.5, 1.0, landlord: true);
+        var (off, on, laborIdx) = TwinBound(0.5, 1.0, landlord: true);
         Assert.Equal(Total(off), Total(on), 6);
         Assert.True(on[1] < off[1], $"領主の LandRent が減らない（{off[1]} → {on[1]}）");
         Assert.True(on[0] < off[0], "領主の所得が減らない");
-        int farmerIdx = -1; double best = 0;
-        for (int i = 1; i < off.Length / 2; i++) { double d = on[2 * i] - off[2 * i]; if (d > best) { best = d; farmerIdx = i; } }
-        Assert.True(farmerIdx >= 0, "どの階級の所得も増えない（耕す人の所得が増えるはず）");
+        // 耕す人の POP（産地の LaborPopIndex）の所得の増え＝領主の地代の減り（rent+wages=付加価値の保存・手の値＝(1.0−0.5)×付加価値が両方に出る）。他の階級の所得の増えに紛れない（反証役 pf2 低#6）
+        Assert.True(laborIdx >= 0 && laborIdx < off.Length / 2, "産地の耕す人の POP が見つからない");
+        double farmerGain = on[2 * laborIdx] - off[2 * laborIdx], landlordLoss = off[1] - on[1];
+        Assert.True(farmerGain > 0, $"耕す人の所得が増えない（{off[2 * laborIdx]} → {on[2 * laborIdx]}）");
+        Assert.True(Math.Abs(farmerGain - landlordLoss) <= 1e-6 * Math.Max(1.0, landlordLoss), $"耕す人の増え {farmerGain} が領主の地代の減り {landlordLoss} と合わない");
     }
 
     [Fact]
     public void 形Pは自作農の所得を変えず土地税の課税の元だけが慣習の取り分へ戻る()   // M3
     {
-        var (off, on) = TwinBound(0.3, 1.0, landlord: false);
+        var (off, on, _) = TwinBound(0.3, 1.0, landlord: false);
         int n = off.Length / 2;
         double rentOff = 0, rentOn = 0;
         for (int i = 0; i < n; i++)
