@@ -2043,6 +2043,12 @@ public sealed class Coefficients
     // ★前期の軍需レシピ（2026-09-07 器・2026-09-27 回2-1 で旗ごと点火＝常に並存）：小銃/火砲の鋼を要しない前期レシピ（マスケット＝鉄＋製材／鋳鉄砲＝鉄＋製材）を坩堝鋼と同じ型で並存（Simulation.AddAlternateRecipes）。
     //   根＝armsdebug（英 seed1）：1783〜1858年は鋼が坩堝鋼しか無く小銃が需要の5%＝英が動員するたび軍事力0＝ダホメ/ヴェネツィアに属国化・1870年代の完敗・植民地州の喪失。
     public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）。後継（ベッセマー転炉）の解禁度だけ前期レシピの能力が退く＝小銃・火砲とも退場（2026-09-27・Simulation.AddAlternateRecipes の注記）
+    // ★(537) 退場の廃止と武器の強さ（作者 2026-10-24〈武器は旧式も新式も並行して作る方式にできませんか？武器の強さを生産性と読み替えれば、徐々に置換が起きる筈です〉・形と事前登録＝measurements/wp_20261024_prereg.txt）。
+    //   >0 で ①旧のレシピ（マスケット・鋳鉄砲・鋳鉄の機関）は退場の表を読まない（Producer.NoRetire）②新しいレシピ（既定の鋼の小銃・鋼の砲）は財の単位を〈強さ〉と読んで同じ投入の束が k 単位（下の2本）・転炉鋼の発見まで門 0（Producer.OpenedByRow）。
+    //   0＝今のまま（退場の表・強さ1・門なし）＝2つの印が既定のまま＝厳密恒等。採ったら退場の表・この旗・印 NoRetire を消す。生産者の構築時（Simulation.AddAlternateRecipes）だけが読む。
+    public double WeaponParallelEnabled = 0;
+    public double WeaponStrengthRifle = 3.0;       // ★(537) 小銃の強さの比（新÷旧・同じ投入で何単位）＝確証なし（AI の推奨）：前装の滑腔銃（ブラウ・ベス＝有効射程約100m・毎分2〜3発）に対し後装・施条の銃（ドライゼ 1841・ミニエー 1849・シャスポー 1866＝有効射程300m以上・毎分5〜6発）の射程約3倍×発射速度2倍超の控えめな読み。WeaponParallelEnabled=0 では不読
+    public double WeaponStrengthArtillery = 4.0;   // ★(537) 火砲の強さの比（新÷旧）＝確証なし（AI の推奨）：鋳鉄の滑腔砲（有効射程約1km・毎分1〜2発）に対し鋼の後装施条砲（アームストロング 1855・クルップ 1860年代＝有効射程3km以上・毎分3〜4発）。WeaponParallelEnabled=0 では不読
     public double LandRoomFertilityCap = 0.6;      // B-高2（史実検証2026-07-22・**2026-07-23点火**）：landRoom の上限＝世界の技術水準出生倍率−1。旧1e9＝実質無上限で、米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・人類最大の観測値フッター派約4.0%）＝生物学的に不可能だった。0.6＝倍率1.6（米CBR約55/1000÷基準35/1000）
     public double LandAnchorCapacityWeight = 1.0;   // 人2c 土地アンカー（2026-07-11・#17級）：capacityBaselineへ＋これ×max(0, Σ耕地/(1−都市化)−capacityBaseline)＝土地が養える人口を天井に（米25×の構造解・下方向なし・センチネル除外で較正厳密恒等）。0で休眠
     public double SanitationCapacityWeight = 0.4; // **衛生の扶養力連結（近代公衆衛生→死亡率低下）**：sanitation=上下水道(InfraFill)+石鹸(SoapFill)+電化(ElecInfraFill)の人口加重∈[0,1]。capacity に +これ×都市化×(sanitation−1) ＝不衛生な都市で疫病死↑→扶養力↓。**都市化で按分**＝疫病は過密の問題（既存の疫病圧 (都市人口/人口)×(1−衛生) と一貫・農村は影響小）。施設/石鹸の無い世界は sanitation=1.0 で中立（較正温存）。19世紀の死亡率低下の主因は医療より衛生＝直接チャネル

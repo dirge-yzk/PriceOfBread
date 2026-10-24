@@ -778,7 +778,13 @@ public sealed class Producer
         }
     }
     /// <summary>このレシピを退かせる発見の行（−1＝退かない）＝前期の軍需（マスケット・鋳鉄砲）は転炉鋼の発見で退く（Catalog の退場の表）。</summary>
-    public int RetiredByRow { get { _ = DiscoveryRow; return _retRow; } }
+    public int RetiredByRow { get { if (NoRetire) return -1; _ = DiscoveryRow; return _retRow; } }
+    /// <summary>★(537) 旧世代の並存の印（旗 <see cref="Coefficients.WeaponParallelEnabled"/> が正のとき <c>Simulation.AddAlternateRecipes</c> だけが置く）＝この生産者は退場の表を読まない（マスケット・鋳鉄砲・鋳鉄の機関が転炉鋼の後も並んで作られる）。
+    /// 構築時の印（<see cref="SiteRow"/> の先例）＝セーブに載る。既定 false＝今の退場。採ったら退場の表ごと消す。</summary>
+    public bool NoRetire;
+    /// <summary>★(537) 新世代の門の印（同じ旗が正のとき構築時に置く）＝この発見の行を知るまで門 0（既定の鋼の小銃・鋼の砲＝後継の発見は退場の表の後継の行＝転炉鋼）。−1＝印なし（今のまま）。
+    /// <see cref="Discovery.Gate(Region, Producer, bool[])"/> だけが読む。新しい発見の行は足さない（<see cref="Catalog.Discoveries"/> の添字は動かない）。</summary>
+    public int OpenedByRow = -1;
     [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
     [System.NonSerialized] private string? _discRecipe;
     public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0

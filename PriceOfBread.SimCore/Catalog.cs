@@ -765,6 +765,14 @@ public static class Catalog
         return -1;
     }
 
+    /// <summary>★(537) 退場の表の後継の発見の行（財ごと・無ければ −1）＝並行して作る新世代のレシピ（既定の鋼の小銃・鋼の砲）が開く発見（転炉鋼）。旗 <see cref="Coefficients.WeaponParallelEnabled"/> が正のときだけ
+    /// <c>Simulation.AddAlternateRecipes</c> が <see cref="Producer.OpenedByRow"/> へ置く。退場の表と同じ出所（後継の行を別に書かない）。採ったら退場の表の後継の列を名前つきの静的な表へ移す。</summary>
+    public static int OpenedByRowOf(int good)
+    {
+        foreach (var (g, _, sg, sr) in Retirements) if (g == good) return DiscoveryRowOf(sg, sr);
+        return -1;
+    }
+
     /// <summary>★産地の発見の表（段2A の続き・2026-10-01 (148)・設計 §9-1 の提案③＝鉱床の発見も同じ骨組みへ〔2026-09-28 作者が採用した提案・文は AI の整理〕＋(129) の申し送り＝アジアの樹皮は植林の発見で〔AI の推奨〕）＝
     /// **場所に結びついた発見**＝1783年の地図に無かった産地（大鉱床・植林）。行＝（名前・場所〔州か植民地の名＝ProvinceSpec.City／Colony.Name〕・財・年代・分野）。
     /// ・その場所の生産者は通常の賦存（Simulation の ResourceEndowment）で作り、**発見まで門0**（<see cref="Discovery.Gate(Region, Producer)"/>＝Producer.SiteFound）。

@@ -251,6 +251,7 @@ public static class Discovery
         if (p.SiteRow >= 0 && !p.SiteFound) return 0.0;
         int row = p.DiscoveryRow;
         double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
+        if (p.OpenedByRow >= 0 && !Known(known, p.OpenedByRow)) return 0.0;   // ★(537) 新世代の門（旗 WeaponParallelEnabled>0 のときだけ印が立つ・既定は −1＝この行は通らない）
         int ret = p.RetiredByRow;
         return ret >= 0 && Known(known, ret) ? 0.0 : g;
     }
