@@ -65,6 +65,21 @@ public static class MarketFlow
     /// 起こす理由＝月の境（月次決算・清算が需給・在庫・輸入を書き直す＝次の月の最初の旬は全ての財を回して印を作り直す）。タイマーではない
     /// （入力の書き手が境界相だけ＝月の中では変わらない・census）。眠っている間の値段は不動点から相対 約2.5e-8 の内（打ち切りの上界）＝月次決算と建設が読む値の誤差もこの内。
     /// ⚠印は作業領域＝セーブに載らない。四半期の境でセーブしたとき、次の歩は月の最初の旬＝印を作り直す（往復は一致）。月の途中でロードすると、その月の残りは起きたまま回る（差は上界の内）。</remarks>
+    /// <summary>★(spq) 先読み（2026-10-26・フォーク元「同じ形で段0 から進めてください」・(spr) R1 の EconomyStep.Prefetch と同じ手）：旬の頭で、その州の生きた財の市場の欄と財の欄を読むだけの周回を 1 本回す。
+    /// 値は 1 つも書かない（読んだ値の和を捨て場 <see cref="PrefetchSink"/> へ足すだけ＝JIT が読みを消さないため）＝結果は 1 ビットも変わらない。
+    /// 同じプロセスで StepDay の呼び出しを州ごとの月の偶奇で分けた測り（seed1・全長）＝市場だけ 0.986・＋財 0.977・0.954・0.951・同じ周回を後に置くと 1.023。仕事の量は減らない（キャッシュの効かせ方）。</summary>
+    private static void Prefetch(Region region, Good[] live)
+    {
+        double acc = 0;
+        foreach (var g in live)
+        {
+            var m = region.Markets[g.Id];
+            acc += m.Price + m.LastDemand + m.LastProduced + m.LastImport + m.Stock + m.ReservationWage + (m.FlowAsleep ? 1 : 0) + g.RefPrice + (int)g.Tier;
+        }
+        PrefetchSink += acc;
+    }
+    [System.ThreadStatic] private static double PrefetchSink;   // ★(spq) 先読みの捨て場（誰も読まない・スレッドごと・セーブに載らない静的な欄）
+
     public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null, bool monthStart = true, MinimumWageLaw minWage = MinimumWageLaw.None)
     {
         int h = days;
@@ -88,6 +103,7 @@ public static class MarketFlow
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
         var live = region.EnsureLiveGoods();
+        Prefetch(region, live);   // ★(spq) 先読み（読むだけ・値を書かない＝恒等。Prefetch の注）
         long nAsleep = 0;
         foreach (var good in live)
         {
