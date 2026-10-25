@@ -203,6 +203,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? AgeS; public bool AgeSHeader;                       // (478) 年齢の層の表（国×四半期×層の行 B と国×四半期の行 N）
         public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
+        public System.IO.StreamWriter? Rs2; public bool Rs2Header;                         // (547) 旧支配層の農地の法への反対の強さの表（国×四半期・InstrumentsRs2.cs）
         public System.IO.StreamWriter? Ivf; public bool IvfHeader;                         // (536) 初期値の直し（資本の土台）の表（国×四半期・InstrumentsIvf.cs）
         public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
         public System.IO.StreamWriter? Bur; public bool BurHeader;                         // (389) AI の官僚制度の判断の表（国×四半期）
@@ -1667,6 +1668,7 @@ public static partial class Instruments
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             IvfFold(sk, seed, w, q, picked, yearEnd);       // (536) 初期値の直し（資本の土台）の表（本土と植民地の物価の乗数・石炭の費用・建設の組の選び・資本財の需給）
+            Rs2Fold(sk, seed, w, q, picked, yearEnd);       // (547) 旧支配層の農地の法への反対の強さの表（今の式と地代の損の式を並べる・読むだけ）
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
             CoupFold(sk, seed, w, st, q);   // (393) 軍の力の入口の表
             AnchorFold(sk, seed, w, q, picked, yearEnd);    // (369) 扶養力の錨の表
@@ -1740,6 +1742,7 @@ public static partial class Instruments
         sk.Fm?.Dispose(); sk.Fm = null;       // (371)
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.Ivf?.Dispose(); sk.Ivf = null;     // (536)
+        sk.Rs2?.Dispose(); sk.Rs2 = null;     // (547)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
         sk.Bur?.Dispose(); sk.Bur = null;   // (389)
         sk.Coup?.Dispose(); sk.Coup = null;   // (393)

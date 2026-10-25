@@ -241,6 +241,11 @@ public sealed class Coefficients
     public double ParliamentLawWeight = 1.2;          // 法案可決/スライダー律速に効く議席の重み（議席×党選好を NetSupport/OpposingPower に加算）。社会党多数→富裕ブロックの梯子を票で乗り越え参政権拡大＝選挙が法を動かす
     public Share LandReformRentCap = new(0.3);            // 土地改革：RGO地代（地主取り分）の上限（地代>0.3の国を再分配。小作0.5も自作0.3へ）
     public Share SerfEmancipationRentCap = new(0.5);      // 農奴解放：地代の上限（農奴制1.0→小作0.5へ。自作/小作の国＝既に0.5以下には効かない＝農奴国だけ解放）
+    // ★(547) 線 rs2（読む線 rs〔(540)〕の直し）：LordOppositionByRentLoss＝> 0 のとき、農奴解放・土地改革への旧支配層（ブロック 0）の反対の強さを
+    //   StatusScale×(0.5＋〈次の一段で失う所得の割合〉)にする（失う割合＝(今の実効の取り分−次の実効の取り分)÷今の実効の取り分×(旧支配層の地代÷所得)・取り分＝min(慣習, 地代の上限)）。
+    //   0＝今の式 StatusScale×(0.5＋W0)（W0＝旧支配層の貯蓄の割合＝同じ貴族の富が政治力〔InterestGroups〕と反対の強さの両方に入り、農奴制が続くほど強まる）＝厳密恒等。
+    //   **既定は 1（2026-10-25 (547) 点火・腕 B＝計器つき 10 種で M1〜M6 と止める線を通った）**。0 は今の式（番人が両方を踏む・事前登録 measurements/rs2547_20261025_prereg.txt）。新しい状態も倍率も無い（慣習は最初の活動中の州〔通常は首都〕の産地の生産者の読み・上限は FarmRentCap と同じ式）。
+    public double LordOppositionByRentLoss = 1.0;
     public double CornLawImportPenalty = 1.0;         // 穀物法：主食の輸入閾値への上乗せ（高関税相当＝輸入を阻む→国内パン高騰）
     // ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
     //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では革命は起きないが半年続けば大量の反乱軍」という裁定が**係数の値では表現できない**証明だった。
