@@ -167,6 +167,7 @@ public class DiscoveryEngineerTests
         {
             var d = Catalog.Discoveries[row];
             if (Discovery.IsSpread(d.Field)) continue;
+            if (d.Name == "鋳鉄の骨組み") continue;   // ★(550) 線 fb：旗 BuildingGoodBundle＝0（既定）の世界には建造物の作り手が居ない行（BuildingGoodBundleTests が旗 1 の代表の生産者を固定する）
             var rp = w.Regions.Where(rg => rg.State == RegionState.Active).SelectMany(rg => rg.Producers).FirstOrDefault(p => p.DiscoveryRow == row);
             Assert.True(rp is not null, $"{d.Name}：イギリスに代表の生産者が居ない");
             if (!(Discovery.ParentEngineers(row, rp!, eng) > 0)) zero.Add(d.Name);

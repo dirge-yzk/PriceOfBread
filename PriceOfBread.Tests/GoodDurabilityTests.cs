@@ -22,6 +22,7 @@ public class GoodDurabilityTests
             or Catalog.ChocolateId or Catalog.TeaId or Catalog.CoffeeId or Catalog.MedicineId or Catalog.QuinineId or Catalog.CheeseId or Catalog.GuanoId => 0.03,                    // 木・生糸・嗜好品原料・薬・化学・パルプ・チーズ・グアノ等（半生鮮）
         Catalog.CottonId or Catalog.HempId or Catalog.DyeId or Catalog.RawRubberId or Catalog.LumberId or Catalog.CottonClothId or Catalog.CanvasId or Catalog.WoolId or Catalog.WoolenClothId or Catalog.SilkClothId or Catalog.LeatherId or Catalog.SugarId
             or Catalog.RubberId or Catalog.ClothingId or Catalog.LuxuryClothingId or Catalog.PaperId or Catalog.WaterproofClothId or Catalog.FurId => 0.02,                     // 繊維・木材・紙・革・砂糖・衣料・毛皮等
+        Catalog.BuildingId => 0.00168,                                                              // ★(550) 建造物（工場の建屋）＝年 2%（作者の答え「推奨で」）
         _ => 0.005,                                                                 // 金属・鉱物・燃料・機械・武器・耐久奢侈財（最小）
     };
 
@@ -30,7 +31,7 @@ public class GoodDurabilityTests
     [Fact]
     public void 全ての財で表の損耗の率は旧のswitchの値とビットまで同じ()
     {
-        Assert.Equal(129, Catalog.Goods.Length);   // 財を足したらこの数と期待値の写しを見直す
+        Assert.Equal(130, Catalog.Goods.Length);   // 財を足したらこの数と期待値の写しを見直す（★(550) 129→130＝建造物）
         var bad = new List<string>();
         for (int i = 0; i < Catalog.Goods.Length; i++)
         {

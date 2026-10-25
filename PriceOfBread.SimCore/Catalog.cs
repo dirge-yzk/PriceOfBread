@@ -287,6 +287,11 @@ public static class Catalog
         // ソーダ灰：既定＝草木灰・海藻灰（木 2.0＝歩留まりの低い高価な灰。参照価格 1.43）。ルブラン法（塩＋硫酸＋石灰石＋石炭）・ソルベー法（塩＋石灰石＋石炭）・電解（塩＋電力）は発見の行の並存レシピ（Simulation）。
         //   順序（番人）：草木灰 1.430 ＞ ルブラン法 1.207 ＞ 電解 1.091 ＞ ソルベー法 0.971（参照価格の単位費用）。量は AI の推奨（measurements/gd_20261023_prereg.txt [2][11]）。
         new(SodaAshId, "ソーダ灰", GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(TimberId,2.0)], WearRatePerMonth: 0.03),
+        // === 2026-10-25 (550) 線 fb：工場の建屋＝建造物（作者 2026-10-24「住宅と同じく工場も材化して、耐久度を持たせるのはどうか？無意味ならやる必要はないが」・「材という仕組みはよくできているので、財化できるものはどんどん材化すべきかもしれません。」）。
+        //   既定＝木造（製材 1.0＋石灰石 0.15＝壁と床の木と漆喰）。煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリートは Simulation.AddAlternateRecipes（旗 BuildingGoodBundle が正のときだけ）。
+        //   役務でも家計の財でもない資本財の材料＝NonTradeable（建屋は運べない）・BaseNeed 0（家計の需要なし＝買い手は建設の束の需要だけ）。損耗 月 0.00168＝年 2%（作者の答え「推奨で」・建物）。
+        //   生産性 2.2・弾力 0.4 は製材・セメントと同じ型（確証なし）。参照価格は生産性に依らない（Catalog.ComputeRefPrices＝投入の和＋自己費用＋労働）。
+        new(BuildingId, "建造物", GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(LumberId,1.0), I(LimestoneId,0.15)], NonTradeable: true, WearRatePerMonth: 0.00168),
     ];
 
     /// <summary>真実源＝埋め込みリソース <c>goods.json</c>（world.json と同型）。未生成時は上の C# 定義 <see cref="BuiltinGoods"/> にフォールバック。
@@ -502,6 +507,7 @@ public static class Catalog
     public const int ChemicalWeaponId = 122;     // 化学兵器
     public const int RefrigeratorId = 126;       // 冷蔵庫
     public const int SodaAshId = 128;          // ソーダ灰（★(493)：旧 化学薬品 のアルカリの側＝末尾に足した新しい財・既存の財の番号は変えない。草木灰・ルブラン法・ソルベー法・電解）
+    public const int BuildingId = 129;         // 建造物（★(550) 線 fb：工場の建屋の財・末尾に足した新しい財。木造〔既定〕・煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリートの段のレシピ）
     public const int CinchonaBarkId = 127;       // 金鶏樹皮（★2026-09-30 (129)：財の削減 (123) で畳んだのを戻した＝id は末尾に足した＝既存の財の番号は変えない）
 
     /// <summary>役務の参照価格（費用基準）。在庫を持てない純フロー市場は価格が発振しやすいので、
@@ -681,6 +687,9 @@ public static class Catalog
         new("ルブラン法", SodaAshId, "ルブラン法", DiscoveryField.Process, 1790),               // ルブラン 1791（塩＋硫酸＋石灰石＋石炭）。ナトリウムは塩から＝硫酸は塩を分ける薬（線を割らない）
         new("ソルベー法", SodaAshId, "ソルベー法", DiscoveryField.Process, 1860),               // ソルベー 1861〜クイエ 1864・ブラナー・モンド 1874（塩＋石灰石＋石炭・硫黄なし）
         new("電解", SodaAshId, "電解", DiscoveryField.Process, 1890, After: "石炭火力"),          // 塩水の電解の工業生産 1892（塩＋電力・苛性ソーダと塩素。アルカリとして 1 財に畳む）
+        // --- ★(550) 線 fb：工場の建屋の段（旗 BuildingGoodBundle が正のときだけ作り手がある行。旗 0 は代表の生産者が居ない行＝Discovery.Score が読み飛ばす）---
+        //   鋼の骨組みは転炉鋼の行・鉄筋コンクリートは住居の同名の行を作り手の印 OpenedByRow で指す（行を足さない・事前登録 [2]）。木造と煉瓦造は表に無い＝1783 年から（門 1）。
+        new("鋳鉄の骨組み", BuildingId, "鋳鉄の骨組み", DiscoveryField.Process, 1790),            // アイアンブリッジ 1779・ストラットのダービー工場 1792-93・ディザリントンの亜麻工場 1796-97（鋳鉄の柱と梁の耐火工場）
     ];
     /// <summary>財を持たない発見の行（制度と思想）の財の欄（<see cref="DiscoveryRowOf"/> は負の財を探さない＝名前で <see cref="DiscoveryRowNamed"/>）。</summary>
     public const int NoGood = -1;

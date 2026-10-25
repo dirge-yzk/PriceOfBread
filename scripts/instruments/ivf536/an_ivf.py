@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """(536) 線 ivf の読み手（追記 2 で全面に書き直した）：ivf_s<seed>.tsv（SimCore/InstrumentsIvf.cs）から事前登録 measurements/ivf536_20261024_prereg.txt の
 G1〜G9・G5b・G9′ と記録 R1〜R4・R10〜R12 の値を読み、門の通り／外れを印字する。
+⚠(550) 線 fb で F2（時代の組）を道ごと消した＝ivf_s の列 bundleEraOverRefMain／bundleEraMonths は bundleBuildingOverRefMain／bundleBuildingMonths（建造物の組）に替わった。
+  この読み手は F2 の腕の生（列の名前が旧）を読むための物＝新しい生に当てるときは scripts/instruments/fb550/an_fb.py を使う。
 使い方：PYTHONUTF8=1 python an_ivf.py <腕 B の計器の出力フォルダ> [<腕 A の計器の出力フォルダ>] [種 ...]
   例）python an_ivf.py D:/PoB_work/x/out_B/ins D:/PoB_work/x/out_A/ins 1 2 3 4 5 6 7 8 9 10
   腕 A を渡さないと G7 は読めない（B の値だけ印字）。種を渡さないと 1〜10。

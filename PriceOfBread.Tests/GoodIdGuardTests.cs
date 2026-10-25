@@ -166,6 +166,7 @@ public class GoodIdGuardTests
             (Catalog.RefrigeratorId, "冷蔵庫"),
             (Catalog.CinchonaBarkId, "金鶏樹皮"),   // ★2026-09-30 (129)：戻した財は末尾（既存の番号は変えない）
             (Catalog.SodaAshId, "ソーダ灰"),   // ★2026-10-23 (493)：旧 化学薬品 のアルカリの側＝末尾（128）
+            (Catalog.BuildingId, "建造物"),   // ★2026-10-25 (550) 線 fb：工場の建屋の財＝末尾（129）
         ];
         // 表の1行ずつ：定数の値の財の名前が、手で書いた名前と同じ（ずれたら、どの定数かを名指しする）
         var constName = ConstantsByValue();

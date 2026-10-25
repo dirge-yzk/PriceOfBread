@@ -160,6 +160,7 @@ public static class Metrics
             //   ★(149) 反証の指摘：外すのは兵力だけ（旧＝「生産者の一覧に載らない財は全て外す」＝不具合で生産者が消えた財も黙って通った）。
             //   （「まだ存在しない財」の判定 UnavailableGoods は生産者の無い財を存在する側に数える＝兵力はここで外す）
             if (g.Id == Catalog.MilitaryPowerId) continue;
+            if (g.Id == Catalog.BuildingId && !(sim.Coef.BuildingGoodBundle > 0)) continue;   // ★(550) 線 fb：旗 0 では建造物の作り手も買い手も居ない（財の表にだけ在る）＝下流が無いのは死蔵ではなく世界に無いのと同じ。旗が正なら建設の束が買う（下流あり）＝検査の対象
             if (g.Id < unavailable.Length && unavailable[g.Id]) continue;   // 時代未到達＝下流が無いのが正しい
             double maxD = 0;
             foreach (var n in sim.Nations) { var mk = n.World.Region.Markets; if (g.Id < mk.Length) maxD = Math.Max(maxD, mk[g.Id].LastDemand); }   // コードベース規約の < Markets.Length ガード（最小テスト世界で Markets が全財を持たない場合に落ちない）
