@@ -124,7 +124,7 @@ public class RevoltIgnitionTests
         foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - small; }
         Politics.Step(w, c);
         Assert.Equal(0.0, noble.MilFamine);
-        // 闘争度の移動は**飢餓以外の4項だけ**（内訳の代入5本は target と同じ値）＝σ×(政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
+        // 闘争度の移動は**飢餓以外の3項だけ**（内訳の代入4本は target と同じ値・(551) で生活水準の項 MilLiving を削除）＝σ×(政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
         Assert.Equal(c.MilitancySpeed * (noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
         foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - ramp; }
         Politics.Step(w, c);
