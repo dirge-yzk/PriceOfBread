@@ -66,7 +66,7 @@ public enum PolicyAxis
 public static class PolicyPreferences
 {
     private const double BurdenScale = 3.0;   // 課税ベースのシェア→反対強度の換算（シェア0.67で約−2＝強反対）
-    private const double StatusScale = 2.0;   // 自由化に対する旧支配層の抵抗強度（特権の大きさ＝富シェアで変調）
+    internal const double StatusScale = 2.0;   // 自由化に対する旧支配層の抵抗強度（特権の大きさ＝富シェアで変調）
     // マジックナンバー一掃（2026-07-20・値据え置き・命名のみ）
     // ★案D（2026-08-31）：RentProtectionWeight はハードコード定数からCoefficients.RentProtectionWeightCoef へ係数化（既定1.5＝厳密恒等・#17調整対象）
     private const double ProgressiveCapitalSurcharge = 1.5;      // 累進課税＝資本（近代エリート）への追加反対強度
@@ -90,8 +90,10 @@ public static class PolicyPreferences
         // ★2026-09-26 A2-2：名目GDP（World.NominalGdpPerMonth と同じ値）。Build で州×生産者の走査を1回だけ走らせて持つ＝Pref の読み手は走査し直さない。
         //   Build と Pref は同じ呼び出しの中で読むだけ（このファイルに産出・州・物価水準を書く行は無い）＝値は getter とビット単位で同じ。
         public readonly double NominalGdp;
-        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp)
-        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; }
+        // ★(547) 線 rs2：旧支配層（ブロック 0）の所得のうち地代の割合（正規化の前の和の比＝Rent[0]÷Income[0]・所得 0 なら 0）。農奴解放・土地改革への反対の強さが読む（LordOppositionByRentLoss>0 のときだけ）。新しい和は足さない（BuildSums の既存の 2 本の比）。
+        public readonly double LordRentToIncome;
+        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp, double lordRentToIncome)
+        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; LordRentToIncome = lordRentToIncome; }
     }
 
     /// <summary>大衆の平均失業率（人口加重・移民制限法の選好と SelfPlay の移民法の意図が読む＝唯一定義・2026-09-11 #13）。⚠労働市場の無い小シナリオでは0＝無影響。</summary>
@@ -115,6 +117,7 @@ public static class PolicyPreferences
         var sums = w.PopSums is { } win ? win.BuildSums(w) : ComputeBuildSums(w);
         double[] wealth = sums.Wealth, rent = sums.Rent, income = sums.Income, poll = sums.Poll, old = sums.Old, blocPop = sums.BlocPop;
         double tw = sums.Tw, tr = sums.Tr, ti = sums.Ti, tp = sums.Tp;
+        double lordRentToIncome = RentToIncomeOf(rent[0], income[0]);   // ★(547) 正規化の前の和の比（正規化は同じ配列を書き換える）
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
@@ -124,7 +127,7 @@ public static class PolicyPreferences
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
             ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio.Value) + (ngdp > 1e-9 ? System.Math.Min(1.0, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp))).Value) : 0))
             : 0;
-        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp);
+        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp, lordRentToIncome);
     }
 
     /// <summary><see cref="Build"/> の POP 由来の和（ブロックごと・正規化の前）。国の入力（法・国庫）は読まない＝窓の中の使い回し（<see cref="PopWindow"/>）に載せられる。</summary>
@@ -168,6 +171,47 @@ public static class PolicyPreferences
         }
         return o;
     }
+
+    /// <summary>地代÷所得（所得が 0 以下なら 0）。ブロック 0 の和は BuildSums の正規化の前の値＝計器 <see cref="Instruments"/> も同じ関数を通す。</summary>
+    internal static double RentToIncomeOf(double rent, double income) => income > 1e-9 ? rent / income : 0.0;
+
+    /// <summary>★(547) 線 rs2：産地の取り分の慣習＝首都州（最初の活動中の州）の産地（RGO）の生産者の RentShare の最小。
+    /// 産地の取り分は min(生産者の慣習 RentShare, 州の地代の上限 FarmRentCap)（EconomyStep.RentShareOf）で、慣習は国の農制 farmLordShare から作る値（Simulation.CatalogEconomy・
+    /// 賦存の大農園だけ PlantationRentShare で上がる）＝最小は賦存でない産地の値。World に慣習の欄は無い（新しい状態を作らない）ので 1 州の生産者を読む。産地が無ければ 0（失う所得 0）。</summary>
+    internal static double CustomaryRentShare(World w)
+    {
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double c = double.PositiveInfinity;
+            foreach (var pr in r.Producers) if (pr.IsRgo && pr.RentShare.Value < c) c = pr.RentShare.Value;
+            return double.IsPositiveInfinity(c) ? 0.0 : c;
+        }
+        return 0.0;
+    }
+
+    /// <summary>★(547) 線 rs2：<paramref name="axis"/>（農奴解放か土地改革）の次の一段で旧支配層が失う所得の割合＝
+    /// (今の実効の取り分−次の実効の取り分)÷今の実効の取り分 × <paramref name="lordRentToIncome"/>。実効の取り分＝min(慣習, 地代の上限)・地代の上限は FarmRentCap と同じ式
+    /// （土地改革と農奴解放の上限の小さい方・<see cref="Simulation.RentCap"/>）。次の一段＝その軸だけ 1 段進める（Full の次は Full＝失う 0）。減らす向きの Pref も同じ値を読む（今の式も向きに対称）。</summary>
+    internal static double LordIncomeLoss(World w, PolicyAxis axis, double lordRentToIncome)
+    {
+        EffectiveRentShares(w, axis, out double now, out double next);
+        return now > 1e-9 ? (now - next) / now * lordRentToIncome : 0.0;
+    }
+
+    /// <summary>今と、<paramref name="axis"/> を 1 段進めた後の実効の取り分 min(慣習, 土地改革と農奴解放の上限の小さい方)（<see cref="LordIncomeLoss"/> の中身＝計器 <see cref="Instruments"/> も同じ関数を通す）。</summary>
+    internal static void EffectiveRentShares(World w, PolicyAxis axis, out double now, out double next)
+    {
+        var c = w.Coef;
+        var lr = w.LandReform; var se = w.SerfEmancipation;
+        var lrNext = axis == PolicyAxis.LandReform ? NextStage(lr) : lr;
+        var seNext = axis == PolicyAxis.SerfEmancipation ? NextStage(se) : se;
+        double custom = CustomaryRentShare(w);
+        now = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lr, c.LandReformRentCap.Value), Simulation.RentCap(se, c.SerfEmancipationRentCap.Value)));
+        next = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lrNext, c.LandReformRentCap.Value), Simulation.RentCap(seNext, c.SerfEmancipationRentCap.Value)));
+    }
+
+    private static ReformLevel NextStage(ReformLevel lv) => lv == ReformLevel.Full ? ReformLevel.Full : lv + 1;
 
     private static void Normalize(double[] a, double total)
     { if (total > 1e-9) for (int i = 0; i < BlocCount; i++) a[i] /= total; }
@@ -246,10 +290,12 @@ public static class PolicyPreferences
             case PolicyAxis.WomenRights:      // ★女性の権利の梯子（統合法・2026-08-10）＝家父長制の根幹に触れるので旧支配層が強く抵抗・近代/大衆（女性・社会党・自由派）が賛成。
                                               // ⚠旧3軸（財産権/教育権/参政権）は**この1行と一字一句同じ式**を3回書いていた＝統合しても賛否連合は不変。
                                               // 段による難度差は選好でなく**構造**が持つ：最上段（選挙権）だけが憲法級（政治資本では押せない）＋男性普通選挙が前提。
-            case PolicyAxis.SerfEmancipation: // 農奴解放＝農奴所有の地主が強く抵抗
                 return trad ? -StatusScale * (0.5 + e.Wealth[0]) : 1.0;
+            case PolicyAxis.SerfEmancipation: // 農奴解放＝農奴所有の地主が強く抵抗
+                // ★(547) 線 rs2：LordOppositionByRentLoss>0 なら強さ＝〈次の一段で失う所得の割合〉（貯蓄の割合 W0 は政治力にも入る二重計上＝(540)）。0＝今の式（W0）
+                return trad ? -StatusScale * (0.5 + (w.Coef.LordOppositionByRentLoss > 0 ? LordIncomeLoss(w, a, e.LordRentToIncome) : e.Wealth[0])) : 1.0;
             case PolicyAxis.LandReform:       // 土地改革＝地主が強く抵抗・大衆が強く賛成
-                return trad ? -StatusScale * (0.5 + e.Wealth[0]) : mass ? 2.0 : 1.0;
+                return trad ? -StatusScale * (0.5 + (w.Coef.LordOppositionByRentLoss > 0 ? LordIncomeLoss(w, a, e.LordRentToIncome) : e.Wealth[0])) : mass ? 2.0 : 1.0;
             case PolicyAxis.Censorship:       // 報道の自由化＝旧支配層が抵抗（検閲＝統制）・近代/大衆は自由を好む
             case PolicyAxis.SecretBallot:     // 秘密投票（E5）＝旧支配層が抵抗（票の買収/脅迫の力を失う）・近代/大衆が賛成（真の選挙）
             case PolicyAxis.Bureaucracy:      // 官僚制度の専門化（E5）＝旧支配層が抵抗（縁故任用の特権を失う）・近代/大衆が賛成（実力任用）

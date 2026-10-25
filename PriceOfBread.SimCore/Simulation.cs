@@ -2756,7 +2756,7 @@ public sealed class Simulation
 
 
     /// <summary>改革法の地代上限：全面＝設定値／限定的＝なし(1.0)と全面の中間／なし＝1.0(無制限)。＝段階的な土地改革/農奴解放。</summary>
-    private static double RentCap(ReformLevel lv, double full) => lv switch
+    internal static double RentCap(ReformLevel lv, double full) => lv switch
     {
         ReformLevel.Full => full,
         ReformLevel.Limited => full + (1.0 - full) * 0.5,
