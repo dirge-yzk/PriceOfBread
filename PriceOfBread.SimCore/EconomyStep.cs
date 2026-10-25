@@ -106,6 +106,26 @@ public static class EconomyStep
     }
 
     [System.ThreadStatic] private static Scratch? _scratch;
+    /// <summary>★(spr) R1 先読み（2026-10-26・フォーク元の採否「R1 で進めてください」）：Run の頭で、その州の生産者・その投入・市場を読むだけの周回を 1 本回す。
+    /// 値は 1 つも書かない（読んだ値の和を捨て場 <see cref="PrefetchSink"/> へ足すだけ＝JIT が読みを消さないため）＝結果は 1 ビットも変わらない。
+    /// 州の生産者・市場は前の月に触れてから他の州の処理でキャッシュから落ちている＝Run のループが 1 件ずつ取りに行くと待たされる。詰めた周回で先に読むと、後のループの待ちがこの周回の値段より大きく減る
+    /// （同じプロセスで Run の呼び出しを州ごとの月の偶奇で分けた測り＝生産者だけ 0.971・＋投入 0.957・＋市場 0.937・＋POP 0.950＝POP は足さない・Run の後に置くと 1.008）。
+    /// 仕事の量は減らない（キャッシュの効かせ方）。⚠欄はオブジェクトの別々の所を読む（1 つの欄だけにするとキャッシュの行が 1 本しか載らない）。</summary>
+    private static void Prefetch(Region region)
+    {
+        double acc = 0;
+        var ps = region.Producers;
+        for (int pi = 0; pi < ps.Count; pi++)
+        {
+            var q = ps[pi];
+            acc += q.Scale + q.Output + q.LaborWeight + q.DesiredOutput + q.GoodId + q.LaborPopIndex + q.ElecFill + q.Inputs.Count;
+            foreach (var inp in q.Inputs) acc += inp.GoodId + inp.QtyPerOutput;
+        }
+        foreach (var m in region.Markets) acc += m.Price + m.Stock + m.LastDemand;
+        PrefetchSink += acc;
+    }
+    [System.ThreadStatic] private static double PrefetchSink;   // ★(spr) 先読みの捨て場（誰も読まない・スレッドごと＝競合なし・セーブに載らない静的な欄）
+
     private static Scratch RentScratch(int ng, int np, int npops)
     {
         var s = _scratch ??= new Scratch();   // ⚠再利用のビット恒等は2026-08-04に実測で確認済み（無効化しても結果が1バイトも変わらなかった）
@@ -546,6 +566,7 @@ public static class EconomyStep
 
     public static void Run(Region region, Coefficients coef, double productivityMultiplier = 1.0, Bank? bank = null, World? world = null)
     {
+        Prefetch(region);   // ★(spr) R1 先読み（読むだけ・値を書かない＝恒等。Prefetch の注）
         int ng = region.Markets.Length;
         int np = region.Producers.Count;
         // 計算量の台帳（診断・この国の台帳）：生産者×月・POP×月（月次決算の残り＝財政・犯罪・軍事・人口ほかは POP に比例）。world＝null（単国の直呼び）は数えない。
