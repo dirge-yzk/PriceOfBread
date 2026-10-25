@@ -2294,6 +2294,7 @@
    ],
    "latitude": 37.5,
    "longitude": 127.0,
+   "farmLordShare": 0.5,
    "culturalGoodId": 93
   },
   {
@@ -2390,6 +2391,7 @@
    ],
    "latitude": 18.52,
    "longitude": 73.86,
+   "farmLordShare": 0.4,
    "culturalGoodId": 93
   },
   {
@@ -2444,6 +2446,7 @@
    ],
    "latitude": 12.42,
    "longitude": 76.69,
+   "farmLordShare": 0.5,
    "culturalGoodId": 93
   },
   {
@@ -2496,6 +2499,7 @@
    ],
    "latitude": 17.4,
    "longitude": 78.5,
+   "farmLordShare": 0.5,
    "culturalGoodId": 93
   },
   {
@@ -2531,6 +2535,7 @@
    ],
    "latitude": 31.5,
    "longitude": 74.3,
+   "farmLordShare": 0.4,
    "culturalGoodId": 93
   },
   {
@@ -2576,6 +2581,7 @@
    ],
    "latitude": 21.9,
    "longitude": 96.0,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -2607,6 +2613,7 @@
    ],
    "latitude": 27.7,
    "longitude": 85.3,
+   "farmLordShare": 0.5,
    "culturalGoodId": 93
   },
   {
@@ -2641,6 +2648,7 @@
    ],
    "latitude": 13.75,
    "longitude": 100.5,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -2685,6 +2693,7 @@
    ],
    "latitude": 16.47,
    "longitude": 107.58,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -2716,6 +2725,7 @@
    ],
    "latitude": 11.55,
    "longitude": 104.9,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -2747,6 +2757,7 @@
    ],
    "latitude": 17.97,
    "longitude": 102.6,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -2851,7 +2862,8 @@
     }
    ],
    "latitude": 35.7,
-   "longitude": 51.4
+   "longitude": 51.4,
+   "farmLordShare": 0.5
   },
   {
    "name": "アラビア",
@@ -2892,7 +2904,8 @@
     }
    ],
    "latitude": 24.73,
-   "longitude": 46.57
+   "longitude": 46.57,
+   "farmLordShare": 0.3
   },
   {
    "name": "イエメン",
@@ -2932,7 +2945,8 @@
     }
    ],
    "latitude": 15.35,
-   "longitude": 44.2
+   "longitude": 44.2,
+   "farmLordShare": 0.4
   },
   {
    "name": "オマーン",
@@ -2987,7 +3001,8 @@
     }
    ],
    "latitude": 23.6,
-   "longitude": 58.5
+   "longitude": 58.5,
+   "farmLordShare": 0.3
   },
   {
    "name": "アフガニスタン",
@@ -3056,7 +3071,8 @@
     }
    ],
    "latitude": 34.5,
-   "longitude": 69.2
+   "longitude": 69.2,
+   "farmLordShare": 0.4
   },
   {
    "name": "ブハラ",
@@ -3086,7 +3102,8 @@
     }
    ],
    "latitude": 39.77,
-   "longitude": 64.42
+   "longitude": 64.42,
+   "farmLordShare": 0.5
   },
   {
    "name": "ヒヴァ",
@@ -3116,7 +3133,8 @@
     }
    ],
    "latitude": 41.38,
-   "longitude": 60.36
+   "longitude": 60.36,
+   "farmLordShare": 0.5
   },
   {
    "name": "コーカンド",
@@ -3147,7 +3165,8 @@
     }
    ],
    "latitude": 40.52,
-   "longitude": 70.94
+   "longitude": 70.94,
+   "farmLordShare": 0.5
   },
   {
    "name": "モロッコ",
@@ -3200,7 +3219,8 @@
     }
    ],
    "latitude": 34.0,
-   "longitude": -6.8
+   "longitude": -6.8,
+   "farmLordShare": 0.4
   },
   {
    "name": "エチオピア",
@@ -3234,6 +3254,7 @@
    ],
    "latitude": 12.6,
    "longitude": 37.5,
+   "farmLordShare": 0.4,
    "culturalGoodId": 67
   },
   {
@@ -3273,6 +3294,7 @@
    ],
    "latitude": -18.9,
    "longitude": 47.5,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -3411,7 +3433,8 @@
     }
    ],
    "latitude": 55.85,
-   "longitude": 12.15
+   "longitude": 12.15,
+   "farmLordShare": 0.7
   },
   {
    "name": "スイス",
@@ -3442,7 +3465,8 @@
     }
    ],
    "latitude": 46.95,
-   "longitude": 7.45
+   "longitude": 7.45,
+   "farmLordShare": 0.3
   },
   {
    "name": "ポーランド",
@@ -3514,7 +3538,8 @@
     }
    ],
    "latitude": 52.23,
-   "longitude": 21.0
+   "longitude": 21.0,
+   "farmLordShare": 1
   },
   {
    "name": "ポルトガル",
@@ -3685,6 +3710,7 @@
    ],
    "latitude": 50.9,
    "longitude": 6.96,
+   "farmLordShare": 0.5,
    "culturalGoodId": 58
   },
   {
@@ -3744,7 +3770,8 @@
     }
    ],
    "latitude": 40.85,
-   "longitude": 14.27
+   "longitude": 14.27,
+   "farmLordShare": 0.7
   },
   {
    "name": "教皇領",
@@ -3801,7 +3828,8 @@
     }
    ],
    "latitude": 41.9,
-   "longitude": 12.5
+   "longitude": 12.5,
+   "farmLordShare": 0.6
   },
   {
    "name": "トスカーナ",
@@ -3840,7 +3868,8 @@
     }
    ],
    "latitude": 43.77,
-   "longitude": 11.25
+   "longitude": 11.25,
+   "farmLordShare": 0.5
   },
   {
    "name": "ヴェネツィア",
@@ -3899,7 +3928,8 @@
     }
    ],
    "latitude": 45.44,
-   "longitude": 12.34
+   "longitude": 12.34,
+   "farmLordShare": 0.5
   },
   {
    "name": "バイエルン",
@@ -3933,6 +3963,7 @@
    ],
    "latitude": 48.14,
    "longitude": 11.58,
+   "farmLordShare": 0.5,
    "culturalGoodId": 58
   },
   {
@@ -3969,6 +4000,7 @@
    ],
    "latitude": 51.34,
    "longitude": 12.37,
+   "farmLordShare": 0.6,
    "culturalGoodId": 58
   },
   {
@@ -4011,6 +4043,7 @@
    ],
    "latitude": 52.37,
    "longitude": 9.73,
+   "farmLordShare": 0.5,
    "culturalGoodId": 58
   },
   {
@@ -4044,6 +4077,7 @@
    ],
    "latitude": 48.78,
    "longitude": 9.18,
+   "farmLordShare": 0.5,
    "culturalGoodId": 58
   },
   {
@@ -4075,6 +4109,7 @@
    ],
    "latitude": 10.78,
    "longitude": 106.7,
+   "farmLordShare": 0.3,
    "culturalGoodId": 93
   },
   {
@@ -4105,7 +4140,8 @@
     }
    ],
    "latitude": 12.8,
-   "longitude": 44.9
+   "longitude": 44.9,
+   "farmLordShare": 0.4
   },
   {
    "name": "デリー",
@@ -4140,6 +4176,7 @@
    ],
    "latitude": 28.6,
    "longitude": 77.2,
+   "farmLordShare": 0.5,
    "culturalGoodId": 93
   },
   {
@@ -4174,6 +4211,7 @@
    ],
    "latitude": 26.85,
    "longitude": 80.95,
+   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -4217,6 +4255,7 @@
    ],
    "latitude": 7.19,
    "longitude": 1.99,
+   "farmLordShare": 0.7,
    "culturalGoodId": 106
   },
   {
@@ -4260,6 +4299,7 @@
    ],
    "latitude": 6.69,
    "longitude": -1.62,
+   "farmLordShare": 0.3,
    "culturalGoodId": 106
   },
   {
@@ -4362,6 +4402,7 @@
    ],
    "latitude": -6.27,
    "longitude": 14.24,
+   "farmLordShare": 0.3,
    "culturalGoodId": 106
   },
   {
@@ -4421,7 +4462,8 @@
     }
    ],
    "latitude": 36.75,
-   "longitude": 3.06
+   "longitude": 3.06,
+   "farmLordShare": 0.5
   },
   {
    "name": "オヨ帝国",
@@ -4465,6 +4507,7 @@
    ],
    "latitude": 8.13,
    "longitude": 4.24,
+   "farmLordShare": 0.4,
    "culturalGoodId": 106
   },
   {
