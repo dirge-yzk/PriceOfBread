@@ -190,6 +190,8 @@ public static class FactionSnapshot
             double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);   // ＝Stance の「進める向き」の成分（Pref×(+1)）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密）
             bool increase = prefInc >= 0;
             double strength = System.Math.Abs(prefInc);
+            // ★(558) 線 rs3：減らす向きの強さが進める向きと対称でない選好（旗が立ち・農奴解放か土地改革・旧支配層）だけ、減らす向きの値で取り直す。旗 0 では 2 回目を呼ばない＝恒等。
+            if (!increase && PolicyPreferences.DirectionAware(w, axis, bloc)) strength = System.Math.Abs(PolicyPreferences.Pref(axis, bloc, e, w, false));
             double score = strength * Headroom(w, axis, increase);
             // 第6段6-5②（2026-07-28）：狙う軸を選べる＝体制の守り（その軸の反対勢力の力）が薄い軸を優先（中核ルールdoc §3-3②・
             // 新データ不要＝OpposingPowerの再利用）。運動は正面の壁を避けて弱い扉を押す。FactionTargetsWeakAxis=0で旧＝選好×可動域のみ。

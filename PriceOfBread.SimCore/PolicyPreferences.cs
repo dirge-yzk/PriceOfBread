@@ -218,7 +218,9 @@ public static class PolicyPreferences
 
     // 「進める方向」への各ブロックの賛否（+賛成 / −反対）を**経済プロファイルから導出**。連続値（概ね −2..+2）。
     // ★internal（2026-10-01 (146)）：要求の順位（FactionSnapshot.ComputeDemands）が自分のブロックの1本だけを読む（旧＝Stance で3ブロックと純支持を全て計算して1本を捨てた）。
-    internal static double Pref(PolicyAxis a, int b, in Profile e, World w)
+    // ★(558) 線 rs3：increasing＝**どちらの向きの選好として読むか**（既定 true＝進める向き）。返り値は常に「進める向き」の符号の値（呼び手が ×sign する）。減らす向き（false）で値が変わるのは
+    //   旗 rs2・rs3 がともに正のときの旧支配層の農奴解放・土地改革の 2 行だけ（<see cref="DirectionAware"/>）。他の全ての軸・ブロックは increasing を読まない。
+    internal static double Pref(PolicyAxis a, int b, in Profile e, World w, bool increasing = true)
     {
         bool trad = b == 0, modern = b == 1, mass = b == 2;
         switch (a)
@@ -293,9 +295,10 @@ public static class PolicyPreferences
                 return trad ? -StatusScale * (0.5 + e.Wealth[0]) : 1.0;
             case PolicyAxis.SerfEmancipation: // 農奴解放＝農奴所有の地主が強く抵抗
                 // ★(547) 線 rs2：LordOppositionByRentLoss>0 なら強さ＝〈次の一段で失う所得の割合〉（貯蓄の割合 W0 は政治力にも入る二重計上＝(540)）。0＝今の式（W0）
-                return trad ? -StatusScale * (0.5 + (w.Coef.LordOppositionByRentLoss > 0 ? LordIncomeLoss(w, a, e.LordRentToIncome) : e.Wealth[0])) : 1.0;
+                // ★(558) 線 rs3：減らす向き（increasing=false）で旗が立てば、強さは〈1 段戻したときの得〉（LordStake）
+                return trad ? -StatusScale * (0.5 + LordStake(w, a, e, increasing)) : 1.0;
             case PolicyAxis.LandReform:       // 土地改革＝地主が強く抵抗・大衆が強く賛成
-                return trad ? -StatusScale * (0.5 + (w.Coef.LordOppositionByRentLoss > 0 ? LordIncomeLoss(w, a, e.LordRentToIncome) : e.Wealth[0])) : mass ? 2.0 : 1.0;
+                return trad ? -StatusScale * (0.5 + LordStake(w, a, e, increasing)) : mass ? 2.0 : 1.0;
             case PolicyAxis.Censorship:       // 報道の自由化＝旧支配層が抵抗（検閲＝統制）・近代/大衆は自由を好む
             case PolicyAxis.SecretBallot:     // 秘密投票（E5）＝旧支配層が抵抗（票の買収/脅迫の力を失う）・近代/大衆が賛成（真の選挙）
             case PolicyAxis.Bureaucracy:      // 官僚制度の専門化（E5）＝旧支配層が抵抗（縁故任用の特権を失う）・近代/大衆が賛成（実力任用）
@@ -434,7 +437,7 @@ public static class PolicyPreferences
     {
         if (!w.ParliamentEnabled || !HasLegislature(w.Polity)) return 0;
         double sum = 0;
-        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Pref(a, party, e, w) * sign;
+        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Pref(a, party, e, w, sign > 0) * sign;
         return w.Coef.ParliamentLawWeight * sum;
     }
 
@@ -446,13 +449,13 @@ public static class PolicyPreferences
         double sum = 0;
         for (int b = 0; b < BlocCount; b++)
         {
-            double pr = Pref(a, b, e, w) * sign;
+            double pr = Pref(a, b, e, w, increasing) * sign;
             if (pr < 0) sum += e.Power[b] * -pr;   // 進める向きへの反対の強さ×力
         }
         if (w.ParliamentEnabled && HasLegislature(w.Polity))
             for (int party = 0; party < BlocCount; party++)
             {
-                double pr = Pref(a, party, e, w) * sign;
+                double pr = Pref(a, party, e, w, increasing) * sign;
                 if (pr < 0) sum += w.Coef.ParliamentLawWeight * w.PartySeats[party] * -pr;
             }
         double armyPr = ArmyStake(a) * sign;   // 第6段6-4：軍＝第4の勢力（軍事軸の縮小に抵抗）
@@ -525,7 +528,7 @@ public static class PolicyPreferences
     {
         var e = Build(w);
         double sign = increasing ? 1 : -1;
-        return (Pref(a, 0, e, w) * sign, Pref(a, 1, e, w) * sign, Pref(a, 2, e, w) * sign, NetSupport(w, a, increasing, e));   // ★同じ瞬間の e を渡す（(146)＝旧は純支持の中で Build をもう1回）
+        return (Pref(a, 0, e, w, increasing) * sign, Pref(a, 1, e, w, increasing) * sign, Pref(a, 2, e, w, increasing) * sign, NetSupport(w, a, increasing, e));   // ★同じ瞬間の e を渡す（(146)＝旧は純支持の中で Build をもう1回）
     }
 
     // SupportRate は第3段3-3（2026-07-27）で削除＝呼び出し元ゼロ・Build(w) の4つ目の重複実行を抱えていた死蔵（改革支持の表示は法律タブの段階ボタン/StageHintへ移行済み）。
@@ -541,7 +544,7 @@ public static class PolicyPreferences
         var list = new List<(string, double)>(BlocCount + 3);
         double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;   // ★NetSupport と同じ譲渡率＝合計一致の維持
-        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w) * sign));
+        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w, increasing) * sign));
         // ★党別に分解（2026-08-04・作者指摘「POPの誘導が困難で、議会に影響を与えるのが難しい」）。
         //   旧＝「議会 反対 42」の1行だけで、**どの党が反対しているか**が出ず、誰を増やせば通るのかが読めなかった。
         //   党＝族（保守0/自由1/社会2）で、族の議席は支持基盤（政治タブ）の階級×思想から積み上がる
@@ -552,7 +555,7 @@ public static class PolicyPreferences
             string[] partyNames = ["議会・保守党", "議会・自由党", "議会・社会党"];
             for (int party = 0; party < BlocCount; party++)
             {
-                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Pref(a, party, e, w) * sign;
+                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Pref(a, party, e, w, increasing) * sign;
                 if (System.Math.Abs(v) > 1e-9) list.Add((partyNames[party], v));
             }
         }
@@ -577,7 +580,7 @@ public static class PolicyPreferences
         //   代表された3ブロックの街頭力をこの割合だけ議席チャネルへ譲る＝影響力の置き場所が移るだけ（未代表の小営業・軍・国庫は街頭のまま）。0＝旧＝厳密恒等
         double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
-        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w) * sign;
+        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w, increasing) * sign;
         sum += ParliamentNet(w, a, sign, e);
         // 政12：国家の歳入要求を**独立主体として**全税軸へ直接加算（ブロック力で乗算しない＝専売の in-Pref 方式の奇妙なスケーリングを避ける）。
         // 所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。旗 StateRevenueAllTaxes（0＝専売のみ）は 2026-09-26 に焼き込み。
@@ -625,4 +628,43 @@ public static class PolicyPreferences
         }
         return gap;
     }
+
+    // ---------------------------------------------------------------- (558) 線 rs3：減らす向きの旧支配層の強さ（農奴解放・土地改革） ----------------------------------------------------------------
+    // rs2 の損の式は進める向きだけを読む＝減らす向きは進める向きの符号反転（全面の国は損 0＝床 1.0）。旗 LordOppositionReverseGain＞0 のときだけ、減らす向きを〈1 段戻したときに得る所得の割合〉で読む。
+    // 新しい関数はこのファイルの末尾に置く（gc2 が 181〜215 行を触る＝重ならない）。産地の走査は CustomaryRentShare の 1 回（新しい和・状態・倍率は 0）。
+
+    /// <summary>旧支配層の農奴解放・土地改革への強さの中身（<c>0.5＋これ</c> に StatusScale を掛ける）。旗 rs2＝0 なら貯蓄の割合 W0・正なら進める向きは損・減らす向き（<paramref name="increasing"/>＝false）で旗 rs3 が正なら得。</summary>
+    private static double LordStake(World w, PolicyAxis a, in Profile e, bool increasing)
+        => w.Coef.LordOppositionByRentLoss > 0
+            ? (!increasing && w.Coef.LordOppositionReverseGain > 0 ? LordIncomeGain(w, a, e.LordRentToIncome) : LordIncomeLoss(w, a, e.LordRentToIncome))
+            : e.Wealth[0];
+
+    /// <summary>この選好（軸×ブロック）の減らす向きの強さが、進める向きの符号反転と違う読みを持つか（<see cref="Pref"/> の <c>increasing=false</c> を別に呼ぶ価値があるか）。
+    /// 旗 rs2・rs3 がともに正・軸が農奴解放か土地改革・ブロックが旧支配層（0）のとき true。</summary>
+    internal static bool DirectionAware(World w, PolicyAxis a, int b)
+        => b == 0 && w.Coef.LordOppositionByRentLoss > 0 && w.Coef.LordOppositionReverseGain > 0
+           && (a == PolicyAxis.SerfEmancipation || a == PolicyAxis.LandReform);
+
+    /// <summary>★(558) 線 rs3：<paramref name="axis"/> を 1 段戻したときに旧支配層が得る所得の割合＝
+    /// (戻した段の実効の取り分−今の実効の取り分)÷今の実効の取り分 × <paramref name="lordRentToIncome"/>（損 <see cref="LordIncomeLoss"/> と分母の規則が同じ＝その動きの前の状態＝今で割る）。
+    /// 戻した段＝その軸だけ 1 段戻す（なし の前は なし＝得 0）。戻した段の上限は今以上＝得は 0 以上。</summary>
+    internal static double LordIncomeGain(World w, PolicyAxis axis, double lordRentToIncome)
+    {
+        EffectiveRentSharesBack(w, axis, out double now, out double prev);
+        return now > 1e-9 ? (prev - now) / now * lordRentToIncome : 0.0;
+    }
+
+    /// <summary>今と、<paramref name="axis"/> を 1 段戻した後の実効の取り分 min(慣習, 土地改革と農奴解放の上限の小さい方)（<see cref="LordIncomeGain"/> の中身＝計器 <see cref="Instruments"/> も同じ関数を通す）。</summary>
+    internal static void EffectiveRentSharesBack(World w, PolicyAxis axis, out double now, out double prev)
+    {
+        var c = w.Coef;
+        var lr = w.LandReform; var se = w.SerfEmancipation;
+        var lrPrev = axis == PolicyAxis.LandReform ? PrevStage(lr) : lr;
+        var sePrev = axis == PolicyAxis.SerfEmancipation ? PrevStage(se) : se;
+        double custom = CustomaryRentShare(w);
+        now = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lr, c.LandReformRentCap.Value), Simulation.RentCap(se, c.SerfEmancipationRentCap.Value)));
+        prev = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lrPrev, c.LandReformRentCap.Value), Simulation.RentCap(sePrev, c.SerfEmancipationRentCap.Value)));
+    }
+
+    private static ReformLevel PrevStage(ReformLevel lv) => lv == ReformLevel.None ? ReformLevel.None : lv - 1;
 }
