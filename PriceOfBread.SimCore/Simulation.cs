@@ -415,7 +415,7 @@ public sealed class Simulation
             goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, WearRatePerMonth = d.WearRatePerMonth, NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
             if (d.IsColonial) continue;   // 植民地素材は国内生産者なし（輸入のみ）
             if (d.Tier == GoodTier.Service) continue;   // 役務（労働力・高度労働力・農業労働力）の生産者は下で紐づけて追加
-            if (d.Id == Catalog.BuildingId) continue;   // ★(550) 線 fb：この試験の世界は旗 BuildingGoodBundle＝0（既定）の世界＝建造物の作り手を置かない（本番の州の構築は CatalogEconomy が旗を読む）
+            if (d.Id == Catalog.BuildingId && !(new Coefficients().BuildingGoodBundle > 0)) continue;   // ★(550)(555) 線 fb／fb2：旗 BuildingGoodBundle が 0 の世界は建造物の作り手を置かない（既定は 1＝置く。本番の州の構築は CatalogEconomy が旗を読む）
             bool isFactory = d.Inputs.Length > 0;
             // 雇用の一本化：工場＝労働力＋高度労働力、自家農家（RGO）＝農業労働力を市場で買う（自作農＝一次労働者が所有）。
             producers.Add(new Producer
@@ -495,7 +495,7 @@ public sealed class Simulation
             markets[d.Id] = new Market { Price = refP, Stock = 200, TargetStock = 200 };
             if (d.IsColonial) continue;   // 植民地素材は国内生産者なし（輸入のみ・植民地と制海で供給）
             if (d.Tier == GoodTier.Service) continue;   // 役務は AddServiceProducers が担い手popに紐づけて追加
-            if (d.Id == Catalog.BuildingId) continue;   // ★(550) 線 fb：同上（旗 0 の世界・建造物の作り手を置かない）
+            if (d.Id == Catalog.BuildingId && !(new Coefficients().BuildingGoodBundle > 0)) continue;   // ★(550)(555) 線 fb／fb2：同上（旗が 0 の世界は建造物の作り手を置かない）
             bool isFactory = d.Inputs.Length > 0;
             // 雇用の一本化：工場＝労働力＋高度労働力、自家農家（RGO）＝農業労働力を市場で買う。残余＝地代（旧体制＝小作0.5を貴族へ）。
             producers.Add(new Producer

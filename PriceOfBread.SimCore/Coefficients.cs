@@ -1194,7 +1194,7 @@ public sealed class Coefficients
     //   正のとき、資本家の建設・国家の建設・巨大建造物・工場の建設の材料が全て同じ新しい束（EconomyStep.BundleOf）を買う。建造物＝工場の建屋の財（木造〔既定〕・煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリートの段のレシピ・Simulation.AddAlternateRecipes）。
     //   旗 0 では建造物の作り手を 1 本も置かない（買い手も売り手も居ない財＝世界は旗の追加前と同じ）。旗を倒すと作り手 5 本が全ての州に置かれる。ivf の F2（時代の組・旗 ConstructionEraBundle ほか 5 本）は道ごと消した（読む線 fbd ⑤）。
     //   量：建造物 ConsBuilding は〈束の参照価格の合計を今の鋼の束の 3.7104 に合わせる〉較正（機械 ConsMachine 0.15 は束に残す＝建屋の中に機械は無い・波 31 の機械の受け口）。PrivateIndPerConstruction・FactoryMaterialFrac・巨大建造物の BuildUnits の較正は動かない。確証なし（AI の推奨）。
-    public double BuildingGoodBundle = 0;
+    public double BuildingGoodBundle = 1;   // ★(555) 線 fb2 の採用で既定を 0→1 に倒した（旗 0 で従来の束へ戻せる）
     public double ConsBuilding = 2.3969;
     // ★(536) 線 ivf：州の物価の乗数（LocalPriceMultiplier）と賃金の割増（WagePremium）の〈国平均〉を、植民地の格（RegionTier.Colonial）の州を除いた州で取る（0＝全ての州＝旧の形）。事前登録 [0] F1。
     //   根＝英の国平均の 1 人あたり貯蓄にベンガルなど植民地の 3,000 万人が入り、本土の乗数が 1.379 になる（iv ①）。

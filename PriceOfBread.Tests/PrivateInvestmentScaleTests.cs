@@ -39,8 +39,10 @@ public class PrivateInvestmentScaleTests
         SetIncome(r, 5000);
         double a = EconomyStep.PrivateIndPerConstruction(r, c);
         // 絶対値の 1 点（本体の式の写し）：N＝κ×年所得÷（基準の束の費用×(1+工賃の割合)×物価水準）。基準の束の費用は財の基準価格の積の和をここで足し直す。
-        double bundleRef = c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
-                         + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
+        double bundleRef = c.BuildingGoodBundle > 0   // ★(555) 既定の束は建造物＋機械（旗 0 は鋼・機械・セメント・製材）＝今の束の財と量の積の和
+            ? c.ConsBuilding * Catalog.RefPrices[Catalog.BuildingId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
+            : c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
+            + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
         double n = 1.0 * (5000.0 * 12.0) / (bundleRef * (1.0 + c.ConstructionLaborWageFrac) * 1.0);
         Assert.True(Math.Abs(a - 1.0 / n) <= 1e-12 * (1.0 / n), $"1 束の工業化度 {a} が 1÷N {1.0 / n} に閉じない");
 

@@ -94,8 +94,9 @@ public class ModernizeReturnAndScoreTests
     private static void EqualStock(World w, Region r)
     {
         var c = w.Coef;
-        r.Markets[c.SteelGoodId].Stock = 100 * c.ConsSteel; r.Markets[c.MachineGoodId].Stock = 100 * c.ConsMachine;
-        r.Markets[c.CementGoodId].Stock = 100 * c.ConsCement; r.Markets[c.LumberGoodId].Stock = 100 * c.ConsLumber;
+        var bn = EconomyStep.BundleOf(r, c);   // ★(555) 今の建設の束の財（既定は建造物＋機械・旗 0 なら鋼・機械・セメント・製材）の手当を同じ単位数にそろえる
+        r.Markets[bn.G0].Stock = 100 * bn.Q0; r.Markets[bn.G1].Stock = 100 * bn.Q1;
+        if (bn.Slots == 4) { r.Markets[bn.G2].Stock = 100 * bn.Q2; r.Markets[bn.G3].Stock = 100 * bn.Q3; }
     }
 
     [Fact]

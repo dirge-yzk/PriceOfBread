@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// (550) 線 fb：工場の建屋の財（建造物）と、建設の資材の束の〈建造物＋機械〉の 2 枠。事前登録 <c>measurements/fb550_20261025_prereg.txt</c>。
-/// 旗 <c>BuildingGoodBundle</c>（既定 0）：0 は今の鋼・機械・セメント・製材の束・建造物の作り手 0 本。正は 2 枠の束・作り手 5 本（既定の木造＋煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリート造）。
+/// 旗 <c>BuildingGoodBundle</c>（既定 1＝(555) 線 fb2 で 0 から倒した）：0 は今の鋼・機械・セメント・製材の束・建造物の作り手 0 本。正は 2 枠の束・作り手 5 本（既定の木造＋煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリート造）。
 /// 期待は本体の式の写しでなく<b>手の値</b>で書く（参照価格は Runner の <c>refprice</c> の出力・量は事前登録の数字）。旗は Scenario.Coef に差す（州の構築時に届く＝IvfInitialValuesTests の先例）。
 /// </summary>
 public class BuildingGoodBundleTests
@@ -46,10 +46,10 @@ public class BuildingGoodBundleTests
     }
 
     [Fact]
-    public void 旗の既定は0_量は事前登録のとおり_鋼の束の量は動かしていない()
+    public void 旗の既定は1_量は事前登録のとおり_鋼の束の量は動かしていない()
     {
         var c = new Coefficients();
-        Assert.Equal(0.0, c.BuildingGoodBundle);
+        Assert.Equal(1.0, c.BuildingGoodBundle);   // (555) 線 fb2 の採用で既定を 0→1 へ倒した
         Assert.Equal(2.3969, c.ConsBuilding);
         Assert.Equal(0.15, c.ConsMachine);
         Assert.Equal((1.0, 0.15, 0.4, 0.5), (c.ConsSteel, c.ConsMachine, c.ConsCement, c.ConsLumber));
@@ -65,9 +65,9 @@ public class BuildingGoodBundleTests
         double buildSet = 2.3969 * rp[Catalog.BuildingId] + 0.15 * rp[Catalog.MachineryId];
         Assert.True(steelSet > 3 && buildSet > 3);
         Assert.True(Math.Abs(buildSet / steelSet - 1.0) < 2e-4, $"建造物の組の参照が鋼の組の参照から 0.02% を超えて離れた（{buildSet} 対 {steelSet}）");
-        Assert.Equal(steelSet, EconomyStep.BundleRef(new Coefficients()), 9);
-        var on = new Coefficients { BuildingGoodBundle = 1 };
-        Assert.Equal(buildSet, EconomyStep.BundleRef(on), 9);
+        Assert.Equal(steelSet, EconomyStep.BundleRef(new Coefficients { BuildingGoodBundle = 0 }), 9);
+        Assert.Equal(buildSet, EconomyStep.BundleRef(new Coefficients()), 9);           // 既定（旗 1）は建造物の組
+        Assert.Equal(buildSet, EconomyStep.BundleRef(new Coefficients { BuildingGoodBundle = 1 }), 9);
     }
 
     // ---------------------------------------------------------------- 作り手：旗 0 は 0 本・旗 1 は全ての州に 5 本
@@ -75,7 +75,7 @@ public class BuildingGoodBundleTests
     [Fact]
     public void 作り手は旗0で0本_旗1で全ての州に5本_入力と門の印は手の値()
     {
-        var off = Make(NationConfig.Britain(), c => { });
+        var off = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = 0);
         var on = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = 1);
         Assert.Equal(0, off.World.Regions.Sum(r => r.Producers.Count(p => p.GoodId == Catalog.BuildingId)));
         int castRow = Catalog.DiscoveryRowNamed("鋳鉄の骨組み"), bessemerRow = Catalog.DiscoveryRowNamed("転炉鋼"), housingRcRow = Catalog.DiscoveryRowNamed("鉄筋コンクリート");
@@ -142,7 +142,7 @@ public class BuildingGoodBundleTests
     [Fact]
     public void 旗0は鋼の組_旗1は建造物の組_費用は旧の式と2枠の手の値()
     {
-        var off = Make(NationConfig.Britain(), c => { });
+        var off = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = 0);
         var r0 = CapitalRegion(off.World); var c0 = off.World.Coef;
         SetPrices(r0, 3.0, 8.0, 2.0, 1.5, 0.01);   // 建造物が極端に安くても旗 0 は鋼の組
         var b0 = EconomyStep.BundleOf(r0, c0);
@@ -308,7 +308,7 @@ public class BuildingGoodBundleTests
     [Fact]
     public void 旗0では鋳鉄の骨組みの行を誰も発見しない()
     {
-        var off = Make(NationConfig.Britain(), c => { });
+        var off = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = 0);
         int castRow = Catalog.DiscoveryRowNamed("鋳鉄の骨組み");
         off.Run(8);
         foreach (var r in off.World.Regions) if (r.Discovered is { } d && castRow < d.Length) Assert.False(d[castRow]);
@@ -317,7 +317,7 @@ public class BuildingGoodBundleTests
 
     /// <summary>検証ハーネスの〈下流の無い財〉の検査：旗 0 では建造物（作り手も買い手も居ない）を数えない（数えると旗 0 の標準出力の 1 行が基点の木と変わる＝selfplay の出力の cmp が非恒等になる）。</summary>
     [Fact]
-    public void 旗0では下流の無い財の検査に建造物を数えない()
+    public void 既定でも旗0でも下流の無い財の検査に建造物を数えない()
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 83) { DiplomacyFrozen = true };
         sim.Run(2);
@@ -351,6 +351,6 @@ public class BuildingGoodBundleTests
                         sb.Append(r.Markets[g].Price.ToString("R")).Append(',').Append(r.Markets[g].Stock.ToString("R")).Append(';');
             return sb.ToString();
         }
-        Assert.Equal(Trace(c => { }), Trace(c => { c.ConsBuilding = 77; }));
+        Assert.Equal(Trace(c => c.BuildingGoodBundle = 0), Trace(c => { c.BuildingGoodBundle = 0; c.ConsBuilding = 77; }));
     }
 }
