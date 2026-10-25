@@ -31,7 +31,7 @@ public class BuildingGoodBundleTests
     [Fact]
     public void 建造物の財は末尾129で_投入と損耗と参照価格は手の値()
     {
-        Assert.Equal(Catalog.Goods.Length - 1, Catalog.BuildingId);           // 財は番号でなく末尾に足す（財の数・番号の固定は他の線の追加で赤になるので書かない）
+        Assert.InRange(Catalog.BuildingId, 0, Catalog.Goods.Length - 1);      // (555 追記2) 番号の末尾固定は書かない（他の線が財を足すと赤になる）。名前と投入で引く
         var g = Catalog.Goods[Catalog.BuildingId];
         Assert.Equal("建造物", g.Name);
         Assert.True(g.NonTradeable);                                   // 建屋は運べない

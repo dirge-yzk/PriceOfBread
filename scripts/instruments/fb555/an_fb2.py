@@ -104,6 +104,8 @@ def run(lab, d, ss, base, gate):
         print(line)
         if base: g1ok &= (low >= need_g1 and red >= 0.25)
     uk_abs = med([a for a, b in g1['英']]); g1ok &= uk_abs <= 1.6
+    abs_ok = all(med([a for a, b in g1[k]]) <= 2.0 for k in G1_NATS)
+    print(f'  [元の形の記録] G1 の絶対の水準 ≤2.0（指示の例）：' + '・'.join(f'{k} {med([a for a, b in g1[k]]):.2f}' for k in G1_NATS) + f' → {ok(abs_ok)}（門にしない・追記2 で並べる）')
     print(f'  [{T}] G1 {ok(g1ok)}（5 国とも基線より低い種 ≥{need_g1}/{ns} かつ減りの中央値 ≥25% かつ 英の中央値 {uk_abs:.2f}≤1.6）' + ('' if base else '　※基線なし＝向きは読んでいない'))
     print('  [G2 開幕の建設の律速の配給率]')
     g2ok = True
@@ -113,9 +115,9 @@ def run(lab, d, ss, base, gate):
         if base: g2ok &= hi >= need_g2
     print(f'  [{T}] G2 {ok(g2ok)}（英仏普米とも基線より高い種 ≥{need_g2}/{ns}）　[記録] 英の水準 {med([a for a, b in g2["英"]]):.2f}（目標 ≥0.8 は記録）')
     # ---- G3：段の産出の割合
-    viol = 0; viol_rows = []
+    viol = 0; viol_rows = []; viol_q = 0; viol_q_rows = []
     mv = {}   # (段, 国, 種) → 門が開いた後の 10 年の動きの最大
-    cast1830 = {}; late1913 = {}; rho = []; ratio_px = {}; px_all_bad = []
+    cast1830 = {}; late1913 = {}; rho = []; rho2 = []; ratio_px = {}; px_all_bad = []
     STAGES = (('outCast', 'gateCast'), ('outSteel', 'gateSteel'), ('outRC', 'gateRC'))
     for s in ss:
         by = fb_by_year(d, s)
@@ -124,6 +126,10 @@ def run(lab, d, ss, base, gate):
                 for key, g_ in STAGES:
                     if fl(x[key]) > 1e-6 and fl(x[g_]) < 0.5:
                         viol += 1; viol_rows.append((s, n, y, key))
+        for x in rows(os.path.join(d, f'fb_s{s}.tsv')):   # (555 追記2) G3a は全ての四半期の行で数える（年末だけでは年の途中の閉じたままの産出を落とす）
+            for key, g_ in STAGES:
+                if fl(x[key]) > 1e-6 and fl(x[g_]) < 0.5:
+                    viol_q += 1; viol_q_rows.append((s, x['nation'], x['quarter'], key))
         for k in G3_NATS:
             n = NAT[k]; ys = by.get(n, {})
             for stage, g_ in STAGES:
@@ -146,7 +152,8 @@ def run(lab, d, ss, base, gate):
             vs = [fl(x['buildPxOverRefMain']) for y, x in sorted(by.get(NAT[k], {}).items()) if 1783 <= y <= 1800]
             vs = [v for v in vs if v == v and v > 0]
             if len(vs) >= 3: ratio_px[(k, s)] = max(vs) / min(vs)
-        xs, ys_ = [], []
+        xs, ys_ = [], []; xs2, ys2 = [], []
+        REF = (1.273, 1.277, 1.180, 1.112, 1.056)   # 参照の費用（木造・煉瓦造・鋳鉄・鋼・RC＝Simulation.cs の注の表）
         for x in rows(os.path.join(d, f'fb_s{s}.tsv')):
             if 'costWood' not in x: break
             costs = [fl(x[c]) for c in ('costWood', 'costBrick', 'costCast', 'costSteel', 'costRC')]
@@ -157,9 +164,14 @@ def run(lab, d, ss, base, gate):
             cmin = min(costs[i] for i in opened)
             for i in opened:
                 xs.append(-(costs[i] / cmin)); ys_.append(outs[i] / tot)
+            # G3e″（記録）：今の費用の順が参照の費用の順と食い違う行だけ（段の置き方で自明に通る読みを外す・追記2）
+            if sorted(opened, key=lambda i: costs[i]) != sorted(opened, key=lambda i: REF[i]):
+                for i in opened:
+                    xs2.append(-(costs[i] / cmin)); ys2.append(outs[i] / tot)
         rho.append(spearman(xs, ys_) if len(xs) >= 10 else float('nan'))
-    print(f'  [G3a 門の番人] 段の産出 >0 なのに門が閉じている国×年: {viol} 件' + ('' if viol == 0 else f' 例 {viol_rows[:3]}'))
-    print(f'  [{T}] G3a {ok(viol == 0)}')
+        rho2.append(spearman(xs2, ys2) if len(xs2) >= 10 else float('nan'))
+    print(f'  [G3a 門の番人] 段の産出 >0 なのに門が閉じている 国×四半期（全ての行）: {viol_q} 件' + ('' if viol_q == 0 else f' 例 {viol_q_rows[:3]}') + f'　〔年末の行だけでは {viol} 件〕')
+    print(f'  [{T}] G3a {ok(viol_q == 0 and viol == 0)}（追記2：全ての四半期の行で数える）')
     # G3b：段ごと・門が開いた国×種だけを母数にする（開かない要素を 0 と数えない）
     g3b_ok = True; judged = 0
     for stage, nm in (('outCast', '鋳鉄の骨組み'), ('outSteel', '鋼の骨組み'), ('outRC', '鉄筋コンクリート造')):
@@ -195,6 +207,20 @@ def run(lab, d, ss, base, gate):
             sh = share(later[0], 'outSteel')
             if sh == sh and sh > 0.05: taken += 1
     frac = taken / opened if opened else float('nan')
+    # G3c の元の形（(550) の定義）：鋼の骨組みの門が開いた最初の四半期から 20 四半期後に割合 >0.05 の国×種の割合 ≥0.8
+    oo = to = 0
+    for s_ in ss:
+        rq = {}
+        for x in rows(os.path.join(d, f'fb_s{s_}.tsv')):
+            if x['nation'] in [NAT[k] for k in G3_NATS]: rq.setdefault(x['nation'], []).append((int(x['quarter']), x))
+        for k in G3_NATS:
+            lst = sorted(rq.get(NAT[k], []), key=lambda t: t[0])
+            q0 = next((q for q, x in lst if fl(x['gateSteel']) > 0.5), None)
+            if q0 is None: continue
+            later = [x for q, x in lst if q >= q0 + 20]
+            if not later: continue
+            oo += 1; sh0 = share(later[0], 'outSteel'); to += 1 if (sh0 == sh0 and sh0 > 0.05) else 0
+    print(f'  [元の形の記録] G3c（(550) の定義：門が開いて 20 四半期後に割合>0.05）{to}/{oo} = {(to / oo) if oo else float("nan"):.2f}（≥0.8 で OK・(550) の腕 B は 12/50）→ ' + ('判定不能（5 件未満）' if oo < 5 else ok(to / oo >= 0.8)))
     l13 = [late1913.get((k, s_), float('nan')) for k in ('英', '米', '普') for s_ in ss]
     print(f'  [G3c′ 鋼の骨組みの費用が最安の段以下になって 4 四半期続いた最初の四半期から 20 四半期後に割合>0.05] {taken}/{opened}（その状態に出力の期間内に届かなかった国×種 {never}・門だけは開いた国×種 {gate_only_open}）　[記録] 1913 の 鋼＋RC の割合 英米普×種の中央値 {med(l13):.2f}')
     print(f'  [{T}] G3c′ {"判定不能（その状態に届いて 20 四半期後の行がある国×種が 5 件未満＝届かないことでは落とさない）" if opened < 5 else ok(frac >= 0.8)}（採られた割合 {frac:.2f}≥0.8）')
@@ -205,7 +231,9 @@ def run(lab, d, ss, base, gate):
     print(f'  [{T}] G3d {ok(med(uk30) >= 0.15)}（英の中央値 {med(uk30):.2f}≥0.15＝門が開いた段が採られる）')
     print(f'  [{T}] G4b {ok(cn_lead <= max_g4b)}（1830 年の鋳鉄の骨組みの割合で清が英を 0.15 以上上回る種 {cn_lead}/{ns}≤{max_g4b}）')
     pos = sum(1 for r in rho if r == r and r > 0)
-    print(f'  [G3e 費用と割合の順位相関 ρ] 種ごと ' + ' '.join(f'{r:+.2f}' for r in rho))
+    print(f'  [G3e 費用と割合の順位相関 ρ] 種ごと ' + ' '.join(f'{r:+.2f}' for r in rho) + f'　（点が 10 未満で NaN の種 {sum(1 for r in rho if r != r)}・NaN は正でない側に数える・outTotal>1.0 の行だけ＝追記2）')
+    pos2 = sum(1 for r in rho2 if r == r and r > 0); jud2 = sum(1 for r in rho2 if r == r)
+    print(f'  [記録] G3e″ 今の費用の順が参照の順と食い違う行だけの ρ（段の置き方で自明に通らない読み）種ごと ' + ' '.join(f'{r:+.2f}' for r in rho2) + f'　ρ>0 の種 {pos2}/{jud2}（判定できた種）')
     print(f'  [{T}] G3e {ok(pos >= need_g3e)}（ρ＞0 の種 {pos}/{ns}≥{need_g3e}）')
     # ---- G7：転炉鋼の行の読みが潰れない（engineer_s の T 行・まだ解禁していない四半期）。門＝英（追記1）／記録＝主要 5 国の合算・国別・needTerm==0 の行の国の内訳
     cnt = {}   # 国 → [行数, needTerm>=40, A>0, needTerm==0]
