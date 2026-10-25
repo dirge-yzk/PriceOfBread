@@ -14,7 +14,8 @@ public static partial class Instruments
 {
     internal const string Rs2Header = "quarter\tyear\tnation\tserfLawCode\tlandReformLawCode\tcustomaryRentShare\teffRentShareNow\teffRentShareNextSerf\teffRentShareNextLand\t"
         + "lordRentToIncomeShare\tlordWealthShare\tlordRentShare\tlossSerfShare\tlossLandShare\t"
-        + "oppOldIndex\toppSerfNewIndex\toppLandNewIndex\tflagLevel";
+        + "oppOldIndex\toppSerfNewIndex\toppLandNewIndex\tflagLevel\t"
+        + "power0\tpullSerfUsed\tpullSerfOld\tdem0Top";
 
     static void Rs2Fold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -30,11 +31,23 @@ public static partial class Instruments
         double lossS = PolicyPreferences.LordIncomeLoss(w, PolicyAxis.SerfEmancipation, rentToIncome);
         double lossL = PolicyPreferences.LordIncomeLoss(w, PolicyAxis.LandReform, rentToIncome);
         double ss = PolicyPreferences.StatusScale;
+        // 追記 3（事前登録 [11]）：挙げた国の行だけ、旧支配層の政治力と〈政治力×反対の強さ〉と旧支配層の要求の上位を出す（年末だけの国は空）。読むだけ。
+        string power0 = "", pullUsed = "", pullOld = "", dem0 = "";
+        if (picked)
+        {
+            var prof = PolicyPreferences.Build(w);
+            double p0 = prof.Power[0];
+            power0 = F(p0);
+            pullUsed = F(p0 * -PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, prof, w));
+            pullOld = F(p0 * ss * (0.5 + w0));
+            dem0 = string.Join(';', FactionSnapshot.ComputeDemands(w, 0, true).ConvertAll(d => d.Axis.ToString() + (d.Increase ? "+" : "-")));
+        }
         sk.Rs2 ??= Open("rs2", seed);
         if (!sk.Rs2Header) { sk.Rs2.WriteLine(Rs2Header); sk.Rs2Header = true; }
         sk.Rs2.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), I((int)w.SerfEmancipation), I((int)w.LandReform),
             F(PolicyPreferences.CustomaryRentShare(w)), F(nowS), F(nextS), F(nextL),
             F(rentToIncome), F(w0), F(rentShare0), F(lossS), F(lossL),
-            F(ss * (0.5 + w0)), F(ss * (0.5 + lossS)), F(ss * (0.5 + lossL)), F(w.Coef.LordOppositionByRentLoss)));
+            F(ss * (0.5 + w0)), F(ss * (0.5 + lossS)), F(ss * (0.5 + lossL)), F(w.Coef.LordOppositionByRentLoss),
+            power0, pullUsed, pullOld, dem0));
     }
 }

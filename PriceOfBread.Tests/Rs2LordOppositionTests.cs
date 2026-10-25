@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>(547) 線 rs2：農奴解放・土地改革への旧支配層の反対の強さ（<see cref="Coefficients.LordOppositionByRentLoss"/>）の番人。
 /// ⚠機構と不変条件だけを見る（解放の年の分布・政体の通り道は成績表が見る）。期待値は本体の関数 <see cref="PolicyPreferences.LordIncomeLoss"/> から作らない＝
-/// 慣習は world.json のロシアの農制 1.0 と農奴の市場参加床 0.15 から（0.85）・上限は 1.0／0.75／0.5／0.3 の手書き・所得の比は POP を直に数える。</summary>
+/// 慣習は NationConfig の農制と農奴の市場参加床の係数から組む（盤面の数字を手書きで固定しない）・上限は 1.0／0.75／0.5／0.3 の手書き・所得の比は POP を直に数える。</summary>
 public class Rs2LordOppositionTests
 {
     private static World RussiaBoard()
@@ -14,6 +14,9 @@ public class Rs2LordOppositionTests
         sim.Run(4);
         return sim.World;
     }
+
+    /// <summary>産地の慣習の取り分の期待値＝国の農制と農奴の市場参加床から（Simulation の組み立て min(農制, 1−床) と産地の下限 max(0.3, ·)）。本体の <see cref="PolicyPreferences.CustomaryRentShare"/> は呼ばない。</summary>
+    private static double ExpectedCustom(NationConfig cfg, Coefficients c) => Math.Max(0.3, Math.Min(cfg.FarmLordShare, 1.0 - c.SerfCashShareFloor.Value));
 
     /// <summary>旧支配層（Closed）の貯蓄の割合と、地代÷所得を POP から直に数える（本体の BuildSums を通さない）。</summary>
     private static (double W0, double RentToIncome) LordSums(World w)
@@ -50,8 +53,9 @@ public class Rs2LordOppositionTests
         var (_, ratio) = LordSums(w);
         Assert.True(ratio > 0.2 && ratio <= 1.0, $"盤面の前提が崩れた（旧支配層の地代÷所得 {ratio}）");
         var e = PolicyPreferences.Build(w);
-        const double c = 0.85;   // ロシア＝農制 1.0 を農奴の市場参加床 0.15 が切る（Simulation.CatalogEconomy の min(農制, 1−床)）
-        // なし（上限 1.0）→限定（0.75）：(0.85−0.75)/0.85
+        double c = ExpectedCustom(NationConfig.Russia(), w.Coef);   // ロシア＝農制を農奴の市場参加床が切る（world.json と係数から）
+        Assert.True(c > 0.75 && c < 1.0, $"盤面の前提が崩れた（ロシアの慣習 {c}・限定の上限 0.75 より上でなければ段が働かない）");
+        // なし（上限 1.0）→限定（0.75）：(慣習−0.75)/慣習
         w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
         Assert.Equal(-2.0 * (0.5 + (c - 0.75) / c * ratio), PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, e, w), 9);
         // 限定（0.75）→全面（0.5）：(0.75−0.5)/0.75
@@ -60,7 +64,7 @@ public class Rs2LordOppositionTests
         // 全面の次は無い＝失う所得 0＝基礎の 0.5 だけ
         w.SerfEmancipation = ReformLevel.Full;
         Assert.Equal(-1.0, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, e, w), 12);
-        // 土地改革：なし→限定（上限 0.65）は (0.85−0.65)/0.85・限定→全面（0.3）は (0.65−0.3)/0.65。農奴解放がなしの間は農奴解放の上限 1.0 が土地改革の上限と小さい方を取る
+        // 土地改革：なし→限定（上限 0.65）は (慣習−0.65)/慣習・限定→全面（0.3）は (0.65−0.3)/0.65。農奴解放がなしの間は農奴解放の上限 1.0 が土地改革の上限と小さい方を取る
         w.SerfEmancipation = ReformLevel.None; w.LandReform = ReformLevel.None;
         Assert.Equal(-2.0 * (0.5 + (c - 0.65) / c * ratio), PolicyPreferences.Pref(PolicyAxis.LandReform, 0, e, w), 9);
         w.LandReform = ReformLevel.Limited;
@@ -96,7 +100,8 @@ public class Rs2LordOppositionTests
         var w = sim.World;
         w.Coef.LordOppositionByRentLoss = 1.0;
         w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
-        Assert.Equal(0.3, PolicyPreferences.CustomaryRentShare(w), 12);
+        Assert.Equal(ExpectedCustom(NationConfig.America(), w.Coef), PolicyPreferences.CustomaryRentShare(w), 12);
+        Assert.True(ExpectedCustom(NationConfig.America(), w.Coef) <= 0.5, "盤面の前提が崩れた（慣習が農奴解放の全面の上限 0.5 以下でなければ失う所得が 0 にならない）");
         Assert.Equal(-1.0, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w), 12);
     }
 
@@ -108,7 +113,8 @@ public class Rs2LordOppositionTests
         var (w0, ratio) = LordSums(w);
         w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
         double loss = PolicyPreferences.LordIncomeLoss(w, PolicyAxis.SerfEmancipation, ratio);
-        Assert.Equal((0.85 - 0.75) / 0.85 * ratio, loss, 9);
+        double cust = ExpectedCustom(NationConfig.Russia(), w.Coef);
+        Assert.Equal((cust - 0.75) / cust * ratio, loss, 9);
         w.Coef.LordOppositionByRentLoss = 0.0;
         double used0 = -PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w);
         w.Coef.LordOppositionByRentLoss = 1.0;

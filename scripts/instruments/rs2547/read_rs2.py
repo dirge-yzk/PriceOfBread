@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """(547) 線 rs2 の読み手：事前登録 measurements/rs2547_20261025_prereg.txt の [5]（P1・M1・M2・M2b・M3）と [6]（R1〜R4・R6）を読む。
-使い方：PYTHONUTF8=1 python scripts/instruments/rs2547/read_rs2.py <計器の出力フォルダ（腕 B の ins）> [--base <基線の ins>]
+使い方：PYTHONUTF8=1 python scripts/instruments/rs2547/read_rs2.py <計器の出力フォルダ（腕 B の ins）> [--base <基線の ins>] [--a0 <旗 0 の計器つき腕 A0 の ins>] [--null <ヌル腕の ins をコンマ区切り>]
+追記 3（事前登録 [11]）：P1 と M6 は --a0（旗 0＝処置していない世界）で読む。M5 は --base と --null の reform 表から閾値を作る。
 入力：<ins>/rs2_s*.tsv（InstrumentsRs2.cs）と <ins>/reform_s*.tsv。--base があれば基線の reform_s*.tsv も同じ読みで並べる（R1・R2・R6）。
 限界：連続した四半期の行がある系列（挙げた国）だけを読む（年末だけの国は 4 四半期おき＝連続でない）。閾値は事前登録のとおり（結果を見て直さない）。
 """
@@ -175,7 +176,96 @@ def main():
     reform_report('腕 B（入力）', ref)
     if base:
         reform_report('基線（--base）', load(base, 'reform'))
+    extra(d, rs2, ref, base, args)
     return 0
+
+
+def land_transitions(refd):
+    """土地改革の法が 0 から 1 以上へ動いた件数（種×国の系列の隣り合う行・年末だけの国の行も含む）。"""
+    n = 0
+    for rows in refd.values():
+        for ser in series(rows).values():
+            for a, c in zip(ser, ser[1:]):
+                if int(a['landReformLawCode']) == 0 and int(c['landReformLawCode']) >= 1:
+                    n += 1
+    return n
+
+
+def none_runs(rs2):
+    out = []
+    for s, rows in rs2.items():
+        for n, ser in series(rows).items():
+            for run in runs(ser, key=lambda r: r['serfLawCode']):
+                if run[0]['serfLawCode'] == '0' and len(run) >= MIN_RUN:
+                    out.append((s, n, run))
+    return out
+
+
+def extra(d, rs2, ref, base, args):
+    a0 = args[args.index('--a0') + 1] if '--a0' in args else None
+    nulls = args[args.index('--null') + 1].split(',') if '--null' in args else []
+    # ---- P1（追記 3：処置していない世界 A0 で読む）----
+    if a0:
+        r0 = load(a0, 'rs2')
+        sl = []
+        for s, n, run in none_runs(r0):
+            xs = [int(r['quarter']) / 4 for r in run]
+            sl.append(slope(xs, [fl(r, 'oppOldIndex') for r in run]))
+        if sl:
+            mo = st.median(sl)
+            print(f'[P1/A0] 旗 0 の腕の〈なし〉連続 {MIN_RUN}q 以上の系列 {len(sl)} 本・今の式の傾きの中央値 {mo:+.5f}/年（前提＝+{P1_MIN}以上） -> {"届く" if mo >= P1_MIN else "届かない＝M1は判定不能"}')
+        else:
+            print('[P1/A0] 系列が無い -> 判定不能')
+    # ---- M5（土地改革の第 1 段が通る件数）----
+    cb = land_transitions(ref)
+    cs = [land_transitions(load(x, 'reform')) for x in ([base] if base else []) + nulls]
+    if cs:
+        thr = max(cs) + 2 * (max(cs) - min(cs))
+        print(f'[M5] 土地改革 0->1以上 の件数 腕 B {cb}・基線とヌル腕 {cs}・閾値 {thr}（最大＋幅の2倍） -> {"通る" if cb <= thr else "外れ"}')
+    else:
+        print(f'[M5] 腕 B の件数 {cb}（--base/--null が無く閾値なし）')
+    # ---- M6（旧支配層の政治力×反対の強さ＝門の純支持の旧支配層の項の傾き）----
+    def pull_slopes(rs):
+        out = []
+        for s, n, run in none_runs(rs):
+            pts = [(int(r['quarter']) / 4, fl(r, 'pullSerfUsed')) for r in run if r.get('pullSerfUsed', '') != '']
+            if len(pts) >= MIN_RUN // 2:
+                out.append(slope([x for x, _ in pts], [y for _, y in pts]))
+        return out
+    sb = pull_slopes(rs2)
+    sa = pull_slopes(load(a0, 'rs2')) if a0 else []
+    if sb and sa:
+        mb, ma = st.median(sb), st.median(sa)
+        verdict = '判定不能（A0 の傾きが正でない）' if not ma > 0 else ('通る' if mb <= ma else '外れ')
+        print(f'[M6] 政治力×反対の強さ(pullSerfUsed)の傾きの中央値 腕 B {mb:+.5f}（{len(sb)}本）・A0 {ma:+.5f}（{len(sa)}本）/年 -> {verdict}')
+    else:
+        print(f'[M6] 系列不足（B {len(sb)}・A0 {len(sa)}）-> 判定不能')
+    # ---- 記録：地代÷所得 > 1 の行・旧支配層の要求の上位・解放が全面の国の要求 ----
+    over = sum(1 for rows in rs2.values() for r in rows if fl(r, 'lordRentToIncomeShare') > 1.0)
+    allr = sum(len(rows) for rows in rs2.values())
+    print(f'[記録] lordRentToIncomeShare>1 の行 {over}/{allr}')
+
+    def dem_freq(rs):
+        tot = defaultdict(int)
+        hit = defaultdict(int)
+        for rows in rs.values():
+            for r in rows:
+                if r.get('dem0Top', '') == '' and r.get('power0', '') == '':
+                    continue
+                dec = int(r['year']) // 10 * 10
+                tot[dec] += 1
+                tops = r.get('dem0Top', '').split(';')
+                if any(t.startswith('SerfEmancipation') for t in tops):
+                    hit[(dec, 'serf')] += 1
+                if any(t.startswith('LandReform') for t in tops):
+                    hit[(dec, 'land')] += 1
+        return tot, hit
+    tb, hb = dem_freq(rs2)
+    ta, ha = dem_freq(load(a0, 'rs2')) if a0 else ({}, {})
+    print('[記録] 旧支配層の要求の上位に 農奴解放/土地改革 が入った行の割合（年代別）B | A0')
+    for dec in sorted(tb):
+        fb = lambda h, t, k: (h.get((dec, k), 0) / t[dec]) if t.get(dec) else float('nan')
+        print(f'    {dec}s n={tb[dec]}  serf {fb(hb, tb, "serf"):.2f} | {fb(ha, ta, "serf"):.2f}   land {fb(hb, tb, "land"):.2f} | {fb(ha, ta, "land"):.2f}')
 
 
 if __name__ == '__main__':
