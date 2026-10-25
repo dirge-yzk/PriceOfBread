@@ -108,7 +108,7 @@ public class ScalarDeletionTests
             ["PriceOfBread.Tests/DiscoveryEngineerTests.cs"] = 5,
             ["PriceOfBread.Tests/DiscoveryScoreTests.cs"] = 19,
         };
-        var code = new System.Text.RegularExpressions.Regex(@"RegionState");
+        var code = new System.Text.RegularExpressions.Regex(@"\bRegionState\b");
         var bad = new System.Collections.Generic.List<string>();
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
         {
