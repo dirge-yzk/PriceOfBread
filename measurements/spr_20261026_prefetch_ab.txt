@@ -1,0 +1,10 @@
+ZAB plus 38.833s/318708 base 40.203s/318708 ratio(plus/base) 0.9659
+ZAB plus 40.317s/318708 base 40.122s/318708 ratio(plus/base) 1.0049
+ZAB mode p plus 40.343s/318708 base 41.538s/318708 ratio(plus/base) 0.9712
+ZAB mode end plus 67.797s/318708 base 67.238s/318708 ratio(plus/base) 1.0083
+ZAB mode pi plus 40.191s/318708 base 42.014s/318708 ratio(plus/base) 0.9566
+ZAB mode pim plus 58.372s/318708 base 62.272s/318708 ratio(plus/base) 0.9374
+ZAB mode pimo plus 63.872s/318708 base 67.224s/318708 ratio(plus/base) 0.9501
+ZAB mode pim plus 128.073s/318708 base 133.419s/318708 ratio(plus/base) 0.9599
+ZAB mode pim plus 51.351s/318708 base 53.847s/318708 ratio(plus/base) 0.9536
+ZAB mode pim plus 65.344s/318708 base 68.760s/318708 ratio(plus/base) 0.9503
