@@ -175,7 +175,7 @@ public static class PolicyPreferences
     /// <summary>地代÷所得（所得が 0 以下なら 0）。ブロック 0 の和は BuildSums の正規化の前の値＝計器 <see cref="Instruments"/> も同じ関数を通す。</summary>
     internal static double RentToIncomeOf(double rent, double income) => income > 1e-9 ? rent / income : 0.0;
 
-    /// <summary>★(547) 線 rs2：産地の取り分の慣習＝最初の活動中の州（通常は首都・首都を失った後は首都とは限らない）の産地（RGO）の生産者の RentShare の最小。
+    /// <summary>★(547) 線 rs2：産地の取り分の慣習＝先頭の州（州の並びの最初・(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中・通常は首都・首都を失った後は首都とは限らない）の産地（RGO）の生産者の RentShare の最小。
     /// 産地の取り分は min(生産者の慣習 RentShare, 州の地代の上限 FarmRentCap)（EconomyStep.RentShareOf）で、慣習は国の農制 farmLordShare から作る値（Simulation.CatalogEconomy・
     /// 賦存の大農園だけ PlantationRentShare で上がる）＝最小は賦存でない産地の値。World に慣習の欄は無い（新しい状態を作らない）ので 1 州の生産者を読む。産地が無ければ 0（失う所得 0）。</summary>
     internal static double CustomaryRentShare(World w)

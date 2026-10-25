@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 // ---------------------------------------------------------------- (536) 初期値の直し（資本の土台）の表 ivf_s（読むだけ・事前登録 measurements/ivf536_20261024_prereg.txt）----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsScalars.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない。
 // 国×四半期の行（挙げた国は q が IvfMaxQuarter まで毎四半期・他の全ての国は年末）。INS=1 のときだけ Quarter から呼ばれる。既存の表に列を足さない（m533_ins の生と比べられる）。
-// 列（本土＝州の格が植民地でない稼働中の州・植民地＝格が植民地の稼働中の州。重みは州の人口）：
+// 列（本土＝州の格が植民地でない州・植民地＝格が植民地の州（(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）。重みは州の人口）：
 //   popK・mainPopK・colPopK／lpmMain・lpmCol＝州の物価の乗数 LocalPriceMultiplier の人口加重平均／wagePremMain・wagePremCol＝賃金の割増 WagePremium の人口加重平均（G1・G2）
 //   coalOwnCostMain＝石炭の生産者がある本土の州の自己費用（MineralSelfCost・石炭の RGO の先頭の 1 件）の人口加重平均（G3・G4）／coalPriceOverRefMain＝同じ州の石炭の値段÷（参照価格×州の物価水準）
 //   steamMcOverWageMain＝動力の〈蒸気機関〉レシピ（労働力の財）の限界費用（自己費用＋投入費）÷労働力の値段（本土・蒸気のレシピがある州・人口加重）（R1）

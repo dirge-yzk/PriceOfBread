@@ -1993,7 +1993,7 @@ public sealed class World
         }
     }
 
-    /// <summary>国庫の近代化投資を注ぐ適格の州＝活きていて・資本区画を持ち・投資家 POP があり・工業化度（新旧合計）が州の上限に達していない（上限判定は新旧合計・ヴィンテージ2026-07-10）。
+    /// <summary>国庫の近代化投資を注ぐ適格の州＝資本区画を持ち（(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）・投資家 POP があり・工業化度（新旧合計）が州の上限に達していない（上限判定は新旧合計・ヴィンテージ2026-07-10）。
     /// <see cref="ApplyModernizationInvestment"/>（配り先）と <see cref="ModernizeReturnShare"/>（AI の信号）が同じ 1 本を読む（(416) でローカル関数から抜き出した・式は同じ）。</summary>
     internal bool StateInvestEligible(Region r) => r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
 

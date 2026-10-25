@@ -134,7 +134,7 @@ public sealed class Simulation
         if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用系列（同型・係数 0 では引かない）
-        World.FoundingActiveProvinces += regions.Count;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
+        World.FoundingActiveProvinces += regions.Count;   // 建国時の州数（2026-08-04・残余国判定の分母・(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）
         if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(383) 最初の決算の前の AdminFill は満額でなく 0（行政財のある世界だけ＝fail-closed）。★(369) 州の開幕の人口＝扶養力の錨の定数（構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
         // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
         //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
