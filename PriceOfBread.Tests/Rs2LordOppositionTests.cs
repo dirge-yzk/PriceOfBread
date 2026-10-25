@@ -35,7 +35,7 @@ public class Rs2LordOppositionTests
     public void 旗0なら今の式のまま旧支配層の反対は貯蓄の割合から作られる()
     {
         var w = RussiaBoard();
-        Assert.Equal(0.0, w.Coef.LordOppositionByRentLoss);
+        w.Coef.LordOppositionByRentLoss = 0.0;   // 既定は 1（点火済み）＝今の式の経路は旗を倒して踏む
         var (w0, _) = LordSums(w);
         var e = PolicyPreferences.Build(w);
         double expect = -2.0 * (0.5 + w0);
