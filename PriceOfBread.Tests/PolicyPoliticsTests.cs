@@ -1894,7 +1894,15 @@ public class PolicyPoliticsTests
                 var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
                 double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : mass;
                 bool increase = prefInc >= 0;
-                double score = Math.Abs(prefInc) * FactionSnapshot.Headroom(w, axis, increase);
+                double strength = Math.Abs(prefInc);
+                // (558) 旗 LordOppositionReverseGain が点火した既定：農奴解放・土地改革の旧支配層の減らす向きの強さは進める向きの符号反転でなく、減らす向きの Stance の成分（Pref(…, false)×(−1)）が持つ。
+                // 他の軸・旗 0 では減らす向きの成分の絶対値＝進める向きの成分の絶対値（Pref×sign の定義）なので、この読みは旧の式と同じ列を返す。
+                if (!increase)
+                {
+                    var (tDec, mDec, sDec, _) = PolicyPreferences.Stance(w, axis, increasing: false);
+                    strength = Math.Abs(bloc == 0 ? tDec : bloc == 1 ? mDec : sDec);
+                }
+                double score = strength * FactionSnapshot.Headroom(w, axis, increase);
                 if (w.Coef.FactionTargetsWeakAxis > 0) score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
                 if (score > FactionSnapshot.MinDemandScore) list.Add(new FactionSnapshot.Demand(axis, increase, score));
             }

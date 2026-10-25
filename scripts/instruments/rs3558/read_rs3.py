@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """(558) 線 rs3 の読み手：事前登録 measurements/rs3558_20261025_prereg.txt の [5]（G1〜G5）と [6]（R1〜R7 の一部）を読む。
-使い方：PYTHONUTF8=1 python scripts/instruments/rs3558/read_rs3.py <計器の出力フォルダ D:/…（腕 B の ins）> [--base <基線の ins D:/…>] [--null <ヌル腕の ins をコンマ区切り D:/…>]
+使い方：PYTHONUTF8=1 python scripts/instruments/rs3558/read_rs3.py <計器の出力フォルダ D:/…（腕 B の ins）> [--base <基線の ins D:/…>] [--null <ヌル腕の ins をコンマ区切り D:/…>] [--a3 <腕 A（旗 0・INS=1・種 1〜5）の ins D:/…＝危機の記録の基線>]
 入力：<ins>/rs3_s*.tsv（InstrumentsRs3.cs）・rs2_s*.tsv（InstrumentsRs2.cs）・reform_s*.tsv。--base があれば基線の rs2_s*.tsv・reform_s*.tsv を記録の比べに使う（基線には rs3 の表が無い）。
 G5 の M1・M2・M2b・M3 は scripts/instruments/rs2547/read_rs2.py をそのまま呼ぶ（閾値は変えない）。M5 はここで 412（幅の下限 10）で読む。
 注意：パスは D:/… の形で渡す（/d/… だと Windows の Python は空を読む）。閾値は事前登録のとおり（結果を見て直さない）。
@@ -13,6 +13,8 @@ G3_MIN = 0.70
 G4_MED = 0.004; G4_EACH = 0.008; G4_FRAC = 0.80; G4_MIN_SERIES = 20; G4_PREMISE = 0.008
 RUN_ROWS = 10; RUN_SPAN_Q = 40; GAP_Q = 4
 M5_THR = 412
+G7_THR = 0.0881   # 事前登録 [11](d)：0.0641＋2×0.0120
+PICKED = ('清', 'ロシア', 'オスマン', 'フランス', 'イギリス', 'プロイセン', 'オーストリア', '日本', 'アメリカ')
 SS = 2.0
 
 
@@ -85,6 +87,15 @@ def runs(rows, keyf, okf):
             cur = []
     if cur:
         yield cur
+
+
+def parse_axes():
+    import re
+    here = os.path.dirname(os.path.abspath(__file__))
+    t = open(os.path.join(here, '..', '..', '..', 'PriceOfBread.SimCore', 'PolicyPreferences.cs'), encoding='utf-8').read()
+    m = re.search(r'public enum PolicyAxis\s*\{(.*?)\n\}', t, re.S)
+    body = re.sub(r'//[^\n]*', '', m.group(1))
+    return re.findall(r'[A-Za-z_]\w*', body)
 
 
 def main():
@@ -238,6 +249,74 @@ def main():
             rr = by[dec]
             m = lambda k: st.median(fl(r, k) for r in rr)
             print(f'    {nat} {dec}s n={len(rr)}  {m("oppSerfDecUsed"):.3f} / {m("oppLandDecUsed"):.3f} / {m("oppOldIndex"):.3f}')
+    # ---- G7（事前登録 [11](d)）----
+    def land_dem_share(rs):
+        tot = 0; hit = 0
+        for rows in rs.values():
+            for r in rows:
+                if r.get('dem0Top', '') == '':
+                    continue
+                tot += 1
+                if 'LandReform-' in r['dem0Top'].split(';'):
+                    hit += 1
+        return (hit / tot if tot else float('nan')), tot, hit
+    g7, g7n, g7h = land_dem_share(rs2)
+    print(f'[G7] 旧支配層の要求の最上位に 土地改革を減らす が入った行の割合 {g7:.4f}（{g7h}/{g7n} 行・閾値 ＞{G7_THR}） -> {"通る" if g7 > G7_THR else "外れ"}')
+    for tag, d0 in [('基線 m552', base)] + [(f'ヌル{i+1}', x) for i, x in enumerate(nulls)]:
+        if d0:
+            v, tn, th = land_dem_share(load(d0, 'rs2'))
+            print(f'     比べる側 {tag}: {v:.4f}（{th}/{tn}）')
+    def serf_dem_share(rs):
+        tot = 0; hit = 0
+        for rows in rs.values():
+            for r in rows:
+                if r.get('dem0Top', '') == '':
+                    continue
+                tot += 1
+                if 'SerfEmancipation-' in r['dem0Top'].split(';'):
+                    hit += 1
+        return (hit / tot if tot else float('nan'))
+    print(f'     〔記録〕農奴解放を減らす の割合 腕 B {serf_dem_share(rs2):.4f}' + ''.join(f' | {t} {serf_dem_share(load(d0, "rs2")):.4f}' for t, d0 in [("基線", base)] + [(f"ヌル{i+1}", x) for i, x in enumerate(nulls)] if d0))
+    # ---- 記録(c)：危機・蜂起・内戦（rs3 の追加 4 列）----
+    axes = parse_axes()
+    LAND = axes.index('LandReform') + 1; SERF = axes.index('SerfEmancipation') + 1
+    def crisis_stats(rs, seeds):
+        eps = defaultdict(int); rows_lord = 0; revolts = 0; rev_eps = 0; nrows = 0
+        for s in seeds:
+            rows = rs.get(s)
+            if not rows:
+                continue
+            byn = defaultdict(list)
+            for r in rows:
+                if r['nation'] in PICKED:
+                    byn[r['nation']].append(r)
+            for nat, rr in byn.items():
+                rr.sort(key=lambda r: int(r['quarter']))
+                prev_bloc = -1; prev_top = 0; prev_rev = -1; prev_cum = None
+                for r in rr:
+                    nrows += 1
+                    bl = int(r['pendingCrisisBloc']); tp = int(r['pendingCrisisTop']); rv = int(r['revoltingBloc']); cum = int(r['factionRevoltsCum'])
+                    if bl == 0:
+                        rows_lord += 1
+                        if prev_bloc != 0:
+                            key = 'land-' if tp == -LAND else ('serf-' if tp == -SERF else ('land+' if tp == LAND else ('serf+' if tp == SERF else 'other')))
+                            eps[key] += 1; eps['all'] += 1
+                    if rv == 0 and prev_rev != 0:
+                        rev_eps += 1
+                    if prev_cum is not None and cum > prev_cum:
+                        revolts += cum - prev_cum
+                    prev_bloc = bl; prev_top = tp; prev_rev = rv; prev_cum = cum
+        return dict(eps), rows_lord, revolts, rev_eps, nrows
+    def show_crisis(tag, rs, seeds):
+        eps, rl, rv, rve, nr = crisis_stats(rs, seeds)
+        print(f'[R1c] {tag}（種 {min(seeds)}〜{max(seeds)}・挙げた国の行 {nr}）：旧支配層の危機の始まり {eps}・旧支配層の危機が立っていた行 {rl}・蜂起の累計の増分 {rv}・旧支配層が主体の内乱の始まり {rve}')
+    seeds_b = sorted(rs3)
+    show_crisis('腕 B', rs3, seeds_b)
+    show_crisis('腕 B（種 1〜5）', rs3, [s for s in seeds_b if s <= 5])
+    a3 = args[args.index('--a3') + 1] if '--a3' in args else None
+    if a3:
+        ra = load(a3, 'rs3')
+        show_crisis('腕 A（旗 0）', ra, sorted(ra))
     over = sum(1 for r in allrows if fl(r, 'lordRentToIncomeShare') > 1.0)
     print(f'[R7] lordRentToIncomeShare>1 の行 {over}/{n}')
     return 0
