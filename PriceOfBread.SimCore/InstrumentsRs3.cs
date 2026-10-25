@@ -5,6 +5,7 @@ namespace PriceOfBread.SimCore;
 // 出力＝ rs3_s<seed>.tsv（国×四半期・挙げた国は毎四半期、他の全ての国は年末）。
 //   農奴解放と土地改革の旧支配層（ブロック 0）の強さの〈進める向きに使われた値〉〈減らす向きに使われた値〉を、Pref の返り値の絶対値として直に読む（旗 LordOppositionReverseGain の 0／1 のどちらの腕でも出る）。
 //   あわせて 1 段戻したときの得の式の中身（戻した段の実効の取り分・得の割合）と、今の式（貯蓄の割合 W0）の強さ（反事実）を並べる。
+// 追加 4 列（事前登録 [11](c)）：pendingCrisisBloc（危機が立っている運動のブロック・無ければ -1）・pendingCrisisTop（その本丸の符号＝軸の序数+1・増加＝正／減少＝負・無ければ 0）・revoltingBloc（進行中の内乱の主体のブロック・無ければ -1）・factionRevoltsCum（World.FactionRevolts の累計）。読むだけ。
 // ⚠限界（計器が自分で申告する）：
 //   ・四半期の末の断面。法の門が実際に Pref を読む瞬間（四半期の途中）とは違う。
 //   ・Pref へ渡す立場の土台は旧支配層の項が読む欄（貯蓄の割合 W0・地代÷所得）だけを ComputeBuildSums から作った最小の物（他の欄は 0）＝この 2 軸の旧支配層の項以外の Pref は読まない。
@@ -14,7 +15,8 @@ public static partial class Instruments
 {
     internal const string Rs3Header = "quarter\tyear\tnation\tserfLawCode\tlandReformLawCode\tcustomaryRentShare\teffRentNow\teffRentPrevSerf\teffRentPrevLand\t"
         + "lordRentToIncomeShare\tgainSerfShare\tgainLandShare\t"
-        + "oppSerfIncUsed\toppSerfDecUsed\toppLandIncUsed\toppLandDecUsed\toppOldIndex\tflagLevel\tflagLevel2";
+        + "oppSerfIncUsed\toppSerfDecUsed\toppLandIncUsed\toppLandDecUsed\toppOldIndex\tflagLevel\tflagLevel2\t"
+        + "pendingCrisisBloc\tpendingCrisisTop\trevoltingBloc\tfactionRevoltsCum";
 
     static void Rs3Fold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -39,6 +41,7 @@ public static partial class Instruments
             F(PolicyPreferences.CustomaryRentShare(w)), F(now), F(prevS), F(prevL),
             F(rentToIncome), F(gainS), F(gainL),
             F(Abs(PolicyAxis.SerfEmancipation, true)), F(Abs(PolicyAxis.SerfEmancipation, false)), F(Abs(PolicyAxis.LandReform, true)), F(Abs(PolicyAxis.LandReform, false)),
-            F(PolicyPreferences.StatusScale * (0.5 + w0)), F(w.Coef.LordOppositionByRentLoss), F(w.Coef.LordOppositionReverseGain)));
+            F(PolicyPreferences.StatusScale * (0.5 + w0)), F(w.Coef.LordOppositionByRentLoss), F(w.Coef.LordOppositionReverseGain),
+            I(w.PendingFactionCrisis?.Bloc ?? -1), I(w.PendingFactionCrisis?.CrisisDemands is { Length: > 0 } cd ? cd[0] : 0), I(w.RevoltingFaction?.Bloc ?? -1), I(w.FactionRevolts)));
     }
 }

@@ -187,7 +187,7 @@ public static class FactionSnapshot
             // ★裁定C1（2026-09-12「税率は反乱の要求に乗せる」）：段になった税5軸は**もう即座に上げ下げできない**（4段の法）ので除外しない
             //   （2026-09-20 の段の点火で条件式を IsInstantAxis の4軸＝治安維持力・海軍維持費・関税・専売へ畳んだ。専売は同日の裁定で段の法から外れて即時値の側に残った）。
             if (lawsOnly && IsInstantAxis(axis)) continue;
-            double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);   // ＝Stance の「進める向き」の成分（Pref×(+1)）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密）
+            double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);   // ＝Stance の「進める向き」の成分（Pref×(+1)）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密。旗 LordOppositionReverseGain＞0 の旧支配層の農奴解放・土地改革を除く＝その 2 軸は下で取り直す）
             bool increase = prefInc >= 0;
             double strength = System.Math.Abs(prefInc);
             // ★(558) 線 rs3：減らす向きの強さが進める向きと対称でない選好（旗が立ち・農奴解放か土地改革・旧支配層）だけ、減らす向きの値で取り直す。旗 0 では 2 回目を呼ばない＝恒等。

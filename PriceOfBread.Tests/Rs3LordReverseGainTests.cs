@@ -192,4 +192,35 @@ public class Rs3LordReverseGainTests
         Assert.Equal(incOff, incOn, 12);
         Assert.True(decOn > decOff + 1e-6, $"減らす向きの純支持が強まらない（旗 0 {decOff}・旗 1 {decOn}）");
     }
+    [Fact]
+    public void 旗1の減らす向きで内訳の合計は純支持と一致し議会の保守党の項が得に替わる()
+    {
+        // 呼び手が向きを渡す経路（ParliamentNet・SupportBreakdown）の番人。議会のある盤面（立憲君主制・議席を置く）。
+        var w = Board(NationConfig.Russia());
+        w.Polity = Polity.ConstitutionalMonarchy; w.ParliamentEnabled = true;
+        w.PartySeats[0] = 0.5; w.PartySeats[1] = 0.3; w.PartySeats[2] = 0.2;
+        Assert.True(PolicyPreferences.HasLegislature(w.Polity));
+        w.SerfEmancipation = ReformLevel.Full; w.LandReform = ReformLevel.Full;
+        double ratio = LordRentToIncome(w);
+        Assert.True(ratio > 0.2, $"盤面の前提が崩れた（旧支配層の地代÷所得 {ratio}）");
+        foreach (double flag in new[] { 0.0, 1.0 })
+        {
+            w.Coef.LordOppositionReverseGain = flag;
+            foreach (bool inc in new[] { false, true })
+            {
+                var parts = PolicyPreferences.SupportBreakdown(w, PolicyAxis.LandReform, inc);
+                Assert.Equal(PolicyPreferences.NetSupport(w, PolicyAxis.LandReform, inc), parts.Sum(x => x.Weight), 9);
+            }
+        }
+        // 保守党の項（減らす向き）：旗 1 では議席×議会の重み×旧支配層の減らす向きの強さ（得の手の式）。旗 0 では全面の損 0＝床 1.0
+        double gain = (0.5 - 0.3) / 0.3 * ratio;
+        double W = w.Coef.ParliamentLawWeight * w.PartySeats[0];
+        double Cons(double flag)
+        {
+            w.Coef.LordOppositionReverseGain = flag;
+            return PolicyPreferences.SupportBreakdown(w, PolicyAxis.LandReform, false).First(x => x.Who == "議会・保守党").Weight;
+        }
+        Assert.Equal(W * 1.0, Cons(0.0), 9);
+        Assert.Equal(W * 2.0 * (0.5 + gain), Cons(1.0), 9);
+    }
 }

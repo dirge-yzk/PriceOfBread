@@ -21,5 +21,7 @@ elif which == '6': # 旗 rs3 を無視する（旗 0 でも減らす向きは得
     edit('PolicyPreferences.cs', '(!increasing && w.Coef.LordOppositionReverseGain > 0 ?', '(!increasing ?')
 elif which == '7': # DirectionAware が土地改革を落とす
     edit('PolicyPreferences.cs', '(a == PolicyAxis.SerfEmancipation || a == PolicyAxis.LandReform);', '(a == PolicyAxis.SerfEmancipation);')
+elif which == '8': # ParliamentNet が向きを渡さず true
+    edit('PolicyPreferences.cs', 'sum += w.PartySeats[party] * Pref(a, party, e, w, sign > 0) * sign;', 'sum += w.PartySeats[party] * Pref(a, party, e, w, true) * sign;')
 else:
     raise SystemExit('bad')
