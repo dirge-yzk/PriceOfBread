@@ -43,7 +43,7 @@ public class PopScanTests
         foreach (var n in sim.Nations)
         {
             Assert.All(n.World.Regions, r => Assert.Equal(RegionState.Active, r.State));
-            Assert.Equal(n.World.Regions.Count, n.World.FoundingActiveProvinces);
+            Assert.Equal(n.World.Regions.Count(r => r.Tier != RegionTier.Colonial), n.World.FoundingActiveProvinces);   // 建国時の州＝植民地の州は後から足される
         }
         sim.Run(4);
         foreach (var n in sim.Nations) Assert.All(n.World.Regions, r => Assert.Equal(RegionState.Active, r.State));
