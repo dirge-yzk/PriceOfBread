@@ -38,7 +38,8 @@ public class Rs3LordReverseGainTests
     public void 旗0なら全軸全ブロックで減らす向きは進める向きとビット一致する()
     {
         var w = Board(NationConfig.Russia());
-        Assert.Equal(0.0, w.Coef.LordOppositionReverseGain);   // 既定は 0（事前登録・腕 B が 1 に倒す）
+        Assert.Equal(1.0, w.Coef.LordOppositionReverseGain);   // 既定は 1（2026-10-25 に点火済み）＝旗 0 の経路は旗を倒して踏む
+        w.Coef.LordOppositionReverseGain = 0.0;
         foreach (var serf in new[] { ReformLevel.None, ReformLevel.Limited, ReformLevel.Full })
             foreach (var land in new[] { ReformLevel.None, ReformLevel.Limited, ReformLevel.Full })
             {
