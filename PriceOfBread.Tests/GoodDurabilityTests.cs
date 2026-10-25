@@ -22,6 +22,7 @@ public class GoodDurabilityTests
             or Catalog.ChocolateId or Catalog.TeaId or Catalog.CoffeeId or Catalog.MedicineId or Catalog.QuinineId or Catalog.CheeseId or Catalog.GuanoId => 0.03,                    // 木・生糸・嗜好品原料・薬・化学・パルプ・チーズ・グアノ等（半生鮮）
         Catalog.CottonId or Catalog.HempId or Catalog.DyeId or Catalog.RawRubberId or Catalog.LumberId or Catalog.CottonClothId or Catalog.CanvasId or Catalog.WoolId or Catalog.WoolenClothId or Catalog.SilkClothId or Catalog.LeatherId or Catalog.SugarId
             or Catalog.RubberId or Catalog.ClothingId or Catalog.LuxuryClothingId or Catalog.PaperId or Catalog.WaterproofClothId or Catalog.FurId => 0.02,                     // 繊維・木材・紙・革・砂糖・衣料・毛皮等
+        Catalog.BuildingId => 0.00168,                                                              // ★(550) 建造物（工場の建屋）＝年 2%（作者の答え「推奨で」）
         _ => 0.005,                                                                 // 金属・鉱物・燃料・機械・武器・耐久奢侈財（最小）
     };
 
@@ -30,7 +31,7 @@ public class GoodDurabilityTests
     [Fact]
     public void 全ての財で表の損耗の率は旧のswitchの値とビットまで同じ()
     {
-        Assert.Equal(129, Catalog.Goods.Length);   // 財を足したらこの数と期待値の写しを見直す
+        Assert.Equal(130, Catalog.Goods.Length);   // 財を足したらこの数と期待値の写しを見直す（★(550) 129→130＝建造物）
         var bad = new List<string>();
         for (int i = 0; i < Catalog.Goods.Length; i++)
         {
@@ -161,20 +162,27 @@ public class GoodDurabilityTests
     [Fact]
     public void 建設の資材の持ち越しは財ごとの耐久度で減る()
     {
-        var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
-        var w = sim.Nations[0].World; var r = w.Region; var c = w.Coef;
-        int[] gids = [c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId];
-        const double big = 1e12;   // 今月の余り（在庫の桁）に比べて桁違いに大きい持ち越しを置く＝残る割合だけがほぼそのまま見える
-        r.ConstructionCarryover = new double[r.Markets.Length];
-        foreach (int g in gids) r.ConstructionCarryover[g] = big;
-        EconomyStep.Run(r, c, 1.0, w.Bank, w);
-        foreach (int g in gids)
+        // ★(555) 線 fb2：既定の束は建造物＋機械の 2 枠（旗 BuildingGoodBundle＝1）・旗 0 は鋼・機械・セメント・製材の 4 枠。どちらの束も、束が読む財ごとの耐久度で持ち越しが減る。
+        foreach (double flag in new[] { 1.0, 0.0 })
         {
-            double expectedRatio = 1.0 - OldSpoilageOf(g);
-            double ratio = r.ConstructionCarryover![g] / big;
-            Assert.True(Math.Abs(ratio - expectedRatio) < 1e-6, $"{Catalog.Goods[g].Name}: 持ち越しの残る割合 {ratio:R}（期待 {expectedRatio:R}）");
+            var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients { BuildingGoodBundle = flag }) { DiplomacyFrozen = true };
+            var w = sim.Nations[0].World; var r = w.Region; var c = w.Coef;
+            c.BuildingGoodBundle = flag;   // World.Coef は国ごとの別インスタンス＝ここで書く
+            var bn = EconomyStep.BundleOf(r, c);
+            Assert.Equal(flag > 0, bn.IsBuilding);
+            int[] gids = new[] { bn.G0, bn.G1, bn.G2, bn.G3 }.Distinct().ToArray();
+            const double big = 1e12;   // 今月の余り（在庫の桁）に比べて桁違いに大きい持ち越しを置く＝残る割合だけがほぼそのまま見える
+            r.ConstructionCarryover = new double[r.Markets.Length];
+            foreach (int g in gids) r.ConstructionCarryover[g] = big;
+            EconomyStep.Run(r, c, 1.0, w.Bank, w);
+            foreach (int g in gids)
+            {
+                double expectedRatio = 1.0 - OldSpoilageOf(g);
+                double ratio = r.ConstructionCarryover![g] / big;
+                Assert.True(Math.Abs(ratio - expectedRatio) < 1e-6, $"{Catalog.Goods[g].Name}: 持ち越しの残る割合 {ratio:R}（期待 {expectedRatio:R}）");
+            }
+            // 束の中で財ごとに違う損耗率を掛けている（旗 1＝建造物 年2%・機械 0.5%／旗 0＝鋼・機械・セメントは 0.5%・製材は 2%）
+            Assert.True(gids.Select(OldSpoilageOf).Distinct().Count() >= 2);
         }
-        // 鋼・機械・セメントの損耗は 0.5%・製材は 2%（財ごとに違う値を掛けている）
-        Assert.NotEqual(OldSpoilageOf(c.CementGoodId), OldSpoilageOf(c.LumberGoodId));
     }
 }

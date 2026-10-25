@@ -911,7 +911,7 @@ public static class EconomyStep
         double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
         double monumentConstruction = 0, monumentLaborUnits = 0;
         double stateConstruction = 0;   // プレイヤーの手動建設（国庫負担で同じ束を買う）
-        ConsBundle bundle = ConsBundle.Steel(coef);   // ★(536) 線 ivf：今月のこの州の建設の資材の組（旗 ConstructionEraBundle が 0 なら常に鋼の組＝今の束）。資本家の建設の頭（BundleOf）か下の工場建設の頭で決め、需要・決済・繰越が同じ組を読む
+        ConsBundle bundle = ConsBundle.Steel(coef);   // ★(536)(550) 今月のこの州の建設の資材の組（旗 BuildingGoodBundle が 0 なら常に鋼の組＝今の束・正なら建造物＋機械の組）。資本家の建設の頭（BundleOf）か下の工場建設の頭で決め、需要・決済・繰越が同じ組を読む
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
         double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の門＝機関車の発見（(150)・RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
@@ -924,7 +924,7 @@ public static class EconomyStep
         if (cap && region.InvestorPopIndex >= 0)
         {
             bundle = BundleOf(region, coef);
-            if (Instruments.On && world is not null) Instruments.IvfChoice(world, region, bundle.Era);   // (536) 計器（読むだけ）：建設の組の選び
+            if (Instruments.On && world is not null) Instruments.IvfChoice(world, region, bundle.IsBuilding);   // (536)(550) 計器（読むだけ）：建設の組の選び（建造物の組か）
             double costPerUnit = bundle.Cost(region);   // 建設の資材の束の費用（K の1本）
             double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
@@ -2097,8 +2097,7 @@ public static class EconomyStep
             double mEff = mGot + mApp;
             double cEff = cGot + cApp;
             double lEff = lGot + lApp;
-            double built = Math.Min(Math.Min(sEff / Math.Max(Eps, bundle.Q0), mEff / Math.Max(Eps, bundle.Q1)),
-                                    Math.Min(cEff / Math.Max(Eps, bundle.Q2), lEff / Math.Max(Eps, bundle.Q3)));
+            double built = bundle.Units(sEff, mEff, cEff, lEff, Eps);   // ★(550) 4 枠の組は旧の式そのもの（ConsBundle.Units）・建造物の組は 2 枠だけ
             // 巨大建造物§3-2（2026-07-28）：**労働もリービッヒ律速に入れる**。従来は労働を買っても built に一切入らず「買えた分だけ払う」だけで、
             // 「資本があっても人がいないと工場は建たない」が成立していなかった。各資材項は sEff/ConsSteel = construction×ration[財] に等しいので、
             // 労働も同型で construction×ration[労働]。★資材は繰り越せるが**労働は繰り越せない**（今月雇えなかった大工は今月働いていない）＝
@@ -2152,15 +2151,10 @@ public static class EconomyStep
                     => carry[gid] = (carry[gid] + Math.Max(0, eff - built * cons)) * Catalog.DurabilityOf(gid);
                 KeepMaterial(sg, sEff, bundle.Q0);
                 KeepMaterial(mg, mEff, bundle.Q1);
-                KeepMaterial(cg, cEff, bundle.Q2);
-                KeepMaterial(lg, lEff, bundle.Q3);
-                // ★(536) 線 ivf：旗が正のとき、今月の組に居ない財の繰越も同じ損耗の率で減らす（組が替わった月に倉庫の材が腐らず凍る穴を作らない＝上の〈残った手持ちは市場の在庫と同じ損耗〉の続き）。
-                //   時代の組の月は鋼・機械・セメント、鋼の組の月は鉄・石灰石・粘土（製材は両方の組に居る）。旗 0 では走らない＝1 命令も変わらない。
-                if (coef.ConstructionEraBundle > 0)
+                if (bundle.Slots > 2)   // ★(550) 建造物の組は 2 枠＝後ろの 2 枠は前の 2 枠の財を指す（量 0）ので繰越を二重に積まない
                 {
-                    void Decay(int gid) { if (gid < carry.Length) carry[gid] *= Catalog.DurabilityOf(gid); }
-                    if (bundle.Era) { Decay(coef.SteelGoodId); Decay(coef.MachineGoodId); Decay(coef.CementGoodId); }
-                    else { Decay(Catalog.IronId); Decay(Catalog.LimestoneId); Decay(Catalog.ClayId); }
+                    KeepMaterial(cg, cEff, bundle.Q2);
+                    KeepMaterial(lg, lEff, bundle.Q3);
                 }
             }
             // 鉄道インフラの決済：投資家が線路・機関車を買って敷設（消費＝死蔵解消・投資家→生産者で保存）
@@ -2183,8 +2177,7 @@ public static class EconomyStep
             double mGot = bundle.Q1 * stateConstruction * ration[mg];
             double cGot = bundle.Q2 * stateConstruction * ration[cg];
             double lGot = bundle.Q3 * stateConstruction * ration[lg];
-            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, bundle.Q0), mGot / Math.Max(Eps, bundle.Q1)),
-                                    Math.Min(cGot / Math.Max(Eps, bundle.Q2), lGot / Math.Max(Eps, bundle.Q3)));
+            double built = bundle.Units(sGot, mGot, cGot, lGot, Eps);   // ★(550) 同上
             // 巨大建造物§3-2（2026-07-28・国家経路にも適用）：資本家経路（投資の決済）にだけ労働律速を入れると、**国庫で建てる限り労働ゼロでも建つ**
             // という非対称が残る。段7のニューディールは定義上「国家が建てる」経路なので、ここを外すと「好況時に民間から労働を奪って建設が止まる」側だけが
             // 国家経路で免除され、§3-3 の「建造物と工場が労働を取り合う」が成立しない。
@@ -2226,8 +2219,7 @@ public static class EconomyStep
             double mGot = bundle.Q1 * monumentConstruction * ration[mg];
             double cGot = bundle.Q2 * monumentConstruction * ration[cg];
             double lGot = bundle.Q3 * monumentConstruction * ration[lg];
-            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, bundle.Q0), mGot / Math.Max(Eps, bundle.Q1)),
-                                    Math.Min(cGot / Math.Max(Eps, bundle.Q2), lGot / Math.Max(Eps, bundle.Q3)));
+            double built = bundle.Units(sGot, mGot, cGot, lGot, Eps);   // ★(550) 同上
             if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
@@ -2841,33 +2833,39 @@ public static class EconomyStep
     /// ⚠資材の市場が無い試験世界（財が少ない）は呼び手が id の範囲を確かめる。</summary>
     internal static double BundleCost(Region r, Coefficients c) => BundleOf(r, c).Cost(r);
 
-    /// <summary>★(536) 線 ivf：建設の資材の組（4 財×量）。旧の束（鋼・機械・セメント・製材）は <see cref="Steel"/>＝量は <c>ConsSteel</c> ほか・財の id は <c>SteelGoodId</c> ほか。
-    /// 時代の組（鉄・製材・石灰石・粘土）は <see cref="BundleOf"/> が旗 <c>ConstructionEraBundle</c> が正のときだけ返す。需要・決済・繰越は 4 つの枠（G0〜G3・Q0〜Q3）を同じ順に読む＝組が違っても式は同じ。
-    /// 費用 <see cref="Cost"/> は旧の <c>BundleCost</c> の式そのもの（4 項の和は左結合・価格の床は <c>Eps</c>）。</summary>
+    /// <summary>★(536)(550) 建設の資材の組（枠 × 財 × 量）。旧の束（鋼・機械・セメント・製材）は <see cref="Steel"/>＝4 枠・量は <c>ConsSteel</c> ほか・財の id は <c>SteelGoodId</c> ほか。
+    /// 建造物の組 <see cref="Building"/> は 2 枠（建造物 <c>ConsBuilding</c>・機械 <c>ConsMachine</c>）＝後ろの 2 枠は前の 2 枠の財を指す量 0 の枠（需要・費用・在庫の読みに足しても 0 が加わるだけ・決済は <see cref="Units"/> と <c>Slots</c> の判定で 2 枠だけを読む）。
+    /// 費用 <see cref="Cost"/> は旧の <c>BundleCost</c> の式そのもの（4 枠の和は左結合・価格の床は <c>Eps</c>）。</summary>
     internal readonly struct ConsBundle
     {
         public readonly int G0, G1, G2, G3;
         public readonly double Q0, Q1, Q2, Q3;
-        public readonly bool Era;
-        public ConsBundle(int g0, double q0, int g1, double q1, int g2, double q2, int g3, double q3, bool era)
-        { G0 = g0; Q0 = q0; G1 = g1; Q1 = q1; G2 = g2; Q2 = q2; G3 = g3; Q3 = q3; Era = era; }
-        public static ConsBundle Steel(Coefficients c) => new(c.SteelGoodId, c.ConsSteel, c.MachineGoodId, c.ConsMachine, c.CementGoodId, c.ConsCement, c.LumberGoodId, c.ConsLumber, false);
+        public readonly int Slots;
+        public bool IsBuilding => Slots == 2;
+        public ConsBundle(int g0, double q0, int g1, double q1, int g2, double q2, int g3, double q3)
+        { G0 = g0; Q0 = q0; G1 = g1; Q1 = q1; G2 = g2; Q2 = q2; G3 = g3; Q3 = q3; Slots = 4; }
+        private ConsBundle(int g0, double q0, int g1, double q1)
+        { G0 = g0; Q0 = q0; G1 = g1; Q1 = q1; G2 = g0; Q2 = 0; G3 = g1; Q3 = 0; Slots = 2; }
+        public static ConsBundle Steel(Coefficients c) => new(c.SteelGoodId, c.ConsSteel, c.MachineGoodId, c.ConsMachine, c.CementGoodId, c.ConsCement, c.LumberGoodId, c.ConsLumber);
+        public static ConsBundle Building(Coefficients c) => new(Catalog.BuildingId, c.ConsBuilding, c.MachineGoodId, c.ConsMachine);
         public double Cost(Region r)
-            => Q0 * Math.Max(r.Markets[G0].Price, Eps) + Q1 * Math.Max(r.Markets[G1].Price, Eps)
+            => Slots == 2 ? Q0 * Math.Max(r.Markets[G0].Price, Eps) + Q1 * Math.Max(r.Markets[G1].Price, Eps)
+             : Q0 * Math.Max(r.Markets[G0].Price, Eps) + Q1 * Math.Max(r.Markets[G1].Price, Eps)
              + Q2 * Math.Max(r.Markets[G2].Price, Eps) + Q3 * Math.Max(r.Markets[G3].Price, Eps);
+        /// <summary>リービッヒの律速＝組が何単位ぶん賄えるか（枠ごとの 量÷必要量 の最小）。4 枠の式は旧の built／units の式そのもの（分母の床 <paramref name="floor"/>＝呼び手の 1e-9）。2 枠は前の 2 枠だけ。</summary>
+        public double Units(double e0, double e1, double e2, double e3, double floor)
+            => Slots == 2 ? Math.Min(e0 / Math.Max(floor, Q0), e1 / Math.Max(floor, Q1))
+             : Math.Min(Math.Min(e0 / Math.Max(floor, Q0), e1 / Math.Max(floor, Q1)), Math.Min(e2 / Math.Max(floor, Q2), e3 / Math.Max(floor, Q3)));
     }
 
-    /// <summary>★(536) 線 ivf：その州のその月の建設の資材の組（読むだけの導出・状態にしない）。旗 <c>ConstructionEraBundle</c> が 0 なら鋼の組（旧の束）。
-    /// 正のときは今の価格の費用が<b>厳密に低い</b>方の組（等しい・NaN は鋼の組＝否定形）＝市場が選ぶ・発見の門は足さない。時代の組の財の市場が州に無い世界（最小の試験の世界）は鋼の組。
-    /// 呼び手が月に 1 回求め、需要・決済・繰越・工場建設の材料が同じ組を読む（分子と分母が別の組を読まない）。<see cref="BundleRef"/> は鋼の組のまま（較正を動かさない）。</summary>
+    /// <summary>★(536)(550) その州のその月の建設の資材の組（読むだけの導出・状態にしない）。旗 <c>BuildingGoodBundle</c> が 0 なら鋼の組（旧の束）・正なら建造物の組
+    /// （建造物の市場が州に無い世界〔最小の試験の世界〕は鋼の組）。呼び手が月に 1 回求め、需要・決済・繰越・工場建設の材料が同じ組を読む（分子と分母が別の組を読まない）。<see cref="BundleRef"/> も同じ旗で組の参照価格を返す。</summary>
     internal static ConsBundle BundleOf(Region r, Coefficients c)
     {
-        var steel = ConsBundle.Steel(c);
-        if (!(c.ConstructionEraBundle > 0)) return steel;
+        if (!(c.BuildingGoodBundle > 0)) return ConsBundle.Steel(c);
         int n = r.Markets.Length;
-        if (!(Catalog.IronId < n && Catalog.LumberId < n && Catalog.LimestoneId < n && Catalog.ClayId < n)) return steel;
-        var era = new ConsBundle(Catalog.IronId, c.ConsEraIron, Catalog.LumberId, c.ConsEraLumber, Catalog.LimestoneId, c.ConsEraLime, Catalog.ClayId, c.ConsEraClay, true);
-        return era.Cost(r) < steel.Cost(r) ? era : steel;
+        if (!(Catalog.BuildingId < n && c.MachineGoodId < n)) return ConsBundle.Steel(c);
+        return ConsBundle.Building(c);
     }
 
     /// <summary>★国家調達の価格の門∈(0,1]＝財 <paramref name="gid"/> の州の今の価格が参照価格（×物価水準＝実質）よりどれだけ高いかで需要を連続に絞る倍率
@@ -2939,8 +2937,10 @@ public static class EconomyStep
 
     /// <summary>建設の資材の束1単位の参照価格（名目・1783年＝<see cref="Catalog.RefPrices"/>）。実質で比べる所は呼び手が州の物価水準を掛ける。</summary>
     internal static double BundleRef(Coefficients c)
-        => c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
-         + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
+        => c.BuildingGoodBundle > 0
+            ? c.ConsBuilding * Catalog.RefPrices[Catalog.BuildingId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]   // ★(550) 建造物の組（旗が正）：旧の束と同じ参照価格の合計に合わせた量（較正を動かさない）
+            : c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
+            + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
 
     /// <summary>経17：建設束の1資材について、手持ち繰越(carry)を want まで充当し、新規需要は不足分だけ investDemand へ積む。
     /// 充当量を applied[gid] に記録（決済で built に足し戻す）し、手持ち carry からは充当分を差し引く（消費）。係数0（呼び出されない）で全経路0＝中立。</summary>

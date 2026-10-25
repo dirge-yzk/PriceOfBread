@@ -2692,5 +2692,29 @@
     "nutrition": -1,
     "wearRatePerMonth": 0.03,
     "use": "Consumed"
+  },
+  {
+    "id": 129,
+    "name": "建造物",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 35,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 7,
+        "qtyPerOutput": 0.15
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1,
+    "wearRatePerMonth": 0.00168,
+    "use": "Consumed"
   }
 ]

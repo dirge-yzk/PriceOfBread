@@ -51,7 +51,8 @@ public class FactoryTierTests
         var w = sim.World;
         var r = w.Region;
         var c = w.Coef;
-        int[] mats = { c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId };
+        var bn = EconomyStep.BundleOf(r, c);   // ★(555) 今の建設の束の財（既定は建造物＋機械の 2 枠・旗 0 なら鋼・機械・セメント・製材）。枠の重なりは Distinct で 1 回だけ動かす
+        int[] mats = new[] { bn.G0, bn.G1, bn.G2, bn.G3 }.Distinct().ToArray();
         Assert.True(World.ConstructionAfford(w) >= new Coefficients().FactoryStartAffordFloor, "平常の相場で採算が半減点を割っている＝テスト前提の破れ");
         Assert.True(w.BuildFactory(0, Catalog.SteelId), "平常の相場で着工できない＝テスト前提の破れ");
         var p = World.FindFactory(r, Catalog.SteelId);   // 同上＝着工した生産者そのものを掴む（別の生産者の ConstructionLeft を0にしても枝は外れない）
@@ -81,7 +82,8 @@ public class FactoryTierTests
         pA!.ConstructionLeft = Catalog.FactorySpec(sg).Quarters * (double)Calendar.DaysPerQuarter;
         EconomyStep.Run(rA, sA.World.Coef);
         EconomyStep.Run(rC, sC.World.Coef);
-        double dSteel = rA.Markets[sg].LastDemand - rC.Markets[sg].LastDemand;
+        int mg = EconomyStep.BundleOf(rA, c).G0;   // ★(555) 束の最初の財（既定は建造物・旗 0 なら鋼）
+        double dSteel = rA.Markets[mg].LastDemand - rC.Markets[mg].LastDemand;
         Assert.True(dSteel > 1e-9, "cap無効州で建設材料の需要が立っていない＝穴が再発");
         Assert.True(rA.StateSpent[(int)TreasuryCat.FactoryBuild] > rC.StateSpent[(int)TreasuryCat.FactoryBuild] + 1e-9, "材料費が国庫負担（StateSpent の工場建設の区分）になっていない");
     }
@@ -130,8 +132,9 @@ public class FactoryTierTests
         EconomyStep.Run(rA, sA.World.Coef, 1.0, null, sA.World);
         EconomyStep.Run(rB, sB.World.Coef, 1.0, null, sB.World);
         EconomyStep.Run(rC, sC.World.Coef, 1.0, null, sC.World);
-        Assert.True(rB.Markets[sg].LastDemand > rC.Markets[sg].LastDemand + 1e-9, "前提が崩れた：国庫が正でも建設材料の需要が立たない");
-        foreach (int g in new[] { sg, sA.World.Coef.MachineGoodId, sA.World.Coef.CementGoodId, sA.World.Coef.LumberGoodId })
+        var bn = EconomyStep.BundleOf(rB, sB.World.Coef);   // ★(555) 今の建設の束の財
+        Assert.True(rB.Markets[bn.G0].LastDemand > rC.Markets[bn.G0].LastDemand + 1e-9, "前提が崩れた：国庫が正でも建設材料の需要が立たない");
+        foreach (int g in new[] { bn.G0, bn.G1, bn.G2, bn.G3 }.Distinct())
             Assert.Equal(rC.Markets[g].LastDemand, rA.Markets[g].LastDemand);   // r＝0＝材料の需要は建設なしとビット一致
         Assert.Equal(rC.StateSpent, rA.StateSpent);                             // 国庫負担（材料の決済）も立たない
     }
@@ -222,7 +225,8 @@ public class FactoryTierTests
         var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         sim.StepQuarter();
         var w = sim.Nations[0].World; var c = w.Coef;
-        int[] mats = { c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId };
+        var bn = EconomyStep.BundleOf(w.Regions[0], c);   // ★(555) 今の建設の束の財（既定は建造物＋機械）
+        int[] mats = new[] { bn.G0, bn.G1, bn.G2, bn.G3 }.Distinct().ToArray();
         int k = -1, g = -1;
         for (int i = 1; i < w.Regions.Count && k < 0; i++)
             for (int gi = 0; gi < Catalog.Goods.Length; gi++)

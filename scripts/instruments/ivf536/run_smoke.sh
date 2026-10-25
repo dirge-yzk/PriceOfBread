@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# ⚠墓標（(560) 合流・反証役 fb2〔bv〕低）：係数 ConstructionEraBundle は (555) fb2 で道ごと消した＝今の木でこの台本を回すと POB_COEF の〈存在しない係数名〉で止まる。当時の木（枝 ivf）で回す。
 # 段0 の煙試験（種 1・40 四半期・腕の外）＝ivf_s を読む。旗 0／3 本とも 1／助走 40・80（旗 0）
 EXE=/d/PoB_work/ivf_536/art_new/bin/PriceOfBread.Runner/release/PriceOfBread.Runner.exe
 OUT=/d/PoB_work/ivf_536/smoke

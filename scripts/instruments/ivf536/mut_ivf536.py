@@ -1,4 +1,5 @@
 import subprocess, shutil, os, sys, io
+# ★(550) 墓標：M2・M12・M13 は ivf の F2（時代の組 ConstructionEraBundle）のコードを狙っていた。F2 は線 fb で道ごと消した＝この台本の当該の変異は当たらない（NOCHANGE）。再走するときは外す。
 WT = 'D:/PoB_work/wt_ivf'
 OUT = 'D:/PoB_work/ivf_536b/mut/mut.log'
 ART = 'D:/PoB_work/ivf_536b/art_mut'

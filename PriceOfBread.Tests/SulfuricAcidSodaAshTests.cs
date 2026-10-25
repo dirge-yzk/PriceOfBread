@@ -253,7 +253,7 @@ public class SulfuricAcidSodaAshTests
         Assert.DoesNotContain(Catalog.Goods, g => g.Name == "化学薬品");
         Assert.Equal("硫酸", NameOf(33));
         Assert.Equal("ソーダ灰", NameOf(128));
-        Assert.Equal(129, Catalog.Goods.Length);
+        Assert.Equal(130, Catalog.Goods.Length);   // ★(550) 129→130＝建造物を末尾に足した（線 fb）
         // ソース全域に旧の定数の読み手が 0（この文字列はここで組み立てる＝自分に当たらない）
         string token = "Chemicals" + "Id";
         string root = GoodIdGuardTests.RepoRoot();

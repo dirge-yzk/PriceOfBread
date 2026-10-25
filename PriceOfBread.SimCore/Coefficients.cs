@@ -1190,17 +1190,12 @@ public sealed class Coefficients
     public int MachineGoodId = Catalog.MachineryId;
     public int CementGoodId = Catalog.CementId;
     public int LumberGoodId = Catalog.LumberId;
-    // ★(536) 線 ivf：建設の資材の束の 2 組目〈時代の組〉（旗 ConstructionEraBundle・既定 0＝鋼の組だけ＝1 ビットも変わらない）。事前登録 measurements/ivf536_20261024_prereg.txt [0] F2。
-    //   正のとき、その州のその月の今の価格の費用が低い方の組を市場が選ぶ（EconomyStep.BundleOf）＝発見の門は足さない。
-    //   根＝1783 年の鋼は坩堝鋼だけ（転炉鋼は 1850 年代の発見）で機械に鋼を使わないレシピが無い＝開幕の束の値段÷参照が英 2.55・仏 4.14・普 4.06・米 3.63・清 6.27（iv ②）。
-    //   時代の組＝鉄 1.0・製材 1.5・石灰石 0.8・粘土 0.95（史実〈推・iv〉：1780 年代の建材は煉瓦・石と石灰の漆喰・木材・鋳鉄と錬鉄。ポルトランドセメントは 1824 年特許・普及 1850 年代）。
-    //   量は〈鋼の組の参照の合計 3.7104 に合わせた較正〉（時代の組の参照の合計 3.7140・＋0.10%）＝確証なし（AI の推奨）。BundleRef は鋼の組のまま（私的な建設の工業化度の較正を動かさない）。
-    //   ★2026-10-25 採らない（既定 0＝休眠・枝に残す）：腕 B で G5b 〈1913 年の時代の組の割合 ≦0.5〉が外れた（0.995＝鋼の組が一度も勝たない）。鋼・機械・セメントの供給が慢性的に足りず（英の鋼の需要÷産出は旗 0 でも 1.3〜2.6）費用で選ぶ角の解では鋼の組が勝たない。G8 も 7/10 で外れた（事前登録 追記 3）。
-    public double ConstructionEraBundle = 0;
-    public double ConsEraIron = 1.0;
-    public double ConsEraLumber = 1.5;
-    public double ConsEraLime = 0.8;
-    public double ConsEraClay = 0.95;
+    // ★(550) 線 fb：建設の資材の束を〈建造物＋機械〉の 2 枠へ置き換える（旗 BuildingGoodBundle・★(555) 線 fb2 の採用で既定を 0→1 へ倒した。0 にすると今までの鋼・機械・セメント・製材の束・成績表は 1 ビットも変わらないが（⚠(560) 反証役 fb2〔bv〕低：恒等なのは成績表の水準だけ＝SelfPlay.TryTradeBias が建造物の市場にも方針を立てるので AI の方針の状態〔sf の biasSwitchCum〕は旗 0 でも違う）、財の表に建造物が 1 財足されるので計器の生の 3 表〔sf・spend・stock〕は旗 0 でも違う）。事前登録 measurements/fb550_20261025_prereg.txt。
+    //   正のとき、資本家の建設・国家の建設・巨大建造物・工場の建設の材料が全て同じ新しい束（EconomyStep.BundleOf）を買う。建造物＝工場の建屋の財（木造〔既定〕・煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリートの段のレシピ・Simulation.AddAlternateRecipes）。
+    //   旗 0 では建造物の作り手を 1 本も置かない（買い手も売り手も居ない財＝成績表は旗の追加前と同じ・財の表と市場の器だけは在る）。旗が正（既定）だと作り手 5 本が全ての州に置かれる。ivf の F2（時代の組・旗 ConstructionEraBundle ほか 5 本）は道ごと消した（読む線 fbd ⑤）。
+    //   量：建造物 ConsBuilding は〈束の参照価格の合計を今の鋼の束の 3.7104 に合わせる〉較正（機械 ConsMachine 0.15 は束に残す＝建屋の中に機械は無い・波 31 の機械の受け口）。PrivateIndPerConstruction・FactoryMaterialFrac・巨大建造物の BuildUnits の較正は動かない。確証なし（AI の推奨）。
+    public double BuildingGoodBundle = 1;   // ★(555) 線 fb2 の採用で既定を 0→1 に倒した（旗 0 で従来の束へ戻せる）
+    public double ConsBuilding = 2.3969;
     // ★(536) 線 ivf：州の物価の乗数（LocalPriceMultiplier）と賃金の割増（WagePremium）の〈国平均〉を、植民地の格（RegionTier.Colonial）の州を除いた州で取る（0＝全ての州＝旧の形）。事前登録 [0] F1。
     //   根＝英の国平均の 1 人あたり貯蓄にベンガルなど植民地の 3,000 万人が入り、本土の乗数が 1.379 になる（iv ①）。
     //   ★2026-10-25 点火（既定 1）：腕 C（F1＋F3）で G3〈英本土の石炭の自己費用 0.30〜0.36〉0.3315・G4〈英÷他の欧州の中央値 ≦1.15〉1.058 が通り、空洞化 1/10 未満 0 件・推定の計算量 217.2 秒（事前登録 追記 3）。確証なし（AI の推奨）。
