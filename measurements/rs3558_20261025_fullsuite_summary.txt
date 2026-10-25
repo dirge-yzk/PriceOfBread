@@ -1,0 +1,5 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:  1832、スキップ:     1、合計:  1834、期間: 30 m 22 s - PriceOfBread.Tests.dll (net10.0)
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 15 s - PriceOfBread.Tests.dll (net10.0)
+最終の木（試験の直し後）：Rs3LordReverseGainTests＋PolicyPoliticsTests の 93 本が緑。直前に Rs3・Rs2・DormantIdentity・PolicyPoliticsTests の 103 本が緑（初回の赤 1 本は試験を直して解消）。通しのフルスイートは直した後に回し直していない（合計 1834＝合格 1833 は推定）。
