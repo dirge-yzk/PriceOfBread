@@ -1,0 +1,10 @@
+# (551) 検証（隔離ビルド D:/PoB_work/gc1/art・Release）
+## 基点の木 836b9e0f（worktree wt_gc1_base・隔離ビルド D:/PoB_work/gc1/art_base）＝(542) の合流の木の全体の再走（(542) の合流は 1 回目の赤の後に InstrumentsTests の 40 本しか再走していなかった）
+フルスイート（Category!=FullLength）：失敗 0・合格 1820・スキップ 1・合計 1821（11 分 49 秒）
+FullLength（Category=FullLength）：合格 3（4 分）
+--list-tests の数 1824＝1821＋3（中止の行なし）
+## 枝 gc1（コード 17e26ccd）
+フルスイート（Category!=FullLength）：失敗 0・合格 1814・スキップ 1・合計 1815（15 分）
+FullLength（Category=FullLength）：合格 3（4 分 12 秒）
+--list-tests の数 1818＝1815＋3（中止の行なし）
+試験の数の変化（1824→1818＝−6）：MilitaryTests −4（武力解錠 4 本）・PlayHarnessTests −1（再征服の既定）・DemographyBirthWeightTests −2（FertileAbsoluteBlend の ON 経路 2 本）・ScalarDeletionTests +1（欄の復活の禁止）・TerritoryTests ±0（辺境の 1 本を Active で始まる形に書き直した）。事前登録（measurements/gc1_551_20261025_prereg.txt）の予想と一致。

@@ -1,0 +1,7 @@
+# (551) 突然変異 6 本（隔離ビルド D:/PoB_work/gc1/art_mut・Release・戻した後は touch した）
+M1 Region.Infra を戻す → rc=1 結果=[('失敗!', '1', '6')] 赤=['PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_25_ゴミ変数の1回目の欄は復活しない'] コンパイルエラー=False (51s)
+M2 Pop.MilLiving を戻す → rc=1 結果=[('失敗!', '1', '6')] 赤=['PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_25_ゴミ変数の1回目の欄は復活しない'] コンパイルエラー=False (43s)
+M3 World.ForceUnlock を戻す → rc=1 結果=[('失敗!', '1', '6')] 赤=['PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_25_ゴミ変数の1回目の欄は復活しない'] コンパイルエラー=False (43s)
+M4 係数 ForceUnlockRate を戻す → rc=1 結果=[('失敗!', '2', '3')] 赤=['PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる', 'PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない'] コンパイルエラー=False (40s)
+M5 MoveAbroad の持参金を Max(0,sav) にする（負の持参金を送出 POP に残す） → rc=1 結果=[('失敗!', '1', '32')] 赤=['PriceOfBread.Tests.ConservationTests.移民の負の持参金は移民に付いて行く'] コンパイルエラー=False (373s)
+M6 MilVoice に食料の項を混ぜる（飢餓以外の項が食料で動く） → rc=1 結果=[('失敗!', '2', '54')] 赤=['PriceOfBread.Tests.RevoltIgnitionTests.段2_飢えは闘争度のストックを通ってから熱になる', 'PriceOfBread.Tests.RevoltIgnitionTests.階層3分割_飢えは闘争度へ飢餓の項1本だけで入る'] コンパイルエラー=False (27s)

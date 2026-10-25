@@ -1,0 +1,7 @@
+same 660 differ 40 disccontactSplitRows 0
+Counter({('colsok', 'burscan'): 10, ('colsok', 'clock'): 10, ('DIFF', 'dcont'): 10, ('DIFF', 'flow'): 10})
+('DIFF', 'dcont_s1.tsv')
+FLOWBAD 0
+9 eq-without-milLiving 14713 rows; baseline milLiving distinct values: [b'0']
+10 eq-without-milLiving 14718 rows; baseline milLiving distinct values: [b'0']
+DCONTBAD 0

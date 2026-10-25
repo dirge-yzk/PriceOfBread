@@ -1,0 +1,25 @@
+# (551) 恒等の線 gc1（ゴミ変数の 1 回目）の事前登録（結果を見る前・2026-10-25）
+# 基点 836b9e0f（= 基準の成績表 m542）。枝 gc1。書いたモデル Claude Sonnet 5.5。
+
+## 合否（恒等）
+1. 素の 10 種 b10_20261025_gc1・5 種 b5_20261025_gc1・計器つき 10 種 b10_20261025_gc1_ins が、m542 の 3 枚（b10_20261025_m542・b5_20261025_m542・b10_20261025_m542_ins）と
+   ファイル全体でバイト一致（名乗り行の SOURCE-HASH を除く）。
+2. 計器の生（比べる側 D:/PoB_work/keep_542/m542_ins）：一致。違いが許されるのは次の 3 つだけ。
+   - `burscan` の秒・`clock` の壁時計の列（毎回揺れる列）
+   - `dcont_*.tsv` の `milLivingMeanShare` の列（ヘッダーと全行）＝(551) で Pop.MilLiving ごと列を削除した。証明＝m542 の dcont からこの列を除いて gc1 の dcont と比べ、差が空であること。
+3. NG（ng.sh・出力フォルダは D:/… で渡す）：92・基準 rd:measurements/ng542_20261025:m542 と同じ集合（新しい 0・外れた 0）。
+4. 空洞化（an_h2.py -v4）：1/10 未満 0 件・1/4 未満 11 件（m542 と同じ）。
+5. `.cost` の計数の行：m542 と全て同じ（違うのは実測の CPU と覆う割合だけ）。補給崩壊 26。
+6. savetest `1789 300 12` OK・leakhunt `1789 668 warm`・`1789 668` 完走・保存則違反なし。
+
+## 試験
+- 基点の木 836b9e0f（wt_gc1_base）：Category!=FullLength＝合格 1820・Skip 1・合計 1821（11 分 49 秒）。FullLength 3。
+- 予想する gc1 の変化（--list-tests の合計 1824 から）：
+  MilitaryTests −4（武力解錠 4 本）・PlayHarnessTests −1（再征服の既定）・DemographyBirthWeightTests −2（FertileAbsoluteBlend の ON 経路）・
+  ScalarDeletionTests +1（欄の復活を禁じる）・TerritoryTests ±0（辺境の 1 本は Active で始まる形に書き直し）→ 1824 − 6 = **1818**（普段 1815＋FullLength 3）。
+- 番人：DormantIdentityTests.RetiredFields に 10 名・ScalarDeletionTests に Region.Infra／World.ForceUnlock／Scenario.ForceUnlock／Pop.MilLiving が無いこと。
+- 突然変異（隔離ビルド）：Region.Infra を戻す・Pop.MilLiving を戻す・World.ForceUnlock を戻す・係数 1 本を戻す→番人が赤／`MoveAbroad` の持参金を `Math.Max(0, sav)` にする→ConservationTests の負の持参金が赤。
+
+## 触る範囲
+- App：GameViewModel.cs の代入 1 行。Runner：PlayHarness.cs の代入 2 行と注・MilLiving の並び（4 本へ）。SimCore/Display：PopTables.cs の MilLiving の並び（と、それだけが読んでいた主因のヒント）。
+- EconomyStep.cs には触らない。A13 `Region.ProductivityBonus` は 2 回目へ。計器の列は 1 本減る（足さない）。
