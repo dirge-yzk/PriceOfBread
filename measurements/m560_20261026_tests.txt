@@ -1,0 +1,9 @@
+# (560) 合流：試験（成績表の木 1cfd07b8＋未コミットの measurements/docs・Release・隔離ビルド D:/PoB_work/m560/art）
+## フルスイート：dotnet test PriceOfBread.Tests -c Release --artifacts-path D:/PoB_work/m560/art --filter "Category!=FullLength"
+成功!   -失敗:     0、合格:  1841、スキップ:     1、合計:  1842、期間: 10 m 27 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength：--filter "Category=FullLength" --no-build
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 27 s - PriceOfBread.Tests.dll (net10.0)
+## --list-tests：dotnet test ... --no-build --list-tests | grep -c '^    '
+1845
+## 中止の行（中止・aborted）：フルスイート 0・FullLength 0
+## 突き合わせ：1842（フルスイート）＋3（FullLength）＝1845＝--list-tests
