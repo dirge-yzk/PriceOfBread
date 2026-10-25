@@ -687,7 +687,7 @@ public static class Catalog
         new("ルブラン法", SodaAshId, "ルブラン法", DiscoveryField.Process, 1790),               // ルブラン 1791（塩＋硫酸＋石灰石＋石炭）。ナトリウムは塩から＝硫酸は塩を分ける薬（線を割らない）
         new("ソルベー法", SodaAshId, "ソルベー法", DiscoveryField.Process, 1860),               // ソルベー 1861〜クイエ 1864・ブラナー・モンド 1874（塩＋石灰石＋石炭・硫黄なし）
         new("電解", SodaAshId, "電解", DiscoveryField.Process, 1890, After: "石炭火力"),          // 塩水の電解の工業生産 1892（塩＋電力・苛性ソーダと塩素。アルカリとして 1 財に畳む）
-        // --- ★(550) 線 fb：工場の建屋の段（旗 BuildingGoodBundle が正のときだけ作り手がある行。旗 0 は代表の生産者が居ない行＝Discovery.Score が読み飛ばす）---
+        // --- ★(550) 線 fb：工場の建屋の段（旗 BuildingGoodBundle＝既定 1 が正のときだけ作り手がある行。旗 0 は代表の生産者が居ない行＝Discovery.Score が読み飛ばす）---
         //   鋼の骨組みは転炉鋼の行・鉄筋コンクリートは住居の同名の行を作り手の印 OpenedByRow で指す（行を足さない・事前登録 [2]）。木造と煉瓦造は表に無い＝1783 年から（門 1）。
         new("鋳鉄の骨組み", BuildingId, "鋳鉄の骨組み", DiscoveryField.Process, 1790),            // アイアンブリッジ 1779・ストラットのダービー工場 1792-93・ディザリントンの亜麻工場 1796-97（鋳鉄の柱と梁の耐火工場）
     ];

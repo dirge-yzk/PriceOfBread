@@ -970,7 +970,7 @@ public sealed class Simulation
             // 旧「colonial財は国内生産者なし（輸入のみ）」のスキップを撤廃＝colonial財も RGO 生産者を持つ。
             // 賦存州（州が Resources に列挙）のみ産み、非賦存州の生産者は BuildProvince が除去する＝茶＝中国/ゴム＝東南ア…の偏在が地理から創発（287州世界）。
             if (d.Tier == GoodTier.Service) continue;   // 役務の生産者は AddServiceProducers が担い手popに紐づけて追加
-            if (d.Id == Catalog.BuildingId && !(coef.BuildingGoodBundle > 0)) continue;   // ★(550) 線 fb：旗 0 では建造物の作り手を置かない（買い手も売り手も居ない財＝旗の追加前と同じ世界）。旗が正のときだけ木造〔既定〕の生産者を置く
+            if (d.Id == Catalog.BuildingId && !(coef.BuildingGoodBundle > 0)) continue;   // ★(550)(555) 線 fb／fb2：旗 BuildingGoodBundle が 0 のときは建造物の作り手を置かない（買い手も売り手も居ない財＝成績表は旗の追加前と同じ世界）。旗が正（既定 1）のときだけ木造〔既定〕の生産者を置く
             bool isFactory = d.Inputs.Length > 0;
             // 雇用の一本化：工場は労働力＋高度労働力、自家農家（RGO）は農業労働力を市場で買う＝全生産者が同一ロジック。
             // 自家農家の残余（売上−労働費）＝地代：農奴制では全て地主（貴族）へ、小作は折半、自作農は農民自身へ。
@@ -1112,7 +1112,7 @@ public sealed class Simulation
                     LaborPopIndex = machineDefault.LaborPopIndex, OwnerPopIndex = machineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
                     Inputs = [new Input(Catalog.IronId, 2.52), new Input(Catalog.CopperId, 0.57), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.MachineryId))] });
         }
-        // ★(550) 線 fb（旗 BuildingGoodBundle・既定 0＝1 件も足さない）：工場の建屋＝建造物の段のレシピ 4 本（既定の木造は CatalogEconomy が置く）。鋳鉄の機械（上）と同じ型・新しい倍率なし。
+        // ★(550) 線 fb（旗 BuildingGoodBundle・既定 1〔(555) で 0 から倒した〕・0 にすると 1 件も足さない）：工場の建屋＝建造物の段のレシピ 4 本（既定の木造は CatalogEconomy が置く）。鋳鉄の機械（上）と同じ型・新しい倍率なし。
         //   生産性は既定（木造）と同じ＝段の差は材の量だけ（隠れた倍率を作らない）。参照価格（単位費用）：木造 1.273 ＞ 煉瓦造 1.277（地理差・常にある）＞ 鋳鉄の骨組み 1.180 ＞ 鋼の骨組み 1.112 ＞ 鉄筋コンクリート造 1.056（確証なし・AI の推奨）。
         //   史実の注：耐火工場は木造より高く、利点は火災・荷重・高さだった。ここは〈材あたりの床と梁の大きさ〉の読み（既知のずれ・事前登録 [6]）。
         //   ★(555) 線 fb2 段の出典（史実の年・事例は全て推＝確証なし・段の量は AI の推奨で出典なし）：煉瓦造＝在来の工場建築（表に無い＝1783 年から）／鋳鉄の骨組み＝ストラットの紡績工場〔ダービー・1793〕・ディザリントンの亜麻工場〔シュルーズベリ・1797〕／鋼の骨組み＝ホーム保険ビル〔シカゴ・1885〕〈転炉鋼は 1856〉／鉄筋コンクリート造＝モニエの特許〔1867〕・アンヌビックの工法〔1892〕。段の量は (550) のまま据え置く（(554) 読む線 st：量を動かしても鋼の産業は立ち上がらない）。

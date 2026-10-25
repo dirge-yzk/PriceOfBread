@@ -1190,9 +1190,9 @@ public sealed class Coefficients
     public int MachineGoodId = Catalog.MachineryId;
     public int CementGoodId = Catalog.CementId;
     public int LumberGoodId = Catalog.LumberId;
-    // ★(550) 線 fb：建設の資材の束を〈建造物＋機械〉の 2 枠へ置き換える（旗 BuildingGoodBundle・既定 0＝今の鋼・機械・セメント・製材の束＝1 ビットも変わらない）。事前登録 measurements/fb550_20261025_prereg.txt。
+    // ★(550) 線 fb：建設の資材の束を〈建造物＋機械〉の 2 枠へ置き換える（旗 BuildingGoodBundle・★(555) 線 fb2 の採用で既定を 0→1 へ倒した。0 にすると今までの鋼・機械・セメント・製材の束・成績表は 1 ビットも変わらないが、財の表に建造物が 1 財足されるので計器の生の 3 表〔sf・spend・stock〕は旗 0 でも違う）。事前登録 measurements/fb550_20261025_prereg.txt。
     //   正のとき、資本家の建設・国家の建設・巨大建造物・工場の建設の材料が全て同じ新しい束（EconomyStep.BundleOf）を買う。建造物＝工場の建屋の財（木造〔既定〕・煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリートの段のレシピ・Simulation.AddAlternateRecipes）。
-    //   旗 0 では建造物の作り手を 1 本も置かない（買い手も売り手も居ない財＝世界は旗の追加前と同じ）。旗を倒すと作り手 5 本が全ての州に置かれる。ivf の F2（時代の組・旗 ConstructionEraBundle ほか 5 本）は道ごと消した（読む線 fbd ⑤）。
+    //   旗 0 では建造物の作り手を 1 本も置かない（買い手も売り手も居ない財＝成績表は旗の追加前と同じ・財の表と市場の器だけは在る）。旗が正（既定）だと作り手 5 本が全ての州に置かれる。ivf の F2（時代の組・旗 ConstructionEraBundle ほか 5 本）は道ごと消した（読む線 fbd ⑤）。
     //   量：建造物 ConsBuilding は〈束の参照価格の合計を今の鋼の束の 3.7104 に合わせる〉較正（機械 ConsMachine 0.15 は束に残す＝建屋の中に機械は無い・波 31 の機械の受け口）。PrivateIndPerConstruction・FactoryMaterialFrac・巨大建造物の BuildUnits の較正は動かない。確証なし（AI の推奨）。
     public double BuildingGoodBundle = 1;   // ★(555) 線 fb2 の採用で既定を 0→1 に倒した（旗 0 で従来の束へ戻せる）
     public double ConsBuilding = 2.3969;
