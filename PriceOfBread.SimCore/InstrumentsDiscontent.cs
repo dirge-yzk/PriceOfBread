@@ -47,7 +47,6 @@ public static partial class Instruments
         int strikeRegions = 0; double strikeIntensitySum = 0;   // 追記3：World.TechProductivity の罷業の導出と同じ式（読むだけ・地域の人口加重の闘争度が門を超えた地域の数と超過分の和）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             if (c.StrikeProductionHit > 0 && w.LaborUnion != LaborUnionLaw.Illegal)
             {
                 double rmil = 0, rsz = 0; foreach (var mp in r.Pops) { rmil += mp.Size * mp.Militancy; rsz += mp.Size; }
@@ -103,7 +102,7 @@ public static partial class Instruments
             if (f.Cohesion >= DcontMutGate) fMutGate++;
             if (f.Cohesion < c.FactionCohesionFightThreshold) continue;
             fGate++;
-            if (f.Region.State != RegionState.Active || !w.Regions.Contains(f.Region)) continue;   // CheckFactionRevolt と同じ除外（幽霊の封じ）
+            if (!w.Regions.Contains(f.Region)) continue;   // CheckFactionRevolt と同じ除外（幽霊の封じ）
             double hold = Politics.LocalizedHold(w, c, f.Region, coerce) + Politics.LoyalistMilitia(w, c, f);
             double ratio = Politics.FactionStrength(w, c, f) / Math.Max(1e-9, hold);
             if (ratio > 1) fStrong++;

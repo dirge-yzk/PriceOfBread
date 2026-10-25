@@ -37,7 +37,6 @@ public static partial class Instruments
         double refP = haveEdu ? Catalog.RefPrices[Catalog.EducationId] : double.NaN;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double rp = r.SumPopulation();
             var d = EdDiagOf(r);
             popK += rp; fundW += rp * r.CompulsoryEduFunding;

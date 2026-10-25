@@ -58,7 +58,6 @@ public static partial class Instruments
         double lnFloor = -System.Math.Log(c.WageClampMin);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double pop = 0; foreach (var p in r.Pops) pop += p.Size;
             double ceilMult = MarketFlow.EffWageMax(r, c);
             double lnCeil = System.Math.Log(ceilMult);

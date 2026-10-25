@@ -36,7 +36,7 @@ public class ClearingScopeTests
             n.World.Tariff = 0;
             n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9;
             foreach (var r in n.World.Regions) r.LastTradePotential = 0;   // ★(407) 旗 TransportShareByPotential の焼き込み（(406) フォーク）の後の環境の固定＝潜在量の和を 0 にして州の取り分を均等へ倒す（旧の旗 0 の代わり・Transport.RegionShare）
-            foreach (var r in n.World.Regions) if (r.State == RegionState.Active) all.Add(r);
+            foreach (var r in n.World.Regions) all.Add(r);
         }
         // ★(407) 旗 WinterPortFreeze の焼き込み（(406) フォーク）の後の環境の固定＝植民地の州（ケベックほか・冬に港が凍る）を売り手にも買い手にもしない（四半期ごとに成約できる行が変わらない）
         var ports = all.Where(r => r.IsPort && r.Tier != RegionTier.Colonial).ToList();
@@ -247,7 +247,6 @@ public class ClearingScopeTests
             foreach (var n in sim.Nations)
                 foreach (var r in n.World.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     var m = r.Markets[g];
                     l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); l.Add(m.Price);
                     foreach (var p in r.Pops) l.Add(p.Savings.Value);
@@ -289,7 +288,6 @@ public class ClearingScopeTests
             foreach (var n in sim.Nations)
                 foreach (var r in n.World.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     var m = r.Markets[g];
                     l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); l.Add(m.Price);
                     foreach (var p in r.Pops) l.Add(p.Savings.Value);
@@ -335,7 +333,7 @@ public class ClearingScopeTests
             SetCalendar(sim, 1800, 1);
             sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
             var l = new List<double>();
-            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) { var m = r.Markets[g]; l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); }
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { var m = r.Markets[g]; l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); }
             return l;
         }
         var a = Snap(0); var b = Snap(1); var c2 = Snap(3);
@@ -429,7 +427,7 @@ public class ClearingScopePriceTests
             var gd = sim.Nations[0].World.Region.Goods.First(x => !x.IsColonial && !x.NonTradeable && x.Tier != GoodTier.Staple && !x.GrainChain && Array.IndexOf(sim.Coef.MilitaryExportGoods, x.Id) < 0);
             int g = gd.Id; double wp = sim.Market.Price[g];
             var all = new List<Region>();
-            foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) { r.LastTradePotential = 0; if (r.State == RegionState.Active) all.Add(r); } }   // ★(407) 潜在量 0＝州の取り分は均等（旧の旗 TransportShareByPotential=0 の代わり）
+            foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) { r.LastTradePotential = 0; all.Add(r); } }   // ★(407) 潜在量 0＝州の取り分は均等（旧の旗 TransportShareByPotential=0 の代わり）
             var sellers = all.Where(r => r.IsPort && r.Tier != RegionTier.Colonial).Take(3).ToList();   // ★(407) 冬に凍る植民地の港を使わない（旧の旗 WinterPortFreeze=0 の代わり）
             Region? buyer = null;
             foreach (var r in all)

@@ -16,7 +16,7 @@ public static class Colonial
         int colonies = w.SelfPower?.Colonies ?? 0;
         var r = w.Region;   // 本国（首都地域）
         // 全喪失後に旧値が残らない（接1診断）。★回1-1（col-08）：海運の占有も0へ戻す（旧＝最後の月の占有が永久に残り、交易の海運を細らせた）。
-        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
+        if (colonies <= 0 || r.ColonialResources is null) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
 
         // 0. 維持費（帝国の過伸展）：不満は俸給（金銭）、距離は**物理**（補給線が占有する船腹＝交易の海運を細らせる＋占有された船腹の汽船の燃料）から創発。
         //    遠方植民地が多い国（イギリス）ほど交易船が補給に取られ、汽船の時代は燃料も要る＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
@@ -62,7 +62,7 @@ public static class Colonial
         }
         foreach (var cr in w.Regions)
         {
-            if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
+            if (cr.Tier != RegionTier.Colonial) continue;
             var ccr = Places.Coord(cr.Name);
             double pw = cr.SumPopulation() / colUnitPop;   // col.Population と同じ物差しへ戻す
             AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
@@ -89,7 +89,7 @@ public static class Colonial
             // ★AUD-09（2026-09-03）：不満の加重平均は昇格した植民地格の州の闘争度で取る（帝国規模の項 `colonies` が数えるのと同じ集合＝分子と分母を揃える）。単位は州の人口 Σ Pops.Size。
             foreach (var cr in w.Regions)
                 {
-                    if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
+                    if (cr.Tier != RegionTier.Colonial) continue;
                     var (mn, md) = Politics.RegionMilitancy(cr);   // 州の闘争度の和の1本（平民の民間人・段4e H）
                     if (md > 1e-9) { colMilSum += mn; colPopSum += md; }
                 }

@@ -75,7 +75,7 @@ public partial class GameViewModel
     private double OpiumAvgAddiction()
     {
         double add = 0, sz = 0;
-        foreach (var r in _player.Regions) if (r.State == RegionState.Active) { double rp = r.SumPopulation(); add += r.OpiumAddiction * rp; sz += rp; }
+        foreach (var r in _player.Regions) { double rp = r.SumPopulation(); add += r.OpiumAddiction * rp; sz += rp; }
         return sz > 1e-9 ? add / sz : 0;
     }
 

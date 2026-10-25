@@ -175,7 +175,7 @@ public static class Fiscal
         //（保存非接触＝計上の変更のみ）。輸出補助金（負の関税収入）は基数に入れない。
         // 有効化で高関税国（保守綱領の専制等）の行政予算が実勢どおり立つ＝回帰番人「教育で技術が分かれる」は前改革期（300Q）判定へ変更（露の遅い近代化は史実）。
         double indirectRevenue = Math.Max(0, w.LastTariffRevenuePerClearing) / w.Coef.MonthsPerClearing;   // 国際市場は清算単位（四半期 or 月次清算）→月次換算（単位ヘルパー・2026-08-22）
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) indirectRevenue -= r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 当月の専売益（負の支出＝収入。2026-09-28 に旧の別持ち LastStateMonopolyRevenue を畳んだ＝塩などの独占レントの国庫の取り分も同じ区分）
+        foreach (var r in w.Regions) indirectRevenue -= r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 当月の専売益（負の支出＝収入。2026-09-28 に旧の別持ち LastStateMonopolyRevenue を畳んだ＝塩などの独占レントの国庫の取り分も同じ区分）
         double budgetBase = revenue + indirectRevenue;
         double adminClaim = c.AdminBudgetFrac.Value * w.AdminSpending * budgetBase * AdminDistanceMean(w);   // 州ごとの行政の予算（人口の比×距離の割増＝Simulation）の和と同じ量（2026-09-30 (135)）
         // ★(155) 軍の装備の請求＝その月の月初の予算（Simulation の軍事費の吸い込み＝器から給与の後の装備〔全4段の必要額まで〕）が書いた World.LastMilitaryClaimPerMonth を読む
@@ -563,7 +563,6 @@ public static class Fiscal
         double s = 0, n = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double rp = r.SumPopulation();
             if (!(rp > 0)) continue;
             s += rp * AdminDistanceMul(w, r); n += rp;

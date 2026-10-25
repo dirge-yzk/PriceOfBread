@@ -549,7 +549,7 @@ public class InstrumentsTests
                 for (int i = 0; i < w.Regions.Count && old is null; i++)
                 {
                     var r = w.Regions[i];
-                    if (r.State != RegionState.Active || r.Discovered is null || r.InvestorPopIndex < 0) continue;
+                    if (r.Discovered is null || r.InvestorPopIndex < 0) continue;
                     foreach (var a in r.Producers)
                     {
                         if (a.RetiredByRow < 0 || a.RetiredByRow >= r.Discovered.Length) continue;
@@ -870,10 +870,10 @@ public class InstrumentsTests
             var au = sim.Nations[3].World; var pr = sim.Nations[1].World;
             Assert.Equal("オーストリア", Instruments.NameOf(au));
             foreach (var r in au.Regions.Where(r => r.Id != 0).ToList()) Territory.TransferRegion(au, pr, r, Territory.Rehoming.Ceded);
-            Assert.Single(au.Regions.Where(r => r.State == RegionState.Active));
+            Assert.Single(au.Regions);
             sim.StepQuarter();
             // 期待値＝世界の市場から直に（計器の読み方を写さず、財の名前で引く）
-            var active = au.Regions.Where(r => r.State == RegionState.Active).ToList();
+            var active = au.Regions.ToList();
             int gBread = Array.FindIndex(Catalog.Goods, g => g.Name == "パン");
             Assert.True(gBread >= 0);
             double prod = active.Sum(r => r.Markets[gBread].LastProduced), dem = active.Sum(r => r.Markets[gBread].LastDemand), stock = active.Sum(r => r.Markets[gBread].Stock), imp = active.Sum(r => r.Markets[gBread].LastImport);
@@ -958,7 +958,7 @@ public class InstrumentsTests
                 for (int i = 0; i < w.Regions.Count && p is null; i++)
                 {
                     var r = w.Regions[i];
-                    if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
+                    if (r.InvestorPopIndex < 0) continue;
                     p = r.Producers.FirstOrDefault(q => World.FindFactory(r, q.GoodId) == q && Discovery.Gate(r, q) > 0 && !(q.BuiltScale > 1e-9));
                     if (p is not null) ri = i;
                 }

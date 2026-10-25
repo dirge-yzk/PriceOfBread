@@ -288,7 +288,7 @@ public class SulfuricAcidSodaAshTests
     public void 生産者_全ての州にソーダ灰の既定と並存3本があり発見の行に結ばれている()
     {
         var w = Nation();
-        foreach (var r in w.Regions.Where(r => r.State == RegionState.Active))
+        foreach (var r in w.Regions)
         {
             var soda = r.Producers.Where(p => p.GoodId == Catalog.SodaAshId).ToList();
             Assert.Equal(4, soda.Count);

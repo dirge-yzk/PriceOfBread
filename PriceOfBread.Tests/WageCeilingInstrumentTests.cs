@@ -33,7 +33,7 @@ public class WageCeilingInstrumentTests
                 Instruments.Quarter(sim, 1789UL, 0);   // 蓄えを戻す（以後の行は手で置いた 1 か月分だけ）
                 var w = sim.Nations[1].World; string nation = Instruments.NameOf(w); var c = w.Coef;
                 Assert.True(c.IndustrializationOff > 0 && c.SoftBandSharpness > 0, "前提：天井は固定の倍率");
-                var reg = w.Regions.First(r => r.State == RegionState.Active && r.Markets[Catalog.LaborId].LastDemand > 0 && r.Pops.Count > 0);
+                var reg = w.Regions.First(r => r.Markets[Catalog.LaborId].LastDemand > 0 && r.Pops.Count > 0);
                 double ceilMult = c.WageClampMax;   // 工業化度の項は IndustrializationOff で 0
                 double lnC = System.Math.Log(ceilMult), lnF = -System.Math.Log(c.WageClampMin), k = c.SoftBandSharpness;
                 double wrp = reg.GoodOf(Catalog.LaborId)!.RefPrice * reg.PriceLevel;
@@ -46,7 +46,7 @@ public class WageCeilingInstrumentTests
                 var m = reg.Markets[Catalog.LaborId];
                 m.Price = pobs; m.LastDemand = 10; m.LastProduced = 2; m.LastImport = 0; m.Stock = 0;
                 // 対照＝別の州を s=0.8（0.7 以上・0.9 未満）に置く：c70 には数えるが c90・c95 には数えない（閾値の取り違えを赤にする）
-                var reg2 = w.Regions.First(r => r.State == RegionState.Active && r != reg && r.Markets[Catalog.LaborId].LastDemand > 0 && r.Pops.Count > 0);
+                var reg2 = w.Regions.First(r => r != reg && r.Markets[Catalog.LaborId].LastDemand > 0 && r.Pops.Count > 0);
                 double wrp2 = reg2.GoodOf(Catalog.LaborId)!.RefPrice * reg2.PriceLevel;
                 var m2 = reg2.Markets[Catalog.LaborId];
                 double pin2 = wrp2 * System.Math.Exp(lnC * System.Math.Pow(System.Math.Pow(0.8, -k) - 1, -1.0 / k));   // 帯を通すと s=0.8 になる入力

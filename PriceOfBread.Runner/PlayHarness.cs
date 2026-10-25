@@ -265,7 +265,6 @@ internal static class PlayHarness
         var milMass = new double[4]; double massSize = 0;   // ★(410) 同・大衆（ヘッダーの闘争度と同じ母集団＝Politics.IsMassPop）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.ClassName.Length > 0 && !classNames.ContainsKey(p.ClassId)) classNames[p.ClassId] = p.ClassName;
@@ -306,7 +305,7 @@ internal static class PlayHarness
         //   目標を払っているつもりで実効 0 の国（Religious で教区学校への補助が無い・支配度が届かない）を報告で読めるようにする。
         {
             double effNum = 0, effPop = 0;
-            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; double rp = r.SumPopulation(); effNum += rp * r.CompulsoryEduFunding; effPop += rp; }
+            foreach (var r in w.Regions) { double rp = r.SumPopulation(); effNum += rp * r.CompulsoryEduFunding; effPop += rp; }
             double effNation = effPop > 1e-9 ? effNum / effPop : 0;
             sb.AppendLine($"実効の教育費（国庫が教育を買う率・法と支配度と払い率を通した後）： 国（人口加重） {effNation:P1}　首都州 {w.Region.CompulsoryEduFunding:P1}　目標 {w.EducationSpending:P0}　教育法 {w.EducationLaw}"
                 + (w.EducationSpending > 0.005 && effNation < 0.0005 ? "　★目標を払っているつもりで実効 0" : ""));
@@ -361,8 +360,9 @@ internal static class PlayHarness
 
         sb.AppendLine();
         sb.AppendLine("---- 建設の束と主要財（首都州）----");
-        int[] watch = { coef.SteelGoodId, coef.MachineGoodId, coef.CementGoodId, coef.LumberGoodId,
-                        Catalog.CoalId, coef.OpiumGoodId, Catalog.IronId, Catalog.WheatId, Catalog.TimberId };   // 鉄31・機械部品51・麦15・木11
+        var bun = EconomyStep.BundleOf(cap, coef);   // ★(568) 今の建設の資材の組（エンジンと同じ関数＝旗 BuildingGoodBundle が正なら建造物＋機械・0 なら旧の鋼の束）
+        int[] watch = new[] { bun.G0, bun.G1 }.Concat(bun.Slots == 4 ? new[] { bun.G2, bun.G3 } : [])
+                      .Concat([Catalog.CoalId, coef.OpiumGoodId, Catalog.IronId, Catalog.WheatId, Catalog.TimberId]).ToArray();   // 鉄31・機械部品51・麦15・木11
         sb.AppendLine("財         価格   参照  価格/参照  在庫    需要   生産   輸入");
         foreach (int gi in watch.Distinct())
         {
@@ -371,20 +371,17 @@ internal static class PlayHarness
             var m = cap.Markets[gi];
             sb.AppendLine($"{g.Name,-8} {m.Price,7:F3} {g.RefPrice,6:F3} {(g.RefPrice > 1e-9 ? m.Price / g.RefPrice : 0),8:F2} {m.Stock,7:F0} {m.LastDemand,7:F0} {m.LastProduced,6:F0} {m.LastImport,6:F0}");
         }
-        double bundleRef = coef.ConsSteel * Catalog.RefPrices[coef.SteelGoodId] + coef.ConsMachine * Catalog.RefPrices[coef.MachineGoodId]
-                         + coef.ConsCement * Catalog.RefPrices[coef.CementGoodId] + coef.ConsLumber * Catalog.RefPrices[coef.LumberGoodId];
-        double bundleNow = coef.ConsSteel * cap.Markets[coef.SteelGoodId].Price + coef.ConsMachine * cap.Markets[coef.MachineGoodId].Price
-                         + coef.ConsCement * cap.Markets[coef.CementGoodId].Price + coef.ConsLumber * cap.Markets[coef.LumberGoodId].Price;
+        double bundleRef = EconomyStep.BundleRef(coef);
+        double bundleNow = bun.Cost(cap);
         sb.AppendLine($"建設1単位の束： 参照 {bundleRef * cap.PriceLevel:F2} ／ いまの市価 {bundleNow:F2}　（比 {(bundleRef * cap.PriceLevel > 1e-9 ? bundleNow / (bundleRef * cap.PriceLevel) : 0):F2}）");
         sb.AppendLine($"★建設可能率 {World.ConstructionAfford(w):F3}　（着工に要る床 {coef.FactoryStartAffordFloor:F2}／半減点は束の比 {coef.FactoryBuildPriceCeil:F1} 倍）");
         sb.AppendLine("主要財の産地（州：規模・産出）：");
-        foreach (int gi in new[] { coef.SteelGoodId, coef.MachineGoodId, Catalog.IronId })
+        foreach (int gi in new[] { bun.G0, bun.G1, Catalog.IronId }.Distinct())
         {
             var g0 = cap.GoodOf(gi); if (g0 is null) continue;
             var sites = new List<string>();
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var pr in r.Producers)
                     if (pr.GoodId == gi && pr.Output > 1e-9) { sites.Add($"{r.Name}({pr.Scale:F2}/{pr.Output:F0})"); break; }
             }
@@ -417,7 +414,7 @@ internal static class PlayHarness
 
         sb.AppendLine();
         sb.AppendLine("---- 州（上位10・工業化順）----");
-        foreach (var r in w.Regions.Where(x => x.State == RegionState.Active)
+        foreach (var r in w.Regions
                                     .OrderByDescending(x => x.TotalIndustrialization).Take(10))
             sb.AppendLine($"  {r.Name,-14} 人口{r.SumPopulation(),11:N0} 工業{r.TotalIndustrialization,6:F2}/{coef.IndustryInvestRegionCap:F1} 着工予約{r.StateBuildQueue,9:N0} 港{(r.IsPort ? "○" : "－")} 資本{(r.CapitalEnabled ? "○" : "×")}");
 
@@ -439,7 +436,7 @@ internal static class PlayHarness
                 sb.AppendLine("---- 巨大建造物（自国が建設地）→ !mega 名前 ----");
                 foreach (var m in megas)
                 {
-                    var host = w.Regions.FirstOrDefault(r => r.State == RegionState.Active && r.Name == m.Host);
+                    var host = w.Regions.FirstOrDefault(r => r.Name == m.Host);
                     sb.AppendLine($"  {m.Name,-14} {m.Host,-10} {MegaStateText(w, m)}　見積 {(host is null ? 0 : Megaprojects.EstimateCost(host, m, coef)):N0}　着工{(Megaprojects.CanStart(w, m) ? "可" : "不可")}");
                 }
             }
@@ -469,7 +466,7 @@ internal static class PlayHarness
         sb.AppendLine();
         sb.AppendLine("---- 動詞で使える名前（そのまま書く）----");
         sb.AppendLine("財： " + string.Join(" ", w.Region.Goods.OrderBy(g => g.Id).Select(g => g.Name)));
-        sb.AppendLine("州（自国の稼働中）： " + string.Join(" ", w.Regions.Where(r => r.State == RegionState.Active).Select(r => r.Name)));
+        sb.AppendLine("州（自国の稼働中）： " + string.Join(" ", w.Regions.Select(r => r.Name)));
     }
 
     /// <summary>★(450) §2-19：台帳の区分の名乗り。入りと出の差し引き（正味）の区分は〈正味〉と添える（<see cref="TreasuryCat.StateFactory"/>＝国営工場の収益−赤字の肩代わり・<see cref="TreasuryCat.WarCost"/>＝賠償の受取−戦費）。</summary>
@@ -915,7 +912,7 @@ internal static class PlayHarness
     private static double TotalPop(World w)
     {
         double t = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) t += r.SumPopulation();
+        foreach (var r in w.Regions) t += r.SumPopulation();
         return t;
     }
 }

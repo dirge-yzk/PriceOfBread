@@ -788,7 +788,7 @@ public static partial class Instruments
         double servantK = 0, noble = 0, cap = 0, merch = 0, totalK = 0, output = 0, sold = 0, shortage = 0, demand = 0, priceW = 0, produced = 0, rationW = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || id >= r.Markets.Length) continue;
+            if (id >= r.Markets.Length) continue;
             foreach (var p in r.Pops)
             {
                 totalK += p.Size;
@@ -847,7 +847,6 @@ public static partial class Instruments
         double s = 0, n = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double p = r.SumPopulation();
             if (!(p > 0)) continue;
             s += p * r.AdminFill; n += p;
@@ -1110,7 +1109,6 @@ public static partial class Instruments
         int all = 0; toInvested = toUninvested = staleSubsidy = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var pr in r.Producers)
             {
                 bool stake = pr.BuiltScale > 1e-9;
@@ -1354,7 +1352,7 @@ public static partial class Instruments
             if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) { var ip = r.Pops[r.InvestorPopIndex]; invSize = ip.Size; invSav = ip.Savings.Value; invEarn = ip.EarnedPerMonth.Value; }
             double scale = 0; foreach (var pr in r.Producers) if (!pr.IsRgo) scale += pr.BuiltScale;
             ConAccs.TryGetValue(r, out var a);
-            sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), r.State == RegionState.Active ? "1" : "0", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industrialization), F(r.ProductiveIndustrialization), F(scale),
+            sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industrialization), F(r.ProductiveIndustrialization), F(scale),
                 I(a?.Judged ?? 0), F(cm), F((a?.Desired ?? 0) / cm), F((a?.Budget ?? 0) / cm), F((a?.Planned ?? 0) / cm), F((a?.PlannedUnits ?? 0) / cm), F((a?.BuiltUnits ?? 0) / cm), F((a?.Paid ?? 0) / cm),
                 I(a?.TermMonths ?? 0), I(a?.DesiringMonths ?? 0), TermMean(a, a?.TermGain), TermMean(a, a?.TermSat), TermMean(a, a?.TermTech), TermMean(a, a?.TermCrowd), TermMean(a, a?.TermHeat), TermMean(a, a?.TermHurdle), TermMean(a, a?.TermNet), TermMean(a, a?.TermAbsorb), TermMean(a, a?.TermJoint), TermMean(a, a?.TermUnits), TermMean(a, a?.TermUnitMoney)));
             if (a is not null) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
@@ -1390,7 +1388,7 @@ public static partial class Instruments
         string nation = NameOf(w);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || !r.IsPort) continue;
+            if (!r.IsPort) continue;
             PortAccs.TryGetValue(r, out var a);
             bool gate = a is not null && a.Gate;
             double sav = gate ? a!.InvSav : (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.Pops[r.InvestorPopIndex].Savings.Value : double.NaN);
@@ -1499,7 +1497,6 @@ public static partial class Instruments
         var lS = new List<double>(); var lD = new List<double>();
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             for (int g = 0; g < r.Markets.Length && g < Catalog.Goods.Length; g++)
             {
                 var t = Catalog.Goods[g].Tier; if (t != GoodTier.Staple && t != GoodTier.Daily) continue;
@@ -1581,7 +1578,7 @@ public static partial class Instruments
             double prod = 0, dem = 0, sold = 0, shortage = 0, imp = 0, exp = 0, stock = 0, price = 0, lvl = 0; int n = 0; var rels = new List<double>();
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                if (g >= r.Markets.Length) continue;
                 var m = r.Markets[g];
                 prod += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; shortage += m.LastShortage; imp += m.LastImport; exp += m.LastExport; stock += m.Stock; price += m.Price; lvl += r.PriceLevel; n++;
                 double den = Catalog.RefPrices[g] * r.PriceLevel; if (den > 1e-12) rels.Add(m.Price / den);
@@ -1848,15 +1845,14 @@ public static partial class Instruments
                     unemp += p.Size * p.UnemploymentRate.Value; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;   earned += Calendar.OneMonthOf(p.LastEarnedPerMonth).Value;   // ★(323)
                     if (SettlerOut.TryGetValue(p, out var po)) { settlerOut += po[0]; po[0] = 0; }
                 }
-                bool active = r.State == RegionState.Active;
                 double floor = Territory.OpportunityFactorFloor;
                 double wage = Math.Max(floor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
                 double emp = pop >= 1.0 ? 1.0 - unemp / pop : 1.0;
                 double push = pop >= 1.0 ? Math.Max(floor, 1.0 - c.PushUnrestWeight * (unrest / pop) - c.CrimePushWeight * r.CrimeRate) : 1.0;
                 double hous = pop >= 1.0 ? Math.Max(floor, 1.0 - c.HousingMigrationFriction * (1.0 - r.HousingFill)) : 1.0;
                 var f = FlowOf(r);
-                sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), active ? "1" : "0", F(pop), F(rural),
-                    F(active ? Territory.Opportunity(r, c) : double.NaN), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
+                sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(rural),
+                    F(Territory.Opportunity(r, c)), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
                     F(f.MigrationOutK), F(f.MigrationInK), F(settlerOut), F(f.SettlerInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1),
                     F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)));   // ★(323) 窃盗の列（四半期の月平均・窃盗の無い州は 0）
                 if (f.MigrationTo is { } to)
@@ -1897,9 +1893,8 @@ public static partial class Instruments
             {
                 var f = FlowOf(r);
                 double sold = Calendar.PerQuarterToPerMonth(f.HabitSoldSum); f.HabitSoldSum = 0;
-                bool active = r.State == RegionState.Active;
-                double pop = active ? r.SumPopulation() : 0;
-                if (active) { popSum += pop; addSum += r.OpiumAddiction * pop; soldSum += sold; }
+                double pop = r.SumPopulation();
+                popSum += pop; addSum += r.OpiumAddiction * pop; soldSum += sold;
                 if (!(r.OpiumAddiction > 0 || sold > 0 || r.ContrabandProductionFactor < 1.0)) continue;
                 double price = gid >= 0 && gid < r.Markets.Length && r.Markets[gid] is { } mk ? mk.Price : double.NaN;
                 sk.Opium.WriteLine(string.Join('	', "R", I(q), I(year), I(i), nation, r.Name, F(pop), F(r.OpiumAddiction), F(sold), F(pop > 0 ? sold / pop : double.NaN), F(price),
@@ -2071,7 +2066,6 @@ public static partial class Instruments
             }
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
                 var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
                 prodAg += mAg.LastProduced; prodAu += mAu.LastProduced; demAg += mAg.LastDemand; demAu += mAu.LastDemand; stAg += mAg.Stock; stAu += mAu.Stock;
@@ -2114,7 +2108,6 @@ public static partial class Instruments
         var nonCore = new System.Text.StringBuilder();
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 popK += p.Size; if (p.IsSoldier) soldierK += p.Size; supplyFillSum += p.SupplyFill * p.Size;
@@ -2222,7 +2215,7 @@ public static partial class Instruments
             double prod = 0, dem = 0, sold = 0, shortage = 0, imp = 0, exp = 0, stock = 0, price = 0; int n = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                if (g >= r.Markets.Length) continue;
                 var m = r.Markets[g];
                 prod += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; shortage += m.LastShortage; imp += m.LastImport; exp += m.LastExport; stock += m.Stock; price += m.Price; n++;
             }
@@ -2410,7 +2403,6 @@ public static partial class Instruments
         var tier = new double[3];
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double sz = r.SumPopulation(); popK += sz; if (r.Tier != RegionTier.Colonial) homePopK += sz;
             foreach (var p in r.Pops) if (p.IsSoldier) soldierK += p.Size;
             foreach (var s in r.Producers)   // 工場の蒸気動力の割合の母集団＝労働を買う工場（石炭と電力を除く）の産出×参照価格

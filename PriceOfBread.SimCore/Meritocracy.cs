@@ -30,7 +30,6 @@ public static class Meritocracy
         double volunteers = 0;   // この四半期に席へ入った志願兵（国の和）＝熟練を薄める（Military.DiluteSkill）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
 
             double total = 0, modern = 0, totalSav = 0, totalAsset = 0;
             foreach (var p in r.Pops)

@@ -102,7 +102,7 @@ public static class MinimumWageFloor
         double unW = 0, den = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            if (r.Tier == RegionTier.Colonial) continue;
             if (Catalog.LaborId >= r.Markets.Length) continue;
             if (cost is not null) cost[CostLedger.MinimumWageBasketScans] += r.Producers.Count;
             double cap = LaborSupply(r, Catalog.LaborId, out int lp);

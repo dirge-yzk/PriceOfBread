@@ -118,16 +118,15 @@ public class EconomyTests
     /// 使い回しが効いていることは、控えの外の入力（参照価格＝構築の後に書く行が無い）をわざと書いて前の値が返ることで見る。
     /// ⚠突然変異「産出の書き込みで版を進めない」「稼働を見ない」「一覧を見ない」「宛先を付けない」「使い回さない」で赤。</summary>
     [Fact]
-    public void GDPの和は産出と州の稼働の書き込みで取り直す()
+    public void GDPの和は産出と州の並びの書き込みで取り直す()
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
         Assert.True(w.Regions.Count >= 2, "前提が崩れた：州が2つ無い");
-        static double Truth(World w)   // 旧の式そのもの（稼働中の州×生産者・役務を除く・同じ順）
+        static double Truth(World w)   // 旧の式そのもの（州×生産者・役務を除く・同じ順）
         {
             double g = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
             }
             return g;
@@ -147,11 +146,12 @@ public class EconomyTests
         p0.Output = 9;
         Assert.Equal(Truth(w), w.GdpPerMonth.Value);
         Assert.NotEqual(g0, w.GdpPerMonth.Value);
-        // ③州の稼働の切り替え＝止めた州は和から外れ、止まっていた間に書かれた産出も戻した時に拾う
-        r1.State = RegionState.Locked;
+        // ③州の並びの切り替え＝外した州は和から外れ、外していた間に書かれた産出も戻した時に拾う（旧＝州の稼働の切り替え。稼働の状態は (568) gc3 で消えた）
+        int i1 = w.Regions.IndexOf(r1);
+        w.Regions.RemoveAt(i1);
         Assert.Equal(Truth(w), w.GdpPerMonth.Value);
         p1.Output = 13;
-        r1.State = RegionState.Active;
+        w.Regions.Insert(i1, r1);
         Assert.Equal(Truth(w), w.GdpPerMonth.Value);
         // ④生産者の一覧から外す
         r0.Producers.Remove(p0);

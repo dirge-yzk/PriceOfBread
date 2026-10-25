@@ -180,13 +180,10 @@ public static class PolicyPreferences
     /// 賦存の大農園だけ PlantationRentShare で上がる）＝最小は賦存でない産地の値。World に慣習の欄は無い（新しい状態を作らない）ので 1 州の生産者を読む。産地が無ければ 0（失う所得 0）。</summary>
     internal static double CustomaryRentShare(World w)
     {
-        foreach (var r in w.Regions)
-        {
-            double c = double.PositiveInfinity;
-            foreach (var pr in r.Producers) if (pr.IsRgo && pr.RentShare.Value < c) c = pr.RentShare.Value;
-            return double.IsPositiveInfinity(c) ? 0.0 : c;
-        }
-        return 0.0;
+        if (w.Regions.Count == 0) return 0.0;
+        double c = double.PositiveInfinity;
+        foreach (var pr in w.Regions[0].Producers) if (pr.IsRgo && pr.RentShare.Value < c) c = pr.RentShare.Value;
+        return double.IsPositiveInfinity(c) ? 0.0 : c;
     }
 
     /// <summary>★(547) 線 rs2：<paramref name="axis"/>（農奴解放か土地改革）の次の一段で旧支配層が失う所得の割合＝
@@ -198,19 +195,21 @@ public static class PolicyPreferences
         return now > 1e-9 ? (now - next) / now * lordRentToIncome : 0.0;
     }
 
-    /// <summary>今と、<paramref name="axis"/> を 1 段進めた後の実効の取り分 min(慣習, 土地改革と農奴解放の上限の小さい方)（<see cref="LordIncomeLoss"/> の中身＝計器 <see cref="Instruments"/> も同じ関数を通す）。</summary>
-    internal static void EffectiveRentShares(World w, PolicyAxis axis, out double now, out double next)
+    /// <summary>今と、<paramref name="axis"/> を 1 段進めた後（<paramref name="back"/>＝true なら 1 段戻した後）の実効の取り分 min(慣習, 土地改革と農奴解放の上限の小さい方)
+    /// （進める向きは <see cref="LordIncomeLoss"/>・戻す向きは <see cref="LordIncomeGain"/> の中身＝計器 <see cref="Instruments"/> も同じ関数を通す）。</summary>
+    internal static void EffectiveRentShares(World w, PolicyAxis axis, out double now, out double other, bool back = false)
     {
         var c = w.Coef;
         var lr = w.LandReform; var se = w.SerfEmancipation;
-        var lrNext = axis == PolicyAxis.LandReform ? NextStage(lr) : lr;
-        var seNext = axis == PolicyAxis.SerfEmancipation ? NextStage(se) : se;
+        var lrOther = axis == PolicyAxis.LandReform ? Step(lr, back) : lr;
+        var seOther = axis == PolicyAxis.SerfEmancipation ? Step(se, back) : se;
         double custom = CustomaryRentShare(w);
         now = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lr, c.LandReformRentCap.Value), Simulation.RentCap(se, c.SerfEmancipationRentCap.Value)));
-        next = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lrNext, c.LandReformRentCap.Value), Simulation.RentCap(seNext, c.SerfEmancipationRentCap.Value)));
+        other = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lrOther, c.LandReformRentCap.Value), Simulation.RentCap(seOther, c.SerfEmancipationRentCap.Value)));
     }
 
-    private static ReformLevel NextStage(ReformLevel lv) => lv == ReformLevel.Full ? ReformLevel.Full : lv + 1;
+    /// <summary>1 段進める（Full の次は Full）か、1 段戻す（なし の前は なし）。</summary>
+    private static ReformLevel Step(ReformLevel lv, bool back) => back ? (lv == ReformLevel.None ? ReformLevel.None : lv - 1) : (lv == ReformLevel.Full ? ReformLevel.Full : lv + 1);
 
     private static void Normalize(double[] a, double total)
     { if (total > 1e-9) for (int i = 0; i < BlocCount; i++) a[i] /= total; }
@@ -251,7 +250,7 @@ public static class PolicyPreferences
                     double tiSum = 0; int tiN = 0;
                     // 2026-07-27 是正：首都州(Id==0)は Politics.CheckSecession の分離判定から除外されており TariffInterest が**永久に既定0**。
                     // その構造的な0を平均に混ぜていたため州数の少ない国ほど強く希釈されていた（2州国なら実効半減）。算出されている州だけで平均する。
-                    foreach (var rg in w.Regions) if (rg.State == RegionState.Active && rg.Id != 0) { tiSum += rg.TariffInterest; tiN++; }
+                    foreach (var rg in w.Regions) if (rg.Id != 0) { tiSum += rg.TariffInterest; tiN++; }
                     if (tiN > 0) tariffExtra += w.Coef.TariffInterestPrefWeight * (tiSum / tiN);
                 }
                 if (w.Coef.TariffStateRevenueWeight > 0) tariffExtra += w.Coef.TariffStateRevenueWeight * e.StateRevenue;
@@ -471,7 +470,6 @@ public static class PolicyPreferences
         double v = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (int g in w.Coef.MilitaryExportGoods)
                 if (g >= 0 && g < r.Markets.Length) v += r.Markets[g].LastProduced * Catalog.RefPrices[g];
         }
@@ -487,7 +485,7 @@ public static class PolicyPreferences
         double v = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+            if (g >= r.Markets.Length) continue;
             v += r.Markets[g].LastProduced * Catalog.RefPrices[g];
         }
         return PoliticalQuantities.Clamp01(v / gdp);
@@ -499,7 +497,6 @@ public static class PolicyPreferences
         double add = 0, size = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double rp = r.SumPopulation();
             add += r.OpiumAddiction * rp; size += rp;
         }
@@ -649,21 +646,8 @@ public static class PolicyPreferences
     /// 戻した段＝その軸だけ 1 段戻す（なし の前は なし＝得 0）。戻した段の上限は今以上＝得は 0 以上。</summary>
     internal static double LordIncomeGain(World w, PolicyAxis axis, double lordRentToIncome)
     {
-        EffectiveRentSharesBack(w, axis, out double now, out double prev);
+        EffectiveRentShares(w, axis, out double now, out double prev, back: true);
         return now > 1e-9 ? (prev - now) / now * lordRentToIncome : 0.0;
     }
 
-    /// <summary>今と、<paramref name="axis"/> を 1 段戻した後の実効の取り分 min(慣習, 土地改革と農奴解放の上限の小さい方)（<see cref="LordIncomeGain"/> の中身＝計器 <see cref="Instruments"/> も同じ関数を通す）。</summary>
-    internal static void EffectiveRentSharesBack(World w, PolicyAxis axis, out double now, out double prev)
-    {
-        var c = w.Coef;
-        var lr = w.LandReform; var se = w.SerfEmancipation;
-        var lrPrev = axis == PolicyAxis.LandReform ? PrevStage(lr) : lr;
-        var sePrev = axis == PolicyAxis.SerfEmancipation ? PrevStage(se) : se;
-        double custom = CustomaryRentShare(w);
-        now = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lr, c.LandReformRentCap.Value), Simulation.RentCap(se, c.SerfEmancipationRentCap.Value)));
-        prev = System.Math.Min(custom, System.Math.Min(Simulation.RentCap(lrPrev, c.LandReformRentCap.Value), Simulation.RentCap(sePrev, c.SerfEmancipationRentCap.Value)));
-    }
-
-    private static ReformLevel PrevStage(ReformLevel lv) => lv == ReformLevel.None ? ReformLevel.None : lv - 1;
 }

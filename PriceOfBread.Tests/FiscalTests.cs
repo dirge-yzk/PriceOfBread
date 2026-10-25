@@ -446,7 +446,7 @@ public class FiscalTests
         // (2) 割譲（講和の割譲・建国・再併合が共通に通る州の物理移転 Territory.TransferRegion）：割譲州の保有も親の対外債へ
         var before = new HashSet<Region>(rw.Regions);
         double fd0 = pw.ForeignDebt.Value, cl0 = rw.ForeignBondClaims.Value;
-        Territory.TransferRegion(pw, rw, pw.Regions.Find(r => r.Id != 0 && r.State == RegionState.Active)!, Territory.Rehoming.Ceded);
+        Territory.TransferRegion(pw, rw, pw.Regions.Find(r => r.Id != 0)!, Territory.Rehoming.Ceded);
         var ceded = rw.Regions.FindAll(r => !before.Contains(r));
         Assert.True(ceded.Count > 0, "前提が崩れた：州が割譲されていない");
         foreach (var r in ceded) foreach (var p in r.Pops) Assert.Equal(0.0, p.BondHoldings.Value);
@@ -1140,7 +1140,6 @@ public class FiscalTests
         var lenders = new List<Pop>();
         foreach (var r in fr.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             var sink = r.Pops.Find(p => !p.IsModernElite && !p.IsSoldier)!;   // 貸し手の貯蓄の余りを同じ州の大衆へ移す＝仏の基礎貨幣は動かない（保存量の検査を通る盤面）
             foreach (var p in r.Pops) if (p.IsModernElite && !p.IsSoldier) { double ex = p.Savings.Value - 10; p.SetSavings(10); sink.SetSavings(sink.Savings.Value + (ex)); lenders.Add(p); }
         }
@@ -1548,7 +1547,7 @@ public class FiscalTests
             Region? far = null; double km = 0;
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active || rg.BureaucratPopIndex < 0) continue;
+                if (rg.BureaucratPopIndex < 0) continue;
                 var rc = Places.Coord(rg.Name);
                 if (rc.Lat == 0 && rc.Lon == 0) continue;
                 double d = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
@@ -1597,7 +1596,7 @@ public class FiscalTests
         double k = double.NaN; int n = 0; double lo = double.MaxValue, hi = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.BureaucratPopIndex < 0 || !(r.AdminBudget > 0)) continue;
+            if (r.BureaucratPopIndex < 0 || !(r.AdminBudget > 0)) continue;
             double m = Fiscal.AdminDistanceMul(w, r);
             lo = Math.Min(lo, m); hi = Math.Max(hi, m);
             double v = r.AdminBudget / (r.SumPopulation() * m);

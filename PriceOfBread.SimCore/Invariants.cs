@@ -158,7 +158,6 @@ public sealed class GoodsBalance : IInvariant
     {
         foreach (var r in world.Regions)
         {
-            if (r.State != RegionState.Active) continue;   // locked 地域の市場は休眠（balance 検査の対象外）
             foreach (var m in r.Markets)
             {
                 double expected = m.PrevStock + m.LastProduced + m.LastImport - m.LastSold - m.LastExport;

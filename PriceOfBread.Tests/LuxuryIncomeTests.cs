@@ -12,7 +12,7 @@ namespace PriceOfBread.Tests;
 /// ⑪分子を上書きの後の欄にする（分子と分母が別の月）。</summary>
 public class LuxuryIncomeTests
 {
-    private static Pop FirstActivePop(World w) => w.Regions.First(r => r.State == RegionState.Active).Pops[0];
+    private static Pop FirstActivePop(World w) => w.Regions.First().Pops[0];
 
     /// <summary>3国の盤面：全ての POP を人数 0・所得 0 にして、国 A・B の最初の POP だけに人数と所得を置く（世界の平均を手で計算できる）。</summary>
     private static MultiNationSim ToyWorld(out World a, out World b, double incomeA, double sizeA, double incomeB, double sizeB)

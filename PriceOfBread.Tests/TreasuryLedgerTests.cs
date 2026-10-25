@@ -149,12 +149,12 @@ public class TreasuryLedgerTests
         Assert.True(System.Math.Abs((w.GovDebt.Value - debt0 - borrowed) - ((1 - r) * w.LastInterestPerMonth).Value) <= 1e-9 * System.Math.Max(1.0, w.GovDebt.Value), $"元本の増分（借入を除く）{w.GovDebt.Value - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterestPerMonth:F6}");
         Assert.True(BondLedger.Balanced(w, HeldSum(w)), "繰り入れの後に保有台帳（Σ保有＝国内元本）が割れた");
         // 行政：区分 Admin の減り＝行政の調達（StateSpent の Admin）だけ（連合維持費の人頭割りは 2026-09-30 (135) に撤去＝官僚と兵士の給与は購買の1本）
-        double stateAdmin = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) stateAdmin += rg.StateSpent[(int)TreasuryCat.Admin];
+        double stateAdmin = 0; foreach (var rg in w.Regions) stateAdmin += rg.StateSpent[(int)TreasuryCat.Admin];
         double adminOther = admL0 - w.TreasuryLedger[(int)TreasuryCat.Admin] - stateAdmin;
         Assert.True(stateAdmin > 0, "前提：行政の調達が0");
         Assert.True(System.Math.Abs(adminOther) <= 1e-9 * stateAdmin, $"区分 Admin に行政の購買の外の支払い {adminOther:F6} がある（連合維持費が戻った？）");
         // 兵士の給与：予算＝請求×r（旧＝州ごとの min(国庫)＝先着）
-        double soldierBudget = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) soldierBudget += rg.SoldierPayBudget;
+        double soldierBudget = 0; foreach (var rg in w.Regions) soldierBudget += rg.SoldierPayBudget;
         Assert.True(w.LastSoldierPayPerMonth.Value > 0, "前提：兵士の給与の請求が0");
         Assert.True(System.Math.Abs(soldierBudget - (r * w.LastSoldierPayPerMonth).Value) <= (1e-9 * w.LastSoldierPayPerMonth).Value, $"兵士の給与の予算 {soldierBudget:F6} ≠ r×請求 {r * w.LastSoldierPayPerMonth:F6}");
         // r＜1 の月は国家の支払いの合計≦払える額（月初の請求の見込みは先月の請求＝その誤差の分だけ相対 2% まで許す）

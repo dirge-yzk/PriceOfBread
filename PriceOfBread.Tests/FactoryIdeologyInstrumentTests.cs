@@ -94,7 +94,6 @@ public class FactoryIdeologyInstrumentTests
                 int nBank = 0;
                 foreach (var rg in w.Regions)
                 {
-                    if (rg.State != RegionState.Active) continue;
                     var lm = rg.Markets[Catalog.LaborId]; labDem += lm.LastDemand; labRationW += lm.LastDemand * lm.LastRation.Value;
                     foreach (var s in rg.Producers)
                     {

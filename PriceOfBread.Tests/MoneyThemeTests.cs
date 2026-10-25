@@ -83,7 +83,7 @@ public class MoneyThemeTests
         var r = w.Region;
         foreach (var other in w.Regions)   // 隔離＝首都州以外の銀在庫を0にして州ループから外す（Stock<=1e-12 で買いも売りも通らない）＝数量が首都州1回ぶんに閉じる
             if (!ReferenceEquals(other, r) && other.GoodOf(Catalog.SilverId) is not null) other.Markets[Catalog.SilverId].Stock = 0;
-        Assert.True(r.State == RegionState.Active && r.GoodOf(Catalog.SilverId) is not null, "前提＝首都州に銀市場がある");
+        Assert.True(r.GoodOf(Catalog.SilverId) is not null, "前提＝首都州に銀市場がある");
         var m = r.Markets[Catalog.SilverId];
         double parity = Catalog.RefPrices[Catalog.SilverId];
         m.Price = parity * 1.5;   // 平価の上＝従来の造幣局は何もしない（片側）
@@ -131,7 +131,7 @@ public class MoneyThemeTests
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
         var w = sim.World;
         var r = w.Region;
-        Assert.True(r.State == RegionState.Active && r.GoodOf(Catalog.SilverId) is not null, "前提＝首都州に銀市場がある");
+        Assert.True(r.GoodOf(Catalog.SilverId) is not null, "前提＝首都州に銀市場がある");
         Assert.True(r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count, "前提＝首都州に商人がいる");
         double rate = Math.Clamp(w.Coef.MintReserveSellRatePerMonth.Value, 0, 1);
         Assert.True(rate > 0, "前提＝準備の売却が live");

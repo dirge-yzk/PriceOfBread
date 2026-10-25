@@ -28,7 +28,7 @@ public class TradeClearingTests
         {
             n.World.Tariff = 0;
             n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9;
-            foreach (var r in n.World.Regions) if (r.State == RegionState.Active) all.Add(r);
+            foreach (var r in n.World.Regions) all.Add(r);
         }
         var ports = all.Where(r => r.IsPort).ToList();
         Assert.True(ports.Count >= 2, "港州が2つ要る（次善ロールオーバーの検査）");
@@ -106,7 +106,7 @@ public class TradeClearingTests
         double tf0 = w.CumulativeTradeFlow.Value;
         sim.Market.Step(sim.Nations, sim.Coef);
         double moved = 0, port = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) { moved += r.Markets[g].LastImport; port += r.LastPortThroughput; }
+        foreach (var r in w.Regions) { moved += r.Markets[g].LastImport; port += r.LastPortThroughput; }
         Assert.True(moved > 1e-9, "国内の成約が1件も立っていない（テスト前提の破れ）");
         Assert.Equal(0.0, w.LastExportValue);
         Assert.Equal(0.0, w.LastImportValue);
@@ -128,14 +128,14 @@ public class TradeClearingTests
         land.Market.Step(land.Nations, land.Coef);
         double moved = 0, port = 0;
         foreach (var n in land.Nations) foreach (var r in n.World.Regions)
-            if (r.State == RegionState.Active) { moved += r.Markets[g].LastExport; port += r.LastPortThroughput; }
+            { moved += r.Markets[g].LastExport; port += r.LastPortThroughput; }
         Assert.True(moved > 1e-9, "陸路の成約が1件も立っていない（テスト前提の破れ）");
         Assert.Equal(0.0, port);
 
         var (sea, g2, _, seller2, _) = Make();
         sea.Market.Step(sea.Nations, sea.Coef);
         double port2 = 0;
-        foreach (var n in sea.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) port2 += r.LastPortThroughput;
+        foreach (var n in sea.Nations) foreach (var r in n.World.Regions) port2 += r.LastPortThroughput;
         Assert.True(port2 > 1e-9, "既定の陸の単価で海路の成約が立たない（対照の破れ）");
         var genoa = sea.Nations[0].World; var tuscany = sea.Nations[1].World;
         Assert.True(seller2.Markets[g2].LastExport > 1e-9, "トスカーナの港が国内の州へ売っていない（テスト前提の破れ）");
@@ -163,7 +163,7 @@ public class TradeClearingTests
             tus.Tariff = tariff;
             double led0 = tus.TreasuryLedger[(int)TreasuryCat.Tariff];
             sim.Market.Step(sim.Nations, sim.Coef);
-            double q = 0; foreach (var r in gen.Regions) if (r.State == RegionState.Active) q += r.Markets[g].LastExport;
+            double q = 0; foreach (var r in gen.Regions) q += r.Markets[g].LastExport;
             Assert.True(q > 1e-9 && gen.LastExportValue > 1e-9, "ジェノヴァの越境の輸出が立っていない（テスト前提の破れ）");
             return (gen.LastExportValue / q, tus.LastTariffRevenuePerClearing, tus.TreasuryLedger[(int)TreasuryCat.Tariff] - led0, gen.LastExportValue);
         }
@@ -189,7 +189,7 @@ public class TradeClearingTests
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
             {
-                if (r.State != RegionState.Active || ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 1e-9)) continue;
+                if (ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 1e-9)) continue;
                 Assert.True(r.MerchantPopIndex >= 0, "前提が崩れた：買い手の州に商人が居ない");
                 for (int i = 0; i < r.Pops.Count; i++)
                     if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings.Value);   // 商人以外は払わない
@@ -223,7 +223,7 @@ public class TradeClearingTests
         {
             for (int n = 0; n < s.Nations.Count; n++)
                 foreach (var r in s.Nations[n].World.Regions)
-                    if (r.State == RegionState.Active) for (int i = 0; i < r.Pops.Count; i++) yield return (n, r, i, r.Pops[i]);
+                    for (int i = 0; i < r.Pops.Count; i++) yield return (n, r, i, r.Pops[i]);
         }
         var o = Pops(off.sim).ToList(); var pp = Pops(prem.sim).ToList(); var pt = Pops(port.sim).ToList();
         Assert.Equal(o.Count, pp.Count); Assert.Equal(o.Count, pt.Count);
@@ -277,7 +277,7 @@ public class TradeClearingTests
         var buyers = new List<Region>();
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
-                if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
+                if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
                 { r.Pops[r.MerchantPopIndex].SetSavings(0); buyers.Add(r); }
         Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
         var before = new Dictionary<Pop, double>();
@@ -328,7 +328,7 @@ public class TradeClearingTests
         var buyers = new List<Region>();
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
-                if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
+                if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
                 {
                     var mer = r.Pops[r.MerchantPopIndex];
                     mer.SetSavings(0); mer.Debt = new MoneyStock(100); n.World.Bank!.HouseholdLoans += new MoneyStock(100);   // 前の清算の手形が返っていない（貯蓄0＝返せない）
@@ -356,7 +356,7 @@ public class TradeClearingTests
             sim.Coef.TransportTargetPerPop = perPop; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0; w.ShipCapacity = 1e12;
             Assert.Equal(w.TotalPopulation * perPop, Transport.PreRailCapacity(w, sim.Coef), 9);
             sim.Market.Step(sim.Nations, sim.Coef);
-            return w.Regions.Where(r => r.State == RegionState.Active && !r.IsPort).Select(r => r.LastTransportCap).ToArray();
+            return w.Regions.Where(r => !r.IsPort).Select(r => r.LastTransportCap).ToArray();
         }
         var a = InlandCaps(0.08); var b = InlandCaps(0.16);
         Assert.True(a.Length > 0, "英に内陸の州が無い（テスト前提の破れ）");
@@ -385,7 +385,7 @@ public class TradeClearingTests
         double wg = Catalog.TransportWeight(g);
         var need = new Dictionary<Region, double>();
         foreach (var r in w.Regions)
-            if (r.State == RegionState.Active && !r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
+            if (!r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
             { var m = r.Markets[g]; need[r] = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock; }
         Assert.True(need.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
         double acc = w.ExternalTradeAccess();   // 買い手の量 X＝入手率×min(価格の量, 不足)＝行の潜在量の上限
@@ -405,7 +405,7 @@ public class TradeClearingTests
     [Fact]
     public void 眠っている組は四半期の最初の清算か不足で起きる()
     {
-        static double Imported(MultiNationSim sim, int g) { double s = 0; foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) s += r.Markets[g].LastImport; return s; }
+        static double Imported(MultiNationSim sim, int g) { double s = 0; foreach (var n in sim.Nations) foreach (var r in n.World.Regions) s += r.Markets[g].LastImport; return s; }
         static void Sleep(MultiNationSim sim, int g) { foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { r.Markets[g].PrevImport = 0; r.Markets[g].LastShortage = 0; } }
 
         var (a, ga, _, _, _) = Make(); Sleep(a, ga);
@@ -414,7 +414,7 @@ public class TradeClearingTests
 
         var (b, gb, _, _, _) = Make(); Sleep(b, gb);
         Region? hungry = null;
-        foreach (var n in b.Nations) foreach (var r in n.World.Regions) if (hungry is null && r.State == RegionState.Active && r.Markets[gb].LastDemand >= 500) hungry = r;
+        foreach (var n in b.Nations) foreach (var r in n.World.Regions) if (hungry is null && r.Markets[gb].LastDemand >= 500) hungry = r;
         Assert.True(hungry is not null, "買い手の州が無い（テスト前提の破れ）");
         hungry!.Markets[gb].LastShortage = 100;   // この月に足りなかった＝起きる
         b.Market.Step(b.Nations, b.Coef, firstClearingOfQuarter: false);
@@ -448,7 +448,7 @@ public class TradeClearingTests
             {
                 var m = r.Markets[g];
                 if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; }
-                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; if (r.State == RegionState.Active) inland.Add(r); }
+                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; inland.Add(r); }
             }
         Assert.True(inland.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
         long Fills() => sim.CostTotals()[CostLedger.ClearingFills];
@@ -484,14 +484,14 @@ public class TradeClearingTests
     [Fact]
     public void 不足で起きたが成約しない行は自州価格が上がるまで眠る()
     {
-        static double Imported(MultiNationSim sim, int g) { double s = 0; foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) s += r.Markets[g].LastImport; return s; }
+        static double Imported(MultiNationSim sim, int g) { double s = 0; foreach (var n in sim.Nations) foreach (var r in n.World.Regions) s += r.Markets[g].LastImport; return s; }
         var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));   // 州の多い1国（買い手の州が2つ以上）
         double wp = sim.Market.Price[g];
         Region? hungry = null, idle = null;
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
             {
-                if (r.State != RegionState.Active || ReferenceEquals(r, seller) || ReferenceEquals(r, seller2)) continue;
+                if (ReferenceEquals(r, seller) || ReferenceEquals(r, seller2)) continue;
                 r.Markets[g].PrevImport = 0; r.Markets[g].LastShortage = 0;
                 if (hungry is null && r.Markets[g].LastDemand >= 500) hungry = r;
                 else if (idle is null) idle = r;
@@ -549,14 +549,14 @@ public class TradeClearingTests
             if (manySellers)
             {   // 売り手を増やす：港の州6つを値段の違う薄い売り手にする＝買い手1行の中で最良が何度も替わり、単価・運賃・関税・港湾料が替わる
                 double wp = sim.Market.Price[g]; int k = 0;
-                foreach (var r in sim.Nations.SelectMany(n => n.World.Regions).Where(r => r.State == RegionState.Active && r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2)).Take(6).ToList())
+                foreach (var r in sim.Nations.SelectMany(n => n.World.Regions).Where(r => r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2)).Take(6).ToList())
                 {
                     var m = r.Markets[g]; m.Price = (0.65 + 0.1 * k++) * wp; m.Stock = 300; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 1e6;
                     sellers.Add(r);
                 }
                 seller.Markets[g].LastProduced = 1e6; seller2.Markets[g].LastProduced = 1e6; seller2.Markets[g].Stock = 300;
                 foreach (var n0 in sim.Nations) foreach (var r0 in n0.World.Regions) foreach (var p0 in r0.Pops) p0.SetSavings(1e9);   // 買い手の支払能力は十分
-                foreach (var n1 in sim.Nations) foreach (var r1 in n1.World.Regions) if (r1.State == RegionState.Active && !sellers.Contains(r1)) r1.Markets[g].TargetStock = 5000;   // 買い手の物理の不足を大きく＝価格静止の量 xPrice が買う量を決める（冪の使い回しが効く盤面）
+                foreach (var n1 in sim.Nations) foreach (var r1 in n1.World.Regions) if (!sellers.Contains(r1)) r1.Markets[g].TargetStock = 5000;   // 買い手の物理の不足を大きく＝価格静止の量 xPrice が買う量を決める（冪の使い回しが効く盤面）
             }
             sim.Market.Step(sim.Nations, sim.Coef);
             sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);   // 2回目の清算（月の清算＝眠る行・前の清算の持ち越しの表）
@@ -570,7 +570,6 @@ public class TradeClearingTests
                 Add(w.BaseMoney.Value); Add(w.CumulativeTradeFlow.Value); Add(w.Treasury.Value); Add(w.LastExportValue); Add(w.LastImportValue); Add(w.LastTariffRevenuePerClearing);
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     Add(r.LastPortThroughput); Add(r.LastTradePotential); Add(r.LastTradeThrottle); Add(r.LastTradeDistanceKm);
                     foreach (var m in r.Markets) { Add(m.Stock); Add(m.LastImport); Add(m.LastExport); }
                     foreach (var p in r.Pops) { Add(p.Savings.Value); Add(p.Debt.Value); }
@@ -615,7 +614,7 @@ public class TradeClearingTests
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
             {
-                if (r.State != RegionState.Active || ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 0) || r.LastPortFrozen || (!r.IsPort && r.NearestPortName.Length == 0)) continue;
+                if (ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 0) || r.LastPortFrozen || (!r.IsPort && r.NearestPortName.Length == 0)) continue;
                 // 買い手の海に出る点と陸脚（BilateralMarket の州の表と同じ規則：港なら自州・内陸なら最寄りの港）
                 var cb = Climate.CityCoord(r.Name); double landKm = 0;
                 if (!r.IsPort) { cb = Climate.CityCoord(r.NearestPortName); landKm = r.PortLandKm; }
@@ -638,7 +637,7 @@ public class TradeClearingTests
                 checkedN++;
             }
         int act = 0, imp = 0, frz = 0, nop = 0;
-        foreach (var n2 in sim.Nations) foreach (var r2 in n2.World.Regions) { if (r2.State != RegionState.Active) continue; act++; if (r2.Markets[g].LastImport > 0) imp++; if (r2.LastPortFrozen) frz++; if (!r2.IsPort && r2.NearestPortName.Length == 0) nop++; }
+        foreach (var n2 in sim.Nations) foreach (var r2 in n2.World.Regions) { act++; if (r2.Markets[g].LastImport > 0) imp++; if (r2.LastPortFrozen) frz++; if (!r2.IsPort && r2.NearestPortName.Length == 0) nop++; }
         Assert.True(checkedN >= 10, $"確かめた買い手が少ない（{checkedN}／活きた州 {act}・輸入あり {imp}・凍結 {frz}・港なし {nop}）＝テスト前提の破れ");
     }
 }

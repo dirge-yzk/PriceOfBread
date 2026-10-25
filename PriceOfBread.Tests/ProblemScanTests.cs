@@ -81,7 +81,7 @@ public class ProblemScanTests
     public void 倒産した工場は財ごとに数えて並ぶ_床で丸まる休止の端数は並べない()
     {
         var (sim, w) = Board();
-        var rg = w.Regions.First(r => r.State == RegionState.Active);
+        var rg = w.Regions.First();
         foreach (var r in w.Regions) foreach (var p in r.Producers) p.Bankrupt = false;   // いったん全て動いている形にしてから 1 つだけ止める
         var prod = rg.Producers.First(p => Catalog.Goods[p.GoodId].Tier != GoodTier.Service);
         prod.Bankrupt = true;
@@ -97,7 +97,7 @@ public class ProblemScanTests
         var (sim, w) = Board();
         foreach (var r in w.Regions) r.FoodFill = 1.0;
         Assert.DoesNotContain(ProblemScan.Scan(sim, w), p => p.Kind == ProblemKind.RegionHunger);
-        var rg = w.Regions.First(r => r.State == RegionState.Active);
+        var rg = w.Regions.First();
         rg.FoodFill = 0.5;
         var h = Assert.Single(ProblemScan.Scan(sim, w), p => p.Kind == ProblemKind.RegionHunger);
         Assert.Equal(rg.Name, h.RowKey);

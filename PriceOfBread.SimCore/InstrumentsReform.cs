@@ -44,7 +44,6 @@ public static partial class Instruments
         double cum = 0, fundNum = 0, popSum = 0, litNum = 0, litDen = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             cum += r.CumEducationCost;
             double pop = r.SumPopulation();
             if (pop > 0) { fundNum += pop * r.CompulsoryEduFunding; popSum += pop; }

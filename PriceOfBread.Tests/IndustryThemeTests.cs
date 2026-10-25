@@ -49,7 +49,7 @@ public class IndustryThemeTests
         var ex0 = Record.Exception(() => sim0.Run(200));
         Assert.Null(ex0);
         Assert.True(Math.Abs(sim0.World.TotalPopulation - (q0 + sim0.World.PopulationDelta)) < 1e-6 * q0, "テーマH有効化（旧の枝）で人口保存が破れた");
-        bool mechWired = sim0.World.Regions.Any(r => r.State == RegionState.Active && r.Mechanization > 0);
+        bool mechWired = sim0.World.Regions.Any(r => r.Mechanization > 0);
         bool vintageWired = sim0.World.Regions.Any(r => r.OldVintageCapital > 0);
         Assert.True(mechWired, "LaborSaveRate>0でも機械化度が立たない＝EffectiveQtyへの配線不全（旧の枝）");
         Assert.True(vintageWired, "VintageMigrateRate>0でも旧世代資本が積まれない＝二層化の配線不全（旧の枝）");

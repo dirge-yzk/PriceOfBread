@@ -345,7 +345,7 @@ public sealed class World
             double q = 0;
             foreach (var r in Regions)
             {
-                if (r.State != RegionState.Active || gi >= r.Markets.Length) continue;
+                if (gi >= r.Markets.Length) continue;
                 var pb = r.Markets[gi].PopBought;
                 if (pb is null) continue;   // その月に pop の需要が0だった財＝配列を作らない（Model の記帳規約）
                 for (int ci = 0; ci < pb.Length; ci++) q += pb[ci];
@@ -876,7 +876,7 @@ public sealed class World
     // !EthnicEnabled（合成較正・最小テスト世界）は1.0＝全効果が無効＝較正不変。移民(core=0)で希釈・同化で回復・征服で低下が pop属性から自動で出る。
     public double EthnicUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, c = 0; foreach (var p in AllPops()) { s += p.Size; c += p.Size * p.CoreEthnicShare.Value; } return s > 1e-9 ? c / s : 1.0; } }
     // 宗教統一度（タスクA/宗教civic）：EthnicUnityと対称の派生スカラー＝国内多数派宗教に属す州人口比∈[0,1]。州ラベル(単一Religion)から派生＝per-pop宗教属性を作らず「スカラーのみ」設計に忠実。均質国/単一宗教/!EthnicEnabled(合成較正)＝1.0。墺洪/オスマンのミレット型分裂を国民統合の抵抗として立てる（旧NationBuildReligiousDragは第3段3-6で削除＝宗教civicは第5段5-5の新設計待ち・現在読み手なしの観測量。02断線走査2026-07-28注記是正）。
-    public double ReligiousUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, best = 0; var seen = new System.Collections.Generic.Dictionary<string, double>(); foreach (var r in Regions) { if (r.State != RegionState.Active || string.IsNullOrEmpty(r.Religion)) continue; double p = 0; foreach (var q in r.Pops) p += q.Size; if (p <= 0) continue; s += p; double v = seen.TryGetValue(r.Religion, out var e) ? e + p : p; seen[r.Religion] = v; if (v > best) best = v; } return s > 1e-9 ? best / s : 1.0; } }
+    public double ReligiousUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, best = 0; var seen = new System.Collections.Generic.Dictionary<string, double>(); foreach (var r in Regions) { if (string.IsNullOrEmpty(r.Religion)) continue; double p = 0; foreach (var q in r.Pops) p += q.Size; if (p <= 0) continue; s += p; double v = seen.TryGetValue(r.Religion, out var e) ? e + p : p; seen[r.Religion] = v; if (v > best) best = v; } return s > 1e-9 ? best / s : 1.0; } }
     public bool EthnicEnabled { get; internal set; }
     public bool PoliticalLockEnabled { get; internal set; } = true;   // スライダーの政治ロック（純支持≤0の向きへ動かせない）。財政機構の単体テストは false で隔離（税→歳入→保存の検証は政治的可否と直交）
     public bool CoercionFollowsForce { get; internal set; }            // 武力統合：治安維持力を「軍事費スライダー」から導出（治安維持力スライダー廃止）。多国シム（実ゲーム＋selfplay）で true、較正/単体は false で BaseCoercion を独立に掃引（較正世界を保護）
@@ -1021,7 +1021,7 @@ public sealed class World
     /// 旧＝PortStateFrac(0.5)×資本家の投資×r を請求の外で払った（民間の貯蓄に比例し、英の開幕で国庫 2.1万 に対し 14.3万・r=1）。</summary>
     internal double PortStateRequest(Region r, double nationThroughput)
     {
-        if (WarmupFrozen || r.State != RegionState.Active || !r.IsPort || !Discovery.SteamPower(Discovered)) return 0;
+        if (WarmupFrozen || !r.IsPort || !Discovery.SteamPower(Discovered)) return 0;
         if (!(r.LastTradeThrottle < Coef.PortCongestionTarget) || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) return 0;
         if (!(nationThroughput > 1e-9) || !(r.LastPortThroughput > 0)) return 0;   // 否定形＝NaN は請求しない
         return Calendar.PerMonthToPerQuarter((AdminSpending * Coef.PortStateFrac.Value * FiscalCapacityPerMonth).Value) * (r.LastPortThroughput / nationThroughput);
@@ -1030,7 +1030,7 @@ public sealed class World
     internal double PortThroughputTotal()
     {
         double t = 0;
-        foreach (var r in Regions) if (r.State == RegionState.Active && r.IsPort && r.LastPortThroughput > 0) t += r.LastPortThroughput;
+        foreach (var r in Regions) if (r.IsPort && r.LastPortThroughput > 0) t += r.LastPortThroughput;
         return t;
     }
 
@@ -1157,12 +1157,11 @@ public sealed class World
         return worst;
     }
 
-    /// <summary>疫病の「過密」を数える州の都市人口比（都市人口 ÷ 人口）。Active でない州・人口が 1e-9 未満の州は数えない（false）。
+    /// <summary>疫病の「過密」を数える州の都市人口比（都市人口 ÷ 人口）。人口が 1e-9 未満の州は数えない（false）。
     /// 最も過密な州を探す 3 つの走査（<see cref="MaxUrbanShare"/>・<see cref="WorstUrbanRegionSanitation"/>・<see cref="TriggerEpidemic"/>）が同じ 1 本を読む。</summary>
     private static bool TryUrbanShare(Region r, out double urbanShare)
     {
         urbanShare = 0;
-        if (r.State != RegionState.Active) return false;
         double rpop = r.SumPopulation(); if (rpop < 1e-9) return false;
         urbanShare = r.SumUrbanPopulation() / rpop;
         return true;
@@ -1365,8 +1364,8 @@ public sealed class World
     {
         var list = new List<Region>();
         foreach (var r in wanted)
-            if (r.State == RegionState.Active && (capital || r.Id != 0) && Regions.Contains(r) && !list.Contains(r)) list.Add(r);
-        if (capital && list.Exists(r => r.Id == 0) && !Regions.Exists(r => r.State == RegionState.Active && !list.Contains(r))) list.Clear();
+            if ((capital || r.Id != 0) && Regions.Contains(r) && !list.Contains(r)) list.Add(r);
+        if (capital && list.Exists(r => r.Id == 0) && !Regions.Exists(r => !list.Contains(r))) list.Clear();
         return list;
     }
 
@@ -1395,7 +1394,7 @@ public sealed class World
     /// 役務(Service)は除外：労働力は工場産出の中に賃金として織り込まれる（足すと二重計上）、
     /// 教育・医療・行政も従来スコアとの互換のため除く（サービス部門の規模はUIで別途見る）。
     /// 監査2026-07-11（他5）：locked州（分離独立中などの非稼働州）を除外＝初期値で凍結したOutputが幽霊GDPとして
-    /// 借入枠・金本位資格・脅威評価・賠償金・貢納へ波及していた（AdminEfficiencyと同じActiveフィルタ）。
+    /// 借入枠・金本位資格・脅威評価・賠償金・貢納へ波及していた（AdminEfficiencyと同じActiveフィルタ）。〔(568) gc3：州の稼働の状態は本番に無い＝除外の判定は外した。分離独立は州を国の Regions から外す形で、凍結した州は残らない〕
     /// ★使い回し（2026-09-30 (136) 計算量の予算・恒等）：1試合で約200万回呼ばれ（議会・政府の選好〔PolicyPreferences.Build〕・財政・国力ほか）、
     ///   その 94% は前の呼び出しと同じ値だった（census＝州×生産者の走査 15億件・約30秒）。和の入力は州の並び・州の稼働・州の生産者の一覧と
     ///   産出（<see cref="Producer.Output"/>）・財の参照価格と種類（構築の後に書く行が無い）だけ＝前の和の後にどれも変わっていなければ前の値を返す。
@@ -1412,9 +1411,8 @@ public sealed class World
                 for (int i = 0; i < regs.Count && same; i++)
                 {
                     var r = regs[i];
-                    bool act = r.State == RegionState.Active;
-                    same = ReferenceEquals(memo.Regions[i], r) && act == memo.Active[i]
-                        && (!act || (memo.Versions[i] == r.GdpVersion && ReferenceEquals(memo.Lists[i], r.Producers) && memo.Counts[i] == r.Producers.Count));
+                    same = ReferenceEquals(memo.Regions[i], r)
+                        && memo.Versions[i] == r.GdpVersion && ReferenceEquals(memo.Lists[i], r.Producers) && memo.Counts[i] == r.Producers.Count;
                 }
                 if (same) return new RealGdpPerMonth(memo.Value);
             }
@@ -1425,8 +1423,7 @@ public sealed class World
             {
                 var r = regs[i];
                 m2.Regions[i] = r;
-                if (r.State != RegionState.Active) continue;
-                m2.Active[i] = true; m2.Versions[i] = r.GdpVersion; m2.Lists[i] = r.Producers; m2.Counts[i] = r.Producers.Count;
+                m2.Versions[i] = r.GdpVersion; m2.Lists[i] = r.Producers; m2.Counts[i] = r.Producers.Count;
                 seen += r.Producers.Count;
                 foreach (var s in r.Producers)
                 {
@@ -1446,7 +1443,6 @@ public sealed class World
     private sealed class GdpMemo(int n)
     {
         public readonly Region[] Regions = new Region[n];
-        public readonly bool[] Active = new bool[n];
         public readonly long[] Versions = new long[n];
         public readonly List<Producer>?[] Lists = new List<Producer>?[n];
         public readonly int[] Counts = new int[n];
@@ -1465,7 +1461,6 @@ public sealed class World
             double fill = 0, size = 0;
             foreach (var r in Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double p = r.SumPopulation();
                 fill += r.AdminFill * p; size += p;
             }
@@ -1701,10 +1696,7 @@ public sealed class World
     [System.NonSerialized] private PopWindow? _popSums;
 
     /// <summary>国家会計の集合の走査（全ての州の全ての POP・絞らない・<see cref="PopScan"/>）。<see cref="AllPops"/> と同じ列（州と一緒に取れる版）。</summary>
-    public PopScan AllPopsWithRegion() => new(Regions, false);
-
-    /// <summary>稼働中の州（<c>State==Active</c>）の POP の走査（<see cref="PopScan"/>）。本番の盤面では <see cref="AllPopsWithRegion"/> と同じ列。</summary>
-    public PopScan ActivePopsWithRegion() => new(Regions, true);
+    public PopScan AllPopsWithRegion() => new(Regions);
 
     // （1棟単位の手動建設 BuildIndustry は 2026-09-26 に削除＝呼び手はテストと PlayHarness の !build だけで、UIにもAIにも無い動詞だった（x-04）。
     //   国家主導の工業化は ApplyModernizationInvestment（率のレバー）の1本＝国庫→建設予約の検証もそちらで行う＝FranceTests）
@@ -2123,7 +2115,7 @@ public sealed class World
                 ? Geo.SeaDistanceKm(Latitude, Longitude, tw.Latitude, tw.Longitude, suezOk, panamaOk)
                 : Geo.DistanceKm(Latitude, Longitude, tw.Latitude, tw.Longitude));
             foreach (var r in tw.Regions)
-                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial)
+                if (r.Tier == RegionTier.Colonial)
                 {
                     var rc = Places.Coord(r.Name);
                     best = Math.Min(best, seaDist
@@ -2267,7 +2259,7 @@ public sealed class World
         {
             targetPoints.Add((tw.Latitude, tw.Longitude));
             foreach (var tr in tw.Regions)
-                if (tr.State == RegionState.Active && tr.Tier == RegionTier.Colonial)
+                if (tr.Tier == RegionTier.Colonial)
                 { var trc = Places.Coord(tr.Name); targetPoints.Add((trc.Lat, trc.Lon)); }
         }
         return targetPoints;
@@ -2290,7 +2282,7 @@ public sealed class World
             var qSpherePoints = new List<(double Lat, double Lon)> { (qw.Latitude, qw.Longitude) };
             foreach (var qc in q.ColonyList) qSpherePoints.Add((qc.Latitude, qc.Longitude));
             foreach (var qr in qw.Regions)
-                if (qr.State == RegionState.Active && qr.Tier == RegionTier.Colonial)
+                if (qr.Tier == RegionTier.Colonial)
                 { var qrc = Places.Coord(qr.Name); qSpherePoints.Add((qrc.Lat, qrc.Lon)); }
             double km = double.MaxValue;
             foreach (var (tlat, tlon) in targetPoints)
@@ -2464,7 +2456,6 @@ public sealed class World
         int st = 0, pv = 0, pd = 0;
         foreach (var r in Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Producers)
             {
                 if (p.GoodId != goodId) continue;
@@ -2532,7 +2523,6 @@ public sealed class World
         for (int ri = 0; ri < Regions.Count; ri++)
         {
             var r = Regions[ri];
-            if (r.State != RegionState.Active) continue;
             if (r.SeizureChill > 0) r.SeizureChill = Math.Max(0, r.SeizureChill * (1.0 - Coef.SeizureChillDecay));
             bool anyNat = seize && r.NationalizedMask != 0;
             foreach (var p in r.Producers)
@@ -2570,7 +2560,6 @@ public sealed class World
             for (int ri = 0; ri < Regions.Count; ri++)
             {
                 var r = Regions[ri];
-                if (r.State != RegionState.Active) continue;
                 var p = FindFactory(r, g);
                 if (p is null) continue;
                 if (p.StateTarget > StateUnitsOf(p)) { pendingWill = true; break; }   // 前に立てた意志がまだ実現していない
@@ -2614,7 +2603,7 @@ public sealed class World
         get
         {
             double total = 0, urban = 0;
-            foreach (var r in Regions) { if (r.State != RegionState.Active) continue; total += r.SumPopulation(); urban += r.SumUrbanPopulation(); }
+            foreach (var r in Regions) { total += r.SumPopulation(); urban += r.SumUrbanPopulation(); }
             return total > 1e-9 ? urban / total : 0.0;
         }
     }
@@ -2627,7 +2616,7 @@ public sealed class World
         get
         {
             double total = 0, w = 0;
-            foreach (var r in Regions) if (r.State == RegionState.Active) { double p = r.SumPopulation(); total += p; w += p * r.TotalIndustrialization; }   // 新旧合計（ヴィンテージ休眠時は恒等・2026-07-10）
+            foreach (var r in Regions) { double p = r.SumPopulation(); total += p; w += p * r.TotalIndustrialization; }   // 新旧合計（ヴィンテージ休眠時は恒等・2026-07-10）
             return total > 1e-9 ? w / total : Region.TotalIndustrialization;
         }
     }

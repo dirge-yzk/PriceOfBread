@@ -137,7 +137,7 @@ public class GeographyCoverageTests
         // host は州として存在し、植民地としては存在しない（＝統合が効いている）
         var ott = sim.Nations.Find(n => n.World.SelfPower?.Name == "オスマン");
         Assert.NotNull(ott);
-        Assert.Contains(ott!.World.Regions, r => r.State == RegionState.Active && r.Name == "イスタンブール");
+        Assert.Contains(ott!.World.Regions, r => r.Name == "イスタンブール");
         foreach (var p in sim.Diplomacy.Powers)
             Assert.DoesNotContain(p.ColonyList, col => col.Name == "ボスポラス");
     }

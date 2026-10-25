@@ -61,7 +61,7 @@ public class CapacityAnchorTests
         var sim = Two("イギリス", "フランス");
         var uk = Of(sim, "イギリス"); var fr = Of(sim, "フランス");
         double ukSum = AnchorSum(uk), frSum = AnchorSum(fr), ukOld = OldAnchor(uk), frOld = OldAnchor(fr);
-        var core = uk.Regions.First(r => r.Id != 0 && r.Tier == RegionTier.Core && r.State == RegionState.Active);
+        var core = uk.Regions.First(r => r.Id != 0 && r.Tier == RegionTier.Core);
         double a = core.SumPopulation();                    // 構築直後＝州の開幕の人口（別の出所）
         Assert.Equal(a, core.AnchorPopulation, 9);
         Territory.TransferRegion(uk, fr, core, Territory.Rehoming.Ceded);
@@ -109,7 +109,7 @@ public class CapacityAnchorTests
         // 旧（錨 pop − PopulationDelta）は本国を失っても 1783 年の錨 3218.4 のまま＝下限 0.3×錨 の 965.52 以上の扶養力が残った。今は錨 0・扶養力は Σ耕地で決まる。
         // 新：錨 0・扶養力は Σ耕地で決まる（LandAnchorCapacityWeight=1）。人口の段は飛ばない
         var on = PortugalRemainder(); var wn = Of(on, "ポルトガル");
-        double arable = wn.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.ArableLand);
+        double arable = wn.Regions.Sum(r => r.ArableLand);
         Assert.True(arable > 1 && arable < 1e8, "前提：植民地の州の耕地は有限");
         double p0 = wn.TotalPopulation;
         on.Nations.First(n => n.World == wn).DemographicStep();

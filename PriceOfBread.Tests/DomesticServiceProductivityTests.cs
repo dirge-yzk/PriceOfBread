@@ -21,16 +21,16 @@ public class DomesticServiceProductivityTests
         int n = 0;
         foreach (var s in new[] { def, half })
             foreach (var nat in s.Nations)
-                foreach (var r in nat.World.Regions.Where(r => r.State == RegionState.Active))
+                foreach (var r in nat.World.Regions)
                     foreach (var p in r.Producers.Where(p => p.GoodId == svc)) { Assert.Equal(1.0, p.Productivity); n++; }   // 生産性そのものは動かさない（レバーは能力の boost）
         Assert.True(n >= 4, $"前提が崩れた：家事奉仕の生産者が {n} 本しか見つからない（主張が空洞）");
         def.StepQuarter(); half.StepQuarter();
         double capD = 0, capH = 0, otherD = 0, otherH = 0;
         for (int i = 0; i < cfgs.Length; i++)
         {
-            foreach (var r in def.Nations[i].World.Regions.Where(r => r.State == RegionState.Active))
+            foreach (var r in def.Nations[i].World.Regions)
             { capD += r.Producers.Where(p => p.GoodId == svc).Sum(p => p.Capacity); otherD += r.Producers.Where(p => p.GoodId == Catalog.EducationId).Sum(p => p.Capacity); }
-            foreach (var r in half.Nations[i].World.Regions.Where(r => r.State == RegionState.Active))
+            foreach (var r in half.Nations[i].World.Regions)
             { capH += r.Producers.Where(p => p.GoodId == svc).Sum(p => p.Capacity); otherH += r.Producers.Where(p => p.GoodId == Catalog.EducationId).Sum(p => p.Capacity); }
         }
         Assert.True(capD > 0 && otherD > 0);

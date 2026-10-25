@@ -223,7 +223,7 @@ public static class Politics
             if (w.PendingRevoltDemand > 0 ? !(now <= was + 1e-9) : !(now >= was - 1e-9))
             {
                 w.PendingRevoltDemand = 0;
-                foreach (var r in w.Regions) if (r.Id == w.PendingRevoltRegion && r.State == RegionState.Active)
+                foreach (var r in w.Regions) if (r.Id == w.PendingRevoltRegion)
                     foreach (var p in r.Pops) if (p.IsCommoner) p.Militancy *= c.ReformMilitancyRelief;
             }
         }
@@ -893,7 +893,6 @@ public static class Politics
         foreach (var f in w.Factions)
         {
             if (f.Cohesion < c.FactionCohesionFightThreshold) continue;
-            if (f.Region.State != RegionState.Active) continue;
             // ★段0＝幽霊の封じ（F3b蜂起doc §7-1・2026-09-08・係数なし）。反乱国家が建つと本拠州は親の Regions を離れるが、
             //   FactionState は親のリストに残って Region 参照を握ったままになる（建国路は w.Factions を掃除しない）。
             //   州の State は Active のままなので上の除外を素通りし、(a) FactionStrength が**他国のPOP**を読み、
@@ -1436,7 +1435,7 @@ public static class Politics
         var margins = new List<(Region R, double Hold, double Pressure)>();   // ★E-06：州ごとの引き留め（投射済み）と離脱圧力＝ループ後に共有分母を掛けてから積分する
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.Id == 0) continue;   // 首都は離脱しない
+            if (r.Id == 0) continue;   // 首都は離脱しない
             r.TariffInterest = RegionTariffInterest(r);   // 倍率排除：州の関税利害を**実利（競争力）から毎期算出**（静的ラベルを廃止）
             // #13 文化/宗教の異質性：首都(中核)と文化・宗教が違う州ほど分離志向が強い（言語/信仰の少数派＝ナショナリズムの分離圧力）。同一/未設定なら0＝較正中立。
             double cultDist = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Culture) ? 0.5 : 0)
@@ -1558,7 +1557,7 @@ public static class Politics
             double intermediary = Privileges.IntermediaryDegree(w);
             foreach (var r4 in w.Regions)
             {
-                if (r4.State != RegionState.Active || r4.Rule.Length != 4) continue;
+                if (r4.Rule.Length != 4) continue;
                 double tUngov = (1.0 - order) * (1.0 - RegionReach(w, c, r4));
                 double tLocal = System.Math.Min(1.0 - tUngov, (r4.RuleInit.Length == 4 ? r4.RuleInit[1] : 0) * intermediary);
                 double tForeign = ForeignShareSum(r4);
@@ -1647,7 +1646,6 @@ public static class Politics
         Region? worst = null; double worstHeat = 0, worstKey = 0, worstCrowd = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             // ★段6（2026-09-29 点火）：タイマーの代わりの**物理的排他**＝同じ州で同じ四半期に組織運動の蜂起（F3b）と無組織の一揆（F1）を二重に起こさない。
             //   旧はクールダウンがこれを兼ねていた（F3bが立つと必ず4四半期ぶん塞がった）。
             if (w.PendingRebelRegions is { } pend && pend.Contains(r)) continue;
@@ -1715,7 +1713,6 @@ public static class Politics
         double num = 0, den = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             num += pop * (RuleReach(r) * PoliticalQuantities.Clamp01(r.AdminFill)); den += pop;   // ★(408) 国家区分の中でも官僚の役務が届く分にしか法は施行されない（RuleReach 自体には掛けない）
@@ -1729,7 +1726,7 @@ public static class Politics
         double num = 0, den = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || !r.IsPort) continue;
+            if (!r.IsPort) continue;
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             num += pop * ForeignShareSum(r); den += pop;
@@ -1744,7 +1741,7 @@ public static class Politics
         double line = 0.5 * c.ForeignRuleFromTreaty;
         if (!(line > 0)) return false;
         foreach (var r in w.Regions)
-            if (r.State == RegionState.Active && r.IsPort && ForeignShareSum(r) >= line) return true;
+            if (r.IsPort && ForeignShareSum(r) >= line) return true;
         return false;
     }
 

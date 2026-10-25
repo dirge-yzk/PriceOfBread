@@ -119,7 +119,7 @@ public class SecessionLaborLawInstrumentTests
             var w = sim.World; var c = w.Coef;
             c.SecessionPressureScale = 50.0;
             w.Tariff = 1.0; w.Legitimacy = 0.02;
-            var targets = w.Regions.Where(x => x.Id != 0 && x.State == RegionState.Active && Politics.RegionCrowd(x) > 1).ToList();
+            var targets = w.Regions.Where(x => x.Id != 0 && Politics.RegionCrowd(x) > 1).ToList();
             Assert.True(targets.Count >= 2, $"前提が崩れた：大衆のいる非首都の州が {targets.Count} 件");
             foreach (var q in w.Regions) foreach (var p in q.Pops) p.Militancy = 0;
             foreach (var r in targets) foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); p.NationalConsciousness = 0.0; }
@@ -186,7 +186,6 @@ public class SecessionLaborLawInstrumentTests
                 var boundD = new double[3]; var boundL = new double[3];
                 foreach (var rg in w.Regions)
                 {
-                    if (rg.State != RegionState.Active) continue;
                     for (int k = 0; k < 3; k++) { var m = rg.Markets[gids[k]]; dem[k] += m.LastDemand; prod[k] += m.LastProduced; raW[k] += m.LastDemand * m.LastRation.Value; }
                     var seen = new HashSet<(int, int)>();
                     foreach (var s in rg.Producers)

@@ -25,7 +25,7 @@ public class OpeningForcesTests
     {
         double s = 0;
         foreach (var r in w.Regions)
-            if (r.State == RegionState.Active && r.FleetUnits is { } fu) foreach (var x in fu) s += x;
+            if (r.FleetUnits is { } fu) foreach (var x in fu) s += x;
         return s;
     }
 
@@ -36,7 +36,7 @@ public class OpeningForcesTests
         int withPort = 0, withShips = 0;
         foreach (var n in sim.Nations)
         {
-            bool port = n.World.Regions.Any(r => r.State == RegionState.Active && r.IsPort);
+            bool port = n.World.Regions.Any(r => r.IsPort);
             if (!port) { Assert.Equal(0.0, Ships(n.World)); continue; }   // 港の州が無い国は播かない（造船は港）
             withPort++;
             if (Ships(n.World) > 0) withShips++;

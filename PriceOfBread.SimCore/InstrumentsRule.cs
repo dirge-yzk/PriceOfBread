@@ -25,7 +25,7 @@ public static partial class Instruments
         double num = 0, den = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            if (r.Tier == RegionTier.Colonial) continue;
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             num += pop * Politics.RuleReach(r); den += pop;
@@ -46,7 +46,6 @@ public static partial class Instruments
             F(w.LastRevenuePerMonth.Value), F(w.GdpPerMonth.Value), F(w.LastRuleCut), F(HomeStateReach(w, c)));
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             var rc = Places.Coord(r.Name);
             double km = rc.Lat == 0 && rc.Lon == 0 ? double.NaN : Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
             bool ok = r.Rule.Length == 4;

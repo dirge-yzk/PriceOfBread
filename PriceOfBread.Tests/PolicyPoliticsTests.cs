@@ -243,7 +243,6 @@ public class PolicyPoliticsTests
         double pop = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.Size <= 1e-9) continue;

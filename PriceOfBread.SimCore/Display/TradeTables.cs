@@ -30,8 +30,7 @@ public static class TradeTables
         var demandByGood = new double[gc];
         if (!exports)
             foreach (var r in w.Regions)
-                if (r.State == RegionState.Active)
-                    for (int g = 0; g < gc && g < r.Markets.Length; g++) demandByGood[g] += r.Markets[g].LastDemand;
+                for (int g = 0; g < gc && g < r.Markets.Length; g++) demandByGood[g] += r.Markets[g].LastDemand;
 
         // 相手＝実際に取引した相手の州（二国間交易）。エンジンが財ごとに最大額の相手を記録する。台帳が無い（置換前の経路）時だけ、その財を最も多く出している国で近似する。
         string TopPartner(int g, bool wantExporter)

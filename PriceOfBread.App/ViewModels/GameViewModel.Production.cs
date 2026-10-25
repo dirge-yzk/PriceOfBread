@@ -704,18 +704,16 @@ public partial class GameViewModel
         string buildCostTip;
         {
             var cf = _player.Coef;
-            double cpuRef = cf.ConsSteel * Catalog.RefPrices[cf.SteelGoodId] + cf.ConsMachine * Catalog.RefPrices[cf.MachineGoodId]
-                          + cf.ConsCement * Catalog.RefPrices[cf.CementGoodId] + cf.ConsLumber * Catalog.RefPrices[cf.LumberGoodId];
+            var bun = EconomyStep.BundleOf(cap0, cf);   // ★(568) 今の建設の資材の組（エンジンと同じ関数＝旗 BuildingGoodBundle が正なら建造物＋機械・0 なら旧の鋼の束）
+            double cpuRef = EconomyStep.BundleRef(cf);
             double units = cpuRef > 1e-9 ? cf.FactoryMaterialFrac.Value * spec.Cost / cpuRef : 0;   // 総建設ユニット
             double P(int id) => id >= 0 && id < cap0.Markets.Length ? cap0.Markets[id].Price : 0;
-            double machineQty = cf.ConsMachine * units;
             var mats = new System.Text.StringBuilder();
             double matCostSum = 0;
             void Row(int id, double qty) { double amt = qty * P(id); matCostSum += amt; mats.Append($"\n{Catalog.Goods[id].Name} {Fmt.Qty(qty)}　{Fmt.Money(amt)}"); }   // 材料数量もk統一（項目4）
-            Row(cf.SteelGoodId, cf.ConsSteel * units);
-            Row(cf.MachineGoodId, machineQty);
-            Row(cf.CementGoodId, cf.ConsCement * units);
-            Row(cf.LumberGoodId, cf.ConsLumber * units);
+            Row(bun.G0, bun.Q0 * units);
+            Row(bun.G1, bun.Q1 * units);
+            if (bun.Slots == 4) { Row(bun.G2, bun.Q2 * units); Row(bun.G3, bun.Q3 * units); }   // 建造物の組は 2 枠
             double wageTotal = (1.0 - cf.FactoryMaterialFrac.Value) * spec.Cost;
             buildCostTip = $"{facilityWord}　建設費 {Fmt.Money(spec.Cost)}" + mats
                 + $"\n合計コスト {Fmt.Money(wageTotal + matCostSum)}"
@@ -728,7 +726,7 @@ public partial class GameViewModel
         for (int ri = 0; ri < _player.Regions.Count; ri++)
         {
             var rg = _player.Regions[ri];
-            if (rg.State != RegionState.Active || gi >= rg.Markets.Length) continue;
+            if (gi >= rg.Markets.Length) continue;
             var m = rg.Markets[gi];
             // エンジンの動詞（SetSubsidy/BuildFactory/CanSellFactory/SetStateTarget）は全て World.FindFactory
             // （①投資済みで操業可→②操業可→③門が閉じた投資済み→④先頭の優先順）で個体を選ぶ＝表示も同じ個体に揃える
@@ -858,7 +856,6 @@ public partial class GameViewModel
             foreach (var outId in selNode.Out) useAmt[outId] = 0;
         foreach (var rg in _player.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             foreach (var p in rg.Producers)
             {
                 if (p.Bankrupt || p.GoodId == gi) continue;
@@ -905,7 +902,7 @@ public partial class GameViewModel
         // ★行は常に出す（0%でも・生産0なら「—」）。
         double spoilYr = 0;
         foreach (var rg in _player.Regions)
-            if (rg.State == RegionState.Active && gi < rg.Markets.Length) spoilYr += rg.Markets[gi].SpoiledLastYear;
+            if (gi < rg.Markets.Length) spoilYr += rg.Markets[gi].SpoiledLastYear;
         // ★実用ゼロで足切り（幻の生産2026-08-10）＝旧 1e-9 では、目標0のまま残った 1e-8 級の産出が分母に立ち
         //   「廃棄率 12,543,372%」（分子＝初期在庫200の腐敗＝実量）になっていた。
         // ⚠分子（直近12ヶ月合計）と分母（今月の生産×12ヶ月）は別窓＝生産が今月だけ落ちた財では分母が痩せて跳ねる（cross_file_needs参照）。
@@ -918,7 +915,6 @@ public partial class GameViewModel
         bool subOk = false; double subPriv = 0; string? subTip = "産地なし";
         for (int ri = 0; ri < _player.Regions.Count; ri++)
         {
-            if (_player.Regions[ri].State != RegionState.Active) continue;
             var (ok, priv, reason) = _player.CanSubsidize(ri, gi);
             if (ok) { subOk = true; subPriv = Math.Max(subPriv, priv); }
             else if (reason == "国営100%") subTip = reason;
@@ -991,7 +987,7 @@ public partial class GameViewModel
             if (mp.Owner is not { } o || !ReferenceEquals(o, Me)) continue;   // 自国が建設地を保有するものだけ
             double pct = mp.BuildUnits > 1e-9 ? System.Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0;
             bool techOk = _player.TechLevel >= mp.TechGate;
-            var host = _player.Regions.FirstOrDefault(r => r.State == RegionState.Active && r.Name == mp.Host);
+            var host = _player.Regions.FirstOrDefault(r => r.Name == mp.Host);
             double cost = host is null ? 0 : Megaprojects.EstimateCost(host, mp, _player.Coef);
             bool canStart = Megaprojects.CanStart(_player, mp);
             list.Add(new MegaRow
@@ -1230,7 +1226,7 @@ public partial class GameViewModel
         foreach (var n in _sim.Nations)
         {
             double pn = 0;
-            foreach (var r in n.World.Regions) if (r.State == RegionState.Active && gi < r.Markets.Length) pn += r.Markets[gi].LastProduced;
+            foreach (var r in n.World.Regions) if (gi < r.Markets.Length) pn += r.Markets[gi].LastProduced;
             worldProd += pn;
             if (pn > topProdV) { topProdV = pn; topProd = n.World.SelfPower?.Name ?? ""; }
             if (ReferenceEquals(n.World, w)) myProd = pn;
@@ -1323,7 +1319,6 @@ public partial class GameViewModel
         var classNames = new Dictionary<int, string>();
         foreach (var rg in _player.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             foreach (var p in rg.Pops)
                 if (p.ClassName.Length > 0 && !classNames.ContainsKey(p.ClassId)) classNames[p.ClassId] = p.ClassName;
         }
@@ -1365,8 +1360,7 @@ public partial class GameViewModel
     private void SetItemSubsidyRate(int gid, double rate)
     {
         for (int ri = 0; ri < _player.Regions.Count; ri++)
-            if (_player.Regions[ri].State == RegionState.Active)
-                _player.SetSubsidyRate(ri, gid, rate);
+            _player.SetSubsidyRate(ri, gid, rate);
         RefreshProduction();
     }
 }

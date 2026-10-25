@@ -66,7 +66,6 @@ public class MultiNationTests
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
                 var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
                 if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 器と同じ＝死んだ市場は除外
@@ -251,7 +250,7 @@ public class MultiNationTests2
             //   726（r88＋この回）・12（(89)＋この回）。12 の木でも仏の人口 3.2万・名目GDP 12.7万はボルドー（1.7万人・産出財83）ほかで回っている
             //   ＝首都の産出財は「国の経済が機能するか」を測っていなかった（首都12人で産出財7）。
             //   ⚠首都の空洞化そのものは別の既存の問題として記録（99_実装ログ (90)）。国の規模の変化（仏の名目GDP r88 18.5万→12.7万）はこの番人でなく帯が見る。
-            var hub = n.World.Regions.Where(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial)
+            var hub = n.World.Regions.Where(r => r.Tier != RegionTier.Colonial)
                                      .OrderByDescending(r => r.SumPopulation()).FirstOrDefault() ?? n.World.Region;
             int producing = hub.Producers.Count(p => p.Output > 0.5);
             // 期待値再導出（#17・2026-08-08作者許可）：床30は軌道ピン化していた（ナショ0.01加算・植民地州昇格などの

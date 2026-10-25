@@ -25,7 +25,6 @@ public static partial class Instruments
         double cutAll = 0, cutLorded = 0, lordless = 0, manOld = 0, nobleSum = 0, nobleMaxPerCap = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             bool ok = r.Rule.Length == 4;
@@ -54,7 +53,6 @@ public static partial class Instruments
         double manLimit = c.MaxSoldierFraction.Value * natMan;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             Pop? sp = null;
             foreach (var p in r.Pops) if (p.IsSoldier) { sp = p; break; }
             if (sp is null) continue;

@@ -34,23 +34,23 @@ public class RuleSharesFormTests
         foreach (var r in w.Regions) { r.Rule = [0.6, 0.4, 0.0, 0.0]; r.RuleInit = [0.6, 0.4, 0.0, 0.0]; }
         w.Bureaucracy = BureaucracyLaw.Spoils; w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
         Settle(w, 300);
-        Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.Equal(0.4, r.Rule[1], 6));   // 開幕の残高 1.0＝データのまま
+        Assert.All(w.Regions, r => Assert.Equal(0.4, r.Rule[1], 6));   // 開幕の残高 1.0＝データのまま
 
         w.SerfEmancipation = ReformLevel.Full;   // 農奴解放（人の身分の法）は州の支配に影響しない
         Settle(w, 300);
-        Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.Equal(0.4, r.Rule[1], 6));
+        Assert.All(w.Regions, r => Assert.Equal(0.4, r.Rule[1], 6));
 
         w.Bureaucracy = BureaucracyLaw.Professional;   // 官職と徴税の私有は消えても、地代を取る権利（土地改革なし）が残る＝max
         Settle(w, 300);
-        Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.Equal(0.4, r.Rule[1], 6));
+        Assert.All(w.Regions, r => Assert.Equal(0.4, r.Rule[1], 6));
 
         w.LandReform = ReformLevel.Limited;             // 0.5 に縮む
         Settle(w, 600);
-        Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.Equal(0.2, r.Rule[1], 6));
+        Assert.All(w.Regions, r => Assert.Equal(0.2, r.Rule[1], 6));
 
         w.LandReform = ReformLevel.Full;                // 両方なくなる＝0
         Settle(w, 600);
-        Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.True(r.Rule[1] < 1e-6, $"土地改革 全面＋専門官僚制でも在地が残る {r.Rule[1]}"));
+        Assert.All(w.Regions, r => Assert.True(r.Rule[1] < 1e-6, $"土地改革 全面＋専門官僚制でも在地が残る {r.Rule[1]}"));
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class RuleSharesFormTests
     {
         var sim = Concert();
         var w = sim.Diplomacy.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス")).Nation!;
-        var ports = w.Regions.Where(r => r.State == RegionState.Active && r.IsPort).ToList();
+        var ports = w.Regions.Where(r => r.IsPort).ToList();
         Assert.True(ports.Count >= 2, "前提：英は港州を 2 つ以上持つ");
         Assert.Equal(1.0, InternationalMarket.TreatyPortTariffScale(w), 12);   // 持分なし＝関税はそのまま効く
         Politics.AddForeignShare(ports[0], "テスト国", 0.5);
@@ -139,7 +139,7 @@ public class RuleSharesFormTests
     {
         var sim = Concert();
         var w = sim.Diplomacy.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス")).Nation!;
-        var port = w.Regions.First(r => r.State == RegionState.Active && r.IsPort);
+        var port = w.Regions.First(r => r.IsPort);
         Assert.Equal(0.5, w.Coef.ForeignRuleFromTreaty, 12);   // 前提（付与の大きさ）
         Assert.False(w.UnequalTreatyInForce);                 // 持分なし
         Politics.AddForeignShare(port, "テスト国", 0.5);
@@ -159,8 +159,8 @@ public class RuleSharesFormTests
         var c = sim.Nations[0].World.Coef;
         diplo.ComputeRanks(c);
         var sc = NationalScore.ScoresByPower(diplo);
-        var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.State == RegionState.Active && r.IsPort)).OrderByDescending(p => sc[p.Id]).First().Nation!;
-        var port = strongest.Regions.First(r => r.State == RegionState.Active && r.IsPort);
+        var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.IsPort)).OrderByDescending(p => sc[p.Id]).First().Nation!;
+        var port = strongest.Regions.First(r => r.IsPort);
         Politics.AddForeignShare(port, "テスト国", 0.5);
         diplo.TreatyPortLapse(c, 1);
         Assert.Equal(0.5, port.ForeignShares[0], 12);          // 四半期の月でない＝風化しない（旧の器は毎月 3 倍速だった）
@@ -179,7 +179,7 @@ public class RuleSharesFormTests
         var gb = sim.Nations[0].World; var cn = sim.Nations[1].World;
         var war = new War { A = gb.SelfPower!, B = cn.SelfPower!, Score = 1.5 };   // 壊滅（属国化の線 1.4 以上）かつ遠距離（6000km 超）＝条約港の分岐
         sim.Diplomacy.ResolvePeace(sim.Coef, war);
-        double foreign = cn.Regions.Where(r => r.State == RegionState.Active).Sum(r => Politics.ForeignShareSum(r));
+        double foreign = cn.Regions.Sum(r => Politics.ForeignShareSum(r));
         Assert.Equal(0.5, foreign, 12);
         var holder = cn.Regions.Single(r => Politics.ForeignShareSum(r) > 0);
         Assert.True(holder.IsPort);
@@ -265,7 +265,7 @@ public class RuleSharesFormTests
                 foreach (var p in r.Pops) p.SetSavings(Math.Max(p.Savings.Value, 100.0 * Math.Max(0, p.LastEarnedPerMonth.Value)));   // 全員が請求を満額払える（払えない分の按分を外す）
             }
             if (split)   // 前提：税を払う POP のいる活きている州には全て領主（規模のある貴族）がいる＝取り分が捨てられない
-                Assert.All(w.Regions.Where(r => r.State == RegionState.Active), r => Assert.Contains(r.Pops, p => p.ClassId == PopClass.Noble && !p.IsSoldier && p.Size > 1e-9));
+                Assert.All(w.Regions, r => Assert.Contains(r.Pops, p => p.ClassId == PopClass.Noble && !p.IsSoldier && p.Size > 1e-9));
             double mass0 = 0, all0 = 0, lord0 = 0;
             var lords = new System.Collections.Generic.List<Pop>();
             foreach (var r in w.Regions)
@@ -298,7 +298,7 @@ public class RuleSharesFormTests
     public void D6_法の浸透は州の人口で重みづけた国家の区分で行政効率を読まない()
     {
         var w = France(_ => { }).World;
-        var act = w.Regions.Where(r => r.State == RegionState.Active).ToList();
+        var act = w.Regions.ToList();
         foreach (var r in w.Regions) r.AdminFill = 1.0;   // ★(408) 官僚の役務は満額（充足の項は 1 で (399) の式と同じ値）
         foreach (var r in act) r.Rule = [0.0, 1.0, 0.0, 0.0];
         act[0].Rule = [1.0, 0.0, 0.0, 0.0];

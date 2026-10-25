@@ -117,7 +117,7 @@ public class AdminServesRuleTests
             double d = 1.0 - w.Coef.PrivilegeTaxDiscount.Value, pop = 0, fill = 0, now = 0, old = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || r.Rule.Length != 4) continue;
+                if (r.Rule.Length != 4) continue;
                 double p = r.SumPopulation(); if (!(p > 0)) continue;
                 pop += p; fill += p * r.AdminFill; now += p * Politics.RuleDelivery(r, w.Coef); old += p * (r.Rule[0] + r.Rule[1] * d);
             }
@@ -136,7 +136,7 @@ public class AdminServesRuleTests
     public void G4_法の浸透は州ごとの国家区分に充足を掛けた人口加重()
     {
         var w = France().World;
-        var act = w.Regions.Where(r => r.State == RegionState.Active && r.SumPopulation() > 0).ToList();
+        var act = w.Regions.Where(r => r.SumPopulation() > 0).ToList();
         foreach (var r in act) { r.Rule = [0.6, 0.4, 0.0, 0.0]; r.AdminFill = 1.0; }
         Assert.Equal(0.6, Politics.StateReach(w, w.Coef), 12);                       // 充足 1＝R0
         foreach (var r in act) r.AdminFill = 0.5;

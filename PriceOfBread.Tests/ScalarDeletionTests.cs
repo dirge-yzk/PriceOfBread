@@ -82,6 +82,50 @@ public class ScalarDeletionTests
     }
 
     [Fact]
+    public void 恒等の削除_2026_10_26_ゴミ変数の3回目の関数は復活しない()
+    {
+        // (568) 恒等の線 gc3：稼働中の州だけの走査と、rs3 が重ねた向きだけ違う関数 2 本を畳んだ（期待値は削除の一覧を手で写した物で、本体の式から作らない）。
+        Assert.Null(typeof(World).GetMember("ActivePopsWithRegion", All).FirstOrDefault());                                   // 稼働中の州だけの POP の走査（本番では国家会計の走査と同じ列だった）
+        var internalStatic = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
+        foreach (var n in new[] { "EffectiveRentSharesBack", "PrevStage", "NextStage" })
+            Assert.Null(typeof(PolicyPreferences).GetMember(n, internalStatic).FirstOrDefault());                              // 向きを bool の引数 1 本にした
+    }
+
+    /// <summary>★(568) 恒等の線 gc3：<c>Region.State</c>（稼働中か否か）を読む行は、本番では恒真だったので外した。ソースに〈RegionState を読む行〉が戻っていないことを、
+    /// 許可表（ファイル → 許す行数の上限）で見る。許可表の中は枠と機械の線 ckf〔世界の時計の置き直し〕が書き直す所と、型の定義（Model.cs）だけ。
+    /// 期待値は許可表（手で写した物）で、本体のソースから作らない。<see cref="GoodIdGuardTests.CsFiles"/> と同じ走査（SimCore・Runner・App・Tests）。</summary>
+    [Fact]
+    public void 稼働中の州の判定_RegionStateを読む行は許可表の外に無い()
+    {
+        var allow = new System.Collections.Generic.Dictionary<string, int>
+        {
+            ["PriceOfBread.SimCore/Model.cs"] = 2,                    // 型の定義と Region.State の欄（sm4 が隣に行を足す＝消すのは sm4 の合流の後）
+            ["PriceOfBread.SimCore/Discovery.cs"] = 9,                // ckf が書き直す所（発見の表の走査）
+            ["PriceOfBread.SimCore/InstrumentsClock.cs"] = 1,         // ckf（時計の計器）
+            ["PriceOfBread.SimCore/MultiNationSim.cs"] = 1,           // ckf（時計の巡回のすぐ上）
+            ["PriceOfBread.Runner/Program.cs"] = 2,                   // ckf（discprobe）
+            ["PriceOfBread.Tests/DiscoveryClockTests.cs"] = 4,
+            ["PriceOfBread.Tests/DiscoveryEngineerTests.cs"] = 5,
+            ["PriceOfBread.Tests/DiscoveryScoreTests.cs"] = 19,
+        };
+        var code = new System.Text.RegularExpressions.Regex(@"RegionState");
+        var bad = new System.Collections.Generic.List<string>();
+        foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
+        {
+            if (rel == "PriceOfBread.Tests/ScalarDeletionTests.cs") continue;   // この番人自身
+            int n = 0;
+            foreach (var line in System.IO.File.ReadLines(full))
+            {
+                string t = line; int cm = t.IndexOf("//", System.StringComparison.Ordinal); if (cm >= 0) t = t.Substring(0, cm);   // 注は読みではない
+                if (code.IsMatch(t)) n++;
+            }
+            int cap = allow.TryGetValue(rel, out var a) ? a : 0;
+            if (n > cap) bad.Add($"{rel}: {n} 行（許可 {cap}）");
+        }
+        Assert.True(bad.Count == 0, "Region.State を読む行が許可表の外に戻っている（本番の州は常に稼働中＝判定は恒真。必要なら理由を許可表に足す）：" + string.Join(" / ", bad));
+    }
+
+    [Fact]
     public void 汚職の政治の2項は物理削除されている_天命と正統性は実効汚職を読まない()
     {
         // (377) で一度消して止める線に当たり戻した 2 項（天命の汚職の項 dmGraft・腐敗→正統性の侵食）を、作者 2026-10-16「汚職→廃止」と 10-17「史実度の低下は差し戻し理由にはなりません」で

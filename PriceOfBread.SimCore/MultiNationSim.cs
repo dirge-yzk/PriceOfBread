@@ -850,7 +850,7 @@ public sealed class MultiNationSim
             {
                 var w = n.World;
                 bool coastal = false;
-                foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { coastal = true; break; }
+                foreach (var r in w.Regions) if (r.IsPort) { coastal = true; break; }
                 double gap = PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
@@ -875,7 +875,6 @@ public sealed class MultiNationSim
                 foreach (var n in Nations)
                     foreach (var r in n.World.Regions)
                     {
-                        if (r.State != RegionState.Active) continue;
                         if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
                         var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
                         if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
@@ -1057,7 +1056,6 @@ public sealed class MultiNationSim
             double m = 0, sz = 0;
             foreach (var r in Nations[i2].World.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p2 in r.Pops) { m += (p2.NewsFill * p2.Literacy + p2.RadioFill) * p2.Size; sz += p2.Size; }
             }
             media[i2] = sz > 1e-9 ? PoliticalQuantities.Clamp01(m / sz) : 0;
@@ -1387,7 +1385,7 @@ public sealed class MultiNationSim
                 double dWith = Geo.SeaDistanceKm(uw.Latitude, uw.Longitude, tollClat, tollClon, suezOpenNow, panOpenNow);
                 double dWithout = Geo.SeaDistanceKm(uw.Latitude, uw.Longitude, tollClat, tollClon, suezOpenNow && !isSuez, panOpenNow && !isPan);
                 if (dWithout - dWith < 1.0) continue;   // この運河で海路が縮まない国＝通らない＝課金しない（英仏の対印交易はスエズで縮む＝払う）
-                double traffic = 0; foreach (var r in uw.Regions) if (r.State == RegionState.Active) traffic += r.LastPortThroughput;
+                double traffic = 0; foreach (var r in uw.Regions) traffic += r.LastPortThroughput;
                 double tollBase = _coef.CanalTollTrafficRate * traffic;   // 通航トン数課金（取扱高の代理・前四半期値）＝取扱高は金建て（積出し価格）
                 double toll = tollBase / uw.FxRate * uw.FiscalFundingRatio.Value;   // 使用国の通貨（★段3-3・2026-09-30）×国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
                 if (toll <= 1e-9) continue;
@@ -1438,13 +1436,13 @@ public sealed class MultiNationSim
         foreach (var sim in Nations)
         {
             var w = sim.World;
-            double natPop = 0; foreach (var (_, p) in w.ActivePopsWithRegion()) natPop += p.Size;
+            double natPop = 0; foreach (var (_, p) in w.AllPopsWithRegion()) natPop += p.Size;
             if (natPop <= 1e-9) continue;
             double natThr = w.PortThroughputTotal();   // ★(223) 国家ルートの請求の分母（World.PortStateRequest）
             bool techOk = Discovery.SteamPower(w.Discovered);   // ★近代港湾（蒸気の浚渫・埠頭）の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の閾値 PortTechOnset 0.2）
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || !r.IsPort) continue;
+                if (!r.IsPort) continue;
                 double capBeforeDecay = r.PortCapacity;   // (292) 減耗で失った容量を要る分へ（計器でも読む）
                 if (!_calendarFrozen) r.PortCapacity = Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
                 //（港湾料は 2026-09-30 に成約の時点へ＝旧＝四半期末に取扱高×率を国の全POP から貯蓄の比で・段3-4 C10）
@@ -1482,13 +1480,13 @@ public sealed class MultiNationSim
             var w = sim.World;
             if (w.SelfPower is null) continue;
             double throughput = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) throughput += r.LastPortThroughput;
+            foreach (var r in w.Regions) throughput += r.LastPortThroughput;
             if (throughput < 1e-9) continue;
             double risk = w.LastBlockadeRisk;   // 03手順7：旧CommerceRaidFactorの置換＝リスク線積分（取扱高加重平均）
             if (!(risk > 1e-9)) continue;
             var merchants = new List<Pop>(); var exposure = new List<double>();
             foreach (var r in w.Regions)
-                if (r.State == RegionState.Active && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count)
+                if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count)
                 { merchants.Add(r.Pops[r.MerchantPopIndex]); exposure.Add(Math.Max(0, r.LastPortThroughput)); }
             if (merchants.Count == 0) continue;   // 引受手(商人)が居ない国は保険市場が立たない
             // 保険金：商人基金（引受手・貯蓄の比）→荷主（捌き手の商人・海路の取扱高の比）＝基金の範囲で部分払い（払い手の貯蓄でクランプ・移し方の1本）
@@ -1506,7 +1504,7 @@ public sealed class MultiNationSim
         // 征服で州の保有国が変われば host も新本国へ追従する（チョークポイントは地理に固定・所有は政治で動く）。
         foreach (var sim in Nations)
             foreach (var r in sim.World.Regions)
-                if (r.State == RegionState.Active && r.Name == host)
+                if (r.Name == host)
                     return sim.World.SelfPower;
         return null;
     }
@@ -1676,7 +1674,6 @@ public sealed class MultiNationSim
             };
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double o = Territory.Opportunity(r, _coef);
                 if (!double.IsFinite(o)) continue;   // ★非有限の遮断（2026-07-31・Territory 側と同じ流儀）：評価できない州は選ばない
                 var (la, lo) = Places.Coord(r.Name);
@@ -1695,7 +1692,6 @@ public sealed class MultiNationSim
             var src = Nations[s].World;
             foreach (var r in src.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double push = Territory.Opportunity(r, _coef) * Territory.Holding(r, _coef) * r.FoodFill;
                 if (!double.IsFinite(push)) continue;   // ★非有限の遮断＝評価できない州は送出元にしない
                 seenPairs += m;
@@ -1826,7 +1822,6 @@ public sealed class MultiNationSim
             // 受入先＝機会が最も高い州（★大衆移民の行き先選定と同じ物差し＝新しいスカラーを置かない）
             Region? dstR = null; double dstO = double.NegativeInfinity;
             foreach (var r in dst.Regions)
-                if (r.State == RegionState.Active)
                 { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (dstR is null || o > dstO)) { dstR = r; dstO = o; } }
             if (dstR is null) continue;
             // 送出元＝**その予算で最も多く呼べる国**を1つだけ選ぶ（⚠全組に配ると多重排水になる＝上のプロイセン空洞化の前例と同じ轍）
@@ -1843,7 +1838,6 @@ public sealed class MultiNationSim
                     Region? bR = null; double pl = 0;
                     foreach (var r in src.Regions)
                     {
-                        if (r.State != RegionState.Active) continue;
                         double sz = 0;
                         foreach (var cls in SpecialistClasses)
                         { var q = r.PopOf(cls); if (q is not null && q.Size > 0) sz += q.Size; }
@@ -1945,7 +1939,6 @@ public sealed class MultiNationSim
             double earned = 0, size = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops) { earned += p.LastEarnedPerMonth.Value; size += p.Size; }
                 pops += r.Pops.Count;
             }

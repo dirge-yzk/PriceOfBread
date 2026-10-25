@@ -83,14 +83,14 @@ public class InvariantTests
         var w = sim.World;
         Region? poor = null;
         foreach (var r in w.Regions)
-            if (r.State == RegionState.Active && !ReferenceEquals(r, w.Region) && r.Pops.Count > 0 && r.SumPopulation() > 1) { poor = r; break; }
+            if (!ReferenceEquals(r, w.Region) && r.Pops.Count > 0 && r.SumPopulation() > 1) { poor = r; break; }
         Assert.NotNull(poor);
 
         // 破綻した州＝全popの現金が尽き、1popにだけ丸め残差の負値が残る（実測と同じ桁）
         foreach (var p in poor!.Pops) p.SetSavings(0);
         poor.Pops[0].SetSavings(-8.881784197001252e-16);
         double natSav = 0, natPop = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) { natSav += p.Savings.Value; natPop += p.Size; }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { natSav += p.Savings.Value; natPop += p.Size; }
         Assert.True(natSav / natPop > 1e-9, "比の分母（国の1人あたり貯蓄）が生きている前提＝分子だけが負に転ぶ形");
 
         sim.UpdateRegionalPriceLevels();

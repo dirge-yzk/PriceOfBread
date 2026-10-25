@@ -33,7 +33,6 @@ public static partial class Instruments
             int both = 0, oldCheaper = 0; double oOldC = 0, nOldC = 0, oNewC = 0, nNewC = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 Producer? firstOld = null, firstNew = null;
                 double rOldOut = 0, rNewOut = 0;
                 foreach (var pr in r.Producers)

@@ -166,7 +166,7 @@ public class WarThemeTests
         var cede = new List<Region>();
         foreach (var r in fr.Regions)
         {
-            if (r.Id == 0 || r.State != RegionState.Active || !(r.SumPopulation() > 0)) continue;
+            if (r.Id == 0 || !(r.SumPopulation() > 0)) continue;
             if (Out(r) / r.SumPopulation() <= natPc) cede.Add(r);
         }
         Assert.True(cede.Count > 0, $"前提が崩れた：1人あたりが国の平均以下の州がない（国の平均 {natPc:G6}）");
@@ -954,7 +954,7 @@ public class WarThemeTests
         // 条件②：首都の外に政府が移れる州が無い（州が1つ）＝蜂起は地図の上に立てられない＝拮抗の判定だけ残した即時の政変。
         var sim = Board("フランス", "イギリス");
         var fr = sim.Nations[0].World;
-        foreach (var r in fr.Regions) if (r.Id != 0) r.State = RegionState.Locked;   // 首都のほかに active の州が無い国
+        fr.Regions.RemoveAll(r => r.Id != 0);   // 首都のほかに州が無い国（旧＝首都以外の州を Locked にした。稼働の状態は (568) gc3 で消えた）
         var polity0 = fr.Polity;
         var restore = PinIdeology(fr, Ideology.Communism);
         Transition(fr, reformist: 0, radical: 1.5, coerce: 1.0);
@@ -1137,9 +1137,9 @@ public class WarThemeTests
         }
         var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth.Value);
         var merchants = new System.Collections.Generic.HashSet<Pop>();
-        foreach (var r in arm.fr.Regions) if (r.State == RegionState.Active && r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
+        foreach (var r in arm.fr.Regions) if (r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
         var soldiers = new System.Collections.Generic.HashSet<Pop>();
-        foreach (var r in arm.br.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0 && r.Pops[r.SoldierPopIndex].Size > 1e-9) soldiers.Add(r.Pops[r.SoldierPopIndex]);   // ★(145) 拿捕の受け手＝兵士POP（旧＝兵力の生産者の労働 POP＝同じ兵士POP・兵力の市場は削除）
+        foreach (var r in arm.br.Regions) if (r.SoldierPopIndex >= 0 && r.Pops[r.SoldierPopIndex].Size > 1e-9) soldiers.Add(r.Pops[r.SoldierPopIndex]);   // ★(145) 拿捕の受け手＝兵士POP（旧＝兵力の生産者の労働 POP＝同じ兵士POP・兵力の市場は削除）
         Assert.NotEmpty(soldiers);
         double paid = 0, got = 0; int i = 0;
         foreach (var r in arm.fr.Regions) foreach (var p in r.Pops)

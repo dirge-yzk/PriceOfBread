@@ -34,7 +34,6 @@ public sealed class ProductionStats
         var recipesOf = new List<List<int>>?[n];
         foreach (var rg in player.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             int mn = Math.Min(rg.Markets.Length, n);
             for (int gi = 0; gi < mn; gi++)
             {
@@ -225,7 +224,6 @@ public static class ProductionTables
         double total = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             var seen = new HashSet<int>();
             foreach (var p in r.Producers)
             {
@@ -271,7 +269,7 @@ public static class ProductionTables
             bool floorOn = MinimumWageFloor.Applies(law, id);
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || id >= r.Markets.Length) continue;
+                if (id >= r.Markets.Length) continue;
                 var m = r.Markets[id];
                 demand += m.LastDemand; supply += m.LastProduced; priceW += m.Price * m.LastProduced; priceSimple += m.Price; nr++;
                 double c = MinimumWageFloor.LaborSupply(r, id, out int lp);

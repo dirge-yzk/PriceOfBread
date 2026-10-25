@@ -33,7 +33,7 @@ public class AdminDeletionTests
         SetFill(w, 0.37); w.Bureaucracy = BureaucracyLaw.Professional;
         Assert.Equal(0.37, w.AdminEfficiency, 12);                         // 一様な充足の加重平均は充足そのもの（貴族・官僚制度の段階が掛からない）
         // 重み＝州の人口：先頭の活きた州だけ満額・他は 0
-        var act = w.Regions.Where(r => r.State == RegionState.Active).ToList();
+        var act = w.Regions.ToList();
         Assert.True(act.Count >= 2);
         foreach (var r in act) r.AdminFill = 0.0;
         act[0].AdminFill = 1.0;

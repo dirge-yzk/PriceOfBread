@@ -62,7 +62,6 @@ public static partial class Instruments
         string nation = NameOf(w);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             var d = FdDiagOf(r);
             if (d is null || !d.Written || !(d.PopK > 0)) continue;
             double Div(double a, double b) => b > 0 ? a / b : double.NaN;

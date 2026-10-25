@@ -36,7 +36,6 @@ public static partial class Instruments
         double den = 0, shareNum = 0, bought = 0, produced = 0, homeLabor = 0; int rows = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             int lp = -1;

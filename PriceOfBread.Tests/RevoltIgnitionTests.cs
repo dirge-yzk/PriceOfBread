@@ -285,8 +285,7 @@ public class RevoltIgnitionTests
         sim.Run(20); other.Run(20);
         var w = sim.World;
         Assert.True(other.World.Regions.Count > 1, "前提が崩れた：他国に非首都州がない");
-        var foreign = other.World.Regions[1];   // ★反乱国家へ移った後の本拠州と同じ状態＝Active だが親の Regions にない
-        Assert.Equal(RegionState.Active, foreign.State);
+        var foreign = other.World.Regions[1];   // ★反乱国家へ移った後の本拠州と同じ状態＝親の Regions にない
         Assert.DoesNotContain(foreign, w.Regions);
         var ghost = 巨大な運動を差し込む(w, foreign);
         Politics.Step(w, w.Coef);
@@ -745,7 +744,7 @@ public class RevoltIgnitionTests
         var pw = sim.Nations[0].World;
         const double exhaustion = 0.37;
         pw.SelfPower!.WarExhaustion = exhaustion;
-        var far = pw.Regions.FindAll(r => r.Id != 0 && r.State == RegionState.Active);
+        var far = pw.Regions.FindAll(r => r.Id != 0);
         Assert.True(far.Count >= 2, "前提が崩れた：首都のほかに活動州が2つない");
 
         pw.PendingRebelRegions = [far[0]]; pw.PendingRebelPolity = Polity.Republic;   // 地方の蜂起（首都でない州の政体の建国）
@@ -801,7 +800,7 @@ public class RevoltIgnitionTests
         Assert.True(capital.ArmsStock is { Count: > 0 }, "前提が崩れた：首都に武器庫がない");
         var seat = Territory.NextCapital(pw, [capital]);
         Assert.True(seat is not null, "前提が崩れた：首都を出た後に政府の移れる州がない");
-        var first = pw.Regions.Find(r => !ReferenceEquals(r, capital) && r.State == RegionState.Active);
+        var first = pw.Regions.Find(r => !ReferenceEquals(r, capital));
         Assert.False(ReferenceEquals(first, seat), "前提が崩れた：遷都先が親の最初の残る州と同じ＝旧の行き先と区別できない");
         var seatSoldier = seat!.Pops.Find(p => p.IsSoldier);
         Assert.True(seatSoldier is not null, "前提が崩れた：遷都先に兵士POPの器がない");
@@ -881,7 +880,7 @@ public class RevoltIgnitionTests
         // ②
         var (simC, brC) = Make();
         var capC = brC.Regions[0];
-        var toC = brC.Regions.Find(r => r.Id != 0 && r.State == RegionState.Active)!;
+        var toC = brC.Regions.Find(r => r.Id != 0)!;
         var armsCap0 = new Dictionary<int, double>(capC.ArmsStock!);
         var armsTo0 = toC.ArmsStock is { } t0 ? new Dictionary<int, double>(t0) : new Dictionary<int, double>();
         Assert.True(armsCap0.Count > 0, "前提が崩れた：首都に武器庫がない");
@@ -892,7 +891,7 @@ public class RevoltIgnitionTests
 
         // ③
         var (simD, brD) = Make();
-        var sec = brD.Regions.Find(r => r.Id != 0 && r.State == RegionState.Active && r.ArmsStock is null);
+        var sec = brD.Regions.Find(r => r.Id != 0 && r.ArmsStock is null);
         Assert.True(sec is not null, "前提が崩れた：武器庫の開いていない非首都州がない");
         brD.PendingSecessionWars = [sec!];
         int nD = simD.Nations.Count;
@@ -1238,7 +1237,7 @@ public class RevoltIgnitionTests
         {
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             var w = sim.World; var c = w.Coef;
-            var r = w.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active && Politics.RegionCrowd(x) > 100)!;
+            var r = w.Regions.Find(x => x.Id != 0 && Politics.RegionCrowd(x) > 100)!;
             Assert.NotNull(r);
             var cap = w.Regions.Find(x => x.Id == 0)!;
             w.Tariff = 1.0;             // 国の関税姿勢＝保護の端（州の関税の利害は開幕で0＝乖離1）

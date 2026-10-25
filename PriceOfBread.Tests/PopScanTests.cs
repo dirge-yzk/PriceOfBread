@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// 州×POP の走査のまとめ（2026-10-15 (351)・案 A・結果を変えない）の番人。期待値は各試験の中の素の入れ子の <c>foreach</c>・旧の式の写しから作る（実装の列挙・窓を通さない）。
-/// ・名前のある 2 つの集合（国家会計の集合／稼働中の州だけ）が旧の入れ子の走査と同じ列を返す。
+/// ・名前のある集合（国家会計の集合）が旧の入れ子の走査と同じ列を返す。
 /// ・窓（<see cref="PopWindow"/>）の中は使い回し・外は求め直し。使い回す和は求め直しと 1 ビットも違わない。
 /// ・課税の走査（<see cref="Fiscal.TaxScan"/>）の並行の列は POP の一覧と同じ並びで対になる（添字合わせが構造で消えた）。
 /// ・州の価格水準の 1 周の求め方は旧の 2 周の式とビット一致。払い手の保有の合計を渡す移し方は、渡さない移し方とビット一致。
@@ -15,53 +15,30 @@ public class PopScanTests
     private static World Britain() => new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
 
     [Fact]
-    public void 国家会計の走査は絞らず稼働中の走査は稼働中の州だけを返す()
+    public void 国家会計の走査は絞らず全ての州の全てのPOPを並びのまま返す()
     {
         var w = Britain();
         Assert.True(w.Regions.Count >= 3, "前提が崩れた：州が足りない");
-        w.Regions[1].State = RegionState.Locked;   // 試験の盤面の辺境と同じ状態を 1 州に作る
-        var all = new List<(Region, Pop)>(); var active = new List<(Region, Pop)>();
+        var all = new List<(Region, Pop)>();
         foreach (var r in w.Regions)
-            foreach (var p in r.Pops) { all.Add((r, p)); if (r.State == RegionState.Active) active.Add((r, p)); }   // 期待値＝素の入れ子の走査
-        Assert.True(active.Count < all.Count && active.Count > 0, "前提が崩れた：稼働していない州の POP が無い");
+            foreach (var p in r.Pops) all.Add((r, p));   // 期待値＝素の入れ子の走査
+        Assert.True(all.Count > 0);
         var gotAll = new List<(Region, Pop)>(); foreach (var (r, p) in w.AllPopsWithRegion()) gotAll.Add((r, p));
-        var gotActive = new List<(Region, Pop)>(); foreach (var (r, p) in w.ActivePopsWithRegion()) gotActive.Add((r, p));
-        Assert.Equal(all.Count, gotAll.Count); Assert.Equal(active.Count, gotActive.Count);
+        Assert.Equal(all.Count, gotAll.Count);
         for (int i = 0; i < all.Count; i++) { Assert.Same(all[i].Item1, gotAll[i].Item1); Assert.Same(all[i].Item2, gotAll[i].Item2); }
-        for (int i = 0; i < active.Count; i++) { Assert.Same(active[i].Item1, gotActive[i].Item1); Assert.Same(active[i].Item2, gotActive[i].Item2); }
         Assert.Equal(all.Select(x => x.Item2), w.AllPops());   // 旧の入口 AllPops も同じ列
     }
 
-    /// <summary>★(559) 恒等の線 gc2：稼働の判定を外した読み手（Discovery.Score・CustomaryRentShare・State の建国時の数・国庫の近代化投資の適格・高等教育の按分・兵士の給与の請求ほか）が成り立つ前提＝
-    /// 本番の盤面は州を稼働でない（Locked）にしない。全 61 国を建て、建国時の州は全て稼働中・建国時の稼働州の数＝州の数・数四半期進めても全て稼働中。
-    /// ⚠突然変異「建国時の数を 1 つ減らす」「建てた州を 1 つ Locked にする」で赤。
-    /// ⚠限界（(560) 合流・反証役 gc2〔v〕低）：見るのは開幕と 4 四半期後だけ＝恒真の本当の根拠は〈SimCore・App・Runner に State = RegionState.Locked の代入が 0 件〉というソースの事実。それより後に Locked を代入する経路が入っても赤にならない（gc3 で型ごと消せばこの番人ごと要らない）。</summary>
+    /// <summary>建国時の州の数（<see cref="World.FoundingActiveProvinces"/>＝残余国判定の分母）は、建国の時点の植民地でない州の数に等しい。
+    /// ((559) gc2 は州の稼働の判定を外す前提として、全 61 国の州が全て稼働中であることもここで見ていた。(568) gc3 で稼働の状態の読み手が 0 になったので、その前提の側は消えた。)
+    /// ⚠突然変異「建国時の数を 1 つ減らす」で赤。</summary>
     [Fact]
-    public void 全61国の本番の盤面は全ての州が稼働中で建国時の数は州の数()
+    public void 全61国の建国時の州の数は植民地でない州の数()
     {
         var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
         Assert.True(sim.Nations.Count >= 50, "前提が崩れた：国が少ない");
         foreach (var n in sim.Nations)
-        {
-            Assert.All(n.World.Regions, r => Assert.Equal(RegionState.Active, r.State));
             Assert.Equal(n.World.Regions.Count(r => r.Tier != RegionTier.Colonial), n.World.FoundingActiveProvinces);   // 建国時の州＝植民地の州は後から足される
-        }
-        sim.Run(4);
-        foreach (var n in sim.Nations) Assert.All(n.World.Regions, r => Assert.Equal(RegionState.Active, r.State));
-    }
-
-    [Fact]
-    public void 本番の盤面では稼働中の走査と国家会計の走査は同じ列()
-    {
-        foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.France() })
-        {
-            var w = new Simulation(cfg.ToScenario(41), new NullAgent()).World;
-            Assert.All(w.Regions, r => Assert.Equal(RegionState.Active, r.State));
-            var a = new List<Pop>(); foreach (var (_, p) in w.AllPopsWithRegion()) a.Add(p);
-            var b = new List<Pop>(); foreach (var (_, p) in w.ActivePopsWithRegion()) b.Add(p);
-            Assert.Equal(a, b);
-            Assert.True(a.Count > 0);
-        }
     }
 
     [Fact]
@@ -161,7 +138,7 @@ public class PopScanTests
         Assert.Throws<InvalidOperationException>(() => { foreach (var (r, _) in w.AllPopsWithRegion()) r.Pops.RemoveAt(r.Pops.Count - 1); });
         var w2 = Britain();
         Assert.True(w2.Regions.Count >= 2, "前提が崩れた：州が足りない");
-        Assert.Throws<InvalidOperationException>(() => { foreach (var _ in w2.ActivePopsWithRegion()) w2.Regions.RemoveAt(w2.Regions.Count - 1); });
+        Assert.Throws<InvalidOperationException>(() => { foreach (var _ in w2.AllPopsWithRegion()) w2.Regions.RemoveAt(w2.Regions.Count - 1); });
     }
 
     /// <summary>★(352) 反証役〔pu v〕低：取り立ての番人は動かす額が決まった後＝窓の中でも 0 しか動かさない呼びは止めない（他の書き込み口と同じ形）。</summary>
@@ -254,7 +231,7 @@ public class PopScanTests
         Assert.Equal(n, off.Pops.Count); Assert.Null(off.ScopeInc); Assert.Equal(n, off.RuleMul.Count); Assert.Equal(n, off.RuleCut.Count); Assert.Equal(n, off.RuleLord.Count);
     }
 
-    /// <summary>州の価格水準の 1 周の求め方＝旧の 2 周の式（この試験に写した）とビット一致。州ごとに貯蓄と所得の厚みを変えて、稼働していない州を挟む。</summary>
+    /// <summary>州の価格水準の 1 周の求め方＝旧の 2 周の式（この試験に写した）とビット一致。州ごとに貯蓄と所得の厚みを変える。</summary>
     [Fact]
     public void 州の価格水準の1周の求め方は旧の2周とビット一致()
     {
@@ -266,19 +243,17 @@ public class PopScanTests
         Assert.True(w.Regions.Count >= 4);
         for (int i = 0; i < w.Regions.Count; i++)
             foreach (var p in w.Regions[i].Pops) { p.SetSavings(p.Savings.Value * (1.0 + 0.37 * i) + 0.1 * i); p.EarnedPerMonth = new MoneyPerMonth(p.EarnedPerMonth.Value * (1.0 + 0.21 * i) + 0.3); }
-        w.Regions[2].State = RegionState.Locked;   // 稼働していない州を挟む（旧も飛ばす）
         var c = w.Coef;
         var prevPrem = w.Regions.Select(r => r.WagePremium).ToArray();
         // ── 旧の 2 周の式（写し） ──
         double natSav = 0, natEarn = 0, natPop = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active)
+        foreach (var r in w.Regions)
             foreach (var p in r.Pops) { natSav += p.Savings.Value; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
         double natPerCap = natPop > 1e-9 ? natSav / natPop : 0, natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;
         var expMult = new double[w.Regions.Count]; var expPrem = new double[w.Regions.Count];
         for (int i = 0; i < w.Regions.Count; i++)
         {
             var r = w.Regions[i];
-            if (r.State != RegionState.Active) { expMult[i] = 1.0; expPrem[i] = 1.0; continue; }
             double rSav = 0, rEarn = 0, rPop = 0;
             foreach (var p in r.Pops) { rSav += p.Savings.Value; rEarn += p.EarnedPerMonth.Value; rPop += p.Size; }
             double mult = 1.0;

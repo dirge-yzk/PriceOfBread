@@ -16,7 +16,7 @@ public class PaySalesMerchantTests
         var s = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         s.Run(2);
         var w = s.World;
-        var r = w.Regions.First(x => x.State == RegionState.Active && x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count);
+        var r = w.Regions.First(x => x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count);
         int g = Enumerable.Range(0, r.Markets.Length).First(i => !r.Producers.Any(p => p.GoodId == i));   // その州に売り手の生産者が居ない財
         return (w, r, g);
     }
@@ -39,7 +39,7 @@ public class PaySalesMerchantTests
         var s = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         s.Run(2);
         var w = s.World;
-        var r = w.Regions.First(x => x.State == RegionState.Active && x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count && x.Pops[x.MerchantPopIndex].Size > 1e-6);
+        var r = w.Regions.First(x => x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count && x.Pops[x.MerchantPopIndex].Size > 1e-6);
         int g = Enumerable.Range(0, r.Markets.Length).First(i => !r.Producers.Any(p => p.GoodId == i));
         var mer = r.Pops[r.MerchantPopIndex];
         double mBefore = mer.Savings.Value, othersBefore = r.Pops.Where(p => !ReferenceEquals(p, mer)).Sum(p => p.Savings.Value);

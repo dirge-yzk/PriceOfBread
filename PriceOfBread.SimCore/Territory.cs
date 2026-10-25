@@ -21,7 +21,7 @@ public static class Territory
         //   旧＝最大の機会の1州（と第2の州に MigrationSecondDestShare＝0.3）だけへ、距離に依らず流した＝上位2州の受け入れの上限が国の移民の総量を決め
         //   （(125) の後の国内の移民＝州の間の出÷州の人口 四半期 0.2‰）、征服された遠い州からも大陸を越えて首都圏へ流れた（(137) の 4e-2b の移民の1/10 の1件＝バルナウル→プーナ）。
         var active = new List<Region>();
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) active.Add(r);
+        foreach (var r in w.Regions) active.Add(r);
         int k = active.Count;
         if (k < 2) return;
 
@@ -303,7 +303,7 @@ public static class Territory
         //   旧＝移し替えで容量は送り手に全部残った＝建国の新しい国は船腹0・鉄道0で生まれ（fff9f01 の10種＝生まれ≥1000 の新しい国の最初の8四半期は4分の3以上で輸出0）、
         //   送り手の残る州は同じ容量を少ない州で分けた（取り分の窓落ち）。新＝出ていく前の取り分（清算と同じ規則）で送り手から引き、受け手へ足す（建国は呼び手が新しい国へ）。
         //   残る州の容量は変わらない（潜在量比例＝旧の旗 TransportShareByPotential=1 の既定の形では、送り手の容量×(1−s) を残る州の潜在量で分け直す＝前と同じ）。活動していない州は取り分0。
-        double sh = r.State == RegionState.Active ? Transport.RegionShare(Transport.ShareBasis(from, from.Coef), r) : 0.0;
+        double sh = Transport.RegionShare(Transport.ShareBasis(from, from.Coef), r);
         if (!(sh > 0)) sh = 0;   // 否定形＝NaN は移さない側へ（取り分は定義上 0..1）
         double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
         from.RailCapacity -= rail; from.ShipCapacity -= ship;
@@ -338,7 +338,7 @@ public static class Territory
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
         // ★(183) 植民地の保存の台帳：植民地格へ戻る州は、植民地格を出たときの出口（独立の確定＝本土・植民地の昇格＝編入）から1つ戻す
         //   （Validation「植民地の保存」＝植民地格の州＋独立＋昇格＋吸収＝初期＝植民地格が1つ増えた分だけ出口を減らす）。
-        bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial && r.State == RegionState.Active;
+        bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
         RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
         if (backToColony && to?.Diplomacy is { } dg)
@@ -357,7 +357,7 @@ public static class Territory
         Region? cap = null; double capBest = double.MinValue;
         foreach (var q in from.Regions)
         {
-            if (q.State != RegionState.Active || (leaving is not null && leaving.Contains(q))) continue;
+            if ((leaving is not null && leaving.Contains(q))) continue;
             double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
             if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
         }

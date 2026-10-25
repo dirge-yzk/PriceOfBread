@@ -48,7 +48,6 @@ public static class TechEducation
         if (baseSpeed > 0)
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                 {
                     if (p.IsCriminal) continue;   // ★(366) 犯罪者は教育を買っても識字へ効かせない（教育の供給を吸うだけ＝設計 doc §4）。犯罪者の POP が無い世界では偽＝恒等
@@ -168,7 +167,6 @@ public static class TechEducation
         double secular = 0, total = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             if (coreOnly && r.Tier == RegionTier.Colonial) continue;   // ★本国のみ（2026-08-26）
             foreach (var p in r.Producers)
                 if (p.GoodId == Catalog.EducationId)

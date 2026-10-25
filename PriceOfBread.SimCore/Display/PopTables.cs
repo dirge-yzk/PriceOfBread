@@ -110,7 +110,6 @@ public static class PopTables
         var agg = new Dictionary<int, List<(Region Rg, Pop P)>>();
         foreach (var rg in w.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             foreach (var p in rg.Pops)
             {
                 if (!agg.TryGetValue(p.ClassId, out var l)) { agg[p.ClassId] = l = new(); order.Add(p.ClassId); }
@@ -247,7 +246,6 @@ public static class PopTables
         var lines = new List<RegionLine>();
         foreach (var rg in w.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             double un = 0;
             foreach (var p in rg.Pops) if (!p.IsSoldier) un += p.Size * p.UnemploymentRate.Value;   // 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
             lines.Add(new RegionLine(rg.Name, rg.SumPopulation(), un, rg.FoodFill, rg.HousingFill, w.Coef.HousingNeedPerUrban > 0, RuleParts(rg), rg.IsPort, rg.PortCapacity));
@@ -275,7 +273,6 @@ public static class PopTables
         double total = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double p = r.SumPopulation();
             if (p <= 0) continue;
             total += p;

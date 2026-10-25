@@ -159,7 +159,7 @@ public class FiscalPopDiscoveryTablesTests
         var (sim, w) = Board(6);
         var lines = PopTables.ClassLines(w);
         double popActive = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) popActive += p.Size;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) popActive += p.Size;
         Assert.Equal(popActive, lines.Sum(l => l.Size), 6);
         Assert.All(lines, l => Assert.Equal(1.0, l.LeanNone + l.LeanConservative + l.LeanLiberal + l.LeanSocialist, 6));
         // 群（上流・中流・下流）は表の中で連続している（間に別の群が挟まらない）
@@ -167,7 +167,7 @@ public class FiscalPopDiscoveryTablesTests
         foreach (var l in lines) { if (l.Layer != prev && !seen.Add(l.Layer)) Assert.Fail("層が分断されている"); prev = l.Layer; }
         Assert.Equal(lines.Count, lines.Select(l => l.ClassId).Distinct().Count());
         var regions = PopTables.RegionLines(w);
-        Assert.Equal(w.Regions.Count(r => r.State == RegionState.Active), regions.Count);
+        Assert.Equal(w.Regions.Count, regions.Count);
         Assert.All(regions, r => Assert.Equal(1.0, r.Rule.Sum(x => x.Share), 6));
         Assert.Equal(regions.OrderByDescending(r => r.Population).Select(r => r.Name).ToArray(), regions.Select(r => r.Name).ToArray());
         // 宗教と文化の割合は 1 に閉じる

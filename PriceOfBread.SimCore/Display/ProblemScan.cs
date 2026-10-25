@@ -91,7 +91,6 @@ public static class ProblemScan
         var stopped = new double[n];
         foreach (var rg in w.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             foreach (var p in rg.Producers)
             {
                 int g = p.GoodId;

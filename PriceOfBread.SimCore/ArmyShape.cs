@@ -205,7 +205,6 @@ public static class ArmyShape
             if (ps[i].Nation is not { } w) continue;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 var cc = Climate.CityCoord(r.Name);
                 if (cc.Lat == 0 && cc.Lon == 0) continue;   // 座標の無い州＝陸路グラフに居ない
                 int nd = PathGraph.NearestNode(cc.Lat, cc.Lon);

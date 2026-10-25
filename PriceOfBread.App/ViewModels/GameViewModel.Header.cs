@@ -19,7 +19,7 @@ public partial class GameViewModel
     {
         double s = 0;
         foreach (var rg in _player.Regions)
-            if (rg.State == RegionState.Active) s += RegionProduction(rg);
+            s += RegionProduction(rg);
         return s;
     }
 
@@ -98,7 +98,6 @@ public partial class GameViewModel
             double manpower = 0, soldiers = 0;
             foreach (var r in _player.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double pool = 0, sld = 0;
                 foreach (var p in r.Pops)
                 {
@@ -370,7 +369,7 @@ public partial class GameViewModel
     {
         var rows = new List<StatTerm>();
         var list = new List<(string Name, double Ind)>();
-        foreach (var r in _player.Regions) if (r.State == RegionState.Active) list.Add((r.Name, r.Industrialization));
+        foreach (var r in _player.Regions) list.Add((r.Name, r.Industrialization));
         list.Sort((a, b) => b.Ind.CompareTo(a.Ind));
         for (int i = 0; i < list.Count && i < 8; i++) rows.Add(Neutral($"{list[i].Name}　{list[i].Ind:F2}"));
         return rows;

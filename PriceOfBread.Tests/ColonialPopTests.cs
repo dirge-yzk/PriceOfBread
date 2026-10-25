@@ -21,7 +21,7 @@ public class ColonialPopTests
         w.ShipSteamShare = new Share(1.0);   // 補給線が石炭を焚く状態（帆走の時代は距離の物理消費が0＝比べられない）
         w.ShipCapacity = 10_000;     // ★(173) R4：補給線の燃料は占有された船腹（容量×占有÷(1＋占有)）の汽船の分＝船腹が要る（構築の直後は容量0）
         double Km(Region r) { var cc = Places.Coord(r.Name); return Geo.SeaDistanceKm(w.Latitude, w.Longitude, cc.Lat, cc.Lon, false, false); }
-        var cols = w.Regions.Where(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial).ToList();
+        var cols = w.Regions.Where(r => r.Tier == RegionTier.Colonial).ToList();
         var outpost = cols.Where(r => r.Resources.Length == 0).OrderByDescending(Km).First();
         var big = cols.Where(r => Km(r) < Km(outpost)).OrderByDescending(r => r.SumPopulation()).First();
         Assert.True(Km(outpost) > Km(big) && outpost.SumPopulation() < big.SumPopulation(),
@@ -45,7 +45,7 @@ public class ColonialPopTests
     //   （2026-09-28・09-29）。輸出作物の判別（賦存かつ主食でない）・缶詰の撤去・占有の軽くし方（容量倍で割る）・燃料の分け方は AI の推奨（作者の承認は未確認）。
 
     private static Region ColonyWith(World w, int good) =>
-        w.Regions.First(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == good && Colonial.AbsenteeRgo(r, p)));
+        w.Regions.First(r => r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == good && Colonial.AbsenteeRgo(r, p)));
 
     /// <summary>★(173) R1＋c6：植民地格の州の賦存の輸出作物（主食でない）は大農園＝地代の取り分は本国の賦存州と同じ PlantationRentShare・持ち主の口座は資本家・
     /// 不在地主の判別が立つ。賦存の主食（トウモロコシ）は現地の地主のまま（自作農の床・持ち主は農民・不在地主でない＝「現地の地主＝今の持ち主」は AI の読み・(177) 反証役 vc1#7）。盤面＝英西の構築の直後（西の中央メキシコ＝サトウキビ・トウモロコシの賦存）。
@@ -174,9 +174,9 @@ public class ColonialPopTests
         double want = c.ShipFuelRate * era * 1.0 * occ * EconomyStep.StatePriceAfford(r, c, Catalog.CoalId);
         Assert.Equal(want, r.Markets[Catalog.CoalId].LastDemand - coal0, 9);
         // 商人の燃料（Transport の BuyShipFuel）＝交易に使える容量の分だけ
-        double before = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) before += rg.Markets[Catalog.CoalId].LastDemand;
+        double before = 0; foreach (var rg in w.Regions) before += rg.Markets[Catalog.CoalId].LastDemand;
         typeof(Transport).GetMethod("BuyShipFuel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.Invoke(null, [w, c, era]);
-        double after = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) after += rg.Markets[Catalog.CoalId].LastDemand;
+        double after = 0; foreach (var rg in w.Regions) after += rg.Markets[Catalog.CoalId].LastDemand;
         Assert.Equal(c.ShipFuelRate * era * (w.ShipCapacity - occ) * 1.0, after - before, 6);
     }
 }

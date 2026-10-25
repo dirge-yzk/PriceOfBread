@@ -764,7 +764,6 @@ public partial class GameViewModel
         double total = 0, now = 0, manTotal = 0;
         foreach (var rg in _player.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             double manpower = Military.RegionManpower(rg, c);   // Military.Step の兵役の母数と同じ1本（働き盛りの男・兵士も同じ単位・支配度の届き方）＝兵士POPの無い州は0
             if (!(manpower > 0)) continue;   // 兵士POPの無い州は徴募の対象外（Military.Step の soldier==null と同じ）
             double sld = 0; foreach (var p in rg.Pops) if (p.IsSoldier) sld += p.Size;
