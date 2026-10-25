@@ -1,14 +1,14 @@
 {
 "format":"opening_bake/1",
 "header":{
- "sourceHash":"unknown",
+ "sourceHash":"91794ef4d1fc8f79",
  "inputHash":"4ab099c5825af82c",
  "seed":1,
  "quartersRun":153,
  "converged":true,
  "capQuarters":200,
  "arm":"thawCapacity+stopSocialMobility+stopPopDecision (473 arm D)",
- "generated":"2026-10-24",
+ "generated":"2026-10-25",
  "nations":61
 },
 "capNames":["Industrialization","OldVintageCapital","VintageTechLevel","StrandedVintage","DevelopmentPeak","GridCapacity","PriceLevel","LocalPriceMultiplier"],
