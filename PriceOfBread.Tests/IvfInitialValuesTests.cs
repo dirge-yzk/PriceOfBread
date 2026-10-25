@@ -24,7 +24,7 @@ public class IvfInitialValuesTests
         return new Simulation(sc, new NullAgent());
     }
 
-    private static Region CapitalRegion(World w) => w.Regions.First(r => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0);
+    private static Region CapitalRegion(World w) => w.Regions.First(r => r.CapitalEnabled && r.InvestorPopIndex >= 0);
 
     // ---------------------------------------------------------------- 旗の既定・時代の組の量（手の値）
 
@@ -252,7 +252,7 @@ public class IvfInitialValuesTests
     {
         var sim = Make(NationConfig.Britain(), c => { c.ConstructionEraBundle = 1; c.MachineCastIronRecipe = 1; c.RegionalPriceBaseExcludesColonies = 1; });
         foreach (var r in sim.World.Regions)
-            if (r.State == RegionState.Active && r.CapitalEnabled) { r.Markets[Catalog.SteelId].Price *= 4; r.Markets[Catalog.MachineryId].Price *= 4; }
+            if (r.CapitalEnabled) { r.Markets[Catalog.SteelId].Price *= 4; r.Markets[Catalog.MachineryId].Price *= 4; }
         var ex = Record.Exception(() => sim.Run(2));
         Assert.Null(ex);
     }
@@ -267,9 +267,8 @@ public class IvfInitialValuesTests
             sim.Run(3);
             var sb = new System.Text.StringBuilder();
             foreach (var r in sim.World.Regions)
-                if (r.State == RegionState.Active)
-                    foreach (int g in new[] { Catalog.SteelId, Catalog.IronId, Catalog.MachineryId, Catalog.CementId, Catalog.LumberId })
-                        sb.Append(r.Markets[g].Price.ToString("R")).Append(',').Append(r.Markets[g].Stock.ToString("R")).Append(';');
+                foreach (int g in new[] { Catalog.SteelId, Catalog.IronId, Catalog.MachineryId, Catalog.CementId, Catalog.LumberId })
+                    sb.Append(r.Markets[g].Price.ToString("R")).Append(',').Append(r.Markets[g].Stock.ToString("R")).Append(';');
             return sb.ToString();
         }
         string a = Trace(c => { });
@@ -324,7 +323,7 @@ public class IvfInitialValuesTests
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 83) { DiplomacyFrozen = true };
         var uk = sim.Nations.First(n => n.World.SelfPower!.Name == "イギリス");
-        return (uk, uk.World.Regions.Where(r => r.State == RegionState.Active).ToList());
+        return (uk, uk.World.Regions.ToList());
     }
 
     [Fact]

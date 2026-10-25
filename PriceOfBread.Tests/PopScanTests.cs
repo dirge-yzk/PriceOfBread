@@ -32,6 +32,23 @@ public class PopScanTests
         Assert.Equal(all.Select(x => x.Item2), w.AllPops());   // 旧の入口 AllPops も同じ列
     }
 
+    /// <summary>★(559) 恒等の線 gc2：稼働の判定を外した読み手（Discovery.Score・CustomaryRentShare・State の建国時の数・国庫の近代化投資の適格・高等教育の按分・兵士の給与の請求ほか）が成り立つ前提＝
+    /// 本番の盤面は州を稼働でない（Locked）にしない。全 61 国を建て、建国時の州は全て稼働中・建国時の稼働州の数＝州の数・数四半期進めても全て稼働中。
+    /// ⚠突然変異「建国時の数を 1 つ減らす」「建てた州を 1 つ Locked にする」で赤。</summary>
+    [Fact]
+    public void 全61国の本番の盤面は全ての州が稼働中で建国時の数は州の数()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        Assert.True(sim.Nations.Count >= 50, "前提が崩れた：国が少ない");
+        foreach (var n in sim.Nations)
+        {
+            Assert.All(n.World.Regions, r => Assert.Equal(RegionState.Active, r.State));
+            Assert.Equal(n.World.Regions.Count, n.World.FoundingActiveProvinces);
+        }
+        sim.Run(4);
+        foreach (var n in sim.Nations) Assert.All(n.World.Regions, r => Assert.Equal(RegionState.Active, r.State));
+    }
+
     [Fact]
     public void 本番の盤面では稼働中の走査と国家会計の走査は同じ列()
     {

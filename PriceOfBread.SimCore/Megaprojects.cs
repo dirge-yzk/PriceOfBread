@@ -23,7 +23,7 @@ public static class Megaprojects
         foreach (var sim in nations)
             foreach (var r in sim.World.Regions)
             {
-                if (r.State != RegionState.Active || r.MonumentBuiltUnits <= 0) continue;
+                if (r.MonumentBuiltUnits <= 0) continue;
                 double total = 0;
                 foreach (var mp in dip.Megaprojects)
                     if (!mp.IsComplete && mp.Host == r.Name && mp.PendingClaim > 0) total += mp.PendingClaim;
@@ -81,7 +81,7 @@ public static class Megaprojects
         var hostIndex = new Dictionary<string, (Simulation Sim, Region Region)>();
         foreach (var sim in nations)
             foreach (var r in sim.World.Regions)
-                if (r.State == RegionState.Active) hostIndex.TryAdd(r.Name, (sim, r));
+                hostIndex.TryAdd(r.Name, (sim, r));
         foreach (var mp in dip.Megaprojects)
         {
             // host 州とその保有国を解決（毎四半期＝征服で保有者が動く）。植民地は見ない＝州が無ければ着工不能。

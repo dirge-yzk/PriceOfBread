@@ -134,7 +134,7 @@ public sealed class Simulation
         if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用系列（同型・係数 0 では引かない）
-        foreach (var r0 in regions) if (r0.State == RegionState.Active) World.FoundingActiveProvinces++;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
+        World.FoundingActiveProvinces += regions.Count;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
         if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(383) 最初の決算の前の AdminFill は満額でなく 0（行政財のある世界だけ＝fail-closed）。★(369) 州の開幕の人口＝扶養力の錨の定数（構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
         // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
         //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
@@ -2028,7 +2028,7 @@ public sealed class Simulation
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
-            if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+            if (r.SoldierPopIndex < 0) continue;
             double size = r.Pops[r.SoldierPopIndex].Size;
             soldierRegularPay[ri] = size * Military.RecruitWage(r, World.Coef, last: false) * World.Coef.SoldierPayMult;
             soldierBasePay[ri] = keepPay ? size * Military.RecruitWage(r, World.Coef, last: false, keep: true) * World.Coef.SoldierPayMult : soldierRegularPay[ri];
@@ -2041,7 +2041,6 @@ public sealed class Simulation
         if (!(equipRoom >= 0)) equipRoom = 0;
         double equipClaimNat = 0;   // 州ループで立った装備の請求（首都・r を掛ける前）＝下の質の残り
         foreach (var r in World.Regions)
-            if (r.State == RegionState.Active)
             {
                 r.ColonialAccess = colonialAccess;
                 // 軍需調達：軍隊（兵士POP）＋治安維持力に比例、交戦中は増（武器需要ブーム）。財源は国庫の一部。
@@ -2204,7 +2203,7 @@ public sealed class Simulation
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
-            if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+            if (r.SoldierPopIndex < 0) continue;
             r.SoldierPayBudget = soldierBasePay[ri] * soldierPayFill + soldierRegularPay[ri] * trainShare;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）・★(161) 兵卒の給与（手当か規定）＋幹部の給与（規定の物差し）
             World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が後 段0）
         }
@@ -2253,7 +2252,6 @@ public sealed class Simulation
         double lastRate = World.FiscalFundingRatio.Value;
         double regrow = lastRate > 0 ? 1.0 / lastRate : 0.0;
         foreach (var r in World.Regions)
-            if (r.State == RegionState.Active)
             {
                 if (payQuarter) claims += World.PortStateRequest(r, portThr);
                 claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本
@@ -2346,7 +2344,6 @@ public sealed class Simulation
         World.FiscalFundingRatio = new Share(payRate);
         if (Instruments.On) Instruments.Rate(World, claims, payable, payRate, devalued);
         foreach (var r in World.Regions)
-            if (r.State == RegionState.Active)
             {
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
                 r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // ★(189) 艦の予算にも同じ r
@@ -2423,7 +2420,7 @@ public sealed class Simulation
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
-            if (r.State == RegionState.Active && !(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
+            if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
         ProbeCheck("月次政治");
         if (!World.WarmupFrozen) Territory.Step(World, World.Coef);      // §5.2/§A-8（解錠＋地域間移民）。助走中は止める＝州の解錠も国内移住も「時間が経って起きる」こと

@@ -1716,7 +1716,6 @@ public sealed class World
         if (regionIndex < 0 || regionIndex >= Regions.Count) return (false, "州が不正");
         if (goodId >= 0 && goodId < Catalog.Goods.Length && Catalog.Goods[goodId].Tier == GoodTier.Service) return (false, "役務は建てられない");
         var r0 = Regions[regionIndex];
-        if (r0.State != RegionState.Active) return (false, "州が非稼働");
         var p0 = FindFactory(r0, goodId);
         if (p0 is null) return (false, "産地・生産者がない");
         if (p0.ConstructionLeft > 0) return (false, "既に建設中");
@@ -1747,7 +1746,6 @@ public sealed class World
         if (regionIndex < 0 || regionIndex >= Regions.Count) return false;
         if (goodId >= 0 && goodId < Catalog.Goods.Length && Catalog.Goods[goodId].Tier == GoodTier.Service) return false;   // 役務（学校・病院・役所・労働）は工場として建てられない
         var r = Regions[regionIndex];
-        if (r.State != RegionState.Active) return false;
         var p = FindFactory(r, goodId);
         if (p is null || p.ConstructionLeft > 0) return false;            // 既に建設中
         if (!(Discovery.Gate(r, p) > 0)) return false;                    // ★(260) 発見の門が閉じた個体には建てない（完成の月に技術ゲート0の操業規模0が操業規模を0に置く＝不活性の設備になる）。AI・プレイヤー・月次の再挑戦が通る唯一の着工の口
@@ -1959,10 +1957,10 @@ public sealed class World
         if (eduPart > 0)
         {
             double ew = 0;
-            for (int i = 0; i < weight.Length; i++) if (Regions[i].State == RegionState.Active) ew += weight[i] = HigherEduGap(Regions[i]);
+            for (int i = 0; i < weight.Length; i++) ew += weight[i] = HigherEduGap(Regions[i]);
             if (ew > 1e-9)
             {
-                for (int i = 0; i < weight.Length; i++) if (Regions[i].State == RegionState.Active) Regions[i].HigherEduFunding += eduPart * (weight[i] / ew);
+                for (int i = 0; i < weight.Length; i++) Regions[i].HigherEduFunding += eduPart * (weight[i] / ew);
                 budget -= eduPart;   // 建設へ回す残り
             }
             // ⚠どこにも進学したい者が居なければ人材へは配らない＝budget を減らさず全額を建設へ（fail-open＝投資が静かに消えない）
@@ -1997,7 +1995,7 @@ public sealed class World
 
     /// <summary>国庫の近代化投資を注ぐ適格の州＝活きていて・資本区画を持ち・投資家 POP があり・工業化度（新旧合計）が州の上限に達していない（上限判定は新旧合計・ヴィンテージ2026-07-10）。
     /// <see cref="ApplyModernizationInvestment"/>（配り先）と <see cref="ModernizeReturnShare"/>（AI の信号）が同じ 1 本を読む（(416) でローカル関数から抜き出した・式は同じ）。</summary>
-    internal bool StateInvestEligible(Region r) => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
+    internal bool StateInvestEligible(Region r) => r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
 
     /// <summary>国庫の近代化投資の州への按分の重み＝その州が実際に変換できる量＝上限までの余地×建設材の手当（4材の最小在庫÷必要量）。<see cref="ApplyModernizationInvestment"/> のローカル関数から抜き出した((416)・式は同じ)。</summary>
     internal double StateInvestWeight(Region r)

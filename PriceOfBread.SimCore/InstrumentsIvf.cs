@@ -68,7 +68,6 @@ public static partial class Instruments
         double bundleRef = EconomyStep.BundleRef(c);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double pop = r.SumPopulation();
             bool mainland = r.Tier != RegionTier.Colonial;
             if (IvfAccs.TryGetValue(r, out var a))

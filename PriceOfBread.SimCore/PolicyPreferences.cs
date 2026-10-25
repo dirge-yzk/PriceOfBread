@@ -182,7 +182,6 @@ public static class PolicyPreferences
     {
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double c = double.PositiveInfinity;
             foreach (var pr in r.Producers) if (pr.IsRgo && pr.RentShare.Value < c) c = pr.RentShare.Value;
             return double.IsPositiveInfinity(c) ? 0.0 : c;

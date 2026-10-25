@@ -525,7 +525,6 @@ public static class Discovery
         double maxInd = 0;   // 州の最大工業化度（株式会社の必要性＝立っている工業資本の大きさ・旧の閾値と同じ量）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
             foreach (var p in r.Producers)
             {
@@ -579,7 +578,6 @@ public static class Discovery
         double popSum = 0, workerMilSum = 0, colonialPop = 0, milSum = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             bool colonial = r.Tier == RegionTier.Colonial;
             foreach (var p in r.Pops)
             {

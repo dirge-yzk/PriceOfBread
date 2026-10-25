@@ -167,7 +167,7 @@ public class DiscoveryEngineerTests
         {
             var d = Catalog.Discoveries[row];
             if (Discovery.IsSpread(d.Field)) continue;
-            var rp = w.Regions.Where(rg => rg.State == RegionState.Active).SelectMany(rg => rg.Producers).FirstOrDefault(p => p.DiscoveryRow == row);
+            var rp = w.Regions.SelectMany(rg => rg.Producers).FirstOrDefault(p => p.DiscoveryRow == row);
             Assert.True(rp is not null, $"{d.Name}：イギリスに代表の生産者が居ない");
             if (!(Discovery.ParentEngineers(row, rp!, eng) > 0)) zero.Add(d.Name);
         }
