@@ -137,6 +137,12 @@ public sealed partial class InternationalMarket
         public uint[] IdleKey = [];   // ★(403) 係数 ClearingIdleSearchQuarters：州ごとの決定論の鍵（名前の FNV-1a）。N が 1 以下では触らない
         public List<Seller> Sellers = [];
         public List<(int Node, double Price)> Buyers = [];
+        // ★(spt2) 財ごとの前の月の並び（買い手・売り手の州の添字の列と数）＝NearSort の作業領域（スレッドごと・セーブに載らない・別の試合の並びが残っていても結果は同じ＝NearSort の注）
+        public int[]?[] PrevBuyers = [], PrevSellers = [];
+        public int[] PrevBuyerN = [], PrevSellerN = [];
+        public int[] SortSlot = [];   // 州の添字→今の顔ぶれの位置＋1（NearSort.TryReorder の作業配列・全て 0 のまま返る）
+        public (int Node, double Price)[] SortBufB = [];
+        public Seller[] SortBufS = [];
 
         /// <summary>要る長さ n 以上の配列を返す（足りなければ作り直す・中身は消さない＝全要素を書いてから読む配列だけ）。</summary>
         public static T[] Fit<T>(ref T[] a, int n) { if (a.Length < n) a = new T[n]; return a; }
@@ -738,7 +744,14 @@ public sealed partial class InternationalMarket
                 sellers.Add(new Seller(t, lp, availS));   // sellAcc は成約時に再計算（sellers は後で価格順ソート＝並走リスト不可）
             }
             if (sellers.Count == 0) continue;
-            sellers.Sort((a, b) => a.Price != b.Price ? a.Price.CompareTo(b.Price) : string.CompareOrdinal(tr[a.Node].r.Name, tr[b.Node].r.Name));   // ★買い手ソート(:515)と統一＝カルチャ非依存の決定論的タイブレーク（wave2b是正）
+            // ★(spt2) 前の月の並びから挿入で並べ直す（NearSort の注・全順序の前提が崩れうる月と顔ぶれの違う月は元の全部の並べ替え＝結果は同じ）
+            Comparison<Seller> sellerCmp = (a, b) => a.Price != b.Price ? a.Price.CompareTo(b.Price) : string.CompareOrdinal(tr[a.Node].r.Name, tr[b.Node].r.Name);
+            if (sc.PrevSellers.Length < gc) { System.Array.Resize(ref sc.PrevSellers, gc); System.Array.Resize(ref sc.PrevSellerN, gc); }
+            if (sc.SortSlot.Length < tc) sc.SortSlot = new int[tc];
+            var sellerSpan = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(sellers);
+            if (!NearSort.TryReorder(sellerSpan, sc.PrevSellers[g], sc.PrevSellerN[g], x => x.Node, sellerCmp, x => double.IsNaN(x.Price), sc.SortSlot, ClearScratch.Fit(ref sc.SortBufS, sellers.Count)))
+                sellers.Sort(sellerCmp);   // ★買い手ソート(:515)と統一＝カルチャ非依存の決定論的タイブレーク（wave2b是正）
+            NearSort.Remember<Seller>(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(sellers), x => x.Node, ref sc.PrevSellers[g], ref sc.PrevSellerN[g]);   // ★(spt2) 次の月の前の並び
 
             bool[]? cheapAfter = null;   // ★(471) 売り手の位置 s 以後（s を含む）に −1 の売り手がいるか（昇順の打ち切りの下界を弱めるのはこの位置だけ＝−1 の財は余りもの＝安い側＝先頭に寄るので、後ろは強い下界のまま）
             if (cheapG)
@@ -767,7 +780,12 @@ public sealed partial class InternationalMarket
                 if (lpB > 1e-9) buyers.Add((t, lpB));
             }
             if (buyers.Count == 0) continue;
-            buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
+            Comparison<(int Node, double Price)> buyerCmp = (x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name);
+            if (sc.PrevBuyers.Length < gc) { System.Array.Resize(ref sc.PrevBuyers, gc); System.Array.Resize(ref sc.PrevBuyerN, gc); }
+            var buyerSpan = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(buyers);
+            if (!NearSort.TryReorder(buyerSpan, sc.PrevBuyers[g], sc.PrevBuyerN[g], x => x.Node, buyerCmp, x => double.IsNaN(x.Price), sc.SortSlot, ClearScratch.Fit(ref sc.SortBufB, buyers.Count)))
+                buyers.Sort(buyerCmp);
+            NearSort.Remember<(int Node, double Price)>(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(buyers), x => x.Node, ref sc.PrevBuyers[g], ref sc.PrevBuyerN[g]);   // ★(spt2) 次の月の前の並び
             if (swSec is not null) { TimeListsTicks += swSec.ElapsedTicks; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
             var costC = Cost; costC[CostLedger.ClearingRows] += buyers.Count;   // 計算量の台帳（診断）：この財で見る買い手行（眠った行・飛ばした行も1件）
             long nFill = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）
