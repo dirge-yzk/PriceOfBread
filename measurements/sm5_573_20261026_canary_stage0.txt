@@ -1,0 +1,48 @@
+=== canary_b7 (b=7)
+--- 種 21
+[S0-C] 国別 indDerived/indOld（開幕）と sumN:
+  英: factories=2336 sumN=2719.4 bK=30.10 bW=4.78 indOld=1.400 indDerived=6.947 ratio=4.962
+  仏: factories=1022 sumN=4017.4 bK=59.42 bW=7.82 indOld=0.250 indDerived=1.853 ratio=7.414
+  普: factories=365 sumN=906.4 bK=47.05 bW=7.61 indOld=0.300 indDerived=0.691 ratio=2.304
+  米: factories=365 sumN=654.8 bK=52.77 bW=8.64 indOld=0.200 indDerived=0.651 ratio=3.254
+  清: factories=1898 sumN=2200353.0 bK=0.30 bW=9.80 indOld=0.000 indDerived=5530.828 ratio=nan
+  日: factories=584 sumN=2764.4 bK=65.12 bW=7.65 indOld=0.000 indDerived=0.728 ratio=nan
+[S0-B] T0b：R_b・R_m（開幕 4 四半期の平均・門は ≤0.5）
+  英: R_b=0.430 R_m=0.056  [PASS]
+  仏: R_b=0.476 R_m=0.074  [PASS]
+  普: R_b=0.382 R_m=0.061  [PASS]
+  米: R_b=0.302 R_m=0.054  [PASS]
+工業化度が異常の行数: 64
+完走: ○    勝者: 清（スコア33.2）    首位確定: Q1/120
+=== canary_b19 (b=19)
+--- 種 21
+[S0-C] 国別 indDerived/indOld（開幕）と sumN:
+  英: factories=2336 sumN=2724.1 bK=30.07 bW=4.78 indOld=1.400 indDerived=18.708 ratio=13.363
+  仏: factories=1022 sumN=4015.4 bK=59.44 bW=7.82 indOld=0.250 indDerived=5.010 ratio=20.042
+  普: factories=365 sumN=906.3 bK=47.06 bW=7.61 indOld=0.300 indDerived=1.865 ratio=6.216
+  米: factories=365 sumN=654.7 bK=52.78 bW=8.64 indOld=0.200 indDerived=1.743 ratio=8.715
+  清: factories=1898 sumN=4457439.8 bK=0.15 bW=9.78 indOld=0.000 indDerived=30518.500 ratio=nan
+  日: factories=584 sumN=2763.8 bK=65.13 bW=7.65 indOld=0.000 indDerived=1.951 ratio=nan
+[S0-B] T0b：R_b・R_m（開幕 4 四半期の平均・門は ≤0.5）
+  英: R_b=0.738 R_m=0.136  [FAIL]
+  仏: R_b=1.235 R_m=0.171  [FAIL]
+  普: R_b=0.772 R_m=0.132  [FAIL]
+  米: R_b=0.537 R_m=0.118  [FAIL]
+工業化度が異常の行数: 64
+完走: ○    勝者: 清（スコア36.3）    首位確定: Q1/120
+=== canary (b=38)
+--- 種 21
+[S0-C] 国別 indDerived/indOld（開幕）と sumN:
+  英: factories=2336 sumN=2743.3 bK=29.83 bW=4.78 indOld=1.400 indDerived=37.405 ratio=26.718
+  仏: factories=1022 sumN=4018.7 bK=59.39 bW=7.81 indOld=0.250 indDerived=10.019 ratio=40.074
+  普: factories=365 sumN=906.5 bK=47.04 bW=7.61 indOld=0.300 indDerived=3.725 ratio=12.418
+  米: factories=365 sumN=655.7 bK=52.68 bW=8.63 indOld=0.200 indDerived=3.476 ratio=17.382
+  清: factories=1898 sumN=8039377.9 bK=0.08 bW=9.78 indOld=0.000 indDerived=110253.200 ratio=nan
+  日: factories=584 sumN=2775.0 bK=64.89 bW=7.65 indOld=0.000 indDerived=3.900 ratio=nan
+[S0-B] T0b：R_b・R_m（開幕 4 四半期の平均・門は ≤0.5）
+  英: R_b=0.964 R_m=0.261  [FAIL]
+  仏: R_b=1.351 R_m=0.324  [FAIL]
+  普: R_b=0.876 R_m=0.252  [FAIL]
+  米: R_b=0.816 R_m=0.220  [FAIL]
+工業化度が異常の行数: 64
+完走: ○    勝者: 清（スコア39.4）    首位確定: Q1/120

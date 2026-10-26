@@ -1,0 +1,14 @@
+same 700 differ 30 disccontactSplitRows 0
+Counter({('colsok', 'burscan'): 10, ('colsok', 'clock'): 10, ('DIFF', 'flow'): 10})
+('DIFF', 'flow_s1.tsv')
+('DIFF', 'flow_s10.tsv')
+('DIFF', 'flow_s2.tsv')
+('DIFF', 'flow_s3.tsv')
+('DIFF', 'flow_s4.tsv')
+('DIFF', 'flow_s5.tsv')
+('DIFF', 'flow_s6.tsv')
+('DIFF', 'flow_s7.tsv')
+('DIFF', 'flow_s8.tsv')
+('DIFF', 'flow_s9.tsv')
+BAD 10
+CMPDONE

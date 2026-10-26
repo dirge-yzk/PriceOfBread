@@ -1,0 +1,5 @@
+# (576) 合流の木の試験（成績表の木 d7fa92e4 のコード・以後は docs・measurements・scripts だけ）
+- フルスイート（Category!=FullLength・Release・--blame-crash・隔離ビルド D:/PoB_work/m576/artT）：失敗 0・合格 1850・スキップ 1・合計 1851（12 分 31 秒・中止の行なし）＝1 回目で緑
+  内訳の見込み＝m569 の 1843＋spt2 の番人 4（NearSortTests）＋sm5mod の 4（ModernizationAbolishedTests）＝1851
+- FullLength（Category=FullLength）：失敗 0・合格 3（3 分 5 秒）
+- --list-tests：1854（`dotnet test … --no-build --list-tests | grep -c '^    '`）＝1851＋3
