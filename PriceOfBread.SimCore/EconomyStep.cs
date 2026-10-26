@@ -527,7 +527,8 @@ public static class EconomyStep
             ? ctr[gi] * (1.0 - coef.StateMonopolyLeakMax * (1.0 - region.AdminFill))   // ★漏れ＝行政の欠けた分×漏れの最大（2026-09-30 (127)・旧＝0.5+0.5×AdminFill のリテラル）
             : 0;
         double distM = region.MerchantPopIndex >= 0 && !isService ? coef.MerchantMargin : 0;
-        double insure = gi == coef.MedicalGoodId ? Math.Clamp(region.InsuranceCoverage, 0, InsuranceCoverageCap) : 0;
+        double insure = gi == coef.MedicalGoodId ? Math.Clamp(region.InsuranceCoverage, 0, InsuranceCoverageCap)
+                      : gi == Catalog.HigherEducationId ? Math.Clamp(region.ScholarshipShare, 0, InsuranceCoverageCap) : 0;   // ★(590) 奨学金の法：高等教育の授業料の国庫負担の割合（0 除算の守りは健康保険と同じ上限）。書き手 Simulation は NaN を 0 へ落とす
         // タスクC（独占レント）：塩(6)の王室専売・茶(74)の東インド会社独占＝買い手価格に上乗せ（専売の上乗せと同型）。近代化(Industrialization)で解体＝自由化の創発代理。徴収は決済（qty確定時）で保有popへ。MonopolyRentPremium=0.15 点火（resentment側 MonopolyResentmentMilitancy=0 は差し戻し休眠）。0で恒等。
         double monRent = gi == Catalog.SaltId || gi == Catalog.TeaId ? MonopolyDegree(region, coef, coef.MonopolyRentPremium) : 0;
         double guildRent = guildShare is not null && gi >= 0 && gi < guildShare.Length ? coef.GuildRentPremium * guildDeg * guildShare[gi] : 0;
@@ -1817,11 +1818,15 @@ public static class EconomyStep
                         if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：役務も「自腹で買った分」だけ数える（義務教育の国庫肩代わりは下の別ブロック＝入れない）
                         if (insEnt is not null && gi == Catalog.DomesticServiceId) Instruments.SvcBuyGot(region, p, qty);   // (433) 計器（読むだけ）：家事奉仕の階級ごとの買えた量
                         double pay = qty * m.Price;
+                        // ★(590) 奨学金の法：高等教育の授業料のうち国庫が負担する分（insure＝Region.ScholarshipShare）は買い手が払わず、決済で国庫→大学へ（StateSpent[Education]＝先月の実支出の逆算で翌月の請求に載る）。
+                        //   insure は高等教育の財でだけ正になりうる（医薬品は役務の優先配分を通らない）。0（法なし・既定）では分岐に入らず pay・売上は旧の式のまま。
+                        double subsidy = 0;
+                        if (insure > 0 && gi == Catalog.HigherEducationId) { subsidy = pay * insure; pay -= subsidy; region.StateSpent[(int)TreasuryCat.Education] += subsidy; }
                         p.PaidPerMonth += new MoneyPerMonth(pay);
-                        if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, pay);   // (286) 計器（読むだけ）
+                        if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, pay + subsidy);   // (286) 計器（読むだけ）：生産者の受取は国庫の負担分も含む
                         insEnt?.PayService(p.ClassId, qty, pay);   // (345) 計器（読むだけ）
                         p.RemainingBudget -= pay;
-                        revenue[gi] += pay;               // 受講料/診療費 → 教師・聖職者・医者の売上（保存）
+                        revenue[gi] += subsidy > 0 ? pay + subsidy : pay;               // 受講料/診療費 → 教師・聖職者・医者の売上（保存）。奨学金の負担分も売上（買い手の自己負担＋国庫の負担）
                         double fill = p.GoodNeed > Eps ? Math.Min(1.0, qty / p.GoodNeed) : 1.0;
                         if (gi == Catalog.EducationId) p.EducationFill = fill;
                         else if (gi == Catalog.HealthcareId) p.HealthFill = fill;

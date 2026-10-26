@@ -1019,6 +1019,7 @@ public sealed class Region
     public double MilitaryAffordRaw = 1.0;            // 装備の支払能力（軍事予算÷必要額・無クランプ）
     public Share GarrisonShare;                      // 駐屯州調達（課題6）：この州の装備需要・予算の全国シェア（月次・Simulationが設定）
     public double SoldierPayBudget;                   // 今期の兵力調達の予算（兵士給与。Simulation が設定）
+    public double ScholarshipShare;                   // ★(590) 奨学金の法：高等教育の授業料のうち国庫が負担する割合（ScholarshipLaw>0 のとき CompulsoryEduFunding と同じ導出に支払い率を掛けた値・月ごとに Simulation が書き直す・0＝法なし）。買い手の値段の楔（EconomyStep.BuyerWedge）と決済が読む
     public double CompulsoryEduFunding;               // 義務教育の財源率（教育費スライダー）。popが買えない教育の何割を国庫が買い与えるか。0＝義務教育でない
     public double GridCapacity;                       // 送電容量（地域内）。電力はこの容量までしか工場に届かない＝電化には送電網への投資が要る
     public double LastElecWant;                       // 前期の電力需要（送電網の増設判断に使う）

@@ -184,6 +184,12 @@ public sealed class Coefficients
     // ★段③（2026-08-17）：近代化投資のうち高等教育の学費補助へ回す割合。★(583) 残りの建設予約への配りは物理削除した（残りは国庫に残る）。
     //   ⚠0=学費の補助は出ない＝**現行と厳密恒等**。1=全額が人材（作者の意図する最終形）。段階移行のレバー＝途中値で実測しながら寄せる。
     public double ModernizationToHigherEdu = 0.0;
+    // ★(590) 奨学金の法（作者 2026-10-26「近代化投資の一部は、高等教育の学費の補助に回っています。これは残しましょう。…「奨学金」で法にするなどして、年金と同じ仕組みにするのはどうか」）：
+    //   教育費の軸（EducationSpending・4 段）の実効の率に比例して、高等教育を買う POP の自己負担が国庫の負担分だけ下がる（買い手の値段の楔＝健康保険 #3 の insure と同型）。
+    //   割合＝Region.ScholarshipShare＝その州の義務教育の財源率（CompulsoryEduFunding＝法の門と支配度を通した後）を支払い率で縮めた値。請求の見込みは先月の実支出の逆算（StateSpent[Education]・義務教育と同じ）。
+    //   正のとき World.ApplyModernizationInvestment は eduPart（HigherEduFunding の予約）を立てない（置き換え）。0＝旧のまま（厳密恒等）。
+    //   ⚠高等教育は既定で二重に休眠（HigherEduNeedPerEducated=0・ResearcherFrac=0＝買い手も大学も居ない）＝この旗だけを立てても補助は 0 のまま。測るときは入口の点火（measurements/sch_590_20261027_prereg.txt [0]①）を重ねる。
+    public int ScholarshipLaw = 0;
     // ★段④ 招聘（2026-08-17・設計「大衆は自発的に動く。技師は呼ばれて動く」＝主語が違うので式も別）。
     //   ⚠RecruitCostPerHead=0 で経路に入らない＝**厳密恒等**（0除算も踏まない）。ModernizationToRecruit=0 でも予算が立たない＝二重の休眠。
     //   ★史実の規模：お雇い外国人は明治日本の最盛期でも**数千人**（大衆移民は数百万人）＝「予算で買える人数」が自然な上限。

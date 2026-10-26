@@ -2150,6 +2150,7 @@ public sealed class Simulation
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
                     : World.EducationLaw == EducationLaw.Public || (World.EducationLaw == EducationLaw.Religious && World.Coef.ParishEduFunded > 0) ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // ★(404) 旗 ParishEduFunded＞0：Religious も Public と同じ割合を国庫が買う（担い手は教区学校のまま・rf_20261018_prereg.txt D2）。0 は旧の 0
                     * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
+                r.ScholarshipShare = World.Coef.ScholarshipLaw > 0 && r.CompulsoryEduFunding > 0 ? r.CompulsoryEduFunding : 0;   // ★(590) 奨学金の法：この率の唯一の書き手（AI もプレイヤーも教育費の段を通る＝同じ門と代価）。支払い率は下の *= payRate で掛ける。否定形ではなく `> 0` の肯定で NaN は 0 へ落ちる（fail-closed）
                 if (r.EducationProducerIndex >= 0)
                 {
                     var ep = r.Producers[r.EducationProducerIndex];
@@ -2377,7 +2378,7 @@ public sealed class Simulation
                 //   と志願の空き（払われない軍には志願しない）が読む。兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。
                 if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)
                     r.Pops[r.SoldierPopIndex].UnemploymentRate = new Share(1.0 - payRate * soldierPayFill);   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）
-                r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
+                r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate; r.ScholarshipShare *= payRate;
                 r.StateBuildQueue *= payRate; r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
                 double techProd = World.TechProductivity(r);   // ★(416) 式は World.TechProductivity へ抜き出した（技術の逓減・労働時間・労働組合・罷業の乗数）
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
