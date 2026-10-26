@@ -17,8 +17,8 @@ namespace PriceOfBread.SimCore;
 // ⚠限界（計器が自己申告する）：着工の判断の断面（実際の工事の進み方は読まない）／旗 0 の国は overCostCapCandidateCount が 0（旧の門が先に落とす）＝旧との比べは startedCount の差で見る／年末の行は 4 四半期の合計（鎖の中間は年末の断面）。
 public static partial class Instruments
 {
-    internal const string AibHeaderText = "quarter\tyear\tnation\tflagLevel\tcalls\treturnFundingCount\treturnRoomCount\troomEntryPerMonthMean\tbufferEntryMean\tspareEntryPerMonth\ttreasuryEntryStock\t"
-        + "overCostCapCandidateCount\tstartedCount\trefusedCount\tskipRoomCount\tstartedOutlayPerMonth\tstartedByCategory\tstartedGoods\toverCapGoods\tskippedGoods\t"
+    internal const string AibHeaderText = "quarter\tyear\tnation\tflagLevel\tcalls\treturnFundingCount\treturnRoomCount\troomEntryPerMonthMean\tbufferEntryMean\ttreasuryEntryStock\t"
+        + "overCostCapCandidateCount\tstartedCount\tstartedOverCapCount\trefusedCount\tskipRoomCount\tstartedOutlayPerMonth\tstartedByCategory\tstartedGoods\toverCapGoods\tskippedGoods\t"
         + "warshipScaleSum\tsailingShipScaleSum\tartilleryScaleSum\trifleScaleSum\tsteelScaleSum\twarshipBuiltSum\tsailingShipBuiltSum\tartilleryBuiltSum\trifleBuiltSum\twarshipBuildingCount\tsailingShipBuildingCount\tartilleryBuildingCount\trifleBuildingCount";
 
     sealed class AibAcc

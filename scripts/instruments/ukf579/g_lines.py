@@ -16,6 +16,8 @@ def rows(name, s):
     p = os.path.join(D, f'{name}_s{s}.tsv')
     if not os.path.exists(p): return None, None
     fh = open(p, encoding='utf-8-sig'); rd = csv.reader(fh, delimiter='\t'); h = next(rd)
+    if name == 'aib' and 'spareEntryPerMonth' in h:   # 腕 B2（コミット 600861a8）の出力は列の名前が古い（データは spare の列を消し startedOverCapCount を足した並び）＝位置で直す
+        h = [n for n in h if n != 'spareEntryPerMonth']; h.insert(h.index('startedCount') + 1, 'startedOverCapCount')
     return {n: i for i, n in enumerate(h)}, rd
 
 def fnum(x):
