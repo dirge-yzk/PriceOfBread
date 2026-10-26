@@ -528,7 +528,7 @@ public class LaborInstrumentTests
             // 表の値は G10（有効数字 10 桁）で書かれる＝絶対の桁数でなく相対 1e-8 で合わせる
             Assert.InRange(Col(h, last, "plainWageBillPerMonth"), expectBill * (1 - 1e-8), expectBill * (1 + 1e-8));
             Assert.InRange(Col(h, last, "farmWageBillPerMonth"), expectFarmBill * (1 - 1e-8), expectFarmBill * (1 + 1e-8));
-            int pos = 0;
+            int pos = 0, floorChecked = 0;
             foreach (var r in rows)
             {
                 Assert.Equal(0.0, Col(h, r, "lawCode"));                                  // 既定（法のゲート 0）では法は None のまま
@@ -537,14 +537,20 @@ public class LaborInstrumentTests
                 if (!(cap > 0)) continue;
                 pos++;
                 Assert.True(Col(h, r, "plainPriceOverMcIndex") > 0 && Col(h, r, "plainProfitMeanShare") is >= 0 and <= 1);
-                // 売れた量が能力以下なら、実雇用ベースの床（分母＝売れた量）は能力ベースの床（分母＝能力）を下回らない（段ごと）
-                if (sold > 0 && sold <= cap)
+                // 売れた量が能力以下なら、実雇用ベースの床（分母＝売れた量）は能力ベースの床（分母＝能力）を下回らない（段ごと）。
+                // ★(573) 前提：どの州の値段も 0 に潰れていないこと（plainTinyPriceRegionShare＝0）。値段が 0 近くで売れない州（近代化投資の廃止後の開幕の植民地・中核ベンガル cap=383・sold=0・値段 0.000）は
+                //   能力ベースの床÷値段を桁で押し上げ、実雇用ベースは売れた州だけで平均するので、国の合計が sold≦cap でも不等式は成り立たない（州ごとの不等式の国への持ち上げが偽）。
+                if (sold > 0 && sold <= cap && Col(h, r, "plainTinyPriceRegionShare") == 0.0)
+                {
+                    floorChecked++;
                     foreach (var tier in new[] { "Subs", "Liv", "Suff" })
                         Assert.True(Col(h, r, $"plainFloor1Over{tier}Index") >= Col(h, r, $"plainFloor0Over{tier}Index") * (1 - 1e-6) - 1e-12);
+                }
                 // 段が上がれば籠は増える（床÷値段は単調）
                 Assert.True(Col(h, r, "plainFloor0OverSubsIndex") <= Col(h, r, "plainFloor0OverLivIndex") + 1e-12 && Col(h, r, "plainFloor0OverLivIndex") <= Col(h, r, "plainFloor0OverSuffIndex") + 1e-12);
             }
             Assert.True(pos > 4 * Q / 2, $"能力が正の行が少ない {pos}（hook が空振り）");
+            Assert.True(floorChecked > 0, "床の不等式を確かめた行が 0（前提が全行で崩れた＝この試験は何も言っていない）");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

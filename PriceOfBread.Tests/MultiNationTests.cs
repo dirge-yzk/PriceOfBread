@@ -313,11 +313,17 @@ public class MultiNationTests3
     [Fact]
     public void 戦闘ログは日付が二重にならない書式で出る()
     {
-        var sim = new MultiNationSim(FourNations(), seed: 1791UL);   // ★(529) 産地の取り分を慣習のデータの取り分と法の上限の小さい方へ（Q2 の形の撤回）で軌道が動き、1790 は 1200 か月でも戦いが出なかった＝1791 は 1000 か月で戦いが出る（1791〜1802 を並列で走査した・1794 だけ 1200 か月でも出ない）。旧の注：★(418) 日用品の自給の点火で種 1789 は 1200 か月でも戦いが出なかった〔書式の番人＝戦いが出る種へ・1790・1791 は出る・1792 は出ない〕
-        sim.Run(200);
+        // ★(573) 近代化投資の廃止（既定 1）で 4 カ国の軌道が動き、種 1791 では 1200 か月に戦いが 0 件になった＝書式の番人なので、戦いが出る種が見つかるまで種を替える（種を 1 つに固定すると軌道が動くたびに空振りする）
+        MultiNationSim sim = null!;
         System.Collections.Generic.List<string> Battles() => sim.Diplomacy.Log.Where(l => l.Contains("陸戦で") || l.Contains("海戦で")).ToList();
-        // ★(388) 戦いが起きる時期は軌道で動く（開幕の国庫が史実の比になった後は 200 か月で戦いの無い軌道があった）＝書式の番人なので戦いが出るまで進める（上限 1200 か月）
-        for (int more = 0; more < 5 && Battles().Count == 0; more++) sim.Run(200);
+        for (ulong seed = 1791UL; seed < 1791UL + 6; seed++)
+        {
+            sim = new MultiNationSim(FourNations(), seed: seed);
+            sim.Run(200);
+            // ★(388) 戦いが起きる時期は軌道で動く（開幕の国庫が史実の比になった後は 200 か月で戦いの無い軌道があった）＝書式の番人なので戦いが出るまで進める
+            for (int more = 0; more < 5 && Battles().Count == 0; more++) sim.Run(200);
+            if (Battles().Count > 0) break;
+        }
         var battles = Battles();
         Assert.NotEmpty(battles);
         foreach (var l in battles)
