@@ -38,6 +38,8 @@ public static partial class Instruments
     public static bool On = Environment.GetEnvironmentVariable("POB_INSTRUMENTS") is { Length: > 0 };
     static string Dir = Environment.GetEnvironmentVariable("POB_INSTRUMENTS") ?? "";
     /// <summary>月ごとの財政の行と四半期ごとの階級・在庫の行を出す国（国名＝BaseName をカンマで区切る・<c>*</c>＝全て）。未指定＝なし（全ての国の年末の行だけ）。</summary>
+    /// <summary>★(582) 物価の表 pclamp_s が〈旧の天井〉として数える観測の線（計算には使わない・物価の天井は廃止した）。番人が下げて使う。</summary>
+    internal static double PxObserveCeil = 4.0;
     static string[] Picked = SplitNames(Environment.GetEnvironmentVariable("POB_INSTRUMENTS_NATIONS"));
     static string[] SplitNames(string? s) => s is { Length: > 0 } ? s.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) : [];
 
@@ -1549,10 +1551,10 @@ public static partial class Instruments
     internal static void PriceStep(World w, double broad, double baseM, double money, double gdp, double ratio, double trend0, double cyclical, double pBefore, double pEma, double pFiat, double convTarget, double fiatP, bool early)
     {
         var st = S(w);
-        {   // ★(582) 全ての国（挙げていない国も）の物価の天井・床の接触を溜める＝旗 PriceLevelCeilFree の効きを 9 国の外の国まで帰属するための表 pclamp_s。読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。
+        {   // ★(582) 全ての国（挙げていない国も）の物価の天井・床の接触を溜める＝旧の天井 PxObserveCeil（4.0）を越えた／床を割った物価の行を 9 国の外の国まで帰属するための表 pclamp_s（天井は廃止後も観測の線として残す）。読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。
             bool wm = w.WarmupFrozen; int pc = wm ? st.PcWarmN++ : st.PcGameN++;
-            if (!early && (pFiat > w.Coef.PriceLevelCeil || pFiat < w.Coef.PriceLevelFloor))
-                st.PcRows.Add(string.Join('\t', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), pFiat > w.Coef.PriceLevelCeil ? "ceil" : "floor", F(pFiat), F(w.PriceLevel), F(fiatP), F(cyclical)));
+            if (!early && (pFiat > PxObserveCeil || pFiat < w.Coef.PriceLevelFloor))
+                st.PcRows.Add(string.Join('\t', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), pFiat > PxObserveCeil ? "ceil" : "floor", F(pFiat), F(w.PriceLevel), F(fiatP), F(cyclical)));
         }
         if (!IsPicked(w, st)) return;
         bool warm = w.WarmupFrozen;

@@ -961,10 +961,8 @@ public sealed class Coefficients
     // 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。0=無効（較正中立）。保存：CumulativeGoldMinted 台帳で基礎貨幣増を追跡。
     public Share GoldMintFraction = new(0.2);           // 金鉱の月次産出のうち鋳造（貨幣化）に回る割合。0=中立。0.2起動（キュー3・金発見移民 2026-07-10）＝金鉱州の産金→新鋳貨が鉱山所有者へ＝金鉱国の購買力/賃金↑→移民機会↑（ゴールドラッシュの貨幣面）。旧保存テストは CumulativeGoldMinted 込みの式へ更新済み
     public double PriceLevelFloor = 0.4;            // 物価水準の下限（深いデフレの底＝暴走防止）
-    public double PriceLevelCeil = 4.0;             // 物価水準の上限（高インフレの天井＝暴走防止）。旗 PriceLevelCeilFree が1以上のときは読まない（採用時にこの欄ごと消す）
-    public int PriceLevelCeilFree = 0;              // ★(582) 物価水準の天井の素通り（作者 2026-10-26「極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」）。0＝今の Clamp(P, 床, 天井)（厳密恒等）／1以上＝天井を掛けない
-                                                    //   （床 PriceLevelFloor は残す＝この線では触らない）。代わりに否定形の有限の番人だけ置く＝P が正の有限でなければ（NaN・無限）更新前の P を保つ（天井ではない＝発散する量への数値の切りでなく、計算が壊れた四半期を進めないだけ）。
-                                                    //   不換の紙幣増発の掛け算の道（FiatInflationPressure→FiatInflationWeight）は旧と同じ＝天井が外れた分だけ複利で伸びうる（ハイパーインフレの機構は残る）。事前登録 measurements/svf2_582_20261026_prereg.txt
+    // ★(582) 物価水準の上限は廃止した（作者 2026-10-26「極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」）。物価は床 PriceLevelFloor までだけ切り、上は紙幣増発の掛け算（FiatInflationPressure→FiatInflationWeight）が複利で伸びうる。
+    //   P が正の有限でない四半期（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）は更新前の P を保つ否定形の番人だけが World.UpdatePriceLevel にある（天井ではない）。事前登録 measurements/svf2_582_20261026_prereg.txt
     // 地域別の貨幣的物価水準（②集計粒度）：各州の物価水準＝国家物価×地域乗数。乗数＝(州の1人あたり貯蓄/国の1人あたり貯蓄)^Weight をクランプ。
     // 現金の厚い金融中心州は物価/名目賃金が高く、現金の乏しい辺境州は低い（19世紀の地域物価・賃金格差・辺境デフレ）。1州なら乗数1＝較正中立。0で無効。
     public double RegionalPriceLevelWeight = 0.3;   // 地域の現金の厚みの差→物価格差への感応度（0=地域差なし=従来一律）。緩め＝極端な州だけ大きく振れる
