@@ -20,9 +20,9 @@ public class ModernizationAbolishedTests
     }
 
     [Fact]
-    public void 旗の既定は0()
+    public void 旗の既定は1()
     {
-        Assert.Equal(0.0, new Coefficients().ModernizationAbolished);
+        Assert.Equal(1.0, new Coefficients().ModernizationAbolished);
     }
 
     /// <summary>同じ盤面で旗だけを切り替えて 1 回ずつ適用する（盤面の軌道が旗で分かれる前に比べる＝予算は同じ入力から決まる）。</summary>
