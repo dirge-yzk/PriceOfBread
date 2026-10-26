@@ -1594,7 +1594,9 @@ public sealed class World
         // #3 不換の紙幣増発（通貨切下げ）→物価上昇＝印刷はインフレ的（→名目GDP↑→実質債務減）。金本位中は devaluation 封印ゆえ圧0。
         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
-        double pFiat = PriceLevel; PriceLevel = Math.Clamp(PriceLevel, c.PriceLevelFloor, c.PriceLevelCeil);   // (280) pFiat は計器の読み（紙幣増発の直後・クランプの前）
+        double pFiat = PriceLevel;   // (280) pFiat は計器の読み（紙幣増発の直後・クランプの前）
+        // ★(582) 天井は廃止（作者 2026-10-26）。床だけ残す。P が正の有限でない（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）四半期は更新前の P を保つ＝否定形の守り（Math.Clamp も Math.Max も NaN を消さない）。
+        PriceLevel = PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before;
         CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
@@ -2611,8 +2613,32 @@ public sealed class World
     public double OpeningTreasuryMonths { get; init; }
     /// <summary>★(332) 開幕の国債 ＝ 年名目GDP × この比（<see cref="NationConfig.GovDebtToGdpYear"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningFiscal"/> だけ。</summary>
     public double OpeningGovDebtToGdpYear { get; init; }
+    /// <summary>★(574) 開幕の広義の貨幣 ÷ 年名目GDP（<see cref="NationConfig.BroadMoneyToGdpYear"/>・建国の持ち込み州の国は 0）。読み手＝<c>Simulation.QuarterEnd</c> の助走の四半期の頭（係数 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上のときだけ）。</summary>
+    public double OpeningBroadMoneyToGdpYear { get; init; }
     /// <summary>★(400) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>・0＝規則なし）。読み手＝<see cref="MultiNationSim.WarmupEconomy"/> の始め（SetStateMonopolyTier で置く）と SelfPlay.Apply の助走の間（教義の段との max）だけ。助走の後は読まれない。</summary>
     public int OpeningStateMonopolyTier { get; init; }
+
+    /// <summary>★(574) 開幕の貨幣の量：全 Pop の貯蓄の和÷年名目GDP が <paramref name="targetRatio"/>（広義の貨幣÷年名目GDP・<see cref="NationConfig.BroadMoneyToGdpYear"/>）になるよう、
+    /// 全ての Pop の貯蓄に同じ倍率 λ を掛ける（階級の相対配分はそのまま）。呼び手＝<c>Simulation.QuarterEnd</c> の助走の各四半期の末の頭の1か所だけ（旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上）。
+    /// ⚠構築子では呼ばない：構築直後の産出（<see cref="Producer.Output"/>）は生産者ごとの置き定数（RGO 50・工場 0.5・職人 30）の和で、最初の四半期の市場の後の産出と国ごとに 1.7〜14 倍ずれる
+    /// （英 5,828→59,830・清 31,545→450,780・基線 m560 の q0 の中央値との比）＝構築直後の年GDP を分母にすると比が 1 桁違う。助走の各四半期の末（国庫・国債を置くのと同じ時点）の産出で測る。
+    /// λ＝目標の比÷今の比。今の比は <see cref="Calendar.ToGdpYear"/>（在庫÷年の流れ）で作る＝月の名目GDP をそのまま分母にする取り違え（12倍）は型が通さない。
+    /// <para>★与信も同じ λ で掛ける（追記 4・反証役の指摘）：<c>BaseMoney = TotalMoney + Treasury − OutstandingLoans</c>・<see cref="Bank.Loans"/> は〈信用創造された広義マネー＝預金−金〉。預金だけを戻すと、預金を作った与信（助走で積んだ企業の貸し・損失の負債化）が戻らずに残り、
+    /// 助走の四半期ごとに BaseMoney÷BroadMoney（金本位の準備のカバー）が片方向に落ちる（与信は流れで積み・貨幣の在庫は戻す＝分子と分母の非対称）。預金と与信の両側に同じ λ を掛けると、戻しは準備のカバー（預金に対する金の比）を動かさない。
+    /// 掛けるのは <see cref="Bank.Loans"/>・<see cref="Bank.HouseholdLoans"/>・各 Pop の <see cref="Pop.Debt"/>（HouseholdLoans＝Σ Pop.Debt の恒等を保つ）。<see cref="Bank.Gold"/> は Credit.Step が毎日 BaseMoney から導き直す導出量＝触らない。
+    /// 否定形：目標・貯蓄の和・年GDP のどれかが正でない（NaN を含む）か λ が有限の正でなければ何もしない。戻り値＝掛けた倍率（何もしないとき 1）。</para></summary>
+    internal double RescaleOpeningSavings(double targetRatio)
+    {
+        if (!(targetRatio > 0)) return 1.0;
+        MoneyStock total = TotalMoney;
+        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(NominalGdpPerMonth);
+        if (!(total.Value > 0) || !(gdpYear.Value > 0)) return 1.0;
+        double lambda = targetRatio / Calendar.ToGdpYear(total, gdpYear).Value;
+        if (!(lambda > 0) || double.IsInfinity(lambda)) return 1.0;
+        foreach (var (_, p) in AllPopsWithRegion()) { p.ScaleSavings(lambda); p.Debt = p.Debt * lambda; }
+        Bank?.ScaleCredit(lambda);
+        return lambda;
+    }
 
     /// <summary>★(332) 開幕の国庫と国債を、助走の終わりの盤面の流れから置く（初期値の整備 段6 の採り直し＝国庫と国債は絶対額でなく、史実の比から導く量）。
     /// 呼び手＝<see cref="MultiNationSim.WarmupEconomy"/> の各四半期の終わり（旧の国庫の戻し <see cref="RebaseTreasury"/> の置き場所）。最後の四半期の値が開幕の値になる。

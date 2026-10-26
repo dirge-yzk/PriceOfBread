@@ -38,6 +38,8 @@ public static partial class Instruments
     public static bool On = Environment.GetEnvironmentVariable("POB_INSTRUMENTS") is { Length: > 0 };
     static string Dir = Environment.GetEnvironmentVariable("POB_INSTRUMENTS") ?? "";
     /// <summary>月ごとの財政の行と四半期ごとの階級・在庫の行を出す国（国名＝BaseName をカンマで区切る・<c>*</c>＝全て）。未指定＝なし（全ての国の年末の行だけ）。</summary>
+    /// <summary>★(582) 物価の表 pclamp_s が〈旧の天井〉として数える観測の線（計算には使わない・物価の天井は廃止した）。番人が下げて使う。</summary>
+    internal static double PxObserveCeil = 4.0;
     static string[] Picked = SplitNames(Environment.GetEnvironmentVariable("POB_INSTRUMENTS_NATIONS"));
     static string[] SplitNames(string? s) => s is { Length: > 0 } ? s.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) : [];
 
@@ -142,6 +144,7 @@ public static partial class Instruments
         // ---- (280) 線X：物価の更新の鎖（助走を含む四半期ごと）・財ごとの価格・月ごとの貨幣と所得（挙げた国だけ・書き出しは Phase warm／Quarter で行う）
         public int PxWarmN, PxGameN, PxMonthWarmN, PxMonthGameN;                     // 助走／試合の何回目か（四半期の更新・月の決算の数）
         public readonly List<string> PxRows = new(), PxGoodsRows = new(), PxMonthRows = new(); public string? PxHdr, PxMonthHdr;
+        public int PcWarmN, PcGameN; public readonly List<string> PcRows = new();   // (582) 物価の更新の呼びの番号（全ての国・挙げた国の PxWarmN／PxGameN と同じ数え方）と、天井・床に触れた行（全ての国・まばら）
         public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
         public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
         // ---- (281) 線O0：借入の門の周り（読むだけ・月ごとの印と四半期の和）。LimitPrev＝前の月の「利払いが限界に届いたか」は四半期をまたぐ（助走の月は -1 へ戻す）
@@ -188,7 +191,8 @@ public static partial class Instruments
         public int NextUid;  // (271) 国の個体の番号の次
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
-        public System.IO.StreamWriter? Site, Metal; public bool SiteHeader, MetalHeader;   // (316) 産地の判定の行・世界の金銀の行
+        public System.IO.StreamWriter? PClamp; public bool PClampHeader;   // (582) 物価の天井・床の接触（全ての国・まばら）
+        public System.IO.StreamWriter? Site, Metal, MetalNat; public bool SiteHeader, MetalHeader, MetalNatHeader;   // (316) 産地の判定の行・世界の金銀の行／(582) 国別の金銀の行
         public System.IO.StreamWriter? Eng; public bool EngHeader;                         // (415) 発見の表の行の親の産業の技師の量（census）
         public System.IO.StreamWriter? Clock; public bool ClockHeader;                     // (461) 発見の時計の表（census）
         public System.IO.StreamWriter? Disc; public bool DiscHeader;                     // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
@@ -1548,6 +1552,11 @@ public static partial class Instruments
     internal static void PriceStep(World w, double broad, double baseM, double money, double gdp, double ratio, double trend0, double cyclical, double pBefore, double pEma, double pFiat, double convTarget, double fiatP, bool early)
     {
         var st = S(w);
+        {   // ★(582) 全ての国（挙げていない国も）の物価の天井・床の接触を溜める＝旧の天井 PxObserveCeil（4.0）を越えた／床を割った物価の行を 9 国の外の国まで帰属するための表 pclamp_s（天井は廃止後も観測の線として残す）。読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。
+            bool wm = w.WarmupFrozen; int pc = wm ? st.PcWarmN++ : st.PcGameN++;
+            if (!early && (pFiat > PxObserveCeil || pFiat < w.Coef.PriceLevelFloor))
+                st.PcRows.Add(string.Join('\t', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), pFiat > PxObserveCeil ? "ceil" : "floor", F(pFiat), F(w.PriceLevel), F(fiatP), F(cyclical)));
+        }
         if (!IsPicked(w, st)) return;
         bool warm = w.WarmupFrozen;
         string time = (warm ? "w" : "q") + PxI(warm ? st.PxWarmN++ : st.PxGameN++);
@@ -1615,6 +1624,13 @@ public static partial class Instruments
             if (!sk.PxGoodsHeader) { sk.PxGoods.WriteLine("time\tnation\tyear\tgoodName\ttier\texciseFlag\tmonopolyMarginShare\tactiveRegions\trefPriceIndex\tpriceMean\tregionPriceLevelMeanIndex\tpriceOverRefTimesLevelMedianRatio\tpriceOverRefTimesLevelMaxRatio\tlastProducedQty\tlastDemandQty\tlastSoldQty\tlastShortageQty\tlastImportQty\tlastExportQty\tstockQty"); sk.PxGoodsHeader = true; }
             foreach (var row in st.PxGoodsRows) sk.PxGoods.WriteLine(row);
             st.PxGoodsRows.Clear();
+        }
+        if (st.PcRows.Count > 0)   // (582) 天井・床の接触（全ての国）
+        {
+            sk.PClamp ??= Open("pclamp", seed);
+            if (!sk.PClampHeader) { sk.PClamp.WriteLine("time\tnation\tyear\tkind\tpriceLevelAfterFiatIndex\tpriceLevelAfterIndex\tfiatPressureBeforeShare\tcyclicalRatio"); sk.PClampHeader = true; }
+            foreach (var row in st.PcRows) sk.PClamp.WriteLine(row);
+            st.PcRows.Clear();
         }
         if (st.PxMonthRows.Count > 0)
         {
@@ -1729,7 +1745,7 @@ public static partial class Instruments
         BurScanTable(sk, sim);   // (389)
         TransportClose(sk, sim);   // (380) 年の途中で終わった残り
         ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
-        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
+        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null;   // (316)(582)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
@@ -2078,6 +2094,32 @@ public static partial class Instruments
             }
         }
         sk.Metal.WriteLine(string.Join('\t', I(q), I(yr), F(prodAu), F(prodAg), F(demAu), F(demAg), F(stAu), F(stAg), I(nGold), I(nSilver), I(nFiat), nRatio > 0 ? F(lnSum / nRatio) : "nan", I(nRatio), names.ToString()));
+        // ★(582) 国別の金銀の表 metalnat_s（挙げた国だけ・四半期ごとに1行・読むだけ）。造幣局の標準の買い手が立つ条件（市場の値段≦造幣平価＝参照価格・Simulation.MintGold）と、
+        //   産出の跳ねがどの国で起きるかを読む。列＝quarter・year・nation・law〔0 不換／1 銀／2 金〕・{Au,Ag}Produced・{Au,Ag}Demand・{Au,Ag}Stock（州の市場の直近の月の和）・
+        //   {Au,Ag}PriceOverParityProdWeighted（産出で重みを付けた 値段÷平価）・{Au,Ag}RegionsProducing（産出のある州の数）・{Au,Ag}RegionsAtOrBelowParity（在庫があり値段≦平価の州の数＝造幣局が買う州）・
+        //   {Au,Ag}ProducerOutput（その財の生産者の産出の和）・{Au,Ag}ProducerCount。
+        sk.MetalNat ??= Open("metalnat", seed);
+        if (!sk.MetalNatHeader) { sk.MetalNat.WriteLine("quarter\tyear\tnation\tlaw\tAuProduced\tAgProduced\tAuDemand\tAgDemand\tAuStock\tAgStock\tAuPriceOverParityProdWeighted\tAgPriceOverParityProdWeighted\tAuRegionsProducing\tAgRegionsProducing\tAuRegionsAtOrBelowParity\tAgRegionsAtOrBelowParity\tAuProducerOutput\tAgProducerOutput\tAuProducerCount\tAgProducerCount"); sk.MetalNatHeader = true; }
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; var stn = S(w);
+            if (!IsPicked(w, stn)) continue;
+            double[] prod = new double[2], dem = new double[2], stk = new double[2], pw = new double[2], pOut = new double[2]; int[] rp = new int[2], rb = new int[2], pc = new int[2];
+            int[] ids = [Catalog.GoldOreId, Catalog.SilverId];
+            foreach (var r in w.Regions)
+                for (int k = 0; k < 2; k++)
+                {
+                    int g = ids[k]; if (g >= r.Markets.Length) continue;
+                    var m = r.Markets[g]; double par = Catalog.RefPrices[g];
+                    prod[k] += m.LastProduced; dem[k] += m.LastDemand; stk[k] += m.Stock;
+                    if (m.LastProduced > 1e-9 && m.Price > 1e-9 && par > 1e-9) { pw[k] += m.LastProduced * (m.Price / par); rp[k]++; }
+                    if (m.Stock > 1e-12 && m.Price <= par) rb[k]++;
+                    foreach (var pr in r.Producers) if (pr.GoodId == g) { pOut[k] += pr.Output; pc[k]++; }
+                }
+            int law = w.MonetaryLaw == MonetaryStandardLaw.Gold ? 2 : w.MonetaryLaw == MonetaryStandardLaw.Silver ? 1 : 0;
+            sk.MetalNat.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), I(law), F(prod[0]), F(prod[1]), F(dem[0]), F(dem[1]), F(stk[0]), F(stk[1]),
+                prod[0] > 1e-9 ? F(pw[0] / prod[0]) : "nan", prod[1] > 1e-9 ? F(pw[1] / prod[1]) : "nan", I(rp[0]), I(rp[1]), I(rb[0]), I(rb[1]), F(pOut[0]), F(pOut[1]), I(pc[0]), I(pc[1])));
+        }
     }
 
     static void WarTables(Sink sk, DipState dip)

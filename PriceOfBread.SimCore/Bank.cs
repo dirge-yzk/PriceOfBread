@@ -32,6 +32,15 @@ public sealed class Bank
         p.Debt += new MoneyStock(moved);
     }
 
+    /// <summary>★(574) 開幕の貨幣の量の規則（<see cref="World.RescaleOpeningSavings"/>）だけが、預金（Pop の貯蓄）を λ 倍するのと同じ呼びで与信の両方（<see cref="Loans"/>・<see cref="HouseholdLoans"/>）を λ 倍する。
+    /// 預金は与信が作った広義マネーなので、預金だけ戻すと与信が残り金本位の準備のカバー（BaseMoney÷BroadMoney）が助走の四半期ごとに落ちる。旗 <c>OpeningMoneyFromRatioMode</c> が 0 では呼ばれない。
+    /// <see cref="Gold"/> は Credit.Step が毎日 BaseMoney から導き直す導出量＝触らない。</summary>
+    internal void ScaleCredit(double factor)
+    {
+        Loans *= factor;
+        HouseholdLoans *= factor;
+    }
+
     /// <summary>★債務は債務者について行く（2026-09-29 S3b）＝POP が国をまたいで移る（割譲・建国・再併合・越境移民・招聘）とき、
     /// 運ぶ債務 <paramref name="debt"/> の分の家計の与信を受け入れ国の銀行へ移す（null＝建国：新しい国の銀行は構築で自国の POP の債務から始まる）。
     /// ⚠呼び手は同じ額を持参金の台帳から引く（運ぶ基礎貨幣＝貯蓄−債務）＝国ごとの保存が閉じる。

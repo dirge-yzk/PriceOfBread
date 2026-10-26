@@ -961,7 +961,8 @@ public sealed class Coefficients
     // 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。0=無効（較正中立）。保存：CumulativeGoldMinted 台帳で基礎貨幣増を追跡。
     public Share GoldMintFraction = new(0.2);           // 金鉱の月次産出のうち鋳造（貨幣化）に回る割合。0=中立。0.2起動（キュー3・金発見移民 2026-07-10）＝金鉱州の産金→新鋳貨が鉱山所有者へ＝金鉱国の購買力/賃金↑→移民機会↑（ゴールドラッシュの貨幣面）。旧保存テストは CumulativeGoldMinted 込みの式へ更新済み
     public double PriceLevelFloor = 0.4;            // 物価水準の下限（深いデフレの底＝暴走防止）
-    public double PriceLevelCeil = 4.0;             // 物価水準の上限（高インフレの天井＝暴走防止）
+    // ★(582) 物価水準の上限は廃止した（作者 2026-10-26「極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」）。物価は床 PriceLevelFloor までだけ切り、上は紙幣増発の掛け算（FiatInflationPressure→FiatInflationWeight）が複利で伸びうる。
+    //   P が正の有限でない四半期（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）は更新前の P を保つ否定形の番人だけが World.UpdatePriceLevel にある（天井ではない）。事前登録 measurements/svf2_582_20261026_prereg.txt
     // 地域別の貨幣的物価水準（②集計粒度）：各州の物価水準＝国家物価×地域乗数。乗数＝(州の1人あたり貯蓄/国の1人あたり貯蓄)^Weight をクランプ。
     // 現金の厚い金融中心州は物価/名目賃金が高く、現金の乏しい辺境州は低い（19世紀の地域物価・賃金格差・辺境デフレ）。1州なら乗数1＝較正中立。0で無効。
     public double RegionalPriceLevelWeight = 0.3;   // 地域の現金の厚みの差→物価格差への感応度（0=地域差なし=従来一律）。緩め＝極端な州だけ大きく振れる
@@ -1954,6 +1955,8 @@ public sealed class Coefficients
     public double DiscoveryClockRampWidth = 0.1;    // ★(461) 同・傾斜の幅 w（無次元・S が 0 から 1 に動く W の幅は W0·d·w）。DiscoveryClockWorldPerMonth が正のときだけ読む。0.1 は制度の細ランプの先例（幅 0.2 の広ランプは列強の再現を下げた）で掃引しない。
     public double DiscoveryOwnHalfPerMonth = 12.5677;     // ★(461) 同・（★2026-10-20 腕 B の採用で既定 0→12.5677＝予備計測の規則から）C＝自国の親の産業の技師 A÷(A＋これ)（有界の飽和＝大国の絶対量で先取りせず、産業の無い国・小さい工房の国は抑える）。単位は W0 と同じ。DiscoveryClockWorldPerMonth が正のときだけ読む。
     public double DiscoveryClockMotorParent = 0;    // ★(461) 同・正のとき（かつ DiscoveryClockWorldPerMonth が正）電動機の行の親の産業の技師を蒸気機関の財にする（既定 0＝今の規則＝電力の産業が立つまで電動機の A は 0）。時計の形とは別の旗＝反証役の指摘（親の変更が時計の効きと混ざる）で切り離した。出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）。
+    public int OpeningMoneyFromRatioMode = 0;       // ★(574) 開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt 追記 2・4）。0＝何もしない（旧と1ビットも変わらない）／1以上＝助走の各四半期の末の頭（Simulation.QuarterEnd）に全 Pop の貯蓄と与信（Bank.Loans・HouseholdLoans・Pop.Debt）を国ごとの1つの倍率で戻し、
+                                                    //   貯蓄の和÷年名目GDP を NationConfig.BroadMoneyToGdpYear にする（World.RescaleOpeningSavings＝国庫・国債を助走の各四半期の終わりに置く (332) と同じ規律）。(332) の国債の年GDP は名目のまま（貨幣の m と同じ測り方＝追記 4 でモード2の実質の測りを外した）。採否未定（入口の形・AI の設計＝確証なし）。
     public double OpeningBakeEnabled = 0;           // ★(490) 開幕の焼き込み（<see cref="OpeningBake"/>）の読み込みの旗。0＝表（opening_bake.json）を開きもしない＝厳密恒等。正のとき <see cref="MultiNationSim.StartWarmup"/> の頭で 1 回、凍結を解いた試走で落ち着いた盤面（州×レシピの能力・州の資本・州×財の在庫と値段・州×階級の貯蓄）を構築直後の盤面に書く
                                                     //   （鍵が今の世界と全て一致しなければ例外）。**倒さない**（焼くのは工業化度の削除の後＝(464) の順）。測りの名乗りは焼いた表の頭書き（SOURCE-HASH・入力のハッシュ・試走の四半期数）。
     public double RecipeEquipment = 1;              // ★(495) **2026-10-23 に 1 で点火**（腕 B・止める線に当たらず・事前登録 measurements/eq495_20261023_prereg.txt 追記 6）。レシピごとの設備。0＝旧の規則（操業規模 Scale は利幅を目標にただで伸び縮みする）＝厳密恒等。正のとき、**暦が進む月だけ**（助走は旧の規則）、設備を持つ生産者
