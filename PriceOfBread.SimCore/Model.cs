@@ -906,7 +906,6 @@ public sealed class Region
     public string TransitPort2Name = "";              // 第2候補（構築時所有国が候補1と異なる次点。無ければ空）
     public double TransitLand2Km;                     // 第2候補への陸グラフ距離km
     public string LastTransitPortName = "";           // 診断：この四半期に実際に使ったトランジット港（未使用・非トランジット州＝空）。力学は読まない
-    public double LastTradeDistanceKm;                // 診断：この四半期の実効交易距離km（3脚 stKm＝海路＋陸×LandSeaCostRatio。フォールバック時は国一律km）。力学は読まない
     public Basin SeaBasin;                            // 03手順5：この州が海へ出る海盆（沿岸州＝最寄り海ノードのbasin・内陸州＝最寄り港の海盆を継承＝§12-3。港なし国は国のBasinへフォールバック）
     public double LastWarIntensity;                   // 05-A（2026-07-29）：今月の戦場強度（劣勢度×接触・0..1）。RGO産出の戦災乗数が読む（毎月Diplomacyが再設定＝戦争が終われば自然回復）
     public double TariffInterest;                     // 州の関税利害（−1=自由貿易を望む農業/輸出州・+1=保護を望む工業州）。国政策との乖離＋不満で分離圧力（§9-E拡張）
@@ -1120,7 +1119,7 @@ public sealed class Region
     public double MonumentBuildQueue;                 // 巨大建造物への国庫予約額。EconomyStep が建設の束＋労働を買い MonumentBuiltUnits へ積む（ヘッドルーム非適用）
     public double MonumentBuiltUnits;                 // 今四半期に建った建設の束（MultiNationSim が四半期末に回収して個体の進捗へ足しゼロ化＝2相方式）
     public List<string> MonumentApplied = [];         // この州で恒久効果を適用済みの建造物Id（征服で州ごと移るので効果も州に付いて回る）
-    public double StateBuildQueue;                    // プレイヤーの手動工場建設の予約額（国庫）。EconomyStep が建設の束（鋼/機械/セメント/製材）を買い工業化度に変換＝資本家と同じ経路
+    public double StateBuildQueue;                    // 国庫の建設の予約額。★(583) 書き手は近代化投資の廃止で 0 本になった（月末の 0 への戻しと支払い率での縮めだけ残る）＝EconomyStep の stateConstruction の段は常に 0（段の削除は枠と機械の線 sm6 の採否の後）。EconomyStep が建設の束（鋼/機械/セメント/製材）を買い工業化度に変換＝資本家と同じ経路
     // ★段③（2026-08-17・作者裁定「工業化投資は銅やセメントを買うのではなく、研究者や技師を増やす補助金として機能させたい」）：
     //   近代化投資のうち高等教育の学費を肩代わりする分の**予約額**（StateBuildQueue と同型＝請求権であってカネはまだ国庫にある）。
     //   ⚠実支払いは EconomyStep が**買えた分だけ** StateSpent へ計上＝空振りは自動的に国庫へ残る（作者裁定2026-08-16の「返金」はこの型で既に満たされる）。

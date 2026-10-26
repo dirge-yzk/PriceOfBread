@@ -29,7 +29,7 @@ public class ClearScratchTests
             if (w.ExportToByGood is { } exf) foreach (var s in exf) sb.Append(s ?? "-").Append(',');
             sb.Append('\n');
             foreach (var r in w.Regions)
-                sb.Append(r.Name).Append(':').Append(B(r.LastPortThroughput)).Append(':').Append(B(r.LastTradeThrottle)).Append(':').Append(B(r.LastTradePotential)).Append(':').Append(B(r.LastTradeDistanceKm)).Append(';');
+                sb.Append(r.Name).Append(':').Append(B(r.LastPortThroughput)).Append(':').Append(B(r.LastTradeThrottle)).Append(':').Append(B(r.LastTradePotential)).Append(';');
             sb.Append('\n');
         }
         foreach (var v in sim.Market.Price) sb.Append(B(v)).Append(',');

@@ -126,7 +126,7 @@ public sealed partial class InternationalMarket
         public TrEntry[] Tr = new TrEntry[512];
         public int[] SeaNodeOf = [], LandNode = [], NextS = [], CandS = [];
         public double[] SeaHalf = [], TerrCost = [], LandRatio = [], LandGraft = [], Budget = [], PayHouse = [], PortRecv = [], PayTariff = [], PaySub = [],
-            Rev = [], RevX = [], ExpReg = [], PotNew = [], CapLeft = [], DistTop = [], LpOf = [], Left = [], CandD = [], CandK = [], CandF = [];
+            Rev = [], RevX = [], ExpReg = [], PotNew = [], CapLeft = [], LpOf = [], Left = [], CandD = [], CandK = [], CandF = [];
         public List<Pop>?[] PayerOf = [], Underwriters = [];
         public List<Pop>?[] ShipOwners = [];
         public bool[] Bill = [];
@@ -639,7 +639,6 @@ public sealed partial class InternationalMarket
 
         var sellers = sc.Sellers;
         var buyers = sc.Buyers;
-        var distTop = ClearScratch.FitZero(ref sc.DistTop, tc);   // 距離の診断＝どの取引を代表に採ったか（最大額）
         // ★(347) 財ごとの州の市場と自州価格（金建て）の読み置き。旧＝平均の走査・売り手の候補・買い手の候補の3回、同じ `tr[t].r.Markets[g].Price * exRate[国]` を読んでいた
         //   （州→市場の配列→市場と3段の参照を3回）。新＝平均の走査で1回だけ読み、あとの2つの走査と買い手行・売り手の市場の読みは配列から取る。
         //   値は同じ式・同じ入力（走査のあいだ価格は書かれない）＝同じ値。読むのは連結した州（linked）だけ＝書くのも連結した州だけ。
@@ -1058,8 +1057,6 @@ public sealed partial class InternationalMarket
                     _volume[g] += qA;
                     RecordPartner(nations[ni].World.ImportFromByGood, g, tr[snA].r.Name, vA, impTop[ni]);
                     RecordPartner(nations[siA].World.ExportToByGood, g, tr[t].r.Name, vA, expTop[siA]);
-                    if (vA > distTop[t]) { distTop[t] = vA; tr[t].r.LastTradeDistanceKm = bestKmA; }
-                    if (vA > distTop[snA]) { distTop[snA] = vA; tr[snA].r.LastTradeDistanceKm = bestKmA; }
                     // ★陸路可視化（2026-08-31）：この対の最短が陸直行なら、両端の州へ「陸路の最大相手」を記帳（純テレメトリ・地図が実経路を描く）
                     if (LandNow(t * tc + snA) || LandNow(snA * tc + t))   // ★(335) 添字の並びを入れ替えた（どちらの向きの印も読む）
                     {
@@ -1114,8 +1111,6 @@ public sealed partial class InternationalMarket
                 tr[t].r.LastTradeThrottle = potential > 1e-9 && cap < double.MaxValue ? Math.Min(1.0, cap / potential) : 1.0;
                 tr[t].r.LastTradePotential = potential;   // ★T0（輸送doc・2026-08-13）：比だけでなく**絶対量**を残す
             }
-            // 取引が1件も立たなかった州＝陸脚だけは確定しているので、そこまでを距離として残す（0km＝未接続と紛れさせない）。
-            if (distTop[t] <= 0 && tr[t].linked) tr[t].r.LastTradeDistanceKm = tr[t].landKm * terrCost[t] * landRatio[t];   // ★実着値の物差し（:262/:273）に統一＝地形/鉄道低下を無視した旧定数(12)フォールバックを廃止
         }
 
         // ---- 清算の終わり（段3-1）：運賃→船の持ち主／補助→払い手／関税→国庫（通関）／輸入代金と運賃→清算所 ----

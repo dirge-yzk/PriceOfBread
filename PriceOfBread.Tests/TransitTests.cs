@@ -97,10 +97,8 @@ public class TransitTests
         //       「トランジットの3脚 < 首都基準」を比べていた。重心を廃した今、比べる相手が存在しない。
         //   新＝港に繋がらない内陸州は**そもそも海上交易の経路を持たない**（距離0＝未接続）。
         //       トランジットは「経路が無い」を「隣国の港を借りた実経路」に変える機構＝これが本来の意味。
-        Assert.True(rOn.LastTradeDistanceKm > 0, "点火してもトランジットの経路が立たない");
-        // 3脚の下限＝陸脚×LandSeaCostRatio（同式であることの下限チェック）
-        Assert.True(rOn.LastTradeDistanceKm >= rOn.TransitLandKm * on.Coef.LandSeaCostRatio,
-            $"3脚（{rOn.LastTradeDistanceKm:F0}km）が陸脚×{on.Coef.LandSeaCostRatio}（{rOn.TransitLandKm * on.Coef.LandSeaCostRatio:F0}km）を下回る");
+        //   ★(583) 恒等の線 gc4：診断の欄 Region.LastTradeDistanceKm（読み手は試験だけ）を削除した。経路が立つことは上の LastTransitPortName（この四半期に実際に使ったトランジット港）が示す。
+        //   3脚の距離の下限（陸脚×LandSeaCostRatio 以上）の確かめは観測口ごと消えた＝経路の分解は計器 trroute（realSeaKm・realLandKm）に残る。
     }
 
     [Fact]
@@ -171,7 +169,7 @@ public class TransitTests
         swiss.RailCapacity = 1e6; swiss.ShipCapacity = 1e6; genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("", bern.LastTransitPortName);
-        Assert.True(bern.LastTradeDistanceKm > 0);   // 陸路の直行は生きている＝交易は死なない
+        //   ★(583) 恒等の線 gc4：ここにあった Assert.True(bern.LastTradeDistanceKm > 0)〔陸路の直行は生きている＝交易は死なない〕は、診断の欄の削除で観測口ごと消えた（欄は連結した州なら取引が無くても陸脚を残す値だった＝連結の印）。
         Assert.True(Math.Abs(genoa.Treasury.Value - tB0) < 1e-9 && Math.Abs(tuscany.Treasury.Value - tC0) < 1e-9, "フォールバック時に通行料が発生した");
     }
 }
