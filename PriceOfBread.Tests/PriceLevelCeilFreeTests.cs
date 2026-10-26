@@ -88,6 +88,33 @@ public class PriceLevelCeilFreeTests
         }
     }
 
+    /// <summary>★(582) 反証役の点検（中#2）：ハイパーインフレの領域（旗1で毎四半期の紙幣増発が P を桁で押し上げる）を実際に通しても、下流（期待インフレ→国債金利・政策金利・財政・貨幣の保存）が NaN・無限を出さず、貨幣の保存則が破れない。
+    /// 基線の種1〜10ではこの領域を通らない（増発による P＞4 が 0 行）＝腕Bの緑では下流の安全が示されない。ここで直接通す。期待値は性質（有限・保存）だけで、P の値を式で写さない。</summary>
+    [Fact]
+    public void 旗1で紙幣増発を毎四半期続けても下流が有限で貨幣の保存が破れない()
+    {
+        var sim = new Simulation(new Scenario { Kind = ScenarioKind.Nation, NationConfig = WorldData.ByName("イギリス"), Seed = 1 }, new NullAgent());
+        var w = sim.World;
+        Assert.True(w.MonetaryEnabled);
+        w.Coef.PriceLevelCeilFree = 1;
+        var mc = new MoneyConservation(w);
+        double maxP = 0;
+        for (int q = 0; q < 24; q++)
+        {
+            w.FiatInflationPressure = 1.0;   // 毎四半期、広義マネーと同じ額を刷った扱い（次の月次の更新で P に乗る）
+            sim.Run(1);
+            maxP = Math.Max(maxP, w.PriceLevel);
+            Assert.True(double.IsFinite(w.PriceLevel) && w.PriceLevel > 0, $"q{q}: P が有限でない（{w.PriceLevel}）");
+            Assert.True(double.IsFinite(w.ExpectedInflationPerYear.Value), $"q{q}: 期待インフレが有限でない（{w.ExpectedInflationPerYear.Value}）");
+            Assert.True(double.IsFinite(w.GovBondRatePerYear.Value) && double.IsFinite(w.GovAvgCouponPerYear.Value), $"q{q}: 国債金利が有限でない");
+            Assert.True(double.IsFinite(w.InterestRate), $"q{q}: 政策金利が有限でない");
+            Assert.True(double.IsFinite(w.Treasury.Value), $"q{q}: 国庫が有限でない");
+            Assert.True(double.IsFinite(w.CostPriceLevel), $"q{q}: 自己費用の物価が有限でない");
+            mc.Check(w);
+        }
+        Assert.True(maxP > 100.0, $"紙幣増発を24四半期続けても P が桁で伸びない（最大 {maxP}）＝この番人がハイパーインフレの領域を通っていない");
+    }
+
     /// <summary>★(582) 物価の天井・床に触れた行の表 <c>pclamp_s</c>（全ての国・まばら）は、挙げていない国からも出て、挙げた国の物価の表 <c>money_s</c> と食い違わない。
     /// 天井を低く（0.6）置いて助走の物価を天井に触れさせる。期待値は別の表（money_s の増発の後の P）から作る＝同じ出所にしない。</summary>
     [Fact]

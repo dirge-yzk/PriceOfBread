@@ -182,7 +182,7 @@ public class OpeningMoneyRatioTests
             var (ratio, cover, _) = on[cfg.Name]; var (_, coverOff, _) = off[cfg.Name];
             rec.Add($"{cfg.Name}: 比/m={ratio / m:F2} カバー={cover:F3}（旗0 {coverOff:F3}）");
             if (!(ratio / m >= 0.25 && ratio / m <= 4.0)) bad.Add($"{cfg.Name}：比/m={ratio / m:F2} が 0.25〜4 の外");
-            if (!double.IsFinite(cover)) bad.Add($"{cfg.Name}：準備のカバーが有限でない");   // 機構の線＝有限であること。旗0 の半分という幅は観測の直下に引いた事後の線で、基点が替わると国が1つ跨ぐ（(582) 基点 172263d6 でアフガニスタン 0.489 対 0.999）＝記録に移した
+            if (!double.IsFinite(cover)) bad.Add($"{cfg.Name}：準備のカバーが有限でない");   // 機構の線＝有限であること。旗0 の半分という幅は観測の直下に引いた事後の線で、基点が替わると国が1つ跨ぐ（(582) 基点 172263d6 でアフガニスタン 0.489 対 0.999）＝記録に移した。戻しの倍率が準備のカバーを動かさないことは別の番人 与信も預金と同じ倍率で掛かる_準備のカバーは戻しで動かない（上）が確かめる＝この番人の主張は〈助走の後も有限〉まで
             if (cover < 0.5 * coverOff) rec.Add($"  ↑ 記録：{cfg.Name} の準備のカバーが旗0 の半分を下回る（採否に使わない）");
         }
         System.Console.WriteLine(string.Join("\n", rec));
