@@ -6,8 +6,8 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// (573) 線 sm5 の最初のコミット：近代化投資の廃止（旗 <c>ModernizationAbolished</c>・既定 0）の番人。作者 2026-10-26 原文「近代化投資は廃止してください。工場はユーザーは生産tabから建てますし、AIも同じ経路で建てられる筈です。州全体に金を撒く機構は不要です」。
-/// 門：旗が正で StateBuildQueue と国の建設の工業化度への足しが 0／財政の行が出ない／AI がレバーを決めない。旗 0 は対照（同じ盤面で予算が正・予約が積まれる）。
+/// (573) 線 sm5 の最初のコミット：近代化投資の廃止（旗 <c>ModernizationAbolished</c>・2026-10-26 に既定 1 へ点火）の番人。作者 2026-10-26 原文「近代化投資は廃止してください。工場はユーザーは生産tabから建てますし、AIも同じ経路で建てられる筈です。州全体に金を撒く機構は不要です」。
+/// 門：旗が正で StateBuildQueue へ撒く分と国の建設の工業化度への足しが 0。予算の額・招聘の予算・高等教育の学費の補助・AI のレバーは残る（作者の言葉〈残しましょう〉は高等教育の学費の補助だけ＝他を残すのは AI の推奨・作者の承認は未確認）。旗 0 は対照（同じ盤面で予算が正・予約が積まれる）。
 /// 期待は盤面に自分で置いた数から作る（予算の式を写さない）。
 /// </summary>
 public class ModernizationAbolishedTests
@@ -36,7 +36,7 @@ public class ModernizationAbolishedTests
         return (budget, w.Regions.Sum(r => r.StateBuildQueue), w.Regions.Sum(r => r.HigherEduFunding), w.RecruitBudget);
     }
 
-    /// <summary>旗 1：州へ撒く分（StateBuildQueue）が 0。予算の額・高等教育の学費の補助・招聘の予算は旗 0 と同じ額（作者「これは残しましょう」）。旗 0 は対照（撒く分が正・高等教育の補助が正）。</summary>
+    /// <summary>旗 1：州へ撒く分（StateBuildQueue）が 0。予算の額・高等教育の学費の補助・招聘の予算は旗 0 と同じ額（作者の言葉〈残しましょう〉は高等教育の学費の補助だけ・予算の額と招聘を残すのは AI の推奨）。旗 0 は対照（撒く分が正・高等教育の補助が正）。</summary>
     [Fact]
     public void 旗が正なら撒く分だけが0_高等教育の補助と招聘と予算の額は旗0と同じ()
     {
@@ -56,30 +56,27 @@ public class ModernizationAbolishedTests
         Assert.Equal(off.Recruit, on.Recruit, 9);
     }
 
-    /// <summary>旗が正の世界を数四半期回すと、どの州の予約も 0 のまま・国の建設が工業化度へ足した累積も増えない。AI のレバーは決まる（高等教育の補助の額を決める欄として残る）。旗 0 の対照は予約が積まれ累積が増える。</summary>
+    /// <summary>旗が正の世界を数四半期回すと、国の建設が工業化度へ足した累積が増えない。AI のレバーは決まる（高等教育の補助の額を決める欄として残る）。旗 0 の対照は累積が増える。
+/// ★(576) 合流：四半期の終わりの StateBuildQueue は旗に依らず 0（EconomyStep の月末で毎月 0 へ戻す）＝四半期の後に予約を読む Assert は同語反復だったので外した（予約の門は上の試験が ApplyModernizationInvestment の直後に読む）。</summary>
     [Fact]
     public void 旗が正の世界は数四半期回しても国の建設の予約も工業化度への足しも0_レバーは残る()
     {
         var on = Make(1.0); var off = Make(0.0);
         double cumOn0 = on.Nations.Sum(n => n.World.Regions.Sum(r => r.CumStateIndustrialization));
-        double queueOff = 0; double cumOff0 = off.Nations.Sum(n => n.World.Regions.Sum(r => r.CumStateIndustrialization));
-        for (int q = 0; q < 6; q++)
-        {
-            on.StepQuarter(); off.StepQuarter();
-            foreach (var n in on.Nations) Assert.All(n.World.Regions, r => Assert.Equal(0.0, r.StateBuildQueue));
-            queueOff += off.Nations.Sum(n => n.World.Regions.Sum(r => r.StateBuildQueue));
-        }
+        double cumOff0 = off.Nations.Sum(n => n.World.Regions.Sum(r => r.CumStateIndustrialization));
+        for (int q = 0; q < 6; q++) { on.StepQuarter(); off.StepQuarter(); }
         Assert.Equal(cumOn0, on.Nations.Sum(n => n.World.Regions.Sum(r => r.CumStateIndustrialization)));
         Assert.True(off.Nations.Sum(n => n.World.Regions.Sum(r => r.CumStateIndustrialization)) > cumOff0, "対照：旗 0 で国の建設が工業化度を足さない（この対照が崩れたら上の 0 は何も言っていない）");
         Assert.True(on.Nations.Any(n => n.World.ModernizationFrac > 0), "レバーは残る（AI の決め方は変えない）");
     }
 
-    /// <summary>StateBuildQueue に積む書き手は World.ApplyModernizationInvestment の 2 行だけ（新しい書き手が現れたら、廃止の旗では止まらない道ができたということ）。禁止語の表は手で書いた物。</summary>
+    /// <summary>StateBuildQueue に積む書き手は World.ApplyModernizationInvestment の 2 行だけ（新しい書き手が現れたら、廃止の旗では止まらない道ができたということ）。禁止語の表は手で書いた物。
+    /// ★(576) 合流：`+=` だけでなく `-=`・`*=`・代入 `=`（`==` を除く）も数える。許す物＝月末の 0 への戻し（EconomyStep 1）・支払い率での縮め（Simulation 1）・試験の盤面の置き（BuildingGoodBundleTests 1）。</summary>
     [Fact]
     public void StateBuildQueueへ積む書き手は近代化投資だけ()
     {
-        var allow = new System.Collections.Generic.Dictionary<string, int> { ["PriceOfBread.SimCore/World.cs"] = 2 };
-        var re = new System.Text.RegularExpressions.Regex(@"StateBuildQueue\s*\+=");
+        var allow = new System.Collections.Generic.Dictionary<string, int> { ["PriceOfBread.SimCore/World.cs"] = 2, ["PriceOfBread.SimCore/EconomyStep.cs"] = 1, ["PriceOfBread.SimCore/Simulation.cs"] = 1, ["PriceOfBread.Tests/BuildingGoodBundleTests.cs"] = 1 };
+        var re = new System.Text.RegularExpressions.Regex(@"StateBuildQueue\s*(\+=|-=|\*=|=(?!=))");
         var bad = new System.Collections.Generic.List<string>();
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
         {
