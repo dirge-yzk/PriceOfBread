@@ -2642,7 +2642,10 @@ public sealed class World
     /// ⚠構築子では呼ばない：構築直後の産出（<see cref="Producer.Output"/>）は生産者ごとの置き定数（RGO 50・工場 0.5・職人 30）の和で、最初の四半期の市場の後の産出と国ごとに 1.7〜14 倍ずれる
     /// （英 5,828→59,830・清 31,545→450,780・基線 m560 の q0 の中央値との比）＝構築直後の年GDP を分母にすると比が 1 桁違う。助走の各四半期の末（国庫・国債を置くのと同じ時点）の産出で測る。
     /// λ＝目標の比÷今の比。今の比は <see cref="Calendar.ToGdpYear"/>（在庫÷年の流れ）で作る＝月の名目GDP をそのまま分母にする取り違え（12倍）は型が通さない。
-    /// 否定形：目標・貯蓄の和・年GDP のどれかが正でない（NaN を含む）か λ が有限の正でなければ何もしない。戻り値＝掛けた倍率（何もしないとき 1）。</summary>
+    /// <para>★与信も同じ λ で掛ける（追記 4・反証役の指摘）：<c>BaseMoney = TotalMoney + Treasury − OutstandingLoans</c>・<see cref="Bank.Loans"/> は〈信用創造された広義マネー＝預金−金〉。預金だけを戻すと、預金を作った与信（助走で積んだ企業の貸し・損失の負債化）が戻らずに残り、
+    /// 助走の四半期ごとに BaseMoney÷BroadMoney（金本位の準備のカバー）が片方向に落ちる（与信は流れで積み・貨幣の在庫は戻す＝分子と分母の非対称）。預金と与信の両側に同じ λ を掛けると、戻しは準備のカバー（預金に対する金の比）を動かさない。
+    /// 掛けるのは <see cref="Bank.Loans"/>・<see cref="Bank.HouseholdLoans"/>・各 Pop の <see cref="Pop.Debt"/>（HouseholdLoans＝Σ Pop.Debt の恒等を保つ）。<see cref="Bank.Gold"/> は Credit.Step が毎日 BaseMoney から導き直す導出量＝触らない。
+    /// 否定形：目標・貯蓄の和・年GDP のどれかが正でない（NaN を含む）か λ が有限の正でなければ何もしない。戻り値＝掛けた倍率（何もしないとき 1）。</para></summary>
     internal double RescaleOpeningSavings(double targetRatio)
     {
         if (!(targetRatio > 0)) return 1.0;
@@ -2651,7 +2654,8 @@ public sealed class World
         if (!(total.Value > 0) || !(gdpYear.Value > 0)) return 1.0;
         double lambda = targetRatio / Calendar.ToGdpYear(total, gdpYear).Value;
         if (!(lambda > 0) || double.IsInfinity(lambda)) return 1.0;
-        foreach (var (_, p) in AllPopsWithRegion()) p.ScaleSavings(lambda);
+        foreach (var (_, p) in AllPopsWithRegion()) { p.ScaleSavings(lambda); p.Debt = p.Debt * lambda; }
+        Bank?.ScaleCredit(lambda);
         return lambda;
     }
 
@@ -2667,9 +2671,7 @@ public sealed class World
         if (OpeningTreasuryMonths > 0 && LastRevenuePerMonth.Value > 0) RebaseTreasury((Calendar.OneMonthOf(LastRevenuePerMonth) * OpeningTreasuryMonths).Value);
         else RebaseTreasury(treasuryBefore);
         if (!(OpeningGovDebtToGdpYear > 0)) return;
-        // ★(574) モード2：年GDP を価格水準1の実質で測る（史実の比は1783年の価格での名目GDP に対する比＝助走で動いた物価を比に乗せない）。モード0・1 は名目のまま（同じ値＝1ビットも変わらない）。
-        MoneyPerMonth gdpMonth = Coef.OpeningMoneyFromRatioMode >= 2 && MonetaryEnabled && PriceLevel > 0 ? NominalGdpPerMonth / PriceLevel : NominalGdpPerMonth;
-        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(gdpMonth);
+        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(NominalGdpPerMonth);
         if (!(gdpYear.Value > 0)) return;
         MoneyStock placed = OpeningGovDebtToGdpYear * Calendar.OneYearOf(gdpYear);
         foreach (var r in Regions) foreach (var p in r.Pops) p.BondHoldings = default;

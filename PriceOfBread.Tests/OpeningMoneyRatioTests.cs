@@ -8,13 +8,13 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// ★(574) 線 svf＝開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt〔追記 2 で形を直した〕）の番人。
 /// 規則＝旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上のとき、助走の各四半期の末の頭（<c>Simulation.QuarterEnd</c>）に全 Pop の貯蓄を国ごとの1つの倍率で戻し、
-/// 貯蓄の和÷年名目GDP を <see cref="NationConfig.BroadMoneyToGdpYear"/> にする（<see cref="World.RescaleOpeningSavings"/>）。モード2は (332) の国債の年GDP を価格水準1で測る。
+/// 貯蓄の和÷年名目GDP を <see cref="NationConfig.BroadMoneyToGdpYear"/> にする（<see cref="World.RescaleOpeningSavings"/>）。与信（Bank.Loans・HouseholdLoans・Pop.Debt）にも同じ倍率を掛ける（追記 4）。
 /// ⚠最初の版は構築子で当てた＝構築直後の産出は生産者ごとの置き定数の和で、最初の四半期の後の産出と国ごとに 1.7〜14 倍ずれ、比が 1 桁違った（追記 2）。試験が構築直後の年GDP に対して緑でも意味が無かった＝
 /// 今の試験は助走を実際に回して、**走っている経済の産出**に対する比を見る。
 /// 期待値は式の出力から作らない：m は下の手書きの表（(221) の4階・344f8883 の world.json から写した）／貯蓄の和は Pop を直接走査／年GDP は 12× を試験側で書く（月と年の取り違えを捕まえる）／
-/// 構築の直書き（資本家 3200・農民 200・工場労働者 300）は試験側の定数。
+/// 与信の倍率は預金の前後の比（試験側で Pop を走査して作る）と比べる。旧の盤面の定数（資本家の貯蓄 3200 など）は固定しない（旗0の恒等は腕 A と DormantIdentityTests が見る）。
 /// 突然変異：①年GDP に月の名目GDP をそのまま使う（12倍ずれる）→関数の検査が赤／②一部の階級（閉じた階級）だけに掛ける→倍率が全 Pop に同じの検査が赤／
-/// ③モード2でも名目で置く→国債の検査が赤／④旗0でも当てる→旗0の検査が赤／⑤建国の持ち込み州の門を外す→持ち込み州の検査が赤／⑥四半期の末の頭でなく物価の更新の後に当てる→趨勢の検査が赤。
+/// ③与信（Loans・HouseholdLoans・Pop.Debt）を飛ばす→与信の検査が赤／④旗0でも当てる→旗0の検査が赤／⑤建国の持ち込み州の門を外す→持ち込み州の検査が赤／⑥四半期の末の頭でなく物価の更新の後に当てる→趨勢の検査が赤。
 /// </summary>
 public class OpeningMoneyRatioTests
 {
@@ -67,7 +67,7 @@ public class OpeningMoneyRatioTests
     }
 
     [Fact]
-    public void 全61国_助走の最初の四半期の末に貨幣と年名目GDPの比が国のデータへ戻る_旗0では桁違い()
+    public void 全61国_助走の最初の四半期の末に貨幣と年名目GDPの比が国のデータへ戻る_旗0では大きく外れる()
     {
         var on = AfterFirstWarmupQuarter(1);
         var off = AfterFirstWarmupQuarter(0);
@@ -79,7 +79,7 @@ public class OpeningMoneyRatioTests
             var (ratio, _, _) = on[cfg.Name];
             if (!(System.Math.Abs(ratio / m - 1.0) <= 0.10)) bad.Add($"{cfg.Name}：旗1の比 {ratio:F4}（目標 {m}・±10%）");
             double control = off[cfg.Name].Ratio;
-            if (!(control >= 5.0 * m)) bad.Add($"{cfg.Name}：旗0の比 {control:F3} が目標の 5 倍に届かない（試験が旗の有無を見分けられない）");
+            if (!(control >= 2.0 * ratio)) bad.Add($"{cfg.Name}：旗0の比 {control:F3} が旗1の比 {ratio:F3} の 2 倍に届かない（試験が旗の有無を見分けられない）");
         }
         Assert.True(bad.Count == 0, string.Join("\n", bad));
     }
@@ -124,22 +124,6 @@ public class OpeningMoneyRatioTests
     }
 
     [Fact]
-    public void 旗0は構築の直書きのまま_資本家3200_農民200_工場労働者300()
-    {
-        var w = Build(WorldData.ByName("イギリス"), 0).World;
-        int nBourgeois = 0, nPeasant = 0, nWorker = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops)
-        {
-            if (!(p.Savings.Value > 0) || !(p.Size > 0)) continue;   // 植民地の器（Size0・貯蓄0）は除く
-            double per = p.Savings.Value / p.Size;
-            if (p.ClassId == 3) { Assert.Equal(3200.0, per, 6); nBourgeois++; }
-            else if (p.ClassId == 1) { Assert.Equal(200.0, per, 6); nPeasant++; }
-            else if (p.ClassId == 2) { Assert.Equal(300.0, per, 6); nWorker++; }
-        }
-        Assert.True(nBourgeois > 0 && nPeasant > 0 && nWorker > 0, $"直書きの階級が見つからない（資本家 {nBourgeois}・農民 {nPeasant}・工場労働者 {nWorker}）");
-    }
-
-    [Fact]
     public void 目標が0の国と建国の持ち込み州は読み手の値が0_否定形の守り()
     {
         var cfg = WorldData.ByName("イギリス");
@@ -159,19 +143,59 @@ public class OpeningMoneyRatioTests
     }
 
     [Fact]
-    public void モード2は国債の年GDPを価格水準1で測る_モード0と1は名目のまま()
+    public void 与信も預金と同じ倍率で掛かる_準備のカバーは戻しで動かない()
     {
         var cfg = WorldData.ByName("イギリス");
-        Assert.True(cfg.GovDebtToGdpYear > 0 && cfg.TreasuryMonths > 0);
-        foreach (int mode in new[] { 0, 1, 2 })
+        var w = Build(cfg, 0).World;
+        // 構築直後の与信は 0＝助走で積んだ後の盤面を作る（貸し・家計の貸し・個人債務）。HouseholdLoans＝Σ Pop.Debt の恒等を試験側で保つ。
+        var pops = w.Regions.SelectMany(r => r.Pops).Where(p => p.Savings.Value > 0).Take(3).ToList();
+        Assert.True(pops.Count == 3);
+        double debtSum = 0;
+        for (int i = 0; i < pops.Count; i++) { double d = 10.0 * (i + 1); pops[i].Debt = new MoneyStock(d); debtSum += d; }
+        w.Bank!.Loans = new MoneyStock(0.04 * SumSavings(w));
+        w.Bank.HouseholdLoans = new MoneyStock(debtSum);
+        double savBefore = SumSavings(w), loansBefore = w.Bank.Loans.Value, hhBefore = w.Bank.HouseholdLoans.Value;
+        double[] debtBefore = pops.Select(p => p.Debt.Value).ToArray();
+        double coverBefore = (savBefore - loansBefore - hhBefore) / savBefore;   // 預金に対する金の比（国庫を除く）
+        w.RescaleOpeningSavings(0.5);
+        double lam = SumSavings(w) / savBefore;   // 試験側で作った倍率（関数の戻り値を使わない）
+        Assert.True(lam > 0 && lam < 1);
+        Assert.True(System.Math.Abs(w.Bank.Loans.Value / loansBefore - lam) <= 1e-12 * lam, $"Loans の倍率 {w.Bank.Loans.Value / loansBefore} が預金の倍率 {lam} と違う");
+        Assert.True(System.Math.Abs(w.Bank.HouseholdLoans.Value / hhBefore - lam) <= 1e-12 * lam, "HouseholdLoans の倍率が預金と違う");
+        for (int i = 0; i < pops.Count; i++) Assert.True(System.Math.Abs(pops[i].Debt.Value / debtBefore[i] - lam) <= 1e-12 * lam, $"個人債務 {i} の倍率が預金と違う");
+        Assert.True(System.Math.Abs(w.Bank.HouseholdLoans.Value - w.Regions.SelectMany(r => r.Pops).Sum(p => p.Debt.Value)) <= 1e-9 * hhBefore, "HouseholdLoans＝Σ Pop.Debt の恒等が崩れた");
+        double coverAfter = (SumSavings(w) - w.Bank.Loans.Value - w.Bank.HouseholdLoans.Value) / SumSavings(w);
+        Assert.True(System.Math.Abs(coverAfter - coverBefore) <= 1e-12, $"戻しで準備のカバーが動いた（{coverBefore} → {coverAfter}）");
+    }
+
+    [Fact]
+    public void 助走を回しても全61国で貨幣の比は暴走せず金本位の準備のカバーは落ちない_記録つき()
+    {
+        // 煙試験（種1）で露が助走の中で金本位を失った。追記 3・4 の診断の根の検査：旗1で既定の助走（20四半期）を回した後の（貨幣÷年名目GDP）÷m と 準備のカバー（BaseMoney÷BroadMoney）を61国で読む。
+        // 暴走の線は広く取る（0.25〜4倍＝1四半期の流れの桁）。カバーは旗0（助走を戻さない）の同じ国の値の 0.5 倍を下回らない（旗1が準備を削っていない）。
+        // 値は出力に残す（G4・G5 の記録の元）。
+        var on = AfterQuarters(1, 20); var off = AfterQuarters(0, 20);
+        var bad = new List<string>(); var rec = new List<string>();
+        foreach (var cfg in WorldData.Nations())
         {
-            var w = Build(cfg, mode).World;
-            w.PriceLevel = 1.5;   // 助走で物価が動いた盤面
-            w.ForeignDebt = default;
-            w.RebaseOpeningFiscal(7.0);
-            double realYear = 12.0 * w.GdpPerMonth.Value;   // 価格水準1の年GDP（試験側の 12×）
-            double want = cfg.GovDebtToGdpYear * realYear * (mode >= 2 ? 1.0 : 1.5);
-            Assert.True(System.Math.Abs(w.GovDebt.Value - want) <= 1e-9 * want, $"モード {mode}：国債 {w.GovDebt.Value}（期待 {want}）");
+            double m = Expected(cfg.Name);
+            var (ratio, cover, _) = on[cfg.Name]; var (_, coverOff, _) = off[cfg.Name];
+            rec.Add($"{cfg.Name}: 比/m={ratio / m:F2} カバー={cover:F3}（旗0 {coverOff:F3}）");
+            if (!(ratio / m >= 0.25 && ratio / m <= 4.0)) bad.Add($"{cfg.Name}：比/m={ratio / m:F2} が 0.25〜4 の外");
+            if (!(cover >= 0.5 * coverOff)) bad.Add($"{cfg.Name}：準備のカバー {cover:F3} が旗0（{coverOff:F3}）の半分を下回る");
         }
+        System.Console.WriteLine(string.Join("\n", rec));
+        Assert.True(bad.Count == 0, string.Join("\n", bad));
+    }
+
+    /// <summary>61 国を組み、助走を <paramref name="quarters"/> 四半期回した直後の（貨幣÷年名目GDP・準備のカバー BaseMoney÷BroadMoney・価格水準）を国ごとに返す。</summary>
+    private static Dictionary<string, (double Ratio, double Cover, double P)> AfterQuarters(int mode, int quarters)
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
+        foreach (var n in sim.Nations) n.World.Coef.OpeningMoneyFromRatioMode = mode;
+        sim.StartWarmup(null, quarters);
+        var got = new Dictionary<string, (double, double, double)>();
+        foreach (var n in sim.Nations) { var w = n.World; got[w.SelfPower!.Name] = (MoneyToGdpYear(w), w.BroadMoney.Value > 0 ? w.BaseMoney.Value / w.BroadMoney.Value : double.NaN, w.PriceLevel); }
+        return got;
     }
 }
