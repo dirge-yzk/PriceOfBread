@@ -13,7 +13,6 @@ public class TerritoryTests
     {
         var sim = new Simulation(Frontier(1), new NullAgent());
         var frontier = sim.World.Regions[1];
-        Assert.Equal(RegionState.Active, frontier.State);
         double startPop = frontier.SumPopulation();
 
         sim.Run(400);
@@ -113,7 +112,6 @@ public class TerritoryTests
         Region S = w.Regions.First(r => r.Name == "リール"), a = w.Regions.First(r => r.Name == "パリ"), b = w.Regions.First(r => r.Name == "マルセイユ");
         foreach (var r in w.Regions)
         {
-            Assert.Equal(RegionState.Active, r.State);
             double o = Territory.Opportunity(r, c);
             Assert.True(o > 0, $"前提が崩れた：{r.Name} の機会が0");
             r.ProductivityBonus *= (ReferenceEquals(r, S) ? 0.2 * O / Territory.Holding(r, c) : O) / o;   // S の残る値打ち＝0.2×O・他の州の機会＝O

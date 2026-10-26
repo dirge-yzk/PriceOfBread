@@ -26,7 +26,7 @@ public static class Transport
         if (c.TransportCongestionWeight > 0)
         {
             double congSum = 0; int congN = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) { congSum += 1.0 - r.LastTradeThrottle; congN++; }
+            foreach (var r in w.Regions) { congSum += 1.0 - r.LastTradeThrottle; congN++; }
             if (congN > 0) target *= 1.0 + c.TransportCongestionWeight * (congSum / congN);
         }
         // 鉄道は発見で解禁（史実1820s〜）：機関車を見つけるまでは内陸輸送が道路/河川（基準値）のみ＝序盤の内陸交易は強く絞られる。船（帆船＝海運）は古来あり据え置き。
@@ -71,11 +71,10 @@ public static class Transport
     /// 潜在量の和が痩せたら（開幕・実績なし）均等へ倒す＝<see cref="RegionShare"/> が読む。</summary>
     internal static (double Even, double TotalPot) ShareBasis(World w, Coefficients c)
     {
-        int activeCount = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) activeCount++;
+        int activeCount = w.Regions.Count;
         double evenShare = activeCount > 0 ? 1.0 / activeCount : 1.0;
         double totalPot = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) totalPot += System.Math.Max(0, r.LastTradePotential);
+        foreach (var r in w.Regions) totalPot += System.Math.Max(0, r.LastTradePotential);
         return (evenShare, totalPot);
     }
 
@@ -107,12 +106,11 @@ public static class Transport
         double totalWant = c.ShipFuelRate * era * (w.ShipCapacity - Colonial.OccupiedShipCapacity(w)) * w.ShipSteamShare.Value;   // 帆走のみ（割合0）なら需要ゼロ
         if (!(totalWant > 1e-9)) return;   // 否定形＝NaNも不走行側へ
         int regCount = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active && (r.MerchantPopIndex >= 0 || r.InvestorPopIndex >= 0)) regCount++;
+        foreach (var r in w.Regions) if ((r.MerchantPopIndex >= 0 || r.InvestorPopIndex >= 0)) regCount++;
         if (regCount == 0) return;
         double per = totalWant / regCount;   // BuyToward と同じ州按分（1州あたりの希望量）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             int buyerIdx = r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex;   // 船＝商人が負担（BuyToward と同一の選択）
             if (buyerIdx < 0 || Catalog.CoalId >= r.Markets.Length) continue;
             var buyer = r.Pops[buyerIdx];
@@ -145,12 +143,12 @@ public static class Transport
         double gapUnits = (target - cap) * c.TransportBuildRate / c.TransportCapPerUnit;   // 今月詰めたい総単位数（1単位＝TransportCapPerUnit の容量で数える）
         if (gapUnits <= 1e-9) return (0, 0);
         int regCount = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) regCount++;
+        foreach (var r in w.Regions) if (r.InvestorPopIndex >= 0) regCount++;
         if (regCount == 0) return (0, 0);
         double perGood = rail ? gapUnits / regCount / goods.Length : gapUnits / regCount;   // 1州1財あたりの希望単位（船は選んだ1財だけ）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
+            if (r.InvestorPopIndex < 0) continue;
             int buyerIdx = rail ? r.InvestorPopIndex : (r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex);
             var investor = r.Pops[buyerIdx];
             double steamGate = rail ? 0.0 : Discovery.GoodGate(r, c.ShipTier2GoodId);   // 汽船の解禁度（0..1・NaN は0）

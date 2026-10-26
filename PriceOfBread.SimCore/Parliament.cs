@@ -279,7 +279,7 @@ public static class Parliament
     // 政党化の適格＝結束した運動体×活きた本拠州×そのブロックに票がある（F3b発言権と同じ法の階級ゲート）。
     private static bool Qualifies(World w, Coefficients c, FactionState f)
     {
-        if (f.Cohesion < c.PartyFormCohesion || f.Region.State != RegionState.Active) return false;
+        if (f.Cohesion < c.PartyFormCohesion) return false;
         double voice = f.Bloc == 0 ? 1.0
                      : f.Bloc == 1 ? (w.Suffrage >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
                      : (w.Suffrage >= Suffrage.AdultMale ? 1.0 : 0.0);   // 大衆と第4束「小営業」(bloc3)＝男子普選から（Politics.FactionStrength と同じ物差し。プチブル利益束2026-08-15）

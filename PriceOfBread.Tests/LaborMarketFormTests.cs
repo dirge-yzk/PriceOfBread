@@ -506,7 +506,6 @@ public class LaborInstrumentTests
                         var w = sim.Nations[0].World; lastNation = Instruments.NameOf(w);
                         foreach (var r in w.Regions)
                         {
-                            if (r.State != RegionState.Active) continue;
                             bool hasP = r.Producers.Any(s => s.GoodId == Catalog.LaborId && s.RecipeName.Length == 0 && s.Inputs.Count == 0 && !s.Bankrupt);
                             bool hasF = r.Producers.Any(s => s.GoodId == Catalog.FarmLaborId && s.RecipeName.Length == 0 && s.Inputs.Count == 0 && !s.Bankrupt);
                             if (hasP) expectBill += r.Markets[Catalog.LaborId].LastSold * r.Markets[Catalog.LaborId].Price;
@@ -576,7 +575,6 @@ public class LaborInstrumentTests
                 double den = 0, num = 0;
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     var human = r.Producers.FirstOrDefault(s => s.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(s) && !s.Bankrupt);
                     double cap = HumanCap(r);
                     if (human is null || !(cap > 0) || human.LaborPopIndex < 0 || human.LaborPopIndex >= r.Pops.Count || !(r.Markets[Catalog.LaborId].Price > 0)) continue;
@@ -599,7 +597,7 @@ public class LaborInstrumentTests
                 // 州の粒度の列：値段を物価水準の 0.5e-3 倍／2e-3 倍に置く
                 foreach (var (q, real, tiny) in new[] { (8, 0.5e-3, 1.0), (9, 2e-3, 0.0) })
                 {
-                    foreach (var r in w.Regions) if (r.State == RegionState.Active) r.Markets[Catalog.LaborId].Price = real * r.PriceLevel;
+                    foreach (var r in w.Regions) r.Markets[Catalog.LaborId].Price = real * r.PriceLevel;
                     Instruments.Quarter(sim, 1789UL, q);
                     checks.Add((q, "plainTinyPriceRegionShare", tiny, 1e-9));
                     checks.Add((q, "plainRealPriceMinIndex", real, real * 1e-8));
@@ -646,7 +644,6 @@ public class LaborInstrumentTests
                 double den = 0;
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     var human = r.Producers.FirstOrDefault(x => x.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(x) && !x.Bankrupt);
                     double cap = HumanCap(r);
                     if (human is null || !(cap > 0) || human.LaborPopIndex < 0 || human.LaborPopIndex >= r.Pops.Count || !(r.Markets[Catalog.LaborId].Price > 0)) continue;

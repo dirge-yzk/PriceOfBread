@@ -57,7 +57,7 @@ public class ProductionMarketTablesTests
         {
             if (Catalog.Goods[g].Tier == GoodTier.Service) continue;
             double prod = 0, exp = 0, imp = 0;
-            foreach (var r in W.Regions) if (r.State == RegionState.Active && g < r.Markets.Length) { prod += r.Markets[g].LastProduced; exp += r.Markets[g].LastExport; imp += r.Markets[g].LastImport; }
+            foreach (var r in W.Regions) if (g < r.Markets.Length) { prod += r.Markets[g].LastProduced; exp += r.Markets[g].LastExport; imp += r.Markets[g].LastImport; }
             Assert.Equal(prod, st.Prod[g], 9); Assert.Equal(exp, st.Exp[g], 9); Assert.Equal(imp, st.Imp[g], 9);
             Assert.True(st.ProdRgo[g] >= 0 && st.ProdFac[g] >= 0);
         }

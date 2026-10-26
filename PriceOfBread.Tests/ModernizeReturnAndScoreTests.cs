@@ -36,7 +36,7 @@ public class ModernizeReturnAndScoreTests
     public void 設備の収益の持ち分は手計算の値になる()
     {
         var w = Neutral(Four(), 0, 0);
-        var r = w.Regions.First(x => x.State == RegionState.Active);
+        var r = w.Regions.First();
         var c = w.Coef;
         // I=0・技術の梃子 0：gross＝1.2÷1²＝1.2・hurdle＝0.7 → 1−0.7÷1.2
         Assert.Equal(0.41666666666666663, EconomyStep.ReturnShare(r, c, 1.0), 12);
@@ -62,7 +62,7 @@ public class ModernizeReturnAndScoreTests
     {
         // EconomyStep.Run の私的投資の netReturn＝gross−hurdle（InvestmentReturn）。信号は同じ関数の gross と hurdle から割合を作る。
         var w = Neutral(Four(), 0, 0.5);
-        var r = w.Regions.First(x => x.State == RegionState.Active);
+        var r = w.Regions.First();
         var (techLev, sat, gross, hurdle) = EconomyStep.InvestmentReturn(r, w.Coef, 1.5);
         Assert.Equal(0.5, techLev, 12);
         Assert.Equal(1.2, sat, 12);                                         // 1＋0.5÷2.5
@@ -75,7 +75,7 @@ public class ModernizeReturnAndScoreTests
     public void 工場の生産性の乗数の抜き出しは技術の逓減の式のままである()
     {
         var w = Neutral(Four(), 0, 0);
-        var r = w.Regions.First(x => x.State == RegionState.Active);
+        var r = w.Regions.First();
         // 疲労なし・組合なし・罷業なし：techProd＝1＋min(T,2)＋max(0,T−2)×0.3
         w.TechLevel = 0.0; Assert.Equal(1.0, w.TechProductivity(r), 12);
         w.TechLevel = 1.5; Assert.Equal(2.5, w.TechProductivity(r), 12);
@@ -104,7 +104,7 @@ public class ModernizeReturnAndScoreTests
     {
         var w = Neutral(Four(), 0, 5.0);   // 全州が州の上限 5.0 に達している
         Assert.Equal(0.0, w.ModernizeReturnShare());
-        var act = w.Regions.Where(x => x.State == RegionState.Active && x.CapitalEnabled && x.InvestorPopIndex >= 0).Take(2).ToList();
+        var act = w.Regions.Where(x => x.CapitalEnabled && x.InvestorPopIndex >= 0).Take(2).ToList();
         Assert.True(act.Count == 2, "前提が崩れた：資本区画つきの活きた州が 2 つ要る");
         foreach (var r in act) EqualStock(w, r);
         act[0].Industrialization = 0.0;   // 信号 0.41666…（techProd＝1）・余地 5.0
@@ -225,7 +225,7 @@ public class ModernizeReturnAndScoreTests
     public void 国力の素の量は本国の州だけで_鉄は数え鋼は数えず_軍事費は物価水準で割る()
     {
         var w = Neutral(Four(), 0, 0);
-        var regs = w.Regions.Where(x => x.State == RegionState.Active && x.Tier != RegionTier.Colonial).ToList();
+        var regs = w.Regions.Where(x => x.Tier != RegionTier.Colonial).ToList();
         Assert.True(regs.Count >= 1);
         foreach (var r in w.Regions) { r.Markets[Catalog.IronId].LastProduced = 0; r.Markets[Catalog.SteelId].LastProduced = 0; r.Markets[Catalog.CoalId].LastSold = 0; r.Markets[Catalog.CrudeOilId].LastSold = 0; r.Markets[Catalog.CoalId].LastDemand = 0; r.Markets[Catalog.CrudeOilId].LastDemand = 0; }
         var home = regs[0];

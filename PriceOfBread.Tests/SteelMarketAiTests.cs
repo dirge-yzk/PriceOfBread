@@ -32,8 +32,7 @@ public class SteelMarketAiTests
     {
         int n = 0;
         foreach (var r in w.Regions)
-            if (r.State == RegionState.Active)
-                foreach (var p in r.Producers) if (p.StateTarget > 0) n++;
+            foreach (var p in r.Producers) if (p.StateTarget > 0) n++;
         return n;
     }
 
@@ -150,7 +149,7 @@ public class SteelMarketAiTests
         {
             var w = FourNations().Nations[0].World;
             GiveBuildRoom(w, 1.5);
-            var active = w.Regions.Where(r => r.State == RegionState.Active).ToList();
+            var active = w.Regions.ToList();
             Assert.True(active.Count >= 2, "テスト前提が崩れた：並行着工は多州国でしか観測できない");
             foreach (var rg in active)   // 全州に「不足の深い黒字財」を1つずつ置く＝州ごとの最良が必ず存在する
             {
@@ -233,7 +232,6 @@ public class SteelMarketAiTests
             Region? rg = null; Producer? pr = null;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Producers)
                 {
                     if (p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
@@ -328,7 +326,6 @@ public class SteelMarketAiTests
             for (int i = 0; i < n.World.Regions.Count && pb is null; i++)
             {
                 var ra = n.World.Regions[i];
-                if (ra.State != RegionState.Active) continue;
                 foreach (var p in ra.Producers)
                 {
                     if (p.DiscoveryRow < 0 || p.RetiredByRow >= 0 || p.SiteRow >= 0 || p.GoodId < 0 || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
@@ -336,7 +333,7 @@ public class SteelMarketAiTests
                     for (int j = i + 1; j < n.World.Regions.Count && pb is null; j++)
                     {
                         var rb = n.World.Regions[j];
-                        if (rb.State != RegionState.Active || rb.Producers.Count(x => x.GoodId == p.GoodId) != 1) continue;
+                        if (rb.Producers.Count(x => x.GoodId == p.GoodId) != 1) continue;
                         var q = rb.Producers.First(x => x.GoodId == p.GoodId);
                         if (q.DiscoveryRow == p.DiscoveryRow && q.SiteRow < 0) { w = n.World; ia = i; pa = p; ib = j; pb = q; }
                     }
@@ -352,7 +349,7 @@ public class SteelMarketAiTests
         w.Regions[ib].Discovered![row] = true;
         Assert.False(Discovery.Gate(w.Regions[ia], pa) > 0);
         Assert.True(Discovery.Gate(w.Regions[ib], pb!) > 0);
-        foreach (var r in w.Regions) if (r.State == RegionState.Active && g < r.Markets.Length) r.Markets[g].Price = double.NaN;   // 全州で物差しが測れない
+        foreach (var r in w.Regions) if (g < r.Markets.Length) r.Markets[g].Price = double.NaN;   // 全州で物差しが測れない
         w.SetFactoryTarget(g, 5);
         w.StepStateTargets();
         Assert.Equal(0, pa.StateTarget);                      // 閉じた州は代用の最初の州にも選ばれない

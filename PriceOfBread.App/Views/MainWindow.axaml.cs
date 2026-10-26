@@ -291,7 +291,7 @@ public partial class MainWindow : Window
             foreach (var sim in gvm.Sim.Nations)
                 foreach (var rg in sim.World.Regions)
                 {
-                    if (rg.State != PriceOfBread.SimCore.RegionState.Active || !MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
+                    if (!MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
                     var (hx, hy) = MapData.Project(co.Lat, co.Lon);
                     var hit = gvm.MapHitAt(hx, hy);
                     hitAll++;

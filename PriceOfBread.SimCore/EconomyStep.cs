@@ -249,7 +249,7 @@ public static class EconomyStep
         var cap = w.Regions[0]; var c = w.Coef;
         double v = 0;
         foreach (var rr in w.Regions)
-            if (rr.State == RegionState.Active && rr.FleetUnits is { } fu)
+            if (rr.FleetUnits is { } fu)
                 for (int k = 0; k < fu.Length && k < c.FleetGoodIds.Length; k++) v += fu[k] * FleetUnitPower(cap, c, k);
         return v;
     }
@@ -326,7 +326,7 @@ public static class EconomyStep
     {
         var h = new double[coef.FleetGoodIds.Length];
         foreach (var rr in w.Regions)
-            if (rr.State == RegionState.Active && rr.FleetUnits is { } fu)
+            if (rr.FleetUnits is { } fu)
                 for (int k = 0; k < h.Length && k < fu.Length; k++) h[k] += fu[k];
         return h;
     }

@@ -27,7 +27,6 @@ public static class MarketTables
         var demand = new double[gc]; var supply = new double[gc]; var shortage = new double[gc];
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             int n = Math.Min(r.Markets.Length, gc);
             for (int g = 0; g < n; g++)
             {

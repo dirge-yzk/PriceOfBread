@@ -182,7 +182,6 @@ public class MilitaryTests
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 checkedRegions++;
                 Assert.True(r.MilitaryBudget <= r.MilitaryBudgetCeiling,
                     $"{n.World.SelfPower?.Name}／{r.Name}：予算 {r.MilitaryBudget} > 上限 {r.MilitaryBudgetCeiling}（NeedCapped={needCapped}）");
@@ -300,7 +299,7 @@ public class MilitaryTests
             var sim = TwoNations();
             var w = sim.Nations[0].World;
             int n = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) { n++; foreach (var p in r.Pops) p.Militancy = militancy; }
+            foreach (var r in w.Regions) if (r.Tier == RegionTier.Colonial) { n++; foreach (var p in r.Pops) p.Militancy = militancy; }
             Assert.True(n > 0, "前提が崩れた：英に植民地格の州が無い");
             w.FiscalFundingRatio = new Share(0.7);
             double led0 = w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep];
@@ -326,10 +325,10 @@ public class MilitaryTests
         {
             var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
             sim.Run(2);
-            foreach (var r in sim.World.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) r.Markets[Catalog.MilitaryPowerId].Price *= priceMul;
+            foreach (var r in sim.World.Regions) if (r.SoldierPopIndex >= 0) r.Markets[Catalog.MilitaryPowerId].Price *= priceMul;
             for (int d = 0; d < 30; d++) sim.StepDay();
             double e = 0, b = 0;
-            foreach (var r in sim.World.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { e += r.Pops[r.SoldierPopIndex].EarnedPerMonth.Value; b += r.SoldierPayBudget; }
+            foreach (var r in sim.World.Regions) if (r.SoldierPopIndex >= 0) { e += r.Pops[r.SoldierPopIndex].EarnedPerMonth.Value; b += r.SoldierPayBudget; }
             return (e, b);
         }
         var lo = Arm(0.01); var hi = Arm(100.0);
@@ -450,8 +449,7 @@ public class MilitaryTests
         Assert.True(seats > 0 && natMan > 0, $"前提が崩れた：定員 {seats}・母数 {natMan}");
         var s0 = new Dictionary<Region, double>();
         foreach (var r in w.Regions)
-            if (r.State == RegionState.Active)
-                foreach (var p in r.Pops) if (p.IsSoldier) { s0[r] = p.Size; break; }
+            foreach (var p in r.Pops) if (p.IsSoldier) { s0[r] = p.Size; break; }
         Military.Step(w, c, atWar: false);
         double sum = 0; int n = 0;
         foreach (var (r, before) in s0)
@@ -539,7 +537,7 @@ public class MilitaryTests
         foreach (var r in sim.World.Regions)
         {
             foreach (var pr in r.Producers) Assert.NotEqual(Catalog.MilitaryPowerId, pr.GoodId);
-            if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { e += r.Pops[r.SoldierPopIndex].EarnedPerMonth.Value; b += r.SoldierPayBudget; }
+            if (r.SoldierPopIndex >= 0) { e += r.Pops[r.SoldierPopIndex].EarnedPerMonth.Value; b += r.SoldierPayBudget; }
         }
         Assert.True(b > 0, "前提が崩れた：兵士の給与の予算が0");
         Assert.True(e >= b * (1 - 1e-9), $"兵士の所得 {e} が給与の予算 {b} に届かない");
@@ -926,7 +924,7 @@ public class MilitaryTests
         double sea0 = uk.NeedSea;
         Assert.True(sea0 > 0, $"前提が崩れた：英の海の必要量が0（{sea0}）＝海を越えて来る日本の陸軍が数えられていない");
         int ports = 0;
-        foreach (var r in ukw.Regions) { r.LastPortThroughput = 1000.0; if (r.State == RegionState.Active && r.IsPort) ports++; }
+        foreach (var r in ukw.Regions) { r.LastPortThroughput = 1000.0; if (r.IsPort) ports++; }
         Assert.True(ports > 0 && uk.Military > 0 && ukw.NominalGdpPerMonth.Value > 0, $"前提が崩れた：港の州 {ports}・軍 {uk.Military}・名目GDP {ukw.NominalGdpPerMonth}（旧の項なら正の差が出る盤面）");
         ArmyShape.Compute(dip, c);
         Assert.Equal(sea0, uk.NeedSea);
@@ -1121,7 +1119,7 @@ public class MilitaryTests
             double dq = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRatePerMonth.Value, Calendar.MonthsPerQuarter), expect = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
+                if (SoldierOf(r) is not { } s) continue;
                 s.UnemploymentRate = new Share(0); s.UnemploymentEma = new Share(0);   // 未払いの脱走（①''）を外す
                 if (natMan > 0) expect += dq * Math.Max(0, s.Size - seatsNat * Military.RegionManpower(r, c) / natMan);
             }
@@ -1148,7 +1146,7 @@ public class MilitaryTests
         double fill = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
+            if (SoldierOf(r) is not { } s) continue;
             double man = Military.RegionManpower(r, c);
             if (man > 0) fill = Math.Max(fill, s.Size / man);
         }
@@ -1156,7 +1154,7 @@ public class MilitaryTests
         var vac = new Dictionary<Region, (Pop s, double before, double vac)>();
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
+            if (SoldierOf(r) is not { } s) continue;
             s.UnemploymentRate = new Share(0); s.UnemploymentEma = new Share(0); s.EarnedPerMonth *= 10;
             vac[r] = (s, s.Size, c.MaxSoldierFraction.Value * Military.RegionManpower(r, c) - s.Size);
             foreach (var p in r.Pops)
@@ -1188,11 +1186,11 @@ public class MilitaryTests
         {
             var w = France155().World; var c = w.Coef;
             c.MilitaryEnvelopeShare = new Share(1e9);
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && SoldierOf(r) is { } s) { s.UnemploymentRate = new Share(unpaid); s.UnemploymentEma = new Share(unpaid); }
+            foreach (var r in w.Regions) if (SoldierOf(r) is { } s) { s.UnemploymentRate = new Share(unpaid); s.UnemploymentEma = new Share(unpaid); }
             // 席＝どの州でも今の兵以下（空きを作らない＝志願の空きの係数〔1−未払い〕で差が出ないように・超過の復員は双子で同じ）
             double fill = double.PositiveInfinity;
             foreach (var r in w.Regions)
-                if (r.State == RegionState.Active && SoldierOf(r) is { } s2 && Military.RegionManpower(r, c) is var man && man > 0) fill = Math.Min(fill, s2.Size / man);
+                if (SoldierOf(r) is { } s2 && Military.RegionManpower(r, c) is var man && man > 0) fill = Math.Min(fill, s2.Size / man);
             c.MaxSoldierFraction = new Share(fill);
             Meritocracy.Step(w, c);
             return (w.SoldierSizeK(), w.TotalPopulation);
@@ -1932,7 +1930,7 @@ public class MilitaryTests
             bool conscript = law >= ConscriptionLaw.Selective;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+                if (r.SoldierPopIndex < 0) continue;
                 double n = r.Pops[r.SoldierPopIndex].Size;
                 double kw = Military.RecruitWage(r, c, last: false, keep: true), rw = Military.RecruitWage(r, c, last: false);   // 予算が読む値＝月の決算の前の Earned
                 k += n * kw; g += n * rw;
@@ -1964,7 +1962,7 @@ public class MilitaryTests
         double earn = 0, heads = 0, wa = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || !(Military.RegionManpower(r, c) > 0)) continue;
+            if (!(Military.RegionManpower(r, c) > 0)) continue;
             foreach (var p in r.Pops)
                 if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
                 { earn += Math.Max(0, p.LastEarnedPerMonth.Value); heads += p.Size; wa += Military.WorkingAdults(p); }
@@ -2030,7 +2028,7 @@ public class MilitaryTests
             c.MilitaryWarMult = warMultCoef;    // 月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
             sim.StepDay();
             double ceil = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
+            foreach (var r in w.Regions) ceil += r.MilitaryBudgetCeiling;
             Assert.True(w.FiscalFundingRatio.Value > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio.Value}");
             return (ceil / w.FiscalFundingRatio.Value, w.LastSoldierPayPerMonth.Value, w.Region.MilitaryWarMultLast);   // 請求（r を掛ける前）＝装備の必要額は戦時の倍率で違う＝r が双子で違う
         }
@@ -2106,7 +2104,7 @@ public class MilitaryTests
             Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldownMonths}・利払い {w.LastInterestPerMonth:G6}・歳入 {w.LastRevenuePerMonth:G6}）");
             sim.StepDay();
             double ceil = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
+            foreach (var r in w.Regions) ceil += r.MilitaryBudgetCeiling;
             Assert.True(w.FiscalFundingRatio.Value > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio.Value}");
             return ceil / w.FiscalFundingRatio.Value;   // 請求（r を掛ける前）
         }

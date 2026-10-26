@@ -43,7 +43,7 @@ public static class NationalScore
         double oilToCoal = w.Coef.ColonyFuelOilEnergyRatio;   // 既存の熱量の比（原油は同熱量の必要量が石炭の 1/これ＝原油の量×これ＝石炭換算）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            if (r.Tier == RegionTier.Colonial) continue;
             foreach (var p in r.Pops)
             {
                 double s = Pos(p.Size);
@@ -997,7 +997,7 @@ public sealed class UtilityAgent : INationAgent
         double total = 0, urban = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            if (r.Tier == RegionTier.Colonial) continue;
             total += r.SumPopulation(); urban += r.SumUrbanPopulation();
         }
         return total > 1e-9 ? urban / total : 0.0;
@@ -1281,7 +1281,6 @@ public sealed class UtilityAgent : INationAgent
         double num = 0, den = 0;
         foreach (var rg in w.Regions)
         {
-            if (rg.State != RegionState.Active) continue;
             foreach (var pr in rg.Producers)
                 if (pr.GoodId == goodId && !pr.Bankrupt)
                 {
@@ -1333,7 +1332,7 @@ public sealed class UtilityAgent : INationAgent
             double stock = 0, target = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                if (g >= r.Markets.Length) continue;
                 stock += r.Markets[g].Stock; target += r.Markets[g].TargetStock;
             }
             if (!(target > 1e-9)) { if (w.TradeBiasOf(g) != 0) w.SetTradeBias(g, 0); continue; }
@@ -1411,7 +1410,6 @@ public sealed class UtilityAgent : INationAgent
         for (int ri0 = 0; ri0 < w.Regions.Count; ri0++)
         {
             var rg0 = w.Regions[ri0];
-            if (rg0.State != RegionState.Active) continue;
             foreach (var pr0 in rg0.Producers)
             {
                 if (pr0.ConstructionLeft > 0)
@@ -1442,7 +1440,6 @@ public sealed class UtilityAgent : INationAgent
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var rg = w.Regions[ri];
-            if (rg.State != RegionState.Active) continue;
             if (pendingRegion[ri] > 0) continue;   // ★#3(a)：意志の残る州だけ静止（他州は動く）
             System.Array.Clear(firstOf);
             foreach (var pr in rg.Producers)
@@ -1778,7 +1775,6 @@ public sealed class UtilityAgent : INationAgent
             double rentRoom = 0; int rentN = 0;
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active) continue;
                 foreach (var pr in rg.Producers)
                 {
                     if (!pr.IsRgo) continue;
@@ -1808,7 +1804,7 @@ public sealed class UtilityAgent : INationAgent
         if (w.Coef.OpiumAddictionGrowth > 0)
         {
             double obAdd = 0, obSz = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) { double rp = r.SumPopulation(); obAdd += r.OpiumAddiction * rp; obSz += rp; }
+            foreach (var r in w.Regions) { double rp = r.SumPopulation(); obAdd += r.OpiumAddiction * rp; obSz += rp; }
             double obAvg = obSz > 1e-9 ? obAdd / obSz : 0;
             double thr = w.Coef.OpiumBanThreshold;
             p.OpiumPossession = obAvg > thr * OpiumFullBanRatio ? ReformLevel.Full
@@ -1892,7 +1888,6 @@ public sealed class UtilityAgent : INationAgent
             for (int ri = 0; ri < w.Regions.Count; ri++)
             {
                 var rg = w.Regions[ri];
-                if (rg.State != RegionState.Active) continue;
                 foreach (var pr in rg.Producers)
                 {
                     // RGO（投入ゼロ）の除外を撤去（プランテーションdoc D1・2026-07-30）＝補助金の動詞をプレイヤーとAIで揃える
@@ -1931,7 +1926,6 @@ public sealed class UtilityAgent : INationAgent
                 for (int ri = 0; ri < w.Regions.Count; ri++)
                 {
                     var rg = w.Regions[ri];
-                    if (rg.State != RegionState.Active) continue;
                     bool sold = false;
                     // ★投げ売りも**同じカウンター**を1つ下げる（作者裁定2026-08-10 E節）。可否は CanSellFactory が握る＝
                     //   「不満のある資本家は買わない」「国有化法の対象は売れない」がAIにもそのまま効く（対称）。
@@ -2163,7 +2157,7 @@ public static class SelfPlayMatch
             //   ここは植民地格の州も本国州として数えており、忠実度の領土次元（HomeProvinces1914 との比）が
             //   分子だけ膨らんでいた＝**物差しそのものが壊れていた**（分子と分母の非対称の型）。
             //   ⚠差し戻し口＝Tier の条件を外せば旧挙動。観測専用（力学はこの値を読まない）。
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier != RegionTier.Colonial) n++;
+            foreach (var r in w.Regions) if (r.Tier != RegionTier.Colonial) n++;
             return n;
         }
         List<NationStanding> BuildStandings() => sim.Nations

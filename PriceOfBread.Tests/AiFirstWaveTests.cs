@@ -272,7 +272,7 @@ public class AiFirstWaveTests
         w.LastImmigration = w.TotalPopulation * inflow;
         foreach (var pp in w.AllPops()) pp.UnemploymentRate = new Share(unemployment);
         if (treatyPorts > 0)   // 外圧＝不平等条約（条約港）が効いている＝港州に外国持分が付与の大きさだけ積まれている
-            Politics.AddForeignShare(w.Regions.First(r => r.State == RegionState.Active && r.IsPort), "テスト国", w.Coef.ForeignRuleFromTreaty);
+            Politics.AddForeignShare(w.Regions.First(r => r.IsPort), "テスト国", w.Coef.ForeignRuleFromTreaty);
         if (capitalCrisis)
         {
             var f = new FactionState { Region = w.Regions[0], Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };

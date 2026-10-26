@@ -65,7 +65,7 @@ public sealed class Power
         foreach (var col in ColonyList) m += System.Math.Max(0, col.Population);
         if (Nation is { Diplomacy: { } dipU } nw && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)
-                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) m += r.SumPopulation() / dipU.ColonyUnitPop;
+                if (r.Tier == RegionTier.Colonial) m += r.SumPopulation() / dipU.ColonyUnitPop;
         return m;
     }
 
@@ -76,7 +76,7 @@ public sealed class Power
         {
             if (Nation is not { } nw) return 0;
             int n = 0;
-            foreach (var r in nw.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) n++;
+            foreach (var r in nw.Regions) if (r.Tier == RegionTier.Colonial) n++;
             return n;
         }
     }
@@ -416,7 +416,7 @@ public sealed class Diplomacy
         //   （資源項は昇格で実経済＝GDP成分に移った＝ここでは 0.5+人口/2 の帝国質量分のみ＝二重計上しない。人口単位は ColonyMassUnits と同じ換算）。
         if (p.Nation is { Diplomacy: { } dipU } nw && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)
-                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial)
+                if (r.Tier == RegionTier.Colonial)
                     v += 0.5 + r.SumPopulation() / dipU.ColonyUnitPop * 0.5;
         return v;
     }
@@ -496,7 +496,7 @@ public sealed class Diplomacy
         if (child.Nation is { } cw)
             foreach (var r in cw.Regions)
             {
-                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) SovereignColonialRegions++;
+                if (r.Tier == RegionTier.Colonial) SovereignColonialRegions++;
                 Territory.Rehome(r, Territory.Rehoming.Sovereign);
             }
     }
@@ -781,7 +781,7 @@ public sealed class Diplomacy
         if (c.PrizeCargoShare.Value > 1e-12)
         {
             double victimThroughput = 0;
-            foreach (var r in vw.Regions) if (r.State == RegionState.Active) victimThroughput += r.LastPortThroughput;
+            foreach (var r in vw.Regions) victimThroughput += r.LastPortThroughput;
             double raidLoss = victim.Nation?.LastBlockadeRisk ?? 0.0;   // 03手順7：奪われた海運割合＝リスク線積分（旧CommerceRaidFactorの置換・抽象標的は0）
             cargoBase = victimThroughput * PoliticalQuantities.Clamp01(raidLoss);
             // 外4：raidLoss は victim の**総**損失（連合合算海軍基準）なのに、制海権を握る各raiderがそれぞれ総額基準で賞金化＝共同封鎖で二重取り。
@@ -804,11 +804,11 @@ public sealed class Diplomacy
         if (!(prizeRaw > 1e-9)) return;
         var merchants = new List<Pop>();
         foreach (var r in vw.Regions)
-            if (r.State == RegionState.Active && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
+            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
         // 敵の商人→拿捕した兵士（兵士POPの頭数で・両国の CumulativeTradeFlow は移し方の1本が書く）。★(145)：旧＝兵力の売上（PaySales の兵力の生産者＝兵士POP・地代0）＝兵力の生産者の削除で兵士へ直接。
         var captors = new List<Pop>();
         foreach (var r in rw.Regions)
-            if (r.State == RegionState.Active && r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].Size > 1e-9) captors.Add(r.Pops[r.SoldierPopIndex]);
+            if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].Size > 1e-9) captors.Add(r.Pops[r.SoldierPopIndex]);
         if (captors.Count == 0) return;   // 兵のいない国は受け取らない（払い手に残る＝旧の PaySales の生産者なしと同じ）
         World.Transfer((vw, merchants), (rw, captors, null), prizeRaw, TreasuryCat.OtherIn, income: true, outside: World.Outside.Border);
     }
@@ -892,7 +892,7 @@ public sealed class Diplomacy
                     double frac = c.NavalAttritionRatePerMonth.Value * hostile;   // その月に沈む艦の割合
                     if (frac > 1) frac = 1;
                     foreach (var rr in nw.Regions)
-                        if (rr.State == RegionState.Active && rr.FleetUnits is { } fu)
+                        if (rr.FleetUnits is { } fu)
                             for (int k = 0; k < fu.Length; k++) fu[k] *= 1.0 - frac;
                     // ★新兵器の必要性の海の損耗（2026-10-01 (153)・設計 §1A-4 (4a)）＝今月に沈んだ艦の割合÷艦隊摩耗の月の上限の割合
                     //   （NavalAttritionRatePerMonth＝全艦が敵の支配1の海盆に居る月）＝0〜1（陸と空は戦死の WarCasualties・単位は同じ「総力戦の月の上限を1とした割合」）。記帳だけ（摩耗の量は変えない）。
@@ -997,7 +997,7 @@ public sealed class Diplomacy
             if (!(denom > 0) || !p._fleetDriven) continue;   // 換算分母が無い国は艦の在庫の外（同期のループと同じ退避）
             p._fleetSeeded = true;
             bool port = false;
-            foreach (var rr in nw.Regions) if (rr.State == RegionState.Active && rr.IsPort) { port = true; break; }
+            foreach (var rr in nw.Regions) if (rr.IsPort) { port = true; break; }
             if (port && EconomyStep.FleetTargetUnits(nw.Regions[0], c, nw) is { } t0)
             {
                 var fu = nw.Regions[0].FleetUnits ??= new double[c.FleetGoodIds.Length];
@@ -1017,7 +1017,7 @@ public sealed class Diplomacy
         var cap = nw.Regions[0];
         foreach (var rr in nw.Regions)
         {
-            if (rr.State != RegionState.Active || rr.FleetUnits is not { } fu) continue;
+            if (rr.FleetUnits is not { } fu) continue;
             for (int k = 0; k < fu.Length && k < c.FleetGoodIds.Length; k++)
             {
                 if (!(fu[k] > 0)) continue;
@@ -1184,7 +1184,6 @@ public sealed class Diplomacy
         var ct = new Dictionary<string, double>(); var rt = new Dictionary<string, double>();
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double pop = 0; foreach (var p in r.Pops) pop += p.Size;
             if (pop <= 0) continue;
             if (r.Culture.Length > 0) ct[r.Culture] = ct.GetValueOrDefault(r.Culture) + pop;
@@ -1259,7 +1258,6 @@ public sealed class Diplomacy
             double total = 0; Dictionary<string, double>? byRel = null;
             foreach (var r in nw.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double pop = 0; foreach (var pp in r.Pops) pop += pp.Size;
                 if (pop <= 0) continue;
                 total += pop;
@@ -1323,7 +1321,6 @@ public sealed class Diplomacy
         double total = 0, match = 0;
         foreach (var r in nw.Regions)
         {
-            if (r.State != RegionState.Active) continue;            // MajorityCultureReligion と同じ走査（活性州のみ）
             double pop = 0; foreach (var p in r.Pops) pop += p.Size;
             if (pop <= 0) continue;
             total += pop;
@@ -1496,7 +1493,7 @@ public sealed class Diplomacy
                 if (!exporter && b.Nation is { } bnw)
                     foreach (var r in bnw.Regions)
                     {
-                        if (r.State != RegionState.Active || r.Tier != RegionTier.Colonial) continue;
+                        if (r.Tier != RegionTier.Colonial) continue;
                         foreach (var g in r.Resources) if (g == c.OpiumGoodId) { exporter = true; break; }
                         if (exporter) break;
                     }
@@ -2579,7 +2576,6 @@ public sealed class Diplomacy
                 if (wear > 1e-12)
                 {
                     foreach (var rz in wz.Regions)
-                        if (rz.State == RegionState.Active)
                         {
                             rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
                             rz.GridCapacity *= 1.0 - wear;                    // 05-A：送電網も戦災（インフラ）
@@ -2960,12 +2956,11 @@ public sealed class Diplomacy
             int ctaken = captured;   // 旧経路（ColonyList奪取）との合算で ColonyCaptureMax を守る（予算budgetも上で1本化して共有）
             while (ctaken < (int)c.ColonyCaptureMax)
             {
-                int lactive = 0; foreach (var lr in lcw.Regions) if (lr.State == RegionState.Active) lactive++;
-                if (lactive <= 1) break;   // 最後の1州ガード（CedeTerritory と同じ）
+                if (lcw.Regions.Count <= 1) break;   // 最後の1州ガード（CedeTerritory と同じ）
                 Region? pick = null; double pickVal = double.MinValue, pickCost = 0;
                 foreach (var r in lcw.Regions)
                 {
-                    if (r.State != RegionState.Active || r.Tier != RegionTier.Colonial || r.Id == 0) continue;
+                    if (r.Tier != RegionTier.Colonial || r.Id == 0) continue;
                     double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, ColonyUnitPop);   // Colony.Population と同じ物差し
                     double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * r.Resources.Length
                                 + c.ColonyCapturePopCost * units;
@@ -3034,7 +3029,7 @@ public sealed class Diplomacy
                 //   TreatyPortWinnerDistanceKm=6000 live。0で距離を見ない（旧）。
                 bool tooFarToRule = c.TreatyPortWinnerDistanceKm > 0 && winner.Nation is { } wf && loser.Nation is { } lf
                     && Geo.DistanceKm(wf.Latitude, wf.Longitude, lf.Latitude, lf.Longitude) > c.TreatyPortWinnerDistanceKm;
-                if (crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
+                if (crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Count > 0)
                 {
                     // ★条約港の廃止（(399)・作者 2026-10-16：条約港は廃止・州の支配度で表現）：個数の機構（旧 TreatyPortsGranted）は無い。
                     //   敗者の最大の港州に勝者の持分（外国区分）を積む＝関税の目減り（InternationalMarket.TreatyPortTariffScale）と屈辱・移民法の外圧（World.UnequalTreatyInForce）は州の外国持分から読む。
@@ -3043,14 +3038,14 @@ public sealed class Diplomacy
                     {
                         Region? port = null;
                         foreach (var r in dw.Regions)
-                            if (r.State == RegionState.Active && r.IsPort && (port is null || r.PortCapacity > port.PortCapacity || (r.PortCapacity == port.PortCapacity && r.SumPopulation() > port.SumPopulation()))) port = r;
+                            if (r.IsPort && (port is null || r.PortCapacity > port.PortCapacity || (r.PortCapacity == port.PortCapacity && r.SumPopulation() > port.SumPopulation()))) port = r;
                         port ??= dw.Region;
                         Politics.AddForeignShare(port, winner.BaseName.Length > 0 ? winner.BaseName : winner.Name, c.ForeignRuleFromTreaty);
                         Log.Add($"{_year} {port.Name}に{winner.Name}の持分+{c.ForeignRuleFromTreaty:P0}（外国区分）");
                     }
                     handled = true;
                 }
-                else if (crushing && !ratifyRefused && Suzerain(loser) is null && dw.Regions.Any(r => r.State == RegionState.Active))
+                else if (crushing && !ratifyRefused && Suzerain(loser) is null && dw.Regions.Count > 0)
                 {
                     if (GovCost(winner, loser, c) >= c.GovCostVassalThreshold)
                     {
@@ -3065,8 +3060,7 @@ public sealed class Diplomacy
                         //   独統一の構造ロックの核（wf_d460b52d調査2・2026-08-08）＝必要9州中5州が同文化の単州邦で、
                         //   同族branchは併合しか知らず永遠に取得不能だった。→従属化へフォールバック＝ライン同盟→
                         //   北ドイツ連邦の物理（同文化の単州邦は併合でなく従属で束ねる。formableは従属領有込み判定）。
-                        int loserActive = 0; foreach (var lr in dw.Regions) if (lr.State == RegionState.Active) loserActive++;
-                        if (loserActive <= 1)
+                        if (dw.Regions.Count <= 1)
                         {
                             SetDependency(winner, loser);
                             Log.Add($"{_year} {winner.Name}が{loser.Name}を従属化（単州の同族国=併合不能のため保護国・戦勝点{absScore:0.00}）");
@@ -3159,8 +3153,7 @@ public sealed class Diplomacy
     private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, bool takePrize = false)
     {
         if (winner.Nation is not { } ww) return false;   // 抽象勢力は受け皿の World を持たない（呼び出し側で gate 済みだが二重防御）
-        int activeCount = 0; foreach (var r in loser.Regions) if (r.State == RegionState.Active) activeCount++;
-        if (activeCount <= 1) return false;   // 最後の1州は割譲しない（総征服=国家消滅は別機構＝回避）
+        if (loser.Regions.Count <= 1) return false;   // 最後の1州は割譲しない（総征服=国家消滅は別機構＝回避）
         // 監査2026-07-05（投射圏）：割譲候補は**勝者の首都**から CessionMaxDistanceKm 以内の州に限る（実走で清がボストンを獲得＝地理無制約の是正）。
         // 再修正（同日）：当初は「全active州＋植民地」を拠点にしたが、獲得のたびに投射圏が伸び連鎖征服（清がカシュガル→ケーニヒスベルク→リガ→…と欧州へ）で
         // 制約が無効化された（実走で確認）。本国中核（首都）からの投射に限る＝アルザス・ロレーヌ型の地域戦争は生き、大陸間の州併呑は死ぬ。
@@ -3200,7 +3193,6 @@ public sealed class Diplomacy
         Region? cede = null; double best = takePrize ? double.MinValue : double.MaxValue; double bestDist = double.MaxValue;
         foreach (var r in loser.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             if (!takePrize && r.Id == 0) continue;   // 境界改定は首都を取らない（takePrize=必要な土地は首都も可）
             double dist = DistToWinner(r);
             if (dist == double.MaxValue) continue;   // 上陸ゲート落ち（渡海が要るのに制海権が無い）＝植民地格でも取れない
@@ -3239,7 +3231,7 @@ public sealed class Diplomacy
     public static double NationalTariffInterest(World w)
     {
         double s2 = 0; int n2 = 0;
-        foreach (var r in w.Regions) { if (r.State != RegionState.Active || r.Id == 0) continue; s2 += r.TariffInterest; n2++; }   // 首都は構造的0＝除外（2026-07-27の是正と同じ）
+        foreach (var r in w.Regions) { if (r.Id == 0) continue; s2 += r.TariffInterest; n2++; }   // 首都は構造的0＝除外（2026-07-27の是正と同じ）
         return n2 > 0 ? s2 / n2 : 0;
     }
 
@@ -3350,7 +3342,7 @@ public sealed class Diplomacy
     {
         var tp = new double[Basins.Count]; double tpSum = 0;
         foreach (var r in nw.Regions)
-            if (r.State == RegionState.Active && r.IsPort) { tp[(int)r.SeaBasin] += r.LastPortThroughput; tpSum += r.LastPortThroughput; }
+            if (r.IsPort) { tp[(int)r.SeaBasin] += r.LastPortThroughput; tpSum += r.LastPortThroughput; }
         var cv = new double[Basins.Count]; double cvSum = 0;
         foreach (var col in p.ColonyList)
         {
@@ -3363,7 +3355,7 @@ public sealed class Diplomacy
         if (nw.Diplomacy is { } dipU && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)
             {
-                if (r.State != RegionState.Active || r.Tier != RegionTier.Colonial) continue;
+                if (r.Tier != RegionTier.Colonial) continue;
                 double units = 0.5 + r.SumPopulation() / dipU.ColonyUnitPop * 0.5;
                 cv[(int)r.SeaBasin] += units; cvSum += units;
             }
@@ -3380,9 +3372,9 @@ public sealed class Diplomacy
         if (sum <= 1e-9)
         {
             int ports = 0;
-            foreach (var r in nw.Regions) if (r.State == RegionState.Active && r.IsPort) ports++;
+            foreach (var r in nw.Regions) if (r.IsPort) ports++;
             if (ports > 0)
-                foreach (var r in nw.Regions) if (r.State == RegionState.Active && r.IsPort) w[(int)r.SeaBasin] += 1.0 / ports;
+                foreach (var r in nw.Regions) if (r.IsPort) w[(int)r.SeaBasin] += 1.0 / ports;
             // 港ゼロ＝内陸国＝ゼロベクトルのまま（海の必要も海盆の重なりも立たない）
         }
     }
@@ -3447,7 +3439,7 @@ public sealed class Diplomacy
             foreach (var origin in OriginNations(x))
                 foreach (var r in origin.Regions)
                 {
-                    if (r.State != RegionState.Active || r.Rule.Length != 4 || !(r.Rule[0] >= c.ProjectionRuleMin)) continue;
+                    if (r.Rule.Length != 4 || !(r.Rule[0] >= c.ProjectionRuleMin)) continue;
                     if (!r.IsPort && !(c.ProjectionUsesLand > 0)) continue;
                     var cc = Climate.CityCoord(r.Name);
                     if (cc.Lat == 0 && cc.Lon == 0) continue;   // 座標未登録＝起点にしない

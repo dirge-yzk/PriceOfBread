@@ -105,7 +105,6 @@ public static partial class Instruments
             }
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                     if (!p.IsUrban && PolicyPreferences.BlocOf(p) == 2) { massE += p.EarnedPerMonth.Value; massSize += p.Size; }
             }

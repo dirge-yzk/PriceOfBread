@@ -82,7 +82,6 @@ public partial class GameViewModel
             var col = MapData.NationColor(w.SelfPower?.Name ?? w.Region.Name, ni);
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active) continue;
                 if (!MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
                 // ★裁定②（2026-09-23 作者指示「支配度は国家でない割合だけ、色を薄くするか黒くする」）：濃さ＝live な rg.Dominance。
                 //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ薄くする（MapFill.cs:176 のアルファ変調）。

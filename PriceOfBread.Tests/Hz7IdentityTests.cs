@@ -46,7 +46,6 @@ public class Hz7IdentityTests
             Region? b = null; double s = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double p = 0, u = 0;
                 foreach (var pop in r.Pops) { p += pop.Size; if (pop.IsUrban) u += pop.Size; }
                 if (p < 1e-9) continue;
@@ -56,7 +55,7 @@ public class Hz7IdentityTests
         }
 
         // 世界の州の都市化率が揃っていると「次点」と「最過密」が同じ値になり、数えない州の扱いの違いが見えない＝最過密の州を 1 つ作る
-        var pick = w.Regions.First(r => r.State == RegionState.Active && r.Pops.Any(p => p.IsUrban && p.Size > 0));
+        var pick = w.Regions.First(r => r.Pops.Any(p => p.IsUrban && p.Size > 0));
         foreach (var pop in pick.Pops) if (pop.IsUrban) pop.Size *= 4;
         var (b0, s0) = Manual();
         Assert.Same(pick, b0);
@@ -67,15 +66,16 @@ public class Hz7IdentityTests
             double expect = (1.0 - c.EpidemicSanitationWeight) * Colonial.OutputCurve(pick.TotalIndustrialization, c.EpidemicSanitationHalf) + c.EpidemicSanitationWeight * pick.Sanitation(c);
             Assert.Equal(expect, w.WorstUrbanRegionSanitation(c), 12);
         }
-        // 最過密の州を Locked にすると、次の州が選ばれる（数えない州の扱いが手書きと同じ）
-        Assert.NotNull(b0);   // 前提：この世界には都市の POP を持つ Active の州がある（無ければ番人は空になる）
+        // 最過密の州の人口を 0 にすると、次の州が選ばれる（人口 1e-9 未満の州は数えない＝手書きと同じ。旧＝州を Locked にした。稼働の状態は (568) gc3 で消えた）
+        Assert.NotNull(b0);   // 前提：この世界には都市の POP を持つ州がある（無ければ番人は空になる）
         Assert.True(s0 > 0);
         {
-            b0!.State = RegionState.Locked;
+            var sizes = b0!.Pops.Select(p => p.Size).ToArray();
+            foreach (var p in b0.Pops) p.Size = 0;
             var (b1, s1) = Manual();
             Assert.Equal(s1, w.MaxUrbanShare(), 12);
-            Assert.True(s1 < s0);   // 最過密を数えなければ値が下がる＝Active でない州を数える実装は赤
-            b0.State = RegionState.Active;
+            Assert.True(s1 < s0);   // 最過密を数えなければ値が下がる＝人口 0 の州を数える実装は赤
+            for (int i = 0; i < sizes.Length; i++) b0.Pops[i].Size = sizes[i];
         }
         // 疫病は手書きの走査の最過密州を襲う（ログに州名が出る）
         var (bw, _) = Manual();

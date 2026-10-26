@@ -63,7 +63,7 @@ public enum Ideology
                       //    供給＝**王権から実際に利益を得ている層**（閉鎖階級→特権／近代エリート→恩顧）×政治意識。（旧の旗 RoyalistGate は 2026-08-29 に点火・2026-10-18 に焼き込み）
 }
 
-/// <summary>地域の状態（§A-8）。locked＝pop≈0・市場休眠。（旧＝開発〔資金〕か武力で active 化する道があった＝(551) 恒等の線 gc1 で解錠の道を削除。本番の盤面は州を Locked にしない＝消すのはゴミ変数の一掃の一覧（docs/202610/20261025）の B1。）</summary>
+/// <summary>地域の状態（§A-8）。locked＝pop≈0・市場休眠。（旧＝開発〔資金〕か武力で active 化する道があった＝(551) 恒等の線 gc1 で解錠の道を削除。本番の盤面は州を Locked にしない。★(568) gc3：この値を読む行は SimCore・App・Runner から外した〔枠と機械の線 ckf が書き直す発見の走査を除く〕＝型の定義と Region.State の欄だけが残る。消すのは枠と機械の 5 回目の基点〔枝 sm4〕の合流の後〔ScalarDeletionTests の許可表〕。）</summary>
 public enum RegionState { Active, Locked }
 
 /// <summary>★技術者流出禁止法（段⑤・2026-08-17）。軸の増＝禁止を強める。3段＝自由／制限／禁止。

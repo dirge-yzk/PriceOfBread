@@ -22,7 +22,7 @@ public class BuildingGoodBundleTests
         return new Simulation(sc, new NullAgent());
     }
 
-    private static Region CapitalRegion(World w) => w.Regions.First(r => r.State == RegionState.Active && r.CapitalEnabled && r.InvestorPopIndex >= 0);
+    private static Region CapitalRegion(World w) => w.Regions.First(r => r.CapitalEnabled && r.InvestorPopIndex >= 0);
 
     private static double RefCost(Producer p) => Catalog.FactoryVa + p.Inputs.Sum(i => i.QtyPerOutput * Catalog.RefPrices[i.GoodId]);
 
@@ -346,9 +346,8 @@ public class BuildingGoodBundleTests
             sim.Run(3);
             var sb = new System.Text.StringBuilder();
             foreach (var r in sim.World.Regions)
-                if (r.State == RegionState.Active)
-                    foreach (int g in new[] { Catalog.SteelId, Catalog.IronId, Catalog.MachineryId, Catalog.CementId, Catalog.LumberId })
-                        sb.Append(r.Markets[g].Price.ToString("R")).Append(',').Append(r.Markets[g].Stock.ToString("R")).Append(';');
+                foreach (int g in new[] { Catalog.SteelId, Catalog.IronId, Catalog.MachineryId, Catalog.CementId, Catalog.LumberId })
+                    sb.Append(r.Markets[g].Price.ToString("R")).Append(',').Append(r.Markets[g].Stock.ToString("R")).Append(';');
             return sb.ToString();
         }
         Assert.Equal(Trace(c => c.BuildingGoodBundle = 0), Trace(c => { c.BuildingGoodBundle = 0; c.ConsBuilding = 77; }));

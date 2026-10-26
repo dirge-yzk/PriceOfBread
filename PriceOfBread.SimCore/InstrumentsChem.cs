@@ -31,7 +31,6 @@ public static partial class Instruments
         int cnt = 0; double rec = 0, good = 0, px = 0; int pxN = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var pr in r.Producers)
             {
                 if (pr.GoodId != d.Good) continue;
@@ -61,7 +60,7 @@ public static partial class Instruments
             double outp = 0, dem = 0, sold = 0, imp = 0, px = 0; int pxN = 0, active = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                if (g >= r.Markets.Length) continue;
                 var m = r.Markets[g];
                 outp += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; imp += m.LastImport;
                 if (m.Price > 0) { px += m.Price; pxN++; }

@@ -77,7 +77,6 @@ public sealed partial class InternationalMarket
         for (int ri = 0; ri < nr; ri++)
         {
             var rr = r ?? w.Regions[ri];
-            if (r is null && rr.State != RegionState.Active) continue;
             foreach (var pr in rr.Producers)
                 if (Sells(pr, rr, goodId)) totalOut += Math.Max(0, pr.Output);
         }
@@ -89,8 +88,7 @@ public sealed partial class InternationalMarket
             for (int ri = 0; ri < nr; ri++)
             {
                 var rr = r ?? w.Regions[ri];
-                if (r is null && rr.State != RegionState.Active) continue;
-                foreach (var pr in rr.Producers)
+                    foreach (var pr in rr.Producers)
                 {
                     if (!Sells(pr, rr, goodId)) continue;
                     double amt = amount * (Math.Max(0, pr.Output) / totalOut);

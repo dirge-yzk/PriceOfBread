@@ -1,28 +1,25 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>★州×POP の走査の名前のある入口（2026-10-15 (351)・案 A・結果を変えない）。
-/// 旧＝州のループの中の POP のループを各所が書き写し、集合の定義が揃っていなかった（<c>State==Active</c> で絞る所と絞らない所・<see cref="World.AllPops"/> は絞らない）。
-/// 今は集合が 2 つ・名前がある：
-/// ・<see cref="World.AllPopsWithRegion"/>＝国家会計の集合（全ての州の全ての POP・州の並び→州の中の POP の並び・絞らない）＝人口保存・貯蓄の合計・国債の保有の台帳が読む集合。
-/// ・<see cref="World.ActivePopsWithRegion"/>＝稼働中の州だけ（<c>State==Active</c>）＝州の価格水準・州の人口の目安が読む集合。
-/// 本番の盤面（2026-08-26 に辺境を廃止）には稼働していない州が無い＝2 つは同じ列を返す。差が出るのは試験の盤面（辺境 <c>Locked</c>）だけ。
+/// 旧＝州のループの中の POP のループを各所が書き写し、集合の定義が揃っていなかった（稼働中の州で絞る所と絞らない所・<see cref="World.AllPops"/> は絞らない）。
+/// 今は集合が 1 つ・名前がある：
+/// ・<see cref="World.AllPopsWithRegion"/>＝国家会計の集合（全ての州の全ての POP・州の並び→州の中の POP の並び・絞らない）＝人口保存・貯蓄の合計・国債の保有の台帳・州の価格水準・州の人口の目安が読む集合。
+/// 稼働中の州だけの集合（旧 <c>ActivePopsWithRegion</c>）は (568) gc3 で畳んだ＝本番の盤面（2026-08-26 に辺境を廃止）には稼働していない州が無く、2 つは同じ列だった。
 /// 兵士・規模 &gt; 1e-9・閉鎖階級（<c>Closed</c>）の除き方は呼び手ごとに違う＝この列挙には入れない（POP の述語 <c>IsSoldier</c>・<c>Closed</c> を呼び手が読む）。
 /// 走査の順は旧の入れ子の <c>foreach</c> とまったく同じ＝和の順も変わらない。値型の列挙子＝割り当てなし。</summary>
 public readonly struct PopScan
 {
     private readonly List<Region> _regions;
-    private readonly bool _activeOnly;
-    internal PopScan(List<Region> regions, bool activeOnly) { _regions = regions; _activeOnly = activeOnly; }
-    public Enumerator GetEnumerator() => new(_regions, _activeOnly);
+    internal PopScan(List<Region> regions) { _regions = regions; }
+    public Enumerator GetEnumerator() => new(_regions);
 
     public struct Enumerator
     {
         private readonly List<Region> _regions;
-        private readonly bool _activeOnly;
         private int _ri, _pi, _regionCount, _popCount;
         private Region? _r;
         private List<Pop>? _pops;
-        internal Enumerator(List<Region> regions, bool activeOnly) { _regions = regions; _activeOnly = activeOnly; _ri = -1; _pi = -1; _regionCount = regions.Count; _popCount = 0; }
+        internal Enumerator(List<Region> regions) { _regions = regions; _ri = -1; _pi = -1; _regionCount = regions.Count; _popCount = 0; }
         public bool MoveNext()
         {
             while (true)
@@ -33,7 +30,6 @@ public readonly struct PopScan
                 if (_pops is not null && ++_pi < _pops.Count) return true;
                 if (++_ri >= _regions.Count) { _pops = null; return false; }
                 var r = _regions[_ri];
-                if (_activeOnly && r.State != RegionState.Active) { _pops = null; continue; }
                 _r = r; _pops = r.Pops; _popCount = r.Pops.Count; _pi = -1;
             }
         }

@@ -146,7 +146,7 @@ public class ColonyPromotionTests
             var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
             var pw = sim.Nations[0].World;
             // 植民地格の州（カナダ）と、首都でない本土の州（最初に見つかった Core）
-            var reg = name.Length > 0 ? pw.Regions.First(r => r.Name == name) : pw.Regions.First(r => r.Id != 0 && r.Tier == RegionTier.Core && r.State == RegionState.Active);
+            var reg = name.Length > 0 ? pw.Regions.First(r => r.Name == name) : pw.Regions.First(r => r.Id != 0 && r.Tier == RegionTier.Core);
             var tier0 = reg.Tier;
             Assert.Equal(name.Length > 0 ? RegionTier.Colonial : RegionTier.Core, tier0);
             bool Conserved() { var m = Metrics.Compute(sim); return m.TotalColonies + m.IndependentColonies + m.PromotedColonies + m.AbsorbedColonies == m.InitialColonies; }

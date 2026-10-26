@@ -69,7 +69,6 @@ public static partial class Instruments
         var gDem = new double[nl]; var gProd = new double[nl]; var gRationW = new double[nl]; var gBoundD = new double[nl]; var gBoundL = new double[nl];
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             var seenPop = new bool[r.Pops.Count];
             var seenSup = new bool[nl][];
             for (int gi = 0; gi < nl; gi++)

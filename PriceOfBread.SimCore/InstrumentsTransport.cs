@@ -239,7 +239,7 @@ public static partial class Instruments
     static void TrAreaRows(Sink sk, MultiNationSim sim, int year)
     {
         var regs = new List<(string Nation, Region R)>();
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) regs.Add((NameOf(n.World), r));
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) regs.Add((NameOf(n.World), r));
         var pts = new (double Lat, double Lon)[regs.Count];
         for (int i = 0; i < regs.Count; i++) pts[i] = Climate.CityCoord(regs[i].R.Name);
         var (area, areaNear) = TrAreas(pts);
@@ -331,7 +331,6 @@ public static partial class Instruments
             var w = n.World; string nation = NameOf(w);
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double pop = 0, urban = 0;
                 foreach (var p in r.Pops) { pop += p.Size; if (p.IsUrban) urban += p.Size; }
                 double fac = 0, gat = 0, wt = 0;
@@ -366,7 +365,7 @@ public static partial class Instruments
                 var w = n.World; double fx = w.FxRate;
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active || g >= r.Markets.Length || r.Markets[g] is not { } mk) continue;
+                    if (g >= r.Markets.Length || r.Markets[g] is not { } mk) continue;
                     double sz = 0; foreach (var p in r.Pops) sz += p.Size;
                     if (!(sz > 0) || !(mk.Price > 0)) continue;
                     num += sz * mk.Price * fx; den += sz;

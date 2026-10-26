@@ -19,7 +19,7 @@ public class CrimeBasisTests
         var sim = new Simulation(NationConfig.Russia().ToScenario(101), new NullAgent());
         var w = sim.World;
         w.Coef.CrimeOrderPerPop = 1e12;   // 秩序≒0（警察が回らない州）＝犯罪率が上限に近い
-        var r = w.Regions.First(x => x.State == RegionState.Active && x.Pops.Count >= 5);
+        var r = w.Regions.First(x => x.Pops.Count >= 5);
         foreach (var p in r.Pops) { p.Satisfaction = 1.0; p.Militancy = 0.0; p.SetSavings(0); p.LastEarnedPerMonth = new MoneyPerMonth(0); }
         var big = r.Pops[0]; var zero = r.Pops[1]; var small = r.Pops[2]; var huge = r.Pops[3]; var thief = r.Pops[4];
         big.SetSavings(1.0e6); big.LastEarnedPerMonth = new MoneyPerMonth(1000.0);       // 所得が小さく貯蓄が大きい

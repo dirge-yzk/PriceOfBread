@@ -15,7 +15,7 @@ public sealed record FormationRule(
     string? CultureIs,            // 対象国の条件②：Power.Culture 完全一致（州ラベルの人口加重多数派・毎月同期）
     string? ReligionIs,           // 対象国の条件③：Power.Religion 完全一致
     string[]? ExcludeBaseNames,   // 除外国（適格条件に優先）
-    string[] RequiredAll,         // 必要州＝全て領有（直接∪従属国・State==Active）
+    string[] RequiredAll,         // 必要州＝全て領有（直接∪従属国）
     string[]? ReligionAnyOf = null,   // 文明ゲート（適格条件と別の必須条件）：Power.Religion がこの集合にあること。null=不問
     string[]? AnyOfSet = null,    // 追加条件：この集合から最低 AnyOfMin 州
     int AnyOfMin = 0,
@@ -396,7 +396,7 @@ public static class Formations
             // 手順は割譲の遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B＝Idスワップ・Regions[0] の首都不変条件・座標・旧首都の植民地財）。
             if (best.NewCapital is { } capName)
             {
-                var newCap = w.Regions.Find(r => r.Name == capName && r.State == RegionState.Active);
+                var newCap = w.Regions.Find(r => r.Name == capName);
                 if (newCap is not null && newCap.Id != 0)
                 {
                     w.SetCapital(newCap);
@@ -510,7 +510,7 @@ public static class Formations
     private static bool HasRegion(Power p, string name)
     {
         if (p.Nation is not { } w) return false;
-        foreach (var r in w.Regions) if (r.Name == name && r.State == RegionState.Active) return true;
+        foreach (var r in w.Regions) if (r.Name == name) return true;
         return false;
     }
 }

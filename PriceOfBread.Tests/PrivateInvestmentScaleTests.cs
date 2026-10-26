@@ -15,7 +15,7 @@ public class PrivateInvestmentScaleTests
     private static (Region Region, Coefficients Coef) Make()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
-        var region = sim.World.Regions.First(r => r.State == RegionState.Active && r.InvestorPopIndex >= 0);
+        var region = sim.World.Regions.First(r => r.InvestorPopIndex >= 0);
         return (region, sim.World.Coef);
     }
 

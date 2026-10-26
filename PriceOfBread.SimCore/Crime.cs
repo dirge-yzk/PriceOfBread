@@ -23,7 +23,6 @@ public static class Crime
 
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double regionPop = r.SumPopulation();
             if (regionPop < 1e-9) continue;
 

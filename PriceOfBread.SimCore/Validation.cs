@@ -257,9 +257,7 @@ public static class Validation
     /// 「そもそも受け手の州が無い」のかを分ける）。⚠診断専用。</summary>
     internal static int ActiveRegionCount(World w)
     {
-        int n = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) n++;
-        return n;
+        return w.Regions.Count;
     }
 
     internal static bool IsWarMauledRump(World w)
@@ -268,9 +266,7 @@ public static class Validation
         //   州の頭数では永久に捕まらない。⚠新しい閾値は作らない＝下の州の判定と同じ「半分未満」。
         if (w.FoundingPopulation > 0 && w.TotalPopulation * 2 < w.FoundingPopulation) return true;
         if (w.FoundingActiveProvinces <= 0) return false;
-        int act = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) act++;
-        return act * 2 < w.FoundingActiveProvinces;
+        return w.Regions.Count * 2 < w.FoundingActiveProvinces;
     }
 
     /// <summary>法の序数が enum の定義域に収まっているか（2026-08-02）。外れた軸名を1つ返す（なければ null）。

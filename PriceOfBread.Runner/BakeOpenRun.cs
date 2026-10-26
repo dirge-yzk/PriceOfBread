@@ -26,7 +26,6 @@ public static class BakeOpenRun
         double cap = 0; var px = new List<double>();
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var pr in r.Producers)
             {
                 if (!pr.BuysLabor || pr.Bankrupt) continue;

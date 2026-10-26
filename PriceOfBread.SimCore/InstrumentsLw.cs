@@ -58,7 +58,6 @@ public static partial class Instruments
         double stBelowW = 0, stFloorCap = 0, stFloorRatioW = 0, stPriceRatioW = 0, stSeenCap = 0, noStepW = 0, priceMovedW = 0, floorMovedW = 0;   // ★(481) N2 の診断   // fl[0..2]＝能力ベースの 生存・生活・充足／fl[3..5]＝実雇用ベース
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             LwGood(r, w, c, Catalog.LaborId, plain, out double capP, out int lpP);
             LwGood(r, w, c, Catalog.FarmLaborId, farm, out _, out _);
             if (!(capP > 0) || lpP < 0 || lpP >= r.Pops.Count) continue;

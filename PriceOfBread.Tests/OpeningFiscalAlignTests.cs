@@ -289,7 +289,7 @@ public class OpeningFiscalAlignTests
         w.LastAdminClaimPerMonth = new MoneyPerMonth(6_200);   // バッファ≒31,000＝軽工業（費用 30,000）が身の丈ゲートを通る最小の大きさ・上限≒3,100/月
         w.SetTreasuryRaw(1.5 * UtilityAgent.FiscalBufferOf(w));
         var planted = new List<(Region Rg, Producer Pr)>();
-        foreach (var rg in w.Regions.Where(r => r.State == RegionState.Active))
+        foreach (var rg in w.Regions)
         {
             var pr = rg.Producers.FirstOrDefault(p => Catalog.Goods[p.GoodId].Tier != GoodTier.Service && !p.Bankrupt && p.ConstructionLeft <= 0
                                                       && ReferenceEquals(World.FindFactory(rg, p.GoodId), p) && Catalog.FactorySpec(p.GoodId).Category == "軽工業");

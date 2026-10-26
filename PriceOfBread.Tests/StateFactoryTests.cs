@@ -372,7 +372,6 @@ public class StateFactoryTests
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var r = w.Regions[ri];
-            if (r.State != RegionState.Active) continue;
             var p = World.FindFactory(r, Catalog.SteelId);
             if (p is null || p.ConstructionLeft > 0 || p.Bankrupt) continue;
             double sc = UtilityAgent.FacilityBuildScore(w, r, p).Score;
@@ -437,7 +436,6 @@ public class StateFactoryTests
         int st = 0, pv = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Producers)
             {
                 if (p.GoodId != Catalog.SteelId) continue;
@@ -517,7 +515,7 @@ public class StateFactoryTests
         int ag = Catalog.SilverId;
         Region? r = null; Producer? p = null;
         foreach (var rr in w.Regions)
-            if (r is null && rr.State == RegionState.Active && rr.GoodOf(ag) is not null && rr.MerchantPopIndex >= 0 && rr.MerchantPopIndex < rr.Pops.Count)
+            if (r is null && rr.GoodOf(ag) is not null && rr.MerchantPopIndex >= 0 && rr.MerchantPopIndex < rr.Pops.Count)
                 foreach (var q in rr.Producers)
                     if (q.GoodId == ag && q.OwnerPopIndex >= 0 && q.OwnerPopIndex < rr.Pops.Count && q.LaborPopIndex >= 0 && q.LaborPopIndex < rr.Pops.Count) { r = rr; p = q; break; }
         Assert.True(r is not null && p is not null, "前提が崩れた：銀の生産者と商人のいる州が無い");
@@ -571,7 +569,6 @@ public class StateFactoryTests
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var r = w.Regions[ri];
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Producers)
             {
                 if (p.DiscoveryRow < 0 || p.GoodId < 0 || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
@@ -608,7 +605,7 @@ public class StateFactoryTests
         for (int i = 0; i < w.Regions.Count && old is null; i++)
         {
             var r = w.Regions[i];
-            if (r.State != RegionState.Active || r.Discovered is null) continue;
+            if (r.Discovered is null) continue;
             foreach (var a in r.Producers)
             {
                 if (a.RetiredByRow < 0 || a.RetiredByRow >= r.Discovered.Length) continue;

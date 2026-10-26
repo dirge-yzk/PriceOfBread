@@ -31,7 +31,7 @@ public static partial class Instruments
         double mainPop = 0, pxW = 0, px = 0, stockSum = 0, bD = 0, bP = 0, lumD = 0, lumP = 0, limD = 0, limP = 0, clD = 0, clP = 0, cmD = 0, cmP = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
+            if (r.Tier == RegionTier.Colonial) continue;
             if (!(Catalog.BuildingId < r.Markets.Length)) continue;
             double pop = r.SumPopulation();
             mainPop += pop;

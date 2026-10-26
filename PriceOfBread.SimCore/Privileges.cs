@@ -51,7 +51,6 @@ public static class Privileges
         double best = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double d = EconomyStep.MonopolyDegree(r, c, 1.0);
             if (d > best) best = d;
         }

@@ -19,8 +19,8 @@ public class TreatyPortLapseTests
         var c0 = sim.Nations[0].World.Coef;
         diplo.ComputeRanks(c0);
         var sc = NationalScore.ScoresByPower(diplo);
-        var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.State == RegionState.Active && r.IsPort)).OrderByDescending(p => sc[p.Id]).First();
-        var port = strongest.Nation!.Regions.First(r => r.State == RegionState.Active && r.IsPort);
+        var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.IsPort)).OrderByDescending(p => sc[p.Id]).First();
+        var port = strongest.Nation!.Regions.First(r => r.IsPort);
         Politics.AddForeignShare(port, "テスト国", 0.5);   // 最強級の列強の港州に持分（国力比 ≧ 1）
 
         // OFF側（Ratio=0を明示ピン）
@@ -49,7 +49,7 @@ public class TreatyPortLapseTests
         var c = new Coefficients { TreatyPortLapseRatio = new Share(0.5) };
         diplo.ComputeRanks(c);
         var weak = diplo.Powers.First(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Minor);
-        var port = weak.Nation!.Regions.First(r => r.State == RegionState.Active);
+        var port = weak.Nation!.Regions.First();
         Politics.AddForeignShare(port, "テスト国", 0.5);
         diplo.TreatyPortLapse(c, 48);
         Assert.InRange(port.ForeignShares[0], 0.5 * (1.0 - 0.025) + 1e-9, 0.5);   // 力が無ければ風化は 1 回分（0.025）より遅い（力に比例して遅くなる）

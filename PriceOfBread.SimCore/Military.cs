@@ -117,7 +117,6 @@ public static class Military
         bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;   // ★(161) 徴兵制＝兵1人の給与は頭数あたり（世帯の1人ぶんの暮らし）・志願制＝働き盛り1人あたり（RecruitWage の keep と同じ規則）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double m = RegionManpower(r, c);
             if (!(m > 0)) continue;   // 兵士POPの無い州は母数に入らない（Step も同じ州を飛ばす）
             natManpower += m;
@@ -180,7 +179,7 @@ public static class Military
         double pay = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+            if (r.SoldierPopIndex < 0) continue;
             pay += r.Pops[r.SoldierPopIndex].Size * RecruitWage(r, c, last: false, keep: keep) * c.SoldierPayMult;
         }
         return pay;
@@ -234,7 +233,6 @@ public static class Military
         double soldiersBefore = lawConscripts ? w.SoldierSizeK() : 0;   // ★(155) 新兵で熟練を薄める（DiluteSkill）＝徴募の前の兵の数
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
 
             Pop? soldier = null, poolA = null, poolB = null;
             foreach (var p in r.Pops)
@@ -291,7 +289,6 @@ public static class Military
             double fw = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double ls = 0; foreach (var p in r.Pops) if (p.IsSoldier) ls += p.Size;
                 fw += ls * r.MilitaryEquipFill;
             }
@@ -318,7 +315,7 @@ public static class Military
         double steamGate = Discovery.GoodGate(r, c.ShipTier2GoodId);   // ★汽船の門＝商船（Transport）と同じ汽船の財の解禁（2026-10-01 (150)・旧＝蒸気の時計 SteamGate(TechLevel)）＝帆走艦隊は焚かない（NaN は0＝帆走側へ）
         double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
         double fill = 1.0;   // 需要ゼロ（帆走・係船・艦隊なし）＝燃料は制約でない
-        if (coalWant > 1e-9 && r.State == RegionState.Active && Catalog.CoalId < r.Markets.Length)
+        if (coalWant > 1e-9 && Catalog.CoalId < r.Markets.Length)
         {
             var (fuelG, want) = Colonial.ChooseFuelGood(r, c, coalWant);   // 石炭→重油の二択（供給実在ガード込み・植民地補給線と同式）
             double got = Colonial.BuyUpkeepGood(w, r, fuelG, want, TreasuryCat.Navy);   // 国庫→本国市場（保存）。買い控え（価格ゲート）・在庫切れ・国庫涸れは充足低下として現れる

@@ -53,7 +53,6 @@ public static partial class Instruments
         var gatedGoods = new HashSet<int>();
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             activeRegions++;
             if (r.TotalIndustrialization > indMax) indMax = r.TotalIndustrialization;
             foreach (var s in r.Producers)

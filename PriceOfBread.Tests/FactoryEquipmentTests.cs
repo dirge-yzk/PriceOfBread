@@ -25,7 +25,7 @@ public class FactoryEquipmentTests
     }
 
     private static IEnumerable<Producer> Eligibles(World w)
-        => w.Regions.Where(r => r.State == RegionState.Active).SelectMany(r => r.Producers).Where(FactoryEquipment.Eligible);
+        => w.Regions.SelectMany(r => r.Producers).Where(FactoryEquipment.Eligible);
 
     [Fact]
     public void 旗は既定1で点火済み_旗0は旧の規則への戻し先()
@@ -271,7 +271,7 @@ public class FactoryEquipmentTests
         w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;   // 購入と廃棄を止める
         sim.Run(1);
         Region? reg = null; Producer? closed = null;
-        foreach (var r in w.Regions.Where(r => r.State == RegionState.Active))
+        foreach (var r in w.Regions)
         {
             closed = r.Producers.FirstOrDefault(p => FactoryEquipment.Eligible(p) && !(Discovery.Gate(r, p) > 0));
             if (closed is not null && PrivateOfSet(r) > 1.0) { reg = r; break; }
@@ -342,7 +342,7 @@ public class FactoryEquipmentTests
         var start = new Dictionary<Producer, double>();
         var owner = new Dictionary<Producer, Region>();
         var built0 = new Dictionary<Producer, double>();
-        foreach (var r in w.Regions.Where(r => r.State == RegionState.Active))
+        foreach (var r in w.Regions)
             foreach (var p in r.Producers) if (FactoryEquipment.Eligible(p) && p.Scale > 0.01) { start[p] = p.Scale; owner[p] = r; built0[p] = p.BuiltScale; }
         Assert.True(start.Count > 20, $"設備のある適格な個体が少ない {start.Count}");
         int quarters = 4;

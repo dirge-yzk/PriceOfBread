@@ -234,7 +234,7 @@ public class ProductionDiagTests3
                     $"{name}／{Catalog.Goods[gi].Name}：内訳の和 {sum} ≠ 合計 {u.Total}");
                 double soldAll = 0;
                 foreach (var r in w.Regions)
-                    if (r.State == RegionState.Active && gi < r.Markets.Length) soldAll += r.Markets[gi].LastSold;
+                    if (gi < r.Markets.Length) soldAll += r.Markets[gi].LastSold;
                 Assert.True(u.Total <= soldAll + 1e-6 * System.Math.Max(1.0, soldAll),
                     $"{name}／{Catalog.Goods[gi].Name}：popの購入 {u.Total} が市場の販売 {soldAll} を超えた");
                 if (u.Total > Eps) withPop++;
@@ -362,7 +362,6 @@ public class ProductionDiagTests4
             var w = n.World;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 var seen = new HashSet<int>();
                 foreach (var p in r.Producers)
                 {
@@ -396,7 +395,6 @@ public class ProductionDiagTests4
         int withGuild = 0, checkedGoods = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double[]? share = EconomyStep.GuildShares(r, w.Coef, w, out double deg);
             Assert.NotNull(share); Assert.True(deg > 0);
             for (int gi = 0; gi < Catalog.Goods.Length && gi < r.Markets.Length; gi++)
@@ -456,7 +454,7 @@ public class ProductionDiagTests4
         {
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active || ReferenceEquals(r, cap)) continue;
+                if (ReferenceEquals(r, cap)) continue;
                 Producer? first = null; foreach (var p in r.Producers) if (p.GoodId == g) { first = p; break; }
                 if (first is null) continue;
                 bool hasLabor = false; foreach (var inp in first.Inputs) if (inp.GoodId == Catalog.LaborId) hasLabor = true;

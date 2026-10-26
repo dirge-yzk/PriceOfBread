@@ -210,7 +210,7 @@ public class FamineTests
         var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
         sim.Run(40);   // 10年
         var mults = new System.Collections.Generic.List<double>();
-        foreach (var r in sim.World.Regions) if (r.State == RegionState.Active) mults.Add(r.LocalPriceMultiplier);
+        foreach (var r in sim.World.Regions) mults.Add(r.LocalPriceMultiplier);
         Assert.True(mults.Count >= 2, "複数州の前提が崩れた（実国が単一州）");
         double max = mults[0], min = mults[0];
         foreach (var m in mults) { if (m > max) max = m; if (m < min) min = m; }

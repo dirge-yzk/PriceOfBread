@@ -18,7 +18,7 @@ public class MinimumWageAiFloorTests
     }
 
     private static System.Collections.Generic.List<Region> Home(World w)
-        => w.Regions.Where(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial).ToList();
+        => w.Regions.Where(r => r.Tier != RegionTier.Colonial).ToList();
 
     /// <summary>籠（1 人・月・名目）の手の参照：層の序数（主食 1・日用品 2・嗜好品 3）が法の序数以下の財の BaseNeed×今の値段の和（需要の立たない財は入れない）。</summary>
     private static double HandBasket(Region r, int lawOrdinal)

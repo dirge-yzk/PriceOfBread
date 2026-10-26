@@ -45,7 +45,6 @@ public static class FactionSnapshot
         int seen = 0;   // ★(417) 計算量の台帳（診断）：参加の述語を問うた POP の数（旗が正のときだけ台帳へ足す＝旧の二値は不満度を1度も計算しない）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.Size <= 1e-9) continue;

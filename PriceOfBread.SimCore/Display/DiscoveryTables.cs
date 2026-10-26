@@ -70,7 +70,6 @@ public static class DiscoveryTables
         Discovery.VisitSiteTerms(w, c, (r, p, t, _) => open[(r.Name, p.SiteRow)] = t);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             for (int pi = 0; pi < r.Producers.Count; pi++)
             {
                 var p = r.Producers[pi];

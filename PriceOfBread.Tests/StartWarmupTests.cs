@@ -219,7 +219,7 @@ public class StartWarmupTests3
         double Direct(int i)
         {
             var w = sim.Nations[i].World;
-            double mon = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) mon -= r.StateSpent[(int)TreasuryCat.StateMonopoly];
+            double mon = 0; foreach (var r in w.Regions) mon -= r.StateSpent[(int)TreasuryCat.StateMonopoly];
             double tar = System.Math.Max(0, w.LastTariffRevenuePerClearing) / w.Coef.MonthsPerClearing;
             return (w.LastRevenuePerMonth.Value - mon - tar) / w.NominalGdpPerMonth.Value;
         }

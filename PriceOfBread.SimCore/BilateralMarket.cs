@@ -204,7 +204,7 @@ public sealed partial class InternationalMarket
         var transitPortOwner = sc.TransitPortOwner; transitPortOwner.Clear();
         for (int i2 = 0; i2 < nn; i2++)
             foreach (var r2 in nations[i2].World.Regions)
-                if (r2.State == RegionState.Active && r2.IsPort) transitPortOwner.TryAdd(r2.Name, i2);
+                if (r2.IsPort) transitPortOwner.TryAdd(r2.Name, i2);
         var transitUses = sc.TransitUses; transitUses.Clear();
         var natHostility = ClearScratch.Fit(ref sc.NatHostility, nn);   // 下の国のループが全要素を書く
         var natAnyHostile = ClearScratch.Fit(ref sc.NatAnyHostile, nn);
@@ -227,7 +227,6 @@ public sealed partial class InternationalMarket
             double shipCapNat = W.ShipCapacity / (1.0 + W.ColonialShipBurden);
             foreach (var r in W.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double share = Transport.RegionShare(shareBasis, r);
                 double railToPort = railCapNat * share;
                 double shipEff = shipCapNat * share;
@@ -517,8 +516,8 @@ public sealed partial class InternationalMarket
             {
                 var so = new List<Pop>();
                 foreach (var r2 in nations[i2].World.Regions)
-                    if (r2.State == RegionState.Active && r2.MerchantPop is { } merchSo) so.Add(merchSo);
-                if (so.Count == 0) foreach (var r2 in nations[i2].World.Regions) if (r2.State == RegionState.Active) so.AddRange(r2.Pops);
+                    if (r2.MerchantPop is { } merchSo) so.Add(merchSo);
+                if (so.Count == 0) foreach (var r2 in nations[i2].World.Regions) so.AddRange(r2.Pops);
                 double sz = 0; foreach (var p2 in so) sz += p2.Size;
                 shipOwners[i2] = so;
                 if (!(sz > 1e-9)) continue;   // 受け手不在＝船腹の比から外す
@@ -598,7 +597,7 @@ public sealed partial class InternationalMarket
                 var w2 = nations[i2].World;
                 if (w2.SelfPower is null) continue;
                 var uw = new List<Pop>(); double uwSize = 0;
-                foreach (var r2 in w2.Regions) if (r2.State == RegionState.Active && r2.MerchantPop is { } merchUw) { uw.Add(merchUw); uwSize += merchUw.Size; }
+                foreach (var r2 in w2.Regions) if (r2.MerchantPop is { } merchUw) { uw.Add(merchUw); uwSize += merchUw.Size; }
                 if (uwSize > 1e-9) underwriters[i2] = uw;   // 受け手が居る＝移し方の1本が頭数で配れる（払わせて配れない額を作らない）
             }
         var payTariff = ClearScratch.FitZero(ref sc.PayTariff, tc);  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）

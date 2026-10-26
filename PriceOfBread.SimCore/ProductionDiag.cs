@@ -114,7 +114,7 @@ public static class ProductionDiag
         foreach (var p in region.Producers) if (p.GoodId == goodId) return (region, p);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || ReferenceEquals(r, region)) continue;
+            if (ReferenceEquals(r, region)) continue;
             foreach (var p in r.Producers) if (p.GoodId == goodId) return (r, p);
         }
         return null;
@@ -152,7 +152,7 @@ public static class ProductionDiag
         Collect(region);
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active || ReferenceEquals(r, region)) continue;
+            if (ReferenceEquals(r, region)) continue;
             Collect(r);
         }
         if (found.Count == 0) return [CostOf(w, region, null, goodId)];
@@ -244,7 +244,6 @@ public static class ProductionDiag
         bool recorded = false;
         foreach (var region in w.Regions)
         {
-            if (region.State != RegionState.Active) continue;
             if (goodId < 0 || goodId >= region.Markets.Length) continue;
             if (region.Markets[goodId].PopBought is not { } pb) continue;
             recorded = true;
@@ -300,7 +299,6 @@ public static class ProductionDiag
         int nProd = 0;
         foreach (var region in w.Regions)
         {
-            if (region.State != RegionState.Active) continue;
             if (goodId < 0 || goodId >= region.Markets.Length) continue;
             foreach (var s in region.Producers)
             {
@@ -372,7 +370,6 @@ public static class ProductionDiag
             var has = new bool[n];
             foreach (var region in w.Regions)
             {
-                if (region.State != RegionState.Active) continue;
                 int mn = Math.Min(region.Markets.Length, n);
                 for (int gi = 0; gi < mn; gi++) produced[gi] += region.Markets[gi].LastProduced;
                 foreach (var s in region.Producers)

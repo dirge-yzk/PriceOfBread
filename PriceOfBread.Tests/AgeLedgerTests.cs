@@ -30,9 +30,9 @@ public class AgeLedgerTests
         var w = sim.World;
         long monthly0 = w.Cost[CostLedger.MonthlyPops], extra0 = w.Cost[CostLedger.AgeBandExtraPops];
         // 独立の数え：活きている州の POP の数（1 四半期の間は増減しない前提を確かめる）
-        int popsBefore = w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Pops.Count);
+        int popsBefore = w.Regions.Sum(r => r.Pops.Count);
         sim.StepQuarter();
-        int popsAfter = w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Pops.Count);
+        int popsAfter = w.Regions.Sum(r => r.Pops.Count);
         Assert.Equal(popsBefore, popsAfter);   // 前提：この盤面では 1 四半期の間に POP の数が変わらない
         long monthly = w.Cost[CostLedger.MonthlyPops] - monthly0, extra = w.Cost[CostLedger.AgeBandExtraPops] - extra0;
         Assert.True(monthly > 0, "前提が崩れた：月次の POP の件数が立たない");

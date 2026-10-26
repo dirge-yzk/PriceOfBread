@@ -27,7 +27,7 @@ public class LawGateFromBoardTests
     /// <summary>本国（植民地格を除く活きている州）の POP を全て同じ大きさにし、先頭から k 個を都市にする。返り値＝実際の都市の割合（k/N）。</summary>
     private static double SetHomeUrban(World w, double want)
     {
-        var pops = w.Regions.Where(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial).SelectMany(r => r.Pops).ToList();
+        var pops = w.Regions.Where(r => r.Tier != RegionTier.Colonial).SelectMany(r => r.Pops).ToList();
         int k = (int)Math.Round(want * pops.Count);
         for (int i = 0; i < pops.Count; i++) { pops[i].Size = 100; pops[i].IsUrban = i < k; }
         return (double)k / pops.Count;
@@ -79,7 +79,7 @@ public class LawGateFromBoardTests
     public void 金の願いは本国の識字だけを数える_植民地の識字は数えない()
     {
         var w = Four().Nations[0].World;
-        var home = w.Regions.First(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial);
+        var home = w.Regions.First(r => r.Tier != RegionTier.Colonial);
         // 先頭の本国の州だけを本国に残し、他の州は植民地格にして識字 0.9 を置く
         foreach (var r in w.Regions) { r.Tier = r == home ? RegionTier.Core : RegionTier.Colonial; foreach (var p in r.Pops) p.Literacy = r == home ? 0.8 : 0.9; }
         Assert.True(UtilityAgent.GoldWishFromBoard(w));   // 本国 0.8＞0.75
@@ -148,7 +148,7 @@ public class LawGateFromBoardTests
     public void 都市の割合は植民地格の州を数えない()
     {
         var w = Four().Nations[0].World;
-        var home = w.Regions.First(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial);
+        var home = w.Regions.First(r => r.Tier != RegionTier.Colonial);
         foreach (var r in w.Regions) { r.Tier = r == home ? RegionTier.Core : RegionTier.Colonial; foreach (var p in r.Pops) { p.Size = 100; p.IsUrban = r != home; } }
         Assert.Equal(0.0, UtilityAgent.HomeUrbanShare(w));   // 本国は全て農村・植民地は全て都市＝植民地を数えれば 1 に近い
         foreach (var p in home.Pops) p.IsUrban = true;

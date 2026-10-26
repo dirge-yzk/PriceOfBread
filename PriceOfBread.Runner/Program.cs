@@ -195,7 +195,7 @@ if (args.Length > 0 && args[0] == "popprobe")
             for (int b = 0; b < Pop.Layout.Bands; b++) ageCols += $",{100 * (ageSh[2 * b] + ageSh[2 * b + 1]):F1}";   // ★(478) 層ごとの列は末尾（層の数が変わっても集計の列の位置は動かない）
             double popHome = 0;   // ★初期州集合ベースの人口（征服で得た州を除外＝「領土不変な定義」の実装。失った州は自然に落ちる）
             if (initRegions.TryGetValue(pw.BaseName, out var ir))
-                foreach (var rr in w.Regions) if (rr.State == RegionState.Active && ir.Contains(rr)) popHome += rr.SumPopulation();
+                foreach (var rr in w.Regions) if (ir.Contains(rr)) popHome += rr.SumPopulation();
             Console.WriteLine($"{cut},{pw.BaseName},{w.TotalPopulation:F0},{(pop0.TryGetValue(pw.BaseName, out var pz) && pz > 1e-9 ? w.TotalPopulation / pz : 0):F2},{(pop0.TryGetValue(pw.BaseName, out var pz2) && pz2 > 1e-9 ? popHome / pz2 : 0):F2},{w.Regions.Count},{w.DiagCapacity:F0}," +
                 $"{(w.DiagCapacity > 1e-9 ? w.TotalPopulation / w.DiagCapacity : 0):F3},{w.DiagCapacityBaseline:F0}," +
                 $"{w.DiagHealthcare:F3},{w.DiagDoctorCare:F3},{w.DiagFoodRatio:F3},{w.FoodRatioProductionSmoothed:F3},{w.DiagStapleNetImport:F1},{w.DiagLandAnchor:F0}," +
@@ -232,7 +232,7 @@ if (args.Length > 0 && args[0] == "navalgauge")
             var w = simNG.World;
             if (w.SelfPower is not { } pw || w.Regions.Count == 0) continue;
             double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
-            double hulls = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active && rr.FleetUnits is { } fu) foreach (var u in fu) hulls += u;
+            double hulls = 0; foreach (var rr in w.Regions) if (rr.FleetUnits is { } fu) foreach (var u in fu) hulls += u;
             double crewNeed = denom > 0 ? hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom) : 0;
             Console.WriteLine($"{cut},{pw.Name},{denom:F1},{EconomyStep.FleetPowerValue(w):F0},{pw.FleetGauge:F3},{hulls:F0},{crewNeed:F2},{w.SoldierSizeK():F1},{pw.CrewFill:F3},{pw.NavalShare:F4},{pw.NeedSea:F3},{pw.NavalPower:F3}");
         }
@@ -274,7 +274,7 @@ if (args.Length > 0 && args[0] == "armyshape")
             double fleet = EconomyStep.FleetPowerValue(wA2);   // ★(189) 艦の強さの値（隻数×建造費×段の乗数の和）
             // ★守るべき海上価値の**分解**（ArmyShape.cs:77-82 と同一の絞り込み＝IsPort のみ）
             double portVal = 0, colVal = 0;
-            foreach (var rr in wA2.Regions) if (rr.State == RegionState.Active && rr.IsPort) portVal += rr.LastPortThroughput;
+            foreach (var rr in wA2.Regions) if (rr.IsPort) portVal += rr.LastPortThroughput;
             foreach (var col in pA2.ColonyList) colVal += col.Value;
             double seaValue = portVal + colVal;
             // （(183) 通商保護の項〔護衛項＝軍×海に出ている経済の割合〕を海の必要量から外した＝護衛項と注意項の列を削除）
@@ -451,7 +451,6 @@ if (args.Length > 0 && args[0] == "transportsplit")
         double capSum = 0, potSum = 0, flat = 0, idle = 0; int shortN = 0;
         foreach (var rS in wS.Regions)
         {
-            if (rS.State != RegionState.Active) continue;
             nReg++; if (rS.IsPort) nPort++;
             double capS = rS.LastTransportCap, potS = rS.LastTradePotential;
             if (!(capS > 0) || capS == double.MaxValue) continue;   // 否定形＝未計算/無制限は数えない
@@ -736,7 +735,6 @@ if (args.Length > 0 && args[0] == "transportdump")
         double thrSum = 0; int thrN = 0; double merSav = 0, invSav = 0;
         foreach (var rT in wT.Regions)
         {
-            if (rT.State != RegionState.Active) continue;
             thrSum += rT.LastTradeThrottle; thrN++;
             if (rT.MerchantPopIndex >= 0) merSav += rT.Pops[rT.MerchantPopIndex].Savings.Value;
             if (rT.InvestorPopIndex >= 0) invSav += rT.Pops[rT.InvestorPopIndex].Savings.Value;
@@ -878,7 +876,7 @@ if (args.Length > 0 && args[0] == "regiondump")
     {
         var w = n.World;
         System.Console.WriteLine($"=== {w.SelfPower?.Name ?? w.Region.Name} ===");
-        foreach (var r in w.Regions) System.Console.WriteLine($"  [{r.State}] 「{r.Name}」 Ind={r.Industrialization:F3}");
+        foreach (var r in w.Regions) System.Console.WriteLine($"  「{r.Name}」 Ind={r.Industrialization:F3}");
         if (w.SelfPower is { } sp && sp.ColonyList.Count > 0)
             System.Console.WriteLine($"  植民地: {string.Join(" / ", sp.ColonyList.ConvertAll(c => c.Name))}");
     }
@@ -897,7 +895,8 @@ if (args.Length > 0 && args[0] == "indprobe")
         cfg => playerName.Length > 0 && cfg.Name == playerName ? new NullAgent() : new UtilityAgent());
     string[] targets = ["イギリス", "フランス", "両シチリア", "日本", "プロイセン"];
     var ipc = new Coefficients();
-    System.Console.WriteLine($"建設束: 鋼{ipc.SteelGoodId} 機械{ipc.MachineGoodId} セメント{ipc.CementGoodId} 製材{ipc.LumberGoodId}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} IndCapitalCost={ipc.IndCapitalCost}");
+    var ipb = EconomyStep.BundleOf(ipm.Nations[0].World.Regions[0], ipc);   // ★(568) 今の建設の資材の組（旗 BuildingGoodBundle が正なら建造物＋機械・0 なら旧の鋼の束）
+    System.Console.WriteLine($"建設束: {string.Join(" ", new[] { ipb.G0, ipb.G1, ipb.G2, ipb.G3 }.Take(ipb.Slots).Select(g => Catalog.Goods[g].Name + g))}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} IndCapitalCost={ipc.IndCapitalCost}");
     void Dump(int q)
     {
         foreach (var n in ipm.Nations)
@@ -907,9 +906,9 @@ if (args.Length > 0 && args[0] == "indprobe")
             if (System.Array.IndexOf(targets, name) < 0) continue;
             var r = w.Regions[0];
             double inv = r.InvestorPopIndex >= 0 ? r.Pops[r.InvestorPopIndex].Savings.Value : -1;
-            double sP = r.Markets[ipc.SteelGoodId].Price, sS = r.Markets[ipc.SteelGoodId].Stock;
-            double mP = r.Markets[ipc.MachineGoodId].Price, mS = r.Markets[ipc.MachineGoodId].Stock;
-            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} 鋼(価格{sP:F2}/在庫{sS:F0}) 機械(価格{mP:F2}/在庫{mS:F0})");
+            double sP = r.Markets[ipb.G0].Price, sS = r.Markets[ipb.G0].Stock;
+            double mP = r.Markets[ipb.G1].Price, mS = r.Markets[ipb.G1].Stock;
+            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} {Catalog.Goods[ipb.G0].Name}(価格{sP:F2}/在庫{sS:F0}) {Catalog.Goods[ipb.G1].Name}(価格{mP:F2}/在庫{mS:F0})");
         }
         System.Console.WriteLine();
     }
@@ -1036,7 +1035,6 @@ if (args.Length > 0 && args[0] == "marginprobe")
     var cnt = new long[labels.Length]; var outSum = new double[labels.Length]; long bankrupt = 0, active = 0;
     foreach (var n2 in mpm2.Nations) foreach (var r in n2.World.Regions)
     {
-        if (r.State != RegionState.Active) continue;
         foreach (var pr in r.Producers)
         {
             var g = r.GoodOf(pr.GoodId); if (g is null || g.Tier == GoodTier.Service) continue;
@@ -1070,7 +1068,6 @@ if (args.Length > 0 && args[0] == "selfsuff")
     foreach (var n2 in ssm.Nations)
         foreach (var r in n2.World.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             int made = 0; double selfMet = 0, need = 0;
             foreach (var g in r.Goods)
             {
@@ -1106,7 +1103,7 @@ if (args.Length > 0 && args[0] == "selfsuff")
             foreach (var n2 in ssm.Nations)
                 foreach (var r2 in n2.World.Regions)
                 {
-                    if (r2.State != RegionState.Active || gid >= r2.Markets.Length) continue;
+                    if (gid >= r2.Markets.Length) continue;
                     double rp = 0;
                     foreach (var gg in r2.Goods) if (gg.Id == gid) { rp = gg.RefPrice; break; }   // RefPrice は州の Good（Catalog の GoodDef には無い）
                     var mk = r2.Markets[gid];
@@ -1124,7 +1121,6 @@ if (args.Length > 0 && args[0] == "selfsuff")
             foreach (var n2 in ssm.Nations)
                 foreach (var r2 in n2.World.Regions)
                 {
-                    if (r2.State != RegionState.Active) continue;
                     foreach (var pr in r2.Producers)
                     {
                         if (pr.GoodId != Catalog.SulfuricAcidId && pr.GoodId != Catalog.SodaAshId) continue;
@@ -1312,7 +1308,6 @@ if (args.Length > 0 && args[0] == "monoprobe")
             double sImp = 0, sDem = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var g in r.Goods)
                 {
                     var mk = r.Markets[g.Id];
@@ -1423,7 +1418,6 @@ if (args.Length > 0 && args[0] == "openprobe")
                 double er = w.ExchangeRate > 1e-9 ? w.ExchangeRate : 1.0;
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     for (int g = 0; g < r.Markets.Length; g++)
                     {
                         if (g == Catalog.GoldOreId || g == Catalog.SilverId) continue;   // 準備放出（SellReserve）は植民地機構ではない
@@ -1506,7 +1500,6 @@ if (args.Length > 0 && args[0] == "accprobe")
         double thr = 0, thrW = 0, wsum = 0; int n = 0, linked = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             n++;
             double t = r.LastTradeThrottle;
             thr += t;
@@ -1537,7 +1530,6 @@ if (args.Length > 0 && args[0] == "accprobe")
             wDipAcc += w.ExternalTradeAccess() * g; wGdpW += g;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double t = r.LastTradeThrottle;
                 double wt = Math.Max(0, r.LastTradePotential);
                 wThrNum += t * wt; wThrDen += wt;
@@ -1608,7 +1600,6 @@ if (args.Length > 0 && args[0] == "endowprobe")
                 double er = n.World.ExchangeRate > 1e-9 ? n.World.ExchangeRate : 1.0;
                 foreach (var r in n.World.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     if (g >= r.Markets.Length) continue;
                     nProv++;
                     bool isE = epEndow.Contains((r.Name, g));
@@ -1681,7 +1672,6 @@ if (args.Length > 0 && args[0] == "tradewhy")
                 double er = w.ExchangeRate > 1e-9 ? w.ExchangeRate : 1.0;
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     double lp = r.Markets[g].Price * er;
                     if (!(lp > 1e-9)) continue;
                     prices.Add(lp); if (isEng) engPrices.Add(lp);
@@ -1719,7 +1709,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
             var bn = pw.BaseName.Length > 0 ? pw.BaseName : pw.Name;
             if (bn is not ("イギリス" or "フランス" or "ロシア" or "プロイセン" or "清" or "アメリカ")) continue;
             int act = 0; var th = new List<double>();
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) { act++; th.Add(r.LastTradeThrottle); }
+            foreach (var r in w.Regions) { act++; th.Add(r.LastTradeThrottle); }
             th.Sort();
             double perState = act > 0 ? (w.ShipCapacity / (1.0 + System.Math.Max(0, w.ColonialShipBurden)) + Transport.PreRailCapacity(w, c1)) / act : 0;   // ★(166) 鉄道以前の陸の容量＝人口×基礎の目標
             Console.WriteLine($"    {pw.Name,-8} 州{act,3}  船容量{w.ShipCapacity,10:F0}  州あたり容量{perState,9:F1}  律速率 min{(th.Count > 0 ? th[0] : 1):F3} 中央{(th.Count > 0 ? th[th.Count / 2] : 1):F3} max{(th.Count > 0 ? th[^1] : 1):F3}  対外アクセス{w.ExternalTradeAccess():F2}");
@@ -1738,7 +1728,6 @@ if (args.Length > 0 && args[0] == "tradewhy")
             double er = w.ExchangeRate > 1e-9 ? w.ExchangeRate : 1.0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 var m = r.Markets[g];
                 if (!(m.Price * er > 1e-9)) continue;
                 rows.Add((m.Price * er, w.SelfPower.Name, r.Name, m.Stock, m.LastDemand, m.LastProduced, m.TargetStock));
@@ -1848,7 +1837,6 @@ if (args.Length > 0 && args[0] == "silverprobe")
             if (w.Coef.AiLawGateFromBoard >= 1.0 ? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold) indHi++;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Producers)
                 {
                     if (p.GoodId == Catalog.SilverId) agOut += p.Output;
@@ -1934,7 +1922,6 @@ if (args.Length > 0 && args[0] == "rgoprobe")
             double sc = 0, bs = 0, op = 0, fo = 0, fb = 0, fs = 0; int cnt = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Producers)
                 {
                     if (p.IsRgo) { cnt++; sc += p.Scale; bs += Math.Min(p.BuiltScale, p.Scale); op += p.Output; }
@@ -2002,9 +1989,9 @@ if (args.Length > 0 && args[0] == "fleetprobe")
             if (w.Regions.Count == 0) continue;
             var c = w.Coef; var cap = w.Regions[0];
             double pop = 0, sold = 0;
-            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; pop += r.SumPopulation(); foreach (var p in r.Pops) if (p.IsSoldier) sold += p.Size; }
+            foreach (var r in w.Regions) { pop += r.SumPopulation(); foreach (var p in r.Pops) if (p.IsSoldier) sold += p.Size; }
             double ships = 0, shipsRef = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) { ships += fa[k]; shipsRef += fa[k] * (cap.GoodOf(c.FleetGoodIds[k])?.RefPrice ?? 0); }
+            foreach (var r in w.Regions) if (r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) { ships += fa[k]; shipsRef += fa[k] * (cap.GoodOf(c.FleetGoodIds[k])?.RefPrice ?? 0); }
             double tU = 0, tRef = 0;
             if (EconomyStep.FleetTargetUnits(cap, c, w) is { } tt) for (int k = 0; k < tt.Length; k++) { tU += tt[k]; tRef += tt[k] * (cap.GoodOf(c.FleetGoodIds[k])?.RefPrice ?? 0); }
             double warRef = cap.GoodOf(c.WarshipGoodId)?.RefPrice ?? 0;
@@ -2012,14 +1999,14 @@ if (args.Length > 0 && args[0] == "fleetprobe")
             double afford = EconomyStep.FleetAffordableCost(w, c);
             double env = Military.EnvelopeOf(w, c), payFull = Military.SoldierPayFull(w, c);
             bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
-            double wsum = 0; int wn = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { wsum += Military.RecruitWage(r, c, last: false, keep: keep) * c.SoldierPayMult; wn++; }
+            double wsum = 0; int wn = 0; foreach (var r in w.Regions) if (r.SoldierPopIndex >= 0) { wsum += Military.RecruitWage(r, c, last: false, keep: keep) * c.SoldierPayMult; wn++; }
             double pay1 = wn > 0 ? wsum / wn : 0;
             double spoil = Catalog.WearRatePerMonthOf(c.WarshipGoodId);
             double room = System.Math.Max(0, env - payFull);
             double navBud = room * w.NavalSpendShare.Value;
-            bool port = false; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { port = true; break; }
-            double sailOut = w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.SailingShipId).Sum(pr => pr.Output));
-            double warCap = w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.WarshipId).Sum(pr => pr.Capacity));
+            bool port = false; foreach (var r in w.Regions) if (r.IsPort) { port = true; break; }
+            double sailOut = w.Regions.Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.SailingShipId).Sum(pr => pr.Output));
+            double warCap = w.Regions.Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.WarshipId).Sum(pr => pr.Capacity));
             fb.Append(string.Join("\t", new object[] { tm, nm, pop, sold, pop > 0 ? sold / pop : 0, ships, shipsRef, tU, tRef, afford, warRef > 0 ? afford / warRef : 0,
                 sp?.NeedSea ?? 0, sp?.NeedLand ?? 0, sp?.NeedInternal ?? 0, sp?.NavySkillMul ?? 0, denom, warRef, cap.Markets[Catalog.WarshipId].Price,
                 EconomyStep.FleetCrewPerHull(cap, c, denom), pay1, pay1 > 0 ? warRef / pay1 : 0, env, payFull, room, w.NavalSpendShare.Value, navBud, shipsRef * spoil,
@@ -2103,9 +2090,9 @@ if (args.Length > 0 && args[0] == "navyneed")
         for (int i = 0; i < n; i++)
         {
             var p = ps[i]; var w = p.Nation!; string nm = p.BaseName.Length > 0 ? p.BaseName : p.Name;
-            double ships = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) ships += fa[k];
+            double ships = 0; foreach (var r in w.Regions) if (r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) ships += fa[k];
             double afford = w.Regions.Count > 0 ? EconomyStep.FleetAffordableCost(w, w.Coef) : 0;
-            bool port = false; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { port = true; break; }
+            bool port = false; foreach (var r in w.Regions) if (r.IsPort) { port = true; break; }
             nnB.Append(string.Join("\t", new object[] { tm, nm, p.NavalPower, ships, tv[i], gy[i], ArmyShape.ForcePotential(p), w.NavalSpendShare.Value, rA[i].land, rA[i].inter,
                 rA[i].sea, rX[i].sea, rU[i].sea, rB[i].sea, rC[i].sea, rD[i].sea, wA[i], wB[i], wC[i], wD[i],
                 rA[i].tRef, rU[i].tRef, rB[i].tRef, rC[i].tRef, rD[i].tRef, afford, port ? 1 : 0 })).Append((char)10);
@@ -2179,7 +2166,7 @@ if (args.Length > 0 && args[0] == "fleetweight")
         for (int i = 0; i < n; i++)
         {
             var p = ps[i]; var w = p.Nation!; string nm = p.BaseName.Length > 0 ? p.BaseName : p.Name;
-            double ships = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) ships += fa[k];
+            double ships = 0; foreach (var r in w.Regions) if (r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) ships += fa[k];
             double afford = w.Regions.Count > 0 ? EconomyStep.FleetAffordableCost(w, w.Coef) : 0;
             fwB.Append(string.Join("\t", new object[] { tm, nm, p.NavalPower, ships, tv[i], gy[i], (gy[i] > 1e-9 ? tv[i] * cf.ClearingsPerYear / gy[i] : 0), w.TradeContactShare,
                 sA > 0 ? oA[i] / (sA / n) : 1, sB1 > 0 ? oB1[i] / (sB1 / n) : 1, sB2 > 0 ? oB2[i] / (sB2 / n) : 1,
@@ -2516,7 +2503,6 @@ if (args.Length > 0 && args[0] == "initdump")
             double invSav = 0, invEarn = 0, invSize = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                 {
                     popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
@@ -2530,11 +2516,11 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "人口/識字率(人口加重)", tm, popK > 0 ? litSum / popK : 0, "比");
             Row(nm, "人口/兵士", tm, sold * 1000, "人");
             Row(nm, "人口/兵士÷総人口", tm, popK > 0 ? sold / popK : 0, "比");
-            Row(nm, "人口/稼働の州の数", tm, w.Regions.Count(r => r.State == RegionState.Active), "件");
+            Row(nm, "人口/稼働の州の数", tm, w.Regions.Count, "件");
             Row(nm, "人口/州の数(全)", tm, w.Regions.Count, "件");
-            Row(nm, "人口/植民地格の州の人口", tm, w.Regions.Where(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial).Sum(r => r.SumPopulation()) * 1000, "人");
-            Row(nm, "人口/本国(植民地格の州を除く)", tm, w.Regions.Where(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial).Sum(r => r.SumPopulation()) * 1000, "人");
-            Row(nm, "人口/植民地格の州の数", tm, w.Regions.Count(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial), "件");
+            Row(nm, "人口/植民地格の州の人口", tm, w.Regions.Where(r => r.Tier == RegionTier.Colonial).Sum(r => r.SumPopulation()) * 1000, "人");
+            Row(nm, "人口/本国(植民地格の州を除く)", tm, w.Regions.Where(r => r.Tier != RegionTier.Colonial).Sum(r => r.SumPopulation()) * 1000, "人");
+            Row(nm, "人口/植民地格の州の数", tm, w.Regions.Count(r => r.Tier == RegionTier.Colonial), "件");
             foreach (var cn in order)
             {
                 var c = cls[cn];
@@ -2601,7 +2587,7 @@ if (args.Length > 0 && args[0] == "initdump")
                 Row(nm, "植民地/州に昇格した植民地の数", tm, sp.ColonialRegions, "件");
             }
             double[] fu = new double[fleetIds.Length];
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fu.Length && k < fa.Length; k++) fu[k] += fa[k];
+            foreach (var r in w.Regions) if (r.FleetUnits is { } fa) for (int k = 0; k < fu.Length && k < fa.Length; k++) fu[k] += fa[k];
             for (int k = 0; k < fu.Length; k++) Row(nm, $"軍/艦の隻数/{Catalog.Goods[fleetIds[k]].Name}", tm, fu[k], "隻");
             var capR = w.Regions.Count > 0 ? w.Regions[0] : null;
             if (capR is not null)
@@ -2609,7 +2595,6 @@ if (args.Length > 0 && args[0] == "initdump")
             // 州ごと（資本家＝州の投資家の貯蓄と所得・人口・工業化度・産出）
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 string rk = "州/" + r.Name + "/";
                 double rp = 0, ru = 0; foreach (var p in r.Pops) { rp += p.Size; if (p.IsUrban) ru += p.Size; }
                 Row(nm, rk + "人口", tm, rp * 1000, "人");
@@ -2631,7 +2616,6 @@ if (args.Length > 0 && args[0] == "initdump")
             double fBuilt = 0, fCap = 0, fOutV = 0, fN = 0, rgoCap = 0, rgoOutV = 0, rgoN = 0, svOutV = 0, indSum = 0, portCap = 0, arable = 0, arableSet = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 indSum += r.Industrialization; portCap += r.PortCapacity;
                 if (r.ArableLand < 1e8) { arable += r.ArableLand; arableSet++; }
                 foreach (var pr in r.Producers)
@@ -2679,7 +2663,6 @@ if (args.Length > 0 && args[0] == "initdump")
                 double stkV = 0, capV = 0; int n200 = 0, nGoods = 0; var cs = new List<double>();
                 foreach (var r in w.Regions)
                 {
-                    if (r.State != RegionState.Active) continue;
                     for (int g = 0; g < r.Markets.Length && g < Catalog.RefPrices.Length; g++) { double v = r.Markets[g].Stock * Catalog.RefPrices[g]; stkV += v; if (ReferenceEquals(r, capR)) { capV += v; nGoods++; if (System.Math.Abs(r.Markets[g].Stock - 200) < 1e-6) n200++; cs.Add(r.Markets[g].Stock); } }
                 }
                 cs.Sort();
@@ -2804,7 +2787,6 @@ if (args.Length > 0 && args[0] == "eduprobe")
         double oT = 0, oS = 0, price = 0, stock = 0, demand = 0, teacher = 0, clergy = 0, prod = 0, priceW = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var pr in r.Producers)
                 if (pr.GoodId == Catalog.EducationId)
                 {
@@ -3018,7 +3000,6 @@ if (args.Length > 0 && args[0] == "pairprobe")
                 var gsum = new System.Collections.Generic.Dictionary<int, double>();
                 foreach (var r2 in psim.Nations[ei].World.Regions)
                 {
-                    if (r2.State != PriceOfBread.SimCore.RegionState.Active) continue;
                     for (int g2 = 0; g2 < r2.Markets.Length; g2++)
                         if (r2.Markets[g2].LastExport > 1e-9)
                         { gsum.TryGetValue(g2, out double cur); gsum[g2] = cur + r2.Markets[g2].LastExport * PriceOfBread.SimCore.Catalog.RefPrices[g2]; }
@@ -3029,7 +3010,7 @@ if (args.Length > 0 && args[0] == "pairprobe")
                 for (int g3 = 0; g3 < System.Math.Min(6, gl.Count); g3++) parts.Add($"{PriceOfBread.SimCore.Catalog.Goods[gl[g3].Key].Name} {gl[g3].Value:F0}");
                 var wE = psim.Nations[ei].World;
                 double wageS = 0, wageN = 0;
-                foreach (var r3 in wE.Regions) { if (r3.State != PriceOfBread.SimCore.RegionState.Active) continue; foreach (var p3 in r3.Pops) if (!p3.Closed && p3.Size > 1) { wageS += System.Math.Max(0, p3.EarnedPerMonth.Value); wageN += p3.Size; } }
+                foreach (var r3 in wE.Regions) { foreach (var p3 in r3.Pops) if (!p3.Closed && p3.Size > 1) { wageS += System.Math.Max(0, p3.EarnedPerMonth.Value); wageN += p3.Size; } }
                 double litS = 0, litN = 0, eduS = 0;   // 2026-09-05：識字・教育充足の列（世界工場の是正＝技術水準の根を見る）
                 foreach (var lp in wE.AllPops()) { litS += lp.Literacy * lp.Size; eduS += lp.EducationFill * lp.Size; litN += lp.Size; }
                 System.Console.WriteLine($"  輸出内訳 {NameOf(ei)}（計{expTot[ei]:F0}・関税{wE.Tariff:P0}・技術{wE.TechLevel:F2}・所得/人{(wageN > 1 ? wageS / wageN : 0):F3}・識字{(litN > 0 ? litS / litN : 0):P0}・教育充足{(litN > 0 ? eduS / litN : 0):P0}）: {string.Join("　", parts)}");
@@ -3238,7 +3219,7 @@ if (args.Length > 0 && args[0] == "africaprobe")
             {
                 var suz = dipA.Suzerain(p);
                 if (suz is not null) fell[nm] = $"Q{q + 1} {suz.Name}の属国";
-                else if (p.Nation.Regions.All(r => r.State != RegionState.Active)) fell[nm] = $"Q{q + 1} 州を全て喪失";
+                else if (p.Nation.Regions.Count == 0) fell[nm] = $"Q{q + 1} 州を全て喪失";
             }
             else if (p.ColonyList.Count == 0) fell[nm] = $"Q{q + 1} 領土なし(接収済み)";
         }
@@ -3268,7 +3249,7 @@ if (args.Length > 0 && args[0] == "africaprobe")
         // ★ランクも出す（2026-08-12）＝植民地化の標的は Minor だけ。人口が増えて Middle へ上がると
         //   「軍ゼロなのに誰にも狙われない」が起こる＝アフリカが取れなくなる別の歪みになる。
         string rk = dipA.RankOf(p) switch { PowerRank.Great => "列強", PowerRank.Secondary => "準列強", PowerRank.Middle => "中堅", _ => "弱小" };
-        double pop = p.Nation is { } w2 ? w2.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.SumPopulation()) : 0;
+        double pop = p.Nation is { } w2 ? w2.Regions.Sum(r => r.SumPopulation()) : 0;
         System.Console.WriteLine($"{nm,-14}{kind,-8}{rk,-6}{fell.GetValueOrDefault(nm, "存続"),-22}{p.Military,7:F1}{pop,10:F0}{p.ColonyList.Count,7}");
     }
     return;
@@ -3283,7 +3264,7 @@ if (args.Length > 0 && args[0] == "freezeprobe")
     foreach (var n in simF.Nations)
         foreach (var r in n.World.Regions)
         {
-            if (r.State != RegionState.Active || !r.IsPort) continue;
+            if (!r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             int q = Climate.WinterFrozenQuarters(cc.Lat, cc.Lon);
             if (q <= 0) continue;
@@ -3307,14 +3288,14 @@ if (args.Length > 0 && args[0] == "transitprobe")
     var owner = new Dictionary<string, string>();
     foreach (var n in simT.Nations)
         foreach (var r in n.World.Regions)
-            if (r.State == RegionState.Active && r.IsPort) owner.TryAdd(r.Name, n.World.SelfPower?.Name ?? "?");
+            if (r.IsPort) owner.TryAdd(r.Name, n.World.SelfPower?.Name ?? "?");
     System.Console.WriteLine($"通行料率={simT.Coef.TransitTollShare.Value:P0}");
     System.Console.WriteLine($"{"州",-14}{"国",-12}{"借りた港",-14}{"港の所有国",-12}{"陸路km",8}{"通行料/期",12}");
     int used = 0, unlinked = 0;
     foreach (var n in simT.Nations)
         foreach (var r in n.World.Regions)
         {
-            if (r.State != RegionState.Active || r.IsPort || r.NearestPortName.Length > 0) continue;   // 自国に港がある州は対象外
+            if (r.IsPort || r.NearestPortName.Length > 0) continue;   // 自国に港がある州は対象外
             if (r.LastTransitPortName.Length == 0) { unlinked++; continue; }
             used++;
             System.Console.WriteLine($"{r.Name,-14}{n.World.SelfPower?.Name,-12}{r.LastTransitPortName,-14}"
@@ -3333,7 +3314,7 @@ if (args.Length > 0 && args[0] == "routecost")
     foreach (var n in simR.Nations)
         foreach (var r in n.World.Regions)
         {
-            if (r.State != RegionState.Active || !r.IsPort) continue;
+            if (!r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             if (cc.Lat != 0 || cc.Lon != 0) ports.Add((r.Name, cc.Lat, cc.Lon));
         }
@@ -3404,7 +3385,7 @@ if (args.Length > 0 && args[0] == "transprobe")
             var w = n.World;
             if (w.SelfPower is null) continue;
             double pot = 0, thrSum = 0; int thrN = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) { pot += r.LastTradePotential; thrSum += r.LastTradeThrottle; thrN++; }
+            foreach (var r in w.Regions) { pot += r.LastTradePotential; thrSum += r.LastTradeThrottle; thrN++; }
             rows.Add((w.SelfPower.Name, w.TotalPopulation, w.RailCapacity + w.ShipCapacity, pot, thrN > 0 ? thrSum / thrN : 1.0));
         }
         rows.Sort((a, b) => b.cap.CompareTo(a.cap));
@@ -3642,7 +3623,6 @@ if (args.Length > 0 && args[0] == "mapedges")
         string gateE = ""; double glatE = 0, glonE = 0;
         foreach (var rr in wE.Regions)
         {
-            if (rr.State != RegionState.Active) continue;
             if (rr.IsPort) { var pc0 = Climate.CityCoord(rr.Name); if (pc0.Lat != 0 || pc0.Lon != 0) { gateE = rr.Name; glatE = pc0.Lat; glonE = pc0.Lon; break; } }
             if (gateE.Length == 0 && rr.LastTransitPortName.Length > 0)
             {
@@ -3698,7 +3678,7 @@ if (args.Length > 0 && args[0] == "mapedges")
     foreach (var simE in msE.Nations)
         foreach (var rr in simE.World.Regions)
         {
-            if (rr.State != RegionState.Active || !rr.IsPort) continue;
+            if (!rr.IsPort) continue;
             var pc = Climate.CityCoord(rr.Name);
             if (Math.Abs(pc.Lat) < 1e-9 && Math.Abs(pc.Lon) < 1e-9) continue;
             int sn = SeaGraph.NearestSeaNode(pc.Lat, pc.Lon);
@@ -3758,7 +3738,7 @@ if (args.Length > 0 && args[0] == "mapedges")
     foreach (var simE in msE.Nations)
         foreach (var rr in simE.World.Regions)
         {
-            if (rr.State != RegionState.Active || !rr.IsPort) continue;
+            if (!rr.IsPort) continue;
             var pc = Climate.CityCoord(rr.Name);
             if (Math.Abs(pc.Lat) < 1e-9 && Math.Abs(pc.Lon) < 1e-9) continue;
             double best = double.PositiveInfinity;
@@ -3793,7 +3773,7 @@ if (args.Length > 0 && args[0] == "mapedges")
     foreach (var simE in msE.Nations)
         foreach (var rr in simE.World.Regions)
         {
-            if (rr.State != RegionState.Active || !rr.IsPort) continue;
+            if (!rr.IsPort) continue;
             var pc = Climate.CityCoord(rr.Name);
             if (Math.Abs(pc.Lat) < 1e-9 && Math.Abs(pc.Lon) < 1e-9) continue;
             int sn = SeaGraph.NearestSeaNode(pc.Lat, pc.Lon);
@@ -3901,7 +3881,7 @@ if (args.Length > 0 && args[0] == "mapflow")
     foreach (var simF in msF.Nations)
         foreach (var rr in simF.World.Regions)
         {
-            if (rr.State != RegionState.Active || rr.IsPort) continue;
+            if (rr.IsPort) continue;
             string portName = rr.NearestPortName.Length > 0 ? rr.NearestPortName : rr.LastTransitPortName;
             if (portName.Length == 0) continue;
             var cc = Climate.CityCoord(rr.Name);
@@ -3925,7 +3905,6 @@ if (args.Length > 0 && args[0] == "mapflow")
         string gateF = ""; double glatF = 0, glonF = 0;
         foreach (var rr in wF.Regions)
         {
-            if (rr.State != RegionState.Active) continue;
             if (rr.IsPort) { var p0 = Climate.CityCoord(rr.Name); if (p0.Lat != 0 || p0.Lon != 0) { gateF = rr.Name; glatF = p0.Lat; glonF = p0.Lon; break; } }
             if (gateF.Length == 0 && rr.LastTransitPortName.Length > 0)
             {
@@ -3971,7 +3950,7 @@ if (args.Length > 0 && args[0] == "mapflow")
     foreach (var simF in msF.Nations)
         foreach (var rr in simF.World.Regions)
         {
-            if (rr.State != RegionState.Active || !rr.IsPort) continue;
+            if (!rr.IsPort) continue;
             var pc = Climate.CityCoord(rr.Name);
             if (Math.Abs(pc.Lat) < 1e-9 && Math.Abs(pc.Lon) < 1e-9) continue;
             int sn = SeaGraph.NearestSeaNode(pc.Lat, pc.Lon);
@@ -4057,7 +4036,6 @@ if (args.Length > 0 && args[0] == "numdef")
             double prodRef = 0, prodGold = 0, plW = 0, plWsum = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double rw = 0;
                 for (int g = 0; g < r.Markets.Length && g < Catalog.Goods.Length; g++)
                 {
@@ -4076,7 +4054,6 @@ if (args.Length > 0 && args[0] == "numdef")
             double grossRef = 0, interRef = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var s in r.Producers)
                 {
                     if (s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length) continue;
@@ -4206,7 +4183,6 @@ if (args.Length > 0 && args[0] == "budgetprobe")
             double dem = 0, prod = 0, shortg = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var m in r.Markets) { dem += m.LastDemand; prod += m.LastProduced; shortg += m.LastShortage; }
             }
             double gdp = System.Math.Max(1.0, w.NominalGdpPerMonth.Value);
@@ -4230,7 +4206,7 @@ if (args.Length > 0 && args[0] == "budgetprobe")
             var w = n.World; if (w.SelfPower is null) continue;
             wGdp += System.Math.Max(1.0, w.NominalGdpPerMonth.Value);
             wTradeVal += (w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0);
-            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var m in r.Markets) { wDem += m.LastDemand; wProd += m.LastProduced; } }
+            foreach (var r in w.Regions) { foreach (var m in r.Markets) { wDem += m.LastDemand; wProd += m.LastProduced; } }
         }
         Console.WriteLine($"  【全世界計 {PriceOfBread.SimCore.BudgetBindDiag.ByWorld.Count}カ国】 需要/希望 {W(PriceOfBread.SimCore.BudgetBindDiag.DemandVal, PriceOfBread.SimCore.BudgetBindDiag.DesiredVal):F3}"
             + $"　貿易財比 {W(PriceOfBread.SimCore.BudgetBindDiag.DemandValTrade, PriceOfBread.SimCore.BudgetBindDiag.DesiredValTrade):F3}"
@@ -4777,11 +4753,11 @@ if (args.Length > 0 && args[0] == "discprobe")
                 Console.WriteLine("    （計器）比（代替する物の値段×換算÷新しいレシピの費用［投入の平滑化した値段÷参照］）: " + string.Join("  ", dbgParts));
             }
             // 動力の物差し（(159)＝蒸気機関・電動機の必要性の入力）＝労働力（動力）・石炭・蒸気機関・電力の国の値段（需要で重み付け）÷物価水準÷参照価格（瞬間）と平滑化した値段（判定が読む値）・陸の輸送の通した割合
-            double Px(int g) { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active || g >= rg.Markets.Length) continue; pd += rg.Markets[g].Price * rg.Markets[g].LastDemand; dd += rg.Markets[g].LastDemand; } return dd > 1e-12 ? pd / dd / w.NominalOf(Catalog.RefPrices[g]) : double.NaN; }
+            double Px(int g) { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (g >= rg.Markets.Length) continue; pd += rg.Markets[g].Price * rg.Markets[g].LastDemand; dd += rg.Markets[g].LastDemand; } return dd > 1e-12 ? pd / dd / w.NominalOf(Catalog.RefPrices[g]) : double.NaN; }
             double Sm(int g) => w.DiscoveryPrice is { } dpw && g < dpw.Length ? dpw[g] / Catalog.RefPrices[g] : double.NaN;
             double landSm = w.DiscoveryPrice is { } dpl && Catalog.Goods.Length < dpl.Length ? dpl[Catalog.Goods.Length] : double.NaN;
-            double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.EarnedPerMonth.Value; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
-            double coalNom = 0; { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; pd += rg.Markets[Catalog.CoalId].Price * rg.Markets[Catalog.CoalId].LastDemand; dd += rg.Markets[Catalog.CoalId].LastDemand; } coalNom = dd > 1e-12 ? pd / dd : double.NaN; }
+            double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.EarnedPerMonth.Value; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
+            double coalNom = 0; { double pd = 0, dd = 0; foreach (var rg in w.Regions) { pd += rg.Markets[Catalog.CoalId].Price * rg.Markets[Catalog.CoalId].LastDemand; dd += rg.Markets[Catalog.CoalId].LastDemand; } coalNom = dd > 1e-12 ? pd / dd : double.NaN; }
             Console.WriteLine($"    動力の物差し（値段÷参照×物価・瞬間／平滑）: 労働力 {Px(Catalog.LaborId):F2}/{Sm(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}/{Sm(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}/{Sm(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}/{Sm(Catalog.ElectricityId):F2}　陸の輸送の値段（平滑・参照＝1） {landSm:F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.GdpPerMonth / System.Math.Max(1e-9, w.TotalPopulation):F4}");
         }
     }
@@ -5237,7 +5213,7 @@ if (args.Length > 0 && args[0] == "captrace")
         Console.WriteLine($"=== {n.World.SelfPower?.Name} ===");
         foreach (var r in n.World.Regions)
         {
-            if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
+            if (r.InvestorPopIndex < 0) continue;
             double totalSav = 0, total = 0;
             foreach (var p in r.Pops) { total += p.Size; totalSav += System.Math.Max(0, p.Savings.Value); }
             double avg = total > 1e-9 ? totalSav / total : 0;
@@ -5340,7 +5316,7 @@ if (args.Length > 0 && args[0] == "landprobe")
     {
         lm.StepQuarter();
         foreach (var n in lm.Nations) foreach (var r in n.World.Regions)
-            if (r.State == RegionState.Active) { double lf = LandFac(r); minSeen = System.Math.Min(minSeen, lf); }
+            { double lf = LandFac(r); minSeen = System.Math.Min(minSeen, lf); }
     }
     Console.WriteLine($"=== landprobe seed {seed}：125年後の各州の土地係数（指数{expo}）===");
     Console.WriteLine($"全期間で観測した最小 landFactor＝{minSeen:F3}（1.000＝一度も土地が拘束しなかった）");
@@ -5349,7 +5325,6 @@ if (args.Length > 0 && args[0] == "landprobe")
         var name = n.World.SelfPower?.Name ?? "?";
         foreach (var r in n.World.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             activeCount++;
             double rural = 0, urban = 0; foreach (var p in r.Pops) { if (p.IsUrban) urban += p.Size; else rural += p.Size; }
             double lf = LandFac(r);
@@ -5408,7 +5383,7 @@ if (args.Length > 0 && args[0] == "ruleprobe")
             var w = n.World;
             if (w.SelfPower is not { } sp || System.Array.IndexOf(watch, sp.BaseName) < 0) continue;
             double[] acc = new double[4]; double pop = 0;
-            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; double sz = r.SumPopulation(); pop += sz; for (int k = 0; k < 4 && k < r.Rule.Length; k++) acc[k] += r.Rule[k] * sz; }
+            foreach (var r in w.Regions) { double sz = r.SumPopulation(); pop += sz; for (int k = 0; k < 4 && k < r.Rule.Length; k++) acc[k] += r.Rule[k] * sz; }
             if (pop > 1e-9) for (int k = 0; k < 4; k++) acc[k] /= pop;
             Console.WriteLine($"Q{q,3}({w.Year}) {sp.BaseName,-8} [{acc[0]:F2}/{acc[1]:F2}/{acc[2]:F2}/{acc[3]:F2}]  行政効率={w.AdminEfficiency:F2} 農奴={w.SerfEmancipation} 州={w.Regions.Count}");
         }
@@ -5684,7 +5659,6 @@ if (args.Length > 0 && args[0] == "factionprobe")
                 var yHeat = new List<(double v, double w)>();
                 foreach (var reg0 in w.Regions)
                 {
-                    if (reg0.State != RegionState.Active) continue;
                     nAct++;
                     double h = Politics.RegionRevoltHeat(reg0, c);
                     double hm = Politics.AvgRegionMilitancy(reg0);   // ★段2＝h と同値（熱は闘争度1量）。2本のままにしてあるのは、熱の定義が再び変わったときに差が見えるため
@@ -5718,7 +5692,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
             double bestEligible = 0;   // ★閾値の同定（下の表）：**門2を既に越えている**候補の中での意志の最大値。1つも無ければ0
             foreach (var f in w.Factions)
             {
-                if (f.Region.State != RegionState.Active || !w.Regions.Contains(f.Region)) continue;
+                if (!w.Regions.Contains(f.Region)) continue;
                 double str = Politics.FactionStrength(w, c, f);
                 double inten = str / System.Math.Max(1e-9, f.Size);
                 if (f.Cohesion >= c.FactionCohesionFightThreshold)
@@ -5735,7 +5709,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
             if (byInt is null)
             {
                 if (w.Year % 10 == 0)   // ★「立たない」も計器の出力＝なぜ候補がゼロなのかを年10回だけ印字（列は上の表と別）
-                    Console.WriteLine($"{w.Year} {sp.BaseName,-8} 候補なし  勢力{w.Factions.Count}件（州Active かつ親所有 {w.Factions.FindAll(f => f.Region.State == RegionState.Active && w.Regions.Contains(f.Region)).Count}件）　参政権{w.Suffrage} 州{w.Regions.Count} 人口{w.TotalPopulation:F0}");
+                    Console.WriteLine($"{w.Year} {sp.BaseName,-8} 候補なし  勢力{w.Factions.Count}件（州Active かつ親所有 {w.Factions.FindAll(f => w.Regions.Contains(f.Region)).Count}件）　参政権{w.Suffrage} 州{w.Regions.Count} 人口{w.TotalPopulation:F0}");
                 continue;
             }
             void Row(string tag, FactionState f)
@@ -5892,7 +5866,6 @@ if (args.Length > 0 && args[0] == "deficit")
     foreach (var n in dm.Nations)
         foreach (var r in n.World.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
             {
                 if (p.Size < 1) continue;
@@ -5980,7 +5953,7 @@ if (args.Length > 0 && args[0] == "migprobe")
             var w = s.World;
             // 農民(1)・労働者(2)の1人当たり貯蓄（運賃係数の目安）＝最良/最悪州の平均
             double pcSavPeasant = 0, pcSavWorker = 0; int rc = 0;
-            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; var pe = r.Pops.Find(x => x.ClassId == 1); var wo = r.Pops.Find(x => x.ClassId == 2); if (pe is { Size: > 1e-9 }) pcSavPeasant += pe.Savings.Value / pe.Size; if (wo is { Size: > 1e-9 }) pcSavWorker += wo.Savings.Value / wo.Size; rc++; }
+            foreach (var r in w.Regions) { var pe = r.Pops.Find(x => x.ClassId == 1); var wo = r.Pops.Find(x => x.ClassId == 2); if (pe is { Size: > 1e-9 }) pcSavPeasant += pe.Savings.Value / pe.Size; if (wo is { Size: > 1e-9 }) pcSavWorker += wo.Savings.Value / wo.Size; rc++; }
             if (rc > 0) { pcSavPeasant /= rc; pcSavWorker /= rc; }
             Console.WriteLine($"  {name,-8} 人口{w.TotalPopulation,9:N0}  流入{w.LastImmigration,7:N0}/流出{w.LastEmigration,7:N0}  農民貯蓄/人{pcSavPeasant,7:F2}  労働者貯蓄/人{pcSavWorker,7:F2}");
         }
@@ -6358,7 +6331,6 @@ if (args.Length > 0 && args[0] == "initsavprobe")
             double popTotal = 0, savTotal = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                 {
                     sz[p.ClassName] = sz.GetValueOrDefault(p.ClassName) + p.Size; sv[p.ClassName] = sv.GetValueOrDefault(p.ClassName) + p.Savings.Value; ea[p.ClassName] = ea.GetValueOrDefault(p.ClassName) + p.LastEarnedPerMonth.Value;
@@ -6406,7 +6378,6 @@ if (args.Length > 0 && args[0] == "earlyprobe220")
             double ldem = 0, lcap = 0, lpxN = 0, lpxD = 0, K = 0, sav = 0;
             foreach (var r in epw.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 ldem += r.Markets[Catalog.LaborId].LastDemand;
                 double rp = 0; foreach (var g in r.Goods) if (g.Id == Catalog.LaborId) { rp = g.RefPrice; break; }
                 if (rp > 1e-9) { lpxN += r.Markets[Catalog.LaborId].Price / (rp * Math.Max(1e-9, r.PriceLevel)); lpxD += 1; }
@@ -6491,7 +6462,7 @@ if (args.Length > 0 && args[0] == "warmupprobe")
             indMax = Math.Max(indMax, n.World.MeanIndustrialization);   // 助走で「時間なしに工業化が進む」度合いの見張り（延長の主な副作用）
             treasMin = Math.Min(treasMin, n.World.Treasury.Value);
             foreach (var rr in n.World.Regions)   // 投資家の貯蓄の総額＝「建設を止めたら金が積み上がって解凍直後にバーストしないか」の見張り
-                if (rr.State == RegionState.Active && rr.InvestorPopIndex >= 0 && rr.InvestorPopIndex < rr.Pops.Count)
+                if (rr.InvestorPopIndex >= 0 && rr.InvestorPopIndex < rr.Pops.Count)
                     invSav += Math.Max(0, rr.Pops[rr.InvestorPopIndex].Savings.Value);
         }
 
@@ -6527,7 +6498,8 @@ if (args.Length > 0 && args[0] == "warmupprobe")
             vals.Sort();
             return $"{vals[vals.Count / 2],5:P0}";
         }
-        string wpMats = $"鋼{WpMat(wpCoef.SteelGoodId)} 機械{WpMat(wpCoef.MachineGoodId)} セメント{WpMat(wpCoef.CementGoodId)} 製材{WpMat(wpCoef.LumberGoodId)}";
+        var wpB = EconomyStep.BundleOf(wpSim.Nations[0].World.Region, wpCoef);   // ★(568) 今の建設の資材の組
+        string wpMats = string.Join(" ", new[] { wpB.G0, wpB.G1, wpB.G2, wpB.G3 }.Take(wpB.Slots).Select(g => Catalog.Goods[g].Name + WpMat(g)));
 
         for (int q = 0; q < wpObs; q++)
         {
@@ -6881,7 +6853,7 @@ if (args.Length > 0 && args[0] == "frdbg")
     foreach (var ns in fsim.Nations) ns.TelemetryEnabled = false;
     fsim.Diplomacy.Log.Enabled = false;
     var fw = fsim.Nations.First(n => n.World.SelfPower?.BaseName == "フランス").World;
-    { double nr = 0, rs = 0; int rgos = 0; foreach (var r in fw.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.Closed) nr += pp.LandRentPerMonth.Value; foreach (var pr in r.Producers) if (pr.IsRgo) { rgos++; rs += pr.RentShare.Value; } }
+    { double nr = 0, rs = 0; int rgos = 0; foreach (var r in fw.Regions) { foreach (var pp in r.Pops) if (pp.Closed) nr += pp.LandRentPerMonth.Value; foreach (var pr in r.Producers) if (pr.IsRgo) { rgos++; rs += pr.RentShare.Value; } }
       Console.WriteLine($"Q0前: 貴族LandRent={nr:N0} RGO数={rgos} RentShare計={rs:F2}"); }
     for (int q = 0; q < 8; q++)
     {
@@ -7027,19 +6999,17 @@ if (args.Length > 0 && args[0] == "natprobe")
         var w = ns.World; var sp = w.SelfPower!;
         int wars = 0; foreach (var war in npsim.Diplomacy.Wars) if (war.A == sp || war.B == sp) wars++;
         double invSav = 0;
-        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.IsModernElite) invSav += Math.Max(0, pp.Savings.Value); }
+        foreach (var r in w.Regions) { foreach (var pp in r.Pops) if (pp.IsModernElite) invSav += Math.Max(0, pp.Savings.Value); }
         double mpPool = 0;
         double mpDesired = Military.EstablishmentOf(w, w.Coef, out _);   // ★(155) 定員（州の和と一致）
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var pp in r.Pops)
                 if (!pp.IsSoldier && (pp.ClassId == w.Coef.SoldierRecruitClassA || pp.ClassId == w.Coef.SoldierRecruitClassB)) mpPool += Military.RecruitMen(pp);   // 兵役の母数＝徴募元の働き盛りの男（エンジンと同じ1本）
         }
         double lossers = 0, lossVal = 0; int lossN = 0;
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var pr in r.Producers)
                 if (!pr.Bankrupt && pr.SmoothedMargin < 0) { lossN++; lossVal += -pr.SmoothedMargin * pr.Output * Math.Max(0, r.Markets.Length > pr.GoodId && pr.GoodId >= 0 ? r.Markets[pr.GoodId].Price : 0); if (pr.BuiltScale > 1e-9) lossers++; }
         }
@@ -7079,7 +7049,7 @@ if (args.Length > 0 && args[0] == "milprobe")
                 else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
             }
             double desired = mprNat > 1e-9 ? mprTarget * Military.RegionManpower(r, w.Coef) / mprNat : 0;
-            Console.WriteLine($"  [{r.State}] {r.Name}	兵{(ss < 0 ? "なし" : ss.ToString("F1"))}	プール{pa + pb:F0}	州目標{desired:F1}");
+            Console.WriteLine($"  {r.Name}	兵{(ss < 0 ? "なし" : ss.ToString("F1"))}	プール{pa + pb:F0}	州目標{desired:F1}");
         }
     }
     return;
@@ -7104,7 +7074,7 @@ if (args.Length > 0 && args[0] == "blocprobe")
         var (t, m, ms) = InterestGroups.Blocs(w);
         double tot = t + m + ms; if (tot < 1e-9) tot = 1;
         double nobSav = 0, nobSize = 0, capSav = 0, capSize = 0, allSav = 0;
-        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var p in r.Pops) { allSav += Math.Max(0, p.Savings.Value); if (p.Closed) { nobSav += Math.Max(0, p.Savings.Value); nobSize += p.Size; } else if (p.IsModernElite) { capSav += Math.Max(0, p.Savings.Value); capSize += p.Size; } } }
+        foreach (var r in w.Regions) { foreach (var p in r.Pops) { allSav += Math.Max(0, p.Savings.Value); if (p.Closed) { nobSav += Math.Max(0, p.Savings.Value); nobSize += p.Size; } else if (p.IsModernElite) { capSav += Math.Max(0, p.Savings.Value); capSize += p.Size; } } }
         Console.WriteLine($"{nm}	{t / tot:P0}	{m / tot:P0}	{ms / tot:P0}	{(nobSize > 1e-9 ? nobSav / nobSize : 0):N0}	{(capSize > 1e-9 ? capSav / capSize : 0):N0}	{(allSav > 1e-9 ? nobSav / allSav : 0):P0}");
     }
     return;
@@ -7137,7 +7107,6 @@ if (args.Length > 0 && args[0] == "powertrace")
             double invSav = 0, invSize = 0, pop = 0, invEarn = 0, capEarn = 0, indRent = 0;   // 資本家単独・工業レント＝設計3段1の物差し
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var pp in r.Pops)
                 {
                     pop += pp.Size; if (pp.IsModernElite) { invSav += Math.Max(0, pp.Savings.Value); invSize += pp.Size; invEarn += Math.Max(0, pp.EarnedPerMonth.Value); }
@@ -7280,7 +7249,7 @@ if (args.Length > 0 && args[0] == "milstart")
             double MilMul(int g) => EconomyStep.LandMul(c, g);
             double afford = Math.Min(1.0, r.MilitaryAffordRaw);
             double Fill(int g) => afford * MilMul(g) * PriceAfford(g) * Ration(g);
-            double ProdN(int g) { double s = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active && g < rr.Markets.Length) s += rr.Markets[g].LastProduced; return s; }
+            double ProdN(int g) { double s = 0; foreach (var rr in w.Regions) if (g < rr.Markets.Length) s += rr.Markets[g].LastProduced; return s; }
             double NeedOf(int gid) { for (int b = 0; b < c.MilitaryGoods.Length; b++) if (c.MilitaryGoods[b] == gid) return r.MilitaryScale * milRates[b]; return 0; }
             int gRifle = Catalog.RifleId, gArty = Catalog.ArtilleryId, gAmmo = Catalog.AmmunitionId, gShip = Catalog.WarshipId, gSteam = Catalog.SteamshipId;
             double shipRef = Catalog.RefPrices[gShip] * Math.Max(r.PriceLevel, 1e-9);
@@ -7350,7 +7319,6 @@ if (args.Length > 0 && args[0] == "spoilprobe")
         double[] spoilYr = new double[ng], prodMo = new double[ng];
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             for (int gi = 0; gi < Math.Min(ng, r.Markets.Length); gi++)
             { spoilYr[gi] += r.Markets[gi].SpoiledLastYear; prodMo[gi] += r.Markets[gi].LastProduced; }
         }
@@ -7403,7 +7371,6 @@ if (args.Length > 0 && args[0] == "incomeprobe")
             double[] earn = new double[3], size = new double[3], sav = new double[3];
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 for (int pi = 0; pi < r.Pops.Count; pi++)
                 {
                     var pp = r.Pops[pi];
@@ -7455,7 +7422,6 @@ if (args.Length > 0 && args[0] == "genderprobe")
             double femAd = 0, femWork = 0, servFem = 0, servAll = 0, servFemWork = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 for (int pi = 0; pi < r.Pops.Count; pi++)
                 {
                     var p = r.Pops[pi];
@@ -7501,7 +7467,6 @@ if (args.Length > 0 && args[0] == "classprobe")
             double up = 0, mid = 0, low = 0, unemp = 0, tot = 0;
             foreach (var r in ns.World.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 for (int pi = 0; pi < r.Pops.Count; pi++)
                 {
                     var p = r.Pops[pi];
@@ -7638,7 +7603,6 @@ if (args.Length > 0 && args[0] == "noviceprobe")
                     for (int ri = 0; ri < pw.Regions.Count; ri++)
                     {
                         var r = pw.Regions[ri];
-                        if (r.State != RegionState.Active) continue;
                         int bestG = -1; Producer? bestP = null; int bestUnits = int.MaxValue;
                         foreach (int g in lightGoods)
                         {
@@ -7667,7 +7631,6 @@ if (args.Length > 0 && args[0] == "noviceprobe")
                     if (subsidyGoods is not null)
                         for (int ri = 0; ri < pw.Regions.Count; ri++)
                         {
-                            if (pw.Regions[ri].State != RegionState.Active) continue;
                             foreach (int g in subsidyGoods) pw.SetSubsidyRate(ri, g, 1.0);
                         }
                 }
@@ -8131,7 +8094,7 @@ if (args.Length > 0 && args[0] == "monitor")
         // 輸送：交易スロットル（1=容量十分/余剰、<1=容量不足）。容量/目標の列は撤去（目標は Transport.Step のローカル＝脅威/混雑の乗数込みで再導出できない・2026-09-11 #14）
         double thr = 0; int rc = 0;
         foreach (var nn2 in msim.Nations)
-            foreach (var r in nn2.World.Regions) if (r.State == RegionState.Active) { thr += r.LastTradeThrottle; rc++; }
+            foreach (var r in nn2.World.Regions) { thr += r.LastTradeThrottle; rc++; }
         Console.WriteLine($"7) 輸送: 平均交易スロットル {(rc > 0 ? thr / rc : 1):F2}（1=余裕/<1=不足）");
     }
     {
@@ -8635,15 +8598,15 @@ if (args.Length > 0 && args[0] == "test8")
         string popStr = string.Join(" ", w.AllPops().GroupBy(p => p.ClassName)
             .Select(g => (g.Key, S: g.Sum(p => p.Size))).OrderByDescending(x => x.S)
             .Select(x => $"{x.Key}{100 * x.S / tot:F0}%"));
-        string regions = string.Join("/", w.Regions.Where(r => r.State == RegionState.Active).Select(r => r.Name));
+        string regions = string.Join("/", w.Regions.Select(r => r.Name));
         Console.WriteLine($"\n#{rk} {w.SelfPower?.Name ?? w.Region.Name}  国力{NationalScore.Of(w):F0}  満足{NationalScore.MeanSatisfaction(w):F2}");
         Console.WriteLine("  国力内訳: " + string.Join(" ＋ ", NationalScore.BreakdownOf(w).Select(l => $"{l.Label}{l.Points:F1}")) + $" ＝ {NationalScore.Of(w):F1}");   // ★(449) 内訳は NationalScore.BreakdownOf の 1 本
         Console.WriteLine($"  人口{w.TotalPopulation:N0}（{popStr}）  植民地{pw?.Colonies ?? 0}");
         Console.WriteLine($"  工業{w.Region.TotalIndustrialization:F2} 技術{w.TechLevel:F2} 識字{w.AllPops().Sum(p => p.Literacy * p.Size) / Math.Max(1, w.TotalPopulation):P0} 制度[特許{(w.PatentLaw ? "○" : "×")} 株式{(w.JointStock ? "○" : "×")} 鉄道{(w.Railways ? "○" : "×")}]");
-        Console.WriteLine($"  輸送[鉄道容量{w.RailCapacity:F0} 船容量{w.ShipCapacity:F0}  港州{w.Regions.Count(r => r.IsPort)}/{w.Regions.Count(r => r.State == RegionState.Active)}]");
+        Console.WriteLine($"  輸送[鉄道容量{w.RailCapacity:F0} 船容量{w.ShipCapacity:F0}  港州{w.Regions.Count(r => r.IsPort)}/{w.Regions.Count}]");
         Console.WriteLine($"  法[教育{w.EducationLaw} 参政{w.Suffrage} 報道{w.Censorship} 組合{w.LaborUnion} 軍政比{PoliticalQuantities.MilitaryPoliticalRatio(w):F2} 労働{w.Policy.WorkHours} 児童{(w.Policy.ChildLaborAllowed ? "許" : "禁")} 関税{w.Tariff:F2}]");
         Console.WriteLine($"  地域[{regions}]  戦争 勝{pw?.WarsWon ?? 0}/敗{pw?.WarsLost ?? 0}  戦死累計{w.WarDeadCumulative:N0}  貿易収支累計{w.CumulativeTradeFlow:N0}");
-        string specStr = string.Join("  ", w.Regions.Where(r => r.State == RegionState.Active).Select(rg =>
+        string specStr = string.Join("  ", w.Regions.Select(rg =>
         {
             var topExp = Enumerable.Range(0, rg.Markets.Length).Where(gi => rg.Markets[gi].LastExport > 0.01)
                 .OrderByDescending(gi => rg.Markets[gi].LastExport).Take(2).Select(gi => Catalog.Goods[gi].Name).ToList();

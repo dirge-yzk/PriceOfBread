@@ -44,7 +44,6 @@ public class PhantomProductionTests
         foreach (var n in sim.Nations)
             foreach (var region in n.World.Regions)
             {
-                if (region.State != RegionState.Active) continue;
                 foreach (var s in region.Producers)
                 {
                     if (s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length) continue;
@@ -74,7 +73,7 @@ public class PhantomProductionTests
             double world = 0;
             foreach (var n in sim.Nations)
                 foreach (var region in n.World.Regions)
-                    if (region.State == RegionState.Active && gi < region.Markets.Length)
+                    if (gi < region.Markets.Length)
                         world += region.Markets[gi].LastProduced;
             Assert.True(world == 0.0, $"{Catalog.Goods[gi].Name}：世界生産 {world}（未発明なのに幻の産出が残っている）");
         }
@@ -141,7 +140,6 @@ public class PhantomProductionTests
         foreach (var n in on.Nations)
             foreach (var region in n.World.Regions)
             {
-                if (region.State != RegionState.Active) continue;
                 foreach (var s in region.Producers)
                 {
                     if (s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length) continue;
@@ -173,7 +171,6 @@ public class PhantomProductionTests
         int regions = 0;
         foreach (var region in japan.World.Regions)
         {
-            if (region.State != RegionState.Active) continue;
             var pr = region.Producers.Find(p => p.GoodId == mg);
             if (pr is null) continue;
             regions++;
@@ -200,7 +197,6 @@ public class PhantomProductionTests
             var w = n.World;
             foreach (var region in w.Regions)
             {
-                if (region.State != RegionState.Active) continue;
                 var asleep = new List<Producer>();
                 foreach (var s in region.Producers) if (EconomyStep.SleepState(region, s, w.Coef) == 1) asleep.Add(s);
                 if (asleep.Count == 0) continue;
@@ -234,7 +230,7 @@ public class PhantomProductionTests
             var w = n.World; var c = w.Coef;
             foreach (var region in w.Regions)
             {
-                if (region.State != RegionState.Active || woke >= 5) continue;
+                if (woke >= 5) continue;
                 foreach (var s in region.Producers)
                 {
                     if (woke >= 5) break;

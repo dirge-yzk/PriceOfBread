@@ -266,7 +266,7 @@ public class SmallFixes471Tests
         w.Suffrage = Suffrage.Universal;
         w.ColonialSuffrage = law;
         w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.Granted;   // 本国側の算入は 1（植民地格の分岐だけを見る）
-        var colony = w.Regions.Where(r => r.State == RegionState.Active).OrderByDescending(r => r.SumPopulation()).First();
+        var colony = w.Regions.OrderByDescending(r => r.SumPopulation()).First();
         colony.Tier = RegionTier.Colonial;
         // （★(475) 反証役 sf〔bv〕低#5：〈植民地の州の住民の思想を社会族に寄せる〉の注に当たるコードは無かった＝思想は元のまま・議席の向きは手計算 HandVotes と比べて見る。）
         return (w, colony);

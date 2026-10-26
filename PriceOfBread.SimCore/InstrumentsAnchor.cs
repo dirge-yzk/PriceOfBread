@@ -15,11 +15,10 @@ public static partial class Instruments
         if (!(picked || yearEnd)) return;
         double popK = w.TotalPopulation;
         if (!(popK > 0)) return;   // 死んだ国（人口 0）は行を出さない
-        double anchorRegions = 0; int active = 0, withAnchor = 0;
+        double anchorRegions = 0; int withAnchor = 0;
         foreach (var r in w.Regions)
         {
             anchorRegions += r.AnchorPopulation;
-            if (r.State == RegionState.Active) active++;
             if (r.AnchorPopulation > 0) withAnchor++;
         }
         double anchorOld = popK - w.PopulationDelta;
@@ -27,6 +26,6 @@ public static partial class Instruments
         sk.Anc ??= Open("anchor", seed);
         if (!sk.AncHeader) { sk.Anc.WriteLine(AnchorHeader); sk.AncHeader = true; }
         sk.Anc.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), w.BornOfSecession ? "1" : "0", F(popK), F(w.PopulationDelta), F(anchorOld), F(anchorRegions), F(w.DiagAnchorBaseline),
-            I(w.Regions.Count), I(active), I(withAnchor), F(w.DiagCapacity), F(w.DiagCapacityBaseline), F(w.DiagLandAnchor), F(w.FoodFill)));
+            I(w.Regions.Count), I(w.Regions.Count), I(withAnchor), F(w.DiagCapacity), F(w.DiagCapacityBaseline), F(w.DiagLandAnchor), F(w.FoodFill)));
     }
 }

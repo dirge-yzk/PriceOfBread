@@ -31,7 +31,6 @@ public class DiscontentReaderTests
     {
         foreach (var r in w.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops) if (p.Size > 1e-9) yield return p;
         }
     }
@@ -209,7 +208,6 @@ public class DiscontentReaderTests
             w.LaborUnion = LaborUnionLaw.Tolerated;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double sz = 0; foreach (var p in r.Pops) { p.Militancy = 0.8; sz += p.Size; }
                 if (sz > 1e-9) regions++;
             }
@@ -242,7 +240,7 @@ public class DiscontentReaderTests
                 total += p.Size;
             }
             // 運動体 4 件：結束 0.9（門以上・巨大）／0.5（変異の門以上・蜂起の門の下）／0.1（どちらの門も下）／0.9 で極小。巨大な規模＝戦力が保持力＋郷勇を超える。
-            var home = w.Regions.First(r => r.State == RegionState.Active);
+            var home = w.Regions.First();
             w.Factions.Clear();
             w.Factions.Add(new FactionState { Region = home, Bloc = 2, Ideo = 0, Size = 1e12, AvgMilitancy = 0.9, Cohesion = 0.9 });
             w.Factions.Add(new FactionState { Region = home, Bloc = 2, Ideo = 1, Size = 1e12, AvgMilitancy = 0.9, Cohesion = 0.5 });
@@ -275,7 +273,7 @@ public class DiscontentReaderTests
     {
         var (col, _) = DcontRow(w =>
         {
-            var home = w.Regions.First(r => r.State == RegionState.Active);
+            var home = w.Regions.First();
             w.Factions.Clear();
             w.Factions.Add(new FactionState { Region = home, Bloc = 2, Ideo = 0, Size = 0, AvgMilitancy = 0.9, Cohesion = 0.9 });
         });

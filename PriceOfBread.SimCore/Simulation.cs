@@ -313,7 +313,7 @@ public sealed class Simulation
             var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = workerSize, Savings = new MoneyStock(workerSize * 1000), Satisfaction = 1.0 };
             var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = foodOutput, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = default };
             var mkt = new Market { Price = 1.0, Stock = foodOutput, TargetStock = foodOutput };
-            return new Region { Id = id, Name = name, State = RegionState.Active, Goods = [food], Pops = [farmer, worker], Producers = [rgo], Markets = [mkt] };
+            return new Region { Id = id, Name = name, Goods = [food], Pops = [farmer, worker], Producers = [rgo], Markets = [mkt] };
         }
         var rich = Make(0, "豊作州", farmerSize: 1500, workerSize: 200, foodOutput: 1500);   // 余剰（自給十分・国平均を引き上げる大州）
         var poor = Make(1, "不足州", farmerSize: 50, workerSize: 450, foodOutput: 60);        // 大幅不足の小州（輸入できず国平均より大きく飢える）
@@ -614,10 +614,10 @@ public sealed class Simulation
     /// 州都市座標（Climate）から同国の最寄り港州への大圏距離を設定。座標未登録・港なし世界は 0＝減衰なし（従来挙動）。係数0の既定では挙動不変（較正中立）。
     ///
     /// ★rewire＝再配線モード（W2・是正1/是正2案B・2026-08-16・doc 20260812_港の配線を領土に追随させる）。
-    /// 領土が動いた国（割譲・分離独立・植民地州昇格・辺境解錠/州凍結）の配線を張り直す。構築時（rewire=false・既定）との差は2点だけ：
-    ///   ①候補港を State==Active に限る（割譲で凍結中の州・Locked辺境港を海の口にしない。「同一World」は引数 regions が
-    ///     1国のリスト（World.Regions）であることで構造的に満たす＝毎期の所有辞書引き（却下案A）は要らない）。
-    ///   ②先に旧配線を消す＝港州0になった国は NearestPortName="" が残り、BilateralMarket が通過港（TransitPort*）分岐へ落ちる
+    /// 領土が動いた国（割譲・分離独立・植民地州昇格）の配線を張り直す。構築時（rewire=false・既定）との差は1点だけ
+    /// （もう1点＝候補港を稼働中の州に限る判定は、州の稼働の状態が本番に無くなった〔(568) gc3〕ので消えた。「同一World」は引数 regions が
+    /// 1国のリスト（World.Regions）であることで構造的に満たす）：
+    ///   先に旧配線を消す＝港州0になった国は NearestPortName="" が残り、BilateralMarket が通過港（TransitPort*）分岐へ落ちる
     ///    （doc §1-4「S1是正と通過港配布は同時でないと交易から完全脱落」の受け皿。張り直しは MultiNationSim.RewirePorts が毎四半期強制する）。
     ///   SeaBasin は消さない＝港州0の国の内陸州は旧海盆を保持（未決9a=保守側：封鎖・冬季閉鎖の帯の連続性を優先。港が戻れば次の再配線で追随）。
     ///   呼び出しは毎四半期の張り直し（MultiNationSim.RewirePorts）のみ（旧の旗 PortRewireEnabled は点火2026-08-16・2026-10-18 焼き込み）。
@@ -629,7 +629,7 @@ public sealed class Simulation
                 if (!r.IsPort) { r.NearestPortName = ""; r.NearestPortDistanceKm = 0; r.PortLandKm = 0; }
         var ports = new List<(double Lat, double Lon, string Name)>();
         foreach (var r in regions)
-            if (r.IsPort && (!rewire || r.State == RegionState.Active)) { var pc = Climate.CityCoord(r.Name); if (pc.Lat != 0 || pc.Lon != 0) { ports.Add((pc.Lat, pc.Lon, r.Name)); r.SeaBasin = SeaGraph.BasinAt(pc.Lat, pc.Lon); } }
+            if (r.IsPort) { var pc = Climate.CityCoord(r.Name); if (pc.Lat != 0 || pc.Lon != 0) { ports.Add((pc.Lat, pc.Lon, r.Name)); r.SeaBasin = SeaGraph.BasinAt(pc.Lat, pc.Lon); } }
         if (ports.Count == 0) return;
         foreach (var r in regions)
         {
@@ -1658,7 +1658,6 @@ public sealed class Simulation
         long[]? cost = priceDay || spanStart ? World.Cost : null;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
         bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hPrice;   // ★月の最初の旬（2026-09-30 計算量の予算 第2回）＝張り付いた財の眠りの印を作り直す旬（MarketFlow.StepDay の remarks）
         foreach (var r in World.Regions)
-            if (r.State == RegionState.Active)
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
                 r.FarmRentCap = new Share(System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap.Value), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap.Value)));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
@@ -1791,7 +1790,6 @@ public sealed class Simulation
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
-            if (r.State != RegionState.Active) continue;
             double rSav = 0, rEarn = 0, rPop = 0;
             foreach (var p in r.Pops)
             {
@@ -1808,7 +1806,6 @@ public sealed class Simulation
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
-            if (r.State != RegionState.Active) { r.LocalPriceMultiplier = 1.0; r.WagePremium = 1.0; continue; }
             double rSav = regSums[ri * 3], rEarn = regSums[ri * 3 + 1], rPop = regSums[ri * 3 + 2];
             double mult = 1.0;
             if (priceOn && natPerCap > 1e-9 && rPop > 1e-9)
@@ -1846,7 +1843,7 @@ public sealed class Simulation
     private int ActivePopCount()
     {
         int n = 0;
-        foreach (var r in World.Regions) if (r.State == RegionState.Active) n += r.Pops.Count;
+        foreach (var r in World.Regions) n += r.Pops.Count;
         return n;
     }
 
@@ -1894,7 +1891,6 @@ public sealed class Simulation
         Span<double> artOut = stackalloc double[nGoods];
         foreach (var r in World.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             r.RecipeTransitionFlags ??= new byte[nGoods];
             var flags = r.RecipeTransitionFlags;
             if (flags.Length < nGoods) continue;   // 財が増えた旧セーブ＝安全側（次のロードで揃う）
@@ -1931,7 +1927,7 @@ public sealed class Simulation
 
     // ★(351) 州×POP の走査の表①＝月末の決算（この関数）の段の並び・各段が読む欄／書く欄・読む時点（案 A・順序は変えない・実装ログ (348) §8 の座標を (351) の木で取り直した）。
     //   POP の貯蓄を書く口は移し方の 1 本（World.Transfer）と Pop の Take／Distribute／Carry／SettleMonth／Blend／KillPops だけ＝下の「書く」は呼び手の段に数える。
-    //   集合＝国家会計の集合（World.AllPopsWithRegion＝絞らない）。州のループは State==Active（本番の盤面は全州が Active＝同じ列）。
+    //   集合＝国家会計の集合（World.AllPopsWithRegion＝絞らない）。州のループは全ての州（(568) gc3：稼働の判定は外した。本番の盤面は全州が稼働中だった＝同じ列）。
     //   ・前段（兵の給与の請求・予算の州ループ・教師）　読む：兵 POP の規模・徴募の賃金・識字・高等教育の充足　書く：州の予算の欄だけ　時点：前月の盤面（経済の前）
     //   ・切り下げ（払える額の側へ入れて取る）　読む：全 POP の Σmax(0,貯蓄)　書く：貯蓄（Transfer）　時点：前月の盤面（Σ は Take へ渡す＝同じ順の同じ和）
     //   ・支払い率の州ループ→EconomyStep.Run　読む：闘争度・貯蓄・債務・規模ほか　書く：貯蓄・債務・所得・支出・満足・失業・食料・健康・教育ほか　時点：前月の値を読み今月を書く
@@ -2027,7 +2023,7 @@ public sealed class Simulation
         double colonialAccess = ColonialAccess();                        // 植民地素材の入手率（植民地×制海・封鎖で↓）
         double nationPop = World.TotalPopulation;                        // 行政予算の地域按分に使う
         bool navalYard = false;   // ★2026-08-01：国内に稼働中の港州が1つでもあるか（州ループの外で1回だけ数える）
-        foreach (var pr in World.Regions) if (pr.State == RegionState.Active && pr.IsPort) { navalYard = true; break; }
+        foreach (var pr in World.Regions) if (pr.IsPort) { navalYard = true; break; }
         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
         double natSoldiers = World.SoldierSizeK();
         // ★海の金の割合（2026-10-03 (189)）＝施行された陸海の維持費の比（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI は ArmyShape.NavalSpendShareOf を目標に置く・プレイヤーは同じ法の値）。
@@ -2262,7 +2258,7 @@ public sealed class Simulation
             if (World.Coef.MegaprojectForeignYield > 0)
                 foreach (var mp in payDip.Megaprojects)
                     if (mp.IsComplete && mp.ForeignPartnerId >= 0 && mp.ForeignPrincipal > 1e-9
-                        && World.Regions.Exists(hr => hr.State == RegionState.Active && hr.Name == mp.Host))
+                        && World.Regions.Exists(hr => hr.Name == mp.Host))
                         claims += World.Coef.MegaprojectForeignYield * mp.ForeignPrincipal / World.FxRate;   // 外資の利回り（四半期）＝元本は金建て（2026-09-30 段3-3）→自国の通貨へ＝Megaprojects.PayForeignYield と同じ式
         }
         // 売買方針の代金とダンピング補助（清算ごと・清算の末尾の World.Transfer＝旧 InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
@@ -2544,7 +2540,7 @@ public sealed class Simulation
         // **輸入で人口を養う国（英は1900年頃に小麦消費の約8割を輸入）が構造的に人口爆発できない**。実測でも英×1.22（史実×3.4）・清×1.01（史実×1.45）。
         double stapleNetImport = 0;
         double stapleOutput = 0;   // 人2：全active州の主食(Staple)実産出量の合計（Σ Market[主食].LastProduced）。耕地×農業技術×豊凶を既に内包した「実食料産出量」＝扶養力の食料アンカーの分子。FoodOutputAnchorProduction=0では未使用（読むだけ・挙動非依存）
-        foreach (var r in World.Regions) if (r.State == RegionState.Active)
+        foreach (var r in World.Regions)
         {
             avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。2026-07-10）
             double rpop = r.SumPopulation();
@@ -2757,7 +2753,6 @@ public sealed class Simulation
     {
         foreach (var region in World.Regions)
         {
-            if (region.State != RegionState.Active) continue;
             double met = 0, need = 0;
             foreach (var p in region.Pops) { met += p.FoodMet; need += p.FoodNeed; }
             double raw = need > 1e-9 ? PoliticalQuantities.Clamp01(met / need) : 1.0;
@@ -2795,7 +2790,6 @@ public sealed class Simulation
         if (World.WarmupFrozen || World.Diplomacy is null) return;   // ★(148)：旗 DepletionFromExtraction（点火 2026-08-14）を焼き込み＝枯渇は採掘量の関数だけ
         foreach (var r in World.Regions)
         {
-            if (r.State != RegionState.Active) continue;
             double outSum = 0;
             foreach (var p in r.Producers) if (Catalog.IsMineral(p.GoodId)) outSum += p.Output;
             if (!(outSum > 0)) continue;   // 産出なし（NaNも「なし」へ倒す＝否定形で書く）
@@ -2872,7 +2866,7 @@ public sealed class Simulation
         }
         foreach (var r in World.Regions)
         {
-            if (r.State != RegionState.Active || r.GoodOf(metal) is null) continue;
+            if (r.GoodOf(metal) is null) continue;
             var m = r.Markets[metal];
             bool atMarket = m.Price > parity && gapLeft > 1e-9;   // ★準備不足なら平価の上でも市場で買う（2026-09-06・第2版＝予算 gapLeft が尽きるまで・在庫のある州ならどこでも）
             // ★器 MintParitySells（2026-09-07・休眠既定0）：平価の**上**では造幣局が準備を平価で**売る**＝下の平価買いの厳密な逆操作（固定平価の両側）。
@@ -2952,7 +2946,7 @@ public sealed class Simulation
     /// ＝買い手はその在庫を国内で売る輸入の捌き手（EconomyStep の商人の取り分）。払えるのは貯蓄まで＝払えない分は売らない（量を減らす）。戻り値＝売った量（呼び手が準備から引く）。</summary>
     private double SellReserve(Region r, int gid, double qty, double price = double.NaN)
     {
-        if (!(qty > 1e-12) || r.State != RegionState.Active || r.GoodOf(gid) is null) return 0;
+        if (!(qty > 1e-12) || r.GoodOf(gid) is null) return 0;
         var m = r.Markets[gid];
         if (double.IsNaN(price)) price = m.Price;
         if (!(price > 1e-12)) return 0;   // 否定形＝NaN・0 の値段では売らない

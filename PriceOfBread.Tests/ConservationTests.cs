@@ -214,12 +214,12 @@ public class ConservationTests
         uk.ShipCapacity = 1000; uk.RailCapacity = 400; uk.ShipSteamShare = new Share(0.5);
         fr.ShipCapacity = 200; fr.RailCapacity = 0; fr.ShipSteamShare = new Share(0.0);
         int k = 0; foreach (var q in uk.Regions) q.LastTradePotential = ++k;   // 州ごとに違う潜在量（清算の配分の入力）
-        var r = uk.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active)!;
+        var r = uk.Regions.Find(x => x.Id != 0)!;
         var b = Transport.ShareBasis(uk, uk.Coef);
         double sh = Transport.RegionShare(b, r);
         Assert.True(sh > 0 && sh < 1, $"前提が崩れた：取り分が 0..1 の内側でない（{sh}）");
         var rest = new System.Collections.Generic.Dictionary<Region, double>();
-        foreach (var q in uk.Regions) if (q != r && q.State == RegionState.Active) rest[q] = uk.ShipCapacity * Transport.RegionShare(b, q);
+        foreach (var q in uk.Regions) if (q != r) rest[q] = uk.ShipCapacity * Transport.RegionShare(b, q);
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
         Assert.Equal(1200.0, uk.ShipCapacity + fr.ShipCapacity, 9);
         Assert.Equal(400.0, uk.RailCapacity + fr.RailCapacity, 9);
@@ -231,7 +231,7 @@ public class ConservationTests
 
         // 建国：新しい国は出ていく州の取り分の容量を持って生まれる
         double ship0 = uk.ShipCapacity, rail0 = uk.RailCapacity;
-        var sec = uk.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active && x != r)!;
+        var sec = uk.Regions.Find(x => x.Id != 0 && x != r)!;
         double sh2 = Transport.RegionShare(Transport.ShareBasis(uk, uk.Coef), sec);
         int n0 = sim.Nations.Count;
         uk.PendingSecessionWars = [sec];
@@ -367,7 +367,6 @@ public class ConservationTests
             var w = n.World;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 double effFill = w.FoodFill + c.FaminePushRegionBlend * (r.FoodFill - w.FoodFill);
                 double maxFrac = c.EmigrationMaxPerQuarter.Value * (1.0 + c.FaminePushMaxFracBoost * System.Math.Max(0.0, 1.0 - effFill));
                 foreach (var p in r.Pops)
@@ -438,8 +437,8 @@ public class ConservationTests
         var us = sim.Nations.First(n => n.World.SelfPower?.BaseName == "アメリカ").World;
         double oMax = 0;
         foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
-            if (r.State == RegionState.Active) oMax = System.Math.Max(oMax, Territory.Opportunity(r, c));
-        var usR = us.Regions.Where(r => r.State == RegionState.Active).ToList();
+            oMax = System.Math.Max(oMax, Territory.Opportunity(r, c));
+        var usR = us.Regions.ToList();
         Assert.True(usR.Count >= 3, "前提が崩れた：米の稼働中の州が3つ未満");
         double target = 3 * oMax + 1;
         double Mass(Region r) { double m = 0; foreach (var p in r.Pops) if (!p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker)) m += p.Size; return m; }
@@ -483,7 +482,7 @@ public class ConservationTests
             Region? src = null; World? sw = null; double low = double.PositiveInfinity;
             foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
             {
-                if (r.State != RegionState.Active || r.PopOf(PopClass.Peasant) is null) continue;
+                if (r.PopOf(PopClass.Peasant) is null) continue;
                 double v = Territory.Opportunity(r, c) * Territory.Holding(r, c) * r.FoodFill;
                 if (v < low) { low = v; src = r; sw = n.World; }
             }
@@ -496,7 +495,7 @@ public class ConservationTests
             double v2 = Territory.Opportunity(src, c) * Territory.Holding(src, c) * src.FoodFill;
             double best = 0;
             foreach (var n in sim.Nations) if (!ReferenceEquals(n.World, sw)) foreach (var r in n.World.Regions)
-                if (r.State == RegionState.Active) best = System.Math.Max(best, Territory.Opportunity(r, c));
+                best = System.Math.Max(best, Territory.Opportunity(r, c));
             Assert.Equal(!wideLand, best - v2 - c.CrossBorderOppGapThreshold > 0);   // 前提：狭い土地では差が正・広い土地では負
             double s0 = sp.Size;
             sim.MigrateBetweenNations();
@@ -808,7 +807,7 @@ public class ConservationTests
         {
             var sim = Uk(); var w = sim.Nations[0].World;
             sim.Coef.PortInvestFrac = new(frac); w.Discovered[Discovery.SteamRow] = true;
-            var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
+            var port = w.Regions.Find(r => r.IsPort && r.InvestorPopIndex >= 0)!;
             foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;   // 他の港は混雑していない＝建設は1つの港だけ
             port.LastTradeThrottle = 0; w.FiscalFundingRatio = new Share(1.0);
             Invoke(sim, "StepPorts");
@@ -843,7 +842,7 @@ public class ConservationTests
             return (w, pops, sav, cp.BuildProgress);
         }
         var c0 = Canal(0); var c1 = Canal(new Coefficients().CanalInvestFrac.Value);
-        var labor = Labor(c1.w.Regions.Where(r => r.State == RegionState.Active));
+        var labor = Labor(c1.w.Regions);
         var investors = new HashSet<Pop>(CapitalMarket.Investors(c1.w));   // ★段3-3（C13・2026-09-30）：運河の出資者＝投資家の述語の1本（配当の受け手と同じ集合・旧＝各州の資本家1人）
         Assert.NotEmpty(labor);
         double gotC = 0, paidC = 0;
@@ -876,7 +875,7 @@ public class ConservationTests
             var w = sim.Nations[0].World;
             w.Discovered[Discovery.SteamRow] = true;
             foreach (var x in w.Regions) { x.LastTradeThrottle = 1.0; x.LastPortThroughput = 0; }
-            var port = w.Regions.Find(x => x.State == RegionState.Active && x.IsPort && x.InvestorPopIndex >= 0)!;
+            var port = w.Regions.Find(x => x.IsPort && x.InvestorPopIndex >= 0)!;
             port.LastTradeThrottle = 0; port.LastPortThroughput = 1000;
             w.FiscalFundingRatio = new Share(r); w.FiscalCapacityPerMonth = new MoneyPerMonth(100);
             double invSav = port.Pops[port.InvestorPopIndex].Savings.Value;

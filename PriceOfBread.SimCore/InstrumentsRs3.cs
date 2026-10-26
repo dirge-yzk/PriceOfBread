@@ -29,8 +29,8 @@ public static partial class Instruments
         if (sums.Tw > 1e-9) for (int i = 0; i < wealth.Length; i++) wealth[i] = sums.Wealth[i] / sums.Tw;
         var e = new PolicyPreferences.Profile(new double[PolicyPreferences.BlocCount], wealth, new double[PolicyPreferences.BlocCount], new double[PolicyPreferences.BlocCount],
             new double[PolicyPreferences.BlocCount], new double[PolicyPreferences.BlocCount], 0.0, 0.0, rentToIncome);
-        PolicyPreferences.EffectiveRentSharesBack(w, PolicyAxis.SerfEmancipation, out double now, out double prevS);
-        PolicyPreferences.EffectiveRentSharesBack(w, PolicyAxis.LandReform, out _, out double prevL);
+        PolicyPreferences.EffectiveRentShares(w, PolicyAxis.SerfEmancipation, out double now, out double prevS, back: true);
+        PolicyPreferences.EffectiveRentShares(w, PolicyAxis.LandReform, out _, out double prevL, back: true);
         double gainS = PolicyPreferences.LordIncomeGain(w, PolicyAxis.SerfEmancipation, rentToIncome);
         double gainL = PolicyPreferences.LordIncomeGain(w, PolicyAxis.LandReform, rentToIncome);
         double w0 = sums.Tw > 1e-9 ? sums.Wealth[0] / sums.Tw : 0.0;

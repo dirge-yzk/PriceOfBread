@@ -45,7 +45,7 @@ public static partial class Instruments
                 if (w.ExportsByGood is { } eg && g < eg.Length) cheapExp += eg[g];
                 double rp = g < Catalog.RefPrices.Length ? Catalog.RefPrices[g] : 0.0;
                 foreach (var r in w.Regions)
-                    if (r.State == RegionState.Active && g < r.Markets.Length) cheapProd += r.Markets[g].LastProduced * rp;
+                    if (g < r.Markets.Length) cheapProd += r.Markets[g].LastProduced * rp;
             }
         }
         return [level, elder, soldierElder, w.DiagSfPensionToSoldiersCum, cheapN, dearN, cheapExp, cheapProd, w.DiagSfCheapSubsidyPaidCum,

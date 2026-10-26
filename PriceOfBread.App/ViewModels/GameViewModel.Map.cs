@@ -115,7 +115,6 @@ public partial class GameViewModel
             double extMinX = double.PositiveInfinity, extMaxX = double.NegativeInfinity;   // B3（2026-09-05）：国名を領土の広がりに沿わせる   // 国名ラベルの位置＝中核州の人口重み重心（植民地・植民地格の州は入れない＝ラベルが海へ流れない）
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active) continue;
                 if (!MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
                 homeCoords.Add(co);
                 var (cx, cy) = MapData.Project(co.Lat, co.Lon);
@@ -330,7 +329,7 @@ public partial class GameViewModel
         foreach (var sim in _sim.Nations)
             foreach (var rr in sim.World.Regions)
             {
-                if (rr.State != RegionState.Active || rr.IsPort) continue;
+                if (rr.IsPort) continue;
                 // ★★2026-08-16：**その州が実際に何も動かしていないなら陸脚を描かない**（作者指示＝貿易一覧と同じ規則）。
                 // ⚠陸脚の流通量＝州の決済額 <c>Region.LastPortThroughput</c>（名前に反して内陸州にも立つ＝
                 //   その州が海路で取引した額＝港まで運んだ荷・陸路の直行は積まない〔2026-09-27 回4-1〕・四半期ごとに BilateralMarket が 0 から積み直す）。
@@ -357,7 +356,7 @@ public partial class GameViewModel
         foreach (var sim in _sim.Nations)
             foreach (var rr in sim.World.Regions)
             {
-                if (rr.State != RegionState.Active || rr.LastLandPartnerName.Length == 0) continue;
+                if (rr.LastLandPartnerName.Length == 0) continue;
                 if (!FlowShown(Calendar.PerQuarterToPerMonth(rr.LastLandPartnerFlow))) continue;
                 var ccL = SimCore.Climate.CityCoord(rr.Name);
                 var pcL = SimCore.Climate.CityCoord(rr.LastLandPartnerName);
@@ -382,7 +381,6 @@ public partial class GameViewModel
             string gate = ""; double glat = 0, glon = 0;
             foreach (var rr in w.Regions)
             {
-                if (rr.State != RegionState.Active) continue;
                 if (rr.IsPort) { var pc0 = SimCore.Climate.CityCoord(rr.Name); if (pc0.Lat != 0 || pc0.Lon != 0) { gate = rr.Name; glat = pc0.Lat; glon = pc0.Lon; break; } }
                 if (gate.Length == 0 && rr.LastTransitPortName.Length > 0)
                 {
@@ -446,7 +444,7 @@ public partial class GameViewModel
         foreach (var sim in _sim.Nations)
             foreach (var rr in sim.World.Regions)
             {
-                if (rr.State != RegionState.Active || !rr.IsPort) continue;
+                if (!rr.IsPort) continue;
                 // ★★2026-08-16：**取扱高が £0.0k に丸まる港の接ぎ木は描かない**（作者指示＝貿易一覧と同じ規則）。
                 //   接ぎ木は「この港はここから海へ出る」を示す線＝出入りする荷が無ければ示すものが無い。
                 if (!FlowShown(Calendar.PerQuarterToPerMonth(rr.LastPortThroughput))) continue;
@@ -637,7 +635,7 @@ public partial class GameViewModel
         {
             var members = new List<string>();
             foreach (var sim in _sim.Nations)
-                if (sim.World.SelfPower is { } bp && sim.World.Regions.Exists(rg => rg.State == RegionState.Active && rg.IsPort && rg.SeaBasin == basin)) members.Add(bp.Name);   // ★2026-09-06：国単位の海盆を撤去＝この海盆に港州を持つ国（州単位の SeaBasin）
+                if (sim.World.SelfPower is { } bp && sim.World.Regions.Exists(rg => rg.IsPort && rg.SeaBasin == basin)) members.Add(bp.Name);   // ★2026-09-06：国単位の海盆を撤去＝この海盆に港州を持つ国（州単位の SeaBasin）
             string tipB = $"{bja}\n港を持つ国({members.Count}):";
             for (int i = 0; i < members.Count; i += 4)
                 tipB += "\n" + string.Join("・", members.Skip(i).Take(4));
@@ -893,7 +891,6 @@ public partial class GameViewModel
             var w = sim.World;
             foreach (var rr in w.Regions)
             {
-                if (rr.State != RegionState.Active) continue;
                 int n = System.Math.Min(rr.Markets.Length, gc);
                 for (int gi = 0; gi < n; gi++) prod[gi] += rr.Markets[gi].LastProduced;
             }
