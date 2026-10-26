@@ -1107,6 +1107,9 @@ public sealed class Coefficients
     public RatePerMonth IndInvestmentFrac = new(0.05);       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）。★(300) 国家の経路（国庫の建設・巨大建造物）はこれのまま。私的な建設は IndCapitalOutputYears>0 なら州の実質の年所得で決まる（EconomyStep.PrivateIndPerConstruction）＝0 のときだけこの値
+    public double ModernizationAbolished = 1;     // ★(573) 線 sm5 の最初のコミット（2026-10-26 に 1 で**点火**＝腕 B_mod の門 M1〜M3・止める線 S1〜S5 を通った。0 で旧の道）。作者 2026-10-26 原文「近代化投資は廃止してください。工場はユーザーは生産tabから建てますし、AIも同じ経路で建てられる筈です。州全体に金を撒く機構は不要です」）：既定 1＝廃止（0＝旧の道）。正のとき World.ApplyModernizationInvestment が
+                                                  //   州の StateBuildQueue へ撒く分（建設の束→工業化度と設備の配り）だけを止める。StateBuildQueue の書き手はこの道だけだった（grep・番人）ので、国の建設の工業化度への足しも消える。招聘の予算（ModernizationToRecruit）と高等教育の学費の補助（ModernizationToHigherEdu→Region.HigherEduFunding）は
+                                                  //   今の式のまま動く（作者「これは残しましょう」・奨学金の法へ付け替えるのは次の波）＝ModernizationFrac は当面その額を決める欄。AI の決め方・財政タブの行は変えない（名前の付け替えも次の波）。国の工場は World.BuildFactory（生産タブと AI の SetStateTarget が同じ経路）で建つ＝触らない。AI の設計＝確証なし（廃止そのものは作者の裁定）。
     public double IndCapitalOutputYears = 1.0;    // ★(300) 線 i1（腕 B を採った＝既定 1.0・0 で今まで）：工業化度 1 点に要る資本＝州の実質の年所得のこれ倍（資本産出比 K/Y・私的な建設の経路だけ）。>0 で私的な建設 1 束が上げる工業化度が 1÷N（N＝これ×州の実質の年所得÷基準の束の費用）になる＝州の経済の大きさに比例した投資額。0＝今まで（1 束＝IndPerConstruction・州の大きさに依らない）＝厳密恒等。国家の経路は変えない
     public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
     public Share FactoryMaterialFrac = new(0.6);      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費
