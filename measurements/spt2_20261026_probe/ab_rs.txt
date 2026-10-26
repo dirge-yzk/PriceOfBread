@@ -1,0 +1,4 @@
+  構築 987ms　助走 6773ms　本走 166498ms　合計 174258ms
+ZX Run plus 36.038s/318708 base 36.187s/318708 ratio 0.9959  (Rs=True)
+ZX StepDay plus 28.145s/637416 base 28.120s/637416 ratio 1.0009  (Lg=False)
+ZX LiveGoods rebuilds 634462 of calls 1274832
