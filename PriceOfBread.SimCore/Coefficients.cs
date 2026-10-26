@@ -434,7 +434,7 @@ public sealed class Coefficients
     public RatioToGdpYear AusterityRange = new(0.7);          // ここ幅で緊縮が0→満額（債務÷年名目GDP = Start+Range＝1.0 で弱者救済ゼロ・逆進課税が最大上乗せ）
     public double AusterityTaxHike = 0.5;        // 満額緊縮時に人頭税へ上乗せする逆進課税の幅（貴族免除の人頭税＝負担は弱者に集中）
     public RatePerMonth DevaluationCapFracPerMonth = new(0.05);     // **月に**切り下げ（インフレ税）で吸える総貯蓄の上限割合（月初の国家の支払い率の所＝月に1回・2026-09-26 に単位の書き方を是正）。借りられない月（上限・冷却中）と、借りた後に残った払えない額だけを埋める（2026-09-28 (b)）。超過赤字は underfunding（連合の薄給＝治安維持力減）で優雅に劣化＝構造的に過大な連合は経済を枯渇させず萎む
-    public double DevaluationCapReliefExp = 0;     // ★(587) 切り下げの月の上限（DevaluationCapFracPerMonth）を緩める指数。0＝今の切り（旧の式 `Math.Min(余地, 貯蓄×上限割合)` と厳密同値）／(0,1)＝余地が切りを超える月だけ 切り×(余地÷切り)^指数（連続・単調・余地以下）／1 以上＝切り無し（余地そのまま）。
+    public double DevaluationCapReliefExp = 1;     // ★(587) **1 で点火（2026-10-27・線 hyp の腕 B・止める線に当たらず）**＝切り下げの月の上限（DevaluationCapFracPerMonth）が外れている。切り下げの月の上限を緩める指数。0＝旧の切り（旧の式 `Math.Min(余地, 貯蓄×上限割合)` と厳密同値）／(0,1)＝余地が切りを超える月だけ 切り×(余地÷切り)^指数（連続・単調・余地以下）／1 以上＝切り無し（余地そのまま）。
                                                     //   作者 2026-10-26「ゲームの制御が簡単なことは重要だが、極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」。√（0.5）の道具は単体の番人でだけ測る（事前登録 hyp587 §3-2）。切り 0・NaN・余地≦切りはどの指数でも今の式。
     public Share FiatIssueFrac = new(0.2);   /* リアリティ群点火2026-07-18＝不換シニョリッジ(インフレ税) */           // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：赤字補填の切り下げのうち、popから取らず新規発行する割合＝マネーストック膨張(M↑→P↑)。CumulativeFiatIssuedに積みInvariantsのexpectedに算入。0で全額ヘアカット＝現行恒等
     public RatioToGdpYear DebtDistressRatio = new(3.0);        // 対外信用（CapitalMarket の信用の債務の項＝1−債務÷年名目GDP÷これ）が尽きる債務の水準＝外資が逃げ、呼べなくなる（読み手は CapitalMarket だけ・国債の起債は読まない）。

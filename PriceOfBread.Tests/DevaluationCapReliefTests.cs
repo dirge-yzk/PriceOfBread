@@ -14,9 +14,9 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     // ---------------- 関数（Fiscal.DevaluationAllowed） ----------------
 
     [Fact]
-    public void 既定の指数は0で_指数0と負と非数は旧の式と同じビットを返す()
+    public void 既定の指数は1で_指数0と負と非数は旧の式と同じビットを返す()
     {
-        Assert.Equal(0.0, new Coefficients().DevaluationCapReliefExp);
+        Assert.Equal(1.0, new Coefficients().DevaluationCapReliefExp);   // 2026-10-27 に点火（線 hyp の腕 B）
         double[] rooms = [0, 1e-12, 0.5, 5, 7.3, 1e6, 1e300, double.PositiveInfinity, double.NaN, -3];
         double[] caps = [0, 1e-9, 1, 5, 123.4, 1e9, double.NaN, -2];
         foreach (double exp in new[] { 0.0, -1.0, double.NaN })

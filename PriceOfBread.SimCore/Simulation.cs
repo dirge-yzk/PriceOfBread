@@ -2341,7 +2341,7 @@ public sealed class Simulation
                 double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
                 // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
                 double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
-                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);   // ★(587) 指数 0（既定）は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式
+                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);   // ★(587) 既定は 1（点火・切り無し）。指数 0 は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式
                 if (Instruments.On) Instruments.DevCap(World, devalueRoom, devalueCap, devalue);   // 計器（読むだけ）：旧の切りに当たった月
                 if (devalue > 1e-9)
                 {
