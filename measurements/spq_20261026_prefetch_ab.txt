@@ -1,0 +1,7 @@
+ZSD mode m plus 34.753s/637416 base 35.238s/637416 ratio(plus/base) 0.9863
+ZSD mode mg plus 30.311s/637416 base 31.027s/637416 ratio(plus/base) 0.9769
+ZSD mode end plus 30.119s/637416 base 29.439s/637416 ratio(plus/base) 1.0231
+ZSD mode mg plus 36.509s/637416 base 38.276s/637416 ratio(plus/base) 0.9538
+ZSD mode mg plus 33.987s/637416 base 35.741s/637416 ratio(plus/base) 0.9509
+ZCL plus 35.471s/1032 base 35.567s/1032 ratio(plus/base) 0.9973
+ZCL plus 28.992s/1032 base 29.617s/1032 ratio(plus/base) 0.9789
