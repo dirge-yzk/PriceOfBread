@@ -206,6 +206,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "ModernizationAbolished",     // (583) 恒等の線 gc4：近代化投資の廃止（(573)・作者 2026-10-26）の旗。既定 1 で点火済みのまま旗ごと削除（州の StateBuildQueue へ撒く道を World.ApplyModernizationInvestment から物理削除）
         "StateBuildCost",             // 読み手0（手動工場建設は削除済み）
         "CohortGateK",                // 世代ゲート＝2026-09-21 作者が一覧の矛盾を「棄却」側で閉じた（00一覧）・削除は担当の推奨（作者の承認は未確認）
         "EnclosureRate",              // 囲い込みの自給侵食＝同上（削除は担当の推奨・作者の承認は未確認）

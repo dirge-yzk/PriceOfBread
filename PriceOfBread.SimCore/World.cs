@@ -1920,25 +1920,24 @@ public sealed class World
         return budget;
     }
 
-    /// <summary>近代化投資（四半期）：<see cref="ModernizationBudget"/> を全 active・資本区画の建設予約（StateBuildQueue）へ配分。
-    /// EconomyStep が建設束（鋼/機械/セメント/製材）を買い工業化度へ変換（資本家と同じ経路・国庫負担で保存）。UI・AI 共通の動詞。
-    /// frac=0（既定）で何もしない＝AI/テストは従来どおり無影響。
-    /// 州上限（Phase2 2026-07-08）：工業化度が <see cref="Coefficients.IndustryInvestRegionCap"/> に達した州へは注がない（プレイヤー/AI共通のルール＝
-    /// 富国が首都へ注ぎ続けて工業化度30超まで暴走するのを防ぐ。batch30実測＝ロンドン35を捕捉）。全州が上限なら何もしない。</summary>
+    /// <summary>近代化投資（四半期）：<see cref="ModernizationBudget"/> を招聘の予算（<see cref="RecruitBudget"/>）と高等教育の学費の補助（Region.HigherEduFunding）へ配分。UI・AI 共通の動詞。
+    /// ★(583) 恒等の線 gc4：州の建設予約（StateBuildQueue）へ撒く分は物理削除した（作者 2026-10-26「近代化投資は廃止してください。工場はユーザーは生産tabから建てますし、AIも同じ経路で建てられる筈です。州全体に金を撒く機構は不要です」・(573) で旗を 1 に点火・旗ごと削除）。
+    /// 招聘と高等教育の学費の補助は残る（作者「これは残しましょう」は学費の補助について）。招聘にも学費にも回らなかった額は請求が立たない＝国庫に残る。
+    /// frac=0（既定）で何もしない。</summary>
     public void ApplyModernizationInvestment()
     {
         double budget = ModernizationBudget();
         // ⚠否定形で判定（2026-08-10）：`budget<=0` では NaN を素通しする。frac=1.0（＝convex が +∞）の国で NominalGdpPerMonth=0 だと
-        //   0×∞＝NaN が出て、StateBuildQueue へ配ると州の建設予約が恒久的に毒される。AI の frac は上限0.15＝この経路に入らないが、
+        //   0×∞＝NaN が出て、配ると州の予約が恒久的に毒される。AI の frac は上限0.15＝この経路に入らないが、
         //   財政タブのスライダー復活で frac=1.0 がプレイヤーの手に届く＝到達可能になった。budget=0 は旧経路でも「0を足す」＝恒等なので
         //   早期 return はビット単位で従来と同一（AI挙動不変）。
         if (!(budget > 0)) return;
         // ★段③（2026-08-17・作者裁定「工業化投資は銅やセメントを買うのではなく、研究者や技師を増やす補助金として機能させたい。
-        //   銅やセメントは国営工場の建設で賄えるため」）：予算を**人材**と**建設**に割る。⚠k=0 で全額が建設＝現行と厳密恒等。
+        //   銅やセメントは国営工場の建設で賄えるため」）：予算を**人材**（招聘・学費の補助）へ割る。(583) 建設へ回す残りは物理削除した（国庫に残る）。
         //   ★配分の重み＝**買えなかった高等教育の量**（＝需要そのもの）。⚠未決7a（InvestWeight の差し替え先）はここで解ける——
         //   建設材の在庫を見ていたのと同じ理屈（「実際に変換できる量」）を人材に写すと、それは「学費を出せば大学に行く人の数」になる。
         //   ⚠新しいスカラーは置かない：Size・Literacy・LastEducationFill・HigherEduFill は全て既存の状態量。
-        //   ⚠大学の無い州へ配っても買えないだけ＝カネは国庫に残る（StateBuildQueue と同じ fail-safe）。
+        //   ⚠大学の無い州へ配っても買えないだけ＝カネは国庫に残る（請求であってまだ国庫にある＝fail-safe）。
         // ★段④：招聘へ回す分（⚠学費より先に取る＝「育てる」より「呼ぶ」が即効という順序ではなく、単に配分の順序）。
         //   ⚠k=0 で予約が立たない＝厳密恒等。★空振りは RecruitSpecialists が使わずに終わる＝国庫に残る。
         double recPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToRecruit.Value);
@@ -1953,28 +1952,8 @@ public sealed class World
             if (ew > 1e-9)
             {
                 for (int i = 0; i < weight.Length; i++) Regions[i].HigherEduFunding += eduPart * (weight[i] / ew);
-                budget -= eduPart;   // 建設へ回す残り
             }
-            // ⚠どこにも進学したい者が居なければ人材へは配らない＝budget を減らさず全額を建設へ（fail-open＝投資が静かに消えない）
-        }
-        if (!(budget > 0)) return;
-        if (Coef.ModernizationAbolished > 0) return;   // ★(573) 近代化投資の廃止（旗 ModernizationAbolished）：州の StateBuildQueue へ撒く分だけを消す（招聘と高等教育の学費の補助は上で今の式のまま配った＝作者「これは残しましょう」は高等教育の学費の補助について・招聘を残すのは AI の推奨）。残りの額は国庫に残る（請求が立たない）
-        // ★均等配分をやめる（2026-08-03・作者指示「より効果的に」）：旧＝適格州へ**頭数で等分**だったので、
-        //   建設材の在庫が無い州にも同額が積まれ、そこでは価格だけ上がって単位に変わらなかった。
-        //   按分の重み＝**その州が実際に変換できる量**＝上限までの余地 × 建設材の手当（4材の最小在庫÷必要量）。
-        //   どちらも既存の状態量（TotalIndustrialization / Markets[].Stock）＝新しいスカラーを置かない。
-        //   全州の重みが0（どこも材料が無い）なら旧どおり等分＝投資が静かに消えない（fail-open）。
-        int n = 0; double wsum = 0;
-        for (int i = 0; i < weight.Length; i++) if (StateInvestEligible(Regions[i])) { n++; wsum += weight[i] = StateInvestWeight(Regions[i]); }
-        if (n == 0) return;
-        if (wsum > 1e-9)
-        {
-            for (int i = 0; i < weight.Length; i++) if (StateInvestEligible(Regions[i])) Regions[i].StateBuildQueue += budget * (weight[i] / wsum);
-        }
-        else
-        {
-            double per = budget / n;
-            foreach (var r in Regions) if (StateInvestEligible(r)) r.StateBuildQueue += per;
+            // ⚠どこにも進学したい者が居なければ配らない（請求が立たない＝額は国庫に残る＝fail-open）
         }
 
         // ★段③：進学したいのに学費が届いていない量（＝EconomyStep の高等教育の需要式 × 未充足分）。
@@ -1986,11 +1965,11 @@ public sealed class World
         }
     }
 
-    /// <summary>国庫の近代化投資を注ぐ適格の州＝資本区画を持ち（(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）・投資家 POP があり・工業化度（新旧合計）が州の上限に達していない（上限判定は新旧合計・ヴィンテージ2026-07-10）。
-    /// <see cref="ApplyModernizationInvestment"/>（配り先）と <see cref="ModernizeReturnShare"/>（AI の信号）が同じ 1 本を読む（(416) でローカル関数から抜き出した・式は同じ）。</summary>
+    /// <summary>国庫の近代化投資の AI の信号（<see cref="ModernizeReturnShare"/>）が読む適格の州＝資本区画を持ち（(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）・投資家 POP があり・工業化度（新旧合計）が州の上限に達していない（上限判定は新旧合計・ヴィンテージ2026-07-10）。
+    /// (583) 州へ撒く分を削除した後の読み手は <see cref="ModernizeReturnShare"/> と計器（InstrumentsModernize）だけ。</summary>
     internal bool StateInvestEligible(Region r) => r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
 
-    /// <summary>国庫の近代化投資の州への按分の重み＝その州が実際に変換できる量＝上限までの余地×建設材の手当（4材の最小在庫÷必要量）。<see cref="ApplyModernizationInvestment"/> のローカル関数から抜き出した((416)・式は同じ)。</summary>
+    /// <summary>国庫の近代化投資の州への按分の重み＝その州が実際に変換できる量＝上限までの余地×建設材の手当（4材の最小在庫÷必要量）。(583) 州へ撒く分を削除した後の読み手は <see cref="ModernizeReturnShare"/> と計器だけ。</summary>
     internal double StateInvestWeight(Region r)
     {
         double cap = Coef.IndustryInvestRegionCap;
@@ -2007,7 +1986,7 @@ public sealed class World
 
     /// <summary>★(416) AI の近代化投資を止める信号（旗 <see cref="Coefficients.AiModernizeFromReturn"/>）＝国庫の近代化投資の配り先の設備が儲かっているか。
     /// 州の <c>ReturnShare＝Clamp01(1−hurdle÷gross)</c>（<see cref="EconomyStep.InvestmentReturn"/>＝私的な投資家が建設の速さを決める式と同じ 1 本・<c>gross≦0</c> か NaN は 0）を、
-    /// 国庫の按分の重み（<see cref="StateInvestWeight"/>）で加重平均する。重みが全て 0 の適格の州があるときは均等（<see cref="ApplyModernizationInvestment"/> の等分の枝と同じ規則）・適格の州が無ければ 0。
+    /// 国庫の按分の重み（<see cref="StateInvestWeight"/>）で加重平均する。重みが全て 0 の適格の州があるときは均等（(583) 前に ApplyModernizationInvestment にあった等分の枝と同じ規則）・適格の州が無ければ 0。
     /// <c>techProd</c> は <see cref="TechProductivity"/>（月次の経済と同じ 1 本）。純関数（状態を書かない・<c>IsPlayer</c> も <see cref="IndustrialFrontier"/> も <see cref="MeanIndustrialization"/> も読まない）。
     /// 集計の工業化度に天井を置かない。信号が 0 になる所は低技術の国では州の上限の手前・高技術の国（techLev≳1.8）では州の上限の向こう＝高技術の国を止めているのは州の上限（<see cref="Coefficients.IndustryInvestRegionCap"/>・国庫の建設は束ねてヘッドルームで切る・私的な建設は信号と同じ netReturn の門だけで上限を見ないので 5.0 をわずかに超える〔計器で最大 5.29〕）。</summary>
     public double ModernizeReturnShare()

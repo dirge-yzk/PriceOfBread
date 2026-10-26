@@ -181,8 +181,8 @@ public sealed class Coefficients
     //   就学督促・教員俸給の支払・校舎の設置は地方行政の実体が要る（法を布告しても村に届かない）。0 で ×1.0＝厳密恒等。
     //   ⚠1 未満に保つこと＝床(1−これ)が残る。素の ×AdminFill にすると 教育→識字→登用→行政 の環が正帰還で閉じ、行政の低い国が永久固着する。
     public double EduReachFromAdmin = 0.0;
-    // ★段③（2026-08-17）：近代化投資のうち高等教育の学費補助へ回す割合。残りは従来どおり建設予約（StateBuildQueue）。
-    //   ⚠0=全額が建設＝**現行と厳密恒等**。1=全額が人材（作者の意図する最終形）。段階移行のレバー＝途中値で実測しながら寄せる。
+    // ★段③（2026-08-17）：近代化投資のうち高等教育の学費補助へ回す割合。★(583) 残りの建設予約への配りは物理削除した（残りは国庫に残る）。
+    //   ⚠0=学費の補助は出ない＝**現行と厳密恒等**。1=全額が人材（作者の意図する最終形）。段階移行のレバー＝途中値で実測しながら寄せる。
     public double ModernizationToHigherEdu = 0.0;
     // ★段④ 招聘（2026-08-17・設計「大衆は自発的に動く。技師は呼ばれて動く」＝主語が違うので式も別）。
     //   ⚠RecruitCostPerHead=0 で経路に入らない＝**厳密恒等**（0除算も踏まない）。ModernizationToRecruit=0 でも予算が立たない＝二重の休眠。
@@ -1107,9 +1107,7 @@ public sealed class Coefficients
     public RatePerMonth IndInvestmentFrac = new(0.05);       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）。★(300) 国家の経路（国庫の建設・巨大建造物）はこれのまま。私的な建設は IndCapitalOutputYears>0 なら州の実質の年所得で決まる（EconomyStep.PrivateIndPerConstruction）＝0 のときだけこの値
-    public double ModernizationAbolished = 1;     // ★(573) 線 sm5 の最初のコミット（2026-10-26 に 1 で**点火**＝腕 B_mod の門 M1〜M3・止める線 S1〜S5 を通った。0 で旧の道）。作者 2026-10-26 原文「近代化投資は廃止してください。工場はユーザーは生産tabから建てますし、AIも同じ経路で建てられる筈です。州全体に金を撒く機構は不要です」）：既定 1＝廃止（0＝旧の道）。正のとき World.ApplyModernizationInvestment が
-                                                  //   州の StateBuildQueue へ撒く分（建設の束→工業化度と設備の配り）だけを止める。StateBuildQueue の書き手はこの道だけだった（grep・番人）ので、国の建設の工業化度への足しも消える。招聘の予算（ModernizationToRecruit）と高等教育の学費の補助（ModernizationToHigherEdu→Region.HigherEduFunding）は
-                                                  //   今の式のまま動く（作者「これは残しましょう」は高等教育の学費の補助について・奨学金の法へ付け替えるのは次の波。招聘の予算・予算の額・AI の決め方を残すのは AI の推奨＝作者の承認は未確認）＝ModernizationFrac は当面その額を決める欄。AI の決め方・財政タブの行は変えない（名前の付け替えも次の波。★(576) 合流：財政タブ〔Display/FiscalTables〕の近代化の行は予算の全額を予測・実効に置く＝点火の後は招聘の分しか出ていかない＝UI の線へ渡した）。国の工場は World.BuildFactory（生産タブと AI の SetStateTarget が同じ経路）で建つ＝触らない。AI の設計＝確証なし（廃止そのものは作者の裁定）。
+    // ★(583) 旗 ModernizationAbolished（(573) 近代化投資の廃止・既定 1）は旗ごと削除した＝州の StateBuildQueue へ撒く道は World.ApplyModernizationInvestment から物理削除（名前の復活は DormantIdentityTests.RetiredFields が禁じる）。招聘（ModernizationToRecruit）と高等教育の学費の補助（ModernizationToHigherEdu）は残る。
     public double IndCapitalOutputYears = 1.0;    // ★(300) 線 i1（腕 B を採った＝既定 1.0・0 で今まで）：工業化度 1 点に要る資本＝州の実質の年所得のこれ倍（資本産出比 K/Y・私的な建設の経路だけ）。>0 で私的な建設 1 束が上げる工業化度が 1÷N（N＝これ×州の実質の年所得÷基準の束の費用）になる＝州の経済の大きさに比例した投資額。0＝今まで（1 束＝IndPerConstruction・州の大きさに依らない）＝厳密恒等。国家の経路は変えない
     public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
     public Share FactoryMaterialFrac = new(0.6);      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費
@@ -2879,7 +2877,7 @@ public sealed class Coefficients
     public double ModernizationCostGdpShare = 1.0;   // frac/(1-frac) に掛かる係数。frac=0.3 で四半期GDPの約0.43倍＝年GDP比11%（発展途上国家の投資率として妥当）・frac=0.8 で4倍・frac→1 で発散。A=2.0 も試したが年GDP比21%は高すぎ、帯も経済規模−6.3で劣った（2026-08-04実測）。**国庫比でなく絶対額**にすることで「100%はほとんどの国で不可能」を成立させる。0で旧式（国庫×frac×0.5）＝厳密恒等
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ
     // 【墓標2026-09-26（棚卸し dorm-50）】ModernizationTechGain（近代化投資の直接の技術加点・「0で確定」2026-08-04）＝削除。制度疲労が技術採用を律しているので近代化投資が疲労を削れば技術は伸びる＝直接の加点は二重計上（実測で公教育の普 vs 宗教教育の露の差が消えた）
-    public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 近代化投資（World.ApplyModernizationInvestment）の州上限＝この工業化度に達した州へは国庫投資を注がない（プレイヤー/AI共通。富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）
+    public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 州の上限＝この工業化度に達した州は AI の近代化の信号（World.StateInvestEligible）の適格から外れ、巨大建造物の直接の足しもこれで切る。(583) 州へ撒く分を削除した後は国庫投資の入口の上限ではない（旧：富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】StateRevenueAllTaxes＝国家の歳入要求を所得税・人頭税・土地税の純支持へ（政12・点火済み）
     // 【墓標2026-09-26】FascismGateFromDevelopment（2026-09-05 に 1.0 へ点火）・IdeologyGateFromDevelopment（2026-09-06 に 1.0 へ点火）・IdeologyGateIndDynamic（休眠0・07-15 却下）
     //   ＝暦年と発展度の混合比＝暦年の項は 0.0×有限値で1ビットも効かない＝思想の暦年ゲートごと削除（棚卸し pol-01・項目20 E）。

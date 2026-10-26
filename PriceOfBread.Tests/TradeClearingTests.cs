@@ -570,7 +570,7 @@ public class TradeClearingTests
                 Add(w.BaseMoney.Value); Add(w.CumulativeTradeFlow.Value); Add(w.Treasury.Value); Add(w.LastExportValue); Add(w.LastImportValue); Add(w.LastTariffRevenuePerClearing);
                 foreach (var r in w.Regions)
                 {
-                    Add(r.LastPortThroughput); Add(r.LastTradePotential); Add(r.LastTradeThrottle); Add(r.LastTradeDistanceKm);
+                    Add(r.LastPortThroughput); Add(r.LastTradePotential); Add(r.LastTradeThrottle);
                     foreach (var m in r.Markets) { Add(m.Stock); Add(m.LastImport); Add(m.LastExport); }
                     foreach (var p in r.Pops) { Add(p.Savings.Value); Add(p.Debt.Value); }
                 }
@@ -595,49 +595,5 @@ public class TradeClearingTests
                 Assert.True(cached[i] == fresh[i], $"使い回し(既定)と求め直しで {i} 番目の量が違う（{BitConverter.Int64BitsToDouble(cached[i])} / {BitConverter.Int64BitsToDouble(fresh[i])}）＝反復不変でない量を使い回している");
             }
         }
-    }
-
-    // ★(335) 清算の距離の表（PairKm）は州ごとに1回求めた最寄りの海ノードと接ぎ木の片側から海路距離を出す（旧は組ごとに SeaGraph.SeaDistanceKm が求めていた）。
-    //   番人＝期待値は清算の外：州の海に出る点の座標を Climate.CityCoord から引き、公開の Geo.SeaDistanceKm で売り手の港→買い手の海に出る点の海路距離を組ごとに求め、
-    //   買い手の陸脚（州の PortLandKm×地形の係数×陸/海の比）を足した値。清算が取引の相手との距離として記録する値（Region.LastTradeDistanceKm＝最大額の取引の距離）が、
-    //   成約した買い手でビット単位で一致する。陸路の直行は止める（LandRouteEnabled＝0）・鉄道の前（陸脚の地形係数は馬）。
-    [Fact]
-    public void 清算が記録する取引の距離は州の座標から公開の海路距離で求めた値と一致する()
-    {
-        var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"), WorldData.ByName("フランス"));
-        sim.Coef.LandRouteEnabled = 0;
-        seller.Markets[g].Stock = 1e7; seller2.Markets[g].Stock = 1e7; seller.Markets[g].LastProduced = 1e6; seller2.Markets[g].LastProduced = 1e6;   // 売り手は尽きず出し渋らない＝多くの買い手が成約する（確かめる州を増やす）
-        foreach (var n0 in sim.Nations) foreach (var r0 in n0.World.Regions) foreach (var p0 in r0.Pops) p0.SetSavings(1e9);   // 買い手の支払能力は十分（確かめる州を増やす）
-        sim.Market.Step(sim.Nations, sim.Coef);
-        var c = sim.Coef;
-        int checkedN = 0;
-        foreach (var n in sim.Nations)
-            foreach (var r in n.World.Regions)
-            {
-                if (ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 0) || r.LastPortFrozen || (!r.IsPort && r.NearestPortName.Length == 0)) continue;
-                // 買い手の海に出る点と陸脚（BilateralMarket の州の表と同じ規則：港なら自州・内陸なら最寄りの港）
-                var cb = Climate.CityCoord(r.Name); double landKm = 0;
-                if (!r.IsPort) { cb = Climate.CityCoord(r.NearestPortName); landKm = r.PortLandKm; }
-                bool rail = Discovery.RailTransport(n.World.Discovered);
-                int ti = (int)r.Terrain;
-                double horse = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0, railCost = ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0;
-                double terr = horse + (rail ? 1.0 : 0.0) * (railCost - horse);
-                if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) terr = c.TerrainWaterMajorCost;
-                else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) terr = c.TerrainWaterMinorCost;
-                double ratio = c.LandSeaCostRatio * (1.0 - (rail ? 1.0 : 0.0) * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
-                bool match = false;
-                foreach (var s in new[] { seller, seller2 })
-                {
-                    var cs = Climate.CityCoord(s.Name);
-                    double sea = Geo.SeaDistanceKm(cs.Lat, cs.Lon, cb.Lat, cb.Lon, false, false);
-                    double e = sea + 0.0 + landKm * terr * ratio;   // 売り手は港（陸脚0）
-                    if (BitConverter.DoubleToInt64Bits(e) == BitConverter.DoubleToInt64Bits(r.LastTradeDistanceKm)) match = true;
-                }
-                Assert.True(match, $"{r.Name} の記録した取引の距離 {r.LastTradeDistanceKm} が、売り手の港からの海路距離＋陸脚（公開の Geo.SeaDistanceKm で組ごとに求めた値）のどちらとも一致しない");
-                checkedN++;
-            }
-        int act = 0, imp = 0, frz = 0, nop = 0;
-        foreach (var n2 in sim.Nations) foreach (var r2 in n2.World.Regions) { act++; if (r2.Markets[g].LastImport > 0) imp++; if (r2.LastPortFrozen) frz++; if (!r2.IsPort && r2.NearestPortName.Length == 0) nop++; }
-        Assert.True(checkedN >= 10, $"確かめた買い手が少ない（{checkedN}／活きた州 {act}・輸入あり {imp}・凍結 {frz}・港なし {nop}）＝テスト前提の破れ");
     }
 }

@@ -91,6 +91,13 @@ public class ScalarDeletionTests
             Assert.Null(typeof(PolicyPreferences).GetMember(n, internalStatic).FirstOrDefault());                              // 向きを bool の引数 1 本にした
     }
 
+    [Fact]
+    public void 恒等の削除_2026_10_26_ゴミ変数の4回目の欄は復活しない()
+    {
+        // (583) 恒等の線 gc4：読み手が試験だけだった診断の欄を名前で禁じる（期待値は削除の一覧を手で写した物で、本体の式から作らない）。係数の名前（ModernizationAbolished）は DormantIdentityTests.RetiredFields が禁じる。
+        Assert.Null(typeof(Region).GetMember("LastTradeDistanceKm", All).FirstOrDefault());   // この四半期の実効交易距離km（力学は読まない）。経路の分解は計器 trroute に残る
+    }
+
     /// <summary>★(568) 恒等の線 gc3：<c>Region.State</c>（稼働中か否か）を読む行は、本番では恒真だったので外した。ソースに〈RegionState を読む行〉が戻っていないことを、
     /// 許可表（ファイル → 許す行数の上限）で見る。許可表の中は枠と機械の線 ckf〔世界の時計の置き直し〕が書き直す所と、型の定義（Model.cs）だけ。
     /// 期待値は許可表（手で写した物）で、本体のソースから作らない。<see cref="GoodIdGuardTests.CsFiles"/> と同じ走査（SimCore・Runner・App・Tests）。</summary>

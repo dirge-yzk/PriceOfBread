@@ -78,7 +78,7 @@ public class FranceTests
     public void 国家工場建設は基礎貨幣を保存する()   // 国庫→建設の束（生産者）で保存・工業化度が上がる
     {
         // ★2026-09-26：旧＝1棟単位の手動建設 World.BuildIndustry（テストと PlayHarness だけの動詞）で予約していた。
-        //   動詞を削除し、UI・AI 共通の口＝近代化投資のレバー（ApplyModernizationInvestment が毎四半期 StateBuildQueue へ配る）で予約する。
+        //   動詞を削除し、UI・AI 共通の口＝近代化投資のレバーで予約していた。★(583) 近代化投資の廃止で州の StateBuildQueue へ配る道は物理削除した＝今のレバーは招聘と学費の補助の予算だけを立てる（この試験は予算が立つことと保存則・工業化度が上がること〔私的な建設〕を見る）。
         var sim = new Simulation(Fr(1789), new NullAgent());
         double base0 = sim.World.BaseMoney.Value, ind0 = sim.World.Region.TotalIndustrialization;   // ヴィンテージ2026-07-10：資本ストックは新旧合計（旧単層と同一動学）で測る
         sim.World.ModernizationFrac = 0.5;   // NullAgent は上書きしない＝単一国では毎四半期この率で国庫から建設を予約する
