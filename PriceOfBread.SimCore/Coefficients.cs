@@ -2800,14 +2800,8 @@ public sealed class Coefficients
     //   ★形は 2 度直した（事前登録 追記2・追記3）：①職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで農民の時間が二重に使われた→農業労働力を投入に置いた。②手書きの原料展開の表＝中間の段の付加価値を払わず構造的に安い（canary で 4 財がほぼ 100%）→財の表の投入そのままに戻した。
     //   0 で AddHouseholdProducers は先頭で戻る＝Producers の件数も順序も不変（厳密恒等＝腕 A）。点火（1.0）の採否は腕 B（計器つき 10 種）＝止める線（破綻・発散・空洞化・計算量・機構のテスト）に当たらず採った。
     public double HouseholdProductionEnabled = 1.0;
-    // ★(416) 工業化度の AI の読み手の置き換え（事前登録 measurements/sc_20261019_prereg.txt・旗 AiModernizeFromReturn・既定 3＝2026-10-19 に点火・0 が旧）：AI の近代化投資を止める信号を、集計の工業化度の天井
-    //   （EffectiveIndCeiling＝max(2.5, α×世界前線)・前線はプレイヤーを含む全国の最大）から、国庫の按分の配り先の設備が儲かっているか（World.ModernizeReturnShare＝州の 1−hurdle÷gross の按分の重みつき平均・
-    //   EconomyStep.InvestmentReturn＝私的な投資家が建設の速さを決める式と同じ 1 本）へ換える。段で切る（切り分けの順）：≧1＝Apply の indGap と AutoModernizationFrac（NullAgent・既定式）／
-    //   ≧2＝さらにダンピングの後発判定（旧＝MeanIndustrialization＜2.5 → 新＝信号＞0）／≧3＝さらにスタンスの工業化の余地（旧＝max(0, 4.0−MeanInd) → 新＝4.0×信号・目盛りの係数で上限ではない）。
-    //   旗 ≧1 では EffectiveIndCeiling・IndustrialFrontier・AiIndustrialCeilingFrontier を読まない（採用のとき後者 2 つの読み手を削除する）。法の閾値（反トラスト・同業組合・金本位）は (423) の AiLawGateFromBoard で盤面の実物（識字・都市の割合）へ置き換えた。
-    //   新しい状態も倍率も置かない。州の上限 IndustryInvestRegionCap は変えない（プレイヤーと共通の物理の上限）。0 で 3 か所とも旧の式の文字列のまま（ビット恒等＝腕 A）。
-    //   ★2026-10-19 (416) 後半で既定 3 へ**点火**（腕 B＝ScoreFromWorldShare=1 と同時・止める線 ①〜⑤ のどれにも当たらず・NG の門〔数の基準〕にも当たらず）。8 大国の工業化度は約 2.3 → 約 4.2（州の上限 5.0 の近く）へ上がり、法の閾値（金本位 3.5・反トラスト・同業組合）が工業化度の高い全国で火を吹く（金本位の強制離脱 168→429 回）＝工業化度の削除の線（Q4）で閾値を置き換える。
-    public double AiModernizeFromReturn = 3;
+    // 【墓標2026-10-27 (591)】AiModernizeFromReturn（(416) 工業化度の AI の読み手の置き換え・既定 3・2026-10-19 点火）の旧の腕〔段 0〜2〕を旗ごと消した（EffectiveIndCeiling・SelfPlay の IndustrializationCeiling・modsig の旧の列 indCeilingOld／indGapOld／flagLevel も）。
+    //   今の形＝AI の近代化投資を止める信号・ダンピングの後発判定・スタンスの工業化の余地は全て World.ModernizeReturnShare（国庫の配り先の設備の収益の持ち分・EconomyStep.InvestmentReturn と同じ 1 本）。集計の工業化度の天井は読まない。
     // ★(423) 工業化度を読む AI の法の門の置き換え（事前登録 measurements/lt_20261019_prereg.txt・旗 AiLawGateFromBoard・既定 3＝2026-10-19 に点火・0 が旧）：UtilityAgent の 3 本の願い（金本位の志向・反トラスト・同業組合）が読む `MeanIndustrialization` を盤面の実物へ換える。
     //   段で切る（切り分けの順）：≧1＝金本位（旧＝金の法の国は降りない ‖ 工業化度＞GoldStandardIndThreshold → 新＝金の法の国は降りない ‖ 本国の平均識字＞0.75）／≧2＝さらに反トラスト（旧＝工業化度＞0.5 で談合禁止・＞0.75 で独占の解体
     //   → 新＝本国の都市人口の割合＞1/3 で談合禁止・＞1/2 で独占の解体）／≧3＝さらに同業組合（GuildLawGate＞0 のときだけ・線は反トラストと同じ）。線 3 本（識字 0.75・都市 1/3 と 1/2）は AI の選び＝確証なし。
@@ -3273,12 +3267,7 @@ public sealed class Coefficients
                                              //   >0＝MultiNationSim が四半期同期（WorldTechLevel/IndustrialFrontier と同型）で Market.Price（265州平均）を World.WorldGoodsPrices へ注入し、
                                              //   TryBuildFacility の score が max(自国relExcess, 世界relExcess−輸送楔) に開く（楔＝TransportMargin＝BilateralMarket:289 の距離0下界を流用・新距離計算なし）。
                                              //   0＝注入自体をスキップ（World側は null のまま）＝恒等。点火A/Bで見る帯：鋼レントの侵食・noviceprobe順位・貿易/GDP。
-    public double AiIndustrialCeilingFrontier = 0.6;   // ★(416) 旗 AiModernizeFromReturn≧1（既定 3）では読まれない＝旧の腕〔0〕だけが読む（死蔵・削除は旧の腕を捨てる線）。 【点火0.6・2026-08-16 点火梯子＝単独 exact+3.8・**貿易0.83→1.03（唯一貿易を押し上げる腕）**。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】 // **点火済み（live）**（診断#1・第二幕の本丸）：AI近代化投資の自主停止2.5（SelfPlay.IndustrializationCeiling）の世界前線連動。
-                                             //   >0＝α として indGap の分母＝max(2.5, α×World.IndustrialFrontier)（IndustrialFrontier は配布済み＝MultiNationSim の四半期同期）。
-                                             //   ⚠経緯（SelfPlay:1021「無制限だと露が規模常勝」）＝**点火は段階掃引 α=0.6/0.8/1.0**（一気に1.0へ上げない）。
-                                             //   ChooseStance の indRoom(4.0)とダンピングの後発判定(<2.5)は今回触らない（別判断＝スタンス選択/輸出補助の閾値・記録のみ）。
-                                             //   0＝定数2.5＝恒等。単一国は IndustrialFrontier=0 なので α>0 でも 2.5 のまま＝較正・単体テスト不変。
-                                             //   点火A/Bで見る帯：**列強再現率と露**（規模常勝の再発監視）・工業化の帯・鋼レント。
+    // 【墓標2026-10-27 (591)】AiIndustrialCeilingFrontier（鋼市場診断#1・既定 0.6・2026-08-16 点火）を消した＝AI の近代化投資の自主停止の包絡 max(2.5, α×世界前線) は (416) の AiModernizeFromReturn 既定 3 で読み手が無くなっていた（旧の腕だけが読む死蔵）。World.IndustrialFrontier の配りは残る（Ideology.cs が読む）。
     // 【墓標2026-10-18・旗の焼き込み】AiProtectiveTariff（鋼市場診断#5・既定1.0・点火2026-08-16 点火梯子＝単独 exact+5.6・法+4.7）を消した＝保護関税の反射（輸入急増で TariffTarget を max(現行目標, 現行関税+TariffReactionMax) へ）は常に有効。
                                              //   （ImportsByGood の対EMA比＝「前年比」の最小実装。EMAはAI個体の記憶＝UtilityAgent._importEma）のとき
                                              //   TariffTarget を max(現行目標, 現行関税+TariffReactionMax×これ) へ（振幅は既存の通商反応の較正済み量0.25を流用・

@@ -1624,7 +1624,8 @@ public class InstrumentsTests
     // ★(529) 産地の取り分を慣習のデータの取り分と法の上限の小さい方へ（Q2 の形の撤回）で軌道がまた動き、1809 では場面 T の飢えの照合が空洞になった（飢え 0・構造 10）＝1810 も空洞（飢え 0・構造 10）・1811 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法・1812・1813 も通る）。
     // ★(536) F1（植民地を除く国平均）と F3（鋳鉄の機械）の点火で 1811 の場面 T の飢えの照合が空洞になり 1813 を選んだ・★(537) 武器の並行で 1812 を選んだ（1813・1815 は空洞）。
     // ★(542) 合流（ivf＋wp を重ねた木・焼き直しの後）：1812 は場面 T の飢えの照合が空洞（飢え 0・構造 6）＝1813 で全ての場面が空洞でない＝1813 を採る（種の選び直しは (405) と同じ作法）。
-    private const ulong CoverageSeed = 1813UL;
+    // ★(591) 恒等の線 gc5：場面の前提を旧の旗〔AiModernizeFromReturn=0〕に固定していた行を外した（旧の腕ごと削除・旗に固定して赤を避けない）＝軌道が既定の側に動き、1813 は場面 T の飢えの照合が空洞（飢え 0・構造 6）＝1812 で全ての場面が空洞でない（1820 も通る・1814〜1819 は場面 T が空洞）。種の選び直しは (405) と同じ作法。
+    private const ulong CoverageSeed = 1812UL;
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
@@ -1637,7 +1638,6 @@ public class InstrumentsTests
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make(CoverageSeed);
-                foreach (var n0 in sim.Nations) { n0.World.Coef.AiModernizeFromReturn = 0; }   // ★(416) 場面の前提〔構造と飢えの両方が立つ世界〕を旧の既定で保つ（法律タブの照会の機構を測る番人）。★(449) 国力の物差しは既定の新しい側のまま〔旧の旗に固定しない〕
                 foreach (var n0 in sim.Nations) n0.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 壁の一歩を閉じた世界〔壁は通らない・符号 2 の構造〕の分割を見る番人＝指数を 0 に明示（既定は 2・旧の旗 0 と同じ振る舞い＝盤面の軌道も変わらない）
                 RunMatch(sim, WarQ, instr: false);
                 foreach (var nation in sim.Nations)

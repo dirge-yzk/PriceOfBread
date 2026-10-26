@@ -979,7 +979,7 @@ public static class EconomyStep
             if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
             // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
-            // ★(416)：この 4 行の式は InvestmentReturn の 1 本へ抜き出した（式・順序・リテラルは抜き出す前と同じ）。AI の近代化投資の信号（World.ModernizeReturnShare・旗 AiModernizeFromReturn）も同じ関数を通る。
+            // ★(416)：この 4 行の式は InvestmentReturn の 1 本へ抜き出した（式・順序・リテラルは抜き出す前と同じ）。AI の近代化投資の信号（World.ModernizeReturnShare）も同じ関数を通る。
             var (techLev, sat, grossReturn, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
             // クラウディングアウト（金利チャネル）：政府の借入で上がった国債金利プレミアムが民間投資のハードルを上げる
             // ＝高債務国ほど民間投資が締め出され工業化が鈍る（資本希少国で強く・金本位の信用国は弱い＝条件付き）。

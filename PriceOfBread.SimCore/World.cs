@@ -1987,7 +1987,7 @@ public sealed class World
         return head * Math.Max(0, units);
     }
 
-    /// <summary>★(416) AI の近代化投資を止める信号（旗 <see cref="Coefficients.AiModernizeFromReturn"/>）＝国庫の近代化投資の配り先の設備が儲かっているか。
+    /// <summary>★(416) AI の近代化投資を止める信号（AI の Apply・ダンピングの後発判定・スタンスの工業化の余地・AutoModernizationFrac が読む唯一の信号）＝国庫の近代化投資の配り先の設備が儲かっているか。
     /// 州の <c>ReturnShare＝Clamp01(1−hurdle÷gross)</c>（<see cref="EconomyStep.InvestmentReturn"/>＝私的な投資家が建設の速さを決める式と同じ 1 本・<c>gross≦0</c> か NaN は 0）を、
     /// 国庫の按分の重み（<see cref="StateInvestWeight"/>）で加重平均する。重みが全て 0 の適格の州があるときは均等（(583) 前に ApplyModernizationInvestment にあった等分の枝と同じ規則）・適格の州が無ければ 0。
     /// <c>techProd</c> は <see cref="TechProductivity"/>（月次の経済と同じ 1 本）。純関数（状態を書かない・<c>IsPlayer</c> も <see cref="IndustrialFrontier"/> も <see cref="MeanIndustrialization"/> も読まない）。

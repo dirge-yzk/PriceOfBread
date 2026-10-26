@@ -70,7 +70,7 @@ public static partial class Instruments
     {
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
-        public int ModStance = -1; public double ModGapUsed = double.NaN; public bool ModFromReturn;   // (416) AI の近代化投資の判断（Apply が置き ModFold が書いて戻す）
+        public int ModStance = -1; public double ModGapUsed = double.NaN;   // (416) AI の近代化投資の判断（Apply が置き ModFold が書いて戻す）
         public List<string>? SecRows;                      // (395) 州の分離の内訳の行（CheckSecession が置き SecFold が書いて消す）
         public string? CoupRow; public int CoupRoute;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
