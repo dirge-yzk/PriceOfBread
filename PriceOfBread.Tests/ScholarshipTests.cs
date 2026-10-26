@@ -176,6 +176,32 @@ public class ScholarshipTests
         Assert.Contains((0.25).ToString("P0"), on);
     }
 
+    /// <summary>月次決算（MonthSettle→CheckInvariants＝貨幣保存の検査）を通して回す：補助が実際に流れる盤面（法あり・必要量あり・大学の生産者あり・SetTreasuryRaw なし）で例外が出ず、
+    /// 割合が正・買い手の充足が正・国庫の減りが旗 0 の同じ盤面より大きい（補助が国庫から出た）。突然変異 M5（買い手の支払いを減らさない）は保存を破る or 国庫の差が 0 になって赤。</summary>
+    [Fact]
+    public void J2_月次決算を通して回す_保存の検査が通り_補助が国庫から出る()
+    {
+        (double treasury, double share, double fill) Run(int flag)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            var w = sim.World;
+            w.Coef.ScholarshipLaw = flag; w.Coef.HigherEduNeedPerEducated = 0.5;
+            w.EducationLaw = EducationLaw.Public; w.Policy.EducationLaw = EducationLaw.Public;
+            w.EducationSpending = 0.6; w.Policy.EducationSpendingTarget = 0.6;
+            var r = w.Region; int h = Catalog.HigherEducationId, lab = Math.Max(0, r.TeacherPopIndex);
+            r.Producers.Add(new Producer { GoodId = h, Productivity = 1e6, Output = 1e9, MarginalCost = 0.4, LaborPopIndex = lab, OwnerPopIndex = lab, RentShare = default, Inputs = [] });
+            sim.Run(1);   // 1 四半期＝3 回の月次決算（CheckInvariants が毎月走る＝例外が出ないこと自体が貨幣保存の確かめ）
+            double share = 0, fill = 0;
+            foreach (var rg in w.Regions) { share += rg.ScholarshipShare; foreach (var p in rg.Pops) fill += p.HigherEduFill * p.Size; }
+            return (w.Treasury.Value, share, fill);
+        }
+        var off = Run(0); var on = Run(1);
+        Assert.Equal(0.0, off.share);
+        Assert.True(on.share > 0, "前提が崩れた：旗 1・Public・段 0.6 で割合が立たない");
+        Assert.True(on.fill > 0, "前提が崩れた：高等教育の買い手が居ない（必要量か大学の盤面）");
+        Assert.True(on.treasury < off.treasury, $"補助が国庫から出ていない（旗 1 の国庫 {on.treasury} ≧ 旗 0 の国庫 {off.treasury}）");
+    }
+
     private static string FindSimCore(string file)
     {
         string? d = AppContext.BaseDirectory;
