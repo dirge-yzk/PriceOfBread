@@ -1173,26 +1173,34 @@ public sealed class Region
     [System.NonSerialized] internal int ClearSellerPos;
     [System.NonSerialized] internal int ClearSellerStamp;
     /// <summary>印が立っていれば（または未作成なら）作り直す。作るときに市場へ宛先（この州）を付ける。</summary>
+    /// ★(spt2) 作り直しは 1 周（スレッドごとの作業配列へ書く）・中身が前の一覧と同じなら前の配列をそのまま返す（新しい配列を作らない）・市場への宛先は違うときだけ書く。
+    /// 返す一覧の中身と順は旧と同じ（Goods の順のうち死んでいない財）。呼び手（MarketFlow.StepDay・テスト）は一覧を書き換えず、呼びの間だけ読む＝同じ配列を返してよい
+    /// （印が立っていない月はもともと同じ配列を返していた）。旧＝作り直すたびに 2 周して新しい配列を作った（州×月に 1 回・StepDay の約 1 割＝measurements/spt2_20261026_identity.txt）。
     internal Good[] EnsureLiveGoods()
     {
         if (LiveGoods is { } lg && !LiveDirty) return lg;
+        var buf = _liveBuf;
+        if (buf is null || buf.Length < Goods.Count) buf = _liveBuf = new Good[Goods.Count];
         int n = 0;
         foreach (var g in Goods)
         {
             var m = Markets[g.Id];
-            m._liveRegion = this;
-            if (!(m.LastDemand < Market.DeadEps && m.LastProduced < Market.DeadEps)) n++;
+            if (!ReferenceEquals(m._liveRegion, this)) m._liveRegion = this;
+            if (!(m.LastDemand < Market.DeadEps && m.LastProduced < Market.DeadEps)) buf[n++] = g;
         }
-        var arr = n == 0 ? System.Array.Empty<Good>() : new Good[n];
-        int i = 0;
-        foreach (var g in Goods)
+        var old = LiveGoods;
+        bool same = old is not null && old.Length == n;
+        for (int i = 0; same && i < n; i++) if (!ReferenceEquals(old![i], buf[i])) same = false;
+        if (!same)
         {
-            var m = Markets[g.Id];
-            if (!(m.LastDemand < Market.DeadEps && m.LastProduced < Market.DeadEps)) arr[i++] = g;
+            var arr = n == 0 ? System.Array.Empty<Good>() : new Good[n];
+            System.Array.Copy(buf, arr, n);
+            LiveGoods = arr;
         }
-        LiveGoods = arr; LiveDirty = false;
-        return arr;
+        LiveDirty = false;
+        return LiveGoods!;
     }
+    [System.ThreadStatic] private static Good[]? _liveBuf;   // ★(spt2) 作り直しの作業配列（スレッドごと・セーブに載らない静的な欄）
 
     // 財Id→Good の直引き（遅延構築）。Goods は構築後に増減しない＝安全。線形探索 Goods.Find(x=>x.Id==id) の O(財数) を O(1) に（Gdp等のホットパス高速化）。
     private Good?[]? _goodById;

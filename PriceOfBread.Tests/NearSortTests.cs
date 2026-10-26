@@ -101,4 +101,23 @@ public class NearSortTests
         Assert.False(ok);
         Assert.Equal(new List<Item> { new(0, 2.0), new(1, 1.0), new(2, 1.0), new(3, 0.5) }, items);   // 失敗のときは元の順のまま
     }
+
+    [Fact]
+    public void 生きた財の一覧は使い回しても一から作った一覧と同じ()
+    {
+        // ★(spt2) 候補3：作り直しを 1 周にし、中身が前と同じなら前の配列を使い回す＝返す一覧は Goods の順のうち死んでいない財（一から作ったものと同じ）
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region;
+        var rng = new System.Random(5);
+        for (int step = 0; step < 300; step++)
+        {
+            var g = r.Goods[rng.Next(r.Goods.Count)];
+            var m = r.Markets[g.Id];
+            if (rng.Next(2) == 0) m.LastDemand = rng.Next(3) == 0 ? 0 : rng.NextDouble(); else m.LastProduced = rng.Next(3) == 0 ? 0 : rng.NextDouble();
+            var got = r.EnsureLiveGoods();
+            var want = r.Goods.Where(x => !(r.Markets[x.Id].LastDemand < Market.DeadEps && r.Markets[x.Id].LastProduced < Market.DeadEps)).ToArray();
+            Assert.Equal(want, got);
+            Assert.Same(got, r.EnsureLiveGoods());   // 印が立っていなければ同じ配列
+        }
+    }
 }
