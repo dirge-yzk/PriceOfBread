@@ -1,0 +1,9 @@
+# (569) 合流の木 253770a5 の試験（Release・隔離ビルド D:/PoB_work/m569/art・2026-10-26）
+## Category!=FullLength（--blame-crash）
+成功!   -失敗:     0、合格:  1842、スキップ:     1、合計:  1843、期間: 21 m 8 s - PriceOfBread.Tests.dll (net10.0)
+中止の行: 0
+## Category=FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 47 s - PriceOfBread.Tests.dll (net10.0)
+## dotnet test --no-build --list-tests | grep -c '^    '
+1846
+＝1843＋3（中止なし）

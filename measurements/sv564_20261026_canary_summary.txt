@@ -1,0 +1,93 @@
+===== イギリス
+B Q1-8: rev=7216 irMax=0.59 gateClosed=0 def=0 convMin=0.64 bond=0.062 | Q9-40: rev=8149 irMax=0.79 gate=3 def=0 convMin=0.75 bond=0.039
+   w0 P=1.00 M/Y=16.77 inv/Y=11.70 massPaid/Earn=1.73 Ynom=739622
+   w19 P=1.02 M/Y=17.99 inv/Y=13.90 massPaid/Earn=2.13 Ynom=685338
+   q0 P=1.03 M/Y=16.41 inv/Y=12.74 massPaid/Earn=1.96 Ynom=751209
+   q4 P=1.05 M/Y=16.64 inv/Y=12.79 massPaid/Earn=2.09 Ynom=740093
+   q8 P=1.04 M/Y=16.47 inv/Y=12.92 massPaid/Earn=1.81 Ynom=747226
+   q12 P=1.11 M/Y=17.19 inv/Y=13.74 massPaid/Earn=1.90 Ynom=715769
+   q20 P=1.03 M/Y=14.11 inv/Y=11.68 massPaid/Earn=1.77 Ynom=874019
+   q39 P=1.03 M/Y=17.10 inv/Y=14.21 massPaid/Earn=1.32 Ynom=724921
+   construction desired/budget q0-8=0.023 planned/budget=0.016 boundShare=0.000 | q8-40 0.019 0.011 0.006
+D2 Q1-8: rev=6343 irMax=0.67 gateClosed=0 def=0 convMin=0.64 bond=0.058 | Q9-40: rev=6893 irMax=0.62 gate=0 def=0 convMin=0.75 bond=0.040
+   w0 P=1.00 M/Y=5.45 inv/Y=0.46 massPaid/Earn=1.74 Ynom=743569
+   w19 P=1.01 M/Y=5.58 inv/Y=1.97 massPaid/Earn=2.07 Ynom=715557
+   q0 P=1.02 M/Y=5.45 inv/Y=1.98 massPaid/Earn=1.92 Ynom=733145
+   q4 P=1.02 M/Y=5.31 inv/Y=2.05 massPaid/Earn=2.09 Ynom=753338
+   q8 P=1.02 M/Y=5.18 inv/Y=2.21 massPaid/Earn=2.20 Ynom=772378
+   q12 P=0.99 M/Y=5.19 inv/Y=2.44 massPaid/Earn=1.96 Ynom=771828
+   q20 P=0.96 M/Y=4.81 inv/Y=2.64 massPaid/Earn=1.76 Ynom=840147
+   q39 P=1.08 M/Y=5.27 inv/Y=2.89 massPaid/Earn=1.70 Ynom=650570
+   construction desired/budget q0-8=0.107 planned/budget=0.060 boundShare=0.001 | q8-40 0.116 0.023 0.018
+D1 Q1-8: rev=7428 irMax=1.03 gateClosed=14 def=0 convMin=0.01 bond=0.066 | Q9-40: rev=11809 irMax=0.82 gate=2 def=0 convMin=0.00 bond=0.069
+   w0 P=1.00 M/Y=0.55 inv/Y=0.42 massPaid/Earn=1.70 Ynom=741233
+   w19 P=1.31 M/Y=0.60 inv/Y=0.30 massPaid/Earn=0.87 Ynom=856801
+   q0 P=1.30 M/Y=0.57 inv/Y=0.28 massPaid/Earn=0.88 Ynom=910101
+   q4 P=1.25 M/Y=0.56 inv/Y=0.24 massPaid/Earn=1.01 Ynom=998817
+   q8 P=1.22 M/Y=0.61 inv/Y=0.21 massPaid/Earn=0.88 Ynom=1056151
+   q12 P=1.24 M/Y=0.61 inv/Y=0.19 massPaid/Earn=0.88 Ynom=1294535
+   q20 P=1.39 M/Y=0.69 inv/Y=0.27 massPaid/Earn=0.96 Ynom=1676240
+   q39 P=2.25 M/Y=0.96 inv/Y=0.54 massPaid/Earn=1.04 Ynom=2546130
+   construction desired/budget q0-8=0.688 planned/budget=0.034 boundShare=0.013 | q8-40 2.839 0.600 0.556
+===== フランス
+B Q1-8: rev=4313 irMax=0.29 gateClosed=0 def=0 convMin=0.64 bond=0.050 | Q9-40: rev=4181 irMax=0.31 gate=0 def=0 convMin=0.75 bond=0.040
+   w0 P=1.00 M/Y=28.79 inv/Y=15.80 massPaid/Earn=1.65 Ynom=556758
+   w19 P=0.70 M/Y=26.32 inv/Y=17.31 massPaid/Earn=2.17 Ynom=612853
+   q0 P=0.72 M/Y=27.24 inv/Y=18.04 massPaid/Earn=2.13 Ynom=591953
+   q4 P=0.73 M/Y=24.97 inv/Y=16.96 massPaid/Earn=2.09 Ynom=644545
+   q8 P=0.77 M/Y=26.74 inv/Y=18.64 massPaid/Earn=2.37 Ynom=600574
+   q12 P=0.83 M/Y=26.79 inv/Y=19.23 massPaid/Earn=2.62 Ynom=597916
+   q20 P=0.86 M/Y=23.10 inv/Y=17.70 massPaid/Earn=2.84 Ynom=691229
+   q39 P=0.74 M/Y=23.02 inv/Y=19.27 massPaid/Earn=1.26 Ynom=731005
+   construction desired/budget q0-8=0.036 planned/budget=0.033 boundShare=0.000 | q8-40 0.006 0.002 0.000
+D2 Q1-8: rev=3930 irMax=0.31 gateClosed=0 def=0 convMin=0.64 bond=0.061 | Q9-40: rev=3672 irMax=0.39 gate=0 def=0 convMin=0.75 bond=0.041
+   w0 P=1.00 M/Y=13.62 inv/Y=0.64 massPaid/Earn=1.64 Ynom=554697
+   w19 P=0.73 M/Y=13.06 inv/Y=4.05 massPaid/Earn=2.12 Ynom=587211
+   q0 P=0.74 M/Y=13.35 inv/Y=4.26 massPaid/Earn=2.08 Ynom=574248
+   q4 P=0.79 M/Y=12.77 inv/Y=4.48 massPaid/Earn=2.06 Ynom=596676
+   q8 P=0.83 M/Y=12.39 inv/Y=4.81 massPaid/Earn=2.67 Ynom=610768
+   q12 P=0.84 M/Y=11.82 inv/Y=5.14 massPaid/Earn=2.35 Ynom=639734
+   q20 P=0.85 M/Y=12.10 inv/Y=6.24 massPaid/Earn=2.32 Ynom=621129
+   q39 P=1.02 M/Y=11.86 inv/Y=7.98 massPaid/Earn=1.64 Ynom=742360
+   construction desired/budget q0-8=0.213 planned/budget=0.206 boundShare=0.000 | q8-40 0.119 0.112 0.002
+D1 Q1-8: rev=3723 irMax=0.30 gateClosed=0 def=0 convMin=0.64 bond=0.035 | Q9-40: rev=3566 irMax=0.32 gate=0 def=0 convMin=0.75 bond=0.039
+   w0 P=1.00 M/Y=0.96 inv/Y=0.61 massPaid/Earn=1.64 Ynom=555830
+   w19 P=0.80 M/Y=0.83 inv/Y=0.56 massPaid/Earn=0.84 Ynom=603731
+   q0 P=0.80 M/Y=0.87 inv/Y=0.59 massPaid/Earn=0.89 Ynom=571340
+   q4 P=0.78 M/Y=0.88 inv/Y=0.55 massPaid/Earn=0.85 Ynom=562341
+   q8 P=0.81 M/Y=0.86 inv/Y=0.49 massPaid/Earn=0.86 Ynom=568738
+   q12 P=0.82 M/Y=0.83 inv/Y=0.43 massPaid/Earn=0.85 Ynom=589190
+   q20 P=0.85 M/Y=0.78 inv/Y=0.32 massPaid/Earn=0.98 Ynom=630419
+   q39 P=0.95 M/Y=0.74 inv/Y=0.13 massPaid/Earn=0.88 Ynom=731181
+   construction desired/budget q0-8=0.169 planned/budget=0.069 boundShare=0.002 | q8-40 0.219 0.008 0.008
+===== 清
+B Q1-8: rev=30513 irMax=0.00 gateClosed=0 def=0 convMin=0.64 bond=0.025 | Q9-40: rev=33763 irMax=0.00 gate=0 def=0 convMin=0.75 bond=0.028
+   w0 P=1.00 M/Y=26.49 inv/Y=3.42 massPaid/Earn=1.18 Ynom=4725572
+   w19 P=0.92 M/Y=25.46 inv/Y=6.58 massPaid/Earn=2.05 Ynom=4879077
+   q0 P=0.90 M/Y=25.20 inv/Y=6.70 massPaid/Earn=2.09 Ynom=4928638
+   q4 P=0.82 M/Y=25.33 inv/Y=7.44 massPaid/Earn=1.90 Ynom=4896726
+   q8 P=0.79 M/Y=25.41 inv/Y=8.18 massPaid/Earn=2.11 Ynom=4877451
+   q12 P=0.79 M/Y=25.38 inv/Y=8.93 massPaid/Earn=2.25 Ynom=4876192
+   q20 P=0.80 M/Y=24.02 inv/Y=10.04 massPaid/Earn=2.47 Ynom=5137219
+   q39 P=0.87 M/Y=23.52 inv/Y=13.30 massPaid/Earn=1.91 Ynom=5183851
+   construction desired/budget q0-8=0.257 planned/budget=0.257 boundShare=0.000 | q8-40 0.015 0.015 0.000
+D2 Q1-8: rev=29807 irMax=0.00 gateClosed=0 def=0 convMin=0.64 bond=0.024 | Q9-40: rev=32234 irMax=0.00 gate=0 def=0 convMin=0.75 bond=0.027
+   w0 P=1.00 M/Y=23.22 inv/Y=0.14 massPaid/Earn=1.18 Ynom=4723068
+   w19 P=0.92 M/Y=22.80 inv/Y=3.79 massPaid/Earn=1.94 Ynom=4771478
+   q0 P=0.91 M/Y=22.56 inv/Y=3.93 massPaid/Earn=2.00 Ynom=4821410
+   q4 P=0.86 M/Y=22.77 inv/Y=4.73 massPaid/Earn=2.11 Ynom=4769242
+   q8 P=0.84 M/Y=22.10 inv/Y=5.28 massPaid/Earn=2.03 Ynom=4906924
+   q12 P=0.83 M/Y=22.04 inv/Y=6.04 massPaid/Earn=2.18 Ynom=4914885
+   q20 P=0.83 M/Y=21.55 inv/Y=7.43 massPaid/Earn=2.27 Ynom=5009008
+   q39 P=0.95 M/Y=22.35 inv/Y=11.39 massPaid/Earn=2.12 Ynom=4760302
+   construction desired/budget q0-8=0.301 planned/budget=0.301 boundShare=0.000 | q8-40 0.068 0.068 0.000
+D1 Q1-8: rev=10599 irMax=0.00 gateClosed=0 def=0 convMin=0.64 bond=0.025 | Q9-40: rev=21690 irMax=0.00 gate=0 def=0 convMin=0.75 bond=0.030
+   w0 P=1.00 M/Y=0.88 inv/Y=0.14 massPaid/Earn=1.18 Ynom=4728213
+   w19 P=1.07 M/Y=0.90 inv/Y=0.79 massPaid/Earn=0.95 Ynom=4733704
+   q0 P=1.05 M/Y=0.87 inv/Y=0.77 massPaid/Earn=0.94 Ynom=4931116
+   q4 P=1.03 M/Y=0.94 inv/Y=0.82 massPaid/Earn=0.91 Ynom=4869789
+   q8 P=1.01 M/Y=0.91 inv/Y=0.78 massPaid/Earn=0.92 Ynom=5338066
+   q12 P=1.03 M/Y=0.96 inv/Y=0.81 massPaid/Earn=0.94 Ynom=5431286
+   q20 P=1.02 M/Y=0.91 inv/Y=0.74 massPaid/Earn=0.91 Ynom=6736050
+   q39 P=1.07 M/Y=0.91 inv/Y=0.64 massPaid/Earn=0.90 Ynom=10844272
+   construction desired/budget q0-8=0.019 planned/budget=0.019 boundShare=0.000 | q8-40 0.000 0.000 0.000

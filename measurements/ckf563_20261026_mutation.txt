@@ -1,0 +1,12 @@
+KILLED   M1 ParentEngineers が altParent を見ない | 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M2 ParentEngineers が altParent を常に真にする | 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M3 Score が旗 L を渡さない | 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M4 PriceBook が閉じた既定のレシピを使わない | 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M5 閉じた既定のレシピの表を旗に関わらず作る | 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M6 別名のレシピも閉じた表に入れ最後の物を採る | 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M7 潜在の値段が既に値段のある財も上書きする | 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M8 旗 P の既定を 1 にする | 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M9 旗 L の既定を 1 にする | 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+KILLED   M10 機関車の行から別の親の列を外す | 失敗!   -失敗:     3、合格:     6、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+SURVIVED M11 計器 InstrumentsClock が旗 L を渡さない（番人なし＝生き残る見込み） | 成功!   -失敗:     0、合格:     9、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+DONE
