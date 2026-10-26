@@ -72,7 +72,7 @@ for s in range(1, NS + 1):
         if not bad(fl): fill.setdefault((r['nation'], decade(r['year'])), []).append(fl)
         lc = law.get(key)
         pl = prev.get(r['nation'])
-        if pl is not None and lc is not None and lc != pl[0]:
+        if pl is not None and pl[0] is not None and lc is not None and lc != pl[0]:
             jump.append((s, r['nation'], r['year'], pl[0], lc, pl[1], cv))
         prev[r['nation']] = (lc, cv)
     tot['entrance'] += ent; tot['subpos'] += sp

@@ -657,6 +657,7 @@ public static class EconomyStep
         long insRows = 0, insBound = 0; double insDesired = 0, insDemand = 0;
         double[]? insSpend = insOn ? Instruments.SpendBuf(world!) : null;   // (286) 計器（読むだけ）：階級×支払いの種類の積算（支払いの位置で積む）
         var insEnt = insOn ? Instruments.EntryBegin(world!, region) : null;   // (345) 計器（読むだけ）：消費の入口の材料（使える所得・籠の費用・余り・取り崩し・必需の割合の影）。助走の月は null
+        if (insOn) Instruments.HigherPaidBegin(region);   // ★(590) 計器（読むだけ）：高等教育の授業料の総額と国庫の負担分の月の蓄えを州・月の頭で 0 に戻す（その月に高等教育の配分が飛ばされても前の月の値を残さない）
         if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
         // （所得翻訳ゲート＝DemandIncomeElasticity・2026-08-08 差し戻し・休眠は 2026-09-26 に削除＝棚卸し econ-16/dorm-51）
         // 在庫の腐敗・劣化（保管期間に応じた減衰）：穀物・生鮮は速く、金属・燃料は遅い。だぶつきの恒久滞留を防ぐ。
@@ -1798,7 +1799,6 @@ public static class EconomyStep
             if (isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId) && !(gi == Catalog.DomesticServiceId && coef.DomesticServiceMarketRation > 0))   // ★(433) 家事奉仕は旗が立つと比例の配給（下の else）へ
             {
                 // === 役務（教育・医療）の優先配分 ===
-                if (insOn && gi == Catalog.HigherEducationId) Instruments.HigherPaidBegin(region);   // ★(590) 計器（読むだけ）：授業料の総額と国庫の負担分の月の蓄え
                 // 「教育は下層POPが優先的に買い、なお余った分を中流が買う」＝中流に届く余剰が高等教育（専門職への転職資格）。
                 // 比例配給ではなく階層順に在庫を埋める。役務は充足度（Satisfaction）に数えない＝生活水準の較正を変えず、
                 // 効果は Fill（識字の天井・人口扶養力・昇格ゲート）として別経路で効く。
