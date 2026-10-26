@@ -144,6 +144,7 @@ public static partial class Instruments
         // ---- (280) 線X：物価の更新の鎖（助走を含む四半期ごと）・財ごとの価格・月ごとの貨幣と所得（挙げた国だけ・書き出しは Phase warm／Quarter で行う）
         public int PxWarmN, PxGameN, PxMonthWarmN, PxMonthGameN;                     // 助走／試合の何回目か（四半期の更新・月の決算の数）
         public readonly List<string> PxRows = new(), PxGoodsRows = new(), PxMonthRows = new(); public string? PxHdr, PxMonthHdr;
+        public readonly List<string> DcRows = new();   // (587) 旧の切り下げの切り（貯蓄の月の上限）に当たった月の行（全ての国・まばら）
         public int PcWarmN, PcGameN; public readonly List<string> PcRows = new();   // (582) 物価の更新の呼びの番号（全ての国・挙げた国の PxWarmN／PxGameN と同じ数え方）と、天井・床に触れた行（全ての国・まばら）
         public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
         public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
@@ -191,6 +192,7 @@ public static partial class Instruments
         public int NextUid;  // (271) 国の個体の番号の次
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
+        public System.IO.StreamWriter? DevCapW; public bool DevCapHeader;   // (587) 切り下げの切りに当たった月（全ての国・まばら）
         public System.IO.StreamWriter? PClamp; public bool PClampHeader;   // (582) 物価の天井・床の接触（全ての国・まばら）
         public System.IO.StreamWriter? Site, Metal, MetalNat; public bool SiteHeader, MetalHeader, MetalNatHeader;   // (316) 産地の判定の行・世界の金銀の行／(582) 国別の金銀の行
         public System.IO.StreamWriter? Eng; public bool EngHeader;                         // (415) 発見の表の行の親の産業の技師の量（census）
@@ -823,6 +825,14 @@ public static partial class Instruments
     {
         if (Live(w) is not { } st) return;
         st.Borrowed = borrowed;
+    }
+    /// <summary>(587) 切り下げの月の額が決まった所：払えない額の余地 <paramref name="room"/> が旧の切り <paramref name="cap"/>（貯蓄×DevaluationCapFracPerMonth）を超えた月の行を溜める（全ての国・まばら・読むだけ・切りが正でない月は数えない）。
+    /// 指数 0（既定）では切り下げ額＝切りで止まった月、指数が正なら切りを超えて取れた月。</summary>
+    internal static void DevCap(World w, double room, double cap, double devalued)
+    {
+        if (!(cap > 0) || !(room > cap)) return;
+        var st = S(w);
+        st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" : "q") + ((long)w.Tick).ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(w.Coef.DevaluationCapReliefExp)));
     }
     /// <summary>率 r が決まった所（請求の合計・払える額〔借入と切り下げの後〕・r・この月の切り下げ）。</summary>
     internal static void Rate(World w, double claims, double payable, double payRate, double devalued)
@@ -1632,6 +1642,13 @@ public static partial class Instruments
             foreach (var row in st.PcRows) sk.PClamp.WriteLine(row);
             st.PcRows.Clear();
         }
+        if (st.DcRows.Count > 0)   // (587) 切り下げの切りに当たった月（全ての国）
+        {
+            sk.DevCapW ??= Open("devcap", seed);
+            if (!sk.DevCapHeader) { sk.DevCapW.WriteLine("time\tnation\tyear\troomPerMonth\tcapPerMonth\tdevaluedPerMonth\troomOverCapRatio\treliefExp"); sk.DevCapHeader = true; }
+            foreach (var row in st.DcRows) sk.DevCapW.WriteLine(row);
+            st.DcRows.Clear();
+        }
         if (st.PxMonthRows.Count > 0)
         {
             sk.PxMonth ??= Open("pxmonth", seed);
@@ -1745,7 +1762,7 @@ public static partial class Instruments
         BurScanTable(sk, sim);   // (389)
         TransportClose(sk, sim);   // (380) 年の途中で終わった残り
         ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
-        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null;   // (316)(582)
+        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null; sk.DevCapW?.Dispose(); sk.DevCapW = null;   // (316)(582)(587)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
