@@ -108,7 +108,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     /// <summary>不換のフランスで、毎月の月初に国債の平均クーポンを、利払いの請求が広義の貨幣の fMonth 倍になる高さへ置いて赤字を作り（利払いは国内の保有者＝POP へ戻る＝印刷した金は経済へ入る）、
     /// 借入を閉じ、兌換 0 のまま <paramref name="months"/> か月進める。月の切り下げ額は <see cref="World.CumulativeDevaluation"/> の窓（30 日）ごとの差で読む。
     /// ⚠赤字を作る手は〈クーポンを置く〉1つだけ＝国庫から POP へ金を移して借越を作る手は使わない（借越の金が貨幣の厚みに入って切りの有無と無関係に物価を押す）。</summary>
-    private (double[] devPerMonth, double[] savStart, double[] priceEndOfQuarter, bool finiteAll, double maxP, bool defaulted) RunDeficit(double relief, double fMonth, int months)
+    private (double[] devPerMonth, double[] savStart, double[] priceEndOfQuarter, bool finiteAll, double maxP, bool defaulted, double[] pressFull, double[] pressIssue) RunDeficit(double relief, double fMonth, int months)
     {
         var cfg = OpeningFixture.Named("フランス");
         cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
@@ -118,6 +118,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
         Assert.True(w.MonetaryEnabled);
         var mc = new MoneyConservation(w);
         var dev = new double[months]; var sav = new double[months]; var pq = new double[months / 3];
+        var pf = new double[months / 3]; var pi = new double[months / 3];   // 四半期ごとの圧（記録用）：全体＝切り下げ額÷広義の貨幣の月ごとの和／発行分だけ＝その FiatIssueFrac 倍
         bool finite = true; double maxP = 0;
         for (int m = 0; m < months; m++)
         {
@@ -130,12 +131,13 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
             double d0 = w.CumulativeDevaluation;
             for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
             dev[m] = w.CumulativeDevaluation - d0;
+            pf[m / 3] += dev[m] / Math.Max(1.0, broad); pi[m / 3] += w.Coef.FiatIssueFrac.Value * dev[m] / Math.Max(1.0, broad);
             if (m % 3 == 2) { pq[m / 3] = w.PriceLevel; maxP = Math.Max(maxP, w.PriceLevel); mc.Check(w); }
             finite &= double.IsFinite(w.PriceLevel) && w.PriceLevel > 0 && double.IsFinite(w.ExpectedInflationPerYear.Value)
                       && double.IsFinite(w.GovBondRatePerYear.Value) && double.IsFinite(w.GovAvgCouponPerYear.Value) && double.IsFinite(w.InterestRate)
                       && double.IsFinite(w.Treasury.Value) && double.IsFinite(w.CostPriceLevel) && double.IsFinite(w.ExchangeRate);
         }
-        return (dev, sav, pq, finite, maxP, w.HadSovereignDefault);
+        return (dev, sav, pq, finite, maxP, w.HadSovereignDefault, pf, pi);
     }
 
     [Fact]
@@ -171,6 +173,30 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
         var half = RunDeficit(0.5, 0.3, months);
         Assert.True(half.finiteAll, "√ の盤面で下流が有限でない");
         output.WriteLine($"√（指数0.5）・月に広義の貨幣の30%の赤字：P(q24)={half.priceEndOfQuarter[^1]:E3}・最大P={half.maxP:E3}・債務不履行={half.defaulted}");
+    }
+
+    [Fact]
+    public void 圧を発行分だけに限った場合の物価の経路と_切り下げの前半の区間の比を記録する()
+    {
+        // 事前登録 追記4：採否に使わない記録（反証役の指摘）。①H2 の盤面の四半期ごとの圧（全体＝haircut＋発行／発行分だけ）を同じ漸化式（RunPressure と同じ UpdatePriceLevel）へ流した P の経路。
+        // ②指数 0 が切りに当たってから債務不履行までの区間で、指数 1 が同じ月数に切り下げた額の比（債務不履行の前の同じ月数の区間での比較＝債務不履行による打ち切りを除く）。
+        const int months = 72;
+        var on = RunDeficit(1, 0.3, months);
+        var off = RunDeficit(0, 0.3, months);
+        double Series(double[] f)
+        {
+            var w = BuildBritain();
+            foreach (double x in f) { w.FiatInflationPressure = x; w.UpdatePriceLevel(w.Coef); }
+            return w.PriceLevel;
+        }
+        double full = Series(on.pressFull), issue = Series(on.pressIssue);
+        double maxFull = on.pressFull.Max(), maxIssue = on.pressIssue.Max();
+        Assert.True(double.IsFinite(full) && double.IsFinite(issue));
+        // 区間：指数 0 の切り下げが最初に 0 になった月（債務不履行で赤字ごと消えた月）まで
+        int first = Array.FindIndex(off.devPerMonth, x => x > 0.0); int cut = first < 0 ? months : Array.FindIndex(off.devPerMonth, first, x => x <= 0.0); if (cut < 0) cut = months;
+        double sumOff = 0, sumOn = 0; for (int m = 0; m < cut; m++) { sumOff += off.devPerMonth[m]; sumOn += on.devPerMonth[m]; }
+        output.WriteLine($"圧の経路を流した P(q24)：全体の圧（haircut＋発行）={full:E3}／発行分だけの圧={issue:E3}／四半期の圧の最大 全体={maxFull:F3}・発行分={maxIssue:F3}（閾値 5/9=0.556）");
+        output.WriteLine($"指数 0 が債務不履行へ落ちるまでの {cut} か月の切り下げの合計：指数 0={sumOff:E3}・指数 1={sumOn:E3}・比={(sumOff > 0 ? sumOn / sumOff : double.NaN):F2}");
     }
 
     private static double Median(double[] a) { var b = (double[])a.Clone(); Array.Sort(b); return b[b.Length / 2]; }

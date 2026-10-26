@@ -827,12 +827,12 @@ public static partial class Instruments
         st.Borrowed = borrowed;
     }
     /// <summary>(587) 切り下げの月の額が決まった所：払えない額の余地 <paramref name="room"/> が旧の切り <paramref name="cap"/>（貯蓄×DevaluationCapFracPerMonth）を超えた月の行を溜める（全ての国・まばら・読むだけ・切りが正でない月は数えない）。
-    /// 指数 0（既定）では切り下げ額＝切りで止まった月、指数が正なら切りを超えて取れた月。</summary>
+    /// 指数 0（既定）では切り下げ額＝切りで止まった月、指数が正なら切りを超えて取れた月。time＝w（助走）／q（試合）＋物価の更新の呼びの通し番号 PcWarmN／PcGameN（この月が属する四半期の更新の呼びの番号・加算はしない）＝Tick は助走で進まない。</summary>
     internal static void DevCap(World w, double room, double cap, double devalued)
     {
         if (!(cap > 0) || !(room > cap)) return;
         var st = S(w);
-        st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" : "q") + ((long)w.Tick).ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(w.Coef.DevaluationCapReliefExp)));
+        st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" + st.PcWarmN : "q" + st.PcGameN), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(w.Coef.DevaluationCapReliefExp)));
     }
     /// <summary>率 r が決まった所（請求の合計・払える額〔借入と切り下げの後〕・r・この月の切り下げ）。</summary>
     internal static void Rate(World w, double claims, double payable, double payRate, double devalued)
