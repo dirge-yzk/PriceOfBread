@@ -7,6 +7,7 @@ namespace PriceOfBread.Tests;
 /// 旗 0 は今の Clamp(P, 床, 天井) のまま・旗 1 は天井を掛けず（床は残す）、P が正の有限でない四半期だけ更新前の P を保つ。紙幣増発の掛け算の道（ハイパーインフレ）は旗に依らず残る。
 /// 期待値は World の式を写さない＝旗 0 と旗 1 の同じ盤面の差と、更新の式の外側の性質（天井を越える・床は残る・増発で伸び続ける・有限）だけで書く。
 /// 事前登録 <c>measurements/svf2_582_20261026_prereg.txt</c>。</summary>
+[Collection("Instruments")]   // 計器の静的な状態（Instruments.Configure）を立てる試験を含む＝他の試験と並列に走らせない（DiscoveryClockTests の世界の合計の欄が計器の On で埋まる干渉を起こした）
 public class PriceLevelCeilFreeTests
 {
     /// <summary>イギリスの盤面を組み、旗を立て（または立てず）、初回の更新（趨勢の基準を取るだけ）を済ませて返す。</summary>
