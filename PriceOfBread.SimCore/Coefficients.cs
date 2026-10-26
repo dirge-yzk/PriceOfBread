@@ -1956,8 +1956,8 @@ public sealed class Coefficients
     public double DiscoveryClockRampWidth = 0.1;    // ★(461) 同・傾斜の幅 w（無次元・S が 0 から 1 に動く W の幅は W0·d·w）。DiscoveryClockWorldPerMonth が正のときだけ読む。0.1 は制度の細ランプの先例（幅 0.2 の広ランプは列強の再現を下げた）で掃引しない。
     public double DiscoveryOwnHalfPerMonth = 12.5677;     // ★(461) 同・（★2026-10-20 腕 B の採用で既定 0→12.5677＝予備計測の規則から）C＝自国の親の産業の技師 A÷(A＋これ)（有界の飽和＝大国の絶対量で先取りせず、産業の無い国・小さい工房の国は抑える）。単位は W0 と同じ。DiscoveryClockWorldPerMonth が正のときだけ読む。
     public double DiscoveryClockMotorParent = 0;    // ★(461) 同・正のとき（かつ DiscoveryClockWorldPerMonth が正）電動機の行の親の産業の技師を蒸気機関の財にする（既定 0＝今の規則＝電力の産業が立つまで電動機の A は 0）。時計の形とは別の旗＝反証役の指摘（親の変更が時計の効きと混ざる）で切り離した。出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）。
-    public int OpeningMoneyFromRatioMode = 0;       // ★(574) 開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt）。0＝何もしない（旧と1ビットも変わらない）／1＝Simulation の構築子で全 Pop の貯蓄を国ごとの1つの倍率で下げ、
-                                                    //   構築直後の 貯蓄の和÷年名目GDP を NationConfig.BroadMoneyToGdpYear にする（World.RescaleOpeningSavings）／2＝1に加えて (332) の国債の置き方（World.RebaseOpeningFiscal）の年GDP を価格水準1の実質で測る
+    public int OpeningMoneyFromRatioMode = 0;       // ★(574) 開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt 追記 2）。0＝何もしない（旧と1ビットも変わらない）／1＝助走の各四半期の末の頭（Simulation.QuarterEnd）に全 Pop の貯蓄を国ごとの1つの倍率で戻し、
+                                                    //   貯蓄の和÷年名目GDP を NationConfig.BroadMoneyToGdpYear にする（World.RescaleOpeningSavings＝国庫・国債を助走の各四半期の終わりに置く (332) と同じ規律）／2＝1に加えて (332) の国債の置き方（World.RebaseOpeningFiscal）の年GDP を価格水準1の実質で測る
                                                     //   （史実の比は1783年の価格での名目GDP に対する比。助走で物価が動いた分まで比に乗せない）。採否未定（入口の形・AI の設計＝確証なし）。
     public double OpeningBakeEnabled = 0;           // ★(490) 開幕の焼き込み（<see cref="OpeningBake"/>）の読み込みの旗。0＝表（opening_bake.json）を開きもしない＝厳密恒等。正のとき <see cref="MultiNationSim.StartWarmup"/> の頭で 1 回、凍結を解いた試走で落ち着いた盤面（州×レシピの能力・州の資本・州×財の在庫と値段・州×階級の貯蓄）を構築直後の盤面に書く
                                                     //   （鍵が今の世界と全て一致しなければ例外）。**倒さない**（焼くのは工業化度の削除の後＝(464) の順）。測りの名乗りは焼いた表の頭書き（SOURCE-HASH・入力のハッシュ・試走の四半期数）。

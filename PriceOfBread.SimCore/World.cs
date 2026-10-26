@@ -2632,11 +2632,15 @@ public sealed class World
     public double OpeningTreasuryMonths { get; init; }
     /// <summary>★(332) 開幕の国債 ＝ 年名目GDP × この比（<see cref="NationConfig.GovDebtToGdpYear"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningFiscal"/> だけ。</summary>
     public double OpeningGovDebtToGdpYear { get; init; }
+    /// <summary>★(574) 開幕の広義の貨幣 ÷ 年名目GDP（<see cref="NationConfig.BroadMoneyToGdpYear"/>・建国の持ち込み州の国は 0）。読み手＝<c>Simulation.QuarterEnd</c> の助走の四半期の頭（係数 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上のときだけ）。</summary>
+    public double OpeningBroadMoneyToGdpYear { get; init; }
     /// <summary>★(400) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>・0＝規則なし）。読み手＝<see cref="MultiNationSim.WarmupEconomy"/> の始め（SetStateMonopolyTier で置く）と SelfPlay.Apply の助走の間（教義の段との max）だけ。助走の後は読まれない。</summary>
     public int OpeningStateMonopolyTier { get; init; }
 
-    /// <summary>★(574) 開幕の貨幣の量：構築直後の 全 Pop の貯蓄の和÷年名目GDP が <paramref name="targetRatio"/>（広義の貨幣÷年名目GDP・<see cref="NationConfig.BroadMoneyToGdpYear"/>）になるよう、
-    /// 全ての Pop の貯蓄に同じ倍率 λ を掛ける（階級の相対配分は構築の直書きのまま）。呼び手＝Simulation の構築子の1か所だけ（旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上・建国の持ち込み州でない国）。
+    /// <summary>★(574) 開幕の貨幣の量：全 Pop の貯蓄の和÷年名目GDP が <paramref name="targetRatio"/>（広義の貨幣÷年名目GDP・<see cref="NationConfig.BroadMoneyToGdpYear"/>）になるよう、
+    /// 全ての Pop の貯蓄に同じ倍率 λ を掛ける（階級の相対配分はそのまま）。呼び手＝<c>Simulation.QuarterEnd</c> の助走の各四半期の末の頭の1か所だけ（旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上）。
+    /// ⚠構築子では呼ばない：構築直後の産出（<see cref="Producer.Output"/>）は生産者ごとの置き定数（RGO 50・工場 0.5・職人 30）の和で、最初の四半期の市場の後の産出と国ごとに 1.7〜14 倍ずれる
+    /// （英 5,828→59,830・清 31,545→450,780・基線 m560 の q0 の中央値との比）＝構築直後の年GDP を分母にすると比が 1 桁違う。助走の各四半期の末（国庫・国債を置くのと同じ時点）の産出で測る。
     /// λ＝目標の比÷今の比。今の比は <see cref="Calendar.ToGdpYear"/>（在庫÷年の流れ）で作る＝月の名目GDP をそのまま分母にする取り違え（12倍）は型が通さない。
     /// 否定形：目標・貯蓄の和・年GDP のどれかが正でない（NaN を含む）か λ が有限の正でなければ何もしない。戻り値＝掛けた倍率（何もしないとき 1）。</summary>
     internal double RescaleOpeningSavings(double targetRatio)

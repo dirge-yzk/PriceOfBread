@@ -33,8 +33,8 @@ public sealed class NationConfig
     //   world.json の値は腕 B の書き換え（scripts/instruments/e7/make_world_b.py）を (388) で採ったもの。
     public double TreasuryMonths = 0;
     public double GovDebtToGdpYear = 0;
-    // ★(574) 開幕の広義の貨幣÷年名目GDP（世界の貨幣の厚み・全61国）。読み手は Simulation の構築子（World.RescaleOpeningSavings）だけ＝係数 OpeningMoneyFromRatioMode が1以上のときだけ（0＝何もしない＝旧と同じ軌道）。
-    //   構築直後の全階級の貯蓄の和がこの比になるよう、全 Pop の貯蓄を国ごとの1つの倍率で下げる（階級の相対配分は構築の直書きのまま）。既定は最頻の 0.1（世界の33国）・world.json は既定と違う28国だけ書く。
+    // ★(574) 開幕の広義の貨幣÷年名目GDP（世界の貨幣の厚み・全61国）。読み手は World.OpeningBroadMoneyToGdpYear 経由で Simulation.QuarterEnd（助走の各四半期の末の頭・World.RescaleOpeningSavings）だけ＝係数 OpeningMoneyFromRatioMode が1以上のときだけ（0＝何もしない＝旧と同じ軌道）。
+    //   全階級の貯蓄の和がこの比になるよう、全 Pop の貯蓄を国ごとの1つの倍率で戻す（階級の相対配分は構築の直書きのまま）。既定は最頻の 0.1（世界の33国）・world.json は既定と違う28国だけ書く。
     //   ★4階（(221) の表をそのまま戻した）：①英・蘭 0.5 ②仏・西・サルデーニャ＝ピエモンテ・スウェーデン・デンマーク・スイス・葡・ジェノヴァ・トスカーナ・ヴェネツィア 0.35
     //   ③日・米・露・普・オスマン・墺・清・朝鮮・波・ライン諸邦・両シチリア・教皇領・バイエルン・ザクセン・ハノーファー・ヴュルテンベルク 0.2 ④南アジア・東南アジア・中央アジア・アラビア・アフリカ・ハワイ（既定）0.1。
     //   値は全て【推・幅が広い・記憶から読んだ桁・原典の数字は未取得】：Capie & Webber 1985 *A Monetary History of the United Kingdom 1870–1982*・Cameron 編 1967 *Banking in the Early Stages of Industrialization*・

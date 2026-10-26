@@ -6,13 +6,15 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// ★(574) 線 svf＝開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt）の番人。
-/// 規則＝旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上のとき、Simulation の構築子が全 Pop の貯蓄を国ごとの1つの倍率で下げ、
-/// 構築直後の 貯蓄の和÷年名目GDP を <see cref="NationConfig.BroadMoneyToGdpYear"/> にする（<see cref="World.RescaleOpeningSavings"/>）。モード2は (332) の国債の年GDP を価格水準1で測る。
+/// ★(574) 線 svf＝開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt〔追記 2 で形を直した〕）の番人。
+/// 規則＝旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上のとき、助走の各四半期の末の頭（<c>Simulation.QuarterEnd</c>）に全 Pop の貯蓄を国ごとの1つの倍率で戻し、
+/// 貯蓄の和÷年名目GDP を <see cref="NationConfig.BroadMoneyToGdpYear"/> にする（<see cref="World.RescaleOpeningSavings"/>）。モード2は (332) の国債の年GDP を価格水準1で測る。
+/// ⚠最初の版は構築子で当てた＝構築直後の産出は生産者ごとの置き定数の和で、最初の四半期の後の産出と国ごとに 1.7〜14 倍ずれ、比が 1 桁違った（追記 2）。試験が構築直後の年GDP に対して緑でも意味が無かった＝
+/// 今の試験は助走を実際に回して、**走っている経済の産出**に対する比を見る。
 /// 期待値は式の出力から作らない：m は下の手書きの表（(221) の4階・344f8883 の world.json から写した）／貯蓄の和は Pop を直接走査／年GDP は 12× を試験側で書く（月と年の取り違えを捕まえる）／
 /// 構築の直書き（資本家 3200・農民 200・工場労働者 300）は試験側の定数。
-/// 突然変異：①年GDP に月の名目GDP をそのまま使う（12倍ずれる）→61国の比が赤／②一部の階級（閉じた階級）だけに掛ける→倍率が全 Pop に同じの検査が赤／
-/// ③モード2でも名目で置く→国債の検査が赤／④旗0でも当てる→直書きの検査が赤／⑤建国の持ち込み州の門を外す→持ち込み州の検査が赤。
+/// 突然変異：①年GDP に月の名目GDP をそのまま使う（12倍ずれる）→関数の検査が赤／②一部の階級（閉じた階級）だけに掛ける→倍率が全 Pop に同じの検査が赤／
+/// ③モード2でも名目で置く→国債の検査が赤／④旗0でも当てる→旗0の検査が赤／⑤建国の持ち込み州の門を外す→持ち込み州の検査が赤／⑥四半期の末の頭でなく物価の更新の後に当てる→趨勢の検査が赤。
 /// </summary>
 public class OpeningMoneyRatioTests
 {
@@ -32,6 +34,23 @@ public class OpeningMoneyRatioTests
 
     private static double SumSavings(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) s += p.Savings.Value; return s; }
 
+    /// <summary>試験側の 貯蓄の和÷年名目GDP（年GDP＝12×実質の月次GDP×価格水準を試験側で書く）。</summary>
+    private static double MoneyToGdpYear(World w) => SumSavings(w) / (12.0 * w.GdpPerMonth.Value * w.PriceLevel);
+
+    /// <summary>61 国を組み、旗を立てて（または立てずに）助走の最初の四半期だけ回し、その直後の（比・趨勢・価格水準）を国ごとに返す。</summary>
+    private static Dictionary<string, (double Ratio, double Trend, double P)> AfterFirstWarmupQuarter(int mode)
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
+        foreach (var n in sim.Nations) n.World.Coef.OpeningMoneyFromRatioMode = mode;
+        var got = new Dictionary<string, (double, double, double)>();
+        sim.StartWarmup(() =>
+        {
+            if (got.Count > 0) return;   // 最初の四半期の直後だけ
+            foreach (var n in sim.Nations) got[n.World.SelfPower!.Name] = (MoneyToGdpYear(n.World), n.World.MoTrendForInstruments, n.World.PriceLevel);
+        }, 1);
+        return got;
+    }
+
     [Fact]
     public void データは4階の表どおり_61国_既定は最頻の0_1()
     {
@@ -48,42 +67,60 @@ public class OpeningMoneyRatioTests
     }
 
     [Fact]
-    public void 全61国_構築直後の貨幣と年名目GDPの比が国のデータちょうど()
+    public void 全61国_助走の最初の四半期の末に貨幣と年名目GDPの比が国のデータへ戻る_旗0では桁違い()
     {
+        var on = AfterFirstWarmupQuarter(1);
+        var off = AfterFirstWarmupQuarter(0);
+        Assert.Equal(61, on.Count); Assert.Equal(61, off.Count);
         var bad = new List<string>();
         foreach (var cfg in WorldData.Nations())
         {
-            var w = Build(cfg, 1).World;
             double m = Expected(cfg.Name);
-            double gdpYear = 12.0 * w.GdpPerMonth.Value * w.PriceLevel;   // 試験側で月→年（12×）と価格水準を書く＝本体が月の値をそのまま年に使う取り違えを捕まえる
-            double ratio = SumSavings(w) / gdpYear;
-            Assert.True(gdpYear > 0, $"{cfg.Name}：年GDP が正でない");
-            Assert.Equal(1.0, w.PriceLevel);   // 構築直後は価格水準 1（この試験の前提）
-            if (!(System.Math.Abs(ratio - m) <= 1e-9 * m)) bad.Add($"{cfg.Name}：貨幣÷年GDP {ratio:F6}（目標 {m}）");
+            var (ratio, _, _) = on[cfg.Name];
+            if (!(System.Math.Abs(ratio / m - 1.0) <= 0.10)) bad.Add($"{cfg.Name}：旗1の比 {ratio:F4}（目標 {m}・±10%）");
+            double control = off[cfg.Name].Ratio;
+            if (!(control >= 5.0 * m)) bad.Add($"{cfg.Name}：旗0の比 {control:F3} が目標の 5 倍に届かない（試験が旗の有無を見分けられない）");
         }
         Assert.True(bad.Count == 0, string.Join("\n", bad));
     }
 
     [Fact]
-    public void 倍率は国の全Popに同じ_階級の相対配分と人口は保たれる()
+    public void 最初の物価の更新の趨勢は戻した後の貨幣で取る()
+    {
+        // 趨勢＝貨幣÷月次実質GDP（ヶ月）の遅い平均。最初の更新は趨勢の基準を取るだけ＝基準は貨幣を戻した後の比（≒12×m）でなければならない。
+        // 戻す前の比で基準を取ると（物価の更新の後に当てる）趨勢は 12×m の 5 倍超に残り、cyclical が 1/5 以下になって物価が床へ落ちる。
+        var got = AfterFirstWarmupQuarter(1);
+        var bad = new List<string>();
+        foreach (var cfg in WorldData.Nations())
+        {
+            double m = Expected(cfg.Name); var (_, trend, p) = got[cfg.Name];
+            double want = 12.0 * m;
+            if (!(trend >= 0.8 * want && trend <= 1.3 * want)) bad.Add($"{cfg.Name}：趨勢 {trend:F3}（12×m＝{want:F3} の 0.8〜1.3 倍）");
+            if (!(p >= 0.5 && p <= 2.0)) bad.Add($"{cfg.Name}：最初の四半期の末の価格水準 {p:F3}");
+        }
+        Assert.True(bad.Count == 0, string.Join("\n", bad));
+    }
+
+    [Fact]
+    public void 倍率は国の全Popに同じ_階級の相対配分と人口は保たれ_目標の比ちょうどになる()
     {
         var cfg = WorldData.ByName("イギリス");
-        var w0 = Build(cfg, 0).World; var w1 = Build(cfg, 1).World;
+        var w0 = Build(cfg, 0).World; var w1 = Build(cfg, 0).World;
+        double lambda = w1.RescaleOpeningSavings(0.5);   // 関数だけを直接呼ぶ（その時点の産出に対して比ちょうどにすることを見る）
+        Assert.True(lambda > 0 && lambda < 1);
+        Assert.True(System.Math.Abs(MoneyToGdpYear(w1) - 0.5) <= 1e-9 * 0.5);
         var p0 = w0.Regions.SelectMany(r => r.Pops).ToList(); var p1 = w1.Regions.SelectMany(r => r.Pops).ToList();
         Assert.Equal(p0.Count, p1.Count);
-        double? lambda = null; int checkedPops = 0;
+        int checkedPops = 0;
         for (int i = 0; i < p0.Count; i++)
         {
             Assert.Equal(p0[i].Size, p1[i].Size);   // 人口には触れない
-            Assert.Equal(p0[i].ClassId, p1[i].ClassId);
             if (!(p0[i].Savings.Value > 0)) { Assert.Equal(0.0, p1[i].Savings.Value); continue; }
             double k = p1[i].Savings.Value / p0[i].Savings.Value;
-            lambda ??= k;
-            Assert.True(System.Math.Abs(k - lambda.Value) <= 1e-12 * lambda.Value, $"Pop {i}（階級 {p0[i].ClassId}）の倍率 {k} が最初の {lambda} と違う");
+            Assert.True(System.Math.Abs(k - lambda) <= 1e-12 * lambda, $"Pop {i}（階級 {p0[i].ClassId}）の倍率 {k} が λ={lambda} と違う");
             checkedPops++;
         }
         Assert.True(checkedPops >= 10, $"貯蓄が正の Pop が少なすぎる（{checkedPops}）");
-        Assert.True(lambda < 0.2, $"英の倍率が小さくない（{lambda}）＝基線の貨幣は目標の約33倍");
     }
 
     [Fact]
@@ -103,34 +140,22 @@ public class OpeningMoneyRatioTests
     }
 
     [Fact]
-    public void 目標が0の国と建国の持ち込み州には当てない()
+    public void 目標が0の国と建国の持ち込み州は読み手の値が0_否定形の守り()
     {
-        // m＝0（データの欠け）の国は何もしない
-        var zero = WorldData.ByName("イギリス").ShallowClone(); zero.BroadMoneyToGdpYear = 0;
-        double off = SumSavings(Build(zero, 0).World), on = SumSavings(Build(zero, 1).World);
-        Assert.Equal(off, on);
-        // 建国の持ち込み州（PrebuiltRegions）は貯蓄を運んでくる＝当てない（旗1でも持ち込んだ貯蓄が1ビットも変わらない）
         var cfg = WorldData.ByName("イギリス");
+        // 通常の国は国のデータを写す・建国の持ち込み州（PrebuiltRegions）は 0（貯蓄を運んでくる国に当てない）
+        var normal = Build(cfg, 1).World;
+        Assert.Equal(0.5, normal.OpeningBroadMoneyToGdpYear);
         var donor = Build(cfg, 0);
-        var regions = donor.World.Regions.ToList();
-        double carried = SumSavings(donor.World);
-        var sc = new Scenario { Seed = 1, Kind = ScenarioKind.Nation, NationConfig = cfg, PrebuiltRegions = regions, Coef = new Coefficients { OpeningMoneyFromRatioMode = 1 }, SharedWorld = true };
-        var founded = new Simulation(sc, new NullAgent());
-        Assert.Equal(carried, SumSavings(founded.World));
-    }
-
-    [Fact]
-    public void 否定形の守り_目標が正でない_NaN_貯蓄0なら何もしない()
-    {
-        var w = Build(WorldData.ByName("イギリス"), 0).World;
+        var sc = new Scenario { Seed = 1, Kind = ScenarioKind.Nation, NationConfig = cfg, PrebuiltRegions = donor.World.Regions.ToList(), Coef = new Coefficients { OpeningMoneyFromRatioMode = 1 }, SharedWorld = true };
+        Assert.Equal(0.0, new Simulation(sc, new NullAgent()).World.OpeningBroadMoneyToGdpYear);
+        // 関数の否定形：目標が正でない・NaN なら何もしない
+        var w = Build(cfg, 0).World;
         double before = SumSavings(w);
         Assert.Equal(1.0, w.RescaleOpeningSavings(0));
         Assert.Equal(1.0, w.RescaleOpeningSavings(-0.5));
         Assert.Equal(1.0, w.RescaleOpeningSavings(double.NaN));
         Assert.Equal(before, SumSavings(w));
-        double lambda = w.RescaleOpeningSavings(0.5);   // 実際に当てると目標の比になる（試験側の 12× で検算）
-        Assert.True(lambda > 0 && lambda < 1);
-        Assert.True(System.Math.Abs(SumSavings(w) / (12.0 * w.GdpPerMonth.Value * w.PriceLevel) - 0.5) <= 1e-9 * 0.5);
     }
 
     [Fact]
