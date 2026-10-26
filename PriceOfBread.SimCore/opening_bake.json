@@ -1,8 +1,8 @@
 {
 "format":"opening_bake/1",
 "header":{
- "sourceHash":"133b0d4aa674f266",
- "inputHash":"fdd98fcea8c7f4ff",
+ "sourceHash":"396207b19cd539fe",
+ "inputHash":"c6a0e4638e9ca981",
  "seed":1,
  "quartersRun":120,
  "converged":true,

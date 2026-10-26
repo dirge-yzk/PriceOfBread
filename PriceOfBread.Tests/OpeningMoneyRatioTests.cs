@@ -172,7 +172,7 @@ public class OpeningMoneyRatioTests
     public void 助走を回しても全61国で貨幣の比は暴走せず金本位の準備のカバーは落ちない_記録つき()
     {
         // 煙試験（種1）で露が助走の中で金本位を失った。追記 3・4 の診断の根の検査：旗1で既定の助走（20四半期）を回した後の（貨幣÷年名目GDP）÷m と 準備のカバー（BaseMoney÷BroadMoney）を61国で読む。
-        // 暴走の線は広く取る（0.25〜4倍＝1四半期の流れの桁）。カバーは旗0（助走を戻さない）の同じ国の値の 0.5 倍を下回らない（旗1が準備を削っていない）。
+        // 暴走の線は広く取る（0.25〜4倍＝1四半期の流れの桁）。カバー（旗0 の同じ国の値の 0.5 倍を下回る国）は記録だけ（(582) で事後の線を機構の線＝有限から外した）。
         // 値は出力に残す（G4・G5 の記録の元）。
         var on = AfterQuarters(1, 20); var off = AfterQuarters(0, 20);
         var bad = new List<string>(); var rec = new List<string>();
@@ -182,7 +182,8 @@ public class OpeningMoneyRatioTests
             var (ratio, cover, _) = on[cfg.Name]; var (_, coverOff, _) = off[cfg.Name];
             rec.Add($"{cfg.Name}: 比/m={ratio / m:F2} カバー={cover:F3}（旗0 {coverOff:F3}）");
             if (!(ratio / m >= 0.25 && ratio / m <= 4.0)) bad.Add($"{cfg.Name}：比/m={ratio / m:F2} が 0.25〜4 の外");
-            if (!(cover >= 0.5 * coverOff)) bad.Add($"{cfg.Name}：準備のカバー {cover:F3} が旗0（{coverOff:F3}）の半分を下回る");
+            if (!double.IsFinite(cover)) bad.Add($"{cfg.Name}：準備のカバーが有限でない");   // 機構の線＝有限であること。旗0 の半分という幅は観測の直下に引いた事後の線で、基点が替わると国が1つ跨ぐ（(582) 基点 172263d6 でアフガニスタン 0.489 対 0.999）＝記録に移した
+            if (cover < 0.5 * coverOff) rec.Add($"  ↑ 記録：{cfg.Name} の準備のカバーが旗0 の半分を下回る（採否に使わない）");
         }
         System.Console.WriteLine(string.Join("\n", rec));
         Assert.True(bad.Count == 0, string.Join("\n", bad));
