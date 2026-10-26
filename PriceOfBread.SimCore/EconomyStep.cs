@@ -18,6 +18,10 @@ public static class EconomyStep
     //   日次の相2を国ごとに並列で回す。ただし Run の呼び手は月次決算（MonthSettle＝逐次の締め境界）だけで、並列の相の中では呼ばれない。
     //   1つのスレッドが複数の国・試合の Run を順に呼ぶが、呼ぶたびに消してから使う＝持ち越しなし＝決定論不変）、
     // Region に持たせない＝SaveGame（リフレクション全フィールド直列化）にも乗らない。conCarryApplied は null をフラグとして読むため対象外（従来どおり都度確保）。
+    /// <summary>★(spt2) 州ごとの前の月の消費の順（財の Id の列と数）＝NearSort の作業領域（セーブに載らない・無くても同じ結果）。州のクラスに欄を足さない（ConditionalWeakTable＝州が消えれば一緒に消える）。</summary>
+    private sealed class ConsumePrevBox { public int[]? Keys; public int N; }
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, ConsumePrevBox> ConsumePrev = new();
+
     private sealed class Scratch
     {
         public double[] Produced = [], InputNeed = [], InputTrickle = [], InvestDemand = [], MilitaryDemand = [], RebelDemand = [],
@@ -34,6 +38,8 @@ public static class EconomyStep
         public bool[] IsStaple = [], IsService = [];
         public double[] GoodGate = [], DemandGate = [];   // ★財の解禁（段2A・2026-10-01）＝Discovery.GoodGates を月の Run の頭で1回（国の解禁＝電化・効率化材／世界の解禁の和＝需要）
         public Good[] ConsumeOrder = [];
+        public int[] SortSlot = [];    // ★(spt2) 財の Id→今の顔ぶれの位置＋1（NearSort.TryReorder の作業配列・全て 0 のまま返る）
+        public Good[] SortBuf = [];    // ★(spt2) 並べ直しの作業配列
         public double[] PopNorm = [], FoodOvf = [], FoodDfc = [];   // ★(504) 食料の台帳を主食の和へ：POP ごとの配り直しの係数・過分・不足（旗①②が正の月だけ確保・ゼロ化）
         public double[] StapleSubst = [], StapleSelf = [];          // ★(504) 主食の財ごと（添字＝財の番号）の相対価格の冪と自給の係数
         public int[] StapleIds = []; public double[] StapleE = [];  // ★(504) 州の主食の財の番号と基礎の必要量（解禁の門の後）
@@ -1520,7 +1526,7 @@ public static class EconomyStep
         if (scratch.ConsumeOrder.Length < ngoods) scratch.ConsumeOrder = new Good[ngoods];
         var consumeOrder = scratch.ConsumeOrder;
         for (int ci = 0; ci < ngoods; ci++) consumeOrder[ci] = region.Goods[ci];
-        System.Array.Sort(consumeOrder, 0, ngoods, System.Collections.Generic.Comparer<Good>.Create((a, b) =>
+        System.Comparison<Good> consumeCmp = (a, b) =>
         {
             int t = ((int)a.Tier).CompareTo((int)b.Tier);
             if (t != 0) return t;
@@ -1529,7 +1535,15 @@ public static class EconomyStep
             //   消費は予算を先頭から食う＝順序が力学に直結するので、全順序にして財の追加で軌道が動かないようにする。
             int pcmp = region.Markets[a.Id].Price.CompareTo(region.Markets[b.Id].Price);
             return pcmp != 0 ? pcmp : a.Id.CompareTo(b.Id);
-        }));
+        };
+        // ★(spt2) 前の月の並びから挿入で並べ直す（NearSort の注・NaN の値段・顔ぶれの違い・大きな崩れ・同値の月は元の全部の並べ替え＝結果は同じ）。
+        //   前の並びは州ごとの作業領域（ConsumePrev・セーブに載らない・無くても同じ結果）。
+        var consumePrev = ConsumePrev.GetValue(region, static _ => new ConsumePrevBox());
+        if (scratch.SortSlot.Length < ng) scratch.SortSlot = new int[ng];
+        if (scratch.SortBuf.Length < ngoods) scratch.SortBuf = new Good[ngoods];
+        if (!NearSort.TryReorder(consumeOrder.AsSpan(0, ngoods), consumePrev.Keys, consumePrev.N, x => x.Id, consumeCmp, x => double.IsNaN(region.Markets[x.Id].Price), scratch.SortSlot, scratch.SortBuf))
+            System.Array.Sort(consumeOrder, 0, ngoods, System.Collections.Generic.Comparer<Good>.Create(consumeCmp));
+        NearSort.Remember<Good>(consumeOrder.AsSpan(0, ngoods), x => x.Id, ref consumePrev.Keys, ref consumePrev.N);
         // 交差弾力性（B-2）：主食内の相対価格の基準＝(価格/参照価格)の幾何平均。安い主食ほど需要が集まる（パン高騰→芋へ）。
         double stapleLogSum = 0; int stapleN = 0;
         foreach (var g in region.Goods)

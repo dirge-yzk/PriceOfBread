@@ -1,0 +1,3 @@
+  構築 1951ms　助走 16263ms　本走 251276ms　合計 269490ms
+ZX Run plus 53.727s/318708 base 50.598s/318708 ratio 1.0618  (Rs=False)
+ZBS clearing plus 67.830s/2064 base 0.000s/0 ratio NaN (On=False)

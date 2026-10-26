@@ -1,0 +1,9 @@
+ZT clearing on=True new 67.552s/1032 old 65.697s/1032 ratio(new/old) 1.0282
+ZT clearing on=True new 32.093s/1032 old 31.379s/1032 ratio(new/old) 1.0227
+ZT clearing on=True new 57.817s/1032 old 57.119s/1032 ratio(new/old) 1.0122
+ZT Run on=True new 56.090s/318708 old 57.947s/318708 ratio(new/old) 0.9680
+ZT Run on=True new 38.131s/318708 old 39.262s/318708 ratio(new/old) 0.9712
+ZT Run on=True new 37.738s/318708 old 38.708s/318708 ratio(new/old) 0.9749
+ZT StepDay on=True new 29.183s/637416 old 29.555s/637416 ratio(new/old) 0.9874
+ZT StepDay on=True new 29.364s/637416 old 29.685s/637416 ratio(new/old) 0.9892
+ZT StepDay on=True new 29.251s/637416 old 29.611s/637416 ratio(new/old) 0.9878
