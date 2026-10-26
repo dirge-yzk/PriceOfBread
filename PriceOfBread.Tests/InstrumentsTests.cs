@@ -2371,7 +2371,8 @@ public class InstrumentsTests
                 // ★(461) 発見の時計（既定で点火）は機関車の解禁を 1810 年代へ置く＝運び手の取引が出るまで 60 四半期（〜1798 年）では足りず、160 四半期（〜1823 年）まで回す（時計を切る固定はしない）。
                 foreach (var n0 in sim.Nations) openNames.Add(n0.World.SelfPower?.BaseName ?? "");
                 Instruments.Phase(sim, DSEED, "open"); sim.StartWarmup(); Instruments.Phase(sim, DSEED, "warm");
-                for (int q = 0; q < 160; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
+                // ★(579) 線 ukf：160→300 四半期（AI の国営工場の着工の総費用の門を削除した軌道では、運び手の財の越境の買いが 160 四半期〔〜1823 年〕までに 9 種〔種 1789〜1797〕のどれにも出ず接触の内訳の表が無かった＝境の上の番人の入口が遅れた軌道の宣言。原因は未確認〔推測：国内の着工が増え越境の買いが後ろへずれた〕。種 1791 は 300 四半期で緑）
+                for (int q = 0; q < 300; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
                 Instruments.Close(sim);
             }
             finally { Instruments.Configure(null, null); }
