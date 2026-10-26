@@ -100,3 +100,29 @@
   ・`InsuranceCoverageCap`（0.95）を高等教育にも使うのは 0 除算の守りの再利用で、設計思想⑧の例外〈発散する量〉の守りとして名乗る。割合の上限として選んだ数ではない。
   ・請求の見込みは先月の実支出の逆算なので、補助の導入の月は請求に入らない（1 か月遅れ。義務教育と同じ）。
   ・古い道（eduPart・HigherEduFunding）を旗 0 で残すのは番人の都合。採られた後に物理削除する。
+
+[8] 追記（2026-10-27・後半の最初・腕を 1 本も回す前・種は変えない）反証役の点検（高 1・中 3・低 5）への処置。書いたモデル Claude Sonnet 5.5。
+  ⚠この追記は腕 A・B・B0 の結果を見る前に書く。J1〜J6 のうち文を直すのは式の出所（高 1）と J4 の読みだけで、狙い（楔が需要に届き国庫が授業料の一部を払う）は変えない。
+  (1) 【高】J1・J4(b) の式の訂正：割合の式は `min(0.95, e×r)` ではなく **`ScholarshipCover(region) ＝ min(0.95, CompulsoryEduFunding)`**。`CompulsoryEduFunding` は
+      教育法 Compulsory なら e、Public と Religious（ParishEduFunded＝1）なら `PublicEduFundingShare`(0.2)×e、いずれも `RuleReach` を掛け、月次で支払い率 r を掛けた後の値。登録の旧の式は 5 倍までずれうる。
+      J1 の番人は割合を `CompulsoryEduFunding` に直に置いて手計算の期待値（割合×数量×値段）と比べる（式の出所は盤面の別の値）。J4(b) は計器の列で読む：
+      `higherSubsidyPerMonth`（決済で国庫が払った額の州の和）と `higherSubsidyExpectedPerMonth`（今の `CompulsoryEduFunding` から導いた割合×授業料の総額 `higherTuitionPerMonth`）が、授業料＞0 の国×四半期で 1e-6 の相対で一致。
+      列に教育法・RuleReach を足す代わりに、割合は導出元（CompulsoryEduFunding）から直に取る。
+  (2) 【中】J4 の再定義：
+      J4(a)〔補助＞0 の国×四半期がある種 ≥8/10〕は **sch の判定ではなく入口の点火が開いたかの確かめ**（`higherTuitionPerMonth`＞0 の国×四半期が出るか）。blocked の条件はこれ。
+      J4(b) は上の (1)。J4(c) の Religious の節は削る（既定の ParishEduFunded=1 ではそういう国が無い＝空の条件）。実際の門に置き換える：`higherCoverShare`＝0 の国×四半期（段 0 かつ教育法の財源 0）で `higherSubsidyPerMonth` は厳密に 0。
+      〈狙いそのもの〉（楔で買える量が増える）は **番人 `J1_予算が拘束するとき_楔で買える量が厳密に増える`**（買い手の貯蓄を桁で振り、全水準で qb≧qa・どこかで qb＞qa）が受け持つ。腕の中の観測量は R-fill に記録（交絡のため判定には使わない）。
+  (3) 【中】作者の原文との外れを先頭へ（作者に聞く物へ移す）：作者の原文は「「奨学金」で法にするなどして、年金と同じ仕組みにするのはどうか」。実装は
+      (i) **法にしていない**：`ScholarshipLaw` は世界全体の旗で、国が制定する法ではない（LawSlot も StageGate も無い）。義務教育の財源率に自動でついてくる。
+      (ii) **教育費の軸の〈上の段〉ではなく全ての段に比例**する（年金は最上段だけ）。
+      どちらも AI の推奨で、作者の承認は無い（確証なし）。旗 0 の合流は妨げない。既定を 1 に倒す前に作者に聞く。
+  (4) 【中】`Region.ScholarshipShare` の欄は **消した**（導ける量を貯めていた＝思想⑩）。割合は `EconomyStep.ScholarshipCover(region, coef)` の 1 本が導き、楔・決済・表示が同じ関数を読む。Model.cs・Simulation.cs は基点と同一（このファイルの [6] の触る行から Model.cs・Simulation.cs は外れる）。
+      NaN は `> 0` の肯定で 0 へ落ちる。番人 J3 は〈Region に欄が無い〉〈`ScholarshipLaw` を読む場所は Coefficients・EconomyStep・PlayText・World の 4 つだけ〉に作り替えた。
+  (5) 【低】診断の累積 `CumEducationCost` に国庫の負担分を載せる（旗 0 では入らない＝恒等）：財政タブの教育費の行と計器 `educationBuyPerMonth` が奨学金を含む。番人に差の確認を足した。
+  (6) 【低】上限 0.95 に張り付いた国×四半期の割合と、教育法の切り替えの前後の割合の跳び（Public→Compulsory で 0.2 倍→1 倍）は記録（R-cap・R-jump）。採否に使わない。
+  (7) 【低】表示の文から括弧の説明を消した（〈奨学金 xx%〉だけ）。
+  (8) 【低】番人の数：`--list-tests` は 1880 でなく後半のフルスイートで突き合わせ直す。J3 の〈AI の国とプレイヤーの国で同じ割合〉は〈割合の唯一の導出が国を問わない関数〉の走査（AI の経路に ScholarshipCover が無い）で受ける。J2(b)(c) の正規表現は残し、振る舞いの番人（予算が拘束するとき strict・月次決算を通す保存）を足してある。
+  足した計器の列（ed_s の末尾 5 列）：`higherTuitionPerMonth`（高等教育の授業料の総額＝買い手の自己負担＋国庫の負担・直近の月の州の和）・`higherSubsidyPerMonth`（国庫の負担・決済の値）・`higherSubsidyExpectedPerMonth`（今の割合×授業料の総額）・`higherCoverShare`（割合の人口加重）・`higherFillShare`（非兵士の高等教育の充足の人口加重）。
+  読み手：`scripts/instruments/sch590/an_sch.py`（腕の前に固定する・判定は J4(a)(b)(c) と R-fill・R-cap・R-jump・R-sub・R-price）。
+  腕の組み方は [2] のまま：A＝5 種 `ScholarshipLaw=0`・B＝計器つき 10 種 `ScholarshipLaw=1;ResearcherFrac=0.05;HigherEduNeedPerEducated=0.05`・B0 は止める線に当たったときだけ。
+  計算量の使う量：旗 0 は +0.3 秒以下のまま（比較 1 回の定数＋計器は INS=1 のときだけ）。B は +8 秒以下。
