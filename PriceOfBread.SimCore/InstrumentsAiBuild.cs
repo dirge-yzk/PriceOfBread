@@ -61,6 +61,18 @@ public static partial class Instruments
         string cat = Catalog.FactorySpec(goodId).Category; a.ByCategory.TryGetValue(cat, out var k); a.ByCategory[cat] = k + 1;
     }
 
+    /// <summary>助走の分は数えない（Phase の warm が呼ぶ）。助走は 20 四半期の AI の判断が最初の行に積まれ、G0 の分母が偏る。</summary>
+    static void AibClear(MultiNationSim sim)
+    {
+        foreach (var n in sim.Nations)
+        {
+            var a = AibAccs.GetOrCreateValue(n.World);
+            a.Calls = a.ReturnFunding = a.ReturnRoom = a.OverCap = a.Started = a.Refused = a.SkipRoom = 0;
+            a.RoomSum = a.BufferSum = a.Spare = a.TreasuryEntry = a.StartedOutlay = 0;
+            a.ByCategory.Clear(); a.StartedGoods.Clear(); a.OverCapGoods.Clear(); a.SkippedGoods.Clear();
+        }
+    }
+
     static void AibFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
