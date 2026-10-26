@@ -1,0 +1,11 @@
+﻿ZZE-4	try=0	busyBefore=18	othersBefore=0	busyAfter=24	othersAfter=3	valid=False	ZT Run E=True L=False P=False new 37.242s/318708 old 38.140s/318708 ratio(new/old) 0.9765 | ZT StepDay E=True L=False P=False new 58.634s/1274832 old 0.000s/0 ratio(new/old) NaN
+ZZE-4	try=1	busyBefore=16	othersBefore=0	busyAfter=15	othersAfter=0	valid=True	ZT Run E=True L=False P=False new 35.455s/318708 old 36.522s/318708 ratio(new/old) 0.9708 | ZT StepDay E=True L=False P=False new 56.839s/1274832 old 0.000s/0 ratio(new/old) NaN
+ZZL-4	try=0	busyBefore=14	othersBefore=0	busyAfter=14	othersAfter=0	valid=True	ZT Run E=False L=True P=False new 71.032s/637416 old 0.000s/0 ratio(new/old) NaN | ZT StepDay E=False L=True P=False new 27.888s/637416 old 28.346s/637416 ratio(new/old) 0.9838
+ZZL-5	try=0	busyBefore=15	othersBefore=0	busyAfter=15	othersAfter=0	valid=True	ZT Run E=False L=True P=False new 69.861s/637416 old 0.000s/0 ratio(new/old) NaN | ZT StepDay E=False L=True P=False new 27.836s/637416 old 28.128s/637416 ratio(new/old) 0.9896
+ZZL-6	try=0	busyBefore=15	othersBefore=0	busyAfter=14	othersAfter=0	valid=True	ZT Run E=False L=True P=False new 71.206s/637416 old 0.000s/0 ratio(new/old) NaN | ZT StepDay E=False L=True P=False new 27.796s/637416 old 28.217s/637416 ratio(new/old) 0.9851
+RL-1	try=0	busyBefore=15	othersBefore=0	busyAfter=14	othersAfter=0	valid=True	ZT RecipeLog new 0.805s/21017 old 0.753s/21009 ratio(new/old) 1.0685
+RL-2	try=0	busyBefore=14	othersBefore=0	busyAfter=14	othersAfter=0	valid=True	ZT RecipeLog new 0.848s/21017 old 0.770s/21009 ratio(new/old) 1.0998
+RL-3	try=0	busyBefore=15	othersBefore=0	busyAfter=35	othersAfter=0	valid=False	ZT RecipeLog new 0.854s/21017 old 0.829s/21009 ratio(new/old) 1.0298
+RL-3	try=1	busyBefore=16	othersBefore=0	busyAfter=46	othersAfter=3	valid=False	ZT RecipeLog new 0.906s/21017 old 0.825s/21009 ratio(new/old) 1.0980
+RL-3	try=2	busyBefore=21	othersBefore=0	busyAfter=14	othersAfter=0	valid=True	ZT RecipeLog new 0.889s/21017 old 0.809s/21009 ratio(new/old) 1.0990
+DONE
