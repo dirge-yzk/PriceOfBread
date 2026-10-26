@@ -1,0 +1,29 @@
+# (591) gc5：計器の生の比べ（基準 D:/PoB_work/keep_584/m584_ins ・今 out_I10_10/ins・木 3705fa89）
+## cmp_modsig591.py（基準から消した 3 列を落として比べる）
+1 modsig-eq-without-3-columns 14714 14714
+2 modsig-eq-without-3-columns 14701 14701
+3 modsig-eq-without-3-columns 14705 14705
+4 modsig-eq-without-3-columns 14708 14708
+5 modsig-eq-without-3-columns 14701 14701
+6 modsig-eq-without-3-columns 14708 14708
+7 modsig-eq-without-3-columns 14721 14721
+8 modsig-eq-without-3-columns 14707 14707
+9 modsig-eq-without-3-columns 14708 14708
+10 modsig-eq-without-3-columns 14703 14703
+MODSIGBAD 0
+## flow_noline.py（sourceLine を落として比べる）
+1 flow-eq-without-sourceLine 1055239
+2 flow-eq-without-sourceLine 1054815
+3 flow-eq-without-sourceLine 1052344
+4 flow-eq-without-sourceLine 1090741
+5 flow-eq-without-sourceLine 1027712
+6 flow-eq-without-sourceLine 1057928
+7 flow-eq-without-sourceLine 1064679
+8 flow-eq-without-sourceLine 1039767
+9 flow-eq-without-sourceLine 1092239
+10 flow-eq-without-sourceLine 1049382
+FLOWBAD 0
+## cmpraw490.py（modsig 10 表は見出しの 3 列が違うので DIFF と読む＝上の cmp_modsig591 で一致を確かめた）
+same 730 differ 30 disccontactSplitRows 0
+Counter({('colsok', 'burscan'): 10, ('colsok', 'clock'): 10, ('DIFF', 'modsig'): 10})
+BAD 10
