@@ -1110,10 +1110,6 @@ public sealed class Coefficients
     public double ModernizationAbolished = 1;     // ★(573) 線 sm5 の最初のコミット（2026-10-26 に 1 で**点火**＝腕 B_mod の門 M1〜M3・止める線 S1〜S5 を通った。0 で旧の道）。作者 2026-10-26 原文「近代化投資は廃止してください。工場はユーザーは生産tabから建てますし、AIも同じ経路で建てられる筈です。州全体に金を撒く機構は不要です」）：既定 1＝廃止（0＝旧の道）。正のとき World.ApplyModernizationInvestment が
                                                   //   州の StateBuildQueue へ撒く分（建設の束→工業化度と設備の配り）だけを止める。StateBuildQueue の書き手はこの道だけだった（grep・番人）ので、国の建設の工業化度への足しも消える。招聘の予算（ModernizationToRecruit）と高等教育の学費の補助（ModernizationToHigherEdu→Region.HigherEduFunding）は
                                                   //   今の式のまま動く（作者「これは残しましょう」は高等教育の学費の補助について・奨学金の法へ付け替えるのは次の波。招聘の予算・予算の額・AI の決め方を残すのは AI の推奨＝作者の承認は未確認）＝ModernizationFrac は当面その額を決める欄。AI の決め方・財政タブの行は変えない（名前の付け替えも次の波。★(576) 合流：財政タブ〔Display/FiscalTables〕の近代化の行は予算の全額を予測・実効に置く＝点火の後は招聘の分しか出ていかない＝UI の線へ渡した）。国の工場は World.BuildFactory（生産タブと AI の SetStateTarget が同じ経路）で建つ＝触らない。AI の設計＝確証なし（廃止そのものは作者の裁定）。
-    public double AiBuildNoCostCap = 0;           // ★(579) 線 ukf の最初のコミット（既定 0＝厳密恒等・採否が未定で旧と並存）：AI の国営工場の着工の門（SelfPlay.TryBuildFacility）のうち、総費用の身の丈の門
-                                                  //   （総費用 ≤ FacilityBuildCostCap×財政バッファ）だけを外す（正＝外す・0＝旧）。月の出費の上限（FacilityBuildOutlayShare×財政バッファ）と借入と同じ規律の門 FiscalFundingRatio ≥ 1 は変えない。
-                                                  //   作者の依頼（2026-10-27）の向き＝数値の天井は可能なら排除（必要なら許容）。国庫を払える額まで開く形（月の出費の上限も外す）は煙試験で国庫を流出させた＝月の出費の上限は残す（事前登録の追記 3）。
-                                                  //   この向きを AI の着工の門へ広げたのは担当の読み・確証なし。
     public double IndCapitalOutputYears = 1.0;    // ★(300) 線 i1（腕 B を採った＝既定 1.0・0 で今まで）：工業化度 1 点に要る資本＝州の実質の年所得のこれ倍（資本産出比 K/Y・私的な建設の経路だけ）。>0 で私的な建設 1 束が上げる工業化度が 1÷N（N＝これ×州の実質の年所得÷基準の束の費用）になる＝州の経済の大きさに比例した投資額。0＝今まで（1 束＝IndPerConstruction・州の大きさに依らない）＝厳密恒等。国家の経路は変えない
     public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
     public Share FactoryMaterialFrac = new(0.6);      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費
