@@ -89,5 +89,7 @@ else:
     print('R-jump なし')
 print('R-sub 補助÷授業料の中央値（十年ごと）：', {d: round(st.median(v), 4) for d, v in sorted(subshare.items())})
 print('R-fill higherFillShare の国×十年の中央値：')
+NAT9 = ['清', 'ロシア', 'オスマン', 'フランス', 'イギリス', 'プロイセン', 'オーストリア', '日本', 'アメリカ']
 for (n, d), v in sorted(fill.items()):
+    if n not in NAT9: continue
     print(f'  {n} {d}s {st.median(v):.5f}')
