@@ -1,0 +1,10 @@
+M1 Stepの÷Kを落とす : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.Stepの増分は点数をKで割った値に等しい [2 s] |   失敗 PriceOfBread.Tests.DiscoveryProgressTests.開幕の既知はデータだけ_素通りも暦の窓も無い [551 ms] | 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+M2 前提の見張りを外す : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.前提の開いていない行は伝わりだけを積む_開けば技術と必要性も積む [119 ms] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M3 投入に表れる辺(自転車←加硫ゴム)を足す : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.木の辺は投入に表れない依存だけ_例外は新兵器だけ [745 ms] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M4 技術を掛け算にする : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.技術の項は本国の識字と人口あたりの技師の足し算で手計算と一致する [112 ms] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M5 制度と思想の技術にTechLevelを戻す : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.旗が正なら点数は技術水準と世界の合計を読まない [277 ms] |   失敗 PriceOfBread.Tests.DiscoveryProgressTests.技術の項は本国の識字と人口あたりの技師の足し算で手計算と一致する [179 ms] | 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M6 建国の進みの写しを外す : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.建国した国は親の進みを継ぐ [436 ms] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M7 負の節約を通す : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.利益の幅は手計算の数字で0以上 [1 ms] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M8 伝わりの上限を外す : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.伝わりは取引と招聘の和で手計算と一致し上限で止まる [1 ms] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M9 進みの欄をセーブに載せない : 失敗 PriceOfBread.Tests.DiscoveryProgressTests.進みはセーブとロードの往復で残り続きも一致する [2 s] | 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+restored

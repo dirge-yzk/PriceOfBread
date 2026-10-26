@@ -1,0 +1,6 @@
+M10 :   失敗 PriceOfBread.Tests.DiscoveryProgressTests.伝わりは取引と招聘の和の飽和で手計算と一致し上限で切らない [1 ms]|失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 8 s - PriceOfBread.Tests.dll (net10.0)|
+M11 :   失敗 PriceOfBread.Tests.DiscoveryProgressTests.国の技術の走査の件数は本国の州のPOPと生産者の数に一致する [2 ms]|失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 8 s - PriceOfBread.Tests.dll (net10.0)|
+M12 : 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 7 s - PriceOfBread.Tests.dll (net10.0)|
+MUT-END
+M12 :   失敗 PriceOfBread.Tests.DiscoveryProgressTests.伝わりの取引の分は解禁済みの国からの輸入の割合で台帳は組の数に比例する [22 ms]|失敗!   -失敗:     1、合格:    17、スキップ:     0、合計:    18、期間: 9 s - PriceOfBread.Tests.dll (net10.0)|
+MUT-END

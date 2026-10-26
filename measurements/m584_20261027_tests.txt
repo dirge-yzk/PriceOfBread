@@ -1,0 +1,5 @@
+# (584) 試験の記録（成績表の木 93f180ab・隔離ビルド D:/PoB_work/m584/artT・Release）
+Category!=FullLength: 成功!   -失敗:     0、合格:  1868、スキップ:     1、合計:  1869、期間: 14 m 14 s - PriceOfBread.Tests.dll (net10.0)
+Category=FullLength: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 45 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests: 1872 本（1869＋3）
+中止の行: 0
