@@ -1,0 +1,26 @@
+# (582) 線 svf2 後半：採用の木 bdf8f34d の検証（Release）
+## savetest 1789 300 12
+保存 45.4MB（643ms）／読込 610ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+savetest rc=0
+## leakhunt 1789 200 warm
+leakhunt 完走（seed=1789・200四半期・助走つき・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+leakhunt rc=0
+## フルスイート Category!=FullLength
+成功!   -失敗:     0、合格:  1864、スキップ:     1、合計:  1865、期間: 10 m 55 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 5 s - PriceOfBread.Tests.dll (net10.0)
+## --list-tests の件数（4 空白で始まる行）: 1868＝1865＋3
+## 突然変異（採用の木・PriceLevelCeilFreeTests 7 本）
+- m1_ceiling
+失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+物価水準は天井で止まらない [FAIL]
+紙幣増発を続けると物価は天井なしに伸び続ける [FAIL]
+紙幣増発を毎四半期続けても下流が有限で貨幣の保存が破れない [FAIL]
+- m2_noguard
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 27 s - PriceOfBread.Tests.dll (net10.0)
+無限と非数は更新前の物価を保つ [FAIL]
+- m3_nofloor
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+床は残る [FAIL]
