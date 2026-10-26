@@ -134,6 +134,13 @@ public sealed class Pop
     /// <summary>★(490) 貯蓄の書き手の 7 本目：開幕の焼き込みの読み込み（<see cref="OpeningBake.Apply"/>）だけが呼ぶ。旗 <c>OpeningBakeEnabled</c> が 0 では呼ばれない。貯蓄が変わるので基礎貨幣の基準線は呼び手が取り直す。
     /// 計器の貯蓄の台帳（<c>Instruments.Sav</c>）には載らない＝計器つき×旗 1 の組は flow_s の貯蓄の台帳が焼き込みの書き込みを知らない（旗は倒さない・採るときに SavKind を足す）。</summary>
     internal void ApplyBakedSavings(double value) => _savings = new MoneyStock(value);
+    /// <summary>★(574) 貯蓄の書き手の 8 本目：開幕の貨幣の量の規則（<see cref="World.RescaleOpeningSavings"/>）だけが構築子の中で 1 回呼ぶ。旗 <c>OpeningMoneyFromRatioMode</c> が 0 では呼ばれない。
+    /// 倍率は国の全 Pop に同じ値（階級の相対配分は変わらない）。構築の途中＝計器の貯蓄の台帳（<c>Instruments.Sav</c>）が始まる前で、基礎貨幣の基準線は構築子の終わりの <c>RebaselineInvariants</c> が取る。</summary>
+    internal void ScaleSavings(double factor)
+    {
+        if (PopWindow.Verify) PopWindow.GuardWrite("開幕の貯蓄の倍率");
+        _savings = _savings * factor;
+    }
     /// <summary>個人債務（設計＝docs/202608/20260802_POPの個人債務_部分完了.md・2026-08-02）。⚠**貨幣ではない**——
     /// <see cref="Bank.HouseholdLoans"/>（そちらが貨幣）の内訳＝「誰の分か」を持つ記録である。
     /// ⚠★<c>World.OutstandingLoans</c> に足してはならない（両方足すと貨幣が二重に消える）。

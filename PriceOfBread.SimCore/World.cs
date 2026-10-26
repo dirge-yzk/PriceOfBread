@@ -2635,6 +2635,22 @@ public sealed class World
     /// <summary>★(400) 専売の開幕の段（<see cref="NationConfig.OpeningStateMonopolyTier"/>・0＝規則なし）。読み手＝<see cref="MultiNationSim.WarmupEconomy"/> の始め（SetStateMonopolyTier で置く）と SelfPlay.Apply の助走の間（教義の段との max）だけ。助走の後は読まれない。</summary>
     public int OpeningStateMonopolyTier { get; init; }
 
+    /// <summary>★(574) 開幕の貨幣の量：構築直後の 全 Pop の貯蓄の和÷年名目GDP が <paramref name="targetRatio"/>（広義の貨幣÷年名目GDP・<see cref="NationConfig.BroadMoneyToGdpYear"/>）になるよう、
+    /// 全ての Pop の貯蓄に同じ倍率 λ を掛ける（階級の相対配分は構築の直書きのまま）。呼び手＝Simulation の構築子の1か所だけ（旗 <see cref="Coefficients.OpeningMoneyFromRatioMode"/> が1以上・建国の持ち込み州でない国）。
+    /// λ＝目標の比÷今の比。今の比は <see cref="Calendar.ToGdpYear"/>（在庫÷年の流れ）で作る＝月の名目GDP をそのまま分母にする取り違え（12倍）は型が通さない。
+    /// 否定形：目標・貯蓄の和・年GDP のどれかが正でない（NaN を含む）か λ が有限の正でなければ何もしない。戻り値＝掛けた倍率（何もしないとき 1）。</summary>
+    internal double RescaleOpeningSavings(double targetRatio)
+    {
+        if (!(targetRatio > 0)) return 1.0;
+        MoneyStock total = TotalMoney;
+        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(NominalGdpPerMonth);
+        if (!(total.Value > 0) || !(gdpYear.Value > 0)) return 1.0;
+        double lambda = targetRatio / Calendar.ToGdpYear(total, gdpYear).Value;
+        if (!(lambda > 0) || double.IsInfinity(lambda)) return 1.0;
+        foreach (var (_, p) in AllPopsWithRegion()) p.ScaleSavings(lambda);
+        return lambda;
+    }
+
     /// <summary>★(332) 開幕の国庫と国債を、助走の終わりの盤面の流れから置く（初期値の整備 段6 の採り直し＝国庫と国債は絶対額でなく、史実の比から導く量）。
     /// 呼び手＝<see cref="MultiNationSim.WarmupEconomy"/> の各四半期の終わり（旧の国庫の戻し <see cref="RebaseTreasury"/> の置き場所）。最後の四半期の値が開幕の値になる。
     /// <para>国庫：<see cref="OpeningTreasuryMonths"/> が正で、直近の月の歳入（<see cref="LastRevenuePerMonth"/>）が正なら 歳入×月数（<see cref="RebaseTreasury"/> で置く＝台帳も捨てる）。それ以外（規則なし・歳入が正でない四半期）は旧のとおり助走の前の国庫 <paramref name="treasuryBefore"/> へ戻す（否定形の守り＝NaN は旧へ落ちる）。</para>
@@ -2647,7 +2663,9 @@ public sealed class World
         if (OpeningTreasuryMonths > 0 && LastRevenuePerMonth.Value > 0) RebaseTreasury((Calendar.OneMonthOf(LastRevenuePerMonth) * OpeningTreasuryMonths).Value);
         else RebaseTreasury(treasuryBefore);
         if (!(OpeningGovDebtToGdpYear > 0)) return;
-        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(NominalGdpPerMonth);
+        // ★(574) モード2：年GDP を価格水準1の実質で測る（史実の比は1783年の価格での名目GDP に対する比＝助走で動いた物価を比に乗せない）。モード0・1 は名目のまま（同じ値＝1ビットも変わらない）。
+        MoneyPerMonth gdpMonth = Coef.OpeningMoneyFromRatioMode >= 2 && MonetaryEnabled && PriceLevel > 0 ? NominalGdpPerMonth / PriceLevel : NominalGdpPerMonth;
+        MoneyPerYear gdpYear = Calendar.PerMonthToPerYear(gdpMonth);
         if (!(gdpYear.Value > 0)) return;
         MoneyStock placed = OpeningGovDebtToGdpYear * Calendar.OneYearOf(gdpYear);
         foreach (var r in Regions) foreach (var p in r.Pops) p.BondHoldings = default;

@@ -133,6 +133,9 @@ public sealed class Simulation
         //   ★座標の規則は遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B）＝未登録の州名は据え置き（幻の座標を作らない）。
         if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
+        // ★(574) 開幕の貨幣の量（読む線 sv）：構築直後の 貯蓄の和÷年名目GDP を国のデータ（BroadMoneyToGdpYear）にする。Politics の初期化・銀行の準備・国債の保有台帳・保存則の基準線は全てこの後に貯蓄を読む。
+        //   建国の持ち込み州（PrebuiltRegions）は貯蓄を運んでくる＝当てない。旗 0 では1命令も走らない。
+        if (scenario.Coef.OpeningMoneyFromRatioMode > 0 && scenario.NationConfig is not null && scenario.PrebuiltRegions is null) World.RescaleOpeningSavings(scenario.NationConfig.BroadMoneyToGdpYear);
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用系列（同型・係数 0 では引かない）
         World.FoundingActiveProvinces += regions.Count;   // 建国時の州数（2026-08-04・残余国判定の分母・(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）
         if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(383) 最初の決算の前の AdminFill は満額でなく 0（行政財のある世界だけ＝fail-closed）。★(369) 州の開幕の人口＝扶養力の錨の定数（構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
