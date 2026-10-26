@@ -1,0 +1,102 @@
+# (590) 事前登録：奨学金の法（線 sch）・前半（段0・形・事前登録まで）
+# 書いた時点：2026-10-27。腕 A・B は 1 本も回していない。この文書が枝 sch の最初のコミット（コードを 1 行も含まない。コードは次以降のコミット）。書いたモデル Claude Sonnet 5.5。
+# 木：基点 main c7fd8616（成績表の木 93f180ab・SOURCE-HASH 1cb8bdaa17145593・基線 m584・exact 44.8・near 82.6・NG 89〔基準 rd:measurements/ng584_20261027:m584〕・推定の計算量 210.3 秒＝名目 248.5 の余り 約 38.2 秒）。
+#       枝 sch・worktree D:/PoB_work/wt_sch・作業フォルダ D:/PoB_work/sch_590。仮番号 (590)（波 35 の線）。
+# 引用の決まり：「」は作者の原文だけ。AI の線・推奨は〈〉かバッククォートで書く。報告では〈帯〉を成績表と言う。
+# 出所：作者 2026-10-26（原文）「近代化投資の一部は、高等教育の学費の補助に回っています。これは残しましょう。名前は「近代化投資」ではない方が良いかもしれない。この辺りは「奨学金」で法にするなどして、年金と同じ仕組みにするのはどうか」・
+#       実装ログ (573) sm5 前半の記録（高等教育の補助の道の確認）・(583) gc4（州へ撒く道の削除。補助の欄は残した）・00一覧 波 35 の推奨 ③〈奨学金の法（教育費の軸の上の段・財政タブの名前）〉・README §1-8（閾値より比例・片方向の錠なし）・§1-9。
+# ⚠この文書の決め（形・段ごとの割合の取り方・腕の組み方）は全て AI の推奨。作者の承認は未確認（確証なし）。作者が決めた物は上の原文（学費の補助を残す・法にする・年金と同じ仕組み）だけ。
+
+[0] 先頭
+
+  ⓪ 形が〈尾〉か〈入口〉か：**〈尾〉**（財政の払い方の側。入口の値は替えない）。ただし下の ① のとおり、既定の世界には高等教育の買い手がいない＝**この線の効きは高等教育の入口が開いて初めて観測できる**。
+  ① **指示の前提のずれ（先頭に置く・腕の組み方を決める）**
+     指示は〈主の既定では ModernizationToHigherEdu が 0.0 なので補助は一度も出ていない＝休眠の点火〉と書き、狙いの数字に〈高等教育を買えた量＞0〉を置いた。**ソースを読むと、休眠は二重**：
+       (1) `ModernizationToHigherEdu = 0.0`（Coefficients:186）＝補助の予算が立たない。
+       (2) `HigherEduNeedPerEducated = 0.0`（Coefficients:175）＝どの POP も高等教育（財 136）の必要量が 0（EconomyStep:1683）。かつ `ResearcherFrac = 0.0`（Coefficients:172）＝研究者 POP と大学の生産者が世界に存在しない（Simulation:1287・PopClass:24）。
+     **既定の世界では、誰も高等教育を買えず、売り手もいない。補助の旗だけを立てても、請求は 0・買えた量は 0 のまま**（ゲート緑≠機構が働いた）。狙いの数字〈高等教育を買えた量＞0〉は旗 1 本では観測できない。
+     応答：腕 B は **`ScholarshipLaw=1` に高等教育の入口の同時点火（`ResearcherFrac=0.05;HigherEduNeedPerEducated=0.05`・知識doc 段2 の腕と同じ値・実装ログ 2026-09-06 の記録。構築時に読む係数だが POB_COEF は起動時に効く＝Runner:1187）を重ねる**。
+     代償：B は 2 つの点火の合成。止める線に当たったときだけ、点火のみ（`ScholarshipLaw=0`）の腕 B0 を 1 本足して切り分ける（1 テーマに 1 計測）。〈尾が効いたか〉は B の中の国×四半期の内訳（J4）で読み、B と m584 の差には使わない。
+     もう一つの出口：**入口の点火が先に別の線で入るまで、sch は旗 0 の形のまま合流する**（恒等・休眠）。この線の前半の成果物はその形。点火を sch に含めるかは合流の担当が決める（推奨＝含めない。sch は旗 0 で合流し、点火は知識と人的資本の線の仕事）。
+  ② **指示の範囲の絞り（AI の判断）**：指示本文には 2 つの範囲が並ぶ。〈近代化投資のレバーの表示の行を消す・ModernizationFrac の欄がコードに残らない〉と〈この波の sch は教育費の軸の上の段と eduPart の移し替えだけに絞る。近代化投資の改名・SelfPlay.Apply の代入・FiscalTables のレバーは次へ回す〉。**後者に従う**。
+     ＝狙いの数字 ④（ModernizationFrac の欄と表示の行がコードに残らない）は**この波では登録しない**（次の波へ）。`ModernizationFrac`・`ModernizationBudget()`・招聘（`ModernizationToRecruit`）・財政のレバーの行・SelfPlay.Apply の代入は触らない。
+  ③ **形の選び（AI の推奨・確証なし）**：
+     (a) **段ごとの割合は比例**（教育費の実効の率 `World.EducationSpending`＝0／1/3／2/3／1 の段に比例）。〈最上段だけ〉の年金型にしない。理由：README §1-8〈閾値より比例〉・片方向の錠なし。最上段だけにする場合は 1 行（`TaxStage == TaxLawStages` の門）の違いで、結果を見て選び直さない。
+     (b) **担い手は〈買い手の値段の楔〉**（健康保険 #3 の `insure` と同じ型）：高等教育を買う POP の自己負担が、国庫の負担分だけ下がる。需要は楔を通した値段で立つ（欲しい量が値段に反応し、予算で買える量が増える）。国庫の負担分は決済で `StateSpent[Education]` へ（国庫→大学の売上。保存）。**新しい状態変数も新しい係数（割合の数）も作らない**＝割合は既にある実効の率から導く。
+     (c) **割合の導き方**：`Region.ScholarshipShare`（月ごとに Simulation が書き直す率・`CompulsoryEduFunding` と同じ型の置き場）＝`ScholarshipLaw>0 ? CompulsoryEduFunding : 0`（法の門〔Compulsory／Public／Religious かつ ParishEduFunded〕・支配度 RuleReach はその中に既に入っている）。支払い率 r は `CompulsoryEduFunding` と同じ行で掛ける。上限は健康保険と同じ `InsuranceCoverageCap`（0.95＝自己負担の下限 5%）を買い手の値段の楔の側で使う（0 除算の守り。新しい定数ではない）。
+     (d) **年金と同じ仕組み**＝請求を立て支払い率で払う。ここでは請求の見込みを〈先月の実支出の逆算〉（`regrow×StateSpent[Education]`・Simulation:2284 の行にもう載っている）で立てる＝義務教育と同じ。請求の行は 1 字も増やさない。年金の `LastPensionCostPerMonth` のような新しい欄は作らない（思想⑩）。
+     (e) **古い道（`ModernizationToHigherEdu` の eduPart と `HigherEduFunding` の予約）は旗 0 の間そのまま残す**。旗 1（`ScholarshipLaw>0`）では eduPart を立てない（置き換え）。物理削除は採られた後（既存の `ModernizationAbolishedTests` 第 1 本が旧の道を直接立てて読むので、今は消すと番人を壊す）。
+     (f) AI と プレイヤーの対称：割合の書き手は Simulation の月次の導出の 1 行だけ。AI はすでに教育費の目標の段を `GateTax` で選ぶ（SelfPlay:411・近代化の教義は最上段）。プレイヤーは同じ門で同じ段を選ぶ。**門と代価は別の経路を持たない**。指示の〈AI が ModernizationFrac を決める所を教育費の目標の段の選び方へ寄せる〉は SelfPlay.Apply:1861 の代入に触れるので、②のとおり次の波。
+  ④ 作者に聞く物：なし（(a)〜(f) は推奨で進める。作者の承認は未確認）。
+
+[1] 形（実装の約束）
+
+  【旗】`Coefficients.ScholarshipLaw`（int・既定 0）。0 では次の全てが旧のまま（式の形も変えない）。
+  【書き手】`Simulation` の `CompulsoryEduFunding` を書く行の次に `r.ScholarshipShare = Coef.ScholarshipLaw > 0 ? r.CompulsoryEduFunding : 0;`（この時点では支払い率の前）。`CompulsoryEduFunding *= payRate` の行に並べて `ScholarshipShare *= payRate`。
+  【楔】`EconomyStep.BuyerWedge` の `insure`：`gi == MedicalGoodId` の枝の隣に `gi == HigherEducationId ? Clamp(region.ScholarshipShare, 0, InsuranceCoverageCap) : 0`。`ProductionDiag.ExplainPrice` は同じ関数を呼ぶので生産タブの値段の積み上げも自動で揃う。
+  【決済】`EconomyStep` の役務の優先配分の支払い（`pay = qty * m.Price`）：`subsidy = qty*m.Price*insure`（insure>0 のときだけ）・`pay = qty*m.Price - subsidy`・`StateSpent[Education] += subsidy`。売上（`revenue[gi]`）は全額のまま（保存の要）。旗 0 では `insure` が高等教育で 0 → 分岐に入らず式は旧と同じ。
+  【eduPart】`World.ApplyModernizationInvestment`：`ScholarshipLaw>0` のとき eduPart を立てない。旗 0 は旧のまま。
+  【表示】`PlayText.EducationSpendingText`：`ScholarshipLaw>0` のときだけ〈奨学金 xx%（実効）〉を末尾に足す（App の財政の行と play の報告が同じ関数を読む・FiscalTables のレバーの行は触らない）。旗 0 では文字列も旧のまま。
+  【セーブ】`Region.ScholarshipShare` は `double` の公開欄（`InsuranceCoverage` と同じ）＝`SaveGame` が名前と型で書く。新しい型ではない。savetest で同じ版の往復を確かめる。
+  【触らない】`ModernizationFrac`・`ModernizationBudget`・招聘・SelfPlay.Apply:1861・FiscalTables:134・StageGate・App・Display（`PlayText` は SimCore の共有の文字列）・Runner/PlayHarness。
+
+[2] 腕（共通の約束）
+  ・腕 A＝既定（`ScholarshipLaw=0`）・**5 種**（種 1〜5）・計器なし・`batch.sh run`。**恒等の証明**＝成績表が `measurements/b5_20261027_m584` と全行一致（SOURCE-HASH の行を除く）。前半の担当は腕を回さない（後半が回す）。前半は構成上の恒等（旗 0 の分岐は旧の式）と番人・全テスト・savetest で示す。
+  ・腕 B＝`POB_COEF="ScholarshipLaw=1;ResearcherFrac=0.05;HigherEduNeedPerEducated=0.05"`・**計器つき 10 種**（種 1〜10）・`INS=1`・NATIONS＝m584 と同じ 9 国。比べる側＝基線の計器つき 10 種の生（D:/PoB_work/keep_584/m584_ins）。
+  ・腕 B0（止める線に当たったときだけ）＝`POB_COEF="ResearcherFrac=0.05;HigherEduNeedPerEducated=0.05"`（点火のみ・計器つき 10 種）。
+  ・ヌル腕は m584 の N1・N2 を共有。ヌル腕を読むのは NG の判定（確証なし×バランス破壊）のときだけ。**この線の形は作者の裁定の形ではない**（作者は〈法にして年金と同じ仕組み〉まで・段ごとの割合と楔は AI の推奨）＝確証なし。
+  ・種：B は 1〜10。結果を見て登録を直すときは追記に書き、新しい種 11〜20 で判定し直す。
+
+[3] 止める線・狙いの数字・記録・判定の段
+
+  止める線（README のとおり。史実度・exact・near・NG・補給崩壊の倍化・清の強さ・英＜清・暦の年は記録だけ）
+    S1 破綻：クラッシュ・NaN・保存則・同じ版のセーブ往復（savetest）・進行不能＝1 種でも即不合格。高等教育の売上と補助が貨幣の保存を破らない（Invariants）。
+    S2 発散：金利・人口・値段が桁で暴走する。高等教育の値段・補助の額が桁で暴走しない。
+    S3 州の空洞化：ピークの 1/10 未満が 1 件でも（原因を問わない・例外の名簿〔ヌーク〕以外）。基線 m584＝0 件（1/4 未満は 8 件〔記録〕）。
+    S4 計算量：推定の計算量 ＞248.5 秒（名目）。基線 210.3 秒。使う量は [5]。雑音の床 N1 210.8・N2 208.5（軌道の揺れ ±1.2 秒）。
+    S5 機構と不変条件を守るテストの赤（保存・AI とプレイヤーの対称・セーブ・番人）。史実の桁を固定した試験の赤は記録。
+
+  狙いの数字＝**機構の観測量だけ**。史実の大きさ（奨学金の割合・高等教育の人数・暦の年）は全て記録。
+    J0 恒等（腕 A）：5 種の成績表が b5_20261027_m584 と全行一致。
+    J1 自己負担の楔（番人）：手で作った盤面（研究者の生産者と、必要量＞0 の POP を持つ州）で、`ScholarshipLaw=1`・教育法 Public 以上・段 s（教育費の実効の率 e）のとき、買い手の自己負担＝(1−min(0.95, e×r)) ×授業料、国庫の負担＝授業料×min(0.95, e×r)（r＝支払い率）。期待値は盤面の別の出所〔e と r と数量と値段の手計算〕から作る（同語反復にしない）。
+    J2 請求と支払い率（番人）：(a) 補助の額が `StateSpent[Education]` に載り、国庫の減りと一致する（保存）。(b) 翌月の請求の見込み `regrow×StateSpent[Education]` に補助が入っている（補助を `Modernization` の区分へ書くと請求が立たない＝その誤りを突然変異で赤にする）。(c) 支払い率 r＜1 の月、実効の割合が r に比例して縮む。
+    J3 対称（番人）：`Region.ScholarshipShare` の書き手が Simulation の月次の導出 1 行だけ（走査）。同じ教育費の実効の率の AI の国とプレイヤーの国で同じ割合。
+    J4 機構が働いた（腕 B・10 種）：(a) 補助の額＞0 の国×四半期が 1 つ以上ある種が ≥8/10。(b) その国×四半期で 補助÷授業料 が `min(0.95, e×r)` に 1e-6 の相対で一致（計器の列から再計算。r は 実効の支払い率）。(c) 教育法が Religious（ParishEduFunded が 0 の国）または段 0 の国×四半期で補助が厳密に 0。
+    J5 旧の道が旗 1 で閉じる（番人）：`ScholarshipLaw>0` では `World.ApplyModernizationInvestment` が `HigherEduFunding` を立てない。旗 0 では旧のまま（`ModernizationToHigherEdu=0.5` の盤面で立つ）。
+    J6 表示（番人）：`PlayText.EducationSpendingText` は旗 0 で旧の文字列とビット一致・旗 1 で奨学金の実効の率を載せる。
+  記録（採否に使わない）
+    R-stage 教育費の段が 1 以上の国の数の年代（十年ごと）。R-fill 高等教育の充足 `HigherEduFill`（人口加重・国×十年）。R-lit 識字（英・仏・普・米・日・清）。R-eng 技師の数（国×十年）。R-sub 補助の額÷教育費の合計・補助が国庫の支出に占める割合。R-price 高等教育の値段（楔を通した買い手の値段と市場の値段）。R-cost 推定の計算量（使う量と、ヌル腕の軌道の揺れの両方）。R-exact exact・near・NG の集合・補給崩壊・勝者・清の強さ。
+    **B の中の読み（B0 を回さないとき）**：段が上の国×四半期ほど HigherEduFill が高いかは、豊かな国ほど段が高い交絡があり、尾の因果とは読まない（記録だけ）。尾が需要を動かしたかは B0 を足したときの国×四半期の差で読む。
+  判定の段（〈機構が狙いどおり働いたか〉を最初に置く）
+    段1 機構：J1〜J6 が全て通る＝機構が狙いどおり。J4 が外れる（補助が出ない／割合が合わない）＝採らない。**高等教育の入口が開いていない世界では J4 は読めない＝blocked と書く（旗 0 の形での合流は妨げない）**。
+    段2 止める線：S1〜S5。当たったら B0 を 1 本足して切り分ける。
+    段3 採否：段1・段2 を通れば、`ScholarshipLaw` の既定を 1 に倒すのは**入口の点火と一緒に**。入口が別の線で開くまで、旗 0 の形で合流する（休眠表に載せる）。
+    外れの扱い：結果を見て登録を直すときは追記に書き、新しい種 11〜20 で判定し直す。
+
+[4] 前半で行う確かめ（腕の外・採否に使わない）
+  ・ビルド（Release）と新しい番人。突然変異：(1) 楔の枝を外す (2) 補助の区分を `Modernization` へ (3) `ScholarshipShare` を `payRate` の前に固定 (4) 旗 0 でも `ScholarshipShare` を書く、のどれでも赤。
+  ・`DormantIdentityTests` の `ZeroDefaultLedger` に `ScholarshipLaw` を足す。`savetest` と `leakhunt` は後半。
+  ・Category!=FullLength のテストは前半で通す。FullLength は後半。
+
+[5] 計算量（件数で書く）
+  ・旗 0：月ごとに州あたり 1 回の比較（`ScholarshipLaw>0`）と、`BuyerWedge` の高等教育の財で 1 回の比較。件数は州×月×財 1 の定数＝**使う量の登録＝+0.3 秒以下**（census の雑音の床 約 1.2 秒の内。後半が単独・交互・3 組で測る）。
+  ・旗 1＋入口の同時点火（腕 B）：研究者 POP が州あたり 1 つ増え（POP の走査 約 +1/13）、大学の生産者が州あたり 1 つ増える。**使う量の登録＝+8 秒以下（ソースからの推定・未検・点火の側の費用が主）**。後半の canary で確かめる。入口の点火は別の線が払うべき費用で、sch の費用は +0.3 秒に収まる見込み。
+  ・合流の注意：波 35 の他の線の登録の合計 26 秒に、B の点火の +8 秒を足すと 34 秒（余り 38.2 秒に入る）。sch を旗 0 で合流する限り +0.3 秒だけ。
+
+[6] 触る行（並行の線との重なり・合流で解く前提・main c7fd8616 の座標）
+  ・`Coefficients.cs`：186 付近（旗の宣言を `ModernizationToHigherEdu` の次に）。
+  ・`Model.cs`：1022 付近（`Region.ScholarshipShare` を `CompulsoryEduFunding` の次に）。
+  ・`Simulation.cs`：2150〜2153（導出の 1 行）と 2380（`*= payRate` の行）。
+  ・`EconomyStep.cs`：530（`BuyerWedge` の `insure`）と 1819 付近（役務の優先配分の支払い）。
+  ・`World.cs`：1949（`eduPart` の 1 行）。
+  ・`PlayText.cs`：143（`EducationSpendingText`）。
+  ・`Tests/DormantIdentityTests.cs`（`ZeroDefaultLedger` の 1 行）と新しい `ScholarshipTests.cs`。
+  ・重なり：指示のとおり **gc5 とだけ**（gc5 は SelfPlay の `AiModernizeFromReturn` の枝・modsig の列を消す。sch は SelfPlay・Instruments を触らない）。sm6・dsc5・hyp とは同じ関数の同じ式を触らない。コードの前提になる組は無い。
+  ・交絡の注記（合成の後にアブレーションで切り分ける）：sch→dsc5（高等教育の充足と技師の数が dsc5 の〈分野の技術者数〉の入力になる）・sm6（建屋の段の耐久は sch の財政に触れない）。
+
+[7] 自己申告（限界・確証なし）
+  ・既定の世界では効きが観測できない（①）。この線の前半は〈休眠のまま合流できる形〉を作る仕事で、〈機構が狙いどおり働いた〉の判定は入口の点火の腕でしか出ない。
+  ・割合を教育費の実効の率に比例させたのは AI の推奨（年金のように最上段だけにする案との違いは 1 行）。史実の奨学金・学費補助の割合に合わせた値ではない（確証なし）。
+  ・`InsuranceCoverageCap`（0.95）を高等教育にも使うのは 0 除算の守りの再利用で、設計思想⑧の例外〈発散する量〉の守りとして名乗る。割合の上限として選んだ数ではない。
+  ・請求の見込みは先月の実支出の逆算なので、補助の導入の月は請求に入らない（1 か月遅れ。義務教育と同じ）。
+  ・古い道（eduPart・HigherEduFunding）を旗 0 で残すのは番人の都合。採られた後に物理削除する。
