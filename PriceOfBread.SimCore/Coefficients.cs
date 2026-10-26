@@ -186,7 +186,7 @@ public sealed class Coefficients
     public double ModernizationToHigherEdu = 0.0;
     // ★(590) 奨学金の法（作者 2026-10-26「近代化投資の一部は、高等教育の学費の補助に回っています。これは残しましょう。…「奨学金」で法にするなどして、年金と同じ仕組みにするのはどうか」）：
     //   教育費の軸（EducationSpending・4 段）の実効の率に比例して、高等教育を買う POP の自己負担が国庫の負担分だけ下がる（買い手の値段の楔＝健康保険 #3 の insure と同型）。
-    //   割合＝Region.ScholarshipShare＝その州の義務教育の財源率（CompulsoryEduFunding＝法の門と支配度を通した後）を支払い率で縮めた値。請求の見込みは先月の実支出の逆算（StateSpent[Education]・義務教育と同じ）。
+    //   割合＝EconomyStep.ScholarshipCover＝その州の義務教育の財源率（CompulsoryEduFunding＝法の門と支配度を通し支払い率で縮めた後）を上限 InsuranceCoverageCap で切った値（別の状態は持たない）。請求の見込みは先月の実支出の逆算（StateSpent[Education]・義務教育と同じ）。
     //   正のとき World.ApplyModernizationInvestment は eduPart（HigherEduFunding の予約）を立てない（置き換え）。0＝旧のまま（厳密恒等）。
     //   ⚠高等教育は既定で二重に休眠（HigherEduNeedPerEducated=0・ResearcherFrac=0＝買い手も大学も居ない）＝この旗だけを立てても補助は 0 のまま。測るときは入口の点火（measurements/sch_590_20261027_prereg.txt [0]①）を重ねる。
     public int ScholarshipLaw = 0;

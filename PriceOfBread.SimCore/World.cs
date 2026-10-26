@@ -1946,7 +1946,7 @@ public sealed class World
         double recPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToRecruit.Value);
         if (recPart > 0) { RecruitBudget += recPart; budget -= recPart; }
         if (!(budget > 0)) return;
-        double eduPart = Coef.ScholarshipLaw > 0 ? 0 : budget * PoliticalQuantities.Clamp01(Coef.ModernizationToHigherEdu);   // ★(590) 奨学金の法が立つ世界では、高等教育の学費の補助は教育費の軸の楔（Region.ScholarshipShare）が担う＝予約 HigherEduFunding は立てない（置き換え）
+        double eduPart = Coef.ScholarshipLaw > 0 ? 0 : budget * PoliticalQuantities.Clamp01(Coef.ModernizationToHigherEdu);   // ★(590) 奨学金の法が立つ世界では、高等教育の学費の補助は教育費の軸の楔（EconomyStep.ScholarshipCover）が担う＝予約 HigherEduFunding は立てない（置き換え）
         if (eduPart > 0)
         {
             var weight = new double[Regions.Count];   // 州ごとの重み（合計と配分で同じ州走査を2度しない・(584) 確保を使う枝の中へ移した＝恒等）

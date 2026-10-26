@@ -12,15 +12,17 @@ namespace PriceOfBread.SimCore;
 //   demandSignalPerMonth（教育の市場の LastDemand の和＝値段が読む需要）／producedPerMonth・soldPerMonth（LastProduced・LastSold の和）／
 //   priceMean（教育の値段の人口加重）／priceOverRefTimesLevelIndex（値段÷（参照価格×物価水準）の人口加重）／
 //   higherWantPerMonth・higherTakePerMonth（高等教育の補助の買いたい量・取れた量）。
+//   ★(590) 末尾 5 列：higherTuitionPerMonth（高等教育の授業料の総額＝買い手の自己負担＋国庫の負担）／higherSubsidyPerMonth（うち国庫の負担＝決済の値）／higherSubsidyExpectedPerMonth（今の割合 ScholarshipCover×授業料の総額＝別の出所の期待値）／higherCoverShare（割合の人口加重）／higherFillShare（非兵士の高等教育の充足の人口加重）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（月ごとの値は読まない）／診断の欄は直近の INS=1 の月の 1 回の値／助走の月と死んだ州は 0。
 public static partial class Instruments
 {
     internal const string EdHeaderText = "quarter\tyear\tnation\tpopK\tfundingShare\tfundedRegionShare\tneedPerMonth\tprivateDemandPerMonth\tavailablePerMonth\tstateWantPerMonth\tstateTakePerMonth\t"
-        + "stateWantMoneyPerMonth\tstateTakeMoneyPerMonth\tshortRegionShare\tdemandSignalPerMonth\tproducedPerMonth\tsoldPerMonth\tpriceMean\tpriceOverRefTimesLevelIndex\thigherWantPerMonth\thigherTakePerMonth";
+        + "stateWantMoneyPerMonth\tstateTakeMoneyPerMonth\tshortRegionShare\tdemandSignalPerMonth\tproducedPerMonth\tsoldPerMonth\tpriceMean\tpriceOverRefTimesLevelIndex\thigherWantPerMonth\thigherTakePerMonth"
+        + "\thigherTuitionPerMonth\thigherSubsidyPerMonth\thigherSubsidyExpectedPerMonth\thigherCoverShare\thigherFillShare";   // ★(590) 奨学金の法の計器 5 列（末尾）
 
     /// <summary>(465) 診断の蓄え（(452) で Region に置いた 7 欄を計器の側へ移した＝シミュの状態ではない・セーブに載らない・ConditionalWeakTable の先例）。
     /// 書くのは EconomyStep の INS=1 の月だけ・読むのは EdFold だけ。値は直近の月の 1 回（非兵士の和）。書かれていない州は全て 0。</summary>
-    internal sealed class EdDiag { public double Need, Priv, Avail, Want, Take, HigherWant, HigherTake; }
+    internal sealed class EdDiag { public double Need, Priv, Avail, Want, Take, HigherWant, HigherTake, HigherGross, HigherSub; }   // ★(590) HigherGross＝高等教育の授業料の総額（買い手の自己負担＋国庫の負担）・HigherSub＝うち国庫の負担（決済の値）
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, EdDiag> EdDiags = new();
     static readonly EdDiag EdZero = new();
     internal static EdDiag EdDiagOf(Region r) => EdDiags.TryGetValue(r, out var d) ? d : EdZero;
@@ -28,11 +30,14 @@ public static partial class Instruments
     internal static void EdBegin(Region r, double need, double priv, double avail) { var d = EdDiags.GetOrCreateValue(r); d.Need = need; d.Priv = priv; d.Avail = avail; d.Want = 0; d.Take = 0; }
     internal static void EdSet(Region r, double want, double take) { var d = EdDiags.GetOrCreateValue(r); d.Want = want; d.Take = take; }
     internal static void HigherEdSet(Region r, double want, double take) { var d = EdDiags.GetOrCreateValue(r); d.HigherWant = want; d.HigherTake = take; }
+    /// <summary>★(590) 高等教育の役務の優先配分の始め：授業料の総額と国庫の負担分の月の蓄えを 0 に戻す。</summary>
+    internal static void HigherPaidBegin(Region r) { var d = EdDiags.GetOrCreateValue(r); d.HigherGross = 0; d.HigherSub = 0; }
+    internal static void HigherPaid(Region r, double gross, double subsidy) { var d = EdDiags.GetOrCreateValue(r); d.HigherGross += gross; d.HigherSub += subsidy; }
 
     static void EdFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
-        double popK = 0, fundW = 0, fundedPop = 0, shortPop = 0, need = 0, priv = 0, avail = 0, want = 0, take = 0, wantMoney = 0, takeMoney = 0, demand = 0, produced = 0, sold = 0, priceW = 0, relW = 0, priceDen = 0, hWant = 0, hTake = 0;
+        double popK = 0, fundW = 0, fundedPop = 0, shortPop = 0, need = 0, priv = 0, avail = 0, want = 0, take = 0, wantMoney = 0, takeMoney = 0, demand = 0, produced = 0, sold = 0, priceW = 0, relW = 0, priceDen = 0, hWant = 0, hTake = 0, hGross = 0, hSub = 0, hSubExp = 0, coverW = 0, fillNum = 0, fillDen = 0;
         bool haveEdu = Catalog.EducationId < Catalog.RefPrices.Length;
         double refP = haveEdu ? Catalog.RefPrices[Catalog.EducationId] : double.NaN;
         foreach (var r in w.Regions)
@@ -45,6 +50,8 @@ public static partial class Instruments
                 fundedPop += rp;
                 if (d.Want > d.Take * (1.0 + 1e-9) + 1e-12) shortPop += rp;   // 否定形でなく読むだけの診断＝NaN は数えない側
             }
+            hGross += d.HigherGross; hSub += d.HigherSub; hSubExp += EconomyStep.ScholarshipCover(r, w.Coef) * d.HigherGross; coverW += rp * EconomyStep.ScholarshipCover(r, w.Coef);   // ★(590) 期待値は今の財源率から導く（決済の値 HigherSub とは別の出所）
+            foreach (var p in r.Pops) { if (p.IsSoldier) continue; fillNum += p.Size * p.HigherEduFill; fillDen += p.Size; }
             need += d.Need; priv += d.Priv; avail += d.Avail; want += d.Want; take += d.Take; hWant += d.HigherWant; hTake += d.HigherTake;
             if (!haveEdu || Catalog.EducationId >= r.Markets.Length) continue;
             var m = r.Markets[Catalog.EducationId];
@@ -60,6 +67,7 @@ public static partial class Instruments
         sk.Ed ??= Open("ed", seed);
         if (!sk.EdHeader) { sk.Ed.WriteLine(EdHeaderText); sk.EdHeader = true; }
         sk.Ed.WriteLine(string.Join('\t', q.ToString(System.Globalization.CultureInfo.InvariantCulture), w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), F(popK), F(Div(fundW, popK)), F(Div(fundedPop, popK)),
-            F(need), F(priv), F(avail), F(want), F(take), F(wantMoney), F(takeMoney), F(Div(shortPop, fundedPop)), F(demand), F(produced), F(sold), F(Div(priceW, priceDen)), F(Div(relW, priceDen)), F(hWant), F(hTake)));
+            F(need), F(priv), F(avail), F(want), F(take), F(wantMoney), F(takeMoney), F(Div(shortPop, fundedPop)), F(demand), F(produced), F(sold), F(Div(priceW, priceDen)), F(Div(relW, priceDen)), F(hWant), F(hTake),
+            F(hGross), F(hSub), F(hSubExp), F(Div(coverW, popK)), F(Div(fillNum, fillDen))));
     }
 }

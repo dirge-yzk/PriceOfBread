@@ -140,7 +140,7 @@ public static class PlayText
     public static string ExchangeRateText(World w) => !w.MonetaryEnabled ? "—" : w.ExchangeRate.ToString("P0");
     /// <summary>★(452) 教育費の名乗り（App の財政の行と play の報告が同じ関数を呼ぶ）。教育費は額でなく〈予算の割合〉＝置いた率（<see cref="Policy.EducationSpendingTarget"/>）と実効の率（<see cref="World.EducationSpending"/>）。
     /// 実効が国庫の買う率になるのは法と到達を通した後（Simulation の CompulsoryEduFunding）＝その率は別に出す（play の報告）。表示だけ＝シミュは動かさない。</summary>
-    public static string EducationSpendingText(World w) => $"教育費（予算の割合） {w.Policy.EducationSpendingTarget:P0}　実効 {w.EducationSpending:P0}" + (w.Coef.ScholarshipLaw > 0 ? $"　奨学金（授業料の国庫負担・首都の州・支払い率を通した実効） {w.Region.ScholarshipShare:P0}" : "");
+    public static string EducationSpendingText(World w) => $"教育費（予算の割合） {w.Policy.EducationSpendingTarget:P0}　実効 {w.EducationSpending:P0}" + (w.Coef.ScholarshipLaw > 0 ? $"　奨学金 {EconomyStep.ScholarshipCover(w.Region, w.Coef):P0}" : "");
 
     /// <summary>兌換カバー率（基礎貨幣÷広義貨幣）の文言。銀行が無い世界は〈—〉。画面の財政タブの金融と Runner の報告が同じ 1 本。</summary>
     public static string CoverText(World w)
