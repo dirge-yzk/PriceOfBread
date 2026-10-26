@@ -1721,7 +1721,7 @@ public sealed class Simulation
     //   ・UpdateRegionalPriceLevels　読む：貯蓄・所得・規模（稼働中の州）　書く：州の物価乗数・賃金プレミアム　（国の和と州の和を 1 周で求める）　★窓の外
     //   ・Parliament.Step　読む：思想・規模　書く：国の欄・**有権者の貯蓄**（総選挙の公示への AI の答え＝World.ResolveElection が国庫→有権者）　★窓の外
     //   ----（ここから窓：総人口・兵士の数・Blocs の分母・Build の POP 由来の和を 1 回だけ求めて配る＝PopWindow）----
-    //   ・ApplyModernizationInvestment　読む：識字・高等教育の充足・規模　書く：国の欄・州の建設予約
+    //   ・ApplyModernizationInvestment　読む：識字・高等教育の充足・規模　書く：国の欄（招聘の予算）・州の高等教育の補助（★(584) 州の建設予約は (583) で削除）
     //   ・Government.Step（法の軸ごとに Build）　読む：貯蓄・地代・所得・規模・年齢の層　書く：法の欄（参政権ほか＝Blocs の重みの第 2 走査はこれで動く＝使い回さない）
     //   ----（窓の終わり）----
     //   窓の中で POP の規模・貯蓄・地代・所得・年齢の層を書く段は無い（番人＝POB_POPSCAN_VERIFY=1）。法（参政権ほか）が動くと Blocs の重みは変わる＝使い回すのは POP 由来の和だけ。

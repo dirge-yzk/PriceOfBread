@@ -14,7 +14,7 @@ namespace PriceOfBread.SimCore;
 //   鎖の中間（四半期の末の断面・全ての州の生産者の和）：warshipScaleSum・sailingShipScaleSum・artilleryScaleSum・rifleScaleSum・steelScaleSum（その財の Scale の和）／
 //   warshipBuiltSum・sailingShipBuiltSum・artilleryBuiltSum・rifleBuiltSum（BuiltScale の和＝完成した棟の累計）／warshipBuildingCount・sailingShipBuildingCount・artilleryBuildingCount・rifleBuildingCount（工事中の棟の数）。
 //   ＝〈工場が建った→軍艦の生産の能力が増えた〉の中間（財ごとの Scale の計器は eqr_s にこの財たちが無かった〔発見の行を持たない財は載らない〕ので足した）。
-// ⚠限界（計器が自己申告する）：着工の判断の断面（実際の工事の進み方は読まない）／旗 0 の国は overCostCapCandidateCount が 0（旧の門が先に落とす）＝旧との比べは startedCount の差で見る／年末の行は 4 四半期の合計（鎖の中間は年末の断面）。
+// ⚠限界（計器が自己申告する）：着工の判断の断面（実際の工事の進み方は読まない）／overCostCapCandidateCount は主の候補の経路だけを数える（連鎖の目の上流の候補は数えない）／年末の行は 4 四半期の合計（鎖の中間は年末の断面）。
 public static partial class Instruments
 {
     internal const string AibHeaderText = "quarter\tyear\tnation\tcalls\treturnFundingCount\treturnRoomCount\troomEntryPerMonthMean\tbufferEntryMean\ttreasuryEntryStock\t"

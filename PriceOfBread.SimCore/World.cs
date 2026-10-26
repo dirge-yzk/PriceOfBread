@@ -1595,7 +1595,8 @@ public sealed class World
         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
         double pFiat = PriceLevel;   // (280) pFiat は計器の読み（紙幣増発の直後・クランプの前）
-        // ★(582) 天井は廃止（作者 2026-10-26）。床だけ残す。P が正の有限でない（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）四半期は更新前の P を保つ＝否定形の守り（Math.Clamp も Math.Max も NaN を消さない）。
+        // ★(582) 天井は廃止（作者 2026-10-27 の依頼「数値としての天井は可能なら排除したい」）。床だけ残す。P が正の有限でない（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）四半期は更新前の P を保つ＝否定形の守り（Math.Clamp も Math.Max も NaN を消さない）。
+        //   ★(584) 設計の選択：有限で 0 以下の P も更新前の P を保つ（旧の Clamp は床 0.4 にした）＝床は掛けない。⚠増発の圧は 1 か月に DevaluationCapFracPerMonth（貯蓄の 5%）までしか積めない＝増発だけでは P は循環比の約 1.5 倍へ収束する【推】＝ハイパーインフレの道は循環比の跳ね（産出の崩壊）にしか無い（(584) の記録）。
         PriceLevel = PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before;
         CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
@@ -1701,7 +1702,7 @@ public sealed class World
     public PopScan AllPopsWithRegion() => new(Regions);
 
     // （1棟単位の手動建設 BuildIndustry は 2026-09-26 に削除＝呼び手はテストと PlayHarness の !build だけで、UIにもAIにも無い動詞だった（x-04）。
-    //   国家主導の工業化は ApplyModernizationInvestment（率のレバー）の1本＝国庫→建設予約の検証もそちらで行う＝FranceTests）
+    //   ★(584) 国庫→州の建設予約の道は (576)(583) で廃止＝ApplyModernizationInvestment は招聘と学費の補助だけ・国の工場は SetStateTarget〔生産タブと同じ動詞〕）
 
     /// <summary>★着工の可否と理由（清プレイレポート§4-3・2026-08-31）：BuildFactory と**同じ条件**を理由つきで返す（第二の基準を作らない）。
     /// ハーネス/AI/UIのツールチップが読む。判定順も BuildFactory と同一。</summary>
@@ -1946,9 +1947,9 @@ public sealed class World
         if (recPart > 0) { RecruitBudget += recPart; budget -= recPart; }
         if (!(budget > 0)) return;
         double eduPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToHigherEdu);
-        var weight = new double[Regions.Count];   // 州ごとの重み（合計と配分で同じ州走査を2度しない）
         if (eduPart > 0)
         {
+            var weight = new double[Regions.Count];   // 州ごとの重み（合計と配分で同じ州走査を2度しない・(584) 確保を使う枝の中へ移した＝恒等）
             double ew = 0;
             for (int i = 0; i < weight.Length; i++) ew += weight[i] = HigherEduGap(Regions[i]);
             if (ew > 1e-9)

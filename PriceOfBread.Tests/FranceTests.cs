@@ -75,18 +75,18 @@ public class FranceTests
     }
 
     [Fact]
-    public void 国家工場建設は基礎貨幣を保存する()   // 国庫→建設の束（生産者）で保存・工業化度が上がる
+    public void 近代化のレバーで基礎貨幣を保存する()   // ★(584) 名前を直した（旧＝国家工場建設は基礎貨幣を保存する）：招聘と学費の補助の予算・保存則・工業化度は私的な建設で上がる
     {
         // ★2026-09-26：旧＝1棟単位の手動建設 World.BuildIndustry（テストと PlayHarness だけの動詞）で予約していた。
         //   動詞を削除し、UI・AI 共通の口＝近代化投資のレバーで予約していた。★(583) 近代化投資の廃止で州の StateBuildQueue へ配る道は物理削除した＝今のレバーは招聘と学費の補助の予算だけを立てる（この試験は予算が立つことと保存則・工業化度が上がること〔私的な建設〕を見る）。
         var sim = new Simulation(Fr(1789), new NullAgent());
         double base0 = sim.World.BaseMoney.Value, ind0 = sim.World.Region.TotalIndustrialization;   // ヴィンテージ2026-07-10：資本ストックは新旧合計（旧単層と同一動学）で測る
-        sim.World.ModernizationFrac = 0.5;   // NullAgent は上書きしない＝単一国では毎四半期この率で国庫から建設を予約する
+        sim.World.ModernizationFrac = 0.5;   // NullAgent は上書きしない＝単一国では毎四半期この率で招聘と学費の補助の予算を立てる（★(584) 建設の予約は (583) で削除）
         var ex = Record.Exception(() => sim.Run(20));   // EconomyStep が束を買い決済（§11.6 が全ティック保持）
         Assert.Null(ex);
         Assert.True(sim.World.ModernizationBudget() > 0, "近代化投資の予算が立たない（国庫不足＝建設を予約できていない）");
         Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0, "国家建設で基礎貨幣保存が破れた");
-        Assert.True(sim.World.Region.TotalIndustrialization > ind0, "国家建設で工業化度が上がっていない");
+        Assert.True(sim.World.Region.TotalIndustrialization > ind0, "私的な建設で工業化度が上がっていない");
     }
 
     [Fact]
