@@ -114,6 +114,7 @@ public class UnitTypeTests
         (typeof(World), "LastAdminClaimPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastSoldierPayPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastMilitaryClaimPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastSpareBeforeBorrowPerMonth", typeof(MoneyPerMonth)),   // ★(579) 月初の払える額−請求（借入と切り下げの前）
         (typeof(World), "LastWelfareCostPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastPensionCostPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastColonialUpkeepPerMonth", typeof(MoneyPerMonth)),
