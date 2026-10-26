@@ -1405,12 +1405,9 @@ public sealed class UtilityAgent : INationAgent
         //   物差しは既存の財政バッファ（月次義務の N か月分・規模中立）＝新しいスカラーを置かない。
         double buffer = FiscalBufferOf(w);
         double monthlyBuild = 0;
-        // ★(579) 線 ukf・旗 AiBuildFromTreasury：正＝数値の天井 2 本（総費用 ≤ FacilityBuildCostCap×バッファ・月の出費 ≤ FacilityBuildOutlayShare×バッファ）を外し、国家の支払い率 r を決める量
-        //   〔月初の払える額−国家の支払いの請求＝LastSpareBeforeBorrowPerMonth〕から、これから払う月の出費の見込みが出せるかで着工する（着工しても r が 1 のままか）。
-        //   走っている工事の出費は先月の請求（AddStateClaim の工賃＋先月の工場の材料の支出）に入っている＝ここで数え直さない（二重に引かない）。0＝旧の式のまま（恒等）。
-        double aiBuildMode = w.Coef.AiBuildFromTreasury;   // 0＝旧／1＝身の丈の門と月の出費の上限の両方を払える額へ／2＝身の丈の門（総費用）だけ外し月の出費の上限は旧のまま
-        bool noCostCap = aiBuildMode > 0;
-        bool fromTreasury = aiBuildMode > 0 && aiBuildMode < 1.5;
+        // ★(579) 線 ukf・旗 AiBuildNoCostCap：正＝総費用の身の丈の門（総費用 ≤ FacilityBuildCostCap×バッファ）だけを外す。月の出費の上限（FacilityBuildOutlayShare×バッファ）は旧のまま残す。
+        //   理由（事前登録の追記 3）＝総費用は数年の工期の全額をバッファ（月次義務の数か月分）と比べる量で、月の出費の上限が国庫の流出を守る。月の出費の上限まで外すと国庫が流出した（煙試験）。0＝旧の式のまま（恒等）。
+        bool noCostCap = w.Coef.AiBuildNoCostCap > 0;
         // ★国営工場カウンターの**未達の意志**（2026-08-10）＝目標>現在の棟数。建材高騰で着工が拒まれた月も目標は残る（意志は消えない）＝これも律速に数える
         var pendingRegion = new int[w.Regions.Count];   // ★#3(a)：州ごとの意志
         for (int ri0 = 0; ri0 < w.Regions.Count; ri0++)
@@ -1418,7 +1415,7 @@ public sealed class UtilityAgent : INationAgent
             var rg0 = w.Regions[ri0];
             foreach (var pr0 in rg0.Producers)
             {
-                if (pr0.ConstructionLeft > 0 && !fromTreasury)
+                if (pr0.ConstructionLeft > 0)
                 {
                     monthlyBuild += Calendar.PerDayToPerMonth(pr0.ConstructionPayPerDay);
                     monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);   // ★裁定②の安全弁＝素材も律速に数える（2026-09-27 焼き込み＝工事費の6割が律速から漏れていた）
@@ -1431,9 +1428,9 @@ public sealed class UtilityAgent : INationAgent
         // ★鋼市場診断#3(a)（2026-08-16・旧の旗 AiBuildGuardRelax は 2026-10-18 に焼き込み）：旧＝全国のどこかに意志が残っていれば**全国 return**＝世界中のAI国が「同時1件」
         //   （四半期1回と合わせて年4棟が上限＝AI資本の参入が構造的に鈍い＝診断B-3の四重ガードの一角）。今＝州ごとの判定
         //   （下の候補ループで意志の残る州だけ静止・他州は並行着工）＝ラチェット防止の性格（意志は溜めない）は州単位で保つ。
-        double outlayCap = fromTreasury ? w.LastSpareBeforeBorrowPerMonth.Value : FacilityBuildOutlayShare * buffer;   // ★(579) 新＝払える額−請求（NaN は下の否定形で閉じる）
-        if (Instruments.On) Instruments.AiBuildEnter(w, fromTreasury, outlayCap - monthlyBuild, buffer);
-        if (fromTreasury ? !(monthlyBuild <= outlayCap) : monthlyBuild > outlayCap) { if (Instruments.On) Instruments.AiBuildReturn(w, funding: false); return; }   // 工事の月次出費が財政バッファを食い過ぎていれば新規着工しない（#3の緩和でも**残す**＝本命の予算制約）。★(579) 新は否定形（NaN は着工しない側）
+        double outlayCap = FacilityBuildOutlayShare * buffer;
+        if (Instruments.On) Instruments.AiBuildEnter(w, outlayCap - monthlyBuild, buffer);
+        if (monthlyBuild > outlayCap) { if (Instruments.On) Instruments.AiBuildReturn(w, funding: false); return; }   // 工事の月次出費が財政バッファを食い過ぎていれば新規着工しない（#3の緩和でも**残す**＝本命の予算制約）
         // 閾値は relExcess > FacilityBuildMinMargin 側で判定（2026-08-04）
         var bestGr = new int[w.Regions.Count]; var bestScoreR = new double[w.Regions.Count]; for (int i = 0; i < bestGr.Length; i++) bestGr[i] = -1;   // ★#3(a)：州ごとの最良（並行着工の候補）
         void Consider(int cri, int gid, double sc)   // NaNスコアは両比較とも偽＝落ちる（否定形と同じfail-closed）
@@ -1476,7 +1473,7 @@ public sealed class UtilityAgent : INationAgent
                     if (starved >= 0 && starved < Catalog.Goods.Length && starved < Catalog.RefPrices.Length
                         && Catalog.Goods[starved].Tier != GoodTier.Service
                         && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream && Discovery.Gate(rg, upstream) > 0   // (260) 上流の個体も門が開いていること
-                        && (noCostCap || Catalog.FactorySpec(starved).Cost <= FacilityBuildCostCap * buffer))   // ★(579) 新は身の丈の門（総費用の天井）を課さない
+                        && (noCostCap || Catalog.FactorySpec(starved).Cost <= FacilityBuildCostCap * buffer))   // ★(579) 旗が正なら身の丈の門（総費用の天井）を課さない
                         Consider(ri, starved, eff * (1.0 + (1.0 - minFill)));
                 }
                 // ★身の丈ゲート（2026-08-04・R19の赤＝ジェノヴァ6/10最下位の是正）：FactorySpec の建設費は**絶対額**
@@ -1514,7 +1511,7 @@ public sealed class UtilityAgent : INationAgent
             double est = NewFacilityOutlayPerMonth(w, w.Regions[ri], bp);
             if (!(monthlyBuild + est <= outlayCap)) { if (Instruments.On) Instruments.AiBuildSkipRoom(w, bestGr[ri]); continue; }   // ★(400)：今ある工事（と未着工の意志）の月の出費に、これから立てる工事の月の出費を足して上限を超えるならこの州は飛ばす（continue＝後ろの州の小さい工事は塞がない・否定形＝NaN も飛ばす）
             w.SetStateTarget(ri, bestGr[ri], World.StateUnits(bp, w.Coef) + 1);
-            if (Instruments.On) Instruments.AiBuildTried(w, bp.GoodId, est, bp.ConstructionLeft > 0);   // 計器（読むだけ）：着工した件か拒まれて意志が残った件か
+            if (Instruments.On) Instruments.AiBuildTried(w, bp.GoodId, est, bp.ConstructionLeft > 0, Catalog.FactorySpec(bp.GoodId).Cost > FacilityBuildCostCap * buffer);   // 計器（読むだけ）：着工した件か拒まれて意志が残った件か
             if (bp.ConstructionLeft > 0)
             {
                 monthlyBuild += Calendar.PerDayToPerMonth(bp.ConstructionPayPerDay);
