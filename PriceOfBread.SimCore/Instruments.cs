@@ -220,6 +220,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Fd; public bool FdHeader;                           // (504) 食料の台帳を主食の和へ：表 fd_s（州×四半期・挙げた国だけ）
         public System.IO.StreamWriter? EqS, EqR; public bool EqSHeader, EqRHeader;          // (495) レシピごとの設備の表 eq_s（国×四半期）・eqr_s（国×レシピ×四半期）
         public System.IO.StreamWriter? Sf; public bool SfHeader;                           // (471) 小さな独立の直し 4 件の表 sf_s（国×四半期）
+        public System.IO.StreamWriter? Aib; public bool AibHeader;                         // (579) AI の国営工場の着工の門の表 aib_s（国×四半期・InstrumentsAiBuild.cs）
         public System.IO.StreamWriter? Lab; public bool LabHeader;                         // (459) 労働の値段の表 labor_s（国×四半期）
         public System.IO.StreamWriter? SbU, SbR, SbRReg; public bool SbUHeader, SbRHeader, SbRRegHeader;                  // (520) 交渉の取り分と地代の表 sbu_s（国×四半期）・sbr_s（国×四半期）・sbrreg_s（挙げた国×州×四半期）
         public System.IO.StreamWriter? Wc, WcReg; public bool WcHeader, WcRegHeader;        // (514) 賃金の天井の表 wcap_s（国×くくり×四半期）・wcapreg_s（縛った州×くくり×四半期）
@@ -1637,7 +1638,7 @@ public static partial class Instruments
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
-        if (time == "warm") { TrClear(sim); ScopeClear(sim); }   // (380)(403) 助走の月の成約を数えない
+        if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // (380)(403) 助走の月の成約を数えない・(579) 助走の着工の判断の回を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
 
@@ -1682,6 +1683,7 @@ public static partial class Instruments
             FdFold(sk, seed, w, q, picked);                 // (504) 主食の台帳の表（旗①②③のどれかが正のときだけ行を出す・蓄えは毎月 EconomyStep が戻す）
             EqFold(sk, seed, w, q, picked, yearEnd);        // (495) レシピごとの設備の表（旗 RecipeEquipment が正のときだけ行を出す・蓄えは毎四半期戻す）
             SfFold(sk, seed, w, q, picked, yearEnd);        // (471) 兵士の年金・安く売る・議席の重み・負の予算の表
+            AibFold(sk, seed, w, q, picked, yearEnd);       // (579) AI の国営工場の着工の門の表（呼ばれた回があった国だけ行を出す・蓄えは行を出したときに戻す）
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
             WcFold(sk, seed, w, q, picked, yearEnd);        // (514) 賃金の天井の表（月末の役務の値段が帯のどこにいたか・縛った州）
             SbFold(sk, seed, w, q, picked);                 // (520) 交渉の取り分と地代の表（旗が正の国だけ行を出す・蓄えは四半期の末に戻す）
@@ -1758,6 +1760,7 @@ public static partial class Instruments
         sk.Fd?.Dispose(); sk.Fd = null;   // (504)
         sk.EqS?.Dispose(); sk.EqS = null; sk.EqR?.Dispose(); sk.EqR = null;   // (495)
         sk.Sf?.Dispose(); sk.Sf = null;   // (471)
+        sk.Aib?.Dispose(); sk.Aib = null;   // (579)
         sk.Lab?.Dispose(); sk.Lab = null;   // (459)
         sk.Wc?.Dispose(); sk.Wc = null; sk.WcReg?.Dispose(); sk.WcReg = null;   // (514)
         sk.SbU?.Dispose(); sk.SbU = null; sk.SbR?.Dispose(); sk.SbR = null; sk.SbRReg?.Dispose(); sk.SbRReg = null;   // (520)
