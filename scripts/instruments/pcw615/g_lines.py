@@ -90,7 +90,7 @@ def main():
     print('G2 番人：腕B spendStockShareOfMaxMax の最大 %.6g → %s' % (sb['maxshare'], 'PASS' if g2 else 'FAIL'), end='')
     if a.armA:
         sa = spend_cols(a.armA)
-        if sa: print('（腕A の最大 %.6g：1 を超えるのが対照）' % sa['maxshare'], end='')
+        if sa: print('（腕A の最大 %.6g：1 を超えるのが対照 → %s）' % (sa['maxshare'], 'PASS' if sa['maxshare'] > 1 + 1e-9 else 'FAIL'), end='')
     print()
     g3 = B['n'] >= 100 and sb['legit_rows'] >= 1
     print('G3 番人：出来事 %d 件・spendLegitOnlyIndex が正の行 %d → %s' % (B['n'], sb['legit_rows'], 'PASS' if g3 else 'FAIL'))
