@@ -1171,10 +1171,10 @@ public sealed class World
     /// 致死率＝基礎×(1−衛生整備0.7×工業化飽和)×jitter×scale。savings不変（金は保存）・戻り値＝死者数。EpidemicVulnConcentration の脆弱層集中もここで処理。</summary>
     private double ApplyEpidemicDeaths(Region wr, Coefficients c, double jitter, double scale)
     {
-        double oldDev = Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィンテージ2026-07-10）
+        double oldDev = c.EpidemicSanitFromBoard > 0 ? 0.0 : Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // ★(605) 旗 EpidemicSanitFromBoard では工業化度の代理を読まない   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィンテージ2026-07-10）
         // 致死率の衛生連動（epidemic-ignores-built-sanitation）：工業化proxyと実衛生財(上下水道+石鹸+電化)をブレンド。EpidemicSanitationWeight=0で旧proxy厳密一致。
         double realSanit = wr.Sanitation(c);
-        double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
+        double sanitDev = c.EpidemicSanitFromBoard > 0 ? realSanit : (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity.Value * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
         // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
         // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
@@ -1234,8 +1234,9 @@ public sealed class World
             if (us > worstUrban) { worstUrban = us; worst = r; }
         }
         if (worst is null) return 0;
-        double oldDev = Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);
+        double oldDev = c.EpidemicSanitFromBoard > 0 ? 0.0 : Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);   // ★(605) 旗 EpidemicSanitFromBoard では工業化度の代理を読まない
         double realSanit = worst.Sanitation(c);
+        if (c.EpidemicSanitFromBoard > 0) return realSanit;
         return (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
     }
 

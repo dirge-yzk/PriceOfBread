@@ -141,7 +141,7 @@ public static class MarketFlow
                 double adj = coef.FlowAdjustSpeed * flow / div;
                 // 賃金/役務の床天井。0.3–3.0×(参照価格×物価水準)。財側の SoftBand が係数化済みなのに賃金だけ直書きだった＝係数化（値は同一で中立）。
                 // 財と同じ対数飽和(SoftBand)＝実質賃金成長・国際賃金格差の圧縮を緩める（旗 WageClampSoftBand＝ハードクランプとの切替は 2026-09-26 に焼き込み）。
-                // R2（賃金天井の工業化連動）：天井を固定WageClampMaxでなく工業化度でスケール＝未工業国は従来の3倍据置・工業国のみ実質賃金が伸びる（史実の産業革命の賃金上昇・国際格差の拡大）。WageClampIndScale=1.0（R2点火2026-07-15）。0でeffWageMax=WageClampMax＝旧恒等。床(Min)は据置（下方硬直の温存）。effWageMax とその対数は州1回に巻き上げ済み
+                // 天井は固定の WageClampMax（★(605) R2 の工業化連動の項 WageClampIndScale は削除＝(495) 以後は 0 を掛けていた）。床(Min)は据置（下方硬直の温存）。effWageMax とその対数は州1回に巻き上げ済み
                 double wrp = good.RefPrice * pl;
                 if (Catalog.IsLaborGood(gi))
                 {
@@ -364,9 +364,9 @@ public static class MarketFlow
         return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
     }
 
-    /// <summary>賃金の天井の倍率＝WageClampMax×(1＋WageClampIndScale×工業化度)（参照価格×物価水準に掛ける）。StepDay（州1回に巻き上げ）と計器 labor_s（法の床を機構と同じ天井で削って読む）が同じ式を読む1本（(469)・式は1文字も変えない＝ビット恒等）。</summary>
+    /// <summary>賃金の天井の倍率＝WageClampMax（参照価格×物価水準に掛ける）。★(605) 工業化度の項は物理削除（旗 IndustrializationOff が既定 1 で 0 を掛けていた＝恒等）。StepDay（州1回に巻き上げ）と計器 labor_s（法の床を機構と同じ天井で削って読む）が同じ式を読む1本（(469)・式は1文字も変えない＝ビット恒等）。</summary>
     internal static double EffWageMax(Region region, Coefficients coef)
-        => coef.WageClampMax * (1 + coef.WageClampIndScale * (coef.IndustrializationOff > 0 ? 0.0 : region.Industrialization));   // ★(495) 旗 IndustrializationOff では工業化度の項を 0（WageClampMax の固定の天井は残す）
+        => coef.WageClampMax;   // ★(495) 工業化度の項を 0 にし、★(605) 項ごと削除（WageClampMax の固定の天井は残す＝天井そのものは線 wc0 の読みで外さない推奨）
 
     /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
     private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);

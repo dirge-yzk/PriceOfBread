@@ -221,7 +221,7 @@ public sealed class EndingRow
     public string Score { get; init; } = "";
     public string Polity { get; init; } = "";
     public string Population { get; init; } = "";
-    public string Industry { get; init; } = "";
+    public string IronShare { get; init; } = "";
     public IBrush RowBrush { get; init; } = Brushes.Transparent;
 }
 

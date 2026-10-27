@@ -60,7 +60,7 @@ public static class PlayText
     };
 
     /// <summary>終局（暦が <see cref="Calendar.EndYear"/> に入った＝1949 年 12 月が終わった）の最終ランキングの 1 行。人口は内部単位（千人）のまま。</summary>
-    public readonly record struct EndingStandingRow(int Order, string Name, double Score, Polity Polity, double Population, double Industry, bool IsPlayer);
+    public readonly record struct EndingStandingRow(int Order, string Name, double Score, Polity Polity, double Population, double IronShare, bool IsPlayer);
 
     /// <summary>終局を過ぎたか（画面は <c>Calendar.StartYear + 経過日 / 年の日数 &gt;= EndYear</c> で最終ランキングを出す。世界の暦は同じ年＝<c>w.Year &gt;= EndYear</c>）。</summary>
     public static bool IsEnded(World w) => IsEnded(w.Year);
@@ -75,7 +75,9 @@ public static class PlayText
     public static List<EndingStandingRow> EndingStandings(IEnumerable<World> worlds, World player)
     {
         var wl = worlds.ToList();
-        var sc = NationalScore.Scores(wl);   // ★(449) 国力は全国分を 1 回で（国ごとに世界の総量を求め直さない）
+        var shares = new double[wl.Count][];
+        for (int k = 0; k < wl.Count; k++) shares[k] = new double[NationalScore.ScoreTerms.Count];
+        var sc = NationalScore.ShareScores(wl, shares);   // ★(449) 国力は全国分を 1 回で（国ごとに世界の総量を求め直さない）・★(605) 国×6 項の割合も同じ 1 回で受ける（鉄の産出の割合＝第 3 項）
         var order = Enumerable.Range(0, wl.Count).OrderByDescending(k => sc[k]).ToList();   // 安定な降順＝旧の OrderByDescending(Of) と同じ並び
         var rows = new List<EndingStandingRow>(wl.Count);
         for (int i = 0; i < order.Count; i++)
@@ -83,7 +85,7 @@ public static class PlayText
             var w = wl[order[i]];
             rows.Add(new EndingStandingRow(i + 1, w.SelfPower?.Name ?? w.Region.Name, sc[order[i]],
                 PowerAffinity.PolityFromShares(w),   // 導出政体＝ヘッダーの政体と同じ物差し（2026-08-21 作者裁定）
-                w.TotalPopulation, w.MeanIndustrialization, ReferenceEquals(w, player)));
+                w.TotalPopulation, shares[order[i]][NationalScore.ScoreTerms.IronIndex], ReferenceEquals(w, player)));   // ★(605) 最終の表の物差し＝工業化度でなく鉄の産出の世界の割合（国力の第 3 項と同じ量）
         }
         return rows;
     }

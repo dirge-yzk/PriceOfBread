@@ -397,10 +397,7 @@ public class FactoryEquipmentTests
         var w = Make(31, 0, 1).World;
         var r = w.Regions[0];
         r.Industrialization = 3.0;
-        Assert.Equal(w.Coef.WageClampMax, MarketFlow.EffWageMax(r, w.Coef), 12);   // 旗 1＝固定の天井だけ
-        w.Coef.IndustrializationOff = 0;
-        Assert.Equal(w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * 3.0), MarketFlow.EffWageMax(r, w.Coef), 12);   // 旗 0＝旧の式
-        w.Coef.IndustrializationOff = 1;
+        Assert.Equal(w.Coef.WageClampMax, MarketFlow.EffWageMax(r, w.Coef), 12);   // 固定の天井だけ（★(605) 工業化度の項は物理削除＝旗 0 の旧の式の枝は無い）
         double prem = 0.15;
         r.Industrialization = 0; double m0 = EconomyStep.MonopolyDegree(r, w.Coef, prem);
         r.Industrialization = 10; double m10 = EconomyStep.MonopolyDegree(r, w.Coef, prem);

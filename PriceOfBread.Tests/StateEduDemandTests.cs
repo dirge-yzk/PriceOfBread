@@ -163,7 +163,7 @@ public class StateEduDemandTests
     public void 満額の義務教育で供給が尽き続けても値段は役務の帯の中_国庫の支払いは有限()
     {
         // 極：旗 1・国庫が買う率 f＝1（Compulsory 相当）・教育の産出をほぼ 0 にして 12 か月回す。総需要 D(p)＝f·r·N＋(1−f·r)·GD(p) は値段に鈍感になる極。
-        // 教育は役務＝値段の帯は財の PriceCeilFactor でなく賃金の帯（床 WageClampMin・天井 WageClampMax×(1+WageClampIndScale×工業化度)）。発散しない（帯の中・有限）ことを確かめる。
+        // 教育は役務＝値段の帯は財の PriceCeilFactor でなく賃金の帯（床 WageClampMin・天井 WageClampMax）。発散しない（帯の中・有限）ことを確かめる。
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World; var r = w.Region;
         w.Coef.StateEduDemandInFront = 1; w.Coef.EduReachFromAdmin = 0;
@@ -180,7 +180,7 @@ public class StateEduDemandTests
         }
         double price = r.Markets[e].Price;
         double rp = Catalog.RefPrices[e] * r.PriceLevel;
-        double lo = rp * w.Coef.WageClampMin, hi = rp * w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * r.Industrialization);
+        double lo = rp * w.Coef.WageClampMin, hi = rp * w.Coef.WageClampMax;
         Assert.True(price >= lo * 0.99 && price <= hi * 1.01, $"教育の値段 {price} が役務の帯 [{lo}, {hi}] の外");
         Assert.True(double.IsFinite(r.Markets[e].LastDemand) && double.IsFinite(StateSpentEdu(r)) && double.IsFinite(r.CumEducationCost), "需要・支払い・累計のどれかが有限でない");
         Assert.True(maxDemand > 0, "前提が崩れた：どの月も教育の需要が立っていない");

@@ -326,7 +326,7 @@ public class LaborMarketFormTests
         double pTrades = trades.World.Region.Markets[Catalog.LaborId].Price;
         Assert.True(pNone < floorS, "前提が崩れた：床の無い世界で値段が床に届いた");
         var rr = trades.World.Region; var cc = trades.World.Coef;
-        double ceiling = rr.GoodOf(Catalog.LaborId)!.RefPrice * rr.PriceLevel * (cc.WageClampMax * (1 + cc.WageClampIndScale * rr.Industrialization));   // 帯の天井（床はこれを超えて上げない）
+        double ceiling = rr.GoodOf(Catalog.LaborId)!.RefPrice * rr.PriceLevel * cc.WageClampMax;   // 帯の天井（床はこれを超えて上げない）
         double want = System.Math.Min(floorS, ceiling);
         Assert.True(pTrades >= want * (1 - 1e-9) && pTrades > pNone, $"生存の床が工場労働の値段に効いていない（値段 {pTrades:F6}・床なし {pNone:F6}・床 {floorS:F6}・天井 {ceiling:F4}）");
         // 農業労働にも効く（段は籠の中身であって業種の範囲ではない）・技師には効かない・段が上がれば値段は下がらない
@@ -584,7 +584,7 @@ public class LaborInstrumentTests
                     var human = r.Producers.FirstOrDefault(s => s.GoodId == Catalog.LaborId && EconomyStep.IsHumanLaborSupply(s) && !s.Bankrupt);
                     double cap = HumanCap(r);
                     if (human is null || !(cap > 0) || human.LaborPopIndex < 0 || human.LaborPopIndex >= r.Pops.Count || !(r.Markets[Catalog.LaborId].Price > 0)) continue;
-                    double ceiling = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * (w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * (w.Coef.IndustrializationOff > 0 ? 0.0 : r.Industrialization)));
+                    double ceiling = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * w.Coef.WageClampMax;
                     double f = MinimumWageFloor.AbsFloor(r, Catalog.LaborId, ceiling, w.MinimumWage);
                     den += cap; if (f > 0) num += cap;
                     list.Add((r, f));
@@ -658,7 +658,7 @@ public class LaborInstrumentTests
                 Assert.True(den > 0);
                 double FloorNow(Region r)
                 {
-                    double ceiling = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * (w.Coef.WageClampMax * (1 + w.Coef.WageClampIndScale * (w.Coef.IndustrializationOff > 0 ? 0.0 : r.Industrialization)));
+                    double ceiling = r.GoodOf(Catalog.LaborId)!.RefPrice * r.PriceLevel * w.Coef.WageClampMax;
                     return MinimumWageFloor.AbsFloor(r, Catalog.LaborId, ceiling, w.MinimumWage);
                 }
                 var expects = new List<(int q, string col, double exp, double tol)>();
@@ -751,10 +751,7 @@ public class LaborInstrumentTests
         foreach (double ind in new[] { 0.0, 0.3, 1.7 })
         {
             r.Industrialization = ind;
-            c.IndustrializationOff = 1;   // ★(495) 点火後の既定＝工業化度の項が無く、固定の天井だけ
-            Assert.Equal(c.WageClampMax, MarketFlow.EffWageMax(r, c));
-            c.IndustrializationOff = 0;   // 旧の枝（焼き込みで削除するまで残る）
-            Assert.Equal(c.WageClampMax * (1 + c.WageClampIndScale * ind), MarketFlow.EffWageMax(r, c));
+            Assert.Equal(c.WageClampMax, MarketFlow.EffWageMax(r, c));   // ★(605) 工業化度の項は物理削除＝固定の天井だけ（工業化度を動かしても同じ）
         }
     }
 }
