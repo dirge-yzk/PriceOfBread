@@ -1,0 +1,21 @@
+--- /d/PoB_work/wt_pfix_aic/PriceOfBread.SimCore/Simulation.cs	2026-10-27 19:51:03.290176800 +0900
++++ probe/PriceOfBread.SimCore/Simulation.cs	2026-10-28 00:24:52.252422000 +0900
+@@ -2360,7 +2360,7 @@
+                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
+                     devalue = haircut + issue;
+                     World.CumulativeDevaluation += devalue; devalued = devalue;
+-                    World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney.Value);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
++                    World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney.Value); if (World.Year>=1881 && World.Year<=1885 && World.SelfPower?.Name=="イギリス") Console.Error.WriteLine($"[PROBE-DEV] y{World.Year}.{World.Quarter} devalue={devalue:E4} issue={issue:E4} haircut={haircut:E4} broad={World.BroadMoney.Value:E4} totalSav={totalSav:E4} room={devalueRoom:E4} claims={claims:E4} payable={payable:E4} P={World.PriceLevel:E4} presAcc={World.FiatInflationPressure:E4}");   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
+                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
+                 }
+             }
+--- /d/PoB_work/wt_pfix_aic/PriceOfBread.SimCore/World.cs	2026-10-27 19:51:03.296206600 +0900
++++ probe/PriceOfBread.SimCore/World.cs	2026-10-28 00:24:52.254938900 +0900
+@@ -1594,6 +1594,7 @@
+         double trend0 = _moTrend; _moTrend += c.MonetaryTrendSpeed * (ratio - _moTrend);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
+         double cyclical = ratio / Math.Max(1e-9, _moTrend);   // トレンド比＝信用循環：好況で信用が厚い→>1→インフレ／恐慌で信用が縮む→<1→デフレ
+         double before = PriceLevel;
++        if (Year>=1881 && Year<=1885 && SelfPower?.Name=="イギリス") Console.Error.WriteLine($"[PROBE-UPD] y{Year}.{Quarter} P={PriceLevel:E4} money={money:E4} broad={broad:E4} base={baseM:E4} gdp={gdp:E4} ratio={ratio:E4} trend={_moTrend:E4} cyc={cyclical:E4} pres={FiatInflationPressure:E4} conv={Convertibility:E3}");
+         PriceLevel += c.MonetaryPriceSensitivity * (cyclical - PriceLevel); double pEma = PriceLevel, fiatP = FiatInflationPressure;   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）。(280) 後ろの2つは計器の読み（計算には使わない）
+         // #3 不換の紙幣増発（通貨切下げ）→物価上昇＝印刷はインフレ的（→名目GDP↑→実質債務減）。金本位中は devaluation 封印ゆえ圧0。
+         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）

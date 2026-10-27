@@ -1,0 +1,27 @@
+# (603) 線 pfix 段0：英・種 1（aic の木・cf811820・selfplay-batch 1 x 1 1 412＝412 四半期・探針つき・年 1881〜1885 の英だけ）の探針の生
+# 探針＝Simulation.cs:2363 の直後（月ごとの切り下げ）と World.cs の UpdatePriceLevel の before の直後（四半期ごと）に Console.Error へ 1 行ずつ。探針の差分は measurements/pfix603_20261028_probe.patch（本体には入れない・読むだけの一時物）
+# 再現の確認：四半期の P が 8.5331E+003 → 8.8572E+009 → 4.0769E+015 → 4.2354E+031 …（実測の計器 money_s と一致・(600) の記録と同じ）
+# 凡例（DEV）：devalue＝その月の切り下げ額（haircut＋issue）・haircut＝全 POP の貯蓄から取った額・issue＝新規発行・broad＝切り下げの後の広義の貨幣（＝分母に入る値・純額）・totalSav＝切り下げの前の正の貯蓄の和（haircut の元手）・claims/payable＝その月の請求と払える額・P＝月の時点の P・presAcc＝この月の加算の後に積まれた圧の合計
+
+## 月ごとの切り下げ（全 58 行のうち、貯蓄が尽きる直前から直後・DEV 24〜35 番）
+y1883.1 devalue=9.7532E+005 issue=1.9506E+005 haircut=7.8025E+005 broad=1.3492E+006 totalSav=2.1295E+006 room=9.7532E+005 claims=1.1106E+006 payable=1.3520E+005 P=3.9279E+003 presAcc=7.2286E-001
+y1883.1 devalue=9.8915E+005 issue=1.9783E+005 haircut=7.9132E+005 broad=1.0588E+006 totalSav=1.8502E+006 room=9.8915E+005 claims=1.0798E+006 payable=9.0621E+004 P=3.9279E+003 presAcc=1.6570E+000
+y1883.1 devalue=9.7513E+005 issue=1.9503E+005 haircut=7.8011E+005 broad=6.5732E+005 totalSav=1.4374E+006 room=9.7513E+005 claims=1.0737E+006 payable=9.8549E+004 P=3.9279E+003 presAcc=3.1405E+000
+y1883.2 devalue=9.5086E+005 issue=1.9892E+005 haircut=7.5194E+005 broad=3.5243E-012 totalSav=7.5194E+005 room=9.9462E+005 claims=1.0850E+006 payable=9.0344E+004 P=8.5331E+003 presAcc=9.5086E+005
+y1883.2 devalue=7.4582E+005 issue=2.0737E+005 haircut=5.3845E+005 broad=0.0000E+000 totalSav=5.3845E+005 room=1.0368E+006 claims=1.0537E+006 payable=1.8665E+004 P=8.5331E+003 presAcc=1.6967E+006
+y1883.2 devalue=6.0894E+005 issue=2.0992E+005 haircut=3.9901E+005 broad=0.0000E+000 totalSav=3.9901E+005 room=1.0496E+006 claims=1.0413E+006 payable=1.2149E+003 P=8.5331E+003 presAcc=2.3056E+006
+y1883.3 devalue=5.2639E+005 issue=2.1209E+005 haircut=3.1430E+005 broad=0.0000E+000 totalSav=3.1430E+005 room=1.0604E+006 claims=1.0475E+006 payable=4.4178E+001 P=8.8572E+009 presAcc=5.2639E+005
+y1883.3 devalue=4.9649E+005 issue=2.1509E+005 haircut=2.8140E+005 broad=-1.1102E-016 totalSav=2.8140E+005 room=1.0754E+006 claims=1.0583E+006 payable=3.0960E+000 P=8.8572E+009 presAcc=1.0229E+006
+y1883.4 devalue=6.9643E+015 issue=1.8841E+015 haircut=5.0803E+015 broad=2.8422E-014 totalSav=5.0803E+015 room=9.4203E+015 claims=4.9582E+015 payable=1.1883E+004 P=4.0769E+015 presAcc=6.9643E+015
+y1883.4 devalue=1.6121E+016 issue=4.0301E+015 haircut=1.2091E+016 broad=1.1921E-007 totalSav=1.2091E+016 room=2.0150E+016 claims=1.1945E+016 payable=2.4092E+014 P=4.0769E+015 presAcc=2.3086E+016
+y1884.1 devalue=2.3662E+016 issue=5.4674E+015 haircut=1.8194E+016 broad=0.0000E+000 totalSav=1.8194E+016 room=2.7337E+016 claims=1.8435E+016 payable=5.7872E+014 P=4.2354E+031 presAcc=2.3662E+016
+y1884.1 devalue=1.4126E+032 issue=3.6945E+031 haircut=1.0431E+032 broad=1.9073E-006 totalSav=1.0431E+032 room=1.8472E+032 claims=9.7066E+031 payable=9.0463E+014 P=4.2354E+031 presAcc=1.4126E+032
+
+## 四半期ごとの UpdatePriceLevel（年 1883.1〜1884.2・UPD）
+# 凡例：money＝兌換可能性で補間した貨幣・ratio＝money÷max(1e-9, gdp)・trend＝M/Y の趨勢（World._moTrend）・cyc＝ratio÷trend・pres＝この四半期の更新に入る積まれた圧
+y1883.1 P=3.9279E+003 money=1.2055E+006 broad=1.2056E+006 base=2.3283E-010 gdp=0.0000E+000 ratio=1.2055E+015 trend=2.4110E+013 cyc=5.0000E+001 pres=3.1405E+000 conv=3.961E-005
+y1883.2 P=8.5331E+003 money=3.3973E+005 broad=3.3974E+005 base=-5.8208E-011 gdp=0.0000E+000 ratio=3.3973E+014 trend=3.0423E+013 cyc=1.1167E+001 pres=2.3056E+006 conv=2.614E-005
+y1883.3 P=8.8572E+009 money=1.3931E+004 broad=3.2704E+003 base=2.1638E+005 gdp=0.0000E+000 ratio=1.3931E+013 trend=3.0093E+013 cyc=4.6293E-001 pres=1.0229E+006 conv=5.002E-002
+y1883.4 P=4.0769E+015 money=1.7668E+016 broad=1.8259E+016 base=6.0690E+015 gdp=2.7579E+003 ratio=6.4065E+012 trend=2.9619E+013 cyc=2.1629E-001 pres=2.3086E+016 conv=4.847E-002
+y1884.1 P=4.2354E+031 money=1.3843E+032 broad=1.4481E+032 base=7.8300E+031 gdp=1.7306E+003 ratio=7.9986E+028 trend=1.5997E+027 cyc=5.0000E+001 pres=3.1265E+032 conv=9.604E-002
+y1884.2 P=5.9588E+063 money=1.7761E+064 broad=1.9086E+064 base=9.7038E+063 gdp=1.0963E+003 ratio=1.6201E+061 trend=3.2402E+059 cyc=5.0000E+001 pres=2.3964E+064 conv=1.412E-001
