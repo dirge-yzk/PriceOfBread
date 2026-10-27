@@ -229,5 +229,46 @@ public class FsxTests(ITestOutputHelper output)
         finally { try { Directory.Delete(dir, true); } catch { } }
     }
 
+    [Fact]
+    public void 効いている圧はS案で_穏やかな切り下げの月はSがMより小さい_計器の和が本体の圧と一致する()
+    {
+        // 貯蓄の約 2 割を毎月取る赤字（利払いの請求が広義の貨幣の 0.2 倍）＝S（分母＝切り下げ前の貯蓄＋発行）は約 0.2・M（分母＝切り下げの後の貯蓄）は約 0.25 で、両者が違う盤面。
+        // 本体が M 案に戻ると、積んだ圧 pressureForceSum が S の和でなく M の和になる＝この試験が赤になる（式の出所の文字の数えだけに頼らない番人）
+        string dir = Path.Combine(Path.GetTempPath(), "pob_fsx2_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var sim = new MultiNationSim([.. WorldData.Nations()], 1789UL, _ => new UtilityAgent());
+            string targetName = "";
+            Instruments.Configure(dir, "イギリス");
+            try
+            {
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup(null, 4);
+                Instruments.Phase(sim, 1789UL, "warm");
+                var target = sim.Nations.First(n => NameOf(n) != "イギリス" && n.World.MonetaryEnabled && n.World.FiscalEnabled);
+                var tw = target.World;
+                targetName = NameOf(target);
+                void Press()
+                {
+                    tw.OnGoldStandard = false; tw.Convertibility = 0; tw.BorrowCooldownMonths = 99;
+                    tw.GovAvgCouponPerYear = new RatePerYear(0.2 * 12.0 * Math.Max(1.0, tw.BroadMoney.Value) / Math.Max(1.0, tw.GovDebt.Value));
+                }
+                Press();
+                for (int q = 0; q < 4; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); Press(); }
+            }
+            finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+            var rows = File.ReadAllLines(Path.Combine(dir, "fsx_s1789.tsv")).Select(l => l.Split((char)9)).ToArray();
+            var h = rows[0];
+            int iN = Array.IndexOf(h, "nation"), iM = Array.IndexOf(h, "pressureMSum"), iS = Array.IndexOf(h, "pressureSSum"), iF = Array.IndexOf(h, "pressureForceSum"), iDev = Array.IndexOf(h, "devalueMonths");
+            Assert.True(iN >= 0 && iM >= 0 && iS >= 0 && iF >= 0 && iDev >= 0, "fsx_s の列が足りない");
+            double P(string s) => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture);
+            var dev = rows.Skip(1).Where(r => r[iN] == targetName && int.Parse(r[iDev]) > 0).ToList();
+            Assert.True(dev.Count > 0, $"{targetName} に切り下げの月が無い（この盤面は赤字を作っていない）");
+            Assert.Contains(dev, r => P(r[iS]) < P(r[iM]) - 1e-9);   // S と M が違う盤面（S のほうが小さい）
+            Assert.All(dev, r => Assert.Equal(P(r[iS]), P(r[iF]), 12));   // 積んだ圧は S の和（M の和ではない）
+        }
+        finally { try { Directory.Delete(dir, true); } catch { } }
+    }
+
     private static string NameOf(Simulation n) => n.World.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "(単国)";
 }
