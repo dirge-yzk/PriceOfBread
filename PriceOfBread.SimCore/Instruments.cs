@@ -1642,7 +1642,7 @@ public static partial class Instruments
             foreach (var row in st.PcRows) sk.PClamp.WriteLine(row);
             st.PcRows.Clear();
         }
-        if (st.DcRows.Count > 0)   // (587) 切り下げの切りに当たった月（全ての国）
+        if (st.DcRows.Count > 0)   // (587) 切り下げの切りに当たった月（全ての国）・devaluedPerMonth は許された額（Transfer が実際に移せた額ではない）＝(592)
         {
             sk.DevCapW ??= Open("devcap", seed);
             if (!sk.DevCapHeader) { sk.DevCapW.WriteLine("time\tnation\tyear\troomPerMonth\tcapPerMonth\tdevaluedPerMonth\troomOverCapRatio\treliefExp"); sk.DevCapHeader = true; }

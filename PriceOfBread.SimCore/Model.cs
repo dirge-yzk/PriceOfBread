@@ -1118,7 +1118,7 @@ public sealed class Region
     //   （2026-09-28 支払いの一元化 段2-1 D1〜D3＝旧は1本の double で精算の区分が全て OtherOut に潰れ、専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた）。
     //   精算の後も次の EconomyStep の冒頭（Array.Clear）までは先月の値として残る＝月初の国家の支払いの請求の見込み（Simulation）と Fiscal の予算基数（専売益）が読む。
     public double[] StateSpent = new double[(int)TreasuryCat.Count];
-    public double CumEducationCost;                   // 義務教育の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
+    public double CumEducationCost;                   // 義務教育と奨学金（旗 ScholarshipLaw が正のとき）の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
     public double CumStateMonopolyRevenue;                  // 専売益の累積（診断・UI予算表示用。同上）
     // （株式会社の州の倍率 IndustrializationBoost と、その適用済みの印 JointStockApplied・JointStockMulApplied は 2026-10-01 (152) に削除
     //   ＝所有国の発見の2値〔World.JointStock〕から導ける量＝EconomyStep が所有国の値を直に読む・割譲された州は次の月から新しい所有国の制度に従う）
