@@ -587,6 +587,12 @@ public static class Fiscal
         return Math.Min(room, cap * Math.Pow(room / cap, reliefExp));
     }
 
+    /// <summary>★(603) 切り下げの月が <see cref="World.FiatInflationPressure"/> に積む圧＝切り下げ額 <paramref name="devalue"/> ÷ 分母。分母は切り下げの<b>後</b>の広義の貨幣 <paramref name="broadAfter"/>（haircut で貯蓄が減った後の純額）。
+    /// <paramref name="relativeFloor"/>＝0 は旧の式 <c>devalue / Math.Max(1.0, broadAfter)</c> そのもの（貯蓄が尽きた月は絶対値の床 1.0 で割られ圧が通貨の額になる）。正は <c>devalue / Math.Max(broadAfter, devalue)</c>
+    /// （床は分子自身の大きさ＝月の圧は devalue＞0 のとき 1 以下の割合）。<paramref name="broadAfter"/> が max(1, devalue) 以上なら旧と同じビット。呼び手は Simulation の切り下げの塊の1か所だけ。</summary>
+    internal static double FiatPressureOfDevalue(double devalue, double broadAfter, double relativeFloor)
+        => relativeFloor > 0 ? devalue / Math.Max(broadAfter, devalue) : devalue / Math.Max(1.0, broadAfter);
+
     /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
     /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>
     internal static double BorrowTicket(double nominalGdp, Coefficients c) => Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp.Value;

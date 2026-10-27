@@ -2361,7 +2361,9 @@ public sealed class Simulation
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
                     devalue = haircut + issue;
                     World.CumulativeDevaluation += devalue; devalued = devalue;
-                    World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney.Value);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
+                    double broadAfter = World.BroadMoney.Value;   // 切り下げの後の広義の貨幣（haircut で貯蓄が減った後）
+                    if (Instruments.On) Instruments.PfixMonth(World, devalue, broadAfter);   // 計器（読むだけ・(603)）：分母の式が旧と新で違う月
+                    World.FiatInflationPressure += Fiscal.FiatPressureOfDevalue(devalue, broadAfter, World.Coef.FiatPressureRelativeFloor);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。★(603) 旗 FiatPressureRelativeFloor 1 は分母の床を分子自身の大きさにする（0＝旧の式）
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
             }
