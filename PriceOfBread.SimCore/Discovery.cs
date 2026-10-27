@@ -603,13 +603,7 @@ public static class Discovery
             if (!spread && rp is null) continue;   // この国に代表の生産者が居ない行（その国では使えないレシピ）
             // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
             //   ★(415) 旗 DiscoveryEngineerHalfPerMonth が正のとき、製法と新製品と新兵器の行は技術水準を読まない（下の技師の比 EngineerFactor）。制度と思想の行は今のまま（親の産業が定義できない・事前登録 [3-3]）。
-            double ratio = 1.0;
-            if ((spread && !(c.TechThresholdOff > 0)) || (!spread && !engOn))   // ★(613) 段2b：旗 TechThresholdOff が正なら制度と思想の行の技術の比は 1（注の〈技術の押しは1〉）。製法ほかの行は今のまま
-            {
-                double diff = Difficulty(row, c);
-                ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
-                ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
-            }
+            double ratio = TechRatioOf(w, row, spread, engOn, c);
             if (spread)
             {
                 double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis);
@@ -1095,6 +1089,20 @@ public static class Discovery
                 visit(r, p, t, parts);
             }
         }
+    }
+
+    /// <summary>★(613) 点数の技術の比＝技術水準÷難易度（0〜1）。制度と思想の行（<paramref name="spread"/>）は旗 TechThresholdOff が正なら 1（注の〈技術の押しは1〉）。製法ほかの行は技師の旗 <paramref name="engOn"/> が立つと 1（技師の比 EngineerFactor が代わる）。
+    /// 式は元の Step の中の 4 行をそのまま抜き出した（ビット一致）。</summary>
+    internal static double TechRatioOf(World w, int row, bool spread, bool engOn, Coefficients c)
+    {
+        double ratio = 1.0;
+        if ((spread && !(c.TechThresholdOff > 0)) || (!spread && !engOn))
+        {
+            double diff = Difficulty(row, c);
+            ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+            ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+        }
+        return ratio;
     }
 
     /// <summary>産地の2項の本体（<see cref="Step"/> は判定の値段の帳をそのまま渡す）。</summary>
