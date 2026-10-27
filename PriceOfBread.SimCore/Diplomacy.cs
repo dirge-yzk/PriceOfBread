@@ -931,7 +931,6 @@ public sealed class Diplomacy
 
         // 変名規則（統一・formable）：文化/宗教の同期後・四半期に1回（旧の旗 EnableFormations は 2026-10-18 に焼き込み）。
         if (month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
-        if (month % Calendar.MonthsPerQuarter == 0 && !(c.TradeTreatyAbolished > 0)) TradeTreaties(c);   // ★案B（通商条約・作者裁定2026-08-31）：四半期。★(604) 旗 TradeTreatyAbolished>0 で掃引を止める（作者 2026-10-27 の廃止・否定形＝NaN は〈条約あり〉の側）
 
         // 厭戦は戦争ごとリセット：交戦していない国は0（減衰定数は廃止＝非外科的）。戦争の傷は闘争度が引き継ぐ。
         // 外3：非交戦国の即時0リセットは、TriggerWars(:下)の厭戦ゲート(WarWearyThreshold)を死文にする（講和翌月に厭戦0で再び開戦可能）。
@@ -2744,7 +2743,7 @@ public sealed class Diplomacy
 
     /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyCapPerMonth で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
     /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。
-    /// internal＝番人テスト用（InternalsVisibleTo・TradeTreaties と同じ流儀・2026-09-25）。呼び出しは StepWars の1箇所だけ。</summary>
+    /// internal＝番人テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀・2026-09-25）。呼び出しは StepWars の1箇所だけ。</summary>
     internal double WarCasualties(Power p, Coefficients c, double contactStrength, double airControl = 0.5)   // ★2026-09-25：static を外した＝インスタンスの CasualtyProbe を読むため（計算は不変）
     {
         if (p.Nation is not { } w) return 0;
@@ -2796,7 +2795,7 @@ public sealed class Diplomacy
     }
 
     // 戦勝点に応じた講和（戦争目標は事前に設定しない・白紙〜決定的勝利まで連続）。戦争は基本的に国を痩せさせる。
-    // internal＝ON経路テスト用（InternalsVisibleTo・TradeTreaties/TreatyPortLapse と同じ流儀）。呼び出しは StepWars の講和判定のみ。
+    // internal＝ON経路テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀）。呼び出しは StepWars の講和判定のみ。
     internal void ResolvePeace(Coefficients c, War war)
     {
         double s = Math.Clamp(war.Score, -1, 1);
@@ -3225,46 +3224,6 @@ public sealed class Diplomacy
         // 機能7-2（2026-07-28）：失地の長期ストック（Politics.Stepが半減期20年で減衰・r[4]の長期項）。
         loser.LostRegionsCumulative += 1.0;
         Log.Add($"{_year} {winner.Name}が{loserName}から{cede.Name}を州移転（領土再編）");
-    }
-
-    /// <summary>州関税利害の国平均（首都=構造的0は除外）。通商条約の締結条件が読む唯一の物差し。</summary>
-    public static double NationalTariffInterest(World w)
-    {
-        double s2 = 0; int n2 = 0;
-        foreach (var r in w.Regions) { if (r.Id == 0) continue; s2 += r.TariffInterest; n2++; }   // 首都は構造的0＝除外（2026-07-27の是正と同じ）
-        return n2 > 0 ? s2 / n2 : 0;
-    }
-
-    /// <summary>★案B（通商条約・作者裁定2026-08-31）＝関税ラチェットの対＝**条約網の下げ連鎖**（コブデン=シュヴァリエ1860＋最恵国）。
-    /// 平時の実国家ペアで、両国の産業利害が自由貿易側（州関税利害の国平均<0＝競争力があり保護が要らない）のとき、
-    /// 互いの関税目標を**低い方へ収束**させる。新しい数はゼロ（低い方へ寄せるだけ）・決定論（ペア走査順固定・RNGなし）。
-    /// ★2026-09-07（作者指示「通商条約は自動化したい」）：**プレイヤー国も同じ掃引に入る**＝AIとプレイヤーが同一の機構で締結する
-    /// （手動の提案動詞 CanProposeTradeTreaty/ProposeTradeTreaty と外交タブのボタンは廃止＝第二の実装を作らない）。
-    /// ⚠SelfPlay・較正・xUnit は IsPlayer を立てない＝この変更は帯・テストに対してビット恒等（挙動が変わるのは App と PlayHarness だけ）。
-    /// </summary>
-    internal void TradeTreaties(Coefficients c)   // internal＝ON経路テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀）。呼び出しは Step の四半期のみ
-    {
-        var ti = new double[Powers.Count];   // 利害の事前計算（ペアごとの再計算を避ける＝O(n²×州)→O(n×州+n²)）
-        for (int i = 0; i < Powers.Count; i++) ti[i] = Powers[i].Nation is { } w0 ? NationalTariffInterest(w0) : double.NaN;
-        for (int i = 0; i < Powers.Count; i++)
-        {
-            var a = Powers[i];
-            if (a.Nation is not { } wa) continue;
-            if (!(ti[i] < 0)) continue;   // 自由貿易側の産業利害がある国だけが条約を求める（否定形＝NaNは締結しない）
-            for (int j2 = i + 1; j2 < Powers.Count; j2++)
-            {
-                var b = Powers[j2];
-                if (b.Nation is not { } wb) continue;
-                if (AtWar(a, b) || InDependency(a, b)) continue;
-                if (!(ti[j2] < 0)) continue;
-                double lo = System.Math.Min(wa.Policy.TariffTarget, wb.Policy.TariffTarget);
-                if (!(lo >= 0)) continue;   // 負の関税（ダンピング中の国＝AIの産業スタンスも置く）は条約の物差しにしない
-                bool moved = false;
-                if (wa.Policy.TariffTarget > lo + 0.02) { wa.Policy.TariffTarget = lo; moved = true; if (Instruments.On) wa.DiagTradeTreatyMoveCum++; }
-                if (wb.Policy.TariffTarget > lo + 0.02) { wb.Policy.TariffTarget = lo; moved = true; if (Instruments.On) wb.DiagTradeTreatyMoveCum++; }
-                if (moved) Log.Add($"{_year} {a.Name}と{b.Name}が通商条約を締結（関税目標{lo:P0}へ）");
-            }
-        }
     }
 
     /// <summary>終戦の1本（講和 StepWars と国の除去 RemovePower が通る）＝記録・禁輸の解除・緊張の置き直し・戦争の削除。</summary>

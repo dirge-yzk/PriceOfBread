@@ -5,9 +5,9 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(604) 線 tt：通商条約の廃止の旗 <see cref="Coefficients.TradeTreatyAbolished"/>（作者 2026-10-27）。
-/// 機構の検査＝旗 1 では外交の四半期の歩が関税の目標を書き換えない・旗 0 では従来どおり書き換える。
-/// 世界は TradeTreatyAutoTests と同じ（全ての実国家が自由貿易側・1 国だけ低い目標）。期待値は世界を手で作り替えた結果（0.50 と 0.10）で書く。</summary>
+/// <summary>(604) 線 tt：通商条約の廃止（作者 2026-10-27）。機構の検査＝外交の四半期の歩は、どの国の関税の目標も書き換えない
+/// （国どうしが目標を低い方へ寄せ合う掃引は無い。目標を動かすのは国内の利害・議会・AI の反応の今ある道だけ）。
+/// 世界は手で作る＝全ての実国家が自由貿易側（州関税利害＝−1）・1 国だけ目標 0.10・他は 0.50。旧の掃引があれば 0.50 の国が 0.10 へ寄る（期待値は手で置いた値のまま）。</summary>
 public class TradeTreatyAbolishTests
 {
     private static MultiNationSim Build()
@@ -27,38 +27,14 @@ public class TradeTreatyAbolishTests
         => sim.Diplomacy.Powers.Where(p => p.Nation is not null).Select(p => p.Nation!.Policy.TariffTarget).ToList();
 
     [Fact]
-    public void 旗は休眠既定の0()
-    {
-        Assert.Equal(0.0, new Coefficients().TradeTreatyAbolished);
-    }
-
-    [Fact]
-    public void 旗0では外交の四半期の歩が関税の目標を低い方へ寄せる()
+    public void 外交の四半期の歩は関税の目標を書き換えない()
     {
         var sim = Build();
-        sim.Diplomacy.Step(sim.Coef, sim.Rng, 3);   // 3 か月目＝四半期の末
-        Assert.True(Targets(sim).Count(t => t < 0.49) > 1, "旗 0 では掃引が働いて複数の国の目標が下がる");
-    }
-
-    [Fact]
-    public void 旗1では外交の四半期の歩が関税の目標を書き換えない()
-    {
-        var sim = Build();
-        sim.Coef.TradeTreatyAbolished = 1;
         var before = Targets(sim);
-        sim.Diplomacy.Step(sim.Coef, sim.Rng, 3);
+        Assert.Equal(0.10, before[0]);
+        Assert.Equal(0.50, before[1]);
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, 3);   // 3 か月目＝四半期の末
         sim.Diplomacy.Step(sim.Coef, sim.Rng, 6);
         Assert.Equal(before, Targets(sim));
-        Assert.Equal(0.10, before[0]);
-        Assert.Equal(0.50, before[1]);   // 手で置いた値のまま（条約があれば 0.10 へ寄っていた）
-    }
-
-    [Fact]
-    public void 旗は否定形で読む_NaNは条約ありの側()
-    {
-        var sim = Build();
-        sim.Coef.TradeTreatyAbolished = double.NaN;
-        sim.Diplomacy.Step(sim.Coef, sim.Rng, 3);
-        Assert.True(Targets(sim).Count(t => t < 0.49) > 1, "NaN は廃止と読まない");
     }
 }

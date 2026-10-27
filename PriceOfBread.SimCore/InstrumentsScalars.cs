@@ -49,6 +49,6 @@ public static partial class Instruments
             F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
             F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue),
             I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask()),
-            F(w.Policy.TariffTarget), F(Diplomacy.NationalTariffInterest(w)), F(TradeToGdp(w)), I(w.DiagTradeTreatyMoveCum)));
+            F(w.Policy.TariffTarget), F(TradeToGdp(w))));
     }
 }
