@@ -692,7 +692,7 @@ public class PlayHarnessTests
         string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "PlayHarness.cs"));
         int runStart = src.IndexOf("public static int Run(", StringComparison.Ordinal), runEnd = src.IndexOf("public static int Replay(", StringComparison.Ordinal);
         string run = src[runStart..runEnd];
-        Assert.Contains("StepUntilWait(sim, playerIndex, steps, period)", run);   // (450) 期間の記録を渡す
+        Assert.Contains("StepUntilWait(sim, playerIndex, steps, period", run);   // (450) 期間の記録を渡す（(607) 後ろに参戦要請の答えの引数が続く＝閉じ括弧までは照合しない）
         Assert.DoesNotContain("sim.StepQuarter()", run);
     }
     [Fact]
@@ -884,5 +884,159 @@ public class PlayHarnessTests
         Assert.Contains("blockedStaleTwo", probe);                                         // P3(b) の 2 四半期続けての数（過渡の 1 四半期か残るかを分ける）
         string dip = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "PriceOfBread.SimCore", "Diplomacy.cs"));
         Assert.Contains("internal bool WarGateOpen(Power a, Power b, Coefficients c", dip);   // Runner から呼べる（InternalsVisibleTo）。★(spdip) 末尾に既定 null の引数（交戦中の組の集合）を足した＝閉じ括弧の手前まで見る（d.WarGateOpen(a, b, c) の呼び方は同じ）
+    }
+
+    // ===== (607) 報告に足した数と状態（工場・失業・最後通牒の中身）と、参戦要請の答え方・操作カード =====
+
+    /// <summary>州×財の工場の行：棟数は<b>置いた値から</b>手で作る（ある生産者の操業規模を設備の 3 棟分にする）＝行が 3 棟を名乗る。全ての財で行の合計が画面の財カードの数（FactoryCounter）と一致する。</summary>
+    [Fact]
+    public void 工場の行は置いた棟数を名乗り_合計は財カードの数と一致する()
+    {
+        var (_, w, _, _, _) = Board();
+        Region? rg = null; Producer? pr = null;
+        foreach (var r in w.Regions)
+        {
+            foreach (var p in r.Producers)
+                if (!p.Bankrupt && Discovery.Gate(r, p) > ProductionDiag.TechGateClosed && w.Region.GoodOf(p.GoodId) is not null && p.BuiltScale <= 1e-9) { rg = r; pr = p; break; }
+            if (pr is not null) break;
+        }
+        Assert.NotNull(pr);
+        pr!.BuiltScale = 0;
+        pr.Scale = 3 * w.Coef.FactoryBuildScale;   // 民営 3 棟・国営 0 棟
+        pr.LastRevenue = 150; pr.LastCost = 100;    // 利益の率 +50%
+        var row = PlayFacts.FactoryRows(w).Single(x => x.GoodId == pr.GoodId && x.Region == rg!.Name && x.Recipe == pr.RecipeName);
+        Assert.Equal(3, row.Private); Assert.Equal(0, row.State); Assert.False(row.Bankrupt);
+        Assert.Equal(0.5, row.ProfitRate, 9);
+        pr.Bankrupt = true;   // 倒産中は民営の棟数に入れない（FactoryCounter と同じ）が 1 件として載る
+        var broke = PlayFacts.FactoryRows(w).Single(x => x.GoodId == pr.GoodId && x.Region == rg!.Name && x.Recipe == pr.RecipeName);
+        Assert.Equal(0, broke.Private); Assert.True(broke.Bankrupt);
+        pr.Bankrupt = false;
+        var rows = PlayFacts.FactoryRows(w);
+        foreach (int g in rows.Select(x => x.GoodId).Distinct())
+        {
+            var c = w.FactoryCounter(g);
+            Assert.Equal(c.Private, rows.Where(x => x.GoodId == g).Sum(x => x.Private));
+            Assert.Equal(c.State, rows.Where(x => x.GoodId == g).Sum(x => x.State));
+        }
+        var sb = new System.Text.StringBuilder();
+        PlayFacts.AppendFactories(sb, w);
+        Assert.Contains("---- 工場（", sb.ToString());
+        Assert.Contains($"民営 {rows.Sum(x => x.Private)} 棟", sb.ToString());
+    }
+
+    /// <summary>失業：非兵士の POP に置いた率から失業者を手で数える（兵士の率は数えない）。</summary>
+    [Fact]
+    public void 失業の節は置いた失業率から手で数えた失業者と率を出す()
+    {
+        var (_, w, _, _, _) = Board();
+        foreach (var p in w.AllPops()) p.UnemploymentRate = new Share(0);
+        var civ = w.AllPops().Where(p => !p.IsSoldier && p.Size > 10).Take(2).ToList();
+        Assert.Equal(2, civ.Count);
+        civ[0].UnemploymentRate = new Share(0.2); civ[1].UnemploymentRate = new Share(0.5);
+        var soldier = w.AllPops().FirstOrDefault(p => p.IsSoldier);
+        if (soldier is not null) soldier.UnemploymentRate = new Share(0.9);   // 兵士の〈失業〉は数えない
+        double expectUn = 0.2 * civ[0].Size + 0.5 * civ[1].Size;
+        double civPop = w.AllPops().Where(p => !p.IsSoldier).Sum(p => p.Size);
+        var sb = new System.Text.StringBuilder();
+        PlayFacts.AppendUnemployment(sb, w);
+        string text = sb.ToString();
+        Assert.Contains($"失業者 {expectUn:N0}", text);
+        Assert.Contains($"失業率 {expectUn / civPop:P1}（兵士を除く人口", text);
+        Assert.Contains("---- 失業 ----", text);
+    }
+
+    /// <summary>最後通牒・参戦要請の中身：争点・緊張の今と受諾後・勝勢・断ったときの緊張が数で出る。待ちが無ければ節ごと出ない。</summary>
+    [Fact]
+    public void 待っている問いの中身は数で出る_待ちが無ければ節が無い()
+    {
+        var (sim, w, me, foe, third) = Board();
+        var sb0 = new System.Text.StringBuilder();
+        PlayFacts.AppendPendingFacts(sb0, w, me);
+        Assert.Equal("", sb0.ToString());
+        me.PendingWar = foe; me.PendingCallToArms = (foe, third);
+        var sb = new System.Text.StringBuilder();
+        PlayFacts.AppendPendingFacts(sb, w, me);
+        string t = sb.ToString();
+        Assert.Contains("最後通牒 " + foe.Name, t);
+        Assert.Contains($"受諾後 {w.Coef.ConcedeTensionTarget:F0}", t);
+        Assert.Contains("勝勢", t);
+        Assert.Contains($"断ると {foe.Name} との緊張 +{w.Coef.AllyRefusalTension:F0}", t);
+        Assert.Contains("参戦要請 " + foe.Name + "→" + third.Name, t);
+        Assert.Contains("---- 待っている問いの中身 ----", Report(sim));   // 報告の本体にも載る
+    }
+
+    /// <summary>`!answer` は既存の動詞へ展開する：最後通牒の受諾と参戦要請の拒否を 1 行で答えると、両方の待ちが消え、戦争にならない。書式の誤りは何も動かさない。</summary>
+    [Fact]
+    public void answer動詞は1行で全ての待ちに答える_書式の誤りは待ちを残す()
+    {
+        var (sim, w, me, foe, third) = Board();
+        me.PendingWar = foe; me.PendingCallToArms = (foe, third);
+        Assert.StartsWith("⚠答えられる待ちの種類が読めない", PlayHarness.RunVerb(w, "!answer 保留=1"));
+        Assert.StartsWith("⚠書式", PlayHarness.RunVerb(w, "!answer"));
+        Assert.StartsWith("⚠書式", PlayHarness.RunVerb(w, "!answer 最後通牒"));
+        Assert.NotNull(me.PendingWar); Assert.NotNull(me.PendingCallToArms);
+        double leg0 = w.Legitimacy;
+        string r = PlayHarness.RunVerb(w, "!answer 最後通牒=受諾 参戦要請=断る");
+        Assert.Null(me.PendingWar); Assert.Null(me.PendingCallToArms);
+        Assert.False(sim.Diplomacy.IsAtWar(me, foe)); Assert.False(sim.Diplomacy.IsAtWar(me, third));
+        Assert.True(w.Legitimacy < leg0);
+        Assert.Contains("受け入れた", r); Assert.Contains("断った", r);
+        // 書かなかった種類には触れない・開戦の総動員は `:` で渡す
+        var (sim2, w2, me2, foe2, third2) = Board();
+        me2.PendingWar = foe2; me2.PendingCallToArms = (foe2, third2);
+        PlayHarness.RunVerb(w2, "!answer 最後通牒=開戦:総動員");
+        Assert.Null(me2.PendingWar); Assert.NotNull(me2.PendingCallToArms);
+        Assert.True(sim2.Diplomacy.IsAtWar(me2, foe2)); Assert.True(w2.Mobilized);
+    }
+
+    /// <summary>`!callarms 断る 全て`：進める途中で立つ参戦要請の全てへ同じ答えを置く＝毎回止まらず、要請は断られ、交戦に入らない。答えは再生用の生の記録に四半期スタンプつきで残る。指定が無ければ最初の要請で 0 四半期のまま止まる。</summary>
+    [Fact]
+    public void callarms全ては進める間に立つ参戦要請へ同じ答えを置く()
+    {
+        var (sim, w, me, caller, enemy) = Board();
+        me.PendingCallToArms = (caller, enemy);
+        Assert.Equal(0, PlayHarness.StepUntilWait(sim, 0, 4).Stepped);   // 指定なし＝待ちが立っていると進めない
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_rpt_" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(dir);
+        try
+        {
+            var applied = new System.Collections.Generic.List<string>();
+            var answer = PlayHarness.SkipCallToArms(dir, applied, join: false);
+            int arms = 0;
+            var (stepped, _) = PlayHarness.StepUntilWait(sim, 0, 4, null, n => { if (n < 4) { me.PendingCallToArms = (caller, enemy); arms++; } }, answer);
+            Assert.Equal(4, stepped);
+            Assert.Equal(3, arms);
+            Assert.Equal(4, applied.Count);   // 最初の 1 件＋途中で立てた 3 件
+            Assert.All(applied, a => Assert.Contains("断った", a));
+            Assert.Null(me.PendingCallToArms);
+            Assert.False(sim.Diplomacy.IsAtWar(me, enemy));
+            string raw = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "decision.raw.txt"));
+            Assert.Equal(4, raw.Split('\n').Count(l => l == "!callarms 断る"));
+            Assert.Equal(4, raw.Split('\n').Count(l => l.StartsWith("@") && l.Contains('Q')));
+        }
+        finally { System.IO.Directory.Delete(dir, true); }
+        // 指定の読み方：全て つきだけが指定になる・待ちが無いときの動詞は置いたことだけ返す
+        Assert.Equal(true, PlayFacts.StandingCallArmsOf("!callarms 受ける 全て"));
+        Assert.Equal(false, PlayFacts.StandingCallArmsOf("!callarms 断る 全て"));
+        Assert.Null(PlayFacts.StandingCallArmsOf("!callarms 断る"));
+        Assert.Null(PlayFacts.StandingCallArmsOf("!callarms 保留 全て"));
+        var (_, w3, _, _, _) = Board();
+        Assert.StartsWith("参戦要請（全て）", PlayHarness.RunVerb(w3, "!callarms 断る 全て"));
+        Assert.StartsWith("⚠参戦要請の待ちが無い", PlayHarness.RunVerb(w3, "!callarms 断る"));
+        Assert.StartsWith("⚠`!callarms", PlayHarness.RunVerb(w3, "!callarms 断る 全部"));
+    }
+
+    /// <summary>操作カード（scripts/play/操作カード.md）：報告の使える動詞の全てと、法の表の全ての法の書き込み先がカードに書き方を持つ。</summary>
+    [Fact]
+    public void 操作カードは使える動詞の全てと法の全ての書き方を持つ()
+    {
+        var (_, w, me, _, _) = Board();
+        string card = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "scripts", "play", "操作カード.md"));
+        string line = PlayHarness.PromptsLine(w, me);
+        var verbs = line[(line.IndexOf("使える動詞：", StringComparison.Ordinal) + "使える動詞：".Length)..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Assert.True(verbs.Length >= 18);
+        foreach (string v in verbs) Assert.True(card.Contains("`" + v + " ") || card.Contains("`" + v + "`"), $"操作カードに {v} の書き方が無い");
+        foreach (var law in PriceOfBread.SimCore.Display.LawCatalog.All)
+            Assert.True(law.Fields.Any(f => card.Contains("`" + f + "=")), $"操作カードに法 {law.Name}（{law.Key}）の書き方が無い");
     }
 }

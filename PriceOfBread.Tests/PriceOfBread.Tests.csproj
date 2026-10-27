@@ -37,6 +37,7 @@
     <!-- ★(419) Runner play の動詞（PlayHarness）の番人：Runner は Exe で参照できない＝PlayHarness.cs だけをソースごとリンクする（SimCore だけに依る・Program.cs には触れない）。
          これで動詞が App の画面と同じ口を叩く／待ちが無いとき何もしない、を xUnit の射程に入れる（PlayHarnessTests）。 -->
     <Compile Include="..\PriceOfBread.Runner\PlayHarness.cs" Link="Linked\PlayHarness.cs" />
+    <Compile Include="..\PriceOfBread.Runner\PlayFacts.cs" Link="Linked\PlayFacts.cs" />
   </ItemGroup>
 
 </Project>

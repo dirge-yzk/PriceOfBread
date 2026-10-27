@@ -69,6 +69,7 @@ internal static class PlayHarness
         // ---- 2) 決定の適用（キー=値／NationPolicy のフィールド名）----
         string decPath = Path.Combine(dir, "decision.txt");
         var applied = new List<string>();
+        bool? standingCall = null;   // ★(607) `!callarms 受ける|断る 全て`＝この呼び出しの間に立つ参戦要請へ同じ答えを置く（持ち越さない）
         var rawKept = new List<string>();   // ReplayAgent（清レポ提案・2026-08-31）：適用した生のコマンド行＝decision.raw.txt へ四半期スタンプ付きで退避（decision.log.txt は「old→new」整形＝再生不能だった）
         if (File.Exists(decPath))
         {
@@ -79,6 +80,7 @@ internal static class PlayHarness
                 if (hash >= 0) line = line[..hash].Trim();
                 if (line.Length == 0) continue;
                 rawKept.Add(line);
+                if (PlayFacts.StandingCallArmsOf(line) is { } stand) standingCall = stand;
                 if (line.StartsWith("!")) { applied.Add(RunVerb(world, line)); continue; }
                 applied.Add(ApplyKeyValue(world, line));
             }
@@ -95,7 +97,7 @@ internal static class PlayHarness
         // ★(442) 画面が時間を止める待ち（最後通牒・参戦要請・総選挙の公示・国内の危機）が立ったら、その四半期で進むのを止める（App は問いが開いている間 Playing=false）。
         //   答えは decision.txt に `!ultimatum`／`!callarms`／`!election` を書いて次の呼び出しで適用される（適用は上の 2) ＝進める前）。
         var period = new PlayPeriod();   // ★(450) 進めた期間の記録（景気の出来事・期間中の戦争＝報告が〈交戦なし〉〈GDP が名目だけ〉で出来事を見落とさないように）
-        var (stepped, ledBefore) = StepUntilWait(sim, playerIndex, steps, period);
+        var (stepped, ledBefore) = StepUntilWait(sim, playerIndex, steps, period, null, standingCall is { } sc ? SkipCallToArms(dir, applied, sc) : null);
 
         // ---- 4) 報告 ----
         var sb = new StringBuilder();
@@ -111,6 +113,20 @@ internal static class PlayHarness
         world.Explain = null;   // ★(435) 説明台帳は保存に載せない（World.Explain は [NonSerialized] でなく、載せると state.bin が約 3KB 増え旧版と比べられない）＝再開のたびに上で付け直す。これで state.bin は台帳を付けない旧版とバイト一致
         using (var fs = File.Create(statePath)) SaveGame.Save(sim, fs);
         return 0;
+    }
+
+    /// <summary>★(607) 進める途中で立った参戦要請に答える（`!callarms 受ける|断る 全て` の指定・<see cref="StepUntilWait"/> が立つたびに呼ぶ）。答えは適用した決定の行と decision.log.txt・decision.raw.txt（再生用の四半期スタンプつき）に残す。</summary>
+    internal static Func<World, string> SkipCallToArms(string dir, List<string> applied, bool join)
+    {
+        return world =>
+        {
+            string verbLine = join ? "!callarms 受ける" : "!callarms 断る";
+            string result = RunVerb(world, verbLine);
+            applied.Add(result);
+            File.AppendAllText(Path.Combine(dir, "decision.log.txt"), $"=== {world.Year}Q{world.Quarter} ===\n{result}\n", Utf8NoBom);
+            File.AppendAllText(Path.Combine(dir, "decision.raw.txt"), $"@{world.Year}Q{world.Quarter}\n{verbLine}\n", Utf8NoBom);
+            return result;
+        };
     }
 
     /// <summary>★(442) 要約モードの標準出力の行数（先頭から）。</summary>
@@ -462,6 +478,8 @@ internal static class PlayHarness
             foreach (string a in applied) sb.AppendLine($"  {a}");
         }
 
+        PlayFacts.Append(sb, w, sp);   // ★(607) 待っている問いの中身・工場（財ごと）・失業（数と状態だけ）
+
         // ★(435) !state・!subsidy ほかで使える財の名と州の名（旧は州名を報告の表の上位10だけから、財名を主食と建材だけから推測するしかなかった）。
         sb.AppendLine();
         sb.AppendLine("---- 動詞で使える名前（そのまま書く）----");
@@ -667,8 +685,11 @@ internal static class PlayHarness
                 }
                 case "callarms":   // App: CallToArmsAccept／CallToArmsRefuse
                 {
-                    if (w.SelfPower is not { PendingCallToArms: { } call } me || w.Diplomacy is null) return "⚠参戦要請の待ちが無い";
-                    if (a.Length < 2 || a[1] is not ("受ける" or "断る")) return "⚠`!callarms 受ける|断る`";
+                    bool all = a.Length == 3 && a[2] == "全て";   // ★(607) 全て＝この呼び出しの間に立つ要請へ同じ答え（Run が置く）
+                    if (a.Length > 3 || (a.Length == 3 && !all)) return "⚠`!callarms 受ける|断る [全て]`";
+                    if (w.SelfPower is not { PendingCallToArms: { } call } me || w.Diplomacy is null)
+                        return all && a[1] is ("受ける" or "断る") ? $"参戦要請（全て）: {a[1]} を置いた（今は待ちなし）" : "⚠参戦要請の待ちが無い";
+                    if (a.Length < 2 || a[1] is not ("受ける" or "断る")) return "⚠`!callarms 受ける|断る [全て]`";
                     bool join = a[1] == "受ける";
                     w.Diplomacy.ResolveCallToArms(me, join, w.Coef);
                     return join ? $"参戦要請 {call.Caller.Name}→{call.Enemy.Name}: 受けた（結果は出来事の記録）" : $"参戦要請 {call.Caller.Name}→{call.Enemy.Name}: 断った（{call.Caller.Name} との緊張が同盟破棄の水準へ・結果は出来事の記録）";
@@ -688,6 +709,12 @@ internal static class PlayHarness
                     return w.ElectionsBacked > backed0
                         ? $"総選挙: {ev.AgendaLabels[slot]} に加担（注ぐ割合 {lever:P0}・資金 {amount:N0}・効き {effect:P0}）"
                         : $"⚠総選挙: {ev.AgendaLabels[slot]} への加担は不成立（余白を超える逆風・注ぐ額 0・効き 0 のいずれか＝金は払っていない）";
+                }
+                case "answer":   // ★(607) 1 行で全ての待ちに答える（既存の動詞の行へ展開して順に適用する）
+                {
+                    var (lines, err) = PlayFacts.ExpandAnswer(a);
+                    if (lines is null) return err!;
+                    return "回答: " + string.Join(" ／ ", lines.Select(l => RunVerb(w, l)));
                 }
                 case "crisis":   // App: FactionClose は世界に何も書かない通知。答えは法の目標（キー=値）＝ここは内容の照会だけ
                 {
@@ -767,7 +794,7 @@ internal static class PlayHarness
     internal static string PromptsLine(World w, Power sp)
     {
         var ps = PendingItems(w, sp);
-        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps.Select(p => p.Text)))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !mega !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !crisis";
+        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps.Select(p => p.Text)))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !mega !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !answer !crisis";
     }
 
     /// <summary>★(442) 進めてはいけない待ち（画面なら問いのポップアップが開いていて時間が止まっている物）。<see cref="PendingItems"/> のうち、
@@ -778,7 +805,7 @@ internal static class PlayHarness
 
     /// <summary>★(442) 最大 <paramref name="steps"/> 四半期を進める。待ちが立っているなら**その四半期で止める**（立っているものは進める前に確かめる＝前の呼び出しで立って答えられていない待ちも止める）。
     /// 返すのは進めた四半期の数と、最後に進めた 1 四半期の直前の収支の台帳の写し（一度も進めなければ null）。</summary>
-    internal static (int Stepped, double[]? LedBefore) StepUntilWait(MultiNationSim sim, int playerIndex, int steps, PlayPeriod? period = null, Action<int>? afterStep = null)
+    internal static (int Stepped, double[]? LedBefore) StepUntilWait(MultiNationSim sim, int playerIndex, int steps, PlayPeriod? period = null, Action<int>? afterStep = null, Func<World, string>? answerCallToArms = null)
     {
         var world = sim.Nations[playerIndex].World;
         var sp = world.SelfPower!;
@@ -789,6 +816,7 @@ internal static class PlayHarness
         for (int i = 0; i < steps; i++)
         {
             if (world.PendingFactionCrisis is null) crisisSeen = null;   // 札が下りたら次の札は新しい
+            if (answerCallToArms is not null && sp.PendingCallToArms is not null) answerCallToArms(world);   // ★(607) 参戦要請へ置いた答え（他の待ちは従来どおり止める）
             if (BlockingWaits(world, sp, crisisSeen).Count > 0) break;
             ledBefore = (double[])world.TreasuryLedger.Clone();
             sim.StepQuarter();
@@ -796,6 +824,7 @@ internal static class PlayHarness
             period?.AfterStep(world);
             afterStep?.Invoke(stepped);   // ★(450) 番人の差し込み口（四半期の途中で新しい危機の札が立つ盤面を再現する・本番の呼び手は渡さない）
         }
+        if (answerCallToArms is not null && sp.PendingCallToArms is not null) answerCallToArms(world);   // ★(607) 最後の 1 四半期で立った要請にも同じ答え
         return (stepped, ledBefore);
     }
 
