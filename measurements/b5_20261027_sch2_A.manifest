@@ -1,4 +1,4 @@
-SOURCE-HASH: d72d404a7f8a9c34
+SOURCE-HASH: a9c48c826b0730eb
 FILES: 423
 RUN: selfplay-batch 5（5種＝探索）
 ---
@@ -150,7 +150,7 @@ ec57b011f138b55066090248cc1cf93997b081c9c099114494b80f3d9e7ec939 *./PriceOfBread
 2c4905482d9286090f4f1d1e71a0835d0c688ee8417ff449311280daeff18224 *./PriceOfBread.SimCore/InstrumentsClock.cs
 9ee1403ac7539065548fe84223454218518fb5dbf23de0374168936423d3cc34 *./PriceOfBread.SimCore/InstrumentsCoup.cs
 af805f3f63a9c9e454736ea065ee506981b2e167c3af23278483049c0e582401 *./PriceOfBread.SimCore/InstrumentsDiscontent.cs
-cb7eb96636ae3b60131992aed9de0bc54cde9e26209f9deafa374d626bd70199 *./PriceOfBread.SimCore/InstrumentsEd.cs
+5a791e6c0baa76557fa9e196102d89d931cfe791104b7373044f10d85605648a *./PriceOfBread.SimCore/InstrumentsEd.cs
 2f84bf36e17bea3bf370ec6c961518c45f7c8291777422d2e17994be9086e478 *./PriceOfBread.SimCore/InstrumentsEquipment.cs
 f3593608bda9224e4e69896922c3162bd9c904a4c5357ba849c43d7de5713a39 *./PriceOfBread.SimCore/InstrumentsFb.cs
 0211f2055a6908e43ea8a0b762f3ec4dd849589581ee7f7ce6e48aa83d75c953 *./PriceOfBread.SimCore/InstrumentsFd.cs
@@ -305,7 +305,7 @@ c167abd944300fc18b23d7d2e773c1c7efeef83847eb8e61471e23a6047bea61 *./PriceOfBread
 dc3a2347e8508b1740b78ec92f6fcf3370f7475bfb8f13276835eaba0e167a12 *./PriceOfBread.Tests/GuildLawTests.cs
 deb0383477aa78129f4a00f0fe5822819b242933170a256893be36315dff5047 *./PriceOfBread.Tests/HabitTests.cs
 c57b260297d7b0f5ef3aab5b3e376dd1874b0bff25398682e91861d6a5096703 *./PriceOfBread.Tests/HarvestThemeTests.cs
-d1dad4dd2ba1b563d2a0bfdc1ecf3bb6f9762d059066503707940c4545dc93a9 *./PriceOfBread.Tests/HigherEduEntryTests.cs
+ae4a01e0ece278b532893ee30505d0e1333c37d6abb62f47d68a35fc967c4b11 *./PriceOfBread.Tests/HigherEduEntryTests.cs
 c4026e9d3c099fb396601d15328aec19754e431531bffb75af2b5773adb624d9 *./PriceOfBread.Tests/HistoricalReferenceTests.cs
 3437e013ca766e8504d2781da2ae697c8b5f4753400a06d3264df9b7fef980cf *./PriceOfBread.Tests/HouseholdProductionTests.cs
 2c2c774e33e1b60a70dd3d34254d3236c2e2111abb9db0a368394a0ad310a922 *./PriceOfBread.Tests/Hz6IdentityTests.cs
@@ -382,7 +382,7 @@ fe045cda381316c13bd58751a7fc5c22a5c59046780a39222db043eff77c0442 *./PriceOfBread
 505e06af19bbcaef9f791d5eaf17bbfeb48de9e5b2be36e91988730497a66ffd *./PriceOfBread.Tests/SaveVersionTests.cs
 d60544d713f160d501158a614285acbd2a095339cbe248aece01af3fd39254f4 *./PriceOfBread.Tests/SbBargainTests.cs
 f6382a87061a53743d8920ca1e4929830700e707c3666fced6efffccd35bfda8 *./PriceOfBread.Tests/ScalarDeletionTests.cs
-aa4d1256d4d9bc726e4b71cc0359a4ab6972a58ca8f0570f124f9c3a85ab221d *./PriceOfBread.Tests/ScholarshipTests.cs
+0df689658f04f1698ad06f7e7ce89bf5049b9e38522b81255f939328ed5888a5 *./PriceOfBread.Tests/ScholarshipTests.cs
 096cd1b99bbb3e18d38ad649acc3fea8a3dff9482b3cdfa676b43ec06a228626 *./PriceOfBread.Tests/ScoreReaderTests.cs
 b595ab98cb807ff2a1a3207d913f4bf6e8461269c2d3bd0ff81847ddde8304f1 *./PriceOfBread.Tests/SeaGraphTests.cs
 f77bfe44cea4d1ef3c210efff868fc28cfe303a2a95cf63a427f0f4e2427ca28 *./PriceOfBread.Tests/SeaStitchBudgetTests.cs
