@@ -145,3 +145,4 @@
   ・`Credit.DevFactor`・`CapitalMarket.Headroom` を関数に抜き出した（式は抜き出す前と同じ・番人が直に呼ぶため）。[1] の〈新しいヘルパーを作らない〉の例外＝必要があった。
   ・読み手の許可表のラチェット（J1）の基準は SimCore の非コメント行 81（段0 の表の 86 から、〈済〉の項と表示の 5 行が減った）。
   ・`TradeWeightOpeningEven` は MultiNationSim の共有係数 `_coef` を読む（他の 6 本は国の `World.Coef`）。環境変数 `POB_COEF` の上書きは `Coefficients` の構築子が適用する（`Coefficients.cs` の `Overrides`）ため、`new Coefficients()` で作る `_coef` にも国の係数にも同じ値が届く。
+  ・前半の確かめ（結果）：Release のビルド 0 エラー・Category!=FullLength のフルスイート 1909 合格・スキップ 1・合計 1910（`--list-tests` と一致・中止の行 0）・新しい番人 15 本の突然変異 9 本で赤。腕は未走。
