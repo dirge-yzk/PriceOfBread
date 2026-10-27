@@ -191,6 +191,7 @@ public class DormantIdentityTests
         "HigherEduNeedPerEducated",
         "InterestCapitalization", "LoanSpreadPerYear",
         "ModernizationToHigherEdu",
+        "ScholarshipLaw",             // ★(590) 奨学金の法の旗（既定 0・高等教育は既定で二重に休眠）
         "NavalFuelPerGauge",
         "PolicyRateLoanWeight",
         "PromotionGateHigherEdu", "ReactionFromLoss",
