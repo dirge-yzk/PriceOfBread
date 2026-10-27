@@ -952,12 +952,8 @@ public sealed class MultiNationSim
                     wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
                 for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
             }
-            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の LastProduced）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型）。
-            //   読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定）。旗 0 は注入しない＝null のまま＝恒等。
-            //   旗は World.Coef（国ごとの写し）を読む＝旗が正の国にだけ注入する（読み手の RootSupply と同じ係数の入れ物）。
-            bool rootGate = false;
-            foreach (var n in Nations) if (n.World.Coef.AiBuildRootSupplyGate > 0 || Instruments.On) { rootGate = true; break; }   // 計器が On のときは旗 0 でも注入する（旧の選び方の根無しの割合を同じ規則で測るため・読み手は RootSupply だけで、旗 0 では計器の判定にしか使わない＝力学は動かない）
-            if (rootGate)
+            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の LastProduced）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型・毎四半期）。
+            //   読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定：世界のどこかで作られている投入は根が無いとは言えない）。旗は 2026-10-27 に焼き込み＝常に注入。
             {
                 int ng = Catalog.Goods.Length;
                 var prod = new double[ng];
@@ -970,7 +966,6 @@ public sealed class MultiNationSim
                 foreach (var n in Nations)
                 {
                     var wn = n.World;
-                    if (!(wn.Coef.AiBuildRootSupplyGate > 0 || Instruments.On)) continue;
                     if (wn.WorldGoodsProduced is not { } wgq || wgq.Length != ng) wn.WorldGoodsProduced = wgq = new double[ng];
                     Array.Copy(prod, wgq, ng);
                 }

@@ -4,14 +4,14 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(595) 線 aic（AI の工場の選び方・根まで作れない財を候補に入れない）の番人＝機構と不変条件だけ。
-/// 固定するのは次の点（期待値は判定の関数の出力ではなく、世界を手で作り替えた結果〈流れを 0 にした／戻した・生産者を消した〉で書く）：
-///  ① 投入が国内で作られず輸入も無く、作る生産者も国内に無い候補は、旗が正のとき Score が NaN（Excess は残る）・旗 0 では旧と同じ値（判定を評価しない）
+/// 固定するのは次の点（期待値は判定の関数の出力ではなく、世界を手で作り替えた結果〈流れを 0 にした／戻した・生産者を消した〉で書く）。旗 AiBuildRootSupplyGate は 2026-10-27 に焼き込み（常に有効）：
+///  ① 投入が国内で作られず輸入も無く、作る生産者も国内に無い候補は Score が NaN（Excess は残る）
 ///  ② 流れが戻れば（産出か輸入が量として意味を持つ）通る
 ///  ③ 作れるが今は作っていない上流（生産者があり門が開いている）は通す（上流の着工は連鎖の目が先に建てる）
 ///  ④ 連鎖の 2 段目の根が無ければ落ちる／循環は止まって通る
 ///  ⑤ 全国工場目標の展開（プレイヤーの動詞）は、根の無い財でも意志を置く＝新しい錠を作らない（AI とプレイヤーが同じ FacilityBuildScore を読む）
 ///  ⑥ 世界のどこかで作られている投入は、自国に作り手も輸入も無くても通る（追記 3＝自国の輸入だけで読むと、使い手の無い国は輸入が構造的に 0 で永久に閉じる反射的な錠になる）。
-///     世界の写しは MultiNationSim が旗が正のときだけ四半期に注入する（旗 0 は null のまま＝恒等）。未注入（null）は測れない＝通す。</summary>
+///     世界の写しは MultiNationSim が毎四半期に注入する。未注入（null）は測れない＝通す。</summary>
 public class RootSupplyTests
 {
     private static Simulation Warm(ulong seed)
@@ -42,7 +42,7 @@ public class RootSupplyTests
     static void NoWorldSupply(World w) => w.WorldGoodsProduced = new double[Catalog.Goods.Length];
     static void RemoveProducers(World w, int g) { foreach (var r in w.Regions) r.Producers.RemoveAll(p => p.GoodId == g); }
 
-    /// <summary>候補 t（旗 0 で Score が測れ、非労働・非役務の投入を持つ個体）とその投入 g、投入 g を作る別の財の生産者 q（g を作る個体で、自分の非労働の投入を持つ）。</summary>
+    /// <summary>候補 t（Score が測れ〔今の世界で根まで作れ〕、非労働・非役務の投入を持つ個体）とその投入 g、投入 g を作る別の財の生産者 q（g を作る個体で、自分の非労働の投入を持つ）。</summary>
     private static (Region r, Producer t, int g) 候補(World w)
     {
         foreach (var r in w.Regions)
@@ -52,7 +52,7 @@ public class RootSupplyTests
                 if (p.RecipeName == Simulation.HouseholdRecipeName) continue;
                 var t = World.FindFactory(r, p.GoodId);
                 if (t is null || !ReferenceEquals(t, p)) continue;
-                if (!(UtilityAgent.FacilityBuildScore(w, r, t).Score > double.NegativeInfinity)) continue;   // 旗 0 で測れる個体だけ
+                if (!(UtilityAgent.FacilityBuildScore(w, r, t).Score > double.NegativeInfinity)) continue;   // Score が測れる個体だけ
                 var inp = t.Inputs.FirstOrDefault(Material);
                 if (inp.QtyPerOutput <= 0 || inp.GoodId == t.GoodId) continue;
                 return (r, t, inp.GoodId);
@@ -67,22 +67,19 @@ public class RootSupplyTests
     }
 
     [Fact]
-    public void 根が無い投入を持つ候補は旗が正のときだけ落ちる()
+    public void 根が無い投入を持つ候補は落ちる_超過は残る()
     {
         var w = Warm(5951).World;
         NoWorldSupply(w);
         var (r, t, g) = 候補(w);
         FeedOthers(w, t, g);
-        SetFlow(w, g, 0, 0); RemoveProducers(w, g);
-        var before = UtilityAgent.FacilityBuildScore(w, r, t);                     // 旗 0
-        Assert.False(double.IsNaN(before.Score), "前提：旗 0 では落ちない");
-        Assert.Equal(0, w.Coef.AiBuildRootSupplyGate);
-        w.Coef.AiBuildRootSupplyGate = 1;
+        SetFlow(w, g, 1000, 0);                                                     // 投入 g が流れている世界（期待値の出所＝世界を手で作り替えた結果）
+        var before = UtilityAgent.FacilityBuildScore(w, r, t);
+        Assert.False(double.IsNaN(before.Score), "前提：根があれば候補に残る");
+        SetFlow(w, g, 0, 0); RemoveProducers(w, g);                                 // 流れを 0 にし、作り手を消す
         var after = UtilityAgent.FacilityBuildScore(w, r, t);
         Assert.True(double.IsNaN(after.Score), "根が無いのに候補に残っている");
         Assert.Equal(before.Excess, after.Excess);                                  // 超過は残る（計器が〈需要の信号があるのに落ちた〉を数える）
-        w.Coef.AiBuildRootSupplyGate = 0;
-        Assert.Equal(before.Score, UtilityAgent.FacilityBuildScore(w, r, t).Score); // 旗を戻せば元の値（判定を評価しない）
     }
 
     [Fact]
@@ -93,7 +90,6 @@ public class RootSupplyTests
         var (r, t, g) = 候補(w);
         FeedOthers(w, t, g);
         SetFlow(w, g, 0, 0); RemoveProducers(w, g);
-        w.Coef.AiBuildRootSupplyGate = 1;
         Assert.True(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score));
         r.Markets[g].LastImport = 5;                                                // 輸入が量として意味を持つ（TargetStockFloor=1 を超える）
         var s1 = UtilityAgent.FacilityBuildScore(w, r, t).Score;
@@ -122,7 +118,6 @@ public class RootSupplyTests
         if (q is null) { Assert.Fail("前提：投入 g を作る門の開いた個体が国内に無い（ハーネスの選び直しが要る）"); return; }
         foreach (var i in q.Inputs.Where(Material)) SetFlow(w, i.GoodId, 1000, 0);
         SetFlow(w, g, 0, 0);
-        w.Coef.AiBuildRootSupplyGate = 1;
         Assert.False(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score), "作れる上流があるのに下流を落とした（連鎖の目が上流を先に建てる）");
     }
 
@@ -161,7 +156,6 @@ public class RootSupplyTests
         foreach (var i in q.Inputs.Where(Material)) if (i.GoodId != h) SetFlow(w, i.GoodId, 1000, 0);
         SetFlow(w, g, 0, 0);
         SetFlow(w, h, 0, 0); RemoveProducers(w, h);   // 2 段目 h の流れと作り手を消す
-        w.Coef.AiBuildRootSupplyGate = 1;
         Assert.True(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score), "2 段目の根が無いのに候補に残っている");
         // 2 段目 h に流れが戻れば通る（鎖が根まで繋がる）
         SetFlow(w, h, 1000, 0);
@@ -181,7 +175,6 @@ public class RootSupplyTests
         var (r, t, g) = 候補(w);
         FeedOthers(w, t, g);
         SetFlow(w, g, 0, 0); RemoveProducers(w, g);
-        w.Coef.AiBuildRootSupplyGate = 1;
         Assert.True(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score), "前提：この候補は根が無い");
         int gid = t.GoodId;
         w.SetFactoryTarget(gid, w.FactoryTargetMax);   // 既存の棟数を確実に超える目標
@@ -199,7 +192,6 @@ public class RootSupplyTests
         var (r, t, g) = 候補(w);
         FeedOthers(w, t, g);
         SetFlow(w, g, 0, 0); RemoveProducers(w, g);
-        w.Coef.AiBuildRootSupplyGate = 1;
         NoWorldSupply(w);
         Assert.True(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score), "前提：世界のどこでも作られていないなら落ちる");
         w.WorldGoodsProduced![g] = 5;                                               // 世界のどこかで量として意味を持つ産出（TargetStockFloor=1 を超える）
@@ -213,13 +205,9 @@ public class RootSupplyTests
     }
 
     [Fact]
-    public void 世界の産出の写しは旗が正のときだけ各国へ注入される()
+    public void 世界の産出の写しは毎四半期各国へ注入される()
     {
-        var off = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
-        off.Run(3);
-        Assert.All(off.Nations, n => Assert.Null(n.World.WorldGoodsProduced));      // 旗 0 は注入しない（恒等）
         var on = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
-        foreach (var n in on.Nations) n.World.Coef.AiBuildRootSupplyGate = 1;
         on.Run(3);
         Assert.All(on.Nations, n =>
         {
@@ -238,19 +226,20 @@ public class RootSupplyTests
     public void 労働は根の判定の対象外()
     {
         var w = Warm(5957).World;
+        NoWorldSupply(w);
         var (r, t, g) = 候補(w);
         Assert.Contains(t.Inputs, i => Catalog.IsLaborGood(i.GoodId));   // 前提：この候補は労働を投入に持つ
         foreach (var i in t.Inputs.Where(Material)) SetFlow(w, i.GoodId, 1000, 0);   // 非労働の投入は全て流れている
         foreach (var lab in new[] { Catalog.LaborId, Catalog.AdvLaborId, Catalog.FarmLaborId }) { SetFlow(w, lab, 0, 0); RemoveProducers(w, lab); }   // 労働の流れも作り手も無い世界
-        w.Coef.AiBuildRootSupplyGate = 1;
         Assert.False(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score), "労働の根を問うて候補を落としている（労働は人が供給する）");
     }
 
     [Fact]
-    public void 旗は休眠既定で_判定の表は旗0なら作られない()
+    public void 旗は焼き込まれて係数に無い_公開の口と内部の口が同じ値()
     {
-        Assert.Equal(0, new Coefficients().AiBuildRootSupplyGate);
+        Assert.Null(typeof(Coefficients).GetField("AiBuildRootSupplyGate"));       // 旗の復活を禁じる（常に有効）
         var w = Warm(5956).World;
+        NoWorldSupply(w);
         var (r, t, g) = 候補(w);
         SetFlow(w, g, 0, 0); RemoveProducers(w, g);
         var s0 = UtilityAgent.FacilityBuildScore(w, r, t);

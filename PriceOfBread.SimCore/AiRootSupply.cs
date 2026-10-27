@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 /// <summary>★(595) 線 aic：候補の生産者が、投入の連鎖の根まで作れるか（読むだけ・状態を書かない・乱数を引かない）。
-/// 係数 <see cref="Coefficients.AiBuildRootSupplyGate"/> が正のとき、<see cref="UtilityAgent.FacilityBuildScore"/> が
+/// <see cref="UtilityAgent.FacilityBuildScore"/> が
 /// 〈根まで作れない〉候補を NaN で落とす（(260) の門の NaN と同じ作法）＝AI の着工（<see cref="UtilityAgent"/> の TryBuildFacility）と
 /// 全国工場目標の展開（<see cref="World"/> の StepFactoryTargets）が同じ 1 本を読む。
 ///

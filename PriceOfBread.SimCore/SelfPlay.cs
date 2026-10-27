@@ -1316,7 +1316,7 @@ public sealed class UtilityAgent : INationAgent
     public static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr) => FacilityBuildScore(w, rg, pr, null);
 
     /// <summary>★(595) 線 aic：<paramref name="rs"/>＝呼び手が 1 回の走査の間だけ持つ根の判定の表（<see cref="RootSupply"/>・null なら必要なときだけここで作る）。
-    /// 係数 <see cref="Coefficients.AiBuildRootSupplyGate"/> が 0 なら判定を一度も評価しない（恒等）。正のとき、根まで作れない候補は Score だけを NaN にして
+    /// 根まで作れない候補は Score だけを NaN にして
     /// <see cref="FacilityBuildValue.Excess"/> は残す（呼び手の計器が〈需要の信号があったのに落ちた候補〉を数えるため・Score が NaN の候補は今までどおり落ちる）。</summary>
     internal static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr, RootSupply? rs)
     {
@@ -1338,7 +1338,8 @@ public sealed class UtilityAgent : INationAgent
             var lp = rg.Pops[pr.LaborPopIndex];
             if (lp.Size > 1e-9) idle = PoliticalQuantities.Clamp01(lp.UnemploymentRate.Value);
         }
-        if (w.Coef.AiBuildRootSupplyGate > 0) { rs ??= new RootSupply(w); if (!rs.Of(pr)) return new(double.NaN, eff, worldOpened); }   // ★(595) 根まで作れない候補は落とす（AI も StepFactoryTargets も同じ 1 本）
+        rs ??= new RootSupply(w);
+        if (!rs.Of(pr)) return new(double.NaN, eff, worldOpened);   // ★(595) 根まで作れない候補は落とす（AI も StepFactoryTargets も同じ 1 本）
         return new(eff * (1.0 + FacilityBuildIdleWeight * idle), eff, worldOpened);
     }
 
@@ -1397,7 +1398,7 @@ public sealed class UtilityAgent : INationAgent
         //   （ProductionDiag.ExplainCost の規約＝FindProducer）。この走査は州の生産者を先頭から回す＝先頭の個体は既に通った
         //   ＝州ごとに「財→先頭の個体」を覚えて渡す（旧＝候補ごとに州の生産者を先頭から探し直した＝連鎖の目の時間の約半分）。
         var firstOf = new Producer?[Catalog.Goods.Length];
-        RootSupply? rootSupply = w.Coef.AiBuildRootSupplyGate > 0 || Instruments.On ? new RootSupply(w) : null;   // ★(595) この走査の間だけ生きる根の判定の表（旗 0 で計器もなければ作らない）
+        var rootSupply = new RootSupply(w);   // ★(595) この走査の間だけ生きる根の判定の表
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var rg = w.Regions[ri];
@@ -1434,7 +1435,7 @@ public sealed class UtilityAgent : INationAgent
                     if (starved >= 0 && starved < Catalog.Goods.Length && starved < Catalog.RefPrices.Length
                         && Catalog.Goods[starved].Tier != GoodTier.Service
                         && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream && Discovery.Gate(rg, upstream) > 0   // (260) 上流の個体も門が開いていること
-                        && (w.Coef.AiBuildRootSupplyGate <= 0 || rootSupply!.Of(upstream)))   // ★(595) 上流の個体も根まで作れること（作れない上流を建てに行かない）
+                        && rootSupply.Of(upstream))   // ★(595) 上流の個体も根まで作れること（作れない上流を建てに行かない）
                         Consider(ri, starved, eff * (1.0 + (1.0 - minFill)));
                 }
                 // ★身の丈ゲート（2026-08-04・R19の赤＝ジェノヴァ6/10最下位の是正：総費用が財政バッファを超える工場は建てない）は (579) 線 ukf で削除した。
@@ -1455,7 +1456,7 @@ public sealed class UtilityAgent : INationAgent
                 Consider(ri, pr.GoodId, val.Score);   // 不足の深さ×人が余っている
             }
         }
-        if (Instruments.On && rootSupply is not null)   // 計器（読むだけ）：州の最良のうち、完成しても根が無い個体の数（旗 0 では旧の選び方の結果・旗 1 では 0 のはず）
+        if (Instruments.On)   // 計器（読むだけ）：州の最良のうち、完成しても根が無い個体の数（旗の焼き込み前は旗 0 の腕で旧の選び方の結果を測った・今は 0 のはず）
         {
             for (int ri = 0; ri < w.Regions.Count; ri++)
             {

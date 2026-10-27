@@ -3289,8 +3289,7 @@ public sealed class Coefficients
                                              //   ⚠2026-08-04の前科（緩和0.5→工事出費が国庫を吸い軍事独裁5%→34%＝SelfPlay:93-95）＝当時は月次出費の律速が未実装だった。
                                              //   緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。0＝三重ガードそのまま＝恒等。
 
-    // ★(595) 線 aic（AI の工場の選び方・根まで作れない財を候補に入れない）：>0 で、候補の生産者の非労働の投入が（連鎖を遡って）国内で作れず輸入も無い財は候補外（NaN）。判定は SelfPlay.RootSupply の 1 本で、AI の着工（TryBuildFacility）と全国工場目標の展開（World.StepFactoryTargets）が同じ FacilityBuildScore を通して読む。0＝判定を一度も評価しない＝恒等。新しい倍率・状態・天井は無い（値の大きさは使わない＝>0 かどうかだけ）。月の出費の上限（FacilityBuildOutlayShare）・値段の安全網の天井（PriceCeilFactor）は触らない。設計＝measurements/aic595_20261027_prereg.txt。
-    public double AiBuildRootSupplyGate = 0;
+    // ★AiBuildRootSupplyGate（(595) 線 aic：AI の工場の選び方・根まで作れない財を候補に入れない）は 2026-10-27 に**点火して旗ごと削除**（腕 B・止める線に当たらず）＝常に有効。規則は SimCore/AiRootSupply.cs（RootSupply）の 1 本で、FacilityBuildScore が読む。
 
     // 1934拡張E7 ファシズム：イデオロギー10番目。戦間期(1919〜)の危機で反動＋国民主義が権威主義へ結晶。0で休眠＝シェア0＝配列長9と数値等価（E9点火）
     public double FascismGate = 0.5;                   // **主フラグ**：0でファシズムのイデオロギーシェアが常に0＝恒等／>0で創発の強さ（eraFasc×dev×mil×(反動+ナショ)に乗る）。E9点火＝0.5（eraFasc=0<1919で較正/忠実度1914断面に無影響）
