@@ -1313,7 +1313,12 @@ public sealed class UtilityAgent : INationAgent
     ///   （技術ゲート0の操業規模0）＝建てる価値は測れない。述語は <see cref="Discovery.Gate(Region, Producer)"/>＞0（<see cref="World.FindFactory"/>・<see cref="World.FactoryCounter"/> と同じ1本）。</summary>
     public readonly record struct FacilityBuildValue(double Score, double Excess, bool WorldOpened);
 
-    public static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr)
+    public static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr) => FacilityBuildScore(w, rg, pr, null);
+
+    /// <summary>★(595) 線 aic：<paramref name="rs"/>＝呼び手が 1 回の走査の間だけ持つ根の判定の表（<see cref="RootSupply"/>・null なら必要なときだけここで作る）。
+    /// 根まで作れない候補は Score だけを NaN にして
+    /// <see cref="FacilityBuildValue.Excess"/> は残す（呼び手の計器が〈需要の信号があったのに落ちた候補〉を数えるため・Score が NaN の候補は今までどおり落ちる）。</summary>
+    internal static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr, RootSupply? rs)
     {
         if (pr.GoodId < 0 || pr.GoodId >= Catalog.RefPrices.Length || pr.GoodId >= rg.Markets.Length) return new(double.NaN, double.NaN, false);
         if (pr.RecipeName == Simulation.HouseholdRecipeName) return new(double.NaN, double.NaN, false);   // ★(418) 農家の手仕事の行は国営の工場として建てる対象ではない（AI も StepFactoryTargets もこの 1 本を読む＝対称・旗 0 では行が無く不発）
@@ -1333,6 +1338,8 @@ public sealed class UtilityAgent : INationAgent
             var lp = rg.Pops[pr.LaborPopIndex];
             if (lp.Size > 1e-9) idle = PoliticalQuantities.Clamp01(lp.UnemploymentRate.Value);
         }
+        rs ??= new RootSupply(w);
+        if (!rs.Of(pr)) return new(double.NaN, eff, worldOpened);   // ★(595) 根まで作れない候補は落とす（AI も StepFactoryTargets も同じ 1 本）
         return new(eff * (1.0 + FacilityBuildIdleWeight * idle), eff, worldOpened);
     }
 
@@ -1391,6 +1398,7 @@ public sealed class UtilityAgent : INationAgent
         //   （ProductionDiag.ExplainCost の規約＝FindProducer）。この走査は州の生産者を先頭から回す＝先頭の個体は既に通った
         //   ＝州ごとに「財→先頭の個体」を覚えて渡す（旧＝候補ごとに州の生産者を先頭から探し直した＝連鎖の目の時間の約半分）。
         var firstOf = new Producer?[Catalog.Goods.Length];
+        var rootSupply = new RootSupply(w);   // ★(595) この走査の間だけ生きる根の判定の表
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var rg = w.Regions[ri];
@@ -1402,8 +1410,12 @@ public sealed class UtilityAgent : INationAgent
                 if (pr.ConstructionLeft > 0 || pr.Bankrupt) continue;   // 建設中・倒産中は対象外
                 if (pr.GoodId < 0 || pr.GoodId >= Catalog.Goods.Length) continue;
                 if (Catalog.Goods[pr.GoodId].Tier == GoodTier.Service) continue;   // 役務は工場として建たない（BuildFactory と同条件）
-                var val = FacilityBuildScore(w, rg, pr);
-                if (double.IsNaN(val.Score)) continue;   // 基準価格・市場の範囲外＝候補外
+                var val = FacilityBuildScore(w, rg, pr, rootSupply);
+                if (double.IsNaN(val.Score))   // 基準価格・市場の範囲外・門が閉じた・根まで作れない＝候補外
+                {
+                    if (Instruments.On && val.Excess > FacilityBuildMinMargin) Instruments.AiBuildRootDropped(w, pr.GoodId, rootSupply is { } rsx ? rsx.Blocker : -1);   // 計器（読むだけ）：需要の信号があるのに根が無くて落ちた候補（旗 1 のときだけ Excess が残る）
+                    continue;
+                }
                 double eff = val.Excess;
                 bool worldOpened = val.WorldOpened;
                 // ★鋼市場診断#4（2026-08-16・旧の旗 AiSupplyChainEyes は 2026-10-18 に焼き込み）：連鎖の律速を読む目。需要シグナル（eff>閾値）のある候補財について
@@ -1422,7 +1434,8 @@ public sealed class UtilityAgent : INationAgent
                         if (!it.IsLabor && it.Qty > 1e-9 && it.Fill < minFill) { minFill = it.Fill; starved = it.GoodId; }
                     if (starved >= 0 && starved < Catalog.Goods.Length && starved < Catalog.RefPrices.Length
                         && Catalog.Goods[starved].Tier != GoodTier.Service
-                        && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream && Discovery.Gate(rg, upstream) > 0)   // (260) 上流の個体も門が開いていること
+                        && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream && Discovery.Gate(rg, upstream) > 0   // (260) 上流の個体も門が開いていること
+                        && rootSupply.Of(upstream))   // ★(595) 上流の個体も根まで作れること（作れない上流を建てに行かない）
                         Consider(ri, starved, eff * (1.0 + (1.0 - minFill)));
                 }
                 // ★身の丈ゲート（2026-08-04・R19の赤＝ジェノヴァ6/10最下位の是正：総費用が財政バッファを超える工場は建てない）は (579) 線 ukf で削除した。
@@ -1441,6 +1454,15 @@ public sealed class UtilityAgent : INationAgent
                 if (!worldOpened && !(pr.SmoothedMargin > 0)) continue;   // ★(260) 眠った個体（SleepState＝1＝門が0）は FacilityBuildScore が NaN で落とす＝ここへ来ない（旧は SleepState != 1 をここで見ていた）
                 if (Instruments.On && Catalog.FactorySpec(pr.GoodId).Cost > buffer) Instruments.AiBuildOverCap(w, pr.GoodId);   // 計器（読むだけ）：削除した旧の身の丈の門の線〔総費用 ＞ バッファ〕を越える候補の数
                 Consider(ri, pr.GoodId, val.Score);   // 不足の深さ×人が余っている
+            }
+        }
+        if (Instruments.On)   // 計器（読むだけ）：州の最良のうち、完成しても根が無い個体の数（旗の焼き込み前は旗 0 の腕で旧の選び方の結果を測った・今は 0 のはず）
+        {
+            for (int ri = 0; ri < w.Regions.Count; ri++)
+            {
+                if (bestGr[ri] < 0) continue;
+                var bq = World.FindFactory(w.Regions[ri], bestGr[ri]);
+                Instruments.AiBuildBest(w, bestGr[ri], bq is not null && !rootSupply.Of(bq));
             }
         }
         // ★AIも**同じカウンター**を1つ上げる（作者裁定2026-08-10 E節＝動詞を1本に統合して非対称を作らない）。

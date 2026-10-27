@@ -952,6 +952,24 @@ public sealed class MultiNationSim
                     wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
                 for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
             }
+            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の LastProduced）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型・毎四半期）。
+            //   読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定：世界のどこかで作られている投入は根が無いとは言えない）。旗は 2026-10-27 に焼き込み＝常に注入。
+            {
+                int ng = Catalog.Goods.Length;
+                var prod = new double[ng];
+                foreach (var n in Nations)
+                    foreach (var r in n.World.Regions)
+                    {
+                        int lim = Math.Min(ng, r.Markets.Length);
+                        for (int gi = 0; gi < lim; gi++) prod[gi] += r.Markets[gi].LastProduced;
+                    }
+                foreach (var n in Nations)
+                {
+                    var wn = n.World;
+                    if (wn.WorldGoodsProduced is not { } wgq || wgq.Length != ng) wn.WorldGoodsProduced = wgq = new double[ng];
+                    Array.Copy(prod, wgq, ng);
+                }
+            }
             // 財5（対外国債の他国資本引き当て・プール注入）：各国の対外国債プールに『他モデル国の資本家貯蓄の合計』＝対外国債の引き受け余力を注入。
             // Fiscal.Step はこれを上限に対外債発行をクランプする（実引き当て/保有国配分は #17 の CapitalMarket 経路で・notes 参照）。
             // 毎四半期このプールへ注入し Fiscal 側が上限として読む（★2026-09-26：旗 ForeignBondFromInvestors を焼き込み・x-01）。
