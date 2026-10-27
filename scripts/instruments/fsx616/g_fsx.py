@@ -9,7 +9,7 @@
 読むもの：
   近似（全ての腕で同じ式）：fiscal_s から 潤沢線 ≈ (max(1, 5×(利払い＋行政＋陸の装備の請求)) ＋ 0.5×5×兵士給与) × 8（OpulenceLineOf の近似・海軍は入れない）。
     G3/G6：債務あり（govDebtStock＞0）で 国庫（treasuryEndStock）＞線 の月の割合（国別）と、その状態が連続する長さの最大（四半期＝3 か月に換算・国×種の中央値）。
-    G7：同じ国×3 か月で 借入（borrowedPerMonth の和＞0）と 国債の返済（ledgerDebtRepayPerMonth の和＞0）が両方ある割合。
+    G7：同じ国×3 か月で 借入（borrowedPerMonth の和＞0）と 国債の返済（ledgerDebtRepayPerMonth は出の項で負に記帳される＝絶対値の和＞0）が両方ある割合。
     G4（記録）：国×年の govDebtStock の中央値（種をまたぐ）。
   腕 B の厳密（fsx_s）：
     G1：pressureSMax の最大・pressureForceMax の最大（≤ 1＋1e-9 のはず）・切り下げのあった国×四半期で pressureSSum ≤ pressureMSum＋1e-9 の割合と外れた行。
@@ -86,7 +86,7 @@ def fiscal_report(label, folder):
         for k in range(0, len(rows) - 2, 3):
             seg = rows[k:k + 3]
             b['qs'] += 1
-            if sum(x[5] for x in seg if x[5] == x[5]) > 0 and sum(x[6] for x in seg if x[6] == x[6]) > 0:
+            if sum(x[5] for x in seg if x[5] == x[5]) > 0 and sum(abs(x[6]) for x in seg if x[6] == x[6]) > 0:
                 b['churn'] += 1
     print(f'[{label}] 近似の線（fiscal_s）  国  債務あり&国庫>線の月の割合  連続の最大（四半期・種の中央値）  借入と返済が同じ3か月にある割合')
     for nat in sorted(by_nat):
@@ -106,7 +106,7 @@ def fsx_report(label, folder):
         with open(f, encoding='utf-8') as fh:
             r = csv.reader(fh, delimiter='\t'); h = next(r); ix = {n: i for i, n in enumerate(h)}
             for row in r:
-                if len(row) < len(h):
+                if len(row) < len(h) or not row[ix['time']].startswith('q'):   # 助走の行（w…）は外す
                     continue
                 g = lambda k: fnum(row[ix[k]])
                 nat = row[ix['nation']]

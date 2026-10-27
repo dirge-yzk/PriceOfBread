@@ -309,7 +309,7 @@ public static class Fiscal
                 repay = Math.Min(w.GovDebt.Value, Math.Min(spare, Math.Max(floorRepay, excess)));
                 if (Instruments.On) Instruments.FsxRepay(w, floorRepay, repay, excess);   // 計器（読むだけ）
             }
-            else if (Instruments.On) Instruments.FsxRepay(w, repay, repay, Math.Max(0, w.Treasury.Value - UtilityAgent.OpulenceLineOf(w)));   // 計器（読むだけ・旗 0 でも超過を出す）
+            else if (Instruments.On) { double exc0 = w.Treasury.Value - UtilityAgent.OpulenceLineOf(w); Instruments.FsxRepay(w, repay, repay, exc0 > 0 ? exc0 : 0); }   // 計器（読むだけ・旗 0 でも超過を出す・否定形＝NaN は 0）
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
