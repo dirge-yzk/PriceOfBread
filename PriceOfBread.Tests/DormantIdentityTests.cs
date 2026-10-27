@@ -35,8 +35,6 @@ public class DormantIdentityTests
         // ★AdminServesStateRule（(408) 行政費の返り）は 2026-10-18 に 1 で**点火**（止める線に当たらず）＝この表から外した。
         // ★MandateOverStockLegitPower（(409) 壁の一歩の払える量＝avail^p）は 2026-10-18 に 2 で**点火**（腕 B・止める線に当たらず・同時に床の係数を削除）＝この表から外した。
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
-        "FiatPressureRelativeFloor",    // ★(603) 線 pfix：切り下げの月の圧の分母の床を分子自身の大きさにする（0＝旧の式〔絶対値の床 1.0〕）。尾の守り＝広義の貨幣が max(1, devalue) 以上の月は 1 でも旧とビット一致。点火は 1（0/1）
-        "PriceTrendHoldAtZeroGdp",      // ★(603) 線 pfix：実質 GDP が 1e-9 以下の四半期は貨幣の厚みの趨勢を更新しない（0＝旧）。点火は 1（0/1）
         // ★WeaponParallelEnabled は 2026-10-24 (537) に採って旗ごと削除（既定で並行・退場の表からマスケットと鋳鉄砲を外した）＝この表から外した。
         // ★SymmetricTensionVerb は 2026-09-28 に点火して旗ごと削除（回8-1・dip-04）＝この表から外した。
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。

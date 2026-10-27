@@ -144,7 +144,7 @@ public static partial class Instruments
         // ---- (280) 線X：物価の更新の鎖（助走を含む四半期ごと）・財ごとの価格・月ごとの貨幣と所得（挙げた国だけ・書き出しは Phase warm／Quarter で行う）
         public int PxWarmN, PxGameN, PxMonthWarmN, PxMonthGameN;                     // 助走／試合の何回目か（四半期の更新・月の決算の数）
         public readonly List<string> PxRows = new(), PxGoodsRows = new(), PxMonthRows = new(); public string? PxHdr, PxMonthHdr;
-        public readonly List<string> PfixRows = new(), PjumpRows = new();   // (603) 線 pfix：価格水準の圧の分母／実質 GDP の保持の旗が入口に入った四半期の行・P が 1 四半期で 100 倍以上に跳ねた行（全ての国・まばら）
+        public readonly List<string> PfixRows = new(), PjumpRows = new();   // (603) 線 pfix：価格水準の圧の分母が旧の式と違った月／実質 GDP が正でなく趨勢を保持した四半期の行・P が 1 四半期で 100 倍以上に跳ねた行（全ての国・まばら）
         public int PfixMonths; public double PfixOld, PfixNew, PfixBroadMin = double.PositiveInfinity;   // (603) 今の四半期の中で、圧の分母の式が旧と新で違った月の数・その月の旧／新の圧の和・切り下げの後の広義の貨幣の最小
         public readonly List<string> DcRows = new();   // (587) 旧の切り下げの切り（貯蓄の月の上限）に当たった月の行（全ての国・まばら）
         public int PcWarmN, PcGameN; public readonly List<string> PcRows = new();   // (582) 物価の更新の呼びの番号（全ての国・挙げた国の PxWarmN／PxGameN と同じ数え方）と、天井・床に触れた行（全ての国・まばら）
@@ -837,7 +837,7 @@ public static partial class Instruments
         var st = S(w);
         st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" + st.PcWarmN : "q" + st.PcGameN), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(w.Coef.DevaluationCapReliefExp)));
     }
-    /// <summary>(603) 切り下げの月の圧の分母。旧の式と新の式（<see cref="Fiscal.FiatPressureOfDevalue"/>）の分母が違う月だけ、その四半期の和へ溜める（旗の値に依らず出す＝旗 0 でも旗 1 なら働いたであろう月が読める）。読むだけ。</summary>
+    /// <summary>(603) 切り下げの月の圧の分母。旧の式と新の式（<see cref="Fiscal.FiatPressureOfDevalue"/>）の分母が違う月だけ、その四半期の和へ溜める（旧の式なら圧が割合を越えた月＝焼き込んだ分母が効いた月。旧の式の圧は pressureOld・今の圧は pressureNew）。読むだけ。</summary>
     internal static void PfixMonth(World w, double devalue, double broadAfter)
     {
         double oldDen = Math.Max(1.0, broadAfter), newDen = Math.Max(broadAfter, devalue);
@@ -1576,7 +1576,7 @@ public static partial class Instruments
         {   // ★(582) 全ての国（挙げていない国も）の物価の天井・床の接触を溜める＝旧の天井 PxObserveCeil（4.0）を越えた／床を割った物価の行を 9 国の外の国まで帰属するための表 pclamp_s（天井は廃止後も観測の線として残す）。読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。
             bool wm = w.WarmupFrozen; int pc = wm ? st.PcWarmN++ : st.PcGameN++;
             if (!early)
-            {   // (603) 旗の入口（分母の式が旧と新で違った月／実質 GDP が正でない四半期）と、1 四半期で 100 倍以上の跳ね。pfix_s は旗の値に依らず出す
+            {   // (603) 分母の式が旧と新で違った月／実質 GDP が正でない四半期（趨勢を保持した四半期）と、1 四半期で 100 倍以上の跳ね
                 string pt = (wm ? "w" : "q") + PxI(pc), pnm = NameOf(w), pyr = F(w.Year);
                 if (st.PfixMonths > 0)
                     st.PfixRows.Add(string.Join('	', pt, pnm, pyr, "1", PxI(st.PfixMonths), F(st.PfixOld), F(st.PfixNew), F(st.PfixBroadMin), F(gdp), F(pBefore), F(w.PriceLevel)));
