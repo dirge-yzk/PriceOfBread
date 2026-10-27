@@ -851,7 +851,7 @@ public sealed class MultiNationSim
                 var w = n.World;
                 bool coastal = false;
                 foreach (var r in w.Regions) if (r.IsPort) { coastal = true; break; }
-                double gap = PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));
+                double gap = _coef.TechSignalOff > 0 ? 0.0 : PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));   // ★(613) 段2a：旗が正なら格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
@@ -1344,7 +1344,7 @@ public sealed class MultiNationSim
             foreach (var sim in Nations)
             {
                 var w = sim.World; year = w.Year;
-                if (w.TechLevel < cp.TechGate) continue;   // 近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
+                if (_coef.TechGateByDiscovery > 0 ? !Megaprojects.RequirementMet(w, cp.Id) : w.TechLevel < cp.TechGate) continue;   // ★(613) 段1：旗が正なら拠出する国の自国の発見の行 requires。近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
                 if (_coef.CanalInvestReturns.Value > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 // ★段3-3（C13・2026-09-30）：出資者＝投資家の述語の1本（CapitalMarket.Investors＝配当の受け手と同じ集合）。旧＝各州の資本家1人（InvestorPopIndex・活きた州）。

@@ -20,7 +20,8 @@ public static partial class Instruments
         + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
         + "adminEfficiency\tcrown\tchildLaborLegal\tworkHoursValue\t"
         + "socialSecurityLawCode\tantitrustLawCode\tprogressiveTaxShare\tnationalizedMaskCode\t"
-        + "tariffTargetIndex\ttradeToGdpRatio";   // ★(395) 前提つきの法の4本（事前登録 ab の R2＝累進課税・失業保険・独占禁止・国有化が入った年を読む）＝末尾に足した（既存の列の位置は動かない）
+        + "tariffTargetIndex\ttradeToGdpRatio\t"
+        + "externalPressure\tfreightRevolution\twomenRightsCode\tmegaStartedCount\tmegaStartedUnmetCount\tmegaStartedOldGateClosedCount";   // ★(613) 線 tl 後半：技術水準の削除の観測量 6 列（外圧・運賃革命の倍率・女性の権利の法・自国が所有して着工済みの巨大建造物の数・うち requires を自国が開いていない数・うち旧の techGate を満たさない数）
 
     // ★(604) 貿易÷GDP＝(輸出＋輸入の財別の和)×ClearingsPerYear÷年換算の名目 GDP（成績表の 貿易（復活計器）の MajorsTradeGdp と同じ式。清算の直近 1 回分の断面）。
     static double TradeToGdp(World w)
@@ -29,6 +30,21 @@ public static partial class Instruments
         if (w.ExportsByGood is { } eg) foreach (var v in eg) ex += v;
         if (w.ImportsByGood is { } ig) foreach (var v in ig) im += v;
         return (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value);
+    }
+
+    /// <summary>★(613) 自国が所有して着工済みの巨大建造物の数・うち発見の行 requires を自国が開いていない数・うち旧の techGate を満たさない数（読むだけ。限界：着工した後で征服により所有が移った個体は、新しい所有国の requires を満たさなくても数える）。</summary>
+    static (int Started, int Unmet, int OldClosed) MegaCols(World w)
+    {
+        int a = 0, b = 0, c = 0;
+        if (w.Diplomacy is { } dip && w.SelfPower is { } sp)
+            foreach (var mp in dip.Megaprojects)
+                if (mp.Started && mp.Owner is { } o && ReferenceEquals(o, sp))
+                {
+                    a++;
+                    if (!Megaprojects.RequirementMet(w, mp.Id)) b++;
+                    if (!(w.TechLevel >= mp.TechGate)) c++;
+                }
+        return (a, b, c);
     }
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
@@ -41,6 +57,7 @@ public static partial class Instruments
         if (sz > 0) { milWar /= sz; mil /= sz; }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var c = w.Coef;
+        var mega = MegaCols(w);
         sk.Sca ??= Open("scalars", seed);
         if (!sk.ScaHeader) { sk.Sca.WriteLine(ScalarsHeader); sk.ScaHeader = true; }
         sk.Sca.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), w.BornOfSecession ? "1" : "0", F(popK), Government.AtWar(w) ? "1" : "0",
@@ -49,6 +66,7 @@ public static partial class Instruments
             F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
             F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue),
             I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask()),
-            F(w.Policy.TariffTarget), F(TradeToGdp(w))));
+            F(w.Policy.TariffTarget), F(TradeToGdp(w)),
+            F(w.ExternalPressure), F(InternationalMarket.FreightRevolution(w.WorldTechLevel, c)), I((int)w.WomenRights), I(mega.Started), I(mega.Unmet), I(mega.OldClosed)));
     }
 }

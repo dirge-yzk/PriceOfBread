@@ -2883,6 +2883,12 @@ public sealed class Coefficients
     public double ModernizationOldGuardResist = 0.5;  // 旧支配層の政治力シェア1.0あたり近代化投資が止まる割合（免許・検地・認可を握るのが旧支配層）。旧支配層の政治力（★(373) 制度疲労の乗数は削除）と結び「改革を要する国ほど改革できない」が創発。0で乗算恒等
     public double ModernizationCostGdpShare = 1.0;   // frac/(1-frac) に掛かる係数。frac=0.3 で四半期GDPの約0.43倍＝年GDP比11%（発展途上国家の投資率として妥当）・frac=0.8 で4倍・frac→1 で発散。A=2.0 も試したが年GDP比21%は高すぎ、帯も経済規模−6.3で劣った（2026-08-04実測）。**国庫比でなく絶対額**にすることで「100%はほとんどの国で不可能」を成立させる。0で旧式（国庫×frac×0.5）＝厳密恒等
     public double TechMultipliersOff = 0;             // ★(613) 線 tl 段3（既定 0＝今のとおり・厳密恒等）：技術水準を掛ける3つの倍率を 1 にする（軍の質の技術の因子 ArmyShape.Quality・海越えの遠征の門 Diplomacy.ExpeditionLift・近代化費用の遅れの割増 World.ModernizationBudget の costMul）。作者 2026-10-16〈倍率は全て削除〉・技術水準の削除の線。正で 3 つとも 1.0（costMul は割増 0）
+    // ★(613) 線 tl 後半（既定は全て 0＝今のとおり・厳密恒等。否定形で NaN は 0 へ倒す。採るときに既定 1 へ焼き込み、旗は段6 の物理削除と一緒に消す）
+    public double TechGateByDiscovery = 0;            // 段1：巨大建造物の着工と進行・運河の着工の門を、技術水準の techGate から発見の行 requires（megaprojects.json・world.json）へ。正で有効
+    public double TechSignalOff = 0;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
+    public double TechThresholdOff = 0;               // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
+    public double EraOff = 0;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
+    public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ
     // 【墓標2026-09-26（棚卸し dorm-50）】ModernizationTechGain（近代化投資の直接の技術加点・「0で確定」2026-08-04）＝削除。制度疲労が技術採用を律しているので近代化投資が疲労を削れば技術は伸びる＝直接の加点は二重計上（実測で公教育の普 vs 宗教教育の露の差が消えた）
     public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 州の上限＝この工業化度に達した州は AI の近代化の信号（World.StateInvestEligible）の適格から外れ、巨大建造物の直接の足しもこれで切る。(583) 州へ撒く分を削除した後は国庫投資の入口の上限ではない（旧：富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）
@@ -3512,7 +3518,7 @@ public sealed class Coefficients
     /// k=0（既定）で 1.0＝**厳密恒等**（呼び出し側は掛けても1倍）。正で伸び、負で縮む。0以下には落とさない（距離が消えると幾何が壊れる）。</summary>
     public double EraFactor(double worldTech, double k)
     {
-        if (k == 0) return 1.0;
+        if (k == 0 || EraOff > 0) return 1.0;   // ★(613) 段4：旗 EraOff が正なら時代係数を読まない（否定形＝NaN は旗 0）
         double ramp = PoliticalQuantities.Clamp01((worldTech - TransportRevolutionOnset) / Math.Max(1e-9, TransportRevolutionSpan));   // NaN は Clamp01 が0＝「技術以前」へ倒す
         return Math.Max(0.05, 1.0 + k * ramp);
     }

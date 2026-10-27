@@ -5047,6 +5047,7 @@
    "isCanal": true,
    "buildCost": 150000,
    "techGate": 2.5,
+   "requires": "汽船",
    "servesBasins": [
     "IndianOcean",
     "Pacific"
@@ -5060,6 +5061,7 @@
    "isCanal": true,
    "buildCost": 400000,
    "techGate": 3,
+   "requires": "ダイナマイト",
    "servesBasins": [
     "Pacific"
    ]

@@ -916,7 +916,7 @@ internal static class PlayHarness
 
     /// <summary>★(419) 巨大建造物の状態（データだけ＝着工の可否の理由を再導出しない。可否は <see cref="Megaprojects.CanStart"/> の 1 本）。</summary>
     private static string MegaStateText(World w, Megaproject mp)
-        => $"{(mp.IsComplete ? "完成" : mp.Started ? $"建設中 {(mp.BuildUnits > 1e-9 ? Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0):P0}" : "未着工")}・技術 {w.TechLevel:F2}／必要 {mp.TechGate:F2}";
+        => $"{(mp.IsComplete ? "完成" : mp.Started ? $"建設中 {(mp.BuildUnits > 1e-9 ? Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0):P0}" : "未着工")}・{(w.Coef.TechGateByDiscovery > 0 ? $"必要な発見 {Megaprojects.RequiresNameOf(mp.Id)}" : $"技術 {w.TechLevel:F2}／必要 {mp.TechGate:F2}")}";
 
     /// <summary>★(410) 闘争度の目標の 4 本（人口加重の和 <paramref name="sum"/>÷<paramref name="size"/>）を画面のホバーと同じ名前・同じ 0.5% 未満の省略で並べる（多い順）。1 本も無ければ「なし」。</summary>
     private static string MilParts(double[] sum, double size)

@@ -34,7 +34,7 @@ public static class WorldData
     // 旧方針「BuildCost/TechGate は Coefficients が真実源＝JSON に値を複製しない」は**運河が2個体しかない前提**で成立していたもので、
     // 個体が増えると係数表が個体台帳になる。個体別の値は資源賦存と同じデータ扱いにするのが筋（同ファイル上の
     // 「旧 MultiNationSim コンストラクタのハードコード表をデータ化」という前例と整合）。個体に依らない**率**（CanalInvestFrac 等）は係数側に残す。
-    internal sealed record ChokepointDto(string Id, string Name, string Host, bool IsOpen, bool IsCanal, double BuildCost, double TechGate, Basin[] ServesBasins, string? ExitOfBasin = null);   // ExitOfBasin＝この咽喉が唯一の出口である閉鎖海盆（Basin名・null=該当なし）。13l地政学＝RouteTension の入力・地理の定数
+    internal sealed record ChokepointDto(string Id, string Name, string Host, bool IsOpen, bool IsCanal, double BuildCost, double TechGate, Basin[] ServesBasins, string? ExitOfBasin = null, string? Requires = null);   // ExitOfBasin＝この咽喉が唯一の出口である閉鎖海盆（Basin名・null=該当なし）。13l地政学＝RouteTension の入力・地理の定数
     internal sealed record WorldSetup(IReadOnlyList<TargetDto> Targets, IReadOnlyList<RivalryDto> Rivalries, IReadOnlyList<DependencyDto> Dependencies, IReadOnlyList<ChokepointDto> Chokepoints);
 
     /// <summary>シリアライズ設定：public フィールドを含め、enum は文字列、camelCase、タプル配列は専用 converter。</summary>
@@ -90,7 +90,7 @@ public static class WorldData
 
     // === 巨大建造物のカタログ（megaprojects.json・埋め込み）＝個体別の値はデータが真実源 ===
     internal sealed record MegaprojectDto(string Id, string Name, string Host, double BuildUnits, double TechGate,
-                                          string EffectTarget, string EffectMode, double EffectValue);
+                                          string EffectTarget, string EffectMode, double EffectValue, string? Requires = null);   // ★(613) 段1：Requires＝着工に要る発見の行の名前（旗 TechGateByDiscovery が正のとき techGate の代わりに読む・無し＝門なし）
     private sealed record MegaprojectDoc(List<MegaprojectDto> Projects);
     /// <summary>埋め込み megaprojects.json から建造物カタログをロード（型初期化時に1回・goods.json と同じ二本立て構成）。</summary>
     private static readonly MegaprojectDto[] _megaCache = LoadMegaprojects();

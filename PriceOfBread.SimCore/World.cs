@@ -2035,6 +2035,7 @@ public sealed class World
         }
         // 満足度への直接バフ（時短whWell・福祉WelfareSatComponent・年金PensionWellbeing）は物理削除2026-08-21（思想⑨＝支出/法は財を経ずに満足度を動かさない。
         // 作者裁定8/19「満足度という値を捨てて生活水準＝買えたかのみ」）。時短は出力減 whOut・福祉/年金は現金給付（→消費→生活水準）としてのみ残る。
+        if (Coef.TechProductivityBracketOff > 0) return whOut * union;   // ★(613) 段5（腕 B5・既定 0＝今のとおり）：技術の括弧を外す（作者 2026-10-16〈技術水準は二重計上〉）。否定形＝NaN は旗 0
         return (1.0 + Math.Min(TechLevel, TechProdDiminishKnee) + Math.Max(0.0, TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
     }
 

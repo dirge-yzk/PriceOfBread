@@ -604,7 +604,7 @@ public static class Discovery
             // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
             //   ★(415) 旗 DiscoveryEngineerHalfPerMonth が正のとき、製法と新製品と新兵器の行は技術水準を読まない（下の技師の比 EngineerFactor）。制度と思想の行は今のまま（親の産業が定義できない・事前登録 [3-3]）。
             double ratio = 1.0;
-            if (spread || !engOn)
+            if ((spread && !(c.TechThresholdOff > 0)) || (!spread && !engOn))   // ★(613) 段2b：旗 TechThresholdOff が正なら制度と思想の行の技術の比は 1（注の〈技術の押しは1〉）。製法ほかの行は今のまま
             {
                 double diff = Difficulty(row, c);
                 ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
