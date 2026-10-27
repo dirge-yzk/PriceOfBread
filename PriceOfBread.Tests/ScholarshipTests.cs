@@ -4,26 +4,29 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(590) 奨学金の法：旗 <c>ScholarshipLaw</c>（既定 0）。教育費の軸（EducationSpending）の実効の率に比例して、高等教育の授業料の一部を国庫が負担する
-/// （買い手の値段の楔＝健康保険 #3 の insure と同型）。事前登録 measurements/sch_590_20261027_prereg.txt [3] の J1〜J3・J5・J6。
+/// <summary>(590)(597) 奨学金の法：旗 <c>ScholarshipTopStage</c>（既定 0）。教育費の軸（EducationSpending）の**最上段**の国だけが、高等教育の授業料の一部を国庫が負担する
+/// （買い手の値段の楔＝健康保険 #3 の insure と同型・年金が社会保障法の最上段であるのと同じ型）。(590) の世界の旗 ScholarshipLaw（全ての段に比例）は物理削除した。
+/// 事前登録 measurements/sch2_597_20261027_prereg.txt [3] の J1〜J6。
 /// 期待値は盤面の別の出所から作る：負担分＝割合 s × 売れた量（市場の LastSold）× 値段（市場の Price）。買い手が払う分は 買い手の PaidPerMonth の差から（コードの式を呼ばない）。
-/// 割合は別の状態を持たず Region.CompulsoryEduFunding（教育費の軸の実効の率）から EconomyStep.ScholarshipCover が導く＝試験は CompulsoryEduFunding に直に置く。
+/// 割合は別の状態を持たず Region.CompulsoryEduFunding（教育費の軸の実効の率）から、段は Region.EducationSpending（国の実効の率の月次の複製）から EconomyStep.ScholarshipCover が導く＝試験は両方に直に置く。
+/// 段の境界の期待値は手計算：実効の率 x → 0.05 の格子へ丸め → ×3（最上段の錨は 1.0）→ 四捨五入（半分は上）。0.80→2.4→段 2・0.85→2.55→段 3。
 /// ⚠高等教育は既定で休眠（HigherEduNeedPerEducated=0・ResearcherFrac=0）＝試験は必要量を立て、大学の生産者の代わりに市場の在庫を厚くした盤面で 1 か月だけ回す。</summary>
 public class ScholarshipTests
 {
     private const double S = 0.4;
 
     /// <summary>英の開幕を 1 か月だけ回す。買い手は 1 人（他の POP は識字 0 ＝高等教育の必要量 0）・貯蓄は厚く予算は拘束しない・在庫は厚く配給も拘束しない。
-    /// funding は Region.CompulsoryEduFunding に直に置く（月次の設定は Simulation が毎月書く＝1 か月だけ回す試験は直に置く）。law は ScholarshipLaw の旗。
+    /// funding は Region.CompulsoryEduFunding に直に置く（月次の設定は Simulation が毎月書く＝1 か月だけ回す試験は直に置く）。law は ScholarshipTopStage の旗。edu は Region.EducationSpending（国の実効の率の複製・既定 1.0＝最上段）。
     /// buyerSavings は買い手の貯蓄（既定は厚い＝予算は拘束しない）。poorOthers は買い手以外の貯蓄を 0 にする（義務教育の国庫購入を見る盤面）。</summary>
-    internal static (Region Region, World World, Pop Buyer) OneMonth(bool law, double funding, bool poorOthers = false, double buyerSavings = 1e12)
+    internal static (Region Region, World World, Pop Buyer) OneMonth(bool law, double funding, bool poorOthers = false, double buyerSavings = 1e12, double edu = 1.0)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
         w.Coef.HigherEduNeedPerEducated = 0.5;   // 高等教育の必要量を立てる（既定 0＝休眠）
         var r = w.Region;
         r.CompulsoryEduFunding = funding;
-        w.Coef.ScholarshipLaw = law ? 1 : 0;
+        r.EducationSpending = edu;
+        w.Coef.ScholarshipTopStage = law ? 1 : 0;
         int h = Catalog.HigherEducationId;
         // 大学の代わりの生産者（役務は在庫を持ち越さない＝供給は今月の産出）。産出は厚く入力なし・労働と持ち主は既存の POP の添字（試験の盤面のため）
         int lab = Math.Max(0, r.TeacherPopIndex);
@@ -41,16 +44,16 @@ public class ScholarshipTests
     }
 
     [Fact]
-    public void 旗の既定は0_高等教育の楔は旗1かつ財源率が正のとき正_他の財と割合0では0()
+    public void 旗の既定は0_高等教育の楔は旗1かつ最上段かつ財源率が正のとき正_他の財と割合0では0()
     {
-        Assert.Equal(0, new Coefficients().ScholarshipLaw);
+        Assert.Equal(0, new Coefficients().ScholarshipTopStage);
         var c = new Coefficients();
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var r = sim.World.Region;
         int h = Catalog.HigherEducationId;
-        r.CompulsoryEduFunding = S;
-        Assert.Equal(0.0, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure);          // 旗 0＝財源率が正でも楔なし
-        c.ScholarshipLaw = 1;
+        r.CompulsoryEduFunding = S; r.EducationSpending = 1.0;
+        Assert.Equal(0.0, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure);          // 旗 0＝最上段で財源率が正でも楔なし
+        c.ScholarshipTopStage = 1;
         r.CompulsoryEduFunding = 0.0;
         Assert.Equal(0.0, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure);          // 財源率 0
         r.CompulsoryEduFunding = S;
@@ -61,6 +64,39 @@ public class ScholarshipTests
         Assert.Equal(EconomyStep.InsuranceCoverageCap, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure, 12);   // 0 除算の守りの上限
         r.CompulsoryEduFunding = double.NaN;
         Assert.Equal(0.0, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure);          // NaN は 0 へ落ちる（否定形の fail-closed）
+        r.CompulsoryEduFunding = S; r.EducationSpending = double.NaN;
+        Assert.Equal(0.0, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure);          // 段が NaN＝段 0 の側（fail-closed）
+    }
+
+    /// <summary>J2 段の門：段 0〜2 は財源率が正でも楔 0・国庫の負担 0（買い手は全額）／段 3 でだけ正。境界は手計算の表（TaxStage を呼ばない）。
+    /// 突然変異＝門を外す（段に依らず割合を返す）・門を >= 2 に緩める（実効 0.65・0.80 が段 2 のまま正になって赤）。</summary>
+    [Fact]
+    public void J2_段の門_段0から2は補助0_段3でだけ正_境界は手計算()
+    {
+        var c = new Coefficients { ScholarshipTopStage = 1 };
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region;
+        int h = Catalog.HigherEducationId;
+        r.CompulsoryEduFunding = S;
+        // (実効の率, 段) ― 格子 0.05 へ丸め→×3→四捨五入（半分は上）：0.30→0.9→1／0.35→1.05→1／0.50→1.5→2／0.65→1.95→2／0.80→2.4→2／0.85→2.55→3
+        foreach (var (x, stage) in new[] { (0.0, 0), (0.30, 1), (0.35, 1), (0.50, 2), (0.65, 2), (0.80, 2), (0.85, 3), (0.95, 3), (1.0, 3) })
+        {
+            r.EducationSpending = x;
+            double expect = stage == 3 ? S : 0.0;
+            Assert.Equal(expect, EconomyStep.BuyerWedge(r, c, h, true, null, 0).insure, 12);
+            Assert.Equal(expect, EconomyStep.ScholarshipCover(r, c), 12);
+        }
+        // 決済まで通す：段 2（実効 0.80）は国庫の負担 0・買い手は授業料の全額／段 3（0.85）は国庫が割合×授業料
+        var (lo, _, bLo) = OneMonth(true, S, edu: 0.80);
+        var (hi, _, bHi) = OneMonth(true, S, edu: 0.85);
+        var (off, _, bOff) = OneMonth(false, S, edu: 0.85);
+        Assert.Equal(0.0, lo.StateSpent[(int)TreasuryCat.Education]);
+        double qLo = lo.Markets[h].LastSold;
+        Assert.True(qLo > 0, "前提が崩れた：段 2 の盤面で高等教育が買われていない");
+        Assert.Equal(bOff.PaidPerMonth.Value, bLo.PaidPerMonth.Value, 9);                 // 段 2 の旗 1 は旗 0 と同じ支払い（楔なし）
+        Assert.Equal(S * hi.Markets[h].LastSold * hi.Markets[h].Price, hi.StateSpent[(int)TreasuryCat.Education], 9);
+        Assert.Equal(0.0, off.StateSpent[(int)TreasuryCat.Education]);
+        Assert.True(bHi.PaidPerMonth.Value != bOff.PaidPerMonth.Value, "段 3 でも買い手の支払いが変わらない＝楔が決済に届いていない");
     }
 
     [Fact]
@@ -121,6 +157,9 @@ public class ScholarshipTests
         string src = File.ReadAllText(FindSimCore("Simulation.cs"));
         Assert.Matches(new Regex(@"regrow\s*\*\s*\(\s*Math\.Max\(0,\s*r\.StateSpent\[\(int\)TreasuryCat\.Education\]\)"), src);
         Assert.Matches(new Regex(@"CompulsoryEduFunding \*= payRate;"), src);   // 割合は義務教育の財源率そのもの（別の状態を持たない）＝支払い率 r＜1 の月は負担も比例して縮む
+        // 国の教育費の率の複製は 1 行（月次の写し）で、支払い率を掛けない（割合の支払い率は CompulsoryEduFunding に畳まれている＝二重に掛けない）
+        Assert.Equal(1, Regex.Matches(src, @"r\.EducationSpending = World\.EducationSpending;").Count);
+        Assert.DoesNotMatch(new Regex(@"r\.EducationSpending\s*\*="), src);
         string eco = File.ReadAllText(FindSimCore("EconomyStep.cs"));
         Assert.Contains("region.StateSpent[(int)TreasuryCat.Education] += subsidy;", eco);
     }
@@ -130,41 +169,58 @@ public class ScholarshipTests
     {
         // 状態を貯めない（思想⑩）：Region に ScholarshipShare の欄が無い。割合を読む所は EconomyStep.ScholarshipCover の 1 本。
         Assert.Null(typeof(Region).GetField("ScholarshipShare"));
+        Assert.Null(typeof(Coefficients).GetField("ScholarshipLaw"));   // (590) の世界の旗は物理削除した（奨学金の仕組みを 2 つ残さない）
         string root = Path.GetDirectoryName(FindSimCore("Simulation.cs"))!;
         var readers = new List<string>();
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
         {
             if (!rel.StartsWith("PriceOfBread.SimCore/")) continue;
             foreach (var line in File.ReadLines(full))
-                if (line.Split("//")[0].Contains("ScholarshipLaw")) readers.Add(Path.GetFileName(rel));
+                if (line.Split("//")[0].Contains("ScholarshipTopStage")) readers.Add(Path.GetFileName(rel));
         }
         // 宣言（Coefficients）・唯一の関数（EconomyStep）・置き換え（World の eduPart）・表示の門（PlayText）の 4 つだけ。AI と別の経路（SelfPlay ほか）が旗を読んだら赤
         Assert.Equal(new[] { "Coefficients.cs", "EconomyStep.cs", "PlayText.cs", "World.cs" }, readers.OrderBy(x => x, StringComparer.Ordinal).ToArray());
+        // 旧の旗の名前がコードの行に戻っていない（コメントは墓標として許す）。割合の導出が国（プレイヤーか否か）を読まない
+        foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
+        {
+            if (rel.StartsWith("PriceOfBread.Tests/")) continue;
+            foreach (var line in File.ReadLines(full)) Assert.DoesNotContain("ScholarshipLaw", line.Split("//")[0]);
+        }
+        string eco = File.ReadAllText(FindSimCore("EconomyStep.cs"));
+        int a = eco.IndexOf("internal static double ScholarshipCover", StringComparison.Ordinal);
+        string body = eco[a..eco.IndexOf(";\n", eco.IndexOf("InsuranceCoverageCap) : 0", a, StringComparison.Ordinal), StringComparison.Ordinal)];
+        Assert.DoesNotContain("IsPlayer", body);
         foreach (var f in new[] { "SelfPlay.cs", "Agents.cs", "Politics.cs", "Parliament.cs", "Government.cs" })
             Assert.DoesNotContain("ScholarshipCover", File.ReadAllText(Path.Combine(root, f)));
     }
 
     [Fact]
-    public void 旗0は割合0_旗1は義務教育の財源率と同じ導出で_法の門を通る()
+    public void 旗0は割合0_旗1は最上段のときだけ義務教育の財源率と同じ導出で_法の門を通る()
     {
         double SumShare(Simulation s) { double t = 0; foreach (var r in s.World.Regions) t += EconomyStep.ScholarshipCover(r, s.World.Coef); return t; }
         Simulation Board(int flag, EducationLaw law, double spending)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-            sim.World.Coef.ScholarshipLaw = flag; sim.World.Coef.ParishEduFunded = 0;
+            sim.World.Coef.ScholarshipTopStage = flag; sim.World.Coef.ParishEduFunded = 0;
             sim.World.EducationLaw = law; sim.World.Policy.EducationLaw = law;
             sim.World.EducationSpending = spending; sim.World.Policy.EducationSpendingTarget = spending;
             sim.Run(2);
             return sim;
         }
-        Assert.Equal(0.0, SumShare(Board(0, EducationLaw.Public, 0.6)));            // 旗 0＝法なし
-        Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Religious, 0.6)));         // 法の門：教区学校の国は国庫が授業料を負担しない（義務教育の財源も 0）
+        Assert.Equal(0.0, SumShare(Board(0, EducationLaw.Public, 1.0)));            // 旗 0＝最上段でも法なし
+        Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Religious, 1.0)));         // 法の門：教区学校の国は国庫が授業料を負担しない（義務教育の財源も 0）
         Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Public, 0.0)));            // 段 0＝教育費なし
-        var on = Board(1, EducationLaw.Public, 0.6);
+        Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Public, 0.6)));            // 段 2＝財源率は正でも補助は出ない（(590) の比例の形との違い）
+        Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Public, 0.8)));            // 段 2 の上端（0.85 の手前）
+        var mid = Board(1, EducationLaw.Public, 0.6);
+        Assert.True(mid.World.Regions.Sum(r => r.CompulsoryEduFunding) > 0, "前提が崩れた：段 2 の盤面で義務教育の財源率が 0＝段の門が何も言っていない");
+        var on = Board(1, EducationLaw.Public, 1.0);
         Assert.True(SumShare(on) > 0);
-        foreach (var r in on.World.Regions) Assert.Equal(Math.Min(r.CompulsoryEduFunding, EconomyStep.InsuranceCoverageCap), EconomyStep.ScholarshipCover(r, on.World.Coef), 12);   // 義務教育の財源率（法の門・支配度・支払い率を通した後）と同じ値（上限まで）
-        var hi = Board(1, EducationLaw.Public, 1.0);
-        Assert.True(SumShare(hi) > SumShare(on), "教育費の段が上がっても割合が増えない（段に比例）");
+        foreach (var r in on.World.Regions)
+        {
+            Assert.Equal(1.0, r.EducationSpending);   // 国の実効の率の月次の複製が州に届いている
+            Assert.Equal(Math.Min(r.CompulsoryEduFunding, EconomyStep.InsuranceCoverageCap), EconomyStep.ScholarshipCover(r, on.World.Coef), 12);   // 義務教育の財源率（法の門・支配度・支払い率を通した後）と同じ値（上限まで）
+        }
     }
 
     [Fact]
@@ -175,7 +231,7 @@ public class ScholarshipTests
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             for (int q = 0; q < 2; q++) sim.StepQuarter();   // 就学の実績（LastEducationFill）が立つまで回す
             var w = sim.World;
-            w.Coef.ScholarshipLaw = flag;
+            w.Coef.ScholarshipTopStage = flag;
             w.Coef.ModernizationToHigherEdu = 0.5;
             w.SetTreasuryRaw(1e9);
             w.ModernizationFrac = 0.3;
@@ -194,11 +250,13 @@ public class ScholarshipTests
         var w = sim.World;
         string old = $"教育費（予算の割合） {w.Policy.EducationSpendingTarget:P0}　実効 {w.EducationSpending:P0}";   // 旧の式を手で書き写した期待値
         Assert.Equal(old, PlayText.EducationSpendingText(w));
-        w.Coef.ScholarshipLaw = 1; w.Region.CompulsoryEduFunding = 0.25;
+        w.Coef.ScholarshipTopStage = 1; w.Region.CompulsoryEduFunding = 0.25; w.Region.EducationSpending = 1.0;
         string on = PlayText.EducationSpendingText(w);
         Assert.StartsWith(old, on);
         Assert.Contains("奨学金", on);
         Assert.Contains((0.25).ToString("P0"), on);
+        w.Region.EducationSpending = 0.6;   // 段 2＝奨学金は 0%（旗 1 のときは名乗りを出し、率は段の門を通った値）
+        Assert.Contains("奨学金 " + (0.0).ToString("P0"), PlayText.EducationSpendingText(w));
     }
 
     /// <summary>月次決算（MonthSettle→CheckInvariants＝貨幣保存の検査）を通して回す：補助が実際に流れる盤面（法あり・必要量あり・大学の生産者あり・SetTreasuryRaw なし）で例外が出ず、
@@ -210,9 +268,9 @@ public class ScholarshipTests
         {
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             var w = sim.World;
-            w.Coef.ScholarshipLaw = flag; w.Coef.HigherEduNeedPerEducated = 0.5;
+            w.Coef.ScholarshipTopStage = flag; w.Coef.HigherEduNeedPerEducated = 0.5;
             w.EducationLaw = EducationLaw.Public; w.Policy.EducationLaw = EducationLaw.Public;
-            w.EducationSpending = 0.6; w.Policy.EducationSpendingTarget = 0.6;
+            w.EducationSpending = 1.0; w.Policy.EducationSpendingTarget = 1.0;
             var r = w.Region; int h = Catalog.HigherEducationId, lab = Math.Max(0, r.TeacherPopIndex);
             r.Producers.Add(new Producer { GoodId = h, Productivity = 1e6, Output = 1e9, MarginalCost = 0.4, LaborPopIndex = lab, OwnerPopIndex = lab, RentShare = default, Inputs = [] });
             sim.Run(1);   // 1 四半期＝3 回の月次決算（CheckInvariants が毎月走る＝例外が出ないこと自体が貨幣保存の確かめ）
@@ -222,7 +280,7 @@ public class ScholarshipTests
         }
         var off = Run(0); var on = Run(1);
         Assert.Equal(0.0, off.share);
-        Assert.True(on.share > 0, "前提が崩れた：旗 1・Public・段 0.6 で割合が立たない");
+        Assert.True(on.share > 0, "前提が崩れた：旗 1・Public・最上段で割合が立たない");
         Assert.True(on.fill > 0, "前提が崩れた：高等教育の買い手が居ない（必要量か大学の盤面）");
         Assert.True(on.treasury < off.treasury, $"補助が国庫から出ていない（旗 1 の国庫 {on.treasury} ≧ 旗 0 の国庫 {off.treasury}）");
     }

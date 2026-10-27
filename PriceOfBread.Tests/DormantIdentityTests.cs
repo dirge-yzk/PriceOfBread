@@ -191,7 +191,7 @@ public class DormantIdentityTests
         "HigherEduNeedPerEducated",
         "InterestCapitalization", "LoanSpreadPerYear",
         "ModernizationToHigherEdu",
-        "ScholarshipLaw",             // ★(590) 奨学金の法の旗（既定 0・高等教育は既定で二重に休眠）
+        "ScholarshipTopStage",        // ★(597) 奨学金の法の旗（教育費の軸の最上段だけ・既定 0・高等教育は既定で二重に休眠。(590) の ScholarshipLaw は削除）
         "NavalFuelPerGauge",
         "PolicyRateLoanWeight",
         "PromotionGateHigherEdu", "ReactionFromLoss",
@@ -209,6 +209,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "ScholarshipLaw",             // (597) 線 sch2：(590) の世界の旗〔全ての段に比例〕。旗ごと削除（奨学金の仕組みを 2 つ残さない）＝代わりに教育費の軸の最上段だけの ScholarshipTopStage
         "AiModernizeFromReturn",      // (591) 恒等の線 gc5：AI の近代化投資の信号の旗〔(416)・既定 3〕の旧の腕〔段 0〜2〕。旗ごと削除（信号は World.ModernizeReturnShare の 1 本）
         "AiIndustrialCeilingFrontier", // (591) 同：旧の包絡 max(2.5, α×世界前線) の α〔鋼市場診断#1・既定 0.6〕。読み手は旧の腕だけだった
         "ModernizationAbolished",     // (583) 恒等の線 gc4：近代化投資の廃止（(573)・作者 2026-10-26）の旗。既定 1 で点火済みのまま旗ごと削除（州の StateBuildQueue へ撒く道を World.ApplyModernizationInvestment から物理削除）

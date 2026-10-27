@@ -2150,6 +2150,7 @@ public sealed class Simulation
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
                     : World.EducationLaw == EducationLaw.Public || (World.EducationLaw == EducationLaw.Religious && World.Coef.ParishEduFunded > 0) ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // ★(404) 旗 ParishEduFunded＞0：Religious も Public と同じ割合を国庫が買う（担い手は教区学校のまま・rf_20261018_prereg.txt D2）。0 は旧の 0
                     * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
+                r.EducationSpending = World.EducationSpending;   // ★(597) 国の教育費の実効の率の複製（奨学金の法が最上段かを州の側で導く入力・上の写像は変えない・支払い率は CompulsoryEduFunding の行に畳まれる＝この欄には掛けない）
                 if (r.EducationProducerIndex >= 0)
                 {
                     var ep = r.Producers[r.EducationProducerIndex];
