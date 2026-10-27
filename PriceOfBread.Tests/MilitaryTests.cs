@@ -977,6 +977,20 @@ public class MilitaryTests
         Assert.True(es.NeedLand > esLand1 * (1 + 1e-12), $"海を越えられない仏の陸軍の注意が陸の国境へ寄らない（{esLand1:G17}→{es.NeedLand:G17}）");
     }
 
+    [Fact]
+    public void 旗_TechMultipliersOff_が正なら遠征の門は技術に依らず1()   // ★(613) 線 tl 段3
+    {
+        var sim = Frozen152("フランス", "スペイン", "イギリス");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
+        c.ExpeditionTechLevel = 1e12;   // 全ての国の門が床（旗 0 の対照）
+        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);
+        c.TechMultipliersOff = 1;
+        Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));   // 旗が正＝門なし
+        c.TechMultipliersOff = double.NaN;
+        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);   // NaN は旗 0（今のとおり）へ倒す（否定形）
+    }
+
     /// <summary>★(194) 艦隊の注意は相手の越境の交易額（World.TradeValueSmoothed＝交易比重と同じ平滑の量）÷全ての国の平均で向く＝海路の接触（推奨で進めた＝作者の承認は未確認）。
     /// 盤面＝英・仏・西（開幕・外交は止める）を同じ1つの海盆に置き、英だけが静的な海軍を持つ（海軍シェア1＝陸に立つ兵0＝海越えの陸軍も0＝仏と西の海の必要量は英の艦隊の注意だけ）。
     /// ①交易額が全て等しい＝全て0（重み1）と1ビットも同じ ②西の交易が0＝西の海の必要量0・仏が増える ③仏の交易が4倍＝仏が増え西が減る。

@@ -99,4 +99,46 @@ public class TechLevelRemovalTests
         foreach (var gone in new[] { "VintageMigrateRate", "VintageObsolescence" })
             Assert.Null(typeof(Coefficients).GetField(gone));
     }
+
+    // ---- 段3 倍率の削除（旗 TechMultipliersOff）の番人 ------------------------------------------------------------------
+    private static Simulation Britain(ulong seed = 41) => new(NationConfig.Britain().ToScenario(seed), new NullAgent());
+
+    /// <summary>旗 TechMultipliersOff が正なら軍の質の技術の因子が技術水準に依らず 1。旗 0 では技術水準で動く（陽性対照・期待は係数の値から手で作る）。
+    /// 突然変異＝旗の分岐を外す→赤。</summary>
+    [Fact]
+    public void 段3_軍の質の技術の因子は旗が正なら技術水準に依らず1()
+    {
+        var w = Britain().World; var c = w.Coef;
+        Assert.Equal(0.0, c.TechMultipliersOff);
+        w.TechLevel = 0.25;
+        double low = ArmyShape.Quality(w, c).Tech;
+        double expect0 = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * (0.25 / c.TechMilFullLevel);   // 手で作った期待（技術 0.25 は満額より下）
+        Assert.Equal(expect0, low, 12);
+        Assert.True(low < 1.0 - 1e-9, "対照：旗 0 で技術 0.25 の因子が 1 未満でない（この試験は何も言っていない）");
+        c.TechMultipliersOff = 1;
+        foreach (double t in new[] { 0.0, 0.25, 1.0, 5.0, double.NaN })
+        {
+            w.TechLevel = t;
+            Assert.Equal(1.0, ArmyShape.Quality(w, c).Tech);
+        }
+    }
+
+    /// <summary>旗が正なら近代化費用の遅れの割増が無い＝世界の先端との遅れが 0 の盤面と同じ予算。旗 0 では遅れがあると要求額が増え予算が大きい（陽性対照）。
+    /// 突然変異＝costMul の旗の分岐を外す→赤。</summary>
+    [Fact]
+    public void 段3_近代化費用の遅れの割増は旗が正なら無い()
+    {
+        var sim = Britain(); sim.Run(8);
+        var w = sim.World; var c = w.Coef;
+        c.ModernizationCostGdpShare = Math.Max(c.ModernizationCostGdpShare, 0.05);
+        w.SetTreasuryRaw(1e9); w.ModernizationFrac = 0.3;
+        double Budget(double world, double own) { w.WorldTechLevel = world; w.TechLevel = own; return w.ModernizationBudget(); }
+        double noLag = Budget(2.0, 2.0);
+        double lag = Budget(2.0, 0.0);   // 遅れ 1.0 ＝割増 ModernizationTechLagCost
+        Assert.True(noLag > 0, "対照：予算が立たない（この試験は何も言っていない）");
+        Assert.True(lag > noLag * (1 + 1e-9), $"対照：旗 0 で遅れの割増が要求額（予算）を上げない（{noLag:G9}→{lag:G9}）");
+        c.TechMultipliersOff = 1;
+        Assert.Equal(noLag, Budget(2.0, 0.0), 9);
+        Assert.Equal(noLag, Budget(2.0, 2.0), 9);
+    }
 }

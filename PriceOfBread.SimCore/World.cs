@@ -1890,7 +1890,8 @@ public sealed class World
         //   ＝技術を輸入に頼る国の割高さ。
         //   ⚠ModernizationCostGdpShare=0 で旧式（国庫比）に戻る＝休眠。
         double costMul = 1.0
-            + Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0);
+            + (Coef.TechMultipliersOff > 0 ? 0.0   // ★(613) 段3：遅れの割増なし
+               : Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0));
         //   ── 費用は frac に対して**凸**（2026-08-04）─────────────────────────────
         //   要求額 = A × GDP × コスト倍率 × frac/(1−frac)。frac→1 で**発散**＝「100%はほとんどの国で不可能」が
         //   閾値でなく形として成立する（線形にして係数を大きくすると、通常域まで一緒に潰れて覇権が消える＝実測でテスト赤）。
