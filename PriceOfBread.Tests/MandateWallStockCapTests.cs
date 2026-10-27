@@ -26,9 +26,9 @@ public class MandateWallStockCapTests
     private static void Spend(World w, double amount) => SpendMethod.Invoke(null, [w, amount]);
 
     [Fact]
-    public void 既定は0_係数の既定は旧の勘定()
+    public void 既定は1_係数の既定は在庫で止める勘定()
     {
-        Assert.Equal(0.0, new Coefficients().MandateWallStockCap);
+        Assert.Equal(1.0, new Coefficients().MandateWallStockCap);
     }
 
     [Fact]
