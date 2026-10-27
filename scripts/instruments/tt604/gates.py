@@ -15,9 +15,10 @@ def scal(path):
 def fl(x):
     try: return float(x)
     except Exception: return float('nan')
-def run(d):
+def run(d, nexp=None):
     print('==', d)
     ss = seeds(d)
+    if nexp is not None: print('種の数', len(ss), '/ 登録', nexp, 'OK' if len(ss) == nexp else '*** 不一致 ***')
     tot_move = 0; moved_seeds = 0; ups = []; downs = []; locks = []; med1913 = []
     era = collections.defaultdict(list)       # 年 → 種ごとの 9 国中央値
     maj = collections.defaultdict(list)       # 年 → 種ごとの 6 大国平均
@@ -49,4 +50,7 @@ def run(d):
     print('記録 貿易÷GDP(6 大国の平均の種の中央値) ', ' '.join('%d:%.3f' % (y, statistics.median([v for v in maj[y] if v == v] or [float('nan')])) for y in sorted(maj)))
     print('記録 貿易÷GDP(9 国の中央値の種の中央値) ', ' '.join('%d:%.3f' % (y, statistics.median([v for v in era[y] if v == v] or [float('nan')])) for y in sorted(era)))
 if __name__ == '__main__':
-    for d in sys.argv[1:]: run(d)
+    # 使い方：gates.py <ins> [<登録の種の数>]  （第 2 引数が数字なら種の数を確かめる）
+    a = sys.argv[1:]
+    nexp = int(a[1]) if len(a) > 1 and a[1].isdigit() else None
+    run(a[0], nexp)
