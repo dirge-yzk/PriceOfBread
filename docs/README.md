@@ -180,7 +180,7 @@ cmp <出力A> <出力B>        # ★差が1バイトでもあれば挙動が変�
 | 純粋な関数の記憶・計器・コメント | ★ ソースの論証だけ（回さない） |
 | 1シードで通る枝だけの変更 | `selfplay 1 200` の `cmp` |
 | 走査の順・打ち切り・同値の扱い・並列の分け方 | ⚠ **全長の `selfplay-batch 10` を `measurements/` の基線とバイト一致**（比べる前に基線の `.manifest` の `SOURCE-HASH` で相手を確かめる） |
-| 計器の列を消した・足した（恒等の線） | ★ 成績表 3 枚のバイト一致＋計器の生は表ごとの sha256（`measurements/<基線>_ins_sha256.txt`）。消した・足した列のある表は列を落として比べる（例＝`scripts/instruments/gc5_591/cmp_modsig591.py`）。★(592)：基線の生は `keep_592`（modsig は 13 列＝gc5 の後）・`ed_s` は末尾に sch の 5 列・`flow_s` の `sourceLine` はソースの行が動くと変わる＝その列を除いて比べる。★(600)：基線の生は `keep_600/m600_ins`（m592 と同じ軌道・`ed_s` の末尾に sch2 の 2 列 `eduStage`・`eduStageMismatchShare`・`lawgate_s` は gc6 で 14 列・sha256 一覧 `measurements/m600_20261027_ins_sha256.txt`）・ヌル腕の生は `keep_592/n1`・`n2`（m592 の物を共有） |
+| 計器の列を消した・足した（恒等の線） | ★ 成績表 3 枚のバイト一致＋計器の生は表ごとの sha256（`measurements/<基線>_ins_sha256.txt`）。消した・足した列のある表は列を落として比べる（例＝`scripts/instruments/gc5_591/cmp_modsig591.py`）。★(592)：基線の生は `keep_592`（modsig は 13 列＝gc5 の後）・`ed_s` は末尾に sch の 5 列・`flow_s` の `sourceLine` はソースの行が動くと変わる＝その列を除いて比べる。★(600)：基線の生は `keep_600/m600_ins`（m592 と同じ軌道・`ed_s` の末尾に sch2 の 2 列 `eduStage`・`eduStageMismatchShare`・`lawgate_s` は gc6 で 14 列・sha256 一覧 `measurements/m600_20261027_ins_sha256.txt`）・ヌル腕の生は `keep_592/n1`・`n2`（m592 の物を共有＝m592 の木の生なので、計器の生を列ごとに比べるときは `ed_s` の `eduStage`・`eduStageMismatchShare` を落とし、`lawgate_s` の旧の 4 列〔`flagLevel`・`goldWishOld`・`antiTargetOld`・`guildTargetOld`〕は共通の列だけで比べる） |
 
 ★ 併せて `savetest`（★ セーブ/ロードのビット一致）とフルスイート（コミット前の1回）。⚠ 変更前の木は `git archive <コミット> | tar -x` で作る（共有ツリーで checkout しない・リポジトリの外で `git apply` すると改行が CRLF に化ける）。
 
