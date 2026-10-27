@@ -965,9 +965,7 @@ public sealed class Region
     //   BilateralMarket が cap を組み立てた場所で書くだけ＝**計器が式を二重定義しない**。力学は一切読まない。
     public double LastTransportCap;
     public bool CivilWarActive;                       // 内戦中か（World.InCivilWar の複製・#136）。内戦の経済麻痺（CivilWarEconomyDisruption）の読み口。false＝中立
-    // 弧3-1（2026-07-24）：成長の出所内訳＝工業化増分の累積を建て手別に分離（国家建設 vs 資本家投資）。純カウンタ・力学は読まない。
-    // 「エンジンが国家から民間へ移る瞬間」を数字で見る＝発展段階の可視化の本体
-    public double CumStateIndustrialization;
+    // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積。純カウンタ・力学は読まない。★(608) 国家建設分の累積 CumStateIndustrialization は書き手が (599) で 0 本になり削除した
     public double CumPrivateIndustrialization;
     public double AdminBudget;                        // 今期の行政調達の予算（行政費スライダー×国庫。Simulation が設定）
     public double InfraFill = 1.0;                    // 上下水道（衛生インフラ）の充足率（買えた÷必要）。衛生＝これ。低い＝過密の疫病（#4施設化＝旧「工業化proxy」を置換）。施設の無い世界は1.0＝従来
@@ -1129,9 +1127,9 @@ public sealed class Region
     public double MonumentBuildQueue;                 // 巨大建造物への国庫予約額。EconomyStep が建設の束＋労働を買い MonumentBuiltUnits へ積む（ヘッドルーム非適用）
     public double MonumentBuiltUnits;                 // 今四半期に建った建設の束（MultiNationSim が四半期末に回収して個体の進捗へ足しゼロ化＝2相方式）
     public List<string> MonumentApplied = [];         // この州で恒久効果を適用済みの建造物Id（征服で州ごと移るので効果も州に付いて回る）
-    public double StateBuildQueue;                    // 国庫の建設の予約額。★(583) 書き手は近代化投資の廃止で 0 本になった（月末の 0 への戻しと支払い率での縮めだけ残る）＝欄は書き手 0 本の欄（値は常に 0・読み手は下の 4 つが残る）（★(599) gc6 で EconomyStep の stateConstruction の段〔束を買い工業化度に変える決済〕は物理削除した。残る読み手は月末の 0 への戻し・Simulation の支払い率での縮め・計器 Instruments の Item.StateBuild・Runner の PlayHarness の表示で、欄ごとの削除は奨学金の線 sch2 が HigherEduFunding を消すのと同じ文に乗る）
+    // ★(608) 恒等の線 gc7：欄 StateBuildQueue〔国庫の建設の予約額・書き手は (583) から 0 本〕を物理削除した（名前の復活は DormantIdentityTests.RetiredFields が禁じる）。残る予約は下の MonumentBuildQueue・HigherEduFunding。
     // ★段③（2026-08-17・作者裁定「工業化投資は銅やセメントを買うのではなく、研究者や技師を増やす補助金として機能させたい」）：
-    //   近代化投資のうち高等教育の学費を肩代わりする分の**予約額**（StateBuildQueue と同型＝請求権であってカネはまだ国庫にある）。
+    //   近代化投資のうち高等教育の学費を肩代わりする分の**予約額**（MonumentBuildQueue と同型＝請求権であってカネはまだ国庫にある）。
     //   ⚠実支払いは EconomyStep が**買えた分だけ** StateSpent へ計上＝空振りは自動的に国庫へ残る（作者裁定2026-08-16の「返金」はこの型で既に満たされる）。
     public double HigherEduFunding;
     public List<Good> Goods = [];

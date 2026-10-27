@@ -134,6 +134,26 @@ public class ScalarDeletionTests
     }
 
     [Fact]
+    public void 恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない()
+    {
+        // (608) gc7：欄 StateBuildQueue の読み手（請求の和・支払い率・月末の 0・計器の Item.StateBuild・Runner の表示）と、計器の列 2 本が戻らない。
+        // 欄そのものの復活は DormantIdentityTests.RetiredFields が Region の欄として見る。注の中の言及は許す（// より前の本文だけを見る）。
+        var re = new System.Text.RegularExpressions.Regex(@"StateBuildQueue|Item\.StateBuild\b|claimStateBuildPerMonth|stateConstructionPaidPerMonth|StatePaid\b|QStPaid|CumStateIndustrialization");
+        var bad = new System.Collections.Generic.List<string>();
+        foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
+        {
+            if (rel == "PriceOfBread.Tests/ScalarDeletionTests.cs" || rel == "PriceOfBread.Tests/DormantIdentityTests.cs") continue;
+            int ln = 0;
+            foreach (var line in System.IO.File.ReadLines(full))
+            {
+                ln++; string t = line; int cm = t.IndexOf("//", System.StringComparison.Ordinal); if (cm >= 0) t = t[..cm];
+                if (re.IsMatch(t)) bad.Add($"{rel}:{ln}");
+            }
+        }
+        Assert.True(bad.Count == 0, "削除した国庫の建設の予約の読み手・計器の列が戻った：" + string.Join(" / ", bad));
+    }
+
+    [Fact]
     public void 恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない()
     {
         // EconomyStep の国家の手動建設の段（StateBuildQueue を束の単位に直す変数）が戻らない。注の中の言及は許す（// より前の本文だけを見る）。

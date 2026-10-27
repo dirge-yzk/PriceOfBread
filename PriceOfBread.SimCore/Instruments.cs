@@ -53,14 +53,14 @@ public static partial class Instruments
     internal enum Item
     {
         Interest, Welfare, Pension, ColonialUpkeep, TributeOutQ, RecruitQ, MegaForeignYieldQ, TradePolicy, PortQ,
-        Army, Navy, Admin, Infra, ElecInfra, SoldierPay, StateBuild, MonumentBuild, HigherEdu,
+        Army, Navy, Admin, Infra, ElecInfra, SoldierPay, MonumentBuild, HigherEdu,
         LastEducation, LastWelfare, LastFactoryBuild, LastSubsidy, StateConstruction, StateLoss, Count,
     }
     static readonly string[] ItemNames =
     [
         "claimInterestPerMonth", "claimWelfarePerMonth", "claimPensionPerMonth", "claimColonialUpkeepPerMonth", "claimTributeOutAtQuarterEnd", "claimRecruitAtQuarterEnd",
         "claimMegaForeignYieldAtQuarterEnd", "claimTradePolicyPerMonth", "claimPortAtQuarterEnd",
-        "claimArmyPerMonth", "claimNavyPerMonth", "claimAdminPerMonth", "claimInfraPerMonth", "claimElecInfraPerMonth", "claimSoldierPayPerMonth", "claimStateBuildPerMonth", "claimMonumentBuildPerMonth", "claimHigherEduPerMonth",
+        "claimArmyPerMonth", "claimNavyPerMonth", "claimAdminPerMonth", "claimInfraPerMonth", "claimElecInfraPerMonth", "claimSoldierPayPerMonth", "claimMonumentBuildPerMonth", "claimHigherEduPerMonth",
         "claimLastMonthEducationPerMonth", "claimLastMonthWelfareSubsidyPerMonth", "claimLastMonthFactoryBuildPerMonth", "claimLastMonthSubsidyPerMonth", "claimStateConstructionPerMonth", "claimStateLossPerMonth",
     ];
     const int NC = PopClass.Count;
@@ -162,7 +162,7 @@ public static partial class Instruments
         public int ConRegionMonths;                        // 建設の判定に来た州×月
         public double ConPlannedMoney, ConBudgetBoundMoney, ConBuiltUnits, ConPlannedUnits; public readonly double[] ConRationW = new double[5];   // 計画した（枠で切った後の）金額／枠が切った州×月の枠の金額／建った束／計画した束／計画した束で重みづけた配給率（鋼・機械・セメント・製材・労働）の和
         public double ConGainSum, ConHurdleSum, ConBudgetMoney, ConDesiredMoney;   // 限界収益・資本コストの州×月の和／投資枠の金額／希望の金額（希望の束×束の費用×(1+工賃)）
-        public readonly double[] QStPaid = new double[2];  // (289) 線D：国庫が実際に払った建設の額（材料＋工賃）の月の和：[0]＝国の建設〔★(599) gc6 で stateConstruction の決済を物理削除した＝呼び手 0・常に 0〕[1]＝巨大建造物〔Megaproject の決済〕
+        public double QMonPaid;  // (289) 線D：国庫が実際に払った巨大建造物の額（材料＋工賃）の月の和（Megaproject の決済）。★(608) 国の建設の払い〔添字 0〕は (599) で呼び手 0 になり削除した
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
@@ -322,7 +322,7 @@ public static partial class Instruments
         var c = st.Claim;
         if (payQuarter) c[(int)Item.PortQ] += w.PortStateRequest(r, portThr);
         c[(int)Item.Army] += r.MilitaryBudget; c[(int)Item.Navy] += r.NavalBudget; c[(int)Item.Admin] += r.AdminBudget; c[(int)Item.Infra] += r.InfraBudget; c[(int)Item.ElecInfra] += r.ElecInfraBudget;
-        c[(int)Item.SoldierPay] += r.SoldierPayBudget; c[(int)Item.StateBuild] += r.StateBuildQueue; c[(int)Item.MonumentBuild] += r.MonumentBuildQueue; c[(int)Item.HigherEdu] += r.HigherEduFunding;
+        c[(int)Item.SoldierPay] += r.SoldierPayBudget; c[(int)Item.MonumentBuild] += r.MonumentBuildQueue; c[(int)Item.HigherEdu] += r.HigherEduFunding;
         c[(int)Item.LastEducation] += regrow * Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]);
         c[(int)Item.LastWelfare] += regrow * Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare]);
         c[(int)Item.LastFactoryBuild] += regrow * Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]);
@@ -496,8 +496,8 @@ public static partial class Instruments
         int k = (c * SpendW + slot) * SpendStride;
         buf[k] += pay; buf[k + 1] += qty; buf[k + 2] += receipt; buf[k + 3] += stateTake;
     }
-    /// <summary>(289) 線D：国庫が実際に払った建設の額（材料＋工賃）。kind 0＝国の建設・1＝巨大建造物。月の和で積み、四半期の行（<c>nation_s</c> の末尾）で月数で割る。</summary>
-    internal static void StatePaid(World w, int kind, double amount) => S(w).QStPaid[kind] += amount;
+    /// <summary>(289) 線D：国庫が実際に払った巨大建造物の額（材料＋工賃）。月の和で積み、四半期の行（<c>nation_s</c> の末尾）で月数で割る。</summary>
+    internal static void MonumentPaid(World w, double amount) => S(w).QMonPaid += amount;
     internal static int ExtraSlot(SpendExtra e) => Catalog.Goods.Length + (int)e;
 
     /// <summary>四半期の末：今の四半期の支払いの積算を窓の区切りの積算へ足す（<see cref="Quarter"/> が国ごとに呼ぶ・<c>st.Uid</c> が採番された後）。</summary>
@@ -1012,7 +1012,7 @@ public static partial class Instruments
         st.GfSHead = st.GfMaxHead = st.GfSEnd = st.GfPendCost = st.GfPendS = st.GfGateCost = st.GfGateS = double.NaN; st.GfPaidL = st.GfPaidR = st.GfPaidM = st.GfPaidT = st.GfPaidC = 0;   // (278) 助走の分は数えない
         st.QLimitMonths = st.QLimitCrossings = st.QLimitBorrowMonths = st.QZombieMonths = st.QWarGateClosedMonths = st.QOver067Months = st.QOver067BorrowedMonths = st.QOver067RBelow1Months = 0;   // (281) 助走の分は数えない（LimitPrev は四半期をまたぐ＝ここでは戻さない）
         st.QUnpaidObs = st.QUnpaidMonths = st.QMegaPass = st.QMegaOpen = 0; st.QUnpaidSum = st.QUnpaidMax = st.QDevalueShareSum = st.QDevalueShareMax = 0;
-        Array.Clear(st.QStPaid);   // (289) 助走の分は数えない
+        st.QMonPaid = 0;   // (289) 助走の分は数えない
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -1275,7 +1275,7 @@ public static partial class Instruments
     }
 
     /// <summary>★(289) 線D（作者の設計の材料）：国×四半期の行の末尾。<c>earnedTotalPerMonth</c>＝全階級の Earned の和（四半期の月平均・自国通貨の名目＝<c>class_s</c> の <c>earnedPerMonth</c> の和と同じ量を全ての国×四半期で）。
-    /// <c>stateConstructionPaidPerMonth</c>＝国庫が実際に払った国の建設（★(599) gc6 で <c>EconomyStep</c> の stateConstruction の決済を物理削除した＝呼び手 0・列は常に 0・列の扱いは次の恒等の線）・<c>monumentPaidPerMonth</c>＝同じく巨大建造物（請求ベースの <c>fiscal_s</c> の claim でなく払えた額）。
+    /// <c>monumentPaidPerMonth</c>＝国庫が実際に払った巨大建造物（請求ベースの <c>fiscal_s</c> の claim でなく払えた額）。★(608) 国の建設の払いの列 <c>stateConstructionPaidPerMonth</c> は (599) で呼び手が 0 になり、列ごと削除した。
     /// 読むだけ：支払いの位置の直後に決済で確定した額を積むだけ（値を書き換えない）。</summary>
     static List<(string Name, string Value)> Extras289(WState st)
     {
@@ -1283,8 +1283,7 @@ public static partial class Instruments
         double cm = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
         double earn = 0; for (int c = 0; c < NC; c++) earn += st.ClsEarn[c];
         cols.Add(("earnedTotalPerMonth", F(earn / cm)));
-        cols.Add(("stateConstructionPaidPerMonth", F(st.QStPaid[0] / cm)));
-        cols.Add(("monumentPaidPerMonth", F(st.QStPaid[1] / cm)));
+        cols.Add(("monumentPaidPerMonth", F(st.QMonPaid / cm)));
         return cols;
     }
 

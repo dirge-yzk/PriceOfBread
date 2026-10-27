@@ -1,0 +1,23 @@
+(608) 恒等の線 gc7：欄 Region.StateBuildQueue〔国庫の建設の予約額〕とその読み手の物理削除。
+事前登録（走る前に名乗る）。基点＝main 1804b1f6（m600）。書いたモデル Claude Sonnet 5.5。
+
+[1] 合否（挙動を変えない）
+  成績表 3 枚（素の 10 種 b10_20261027_m600・5 種 b5_20261027_m600・計器つき 10 種 b10_20261027_m600_ins）が基準とファイル全体でバイト一致（SOURCE-HASH の行は .manifest にあり、成績表の本体に無い）。
+  NG は ng.sh で 92・基準 rd:measurements/ng592_20261027:m592 と同じ集合（新しい 0・外れた 0）。空洞化 1/10 未満 0 件（1/4 未満 8 件）。
+  根拠：StateBuildQueue の書き手は (583) から 0 本・(599) で決済の段も消えた＝値は常に +0.0。残る読み手は
+    Simulation の請求の和（+0.0 を足すだけ）・支払い率での縮め（0×payRate）・EconomyStep の月末の 0 への戻し・Instruments の Item.StateBuild（請求の計器）・Runner の PlayHarness の表示の列。
+  Region.CumStateIndustrialization は書き手 0 本（(599)）・読み手は Runner/Program.cs の診断 1 行と ModernizationAbolishedTests の 1 本だけ。
+
+[2] 計器の生（比べる側 D:/PoB_work/keep_600/m600_ins）で違ってよい表
+  fiscal_s 10 表：消した列 claimStateBuildPerMonth だけ（残る列と全行は基準と一致）。
+  nation_s 10 表：消した列 stateConstructionPaidPerMonth だけ（残る列と全行は基準と一致）。
+  burscan 10 表：壁時計の列 seconds だけ。clock 10 表：C 行の壁時計だけ。flow 10 表：sourceLine の列だけ（コードの行番号が動く）。
+  上の外は全てバイト一致。
+
+[3] 試験の数が変わる
+  ModernizationAbolishedTests：書き手 0 の番人を削除（-1）。ScalarDeletionTests：読み手と計器の列の復活の番人を足す（+1）。DormantIdentityTests.RetiredFields の検査を Region の欄にも広げ 2 名を足す（数は変えない）。
+  数は実装後に --list-tests と突き合わせて報告する。
+
+[4] 計算量：0 秒（登録）。削除は毎月の州ごとの 1 回の乗算と 1 回の代入・加算 1 回の削減＝減る側。
+
+[5] 零の符号の注意：請求の和から + r.StateBuildQueue（+0.0）を外す。それまでの和が −0.0 だと符号だけが変わりうるが、予算は全て非負＝−0.0 は出ない。腕の全行一致で確かめる。

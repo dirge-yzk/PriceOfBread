@@ -2208,13 +2208,13 @@ public static class EconomyStep
                 built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
             region.StateSpent[(int)TreasuryCat.Megaproject] += cost;
-            if (insOn) Instruments.StatePaid(world!, 1, cost);   // (289) 計器（読むだけ）：国庫が実際に払った巨大建造物
+            if (insOn) Instruments.MonumentPaid(world!, cost);   // (289) 計器（読むだけ）：国庫が実際に払った巨大建造物
             if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
             {
                 double labQ = monumentLaborUnits * ration[Catalog.LaborId];
                 double labPay = labQ * clearPrice[Catalog.LaborId];
                 region.StateSpent[(int)TreasuryCat.Megaproject] += labPay;
-                if (insOn) Instruments.StatePaid(world!, 1, labPay);   // (289) 計器（読むだけ）
+                if (insOn) Instruments.MonumentPaid(world!, labPay);   // (289) 計器（読むだけ）
                 revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
@@ -2223,10 +2223,9 @@ public static class EconomyStep
             revenue[lg] += lGot * clearPrice[lg];
             region.MonumentBuiltUnits += built;   // 四半期末に MultiNationSim.StepMegaprojects が回収してゼロ化
         }
-        // ★予約のゼロ化は**無条件**（上のブロックの中に置かない）。StateBuildQueue はかつて `if (cap && stateConstruction > 0)` の内側で
+        // ★予約のゼロ化は**無条件**（上のブロックの中に置かない）。国家の建設の予約はかつて `if (cap && stateConstruction > 0)` の内側で
         // ゼロ化しており、資本区画を持たない州や上限に張り付いた州で Queue が永久滞留する型があった（調査2026-07-28）ため、ここへ移した。
         // 予約は請求権でカネは国庫から未出なので、捨てても保存は不変（実支払いは StateSpent＝実購入分のみ）。同じ轍を踏まない。
-        region.StateBuildQueue = 0;
         region.MonumentBuildQueue = 0;
         region.HigherEduFunding = 0;   // ★段③：同上（無条件・買えた分だけ StateSpent 済み＝残額は国庫に残る＝空振り返金）
 

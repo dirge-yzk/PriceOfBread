@@ -949,7 +949,7 @@ public sealed class World
     // カテゴリを名乗らないと**コンパイルが通らない**＝記帳漏れが構造的に起きえない。番人はテストでなく型システム。
     // UI はヘッダーと同じ瞬間に台帳の差分を取るので Σ台帳の差分 ≡ ΔTreasury が構成上成立する。
     public MoneyStock Treasury { get; private set; }
-    // ★段④（2026-08-17）：招聘の**予約額**（StateBuildQueue と同型＝請求権であってカネはまだ国庫にある）。
+    // ★段④（2026-08-17）：招聘の**予約額**（HigherEduFunding と同型＝請求権であってカネはまだ国庫にある）。
     //   ⚠MultiNationSim.RecruitSpecialists が**実際に呼べた人数の分だけ** Pay(Modernization, -費用) する＝
     //   空振りは国庫に残る（作者裁定2026-08-16「呼びたい技師を現在のコストで呼べない場合、空振りしたコストは国庫に戻す」）。
     public double RecruitBudget;
