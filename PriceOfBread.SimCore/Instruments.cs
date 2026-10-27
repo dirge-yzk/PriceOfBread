@@ -146,6 +146,8 @@ public static partial class Instruments
         public readonly List<string> PxRows = new(), PxGoodsRows = new(), PxMonthRows = new(); public string? PxHdr, PxMonthHdr;
         public readonly List<string> PfixRows = new(), PjumpRows = new();   // (603) 線 pfix：価格水準の圧の分母が旧の式と違った月／実質 GDP が正でなく趨勢を保持した四半期の行・P が 1 四半期で 100 倍以上に跳ねた行（全ての国・まばら）
         public int PfixMonths; public double PfixOld, PfixNew, PfixBroadMin = double.PositiveInfinity;   // (603) 今の四半期の中で、圧の分母の式が旧と新で違った月の数・その月の旧／新の圧の和・切り下げの後の広義の貨幣の最小
+        public readonly List<string> FsxRows = new();   // (616) 線 fsx：国×四半期の行（切り下げの圧の M／S と、国庫の出口＝線を超えた国庫の返済）
+        public int FsxDevMonths, FsxGateMonths, FsxOverMonths; public double FsxPForceSum, FsxPForceMax, FsxPMSum, FsxPSSum, FsxPSMax, FsxFloorSum, FsxDoneSum, FsxAboveFloorSum, FsxExcessWouldSum;   // (616) 今の四半期の中の月ごとの和／最大
         public readonly List<string> DcRows = new();   // (587) 旧の切り下げの切り（貯蓄の月の上限）に当たった月の行（全ての国・まばら）
         public int PcWarmN, PcGameN; public readonly List<string> PcRows = new();   // (582) 物価の更新の呼びの番号（全ての国・挙げた国の PxWarmN／PxGameN と同じ数え方）と、天井・床に触れた行（全ての国・まばら）
         public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
@@ -194,7 +196,7 @@ public static partial class Instruments
         public int NextUid;  // (271) 国の個体の番号の次
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
-        public System.IO.StreamWriter? PfixW, PjumpW; public bool PfixHeader, PjumpHeader;   // (603) pfix_s・pjump_s
+        public System.IO.StreamWriter? PfixW, PjumpW, FsxW; public bool PfixHeader, PjumpHeader, FsxHeader;   // (603) pfix_s・pjump_s
         public System.IO.StreamWriter? DevCapW; public bool DevCapHeader;   // (587) 切り下げの切りに当たった月（全ての国・まばら）
         public System.IO.StreamWriter? PClamp; public bool PClampHeader;   // (582) 物価の天井・床の接触（全ての国・まばら）
         public System.IO.StreamWriter? Site, Metal, MetalNat; public bool SiteHeader, MetalHeader, MetalNatHeader;   // (316) 産地の判定の行・世界の金銀の行／(582) 国別の金銀の行
@@ -844,6 +846,22 @@ public static partial class Instruments
         if (oldDen == newDen) return;
         var st = S(w);
         st.PfixMonths++; st.PfixOld += devalue / oldDen; st.PfixNew += Fiscal.FiatPressureOfDevalue(devalue, broadAfter);   /* ★(609) 合流：今の圧は本体の 1 本から読む（反証役 pfix〔bv〕低＝式の出所を 2 本にしない・値は devalue / newDen とビット同じ） */ if (broadAfter < st.PfixBroadMin) st.PfixBroadMin = broadAfter;
+    }
+    /// <summary>(616) 線 fsx 段1：切り下げの月の圧を M 案と S 案の両方で溜める（旗の値に依らず出す）。<paramref name="pForce"/>＝実際に積んだ圧（旗の式）。読むだけ。</summary>
+    internal static void FsxPressure(World w, double devalue, double totalSav, double issue, double broadAfter, double pForce)
+    {
+        var st = S(w);
+        double pM = Fiscal.FiatPressureOfDevalue(devalue, broadAfter), pS = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);
+        st.FsxDevMonths++; st.FsxPForceSum += pForce; st.FsxPMSum += pM; st.FsxPSSum += pS;
+        if (pForce > st.FsxPForceMax) st.FsxPForceMax = pForce;
+        if (pS > st.FsxPSMax) st.FsxPSMax = pS;
+    }
+    /// <summary>(616) 線 fsx 段2：減債の門を通った月の、年 1% の額・実際に返した額・線を超えた国庫の額（旗の値に依らず出す）。読むだけ。</summary>
+    internal static void FsxRepay(World w, double floorRepay, double done, double excess)
+    {
+        var st = S(w);
+        st.FsxGateMonths++; st.FsxFloorSum += floorRepay; st.FsxDoneSum += done; st.FsxAboveFloorSum += done - floorRepay; st.FsxExcessWouldSum += excess;
+        if (excess > 0) st.FsxOverMonths++;
     }
     /// <summary>率 r が決まった所（請求の合計・払える額〔借入と切り下げの後〕・r・この月の切り下げ）。</summary>
     internal static void Rate(World w, double claims, double payable, double payRate, double devalued)
@@ -1584,6 +1602,13 @@ public static partial class Instruments
                 if (pBefore > 0 && w.PriceLevel >= pBefore * 100.0 || !(w.PriceLevel > 0) || !double.IsFinite(w.PriceLevel))
                     st.PjumpRows.Add(string.Join('	', pt, pnm, pyr, F(pBefore), F(w.PriceLevel), F(fiatP), F(cyclical)));
             }
+            if (!early)
+            {   // (616) 国×四半期の行（助走を除く）：四半期末の国庫・潤沢線・国債
+                double lineEnd = UtilityAgent.OpulenceLineOf(w), treEnd = w.Treasury.Value;
+                st.FsxRows.Add(string.Join('	', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), PxI(st.FsxDevMonths), F(st.FsxPForceSum), F(st.FsxPForceMax), F(st.FsxPMSum), F(st.FsxPSSum), F(st.FsxPSMax),
+                    PxI(st.FsxGateMonths), F(st.FsxFloorSum), F(st.FsxDoneSum), F(st.FsxAboveFloorSum), F(st.FsxExcessWouldSum), PxI(st.FsxOverMonths), F(treEnd), F(lineEnd), F(w.GovDebt.Value), treEnd > lineEnd ? "1" : "0"));
+            }
+            st.FsxDevMonths = 0; st.FsxGateMonths = 0; st.FsxOverMonths = 0; st.FsxPForceSum = 0; st.FsxPForceMax = 0; st.FsxPMSum = 0; st.FsxPSSum = 0; st.FsxPSMax = 0; st.FsxFloorSum = 0; st.FsxDoneSum = 0; st.FsxAboveFloorSum = 0; st.FsxExcessWouldSum = 0;
             st.PfixMonths = 0; st.PfixOld = 0; st.PfixNew = 0; st.PfixBroadMin = double.PositiveInfinity;
             if (!early && (pFiat > PxObserveCeil || pFiat < w.Coef.PriceLevelFloor))
                 st.PcRows.Add(string.Join('\t', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), pFiat > PxObserveCeil ? "ceil" : "floor", F(pFiat), F(w.PriceLevel), F(fiatP), F(cyclical)));
@@ -1676,6 +1701,13 @@ public static partial class Instruments
             if (!sk.PjumpHeader) { sk.PjumpW.WriteLine("time	nation	year	priceLevelBefore	priceLevelAfter	fiatPressureBeforeShare	cyclicalRatio"); sk.PjumpHeader = true; }
             foreach (var row in st.PjumpRows) sk.PjumpW.WriteLine(row);
             st.PjumpRows.Clear();
+        }
+        if (st.FsxRows.Count > 0)   // (616) 国×四半期の行（全ての国）：切り下げの圧の M／S と国庫の出口
+        {
+            sk.FsxW ??= Open("fsx", seed);
+            if (!sk.FsxHeader) { sk.FsxW.WriteLine("time	nation	year	devalueMonths	pressureForceSum	pressureForceMax	pressureMSum	pressureSSum	pressureSMax	repayGateMonths	repayFloorSum	repayDoneSum	repayAboveFloorSum	excessWouldSum	overLineMonths	treasuryEnd	lineEnd	govDebtEnd	treasuryOverLineFlag"); sk.FsxHeader = true; }
+            foreach (var row in st.FsxRows) sk.FsxW.WriteLine(row);
+            st.FsxRows.Clear();
         }
         if (st.DcRows.Count > 0)   // (587) 切り下げの切りに当たった月（全ての国）・devaluedPerMonth は許された額（Transfer が実際に移せた額ではない）＝(592)
         {
@@ -1797,7 +1829,7 @@ public static partial class Instruments
         BurScanTable(sk, sim);   // (389)
         TransportClose(sk, sim);   // (380) 年の途中で終わった残り
         ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
-        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null; sk.DevCapW?.Dispose(); sk.DevCapW = null; sk.PfixW?.Dispose(); sk.PfixW = null; sk.PjumpW?.Dispose(); sk.PjumpW = null;   // (316)(582)(587)(603)
+        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null; sk.DevCapW?.Dispose(); sk.DevCapW = null; sk.PfixW?.Dispose(); sk.PfixW = null; sk.PjumpW?.Dispose(); sk.PjumpW = null; sk.FsxW?.Dispose(); sk.FsxW = null;   // (316)(582)(587)(603)(616)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)

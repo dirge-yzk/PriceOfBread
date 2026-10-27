@@ -298,7 +298,18 @@ public static class Fiscal
         //   旧＝助走の5年（60か月）の余剰で初期の国債を返した＝仏の米独立戦争債務（年GDP の約0.76）が開幕に0.04 へ痩せていた。
         if (w.GovDebt.Value > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
         {
-            double repay = Math.Min(w.GovDebt.Value * c.BondRepayFracPerMonth.Value, spare);
+            double repay = Math.Min(w.GovDebt.Value * c.BondRepayFracPerMonth.Value, spare);   // 年 1% の額（余剰で頭打ち）＝旗 0 の返済そのもの・旗 1 では下限
+            // ★(616) 線 fsx 段2（旗 TreasuryExcessRepays・既定 0）：線（AI の減税・支出反射と同じ OpulenceLineOf）を超えた国庫を、まず国債の返済に回す。
+            //   返済＝min(債務, 余剰 spare, max(年 1% の額, 国庫−線))。国庫が線の下の月は max が年 1% の額になり旗 0 とビット一致（年 1% は下限）。
+            //   否定形＝国庫か線が NaN の月は excess が 0 に倒れる（`!(x > 0)`）。spare は r＝1 の月の余剰＝返済の原資の上限として今のまま。
+            if (c.TreasuryExcessRepays > 0)
+            {
+                double floorRepay = repay, excess = w.Treasury.Value - UtilityAgent.OpulenceLineOf(w);
+                if (!(excess > 0)) excess = 0;
+                repay = Math.Min(w.GovDebt.Value, Math.Min(spare, Math.Max(floorRepay, excess)));
+                if (Instruments.On) Instruments.FsxRepay(w, floorRepay, repay, excess);   // 計器（読むだけ）
+            }
+            else if (Instruments.On) Instruments.FsxRepay(w, repay, repay, Math.Max(0, w.Treasury.Value - UtilityAgent.OpulenceLineOf(w)));   // 計器（読むだけ・旗 0 でも超過を出す）
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
@@ -592,6 +603,16 @@ public static class Fiscal
     /// <paramref name="broadAfter"/> が max(1, devalue) 以上の月は旧と同じビット。★(609) 合流の名乗りの直し（反証役 pfix〔bv〕中）：devalue＞0・broadAfter＞0 では min(devalue/broadAfter, 1) と同じ＝設計思想⑧に当たる**硬い上限**（⑧の例外は x/(1+x/Max) 型の漸近のロックだけ）・**未裁定**（台帳の筋は S 案〈分母＝切り下げ前の貯蓄＋新規発行＝圧 ≤1 が恒等式〉で、S なら上限を名乗る必要が無い＝00一覧 §0-2 の問い）。インフレの速さに上限（四半期の掛け率 ≤ 1+FiatInflationWeight×3）ができる。水準は止まらない。呼び手は Simulation の切り下げの塊の1か所だけ。</summary>
     internal static double FiatPressureOfDevalue(double devalue, double broadAfter)
         => devalue / Math.Max(broadAfter, devalue);
+
+    /// <summary>★(616) 線 fsx 段1（旗 <see cref="Coefficients.FiatPressureDenomLedger"/>＝1）：切り下げの月の圧の S 案＝切り下げ額 <paramref name="devalue"/> ÷ (切り下げ前の貯蓄の和 <paramref name="savingsBefore"/>＋新規発行 <paramref name="issue"/>)。
+    /// 分子（haircut＋新規発行）と分母は同じ払い手の集合・同じ時点の台帳：haircut は払い手の保有 <paramref name="savingsBefore"/>（Σ max(0, 貯蓄)）を越えて取れない（World.Transfer の fromHeld）ので、devalue ≤ 分母が<b>台帳の恒等式</b>で、圧は (0,1]。
+    /// <see cref="FiatPressureOfDevalue"/>（M 案）の <c>Math.Max(…, devalue)</c> のような式の外からの挟みを持たない（M は devalue＞0・貨幣＞0 で min(devalue÷貨幣, 1) と同じ＝設計思想⑧に当たる硬い上限・(603) の名乗り直し）。
+    /// 分母が正でない月（devalue も 0）は圧 0（否定形＝NaN を積まない）。貯蓄を取りきる月（haircut＝savingsBefore）は圧がちょうど 1（M と同じ）。水準は止まらない。呼び手は Simulation の切り下げの塊の 1 か所だけ。</summary>
+    internal static double FiatPressureOfLedger(double devalue, double savingsBefore, double issue)
+    {
+        double den = savingsBefore + issue;
+        return den > 0 ? devalue / den : 0.0;
+    }
 
     /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
     /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>

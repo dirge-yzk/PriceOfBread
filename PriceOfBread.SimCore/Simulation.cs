@@ -2363,7 +2363,11 @@ public sealed class Simulation
                     World.CumulativeDevaluation += devalue; devalued = devalue;
                     double broadAfter = World.BroadMoney.Value;   // 切り下げの後の広義の貨幣（haircut で貯蓄が減った後）
                     if (Instruments.On) Instruments.PfixMonth(World, devalue, broadAfter);   // 計器（読むだけ・(603)）：分母の式が旧と新で違う月
-                    World.FiatInflationPressure += Fiscal.FiatPressureOfDevalue(devalue, broadAfter);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。★(603) 分母の床は分子自身の大きさ（旧＝絶対値の床 1.0 は貯蓄が尽きた月に圧を通貨の額にした）
+                    double fiatPressure = World.Coef.FiatPressureDenomLedger > 0
+                        ? Fiscal.FiatPressureOfLedger(devalue, totalSav, issue)       // ★(616) 旗 1＝S 案：分母＝切り下げ前の貯蓄の和＋新規発行（分子と同じ台帳）
+                        : Fiscal.FiatPressureOfDevalue(devalue, broadAfter);          // 旗 0＝今（M 案）
+                    if (Instruments.On) Instruments.FsxPressure(World, devalue, totalSav, issue, broadAfter, fiatPressure);   // 計器（読むだけ・(616)）：M と S の両方と、効いた式
+                    World.FiatInflationPressure += fiatPressure;   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。★(603) 分母の床は分子自身の大きさ（旧＝絶対値の床 1.0 は貯蓄が尽きた月に圧を通貨の額にした）
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
             }

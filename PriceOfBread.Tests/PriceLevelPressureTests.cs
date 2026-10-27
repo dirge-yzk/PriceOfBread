@@ -73,12 +73,13 @@ public class PriceLevelPressureTests(ITestOutputHelper output)
 
     /// <summary>不換のイギリスで、毎月の月初に国債の平均クーポンを、利払いの請求が広義の貨幣の fMonth 倍になる高さへ置いて赤字を作り、借入を閉じ、<paramref name="quarters"/> 四半期進める。
     /// 四半期ごとに P の更新の前後を記録する（更新の直前の P は前の四半期の末の値）。fMonth＞1 は貯蓄を 1 か月で取りきる赤字。</summary>
-    private (double[] pAfter, double[] pPrev, double maxPressureMonth, bool finiteAll, int reachedQ, bool broke) RunDeficit(double fMonth, int quarters, ulong seed = 19)
+    internal (double[] pAfter, double[] pPrev, double maxPressureMonth, bool finiteAll, int reachedQ, bool broke) RunDeficit(double fMonth, int quarters, ulong seed = 19, double ledger = 0)   // ★(616) ledger＝旗 FiatPressureDenomLedger（FsxTests が S 案で同じ盤面を踏む）
     {
         var cfg = OpeningFixture.Named("イギリス");
         cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
         var sim = new Simulation(cfg.ToScenario(seed), new NullAgent());
         var w = sim.World;
+        w.Coef.FiatPressureDenomLedger = ledger;
         Assert.True(w.MonetaryEnabled);
         var mc = new MoneyConservation(w);
         int months = quarters * 3;
