@@ -1,0 +1,22 @@
+(599) 恒等の線 gc6：B6 の残り〔旗 AiLawGateFromBoard・旗 AiBureaucracyFromPrereq・係数 GoldStandardIndThreshold・GoldWishOld・AntitrustTargetOld・GuildTargetOld・定数 AntitrustIndThreshold／TrustbustIndThreshold・計器 lawgate_s の旧の 4 列・Runner の旧の読み〕の削除と、StateBuildQueue の使う側〔EconomyStep の stateConstruction の段〕の削除
+事前登録（走る前に名乗る）。基点＝main e980f37f（m592）。書いたモデル Claude Sonnet 5.5。
+
+[1] 合否（挙動を変えない）
+  成績表 3 枚（素の 10 種 b10_20261027_m592・5 種 b5_20261027_m592・計器つき 10 種 b10_20261027_m592_ins）が基準とファイル全体でバイト一致（SOURCE-HASH の行は .manifest にあり、成績表の本体に無い）。
+  NG は ng.sh で 92・基準 rd:measurements/ng592_20261027:m592 と同じ集合（新しい 0・外れた 0）。空洞化 1/10 未満 0 件（1/4 未満 8 件）。
+  根拠：AiLawGateFromBoard の既定は 3（金・反トラスト・同業組合とも新しい側）・AiBureaucracyFromPrereq の既定は 2（走査は常に走り、政治の門を通る）・StateBuildQueue の書き手は (583) から 0 本（stateConstruction は常に 0）。
+  読み手の純関数（*FromBoard・GoldWishFromBoard）の呼びの回数は同じ。
+
+[2] 計器の生（比べる側 D:/PoB_work/keep_592/m592_ins）で違ってよい表
+  lawgate 10 表：消した 4 列〔flagLevel・goldWishOld・antiTargetOld・guildTargetOld〕だけ。残る 14 列と全行は基準と一致（scripts/instruments/gc6_599/cmp_lawgate599.py が基準から 4 列を落として比べる）。meanIndustrialization の列は残す（消す物を読んでいない）。
+  flow 10 表：sourceLine の列だけ（コードの行番号が動く）。hz6_513/flow_noline.py で FLOWBAD 0。
+  burscan 10 表：壁時計の列 seconds だけ。clock 10 表：C 行の壁時計だけ。
+  上の 30＋10 表の外は全てバイト一致（EconomyStep の stateConstruction の段を消しても computing 側の計器〔StatePaid の添字 0〕は元から 0 のまま）。
+
+[3] 試験の数が変わる（挙動の試験ではなく旧の腕を踏んでいた分）
+  LawGateFromBoardTests と BureaucracyFromPrereqTests は新しい側だけに書き直し（旧の旗・旧の式の対照の試験は削除）。BuildingGoodBundleTests の国家の建設の 1 本は道ごと消えたので削除。ScalarDeletionTests と DormantIdentityTests.RetiredFields に消した名前を足す。
+  数は実装後に --list-tests と突き合わせて報告する。
+
+[4] 計算量：0 秒（登録）。AI の官僚制度の走査の件数（CostLedger.AiBureaucracyScans）は元から常に走っていた。
+
+[5] 零の符号の注意：stateConstruction の段は investDemand に Q×0 を足していた。-0.0 の要素がもしあれば符号だけが変わりうる（値は変わらない）。腕の全行一致で確かめる。
