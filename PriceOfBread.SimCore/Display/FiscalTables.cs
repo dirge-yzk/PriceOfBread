@@ -104,7 +104,7 @@ public static class FiscalTables
         double tribOut = Calendar.PerQuarterToPerMonth(w.LastTributeOutPerQuarter * w.FiscalFundingRatio.Value);
         double tribIn = Calendar.PerQuarterToPerMonth(w.LastTributeInPerQuarter);
 
-        double lag = w.WorldTechLevel > 1e-9 ? Math.Clamp((w.WorldTechLevel - w.TechLevel) / w.WorldTechLevel, 0, 1) : 0;
+        double lag = c.TechMultipliersOff > 0 ? 0.0 : w.WorldTechLevel > 1e-9 ? Math.Clamp((w.WorldTechLevel - w.TechLevel) / w.WorldTechLevel, 0, 1) : 0;
         string indTip;
         {
             var (trad, modern, mass) = InterestGroups.Blocs(w);

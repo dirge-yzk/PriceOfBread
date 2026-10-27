@@ -53,6 +53,7 @@ public class DiscoveryEngineerTests
     {
         var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
         sim.Coef.DiscoveryEngineerHalfPerMonth = half;   // 多国の判定が読む共有の係数
+        sim.Coef.TechThresholdOff = 0; foreach (var n in sim.Nations) n.World.Coef.TechThresholdOff = 0;   // ★(613) この番人は旗 DiscoveryEngineerHalfPerMonth の旧の枝〔制度と思想の行は技術水準を読む〕を見る＝旗 TechThresholdOff（既定 1）の旧の枝〔段6 で旧の枝ごと消す〕
         foreach (var n in sim.Nations) n.World.Coef.DiscoveryEngineerHalfPerMonth = half;
         if (!(half > 0)) foreach (var n in sim.Nations) Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（構築は既定の係数を読むので、旗を0にした盤面は互換の解禁を最初の判定の前に呼ぶ）
         sim.StepQuarter();

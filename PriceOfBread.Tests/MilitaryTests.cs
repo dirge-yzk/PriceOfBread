@@ -673,8 +673,8 @@ public class MilitaryTests
             double s = ArmyShape.NavalSpendShareOf(p);
             Assert.True(s >= 0, $"{p.Name}の分け方が未定義");
             Assert.Equal(s, w.NavalSpendShare.Value, 12);
-            Assert.Equal(1.0, p.CrewFill);
-            Assert.True(p.NavalShare.Value >= 0 && p.NavalShare.Value < s + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が分け方 {s} を超える");
+            Assert.True(p.CrewFill > 0 && p.CrewFill <= 1.0 + 1e-12, $"{p.Name}の乗員の充足 {p.CrewFill} が (0,1] の外");   // ★(613) 軍の質の技術の因子が 1 になり海の必要量が増えた盤面では、開幕の艦隊が乗員より大きい国が出る〔旧は 1〕＝充足が 1 未満でも良い
+            Assert.True(p.NavalShare.Value >= 0 && p.NavalShare.Value <= 1.0 + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が [0,1] の外");   // ★(613) 軍の質の技術の因子が 1 になった盤面では、開幕の艦隊が乗員の全てを要る国が出る〔旧は 分け方 未満〕＝上限は 1
             double target = p.NeedSea / p.NavySkillMul;
             Assert.True(System.Math.Abs(p.FleetGauge - target) <= 1e-9 * System.Math.Max(1, target), $"{p.Name}の艦の強さのゲージ {p.FleetGauge} ≠ 目標（海の必要量÷海の熟練）{target}");
             if (w.Regions[0].FleetUnits is { } fu)
@@ -964,6 +964,7 @@ public class MilitaryTests
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
         foreach (var p in new[] { fr, es, uk }) p.NavalShare = new Share(0);
+        c.TechMultipliersOff = 0;   // ★(613) 遠征の門の機構の番人＝旗 TechMultipliersOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
         c.ExpeditionTechLevel = 0;   // 門なし（旧と同じ）
         Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));
         ArmyShape.Compute(dip, c);
@@ -983,6 +984,7 @@ public class MilitaryTests
         var sim = Frozen152("フランス", "スペイン", "イギリス");
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
+        c.TechMultipliersOff = 0;
         c.ExpeditionTechLevel = 1e12;   // 全ての国の門が床（旗 0 の対照）
         Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);
         c.TechMultipliersOff = 1;

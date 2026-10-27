@@ -598,6 +598,7 @@ public class DiscoveryScoreTests
         double frontier = worlds.Max(x => x.TechLevel);
         Assert.Equal(InternationalMarket.FreightRevolution(frontier, sim.Nations[0].World.Coef), view.Market.Freight, 12);
         // 運賃革命の倍率が1でない盤面でも同じ1本を読む（前線の技術水準を上げる）
+        sim.Coef.EraOff = 0; foreach (var n in sim.Nations) n.World.Coef.EraOff = 0;   // ★(613) 旗 EraOff（既定 1）の旧の枝＝運賃革命の倍率を使う側の配線を見る〔段6 の物理削除のときは FreightRevolution の関数が無くなる＝この組を消す〕
         foreach (var n in sim.Nations) n.World.TechLevel = 3.0;
         sim.StepQuarter();
         var v2 = sim.Nations[0].World.LastDiscoveryView!.Market!;
@@ -1077,7 +1078,7 @@ public class DiscoveryScoreTests
             var t0 = Discovery.Evaluate(w, new Discovery.WorldView(contact), w.Coef, includeKnown: true)[row];
             Assert.Equal(0.0, t0.Transmit);   // 接触は読まない
             double diff = Discovery.Difficulty(row, w.Coef);
-            Assert.Equal(Discovery.TermMax * (diff > 0 ? System.Math.Min(1, w.TechLevel / diff) : 1), t0.Tech, 9);   // 技術の押しは1
+            Assert.Equal(Discovery.TermMax, t0.Tech, 9);   // 技術の押しは1（★(613) 旗 TechThresholdOff が既定 1＝制度と思想の行の技術の比は 1＝満点）
             w.SpreadReach[slot] = w.Coef.DiscoveryContactHalf;
             Assert.Equal(Discovery.TermMax / 2, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Transmit, 9);
         }

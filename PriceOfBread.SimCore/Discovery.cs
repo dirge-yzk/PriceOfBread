@@ -834,7 +834,8 @@ public static class Discovery
         {
             int g = d.Replaces == Catalog.ReplacesOwn ? d.Good : d.Replaces;
             if (g < 0 || g >= ng || g >= dem.Length || !(dem[g] > 1e-9)) return 0;   // 使っていない物の代わりは要らない
-            v = book.Of(g) * ReplacedUnits[row];
+            double pg = book.Of(g);
+            v = pg < 0 ? NoPrice : pg * ReplacedUnits[row];   // ★(613) 観測なし（NoPrice＝負）に換算の比を掛けない（旧は -1×比 が計器に出た）。下の !(v>0) の返りは同じ＝挙動は変えない
             // ★(169) 動力（労働力の財）のレシピ（蒸気機関・電動機）も他の行と同じ規則＝自己費用（規定の付加価値＝人の働き）を数える（定義の本文「新しいレシピで作る費用」・分子の動力の値段も同じ自己費用を払う生産者の値段）。
             //   旧（(165)〜(167)）＝動力の2行だけ自己費用を数えなかった（AI が出した例「石炭と機械の蒸気の動力の値段」の字義）＝分子と分母が別の規則（(167) 反証役 vd1#2）。
             cost = book.Cost(rep);
