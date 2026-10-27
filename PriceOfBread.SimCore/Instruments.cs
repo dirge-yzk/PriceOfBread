@@ -140,6 +140,7 @@ public static partial class Instruments
         // ---- (278) 線G2：政治資本の在庫の台帳。段の法のループの頭／Step の末尾の目減り S と最大量 b、その四半期に払った額（段の法・税と支出の段 R・軍事費 M・関税 T・治安維持力 C）
         public double GfSHead = double.NaN, GfMaxHead = double.NaN, GfSEnd = double.NaN, GfPendCost = double.NaN, GfPendS = double.NaN, GfGateCost = double.NaN, GfGateS = double.NaN;
         public double GfPaidL, GfPaidR, GfPaidM, GfPaidT, GfPaidC;
+        public double RfSpendApplied, RfSpendLegitOnly, RfSpendShareMax, RfConcede;   // (615) 線 pcw：Spend が S へ実際に足した量・S に載せなかった量・足した量÷b の最大・内戦の講和の代価（reform_s の末尾 4 列の前の行からの和・最大）
         public int RfWallLaw, RfWallSlider, RfPrevQ = -1, RfBlkLaw, RfBlkSlider, RfBlkFrozen, RfBlkLegit; public double RfWallShareMax;   /* (409) 形が噛んだ数・壁を通った一歩の cost÷avail の最大 */ public double RfWallCost, RfCumEduPrev = double.NaN; public string RfWallAxes = "";   // (404) 壁の分岐で通った一歩（法・スライダー）と代価・教育費の累積の前の値（reform_s・計器の欄）
         // ---- (280) 線X：物価の更新の鎖（助走を含む四半期ごと）・財ごとの価格・月ごとの貨幣と所得（挙げた国だけ・書き出しは Phase warm／Quarter で行う）
         public int PxWarmN, PxGameN, PxMonthWarmN, PxMonthGameN;                     // 助走／試合の何回目か（四半期の更新・月の決算の数）

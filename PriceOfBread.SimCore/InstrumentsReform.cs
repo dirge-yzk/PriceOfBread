@@ -15,7 +15,8 @@ public static partial class Instruments
 {
     internal const string ReformHeaderText = "quarter\tyear\tnation\tlegitimacyShare\tmandateStockIndex\tmandateMaxIndex\tmandateSpentNewIndex\tsupportShare\twallPassCount\twallPassLawCount\twallPassSliderCount\twallPassCostIndex\t"
         + "educationLawCode\teducationSpendingShare\tparishFundingShare\teducationBuyPerMonth\tliteracyShare\tsuffrageLawCode\tcensorshipLawCode\tlandReformLawCode\tbureaucracyLawCode\tserfLawCode\tpolityCode\t"
-        + "militaryPushIndex\tcoopParliamentCrownIndex\tblockedLawCount\tblockedSliderCount\tblockedWhileFrozenCount\twallPassAxes\twallPassCostShareOfAvailMax\twallLegitBlockedCount";
+        + "militaryPushIndex\tcoopParliamentCrownIndex\tblockedLawCount\tblockedSliderCount\tblockedWhileFrozenCount\twallPassAxes\twallPassCostShareOfAvailMax\twallLegitBlockedCount\t"
+        + "spendStockAppliedIndex\tspendLegitOnlyIndex\tspendStockShareOfMaxMax\tconcedeSpendIndex";   // (615) 末尾 4 列：Spend が S へ足した量・S に載せなかった量〔正統性だけが払った分〕・足した量÷b の最大・内戦の講和の代価
 
     /// <summary>壁の分岐で通った一歩（<see cref="Government.PoliticalCapitalAffords"/> の第 2 枝）を数える。呼び手は払う前（Spend の前）に呼ぶ＝S は払う前の値。</summary>
     internal static void WallPass(World w, double cost, bool law, PolicyAxis a)
@@ -38,6 +39,19 @@ public static partial class Instruments
         if (w.MandateSpent <= 0 && cost > w.PoliticalCapitalMax) st.RfBlkLegit++;   // (409) 満タンで代価＞b なのに正統性の側の式で止まった一歩（形が噛んだ回数）
     }
 
+    /// <summary>(615) <see cref="Government"/>.Spend の呼び（払う直前・読むだけ）：S へ実際に足す量 applied と、代価のうち S に載せない量（＝正統性だけが払う分）、足す量÷その時の b の最大を写す。</summary>
+    internal static void SpendApplied(World w, double amount, double applied)
+    {
+        var st = S(w);
+        st.RfSpendApplied += applied;
+        st.RfSpendLegitOnly += amount - applied;
+        double b = w.PoliticalCapitalMax;
+        if (b > 0 && applied / b > st.RfSpendShareMax) st.RfSpendShareMax = applied / b;
+    }
+
+    /// <summary>(615) <see cref="Politics"/>.ConcedeToFaction の呼び（読むだけ）：内戦に負けた講和が S へ足す代価（門を通らない例外）。</summary>
+    internal static void ConcedeSpent(World w, double spend) => S(w).RfConcede += spend;
+
     static void ReformFold(Sink sk, ulong seed, World w, WState st, int q, bool picked, bool yearEnd)
     {
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;   // 書かない四半期は積み上げたまま（次に書く行が前の行からの和を持つ）
@@ -52,7 +66,9 @@ public static partial class Instruments
         int since = st.RfPrevQ < 0 ? 1 : Math.Max(1, q - st.RfPrevQ);   // 前の行からの四半期数（挙げた国は 1・他は 4）
         double buy = double.IsNaN(st.RfCumEduPrev) ? 0 : (cum - st.RfCumEduPrev) / (3.0 * since);
         int wallLaw = st.RfWallLaw, wallSlider = st.RfWallSlider, blkLaw = st.RfBlkLaw, blkSlider = st.RfBlkSlider, blkFrozen = st.RfBlkFrozen, blkLegit = st.RfBlkLegit; double wallShareMax = st.RfWallShareMax; double wallCost = st.RfWallCost; string wallAxes = st.RfWallAxes.Length > 0 ? st.RfWallAxes : "-";
+        double spApplied = st.RfSpendApplied, spLegitOnly = st.RfSpendLegitOnly, spShareMax = st.RfSpendShareMax, spConcede = st.RfConcede;
         st.RfCumEduPrev = cum; st.RfPrevQ = q; st.RfWallLaw = 0; st.RfWallSlider = 0; st.RfWallCost = 0; st.RfBlkLaw = 0; st.RfBlkSlider = 0; st.RfBlkFrozen = 0; st.RfBlkLegit = 0; st.RfWallShareMax = 0; st.RfWallAxes = "";
+        st.RfSpendApplied = 0; st.RfSpendLegitOnly = 0; st.RfSpendShareMax = 0; st.RfConcede = 0;
         var c = w.Coef;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Reform ??= Open("reform", seed);
@@ -63,6 +79,7 @@ public static partial class Instruments
             I(wallLaw + wallSlider), I(wallLaw), I(wallSlider), F(wallCost),
             I((int)w.EducationLaw), F(w.EducationSpending), F(popSum > 0 ? fundNum / popSum : 0), F(buy), F(litDen > 0 ? litNum / litDen : double.NaN),
             I((int)w.Suffrage), I((int)w.Censorship), I((int)w.LandReform), I((int)w.Bureaucracy), I((int)w.SerfEmancipation), I((int)w.Polity),
-            F(PoliticalQuantities.MilitaryPush(w)), F(w.CoopParliamentCrown), I(blkLaw), I(blkSlider), I(blkFrozen), wallAxes, F(wallShareMax), I(blkLegit)));
+            F(PoliticalQuantities.MilitaryPush(w)), F(w.CoopParliamentCrown), I(blkLaw), I(blkSlider), I(blkFrozen), wallAxes, F(wallShareMax), I(blkLegit),
+            F(spApplied), F(spLegitOnly), F(spShareMax), F(spConcede)));
     }
 }
