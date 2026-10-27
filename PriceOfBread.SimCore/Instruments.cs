@@ -162,7 +162,7 @@ public static partial class Instruments
         public int ConRegionMonths;                        // 建設の判定に来た州×月
         public double ConPlannedMoney, ConBudgetBoundMoney, ConBuiltUnits, ConPlannedUnits; public readonly double[] ConRationW = new double[5];   // 計画した（枠で切った後の）金額／枠が切った州×月の枠の金額／建った束／計画した束／計画した束で重みづけた配給率（鋼・機械・セメント・製材・労働）の和
         public double ConGainSum, ConHurdleSum, ConBudgetMoney, ConDesiredMoney;   // 限界収益・資本コストの州×月の和／投資枠の金額／希望の金額（希望の束×束の費用×(1+工賃)）
-        public readonly double[] QStPaid = new double[2];  // (289) 線D：国庫が実際に払った建設の額（材料＋工賃）の月の和：[0]＝国の建設〔Modernization の stateConstruction の決済〕[1]＝巨大建造物〔Megaproject の決済〕
+        public readonly double[] QStPaid = new double[2];  // (289) 線D：国庫が実際に払った建設の額（材料＋工賃）の月の和：[0]＝国の建設〔★(599) gc6 で stateConstruction の決済を物理削除した＝呼び手 0・常に 0〕[1]＝巨大建造物〔Megaproject の決済〕
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
@@ -1275,7 +1275,7 @@ public static partial class Instruments
     }
 
     /// <summary>★(289) 線D（作者の設計の材料）：国×四半期の行の末尾。<c>earnedTotalPerMonth</c>＝全階級の Earned の和（四半期の月平均・自国通貨の名目＝<c>class_s</c> の <c>earnedPerMonth</c> の和と同じ量を全ての国×四半期で）。
-    /// <c>stateConstructionPaidPerMonth</c>＝国庫が実際に払った国の建設（材料＋工賃・<c>EconomyStep</c> の stateConstruction の決済）・<c>monumentPaidPerMonth</c>＝同じく巨大建造物（請求ベースの <c>fiscal_s</c> の claim でなく払えた額）。
+    /// <c>stateConstructionPaidPerMonth</c>＝国庫が実際に払った国の建設（★(599) gc6 で <c>EconomyStep</c> の stateConstruction の決済を物理削除した＝呼び手 0・列は常に 0・列の扱いは次の恒等の線）・<c>monumentPaidPerMonth</c>＝同じく巨大建造物（請求ベースの <c>fiscal_s</c> の claim でなく払えた額）。
     /// 読むだけ：支払いの位置の直後に決済で確定した額を積むだけ（値を書き換えない）。</summary>
     static List<(string Name, string Value)> Extras289(WState st)
     {

@@ -167,12 +167,12 @@ def main():
         for n, lst in per.items():
             dd = {}
             for yy, r in lst:
-                for col, ok in (('goldWishOld', r.get('goldWishOld') == '1'), ('goldWishNew', r['goldWishNew'] == '1'), ('goldKept', r['goldTargetKept'] == '2'),
-                                ('goldLaw', r['goldLawCode'] == '2'), ('antiOld', r.get('antiTargetOld', '-1') != '-1'), ('antiNew', r['antiTargetNew'] != '-1'),
+                for col, ok in (('goldWishNew', r['goldWishNew'] == '1'), ('goldKept', r['goldTargetKept'] == '2'),
+                                ('goldLaw', r['goldLawCode'] == '2'), ('antiNew', r['antiTargetNew'] != '-1'),
                                 ('antiLaw', r['antitrustLawCode'] != '0')):
                     if ok: dd.setdefault(col, yy)
             for col, yy in dd.items(): first[n][col].append(yy)
-    cols = ('goldWishOld', 'goldWishNew', 'goldKept', 'goldLaw', 'antiOld', 'antiNew', 'antiLaw')
+    cols = ('goldWishNew', 'goldKept', 'goldLaw', 'antiNew', 'antiLaw')   # ★(600) 旧の 2 列（goldWishOld・antiOld）は (599) gc6 で lawgate_s から消えた＝集計から外した（空の列を〈一度も立たない〉と読ませない）
     P('R2 国ごとの最初の年末（種の中央値／何種で起きたか）：国\t' + '\t'.join(cols))
     for n in sorted(first):
         P(n + '\t' + '\t'.join((f'{st.median(first[n][c]):.0f}/{len(first[n][c])}' if first[n].get(c) else '-') for c in cols))
