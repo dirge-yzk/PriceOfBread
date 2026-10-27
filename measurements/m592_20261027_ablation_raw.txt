@@ -1,0 +1,10 @@
+# (592) アブレーション（成績表の木 b367396e に DevaluationCapReliefExp=0＝hyp の点火だけを戻す・計器つき 10 種）の生と m584 の生（keep_584/m584_ins）の表ごとの sha256 の比べ
+成績表：b10_20261027_m592_ab0_ins は b10_20261027_m584_ins と POB_COEF の名乗り行 1 行だけ違う（本文は全行一致）
+生の表 760 本のうち違う物（表名×種の数）：
+     10 *burscan_s
+     10 *clock_s
+      3 *devcap_s
+     10 *ed_s
+     10 *flow_s
+     10 *modsig_s
+  burscan・clock＝秒と壁時計の列／devcap＝新しい表（hyp の計器・切りに当たった月＝種 4・9・10）／ed＝sch が末尾に足した 5 列（元の 21 列は CR を除いて全行一致・種 1・4・10 で確かめた）／flow＝sourceLine の列だけ（種 1・5・10）／modsig＝gc5 が消した 3 列だけ（cmp_modsig591.py で MODSIGBAD 0）

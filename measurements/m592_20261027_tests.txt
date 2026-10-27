@@ -1,0 +1,15 @@
+# (592) 合流のテストの記録（Release・隔離ビルド・--blame-crash）
+## 1 回目：成績表の木 b367396e（artT）・Category!=FullLength
+失敗!   -失敗:     2、合格:  1888、スキップ:     1、合計:  1891、期間: 15 m 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.ScholarshipTests.J2_請求の見込みの行は教育の区分を読む_補助を別の区分へ書くと請求が立たない [2 ms]
+  失敗 PriceOfBread.Tests.ScholarshipTests.J3_割合は別の状態を持たず唯一の関数が導く_旗の読み手は定義の場所だけ_AIの経路を持たない [178 ms]
+  原因＝ScholarshipTests の FindSimCore が AppContext.BaseDirectory から上へ辿り、隔離ビルドの出力 artT/bin/PriceOfBread.SimCore（ソースでない）を先に見つけた＝合流 6（d283e1e6）で GoodIdGuardTests.RepoRoot へ
+  突然変異：SelfPlay.cs に // ScholarshipCover を足した木で ScholarshipTests を回すと J3 が赤（失敗 1・合格 9）＝直した探し方は本物の源を読む
+## 2 回目（直した後の全体）：合流 6 の木 d283e1e6（artF）・Category!=FullLength
+START 11:53:02
+成功!   -失敗:     0、合格:  1890、スキップ:     1、合計:  1891、期間: 15 m 50 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 12:08:55
+  中止の行：0
+## --list-tests（d283e1e6）：1894
+## FullLength（d283e1e6・artF）
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 43 s - PriceOfBread.Tests.dll (net10.0)
