@@ -1020,6 +1020,7 @@ public sealed class Region
     public Share GarrisonShare;                      // 駐屯州調達（課題6）：この州の装備需要・予算の全国シェア（月次・Simulationが設定）
     public double SoldierPayBudget;                   // 今期の兵力調達の予算（兵士給与。Simulation が設定）
     public double CompulsoryEduFunding;               // 義務教育の財源率（教育費スライダー）。popが買えない教育の何割を国庫が買い与えるか。0＝義務教育でない
+    public double EducationSpending;                  // ★(597) 国の教育費の実効の率（World.EducationSpending の月次の複製・Simulation が CompulsoryEduFunding と同じ場所で書く）。奨学金の法が最上段かを州の側で導く唯一の入力（EconomyStep.ScholarshipCover）。複製であって導出量の貯め込みではない
     public double GridCapacity;                       // 送電容量（地域内）。電力はこの容量までしか工場に届かない＝電化には送電網への投資が要る
     public double LastElecWant;                       // 前期の電力需要（送電網の増設判断に使う）
     public double[]? StateMonopolyMargins;             // 材ごとの専売の上乗せ率（World 参照）。★作者裁定2026-09-20＝0 か標準率の2値だけ（国ごとの率＝旧 Region.StateMonopoly は物理削除）。実効＝率×(1−StateMonopolyLeakMax×(1−AdminFill))（2026-09-30 (127)）
@@ -1118,7 +1119,7 @@ public sealed class Region
     //   （2026-09-28 支払いの一元化 段2-1 D1〜D3＝旧は1本の double で精算の区分が全て OtherOut に潰れ、専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた）。
     //   精算の後も次の EconomyStep の冒頭（Array.Clear）までは先月の値として残る＝月初の国家の支払いの請求の見込み（Simulation）と Fiscal の予算基数（専売益）が読む。
     public double[] StateSpent = new double[(int)TreasuryCat.Count];
-    public double CumEducationCost;                   // 義務教育と奨学金（旗 ScholarshipLaw が正のとき）の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
+    public double CumEducationCost;                   // 義務教育と奨学金（旗 ScholarshipTopStage が正で最上段のとき）の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
     public double CumStateMonopolyRevenue;                  // 専売益の累積（診断・UI予算表示用。同上）
     // （株式会社の州の倍率 IndustrializationBoost と、その適用済みの印 JointStockApplied・JointStockMulApplied は 2026-10-01 (152) に削除
     //   ＝所有国の発見の2値〔World.JointStock〕から導ける量＝EconomyStep が所有国の値を直に読む・割譲された州は次の月から新しい所有国の制度に従う）

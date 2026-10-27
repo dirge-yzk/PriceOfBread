@@ -191,7 +191,7 @@ public class DormantIdentityTests
         "HigherEduNeedPerEducated",
         "InterestCapitalization", "LoanSpreadPerYear",
         "ModernizationToHigherEdu",
-        "ScholarshipLaw",             // ★(590) 奨学金の法の旗（既定 0・高等教育は既定で二重に休眠）
+        "ScholarshipTopStage",        // ★(597) 奨学金の法の旗（教育費の軸の最上段だけ・既定 0・高等教育は既定で二重に休眠。(590) の ScholarshipLaw は削除）
         "NavalFuelPerGauge",
         "PolicyRateLoanWeight",
         "PromotionGateHigherEdu", "ReactionFromLoss",
@@ -212,6 +212,7 @@ public class DormantIdentityTests
         "AiLawGateFromBoard",         // (599) 恒等の線 gc6：工業化度を読む AI の法の門の置き換えの旗〔(423)・既定 3〕の旧の腕〔段 0〜2〕。旗ごと削除（願いは GoldWishFromBoard／AntitrustTargetFromBoard／GuildTargetFromBoard の 1 本）
         "AiBureaucracyFromPrereq",    // (599) 同：AI の官僚制度の走査の旗〔(389) Q-a8・既定 2〕。旗ごと削除（走査は常に走り政治の門を通る）
         "GoldStandardIndThreshold",   // (599) 同：金本位を自力で志向する工業化度の下限〔3.5〕。読み手は旧の金の願い GoldWishOld だけだった
+        "ScholarshipLaw",             // (597) 線 sch2：(590) の世界の旗〔全ての段に比例〕。旗ごと削除（奨学金の仕組みを 2 つ残さない）＝代わりに教育費の軸の最上段だけの ScholarshipTopStage
         "AiModernizeFromReturn",      // (591) 恒等の線 gc5：AI の近代化投資の信号の旗〔(416)・既定 3〕の旧の腕〔段 0〜2〕。旗ごと削除（信号は World.ModernizeReturnShare の 1 本）
         "AiIndustrialCeilingFrontier", // (591) 同：旧の包絡 max(2.5, α×世界前線) の α〔鋼市場診断#1・既定 0.6〕。読み手は旧の腕だけだった
         "ModernizationAbolished",     // (583) 恒等の線 gc4：近代化投資の廃止（(573)・作者 2026-10-26）の旗。既定 1 で点火済みのまま旗ごと削除（州の StateBuildQueue へ撒く道を World.ApplyModernizationInvestment から物理削除）

@@ -521,10 +521,14 @@ public static class EconomyStep
     /// ・guildRent＝同業組合の上乗せ＝職人の供給シェア×法の度合×GuildRentPremium（<paramref name="guildShare"/>=null で0＝恒等）。
     /// ・insure＝健康保険(#3)：医薬品は国家が購入費を割合負担（残りは決済で国庫が生産者へ支払う＝保存）。
     /// <paramref name="gi"/> が guildShare の範囲外（診断が Markets 長で走査する小世界）は同業組合項 0＝エンジンの到達域では常に範囲内。</summary>
-    /// <summary>★(590) 奨学金の法：高等教育の授業料のうち国庫が負担する割合。旗 <c>ScholarshipLaw</c> が正のとき、その州の義務教育の財源率（<see cref="Region.CompulsoryEduFunding"/>＝教育費の軸の実効の率に法の門と支配度を通し、月次で支払い率を掛けた後の値）に比例する。
-    /// 唯一定義（買い手の値段の楔・決済・表示が同じ関数を読む＝状態を別に貯めない・思想⑩）。上限は健康保険と同じ 0 除算の守り。`&gt; 0` の肯定で書く＝NaN は 0 へ落ちる（否定形の fail-closed）。旗 0 は 0。</summary>
+    /// <summary>★(597) 奨学金の法：高等教育の授業料のうち国庫が負担する割合。旗 <c>ScholarshipTopStage</c> が正で、**国の教育費の軸が最上段**（<see cref="Government.TaxStage"/> が <see cref="Government.TaxLawStages"/>）のときだけ、
+    /// その州の義務教育の財源率（<see cref="Region.CompulsoryEduFunding"/>＝教育費の軸の実効の率に法の門と支配度を通し、月次で支払い率を掛けた後の値）を返す＝年金が社会保障法の最上段であるのと同じ型。段は <see cref="Region.EducationSpending"/>（国の実効の率の月次の複製）から導く。
+    /// 唯一定義（買い手の値段の楔・決済・計器・表示が同じ関数を読む＝状態を別に貯めない・思想⑩）。上限は健康保険と同じ 0 除算の守り。`&gt; 0` の肯定で書く＝NaN は 0 へ落ちる（否定形の fail-closed）。旗 0 は 0。
+    /// 段 0〜2 の国は 0（義務教育の財源率が正でも補助は出ない）。(590) の世界の旗 <c>ScholarshipLaw</c>（全ての段に比例）は物理削除した。</summary>
     internal static double ScholarshipCover(Region region, Coefficients coef) =>
-        coef.ScholarshipLaw > 0 && region.CompulsoryEduFunding > 0 ? Math.Min(region.CompulsoryEduFunding, InsuranceCoverageCap) : 0;
+        coef.ScholarshipTopStage > 0 && region.CompulsoryEduFunding > 0
+            && Government.TaxStage(PolicyAxis.EducationSpending, region.EducationSpending) >= Government.TaxLawStages
+            ? Math.Min(region.CompulsoryEduFunding, InsuranceCoverageCap) : 0;
 
     internal static (double stateMonop, double distM, double monRent, double guildRent, double insure) BuyerWedge(Region region, Coefficients coef, int gi, bool isService, double[]? guildShare, double guildDeg)
     {
@@ -1795,7 +1799,7 @@ public static class EconomyStep
                         if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：役務も「自腹で買った分」だけ数える（義務教育の国庫肩代わりは下の別ブロック＝入れない）
                         if (insEnt is not null && gi == Catalog.DomesticServiceId) Instruments.SvcBuyGot(region, p, qty);   // (433) 計器（読むだけ）：家事奉仕の階級ごとの買えた量
                         double pay = qty * m.Price;
-                        // ★(590) 奨学金の法：高等教育の授業料のうち国庫が負担する分（insure＝ScholarshipCover）は買い手が払わず、決済で国庫→大学へ（StateSpent[Education]＝先月の実支出の逆算で翌月の請求に載る）。
+                        // ★(590)(597) 奨学金の法：高等教育の授業料のうち国庫が負担する分（insure＝ScholarshipCover）は買い手が払わず、決済で国庫→大学へ（StateSpent[Education]＝先月の実支出の逆算で翌月の請求に載る）。
                         //   insure は高等教育の財でだけ正になりうる（医薬品は役務の優先配分を通らない）。0（法なし・既定）では分岐に入らず pay・売上は旧の式のまま。
                         double subsidy = 0;
                         if (insure > 0 && gi == Catalog.HigherEducationId) { subsidy = pay * insure; pay -= subsidy; region.StateSpent[(int)TreasuryCat.Education] += subsidy; region.CumEducationCost += subsidy; }   // 診断の累積（UI の教育費の行・計器 educationBuyPerMonth）にも国庫の負担分を載せる

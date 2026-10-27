@@ -13,12 +13,14 @@ namespace PriceOfBread.SimCore;
 //   priceMean（教育の値段の人口加重）／priceOverRefTimesLevelIndex（値段÷（参照価格×物価水準）の人口加重）／
 //   higherWantPerMonth・higherTakePerMonth（高等教育の補助の買いたい量・取れた量）。
 //   ★(590) 末尾 5 列：higherTuitionPerMonth（高等教育の授業料の総額＝買い手の自己負担＋国庫の負担）／higherSubsidyPerMonth（うち国庫の負担＝決済の値）／higherSubsidyExpectedPerMonth（今の割合 ScholarshipCover×授業料の総額＝別の出所の期待値）／higherCoverShare（割合の人口加重）／higherFillShare（非兵士の高等教育の充足の人口加重）。
+//   ★(597) 末尾 2 列：eduStageMismatchShare（州の複製 Region.EducationSpending から導いた段が国の段 eduStage と違う州の人口の割合・0〜1＝0 でない行は補助・割合の零と正の判定から外す）と eduStage（国の教育費の段 0〜3＝Government.TaxStage〔World.EducationSpending から導く。州の補助は Region.EducationSpending の複製から導く＝別の出所〕。奨学金は段 3 の国だけ＝eduStage ≦ 2 で higherSubsidyPerMonth は厳密に 0）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（月ごとの値は読まない）／診断の欄は直近の INS=1 の月の 1 回の値／助走の月と死んだ州は 0。
 public static partial class Instruments
 {
     internal const string EdHeaderText = "quarter\tyear\tnation\tpopK\tfundingShare\tfundedRegionShare\tneedPerMonth\tprivateDemandPerMonth\tavailablePerMonth\tstateWantPerMonth\tstateTakePerMonth\t"
         + "stateWantMoneyPerMonth\tstateTakeMoneyPerMonth\tshortRegionShare\tdemandSignalPerMonth\tproducedPerMonth\tsoldPerMonth\tpriceMean\tpriceOverRefTimesLevelIndex\thigherWantPerMonth\thigherTakePerMonth"
-        + "\thigherTuitionPerMonth\thigherSubsidyPerMonth\thigherSubsidyExpectedPerMonth\thigherCoverShare\thigherFillShare";   // ★(590) 奨学金の法の計器 5 列（末尾）
+        + "\thigherTuitionPerMonth\thigherSubsidyPerMonth\thigherSubsidyExpectedPerMonth\thigherCoverShare\thigherFillShare"   // ★(590) 奨学金の法の計器 5 列
+        + "\teduStage\teduStageMismatchShare";   // ★(597) 末尾 2 列：国の教育費の段（Government.TaxStage・州の複製 Region.EducationSpending とは別の出所＝World の値から導く）／州の複製から導いた段が国の段と違う州の人口の割合（割譲・四半期の末の政治の譲歩による時刻のずれの検出）
 
     /// <summary>(465) 診断の蓄え（(452) で Region に置いた 7 欄を計器の側へ移した＝シミュの状態ではない・セーブに載らない・ConditionalWeakTable の先例）。
     /// 書くのは EconomyStep の INS=1 の月だけ・読むのは EdFold だけ。値は直近の月の 1 回（非兵士の和）。書かれていない州は全て 0。</summary>
@@ -37,6 +39,7 @@ public static partial class Instruments
     static void EdFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
+        double mmPop = 0; int natStage = Government.TaxStage(PolicyAxis.EducationSpending, w.EducationSpending);
         double popK = 0, fundW = 0, fundedPop = 0, shortPop = 0, need = 0, priv = 0, avail = 0, want = 0, take = 0, wantMoney = 0, takeMoney = 0, demand = 0, produced = 0, sold = 0, priceW = 0, relW = 0, priceDen = 0, hWant = 0, hTake = 0, hGross = 0, hSub = 0, hSubExp = 0, coverW = 0, fillNum = 0, fillDen = 0;
         bool haveEdu = Catalog.EducationId < Catalog.RefPrices.Length;
         double refP = haveEdu ? Catalog.RefPrices[Catalog.EducationId] : double.NaN;
@@ -45,6 +48,7 @@ public static partial class Instruments
             double rp = r.SumPopulation();
             var d = EdDiagOf(r);
             popK += rp; fundW += rp * r.CompulsoryEduFunding;
+            if (Government.TaxStage(PolicyAxis.EducationSpending, r.EducationSpending) != natStage) mmPop += rp;   // ★(597) 州の複製の段が国の段と違う（時刻のずれ）
             if (r.CompulsoryEduFunding > 1e-9)
             {
                 fundedPop += rp;
@@ -68,6 +72,6 @@ public static partial class Instruments
         if (!sk.EdHeader) { sk.Ed.WriteLine(EdHeaderText); sk.EdHeader = true; }
         sk.Ed.WriteLine(string.Join('\t', q.ToString(System.Globalization.CultureInfo.InvariantCulture), w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), F(popK), F(Div(fundW, popK)), F(Div(fundedPop, popK)),
             F(need), F(priv), F(avail), F(want), F(take), F(wantMoney), F(takeMoney), F(Div(shortPop, fundedPop)), F(demand), F(produced), F(sold), F(Div(priceW, priceDen)), F(Div(relW, priceDen)), F(hWant), F(hTake),
-            F(hGross), F(hSub), F(hSubExp), F(Div(coverW, popK)), F(Div(fillNum, fillDen))));
+            F(hGross), F(hSub), F(hSubExp), F(Div(coverW, popK)), F(Div(fillNum, fillDen)), F(natStage), F(Div(mmPop, popK))));
     }
 }
