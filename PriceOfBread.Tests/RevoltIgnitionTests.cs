@@ -1004,7 +1004,7 @@ public class RevoltIgnitionTests
     // ★内戦タグの講和の3枝（膠着＝分断固定／分離戦で反乱勝ち＝独立確定／それ以外＝再併合予約）は**割譲の手前で return** する＝州は1つも動かない。
     //   （反乱の膨張の器 RevoltExpansionScore は 2026-10-18 に削除した＝名前の復活は DormantIdentityTests.RetiredFields が禁じる。）
     //   ⚠講和は StepWars の中でしか呼ばれず、そこへ届くには押し合いと運が戦勝点を動かす＝**戦勝点を手で置いて
-    //     ResolvePeace を直接踏む**（internal＝ON経路テスト用・TradeTreaties と同じ流儀）。機構の検査であって創発の主張ではない。
+    //     ResolvePeace を直接踏む**（internal＝ON経路テスト用・TreatyPortLapse と同じ流儀）。機構の検査であって創発の主張ではない。
     // ============================================================================================
     private static (MultiNationSim Sim, World PW, World RW, War War) 段7_内戦を1本立てる(Coefficients coef)
     {
