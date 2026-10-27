@@ -1,0 +1,139 @@
+# (605) 事前登録：工業化度の読み手の束の削除（線 ind4）・前半（段0・形・事前登録まで）
+# 書いた時点：2026-10-27。腕 A・B は 1 本も回していない。この文書が枝 ind4 の最初のコミット（コードを 1 行も含まない。コードは次以降のコミット）。書いたモデル Claude Sonnet 5.5。
+# 木：基点 main 1804b1f6（成績表の木 733ed140・SOURCE-HASH cccd478e8921244f・基線 m600＝m592 と同じ軌道・exact 45.1・near 82.3・NG 92〔基準 rd:measurements/ng592_20261027:m592〕・
+#       空洞化 1/10 未満 0 件〔1/4 未満 8 件〕・推定の計算量 209.8 秒＝名目 248.5 の余り 約 38.7 秒・ヌル腕 N1 210.1 秒・N2 208.3 秒・基線の計器つき 10 種の生 D:/PoB_work/keep_600/m600_ins）。
+#       枝 ind4・worktree D:/PoB_work/wt_ind4・作業フォルダ D:/PoB_work/ind4_605。仮番号 (605)（波 37 の線）。
+# 引用の決まり：「」は作者の原文だけ。AI の線・推奨は〈〉かバッククォートで書く。報告では〈帯〉を成績表と言う。
+# 出所：作者 2026-10-16（原文）「技術水準・工業化度・制度疲労ですが、これらは「盤面から導く形に置換」ではなく、これらは既に経済側に機能しているので、それを集計してバフ/デバフを与えるのは全て二重計上という判断です。」
+#       作者 2026-10-26（原文）「工業化度の廃止理由は、盤面から読めばよいからです」・作者 2026-10-16（原文）「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」
+#       作者 2026-10-27（原文）「私はUIで「これはこのような効果があり、こうこうこういう理由でこのようにするべき」というようなテキストが出るのが嫌いです。なので、そのような説明文はUIに出さず、ゲームで理解できる方向にしたい。」
+#       実装ログ (598) 読む線 smr（導く工業化度を約 50 の生きた読み手へ書き続けたのが枠と機械の繰り返す根の 1 つ）・テストプレイ 日本1 の仕分け A・G（報告と最終の表の〈技術〉〈工業化度〉を目標の物差しにした）。
+# ⚠この文書の決め（読み手ごとの置き換え先・旗の形・段の取り方・腕の組み方）は全て AI の推奨。作者の承認は未確認（確証なし）。作者が決めた物は上の原文（工業化度は廃止・倍率とバフ／デバフは削除・説明文を出さない）だけ。
+
+[0] 先頭
+
+  ⓪ 形が〈尾〉か〈入口〉か：**全て〈尾〉**（読み手を盤面の量へ置き換える＝入口の値は替えない）。ただし置き換えた先の挙動が変わる（腕 B）。旗の既定は 0 ＝ 1 ビットも動かさない。
+     例外が 1 つ：段1 の〈済〉（旗 `IndustrializationOff` が既定 1 で殺した読みの物理削除）は旗を介さず消す＝既定の下で式が既に同値（恒等）。
+
+  ① **指示の文と前任の分類（step0.py）がずれている所**（作者の指示から外れる所を先頭に書く）
+     (1) **AI の判断（指示の文は約 13 か所）は、今の木では工業化度を読む行が 0**。(416)(591)(599) で `SelfPlay` の工業化度を読む姿勢・近代化の腕・旧の法の門は消えた。
+         step0 の表（measurements/ind4_605_20261027_readers.txt）に SelfPlay の行は 丙（成績表の列）と 監（異常の監視）の 3 行だけ。13 か所を作らない。→ 段〈AI〉は空＝記録だけ。
+         `SelfPlay` に残る `w.TechLevel`（1508〜1519 付近）は技術水準の読み手＝別の線。ここで触らない（技術水準の力学は次の線）。
+     (2) **インフラの保守（`EconomyStep` 1090 `InfraMaintRate × TotalIndustrialization`）は指示の文では〈閾値〉に数えられているが、step0 は 譲枠**。この線は触らない。
+         理由：保守の需要は立っている資本の量に比例する資材の需要で、置き換え先の量（インフラの在庫）が今の盤面に無い。作ると新しい状態になる（設計思想⑩）。
+         （建屋の財の損耗〔(555) fb2 の `WearRatePerMonth`〕は工場の建屋の損耗の側で、鉄道・橋梁の保守の資材の需要とは別の経路と読んだ。二重計上かどうかは未検＝確証なし。）枠と機械の線が枠の損耗に寄せるときに一緒に直す。
+     (3) **賃金の天井（`MarketFlow` 369）は、天井そのものでなく天井の工業化度の項だけを消す**。指示の文は〈天井なので消す〉。
+         天井そのもの（`WageClampMax` の対数の帯）は線 wc0（(514)・m516 の計器 `wcap_s`）の読みで〈外す線は立てない〉の推奨が出ている（実装ログ (516) 合流の④）。項（`WageClampIndScale`）は `IndustrializationOff` が既定 1 で 0 を掛けている＝削除は恒等。
+     (4) **株式会社の必要性（`Discovery` 528 の州の最大工業化度）は 譲数＝この線で置き換えない**（記録）。
+         置き換え先（工場労働者の割合）は半分点 `DiscoveryNeedHalfInstitution`（0.5）に届かない＝新しい半分点の数が要る。新しい数なしの規則に反する。発見の式を動かす dsc 系の線の持ち物。
+     (5) **国の概要（`NationBrief` 128）の `c.Industrialization` は入力データ**（国の入力の開幕の資本）であって状態の読み手でない。画面の推奨の並びの操作量だけで力学に効かない＝触らない（開幕の入力は枠と機械・焼き込みの線が置き換えるとき一緒に直す）。
+     (6) **画面と最終の表の〈工業化度〉は置き換える（指示どおり）が、成績表（`NationStanding`）の列は変えない**。`SelfPlay` 2121 の `w.TechLevel`／`w.MeanIndustrialization` は成績表の列で、Runner の selfplay の報告と ng.sh の入力が読む＝変えると腕 A が崩れる。
+         変える表示は 最終の順位（`PlayText.EndingStandings`・画面 `ShowEnding`・Runner `AppendEnding`）の 1 列だけ。この列は selfplay の成績表に出ない＝旗なしで替えても腕 A の 5 種に影響しない。
+
+  ② 作者に聞く物：本当に迷う物は無い＝推奨で進める（README §1-7）。報告の先頭に書く 2 点：
+     (a) 最終の表の新しい物差しを〈鉄の産出の世界の割合〉にした（`NationalScore.ShareScores` が既に返す項。新しい集計を作らない）。作者の指示の例〈工場の産出の世界の割合・人口あたりの工場の産出〉は新しい集計が要る＝記録。
+     (b) 信用の深さ（`CreditDevOff`）は旗 1 で前工業の国も満額の近代信用創造になる（前工業の浅い与信を消す）。作者 2026-10-16 の〈倍率の全削除〉の読みだが、初期値の史実との食い違いが出るかもしれない（確証なし）。
+
+[1] 形（実装の約束）
+
+  全ての旗は `Coefficients` の double・既定 0・`IndustrializationOff` の隣。旧の式は書き直さない（`if (旗 > 0) { 新 } else { 旧をそのまま }`）＝旧の字面・順序・リテラルを動かさない。肯定形 `> 0` で読む（NaN は 0 側）。
+  新しい倍率・状態・数なし。置き換え先は盤面に既にある量だけ。
+
+  段1〈済〉の削除（恒等・旗なし）：
+     `MarketFlow.EffWageMax` の `WageClampIndScale × (IndustrializationOff>0 ? 0 : Industrialization)` の項と係数 `WageClampIndScale`／
+     `EconomyStep` 511 の独占の解体の工業化度の項と係数 `MonopolyDissolveInd`／`EconomyStep` 672 の冷蔵の傾斜と係数 `RefrigerationIndOnset`・`RefrigerationIndSpan`。
+     読み手（テスト 5 か所・計器・Privileges の注）は同じ段で直す。`DormantIdentityTests.RetiredFields` へ。
+
+  段2〈国の平均・閾値〉の旗（既定 0・置き換え先は既存の量）：
+     `EpidemicSanitFromBoard`  疫病の衛生 `World.ApplyEpidemicDeaths` と最悪の州の代理（1174・1237）：旗 1 で `sanitDev = Region.Sanitation(c)` だけ（`Colonial.OutputCurve(工業化度)` の代理を読まない・`EpidemicSanitationHalf` は旗 1 で未使用）。
+     `IdeologyDevFromUrban`    思想の発展度 `Ideology.EraGates` の dev：旗 1 で `Clamp01(都市労働者の割合)` だけ。`MultiNationSim` 861〜862 の `IndustrialFrontier` の注入を止める（欄は残る＝計器が読む）。
+     `UrbanCapFromHousing`     都市化の天井 `PopDecision.Run`／`Meritocracy.UrbanHeadroom`：旗 1 で工業化度の天井（`BaseUrbanCap＋UrbanPerInd×工業化度`・絶対上限 0.85）を使わない（天井なし＝設計思想⑧）。
+                               都市化を止めるのは既にある所得差・飢えの線（`FamineMigrationFillGate`）・住居の値段。`UrbanIndSmoothed` は旗 1 で書かない。
+     `CreditDevOff`            信用の深さ `Credit` の `devFactor`：旗 1 で 1.0（工業化度の倍率を消す）。`Simulation` 1681 の `MeanInd` を渡さない（0 を渡す）。
+     `CapitalHeadroomFromReturn` 外資の余地 `CapitalMarket` 80：旗 1 で `headroom = CapitalIndTarget × World.ModernizeReturnShare()`（国庫の配り先の設備の収益の持ち分・(416) で AI の信号に使っている 1 本）。確証なし。
+     `TradeWeightOpeningEven`  開幕の交易の比重 `MultiNationSim` 77：旗 1 で `DefaultTradeWeightBase` だけ（469 の分離独立国と同じ）。
+     `CapacityIndTermsOff`     扶養力 `Simulation` 2618〜2621：旗 1 で工業化度の 2 項（`IndustryCapacityBonus × avgInd`・`PollutionCapacityWeight × UrbanShare × avgInd × (1−衛生)`）を外す。出生の `FertilityIncomeSlope × avgInd` は出生の設計（最終段 9-2）の持ち物＝触らない。
+
+  段3〈表示〉：`PlayText.EndingStandings` の `Industry`（旧 `w.MeanIndustrialization`）を 〈鉄の産出の世界の割合〉（`NationalScore.ShareScores` の第 3 項の割合）へ。レコードの欄名・画面 `EndingRow`・`GameView.axaml` の見出し・Runner `AppendEnding` を同じ段で直す（数だけ・説明文を出さない）。
+          最終の表と Runner の報告に〈技術〉〈工業化度〉の列を残さない。旗なし（selfplay の成績表に出ない）。
+
+  段4〈番人〉：読み手の許可表のラチェット（SimCore の非コメント行・ファイル×件数）・旗ごとの機構の番人（[3] の J）・突然変異で赤。
+
+[2] 腕
+
+  ・腕 A＝既定（全ての新しい旗 0）・**5 種**（種 1〜5）・計器なし・`batch.sh run`。**恒等の証明**＝成績表が `measurements/b5_20261027_m600` と全行一致（SOURCE-HASH の行を除く）。
+    **前半の担当は腕を回さない**（指示）。後半の担当が回す。10 種・計器つき 10 種の素の既定も m600 と全行一致のはず（旗 0 ＋ 〈済〉の削除だけ）が、腕 A は 5 種で足りる。
+  ・腕 B＝`POB_COEF="EpidemicSanitFromBoard=1;IdeologyDevFromUrban=1;UrbanCapFromHousing=1;CreditDevOff=1;CapitalHeadroomFromReturn=1;TradeWeightOpeningEven=1;CapacityIndTermsOff=1"`・**計器つき 10 種**（種 1〜10）・
+    `INS=1 bash scripts/instruments/batch.sh run <腕>`・NATIONS＝m600 と同じ 9 国。比べる側＝基線の計器つき 10 種の生（D:/PoB_work/keep_600/m600_ins）。
+    7 本を 1 本の腕に束ねる（1 テーマに 1 計測）。止める線に当たったときだけ切り分け（`CreditDevOff` と `UrbanCapFromHousing` を最初に疑う＝与信の深さと天井の撤去が発散・空洞化の候補）。
+  ・ヌル腕は m592 の N1・N2 を共有（measurements/b10_20261027_m592_n1_ins・b10_20261027_m592_n2_ins・要約 measurements/m592n_20261027_null.txt）。読むのは NG の判定（確証なし×バランス破壊）のときだけ。
+    **この線の形は作者の裁定の形ではない部分がある**（作者は〈読み手を盤面から読む・倍率は消す〉まで。個々の置き換え先は AI の推奨）＝確証なし。
+  ・国ごとの数は基線・N1・N2 の種ごとの値と並べる（RULE36）。国を限った門は置かない。
+  ・種：B は 1〜10。結果を見て登録を直すときは追記に書き、新しい種 11〜20 で判定し直す。**狙いの数字を煙試験や腕の結果を見た後に付け替えない**。
+
+[3] 止める線・狙いの数字・記録・判定の段
+
+  止める線（README のとおり。史実度・exact・near・NG・補給崩壊の倍化・清の強さ・英＜清・暦の年は記録だけ）
+    S1 破綻：クラッシュ・NaN・保存則・同じ版のセーブ往復（savetest）・進行不能＝1 種でも即不合格。
+    S2 **発散**（先頭に置く）：金利・人口・値段が桁で暴走する。この波の先頭は価格水準の 2 乗の暴走（aic の木の種 1 で英の価格水準が 1883〜85 年に毎四半期ほぼ 2 乗）。
+        信用の深さを前工業の国まで満額にする（`CreditDevOff`）のは与信の天井を上げる向き＝名目の価格水準・貸出が桁で動かないことを国×十年の最大／最小で見る。
+    S3 州の空洞化：ピークの 1/10 未満が 1 件でも（原因を問わない・例外の名簿〔ヌーク〕以外）。基線 m600＝0 件（1/4 未満は 8 件〔記録〕）。都市化の天井の撤去で農村の州が空になる向きを見る。
+    S4 計算量：推定の計算量 ＞248.5 秒（名目）。基線 209.8 秒。使う量は [5]。雑音の床 N1 210.1・N2 208.3。
+    S5 機構と不変条件を守るテストの赤（保存・AI とプレイヤーの対称・セーブ・番人）。史実の桁を固定した試験の赤は記録。
+
+  狙いの数字＝**機構の観測量だけ**。史実の大きさ・倍率・年・都市化の水準・死亡の水準は全て記録。
+    J0 恒等（腕 A）：5 種の成績表が b5_20261027_m600 と全行一致。
+    J1 読み手の許可表（番人）：SimCore の非コメント行で工業化度の語を読む行の数がファイル別に許可表のとおり（ラチェット）。〈済〉の 18 行は 0。旗 1 の下で読まれなくなる行は旗の枝の中にだけ残る。
+    J2 疫病（番人）：旗 1 で、同じ盤面で `Region.Industrialization` を 0 から 5 に動かしても致死率が動かない・`Region.Sanitation` の入力（上下水道の充足）を動かすと動く。旗 0 では逆に工業化度が動かす（旧）。
+        期待値は盤面に置いた数から手計算（`EpidemicSeverity×(1−SanitationMortalityReduction×Sanitation)`）。
+    J3 思想の発展度（番人）：旗 1 で `IndustrialFrontier` を 0 と 9 に動かしても dev が動かない・都市労働者の割合を動かすと動く（dev＝その割合）。`MultiNationSim` が旗 1 で `IndustrialFrontier` を書かない。
+    J4 都市化の天井（番人）：旗 1 で、`TotalIndustrialization` が 0 と 5 でも `PopDecision.Run` の流れと `Meritocracy.UrbanHeadroom` が同じ（天井が無い）・`UrbanIndSmoothed` が書かれない。旗 0 では旧どおり天井が効く。
+    J5 信用（番人）：旗 1 で `MeanIndustrialization` を 0 と 5 に動かしても最大貸出（`maxLoans`）が同じ。旗 0 では動く。
+    J6 外資（番人）：旗 1 で `headroom` が `CapitalIndTarget × ModernizeReturnShare()` と一致し、`MeanIndustrialization` を動かしても動かない。
+    J7 交易の比重（番人）：旗 1 で `cfg.Industrialization` を 0 と 5 にしても `Power.TradeWeight` が同じ（`DefaultTradeWeightBase`）。
+    J8 扶養力（番人）：旗 1 で `avgInd` を動かしても扶養力が動かない（出生の項は動く＝触らない印）。
+    J9 対称（番人）：旗の枝が `IsPlayer` を読まない（走査）。AI とプレイヤーが同じ式を通る。
+    J10 旗 0 の恒等（番人）：旗 0 で上の全ての式が旧とビット一致（手計算の旧の式との一致）。
+    J11 表示（番人）：`PlayText.EndingStandings` の 1 列が `ShareScores` の第 3 項の割合と一致する・合計が 1 を超えない。Runner の `AppendEnding` の見出しに〈工業化度〉〈技術〉の語が無い。
+    K1（腕 B）：旗 1 の下で、読み手を置き換えた各所が働いた＝計器で次の 4 つが読める。(i) 疫病の致死率の分散が 0 でない（衛生の充足が国で違う）(ii) 都市の割合が国×十年で 0 と 1 の端に張り付かない
+        (iii) 外資の流入が国で違う (iv) 信用の最大貸出が国で違う。**4 つとも種 ≥ 8/10 で成立**＝置き換えが働いた。外れたら該当の旗は採らない（休眠の旗として合流はできる）。
+  記録（採否に使わない）
+    R-urban 都市化の割合（国×十年・基線／腕 B）・天井に当たっていた国×四半期の数（基線）。R-epi 疫病の死（国×十年）。R-credit 信用の深さと貸出の合計÷名目 GDP（前工業の国で特に）。
+    R-fdi 外資の流入と対外の資本。R-law AI の法の選び方の年代（旗 1 で変わる法）。R-final 最終の表の新しい物差しでの順位。R-trade 貿易÷GDP。R-cost 推定の計算量（使う量と、ヌル腕の軌道の揺れの両方）。
+    R-exact exact・near・NG の集合・補給崩壊・勝者・清の強さ。
+  判定の段（〈機構が狙いどおり働いたか〉を最初に置く）
+    段1 機構：J1〜J11 が全て通り、K1 の 4 つが通る＝機構が狙いどおり。外れる旗は採らない（旗ごとに外す）。
+    段2 止める線：S1〜S5。当たったら `CreditDevOff`・`UrbanCapFromHousing` を外した腕 B′ を 1 本足して切り分ける。
+    段3 採否：段1・段2 を通った旗の束を、既定を 1 へ倒して合流するか、旗 0 の形で合流する（休眠）。倒すなら成績表 3 枚・savetest・leakhunt・フルスイート・FullLength。
+    外れの扱い：結果を見て登録を直すときは追記に書き、新しい種 11〜20 で判定し直す。
+
+[4] 前半で行う確かめ（腕の外・採否に使わない）
+  ・ビルド（Release）と新しい番人。突然変異：旗の枝を外す／旧の式へ戻す／旗 0 でも新しい式を返す／`IsPlayer` を読ませる、のどれでも赤。
+  ・`DormantIdentityTests`：新しい 7 つの旗を `DormantZeroFields` へ。削除した 4 つの係数を `RetiredFields` へ。
+  ・Category!=FullLength のテストを通す（`--list-tests` の合計と突き合わせる）。FullLength・savetest・leakhunt は後半。
+  ・腕は回さない。
+
+[5] 計算量（件数で書く）
+  ・旗 0：旧の式をそのまま残す＋旗の肯定判定（`> 0`）が数か所＝州×月の定数。**使う量の登録＝+0.3 秒以下**（雑音の床 約 1 秒の内）。〈済〉の削除は 0 以下。
+  ・旗 1（腕 B）：都市化の天井の平滑化の更新（州×月）が消える＝減る側。`CapitalMarket` で 61 国×四半期 `ModernizeReturnShare()`（州を走査）が増える。
+    **使う量の登録＝+2 秒以下**。`CostLedger` の新しい番号は作らない。
+  ・合流の注意：波 37 の他の線は pfix（目安 7 秒〔aic の巡回の番人を含む〕）・navf（港の州ごとの発注の走査）。合計は余り 38.7 秒に入る見込み。
+
+[6] 触る行（並行の線との重なり・合流で解く前提・main 1804b1f6 の座標）
+  ・`Coefficients.cs`：`IndustrializationOff` の隣に 7 つの旗の宣言（挿入）。`WageClampIndScale`（2613）・`MonopolyDissolveInd`（1079）・`RefrigerationIndOnset`／`Span`（1186〜1187）の宣言を削除。
+  ・`MarketFlow.cs` 367〜369。`EconomyStep.cs` 505〜511・672。`World.cs` 1174・1237（旗の枝）。`Ideology.cs` 143。`PopDecision.cs` 48〜53。`Meritocracy.cs` 456。`Credit.cs` 87。`CapitalMarket.cs` 80。`Simulation.cs` 1681・2618〜2621。
+  ・`MultiNationSim.cs` 77・857〜862（pfix・aic と同じ関数の別の行：aic は 951 の後ろ・944 の注記が隣＝合流のとき文字の衝突だけ直す）。
+  ・`PlayText.cs` 63・86。`GameViewModel.SaveMenu.cs`（ShowEnding の 1 行）・`GameView.axaml` 464（見出し 1 語）・`PlayHarness.cs` の `AppendEnding`（485〜496）。
+    **`PlayHarness.cs` 293・416〜419・450 は rpt・gc7 の持ち物＝触らない**（`AppendEnding` は 485 以降の別の関数）。
+  ・`Tests/`：`FactoryEquipmentTests` 402・`LaborMarketFormTests` 329・587・661・757・`StateEduDemandTests` 183・`ProductionDiagTests` 432・`DormantIdentityTests`。新しい `Tests/IndustrializationReaderTests.cs`。
+  ・重なり：gc7 とは `Model.cs` 1009〜1010（`TotalIndustrialization`／`ProductiveIndustrialization` の宣言）に触れない。pfix とは `World.UpdatePriceLevel`・`Simulation` 2364 に触れない。
+    `Simulation` 1681（Credit の束＝名目 GDP と MeanInd）は ind4 が持つ。pfix はこの束を変えない。tt とは `Diplomacy` 934・3231〜3268 に触れない。navf とは `EconomyStep` 1228〜1261・`Simulation` 2120 に触れない。
+
+[7] 自己申告（限界・確証なし）
+  ・置き換え先は全て AI の推奨。作者が決めたのは〈工業化度の読み手を消す・倍率は消す〉まで。
+  ・`UrbanCapFromHousing` は絶対上限 0.85 も外す（天井なし）。都市化が飢えの線と所得差だけで止まるか、止まらず農村の州が空になるかは腕 B でしか読めない（S3 の候補）。
+  ・`CreditDevOff` は前工業の国の浅い与信（深さ floor 0.35）を消す＝与信の天井が上がる。信用乗数 3.0 が前工業の国で実効になる。発散するなら採らない。
+  ・`CapitalHeadroomFromReturn` の `CapitalIndTarget × ModernizeReturnShare()` は〈旧の headroom（目標 4.0 −工業化度）と同じ向きの量〉という読みだけで、大きさの根拠は無い。
+  ・最終の表の物差しを〈鉄の産出の世界の割合〉にしたのは新しい集計を作らないための代用。〈工場の産出〉は新しい集計が要る。
+  ・インフラの保守・株式会社の必要性・国の概要の入力・成績表の列は残る（[0] ①）。この線を終えても `Region.Industrialization` の読み手は 譲枠（立っている資本の量）に残る。
+  ・技術水準（TechLevel）の読み手は別の線。AI の判断の段は空。
