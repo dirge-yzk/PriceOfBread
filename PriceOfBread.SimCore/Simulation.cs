@@ -2309,7 +2309,7 @@ public sealed class Simulation
         //   旧（段2-1）＝ここで r を決めて請求を r で切って払い、月末の Fiscal が「払えなかった請求の全額」（spare＜0）を全POPから国庫へ移した
         //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
         //   ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。余地は既存の不換の国の発行の規則のまま
-        //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFracPerMonth まで・うち FiatIssueFrac は新規発行）＝規則は1本。
+        //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFracPerMonth まで〔★(587) 既定では外れている〕・うち FiatIssueFrac は新規発行）＝規則は1本。
         // ★払える額の中身の順＝税・歳入 → 借入 → それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)「切り下げは借りられないとき（上限・冷却中）だけ」）。
         //   旧（(89)〜(93)）＝切り下げを先に払える額へ入れ、借入は月末の Fiscal が r＜1 の月に切り下げの残りだけ借りた（借りた金は翌月の払える額）
         //   ＝切り下げの97〜99% は借りられた四半期に起き（借入の11〜32倍・税収の30〜45%）、紙幣の増発が信用より先に立っていた。
@@ -2339,8 +2339,10 @@ public sealed class Simulation
             if (devalueRoom > 1e-9)
             {
                 double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
-                // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
-                double devalue = Math.Min(devalueRoom, totalSav * World.Coef.DevaluationCapFracPerMonth.Value);
+                // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。★(587) 既定（DevaluationCapReliefExp＝1）では効かない。指数 0 のときの超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
+                double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
+                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);   // ★(587) 既定は 1（点火・切り無し）。指数 0 は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式
+                if (Instruments.On) Instruments.DevCap(World, devalueRoom, devalueCap, devalue);   // 計器（読むだけ）：旧の切りに当たった月
                 if (devalue > 1e-9)
                 {
                     // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：切り下げのうち FiatIssueFrac は pop から取らず新規発行＝マネーストック膨張(M↑)。

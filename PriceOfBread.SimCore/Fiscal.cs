@@ -577,6 +577,16 @@ public static class Fiscal
     internal static bool BorrowGateOpen(World w, Coefficients c)
         => !(w.BorrowCooldownMonths > 0) && !w.WarmupFrozen && w.LastInterestPerMonth < c.MaxInterestShareOfRevenue * w.LastRevenuePerMonth;
 
+    /// <summary>★(587) 切り下げ（インフレ税）の月の額＝払えない額の余地 <paramref name="room"/> のうち、貯蓄の月の上限 <paramref name="cap"/>（呼び手が貯蓄×DevaluationCapFracPerMonth で求める）で切った額。
+    /// <paramref name="reliefExp"/>＝0 は旧の式 <c>Math.Min(room, cap)</c> そのもの（厳密同値）。(0,1) は余地が切りを超える月だけ 切り×(余地÷切り)^指数（切りの所で連続・余地について単調・余地以下）、1 以上は余地そのまま。
+    /// 切りが正でない（0＝余地を閉じる試験の作法・NaN）か余地が切り以下の月はどの指数でも旧の式。取れる額の物理の上限は呼び手の移し方が持つ（払い手の貯蓄を超えて取れない）。</summary>
+    internal static double DevaluationAllowed(double room, double cap, double reliefExp)
+    {
+        if (!(reliefExp > 0) || !(cap > 0) || !(room > cap)) return Math.Min(room, cap);
+        if (reliefExp >= 1.0) return room;
+        return Math.Min(room, cap * Math.Pow(room / cap, reliefExp));
+    }
+
     /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
     /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>
     internal static double BorrowTicket(double nominalGdp, Coefficients c) => Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp.Value;

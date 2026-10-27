@@ -1,0 +1,23 @@
+## savetest
+保存 45.4MB（710ms）／読込 665ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+## leakhunt 1789 668 warm
+[PROBE世界] 国際金融 1949年 ΔW=181231.384（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1950年 ΔW=184070.558（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+leakhunt 完走（seed=1789・668四半期・助走つき・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+## leakhunt 1789 668
+[PROBE世界] 国際金融 1949年 ΔW=1627.330（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1950年 ΔW=1526.860（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+leakhunt 完走（seed=1789・668四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+## list-tests nonFull
+1882
+## FullLength
+D:\PoB_work\hyp_587c\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 37 s - PriceOfBread.Tests.dll (net10.0)
+## list-tests Full
+3
+postdone

@@ -1,0 +1,12 @@
+種1: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40819行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種2: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40776行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種3: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40785行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種4: t_c＝q48・devcap_s 12 行・国 {'ネーデルラント': 12}・最大 room÷cap 3.860  money_s: 比べた612行 食い違い0  nation_s: 比べた2928行 食い違い0
+種5: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40772行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種6: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40794行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種7: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40857行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種8: devcap_s 空（t_c＝∞）  money_s: 比べた6192行 食い違い0  nation_s: 比べた40792行 食い違い0  fiscal_s: 比べた18027行 食い違い0
+種9: t_c＝q662・devcap_s 9 行・国 {'ビルマ': 9}・最大 room÷cap 1.188  money_s: 比べた6138行 食い違い0  nation_s: 比べた40430行 食い違い0
+種10: t_c＝q448・devcap_s 1 行・国 {'朝鮮': 1}・最大 room÷cap 3.277  money_s: 比べた4212行 食い違い0  nation_s: 比べた27334行 食い違い0
+H4 外れた種（0）=0／10・切りに当たった種（devcap_s が空でない）=3
+記録 (e)：P＞100 の (種,国)＝0（直前 8 四半期に戦時・内戦・債務不履行あり=0・平時=0）／平時に P≧10 の行=0

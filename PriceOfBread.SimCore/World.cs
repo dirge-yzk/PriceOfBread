@@ -1596,7 +1596,7 @@ public sealed class World
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
         double pFiat = PriceLevel;   // (280) pFiat は計器の読み（紙幣増発の直後・クランプの前）
         // ★(582) 天井は廃止（作者 2026-10-27 の依頼「数値としての天井は可能なら排除したい」）。床だけ残す。P が正の有限でない（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）四半期は更新前の P を保つ＝否定形の守り（Math.Clamp も Math.Max も NaN を消さない）。
-        //   ★(584) 設計の選択：有限で 0 以下の P も更新前の P を保つ（旧の Clamp は床 0.4 にした）＝床は掛けない。⚠増発の圧は 1 か月に DevaluationCapFracPerMonth（貯蓄の 5%）までしか積めない＝増発だけでは P は循環比の約 1.5 倍へ収束する【推】＝ハイパーインフレの道は循環比の跳ね（産出の崩壊）にしか無い（(584) の記録）。
+        //   ★(584) 設計の選択：有限で 0 以下の P も更新前の P を保つ（旧の Clamp は床 0.4 にした）＝床は掛けない。⚠(587) 月の切り（貯蓄の 5%）は外した。それでも増発だけでは届きにくい【推】＝(a) 圧は haircut（貯蓄の取り上げ・貨幣を作らない）も数える (b) 循環比 c は ratio÷_moTrend で、一定の発行の速さの定常ではトレンドが吸う（c→1+g/0.02・定常のインフレ率 0）(c) 閾値は四半期の圧 f＞5/9（月に広義の貨幣の約 18.5%）の分岐だけで、開幕の広義の貨幣は年 GDP の約 29 年分＝届く赤字は作りにくい（事前登録 hyp587 追記 4）。次の候補は貨幣の厚み（OpeningMoneyFromRatioMode）とトレンドの吸い。
         PriceLevel = PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before;
         CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。

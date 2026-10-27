@@ -1,0 +1,16 @@
+navy_hyp587.txt 11 0
+rail_hyp587.txt 6 0
+steam_hyp587.txt 13 0
+fin_hyp587.txt 142 0
+hist171_hyp587.txt 17 0
+hist_hyp587.txt 32 0
+sold_hyp587.txt 9 0
+wardead_hyp587.txt 17 0
+mil180_hyp587.txt 103 0
+trade_hyp587.txt 13 0
+warlaw_hyp587.txt 12 0
+lawmatch_hyp587.txt 13 0
+# 基準 rd:measurements/ng584_20261027:m584＝NG 89／比べる rd:D:/PoB_work/hyp_587d/ng_out:hyp587＝NG 92
+## 新しい NG（基準では NG でない）: 9
+## 外れた NG（比べる側で NG でない）: 6
+## 前からの NG: 83
