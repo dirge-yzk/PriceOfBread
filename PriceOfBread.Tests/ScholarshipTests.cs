@@ -223,6 +223,42 @@ public class ScholarshipTests
         }
     }
 
+    /// <summary>J3(c) 支払い率 r＜1 の月、割合は義務教育の財源率と一致する（r を二重に掛けていない）。上限（0.95）より下の盤面（教育法 Public＝財源率は PublicEduFundingShare×実効の率×到達）で、
+    /// 国庫を空にして請求を払い切れない月を作る。期待値は盤面の別の出所（係数・州の複製の率・支配度の到達・月の支払い率 FiscalFundingRatio）から手で組む。
+    /// 突然変異＝ScholarshipCover に r を掛ける／上限を先に掛ける、のどちらでも赤。r＜1 になっていない盤面は前提の失敗として赤にする（空振りの番人にしない）。</summary>
+    [Fact]
+    public void J3c_支払い率が1未満の月_割合は財源率と一致し_rを二重に掛けない()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        w.Coef.ScholarshipTopStage = 1; w.Coef.ParishEduFunded = 0;
+        w.EducationLaw = EducationLaw.Public; w.Policy.EducationLaw = EducationLaw.Public;
+        w.EducationSpending = 1.0; w.Policy.EducationSpendingTarget = 1.0;
+        bool below = false;
+        var sink = new List<Pop> { w.Region.Pops.First(p => !p.IsSoldier && p.Size > 0) };
+        for (int d = 0; d < 4 * Calendar.DaysPerQuarter && !below; d++)
+        {
+            if (w.Treasury.Value > 0) World.Transfer((w, null), (w, sink, null), w.Treasury.Value);   // 国庫を貨幣保存を保ったまま空にする（SetTreasuryRaw は保存を破る）
+            foreach (var rg in w.Regions) rg.MonumentBuildQueue = Math.Max(rg.MonumentBuildQueue, 1e7);   // 請求を払える額より大きくする（記念建造物の建築予約＝月初の請求に入る）
+            sim.StepDay();
+            below = w.FiscalFundingRatio.Value < 0.999;
+        }
+        Assert.True(below, "前提が崩れた：国庫を空にしても支払い率が 1 未満の月が作れない（この番人は何も言っていない）");
+        double ratio = w.FiscalFundingRatio.Value;
+        int checkedRegions = 0;
+        foreach (var r in w.Regions)
+        {
+            double reach = Politics.RuleReach(r);
+            double expect = w.Coef.PublicEduFundingShare.Value * r.EducationSpending * reach * ratio;   // 財源率の手組み：係数×複製の率×到達×月の支払い率
+            Assert.True(expect < EconomyStep.InsuranceCoverageCap, "前提が崩れた：上限より下の盤面でない");
+            if (!(expect > 0)) continue;
+            Assert.Equal(expect, r.CompulsoryEduFunding, 9);                       // 財源率に r は 1 回だけ畳まれている
+            Assert.Equal(expect, EconomyStep.ScholarshipCover(r, w.Coef), 9);     // 割合は財源率そのもの（r を掛け直していない）
+            checkedRegions++;
+        }
+        Assert.True(checkedRegions > 0, "前提が崩れた：財源率が正の州が無い");
+    }
+
     [Fact]
     public void J5_旗1は近代化投資の高等教育の予約を立てない_旗0は旧のまま()
     {

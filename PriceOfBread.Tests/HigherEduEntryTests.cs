@@ -27,7 +27,6 @@ public class HigherEduEntryTests
         foreach (var r in sim.World.Regions)
         {
             Assert.Equal(-1, r.ResearcherPopIndex);
-            Assert.Equal(13, r.Pops.Count);   // 研究者の居ない世界の POP は 13 件（リテラル）
             Assert.DoesNotContain(r.Producers, p => p.GoodId == Catalog.HigherEducationId);
         }
         sim.Run(1);
@@ -47,7 +46,7 @@ public class HigherEduEntryTests
         Assert.Equal(Pop(off), Pop(on), 6);   // 研究者は教師・官僚・医者の取り分から切り出す＝新しい人は湧かない
         var cap = on.World.Region;
         Assert.True(cap.ResearcherPopIndex >= 0, "入口を開けても研究者 POP が現れない");
-        Assert.Equal(14, cap.Pops.Count);
+        Assert.Equal(off.World.Region.Pops.Count + 1, cap.Pops.Count);   // 研究者の POP が 1 件増えるだけ（階級の名簿の件数に縛らない）
         Assert.Equal(PopClass.Researcher, cap.Pops[cap.ResearcherPopIndex].ClassId);
         Assert.True(cap.Pops[cap.ResearcherPopIndex].Size > 0, "研究者 POP の規模が 0");
         var uni = cap.Producers.FirstOrDefault(p => p.GoodId == Catalog.HigherEducationId);
