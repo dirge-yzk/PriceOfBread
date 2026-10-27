@@ -20,7 +20,7 @@ public static partial class Instruments
         + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
         + "adminEfficiency\tcrown\tchildLaborLegal\tworkHoursValue\t"
         + "socialSecurityLawCode\tantitrustLawCode\tprogressiveTaxShare\tnationalizedMaskCode\t"
-        + "tariffTargetIndex\ttariffInterestMeanIndex\ttradeToGdpRatio\ttradeTreatyMoveCumCount";   // ★(395) 前提つきの法の4本（事前登録 ab の R2＝累進課税・失業保険・独占禁止・国有化が入った年を読む）＝末尾に足した（既存の列の位置は動かない）
+        + "tariffTargetIndex\ttradeToGdpRatio";   // ★(395) 前提つきの法の4本（事前登録 ab の R2＝累進課税・失業保険・独占禁止・国有化が入った年を読む）＝末尾に足した（既存の列の位置は動かない）
 
     // ★(604) 貿易÷GDP＝(輸出＋輸入の財別の和)×ClearingsPerYear÷年換算の名目 GDP（成績表の 貿易（復活計器）の MajorsTradeGdp と同じ式。清算の直近 1 回分の断面）。
     static double TradeToGdp(World w)
