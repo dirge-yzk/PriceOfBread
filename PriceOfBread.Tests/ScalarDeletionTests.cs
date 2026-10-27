@@ -112,7 +112,7 @@ public class ScalarDeletionTests
     }
 
     [Fact]
-    public void 恒等の削除_2026_10_27_B6の残りは復活しない()
+    public void 恒等の削除_2026_10_27_B6の残り_旧の願いの関数と定数は復活しない()
     {
         const System.Reflection.BindingFlags AllStatic = All | System.Reflection.BindingFlags.Static;
         // (599) 恒等の線 gc6：AI の法の門の旧の式・定数・計器の旧の列を名前で禁じる（期待値は削除の一覧を手で写した物で、本体の式から作らない）。係数の名前は DormantIdentityTests.RetiredFields。
@@ -120,14 +120,24 @@ public class ScalarDeletionTests
             Assert.Null(typeof(UtilityAgent).GetMethod(fn, AllStatic));                                                       // 工業化度を読む旧の願い
         foreach (var k in new[] { "AntitrustIndThreshold", "TrustbustIndThreshold" })
             Assert.Null(typeof(UtilityAgent).GetField(k, AllStatic));                                                         // 旧の願いの工業化度の線
+    }
+
+    [Fact]
+    public void 恒等の削除_2026_10_27_B6の残り_lawgateの旧の4列は復活しない()
+    {
         var head = Instruments.LawGateHeaderText.Split('	');
         foreach (var col in new[] { "flagLevel", "goldWishOld", "antiTargetOld", "guildTargetOld" })
             Assert.DoesNotContain(col, head);                                                                                  // lawgate_s の旧の列
         foreach (var col in new[] { "goldWishNew", "antiTargetNew", "guildTargetNew", "meanIndustrialization", "literacyHome", "urbanHome" })
             Assert.Contains(col, head);                                                                                        // 残す列
         Assert.Equal(14, head.Length);
+    }
+
+    [Fact]
+    public void 恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない()
+    {
         // EconomyStep の国家の手動建設の段（StateBuildQueue を束の単位に直す変数）が戻らない。注の中の言及は許す（// より前の本文だけを見る）。
-        var re = new System.Text.RegularExpressions.Regex(@"(stateConstruction|stateConLaborUnits|stateHeadroomUnits)");
+        var re = new System.Text.RegularExpressions.Regex(@"\b(stateConstruction|stateConLaborUnits|stateHeadroomUnits)\b");
         var bad = new System.Collections.Generic.List<string>();
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
         {
