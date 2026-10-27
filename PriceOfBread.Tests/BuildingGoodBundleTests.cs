@@ -207,26 +207,7 @@ public class BuildingGoodBundleTests
         Assert.True(p1 > 0 && p0 > 0);
     }
 
-    /// <summary>国家の建設（StateBuildQueue）も同じ組：投資家の私的な建設を止めた州で国庫の予約を積む。</summary>
-    [Fact]
-    public void 国家の建設は建造物の組を買い_払いは予約の額に収まる()
-    {
-        (double[] D, double Spent) Month(double flag)
-        {
-            var sim = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = flag);
-            var w = sim.World; var r = CapitalRegion(w);
-            r.Pops[r.InvestorPopIndex].SetSavings(0);   // 私的な建設の予算 0
-            r.StateBuildQueue = 100;                     // 国庫の予約（お金）
-            var ex = Record.Exception(() => EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w));
-            Assert.Null(ex);
-            return (new[] { Catalog.BuildingId, Catalog.SteelId }.Select(g => r.Markets[g].LastDemand).ToArray(), r.StateSpent[(int)TreasuryCat.Modernization]);
-        }
-        var (d0, s0) = Month(0.0); var (d1, s1) = Month(1.0);
-        Assert.True(d1[0] > d0[0], $"建造物の需要が増えない（{d0[0]} → {d1[0]}）");
-        Assert.True(d1[1] < d0[1], $"鋼の需要が減らない（{d0[1]} → {d1[1]}）");
-        double cap = 100 * (1.0 + new Coefficients().ConstructionLaborWageFrac) * 1.1;
-        Assert.True(s1 > 0 && s1 <= cap, $"国庫の払い {s1} が予約 100×(1+工賃の割合) の上限 {cap} に収まらない（旗 0 の払い {s0}）");
-    }
+    // ★(599) 国家の建設（StateBuildQueue → stateConstruction）の試験は、段ごと物理削除したので消した（書き手は (583) から 0 本）。
 
     /// <summary>工場建設（着工中の生産者）の材料も同じ組。</summary>
     [Fact]

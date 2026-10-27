@@ -1,0 +1,16 @@
+# (599) gc6 のテストの記録（Release・隔離ビルド D:/PoB_work/gc6_599/art・--blame-crash・コード 1167acd4）
+## フルスイート（Category!=FullLength）：ScalarDeletionTests を 1 本→3 本に分ける前の木
+成功!   -失敗:     0、合格:  1888、スキップ:     1、合計:  1889、期間: 18 m 6 s - PriceOfBread.Tests.dll (net10.0)
+  中止の行：0
+## FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 54 s - PriceOfBread.Tests.dll (net10.0)
+## 分け直した後（ScalarDeletionTests・DormantIdentityTests・LawGateFromBoardTests・BureaucracyFromPrereqTests）
+成功!   -失敗:     0、合格:    40、スキップ:     0、合計:    40
+## --list-tests の数：1894（＝Category!=FullLength の合計 1891 ＋ FullLength 3）
+## 突然変異（別の木 D:/PoB_work/gc6_599/mut・全て赤）
+1 回目（番人の 4 クラス）：失敗 7＝DormantIdentityTests 2 本（係数の復活）・BureaucracyFromPrereqTests（feasible を外す）・LawGateFromBoardTests 2 本（GoldWishFromBoard に工業化度・反トラストを工業化度に戻す）・ScalarDeletionTests 2 本（関数と定数・lawgate の旧の列）。
+  ⚠ stateConstruction を戻した変異は赤にならなかった＝変数の番人の正規表現の語境界が制御文字 0x08 に化けていた（空の番人）。語境界を直し、3 本の Fact に分け直した。
+2 回目（ScalarDeletionTests）：失敗 3＝関数と定数・lawgate の旧の 4 列・国家の手動建設の段の変数（いずれも赤）。
+## 最終の木（ScalarDeletionTests を 3 本に分け直した後・コード 1167acd4＋試験 1 ファイル＋記録）でフルスイートをもう 1 回（Category!=FullLength）
+成功!   -失敗:     0、合格:  1890、スキップ:     1、合計:  1891、期間: 42 m 27 s - PriceOfBread.Tests.dll (net10.0)
+  中止の行：0（他の線の測りと同じ機械で重なったので長い）。--list-tests の 1894 と 1891＋3 が一致。

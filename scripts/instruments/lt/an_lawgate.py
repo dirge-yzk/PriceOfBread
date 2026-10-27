@@ -167,8 +167,8 @@ def main():
         for n, lst in per.items():
             dd = {}
             for yy, r in lst:
-                for col, ok in (('goldWishOld', r['goldWishOld'] == '1'), ('goldWishNew', r['goldWishNew'] == '1'), ('goldKept', r['goldTargetKept'] == '2'),
-                                ('goldLaw', r['goldLawCode'] == '2'), ('antiOld', r['antiTargetOld'] != '-1'), ('antiNew', r['antiTargetNew'] != '-1'),
+                for col, ok in (('goldWishOld', r.get('goldWishOld') == '1'), ('goldWishNew', r['goldWishNew'] == '1'), ('goldKept', r['goldTargetKept'] == '2'),
+                                ('goldLaw', r['goldLawCode'] == '2'), ('antiOld', r.get('antiTargetOld', '-1') != '-1'), ('antiNew', r['antiTargetNew'] != '-1'),
                                 ('antiLaw', r['antitrustLawCode'] != '0')):
                     if ok: dd.setdefault(col, yy)
             for col, yy in dd.items(): first[n][col].append(yy)
