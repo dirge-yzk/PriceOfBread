@@ -150,9 +150,9 @@ public class ReformPathTests
         Assert.True(Government.CanStep(w, axis, inc));
         Government.Step(w, w.Coef);
         Assert.Equal(level, PolicyPoliticsTests.LawLevel(w, axis));            // 施行された
-        Assert.Equal(cost, w.MandateSpent, 9);                                 // S＝代価の全額（b を超える）
-        Assert.Equal(cost, w.MandateSpentNew, 9);                              // 正統性の減算の元（Politics.Step が 1 回だけ引く）も同じ 1 回ぶん
-        Assert.True(w.MandateSpent > w.PoliticalCapitalMax);
+        Assert.Equal(w.PoliticalCapitalMax, w.MandateSpent, 9);                // S＝残りの在庫 b で止まる（(615) MandateWallStockCap 既定 1・b を超えない）
+        Assert.Equal(cost, w.MandateSpentNew, 9);                              // 正統性の減算の元（Politics.Step が 1 回だけ引く）は代価の全額 1 回ぶん
+        Assert.True(cost > w.PoliticalCapitalMax);
         // 直後は在庫が空＝同じ四半期の次の壁の一歩は通らない
         Assert.False(Government.PoliticalCapitalAffords(w, cost));
     }
@@ -305,8 +305,8 @@ public class ReformPathTests
         Assert.Equal(off.cur, off.next);                                     // 指数 0：払えない押しはスライダーも 1 ミリも動かない
         Assert.Equal(0.0, off.w.MandateSpent);
         Assert.True(on.next < on.cur, "指数 1 のスライダーの壁の一歩が通っていない");
-        Assert.True(on.w.MandateSpent > on.w.PoliticalCapitalMax, "指数 1 のスライダーの壁の一歩が S を b より上へ記帳していない");
-        Assert.Equal(on.w.MandateSpent, on.w.MandateSpentNew, 9);
+        Assert.Equal(on.w.PoliticalCapitalMax, on.w.MandateSpent, 9);      // (615) S は残りの在庫 b で止まる
+        Assert.True(on.w.MandateSpentNew > on.w.PoliticalCapitalMax, "指数 1 のスライダーの壁の一歩が代価の全額を正統性の請求へ記帳していない");
     }
 
     // ---------------------------------------------------------------- (409) 床を比例の形に（MandateOverStockLegitPower＝p：払える量＝avail^p）----------------------------------------------------------------
@@ -419,8 +419,8 @@ public class ReformPathTests
         Assert.True(Government.CanStep(w, axis, inc));
         Government.Step(w, w.Coef);
         Assert.Equal(level, PolicyPoliticsTests.LawLevel(w, axis));
-        Assert.Equal(cost, w.MandateSpent, 9);
-        Assert.Equal(cost, w.MandateSpentNew, 9);
+        Assert.Equal(w.PoliticalCapitalMax, w.MandateSpent, 9);                // (615) S は残りの在庫 b で止まる（Step の頭で再計算された b・正統性 0.99 の盤面の b）
+        Assert.Equal(cost, w.MandateSpentNew, 9);                              // 正統性の請求は代価の全額
     }
 
     [Fact]
@@ -438,7 +438,7 @@ public class ReformPathTests
         }
         var rich = Run(0.95); var poor = Run(0.05);
         Assert.True(rich.next < rich.cur, "正統性 0.95 でスライダーの壁の一歩が通っていない");
-        double cost = rich.w.MandateSpent;
+        double cost = rich.w.MandateSpentNew;   // (615) S は b で止まる＝代価の全額は正統性の請求の元（MandateSpentNew）
         Assert.True(cost > 0.0025 && cost < 0.9, $"テスト前提が崩れた：代価 {cost} が 0.05² を超えない");
         Assert.Equal(poor.cur, poor.next);                                              // 0.05² ＝ 0.0025 ＜ 代価＝1 ミリも動かない
         Assert.Equal(0.0, poor.w.MandateSpent);

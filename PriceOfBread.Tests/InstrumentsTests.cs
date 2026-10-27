@@ -1550,7 +1550,7 @@ public class InstrumentsTests
                 ledgerRows++;
                 // ① 台帳の恒等式（出所が別＝World の目減りの差と、MandateGate／Move の払いの積算）
                 double tol = 1e-9 * (1 + Math.Abs(head));
-                Assert.InRange(end - head, lvl + cont - tol, lvl + cont + tol);
+                // （(615) MandateWallStockCap 既定 1：壁の一歩は S へ残りの在庫 b までしか足さない＝S の目減りの差は払いより小さい。等式は壁の一歩の無い行だけ。壁の一歩のある行は下の ③ の後で見る）
                 Assert.InRange(Col(nh, row, "ratePaidInQuarter") + Col(nh, row, "militaryPaidInQuarter") + Col(nh, row, "tariffPaidInQuarter") + Col(nh, row, "securityPaidInQuarter"), cont - 1e-9 * (1 + cont), cont + 1e-9 * (1 + cont));   // 列は G10 の桁で丸めて書く
                 if (lvl > 0) levelPaidRows++;
                 if (cont > 0) contPaidRows++;
@@ -1560,6 +1560,7 @@ public class InstrumentsTests
                 var spents = row[iSpent].Length == 0 ? [] : row[iSpent].Split(';');
                 Assert.Equal(states.Length, costs.Length); Assert.Equal(states.Length, spents.Length);
                 int sl = 0, tl = 0, sc = 0, tc = 0;
+                double rowWallCost = 0;   // (615) この行の壁の一歩（払う前の S が 0 の満タンで代価が b を超えて通った戦線）の代価の和
                 for (int i = 0; i < states.Length; i++)
                 {
                     string st = states[i]; int colon = st.LastIndexOf(':'); int code = int.Parse(st[(colon + 1)..].TrimEnd('x'), System.Globalization.CultureInfo.InvariantCulture); bool level = st[0] == 'L';
@@ -1577,11 +1578,14 @@ public class InstrumentsTests
                     {
                         bool wall = !oldPath && sdec <= 0 && !(sdec + cost <= max + tol);   // ★(410) 壁の一歩＝払う前の S が 0 の満タンで代価が b を超える（既定の経路だけ）
                         Assert.True(wall || sdec + cost <= max + tol, $"払って通ったのに S＋代価 {sdec + cost} ＞ b {max}（壁の一歩でもない：払う前の S {sdec}）");
-                        Assert.True(cost > 0, "払って通った一歩の代価が 0 以下"); paidFronts++; if (wall) wallPaid++;
+                        Assert.True(cost > 0, "払って通った一歩の代価が 0 以下"); paidFronts++; if (wall) { wallPaid++; rowWallCost += cost; }
                     }
                     else if (code is 3 or 7) Assert.Equal(0.0, cost);
                     else if (code is 0 or 1 or 5 or 6) Assert.True(double.IsNaN(cost), $"門の手前の戦線（符号 {code}）に代価がある");
                 }
+                // ① の続き：壁の一歩の無い行は等式。壁の一歩のある行（既定の経路）は S の足しが代価の全額より小さく、0 以上（(615)）
+                if (rowWallCost <= 0) Assert.InRange(end - head, lvl + cont - tol, lvl + cont + tol);
+                else { Assert.True(end - head < lvl + cont - tol, $"壁の一歩のある行なのに S の足しが払いより小さくない（{end - head} ＞ {lvl + cont}）"); Assert.True(end - head >= lvl + cont - rowWallCost - tol, $"壁の一歩の行の S の足し {end - head} が 払い {lvl + cont} − 壁の代価 {rowWallCost} を下回る"); }
                 // ③ 件数の列＝項目から数え直した件数
                 Assert.Equal(sl, (int)Col(nh, row, "frontCapitalStructuralLevelCount")); Assert.Equal(tl, (int)Col(nh, row, "frontCapitalStarvedLevelCount"));
                 Assert.Equal(sc, (int)Col(nh, row, "frontCapitalStructuralContinuousCount")); Assert.Equal(tc, (int)Col(nh, row, "frontCapitalStarvedContinuousCount"));
