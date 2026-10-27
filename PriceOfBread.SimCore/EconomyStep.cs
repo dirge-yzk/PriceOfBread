@@ -502,13 +502,13 @@ public static class EconomyStep
         return share;
     }
 
-    /// <summary>独占レント（塩(6)の王室の gabelle・茶(74)の東インド会社）の上乗せ率＝<paramref name="premium"/>×max(0, 1−工業化/MonopolyDissolveInd)×独禁法係数（MonopolyRentFactor）。
+    /// <summary>独占レント（塩(6)の王室の gabelle・茶(74)の東インド会社）の上乗せ率＝<paramref name="premium"/>×独禁法係数（MonopolyRentFactor）。
     /// **唯一定義**（2026-09-11 M6・物理側）。エンジン（<see cref="BuyerWedge"/>）は premium=MonopolyRentPremium で実効率（旧 monRent と同じ積の順＝ビット同一）、
     /// <see cref="Privileges.MonopolyDegree"/>（表示＝Active 州の最大）は premium=1 で度合[0,1]（1×x は厳密に x＝旧 Privileges の式とビット同一）。
     /// MonopolyRentPremium ≤ Eps では 0（旧 Privileges 側の `!(x > 0)` ガードを正典の `> Eps` に統一＝差は 0&lt;Premium≤1e-9 の帯だけ・既定0.15で同値）。</summary>
     internal static double MonopolyDegree(Region r, Coefficients c, double premium)
         => !(c.MonopolyRentPremium > Eps) ? 0
-         : premium * (c.IndustrializationOff > 0 ? 1.0 : Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd))) * r.MonopolyRentFactor;   // ★(495) 旗 IndustrializationOff では工業化度による解体の項を 1（解体は独占禁止法の係数 MonopolyRentFactor に任せる）   // 独占禁止法（E6）で×倍率（規制なし=1.0＝恒等・談合禁止/解体で縮小）
+         : premium * r.MonopolyRentFactor;   // ★(495) 工業化度による解体の項を 1 にし、★(605) 項ごと削除（解体は独占禁止法の係数 MonopolyRentFactor に任せる）   // 独占禁止法（E6）で×倍率（規制なし=1.0＝恒等・談合禁止/解体で縮小）
 
     /// <summary>買い手が払う価格の楔＝<c>(1+stateMonop+distM+monRent+guildRent)×(1−insure)</c> の5項。**唯一定義**（2026-09-11 M5）＝
     /// <see cref="Run"/> の消費ループ（需要と決済）・<see cref="ProductionDiag.ExplainPrice"/>（生産タブの価格積み上げ）・
@@ -669,7 +669,7 @@ public static class EconomyStep
         // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。工業国ほど効く。
         // ★冷蔵の門＝発見の表の「冷蔵」の行（2026-10-01 (150)・旧＝工業化度の傾斜だけ＝発見と関係なく開いた）。効きの大きさは立っている設備の規模の傾斜のまま。
         double refrigeration = coef.RefrigerationEffect > 0 && Discovery.Refrigeration(region.Discovered)
-            ? (coef.IndustrializationOff > 0 ? 1.0 : PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan)) : 0;   // ★(495) 旗 IndustrializationOff では発見の門が開けば傾斜なしの 1   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
+            ? 1.0 : 0;   // ★(495) 発見の門が開けば傾斜なしの 1 にし、★(605) 傾斜ごと削除   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
         foreach (var good in region.Goods)
             if (good.WearRatePerMonth > 0)
             {

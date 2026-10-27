@@ -412,8 +412,8 @@ public class ProductionDiagTests4
         Assert.True(withGuild > 0, "職人の自営レシピの財に同業組合の上乗せが1つも立たない＝配線漏れ");
     }
 
-    /// <summary>M6（2026-09-11）：独占レントの度合の唯一定義＝EconomyStep.MonopolyDegree（物理側）。塩の独占レント＝Premium×度合（工業化で溶け Ind≥MonopolyDissolveInd で0）、
-    /// Privileges の表示は Active 州の最大（閾値名は MonopolyDissolveInd 1本）。</summary>
+    /// <summary>M6（2026-09-11）：独占レントの度合の唯一定義＝EconomyStep.MonopolyDegree（物理側）。塩の独占レント＝Premium×度合（★(605) 工業化度の項は削除＝度合は独禁法の係数だけで決まる）、
+    /// Privileges の表示は Active 州の最大。</summary>
     [Fact]
     public void 独占レントの度合は物理側の1本から価格分解と表示が読む()
     {
@@ -428,9 +428,7 @@ public class ProductionDiagTests4
             double deg = EconomyStep.MonopolyDegree(r, c, 1.0);
             Assert.Equal(EconomyStep.MonopolyDegree(r, c, c.MonopolyRentPremium), salt.MonopolyRent);   // 唯一定義＝厳密一致
             Assert.True(System.Math.Abs(salt.MonopolyRent - c.MonopolyRentPremium * deg) <= 1e-12, $"Ind={ind}：塩のレント {salt.MonopolyRent} ≠ Premium×度合 {c.MonopolyRentPremium * deg}");
-            if (c.IndustrializationOff > 0) { Assert.Equal(1.0, deg); Assert.Equal(c.MonopolyRentPremium, salt.MonopolyRent); }   // ★(495) 点火後の既定＝工業化度で独占は解体しない（解体は独占禁止法の係数 MonopolyRentFactor に任せる）
-            else if (ind >= c.MonopolyDissolveInd) { Assert.Equal(0.0, salt.MonopolyRent); Assert.Equal(0.0, deg); }
-            else Assert.True(salt.MonopolyRent > 0 && deg > 0, $"Ind={ind}：近代化前なのに独占レントが立たない");
+            { Assert.Equal(1.0, deg); Assert.Equal(c.MonopolyRentPremium, salt.MonopolyRent); }   // ★(495) 点火後の既定＝工業化度で独占は解体しない（解体は独占禁止法の係数 MonopolyRentFactor に任せる）
             Assert.True(Privileges.MonopolyDegree(w, c) >= deg, "表示（Active 州の最大）が首都の度合を下回る");
             Assert.Equal(0.0, ProductionDiag.ExplainPrice(w, r, Catalog.LaborId).MonopolyRent);   // 独占レントの財以外は0
         }

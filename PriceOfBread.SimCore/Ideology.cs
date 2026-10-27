@@ -140,10 +140,15 @@ public static class Ideologies
         //   ＝軍事的強権・国民動員は初期から存在する（MilitaryDictatorship への親和が高い＝ボナパルト型）。
         // 発展度スカラー dev∈[0,1]＝世界最先端の工業化度（IdeologyGateIndScale で0..1へ）と都市の割合の加重（IdeologyGateUrbanWeight）＝ファシズムの支持の式と発見パネルのホバーが読む。
         //   ★「世界最先端の工業化度」は w.IndustrialFrontier（MultiNationSim が各国最高の MeanIndustrialization を毎四半期注入）。単一国と多国の初四半期は自国の値へフォールバック。
-        double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
         double urbanWorkerShare = totPop > 1e-9 ? urbanPop / totPop : 0;
-        double dev = PoliticalQuantities.Clamp01((1.0 - w.Coef.IdeologyGateUrbanWeight) * PoliticalQuantities.Clamp01(frontierInd / w.Coef.IdeologyGateIndScale)
+        double dev;
+        if (w.Coef.IdeologyDevFromUrban > 0) dev = PoliticalQuantities.Clamp01(urbanWorkerShare);   // ★(605) 旗 IdeologyDevFromUrban：工業化度の項を読まない＝都市労働者の割合だけ
+        else
+        {
+            double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
+            dev = PoliticalQuantities.Clamp01((1.0 - w.Coef.IdeologyGateUrbanWeight) * PoliticalQuantities.Clamp01(frontierInd / w.Coef.IdeologyGateIndScale)
                            + w.Coef.IdeologyGateUrbanWeight * urbanWorkerShare);
+        }
         var k = w.Discovered;
         return new EraGateSet(dev, Gate(k, Ideology.Socialism), Gate(k, Ideology.Communism), Gate(k, Ideology.Imperialism), Gate(k, Ideology.Fascism));
         static double Gate(bool[] k, Ideology i) => Discovery.Known(k, Discovery.IdeaRow(i)) ? 1.0 : 0.0;

@@ -45,7 +45,7 @@ public static class Privileges
             : (w.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate ? c.PrivilegeTaxDiscount.Value : 0.0);
 
     /// <summary>特許会社の残高＝独占レントがまだどこかに立つか。州の度合は物理側の唯一定義 <see cref="EconomyStep.MonopolyDegree"/>（premium=1＝度合[0,1]）を呼ぶ＝
-    /// 州の工業化で溶け（MonopolyDissolveInd）・独禁法で縮む（MonopolyRentFactor）。州ごとに違うので**最大**＝「その特権がまだ在るか」の答え（表示のみ・力学の読み手なし）。</summary>
+    /// 独禁法で縮む（MonopolyRentFactor）。州ごとに違うので**最大**＝「その特権がまだ在るか」の答え（表示のみ・力学の読み手なし）。</summary>
     public static double MonopolyDegree(World w, Coefficients c)
     {
         double best = 0;

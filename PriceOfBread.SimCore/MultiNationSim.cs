@@ -74,7 +74,7 @@ public sealed class MultiNationSim
                 //   同じ式で播けば段差が消える（充足度と質の乗数は初回Stepで乗る）。
                 Military = sim.World.SoldierSizeK() / _coef.SoldiersPerMilitary,
                 GdpPerMonth = sim.World.GdpPerMonth,
-                TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
+                TradeWeight = _coef.TradeWeightOpeningEven > 0 ? DefaultTradeWeightBase : DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // ★(605) 旗 TradeWeightOpeningEven では入力データの工業化度で傾けない   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
             };
             foreach (var (cname, cres, cpopK) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpopK / Diplomacy.ColonyUnitPop, PopSize = cpopK, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
             sim.World.Diplomacy = Diplomacy;     // 読み取り用（植民地アクセス・交易）
@@ -858,8 +858,8 @@ public sealed class MultiNationSim
             // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度（ファシズムの支持の式・発見パネルのホバー）が
             // 代理(WorldTechLevel との max)でなくこれを参照する（思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
             double indFrontier = 0;
-            foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
-            foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
+            foreach (var n in Nations) if (!(n.World.Coef.IdeologyDevFromUrban > 0)) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);   // ★(605) 旗 IdeologyDevFromUrban では注入しない
+            foreach (var n in Nations) if (!(n.World.Coef.IdeologyDevFromUrban > 0)) n.World.IndustrialFrontier = indFrontier;
             // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
             //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
             // ★銀と金の比（(210)・00一覧 §0-A の 10＝金への入力を同じ州の比の世界で＝表示用の統計に乗せない）：同一市場内の 銀/金鉱 比の全 Active 州の対数平均 R

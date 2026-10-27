@@ -429,10 +429,10 @@ internal static class PlayHarness
         sb.AppendLine("  国力の内訳（自国）： " + PlayText.ScoreBreakdownText(w).Replace("\n", "　"));
 
         sb.AppendLine();
-        sb.AppendLine("---- 州（上位10・工業化順）----");
+        sb.AppendLine("---- 州（上位10・人口順）----");
         foreach (var r in w.Regions
-                                    .OrderByDescending(x => x.TotalIndustrialization).Take(10))
-            sb.AppendLine($"  {r.Name,-14} 人口{r.SumPopulation(),11:N0} 工業{r.TotalIndustrialization,6:F2}/{coef.IndustryInvestRegionCap:F1} 港{(r.IsPort ? "○" : "－")} 資本{(r.CapitalEnabled ? "○" : "×")}");
+                                    .OrderByDescending(x => x.SumPopulation()).Take(10))
+            sb.AppendLine($"  {r.Name,-14} 人口{r.SumPopulation(),11:N0} 港{(r.IsPort ? "○" : "－")} 資本{(r.CapitalEnabled ? "○" : "×")}");
 
         sb.AppendLine();
         sb.AppendLine("---- 外交（緊張の高い相手 上位8）----");
@@ -463,7 +463,7 @@ internal static class PlayHarness
         foreach (var n in sim.Nations.OrderByDescending(x => x.World.ScoreStanding).Take(10))
         {
             var xw = n.World;
-            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F1} 工業{xw.MeanIndustrialization,6:F2} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
+            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F1} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
         }
 
         sb.AppendLine();
@@ -505,9 +505,9 @@ internal static class PlayHarness
     {
         var rows = PlayText.EndingStandings(sim.Nations.Select(n => n.World), w);
         sb.AppendLine($"★終局： {PriceOfBread.SimCore.Calendar.EndYear}年 最終ランキング（全 {rows.Count} 国・自国 {rows.First(r => r.IsPlayer).Order} 位）　※画面と同じく止めはしない（以後も進められる）");
-        sb.AppendLine("  順位 国名           国力 政体             人口        工業化度");
+        sb.AppendLine("  順位 国名           国力 政体             人口        鉄の産出");
         foreach (var r in rows.Where(r => r.Order <= 10 || r.IsPlayer))
-            sb.AppendLine($"  {r.Order,3}{(r.IsPlayer ? "★" : " ")} {r.Name,-12} {r.Score,6:F0} {PlayText.PolityRegimeJa(r.Polity),-8} {r.Population,12:N0} {r.Industry,8:F2}");
+            sb.AppendLine($"  {r.Order,3}{(r.IsPlayer ? "★" : " ")} {r.Name,-12} {r.Score,6:F0} {PlayText.PolityRegimeJa(r.Polity),-8} {r.Population,12:N0} {r.IronShare,8:P1}");
         sb.AppendLine("  自国の国力の内訳： " + PlayText.ScoreBreakdownText(w).Replace("\n", "　"));
     }
 

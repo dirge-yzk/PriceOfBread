@@ -461,7 +461,7 @@
                         <TextBlock Grid.Column="2" Text="国力" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
                         <TextBlock Grid.Column="3" Text="政体" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
                         <TextBlock Grid.Column="4" Text="人口" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
-                        <TextBlock Grid.Column="5" Text="工業化度" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
+                        <TextBlock Grid.Column="5" Text="鉄の産出" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
                     </Grid>
                     <ScrollViewer MaxHeight="560">
                         <StackPanel Margin="14,8">
@@ -475,7 +475,7 @@
                                             <TextBlock Grid.Column="2" Text="{Binding Score}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Polity}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
                                             <TextBlock Grid.Column="4" Text="{Binding Population}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
-                                            <TextBlock Grid.Column="5" Text="{Binding Industry}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
+                                            <TextBlock Grid.Column="5" Text="{Binding IronShare}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

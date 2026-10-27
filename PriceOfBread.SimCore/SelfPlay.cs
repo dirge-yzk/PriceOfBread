@@ -32,6 +32,7 @@ public static class NationalScore
     internal readonly record struct ScoreTerms(double Soldiers, double MilitarySpend, double Iron, double Energy, double UrbanPop, double TotalPop)
     {
         internal const int Count = 6;
+        internal const int IronIndex = 2;   // ★(605) 下の this[int] の 2 番＝鉄の産出（最終の表の物差し PlayText.EndingStandings が読む）
         internal double this[int i] => i switch { 0 => Soldiers, 1 => MilitarySpend, 2 => Iron, 3 => Energy, 4 => UrbanPop, _ => TotalPop };
     }
 

@@ -16,6 +16,12 @@ public static class CapitalMarket
     private const double BondConfMin = 0.2;             // 国債スプレッドが対外信認を下げる際の下限クランプ
     private const double ExchangeRateCreditFloor = 0.3; // 為替減価が対外信認を削る際の下限クランプ
 
+    /// <summary>外資の余地 headroom（遅れている国ほど資本を呼ぶ吸引の素）。旧＝<c>CapitalIndTarget − 工業化度の平均</c>。★(605) 旗 <c>CapitalHeadroomFromReturn</c> が正なら
+    /// <c>CapitalIndTarget × World.ModernizeReturnShare()</c>（国庫の配り先の設備の収益の持ち分＝AI の近代化投資の信号と同じ 1 本。★この 1 本は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む＝工業化度の直読みを外すだけで、在庫への結びは残る。CapitalIndTarget は旗 1 では 0〜1 の割合に掛ける目盛り）。旗 0 の式は抜き出す前と同じ。番人が直に呼ぶ。</summary>
+    internal static double Headroom(Coefficients c, World w)
+        => c.CapitalHeadroomFromReturn > 0 ? c.CapitalIndTarget * w.ModernizeReturnShare()
+                                           : System.Math.Max(0, c.CapitalIndTarget - w.MeanIndustrialization);
+
     public static void Step(IReadOnlyList<Simulation> nations, Coefficients c)
     {
         int n = nations.Count;
@@ -77,7 +83,7 @@ public static class CapitalMarket
             w[i].CreditGoldTerm = c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility;
             w[i].CreditFxTerm = System.Math.Clamp(w[i].ExchangeRate, ExchangeRateCreditFloor, 1.0);
             w[i].CreditBondTerm = bondConf;
-            double headroom = System.Math.Max(0, c.CapitalIndTarget - w[i].MeanIndustrialization);   // 改修2026-06-28：首都州のみ→全州平均（外資は国全体の工業化ギャップで流入先を選ぶ）
+            double headroom = Headroom(c, w[i]);   // 改修2026-06-28：首都州のみ→全州平均（外資は国全体の工業化ギャップで流入先を選ぶ）
             // ★全球収束の是正・資本側（2026-08-02）：headroom は「遅れている国ほど資本を呼ぶ」無条件のポンプで、
             //   CapitalIndTarget=4.0 が全国共通の吸引点になっている。実測1913でダホメ4.02・ラオス3.82・エチオピア3.91 が
             //   英3.56・仏3.66・日3.50 と同じ帯に密集し、国力スコアの8割を占める水準量（工業化×9＋技術×12）が

@@ -1078,7 +1078,6 @@ public sealed class Coefficients
     // 集中度＝各国生産シェアのHHI（1/N..1）。床を超えた分に比例。**抜け道**＝高価格で他国の採算が立ち参入→生産シェア分散→HHI低下→markup自壊（追加コード不要・自己是正）。
     // タスクC（市場の権利構造・独占レント方式）：既存の安定した「上乗せ→保有pop」経路（専売/流通マージンと同型）で表現。伝統的独占の超過利潤を消費者→保有エリートへ移転し、近代化で解体＝「市場の自由化」体験。
     public double MonopolyRentPremium = 0.15;   /* リアリティ群点火2026-07-18＝塩gabelle/茶の独占レント(resentment無し・工業化で自然消滅) */   // 伝統的独占(塩の王室のgabelle・茶の東インド会社)の買い手価格上乗せ率。**タスクC/#4試験2026-07-15＝0.3+resentment0.05でbatch◎24・清entrench解消の好結果だが、テストゲートで5失敗（茶ルーティングのIndexクラッシュ[修正済]＋resentment闘争度が政治を自律撹乱＝幕府→共和/NullAgentでも参政権変化の4政治テスト破壊）。清を直す強さと政治を壊す強さが同一＝resentment方式は両立不能で差し戻し。機構は休眠温存**。**タスクC点火試験2026-07-15＝0.5でleakhunt清潔・機構は妥当だが帯劣化（exact39→35・清11→17常勝・首位交代61.7→43.4・固着+4）＝エリートへのレント集中が伝統帝国(清)を entrench＋「解体=工業化連動」が"工業化しなければレント保持"の倒錯誘因を生む＝保留。政体連動の解体＋別効果経路なら要再設計**。機構(徴収→保有pop・保存清潔・休眠恒等)は温存。0=独占なし＝現行と厳密一致。>0で塩(id6)/茶(id74)の買い手価格に上乗せ→塩は国庫(王室)・茶は資本家(会社)へ移転（消費者→保有者で保存）＝大衆が高値で苦しみエリートが儲ける。独占の廃止(下記フェード)で価格下落・生活水準↑
-    public double MonopolyDissolveInd = 0.3;   // 独占が完全解体する工業化度。読み手は1形（2026-09-11に旧 LegalMonopolyDissolveInd を統合＝閾値の名は1本。2026-10-18 に②段差＝EffFirms を削除）：フェード＝実効率 MonopolyRentPremium×max(0,1−Industrialization/これ)（EconomyStep.MonopolyDegree・MonopolyRentPremium=0では0）。近代化(=営業の自由・独占の廃止の創発的代理)で独占が消える
     // 【墓標2026-09-26（棚卸し econ-16・dorm-23）】MonopolyResentmentMilitancy（独占価格を払う大衆の闘争度へ直接加算・休眠0）＝差し戻し（0.05で政治を自律撹乱）・思想⑨の型＝削除
 
     // --- 資本・建設（§2.4 拡張：地域集約の「工業化度」。投資＝機械・セメントを消費して積む）---
@@ -1183,10 +1182,8 @@ public sealed class Coefficients
     // 規模＝産出/自国市場需要(u)。u/(u+Half)で飽和（発散しない）。自給規模(u≈1)では控えめ、輸出で規模を伸ばすほどボーナス。RGO・役務・労働は対象外。
     public double ScaleEconomyGain = 0.3;         // 規模ボーナスの最大上乗せ（飽和値。0で無効＝従来）
     public double ScaleEconomyHalf = 1.5;         // 規模ボーナスが半分に達する u（産出/自国需要）。大きいほど大規模でないと効かない
-    // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。工業化でゲート（TechLevelよりスケールが既知）。
+    // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。発見でゲート（★(605) 立ち上がり・幅の係数 RefrigerationIndOnset／Span は削除）。
     public double RefrigerationEffect = 0.7;      // 完全な冷蔵で生鮮の腐敗が下がる最大割合（0で無効）
-    public double RefrigerationIndOnset = 1.0;    // 冷蔵が立ち上がる工業化度（これ未満＝冷蔵なし＝従来の腐敗）
-    public double RefrigerationIndSpan = 1.5;     // 冷蔵が完全に効くまでの工業化度の幅（onset+spanで満額）
     // 収益駆動の投資：限界収益(逓減)×(1+Leverage×技術) − CapitalCost > 0 の間だけ投資＝固定上限なしで均衡が創発。
     public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
     public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
@@ -1978,6 +1975,15 @@ public sealed class Coefficients
                                                     //   β＝[法≠禁止]×運動体の結束の割合 κ×(1−失業率)×S（S＝1−(1−V_w÷(V_w+V_o))(1−m)・V_w＝労働者 POP の票の声・V_o＝持ち主 POP の票の声・m＝容認のときの労働者 POP の闘争度）。段ごとの固定の値は置かない。同時に World.TechProductivity の組合の産出の乗数（0.95・0.98）を 1.0 にする（罷業の乗数は残す）。AI の設計＝確証なし。
     public double IndustrializationOff = 1;         // ★(495) **2026-10-23 に 1 で点火**（同上）。工業化度の倍率の読み手の削除（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」）。0＝今のまま＝厳密恒等。正のとき、能力の倍率 indMult・賃金の天井の工業化度の項・機械化度・独占の解体・冷蔵の傾斜・開発度の記憶とヴィンテージ（技術水準を読む 3 つ）が働かない。
                                                     //   州の在庫 Region.Industrialization とその書き手・在庫として読む 8 か所と州の上限 IndustryInvestRegionCap は残す（上限の削除は延期＝事前登録 追記 1 (2)）。
+    // ★(605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・2026-10-26「工業化度の廃止理由は、盤面から読めばよいからです」）。
+    //   全て既定 0＝今のまま（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
+    public double EpidemicSanitFromBoard = 0;       // 疫病の致死率の衛生の代理（工業化度の飽和曲線）を読まず、実衛生財の充足 Region.Sanitation だけを読む（EpidemicSanitationHalf／Weight は旗 1 で未使用）。
+    public double IdeologyDevFromUrban = 0;         // 思想の発展度 dev から世界最先端の工業化度の項を外し、都市労働者の割合だけにする（MultiNationSim も IndustrialFrontier を注入しない）。
+    public double UrbanCapOff = 0;          // 都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差（目標の都市の割合の sigmoid）・飢えの線（FamineMigrationFillGate）だけ（住居の充足は PopDecision.Run が読まない＝旗の名は UrbanCapOff）。UrbanIndSmoothed は書かない。
+    public double CreditDevOff = 0;                 // 信用の深さの工業化度の倍率 devFactor を 1.0 にする（作者のバフ／デバフ全削除）。旗 1 は前工業の国も満額の近代信用創造＝与信の天井が上がる向き（発散の候補）。
+    public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。★旗 1 の CapitalIndTarget は 0〜1 の割合に掛ける目盛り（旧は工業化度の単位の目標）。ModernizeReturnShare は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む（直読みを外すだけ）。
+    public double TradeWeightOpeningEven = 0;       // 開幕の交易の比重を入力データ cfg.Industrialization で傾けず、DefaultTradeWeightBase の均等にする（分離独立国と同じ）。
+    public double CapacityIndTermsOff = 0;          // 扶養力の工業化度の 2 項（IndustryCapacityBonus×avgInd・PollutionCapacityWeight の公害圧）を外す。出生の FertilityIncomeSlope×avgInd は出生の設計（最終段 9-2）の持ち物＝触らない。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。
                                                     //   0.5＝技術力70（特許＝1780年代＝難易度0）なら強度 0.375 で届く＝旧の特許の閾値（中核エリート 0.4・傾斜 0.35〜0.45）と同じ所（推奨で決めた）
     public double DiscoveryNeedHalfIdea = 0.2;      // ★(152) 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35。
@@ -2611,8 +2617,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26】HoardDishoardRate・HoardConsumptionMultiple＝退蔵の取り崩し（#66 で却下の休眠）を削除（dorm-24）
     // 経7（与信の州横断配分 CreditSpreadAcrossProvinces）＝2026-07-09裁定で不採用確定（0.25でもテスト赤・過剰な細分化）→2026-07-12裁定で機構ごと廃止（Credit.csのelse枝と係数を削除）。再検討する場合は設計doc「全域監査」2026-07-11 死28 と当時の設計を参照
     public double WageClampMin = 0.3;   // 経12：賃金/役務の床＝WageClampMin×(参照価格×物価水準)。旧MarketFlowの直書き0.3を係数化（値同一＝中立）
-    public double WageClampMax = 3.0;   // 経12：賃金/役務の天井＝WageClampMax×(参照価格×物価水準)。旧MarketFlowの直書き3.0を係数化。平坦な帯域拡大(5.0)は首位交代退行で保留＝工業化度連動(WageClampIndScale)が正着
-    public double WageClampIndScale = 1.0;  // 【R2点火2026-07-15＝1.0・工業化連動】賃金天井を工業化度でスケール＝effWageMax=WageClampMax×(1+これ×Industrialization)。0=固定3.0（現行と厳密恒等）・>0で工業国のみ天井が上がり実質賃金が伸びる（未工業国は据置＝平坦拡大の"富国青天井で独走固定化"を回避）。産業革命の賃金上昇・英独と亜阿の国際賃金格差拡大の史実
+    public double WageClampMax = 3.0;   // 経12：賃金/役務の天井＝WageClampMax×(参照価格×物価水準)。旧MarketFlowの直書き3.0を係数化。平坦な帯域拡大(5.0)は首位交代退行で保留（★(605) 工業化度連動の項 WageClampIndScale は削除）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】WageClampSoftBand＝賃金の床天井を財と同じ対数飽和 SoftBand で（経12・点火済み＝ハードクランプの枝を削除）
     // 【墓標2026-09-26】FiscalQuarterlyGating（財3の四半期の刻みの器・休眠0）＝較正は月次で進む値に乗っている＝器を削除し、DevaluationCapFracPerMonth・DefaultTriggerQuarters・DefaultCooldownMonths の単位の書き方を月へ直した（dorm-29・挙動不変）
     // **点火2026-07-31（07_再設計 第2弾2a）**：前提（注入＝MultiNationSim・保有国配分＝CapitalMarket の外債レグ）が02断線走査で揃った＝対外国債が完全な閉鎖系になる。

@@ -1,0 +1,21 @@
+dir D:/PoB_work/ind4_605/out_indC_10/ins
+s1 cells 979 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.859 min 0.1163 food<0.5 0 median {1790: 0.316, 1850: 0.489, 1900: 0.523}
+s2 cells 977 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.870 min 0.0675 food<0.5 0 median {1790: 0.312, 1850: 0.483, 1900: 0.405}
+s3 cells 977 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.781 min 0.0857 food<0.5 0 median {1790: 0.313, 1850: 0.462, 1900: 0.419}
+s4 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.775 min 0.0295 food<0.5 0 median {1790: 0.311, 1850: 0.481, 1900: 0.544}
+s5 cells 978 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.870 min 0.1286 food<0.5 0 median {1790: 0.311, 1850: 0.494, 1900: 0.509}
+s6 cells 978 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.873 min 0.0645 food<0.5 0 median {1790: 0.314, 1850: 0.462, 1900: 0.373}
+s7 cells 977 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.945 min 0.1013 food<0.5 0 median {1790: 0.313, 1850: 0.465, 1900: 0.332}
+s8 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.833 min 0.0411 food<0.5 0 median {1790: 0.316, 1850: 0.466, 1900: 0.533}
+s9 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.782 min 0.0489 food<0.5 0 median {1790: 0.312, 1850: 0.466, 1900: 0.542}
+s10 cells 978 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.873 min 0.1609 food<0.5 0 median {1790: 0.31, 1850: 0.472, 1900: 0.334}
+s1 priceLevel max 3.418 at ('イギリス', '1879') nan 0 maxLoans/gdpRealMonth 28.92
+s2 priceLevel max 3.58 at ('アメリカ', '1937') nan 0 maxLoans/gdpRealMonth 10.96
+s3 priceLevel max 1.469 at ('フランス', '1899') nan 0 maxLoans/gdpRealMonth 11
+s4 priceLevel max 7.695 at ('イギリス', '1904') nan 0 maxLoans/gdpRealMonth 10.28
+s5 priceLevel max 3.891 at ('イギリス', '1865') nan 0 maxLoans/gdpRealMonth 57.64
+s6 priceLevel max 2.716 at ('アメリカ', '1898') nan 0 maxLoans/gdpRealMonth 8.853
+s7 priceLevel max 1.642 at ('イギリス', '1868') nan 0 maxLoans/gdpRealMonth 9.47
+s8 priceLevel max 1.842 at ('アメリカ', '1896') nan 0 maxLoans/gdpRealMonth 9.219
+s9 priceLevel max 2.102 at ('イギリス', '1877') nan 0 maxLoans/gdpRealMonth 37.12
+s10 priceLevel max 6.54 at ('イギリス', '1877') nan 0 maxLoans/gdpRealMonth 29.67

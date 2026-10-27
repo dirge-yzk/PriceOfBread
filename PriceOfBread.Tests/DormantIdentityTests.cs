@@ -24,6 +24,7 @@ public class DormantIdentityTests
         // ★StateEduDemandInFront（(452) 国庫の教育の買いたい分を値段が読む需要へ）は 2026-10-20 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★ServiceClosedFixedPoint（(spa) A′ 役務の不動点の閉じた式）は 2026-10-23 に 1 で**点火**（S1c・ServiceClosedMaxCurv=0.01）＝この表から外した。
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
+        "EpidemicSanitFromBoard", "IdeologyDevFromUrban", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
         // ★ModernizationAbolished（(573) 近代化投資の廃止・作者 2026-10-26）は 2026-10-26 に 1 で**点火**（腕 B_mod・止める線に当たらず）＝この表から外した。
         // ★ClearingIdleThrottledScan・ClearingIdlePotentialReweight（(434) 清算の片方向の錠）は 2026-10-19 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
@@ -209,6 +210,10 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "WageClampIndScale",          // (605) 線 ind4：賃金の天井の工業化度の項〔R2 点火 1.0・(495) で IndustrializationOff が 0 を掛けていた〕。項ごと削除（天井そのものの WageClampMax は残る）
+        "MonopolyDissolveInd",        // (605) 同：独占が解体する工業化度〔0.3〕。解体は独占禁止法の係数 MonopolyRentFactor に任せる
+        "RefrigerationIndOnset",      // (605) 同：冷蔵の立ち上がりの工業化度〔1.0〕。冷蔵の門は発見の行
+        "RefrigerationIndSpan",       // (605) 同：冷蔵が満額になる工業化度の幅〔1.5〕
         "AiLawGateFromBoard",         // (599) 恒等の線 gc6：工業化度を読む AI の法の門の置き換えの旗〔(423)・既定 3〕の旧の腕〔段 0〜2〕。旗ごと削除（願いは GoldWishFromBoard／AntitrustTargetFromBoard／GuildTargetFromBoard の 1 本）
         "AiBureaucracyFromPrereq",    // (599) 同：AI の官僚制度の走査の旗〔(389) Q-a8・既定 2〕。旗ごと削除（走査は常に走り政治の門を通る）
         "GoldStandardIndThreshold",   // (599) 同：金本位を自力で志向する工業化度の下限〔3.5〕。読み手は旧の金の願い GoldWishOld だけだった
