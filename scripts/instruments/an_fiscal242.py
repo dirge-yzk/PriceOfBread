@@ -49,7 +49,7 @@ def main():
             if not (a <= y <= b): continue
             n += 1; rate = f(r['payRateShare'])
             for col, cat in MAP.items():
-                v = f(r[col])
+                v = f(r.get(col, 'nan'))   # ★(609) 合流：gc7〔(608)〕が消した列（claimStateBuildPerMonth）は欠けても読む（反証役 gc7〔v〕低 #1）
                 if v == v: claim[cat] += v; rclaim[cat] += rate * v
             for cat in OUTFLOW + ['StateFactory', 'DebtRepay']:
                 v = f(r['ledger' + cat + 'PerMonth'])

@@ -43,7 +43,7 @@ public class IndustryThemeTests
         // 旧の枝（旗 0・焼き込みで削除するまで残る）の配線確認：機械化度・旧世代資本が立つ（工業化が進む実国で）。保存則と境界も同じく保たれる。
         var sim0 = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         var c0 = sim0.World.Coef;
-        c0.IndustrializationOff = 0; c0.RecipeEquipment = 0;
+        c0.IndustrializationOff = 0; c0.RecipeEquipment = 0;   // ★(609) 合流の注：(605) で賃金の天井・独占の解体・冷蔵の傾斜の工業化度の項は物理削除＝この旗 0 の腕は一部が旧の枝ではない
         c0.InventoryAdjustGain = 0.3; c0.LaborSaveRate = 0.3; c0.LaborSaveIndHalf = 1.0; c0.VintageMigrateRate = 0.02; c0.VintageObsolescence = 0.5; c0.HousingMigrationFriction = 0.5;
         double q0 = sim0.World.TotalPopulation;
         var ex0 = Record.Exception(() => sim0.Run(200));

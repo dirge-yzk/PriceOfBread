@@ -688,7 +688,7 @@ internal static class PlayHarness
                     bool all = a.Length == 3 && a[2] == "全て";   // ★(607) 全て＝この呼び出しの間に立つ要請へ同じ答え（Run が置く）
                     if (a.Length > 3 || (a.Length == 3 && !all)) return "⚠`!callarms 受ける|断る [全て]`";
                     if (w.SelfPower is not { PendingCallToArms: { } call } me || w.Diplomacy is null)
-                        return all && a[1] is ("受ける" or "断る") ? $"参戦要請（全て）: {a[1]} を置いた（今は待ちなし）" : "⚠参戦要請の待ちが無い";
+                        return all && a[1] is ("受ける" or "断る") ? $"参戦要請（全て）: {a[1]}・今は待ちなし" : "⚠参戦要請の待ちが無い";
                     if (a.Length < 2 || a[1] is not ("受ける" or "断る")) return "⚠`!callarms 受ける|断る [全て]`";
                     bool join = a[1] == "受ける";
                     w.Diplomacy.ResolveCallToArms(me, join, w.Coef);

@@ -589,7 +589,7 @@ public static class Fiscal
 
     /// <summary>★(603) 切り下げの月が <see cref="World.FiatInflationPressure"/> に積む圧＝切り下げ額 <paramref name="devalue"/> ÷ 分母。分母は切り下げの<b>後</b>の広義の貨幣 <paramref name="broadAfter"/>（haircut で貯蓄が減った後の純額）。
     /// 分母の床は分子自身の大きさ（<c>Math.Max(broadAfter, devalue)</c>＝月の圧は devalue＞0 のとき 1 以下の割合）。旧の式 <c>devalue / Math.Max(1.0, broadAfter)</c> は貯蓄が尽きた月に絶対値の床 1.0 で割られ、圧が通貨の額そのものになった（P が 1 四半期で 1e6 倍・その後は請求が P に比例して 2 乗の暴走）。
-    /// <paramref name="broadAfter"/> が max(1, devalue) 以上の月は旧と同じビット。設計思想⑧の例外（発散する量への指数関数的なロック）：インフレの速さに上限（四半期の掛け率 ≤ 1+FiatInflationWeight×3）ができる。水準は止まらない。呼び手は Simulation の切り下げの塊の1か所だけ。</summary>
+    /// <paramref name="broadAfter"/> が max(1, devalue) 以上の月は旧と同じビット。★(609) 合流の名乗りの直し（反証役 pfix〔bv〕中）：devalue＞0・broadAfter＞0 では min(devalue/broadAfter, 1) と同じ＝設計思想⑧に当たる**硬い上限**（⑧の例外は x/(1+x/Max) 型の漸近のロックだけ）・**未裁定**（台帳の筋は S 案〈分母＝切り下げ前の貯蓄＋新規発行＝圧 ≤1 が恒等式〉で、S なら上限を名乗る必要が無い＝00一覧 §0-2 の問い）。インフレの速さに上限（四半期の掛け率 ≤ 1+FiatInflationWeight×3）ができる。水準は止まらない。呼び手は Simulation の切り下げの塊の1か所だけ。</summary>
     internal static double FiatPressureOfDevalue(double devalue, double broadAfter)
         => devalue / Math.Max(broadAfter, devalue);
 

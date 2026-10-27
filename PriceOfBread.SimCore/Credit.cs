@@ -11,11 +11,6 @@ public static class Credit
     private const double HoardRatioMax = 0.9;  // タンス預金率（退蔵）の上限クランプ
     private const double GoldCoverCreditFloor = 0.25; // カバー率防衛時の与信下限比率（全面凍結はしない）
 
-    /// <param name="month">★月の中の定数（2026-09-26 A2-1）＝名目GDP・大衆の平均満足・平均工業化。日次の呼び手（<see cref="Simulation.StepDayDaily"/>）が
-    /// 月の初日に1回だけ求めて渡す（結果が変わらない根拠は <see cref="Simulation.CreditMonth"/>）。null＝ここで求める（テストの直呼び＝旧と同じ）。</param>
-    /// <param name="days">★旬次（2026-09-30 高速化の段 S3c・近似）：この1回で進める日数 h（旬の初日に呼ぶ）。信頼と与信の残高は目標を旬の中で据え置いて
-    /// h 日ぶんの緩和を閉じた形 1−(1−速さ)^h で寄せ（与信の目標が読む信頼は旬の始めと終わりの台形）、利息は h 日ぶん。
-    /// 1＝旧来の日次と1ビットも変わらない（1−(1−s)^1 と s は丸めが違う＝1 は旧の式のまま）。</param>
     /// <summary>与信の深さの発展度の倍率（最大貸出に掛ける）。★(605) 旗 <c>CreditDevOff</c> が正なら工業化度を読まず 1.0（式は抜き出す前と同じ＝旗 0 では 1 ビットも変わらない。番人が直に呼ぶ）。</summary>
     internal static double DevFactor(World w, Coefficients c, double? meanInd)
     {
@@ -29,6 +24,11 @@ public static class Credit
         return devFactor;
     }
 
+    /// <param name="month">★月の中の定数（2026-09-26 A2-1）＝名目GDP・大衆の平均満足・平均工業化。日次の呼び手（<see cref="Simulation.StepDayDaily"/>）が
+    /// 月の初日に1回だけ求めて渡す（結果が変わらない根拠は <see cref="Simulation.CreditMonth"/>）。null＝ここで求める（テストの直呼び＝旧と同じ）。</param>
+    /// <param name="days">★旬次（2026-09-30 高速化の段 S3c・近似）：この1回で進める日数 h（旬の初日に呼ぶ）。信頼と与信の残高は目標を旬の中で据え置いて
+    /// h 日ぶんの緩和を閉じた形 1−(1−速さ)^h で寄せ（与信の目標が読む信頼は旬の始めと終わりの台形）、利息は h 日ぶん。
+    /// 1＝旧来の日次と1ビットも変わらない（1−(1−s)^1 と s は丸めが違う＝1 は旧の式のまま）。</param>
     public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat, double MeanInd)? month = null, int days = 1)
     {
         var bank = w.Bank;

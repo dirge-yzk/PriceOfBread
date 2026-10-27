@@ -67,7 +67,7 @@ internal static class PlayFacts
         var classes = PopTables.ClassLines(w).Where(c => c.UnempRate > 0.005).OrderByDescending(c => c.Unemployed).Take(8).ToList();
         sb.AppendLine("階級別（失業率 0.5% 超・失業者の多い順）： " + (classes.Count == 0 ? "なし" : string.Join("　", classes.Select(c => $"{c.Name} {c.Unemployed:N0}（{c.UnempRate:P1}）"))));
         var topR = regions.Where(x => x.Unemployed > 0.5 && x.Population > 1e-9).OrderByDescending(x => x.Unemployed).Take(5).ToList();
-        sb.AppendLine("州別（失業者の多い順 上位 5）： " + (topR.Count == 0 ? "なし" : string.Join("　", topR.Select(x => $"{x.Name} {x.Unemployed:N0}（{x.Unemployed / x.Population:P1}）"))));
+        sb.AppendLine("州別（失業者の多い順 上位 5・率の分母は州の全人口）： " + (topR.Count == 0 ? "なし" : string.Join("　", topR.Select(x => $"{x.Name} {x.Unemployed:N0}（{x.Unemployed / x.Population:P1}）"))));
     }
 
     /// <summary>最後通牒の中身（App のポップアップが出す数と同じ関数）：争点（緊張の内訳を表示名で束ねて大きい順）・緊張の今と受諾後・受諾で払う正統性・開戦したときの戦力と勝勢。数と名前だけ。</summary>
@@ -86,7 +86,7 @@ internal static class PlayFacts
         var o = dip.WarOutlook(sp, foe, w.Coef);
         double tNow = dip.Tension(sp, foe), legCost = Math.Min(w.Coef.AISubmitLegitCost, w.Legitimacy);
         return $"争点 {(issues.Count == 0 ? "なし" : string.Join(" ", issues.Take(4).Select(x => $"{x.Name} {x.V:F0}")))}／緊張 {tNow:F0}→受諾後 {w.Coef.ConcedeTensionTarget:F0}／受諾で正統性 −{legCost:F2}／"
-             + $"戦力 自軍 陸{o.MyLand:N0} 海{o.MyNaval:N0} 空{o.MyAir:N0}・{foe.Name} 陸{o.EnLand:N0} 海{o.EnNaval:N0} 空{o.EnAir:N0}／勝勢 {o.WinShare:P0}";
+             + $"戦力の指数 自軍 陸{o.MyLand:N0} 海{o.MyNaval:N0} 空{o.MyAir:N0}・{foe.Name} 陸{o.EnLand:N0} 海{o.EnNaval:N0} 空{o.EnAir:N0}／勝勢 {o.WinShare:P0}";
     }
 
     /// <summary>参戦要請の中身：自軍と敵の戦力・断ったときの緊張の上乗せ（App のポップアップと同じ係数）。</summary>
@@ -94,7 +94,7 @@ internal static class PlayFacts
     {
         if (w.Diplomacy is not { } dip) return "";
         var o = dip.WarOutlook(sp, enemy, w.Coef);
-        return $"戦力 自軍 陸{o.MyLand:N0} 海{o.MyNaval:N0} 空{o.MyAir:N0}・{enemy.Name} 陸{o.EnLand:N0} 海{o.EnNaval:N0} 空{o.EnAir:N0}／勝勢 {o.WinShare:P0}／断ると {caller.Name} との緊張 +{w.Coef.AllyRefusalTension:F0}";
+        return $"戦力の指数 自軍 陸{o.MyLand:N0} 海{o.MyNaval:N0} 空{o.MyAir:N0}・{enemy.Name} 陸{o.EnLand:N0} 海{o.EnNaval:N0} 空{o.EnAir:N0}／勝勢 {o.WinShare:P0}／断ると {caller.Name} との緊張 +{w.Coef.AllyRefusalTension:F0}";
     }
 
     /// <summary>待っている問いの中身の節（最後通牒・参戦要請があるときだけ）。</summary>
@@ -115,11 +115,15 @@ internal static class PlayFacts
         AppendUnemployment(sb, w);
     }
 
-    /// <summary>`!callarms 受ける|断る 全て` の形なら答え（受ける＝true）を返す。この呼び出しの間に立つ参戦要請へ同じ答えを置く指定（記録は残らず次の呼び出しには持ち越さない）。</summary>
+    /// <summary>`!callarms 受ける|断る 全て`（または `!answer 参戦要請=受ける:全て` と同じ展開）の形なら答え（受ける＝true）を返す。この呼び出しの間に立つ参戦要請へ同じ答えを置く指定
+    /// （state には持ち越さない＝次の呼び出しでは効かない・行そのものは decision.raw.txt に残り、置いた答えは <see cref="PlayHarness.SkipCallToArms"/> が四半期スタンプつきで残す）。★(609) 合流：`!answer` の展開の行も読む（反証役 rpt〔v〕低 #3）。</summary>
     internal static bool? StandingCallArmsOf(string line)
     {
         string[] a = line.TrimStart('!').Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (a.Length == 3 && a[0] == "callarms" && a[2] == "全て" && a[1] is ("受ける" or "断る")) return a[1] == "受ける";
+        if (a.Length > 1 && a[0] == "answer" && ExpandAnswer(a).Lines is { } lines)
+            foreach (string l in lines)
+                if (StandingCallArmsOf(l) is { } s) return s;
         return null;
     }
 

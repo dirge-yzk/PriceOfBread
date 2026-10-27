@@ -44,7 +44,7 @@ RULES = [
  (r'^World\.cs$', r'IndustryInvestRegionCap|cap - r\.TotalIndustrialization', '譲枠', '州の上限（国庫の近代化投資の適格と重みの余地）'),
  (r'^World\.cs$', r'IndustrialFrontier', '旗', '世界最先端の工業化度の欄（思想の門が読む）→ 旗 IdeologyDevFromUrban で注入も読みも止まる'),
  (r'^World\.cs$', r'public double MeanIndustrialization|total > 1e-9 \? w / total : Region\.TotalIndustrialization|w \+= p \* r\.TotalIndustrialization|foreach \(var r in Regions\) \{ double p = r\.SumPopulation', '丙', '導出の平均（人口加重）＝量の定義'),
- (r'^PopDecision\.cs$|^Meritocracy\.cs$', r'.', '旗', '都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）→ 旗 UrbanCapFromHousing＝天井を外し住居の充足の摩擦だけ'),
+ (r'^PopDecision\.cs$|^Meritocracy\.cs$', r'.', '旗', '都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）→ 旗 UrbanCapOff（旧名 UrbanCapFromHousing・★(609) 合流で名を合わせた）＝天井を外す（住居の摩擦は足していない）'),
  (r'^Simulation\.cs$', r'avgInd \+= r\.TotalIndustrialization|indPopSum \+=|avgInd \+= c\.Industrializ|double avgInd|double indPopSum|if \(actN > 0\) avgInd|indPopWeighted', '譲出', '扶養力と出生の工業化度の平均 avgInd＝旗 CapacityIndTermsOff は扶養力の 2 項だけ外す・出生の項 FertilityIncomeSlope×avgInd は出生の設計へ'),
  (r'^Simulation\.cs$', r'capAvgInd', '旗', '扶養力の工業化度の 2 項の入力 → 旗 CapacityIndTermsOff で 0'),
  (r'^Simulation\.cs$', r'FertilityIncomeSlope \* avgInd', '譲出', '出生の工業化度の項＝出生の設計（最終段 9-2）の持ち物'),

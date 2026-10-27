@@ -1003,16 +1003,16 @@ public class PlayHarnessTests
             var applied = new System.Collections.Generic.List<string>();
             var answer = PlayHarness.SkipCallToArms(dir, applied, join: false);
             int arms = 0;
-            var (stepped, _) = PlayHarness.StepUntilWait(sim, 0, 4, null, n => { if (n < 4) { me.PendingCallToArms = (caller, enemy); arms++; } }, answer);
+            var (stepped, _) = PlayHarness.StepUntilWait(sim, 0, 4, null, n => { me.PendingCallToArms = (caller, enemy); arms++; }, answer);   // ★(609) 合流：最後の 1 四半期の後にも立てる＝ループの後の答えも番人の射程へ（反証役 rpt〔v〕低 #4）
             Assert.Equal(4, stepped);
-            Assert.Equal(3, arms);
-            Assert.Equal(4, applied.Count);   // 最初の 1 件＋途中で立てた 3 件
+            Assert.Equal(4, arms);
+            Assert.Equal(5, applied.Count);   // 最初の 1 件＋途中で立てた 3 件＋最後の 1 四半期の後に立てた 1 件
             Assert.All(applied, a => Assert.Contains("断った", a));
             Assert.Null(me.PendingCallToArms);
             Assert.False(sim.Diplomacy.IsAtWar(me, enemy));
             string raw = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "decision.raw.txt"));
-            Assert.Equal(4, raw.Split('\n').Count(l => l == "!callarms 断る"));
-            Assert.Equal(4, raw.Split('\n').Count(l => l.StartsWith("@") && l.Contains('Q')));
+            Assert.Equal(5, raw.Split('\n').Count(l => l == "!callarms 断る"));
+            Assert.Equal(5, raw.Split('\n').Count(l => l.StartsWith("@") && l.Contains('Q')));
         }
         finally { System.IO.Directory.Delete(dir, true); }
         // 指定の読み方：全て つきだけが指定になる・待ちが無いときの動詞は置いたことだけ返す
@@ -1020,8 +1020,11 @@ public class PlayHarnessTests
         Assert.Equal(false, PlayFacts.StandingCallArmsOf("!callarms 断る 全て"));
         Assert.Null(PlayFacts.StandingCallArmsOf("!callarms 断る"));
         Assert.Null(PlayFacts.StandingCallArmsOf("!callarms 保留 全て"));
+        Assert.Equal(false, PlayFacts.StandingCallArmsOf("!answer 最後通牒=受諾 参戦要請=断る:全て"));   // ★(609) 合流：!answer の展開も指定になる（反証役 rpt〔v〕低 #3）
+        Assert.Null(PlayFacts.StandingCallArmsOf("!answer 参戦要請=断る"));
         var (_, w3, _, _, _) = Board();
         Assert.StartsWith("参戦要請（全て）", PlayHarness.RunVerb(w3, "!callarms 断る 全て"));
+        Assert.DoesNotContain("置いた", PlayHarness.RunVerb(w3, "!callarms 断る 全て"));   // RunVerb は何も置かない（置くのは Run）
         Assert.StartsWith("⚠参戦要請の待ちが無い", PlayHarness.RunVerb(w3, "!callarms 断る"));
         Assert.StartsWith("⚠`!callarms", PlayHarness.RunVerb(w3, "!callarms 断る 全部"));
     }

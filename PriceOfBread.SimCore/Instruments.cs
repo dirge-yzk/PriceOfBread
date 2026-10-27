@@ -843,7 +843,7 @@ public static partial class Instruments
         double oldDen = Math.Max(1.0, broadAfter), newDen = Math.Max(broadAfter, devalue);
         if (oldDen == newDen) return;
         var st = S(w);
-        st.PfixMonths++; st.PfixOld += devalue / oldDen; st.PfixNew += devalue / newDen; if (broadAfter < st.PfixBroadMin) st.PfixBroadMin = broadAfter;
+        st.PfixMonths++; st.PfixOld += devalue / oldDen; st.PfixNew += Fiscal.FiatPressureOfDevalue(devalue, broadAfter);   /* ★(609) 合流：今の圧は本体の 1 本から読む（反証役 pfix〔bv〕低＝式の出所を 2 本にしない・値は devalue / newDen とビット同じ） */ if (broadAfter < st.PfixBroadMin) st.PfixBroadMin = broadAfter;
     }
     /// <summary>率 r が決まった所（請求の合計・払える額〔借入と切り下げの後〕・r・この月の切り下げ）。</summary>
     internal static void Rate(World w, double claims, double payable, double payRate, double devalued)

@@ -18,7 +18,7 @@ public class ModernizationAbolishedTests
         => new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia(), NationConfig.France()], seed: 1789);
 
     /// <summary>高等教育の学費の補助と招聘の予算は出る。招聘の取り分は係数 ModernizationToRecruit（0.05）・学費の補助は残りの 1/2（ModernizationToHigherEdu を 0.5 に置いた）。
-    /// 突然変異＝招聘の取り分の式を変えると（予算×率が RecruitBudget と合わなくなり）赤になる。</summary>
+    /// 突然変異＝招聘の取り分の式を変えると（予算×率が RecruitBudget と合わなくなり）赤になる（★(609) 合流：この突然変異は未確認＝(608) の記録に無い・係数の値の変化は捕まえない）。</summary>
     [Fact]
     public void 高等教育の補助と招聘は出る()
     {

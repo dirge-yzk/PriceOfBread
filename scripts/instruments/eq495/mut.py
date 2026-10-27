@@ -13,6 +13,7 @@ muts = [
  ("M08 完成で Scale を足さない", "PriceOfBread.SimCore/World.cs", "p.Scale += Coef.FactoryBuildScale;", "", 1),
  ("M09 全員赤字の等分をやめる", "PriceOfBread.SimCore/FactoryEquipment.cs", ": 1.0 / nCand;", ": 0.0;", 1),
  ("M10 基準が一棟の下限を持たない", "PriceOfBread.SimCore/FactoryEquipment.cs", "double basis = sumScale > c.FactoryBuildScale ? sumScale : c.FactoryBuildScale;", "double basis = sumScale;", 1),
+ # ★(609) 合流の墓標：M11・M13 は (605) で対象の式を物理削除＝置換の対象が無い死んだ突然変異（assert で止まる）
  ("M11 賃金の天井が旗で消えない", "PriceOfBread.SimCore/MarketFlow.cs", "(coef.IndustrializationOff > 0 ? 0.0 : region.Industrialization)", "region.Industrialization", 1),
  ("M13 独占の解体が旗で消えない", "PriceOfBread.SimCore/EconomyStep.cs", "(c.IndustrializationOff > 0 ? 1.0 : Math.Max(", "(false ? 1.0 : Math.Max(", 1),
  ("M14 ヴィンテージが旗で止まらない", "PriceOfBread.SimCore/EconomyStep.cs", "&& !warmFrozen && !indOff)", "&& !warmFrozen)", 1),
