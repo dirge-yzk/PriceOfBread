@@ -46,6 +46,8 @@ RULES = [
  (r'^World\.cs$', r'public double MeanIndustrialization|total > 1e-9 \? w / total : Region\.TotalIndustrialization|w \+= p \* r\.TotalIndustrialization|foreach \(var r in Regions\) \{ double p = r\.SumPopulation', '丙', '導出の平均（人口加重）＝量の定義'),
  (r'^PopDecision\.cs$|^Meritocracy\.cs$', r'.', '旗', '都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd）→ 旗 UrbanCapFromHousing＝天井を外し住居の充足の摩擦だけ'),
  (r'^Simulation\.cs$', r'avgInd \+= r\.TotalIndustrialization|indPopSum \+=|avgInd \+= c\.Industrializ|double avgInd|double indPopSum|if \(actN > 0\) avgInd|indPopWeighted', '譲出', '扶養力と出生の工業化度の平均 avgInd＝旗 CapacityIndTermsOff は扶養力の 2 項だけ外す・出生の項 FertilityIncomeSlope×avgInd は出生の設計へ'),
+ (r'^Simulation\.cs$', r'capAvgInd', '旗', '扶養力の工業化度の 2 項の入力 → 旗 CapacityIndTermsOff で 0'),
+ (r'^Simulation\.cs$', r'FertilityIncomeSlope \* avgInd', '譲出', '出生の工業化度の項＝出生の設計（最終段 9-2）の持ち物'),
  (r'^Simulation\.cs$', r'creditMonth|box\.Value|MeanIndustrialization|MeanInd\b', '旗', '信用へ渡す MeanInd → 旗 CreditDevOff で計算もしない'),
  (r'^Credit\.cs$', r'.', '旗', '信用の深さ devFactor（工業化度の倍率）→ 旗 CreditDevOff＝倍率を消す（作者 2026-10-16 バフ／デバフ全削除）'),
  (r'^CapitalMarket\.cs$', r'.', '旗', '外資の余地 headroom＝CapitalIndTarget−MeanInd → 旗 CapitalHeadroomFromReturn＝CapitalIndTarget×ModernizeReturnShare()'),
