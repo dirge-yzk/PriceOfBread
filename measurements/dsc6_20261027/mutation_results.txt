@@ -1,0 +1,17 @@
+=== M1a_callsite
+  失敗 PriceOfBread.Tests.DiscoveryProgressTests.盤面の技術の項は行ごとに分野の本国の技術者で手計算と一致する [1 s]
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 35 s - PriceOfBread.Tests.dll (net10.0)
+=== M1b_root_adds_all
+  失敗 PriceOfBread.Tests.DiscoveryProgressTests.盤面の技術の項は行ごとに分野の本国の技術者で手計算と一致する [1 s]
+  失敗 PriceOfBread.Tests.DiscoveryProgressTests.分野の技術者は根の財の分だけで投入の財の技師は足さない [255 ms]
+失敗!   -失敗:     2、合格:    26、スキップ:     0、合計:    28、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+=== M2_demand_dead_ok
+  失敗 PriceOfBread.Tests.DiscoveryProgressTests.国の需要の総額は生きている財の需要掛ける値段の和 [1 ms]
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 36 s - PriceOfBread.Tests.dll (net10.0)
+=== M3_no_divide
+  失敗 PriceOfBread.Tests.DiscoveryProgressTests.必要性の半分点は国の需要との比で旗0なら固定の半分点 [1 s]
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 31 s - PriceOfBread.Tests.dll (net10.0)
+=== M4_flag_ignored
+  失敗 PriceOfBread.Tests.DiscoveryProgressTests.必要性の半分点は国の需要との比で旗0なら固定の半分点 [1 s]
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+DONE

@@ -1,0 +1,8 @@
+# (595) aic 後半の検証（木 ba552562・隔離ビルド D:/PoB_work/aic_595/art）
+Category!=FullLength：成功 失敗 0・合格 1899・Skip 1・合計 1900（13 分・中止の行なし）
+Category=FullLength：成功 合格 3（3 分 9 秒）
+--list-tests：1903（1900＋3）
+savetest 1789 300 12：保存 45.9MB／savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 1789 668 warm：完走・保存則違反なし・世界の台帳の説明できない増減＝人口 0・基礎貨幣 0
+leakhunt 1789 668：完走・保存則違反なし・世界の台帳の説明できない増減＝人口 0・基礎貨幣 0
+突然変異 9 本（判定の反転・作れる上流の削除・流れの物差し 0・循環を偽・役務の除外を外す・StepFactoryTargets の代用を外す・PrevImport を無視・世界の写しを無視・注入を 0）：全て赤（RootSupplyTests）

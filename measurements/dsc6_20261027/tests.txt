@@ -1,0 +1,3 @@
+フルスイート（Category!=FullLength・Release・隔離ビルド・木 d899b502）：1918 合格・失敗 0・Skip 1（合計 1919・14 分 53 秒）
+FullLength 3 本：3 合格・失敗 0（4 分 2 秒）
+--list-tests：1922（=1919+3）

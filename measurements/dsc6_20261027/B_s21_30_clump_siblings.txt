@@ -1,0 +1,3 @@
+16 rows with prerequisites
+all {'noparent': 2600, 'child-lag>8': 1430, 'parent-startknown': 10}
+clump windows (M>=5) {'noparent': 105, 'child-lag>8': 6}

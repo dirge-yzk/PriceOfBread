@@ -1,0 +1,2 @@
+all events {'res': 2146, 'trn': 1894}  share research 0.531
+events in nation-max windows with M>=5 (n=21 windows) {'res': 63, 'trn': 48}  share research 0.568
