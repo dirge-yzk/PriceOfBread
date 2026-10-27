@@ -1,0 +1,9 @@
+# (615) pcw 点火後の木（3cc1df17 + 試験の直し）の試験・savetest・leakhunt
+--list-tests: 1945（＝1942＋FullLength 3）
+Category!=FullLength: 成功!   -失敗:     0、合格:  1941、スキップ:     1、合計:  1942、期間: 22 m 30 s（直した後に全体を回し直した。最初の回は 7 件赤＝ReformPathTests 4・WriterRatchetTests 2・InstrumentsTests 1）
+Category=FullLength: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 17 s
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 1789 668 warm：完走・保存則違反なし・説明できない増減＝人口 0四半期・基礎貨幣 0四半期
+leakhunt 1789 668：完走・保存則違反なし・説明できない増減＝人口 0四半期・基礎貨幣 0四半期
+突然変異（旗の既定を 1→0 に戻す）：MandateWallStockCapTests.既定は1・ReformPathTests 3 本・InstrumentsTests 台帳の恒等（既定の経路）の 5 本が赤→戻した。
+（前半の突然変異：旗の枝を消す→6 本赤／旗の条件を常に真にする→2 本赤。）
