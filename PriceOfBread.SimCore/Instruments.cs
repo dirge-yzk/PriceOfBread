@@ -839,24 +839,26 @@ public static partial class Instruments
         var st = S(w);
         st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" + st.PcWarmN : "q" + st.PcGameN), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(w.Coef.DevaluationCapReliefExp)));
     }
-    /// <summary>(603) 切り下げの月の圧の分母。旧の式と新の式（<see cref="Fiscal.FiatPressureOfDevalue"/>）の分母が違う月だけ、その四半期の和へ溜める（旧の式なら圧が割合を越えた月＝焼き込んだ分母が効いた月。旧の式の圧は pressureOld・今の圧は pressureNew）。読むだけ。</summary>
+    /// <summary>(603) の M 案＝分母 max(切り下げの後の広義の貨幣, devalue)。★(616) で本体は S 案（Fiscal.FiatPressureOfLedger）へ置き換えた＝これは pfix_s・fsx_s の比べる側の列を出すためだけの写し（本体は読まない）。</summary>
+    internal static double FiatPressureM(double devalue, double broadAfter) => devalue / Math.Max(broadAfter, devalue);
+    /// <summary>(603) 切り下げの月の圧の分母。旧の式（絶対値の床 1.0）と M 案（<see cref="FiatPressureM"/>）の分母が違う月だけ、その四半期の和へ溜める（旧の式なら圧が割合を越えた月＝焼き込んだ分母が効いた月。旧の式の圧は pressureOld・M 案の圧は pressureNew（★(616) 以後の本体は S 案＝この列は比べる側））。読むだけ。</summary>
     internal static void PfixMonth(World w, double devalue, double broadAfter)
     {
         double oldDen = Math.Max(1.0, broadAfter), newDen = Math.Max(broadAfter, devalue);
         if (oldDen == newDen) return;
         var st = S(w);
-        st.PfixMonths++; st.PfixOld += devalue / oldDen; st.PfixNew += Fiscal.FiatPressureOfDevalue(devalue, broadAfter);   /* ★(609) 合流：今の圧は本体の 1 本から読む（反証役 pfix〔bv〕低＝式の出所を 2 本にしない・値は devalue / newDen とビット同じ） */ if (broadAfter < st.PfixBroadMin) st.PfixBroadMin = broadAfter;
+        st.PfixMonths++; st.PfixOld += devalue / oldDen; st.PfixNew += FiatPressureM(devalue, broadAfter);   if (broadAfter < st.PfixBroadMin) st.PfixBroadMin = broadAfter;
     }
-    /// <summary>(616) 線 fsx 段1：切り下げの月の圧を M 案と S 案の両方で溜める（旗の値に依らず出す）。<paramref name="pForce"/>＝実際に積んだ圧（旗の式）。読むだけ。</summary>
+    /// <summary>(616) 線 fsx 段1：切り下げの月の圧を M 案（旧）と S 案（本体）の両方で溜める。<paramref name="pForce"/>＝実際に積んだ圧（S 案）。読むだけ。</summary>
     internal static void FsxPressure(World w, double devalue, double totalSav, double issue, double broadAfter, double pForce)
     {
         var st = S(w);
-        double pM = Fiscal.FiatPressureOfDevalue(devalue, broadAfter), pS = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);
+        double pM = FiatPressureM(devalue, broadAfter), pS = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);
         st.FsxDevMonths++; st.FsxPForceSum += pForce; st.FsxPMSum += pM; st.FsxPSSum += pS;
         if (pForce > st.FsxPForceMax) st.FsxPForceMax = pForce;
         if (pS > st.FsxPSMax) st.FsxPSMax = pS;
     }
-    /// <summary>(616) 線 fsx 段2：減債の門を通った月の、年 1% の額・実際に返した額・線を超えた国庫の額（旗の値に依らず出す）。読むだけ。</summary>
+    /// <summary>(616) 線 fsx 段2：減債の門を通った月の、年 1% の額・実際に返した額・線を超えた国庫の額。読むだけ。</summary>
     internal static void FsxRepay(World w, double floorRepay, double done, double excess)
     {
         var st = S(w);

@@ -17,7 +17,7 @@
     G4：repayAboveFloorSum＞0 の国×四半期の数と、そのうち govDebtEnd が前の四半期より下がった割合。
     G6：四半期末に国庫>線（treasuryOverLineFlag）の割合を債務の有無別に。
     G8（記録）：開幕 8 四半期の repayDoneSum÷lineEnd（国別・種の中央値）と、money_s の開幕 8 四半期の ln(P後/P前) の最大・広義の貨幣の q1→q8 の比。
-    線の近似の誤差の自己申告：B の fiscal_s の近似の線を、同じ四半期末の fsx_s の lineEnd と並べた比（近似÷厳密）の p5・中央値・p95（対応は月の番号 3q と国庫の一致で確かめる）。
+    線の近似の誤差の自己申告：B の fiscal_s の近似の線を、同じ四半期末の fsx_s の lineEnd と並べた比（近似÷厳密）の p5・中央値・p95（対応は月の番号 3(q+1) と国庫の一致で確かめる）。
 合否（追記 2 の判定）は末尾に PASS／FAIL で出す（G1・G3・G3x の向き）。
 """
 import csv, glob, math, os, re, statistics, sys
@@ -197,7 +197,7 @@ def fsx_report(label, folder, is_arm):
 
 
 def line_error(label, folder):
-    """B の fiscal_s の近似の線÷fsx_s の厳密な lineEnd（四半期末＝月の番号 3q）。対応は国庫の一致で確かめる。"""
+    """B の fiscal_s の近似の線÷fsx_s の厳密な lineEnd（四半期 q の末＝月の番号 3(q+1)・q0 が月 3）。対応は国庫の一致で確かめる。"""
     fsx = read_fsx(folder); fis = read_fiscal(folder)
     if not fsx or not fis:
         return
@@ -205,7 +205,7 @@ def line_error(label, folder):
     for key, rows in fsx.items():
         fr = {int(m[0]): m for m in fis.get(key, [])}
         for (q, d) in rows:
-            m = fr.get(3 * q)
+            m = fr.get(3 * (q + 1))
             if m is None:
                 continue
             tot += 1

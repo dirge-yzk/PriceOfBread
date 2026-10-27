@@ -12,51 +12,62 @@ namespace PriceOfBread.Tests;
 [Collection("Instruments")]   // Instruments の静的な状態（Configure）を立てる試験を含む
 public class PriceLevelPressureTests(ITestOutputHelper output)
 {
-    // ---------------- 圧の分母（Fiscal.FiatPressureOfDevalue・純関数） ----------------
+    // ---------------- 圧の分母（Fiscal.FiatPressureOfLedger・純関数・★(616) で M 案から置き換えた） ----------------
 
     [Fact]
-    public void 旧の式は貯蓄が尽きた月に圧が通貨の額になり_今の式は割合に挟まれる()
+    public void 旧の式は貯蓄が尽きた月に圧が通貨の額になり_今の式は割合に収まる()
     {
         // 試験側の手書きの旧の式（陽性対照）：貨幣が 1 未満だと絶対値の床 1.0 で割られる
         double Old(double dev, double broad) => dev / Math.Max(1.0, broad);
         Assert.True(Old(9.5086e5, 3.5e-12) > 1e5);
         Assert.True(Old(9.5086e5, -5.5e11) > 1e5);
-        foreach (double dev in new[] { 1e-9 * 1.0001, 1e-6, 0.5, 1.0, 9.5086e5, 1e12, 1e300 })
-            foreach (double broad in new[] { 3.5e-12, 0.0, 0.7, 1.0, 55.0, 1e7, 1e300, -1e-16, -5.5e11, -3.0e110 })
+        // 今の式（分母＝切り下げ前の貯蓄＋発行）：取った額は（貯蓄＋発行）を越えない台帳の範囲で、圧は (0,1]
+        foreach (double sav in new[] { 0.0, 3.5e-12, 0.7, 55.0, 1e7, 1e300 })
+            foreach (double issue in new[] { 0.0, 1e-6, 5.0, 9.5086e5 })
             {
-                double p = Fiscal.FiatPressureOfDevalue(dev, broad);
-                Assert.True(p > 0 && p <= 1.0, $"devalue {dev}・貨幣 {broad}：圧 {p} が (0,1] の外");
+                double den = sav + issue;
+                if (!(den > 0)) continue;
+                foreach (double f in new[] { 1e-9, 0.5, 1.0 })
+                {
+                    double p = Fiscal.FiatPressureOfLedger(den * f, sav, issue);
+                    Assert.True(p > 0 && p <= 1.0, $"貯蓄 {sav}・発行 {issue}・割合 {f}：圧 {p} が (0,1] の外");
+                }
             }
-        // 貯蓄を全て取った月（貨幣が 0 付近）は圧がちょうど 1（旧は 9.5e5）
-        Assert.Equal(1.0, Fiscal.FiatPressureOfDevalue(9.5086e5, 3.5e-12));
+        // 貯蓄を全て取った月（貯蓄が 0 付近・発行だけ）は圧がちょうど 1（旧は 9.5e5）
+        Assert.Equal(1.0, Fiscal.FiatPressureOfLedger(9.5086e5, 0.0, 9.5086e5));
     }
 
     [Fact]
-    public void 圧は貨幣について単調で_貨幣が取り上げた額以上なら取り上げた割合そのもの()
+    public void 圧は貯蓄について単調で_取り上げた額が分母の全部なら1()
     {
         foreach (double dev in new[] { 1e-6, 0.5, 37.0, 9.5e5, 1e9 })
         {
             double prev = double.PositiveInfinity;
-            foreach (double broad in new[] { -1e3, 0.0, dev * 0.25, dev * 0.5, dev, dev * 2, dev * 20, dev * 1e4 })
+            foreach (double sav in new[] { dev * 0.25, dev * 0.5, dev, dev * 2, dev * 20, dev * 1e4 })
             {
-                double p = Fiscal.FiatPressureOfDevalue(dev, broad);
-                Assert.True(p <= prev, $"貨幣が増えたのに圧が増えた（devalue {dev}・貨幣 {broad}）");
+                double p = Fiscal.FiatPressureOfLedger(dev, sav, 0.0);
+                Assert.True(p <= prev, $"貯蓄が増えたのに圧が増えた（devalue {dev}・貯蓄 {sav}）");
                 prev = p;
-                if (broad >= dev) Assert.Equal(dev / broad, p);   // 取った割合（定義）
+                Assert.Equal(dev / sav, p);   // 取った割合（定義）
             }
         }
     }
 
     [Fact]
-    public void 非数の貨幣は圧に非数を積み_四半期の更新の否定形が消して物価は有限のまま()
+    public void 非数の分母は圧0を積み_四半期の更新が壊れず物価は有限のまま()
     {
-        // NaN の貨幣は NaN の圧（Math.Max は NaN を消さない）＝既存と同じ性質。UpdatePriceLevel の否定形（World.cs）が消す
-        Assert.True(double.IsNaN(Fiscal.FiatPressureOfDevalue(5.0, double.NaN)));
+        // 否定形：分母が非数（`den > 0` が偽）の月は圧 0＝NaN を積まない
+        Assert.Equal(0.0, Fiscal.FiatPressureOfLedger(5.0, double.NaN, 0.0));
         var w = Build();
         double p0 = w.PriceLevel;
-        w.FiatInflationPressure = Fiscal.FiatPressureOfDevalue(5.0, double.NaN);
+        w.FiatInflationPressure = Fiscal.FiatPressureOfLedger(5.0, double.NaN, 0.0);
         w.UpdatePriceLevel(w.Coef);
-        Assert.True(double.IsFinite(w.PriceLevel) && w.PriceLevel > 0, $"NaN の圧で物価が壊れた（{p0} → {w.PriceLevel}）");
+        Assert.True(double.IsFinite(w.PriceLevel) && w.PriceLevel > 0, $"非数の分母で物価が壊れた（{p0} → {w.PriceLevel}）");
+        Assert.Equal(0.0, w.FiatInflationPressure);
+        // 更新の否定形そのもの（World.cs）：非数の圧が積まれても消える
+        w.FiatInflationPressure = double.NaN;
+        w.UpdatePriceLevel(w.Coef);
+        Assert.True(double.IsFinite(w.PriceLevel) && w.PriceLevel > 0);
         Assert.Equal(0.0, w.FiatInflationPressure);
     }
 
@@ -73,13 +84,12 @@ public class PriceLevelPressureTests(ITestOutputHelper output)
 
     /// <summary>不換のイギリスで、毎月の月初に国債の平均クーポンを、利払いの請求が広義の貨幣の fMonth 倍になる高さへ置いて赤字を作り、借入を閉じ、<paramref name="quarters"/> 四半期進める。
     /// 四半期ごとに P の更新の前後を記録する（更新の直前の P は前の四半期の末の値）。fMonth＞1 は貯蓄を 1 か月で取りきる赤字。</summary>
-    internal (double[] pAfter, double[] pPrev, double maxPressureMonth, bool finiteAll, int reachedQ, bool broke) RunDeficit(double fMonth, int quarters, ulong seed = 19, double ledger = 0)   // ★(616) ledger＝旗 FiatPressureDenomLedger（FsxTests が S 案で同じ盤面を踏む）
+    internal (double[] pAfter, double[] pPrev, double maxPressureMonth, bool finiteAll, int reachedQ, bool broke) RunDeficit(double fMonth, int quarters, ulong seed = 19)   // FsxTests が同じ盤面を踏む
     {
         var cfg = OpeningFixture.Named("イギリス");
         cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
         var sim = new Simulation(cfg.ToScenario(seed), new NullAgent());
         var w = sim.World;
-        w.Coef.FiatPressureDenomLedger = ledger;
         Assert.True(w.MonetaryEnabled);
         var mc = new MoneyConservation(w);
         int months = quarters * 3;
@@ -208,6 +218,8 @@ public class PriceLevelPressureTests(ITestOutputHelper output)
     {
         Assert.Null(typeof(Coefficients).GetField("FiatPressureRelativeFloor"));   // 旗の復活を禁じる（常に有効）
         Assert.Null(typeof(Coefficients).GetField("PriceTrendHoldAtZeroGdp"));
+        Assert.Null(typeof(Coefficients).GetField("FiatPressureDenomLedger"));   // ★(616) 採って焼き込んだ旗の復活も禁じる
+        Assert.Null(typeof(Coefficients).GetField("TreasuryExcessRepays"));
         int writes = 0;
         foreach (var (f, rel) in GoodIdGuardTests.CsFiles())
         {
