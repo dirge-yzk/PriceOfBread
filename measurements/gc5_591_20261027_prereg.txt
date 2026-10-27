@@ -1,0 +1,20 @@
+(591) 恒等の線 gc5：AI の旧の近代化の腕〔旗 AiModernizeFromReturn の段 0〜2・EffectiveIndCeiling・IndustrializationCeiling・AiIndustrialCeilingFrontier・modsig の旧の列〕の削除
+事前登録（走る前に名乗る）。基点＝main c7fd8616（m584）。書いたモデル Claude Sonnet 5.5。
+
+[1] 合否（挙動を変えない）
+  成績表 3 枚（素の 10 種 b10_20261027_m584・5 種 b5_20261027_m584・計器つき 10 種 b10_20261027_m584_ins）が基準とファイル全体でバイト一致（SOURCE-HASH の行は .manifest にあり、成績表の本体に無い）。
+  NG は ng.sh で 89・基準 rd:measurements/ng584_20261027:m584 と同じ集合（新しい 0・外れた 0）。空洞化 1/10 未満 0 件（1/4 未満 8 件）。
+  根拠：旗の既定は 3 で、3 か所の読み手〔Apply の gap・ダンピングの後発判定・ChooseStance の工業化の余地〕と AutoModernizationFrac は既に新しい側の枝だけを通っていた。ModernizeReturnShare は純関数（状態を書かない）なので呼びの回数が変わらない。
+
+[2] 計器の生（比べる側 D:/PoB_work/keep_584/m584_ins）で違ってよい表
+  modsig 10 表：消した 3 列〔indCeilingOld・indGapOld・flagLevel〕だけ。残る 13 列と全行は基準と一致（scripts/instruments/gc5_591/cmp_modsig591.py が基準から 3 列を落として比べる）。
+  flow 10 表：sourceLine の列だけ（コードの行番号が動く）。hz6_513/flow_noline.py で FLOWBAD 0。
+  burscan 10 表：壁時計の列 seconds だけ。clock 10 表：C 行の壁時計だけ。
+  上の 30＋10 表の外は全てバイト一致。
+
+[3] 試験の数が変わる（挙動の試験ではなく旧の腕を踏んでいた分）
+  SteelMarketAiTests −2（前線連動の既定値の番人・前線連動で自主停止が開く試験＝消えた包絡の機構）。ModernizeReturnAndScoreTests は 4 本を新しい側だけに書き直し（本数は同じ）。ScalarDeletionTests +1（旧の腕は復活しない）。
+  InstrumentsTests の CoverageSeed：旧の旗 0 への固定を外したので軌道が既定の側に動き、1813 は場面 T が空洞（飢え 0・構造 6）＝1812 を採る（(405) と同じ作法）。
+  期待：Category!=FullLength の合計 1870−2+1＝1869（Skip 1）。--list-tests は 1871。
+
+[4] 計算量：0 秒（登録）。EffectiveIndCeiling の呼びが ModFold から消える分だけ軽くなる（計器つきのみ）。

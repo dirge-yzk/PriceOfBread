@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// (416) 線 sc の番人（事前登録 measurements/sc_20261019_prereg.txt [6]）。
-/// ①旗 <c>AiModernizeFromReturn</c>＝AI の近代化投資を止める信号を、集計の工業化度の天井でなく設備の限界収益（私的な投資家と同じ式）から出す。
+/// ①AI の近代化投資を止める信号（旗 <c>AiModernizeFromReturn</c> は (591) で旧の腕ごと消した）を、集計の工業化度の天井でなく設備の限界収益（私的な投資家と同じ式）から出す。
 /// ②国力＝世界の総量に対する本国の割合の 6 項（旗 <c>ScoreFromWorldShare</c> は (456) で焼き込んだ）。
 /// 期待値は手計算の数値のリテラルで書く（実装の関数から作らない＝同語反復にしない）。
 /// </summary>
@@ -127,74 +127,67 @@ public class ModernizeReturnAndScoreTests
     }
 
     [Fact]
-    public void 旗0では世界前線が止める所を動かし_旗1では信号が前線に依らない()
+    public void 信号は設備の収益だけで_世界前線に依らない()
     {
-        // 旗 0：包絡＝max(2.5, α×前線)＝前線 0 と 50 で率が変わる（プレイヤーの工業化が AI の止める所を引っ張る汚染）。
-        var w0 = Neutral(Four(), 0, 0.5);
-        w0.Coef.AiIndustrialCeilingFrontier = 0.6; w0.Coef.AiModernizeFromReturn = 0;   // 既定は 3（点火後）＝旧の腕は 0 を明示
-        w0.IndustrialFrontier = 0; double a0 = UtilityAgent.AutoModernizationFrac(w0, 0);
-        w0.IndustrialFrontier = 50; double b0 = UtilityAgent.AutoModernizationFrac(w0, 0);
-        Assert.True(b0 > a0 + 1e-9, "旗 0 の前提が崩れた：前線が上がっても包絡が開かない");
-        // 旗 1：信号は設備の収益だけ。前線を読まない＝同じ率。
+        // 信号は設備の収益だけ。前線（IndustrialFrontier）を読まない＝前線が 0 でも 50 でも同じ率（(591) で旧の包絡 max(2.5, α×前線) の腕を消した）。
         var w1 = Neutral(Four(), 0, 0.5);
-        w1.Coef.AiIndustrialCeilingFrontier = 0.6; w1.Coef.AiModernizeFromReturn = 1;
         w1.IndustrialFrontier = 0; double a1 = UtilityAgent.AutoModernizationFrac(w1, 0);
         w1.IndustrialFrontier = 50; double b1 = UtilityAgent.AutoModernizationFrac(w1, 0);
         Assert.Equal(a1, b1);
         Assert.True(a1 > 0, "前提が崩れた：I＝0.5・技術 0 で信号が立たない");
         // I＝0.5・techProd＝1：sat＝1.2・gross＝1.2÷1.44＝0.8333…・信号＝1−0.7÷0.8333…＝0.16 → 率＝0.16×(1−0)×ModernizeInvestFrac
         Assert.Equal(0.16 * 0.08, a1, 9);   // ModernizeInvestFrac＝0.08（近代化スタンスの率〔SelfPlay の定数〕）
+        // 集計の工業化度が高くても（旧の天井 2.5 を超えても）、設備の収益が立つなら止まらない。収益が立たない（I＝1.0 でハードルを割る）なら 0。
+        var w2 = Neutral(Four(), 0, 3.0);
+        w2.TechLevel = 10.0;   // techProd＝5.4 → 収益が立つ（下のダンピングの試験と同じ前提）
+        Assert.True(UtilityAgent.AutoModernizationFrac(w2, 0) > 0, "工業化度 3.0 でも技術が高ければ設備の収益は立つ＝止まらない");
+        var w3 = Neutral(Four(), 0, 1.0);
+        Assert.Equal(0.0, UtilityAgent.AutoModernizationFrac(w3, 0));
     }
 
     [Fact]
     public void AIの近代化投資と自動化は同じ信号を読む()
     {
-        // 旗 1：Apply（AI）と AutoModernizationFrac（NullAgent の既定式）が同じ盤面で同じ率を置く（片方だけ換えると新しい非対称ができる）。
-        foreach (double flag in new[] { 0.0, 1.0 })
-        {
-            var sim = Four();
-            var w = Neutral(sim, 0, 0.5);
-            w.Coef.AiModernizeFromReturn = flag;
-            w.SetTreasuryRaw(1e12);   // 財政逼迫 0
-            double fs = UtilityAgent.FiscalStressOf(w);
-            UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
-            Assert.Equal(UtilityAgent.AutoModernizationFrac(w, fs), w.ModernizationFrac, 12);
-        }
+        // Apply（AI）と AutoModernizationFrac（NullAgent の既定式）が同じ盤面で同じ率を置く（片方だけ換えると新しい非対称ができる）。
+        var sim = Four();
+        var w = Neutral(sim, 0, 0.5);
+        w.SetTreasuryRaw(1e12);   // 財政逼迫 0
+        double fs = UtilityAgent.FiscalStressOf(w);
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+        Assert.Equal(UtilityAgent.AutoModernizationFrac(w, fs), w.ModernizationFrac, 12);
+        Assert.True(w.ModernizationFrac > 0, "前提が崩れた：率が 0 では対称を見ていない");
     }
 
     [Fact]
-    public void ダンピングの後発判定は旗2で信号に換わる()
+    public void ダンピングの後発判定は設備の収益の信号である()
     {
-        // 工業化度 3.0（旧の後発判定 <2.5 を超える）でも、技術の高い州では設備の収益が立つ（信号＞0）。
-        double TariffAfterApply(double flag)
+        // 工業化度 3.0（旧の後発判定 <2.5 を超える）でも、技術の高い州では設備の収益が立つ（信号＞0）＝後発＝ダンピング。収益が立たない州ではしない。
+        double TariffAfterApply(double industrialization, double techLevel)
         {
             var sim = Four();
-            var w = Neutral(sim, 0, 3.0);
-            w.TechLevel = 10.0;   // techProd＝1＋2＋8×0.3＝5.4 → techLev＝4.4・gross＝1.2÷(2.2²)×11.56＝2.866…＞0.7
-            w.Coef.AiModernizeFromReturn = flag;
+            var w = Neutral(sim, 0, industrialization);
+            w.TechLevel = techLevel;   // 10.0：techProd＝1＋2＋8×0.3＝5.4 → techLev＝4.4・gross＝1.2÷(2.2²)×11.56＝2.866…＞0.7
             w.SetTreasuryRaw(1e12);
             w.LastExportValue = 100; w.LastImportValue = 10;   // 輸出超過比 10＞1.3
             UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
             return w.Policy.TariffTarget;
         }
-        Assert.True(TariffAfterApply(1) >= 0, "旗 1：旧の後発判定（MeanInd＜2.5）は偽＝ダンピング（負関税）しない");
-        Assert.True(TariffAfterApply(2) < 0, "旗 2：信号＞0＝後発＝ダンピング（負関税の目標）");
+        Assert.True(TariffAfterApply(3.0, 10.0) < 0, "信号＞0＝後発＝ダンピング（負関税の目標）");
+        Assert.True(TariffAfterApply(1.0, 0.0) >= 0, "I＝1.0・技術 0＝ハードルを割る（信号 0）＝後発でない＝ダンピングしない");
     }
 
     [Fact]
-    public void スタンスの工業化の余地は旗3で目盛り4_0かける信号になる()
+    public void スタンスの工業化の余地は目盛り4_0かける信号である()
     {
-        double UInd(double flag)
-        {
-            var w = Neutral(Four(), 0, 0);
-            w.WorldTechLevel = w.TechLevel;   // 技術の遅れ 0
-            w.Coef.AiModernizeFromReturn = flag;
-            UtilityAgent.ChooseStance(w, out var bd);
-            return bd.UInd;
-        }
-        Assert.Equal(1.2 * 4.0, UInd(0), 9);                          // 旧：UIndRoomWeight(1.2)×max(0, 4.0−0)
-        Assert.Equal(1.2 * 4.0 * 0.41666666666666663, UInd(3), 9);    // 新：1.2×4.0×信号（5/12）＝2.0
-        Assert.Equal(1.2 * 4.0, UInd(2), 9);                          // 旗 2 まではスタンスは旧のまま
+        var w = Neutral(Four(), 0, 0);
+        w.WorldTechLevel = w.TechLevel;   // 技術の遅れ 0
+        UtilityAgent.ChooseStance(w, out var bd);
+        Assert.Equal(1.2 * 4.0 * 0.41666666666666663, bd.UInd, 9);    // 1.2×4.0×信号（5/12）＝2.0
+        // 収益が立たない盤面（I＝1.0）では余地 0
+        var w1 = Neutral(Four(), 0, 1.0);
+        w1.WorldTechLevel = w1.TechLevel;
+        UtilityAgent.ChooseStance(w1, out var bd1);
+        Assert.Equal(0.0, bd1.UInd, 9);
     }
 
     // ================= S1〜S3 国力の物差し =================

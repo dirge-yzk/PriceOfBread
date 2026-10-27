@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// 鋼市場AI側の5フラグ（2026-08-16・診断=docs/202608/20260816_鋼市場診断_部分完了.md／実装節=同docの末尾）のON経路。
-/// #1 AiIndustrialCeilingFrontier／#2 AiWorldPriceEntry／#3 AiBuildGuardRelax／#4 AiSupplyChainEyes／#5 AiProtectiveTariff。
+/// #1 AiIndustrialCeilingFrontier〔(591) で旧の包絡ごと消した〕／#2 AiWorldPriceEntry／#3 AiBuildGuardRelax／#4 AiSupplyChainEyes／#5 AiProtectiveTariff。
 /// ⚠5本とも2026-08-16の点火梯子で**点火済み**（既定0→#1は0.6・他4本は1.0）。#2〜#5 の旗（AiWorldPriceEntry・AiBuildGuardRelax・AiSupplyChainEyes・AiProtectiveTariff）は 2026-10-18 に焼き込み＝OFF側（旧挙動）の対照は旗ごと消えた。
 /// ここでは**既定値の番人**（＝いま live である値の宣言）と**ON側の挙動**を見る。
 /// </summary>
@@ -49,44 +49,11 @@ public class SteelMarketAiTests
     // ============ (a) 既定値の番人（5フラグとも点火済み＝いまこの値で live） ============
 
     [Fact]
-    public void 鋼市場AI側の前線連動は点火済みの既定値である()
-    {
-        // 2026-08-16 点火梯子で 0→この値へ点火（合成comp4）。うっかり値が動いたらここが赤になる。
-        // ⚠POB_COEF で明示的に上書きした測定走行では見ない（点火A/Bを同一バイナリで取るため）。
-        var c = new Coefficients();
-        string ov = Coefficients.OverrideSummary();
-        if (!ov.Contains("AiIndustrialCeilingFrontier", StringComparison.Ordinal)) Assert.Equal(0.6, c.AiIndustrialCeilingFrontier);
-    }
-
-    [Fact]
     public void 世界価格は毎四半期各国へ注入される()
     {
         var on = FourNations();
         on.Run(2);
         Assert.All(on.Nations, n => Assert.NotNull(n.World.WorldGoodsPrices));
-    }
-
-    // ============ (b) #1 AiIndustrialCeilingFrontier＝自主停止2.5の世界前線連動 ============
-
-    [Fact]
-    public void 前線連動ONで近代化投資の自主停止が世界前線まで開く()
-    {
-        var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
-        var w = sim.World;
-        w.Coef.AiModernizeFromReturn = 0;   // ★(416) この番人は旧の包絡〔EffectiveIndCeiling〕の機構を測る（既定 3 では包絡を読まない＝旧の腕だけ）
-        foreach (var r in w.Regions) r.Industrialization = 3.0;   // 定数包絡2.5を**超えた**世界＝旧実装は投資を完全に止める
-        Assert.True(w.MeanIndustrialization >= 2.5,
-            $"テスト前提が崩れた：平均工業化度が{w.MeanIndustrialization:F2}（2.5以上が前提＝飽和側で測る）");
-        // 旧＝定数2.5＝飽和＝投資ゼロ（プレイヤーは州上限5.0まで踏める非対称＝診断B-4）
-        Assert.Equal(0.0, UtilityAgent.AutoModernizationFrac(w, 0));
-        w.Coef.AiIndustrialCeilingFrontier = 1.0;
-        w.IndustrialFrontier = 2.0;   // 前線が定数2.5に届かない世界＝包絡は定数のまま＝**開幕は挙動不変**（暦年を読まずに時代が創発）
-        Assert.Equal(0.0, UtilityAgent.AutoModernizationFrac(w, 0));
-        w.IndustrialFrontier = 10.0;  // 前線が伸びた世界＝包絡が開く＝第二幕（追随投資）が始まる
-        Assert.True(UtilityAgent.AutoModernizationFrac(w, 0) > 0,
-            "前線10でも投資が0＝EffectiveIndCeiling が世界前線を読んでいない");
-        w.Coef.AiIndustrialCeilingFrontier = 0;   // 番人：αを戻せば前線が高くても定数2.5＝恒等
-        Assert.Equal(0.0, UtilityAgent.AutoModernizationFrac(w, 0));
     }
 
     // ============ (c) #2 AiWorldPriceEntry＝逆インセンティブの反転 ============

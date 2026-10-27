@@ -131,7 +131,7 @@ for p in ms:
     for r in table(p):
         nm = r['nation']; y = int(r['year'])
         mi = fl(r['meanIndustrialization']); rsg = fl(r['returnShare'])
-        flag[r['flagLevel']] += 1
+        flag[r.get('flagLevel', '(列なし・(591) で消えた)')] += 1
         if mi == mi: maxmi = max(maxmi, mi)
         if nm in EIGHT:
             rows8 += 1

@@ -214,10 +214,9 @@ public enum Doctrine { Balanced, Militarist, Industrialist, Modernizer }
 public sealed class UtilityAgent : INationAgent
 {
     // マジックナンバー命名（挙動不変・値据え置き）。※既存の c.Xxx 参照値・per-stance の政策設定値・自明値・εは対象外。
-    private const double IndustrializationCeiling = 2.5;        // 後発工業化の設計包絡（投資を絞る目標上限）。★(416) 旗 AiModernizeFromReturn≧1（既定 3）ではレバー〔Apply・AutoModernizationFrac〕の分母に使われない（旗 2 以上ではダンピングの後発判定にも使われない）＝0 の腕〔旧〕だけが読む
     private const double MilitaristBaseUtility = 2.5;           // 軍国教義の軍拡ベース効用
     private const double MilitaristEscapeThreshold = 0.5;       // 軍国の脱出弁：この国庫逼迫度からベース効用を減衰し始める（幅も同値）
-    private const double IndustrializationRoomTarget = 4.0;     // 工業化余地の到達目標（★鋼市場診断#1 2026-08-16：AiIndustrialCeilingFrontier はここに触れない＝スタンス選択の目標は投資の物理上限と別判断・記録のみ）
+    private const double IndustrializationRoomTarget = 4.0;     // 工業化余地の到達目標（4.0 は効用の目盛りの係数で上限ではない）
     // 不満＝満足がこれを下回る分。★2026-09-22 分位の写像で導き直し（階層3分割で満足度の水準が構造的に下がったため）：
     //   比べる相手＝全国×四半期の NationalScore.MeanSatisfaction（隔離計器 tiersatprobe・seed1-3×604Q）。旧0.7は旧分布の下から53.3%→ 新分布の53.3%分位
     //   ＝1回目0.53→2回目0.61（1回目の値で再測定すると分位が44.8%へ8.5pt ずれた＝帰還。写像は2回で打ち切り）。
@@ -456,37 +455,16 @@ public sealed class UtilityAgent : INationAgent
 
     // ★撤去2026-08-16（C2-C5）：AutoAntiCorruptionTarget（汚職根絶の自動化・2026-08-02）を物理削除＝汚職V2恒久ONで根絶費の動詞ごと死骸（プレイヤー/AI対称のまま消滅）。
 
-    /// <summary>近代化投資率の既定式＝Apply と同じ**工業化度ギャップ×財政余力**×近代化スタンスの率（スタンスを持たない国の代役）。
+    /// <summary>近代化投資率の既定式＝Apply と同じ**設備の収益の持ち分×財政余力**×近代化スタンスの率（スタンスを持たない国の代役）。
     /// 書き手は Simulation.QuarterStart（非プレイヤー国のみ・DecideQuarter の前）。UtilityAgent 国は直後の Apply が上書きするので
     /// 実際に効くのは NullAgent の非プレイヤー国（テスト/warmtest）だけ。プレイヤー国は財政タブのスライダー（2026-08-10）。</summary>
     public static double AutoModernizationFrac(World w, double fiscalStress)
     {
         double easeInd = 1 - fiscalStress;
-        double indGap;
-        if (w.Coef.AiModernizeFromReturn >= 1.0)
-            indGap = w.ModernizeReturnShare();   // ★(416) 旗 AiModernizeFromReturn≧1：集計の工業化度の天井でなく、国庫の配り先の設備の収益の持ち分（Apply と同じ 1 本・片方だけ換えると非対称ができる）
-        else
-        {
-            double ceil = EffectiveIndCeiling(w);   // ★鋼市場診断#1（2026-08-16）：プレイヤー自動化もAIと同じ包絡（この関数の存在理由＝対称）。既定0＝定数2.5＝ビット恒等
-            indGap = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
-        }
+        double indGap = w.ModernizeReturnShare();   // ★(416) 国庫の配り先の設備の収益の持ち分（Apply と同じ 1 本・片方だけ換えると非対称ができる）
         return System.Math.Max(0, indGap * easeInd * ModernizeInvestFrac);
     }
 
-    /// <summary>★鋼市場診断#1（2026-08-16・<see cref="Coefficients.AiIndustrialCeilingFrontier"/>=α）：近代化投資の自主停止の包絡。
-    /// 旧＝定数2.5固定＝世界前線（<see cref="World.IndustrialFrontier"/>＝各国MeanIndustrializationの最大・MultiNationSim が四半期同期で配布済み）が
-    /// どれだけ先へ行ってもAIは2.5で投資を止める＝secondDeliver を下げる主体の不在の直接原因（診断B-4。プレイヤーは州上限5.0まで踏める非対称）。
-    /// α>0＝max(2.5, α×IndustrialFrontier)＝前線が2.5/αを超えて伸びた世界でだけ包絡が開く（開幕は前線≈2.5以下＝挙動不変＝暦年を読まずに時代が創発）。
-    /// ⚠経緯（Apply内コメント「無制限だと露が規模常勝」）＝**点火は段階掃引 α=0.6/0.8/1.0**（一気に1.0へ上げない）・列強再現率と露を必ず見る。
-    /// ⚠ChooseStance の indRoom(4.0)＝スタンス選択の目標と、ダンピングの後発判定(&lt;2.5)は今回据え置き（別判断＝ここは投資の物理上限のみ・記録）。
-    /// 単一国（IndustrialFrontier=0）は α>0 でも 2.5＝較正・単体テスト恒等。NaN は否定形ガードで定数側へ（fail-closed）。</summary>
-    internal static double EffectiveIndCeiling(World w)
-    {
-        double a = w.Coef.AiIndustrialCeilingFrontier;
-        if (!(a > 0)) return IndustrializationCeiling;   // 0＝厳密恒等（否定形＝NaNも休眠側）。★既定は点火0.6＝この枝は通らない
-        double f = a * w.IndustrialFrontier;
-        return f > IndustrializationCeiling ? f : IndustrializationCeiling;   // NaN/未注入(0)は定数側へ倒す
-    }
     private const double DumpingExportRatio = 1.3;         // ダンピング発動の輸出超過比
     private const double DumpingTariff = -0.10;            // ダンピング（負関税）
     internal const double RecessionDrawdownThreshold = 0.08;// 後退＝緩和のドローダウン閾値（★2026-08-26 に UI の前倒し起債と1本化・その起債は 2026-09-28 に借入の自動化で削除）
@@ -690,8 +668,7 @@ public sealed class UtilityAgent : INationAgent
         var doctrine = DoctrineFrom(w);   // 倍率排除⑧：支配ブロック＋軍国度から創発（政体ラベルの写像を廃止・政変や参政権拡大で動的に変わる）
         double sat = NationalScore.MeanSatisfaction(w);
         double techGap = Math.Max(0, w.WorldTechLevel - w.TechLevel);                  // 技術の遅れ（後発の伸びしろ）
-        double indRoom = w.Coef.AiModernizeFromReturn >= 3.0 ? IndustrializationRoomTarget * w.ModernizeReturnShare()   // ★(416) 旗≧3：余地＝目盛り 4.0×設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）
-            : Math.Max(0, IndustrializationRoomTarget - w.MeanIndustrialization); // 工業化の余地（到達可能な目標≈均衡3.7。達成後はuIndが下がり教義の道へ）。改修2026-06-28：首都州のみ→全州平均（首都州が崩れてもAIが投資目標を見失わない）
+        double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();   // ★(416) 工業化の余地＝目盛り 4.0×国庫の配り先の設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）。達成して収益が立たなくなれば uInd が下がり教義の道へ
         double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);                                       // 不満（満足の不足）
         double fiscalNeed = FiscalStressOf(w);   // 国庫の逼迫（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
 
@@ -1836,22 +1813,13 @@ public sealed class UtilityAgent : INationAgent
         if (w.SelfPower is { } spv && w.Diplomacy is { } dipv)
         {
             // 近代化投資（国庫→全資本区画の建設予約＝マクロレバー）：産業/近代化スタンスのみ・財政余力でスケール。
-            // 暴走防止＝工業化度ギャップで絞る（後発の国家主導工業化＝露/日型。設計包絡~2.5へ近づくほど投資を止める。
+            // 暴走防止＝設備の収益の持ち分で絞る（後発の国家主導工業化＝露/日型。収益が立たなくなるほど投資を止める。
             // 無制限だと小国が国庫を注ぎ込み工業化度20超＝旧実験「露が規模常勝」の再来になる＝batch30実測で確認済み）。
             double easeInd = 1 - fiscalStress;
-            // ★鋼市場診断#1（2026-08-16）：分母＝EffectiveIndCeiling＝α=0で定数2.5＝ビット恒等／AiIndustrialCeilingFrontier=α>0 で
-            //   max(2.5, α×World.IndustrialFrontier)＝世界前線連動。★段階掃引0.6/0.8/1.0の結論＝**α=0.6で点火済み（live）**（露規模常勝の前科）。
-            // ★(416) 旗 AiModernizeFromReturn（事前登録 measurements/sc_20261019_prereg.txt）：≧1＝この gap を国庫の配り先の設備の収益の持ち分（World.ModernizeReturnShare）に換える（EffectiveIndCeiling・IndustrialFrontier は読まない）。
-            //   ≧2＝下のダンピングの後発判定も同じ信号（＞0）に換える。0＝旧の式の文字列のまま。
-            double retShare = w.Coef.AiModernizeFromReturn >= 1.0 ? w.ModernizeReturnShare() : 0;
-            double indCeil = 0, indGap;
-            if (w.Coef.AiModernizeFromReturn >= 1.0) indGap = retShare;
-            else
-            {
-                indCeil = EffectiveIndCeiling(w);
-                indGap = PoliticalQuantities.Clamp01((indCeil - w.MeanIndustrialization) / indCeil);
-            }
-            if (Instruments.On) Instruments.ModernizeSignal(w, s, indGap, w.Coef.AiModernizeFromReturn >= 1.0);   // 計器（読むだけ・(416)）：旧の gap と新しい信号を並べる
+            // ★(416) 止める信号＝国庫の配り先の設備の収益の持ち分（World.ModernizeReturnShare）。集計の工業化度の天井も世界前線も読まない（旧の腕・EffectiveIndCeiling・AiIndustrialCeilingFrontier は (591) で削除）。
+            double retShare = w.ModernizeReturnShare();
+            double indGap = retShare;
+            if (Instruments.On) Instruments.ModernizeSignal(w, s, indGap);   // 計器（読むだけ・(416)）：Apply が使った gap を modsig へ
             // ★採算で絞る（2026-08-03・作者指示「AIがより効果的に近代化投資を行うように」）：
             //   建設は鋼/機械/セメント/製材の**束**を買う。束が参照価格より高騰していると、同じ国庫で買える単位が減り、
             //   さらに需要を足すぶん価格を押し上げる＝**産出は増えず物価だけ上がる**。実測（indprobe）で英の鋼は
@@ -1879,9 +1847,9 @@ public sealed class UtilityAgent : INationAgent
                 _ => 0,   // Welfare/Fiscal＝緊縮と再分配は本当に投資を止める（こちらは真の二分法）
             };
             // ダンピング（負関税＝輸出補助）：産業スタンスで輸出超過かつ財政健全なら世界市場へ安売り（後発の輸出攻勢）。
-            // 後発限定（工業化度<2.5）＝成熟した輸出大国が国庫で安売りを続けると輸出ブーム→私的建設の暴走（実測＝ロンドン工業化度35）になるため。
+            // 後発限定（設備の収益がまだ立つ国）＝成熟した輸出大国が国庫で安売りを続けると輸出ブーム→私的建設の暴走（実測＝ロンドン工業化度35）になるため。
             if (s == Stance.Industrialize && fiscalStress <= 1e-9 && w.LastExportValue > w.LastImportValue * DumpingExportRatio
-                && (w.Coef.AiModernizeFromReturn >= 2.0 ? retShare > 0 : w.MeanIndustrialization < IndustrializationCeiling))   // ★(416) 旗≧2：後発＝設備の収益がまだ立つ（信号＞0）
+                && retShare > 0)   // ★(416) 後発＝設備の収益がまだ立つ（信号＞0）
                 p.TariffTarget = DumpingTariff;
             else if (p.TariffTarget < 0)
                 p.TariffTarget = 0;   // ダンピング解除（監査2026-07-11 他6）：旧＝リセットなしでスタンス離脱後も輸出額×10%の国庫→商人補助金が恒久残留（緊縮中も垂れ流し＝財政規律と逆行）

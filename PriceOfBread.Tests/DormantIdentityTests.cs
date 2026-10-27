@@ -99,7 +99,7 @@ public class DormantIdentityTests
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
         // ★B-03（WarFeverUsesBudgetShare）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
         // ★B-06（TransportBaselineIsLand）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
-        // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。
+        // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。(591) で旗ごと削除（RetiredFields）。
         // ★AiLawGateFromBoard（(423) 工業化度を読む AI の法の門を盤面の実物へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
@@ -207,6 +207,8 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "AiModernizeFromReturn",      // (591) 恒等の線 gc5：AI の近代化投資の信号の旗〔(416)・既定 3〕の旧の腕〔段 0〜2〕。旗ごと削除（信号は World.ModernizeReturnShare の 1 本）
+        "AiIndustrialCeilingFrontier", // (591) 同：旧の包絡 max(2.5, α×世界前線) の α〔鋼市場診断#1・既定 0.6〕。読み手は旧の腕だけだった
         "ModernizationAbolished",     // (583) 恒等の線 gc4：近代化投資の廃止（(573)・作者 2026-10-26）の旗。既定 1 で点火済みのまま旗ごと削除（州の StateBuildQueue へ撒く道を World.ApplyModernizationInvestment から物理削除）
         "StateBuildCost",             // 読み手0（手動工場建設は削除済み）
         "CohortGateK",                // 世代ゲート＝2026-09-21 作者が一覧の矛盾を「棄却」側で閉じた（00一覧）・削除は担当の推奨（作者の承認は未確認）

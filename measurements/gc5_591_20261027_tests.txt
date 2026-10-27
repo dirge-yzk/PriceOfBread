@@ -1,0 +1,10 @@
+# (591) gc5（コミット 3705fa89）の試験
+フルスイート（Category!=FullLength・Release・--blame-crash）：成功! 失敗 0・合格 1867・スキップ 1・合計 1868・18 分 8 秒（中止の行なし）
+FullLength：成功! 失敗 0・合格 3・合計 3・4 分 25 秒
+--list-tests：1871（＝1868＋3）。基点 m584 は 1872（＝1869＋3）＝−1（SteelMarketAiTests −2・ScalarDeletionTests +1）
+突然変異（赤→戻して緑）：
+  係数 AiModernizeFromReturn を戻す → DormantIdentityTests 2 本が赤
+  modsig の見出しに flagLevel を戻す → ScalarDeletionTests 1 本が赤
+  ダンピングの後発判定を常に真に → ModernizeReturnAndScoreTests 1 本が赤
+  ChooseStance の工業化の余地を旧の式に → ModernizeReturnAndScoreTests 1 本が赤
+CoverageSeed の探索（旧の旗の固定を外した盤面・場面 T の飢えの照合）：1812 通る・1813 空洞（飢え 0・構造 6）・1814 空洞（10）・1815 空洞（12）・1816 空洞（9）・1817 空洞（10）・1818 空洞（11）・1819 空洞（7）・1820 通る → 1812 を採る
