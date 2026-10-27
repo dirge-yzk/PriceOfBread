@@ -237,8 +237,8 @@ public class SecessionLaborLawInstrumentTests
         try
         {
             var (h, rows) = Table(System.IO.Path.Combine(dir, "scalars_s1789.tsv"));
-            Assert.Equal(23 + 4, h.Length);   // 既存の 23 列は動かさず末尾に 4 列
-            Assert.Equal(["socialSecurityLawCode", "antitrustLawCode", "progressiveTaxShare", "nationalizedMaskCode"], h.Skip(23).ToArray());
+            Assert.Equal(23 + 4 + 2, h.Length);   // 既存の 23 列は動かさず末尾に 4 列（法の 4 本）＋ (604) の 2 列（tariffTargetIndex・tradeToGdpRatio）
+            Assert.Equal(["socialSecurityLawCode", "antitrustLawCode", "progressiveTaxShare", "nationalizedMaskCode"], h.Skip(23).Take(4).ToArray());
             var last = rows.Where(r => Col(h, r, "quarter") == 5).ToDictionary(r => r[Array.IndexOf(h, "nation")]);
             foreach (var n in sim.Nations)
             {
