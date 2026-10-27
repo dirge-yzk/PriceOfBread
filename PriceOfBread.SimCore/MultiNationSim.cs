@@ -952,6 +952,29 @@ public sealed class MultiNationSim
                     wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
                 for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
             }
+            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の LastProduced）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型）。
+            //   読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定）。旗 0 は注入しない＝null のまま＝恒等。
+            //   旗は World.Coef（国ごとの写し）を読む＝旗が正の国にだけ注入する（読み手の RootSupply と同じ係数の入れ物）。
+            bool rootGate = false;
+            foreach (var n in Nations) if (n.World.Coef.AiBuildRootSupplyGate > 0 || Instruments.On) { rootGate = true; break; }   // 計器が On のときは旗 0 でも注入する（旧の選び方の根無しの割合を同じ規則で測るため・読み手は RootSupply だけで、旗 0 では計器の判定にしか使わない＝力学は動かない）
+            if (rootGate)
+            {
+                int ng = Catalog.Goods.Length;
+                var prod = new double[ng];
+                foreach (var n in Nations)
+                    foreach (var r in n.World.Regions)
+                    {
+                        int lim = Math.Min(ng, r.Markets.Length);
+                        for (int gi = 0; gi < lim; gi++) prod[gi] += r.Markets[gi].LastProduced;
+                    }
+                foreach (var n in Nations)
+                {
+                    var wn = n.World;
+                    if (!(wn.Coef.AiBuildRootSupplyGate > 0 || Instruments.On)) continue;
+                    if (wn.WorldGoodsProduced is not { } wgq || wgq.Length != ng) wn.WorldGoodsProduced = wgq = new double[ng];
+                    Array.Copy(prod, wgq, ng);
+                }
+            }
             // 財5（対外国債の他国資本引き当て・プール注入）：各国の対外国債プールに『他モデル国の資本家貯蓄の合計』＝対外国債の引き受け余力を注入。
             // Fiscal.Step はこれを上限に対外債発行をクランプする（実引き当て/保有国配分は #17 の CapitalMarket 経路で・notes 参照）。
             // 毎四半期このプールへ注入し Fiscal 側が上限として読む（★2026-09-26：旗 ForeignBondFromInvestors を焼き込み・x-01）。

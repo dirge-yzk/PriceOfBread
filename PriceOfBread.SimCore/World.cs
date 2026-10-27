@@ -1129,6 +1129,10 @@ public sealed class World
     // セーブ設計（設計判断）：SaveGame の汎用グラフ直列化（全インスタンスフィールド自動）が double[] として保存し、加えて毎四半期末の再注入が上書きする
     // ＝どの断面でロードしても次の四半期に必ず現在値へ更新される（専用のセーブ/ロード処理は不要・陳腐化しない）。
     public double[]? WorldGoodsPrices { get; internal set; }
+    /// <summary>★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の <see cref="Market.LastProduced"/>）の写し。MultiNationSim が四半期同期で注入（<see cref="WorldGoodsPrices"/> と同型＝World は他国を直接見られない）。
+    /// 注入するのは係数 <see cref="Coefficients.AiBuildRootSupplyGate"/> が正のときだけ（0＝null のまま＝恒等）。読み手＝<see cref="RootSupply"/> のみ（根まで作れるかの判定で〈世界のどこかで作られている〉を見る）。null＝未注入＝測れない＝通す。
+    /// セーブは汎用の直列化が double[] として保存し、次の四半期の注入が上書きする（WorldGoodsPrices と同じ扱い）。</summary>
+    public double[]? WorldGoodsProduced { get; internal set; }
     // ★造幣局の金属準備（自由鋳造＝床モードのみ積む・2026-08-14）。法が本位を捨てると MintReserveSellRatePerMonth/月で市場へ売られる
     //   ＝**買い手の消滅と投げ売りが同時に起きる**（独1871年型）。旧来モード（床OFF）では常に0＝厳密恒等。
     public double SilverReserveQty { get; internal set; }
@@ -2533,6 +2537,7 @@ public sealed class World
     private void StepFactoryTargets()
     {
         if (GoodFactoryTarget.Length == 0) return;
+        RootSupply? rootSupply = null;   // ★(595) 根の判定の表（旗が正で目標のある財に会ったときだけ作る・この月の展開の間だけ生きる）
         for (int g = 0; g < GoodFactoryTarget.Length; g++)
         {
             int target = GoodFactoryTarget[g];
@@ -2549,7 +2554,7 @@ public sealed class World
                 if (p.StateTarget > StateUnitsOf(p)) { pendingWill = true; break; }   // 前に立てた意志がまだ実現していない
                 if (p.ConstructionLeft > 0 || p.Bankrupt || !(Discovery.Gate(r, p) > 0)) continue;   // (260) 門が閉じた州は最初の州（firstRi）にも入れない
                 if (firstRi < 0) firstRi = ri;
-                double sc = UtilityAgent.FacilityBuildScore(this, r, p).Score;
+                double sc = UtilityAgent.FacilityBuildScore(this, r, p, Coef.AiBuildRootSupplyGate > 0 ? (rootSupply ??= new RootSupply(this)) : null).Score;   // ★(595) 旗が正なら根まで作れない州はスコア NaN＝勝てない（全州が NaN でも下の firstRi でプレイヤーの意志は進む）
                 if (sc > bestScore) { bestScore = sc; bestRi = ri; }   // NaNは両比較とも偽＝勝てない（fail-closed）
             }
             if (pendingWill) continue;
