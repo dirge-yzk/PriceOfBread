@@ -1,0 +1,3 @@
+same 723 differ 40 of 763
+Counter({('colsok', 'burscan'): 10, ('colsok', 'clock'): 10, ('colsok', 'fiscal'): 10, ('colsok', 'nation'): 10})
+BAD 0

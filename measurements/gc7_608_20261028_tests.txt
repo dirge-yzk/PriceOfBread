@@ -1,0 +1,7 @@
+D:\PoB_work\gc7_608\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+Blame: Attaching crash dump utility to process testhost (22876).
+[xUnit.net 00:00:37.45]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+
+成功!   -失敗:     0、合格:  1894、スキップ:     1、合計:  1895、期間: 25 m 59 s - PriceOfBread.Tests.dll (net10.0)
