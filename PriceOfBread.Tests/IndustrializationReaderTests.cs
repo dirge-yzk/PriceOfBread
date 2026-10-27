@@ -203,12 +203,12 @@ public class IndustrializationReaderTests
         Assert.Equal(Math.Max(0, 4.0 - mean), CapitalMarket.Headroom(c, w), 12);                 // 旗 0＝旧（手計算：目標 4.0）
         c.CapitalHeadroomFromReturn = 1;
         Assert.Equal(c.CapitalIndTarget * w.ModernizeReturnShare(), CapitalMarket.Headroom(c, w), 12);   // 旗 1＝別の関数 ModernizeReturnShare の直読み
-        // 旗 1 の向き：工業化度（州の資本の在庫）が州の上限に達すると適格でなくなり余地が 0 へ落ちる（間接の読み＝直読みは無い）
+        // 旗 1 の向き：州の資本の在庫が増えると設備の収益が飽和して余地が下がる（間接の読み＝直読みは無い）
         r.Industrialization = 0.0; r.OldVintageCapital = 0;
         double hLow = CapitalMarket.Headroom(c, w);
         r.Industrialization = c.IndustryInvestRegionCap + 1.0;
         double hCap = CapitalMarket.Headroom(c, w);
-        Assert.True(hLow >= 0 && hCap == 0 && hLow >= hCap, $"余地は在庫が上限に達すると 0 へ: 低 {hLow} 上限 {hCap}");
+        Assert.True(hCap >= 0 && hLow > hCap, $"余地は州の資本の在庫が増えると下がる（設備の収益の飽和）: 低 {hLow} 上限超 {hCap}");
     }
 
     // ---- J7 交易の比重 ------------------------------------------------------------------------------------------------
