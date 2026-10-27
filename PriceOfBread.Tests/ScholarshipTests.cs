@@ -227,11 +227,6 @@ public class ScholarshipTests
         Assert.True(on.treasury < off.treasury, $"補助が国庫から出ていない（旗 1 の国庫 {on.treasury} ≧ 旗 0 の国庫 {off.treasury}）");
     }
 
-    private static string FindSimCore(string file)
-    {
-        string? d = AppContext.BaseDirectory;
-        while (d is not null && !Directory.Exists(Path.Combine(d, "PriceOfBread.SimCore"))) d = Path.GetDirectoryName(d);
-        Assert.NotNull(d);
-        return Path.Combine(d!, "PriceOfBread.SimCore", file);
-    }
+    // ★(592) 出力の場所（--artifacts-path）の bin/PriceOfBread.SimCore をソースと取り違えないよう、他の番人と同じ GoodIdGuardTests.RepoRoot から引く
+    private static string FindSimCore(string file) => Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", file);
 }
