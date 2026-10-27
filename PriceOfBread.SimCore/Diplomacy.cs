@@ -931,7 +931,7 @@ public sealed class Diplomacy
 
         // 変名規則（統一・formable）：文化/宗教の同期後・四半期に1回（旧の旗 EnableFormations は 2026-10-18 に焼き込み）。
         if (month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
-        if (month % Calendar.MonthsPerQuarter == 0) TradeTreaties(c);   // ★案B（通商条約・作者裁定2026-08-31）：四半期
+        if (month % Calendar.MonthsPerQuarter == 0 && !(c.TradeTreatyAbolished > 0)) TradeTreaties(c);   // ★案B（通商条約・作者裁定2026-08-31）：四半期。★(604) 旗 TradeTreatyAbolished>0 で掃引を止める（作者 2026-10-27 の廃止・否定形＝NaN は〈条約あり〉の側）
 
         // 厭戦は戦争ごとリセット：交戦していない国は0（減衰定数は廃止＝非外科的）。戦争の傷は闘争度が引き継ぐ。
         // 外3：非交戦国の即時0リセットは、TriggerWars(:下)の厭戦ゲート(WarWearyThreshold)を死文にする（講和翌月に厭戦0で再び開戦可能）。
@@ -3260,8 +3260,8 @@ public sealed class Diplomacy
                 double lo = System.Math.Min(wa.Policy.TariffTarget, wb.Policy.TariffTarget);
                 if (!(lo >= 0)) continue;   // 負の関税（ダンピング中の国＝AIの産業スタンスも置く）は条約の物差しにしない
                 bool moved = false;
-                if (wa.Policy.TariffTarget > lo + 0.02) { wa.Policy.TariffTarget = lo; moved = true; }
-                if (wb.Policy.TariffTarget > lo + 0.02) { wb.Policy.TariffTarget = lo; moved = true; }
+                if (wa.Policy.TariffTarget > lo + 0.02) { wa.Policy.TariffTarget = lo; moved = true; if (Instruments.On) wa.DiagTradeTreatyMoveCum++; }
+                if (wb.Policy.TariffTarget > lo + 0.02) { wb.Policy.TariffTarget = lo; moved = true; if (Instruments.On) wb.DiagTradeTreatyMoveCum++; }
                 if (moved) Log.Add($"{_year} {a.Name}と{b.Name}が通商条約を締結（関税目標{lo:P0}へ）");
             }
         }

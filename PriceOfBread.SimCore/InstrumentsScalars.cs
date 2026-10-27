@@ -19,7 +19,17 @@ public static partial class Instruments
     internal const string ScalarsHeader = "quarter\tyear\tnation\tborn\tpopK\tatWar\tpolityCode\teducationLaw\tsuffrage\tcensorship\tbureaucracy\t"
         + "effCorruption\tdynMandate\tlegitimacy\tdefeatShock\twarExhaustion\tmilWarMean\tmilitancyMean\tdmWar\t"
         + "adminEfficiency\tcrown\tchildLaborLegal\tworkHoursValue\t"
-        + "socialSecurityLawCode\tantitrustLawCode\tprogressiveTaxShare\tnationalizedMaskCode";   // ★(395) 前提つきの法の4本（事前登録 ab の R2＝累進課税・失業保険・独占禁止・国有化が入った年を読む）＝末尾に足した（既存の列の位置は動かない）
+        + "socialSecurityLawCode\tantitrustLawCode\tprogressiveTaxShare\tnationalizedMaskCode\t"
+        + "tariffTargetIndex\ttariffInterestMeanIndex\ttradeToGdpRatio\ttradeTreatyMoveCumCount";   // ★(395) 前提つきの法の4本（事前登録 ab の R2＝累進課税・失業保険・独占禁止・国有化が入った年を読む）＝末尾に足した（既存の列の位置は動かない）
+
+    // ★(604) 貿易÷GDP＝(輸出＋輸入の財別の和)×ClearingsPerYear÷年換算の名目 GDP（成績表の 貿易（復活計器）の MajorsTradeGdp と同じ式。清算の直近 1 回分の断面）。
+    static double TradeToGdp(World w)
+    {
+        double ex = 0, im = 0;
+        if (w.ExportsByGood is { } eg) foreach (var v in eg) ex += v;
+        if (w.ImportsByGood is { } ig) foreach (var v in ig) im += v;
+        return (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value);
+    }
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
@@ -38,6 +48,7 @@ public static partial class Instruments
             F(w.EffectiveCorruption), F(w.DynasticMandate), F(w.Legitimacy), F(w.DefeatShock),
             F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
             F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue),
-            I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask())));
+            I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask()),
+            F(w.Policy.TariffTarget), F(Diplomacy.NationalTariffInterest(w)), F(TradeToGdp(w)), I(w.DiagTradeTreatyMoveCum)));
     }
 }

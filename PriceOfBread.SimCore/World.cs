@@ -205,6 +205,8 @@ public sealed class World
     [System.NonSerialized] internal double DiagSfPensionToSoldiersCum, DiagSfCheapSubsidyPaidCum, DiagSfVoteWeightUsed, DiagSfBudgetNegCumPopMonthK, DiagSfBudgetNegCumAmount;
     // ★(471) 追記 2：売買方針の値が変わった回数の累計・財政逼迫で全ての方針を畳んだ財の数の累計（AI の閾値の往復を読む計器・INS=1 のときだけ・セーブに載らない）。
     [System.NonSerialized] internal double DiagSfBiasSwitchCum, DiagSfStressFoldCum;
+    // ★(604) 計器 scalars_s の診断の欄（読むだけ・INS=1 のときだけ数える・セーブに載らない・シミュの値はこれを読まない）：通商条約でこの国の関税の目標が動いた回数の累計。
+    [System.NonSerialized] internal int DiagTradeTreatyMoveCum;
     // ★(486) 計器 pay_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：PaySales の〈商人 POP の人数が 0〉の枝に入った回数と額の累計（InstrumentsPay.cs）。
     [System.NonSerialized] internal double[]? DiagPay;
     // ★(480) 計器 ma_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：この四半期に AI の最低賃金法の規則が p に書いた目標の序数（書かなかった＝−1）。

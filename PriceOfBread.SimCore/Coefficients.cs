@@ -1987,6 +1987,8 @@ public sealed class Coefficients
     public double TariffExportOppositionWeight = 3.0;   // ★点火2026-08-31（T2腕＝英の自由貿易転換が政治から創発・純支持−0.41）   // ★関税の全員暴走の対（2026-08-31・pairprobe実測＝仏99%英高率で欧州相互貿易が絞殺）：近代エリートの関税選好へ**輸出利害の反対**を加える＝−これ×輸出/GDPシェア（マンチェスター学派＝輸出で食う資本は自由貿易を推す。反リカード側の保護利害 TariffInterestPref と対）。IsolationExportWeight とセット＝「高関税は輸出も殺す」物理ができて初めて政治の負帰還が史実の向きになる。0＝厳密恒等
     public double AiTariffRelaxation = 0.1;             // ★点火2026-08-31（T2腕＝AI目標が5-10%帯へ・保護と自由化の波の対称化）             // ★案A（作者裁定2026-08-31）＝AI保護関税ラチェットの対動詞：急増の無い平時に目標を毎四半期 TariffReactionMax×これ だけ漸減（保護の波→自由化の波の対称化。ReactProtectiveTariff の「下げはしない」の是正）。0＝厳密恒等（点火候補0.1＝約−10%/年）
     // 【墓標2026-10-18・旗の焼き込み】TradeTreatyEnabled（案B・既定1.0・点火2026-08-31 T2腕）を消した＝通商条約（平時×両国の産業利害が自由貿易側の実国家ペアが関税目標を低い方へ収束）は常に有効。
+    // ★(604) 線 tt（通商条約の廃止・作者 2026-10-27）：>0 で Diplomacy.TradeTreaties の四半期の掃引を止める（関税の目標は国内の利害・議会・AI の反応の今ある道だけが動かす）。0＝掃引あり＝今の挙動。上の墓標の TradeTreatyEnabled とは別の名前（向きが逆）。
+    public double TradeTreatyAbolished = 0;
     public double RentProtectionWeightCoef = 1.0;       // ★点火2026-08-31＝1.5→1.0（案D・T2腕）       // ★案D（作者裁定2026-08-31）＝旧支配層の保護利害の重み（旧・PolicyPreferences のハードコード定数1.5を係数化＝既定同値で厳密恒等）。関税・穀物法の選好が読む。全員関税100%漂流の主動力＝#17調整対象
     public double AISubmitLegitCost = 0.05;        // 屈服の正統性コスト（下関・三国干渉の屈辱＝国内の怒り）
     // B-高3：同化への識字抵抗＝assim_eff = assim × max(0, 1 − これ×識字)。0で×1.0＝厳密恒等。
