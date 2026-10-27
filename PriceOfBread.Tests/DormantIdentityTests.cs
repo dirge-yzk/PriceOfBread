@@ -217,6 +217,8 @@ public class DormantIdentityTests
         "AiIndustrialCeilingFrontier", // (591) 同：旧の包絡 max(2.5, α×世界前線) の α〔鋼市場診断#1・既定 0.6〕。読み手は旧の腕だけだった
         "ModernizationAbolished",     // (583) 恒等の線 gc4：近代化投資の廃止（(573)・作者 2026-10-26）の旗。既定 1 で点火済みのまま旗ごと削除（州の StateBuildQueue へ撒く道を World.ApplyModernizationInvestment から物理削除）
         "StateBuildCost",             // 読み手0（手動工場建設は削除済み）
+        "StateBuildQueue",            // (608) 恒等の線 gc7：Region の欄〔国庫の建設の予約額・書き手は (583) から 0 本〕。欄ごと削除（請求の和・支払い率・月末の 0・計器の Item.StateBuild・Runner の表示の読み手も）＝下の名簿の検査は Region の欄も見る
+        "CumStateIndustrialization",  // (608) 同：Region の欄〔国家建設分の工業化度の累積・書き手は (599) で 0 本〕。欄ごと削除
         "CohortGateK",                // 世代ゲート＝2026-09-21 作者が一覧の矛盾を「棄却」側で閉じた（00一覧）・削除は担当の推奨（作者の承認は未確認）
         "EnclosureRate",              // 囲い込みの自給侵食＝同上（削除は担当の推奨・作者の承認は未確認）
         "RuralPromotionRate",         // 農村の直行便＝2026-08-16 差し戻し（exact−7・棚卸し dorm-16）・削除は担当の推奨（作者の承認は未確認）
@@ -310,8 +312,8 @@ public class DormantIdentityTests
     public void 削除した休眠の係数は戻っていない()
     {
         foreach (var name in RetiredFields)
-            Assert.True(typeof(Coefficients).GetField(name) is null,
-                $"棚卸しと削除の回（(253) 以後・名簿の注記）で削除した係数「{name}」が Coefficients に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
+            Assert.True(typeof(Coefficients).GetField(name) is null && typeof(Region).GetField(name) is null,
+                $"棚卸しと削除の回（(253) 以後・名簿の注記）で削除した係数・州の欄「{name}」が Coefficients か Region に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
     }
 
     [Fact]

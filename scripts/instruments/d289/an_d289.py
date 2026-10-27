@@ -200,7 +200,7 @@ def invest_seed(sd, SP, NAT, FL, FI, nation, win):
                 if a <= q <= b and k == 'take' and route.startswith(name):
                     v += -x
             res[label] = v / nq * 12
-    st = statistics.mean(r['stateConstructionPaidPerMonth'] for r in rows) * 12
+    st = statistics.mean(r.get('stateConstructionPaidPerMonth', 0.0) for r in rows) * 12
     mn = statistics.mean(r['monumentPaidPerMonth'] for r in rows) * 12
     res[PUBL[0]] = st; res[PUBL[1]] = mn
     fs = [(q, r) for q, r in FI.get(nation, []) if a <= q <= b]

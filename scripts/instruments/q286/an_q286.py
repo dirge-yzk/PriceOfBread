@@ -613,7 +613,7 @@ def t2b_invest_routes():
                 if sel:
                     for label, cs in (('公共：国の建設（StateBuild＋StateConstruction＋前月の工場建設）', ('claimStateBuildPerMonth', 'claimStateConstructionPerMonth', 'claimLastMonthFactoryBuildPerMonth')),
                                       ('公共：巨大建造物', ('claimMonumentBuildPerMonth',)), ('公共：インフラ・電化インフラの維持', ('claimInfraPerMonth', 'claimElecInfraPerMonth'))):
-                        v = statistics.mean(sum(max(0.0, fl(r[c])) if fl(r[c]) == fl(r[c]) else 0.0 for c in cs) for r in sel) * 12
+                        v = statistics.mean(sum(max(0.0, fl(r.get(c, 0))) if fl(r.get(c, 0)) == fl(r.get(c, 0)) else 0.0 for c in cs) for r in sel) * 12
                         rows[label][(win, 'e')].append(v / earn_y); rows[label][(win, 'g')].append(v / gdp)
         for label in rows:
             cells = []

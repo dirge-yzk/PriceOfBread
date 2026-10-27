@@ -2157,7 +2157,7 @@ public class InstrumentsTests
                 if (r[nNat] != "フランス" || !earnByQ.TryGetValue("q" + r[nQ], out var theirs)) continue;
                 double mine = Col(nh, r, "earnedTotalPerMonth"); seenEarn++;
                 Assert.True(Math.Abs(mine - theirs) <= 1e-9 * Math.Max(1.0, Math.Abs(theirs)), $"q{r[nQ]}：国の所得の合計 {mine} が class_s の和 {theirs} に閉じない");
-                Assert.True(Col(nh, r, "stateConstructionPaidPerMonth") >= 0 && Col(nh, r, "monumentPaidPerMonth") >= 0, "国庫の建設の払いが負");
+                Assert.True(Col(nh, r, "monumentPaidPerMonth") >= 0, "国庫の建設の払いが負");
             }
             Assert.True(seenEarn >= Quarters - 1, $"所得を突き合わせた四半期が少ない（{seenEarn}）");
 

@@ -416,7 +416,7 @@ internal static class PlayHarness
         sb.AppendLine("---- 州（上位10・工業化順）----");
         foreach (var r in w.Regions
                                     .OrderByDescending(x => x.TotalIndustrialization).Take(10))
-            sb.AppendLine($"  {r.Name,-14} 人口{r.SumPopulation(),11:N0} 工業{r.TotalIndustrialization,6:F2}/{coef.IndustryInvestRegionCap:F1} 着工予約{r.StateBuildQueue,9:N0} 港{(r.IsPort ? "○" : "－")} 資本{(r.CapitalEnabled ? "○" : "×")}");
+            sb.AppendLine($"  {r.Name,-14} 人口{r.SumPopulation(),11:N0} 工業{r.TotalIndustrialization,6:F2}/{coef.IndustryInvestRegionCap:F1} 港{(r.IsPort ? "○" : "－")} 資本{(r.CapitalEnabled ? "○" : "×")}");
 
         sb.AppendLine();
         sb.AppendLine("---- 外交（緊張の高い相手 上位8）----");

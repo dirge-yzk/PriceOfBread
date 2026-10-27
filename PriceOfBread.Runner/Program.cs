@@ -908,7 +908,7 @@ if (args.Length > 0 && args[0] == "indprobe")
             double inv = r.InvestorPopIndex >= 0 ? r.Pops[r.InvestorPopIndex].Savings.Value : -1;
             double sP = r.Markets[ipb.G0].Price, sS = r.Markets[ipb.G0].Stock;
             double mP = r.Markets[ipb.G1].Price, mS = r.Markets[ipb.G1].Stock;
-            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} {Catalog.Goods[ipb.G0].Name}(価格{sP:F2}/在庫{sS:F0}) {Catalog.Goods[ipb.G1].Name}(価格{mP:F2}/在庫{mS:F0})");
+            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 投資家貯蓄={inv:F0} {Catalog.Goods[ipb.G0].Name}(価格{sP:F2}/在庫{sS:F0}) {Catalog.Goods[ipb.G1].Name}(価格{mP:F2}/在庫{mS:F0})");
         }
         System.Console.WriteLine();
     }

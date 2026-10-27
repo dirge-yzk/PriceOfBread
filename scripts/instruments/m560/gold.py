@@ -20,5 +20,5 @@ for d in sys.argv[1:]:
                 if r<0.7: low+=1
             ct=fl(x['claimTotalPerMonth'])
             if ct>0:
-                infra.append(fl(x['claimInfraPerMonth'])/ct); sb.append((fl(x['claimStateBuildPerMonth'])+fl(x['claimStateConstructionPerMonth']))/ct)
+                infra.append(fl(x['claimInfraPerMonth'])/ct); sb.append((fl(x.get('claimStateBuildPerMonth', 0))+fl(x['claimStateConstructionPerMonth']))/ct)
     print(d); print(f'  onGold月 {on}・その内 payRate<0.7 {low}・1→0 の遷移 {exits}・payRate中央値 {st.median(pr) if pr else float("nan"):.3f}・infra/claim 中央値 {st.median(infra):.4f}・state build/claim 中央値 {st.median(sb):.4f}')
