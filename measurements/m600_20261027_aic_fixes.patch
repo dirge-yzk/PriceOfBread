@@ -1,0 +1,99 @@
+diff --git a/PriceOfBread.SimCore/AiRootSupply.cs b/PriceOfBread.SimCore/AiRootSupply.cs
+index 2417f9c9..29855576 100644
+--- a/PriceOfBread.SimCore/AiRootSupply.cs
++++ b/PriceOfBread.SimCore/AiRootSupply.cs
+@@ -5,7 +5,7 @@ namespace PriceOfBread.SimCore;
+ /// 〈根まで作れない〉候補を NaN で落とす（(260) の門の NaN と同じ作法）＝AI の着工（<see cref="UtilityAgent"/> の TryBuildFacility）と
+ /// 全国工場目標の展開（<see cref="World"/> の StepFactoryTargets）が同じ 1 本を読む。
+ ///
+-/// 規則（1 本・3 つの通り道・新しい倍率なし）：候補の生産者のレシピの非労働・非役務の投入ごとに、その国（active 州の全て）で
++/// 規則（1 本・3 つの通り道・新しい倍率なし）：候補の生産者のレシピの非労働・非役務の投入ごとに、その国（全ての州＝本番の州は常に稼働中）で
+ ///  (a) 今、作られているか輸入されている（州の <see cref="Market.LastProduced"/> ＋ 輸入〔<see cref="Market.LastImport"/> と <see cref="Market.PrevImport"/> の大きい方〕の国の和が
+ ///      〈量として意味を持たない〉の既存の物差し <see cref="Coefficients.TargetStockFloor"/> を超える）か、
+ ///  (b) 作れる（その財を作る生産者が国内にあり、発見の門 <see cref="Discovery.Gate(Region, Producer)"/> が開いていて、その生産者の投入も再帰的に (a) か (b)）
+@@ -15,6 +15,8 @@ namespace PriceOfBread.SimCore;
+ /// 落とすのは、上流が国内に生産者を持たない（気候・産地の無い財）か門が閉じていて、しかも輸入も無い下流だけ
+ /// （例＝ゴムの無い国の防水布。値段が安全網の天井に張り付き〈足りない〉と読めるが、建てても産出 0）。
+ /// 循環（互いが互いの投入）は〈根が無いと証明されていない〉＝通す。再帰の深さは <see cref="MaxDepth"/> まで（超えたら通す）。
++/// ⚠限界（★(600) 合流で名乗る・反証役 aic〔bv〕低）：判定中（3）や深さの打ち切りに頼って出た〈1〉は走査の終わりまで残る＝循環の頭が後で〈2〉に決まっても、途中の財は〈1〉のまま＝同じ月の別の候補が通りうる。
++///   答えは候補を回す順に依る（決定論・甘い側＝落とさない側の誤りで破綻はしない）。直すなら判定中に頼った答えをその場で残さない形（恒等でない＝別の線）。
+ /// 1 回の走査（月の判断 1 回）の間だけ生きる作業の表＝セーブに載らない・新しい状態を作らない。</summary>
+ internal sealed class RootSupply
+ {
+diff --git a/PriceOfBread.SimCore/InstrumentsAiBuild.cs b/PriceOfBread.SimCore/InstrumentsAiBuild.cs
+index 29957010..f16205ce 100644
+--- a/PriceOfBread.SimCore/InstrumentsAiBuild.cs
++++ b/PriceOfBread.SimCore/InstrumentsAiBuild.cs
+@@ -52,7 +52,7 @@ public static partial class Instruments
+         var a = AibAccs.GetOrCreateValue(w);
+         a.SkipRoom++; string n = Catalog.Goods[goodId].Name; a.SkippedGoods.TryGetValue(n, out var c); a.SkippedGoods[n] = c + 1;
+     }
+-    /// <summary>★(595) 州の最良（着工の前）：<paramref name="rootDead"/>＝その個体は投入の連鎖の根まで作れない（<see cref="RootSupply"/>・旗 0 では旧の選び方の結果を測る）。</summary>
++    /// <summary>★(595) 州の最良（着工の前）：<paramref name="rootDead"/>＝その個体は投入の連鎖の根まで作れない（<see cref="RootSupply"/>・★(600) 旗は焼き込み済み＝常に有効の選び方の結果を測る。旧の選び方の割合は (595) の腕 A2 の記録だけ）。</summary>
+     internal static void AiBuildBest(World w, int goodId, bool rootDead)
+     {
+         var a = AibAccs.GetOrCreateValue(w);
+@@ -60,7 +60,7 @@ public static partial class Instruments
+         if (!rootDead) return;
+         a.BestDead++; string n = Catalog.Goods[goodId].Name; a.BestDeadGoods.TryGetValue(n, out var c); a.BestDeadGoods[n] = c + 1;
+     }
+-    /// <summary>★(595) 旗が正のとき、需要の信号（超過 ＞ 閾値）があるのに根が無くて落ちた候補（州×財）。</summary>
++    /// <summary>★(595) 需要の信号（超過 ＞ 閾値）があるのに根が無くて落ちた候補（州×財）。</summary>
+     internal static void AiBuildRootDropped(World w, int goodId, int blockerGood)
+     {
+         var a = AibAccs.GetOrCreateValue(w);
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 6cec83fb..80167e49 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -952,7 +952,7 @@ public sealed class MultiNationSim
+                     wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
+                 for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
+             }
+-            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の LastProduced）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型・毎四半期）。
++            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の全ての州の LastProduced＝本番の州は常に稼働中・Region.State は読まない）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型・毎四半期）。
+             //   読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定：世界のどこかで作られている投入は根が無いとは言えない）。旗は 2026-10-27 に焼き込み＝常に注入。
+             {
+                 int ng = Catalog.Goods.Length;
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index 7d78ea1b..db13ee22 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -1413,7 +1413,7 @@ public sealed class UtilityAgent : INationAgent
+                 var val = FacilityBuildScore(w, rg, pr, rootSupply);
+                 if (double.IsNaN(val.Score))   // 基準価格・市場の範囲外・門が閉じた・根まで作れない＝候補外
+                 {
+-                    if (Instruments.On && val.Excess > FacilityBuildMinMargin) Instruments.AiBuildRootDropped(w, pr.GoodId, rootSupply is { } rsx ? rsx.Blocker : -1);   // 計器（読むだけ）：需要の信号があるのに根が無くて落ちた候補（旗 1 のときだけ Excess が残る）
++                    if (Instruments.On && val.Excess > FacilityBuildMinMargin) Instruments.AiBuildRootDropped(w, pr.GoodId, rootSupply is { } rsx ? rsx.Blocker : -1);   // 計器（読むだけ）：需要の信号があるのに根が無くて落ちた候補（根の無い候補は Score だけ NaN で Excess は残る＝★(600) 旗は焼き込み済み・常に有効）
+                     continue;
+                 }
+                 double eff = val.Excess;
+diff --git a/PriceOfBread.Tests/RootSupplyTests.cs b/PriceOfBread.Tests/RootSupplyTests.cs
+index c037a3e1..5dafcba8 100644
+--- a/PriceOfBread.Tests/RootSupplyTests.cs
++++ b/PriceOfBread.Tests/RootSupplyTests.cs
+@@ -235,16 +235,19 @@ public class RootSupplyTests
+     }
+ 
+     [Fact]
+-    public void 旗は焼き込まれて係数に無い_公開の口と内部の口が同じ値()
++    public void 旗は焼き込まれて係数に無い_表を使い回しても新しい表と同じ答え()
+     {
+         Assert.Null(typeof(Coefficients).GetField("AiBuildRootSupplyGate"));       // 旗の復活を禁じる（常に有効）
+         var w = Warm(5956).World;
+         NoWorldSupply(w);
+         var (r, t, g) = 候補(w);
+         SetFlow(w, g, 0, 0); RemoveProducers(w, g);
+-        var s0 = UtilityAgent.FacilityBuildScore(w, r, t);
+-        var s1 = UtilityAgent.FacilityBuildScore(w, r, t, null);   // 公開の口と内部の口が同じ値
+-        Assert.Equal(s0.Score, s1.Score);
+-        Assert.Equal(s0.Excess, s1.Excess);
++        // ★(600) 合流（反証役 aic〔bv〕低：旧の後半は公開の口が内部の口を null で呼ぶだけの比べ〔NaN 同士〕＝同語反復）→ 走査の間だけ生きる表の使い回し（TryBuildFacility の形）が新しい表の答えと同じか
++        var rs = new RootSupply(w);
++        var a = UtilityAgent.FacilityBuildScore(w, r, t, rs);   // 表を作る 1 回目
++        var b = UtilityAgent.FacilityBuildScore(w, r, t, rs);   // 同じ表の 2 回目（記憶した答えを読む）
++        var c = UtilityAgent.FacilityBuildScore(w, r, t);       // 新しい表
++        Assert.True(double.IsNaN(a.Score)); Assert.True(double.IsNaN(b.Score)); Assert.True(double.IsNaN(c.Score));   // 根の無い候補はどの読み方でも落ちる
++        Assert.Equal(a.Excess, b.Excess); Assert.Equal(a.Excess, c.Excess);   // 落としても需要の信号（Excess）は残る
+     }
+ }

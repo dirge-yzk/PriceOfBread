@@ -1,0 +1,9 @@
+# (600) 合流の木（成績表の木 733ed140 と SimCore・Runner・Tests が同じ）のテスト（隔離ビルド D:/PoB_work/m600/artT・Release）
+## Category!=FullLength（--blame-crash・中止の行なし）
+成功!   -失敗:     0、合格:  1894、スキップ:     1、合計:  1895、期間: 11 m 27 s - PriceOfBread.Tests.dll (net10.0)
+## Category=FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 50 s - PriceOfBread.Tests.dll (net10.0)
+## --list-tests の本数
+1898
+＝1895＋3＝1898（m592 の 1894 から＋4＝gc6 −3＋3・sch2 ＋4）
+## App のビルド（隔離ビルド D:/PoB_work/m600/artA）：0 エラー

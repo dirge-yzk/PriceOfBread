@@ -1,0 +1,7 @@
+# (600) 基線 m600 の計器つき 10 種の生（D:/PoB_work/keep_600/m600_ins）対 m592 の生（keep_592/m592_ins）＝表ごとのバイト比べ（tools の rawcmp：違う表は共通の列を全行で比べる）
+same 713 of 763
+burscan: 10 files differ; differing common cols=['seconds']; header diff=[]
+clock: 10 files differ; differing common cols=['worldTotalPerMonth']; header diff=[]
+ed: 10 files differ; differing common cols=[]; header diff=['eduStage', 'eduStageMismatchShare']
+flow: 10 files differ; differing common cols=['sourceLine']; header diff=[]
+lawgate: 10 files differ; differing common cols=[]; header diff=['antiTargetOld', 'flagLevel', 'goldWishOld', 'guildTargetOld']
