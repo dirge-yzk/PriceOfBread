@@ -1,0 +1,7 @@
+# (609) 合流の木（成績表の木 9f9e6f55・SOURCE-HASH b11b81532c5abc69）の試験
+--list-tests: 1936（＝1933＋FullLength 3）
+Category!=FullLength: 成功!   -失敗:     0、合格:  1932、スキップ:     1、合計:  1933、期間: 12 m 8 s - PriceOfBread.Tests.dll (net10.0)
+中止の行: 0
+Category=FullLength: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 18 s - PriceOfBread.Tests.dll (net10.0)
+App の隔離ビルド（--artifacts-path）: 0 エラー
+rpt の番人の突然変異（ループの後の答えを外す＋!answer の展開を外す・同時に入れた）: callarms全ては… が赤（Assert.Equal 1 件）→戻した
