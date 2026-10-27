@@ -258,9 +258,7 @@ public sealed class UtilityAgent : INationAgent
     private const double ModernizerModBias = 1.5;            // 近代化教義：近代化効用の増幅
     private const double ModernizerWelBias = 1.2;           // 近代化教義：福祉効用の増幅
     private const double CompulsoryEduTechThreshold = 1.0;   // 義務教育の技術閾値
-    private const double AntitrustIndThreshold = 0.5;                   // 02断線走査2026-07-28：談合禁止を目標に置く工業化度
-    private const double TrustbustIndThreshold = 0.75;                  // 02断線走査2026-07-28：独占解体（シャーマン法級）を目標に置く工業化度
-    // ★(423) 旗 AiLawGateFromBoard（既定 3＝2026-10-19 に点火・0＝旧）の線 3 本。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
+    // ★(423) AI の法の門の線 3 本（★(599) 旗 AiLawGateFromBoard と工業化度を読む旧の式は削除した）。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
     internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
     internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
     internal const double MinimumWageSufficiencyUrbanLine = 2.0 / 3.0;   // ★最低賃金法（線 lw (459)）の充足を目標に置く本国の都市の割合（都市が3分の2＝賃金労働が圧倒的多数・AI の選択・確証なし）
@@ -363,8 +361,7 @@ public sealed class UtilityAgent : INationAgent
         //   土台の入力（POP の保有・現行法・軍事費の目標〔Government.MilitaryTotalTarget〕ほか）をこの整形は書かない＝書くのは法目標（NationPolicy）だけで、
         //   土台が読む軍事費の目標（陸海の維持費の目標）の書き込みは**最後の照会の後**（末尾の軍事費の段）。旧＝照会ごとに Build＝全長の1種で約18万回（Build の15%）。
         PolicyPreferences.Profile? shared = null;
-        if (w.Coef.AiBureaucracyFromPrereq > 0 || Instruments.On)   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む
-        {
+        {   // (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む（★(599) 旗 AiBureaucracyFromPrereq〔既定 2〕は削除＝走査は常に走る）
             long scanT0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;   // 走査の実時間（秒）は計器つきのときだけ測る（追記3）。呼びの数は下の台帳が数える
             w.Cost[CostLedger.AiBureaucracyScans]++;   // 計算量の台帳（診断）：官僚制度の走査は国×四半期（(395)＝(392) までは .cost の外だった）
             BureaucracyFollowsWants(w, p, ref shared);
@@ -413,19 +410,18 @@ public sealed class UtilityAgent : INationAgent
                 Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Government.MilitaryLawStages);   // Max(1,…)＝「なし」を作らない
     }
 
-    /// <summary>★(389) Q-a8 AI の官僚制度（旗 <see cref="Coefficients.AiBureaucracyFromPrereq"/>・既定 2・0 なら走査が走らない）：AI が欲しい法（目標が現行より上）のうち、その一歩が
+    /// <summary>★(389) Q-a8 AI の官僚制度（★(599) 旗 AiBureaucracyFromPrereq〔既定 2〕は削除した＝走査は常に走り政治の門を通る）：AI が欲しい法（目標が現行より上）のうち、その一歩が
     /// 〈官僚制度が前提〉で止まっている法があれば、官僚制度の目標をその法が通る一番低い段まで上げる。直後の <c>GateLaw(官僚制度)</c> が法律タブと同じ門で一歩に整形する。
     /// 欲しい法＝<see cref="Government.LevelLaws"/>／<see cref="Government.RateLaws"/> の表の行で目標が現行より上（表を読むだけ＝法の一覧を作らない）。
     /// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
-    /// 旗 1＝欲しければ数える。旗 2＝さらに、官僚制度が足りていれば法律タブと同じ門 <see cref="Government.GateInfo"/>（純支持・政治資本の残り）も通る法だけ数える
-    /// （段0 の実測：独占禁止は開幕の工業化度で全国が 1787 年ごろから欲しがるが、政治の支持が無ければ通らない欲しさ）。
+    /// 官僚制度が足りていれば法律タブと同じ門 <see cref="Government.GateInfo"/>（純支持・政治資本の残り）も通る法だけ数える
+    /// （段0 の実測：独占禁止は開幕の工業化度で全国が 1787 年ごろから欲しがるが、政治の支持が無ければ通らない欲しさ）。旧の旗 1〔欲しければ数える〕は削除した。
     /// 新しい定数・閾値・状態を置かない（**引き金**は毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。
     /// ⚠**置いた目標は導き直されない**＝施行されるまで（欲しさが消えても）残る（プレイヤーの置いた目標・議会の綱領の目標と同じ。解放を足すなら番人を意図して書き換える）。事前登録 追記3 [A]。
-    /// INS=1 のときは読むだけの記録を残す（旗 0 でも）。</summary>
+    /// INS=1 のときは読むだけの記録を残す。</summary>
     internal static void BureaucracyFollowsWants(World w, NationPolicy p, ref PolicyPreferences.Profile? shared)
     {
         int wantMask = 0, blockMask = 0, feasMask = 0; var need = w.Bureaucracy; var applyNeed = w.Bureaucracy; var burIn = p.Bureaucracy; var coef = w.Coef;
-        bool politicalGate = coef.AiBureaucracyFromPrereq > 1;
         PolicyPreferences.Profile? sh = shared;
         void Scan(PolicyAxis axis, int cur, int tgt)
         {
@@ -442,14 +438,14 @@ public sealed class UtilityAgent : INationAgent
             for (var level = w.Bureaucracy + 1; level <= BureaucracyLaw.Professional; level++)
                 if (Government.LawPrereq(w, axis, next, coef, level).Ok) { lawNeed = level; break; }
             if (lawNeed > need) need = lawNeed;
-            bool feasible = (politicalGate || Instruments.On) && Government.GateInfo(w, axis, true, next, ref sh, lawNeed).Ok;   // 官僚制度が足りていれば法律タブで押せる法
+            bool feasible = Government.GateInfo(w, axis, true, next, ref sh, lawNeed).Ok;   // 官僚制度が足りていれば法律タブで押せる法
             if (feasible) feasMask |= bit;
-            if ((!politicalGate || feasible) && lawNeed > applyNeed) applyNeed = lawNeed;
+            if (feasible && lawNeed > applyNeed) applyNeed = lawNeed;
         }
         foreach (var law in Government.LevelLaws) Scan(law.Axis, law.Get(w), law.Target(w, p));
         foreach (var law in Government.RateLaws) Scan(law.Axis, Government.TaxStage(law.Axis, law.Get(w)), Government.TaxStage(law.Axis, law.Target(p)));
         shared = sh;
-        if (coef.AiBureaucracyFromPrereq > 0 && applyNeed > w.Bureaucracy && p.Bureaucracy < applyNeed) p.Bureaucracy = applyNeed;
+        if (applyNeed > w.Bureaucracy && p.Bureaucracy < applyNeed) p.Bureaucracy = applyNeed;
         if (Instruments.On && (wantMask != 0 || p.Bureaucracy != w.Bureaucracy)) Instruments.BurObserve(w, burIn, p.Bureaucracy, wantMask, blockMask, feasMask, blockMask != 0 ? (int)need : -1);
     }
 
@@ -803,11 +799,11 @@ public sealed class UtilityAgent : INationAgent
         // ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
         //   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では米 10/10 種が 1951 年まで猟官制（★(389) 段0 の実測で訂正：普は world.json で開幕から資格任用・英は m387 で 10/10 種が 1800 年前後に議会の経路で資格任用へ届く・計器のある 87 国のうち 51 国が 10 種とも最終まで猟官制）＝
         //   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
-        // ★(423) 旗 AiLawGateFromBoard：≧2＝反トラストの願いを本国の都市の割合へ・≧3＝同業組合も（旧の式は AntitrustTargetOld／GuildTargetOld に畳んだ＝同じ式・同じ順）。
-        if ((w.Coef.AiLawGateFromBoard >= 2.0 ? AntitrustTargetFromBoard(w) : AntitrustTargetOld(w)) is { } antiTarget)
-            p.Antitrust = antiTarget;   // 旧＝工業化＝独占の弊害が政治問題化（シャーマン法1890）・新＝都市の消費者と賃金労働者が多数になる
+        // ★(423) 反トラストの願いは本国の都市の割合（★(599) 旧の工業化度の式と旗 AiLawGateFromBoard は削除した）。
+        if (AntitrustTargetFromBoard(w) is { } antiTarget)
+            p.Antitrust = antiTarget;   // 都市の消費者と賃金労働者が多数になる（旧＝工業化＝独占の弊害が政治問題化〔シャーマン法1890〕は削除）
         // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
-        if ((w.Coef.AiLawGateFromBoard >= 3.0 ? GuildTargetFromBoard(w) : GuildTargetOld(w)) is { } guildTarget)
+        if (GuildTargetFromBoard(w) is { } guildTarget)
             p.Guild = guildTarget;
         // ★最低賃金法（線 lw (459)）：★(486) から既定は旗 MinimumWageAiFromFloor＝1＝盤面の規則（本国の労働の失業と床が縛る広がり・線 4 本・AI の選び＝確証なし）。旗 0 の旧の規則＝賃金労働者（本国の都市人口）が多数になった国は床を求める（反トラスト・同業組合と同じ線）。ゲート0＝目標を書かない＝恒等
         {   // ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。計器の欄は読むだけ。
@@ -958,14 +954,10 @@ public sealed class UtilityAgent : INationAgent
         w.ResolveElection(ev.AgendaIdeologies[bestK], lever);
     }
 
-    // ---------------------------------------------------------------- (423) 工業化度を読む法の門と、その置き換え先（旗 AiLawGateFromBoard・事前登録 measurements/lt_20261019_prereg.txt） ----------------------------------------------------------------
-    // 純関数（状態なし・乱数なし）。AI の〈願い〉の側の式で、プレイヤーは法律タブから同じ政治の門（GateAllLawTargets／GateLaw）を通る。IsPlayer・IndustrialFrontier・MeanIndustrialization（新の側）を読まない。
-    // 旧の式は文字列のまま *Old に畳んだ（同じ式・同じ順＝旗 0 でビット恒等）。計器 lawgate_s が旧と新を並べて出す。
+    // ---------------------------------------------------------------- (423) 工業化度を読んでいた法の門の置き換え先（事前登録 measurements/lt_20261019_prereg.txt・★(599) 旧の式と旗は削除） ----------------------------------------------------------------
+    // 純関数（状態なし・乱数なし）。AI の〈願い〉の側の式で、プレイヤーは法律タブから同じ政治の門（GateAllLawTargets／GateLaw）を通る。IsPlayer・IndustrialFrontier・MeanIndustrialization を読まない。
 
-    /// <summary>旧の金本位の願い＝金の法の国は降りない ‖ 工業化度＞GoldStandardIndThreshold。</summary>
-    internal static bool GoldWishOld(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
-
-    /// <summary>新の金本位の願い（旗≧1）＝金の法の国は降りない ‖ 本国の平均識字＞<see cref="GoldLiteracyLine"/>（0.75）。分母 0・NaN は偽（否定形でなく比較が偽に落ちる側＝望まない）。</summary>
+    /// <summary>金本位の願い＝金の法の国は降りない ‖ 本国の平均識字＞<see cref="GoldLiteracyLine"/>（0.75）。分母 0・NaN は偽（否定形でなく比較が偽に落ちる側＝望まない）。</summary>
     internal static bool GoldWishFromBoard(World w) => w.MonetaryLaw == MonetaryStandardLaw.Gold || PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > GoldLiteracyLine;
 
     /// <summary>本国（植民地格を除く）の活きている州の都市人口の割合。人口 0 は 0。</summary>
@@ -980,15 +972,7 @@ public sealed class UtilityAgent : INationAgent
         return total > 1e-9 ? urban / total : 0.0;
     }
 
-    /// <summary>旧の反トラストの目標＝工業化度＞0.5 で談合禁止・＞0.75 で独占の解体・それ以下は書かない（null）。</summary>
-    internal static AntitrustLaw? AntitrustTargetOld(World w)
-    {
-        if (w.MeanIndustrialization > AntitrustIndThreshold)
-            return w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;
-        return null;
-    }
-
-    /// <summary>新の反トラストの目標（旗≧2）＝本国の都市の割合＞1/2 で独占の解体・＞1/3 で談合禁止・それ以下は書かない（null）。
+    /// <summary>反トラストの目標＝本国の都市の割合＞1/2 で独占の解体・＞1/3 で談合禁止・それ以下は書かない（null）。
     /// ⚠下げる目標を書かない：1/3〜1/2 の帯で現行の法がすでに談合禁止以上なら書かない（現行を保つ）。都市の割合は 1870 年以後に 1/2 を割る国が多い〔m420 の本国のみ・英 9／10 種・仏 10／10 種〕
     /// ＝入力が可逆なので、帯で CartelBan を書くと施行済みの独占の解体を引き下げる目標が立つ（史実に法の廃止は無い）。旧の工業化度は戦争の摩耗以外で下がらず、旧の式も実質同じ向き（事前登録 追記3）。</summary>
     internal static AntitrustLaw? AntitrustTargetFromBoard(World w)
@@ -999,15 +983,7 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    /// <summary>旧の同業組合の目標＝GuildLawGate＞0 かつ工業化度＞0.5 で制限・＞0.75 で廃止・それ以外は書かない（null）。</summary>
-    internal static GuildLaw? GuildTargetOld(World w)
-    {
-        if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
-            return w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
-        return null;
-    }
-
-    /// <summary>新の同業組合の目標（旗≧3）＝GuildLawGate＞0 かつ本国の都市の割合＞1/2 で廃止・＞1/3 で制限・それ以外は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// <summary>同業組合の目標＝GuildLawGate＞0 かつ本国の都市の割合＞1/2 で廃止・＞1/3 で制限・それ以外は書かない（null）。反トラストと同じく下げる目標を書かない
     /// （帯で現行の法がすでに制限以上なら書かない＝廃止済みの組合の保護を戻す目標を立てない）。</summary>
     internal static GuildLaw? GuildTargetFromBoard(World w)
     {
@@ -1086,7 +1062,7 @@ public sealed class UtilityAgent : INationAgent
         //   （兌換停止＝Fiscal の OnGoldStandard／法を下げる要求＝PolicyPreferences の債務者の側→議会・蜂起の強制施行 Politics）。
         //   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
         // ★銀は誰でも持てる（銀本位doc G4・銀貨は普遍的だった＝清もインドも独も1783年に銀）＝不換の国は銀を志向する（旧の銀の閾 SilverStandardIndThreshold＝0 は常に真＝(210) で削除）。⚠国名も暦年も書かない。
-        bool goldWish = w.Coef.AiLawGateFromBoard >= 1.0 ? GoldWishFromBoard(w) : GoldWishOld(w);   // ★(423) 旗 AiLawGateFromBoard≧1：工業化度 → 本国の平均識字（旧の式は GoldWishOld に畳んだ）
+        bool goldWish = GoldWishFromBoard(w);   // ★(423) 金の願いは本国の平均識字（★(599) 旧の工業化度の式と旗 AiLawGateFromBoard は削除した）
         w.Policy.MonetaryTarget = goldWish ? 2 : 1;
         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
         // 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は

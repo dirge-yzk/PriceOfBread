@@ -97,7 +97,6 @@ public class NationModelTests
         var w = new Simulation(NationConfig.Britain().ToScenario(7), new NullAgent()).World;
         Assert.Equal(MonetaryStandardLaw.Gold, w.MonetaryLaw);   // 構築の時点で金（初期値が法と目標の両方に入る）
         Assert.Equal(2, w.Policy.MonetaryTarget);
-        Assert.True(w.MeanIndustrialization <= w.Coef.GoldStandardIndThreshold, "前提が崩れた：英の工業化が閾値を超えている（自力の願望で金になり、降りない規則を検査しない）");
         Assert.True(PoliticalQuantities.AvgLiteracy(w, coreOnly: true) <= UtilityAgent.GoldLiteracyLine, "前提が崩れた：英の本国の識字が金本位の線を超えている（(423) 以後の自力の願望は識字で決まる＝自力で金になり、降りない規則を検査しない）");   // ★(423) AiLawGateFromBoard 既定 3：金の願いの自力の側は識字（工業化度は読まない）
         var ai = new UtilityAgent();
         ai.DecideQuarter(w);

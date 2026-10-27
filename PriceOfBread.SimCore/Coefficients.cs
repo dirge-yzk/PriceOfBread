@@ -328,7 +328,7 @@ public sealed class Coefficients
     // ★(431) **二量分離の完成**（2026-10-19 点火・旗 DiscontentSplit は焼き込んで削除）：闘争度の目標から生活の失望の項を外し（Pop.MilLiving の欄は (551) で削除・目標＝法の項＋民族＋厭戦＋飢餓）、
     //   思想の更新の入力 mil（Ideologies.UpdateShares）は max(不満度, 闘争度)。参加の述語は上の ParticipationDiscontent（既定 1）が同じ max を読む。
     //   不満度は読むたびに今の盤面から導く（記憶を持たない・新しい状態も倍率も無い）。好景気の負の失望が民族・厭戦・飢餓の怒りを打ち消さなくなる。事前登録・結果＝measurements/dq_20261019_prereg.txt・dq_20261019_arms.txt。
-    public double GoldStandardIndThreshold = 3.5;     // AI挙動：金本位を**自力で**志向する工業化の下限（発展した交易経済の制度＝未発展では足枷の損が勝る。era は工業化から創発）。
+    // 【墓標2026-10-27 (599)】GoldStandardIndThreshold（AI の金本位を自力で志向する工業化度の下限・3.5）は旗 AiLawGateFromBoard の旧の腕と一緒に消した（金の願いは UtilityAgent.GoldWishFromBoard の本国の平均識字の 1 本）。
                                                       // 【1.5→3.5・2026-08-21・銀本位点火の一部（4係数一括・Coefficients の銀本位墓標参照）＝1.5は前線が1793年に4カ国・1803年に16カ国越え＝金の早期氾濫の根。
                                                       //   3.5＝前線だけが自力で届く値（1853年前後）→残りは MonetaryPeerPullScale の交易網の引力が政治経由で運ぶ＝「英に引かれて雪崩」の形。
                                                       //   ⚠3.0は仏=銀のまま・ペルシャ=金と構成が崩れる（E2実測）。単独で戻さない＝銀の梯子と引力と一括】
@@ -2810,13 +2810,9 @@ public sealed class Coefficients
     public double HouseholdProductionEnabled = 1.0;
     // 【墓標2026-10-27 (591)】AiModernizeFromReturn（(416) 工業化度の AI の読み手の置き換え・既定 3・2026-10-19 点火）の旧の腕〔段 0〜2〕を旗ごと消した（EffectiveIndCeiling・SelfPlay の IndustrializationCeiling・modsig の旧の列 indCeilingOld／indGapOld／flagLevel も）。
     //   今の形＝AI の近代化投資を止める信号・ダンピングの後発判定・スタンスの工業化の余地は全て World.ModernizeReturnShare（国庫の配り先の設備の収益の持ち分・EconomyStep.InvestmentReturn と同じ 1 本）。集計の工業化度の天井は読まない。
-    // ★(423) 工業化度を読む AI の法の門の置き換え（事前登録 measurements/lt_20261019_prereg.txt・旗 AiLawGateFromBoard・既定 3＝2026-10-19 に点火・0 が旧）：UtilityAgent の 3 本の願い（金本位の志向・反トラスト・同業組合）が読む `MeanIndustrialization` を盤面の実物へ換える。
-    //   段で切る（切り分けの順）：≧1＝金本位（旧＝金の法の国は降りない ‖ 工業化度＞GoldStandardIndThreshold → 新＝金の法の国は降りない ‖ 本国の平均識字＞0.75）／≧2＝さらに反トラスト（旧＝工業化度＞0.5 で談合禁止・＞0.75 で独占の解体
-    //   → 新＝本国の都市人口の割合＞1/3 で談合禁止・＞1/2 で独占の解体）／≧3＝さらに同業組合（GuildLawGate＞0 のときだけ・線は反トラストと同じ）。線 3 本（識字 0.75・都市 1/3 と 1/2）は AI の選び＝確証なし。
-    //   新しい状態も倍率も置かない。0 で 3 か所とも旧の式のまま（ビット恒等）。工業化度の変数そのもの（Region.Industrialization・MeanIndustrialization）と、法の門でない読み手（MonopolyDissolveInd・CreditDevScale ほか）は触らない。
-    //   ★2026-10-19 (423) 後半で既定 3 へ**点火**（止める線 ①〜⑤ のどれにも当たらず）。〈機構が狙いどおり働いた〉の読み：非継承の金の法の国の 98% が本国の識字 0.75 を越えた国・識字を越えた国の 97% が金の法・越えてから金になるまで中央値 1 年（旧の門は識字より中央値 35 年先に金になっていた）・金の強制離脱 324→248 回・金の法の国 1833 年 36→3.7。
-    //   識字の線 0.75 は基準 m412 の 1913 年の金の法の国の数に合わせた AI の選び（確証なし）。反トラスト・同業組合の目標は下げる向きを持たない（片方向の錠・作者への問い Q6）。0 が旧の式（再現・計器 lawgate_s の旧の側）。
-    public double AiLawGateFromBoard = 3;
+    // 【墓標2026-10-27 (599)】AiLawGateFromBoard（(423) 工業化度を読む AI の法の門の置き換え・事前登録 measurements/lt_20261019_prereg.txt・既定 3＝2026-10-19 に点火）を旗ごと消した。旧の腕〔段 0〜2〕と旧の式 GoldWishOld／AntitrustTargetOld／GuildTargetOld・定数 AntitrustIndThreshold／TrustbustIndThreshold・計器 lawgate_s の旧の 4 列も消した。
+    //   今の形＝金本位の願いは本国の平均識字＞0.75（金の法の国は降りない）・反トラストの願いは本国の都市人口の割合（＞1/3 で談合禁止・＞1/2 で独占の解体）・同業組合の願いは GuildLawGate＞0 のとき同じ線。線 3 本（識字 0.75・都市 1/3 と 1/2）は AI の選び＝確証なし。下げる向きの目標は持たない（片方向の錠・作者への問い Q6）。
+    //   〈機構が狙いどおり働いた〉の読み（点火時）：非継承の金の法の国の 98% が本国の識字 0.75 を越えた国・識字を越えた国の 97% が金の法・越えてから金になるまで中央値 1 年・金の強制離脱 324→248 回・金の法の国 1833 年 36→3.7。
     // ★(456) 旗 ScoreFromWorldShare は焼き込んで消した（(416) で追加・(449) で既定 1 へ点火・(456) で旧の腕〔0＝兵＋豊かさ＋金融＋技術の和〕を物理的に消した）。国力＝世界の総量に対する本国の割合の 6 項（兵・軍事費〔参照価格建て〕・鉄の産出・動力の消費・都市人口・総人口）の均等平均×100
     //   （飽和もクランプも使わない・総量が 0 の項は平均から外す・植民地の州は数えない）。外交のランク・条約港の風化・序列の在庫・NationBrief・画面・Runner が NationalScore の 1 本を読む。旧の式は計器 score_s の旧の列〔scoreOld・rankOld・isGreatOld〕だけが Instruments.OldScore として持つ。
     //   作者の 2026-06-28 の指示と逆向きになる恐れ（人口の項が 4 つ）＝承認は未確認（00一覧 §0-2 Q-S1）。旧に戻す道は git 履歴〔(449) の木〕だけ。
@@ -3257,7 +3253,8 @@ public sealed class Coefficients
                                             //   0＝ブロックごと不実行＝ビット恒等。
                                             //   点火A/Bの観点：非選挙46カ国で2法が enum 既定値から初めて動く＝流入国の移民制限（排華移民法/白豪主義の型が新大陸で創発）・
                                             //   近代エリート/大衆支配国の宗教寛容化（十分の一税↓・識字移民）。移民フロー・人口・識字の帯に効く。
-    public double AiBureaucracyFromPrereq = 2;   // ★(389) Q-a8 **点火済み（既定 2・2026-10-17）**：AI が欲しい法が〈官僚制度が前提〉で止まった四半期に官僚制度の次の段を目標に置く（SelfPlay.GateAllLawTargets の先頭・前提は Government.LawPrereq の同じ1本＝プレイヤーの法律タブと同じ）。0＝走査が走らない（(387) までの形）。1＝欲しければ数える（独占禁止の欲しさが全国で 1787 年ごろから立ち、米 1790・英 1795・仏 1823 と m377 並みに早く届く＝採らなかった）／2（既定）＝さらに官僚制度が足りていれば法律タブの門（GateInfo）も通る法だけ数える。置いた目標は施行されるまで残る（プレイヤーの置いた目標と同じ・追記3 の錠）。事前登録 measurements/ab_20261017_prereg.txt
+    // 【墓標2026-10-27 (599)】AiBureaucracyFromPrereq（(389) Q-a8・既定 2・2026-10-17 点火）を旗ごと消した。走査は常に走り〔旧の旗 0＝走らない〕、官僚制度が足りていれば法律タブの門（GateInfo）も通る法だけ数える〔旧の旗 1＝欲しければ数える〕。
+    //   AI が欲しい法が〈官僚制度が前提〉で止まった四半期に官僚制度の次の段を目標に置く（SelfPlay.BureaucracyFollowsWants・前提は Government.LawPrereq の同じ 1 本＝プレイヤーの法律タブと同じ）。置いた目標は施行されるまで残る（追記3 の錠）。事前登録 measurements/ab_20261017_prereg.txt
 
     // ==== 鋼市場AI側 2026-08-16（docs/202608/20260816_鋼市場診断_部分完了.md 修正#1〜#5・実装節＝同docの末尾）====
     // 作者方針＝**鋼の数値の外科手術は禁止**。先行者レント自体は史実どおりOK＝欠けているのは第二幕（レント→AI資本の参入→価格崩壊＝1873-96大不況）
@@ -3441,7 +3438,7 @@ public sealed class Coefficients
     //   代償=経済規模−5.0・政体exact−2.3・列強再現−2.5（記録して進む・#17再較正キューへ）。硬性全緑・savetest緑。
     //   形＝1783年[不換0/銀61/金0]の銀本位世界→70年の先行期間→1853年起点の倍々雪崩→1914年に銀圏12/14一致（清・ペルシャ・
     //   アフガニスタン・中央アジア3・アラビア・イエメン・オマーン・エチオピア・ラオス・西山朝）。休眠時は銀0/14・1803年に金16の氾濫だった。
-    //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】※旗の2本（SilverStandardGate・SilverLightDiscipline）は 2026-10-18 に焼き込んで消えた＝戻すなら git の履歴から（残るのは GoldStandardIndThreshold・MonetaryPeerPullScale の2係数だけ）。
+    //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】※旗の2本（SilverStandardGate・SilverLightDiscipline）は 2026-10-18 に焼き込んで消えた＝戻すなら git の履歴から（残るのは MonetaryPeerPullScale の1係数だけ・★(599) GoldStandardIndThreshold も消えた）。
     //   ★(210) MonetaryPeerPullScale の入力は組ごとの相手と比の外れへ・銀の下落は同じ州の比へ（PolicyPreferences）＝この墓標の4係数の戻し方は旧の記録。
     // 【墓標2026-10-18・旗の焼き込み】SilverStandardGate（銀本位の主旗・既定1.0・点火2026-08-21 銀本位ラウンド＝4係数一括：同一ソースA/B seeds1-10 ◎7割帯 11→17・逸脱過多 9→7・法+1.9・植民地+3.4・人口+1.4／代償=経済規模−5.0・政体exact−2.3・列強再現−2.5）を消した＝不換→銀→金の3段の梯子が常に開く（旧の2値の経路は削除）。
     // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の

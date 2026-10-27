@@ -1802,7 +1802,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
     string svOv = Coefficients.OverrideSummary();
     Console.WriteLine($"=== 銀本位プローブ seed={svSeed}／上書き={(svOv.Length > 0 ? svOv : "なし")} ===");
     Console.WriteLine($"    StandardMetalMintGate={svc.StandardMetalMintGate}"
-                    + $" 金閾={svc.GoldStandardIndThreshold} GoldMintFraction={svc.GoldMintFraction.Value} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
+                    + $" GoldMintFraction={svc.GoldMintFraction.Value} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
     Console.WriteLine($"    RefPrice: 銀({Catalog.SilverId})={Catalog.RefPrices[Catalog.SilverId]:F3}　金鉱({Catalog.GoldOreId})={Catalog.RefPrices[Catalog.GoldOreId]:F3}");
     var svEverAg = new List<string>(); var svEverAu = new List<string>();
     void SvDump(int q)
@@ -1831,10 +1831,10 @@ if (args.Length > 0 && args[0] == "silverprobe")
             if (w.MonetaryLaw == MonetaryStandardLaw.Gold && !svEverAu.Contains(bn)) svEverAu.Add(bn);
             if (w.OnGoldStandard) onStd++;
             int t = w.Policy.MonetaryTarget; if (t <= 0) t0++; else if (t == 1) t1++; else t2++;
-            // ★(435) 金の門を越えた国＝AI の金本位の願いの門の述語そのもの：旗 AiLawGateFromBoard≧1（既定 3）は本国の平均識字＞GoldLiteracyLine・0 は工業化度＞GoldStandardIndThreshold。
+            // ★(435) 金の門を越えた国＝AI の金本位の願いの門の述語そのもの：本国の平均識字＞GoldLiteracyLine（★(599) 旧の旗 AiLawGateFromBoard＝0 の工業化度の腕は削除した）。
             //   旧は既定では火を吹かない工業化度の閾を数えていた（(428) の申し送り③・lt の記録）。
-            //   ★(436) 旗と閾は国の係数 w.Coef から読む（AI の門と同じ出所・POB_COEF の国ごとの上書きでも食い違わない＝反証役 hw〔v〕低#4）。右辺は GoldWishFromBoard／GoldWishOld の〈金本位の法〉の項を除いた門の部分（写し＝門の式を変えたらここも）。
-            if (w.Coef.AiLawGateFromBoard >= 1.0 ? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold) indHi++;
+            //   ★(436) 旗と閾は国の係数 w.Coef から読む（AI の門と同じ出所・POB_COEF の国ごとの上書きでも食い違わない＝反証役 hw〔v〕低#4）。右辺は GoldWishFromBoard の〈金本位の法〉の項を除いた門の部分（写し＝門の式を変えたらここも）。
+            if (PoliticalQuantities.AvgLiteracy(w, coreOnly: true) > UtilityAgent.GoldLiteracyLine) indHi++;
             foreach (var r in w.Regions)
             {
                 foreach (var p in r.Producers)

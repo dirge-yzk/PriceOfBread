@@ -54,11 +54,11 @@ public class ModernizationAbolishedTests
     }
 
     /// <summary>StateBuildQueue に積む書き手は 0 本（新しい書き手が現れたら、廃止した撒く道が戻ったということ）。禁止語の表は手で書いた物。
-    /// `+=`・`-=`・`*=`・代入 `=`（`==` を除く）を数える。許す物＝月末の 0 への戻し（EconomyStep 1）・支払い率での縮め（Simulation 1）・試験の盤面の置き（BuildingGoodBundleTests 1）。</summary>
+    /// `+=`・`-=`・`*=`・代入 `=`（`==` を除く）を数える。許す物＝月末の 0 への戻し（EconomyStep 1）・支払い率での縮め（Simulation 1）。★(599) 試験の盤面の置き（BuildingGoodBundleTests 1）は、国家の建設の段ごと試験を消したので外した。</summary>
     [Fact]
     public void StateBuildQueueへ積む書き手はいない()
     {
-        var allow = new System.Collections.Generic.Dictionary<string, int> { ["PriceOfBread.SimCore/EconomyStep.cs"] = 1, ["PriceOfBread.SimCore/Simulation.cs"] = 1, ["PriceOfBread.Tests/BuildingGoodBundleTests.cs"] = 1 };
+        var allow = new System.Collections.Generic.Dictionary<string, int> { ["PriceOfBread.SimCore/EconomyStep.cs"] = 1, ["PriceOfBread.SimCore/Simulation.cs"] = 1, };
         var re = new System.Text.RegularExpressions.Regex(@"StateBuildQueue\s*(\+=|-=|\*=|=(?!=))");
         var bad = new System.Collections.Generic.List<string>();
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())

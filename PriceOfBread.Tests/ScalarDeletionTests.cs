@@ -111,6 +111,37 @@ public class ScalarDeletionTests
         Assert.Contains("industrialFrontier", Instruments.ModSigHeaderText.Split('	'));                              // World.IndustrialFrontier の配りは Ideology が読む＝残す
     }
 
+    [Fact]
+    public void 恒等の削除_2026_10_27_B6の残りは復活しない()
+    {
+        const System.Reflection.BindingFlags AllStatic = All | System.Reflection.BindingFlags.Static;
+        // (599) 恒等の線 gc6：AI の法の門の旧の式・定数・計器の旧の列を名前で禁じる（期待値は削除の一覧を手で写した物で、本体の式から作らない）。係数の名前は DormantIdentityTests.RetiredFields。
+        foreach (var fn in new[] { "GoldWishOld", "AntitrustTargetOld", "GuildTargetOld" })
+            Assert.Null(typeof(UtilityAgent).GetMethod(fn, AllStatic));                                                       // 工業化度を読む旧の願い
+        foreach (var k in new[] { "AntitrustIndThreshold", "TrustbustIndThreshold" })
+            Assert.Null(typeof(UtilityAgent).GetField(k, AllStatic));                                                         // 旧の願いの工業化度の線
+        var head = Instruments.LawGateHeaderText.Split('	');
+        foreach (var col in new[] { "flagLevel", "goldWishOld", "antiTargetOld", "guildTargetOld" })
+            Assert.DoesNotContain(col, head);                                                                                  // lawgate_s の旧の列
+        foreach (var col in new[] { "goldWishNew", "antiTargetNew", "guildTargetNew", "meanIndustrialization", "literacyHome", "urbanHome" })
+            Assert.Contains(col, head);                                                                                        // 残す列
+        Assert.Equal(14, head.Length);
+        // EconomyStep の国家の手動建設の段（StateBuildQueue を束の単位に直す変数）が戻らない。注の中の言及は許す（// より前の本文だけを見る）。
+        var re = new System.Text.RegularExpressions.Regex(@"(stateConstruction|stateConLaborUnits|stateHeadroomUnits)");
+        var bad = new System.Collections.Generic.List<string>();
+        foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
+        {
+            if (rel == "PriceOfBread.Tests/ScalarDeletionTests.cs") continue;
+            int ln = 0;
+            foreach (var line in System.IO.File.ReadLines(full))
+            {
+                ln++; string t = line; int cm = t.IndexOf("//", System.StringComparison.Ordinal); if (cm >= 0) t = t[..cm];
+                if (re.IsMatch(t)) bad.Add($"{rel}:{ln}");
+            }
+        }
+        Assert.True(bad.Count == 0, "削除した国家の手動建設の段の変数が戻った：" + string.Join(" / ", bad));
+    }
+
     /// <summary>★(568) 恒等の線 gc3：<c>Region.State</c>（稼働中か否か）を読む行は、本番では恒真だったので外した。ソースに〈RegionState を読む行〉が戻っていないことを、
     /// 許可表（ファイル → 許す行数の上限）で見る。許可表の中は枠と機械の線 ckf〔世界の時計の置き直し〕が書き直す所と、型の定義（Model.cs）だけ。
     /// 期待値は許可表（手で写した物）で、本体のソースから作らない。<see cref="GoodIdGuardTests.CsFiles"/> と同じ走査（SimCore・Runner・App・Tests）。</summary>

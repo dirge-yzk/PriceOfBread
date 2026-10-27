@@ -944,13 +944,11 @@ public static class EconomyStep
         double maintenance = 0;
         double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
         double monumentConstruction = 0, monumentLaborUnits = 0;
-        double stateConstruction = 0;   // プレイヤーの手動建設（国庫負担で同じ束を買う）
         ConsBundle bundle = ConsBundle.Steel(coef);   // ★(536)(550) 今月のこの州の建設の資材の組（旗 BuildingGoodBundle が 0 なら常に鋼の組＝今の束・正なら建造物＋機械の組）。資本家の建設の頭（BundleOf）か下の工場建設の頭で決め、需要・決済・繰越が同じ組を読む
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
         double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の門＝機関車の発見（(150)・RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
         double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // 運用コスト監査2026-08-16 #4：空軍・輜重の燃料（原油）。need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）
-        double stateConLaborUnits = 0;   // 経5：国家建設ぶんの同・労働需要量（国庫負担）
         // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。決済で built の計算に足し戻す。点火2026-08-01
         double[]? conCarryApplied = null;
         int conWorker = -1;   // 建設の工賃の受け手（工場労働者）
@@ -962,7 +960,7 @@ public static class EconomyStep
             double costPerUnit = bundle.Cost(region);   // 建設の資材の束の費用（K の1本）
             double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
-            // costPerUnit 自体は「材料束の純価格」（下段の stateConstruction が StateBuildQueue の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
+            // costPerUnit 自体は「材料束の純価格」（巨大建造物の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
             // 予算に算入し貯蓄が負に振れるのを防ぐ（点火2026-07-31・2026-09-28 に旗 InvestBudgetIncludesAllInputs ごと焼き込み）。
             double buildCostPerUnit = costPerUnit;
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
@@ -1034,40 +1032,13 @@ public static class EconomyStep
                 conLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * construction / lWagePrice;
                 investDemand[Catalog.LaborId] += conLaborUnits;
             }
-            // 国家の手動建設（プレイヤー）：資本家と同じ建設の束を国庫負担で買い増す（決済は後段）。
-            // ★束の採算（2026-08-03）：私的な工場建設は既に FactoryBuildAfford で絞っているのに、国家建設と巨大建造物は
+            // ★束の採算（2026-08-03）：私的な工場建設は既に FactoryBuildAfford で絞っているのに、巨大建造物は
             //   素通りで、高騰した束を国庫が買い切っていた。同じ式を通す（StateProcurePriceGate=0 で恒等）。
+            //   ★(599) 国家の手動建設の段〔StateBuildQueue を束の単位に直す段・州上限のヘッドルーム・工賃〕は削除した＝StateBuildQueue の書き手は (583) から 0 本で、段は常に 0 だった。
             double bundleRef = BundleRef(coef) * Math.Max(region.PriceLevel, Eps);   // ★実質で比べる（名目のままだと一般インフレで恒久的に絞られる・2026-08-04）
             double bundleAfford = coef.StateProcurePriceGate > 0 && bundleRef > Eps
                 ? 1.0 - coef.StateProcurePriceGate * (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
-            stateConstruction = costPerUnit > Eps ? region.StateBuildQueue / costPerUnit * bundleAfford : 0;
-            // ★国家建設の吸収ゲート（2026-09-03・作者指摘「近代化に必要なレバーが最初からオープンで、技術差が早期に埋まる」）。
-            //   ⚠吸収能力のゲートは技術（CatchupAbsorptionBlend）・外資（CapitalAbsorptionBlend）・私的建設（PrivateAbsorptionBlend）の
-            //   3経路に既にあり、**国庫の近代化投資にだけ無かった**。非西欧の近代化はほぼ全て国庫経由（AI の ModernizationFrac→StateBuildQueue）
-            //   なので、この1箇所の欠落が「洋務運動が英と同じ効率で工場を建てる」を許していた（＝アジアの過近代化の直撃点）。
-            //   ★史実＝呼ぶこと自体は可能（幕府も横須賀製鉄所をフランス人技師で建てた）。誤りは、据えた機械がそのまま国全体の
-            //     工業化に化けること＝**受け入れる器がないのに投資が満額で効く**こと。だからゲートは「雇えるか」でなく「効くか」に置く。
-            //   ⚠**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）＝新しい写像も新しい数字も作らない。
-            //   ⚠速度を絞るだけで天井を作らない＝私的側と同形（敵対審査2026-08-04の推奨形）＝デッドロックを作らない。
-            //     絞った分は Queue の請求が蒸発するだけで国庫からは出ていない（下の州上限クランプと同じ規律＝保存は不変）。
-            //   ★2026-09-26（棚卸し econ-16・dorm-16）：この吸収ゲートの器 StateAbsorptionBlend（休眠0）は E-16 で差し戻し済み＝枝ごと削除した（再測は git の履歴から）。
-            // Round2 2026-07-08（工業化暴走の根治）：国庫マネー→実物単位の変換を**州上限までのヘッドルームで月次ハードバウンド**。
-            // 旧実装は金額を市場価格で無制限に単位化＝恐慌明けの建設財デフレ（SoftBand床＝RefPriceの5%）で同じ国庫が20倍の単位に化け、
-            // 1ヶ月で工業化+25の急騰（ストックホルム型・selfplay異常2598の主因）。Queueは請求権で金は国庫から未出＝クランプしても保存不変
-            // （実支払いは決済の StateSpent＝実購入分のみ・Queueは試行毎にゼロ化＝上限超過分の請求は蒸発し、適格なら翌四半期に再請求される）。私的経路は netReturn ゲートが既に有界≈7.4。
-            double stateHeadroomUnits = Math.Max(0, (coef.IndustryInvestRegionCap - region.TotalIndustrialization) / Math.Max(Eps, coef.IndPerConstruction));   // 州上限は立っている資本の総量（新旧合計）で判定（ヴィンテージ2026-07-10）
-            stateConstruction = Math.Min(stateConstruction, stateHeadroomUnits);
-            investDemand[bundle.G0] += bundle.Q0 * stateConstruction;
-            investDemand[bundle.G1] += bundle.Q1 * stateConstruction;
-            investDemand[bundle.G2] += bundle.Q2 * stateConstruction;
-            investDemand[bundle.G3] += bundle.Q3 * stateConstruction;
-            // 経5：国家建設の工賃も同経路（国庫負担）＝決済は国庫（StateSpent）が支払う。
-            if (Catalog.LaborId < ng && conWorker >= 0)
-            {
-                stateConLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * stateConstruction / lWagePrice;
-                investDemand[Catalog.LaborId] += stateConLaborUnits;
-            }
-            // 巨大建造物（2026-07-28）：国家建設とは**別キュー**。★州上限5.0のヘッドルーム（stateHeadroomUnits）を通さない＝
+            // 巨大建造物（2026-07-28）：国家建設とは**別キュー**〔★(599) 国家建設の段は削除〕。★州上限5.0のヘッドルーム〔旧の stateHeadroomUnits〕を通さない＝
             // 建造物は工業化度に溶かさず専用の変換先を持つため（設計書§6 地雷#4）。資材は国家建設と同じ束、労働も同経路で買う。
             // MegaprojectEnabled=1.0（点火2026-07-28）で稼働。0 では MonumentBuildQueue を誰も積まず monumentConstruction=0＝このブロックは不実行。
             monumentConstruction = costPerUnit > Eps ? region.MonumentBuildQueue / costPerUnit * bundleAfford : 0;   // ★束の採算（2026-08-03）＝国家建設と同じ式
@@ -2213,44 +2184,6 @@ public static class EconomyStep
                 if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.ConstructionRail), railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId], 0, railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);   // (286) 計器（読むだけ）
                 revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
-            }
-        }
-
-        // 国家の手動建設の決済：買えた建設の束だけ工業化度に変換。支払いは国庫（StateSpent＝国庫→生産者で保存）＝資本家と同じ経路。
-        if (cap && stateConstruction > 0)
-        {
-            int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
-            double sGot = bundle.Q0 * stateConstruction * ration[sg];
-            double mGot = bundle.Q1 * stateConstruction * ration[mg];
-            double cGot = bundle.Q2 * stateConstruction * ration[cg];
-            double lGot = bundle.Q3 * stateConstruction * ration[lg];
-            double built = bundle.Units(sGot, mGot, cGot, lGot, Eps);   // ★(550) 同上
-            // 巨大建造物§3-2（2026-07-28・国家経路にも適用）：資本家経路（投資の決済）にだけ労働律速を入れると、**国庫で建てる限り労働ゼロでも建つ**
-            // という非対称が残る。段7のニューディールは定義上「国家が建てる」経路なので、ここを外すと「好況時に民間から労働を奪って建設が止まる」側だけが
-            // 国家経路で免除され、§3-3 の「建造物と工場が労働を取り合う」が成立しない。
-            if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
-                built = Math.Min(built, stateConstruction * ration[Catalog.LaborId]);
-            double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
-            region.StateSpent[(int)TreasuryCat.Modernization] += cost;   // 国庫が負担（Simulation が国庫から引く＝国庫→生産者で保存）
-            if (insOn) Instruments.StatePaid(world!, 0, cost);   // (289) 計器（読むだけ）：国庫が実際に払った国の建設
-            // 経5：国家建設の工賃決済＝労働力財市場から工賃分を買い、支払い主体は国庫（StateSpent）＝行政・軍需と同じ国庫→労働pop経路で保存（旧経路は 2026-09-28 に削除＝上の資本家経路と同じ）。
-            if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
-            {
-                double labQ = stateConLaborUnits * ration[Catalog.LaborId];
-                double labPay = labQ * clearPrice[Catalog.LaborId];
-                region.StateSpent[(int)TreasuryCat.Modernization] += labPay;
-                if (insOn) Instruments.StatePaid(world!, 0, labPay);   // (289) 計器（読むだけ）
-                revenue[Catalog.LaborId] += labPay;
-            }
-            revenue[sg] += sGot * clearPrice[sg];
-            revenue[mg] += mGot * clearPrice[mg];
-            revenue[cg] += cGot * clearPrice[cg];
-            revenue[lg] += lGot * clearPrice[lg];
-            if (!warmFrozen)   // ★助走：国家建設も材料は買って払うが能力にはしない（資本家経路と同じ理屈・同じ扱い＝AIとプレイヤーで非対称にしない）
-            {
-                if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, built * coef.IndPerConstruction, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, built * coef.IndPerConstruction, eqInst); }   // ★(495) 国家の近代化も同じ配り（設備の持ち主は民間のまま）
-                region.Industrialization += built * coef.IndPerConstruction;
-                region.CumStateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝国家建設分の累積（純カウンタ・力学は読まない）
             }
         }
 
