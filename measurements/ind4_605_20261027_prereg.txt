@@ -146,3 +146,28 @@
   ・読み手の許可表のラチェット（J1）の基準は SimCore の非コメント行 81（段0 の表の 86 から、〈済〉の項と表示の 5 行が減った）。
   ・`TradeWeightOpeningEven` は MultiNationSim の共有係数 `_coef` を読む（他の 6 本は国の `World.Coef`）。環境変数 `POB_COEF` の上書きは `Coefficients` の構築子が適用する（`Coefficients.cs` の `Overrides`）ため、`new Coefficients()` で作る `_coef` にも国の係数にも同じ値が届く。
   ・前半の確かめ（結果）：Release のビルド 0 エラー・Category!=FullLength のフルスイート 1909 合格・スキップ 1・合計 1910（`--list-tests` と一致・中止の行 0）・新しい番人 15 本の突然変異 9 本で赤。腕は未走。
+
+[9] 追記 2（反証役の点検の反映・腕の前・書いた時点：2026-10-28・腕は 1 本も回していない・書いたモデル Claude Sonnet 5.5）
+  ・点検（高 2・中 2・低 5）を腕の前に反映した。結果を見ての付け替えではない（腕は未走）。狙いの数字は以下の K1′ に置き換える（K1 は破棄）。
+  ・**J6 の訂正（高）**：[3] の J6 の〈工業化度を読まない〉と旗・`CapitalMarket.Headroom` の注の同じ記述は誤り。`World.ModernizeReturnShare()` は `EconomyStep.ReturnShare`（設備の収益の飽和）と
+    `StateInvestEligible`／`StateInvestWeight`（州の上限 `IndustryInvestRegionCap` と `TotalIndustrialization`）を通じて州の資本の在庫を**間接に読む**。直読み（`MeanIndustrialization`）を外すだけで在庫への結びは残る。
+    J6 を次に直す：旗 1 で headroom が `CapitalIndTarget × ModernizeReturnShare()` と一致し、`MeanIndustrialization` を直接は読まない（直読みの許可表の行は旗の枝の旧の式だけ）。
+    向きの番人を足した：州の在庫が上限（`IndustryInvestRegionCap`）に達すると適格でなくなり headroom が 0 へ落ちる（低い在庫で ≥0、上限で ==0）。
+    境界：この旗は枠と機械の線が持つ〈投資の限界収益・州の上限〉の量へ新しい読み手を足す＝置き換え先の量が枠と機械の範囲に重なる。確証なし。腕 B の採否では旗ごとに外せる（B′ に含める）。
+  ・**K1 の置き換え K1′（高）**：K1 の 4 項目は (i)(iii)(iv) が作りの上で自明に通る・(ii) の閾値が無かった。次に置き換える。
+    K1a（`UrbanCapOff` の計器）：region_s の `ruralPopulationK`／`populationK`（有効な州の合算）から、国×十年（各十年の最初の四半期）の都市の割合を作り、
+        **≥0.95 または ≤0.02 に張り付く国×十年の割合 ≤ 0.05 が種 ≥ 8/10 で成立**。基線 m600 の同じ読み：10 種とも ≥0.95 は 0 件・≤0.02 は種 4 の 2 件（最大 0.88・最小 0.0099）＝基線は張り付かない（記録の物差し）。
+    他の 6 本（疫病・思想の発展度・信用・外資・交易の比重・扶養力）：**腕の狙いは付けない＝番人（J2〜J10）だけで採否を決める**と明記する（旧の量との結びが切れたことは番人の手計算で見る。国で違う量は作りの上で自明に通るため腕の狙いにしない）。
+    発散・暴走は K1 でなく止める線 S2（国×十年の価格水準・貸出の最大／最小）で見る。
+  ・**旗の名前（中）**：`UrbanCapFromHousing` → `UrbanCapOff`（中身は天井を外すだけ。住居の充足は `PopDecision.Run` が読まない）。注から〈住居の値段〉を消した。残る歯止めは目標の都市の割合の sigmoid（所得差）と飢えの線だけ。
+    **開幕の都市化の引き**：旗 1 は BaseUrbanCap 0.20 の天井が無くなる＝所得差が 0 で目標 0.5、0.6 で ≈0.98。第 1 四半期の都市の割合の手計算の代わりに、腕 B の第 1 四半期〜十年の都市の割合を記録する（R-urban・基線と並べる）。
+    記録に足す：食料の充足（region_s `foodFillShare` が 0.5 未満の国×十年の数）＝天井の撤去で食料の産出が先に崩れる向きの目印（採否に使わない）。
+  ・**腕 B′（中）**：S2／S3 に当たったとき回す切り分けは `CreditDevOff=0;UrbanCapOff=0;IdeologyDevFromUrban=0`（残り 4 本＝疫病・外資・交易の比重・扶養力）の 1 本。`IdeologyDevFromUrban` を一緒に外すのは dev が都市の割合に張り付いてファシズムの支持が飽和する絡みを切るため。
+    さらに切るのは B′ でも当たったときだけ。
+  ・**PlayHarness（中）**：293 の技術水準（TechLevel）の列と 450 の `技術` の列は元に戻した（技術水準は別の線の読み手・番人の条件からも外した）。工業の列（416〜419 の `工業{TotalIndustrialization}` と 450 の `工業{MeanIndustrialization}`）の削除と最終の表（`AppendEnding`）の鉄の産出は残す。
+    **州の上位 10 の並びを工業化順から人口順に変えた**（読み手の削除に伴う選択・登録に無かった＝報告の先頭に書く）。419 は gc7 の着工予約の行と文字が衝突する＝合流は ind4 → gc7 の順で、gc7 側で許可表（J1）を直す。
+  ・**番人の期待値（低）**：J4（BaseUrbanCap・UrbanPerInd）・J5（CreditMultiplierDevFloor・CreditDevScale）は係数から作る。J7 は `MultiNationSim` の定数を読む。旗 0 の恒等は腕 A に任せる（番人は向きと手計算の形）。
+  ・**低の記録**：`TradeWeightOpeningEven` は効くのが開幕の 1 四半期だけ（`UpdateTradeWeights` が毎四半期、取扱高から上書きする）＝ほぼ空振りの旗。採否は番人だけ。
+    `EpidemicSanitFromBoard` は上下水道の生産者が無い州と都市の人口が 0 の州で `InfraFill` の既定 1.0 により衛生が 1 に張り付く（致死率が基礎の 0.3 倍）＝本番の州には生産者があり影響は限られる見込み（推測）。腕 B では pop_s の致死の列で衛生が 1 の州の数を記録できないため、記録に回す。
+    `CapitalIndTarget` は旗 1 で 0〜1 の割合に掛ける目盛りに単位が変わる＝係数の注に書いた。
+  ・種：判定は種 1〜10。結果を見て登録を直すときは新しい種 11〜20 で判定し直す。

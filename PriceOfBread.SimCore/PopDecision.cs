@@ -42,7 +42,7 @@ public static class PopDecision
 
         // 都市化の上限（§2.4）：工業化度が都市化の天井を決める＝都市化は工業化に従う。
         // 工業化度が無ければ前工業の天井に留まり、投資（誘導）で天井が上がって初めて都市化が進む。
-        if (region.CapitalEnabled && !(coef.UrbanCapFromHousing > 0))   // ★(605) 旗 UrbanCapFromHousing：工業化度の天井も平滑化の更新も使わない
+        if (region.CapitalEnabled && !(coef.UrbanCapOff > 0))   // ★(605) 旗 UrbanCapOff：工業化度の天井も平滑化の更新も使わない
         {
             // 監査2026-07-05（D3）：都市化天井の工業化追従ラグ＝住宅・インフラの建設時間。UrbanCapFollowSpeed 既定0.02（点火2026-08-16・時定数≈4年）で天井が工業化に数年遅れて追いつく。1.0 なら即時追従＝旧挙動。
             double indForCap = region.TotalIndustrialization;   // 都市化天井は立っている建屋・雇用基盤の総量＝新旧合計（座礁しても街は残る。ヴィンテージ休眠時は恒等・2026-07-10）

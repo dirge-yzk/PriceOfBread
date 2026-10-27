@@ -290,7 +290,7 @@ internal static class PlayHarness
         sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
         // ★(410) 00-HARN の残り：闘争度は 4 本の目標の和（クランプ前）へ速さ σ で追う在庫＝ヘッダーの闘争度と和は一致しない。画面の階級のホバーと同じ名前・同じ 0.5% 未満の省略。
         sb.AppendLine($"闘争度の目標の内訳（大衆・人口加重・和は在庫が追う先）： {MilParts(milMass, massSize)}");
-        sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdpPerMonth:N0}　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
+        sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdpPerMonth:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
         AppendEconomy(sb, w, period);   // ★(450) §2-5：名目だけでなく実質・1 人あたりの落ち込みと画面と同じ景気の判定
         // ★(435) 画面のヘッダー・財政タブにあって報告に無かった物（物価・通貨制度・為替・兌換・行政力・政治資本）。文言は画面と同じ関数（PlayText）。
         sb.AppendLine($"物価水準 {PlayText.PriceLevelText(w)}　為替 {PlayText.ExchangeRateText(w)}　通貨制度 現在 {w.MonetaryLaw}（兌換に加入 {(w.OnGoldStandard ? "○" : "×")}{(w.GoldStandardSuspendedInCrisis ? "・危機で兌換停止" : "")}） ／ 目標 {(MonetaryStandardLaw)Math.Clamp(w.Policy.MonetaryTarget, 0, 2)}　兌換カバー率 {PlayText.CoverText(w)}（維持線 {w.Coef.GoldCoverMin.Value:P0}）　資本移動 {(w.CapitalControlLaw ? "規制" : "自由")}");
@@ -447,7 +447,7 @@ internal static class PlayHarness
         foreach (var n in sim.Nations.OrderByDescending(x => x.World.ScoreStanding).Take(10))
         {
             var xw = n.World;
-            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F1} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 人口{TotalPop(xw),12:N0}");
+            sb.AppendLine($"  {xw.SelfPower?.Name,-14} 国力{xw.ScoreStanding,8:F1} 近代化の信号{xw.ModernizeReturnShare(),5:F2} 技術{xw.TechLevel,5:F2} 人口{TotalPop(xw),12:N0}");
         }
 
         sb.AppendLine();

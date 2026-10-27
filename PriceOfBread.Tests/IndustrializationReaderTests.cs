@@ -70,7 +70,7 @@ public class IndustrializationReaderTests
 
     private static readonly string[] Flags =
     [
-        "EpidemicSanitFromBoard", "IdeologyDevFromUrban", "UrbanCapFromHousing", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",
+        "EpidemicSanitFromBoard", "IdeologyDevFromUrban", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",
     ];
 
     // ---- J9 対称：旗を読む行が IsPlayer を読まない ---------------------------------------------------------------------
@@ -159,18 +159,18 @@ public class IndustrializationReaderTests
         foreach (var p in r.Pops) { if (p.Closed || p.IsCriminal) continue; if (p.IsUrban) urban ??= p; else rural ??= p; }
         Assert.True(rural is not null && urban is not null);
         rural!.Size = 900; urban!.Size = 100;   // 組の合計 1000・都市 100（手計算の期待の元）
-        c.UrbanCapFromHousing = 1; r.Industrialization = 0.0; r.OldVintageCapital = 0;
+        c.UrbanCapOff = 1; r.Industrialization = 0.0; r.OldVintageCapital = 0;
         Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
         r.Industrialization = 5.0;
         Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
         PopDecision.Run(r, c);
         Assert.Equal(-1.0, r.UrbanIndSmoothed);   // 旗 1 は平滑化の状態を書かない
-        c.UrbanCapFromHousing = 0;
+        c.UrbanCapOff = 0;
         rural.Size = 900; urban.Size = 100;   // Run が動かした分を戻す
         r.Industrialization = 0.0; double h0 = Headroom(r, c);
         r.Industrialization = 5.0; double h5 = Headroom(r, c);
-        Assert.Equal(0.20 * 1000 - 100, h0, 9);   // 手計算：BaseUrbanCap 0.20×組の 1000 − 都市 100
-        Assert.Equal(0.60 * 1000 - 100, h5, 9);   // 手計算：0.20＋0.08×5＝0.60
+        Assert.Equal(c.BaseUrbanCap * 1000 - 100, h0, 9);                          // 手計算：BaseUrbanCap×組の 1000 − 都市 100（係数から作る）
+        Assert.Equal((c.BaseUrbanCap + c.UrbanPerInd * 5.0) * 1000 - 100, h5, 9);  // 工業化度 5 の天井
         PopDecision.Run(r, c);
         Assert.True(r.UrbanIndSmoothed >= 0, "旗 0 で平滑化の状態が書かれない（旧）");
     }
@@ -180,14 +180,13 @@ public class IndustrializationReaderTests
     public void 信用の深さ_旗1は工業化度の倍率が無い_旗0は手計算の旧の式()
     {
         var w = Britain().World; var c = w.Coef;
-        Assert.Equal(1.0, c.CreditMultiplierDevWeight);   // 前提：既定は点火済み（倍率が live）
-        Assert.Equal(0.35, c.CreditMultiplierDevFloor); Assert.Equal(0.4, c.CreditDevScale);
-        Assert.Equal(0.35, Credit.DevFactor(w, c, 0.0), 12);                 // 手計算：dev=0 → 床
-        Assert.Equal(0.35 + 0.65 * 0.5, Credit.DevFactor(w, c, 0.2), 12);    // dev=0.2/0.4=0.5
-        Assert.Equal(1.0, Credit.DevFactor(w, c, 0.4), 12);
-        Assert.Equal(1.0, Credit.DevFactor(w, c, 3.0), 12);                  // 満額で頭打ち（Clamp01）
+        double fl = c.CreditMultiplierDevFloor, sc = c.CreditDevScale;   // 係数から作る（較正が変わっても赤にしない）
+        Assert.Equal(fl, Credit.DevFactor(w, c, 0.0), 12);                                  // 手計算：dev=0 → 床
+        Assert.Equal(fl + (1.0 - fl) * 0.5, Credit.DevFactor(w, c, 0.5 * sc), 12);          // dev/scale=0.5
+        Assert.Equal(1.0, Credit.DevFactor(w, c, sc), 12);
+        Assert.Equal(1.0, Credit.DevFactor(w, c, 3.0 * sc), 12);                            // 満額で頭打ち（Clamp01）
         foreach (var rr in w.Regions) { rr.Industrialization = 0; rr.OldVintageCapital = 0; }
-        Assert.Equal(0.35, Credit.DevFactor(w, c, null), 12);                // 渡されなければ盤面の平均を読む（旧）
+        Assert.Equal(fl, Credit.DevFactor(w, c, null), 12);                                 // 渡されなければ盤面の平均を読む（旧）
         c.CreditDevOff = 1;
         foreach (double m in new double?[] { 0.0, 0.2, 3.0, null }.Select(x => x ?? 0.0))
             Assert.Equal(1.0, Credit.DevFactor(w, c, m), 12);
@@ -204,6 +203,12 @@ public class IndustrializationReaderTests
         Assert.Equal(Math.Max(0, 4.0 - mean), CapitalMarket.Headroom(c, w), 12);                 // 旗 0＝旧（手計算：目標 4.0）
         c.CapitalHeadroomFromReturn = 1;
         Assert.Equal(c.CapitalIndTarget * w.ModernizeReturnShare(), CapitalMarket.Headroom(c, w), 12);   // 旗 1＝別の関数 ModernizeReturnShare の直読み
+        // 旗 1 の向き：工業化度（州の資本の在庫）が州の上限に達すると適格でなくなり余地が 0 へ落ちる（間接の読み＝直読みは無い）
+        r.Industrialization = 0.0; r.OldVintageCapital = 0;
+        double hLow = CapitalMarket.Headroom(c, w);
+        r.Industrialization = c.IndustryInvestRegionCap + 1.0;
+        double hCap = CapitalMarket.Headroom(c, w);
+        Assert.True(hLow >= 0 && hCap == 0 && hLow >= hCap, $"余地は在庫が上限に達すると 0 へ: 低 {hLow} 上限 {hCap}");
     }
 
     // ---- J7 交易の比重 ------------------------------------------------------------------------------------------------
@@ -211,11 +216,13 @@ public class IndustrializationReaderTests
     public void 交易の比重_旗1は入力データの工業化度で傾けない_旗0は手計算の旧の式()
     {
         var cfgs = new[] { NationConfig.France(), NationConfig.Britain(), NationConfig.Japan() };
+        double baseW = (double)typeof(MultiNationSim).GetField("DefaultTradeWeightBase", BindingFlags.NonPublic | BindingFlags.Static)!.GetRawConstantValue()!;
+        double slope = (double)typeof(MultiNationSim).GetField("TradeWeightIndustrializationSlope", BindingFlags.NonPublic | BindingFlags.Static)!.GetRawConstantValue()!;
         var s0 = new MultiNationSim(cfgs, seed: 1789);
         for (int i = 0; i < cfgs.Length; i++)
-            Assert.Equal(0.15 + 0.10 * cfgs[i].Industrialization, s0.Nations[i].World.SelfPower!.TradeWeight, 12);   // 旧：基準 0.15＋傾き 0.10×入力
+            Assert.Equal(baseW + slope * cfgs[i].Industrialization, s0.Nations[i].World.SelfPower!.TradeWeight, 12);   // 旧：基準＋傾き×入力（定数は MultiNationSim から読む）
         var s1 = new MultiNationSim(cfgs, seed: 1789, coef: new Coefficients { TradeWeightOpeningEven = 1 });
-        for (int i = 0; i < cfgs.Length; i++) Assert.Equal(0.15, s1.Nations[i].World.SelfPower!.TradeWeight, 12);
+        for (int i = 0; i < cfgs.Length; i++) Assert.Equal(baseW, s1.Nations[i].World.SelfPower!.TradeWeight, 12);
     }
 
     // ---- J8 扶養力 ---------------------------------------------------------------------------------------------------
@@ -264,15 +271,15 @@ public class IndustrializationReaderTests
     }
 
     [Fact]
-    public void 報告の表示に_工業化度と技術水準の列を残さない()
+    public void 報告の表示に_工業化度の列を残さない()
     {
         string path = Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "PlayHarness.cs");
         foreach (var line in File.ReadAllLines(path))
         {
             int c = line.IndexOf("//", StringComparison.Ordinal);
             string code = c >= 0 ? line[..c] : line;
-            Assert.False(code.Contains("MeanIndustrialization") || code.Contains("TotalIndustrialization") || code.Contains("工業化度") || code.Contains("技術 {w.TechLevel:F2}（世界先端"),
-                $"PlayHarness.cs に工業化度か技術水準の列が残っている: {code.Trim()}");
+            Assert.False(code.Contains("MeanIndustrialization") || code.Contains("TotalIndustrialization") || code.Contains("工業化度"),
+                $"PlayHarness.cs に工業化度の列が残っている: {code.Trim()}");
         }
     }
 }

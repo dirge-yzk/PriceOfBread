@@ -453,7 +453,7 @@ public static class Meritocracy
         if (rural is null || urban is null) return double.PositiveInfinity;
         double total = rural.Size + urban.Size;
         if (total <= Eps) return 0;
-        if (c.UrbanCapFromHousing > 0) return double.PositiveInfinity;   // ★(605) 旗 UrbanCapFromHousing：都市化の天井なし（PopDecision.Run と同じ）
+        if (c.UrbanCapOff > 0) return double.PositiveInfinity;   // ★(605) 旗 UrbanCapOff：都市化の天井なし（PopDecision.Run と同じ）
         double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
         double maxShare = PopDecision.UrbanShareCap(c, indForCap);
         return Math.Max(0, maxShare * total - urban.Size);

@@ -1977,9 +1977,9 @@ public sealed class Coefficients
     //   全て既定 0＝今のまま（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
     public double EpidemicSanitFromBoard = 0;       // 疫病の致死率の衛生の代理（工業化度の飽和曲線）を読まず、実衛生財の充足 Region.Sanitation だけを読む（EpidemicSanitationHalf／Weight は旗 1 で未使用）。
     public double IdeologyDevFromUrban = 0;         // 思想の発展度 dev から世界最先端の工業化度の項を外し、都市労働者の割合だけにする（MultiNationSim も IndustrialFrontier を注入しない）。
-    public double UrbanCapFromHousing = 0;          // 都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差・飢えの線（FamineMigrationFillGate）・住居の値段。UrbanIndSmoothed は書かない。
+    public double UrbanCapOff = 0;          // 都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差（目標の都市の割合の sigmoid）・飢えの線（FamineMigrationFillGate）だけ（住居の充足は PopDecision.Run が読まない＝旗の名は UrbanCapOff）。UrbanIndSmoothed は書かない。
     public double CreditDevOff = 0;                 // 信用の深さの工業化度の倍率 devFactor を 1.0 にする（作者のバフ／デバフ全削除）。旗 1 は前工業の国も満額の近代信用創造＝与信の天井が上がる向き（発散の候補）。
-    public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。
+    public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。★旗 1 の CapitalIndTarget は 0〜1 の割合に掛ける目盛り（旧は工業化度の単位の目標）。ModernizeReturnShare は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む（直読みを外すだけ）。
     public double TradeWeightOpeningEven = 0;       // 開幕の交易の比重を入力データ cfg.Industrialization で傾けず、DefaultTradeWeightBase の均等にする（分離独立国と同じ）。
     public double CapacityIndTermsOff = 0;          // 扶養力の工業化度の 2 項（IndustryCapacityBonus×avgInd・PollutionCapacityWeight の公害圧）を外す。出生の FertilityIncomeSlope×avgInd は出生の設計（最終段 9-2）の持ち物＝触らない。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。

@@ -17,7 +17,7 @@ public static class CapitalMarket
     private const double ExchangeRateCreditFloor = 0.3; // 為替減価が対外信認を削る際の下限クランプ
 
     /// <summary>外資の余地 headroom（遅れている国ほど資本を呼ぶ吸引の素）。旧＝<c>CapitalIndTarget − 工業化度の平均</c>。★(605) 旗 <c>CapitalHeadroomFromReturn</c> が正なら
-    /// <c>CapitalIndTarget × World.ModernizeReturnShare()</c>（国庫の配り先の設備の収益の持ち分＝AI の近代化投資の信号と同じ 1 本・工業化度を読まない）。旗 0 の式は抜き出す前と同じ。番人が直に呼ぶ。</summary>
+    /// <c>CapitalIndTarget × World.ModernizeReturnShare()</c>（国庫の配り先の設備の収益の持ち分＝AI の近代化投資の信号と同じ 1 本。★この 1 本は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む＝工業化度の直読みを外すだけで、在庫への結びは残る。CapitalIndTarget は旗 1 では 0〜1 の割合に掛ける目盛り）。旗 0 の式は抜き出す前と同じ。番人が直に呼ぶ。</summary>
     internal static double Headroom(Coefficients c, World w)
         => c.CapitalHeadroomFromReturn > 0 ? c.CapitalIndTarget * w.ModernizeReturnShare()
                                            : System.Math.Max(0, c.CapitalIndTarget - w.MeanIndustrialization);
