@@ -975,7 +975,7 @@ public class DiscoveryScoreTests
         {
             var s = Grown(); var w = s.World; var r = w.Region;
             w.Discovered[Discovery.SteamRow] = known;
-            w.TechLevel = tech; r.TechLevel = tech;
+            w.TechLevel = tech;
             foreach (var p in r.Producers) p.SteamFill = 0;
             EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
             double f = 0; foreach (var p in r.Producers) f += p.SteamFill;

@@ -757,7 +757,6 @@ public static class EconomyStep
         }
         // ★助走中は減価も止める（2026-08-10 追加裁定）＝蓄積を止めた以上、減価だけ効かせると資本が一方的に痩せる
         //   （実測：資本形成だけ止めた版で工業化最大が 0.31→0.22 へ 10年ぶん目減りした）。凍結は**両側**でなければ「1783年のまま」にならない。
-        //   ヴィンテージ経年（現世代→旧世代への移行）も同じ理由で止める＝据付年からの経過そのものだから。
         if (cap && !warmFrozen)
         {
             // 開発度の記憶（2026-07-27）：旧＝無記憶の指数減衰のみで床が無く、投資が止まると (1−0.003)^1812 ≈ 0.004 ＝
@@ -775,19 +774,6 @@ public static class EconomyStep
             }
             region.Industrialization *= 1.0 - dep;
             region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
-        }
-        // ヴィンテージ資本（no-vintage-capital-depreciation・有効化2026-07-10キュー5）：現世代の一部を旧世代へ経年させ、旧世代は現Techとの差(techGap)に比例して座礁＝生産性に寄与しない。
-        // 技術先行国ほど据付時Techと現Techの乖離が積み上がり旧資本が足枷に・後発は新鋭資本で競り勝つ（実力ベース首位交代の本命機構）。
-        // 両係数0でOldVintageCapital=StrandedVintage=0・effInd=Industrialization＝現行と厳密恒等。座礁は月次再計算の割引（ストック破壊ではない）＝Tech停滞国では旧資本がフル寄与のまま。
-        if (cap && coef.VintageMigrateRate > 0 && !warmFrozen && !indOff)   // ★(495) 旗 IndustrializationOff ではヴィンテージの移行・座礁（技術水準を読む）を走らせない
-        {
-            double migrate = region.Industrialization * coef.VintageMigrateRate;
-            double newOld = region.OldVintageCapital + migrate;
-            region.VintageTechLevel = newOld > Eps ? (region.VintageTechLevel * region.OldVintageCapital + region.TechLevel * migrate) / newOld : region.TechLevel;
-            region.OldVintageCapital = newOld;
-            region.Industrialization -= migrate;
-            double techGap = System.Math.Max(0.0, region.TechLevel - region.VintageTechLevel);
-            region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
         }
         double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
         // 機械化度（技術的失業 no-labor-saving-tech-unemployment の駆動）：稼働資本の飽和カーブ∈[0,1)。LaborSaveRate=0で0固定＝EffectiveQtyで未使用＝中立。座礁した旧世代は稼働しない＝控除後を読む。

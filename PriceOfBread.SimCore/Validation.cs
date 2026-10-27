@@ -8,7 +8,6 @@
 /// </summary>
 public sealed record NationMetrics(
     string Name,
-    double TechLevel,
     double Industrialization,
     double MeanSatisfaction,    // 人口加重の満足度（全地域・大衆のみ＝NationalScore.MeanSatisfaction・2026-09-25）
     double PriceFloorFrac,      // 床(≤0.051×参照価格)に張り付く財の割合（本拠地市場）
@@ -125,7 +124,7 @@ public static class Metrics
                 ng++;
             }
             nations.Add(new NationMetrics(
-                w.Region.Name, w.TechLevel, r.TotalIndustrialization,   // 工業化の差別化ガードも新旧合計で測る（ヴィンテージ2026-07-10）
+                w.Region.Name, r.TotalIndustrialization,   // 工業化の差別化ガードも新旧合計で測る（ヴィンテージ2026-07-10）
                 NationalScore.MeanSatisfaction(w),
                 ng > 0 ? (double)floor / ng : 0,
                 ng > 0 ? (double)ceil / ng : 0,

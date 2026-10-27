@@ -405,7 +405,7 @@ public class FactoryEquipmentTests
     }
 
     [Fact]
-    public void 倍率の削除_走らせてもヴィンテージの3つは0のまま_機械化度は0()
+    public void 倍率の削除_走らせてもヴィンテージの2つは0のまま_機械化度は0()
     {
         var sim = Make(32, 0, 1);
         var w = sim.World;
@@ -414,12 +414,9 @@ public class FactoryEquipmentTests
         {
             Assert.Equal(0.0, r.OldVintageCapital, 12);
             Assert.Equal(0.0, r.StrandedVintage, 12);
-            Assert.Equal(0.0, r.VintageTechLevel, 12);
             Assert.Equal(0.0, r.Mechanization, 12);
         }
-        // 対照：旗 0 ではヴィンテージが貯まる（経年の移行が live）
-        var s0 = Make(32, 0, 0); s0.Run(4);
-        Assert.True(s0.World.Regions.Any(r => r.OldVintageCapital > 0), "旗 0 のヴィンテージの移行が死んでいる（対照）");
+        // ★(613) 対照（旗 0 ではヴィンテージが貯まる）は削除：経年の移行と座礁（技術水準を読む塊）は物理削除した＝書き手が無い
     }
 
     [Fact]
@@ -464,7 +461,7 @@ public class FactoryEquipmentTests
         {
             var sim = Make(33, 0, indOff);
             var w = sim.World;
-            w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.VintageMigrateRate = 0; w.Coef.DepressionScrapRate = 0;
+            w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;
             var r = w.Regions[0];
             r.Industrialization = 2.0;
             for (int d = 0; d < 31; d++) sim.StepDay();
@@ -518,7 +515,7 @@ public class FactoryEquipmentTests
 
     [Theory]
     [InlineData(@"\bindMult\b", 3)]   // 能力の倍率 indMult（宣言 1・使う式 2）＝旗 IndustrializationOff が 1.0 に落とす
-    [InlineData(@"\.(OldVintageCapital|StrandedVintage|VintageTechLevel)\s*(\+=|-=|\*=|/=|=(?![=>]))", 8)]   // ヴィンテージの 3 つの書き手（旗 IndustrializationOff が移行と座礁を止める）
+    [InlineData(@"\.(OldVintageCapital|StrandedVintage)\s*(\+=|-=|\*=|/=|=(?![=>]))", 5)]   // ヴィンテージの 2 つの書き手（★(613) 移行と座礁の塊と VintageTechLevel は物理削除＝残るのは減価・廃棄・焼き込みの読み・割譲の摩耗）
     [InlineData(@"\.Scale\s*(\+=|-=|\*=|/=|=(?![=>]))", 14)]   // Producer.Scale の書き手（適格な個体の自由な伸びは旗 RecipeEquipment が止める。設備の規則の書き手 FactoryEquipment〔配り・薄め・退場・廃棄〕・World の完成を含む。(495) 後半＝退場の Retire が 1 行増えた〔13→14〕。）
     public void ラチェット_倍率と操業規模と技術水準の側の書き手は増えない(string pattern, int ceiling)
     {

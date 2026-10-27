@@ -1937,7 +1937,7 @@ public sealed class UtilityAgent : INationAgent
 /// <summary>1国の最終順位（国力＝列強ランキング）。Laws＝最終的な法体系（目標5：法の多様性の計測用）。
 /// Nation＝国名（Power.Name＝world.json）。Name＝首都州名（Regions[0]・割譲遷都で変わりうる）＝史実忠実度の照合キーは Nation。</summary>
 public sealed record NationStanding(
-    string Name, double Score, double Tech, double Industrialization, double Satisfaction, int Colonies, double Gdp,
+    string Name, double Score, double Industrialization, double Satisfaction, int Colonies, double Gdp,
     double Population, double Military, Polity Polity, double WarDead, double Tariff,
     Suffrage Suffrage = Suffrage.None, EducationLaw Education = EducationLaw.None, CensorshipLaw Censorship = CensorshipLaw.StatePressOnly,
     LaborUnionLaw Union = LaborUnionLaw.Illegal, WorkHours WorkHours = WorkHours.Unlimited, ReformLevel CornLaws = ReformLevel.None,
@@ -2140,7 +2140,7 @@ public static class SelfPlayMatch
                 double baggage = 0; foreach (var rb in w.Regions) baggage += rb.AnnexBaggage;
                 double growthGross = initPop.TryGetValue(bn, out var p0) && p0 > 1e-9 ? w.TotalPopulation / p0 : 0;   // 0=初期人口不明＝測定対象外（建国スポーンなど）
                 double growth = growthGross > 0 ? System.Math.Max(0, w.TotalPopulation - baggage) / p0 : 0;
-                return new NationStanding(w.Region.Name, NationalScore.Standing(w), w.TechLevel,   // 序列は在庫（2026-08-02）＝忠実度の列強軸も首位交代も同じ物差しで見る
+                return new NationStanding(w.Region.Name, NationalScore.Standing(w),   // 序列は在庫（2026-08-02）＝忠実度の列強軸も首位交代も同じ物差しで見る
                     w.MeanIndustrialization, NationalScore.MeanSatisfaction(w), w.SelfPower?.Colonies ?? 0, w.GdpPerMonth.Value,
                     w.TotalPopulation, w.SelfPower?.Military ?? 0, w.Polity, w.WarDeadCumulative, w.Tariff,
                     w.Suffrage, w.EducationLaw, w.Censorship, w.LaborUnion, w.WorkHours, w.CornLaws, w.LandReform, w.SerfEmancipation, w.Pension,

@@ -81,11 +81,7 @@ public class EquipDiscoveryTests
         var r = sim.World.Region;
         int row = Catalog.DiscoveryRowOf(Catalog.SteamshipId, "");
         Assert.False(Discovery.Known(sim.World.Discovered, row), "前提が崩れている（汽船が発見済み）");
-        foreach (double t in new[] { 0.5, 1.0, 3.0, 10.0 })
-        {
-            r.TechLevel = t;
-            Assert.Equal(0.0, Discovery.GoodGate(r, Catalog.SteamshipId));   // 技術水準だけでは開かない（旧＝傾斜で 0<x<1）
-        }
+        Assert.Equal(0.0, Discovery.GoodGate(r, Catalog.SteamshipId));   // 発見が無ければ開かない（★(613) 州は技術水準を持たない＝旧の技術水準を振る繰り返しは削除・旧＝傾斜で 0<x<1）
         sim.World.Discovered[row] = true;
         Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.SteamshipId));
     }
@@ -165,7 +161,6 @@ public class EquipDiscoveryTests
         int i = LargestArmy(sim);
         var r = sim.Nations[i].World.Region; var c = sim.Nations[i].World.Coef;
         Assert.True(r.MilitaryScale > 0, "前提＝軍需調達が走っていない");
-        double techLow = r.TechLevel;
         var tiers = new[] { c.MilitaryGoods, c.MilitaryQualityGoods, c.MilitaryTier3Goods, c.MilitaryAirGoods };
         // 前提＝1783年の解禁度は0か1だけ（部分解禁が無い）＝「未発見の装備の分」がはっきり決まる
         foreach (var goods in tiers)
@@ -191,7 +186,6 @@ public class EquipDiscoveryTests
         double needHighWithoutUndiscovered = EconomyStep.MilitaryProcurementNeed(r, c);
         (c.MilitaryRates, c.MilitaryQualityRates, c.MilitaryTier3Rates, c.MilitaryAirRates) = (m0, m1, m2, m3);
         System.Array.Copy(known0, r.Discovered!, known0.Length);
-        r.TechLevel = techLow;
 
         Assert.True(needLow > 0, $"発見済みの装備まで見積から消えた（{needLow:F1}）");
         Assert.True(needLow < needHigh, $"未発見の装備が見積から抜けていない（1783年 {needLow:F1} / 全解禁 {needHigh:F1}）");

@@ -2062,15 +2062,15 @@ public static partial class Instruments
 
     static string DiscRowText(string kind, World w, int row, Discovery.Terms t, (double Replaced, double Cost) ratio)
         => string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), Catalog.Discoveries[row].Name,
-            F(t.Tech), F(t.Need), F(t.Transmit), ratio is (0, 0) ? "nan" : F(ratio.Replaced), ratio is (0, 0) ? "nan" : F(ratio.Cost), F(w.TechLevel));   // 書かれなかった行（新兵器・制度・思想など）は nan
+            F(t.Tech), F(t.Need), F(t.Transmit), ratio is (0, 0) ? "nan" : F(ratio.Replaced), ratio is (0, 0) ? "nan" : F(ratio.Cost));   // 書かれなかった行（新兵器・制度・思想など）は nan
 
     /// <summary>★(320) 発見の表 <c>disc_s</c>（読むだけ）。列＝kind（E 解禁した行／T 蒸気機関と機関車の軌道〔まだ解禁していない四半期ごと〕）・quarter・year・nation・row・techTerm・needTerm・transmitTerm・
-    /// replaced（代替する物の値段・実質）・cost（新しいレシピで作る費用）・techLevel（★(322) 合流：枝 dg の列 ownOpen は外した＝解禁した後の盤面を読むので製法の行で常に 1 になる・反証役 dg〔bv〕#1）。replaced／cost は物を生む行（製法・新製品）だけ（それ以外は nan）。</summary>
+    /// replaced（代替する物の値段・実質）・cost（新しいレシピで作る費用）・（★(613) 列 techLevel は削除）（★(322) 合流：枝 dg の列 ownOpen は外した＝解禁した後の盤面を読むので製法の行で常に 1 になる・反証役 dg〔bv〕#1）。replaced／cost は物を生む行（製法・新製品）だけ（それ以外は nan）。</summary>
     static void DiscTable(Sink sk, ulong seed, int q, MultiNationSim sim)
     {
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Disc ??= Open("disc", seed);
-        if (!sk.DiscHeader) { sk.Disc.WriteLine("kind\tquarter\tyear\tnation\trow\ttechTerm\tneedTerm\ttransmitTerm\treplaced\tcost\ttechLevel\tnationUid"); sk.DiscHeader = true; }
+        if (!sk.DiscHeader) { sk.Disc.WriteLine("kind\tquarter\tyear\tnation\trow\ttechTerm\tneedTerm\ttransmitTerm\treplaced\tcost\tnationUid"); sk.DiscHeader = true; }
         foreach (var n in sim.Nations)
         {
             var st = S(n.World);
@@ -2103,18 +2103,18 @@ public static partial class Instruments
     {
         var site = Catalog.Sites[p.SiteRow];
         return string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), r.Name, site.Name, site.Kind == Catalog.SiteKind.Deposit ? "D" : "P",
-            F(w.TechLevel), F(Discovery.DifficultyOf(site.Decade, w.Coef)), F(parts[0]), F(parts[1]), F(parts[2]), F(t.Tech), F(t.Need));
+            F(Discovery.DifficultyOf(site.Decade, w.Coef)), F(parts[0]), F(parts[1]), F(parts[2]), F(t.Tech), F(t.Need));
     }
 
     /// <summary>★(316) 産地の判定の表 <c>site_s</c>（行の種類 kind＝O 開いた行／T まだ開かない産地の軌道〔四半期ごと〕）と世界の金銀の表 <c>metal_s</c>（四半期ごとに1行）。読むだけ。
-    /// site_s の列＝kind・quarter・year・nation・region・site・siteKind〔D 鉱床／P 植林〕・techLevel・difficulty・peopleK・price・cost・techTerm・needTerm（kind=O の quarter は書いた四半期の末の番号）。
+    /// site_s の列＝kind・quarter・year・nation・region・site・siteKind〔D 鉱床／P 植林〕・difficulty・peopleK・price・cost・techTerm・needTerm（kind=O の quarter は書いた四半期の末の番号）。
     /// metal_s の列＝quarter・year・goldProduced・silverProduced・goldDemand・silverDemand・goldStock・silverStock（州の市場の直近の月の和）・nGoldLaw・nSilverLaw・nFiatLaw（人の居る国）・
     /// lnAgAuMean＝金銀の両方の市場が生きた州の ln(銀の値段÷金の値段÷参照の比) の平均・nRatio（その州の数）・goldNations＝金本位の国の名前。</summary>
     static void SiteTables(Sink sk, ulong seed, int q, MultiNationSim sim)
     {
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Site ??= Open("site", seed);
-        if (!sk.SiteHeader) { sk.Site.WriteLine("kind\tquarter\tyear\tnation\tregion\tsite\tsiteKind\ttechLevel\tdifficulty\tpeopleK\tprice\tcost\ttechTerm\tneedTerm"); sk.SiteHeader = true; }
+        if (!sk.SiteHeader) { sk.Site.WriteLine("kind\tquarter\tyear\tnation\tregion\tsite\tsiteKind\tdifficulty\tpeopleK\tprice\tcost\ttechTerm\tneedTerm"); sk.SiteHeader = true; }
         foreach (var n in sim.Nations)
         {
             var w = n.World; var st = S(w);
@@ -2536,7 +2536,7 @@ public static partial class Instruments
         bool atWar = false;
         if (sp is not null && w.Diplomacy is { } dip) foreach (var war in dip.Wars) if (war.A == sp || war.B == sp) { atWar = true; break; }
         C("fleetGaugeIndex", sp?.FleetGauge ?? double.NaN); C("atWarFlag", atWar ? 1 : 0);
-        C("techLevelIndex", w.TechLevel); C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
+        C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
         sk.Stock ??= Open("stock", seed);
         if (!sk.StockHeader) { sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Name))); sk.StockHeader = true; }
         sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Value)));

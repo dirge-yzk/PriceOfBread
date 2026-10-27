@@ -815,7 +815,7 @@ public partial class GameViewModel
                 Name = rg.Name,
                 // 接17（監査2026-07-11・2026-07-25実装）：新旧資本の内訳＝旧式資本を抱えた産業と新鋭産業の区別（売却・補助金判断の材料）。休眠（旧世代0）なら出さない
                 CapitalTip = rg.OldVintageCapital > 1e-9
-                    ? $"工業化資本 {rg.TotalIndustrialization:F1}=新鋭 {rg.Industrialization:F1}+旧世代 {rg.OldVintageCapital:F1}\n座礁 {rg.StrandedVintage:F1}　旧世代の据付技術 {rg.VintageTechLevel:F1}/現行 {rg.TechLevel:F1}"
+                    ? $"工業化資本 {rg.TotalIndustrialization:F1}=新鋭 {rg.Industrialization:F1}+旧世代 {rg.OldVintageCapital:F1}\n座礁 {rg.StrandedVintage:F1}"
                     : null,
                 // ★国営工場の列＝「− 現在/目標 ＋」1本（作者フィードバック2026-08-10 項目5＝カウンター列を統合）。
                 //   現在＝実際に建っている国営の棟数（World.StateUnits）／目標＝カウンター（Producer.StateTarget）。

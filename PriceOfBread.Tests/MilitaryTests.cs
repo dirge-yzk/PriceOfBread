@@ -147,12 +147,9 @@ public class MilitaryTests
         foreach (var p in new[] { rifle, gun }) Assert.Equal(0.0, Discovery.Gate(r, p));
 
         // ②技術水準では動かない（2値＝発見だけが門を動かす）
-        foreach (double t in new[] { 0.5, 1.5, 5.0 })
-        {
-            r.TechLevel = t;
-            foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
-            foreach (var p in new[] { rifle, gun }) Assert.Equal(0.0, Discovery.Gate(r, p));
-        }
+        // ★(613) 州は技術水準を持たない＝旧の技術水準を振る繰り返しは削除（門は州の発見の配列だけを読む）
+        foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
+        foreach (var p in new[] { rifle, gun }) Assert.Equal(0.0, Discovery.Gate(r, p));
 
         // ③後継の発見の後＝旧は満額のまま・操業規模も正のまま・新の門が開く・装備は発見済みのまま
         w.Discovered[bessemer.DiscoveryRow] = true;

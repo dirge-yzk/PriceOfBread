@@ -316,7 +316,7 @@ if (args.Length > 0 && args[0] == "instprobe")
         Console.WriteLine($"英：州{wB.Regions.Count}（うち植民地格{colReg}）　植民地オブジェクト{wB.SelfPower?.ColonyList.Count}");
         Console.WriteLine($"   Freedom {wB.Freedom:F3}（閾値 {cf.FrontierFreedomThreshold:F3}）　教育法 {wB.EducationLaw}");
         Console.WriteLine($"   Elite {wB.Elite:F4}　EliteCore {wB.EliteCore:F4}");
-        Console.WriteLine($"   特許 {wB.PatentLaw}　株式会社 {wB.JointStock}　鉄道 {wB.Railways}　技術 {wB.TechLevel:F2}");
+        Console.WriteLine($"   特許 {wB.PatentLaw}　株式会社 {wB.JointStock}　鉄道 {wB.Railways}");
         var (tr3, mo3, ma3) = InterestGroups.Blocs(wB);
         Console.WriteLine($"   参政権 {wB.Suffrage}　報道 {wB.Censorship}　政体 {wB.Polity}");
         Console.WriteLine($"   ブロック力 旧支配層{tr3:F3} 近代{mo3:F3} 大衆{ma3:F3}　満足 {NationalScore.MeanSatisfaction(wB):F3}　闘争 {Politics.AvgMassMilitancy(wB):F3}");
@@ -2674,7 +2674,6 @@ if (args.Length > 0 && args[0] == "initdump")
                 Row(nm, "市場/首都の在庫の中央値", tm, cs.Count > 0 ? cs[cs.Count / 2] : 0, "量");
             }
             // 技術・制度
-            Row(nm, "制度/技術水準", tm, w.TechLevel, "指数");
             Row(nm, "制度/教育法", tm, w.EducationLaw.ToString(), "区分");
             Row(nm, "制度/政体", tm, w.Polity.ToString(), "区分");
             Row(nm, "制度/国民意識", tm, w.NationalConsciousness, "0..1");
@@ -2840,7 +2839,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
         Console.WriteLine($"  {JpPad(nm, 10)}{JpPad(w.Polity.ToString(), 22)} 教育法{JpPad(w.EducationLaw.ToString(), 11)} 検閲{JpPad(w.Censorship.ToString(), 15)} 参政{JpPad(w.Suffrage.ToString(), 10)}"
             + $" 教義{JpPad(UtilityAgent.DoctrineFrom(w).ToString(), 14)}");
         Console.WriteLine($"      識字{EpNum(avgLit)} 教育充足{EpNum(avgFill)} 意識{EpNum(avgCons)}(target≈{EpNum(targetApprox)}) 闘争{EpNum(avgMil)}"
-            + $" 新聞{EpNum(avgNews)} 都市率{EpNum(urban)} Elite{EpNum(w.Elite)} 技術{EpNum(w.TechLevel)} 人口{tot,10:F0} 緊張{tension,6:F1}");
+            + $" 新聞{EpNum(avgNews)} 都市率{EpNum(urban)} Elite{EpNum(w.Elite)} 人口{tot,10:F0} 緊張{tension,6:F1}");
         Console.WriteLine($"      意識の因子＝識字{EpNum(avgLit)} × 変換{EpNum(convStock)}(今期法の即時値{convertNow:F2}) × 都市{EpNum(urbanF)} × 報道{EpNum(press)}"
             + $"（報道自由{Politics.PressFreedom(w.Censorship):F2} × 紙の到達{newsReach:F2}）　意識速度{w.Coef.ConsciousnessSpeed:F3}/四半期");
         Console.WriteLine($"      教育財：生産{oT,9:F1}（うち世俗{oS,9:F1}）生産性{prod,5:F1} 価格{EpNum(price)} 在庫{stock,9:F1} 需要{demand,9:F1}"
@@ -3013,7 +3012,7 @@ if (args.Length > 0 && args[0] == "pairprobe")
                 foreach (var r3 in wE.Regions) { foreach (var p3 in r3.Pops) if (!p3.Closed && p3.Size > 1) { wageS += System.Math.Max(0, p3.EarnedPerMonth.Value); wageN += p3.Size; } }
                 double litS = 0, litN = 0, eduS = 0;   // 2026-09-05：識字・教育充足の列（世界工場の是正＝技術水準の根を見る）
                 foreach (var lp in wE.AllPops()) { litS += lp.Literacy * lp.Size; eduS += lp.EducationFill * lp.Size; litN += lp.Size; }
-                System.Console.WriteLine($"  輸出内訳 {NameOf(ei)}（計{expTot[ei]:F0}・関税{wE.Tariff:P0}・技術{wE.TechLevel:F2}・所得/人{(wageN > 1 ? wageS / wageN : 0):F3}・識字{(litN > 0 ? litS / litN : 0):P0}・教育充足{(litN > 0 ? eduS / litN : 0):P0}）: {string.Join("　", parts)}");
+                System.Console.WriteLine($"  輸出内訳 {NameOf(ei)}（計{expTot[ei]:F0}・関税{wE.Tariff:P0}・所得/人{(wageN > 1 ? wageS / wageN : 0):F3}・識字{(litN > 0 ? litS / litN : 0):P0}・教育充足{(litN > 0 ? eduS / litN : 0):P0}）: {string.Join("　", parts)}");
             }
         }
     }
@@ -3119,46 +3118,6 @@ if (args.Length > 0 && args[0] == "trenchprobe")
         foreach (var w2 in simT3.Diplomacy.EndedWars)
             if (w2.EndYear >= lo && w2.EndYear <= hi) { cnt++; mo += w2.Months; dead += w2.DeadA + w2.DeadB; }
         Console.WriteLine($"  {name,-10} {cnt,4}件  平均 {(cnt > 0 ? mo / cnt : 0),6:F1}ヶ月  平均戦死 {(cnt > 0 ? dead / cnt : 0),8:F0}");
-    }
-    return;
-}
-
-// === 技術水準の時系列： dotnet run -- techtrace [seed] [四半期] ===
-// ⚠実測2026-08-12：1883年にヒヴァ/ラオスの技術がフランスの2倍以上（3.4 vs 1.5）だった。
-// どこで折れたのか＝英仏と小国の技術を並べて追う。識字と教育も併記（技術の入力）。
-if (args.Length > 0 && args[0] == "techtrace")
-{
-    ulong sdT = ArgUlong(args, 1, 1);
-    int qsT2 = ArgInt(args, 2, Coefficients.GameQuarters);
-    string[] watch = ["イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "日本", "ヒヴァ", "ラオス", "ダホメ王国"];
-    var simT2 = new MultiNationSim(WorldData.Nations(), sdT, _ => new UtilityAgent());
-    simT2.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    World? Find(string nm) => simT2.Nations.Select(n => n.World).FirstOrDefault(w => w.SelfPower?.Name == nm);
-    System.Console.WriteLine($"{"年",6}" + string.Join("", watch.Select(nm => $"{nm,10}")));
-    bool mid = false;
-    for (int q = 0; q < qsT2; q++)
-    {
-        simT2.StepQuarter();
-        if (!mid && simT2.Nations[0].World.Year == 1883) { mid = true; Table("1883年"); }
-        if ((q + 1) % 80 != 0) continue;
-        System.Console.WriteLine($"{simT2.Nations[0].World.Year,6}" + string.Join("", watch.Select(nm =>
-            Find(nm) is { } w ? $"{w.TechLevel,10:F2}" : $"{"—",10}")));
-    }
-    Table($"{simT2.Nations[0].World.Year}年");
-
-    // 全国を技術順に＝政体・報道法・規模・所得の並びが技術の並びと一致するかを見る（原因の確定と参照値の較正）
-    void Table(string when)
-    {
-        System.Console.WriteLine();
-        System.Console.WriteLine($"===== {when} =====");
-        System.Console.WriteLine($"{"国",-14}{"技術",7}{"エリ",7}{"識字",6}{"教育法",-11}{"報道",-15}{"政体",-22}{"人口k",9}{"1人GDP",9}{"エリ人数",9}{"工業化",7}");
-        foreach (var w in simT2.Nations.Select(n => n.World).Where(w => w.SelfPower is not null).OrderByDescending(w => w.TechLevel))
-        {
-            double lit = 0, sz = 0;
-            foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; sz += p.Size; }
-            double pop = w.TotalPopulation;
-            System.Console.WriteLine($"{w.SelfPower!.Name,-14}{w.TechLevel,7:F2}{w.Elite,7:F3}{(sz > 0 ? lit / sz : 0),6:P0}{w.EducationLaw,-11}{w.Censorship,-15}{w.Polity,-22}{pop,9:N0}{(pop > 1 ? w.GdpPerMonth / pop : 0),9:F3}{w.Elite * pop,9:N0}{w.MeanIndustrialization,7:F2}");
-        }
     }
     return;
 }
@@ -4607,7 +4566,7 @@ if (args.Length > 0 && args[0] == "discprobe")
                     if (p.SiteRow < 0 || p.SiteFound) continue;
                     var sp3 = new double[3];   // ★(171) 人の数・その財の値段・その国で今のレシピで掘る費用（エンジンの関数が書く＝式を写さない）
                     var st = Discovery.SiteTerms(w, rg, p, w.Coef, partsOut: sp3);
-                    parts.Add($"{Catalog.Sites[p.SiteRow].Name}＠{rg.Name}（{NameOf(w)}・技術 {w.TechLevel:F2}）={st.Tech:F0}/{st.Need:F0}｜人{sp3[0]:G3}・値段{sp3[1]:G3}÷費用{sp3[2]:G3}");
+                    parts.Add($"{Catalog.Sites[p.SiteRow].Name}＠{rg.Name}（{NameOf(w)}）={st.Tech:F0}/{st.Need:F0}｜人{sp3[0]:G3}・値段{sp3[1]:G3}÷費用{sp3[2]:G3}");
                 }
         }
         Console.WriteLine("    産地（まだ）: " + (parts.Count > 0 ? string.Join("  ", parts) : "—"));
@@ -4639,7 +4598,7 @@ if (args.Length > 0 && args[0] == "discprobe")
                     .Select(r => $"{rowsDp[r].Name} {(roRef[r].Cost > 0 ? roRef[r].Replaced / roRef[r].Cost : double.NaN):F2}")));
             }
             Console.WriteLine($"    （平滑化した値段÷参照）機械 {Sm0(Catalog.MachineryId):F2}・鋼 {Sm0(Catalog.SteelId):F2}・銅 {Sm0(Catalog.CopperId):F2}・鉄 {Sm0(Catalog.IronId):F2}・高度労働力 {Sm0(Catalog.AdvLaborId):F2}・石炭 {Sm0(Catalog.CoalId):F2}・蒸気機関の財 {Sm0(Catalog.SteamEngineId):F2}　世界の蒸気機関の財 {(view0?.Market?.Average is double[] wp0 ? wp0[Catalog.SteamEngineId] / Catalog.RefPrices[Catalog.SteamEngineId] : double.NaN):F2}・機械 {(view0?.Market?.Average is double[] wp1 ? wp1[Catalog.MachineryId] / Catalog.RefPrices[Catalog.MachineryId] : double.NaN):F2}");
-            Console.WriteLine($"  {NameOf(w0),-12} 技術 {w0.TechLevel:F2}　動力 {Sm0(Catalog.LaborId):F3}・砂糖 {Sm0(Catalog.SugarId):F3}　動力の値段 {Sx0(Catalog.LaborId):F3}÷蒸気の動力の費用 {steamCost0:F3}（蒸気機関の財 {Sx0(Catalog.SteamEngineId):F3}・石炭 {Sx0(Catalog.CoalId):F3}・自己費用の物価 {sc0:F3}）　蒸気機関 {t0[rSteam].Tech:F0}/{t0[rSteam].Need:F0}/{t0[rSteam].Transmit:F0}{(w0.Discovered[rSteam] ? "＝済" : "")}　甜菜糖 {t0[rBeet].Tech:F0}/{t0[rBeet].Need:F0}/{t0[rBeet].Transmit:F0}");
+            Console.WriteLine($"  {NameOf(w0),-12} 動力 {Sm0(Catalog.LaborId):F3}・砂糖 {Sm0(Catalog.SugarId):F3}　動力の値段 {Sx0(Catalog.LaborId):F3}÷蒸気の動力の費用 {steamCost0:F3}（蒸気機関の財 {Sx0(Catalog.SteamEngineId):F3}・石炭 {Sx0(Catalog.CoalId):F3}・自己費用の物価 {sc0:F3}）　蒸気機関 {t0[rSteam].Tech:F0}/{t0[rSteam].Need:F0}/{t0[rSteam].Transmit:F0}{(w0.Discovered[rSteam] ? "＝済" : "")}　甜菜糖 {t0[rBeet].Tech:F0}/{t0[rBeet].Need:F0}/{t0[rBeet].Transmit:F0}");
         }
     }
     foreach (var dsim in msDp.Nations)
@@ -4737,7 +4696,7 @@ if (args.Length > 0 && args[0] == "discprobe")
                 string ratioTxt = rowsDp[r].Field is DiscoveryField.Process or DiscoveryField.Product ? $"｜比{roN[r].Replaced:G3}÷{roN[r].Cost:G3}" : "";
                 parts.Add($"{kr}={ratio:F2}×{push:F2}｜{s:G3}｜{x:G3}｜{tm[r].Score:F0}{demTxt}{ratioTxt}");
             }
-            Console.WriteLine($"- {nm}（技術 {w.TechLevel:F2}）: {string.Join("  ", parts)}");
+            Console.WriteLine($"- {nm}: {string.Join("  ", parts)}");
             if (System.Environment.GetEnvironmentVariable("POB_DP_RATIO") == "1" && nm == "イギリス")
             {
                 // 計器だけ（(165) の調べ）＝物を生む行の比（代替する物の値段×換算÷新しいレシピの費用）と、その行の代表のレシピの投入の平滑化した値段÷参照
@@ -5412,7 +5371,7 @@ if (args.Length > 0 && args[0] == "knowprobe")
             foreach (var pr in cap.Producers) if (pr.GoodId == Catalog.HigherEducationId) uniOut += pr.Output;
             double resSize = cap.ResearcherPopIndex >= 0 && cap.ResearcherPopIndex < cap.Pops.Count ? cap.Pops[cap.ResearcherPopIndex].Size : -1;
             var bm = cap.Markets[Catalog.BookId];
-            Console.WriteLine($"Q{q,3}({w.Year}) {sp.BaseName,-6} 識字率={w.Elite:F3} 接触度={w.TradeContactShare:F2} 技術={w.TechLevel:F2}（先端{w.WorldTechLevel:F2}）"
+            Console.WriteLine($"Q{q,3}({w.Year}) {sp.BaseName,-6} 識字率={w.Elite:F3} 接触度={w.TradeContactShare:F2}"
                 + $"  首都の高等教育: 需要={hm.LastDemand:F1} 産出={uniOut:F1} 価格={hm.Price:F2} 近代エリートの教育充足={(eliteSize > 0 ? eduFillElite / eliteSize : 0):F2} 研究者={resSize:F0} 書籍(在庫{bm.Stock:F0}/価格{bm.Price:F2})");
         }
     }
@@ -5963,55 +5922,6 @@ if (args.Length > 0 && args[0] == "migprobe")
     {
         for (; mdone < q; mdone++) mpm.StepQuarter();
         Row(1783 + q / 4);
-    }
-    return;
-}
-
-// === 技術水準→暦年の対応曲線（C-高8・2026-07-22）：前線国の TechLevel を5年ごとに出す。
-// DefaultRecipeOnset の再配置に使う唯一の物差し（同一switch内に「1.3≈1850s」と「1.0≈1915」が同居する80年ずれの解消）。
-// アンカー＝相対アンカー（TechInstitutionTests 公教育の自由国＝対照×1.3・床1.10）： dotnet run -- techcurve ===
-if (args.Length > 0 && args[0] == "techcurve")
-{
-    var tcm = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    Console.WriteLine("  年   前線t  前線国        英t    普t    米t    清t");
-    for (int q = 0; q < Coefficients.GameQuarters; q++)
-    {
-        tcm.StepQuarter();
-        if ((q + 1) % 20 != 0) continue;   // 5年ごと
-        var front = tcm.Nations.OrderByDescending(n => n.World.TechLevel).First();
-        double T(string nm) => tcm.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == nm)?.World.TechLevel ?? 0;
-        Console.WriteLine($"{front.World.Year,4}  {front.World.TechLevel,5:F2}  {front.World.SelfPower?.BaseName,-10}  {T("イギリス"),5:F2}  {T("プロイセン"),5:F2}  {T("アメリカ"),5:F2}  {T("清"),5:F2}");
-    }
-    return;
-}
-
-// === 技術の助走盤面：経済の助走＋WarmupTech(k) で開始盤面の技術差を計測： dotnet run -- techboard ===
-// 開始シーケンス（WorldData全ロスター）＝App も自己対戦バッチも通る MultiNationSim.StartWarmup と同一。反復kを変えて「団子解消／表示閾値0.3超え」の適正値を調律する。
-// ★2026-08-10：経済の助走は暦も技術も止めるので、この表の k=0 行は「技術の助走を1度も回していない盤面」＝t0.00 が正しい（旧は経済助走の4四半期ぶんの GrowTech が混ざっていた）。
-if (args.Length > 0 && args[0] == "techboard")
-{
-    var tbm = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    tbm.WarmupEconomy(new Coefficients().StartWarmupQuarters);
-    Console.WriteLine("反復  前線 |  上位5国（技術t・前線比%）        …  下位3国");
-    int done = 0;
-    foreach (int k in new[] { 0, 4, 8, 12, 16, 20, 24, 30, 40 })
-    {
-        for (; done < k; done++) tbm.WarmupTech(1);
-        double front = tbm.Nations.Max(n => n.World.TechLevel);
-        var ranked = tbm.Nations.OrderByDescending(n => n.World.TechLevel).ToList();
-        string Fmt(Simulation n) { var w = n.World; double rel = front > 1e-9 ? w.TechLevel / front : 0; return $"{w.SelfPower?.BaseName}:t{w.TechLevel:F2}/{rel:P0}"; }
-        string top = string.Join("  ", ranked.Take(5).Select(Fmt));
-        string bot = string.Join("  ", ranked.TakeLast(3).Select(Fmt));
-        Console.WriteLine($"{k,3}  {front:F2} | {top}  …  {bot}");
-    }
-    Console.WriteLine($"--- 主要プレイ国の前線比（現行の助走 StartWarmup＝経済{new Coefficients().StartWarmupQuarters}Q＋技術{new Coefficients().StartWarmupTechIterations}反復 時点） ---");
-    var sm8 = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    sm8.StartWarmup();
-    double fr = sm8.Nations.Max(n => n.World.TechLevel);
-    foreach (var name in new[] { "イギリス", "フランス", "プロイセン", "ロシア", "オーストリア", "オスマン", "日本", "清" })
-    {
-        var s = sm8.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == name);
-        if (s != null) Console.WriteLine($"  {name,-8} t{s.World.TechLevel:F2}  前線比{(fr > 1e-9 ? s.World.TechLevel / fr : 0):P0}");
     }
     return;
 }
@@ -6675,7 +6585,7 @@ if (args.Length > 0 && args[0] == "services")
                 else elecL += p.Output;
             }
         double massMil = Politics.AvgMassMilitancy(w);   // ★sweep-13：述語の写しをやめエンジンの1本へ
-        Console.WriteLine($"\n--- {r0.Name}（{w.EducationLaw}/{w.Polity}/自由{w.Freedom:F1}） 技術{w.TechLevel:F2} 識字{lit / ssz:P0} 満足{NationalScore.MeanSatisfaction(w):F2} 国庫{w.Treasury:F0} 行政効率{w.AdminEfficiency:P0} 治安{w.PublicOrder:P0}（犯罪率{w.CrimeRate:P2}） 大衆闘争度{massMil:F2}");
+        Console.WriteLine($"\n--- {r0.Name}（{w.EducationLaw}/{w.Polity}/自由{w.Freedom:F1}） 識字{lit / ssz:P0} 満足{NationalScore.MeanSatisfaction(w):F2} 国庫{w.Treasury:F0} 行政効率{w.AdminEfficiency:P0} 治安{w.PublicOrder:P0}（犯罪率{w.CrimeRate:P2}） 大衆闘争度{massMil:F2}");
         var advM = r0.Markets[Catalog.AdvLaborId];
         var farmM = r0.Markets[Catalog.FarmLaborId];
         var facts = r0.Producers.Where(p => p.BuysLabor).ToList();
@@ -7093,7 +7003,7 @@ if (args.Length > 0 && args[0] == "powertrace")
     string[] watch = ["イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "オーストリア", "日本", "清", "マラータ同盟", "ビルマ"];
     int[] marks = [1800, 1850, 1880, 1914];
     int mi = 0;
-    Console.WriteLine("年	国	GDP	工業化	国庫	投資家貯蓄	投資家所得	資本家所得	工業レント	近代化費	歳入	技術");
+    Console.WriteLine("年	国	GDP	工業化	国庫	投資家貯蓄	投資家所得	資本家所得	工業レント	近代化費	歳入");
     for (int q = 0; q < Coefficients.GameQuarters && mi < marks.Length; q++)
     {
         psim.StepQuarter();
@@ -7113,7 +7023,7 @@ if (args.Length > 0 && args[0] == "powertrace")
                     if (r.InvestorPopIndex >= 0 && pp == r.Pops[r.InvestorPopIndex]) { capEarn += Math.Max(0, pp.EarnedPerMonth.Value); indRent += Math.Max(0, pp.IndustrialRentPerMonth.Value); }
                 }
             }
-            Console.WriteLine($"{y}	{nm}	{w.GdpPerMonth:N0}	{w.MeanIndustrialization:F2}	{w.Treasury:N0}	{invSav:N0}	{invEarn:N0}	{capEarn:N0}	{indRent:N0}	{w.ModernizationFrac:P0}	{w.LastRevenuePerMonth:N0}	{w.TechLevel:F2}");
+            Console.WriteLine($"{y}	{nm}	{w.GdpPerMonth:N0}	{w.MeanIndustrialization:F2}	{w.Treasury:N0}	{invSav:N0}	{invEarn:N0}	{capEarn:N0}	{indRent:N0}	{w.ModernizationFrac:P0}	{w.LastRevenuePerMonth:N0}");
         }
         Console.WriteLine();
         mi++;
@@ -7824,7 +7734,6 @@ if (args.Length > 0 && args[0] == "lawaudit2")
     L2("政体", "GDP", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.GdpPerMonth.Value);
     L2("政体", "歳入", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.LastRevenuePerMonth.Value);
     L2("政体", "満足", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => NationalScore.MeanSatisfaction(w));
-    L2("政体", "技術", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.TechLevel);
     L2("政体", "国力", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, NationalScore.Of);
     // 参政権を広げると国は強くなるのか（＝民主化は割に合うのか）。史実＝英仏の財政国家論の中心問題。
     L2("参政権拡大", "正統性", w => { w.Suffrage = Suffrage.None; w.Policy.Suffrage = Suffrage.None; },
@@ -7891,7 +7800,6 @@ if (args.Length > 0 && args[0] == "lawaudit")
     // 軍国は軍事力（戦力評価＝Diplomacy.Step の同期）に出る。単一国検査は player の軍事力を同期しないため測れない＝多国 selfplay で検証（均衡保持を確認済み）。
     // ★2026-08-18（親軍法の撤去）：軍国度は導出量＝法として押せるのは徴兵法だけ。旧「軍国」行はこれに置き換える。
     P("徴兵法", "兵数", w => { w.ConscriptionLaw = ConscriptionLaw.Volunteer; w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; }, w => { w.ConscriptionLaw = ConscriptionLaw.Universal; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal; }, w => w.SoldierSizeK());
-    P("検閲", "技術", w => { w.Censorship = CensorshipLaw.FreePress; w.Policy.Censorship = CensorshipLaw.FreePress; }, w => { w.Censorship = CensorshipLaw.StatePressOnly; w.Policy.Censorship = CensorshipLaw.StatePressOnly; }, w => w.TechLevel);
     P("労働組合", "満足", w => { w.LaborUnion = LaborUnionLaw.Illegal; w.Policy.LaborUnion = LaborUnionLaw.Illegal; }, w => { w.LaborUnion = LaborUnionLaw.Tolerated; w.Policy.LaborUnion = LaborUnionLaw.Tolerated; }, w => NationalScore.MeanSatisfaction(w));
     P("穀物法", "麦価", w => { w.CornLaws = ReformLevel.None; w.Policy.CornLaws = ReformLevel.None; }, w => { w.CornLaws = ReformLevel.Full; w.Policy.CornLaws = ReformLevel.Full; }, w => w.Region.Markets[Catalog.WheatId].Price);
     P("土地改革", "GDP", w => { w.LandReform = ReformLevel.None; w.Policy.LandReform = ReformLevel.None; }, w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.GdpPerMonth.Value);
@@ -7980,7 +7888,6 @@ if (args.Length > 0 && args[0] == "deadend")
     ds.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     for (int q = 0; q < 400; q++) ds.StepQuarter();
     Console.WriteLine($"=== 死蔵財 seed={seed} ===");
-    Console.WriteLine("各国 技術: " + string.Join("  ", ds.Nations.Select(n => $"{n.World.Region.Name}{n.World.TechLevel:F1}")));
     foreach (var g in Catalog.Goods)
     {
         if (g.IsColonial) continue;
@@ -8528,7 +8435,7 @@ if (args.Length > 0 && args[0] == "selfplay")
     foreach (var hi in r.HarnessIssues) Console.WriteLine($"    {hi}");
     Console.WriteLine("\n列強ランキング（国力 ＝ 人口＋軍隊＋豊かさ）:");
     foreach (var st in r.Standings)
-        Console.WriteLine($"  {st.Name,-10} 国力{st.Score,6:F0}  人口{st.Population,7:N0} 軍{st.Military,4:F1} 戦死累計{st.WarDead,7:N0} 工業{st.Industrialization,4:F1} 技術{st.Tech,4:F1} 関税{st.Tariff,4:F2} 政体{st.Polity,-22} 満足{st.Satisfaction:F2} 植民地{st.Colonies,2}");
+        Console.WriteLine($"  {st.Name,-10} 国力{st.Score,6:F0}  人口{st.Population,7:N0} 軍{st.Military,4:F1} 戦死累計{st.WarDead,7:N0} 工業{st.Industrialization,4:F1} 関税{st.Tariff,4:F2} 政体{st.Polity,-22} 満足{st.Satisfaction:F2} 植民地{st.Colonies,2}");
     Console.WriteLine($"\n主要イベント（直近15件 / 全{r.Events.Count}件）:");
     foreach (var e in r.Events.TakeLast(15)) Console.WriteLine($"  {e}");
     Console.WriteLine($"\n異常/要注意（{r.Anomalies.Count}件）:");
@@ -8555,7 +8462,7 @@ if (args.Length > 0 && args[0] == "trace-prod")
         var r = tw.Region;
         int visible = r.Producers.Count(p => p.Inputs.Count > 0 && p.Output > 1);
         int total = r.Producers.Count(p => p.Inputs.Count > 0);
-        Console.WriteLine($"=== {tw.SelfPower?.Name ?? r.Name} {tw.Year}年（{qs}四半期後）地域[{r.Name}] 技術{tw.TechLevel:F2} 表示工場{visible}/{total}（Output>1）===");
+        Console.WriteLine($"=== {tw.SelfPower?.Name ?? r.Name} {tw.Year}年（{qs}四半期後）地域[{r.Name}] 表示工場{visible}/{total}（Output>1）===");
         foreach (int gid in watch)
         {
             var p = r.Producers.FirstOrDefault(x => x.GoodId == gid);
@@ -8602,7 +8509,7 @@ if (args.Length > 0 && args[0] == "test8")
         Console.WriteLine($"\n#{rk} {w.SelfPower?.Name ?? w.Region.Name}  国力{NationalScore.Of(w):F0}  満足{NationalScore.MeanSatisfaction(w):F2}");
         Console.WriteLine("  国力内訳: " + string.Join(" ＋ ", NationalScore.BreakdownOf(w).Select(l => $"{l.Label}{l.Points:F1}")) + $" ＝ {NationalScore.Of(w):F1}");   // ★(449) 内訳は NationalScore.BreakdownOf の 1 本
         Console.WriteLine($"  人口{w.TotalPopulation:N0}（{popStr}）  植民地{pw?.Colonies ?? 0}");
-        Console.WriteLine($"  工業{w.Region.TotalIndustrialization:F2} 技術{w.TechLevel:F2} 識字{w.AllPops().Sum(p => p.Literacy * p.Size) / Math.Max(1, w.TotalPopulation):P0} 制度[特許{(w.PatentLaw ? "○" : "×")} 株式{(w.JointStock ? "○" : "×")} 鉄道{(w.Railways ? "○" : "×")}]");
+        Console.WriteLine($"  工業{w.Region.TotalIndustrialization:F2} 識字{w.AllPops().Sum(p => p.Literacy * p.Size) / Math.Max(1, w.TotalPopulation):P0} 制度[特許{(w.PatentLaw ? "○" : "×")} 株式{(w.JointStock ? "○" : "×")} 鉄道{(w.Railways ? "○" : "×")}]");
         Console.WriteLine($"  輸送[鉄道容量{w.RailCapacity:F0} 船容量{w.ShipCapacity:F0}  港州{w.Regions.Count(r => r.IsPort)}/{w.Regions.Count}]");
         Console.WriteLine($"  法[教育{w.EducationLaw} 参政{w.Suffrage} 報道{w.Censorship} 組合{w.LaborUnion} 軍政比{PoliticalQuantities.MilitaryPoliticalRatio(w):F2} 労働{w.Policy.WorkHours} 児童{(w.Policy.ChildLaborAllowed ? "許" : "禁")} 関税{w.Tariff:F2}]");
         Console.WriteLine($"  地域[{regions}]  戦争 勝{pw?.WarsWon ?? 0}/敗{pw?.WarsLost ?? 0}  戦死累計{w.WarDeadCumulative:N0}  貿易収支累計{w.CumulativeTradeFlow:N0}");
@@ -8688,9 +8595,9 @@ Console.WriteLine($"=== PriceOfBread 検証レポート（{configs.Length}国・
 Console.WriteLine($"〇 完走(保存則): 合格 — {met.Year}年まで保存則違反なく到達\n");
 
 // --- 各国の指標 ---
-Console.WriteLine($"{"国",-10}{"技術",6}{"工業化",7}{"満足",6}{"床%",6}{"天井%",6}{"中間%",6}{"都市%",6}{"識字",6}{"植民地",6}");
+Console.WriteLine($"{"国",-10}{"工業化",7}{"満足",6}{"床%",6}{"天井%",6}{"中間%",6}{"都市%",6}{"識字",6}{"植民地",6}");
 foreach (var n in met.Nations)
-    Console.WriteLine($"{n.Name,-10}{n.TechLevel,6:F2}{n.Industrialization,7:F2}{n.MeanSatisfaction,6:F2}" +
+    Console.WriteLine($"{n.Name,-10}{n.Industrialization,7:F2}{n.MeanSatisfaction,6:F2}" +
                       $"{n.PriceFloorFrac * 100,6:F0}{n.PriceCeilFrac * 100,6:F0}{n.PriceMidFrac * 100,6:F0}" +
                       $"{n.UrbanShare * 100,6:F0}{n.MeanLiteracy,6:F2}{n.Colonies,6}");
 

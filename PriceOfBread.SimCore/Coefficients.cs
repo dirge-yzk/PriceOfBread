@@ -1099,10 +1099,6 @@ public sealed class Coefficients
     // 〔7-1〕恐慌の資本破壊を BuiltScale へ（2026-09-06・作者裁定§4-1「工場が1棟も消えないのは史実に反する」）：恐慌の同じ月に、床（BuiltScale）に
     //   支えられて操業している工場＝床が無ければ閉鎖している工場だけ、BuiltScale を同じ scrapKeep で廃棄する（RGO は対象外）。0＝従来（厳密恒等）。
     public double DepressionScrapsBuiltScale = 1.0;   /* ★点火2026-09-06＝0.0→1.0・〔7-1〕恐慌の資本破壊を BuiltScale へ（採算割れの工場だけ閉鎖） */
-    // ヴィンテージ資本有効化2026-07-10（キュー5＝2026-07-08承認の工程(1)）：技術先行国の旧資本が後年に足枷となり後発が新鋭資本で競り勝つ（実力ベース首位交代の本命）。
-    // 配線＝新旧合計(TotalIndustrialization)を従来読者へ・座礁控除(ProductiveIndustrialization)は生産性チャネルのみ＝座礁だけが現行との差分（較正中立の分割・Model.cs Region参照）。
-    public double VintageMigrateRate = 0.005;     // ヴィンテージ資本（no-vintage-capital-depreciation）：現世代→旧世代の月次経年率。0.005＝半減期約11.6年（19世紀設備の世代交代）。0で二層化せずOldVintageCapital=0（現行恒等）
-    public double VintageObsolescence = 0.5;      // 旧世代の生産性寄与を技術差で割り引く座礁の強さ（座礁分＝これ×techGap・techGap=2で全損）。トリアージ/承認工程に推奨値なし＝配線テスト値0.5を採用（保守側はここから半減）。0で割引なし＝Industrialization単一スカラーの現行に恒等
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RevolutionLandReform＝革命が土地権力を壊す＝共和革命で限定・プロ独裁で全面の土地改革を floor-raise（2026-08-04 点火）
     // BlockedLawGrievance（阻止された要求の不満）は 2026-09-20 に係数ごと削除＝裁定C2（PushedLawGrievance と対・段の点火で不到達になった）。
     public double OpulenceTaxRelief = 1.0;         // ★2026-08-04（P4）：国庫が月次義務の8四半期分を超えたら超過に比例してAIの税目標を縮める（床0.25）。旧＝スタンスの税目標が固定率で、黒字国が経済から貨幣を吸い上げ続けデフレ螺旋（プロイセン国庫1.3M/GDP17k・米38M）。0で厳密恒等

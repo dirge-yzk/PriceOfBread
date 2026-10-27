@@ -4,12 +4,12 @@ namespace PriceOfBread.SimCore;
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない。INS=1 のときだけ。
 // 行＝国×年末（全ての実在の国）＋★(449) 最初の四半期の末（q=0）。★(456) 旗 ScoreFromWorldShare は焼き込んだ（旧の列は OldScore＝この計器の中の旧の式を読む）。
 // 列：scoreOld（従来の国力＝この計器の OldScore.Of）／scoreShare（世界の総量に対する本国の割合×100・NationalScore.ShareScores）／rankOld・rankShare（国力の降順の順位・同点は国の並び順）／
-//   share1Soldiers〜share6TotalPop（6 項の割合 0〜1・総量 0 の項は 0）／meanIndustrialization／techLevel／populationTotal（World.TotalPopulation）／
+//   share1Soldiers〜share6TotalPop（6 項の割合 0〜1・総量 0 の項は 0）／meanIndustrialization／populationTotal（World.TotalPopulation）／
 //   isGreatOld・isGreatShare（順位が列強の定員 GreatPowerCount 以内か 1/0）／★(449) rankInForce（外交の RankOf＝Great・Secondary・Middle・Minor）・usedTerms（世界の総量が正の項の数）／treatyStrength（条約港の風化が読む力の物差し＝scoreShare）・foreignShare（本国の州にある外国持分の和＝風化の対象の大きさ）。
 // ⚠限界（計器が自己申告する）：年末の断面（その四半期の Market の流れの値を 6 項の素にしている＝季節の揺れを含む）／順位の同点の扱いは国の並び順（外交の ComputeRanks は Power.Id 順）／scoreShare の総量は実在の国（Diplomacy の Power.Nation が非 null）の和。
 public static partial class Instruments
 {
-    internal const string ScoreHeaderText = "quarter	year	nation	scoreOld	scoreShare	rankOld	rankShare	share1Soldiers	share2MilitarySpend	share3Iron	share4Energy	share5UrbanPop	share6TotalPop	meanIndustrialization	techLevel	populationTotal	isGreatOld	isGreatShare	rankInForce	usedTerms	treatyStrength	foreignShare";
+    internal const string ScoreHeaderText = "quarter	year	nation	scoreOld	scoreShare	rankOld	rankShare	share1Soldiers	share2MilitarySpend	share3Iron	share4Energy	share5UrbanPop	share6TotalPop	meanIndustrialization	populationTotal	isGreatOld	isGreatShare	rankInForce	usedTerms	treatyStrength	foreignShare";
 
     static void ScoreFold(Sink sk, ulong seed, int q, MultiNationSim sim)
     {
@@ -41,7 +41,7 @@ public static partial class Instruments
             var w = ws[i];
             sk.ScoreS.WriteLine(string.Join('	', I(q), I(w.Year), NameOf(w), F(sOld[i]), F(sNew[i]), I(rOld[i]), I(rNew[i]),
                 F(shares[i][0]), F(shares[i][1]), F(shares[i][2]), F(shares[i][3]), F(shares[i][4]), F(shares[i][5]),
-                F(w.MeanIndustrialization), F(w.TechLevel), F(w.TotalPopulation), I(rOld[i] <= great ? 1 : 0), I(rNew[i] <= great ? 1 : 0),
+                F(w.MeanIndustrialization), F(w.TotalPopulation), I(rOld[i] <= great ? 1 : 0), I(rNew[i] <= great ? 1 : 0),
                 w.SelfPower is { } selfP ? sim.Diplomacy.RankOf(selfP).ToString() : "-", I(used),
                 F(sNew[i]), F(ForeignSum(w))));   // rankInForce＝外交の今のランク〔最初の 1 年は構築時か助走の直後のもの〕
         }
