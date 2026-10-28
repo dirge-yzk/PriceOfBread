@@ -1,0 +1,56 @@
+# (613) 線 tl 腕 B（段1・2a・2b・3・4 の旗を全て 1・計器つき 10 種・NATIONS 9 国）の読み（2026-10-28・木 4d442d7d）
+
+## 発散 g_pfix.py（TOTAL と RESIDUAL）
+money_s1.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.390(ロシア q663) maxP 4.841(ロシア q666) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s2.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.687(プロイセン q559) maxP 5.623(プロイセン q560) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s3.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.067(フランス q624) maxP 1.677(ロシア q389) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s4.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.743(イギリス q283) maxP 3978(イギリス q638) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s5.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.111(プロイセン q191) maxP 2.274(ロシア q432) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s6.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.094(ロシア q577) maxP 1.749(ロシア q397) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s7.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.137(ロシア q489) maxP 2.956(アメリカ q601) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s8.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.318(イギリス q407) maxP 2.591(イギリス q412) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s9.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.135(イギリス q236) maxP 1.84(フランス q667) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+money_s10.tsv rows 6012 bound_viol 0 jump100 0 nonfinite 0 g6_viol 0 maxdlnp 0.084(ロシア q399) maxP 1.708(イギリス q460) broad<=0 0 gdp<=1e-9 0 gdp_small 0
+TOTAL {'rows': 60120, 'bound_viol': 0, 'jump100': 0, 'nonfinite': 0, 'g6_viol': 0, 'broad_le0': 0, 'gdp_le0': 0, 'gdp_small': 0} pjump_s_rows 0 pfix_kind1 42 pfix_kind2 0
+RESIDUAL_OPEN (種, 国, 最初の kind=1 の四半期, ln P(最終)-ln P(最初), P(最終)) ≥ ln1e10: なし
+
+## 空洞化 an_h2.py -v4（先頭 6 行）
+## 種 10・ピーク 1 千人以上
+## ピークの1/10 未満: 0 件 {}
+## ピークの1/4 未満: 7 件 {'移民': 2, '飢え': 4, 'その他': 1}
+## 例外の名簿 ['イカルイト', 'ナイン', 'ヌーク', 'フォートシンプソン'] の事象（上の件数の外）: 1/10 {} 1/4 {'移民': 4}
+## 1/10 の格×原因: 
+## 1/10 のピークの大きさ×原因: 
+
+## NG ng.sh（基準 rd:measurements/ng609_20261028:m609）見出しだけ
+## 新しい NG（基準では NG でない）: 27
+## 外れた NG（比べる側で NG でない）: 16
+## 前からの NG: 62
+
+## 観測の列と国ごとの記録 an_tl613.py（基線 m609_ins と腕 B）
+=== D:/PoB_work/keep_609/m609_ins  種 10
+  国ごと（種の中央値）  教育法最大 | 参政権≥1 | 参政権≥2 | 女性権≥1 | 女性権≥3 | 政体の最初の変化 | 貿易/GDP1914 | 着工数1800/1850/1900/1950
+  清      — | 1910.5 | — | — | — | 1910.5 | 0.011 | —
+  ロシア    — | 1796 | — | — | — | 1796 | 0.066 | —
+  オスマン   — | 1825.5 | — | — | — | 1825.5 | 0.029 | —
+  フランス   — | 1808.5 | — | — | — | 1808.5 | 0.190 | —
+  イギリス   — | 1783 | 1896 | — | — | 1794 | 0.057 | —
+  プロイセン  — | 1805 | — | — | — | 1805 | 0.063 | —
+  オーストリア — | 1818 | — | — | — | 1818 | 0.041 | —
+  日本     — | 1851 | — | — | — | 1788 | 0.013 | —
+  アメリカ   — | 1783 | 1783 | — | — | 1808 | 0.026 | —
+  日本の政体の最初の変化の年（種ごと）：1794 1791 1786 1790 1788 1788 1789 1788 1788 1785
+=== D:/PoB_work/tl_613b/out_B_10/ins  種 10
+  [列] 行 147491：externalPressure 最大 0.0000・正の行 0・0.3 の行 0／freightRevolution 1.0000〜1.0000／megaStartedUnmetCount 最大 0・正の行 0／megaStartedOldGateClosedCount 最大 9・正の行 80796
+  旧の門が閉じたまま着工が動いた国（種の数）：フランス10・日本10・イギリス10・アメリカ10・ロシア10・オスマン10・オーストリア10・清10・スペイン10・サルデーニャ＝ピエモンテ10・朝鮮10・マラータ同盟10・マイソール10・シク連邦10・ビルマ10・ネパール10・シャム10・西山朝10・カンボジア10・ラオス10
+  国ごと（種の中央値）  教育法最大 | 参政権≥1 | 参政権≥2 | 女性権≥1 | 女性権≥3 | 政体の最初の変化 | 貿易/GDP1914 | 着工数1800/1850/1900/1950
+  清      1783 | 1910.5 | — | — | — | 1910.5 | 0.005 | 1/1/4/4.5
+  ロシア    1783 | 1795.5 | 1801 | — | — | 1795.5 | 0.029 | 3/1/1/1.5
+  オスマン   1783 | 1882.5 | — | 1818 | — | 1882.5 | 0.020 | 2/2.5/2.5/3
+  フランス   1783 | 1820 | — | — | — | 1820 | 0.076 | 3/3/4/4
+  イギリス   1783 | 1783 | 1799 | — | — | 1798 | 0.059 | 3/6/8/8
+  プロイセン  1783 | 1803.5 | — | — | — | 1803.5 | 0.039 | 0/0.5/0.5/1
+  オーストリア 1783 | 1821 | 1821 | — | — | 1821 | 0.033 | 4/4/4/4
+  日本     1783 | 1923 | — | — | — | 1789.5 | 0.015 | 1/1/4/4
+  アメリカ   1783 | 1783 | 1783 | — | — | 1860.5 | 0.017 | 5/5/6/6
+  日本の政体の最初の変化の年（種ごと）：1792 1788 1786 1790 1789 1791 1788 1789 1792 1792
