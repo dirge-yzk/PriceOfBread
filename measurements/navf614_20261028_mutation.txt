@@ -1,0 +1,10 @@
+[M1配りの合計]   失敗 PriceOfBread.Tests.NavalPortProcurementTests.艦の発注は港の州へ取扱高の比で配られ合計は1で港でない州は0 [147 ms]
+[M1配りの合計]   失敗 PriceOfBread.Tests.NavalPortProcurementTests.海軍の予算の合計は旗の有無で変わらず発注は予算のある州だけに立つ [500 ms]
+[M1配りの合計] 失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+[M2予算の保存]   失敗 PriceOfBread.Tests.NavalPortProcurementTests.海軍の予算の合計は旗の有無で変わらず発注は予算のある州だけに立つ [472 ms]
+[M2予算の保存] 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+[M3決済の区分]   失敗 PriceOfBread.Tests.NavalPortProcurementTests.港の州は自分の市場で艦を買いその州の艦の在庫に積み海軍の区分で払う [2 s]
+[M3決済の区分] 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+[M4本国の国境]   失敗 PriceOfBread.Tests.NavalPortProcurementTests.陸の必要量の国境は旗1で本国どうしの組だけ数える [71 ms]
+[M4本国の国境] 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mutate-finished

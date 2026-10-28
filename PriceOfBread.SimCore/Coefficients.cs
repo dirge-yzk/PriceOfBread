@@ -2884,7 +2884,7 @@ public sealed class Coefficients
     // ★近代化投資（2026-08-04・作者指示「工業化投資を近代化投資に変更…制度疲労・技術力などを改善する効果を持つ」）
     public double ModernizationOldGuardResist = 0.5;  // 旧支配層の政治力シェア1.0あたり近代化投資が止まる割合（免許・検地・認可を握るのが旧支配層）。旧支配層の政治力（★(373) 制度疲労の乗数は削除）と結び「改革を要する国ほど改革できない」が創発。0で乗算恒等
     public double ModernizationCostGdpShare = 1.0;   // frac/(1-frac) に掛かる係数。frac=0.3 で四半期GDPの約0.43倍＝年GDP比11%（発展途上国家の投資率として妥当）・frac=0.8 で4倍・frac→1 で発散。A=2.0 も試したが年GDP比21%は高すぎ、帯も経済規模−6.3で劣った（2026-08-04実測）。**国庫比でなく絶対額**にすることで「100%はほとんどの国で不可能」を成立させる。0で旧式（国庫×frac×0.5）＝厳密恒等
-    public double TechMultipliersOff = 1;             // ★(613) 線 tl 段3（**2026-10-28 に既定 1 へ点火**＝腕 B が止める線に当たらず。0 は旧の挙動）：技術水準を掛ける3つの倍率を 1 にする（軍の質の技術の因子 ArmyShape.Quality・海越えの遠征の門 Diplomacy.ExpeditionLift・近代化費用の遅れの割増 World.ModernizationBudget の costMul）。作者 2026-10-16〈倍率は全て削除〉・技術水準の削除の線。正で 3 つとも 1.0（costMul は割増 0）
+    public double TechMultipliersOff = 1;             // ★(613) 線 tl 段3（**2026-10-28 に既定 1 へ点火**＝腕 B が止める線に当たらず。0 は旧の挙動）：技術水準を掛ける3つの倍率を 1 にする（軍の質の技術の因子 ArmyShape.Quality・海越えの遠征の門 Diplomacy.ExpeditionLift・近代化費用の遅れの割増 World.ModernizationBudget の costMul）。作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・技術水準の削除の線（★(617) 合流の注：段1〔門を発見の行へ置き換え〕と段2b〔閾値を落とす〕は原文の削除より広い AI の推奨＝確証なし）。正で 3 つとも 1.0（costMul は割増 0）
     // ★(613) 線 tl 後半（**2026-10-28 に段1・2a・2b・4 を既定 1 へ点火**＝腕 B〔計器つき 10 種〕が止める線に当たらず。0 は旧の挙動〔テストの陽性対照が使う〕。段5 は既定 0 のまま〔腕 B5・cp3 と同じ線か後〕。否定形で NaN は 0 へ倒す。旗は段6 の物理削除と一緒に消す）
     public double TechGateByDiscovery = 1;            // 段1：巨大建造物の着工と進行・運河の着工の門を、技術水準の techGate から発見の行 requires（megaprojects.json・world.json）へ。正で有効
     public double TechSignalOff = 1;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
@@ -2965,7 +2965,7 @@ public sealed class Coefficients
     //   旗に入る枝は壁の一歩（S≦0 かつ 代価＞b）だけ＝普通の一歩（S＋代価≦b）は旗 0 と 1 ビットも同じ。内戦に負けた講和の代価（Politics.ConcedeToFaction）は門を通らない意図した例外のまま。AI の設計＝確証なし。
     public double MandateWallStockCap = 1;
     // ★(404) 専制の改革の経路・2-2（事前登録 measurements/rf_20261018_prereg.txt D1）：その壁の一歩だけを値段にする（旧は代価が b を超える一歩が満タンでも永遠に通らない壁だった）
-    //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）。
+    //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）〔★(615)(617) 既定 MandateWallStockCap＝1 では S は b で止まる＝代価の全額は MandateSpentNew にだけ記帳〕。
     //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。
     // 【墓標2026-10-19 (419)・旗の焼き込み】MandateOverStockFromLegitimacy（(405) で採用・既定 1）を消した＝壁の一歩は常に値段で通る（0 は旧の経路〔壁の一歩は永遠に通らない〕。同じ振る舞いは MandateOverStockLegitPower＝0 で閉じる〔`!(power>0)` で fail-closed〕）。(405) の腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった（★(409) で床は消え、払える量は下の MandateOverStockLegitPower の比例の形）
     // ★(409) 採用（腕 B・既定 2）：壁の一歩で払える正統性の量 = avail^p（avail＝正統性−この四半期の請求済み・0〜1）。(405) の床 0.4（閾値）を消してこの比例の形に置き換えた（README §1-8・設計思想⑧）。

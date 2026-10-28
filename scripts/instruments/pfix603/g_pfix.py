@@ -1,4 +1,5 @@
 # (603) 線 pfix の読み手（読むだけ）：計器つきの生（money_s<種>.tsv・pfix_s<種>.tsv・pjump_s<種>.tsv・nation_s<種>.tsv）から、価格水準の発散の観測量を種ごとに出す。
+#   ★(617) 合流の注（反証役 fsx〔bv〕低）：(616) 以後の本体の圧は S 案（Fiscal.FiatPressureOfLedger）。pfix_s の列 pressureNew の中身は M 案の写し（比べる側）で本体の圧ではない＝本体の圧は fsx_s の pressureForce… を読む（scripts/instruments/fsx616/g_fsx.py）。
 #   使い方：python g_pfix.py <ins_dir> [<ins_dir> ...] [--report <成績表のファイル>]   （例：D:/PoB_work/keep_600/m600_ins）
 #   出す量（事前登録 pfix603_20261028_prereg.txt §7 と追記 1・2 の G1〜G6）：
 #     money_s（NATIONS の 9 国・四半期ごと）

@@ -572,7 +572,7 @@ public static class Government
     {
         if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true;
         // ★(404) 壁の一歩だけを値段にする（事前登録 rf_20261018_prereg.txt D1）：代価が b そのものを超える一歩は在庫が満タンでも届かない＝待っても永遠に通らない壁だった
-        //   （README §1-8 片方向の錠なし・歯止めは値段と費用で）。値段＝①在庫を使い切る（S＝0 の満タンのときだけ・その後 S＝代価で長く空く）②正統性が代価を払えること（この四半期に請求済みの MandateSpentNew を引く）。
+        //   （README §1-8 片方向の錠なし・歯止めは値段と費用で）。値段＝①在庫を使い切る（S＝0 の満タンのときだけ・その後 S＝代価で長く空く〔★(615)(617) 既定 MandateWallStockCap＝1 では S は b で止まる＝代価の全額は MandateSpentNew にだけ記帳〕）②正統性が代価を払えること（この四半期に請求済みの MandateSpentNew を引く）。
         //   正統性の減算は Spend が記帳する MandateSpentNew→Politics.Step の 1 回だけ（新しい減算を足さない）。代価≦b の一歩は上の式のまま（時間の値段）。
         //   ⚠否定形：S・正統性・代価のどれかが NaN なら比較が偽＝閉じる側へ倒れる。
         //   ここへ来た時点で S+代価 ＞ b。S≦0（満タン）ならそれは 代価＞b と同じ＝壁の一歩（S＞0 なら普通の一歩の在庫不足か壁の一歩の在庫の使いかけ＝どちらも待つ）。
@@ -852,6 +852,8 @@ public static class Government
     // 政治資本の消費を両台帳へ記帳：MandateSpent＝目減り S（Politics.Step が b/MandateRefillQuarters×実行度で線形に回復）／MandateSpentNew＝今期増分
     // （ストック正統性の一回限り減算用＝LegitimacyIsStock有効時の二重計上排除。Politics.Step が読んで毎期ゼロ化）。
     // 上限1.0クランプは廃止（2026-07-26ユーザー裁定）＝政治資本は青天井に積める。代償は正統性減算（Politics側で0クランプ）＝乱発の死のスパイラルは実コストとして残る。
+    //   ★(617) 合流の注（反証役 pcw〔bv〕中）：この 07-26 の〈青天井〉は旧の 1 本の量（使った額）の話で、2026-09-21 の作者裁定 N2（在庫 a＝max(0, b−S)・空から満タンまで 10 年）が S を残りの在庫の勘定に置き換えた。
+    //   (615) が b で止めるのは S の記帳だけで、選んだ一歩（代価）は削らない＝代価の全額は MandateSpentNew に残り正統性が払う＝設計思想⑧〈選んだ値を上限で削らない〉の外という読み（AI の読み・作者の承認は未確認）。
     // ⚠private へ戻した（2026-09-20）：外部の唯一の呼び手だった World.SetStateMonopolyOn は、専売を政治から切り離したので
     //   もう政治資本を払わない。内部（Move と MandateGate）の2本だけが記帳する＝「誰でも政治資本を燃やせる口」を開けたままにしない。
     //   ★(615) 線 pcw：旗 MandateWallStockCap > 0 のとき S へ足す量を残りの在庫 max(0, b−S) で止める（在庫を使い切る）。b を超える分は S に載らず正統性だけが払う（MandateSpentNew は代価の全額＝Politics.Step が 1 回だけ引く）。
