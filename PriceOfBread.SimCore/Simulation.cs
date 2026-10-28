@@ -1995,7 +1995,7 @@ public sealed class Simulation
             // 疫病（B-4・コレラ等）：発生は過密（都市化）が駆動し、衛生整備（工業化）は死亡率を下げる。専用RNG系列＝主系列を乱さない。発生＝感染窓を立て他国へ伝播しうる（MultiNationSim）。
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰
             double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // 常に2つ引く（専用系列）
-            double worstUrban = World.MaxUrbanShare();   // 最も過密な地域の都市化率＝発生駆動
+            double worstUrban = World.EpidemicUrbanDrive(World.Coef);   // 最も過密な地域の都市化率＝発生駆動（(629) 旗 EpidemicDriveByNationUrban＝国の都市の割合）
             // 接12（監査2026-07-11・2026-07-25休眠配線）：発生確率にも衛生を接続（従来は死亡率側のみ＝1900年代の近代都市でも
             // 1832年のスラムと同頻度でコレラが発生し続けた。史実では衛生インフラが流行の発生自体を止めた）。0（対照腕）で乗数1・既定0.4でlive。
             double epiOnsetCut = World.Coef.EpidemicOnsetSanitationWeight > 0

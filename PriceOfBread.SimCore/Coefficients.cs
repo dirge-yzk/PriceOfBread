@@ -613,6 +613,7 @@ public sealed class Coefficients
     // 疫病の伝播（コレラの世界的流行＝交易路・近接で運ばれる）。発生国は EpidemicContagiousYears 年だけ感染源になり、近接＋交易接触で未感染国へ飛び火。単一国較正は伝播相手なしで無影響。
     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
     public double EpidemicTransmitChance = 0.35; // 完全接触（隣接の感染国）から1年で伝染する基礎確率
+    public double EpidemicDriveByNationUrban = 0;   // (629) 疫病の発生・伝播の確率が読む都市の割合を、最も都市化率の高い 1 州の割合（World.MaxUrbanShare＝大きさを持たない）から国の都市の人口÷国の人口（World.UrbanShare）へ替える（旗 1）。0 で従来と厳密一致。標的の州の選び方・死の率は替えない。
     public double EpidemicTransmitRange = 6000;  // 近接伝播が効く首都間距離（kmこれ以内で陸路接触・遠いほど弱い）
     public double EpidemicTradeTransmit = 0.6;   // 交易/港の接触経路の重み（両国の交易開放度の積＝海路のコレラ。陸の近接と最大を取る）
     public double EpidemicWarTransmit = 0.85;    // 戦争＝距離に依らない強制的な濃厚接触（軍営・前線・補給線・復員兵）＝最強の伝播経路（スペイン風邪1918型）。交戦国間で蔓延

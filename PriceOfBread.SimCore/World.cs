@@ -1161,6 +1161,10 @@ public sealed class World
         return worst;
     }
 
+    /// <summary>(629) 疫病の**発生と伝播の確率**が読む都市の割合。旗 <see cref="Coefficients.EpidemicDriveByNationUrban"/> が 0 なら最も都市化率の高い 1 州の割合（<see cref="MaxUrbanShare"/>・従来）、
+    /// 正なら国の都市の人口÷国の人口（<see cref="UrbanShare"/>）。標的の州の選び方（<see cref="TriggerEpidemic"/>）と死の率は旗に依らない。<see cref="UrbanShare"/> ≦ <see cref="MaxUrbanShare"/>（同じ州の集合の人口加重平均と最大）。</summary>
+    public double EpidemicUrbanDrive(Coefficients c) => c.EpidemicDriveByNationUrban > 0 ? UrbanShare : MaxUrbanShare();
+
     /// <summary>疫病の「過密」を数える州の都市人口比（都市人口 ÷ 人口）。人口が 1e-9 未満の州は数えない（false）。
     /// 最も過密な州を探す 3 つの走査（<see cref="MaxUrbanShare"/>・<see cref="WorstUrbanRegionSanitation"/>・<see cref="TriggerEpidemic"/>）が同じ 1 本を読む。</summary>
     private static bool TryUrbanShare(Region r, out double urbanShare)
@@ -1246,7 +1250,7 @@ public sealed class World
 
     /// <summary>疫病の流行を起こす（内部発生・他国からの伝播の共通処理）：最も過密な地域に死亡スパイク＋感染窓を立てる。
     /// 致死率＝基礎×(1−衛生整備0.7×工業化飽和)×jitter。savings不変（金は保存）・PopulationDeltaで人口台帳追跡（回復可能）。B-4。</summary>
-    public bool TriggerEpidemic(Coefficients c, double jitter)
+    public bool TriggerEpidemic(Coefficients c, double jitter, bool transmitted = false)
     {
         Region? wr = null; double worstUrban = 0;
         Region? wr2 = null; double secondUrban = 0;   // 人14：次過密州（州間伝播の二次スパイク先）
@@ -1257,11 +1261,18 @@ public sealed class World
             else if (us > secondUrban) { secondUrban = us; wr2 = r; }
         }
         if (wr is null) return false;
+        double epiNat = 0, epiPop = 0, epiPop2 = 0;   // (629) 計器の入力（読むだけ・Instruments.On の間だけ）
+        if (Instruments.On) { epiNat = UrbanShare; epiPop = wr.SumPopulation(); epiPop2 = wr2?.SumPopulation() ?? 0; }
         double dead = ApplyEpidemicDeaths(wr, c, jitter, 1.0);
+        if (Instruments.On && !WarmupFrozen) Instruments.EpidemicHit(this, wr, transmitted ? 1 : 0, worstUrban, worstUrban, epiNat, epiPop, dead);
         // 人14（州間伝播）：現行は国内で単一の最過密州しか襲わず州間伝播がない（1832コレラはパリ→マルセイユ→リヨンと国内交通路を伝った）＝多州国家の疫病死が構造的に過小。
         // EpidemicIntraCountrySpread=0 で二次スパイクなし＝現行と厳密一致・>0で感染窓中に次過密州へ減衰致死率(×これ)の二次スパイク。新規RNG消費なし（同一 jitter を流用＝決定論不変）。1州世界は wr2=null で不発。
         if (c.EpidemicIntraCountrySpread > 0 && wr2 is not null)
-            dead += ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);
+        {
+            double dead2 = ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);
+            dead += dead2;
+            if (Instruments.On && !WarmupFrozen) Instruments.EpidemicHit(this, wr2, 2, secondUrban, worstUrban, epiNat, epiPop2, dead2);   // (629) 二次の波
+        }
         // 記帳（人口の台帳・粗死亡の計器）は死の記帳の1本（KillPops）が州ごとに済ませた
         EpidemicActiveYears = c.EpidemicContagiousYears;   // 感染窓を立てる＝以後この国は感染源（伝播）
         LogAdd($"{Year} {wr.Name}で疫病が流行（死者{dead:F0}・{SelfPower?.Name}）");
