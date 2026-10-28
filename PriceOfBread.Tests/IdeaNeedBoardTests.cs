@@ -160,8 +160,15 @@ public class IdeaNeedBoardTests
     {
         var w = Nation(Board(), "イギリス");
         Assert.Equal(0.0, w.Coef.IdeologyDevTermOff);
+        // 期待値は盤面の POP を数えて手で組む（旗 0 の dev＝(1−都市の重み)×clamp01(最先端の工業化度÷尺度)＋都市の重み×都市の人口比）。最先端の工業化度を尺度の 5 倍に置く＝第 1 項は 1
+        w.IndustrialFrontier = 5.0 * w.Coef.IdeologyGateIndScale;
+        double tot = 0, urban = 0;
+        foreach (var p in w.AllPops()) { tot += p.Size; if (p.IsUrban) urban += p.Size; }
+        double uw = w.Coef.IdeologyGateUrbanWeight;
+        double expected = (1.0 - uw) * 1.0 + uw * (urban / tot);
+        Assert.True(expected < 1.0 && expected > 0.0);
         double dev0 = Ideologies.EraGates(w).Dev;
-        Assert.InRange(dev0, 0.0, 0.999);
+        Assert.Equal(expected, dev0, 12);
         w.Coef.IdeologyDevTermOff = 1;
         Assert.Equal(1.0, Ideologies.EraGates(w).Dev);
     }

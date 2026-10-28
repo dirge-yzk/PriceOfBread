@@ -371,7 +371,7 @@ public static class Discovery
     /// 判定の段の頭で全ての国の平滑化した値段を進めた直後に求める導出量（状態ではない）。単独の世界は null（他国が無い）。
     /// ★(461) <paramref name="WorldAdvLabor"/>＝世界の高度労働力の雇用の合計（全ての国・全ての財の <see cref="EngineerUse"/> の和・月あたり・<see cref="Discovery.WorldAdvLabor"/>）＝技術力の時計 S の W（<see cref="ClockStage"/>）。
     ///   旗 <see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正か計器のときだけ <see cref="MultiNationSim"/> が求めて渡す導出量（状態ではない）。無ければ（単独の世界）W は自国の全ての財の和へ倒す。
-    ///   ★(640) <paramref name="ScoreNow"/>＝この国の国力の今の値（<see cref="NationalScore.ShareScores"/>＝世界の総量に対する割合の国力）＝ファシズムの必要性の〈落ち込み〉の「今」（在庫は <see cref="World.ScoreStanding"/>）。
+    ///   ★(640) <paramref name="ScoreNow"/>＝この国の国力の今の値（<see cref="NationalScore.ShareScores"/>＝世界の総量に対する割合の国力）＝ファシズムの必要性の〈落ち込み〉の〈今〉（在庫は <see cref="World.ScoreStanding"/>）。
     ///   旗 <see cref="Coefficients.SpreadNeedFascismDecline"/> が正か計器のときだけ <see cref="MultiNationSim"/> が判定の段の直前に 1 回だけ求めて渡す導出量（状態ではない）。無ければ（単独の世界）落ち込みは 0。</summary>
     public sealed record WorldView(double[]? Contact, double[]? Loss = null, WorldMarket? Market = null, double? WorldAdvLabor = null, double? ScoreNow = null);
 
