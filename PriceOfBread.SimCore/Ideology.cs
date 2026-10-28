@@ -16,12 +16,12 @@ public static class Ideologies
     public static void UpdateShares(World w)
     {
         // 国民平均の1人あたり富（相対的富＝イデオロギーの導出に使う）。富で「失う物」が決まる＝保守/急進の分岐。
-        double totSav = 0, totPop = 0, urbanPop = 0;
-        foreach (var p in w.AllPops()) { totSav += System.Math.Max(0, p.Savings.Value); totPop += p.Size; if (p.IsUrban) urbanPop += p.Size; }
+        double totSav = 0, totPop = 0;
+        foreach (var p in w.AllPops()) { totSav += System.Math.Max(0, p.Savings.Value); totPop += p.Size; }
         double meanWealth = totPop > 1e-9 ? totSav / totPop : 1;
 
-        var era = EraGates(w, totPop, urbanPop);
-        double dev = era.Dev, eraSoc = era.Socialism, eraComm = era.Communism, eraImp = era.Imperialism, eraFasc = era.Fascism;
+        var era = EraGates(w);
+        double eraSoc = era.Socialism, eraComm = era.Communism, eraImp = era.Imperialism, eraFasc = era.Fascism;
         // 厭戦（war exhaustion）はイデオロギーへ直接加点しない＝Politics で闘争度入力へ移管（倍率排除/長い裾）。闘争→既存の mil 項（閉鎖階級→反動・大衆→共和/社会/共産）が拾う。
 
         // 機能7-1/7-2（第7段第2波・2026-07-28）：敗戦ショック（短期＝DefeatShock減衰0.85/四半期）＋失地ストック（長期＝半減期20年）→
@@ -95,8 +95,8 @@ public static class Ideologies
             r[5] += famSoc;             // 機能8-④：飢え→社会主義
             // 思想の門（後発イデオロギーはその国が見つけるまで0＝発見の表の2値・2026-10-01 (152)）＝加算後に掛ける。※ナショ(4)は門無し＝ボナパルティズムとして初期から存在。
             r[5] *= eraSoc; r[6] *= eraComm; r[8] *= eraImp;
-            // ファシズム（E7・E9点火）：ファシズムを見つけた国(eraFasc)の発展した経済(dev)で危機(mil)が高いほど、反動(r[1])と国民主義(r[4])が権威主義へ結晶＝それらから recruit（反共・国家動員）。FascismGate=0で不発＝r[9]=0＝配列長9と数値等価。
-            if (w.Coef.FascismGate > 0) r[9] += w.Coef.FascismGate * eraFasc * dev * mil * (r[1] + r[4]);
+            // ファシズム（E7・E9点火）：ファシズムを見つけた国(eraFasc)で危機(mil)が高いほど、反動(r[1])と国民主義(r[4])が権威主義へ結晶＝それらから recruit（反共・国家動員）。FascismGate=0で不発＝r[9]=0＝配列長9と数値等価。
+            if (w.Coef.FascismGate > 0) r[9] += w.Coef.FascismGate * eraFasc * mil * (r[1] + r[4]);
             // ★★★10 王党派（2026-08-19・作者裁定）：**政治意識を持つ王権支持者**＝「意識が上がる＝議会支持」という一本道を断つ。
             //   供給＝**王権から実際に利益を得ている層** × 政治意識。誰が利益を得ているかは既存の唯一実装を読む
             //   （PowerShares.PrivilegeIntact＝農奴制/免税/身分、PowerShares.StatePatronage＝関税/国家発注/秩序）。
@@ -117,18 +117,10 @@ public static class Ideologies
     /// 思想の門（0か1＝発見の表の思想の行の2値・2026-10-01 (152)）と発展度スカラー。<see cref="UpdateShares"/> が毎四半期に読む式そのもの＝
     /// 発見パネル（思想の解禁）も同じ関数を読む（第二の式を作らない）。
     /// </summary>
-    public readonly record struct EraGateSet(double Dev, double Socialism, double Communism, double Imperialism, double Fascism);
+    public readonly record struct EraGateSet(double Socialism, double Communism, double Imperialism, double Fascism);
 
-    /// <summary>解禁度の取り出し（読み取り専用）。都市労働者シェアのために POP を1巡する。</summary>
+    /// <summary>解禁度の取り出し（読み取り専用）。★(640) 線 idn：発展度 dev（世界最先端の工業化度と都市の割合の加重）は読み手ごと消した＝ファシズムの支持の式は dev を掛けない（旧は dev＜1 が掛かっていた）。</summary>
     public static EraGateSet EraGates(World w)
-    {
-        double totPop = 0, urbanPop = 0;
-        foreach (var p in w.AllPops()) { totPop += p.Size; if (p.IsUrban) urbanPop += p.Size; }
-        return EraGates(w, totPop, urbanPop);
-    }
-
-    // 本体（呼び手が既に人口を数えている場合はこちら＝UpdateShares は1巡で済ませる）。
-    private static EraGateSet EraGates(World w, double totPop, double urbanPop)
     {
         // ★思想の門＝**発見の表の思想の行の2値**（2026-10-01 (152)・設計 §1A-6・作者裁定 2026-09-28 ⑤＝4分野とも同じ骨組み・§1A-2＝発見は2値）。
         //   旧＝世界の発展度 dev の傾斜（社会主義 dev 0.20〜0.55・共産主義 0.35〜0.70・帝国主義 0.50〜0.85・ファシズム 0.75〜1.10×危機）と到達（旧 IdeologyReach）の大きい方
@@ -138,19 +130,9 @@ public static class Ideologies
         //   伝わり＝思想と制度の到達（World.SpreadReach＝旧の到達と同じ StepDiffusion の積み上げ）。⚠ファシズムの支持は発見の後も UpdateShares の式（発展度×闘争度×（反動＋国民主義））が担う＝危機は門から必要性へ移った。
         // ※ナショナリズムは門を持たない＝**ボナパルティズムとしても扱う**：仏革命〜ナポレオン(1789〜)の革命的ナショナリズム
         //   ＝軍事的強権・国民動員は初期から存在する（MilitaryDictatorship への親和が高い＝ボナパルト型）。
-        // 発展度スカラー dev∈[0,1]＝世界最先端の工業化度（IdeologyGateIndScale で0..1へ）と都市の割合の加重（IdeologyGateUrbanWeight）＝ファシズムの支持の式と発見パネルのホバーが読む。
-        //   ★「世界最先端の工業化度」は w.IndustrialFrontier（MultiNationSim が各国最高の MeanIndustrialization を毎四半期注入）。単一国と多国の初四半期は自国の値へフォールバック。
-        double urbanWorkerShare = totPop > 1e-9 ? urbanPop / totPop : 0;
-        double dev;
-        if (w.Coef.IdeologyDevFromUrban > 0) dev = PoliticalQuantities.Clamp01(urbanWorkerShare);   // ★(605) 旗 IdeologyDevFromUrban：工業化度の項を読まない＝都市労働者の割合だけ
-        else
-        {
-            double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
-            dev = PoliticalQuantities.Clamp01((1.0 - w.Coef.IdeologyGateUrbanWeight) * PoliticalQuantities.Clamp01(frontierInd / w.Coef.IdeologyGateIndScale)
-                           + w.Coef.IdeologyGateUrbanWeight * urbanWorkerShare);
-        }
+        // ★(640) 発展度スカラー dev（旧＝世界最先端の工業化度と都市の割合の加重）は消した：工業化度の読み手を読み手ごと消す（設計思想⑨＝同じ物を発見の行の門と二重に読まない）。
         var k = w.Discovered;
-        return new EraGateSet(dev, Gate(k, Ideology.Socialism), Gate(k, Ideology.Communism), Gate(k, Ideology.Imperialism), Gate(k, Ideology.Fascism));
+        return new EraGateSet(Gate(k, Ideology.Socialism), Gate(k, Ideology.Communism), Gate(k, Ideology.Imperialism), Gate(k, Ideology.Fascism));
         static double Gate(bool[] k, Ideology i) => Discovery.Known(k, Discovery.IdeaRow(i)) ? 1.0 : 0.0;
     }
 

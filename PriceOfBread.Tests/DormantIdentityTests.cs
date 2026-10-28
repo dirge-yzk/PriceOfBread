@@ -24,9 +24,10 @@ public class DormantIdentityTests
         // ★StateEduDemandInFront（(452) 国庫の教育の買いたい分を値段が読む需要へ）は 2026-10-20 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★ServiceClosedFixedPoint（(spa) A′ 役務の不動点の閉じた式）は 2026-10-23 に 1 で**点火**（S1c・ServiceClosedMaxCurv=0.01）＝この表から外した。
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
-        "EpidemicSanitFromBoard", "IdeologyDevFromUrban", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
+        "EpidemicSanitFromBoard", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
         // ★TechMultipliersOff（(613) 線 tl 段3）は 2026-10-28 に 1 で**点火**＝この表から外した。TechGateByDiscovery・TechSignalOff・TechThresholdOff・EraOff（段1・2a・2b・4）も同日に 1 で点火。TechProductivityBracketOff（段5・腕 B5）は既定 0 のまま〔cp3 と同じ線か後〕
         "TechProductivityBracketOff",
+        "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // ★(640) 線 idn：思想の必要性を盤面の量から読む旗（既定 0＝今の式・番人 IdeaNeedBoardTests・G2b で落ちて差し戻し）。SpreadNeedFascismDecline は 1 で点火・IdeologyDevTermOff は読み手ごと消した（IdeologyDevFromUrban ほか 3 本も削除）
         // ★SpreadLiteracyFull・SpreadPrereqEdges（(621) 線 inst）は 2026-10-28 に点火＝この表から外した（SpreadLiteracyFull は既定 0.5・辺は Catalog.After の共産主義 ← 社会主義へ移して旗を消した）。旗 0 の経路の番人は InstitutionAnchorTests。
         // ★MandateWallStockCap（(615) 政治資本の壁の一歩の勘定）は 2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。旗 0 の経路の番人は MandateWallStockCapTests。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）

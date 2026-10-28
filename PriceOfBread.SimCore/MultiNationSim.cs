@@ -596,7 +596,7 @@ public sealed class MultiNationSim
                     if (Calendar.QuarterIndexOfTick(Nations[0].World.Tick) % 8 == 0) Instruments.ClockSample(this, worldAdv.Value, _clockTicks, _clockVisits);   // (461) 計器だけ
                 }
             }
-            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv), _coef);
+            double[]? scoreNow = _coef.SpreadNeedFascismDecline > 0 || Instruments.On ? NationalScore.ShareScores(Nations.ConvertAll(s => s.World)) : null; for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv, scoreNow?[i]), _coef);   // ★(640) 線 idn：国力の今の値を判定の直前に 1 回だけ求めて渡す（旗 SpreadNeedFascismDecline が正か計器のときだけ・導出量・行数を増やさない＝flow_s が行番号を鍵にする）
             ShareWorldDiscovered();
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
@@ -858,8 +858,8 @@ public sealed class MultiNationSim
             // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度（ファシズムの支持の式・発見パネルのホバー）が
             // 代理(WorldTechLevel との max)でなくこれを参照する（思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
             double indFrontier = 0;
-            foreach (var n in Nations) if (!(n.World.Coef.IdeologyDevFromUrban > 0)) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);   // ★(605) 旗 IdeologyDevFromUrban では注入しない
-            foreach (var n in Nations) if (!(n.World.Coef.IdeologyDevFromUrban > 0)) n.World.IndustrialFrontier = indFrontier;
+            foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
+            foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
             // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
             //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
             // ★銀と金の比（(210)・00一覧 §0-A の 10＝金への入力を同じ州の比の世界で＝表示用の統計に乗せない）：同一市場内の 銀/金鉱 比の全 Active 州の対数平均 R

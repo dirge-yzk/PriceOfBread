@@ -101,7 +101,7 @@ public class Stage2Tests
         var after = Ideologies.National(w);
         Assert.Equal(g1, g2);                                                      // 同じ入力で同じ値
         for (int i = 0; i < before.Length; i++) Assert.Equal(before[i], after[i]);  // 世界を1ビットも触らない
-        foreach (double v in new[] { g1.Dev, g1.Socialism, g1.Communism, g1.Imperialism, g1.Fascism })
+        foreach (double v in new[] { g1.Socialism, g1.Communism, g1.Imperialism, g1.Fascism })
             Assert.InRange(v, 0.0, 1.0);
         // ゲート0のイデオロギーはシェアも0（UpdateShares が r[k] へ掛けているのと同じ量を読んでいる証拠）
         if (!(g1.Socialism > 0)) Assert.Equal(0.0, before[(int)Ideology.Socialism]);

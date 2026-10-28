@@ -230,17 +230,75 @@ public static class Discovery
     /// ・帝国主義＝植民地（州の格が植民地）に住む人の割合（設計 §1A-6【推】の「植民地の数」を人で数えた・「列強の順位の争い」は入れていない）。
     /// ・ファシズム＝危機（敗戦か恐慌×左派の脅威＝<see cref="Ideologies.FascismCrisis"/>＝旧の門に掛けていた条件・設計 §1A-6「そのまま適性へ」）×人々の闘争度（Σ人数×闘争度÷人口）
     ///   ＝危機の中で闘う人の割合（思想の4行の強度を同じ単位＝人口の割合にそろえる＝半分点が分野で1本だから・推奨で決めた）。
-    ///   ⚠危機だけ（0〜1の国の指数）では負けた戦争1つで強度が 0.85 へ跳び、技術水準 3 の国が1870〜80年代に見つけた（(152) の試走 v1）。</summary>
-    private static double SpreadNeed(int row, World w, double maxInd, double workerMil, double colonialShare, double popMil, ref double crisis)
+    ///   ⚠危機だけ（0〜1の国の指数）では負けた戦争1つで強度が 0.85 へ跳び、技術水準 3 の国が1870〜80年代に見つけた（(152) の試走 v1）。
+    ///   ★(640) 線 idn（旗 4 本・既定 0＝今の式）：社会主義＝<see cref="IdeaBoard.WageUnmet"/>・共産主義＝<see cref="ComStrength"/>・ファシズム＝<see cref="FasStrength"/>（<see cref="IdeaBoardOf"/> の盤面の量）。</summary>
+    private static double SpreadNeed(int row, World w, double maxInd, double workerMil, double colonialShare, double popMil, ref double crisis, in IdeaBoard b, Coefficients c)
     {
         double s;
         if (row == PatentRow) s = w.EliteCore;
         else if (row == JointStockRow) s = maxInd;
-        else if (row == SocialismRow || row == CommunismRow) s = workerMil;
+        else if (row == SocialismRow) s = c.SpreadNeedSocialismBoard > 0 ? b.WageUnmet : workerMil;
+        else if (row == CommunismRow) s = c.SpreadNeedCommunismBoard > 0 ? ComStrength(b) : workerMil;
         else if (row == ImperialismRow) s = colonialShare;
-        else if (row == FascismRow) { if (double.IsNaN(crisis)) crisis = Ideologies.FascismCrisis(w); s = crisis * popMil; }
+        else if (row == FascismRow) { if (double.IsNaN(crisis)) crisis = Ideologies.FascismCrisis(w); s = c.SpreadNeedFascismDecline > 0 ? FasStrength(crisis, popMil, b) : crisis * popMil; }
         else s = 0;
         return !(s > 0) ? 0 : s;   // 否定形＝NaN・負は0
+    }
+
+    /// <summary>★(640) 線 idn：思想の必要性の盤面の量（<see cref="IdeaBoardOf"/> が兵士でない POP を 1 巡して返す・読むだけ・状態を書かない）。
+    /// ・<see cref="WageShare"/>＝賃金だけで暮らす人（工場労働者）の人口比＝Σ(Size×(1−自給率))÷Σ(兵士でない Size)。
+    /// ・<see cref="WageUnmet"/>＝その人々のうち暮らしが必要に届かない人数÷人口＝Σ(Size×(1−自給率)×(1−<see cref="Pop.SupplyFill"/>))÷Σ(兵士でない Size)＝社会主義の強度。
+    /// ・<see cref="OwnerTake"/>＝工場の稼ぎのうち持ち主の取り分＝ΣIndustrialRentPerMonth÷(ΣIndustrialRentPerMonth＋Σ工場労働者の EarnedPerMonth)（分母が正でなければ 0）。
+    /// ・<see cref="Decline"/>＝自国の国力の割合の落ち込み∈[0,1]＝(在庫−今)÷在庫（<see cref="ScoreDecline"/>）。
+    /// ・<see cref="WorkerMil"/>・<see cref="ColonialShare"/>・<see cref="PopMil"/>＝今の強度の 3 部品（<see cref="Score"/> の POP の 1 巡と同じ定義＝計器が旧と新を並べるために同じ 1 巡で返す）。
+    /// ・<see cref="WorkerSupplyFill"/>＝工場労働者の充足の人数加重平均（計器だけが読む・工場労働者が居なければ NaN）。</summary>
+    internal readonly record struct IdeaBoard(double WageShare, double WageUnmet, double OwnerTake, double Decline, double WorkerMil, double ColonialShare, double PopMil, double WorkerSupplyFill);
+
+    /// <summary>共産主義の強度（旗 <see cref="Coefficients.SpreadNeedCommunismBoard"/>）＝持ち主の取り分×賃金だけで暮らす人の人口比。</summary>
+    internal static double ComStrength(in IdeaBoard b) => b.OwnerTake * b.WageShare;
+    /// <summary>ファシズムの強度（旗 <see cref="Coefficients.SpreadNeedFascismDecline"/>）＝危機×人々の闘争度×国力の落ち込み（今の式に落ち込みを掛ける）。</summary>
+    internal static double FasStrength(double crisis, double popMil, in IdeaBoard b) => crisis * popMil * b.Decline;
+
+    /// <summary>国力の落ち込み∈[0,1]＝(在庫−今)÷在庫。在庫が正でない（NaN・未初期化・0 以下）か今が無い（NaN・負・単独の世界）は 0（否定形）。今が在庫以上も 0。</summary>
+    internal static double ScoreDecline(double standing, double? now)
+    {
+        if (now is not { } n || !(standing > 0) || !(n >= 0)) return 0.0;
+        double d = (standing - n) / standing;
+        return !(d > 0) ? 0.0 : d > 1.0 ? 1.0 : d;
+    }
+
+    /// <summary>★(640) <see cref="IdeaBoard"/> を求める（兵士でない POP を 1 巡・<see cref="Score"/> が旗が正のときだけ呼ぶ・計器 <c>idn_s</c> は旗 0 でも同じ関数を呼ぶ）。
+    /// 判定の段は四半期末の共有層＝第 3 月の <c>EconomyStep.Run</c> の後なので、<see cref="Pop.SupplyFill"/>・<see cref="Pop.EarnedPerMonth"/>・<see cref="Pop.IndustrialRentPerMonth"/> は第 3 月の累積器の値
+    /// （月頭のゼロ化は Run の 1 か所だけ）。分母は <see cref="Score"/> の popSum と同じ（兵士を除く・Size＞0）。</summary>
+    internal static IdeaBoard IdeaBoardOf(World w, double? scoreNow)
+    {
+        double popSum = 0, wage = 0, unmet = 0, fillW = 0, rent = 0, workerEarned = 0, workerMilSum = 0, colonialPop = 0, milSum = 0, workerPop = 0;
+        foreach (var r in w.Regions)
+        {
+            bool colonial = r.Tier == RegionTier.Colonial;
+            foreach (var p in r.Pops)
+            {
+                if (p.IsSoldier || !(p.Size > 0)) continue;
+                popSum += p.Size;
+                if (p.Militancy > 0) { milSum += p.Size * p.Militancy; if (p.ClassId == PopClass.Worker) workerMilSum += p.Size * p.Militancy; }
+                if (colonial) colonialPop += p.Size;
+                double ir = p.IndustrialRentPerMonth.Value;
+                if (ir > 0) rent += ir;
+                if (p.ClassId != PopClass.Worker) continue;
+                workerPop += p.Size;
+                double sub = p.Subsistence; sub = !(sub > 0) ? 0 : sub > 1 ? 1 : sub;
+                double dep = p.Size * (1.0 - sub);
+                double fill = p.SupplyFill;
+                wage += dep; unmet += dep * (1.0 - fill); fillW += p.Size * fill;
+                double e = p.EarnedPerMonth.Value;
+                if (e > 0) workerEarned += e;
+            }
+        }
+        double wageShare = popSum > 1e-12 ? wage / popSum : 0, wageUnmet = popSum > 1e-12 ? unmet / popSum : 0;
+        double pie = rent + workerEarned, take = pie > 1e-12 ? rent / pie : 0;
+        return new IdeaBoard(wageShare, wageUnmet, take, ScoreDecline(w.ScoreStanding, scoreNow),
+            popSum > 1e-12 ? workerMilSum / popSum : 0, popSum > 1e-12 ? colonialPop / popSum : 0, popSum > 1e-12 ? milSum / popSum : 0,
+            workerPop > 1e-12 ? fillW / workerPop : double.NaN);
     }
 
     /// <summary>ある州のある生産者（レシピ）の門∈{0,1}＝能力・未発明の判定・操業規模0・着工の可否・生産タブの灰色化が全てこの1本を読む
@@ -312,8 +370,10 @@ public static class Discovery
     /// 「輸入すれば払う値段」＝着値（売り手の値段＋運賃＋関税＝<see cref="WorldMarket.Landed"/>）で読む（<see cref="ReplacedStrength"/>）。画面と計器は平均（<see cref="WorldMarket.Average"/>）。
     /// 判定の段の頭で全ての国の平滑化した値段を進めた直後に求める導出量（状態ではない）。単独の世界は null（他国が無い）。
     /// ★(461) <paramref name="WorldAdvLabor"/>＝世界の高度労働力の雇用の合計（全ての国・全ての財の <see cref="EngineerUse"/> の和・月あたり・<see cref="Discovery.WorldAdvLabor"/>）＝技術力の時計 S の W（<see cref="ClockStage"/>）。
-    ///   旗 <see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正か計器のときだけ <see cref="MultiNationSim"/> が求めて渡す導出量（状態ではない）。無ければ（単独の世界）W は自国の全ての財の和へ倒す。</summary>
-    public sealed record WorldView(double[]? Contact, double[]? Loss = null, WorldMarket? Market = null, double? WorldAdvLabor = null);
+    ///   旗 <see cref="Coefficients.DiscoveryClockWorldPerMonth"/> が正か計器のときだけ <see cref="MultiNationSim"/> が求めて渡す導出量（状態ではない）。無ければ（単独の世界）W は自国の全ての財の和へ倒す。
+    ///   ★(640) <paramref name="ScoreNow"/>＝この国の国力の今の値（<see cref="NationalScore.ShareScores"/>＝世界の総量に対する割合の国力）＝ファシズムの必要性の〈落ち込み〉の〈今〉（在庫は <see cref="World.ScoreStanding"/>）。
+    ///   旗 <see cref="Coefficients.SpreadNeedFascismDecline"/> が正か計器のときだけ <see cref="MultiNationSim"/> が判定の段の直前に 1 回だけ求めて渡す導出量（状態ではない）。無ければ（単独の世界）落ち込みは 0。</summary>
+    public sealed record WorldView(double[]? Contact, double[]? Loss = null, WorldMarket? Market = null, double? WorldAdvLabor = null, double? ScoreNow = null);
 
     /// <summary>★(169) 世界の市場（判定の段の頭で1回組む導出量・状態ではない＝<see cref="WorldPrices"/>）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段と重み（その国の産出＝売っている量）。
     /// ・<see cref="Average"/>＝平滑化した値段を重みで平均した世界の値段（財ごと・どの国にも市場が無い財は <see cref="NoPrice"/>）＝画面と計器が読む（(165) の世界の値段と同じ）。
@@ -592,6 +652,8 @@ public static class Discovery
         }
         double workerMil = popSum > 1e-12 ? workerMilSum / popSum : 0, colonialShare = popSum > 1e-12 ? colonialPop / popSum : 0, popMil = popSum > 1e-12 ? milSum / popSum : 0;
         double crisis = double.NaN;   // ファシズムの必要性＝危機（国の思想の集計の1巡が要る＝その行を見るときだけ求める）
+        // ★(640) 線 idn：思想の必要性の盤面の量（旗 SpreadNeed*Board／FascismDecline が正のときだけ POP の 1 巡を足す・旗 0 は何も増えない）
+        IdeaBoard board = c.SpreadNeedSocialismBoard > 0 || c.SpreadNeedCommunismBoard > 0 || c.SpreadNeedFascismDecline > 0 ? IdeaBoardOf(w, view?.ScoreNow) : default;
         double spreadLit = double.NaN;   // ★(621) 制度と思想の技術の比の識字（旗 SpreadLiteracyFull が正のとき・d＞0 の行を見るときだけ1度求める）
         var reach = w.SpreadReach;
         for (int row = 0; row < nr; row++)
@@ -615,7 +677,7 @@ public static class Discovery
             }
             if (spread)
             {
-                double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis);
+                double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis, in board, c);
                 double hNeed = NeedHalf(d.Field, c);
                 int slot = SpreadSlot(row);
                 double xr = reach is not null && slot >= 0 && slot < reach.Length ? reach[slot] : 0;
@@ -1014,6 +1076,7 @@ public static class Discovery
         var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
         var eo = Instruments.On ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
         var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
+        if (Instruments.On) Instruments.IdnObserve(w, view, c, terms);   // ★(640) 計器だけ＝思想の必要性の量（旗 0 でも候補の量を書く）
         if (eo is not null && Calendar.QuarterIndexOfTick(w.Tick) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
         {
             var all = ParentEngineersByRow(w, view, c, out var allTerms, out var allRatio);   // ★(450) 必要性・代替する物の値段・新しいレシピの費用も同じ 1 回から（解禁済みの行も）

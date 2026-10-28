@@ -1976,7 +1976,6 @@ public sealed class Coefficients
     // ★(605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・2026-10-26〈工業化度の廃止理由は、盤面から読めばよいから〉〔★(609) 合流：原文を確かめられない＝指示文にも docs にも無い・〈原文〉の札を外した〕）。
     //   全て既定 0＝今のまま（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
     public double EpidemicSanitFromBoard = 0;       // 疫病の致死率の衛生の代理（工業化度の飽和曲線）を読まず、実衛生財の充足 Region.Sanitation だけを読む（EpidemicSanitationHalf／Weight は旗 1 で未使用）。
-    public double IdeologyDevFromUrban = 0;         // 思想の発展度 dev から世界最先端の工業化度の項を外し、都市労働者の割合だけにする（MultiNationSim も IndustrialFrontier を注入しない）。
     public double UrbanCapOff = 0;          // 都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差（目標の都市の割合の sigmoid）・飢えの線（FamineMigrationFillGate）だけ（住居の充足は PopDecision.Run が読まない＝旗の名は UrbanCapOff）。UrbanIndSmoothed は書かない。
     public double CreditDevOff = 0;                 // 信用の深さの工業化度の倍率 devFactor を 1.0 にする（作者のバフ／デバフ全削除）。旗 1 は前工業の国も満額の近代信用創造＝与信の天井が上がる向き（発散の候補）。
     public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。★旗 1 の CapitalIndTarget は 0〜1 の割合に掛ける目盛り（旧は工業化度の単位の目標）。ModernizeReturnShare は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む（直読みを外すだけ）。
@@ -2890,6 +2889,9 @@ public sealed class Coefficients
     public double TechSignalOff = 1;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
     public double TechThresholdOff = 1;               // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
     public Share SpreadLiteracyFull = new(0.5);       // ★(621) 線 inst（2026-10-28 に 0.5 で**点火**）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（TechThresholdOff）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）。0＝旧の比（TechThresholdOff の式）
+    public double SpreadNeedSocialismBoard = 0;       // ★(640) 線 idn（事前登録 measurements/idn640_20261028_prereg.txt）：>0 で社会主義の必要性の強度を〈賃金だけで暮らす人（工場労働者）の、暮らしが必要に届かない人数÷人口〉（Discovery.IdeaBoardOf・Pop.SupplyFill）にする。0＝今の式（工場労働者の人数×闘争度÷人口）。正で有効
+    public double SpreadNeedCommunismBoard = 0;       // ★(640) 線 idn：>0 で共産主義の必要性の強度を〈工場の稼ぎのうち持ち主の取り分×賃金だけで暮らす人の人口比〉（Pop.IndustrialRentPerMonth の初めての読み手）にする。0＝今の式。正で有効
+    public double SpreadNeedFascismDecline = 1;       // ★(640) 線 idn：>0 でファシズムの必要性の強度に〈自国の国力の割合の落ち込み＝(在庫 ScoreStanding−今の ShareScores)÷在庫〉を掛ける（新しい状態なし）。0＝今の式（危機×人々の闘争度）。正で有効
     public double EraOff = 1;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
     public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ
@@ -2903,8 +2905,6 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FascismCrisisWeight＝ファシズムの発展度ゲートに危機の条件（敗戦か恐慌×左派の脅威）を掛ける（2026-09-05 点火）＝2026-10-01 (152) から危機はファシズムの発見の必要性（Ideologies.FascismCrisis）
     public double FascismCrisisSlumpRef = 0.20;   // 恐慌の物差し＝GDPドローダウンがこれで満額（0.20＝−20%＝史実の大恐慌級）＝ファシズムの発見の必要性（危機）
     public Share FascismCrisisLeftRef = new(0.30);    // 左派の脅威の物差し＝社会主義＋共産主義のシェアがこれで満額＝同上
-    public double IdeologyGateIndScale = 3.0;   // 政16：発展度スカラーの工業化正規化スケール（frontierInd/これ をClamp01）。非0必須（0除算回避）。発展度＝ファシズムの支持の式（UpdateShares）と発見パネルのホバー
-    public double IdeologyGateUrbanWeight = 0.5;   // 政16：発展度スカラーにおける都市労働者シェアの加重（0=工業化度のみ・1=都市シェアのみ）
     // 【墓標2026-09-27・旗の焼き込み（回2-1b・mil-01・x-01）】CasualtiesFromContact（外2・1.0で点火済み）＝戦死の基準を自軍の Military にする0の枝を削除。戦死の式は Diplomacy.WarCasualties（兵の頭数×接触÷自軍のゲージ×WarCasualtyRatePerMonth）
     // 【墓標2026-10-18・旗の焼き込み】WarWearinessDecays（外3・既定1.0）を消した＝非交戦国の厭戦は WarWearinessDecayRate で指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。即時0リセットの旧は git の履歴から戻せる。
     public double WarWearinessDecayRate = 0.97;   // 外3：非交戦国厭戦の月次残存率（旧の旗 WarWearinessDecays は 2026-10-18 に焼き込み＝常に使う）
@@ -3308,7 +3308,7 @@ public sealed class Coefficients
     // ★AiBuildRootSupplyGate（(595) 線 aic：AI の工場の選び方・根まで作れない財を候補に入れない）は 2026-10-27 に**点火して旗ごと削除**（腕 B・止める線に当たらず）＝常に有効。規則は SimCore/AiRootSupply.cs（RootSupply）の 1 本で、FacilityBuildScore が読む。
 
     // 1934拡張E7 ファシズム：イデオロギー10番目。戦間期(1919〜)の危機で反動＋国民主義が権威主義へ結晶。0で休眠＝シェア0＝配列長9と数値等価（E9点火）
-    public double FascismGate = 0.5;                   // **主フラグ**：0でファシズムのイデオロギーシェアが常に0＝恒等／>0で創発の強さ（eraFasc×dev×mil×(反動+ナショ)に乗る）。E9点火＝0.5（eraFasc=0<1919で較正/忠実度1914断面に無影響）
+    public double FascismGate = 0.5;                   // **主フラグ**：0でファシズムのイデオロギーシェアが常に0＝恒等／>0で創発の強さ（eraFasc×mil×(反動+ナショ)に乗る＝(640) で dev を消した）。E9点火＝0.5（eraFasc=0<1919で較正/忠実度1914断面に無影響）
     // E3の掃除：NationBuildCostPerPop/NationBuildSavingsFrac は旧・抽象拠出ブロック（Fiscal）の廃止で読み手ゼロ＝削除（新聞財の市場購入に置換）
     public double NationBuildMobilizationWeight = 0.5;  // **主フラグ**：戦時徴兵の深さ（conscriptFrac）を国民意識でゲート＝大規模動員（nation-in-arms）には高い国民意識が要る。低国民意識/多民族は総動員が届かず浅い軍のみ（脱走・不服従＝1793 levée en masse vs 墺洪の限定動員）。conscriptFrac×=Max(0.05,1−これ×(1−NC))。0=恒等。EthnicUnityの軍質(UnityMilitaryQuality=量でなく質)とは別チャネル
     // --- 国家アイデンティティ（変名・formable・2026-07-12・点火済み2026-07-27）---
