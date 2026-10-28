@@ -1060,11 +1060,10 @@ public class RevoltIgnitionTests
     /// 束と主軸は FactionSnapshot の同じ1本で導く（テストが参加の述語を再実装しない）。他POPの闘争度は0＝参加者は1人＝払い手の帳簿が読める。</summary>
     private static (Simulation Sim, FactionState F, Pop Payer) 武装する運動(double enabled, Action<Coefficients>? tune = null)
     {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        sim.World.Coef.TechThresholdOff = 0;   // ★(613) 20 四半期の前に置く（後で置いても盤面は新しい既定で 20 四半期を経ている）
+        // ★(613) 線 tl：技術水準の削除で軌道が動き、種 41 は 1 年買い続けた武器庫が減る盤面になった（43・44・47・48 も同じ）＝42 で成立（種の選び直しは (604) と同じ作法・機構の旗に固定して赤を避けない）
+        var sim = new Simulation(NationConfig.Britain().ToScenario(42), new NullAgent());
         sim.Run(20);
         var w = sim.World; var c = w.Coef;
-        // ★(613) この番人の前提（20 四半期の英の盤面・運動の鍵が通しで同じ器）を保つ＝旗 TechThresholdOff〔既定 1・制度と思想の行の技術の比〕の旧の枝。新しい既定では 1 年買い続けた武器庫が減る盤面になる（機構は動いている・前提の器が違うだけ＝(542) の作法）
         c.RebelArmsMarketEnabled = enabled;
         tune?.Invoke(c);
         var r = w.Region;
