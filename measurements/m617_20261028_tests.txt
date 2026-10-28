@@ -1,0 +1,12 @@
+# (617) 検証（最後のコードの木 59adaf45＝成績表の木 2507fe74 と Tests の 2 ファイルだけ違う）
+## Category!=FullLength（1 回目・2507fe74 の木）
+[xUnit.net 00:03:08.07]     PriceOfBread.Tests.PolicyPoliticsTests.富裕層が薄い社会では参政権が伸び富裕層が厚い社会では止まる [FAIL]
+[xUnit.net 00:09:41.08]     PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [FAIL]
+
+失敗!   -失敗:     2、合格:  1966、スキップ:     1、合計:  1969、期間: 11 m 18 s - PriceOfBread.Tests.dll (net10.0)
+## Category!=FullLength（直した後に全体を回し直した・59adaf45）
+
+成功!   -失敗:     0、合格:  1968、スキップ:     1、合計:  1969、期間: 12 m 42 s - PriceOfBread.Tests.dll (net10.0)
+## FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 11 s - PriceOfBread.Tests.dll (net10.0)
+## --list-tests：1972（1969＋3＝1972・m609 の 1936 から +36＝tl・fsx・pcw の番人）・中止の行 0
