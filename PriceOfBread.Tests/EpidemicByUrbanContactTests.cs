@@ -104,6 +104,56 @@ public class EpidemicByUrbanContactTests
     }
 
     [Fact]
+    public void 発生の確率_旗1は基礎かける州ごとの危険度の和_旗0は基礎かける最大の割合かける最悪州の衛生の割引()
+    {
+        var w = FranceWorld();
+        var p = Board3(w, new[] { 10.0, 30.0, 60.0 });
+        foreach (var pp in p[0].Pops) if (!pp.IsUrban) pp.Size = 0.3;                 // 州 0：小さく高い割合
+        foreach (var pp in p[1].Pops.Concat(p[2].Pops)) if (!pp.IsUrban) pp.Size = Math.Max(pp.Size, 1.0) * 500;   // 州 1・2：大きく低い割合
+        var c = w.Coef; c.EpidemicSanitFromBoard = 1; c.EpidemicOnsetSanitationWeight = 0.8; c.EpidemicChance = 0.2;
+        p[0].InfraFill = 0.9; p[1].InfraFill = 0.1; p[2].InfraFill = 0.1;            // 最も過密な州（州 0）だけ衛生が整っている
+        double tot = 0; foreach (var r in p) tot += Sums(r).pop;
+        double max = 0, handRisk = 0; int worst = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            var (ur, po) = Sums(p[i]); double us = ur / po;
+            if (us > max) { max = us; worst = i; }
+            handRisk += us * (po / tot) * (1.0 - 0.8 * Math.Clamp(p[i].InfraFill, 0, 1));
+        }
+        c.EpidemicByUrbanContact = 1;
+        Assert.Equal(0.2 * handRisk, w.EpidemicOnsetProbability(c), 12);
+        c.EpidemicByUrbanContact = 0;
+        double handOld = 0.2 * max * (1.0 - 0.8 * Math.Clamp(p[worst].InfraFill, 0, 1));
+        Assert.Equal(handOld, w.EpidemicOnsetProbability(c), 12);
+        c.EpidemicByUrbanContact = 1;
+        Assert.True(w.EpidemicOnsetProbability(c) < 0.5 * handOld, "前提：州ごとの和は最大の割合の式から離れた盤面");
+    }
+
+    [Fact]
+    public void 発生の標的は国の乱数で散る_Simulationの経路()
+    {
+        // 旗 1・発生は必ず起きる大きさ・二次なし・死は大きく（当たった州の人口の減りが月次の動きより桁違いに大きい）。種を替えると当たる州が替わる（乱数を渡し忘れると 0.5 の州に固定されて赤）。
+        var hit = new HashSet<int>();
+        for (ulong seed = 21; seed <= 32; seed++)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(seed), new NullAgent());
+            var w = sim.World;
+            double total0 = w.Regions.Sum(r => Sums(r).pop);
+            var p = Board3(w, new[] { 10.0, 30.0, 60.0 });
+            p[2].Pops.First(q => !q.IsUrban).Size += total0 - w.Regions.Sum(r => Sums(r).pop);   // 総人口を保つ（人口保存の不変条件）
+            var c = w.Coef; c.EpidemicByUrbanContact = 1; c.EpidemicIntraCountrySpread = 0; c.EpidemicChance = 1e6; c.EpidemicSeverity = new Share(0.5);
+            var before = p.Select(r => Sums(r).pop).ToArray();
+            for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
+            Assert.True(w.EpidemicActiveYears > 0, "前提：発生した");
+            int best = 0; double bestDrop = 0;
+            for (int i = 0; i < 3; i++) { double drop = 1.0 - Sums(p[i]).pop / before[i]; if (drop > bestDrop) { bestDrop = drop; best = i; } }
+            Assert.True(bestDrop > 0.1, $"前提：当たった州は 1 割以上減る（{bestDrop}）");
+            hit.Add(best);
+        }
+        Assert.True(hit.Count >= 2, $"当たった州の種類 {hit.Count}");
+    }
+
+    [Fact]
     public void 一つの州だけに人口がある国の危険度は旗0の式と一致し_都市の州が一つで残りの州が都市0なら一致しない()
     {
         var w = FranceWorld();

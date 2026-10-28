@@ -1165,6 +1165,17 @@ public sealed class World
     /// 正なら国の都市の人口÷国の人口（<see cref="UrbanShare"/>）。標的の州の選び方（<see cref="TriggerEpidemic"/>）と死の率は旗に依らない。<see cref="UrbanShare"/> ≦ <see cref="MaxUrbanShare"/>（同じ州の集合の人口加重平均と最大）。</summary>
     public double EpidemicUrbanDrive(Coefficients c) => c.EpidemicDriveByNationUrban > 0 || c.EpidemicByUrbanContact > 0 ? UrbanShare : MaxUrbanShare();   // (638) 旗 EpidemicByUrbanContact でも国の割合（伝播の定着）
 
+    /// <summary>疫病の**内部発生の確率**（年次の block が引いた一様乱数と比べる）。旗 <see cref="Coefficients.EpidemicByUrbanContact"/> が 0 なら 基礎×過密度×(1−衛生)（過密度＝<see cref="EpidemicUrbanDrive"/>・衛生＝接12 の最過密州の衛生×<see cref="Coefficients.EpidemicOnsetSanitationWeight"/>・農村国はほぼ起きない）、
+    /// 正なら 基礎×<see cref="EpidemicOnsetRisk"/>（州ごとの危険度の和）。旗 0 の式は Simulation にあった式をそのまま（計算の順序も同じ）。
+    /// 接12（監査2026-07-11・2026-07-25休眠配線）：発生確率にも衛生を接続（従来は死亡率側のみ＝1900年代の近代都市でも1832年のスラムと同頻度でコレラが発生し続けた。史実では衛生インフラが流行の発生自体を止めた）。0（対照腕）で乗数1・既定0.4でlive。</summary>
+    public double EpidemicOnsetProbability(Coefficients c)
+    {
+        if (c.EpidemicByUrbanContact > 0) return c.EpidemicChance * EpidemicOnsetRisk(c);
+        double worstUrban = EpidemicUrbanDrive(c);   // 最も過密な地域の都市化率＝発生駆動（(629) 旗 EpidemicDriveByNationUrban＝国の都市の割合）
+        double epiOnsetCut = c.EpidemicOnsetSanitationWeight > 0 ? c.EpidemicOnsetSanitationWeight * WorstUrbanRegionSanitation(c) : 0;
+        return c.EpidemicChance * worstUrban * (1.0 - epiOnsetCut);   // 発生率＝基礎×過密度×(1−衛生)（農村国はほぼ起きない）
+    }
+
     /// <summary>(638) 旗 <see cref="Coefficients.EpidemicByUrbanContact"/> の**発生の確率の州ごとの危険度の和** Σ_r us_r × p_r × (1 − w_s × S_r)（us_r＝州の都市の割合・p_r＝州の人口÷国の人口・S_r＝州の発生の衛生・w_s＝<see cref="Coefficients.EpidemicOnsetSanitationWeight"/>）。
     /// 衛生の割引が 0 なら国の <see cref="UrbanShare"/> そのもの。呼び手が <see cref="Coefficients.EpidemicChance"/> を掛ける。人口が 1e-9 未満の州は数えない（<see cref="TryUrbanShare"/> と同じ規約）。</summary>
     public double EpidemicOnsetRisk(Coefficients c)

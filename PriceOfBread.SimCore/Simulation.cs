@@ -1995,16 +1995,7 @@ public sealed class Simulation
             // 疫病（B-4・コレラ等）：発生は過密（都市化）が駆動し、衛生整備（工業化）は死亡率を下げる。専用RNG系列＝主系列を乱さない。発生＝感染窓を立て他国へ伝播しうる（MultiNationSim）。
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰
             double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // 常に2つ引く（専用系列）
-            double worstUrban = World.EpidemicUrbanDrive(World.Coef);   // 最も過密な地域の都市化率＝発生駆動（(629) 旗 EpidemicDriveByNationUrban＝国の都市の割合）
-            // 接12（監査2026-07-11・2026-07-25休眠配線）：発生確率にも衛生を接続（従来は死亡率側のみ＝1900年代の近代都市でも
-            // 1832年のスラムと同頻度でコレラが発生し続けた。史実では衛生インフラが流行の発生自体を止めた）。0（対照腕）で乗数1・既定0.4でlive。
-            double epiOnsetCut = World.Coef.EpidemicOnsetSanitationWeight > 0
-                ? World.Coef.EpidemicOnsetSanitationWeight * World.WorstUrbanRegionSanitation(World.Coef) : 0;
-            // (638) 旗 EpidemicByUrbanContact：発生率＝基礎×Σ_r(州の都市の割合×州の人口の割合×(1−州の衛生の割引))＝州ごとの危険度の和（旗 0 は上の式のまま）
-            double epiProb = World.Coef.EpidemicByUrbanContact > 0
-                ? World.Coef.EpidemicChance * World.EpidemicOnsetRisk(World.Coef)
-                : World.Coef.EpidemicChance * worstUrban * (1.0 - epiOnsetCut);   // 発生率＝基礎×過密度×(1−衛生)（農村国はほぼ起きない）
-            if (epiRoll < epiProb)
+            if (epiRoll < World.EpidemicOnsetProbability(World.Coef))   // 発生率の式は World.EpidemicOnsetProbability の 1 本
                 World.TriggerEpidemic(World.Coef, 0.5 + epiPick, pickRng: EpidemicRng);   // 内部発生（過密スラム）→死亡スパイク＋感染窓
         }
 
