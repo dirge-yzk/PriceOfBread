@@ -2,7 +2,7 @@
 Category!=FullLength：成功!   -失敗:     0、合格:  1974、スキップ:     1、合計:  1975、期間: 15 m 31 s - PriceOfBread.Tests.dll (net10.0)
 Category=FullLength：成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 55 s - PriceOfBread.Tests.dll (net10.0)
 --list-tests：1978（＝1975＋3・線 inst の 1978 と同じ・中止の行なし）
-# 合成の木 t627T（採らなかった）の 1 回目：失敗 3・合格 1965・スキップ 1・合計 1969（WriterRatchetTests の 2 行と InstrumentsTests〈接触の内訳は…〉）＝t627 の合流 4 で直した（t627 にだけ残る・採らなかったので直した後の全体の回し直しはしていない）
+# 合成の木 t627T（採らなかった）の 1 回目：失敗 3・合格 1965・スキップ 1・合計 1969（WriterRatchetTests の 2 行と InstrumentsTests〈接触の内訳は…〉）＝t627 の合流 4（origin/t627 0907b203）で直した（採らなかったので直した後の全体の回し直しはしていない）
 # savetest・leakhunt
 savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
 leakhunt 完走（seed=1789・668四半期・助走つき・保存則違反なし）
