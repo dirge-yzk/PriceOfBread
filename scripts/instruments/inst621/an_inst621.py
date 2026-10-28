@@ -153,7 +153,7 @@ def main(d):
     gaps = sorted(v["共産主義"] - v["社会主義"] for v in both if v["共産主義"] > v["社会主義"])
     if gaps:
         print("共産主義が後の間隔（四半期）：最小 %d・中央 %s・最大 %d・1 四半期 %d 件・2〜4 %d 件・5 以上 %d 件"
-              % (gaps[0], st.median(gaps), gaps[-1], sum(1 for g in gaps if g == 1), sum(1 for g in gaps if 2 <= g <= 4), sum(1 for g in gaps if g >= 5)))
+              % (gaps[0], st.median(gaps), gaps[-1], sum(1 for k in gaps if k == 1), sum(1 for k in gaps if 2 <= k <= 4), sum(1 for k in gaps if k >= 5)))
     print("   第 1・第 2 条件（同じ四半期 0・共産主義が先 0）が判定＝Step は全行の点数を先に求めてから known を立てるので作りの上で通る配線の確認。第 3 条件は分離独立の子が親の Discovered を受け継ぐため記録だけ。")
     verdict("G4", same == 0 and first == 0 and len(both) > 0)
 

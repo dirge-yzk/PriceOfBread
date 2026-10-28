@@ -1066,6 +1066,8 @@ public class DiscoveryScoreTests
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
+        w.Discovered[Discovery.SocialismRow] = true;   // ★(621) 共産主義 ← 社会主義の辺：前提が既知の国で見る
+        foreach (var r in w.Regions) foreach (var pp in r.Pops) pp.Literacy = 1.0;   // ★(621) 技術の比は本国の識字÷0.5（満点にそろえる）
         Assert.Equal(6, Discovery.SpreadRows.Length);
         foreach (int row in Discovery.SpreadRows)
         {
@@ -1093,6 +1095,7 @@ public class DiscoveryScoreTests
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
+        w.Discovered[Discovery.SocialismRow] = true;   // ★(621) 共産主義 ← 社会主義の辺：前提が既知の国で見る
         var c = w.Coef;
         double maxInd = 0, pop = 0, wm = 0, col = 0, mil = 0;
         foreach (var r in w.Regions)

@@ -678,7 +678,7 @@ public static class Catalog
         new("特許", NoGood, "", DiscoveryField.Institution, 1780),        // 英1624（専売条例）・米1790・仏1791＝設計 §1A-6「1780年代以前」
         new("株式会社", NoGood, "", DiscoveryField.Institution, 1850),    // 英1844・56（有限責任）・仏1867・普1870＝設計 §1A-6「1850年代」
         new("社会主義", NoGood, "", DiscoveryField.Idea, 1830),           // オーウェン1820s・サン＝シモン派・チャーティスト1838
-        new("共産主義", NoGood, "", DiscoveryField.Idea, 1840),           // 共産党宣言1848
+        new("共産主義", NoGood, "", DiscoveryField.Idea, 1840, After: "社会主義"),   // 共産党宣言1848＝第3章がサン＝シモン・フーリエ・オーウェンの社会主義を批判的に継ぐ形で定式化（★(621) 前提の辺・AI の推奨）
         new("帝国主義", NoGood, "", DiscoveryField.Idea, 1860),           // 新帝国主義1870s〜（ディズレーリ1872・ベルリン会議1884）
         new("ファシズム", NoGood, "", DiscoveryField.Idea, 1920),         // 伊1919〜22・独1933
         // --- 末尾に足した行（既存の行の添字を動かさない）---

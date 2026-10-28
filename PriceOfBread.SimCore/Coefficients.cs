@@ -2889,8 +2889,7 @@ public sealed class Coefficients
     public double TechGateByDiscovery = 1;            // 段1：巨大建造物の着工と進行・運河の着工の門を、技術水準の techGate から発見の行 requires（megaprojects.json・world.json）へ。正で有効
     public double TechSignalOff = 1;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
     public double TechThresholdOff = 1;               // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
-    public Share SpreadLiteracyFull = new(0.0);       // ★(621) 線 inst（既定 0＝今のまま）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（TechThresholdOff）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）
-    public double SpreadPrereqEdges = 0;              // ★(621) 線 inst（既定 0＝今のまま）：>0 で制度と思想の行に前提の辺（共産主義 ← 社会主義の 1 本・Discovery.SpreadEdgeNames）を張る。Catalog.DiscoveryAfter には入れない（採用のときに移す）
+    public Share SpreadLiteracyFull = new(0.5);       // ★(621) 線 inst（2026-10-28 に 0.5 で**点火**）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（TechThresholdOff）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）。0＝旧の比（TechThresholdOff の式）
     public double EraOff = 1;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
     public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ

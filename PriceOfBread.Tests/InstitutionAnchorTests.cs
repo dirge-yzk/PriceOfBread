@@ -4,9 +4,9 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(621) 線 inst：制度と思想の行の錨の番人（機構と不変条件）。事前登録 measurements/inst621_20261028_prereg.txt の [5]。
-/// 旗 <see cref="Coefficients.SpreadLiteracyFull"/>（技術の比＝本国の識字÷基準）と <see cref="Coefficients.SpreadPrereqEdges"/>（共産主義 ← 社会主義）の 2 本。既定 0＝今のまま。
-/// 期待値は表から作らない：識字と点数は手で数える・辺は手書きの一覧（出典は『共産党宣言』1848）。
-/// ⚠壊し方（突然変異で赤を確かめた）＝クランプを外す／本国でなく全州の識字にする／辺の読みを外す／旗 0 でも識字を読む → 赤。</summary>
+/// 係数 <see cref="Coefficients.SpreadLiteracyFull"/>（技術の比＝本国の識字÷基準・2026-10-28 に 0.5 で点火・0 で旧の式）と、辺（共産主義 ← 社会主義＝<see cref="Catalog.DiscoveryAfter"/> へ移した 1 本）。
+/// 期待値は表から作らない：識字と点数は手で数える・辺は手書きの一覧（出典は『共産党宣言』1848・DiscoveryTierTests の手書きの一覧と別に、ここは 1 本の振る舞いを見る）。
+/// ⚠壊し方（突然変異で赤を確かめた）＝クランプを外す／本国でなく全州の識字にする／辺の読みを外す／係数 0 でも識字を読む → 赤。</summary>
 public class InstitutionAnchorTests
 {
     private static int Row(string name) => System.Array.FindIndex(Catalog.Discoveries, d => d.Name == name);
@@ -43,12 +43,13 @@ public class InstitutionAnchorTests
     }
 
     [Fact]
-    public void 旗0は識字に依らず今のまま_陽性対照で旧の技術水準の式に戻る()
+    public void 係数0は識字に依らず旧の式_既定は0点5_陽性対照で旧の技術水準の式に戻る()
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
-        Assert.Equal(0.0, w.Coef.SpreadLiteracyFull.Value);   // 既定 0
-        Assert.Equal(0.0, w.Coef.SpreadPrereqEdges);
+        Assert.Equal(0.5, w.Coef.SpreadLiteracyFull.Value);   // 既定 0.5（点火）
+        w.Discovered[Row("社会主義")] = true;   // 共産主義 ← 社会主義の辺：前提が既知の国で見る
+        w.Coef.SpreadLiteracyFull = new Share(0.0);           // 0＝旧の式（識字を読まない）
         SetLiteracy(w, 0.0, 0.0);
         foreach (int row in Discovery.SpreadRows)
             Assert.Equal(Discovery.TermMax, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Tech, 12);   // 既定は TechThresholdOff＝1（比 1＝満点）
@@ -58,10 +59,11 @@ public class InstitutionAnchorTests
     }
 
     [Fact]
-    public void 旗が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない()
+    public void 係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない()
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
+        w.Discovered[Row("社会主義")] = true;   // 共産主義 ← 社会主義の辺：前提が既知の国で見る
         // 前提：本国と植民地が両方ある（植民地の識字が混ざる変異を赤にするため）
         Assert.Contains(w.Regions, r => r.Tier == RegionTier.Colonial && r.Pops.Count > 0);
         Assert.Contains(w.Regions, r => r.Tier != RegionTier.Colonial && r.Pops.Count > 0);
@@ -82,7 +84,7 @@ public class InstitutionAnchorTests
         foreach (var r in w.Regions) foreach (var p in r.Pops) { p.Literacy = double.NaN; break; }
         t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
         foreach (string n in SpreadNamesWithD) Assert.Equal(0.0, t[Row(n)].Tech, 12);
-        // 旗が NaN なら旗 0（否定形）
+        // 係数が NaN なら 0 と同じ（否定形）
         SetLiteracy(w, 0.0, 0.0);
         w.Coef.SpreadLiteracyFull = new Share(double.NaN);
         t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
@@ -90,42 +92,40 @@ public class InstitutionAnchorTests
     }
 
     [Fact]
-    public void 辺の表は共産主義が社会主義の後の1本だけで静的な前提の表には入れない()
+    public void 技術の閾値を戻す旧の経路では識字を読まず技術水準の式のまま()
     {
-        var byHand = new[] { ("共産主義", "社会主義") };
-        Assert.Equal(byHand, Discovery.SpreadEdgeNames);
-        for (int r = 0; r < Catalog.Discoveries.Length; r++)
-        {
-            int expect = Catalog.Discoveries[r].Name == "共産主義" ? Row("社会主義") : -1;
-            Assert.Equal(expect, Discovery.SpreadPrereqRow(r));
-            Assert.True(Catalog.DiscoveryAfter[r] < 0 || !Discovery.IsSpread(Catalog.Discoveries[r].Field), "制度と思想の行は静的な前提の表に入れない（旗 0 の軌道を動かさない）");
-        }
-        Assert.Equal(-1, Discovery.SpreadPrereqRow(-1));
-        Assert.Equal(-1, Discovery.SpreadPrereqRow(int.MaxValue));
+        var sim = Board();
+        var w = Nation(sim, "イギリス");
+        w.Discovered[Row("社会主義")] = true;
+        SetLiteracy(w, 0.0, 0.0);   // 識字 0＝新の経路なら 0
+        w.Coef.TechThresholdOff = 0; w.TechLevel = 100.0;   // 旧の経路（段2b を戻す）＝技術水準÷難易度（満点）
+        var t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
+        foreach (string n in SpreadNamesWithD) Assert.True(t[Row(n)].Tech > 0.0, n);
     }
 
     [Fact]
-    public void 辺は旗が正のときだけ前提の行が未解禁の国で子の行を判定せず解禁した次の判定で出す()
+    public void 前提の辺は共産主義が社会主義の後の1本だけで制度と思想の他の行は前提を持たない()
+    {
+        for (int r = 0; r < Catalog.Discoveries.Length; r++)
+        {
+            if (!Discovery.IsSpread(Catalog.Discoveries[r].Field)) continue;
+            int expect = Catalog.Discoveries[r].Name == "共産主義" ? Row("社会主義") : -1;
+            Assert.Equal(expect, Catalog.DiscoveryAfter[r]);
+        }
+    }
+
+    [Fact]
+    public void 前提の行が未解禁の国では共産主義を判定せず解禁した次の判定で出す()
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
         int soc = Row("社会主義"), comm = Row("共産主義");
         w.Discovered[soc] = false; w.Discovered[comm] = false;
-        // 旗 0：前提が未知でも共産主義の項は出る（今のまま）
         var t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
-        Assert.Equal(Discovery.TermMax, t[comm].Tech, 12);
-        // 旗 >0：前提が未知なら項は出ない（点数 0）・社会主義は影響されない
-        w.Coef.SpreadPrereqEdges = 1;
-        t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
         Assert.Equal(0.0, t[comm].Tech); Assert.Equal(0.0, t[comm].Need); Assert.Equal(0.0, t[comm].Transmit);
-        Assert.Equal(Discovery.TermMax, t[soc].Tech, 12);
-        // 前提を解禁した次の判定で出る
+        Assert.True(t[soc].Tech > 0.0, "社会主義は影響されない");
         w.Discovered[soc] = true;
         t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
-        Assert.Equal(Discovery.TermMax, t[comm].Tech, 12);
-        // 辺の旗は NaN なら旗 0（否定形）
-        w.Discovered[soc] = false; w.Coef.SpreadPrereqEdges = double.NaN;
-        t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
-        Assert.Equal(Discovery.TermMax, t[comm].Tech, 12);
+        Assert.True(t[comm].Tech > 0.0, "前提を解禁した次の判定で出る");
     }
 }
