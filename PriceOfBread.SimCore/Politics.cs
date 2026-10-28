@@ -1222,6 +1222,7 @@ public static class Politics
         // ⚠N2の注記（2026-09-21）：ここは**門（Government.PoliticalCapitalAffords）を通さない**＝内戦に負けた講和は払えなくても払う。
         //   結果 S>b になりうる＝残り a=0＝「内戦に負けて政治資本が尽きる」が表現できる（意図した唯一の例外）。
         //   そのとき人気のある法（代価0）は通る＝門を押し切りの枝の中に置いてあるから（進行不能にしない・P4）。
+        if (Instruments.On) Instruments.ConcedeSpent(w, spend);   // 計器（読むだけ・(615)）：S＞b の原因が内戦の講和かを分ける
         w.MandateSpent += spend;        // 上限廃止（2026-07-26ユーザー裁定）
         w.MandateSpentNew += spend;
         // 緩和は運動の本拠州の大衆のみ（全国一律にしない＝Transition鎮圧緩和との二重を作らない）。戦争の形では本拠州は再併合で親へ戻った後。

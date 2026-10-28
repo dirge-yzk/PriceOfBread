@@ -854,9 +854,15 @@ public static class Government
     // 上限1.0クランプは廃止（2026-07-26ユーザー裁定）＝政治資本は青天井に積める。代償は正統性減算（Politics側で0クランプ）＝乱発の死のスパイラルは実コストとして残る。
     // ⚠private へ戻した（2026-09-20）：外部の唯一の呼び手だった World.SetStateMonopolyOn は、専売を政治から切り離したので
     //   もう政治資本を払わない。内部（Move と MandateGate）の2本だけが記帳する＝「誰でも政治資本を燃やせる口」を開けたままにしない。
+    //   ★(615) 線 pcw：旗 MandateWallStockCap > 0 のとき S へ足す量を残りの在庫 max(0, b−S) で止める（在庫を使い切る）。b を超える分は S に載らず正統性だけが払う（MandateSpentNew は代価の全額＝Politics.Step が 1 回だけ引く）。
+    //   旗に入る枝は壁の一歩だけ（呼び手は PoliticalCapitalAffords が真のときだけ呼ぶ＝S＋代価≦b か〔S≦0 かつ 代価＞b〕）。普通の一歩は旗 0 と同じ足し算。否定形＝NaN は S を変えない側（0）へ倒れる。
     private static void Spend(World w, double amount)
     {
-        w.MandateSpent += amount;
+        double applied = amount;
+        if (w.Coef.MandateWallStockCap > 0 && !(w.MandateSpent + amount <= w.PoliticalCapitalMax))
+            applied = w.PoliticalCapitalMax > w.MandateSpent ? w.PoliticalCapitalMax - w.MandateSpent : 0;
+        if (Instruments.On) Instruments.SpendApplied(w, amount, applied);   // 計器（読むだけ・(615)）
+        w.MandateSpent += applied;
         w.MandateSpentNew += amount;
     }
 

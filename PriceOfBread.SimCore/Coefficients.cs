@@ -2960,6 +2960,10 @@ public sealed class Coefficients
     //   ⚠憲法級（参政権等）だけは 0 を返す＝硬い「純支持>0」＝2026-08-04 の裁定をそのまま保存（弁 ConstitutionalMandateScale は 2026-09-26 に削除＝dorm-50）。
     // ★主フラグ PoliticalCapitalStock（N2/S1・0/1）は 2026-09-21 ㉖で 1.0 を焼き込んで削除＝在庫の門・線形回復・θ の退役が既定（旧の余白の門と指数減衰の枝は削除）。
     public double MandateRefillQuarters = 40;    // 空から満タンまでの四半期数（作者裁定＝実行度が最大のとき10年）。実行度 ≥ 1/(1+2.667)≈0.273 なので最悪でも ≈147四半期＝0の吸収状態を作らない
+    // ★(615) 線 pcw：政治資本の壁の一歩の勘定（事前登録 measurements/pcw615_20261028_prereg.txt・(602) 読む線 bnd の根①・(609) の推奨③）。★2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず・再開までの長さの中央値 47→8）。0＝旧の勘定（Government.Spend は S へ代価の全額を足す＝番人が旗 0 の経路として残す）。
+    //   正のとき、Government.Spend が S へ足す量を残りの在庫 max(0, b−S) で止める＝在庫を使い切る（S は b で止まる）。b を超える分は S に載らず、正統性だけが払う（MandateSpentNew は代価の全額のまま＝Politics.Step が 1 回だけ引く）。
+    //   旗に入る枝は壁の一歩（S≦0 かつ 代価＞b）だけ＝普通の一歩（S＋代価≦b）は旗 0 と 1 ビットも同じ。内戦に負けた講和の代価（Politics.ConcedeToFaction）は門を通らない意図した例外のまま。AI の設計＝確証なし。
+    public double MandateWallStockCap = 1;
     // ★(404) 専制の改革の経路・2-2（事前登録 measurements/rf_20261018_prereg.txt D1）：その壁の一歩だけを値段にする（旧は代価が b を超える一歩が満タンでも永遠に通らない壁だった）
     //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）。
     //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。
