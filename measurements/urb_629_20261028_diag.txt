@@ -1,0 +1,47 @@
+# (629) 線 urb 段0 の診断の要約（種 7・1 種ずつ・腕ではない・生は D:/PoB_work/urb_629 で読み終えて消した）。書いた時点 2026-10-28。読み手は scripts/instruments/urb629/。
+# 差し込みは診断だけ（コミットしない）：diag_patch.py＝PopDecision.Run の内部量／diag_patch2.py＝DemographicStep の州の出生と死の配分／diag_patch3.py＝ProbeCheck の段ごとの州の規模／diag_patch4.py＝World.KillPops の呼び手。
+
+## KillPops の呼び手ごとのアムステルダムの死（千人）
+# dH (m627 の木＋旗7本＋SupplySlope=0.49999999)
+total 1499.4
+  TriggerEpidemic>MonthSettle>StepDayClose>  件数25  死655.9
+  TriggerEpidemic>StepEpidemicTransmission>StepDay>  件数21  死593.6
+  ApplyEpidemicDeaths>TriggerEpidemic>StepEpidemicTransmission>  件数2  死77.2
+  StepWars>Step>StepDay>  件数55  死76.5
+  CheckRegionalRevolt>Step>QuarterEnd>  件数59  死72.4
+  WarCasualties>StepWars>Step>  件数118  死23.8
+# dJ (m627 の木・既定)
+total 2101.7
+  TriggerEpidemic>StepEpidemicTransmission>StepDay>  件数22  死853.0
+  TriggerEpidemic>MonthSettle>StepDayClose>  件数21  死800.8
+  StepWars>Step>StepDay>  件数85  死187.9
+  ApplyEpidemicDeaths>TriggerEpidemic>MonthSettle>  件数2  死121.8
+  WarCasualties>StepWars>Step>  件数298  死62.4
+  ApplyEpidemicDeaths>TriggerEpidemic>StepEpidemicTransmission>  件数1  死46.1
+  ResolveRevolt>ExecuteRegimeChange>SettleRevolt>  件数1  死15.1
+  CheckRegionalRevolt>Step>QuarterEnd>  件数11  死14.6
+
+## 段ごとの州の規模の変化（flags 木・種 7・千人）：日次信用→月次経済 -651.6（25 件・疫病 TriggerEpidemic の MonthSettle）／四半期末→外部層 -605.0（325 件・疫病の伝播 StepEpidemicTransmission ほか）／月次犯罪→月次軍事 -101.4（1790〜1810 年）／月次領土移民→月次人口 +28.6（出生−死）／総 -1299.2
+
+## 出生−平常の死（flags 木・20 年ごと・千人）
+yrs 1783-1803 size 1434->1058 dSize -376 births 905 deaths 876 b-d +29 unexplained -405
+yrs 1803-1823 size 1058->963 dSize -95 births 804 deaths 638 b-d +166 unexplained -261
+yrs 1823-1843 size 963->670 dSize -293 births 639 deaths 581 b-d +58 unexplained -351
+yrs 1843-1863 size 670->486 dSize -184 births 469 deaths 471 b-d -2 unexplained -182
+yrs 1863-1883 size 486->317 dSize -169 births 324 deaths 291 b-d +33 unexplained -202
+yrs 1883-1903 size 317->244 dSize -73 births 217 deaths 199 b-d +18 unexplained -91
+yrs 1903-1923 size 244->161 dSize -84 births 142 deaths 134 b-d +8 unexplained -92
+yrs 1923-1943 size 161->133 dSize -28 births 117 deaths 119 b-d -3 unexplained -25
+## 同（基線の木）
+yrs 1783-1803 size 1435->989 dSize -446 births 833 deaths 837 b-d -4 unexplained -441
+yrs 1803-1823 size 989->919 dSize -70 births 704 deaths 522 b-d +181 unexplained -251
+yrs 1823-1843 size 919->690 dSize -229 births 538 deaths 452 b-d +86 unexplained -315
+yrs 1843-1863 size 690->499 dSize -190 births 414 deaths 406 b-d +8 unexplained -199
+yrs 1863-1883 size 499->377 dSize -122 births 300 deaths 227 b-d +74 unexplained -196
+yrs 1883-1903 size 377->485 dSize +108 births 457 deaths 238 b-d +219 unexplained -111
+yrs 1903-1923 size 485->863 dSize +377 births 610 deaths 35 b-d +575 unexplained -198
+yrs 1923-1943 size 863->940 dSize +77 births 529 deaths 10 b-d +518 unexplained -441
+
+## PopDecision.Run（アムステルダム・月ごと 2,064 呼び）：目標の割合が飽和（≧0.99 か ≦0.01）した月＝基線 1,863（90%）・flags 1,312（64%）／都市÷農村の所得の中央値＝基線 5.15・flags 1.95／農村→都市の累計 flags 854・都市→農村 716（千人）・基線 0.3／653／(143) の門に止められた月 flags 980・基線 310
+
+## 恒等（診断）：dB（m627 の木＋旗7本＋N2）と dC（origin/t627＋N2）は 種 7 で region_s・nation_s・class_s・pop_s・migration_s がバイト一致・報告は POB_COEF の行だけ違う

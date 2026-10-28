@@ -1,0 +1,653 @@
+== C1〜C3 計器の検算
+seed 11: 行 8100  C1 pathDesire=0（pathPlan=6.69828e+07）  C2 rateMismatchN=0  C2′ capMismatchN=0  nNonFinite=0
+   恒等（経路の和・rate 区間の和＝sumN）が割れた行 0
+   C3 slot_s.planRate との相対差の最大 7.01e-10（2700 国×四半期）
+   q0 の N 加重 rate（slotnd 合算 / slot_s.planRate）：フランス 290.7/290.7  日本 337.5/337.5  イギリス 123.7/123.7  アメリカ 128.8/128.8  プロイセン 146.7/146.7  清 404.1/404.1
+
+== 要約（国の全区分の合算・区間ごと）：RV 12×v÷年賃金／RH 12×uH÷年賃金／SY 枠の値段÷年賃金／CC 資本の費用／GM rate の幾何平均／rate>=10・rate>=1＝その rate の N の割合／idle・fill／uH≦0 の割合／機械が最大の割合／機械の得÷機械の資本の費用
+-- seed 11
+イギリス 1783-89: RV 3.79 RH 1.62 SY 0.469 CC 0.0921 GM 175 rate>=10 0.66 rate>=1 0.67 idle 0.51 fill 0.58 uH<=0 0.33 winMach 0.68 gross/charge 160 maxA 3312 floor 0 heat/(bond+wear) 0.0019
+イギリス 1810s: RV 2.33 RH -4203783936 SY 1.94 CC 0.0528 GM 34.2 rate>=10 0.76 rate>=1 0.83 idle 0.71 fill 0.84 uH<=0 0.2 winMach 0.84 gross/charge 59.9 maxA 341333311400000000 floor 0 heat/(bond+wear) 5.5e-05
+イギリス 1850s: RV 0.213 RH -164231072837 SY 0.175 CC 0.051 GM 15.9 rate>=10 0.64 rate>=1 0.92 idle 0.73 fill 0.93 uH<=0 0.23 winMach 0.93 gross/charge 27.4 maxA 24999148190000000 floor 0 heat/(bond+wear) 0.0071
+フランス 1783-89: RV 3.34 RH 1.86 SY 0.313 CC 0.0385 GM 433 rate>=10 0.64 rate>=1 0.64 idle 0.55 fill 0.53 uH<=0 0.36 winMach 0.64 gross/charge 117 maxA 3262 floor 0 heat/(bond+wear) 0.44
+フランス 1810s: RV 1.35 RH -2.02 SY 0.432 CC 0.0488 GM 60.7 rate>=10 0.81 rate>=1 0.83 idle 0.64 fill 0.72 uH<=0 0.18 winMach 0.83 gross/charge 38.7 maxA 21932 floor 0 heat/(bond+wear) 0.11
+フランス 1850s: RV 0.418 RH -1.28 SY 0.396 CC 0.0354 GM 23.9 rate>=10 0.79 rate>=1 0.92 idle 0.78 fill 0.61 uH<=0 0.17 winMach 0.92 gross/charge 16.8 maxA 44242 floor 0 heat/(bond+wear) 0.32
+プロイセン 1783-89: RV 6.15 RH 2.57 SY 0.303 CC 0.0391 GM 754 rate>=10 0.67 rate>=1 0.67 idle 0.45 fill 0.63 uH<=0 0.33 winMach 0.67 gross/charge 178 maxA 7179 floor 0 heat/(bond+wear) 0.43
+プロイセン 1810s: RV 1.7 RH -9.46 SY 0.298 CC 0.0467 GM 122 rate>=10 0.85 rate>=1 0.86 idle 0.48 fill 0.85 uH<=0 0.16 winMach 0.86 gross/charge 62.2 maxA 27550 floor 0 heat/(bond+wear) 0.11
+プロイセン 1850s: RV 0.443 RH -2.18 SY 0.206 CC 0.026 GM 80.5 rate>=10 0.91 rate>=1 0.93 idle 0.62 fill 0.83 uH<=0 0.17 winMach 0.93 gross/charge 30 maxA 20286 floor 0.0096 heat/(bond+wear) 0.52
+アメリカ 1783-89: RV 3.52 RH 1.48 SY 0.239 CC 0.0356 GM 645 rate>=10 0.63 rate>=1 0.64 idle 0.51 fill 0.57 uH<=0 0.37 winMach 0.64 gross/charge 157 maxA 8486 floor 0 heat/(bond+wear) 0.44
+アメリカ 1810s: RV 11.5 RH 3.46 SY 0.589 CC 0.0493 GM 384 rate>=10 0.87 rate>=1 0.88 idle 0.25 fill 0.84 uH<=0 0.12 winMach 0.88 gross/charge 136 maxA 435181 floor 0 heat/(bond+wear) 0.031
+アメリカ 1850s: RV 5.11 RH -2.67 SY 0.264 CC 0.0278 GM 637 rate>=10 0.96 rate>=1 0.96 idle 0.25 fill 0.82 uH<=0 0.051 winMach 0.96 gross/charge 307 maxA 66443 floor 0 heat/(bond+wear) 0.51
+日本 1783-89: RV 5.86 RH 3.67 SY 0.408 CC 0.0319 GM 546 rate>=10 0.72 rate>=1 0.72 idle 0.63 fill 0.41 uH<=0 0.28 winMach 0.72 gross/charge 116 maxA 3239 floor 0 heat/(bond+wear) 0.45
+日本 1810s: RV 1.61 RH -3.26 SY 0.659 CC 0.0506 GM 43.4 rate>=10 0.86 rate>=1 0.89 idle 0.66 fill 0.79 uH<=0 0.13 winMach 0.89 gross/charge 31.8 maxA 23583 floor 0 heat/(bond+wear) 0.068
+日本 1850s: RV 0.384 RH -1.24 SY 0.427 CC 0.0384 GM 19.6 rate>=10 0.82 rate>=1 0.93 idle 0.75 fill 0.94 uH<=0 0.21 winMach 0.93 gross/charge 12.9 maxA 10732 floor 0 heat/(bond+wear) 0.27
+清 1783-89: RV 21.3 RH 14.3 SY 0.926 CC 0.038 GM 762 rate>=10 0.79 rate>=1 0.79 idle 0.57 fill 0.42 uH<=0 0.21 winMach 0.79 gross/charge 142 maxA 34 floor 0 heat/(bond+wear) 0.32
+清 1810s: RV 10.5 RH -1.77 SY 1.93 CC 0.0484 GM 96.7 rate>=10 0.86 rate>=1 0.89 idle 0.47 fill 0.84 uH<=0 0.11 winMach 0.89 gross/charge 57.7 maxA 141028 floor 0 heat/(bond+wear) 3.6e-05
+清 1850s: RV 4.34 RH -0.669 SY 1.3 CC 0.0552 GM 45.4 rate>=10 0.85 rate>=1 0.94 idle 0.56 fill 0.93 uH<=0 0.077 winMach 0.94 gross/charge 42.3 maxA 61019 floor 0 heat/(bond+wear) 7.6e-05
+
+== 表① 分子 RV（枠 1 つの年の得 12×v÷年賃金）・分母 SY（枠の値段÷年賃金）・CC（資本の費用・年）・rate の幾何平均（GM）と N の割合 [rate<10 / 10〜100 / 100〜1000 / 1000〜]・idle・稼働の余り
+-- seed 11
+イギリス textile
+   1783-89: RV 1.77 SY 0.324 CC 0.0933 GM 197 [0.7/0.041/0.25/0.004] idle 0.76
+   1790s: RV 0.439 SY 0.169 CC 0.0627 GM 111 [0.64/0.13/0.23/0.00015] idle 0.77
+   1800s: RV 1.02 SY 1 CC 0.0671 GM 39.4 [0.56/0.35/0.092/3.6e-05] idle 0.82
+   1810s: RV 1.04 SY 1.34 CC 0.0529 GM 34.3 [0.47/0.43/0.1/8.4e-06] idle 0.82
+   1820s: RV 0.327 SY 0.204 CC 0.0576 GM 52.3 [0.29/0.56/0.15/7.4e-05] idle 0.73
+   1830s: RV 0.164 SY 0.0902 CC 0.0554 GM 40.2 [0.22/0.74/0.044/0.00013] idle 0.72
+   1840s: RV 0.246 SY 0.148 CC 0.0512 GM 31.8 [0.15/0.82/0.03/0.00023] idle 0.74
+   1850s: RV 0.185 SY 0.168 CC 0.051 GM 21.8 [0.21/0.77/0.022/0.00012] idle 0.75
+イギリス metalchem
+   1783-89: RV 3.29 SY 0.953 CC 0.0923 GM 98.8 [0.4/0.18/0.4/0.024] idle 0.53
+   1790s: RV 1.28 SY 0.804 CC 0.063 GM 92.9 [0.34/0.24/0.39/0.025] idle 0.58
+   1800s: RV 2.61 SY 4.21 CC 0.0677 GM 49.2 [0.34/0.43/0.22/0.0057] idle 0.66
+   1810s: RV 2.6 SY 4.55 CC 0.0528 GM 48.1 [0.31/0.47/0.2/0.0084] idle 0.68
+   1820s: RV 0.393 SY 0.557 CC 0.0575 GM 38.6 [0.29/0.53/0.18/0.00024] idle 0.67
+   1830s: RV 0.297 SY 0.18 CC 0.0554 GM 33.8 [0.36/0.46/0.17/0.011] idle 0.63
+   1840s: RV 0.44 SY 0.205 CC 0.0512 GM 28.5 [0.42/0.42/0.14/0.011] idle 0.64
+   1850s: RV 0.418 SY 0.221 CC 0.051 GM 22.5 [0.5/0.37/0.13/0.0088] idle 0.63
+イギリス other
+   1783-89: RV 5 SY 0.498 CC 0.0913 GM 180 [0.14/0.2/0.61/0.045] idle 0.37
+   1790s: RV 1.49 SY 0.309 CC 0.0629 GM 109 [0.12/0.33/0.53/0.013] idle 0.45
+   1800s: RV 2.59 SY 1.45 CC 0.0673 GM 39.8 [0.17/0.67/0.15/0.0038] idle 0.62
+   1810s: RV 2.68 SY 1.78 CC 0.0528 GM 32.9 [0.16/0.75/0.088/0.0021] idle 0.68
+   1820s: RV 0.422 SY 0.264 CC 0.0575 GM 28.6 [0.15/0.8/0.048/0.001] idle 0.7
+   1830s: RV 0.148 SY 0.101 CC 0.0555 GM 20.4 [0.25/0.72/0.037/0.00087] idle 0.72
+   1840s: RV 0.229 SY 0.162 CC 0.0513 GM 16.8 [0.31/0.65/0.037/0.00053] idle 0.74
+   1850s: RV 0.189 SY 0.17 CC 0.051 GM 14.2 [0.38/0.59/0.024/0.00066] idle 0.75
+フランス textile
+   1783-89: RV 3.04 SY 0.303 CC 0.0386 GM 592 [0.61/0.019/0.24/0.13] idle 0.73
+   1790s: RV 1.11 SY 0.352 CC 0.0517 GM 104 [0.59/0.15/0.25/0.0045] idle 0.78
+   1800s: RV 0.844 SY 0.311 CC 0.0498 GM 83.9 [0.46/0.27/0.27/5.8e-06] idle 0.75
+   1810s: RV 0.85 SY 0.426 CC 0.0487 GM 52.4 [0.37/0.55/0.086/1e-05] idle 0.77
+   1820s: RV 0.62 SY 0.45 CC 0.0497 GM 30.1 [0.26/0.71/0.025/3.6e-05] idle 0.81
+   1830s: RV 0.47 SY 0.418 CC 0.0454 GM 24.5 [0.25/0.74/0.011/5.1e-05] idle 0.81
+   1840s: RV 0.416 SY 0.397 CC 0.0392 GM 24.9 [0.2/0.79/0.012/2.1e-05] idle 0.82
+   1850s: RV 0.334 SY 0.37 CC 0.0354 GM 22.9 [0.24/0.76/0.0045/6.3e-06] idle 0.82
+フランス metalchem
+   1783-89: RV 4.34 SY 0.329 CC 0.0384 GM 419 [0.15/0.046/0.7/0.1] idle 0.44
+   1790s: RV 3.29 SY 0.368 CC 0.0522 GM 154 [0.12/0.24/0.62/0.016] idle 0.47
+   1800s: RV 2.09 SY 0.316 CC 0.0497 GM 104 [0.1/0.33/0.57/0.0035] idle 0.5
+   1810s: RV 2.05 SY 0.437 CC 0.0488 GM 80.2 [0.083/0.55/0.37/0.0012] idle 0.58
+   1820s: RV 1.25 SY 0.458 CC 0.0497 GM 42.7 [0.11/0.73/0.16/2.8e-05] idle 0.68
+   1830s: RV 0.632 SY 0.43 CC 0.0454 GM 26.7 [0.18/0.79/0.029/5.5e-07] idle 0.73
+   1840s: RV 0.49 SY 0.415 CC 0.0392 GM 25.1 [0.31/0.65/0.043/2.9e-07] idle 0.7
+   1850s: RV 0.403 SY 0.392 CC 0.0354 GM 27 [0.38/0.56/0.052/1.7e-06] idle 0.65
+フランス other
+   1783-89: RV 3.4 SY 0.316 CC 0.0385 GM 403 [0.27/0.039/0.65/0.043] idle 0.47
+   1790s: RV 2.08 SY 0.366 CC 0.052 GM 100 [0.27/0.26/0.47/0.0015] idle 0.53
+   1800s: RV 1.39 SY 0.319 CC 0.0497 GM 75 [0.21/0.44/0.35/4.7e-05] idle 0.55
+   1810s: RV 1.44 SY 0.433 CC 0.0488 GM 61 [0.15/0.67/0.17/0.00029] idle 0.6
+   1820s: RV 1.06 SY 0.461 CC 0.0497 GM 41.3 [0.1/0.83/0.064/8.5e-05] idle 0.67
+   1830s: RV 0.684 SY 0.435 CC 0.0454 GM 30.2 [0.11/0.87/0.021/0.00011] idle 0.73
+   1840s: RV 0.553 SY 0.421 CC 0.0391 GM 26.9 [0.15/0.83/0.02/3.2e-05] idle 0.77
+   1850s: RV 0.438 SY 0.402 CC 0.0354 GM 23.8 [0.18/0.81/0.0086/2.6e-05] idle 0.79
+プロイセン textile
+   1783-89: RV 4.98 SY 0.304 CC 0.0394 GM 793 [0.57/0.024/0.15/0.26] idle 0.67
+   1790s: RV 2.04 SY 0.355 CC 0.0495 GM 180 [0.51/0.13/0.33/0.028] idle 0.69
+   1800s: RV 1.82 SY 0.404 CC 0.0491 GM 140 [0.44/0.14/0.42/0.00046] idle 0.62
+   1810s: RV 1.45 SY 0.298 CC 0.0466 GM 123 [0.3/0.13/0.57/0.00011] idle 0.6
+   1820s: RV 1.1 SY 0.258 CC 0.0489 GM 100 [0.19/0.34/0.47/0.00037] idle 0.62
+   1830s: RV 0.815 SY 0.229 CC 0.0303 GM 126 [0.15/0.24/0.62/0.00014] idle 0.62
+   1840s: RV 0.625 SY 0.212 CC 0.026 GM 111 [0.094/0.43/0.48/0.0041] idle 0.63
+   1850s: RV 0.421 SY 0.206 CC 0.026 GM 80.7 [0.088/0.67/0.23/0.009] idle 0.68
+プロイセン metalchem
+   1783-89: RV 6.48 SY 0.301 CC 0.039 GM 547 [0.16/0.052/0.51/0.27] idle 0.34
+   1790s: RV 5.15 SY 0.355 CC 0.0497 GM 243 [0.093/0.093/0.74/0.077] idle 0.33
+   1800s: RV 3.58 SY 0.401 CC 0.049 GM 154 [0.083/0.2/0.7/0.013] idle 0.37
+   1810s: RV 1.76 SY 0.296 CC 0.0467 GM 112 [0.069/0.27/0.66/0.00037] idle 0.48
+   1820s: RV 1.36 SY 0.257 CC 0.0488 GM 90.7 [0.07/0.42/0.5/0.0035] idle 0.51
+   1830s: RV 0.946 SY 0.229 CC 0.0302 GM 113 [0.11/0.33/0.56/0.0023] idle 0.53
+   1840s: RV 0.743 SY 0.211 CC 0.026 GM 115 [0.21/0.27/0.52/0.0073] idle 0.49
+   1850s: RV 0.72 SY 0.206 CC 0.026 GM 113 [0.24/0.26/0.48/0.016] idle 0.51
+プロイセン other
+   1783-89: RV 6.59 SY 0.303 CC 0.039 GM 765 [0.25/0.012/0.45/0.29] idle 0.36
+   1790s: RV 3.91 SY 0.357 CC 0.0497 GM 215 [0.21/0.14/0.6/0.053] idle 0.41
+   1800s: RV 2.76 SY 0.399 CC 0.049 GM 137 [0.15/0.23/0.62/0.0018] idle 0.41
+   1810s: RV 1.77 SY 0.298 CC 0.0467 GM 123 [0.12/0.24/0.63/0.0015] idle 0.44
+   1820s: RV 1.19 SY 0.258 CC 0.0489 GM 90.8 [0.081/0.52/0.4/0.00073] idle 0.49
+   1830s: RV 0.784 SY 0.23 CC 0.0302 GM 107 [0.074/0.4/0.52/0.00036] idle 0.53
+   1840s: RV 0.548 SY 0.212 CC 0.026 GM 91 [0.054/0.54/0.4/0.0027] idle 0.58
+   1850s: RV 0.42 SY 0.206 CC 0.026 GM 78.1 [0.069/0.67/0.25/0.0096] idle 0.62
+アメリカ textile
+   1783-89: RV 3.11 SY 0.24 CC 0.0357 GM 792 [0.59/0.039/0.14/0.23] idle 0.7
+   1790s: RV 2.91 SY 0.291 CC 0.03 GM 577 [0.53/0.018/0.3/0.15] idle 0.64
+   1800s: RV 2.85 SY 0.268 CC 0.0445 GM 383 [0.43/0.018/0.53/0.016] idle 0.59
+   1810s: RV 6.01 SY 0.58 CC 0.0493 GM 318 [0.34/0.025/0.63/0.0069] idle 0.48
+   1820s: RV 5.78 SY 0.356 CC 0.0436 GM 478 [0.23/0.032/0.58/0.15] idle 0.37
+   1830s: RV 4.51 SY 0.441 CC 0.0412 GM 338 [0.17/0.094/0.61/0.13] idle 0.29
+   1840s: RV 4.73 SY 0.31 CC 0.0303 GM 638 [0.12/0.02/0.67/0.2] idle 0.21
+   1850s: RV 5.11 SY 0.26 CC 0.0278 GM 760 [0.088/0.008/0.6/0.31] idle 0.27
+アメリカ metalchem
+   1783-89: RV 3.68 SY 0.233 CC 0.0354 GM 457 [0.17/0.061/0.57/0.2] idle 0.42
+   1790s: RV 4.9 SY 0.284 CC 0.0303 GM 506 [0.1/0.044/0.67/0.19] idle 0.34
+   1800s: RV 5.38 SY 0.263 CC 0.0446 GM 382 [0.063/0.048/0.83/0.057] idle 0.32
+   1810s: RV 11 SY 0.581 CC 0.0493 GM 363 [0.041/0.059/0.86/0.039] idle 0.24
+   1820s: RV 6.43 SY 0.357 CC 0.0435 GM 413 [0.033/0.063/0.8/0.1] idle 0.25
+   1830s: RV 4.55 SY 0.471 CC 0.0412 GM 258 [0.031/0.12/0.78/0.062] idle 0.24
+   1840s: RV 3.76 SY 0.337 CC 0.0303 GM 408 [0.023/0.064/0.76/0.16] idle 0.23
+   1850s: RV 4.71 SY 0.273 CC 0.0278 GM 613 [0.03/0.048/0.6/0.32] idle 0.29
+アメリカ other
+   1783-89: RV 3.68 SY 0.24 CC 0.0355 GM 636 [0.3/0.021/0.44/0.24] idle 0.43
+   1790s: RV 4.88 SY 0.294 CC 0.0303 GM 460 [0.18/0.082/0.49/0.26] idle 0.38
+   1800s: RV 5.96 SY 0.271 CC 0.0446 GM 356 [0.13/0.11/0.58/0.18] idle 0.33
+   1810s: RV 13 SY 0.592 CC 0.0493 GM 399 [0.085/0.067/0.71/0.14] idle 0.19
+   1820s: RV 6.28 SY 0.36 CC 0.0436 GM 397 [0.058/0.061/0.77/0.11] idle 0.2
+   1830s: RV 5.19 SY 0.44 CC 0.0412 GM 295 [0.043/0.12/0.71/0.13] idle 0.17
+   1840s: RV 4.2 SY 0.319 CC 0.0303 GM 431 [0.033/0.075/0.7/0.19] idle 0.19
+   1850s: RV 5.15 SY 0.264 CC 0.0278 GM 617 [0.037/0.037/0.62/0.3] idle 0.24
+日本 textile
+   1783-89: RV 4.62 SY 0.406 CC 0.0319 GM 718 [0.59/0.0027/0.25/0.17] idle 0.8
+   1790s: RV 2.04 SY 0.585 CC 0.0449 GM 112 [0.54/0.2/0.25/0.0078] idle 0.8
+   1800s: RV 1.3 SY 0.646 CC 0.0525 GM 46.5 [0.42/0.45/0.13/2.5e-05] idle 0.79
+   1810s: RV 1.02 SY 0.655 CC 0.0507 GM 35.6 [0.32/0.63/0.055/0.00011] idle 0.8
+   1820s: RV 1.05 SY 0.58 CC 0.0458 GM 44.7 [0.21/0.71/0.078/8.2e-06] idle 0.78
+   1830s: RV 0.745 SY 0.456 CC 0.0407 GM 43.2 [0.13/0.81/0.051/2.6e-05] idle 0.76
+   1840s: RV 0.493 SY 0.414 CC 0.039 GM 29.7 [0.12/0.85/0.029/8.3e-05] idle 0.79
+   1850s: RV 0.36 SY 0.426 CC 0.0384 GM 21.4 [0.1/0.89/0.009/5e-05] idle 0.82
+日本 metalchem
+   1783-89: RV 5.9 SY 0.406 CC 0.0319 GM 407 [0.15/0.053/0.67/0.13] idle 0.59
+   1790s: RV 5.07 SY 0.589 CC 0.0451 GM 163 [0.12/0.21/0.65/0.023] idle 0.54
+   1800s: RV 3.3 SY 0.649 CC 0.0526 GM 79 [0.11/0.52/0.37/0.0011] idle 0.54
+   1810s: RV 2.08 SY 0.657 CC 0.0505 GM 57.5 [0.088/0.77/0.15/0.00094] idle 0.62
+   1820s: RV 1.39 SY 0.564 CC 0.0457 GM 47.2 [0.091/0.78/0.13/0.001] idle 0.68
+   1830s: RV 0.754 SY 0.441 CC 0.0408 GM 36.2 [0.31/0.58/0.11/0.00097] idle 0.6
+   1840s: RV 0.518 SY 0.399 CC 0.0389 GM 25.4 [0.45/0.46/0.093/0.0006] idle 0.62
+   1850s: RV 0.438 SY 0.41 CC 0.0384 GM 20.9 [0.46/0.47/0.066/0.00035] idle 0.68
+日本 other
+   1783-89: RV 6.46 SY 0.409 CC 0.0319 GM 526 [0.14/0.017/0.72/0.12] idle 0.54
+   1790s: RV 4.18 SY 0.593 CC 0.0451 GM 124 [0.14/0.33/0.51/0.011] idle 0.56
+   1800s: RV 2.29 SY 0.658 CC 0.0526 GM 52.8 [0.12/0.71/0.17/0.0012] idle 0.56
+   1810s: RV 1.72 SY 0.66 CC 0.0506 GM 43.9 [0.089/0.84/0.075/0.00095] idle 0.62
+   1820s: RV 1.35 SY 0.584 CC 0.0457 GM 44.4 [0.058/0.86/0.086/0.00072] idle 0.65
+   1830s: RV 0.801 SY 0.461 CC 0.0407 GM 37.2 [0.067/0.87/0.058/0.00071] idle 0.67
+   1840s: RV 0.525 SY 0.418 CC 0.039 GM 27 [0.13/0.83/0.039/0.00021] idle 0.7
+   1850s: RV 0.384 SY 0.429 CC 0.0384 GM 19.1 [0.18/0.8/0.022/0.00013] idle 0.74
+清 textile
+   1783-89: RV 16.3 SY 0.936 CC 0.038 GM 862 [0.5/0.045/0.18/0.27] idle 0.76
+   1790s: RV 10.3 SY 1.8 CC 0.0516 GM 97.6 [0.51/0.27/0.13/0.1] idle 0.78
+   1800s: RV 4.09 SY 1.95 CC 0.0506 GM 42.5 [0.46/0.41/0.13/0.0052] idle 0.76
+   1810s: RV 6.19 SY 1.97 CC 0.0483 GM 74.2 [0.32/0.42/0.25/0.0087] idle 0.67
+   1820s: RV 5.92 SY 1.49 CC 0.0524 GM 89.5 [0.24/0.42/0.34/0.0058] idle 0.6
+   1830s: RV 4.58 SY 1.61 CC 0.0651 GM 45.7 [0.26/0.52/0.22/0.0031] idle 0.62
+   1840s: RV 2.02 SY 1.41 CC 0.052 GM 23 [0.32/0.6/0.078/0.00064] idle 0.74
+   1850s: RV 1.99 SY 1.32 CC 0.0552 GM 24.2 [0.25/0.69/0.061/0.00067] idle 0.73
+清 metalchem
+   1783-89: RV 16.9 SY 0.897 CC 0.038 GM 615 [0.19/0.019/0.54/0.26] idle 0.5
+   1790s: RV 22.7 SY 1.76 CC 0.0516 GM 317 [0.14/0.11/0.62/0.13] idle 0.42
+   1800s: RV 21.6 SY 2.07 CC 0.0507 GM 240 [0.11/0.099/0.76/0.036] idle 0.29
+   1810s: RV 18.3 SY 1.87 CC 0.0485 GM 188 [0.078/0.17/0.72/0.032] idle 0.33
+   1820s: RV 13.4 SY 1.44 CC 0.0524 GM 156 [0.063/0.26/0.64/0.04] idle 0.35
+   1830s: RV 12 SY 1.62 CC 0.0657 GM 102 [0.073/0.42/0.49/0.013] idle 0.37
+   1840s: RV 8.88 SY 1.48 CC 0.0521 GM 94.3 [0.065/0.41/0.51/0.0094] idle 0.41
+   1850s: RV 6.26 SY 1.29 CC 0.0552 GM 73 [0.064/0.54/0.39/0.0051] idle 0.48
+清 other
+   1783-89: RV 23.6 SY 0.925 CC 0.0379 GM 752 [0.098/0.048/0.38/0.47] idle 0.5
+   1790s: RV 20.8 SY 1.81 CC 0.0516 GM 159 [0.13/0.31/0.36/0.2] idle 0.51
+   1800s: RV 14.4 SY 1.99 CC 0.0507 GM 93.9 [0.17/0.34/0.46/0.025] idle 0.42
+   1810s: RV 10.9 SY 1.93 CC 0.0484 GM 95.7 [0.097/0.39/0.5/0.0093] idle 0.43
+   1820s: RV 7.69 SY 1.47 CC 0.0524 GM 97.3 [0.086/0.42/0.49/0.0028] idle 0.42
+   1830s: RV 6.53 SY 1.62 CC 0.0652 GM 55.1 [0.15/0.55/0.29/0.0022] idle 0.46
+   1840s: RV 5.05 SY 1.44 CC 0.0521 GM 48.5 [0.19/0.54/0.27/0.0027] idle 0.53
+   1850s: RV 4.49 SY 1.3 CC 0.0552 GM 47.1 [0.15/0.66/0.18/0.0028] idle 0.54
+
+== 表② uH の分解（plan の N 加重の平均・月あたりの貨幣）と RH＝12×uH÷年賃金・v÷uH・機械が占め手の最大の割合・uH が非正の割合・稼働
+-- seed 11
+イギリス textile
+   1783-89: price 39.2 self 0.0587 nonLabor 17.1 w0 0.318 lam 0.5 w0*lam 0.159 a 3.32 X(N加重) 170 uH 0.781 bestMach 4.49 v 4.49 RH 0.308 winMach 0.31 uH<=0 0.7 fill 0.29 out/N 5.31 maxA 3312
+       machine occupant (positive best): share of plan N 0.31  gross 14.5 capital charge 0.0878  kinds animal/water/steam/electric 0.061/5.4e-07/0.94/0
+       denominators: slotCost 9.88 bond 0.0472 wear12 0.0272 crowd 0.019 heat 0.000144 floorShare 0
+   1790s: price 32.7 self 0.0586 nonLabor 14.6 w0 0.272 lam 0.5 w0*lam 0.136 a 21.1 X(N加重) 122 uH -2.83 bestMach 1.74 v 1.74 RH -0.715 winMach 0.38 uH<=0 0.66 fill 0.38 out/N 6.59 maxA 123077
+       machine occupant (positive best): share of plan N 0.38  gross 4.66 capital charge 0.0493  kinds animal/water/steam/electric 0.26/0.00049/0.74/0
+       denominators: slotCost 8.05 bond 0.0362 wear12 0.0272 crowd 0.000856 heat 0.00156 floorShare 0
+   1800s: price 29.5 self 0.0594 nonLabor 13 w0 0.232 lam 0.5 w0*lam 0.116 a 6.62 X(N加重) 90.9 uH -0.495 bestMach 0.792 v 0.792 RH -0.64 winMach 0.48 uH<=0 0.63 fill 0.48 out/N 5.43 maxA 37579
+       machine occupant (positive best): share of plan N 0.48  gross 1.69 capital charge 0.04  kinds animal/water/steam/electric 0.63/0.0017/0.37/0
+       denominators: slotCost 9.32 bond 0.0366 wear12 0.0272 crowd 0.00376 heat 0.00052 floorShare 0
+   1810s: price 24.7 self 0.0603 nonLabor 10.6 w0 0.238 lam 0.5 w0*lam 0.119 a 213070996197 X(N加重) 69.9 uH -16263450926 bestMach 0.834 v 0.834 RH -20176114206 winMach 0.57 uH<=0 0.59 fill 0.56 out/N 5.23 maxA 341333311400000000
+       machine occupant (positive best): share of plan N 0.57  gross 1.5 capital charge 0.0362  kinds animal/water/steam/electric 0.83/0.00046/0.16/0
+       denominators: slotCost 13 bond 0.0257 wear12 0.0272 crowd 0 heat 3.06e-06 floorShare 0
+   1820s: price 16.9 self 0.0614 nonLabor 7.4 w0 0.287 lam 0.5 w0*lam 0.144 a 3.75 X(N加重) 76.5 uH -0.0274 bestMach 1.2 v 1.2 RH -0.00748 winMach 0.72 uH<=0 0.47 fill 0.71 out/N 7.22 maxA 602433
+       machine occupant (positive best): share of plan N 0.72  gross 1.71 capital charge 0.0394  kinds animal/water/steam/electric 0.76/0.00013/0.24/0
+       denominators: slotCost 8.95 bond 0.027 wear12 0.0272 crowd 0.00347 heat 7.66e-05 floorShare 0
+   1830s: price 10.5 self 0.062 nonLabor 4.65 w0 0.334 lam 0.5 w0*lam 0.167 a 8.95 X(N加重) 97.6 uH -2.01 bestMach 1.09 v 1.09 RH -0.303 winMach 0.82 uH<=0 0.64 fill 0.81 out/N 7.22 maxA 1086963
+       machine occupant (positive best): share of plan N 0.82  gross 1.37 capital charge 0.0378  kinds animal/water/steam/electric 0.91/7.4e-06/0.091/0
+       denominators: slotCost 7.2 bond 0.0279 wear12 0.0272 crowd 0.00157 heat 0.00132 floorShare 0
+   1840s: price 6.69 self 0.0616 nonLabor 3.04 w0 0.297 lam 0.5 w0*lam 0.148 a 5.77 X(N加重) 120 uH -0.396 bestMach 0.839 v 0.839 RH -0.116 winMach 0.88 uH<=0 0.74 fill 0.87 out/N 6.74 maxA 7748
+       machine occupant (positive best): share of plan N 0.88  gross 0.985 capital charge 0.0343  kinds animal/water/steam/electric 0.95/0.00039/0.051/0
+       denominators: slotCost 6.08 bond 0.0236 wear12 0.0272 crowd 0.000946 heat 0.000541 floorShare 0
+   1850s: price 4.32 self 0.0596 nonLabor 2.02 w0 0.294 lam 0.5 w0*lam 0.147 a 3.41 X(N加重) 144 uH -0.141 bestMach 0.717 v 0.717 RH -0.0364 winMach 0.91 uH<=0 0.79 fill 0.91 out/N 6.5 maxA 43666
+       machine occupant (positive best): share of plan N 0.91  gross 0.819 capital charge 0.0328  kinds animal/water/steam/electric 0.94/2e-05/0.057/0
+       denominators: slotCost 7.78 bond 0.0241 wear12 0.0272 crowd 0 heat 0.000366 floorShare 0
+イギリス metalchem
+   1783-89: price 8.46 self 0.0559 nonLabor 4.38 w0 0.285 lam 0.5 w0*lam 0.143 a 5.38 X(N加重) 8.86 uH 3.2 bestMach 7.81 v 7.81 RH 1.35 winMach 0.66 uH<=0 0.35 fill 0.73 out/N 6.35 maxA 115
+       machine occupant (positive best): share of plan N 0.66  gross 11.9 capital charge 0.0873  kinds animal/water/steam/electric 0.065/2.9e-05/0.93/0
+       denominators: slotCost 27.2 bond 0.0468 wear12 0.0272 crowd 0.0184 heat 0.000142 floorShare 0
+   1790s: price 3.15 self 0.0555 nonLabor 3 w0 0.239 lam 0.5 w0*lam 0.12 a 72.1 X(N加重) 10.3 uH -5.9 bestMach 4.59 v 4.59 RH -1.64 winMach 0.71 uH<=0 0.3 fill 0.79 out/N 6.92 maxA 25270
+       machine occupant (positive best): share of plan N 0.71  gross 6.5 capital charge 0.0509  kinds animal/water/steam/electric 0.078/0.00054/0.92/0
+       denominators: slotCost 34.7 bond 0.0364 wear12 0.0272 crowd 0.000906 heat 0.00156 floorShare 0
+   1800s: price 4.78 self 0.0565 nonLabor 3.52 w0 0.198 lam 0.5 w0*lam 0.099 a 30.1 X(N加重) 12.1 uH -2.25 bestMach 1.89 v 1.89 RH -3.12 winMach 0.73 uH<=0 0.29 fill 0.81 out/N 5.8 maxA 9305
+       machine occupant (positive best): share of plan N 0.73  gross 2.62 capital charge 0.0439  kinds animal/water/steam/electric 0.12/0.0014/0.88/0
+       denominators: slotCost 36.5 bond 0.0369 wear12 0.0272 crowd 0.00405 heat 0.00049 floorShare 0
+   1810s: price 5.05 self 0.0576 nonLabor 3.14 w0 0.205 lam 0.5 w0*lam 0.102 a 48.4 X(N加重) 15.2 uH -4.13 bestMach 1.89 v 1.89 RH -5.69 winMach 0.76 uH<=0 0.26 fill 0.83 out/N 5.52 maxA 11049
+       machine occupant (positive best): share of plan N 0.76  gross 2.51 capital charge 0.0377  kinds animal/water/steam/electric 0.12/0.0012/0.88/0
+       denominators: slotCost 39.7 bond 0.0255 wear12 0.0272 crowd 0 heat 2.86e-06 floorShare 0
+   1820s: price 4.52 self 0.0599 nonLabor 2.85 w0 0.268 lam 0.5 w0*lam 0.134 a 23.7 X(N加重) 22.8 uH -2.17 bestMach 1.45 v 1.45 RH -0.589 winMach 0.82 uH<=0 0.23 fill 0.9 out/N 5.17 maxA 8371
+       machine occupant (positive best): share of plan N 0.82  gross 1.82 capital charge 0.0401  kinds animal/water/steam/electric 0.16/0.0011/0.84/0
+       denominators: slotCost 24.7 bond 0.0269 wear12 0.0272 crowd 0.00342 heat 7.71e-05 floorShare 0
+   1830s: price 3 self 0.0611 nonLabor 2.06 w0 0.327 lam 0.5 w0*lam 0.164 a 40.7 X(N加重) 30 uH -5.63 bestMach 1.97 v 1.97 RH -0.848 winMach 0.78 uH<=0 0.3 fill 0.92 out/N 4.93 maxA 56602
+       machine occupant (positive best): share of plan N 0.78  gross 2.56 capital charge 0.0385  kinds animal/water/steam/electric 0.25/0.0003/0.75/0
+       denominators: slotCost 14.4 bond 0.0279 wear12 0.0272 crowd 0.00159 heat 0.00134 floorShare 0
+   1840s: price 1.76 self 0.061 nonLabor 1.46 w0 0.293 lam 0.5 w0*lam 0.146 a 47.3 X(N加重) 33.3 uH -5.7 bestMach 1.54 v 1.54 RH -1.63 winMach 0.75 uH<=0 0.35 fill 0.91 out/N 4.32 maxA 7076
+       machine occupant (positive best): share of plan N 0.75  gross 2.09 capital charge 0.0347  kinds animal/water/steam/electric 0.33/0.00061/0.67/0
+       denominators: slotCost 8.63 bond 0.0236 wear12 0.0272 crowd 0.000946 heat 0.000541 floorShare 0
+   1850s: price 1.7 self 0.059 nonLabor 1.41 w0 0.289 lam 0.5 w0*lam 0.145 a 110 X(N加重) 41.3 uH -11 bestMach 1.65 v 1.65 RH -2.81 winMach 0.72 uH<=0 0.39 fill 0.89 out/N 4.16 maxA 853033
+       machine occupant (positive best): share of plan N 0.72  gross 2.31 capital charge 0.0337  kinds animal/water/steam/electric 0.34/0.00029/0.66/0
+       denominators: slotCost 10.4 bond 0.0241 wear12 0.0272 crowd 0 heat 0.000366 floorShare 0
+イギリス other
+   1783-89: price 6.49 self 0.0579 nonLabor 4.01 w0 0.308 lam 0.5 w0*lam 0.154 a 8.6 X(N加重) 48.9 uH 5.92 bestMach 12.3 v 12.3 RH 2.4 winMach 0.88 uH<=0 0.12 fill 0.72 out/N 10.3 maxA 60.9
+       machine occupant (positive best): share of plan N 0.88  gross 14.1 capital charge 0.0872  kinds animal/water/steam/electric 0.011/8.6e-07/0.99/0
+       denominators: slotCost 14.7 bond 0.0463 wear12 0.0272 crowd 0.0179 heat 0.00014 floorShare 0
+   1790s: price 2.64 self 0.0578 nonLabor 1.56 w0 0.262 lam 0.5 w0*lam 0.131 a 9.92 X(N加重) 72.8 uH 2.27 bestMach 5.59 v 5.59 RH 0.607 winMach 0.92 uH<=0 0.088 fill 0.86 out/N 11.1 maxA 18504
+       machine occupant (positive best): share of plan N 0.92  gross 6.12 capital charge 0.0509  kinds animal/water/steam/electric 0.051/0.00013/0.95/0
+       denominators: slotCost 13.9 bond 0.0364 wear12 0.0272 crowd 0.000897 heat 0.00155 floorShare 0
+   1800s: price 1.98 self 0.0589 nonLabor 1.21 w0 0.226 lam 0.5 w0*lam 0.113 a 14.2 X(N加重) 97.4 uH 0.0884 bestMach 2 v 2 RH 0.115 winMach 0.92 uH<=0 0.081 fill 0.91 out/N 8.89 maxA 19363
+       machine occupant (positive best): share of plan N 0.92  gross 2.2 capital charge 0.0434  kinds animal/water/steam/electric 0.099/0.00033/0.9/0
+       denominators: slotCost 13.4 bond 0.0367 wear12 0.0272 crowd 0.00385 heat 0.000505 floorShare 0
+   1810s: price 2 self 0.0598 nonLabor 0.963 w0 0.232 lam 0.5 w0*lam 0.116 a 19.1 X(N加重) 110 uH -0.275 bestMach 2.13 v 2.13 RH -0.346 winMach 0.93 uH<=0 0.073 fill 0.92 out/N 7.95 maxA 30432
+       machine occupant (positive best): share of plan N 0.93  gross 2.32 capital charge 0.0372  kinds animal/water/steam/electric 0.091/7.8e-05/0.91/0
+       denominators: slotCost 17 bond 0.0256 wear12 0.0272 crowd 0 heat 2.88e-06 floorShare 0
+   1820s: price 1.59 self 0.0611 nonLabor 0.91 w0 0.283 lam 0.5 w0*lam 0.141 a 218129033873 X(N加重) 126 uH -35595593152 bestMach 1.5 v 1.5 RH -10027750199 winMach 0.94 uH<=0 0.063 fill 0.94 out/N 6.97 maxA 109686158100000000
+       machine occupant (positive best): share of plan N 0.94  gross 1.63 capital charge 0.0398  kinds animal/water/steam/electric 0.083/0.00011/0.92/0
+       denominators: slotCost 11.2 bond 0.0269 wear12 0.0272 crowd 0.00345 heat 7.69e-05 floorShare 0
+   1830s: price 1.54 self 0.062 nonLabor 1.07 w0 0.339 lam 0.5 w0*lam 0.169 a 216030763568 X(N加重) 150 uH -17256910846 bestMach 1.01 v 1.01 RH -2535527783 winMach 0.91 uH<=0 0.13 fill 0.95 out/N 5.69 maxA 138405176900000000
+       machine occupant (positive best): share of plan N 0.91  gross 1.14 capital charge 0.0385  kinds animal/water/steam/electric 0.14/2.5e-05/0.86/0
+       denominators: slotCost 8.27 bond 0.028 wear12 0.0272 crowd 0.00162 heat 0.00136 floorShare 0
+   1840s: price 1.17 self 0.0621 nonLabor 0.806 w0 0.298 lam 0.5 w0*lam 0.149 a 16.3 X(N加重) 163 uH -1.23 bestMach 0.757 v 0.757 RH -0.373 winMach 0.95 uH<=0 0.067 fill 0.95 out/N 5.25 maxA 30313
+       machine occupant (positive best): share of plan N 0.95  gross 0.83 capital charge 0.0348  kinds animal/water/steam/electric 0.37/3e-05/0.63/0
+       denominators: slotCost 6.43 bond 0.0236 wear12 0.0272 crowd 0.000964 heat 0.000543 floorShare 0
+   1850s: price 0.894 self 0.0601 nonLabor 0.621 w0 0.297 lam 0.5 w0*lam 0.149 a 212121480422 X(N加重) 176 uH -880216418758 bestMach 0.717 v 0.717 RH -231698423386 winMach 0.96 uH<=0 0.06 fill 0.95 out/N 5.39 maxA 24999148190000000
+       machine occupant (positive best): share of plan N 0.96  gross 0.779 capital charge 0.0334  kinds animal/water/steam/electric 0.42/3.4e-05/0.58/0
+       denominators: slotCost 7.74 bond 0.0241 wear12 0.0272 crowd 0 heat 0.000366 floorShare 0
+フランス textile
+   1783-89: price 18.7 self 0.0498 nonLabor 8.36 w0 0.259 lam 0.5 w0*lam 0.13 a 3.11 X(N加重) 188 uH 0.832 bestMach 3.06 v 3.06 RH 0.828 winMach 0.4 uH<=0 0.61 fill 0.34 out/N 5.07 maxA 34.4
+       machine occupant (positive best): share of plan N 0.4  gross 7.76 capital charge 0.0449  kinds animal/water/steam/electric 0.99/0.0057/0/0
+       denominators: slotCost 3.65 bond 0.0364 wear12 0.0272 crowd 0.00269 heat 0.0277 floorShare 0
+   1790s: price 20.3 self 0.0445 nonLabor 10.8 w0 0.267 lam 0.5 w0*lam 0.133 a 49.5 X(N加重) 158 uH -3.93 bestMach 1.13 v 1.13 RH -3.87 winMach 0.43 uH<=0 0.63 fill 0.43 out/N 5.24 maxA 35889
+       machine occupant (positive best): share of plan N 0.43  gross 2.67 capital charge 0.0418  kinds animal/water/steam/electric 1/0.00088/0/0
+       denominators: slotCost 4.29 bond 0.04 wear12 0.0272 crowd 0.00539 heat 0.021 floorShare 0
+   1800s: price 20.3 self 0.0478 nonLabor 12.6 w0 0.345 lam 0.5 w0*lam 0.172 a 19.2 X(N加重) 147 uH -2.28 bestMach 1.11 v 1.11 RH -1.73 winMach 0.56 uH<=0 0.54 fill 0.55 out/N 6.34 maxA 5712
+       machine occupant (positive best): share of plan N 0.56  gross 2.05 capital charge 0.0418  kinds animal/water/steam/electric 1/0.0011/0/0
+       denominators: slotCost 4.92 bond 0.0255 wear12 0.0272 crowd 0 heat 0.003 floorShare 0
+   1810s: price 17 self 0.0526 nonLabor 10.5 w0 0.246 lam 0.5 w0*lam 0.123 a 44.4 X(N加重) 156 uH -6.95 bestMach 0.805 v 0.805 RH -7.34 winMach 0.65 uH<=0 0.4 fill 0.59 out/N 5.67 maxA 21932
+       machine occupant (positive best): share of plan N 0.65  gross 1.27 capital charge 0.0402  kinds animal/water/steam/electric 1/0.0013/0/0
+       denominators: slotCost 4.83 bond 0.0277 wear12 0.0272 crowd 0 heat 0.0062 floorShare 0
+   1820s: price 12.9 self 0.0576 nonLabor 7.89 w0 0.251 lam 0.5 w0*lam 0.125 a 29.2 X(N加重) 187 uH -3.91 bestMach 0.623 v 0.623 RH -3.89 winMach 0.76 uH<=0 0.4 fill 0.61 out/N 4.71 maxA 17901
+       machine occupant (positive best): share of plan N 0.76  gross 0.865 capital charge 0.0422  kinds animal/water/steam/electric 1/0.00055/0/0
+       denominators: slotCost 5.42 bond 0.025 wear12 0.0272 crowd 0 heat 0.00256 floorShare 0
+   1830s: price 9.05 self 0.0605 nonLabor 5.62 w0 0.274 lam 0.5 w0*lam 0.137 a 70.1 X(N加重) 230 uH -8.8 bestMach 0.54 v 0.54 RH -7.66 winMach 0.81 uH<=0 0.54 fill 0.66 out/N 4.44 maxA 17299
+       machine occupant (positive best): share of plan N 0.81  gross 0.706 capital charge 0.0419  kinds animal/water/steam/electric 1/0.00018/0/0
+       denominators: slotCost 5.77 bond 0.0243 wear12 0.0272 crowd 0 heat 0.00615 floorShare 0
+   1840s: price 6.11 self 0.0611 nonLabor 3.8 w0 0.302 lam 0.5 w0*lam 0.151 a 25.2 X(N加重) 300 uH -4.03 bestMach 0.576 v 0.576 RH -2.91 winMach 0.87 uH<=0 0.56 fill 0.63 out/N 4.12 maxA 16290
+       machine occupant (positive best): share of plan N 0.87  gross 0.703 capital charge 0.0442  kinds animal/water/steam/electric 1/0.00011/0/0
+       denominators: slotCost 6.59 bond 0.0238 wear12 0.0272 crowd 0 heat 0.0119 floorShare 0
+   1850s: price 4.35 self 0.0604 nonLabor 2.72 w0 0.331 lam 0.5 w0*lam 0.165 a 28.2 X(N加重) 356 uH -5.26 bestMach 0.561 v 0.561 RH -3.13 winMach 0.89 uH<=0 0.55 fill 0.63 out/N 3.79 maxA 6764
+       machine occupant (positive best): share of plan N 0.89  gross 0.677 capital charge 0.0453  kinds animal/water/steam/electric 1/3e-05/0/0
+       denominators: slotCost 7.45 bond 0.0251 wear12 0.0272 crowd 0 heat 0.0169 floorShare 0
+フランス metalchem
+   1783-89: price 2.88 self 0.0497 nonLabor 1.86 w0 0.26 lam 0.5 w0*lam 0.13 a 6.2 X(N加重) 11.8 uH 2.57 bestMach 4.39 v 4.39 RH 2.54 winMach 0.85 uH<=0 0.16 fill 0.81 out/N 8.14 maxA 23.5
+       machine occupant (positive best): share of plan N 0.85  gross 5.22 capital charge 0.0446  kinds animal/water/steam/electric 1/9.3e-05/0/0
+       denominators: slotCost 3.99 bond 0.0363 wear12 0.0272 crowd 0.00258 heat 0.0278 floorShare 0
+   1790s: price 2.19 self 0.0445 nonLabor 1.52 w0 0.269 lam 0.5 w0*lam 0.134 a 19.5 X(N加重) 14.8 uH -2.46 bestMach 3.35 v 3.35 RH -2.42 winMach 0.9 uH<=0 0.12 fill 0.85 out/N 8.24 maxA 8548
+       machine occupant (positive best): share of plan N 0.9  gross 3.77 capital charge 0.042  kinds animal/water/steam/electric 1/0.00085/0/0
+       denominators: slotCost 4.5 bond 0.0397 wear12 0.0272 crowd 0.00533 heat 0.0201 floorShare 0
+   1800s: price 2.37 self 0.0478 nonLabor 1.56 w0 0.344 lam 0.5 w0*lam 0.172 a 29 X(N加重) 18.7 uH -7.18 bestMach 2.76 v 2.76 RH -5.43 winMach 0.92 uH<=0 0.11 fill 0.89 out/N 7.46 maxA 4393
+       machine occupant (positive best): share of plan N 0.92  gross 3.04 capital charge 0.0424  kinds animal/water/steam/electric 1/0.0012/0/0
+       denominators: slotCost 5.01 bond 0.0256 wear12 0.0272 crowd 0 heat 0.00316 floorShare 0
+   1810s: price 2.05 self 0.0528 nonLabor 1.46 w0 0.243 lam 0.5 w0*lam 0.122 a 26.5 X(N加重) 25.5 uH -2.65 bestMach 1.91 v 1.91 RH -2.85 winMach 0.94 uH<=0 0.081 fill 0.82 out/N 6.11 maxA 8005
+       machine occupant (positive best): share of plan N 0.94  gross 2.08 capital charge 0.0406  kinds animal/water/steam/electric 1/0.00021/0/0
+       denominators: slotCost 4.88 bond 0.0277 wear12 0.0272 crowd 0 heat 0.0061 floorShare 0
+   1820s: price 1.98 self 0.0577 nonLabor 1.49 w0 0.25 lam 0.5 w0*lam 0.125 a 32.2 X(N加重) 34.9 uH -3.55 bestMach 1.24 v 1.24 RH -3.59 winMach 0.94 uH<=0 0.083 fill 0.73 out/N 4.32 maxA 5127
+       machine occupant (positive best): share of plan N 0.94  gross 1.36 capital charge 0.0428  kinds animal/water/steam/electric 1/8.9e-05/0/0
+       denominators: slotCost 5.44 bond 0.025 wear12 0.0272 crowd 0 heat 0.00254 floorShare 0
+   1830s: price 1.95 self 0.0605 nonLabor 1.51 w0 0.27 lam 0.5 w0*lam 0.135 a 50.5 X(N加重) 43.2 uH -6.06 bestMach 0.706 v 0.706 RH -5.43 winMach 0.92 uH<=0 0.14 fill 0.75 out/N 3.28 maxA 7550
+       machine occupant (positive best): share of plan N 0.92  gross 0.807 capital charge 0.0417  kinds animal/water/steam/electric 1/0.00066/0/0
+       denominators: slotCost 5.77 bond 0.0243 wear12 0.0272 crowd 0 heat 0.00614 floorShare 0
+   1840s: price 2.03 self 0.0609 nonLabor 1.6 w0 0.294 lam 0.5 w0*lam 0.147 a 76.7 X(N加重) 46.3 uH -11.7 bestMach 0.648 v 0.648 RH -8.85 winMach 0.82 uH<=0 0.28 fill 0.65 out/N 2.64 maxA 22541
+       machine occupant (positive best): share of plan N 0.82  gross 0.837 capital charge 0.0447  kinds animal/water/steam/electric 1/0.0018/0/0
+       denominators: slotCost 6.59 bond 0.0238 wear12 0.0272 crowd 0 heat 0.0119 floorShare 0
+   1850s: price 2.14 self 0.0601 nonLabor 1.72 w0 0.322 lam 0.5 w0*lam 0.161 a 56.5 X(N加重) 46.8 uH -10.1 bestMach 0.646 v 0.646 RH -6.28 winMach 0.71 uH<=0 0.38 fill 0.62 out/N 2.41 maxA 7257
+       machine occupant (positive best): share of plan N 0.71  gross 0.957 capital charge 0.0469  kinds animal/water/steam/electric 1/0.00066/0/0
+       denominators: slotCost 7.54 bond 0.0251 wear12 0.0272 crowd 0 heat 0.0169 floorShare 0
+フランス other
+   1783-89: price 7.49 self 0.0497 nonLabor 2.98 w0 0.258 lam 0.5 w0*lam 0.129 a 8.68 X(N加重) 92.6 uH 2.27 bestMach 3.4 v 3.4 RH 2.27 winMach 0.74 uH<=0 0.26 fill 0.6 out/N 8.76 maxA 3262
+       machine occupant (positive best): share of plan N 0.74  gross 4.65 capital charge 0.0449  kinds animal/water/steam/electric 1/2e-05/0/0
+       denominators: slotCost 3.8 bond 0.0363 wear12 0.0272 crowd 0.00263 heat 0.0277 floorShare 0
+   1790s: price 5.24 self 0.0444 nonLabor 3.39 w0 0.263 lam 0.5 w0*lam 0.131 a 56.2 X(N加重) 97.3 uH -1.78 bestMach 2.08 v 2.08 RH -1.79 winMach 0.76 uH<=0 0.24 fill 0.68 out/N 8.17 maxA 93967
+       machine occupant (positive best): share of plan N 0.77  gross 2.73 capital charge 0.0418  kinds animal/water/steam/electric 0.99/0.0062/0/0
+       denominators: slotCost 4.38 bond 0.0398 wear12 0.0272 crowd 0.00536 heat 0.0205 floorShare 0
+   1800s: price 4.85 self 0.0477 nonLabor 3.34 w0 0.336 lam 0.5 w0*lam 0.168 a 13.1 X(N加重) 126 uH -0.172 bestMach 1.8 v 1.8 RH -0.134 winMach 0.82 uH<=0 0.19 fill 0.76 out/N 8.28 maxA 40960
+       machine occupant (positive best): share of plan N 0.82  gross 2.23 capital charge 0.0417  kinds animal/water/steam/electric 1/0.0014/0/0
+       denominators: slotCost 4.93 bond 0.0256 wear12 0.0272 crowd 0 heat 0.00308 floorShare 0
+   1810s: price 3.78 self 0.0526 nonLabor 2.53 w0 0.243 lam 0.5 w0*lam 0.121 a 18.2 X(N加重) 166 uH -0.282 bestMach 1.34 v 1.34 RH -0.302 winMach 0.87 uH<=0 0.13 fill 0.74 out/N 7.27 maxA 16488
+       machine occupant (positive best): share of plan N 0.87  gross 1.58 capital charge 0.0405  kinds animal/water/steam/electric 1/0.00094/0/0
+       denominators: slotCost 4.85 bond 0.0277 wear12 0.0272 crowd 0 heat 0.00615 floorShare 0
+   1820s: price 2.64 self 0.0575 nonLabor 1.82 w0 0.248 lam 0.5 w0*lam 0.124 a 12.1 X(N加重) 237 uH 0.015 bestMach 1.05 v 1.05 RH 0.0152 winMach 0.92 uH<=0 0.08 fill 0.7 out/N 5.96 maxA 6920
+       machine occupant (positive best): share of plan N 0.92  gross 1.18 capital charge 0.0425  kinds animal/water/steam/electric 1/0.0003/0/0
+       denominators: slotCost 5.43 bond 0.025 wear12 0.0272 crowd 0 heat 0.00255 floorShare 0
+   1830s: price 2.16 self 0.0602 nonLabor 1.47 w0 0.268 lam 0.5 w0*lam 0.134 a 21.1 X(N加重) 316 uH -0.78 bestMach 0.759 v 0.759 RH -0.703 winMach 0.94 uH<=0 0.075 fill 0.71 out/N 4.91 maxA 36446
+       machine occupant (positive best): share of plan N 0.94  gross 0.852 capital charge 0.0421  kinds animal/water/steam/electric 1/0.00021/0/0
+       denominators: slotCost 5.79 bond 0.0243 wear12 0.0272 crowd 0 heat 0.00614 floorShare 0
+   1840s: price 1.78 self 0.0606 nonLabor 1.16 w0 0.293 lam 0.5 w0*lam 0.147 a 14.5 X(N加重) 406 uH -0.454 bestMach 0.729 v 0.729 RH -0.344 winMach 0.95 uH<=0 0.072 fill 0.64 out/N 4.06 maxA 5799
+       machine occupant (positive best): share of plan N 0.95  gross 0.812 capital charge 0.0448  kinds animal/water/steam/electric 1/0.00075/0/0
+       denominators: slotCost 6.67 bond 0.0238 wear12 0.0272 crowd 0 heat 0.0119 floorShare 0
+   1850s: price 1.57 self 0.0598 nonLabor 1.03 w0 0.319 lam 0.5 w0*lam 0.16 a 13.9 X(N加重) 491 uH -0.576 bestMach 0.697 v 0.697 RH -0.362 winMach 0.94 uH<=0 0.075 fill 0.61 out/N 3.56 maxA 44242
+       machine occupant (positive best): share of plan N 0.95  gross 0.779 capital charge 0.0462  kinds animal/water/steam/electric 1/0.00045/0/0
+       denominators: slotCost 7.67 bond 0.0251 wear12 0.0272 crowd 0 heat 0.0169 floorShare 0
+プロイセン textile
+   1783-89: price 21.1 self 0.0514 nonLabor 9.52 w0 0.229 lam 0.5 w0*lam 0.114 a 3.41 X(N加重) 39.8 uH 1.12 bestMach 4.45 v 4.45 RH 1.25 winMach 0.44 uH<=0 0.57 fill 0.39 out/N 6.81 maxA 72.1
+       machine occupant (positive best): share of plan N 0.44  gross 10.1 capital charge 0.0464  kinds animal/water/steam/electric 1/0.0043/0/0
+       denominators: slotCost 3.26 bond 0.0334 wear12 0.0272 crowd 0.005 heat 0.0262 floorShare 0
+   1790s: price 20.4 self 0.0478 nonLabor 11.2 w0 0.212 lam 0.5 w0*lam 0.106 a 27 X(N加重) 33.3 uH -10.3 bestMach 1.73 v 1.73 RH -12.1 winMach 0.49 uH<=0 0.52 fill 0.52 out/N 7.22 maxA 27528
+       machine occupant (positive best): share of plan N 0.49  gross 3.54 capital charge 0.0421  kinds animal/water/steam/electric 1/0.0025/0/0
+       denominators: slotCost 3.61 bond 0.0348 wear12 0.0272 crowd 0.00529 heat 0.0178 floorShare 0
+   1800s: price 17.3 self 0.0494 nonLabor 9.32 w0 0.235 lam 0.5 w0*lam 0.118 a 140 X(N加重) 30.4 uH -18.9 bestMach 1.82 v 1.82 RH -18.9 winMach 0.57 uH<=0 0.48 fill 0.62 out/N 8.35 maxA 21191
+       machine occupant (positive best): share of plan N 0.57  gross 3.21 capital charge 0.0406  kinds animal/water/steam/electric 1/0.0017/0/0
+       denominators: slotCost 4.85 bond 0.0259 wear12 0.0272 crowd 0 heat 0.00403 floorShare 0
+   1810s: price 12.6 self 0.0507 nonLabor 7.76 w0 0.258 lam 0.5 w0*lam 0.129 a 91.1 X(N加重) 34.4 uH -11.6 bestMach 1.74 v 1.74 RH -9.72 winMach 0.72 uH<=0 0.34 fill 0.73 out/N 9.05 maxA 27550
+       machine occupant (positive best): share of plan N 0.72  gross 2.45 capital charge 0.0388  kinds animal/water/steam/electric 1/0.00071/0/0
+       denominators: slotCost 4.28 bond 0.0252 wear12 0.0272 crowd 0 heat 0.0058 floorShare 0
+   1820s: price 8.48 self 0.0515 nonLabor 5.25 w0 0.282 lam 0.5 w0*lam 0.141 a 15.9 X(N加重) 46.7 uH -2.18 bestMach 1.58 v 1.58 RH -1.51 winMach 0.81 uH<=0 0.21 fill 0.81 out/N 8.97 maxA 15617
+       machine occupant (positive best): share of plan N 0.81  gross 1.98 capital charge 0.039  kinds animal/water/steam/electric 1/0.00028/0/0
+       denominators: slotCost 4.46 bond 0.0246 wear12 0.0272 crowd 0 heat 0.00296 floorShare 0
+   1830s: price 5.79 self 0.0524 nonLabor 3.69 w0 0.323 lam 0.5 w0*lam 0.161 a 62.2 X(N加重) 61.8 uH -10.1 bestMach 1.49 v 1.49 RH -5.48 winMach 0.86 uH<=0 0.21 fill 0.87 out/N 8.64 maxA 20564
+       machine occupant (positive best): share of plan N 0.86  gross 1.78 capital charge 0.038  kinds animal/water/steam/electric 1/0.00054/0/0
+       denominators: slotCost 5.04 bond 0.0234 wear12 0.0272 crowd 0 heat 0.0204 floorShare 0
+   1840s: price 3.93 self 0.0527 nonLabor 2.39 w0 0.359 lam 0.5 w0*lam 0.179 a 40 X(N加重) 77.7 uH -6.18 bestMach 1.41 v 1.41 RH -2.74 winMach 0.91 uH<=0 0.32 fill 0.9 out/N 8.15 maxA 12515
+       machine occupant (positive best): share of plan N 0.91  gross 1.6 capital charge 0.0397  kinds animal/water/steam/electric 1/0/0/0
+       denominators: slotCost 5.73 bond 0.0271 wear12 0.0272 crowd 0 heat 0.0283 floorShare 0
+   1850s: price 3.07 self 0.0539 nonLabor 1.93 w0 0.394 lam 0.5 w0*lam 0.197 a 55 X(N加重) 89.8 uH -8.27 bestMach 1.11 v 1.11 RH -3.13 winMach 0.91 uH<=0 0.5 fill 0.82 out/N 6.73 maxA 20286
+       machine occupant (positive best): share of plan N 0.91  gross 1.26 capital charge 0.0436  kinds animal/water/steam/electric 1/0/0/0
+       denominators: slotCost 6.54 bond 0.0274 wear12 0.0272 crowd 0 heat 0.0286 floorShare 0.0096
+プロイセン metalchem
+   1783-89: price 3.7 self 0.0513 nonLabor 2.07 w0 0.23 lam 0.5 w0*lam 0.115 a 22.1 X(N加重) 2.45 uH 1.86 bestMach 5.85 v 5.85 RH 2.06 winMach 0.84 uH<=0 0.17 fill 0.86 out/N 9.03 maxA 7179
+       machine occupant (positive best): share of plan N 0.84  gross 7.01 capital charge 0.0463  kinds animal/water/steam/electric 1/0.00025/0/0
+       denominators: slotCost 3.25 bond 0.0332 wear12 0.0272 crowd 0.00481 heat 0.0262 floorShare 0
+   1790s: price 2.34 self 0.0479 nonLabor 1.63 w0 0.213 lam 0.5 w0*lam 0.106 a 11.9 X(N加重) 3.08 uH -2.6 bestMach 4.39 v 4.39 RH -3.05 winMach 0.92 uH<=0 0.08 fill 0.92 out/N 9.8 maxA 6371
+       machine occupant (positive best): share of plan N 0.92  gross 4.82 capital charge 0.0421  kinds animal/water/steam/electric 1/0.0042/0/0
+       denominators: slotCost 3.63 bond 0.0342 wear12 0.0272 crowd 0.00506 heat 0.0168 floorShare 0
+   1800s: price 2.08 self 0.0495 nonLabor 1.62 w0 0.236 lam 0.5 w0*lam 0.118 a 27.2 X(N加重) 4.19 uH -3.77 bestMach 3.61 v 3.61 RH -3.74 winMach 0.93 uH<=0 0.079 fill 0.94 out/N 8.84 maxA 9446
+       machine occupant (positive best): share of plan N 0.93  gross 3.92 capital charge 0.0405  kinds animal/water/steam/electric 1/0.002/0/0
+       denominators: slotCost 4.86 bond 0.0259 wear12 0.0272 crowd 0 heat 0.00412 floorShare 0
+   1810s: price 1.9 self 0.0507 nonLabor 1.57 w0 0.259 lam 0.5 w0*lam 0.129 a 20.9 X(N加重) 5.06 uH -0.618 bestMach 2.11 v 2.11 RH -0.514 winMach 0.95 uH<=0 0.077 fill 0.95 out/N 7.32 maxA 7425
+       machine occupant (positive best): share of plan N 0.95  gross 2.27 capital charge 0.0389  kinds animal/water/steam/electric 1/0.00088/0/0
+       denominators: slotCost 4.27 bond 0.0251 wear12 0.0272 crowd 0 heat 0.00566 floorShare 0
+   1820s: price 1.86 self 0.0515 nonLabor 1.35 w0 0.282 lam 0.5 w0*lam 0.141 a 44 X(N加重) 6.56 uH -5.44 bestMach 1.97 v 1.97 RH -3.76 winMach 0.95 uH<=0 0.077 fill 0.96 out/N 6.77 maxA 7843
+       machine occupant (positive best): share of plan N 0.95  gross 2.1 capital charge 0.0389  kinds animal/water/steam/electric 1/0.00036/0/0
+       denominators: slotCost 4.46 bond 0.0246 wear12 0.0272 crowd 0 heat 0.00303 floorShare 0
+   1830s: price 1.92 self 0.0524 nonLabor 1.42 w0 0.323 lam 0.5 w0*lam 0.162 a 104 X(N加重) 7.9 uH -21.1 bestMach 1.74 v 1.74 RH -11.5 winMach 0.91 uH<=0 0.15 fill 0.95 out/N 6.09 maxA 6976
+       machine occupant (positive best): share of plan N 0.91  gross 1.95 capital charge 0.0379  kinds animal/water/steam/electric 1/0.00017/0/0
+       denominators: slotCost 5.04 bond 0.0234 wear12 0.0272 crowd 0 heat 0.0205 floorShare 0
+   1840s: price 2.03 self 0.0527 nonLabor 1.63 w0 0.359 lam 0.5 w0*lam 0.18 a 103 X(N加重) 8.85 uH -29.6 bestMach 1.68 v 1.68 RH -13.1 winMach 0.82 uH<=0 0.28 fill 0.92 out/N 5.52 maxA 6718
+       machine occupant (positive best): share of plan N 0.82  gross 2.09 capital charge 0.0396  kinds animal/water/steam/electric 1/0.0002/0/0
+       denominators: slotCost 5.73 bond 0.0271 wear12 0.0272 crowd 0 heat 0.0284 floorShare 0
+   1850s: price 2.27 self 0.0539 nonLabor 1.83 w0 0.394 lam 0.5 w0*lam 0.197 a 106 X(N加重) 10.8 uH -29.3 bestMach 1.91 v 1.91 RH -11 winMach 0.81 uH<=0 0.3 fill 0.84 out/N 5.06 maxA 13731
+       machine occupant (positive best): share of plan N 0.81  gross 2.41 capital charge 0.0437  kinds animal/water/steam/electric 1/7.5e-05/0/0
+       denominators: slotCost 6.55 bond 0.0273 wear12 0.0272 crowd 0 heat 0.0286 floorShare 0.0093
+プロイセン other
+   1783-89: price 7.25 self 0.0513 nonLabor 3.12 w0 0.229 lam 0.5 w0*lam 0.114 a 9.78 X(N加重) 20 uH 2.82 bestMach 5.91 v 5.91 RH 3.15 winMach 0.75 uH<=0 0.25 fill 0.71 out/N 10.8 maxA 5263
+       machine occupant (positive best): share of plan N 0.75  gross 7.91 capital charge 0.0464  kinds animal/water/steam/electric 1/1.2e-11/0/0
+       denominators: slotCost 3.26 bond 0.0332 wear12 0.0272 crowd 0.00484 heat 0.0262 floorShare 0
+   1790s: price 5.39 self 0.0478 nonLabor 3.28 w0 0.212 lam 0.5 w0*lam 0.106 a 23.8 X(N加重) 24.3 uH -1.85 bestMach 3.3 v 3.3 RH -2.2 winMach 0.8 uH<=0 0.2 fill 0.78 out/N 10.5 maxA 50010
+       machine occupant (positive best): share of plan N 0.8  gross 4.16 capital charge 0.0422  kinds animal/water/steam/electric 1/0.0021/0/0
+       denominators: slotCost 3.62 bond 0.0345 wear12 0.0272 crowd 0.00517 heat 0.0172 floorShare 0
+   1800s: price 3.09 self 0.0494 nonLabor 2.36 w0 0.235 lam 0.5 w0*lam 0.118 a 35.4 X(N加重) 35.7 uH -10.2 bestMach 2.76 v 2.76 RH -10.2 winMach 0.86 uH<=0 0.14 fill 0.84 out/N 10.5 maxA 11941
+       machine occupant (positive best): share of plan N 0.86  gross 3.23 capital charge 0.0404  kinds animal/water/steam/electric 1/0.00078/0/0
+       denominators: slotCost 4.79 bond 0.0259 wear12 0.0272 crowd 0 heat 0.00409 floorShare 0
+   1810s: price 2.84 self 0.0507 nonLabor 2.15 w0 0.258 lam 0.5 w0*lam 0.129 a 34 X(N加重) 43.9 uH -12.2 bestMach 2.12 v 2.12 RH -10.2 winMach 0.89 uH<=0 0.12 fill 0.88 out/N 9.98 maxA 10196
+       machine occupant (positive best): share of plan N 0.89  gross 2.42 capital charge 0.0388  kinds animal/water/steam/electric 1/0.00025/0/0
+       denominators: slotCost 4.29 bond 0.0251 wear12 0.0272 crowd 0 heat 0.00559 floorShare 0
+   1820s: price 2.23 self 0.0515 nonLabor 1.65 w0 0.282 lam 0.5 w0*lam 0.141 a 24.5 X(N加重) 59.5 uH -1.96 bestMach 1.71 v 1.71 RH -1.36 winMach 0.93 uH<=0 0.08 fill 0.9 out/N 9.14 maxA 8227
+       machine occupant (positive best): share of plan N 0.93  gross 1.89 capital charge 0.0389  kinds animal/water/steam/electric 1/2.9e-05/0/0
+       denominators: slotCost 4.46 bond 0.0246 wear12 0.0272 crowd 0 heat 0.003 floorShare 0
+   1830s: price 1.82 self 0.0524 nonLabor 1.37 w0 0.323 lam 0.5 w0*lam 0.161 a 41.7 X(N加重) 72.9 uH -2.6 bestMach 1.44 v 1.44 RH -1.42 winMach 0.93 uH<=0 0.079 fill 0.92 out/N 8.24 maxA 20603
+       machine occupant (positive best): share of plan N 0.93  gross 1.58 capital charge 0.038  kinds animal/water/steam/electric 1/1.4e-09/0/0
+       denominators: slotCost 5.05 bond 0.0234 wear12 0.0272 crowd 0 heat 0.0204 floorShare 0
+   1840s: price 1.58 self 0.0527 nonLabor 1.12 w0 0.359 lam 0.5 w0*lam 0.179 a 22.5 X(N加重) 84.6 uH -1.51 bestMach 1.23 v 1.23 RH -0.671 winMach 0.95 uH<=0 0.062 fill 0.92 out/N 7.35 maxA 6572
+       machine occupant (positive best): share of plan N 0.95  gross 1.34 capital charge 0.0397  kinds animal/water/steam/electric 1/1.6e-09/0/0
+       denominators: slotCost 5.74 bond 0.0271 wear12 0.0272 crowd 0 heat 0.0283 floorShare 0
+   1850s: price 1.51 self 0.0539 nonLabor 1.07 w0 0.394 lam 0.5 w0*lam 0.197 a 37.2 X(N加重) 94.5 uH -2.73 bestMach 1.11 v 1.11 RH -1.03 winMach 0.94 uH<=0 0.073 fill 0.84 out/N 6.42 maxA 7783
+       machine occupant (positive best): share of plan N 0.94  gross 1.22 capital charge 0.0436  kinds animal/water/steam/electric 1/8.6e-09/0/0
+       denominators: slotCost 6.55 bond 0.0274 wear12 0.0272 crowd 0 heat 0.0286 floorShare 0.0096
+アメリカ textile
+   1783-89: price 21.1 self 0.0507 nonLabor 9.43 w0 0.315 lam 0.5 w0*lam 0.158 a 3.08 X(N加重) 70.1 uH 1.08 bestMach 3.89 v 3.89 RH 0.864 winMach 0.42 uH<=0 0.59 fill 0.34 out/N 5.51 maxA 106
+       machine occupant (positive best): share of plan N 0.42  gross 9.36 capital charge 0.0444  kinds animal/water/steam/electric 1/0.00047/0/0
+       denominators: slotCost 3.6 bond 0.0312 wear12 0.0272 crowd 0.00306 heat 0.0257 floorShare 0
+   1790s: price 17.3 self 0.044 nonLabor 7.73 w0 0.311 lam 0.5 w0*lam 0.155 a 6.1 X(N加重) 55.1 uH -0.874 bestMach 3.35 v 3.35 RH -0.759 winMach 0.48 uH<=0 0.55 fill 0.44 out/N 8.27 maxA 7857
+       machine occupant (positive best): share of plan N 0.48  gross 7.03 capital charge 0.0365  kinds animal/water/steam/electric 0.57/0.002/0.43/0
+       denominators: slotCost 4.02 bond 0.0272 wear12 0.0272 crowd 0 heat 0.0244 floorShare 0
+   1800s: price 15.3 self 0.0411 nonLabor 6.71 w0 0.342 lam 0.5 w0*lam 0.171 a 12.4 X(N加重) 49.4 uH -2.57 bestMach 3.75 v 3.75 RH -1.95 winMach 0.57 uH<=0 0.48 fill 0.54 out/N 10.8 maxA 39915
+       machine occupant (positive best): share of plan N 0.57  gross 6.69 capital charge 0.0638  kinds animal/water/steam/electric 0.038/8.5e-05/0.96/0
+       denominators: slotCost 4.23 bond 0.0257 wear12 0.0272 crowd 0 heat 0.00842 floorShare 0
+   1810s: price 12.4 self 0.0411 nonLabor 5.45 w0 0.166 lam 0.5 w0*lam 0.0831 a 26 X(N加重) 47 uH -2.71 bestMach 4.01 v 4.01 RH -4.07 winMach 0.66 uH<=0 0.34 fill 0.66 out/N 12.9 maxA 14388
+       machine occupant (positive best): share of plan N 0.66  gross 6.14 capital charge 0.066  kinds animal/water/steam/electric 0.019/0.00021/0.98/0
+       denominators: slotCost 4.64 bond 0.0236 wear12 0.0272 crowd 0 heat 0.0016 floorShare 0
+   1820s: price 8.95 self 0.0405 nonLabor 3.96 w0 0.214 lam 0.5 w0*lam 0.107 a 17.8 X(N加重) 59 uH -2.14 bestMach 7.6 v 7.6 RH -1.63 winMach 0.77 uH<=0 0.24 fill 0.73 out/N 17.1 maxA 38020
+       machine occupant (positive best): share of plan N 0.77  gross 9.93 capital charge 0.0436  kinds animal/water/steam/electric 0.046/0.00059/0.95/0
+       denominators: slotCost 5.62 bond 0.0231 wear12 0.0272 crowd 0 heat 0.00675 floorShare 0
+   1830s: price 6.84 self 0.0398 nonLabor 3.05 w0 0.224 lam 0.5 w0*lam 0.112 a 11.3 X(N加重) 76.9 uH 1.18 bestMach 8.63 v 8.63 RH 0.617 winMach 0.83 uH<=0 0.18 fill 0.79 out/N 21 maxA 10610
+       machine occupant (positive best): share of plan N 0.83  gross 10.4 capital charge 0.0411  kinds animal/water/steam/electric 0.063/0.00017/0.94/0
+       denominators: slotCost 10.1 bond 0.0256 wear12 0.0272 crowd 0 heat 0.0116 floorShare 0
+   1840s: price 5.78 self 0.0409 nonLabor 2.6 w0 0.274 lam 0.5 w0*lam 0.137 a 10.3 X(N加重) 102 uH 2.43 bestMach 13.4 v 13.4 RH 0.858 winMach 0.89 uH<=0 0.12 fill 0.82 out/N 25.5 maxA 17673
+       machine occupant (positive best): share of plan N 0.89  gross 15.2 capital charge 0.0376  kinds animal/water/steam/electric 0.0086/0.00012/0.99/0
+       denominators: slotCost 10.5 bond 0.0282 wear12 0.0272 crowd 0 heat 0.0252 floorShare 0
+   1850s: price 5.07 self 0.045 nonLabor 2.31 w0 0.331 lam 0.5 w0*lam 0.165 a 12.6 X(N加重) 128 uH 0.635 bestMach 12 v 12 RH 0.271 winMach 0.91 uH<=0 0.09 fill 0.79 out/N 24.4 maxA 7664
+       machine occupant (positive best): share of plan N 0.91  gross 13.1 capital charge 0.04  kinds animal/water/steam/electric 0.0094/0.00066/0.99/0
+       denominators: slotCost 7.3 bond 0.0289 wear12 0.0272 crowd 0 heat 0.0284 floorShare 0
+アメリカ metalchem
+   1783-89: price 2.72 self 0.0506 nonLabor 1.7 w0 0.313 lam 0.5 w0*lam 0.156 a 21.9 X(N加重) 5.01 uH 1.13 bestMach 4.59 v 4.59 RH 0.905 winMach 0.83 uH<=0 0.19 fill 0.85 out/N 7.98 maxA 8486
+       machine occupant (positive best): share of plan N 0.83  gross 5.55 capital charge 0.0421  kinds animal/water/steam/electric 1/0.00016/0/0
+       denominators: slotCost 3.49 bond 0.031 wear12 0.0272 crowd 0.00296 heat 0.0258 floorShare 0
+   1790s: price 1.71 self 0.0438 nonLabor 1.19 w0 0.306 lam 0.5 w0*lam 0.153 a 15.1 X(N加重) 6 uH -0.878 bestMach 5.57 v 5.57 RH -0.771 winMach 0.9 uH<=0 0.11 fill 0.87 out/N 9.87 maxA 9606
+       machine occupant (positive best): share of plan N 0.9  gross 6.2 capital charge 0.034  kinds animal/water/steam/electric 0.54/0.00025/0.46/0
+       denominators: slotCost 3.88 bond 0.0272 wear12 0.0272 crowd 0 heat 0.0241 floorShare 0
+   1800s: price 1.88 self 0.041 nonLabor 1.28 w0 0.334 lam 0.5 w0*lam 0.167 a 12.1 X(N加重) 7.63 uH -2.36 bestMach 7 v 7 RH -1.81 winMach 0.94 uH<=0 0.067 fill 0.87 out/N 10.7 maxA 6206
+       machine occupant (positive best): share of plan N 0.94  gross 7.48 capital charge 0.0659  kinds animal/water/steam/electric 0.013/8.1e-05/0.99/0
+       denominators: slotCost 4.11 bond 0.0256 wear12 0.0272 crowd 0 heat 0.00832 floorShare 0
+   1810s: price 1.78 self 0.0411 nonLabor 1.19 w0 0.168 lam 0.5 w0*lam 0.084 a 12 X(N加重) 9.54 uH 1.51 bestMach 7.44 v 7.44 RH 2.23 winMach 0.96 uH<=0 0.038 fill 0.95 out/N 11.9 maxA 6959
+       machine occupant (positive best): share of plan N 0.96  gross 7.78 capital charge 0.064  kinds animal/water/steam/electric 0.013/0.0008/0.99/0
+       denominators: slotCost 4.71 bond 0.0236 wear12 0.0272 crowd 0 heat 0.00155 floorShare 0
+   1820s: price 2.02 self 0.0406 nonLabor 1.35 w0 0.214 lam 0.5 w0*lam 0.107 a 11.2 X(N加重) 13.1 uH 2.43 bestMach 8.42 v 8.42 RH 1.86 winMach 0.97 uH<=0 0.032 fill 0.93 out/N 13 maxA 4044
+       machine occupant (positive best): share of plan N 0.97  gross 8.7 capital charge 0.043  kinds animal/water/steam/electric 0.013/9.5e-05/0.99/0
+       denominators: slotCost 5.61 bond 0.0231 wear12 0.0272 crowd 0 heat 0.00684 floorShare 0
+   1830s: price 2.11 self 0.0402 nonLabor 1.42 w0 0.225 lam 0.5 w0*lam 0.112 a 14 X(N加重) 15.3 uH 0.685 bestMach 8.65 v 8.65 RH 0.361 winMach 0.98 uH<=0 0.028 fill 0.93 out/N 14.1 maxA 6527
+       machine occupant (positive best): share of plan N 0.98  gross 8.9 capital charge 0.0419  kinds animal/water/steam/electric 0.013/6.8e-06/0.99/0
+       denominators: slotCost 10.7 bond 0.0256 wear12 0.0272 crowd 0 heat 0.0116 floorShare 0
+   1840s: price 2.41 self 0.0417 nonLabor 1.62 w0 0.275 lam 0.5 w0*lam 0.138 a 11.9 X(N加重) 17.5 uH 3.99 bestMach 10.4 v 10.4 RH 1.45 winMach 0.98 uH<=0 0.022 fill 0.92 out/N 15.2 maxA 4557
+       machine occupant (positive best): share of plan N 0.98  gross 10.6 capital charge 0.0387  kinds animal/water/steam/electric 0.0086/2e-06/0.99/0
+       denominators: slotCost 11.2 bond 0.0282 wear12 0.0272 crowd 0 heat 0.0251 floorShare 0
+   1850s: price 2.73 self 0.0459 nonLabor 1.86 w0 0.332 lam 0.5 w0*lam 0.166 a 32.9 X(N加重) 20.1 uH -4.65 bestMach 10.7 v 10.7 RH -2.04 winMach 0.97 uH<=0 0.038 fill 0.87 out/N 14.4 maxA 10582
+       machine occupant (positive best): share of plan N 0.97  gross 11.1 capital charge 0.0413  kinds animal/water/steam/electric 0.021/0/0.98/0
+       denominators: slotCost 7.45 bond 0.0289 wear12 0.0272 crowd 0 heat 0.0284 floorShare 0
+アメリカ other
+   1783-89: price 7.9 self 0.0506 nonLabor 3.06 w0 0.31 lam 0.5 w0*lam 0.155 a 8.63 X(N加重) 30.8 uH 2.22 bestMach 4.54 v 4.54 RH 1.79 winMach 0.71 uH<=0 0.29 fill 0.64 out/N 9.39 maxA 7789
+       machine occupant (positive best): share of plan N 0.71  gross 6.47 capital charge 0.0442  kinds animal/water/steam/electric 1/0.00012/0/0
+       denominators: slotCost 3.56 bond 0.031 wear12 0.0272 crowd 0.00299 heat 0.0258 floorShare 0
+   1790s: price 2.88 self 0.0438 nonLabor 1.68 w0 0.302 lam 0.5 w0*lam 0.151 a 15 X(N加重) 32.5 uH 0.393 bestMach 5.47 v 5.47 RH 0.351 winMach 0.83 uH<=0 0.16 fill 0.71 out/N 11.2 maxA 34192
+       machine occupant (positive best): share of plan N 0.84  gross 6.58 capital charge 0.0362  kinds animal/water/steam/electric 0.53/0.0018/0.47/0
+       denominators: slotCost 3.95 bond 0.0272 wear12 0.0272 crowd 0 heat 0.0241 floorShare 0
+   1800s: price 1.84 self 0.0409 nonLabor 1.27 w0 0.322 lam 0.5 w0*lam 0.161 a 11.1 X(N加重) 45.4 uH 2.79 bestMach 7.6 v 7.6 RH 2.19 winMach 0.89 uH<=0 0.12 fill 0.77 out/N 13 maxA 15389
+       machine occupant (positive best): share of plan N 0.89  gross 8.59 capital charge 0.0654  kinds animal/water/steam/electric 0.0061/0.00022/0.99/0
+       denominators: slotCost 4.15 bond 0.0256 wear12 0.0272 crowd 0 heat 0.00832 floorShare 0
+   1810s: price 1.41 self 0.0409 nonLabor 0.957 w0 0.169 lam 0.5 w0*lam 0.0845 a 20.8 X(N加重) 72.3 uH 3.69 bestMach 8.79 v 8.79 RH 5.45 winMach 0.92 uH<=0 0.068 fill 0.87 out/N 15.6 maxA 435181
+       machine occupant (positive best): share of plan N 0.93  gross 9.52 capital charge 0.0656  kinds animal/water/steam/electric 0.01/0.0014/0.99/0
+       denominators: slotCost 4.81 bond 0.0236 wear12 0.0272 crowd 0 heat 0.00154 floorShare 0
+   1820s: price 1.34 self 0.0404 nonLabor 0.817 w0 0.214 lam 0.5 w0*lam 0.107 a 14.7 X(N加重) 121 uH 3.62 bestMach 8.32 v 8.32 RH 2.73 winMach 0.95 uH<=0 0.048 fill 0.88 out/N 17.2 maxA 11715
+       machine occupant (positive best): share of plan N 0.95  gross 8.78 capital charge 0.0436  kinds animal/water/steam/electric 0.015/0.00014/0.99/0
+       denominators: slotCost 5.72 bond 0.0231 wear12 0.0272 crowd 0 heat 0.0068 floorShare 0
+   1830s: price 1.57 self 0.0398 nonLabor 0.955 w0 0.224 lam 0.5 w0*lam 0.112 a 17.1 X(N加重) 148 uH 3.76 bestMach 9.96 v 9.96 RH 1.96 winMach 0.96 uH<=0 0.037 fill 0.89 out/N 18.8 maxA 61260
+       machine occupant (positive best): share of plan N 0.96  gross 10.4 capital charge 0.0417  kinds animal/water/steam/electric 0.012/9.5e-05/0.99/0
+       denominators: slotCost 10.1 bond 0.0256 wear12 0.0272 crowd 0 heat 0.0116 floorShare 0
+   1840s: price 1.79 self 0.041 nonLabor 1.01 w0 0.274 lam 0.5 w0*lam 0.137 a 24.9 X(N加重) 163 uH -9.99 bestMach 11.8 v 11.8 RH -3.55 winMach 0.97 uH<=0 0.034 fill 0.88 out/N 19 maxA 91683
+       machine occupant (positive best): share of plan N 0.97  gross 12.2 capital charge 0.0382  kinds animal/water/steam/electric 0.0067/3.4e-07/0.99/0
+       denominators: slotCost 10.8 bond 0.0282 wear12 0.0272 crowd 0 heat 0.0252 floorShare 0
+   1850s: price 1.81 self 0.0452 nonLabor 0.994 w0 0.33 lam 0.5 w0*lam 0.165 a 159 X(N加重) 177 uH -7.82 bestMach 12 v 12 RH -3.36 winMach 0.97 uH<=0 0.044 fill 0.82 out/N 17.8 maxA 66443
+       machine occupant (positive best): share of plan N 0.97  gross 12.4 capital charge 0.0406  kinds animal/water/steam/electric 0.016/1.5e-07/0.98/0
+       denominators: slotCost 7.38 bond 0.0289 wear12 0.0272 crowd 0 heat 0.0284 floorShare 0
+日本 textile
+   1783-89: price 21 self 0.0518 nonLabor 9.19 w0 0.205 lam 0.5 w0*lam 0.102 a 2.27 X(N加重) 207 uH 1.07 bestMach 3.16 v 3.16 RH 1.57 winMach 0.42 uH<=0 0.59 fill 0.23 out/N 3.62 maxA 30.3
+       machine occupant (positive best): share of plan N 0.42  gross 7.66 capital charge 0.0481  kinds animal/water/steam/electric 1/0.00016/0/0
+       denominators: slotCost 3.34 bond 0.0306 wear12 0.0272 crowd 0 heat 0.0259 floorShare 0
+   1790s: price 20.5 self 0.0465 nonLabor 8.96 w0 0.166 lam 0.5 w0*lam 0.0831 a 28.2 X(N加重) 173 uH -1.99 bestMach 1.06 v 1.06 RH -3.84 winMach 0.47 uH<=0 0.56 fill 0.4 out/N 4.82 maxA 26252
+       machine occupant (positive best): share of plan N 0.47  gross 2.27 capital charge 0.0391  kinds animal/water/steam/electric 1/5.4e-06/0/0
+       denominators: slotCost 3.64 bond 0.0324 wear12 0.0272 crowd 0.00571 heat 0.0204 floorShare 0
+   1800s: price 17.1 self 0.0462 nonLabor 8.06 w0 0.159 lam 0.5 w0*lam 0.0794 a 19.1 X(N加重) 154 uH -0.896 bestMach 0.639 v 0.639 RH -1.82 winMach 0.6 uH<=0 0.49 fill 0.6 out/N 5.68 maxA 21639
+       machine occupant (positive best): share of plan N 0.6  gross 1.1 capital charge 0.0321  kinds animal/water/steam/electric 1/0.0005/0/0
+       denominators: slotCost 3.81 bond 0.0288 wear12 0.0272 crowd 0 heat 0.00353 floorShare 0
+   1810s: price 14 self 0.0485 nonLabor 6.33 w0 0.176 lam 0.5 w0*lam 0.0878 a 3.82 X(N加重) 156 uH 0.00258 bestMach 0.586 v 0.586 RH 0.00447 winMach 0.71 uH<=0 0.39 fill 0.63 out/N 5.26 maxA 4545
+       machine occupant (positive best): share of plan N 0.71  gross 0.865 capital charge 0.0336  kinds animal/water/steam/electric 1/0.00029/0/0
+       denominators: slotCost 4.53 bond 0.0271 wear12 0.0272 crowd 0 heat 0.00369 floorShare 0
+   1820s: price 9.96 self 0.0506 nonLabor 4.4 w0 0.194 lam 0.5 w0*lam 0.0969 a 3.39 X(N加重) 183 uH 0.0579 bestMach 0.711 v 0.711 RH 0.0856 winMach 0.8 uH<=0 0.27 fill 0.66 out/N 5.94 maxA 11120
+       machine occupant (positive best): share of plan N 0.8  gross 0.926 capital charge 0.0346  kinds animal/water/steam/electric 1/0.0002/0/0
+       denominators: slotCost 4.71 bond 0.0269 wear12 0.0272 crowd 0 heat 0.00842 floorShare 0
+   1830s: price 6.68 self 0.0519 nonLabor 3.16 w0 0.223 lam 0.5 w0*lam 0.112 a 4.13 X(N加重) 245 uH -0.0269 bestMach 0.65 v 0.65 RH -0.0308 winMach 0.87 uH<=0 0.3 fill 0.82 out/N 6.3 maxA 22271
+       machine occupant (positive best): share of plan N 0.87  gross 0.782 capital charge 0.0341  kinds animal/water/steam/electric 1/7.7e-05/0/0
+       denominators: slotCost 4.78 bond 0.0251 wear12 0.0272 crowd 0 heat 0.0116 floorShare 0
+   1840s: price 4.45 self 0.0522 nonLabor 2.09 w0 0.231 lam 0.5 w0*lam 0.115 a 3.71 X(N加重) 336 uH -0.0893 bestMach 0.46 v 0.46 RH -0.0959 winMach 0.92 uH<=0 0.57 fill 0.91 out/N 5.6 maxA 13070
+       machine occupant (positive best): share of plan N 0.92  gross 0.532 capital charge 0.0326  kinds animal/water/steam/electric 1/2.8e-07/0/0
+       denominators: slotCost 4.63 bond 0.0277 wear12 0.0272 crowd 0 heat 0.016 floorShare 0
+   1850s: price 3.21 self 0.0541 nonLabor 1.55 w0 0.238 lam 0.5 w0*lam 0.119 a 2.39 X(N加重) 441 uH -0.039 bestMach 0.344 v 0.344 RH -0.0408 winMach 0.95 uH<=0 0.78 fill 0.92 out/N 4.8 maxA 5059
+       machine occupant (positive best): share of plan N 0.95  gross 0.396 capital charge 0.033  kinds animal/water/steam/electric 1/6.1e-05/0/0
+       denominators: slotCost 4.88 bond 0.0256 wear12 0.0272 crowd 0 heat 0.0144 floorShare 0
+日本 metalchem
+   1783-89: price 2 self 0.0517 nonLabor 1.4 w0 0.203 lam 0.5 w0*lam 0.102 a 4.52 X(N加重) 14.7 uH 2.48 bestMach 4.02 v 4.02 RH 3.64 winMach 0.86 uH<=0 0.15 fill 0.55 out/N 5.72 maxA 652
+       machine occupant (positive best): share of plan N 0.86  gross 4.75 capital charge 0.048  kinds animal/water/steam/electric 1/0.00019/0/0
+       denominators: slotCost 3.32 bond 0.0306 wear12 0.0272 crowd 0 heat 0.0259 floorShare 0
+   1790s: price 1.61 self 0.0464 nonLabor 1.16 w0 0.165 lam 0.5 w0*lam 0.0826 a 32.9 X(N加重) 19 uH -0.447 bestMach 2.6 v 2.6 RH -0.87 winMach 0.89 uH<=0 0.12 fill 0.8 out/N 6.89 maxA 8393
+       machine occupant (positive best): share of plan N 0.89  gross 2.95 capital charge 0.0387  kinds animal/water/steam/electric 1/0.00092/0/0
+       denominators: slotCost 3.63 bond 0.0318 wear12 0.0272 crowd 0.00545 heat 0.0194 floorShare 0
+   1800s: price 1.47 self 0.0463 nonLabor 1.12 w0 0.159 lam 0.5 w0*lam 0.0796 a 52.5 X(N加重) 27.3 uH -2.21 bestMach 1.63 v 1.63 RH -4.48 winMach 0.91 uH<=0 0.1 fill 0.97 out/N 6.68 maxA 4978
+       machine occupant (positive best): share of plan N 0.91  gross 1.82 capital charge 0.032  kinds animal/water/steam/electric 1/0.00047/0/0
+       denominators: slotCost 3.85 bond 0.0289 wear12 0.0272 crowd 0 heat 0.0035 floorShare 0
+   1810s: price 1.54 self 0.0488 nonLabor 1.21 w0 0.179 lam 0.5 w0*lam 0.0894 a 51.9 X(N加重) 42.4 uH -3.41 bestMach 1.23 v 1.23 RH -5.75 winMach 0.93 uH<=0 0.083 fill 0.87 out/N 5.41 maxA 23583
+       machine occupant (positive best): share of plan N 0.93  gross 1.36 capital charge 0.0337  kinds animal/water/steam/electric 1/0.00014/0/0
+       denominators: slotCost 4.67 bond 0.027 wear12 0.0272 crowd 0 heat 0.00371 floorShare 0
+   1820s: price 1.62 self 0.0509 nonLabor 1.32 w0 0.198 lam 0.5 w0*lam 0.0991 a 43.3 X(N加重) 54.9 uH -3.95 bestMach 0.973 v 0.973 RH -5.63 winMach 0.93 uH<=0 0.086 fill 0.82 out/N 4.4 maxA 6112
+       machine occupant (positive best): share of plan N 0.93  gross 1.08 capital charge 0.0349  kinds animal/water/steam/electric 1/9.5e-05/0/0
+       denominators: slotCost 4.75 bond 0.0269 wear12 0.0272 crowd 0 heat 0.00845 floorShare 0
+   1830s: price 1.81 self 0.0525 nonLabor 1.58 w0 0.229 lam 0.5 w0*lam 0.114 a 95.4 X(N加重) 54.6 uH -12.8 bestMach 0.683 v 0.683 RH -14.2 winMach 0.76 uH<=0 0.3 fill 0.92 out/N 3.58 maxA 19413
+       machine occupant (positive best): share of plan N 0.76  gross 0.929 capital charge 0.0346  kinds animal/water/steam/electric 1/0.0001/0/0
+       denominators: slotCost 4.79 bond 0.0251 wear12 0.0272 crowd 0 heat 0.0115 floorShare 0
+   1840s: price 1.73 self 0.053 nonLabor 1.62 w0 0.238 lam 0.5 w0*lam 0.119 a 72.5 X(N加重) 54.2 uH -9.83 bestMach 0.508 v 0.508 RH -10 winMach 0.69 uH<=0 0.4 fill 0.94 out/N 2.94 maxA 16107
+       machine occupant (positive best): share of plan N 0.69  gross 0.768 capital charge 0.033  kinds animal/water/steam/electric 1/0.00052/0/0
+       denominators: slotCost 4.7 bond 0.0277 wear12 0.0272 crowd 0 heat 0.016 floorShare 0
+   1850s: price 1.82 self 0.0551 nonLabor 1.74 w0 0.247 lam 0.5 w0*lam 0.124 a 59.6 X(N加重) 63.5 uH -8.16 bestMach 0.444 v 0.444 RH -8.04 winMach 0.71 uH<=0 0.38 fill 0.92 out/N 2.59 maxA 10732
+       machine occupant (positive best): share of plan N 0.71  gross 0.661 capital charge 0.0332  kinds animal/water/steam/electric 1/0.00074/0/0
+       denominators: slotCost 5 bond 0.0256 wear12 0.0272 crowd 0 heat 0.0144 floorShare 0
+日本 other
+   1783-89: price 4.22 self 0.0517 nonLabor 2.05 w0 0.204 lam 0.5 w0*lam 0.102 a 6.36 X(N加重) 75.4 uH 3.19 bestMach 4.4 v 4.4 RH 4.69 winMach 0.86 uH<=0 0.14 fill 0.48 out/N 7.37 maxA 3239
+       machine occupant (positive best): share of plan N 0.86  gross 5.17 capital charge 0.0482  kinds animal/water/steam/electric 1/0.00014/0/0
+       denominators: slotCost 3.35 bond 0.0306 wear12 0.0272 crowd 0 heat 0.0259 floorShare 0
+   1790s: price 2.53 self 0.0464 nonLabor 1.62 w0 0.165 lam 0.5 w0*lam 0.0827 a 20.1 X(N加重) 101 uH -0.404 bestMach 2.15 v 2.15 RH -0.785 winMach 0.88 uH<=0 0.12 fill 0.71 out/N 7.67 maxA 11709
+       machine occupant (positive best): share of plan N 0.88  gross 2.48 capital charge 0.0391  kinds animal/water/steam/electric 1/0.0018/0/0
+       denominators: slotCost 3.66 bond 0.032 wear12 0.0272 crowd 0.00556 heat 0.0197 floorShare 0
+   1800s: price 2.19 self 0.0461 nonLabor 1.54 w0 0.159 lam 0.5 w0*lam 0.0793 a 16.5 X(N加重) 137 uH -2.42 bestMach 1.12 v 1.13 RH -4.93 winMach 0.91 uH<=0 0.083 fill 0.9 out/N 7.98 maxA 8640
+       machine occupant (positive best): share of plan N 0.91  gross 1.26 capital charge 0.0323  kinds animal/water/steam/electric 1/0.00066/0/0
+       denominators: slotCost 3.88 bond 0.0288 wear12 0.0272 crowd 0 heat 0.00351 floorShare 0
+   1810s: price 1.93 self 0.0484 nonLabor 1.28 w0 0.175 lam 0.5 w0*lam 0.0877 a 12.2 X(N加重) 192 uH -2.24 bestMach 0.989 v 0.989 RH -3.89 winMach 0.94 uH<=0 0.058 fill 0.82 out/N 6.97 maxA 9616
+       machine occupant (positive best): share of plan N 0.94  gross 1.08 capital charge 0.0337  kinds animal/water/steam/electric 1/0.00014/0/0
+       denominators: slotCost 4.56 bond 0.027 wear12 0.0272 crowd 0 heat 0.00371 floorShare 0
+   1820s: price 1.33 self 0.0504 nonLabor 0.927 w0 0.192 lam 0.5 w0*lam 0.0962 a 14.3 X(N加重) 245 uH -1.33 bestMach 0.906 v 0.906 RH -1.98 winMach 0.96 uH<=0 0.041 fill 0.79 out/N 6.36 maxA 40415
+       machine occupant (positive best): share of plan N 0.96  gross 0.976 capital charge 0.0345  kinds animal/water/steam/electric 1/0.00016/0/0
+       denominators: slotCost 4.69 bond 0.0269 wear12 0.0272 crowd 0 heat 0.00845 floorShare 0
+   1830s: price 1.11 self 0.0517 nonLabor 0.843 w0 0.222 lam 0.5 w0*lam 0.111 a 24.6 X(N加重) 318 uH -2.18 bestMach 0.691 v 0.691 RH -2.53 winMach 0.96 uH<=0 0.05 fill 0.91 out/N 5.9 maxA 169527
+       machine occupant (positive best): share of plan N 0.96  gross 0.756 capital charge 0.034  kinds animal/water/steam/electric 1/0.0001/0/0
+       denominators: slotCost 4.77 bond 0.0251 wear12 0.0272 crowd 0 heat 0.0116 floorShare 0
+   1840s: price 0.909 self 0.0521 nonLabor 0.7 w0 0.23 lam 0.5 w0*lam 0.115 a 25.2 X(N加重) 403 uH -1.24 bestMach 0.485 v 0.485 RH -1.34 winMach 0.95 uH<=0 0.069 fill 0.96 out/N 5.23 maxA 76870
+       machine occupant (positive best): share of plan N 0.95  gross 0.542 capital charge 0.0326  kinds animal/water/steam/electric 1/6.3e-05/0/0
+       denominators: slotCost 4.63 bond 0.0277 wear12 0.0272 crowd 0 heat 0.016 floorShare 0
+   1850s: price 0.898 self 0.054 nonLabor 0.699 w0 0.237 lam 0.5 w0*lam 0.118 a 16.9 X(N加重) 510 uH -0.783 bestMach 0.364 v 0.364 RH -0.826 winMach 0.95 uH<=0 0.065 fill 0.95 out/N 4.45 maxA 9404
+       machine occupant (positive best): share of plan N 0.95  gross 0.415 capital charge 0.0329  kinds animal/water/steam/electric 1/8.5e-05/0/0
+       denominators: slotCost 4.88 bond 0.0256 wear12 0.0272 crowd 0 heat 0.0144 floorShare 0
+清 textile
+   1783-89: price 23.9 self 0.0567 nonLabor 10.4 w0 0.212 lam 0.5 w0*lam 0.106 a 2.45 X(N加重) 189 uH 3.89 bestMach 10.5 v 10.5 RH 6.05 winMach 0.5 uH<=0 0.5 fill 0.24 out/N 3.6 maxA 15.3
+       machine occupant (positive best): share of plan N 0.5  gross 21.2 capital charge 0.123  kinds animal/water/steam/electric 1/5.6e-05/0/0
+       denominators: slotCost 7.22 bond 0.0286 wear12 0.0272 crowd 6.55e-05 heat 0.0179 floorShare 0
+   1790s: price 23.5 self 0.0542 nonLabor 10.3 w0 0.171 lam 0.5 w0*lam 0.0855 a 4.78 X(N加重) 181 uH 0.994 bestMach 4.32 v 4.32 RH 2.38 winMach 0.55 uH<=0 0.47 fill 0.37 out/N 4.37 maxA 32103
+       machine occupant (positive best): share of plan N 0.55  gross 7.98 capital charge 0.107  kinds animal/water/steam/electric 0.98/0.022/0/0
+       denominators: slotCost 9.02 bond 0.0339 wear12 0.0272 crowd 0.0102 heat 0.0197 floorShare 0
+   1800s: price 17.6 self 0.0536 nonLabor 8.24 w0 0.13 lam 0.5 w0*lam 0.0648 a 26 X(N加重) 163 uH -1.59 bestMach 1.19 v 1.19 RH -5.49 winMach 0.6 uH<=0 0.42 fill 0.55 out/N 5.34 maxA 134936
+       machine occupant (positive best): share of plan N 0.6  gross 2.02 capital charge 0.062  kinds animal/water/steam/electric 0.99/0.006/0/0
+       denominators: slotCost 6.78 bond 0.0236 wear12 0.0272 crowd 0 heat 0.000209 floorShare 0
+   1810s: price 10.1 self 0.0472 nonLabor 4.69 w0 0.0967 lam 0.5 w0*lam 0.0483 a 32.2 X(N加重) 143 uH -0.913 bestMach 1.28 v 1.28 RH -4.43 winMach 0.7 uH<=0 0.32 fill 0.66 out/N 7.44 maxA 141028
+       machine occupant (positive best): share of plan N 0.7  gross 1.87 capital charge 0.0423  kinds animal/water/steam/electric 1/0.0019/0/0
+       denominators: slotCost 4.87 bond 0.0211 wear12 0.0272 crowd 0 heat 1.78e-06 floorShare 0
+   1820s: price 7.58 self 0.0405 nonLabor 3.66 w0 0.098 lam 0.5 w0*lam 0.049 a 6.78 X(N加重) 149 uH 0.151 bestMach 1.44 v 1.44 RH 0.619 winMach 0.77 uH<=0 0.23 fill 0.74 out/N 9.27 maxA 18282
+       machine occupant (positive best): share of plan N 0.77  gross 1.9 capital charge 0.0351  kinds animal/water/steam/electric 1/0.00038/0/0
+       denominators: slotCost 4.35 bond 0.0252 wear12 0.0272 crowd 0 heat 5.94e-09 floorShare 0
+   1830s: price 6.06 self 0.038 nonLabor 2.95 w0 0.0962 lam 0.5 w0*lam 0.0481 a 16.6 X(N加重) 163 uH -0.382 bestMach 1.08 v 1.08 RH -1.62 winMach 0.84 uH<=0 0.19 fill 0.81 out/N 8.37 maxA 47084
+       machine occupant (positive best): share of plan N 0.84  gross 1.33 capital charge 0.0326  kinds animal/water/steam/electric 1/0.0011/0/0
+       denominators: slotCost 4.57 bond 0.0337 wear12 0.0272 crowd 0.00434 heat 0.00018 floorShare 0
+   1840s: price 5.77 self 0.0422 nonLabor 2.82 w0 0.109 lam 0.5 w0*lam 0.0545 a 14.2 X(N加重) 164 uH -0.481 bestMach 0.542 v 0.542 RH -1.79 winMach 0.87 uH<=0 0.25 fill 0.85 out/N 5.54 maxA 37772
+       machine occupant (positive best): share of plan N 0.87  gross 0.653 capital charge 0.0322  kinds animal/water/steam/electric 1/0.00016/0/0
+       denominators: slotCost 4.56 bond 0.0248 wear12 0.0272 crowd 0 heat 3.81e-05 floorShare 0
+   1850s: price 4.78 self 0.0463 nonLabor 2.36 w0 0.119 lam 0.5 w0*lam 0.0594 a 9.33 X(N加重) 174 uH -0.242 bestMach 0.571 v 0.571 RH -0.841 winMach 0.91 uH<=0 0.18 fill 0.88 out/N 5.77 maxA 30098
+       machine occupant (positive best): share of plan N 0.91  gross 0.662 capital charge 0.0318  kinds animal/water/steam/electric 1/8.7e-05/0/0
+       denominators: slotCost 4.54 bond 0.028 wear12 0.0272 crowd 0 heat 4.13e-06 floorShare 0
+清 metalchem
+   1783-89: price 3.66 self 0.0566 nonLabor 2.32 w0 0.215 lam 0.5 w0*lam 0.107 a 5.03 X(N加重) 9.91 uH 7.12 bestMach 11 v 11 RH 10.9 winMach 0.81 uH<=0 0.19 fill 0.57 out/N 5.68 maxA 17.3
+       machine occupant (positive best): share of plan N 0.81  gross 13.6 capital charge 0.122  kinds animal/water/steam/electric 1/0.001/0/0
+       denominators: slotCost 7.03 bond 0.0286 wear12 0.0272 crowd 6.58e-05 heat 0.0179 floorShare 0
+   1790s: price 3.04 self 0.0542 nonLabor 1.92 w0 0.174 lam 0.5 w0*lam 0.087 a 9.56 X(N加重) 12 uH 5.45 bestMach 9.65 v 9.65 RH 12.8 winMach 0.86 uH<=0 0.13 fill 0.71 out/N 7.26 maxA 4994
+       machine occupant (positive best): share of plan N 0.86  gross 11.3 capital charge 0.107  kinds animal/water/steam/electric 1/0.0045/0/0
+       denominators: slotCost 8.99 bond 0.0333 wear12 0.0272 crowd 0.00985 heat 0.0188 floorShare 0
+   1800s: price 2.33 self 0.0535 nonLabor 1.56 w0 0.128 lam 0.5 w0*lam 0.0639 a 19.9 X(N加重) 15.9 uH 0.908 bestMach 6.2 v 6.2 RH 3.17 winMach 0.9 uH<=0 0.1 fill 0.94 out/N 9.34 maxA 12591
+       machine occupant (positive best): share of plan N 0.9  gross 6.96 capital charge 0.0609  kinds animal/water/steam/electric 1/0.0019/0/0
+       denominators: slotCost 7.14 bond 0.0236 wear12 0.0272 crowd 0 heat 0.000192 floorShare 0
+   1810s: price 1.61 self 0.0471 nonLabor 1.12 w0 0.0963 lam 0.5 w0*lam 0.0482 a 21.9 X(N加重) 20.9 uH 1.08 bestMach 3.79 v 3.79 RH 5.23 winMach 0.93 uH<=0 0.072 fill 0.96 out/N 8.45 maxA 22061
+       machine occupant (positive best): share of plan N 0.93  gross 4.12 capital charge 0.0414  kinds animal/water/steam/electric 1/0.0019/0/0
+       denominators: slotCost 4.65 bond 0.0212 wear12 0.0272 crowd 0 heat 1.67e-06 floorShare 0
+   1820s: price 1.46 self 0.0405 nonLabor 0.996 w0 0.0989 lam 0.5 w0*lam 0.0494 a 27.3 X(N加重) 28.3 uH 0.227 bestMach 3.33 v 3.33 RH 0.916 winMach 0.95 uH<=0 0.058 fill 0.95 out/N 8.25 maxA 23837
+       machine occupant (positive best): share of plan N 0.95  gross 3.55 capital charge 0.0351  kinds animal/water/steam/electric 1/0.00063/0/0
+       denominators: slotCost 4.28 bond 0.0252 wear12 0.0272 crowd 0 heat 5.59e-09 floorShare 0
+   1830s: price 1.4 self 0.0383 nonLabor 0.96 w0 0.0965 lam 0.5 w0*lam 0.0482 a 25.1 X(N加重) 41.8 uH -0.164 bestMach 2.81 v 2.81 RH -0.698 winMach 0.95 uH<=0 0.058 fill 0.96 out/N 7.59 maxA 18261
+       machine occupant (positive best): share of plan N 0.95  gross 2.99 capital charge 0.0339  kinds animal/water/steam/electric 1/0.0013/0/0
+       denominators: slotCost 4.56 bond 0.0341 wear12 0.0272 crowd 0.00454 heat 0.000191 floorShare 0
+   1840s: price 1.47 self 0.0427 nonLabor 1.04 w0 0.109 lam 0.5 w0*lam 0.0545 a 28.2 X(N加重) 62.9 uH -2.25 bestMach 2.34 v 2.34 RH -8.56 winMach 0.96 uH<=0 0.048 fill 0.97 out/N 6.9 maxA 19526
+       machine occupant (positive best): share of plan N 0.96  gross 2.47 capital charge 0.0328  kinds animal/water/steam/electric 1/0.00065/0/0
+       denominators: slotCost 4.69 bond 0.0249 wear12 0.0272 crowd 0 heat 3.5e-05 floorShare 0
+   1850s: price 1.43 self 0.0469 nonLabor 1.05 w0 0.119 lam 0.5 w0*lam 0.0597 a 31.6 X(N加重) 93.2 uH -1.82 bestMach 1.78 v 1.78 RH -6.39 winMach 0.97 uH<=0 0.044 fill 0.97 out/N 6.19 maxA 14538
+       machine occupant (positive best): share of plan N 0.97  gross 1.87 capital charge 0.0322  kinds animal/water/steam/electric 1/0.00027/0/0
+       denominators: slotCost 4.43 bond 0.028 wear12 0.0272 crowd 0 heat 4.24e-06 floorShare 0
+清 other
+   1783-89: price 6.67 self 0.0566 nonLabor 2.71 w0 0.213 lam 0.5 w0*lam 0.106 a 6.54 X(N加重) 77.1 uH 11.6 bestMach 15.2 v 15.2 RH 17.9 winMach 0.9 uH<=0 0.095 fill 0.48 out/N 7.18 maxA 34
+       machine occupant (positive best): share of plan N 0.9  gross 16.9 capital charge 0.124  kinds animal/water/steam/electric 1/0.0032/0/0
+       denominators: slotCost 7.16 bond 0.0286 wear12 0.0272 crowd 6.63e-05 heat 0.018 floorShare 0
+   1790s: price 3.27 self 0.0542 nonLabor 1.88 w0 0.171 lam 0.5 w0*lam 0.0853 a 9.4 X(N加重) 93 uH 6 bestMach 8.67 v 8.67 RH 14.4 winMach 0.91 uH<=0 0.068 fill 0.63 out/N 7.79 maxA 40986
+       machine occupant (positive best): share of plan N 0.93  gross 9.44 capital charge 0.109  kinds animal/water/steam/electric 0.99/0.015/0/0
+       denominators: slotCost 9.06 bond 0.0335 wear12 0.0272 crowd 0.00996 heat 0.0191 floorShare 0
+   1800s: price 2.83 self 0.0535 nonLabor 1.87 w0 0.129 lam 0.5 w0*lam 0.0643 a 40.9 X(N加重) 130 uH -1.77 bestMach 4.15 v 4.15 RH -6.16 winMach 0.89 uH<=0 0.1 fill 0.85 out/N 10.4 maxA 656624
+       machine occupant (positive best): share of plan N 0.9  gross 4.7 capital charge 0.0634  kinds animal/water/steam/electric 0.99/0.007/0/0
+       denominators: slotCost 6.88 bond 0.0236 wear12 0.0272 crowd 0 heat 0.000198 floorShare 0
+   1810s: price 1.43 self 0.0471 nonLabor 1.06 w0 0.0964 lam 0.5 w0*lam 0.0482 a 13.8 X(N加重) 161 uH -0.357 bestMach 2.24 v 2.24 RH -1.73 winMach 0.93 uH<=0 0.063 fill 0.88 out/N 10.2 maxA 72986
+       machine occupant (positive best): share of plan N 0.94  gross 2.43 capital charge 0.0429  kinds animal/water/steam/electric 1/0.0024/0/0
+       denominators: slotCost 4.77 bond 0.0212 wear12 0.0272 crowd 0 heat 1.72e-06 floorShare 0
+   1820s: price 1.69 self 0.0404 nonLabor 1.12 w0 0.0982 lam 0.5 w0*lam 0.0491 a 11.8 X(N加重) 194 uH -3.49 bestMach 1.88 v 1.88 RH -14.3 winMach 0.93 uH<=0 0.072 fill 0.88 out/N 10.5 maxA 29189
+       machine occupant (positive best): share of plan N 0.93  gross 2.06 capital charge 0.0358  kinds animal/water/steam/electric 1/0.00099/0/0
+       denominators: slotCost 4.32 bond 0.0252 wear12 0.0272 crowd 0 heat 5.82e-09 floorShare 0
+   1830s: price 1.81 self 0.038 nonLabor 1.17 w0 0.096 lam 0.5 w0*lam 0.048 a 21.3 X(N加重) 237 uH -1.25 bestMach 1.54 v 1.54 RH -5.33 winMach 0.91 uH<=0 0.082 fill 0.9 out/N 9.33 maxA 527679
+       machine occupant (positive best): share of plan N 0.92  gross 1.7 capital charge 0.0335  kinds animal/water/steam/electric 1/0.0016/0/0
+       denominators: slotCost 4.58 bond 0.0338 wear12 0.0272 crowd 0.00439 heat 0.000183 floorShare 0
+   1840s: price 2 self 0.0422 nonLabor 1.3 w0 0.109 lam 0.5 w0*lam 0.0544 a 22.5 X(N加重) 284 uH 0.0537 bestMach 1.35 v 1.35 RH 0.202 winMach 0.92 uH<=0 0.079 fill 0.91 out/N 8.22 maxA 558291
+       machine occupant (positive best): share of plan N 0.92  gross 1.49 capital charge 0.0328  kinds animal/water/steam/electric 1/0.00089/0/0
+       denominators: slotCost 4.61 bond 0.0248 wear12 0.0272 crowd 0 heat 3.68e-05 floorShare 0
+   1850s: price 1.71 self 0.0463 nonLabor 1.14 w0 0.119 lam 0.5 w0*lam 0.0594 a 20 X(N加重) 384 uH 0.0572 bestMach 1.29 v 1.29 RH 0.199 winMach 0.94 uH<=0 0.062 fill 0.93 out/N 8.1 maxA 61019
+       machine occupant (positive best): share of plan N 0.94  gross 1.4 capital charge 0.0321  kinds animal/water/steam/electric 1/0.00026/0/0
+       denominators: slotCost 4.48 bond 0.028 wear12 0.0272 crowd 0 heat 4.19e-06 floorShare 0
+
+== 署名 D1〜D3（国×区分×四半期の行のうち 1783〜1830 年で成り立つ割合・N で重み付けない行の数）
+-- seed 11
+イギリス: 行 573  D1 0.78  D2 0.00  D3 0.14
+フランス: 行 573  D1 0.87  D2 0.06  D3 0.11
+プロイセン: 行 573  D1 0.88  D2 0.07  D3 0.09
+アメリカ: 行 573  D1 0.58  D2 0.18  D3 0.34
+日本: 行 573  D1 0.90  D2 0.02  D3 0.09
+清: 行 573  D1 0.83  D2 0.02  D3 0.02
