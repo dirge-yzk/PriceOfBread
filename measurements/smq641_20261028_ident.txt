@@ -1,0 +1,15 @@
+# (641) 恒等の cmp：selfplay 1 100（隔離ビルド・base=origin/smq ee7748e9 SOURCE-HASH 260d6980bb56c1fb／new=smq2 の最終の木 SOURCE-HASH 5fabf16da26dc65d〔反実仮想の枠を SlotsPerScale で作る版〕）
+旗0：標準出力 13240 バイト一致
+旗1：標準出力 11528 バイト一致
+旗1+計器：標準出力 11528 バイト一致
+new：旗1 と 旗1+計器 の標準出力も一致（計器が本体に触らない）
+  表が違う：burscan_s1.tsv
+  表が違う：clock_s1.tsv
+旗1+計器の既存の表 84 本のうちバイト不一致 2 本（burscan・clock は毎回違う表）。新しい表 slotmg_s・slotmg0_s の 2 本が増える
+
+# 手による突然変異（xUnit Smq2MarginalTests・全て赤）。m1・m2・m5 は初版の木（Scale を足す版）、m3・m4 は最終の版（SlotsPerScale を替える版）
+m1_hook_removed rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+m2_weight_one rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+m5_fuel_dropped rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+m3_scale_not_restored rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+m4_two_slots rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 16 s - PriceOfBread.Tests.dll (net10.0)

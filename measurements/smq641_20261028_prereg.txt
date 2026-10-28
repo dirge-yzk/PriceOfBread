@@ -1,0 +1,183 @@
+# (641) 事前登録：枠の限界の産出の記録（線 smq2・前半＝段0・形・事前登録まで）
+# 書いた時点：2026-10-28。コードを 1 行も含まない（この文書が枝 smq2 の最初のコミット）。腕 A・B は 1 本も回さない（記録の線）。書いたモデル Claude Sonnet 5.5。
+# 木：基点 origin/smq ee7748e9（＝origin/sm7 3246ca81〔igi あり・inst なし・旗 SlotsAndMachines 既定 0〕＋線 smq (633) の計器 slotnd）。main ce6679a6 の木ではない。
+#       この木の名乗り（全ての出力・追記・実装ログの行に書く）：`tree=origin/smq ee7748e9 (igi 有・inst 無・smq 計器 有)`。main の成績表 m627 とは軌道が違う。
+# 出所：(633) smq（追記 4 ①〜③・8 回目の形の推奨〈まず枠を 1 つ足したときの産出の増えを記録して、平均＝限界かを測る〉）・(636) §0-2 ⑤・RULE41。
+# 引用の決まり：「」は作者の原文だけ。AI の線・推奨は〈〉かバッククォートで書く。報告では〈帯〉を成績表と言う。
+# ⚠この文書の決め（種・表・閾値・列・署名）は全て AI の推奨。作者の承認は未確認（確証なし）。作者が決めた物は、指示文が引く裁定の原文（作者 2026-10-16 の倍率とバフ／デバフの削除・2026-10-17 の止める線・2026-09-30 の空洞化）だけ。
+
+[0] 先頭
+  ⓪ 形が〈尾〉か〈入口〉か：どちらでもない＝**記録だけの線**（読むだけの計器の追加。力学を 1 つも替えない・採否が無い・旗は既定 0 のまま・腕 A・B を回さない・main のコードは変えない）。
+  ① **何を問う線か**：(633) は〈開幕の rate が 175〜790・稼働の余り 0.4〜0.8〉を測り、枠の得の定義の二重計上を撤回して〈枠を 1 つ足したときの産出の増え（限界）と a＝産出÷SlotsX（平均）が同じか〉を次の問いに残した。
+     この線はその問いに数で答える。答えの使い道は 8 回目の形（枠の得を限界で置き直すか／別の所を直すか）の推奨だけ。直さない。
+  ② **座標の読み（コードを読んで確かめた事実・木は smq の ee7748e9）**：
+     ・`EconomyStep.cs` 940 `SlotMachines.Evaluate`（X・L・燃料を出す）→ 946 `s.Capacity = capHeads × Productivity × boost × harvestMul × mineralMul`（capHeads＝X）→ 958 `profitFactor = ProfitFactor(s, price, mc, coef)` →
+       961〜963 `target = Capacity × LastInputFill × profitFactor × InventoryAdjust` → **964 `s.Output += SupplyAdjustSpeed × (target − s.Output)`**（0.15）→ 980 `if (slotElig && s.Capacity > 0)` → 987 `PlanFactory`。
+     ・**⚠PlanFactory の `a = s.Output ÷ s.SlotsX` の Output は 964 で今月の更新を済ませた後の値**（前の月の値ではない）。ゆえに a と目標 T0÷X の差は〈今月の追従の残り〉だけ＝Output÷T0 は 1−0.85×(1−前月の Output÷T0) の形。
+     ・`PlanFactory` は 980 の `Capacity > 0` を通った個体だけ＝そこで **a＝0 は Output＝0 と同じ**（Capacity＞0 なら X＞0）。Capacity＝0 の個体（X＝0・未発明・boost 0）は PlanFactory にも `Desire` にも入らず 979 で `SlotRate＝0`＝**rate＝0 の山は 2 つの部分に分かれる**
+       （PlanFactory の中の Output＝0 と、PlanFactory の外の Capacity＝0）。この線は両方を数える。
+     ・同じ月に動く量と動かない量：X・L・燃料（Evaluate）と mc の労働の項（`EffectiveQty` が `LaborRatio＝L÷X` を読む・EconomyStep 951〜955）は枠の数 N に今月のうちに応じる。**fill（`LastInputFill`＝前月末の市場の配給率の最小）・`InventoryAdjust`（市場の在庫）・価格は N に今月のうちに応じない**。
+       ⇒ 〈枠を 1 つ足したときの fill・採算の応答〉を同じ月の差分で測ると fill と在庫と価格では 0 が構造として出る（読み違えない・[3] に先に書く）。fill・採算・価格が N に依るかは**時系列の記録**（[4] ③）でだけ見る。
+  ③ **前の線 (633) の数を再読しない**：(633) の観測（開幕の rate の幾何平均 175〜790・枠の値段 0.22〜1.04 年賃金・稼働の余り 0.4〜0.8）は同じ木・同じ種なので決定的に再現する＝この線の表は (633) の slotnd の共通の列とバイト一致（C4）。
+
+[1] 形（実装の約束・コードは次以降のコミット＝後半）
+  【P 節】旗は足さない・係数は足さない・CostLedger の行は足さない（旗 1 の canary でだけ走る `Instruments.On`／`insOn` の中の読み＝(633)・mgp (623) の計器と同じ扱い。件数 0 の予約の行も作らない。番号 31〜33 は urc・fsc・idn の予約＝使わない）。
+  【触る行】`PriceOfBread.SimCore/EconomyStep.cs`（961〜964 の周りで target・pf・inv・u・boost の規模項を `insOn` の中の局所へ控える／987〜992 の周りに `if (insOn)` の 1〜2 行）／`Instruments.cs`（Sink の欄と Dispose・見出しの 1 行〔隣の線 urc・fsc が同じ所に足すと隣り合わせで衝突する＝和集合で解く〕）／
+     `InstrumentsSlot.cs`（累積の欄と新しい表の書き手）／新規 `scripts/instruments/smq2_641/`（読み手・バイト読み書き）／`PriceOfBread.Tests`（計器の番人）。`App`・`SimCore/Display`・`Runner/PlayHarness`・`Simulation.cs`・`World.cs`・`SelfPlay.cs` には触らない。
+     **Evaluate を純関数へ割る改修はしない**（差分が `insOn` の外へ出て恒等が cmp だけの証明になる）。反実仮想は計器の中の**複写**で組む＝複写は C2 の検算で本物と突き合わせる（複写が本物からずれたら赤）。
+  【反実仮想の定義（枠を 1 つ足す）】個体の月ごとに、その月の値を動かさずに N → N＋1（枠 1 つ）としたときの能力と目標を、計器の中で組み直す。占め手は 2 通り：
+     ・**人（H）**：ΣM ≦ N のとき X→X＋1・L→L＋1（d_H＝1）。ΣM ＞ N（fit＜1）のとき人は 0 のまま、枠が 1 つ増えて収まる機械が増える＝d_H＝Σ_動く種類（e×u×M_k）÷ΣM（Evaluate の fit の式から導く）。
+     ・**占め手の最大（best）**：PlanFactory が選ぶ占め手（`SmqProbeMach` が残す純価値最大の機械の種類 k*）。k* が動く（`Avail` かつ `OperatingGain` ＞ 0）なら X→X＋e_k*×u_k*・L→L＋r・M_k*→M_k*＋1（d_best＝e×u）。動かないなら X は増えない（d_best＝0）。機械が占め手の最大でないなら d_best＝d_H。
+     ・各占め手について mc を組み直す：mc の N に依る項は**労働の項（`LaborRatio＝L÷X`）と燃料の項（`SlotsFuelCoal`・`SlotsFuelElec`・Evaluate の末尾の式）だけ**（他の投入・自己費用は N に依らない）。pf1＝`ProfitFactor(s, price, mc1, coef)`。
+       目標 T1＝(X＋d)×K×fill×pf1×inv（K＝Capacity÷X・fill・inv・価格は動かさない）。T0＝961〜963 の `target`（検算：複写の T0 が 963 の `target` と相対 1e-12 で一致＝C2）。
+     ・出す量：
+         a＝Output÷X（PlanFactory が使う平均）／aT＝T0÷X（追従の遅れを除いた平均）／g＝Output÷T0（T0＞0 のとき・追従）／q＝X÷N（枠のうち動いている能力の割合・1 未満は据えたまま止まっている機械）／
+         d_H・d_best／ρ_H＝(T1_H−T0)÷(a×d_H)・ρ_best＝(T1_best−T0)÷(a×d_best)（**モデルが暗黙に置く〈枠 1 つの産出の増え＝a×d〉に対する、私的な（価格と配給を動かさない）定常の増えの比**。1 なら平均＝限界）／
+         η＝(T1/T0)÷((X＋d)/X)（採算の混ざりだけが生む弾力。pf が飽和〔pf＝1〕か mc の N 依存が無ければ 1）／ε_b＝規模の経済の項の産出への弾力（u＝Output÷max(LastDemand,1e-9)・G・H から。規模の経済が働かない個体は 0。定常の増えには 1÷(1−ε_b) が掛かる）。
+         ρ の分解：`ln ρ ＝ −ln g ＋ ln η`（d が同じ占め手のとき）。**g は追従の遅れ（動学・今月の Output の残り）・η は採算の混ざり（構造）・q は据えたままの機械・d は占め手**＝平均≠限界の 3 つの出所を別の列で読む。
+  【新しい表①】`slotmg_s<種>.tsv`（国×区分×四半期・NATIONS に挙げた国だけ・旗 1 かつ枠が開いた国だけ）。区分＝`SlotMachines.Sector`（繊維・金属と化学・その他の 3 族）。値は月ごとの N 加重の和（読み手が ΣN で割る）。
+     列（読むだけ・全て `Instruments.On` の中）：
+       ・識別：quarter／year／nation／sector／months／sumN／nPlan（PlanFactory 経由の N の和）／nOut0（PlanFactory の中で Output＝0 の N の和）／nCap0（Capacity＝0 の N の和＝PlanFactory の外・理由別は表②）
+       ・平均：sumA／sumAT／sumX／sumOut／sumFill／sumPf／sumInv／sumPriceOverMc（Σ N×価格÷mc）／sumIdle（(633) と同じ定義）
+       ・3 つの出所：sumLnG と nG（T0＞0 かつ Output＞0 の N の和と N×ln g）／binG（|log10 g|＜0.05・0.05〜0.2・0.2〜 の N の和 3 列）／sumQ／nQlt09（q＜0.9 の N の和）／sumDH・sumDBest／
+         sumLnRhoH・sumLnRhoBest・nRho（有限の ρ の N の和）／binRho（|log10 ρ|＜0.05・0.05〜0.2・0.2〜）×{H・best}＝6 列／sumLnEta・nEtaLt095（η＜0.95）・sumEpsB／nBindLabor・nBindMaterial・nBindNone（LastRation が最小の投入が労働／労働以外／全て 1 の N の和。検算の読みは C6）
+       ・rate の相手（(633) と同じ定義）：sumRate／nRate0／nBin1・nBin10・nBin100・nBin1000・nBinHi／sumRateT（**a を aT に置いた rate**＝`DesireOf` を純関数として別に呼ぶ・返り値は使わない）／nRateTge1（rateT≧1 の N の和）
+     出力の見出しは 1 行・区切りはタブ・小数は不変カルチャ。既存の表（slot_s・slotgood_s・slotnd_s ほか）の列と行は 1 つも変えない。(633) の slotnd と同じ名前の列は同じ定義（C4 でバイト一致）。
+  【新しい表②（a＝0 の山・財と州）】`slotmg0_s<種>.tsv`（四半期×国×財×理由）。**PlanFactory の中の Output＝0** と **外の Capacity＝0** の個体を理由で分け、財と州で数える。
+     理由（上から順に当てはまる最初の 1 つ）：`unInvented`（gate≦0）／`noX`（X＝0 かつ N＞0＝動く占め手が無く人も 0）／`noBoost`（Capacity＝0 だが X＞0＝boost・Productivity・鉱床が 0）／`pf0`（T0＝0 で価格≦mc）／`fill0`（LastInputFill＝0）／`inv0`（InventoryAdjust＝0）／`restart`（T0＞0 なのに Output＝0＝再点火の最初の月）／`other`。
+     列：quarter／year／nation／good（財の名前）／reason／months／sumN／nProvinces（異なる州の数）／topProvince（N が最大の州の名前）／topShare（その州の N の割合）／sumRateT（aT に置いた rate の N 加重の和）／nRateTge1／sumPrice／sumMc。
+     行数の上限：理由と財で絞る（N の和が全体の 0.1% 未満の行は書かず `dropped` 行に集計）。
+  【走らせる条件（canary・腕ではない）】旗 `SlotsAndMachines=1`（`POB_COEF="SlotsAndMachines=1"`）・`POB_INSTRUMENTS=<出力>/ins`・`POB_INSTRUMENTS_NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ`（9 国。読むのは英・仏・普・米・日・清）。
+     種 **11・13・15**・各 **300 四半期**（1783〜1858 年）。`bash measure.sh <出力> selfplay <種> 300`（隔離ビルド）・作業フォルダ `D:/PoB_work/smq2_641`（読み終えたら消す・C: に作らない・D:/PoB_work/PoB_play には書かない）。**この前半では走らせない。**
+
+[2] 腕（名乗り）
+  腕 A（5 種・恒等）：この線は挙動を変えない。恒等の本体は **差分が `Instruments.On`／`insOn` の中と新しい計器のファイルだけ**という議論と、隔離ビルドで `selfplay 1 100` の標準出力が origin/smq の隔離ビルドと cmp で一致（旗 0・旗 1・旗 1＋計器の 3 通り）。
+     成績表を回さない（この木は m627 の木ではない＝b5_20261028_m627 と全行一致の主張はしない）。合流するなら次の基線の腕 A（5 種）が証明を持つ。
+  腕 B（計器つき 10 種）：回さない（挙動を変える形が無い＝採否が無い）。
+  1 種の一致は恒等の証明ではない（README §1-3）。
+
+[3] 検算（計器が計器として正しいか＝採否ではない・先に固定）
+  C1 経路：旗 1 の月に `Desire` 経由の rate が 0（(633) C1 と同じ）。
+  C2 複写：(a) 複写の X・L が個体の月ごとに `s.SlotsX`・`s.SlotsL` と相対 1e-12 で一致（不一致の N の和＝0）。(b) 複写の T0 が 963 の `target` と相対 1e-12 で一致。(c) 反実仮想を ΔN＝0 で呼ぶと T1＝T0（自明な健全性）。
+      ⚠これは複写の**自己整合**の検算で、Evaluate が将来ずれることへの番人ではない。突然変異：`fit` の項を落とす／燃料の項を落とす／d_H の ΣM＞N の分岐を落とす、のそれぞれで C2 が赤になること（番人 xUnit）。
+  C3 構造の検算（別の出所）：本物の `SlotMachines.Evaluate` を、N を 1 増やした個体の**複製**に対して呼び（計器の中・複製の副作用は捨てる）、その X が複写の X＋d_H と一致すること（短い世界で全個体・不一致 0）。
+  C4 再現と恒等：(a) 新しい表①の (633) と共通の列（sumN・sumA・sumX・sumFill・sumIdle・sumOut・sumRate・nRate0・nBin*）が、同じ種・同じ四半期の origin/smq の `slotnd_s` とバイト一致（`selfplay 11 100` の短い走りで。300 四半期の本番は読み手で突き合わせ）。
+      (b) 既存の表が origin/smq の木と表ごとにバイト一致（`burscan`・`clock` のように基点の木どうしでも毎回違う表は除く）。(c) 標準出力の cmp は [2]。
+  C5 番人：計器の番人（xUnit）＝表の列数と見出しの一致・`Instruments.On` が偽のとき累積の欄が空のまま・陽性対照（旗 1 の短い世界で nPlan が正・nOut0 と nCap0 の和が rate＝0 の N に一致）。突然変異（hook の呼びを消す／重みを N でなく 1 にする）で赤になること。
+  C6 配給の読み：`LastRation` が最小の投入（nBind*）と `LastInputFill` の差（|min LastRation − LastInputFill| が 1e-9 を越える N の和）を列に出す＝0 でなければ nBind* の解釈を直す（読みを直したら追記に書く）。
+
+[4] 観測の表と署名（記録だけ・採否に使わない・閾値は AI の置き・結果の後に動かさない）
+  ① **平均と限界の表**（英・仏・普・米・日・清 × 3 族 × {1783 年・1790 年代〜1850 年代の十年}）：N 加重の中央値と幅で、a・aT・g・q・d_H・d_best・ρ_H・ρ_best・η・ε_b。国ごとの数は種 11・13・15 の幅と並べる（RULE36：この木には N1・N2 が無い＝同じ木の種の幅で代える）。
+  ② **a＝0 の山の表**：国 × 3 族 × 十年で nOut0÷sumN と nCap0÷sumN。理由の内訳（表②）と、財と州の上位（topProvince・topShare）。**rate＝0 の山のうち aT に置けば rate≧1 になる N の割合**（nRateTge1÷（nOut0）＝この山が〈a の定義の副産物〉か〈本当に採算が無い〉かを分ける）。
+  ③ **fill・採算・価格が枠の数に依るかの時系列**（同じ月の差分では測れない＝[0] ②）：国 × 3 族の 300 四半期の系列 ΣN・sumFill÷ΣN・sumPf÷ΣN・sumInv÷ΣN・sumPriceOverMc÷ΣN・nBindLabor÷ΣN・nBindMaterial÷ΣN を並べ、ΣN の四半期の伸び（Δln ΣN）と各量の変化の符号の一致を 0〜8 四半期の遅れで数える。
+     **交絡する（需要・技術・価格の外の動きと同時に動く）ので因果の主張には使わない**。記録だけ。
+  **署名（canary が何を示したかの分類・複数が成り立てば全て書く）**：
+     M1 私的な平均＝限界：6 国 × 3 族 × 十年のセルの N の 90% 以上で、|log10 ρ_H|＜0.05 かつ |log10 ρ_best|＜0.05 かつ binG の最初の山〔|log10 g|＜0.05〕かつ nQlt09÷sumN＜0.1。
+         ⇒ 〈枠の得を同じ月の限界で置き直す〉形は効かない（v は既に枠 1 つの増えで置いてある）。rate の桁は**同じ月の外**（分母＝枠の値段・資本の費用・期待の価格・体系の反応）にある。8 回目の形は分母か体系の側へ。
+     M2 追従の遅れ（g）：セルの N の 50% 以上で |log10 g|≧0.05、または開幕 40 四半期でそうなる。⇒ a の定義（Output÷X）を aT（目標÷X）か追従の遅れを除いた量へ置く形。
+     M3 採算の混ざり（η）：N の 25% 以上で η＜0.95（pf が 1 未満の領域で mc の労働項が N に依り、枠を足すと採算が悪化する）。⇒ 枠の得に混ざりの項を入れる形（占め手ごとの mc）。
+     M4 据えたままの機械（q）：N の 25% 以上で q＜0.9。⇒ 占め手の値の定義に稼働を入れる形（(633) 追記 4 ① の二重計上の撤回と矛盾しない形かを先に読む）。
+     M5 a＝0 の山：国×3 族×十年で (nOut0＋nCap0)÷sumN ≧ 0.1 が連続 8 四半期以上のセルがある。理由の最大を書く。**M6：その山の nOut0 のうち aT に置けば rate≧1 になる割合が 50% 以上**なら、山は a の定義（平均）の副産物で、採算が無いのではない。
+     どれも成り立たなければ〈ρ・g・η・q・d の最大の項〉を書く。
+  **先に書く予想（AI の推測・結果の前に固定・外れたら外れと書く）**：コードの読みでは、私的な ρ は fill・価格・在庫を動かさないので 1 に近く（M1 が成り立つ）、g は定常で 1・開幕の拡大期にだけ 1 を外れ、η は pf が 1 未満の開幕の工場でだけ 1 を外れる。a＝0 の山は主に `pf0` と `restart`。
+     この予想が当たれば、(633) の rate の桁は〈同じ月の平均と限界の差〉ではなく、体系の反応（全ての工場が同じ rate で同時に建てる・価格が下がる）か分母にある。外れたら外れた量を書く。
+  記録（採否に使わない）：史実の大きさ・暦の年は全て記録。
+
+[5] 止める線・計算量・判定の段
+  止める線（README のとおり。この線は成績表を持たない＝canary の完走・NaN・保存則だけ読む）：S1 破綻＝canary の完走・NaN／非有限・保存則・硬性ゲートの異常の件数（旗 1 の枠と機械の有限・非負の検査）／S3 州の空洞化＝canary の ins 出力を `python scripts/instruments/hol/an_h2.py <出力>/ins -v4` に通して**記録だけ**（300 四半期の短い走り・採否が無い・例外の名簿は an_h2.py の EXEMPT）。
+  計算量：旗 0 の走りは何も走らない（件数 0）。旗 1 の canary は計器の分だけ遅くなる（計器の秒は推定の計算量に入らない＝CostLedger を足さない）。**使う量の登録＝0 秒**（名目の余り 約 28.4 秒〔m627 推定 220.1・上限 248.5〕・ヌル腕の軌道の揺れ N1 217.5・N2 215.1＝2.4 秒より小さい）。
+  判定の段（〈機構が狙いどおり働いたか〉を最初に置く）：
+    段0 計器の検算 C1〜C6 が通る＝計器が狙いどおり働いた。通らなければ表を読まず、計器を直す（結果を見て登録を直すなら追記に書き、新しい種 17・19・21 で回し直す）。
+    段1 観測の読み：[4] ①②③ の表と署名 M1〜M6・先に書いた予想との突き合わせ。
+    段2 報告：8 回目の形の推奨を 〈どの署名が出たか〉の順に書く（M1 なら分母か体系の側・M2〜M4 なら a／v の定義のどこか・M5〜M6 なら a＝0 の山）。直す場所を挙げる（直さない）。採否は無い。
+  外れの扱い：結果を見た後に事前登録を直すときは追記に書き、新しい種で回し直す。狙いの数字は観測量（上の署名）だけ・史実の大きさ・暦の年は記録。
+
+[6] 自己申告（限界・確証なし）
+  ① 反実仮想は**同じ月・価格と配給と在庫を動かさない私的な定常の増え**。体系の反応（全ての工場が同時に建てる・価格が下がる・配給が絞られる）は含まない。含めないのは構造の事実で、体系の反応の有無は [4] ③ の時系列でしか見えず、それは交絡する。
+     ゆえにこの線が 〈限界の産出〉と呼ぶ物は私的な限界であって、産業全体の限界（需要の弾力で割り引かれる）ではない。M1 が成り立っても 〈体系の限界が平均と同じ〉とは言えない。
+  ② 署名の閾値（0.05・0.2・0.9・0.95・25%・50%・90%・10%・連続 8 四半期）・3 族・種 11・13・15・先に書く予想は AI の置き。作者の承認は未確認。
+  ③ この木は main の基線 m627 の軌道ではない（igi あり・inst なし）。国ごとの数を m627・N1・N2 と並べて読むことはできない＝同じ木の種の幅（11・13・15）で書く。腕 A・B は名乗るだけで回さない。
+  ④ 複写は本物の Evaluate・EconomyStep の式の写し。C2・C3 は自己整合と別の出所の検算だが、複写と本物が**同時に**ずれる（式を両方が間違えて読む）場合は拾えない。
+  ⑤ 作業の決まりの自己申告は実装ログに書く。
+
+# ======================================================================================================================================
+# 追記 1（2026-10-28・後半の頭・コードの前・結果を見る前）：反証役の点検（高 2・中 4・低 2）と助言者の読みを反映して [1]〜[4] を直す
+# ======================================================================================================================================
+# 結果の前の直しなので新しい種は要らない（canary はまだ回していない）。書いたモデル Claude Sonnet 5.5。⚠以下の決めも全て AI の置き＝作者の承認は未確認（確証なし）。
+# 木：`tree=origin/smq ee7748e9 (igi 有・inst 無・smq 計器 有)` のまま。
+
+[A1] 形の変更（複写をやめる）
+  ・[1] の〈計器の中の複写〉をやめ、**本物の `SlotMachines.Evaluate` を、枠を 1 つ足した一時の状態で呼ぶ**（`s.Scale` に 1÷SlotsPerScale を足し、占め手が機械なら `Machines[k*]` に 1 を足す）。呼んだ直後に try/finally で
+    `Scale`・`Machines[k*]`・`SlotsLambda0`・`SlotsIdleEM`・（mc の組み直しで触る）`LaborRatio`・`SlotsFuelCoal`・`SlotsFuelElec` を保存した値へ戻す。複写が無いので〈複写が本物からずれる〉失敗型（[6]④）は消える。
+    代わりの失敗型＝復元の漏れ。検算 C2 を〈復元の漏れ〉の列 nRestoreBad（欄のビット一致）に替える（下 [A4]）。Model.cs には触らない（複製を作らない）。
+  ・mc の組み直し：`mc1 = MineralSelfCost + InputCostPerUnit(s, region, region, coef)`（`LaborRatio` を一時に L1÷X1 へ置く）＋ 燃料の項（`SlotsFuelCoal`・`SlotsFuelElec` を fc1・fe1 へ）＝本体の 949〜957 行と同じ加算順。
+    基線の値で同じ関数を呼んだ mc0′ が本物の mc とビット一致するかを列（nMcBad）で数える。ビットが違う場合に備え、pf の崖（price≦mc）の近くを nPfEdge（|price−mc|≦1e-9×max(1,mc) の N）で別に出し、境目を除いて読む。
+  ・T0 の組み直し：`Capacity × LastInputFill × pf0 × inv`（本体 961〜963 と同じ順）。pf0・inv は `ProfitFactor`・`InventoryAdjust` を hook の中で**再び呼ぶ**（純関数・市場は供給の段の間は動かない）。本体 961〜964 の行は触らない。
+
+[A2] ρ の分解（代数の誤りを直す）
+  ・d_H・d_best は本物の Evaluate が返した X1−X0。T0＝X·K·fill·pf0·inv・T1＝X1·K·fill·pf1·inv・a＝Output÷X・g＝Output÷T0（T0＞0）とおくと
+      ρ_H ＝ (T1−T0)÷(a·d) ＝ η′÷g、 **η′ ＝ [X1·pf1 − X0·pf0] ÷ (d·pf0)**（＝1＋(η−1)(X0+d)÷d。η＝pf1÷pf0 は別の列に残す）。
+    旧 [1] の ln ρ＝−ln g＋ln η は (η−1)·X÷d の項を落としていた（枠 1 つで動く LaborRatio＝L÷X の変化は O(1/X)・η−1 も O(1/X) になる）。**η′ が採算の混ざり（構造）・g が追従の遅れ（動学）の厳密な分解**。
+  ・ρ が非正（η′≦0）や非有限になる N は黙って落とさず nEtaNeg・nRhoNeg に数える。母数＝T0＞0・Output＞0・d＞0。T0＝0 かつ Output＞0（目標が立たない尾）は nTail に数え、pf0＝0 → pf1＞0 に変わる N は nPf0to1。
+  ・**モデルの暗黙の増え**：PlanFactory の人の占め手は常に a×1（fit＜1 でも d を見ない）。ρ_H1＝(T1_H−T0)÷(a×1) を足す（分母を a×d_H にすると d_H÷1 のずれが消える）。ρ_B（機械の占め手）の分母は a×d_best（＝a·e·u・モデルの置き方に一致）。
+  ・**d_best は fit＝1（ΣM≦N）の個体に限る**。fit＜1（nFitLt1）では N と M が同時に増えて fit′＝(N+1)÷(ΣM+1) となり式が割れるので、d_best の列は fit＝1 の個体だけ。fit＜1 の d_H は本物の Evaluate の値（独立の検算は無い＝[A8] 自己申告）。
+  ・ε_b（規模の経済）は列にしない。K（Capacity÷X）は据え置き（同じ月の私的な増え）。K の追従を入れた定常の増え（×1÷(1−規模の弾力)）は記録しない＝[6]① の限界に一文足す。
+
+[A3] 理由の分割を閉じる（rate＝0 の山・[0]②、[1] 表②、C5）
+  ・rate＝0 の N の出所は 5 つ：nSleep（眠り）／nBankrupt（倒産）＝EconomyStep 826〜833 の continue の前／nCap0（Capacity＝0 の個体＝PlanFactory にも Desire にも入らない）＝979 の外／
+    nV0（PlanFactory の中で v≦0）／nCostBad（v＞0 だが枠の費用 slotCost が非正か無限＝DesireOf が 0 を返す）。**sumNAll＝sumN（Capacity＞0・slotnd と同じ母集団）＋nCap0＋nSleep＋nBankrupt**。M5 の分母は sumNAll（sumN ではない）。
+  ・閉じる恒等（C5）：nRate0（slotnd と同じ定義）＝nV0＋nCostBad（相対 1e-9）／ rate＝0 の全質量＝nSleep＋nBankrupt＋nCap0＋nRate0。
+  ・**`restart`（T0＞0 なのに Output＝0）は 0 が期待値の健全性の列に格下げ**。本体 964 は Output＝0.85×前の月＋0.15×T0 で T0＞0 なら Output＞0、976〜978 が 0 にするのは未発明か !(T0＞0) のときだけで、未発明は gate≦0 → Capacity＝0 になり PlanFactory の外に出る。
+    ゆえに PlanFactory の中の Output＝0 は T0＝0 と同じ。**〈a＝0 の山は a の定義の副産物か〉の答えはソースから自明（副産物ではない）**。sumRateT・nRateTge1・M6 は消す（aT で置いた rate の列も無し）。
+    aT（＝T0÷X・追従の遅れを除いた平均）は a＞0 で g≠1 の個体の列として残し、M2 の側で読む。
+  ・Capacity＝0 の理由の優先順位：unInvented（`!baumol && !(gate>0)`）→ noX（SlotsX＝0・N＞0）→ noBoost（Capacity＝0 だが X＞0）。Capacity＞0 で Output＝0 の理由：pf0（pf0＝0）→ fill0（LastInputFill＝0）→ inv0（inv＝0）→ restart（T0＞0）→ other。
+    表②の理由に sleep・bankrupt を加える（826 のフックから）。
+
+[A4] 検算の置き換え（先に固定）
+  C1 経路：Desire 経由の個体が 0（nPathDesire＝0）。
+  C2′ 復元と自己整合（旧 C2 を置換）：(a) nRestoreBad＝Evaluate の前後で欄がビット一致しない N の和（0）／(b) nT0Bad＝組み直した T0 が本体の `target` と相対 1e-12 で一致しない N の和（0 が期待）／
+      (c) nMcBad＝組み直した mc0′ が本物の mc とビット一致しない N の和（0 が期待・不一致でも pf の崖の近くなら nPfEdge と並べて読む）／(d) nZeroBad＝枠を足さずに Evaluate を呼んだ X が X0 と一致しない N の和（0）。
+  C3′ 独立の検算（別の出所）：fit＝1（ΣM≦N）の個体で d_H＝1 を解析的に期待し、外れた N の和を nDhBad に数える（0 が期待）。fit＜1 には独立の検算が無い。
+  C4 再現：(a) 表①の slotnd と共通の列（months・sumN・sumA・sumX・sumFill・sumIdle・sumOut・sumRate・nRate0・nBin1〜nBinHi）が同じ種・同じ四半期の slotnd_s とバイト一致（`SmqSeen` と同じ式・同じ n・同じ呼び順で足す。sumOut は n を掛けない癖もそのまま）／
+      (b) 既存の表の cmp／(c) 標準出力の cmp が旗 0・旗 1・旗 1＋計器の 3 通りで一致（復元の漏れの最後の番人）。
+  C5 番人（xUnit）：見出し＝宣言・全行同じ幅・非空・nPathDesire＝0・nRestoreBad＝0・nT0Bad＝0・nZeroBad＝0・nDhBad＝0・`nRate0＝nV0＋nCostBad`・`restart`＝0・nSleep＋nBankrupt＋nCap0＋nRate0≦sumNAll・g の 3 区間の和＝nG・
+      η′ の 3 区間＋nEtaHNeg＝nH・陽性対照（旗 1 の短い世界で nG・nH が正）。突然変異（hook の呼びを消す／重みを n→1／Evaluate の後の `Scale` の復元を消す／d_H の ΣM＞N 側を落とす）で赤になることを手で確かめ、実装ログに書く。
+  C6 配給の読み：`LastRation` が最小の投入（労働／労働以外／全て 1）と `LastInputFill` の差が 1e-9 を超える N の和を nBindMismatch に出す。
+
+[A5] 列の確定（表①＝`slotmg_s<種>.tsv`・国×区分×四半期・値は月ごとの N 加重の和・正本は InstrumentsSlotMg.cs の列挙）
+  識別：quarter／year／nation／sector
+  slotnd と共通（C4）：months／sumN／sumA／sumX／sumFill／sumIdle／sumOut／sumRate／nRate0／nBin1／nBin10／nBin100／nBin1000／nBinHi
+  母集団と理由：sumNAll／nSleep／nBankrupt／nCap0／nOut0／nTail／nV0／nCostBad／nPathDesire／nPfLt1／nPfEdge／nFitLt1／nPf0to1
+  平均：sumAT／sumPf／sumInv／sumPriceOverMc
+  追従 g（母数 T0＞0・Output＞0）：nG／sumLnG／binG0（|log10 g|＜0.05）／binG1（0.05〜0.2）／binG2（0.2〜）
+  据えたまま止まる機械：sumQ（X÷N）／nQlt09／sumIdleShare（SlotsIdleEM÷(X＋SlotsIdleEM)）／nIdleGe10（idleShare≧0.1 の N）
+  占め手：sumDH／nBestMach（占め手の最大が機械の N）／nDBpos（fit＝1 で占め手が動く機械の N）／sumDB
+  η′ と ρ（人の占め手 H・母数＝a＞0・T0＞0・d_H＞0）：nH／sumLnEtaH／binEtaH0〜2／nEtaHNeg／sumLnRhoH／binRhoH0〜2／nRhoHNeg／sumLnRho1H／binRho1H0〜2／nRho1HNeg
+        pf＜1 の部分集合（M1・M3 の判定の母数）：nHp／binEtaHp0〜2／binRhoHp0〜2／binRho1Hp0〜2
+  η′ と ρ（占め手の最大が動く機械 B・fit＝1・d_best＞0）：nB／sumLnEtaB／binEtaB0〜2／nEtaBNeg／sumLnRhoB／binRhoB0〜2／nRhoBNeg
+  配給：nBindLabor／nBindMaterial／nBindNone／nBindMismatch
+  検算：nRestoreBad／nT0Bad／nMcBad／nZeroBad／nDhBad
+  表②＝`slotmg0_s<種>.tsv`：quarter／year／nation／good／reason／obs（個体の月の数）／sumN／nProvinces／topProvince／topShare／sumPrice／sumMc。N の和が国×四半期の全体の 0.1% 未満の行は書かず reason＝`dropped` の 1 行に集計。reason＝sleep／bankrupt／unInvented／noX／noBoost／pf0／fill0／inv0／restart／other。
+
+[A6] 署名の置き換え（結果の前に固定）
+  M1 私的な平均＝限界：**pf＜1 の部分集合**（nHp）で、6 国×3 族×十年のセルの N の 90% 以上が binRhoHp0（|log10 ρ_H|＜0.05）かつ binRho1Hp0 かつ binG0÷nG≧0.9。pf＝1 のセルは η′＝1・ρ＝1÷g が作りから決まるので M1 の判定に使わず別に書く
+        （pf＝1 のセルでは M1 の中身は g の分布だけ）。成り立てば 8 回目の形は分母か体系の側へ。
+  M2 追従：セルの N の 50% 以上で |log10 g|≧0.05（binG1＋binG2）、または開幕 40 四半期でそうなる。
+  M3 採算の混ざり：pf＜1 の部分集合で |log10 η′|≧0.05（binEtaHp1＋binEtaHp2）が N の 25% 以上。
+  M4 据えたままの機械：nIdleGe10÷sumN≧0.25。q（X÷N）は記録の列に格下げ（e≧1.1 のため機械が止まっていても q は 1 を超える）。
+  M5 a＝0 の山：(nOut0＋nCap0)÷sumNAll≧0.1 が連続 8 四半期以上のセル。理由の最大（表②）を書く。M6 は削除。
+  どれも成り立たなければ〈ρ・g・η′・d の最大の項〉を書く。
+  先に書く予想（旧を置換・AI の推測）：M1 は pf＜1 の部分集合では ρ の桁が η′ に依る（枠 1 つで L÷X が動く分）ので、自明には成り立たない＝外れうる。g は定常で 1 に近く開幕の拡大期にだけ外れる。
+    a＝0 の山は pf0・fill0・inv0・Capacity＝0（unInvented・noX・noBoost）・sleep・bankrupt だけ（restart は 0）。当たらなければ外れと書く。
+  記録（採否に使わない）：史実の大きさ・暦の年は全て記録。
+
+[A7] 触る行の追記
+  `EconomyStep.cs`：826〜833 の直後に `if (insOn && slotsOn) Instruments.Smq2Head(...)`（眠り・倒産の数え）／979 の `if (slotElig && s.Capacity > 0) {…}` の直後に Capacity＝0 の個体の `Smq2Cap0`／992 の SmqSeen の次の行に `Smq2Seen`（反実仮想）。いずれも `insOn` の中だけ（旗 0・計器なしでは何も走らない）。
+  `Instruments.cs`：Sink の欄 2 つ（SlotMg・SlotMg0 とそれぞれの header の旗）と Dispose の 2 行・`InstrumentsSlot.cs`：SlotFold の 1 行（`Smq2Fold`）。新規：`PriceOfBread.SimCore/InstrumentsSlotMg.cs`（部分クラス）・`scripts/instruments/smq2_641/`。
+  `PriceOfBread.Tests/Smq2MarginalTests.cs`（新規）。Model.cs・SlotMachines.cs・SlotCapacity.cs には触らない。
+
+[A8] 自己申告の追記
+  ・本物の Evaluate を一時の状態で呼ぶ形は、復元の漏れがあれば本体の値を変える失敗型を持つ（旗 1＋計器の標準出力の cmp が番人）。
+  ・fit＜1 の d_H に独立の検算が無い。d_best は fit＝1 に限る（fit＜1 の機械の占め手の限界は記録しない）。
+  ・g の母数は T0＞0 の個体だけ（尾と a＝0 の山は g を持たない）。
+  ・この追記の決め（列・区間の幅・pf＜1 の部分集合・署名）は AI の置き。
