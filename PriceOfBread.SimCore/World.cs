@@ -1189,7 +1189,7 @@ public sealed class World
         double realSanit = wr.Sanitation(c);
         double sanitDev = c.EpidemicSanitFromBoard > 0 ? realSanit : (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity.Value * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
-        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
+        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の都市の POP の和（★(638) 死は都市の POP だけ）を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
         // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
         //   POP の中は年齢の重み（0〜9 と 60以上に (1＋DisasterAgeMortalityExcess)）。旧＝POP の間の重みが子供比＋老年比を読み、POP の中の年齢の運搬も同じ脆弱さを読んだ＝2度（思想⑨）。
         var aw = new double[2 * Pop.Layout.Bands];
@@ -1296,18 +1296,18 @@ public sealed class World
     public bool TriggerEpidemic(Coefficients c, double jitter, bool transmitted = false, DeterministicRng? pickRng = null)
     {
         Region? wr = null; double worstUrban = 0;
-        Region? wr2 = null; double secondUrban = 0;   // 人14：次過密州（州間伝播の二次スパイク先）
+        Region? wr2 = null; double secondUrban = 0;   // 人14：二次の標的（★(638) 1 つ目を除いた都市の人口の重みの抽選・州間伝播の二次スパイク先）
         double maxUrban = 0;   // (629) 計器の列 maxUrbanShare（最も都市化率の高い州の割合）
         // (638) 標的＝都市の人口 Urb_r の重みで抽選（二次＝1 つ目を除いた同じ重み）。重みが正の州が 2 つ以上のときだけ乱数を引く（1 州の国は乱数の列を動かさない）。
-        //   pickRng が null のとき（試験の直呼び）は 0.5 の位置＝重みの中央の州。
+        //   pickRng が null のとき（試験の直呼び）は 0.5 の位置＝重みの中央の州。★本番の呼び手（Simulation・MultiNationSim の伝播）は必ず国の乱数を渡す。
         PickUrbanContactTargets(c, pickRng, out wr, out worstUrban, out wr2, out secondUrban, out maxUrban);
         if (wr is null) return false;
         double epiNat = 0, epiPop = 0, epiPop2 = 0;   // (629) 計器の入力（読むだけ・Instruments.On の間だけ）
         if (Instruments.On) { epiNat = UrbanShare; epiPop = wr.SumPopulation(); epiPop2 = wr2?.SumPopulation() ?? 0; }
         double dead = ApplyEpidemicDeaths(wr, c, jitter, 1.0);
         if (Instruments.On && !WarmupFrozen) Instruments.EpidemicHit(this, wr, transmitted ? 1 : 0, worstUrban, maxUrban, epiNat, epiPop, dead);
-        // 人14（州間伝播）：現行は国内で単一の最過密州しか襲わず州間伝播がない（1832コレラはパリ→マルセイユ→リヨンと国内交通路を伝った）＝多州国家の疫病死が構造的に過小。
-        // EpidemicIntraCountrySpread=0 で二次スパイクなし＝現行と厳密一致・>0で感染窓中に次過密州へ減衰致死率(×これ)の二次スパイク。新規RNG消費なし（同一 jitter を流用＝決定論不変）。1州世界は wr2=null で不発。
+        // 人14（州間伝播）：旧は国内で単一の最過密州しか襲わず州間伝播がなかった（1832コレラはパリ→マルセイユ→リヨンと国内交通路を伝った）＝多州国家の疫病死が構造的に過小。
+        // EpidemicIntraCountrySpread=0 で二次スパイクなし＝現行と厳密一致・>0で感染窓中に二次の標的へ減衰致死率(×これ)の二次スパイク。二次の致死率は同一 jitter を流用（★(638) 以後は標的の抽選が pickRng から引く＝重みが正の州が 2 つ以上のとき）。1州世界は wr2=null で不発。
         if (c.EpidemicIntraCountrySpread > 0 && wr2 is not null)
         {
             double dead2 = ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);

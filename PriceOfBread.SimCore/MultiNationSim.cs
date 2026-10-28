@@ -855,8 +855,8 @@ public sealed class MultiNationSim
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
-            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度（ファシズムの支持の式・発見パネルのホバー）が
-            // 代理(WorldTechLevel との max)でなくこれを参照する（思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
+            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。★(640) Ideology の発展度は読み手ごと消した＝本体の読み手は 0（計器と試験だけが読む・欄と注入の削除は igi2 の回）。
+            // （思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
             double indFrontier = 0;
             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;

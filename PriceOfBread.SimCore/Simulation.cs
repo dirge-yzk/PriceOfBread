@@ -1994,7 +1994,7 @@ public sealed class Simulation
             //   年に4つ引いていた主系列の乱数（枯渇2・発見2）も消えた＝以後の乱数の列がずれる（挙動の変更＝10種で測った）。
             // 疫病（B-4・コレラ等）：発生は過密（都市化）が駆動し、衛生整備（工業化）は死亡率を下げる。専用RNG系列＝主系列を乱さない。発生＝感染窓を立て他国へ伝播しうる（MultiNationSim）。
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰
-            double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // 常に2つ引く（専用系列）
+            double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // 常に2つ引く（専用系列・★(638) 発生したら標的の抽選が同じ系列からさらに引く）
             if (epiRoll < World.EpidemicOnsetProbability(World.Coef))   // 発生率の式は World.EpidemicOnsetProbability の 1 本
                 World.TriggerEpidemic(World.Coef, 0.5 + epiPick, pickRng: EpidemicRng);   // 内部発生（過密スラム）→死亡スパイク＋感染窓
         }

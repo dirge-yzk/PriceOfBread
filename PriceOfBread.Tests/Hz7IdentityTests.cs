@@ -66,4 +66,22 @@ public class Hz7IdentityTests
         }
         for (int i = 0; i < sizes.Length; i++) zeroed.Pops[i].Size = sizes[i];
     }
+
+    [Fact]
+    public void 疫病の標的は人口1e9未満の州を数えない_都市の人口が正でも()
+    {
+        // ★(645) 合流（反証役 urc〔bv〕低）：人口を 0 にした州は都市の人口も 0＝もともと重み 0 で、人口の門（1e-9）を消す突然変異を拾えなかった。
+        //   都市の POP を持つ州を 1 つだけ残し、その人口を 0 より大きく 1e-9 未満にする＝重みは正だが門で数えない＝疫病は起きない。
+        var w = new Simulation(NationConfig.France().ToScenario(155), new NullAgent()).World;
+        var keep = w.Regions.First(r => r.Pops.Any(p => p.IsUrban && p.Size > 0));
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Size = 0;
+        var urb = keep.Pops.First(p => p.IsUrban);
+        urb.Size = 5e-10;
+        Assert.True(keep.SumUrbanPopulation() > 0, "前提：都市の人口が正");
+        Assert.True(keep.SumPopulation() < 1e-9, "前提：人口が 1e-9 未満");
+        w.PendingLog.Clear();
+        Assert.False(w.TriggerEpidemic(w.Coef, 0.5, false, new DeterministicRng(901)));
+        urb.Size = 1.0;   // 対照：門を越えれば当たる
+        Assert.True(w.TriggerEpidemic(w.Coef, 0.5, false, new DeterministicRng(902)));
+    }
 }

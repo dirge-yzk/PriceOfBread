@@ -128,7 +128,7 @@ def mode_a(d):
     flag_of = {"社会主義": "SpreadNeedSocialismBoard", "共産主義": "SpreadNeedCommunismBoard", "ファシズム": "SpreadNeedFascismDecline"}
     chosen = [flag_of[n] for n, _, _, _ in ROWS if g1[n] and g2b[n]]
     print("  通った行:", [n for n, _, _, _ in ROWS if g1[n] and g2b[n]])
-    print("  POB_COEF=\"" + ";".join([c + "=1" for c in chosen] + ["IdeologyDevTermOff=1"]) + "\"")
+    print("  POB_COEF=\"" + ";".join([c + "=1" for c in chosen] + ["IdeologyDevTermOff=1"]) + "\"")   # ★(645) 注：IdeologyDevTermOff は (640) の採用で消した旗＝再走するときはこの行を外す
     print("\n== G3 の基線の読み（記録）：主要 9 国×全四半期の s_soc と s_com の相関（種ごと）")
     for s in seeds:
         xs = [r["wageUnmet"] for r in data[s] if r["nation"] in MAJ]; ys = [r["sComNew"] for r in data[s] if r["nation"] in MAJ]

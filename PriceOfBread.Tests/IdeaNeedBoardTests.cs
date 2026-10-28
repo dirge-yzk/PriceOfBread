@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(640) 線 idn：思想の必要性を盤面の量から読む旗 4 本の番人（機構と不変条件）。事前登録 measurements/idn640_20261028_prereg.txt の [5]。
-/// 旗 <see cref="Coefficients.SpreadNeedSocialismBoard"/>・<see cref="Coefficients.SpreadNeedCommunismBoard"/>・<see cref="Coefficients.SpreadNeedFascismDecline"/>・<see cref="Coefficients.IdeologyDevTermOff"/>（既定 0＝今の式）。
+/// 旗 <see cref="Coefficients.SpreadNeedSocialismBoard"/>・<see cref="Coefficients.SpreadNeedCommunismBoard"/>・<see cref="Coefficients.SpreadNeedFascismDecline"/>（★(640) 採用：ファシズムの落ち込みは既定 1・社会主義と共産主義は既定 0・発展度の旗 IdeologyDevTermOff は読み手ごと消した）。
 /// 期待値は本体の関数から作らない：兵士でない POP と工場労働者の人数・充足・取り分は盤面の POP を数えて手で組む。
 /// ⚠壊し方（突然変異で赤を確かめる）＝不足を 1−fill でなく fill にする／兵士を分母に入れる／落ち込みの符号を逆にする／在庫 NaN を通す／旗 0 でも新しい式を読む／取り分の分母に賃金を入れない。</summary>
 public class IdeaNeedBoardTests
@@ -165,11 +165,16 @@ public class IdeaNeedBoardTests
         Assert.Equal(new[] { "Communism", "Fascism", "Imperialism", "Socialism" }, names);
         Assert.Null(typeof(Coefficients).GetField("IdeologyDevTermOff"));
         Assert.Null(typeof(Coefficients).GetField("IdeologyDevFromUrban"));
+        // ★(645) 合流（反証役 idn〔bv〕中）：1783 年の盤面ではファシズムの行が未発見＝r[9]=0 で項が空だった。ファシズムを既知にし闘争度を正にして、前提 r[9]>0 を確かめてから最先端の工業化度を動かす。
         double[] Support(double frontier)
         {
-            var w = Nation(Board(), "イギリス"); w.IndustrialFrontier = frontier; Ideologies.UpdateShares(w); return Ideologies.National(w);
+            var w = Nation(Board(), "イギリス");
+            w.Discovered[Discovery.FascismRow] = true;
+            foreach (var p in Civ(w)) p.Militancy = 0.6;
+            w.IndustrialFrontier = frontier; Ideologies.UpdateShares(w); return Ideologies.National(w);
         }
         var a = Support(0.0); var b2 = Support(50.0);
+        Assert.True(a[(int)Ideology.Fascism] > 0, $"前提：ファシズムの支持が正（{a[(int)Ideology.Fascism]}）");
         for (int i = 0; i < a.Length; i++) Assert.Equal(a[i], b2[i]);
     }
 
