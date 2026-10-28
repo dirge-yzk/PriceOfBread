@@ -38,8 +38,10 @@ public class PolicyPoliticsTests
         // 近代エリート（ブルジョワ）が厚いフランスは制限選挙が通る（富裕な改革勢力が押す）
         var fr = new Simulation(NationConfig.France().ToScenario(1789), new ModernizerAgent());
         fr.World.ParliamentEnabled = false;   // ブロックの力（富×発言権）単体を検証＝議会層は isolate
-        fr.Run(300);
-        Assert.True(fr.World.Suffrage >= Suffrage.Census, "ブルジョワが厚いフランスで制限選挙が通らない");
+        // ★(617) 合流の木（tl＋pcw）では制限選挙は q80 に通るが、300 四半期目（最後の 1 四半期）に政体の巻き戻しで None へ戻る＝主張（ブルジョワの力で通る）は〈通ったか〉で見る（最後の四半期の状態に置かない・旗に固定しない）。
+        var reached = Suffrage.None;
+        for (int q = 0; q < 300; q++) { fr.Run(1); if (fr.World.Suffrage > reached) reached = fr.World.Suffrage; }
+        Assert.True(reached >= Suffrage.Census, "ブルジョワが厚いフランスで制限選挙が通らない");
     }
 
     // ==== 不満度（導出量）＝二量分離 段1 の番人（2026-09-09・設計メモ §6-1／§6-4）====================================

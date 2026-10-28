@@ -1630,7 +1630,7 @@ public class InstrumentsTests
     // ★(542) 合流（ivf＋wp を重ねた木・焼き直しの後）：1812 は場面 T の飢えの照合が空洞（飢え 0・構造 6）＝1813 で全ての場面が空洞でない＝1813 を採る（種の選び直しは (405) と同じ作法）。
     // ★(591) 恒等の線 gc5：場面の前提を旧の旗〔AiModernizeFromReturn=0〕に固定していた行を外した（旧の腕ごと削除・旗に固定して赤を避けない）＝軌道が既定の側に動き、1813 は場面 T の飢えの照合が空洞（飢え 0・構造 6）＝1812 で全ての場面が空洞でない（1820 も通る・1814〜1819 は場面 T が空洞）。種の選び直しは (405) と同じ作法。
     // ★(604) 線 tt：通商条約の廃止で軌道が動き、1812 は場面 T の飢えの照合が空洞（飢え 0・構造 9）＝1813・1814・1815・1817・1818 も空洞・1816 で全ての場面が空洞でない（種の選び直しは (405) と同じ作法）。
-    private const ulong CoverageSeed = 1820UL;   // ★(613) 線 tl：技術水準の削除で軌道が動き、1816〜1819 は場面 T の飢えの照合が空洞＝1820 で全ての場面が空洞でない（種の選び直しは (604) と同じ作法）
+    private const ulong CoverageSeed = 1820UL;   // ★(617) 合流の木では 1820〜1835 の全てで場面 T の飢えが空洞＝種を選び直さず、場面 T の盤面で b を広げる（下の試験の本体）。★(613) 線 tl：技術水準の削除で軌道が動き、1816〜1819 は場面 T の飢えの照合が空洞＝1820 で全ての場面が空洞でない（種の選び直しは (604) と同じ作法）
 
     [Fact]
     public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
@@ -1673,6 +1673,15 @@ public class InstrumentsTests
                         w.Coef.MandateWeight *= cmin / 1.5 / maxBefore;
                         maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
                         w.PoliticalCapitalMax = maxBefore;   // ★(279) 同上（縮めた b を照会にも）
+                        w.MandateSpent = maxBefore;
+                        expect = Expect();
+                    }
+                    if (scene == 'T' && !expect.Values.Any(c => c > 0 && c <= maxBefore) && expect.Values.Where(c => c > 0).DefaultIfEmpty(0).Min() is double tmin && tmin > 0)
+                    {   // ★(617) 場面 T に飢え（代価≦b）の一歩が無い国は、最も安い一歩の代価が b の 1/1.05 になるよう b を広げる（場面 V の逆・b は MandateWeight に比例）。
+                        //   合流の木（tl＋fsx）で 1820〜1835 の 16 種とも場面 T の飢えが空洞（飢え 0・構造 7〜12）＝種の選び直しでは届かない軌道になった＝盤面を作る側で飢えの一歩を置く（旗に固定しない）。
+                        w.Coef.MandateWeight *= tmin * 1.05 / maxBefore;
+                        maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
+                        w.PoliticalCapitalMax = maxBefore;
                         w.MandateSpent = maxBefore;
                         expect = Expect();
                     }
