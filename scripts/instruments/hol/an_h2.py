@@ -3,7 +3,7 @@
   事象＝州の人口が自分のそれまでのピークの 1/10 未満（と 1/4 未満）へ初めて落ちた四半期（ピークは K 千人以上＝既定 1）。
   原因＝ピークから落ちた四半期までの減り D のうち、移民（州の間の出−入・入植の出−入・越境の出−入）の純の流出 Mig が
         D の半分以上なら「移民」、それ以外は「戦争・飢饉・その他」（窓の中の戦場の強さ・主食の充足の最小で細分）。
-  -v＝移民の事象を1件ずつ（行き先の上位・距離・始めと終わりの因子）。"""
+  -v5＝全ての原因の事象を1件ずつ（-v4 は移民だけ）。-v＝移民の事象を1件ずつ（行き先の上位・距離・始めと終わりの因子）。"""
 import sys, os, collections, math, json
 def fl(x):
     try: return float(x)
@@ -32,8 +32,9 @@ def dist(a, b):
     h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
     return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h)))
 args = sys.argv[1:]
-V = '-v' in args or '-v4' in args
-V4 = '-v4' in args
+V = '-v' in args or '-v4' in args or '-v5' in args
+V4 = '-v4' in args or '-v5' in args
+V5 = '-v5' in args
 KMIN = 1.0
 if '-min' in args: KMIN = float(args[args.index('-min') + 1])
 dirs = [a for i, a in enumerate(args) if not a.startswith('-') and not (i > 0 and args[i - 1] == '-min')]
@@ -99,7 +100,7 @@ for d in dirs:
                     isCap = (r['q'], reg) in caps
                     if reg in EXEMPT: TOTX[(div, cause)] += 1
                     else: TOT[(div, cause)] += 1
-                    if div == 10 or (V4 and cause == '移民'):
+                    if div == 10 or (V4 and cause == '移民') or V5:
                         dst = collections.Counter()
                         for (qq, dd, vv) in MPq.get(reg, []):
                             if rows[pkI]['q'] < qq <= r['q']: dst[dd] += vv
