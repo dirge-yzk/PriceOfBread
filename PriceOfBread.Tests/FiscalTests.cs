@@ -342,6 +342,7 @@ public class FiscalTests
         // 4四半期ごとに起債を積んで40四半期＝転落・昇格（Meritocracy）・徴兵と復員（Military）・州内/州間の移住（PopDecision/Territory）の全経路を
         // 持ち手のいる世界で回す（エンジンの月次検査に BondLedger が入っている＝運び忘れがあれば例外で落ちる）
         for (int q = 0; q < 40; q++) { if (q % 4 == 0) FiscalMonth(sim.World, Short); sim.StepQuarter(); }   // 起債は r＜1 の月（2026-09-28・エンジンの1行）
+        FiscalMonth(sim.World, Short);   // ★(616) 国庫の出口（線を超えた国庫は国債の返済へ）で 40 四半期の間に国債が返りきりうる＝最後にもう 1 度起債して持ち手のいる世界で台帳を検める（確かめるのは台帳の運びで、出口ではない）
         var w = sim.World;
         Assert.True(HeldOf(w) > 0, "前提が崩れた：国内債の持ち手がいない");
         new BondLedger().Check(w);
@@ -1295,6 +1296,7 @@ public class FiscalTests
         double fd0 = bw.ForeignDebt.Value, prev0 = bw.PrevForeignDebt.Value, cl0 = lw.ForeignBondClaims.Value, gd0 = bw.GovDebt.Value;
         FiscalMonth(bw, Short);   // 払えない月＝借入の1本（Fiscal.Borrow）
         double f = bw.PendingForeignBorrow;
+        bw.Coef.FiscalStressBufferMonths = 1e9;   // ★(616) 借りた額が国庫に入り、次の月に線を超えた分として返される（国庫の出口）のを止める＝ここで確かめるのは貸し手の換算で、出口ではない
         Assert.True(f > 0, $"前提が崩れた：普が外資で借りていない（国債 {gd0}→{bw.GovDebt}・利払い {bw.LastInterestPerMonth}・歳入 {bw.LastRevenuePerMonth}・冷却 {bw.BorrowCooldownMonths}）");
         Assert.Equal(prev0 + f, bw.PrevForeignDebt.Value, 6);   // 借入の月に繰上げ済みの印も上がる
         bw.Coef.ForeignBondCapacity = new Share(0);   // 残りの月は借りない
