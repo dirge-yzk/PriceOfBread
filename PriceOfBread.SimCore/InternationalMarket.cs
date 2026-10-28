@@ -177,7 +177,7 @@ public sealed partial class InternationalMarket
     /// <summary>運賃革命の倍率（A-高2・2026-08-15 に従価の運賃へも）＝1−TransportRevolutionMax×clamp01((前線の技術水準−Onset)÷Span)・TransportRevolutionMax≦0 は1。
     /// 清算（BilateralMarket の運賃の倍率）と発見の着値（Discovery.WorldMarket＝★(169)）が同じ1本を読む（(169) に清算の式をここへ移した）。</summary>
     internal static double FreightRevolution(double frontierTech, Coefficients c)
-        => c.TransportRevolutionMax > 0
+        => c.TransportRevolutionMax > 0 && !(c.EraOff > 0)   // ★(613) 段4：旗 EraOff が正なら運賃革命は 1.0（前線の技術水準のランプを読まない・否定形＝NaN は旗 0）
             ? 1.0 - c.TransportRevolutionMax * PoliticalQuantities.Clamp01((frontierTech - c.TransportRevolutionOnset) / c.TransportRevolutionSpan)
             : 1.0;
 

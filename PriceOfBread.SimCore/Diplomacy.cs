@@ -2275,7 +2275,7 @@ public sealed class Diplomacy
     /// 印度・中央アジアの「従属はするが宗主が史実と違う」逸脱（宗主一致exact40%の主因）を生んでいた。
     /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(194) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
     internal double ExpeditionLift(Power great, Power target, Coefficients c)
-        => great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target)
+        => !(c.TechMultipliersOff > 0) && great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target)   // ★(613) 段3：旗が正なら門なし（1.0）
            ? PoliticalQuantities.ClampOr(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0, c.ExpeditionTechFloor)   // NaN は床へ
            : 1.0;
 

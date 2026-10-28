@@ -217,7 +217,6 @@ public class GoodIdGuardTests
         ("PriceOfBread.Runner/Program.cs", "(204, \"\"", 1, "同上"),
         ("PriceOfBread.Runner/Program.cs", "new[] { 0, 8, 40, 80, 200, 320, 400 }", 1, "診断の掃引に使う四半期の並び（財ではない）"),
         ("PriceOfBread.Runner/Program.cs", "new[] { 4, 100, 200, 320, 440 }", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 0, 4, 8, 12, 16, 20, 24, 30, 40 }", 1, "同上"),
         ("PriceOfBread.Runner/Program.cs", "new[] { 8, 40, 120, 240, 400 }", 2, "同上"),
         ("PriceOfBread.Runner/Program.cs", "watch = [5, 2, 6, 3, 4, 1]", 1, "chaintrace＝連鎖の玩具の世界（ScenarioKind.ProductionChain）の財の番号（木5・木材2・鉄鉱石6・鉄3・鉄鋼4・家具1）＝Catalog の財の番号ではない"),
     ];

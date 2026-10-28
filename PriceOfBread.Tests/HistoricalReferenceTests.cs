@@ -56,7 +56,7 @@ public class HistoricalReferenceTests
         // 英の5軸（参政権・教育・農奴解放・穀物法・土地改革）が全一致するケース
         // ★土地改革は2026-08-02に追加した軸（それ以前は忠実度に1ビットも寄与しない死んだ軸だった）。英は地主貴族が
         //   農地の大半を保有したまま1914を迎える＝なし。
-        var hit = new NationStanding("ロンドン", 0, 0, 0, 0, 0, 0, 0, 0, Polity.ConstitutionalMonarchy, 0, 0,
+        var hit = new NationStanding("ロンドン", 0, 0, 0, 0, 0, 0, 0, Polity.ConstitutionalMonarchy, 0, 0,
             Suffrage: Suffrage.AdultMale, Education: EducationLaw.Compulsory, Serf: ReformLevel.Full, CornLaws: ReformLevel.None,
             LandReform: ReformLevel.None, Nation: "イギリス");
         Assert.Equal((5, 5), HistoricalReference.LawScore(uk, hit));
@@ -81,7 +81,7 @@ public class HistoricalReferenceTests
         double ok = HistoricalReference.MilitarismDegreeOk;
 
         // 閾値ちょうどは「軍国」側（>= で判定）＝普は一致・米は不一致
-        var hot = new NationStanding("ベルリン", 0, 0, 0, 0, 0, 0, 0, 0, Polity.ConstitutionalMonarchy, 0, 0, Militarism: ok);
+        var hot = new NationStanding("ベルリン", 0, 0, 0, 0, 0, 0, 0, Polity.ConstitutionalMonarchy, 0, 0, Militarism: ok);
         var cold = hot with { Militarism = ok - eps };
         Assert.Equal(1, HistoricalReference.LawScore(prussia, hot).Matched - HistoricalReference.LawScore(prussia, cold).Matched);
         Assert.Equal(1, HistoricalReference.LawScore(usa, cold).Matched - HistoricalReference.LawScore(usa, hot).Matched);
@@ -190,7 +190,7 @@ public class HistoricalReferenceTests
     public void 断面1950の採点は従属の許容を主指標と同じ規則で数える()
     {
         static NationStanding St(string nation, Polity derived, string suzerain = "") =>
-            new("", 0, 0, 0, 0, 0, 0, 0, 0, derived, 0, 0, Nation: nation, Suzerain: suzerain, DerivedPolity: derived);
+            new("", 0, 0, 0, 0, 0, 0, 0, derived, 0, 0, Nation: nation, Suzerain: suzerain, DerivedPolity: derived);
         static MatchResult M(params NationStanding[] at1950) =>
             new(1, Coefficients.GameQuarters, "", 0, 0, [St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.Despotic),
                                                          St("オマーン", Polity.Absolutist), St("アフガニスタン", Polity.Despotic)], [], [], true, 0, 0, 0, 0, [], 0, 0, 0, 0,

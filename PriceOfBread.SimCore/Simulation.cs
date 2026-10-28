@@ -8,7 +8,7 @@ public readonly record struct TurnSnapshot(
     double FoodPrice, double FoodOutput, double FoodStock,
     double ManufPrice,
     double FarmerSatisfaction, double WorkerSatisfaction,
-    double TechLevel, double AvgLiteracy, double Gdp,
+    double AvgLiteracy, double Gdp,
     int PolityCode, double AvgConsciousness, double AvgMilitancy,
     double ReformistPower, double Coercion,
     double BroadMoney, double Loans, double Confidence,
@@ -2142,7 +2142,6 @@ public sealed class Simulation
                 r.HarvestFactor = World.HarvestFactor;                   // 今年の豊作/不作（主食RGO産出と自給に乗算）
                 r.CropHealth = World.CropHealth;                         // 作物別の健全度（病虫害）。栽培州の産出に乗る＝作物固有の不作（天候と積算）
                 r.WeatherBandFactor = World.WeatherBandFactor;           // 緯度帯（気候帯）の天候。HarvestFactorと積算＝同じ気候帯の国が一緒に不作（欧州一帯の凶作）
-                r.TechLevel = World.TechLevel;                           // 技術水準（先進財の技術依存スケールに使う）
                 r.Discovered = World.Discovered;                         // ★発見の表の解禁（段2A）＝国の配列への参照（写しではない＝判定の四半期から同じ値を読む）
                 // 役務（サービス財）の月次設定：教育の担い手と生産性を教育法で切替＋義務教育の財源率＋行政・兵力の予算。
                 // C-高9（史実検証2026-07-22）：公教育（Public）にも国庫財源を配線（旧＝Compulsory 以外は厳密0＝「国が無料で供給を得る」因果の逆向き）。
@@ -3098,7 +3097,7 @@ public sealed class Simulation
             World.UrbanShare,
             foodMkt.Price, foodProd.Output, foodMkt.Stock,
             manufPrice, farmerSat, workerSat,
-            World.TechLevel, litSum * inv, gdp,
+            litSum * inv, gdp,
             (int)World.Polity, conscSum * inv, milSum * inv,
             World.ReformistPower, World.Coercion,
             World.BroadMoney.Value, World.OutstandingLoans.Value, World.Bank?.Confidence ?? 1.0,

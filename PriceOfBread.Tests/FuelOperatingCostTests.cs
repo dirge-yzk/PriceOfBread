@@ -208,7 +208,7 @@ public class FuelOperatingCostTests
     [InlineData(2.78, 2.0, true)]
     public void 汽船への転換は費用で起きる_1840年は帆船_1880年代は汽船_燃料が高いと帆船へ戻る(double frontierTech, double coalMult, bool sailWins)
     {
-        var coef = new Coefficients();
+        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
         double coal = Catalog.RefPrices[Catalog.CoalId] * coalMult;
         var sim = ShipWorld(57, coef, Catalog.RefPrices[Catalog.SailingShipId], Catalog.RefPrices[Catalog.SteamshipId], steamSupplied: true, frontierTech, coal);
         var (s0, t0) = ShipDemand(sim.World);
@@ -224,7 +224,7 @@ public class FuelOperatingCostTests
         // era＝EraFactor(前線技術, EraColonyCoal)：前線 1.0（運賃革命のランプの前）で 1.0・3.5（満了の後）で 0.5。
         //   ①汽船1単位の容量＝30×2.5×解禁度÷era＝75→150（同時代の換算「汽船1トンは帆船3〜5トン分」）②容量あたりの燃料＝ShipFuelRate×era＝半分。
         //   ★2026-10-01 段2A：旧③「州の解禁度が半分なら1単位の容量も半分」は外した＝汽船の解禁度は発見の2値（作者裁定 §1A-2）＝半分の盤面は無い。
-        var coef = new Coefficients();
+        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
         double CapPerUnit(double tech)
         {
             var sim = ShipWorld(58, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech);   // 汽船が安い
@@ -286,7 +286,7 @@ public class FuelOperatingCostTests
     [Fact]
     public void 船の選択_積んだ容量は単位の容量どおりで代金は生産者の持ち主へ保存される()
     {
-        var coef = new Coefficients();
+        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
         var sim = ShipWorld(53, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true);   // 汽船が安い
         var w = sim.World;
         double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);
@@ -337,7 +337,7 @@ public class FuelOperatingCostTests
     [Fact]
     public void 汽船の割合は減耗と購入をどう重ねても容量の在庫の割合と一致する()
     {
-        var coef = new Coefficients();
+        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
         var sim = ShipWorld(54, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: 2.3);   // 運賃革命のランプの途中（era が1でも0.5でもない）
         var w = sim.World;
         double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);

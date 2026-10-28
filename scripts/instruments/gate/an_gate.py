@@ -14,7 +14,7 @@ def fl(x):
 data = collections.defaultdict(lambda: collections.defaultdict(dict))   # nation -> seed -> yr -> row
 seeds = seeds_of(D, 'stock')
 for sd, r in rows(D, 'stock'):
-    if year_end(r): data[r['nation']][sd][int(r['year'])] = {'tech': r['techLevelIndex'], 'steamFill': r['steamFillShare'], 'railCap': r['railCapacityStock']}
+    if year_end(r): data[r['nation']][sd][int(r['year'])] = {'steamFill': r['steamFillShare'], 'railCap': r['railCapacityStock']}
 def first(nat, key, pred):
     out = []
     for sd in seeds:
@@ -42,9 +42,7 @@ YRS = [1793, 1813, 1833, 1853, 1863, 1873, 1883, 1893, 1913, 1933, 1949]
 print('② 工場の蒸気動力の割合（SteamFill・種の中央値）　年=' + ' '.join(map(str, YRS)))
 for n in MAJ:
     if n in data: print(f'  {n}: ' + ' '.join(series(n, 'steamFill', YRS)))
-print('③ 技術水準（種の中央値）')
-for n in MAJ:
-    if n in data: print(f'  {n}: ' + ' '.join(series(n, 'tech', YRS)))
+print('③ 技術水準の列は (613) で消した（an_steam.py が ② と ③ の間を読むので見出しだけ残す）')
 print('④ 鉄道の容量（種の中央値）')
 for n in MAJ:
     if n in data:

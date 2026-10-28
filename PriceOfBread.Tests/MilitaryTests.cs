@@ -147,12 +147,9 @@ public class MilitaryTests
         foreach (var p in new[] { rifle, gun }) Assert.Equal(0.0, Discovery.Gate(r, p));
 
         // ②技術水準では動かない（2値＝発見だけが門を動かす）
-        foreach (double t in new[] { 0.5, 1.5, 5.0 })
-        {
-            r.TechLevel = t;
-            foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
-            foreach (var p in new[] { rifle, gun }) Assert.Equal(0.0, Discovery.Gate(r, p));
-        }
+        // ★(613) 州は技術水準を持たない＝旧の技術水準を振る繰り返しは削除（門は州の発見の配列だけを読む）
+        foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
+        foreach (var p in new[] { rifle, gun }) Assert.Equal(0.0, Discovery.Gate(r, p));
 
         // ③後継の発見の後＝旧は満額のまま・操業規模も正のまま・新の門が開く・装備は発見済みのまま
         w.Discovered[bessemer.DiscoveryRow] = true;
@@ -676,8 +673,8 @@ public class MilitaryTests
             double s = ArmyShape.NavalSpendShareOf(p);
             Assert.True(s >= 0, $"{p.Name}の分け方が未定義");
             Assert.Equal(s, w.NavalSpendShare.Value, 12);
-            Assert.Equal(1.0, p.CrewFill);
-            Assert.True(p.NavalShare.Value >= 0 && p.NavalShare.Value < s + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が分け方 {s} を超える");
+            Assert.True(p.CrewFill > 0 && p.CrewFill <= 1.0 + 1e-12, $"{p.Name}の乗員の充足 {p.CrewFill} が (0,1] の外");   // ★(613) 軍の質の技術の因子が 1 になり海の必要量が増えた盤面では、開幕の艦隊が乗員より大きい国が出る〔旧は 1〕＝充足が 1 未満でも良い
+            Assert.True(p.NavalShare.Value >= 0 && p.NavalShare.Value <= 1.0 + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が [0,1] の外");   // ★(613) 軍の質の技術の因子が 1 になった盤面では、開幕の艦隊が乗員の全てを要る国が出る〔旧は 分け方 未満〕＝上限は 1
             double target = p.NeedSea / p.NavySkillMul;
             Assert.True(System.Math.Abs(p.FleetGauge - target) <= 1e-9 * System.Math.Max(1, target), $"{p.Name}の艦の強さのゲージ {p.FleetGauge} ≠ 目標（海の必要量÷海の熟練）{target}");
             if (w.Regions[0].FleetUnits is { } fu)
@@ -967,6 +964,7 @@ public class MilitaryTests
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
         foreach (var p in new[] { fr, es, uk }) p.NavalShare = new Share(0);
+        c.TechMultipliersOff = 0;   // ★(613) 遠征の門の機構の番人＝旗 TechMultipliersOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
         c.ExpeditionTechLevel = 0;   // 門なし（旧と同じ）
         Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));
         ArmyShape.Compute(dip, c);
@@ -978,6 +976,21 @@ public class MilitaryTests
         ArmyShape.Compute(dip, c);
         Assert.True(uk.NeedSea < ukSea1 * (1 - 1e-9), $"遠征の技術が床でも英の海の必要量が下がらない（{ukSea1:G17}→{uk.NeedSea:G17}）＝海越えの重みに門が掛かっていない");
         Assert.True(es.NeedLand > esLand1 * (1 + 1e-12), $"海を越えられない仏の陸軍の注意が陸の国境へ寄らない（{esLand1:G17}→{es.NeedLand:G17}）");
+    }
+
+    [Fact]
+    public void 旗_TechMultipliersOff_が正なら遠征の門は技術に依らず1()   // ★(613) 線 tl 段3
+    {
+        var sim = Frozen152("フランス", "スペイン", "イギリス");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
+        c.TechMultipliersOff = 0;
+        c.ExpeditionTechLevel = 1e12;   // 全ての国の門が床（旗 0 の対照）
+        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);
+        c.TechMultipliersOff = 1;
+        Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));   // 旗が正＝門なし
+        c.TechMultipliersOff = double.NaN;
+        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);   // NaN は旗 0（今のとおり）へ倒す（否定形）
     }
 
     /// <summary>★(194) 艦隊の注意は相手の越境の交易額（World.TradeValueSmoothed＝交易比重と同じ平滑の量）÷全ての国の平均で向く＝海路の接触（推奨で進めた＝作者の承認は未確認）。

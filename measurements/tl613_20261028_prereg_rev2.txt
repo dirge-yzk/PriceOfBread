@@ -1,0 +1,84 @@
+(613) 線 tl 後半 事前登録の改訂 rev2（2026-10-28・腕を回す前・コードより前＝後半の最初のコミット）
+基点 38672f1e の上の枝 tl（前半 4 コミットの上）・worktree D:/PoB_work/wt_tl・作業フォルダ D:/PoB_work/tl_613b・書いたモデル Claude Sonnet 5.5
+この文書は measurements/tl613_20261028_prereg.txt（前半）の §3 段1〜5・§4 段2/4・§6・§8・§10 を置き換える。置き換えない節（§1 出所・§2 根・§5 計器・§7 腕の運用・§9 止める線・§11 計算量）は前半のとおり。
+腕はまだ 1 本も回していない。結果を見た後にこの文書を直すなら新しい種（11〜20）で判定し直し、直したことを verdict の先頭に書く。
+
+========================================================================
+0. 名乗りと、反証役の所見への対応（高・中を全て反映）
+========================================================================
+★ 形＝段1 は〈入口〉（盤面の量〔発見の行〕で門を開ける）。段2・段3・段4 は〈削除〉（作者 2026-10-16 の原文〈技術水準・工業化度・制度疲労ですが、…それを集計してバフ/デバフを与えるのは全て二重計上という判断です〉・〈全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです〉）。段5 は腕 B5（cp3 と同じ線か後）。段0 と段6 は恒等。
+★ 判別の問い＝〈その項を消すと、門の無い機構が Q0 から無条件に走るか〉。巨大建造物の着工だけが yes（AI の規則＝着工できる物は即座に全部着工する＝作者 2026-08-02）。だから置き換え先（盤面の量）を置くのは段1 だけ。他は削除の形にする。置き換え先は全て AI の推奨であって作者の承認ではない＝〈確証なし〉。
+
+ 所見 → 変更の対応表（反証役の再読みは無い＝verdict にその旨を書く）
+ 高1 C2 の識字の錨 0.65（盤面の識字が史実の国の順序を逆にする：ダホメ 0.71〜0.82 ＞ 普 0.40〜0.48・仏 0.35〜0.37・英は錨の真上）
+     → **識字の錨・梯子・新しい定数を全て置かない**。C2/C3 は技術の項だけを落とす（公教育→義務教育の順と国庫の緩衝は既存のまま残る）。
+ 高2 G3 の梯子（女性の権利は 1 本の段の法で StagePrereq/LawPrereq が縛る〔自明〕・財産権⇒義務教育は AI の外の書き手でも破れる）
+     → **梯子の主張を消す**。女性の権利の順序は Government の StagePrereq/LawPrereq が既に縛る（番人は既存）。この線は新しい前提も梯子も足さない。
+ 中1 外圧・C1 の発見の差（WorldDiscovered は全国の和＝前線の国も 0 にならない・制度と思想の行が混じる・港の項・目盛り未登録）
+     → **発見の差を作らない**。C1 の techGap と B3 の gap は 0 にする（削除）。ただし B3 は毎四半期の w.ExternalPressure への書き込みを残して 0 を書く（書き込みごと飛ばすと NationConfig の 0.3 が死んだ定数として全国・全期間に残る＝接7 以前のバグへ逆戻り）。
+ 中2 段4 の汽船の割合（正帰還：割合↑→era↓→汽船が安い→割合↑・FreightRevolution との二重計上・Onset/Span 未登録）
+     → **汽船の割合を使わない**。EraFactor は k＝0 と同じ分岐で 1.0 を返す・FreightRevolution は 1.0（削除）。
+ 中3 D1 の識字（SpreadReach の媒体が識字を既に含む＝二重計上・目盛り未登録）
+     → **識字へ替えない**。制度と思想の行の ratio は 1（注の〈技術の押しは1〉がそのまま成り立つ）。
+ 中4 G0〜G5 は作りの上で全て満たされる（ゲート緑≠機構が働いた）
+     → §3 の判定を〈計器の列で読む恒等〉＋〈旗 0 の陽性対照（単体）〉＋〈腕 B で動いた向きの観測量〉の 3 点に作り直す。
+ 低1 段1 の requires の推測（鎖橋 1849 は錬鉄＝転炉鋼 1856 より前）→ 個体ごとに note の年と照らした表（§2-1）。1856 年より前の鉄は門なし。
+ 低2 段3・段4 の旗を採るときの Display の食い違い → 採るとき Display/FiscalTables.cs 107〜114・DiscoveryTables.cs 45 を同じ旗の分岐へ（数だけ・説明文なし）。
+ 低3 段0 の整合 → (a) VintageMigrateRate・VintageObsolescence の 2 係数を段0 で消した件を〈指示から外れる所〉の先頭に書く。(b) T0c は行数の形で書いた（前半の事前登録 §6 の〈ファイル×用途〉は実装できていない＝許可表はファイルごとの行数）。(c)(d)(e) の注と実装ログを直す。
+
+========================================================================
+1. 旗（全て既定 0＝今のとおり・厳密恒等・否定形で NaN は旗 0 へ倒す）
+========================================================================
+ 段1  TechGateByDiscovery       巨大建造物の着工と進行・運河の着工の門を、技術水準の techGate から〈発見の行 requires〉へ。
+ 段2a TechSignalOff             C1（SelfPlay.ChooseStance の techGap）≡ 0・B3（MultiNationSim の外圧の gap）≡ 0（書き込みは残る）。
+ 段2b TechThresholdOff          C2（SelfPlay.Apply の Modernize の法の目標の技術の項 4 本）・C3（Agents.cs の制限選挙の技術の項）・D1（Discovery.cs の制度と思想の行の ratio）の技術の項を落とす。
+ 段3  TechMultipliersOff        （前半で入れた）軍の質の因子・遠征の門・近代化費用の遅れの割増を 1 または 0 にする。
+ 段4  EraOff                    Coefficients.EraFactor ≡ 1.0（k＝0 と同じ）・InternationalMarket.FreightRevolution ≡ 1.0。
+ 段5  TechProductivityBracketOff（腕 B5・cp3 と同じ線か後）World.TechProductivity の技術の括弧を whOut×union だけにする。
+ 腕 B＝段1・2a・2b・3・4 の旗を全て 1。
+ 旗は採るときに既定 1 へ焼き込み、段6 の物理削除と一緒に消す（旗の復活を禁じる番人を足す）。
+
+========================================================================
+2. 段1 の requires（データ・出典つき・個体ごとに note の年と照らす）
+========================================================================
+ 方針：requires は〈その事業の主要な工法〉の発見の行 1 本。1856 年（転炉鋼）より前の鉄（錬鉄）・石造・煉瓦・土工・木造は門なし。宮殿・寺院・城壁・記念碑・灌漑の土工は門なし。
+ 表は megaprojects.json の `requires` 欄（行の名前・Catalog.DiscoveryRowNamed で添字へ・未知の名前は読み込みで投げる）。実行時の Megaproject レコードと SaveGame は触らない（Id から表引き）。
+ 2-1 表（Id → 発見の行／根拠）
+   転炉鋼（1856 ベッセマー）：yawata_steel（1901 製鉄所）・krupp_works（1862 ベッセマー導入）・putilov_works（1868）・kure_naval_arsenal（1903 鋼の艦）・brooklyn_bridge（1883 鋼のケーブル）・forth_bridge（1890 鋼）・tower_bridge（1894 鋼の骨組み）・pont_alexandre_iii（1900 鋼のアーチ）・dom_luis_bridge（1886 鋼）・long_bien_bridge（1902 鋼）・messina_bridge（鋼の吊橋）・jiangnan_arsenal（1865 製鋼を含む兵器工場）
+   蒸気機関（1780 年代）：haarlemmermeer（1852 蒸気ポンプ）・london_sewers（1875 蒸気の揚水所）・borsig_works（1837 機関車工場）・tomioka_silk_mill（1872 蒸気の繰糸）・empress_mills（1877 蒸気の紡績）・mashin_khana（1887 蒸気の機械）
+   汽船（1820 年代）：fuzhou_navy_yard（1866 造船所）・ba_son_arsenal（1863 造船所）・dover_calais_cable（1851 布設船）・transatlantic_cable（1858）・anglo_indian_cable（1870）・muscat_cable_station（1870）
+   水力発電（1880 年代）：dnieper_hydro・alpine_hydro・norwegian_hydro・roosevelt_dam・shivanasamudra_hydro・pharping_power（1911）・lake_biwa_canal（1890 事業用水力発電）
+   鉄筋コンクリート：zuiderzee（1932 締切堤）・osman_sagar（1920）・maginot_line（1930s）・liege_forts（1892）・lushun_fortress（1880s〜90s）・diet_building（1920 着工）
+   内燃機関：daimler_works（1890）
+   石油灯油：abadan_refinery（1912 製油所）
+   上記以外は門なし（宮殿・寺院・城壁・記念碑・錬鉄の橋〔budapest_chain_bridge 1849・tay_bridge 1878 の錬鉄・eiffel_tower 1889 の錬鉄〕・煉瓦と石の水道と下水〔croton 1842・paris_sewers・vienna_waterworks・wurttemberg_waterworks〕・土工の灌漑〔ganges_canal・delta_barrage・upper_bari_doab・cavour_canal・maremma・vinh_te・aswan_low・krishnaraja_sagara〕・電信の陸線〔transcontinental_telegraph〕ほか）。
+   運河（world.json の chokepoints）：suez＝汽船・panama＝ダイナマイト（拠出する国の自国の Discovered で判定）。
+   確証：転炉鋼 1856・汽船・蒸気機関・ダイナマイト 1867・鉄筋コンクリート・水力発電の年は発見の表（Catalog.Discoveries）の十年。個体の年は megaprojects.json の note。工法の対応は AI の推奨＝〈確証なし〉。
+ 2-2 帰結の先書き（記録・門にしない）：門なしの個体は所有国で Q0 から全部着工される（宮殿・寺院・錬鉄の橋ほか約 70 件）＝国庫の MegaprojectStateFrac（四半期 2%/個体）×MegaprojectStateCap（0.5）の吸い込みが開幕から出る。国庫・財政・人口への影響は記録。止める線（発散・空洞化・破綻）に当たったら B1 で切り分ける。
+
+========================================================================
+3. 判定（機構が狙いどおり働いたか＝3 点の組：計器の列／陽性対照／向き）
+========================================================================
+ 足す計器の列（scalars_s の末尾・INS=1 のときだけ・読むだけ・値を変えない）：
+   externalPressure（World.ExternalPressure）／freightRevolution（InternationalMarket.FreightRevolution(w.WorldTechLevel, c) の値）／womenRightsCode（(int)WomenRights）／
+   megaStartedCount（自国が所有して着工済みの巨大建造物の数）／megaStartedUnmetCount（うち requires の行を自国が開いていないもの）／megaStartedOldGateClosedCount（うち旧の techGate を満たさないもの＝動いた数）
+ G0（腕 A）：5 種の成績表が b5_20261028_m609 と全行バイト一致（SOURCE-HASH を除く）。
+ G1（段0〜1）：許可表の番人（TechLevelRemovalTests）。
+ G2（段1・腕 B）：[計器] 全ての種×国×四半期で megaStartedUnmetCount＝0。[陽性対照] 単体：requires のある個体は自国が行を開くまで着工を拒否・開けば着工・requires の無い個体は Q0 から着工・旗 0 は今の techGate と同じ。[向き] 腕 B で megaStartedOldGateClosedCount が正の国×四半期が 1 つ以上（旧の門が閉じたまま着工が動いた）。
+ G3（段2a・2b・腕 B）：[計器] externalPressure＝0（全ての行・0.3 の死んだ定数が残らないこと）。[陽性対照] 単体：旗 0 は techGap が正の盤面で ChooseStance の効用が今と同じ・旗 1 は 0。旗 0 は外圧が正・旗 1 は 0。旗 0 は Modernize の法の目標が技術の閾値の下で出ない・旗 1 は出る。D1 は旗 1 で ratio＝1。[向き] 腕 B で womenRightsCode が基線より早く立つ国×種がある（記録・門にしない）。
+ G4（段3）：単体（前半の番人 3 本）。
+ G5（段4・腕 B）：[計器] freightRevolution＝1.0（全ての行）。[陽性対照] 単体：旗 0 は前線の技術水準が高いと 1 を割る・旗 1 は 1.0。EraFactor は旗 1 で k が何でも 1.0。[向き] 腕 B の貿易/GDP（scalars_s の tradeToGdpRatio）の 1914 年付近の中央値を基線と並べる（記録）。
+ G6（止める線）：発散は絶対（g_pfix.py の jump100＝0・nonfinite＝0・P の最大/開幕の P ＜ 1e10・1 種でも破れたら止める）・保存則の破れ 0・savetest 緑。
+ G7（空洞化）：移民で州がピークの 1/10 未満になるのが 0 件（原因を問わず・例外の名簿のみ）。
+ G8 以後（記録）：幕府の終わる年・巨大建造物の着工の年・国庫から巨大建造物への拠出・最終の表の順位・貿易/GDP・AI の法の年・国ごとの数（基線・N1・N2 の 3 列と並べる＝RULE36）。
+ 働いた＝G0・G1・G2・G3・G5 の各 3 点が通り、かつ止める線に当たらない。外れの扱いは前半 §10 のとおり（G2 破れ＝採らない／止める線＝B1〜B4 で帰属）。
+ 腕の運用：腕 A（5 種・旗なし）は段1〜4 のコンパイル後に先に回す。腕 B は keep_609/m609_ins の manifest の NATIONS と SEEDS を写す。出力フォルダは腕ごとに別。孤児 Runner を前後に確認。A と B を同時に回すときは CPU の空きを見る。
+
+========================================================================
+4. 指示から外れる所・作者に聞く物（推奨で進める）
+========================================================================
+ ・段0 で Coefficients.cs の VintageMigrateRate・VintageObsolescence を消した（前半の事前登録 §3-7 は〈段0 は係数を消さない〉と書いた）＝前半の報告の〈指示から外れる所〉に載せ忘れ。
+ ・段2・段4 は前半の事前登録の置き換え先（識字・梯子・発見の差×港・汽船の割合）を取り下げ、削除の形にした（反証役の所見）。
+ ・段5 は腕 B5（cp3 と同じ線か後）。旗は用意するが腕 B には入れない。この回は B5 を回さない。
+ ・採るときは Display/FiscalTables.cs 107〜114・DiscoveryTables.cs 45 を旗の分岐へ揃える。
+ ・計器の列を足すので、基線 m609 の生と新しい生の scalars_s は末尾の 6 列が違う（cmp の落とす列に足す）。

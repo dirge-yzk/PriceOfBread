@@ -20,7 +20,7 @@ public class IndustrializationReaderTests
 
     private static readonly (string File, int Lines)[] Allowed =
     [
-        ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Credit.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 14), ("Ideology.cs", 1),
+        ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Credit.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8), ("Ideology.cs", 1),
         ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 2),
         ("Megaprojects.cs", 4), ("Meritocracy.cs", 1), ("Model.cs", 5), ("MultiNationSim.cs", 3), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
         ("PopDecision.cs", 4), ("SelfPlay.cs", 3), ("Simulation.cs", 16), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 9),

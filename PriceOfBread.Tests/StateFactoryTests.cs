@@ -38,7 +38,7 @@ public class StateFactoryTests
     /// テストが別の生産者を掴んでいて、通っているように見えるだけ、を構造的に起こさない。
     private static Producer Steel(Region r)
         => World.FindFactory(r, Catalog.SteelId)
-           ?? throw new Xunit.Sdk.XunitException($"{r.Name}に鋼の生産者がない（技術水準 {r.TechLevel:F2}／坩堝鋼の配線が動いた？）");
+           ?? throw new Xunit.Sdk.XunitException($"{r.Name}に鋼の生産者がない（坩堝鋼の配線が動いた？）");
 
     private static Simulation Warm(ulong seed)
     {

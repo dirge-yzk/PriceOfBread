@@ -34,7 +34,7 @@ public sealed class ModernizerAgent : INationAgent
         p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝教育費の教義最大（Modernize と同値）
         p.IncomeTaxTarget = IncomeTaxTarget;
         p.CoercionTarget = CoercionTarget;
-        if (w.TechLevel > SuffrageTechThreshold && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
+        if ((w.Coef.TechThresholdOff > 0 || w.TechLevel > SuffrageTechThreshold) && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
         if (w.Polity != Polity.Absolutist && p.Suffrage < Suffrage.AdultMale) p.Suffrage = Suffrage.AdultMale;
     }
 }

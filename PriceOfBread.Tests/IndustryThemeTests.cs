@@ -18,8 +18,6 @@ public class IndustryThemeTests
         var c = new Coefficients();
         Assert.Equal(0.1, c.InventoryAdjustGain);       // 05-B1点火（2026-07-29）＝期待導入の第一歩。0.2は放任経済テーゼ（過少消費）を消したため0.1へ減量（bisect実測）
         Assert.Equal(0.25, c.LaborSaveRate);            // 休眠復旧2026-07-09 第(iv)段採用（bisect＝挙動4テスト・較正とも無害）
-        Assert.Equal(0.005, c.VintageMigrateRate);      // ヴィンテージ資本有効化2026-07-10（キュー5＝承認済み別作業項目(1)。半減期約11.6年の世代交代）
-        Assert.Equal(0.5, c.VintageObsolescence);       // 同上（座礁＝0.5×techGap・gap2で全損）
         Assert.Equal(0.03, c.HousingNeedPerUrban);      // リアリティ群採用2026-07-18＝家賃(住居財追加済み)。旧0.0番人を新採用値へ
         Assert.Equal(0.5, c.HousingMigrationFriction);  // B6点火2026-07-19＝鉄筋コンクリート（住居の晩期レシピ）とセット＝過密で流入飽和・鉄筋コンクリが収容力を解放
     }
@@ -31,7 +29,6 @@ public class IndustryThemeTests
         var c = sim.World.Coef;
         c.InventoryAdjustGain = 0.3;                       // メッツラー在庫循環
         c.LaborSaveRate = 0.3; c.LaborSaveIndHalf = 1.0;  // 技術的失業
-        c.VintageMigrateRate = 0.02; c.VintageObsolescence = 0.5;  // ヴィンテージ資本
         c.HousingMigrationFriction = 0.5;                 // 住宅(財はinertだが摩擦経路は走る・HousingFill=1で無効果)
         double p0 = sim.World.TotalPopulation;
         var ex = Record.Exception(() => sim.Run(200));
@@ -44,15 +41,14 @@ public class IndustryThemeTests
         var sim0 = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         var c0 = sim0.World.Coef;
         c0.IndustrializationOff = 0; c0.RecipeEquipment = 0;   // ★(609) 合流の注：(605) で賃金の天井・独占の解体・冷蔵の傾斜の工業化度の項は物理削除＝この旗 0 の腕は一部が旧の枝ではない
-        c0.InventoryAdjustGain = 0.3; c0.LaborSaveRate = 0.3; c0.LaborSaveIndHalf = 1.0; c0.VintageMigrateRate = 0.02; c0.VintageObsolescence = 0.5; c0.HousingMigrationFriction = 0.5;
+        c0.InventoryAdjustGain = 0.3; c0.LaborSaveRate = 0.3; c0.LaborSaveIndHalf = 1.0; c0.HousingMigrationFriction = 0.5;
         double q0 = sim0.World.TotalPopulation;
         var ex0 = Record.Exception(() => sim0.Run(200));
         Assert.Null(ex0);
         Assert.True(Math.Abs(sim0.World.TotalPopulation - (q0 + sim0.World.PopulationDelta)) < 1e-6 * q0, "テーマH有効化（旧の枝）で人口保存が破れた");
         bool mechWired = sim0.World.Regions.Any(r => r.Mechanization > 0);
-        bool vintageWired = sim0.World.Regions.Any(r => r.OldVintageCapital > 0);
         Assert.True(mechWired, "LaborSaveRate>0でも機械化度が立たない＝EffectiveQtyへの配線不全（旧の枝）");
-        Assert.True(vintageWired, "VintageMigrateRate>0でも旧世代資本が積まれない＝二層化の配線不全（旧の枝）");
+        // ★(613) 旧世代資本の二層化（技術水準を読む移行と座礁の塊）は物理削除＝配線の確認は削除（書き手が無い）
     }
 
     [Fact]

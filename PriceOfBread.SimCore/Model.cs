@@ -995,15 +995,14 @@ public sealed class Region
     // **書き手が一度も走らない**＝常に0＝厳密恒等。
     public double SeizureChill;
     public double Mechanization;                      // 機械化度（no-labor-saving-tech-unemployment）：工業化度の飽和カーブ∈[0,1)。LaborSaveRate=0（対照腕）か旗 IndustrializationOff（既定 1）で0固定＝EffectiveQty の第2因子は1
-    public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。VintageMigrateRateで経年蓄積・技術差で座礁。0（対照腕）で単層恒等・既定0.005で二層live
+    public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。★(613) 経年蓄積と座礁の書き手（技術水準を読む塊）は削除した＝書き手が無く常に0（工業化度の線が欄ごと畳む）
     public double DevelopmentPeak;                    // 開発度の到達最高値（新旧合計の走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
-    public double VintageTechLevel;                   // 旧世代資本の据付時平均技術水準。現TechLevelとの差(techGap)が座礁度を決める。OldVintageCapital=0で未使用
-    public double StrandedVintage;                    // 今月の座礁量＝VintageObsolescence×OldVintageCapital×techGap（EconomyStepが月次更新・OldVintageCapital以下）。生産性チャネルのみが差し引く。OldVintageCapital=0で0
+    public double StrandedVintage;                    // 今月の座礁量。★(613) 書き手（技術差で座礁させる塊）は削除した＝常に0。生産性チャネルのみが差し引く
     // ヴィンテージ資本有効化2026-07-10（キュー5）：新旧二層の読者を分離。
     //  ・TotalIndustrialization＝立っている資本の総量（新旧合計）。都市化天井・衛生proxy・スコア・投資上限・移民引力など「資本ストックの規模」を読む従来読者はこちら
     //    ＝旧世代もIndDepreciationで同率減価するため、合計は旧単層Industrializationと同一動学（分割そのものは恒等＝較正中立）。
     //  ・ProductiveIndustrialization＝生産性に寄与する分（座礁分を控除）。indMult・機械化度・投資の限界収益のみが読む＝座礁だけが現行との差分（意図した機構）。
-    //  両係数0（対照腕）では OldVintageCapital=StrandedVintage=0 で両者とも Industrialization に厳密恒等（既定 VintageMigrateRate=0.005 でlive）。
+    //  ★(613) OldVintageCapital=StrandedVintage=0（書き手なし）で両者とも Industrialization に恒等。
     public double TotalIndustrialization => Industrialization + OldVintageCapital;
     public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
     public double HousingFill = 1.0;                  // 住居役務の充足率（housing-urban-rent-absent）。移民摩擦に使用。住居財なし/HousingNeedPerUrban=0では1.0＝摩擦なし（従来）
@@ -1045,7 +1044,6 @@ public sealed class Region
     public double MineralGradeFactor = 1.0;       // 品位（残量から導出・EconomyStep の鉱物の能力と MineralSelfCost が読む）。既定1.0
     public double UrbanIndSmoothed = -1.0;            // 監査2026-07-05（D3）：都市化天井が参照する平滑化済み工業化度（UrbanCapFollowSpeed<1で使用）。-1=未初期化（初回に現在値から開始）
     public int CulturalGoodId = -1;                   // 各国の象徴的主食（英＝茶・露＝蒸留酒・日＝米…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。固執財の需要床/闘争度機構は廃止。-1＝なし
-    public double TechLevel;                          // 技術水準（World から複製）。先進財の生産性が技術依存（創発的な時代解禁）に効く
     public bool[]? Discovered;                        // ★発見の表の解禁（段2A・2026-10-01）＝国の World.Discovered と同じ配列への参照（月次に TechLevel と一緒に写す・複製しない）。null＝まだ写していない＝表の行は全て未発見
     public double MilitaryScalePeace;                 // ★段2a：戦時倍率を除いた平時基準の規模（耐久品の目標在庫はこちら）
     public double MilitaryWarMultLast;                // ★段2a：その月の戦時倍率（耐久品の摩耗へ回す）

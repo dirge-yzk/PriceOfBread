@@ -13,6 +13,30 @@
 /// Coefficients.MegaprojectEnabled=0 で個体が生成されず本 Step も即 return＝厳密恒等（較正中立も同じガード）。</summary>
 public static class Megaprojects
 {
+    // ★(613) 段1（旗 TechGateByDiscovery）：着工と進行の門を技術水準の techGate から発見の行 requires へ。Id → 行の表（megaprojects.json の requires 欄と world.json の chokepoints[].requires）を読み込みで 1 回だけ作る
+    //   ＝実行時の Megaproject・Chokepoint のレコードと SaveGame は触らない。名前は Catalog.DiscoveryRowNamed で添字へ落とし、表に無い名前は読み込みで投げる（Catalog.DiscoveryAfter の検査と同じ型）。
+    private static readonly Dictionary<string, int> _requiresRow = BuildRequiresRows();
+    private static Dictionary<string, int> BuildRequiresRows()
+    {
+        var d = new Dictionary<string, int>();
+        void Add(string id, string? name)
+        {
+            if (string.IsNullOrEmpty(name)) return;
+            int row = Catalog.DiscoveryRowNamed(name);
+            if (row < 0) throw new System.InvalidOperationException($"巨大建造物・運河〈{id}〉の requires〈{name}〉が発見の表に無い");
+            d[id] = row;
+        }
+        foreach (var m in WorldData.Megaprojects()) Add(m.Id, m.Requires);
+        foreach (var c in WorldData.Setup().Chokepoints) Add(c.Id, c.Requires);
+        return d;
+    }
+    /// <summary>個体 Id の requires の発見の行（無し＝-1）。</summary>
+    internal static int RequiresRowOf(string id) => _requiresRow.TryGetValue(id, out var r) ? r : -1;
+    /// <summary>requires を満たしているか（requires の無い個体は常に満たす）＝その国が自国の <see cref="World.Discovered"/> で判定する。</summary>
+    internal static bool RequirementMet(World w, string id) { int r = RequiresRowOf(id); return r < 0 || Discovery.Known(w.Discovered, r); }
+    /// <summary>画面・報告用の requires の名前（無し＝なし）。</summary>
+    internal static string RequiresNameOf(string id) { int r = RequiresRowOf(id); return r < 0 ? "なし" : Catalog.Discoveries[r].Name; }
+
     /// <summary>州に積まれた建設の束を、前四半期の拠出比で各建造物へ配る（2026-08-02）。
     /// ★束は個体でなく州に溜まる（Region.MonumentBuiltUnits）ので、host 州を共有する組（ロンドン＝水晶宮/地下鉄、
     /// ベルン＝ゴッタルド/アルプス水力、カイロ＝アスワン/ケープ＝カイロ鉄道）では「誰の束か」が会計上決まらない。
@@ -60,7 +84,8 @@ public static class Megaprojects
         if (mp.IsComplete) return "完成している";
         if (mp.Started) return "着工済み";
         if (!(mp.Owner is { } o && w.SelfPower is { } me && ReferenceEquals(o, me))) return "建設地の州を自国が領有していない";
-        if (!(w.TechLevel >= mp.TechGate)) return "技術が足りない";
+        if (w.Coef.TechGateByDiscovery > 0) { if (!RequirementMet(w, mp.Id)) return "必要な発見が済んでいない"; }   // ★(613) 段1：旗が正なら発見の行 requires（否定形＝NaN は旗 0）
+        else if (!(w.TechLevel >= mp.TechGate)) return "技術が足りない";
         return null;
     }
 
@@ -113,14 +138,14 @@ public static class Megaprojects
                 dip.Log.Add($"{hw.Year} {mp.Name}が完成（{mp.Owner?.Name ?? "中立"}）");
                 continue;
             }
-            if (hw.TechLevel < mp.TechGate) continue;   // 技術ゲート＝時代を出す（暦年で発火させない＝台本禁止）
+            if (hw.Coef.TechGateByDiscovery > 0 ? !RequirementMet(hw, mp.Id) : hw.TechLevel < mp.TechGate) continue;   // 技術ゲート＝時代を出す（暦年で発火させない＝台本禁止）。★(613) 段1：旗が正なら発見の行 requires
             if (!mp.Started) continue;                 // 着工の動詞（2026-08-02）＝未着工は国庫を引かない
             // 国庫から予約を積む。★有界化は「1国あたりの**総額**」で効かせる＝同じ国が複数を同時に建てると
             // 1件ずつ Frac×Treasury を取り、国庫が一気に吸われる（征服で建設地が1国に集まると現実に起きる）。
             // 1件あたり Frac／全体で Cap を超えない、の小さい方。件数はリスト順に数えるので決定論。
             int inProgressHere = 0;
             foreach (var m2 in dip.Megaprojects)
-                if (m2.Started && !m2.IsComplete && m2.Owner is { } o2 && ReferenceEquals(o2, hw.SelfPower) && hw.TechLevel >= m2.TechGate) inProgressHere++;
+                if (m2.Started && !m2.IsComplete && m2.Owner is { } o2 && ReferenceEquals(o2, hw.SelfPower) && (hw.Coef.TechGateByDiscovery > 0 ? RequirementMet(hw, m2.Id) : hw.TechLevel >= m2.TechGate)) inProgressHere++;
             double share = inProgressHere > 0
                 ? Math.Min(coef.MegaprojectStateFrac.Value, coef.MegaprojectStateCap / inProgressHere)
                 : coef.MegaprojectStateFrac.Value;
