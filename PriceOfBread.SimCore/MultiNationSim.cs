@@ -596,7 +596,7 @@ public sealed class MultiNationSim
                     if (Calendar.QuarterIndexOfTick(Nations[0].World.Tick) % 8 == 0) Instruments.ClockSample(this, worldAdv.Value, _clockTicks, _clockVisits);   // (461) 計器だけ
                 }
             }
-            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv), _coef);
+            double[]? scoreNow = _coef.SpreadNeedFascismDecline > 0 || Instruments.On ? NationalScore.ShareScores(Nations.ConvertAll(s => s.World)) : null; for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv, scoreNow?[i]), _coef);   // ★(640) 線 idn：国力の今の値を判定の直前に 1 回だけ求めて渡す（旗 SpreadNeedFascismDecline が正か計器のときだけ・導出量・行数を増やさない＝flow_s が行番号を鍵にする）
             ShareWorldDiscovered();
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）

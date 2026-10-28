@@ -142,7 +142,8 @@ public static class Ideologies
         //   ★「世界最先端の工業化度」は w.IndustrialFrontier（MultiNationSim が各国最高の MeanIndustrialization を毎四半期注入）。単一国と多国の初四半期は自国の値へフォールバック。
         double urbanWorkerShare = totPop > 1e-9 ? urbanPop / totPop : 0;
         double dev;
-        if (w.Coef.IdeologyDevFromUrban > 0) dev = PoliticalQuantities.Clamp01(urbanWorkerShare);   // ★(605) 旗 IdeologyDevFromUrban：工業化度の項を読まない＝都市労働者の割合だけ
+        if (w.Coef.IdeologyDevTermOff > 0) dev = 1.0;   // ★(640) 旗 IdeologyDevTermOff：発展度を読まない（工業化度の読み手を読み手ごと消す＝ファシズムの支持の式の dev 項は 1）
+        else if (w.Coef.IdeologyDevFromUrban > 0) dev = PoliticalQuantities.Clamp01(urbanWorkerShare);   // ★(605) 旗 IdeologyDevFromUrban：工業化度の項を読まない＝都市労働者の割合だけ
         else
         {
             double frontierInd = System.Math.Max(w.IndustrialFrontier, w.MeanIndustrialization);
