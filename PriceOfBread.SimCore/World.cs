@@ -1149,35 +1149,12 @@ public sealed class World
     public double TerrorPurgeCumulative { get; internal set; }  // 診断（UI・2026-07-15）：恐怖政治（タスクB）で粛清・亡命した旧支配層の累計人口。**書くだけ＝どの計算路も読まない＝挙動非依存**。UIがDetectEventsで差分を取り「旧支配層が粛清された」ニュースを出す
     public int EpidemicActiveYears { get; internal set; }      // 疫病の感染窓（>0＝現在流行中＝他国への感染源。年次で減衰。0＝平時）。B-4 疫病の伝播
 
-    /// <summary>最も過密な active 地域の都市人口比（疫病の発生・伝播の駆動）。</summary>
-    public double MaxUrbanShare()
-    {
-        double worst = 0;
-        foreach (var r in Regions)
-        {
-            if (!TryUrbanShare(r, out double us)) continue;
-            if (us > worst) worst = us;
-        }
-        return worst;
-    }
+    /// <summary>疫病の**内部発生の確率**（年次の block が引いた一様乱数と比べる）＝基礎 <see cref="Coefficients.EpidemicChance"/> × <see cref="EpidemicOnsetRisk"/>（州ごとの危険度の和＝(638) 都市の人の数で起こす）。
+    /// 接12（監査2026-07-11）：発生確率にも衛生を接続（史実では衛生インフラが流行の発生自体を止めた）＝州ごとの衛生の割引は <see cref="EpidemicOnsetRisk"/> の中。</summary>
+    public double EpidemicOnsetProbability(Coefficients c) => c.EpidemicChance * EpidemicOnsetRisk(c);
 
-    /// <summary>(629) 疫病の**発生と伝播の確率**が読む都市の割合。旗 <see cref="Coefficients.EpidemicDriveByNationUrban"/> が 0 なら最も都市化率の高い 1 州の割合（<see cref="MaxUrbanShare"/>・従来）、
-    /// 正なら国の都市の人口÷国の人口（<see cref="UrbanShare"/>）。標的の州の選び方（<see cref="TriggerEpidemic"/>）と死の率は旗に依らない。<see cref="UrbanShare"/> ≦ <see cref="MaxUrbanShare"/>（同じ州の集合の人口加重平均と最大）。</summary>
-    public double EpidemicUrbanDrive(Coefficients c) => c.EpidemicDriveByNationUrban > 0 || c.EpidemicByUrbanContact > 0 ? UrbanShare : MaxUrbanShare();   // (638) 旗 EpidemicByUrbanContact でも国の割合（伝播の定着）
-
-    /// <summary>疫病の**内部発生の確率**（年次の block が引いた一様乱数と比べる）。旗 <see cref="Coefficients.EpidemicByUrbanContact"/> が 0 なら 基礎×過密度×(1−衛生)（過密度＝<see cref="EpidemicUrbanDrive"/>・衛生＝接12 の最過密州の衛生×<see cref="Coefficients.EpidemicOnsetSanitationWeight"/>・農村国はほぼ起きない）、
-    /// 正なら 基礎×<see cref="EpidemicOnsetRisk"/>（州ごとの危険度の和）。旗 0 の式は Simulation にあった式をそのまま（計算の順序も同じ）。
-    /// 接12（監査2026-07-11・2026-07-25休眠配線）：発生確率にも衛生を接続（従来は死亡率側のみ＝1900年代の近代都市でも1832年のスラムと同頻度でコレラが発生し続けた。史実では衛生インフラが流行の発生自体を止めた）。0（対照腕）で乗数1・既定0.4でlive。</summary>
-    public double EpidemicOnsetProbability(Coefficients c)
-    {
-        if (c.EpidemicByUrbanContact > 0) return c.EpidemicChance * EpidemicOnsetRisk(c);
-        double worstUrban = EpidemicUrbanDrive(c);   // 最も過密な地域の都市化率＝発生駆動（(629) 旗 EpidemicDriveByNationUrban＝国の都市の割合）
-        double epiOnsetCut = c.EpidemicOnsetSanitationWeight > 0 ? c.EpidemicOnsetSanitationWeight * WorstUrbanRegionSanitation(c) : 0;
-        return c.EpidemicChance * worstUrban * (1.0 - epiOnsetCut);   // 発生率＝基礎×過密度×(1−衛生)（農村国はほぼ起きない）
-    }
-
-    /// <summary>(638) 旗 <see cref="Coefficients.EpidemicByUrbanContact"/> の**発生の確率の州ごとの危険度の和** Σ_r us_r × p_r × (1 − w_s × S_r)（us_r＝州の都市の割合・p_r＝州の人口÷国の人口・S_r＝州の発生の衛生・w_s＝<see cref="Coefficients.EpidemicOnsetSanitationWeight"/>）。
-    /// 衛生の割引が 0 なら国の <see cref="UrbanShare"/> そのもの。呼び手が <see cref="Coefficients.EpidemicChance"/> を掛ける。人口が 1e-9 未満の州は数えない（<see cref="TryUrbanShare"/> と同じ規約）。</summary>
+    /// <summary>(638) 疫病の**発生の確率の州ごとの危険度の和** Σ_r us_r × p_r × (1 − w_s × S_r)（us_r＝州の都市の割合・p_r＝州の人口÷国の人口・S_r＝州の発生の衛生・w_s＝<see cref="Coefficients.EpidemicOnsetSanitationWeight"/>）。
+    /// 衛生の割引が 0 なら国の <see cref="UrbanShare"/> そのもの（伝播の受け手の定着もこの割合を読む＝MultiNationSim）。呼び手が <see cref="Coefficients.EpidemicChance"/> を掛ける。人口が 1e-9 未満の州は数えない（<see cref="TryUrbanShare"/> と同じ規約）。</summary>
     public double EpidemicOnsetRisk(Coefficients c)
     {
         double total = 0;
@@ -1194,7 +1171,7 @@ public sealed class World
     }
 
     /// <summary>疫病の「過密」を数える州の都市人口比（都市人口 ÷ 人口）。人口が 1e-9 未満の州は数えない（false）。
-    /// 最も過密な州を探す 3 つの走査（<see cref="MaxUrbanShare"/>・<see cref="WorstUrbanRegionSanitation"/>・<see cref="TriggerEpidemic"/>）が同じ 1 本を読む。</summary>
+    /// 疫病の標的の抽選（<see cref="PickUrbanContactTargets"/>）が読む 1 本。</summary>
     private static bool TryUrbanShare(Region r, out double urbanShare)
     {
         urbanShare = 0;
@@ -1217,8 +1194,8 @@ public sealed class World
         //   POP の中は年齢の重み（0〜9 と 60以上に (1＋DisasterAgeMortalityExcess)）。旧＝POP の間の重みが子供比＋老年比を読み、POP の中の年齢の運搬も同じ脆弱さを読んだ＝2度（思想⑨）。
         var aw = new double[2 * Pop.Layout.Bands];
         Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
-        var pops = wr.Pops;
-        if (c.EpidemicDeathUrbanOnly > 0) { pops = new List<Pop>(wr.Pops.Count); foreach (var p in wr.Pops) if (p.IsUrban) pops.Add(p); }   // (638) 死ぬのも都市の POP だけ（標的を都市の人の数で選ぶ形と同じ母集団）
+        var pops = new List<Pop>(wr.Pops.Count);
+        foreach (var p in wr.Pops) if (p.IsUrban) pops.Add(p);   // (638) 死ぬのも都市の POP だけ（標的を都市の人の数で選ぶ形と同じ母集団・農村は動かない）
         var wts = new List<double>(pops.Count); double totalD = 0;
         foreach (var p in pops)
         {
@@ -1261,21 +1238,7 @@ public sealed class World
         return dead;
     }
 
-    /// <summary>接12（監査2026-07-11・2026-07-25休眠配線）：疫病の**発生**確率にも衛生を接続するための読み口＝最過密州の衛生整備度
-    ///（致死率側の sanitDev と同式＝工業化proxyと実衛生財のブレンド）。EpidemicOnsetSanitationWeight=0 では呼ばれない＝厳密恒等。</summary>
-    public double WorstUrbanRegionSanitation(Coefficients c)
-    {
-        Region? worst = null; double worstUrban = 0;
-        foreach (var r in Regions)
-        {
-            if (!TryUrbanShare(r, out double us)) continue;
-            if (us > worstUrban) { worstUrban = us; worst = r; }
-        }
-        if (worst is null) return 0;
-        return RegionOnsetSanitation(worst, c);
-    }
-
-    /// <summary>(638) 1 州の発生の衛生整備度（<see cref="WorstUrbanRegionSanitation"/> の中身を州ごとに切り出した 1 本＝旧と同じ式）：工業化proxyと実衛生財のブレンド（旗 EpidemicSanitFromBoard では実衛生財だけ）。</summary>
+    /// <summary>(638) 1 州の発生の衛生整備度（接12：致死率側の sanitDev と同式）：工業化proxyと実衛生財のブレンド（旗 EpidemicSanitFromBoard では実衛生財だけ）。</summary>
     private static double RegionOnsetSanitation(Region r, Coefficients c)
     {
         double oldDev = c.EpidemicSanitFromBoard > 0 ? 0.0 : Colonial.OutputCurve(r.TotalIndustrialization, c.EpidemicSanitationHalf);   // ★(605) 旗 EpidemicSanitFromBoard では工業化度の代理を読まない
@@ -1284,7 +1247,7 @@ public sealed class World
         return (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
     }
 
-    /// <summary>(638) 疫病の標的を都市の人口 Urb_r の重みで抽選する（旗 <see cref="Coefficients.EpidemicByUrbanContact"/>）。1 つ目＝全ての重みの逆累積、二次（<see cref="Coefficients.EpidemicIntraCountrySpread"/> が正のとき）＝1 つ目を除いた重みの逆累積。
+    /// <summary>(638) 疫病の標的を都市の人口 Urb_r の重みで抽選する。1 つ目＝全ての重みの逆累積、二次（<see cref="Coefficients.EpidemicIntraCountrySpread"/> が正のとき）＝1 つ目を除いた重みの逆累積。
     /// 重みが正の州が 1 つならその州（乱数なし）、2 つ以上のときだけ乱数を 1 つ引く（二次は残りが 2 つ以上のときだけ）。人口が 1e-9 未満の州と都市の人口が 0 の州は重み 0＝選ばれない。
     /// us＝選ばれた州の都市の割合（計器の列）・maxUs＝最も都市化率の高い州の割合。</summary>
     private void PickUrbanContactTargets(Coefficients c, DeterministicRng? rng, out Region? first, out double usFirst, out Region? second, out double usSecond, out double maxUs)
@@ -1328,29 +1291,16 @@ public sealed class World
         return lastPos;   // 浮動小数の丸めで target が acc を超えたときの最後の正の重みの州
     }
 
-    /// <summary>疫病の流行を起こす（内部発生・他国からの伝播の共通処理）：最も過密な地域に死亡スパイク＋感染窓を立てる。
+    /// <summary>疫病の流行を起こす（内部発生・他国からの伝播の共通処理）：都市の人口に比例して選んだ州に死亡スパイク（都市の POP だけ）＋感染窓を立てる。
     /// 致死率＝基礎×(1−衛生整備0.7×工業化飽和)×jitter。savings不変（金は保存）・PopulationDeltaで人口台帳追跡（回復可能）。B-4。</summary>
     public bool TriggerEpidemic(Coefficients c, double jitter, bool transmitted = false, DeterministicRng? pickRng = null)
     {
         Region? wr = null; double worstUrban = 0;
         Region? wr2 = null; double secondUrban = 0;   // 人14：次過密州（州間伝播の二次スパイク先）
         double maxUrban = 0;   // (629) 計器の列 maxUrbanShare（最も都市化率の高い州の割合）
-        if (c.EpidemicByUrbanContact > 0)
-        {
-            // (638) 標的＝都市の人口 Urb_r の重みで抽選（二次＝1 つ目を除いた同じ重み）。重みが正の州が 2 つ以上のときだけ乱数を引く（1 州の国は乱数の列を動かさない）。
-            //   pickRng が null のとき（試験の直呼び）は 0.5 の位置＝重みの中央の州。
-            PickUrbanContactTargets(c, pickRng, out wr, out worstUrban, out wr2, out secondUrban, out maxUrban);
-        }
-        else
-        {
-            foreach (var r in Regions)
-            {
-                if (!TryUrbanShare(r, out double us)) continue;
-                if (us > worstUrban) { secondUrban = worstUrban; wr2 = wr; worstUrban = us; wr = r; }   // 最過密を更新＝旧最過密が次点へ繰り下がる
-                else if (us > secondUrban) { secondUrban = us; wr2 = r; }
-            }
-            maxUrban = worstUrban;
-        }
+        // (638) 標的＝都市の人口 Urb_r の重みで抽選（二次＝1 つ目を除いた同じ重み）。重みが正の州が 2 つ以上のときだけ乱数を引く（1 州の国は乱数の列を動かさない）。
+        //   pickRng が null のとき（試験の直呼び）は 0.5 の位置＝重みの中央の州。
+        PickUrbanContactTargets(c, pickRng, out wr, out worstUrban, out wr2, out secondUrban, out maxUrban);
         if (wr is null) return false;
         double epiNat = 0, epiPop = 0, epiPop2 = 0;   // (629) 計器の入力（読むだけ・Instruments.On の間だけ）
         if (Instruments.On) { epiNat = UrbanShare; epiPop = wr.SumPopulation(); epiPop2 = wr2?.SumPopulation() ?? 0; }

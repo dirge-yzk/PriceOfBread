@@ -1297,7 +1297,7 @@ public sealed class MultiNationSim
                 exposure = Math.Max(exposure, Math.Max(Math.Max(proximity, trade), war));   // 最も近い/繋がった/交戦中の感染国からの曝露
             }
             if (exposure <= 1e-9) continue;
-            double chance = _coef.EpidemicTransmitChance * exposure * w.EpidemicUrbanDrive(_coef);   // 受け手も過密ほど定着（(629) 旗 EpidemicDriveByNationUrban＝国の都市の割合）
+            double chance = _coef.EpidemicTransmitChance * exposure * w.UrbanShare;   // 受け手も都市が多いほど定着（(638) 国の都市の人口÷国の人口＝発生の危険度の和と同じ割合）
             var rng = Nations[i].EpidemicRng;   // 受け手の専用RNG（各国独立＝盤面非依存の決定論）
             if (rng.NextDouble() < chance) w.TriggerEpidemic(_coef, EpidemicTransmitSeverityFloor + rng.NextDouble(), transmitted: true, pickRng: rng);   // 伝染＝死亡スパイク＋感染窓（連鎖しうる）
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PriceOfBread.SimCore;
 using Xunit;
@@ -38,50 +39,31 @@ public class Hz7IdentityTests
     }
 
     [Fact]
-    public void 最も過密な州を探す3つの走査は手書きの走査と同じ州と値を選ぶ()
+    public void 疫病の標的は都市の人口が正の州だけ_人口が0の州は数えない()
     {
         var w = new Simulation(NationConfig.France().ToScenario(155), new NullAgent()).World;
-        (Region? best, double share) Manual()
+        // 手書きの走査：都市の人口が正の州（人口 1e-9 未満の州は数えない）
+        List<Region> Candidates() => w.Regions.Where(r =>
         {
-            Region? b = null; double s = 0;
-            foreach (var r in w.Regions)
-            {
-                double p = 0, u = 0;
-                foreach (var pop in r.Pops) { p += pop.Size; if (pop.IsUrban) u += pop.Size; }
-                if (p < 1e-9) continue;
-                if (u / p > s) { s = u / p; b = r; }
-            }
-            return (b, s);
-        }
-
-        // 世界の州の都市化率が揃っていると「次点」と「最過密」が同じ値になり、数えない州の扱いの違いが見えない＝最過密の州を 1 つ作る
-        var pick = w.Regions.First(r => r.Pops.Any(p => p.IsUrban && p.Size > 0));
-        foreach (var pop in pick.Pops) if (pop.IsUrban) pop.Size *= 4;
-        var (b0, s0) = Manual();
-        Assert.Same(pick, b0);
-        Assert.Equal(s0, w.MaxUrbanShare(), 12);
-        // ★(533) 3 つ目の走査（WorstUrbanRegionSanitation）も同じ州を選ぶ（反証役 hz7〔v〕低#3）＝選んだ州の衛生の混ぜ方を手で書く
+            double p = 0, u = 0;
+            foreach (var pop in r.Pops) { p += pop.Size; if (pop.IsUrban) u += pop.Size; }
+            return p >= 1e-9 && u > 0;
+        }).ToList();
+        var cands = Candidates();
+        Assert.True(cands.Count >= 2, "前提：都市の POP を持つ州が 2 つ以上ある");
+        // 候補の州の人口を 0 にしていくと、疫病はなお候補の州（手書きの走査）にしか当たらない（人口 0 の州を標的にする実装は赤）
+        var zeroed = cands[0];
+        var sizes = zeroed.Pops.Select(p => p.Size).ToArray();
+        foreach (var p in zeroed.Pops) p.Size = 0;
+        var left = Candidates();
+        Assert.DoesNotContain(zeroed, left);
+        for (ulong t = 0; t < 30; t++)
         {
-            var c = w.Coef;
-            double expect = (1.0 - c.EpidemicSanitationWeight) * Colonial.OutputCurve(pick.TotalIndustrialization, c.EpidemicSanitationHalf) + c.EpidemicSanitationWeight * pick.Sanitation(c);
-            Assert.Equal(expect, w.WorstUrbanRegionSanitation(c), 12);
+            w.PendingLog.Clear();
+            Assert.True(w.TriggerEpidemic(w.Coef, 0.5, false, new DeterministicRng(900 + t)));
+            Assert.Contains(w.PendingLog, l => left.Any(r => l.Contains(r.Name)));
+            Assert.DoesNotContain(w.PendingLog, l => l.Contains(zeroed.Name + "で疫病"));
         }
-        // 最過密の州の人口を 0 にすると、次の州が選ばれる（人口 1e-9 未満の州は数えない＝手書きと同じ。旧＝州を Locked にした。稼働の状態は (568) gc3 で消えた）
-        Assert.NotNull(b0);   // 前提：この世界には都市の POP を持つ州がある（無ければ番人は空になる）
-        Assert.True(s0 > 0);
-        {
-            var sizes = b0!.Pops.Select(p => p.Size).ToArray();
-            foreach (var p in b0.Pops) p.Size = 0;
-            var (b1, s1) = Manual();
-            Assert.Equal(s1, w.MaxUrbanShare(), 12);
-            Assert.True(s1 < s0);   // 最過密を数えなければ値が下がる＝人口 0 の州を数える実装は赤
-            for (int i = 0; i < sizes.Length; i++) b0.Pops[i].Size = sizes[i];
-        }
-        // 疫病は手書きの走査の最過密州を襲う（ログに州名が出る）
-        var (bw, _) = Manual();
-        Assert.NotNull(bw);
-        w.PendingLog.Clear();
-        Assert.True(w.TriggerEpidemic(w.Coef, 0.5));
-        Assert.Contains(w.PendingLog, l => l.Contains(bw!.Name));
+        for (int i = 0; i < sizes.Length; i++) zeroed.Pops[i].Size = sizes[i];
     }
 }
