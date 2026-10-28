@@ -1,0 +1,21 @@
+dir D:/PoB_work/igi_619/out_B3b_10/ins
+s1 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.752 min 0.1607 food<0.5 0 median {1790: 0.316, 1850: 0.478, 1900: 0.553}
+s2 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.884 min 0.1607 food<0.5 0 median {1790: 0.312, 1850: 0.479, 1900: 0.403}
+s3 cells 998 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.733 min 0.0375 food<0.5 0 median {1790: 0.314, 1850: 0.476, 1900: 0.367}
+s4 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.928 min 0.1583 food<0.5 0 median {1790: 0.311, 1850: 0.457, 1900: 0.397}
+s5 cells 977 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.929 min 0.0403 food<0.5 0 median {1790: 0.312, 1850: 0.474, 1900: 0.314}
+s6 cells 979 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.872 min 0.1164 food<0.5 0 median {1790: 0.314, 1850: 0.479, 1900: 0.372}
+s7 cells 978 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.889 min 0.1647 food<0.5 0 median {1790: 0.316, 1850: 0.48, 1900: 0.328}
+s8 cells 989 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.870 min 0.0868 food<0.5 0 median {1790: 0.312, 1850: 0.474, 1900: 0.308}
+s9 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.803 min 0.1647 food<0.5 0 median {1790: 0.312, 1850: 0.472, 1900: 0.334}
+s10 cells 977 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.885 min 0.1606 food<0.5 0 median {1790: 0.31, 1850: 0.462, 1900: 0.344}
+s1 priceLevel max 1.558 at ('フランス', '1922') nan 0 maxLoans/gdpRealMonth 10.67
+s2 priceLevel max 1.86 at ('フランス', '1893') nan 0 maxLoans/gdpRealMonth 9.305
+s3 priceLevel max 3.118 at ('イギリス', '1909') nan 0 maxLoans/gdpRealMonth 25.21
+s4 priceLevel max 1.733 at ('アメリカ', '1943') nan 0 maxLoans/gdpRealMonth 9.237
+s5 priceLevel max 2.843 at ('アメリカ', '1890') nan 0 maxLoans/gdpRealMonth 9.422
+s6 priceLevel max 4.071 at ('プロイセン', '1937') nan 0 maxLoans/gdpRealMonth 8.956
+s7 priceLevel max 2.36 at ('アメリカ', '1911') nan 0 maxLoans/gdpRealMonth 18.99
+s8 priceLevel max 10.41 at ('イギリス', '1941') nan 0 maxLoans/gdpRealMonth 16.45
+s9 priceLevel max 1.728 at ('フランス', '1870') nan 0 maxLoans/gdpRealMonth 16.53
+s10 priceLevel max 1.592 at ('オーストリア', '1875') nan 0 maxLoans/gdpRealMonth 11.52

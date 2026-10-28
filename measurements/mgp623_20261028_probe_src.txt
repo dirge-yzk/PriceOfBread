@@ -1,0 +1,53 @@
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace PriceOfBread.Tests;
+
+// (623) 線 mgp の読むだけの予備調べ（コミットしない・出力は measurements/mgp623_20261028_probe.txt）。
+// P1＝開幕の盤面で、巨大建造物の建設地の州（82 州）の財の解禁 Discovery.GoodGate が 0 の財（時代で縛れる財）。
+// P2＝供給の流量（LastProduced・PrevImport）を述語にしたとき、材料の候補の財が建設地の州で正になる州の数が時間でどう動くか（q＝経過した四半期・素の既定・seed 1789・全 61 カ国）。
+public class ZzProbe623(ITestOutputHelper o)
+{
+    [Fact]
+    public void Probe()
+    {
+        var sim = new MultiNationSim([.. WorldData.Nations()], seed: 1789);
+        var hosts = WorldData.Megaprojects().Select(m => m.Host).Distinct().ToHashSet();
+        var zero = new Dictionary<int, int>(); int nHosts = 0;
+        foreach (var s in sim.Nations)
+            foreach (var r in s.World.Regions)
+            {
+                if (!hosts.Contains(r.Name)) continue;
+                nHosts++;
+                for (int g = 0; g < Catalog.Goods.Length && g < r.Markets.Length; g++)
+                    if (!(Discovery.GoodGate(r, g) > 0)) zero[g] = zero.GetValueOrDefault(g) + 1;
+            }
+        o.WriteLine($"P1 開幕の GoodGate が 0 の財（建設地 {nHosts} 州のうち 0 の州の数）");
+        foreach (var kv in zero.OrderBy(k => k.Key)) o.WriteLine($"  {Catalog.Goods[kv.Key].Name}\t{kv.Value}");
+        string[] mats = ["鉄", "鋼", "セメント", "ガラス", "銅", "鉛", "機械", "蒸気機関", "線路", "製材", "石灰石", "建造物", "石炭"];
+        o.WriteLine("P2 供給の流量が正の建設地の州の数（gate＝GoodGate が正・prod＝LastProduced が正・imp＝PrevImport が正・either＝prod か imp）");
+        int done = 0;
+        foreach (int steps in new[] { 0, 1, 4, 20, 40 })
+        {
+            while (done < steps) { sim.StepQuarter(); done++; }
+            int nH = 0; var prod = new int[mats.Length]; var imp = new int[mats.Length]; var either = new int[mats.Length]; var gate = new int[mats.Length];
+            foreach (var s in sim.Nations)
+                foreach (var r in s.World.Regions)
+                {
+                    if (!hosts.Contains(r.Name)) continue;
+                    nH++;
+                    for (int i = 0; i < mats.Length; i++)
+                    {
+                        int g = System.Array.FindIndex(Catalog.Goods, d => d.Name == mats[i]);
+                        var m = r.Markets[g];
+                        bool p = m.LastProduced > 1e-9, im = m.PrevImport > 1e-9;
+                        if (p) prod[i]++; if (im) imp[i]++; if (p || im) either[i]++;
+                        if (Discovery.GoodGate(r, g) > 0) gate[i]++;
+                    }
+                }
+            o.WriteLine($"  q={steps} hosts={nH}");
+            for (int i = 0; i < mats.Length; i++) o.WriteLine($"    {mats[i]}\tgate{gate[i]}\tprod{prod[i]}\timp{imp[i]}\teither{either[i]}");
+        }
+    }
+}

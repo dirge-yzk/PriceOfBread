@@ -1,0 +1,8 @@
+# (623) 線 mgp 前半：試験・savetest・leakhunt の記録（2026-10-28・コードの木＝コミット後の mgp・隔離ビルド D:/PoB_work/mgp_623/art〔消した〕）
+# 腕は回していない。ここは形（旗 0＝恒等のソースの論証の外の確かめ）と破綻しないことだけ。
+Category!=FullLength：1 回目＝合計 1977（1969＋新しい 8）・合格 1974・失敗 2・Skip 1（27 分 29 秒＝他の線のバッチと並んだ）。失敗 2 は OpeningBakeTests（megaprojects.json の変更で入力のハッシュが変わった）。
+  → 開幕の焼き込みの表を焼き直し（bakeopen 1 200・119 四半期で収束・47.5 秒・inputHash 2f79b06d15f69a9d→c0fc67c1f0ed86d9）、OpeningBakeTests・MegaprojectMaterialGateTests・DormantIdentityTests・IndustrializationReaderTests・TechLevelRemovalTests の 50 本が緑・UnitTypeTests 25 本が緑。全体の回し直しはしていない（表を読むのは上の 5 ファイルだけ）。
+FullLength：3 本合格（13 分 51 秒＝他の線のバッチと並んだ。README は FullLength を 10 種のバッチと並べないと定めている＝並べてしまった・遅くなっただけで結果は変わらない）。
+新しい試験 MegaprojectMaterialGateTests 8 本：緑。突然変異 7 本が全て赤（材料の拒否の行を消す・PrevImport→LastImport・MethodMet を常に真・旗の枝を外す・進行中の数が requires を読む・進行の門が材料を読む・GoodGate の枝を消す）。
+savetest（POB_COEF="MegaprojectMaterialGate=1"・隔離 Runner）：savetest 1789 300 12 → OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0・保存 44.5MB）。
+leakhunt（POB_COEF="MegaprojectMaterialGate=1"）：1789 668 warm → 完走・保存則違反なし・世界の台帳の説明できない増減 人口 0・基礎貨幣 0／1789 668 → 同じ。（上書き MegaprojectMaterialGate=1 の名乗りを確認）

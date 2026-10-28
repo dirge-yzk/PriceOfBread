@@ -1,0 +1,96 @@
+# (623) 線 mgp の読むだけの予備調べ（コード=measurements/mgp623_20261028_probe_src.txt・木 a43a1371・全 61 カ国・seed 1789・素の既定・作業フォルダ D:/PoB_work/mgp_623）
+P1 開幕の GoodGate が 0 の財（建設地 82 州のうち 0 の州の数）
+  ゴム	82
+  缶詰	82
+  電化製品	82
+  汽船	82
+  電力	82
+  機関車	82
+  送電網	82
+  機関銃	82
+  装甲艦	82
+  ガス	82
+  戦車	82
+  弩級戦艦	82
+  内燃機関	82
+  ダイナマイト	82
+  自転車	82
+  軍用機	82
+  自動車	82
+  化学兵器	82
+  ラジオ	82
+  冷蔵庫	82
+P2 供給の流量が正の建設地の州の数（gate＝GoodGate が正・prod＝LastProduced が正・imp＝PrevImport が正・either＝prod か imp）
+  q=0 hosts=82
+    鉄	gate82	prod0	imp0	either0
+    鋼	gate82	prod0	imp0	either0
+    セメント	gate82	prod0	imp0	either0
+    ガラス	gate82	prod0	imp0	either0
+    銅	gate82	prod0	imp0	either0
+    鉛	gate82	prod0	imp0	either0
+    機械	gate82	prod0	imp0	either0
+    蒸気機関	gate82	prod0	imp0	either0
+    線路	gate82	prod0	imp0	either0
+    製材	gate82	prod0	imp0	either0
+    石灰石	gate82	prod0	imp0	either0
+    建造物	gate82	prod0	imp0	either0
+    石炭	gate82	prod0	imp0	either0
+  q=1 hosts=82
+    鉄	gate82	prod82	imp0	either82
+    鋼	gate82	prod0	imp0	either0
+    セメント	gate82	prod81	imp0	either81
+    ガラス	gate82	prod82	imp0	either82
+    銅	gate82	prod82	imp0	either82
+    鉛	gate82	prod82	imp0	either82
+    機械	gate82	prod0	imp0	either0
+    蒸気機関	gate82	prod80	imp0	either80
+    線路	gate82	prod26	imp0	either26
+    製材	gate82	prod82	imp0	either82
+    石灰石	gate82	prod82	imp0	either82
+    建造物	gate82	prod79	imp0	either79
+    石炭	gate82	prod82	imp0	either82
+  q=4 hosts=82
+    鉄	gate82	prod82	imp19	either82
+    鋼	gate82	prod1	imp0	either1
+    セメント	gate82	prod16	imp0	either16
+    ガラス	gate82	prod31	imp5	either31
+    銅	gate82	prod14	imp1	either14
+    鉛	gate82	prod12	imp0	either12
+    機械	gate82	prod18	imp4	either18
+    蒸気機関	gate82	prod0	imp0	either0
+    線路	gate82	prod17	imp0	either17
+    製材	gate82	prod82	imp5	either82
+    石灰石	gate82	prod82	imp2	either82
+    建造物	gate82	prod80	imp0	either80
+    石炭	gate82	prod82	imp2	either82
+  q=20 hosts=82
+    鉄	gate82	prod80	imp13	either80
+    鋼	gate82	prod39	imp0	either39
+    セメント	gate82	prod1	imp0	either1
+    ガラス	gate82	prod77	imp14	either77
+    銅	gate82	prod33	imp1	either33
+    鉛	gate82	prod0	imp0	either0
+    機械	gate82	prod76	imp3	either76
+    蒸気機関	gate82	prod60	imp3	either60
+    線路	gate82	prod75	imp0	either75
+    製材	gate82	prod81	imp0	either81
+    石灰石	gate82	prod27	imp0	either27
+    建造物	gate82	prod80	imp0	either80
+    石炭	gate82	prod82	imp1	either82
+  q=40 hosts=82
+    鉄	gate82	prod82	imp0	either82
+    鋼	gate82	prod51	imp0	either51
+    セメント	gate82	prod0	imp0	either0
+    ガラス	gate82	prod81	imp3	either81
+    銅	gate82	prod52	imp0	either52
+    鉛	gate82	prod0	imp0	either0
+    機械	gate82	prod80	imp2	either80
+    蒸気機関	gate82	prod40	imp5	either40
+    線路	gate82	prod79	imp0	either79
+    製材	gate82	prod82	imp0	either82
+    石灰石	gate82	prod49	imp0	either49
+    建造物	gate82	prod80	imp0	either80
+    石炭	gate82	prod79	imp1	either79
+
+
+

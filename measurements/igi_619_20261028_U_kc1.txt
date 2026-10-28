@@ -1,0 +1,13 @@
+s1 n 3429 median_du +0.0786 mean_du +0.0562
+s2 n 3629 median_du +0.0610 mean_du +0.0415
+s3 n 3707 median_du +0.0567 mean_du +0.0390
+s4 n 3445 median_du +0.0920 mean_du +0.0845
+s5 n 3654 median_du +0.0810 mean_du +0.0671
+s6 n 3490 median_du +0.0651 mean_du +0.0526
+s7 n 3515 median_du +0.0806 mean_du +0.0693
+s8 n 3438 median_du +0.0747 mean_du +0.0543
+s9 n 3726 median_du +0.0487 mean_du +0.0334
+s10 n 3686 median_du +0.0698 mean_du +0.0548
+seeds_pos 10 of 10 median_of_medians +0.0723
+seeds_gt_0.005 10 of 10 (分母は固定・欠けた種は不合格・Kc1 は 8 以上)
+dropped_state_decades 14548 of 50267 (基線にあって腕で組めなかった州×十年・持ち主の変更など)

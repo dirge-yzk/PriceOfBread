@@ -1,0 +1,21 @@
+dir D:/PoB_work/igi_619/out_B4_10/ins
+s1 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.929 min 0.1607 food<0.5 0 median {1790: 0.316, 1850: 0.463, 1900: 0.364}
+s2 cells 977 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.848 min 0.1608 food<0.5 0 median {1790: 0.312, 1850: 0.466, 1900: 0.547}
+s3 cells 990 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.777 min 0.0924 food<0.5 0 median {1790: 0.312, 1850: 0.46, 1900: 0.554}
+s4 cells 994 stuck_hi 0 stuck_lo 1 frac 0.0010 max 0.746 min 0.0200 food<0.5 0 median {1790: 0.311, 1850: 0.476, 1900: 0.349}
+s5 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.695 min 0.1665 food<0.5 0 median {1790: 0.312, 1850: 0.464, 1900: 0.377}
+s6 cells 984 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.835 min 0.1618 food<0.5 0 median {1790: 0.314, 1850: 0.475, 1900: 0.548}
+s7 cells 976 stuck_hi 0 stuck_lo 1 frac 0.0010 max 0.897 min 0.0176 food<0.5 0 median {1790: 0.315, 1850: 0.468, 1900: 0.37}
+s8 cells 979 stuck_hi 0 stuck_lo 1 frac 0.0010 max 0.703 min 0.0005 food<0.5 0 median {1790: 0.312, 1850: 0.467, 1900: 0.381}
+s9 cells 976 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.881 min 0.1651 food<0.5 0 median {1790: 0.312, 1850: 0.471, 1900: 0.421}
+s10 cells 978 stuck_hi 0 stuck_lo 1 frac 0.0010 max 0.829 min 0.0001 food<0.5 0 median {1790: 0.31, 1850: 0.469, 1900: 0.396}
+s1 priceLevel max 2.114 at ('イギリス', '1863') nan 0 maxLoans/gdpRealMonth 19.28
+s2 priceLevel max 1.402 at ('オーストリア', '1920') nan 0 maxLoans/gdpRealMonth 22.89
+s3 priceLevel max 2.183 at ('イギリス', '1890') nan 0 maxLoans/gdpRealMonth 12.9
+s4 priceLevel max 7.546 at ('プロイセン', '1929') nan 0 maxLoans/gdpRealMonth 16.07
+s5 priceLevel max 1.367 at ('アメリカ', '1906') nan 0 maxLoans/gdpRealMonth 10.85
+s6 priceLevel max 1.647 at ('イギリス', '1866') nan 0 maxLoans/gdpRealMonth 13.01
+s7 priceLevel max 1.976 at ('フランス', '1876') nan 0 maxLoans/gdpRealMonth 10.37
+s8 priceLevel max 1.44 at ('イギリス', '1936') nan 0 maxLoans/gdpRealMonth 19.67
+s9 priceLevel max 1.877 at ('プロイセン', '1890') nan 0 maxLoans/gdpRealMonth 30.17
+s10 priceLevel max 1.587 at ('アメリカ', '1927') nan 0 maxLoans/gdpRealMonth 12.22

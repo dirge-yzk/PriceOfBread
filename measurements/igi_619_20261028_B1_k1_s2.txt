@@ -1,0 +1,21 @@
+dir D:/PoB_work/igi_619/out_B1_10/ins
+s1 cells 1001 stuck_hi 0 stuck_lo 1 frac 0.0010 max 0.784 min 0.0146 food<0.5 0 median {1790: 0.397, 1850: 0.613, 1900: 0.433}
+s2 cells 1020 stuck_hi 5 stuck_lo 1 frac 0.0059 max 0.981 min 0.0090 food<0.5 0 median {1790: 0.353, 1850: 0.621, 1900: 0.581}
+s3 cells 993 stuck_hi 1 stuck_lo 2 frac 0.0030 max 0.957 min 0.0139 food<0.5 0 median {1790: 0.357, 1850: 0.615, 1900: 0.432}
+s4 cells 1108 stuck_hi 3 stuck_lo 6 frac 0.0081 max 0.970 min 0.0016 food<0.5 0 median {1790: 0.359, 1850: 0.616, 1900: 0.471}
+s5 cells 1058 stuck_hi 4 stuck_lo 2 frac 0.0057 max 0.977 min 0.0002 food<0.5 0 median {1790: 0.329, 1850: 0.615, 1900: 0.45}
+s6 cells 1070 stuck_hi 0 stuck_lo 1 frac 0.0009 max 0.932 min 0.0072 food<0.5 0 median {1790: 0.387, 1850: 0.604, 1900: 0.435}
+s7 cells 978 stuck_hi 0 stuck_lo 0 frac 0.0000 max 0.860 min 0.0720 food<0.5 0 median {1790: 0.383, 1850: 0.609, 1900: 0.428}
+s8 cells 1018 stuck_hi 5 stuck_lo 0 frac 0.0049 max 0.975 min 0.0353 food<0.5 0 median {1790: 0.367, 1850: 0.602, 1900: 0.415}
+s9 cells 1057 stuck_hi 7 stuck_lo 2 frac 0.0085 max 0.975 min 0.0039 food<0.5 0 median {1790: 0.367, 1850: 0.614, 1900: 0.511}
+s10 cells 979 stuck_hi 1 stuck_lo 1 frac 0.0020 max 0.966 min 0.0114 food<0.5 0 median {1790: 0.397, 1850: 0.602, 1900: 0.421}
+s1 priceLevel max 1.763 at ('イギリス', '1947') nan 0 maxLoans/gdpRealMonth 21.89
+s2 priceLevel max 2.27 at ('オーストリア', '1908') nan 0 maxLoans/gdpRealMonth 32.9
+s3 priceLevel max 2.082 at ('アメリカ', '1892') nan 0 maxLoans/gdpRealMonth 11.81
+s4 priceLevel max 4.666 at ('プロイセン', '1931') nan 0 maxLoans/gdpRealMonth 29.48
+s5 priceLevel max 2.003 at ('フランス', '1886') nan 0 maxLoans/gdpRealMonth 33.69
+s6 priceLevel max 1.792 at ('オーストリア', '1879') nan 0 maxLoans/gdpRealMonth 22.37
+s7 priceLevel max 9.122 at ('イギリス', '1867') nan 0 maxLoans/gdpRealMonth 11.46
+s8 priceLevel max 1.716 at ('ロシア', '1879') nan 0 maxLoans/gdpRealMonth 8.419
+s9 priceLevel max 1.793 at ('フランス', '1915') nan 0 maxLoans/gdpRealMonth 27.36
+s10 priceLevel max 1.964 at ('プロイセン', '1830') nan 0 maxLoans/gdpRealMonth 13.28

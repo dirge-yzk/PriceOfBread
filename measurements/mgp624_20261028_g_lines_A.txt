@@ -1,0 +1,15 @@
+[腕A(旗0)] 行 74092・着工 513・完成 512・G1（材料の欠けで着工した行）0・refusedMaterial 合計 0（正の行 0）・refusedMethod 合計 0・unstartedMaterialMissing が正の行 4965
+  1783〜1785 年の着工 405 件（個体の種類 81）
+  G2′（既存の列の差・列の定義に依らない）Legacy−Method−Material が正の行 0（=lead−lag>0）・負の行 0
+  （参考・(624) の修正前のビルドの生では材料の無い個体も数えた＝判定に使わない）G2′ の列：unstartedImportLeadCount（旧の発見の門が閉じ材料の述語が真）が正の行 30942・unstartedMaterialLagCount（旧の門が開き材料の述語が偽）が正の行 0
+--- 判定 ---
+G1 PASS
+G2 FAIL（refusedMaterial 合計 0・unstartedMaterialMissing の正の行 4965）＝働いていない
+G2′ FAIL（unstartedImportLeadCount が正の行 30942・既存の列の差が正の行 0）＝空の門（旗 1 は旗 0 と着工の集合が同じ）
+  dover_calais_cable: 着工 5 回（種×国）・年の中央値 1819
+  transatlantic_cable: 着工 5 回（種×国）・年の中央値 1819
+  anglo_indian_cable: 着工 5 回（種×国）・年の中央値 1819
+  muscat_cable_station: 着工 1 回（種×国）・年の中央値 1853
+  fuzhou_navy_yard: 着工 5 回（種×国）・年の中央値 1888
+  ba_son_arsenal: 着工 0 回（種×国）・年の中央値 -
+  daimler_works: 着工 0 回（種×国）・年の中央値 -
