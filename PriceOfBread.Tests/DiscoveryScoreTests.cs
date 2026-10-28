@@ -1117,13 +1117,14 @@ public class DiscoveryScoreTests
         Assert.True(wm > 0 && col > 0 && maxInd > 0 && mil > wm, $"前提が崩れた（工場労働者の闘争 {wm}・植民地 {col}・工業化 {maxInd}）");
         double hI = c.DiscoveryNeedHalfInstitution, hD = c.DiscoveryNeedHalfIdea;
         double N(double s, double h) => Discovery.TermMax * s / (s + h);
-        var t = Discovery.Evaluate(w, null, c, includeKnown: true);
+        w.ScoreStanding = 50;   // ★(640) ファシズムの強度＝危機×人々の闘争度×国力の落ち込み（既定で点火）＝(50−40)÷50＝0.2
+        var t = Discovery.Evaluate(w, new Discovery.WorldView(null, ScoreNow: 40.0), c, includeKnown: true);
         Assert.Equal(N(w.EliteCore, hI), t[Discovery.PatentRow].Need, 9);
         Assert.Equal(N(maxInd, hI), t[Discovery.JointStockRow].Need, 9);
         Assert.Equal(N(wm / pop, hD), t[Discovery.SocialismRow].Need, 9);
         Assert.Equal(N(wm / pop, hD), t[Discovery.CommunismRow].Need, 9);
         Assert.Equal(N(col / pop, hD), t[Discovery.ImperialismRow].Need, 9);
-        Assert.Equal(N(mil / pop, hD), t[Discovery.FascismRow].Need, 9);
+        Assert.Equal(N(mil / pop * 0.2, hD), t[Discovery.FascismRow].Need, 9);
         w.DefeatShock = 0;   // 危機が無ければファシズムの必要性は0（GDP の落ち込みが無い盤面）
         if (!(w.GdpDrawdown.Value > 0)) Assert.Equal(0.0, Discovery.Evaluate(w, null, c, includeKnown: true)[Discovery.FascismRow].Need);
     }

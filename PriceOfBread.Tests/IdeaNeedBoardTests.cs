@@ -46,7 +46,8 @@ public class IdeaNeedBoardTests
     {
         var w = Nation(Board(), "イギリス");
         SetBoard(w, fill: 0.6, mil: 0.5);
-        Assert.Equal(0.0, w.Coef.SpreadNeedSocialismBoard); Assert.Equal(0.0, w.Coef.SpreadNeedCommunismBoard); Assert.Equal(0.0, w.Coef.SpreadNeedFascismDecline);
+        Assert.Equal(0.0, w.Coef.SpreadNeedSocialismBoard); Assert.Equal(0.0, w.Coef.SpreadNeedCommunismBoard); Assert.Equal(1.0, w.Coef.SpreadNeedFascismDecline);   // 既定＝ファシズムの落ち込みは点火済み（1）・社会主義と共産主義は差し戻し（0）
+        w.Coef.SpreadNeedFascismDecline = 0;   // この試験は旗 0（落ち込みを掛けない旧の式）の経路
         double wc = WorkerOverCiv(w); Assert.True(wc > 0);
         var t = Terms(w);
         double old = Sat(0.5 * wc, w.Coef);
@@ -130,6 +131,7 @@ public class IdeaNeedBoardTests
         Assert.True(crisis > 0, "前提：危機が正");
         int fas = Discovery.FascismRow;
         w.ScoreStanding = 50;
+        w.Coef.SpreadNeedFascismDecline = 0;
         // 旗 0：落ち込みを掛けない（今の式 危機×人々の闘争度＝0.5）
         Assert.Equal(Sat(crisis * 0.5, w.Coef), Terms(w, new Discovery.WorldView(null, ScoreNow: 40.0))[fas].Need, 9);
         w.Coef.SpreadNeedFascismDecline = 1;
@@ -156,21 +158,19 @@ public class IdeaNeedBoardTests
     }
 
     [Fact]
-    public void 発展度の旗は発展度を1に固定し_旗0は工業化度の項と都市の割合の項を読んだ1未満の値()
+    public void 発展度は読み手ごと消え_ファシズムの支持の式は工業化度を掛けない_最先端の工業化度を動かしても同じ支持()
     {
-        var w = Nation(Board(), "イギリス");
-        Assert.Equal(0.0, w.Coef.IdeologyDevTermOff);
-        // 期待値は盤面の POP を数えて手で組む（旗 0 の dev＝(1−都市の重み)×clamp01(最先端の工業化度÷尺度)＋都市の重み×都市の人口比）。最先端の工業化度を尺度の 5 倍に置く＝第 1 項は 1
-        w.IndustrialFrontier = 5.0 * w.Coef.IdeologyGateIndScale;
-        double tot = 0, urban = 0;
-        foreach (var p in w.AllPops()) { tot += p.Size; if (p.IsUrban) urban += p.Size; }
-        double uw = w.Coef.IdeologyGateUrbanWeight;
-        double expected = (1.0 - uw) * 1.0 + uw * (urban / tot);
-        Assert.True(expected < 1.0 && expected > 0.0);
-        double dev0 = Ideologies.EraGates(w).Dev;
-        Assert.Equal(expected, dev0, 12);
-        w.Coef.IdeologyDevTermOff = 1;
-        Assert.Equal(1.0, Ideologies.EraGates(w).Dev);
+        // 発展度 dev（世界最先端の工業化度と都市の割合の加重）は消した：EraGateSet は 4 つの解禁度だけ・最先端の工業化度を動かしても解禁度と思想のシェアが変わらない
+        var names = typeof(Ideologies.EraGateSet).GetProperties().Select(x => x.Name).OrderBy(x => x).ToArray();
+        Assert.Equal(new[] { "Communism", "Fascism", "Imperialism", "Socialism" }, names);
+        Assert.Null(typeof(Coefficients).GetField("IdeologyDevTermOff"));
+        Assert.Null(typeof(Coefficients).GetField("IdeologyDevFromUrban"));
+        double[] Support(double frontier)
+        {
+            var w = Nation(Board(), "イギリス"); w.IndustrialFrontier = frontier; Ideologies.UpdateShares(w); return Ideologies.National(w);
+        }
+        var a = Support(0.0); var b2 = Support(50.0);
+        for (int i = 0; i < a.Length; i++) Assert.Equal(a[i], b2[i]);
     }
 
     [Fact]

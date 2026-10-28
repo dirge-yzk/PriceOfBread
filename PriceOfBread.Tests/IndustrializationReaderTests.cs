@@ -20,7 +20,7 @@ public class IndustrializationReaderTests
 
     private static readonly (string File, int Lines)[] Allowed =
     [
-        ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Credit.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8), ("Ideology.cs", 1),
+        ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Credit.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8),
         ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 2),
         ("Megaprojects.cs", 4), ("Meritocracy.cs", 1), ("Model.cs", 5), ("MultiNationSim.cs", 3), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
         ("PopDecision.cs", 4), ("SelfPlay.cs", 3), ("Simulation.cs", 16), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 9),
@@ -70,7 +70,7 @@ public class IndustrializationReaderTests
 
     private static readonly string[] Flags =
     [
-        "EpidemicSanitFromBoard", "IdeologyDevFromUrban", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",
+        "EpidemicSanitFromBoard", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",
     ];
 
     // ---- J9 対称：旗を読む行が IsPlayer を読まない ---------------------------------------------------------------------
@@ -116,35 +116,7 @@ public class IndustrializationReaderTests
     }
 
     // ---- J3 思想の発展度 ------------------------------------------------------------------------------------------
-    [Fact]
-    public void 思想の発展度_旗1は世界最先端の工業化度を読まない_旗0は読む()
-    {
-        double Dev(double flag, double frontier)
-        {
-            var w = Britain().World; w.Coef.IdeologyDevFromUrban = flag; w.IndustrialFrontier = frontier;
-            return Ideologies.EraGates(w).Dev;
-        }
-        Assert.Equal(Dev(1, 0.0), Dev(1, 9.0));
-        Assert.True(Dev(0, 9.0) > Dev(0, 0.0), "旗 0 で世界最先端の工業化度が発展度に効かない（旧の式）");
-        // 旗 1 の dev は都市労働者の割合そのもの（0〜1）
-        var w1 = Britain().World; w1.Coef.IdeologyDevFromUrban = 1;
-        double tot = 0, urb = 0; foreach (var p in w1.AllPops()) { tot += p.Size; if (p.IsUrban) urb += p.Size; }
-        Assert.Equal(Math.Clamp(urb / tot, 0, 1), Ideologies.EraGates(w1).Dev, 12);
-    }
-
-    [Fact]
-    public void 思想の発展度_多国の四半期の同期は旗1で最先端の工業化度を注入しない_旗0は注入する()
-    {
-        double Frontier(double flag)
-        {
-            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
-            foreach (var n in sim.Nations) n.World.Coef.IdeologyDevFromUrban = flag;
-            sim.StepQuarter();
-            return sim.Nations.Max(n => n.World.IndustrialFrontier);
-        }
-        Assert.Equal(0.0, Frontier(1));
-        Assert.True(Frontier(0) > 0, "旗 0 で世界最先端の工業化度が注入されない（旧）");
-    }
+    // ★(640) 線 idn：発展度 dev（世界最先端の工業化度の項と都市の割合の項）は読み手ごと消した＝旗 IdeologyDevFromUrban の 2 本の試験も消した（番人は IdeaNeedBoardTests）。
 
     // ---- J4 都市化の天井 ------------------------------------------------------------------------------------------
     private static double Headroom(Region r, Coefficients c)
