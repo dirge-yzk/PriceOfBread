@@ -311,8 +311,8 @@ public class AgeStructureTests
     public void 疫病の死は年齢の脆弱さを1度だけ読む()
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
-        var a = new Pop { Size = 1000 };   // 標準のピラミッド
-        var b = new Pop { Size = 1000 };   // 子供の多い POP（0〜9 の層を3倍）
+        var a = new Pop { Size = 1000, IsUrban = true };   // 標準のピラミッド（★(638) 疫病の死は都市の POP だけ＝都市の POP で測る）
+        var b = new Pop { Size = 1000, IsUrban = true };   // 子供の多い POP（0〜9 の層を3倍）
         b.Ages[0] *= 3; b.Ages[1] *= 3; double s = 0; foreach (var x in b.Ages) s += x; for (int k = 0; k < b.Ages.Length; k++) b.Ages[k] /= s;
         a.FoodNeed = b.FoodNeed = 1; a.FoodMet = b.FoodMet = 0.7;   // 同じ主食の充足
         var r = new Region { Pops = [a, b] };
