@@ -196,6 +196,35 @@ public static class Discovery
     public static readonly int CommunismRow = Catalog.DiscoveryRowNamed("共産主義");
     public static readonly int ImperialismRow = Catalog.DiscoveryRowNamed("帝国主義");
     public static readonly int FascismRow = Catalog.DiscoveryRowNamed("ファシズム");
+    /// <summary>★(621) 線 inst：制度と思想の行の前提の辺（子, 前提）＝**共産主義 ← 社会主義の 1 本だけ**（出典：『共産党宣言』1848 の第 3 章がサン＝シモン・フーリエ・オーウェンの社会主義を批判的に継ぐ形で共産主義を定式化する）。
+    /// 他の辺は置かない：ファシズム ← 左派は必要性 <see cref="Ideologies.FascismCrisis"/> が既に左派の脅威を読む（辺を足すと二重計上）／特許 → 株式会社・帝国主義 ← 株式会社は出典が弱い。
+    /// 旗 <see cref="Coefficients.SpreadPrereqEdges"/> が正のときだけ <see cref="Step"/> が読む（<see cref="Catalog.DiscoveryAfter"/> の静的な表には入れない＝旗 0 の軌道と手書きの辺の番人を動かさないため。採用のときに Catalog の After へ移して消す）。</summary>
+    internal static readonly (string Child, string Parent)[] SpreadEdgeNames = [("共産主義", "社会主義")];
+    private static readonly int[] SpreadAfterRow = BuildSpreadAfter();
+    private static int[] BuildSpreadAfter()
+    {
+        var res = new int[Catalog.Discoveries.Length];
+        System.Array.Fill(res, -1);
+        foreach (var (child, parent) in SpreadEdgeNames)
+        {
+            int c = Catalog.DiscoveryRowNamed(child), p = Catalog.DiscoveryRowNamed(parent);
+            if (c < 0 || p < 0 || c == p) throw new System.InvalidOperationException($"制度と思想の辺〈{child}←{parent}〉の行が表に無いか自分自身");
+            if (!IsSpread(Catalog.Discoveries[c].Field) || !IsSpread(Catalog.Discoveries[p].Field)) throw new System.InvalidOperationException($"制度と思想の辺〈{child}←{parent}〉は制度と思想の行どうしだけ");
+            if (Catalog.DiscoveryAfter[c] >= 0) throw new System.InvalidOperationException($"制度と思想の辺の子〈{child}〉は表の前提を既に持つ");
+            res[c] = p;
+        }
+        for (int i = 0; i < res.Length; i++)
+        {
+            int k = i, steps = 0;
+            while (res[k] >= 0) { k = res[k]; if (++steps > res.Length) throw new System.InvalidOperationException($"制度と思想の辺に輪がある（{Catalog.Discoveries[i].Name} から）"); }
+        }
+        return res;
+    }
+    /// <summary>★(621) 制度と思想の行の前提の辺（専用の表）＝前提の行（無ければ −1）。旗 <see cref="Coefficients.SpreadPrereqEdges"/> が正のときだけ <see cref="Step"/> が読む。</summary>
+    internal static int SpreadPrereqRow(int row) => (uint)row < (uint)SpreadAfterRow.Length ? SpreadAfterRow[row] : -1;
+    /// <summary>★(621) 制度と思想の行の技術の比＝本国の識字 ÷ 基準 <paramref name="full"/>（0〜1）。否定形：NaN・0 以下の識字は 0（解禁の門なので閉じる側へ倒す）。基準が正でなければ 1（呼び手は基準が正のときだけ呼ぶ＝旗 0 の経路）。</summary>
+    internal static double SpreadLiteracyRatio(double lit, double full)
+        => !(lit > 0) ? 0.0 : !(full > 0) ? 1.0 : lit >= full ? 1.0 : lit / full;
     /// <summary>思想の門の行（門を持たない思想＝伝統・自由・国民主義ほかは −1＝最初から在る）。</summary>
     public static int IdeaRow(Ideology k) => k switch
     {
@@ -589,12 +618,14 @@ public static class Discovery
         }
         double workerMil = popSum > 1e-12 ? workerMilSum / popSum : 0, colonialShare = popSum > 1e-12 ? colonialPop / popSum : 0, popMil = popSum > 1e-12 ? milSum / popSum : 0;
         double crisis = double.NaN;   // ファシズムの必要性＝危機（国の思想の集計の1巡が要る＝その行を見るときだけ求める）
+        double spreadLit = double.NaN;   // ★(621) 制度と思想の技術の比の識字（旗 SpreadLiteracyFull が正のとき・d＞0 の行を見るときだけ1度求める）
         var reach = w.SpreadReach;
         for (int row = 0; row < nr; row++)
         {
             if (!includeKnown && Known(w.Discovered, row)) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
             {   // ★(336) 系統×段階：前提の行がまだの国はこの行を判定しない（点数0・伝わりも読まない。旧の旗 DiscoveryTierGate は (344) で既定1→2026-10-18 に焼き込み）
                 int after = Catalog.DiscoveryAfter[row];
+                if (after < 0 && c.SpreadPrereqEdges > 0) after = SpreadAfterRow[row];   // ★(621) 制度と思想の辺（旗 0 は第2条件が偽＝表の読みのまま）
                 if (after >= 0 && !Known(w.Discovered, after)) continue;
             }
             var d = rows[row];
@@ -604,6 +635,11 @@ public static class Discovery
             // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
             //   ★(415) 旗 DiscoveryEngineerHalfPerMonth が正のとき、製法と新製品と新兵器の行は技術水準を読まない（下の技師の比 EngineerFactor）。制度と思想の行は今のまま（親の産業が定義できない・事前登録 [3-3]）。
             double ratio = TechRatioOf(w, row, spread, engOn, c);
+            if (spread && c.SpreadLiteracyFull.Value > 0 && d.Decade > Catalog.DiscoveryBaseDecade)   // ★(621) 線 inst：制度と思想の技術の比を本国の識字÷基準へ（特許〔d≦0〕は 1 のまま・NaN の旗は偽＝旗 0）
+            {
+                if (double.IsNaN(spreadLit)) spreadLit = PoliticalQuantities.AvgLiteracy(w, coreOnly: true);
+                ratio = SpreadLiteracyRatio(spreadLit, c.SpreadLiteracyFull.Value);
+            }
             if (spread)
             {
                 double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis);
