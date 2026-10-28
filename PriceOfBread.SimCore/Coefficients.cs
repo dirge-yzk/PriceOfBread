@@ -614,6 +614,8 @@ public sealed class Coefficients
     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
     public double EpidemicTransmitChance = 0.35; // 完全接触（隣接の感染国）から1年で伝染する基礎確率
     public double EpidemicDriveByNationUrban = 0;   // (629) 疫病の発生・伝播の確率が読む都市の割合を、最も都市化率の高い 1 州の割合（World.MaxUrbanShare＝大きさを持たない）から国の都市の人口÷国の人口（World.UrbanShare）へ替える（旗 1）。0 で従来と厳密一致。標的の州の選び方・死の率は替えない。
+    public double EpidemicByUrbanContact = 0;   // (638) 疫病を都市の人の数で起こす・選ぶ（0＝今のまま＝割合が最大の 1 州が標的・発生の確率は最大の割合）。正なら ①発生の確率＝州ごとの危険度 us_r×p_r×(1−衛生の割引_r) の和（国の都市の割合・衛生は州ごと）②伝播の定着は国の都市の割合 ③標的は都市の人口 Urb_r の重みで抽選（二次は 1 つ目を除いた同じ重み）。重みが正の州が 2 つ以上のときだけ乱数を引く。事前登録 measurements/urc_638_20261028_prereg.txt
+    public double EpidemicDeathUrbanOnly = 0;   // (638) 疫病の死を都市の POP だけに掛ける（0＝州の全ての POP＝今のまま）。標的を都市の人の数で選ぶ形（EpidemicByUrbanContact）と対で、選ぶ母集団と死ぬ母集団を揃える
     public double EpidemicTransmitRange = 6000;  // 近接伝播が効く首都間距離（kmこれ以内で陸路接触・遠いほど弱い）
     public double EpidemicTradeTransmit = 0.6;   // 交易/港の接触経路の重み（両国の交易開放度の積＝海路のコレラ。陸の近接と最大を取る）
     public double EpidemicWarTransmit = 0.85;    // 戦争＝距離に依らない強制的な濃厚接触（軍営・前線・補給線・復員兵）＝最強の伝播経路（スペイン風邪1918型）。交戦国間で蔓延

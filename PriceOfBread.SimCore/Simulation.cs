@@ -2000,8 +2000,12 @@ public sealed class Simulation
             // 1832年のスラムと同頻度でコレラが発生し続けた。史実では衛生インフラが流行の発生自体を止めた）。0（対照腕）で乗数1・既定0.4でlive。
             double epiOnsetCut = World.Coef.EpidemicOnsetSanitationWeight > 0
                 ? World.Coef.EpidemicOnsetSanitationWeight * World.WorstUrbanRegionSanitation(World.Coef) : 0;
-            if (epiRoll < World.Coef.EpidemicChance * worstUrban * (1.0 - epiOnsetCut))   // 発生率＝基礎×過密度×(1−衛生)（農村国はほぼ起きない）
-                World.TriggerEpidemic(World.Coef, 0.5 + epiPick);   // 内部発生（過密スラム）→死亡スパイク＋感染窓
+            // (638) 旗 EpidemicByUrbanContact：発生率＝基礎×Σ_r(州の都市の割合×州の人口の割合×(1−州の衛生の割引))＝州ごとの危険度の和（旗 0 は上の式のまま）
+            double epiProb = World.Coef.EpidemicByUrbanContact > 0
+                ? World.Coef.EpidemicChance * World.EpidemicOnsetRisk(World.Coef)
+                : World.Coef.EpidemicChance * worstUrban * (1.0 - epiOnsetCut);   // 発生率＝基礎×過密度×(1−衛生)（農村国はほぼ起きない）
+            if (epiRoll < epiProb)
+                World.TriggerEpidemic(World.Coef, 0.5 + epiPick, pickRng: EpidemicRng);   // 内部発生（過密スラム）→死亡スパイク＋感染窓
         }
 
         // 労働時間の連続追従（倍率排除②）：実労働時間 WorkHoursValue は法定上限（WorkHours enum のアンカー）へ毎月収束する。
