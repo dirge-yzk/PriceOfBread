@@ -44,6 +44,19 @@ public class EpidemicByUrbanContactTests
     }
 
     [Fact]
+    public void 伝播の定着は旗1で国の都市の割合_旗0では最大の割合()
+    {
+        var w = FranceWorld();
+        var p = Board3(w, new[] { 10.0, 30.0, 60.0 });
+        foreach (var pp in p[0].Pops) if (!pp.IsUrban) pp.Size = 0.3;
+        foreach (var pp in p[1].Pops.Concat(p[2].Pops)) if (!pp.IsUrban) pp.Size = Math.Max(pp.Size, 1.0) * 500;
+        double u = 0, tot = 0, max = 0;
+        foreach (var r in p) { var (ur, po) = Sums(r); u += ur; tot += po; max = Math.Max(max, ur / po); }
+        w.Coef.EpidemicByUrbanContact = 0; Assert.Equal(max, w.EpidemicUrbanDrive(w.Coef), 12);
+        w.Coef.EpidemicByUrbanContact = 1; Assert.Equal(u / tot, w.EpidemicUrbanDrive(w.Coef), 12);
+    }
+
+    [Fact]
     public void 抽選は都市の人口の逆累積_境界の手計算と一致し重みが0の州は選ばれない()
     {
         var w = FranceWorld();
