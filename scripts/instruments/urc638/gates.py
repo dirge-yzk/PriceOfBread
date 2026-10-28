@@ -17,15 +17,39 @@ def rd(path):
         return list(csv.DictReader(fh, delimiter='\t'))
 
 
+import os, pickle
+CACHE = 'D:/PoB_work/urc_638/gates_cache'
+
+
+def region_pass(d, s):
+    """region_s を 1 度だけ読み、核の州の人口列・国×四半期の人口・本国の都市の割合の入力を返す（結果は pickle に残す）。"""
+    key = os.path.join(CACHE, d.replace('/', '_').replace(':', '') + f'_s{s}.pkl')
+    if os.path.exists(key):
+        return pickle.load(open(key, 'rb'))
+    ser = collections.defaultdict(list); popq = collections.defaultdict(float); acc = collections.defaultdict(lambda: [0.0, 0.0])
+    with open(f'{d}/region_s{s}.tsv', encoding='utf-8') as fh:
+        rdr = csv.reader(fh, delimiter='	'); head = next(rdr)
+        ix = {h: i for i, h in enumerate(head)}
+        iq, inat, ireg, itier, ipop, irur = ix['quarter'], ix['nation'], ix['region'], ix['tier'], ix['populationK'], ix['ruralPopulationK']
+        for row in rdr:
+            q = int(row[iq]); n = row[inat]; pop = float(row[ipop])
+            popq[(n, q)] += pop
+            k = (n, row[ireg])
+            if k in CORE:
+                ser[k].append(pop)
+            if q in UQ.values() and n in UN and row[itier] == 'Core':
+                a = acc[(n, q)]; a[0] += pop; a[1] += float(row[irur])
+    out = (dict(ser), dict(popq), {k: tuple(v) for k, v in acc.items()})
+    os.makedirs(CACHE, exist_ok=True)
+    pickle.dump(out, open(key, 'wb'))
+    return out
+
+
 def minpeak(d, s):
-    ser = collections.defaultdict(list)
-    for r in rd(f'{d}/region_s{s}.tsv'):
-        k = (r['nation'], r['region'])
-        if k in CORE:
-            ser[k].append(float(r['populationK']))
+    ser = region_pass(d, s)[0]
     out = {}
     for k in CORE:
-        v = ser[k]
+        v = ser.get(k)
         if not v:
             continue
         pk = v[0]; m = 1e9
@@ -37,9 +61,7 @@ def minpeak(d, s):
 
 def epi(d, s):
     prim = collections.Counter(); byn = collections.defaultdict(collections.Counter); tiny = 0; tot = 0
-    popq = collections.defaultdict(float)
-    for r in rd(f'{d}/region_s{s}.tsv'):
-        popq[(r['nation'], int(r['quarter']))] += float(r['populationK'])
+    popq = region_pass(d, s)[1]
     try:
         rows = rd(f'{d}/epi_s{s}.tsv')
     except FileNotFoundError:
@@ -57,11 +79,7 @@ def epi(d, s):
 
 
 def urbshare(d, s):
-    acc = collections.defaultdict(lambda: [0.0, 0.0])
-    for row in rd(f'{d}/region_s{s}.tsv'):
-        q = int(row['quarter'])
-        if q in UQ.values() and row['nation'] in UN and row['tier'] == 'Core':
-            k = (row['nation'], q); acc[k][0] += float(row['populationK']); acc[k][1] += float(row['ruralPopulationK'])
+    acc = region_pass(d, s)[2]
     return {k: 1 - r / p for k, (p, r) in acc.items() if p > 0}
 
 
