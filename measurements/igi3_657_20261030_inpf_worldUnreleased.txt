@@ -1,0 +1,6 @@
+=== window (1783, 1829) total lossRef(non-zero rows) 3.963e+09
+ 失われた製品（worldUnreleased の lossRef 上位）: [('防水布', '0.575'), ('加工肉', '0.000')]
+ 束縛する投入（worldUnreleased の工場×月の割合）: [('ゴム', '0.994'), ('冷蔵庫', '0.006'), ('ガス', '0.000')]
+=== window (1910, 1950) total lossRef(non-zero rows) 2.493e+10
+ 失われた製品（worldUnreleased の lossRef 上位）: [('防水布', '0.498')]
+ 束縛する投入（worldUnreleased の工場×月の割合）: [('ゴム', '0.999'), ('冷蔵庫', '0.001'), ('送電網', '0.000')]

@@ -661,6 +661,7 @@ public static class EconomyStep
         long insRows = 0, insBound = 0; double insDesired = 0, insDemand = 0;
         double[]? insSpend = insOn ? Instruments.SpendBuf(world!) : null;   // (286) 計器（読むだけ）：階級×支払いの種類の積算（支払いの位置で積む）
         var insEnt = insOn ? Instruments.EntryBegin(world!, region) : null;   // (345) 計器（読むだけ）：消費の入口の材料（使える所得・籠の費用・余り・取り崩し・必需の割合の影）。助走の月は null
+        var insInp = insOn ? Instruments.InpBegin(world!, region, ng, goodGate, demandGate, producerCount) : null;   // (657) 計器（読むだけ）：工場に投入が届かない原因の表の財ごとの内訳（助走の月・挙げていない国は null）
         if (insOn) Instruments.HigherPaidBegin(region);   // ★(590) 計器（読むだけ）：高等教育の授業料の総額と国庫の負担分の月の蓄えを州・月の頭で 0 に戻す（その月に高等教育の配分が飛ばされても前の月の値を残さない）
         if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
         // （所得翻訳ゲート＝DemandIncomeElasticity・2026-08-08 差し戻し・休眠は 2026-09-26 に削除＝棚卸し econ-16/dorm-51）
@@ -1717,6 +1718,7 @@ public static class EconomyStep
             double available = m.Stock + produced[gi];
             double coreSold = coreDemand > 1e-12 ? Math.Min(available, coreDemand) : 0;
             ration[gi] = coreDemand > 1e-12 ? coreSold / coreDemand : 0;
+            if (insInp is not null) insInp.Good(gi, available, coreDemand, popDemand, inputNeed[gi] + inputTrickle[gi], investDemand[gi], militaryDemand[gi] + rebelDemand[gi]);   // (657) 計器（読むだけ）
             if (gi == coef.SoapGoodId) region.SoapFill = ration[gi];   // 石鹸の消費充足＝衛生(公衆衛生)へ（疫病ブロックで sanitation に加算）
             // 1934拡張E3：新聞/ラジオの per-pop 充足（予算×配給で実際に読めた率）。国民意識（CrownParliament）と政治意識（Politics）が読む。
             if (gi == Catalog.NewspaperId)
@@ -1895,6 +1897,7 @@ public static class EconomyStep
                     if (insOn) Instruments.HigherEdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 ration[gi] = totalDemand > 1e-12 ? Math.Min(1.0, sold / totalDemand) : 0;
+                if (insInp is not null) insInp.SvcMark(gi);   // (657) 計器（読むだけ）：役務の優先配分が最終の配給率を書いた財の印
             }
             else
             {
@@ -2493,6 +2496,7 @@ public static class EconomyStep
             }
             s.LastInputFill = fill;
             s.LastMaterialFill = mfill;
+            if (insInp is not null) insInp.Factory(s, ration);   // (657) 計器（読むだけ）：この工場×月の投入の失いの理由（LastInputFill を書いた後・fill を独立に再計算して突き合わせる）
         }
 
         // #6（B-A2）：輸入の消費分は国内生産者でなく商人（輸入の捌き手）へ＝「輸入穀物の代金が国内農民の懐に入る」歪みの除去。

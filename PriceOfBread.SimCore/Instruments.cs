@@ -226,6 +226,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public System.IO.StreamWriter? Sec; public bool SecHeader;                         // (395) 州の分離の内訳の表（国×四半期×州）
         public System.IO.StreamWriter? Urx, UrxPdW; public bool UrxHeader, UrxPdHeader;   // (649) 都市と農村の規模の差の区間別の表 urx_s と PopDecision の駆動の表 urxpd_s
+        public System.IO.StreamWriter? Inpf, Inpb; public bool InpHeader;                   // (657) 工場に投入が届かない原因の表 inpf_s・inpb_s（挙げた国・年末）
         public System.IO.StreamWriter? Epi; public bool EpiHeader;                         // (629) 疫病 1 件ごとの表 epi_s（全ての国・助走は書かない）
         public System.IO.StreamWriter? Csc; public bool CscHeader;                         // (403) 清算の見る範囲の絞りの表（年×国×役×行の種類）
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
@@ -1745,6 +1746,7 @@ public static partial class Instruments
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
+        if (time == "warm") InpWorldTable(sim);   // (657)
         if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // (380)(403) 助走の月の成約を数えない・(579) 助走の着工の判断の回を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
@@ -1753,6 +1755,7 @@ public static partial class Instruments
     internal static void Quarter(MultiNationSim sim, ulong seed, int q)
     {
         var sk = SinkOf(sim, seed);
+        InpWorldTable(sim);   // (657) 世界の各財の産出＞0 の生産者が居る州の数（worldNoSeller の表）
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         string time = "q" + q.ToString(System.Globalization.CultureInfo.InvariantCulture);
         for (int i = 0; i < sim.Nations.Count; i++)
@@ -1798,6 +1801,7 @@ public static partial class Instruments
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
             WcFold(sk, seed, w, q, picked, yearEnd);        // (514) 賃金の天井の表（月末の役務の値段が帯のどこにいたか・縛った州）
             SbFold(sk, seed, w, q, picked);                 // (520) 交渉の取り分と地代の表（旗が正の国だけ行を出す・蓄えは四半期の末に戻す）
+            InpFold(sk, seed, w, st, q, picked, yearEnd);   // (657) 工場に投入が届かない原因の表（挙げた国・年末）
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
             MaFold(sk, seed, w, q, picked, yearEnd);        // (480) 最低賃金法の AI の判断の表（失業・床が縛る広がり・今と新しい規則の目標）
             HouseFold(sk, seed, w, q, picked, yearEnd);     // (418) 農家の手仕事の表（行の産出の割合と農民の能力の取り分）
@@ -1869,6 +1873,7 @@ public static partial class Instruments
         sk.Sec?.Dispose(); sk.Sec = null;   // (395)
         sk.Urx?.Dispose(); sk.Urx = null; sk.UrxPdW?.Dispose(); sk.UrxPdW = null;   // (649)
         sk.Epi?.Dispose(); sk.Epi = null;   // (629)
+        sk.Inpf?.Dispose(); sk.Inpf = null; sk.Inpb?.Dispose(); sk.Inpb = null;   // (657)
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
         sk.Inh?.Dispose(); sk.Inh = null;   // (650)
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
