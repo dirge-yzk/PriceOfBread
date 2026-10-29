@@ -47,3 +47,12 @@
 
 [6] 触った行（合流で解く）
   Policy.cs（enum・欄・複製）／World.cs（欄 2）／Coefficients.cs（旗 1）／PolicyPreferences.cs（enum 末尾・case・`InheritanceStepSize`）／Government.cs（`InheritanceRate`・LevelLaws の末尾）／Parliament.cs（case 1）／Politics.cs（case 1・CRLF 保持）／FactionSnapshot.cs（`DemandJa` 1 行）／SelfPlay.cs（`GateAllLawTargets` に 1 行）／Validation.cs（1 行）／Display/LawCatalog.cs（1 エントリ）／Simulation.cs（`DemographicStep` の中・約 25 行）／Instruments.cs（3 行）／InstrumentsInh.cs（新規）。
+
+[7] 最終の木（f7b7ee75・行を LevelLaws の末尾へ移し・既定 1）での読み直し（腕 B の木は行が表の中ほど〔WartimeRationing の前〕だった＝施行の順が違うので同じ結論かを木で確かめた）
+  成績表 3 枚：`b5_20261030_inh650`・`b10_20261030_inh650`・`b10_20261030_inh650_ins`（plain と ins は cmp で同一＝計器は成績表に現れない）。
+  ・exact 43／near 83（10 種）・near 85（5 種）。基線 m645 は 43.6／83.6。幅の内。
+  ・③a 『全額』0 件（通る）・③d 低率以上 111 件（≥20・通る）・中率以上 78 件・高率 0・全額 0。大国の制定は腕 B と同じ形（イギリス 3/10・ロシア 3/10・清 1/10・他の大国 0）。⑥ 中率の歳入比 0.48。
+  ・S1 未完走 0/10・S2 価格水準の絞った最大 3.494・絞らない最大 6.558（イギリス 1947）・非有限 0・S3 ピークの 1/10 未満 0 件（1/4 未満 4 件）・S4 推定の計算量 216.6 秒（10 種）。
+  ・savetest OK（12 四半期後も全 62 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（seed=1789・200 四半期・保存則違反なし・台帳の説明できない増減 0）。
+  ・フルスイート（Category!=FullLength）：2002 件中 失敗 2（操作カードに相続の行が無い／軸の末尾の番人が最低賃金法を期待）→ カードに 1 行・番人を相続法に直して該当の 91 件が緑。直した後の全体の回し直しは未実施（直しは文書 1 行と番人 1 行だけ＝挙動に触れない）。
+  ・FullLength：別記（結果が出たら追記）。
