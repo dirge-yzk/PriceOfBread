@@ -1,0 +1,49 @@
+# inpf 読み手 ins=D:/PoB_work/igi3_657/out_Ap_10/ins 種 1..10  C2 食い違い 0 / 見た工場×月 386690218
+
+== 窓 1783-1829（種の中央値［最小,最大］）
+ALL      loss/des 0.348 other/des 0.279 unsup/out 0.092 low 0.502 ext 0.077 zero 0.307 | worldUnreleased=0.57 labor=0.21 contested.f=0.12 reachLack=0.08
+アメリカ     loss/des 0.485 other/des 0.185 unsup/out 0.265 low 0.656 ext 0.048 zero 0.233 | labor=0.62 worldUnreleased=0.20 contested.f=0.13 reachLack=0.04
+イギリス     loss/des 0.420 other/des 0.250 unsup/out 0.141 low 0.592 ext 0.088 zero 0.327 | labor=0.40 worldUnreleased=0.40 contested.f=0.07 reachLack=0.06
+オスマン     loss/des 0.294 other/des 0.265 unsup/out 0.070 low 0.407 ext 0.043 zero 0.275 | worldUnreleased=0.64 contested.f=0.14 reachLack=0.09 labor=0.08
+オーストリア   loss/des 0.283 other/des 0.259 unsup/out 0.065 low 0.436 ext 0.056 zero 0.317 | worldUnreleased=0.40 reachLack=0.37 contested.f=0.12 labor=0.08
+フランス     loss/des 0.284 other/des 0.257 unsup/out 0.068 low 0.562 ext 0.214 zero 0.299 | worldUnreleased=0.39 reachLack=0.35 contested.f=0.13 labor=0.08
+プロイセン    loss/des 0.287 other/des 0.236 unsup/out 0.113 low 0.539 ext 0.038 zero 0.269 | worldUnreleased=0.43 reachLack=0.22 labor=0.21 contested.f=0.16
+ロシア      loss/des 0.291 other/des 0.271 unsup/out 0.062 low 0.453 ext 0.099 zero 0.362 | worldUnreleased=0.63 contested.f=0.14 reachLack=0.12 labor=0.06
+日本       loss/des 0.288 other/des 0.250 unsup/out 0.082 low 0.484 ext 0.057 zero 0.282 | worldUnreleased=0.64 contested.f=0.13 labor=0.12 reachLack=0.05
+清        loss/des 0.353 other/des 0.297 unsup/out 0.083 low 0.445 ext 0.036 zero 0.282 | worldUnreleased=0.65 labor=0.16 contested.f=0.12 reachLack=0.04
+
+== 窓 1830-1869（種の中央値［最小,最大］）
+ALL      loss/des 0.469 other/des 0.424 unsup/out 0.078 low 0.516 ext 0.039 zero 0.285 | worldUnreleased=0.82 labor=0.11 reachLack=0.03 contested.f=0.03
+アメリカ     loss/des 0.529 other/des 0.179 unsup/out 0.250 low 0.636 ext 0.029 zero 0.220 | labor=0.66 worldUnreleased=0.23 contested.f=0.03 reachLack=0.03
+イギリス     loss/des 0.496 other/des 0.303 unsup/out 0.234 low 0.685 ext 0.043 zero 0.235 | labor=0.40 worldUnreleased=0.35 reachLack=0.19 contested.f=0.07
+オスマン     loss/des 0.358 other/des 0.279 unsup/out 0.149 low 0.579 ext 0.033 zero 0.288 | worldUnreleased=0.58 labor=0.25 contested.f=0.08 reachLack=0.05
+オーストリア   loss/des 0.344 other/des 0.296 unsup/out 0.094 low 0.546 ext 0.033 zero 0.345 | worldUnreleased=0.66 labor=0.12 reachLack=0.08 contested.f=0.07
+フランス     loss/des 0.351 other/des 0.283 unsup/out 0.116 low 0.577 ext 0.031 zero 0.268 | worldUnreleased=0.57 labor=0.16 contested.f=0.09 reachLack=0.07
+プロイセン    loss/des 0.384 other/des 0.273 unsup/out 0.160 low 0.656 ext 0.031 zero 0.255 | worldUnreleased=0.37 labor=0.28 reachLack=0.20 contested.f=0.12
+ロシア      loss/des 0.362 other/des 0.308 unsup/out 0.107 low 0.569 ext 0.037 zero 0.341 | worldUnreleased=0.70 labor=0.16 contested.f=0.09 reachLack=0.04
+日本       loss/des 0.435 other/des 0.419 unsup/out 0.049 low 0.360 ext 0.040 zero 0.305 | worldUnreleased=0.89 contested.f=0.04 labor=0.03 dropped=0.01
+清        loss/des 0.513 other/des 0.511 unsup/out 0.019 low 0.188 ext 0.022 zero 0.323 | worldUnreleased=0.98 contested.f=0.01 dropped=0.01 labor=0.00
+
+== 窓 1870-1909（種の中央値［最小,最大］）
+ALL      loss/des 0.529 other/des 0.499 unsup/out 0.072 low 0.454 ext 0.030 zero 0.297 | worldUnreleased=0.80 labor=0.06 reachLack=0.05 contested.f=0.04
+アメリカ     loss/des 0.338 other/des 0.313 unsup/out 0.076 low 0.438 ext 0.026 zero 0.290 | worldUnreleased=0.69 reachLack=0.11 contested.f=0.11 labor=0.09
+イギリス     loss/des 0.492 other/des 0.335 unsup/out 0.152 low 0.539 ext 0.039 zero 0.237 | worldUnreleased=0.36 labor=0.29 reachLack=0.22 contested.f=0.07
+オスマン     loss/des 0.455 other/des 0.389 unsup/out 0.114 low 0.514 ext 0.026 zero 0.279 | worldUnreleased=0.77 labor=0.14 contested.f=0.07 dropped=0.03
+オーストリア   loss/des 0.475 other/des 0.403 unsup/out 0.116 low 0.541 ext 0.025 zero 0.310 | worldUnreleased=0.22 labor=0.15 reachLack=0.08 contested.f=0.07
+フランス     loss/des 0.479 other/des 0.449 unsup/out 0.108 low 0.520 ext 0.024 zero 0.281 | worldUnreleased=0.71 labor=0.11 contested.f=0.07 reachLack=0.02
+プロイセン    loss/des 0.413 other/des 0.342 unsup/out 0.123 low 0.527 ext 0.035 zero 0.304 | worldUnreleased=0.43 labor=0.20 reachLack=0.12 contested.f=0.08
+ロシア      loss/des 0.472 other/des 0.433 unsup/out 0.095 low 0.455 ext 0.027 zero 0.301 | worldUnreleased=0.80 labor=0.09 contested.f=0.06 dropped=0.02
+日本       loss/des 0.532 other/des 0.496 unsup/out 0.079 low 0.411 ext 0.025 zero 0.316 | worldUnreleased=0.85 labor=0.07 contested.f=0.05 reachLack=0.03
+清        loss/des 0.555 other/des 0.541 unsup/out 0.049 low 0.357 ext 0.027 zero 0.351 | worldUnreleased=0.84 reachLack=0.04 contested.f=0.03 dropped=0.02
+
+== 窓 1910-1950（種の中央値［最小,最大］）
+ALL      loss/des 0.593 other/des 0.576 unsup/out 0.056 low 0.360 ext 0.028 zero 0.346 | worldUnreleased=0.61 reachLack=0.09 labor=0.03 contested.f=0.02
+アメリカ     loss/des 0.274 other/des 0.253 unsup/out 0.053 low 0.338 ext 0.020 zero 0.318 | worldUnreleased=0.52 labor=0.10 contested.f=0.09 reachLack=0.07
+イギリス     loss/des 0.501 other/des 0.393 unsup/out 0.130 low 0.478 ext 0.030 zero 0.318 | worldUnreleased=0.47 labor=0.22 reachLack=0.10 contested.f=0.04
+オスマン     loss/des 0.421 other/des 0.406 unsup/out 0.039 low 0.250 ext 0.020 zero 0.356 | worldUnreleased=0.90 dropped=0.05 labor=0.02 contested.f=0.02
+オーストリア   loss/des 0.581 other/des 0.415 unsup/out 0.035 low 0.240 ext 0.022 zero 0.381 | labor=0.21 contested.f=0.11 dropped=0.05 worldUnreleased=0.01
+フランス     loss/des 0.476 other/des 0.390 unsup/out 0.121 low 0.451 ext 0.018 zero 0.348 | worldUnreleased=0.53 labor=0.26 contested.f=0.09 dropped=0.03
+プロイセン    loss/des 0.424 other/des 0.415 unsup/out 0.027 low 0.198 ext 0.021 zero 0.372 | worldUnreleased=0.67 dropped=0.03 labor=0.02 reachLack=0.02
+ロシア      loss/des 0.548 other/des 0.538 unsup/out 0.052 low 0.291 ext 0.026 zero 0.384 | worldUnreleased=0.87 dropped=0.03 contested.f=0.02 labor=0.02
+日本       loss/des 0.554 other/des 0.540 unsup/out 0.029 low 0.218 ext 0.020 zero 0.359 | worldUnreleased=0.85 dropped=0.04 labor=0.01 contested.f=0.01
+清        loss/des 0.602 other/des 0.592 unsup/out 0.050 low 0.408 ext 0.030 zero 0.368 | worldUnreleased=0.62 reachLack=0.10 contested.f=0.02 labor=0.01
