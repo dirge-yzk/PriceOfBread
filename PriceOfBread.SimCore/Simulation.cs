@@ -1758,7 +1758,7 @@ public sealed class Simulation
             //   ⚠AI国はこの枝に入らない（!IsPlayer 側は従来どおり DecideQuarter が呼ぶ）＝自己対戦・較正はビット恒等（プレイヤーが居ない）。
             else UtilityAgent.SetNavalUpkeepShare(World);
         }
-        _agent.DecideQuarter(World);
+        if (Instruments.On) Instruments.MonAiBefore(World); _agent.DecideQuarter(World); if (Instruments.On) Instruments.MonAiAfter(World);   // (660) 計器（読むだけ・窓はこの 1 呼びだけ・行を足さない＝flow_s の sourceLine を動かさない）
         UpdateRegionalPriceLevels();           // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）を四半期ごとに更新。日次の StepDay が r.PriceLevel に適用
         Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。目標は書かない（法軸の綱領は 2026-09-26 に撤去＝回5-1 項目17・AI の意図へ移設／経済軸は 2026-09-19）。ParliamentEnabled の国のみ＝較正不変
         // ★(351) 窓（POP 由来の和の使い回し・結果を変えない・<see cref="PopWindow"/>）＝近代化投資〜政府の反映の終わり。AI の決定（着工・払い下げの動詞が資本家の貯蓄を動かす）と議会（総選挙の公示への AI の答え

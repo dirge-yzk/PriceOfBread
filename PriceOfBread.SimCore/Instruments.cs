@@ -1787,6 +1787,7 @@ public static partial class Instruments
             EpiFold(sk, seed, w, st, q);                    // (629) 疫病 1 件ごとの表（全ての国・TriggerEpidemic が置いた行）
             RuleFold(sk, seed, w, q, picked, yearEnd);      // (399) 支配の4区分の表（世界の状態を直に読む）
             InhFold(sk, seed, w, q);                        // (650) 相続法の表（旗が正のときだけ・全ての国）
+            MonFold(sim, seed, w, st, q, i, yearEnd);       // (660) 頻度の監視の第 2 段（monlaw_s の行・mongood_s の年末の標本・NationRow の後＝Uid 採番済み）
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
             AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
             EdFold(sk, seed, w, q, picked, yearEnd);        // (452) 国家の教育の需要の表（買いたい量・取れた量・供給が尽きた州の割合・値段）
@@ -1840,6 +1841,7 @@ public static partial class Instruments
         BurScanTable(sk, sim);   // (389)
         TransportClose(sk, sim);   // (380) 年の途中で終わった残り
         ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
+        MonClose(sim, sk.Seed);   // (660) mongood_s・monai_s を書き monlaw_s を閉じる
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null; sk.DevCapW?.Dispose(); sk.DevCapW = null; sk.PfixW?.Dispose(); sk.PfixW = null; sk.PjumpW?.Dispose(); sk.PjumpW = null; sk.FsxW?.Dispose(); sk.FsxW = null;   // (316)(582)(587)(603)(616)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
