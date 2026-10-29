@@ -63,6 +63,11 @@ for f in first:
 mins = {s: min(v) for s, v in byseed.items()}
 print('    種ごとの世界で最初の年', dict(sorted(mins.items())), '中央', med(list(mins.values())), '／ 開かなかった種', [s for s in range(1, NS + 1) if s not in mins])
 print('    国×種の開いた年の中央', med([f[4] for f in first]), '最小', min(f[4] for f in first), '最大', max(f[4] for f in first))
+MAJ = ('イギリス', 'フランス', 'プロイセン', 'オーストリア', 'ロシア', 'オスマン', 'アメリカ', '日本', '清')
+print('    主要 9 国の開いた年（種, 国, 年）', sorted(((s, n, y) for s, n, i, q, y in first if n in MAJ), key=lambda t: t[2]))
+print('    開いた国×種の一覧（年順・種, 国, 年）', [(s, n, y) for s, n, i, q, y in sorted(first, key=lambda t: t[4])])
+_ys = sorted(f[4] for f in first)
+print('    開いた年の分布：1850 年より前', sum(1 for y in _ys if y < 1850), '／1850-79', sum(1 for y in _ys if 1850 <= y < 1880), '／1880-99', sum(1 for y in _ys if 1880 <= y < 1900), '／1900-19', sum(1 for y in _ys if 1900 <= y < 1920), '／1920-39', sum(1 for y in _ys if 1920 <= y < 1940), '／1940 以後', sum(1 for y in _ys if y >= 1940), '／p25', _ys[len(_ys)//4], '／p75', _ys[3*len(_ys)//4])
 cnt = collections.Counter()
 for s, n, i, q, y in first:
     x = idn[s][n][i - 1]
@@ -129,6 +134,7 @@ for s in (1, 5, 8):
 
 print('[E] 静的な前検査（基線の軌道の上・開く条件の近似・動的な戻りは見ない）')
 tot = 0
+totc = 0
 p0 = 0
 p_cens = 0
 p_am = 0
@@ -178,6 +184,8 @@ for s in range(1, NS + 1):
                     p_am += 1
                     b['am'] = y if b['am'] is None else min(b['am'], y)
             a2 = agg2.get((q, n))
+            if a2 and a2[0] > 0:
+                totc += 1
             if a2 and a2[0] > 0 and fl(x['crisis']) * (a2[1] / a2[0]) * fl(x['decline']) >= 0.15:
                 pc += 1
                 b['cons'] = y if b['cons'] is None else min(b['cons'], y)
@@ -187,7 +195,7 @@ for s in range(1, NS + 1):
     fcons[s] = b['cons']
     for k in edge:
         edge[k][s] = eb[k]
-print(f'    行 {tot}：開く条件を満たす {p0}／参政権 段1 以上でも {p_cens}／段2 以上でも {p_am}／意識で重みを付けた闘争度（popMil の置き換え）で {pc}')
+print(f'    行 {tot}：開く条件を満たす {p0}／参政権 段1 以上でも {p_cens}／段2 以上でも {p_am}／意識で重みを付けた闘争度（popMil の置き換え）で {pc}／{totc}（意識の表が載る行だけが分母）')
 for nm, d in (('基線', f0), ('参政権 段1 以上の門', fc), ('参政権 段2 以上の門', fam), ('意識つきの闘争度で置き換え', fcons)):
     v = [x for x in d.values() if x]
     print(f'    {nm:22s} 種ごとの最初の年 {dict(sorted(d.items()))} 中央 {med(v) if v else None}（開いた種 {len(v)}）')
