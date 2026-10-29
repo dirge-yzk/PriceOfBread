@@ -11,8 +11,82 @@ def w(d, name, s, header, rows):
         f.write('\t'.join(header) + '\n')
         for r in rows: f.write('\t'.join(str(x) for x in r) + '\n')
 
-def gen(root):
-    d = os.path.join(root, 'ins'); os.makedirs(d, exist_ok=True)
+# ---- (660) 第 2 段の表の合成入力。名簿・閾値の見出しは C# と別に書く（同語反復にしない）。
+AXES = ['EducationLaw', 'Suffrage', 'WomenRights', 'MonetaryStandard', 'CapitalMobility', 'Censorship', 'LaborUnion', 'ShorterHours', 'ChildLabor', 'CornLaws', 'LandReform', 'SerfEmancipation',
+        'SocialSecurity', 'ConscriptionLaw', 'SecretBallot', 'Bureaucracy', 'ImmigrationRestriction', 'SpecialistExitBan', 'StateReligion', 'Antitrust', 'Guild', 'MinimumWage', 'WartimeRationing',
+        'MilitaryExport', 'CivilianArms', 'OpiumPossession', 'OpiumExport', 'Nationalization', 'Nationalization#2', 'Nationalization#3', 'Nationalization#4', 'Nationalization#5', 'NationalizationAll',
+        'ColonialSuffrage', 'MigrantNativeSuffrage', 'Inheritance']
+GATES = ['Guild', 'MinimumWage', 'CivilianArms', 'Inheritance']   # 門つきの行（Open != null）
+GOOD_HDR = ['nationUid', 'nationIndex', 'nation', 'goodName', 'aliveYears', 'activeYears', 'pxYears', 'shortYears_ge0.5', 'glutYears_ge24', 'noProdYears_floorRel0.01', 'pxHiYears_ge20', 'pxLoYears_le0.05',
+            'pxHiB1Years_ge50', 'pxLoB1Years_le0.02', 'maxShortShare', 'maxStockMonths', 'maxPxr', 'minPxr', 'demandFloorQty', 'flowFloorQty']
+AI_HDR = ['nationUid', 'nationIndex', 'nation', 'field', 'typeName', 'defaultValue', 'changedQuarters', 'aliveQuarters', 'firstChangeYear', 'lastChangeYear', 'firstValue', 'lastValue']
+UID = {'N1': 1, 'N2': 2, 'N3': 3, 'N4': 4}
+
+
+def law_level(axis, n, q, y):
+    """現在段（C# の Get の値そのまま＝向きの変換は読み手の仕事）。"""
+    if axis == 'EducationLaw': return 2
+    if axis == 'Suffrage': return ((y - 1783) // 20) % 3 if n == 'N2' else 1
+    if axis == 'ShorterHours':   # enum WorkHours＝Eight0・Ten1・Twelve2・Unlimited3（増えるほど長時間）。N4 は 1880 に 12 時間・1910 に 10 時間へ短縮
+        return 3 if n != 'N4' else (3 if y < 1880 else 2 if y < 1910 else 1)
+    if axis == 'ChildLabor': return 1 if (n != 'N4' or y < 1900) else 0   # 合法が 1（N4 は 1900 に禁止＝読み手の向きで段が上がる）
+    if axis == 'Inheritance': return ((y - 1783) // 20) % 5 if n == 'N4' else 0   # N4 は 20 年ごとに 0→4 を往復（40 年以上の凍結を作らない）
+    return 0
+
+
+def gen_stage2(d, s, blockade, bad_threshold):
+    yr = lambda q: 1783 + q // 4
+    gates_open = {'Guild': 1, 'MinimumWage': 1, 'CivilianArms': 0, 'Inheritance': 1}
+    H = ['quarter', 'year', 'nationUid', 'nationIndex', 'nation', 'polityCode', 'blockadeRiskShare'] + ['lawGateOpen:' + g for g in GATES] + AXES + [a + 'Target' for a in AXES]
+    rows = []
+    for n in NATIONS:
+        for q in range(NQ):
+            y = yr(q)
+            pol = 3
+            if n == 'N3' and s in (3, 4) and 1900 <= y < 1910: pol = 6
+            blk = 0.2 if (blockade and n == 'N3' and s == 2 and q == 300) else 0
+            cur = [law_level(a, n, q, y) for a in AXES]
+            rows.append([q, y, UID[n], NATIONS.index(n), n, pol, blk] + [gates_open[g] for g in GATES] + cur + cur)
+    w(d, 'monlaw', s, H, rows)
+    # ---- mongood_s：全ての国×全ての財（年数で数え済み）
+    goods = ['パン', '米', '茶', '塩', '紙', 'キニーネ', 'ビール', '干物', '砂糖', '石炭']
+    spec = {   # (国, 財) -> {列: 値}（既定は 167 年とも活き・極端 0）
+        ('N1', 'パン'): {'shortYears_ge0.5': 80}, ('N2', 'パン'): {'shortYears_ge0.5': 80}, ('N3', 'パン'): {'shortYears_ge0.5': 80},
+        ('N2', '米'): {'shortYears_ge0.5': 12}, ('N1', '米'): {'glutYears_ge24': 60},
+        ('N1', '茶'): {'noProdYears_floorRel0.01': 100}, ('N1', '塩'): {'noProdYears_floorRel0.01': 100},
+        ('N1', '紙'): {'shortYears_ge0.5': 5},
+        ('N1', 'キニーネ'): {'pxHiYears_ge20': 60}, ('N1', 'ビール'): {'pxHiYears_ge20': 100, 'pxHiB1Years_ge50': 100}, ('N1', '干物'): {'pxLoYears_le0.05': 60, 'pxLoB1Years_le0.02': 60},
+    }
+    if s <= 3: spec[('N2', '砂糖')] = {'glutYears_ge24': 50}
+    rows = []
+    for n in NATIONS:
+        for g in goods:
+            r = {'aliveYears': 167, 'activeYears': 167, 'pxYears': 167}
+            r.update({k: 0 for k in GOOD_HDR[7:14]})
+            if (n, g) == ('N3', '塩'): r.update({'aliveYears': 20, 'activeYears': 20, 'pxYears': 20, 'shortYears_ge0.5': 9})   # 9 年（<10）：45% でも慢性にしない
+            r.update(spec.get((n, g), {}))
+            rows.append([UID[n], NATIONS.index(n), n, g, r['aliveYears'], r['activeYears'], r['pxYears']] + [r[k] for k in GOOD_HDR[7:14]] + [0.1, 3.0, 1.0, 0.9, 1.0, 1.0])
+    hdr = list(GOOD_HDR)
+    if bad_threshold: hdr[7] = 'shortYears_ge0.6'
+    w(d, 'mongood', s, hdr, rows)
+    # ---- monai_s：NationPolicy の欄
+    fields = [('IncomeTaxTarget', 'Double', '0.3', None, '0.3'), ('DeadField', 'Double', '0.5', 0, '0.5'), ('RareField', 'Int32', '0', 'rare', '0'), ('OneNationField', 'Int32', '0', 'one', '0'),
+              ('MovedAtOpening', 'Double', '0.3', 0, '0.5'), ('ArrayField', 'Double[]', '', 'na', '')]
+    rows = []
+    for n in NATIONS:
+        for f, ty, dv, ch, fv in fields:
+            if ch is None: c = 500
+            elif ch == 'rare': c = 40 if (s == 1 and n == 'N1') else 0
+            elif ch == 'one': c = 10 if n == 'N2' else 0
+            elif ch == 'na': c = '比較不能'
+            else: c = ch
+            changed = isinstance(c, int) and c > 0
+            rows.append([UID[n], NATIONS.index(n), n, f, ty, dv, c, 640 if ch != 'na' else 640, 1790 if changed else '', 1940 if changed else '', fv, fv])
+    w(d, 'monai', s, AI_HDR, rows)
+
+
+def gen(root, stage2=False, blockade=True, bad_threshold=False, sub=None):
+    d = os.path.join(root, sub or ('ins2' if stage2 else 'ins')); os.makedirs(d, exist_ok=True)
     for s in SEEDS:
         qs = range(NQ)
         yr = lambda q: 1783 + q // 4
@@ -35,6 +109,8 @@ def gen(root):
                 mob = 1 if (n == 'N1' and s in (1, 2) and q == 100) else 0
                 borrow = q if n == 'N1' else 0
                 rows.append((q, yr(q), n, 1000, gdp, civ, 1, mob, core, 0, borrow, 0, 0, 0, pl))
+        for q in qs:   # N6＝分母（名目 GDP）が 100 年目から自分の中央値の 1% 未満に痩せる国（denom_guard の対照）
+            rows.append((q, yr(q), 'N6', 1000, 1000 if q < 400 else 0.001, 0, 1, 0, 10, 0, 0, 0, 0, 0, 1.0))
         w(d, 'nation', s, H, rows)
         # ---- scalars_s
         H = ['quarter', 'year', 'nation', 'polityCode', 'defeatShock', 'educationLaw', 'suffrage', 'censorship', 'nationalizedMaskCode']
@@ -82,6 +158,7 @@ def gen(root):
                 tre = 2000 if n == 'N1' else 100
                 debt = {'N1': 0, 'N2': 4000, 'N3': 0, 'N4': (0 if i < 100 else 100)}[n]
                 rows.append(('q%d' % q, n, yr(q), sh, war, tre, debt))
+        for i in range(168): rows.append(('q%d' % (4 * i + 3), 'N6', yr(4 * i + 3), 0.0, 0, 500, 100))
         rows.append(('warm', 'N1', 1783, 0, 0, 0, 999))
         w(d, 'stock', s, H, rows)
         # ---- pxgoods_s
@@ -116,6 +193,7 @@ def gen(root):
         fq = 4 * (1900 + s - 1783)
         w(d, 'idn', s, ['quarter', 'year', 'nation', 'knownFas'], [(q, yr(q), n, 1 if (n == 'N1' and q >= fq) else 0) for n in NATIONS for q in qs])
         w(d, 'ideology', s, ['quarter', 'year', 'nation', 'ideoNationalFascismShare'], [(q, yr(q), n, 0.2 if (n == 'N2' and yr(q) >= 1910) else 0.0) for n in NATIONS for q in qs if q % 4 == 3])
+        if stage2: gen_stage2(d, s, blockade, bad_threshold and s == 1)
     return d
 
 if __name__ == '__main__':
