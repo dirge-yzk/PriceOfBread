@@ -1,0 +1,174 @@
+# (660) 事前登録：頻度の監視の第 2 段＝読むだけの列 3 表と読み手の接続（線 mon2・前半＝段0・形・事前登録まで）
+# 書いた時点：2026-10-30。コードを 1 行も含まない（この文書が枝 mon2 の最初のコミット）。腕 A・B は 1 本も回さない（後半が回す）。書いたモデル Claude Sonnet 5.5。
+# 木：基点 main a9ec6373（成績表 m655・SOURCE-HASH ee6a317ef0bf8b40・exact 43.4・near 82.8・NG 85〔基準 rd:measurements/ng655_20261030:m655〕・推定の計算量 216.6 秒）。
+#       枝 mon2・worktree D:/PoB_work/wt_mon2・作業フォルダ D:/PoB_work/mon2_660（腕を回す後半が作る・報告を書いたら消す）。仮番号 (660)。
+#       この線は挙動を変えない（計器の列と読み手だけ）＝軌道は m655 と同じ。ヌル腕は回さない（m655 のヌル腕 N1・N2 の生は D:/PoB_work/keep_655/n1・n2＝読み取りだけ）。
+# 出所：(651) の事前登録 measurements/mon651_20261030_prereg.txt の [8]（第 2 段の仕様）と追記 2 ⓪（第 2 段を先送りした理由）・(655) の合流（§0-2 ★(655)・§0-W・記録 m655_20261030_rec.txt）・
+#       00一覧 §0-W の〈読めない物〉・読み手 scripts/instruments/mon/an_mon.py（(651) 第 1 段）・RULE42〜43。
+# 引用の決まり：「」は作者の原文だけ。この文書は作者の原文を持たない（作者の決めの要点は〈〉で書く）。AI の線・閾値・推奨は〈〉かバッククォートで書く。報告では〈成績表〉と書く。
+# ⚠この文書の形・閾値・規則・順序は全て AI の推奨。作者の承認は未確認（確証なし）。作者が決めた物は (651) の事前登録の冒頭に写した要点だけ
+#   （使われない法・極端な材の過不足・偏った POP は防止でなく頻発を監視する／NG と注視の区分／発散は開幕の 1000 倍以上を記録し直前の事象が説明すれば見逃す）。この線はそれを増やさない。
+
+[0] 先頭（状態・形・指示との食い違い）
+  ⓪ **形が〈尾〉か〈入口〉か：どちらでもない＝記録の線**。力学を 1 つも替えない・旗を足さない・係数を足さない・`CostLedger` の行を足さない・`SaveGame` の項目を足さない。
+     C# は読むだけの計器（`Instruments.On` が偽なら 1 命令も走らない）。(651) の [8] が決めた形を、(655) で main に入った木の上で、実際に足す。
+  ① **何を足すか**：新規 `PriceOfBread.SimCore/InstrumentsMon.cs` 1 本（部分クラス `Instruments`・`InstrumentsInh.cs` の作り）＋既存ファイルへの呼びの数行＋読み手 `an_mon.py` の第 2 段の読み＋xUnit 1 本＋合成入力。
+     表 3 本：`monlaw_s`（段の法の全行の現在段と目標）・`mongood_s`（全ての国×全ての財の極端な年数）・`monai_s`（AI の決定の前後で書き換わった NationPolicy の欄）。
+  ② **指示・(651) [8] と食い違う所を先に名乗る（読んで確かめた事実）**：
+     (a) **腕 A は恒等の証明にならない**。この線に旗は無く、`INS` が空の経路では `Instruments.On` が偽＝足した C# は 1 命令も走らない。腕 A の一致は構造から自明で、それでも 1 回回して確かめる（(651) の前例）。
+         **恒等の本当の証明は腕 B（計器つき 10 種）**：C# が走る木で、成績表と既存の TSV 表がバイト一致することだけが、列の追加が力学を動かさなかった証拠になる。
+     (b) (651) [8] の `monlaw_s` は〈読めない 12 行〉を埋める書き方だった。main の `Government.LevelLaws` は 36 行（読める 23・読めない 13＝相続法を足した）。
+         **36 行を全部出す**（現在段＋目標）。読めない 13 行だけを出して読み手が 23 行を別の表から読むと、定義の差が読みに混じる。相続法は `inh_s` に現在段と目標が既にあるので二重になるが、
+         読み手が 36 行を 1 つの表から読めることを優先する（二重の列は検算 C3 の突き合わせの材料にもなる）。
+     (c) (651) [8] の `monai_s` は NationPolicy の欄を〈型から実行時に作る〉とだけ書いていた。現物は公開の欄が約 50 本の `NationPolicy` に、**欄でない公開の性質**が 1 本ある
+         （`MilitarySpendingTarget`＝陸軍維持費と海軍維持費の和の読みと按分の書き込み・`Policy.cs` 236 行）。性質まで数えると同じ欄を二重に数える。**公開の実体の欄（`FieldInfo`）だけを数え、性質は数えない**。
+     (d) (651) [8] の `mongood_s` は〈年末の断面を溜めて試合の終わりに畳む〉。読み手の相対の床（追記 2 ③＝国×財の活きた年の流量・需要の中央値の 1%）は試合が終わるまで分からない＝**年ごとの値を国×財の配列に溜め、`Instruments.Close` の中で床と数を計算する**（走る数の溜めでは書けない）。
+     (e) (651) [8] は `Simulation.cs` 1760 の周りに 2 行を足す形だった。**行を足すと `flow_s` の列 `sourceLine`（呼び出し位置の行番号）が全て動く**（(655) の記録＝合流で `Simulation.cs` の行が動いて `flow_s` 10 本が `sourceLine` だけ違った）。
+         **呼びは既存の 1761 行に同じ行のまま足す**（`if (Instruments.On) …; _agent.DecideQuarter(World); if (Instruments.On) …;` の 1 行）。行を増やさない限り `flow_s` も全行バイト一致でなければならない。
+     (f) igi2・edu・fas・mon2 の重なりの読み（指示文）：同じ関数の同じ式を書き換える重なりは 0 件。mon2 が触るのは計器だけ（[8]）。igi2 が別の行で `Simulation.cs`・`Instruments*.cs` を触って行を動かす場合の
+         `flow_s` の `sourceLine` のずれは**合流の担当が列を除いて比べる**（既知の扱い）。mon2 の単体の木では (e) のとおり動かさない。
+  ③ **前に見たもの（正直な申告・値を読む前の条件）**：この文書を書く前に開いたのは、(a) (651)(655) の実装ログと事前登録・§0-W の見出しと表の頭・(b) `an_mon.py` の定数と限界の節（`UNREAD_LAWS`・`LIMITS`）・
+     (c) `Government.LevelLaws` 36 行・`Policy.cs` の `NationPolicy` の欄と性質・`Instruments.cs` の `Sink`・`Quarter`・`Close`・`FlushPx`・`GoodsRows`・`InstrumentsInh.cs`・`Simulation.cs` 1761 付近・`MultiNationSim.cs:1492` の注・
+     (d) `b10_20261030_m655_ins.cost`（INS の壁 1974.9 秒・平均 3.01 コア）と `mon_20261030_m655.txt` の `UNREAD`・`MONSUM` の行。**表の値の分布・極端な行・国ごとの数は新しい表については 1 つも読んでいない（まだ存在しない）**。
+     第 1 段の読み（`mon_20261030_m655.txt`）の数は (655) の報告で既に公開されている＝この線は第 1 段の閾値を動かさない。
+
+[1] 現物の読み（main a9ec6373・行番号はこの木）
+  ・`Government.cs` 75 行 `LevelLaws`：36 行。同じ軸が複数行になるのは国有化 5 部門（`PolicyAxis.Nationalization`）だけ。`Get(w)`＝現在段・`Target(w, w.Policy)`＝目標・`Open(w)`＝門（null は常に開）・`Top`＝最上段。
+     **`Set`・`Enact` は呼ばない**（`CivilianArms` の `Enact` は `MechanismProbe` を起こす＝読むだけにならない）。門つきの行（`Open != null`）は同業組合・最低賃金・民間の武器購入・相続法。
+  ・`Policy.cs` 168 行 `NationPolicy`：公開の実体の欄 約 50 本（列挙型・bool・double・int）＋性質 `MilitarySpendingTarget`。`Clone()`/`CopyFrom` はあるが、**複製が全欄を写す保証が無い**（写し漏れの欄は前後の差に化ける）＝
+     前の状態は複製でなく**生の欄を反射で読んだ値の配列**に取る。
+  ・`Simulation.cs` 1761 `_agent.DecideQuarter(World);`（その前後は 1759 の `else UtilityAgent.SetNavalUpkeepShare(World);` の枝と 1762 `UpdateRegionalPriceLevels();`）。窓は**この 1 呼びだけ**。
+     `Government.Step`（`Enact` で `p.SocialSecurityLaw` を書く）・`Parliament.Step`（目標を書き得る）は窓の外＝窓を広げると AI でない書き込みを AI の選びと誤る。
+  ・`Instruments.cs`：`Sink`（193 行〜・欄は 232 行付近まで）／`Quarter`（1753 行〜・`InhFold` の呼びは 1789 行）／`Close`（1833 行〜・`ScopeFold(… force: true)` は 1842 行）／`Dispose` の列（1843〜1892 行）／`S(World)`＝世界ごとの状態（191 行）。
+     `GoodsRows`（2349 行〜）と `FlushPx`（1675 行〜）が `Markets[g].LastProduced・LastDemand・LastSold・LastShortage・LastImport・LastExport・Stock・Price` と `Catalog.RefPrices[g] * r.PriceLevel` を読む＝`mongood_s` の出所（同じ読み方）。
+  ・封鎖：`World.LastBlockadeRisk`（`World.cs:1334`）の書き手は無い＝常に 0（`MultiNationSim.cs:1492` の注・棚卸し econ-14）。**書き手を足さない**（挙動を変える）。読めない物として名乗り続ける。
+  ・`flow_s` の `sourceFile`/`sourceLine`：`World.Transfer`・`Pop.Blend` の入口の `[CallerFilePath]`/`[CallerLineNumber]`（`Instruments.cs` 1202 行付近）。`Simulation.cs` の行が動くと全ての行の `sourceLine` が動く。
+  ・`CostLedger`（`MultiNationSim.cs:1983`）の `Count` は 28。この線は番号を使わない（31 は採らなかった枝 dsc6 が使っている＝触れない）。
+  ・基線の計算量：m655 の推定 216.6 秒（名目 248.5 秒の余り 約 31.9 秒）。INS つきの壁は 1974.9 秒（素の 10 種は 1871.4 秒＝INS は既に +5.5%）。
+
+[2] 表の仕様（読むだけ・全て INS=1 のときだけ・出力に 1 バイトも増えない経路は INS が空の腕）
+  **`monlaw_s<種>.tsv`**（全ての国×四半期・人口 0 の国は出さない＝`InhFold` と同じ）
+     固定の列：quarter・year・nationIndex・nation・polityCode（`(int)w.Polity`）・blockadeRiskShare（`w.LastBlockadeRisk`）・lawGateOpenMask（`Open != null` の行を表の順に下位から並べたビット・開＝1）。
+     可変の列：`LevelLaws` の全行について現在段 `<軸名>`（同じ軸の 2 行目以降は `<軸名>#2`・`#3`…＝国有化は `Nationalization`・`Nationalization#2`…`#5`）と目標 `<軸名>Target`（同規則）。
+     **見出しは実行時に表から作る**＝軸が足されても列が自動で増える（番号を書き写さない）。軸名は `PolicyAxis` の名前（列挙の `ToString()`）。
+     単位：現在段・目標は整数の序数（bool は 0/1）。向き（労働時間は短いほど序数が大きい等）は反射しない＝読み手が既存の向き変換を使う。
+  **`mongood_s<種>.tsv`**（試合の終わりに 1 回・国×財・行は活きた州がある年末が 1 つでもあった組だけ）
+     溜め方：`Quarter` の年末（四半期の番号 mod 4 が 3）で、国ごとに全ての財 `g`（`Catalog.Goods` の全て・段階を問わない）について、国の活きた州の `Markets[g]` の和（産出・需要・不足・輸入・在庫）と州の価格比の中央値
+       `pxr`＝`Median(m.Price / (Catalog.RefPrices[g] * r.PriceLevel))`（分母が 1e-12 以下の州は外す）を年ごとに配列へ溜める（61 国×130 財×168 年×6 値≒数 MB の倍精度）。`pxgoods_s` の `priceOverRefTimesLevelMedianRatio` と**同じ式**。
+     試合の終わり（`Close`）で国×財ごとに数える（閾値は (651) [3 ②][3 ⑧] と同じ値を定数にする）：
+       aliveYears＝活きた州があった年末の数／shortYears＝需要が相対の床以上で `不足÷需要 ≧ 0.5` の年／glutYears＝流量（産出＋輸入）が相対の床以上で `在庫÷流量 ≧ 24` の年／
+       noProdYears＝需要が相対の床以上で流量が相対の床未満の年／pxHiYears＝`pxr ≧ 20`・pxLoYears＝`pxr ≦ 0.05`／pxHiB1Years＝`pxr ≧ 50`・pxLoB1Years＝`pxr ≦ 0.02`／
+       maxShortShare・maxStockMonths・maxPxr・minPxr／demandFloorQty・flowFloorQty（相対の床＝その国×財の活きた年の需要（正の年）・流量（正の年）の中央値の 1%＝(651) 追記 2 ③と同じ）。
+     列：nationIndex・nation（試合の終わりの名前）・goodName・aliveYears・shortYears・glutYears・noProdYears・pxHiYears・pxLoYears・pxHiB1Years・pxLoB1Years・maxShortShare・maxStockMonths・maxPxr・minPxr・demandFloorQty・flowFloorQty。
+     財は名前で引く（`Catalog.Goods[g].Name`・番号は書かない＝README §1-9・`GoodIdGuardTests`）。
+  **`monai_s<種>.tsv`**（試合の終わりに 1 回・国×NationPolicy の公開の欄）
+     溜め方：`Simulation.cs` 1761 の 1 行に `Instruments.MonAiBefore(World)`（`NationPolicy` の公開の実体の欄を**名前の辞書順**で反射し、値の配列を世界ごとの状態 `S(w)` に取る）と
+       `Instruments.MonAiAfter(World)`（同じ欄を読み直し、**値で比べて**違う欄ごとに書き換えのあった四半期の数・最初と最後の年を溜める）を入れる。**助走中（`World.WarmupFrozen`）は数えない**（試合の四半期だけ）。
+     列：nationIndex・nation・field・typeName・changedQuarters・aliveQuarters（数えた四半期の数）・firstChangeYear・lastChangeYear・firstValue・lastValue（値は `InvariantCulture` の文字列）。
+     欄の列挙は実行時に型から作る＝欄が足されても自動で入る。比べられない型（参照型・配列）は列に `比較不能` と書いて数えない（現物は列挙型・bool・int・double だけ）。
+     浮動小数は完全一致で比べる（AI が毎四半期同じ式で同じ値を置き直すなら書き換えなし・値が動けば書き換え＝〈AI が欄に別の値を置いた〉の事実）。
+  **共通**：読むだけ（World・Pop・Region・乱数に書かない・乱数を引かない・新しい状態変数を本体に足さない＝溜めは `Instruments` 側の `WState`/`Sink`）。`Instruments.On` が偽なら表は開かれず空。
+     ファイルは `Open("monlaw"…)` 等の既存の作法（`<出力>/ins/<名前>_s<種>.tsv`）・LF・UTF-8。
+  **足した計器の列の一覧は後半の報告に列挙する**（上の列がそのまま一覧）。
+
+[3] 読み手 `an_mon.py` の第 2 段（C# の表が出力にあるときだけ。無ければ第 1 段のまま＝`表なし：<名前>`）
+  ・①使われない法：`monlaw_s` があれば、**36 行を同じ表・同じ向き変換**で読む。読める行の数 23 → 36。`UNREAD_LAWS` の 13 行を空にする（表が無いときだけ従来どおり名乗る）。
+     年内の往復（9 国の四半期の列）は `monlaw_s` の全ての国の毎四半期で数え直す（解像度が同じになる）。R1（門が閉じた法）は `lawGateOpenMask` の実測で判定し、manifest の係数の推定をやめる（係数が読めたときは両方を出して差を `差` に出す）。
+  ・⑥政治の凍結：`monlaw_s` の 36 行＋政体で凍結を数える（第 1 段は上限だった＝(651) の限界）。第 1 段の数との差を `差` の行に出す（定義の差が混じると限界に名乗らせる）。
+  ・②材（と⑧B1）：`mongood_s` があれば**全ての国×全ての財**を、年末の断面の数え済みの列から読む（`shortYears`/`aliveYears` で慢性を判定・慢性は (651) [2] と同じ＝10 年以上かつ 25% 以上）。第 1 段の標本（9 国の消費財）との差を `差` に出す。
+  ・⑦AI が選ばない行動：`monai_s` があれば、結果の動詞（既存）に加えて**NationPolicy の欄**を読む。u＝欄で、その種の全ての国で `changedQuarters`＝0（開幕の値から 1 度も AI に書き換えられない）。
+  ・⑨の封鎖：`monlaw_s` の `blockadeRiskShare` を読み、10 種・全ての国・全期間で 0 なら〈封鎖は拾えない（書き手が無い）〉と**事実として**出す（推測でなく列の実測）。
+  ・`UNREAD` の節：**第 2 段が入った出力では 2 行に減る**（現在は 3 行＝読めない法 13 行・工業の財・AI の選びと封鎖）：
+       残る行＝(i) 封鎖（`LastBlockadeRisk` の書き手が無い）(ii) NationPolicy を通らない決定（外交の動詞・AI の関数の内側の分岐・建設の細目）。読めない法 13→0、工業の財 約 100→0。
+  ・`LIMIT` の節：第 2 段の限界を足す（下の [4]）。(651) の限界の文字列の削除は、第 2 段の表が出力にあるときだけ。
+  ・**突然変異のフック 5 本を足す**（(655)〜00一覧 §0-W の〈次〉の約束・`MON_MUTATE` の入口）：
+       ⑤ 分母のガード `denom_guard`（国庫÷年 GDP の分母が自分の中央値の 1% 未満の年を外す規則を落とす）／⑥ 法の変化の検出 `lawchg_off`（凍結の連続を数えるときの法の変化の比較を落とす）／
+       ⑧ B1 の閾値 `b1_inv`（`pxr ≧ 50`・`≦ 0.02` の不等号を逆にする）／⑧ ②に載る物を除く規則 `b1_excl_off`（B1 が②の極端に載る（国, 財）を二重に出す）／
+       共通の特定と一般の閾値の取り違え `thr_swap`（特定の鍵の閾値と一般の鍵の閾値を入れ替える）。
+     **⑥の合成入力には、政体が変わらないまま 40 年以内に法が変わる国を 1 つ入れる**（無いと変異が何も反転しない＝番人が空振りする）。
+  ・読み手の実行時間：10 種で 5 分以内（(651) の 13 秒＋第 2 段の大きい表〔`monlaw_s` は 1 種 十数 MB〕の読みを測って記録）。超えるなら項目を絞る引数。
+
+[4] 限界（読み手と表が自己申告する物）
+  ・`monlaw_s`：四半期の末の断面（年内の往復は四半期の列で数えるが、四半期の中の往復は見えない）／段の序数の向きは法で違う（読み手が向きを揃える）／門が閉じた行の現在段は動かない（開幕の値のまま）＝R1 で分ける／国名は表示名で建国・改称で別の名前になる（鍵は `nationIndex`）。
+  ・`mongood_s`：年末の断面だけ（年内の季節は見えない）／輸送で届かない不足と生産が無い不足は区別しない／輸入を含む流量を使う／相対の床は AI の置き／州が全て死んだ年は数えない／試合の終わりに国名を取る（改称は別の行にならない）。
+  ・`monai_s`：**書き換えがあったか**であって〈AI が選んだ〉の全部ではない。(1) `DecideQuarter` の呼びの外（議会・政府・内戦・外圧・プレイヤーの UI）の書き込みは窓の外＝見えない
+     (2) AI が毎四半期同じ欄を同じ値で置き直すのは書き換えなし (3) 呼びの前に他の経路が書いた欄を AI が上書きして元へ戻すのは書き換えあり（外から変えられた欄を AI が毎回置き直すとき）
+     (4) NationPolicy を通らない決定（外交の動詞・AI の関数の内側の分岐・建設の細目）は拾えない (5) 自己対戦＝プレイヤー国は無い (6) 助走中は数えない。
+  ・封鎖は拾えない（書き手が無い・列は常に 0）。
+  ・第 2 段の N1・N2 との並べ（RULE36）：**3 つの新しい表は m655 の木にしか無く、ヌル腕 N1・N2 の生には無い**。腕の節約でヌル腕は回さない＝新しい表に基づく鍵は〈揺れ〉が判定できない（出力に `揺れ判定不能(ヌル腕に新しい表なし)`）。
+     第 1 段の読みで判定できる鍵（既存の列）は従来どおり N1・N2 と並べる。第 2 段で母集団が変わる項目（②の財 31→130）は第 1 段と第 2 段を並べて出し、混ぜない。
+
+[5] 腕（名乗り）
+  腕 A（5 種・INS なし）：`bash measure.sh <出力> selfplay-batch 5`。成績表が `measurements/b5_20261030_m655` と**名乗り行の SOURCE-HASH を除いて全行バイト一致**。
+     **構造から自明**（`Instruments.On` が偽）。1 種の一致は恒等の証明にならない（README §1-3）ので 5 種を 1 回回して記録する。
+  腕 B（計器つき 10 種）：`INS=1 bash scripts/instruments/batch.sh run <腕>`（NATIONS は m655_ins と同じ 9 国）。**これが恒等の証明**。
+     ① 成績表が `b10_20261030_m655_ins` と SOURCE-HASH を除き全行一致 ② 素の 10 種の成績表 `b10_20261030_m655` とも全行一致（計器つきと素は m655 で一致済み）
+     ③ 既存の TSV 表が `D:/PoB_work/keep_655/m655_ins` と**表ごとにバイト一致**。除外の名簿を先に固定する：`burscan_s`・`clock_s`（実時間の列＝基点の木どうしでも毎回違う・(641)(645)(655) の記録）だけ。
+        **`flow_s` は除外しない**（[0] ②(e)＝呼びを既存の行に足すので `sourceLine` は動かない）。除外した表以外でバイト差が出たら、見出しで時刻・スレッドの順に依る列かを確かめ、無ければ差を力学の変化として扱う（[7] の外れの扱い）。
+        もし `Simulation.cs` に行を足す必要が出たら、その事実を verdict の先頭に書き、`flow_s` を `sourceLine` の列を除いて比べる（その場合の全行一致は列を除いた比較であって最初の形ではない）。
+     ④ ng.sh の集合が 85・新しい 0・外れた 0（基準 `rd:measurements/ng655_20261030:m655`・読み手の出力フォルダは D:/… で渡す）⑤ 空洞化 `python scripts/instruments/hol/an_h2.py <出力>/ins -v4` が m655 と同じ（0 件・1/4 未満 4 件）。
+     新しい表（`monlaw_s`・`mongood_s`・`monai_s`）が 10 種に 1 本ずつ出る（30 本）。
+  ヌル腕：回さない（挙動を変える形が無い・[4] のとおり新しい表はヌル腕に無い）。
+  読み手の出力：腕 B の出力を `an_mon.py` が読む（`INS=1 … run` が自動で `$W/mon_<タグ>.txt` を出す）。注視の表の先頭と注視の件数の変化を 1 行で報告する（第 1 段の m655 と第 2 段の m660 の MONSUM を並べる）。
+
+[6] 計算量
+  ・本体（INS=0）の経路：**0 秒**（呼びは `if (Instruments.On)` の中だけ・本体の経路に 1 命令も足さない・`CostLedger` の行を足さない）。名目の余り 約 31.9 秒（ヌル腕の軌道の揺れは 1.2 秒）に対し 0 秒。
+  ・INS つきの経路：`monlaw_s` は 61 国×668 四半期×36 行（`Get`/`Target` 各 1 回）≒約 200 万回。`monai_s` は 61×668 の呼びごとに約 50 欄の反射の読みと値の比べ（欄の `FieldInfo` は型で 1 回だけ取る）≒約 400 万回の箱詰めの読み。
+     `mongood_s` は年末ごとに 61 国×130 財×州（国ごとに数州〜数十州）の読みと中央値の列（約 1 試合 数百万回）。いずれも INS つきの腕の壁にだけ乗る。
+     目標＝B の壁が m655_ins の `.cost`（1974.9 秒）の +3% 以内（〈推〉・記録だけで止める線ではない）。測って `.cost` に残す。計算量の予算の対象（本体の 1 試合の推定）には入れない。
+  ・メモリ：`mongood_s` の年ごとの配列 数 MB・`monlaw_s` と `monai_s` は流すだけ。
+
+[7] 検算（計器・読み手が正しいか＝採否ではない・先に固定）
+  C1 xUnit `PriceOfBread.Tests/InstrumentsMonTests.cs`（新規）：
+     (a) 見出しの列数と行の列数が一致する／(b) `Instruments.On` が偽なら 3 表とも開かれない・空のまま／
+     (c) `monlaw_s` の可変の列の数が `Government.LevelLaws.Length` の 2 倍であり、軸名の並びが表から作られている（国有化の 5 行が `Nationalization`・`#2`〜`#5` になる）。表の行を足したときに列が自動で増えることを、列名の生成関数を表の長さだけで呼ぶ形の試験で確かめる／
+     (d) `mongood_s` の `pxr`（その国・その財の年末の値）が、同じ瞬間に `pxgoods_s` の行を作る式（`FlushPx` の中央値）の値と一致する（別の出所＝試験の中で式を書き直さず、同じ世界から `pxgoods_s` の経路で行を取って比べる）／
+     (e) `monai_s`：試験用の AI（`INationAgent` を実装し決まった欄を毎四半期書き換える）で**陽性対照**（書いた欄の `changedQuarters`＝数えた四半期の数・書かない欄＝0）、`NullAgent` で**陰性対照**（全欄 0）、
+         呼びの外で書いた欄（`DecideQuarter` の前後でない書き込み）が数えられない／
+     (f) **恒等**：同じ種・同じ短い世界を INS 有りと無しで 2 回走らせて、世界の終わりの状態の要約（国庫・人口・価格水準・法の現在段）が一致する。
+     (g) `GoodIdGuardTests` が通る（財は名前で引く・新しいファイルが数字の財番号を書かない）。
+  C2 C# の突然変異（各々で上の試験のどれかが赤）：M1 `MonAiAfter` の呼びを消す→(e)・M2 窓を広げる（`Government.Step` の後で読む）→(e) の外の書き込みの試験・M3 `mongood_s` の `pxr` の分母から `PriceLevel` を外す→(d)・
+     M4 `monlaw_s` で `Get` の代わりに `Target` を現在段の列へ入れる→(c) か別の突き合わせ・M5 `Instruments.On` の門を外す→(b)。
+  C3 別の出所による突き合わせ（読み手の複製でない）：
+     ・`monlaw_s` の読める 23 行の現在段が、9 国の毎四半期の既存の列（`scalars_s`・`sbu_s`・`lawgate_s`・`reform_s`・`labor_s`・`sf_s`・`nation_s`）と、同じ四半期・同じ国で**不一致 0**（向き変換は `an_mon.py` の `LAWS` の写しを使う＝表の複製ではなく表の読み）。
+     ・`monlaw_s` の行数が `nation_s` の行数から人口 0 の国を除いたものと一致する／相続法の列が `inh_s` の `inheritanceLawCode`・`inheritanceTargetCode` と一致する。
+     ・`mongood_s` の `maxPxr`/`minPxr` が、`pxgoods_s` の同じ国・財の（試合の最初の 12 年の）`pxr` の最大・最小を**含む**（`maxPxr ≧ 最大`・`minPxr ≦ 最小`）。
+     ・`monai_s` の `aliveQuarters` が国ごとに同じ（欄に依らない）で、`nation_s` の試合の四半期の行数と一致する。
+  C4 決定性：読み手を 2 回走らせた出力がバイト一致／種の順を入れ替えても一致／C# の表が 2 回の走りでバイト一致（並列度に依らない）。
+  C5 読み手の合成入力の自己試験 `selftest.py`：第 2 段の表（`monlaw_s`・`mongood_s`・`monai_s`）の合成入力を足し、項目①②⑥⑦⑨（封鎖）の仕込んだ極端が正しい区分で出る・仕込まない対照では出ない・5 本の新しい突然変異（[3]）と既存 22 本が全て赤。
+  C6 限界の申告：出力の `LIMIT` に第 2 段の限界（[4]）が全て出る・`UNREAD` が 2 行に減る（自己試験が文字列で見る）。**限界を自分で名乗らない読み手は不合格**。
+
+[8] 触る行・重なり（合流のため）
+  ・`PriceOfBread.SimCore/Instruments.cs`：`Sink` の欄に 3 表分（232 行の `Inh` の次）／`Quarter` の `InhFold` の呼び（1789 行）の次に 3 つの呼び／`Close` の `ScopeFold(… force: true)`（1842 行）の次に `MonClose` の呼び 1 行／`Dispose` の列（1871 行の次）に 3 表分。
+     **隣の線（igi2 が `inpf_s`・`inpb_s` を足す可能性・fsc2・smd）が同じ所に足すと隣り合わせで衝突する＝和集合で解く**（行は並べるだけ・順序は挙動に関与しない）。
+  ・`PriceOfBread.SimCore/Simulation.cs`：**1761 行の 1 行だけ**（行を足さない・[0] ②(e)）。他の線（igi2）が同じファイルの別の行を触る場合は合流で解く（`flow_s` の `sourceLine` は合流の木で列を除いて比べる）。
+  ・新規 `PriceOfBread.SimCore/InstrumentsMon.cs`・新規 `PriceOfBread.Tests/InstrumentsMonTests.cs`・`scripts/instruments/mon/an_mon.py`・`selftest.py`・`fixtures/make_fixtures.py`・docs（実装ログ (660)・00一覧 §0-W の〈読めない物〉の更新）。
+  ・**触らない**：`App`・`SimCore/Display`・`Runner/PlayHarness`・`Government.cs`（`LevelLaws` は読むだけ・inh と fsc2 の持ち分）・`Policy.cs`・`PolicyPreferences.cs`・`Fiscal.cs`・係数・`world.json`・`SaveGame`。
+  ・`scripts/instruments/batch.sh` は (655) で `--repo $SRC` つきの呼びが入っている＝変えない（読み手が第 2 段の表を自分で探す）。
+
+[9] 判定と〈機構が狙いどおり働いたか〉（結果の後に動かさない）
+  この線は記録の線＝採否は〈恒等〉と〈計器が正しく働くか〉だけ。史実の大きさ・年・国の数は全て記録。
+  狙いの数字（観測量）：
+    ① **恒等**：腕 A の成績表（5 種）が `b5_20261030_m655` と全行一致／腕 B の成績表が `b10_20261030_m655_ins` と全行一致／既存の TSV 表が burscan・clock を除き全てバイト一致（`flow_s` を含む）／ng.sh 85・新しい 0・外れた 0／空洞化が m655 と同じ。
+    ② **新しい表が出る**：10 種に `monlaw_s`・`mongood_s`・`monai_s` が 1 本ずつ（30 本）・見出しが C1(a)(c) を満たす。
+    ③ **検算が通る**：C1〜C6 が全て通り、C# の突然変異 M1〜M5 と読み手の突然変異 27 本（既存 22＋新 5）が全て赤。
+    ④ **〈読めない物〉が減る**：読み手の `UNREAD` の節が 3 行（読めない法 13 行・工業の財・AI の選びと封鎖）から 2 行（封鎖・NationPolicy を通らない決定）になる。読める法 23→36 行・材の宇宙 31 財の標本→全ての財。
+    ⑤ **計器が動いている**（死んだ列でない）：(i) `monai_s` で 10 種のうち全ての種で、`changedQuarters` が正の欄が 1 つ以上ある国が 1 つ以上（AI が欄を書いている）。0 なら窓の置き場所の誤りの疑い（C2 M2 の裏）
+        (ii) `monlaw_s` で、10 種のうち 1 つ以上の種で 1 度でも変わった法の行が 10 行以上（死んだ列でない）(iii) `mongood_s` で、`aliveYears` が正の組が 61 国×130 財の 2 割以上。
+  外れの扱い：
+    ①が外れた（成績表が 1 行でも違う・既存の表がバイト差）：表ごとに 1 本ずつ呼びを外して切り分け（`Quarter` の 3 つの呼び→`Simulation.cs` の呼び→`Close` の呼びの順）、原因の列を外して報告する。切り分けられなければ**合流しない**（枝に残して報告）。
+    ②か⑤が外れた：計器の誤りの修正は合流前に直してよい（閾値の付け替えではない）。直しは 2 回目の腕 B が要る。
+    ③の突然変異が赤にならない：穴のある読み手/番人は採らない。**読み手の穴を塞ぐ修正は合流前に許す**（閾値は動かさない）。
+    ④が外れた：読めなかった物の理由を `UNREAD` に名乗らせれば足りる（採否には使わない）。
+  止める線（README §1-2）：破綻（クラッシュ・NaN・保存則・savetest）・発散・州の空洞化（原因を問わない・例外の名簿は `hol/an_h2.py` の EXEMPT）・推定の計算量 ＞248.5 秒・機構と不変条件を守るテストの赤。この線は動かさない見込み（挙動を変えない）。
+  〈史実度の低下は差し戻し理由にならない〉＝この線は史実の線を判定に使わない。第 2 段の読みの結果（法・材・AI の選び・凍結の件数）は全て注視の一覧への記録で、判定ではない。
+  **結果の後に付け替えない**：閾値・式・名簿を腕 B の後に変えるなら、新しい種（11〜20）か追記で日付つきに残し、verdict の先頭に書く。
+
+[10] 後半の順序（AI の推奨）
+  読む（この事前登録のコミット済み）→ C#（`InstrumentsMon.cs`・呼び）→ xUnit と C# の突然変異 → 読み手の第 2 段と合成入力・突然変異 → ビルド（隔離ビルド `--artifacts-path`・Release）→
+  腕 A（5 種・INS なし）→ 腕 B（計器つき 10 種）→ 既存の表のバイト比較・ng.sh・空洞化 → 読み手を腕 B の出力へ → 00一覧 §0-W の更新（読めない物を減らす・打消し線と日付）→ 実装ログ (660) →
+  savetest・leakhunt・フルスイート（`Category!=FullLength`）・FullLength（C# を触るので回す）→ 作業フォルダを消す。
+
+[11] 作業の決まりの自己申告
+  この前半では、worktree `D:/PoB_work/wt_mon2`（枝 mon2・a9ec6373 から）を作り、このコミットの 1 ファイルだけを作った。腕・コード・読み手の変更は無し。禁止の呼び（`&`・`sleep`・`sed -i`・`git add -A`・amend・stash）は使っていない。
+  `D:/PoB_work/keep_655` は読み取りだけ（変更・削除しない）。C: に作業フォルダを作っていない。`D:/PoB_work/PoB_play` には書いていない。
