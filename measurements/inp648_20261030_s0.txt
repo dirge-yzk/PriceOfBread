@@ -1,0 +1,104 @@
+tree=main fbfd8d0d (m645)  読み手=scripts/instruments/inp_648/s0_*.py  入力=D:/PoB_work/keep_645（m645_ins・n1・n2）
+=== s0_anchor.py ===
+入力充足 inputFillShare (種の中央値; 括弧=N1,N2) / 労働以外の失い otherLoss
+--- 1783-1829
+清      laborLoss 0.109 active 2177 idle 1231
+清      fill 0.492 (N1 0.491, N2 0.487)  otherLoss 0.396 (N1 0.400, N2 0.400) nseeds 10/10/10
+ロシア    laborLoss 0.015 active 1826 idle 1079
+ロシア    fill 0.610 (N1 0.614, N2 0.595)  otherLoss 0.374 (N1 0.370, N2 0.392) nseeds 10/10/10
+オスマン   laborLoss 0.030 active 1285 idle 739
+オスマン   fill 0.602 (N1 0.601, N2 0.598)  otherLoss 0.365 (N1 0.368, N2 0.378) nseeds 10/10/10
+フランス   laborLoss 0.036 active 913 idle 534
+フランス   fill 0.598 (N1 0.594, N2 0.596)  otherLoss 0.366 (N1 0.371, N2 0.377) nseeds 10/10/10
+イギリス   laborLoss 0.217 active 2845 idle 1578
+イギリス   fill 0.477 (N1 0.467, N2 0.485)  otherLoss 0.304 (N1 0.324, N2 0.308) nseeds 10/10/10
+プロイセン  laborLoss 0.057 active 423 idle 248
+プロイセン  fill 0.600 (N1 0.600, N2 0.604)  otherLoss 0.338 (N1 0.341, N2 0.345) nseeds 10/10/10
+オーストリア laborLoss 0.022 active 916 idle 535
+オーストリア fill 0.597 (N1 0.608, N2 0.607)  otherLoss 0.380 (N1 0.369, N2 0.376) nseeds 10/10/10
+日本     laborLoss 0.054 active 675 idle 389
+日本     fill 0.576 (N1 0.570, N2 0.569)  otherLoss 0.367 (N1 0.377, N2 0.379) nseeds 10/10/10
+アメリカ   laborLoss 0.269 active 389 idle 226
+アメリカ   fill 0.441 (N1 0.442, N2 0.441)  otherLoss 0.290 (N1 0.297, N2 0.299) nseeds 10/10/10
+--- 1830-1869
+清      laborLoss 0.007 active 2504 idle 1174
+清      fill 0.380 (N1 0.373, N2 0.361)  otherLoss 0.613 (N1 0.621, N2 0.633) nseeds 10/10/10
+ロシア    laborLoss 0.047 active 1718 idle 806
+ロシア    fill 0.558 (N1 0.558, N2 0.530)  otherLoss 0.385 (N1 0.393, N2 0.430) nseeds 10/10/10
+オスマン   laborLoss 0.075 active 1492 idle 681
+オスマン   fill 0.527 (N1 0.525, N2 0.476)  otherLoss 0.386 (N1 0.358, N2 0.412) nseeds 10/10/10
+フランス   laborLoss 0.103 active 967 idle 400
+フランス   fill 0.526 (N1 0.520, N2 0.508)  otherLoss 0.363 (N1 0.390, N2 0.382) nseeds 10/10/10
+イギリス   laborLoss 0.249 active 3238 idle 1363
+イギリス   fill 0.355 (N1 0.330, N2 0.354)  otherLoss 0.391 (N1 0.456, N2 0.372) nseeds 10/10/10
+プロイセン  laborLoss 0.122 active 435 idle 203
+プロイセン  fill 0.480 (N1 0.470, N2 0.481)  otherLoss 0.378 (N1 0.376, N2 0.426) nseeds 10/10/10
+オーストリア laborLoss 0.069 active 907 idle 450
+オーストリア fill 0.548 (N1 0.557, N2 0.532)  otherLoss 0.394 (N1 0.383, N2 0.427) nseeds 10/10/10
+日本     laborLoss 0.017 active 839 idle 389
+日本     fill 0.456 (N1 0.461, N2 0.447)  otherLoss 0.525 (N1 0.492, N2 0.539) nseeds 10/10/10
+アメリカ   laborLoss 0.407 active 459 idle 203
+アメリカ   fill 0.334 (N1 0.352, N2 0.319)  otherLoss 0.235 (N1 0.246, N2 0.229) nseeds 10/10/10
+--- 1870-1909
+清      laborLoss 0.011 active 2855 idle 901
+清      fill 0.355 (N1 0.343, N2 0.330)  otherLoss 0.630 (N1 0.646, N2 0.662) nseeds 10/10/10
+ロシア    laborLoss 0.039 active 1984 idle 638
+ロシア    fill 0.494 (N1 0.446, N2 0.431)  otherLoss 0.471 (N1 0.529, N2 0.536) nseeds 10/10/10
+オスマン   laborLoss 0.073 active 1909 idle 582
+オスマン   fill 0.460 (N1 0.458, N2 0.438)  otherLoss 0.469 (N1 0.497, N2 0.501) nseeds 10/10/10
+フランス   laborLoss 0.059 active 1076 idle 337
+フランス   fill 0.435 (N1 0.401, N2 0.411)  otherLoss 0.464 (N1 0.589, N2 0.534) nseeds 10/10/10
+イギリス   laborLoss 0.125 active 1478 idle 454
+イギリス   fill 0.355 (N1 0.350, N2 0.342)  otherLoss 0.471 (N1 0.532, N2 0.474) nseeds 10/10/10
+プロイセン  laborLoss 0.099 active 425 idle 161
+プロイセン  fill 0.461 (N1 0.473, N2 0.417)  otherLoss 0.460 (N1 0.455, N2 0.472) nseeds 10/10/10
+オーストリア laborLoss 0.064 active 1037 idle 368
+オーストリア fill 0.444 (N1 0.452, N2 0.442)  otherLoss 0.481 (N1 0.498, N2 0.499) nseeds 10/10/10
+日本     laborLoss 0.034 active 991 idle 345
+日本     fill 0.423 (N1 0.395, N2 0.329)  otherLoss 0.536 (N1 0.587, N2 0.655) nseeds 10/10/10
+アメリカ   laborLoss 0.039 active 943 idle 283
+アメリカ   fill 0.523 (N1 0.494, N2 0.499)  otherLoss 0.428 (N1 0.464, N2 0.413) nseeds 10/10/10
+--- 1910-1950
+清      laborLoss 0.009 active 3092 idle 803
+清      fill 0.270 (N1 0.296, N2 0.293)  otherLoss 0.719 (N1 0.692, N2 0.687) nseeds 10/10/10
+ロシア    laborLoss 0.016 active 1995 idle 623
+ロシア    fill 0.323 (N1 0.310, N2 0.278)  otherLoss 0.641 (N1 0.636, N2 0.715) nseeds 10/10/10
+オスマン   laborLoss 0.014 active 1906 idle 557
+オスマン   fill 0.377 (N1 0.344, N2 0.273)  otherLoss 0.611 (N1 0.616, N2 0.722) nseeds 10/10/10
+フランス   laborLoss 0.034 active 869 idle 265
+フランス   fill 0.370 (N1 0.284, N2 0.292)  otherLoss 0.416 (N1 0.599, N2 0.658) nseeds 10/10/10
+イギリス   laborLoss 0.127 active 834 idle 267
+イギリス   fill 0.334 (N1 0.314, N2 0.317)  otherLoss 0.536 (N1 0.643, N2 0.641) nseeds 10/10/10
+プロイセン  laborLoss 0.048 active 362 idle 124
+プロイセン  fill 0.422 (N1 0.377, N2 0.337)  otherLoss 0.492 (N1 0.578, N2 0.619) nseeds 10/10/10
+オーストリア laborLoss 0.030 active 1025 idle 347
+オーストリア fill 0.388 (N1 0.363, N2 0.336)  otherLoss 0.486 (N1 0.600, N2 0.622) nseeds 10/10/10
+日本     laborLoss 0.015 active 1164 idle 372
+日本     fill 0.305 (N1 0.320, N2 0.191)  otherLoss 0.682 (N1 0.673, N2 0.805) nseeds 10/10/10
+アメリカ   laborLoss 0.030 active 1086 idle 280
+アメリカ   fill 0.499 (N1 0.488, N2 0.470)  otherLoss 0.463 (N1 0.499, N2 0.507) nseeds 10/10/10
+=== s0_px.py ===
+good  prod/dem  imp/dem  short/dem  price/ref(med)  n   [中央値 1790-94・9国×10種]
+防水布      0.000  0.000  1.000  49.16  1800
+キニーネ     0.059  0.000  0.941  49.16  1800
+茶        0.000  0.000  0.693  3.53  1800
+コーヒー     0.000  0.000  0.744  4.54  1800
+紙        0.744  0.000  0.256  2.64  1800
+医薬品      0.738  0.000  0.252  2.43  1800
+石鹸       0.773  0.000  0.216  2.27  1800
+パン       0.804  0.000  0.198  2.52  1800
+衣料       0.870  0.000  0.102  1.91  1800
+陶磁器      0.960  0.000  0.021  1.17  1800
+革製品      0.911  0.000  0.036  1.27  1800
+書籍       0.693  0.000  0.305  2.87  1800
+=== s0_disc.py ===
+1 1950 年まで一度も解禁されない
+2 1950 年まで一度も解禁されない
+3 1950 年まで一度も解禁されない
+4 1950 年まで一度も解禁されない
+5 1950 年まで一度も解禁されない
+6 1950 年まで一度も解禁されない
+7 (178, '1827', '清')
+8 (323, '1864', 'イギリス')
+9 (247, '1845', 'イギリス')
+10 (278, '1852', 'オーストリア')

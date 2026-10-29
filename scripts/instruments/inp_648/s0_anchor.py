@@ -20,6 +20,8 @@ def load(root,seeds):
                 tmp[(e,nat)]['fill'].append(float(row['inputFillShare']))
                 tmp[(e,nat)]['oth'].append(float(row['otherBoundLossRefValuePerMonth'])/des)
                 tmp[(e,nat)]['lab'].append(float(row['laborBoundLossRefValuePerMonth'])/des)
+                tmp[(e,nat)]['act'].append(float(row['factoryActiveCount']))
+                tmp[(e,nat)]['idle'].append(float(row['factoryIdleCount']))
         for k,v in tmp.items():
             for m,l in v.items(): out[k][m].append(sum(l)/len(l))
     return out
@@ -34,4 +36,5 @@ for e,(a,b) in enumerate(eras):
         for n in ('m645','N1','N2'):
             v=res[n].get(k,{})
             row.append((statistics.median(v['fill']) if v.get('fill') else float('nan'), statistics.median(v['oth']) if v.get('oth') else float('nan'), len(v.get('fill',[]))))
+        print(f'{nat:6s} laborLoss {statistics.median(res["m645"][k]["lab"]) if res["m645"].get(k,{}).get("lab") else float("nan"):.3f} active {statistics.median(res["m645"][k]["act"]) if res["m645"].get(k,{}).get("act") else float("nan"):.0f} idle {statistics.median(res["m645"][k]["idle"]) if res["m645"].get(k,{}).get("idle") else float("nan"):.0f}')
         print(f'{nat:6s} fill {row[0][0]:.3f} (N1 {row[1][0]:.3f}, N2 {row[2][0]:.3f})  otherLoss {row[0][1]:.3f} (N1 {row[1][1]:.3f}, N2 {row[2][1]:.3f}) nseeds {row[0][2]}/{row[1][2]}/{row[2][2]}')
