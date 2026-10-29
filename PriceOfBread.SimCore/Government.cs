@@ -16,6 +16,9 @@ public static class Government
     /// <summary>税・支出の法の最上段（作者裁定2026-09-12 R1「なし/低/中/高の4段階のボタン」）＝序数0..3。値は 段×<see cref="TaxLawTop"/>/3。
     /// internal＝要求への応答（Parliament.TargetDemand）・勢力の譲歩（Politics.ApplyDemand）・AIの目標整形（SelfPlay.GateAllLawTargets）が同じ段数で置く。</summary>
     internal const int TaxLawStages = 3;
+    /// <summary>★(650) 相続法の段の率（死者の貯蓄のうち国庫へ移る実効の平均率）＝なし 0／低 0.02／中 0.06／高 0.20／全て 1.0。AI の見積り・確証なし（英 1894 年の遺産税 1〜8%・1907〜1910 年の最高 15% を参照・
+    /// 事前登録 measurements/inh_650_20261030_prereg.txt F2）。等分でない梯子（等分に打つと史実の帯が段 0 へ丸まる）。国ごとの値なし・天井も床も置かない。</summary>
+    internal static double InheritanceRate(InheritanceLaw l) => l switch { InheritanceLaw.Low => 0.02, InheritanceLaw.Mid => 0.06, InheritanceLaw.High => 0.20, InheritanceLaw.All => 1.0, _ => 0.0 };
     // ==== 段の錨（2026-09-18）＝最上段が意味する率 ====
     // なぜ要るか：梯子を [0,1] の3等分に打つと最下段の非ゼロが所得の33%になり、**エンジン自身の教義値（0.15〜0.35）が全て段0（＝無税）へ丸まる**。
     // 作者制約「税の挙動は今までと同じ」（R1）が破れ、議会掌握（PowerShares.ParliamentGrip の分子＝所得税＋累進）が構造的に0になる。
@@ -143,6 +146,7 @@ public static class Government
         new(PolicyAxis.Antitrust, w => (int)w.Antitrust, (w, v) => w.Antitrust = (AntitrustLaw)v, (w, p) => (int)p.Antitrust, 2, Stage: 2),   // 独占禁止法（E6）：規制なし→談合禁止→独占の解体（独占レント保有層が抵抗）
         new(PolicyAxis.Guild, w => (int)w.Guild, (w, v) => w.Guild = (GuildLaw)v, (w, p) => (int)p.Guild, 2, Stage: 2, Open: w => w.Coef.GuildLawGate > 0),   // ★同業組合法（特権 段4・2026-09-07）：保護→制限→廃止（職人が抵抗）。ゲート0＝法が動かない＝恒等
         new(PolicyAxis.MinimumWage, w => (int)w.MinimumWage, (w, v) => w.MinimumWage = (MinimumWageLaw)v, (w, p) => (int)p.MinimumWage, 3, Stage: 2, Open: w => w.Coef.MinimumWageLawGate > 0),   // ★最低賃金法（線 lw (459)・2026-10-20）：なし→生存→生活→充足（独立した量の段・他の法の前提なし・賃金労働者が推し資本が抵抗する）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.Inheritance, w => (int)w.Inheritance, (w, v) => w.Inheritance = (InheritanceLaw)v, (w, p) => (int)p.Inheritance, 4, Stage: 2, Open: w => w.Coef.InheritanceLawGate > 0),   // ★相続法（線 inh (650)）：なし→低→中→高→全て（独立した量の段・政体の門なし）。ゲート0＝法が動かない＝恒等
         new(PolicyAxis.WartimeRationing, w => w.WartimeRationing ? 1 : 0, (w, v) => w.WartimeRationing = v == 1, (w, p) => p.WartimeRationing ? 1 : 0, 1),   // 戦時配給法（E6・あり/なし）：戦時のみ発火（資本が反対）
         new(PolicyAxis.MilitaryExport, w => w.MilitaryExportBan ? 1 : 0, (w, v) => w.MilitaryExportBan = v == 1, (w, p) => p.MilitaryExportBan ? 1 : 0, 1),   // 軍需輸出の法（禁制品doc C5・2026-07-30）：武器で稼ぐ資本が禁止に反対＝軍需産業の大きい国ほど通らない・軸の増＝禁止
         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：旧支配層が禁止を推し近代/大衆が抵抗。ゲート0＝法が動かない＝恒等。軸の増＝禁止。

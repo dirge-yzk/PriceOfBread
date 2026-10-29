@@ -301,6 +301,7 @@ public static class FactionSnapshot
         PolicyAxis.StateReligion => increase ? "信教の寛容化" : "国教の強化",
         PolicyAxis.Antitrust => increase ? "独占の規制" : "独占の放任",
         PolicyAxis.Guild => increase ? "同業組合の廃止" : "同業組合の保護",   // ★特権 段4
+        PolicyAxis.Inheritance => increase ? "相続の課税の強化" : "相続の課税の緩和",   // ★線 inh (650)（軸の増＝取る率を上げる）
         PolicyAxis.MinimumWage => increase ? "最低賃金の引き上げ" : "最低賃金の引き下げ",   // ★線 lw (459)（軸の増＝法を強める）
         PolicyAxis.WartimeRationing => increase ? "戦時配給" : "配給の廃止",
         PolicyAxis.MilitaryExport => increase ? "軍需輸出の禁止" : "軍需輸出の解禁",   // 軸の増＝禁止（禁制品doc C5・2026-07-30）

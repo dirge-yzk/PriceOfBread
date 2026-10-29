@@ -1296,6 +1296,7 @@ public static class Politics
             PolicyAxis.Antitrust => StepEnumAxis((int)w.Antitrust, 2, v => { w.Antitrust = (AntitrustLaw)v; p.Antitrust = w.Antitrust; }),
             PolicyAxis.Guild => w.Coef.GuildLawGate > 0 ? StepEnumAxis((int)w.Guild, 2, v => { w.Guild = (GuildLaw)v; p.Guild = w.Guild; }) : 0,   // ★特権 段4（ゲート0では要求経路も動かさない）
             PolicyAxis.MinimumWage => w.Coef.MinimumWageLawGate > 0 ? StepEnumAxis((int)w.MinimumWage, 3, v => { w.MinimumWage = (MinimumWageLaw)v; p.MinimumWage = w.MinimumWage; }) : 0,   // ★最低賃金法（線 lw (459)・ゲート0では要求経路も動かさない）
+            PolicyAxis.Inheritance => w.Coef.InheritanceLawGate > 0 ? StepEnumAxis((int)w.Inheritance, 4, v => { w.Inheritance = (InheritanceLaw)v; p.Inheritance = w.Inheritance; }) : 0,   // ★相続法（線 inh (650)・ゲート0では要求経路も動かない）
             PolicyAxis.WartimeRationing => Flip(w.WartimeRationing, v => { w.WartimeRationing = v; p.WartimeRationing = v; }),
             PolicyAxis.MilitaryExport => Flip(w.MilitaryExportBan, v => { w.MilitaryExportBan = v; p.MilitaryExportBan = v; }),   // 軍需輸出の法（禁制品doc C5・2026-07-30）
             PolicyAxis.CivilianArms => c.RebelArmsMarketEnabled > 0 ? Flip(w.CivilianArmsBan, v => { w.CivilianArmsBan = v; p.CivilianArmsBan = v; }) : 0,   // ★民間の武器購入の法（2026-09-11・ゲート0では要求経路も動かさない）
