@@ -68,6 +68,7 @@ print('    主要 9 国の開いた年（種, 国, 年）', sorted(((s, n, y) fo
 print('    開いた国×種の一覧（年順・種, 国, 年）', [(s, n, y) for s, n, i, q, y in sorted(first, key=lambda t: t[4])])
 _ys = sorted(f[4] for f in first)
 print('    開いた年の分布：1850 年より前', sum(1 for y in _ys if y < 1850), '／1850-79', sum(1 for y in _ys if 1850 <= y < 1880), '／1880-99', sum(1 for y in _ys if 1880 <= y < 1900), '／1900-19', sum(1 for y in _ys if 1900 <= y < 1920), '／1920-39', sum(1 for y in _ys if 1920 <= y < 1940), '／1940 以後', sum(1 for y in _ys if y >= 1940), '／p25', _ys[len(_ys)//4], '／p75', _ys[3*len(_ys)//4])
+print('    1919 年より前に開いた国×種', sum(1 for y in _ys if y < 1919), '／', len(_ys), '・世界で最初の年が 1919 年より前の種', sum(1 for v in mins.values() if v < 1919), '／', len(mins), '（史実の最初の年＝伊 1919〜22 との比べ・分母は全国で史実は 2 国＝比べ方に注意）')
 cnt = collections.Counter()
 for s, n, i, q, y in first:
     x = idn[s][n][i - 1]
@@ -132,7 +133,7 @@ for s in (1, 5, 8):
     sums = [(q, round(byq[q][0], 2), round(byq[q][1], 2)) for q in (40, 200, 400, 660) if q in byq]
     print(f'    種{s}: 全国の和（q,在庫,今）{sums} ／ decline（在庫>0.05）中央 {dl[len(dl)//2]:.3f}・p75 {dl[3*len(dl)//4]:.3f}・0 の割合 {sum(1 for v in dl if v == 0)/len(dl):.3f}・0.3 超の割合 {sum(1 for v in dl if v > 0.3)/len(dl):.3f}')
 
-print('[E] 静的な前検査（基線の軌道の上・開く条件の近似・動的な戻りは見ない）')
+print('[E] 静的な前検査（基線の軌道の上・開く条件の近似＝sFasNew>=0.15・動的な戻りは見ない・⚠基線の行と K1・K2・K4 は sFasNew>=0.15 だけ／前提の辺 K3 の行だけ技術の項>=60 を足す＝K3 の比べる元は『前提の辺 なし』の 1888 で『基線』の 1895 とは別）')
 tot = 0
 totc = 0
 p0 = 0
@@ -225,3 +226,30 @@ print('    政体コード（0 絶対君主・1 専制・2 幕府・3 立憲君�
 for e in ERAS:
     t = sum(suffc[e].values())
     print(f'    参政権の段の割合 {e}', {k: round(v / t, 3) for k, v in sorted(suffc[e].items())})
+
+print('[G] 追記（反証役の点検の反映・読むだけ）')
+# G1: 前提の辺の候補 K7＝ファシズムの前提にラジオ（大衆媒体・Catalog にあり After 電化製品）を置く形の静的な前検査＝ラジオが開いた国×種の数（disc_s の E 行）
+rowc = collections.Counter()
+for s_ in range(1, NS + 1):
+    try:
+        with open(f'{base}/disc_s{s_}.tsv', encoding='utf-8') as f:
+            for x in csv.DictReader(f, delimiter='	'):
+                if x['kind'] == 'E':
+                    rowc[x['row']] += 1
+    except FileNotFoundError:
+        pass
+print('    K7 前提の辺 ラジオ（After 電化製品）：ラジオが開いた国×種', rowc.get('ラジオ', 0), '／電化製品', rowc.get('電化製品', 0), '／送電網', rowc.get('送電網', 0), '／自動車', rowc.get('自動車', 0), '／内燃機関', rowc.get('内燃機関', 0), '／機関銃', rowc.get('機関銃', 0), '（ファシズムが開いた国×種', len(first), 'に対し辺の親が開いている国は無い＝空の門）')
+# G2: 意識（consciousnessMeanIndex）が時代で動くか＝K1 が空の理由が作りか信号かを分ける（popK 加重の平均・全州）
+ce = collections.defaultdict(lambda: [0.0, 0.0])
+for s_ in range(1, NS + 1):
+    try:
+        with open(f'{base}/secession_s{s_}.tsv', encoding='utf-8') as f:
+            for x in csv.DictReader(f, delimiter='	'):
+                p_, c_ = fl(x['popK']), fl(x['consciousnessMeanIndex'])
+                if p_ == p_ and c_ == c_:
+                    e_ = ce[era(int(x['year']))]
+                    e_[0] += p_
+                    e_[1] += p_ * c_
+    except FileNotFoundError:
+        pass
+print('    意識の popK 加重平均（時代別）', {e: round(ce[e][1] / ce[e][0], 3) for e in ERAS if ce[e][0] > 0})
