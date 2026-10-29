@@ -68,6 +68,40 @@ public class InheritanceLawTests
     }
 
     [Fact]
+    public void 飢えの上乗せで死んだ人の遺産も請求に入る()
+    {
+        // ★(655) 合流（反証役 inh〔bv〕中）：上の盤面は飢えなし＝飢えの上乗せの経路（deadP＝平常の死＋famineD）に番人が無かった。
+        //   飢えた盤面（主食の充足 0.05）と飢えない盤面で死者の台帳を比べ、飢えた側の請求が〈率×貯蓄×死者（飢えの上乗せ込み）〉と一致することを見る。
+        const double s = 50.0;
+        var (simN, wN) = Make(1.0, InheritanceLaw.Mid, s);
+        double deadN0 = wN.DiagDeaths; simN.DemographicStep(); double deadN = wN.DiagDeaths - deadN0;
+        var (sim, w) = Make(1.0, InheritanceLaw.Mid, s);
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.FoodMet = 0.05 * p.FoodNeed;   // 飢えの床より下
+        double sav0 = Savings(w), dead0 = w.DiagDeaths;
+        sim.DemographicStep();
+        double dead = w.DiagDeaths - dead0;
+        Assert.True(dead > deadN * 1.01, $"前提：飢えた盤面の死者 {dead:R} が飢えない盤面 {deadN:R} より多い");
+        double expected = 0.06 * s * dead;
+        double got = sav0 - Savings(w);
+        Assert.True(System.Math.Abs(got - expected) <= 1e-9 * System.Math.Max(1.0, expected), $"飢えた盤面の請求 {got:R} が手の計算 {expected:R} と違う（飢えの死を数えていない）");
+    }
+
+    [Fact]
+    public void 旗1で段なしを20年回しても旗0と人口と貯蓄と国庫が同じ()
+    {
+        // ★(655) 合流（反証役 inh〔bv〕中）：事前登録 ① の後半〈旗 1・段 None で 20 年〉を、政治を通さない人口の段だけで確かめる（政治は旗で選好が変わる＝事前登録の言い直し）。
+        var (s0, w0) = Make(0.0, InheritanceLaw.None, 50.0);
+        var (s1, w1) = Make(1.0, InheritanceLaw.None, 50.0);
+        for (int m = 0; m < 240; m++) { s0.DemographicStep(); s1.DemographicStep(); }
+        double pop0 = 0, pop1 = 0;
+        foreach (var r in w0.Regions) foreach (var p in r.Pops) pop0 += p.Size;
+        foreach (var r in w1.Regions) foreach (var p in r.Pops) pop1 += p.Size;
+        Assert.Equal(pop0, pop1);
+        Assert.Equal(Savings(w0), Savings(w1));
+        Assert.Equal(w0.Treasury.Value, w1.Treasury.Value);
+    }
+
+    [Fact]
     public void 国庫へ届かない州の分は請求が立たない()
     {
         var (sim, w) = Make(1.0, InheritanceLaw.High, 50.0);
