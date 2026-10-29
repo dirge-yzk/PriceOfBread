@@ -225,6 +225,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Anc; public bool AncHeader;                         // (369) 扶養力の錨の表（国×四半期）
         public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public System.IO.StreamWriter? Sec; public bool SecHeader;                         // (395) 州の分離の内訳の表（国×四半期×州）
+        public System.IO.StreamWriter? Urx, UrxPdW; public bool UrxHeader, UrxPdHeader;   // (649) 都市と農村の規模の差の区間別の表 urx_s と PopDecision の駆動の表 urxpd_s
         public System.IO.StreamWriter? Epi; public bool EpiHeader;                         // (629) 疫病 1 件ごとの表 epi_s（全ての国・助走は書かない）
         public System.IO.StreamWriter? Csc; public bool CscHeader;                         // (403) 清算の見る範囲の絞りの表（年×国×役×行の種類）
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
@@ -1781,6 +1782,7 @@ public static partial class Instruments
             CapFold(sk, seed, w, st, q, picked, yearEnd);   // (390) 工場の能力の内訳の表（四半期の末の断面・読むだけ）
             IdeologyFold(sk, seed, w, st, q, picked, yearEnd);   // (390) 思想の割合の表（National と素の平均）
             SecFold(sk, seed, w, st, q, picked, yearEnd);   // (395) 州の分離の内訳の表（CheckSecession が置いた行）
+            UrxFold(sk, seed, w, st, q);                    // (649) 都市と農村の規模の差の区間別の表（挙げた国だけ）
             EpiFold(sk, seed, w, st, q);                    // (629) 疫病 1 件ごとの表（全ての国・TriggerEpidemic が置いた行）
             RuleFold(sk, seed, w, q, picked, yearEnd);      // (399) 支配の4区分の表（世界の状態を直に読む）
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
@@ -1861,6 +1863,7 @@ public static partial class Instruments
         sk.Anc?.Dispose(); sk.Anc = null;   // (369)
         sk.Cap?.Dispose(); sk.Cap = null; sk.Ide?.Dispose(); sk.Ide = null;   // (390)
         sk.Sec?.Dispose(); sk.Sec = null;   // (395)
+        sk.Urx?.Dispose(); sk.Urx = null; sk.UrxPdW?.Dispose(); sk.UrxPdW = null;   // (649)
         sk.Epi?.Dispose(); sk.Epi = null;   // (629)
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)

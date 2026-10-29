@@ -1304,13 +1304,17 @@ public sealed class World
         if (wr is null) return false;
         double epiNat = 0, epiPop = 0, epiPop2 = 0;   // (629) 計器の入力（読むだけ・Instruments.On の間だけ）
         if (Instruments.On) { epiNat = UrbanShare; epiPop = wr.SumPopulation(); epiPop2 = wr2?.SumPopulation() ?? 0; }
+        if (Instruments.On && !WarmupFrozen) Instruments.UrxEnter(this);   // (649) 計器（読むだけ）：疫病の区間の前
         double dead = ApplyEpidemicDeaths(wr, c, jitter, 1.0);
+        if (Instruments.On && !WarmupFrozen) Instruments.UrxExit(this, "疫病");
         if (Instruments.On && !WarmupFrozen) Instruments.EpidemicHit(this, wr, transmitted ? 1 : 0, worstUrban, maxUrban, epiNat, epiPop, dead);
         // 人14（州間伝播）：旧は国内で単一の最過密州しか襲わず州間伝播がなかった（1832コレラはパリ→マルセイユ→リヨンと国内交通路を伝った）＝多州国家の疫病死が構造的に過小。
         // EpidemicIntraCountrySpread=0 で二次スパイクなし＝現行と厳密一致・>0で感染窓中に二次の標的へ減衰致死率(×これ)の二次スパイク。二次の致死率は同一 jitter を流用（★(638) 以後は標的の抽選が pickRng から引く＝重みが正の州が 2 つ以上のとき）。1州世界は wr2=null で不発。
         if (c.EpidemicIntraCountrySpread > 0 && wr2 is not null)
         {
+            if (Instruments.On && !WarmupFrozen) Instruments.UrxEnter(this);
             double dead2 = ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);
+            if (Instruments.On && !WarmupFrozen) Instruments.UrxExit(this, "疫病");
             dead += dead2;
             if (Instruments.On && !WarmupFrozen) Instruments.EpidemicHit(this, wr2, 2, secondUrban, maxUrban, epiNat, epiPop2, dead2);   // (629) 二次の波
         }
