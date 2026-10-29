@@ -21,7 +21,7 @@ public class IndustrializationReaderTests
     private static readonly (string File, int Lines)[] Allowed =
     [
         ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Credit.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8),
-        ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 2),
+        ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 2), ("InstrumentsUrx.cs", 4),   // (649) PopDecision.Run の天井の式の読むだけの写し（計器 urxpd_s）＝PopDecision.cs の 4 行と同じ読み手の写し・PopDecision 側の読み手が消えたら一緒に消す
         ("Megaprojects.cs", 4), ("Meritocracy.cs", 1), ("Model.cs", 5), ("MultiNationSim.cs", 3), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
         ("PopDecision.cs", 4), ("SelfPlay.cs", 3), ("Simulation.cs", 16), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 9),
     ];

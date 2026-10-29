@@ -1708,6 +1708,7 @@ public sealed class Simulation
     private double _probeDLast = double.NaN;
     internal void ProbeCheck(string label)
     {
+        if (Instruments.On) Instruments.UrxMark(World, label);   // (649) 計器（読むだけ）：都市と農村の規模の差の区間別の表の印
         if (!ConservationProbe) return;
         double now = (World.BaseMoney - World.CumulativeTradeFlow - World.CumulativeGoldMinted - World.CumulativeFiatIssued).Value;
         if (!double.IsNaN(_probeDLast) && Math.Abs(now - _probeDLast) > 1e-4)
@@ -1867,7 +1868,12 @@ public sealed class Simulation
         else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // ★(153) 損耗の記帳は判定で捨てる（助走は判定しない＝捨てるだけ・多国は MultiNationSim の共有層が捨てる）
         // （研究C＝制度の施行 Institutions.Step は 2026-10-01 (152) に削除＝特許・株式会社・鉄道は発見の表の行の2値〔World.PatentLaw ほか〕を読むだけ）
         Politics.Step(World, World.Coef);                   // §9-E
-        if (!(warm && World.BakeRun?.StopSocialMobility == true)) Meritocracy.Step(World, World.Coef);                // ★(490) 焼く試走の腕だけ止める（BakeRun は焼く側以外は null＝旧と同じ）／社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
+        if (!(warm && World.BakeRun?.StopSocialMobility == true))
+        {
+            if (Instruments.On && !warm) Instruments.UrxEnter(World);   // (649) 計器（読むだけ）：社会移動の区間の前
+            Meritocracy.Step(World, World.Coef);                // ★(490) 焼く試走の腕だけ止める（BakeRun は焼く側以外は null＝旧と同じ）／社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
+            if (Instruments.On && !warm) Instruments.UrxExit(World, "社会移動");   // (649) 計器（読むだけ）：社会移動の区間の後
+        }
         if (!warm) World.TickExpansionWill();                // 膨張意欲の累積（案Y・段B）。助走で10年ぶん貯めて開幕に侵略が噴くのを防ぐ＝時間の経過そのもの
         World.UpdateGdpCycle();   // 景気循環トラッカー更新（次四半期のAIの反景気循環的金融政策の入力）
         World.UpdatePriceLevel(World.Coef);   // 物価水準（数量説）＝広義マネー/実質産出の伸び差でインフレ/デフレ
@@ -2447,7 +2453,10 @@ public sealed class Simulation
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
             if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
+            {
+                if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // (649) 計器（読むだけ）：PopDecision の駆動
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
+            }
         ProbeCheck("月次政治");
         if (!World.WarmupFrozen) Territory.Step(World, World.Coef);      // §5.2/§A-8（解錠＋地域間移民）。助走中は止める＝州の解錠も国内移住も「時間が経って起きる」こと
         ProbeCheck("月次領土移民");
