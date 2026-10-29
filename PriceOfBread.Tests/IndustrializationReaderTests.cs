@@ -174,7 +174,14 @@ public class IndustrializationReaderTests
         double mean = w.MeanIndustrialization;
         Assert.Equal(Math.Max(0, 4.0 - mean), CapitalMarket.Headroom(c, w), 12);                 // 旗 0＝旧（手計算：目標 4.0）
         c.CapitalHeadroomFromReturn = 1;
-        Assert.Equal(c.CapitalIndTarget * w.ModernizeReturnShare(), CapitalMarket.Headroom(c, w), 12);   // 旗 1＝別の関数 ModernizeReturnShare の直読み
+        // ★(657) 線 igi3 の事前登録 [1] ① ③：旧は期待値を実装と同じ式（CapitalIndTarget × ModernizeReturnShare）から作っていた（同語反復）＝式を写さない。
+        //   伸びしろの違う 2 つの盤面で、余地の比が設備の収益の持ち分の比に等しい（目盛りの定数 CapitalIndTarget は比で消える）ことだけを見る。
+        r.Industrialization = 0.0; r.OldVintageCapital = 0;
+        double hA = CapitalMarket.Headroom(c, w), sA = w.ModernizeReturnShare();
+        r.Industrialization = 1.0;
+        double hB = CapitalMarket.Headroom(c, w), sB = w.ModernizeReturnShare();
+        Assert.True(sA > sB + 1e-9 && hB > 0, $"盤面の前提：持ち分が伸びしろの大きい側で大きい（{sA} {sB}）・余地が正（{hB}）");
+        Assert.Equal(hA * sB, hB * sA, 9);   // 旗 1＝余地は設備の収益の持ち分に比例（目盛りの定数に依らない）
         // 旗 1 の向き：州の資本の在庫が増えると設備の収益が飽和して余地が下がる（間接の読み＝直読みは無い）
         r.Industrialization = 0.0; r.OldVintageCapital = 0;
         double hLow = CapitalMarket.Headroom(c, w);

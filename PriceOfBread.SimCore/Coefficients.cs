@@ -1021,6 +1021,7 @@ public sealed class Coefficients
     public double ExchangeRateFloor = 0.3;           // レート下限（極端な減価の底＝暴走防止）
     public double ExchangeRateCeil = 3.0;            // レート上限
     // 国際金融（第3b段・民間外資＝A案）。資本は収益率（工業化伸びしろ×信用）の高い国へ流れ、工業化を支え、配当を送り、信用崩壊で逃避・伝染。
+    // ★(657) 単位の欄（README §1-9）：CapitalIndTarget に根拠は無い（4.0 の出所は不明＝確証なし）。旗 CapitalHeadroomFromReturn=0 では〈工業化度の目標〉の単位・=1 では設備の収益の持ち分（0〜1 の割合）に掛ける目盛りへ単位が変わる＝作者に聞く物（measurements/igi3_657_20261030_prereg.txt [7]）
     public double CapitalIndTarget = 4.0;            // 投資収益率の素地＝(これ−工業化度)。伸びしろの大きい後発国ほど高収益＝外資を呼ぶ。※衰退実験(3.5)は逆効果（覇権はレンティア配当で富裕なまま首位維持）＝既定4.0に復帰
     public double OffGoldCapitalPenalty = 0.5;       // 不換国の対外信用の倍率（金本位＝1.0。不換は外資が付きにくく逃げやすい）
     public double CapitalDemandScale = 0.02;         // 流入需要＝(収益率−世界平均)×名目GDP×これ（吸収力＝経済規模）
