@@ -3407,7 +3407,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
         money -= lm.Diplomacy.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）
         return (pop, money);
     }
-    int lPopBad = 0, lMoneyBad = 0; double lPopSum = 0, lMoneySum = 0;
+    int lPopBad = 0, lMoneyBad = 0; double lPopSum = 0, lMoneySum = 0; int lEstQ = 0; double lEstSum = 0;   // ★(655)
     try
     {
         var lw0 = LWorld();
@@ -3420,9 +3420,11 @@ if (args.Length > 0 && args[0] == "leakhunt")
             if (Math.Abs(dP) > 1e-6 * Math.Max(1.0, Math.Abs(lw.Pop))) { lPopBad++; lPopSum += dP; if (lPopBad <= 20) Console.Error.WriteLine($"[世界の台帳] Q{q + 1}（{lm.Year}年）人口 {dP:+0.0;-0.0}"); }
             if (Math.Abs(dM) > 1e-6 * Math.Max(1.0, Math.Abs(lw.Money))) { lMoneyBad++; lMoneySum += dM; if (lMoneyBad <= 20) Console.Error.WriteLine($"[世界の台帳] Q{q + 1}（{lm.Year}年）基礎貨幣 {dM:+0.0;-0.0}"); }
             lw0 = lw;
+            foreach (var n in lm.Nations) if (n.World.LastEstateDutyPerMonth > 0) { lEstQ++; lEstSum += n.World.LastEstateDutyPerMonth; }   // ★(655) 相続の移転が窓の中で起きたか（読むだけ・保存の検査が空の真でないことの名乗り）
         }
         // （退蔵結晶化の IW 不変条件は 2026-09-26 に削除＝結晶資産 Pop.IlliquidWealth ごと消えた・dorm-24）
         System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期{(lwarm ? "・助走つき" : "")}・保存則違反なし）");
+        System.Console.WriteLine($"相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 {lEstQ}・その月の額の和 {lEstSum:G4}");
         if (PriceOfBread.SimCore.Instruments.On) System.Console.WriteLine(PriceOfBread.SimCore.PayDiag.Summary(lseen.Select(n => n.World)));   // (486) INS=1 のときだけ＝直しの枝に入ったか（H1）
         System.Console.WriteLine($"世界の台帳：説明できない増減＝人口 {lPopBad}四半期（累計 {lPopSum:+0.0;-0.0}）・基礎貨幣 {lMoneyBad}四半期（累計 {lMoneySum:+0.0;-0.0}）"
                                  + (Coefficients.OverrideSummary() is { Length: > 0 } lov ? $"（上書き {lov}）" : ""));
