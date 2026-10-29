@@ -1,0 +1,46 @@
+capBound_share_per_seed 0.990 0.983 0.982 0.983 0.988 0.985 0.977 0.979 0.991 0.988 median 0.984
+capBound_share 1783-1829 0.998 regionMonths 575313
+capBound_share 1830-1869 0.990 regionMonths 459492
+capBound_share 1870-1909 0.977 regionMonths 443346
+capBound_share 1910-1950 0.970 regionMonths 429723
+capBound_share アメリカ 0.932 regionMonths 100197
+capBound_share イギリス 0.992 regionMonths 80439
+capBound_share オスマン 0.985 regionMonths 282819
+capBound_share オーストリア 0.990 regionMonths 183231
+capBound_share フランス 0.996 regionMonths 122298
+capBound_share プロイセン 0.987 regionMonths 73164
+capBound_share ロシア 0.979 regionMonths 397587
+capBound_share 日本 0.999 regionMonths 158691
+capBound_share 清 0.989 regionMonths 509448
+urban_share m655_ins rows 2100067 max_u 0.9193 >=0.9 56 >=0.95 0
+urban_share n1 rows 2109700 max_u 0.9238 >=0.9 147 >=0.95 0
+urban_share n2 rows 2113599 max_u 0.9380 >=0.9 226 >=0.95 0
+M3_null k_urb_delta m655_ins vs n1
+s1 n 3470 median_du -0.0033 mean_du -0.0194
+s2 n 3766 median_du -0.0003 mean_du -0.0117
+s3 n 3527 median_du +0.0009 mean_du +0.0079
+s4 n 3694 median_du -0.0046 mean_du -0.0165
+s5 n 3506 median_du +0.0010 mean_du +0.0125
+s6 n 4074 median_du -0.0001 mean_du +0.0080
+s7 n 3638 median_du -0.0001 mean_du +0.0021
+s8 n 3525 median_du +0.0055 mean_du +0.0283
+s9 n 3235 median_du +0.0001 mean_du +0.0015
+s10 n 3542 median_du -0.0004 mean_du -0.0028
+seeds_pos 4 of 10 median_of_medians -0.0001
+seeds_gt_0.005 1 of 10 (分母は固定・欠けた種は不合格・Kc1 は 8 以上)
+dropped_state_decades 14306 of 50283 (基線にあって腕で組めなかった州×十年・持ち主の変更など)
+M3_null k_urb_delta m655_ins vs n2
+s1 n 3554 median_du +0.0001 mean_du -0.0052
+s2 n 3789 median_du +0.0002 mean_du +0.0017
+s3 n 3891 median_du +0.0007 mean_du +0.0049
+s4 n 3625 median_du -0.0048 mean_du -0.0128
+s5 n 3500 median_du -0.0000 mean_du -0.0085
+s6 n 3817 median_du +0.0013 mean_du -0.0002
+s7 n 3328 median_du +0.0011 mean_du +0.0112
+s8 n 3648 median_du -0.0002 mean_du +0.0119
+s9 n 3666 median_du +0.0000 mean_du -0.0099
+s10 n 3429 median_du -0.0007 mean_du -0.0070
+seeds_pos 6 of 10 median_of_medians +0.0001
+seeds_gt_0.005 0 of 10 (分母は固定・欠けた種は不合格・Kc1 は 8 以上)
+dropped_state_decades 14036 of 50283 (基線にあって腕で組めなかった州×十年・持ち主の変更など)
+list-tests (Release・a9ec6373): 2010
