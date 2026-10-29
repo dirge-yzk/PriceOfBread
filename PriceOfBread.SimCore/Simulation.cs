@@ -2692,6 +2692,11 @@ public sealed class Simulation
         double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
+        // ★(650) 線 inh：相続法。旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。請求＝死者×1 人あたりの貯蓄×段の率×行政の届き（POP の走査の中・貯蓄はこの走査で書かない）
+        //   ＝走査の後に 1 回の移転（POP→国庫・OtherIn）。戦死・疫病・鎮圧・粛清は対象外（KillPops に触らない）。
+        double estateRate = c.InheritanceLawGate > 0 ? Government.InheritanceRate(World.Inheritance) : 0.0;
+        if (c.InheritanceLawGate > 0) World.LastEstateDutyPerMonth = 0;
+        List<Pop>? estPayers = estateRate > 0 ? new List<Pop>() : null; List<double>? estClaims = estateRate > 0 ? new List<double>() : null; double estSum = 0;
         bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）
         Span<double> disasterW = stackalloc double[2 * Pop.Layout.Bands];
         Pop.DisasterWeights(disasterW, c.DisasterAgeMortalityExcess);   // 飢えの超過死亡の年齢の重み（災害死と同じ）
@@ -2703,6 +2708,7 @@ public sealed class Simulation
             //   〔日本・公教育の番人の盤面・30年〕）が膨らまなくなり、公教育の下で識字が 0.35→0.19 へ落ちて幕府の番人が赤＝教育の経路が凍結の分母に支えられていた＝9-2 で一緒に。
             double regShare = noMothers ? 0 : regKey[ri] / massBirthKey;
             double regBWr = regBW[ri];
+            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // ★(650) 国庫へ届く割合（税と同じ物差し・州ごと）
             foreach (var p in r.Pops)
                 if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // 兵士も年を取る（作者裁定 Q10・自然の出生と死は外のまま＝9-2 で）
                 else
@@ -2739,6 +2745,7 @@ public sealed class Simulation
                     //   ⚠深い飢えが何十年も続く POP（植民地の工場労働者＝充足0.22）は凸の率で速く死ぬ＝農村から飢えた都市へ移る流しの管が州を痩せさせた（(143) 腕B）
                     //     ＝飢饉の線の下で農村より食べられない都市へは移らない（PopDecision）と対。
                     //   国の死の予算の外＝豊かな POP の死は減らない。子供と老年に厚く（災害死と同じ運搬＝リ10）。否定形＝NaN の上乗せは殺さない側。
+                    double famineD = 0;   // ★(650) この POP の飢えの上乗せで実際に減った人数（相続の死者に足す）
                     double fill = p.FoodFill;   // 主食の充足の1本
                     double floorF = c.FamineDeathFillFloor;
                     double excess = fill < floorF ? Calendar.PerYearToPerMonth(c.FamineExcessMortality) * Math.Pow((floorF - fill) / floorF, c.FamineExcessMortalityExponent) * size0 : 0.0;
@@ -2746,10 +2753,20 @@ public sealed class Simulation
                     {
                         double d = Math.Min(excess, p.Size);
                         if (Instruments.On) Instruments.DemoFamine(World, p, d, disasterW); p.KillAges(p.Size, d, disasterW);   // (361) 計器（読むだけ・KillAges の前）／年齢の層：災害死の年齢の重み（0〜9 と 60以上に厚く）
-                        p.Size -= d; famineDead += d;
+                        p.Size -= d; famineDead += d; famineD = d;
+                    }
+                    if (estateRate > 0 && size0 > 1e-12)   // ★(650) 相続の請求（否定形のガード）：死者×(死の前の貯蓄÷月初の規模)×率×届き
+                    {
+                        double sv = p.Savings.Value, deadP = deaths + famineD;   // 平常の死（回復期は 0）＋飢えの上乗せ
+                        if (sv > 0 && deadP > 0)
+                        {
+                            double cl = deadP * (sv / size0) * estateRate * estDeliv;
+                            if (cl > 0) { estPayers!.Add(p); estClaims!.Add(cl); estSum += cl; }
+                        }
                     }
                 }
         }
+        if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCat.OtherIn, fromWeights: estClaims);   // ★(650) 相続の移転（走査の後に 1 回・払い手ごとに自分の請求・自分の貯蓄まで）
         World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // ★計器（2026-09-26・純記帳）
         World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0) - famineDead;   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く③飢えの上乗せで実際に減った人数を引く。実Size減と一致
         SmoothRegionalFoodFill(c);   // 州の食料充足の平滑（移民の飢饉の押し出し・州反乱・派閥の危機が読む）

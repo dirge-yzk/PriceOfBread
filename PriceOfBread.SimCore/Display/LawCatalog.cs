@@ -100,6 +100,8 @@ public static class LawCatalog
         // --- 群に載らない法 ---
         Ladder(nameof(NationPolicy.Guild), "同業組合", "", PolicyAxis.Guild, ["保護", "制限", "廃止"],
             w => (int)w.Guild, w => (int)w.Policy.Guild, (p, v) => p.Guild = (GuildLaw)v, w => w.Coef.GuildLawGate > 0),
+        Ladder(nameof(NationPolicy.Inheritance), "相続", "", PolicyAxis.Inheritance, ["なし", "低率", "中率", "高率", "全額"],
+            w => (int)w.Inheritance, w => (int)w.Policy.Inheritance, (p, v) => p.Inheritance = (InheritanceLaw)v, w => w.Coef.InheritanceLawGate > 0),   // ★線 inh (650)：ゲート 0 ＝非表示
         Ladder(nameof(NationPolicy.CivilianArmsBan), "民間の武器購入", "", PolicyAxis.CivilianArms, ["許可", "禁止"],
             w => B(w.CivilianArmsBan), w => B(w.Policy.CivilianArmsBan), (p, v) => p.CivilianArmsBan = v == 1, w => w.Coef.RebelArmsMarketEnabled > 0),   // 禁止しても漏れる＝反乱勢力の武器購入が有効な時だけ出す
         Ladder(nameof(NationPolicy.SpecialistExitLaw), "技術者流出禁止", "", PolicyAxis.SpecialistExitBan, ["自由", "制限", "禁止"],

@@ -296,6 +296,7 @@ public static class Validation
         if (!System.Enum.IsDefined(w.Antitrust) || !System.Enum.IsDefined(p.Antitrust)) return "独占禁止法";
         if (!System.Enum.IsDefined(w.Guild) || !System.Enum.IsDefined(p.Guild)) return "同業組合法";   // ★特権 段4
         if (!System.Enum.IsDefined(w.MinimumWage) || !System.Enum.IsDefined(p.MinimumWage)) return "最低賃金法";   // ★線 lw (459)
+        if (!System.Enum.IsDefined(w.Inheritance) || !System.Enum.IsDefined(p.Inheritance)) return "相続法";   // ★線 inh (650)
         if (!System.Enum.IsDefined(w.OpiumPossession) || !System.Enum.IsDefined(p.OpiumPossession)) return "阿片の保有法";
         if (!System.Enum.IsDefined(w.ColonialSuffrage) || !System.Enum.IsDefined(p.ColonialSuffrage)) return "植民地参政権";
         if (!System.Enum.IsDefined(w.MigrantNativeSuffrage) || !System.Enum.IsDefined(p.MigrantNativeSuffrage)) return "移民原住民参政権";

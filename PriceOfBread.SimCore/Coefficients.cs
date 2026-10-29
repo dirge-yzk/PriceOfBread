@@ -3363,6 +3363,11 @@ public sealed class Coefficients
     public double LaborFloorOffGate = 2.0;
     public double LaborBandFloorOffGate = 1.0;
     public double MinimumWageLawGate = 1.0;
+    // ★(650) 線 inh：相続法（PolicyAxis.Inheritance・なし／低／中／高／全て）。> 0 のとき法が動く（Government の表・要求・綱領・UI）。0（既定）＝法の行が出ない・Pref が 0・移転が起きない＝厳密恒等。
+    //   請求＝死者×1 人あたりの貯蓄×段の率（Government.InheritanceRate）×行政の届き（Politics.RuleDelivery）を DemographicStep の POP の走査の中で立て、走査の後に 1 回の Transfer で POP→国庫（区分 OtherIn）。戦死・疫病・鎮圧・粛清は対象外。
+    //   事前登録 measurements/inh_650_20261030_prereg.txt と _prereg2.txt。
+    //   ★2026-10-30 に 1 で**点火**（腕 A〔旗 0〕は基線 m645 と全行バイト一致・腕 B〔計器つき 10 種〕は止める線に当たらず・狙いの数字 ③a ③d が通る＝事前登録 measurements/inh_650_20261030_prereg2.txt [2]・結果 measurements/inh_650_20261030_result.txt）。0 に倒せば法の行が消え厳密に旧に戻る。
+    public double InheritanceLawGate = 1.0;
     // ★(480) 線 ma：AI が最低賃金法に置く目標の選び方（AI の選び・確証なし・事前登録 measurements/ma480_20261021_prereg.txt）。0＝今の規則〈本国の都市の割合の線で上げる目標だけを書く〉（UtilityAgent.MinimumWageTargetFromBoard）。
     //   > 0＝盤面の実物から選ぶ（UtilityAgent.MinimumWageTargetFromFloor）：本国の州の労働の失業と、床が縛る広がり（MinimumWageFloor.BindShare）から、上げる線と下げる線を分け（間は現状維持）、下げる目標も書く。都市の割合の線は読まない。
     //   プレイヤーと同じ法の門（GateLaw → Government.GateInfo）を通る＝目標を置くだけ。MinimumWageLawGate＝0 では目標を書かない（旗の値に依らない）。

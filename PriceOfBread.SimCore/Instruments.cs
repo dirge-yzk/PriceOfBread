@@ -229,6 +229,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Epi; public bool EpiHeader;                         // (629) 疫病 1 件ごとの表 epi_s（全ての国・助走は書かない）
         public System.IO.StreamWriter? Csc; public bool CscHeader;                         // (403) 清算の見る範囲の絞りの表（年×国×役×行の種類）
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
+        public System.IO.StreamWriter? Inh; public bool InhHeader;                         // (650) 相続法の表（全ての国×四半期・旗 InheritanceLawGate が正のときだけ）
         public System.IO.StreamWriter? Reform; public bool ReformHeader;                   // (404) 専制の改革の経路の表（国×四半期）
         public System.IO.StreamWriter? AdmRule; public bool AdmRuleHeader;                 // (408) 行政費の返りの表（国×四半期）
         public System.IO.StreamWriter? Ed; public bool EdHeader;                           // (452) 国家の教育の需要の表 ed_s（国×四半期）
@@ -1785,6 +1786,7 @@ public static partial class Instruments
             UrxFold(sk, seed, w, st, q);                    // (649) 都市と農村の規模の差の区間別の表（挙げた国だけ）
             EpiFold(sk, seed, w, st, q);                    // (629) 疫病 1 件ごとの表（全ての国・TriggerEpidemic が置いた行）
             RuleFold(sk, seed, w, q, picked, yearEnd);      // (399) 支配の4区分の表（世界の状態を直に読む）
+            InhFold(sk, seed, w, q);                        // (650) 相続法の表（旗が正のときだけ・全ての国）
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
             AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
             EdFold(sk, seed, w, q, picked, yearEnd);        // (452) 国家の教育の需要の表（買いたい量・取れた量・供給が尽きた州の割合・値段）
@@ -1866,6 +1868,7 @@ public static partial class Instruments
         sk.Urx?.Dispose(); sk.Urx = null; sk.UrxPdW?.Dispose(); sk.UrxPdW = null;   // (649)
         sk.Epi?.Dispose(); sk.Epi = null;   // (629)
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
+        sk.Inh?.Dispose(); sk.Inh = null;   // (650)
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
         sk.AdmRule?.Dispose(); sk.AdmRule = null;   // (408)
         sk.Ed?.Dispose(); sk.Ed = null;   // (452)

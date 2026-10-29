@@ -16,6 +16,9 @@ public static class Government
     /// <summary>税・支出の法の最上段（作者裁定2026-09-12 R1「なし/低/中/高の4段階のボタン」）＝序数0..3。値は 段×<see cref="TaxLawTop"/>/3。
     /// internal＝要求への応答（Parliament.TargetDemand）・勢力の譲歩（Politics.ApplyDemand）・AIの目標整形（SelfPlay.GateAllLawTargets）が同じ段数で置く。</summary>
     internal const int TaxLawStages = 3;
+    /// <summary>★(650) 相続法の段の率（死者の貯蓄のうち国庫へ移る実効の平均率）＝なし 0／低 0.02／中 0.06／高 0.20／全て 1.0。AI の見積り・確証なし（英 1894 年の遺産税 1〜8%・1907〜1910 年の最高 15% を参照・
+    /// 事前登録 measurements/inh_650_20261030_prereg.txt F2）。等分でない梯子（等分に打つと史実の帯が段 0 へ丸まる）。国ごとの値なし・天井も床も置かない。</summary>
+    internal static double InheritanceRate(InheritanceLaw l) => l switch { InheritanceLaw.Low => 0.02, InheritanceLaw.Mid => 0.06, InheritanceLaw.High => 0.20, InheritanceLaw.All => 1.0, _ => 0.0 };
     // ==== 段の錨（2026-09-18）＝最上段が意味する率 ====
     // なぜ要るか：梯子を [0,1] の3等分に打つと最下段の非ゼロが所得の33%になり、**エンジン自身の教義値（0.15〜0.35）が全て段0（＝無税）へ丸まる**。
     // 作者制約「税の挙動は今までと同じ」（R1）が破れ、議会掌握（PowerShares.ParliamentGrip の分子＝所得税＋累進）が構造的に0になる。
@@ -177,6 +180,7 @@ public static class Government
         // 既定 None＝AI/議会/勢力が目標を置かなければ目標＝現在＝StepLevel が即 return。
         new(PolicyAxis.ColonialSuffrage, w => (int)w.ColonialSuffrage, (w, v) => w.ColonialSuffrage = (ColonialSuffrageLaw)v, (w, p) => (int)p.ColonialSuffrage, 2, Stage: 2),   // なし→自国民のみ→全面を1段ずつ
         new(PolicyAxis.MigrantNativeSuffrage, w => (int)w.MigrantNativeSuffrage, (w, v) => w.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v, (w, p) => (int)p.MigrantNativeSuffrage, 1, Stage: 1),   // なし0／あり1（2段＝段の飛び越しが存在しない）
+        new(PolicyAxis.Inheritance, w => (int)w.Inheritance, (w, v) => w.Inheritance = (InheritanceLaw)v, (w, p) => (int)p.Inheritance, 4, Stage: 2, Open: w => w.Coef.InheritanceLawGate > 0),   // ★相続法（線 inh (650)）：なし→低→中→高→全て（独立した量の段・政体の門なし）。ゲート0＝法が動かない＝恒等
     ];
 
     /// <summary>軸→表の行（同じ軸の行が複数あるのは国有化の5部門だけ＝先頭の行・段も位置も表を読まない軸）。</summary>
