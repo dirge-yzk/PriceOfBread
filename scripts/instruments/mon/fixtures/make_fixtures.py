@@ -17,7 +17,7 @@ AXES = ['EducationLaw', 'Suffrage', 'WomenRights', 'MonetaryStandard', 'CapitalM
         'MilitaryExport', 'CivilianArms', 'OpiumPossession', 'OpiumExport', 'Nationalization', 'Nationalization#2', 'Nationalization#3', 'Nationalization#4', 'Nationalization#5', 'NationalizationAll',
         'ColonialSuffrage', 'MigrantNativeSuffrage', 'Inheritance']
 GATES = ['Guild', 'MinimumWage', 'CivilianArms', 'Inheritance']   # 門つきの行（Open != null）
-GOOD_HDR = ['nationUid', 'nationIndex', 'nation', 'goodName', 'aliveYears', 'activeYears', 'pxYears', 'shortYears_ge0.5', 'glutYears_ge24', 'noProdYears_floorRel0.01', 'pxHiYears_ge20', 'pxLoYears_le0.05',
+MONGOOD_HDR = ['nationUid', 'nationIndex', 'nation', 'goodName', 'aliveYears', 'activeYears', 'pxYears', 'shortYears_ge0.5', 'glutYears_ge24', 'noProdYears_floorRel0.01', 'pxHiYears_ge20', 'pxLoYears_le0.05',
             'pxHiB1Years_ge50', 'pxLoB1Years_le0.02', 'maxShortShare', 'maxStockMonths', 'maxPxr', 'minPxr', 'demandFloorQty', 'flowFloorQty']
 AI_HDR = ['nationUid', 'nationIndex', 'nation', 'field', 'typeName', 'defaultValue', 'changedQuarters', 'aliveQuarters', 'firstChangeYear', 'lastChangeYear', 'firstValue', 'lastValue']
 UID = {'N1': 1, 'N2': 2, 'N3': 3, 'N4': 4}
@@ -62,11 +62,11 @@ def gen_stage2(d, s, blockade, bad_threshold):
     for n in NATIONS:
         for g in goods:
             r = {'aliveYears': 167, 'activeYears': 167, 'pxYears': 167}
-            r.update({k: 0 for k in GOOD_HDR[7:14]})
+            r.update({k: 0 for k in MONGOOD_HDR[7:14]})
             if (n, g) == ('N3', '塩'): r.update({'aliveYears': 20, 'activeYears': 20, 'pxYears': 20, 'shortYears_ge0.5': 9})   # 9 年（<10）：45% でも慢性にしない
             r.update(spec.get((n, g), {}))
-            rows.append([UID[n], NATIONS.index(n), n, g, r['aliveYears'], r['activeYears'], r['pxYears']] + [r[k] for k in GOOD_HDR[7:14]] + [0.1, 3.0, 1.0, 0.9, 1.0, 1.0])
-    hdr = list(GOOD_HDR)
+            rows.append([UID[n], NATIONS.index(n), n, g, r['aliveYears'], r['activeYears'], r['pxYears']] + [r[k] for k in MONGOOD_HDR[7:14]] + [0.1, 3.0, 1.0, 0.9, 1.0, 1.0])
+    hdr = list(MONGOOD_HDR)
     if bad_threshold: hdr[7] = 'shortYears_ge0.6'
     w(d, 'mongood', s, hdr, rows)
     # ---- monai_s：NationPolicy の欄

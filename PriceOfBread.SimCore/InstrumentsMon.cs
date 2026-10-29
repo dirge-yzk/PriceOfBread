@@ -181,7 +181,7 @@ public static partial class Instruments
         mw.Uid = st.Uid; mw.Index = index; mw.Name = NameOf(w);
         if (!mw.Registered && st.Uid != 0) { ms.Ws.Add(mw); mw.Registered = true; }
         if (w.TotalPopulation > 0) MonLawRow(ms, seed, w, st, q, index);
-        if (yearEnd && w.Regions.Count > 0 && st.Uid != 0) MonGoodYear(mw, w, q / Calendar.QuartersPerYear);
+        if (yearEnd && w.Regions.Count > 0 && st.Uid != 0) MonGoodYear(mw, w, w.Year);
     }
 
     static void MonLawRow(MonSink ms, ulong seed, World w, WState st, int q, int index)
