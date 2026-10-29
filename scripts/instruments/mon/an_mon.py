@@ -844,7 +844,10 @@ def main():
         sat = ' 飽和' if usz and top / usz > 0.30 else ''
         W('MONSUM\t%s(%s)\t鍵の宇宙=%d\t先頭=%d\t注視=%d\t記録=%d\t想定内=%d%s' % (it, nm_names[it], usz, counts['先頭'], counts['注視'], counts['記録'], counts['想定内'], sat))
         if it == '1':
-            W('MONSUM\t1(補足)\t条件なし(R2)=%d種分\t年内往復(9国×scalars法)=%s' % (sum(1 for r in res for k in r['stat'] if k.startswith('cond_off:')), ','.join('%d' % r['stat']['intra_year_roundtrip'] for r in res)))
+            ncond = sum(1 for r in res for k in r['stat'] if k.startswith('cond_off:'))
+            rts = ','.join('%d' % r['stat']['intra_year_roundtrip'] for r in res)
+            if any(r['stat'].get('stage2_law') for r in res): W('MONSUM\t1(補足)\t条件なし(R2政体・R1門が閉じたまま・種×鍵の数)=%d\t年内往復(第2段＝全ての国×全36法の国×年の数)=%s' % (ncond, rts))
+            else: W('MONSUM\t1(補足)\t条件なし(R2)=%d種分\t年内往復(9国×scalars法)=%s' % (ncond, rts))
         if it == '8': W('MONSUM\t8(補足)\tB1 は②の極端に包含される(pxr≥50 が慢性＝pxr≥20 も慢性)＝②の詳細に併記・②に載らない B1 だけが 8 の行(通常は空)')
         if it == '2' and any(r['stat'].get('stage2_good') for r in res):
             s1 = set(k for k, v in agg['2s1'].items() if classify(len(v), N) != '想定内'); s2 = set(k for k, v in agg['2'].items() if classify(len(v), N) != '想定内')
