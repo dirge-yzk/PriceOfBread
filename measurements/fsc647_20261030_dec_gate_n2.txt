@@ -1,0 +1,20 @@
+# 入力 D:/PoB_work/keep_645/n2
+国 税 : 国庫÷線≥4 の四半期数（種の中央値）／そのうち実効＞目標 の割合／（その四半期の次の四半期で）down flat up の割合
+フランス land: n=105 wantdown=1.00 down=1.00 flat=0.00 up=0.00
+フランス poll: n=105 wantdown=1.00 down=0.91 flat=0.09 up=0.00
+オーストリア land: n=117 wantdown=1.00 down=1.00 flat=0.00 up=0.00
+オーストリア poll: n=117 wantdown=1.00 down=0.92 flat=0.07 up=0.00
+日本 land: n=495 wantdown=0.91 down=0.98 flat=0.01 up=0.00
+日本 poll: n=495 wantdown=0.91 down=0.89 flat=0.11 up=0.00
+イギリス land: n=75 wantdown=1.00 down=1.00 flat=0.00 up=0.00
+イギリス poll: n=75 wantdown=1.00 down=0.92 flat=0.08 up=0.00
+アメリカ land: n=75 wantdown=0.99 down=0.92 flat=0.06 up=0.00
+アメリカ poll: n=75 wantdown=1.00 down=0.98 flat=0.00 up=0.00
+プロイセン land: n=89 wantdown=0.99 down=1.00 flat=0.00 up=0.00
+プロイセン poll: n=89 wantdown=1.00 down=0.96 flat=0.04 up=0.00
+ロシア land: n=16 wantdown=0.41 down=1.00 flat=0.00 up=0.00
+ロシア poll: n=16 wantdown=1.00 down=0.93 flat=0.06 up=0.00
+オスマン land: n=286 wantdown=0.65 down=1.00 flat=0.00 up=0.00
+オスマン poll: n=286 wantdown=1.00 down=0.88 flat=0.12 up=0.00
+清 land: n=34 wantdown=1.00 down=1.00 flat=0.00 up=0.00
+清 poll: n=34 wantdown=0.10 down=0.67 flat=0.00 up=0.33
