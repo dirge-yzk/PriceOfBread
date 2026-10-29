@@ -75,7 +75,7 @@ public static partial class Instruments
             if (W is not null)
                 foreach (var r in W.Regions)
                 {
-                    if (ReferenceEquals(r, Region) || r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                    if (ReferenceEquals(r, Region) || g >= r.Markets.Length) continue;   // (665) 合流：稼働中の判定は外した（RegionState.Locked の書き手は無い＝恒真・(568) gc3 の番人 ScalarDeletionTests）
                     var m = r.Markets[g];
                     double v = m.Stock + m.LastProduced - m.LastDemand;
                     if (v > 0) sum += v;

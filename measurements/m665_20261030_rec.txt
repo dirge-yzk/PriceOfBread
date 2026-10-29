@@ -1,0 +1,61 @@
+# (665) 合流の記録（読むだけ）：合流の木 m665＝m655 の木＋mon2〔(660) 計器 monlaw_s・mongood_s・monai_s〕＋igi3 の計器〔(657) inpf_s・inpb_s〕＋fas・edu の記録（SOURCE-HASH 523211e7d6908684）。挙動の線は採っていない＝基線は m655 のまま。計器つき 10 種の生 D:/PoB_work/m665/out_ins_10/ins（NATIONS 9 国＝清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ・読んだ後に消した・新しい表 50 本だけ D:/PoB_work/keep_655/m665_new へ写した）
+## ===== 恒等
+b5_20261030_m665＝b5_20261030_m655・b10_20261030_m665＝b10_20261030_m655・b10_20261030_m665_ins＝b10_20261030_m655_ins＝b10_20261030_m655（SOURCE-HASH の行を除き全行一致）
+same 808 diff {'burscan': 10, 'clock': 10} missing [] new 50 ['inpb', 'inpf', 'monai', 'mongood', 'monlaw']
+## ===== NG（ng.sh・基準 rd:measurements/ng655_20261030:m655）＝85・新しい 0・外れた 0（measurements/ng665_20261030）
+## ===== 空洞化（an_h2.py -v4・measurements/m665_20261030_hol.txt）
+## 種 10・ピーク 1 千人以上
+## ピークの1/10 未満: 0 件 {}
+## ピークの1/4 未満: 4 件 {'移民': 4}
+## 例外の名簿 ['イカルイト', 'ナイン', 'ヌーク', 'フォートシンプソン'] の事象（上の件数の外）: 1/10 {} 1/4 {'移民': 2}
+## 1/10 の格×原因: 
+## 1/10 のピークの大きさ×原因: 
+## 1/10 の首都: 0 []
+## ===== 教育法（monlaw_s の EducationLaw と EducationLawTarget）＝10 種・407,913 行で全て 2（公教育）・変化 0
+## ===== 投入の失いの内訳（igi3 の an_inp.py・measurements/igi3_657_20261030_inpf_Ap.txt と見出しの行を除き全行一致）
+== 窓 1910-1950（種の中央値［最小,最大］）
+ALL      loss/des 0.593 other/des 0.576 unsup/out 0.056 low 0.360 ext 0.028 zero 0.346 | worldUnreleased=0.61 reachLack=0.09 labor=0.03 contested.f=0.02
+アメリカ     loss/des 0.274 other/des 0.253 unsup/out 0.053 low 0.338 ext 0.020 zero 0.318 | worldUnreleased=0.52 labor=0.10 contested.f=0.09 reachLack=0.07
+イギリス     loss/des 0.501 other/des 0.393 unsup/out 0.130 low 0.478 ext 0.030 zero 0.318 | worldUnreleased=0.47 labor=0.22 reachLack=0.10 contested.f=0.04
+オスマン     loss/des 0.421 other/des 0.406 unsup/out 0.039 low 0.250 ext 0.020 zero 0.356 | worldUnreleased=0.90 dropped=0.05 labor=0.02 contested.f=0.02
+オーストリア   loss/des 0.581 other/des 0.415 unsup/out 0.035 low 0.240 ext 0.022 zero 0.381 | labor=0.21 contested.f=0.11 dropped=0.05 worldUnreleased=0.01
+フランス     loss/des 0.476 other/des 0.390 unsup/out 0.121 low 0.451 ext 0.018 zero 0.348 | worldUnreleased=0.53 labor=0.26 contested.f=0.09 dropped=0.03
+プロイセン    loss/des 0.424 other/des 0.415 unsup/out 0.027 low 0.198 ext 0.021 zero 0.372 | worldUnreleased=0.67 dropped=0.03 labor=0.02 reachLack=0.02
+ロシア      loss/des 0.548 other/des 0.538 unsup/out 0.052 low 0.291 ext 0.026 zero 0.384 | worldUnreleased=0.87 dropped=0.03 contested.f=0.02 labor=0.02
+日本       loss/des 0.554 other/des 0.540 unsup/out 0.029 low 0.218 ext 0.020 zero 0.359 | worldUnreleased=0.85 dropped=0.04 labor=0.01 contested.f=0.01
+清        loss/des 0.602 other/des 0.592 unsup/out 0.050 low 0.408 ext 0.030 zero 0.368 | worldUnreleased=0.62 reachLack=0.10 contested.f=0.02 labor=0.01
+## ===== 注視の件数（先頭／注視／記録・mon_20261030_m665.txt＝mon_20261030_m660.txt と名乗りの行だけ違う）
+MONSUM	1(使われない法)	鍵の宇宙=102	先頭=26	注視=7	記録=4	想定内=2 飽和
+MONSUM	1(補足)	条件なし(R2政体・R1門が閉じたまま・種×鍵の数)=40	年内往復(第2段＝全ての国×全36法の国×年の数)=253,269,272,328,286,221,285,295,272,275
+MONSUM	2(材の極端)	鍵の宇宙=15210	先頭=2405	注視=967	記録=823	想定内=675
+MONSUM	2(差)	第1段の標本(9国×31財)の鍵=263	第2段(全ての国×全ての財)の鍵=4195	両方=145	第1段だけ=118	第2段だけ=4050
+MONSUM	3(POPの偏り)	鍵の宇宙=102	先頭=158	注視=72	記録=60	想定内=53 飽和
+MONSUM	4(発見の偏り)	鍵の宇宙=105	先頭=9	注視=17	記録=8	想定内=5
+MONSUM	5(国庫・国債)	鍵の宇宙=102	先頭=3	注視=24	記録=40	想定内=13
+MONSUM	6(政治の凍結)	鍵の宇宙=102	先頭=0	注視=1	記録=12	想定内=17
+MONSUM	7(AIが選ばない行動)	鍵の宇宙=65	先頭=12	注視=5	記録=6	想定内=0
+MONSUM	7(補足)	開幕で既定から動いた欄(助走中の書き込みの結果)=35欄	Antitrust:10種・ArmyUpkeepTarget:10種・Bureaucracy:10種・Censorship:10種・ChildLaborAllowed:10種・CoercionTarget:10種・ConscriptionLaw:10種・CornLaws:10種・EducationLaw:10種・EducationSpendingTarget:10種・ImmigrationRestriction:10種・IncomeTaxTarget:7種・Inheritance:10種・InterestRateTarget:10種・LaborUnion:10種・LandReform:10種・LandTaxTarget:10種・MilitaryExportBan:10種・MinimumWage:10種・MonetaryTarget:10種・NationalizeRailways:1種・NavyUpkeepTarget:10種・OpiumExportBan:5種・OpiumPossession:10種・PollTaxTarget:10種・SecretBallot:10種・SerfEmancipation:10種・SocialSecurityLaw:10種・SocialSecurityTarget:10種・StateReligion:10種・Suffrage:10種・TariffTarget:10種・WartimeRationing:9種・WomenRights:10種・WorkHours:10種
+MONSUM	8(価格の張り付き)	鍵の宇宙=102	先頭=0	注視=2	記録=6	想定内=10
+MONSUM	8(補足)	B1 は②の極端に包含される(pxr≥50 が慢性＝pxr≥20 も慢性)＝②の詳細に併記・②に載らない B1 だけが 8 の行(通常は空)
+MONSUM	9(発散)	(国,種)の組=0	先頭=0	見逃す=0	比が1000以上になった国=0
+MONSUM	10(ファシズム)	知識の最初の年 中央=1881 最小=1822 最大=1942	国の度数=イエメン:1,イギリス:4,ハノーファー:1,プロイセン:1,ヴェネツィア:2	史実=伊1919〜22・独1920年代〜1933(並べるだけ)
+MONSUM	判定	この出力は注視の一覧の材料であって判定ではない(NG の集合 ng645 を動かさない)
+## ===== ファシズムの思想の行（an_fas0.py の継承国の直しの後・measurements/fas659_20261030_read0_{m655,n1,n2}.txt）
+# m655
+[A] ファシズムが開いた国×種 27 / 672（国×種）・生まれた時に知っていた国×種（数えない）0 []
+    種ごとの世界で最初の年 {1: 1825, 2: 1896, 3: 1920, 4: 1942, 5: 1875, 7: 1879, 8: 1822, 9: 1900, 10: 1881} 中央 1881 ／ 開かなかった種 [6]
+    国×種の開いた年の中央 1908 最小 1822 最大 1946
+    1919 年より前に開いた国×種 14 ／ 27 ・世界で最初の年が 1919 年より前の種 7 ／ 9 （史実の最初の年＝伊 1919〜22 との比べ・分母は全国で史実は 2 国＝比べ方に注意）
+    開く直前の四半期の内訳（必要性の項×伝わりの項） {('need>=30', 'trans=0'): 10, ('need>=30', 'trans>0'): 15, ('need<30', 'trans>0'): 2}
+# n1
+[A] ファシズムが開いた国×種 20 / 694（国×種）・生まれた時に知っていた国×種（数えない）2 [(4, '共和制ダホメ', 1936), (6, '共和制コンゴ', 1925)]
+    種ごとの世界で最初の年 {1: 1882, 2: 1813, 3: 1849, 4: 1931, 5: 1880, 6: 1818, 9: 1860} 中央 1860 ／ 開かなかった種 [7, 8, 10]
+    国×種の開いた年の中央 1898.5 最小 1813 最大 1944
+    1919 年より前に開いた国×種 16 ／ 20 ・世界で最初の年が 1919 年より前の種 6 ／ 7 （史実の最初の年＝伊 1919〜22 との比べ・分母は全国で史実は 2 国＝比べ方に注意）
+    開く直前の四半期の内訳（必要性の項×伝わりの項） {('need>=30', 'trans=0'): 7, ('need>=30', 'trans>0'): 12, ('need<30', 'trans>0'): 1}
+# n2
+[A] ファシズムが開いた国×種 24 / 658（国×種）・生まれた時に知っていた国×種（数えない）4 [(1, '共和制ハノーファー', 1888), (5, '共和制両シチリア', 1941), (6, '共和制ダホメ', 1883), (8, '共和制ライン諸邦', 1904)]
+    種ごとの世界で最初の年 {1: 1878, 2: 1912, 3: 1887, 5: 1916, 6: 1880, 7: 1827, 8: 1898, 9: 1851, 10: 1897} 中央 1887 ／ 開かなかった種 [4]
+    国×種の開いた年の中央 1904.0 最小 1827 最大 1950
+    1919 年より前に開いた国×種 18 ／ 24 ・世界で最初の年が 1919 年より前の種 9 ／ 9 （史実の最初の年＝伊 1919〜22 との比べ・分母は全国で史実は 2 国＝比べ方に注意）
+    開く直前の四半期の内訳（必要性の項×伝わりの項） {('need>=30', 'trans=0'): 9, ('need>=30', 'trans>0'): 14, ('need<30', 'trans>0'): 1}

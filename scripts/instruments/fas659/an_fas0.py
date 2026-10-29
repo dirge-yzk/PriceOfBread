@@ -50,13 +50,14 @@ def med(v):
 
 idn = {s: load_list(s) for s in range(1, NS + 1)}
 first = []   # (seed, nation, index, quarter, year)
+born = []    # (665) 合流：生まれた時に既に知っている国（継承国＝行の最初で knownFas=1）は〈開いた〉に数えない（反証役 fas〔bv〕中＝i-1 が最後の行へ回り込む）
 for s, d in idn.items():
     for n, l in d.items():
         for i, x in enumerate(l):
             if x['knownFas'] == '1':
-                first.append((s, n, i, int(x['quarter']), int(x['year'])))
+                (born if i == 0 else first).append((s, n, i, int(x['quarter']), int(x['year'])))
                 break
-print(f'[A] ファシズムが開いた国×種 {len(first)} / {sum(len(d) for d in idn.values())}（国×種）')
+print(f'[A] ファシズムが開いた国×種 {len(first)} / {sum(len(d) for d in idn.values())}（国×種）・生まれた時に知っていた国×種（数えない）{len(born)}', [(s, n, y) for s, n, i, q, y in born])
 byseed = collections.defaultdict(list)
 for f in first:
     byseed[f[0]].append(f[4])
