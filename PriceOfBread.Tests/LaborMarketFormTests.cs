@@ -445,7 +445,8 @@ public class LaborMarketFormTests
         Assert.Contains(PolicyAxis.MinimumWage, FactionSnapshot.Axes);
         // 列挙の末尾（既存の序数を動かさない）
         var axes = System.Enum.GetValues<PolicyAxis>();
-        Assert.Equal(PolicyAxis.MinimumWage, axes[^1]);
+        Assert.Equal(PolicyAxis.MinimumWage, axes[^2]);   // ★(650) 相続法が末尾に加わった（最低賃金法はその一つ前＝序数は動かない）
+        Assert.Equal(PolicyAxis.Inheritance, axes[^1]);
         // 方針の欄を見る PlayHarness の表（足し漏れの番人が別にあるが、ここでも名前で引く）
         Assert.Contains(PriceOfBread.Runner.PlayHarness.LawStatusRows(sim.World), r => r.Field == nameof(NationPolicy.MinimumWage));
     }
