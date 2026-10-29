@@ -1,0 +1,19 @@
+  seed1 不一致 労働時間 1134
+  seed1 不一致 児童労働 30
+  seed2 不一致 労働時間 1019
+  seed2 不一致 児童労働 31
+  seed3 不一致 労働時間 1003
+  seed3 不一致 児童労働 33
+a_rows_expect 122371
+a_rows_ml 122371
+b_uid_bad 0
+c_bad 3250
+c_cmp 828259
+d_bad 0
+d_n 122371
+e_eq 215
+e_fieldsdiffer 0
+e_gt 0
+e_lt 0
+f_bad 0
+f_rows 26780
