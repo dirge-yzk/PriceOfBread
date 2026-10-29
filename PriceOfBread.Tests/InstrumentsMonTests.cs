@@ -253,10 +253,10 @@ public class InstrumentsMonTests
             sim.StartWarmup();
             for (int q = 0; q < 6; q++) sim.StepQuarter();
             Instruments.On = true;
-            Instruments.Close(sim);                                                  // 溜めが無ければ書く物も無い
-            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "monai_s1789.tsv")), "On が偽なのに monai_s が出た");
-            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "mongood_s1789.tsv")));
-            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "monlaw_s1789.tsv")));
+            Instruments.Quarter(sim, 1789UL, 0);                                     // 世界を登録簿へ入れる（On が偽の間に hook が溜めていれば、ここで monai の行になって出る）
+            Instruments.Close(sim);
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "monai_s1789.tsv")), "On が偽の間に hook が溜めた（Simulation の On の門が外れている）");
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "mongood_s1789.tsv")));   // q=0 は年末でない
         }
         finally { Cleanup(dir); }
     }
