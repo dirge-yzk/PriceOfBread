@@ -60,7 +60,7 @@ LAWS = [
     ('植民地参政権', 2, 'sf', 'colonialSuffrageLaw', 'i', ''),
     ('移民原住民参政権', 1, 'sf', 'migrantNativeSuffrageLaw', 'i', ''),
 ]
-UNREAD_LAWS = ['資本移動', '穀物法', '秘密投票', '移民制限', '技術者流出禁止', '国教', '同業組合(現行の段)', '戦時配給', '軍需輸出', '民間の武器購入', '阿片の保有', '阿片の輸出']
+UNREAD_LAWS = ['資本移動', '穀物法', '秘密投票', '移民制限', '技術者流出禁止', '国教', '同業組合(現行の段)', '戦時配給', '軍需輸出', '民間の武器購入', '阿片の保有', '阿片の輸出', '相続法']
 LAW_TABLE_COLS = {}
 for _n, _t, _tb, _c, _f, _m in LAWS:
     LAW_TABLE_COLS.setdefault(_tb, [])
@@ -73,7 +73,7 @@ LIMITS = [
     ('③', '交戦中の兵士の膨張は見逃す設計(Pb は交戦中でない年末だけ)/階級の分類は計器の階級番号(失業のプールは階級として出ない)/Pa は農民以外の 1 階級の割合が 0.5 以上または農民が 0.97 以上で読んだ'),
     ('④', 'E の行は解禁であって使われたではない/伝わり(transmit)による連鎖の解禁は D2 に混ざる(transmitTerm の割合を併記)/engineer_s と disc_s に出ない row(全員が開幕に既知)は見えない'),
     ('⑤', '年末の断面(年内の借り換えは見えない)/国庫と GDP の名目は自国通貨(通貨単位の違う国どうしは比較しない)/分母(名目 GDP)が自分の中央値の 1% 未満の年は対象外にして別に数える'),
-    ('⑥', '読める 23 行と政体の変化だけを数える＝読めない 12 行の変化を取りこぼし凍結を過大に出す(上限)/長い凍結が史実どおり(清の 19 世紀前半など)かは判定しない'),
+    ('⑥', '読める 23 行と政体の変化だけを数える＝読めない 13 行（(655) 相続法を足した）の変化を取りこぼし凍結を過大に出す(上限)/長い凍結が史実どおり(清の 19 世紀前半など)かは判定しない'),
     ('⑦', '結果の動詞は AI の選びそのものではない(議会・内戦・外圧でも起きる)/外交の動詞(同盟・講和・調停・列強の介入)・AI の関数の内側の分岐・建設の細目は拾えない/NationPolicy を通らない決定は見えない/プレイヤー国は無い(自己対戦)'),
     ('⑧', '範囲の端は軟らかい飽和(端に漸近)＝端に座ると端の 1/2 まで来るを区別しない/州の中央値で数える＝一部の州だけが端に座る場合は拾えない/B1 は②の極端に包含される(②の詳細に併記)'),
     ('⑨', '窓は直前 12 四半期の AI の推奨(作者の決めは直前の数年)/事象の閾値は AI の置き/開幕を低い値で取った国は比が大きく出る(分母の開幕の値を併記)/封鎖は拾えない(World.LastBlockadeRisk の書き手が無い＝常に 0・MultiNationSim.cs:1492)/'
@@ -543,7 +543,7 @@ def polity_pd(repo):
         names = [re.match(r'\s*(\w+)', l).group(1) for l in m.group(1).split('\n') if re.match(r'\s*\w+', l) and not l.strip().startswith('//')]
         return names.index('ProletarianDictatorship')
     except Exception:
-        return 6
+        return -6   # (655) 読めなかった＝既定 6 を負で返し、MONHEAD で名乗る（fail-open を隠さない）
 
 def lawtable_rows(repo):
     p = os.path.join(repo, 'PriceOfBread.SimCore', 'Government.cs')
@@ -597,14 +597,14 @@ def main():
     items = set(a.items.split(','))
     seeds = sorted(set(parse_seeds(a.seeds)))   # 種の順に依らない（C4）
     repo = os.path.abspath(a.repo)
-    pd_code = polity_pd(repo)
+    pd_code = polity_pd(repo); pd_fail = pd_code < 0; pd_code = abs(pd_code)
     out = []
     W = out.append
     W('MONHEAD\t読み手 an_mon.py (651)・タグ=%s・入力=%s・種=%s' % (a.tag, os.path.basename(os.path.dirname(os.path.abspath(a.dir))) + '/' + os.path.basename(os.path.abspath(a.dir)), ','.join(str(x) for x in seeds)))
     lt = lawtable_rows(repo)
     W('MONHEAD\t段の法の名簿：読める %d 行・読めない %d 行・合計 %d(Government.LevelLaws は %s 行)%s' % (len(LAWS), len(UNREAD_LAWS), len(LAWS) + len(UNREAD_LAWS), lt if lt >= 0 else '不明',
         '' if lt in (-1, len(LAWS) + len(UNREAD_LAWS)) else '  ⚠名簿の写しが古い'))
-    W('MONHEAD\tProletarianDictatorship の polityCode=%d(Model.cs の enum Polity から実行時に引く)' % pd_code)
+    W('MONHEAD\tProletarianDictatorship の polityCode=%d(%s)' % (pd_code, '既定・Model.cs を読めず' if pd_fail else 'Model.cs の enum Polity から実行時に引く'))
     res = analyze(a.dir, seeds, pd_code, a.workers)
     N, agg = aggregate(res)
     others = []
