@@ -172,3 +172,24 @@
 [11] 作業の決まりの自己申告
   この前半では、worktree `D:/PoB_work/wt_mon2`（枝 mon2・a9ec6373 から）を作り、このコミットの 1 ファイルだけを作った。腕・コード・読み手の変更は無し。禁止の呼び（`&`・`sleep`・`sed -i`・`git add -A`・amend・stash）は使っていない。
   `D:/PoB_work/keep_655` は読み取りだけ（変更・削除しない）。C: に作業フォルダを作っていない。`D:/PoB_work/PoB_play` には書いていない。
+
+[追記 1] 2026-10-30・腕を回す前・反証役の点検（高 2・中 4・低 1）の反映と、コードを書く前に決めた細部（全て AI の推奨・作者の承認は未確認・結果を読む前の変更）
+  ⚠この追記は [0]〜[11] を直す。食い違うときはこの追記が先。数値の閾値は動かしていない（式と置き場だけ）。
+  ① 鍵＝`nationUid`（高 1）：3 表すべてに列 `nationUid`（`S(w).Uid`＝`NationRow` が振った番号。**新しいコードで採番しない**＝`nation_s` の `nationUid` を動かさない）を足し、読み手の鍵は `nationUid`＋表示名。`nationIndex` は国の消滅で詰まるので表には載せるが鍵にしない。
+     溜めは `Instruments` 側の自前の登録簿（`MonW` の一覧・`MultiNationSim` ごと）に **強い参照で** 持つ＝国が消えても溜めは残り `Close` で書かれる（`S(w)` は `ConditionalWeakTable` で国が消えると失われるので使わない）。
+     `MonAiBefore/After` は `Uid` がまだ 0 の時点（q=0 の `DecideQuarter`）で走る＝`World` ごとの `MonW`（`ConditionalWeakTable<World, MonW>`）に溜め、`Quarter` の中（`NationRow` の後）で `MonW.Uid` に `S(w).Uid` を写して登録簿へ入れる。
+     登録前に消えた国（建国して同じ四半期のうちに消える）は落ちる＝限界に名乗る。`Sink` の欄・`Dispose` の列は足さない（自前の `MonSink`＝`MultiNationSim` ごと）＝隣の線との衝突を減らす。
+  ② 閾値の置き場（高 2）：数えは C# の 1 か所（定数 `MonShortTh=0.5`・`MonStockMonthsTh=24`・`MonPxHi=20`・`MonPxLo=0.05`・`MonPxHiB1=50`・`MonPxLoB1=0.02`・`MonFloorRel=0.01`）。
+     **閾値を列名に埋める**（`shortYears_ge0.5`・`glutYears_ge24`・`noProdYears_floorRel0.01`・`pxHiYears_ge20`・`pxLoYears_le0.05`・`pxHiB1Years_ge50`・`pxLoB1Years_le0.02`）。読み手は見出しから数を取り出して自分の定数と照合し、食い違えば止まる（MONHEAD に名乗る）。
+     C1 に数えの試験を足す（仕込んだ年数が数に一致・相対の床の境界・不等号の境界）。C2 に M6（不等号の反転）を足す。
+     `mongood_s` の列は ［nationUid・nationIndex・nation・goodName・aliveYears・activeYears・pxYears・上の 7 列・maxShortShare・maxStockMonths・maxPxr・minPxr・demandFloorQty・flowFloorQty］。
+       aliveYears＝州（その財の市場を持つ）があった年末の数／activeYears＝需要か流量が正の年（第 1 段の `alive`＝慢性の分母）／pxYears＝`pxr>0` の年（`px` 系の分母）。慢性の判定は第 1 段と同じ（10 年以上かつ 25% 以上・分母は activeYears／px 系は pxYears）。
+  ③ ⑤(iii) を中身が動いていることの検査に替える（中 1）：(iii-a) `mongood_s` で `shortYears_ge0.5>0` の組が 1 組以上／(iii-b) `activeYears>0` の組が（aliveYears>0 の組の）2 割以上／(iii-c) `maxPxr` が有限で 1 でない組が 1 組以上。腕 B の前に固定した。
+     ⑤(i) は窓の置き違いを 1 つ拾うだけと名乗る（ほぼ自明）。
+  ④ C3 の `maxPxr/minPxr` が `pxgoods_s` を含む検算は外す（中 2＝取る瞬間も標本の粒度も違う・包含は成り立たない）。記録として腕 B の後に 2 つの表の値を並べて読む（採否に使わない）。
+  ⑤ ⑦の文言（中 3）：u＝〈その種の全ての国で試合中に書き換えが 0〉。`monai_s` に列 `defaultValue`（`new NationPolicy()` の欄の値）を足し、`firstValue` が既定と違う欄を `開幕で既定から動いた`（助走中の書き込みの結果）として別に出す。限界 (7) に〈助走中の書き込みは見えない〉を足す。
+  ⑥ C1 の足し（中 4）：(h) M3 の番人＝凍った世界で州ごとに `r.PriceLevel`（1 以外）と `m.Price` を手で置き、`pxr` の中央値を手計算の数と比べる（式を試験に写さない）。(i) M4 の番人＝`NullAgent` の短い世界で `w.Policy.<軸>` だけを `Get` と違う値に書き（`Set`/`Enact` を呼ばない）、現在段の列と目標の列が別の値になる。
+     (j) `monlaw_s` の見出しに `lawGateOpen:<軸>` 列（門つきの行だけ）を置く＝`lawGateOpenMask`（ビットの順を読み手が知る必要がある）をやめ、自己記述の列にする（腕を回す前の変更）。
+  ⑦ メモリ（低 1）：`mongood_s` の溜めは約 53MB／試合（61 国×130 財×168 年×5 値×8 バイト）。国ごとに年の初めて来たときに遅延確保（年ごとに 1 本の配列）。腕 B の `.cost` と一緒に最大の作業集合を記録する。
+  ⑧ 腕の条件（突き合わせ）：腕 A のコマンドは `measurements/b5_20261030_m655` の `.manifest` の名乗り行から取る。比べ先 `D:/PoB_work/keep_655/m655_ins` の構成は `ls` で確かめてから `cmp`。
+     `Simulation.cs` に行を足していないことをコミット前に `git diff --stat` で確かめる（`flow_s` の `sourceLine` を動かさない）。
