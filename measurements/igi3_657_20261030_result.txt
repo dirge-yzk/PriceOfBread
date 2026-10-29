@@ -71,3 +71,14 @@
   ① UrbanCapOff は外して残り 4 本（F4）を単独の束として、種 1〜10 と種 21〜30 で判定し直す（B4s の 11〜20 は clean・ただし部分採用の規則を作者が許すかが先）。
   ② UrbanCapOff は開幕の焼き込みを天井なしで取り直した後で、別の線として判定し直す（都市の跳びと補給崩壊の増えを先に切る）。
   ③ ゴムの門（防水布の工場の失い）は rb の読む線へ（根拠＝[7]）。
+
+[11] 追記（自己申告・限界・報告の前に）
+  ・テストの数：自分の木（Release・隔離ビルド）の `--list-tests` の名前の数は **2016**（前半の 2010 ＋ InpFillTests 6）＝Category!=FullLength 2013＋FullLength 3。
+  ・M3 は種 11〜20 の腕（U5s・B1s）では計算できない（基線が種 1〜10 しか無い）＝[10] ⑩-1 は U5s も門に含めているが、**判定不能・種 1〜10 の B1・U5 の 10/10 で読んだ**。
+  ・mon は種 11〜20 の腕（U5s・B1s・B4s）で取れていない（読み手が種 1 起点で N=0）。種 1〜10 の腕の件数は 00一覧 §0-W の ⑥。
+  ・作業の決まりの違反：`sleep 1` を 1 回（テストの出力確認の前）・`&` を 1 回（空洞化の読み手を B1 と U5 で並べたサブシェル）。結果には影響しない。
+  ・指示の〈最初の腕は UrbanCapOff 単独・その後に合成〉は B1 ∥ U5 の並列で回した（独立な腕なので結果は同じ）。鎖の試験の 8 点（旗 0／UrbanCapOff=1）は取っていない。
+  ・フルスイート・FullLength・savetest・leakhunt は採らないので回していない（手順 4 の〈採るなら〉）。H（CapitalHeadroomFromReturn）は作者の答えまで回していない。
+  ・足した計器の列（そのまま）：inpf_s＝`year nation good reason months nExtreme n05 n30 n70 desiredRef lossRef outputRef unsupportedRef nProvinces topProvince topShare nTied`／
+    inpb_s＝`year nation bindingGood reason months sumAvailable sumCoreDemand sumPop sumFactory sumInvest sumMilitary producerCountMean worldProducers nationOtherSurplus importLast price priceOverRef`。
+  ・clock_s の差は C 行（秒の計測）だけで、E 行は全ての種で一致した（C 行を除いて全 10 表が同じ）。
