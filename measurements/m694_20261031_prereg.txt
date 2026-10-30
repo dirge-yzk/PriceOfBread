@@ -1,0 +1,12 @@
+(694) 合流（波46）の腕の前の予言（結果の前に固定・書いたモデル Claude Opus 5.5）
+木：枝 m694（main a76428d9 ＋ a11b・hol・smd2・dscd・prdd・navf5・urb2）。
+navf5 の段：merge の後の木の .cs/.json/.axaml/.csproj/.slnx は origin/navf5 と diff 0＝SOURCE-HASH の対象が同一
+  ＝線 navf5 の 3 枚（b10_20261030_navf5・b5_20261030_navf5・b10_20261030_navf5_ins）がそのまま〈navf5 を足した合流の木〉の 3 枚（腕は回さない）。
+波 1（計器つき 10 種・NATIONS 9 国・種 1〜10）：
+  m694i  既定（UrbanCapOff=1・NavalCedeFleetReturn=1）＝合わせた木。
+  ab_u0  POB_COEF UrbanCapOff=0          ＝予言：b10_20261030_navf5_ins と全行一致（POB_COEF の行を除く）。外れたら合流に別の差分＝調べる。
+  ab_n0  POB_COEF NavalCedeFleetReturn=0 ＝予言：b10_20261030_m687_ins（＝線 urb2 の腕 B）と全行一致（POB_COEF の行を除く）。外れたら同上。
+採否（合わせた木 m694i）：止める線＝破綻・発散（四半期比≧100・非有限・1e10＝NG／開幕の 1000 倍以上＝事象つき記録）・空洞化 1/10 未満
+  （出たら m685 の同じ種の同じ州・hol689 の縁の一覧と並べる）・推定の計算量 ≦248.5 秒・機構と不変条件のテストの赤。世界の工場の能力（an_cap.py）は ×0.29 の型でないこと。
+  合わせた木だけが止める線に当たり、片方の単独が綺麗＝規則が結果を書いていない相互作用＝navf5（先の線）だけ採り urb2 は §0-2 で作者に聞く（読み替えて採らない）。
+  urb2 の門 M1（差の差）・M2・M3' と navf5 の G1・G3 は合わせた木で読み直して記録（線の事前登録の門と種のまま）。exact・near・NG・補給崩壊の倍化は記録。
