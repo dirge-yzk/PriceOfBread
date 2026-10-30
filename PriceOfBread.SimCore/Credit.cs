@@ -11,25 +11,12 @@ public static class Credit
     private const double HoardRatioMax = 0.9;  // タンス預金率（退蔵）の上限クランプ
     private const double GoldCoverCreditFloor = 0.25; // カバー率防衛時の与信下限比率（全面凍結はしない）
 
-    /// <summary>与信の深さの発展度の倍率（最大貸出に掛ける）。★(605) 旗 <c>CreditDevOff</c> が正なら工業化度を読まず 1.0（式は抜き出す前と同じ＝旗 0 では 1 ビットも変わらない。番人が直に呼ぶ）。</summary>
-    internal static double DevFactor(World w, Coefficients c, double? meanInd)
-    {
-        double devFactor = 1.0;
-        if (c.CreditMultiplierDevWeight > 0 && !(c.CreditDevOff > 0))   // ★(605) 旗 CreditDevOff：工業化度の倍率を消す（devFactor は 1.0 のまま）
-        {
-            double dev = PoliticalQuantities.Clamp01((meanInd ?? w.MeanIndustrialization) / c.CreditDevScale);           // 0=前工業（露清）〜1=工業化（英独）
-            double target = c.CreditMultiplierDevFloor + (1 - c.CreditMultiplierDevFloor) * dev;  // floor（前工業でも手形/両替商の最低与信）〜1（満額の近代信用創造）
-            devFactor = 1.0 + (target - 1.0) * c.CreditMultiplierDevWeight;                       // Weight=0で1.0（恒等）・1でtargetそのもの
-        }
-        return devFactor;
-    }
-
-    /// <param name="month">★月の中の定数（2026-09-26 A2-1）＝名目GDP・大衆の平均満足・平均工業化。日次の呼び手（<see cref="Simulation.StepDayDaily"/>）が
+    /// <param name="month">★月の中の定数（2026-09-26 A2-1）＝名目GDP・大衆の平均満足。日次の呼び手（<see cref="Simulation.StepDayDaily"/>）が
     /// 月の初日に1回だけ求めて渡す（結果が変わらない根拠は <see cref="Simulation.CreditMonth"/>）。null＝ここで求める（テストの直呼び＝旧と同じ）。</param>
     /// <param name="days">★旬次（2026-09-30 高速化の段 S3c・近似）：この1回で進める日数 h（旬の初日に呼ぶ）。信頼と与信の残高は目標を旬の中で据え置いて
     /// h 日ぶんの緩和を閉じた形 1−(1−速さ)^h で寄せ（与信の目標が読む信頼は旬の始めと終わりの台形）、利息は h 日ぶん。
     /// 1＝旧来の日次と1ビットも変わらない（1−(1−s)^1 と s は丸めが違う＝1 は旧の式のまま）。</param>
-    public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat, double MeanInd)? month = null, int days = 1)
+    public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat)? month = null, int days = 1)
     {
         var bank = w.Bank;
         if (bank is null) return;
@@ -92,10 +79,8 @@ public static class Credit
 
         // 金融政策：低金利ほど銀行は貸す（信用ブーム→投資加速）、高金利は引締（安定）。＝中央銀行のレバー
         double appetite = PoliticalQuantities.Clamp01(1.0 - c.InterestRateEffect * w.InterestRate);
-        // R12（信用乗数の発展度スケール化・2026-07-13）：全国全時代一律3.0を「発展度（工業化）」でスケール＝1789の露清オスマンに
-        // 英規模の近代銀行はない＝浅い銀行（正貨中心）から工業化とともに近代信用創造へ深化（金融深化125年）。devFactor=1で×1.0＝厳密恒等（Weight=0）。
-        double devFactor = DevFactor(w, c, month?.MeanInd);
-        double maxLoans = (bank.Gold * (c.CreditMultiplier - 1) * devFactor).Value;
+        // (667) 与信の準備の上限は全国全時代一律の信用乗数（旧 R12 の工業化度による発展度スケールは消した＝前工業の国の上限を縛っていたのは準備でなく下の借り手の返せる額）。
+        double maxLoans = (bank.Gold * (c.CreditMultiplier - 1)).Value;   // ★(667) 工業化度の倍率 devFactor は消した（全国全時代一律の信用乗数・上限は返せる額が縛る）
         // #125 正貨準備の動学（2026-07-25）：金本位国のカバー率防衛＝coverage(BaseMoney/BroadMoney)が床(GoldCoverMin×(1+これ))へ迫ると
         // 与信上限を比例で絞る（1890年代のバンクレート防衛の与信面＝兌換を守るため信用を犠牲にする）。与信↓→BroadMoney↓→coverage回復＝負帰還
         //（現行は準備が薄くても与信が伸び続け、割った瞬間に強制離脱＝カバー率割れ316回の構造）。床0.25＝信用の全面凍結はしない。GoldCoverCreditRestraint=0で不読＝厳密恒等（既定0.5）。

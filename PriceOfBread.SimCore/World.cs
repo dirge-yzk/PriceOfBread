@@ -1183,13 +1183,11 @@ public sealed class World
     }
 
     /// <summary>1地域に疫病の死亡スパイクを与える（TriggerEpidemic の共通処理を切り出し・人14 の二次伝播で再利用）。
-    /// 致死率＝基礎×(1−衛生整備0.7×工業化飽和)×jitter×scale。savings不変（金は保存）・戻り値＝死者数。EpidemicVulnConcentration の脆弱層集中もここで処理。</summary>
+    /// 致死率＝基礎×(1−衛生整備0.7×実衛生財の充足)×jitter×scale。savings不変（金は保存）・戻り値＝死者数。EpidemicVulnConcentration の脆弱層集中もここで処理。</summary>
     internal double ApplyEpidemicDeaths(Region wr, Coefficients c, double jitter, double scale)
     {
-        double oldDev = c.EpidemicSanitFromBoard > 0 ? 0.0 : Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // ★(605) 旗 EpidemicSanitFromBoard では工業化度の代理を読まない   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィンテージ2026-07-10）
-        // 致死率の衛生連動（epidemic-ignores-built-sanitation）：工業化proxyと実衛生財(上下水道+石鹸+電化)をブレンド。EpidemicSanitationWeight=0で旧proxy厳密一致。
-        double realSanit = wr.Sanitation(c);
-        double sanitDev = c.EpidemicSanitFromBoard > 0 ? realSanit : (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
+        // 致死率の衛生連動（epidemic-ignores-built-sanitation）：実衛生財(上下水道+石鹸+電化)の充足だけを読む（工業化度の代理は読まない・(667)）。
+        double sanitDev = wr.Sanitation(c);
         double deathFrac = c.EpidemicSeverity.Value * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
         // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の都市の POP の和（★(638) 死は都市の POP だけ）を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
         // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
@@ -1240,14 +1238,8 @@ public sealed class World
         return dead;
     }
 
-    /// <summary>(638) 1 州の発生の衛生整備度（接12：致死率側の sanitDev と同式）：工業化proxyと実衛生財のブレンド（旗 EpidemicSanitFromBoard では実衛生財だけ）。</summary>
-    private static double RegionOnsetSanitation(Region r, Coefficients c)
-    {
-        double oldDev = c.EpidemicSanitFromBoard > 0 ? 0.0 : Colonial.OutputCurve(r.TotalIndustrialization, c.EpidemicSanitationHalf);   // ★(605) 旗 EpidemicSanitFromBoard では工業化度の代理を読まない
-        double realSanit = r.Sanitation(c);
-        if (c.EpidemicSanitFromBoard > 0) return realSanit;
-        return (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
-    }
+    /// <summary>(638) 1 州の発生の衛生整備度（接12：致死率側の sanitDev と同式）＝実衛生財の充足だけ（工業化度の代理は読まない・(667)）。</summary>
+    private static double RegionOnsetSanitation(Region r, Coefficients c) => r.Sanitation(c);
 
     /// <summary>(638) 疫病の標的を都市の人口 Urb_r の重みで抽選する。1 つ目＝全ての重みの逆累積、二次（<see cref="Coefficients.EpidemicIntraCountrySpread"/> が正のとき）＝1 つ目を除いた重みの逆累積。
     /// 重みが正の州が 1 つならその州（乱数なし）、2 つ以上のときだけ乱数を 1 つ引く（二次は残りが 2 つ以上のときだけ）。人口が 1e-9 未満の州と都市の人口が 0 の州は重み 0＝選ばれない。
@@ -1294,7 +1286,7 @@ public sealed class World
     }
 
     /// <summary>疫病の流行を起こす（内部発生・他国からの伝播の共通処理）：都市の人口に比例して選んだ州に死亡スパイク（都市の POP だけ）＋感染窓を立てる。
-    /// 致死率＝基礎×(1−衛生整備0.7×工業化飽和)×jitter。savings不変（金は保存）・PopulationDeltaで人口台帳追跡（回復可能）。B-4。</summary>
+    /// 致死率＝基礎×(1−衛生整備0.7×実衛生財の充足)×jitter。savings不変（金は保存）・PopulationDeltaで人口台帳追跡（回復可能）。B-4。</summary>
     public bool TriggerEpidemic(Coefficients c, double jitter, bool transmitted = false, DeterministicRng? pickRng = null)
     {
         Region? wr = null; double worstUrban = 0;

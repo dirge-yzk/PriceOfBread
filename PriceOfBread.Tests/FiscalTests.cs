@@ -880,7 +880,7 @@ public class FiscalTests
         {
             var w = Board(years, false);
             w.GovBondRatePerYear = 2 * w.Coef.BondBaseRatePerYear;   // 国債の価格＝基礎金利÷国債の金利＝0.5
-            Credit.Step(w, w.Coef, (w.NominalGdpPerMonth.Value, 1.0, w.MeanIndustrialization));
+            Credit.Step(w, w.Coef, (w.NominalGdpPerMonth.Value, 1.0));
             return w.Bank!.Confidence;
         }
         var c = new Coefficients();

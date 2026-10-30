@@ -19,20 +19,7 @@ public class OtherThemeTests
     {
         var c = new Coefficients();
         Assert.Equal(0.5, c.TariffRetaliation);          // A-4有効化（貿易戦争の応酬）
-        Assert.Equal(0.15, c.PollutionCapacityWeight);   // 第(iii)段有効化（工業都市の公害超過死亡・衛生投資で緩和）
-        Assert.Equal(0.6, c.EpidemicSanitationWeight);   // 第(iii)段有効化（上下水道・石鹸・電化がコレラ致死を下げる）
         Assert.Equal(0.5, c.EpidemicVulnConcentration);  // 第(iii)段有効化（疫病死は子供・老人・飢えた層へ集中・総量保存）
-    }
-
-    [Fact]
-    public void 公害_有効化でも人口保存が保たれる()   // PollutionCapacityWeight は capacity(扶養力)を下げるが人口台帳は保存
-    {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(9), new NullAgent());
-        sim.World.Coef.PollutionCapacityWeight = 0.3;
-        double p0 = sim.World.TotalPopulation;
-        var ex = Record.Exception(() => sim.Run(200));
-        Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "公害有効化で人口保存が破れた");
     }
 
     [Fact]
@@ -41,7 +28,6 @@ public class OtherThemeTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(9), new NullAgent());
         sim.Run(120);   // 都市人口を形成（worst urban 州ができる）
         sim.World.Coef.EpidemicVulnConcentration = 1.0;
-        sim.World.Coef.EpidemicSanitationWeight = 0.5;
         double before = sim.World.TotalPopulation;
         double deltaBefore = sim.World.PopulationDelta;
         bool fired = sim.World.TriggerEpidemic(sim.World.Coef, 1.0);

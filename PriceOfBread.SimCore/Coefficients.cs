@@ -604,11 +604,9 @@ public sealed class Coefficients
     public double WeatherBandVariation = 0.12;     // 緯度帯天候の振幅（±12%＝帯全体の豊凶）。HarvestVariation（国の局地天候）に上乗せ
     public double WeatherBandSize = 15.0;          // 緯度帯の幅（度）。15度ごとに同じ気候帯＝近い緯度の国が一緒に不作
     // 疫病（B-4・コレラ等）：過密×不衛生の地域で確率的に発生し人口を削る（死亡スパイク）。専用RNG系列で主系列（豊凶・鉱山・pop意思決定）を乱さない＝較正/Stage3は疫病の死亡効果のみで変わる。
-    public double EpidemicChance = 0.18;         // 疫病の年次発生確率の基礎（×脆弱度）。脆弱度＝過密(都市化)を工業化の衛生整備で割り引いた残り
-    public double EpidemicSanitationHalf = 1.5;  // 衛生整備の飽和スケール：工業化度がこれで疫病脆弱度が半減（sanit=工業化/(工業化+これ)）。完全には消えない＝発展国でも疫病は稀に起きる
+    public double EpidemicChance = 0.18;         // 疫病の年次発生確率の基礎（×脆弱度）。脆弱度＝過密(都市化)を実衛生財の充足で割り引いた残り
     public Share EpidemicSeverity = new(0.06);       // 流行時に地域人口が失う割合の基礎（揺らぎで0.5〜1.5倍）。衛生・医療の価値を高める
     // === テーマC（疫病の完成）===
-    public double EpidemicSanitationWeight = 0.6; // 致死率を工業化proxyから実衛生財(InfraFill+石鹸+電化)へブレンド（epidemic-ignores-built-sanitation）。0で旧proxy厳密一致。>0で上下水道投資がコレラ致死を下げる(スノウ)
     public double EpidemicVulnConcentration = 0.5; // 疫病死を飢えた層へ集中：POP の重み＝Size×(1+これ×(1−主食の充足))×年齢の重み（★2026-09-30 段4e 後半＝年齢の脆弱さは DisasterAgeMortalityExcess の年齢の重みの1本へ・旧＝子供比＋老年比もここで読み、POP の中の年齢の運搬と同じ脆弱さを2度読んだ＝思想⑨）。0で飢えの差なし・総死亡量は保存
     // 疫病の伝播（コレラの世界的流行＝交易路・近接で運ばれる）。発生国は EpidemicContagiousYears 年だけ感染源になり、近接＋交易接触で未感染国へ飛び火。単一国較正は伝播相手なしで無影響。
     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
@@ -715,7 +713,6 @@ public sealed class Coefficients
     public double TariffRetaliation = 0.5;       // 報復関税（tariff-no-strategic-retaliation）：相手の対自国関税の超過分に比例して自国関税目標を上げ/友好低関税国に下げる偏倚。0で偏倚なし（現行恒等）。多国かつ>0でのみ発火
     public double TariffReactionMax = 0.25;      // 報復/相互低減で偏倚させ得る上限(±)。TariffRetaliation=0なら無効
     // 【墓標2026-09-26（棚卸し econ-16・dorm-51）】TariffRetaliationViaPolitics（報復の圧力を支持項へ通す器・休眠0）＝2回差し戻し（一律形9/4：開放度0.211→0.156／輸出者だけ形9/5：◎18→12）＝再挑戦の計画が無い＝削除
-    public double PollutionCapacityWeight = 0.15; // 工業化の環境外部性（no-environmental-pollution-externality）：capacityに −これ×都市化×avgInd×(1−衛生) を加算＝工業都市の公害超過死亡。上下水道で緩和。0で従来完全一致
 
     // --- 税制の拡張（土地税の検地台帳の錠は (383) で物理削除。所得税の天井/ラッチは2026-09-12に廃止＝行政の弱さは汚職漏れが額で表す）---
     public double PollTaxRate = 0.15;            // 人頭税スライダー1.0時の1人あたり月額（労働者の月収2〜3に対し約5〜7%＝重い）
@@ -854,10 +851,6 @@ public sealed class Coefficients
 
     // --- 信用・銀行（§2.5.1／§9-G・段4）---
     public double CreditMultiplier = 3.0;     // 信用乗数（1/準備率）。広義マネー上限 ＝ 金×これ
-    // R12（2026-07-13点火）：信用乗数の発展度スケール化。全国全時代一律3.0＝1789の露清オスマンに英規模の近代銀行＋125年の金融深化がない不整合を是正。
-    public double CreditMultiplierDevWeight = 1.0;  // 【点火1.0】0=一律CreditMultiplier（厳密恒等）／>0で発展度(工業化)スケール（1で完全発展度依存）。maxLoans×=1+(target-1)×これ
-    public double CreditMultiplierDevFloor = 0.35;  // 最未発展国（工業化0）の乗数深度＝(CreditMultiplier-1)×これ。前工業でも手形/両替商の最低限の与信はある（実効乗数≒1+2×0.35=1.7）
-    public double CreditDevScale = 0.4;             // MeanIndustrialization がこの値で満額の近代信用創造（devFactor=1・実効乗数3.0）。工業化が進んだ英独は満額・露清は floor 近辺
     public double CreditAdjustSpeed = 0.05;   // 与信が目標へ寄る速さ（緩やか＝循環を滑らかに＝過剰変動の抑制）
     public double InterestRateEffect = 1.5;   // 金利が貸出意欲を抑える強さ＝貸出 ×clamp(1−これ×金利)。金融政策の効き
     // 政策金利（バンクレート）の配線：旧来は貸出意欲のみ。19世紀金融政策の核「バンクレート引上げで正貨を呼び戻す・為替を守る」を表現。
@@ -1848,7 +1841,6 @@ public sealed class Coefficients
     public double HealthcareCapacityBonus = 1.2;  // 医療（社会保障×識字でgate）が扶養力↑（乳児死亡の低下＝人口増の主因）
     public double HealthcareEducationGate = 0.6;  // 医療は識字がこれで満額（医者=教育済みPOPが要る）＝教育が人口動態に効く
     public double UrbanCapacityPenalty = 0.12;    // 都市化で扶養力低下（近代家族＝少子化＝人口転換の後半）。neutralは概ね安定に
-    public double IndustryCapacityBonus = 0.12;   // 工業化が扶養力↑（雇用・食料生産性＝産業革命の人口増・移民の定着先）。工業化度の平均に比例（強すぎると人口爆発で経済破綻）
     public double FoodCapacityWeight = 0.5;       // **実食料の扶養力連結（マルサスの積極的抑制）**：FoodFill=主食充足(消費ベース∈[0,1])。capacity に +これ×(FoodFill−1) ＝凶作/過密/高騰で主食が買えねば扶養力↓→飢饉死。平常 FoodFill≈1 で中立（較正温存）。下方向のみ（消費は需要で頭打ち＝余剰成長は既存機構）。翌年の収穫回復＋capacity下限0.3で再生可能
     public double LandRoomFertilityWeight = 0.3;   // 【現行0.3＝有効】U3で役割分離（旧名LandRoomCapacityWeight・2026-07-13）：空き土地(max(0,Σ耕地/Σ農村−1))×これ＝**世界の技術水準出生率ブースト**（FertilityBase以上へ・米西部の高出生）。旧はcapacity乗数でLandAnchorと二重リフトだった→出生側へ移管。ArableLand未設定（較正）は集計除外＝厳密恒等。0で休眠
     // B-高1（史実検証2026-07-22）：扶養力の食料アンカーの分子へ主食の**純輸入**を算入する比率。0=旧挙動＝自国産出のみ＝厳密恒等。
@@ -1975,13 +1967,10 @@ public sealed class Coefficients
     public double IndustrializationOff = 1;         // ★(495) **2026-10-23 に 1 で点火**（同上）。工業化度の倍率の読み手の削除（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」）。0＝今のまま＝厳密恒等。正のとき、能力の倍率 indMult・機械化度・開発度の記憶とヴィンテージ（技術水準を読む 3 つ）が働かない（★(609) 合流の注の直し：賃金の天井の工業化度の項・独占の解体・冷蔵の傾斜は (605) で物理削除＝旗を 0 にしても戻らない）。
                                                     //   州の在庫 Region.Industrialization とその書き手・在庫として読む 8 か所と州の上限 IndustryInvestRegionCap は残す（上限の削除は延期＝事前登録 追記 1 (2)）。
     // ★(605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・2026-10-26〈工業化度の廃止理由は、盤面から読めばよいから〉〔★(609) 合流：原文を確かめられない＝指示文にも docs にも無い・〈原文〉の札を外した〕）。
-    //   全て既定 0＝今のまま（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
-    public double EpidemicSanitFromBoard = 0;       // 疫病の致死率の衛生の代理（工業化度の飽和曲線）を読まず、実衛生財の充足 Region.Sanitation だけを読む（EpidemicSanitationHalf／Weight は旗 1 で未使用）。
+    //   残りの旗（UrbanCapOff・CapitalHeadroomFromReturn）は既定 0＝今のまま（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。
+    //   ★(667) 線 igi4：疫病の衛生・信用の深さ・開幕の交易の比重・扶養力の 4 本の旗（EpidemicSanitFromBoard・CreditDevOff・TradeWeightOpeningEven・CapacityIndTermsOff）を既定 1 で採り、旧の枝・旗・死んだ係数 7 本（EpidemicSanitationHalf・EpidemicSanitationWeight・CreditMultiplierDevWeight・CreditMultiplierDevFloor・CreditDevScale・IndustryCapacityBonus・PollutionCapacityWeight）を物理削除した（事前登録 measurements/igi4_667_20261030_prereg.txt）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
     public double UrbanCapOff = 0;          // 都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差（目標の都市の割合の sigmoid）・飢えの線（FamineMigrationFillGate）だけ（住居の充足は PopDecision.Run が読まない＝旗の名は UrbanCapOff）。UrbanIndSmoothed は書かない。
-    public double CreditDevOff = 0;                 // 信用の深さの工業化度の倍率 devFactor を 1.0 にする（作者のバフ／デバフ全削除）。旗 1 は前工業の国も満額の近代信用創造＝与信の天井が上がる向き（発散の候補）。
     public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。★旗 1 の CapitalIndTarget は 0〜1 の割合に掛ける目盛り（旧は工業化度の単位の目標）。ModernizeReturnShare は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む（直読みを外すだけ）。
-    public double TradeWeightOpeningEven = 0;       // 開幕の交易の比重を入力データ cfg.Industrialization で傾けず、DefaultTradeWeightBase の均等にする（分離独立国と同じ）。
-    public double CapacityIndTermsOff = 0;          // 扶養力の工業化度の 2 項（IndustryCapacityBonus×avgInd・PollutionCapacityWeight の公害圧）を外す。出生の FertilityIncomeSlope×avgInd は出生の設計（最終段 9-2）の持ち物＝触らない。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。
                                                     //   0.5＝技術力70（特許＝1780年代＝難易度0）なら強度 0.375 で届く＝旧の特許の閾値（中核エリート 0.4・傾斜 0.35〜0.45）と同じ所（推奨で決めた）
     public double DiscoveryNeedHalfIdea = 0.2;      // ★(152) 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35。

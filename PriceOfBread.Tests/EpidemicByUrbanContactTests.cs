@@ -81,7 +81,7 @@ public class EpidemicByUrbanContactTests
         Assert.Equal(u / tot, w.EpidemicOnsetRisk(c), 12);
         Assert.True(w.EpidemicOnsetRisk(c) < max);
         // 衛生の割引：州ごとに違う充足（InfraFill）を読む＝最悪の州の衛生を全州に掛けると赤
-        c.EpidemicSanitFromBoard = 1; c.EpidemicOnsetSanitationWeight = 0.4;
+        c.EpidemicOnsetSanitationWeight = 0.4;
         p[0].InfraFill = 0.9; p[1].InfraFill = 0.5; p[2].InfraFill = 0.1;
         double hand = 0;
         foreach (var r in p) { var (ur, po) = Sums(r); hand += (ur / po) * (po / tot) * (1.0 - 0.4 * Math.Clamp(r.InfraFill, 0, 1)); }
@@ -93,7 +93,7 @@ public class EpidemicByUrbanContactTests
     {
         var w = FranceWorld();
         var p = SkewedBoard3(w);
-        var c = w.Coef; c.EpidemicSanitFromBoard = 1; c.EpidemicOnsetSanitationWeight = 0.8; c.EpidemicChance = 0.2;
+        var c = w.Coef; c.EpidemicOnsetSanitationWeight = 0.8; c.EpidemicChance = 0.2;
         p[0].InfraFill = 0.9; p[1].InfraFill = 0.1; p[2].InfraFill = 0.1;            // 最も過密な州（州 0）だけ衛生が整っている
         double tot = 0; foreach (var r in p) tot += Sums(r).pop;
         double max = 0, handRisk = 0; int worst = 0;
@@ -114,7 +114,7 @@ public class EpidemicByUrbanContactTests
         var w = FranceWorld();
         var keep = w.Regions.First(r => r.Pops.Any(p => p.IsUrban && p.Size > 0));
         foreach (var r in w.Regions) if (!ReferenceEquals(r, keep)) foreach (var p in r.Pops) p.Size = 0;
-        var c = w.Coef; c.EpidemicSanitFromBoard = 1; c.EpidemicOnsetSanitationWeight = 0.4;
+        var c = w.Coef; c.EpidemicOnsetSanitationWeight = 0.4;
         var (ur, po) = Sums(keep);
         double old = (ur / po) * (1.0 - 0.4 * keep.Sanitation(c));
         Assert.True(old > 0);
@@ -181,7 +181,7 @@ public class EpidemicByUrbanContactTests
     {
         var w = FranceWorld();
         var r = w.Regions.First(x => x.Pops.Any(p => p.IsUrban && p.Size > 0) && x.Pops.Any(p => !p.IsUrban && p.Size > 0));
-        var c = w.Coef; c.EpidemicSeverity = new Share(1e-6); c.EpidemicSanitFromBoard = 1;   // 規模の下限に当たらない小さな率・衛生は実衛生財だけ
+        var c = w.Coef; c.EpidemicSeverity = new Share(1e-6);   // 規模の下限に当たらない小さな率・衛生は実衛生財だけ
         var ruralBefore = r.Pops.Where(p => !p.IsUrban).Select(p => p.Size).ToArray();
         var (ub, _) = Sums(r);
         double deathFrac = 1e-6 * (1.0 - 0.7 * Math.Clamp(r.Sanitation(c), 0, 1)) * 1.0 * 1.0;   // 致死率＝基礎×(1−0.7×衛生)×揺らぎ×scale を手で書く
@@ -234,7 +234,7 @@ public class EpidemicByUrbanContactTests
             double total0 = w.Regions.Sum(r => Sums(r).pop);
             var p = Board3(w, new[] { 10.0, 30.0, 60.0 });
             p[2].Pops.First(q => !q.IsUrban).Size += total0 - w.Regions.Sum(r => Sums(r).pop);   // 総人口を保つ（人口保存の不変条件）
-            var c = w.Coef; c.EpidemicIntraCountrySpread = 0; c.EpidemicChance = 1e6; c.EpidemicSeverity = new Share(0.5);
+            var c = w.Coef; c.EpidemicIntraCountrySpread = 0; c.EpidemicChance = 1e6; c.EpidemicSeverity = new Share(0.9);   // 衛生は実衛生財だけ（(667) 工業化度の代理を混ぜない）＝死は大きく取る
             var before = p.Select(r => Sums(r).urban).ToArray();
             for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
             Assert.True(w.EpidemicActiveYears > 0, "前提：発生した");

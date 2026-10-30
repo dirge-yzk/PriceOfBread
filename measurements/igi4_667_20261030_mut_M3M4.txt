@@ -1,0 +1,3 @@
+M3 開幕の交易の比重を入力の工業化度で傾ける build rc 0 → 赤 2 ['失敗 PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [294', '失敗 PriceOfBread.Tests.IndustrializationReaderTests.交易の比重_開幕は入力データの工業化度で傾けず基準の均等 ']
+M4 扶養力に工業化度の加点を戻す build rc 0 → 赤 2 ['失敗 PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [166', '失敗 PriceOfBread.Tests.IndustrializationReaderTests.扶養力は工業化度に依らず_出生率だけが工業化度で動く [4']
+MUTDONE

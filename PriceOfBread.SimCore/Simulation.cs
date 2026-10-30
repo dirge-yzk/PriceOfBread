@@ -1629,7 +1629,7 @@ public sealed class Simulation
     /// ⚠ 境界相の外から入力を書く動詞はプレイヤーの侵略（<see cref="World.Invade"/>＝兵の疫病死と植民地の州化）だけで、そこで表から外す。
     /// ⚠ 置き場＝静的な弱参照の表（World が消えれば消える）＝セーブに載らない（SaveGame はインスタンスのフィールドだけを辿る）。
     ///   表に無いとき（ロード直後・新しい国）は、その日に求める。並列の日次から書くが、鍵は自国の World だけ（他国の値を読まない）・表はスレッド安全。</summary>
-    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double AvgSat, double MeanInd)>> CreditMonth = new();
+    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double AvgSat)>> CreditMonth = new();
 
     /// <summary>純粋な日次（価格形成・建設・信用）＝**国ローカル**＝並列可。実測74%の時間がここ（timeprobe 2026-08-29）。
     /// ⚠不変条件＝自国 World/Region 以外に触れない・乱数を引かない・共有状態（Diplomacy/他国World/静的可変）へ書かない。
@@ -1672,13 +1672,13 @@ public sealed class Simulation
         ProbeCheck("日次建設");
         if (spanStart)
         {
-            (double NominalGdp, double AvgSat, double MeanInd)? creditMonth = null;
+            (double NominalGdp, double AvgSat)? creditMonth = null;
             if (World.Bank is not null)   // （2026-09-29 段2-2 から全ての世界に銀行がある＝常に真・盤面の直書きで外したときだけ偽）
             {
                 bool fresh = !CreditMonth.TryGetValue(World, out var box);
                 if (box is null) { box = new(); CreditMonth.Add(World, box); }
                 if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)   // 月の初日は旬の初日（h は30の約数）
-                    box.Value = (World.NominalGdpPerMonth.Value, NationalScore.MeanSatisfaction(World), World.Coef.CreditDevOff > 0 ? 0.0 : World.MeanIndustrialization);   // ★(605) 旗 CreditDevOff では工業化度を渡さない
+                    box.Value = (World.NominalGdpPerMonth.Value, NationalScore.MeanSatisfaction(World));
                 creditMonth = box.Value;
             }
             Credit.Step(World, World.Coef, creditMonth, hFlow);                     // 信用（与信・信頼）も旬次（旬の初日に h 日ぶん・速度は日数配分）
@@ -2622,11 +2622,10 @@ public sealed class Simulation
         // B-高2（史実検証2026-07-22）：辺境出生ブーストの上限。無上限だと米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・生物学的上限約4%）。
         // 既定 LandRoomFertilityCap=1e9 は landRoom(実測最大≈3.7)を素通し＝演算なしで厳密恒等。点火0.6＝倍率1.6。
         landRoom = Math.Min(landRoom, c.LandRoomFertilityCap);
-        double capAvgInd = c.CapacityIndTermsOff > 0 ? 0.0 : avgInd;   // ★(605) 旗 CapacityIndTermsOff：扶養力の工業化度の 2 項を外す。出生の項は avgInd のまま
-        double capacity = capacityBaseline * (1 + c.HealthcareCapacityBonus * healthcare + c.HealthFillCapacityBonus * doctorCare + c.IndustryCapacityBonus * capAvgInd
+        // ★(667) 扶養力は工業化度の 2 項（雇用・食料生産性の加点と公害圧）を持たない。出生の項は avgInd のまま（出生の設計 9-2 の持ち物）。
+        double capacity = capacityBaseline * (1 + c.HealthcareCapacityBonus * healthcare + c.HealthFillCapacityBonus * doctorCare
                                         - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
-                                        + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)
-                                        - c.PollutionCapacityWeight * World.UrbanShare * capAvgInd * (1.0 - sanitation)) * WorkHoursCapacity(World.WorkHoursValue, c);   // 衛生は都市で按分＝疫病は過密の問題＋工業化の環境外部性（公害圧＝工業化×都市化×(1−衛生/規制)で超過死亡・上下水道で緩和）。PollutionCapacityWeight=0で従来完全一致
+                                        + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);   // 衛生は都市で按分＝疫病は過密の問題（(667) 工業化の公害圧の項は消した）
         capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
         // ★診断（2026-08-01・純記帳）：扶養力の内訳を外へ出す。popprobe が読む。
         World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // (369) 人口の段が実際に使った錨（純記帳・計器 anchor_s の anchorUsed）
