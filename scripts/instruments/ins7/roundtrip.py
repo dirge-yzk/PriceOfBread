@@ -79,9 +79,11 @@ def prod(D, want=None, s=None):
 if __name__ == '__main__':
     D = sys.argv[1]
     args = sys.argv[2:]
-    if '--prod' not in args or '--only-prod' not in args: roundtrip(D)
-    if '--prod' in args:
-        prod(D)
-        # --prod の後ろに「種 国 州」を渡すと、その州の例（hol の型＝植民地格の州の例：--prod 4 イギリス ナイン）
-        i = args.index('--prod')
+    # (702) 合流の直し（反証役 ins7〔v〕低）：旧の条件 `not A or not B` は常に真で、州を指定しても自動選びが先に出た
+    if '--only-prod' not in args: roundtrip(D)
+    if '--prod' in args or '--only-prod' in args:
+        # --prod の後ろに「種 国 州」を渡すと、その州の例だけ（hol の型＝植民地格の州の例：--prod 4 イギリス ナイン）・無ければ自動選び
+        k = '--prod' if '--prod' in args else '--only-prod'
+        i = args.index(k)
         if len(args) >= i + 4: prod(D, (args[i+2], args[i+3]), int(args[i+1]))
+        else: prod(D)
