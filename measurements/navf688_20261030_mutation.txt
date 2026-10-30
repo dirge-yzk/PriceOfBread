@@ -1,0 +1,5 @@
+M1 Math.Min を外す: 赤1
+M2 0の守りを > 0 にする: 赤1
+M3 旗1の分母の予算を首都だけにする: 赤1
+M4 2つの枝を入れ替える: 赤2
+(a) FleetAfford の突然変異 4 本はすべて赤（NavalPortProcurementTests 6 本中）

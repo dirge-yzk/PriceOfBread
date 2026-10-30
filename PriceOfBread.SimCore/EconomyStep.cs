@@ -414,6 +414,22 @@ public static class EconomyStep
         return q;
     }
 
+    /// <summary>★(688) 線 navf5：App の政治タブの艦隊の行の〈海軍の予算の充足〉の式を SimCore の1本へ移した（挙動を変えない恒等の部分）。<paramref name="capital"/>＝首都の州（App の <c>r</c>）・<paramref name="fleetCost"/>＝首都の値段で引いた発注の必要額（<see cref="FleetOrder"/> の <c>out cost</c>）。
+    /// 旗 <see cref="Coefficients.NavalPortProcurement"/> が 0 のときは 首都の州の予算 ÷ <paramref name="fleetCost"/>。正のときは予算が国の本国格の港の州へ割られる（<see cref="NavalPortSplit"/>）ので、国の Σ州の予算 ÷ 各州が自分の値段で買う額の和。
+    /// 読むのは<b>支払い率を掛けた後</b>の <see cref="Region.NavalBudget"/>（Simulation の <c>r.NavalBudget *= payRate</c> の後）。0 の守りは App の <c>Eps</c> と同じ 1e-9（文字どおり）。呼び手＝App の艦隊の行（数と状態だけ）。</summary>
+    internal static double FleetAfford(World world, Coefficients coef, Region capital, double fleetCost)
+    {
+        double fAfford = fleetCost > 1e-9 ? Math.Min(1.0, capital.NavalBudget / fleetCost) : 0.0;
+        if (coef.NavalPortProcurement > 0)
+        {
+            var navShare = new double[world.Regions.Count]; var navBudShare = new double[world.Regions.Count];
+            NavalPortSplit(world, coef, navShare, navBudShare, out double navNeed);
+            double navBudget = 0; foreach (var pr in world.Regions) navBudget += pr.NavalBudget;
+            fAfford = navNeed > 1e-9 ? Math.Min(1.0, navBudget / navNeed) : 0.0;
+        }
+        return fAfford;
+    }
+
     /// <summary>★(669) 追記 1：州の海軍の予算＝国の予算 <paramref name="navalNat"/> × その州の予算の割合（発注の割合が 0 の州は 0）。Simulation の州ごとの書き込みが通る1本（Σ州の予算＝国の予算を番人が見る）。</summary>
     internal static double NavalPortBudget(double navalNat, double orderShare, double budgetShare) => orderShare > 0 ? navalNat * budgetShare : 0;
 
