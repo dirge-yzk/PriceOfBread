@@ -132,6 +132,7 @@ public static class Factions
                     w.LogAdd($"{w.Year} {DisplayName(small)}が{DisplayName(big)}に合流した");
                 }
         }
+        if (Instruments.On) Instruments.PrdfObserve(w, observed, totalPop);   // (681) 計器だけ＝急進の運動体の表（読むだけ）
     }
 
     /// <summary>表示名：変異済みは旗の名・未変異は機械生成名（F2と同じ語彙）。</summary>

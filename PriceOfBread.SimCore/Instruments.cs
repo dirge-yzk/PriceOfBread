@@ -1827,6 +1827,7 @@ public static partial class Instruments
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
+        PrdfTable(sim, seed);              // (681) 急進の運動体の表
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
@@ -1851,6 +1852,7 @@ public static partial class Instruments
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        PrdfClose(sim);  // (681)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;
