@@ -57,4 +57,14 @@ public class ColonyCessionDistanceTests
         Assert.NotEmpty(moved);                    // 予算に収まる別の州が移る（講和そのものは起きる）
         Assert.Equal(0, dRegions); Assert.Equal(0.0, dPop, 6);
     }
+
+    [Fact]
+    public void 旗1は距離込みの費用で予算を使い切り2件目が買えなくなる()
+    {
+        // 勝者 100・第三者 300（艦の世界比 1/3）。カナダ（基本 60・海路 6,600km 超）は距離込みで約 87 ＝予算 100 の大半を使う。
+        // 残りは 13 弱＝基本費用 30 の州も買えない。予算を距離を除いた基本の費用で引くと、残り約 40 で海路の近い無資源の州（基本 30）が 2 件目として移る。
+        var (moved, dRegions, dPop) = Peace(1, 100, 10, 300);
+        Assert.Equal(new[] { "カナダ" }, moved);
+        Assert.Equal(0, dRegions); Assert.Equal(0.0, dPop, 6);
+    }
 }
