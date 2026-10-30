@@ -1,0 +1,66 @@
+### gates3 基線 m685・N1・N2・腕 m694（合わせた木）
+M2：ヌル 3 本の幅の最大 F=0.01427（データ由来の床）・ヌル幅の中央値 0.00436
+  一つ抜きの外の数（腕＝基線・N1・N2 の順）: [(0, 9), (0, 9), (0, 9)]   ←門 M2＝9 国中 5 以上・M3'＝45 窓中 14 以上
+  腕 ins：外 2 / 9 ['アメリカ', 'ロシア']
+M3'：ヌル 3 本の幅の最大 F=1.42175（データ由来の床）・ヌル幅の中央値 0.14605
+  一つ抜きの外の数（腕＝基線・N1・N2 の順）: [(0, 45), (0, 45), (0, 45)]   ←門 M2＝9 国中 5 以上・M3'＝45 窓中 14 以上
+  腕 ins：外 2 / 45 ["('オスマン', '1783-1814')", "('清', '1914-1950')"]
+### gates3 基線 ab_u0（navf5 の木＝合わせた木の UrbanCapOff=0）・N1・N2（m685 の幅を借りる）・腕 m694
+M2：ヌル 3 本の幅の最大 F=0.01427（データ由来の床）・ヌル幅の中央値 0.00353
+  一つ抜きの外の数（腕＝基線・N1・N2 の順）: [(0, 9), (0, 9), (0, 9)]   ←門 M2＝9 国中 5 以上・M3'＝45 窓中 14 以上
+  腕 ins：外 2 / 9 ['アメリカ', 'ロシア']
+M3'：ヌル 3 本の幅の最大 F=1.25048（データ由来の床）・ヌル幅の中央値 0.14536
+  一つ抜きの外の数（腕＝基線・N1・N2 の順）: [(0, 45), (0, 45), (0, 45)]   ←門 M2＝9 国中 5 以上・M3'＝45 窓中 14 以上
+  腕 ins：外 2 / 45 ["('オスマン', '1783-1814')", "('清', '1914-1950')"]
+### m1did 基線 m685 → m694
+s1 n 3700 median_du +0.0644 median_did +0.0354 median_du_Q0 +0.0017 (n_did 3562)
+s2 n 3857 median_du +0.0720 median_did +0.0288 median_du_Q0 +0.0011 (n_did 3754)
+s3 n 3762 median_du +0.0868 median_did +0.0571 median_du_Q0 +0.0012 (n_did 3708)
+s4 n 3498 median_du +0.0681 median_did +0.0266 median_du_Q0 +0.0011 (n_did 3357)
+s5 n 3816 median_du +0.0581 median_did +0.0183 median_du_Q0 +0.0018 (n_did 3613)
+s6 n 3720 median_du +0.0767 median_did +0.0430 median_du_Q0 +0.0009 (n_did 3642)
+s7 n 3518 median_du +0.0813 median_did +0.0510 median_du_Q0 +0.0017 (n_did 3438)
+s8 n 3111 median_du +0.0774 median_did +0.0383 median_du_Q0 +0.0010 (n_did 3030)
+s9 n 3444 median_du +0.0825 median_did +0.0525 median_du_Q0 +0.0011 (n_did 3354)
+s10 n 3813 median_du +0.0669 median_did +0.0255 median_du_Q0 +0.0017 (n_did 3693)
+median_of_medians du +0.0743  did +0.0369  Q0 +0.0012
+max|median_du| 0.0868  max|median_did| 0.0571
+### m1did 基線 ab_u0 → m694
+s1 n 3590 median_du +0.0762 median_did +0.0441 median_du_Q0 +0.0017 (n_did 3472)
+s2 n 3816 median_du +0.0629 median_did +0.0259 median_du_Q0 +0.0011 (n_did 3743)
+s3 n 3842 median_du +0.0781 median_did +0.0506 median_du_Q0 +0.0012 (n_did 3770)
+s4 n 3487 median_du +0.0635 median_did +0.0155 median_du_Q0 +0.0011 (n_did 3385)
+s5 n 3521 median_du +0.0705 median_did +0.0347 median_du_Q0 +0.0018 (n_did 3437)
+s6 n 4054 median_du +0.0855 median_did +0.0534 median_du_Q0 +0.0009 (n_did 3833)
+s7 n 3337 median_du +0.0773 median_did +0.0433 median_du_Q0 +0.0017 (n_did 3252)
+s8 n 3529 median_du +0.0818 median_did +0.0479 median_du_Q0 +0.0010 (n_did 3350)
+s9 n 3603 median_du +0.0759 median_did +0.0415 median_du_Q0 +0.0011 (n_did 3506)
+s10 n 3705 median_du +0.0885 median_did +0.0555 median_du_Q0 +0.0017 (n_did 3629)
+median_of_medians du +0.0767  did +0.0437  Q0 +0.0012
+max|median_du| 0.0885  max|median_did| 0.0555
+### m1did ヌル m685 → N1
+s1 n 3864 median_du -0.0000 median_did -0.0001 median_du_Q0 +0.0000 (n_did 3651)
+s2 n 3568 median_du +0.0005 median_did +0.0004 median_du_Q0 +0.0000 (n_did 3450)
+s3 n 3901 median_du +0.0008 median_did +0.0009 median_du_Q0 +0.0000 (n_did 3831)
+s4 n 3832 median_du -0.0003 median_did -0.0003 median_du_Q0 -0.0000 (n_did 3417)
+s5 n 3712 median_du -0.0001 median_did -0.0001 median_du_Q0 +0.0000 (n_did 3642)
+s6 n 3731 median_du +0.0005 median_did +0.0005 median_du_Q0 +0.0000 (n_did 3577)
+s7 n 3688 median_du +0.0015 median_did +0.0013 median_du_Q0 -0.0000 (n_did 3592)
+s8 n 3282 median_du +0.0015 median_did +0.0016 median_du_Q0 -0.0000 (n_did 3134)
+s9 n 3516 median_du -0.0025 median_did -0.0024 median_du_Q0 +0.0000 (n_did 3425)
+s10 n 3681 median_du +0.0009 median_did +0.0008 median_du_Q0 +0.0000 (n_did 3554)
+median_of_medians du +0.0005  did +0.0005  Q0 +0.0000
+max|median_du| 0.0025  max|median_did| 0.0024
+### m1did ヌル m685 → N2
+s1 n 3772 median_du -0.0026 median_did -0.0029 median_du_Q0 +0.0000 (n_did 3647)
+s2 n 3711 median_du +0.0000 median_did +0.0000 median_du_Q0 +0.0000 (n_did 3649)
+s3 n 3753 median_du +0.0014 median_did +0.0015 median_du_Q0 +0.0000 (n_did 3659)
+s4 n 3832 median_du -0.0013 median_did -0.0012 median_du_Q0 -0.0000 (n_did 3542)
+s5 n 3891 median_du -0.0003 median_did -0.0003 median_du_Q0 -0.0000 (n_did 3734)
+s6 n 3766 median_du +0.0000 median_did +0.0000 median_du_Q0 +0.0000 (n_did 3638)
+s7 n 3722 median_du +0.0003 median_did +0.0002 median_du_Q0 +0.0000 (n_did 3541)
+s8 n 3247 median_du -0.0006 median_did -0.0006 median_du_Q0 -0.0000 (n_did 3148)
+s9 n 3585 median_du +0.0010 median_did +0.0010 median_du_Q0 +0.0000 (n_did 3432)
+s10 n 3632 median_du -0.0006 median_did -0.0007 median_du_Q0 +0.0000 (n_did 3484)
+median_of_medians du -0.0002  did -0.0002  Q0 +0.0000
+max|median_du| 0.0026  max|median_did| 0.0029
