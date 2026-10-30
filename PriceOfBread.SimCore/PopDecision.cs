@@ -16,11 +16,10 @@ public static class PopDecision
     internal static double UrbanShareCap(Coefficients c, double indForCap)
         => Math.Clamp(c.BaseUrbanCap + indForCap * c.UrbanPerInd, 0, MaxUrbanShareCap);
 
-    /// <param name="serfFree">農奴解放の梯子（None:0/Limited:0.5/Full:1＝Colonial.cs入植と同じ）。rank3 SerfMobilityGate>0 のとき農村→都市流を縛る。既定1.0＝自由。</param>
-    public static void Run(Region region, Coefficients coef, double serfFree = 1.0)   // 02断線走査2026-07-28：rng死引数を削除（旧MigrationNoiseはC裁定2026-07-09で撤去済み＝決定論に乱数の誤読を残さない）
+    /// <summary>農村↔都市の対の選び（(668) 案 U）＝閉鎖階級と犯罪者を飛ばし、最初の農村 POP と最初の都市 POP を取る。人口の移動（<see cref="Run"/>）・職の移しの天井（<c>Meritocracy.UrbanHeadroom</c>）・計器 <c>UrxPdDrive</c> が同じ 1 本を読む
+    /// （旧＝3 か所の手書きで、犯罪者を飛ばすのは <see cref="Run"/> と計器だけだった。犯罪者の POP は Pops の末尾に足されるので値は変わらない＝恒等）。対が成り立たなければ該当の側が null。</summary>
+    internal static (Pop? Rural, Pop? Urban) MigrationPair(Region region)
     {
-        if (region.Pops.Count < 2) return;
-
         Pop? rural = null, urban = null;
         foreach (var p in region.Pops)
         {
@@ -28,6 +27,15 @@ public static class PopDecision
             if (p.IsUrban) urban ??= p;
             else rural ??= p;
         }
+        return (rural, urban);
+    }
+
+    /// <param name="serfFree">農奴解放の梯子（None:0/Limited:0.5/Full:1＝Colonial.cs入植と同じ）。rank3 SerfMobilityGate>0 のとき農村→都市流を縛る。既定1.0＝自由。</param>
+    public static void Run(Region region, Coefficients coef, double serfFree = 1.0)   // 02断線走査2026-07-28：rng死引数を削除（旧MigrationNoiseはC裁定2026-07-09で撤去済み＝決定論に乱数の誤読を残さない）
+    {
+        if (region.Pops.Count < 2) return;
+
+        var (rural, urban) = MigrationPair(region);
         if (rural is null || urban is null) return;
 
         double incRural = rural.Size > Eps ? (rural.EarnedPerMonth / rural.Size).Value : 0.0;
