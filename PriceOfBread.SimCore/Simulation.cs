@@ -2131,7 +2131,7 @@ public sealed class Simulation
                     navalCap = Math.Min(navalCap, EconomyStep.NavalProcurementNeed(r, World.Coef, World));
                 }
                 r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
-                r.NavalBudget = r.Id == 0 ? navalCap : 0;   // 艦は国の調達（首都の州の1本・港の門は EconomyStep.FleetOrder）
+                r.NavalBudget = r.Id == 0 ? navalCap : 0;   // 旗 NavalPortProcurement が 0 の経路＝艦は国の調達（首都の州の1本・港の門は EconomyStep.FleetOrder）。既定 1（(679) で点火）は下の navShare で国の本国格の港の州へ配る
                 if (navShare is not null)
                 {
                     // ★(606) 線 navf（旗 NavalPortProcurement が正）：国の海軍の予算（装備の器×海の金の割合を必要額で切った額・首都の1本で引いた旧と同じ値）と発注を国の本国格の港の州へ**同じ割合**で配る。

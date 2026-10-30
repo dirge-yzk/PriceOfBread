@@ -20,7 +20,7 @@ public static partial class Instruments
     internal const string PrdfHeaderText = "quarter\tyear\tnation\tpolityCode\tknownCom\tmanifestoCom\tnBody\tnBodyCom\tnBodySoc\tpopShareCom\tpopShareComSub\tpopShareSoc"
         + "\tnCellCom\tmaxCellFracCom\tmaxCellFracSoc\tmaxCohCom\trevoltTarget\trevoltN\ttrack0\ttrack1\ttrack2\ttrack3";
 
-    sealed class PrdfRow { public string Head = ""; public string Mid = ""; public int Q; public int RevoltTarget = -1, RevoltN; public string Tail = ""; }
+    sealed class PrdfRow { public string Head = ""; public int Q; public int RevoltTarget = -1, RevoltN; public string Tail = ""; }
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, List<PrdfRow>> PrdfPending = new();
     sealed class PrdfSink { public System.IO.StreamWriter? W; public bool Header; }

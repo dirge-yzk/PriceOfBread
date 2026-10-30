@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(606) 線 navf／★(669) 線 navf3（海軍の需要の道・読む線 nav〔(594)〕の答え）の番人。旗 <see cref="Coefficients.NavalPortProcurement"/>（艦の発注と予算を国の**本国格の港の州**へ配る）。既定 0＝旧と同じ（恒等は成績表の報告で見る）。
+/// <summary>★(606) 線 navf／★(669) 線 navf3（海軍の需要の道・読む線 nav〔(594)〕の答え）の番人。旗 <see cref="Coefficients.NavalPortProcurement"/>（艦の発注と予算を国の**本国格の港の州**へ配る）。既定 1（(679) 線 navf4 で点火）・旗 0 の経路は旧と同じ（恒等は成績表の報告で見た）。
 /// ここは機構と不変条件だけ：配りの合計が1・港でない州と植民地格の港は0・予算の合計は旧の首都の1本と同じ・決済は港の州の艦の在庫と海軍の区分に入る。
 /// 陸の必要量の国境の番人は (614) の F2 のもの＝この線では載せない。</summary>
 public class NavalPortProcurementTests

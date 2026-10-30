@@ -317,7 +317,7 @@ public class MultiNationTests3
         MultiNationSim sim = null!;
         System.Collections.Generic.List<string> Battles() => sim.Diplomacy.Log.Where(l => l.Contains("陸戦で") || l.Contains("海戦で")).ToList();
         for (ulong seed = 1806UL; seed < 1806UL + 14; seed++)   // ★(679) 線 navf4：海軍の発注を本国格の港の州へ配る旗の点火で軌道が動き、1806〜1811 の 6 種では 4 カ国の 1200 か月に戦いが出なかった＝書式の番人なので戦いが出る種が見つかるまで広げる（6→14）
-        //   // ★(667) 線 igi4：疫病・信用・扶養力の旗 4 本を採った後の軌道では 4 カ国の 1200 か月に戦いが出る種が少ない（1791〜1810 の 20 種のうち 1806・1810 の 2 種）＝出る種から始める（書式の番人なので戦いの有無は問わない）
+        //   ★(667) 線 igi4：疫病・信用・扶養力の旗 4 本を採った後の軌道では 4 カ国の 1200 か月に戦いが出る種が少ない（1791〜1810 の 20 種のうち 1806・1810 の 2 種）＝出る種から始める（書式の番人なので戦いの有無は問わない）
         {
             sim = new MultiNationSim(FourNations(), seed: seed);
             sim.Run(200);

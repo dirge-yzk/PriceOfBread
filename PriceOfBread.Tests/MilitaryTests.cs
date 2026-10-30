@@ -724,7 +724,7 @@ public class MilitaryTests
     /// <summary>★(189) 呼び手の側：海軍の予算（Simulation の月次の Region.NavalBudget）＝装備の器（軍事費の器から給与を払った残り）×海の金の割合（World.NavalSpendShare＝施行された陸海の維持費の比）・
     /// 陸の装備の上限（MilitaryBudgetCeiling）＝装備の器×(1−海の金の割合)＝作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」の金の分け方。
     /// 盤面＝英仏（外交は止める＝艦は播かれない・海の必要量は手で大きく置く＝目標の艦隊は在庫より大きい＝必要額で切られない）＝30日回すと首都の 海軍の予算÷陸の装備の上限＝割合÷(1−割合)
-    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。首都の外の州は0。
+    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。★(685) 合流：旗 NavalPortProcurement（既定 1）は国の予算を本国格の港の州へ配る＝比は〈Σ州の海軍の予算÷首都の陸の上限〉で読む（旗 0 でも首都の1本＝同じ式）。州ごとの配りの番人は NavalPortProcurementTests。
     /// ⚠突然変異「陸の装備の上限を装備の器の全体のまま（旧）」「海軍の予算を分けない」で赤。</summary>
     [Fact]
     public void 海軍の予算は装備の器を海の金の割合で分ける()
@@ -738,8 +738,9 @@ public class MilitaryTests
         Assert.True(s > 0.01 && s < 0.99, $"前提が崩れた：海の金の割合 {s}");
         var cap = w.Region;
         Assert.True(cap.NavalBudget > 0 && cap.MilitaryBudgetCeiling > 0, $"前提が崩れた：海軍の予算 {cap.NavalBudget}・陸の装備の上限 {cap.MilitaryBudgetCeiling}");
-        Assert.Equal(s / (1 - s), cap.NavalBudget / cap.MilitaryBudgetCeiling, 9);
-        foreach (var r in w.Regions) if (!ReferenceEquals(r, cap)) Assert.Equal(0.0, r.NavalBudget);
+        double navSum = 0; foreach (var r in w.Regions) navSum += r.NavalBudget;
+        Assert.Equal(s / (1 - s), navSum / cap.MilitaryBudgetCeiling, 9);
+        if (w.Coef.NavalPortProcurement <= 0) foreach (var r in w.Regions) if (!ReferenceEquals(r, cap)) Assert.Equal(0.0, r.NavalBudget);
     }
 
     /// <summary>★(189) 海軍力は艦の在庫×段の効き×乗員の充足×海の熟練から決まり、陸軍の即応度と陸の質（Military の乗数）を読まない

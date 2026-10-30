@@ -23,7 +23,7 @@ public class StanceEduHoldsLawTests
         w.PoliticalLockEnabled = false;
         w.EducationLaw = current;
         w.Coef.StanceEduHoldsLaw = flag;
-        typeof(World).GetProperty("Treasury")!.GetSetMethod(true)!.Invoke(w, [new MoneyStock(treasury)]);
+        w.SetTreasuryRaw(treasury);   // ★(685) 合流：反射でなく既存の internal の口（反証役 edq〔bv〕低）
         return w;
     }
 
