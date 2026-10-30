@@ -1549,6 +1549,8 @@ public sealed class Coefficients
     public double ColonyCapturePopCost = 2;        // 人口規模1あたりの追加奪取コスト（人口の多い植民地＝印度ほど奪いにくい＝大勝が必要）
     // 【墓標2026-10-18・旗の焼き込み】ColonyCaptureReachGate（既定1.0・2026-08-02）を消した＝講和奪取の射程ゲート：投射圏（CessionMaxDistanceKm）の外の植民地は海を実際に制していなければ受け取れない。
     public int ColonyCaptureMax = 3;               // 1戦争で奪える植民地の上限（完全勝利でも3つほど）
+    // ★(696) 線 hcd（講和の植民地格の州の複数割譲に距離を戻す・2026-10-31 に既定 1 で点火）：0＝旧（植民地格の州の複数割譲の費用は 基本＋資源＋人口 だけ＝距離を見ない・射程の門は 敗者との相対の CanCrossSea だけ）／正＝植民地格の州の費用に、ColonyList 経路（上）と同じ形の距離の項 ×(1＋ColonyCaptureDistanceWeight×海路 km÷DistanceNormKm×(1−勝者の艦÷世界最大の艦)) を掛ける（予算 sa×ColonyCaptureBudget は 2 経路で共有のまま・州の選ぶ順〔価値〕は変えない）。新しい定数・倍率・天井・状態は無い（既存の ColonyCaptureDistanceWeight・DistanceNormKm を使う）。AI とプレイヤーで同じ経路。形は〈入口〉（遠い植民地格の州が安く移る）。CedeTerritory の colonialReach 経路（単独の境界割譲）は触らない。
+    public double HcdColonyCessionDistance = 1;
     public double ColonyCaptureDistanceWeight = 1.0;   // 戦勝奪取の距離実力ゲート（2026-07-09・上海集中対策）：奪取コスト×(1＋これ×海路距離万km×(1−制海権))＝海軍なき国は遠方植民地を奪えず、海軍国は距離を制海権で相殺（州割譲のCessionMaxDistanceKmと対をなす植民地側＝地理無視の戦利品循環〔清がカラカス/ペルー・ソコトがペルー保有〕の是正）。0で旧挙動（休眠可）
     public double ExpansionWillBourgeois = 0.4;        // 商業帝国チャネル（裁定2・2026-07-10）：ブルジョワ・ブロック力×これ/四半期の膨張意志＝東インド会社の実体化（英Modern≈0.4で+0.16/四半期→willCost8.4を約13年で充足）。従来は戦争熱>0.5超過分のみ＝自由主義的な英仏が構造的に植民地化不能だった。0で旧挙動
     public double ColonizeWillSuperiorityDiscount = 1.0;   // 国力比の重み（作者裁定2026-08-23）：要求余剰戦力＝上限÷(1＋これ×実効戦力/屈服線)。1.0＝**ちょうど屈服させられる相手で上限の50%**（弱小へは半分で行ける）。大きいほど優位が安くつく・0で常に満タン要求

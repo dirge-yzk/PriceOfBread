@@ -2953,6 +2953,15 @@ public sealed class Diplomacy
             && CanCrossSea(winner, loser, c))
         {
             int ctaken = captured;   // 旧経路（ColonyList奪取）との合算で ColonyCaptureMax を守る（予算budgetも上で1本化して共有）
+            // ★(696) 線 hcd（旗 HcdColonyCessionDistance が正のとき）：ColonyList 経路（上）と同じ距離の項を植民地格の州の費用へ。世界最大の艦との比（敗者との相対でない）で相殺する規約も上と同じ。0 のときは何も計算しない。
+            bool hcdDist = c.HcdColonyCessionDistance > 0 && c.ColonyCaptureDistanceWeight > 0;
+            bool hcdSuez = false, hcdPanama = false; double hcdSea = 0;
+            if (hcdDist)
+            {
+                hcdSuez = ChokeOpenFor(SuezId, winner); hcdPanama = ChokeOpenFor(PanamaId, winner);
+                double hcdMaxNav = 0; foreach (var p in Powers) hcdMaxNav = Math.Max(hcdMaxNav, p.NavalPower);
+                hcdSea = hcdMaxNav > 1e-9 ? winner.NavalPower / hcdMaxNav : 0;
+            }
             while (ctaken < (int)c.ColonyCaptureMax)
             {
                 if (lcw.Regions.Count <= 1) break;   // 最後の1州ガード（CedeTerritory と同じ）
@@ -2963,6 +2972,12 @@ public sealed class Diplomacy
                     double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, ColonyUnitPop);   // Colony.Population と同じ物差し
                     double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * r.Resources.Length
                                 + c.ColonyCapturePopCost * units;
+                    if (hcdDist)   // 座標未登録（0,0）は距離項なし（ColonyList 経路と同じ規約）
+                    {
+                        var hcdXY = Climate.CityCoord(r.Name);
+                        if (!(Math.Abs(hcdXY.Lat) < 1e-9 && Math.Abs(hcdXY.Lon) < 1e-9))
+                            cost *= 1 + c.ColonyCaptureDistanceWeight * (Geo.SeaDistanceKm(wcw.Latitude, wcw.Longitude, hcdXY.Lat, hcdXY.Lon, hcdSuez, hcdPanama) / DistanceNormKm) * (1 - hcdSea);
+                    }
                     if (cost > budget) continue;
                     double val = r.Resources.Length + 0.5 + units * 0.5;   // Colony.Value と同じ式（価値の高い順に取る）
                     if (val > pickVal || (val == pickVal && (pick is null || string.CompareOrdinal(r.Name, pick.Name) < 0)))
