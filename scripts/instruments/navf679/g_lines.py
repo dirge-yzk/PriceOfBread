@@ -29,8 +29,8 @@ SEEDS = list(range(SB, SB + NS))
 ASB = int(opt('--a-start')) if opt('--a-start') else SB
 SEVEN = ['イギリス', 'フランス', 'プロイセン', 'ロシア', 'オーストリア', 'アメリカ', '日本']
 FOUR = ['イギリス', 'フランス', 'ロシア', 'オーストリア']
-G2_FLOOR_WIDTH = 0.112   # m655 の木の旗なし 3 腕の G2 の広がり（0.292−0.180）＝ヌル腕の幅（事前登録 追記 1：G2 は記録だけ・採否に使わない）
-G2_NULL_LOW = 0.180      # 旗なしの 3 腕（m655 0.250・N1 0.292・N2 0.180）の下端（記録）
+G2_FLOOR_WIDTH = 0.102   # m675 の木の旗なし 3 腕の G2（N＝8 年）の広がり（0.298−0.196）＝ヌル腕の幅（追記 2：m655 の値 0.112 から直した・G2 は記録だけ・採否に使わない）
+G2_NULL_LOW = 0.196      # 旗なしの 3 腕（m675 0.298・N1 0.196・N2 0.250）の下端（記録・追記 2 で m655 の 0.180 から直した）
 NA = 5 if SB == 1 else NS   # 旗 0 の対の種の数（A＝種 1〜5・A′＝種 11〜20）
 
 
@@ -109,15 +109,19 @@ def g2(d, seeds, n_years=8, tag='', events=False):
     return ok, tot, per, byn, ok2, tot2
 
 
-def share_other(d, s, n):
-    cap = oth = 0.0
+def share_out_bud(d, s, n):
+    """追記 2：国×種の（首都以外の造船の産出の割合）と（首都以外の予算の割合）。予算が正の国×四半期だけ。戻り値＝(産出の割合, 予算の割合)。"""
+    cap = oth = bc = bo = 0.0
     rows = rows_of(d, s)
-    if rows is None or not has_nav_cols(rows): return float('nan')
+    if rows is None or not has_nav_cols(rows): return float('nan'), float('nan')
     for r in rows:
         if r['nation'] != n or not r['time'].startswith('q'): continue
-        if not (fnum(r['navalBudgetCapitalPerMonth']) + fnum(r['navalBudgetOtherPerMonth']) > 0): continue
-        cap += fnum(r['capitalFleetGoodsOutputPerMonth']); oth += fnum(r['otherFleetGoodsOutputPerMonth'])
-    return oth / (cap + oth) if cap + oth > 0 else float('nan')
+        c, o = fnum(r['navalBudgetCapitalPerMonth']), fnum(r['navalBudgetOtherPerMonth'])
+        if not (c + o > 0): continue
+        cap += fnum(r['capitalFleetGoodsOutputPerMonth']); oth += fnum(r['otherFleetGoodsOutputPerMonth']); bc += c; bo += o
+    so = oth / (cap + oth) if cap + oth > 0 else float('nan')
+    sb = bo / (bc + bo) if bc + bo > 0 else float('nan')
+    return so, sb
 
 
 def g1_g7():
@@ -165,19 +169,29 @@ def g7_record_a():
     print(f'記録 G7 旗 0 の対（A）で navalBudgetColonialPerMonth が 0 でない行 = {len(bad)}（{bad[:6]}）')
 
 
+G1B_LINE = 0.5   # 追記 2：産出の割合 ÷ 予算の割合 の線＝AI の置き（ヌル腕の根拠は無い＝旗 0 では首都以外の予算が 0 で比が作れない）
+
+
 def g1b():
-    """G1b（追記 1）：英が必須（B の中央値が A の種ごとの最大を上回る）かつ 仏・露・墺のうち 2 国以上。"""
-    if not ARMA: print('G1b --a（旗 0 の腕の計器の出力）が無い'); return None
-    up = {}
+    """G1b（追記 2・大きさの門）：国×種ごとに 比＝（首都以外の造船の産出の割合）÷（首都以外の予算の割合）。英・仏・露・墺の各国で、比 ≥ 0.5 の種が 8 種以上。
+    判定＝英が必須 かつ 仏・露・墺のうち 2 国以上。旗 0 の対（--a）は記録（産出の割合・予算の割合）だけで門に使わない。"""
+    ok_n = {}
     for n in FOUR:
-        bl = [x for x in (share_other(D, s, n) for s in SEEDS) if x == x]
-        al = [x for x in (share_other(ARMA, s, n) for s in range(ASB, ASB + NA)) if x == x]
-        if not bl or not al: print(f'G1b {n} 値なし'); up[n] = False; continue
-        bm = st.median(bl); am = max(al); up[n] = bm > am
-        print(f'G1b {n} 造船の産出のうち首都以外の割合 B 中央値={bm:.4f} A 最大={am:.4f} A 中央値={st.median(al):.4f}  B種ごと={[round(x, 3) for x in bl]} A種ごと={[round(x, 3) for x in al]}')
-    others = sum(1 for n in FOUR if n != 'イギリス' and up.get(n))
-    p = bool(up.get('イギリス')) and others >= 2
-    print('G1b 判定（英が必須・仏露墺のうち 2 国以上で B の中央値が A の種ごとの最大を上回る）=', 'PASS' if p else 'FAIL', f'（英={up.get("イギリス")}・仏露墺={others} 国）')
+        rat = []; so_l = []; sb_l = []
+        for s in SEEDS:
+            so, sb = share_out_bud(D, s, n)
+            if so == so and sb == sb and sb > 0: rat.append(so / sb)
+            else: rat.append(float('nan'))
+            so_l.append(so); sb_l.append(sb)
+        ok = sum(1 for x in rat if x == x and x >= G1B_LINE)
+        ok_n[n] = ok >= 8
+        print(f'G1b {n} 比（産出の割合÷予算の割合）≥{G1B_LINE} の種 = {ok}/{len(rat)}（種ごと {[round(x, 2) for x in rat]}）・産出の割合の中央値={st.median([x for x in so_l if x == x] or [float("nan")]):.4f}・予算の割合の中央値={st.median([x for x in sb_l if x == x] or [float("nan")]):.4f}')
+        if ARMA:
+            ao = [share_out_bud(ARMA, s, n)[0] for s in range(ASB, ASB + NA)]; ao = [x for x in ao if x == x]
+            if ao: print(f'    記録 旗 0 の対 {n} 産出の割合 最大={max(ao):.4f} 中央値={st.median(ao):.4f}')
+    others = sum(1 for n in FOUR if n != 'イギリス' and ok_n.get(n))
+    p = bool(ok_n.get('イギリス')) and others >= 2
+    print('G1b 判定（大きさの門・英が必須・仏露墺のうち 2 国以上）=', 'PASS' if p else 'FAIL', f'（英={ok_n.get("イギリス")}・仏露墺={others} 国）')
     return p
 
 
@@ -249,9 +263,8 @@ def main():
         print(f'記録 G2（採否に使わない・追記 1）B {g2b:.3f} vs 対 − {G2_FLOOR_WIDTH} = {floor_a - G2_FLOOR_WIDTH:.3f}（B が対の幅の内か：', 'yes' if g2b >= floor_a - G2_FLOOR_WIDTH else 'no', '）')
     if SB == 1:
         print(f'記録 G2（採否に使わない・追記 1）種 1〜10 の旗なし 3 腕の下端（N2）= {G2_NULL_LOW:.3f} vs B {g2b:.3f}（B ≥ 下端：', 'yes' if g2b >= G2_NULL_LOW else 'no', '）')
-    gate = [x for x in (p1, p7, p1b, p6) if x is not None]
-    if not gate: print('G5 旗 1 の列が無い生＝判定なし')
-    else: print('G5（G4 を除く・G2 は記録だけ・名乗りは〈入口は開いた・尾は未判定〉に固定）=', 'PASS' if all(gate) else f'FAIL（G1={p1} G7={p7} G1b={p1b} G6={p6}）')
+    # 追記 2：None（読めない・列が無い）は FAIL として扱う（fail-closed）
+    print('G5（G4 を除く・G2 は記録だけ・名乗りは〈入口は開いた・尾は未判定〉に固定）=', 'PASS' if all(x is True for x in (p1, p7, p1b, p6)) else f'FAIL（G1={p1} G7={p7} G1b={p1b} G6={p6}）')
     records()
     for y in (1790, 1800, 1815, 1850, 1913):
         vals = []
