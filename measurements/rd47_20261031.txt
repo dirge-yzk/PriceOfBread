@@ -170,7 +170,7 @@ U0 の成績表（b10_U0_10.txt）は (694) のアブレーション measurement
 §4 直しの推奨（実装しない・AI の読み＝推）
 ══════════════════════════════════════════════════════════════════════
 R1（①・入口）助走の中の階級の書き換えを止める＝Simulation.cs:2484 の PopDecision.Run と 1871 の Meritocracy.Step を、助走（World.WarmupFrozen）の間は回さない。
-   旗は既にある（BakeRun.StopPopDecision・StopSocialMobility＝焼く試走だけ）＝開幕の焼き込みの問い Q1（「試走で社会移動を止め world.json の階級の構成のまま焼く」の推奨）と同じ形。
+   旗は既にある（BakeRun.StopPopDecision・StopSocialMobility＝焼く試走だけ）＝開幕の焼き込みの問い Q1（〈試走で社会移動を止め world.json の階級の構成のまま焼く〉の推奨）と同じ形。
    読み＝〈構造の欠陥〉：助走は〈暦・人口・移民を止めて値段だけ寄せる〉と名乗る（MultiNationSim.cs:499〜507）のに、階級の構成を動かしている。
    効き目の見込み：アメリカの開幕の工場労働者の割合 0.29→0.21（open の値）。0.15 に届くまでの時間が延びる（どれだけかは腕が要る）。
 R2（①・根）PopDecision の目標の式（PopDecision.cs:47〜48＝名目の所得の差÷MigrationTemperature のシグモイド・農村の自給が所得に入らない）＝線 urbd の設計書の持ち物。
