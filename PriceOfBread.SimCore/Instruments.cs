@@ -1215,7 +1215,7 @@ public static partial class Instruments
             double sum = 0; foreach (double x in fu) sum += x;
             var sf = S(from);
             if (r.Tier == RegionTier.Colonial) sf.FleetMovedOutColonial += sum; else sf.FleetMovedOutHome += sum;
-            if (how == Territory.Rehoming.Ceded) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：割譲だけの内訳（送り手・受け手）
+            if (how == Territory.Rehoming.Ceded && from.Regions.Count > 0) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：送り手が残る割譲だけの内訳（送り手・受け手）＝旗 NavalCedeFleetReturn が戻す対象と同じ集合（送り手の最後の州の割譲は国が消える＝艦ごと渡るので別。Remove の後なので Count は残る州の数）
         }
         foreach (var p in r.Pops) { Sav(p, SavKind.RegionOut, -p.Savings.Value); PopOwner.Remove(p); }
         if (to is null) return;
@@ -2619,7 +2619,7 @@ public static partial class Instruments
         C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
         C("portFleetGoodsStock", nvPortStock); C("colonialFleetGoodsStock", nvColStock); C("inlandFleetGoodsStock", nvInlandStock); C("capitalFleetGoodsOutputPerMonth", nvOutCap); C("otherFleetGoodsOutputPerMonth", nvOutOther);   // ★(606) 線 navf：首都以外の港の州と港でない州の軍艦の市場の在庫・造船の産出（首都／首都以外）
         C("navalBudgetCapitalPerMonth", nvBudCap); C("navalBudgetOtherPerMonth", nvBudOther); C("navalOrderStatesCount", nvOrders);
-        C("navalBudgetColonialPerMonth", nvBudColonial); C("navyPaidPerMonth", nvPaid); C("fleetUnitsMovedOutHomeCum", S(w).FleetMovedOutHome); C("fleetUnitsMovedOutColonialCum", S(w).FleetMovedOutColonial); C("fleetUnitsMovedOutCededCum", S(w).FleetMovedOutCeded); C("fleetUnitsReceivedCededCum", S(w).FleetReceivedCeded); C("fleetUnitsReturnedToCapitalCum", S(w).FleetReturned);   // ★(688) 線 navf5：割譲だけの出た隻数・受け取った隻数・旗 1 で戻した隻数（累計）
+        C("navalBudgetColonialPerMonth", nvBudColonial); C("navyPaidPerMonth", nvPaid); C("fleetUnitsMovedOutHomeCum", S(w).FleetMovedOutHome); C("fleetUnitsMovedOutColonialCum", S(w).FleetMovedOutColonial); C("fleetUnitsMovedOutCededCum", S(w).FleetMovedOutCeded); C("fleetUnitsReceivedCededCum", S(w).FleetReceivedCeded); C("fleetUnitsReturnedToCapitalCum", S(w).FleetReturned);   // ★(688) 線 navf5：送り手が残る割譲だけの出た隻数・受け取った隻数・旗 1 で戻した隻数（累計）
           // ★(606) 追記 2：植民地格の州へ行った予算・海軍の区分の支払い・州の割譲などで艦ごと移った隻数の累計（全ての国の和・読むだけ）   // 海軍の予算の配り（旗 NavalPortProcurement が 0 なら首都だけ・首都以外は 0）と艦を発注した州の数
         sk.Stock ??= Open("stock", seed);
         if (!sk.StockHeader) { sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Name))); sk.StockHeader = true; }
