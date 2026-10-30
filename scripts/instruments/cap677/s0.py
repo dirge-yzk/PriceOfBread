@@ -1,6 +1,6 @@
 # 段0 の量（読むだけ）：keep_675/m675_ins の spend_s・factory_s・class_s から、資本家の貯蓄の流れ・建設の額・資金÷資本の値打ち（年）
 import csv,sys,statistics as st,collections as C
-R="D:/PoB_work/keep_675/m675_ins"
+R=sys.argv[1] if len(sys.argv)>1 else "D:/PoB_work/keep_675/m675_ins"   # (701) smu1：生のフォルダを引数で渡せる（既定は (677) の keep_675）
 NAT=["イギリス","フランス","プロイセン","オーストリア","ロシア","オスマン","清","日本","アメリカ"]
 BK={0:"1783",1:"1784",2:"1785-92",3:"1793-1822",4:"1823-29",5:"1830-39",6:"1840-49",7:"1850-82",8:"1883-1950"}
 res=C.defaultdict(lambda:C.defaultdict(list))
