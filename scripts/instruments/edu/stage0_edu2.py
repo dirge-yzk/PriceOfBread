@@ -19,7 +19,8 @@ names=['stock','stock+cost','flow']
 def new(): return {'n':0,'t':0,'up':0,'dn':0}
 S={(nm,r):{e:new() for e in eras} for nm in names for r in RATES}
 auto={(nm,r):{'up':0,'dn':0,'ns':0,'stand':0,'q':0} for nm in names for r in RATES}
-truth_rank={(nm,r):[[],[]] for nm in names for r in RATES}  # rank of GDP pc among true / false
+truth_rank={(nm,r):[[],[]] for nm in names for r in RATES}
+breach={r:{e:[] for e in eras} for r in RATES}   # 述語 stock が真の四半期ごとの〈代価の流出だけで閾値を割るまでの月数〉＝(国庫−15×請求)÷代価  # rank of GDP pc among true / false
 for s in range(1,11):
     cap={}; Fq={}
     with open(D+f'fiscal_s{s}.tsv',encoding='utf-8') as f:
@@ -55,6 +56,9 @@ for s in range(1,11):
             rk=sum(1 for z in pcs if z<pc)/(len(pcs)-1)
             for r in RATES:
                 cost=unmet*r
+                if T>15*base and cost>0:
+                    for e in eras:
+                        if e[0]<=y<e[1]: breach[r][e].append((T-15*base)/cost)
                 P={'stock':T>15*base,'stock+cost':T>15*(base+cost),'flow':cost<=cp}
                 for nm in names:
                     p=P[nm]; key=(nm,r)
@@ -79,3 +83,9 @@ for key in S:
     a=auto[key]; print(f"   自動機械(政治の門なし): 制定={a['up']} 撤回={a['dn']} 比={a['dn']/max(1,a['up']):.3f} 義務の割合={a['stand']/a['q']:.3f}")
     T_,F_=truth_rank[key]; med=lambda L:sorted(L)[len(L)//2] if L else float('nan')
     print(f"   GDP順位 真のとき平均={sum(T_)/max(1,len(T_)):.3f} 偽のとき平均={sum(F_)/max(1,len(F_)):.3f}")
+
+print('== 流出だけで述語 stock が偽になるまでの月数（真の四半期の中央値・p25・p75・件数）=(国庫−15×請求)÷代価。歳入の伸び・借入・他の請求の変化は入らない')
+for r in RATES:
+    for e in eras:
+        L=sorted(breach[r][e])
+        if L: print(f"   目標率={r} {e} 中央値={L[len(L)//2]:.0f} p25={L[len(L)//4]:.0f} p75={L[len(L)*3//4]:.0f} 件数={len(L)}")
