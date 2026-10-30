@@ -15,7 +15,11 @@ def fl(x):
     except: return float('nan')
 eras=[(1783,1810),(1810,1850),(1850,1900),(1900,1951)]
 RATES=(0.4,0.6)
-names=['stock','stock+cost','flow']
+PUB=0.8   # 1−PublicEduFundingShare(0.2)：公教育で既に払っている分を引いた増分（制定の前後で不変の量を引くだけ）
+tot_ratio=[]   # 総量÷民間が満たさなかった分（代価の過大の倍率）
+first_enact={}   # (形,率,種,国)->最初の自動機械の制定の四半期
+enact_rank={}   # (形,率)->制定した四半期の GDP 順位（自動機械の制定時）
+names=['stock','stock+cost','flow','flowT']   # flowT＝事前登録 (iii) の総量の形（必要量×値段×率×(1−PublicEduFundingShare)・民間の購入を引かない）
 def new(): return {'n':0,'t':0,'up':0,'dn':0}
 S={(nm,r):{e:new() for e in eras} for nm in names for r in RATES}
 auto={(nm,r):{'up':0,'dn':0,'ns':0,'stand':0,'q':0} for nm in names for r in RATES}
@@ -40,26 +44,27 @@ for s in range(1,11):
     ed={}
     with open(D+f'ed_s{s}.tsv',encoding='utf-8') as f:
         rd=csv.reader(f,delimiter='\t'); h=next(rd); ix={c:i for i,c in enumerate(h)}
-        for row in rd: ed[(int(row[0]),row[2])]=(fl(row[ix['fundingShare']]),fl(row[ix['stateWantMoneyPerMonth']]))
+        for row in rd: ed[(int(row[0]),row[2])]=(fl(row[ix['fundingShare']]),fl(row[ix['stateWantMoneyPerMonth']]),fl(row[ix['needPerMonth']])*fl(row[ix['priceMean']]))
     nations=sorted(set(n for (_,n) in ed)); prev={}; law={}
     for q in range(668):
         rows=[]
         for n in nations:
             k=(3*q+2,n)
             if k not in Fq or (q,n) not in ed or (q,n) not in nat: continue
-            fs,wm=ed[(q,n)]; y,base,T,cp=Fq[k]; pop,gdp=nat[(q,n)]
+            fs,wm,totm=ed[(q,n)]; y,base,T,cp=Fq[k]; pop,gdp=nat[(q,n)]
             if not(fs>1e-6 and base>0 and pop>0): continue
-            rows.append((n,y,gdp/pop,wm/fs,base,T,cp))
+            rows.append((n,y,gdp/pop,wm/fs,base,T,cp,totm))
         if len(rows)<5: continue
         pcs=sorted(r[2] for r in rows)
-        for (n,y,pc,unmet,base,T,cp) in rows:
+        for (n,y,pc,unmet,base,T,cp,totm) in rows:
             rk=sum(1 for z in pcs if z<pc)/(len(pcs)-1)
             for r in RATES:
                 cost=unmet*r
                 if T>15*base and cost>0:
                     for e in eras:
                         if e[0]<=y<e[1]: breach[r][e].append((T-15*base)/cost)
-                P={'stock':T>15*base,'stock+cost':T>15*(base+cost),'flow':cost<=cp}
+                P={'stock':T>15*base,'stock+cost':T>15*(base+cost),'flow':cost<=cp,'flowT':totm*r*PUB<=cp}
+                tot_ratio.append(totm/max(unmet,1e-12)) if r==RATES[0] else None
                 for nm in names:
                     p=P[nm]; key=(nm,r)
                     truth_rank[key][0 if p else 1].append(rk)
@@ -72,7 +77,7 @@ for s in range(1,11):
                     # automaton: law follows predicate, political gate ignored
                     a=auto[key]; L=law.get(key+(n,),0)  # 0=Public 1=Compulsory
                     a['q']+=1
-                    if p and L==0: L=1; a['up']+=1
+                    if p and L==0: L=1; a['up']+=1; enact_rank.setdefault(key,[]).append(rk); first_enact.setdefault(key+(s,n),q)
                     elif (not p) and L==1: L=0; a['dn']+=1
                     a['stand']+=L; law[key+(n,)]=L
 for key in S:
@@ -82,10 +87,14 @@ for key in S:
         o=S[key][e]; print(f"   {e} 真={o['t']/o['n']:.3f} 上げ反転/国年={o['up']/o['n']*4:.3f} 下げ反転/国年={o['dn']/o['n']*4:.3f}")
     a=auto[key]; print(f"   自動機械(政治の門なし): 制定={a['up']} 撤回={a['dn']} 比={a['dn']/max(1,a['up']):.3f} 義務の割合={a['stand']/a['q']:.3f}")
     T_,F_=truth_rank[key]; med=lambda L:sorted(L)[len(L)//2] if L else float('nan')
-    print(f"   GDP順位 真のとき平均={sum(T_)/max(1,len(T_)):.3f} 偽のとき平均={sum(F_)/max(1,len(F_)):.3f}")
+    print(f"   GDP順位 真のとき平均={sum(T_)/max(1,len(T_)):.3f} 偽のとき平均={sum(F_)/max(1,len(F_)):.3f} 自動機械の制定時の順位の中央値={med(enact_rank.get(key,[])):.3f}（9国の離散値＝0.5 に張り付く）平均={sum(enact_rank.get(key,[0]))/max(1,len(enact_rank.get(key,[]))):.3f}（件数={len(enact_rank.get(key,[]))}）")
+    fe=[v for k2,v in first_enact.items() if k2[:2]==key]
+    print(f"   自動機械の最初の制定が四半期 8 以内の割合={sum(1 for v in fe if v<=8)/max(1,len(fe)):.3f} 四半期 108（27年）以内={sum(1 for v in fe if v<=108)/max(1,len(fe)):.3f}（制定した国×種={len(fe)}／90）")
 
 print('== 流出だけで述語 stock が偽になるまでの月数（真の四半期の中央値・p25・p75・件数）=(国庫−15×請求)÷代価。歳入の伸び・借入・他の請求の変化は入らない')
 for r in RATES:
     for e in eras:
         L=sorted(breach[r][e])
         if L: print(f"   目標率={r} {e} 中央値={L[len(L)//2]:.0f} p25={L[len(L)//4]:.0f} p75={L[len(L)*3//4]:.0f} 件数={len(L)}")
+
+L_=sorted(tot_ratio); print(f'== 総量÷民間が満たさなかった分（代価の過大の倍率）中央値={L_[len(L_)//2]:.2f} p25={L_[len(L_)//4]:.2f} p75={L_[len(L_)*3//4]:.2f} 件数={len(L_)}')
