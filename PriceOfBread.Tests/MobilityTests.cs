@@ -128,6 +128,7 @@ public class MobilityTests
         foreach (var sim in new[] { off, on })
         {
             var w = sim.World; var r = w.Region;
+            w.Coef.UrbanCapOff = 0;   // ★(687) 天井の枝（旗 0）の番人＝既定が 1（天井なし）になったので旧の枝へ置く
             w.Coef.BaseUrbanCap = 0.0; w.Coef.UrbanPerInd = 0.0;   // 天井0＝都市への新規流入枠なし（双子とも同条件）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = new Share(0.5);   // EMA点火に追随

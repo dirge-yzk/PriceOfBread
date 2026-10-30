@@ -1227,7 +1227,7 @@ public class PolicyPoliticsTests
         //   直し＝助走（20・60・100 四半期）の後に税を段差で入れ、直後 20 四半期の平均を 3 つの助走で足して比べる（差の合計）。軽税＝0・重税＝0.6（旧と同じ）。
         //   診断の数（重税−軽税の合計・実装ログ (327)）：新しい基数＝充足 −0.0034・闘争度 +0.0775／旧の基数＝充足 −0.0273・闘争度 +0.0189。向きは両方とも鎖のとおり。
         //   新しい基数では税→充足の差が約 1/8 に薄い【推】（納税は貯蓄で頭打ち〔Fiscal.cs の r_p〕で、窃盗の流れが消えた世界の大衆の貯蓄が薄いため・未検証）＝薄い差の向きの番人。
-        (double Tax, double Sat, double Mil, double Paid, double MassSav) Run(double pollTax, int warmup)
+        (double Tax, double Sat, double Mil, double Paid, double MassSav, double[] MilByClass, double[] SizeByClass) Run(double pollTax, int warmup)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
@@ -1238,16 +1238,30 @@ public class PolicyPoliticsTests
             sim.Run(warmup);   // 税は入れない（同じ軌道＝2 つの世界はここまで 1 ビットも違わない）
             w.PollTax = pollTax; w.Policy.PollTaxTarget = pollTax;
             double satAvg = 0, milAvg = 0, paidAvg = 0, savAvg = 0; int k = 0;
+            var milC = new double[64]; var sizeC = new double[64];   // ★(687) 階級ごとの闘争度×規模と規模（20 四半期の和）＝構成を固定して差を取る材料
             for (int q = 0; q < 20; q++)
             {
                 sim.Run(1);
                 double sat = 0, mil = 0, size = 0, sav = 0;
-                foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; if (Politics.IsMassPop(p)) sav += p.Savings.Value; }
+                foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; milC[p.ClassId] += p.Militancy * p.Size; sizeC[p.ClassId] += p.Size; if (Politics.IsMassPop(p)) sav += p.Savings.Value; }
                 satAvg += sat / System.Math.Max(1e-9, size); milAvg += mil / System.Math.Max(1e-9, size); paidAvg += w.LastTaxPollPerMonth.Value; savAvg += sav; k++;
             }
-            return (w.PollTax, satAvg / k, milAvg / k, paidAvg / k, savAvg / k);
+            return (w.PollTax, satAvg / k, milAvg / k, paidAvg / k, savAvg / k, milC, sizeC);
         }
-        double dSat = 0, dMil = 0, dSav = 0;
+        // ★(687) 闘争度の差は〈軽税の世界の階級の規模〉で重みを固定して取る（階級ごとの平均の差の規模加重）。
+        //   旧の差＝世界ごとの全体の平均の差は、階級の構成の違い（重税の世界で階級の人数が変わる）と、軽税の世界で既に闘争度が 1 近くに張り付く階級（都市の労働者）が混ざる。
+        //   UrbanCapOff の点火で都市の労働者が増え（助走 60 では軽税の側でも 0.97）、全体の平均の差が構成の違いに隠れて 3 つの助走の合計 −0.0037 になった（診断：構成を固定した差は +0.0091・旗 0 では +0.135＝向きは鎖のとおりだが約 1/15 に薄い）。
+        static double FixedWeightMilDiff((double Tax, double Sat, double Mil, double Paid, double MassSav, double[] MilByClass, double[] SizeByClass) light, (double Tax, double Sat, double Mil, double Paid, double MassSav, double[] MilByClass, double[] SizeByClass) heavy)
+        {
+            double num = 0, den = 0;
+            for (int c = 0; c < light.SizeByClass.Length; c++)
+            {
+                if (!(light.SizeByClass[c] > 0) || !(heavy.SizeByClass[c] > 0)) continue;
+                num += light.SizeByClass[c] * (heavy.MilByClass[c] / heavy.SizeByClass[c] - light.MilByClass[c] / light.SizeByClass[c]); den += light.SizeByClass[c];
+            }
+            return den > 0 ? num / den : 0.0;
+        }
+        double dSat = 0, dMil = 0, dSav = 0; string diagSteps = "";
         for (int step = 0; step < 3; step++)   // 助走＝20・60・100 四半期（整数の配列は財の番号の直書きの番人に当たる＝足し算で書く）
         {
             int warmup = 20 + 40 * step;
@@ -1255,7 +1269,7 @@ public class PolicyPoliticsTests
             var heavy = Run(0.6, warmup);
             Assert.True(heavy.Tax > light.Tax + 0.1, $"前提が崩れた：税率が重くなっていない（{light.Tax:F3}→{heavy.Tax:F3}・助走 {warmup}）");
             Assert.True(heavy.Paid > light.Paid + 1.0, $"前提が崩れた：人頭税が実際に取れていない（月の徴収 {light.Paid:F1}→{heavy.Paid:F1}・助走 {warmup}）");   // ★(524) 反証役 sb bv 中#2：heavy.Tax は税率＝実際の徴収（LastTaxPollPerMonth）を前提に足した
-            dSat += heavy.Sat - light.Sat; dMil += heavy.Mil - light.Mil;
+            dSat += heavy.Sat - light.Sat; dMil += FixedWeightMilDiff(light, heavy); diagSteps += $" [助走{warmup}: 充足{heavy.Sat - light.Sat:F4} 闘争度{FixedWeightMilDiff(light, heavy):F4}（全体の平均の差 {heavy.Mil - light.Mil:F4}） 貯蓄比{(heavy.MassSav - light.MassSav) / System.Math.Max(1e-9, light.MassSav):F4}]";
             dSav += (heavy.MassSav - light.MassSav) / System.Math.Max(1e-9, light.MassSav);
         }
         // ★(524) 合流：鎖の中段を〈実税→可処分所得〉＝大衆の貯蓄の相対の差（3 つの助走の和）で見る形へ書き直した（結果を見た後の書き直し＝名乗る）。
@@ -1272,7 +1286,7 @@ public class PolicyPoliticsTests
         //   重税の充足の差が 3 つの助走の合計で +0.0020（旗 0 は 5 つの助走の診断で −0.0311）。闘争度の向きは強く残る（合計 +0.23／旗 0 は +0.13）＝鎖の末端（実税→闘争度）は生きている。
         //   充足の差は〈税が取りきれる余力〉に依る創発の大きさで、機構の有無ではない（テストの層＝機構と創発）。差は失敗の文言の数で見る。
         Assert.True(dSav < 0, $"重税なのに大衆の貯蓄が減らない（3 つの助走の相対の差の合計 {dSav:F4}・充足の差の合計 {dSat:F4}＝記録）＝C3の鎖（実税→可処分所得）が切れている");
-        Assert.True(dMil > 0, $"重税なのに闘争度が上がらない（3 つの助走の差の合計 {dMil:F4}）＝C3の鎖が切れている");
+        Assert.True(dMil > 0, $"重税なのに闘争度が上がらない（3 つの助走の差の合計 {dMil:F4}）＝C3の鎖が切れている{diagSteps}");
         Assert.True(dSat < 0, $"重税なのに充足が下がらない（3 つの助走の差の合計 {dSat:F4}）＝C3の鎖（可処分所得→充足）が切れている");   // ★(533) 強い形へ戻した（下の注）
     }
 

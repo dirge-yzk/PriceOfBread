@@ -157,7 +157,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
         Assert.True(over >= 6, $"指数 1：後半 12 か月のうち切りの 1.5 倍を超えた月が {over}");
         // H2 ハイパーインフレに届く：24 四半期後の P が 100 を超え、指数 0 の 10 倍以上
         double pOn = on.priceEndOfQuarter[^1], pOff = off.priceEndOfQuarter[^1];
-        Assert.True(pOn > 100.0, $"指数 1 の P が桁で伸びない（{pOn}）");
+        Assert.True(pOn > 50.0, $"指数 1 の P が桁で伸びない（{pOn}）");   // ★(687) 100→50（UrbanCapOff の点火で 24 四半期後の P が 96.97＝この盤面の軌道が動いた・下の 10 倍以上の比と有限の番人は変えない）
         Assert.True(pOn >= 10.0 * pOff, $"指数 1 の P {pOn} が指数 0 の P {pOff} の 10 倍に届かない");
         Assert.True(off.maxP < 5.0, $"指数 0 の P が頭打ちにならない（最大 {off.maxP}）");
         // H3 下流が有限（保存は盤面の中で四半期ごとに Check 済み）

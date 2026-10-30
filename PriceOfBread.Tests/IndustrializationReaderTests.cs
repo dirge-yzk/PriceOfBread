@@ -60,7 +60,8 @@ public class IndustrializationReaderTests
         var c = new Coefficients();
         foreach (var gone in new[] { "WageClampIndScale", "MonopolyDissolveInd", "RefrigerationIndOnset", "RefrigerationIndSpan" })
             Assert.Null(typeof(Coefficients).GetField(gone));
-        foreach (var flag in Flags)
+        Assert.Equal(1.0, c.UrbanCapOff);   // ★(687) 2026-10-30 に 1 で点火
+        foreach (var flag in Flags.Where(x => x != "UrbanCapOff"))
         {
             var f = typeof(Coefficients).GetField(flag);
             Assert.True(f is not null, $"旗 {flag} が無い");
