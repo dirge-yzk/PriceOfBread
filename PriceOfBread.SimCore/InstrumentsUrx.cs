@@ -115,13 +115,7 @@ public static partial class Instruments
     {
         d = default;
         if (region.Pops.Count < 2) return false;
-        Pop? rural = null, urban = null;
-        foreach (var p in region.Pops)
-        {
-            if (p.Closed || p.IsCriminal) continue;
-            if (p.IsUrban) urban ??= p;
-            else rural ??= p;
-        }
+        var (rural, urban) = PopDecision.MigrationPair(region);
         if (rural is null || urban is null) return false;
         double incRural = rural.Size > 1e-9 ? (rural.EarnedPerMonth / rural.Size).Value : 0.0;
         double incUrban = urban.Size > 1e-9 ? (urban.EarnedPerMonth / urban.Size).Value : 0.0;

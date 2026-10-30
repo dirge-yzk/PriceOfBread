@@ -438,18 +438,13 @@ public static class Meritocracy
             }
     }
 
-    /// <summary>§2.4 都市化天井のヘッドルーム（人数）：PopDecision と同じペア物差し（最初の非閉鎖の農村pop/都市pop）・
+    /// <summary>§2.4 都市化天井のヘッドルーム（人数）：PopDecision と同じペア物差し（<see cref="PopDecision.MigrationPair"/>＝最初の非閉鎖・非犯罪者の農村pop/都市pop）・
     /// 同じ天井式（BaseUrbanCap＋工業化×UrbanPerInd・平滑状態 UrbanIndSmoothed は読み取りのみ・0.85は既存ハードストップの再利用）。
     /// CapitalEnabled=false（天井の無い世界）とペア不成立は無制限。</summary>
     private static double UrbanHeadroom(Region r, Coefficients c)
     {
         if (!r.CapitalEnabled) return double.PositiveInfinity;
-        Pop? rural = null, urban = null;
-        foreach (var p in r.Pops)
-        {
-            if (p.Closed) continue;
-            if (p.IsUrban) urban ??= p; else rural ??= p;
-        }
+        var (rural, urban) = PopDecision.MigrationPair(r);
         if (rural is null || urban is null) return double.PositiveInfinity;
         double total = rural.Size + urban.Size;
         if (total <= Eps) return 0;
