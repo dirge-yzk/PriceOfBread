@@ -227,6 +227,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Anc; public bool AncHeader;                         // (369) 扶養力の錨の表（国×四半期）
         public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public System.IO.StreamWriter? Sec; public bool SecHeader;                         // (395) 州の分離の内訳の表（国×四半期×州）
+        public System.IO.StreamWriter? UrxRt; public bool UrxRtHeader;   // (697) 往復の表 urxrt_s
         public System.IO.StreamWriter? Urx, UrxPdW; public bool UrxHeader, UrxPdHeader;   // (649) 都市と農村の規模の差の区間別の表 urx_s と PopDecision の駆動の表 urxpd_s
         public System.IO.StreamWriter? Inpf, Inpb; public bool InpHeader;                   // (657) 工場に投入が届かない原因の表 inpf_s・inpb_s（挙げた国・年末）
         public System.IO.StreamWriter? Epi; public bool EpiHeader;                         // (629) 疫病 1 件ごとの表 epi_s（全ての国・助走は書かない）
@@ -1884,7 +1885,7 @@ public static partial class Instruments
         sk.Anc?.Dispose(); sk.Anc = null;   // (369)
         sk.Cap?.Dispose(); sk.Cap = null; sk.Ide?.Dispose(); sk.Ide = null;   // (390)
         sk.Sec?.Dispose(); sk.Sec = null;   // (395)
-        sk.Urx?.Dispose(); sk.Urx = null; sk.UrxPdW?.Dispose(); sk.UrxPdW = null;   // (649)
+        sk.Urx?.Dispose(); sk.Urx = null; sk.UrxPdW?.Dispose(); sk.UrxPdW = null; sk.UrxRt?.Dispose(); sk.UrxRt = null;   // (649)(697)
         sk.Epi?.Dispose(); sk.Epi = null;   // (629)
         sk.Inpf?.Dispose(); sk.Inpf = null; sk.Inpb?.Dispose(); sk.Inpb = null;   // (657)
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
@@ -1965,7 +1966,7 @@ public static partial class Instruments
         {
             sk.Region.WriteLine("quarter\tyear\tnationIndex\tnation\tregion\ttier\tactiveFlag\tpopulationK\truralPopulationK\topportunityIndex\tholdingFactor\twageFactor\tlandFactor\temploymentShare\tpushFactor\thousingFactor\twagePremium\tarableLand\t"
                 + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tsettlerOutKPerQuarter\tsettlerInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare\t"
-                + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth");
+                + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth\t" + RegionProdHeaderText);   // (697) 末尾へ州の生産の列を足す
             sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter");
             sk.RegionHeader = true;
         }
@@ -1992,7 +1993,7 @@ public static partial class Instruments
                 sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(rural),
                     F(Territory.Opportunity(r, c)), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
                     F(f.MigrationOutK), F(f.MigrationInK), F(settlerOut), F(f.SettlerInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1),
-                    F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)));   // ★(323) 窃盗の列（四半期の月平均・窃盗の無い州は 0）
+                    F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)) + "\t" + string.Join('\t', RegionProdRow(r).Select(F)));   // ★(323) 窃盗の列（四半期の月平均・窃盗の無い州は 0）・(697) 末尾に州の生産の列
                 if (f.MigrationTo is { } to)
                 {
                     foreach (var kv in to) if (kv.Value > 0) sk.Migration.WriteLine(string.Join('\t', I(q), r.Name, kv.Key.Name, F(kv.Value)));
