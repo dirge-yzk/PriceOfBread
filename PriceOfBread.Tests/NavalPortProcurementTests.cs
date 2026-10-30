@@ -176,4 +176,50 @@ public class NavalPortProcurementTests
         EconomyStep.Run(r2, c, 1.0, w.Bank, w);
         Assert.Equal(0.0, r2.StateSpent[(int)TreasuryCat.Navy]);
     }
+
+    /// <summary>★(688) 線 navf5 (a)：App の艦隊の行の充足の式を移した SimCore の関数 <see cref="EconomyStep.FleetAfford"/> の番人。旗 0 の枝＝首都の州の予算 ÷ 発注の必要額（0 の守りは 1e-9 の文字どおり・上限 1）。
+    /// 期待値は手で置いた値から独立に作る（予算 3・必要額 12 → 0.25／必要額 2 → 1／必要額 0 と 1e-10 → 0）。突然変異で赤：Math.Min の引数を外す・0 の守りを外す・予算を首都でなく国の和にする。</summary>
+    [Fact]
+    public void 艦隊の充足の関数は旗0で首都の予算を必要額で割り上限1で0の守りは1e9分の1()
+    {
+        var sim = Frozen("イギリス", "フランス");
+        var w = sim.Nations[0].World; var c = w.Coef;
+        c.NavalPortProcurement = 0.0;
+        for (int d = 0; d < 5; d++) sim.StepDay();
+        var cap = w.Regions.Find(r => r.Id == 0)!;
+        foreach (var r in w.Regions) r.NavalBudget = 0;
+        w.Regions.First(r => r.Id != 0).NavalBudget = 1000;   // 首都以外の予算は旗 0 では読まない
+        cap.NavalBudget = 3;
+        Assert.Equal(0.25, EconomyStep.FleetAfford(w, c, cap, 12.0), 12);
+        Assert.Equal(1.0, EconomyStep.FleetAfford(w, c, cap, 2.0), 12);
+        Assert.Equal(0.0, EconomyStep.FleetAfford(w, c, cap, 0.0), 12);
+        Assert.Equal(0.0, EconomyStep.FleetAfford(w, c, cap, 1e-10), 12);   // 守りの下（1e-9 以下は 0）
+    }
+
+    /// <summary>★(688) 線 navf5 (a)：旗 1 の枝＝国の Σ州の予算 ÷ <see cref="EconomyStep.NavalPortSplit"/> の必要額（上限 1・必要額 0 は 0）。盤面は上の画面の番人と同じ（首都が港でない・港の州 2 つに手で置いた値段）。
+    /// 期待値は国の予算を必要額の半分にして独立に作る（0.5）・予算が必要額を超えれば 1・値段が全て 0 で必要額が立たなければ 0。突然変異で赤：2 つの枝を入れ替える・分母を首都の必要額にする。</summary>
+    [Fact]
+    public void 艦隊の充足の関数は旗1で国のΣ州の予算を各州の値段の必要額で割る()
+    {
+        var sim = Frozen("イギリス", "フランス");
+        var w = sim.Nations[1].World; var c = w.Coef;
+        c.NavalPortProcurement = 1.0;
+        for (int d = 0; d < 60; d++) sim.StepDay();
+        var cap = w.Regions.Find(r => r.Id == 0)!;
+        foreach (var r in w.Regions) { r.NationHasPort = true; r.IsPort = false; r.LastPortThroughput = 0; r.Tier = RegionTier.Core; r.NavalBudget = 0; }
+        var ports = w.Regions.Where(r => r.Id != 0).Take(2).ToList();
+        ports[0].IsPort = true; ports[0].LastPortThroughput = 3; ports[1].IsPort = true; ports[1].LastPortThroughput = 1;
+        w.LastRevenuePerMonth = new MoneyPerMonth(1e12);
+        w.SelfPower!.NeedSea = 50; w.SelfPower.NeedLand = 3; w.SelfPower.NeedInternal = 1; w.SelfPower.NavySkillMul = 1.0;
+        foreach (int fg in c.FleetGoodIds) { ports[0].Markets[fg].Price = 10; ports[1].Markets[fg].Price = 30; cap.Markets[fg].Price = 100; }
+        var share = new double[w.Regions.Count]; var bshare = new double[w.Regions.Count];
+        Assert.NotNull(EconomyStep.NavalPortSplit(w, c, share, bshare, out double need)); Assert.True(need > 0, "前提が崩れた：必要額0");
+        EconomyStep.FleetOrder(cap, c, w, out double capCost);
+        for (int i = 0; i < w.Regions.Count; i++) w.Regions[i].NavalBudget = EconomyStep.NavalPortBudget(need * 0.5, share[i], bshare[i]);
+        Assert.Equal(0.5, EconomyStep.FleetAfford(w, c, cap, capCost), 9);
+        for (int i = 0; i < w.Regions.Count; i++) w.Regions[i].NavalBudget = EconomyStep.NavalPortBudget(need * 3.0, share[i], bshare[i]);
+        Assert.Equal(1.0, EconomyStep.FleetAfford(w, c, cap, capCost), 12);
+        foreach (int fg in c.FleetGoodIds) { ports[0].Markets[fg].Price = 0; ports[1].Markets[fg].Price = 0; cap.Markets[fg].Price = 0; }
+        Assert.Equal(0.0, EconomyStep.FleetAfford(w, c, cap, 0.0), 12);   // 値段が全て 0＝必要額が立たない
+    }
 }

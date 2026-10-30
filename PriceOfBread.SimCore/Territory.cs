@@ -308,6 +308,20 @@ public static class Territory
         double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
         from.RailCapacity -= rail; from.ShipCapacity -= ship;
         from.Regions.Remove(r);
+        // ★(688) 線 navf5（旗 NavalCedeFleetReturn が正のとき・割譲だけ）：艦は国のもの＝出ていく州の艦の在庫を、送り手に州が残るなら送り手の首都の州へ戻す（首都の州が出るなら遷都の後の新しい首都＝下の SetCapital が選ぶ州と同じ NextCapital）。
+        //   計器の RegionMoved より前に動かす＝戻した艦は〈出ていった艦〉に数えない（戻した隻数は FleetReturned の別の列）。旗 0 は 1 ビットも触らない。送り手の州が 0（国が消える＝戻し先が無い）ならそのまま艦ごと渡る。
+        if (how == Rehoming.Ceded && from.Coef.NavalCedeFleetReturn > 0 && r.FleetUnits is { } cededFleet)
+        {
+            var homeReg = wasCapital ? NextCapital(from) : from.Regions.Find(q => q.Id == 0);
+            if (homeReg is not null)
+            {
+                var dstFleet = homeReg.FleetUnits ??= new double[cededFleet.Length];
+                double returned = 0;
+                for (int k = 0; k < cededFleet.Length && k < dstFleet.Length; k++) { dstFleet[k] += cededFleet[k]; returned += cededFleet[k]; }
+                r.FleetUnits = null;
+                if (Instruments.On) Instruments.FleetReturned(from, returned);
+            }
+        }
         from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
         // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
         //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。
@@ -319,7 +333,7 @@ public static class Territory
             foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings; Din += p.Debt; }
             Bin = Sin - Din;
         }
-        if (Instruments.On) Instruments.RegionMoved(from, to, r);   // (262) 計器（読むだけ）：州ごと別の国へ移る POP の貯蓄（換算の後）を貯蓄の台帳へ
+        if (Instruments.On) Instruments.RegionMoved(from, to, r, how);   // (262) 計器（読むだけ）：州ごと別の国へ移る POP の貯蓄（換算の後）を貯蓄の台帳へ
         from.Bank!.Carry(to?.Bank, D, Din);
         if (to is not null)
         {
