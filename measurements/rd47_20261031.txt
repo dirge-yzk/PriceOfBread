@@ -197,3 +197,10 @@ R6（計器）home_break.py と collapse_events.py に〈半分を割った状�
 - U0 は 1 本だけ（種 1〜10）。NavalCedeFleetReturn=0 の腕は回していない。
 - 生の表（この線の出力・小さい物だけ残す）：measurements/rd47_20261031/（fi_base.tsv・fi_u0.tsv＝first_idea.py・mt_base.tsv＝mil_terms.py・ce_all.tsv・ce_u0.tsv＝collapse_events.py・hb_null.txt・hb_u0.txt＝home_break.py）。
 - U0 の成績表・計算量・マニフェスト・注視の表：measurements/b10_20261031_rd47_u0_ins（.cost・.manifest）・mon_20261031_rd47_u0.txt。
+
+## 合流 (702) での訂正（反証役 rd47〔v〕の指摘・本文の行は消さない）
+- 中：§1-2 のファシズムの必要性は〈危機×闘争度〉ではなく〈危機×闘争度×国力の落ち込み〉（`Discovery.cs:243・260`）。旗 `SpreadNeedFascismDecline` は既定 1（(640) で点火済み・`Coefficients.cs:2894`）＝R3 の〈器は 3 本とも旗 0〉はファシズムについて誤り。英の初開の行（fi_base.tsv の D 行）の decline は 0.34〜0.62＝英の初開がインドの喪失と重なるのは、敗戦の衝撃に加えて国力の割合の落ち込みの項もある（帰属の向き〈urb2 の側〉は変わらない〈推〉）。
+- 低：R5 で新しいのは〈陸の隣接〉の半分だけ＝`Diplomacy.cs:3173〜3190` に上陸の門（`CessionSeaCrossingWeight`=1・`SeaInvasionControlMin`=0.65）が既にある。〈最も近い本国の州〉は takePrize=false の枝の話で、takePrize=true（同族の併呑）は圏内で GDP が最大の州を選ぶ。R5 は〈同じ陸塊の中で隣り合わない州を外す〉に絞る。
+- 低：R1 の旗 `BakeRun.StopPopDecision`・`StopSocialMobility` は焼く試走の時だけ生きる（普通の走りでは `BakeRun` が null）＝普通の助走で止めるには係数の旗か経路の配線が要る（状態は増えない）。
+- 低：U0 の成績表は (694) の ab_u0 と本体がバイト一致（diff rc=0）。SOURCE-HASH の差は .manifest の Tests の 5 本だけ＝恒等は崩れていない。
+- 低：U0 で m685 の年へ戻ったのは 5 行のうち 4 行（共産主義・ファシズム・ルブラン法・ガス灯）。社会主義は m685 の値が無く比べられない。
