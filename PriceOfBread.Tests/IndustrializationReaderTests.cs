@@ -6,7 +6,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束の番人＝機構と不変条件。事前登録 measurements/ind4_605_20261027_prereg.txt の J1〜J11。
-/// 旗は全て既定 0（倒さない）。期待は手計算のリテラルか、実装と別の出所（盤面に自分で置いた数・別の関数）から作る。史実の桁は固定しない。</summary>
+/// 残る旗は全て既定 0（倒さない）。期待は手計算のリテラルか、実装と別の出所（盤面に自分で置いた数・別の関数）から作る。史実の桁は固定しない。</summary>
 public class IndustrializationReaderTests
 {
     private static Simulation Britain(ulong seed = 41) => new(NationConfig.Britain().ToScenario(seed), new NullAgent());
@@ -20,10 +20,10 @@ public class IndustrializationReaderTests
 
     private static readonly (string File, int Lines)[] Allowed =
     [
-        ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Credit.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8),
+        ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8),
         ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 2), ("InstrumentsUrx.cs", 4),   // (649) PopDecision.Run の天井の式の読むだけの写し（計器 urxpd_s）＝PopDecision.cs の 4 行と同じ読み手の写し・PopDecision 側の読み手が消えたら一緒に消す
-        ("Megaprojects.cs", 4), ("Meritocracy.cs", 1), ("Model.cs", 5), ("MultiNationSim.cs", 3), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
-        ("PopDecision.cs", 4), ("SelfPlay.cs", 3), ("Simulation.cs", 16), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 9),
+        ("Megaprojects.cs", 4), ("Meritocracy.cs", 1), ("Model.cs", 5), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
+        ("PopDecision.cs", 4), ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
     ];
 
     [Fact]
@@ -70,7 +70,7 @@ public class IndustrializationReaderTests
 
     private static readonly string[] Flags =
     [
-        "EpidemicSanitFromBoard", "UrbanCapOff", "CreditDevOff", "CapitalHeadroomFromReturn", "TradeWeightOpeningEven", "CapacityIndTermsOff",
+        "UrbanCapOff", "CapitalHeadroomFromReturn",   // (667) 疫病の衛生・信用の深さ・開幕の交易・扶養力の旗 4 本は既定 1 で採り旧の枝ごと削除した（下の J2・J5・J7・J8 は旗なしの番人）
     ];
 
     // ---- J9 対称：旗を読む行が IsPlayer を読まない ---------------------------------------------------------------------
@@ -89,10 +89,9 @@ public class IndustrializationReaderTests
     }
 
     // ---- J2 疫病の衛生 ------------------------------------------------------------------------------------------------
-    private static double EpidemicDeaths(double flag, double ind, double infraFill)
+    private static double EpidemicDeaths(double ind, double infraFill)
     {
         var sim = Britain(); var w = sim.World; var c = w.Coef; var r = w.Region;
-        c.EpidemicSanitFromBoard = flag;
         r.Industrialization = ind; r.OldVintageCapital = 0; r.StrandedVintage = 0;
         r.InfraFill = infraFill; r.SoapFill = 0; r.ElecInfraFill = 0;
         var m = typeof(World).GetMethod("ApplyEpidemicDeaths", BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -100,19 +99,12 @@ public class IndustrializationReaderTests
     }
 
     [Fact]
-    public void 疫病_旗1は工業化度を動かしても致死率が動かず_衛生財の充足で動く()
+    public void 疫病_工業化度を動かしても致死率が動かず_衛生財の充足で動く()
     {
-        Assert.Equal(EpidemicDeaths(1, 0.0, 0.5), EpidemicDeaths(1, 5.0, 0.5), 9);   // 工業化度は読まれない
-        double lo = EpidemicDeaths(1, 1.0, 0.0), hi = EpidemicDeaths(1, 1.0, 1.0);
+        Assert.Equal(EpidemicDeaths(0.0, 0.5), EpidemicDeaths(5.0, 0.5), 9);   // 工業化度は読まれない
+        double lo = EpidemicDeaths(1.0, 0.0), hi = EpidemicDeaths(1.0, 1.0);
         Assert.True(lo > 0 && hi < lo, $"衛生が満ちても死者が減らない（充足 0:{lo}・1:{hi}）");
-        Assert.Equal(1.0 - 0.7, hi / lo, 6);   // 手計算：致死率 ∝ (1−0.7×衛生)・衛生 0→1 で 0.3 倍（EpidemicSanitationWeight に依らない＝旗 1 は実衛生財だけ）
-    }
-
-    [Fact]
-    public void 疫病_旗0は旧のまま工業化度が致死率を下げる()
-    {
-        double d0 = EpidemicDeaths(0, 0.0, 0.0), d5 = EpidemicDeaths(0, 5.0, 0.0);
-        Assert.True(d5 < d0, $"旗 0 で工業化度が致死率を下げない（0:{d0}・5:{d5}）");
+        Assert.Equal(1.0 - 0.7, hi / lo, 6);   // 手計算：致死率 ∝ (1−0.7×衛生)・衛生 0→1 で 0.3 倍
     }
 
     // ---- J3 思想の発展度 ------------------------------------------------------------------------------------------
@@ -148,21 +140,29 @@ public class IndustrializationReaderTests
     }
 
     // ---- J5 信用の深さ ------------------------------------------------------------------------------------------------
-    [Fact]
-    public void 信用の深さ_旗1は工業化度の倍率が無い_旗0は手計算の旧の式()
+    /// <summary>与信の上限（説明API の CreditTarget の 1 行目）を、州の工業化度だけを変えた英の盤面で出す（投資家の所得は十分に大きくして返せる額の側を外す）。</summary>
+    private static (double Cap, double Gold, bool OnGold) CreditCapAt(double ind)
     {
-        var w = Britain().World; var c = w.Coef;
-        double fl = c.CreditMultiplierDevFloor, sc = c.CreditDevScale;   // 係数から作る（較正が変わっても赤にしない）
-        Assert.Equal(fl, Credit.DevFactor(w, c, 0.0), 12);                                  // 手計算：dev=0 → 床
-        Assert.Equal(fl + (1.0 - fl) * 0.5, Credit.DevFactor(w, c, 0.5 * sc), 12);          // dev/scale=0.5
-        Assert.Equal(1.0, Credit.DevFactor(w, c, sc), 12);
-        Assert.Equal(1.0, Credit.DevFactor(w, c, 3.0 * sc), 12);                            // 満額で頭打ち（Clamp01）
-        foreach (var rr in w.Regions) { rr.Industrialization = 0; rr.OldVintageCapital = 0; }
-        Assert.Equal(fl, Credit.DevFactor(w, c, null), 12);                                 // 渡されなければ盤面の平均を読む（旧）
-        c.CreditDevOff = 1;
-        foreach (double m in new double?[] { 0.0, 0.2, 3.0, null }.Select(x => x ?? 0.0))
-            Assert.Equal(1.0, Credit.DevFactor(w, c, m), 12);
-        Assert.Equal(1.0, Credit.DevFactor(w, c, null), 12);
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(1);
+        var w = sim.World;
+        foreach (var rr in w.Regions) { rr.Industrialization = ind; rr.OldVintageCapital = 0; rr.StrandedVintage = 0; }
+        var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+        inv.LastEarnedPerMonth = new MoneyPerMonth(1e30);
+        w.Explain = new ExplainLedger();
+        double gold = w.Bank!.Gold.Value;
+        Credit.Step(w, w.Coef);
+        return (w.Explain.Get("CreditTarget")[0].Delta, gold, w.OnGoldStandard);
+    }
+
+    [Fact]
+    public void 信用の深さ_準備の上限は工業化度に依らず_金かける信用乗数ひく1()
+    {
+        var (c0, g0, _) = CreditCapAt(0.0); var (c5, _, _) = CreditCapAt(5.0);
+        Assert.True(c0 > 0, $"前提が崩れた：英の準備の上限が 0（{c0}）");
+        Assert.Equal(c0, c5, 9);   // 工業化度は読まれない
+        double full = g0 * (new Coefficients().CreditMultiplier - 1);   // 手計算：金の在庫×(信用乗数−1)（旧の発展度の倍率は 0.35〜1 で上限をこれより絞った）
+        Assert.True(c0 <= full * (1 + 1e-9) && c0 >= 0.99 * full, $"上限 {c0} が 金×(乗数−1) {full} の近傍にない（カバー率防衛の絞りは 1% 未満の前提）");
     }
 
     // ---- J6 外資の余地 ------------------------------------------------------------------------------------------------
@@ -185,33 +185,31 @@ public class IndustrializationReaderTests
 
     // ---- J7 交易の比重 ------------------------------------------------------------------------------------------------
     [Fact]
-    public void 交易の比重_旗1は入力データの工業化度で傾けない_旗0は手計算の旧の式()
+    public void 交易の比重_開幕は入力データの工業化度で傾けず基準の均等()
     {
         var cfgs = new[] { NationConfig.France(), NationConfig.Britain(), NationConfig.Japan() };
+        Assert.True(cfgs[1].Industrialization > cfgs[2].Industrialization, "前提が崩れた：入力の工業化度が国で違わない");
         double baseW = (double)typeof(MultiNationSim).GetField("DefaultTradeWeightBase", BindingFlags.NonPublic | BindingFlags.Static)!.GetRawConstantValue()!;
-        double slope = (double)typeof(MultiNationSim).GetField("TradeWeightIndustrializationSlope", BindingFlags.NonPublic | BindingFlags.Static)!.GetRawConstantValue()!;
-        var s0 = new MultiNationSim(cfgs, seed: 1789);
-        for (int i = 0; i < cfgs.Length; i++)
-            Assert.Equal(baseW + slope * cfgs[i].Industrialization, s0.Nations[i].World.SelfPower!.TradeWeight, 12);   // 旧：基準＋傾き×入力（定数は MultiNationSim から読む）
-        var s1 = new MultiNationSim(cfgs, seed: 1789, coef: new Coefficients { TradeWeightOpeningEven = 1 });
+        var s1 = new MultiNationSim(cfgs, seed: 1789);
         for (int i = 0; i < cfgs.Length; i++) Assert.Equal(baseW, s1.Nations[i].World.SelfPower!.TradeWeight, 12);
     }
 
     // ---- J8 扶養力 ---------------------------------------------------------------------------------------------------
-    private static double Capacity(double flag, double ind)
+    private static (double Capacity, double Fertility) CapacityAt(double ind)
     {
         var sim = Britain(); var w = sim.World; var r = w.Region;
-        w.Coef.CapacityIndTermsOff = flag;
         r.Industrialization = ind; r.OldVintageCapital = 0; r.StrandedVintage = 0;
         sim.DemographicStep();
-        return w.DiagCapacity;
+        return (w.DiagCapacity, w.DiagFertility);
     }
 
     [Fact]
-    public void 扶養力_旗1は工業化度の2項を外す_旗0は旧のまま()
+    public void 扶養力は工業化度に依らず_出生率だけが工業化度で動く()
     {
-        Assert.True(Capacity(0, 4.0) != Capacity(0, 0.0), "旗 0 で扶養力が工業化度に依らない（旧の 2 項）");
-        Assert.Equal(Capacity(1, 0.0), Capacity(1, 4.0), 9);
+        var (c0, f0) = CapacityAt(0.0); var (c4, f4) = CapacityAt(4.0);
+        Assert.True(c0 > 0);
+        Assert.Equal(c0, c4, 9);                                                   // 扶養力は工業化度の 2 項を持たない
+        Assert.True(f4 < f0, $"陽性対照：出生の項（FertilityIncomeSlope×avgInd）は残る（工業化度 0:{f0}・4:{f4}）");
     }
 
     // ---- J11 表示：最終の表の物差し ---------------------------------------------------------------------------------

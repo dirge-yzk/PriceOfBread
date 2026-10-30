@@ -27,7 +27,6 @@ public sealed class MultiNationSim
 
     // マジックナンバー命名（挙動不変・値は据え置き）。中央 Coefficients には入れない当ファイル固有のハードコード値。
     private const double DefaultTradeWeightBase = 0.15;              // 交易比重の基準値（初期国の基数・分離独立国の既定）
-    private const double TradeWeightIndustrializationSlope = 0.10;   // 工業化度あたりの交易比重の増分（初期国のみ）
     private const double RumpGdpFractionOfParent = 0.01;             // 残骸国家判定＝親GDP比のこの割合未満が続いたら再併合対象
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
 
@@ -74,7 +73,7 @@ public sealed class MultiNationSim
                 //   同じ式で播けば段差が消える（充足度と質の乗数は初回Stepで乗る）。
                 Military = sim.World.SoldierSizeK() / _coef.SoldiersPerMilitary,
                 GdpPerMonth = sim.World.GdpPerMonth,
-                TradeWeight = _coef.TradeWeightOpeningEven > 0 ? DefaultTradeWeightBase : DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // ★(605) 旗 TradeWeightOpeningEven では入力データの工業化度で傾けない   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
+                TradeWeight = DefaultTradeWeightBase,   // ★(667) 開幕の交易の比重は全ての初期国で基準の均等（入力データの工業化度では傾けない・最初の四半期の末の UpdateTradeWeights が貿易取扱高のシェアから上書きする）
             };
             foreach (var (cname, cres, cpopK) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpopK / Diplomacy.ColonyUnitPop, PopSize = cpopK, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
             sim.World.Diplomacy = Diplomacy;     // 読み取り用（植民地アクセス・交易）
