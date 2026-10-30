@@ -9,7 +9,7 @@ namespace PriceOfBread.Tests;
 /// <summary>(668) 線 pdc 案 U の番人：農村↔都市の対の選び（<see cref="PopDecision.MigrationPair"/>）を 1 本にした統一は挙動を変えない。
 /// 期待値は本体の関数から作らず、番人の側の独立のループ（階級の番号 14＝犯罪者のリテラル・旧の職の移しの規則〈閉鎖だけを飛ばす〉）で作る。
 /// 突然変異：犯罪者 POP を Pops の先頭に置いた州で、3 か所（人口の移動・職の移しの天井・計器）が犯罪者を対に選ばないこと
-/// （共有の関数 MigrationPair の犯罪者の飛ばしを外すと赤＝確かめた突然変異はこの 1 本。3 か所の手書きへ戻して 1 か所だけ飛ばさない形は試していない）。
+/// （共有の関数 MigrationPair の犯罪者の飛ばしを外すと赤〔線 pdc〕・職の移しの天井だけを旧の手書き〈閉鎖だけを飛ばす〉へ戻すと 2 本目が赤〔★(675) 合流で確かめた〕）。
 /// ★(675) 合流の注：1 本目の `CriminalClassEnabled = 1` は MultiNationSim の係数に渡すだけで、国の構築（BuildNation）には届かない＝犯罪者の器が付くのは
 /// 州へ昇格した植民地だけ（本土の州は旧と新の規則が自明に一致する）。2 本目の残枠は正（期待値 0 どうしの一致で緑にならない）を断言する。</summary>
 public class MigrationPairTests
@@ -63,6 +63,7 @@ public class MigrationPairTests
         var (rural, urban) = Indep(r, true);
         Assert.NotNull(rural); Assert.NotNull(urban);
         Assert.NotSame(crim, rural);
+        urban!.Size = rural!.Size * 0.05;   // ★(675)：都市を小さくして天井の残枠を正にする（英の開幕は対の都市が天井以上＝残枠 0 で、期待値 0 どうしの一致になっていた）
         var got = PopDecision.MigrationPair(r);
         Assert.Same(rural, got.Rural); Assert.Same(urban, got.Urban);
 
