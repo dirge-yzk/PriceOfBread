@@ -997,6 +997,7 @@ public static class Politics
         //     初版が首都運動を**地方へ**旗揚げさせて平和的な転換まで分離戦争に化けさせたこと。蜂起は要求が法で1段も動かなかった運動だけ＝平和的な転換ではない。
         //     首都の運動は首都に拠る＝一元化の対象は地図の上の戦闘）。旧の民族分岐（本拠州が少数派→旧経路の単一州の分離）は削除（作者裁定 g）。
         Polity target = NearestPolity(best.Ideo);
+        if (Instruments.On) Instruments.PrdfRevolt(w, (int)target);   // (681) 計器だけ＝蜂起の目標政体の記録
         if (RaiseRevolt(w, best.Region, target))
         {
             w.RevoltingFaction = best;   // 決着（Diplomacy.ResolvePeace の内戦分岐→再併合・分断・独立の確定）で運動は燃え尽きる

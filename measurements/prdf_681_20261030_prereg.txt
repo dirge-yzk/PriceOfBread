@@ -1,0 +1,17 @@
+# (681) 事前登録：計器 prdf_s（線 prdf・恒等・読むだけ）。この文書が枝 prdf の最初のコミット。書いたモデル Claude Sonnet 5.5。書いた時点 2026-10-30。
+# 木：基点 main bd8cde45（m675）。この木の名乗り：`tree=prdf bd8cde45`。基線＝measurements/b10_20261030_m675・b5_20261030_m675・b10_20261030_m675_ins（生 D:/PoB_work/keep_675/m675_ins）。
+# 出所：measurements/prd_671_20261030_prereg_rev3.txt の [R8]（列）と [R9]（分岐の規則）。この文書は rev3 の写しではなく、実装した列と読み方の確定。
+# ⚠この線の決めは全て AI の推奨。作者「全て推奨で進めてください。」で推奨を採った（作者の承認の言葉ではない）。
+[0] 形：恒等（力学を替えない・旗なし・係数なし・状態なし・CostLedger の行なし）。計器 prdf_s を Instruments.On の内側だけに足す。World を書かない。計算量 0。
+[1] 足した場所：Factions.Step の終わり（PrdfObserve・観測クラスタと永続状態を読む）／Politics.TriggerFactionRevolt の目標政体が決まった直後（PrdfRevolt）／Instruments.Quarter・Close（書き出し）。
+[2] 列：quarter・year・nation・polityCode・knownCom・manifestoCom・nBody・nBodyCom・nBodySoc・popShareCom・popShareComSub・popShareSoc・nCellCom・maxCellFracCom・maxCellFracSoc・maxCohCom・revoltTarget・revoltN・track0〜track3。
+   rev3 からの違い：trackMin0〜3 は track0〜3（行は当四半期の値・最小は集計で出す）。足した列＝popShareSoc・nCellCom・maxCellFracCom・maxCellFracSoc・revoltN（足切りの前のセルの大きさを見るため）。
+[3] 恒等の合否：10 種（POB_FIRST5_OUT で 5 種も同じ走り）の成績表が b10_20261030_m675・b5_20261030_m675 と全行一致（名乗り行の SOURCE-HASH を除く）。計器つき 10 種（POB_INSTRUMENTS_NATIONS を渡す）が b10_20261030_m675_ins と全行一致。
+   計器の既存の表（prdf_s 以外）が基線の生とバイト一致することも読む。
+[4] 読み方（rev3 [R9] どおり・結果の前に置く）：分母＝prdf_s の行のうち knownCom＝1 の国×四半期。N＝そのうち nBodyCom≧1 の行数。K＝N の行のうち revoltTarget＝6 の行数（polityCode 6 に至ったかは別に数える）。
+   N＝0：束が一度も立たない。次の線は式の置き換え（rev3 [R5] の ①②③）。
+   N≧1 かつ K＝0：束は立つが蜂起の発火で止まる。次の線は蜂起の門を読む線（F1 は要らない）。
+   N≧1 かつ K≧1 かつ polityCode 6 が 0：蜂起は起きるが内戦の決着で止まる。次の線は決着を読む線。
+   N の大きさ（頻度）は記録（作者の〈極端な状況でしか成立しない〉と並べて作者に聞く物）。採否・分岐に使わない。
+   見込み（rev3 [R7]・確信度 中）：(a′) 行の割合 5% 未満・(b′) popShareCom の最大 0.05 未満。外れても自動では結論しない。
+[5] 限界：議会の無い世界（Factions.Step が走らない国）は行が出ない／セルの規模は参加で重みづけた量／popShare の分母は州の POP の Size の和／revoltTarget は発火時点の目標で RaiseRevolt の成否は見ない。
