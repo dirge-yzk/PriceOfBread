@@ -1,0 +1,7 @@
+M1 疫病の衛生に工業化度の代理を混ぜる build rc 0 → 赤 2 ['失敗 PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [306', '失敗 PriceOfBread.Tests.IndustrializationReaderTests.疫病_工業化度を動かしても致死率が動かず_衛生財の充足で動']
+M2 信用の上限に工業化度の倍率を戻す build rc 0 → 赤 2 ['失敗 PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [474', '失敗 PriceOfBread.Tests.IndustrializationReaderTests.信用の深さ_準備の上限は工業化度に依らず_金かける信用乗数']
+Traceback (most recent call last):
+  File "D:\PoB_work\igi4_667\mut667.py", line 10, in <module>
+    s=open(R+f,'rb').read().decode('utf-8'); assert s.count(o)==1,(name,s.count(o))
+                                                    ^^^^^^^^^^^^^
+AssertionError: ('M3 開幕の交易の比重を入力の工業化度で傾ける', 2)

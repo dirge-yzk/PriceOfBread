@@ -1,0 +1,11 @@
+# (667) igi4 〈壊す〉の物差し ③（片方向の錠）の代理：scalars_s の段の法の列で、最大の段に張り付く国×四半期の割合（読み手 scripts/instruments/igi4_667/lock.py・読み終えた生は消した・下は実行の出力の写し）
+# 列＝educationLaw suffrage censorship bureaucracy socialSecurityLawCode antitrustLawCode womenRightsCode childLaborLegal workHoursValue（educationLaw・childLaborLegal・workHoursValue は最大の段に 1 度も届かない＝0）
+m655 147073 educatio=0.0000 suffrage=0.0745 censorsh=0.3924 bureaucr=0.7122 socialSe=0.0454 antitrus=0.0067 womenRig=0.0330 childLab=0.0000 workHour=0.0000
+N1 147185 educatio=0.0000 suffrage=0.0772 censorsh=0.3769 bureaucr=0.6409 socialSe=0.0329 antitrus=0.0103 womenRig=0.0375 childLab=0.0000 workHour=0.0000
+N2 147057 educatio=0.0000 suffrage=0.0709 censorsh=0.3823 bureaucr=0.7083 socialSe=0.0346 antitrus=0.0185 womenRig=0.0364 childLab=0.0000 workHour=0.0000
+B 147093 educatio=0.0000 suffrage=0.0609 censorsh=0.3717 bureaucr=0.6956 socialSe=0.0379 antitrus=0.0073 womenRig=0.0399 childLab=0.0000 workHour=0.0000
+A21 147079 educatio=0.0000 suffrage=0.0692 censorsh=0.3697 bureaucr=0.7230 socialSe=0.0426 antitrus=0.0248 womenRig=0.0373 childLab=0.0000 workHour=0.0000
+B21 147134 educatio=0.0000 suffrage=0.0745 censorsh=0.3903 bureaucr=0.4219 socialSe=0.0266 antitrus=0.0310 womenRig=0.0194 childLab=0.0000 workHour=0.0000
+B 最大の段に張り付く割合 腕÷基準の最大(列ごとの最悪)=1.06（2 以上で該当）
+B21 最大の段に張り付く割合 腕÷基準の最大(列ごとの最悪)=1.25（2 以上で該当）
+# 限界：代理の物差し（事前登録 [3] の〈最大の段に張り付く国×四半期〉を 9 本の段の法の列で読んだ）。educationLaw が最大の段に 1 度も届かないのは基線 m655 から同じ（注視の一覧 §0-W の先頭＝教育法が段 2 のまま動かない）。
