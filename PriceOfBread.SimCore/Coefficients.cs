@@ -2299,8 +2299,8 @@ public sealed class Coefficients
     public double NavalProcurementNeedsPort = 1.0;
     // ★(606) 線 navf／★(669) 線 navf3（海軍の需要の道）：0＝旧（艦の発注と予算は首都の州の1本・英の造船所32のうち31は需要も値段の信号も受けない）／正＝国の海軍の発注と予算を国の**本国格（Core・Integrated）の港の州**へ**同じ割合**で配る
     //   （割合＝本国格の港の取扱高の比・分子と分母は同じ述語 EconomyStep.NavalHomePort・植民地格の港は配りに入れない〔(614) の F1 は入れた〕・EconomyStep.NavalPortSplit）＝各州が自分の市場で普通の経路（需要→配給→決済→艦の在庫）で買う。AI とプレイヤーで同じ道（国の動詞は無い）。
-    //   旗の読み手＝Simulation（月初の配り・予算）・EconomyStep（発注と決済の述語 navPort）。既定 0（未判定＝AI の形・史実の確証なし）。
-    public double NavalPortProcurement = 0.0;
+    //   旗の読み手＝Simulation（月初の配り・予算）・EconomyStep（発注と決済の述語 navPort）。既定 1（(679) 線 navf4 で点火＝腕 B・B11 が止める線に当たらず・G7／G1／G1b／G6 が通り〈壊す〉の物差し ①②③ が鳴らず採った・作者 2026-10-30「全て推奨で進めてください。」で推奨を採った〔作者の承認の言葉ではない〕・形の史実の確証は無い）。
+    public double NavalPortProcurement = 1.0;
     // ★海軍力を艦隊から出す（作者裁定「海軍は戦艦ありき」）。0＝旧（兵数×海軍シェア）／1＝min(艦隊ゲージ, 乗員ゲージ)。
     // ★点火2026-08-01（裁定③の受入試験を実測してから）。海軍力＝min(艦隊ゲージ, 乗員ゲージ)。
     // ⚠**播種（Diplomacy）と導出分母（EconomyStep.FleetGaugeDenominator）が同じコミットに入っていること**が前提。
