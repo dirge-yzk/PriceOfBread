@@ -12,6 +12,9 @@ SPREAD = {'特許', '株式会社', '社会主義', '共産主義', '帝国主�
 DRAWS = 2000
 GATE_MEAN_EXCESS = 0.15     # (i) 旗 0 の 4 つの腕（m675・N1・N2・種 11〜20）の最小 +0.153 の下＝帯の外（事前登録 [5]）
 GATE_P95_SHARE = 0.10       # (ii) dsc6 のまま（番人＝旗 0 も dsc6 も通る・判別力は無い）
+GATE_ALL_EXCESS = 0.20      # (i-b) 全ての出来事の入れ替え（rec_rowswap_all）の平均差の線＝旗 0 の 4 腕の最小 +0.203 の下（事前登録 追記 2）
+GATE_MIN_CELLS = 80         # セルの数の床（10 種×9 国＝90・旗 0 は 89〜90）。母集団の側へ出来事を逃がして門を通ることを防ぐ（追記 2）
+GATE_MIN_RESEARCH_SHARE = 0.40  # 研究で開いた割合の床（旗 0 は 0.90〜0.99・dsc6 は 0.53）。分母の崩れだけを捕まえる緩い床（追記 2）
 
 
 def mwin(xs):
@@ -51,7 +54,7 @@ def cells_rowswap(op, rng):
         for n in use: vs[n].append(mwin(ns[n]))
     out = []
     for n in use:
-        v = sorted(vs[n]); out.append((n, mwin(obs[n]), sum(v) / len(v), v[int(0.95 * len(v)) - 1], len(obs[n])))
+        v = sorted(vs[n]); out.append((n, mwin(obs[n]), sum(v) / len(v), v[int(0.95 * len(v)) - 1], len(obs[n]), st.pstdev(v)))
     return out
 
 
@@ -62,14 +65,16 @@ def cells_uniform(op, rng):
         if len(qq) < 5: continue
         lo, hi = min(qq), max(qq); v = []
         for _ in range(DRAWS): v.append(mwin([rng.randint(lo, hi) for _ in qq]))
-        v.sort(); out.append((n, mwin(qq), sum(v) / len(v), v[int(0.95 * len(v)) - 1], len(qq)))
+        v.sort(); out.append((n, mwin(qq), sum(v) / len(v), v[int(0.95 * len(v)) - 1], len(qq), st.pstdev(v)))
     return out
 
 
 def summ(cells):
     if not cells: return None
-    return (len(cells), st.mean(m for _, m, _, _, _ in cells), st.mean(mu for _, _, mu, _, _ in cells),
-            st.mean(m - mu for _, m, mu, _, _ in cells), sum(1 for _, m, _, p, _ in cells if m > p) / len(cells))
+    # 末尾の 6 つ目＝規模に依らない記録 (M−μ)÷σ の平均（σ が 0 のセルは除く）
+    zs = [(m - mu) / sd for _, m, mu, _, _, sd in cells if sd > 0]
+    return (len(cells), st.mean(c[1] for c in cells), st.mean(c[2] for c in cells),
+            st.mean(c[1] - c[2] for c in cells), sum(1 for c in cells if c[1] > c[3]) / len(cells), st.mean(zs) if zs else float('nan'))
 
 
 def main():
@@ -90,13 +95,20 @@ def main():
         print('seed', s, '出来事', len(op), '研究で開いた', len(res), '' if sm is None else 'T1★ セル %d 差 %+.2f p95超え %.3f' % (sm[0], sm[3], sm[4]))
     print('種の数', seen)
     for k, v in acc.items():
-        sm = summ(v); print(k, 'セルが無い' if sm is None else 'セル %d 観測M %.2f 帰無 %.2f 差 %+.3f p95超え %.3f' % sm)
+        sm = summ(v); print(k, 'セルが無い' if sm is None else 'セル %d 観測M %.2f 帰無 %.2f 差 %+.3f p95超え %.3f 規模に依らない差(M-μ)/σ %+.3f' % sm)
     print('研究で開いた割合（種ごと）', [round(x, 2) for x in fr])
     if gate:
         sm = summ(acc['T1star'])
         if sm is None or seen != ns: print('T1★ 判定：外れ（セルが無いか種が欠けた）'); return
         ok1 = sm[3] <= GATE_MEAN_EXCESS; ok2 = sm[4] <= GATE_P95_SHARE
-        print('T1★ 判定：(i) 差 %+.3f ≦ %+.2f %s／(ii) p95 超え %.3f ≦ %.2f %s ＝ %s' % (sm[3], GATE_MEAN_EXCESS, '通る' if ok1 else '外れ', sm[4], GATE_P95_SHARE, '通る' if ok2 else '外れ', '通る' if ok1 and ok2 else '外れ'))
+        sa = summ(acc['rec_rowswap_all']); ok3 = sa is not None and sa[3] <= GATE_ALL_EXCESS
+        ok4 = sm[0] >= GATE_MIN_CELLS
+        sh = st.mean(fr) if fr else float('nan'); ok5 = sh >= GATE_MIN_RESEARCH_SHARE
+        allok = ok1 and ok2 and ok3 and ok4 and ok5
+        print('T1★ 判定：(i) 差 %+.3f ≦ %+.2f %s／(ii) p95 超え %.3f ≦ %.2f %s／(i-b) 全ての出来事の入れ替えの差 %s ≦ %+.2f %s／セル %d ≧ %d %s／研究で開いた割合 %.2f ≧ %.2f %s ＝ %s' % (
+            sm[3], GATE_MEAN_EXCESS, '通る' if ok1 else '外れ', sm[4], GATE_P95_SHARE, '通る' if ok2 else '外れ',
+            'なし' if sa is None else '%+.3f' % sa[3], GATE_ALL_EXCESS, '通る' if ok3 else '外れ',
+            sm[0], GATE_MIN_CELLS, '通る' if ok4 else '外れ', sh, GATE_MIN_RESEARCH_SHARE, '通る' if ok5 else '外れ', '通る' if allok else '外れ'))
 
 
 if __name__ == '__main__':
