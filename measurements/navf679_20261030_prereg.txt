@@ -144,3 +144,16 @@
   ③読み手：`python -X utf8 -I scripts/instruments/navf679/g_lines.py <B>/ins 10 1 --a <A>/ins`・B11 は `... 10 11 --a <A11>/ins --a-start 11`。`break12.py <m675_ins> <n1> <n2> <B>/ins`（run_in_background）・`lock3.py <B>/ins <m675_ins> <n1> <n2>`。
   ④採るなら旗 1 を既定にした木で成績表 3 枚（素の 10 種〔`POB_FIRST5_OUT` で 5 種も〕・計器つき 10 種）・savetest（300 四半期）・leakhunt・フルスイート・FullLength。採らないなら既定のまま 0 で枝に残し、札を実装ログに書く。
   ⑤規則の違反の自己申告（`&`・`sleep`・`sed -i`・`git add -A`・amend）を報告に書く。
+
+[追記 1] 2026-10-30（コードを載せ直した後・腕の前）。腕は 1 本も回していない。門・閾値・種・計算量は [0]〜[9] のまま動かしていない。書いたモデル Claude Sonnet 5.5。
+  K1 **載せ直しの方法**：枝 origin/navf3 の `PriceOfBread.SimCore` と `PriceOfBread.Tests` の差分（基点 16859244 → 92f4ee40）を `git apply --3way` で bd8cde45 の上へ当てた。**衝突 0**（全ファイルが cleanly）。錨の確認：
+        `CostLedger.Count` は載せ直し前に 28（`StapleLedgerPops = 27`）＝`NavalOrderScans = 28`・`Count = 29` になり、`SecessionLaborLaw` 系の試験の最後の行の名指しを `NavalOrderScans + 1` へ（(669) と同じ直し）。
+        `DormantIdentityTests` の旗の配列は `CriminalClassEnabled` の次に 1 行。`NavalPortProcurementTests` は新規ファイル。
+  K2 **触った行（bd8cde45 の木の載せ直し後の座標）**：Coefficients 2300〜2303／EconomyStep 372〜434（`FleetOrderCost`・`NavalHomePort`・`NavalPortSplit`・`NavalPortBudget`・`SettleFleetPurchase`）・1178〜1180・1284〜1293・2478〜2481／
+        Instruments 71（`WState`）・1208〜1215（`RegionMoved`）・2561・2566〜2577・2614〜2616／Model 1112〜1114／MultiNationSim 1986（const）・2004（`Names`）・2056（`UnitMicros`）・2083〜2085（定数）／
+        Simulation 2069〜2080（月初の配り）・2083（`navIdx++`）・2135〜2150（予算の配り）／Territory 322・344／Tests/DormantIdentityTests 35／**App/ViewModels/GameViewModel.Politics.cs 619〜625**（艦隊の行の充足・旗 > 0 のときだけ）。
+        edq と重なり得る行＝`MultiNationSim` の const の行（1986）と `Names`（2004）・`UnitMicros`（2056）の各 1 行・`DormantIdentityTests` の配列（35）・`Region` の新しい欄（Model 1112）。機械的に解く。
+  K3 **読み手の合わせ**：`scripts/instruments/navf679/g_lines.py` の G6 を [3] の大きさの門に（旗 0 の腕の種ごとの r の最小−幅 を下回る種が先頭 5 種中 4 種以上）。G1b は (669) の追記 1 R3 のまま。
+  K4 **番人の足し**：`NavalPortProcurementTests` に 1 本（画面の艦隊の行の充足の式〔国の Σ州の予算 ÷ 各州の値段の必要額〕・首都が港でない国で旧の式が 0% を出すこと）。(669) の 3 本は載せ直した（期待値は手で置いた値段から独立に作る）。
+        突然変異の読み手 `scripts/instruments/navf679/mutate.py`（M1〜M9・隔離の写し）。記録は `measurements/navf679_20261030_mutation.txt`。
+  K5 **規則の違反の自己申告**：この前半で Bash の `sleep 1` を 1 回使った（テストの完了待ちの確認で・結果には影響しない）。

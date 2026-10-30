@@ -68,6 +68,7 @@ public static partial class Instruments
 
     sealed class WState
     {
+        public double FleetMovedOutHome, FleetMovedOutColonial;   // ★(669) 線 navf3：この国（送り手）の州が割譲・分離独立などで FleetUnits ごと出ていった隻数の累計を、出た州の格（移る前の Tier）で分けた（読むだけ・World ごと）
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
         public int ModStance = -1; public double ModGapUsed = double.NaN;   // (416) AI の近代化投資の判断（Apply が置き ModFold が書いて戻す）
@@ -1204,8 +1205,14 @@ public static partial class Instruments
     internal static void Route(string file, int line, char fromSide, char toSide) { _routeFile = file; _routeLine = line; _routeFrom = fromSide; _routeTo = toSide; }
 
     /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
-    internal static void RegionMoved(World? to, Region r)
+    internal static void RegionMoved(World from, World? to, Region r)
     {
+        if (r.FleetUnits is { } fu)   // ★(669) 線 navf3：送り手の World ごとに、出ていく艦を出た州の格で分けて積む（(614) の [ThreadStatic] は種の数が違う腕を比べられなかった）
+        {
+            double sum = 0; foreach (double x in fu) sum += x;
+            var sf = S(from);
+            if (r.Tier == RegionTier.Colonial) sf.FleetMovedOutColonial += sum; else sf.FleetMovedOutHome += sum;
+        }
         foreach (var p in r.Pops) { Sav(p, SavKind.RegionOut, -p.Savings.Value); PopOwner.Remove(p); }
         if (to is null) return;
         var st = S(to);
@@ -2551,10 +2558,23 @@ public static partial class Instruments
     static void StockRow(Sink sk, ulong seed, string time, World w, bool readGdp)
     {
         double popK = 0, homePopK = 0, soldierK = 0, stockValue = 0, ships = 0, steamW = 0, steamV = 0;
+        double nvPortStock = 0, nvInlandStock = 0, nvColStock = 0, nvOutCap = 0, nvOutOther = 0, nvBudCap = 0, nvBudOther = 0, nvBudColonial = 0, nvPaid = 0; int nvOrders = 0;   // ★(606) 線 navf の読むだけの列（海軍の需要の道：港の州の在庫と造船の産出と予算の配り）
         var tier = new double[3];
         foreach (var r in w.Regions)
         {
             double sz = r.SumPopulation(); popK += sz; if (r.Tier != RegionTier.Colonial) homePopK += sz;
+            {
+                bool isCap = r.Id == 0;
+                var fgs = w.Coef.FleetGoodIds;   // 戦闘艦の3財（軍艦・装甲艦・弩級戦艦）の和
+                foreach (var s in r.Producers) if (System.Array.IndexOf(fgs, s.GoodId) >= 0) { if (isCap) nvOutCap += s.Output; else nvOutOther += s.Output; }
+                double stk = 0;
+                foreach (int fg in fgs) if (fg >= 0 && fg < r.Markets.Length) stk += Math.Max(0, r.Markets[fg].Stock);
+                if (!isCap) { if (r.Tier == RegionTier.Colonial) nvColStock += stk; else if (r.IsPort) nvPortStock += stk; else nvInlandStock += stk; }   // ★(669) 首都以外を 3 つに分ける：植民地格（港でも）／本国格の港／本国格の港でない州
+                if (isCap) nvBudCap += r.NavalBudget; else nvBudOther += r.NavalBudget;
+                if (!isCap && r.Tier == RegionTier.Colonial) nvBudColonial += r.NavalBudget;   // 追記 2：首都以外の植民地格の州へ行った予算（★(669) 首都は除く＝首都が植民地格のときの落ち先は G7 の外）
+                nvPaid += r.StateSpent[(int)TreasuryCat.Navy];   // 追記 2：今月の海軍の区分の支払い（予算の使い道＝使い残しの見え方）
+                if (r.NavalOrder is not null) nvOrders++;
+            }
             foreach (var p in r.Pops) if (p.IsSoldier) soldierK += p.Size;
             foreach (var s in r.Producers)   // 工場の蒸気動力の割合の母集団＝労働を買う工場（石炭と電力を除く）の産出×参照価格
             {
@@ -2591,6 +2611,9 @@ public static partial class Instruments
         if (sp is not null && w.Diplomacy is { } dip) foreach (var war in dip.Wars) if (war.A == sp || war.B == sp) { atWar = true; break; }
         C("fleetGaugeIndex", sp?.FleetGauge ?? double.NaN); C("atWarFlag", atWar ? 1 : 0);
         C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
+        C("portFleetGoodsStock", nvPortStock); C("colonialFleetGoodsStock", nvColStock); C("inlandFleetGoodsStock", nvInlandStock); C("capitalFleetGoodsOutputPerMonth", nvOutCap); C("otherFleetGoodsOutputPerMonth", nvOutOther);   // ★(606) 線 navf：首都以外の港の州と港でない州の軍艦の市場の在庫・造船の産出（首都／首都以外）
+        C("navalBudgetCapitalPerMonth", nvBudCap); C("navalBudgetOtherPerMonth", nvBudOther); C("navalOrderStatesCount", nvOrders);
+        C("navalBudgetColonialPerMonth", nvBudColonial); C("navyPaidPerMonth", nvPaid); C("fleetUnitsMovedOutHomeCum", S(w).FleetMovedOutHome); C("fleetUnitsMovedOutColonialCum", S(w).FleetMovedOutColonial);   // ★(606) 追記 2：植民地格の州へ行った予算・海軍の区分の支払い・州の割譲などで艦ごと移った隻数の累計（全ての国の和・読むだけ）   // 海軍の予算の配り（旗 NavalPortProcurement が 0 なら首都だけ・首都以外は 0）と艦を発注した州の数
         sk.Stock ??= Open("stock", seed);
         if (!sk.StockHeader) { sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Name))); sk.StockHeader = true; }
         sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Value)));

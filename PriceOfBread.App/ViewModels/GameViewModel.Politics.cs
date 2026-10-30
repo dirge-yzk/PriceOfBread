@@ -616,6 +616,13 @@ public partial class GameViewModel
                 var fleetH = EconomyStep.FleetHeldUnits(_player, c);
                 var fleetQ = EconomyStep.FleetOrder(r, c, _player, out double fleetCost);
                 double fAfford = fleetCost > Eps ? Math.Min(1.0, r.NavalBudget / fleetCost) : 0.0;
+                if (c.NavalPortProcurement > 0)   // ★(679) 旗 NavalPortProcurement が正のときは予算が国の本国格の港の州へ割られる＝首都の州の予算だけを首都の値段の必要額で割ると、首都が港でない国で充足 0% になる。国の Σ州の予算 ÷ 各州が自分の値段で買う額の和（Simulation と同じ NavalPortSplit）で出す
+                {
+                    var navShare = new double[_player.Regions.Count]; var navBudShare = new double[_player.Regions.Count];
+                    EconomyStep.NavalPortSplit(_player, c, navShare, navBudShare, out double navNeed);
+                    double navBudget = 0; foreach (var pr in _player.Regions) navBudget += pr.NavalBudget;
+                    fAfford = navNeed > Eps ? Math.Min(1.0, navBudget / navNeed) : 0.0;
+                }
                 var fleetRows = new List<ArmyNeedRow>();
                 for (int k = 0; k < c.FleetGoodIds.Length; k++)
                 {

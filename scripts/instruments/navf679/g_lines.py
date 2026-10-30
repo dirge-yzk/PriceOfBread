@@ -182,7 +182,7 @@ def g1b():
 
 
 def g6():
-    """G6：英の portFleetGoodsStock（首都以外の本国格の港）の（1790 年末 ÷ 最初の行）が旗 1 で旗 0 より小さい種が、対にした先頭 5 種中 4 種以上。"""
+    """G6（(679) D3 の大きさの門）：英の portFleetGoodsStock（首都以外の本国格の港）の（1790 年末 ÷ 最初の行）が、旗 0 の最小−旗 0 の幅 を下回る種が B の先頭 5 種中 4 種以上。"""
     if not ARMA: print('G6 --a（旗 0 の腕の計器の出力）が無い'); return None
 
     def ratio(d, s):
@@ -194,14 +194,18 @@ def g6():
         y = [r for r in uk if int(fnum(r['year'])) == 1790 and r['time'].startswith('q')]
         if not y or not (first > 0): return None
         return fnum(y[-1]['portFleetGoodsStock']) / first
+    # (679) D3：向きだけの門をやめ大きさの門にした。B の r が min(A の種ごとの r) − (A の種ごとの r の幅) を下回る種が B の先頭 5 種中 4 種以上
+    ra_all = [x for x in (ratio(ARMA, ASB + k) for k in range(NA)) if x is not None]
+    if not ra_all: print('G6 旗 0 の腕に値なし'); return None
+    thr = min(ra_all) - (max(ra_all) - min(ra_all))
     ok = tot = 0; per = []
     for k in range(5):
-        rb, ra = ratio(D, SB + k), ratio(ARMA, ASB + k)
-        if rb is None or ra is None: continue
-        tot += 1; ok += rb < ra; per.append((SB + k, round(rb, 3), round(ra, 3)))
-    print(f'G6 英の本国格の港の州の艦の財の在庫 1790年末/最初の行 が B<A の種 = {ok}/{tot}（先頭 5 種・種ごと 種,B,A {per}）')
+        rb = ratio(D, SB + k)
+        if rb is None: continue
+        tot += 1; ok += rb < thr; per.append((SB + k, round(rb, 3)))
+    print(f'G6 英の本国格の港の州の艦の財の在庫 1790年末/最初の行：A の最小={min(ra_all):.3f} 幅={max(ra_all) - min(ra_all):.3f} 線={thr:.3f}。B が線を下回る種 = {ok}/{tot}（先頭 5 種・種ごと 種,B {per}）')
     p = tot >= 5 and ok >= 4
-    print('G6 判定（先頭 5 種中 4 種以上）=', 'PASS' if p else 'FAIL')
+    print('G6 判定（大きさの門・先頭 5 種中 4 種以上）=', 'PASS' if p else 'FAIL')
     return p
 
 

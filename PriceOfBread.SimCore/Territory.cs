@@ -319,7 +319,7 @@ public static class Territory
             foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings; Din += p.Debt; }
             Bin = Sin - Din;
         }
-        if (Instruments.On) Instruments.RegionMoved(to, r);   // (262) 計器（読むだけ）：州ごと別の国へ移る POP の貯蓄（換算の後）を貯蓄の台帳へ
+        if (Instruments.On) Instruments.RegionMoved(from, to, r);   // (262) 計器（読むだけ）：州ごと別の国へ移る POP の貯蓄（換算の後）を貯蓄の台帳へ
         from.Bank!.Carry(to?.Bank, D, Din);
         if (to is not null)
         {
@@ -341,6 +341,7 @@ public static class Territory
         bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
         RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
+        if (from.Coef.NavalPortProcurement > 0) { r.NavalBudget = 0; r.NavalOrder = null; }   // ★(669) 追記 1（旗 1 のときだけ・旗 0 の状態は 1 ビットも触らない）：月ごとに Simulation が書き直す複製を、州が持ち主を替えるときに戻す（移った州が前の国の首都の予算を持ったまま計器の行に出る＝偽の植民地向けの予算を作らない）
         if (backToColony && to?.Diplomacy is { } dg)
         {
             if (tierLeft == RegionTier.Core) dg.SovereignColonialRegions--; else dg.PromotedColonies--;
