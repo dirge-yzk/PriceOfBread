@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>★(688) 線 navf5 (b)：旗 <see cref="Coefficients.NavalCedeFleetReturn"/>（割譲のとき出ていく州の艦の在庫を送り手の首都の州へ戻す）の番人。既定 0＝今のまま（艦ごと渡る）。
 /// 期待値は手で置いた艦の在庫（財ごとの隻数）から独立に作る（実装の式を写さない）。突然変異で赤になる物（記録＝`measurements/navf688_20261030_mutation.txt`）：
-/// 旗の条件を外す・戻し先を出ていく州のままにする・how の条件を外す（建国も戻す）・首都が出るとき遷都の前の古い首都へ送る・null にし忘れて二重に数える・送り手の州が 0 でも戻す。</summary>
+/// M1 旗の条件を外す・M2 戻し先を出ていく州のままにする・M3 how の条件を外す（建国も戻す）・M4 首都が出るとき戻し先を null にする・M5 出ていく州の艦を空にしない（二重に数える）・M6 戻し先の在庫を作らず捨てる（〈送り手の州が 0 のときの守り〉は homeReg の null 判定が担う＝同値の突然変異で単独では作らなかった）。</summary>
 public class NavalCedeFleetReturnTests
 {
     private static MultiNationSim Frozen(params string[] names)

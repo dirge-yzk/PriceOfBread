@@ -48,6 +48,7 @@ public class UrxInstrumentTests
         Match("農村→都市", 0.1, 0.3, 0.9, 0.9, capital: false);
         Match("都市→農村", 0.3, 0.1, 0.9, 0.9, capital: false);
         Match("天井で切れる", 0.1, 0.5, 0.9, 0.9, capital: true, tweak: c => { c.UrbanCapOff = 0; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0; });
+        Match("天井なし（旗 1）", 0.1, 0.5, 0.9, 0.9, capital: true, tweak: c => { c.UrbanCapOff = 1; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0; });   // ★(694) 合流（反証役 urb2〔bv〕低）：新しい既定（旗 1）で首都の州の計器の写しと本物の Run が一致すること
         Match("飢えの門が閉じる", 0.1, 0.3, 0.9, 0.2, capital: false, expectFlowNonZero: false);
         Match("農奴の門が絞る", 0.1, 0.3, 0.9, 0.9, capital: false, serfFree: 0.25, tweak: c => c.SerfMobilityGate = 1.0);
     }

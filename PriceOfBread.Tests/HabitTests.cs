@@ -205,7 +205,7 @@ public class HabitTests
             var seededRows = region.Where(r => r[I("nationIndex")] == "2").ToList();
             Assert.True(seededRows.Count >= quarters);
             // ★(344) 反証役 op〔v〕：販売量を積む計器の口（Instruments.HabitSold）が消えても緑のままだった＝種を置いた国の州の行で販売量が正の行があること
-            Assert.True(seededRows.Any(r => D(r, "soldPerMonth") > 0), "種を置いた州の販売量が全て 0：" + string.Join(" ", seededRows.Take(12).Select(r => $"[q{r[I("quarter")]} 中毒{D(r, "addictionIndex"):F3} 販売{D(r, "soldPerMonth"):F3} 価格{D(r, "unitPrice"):F3}]")));
+            Assert.True(seededRows.Any(r => D(r, "soldPerMonth") > 0), "英の州（種を置いた国の全ての州）の販売量が全て 0（種の州だけで 0 になる理由は (687) で未診断）：" + string.Join(" ", seededRows.Take(12).Select(r => $"[q{r[I("quarter")]} 中毒{D(r, "addictionIndex"):F3} 販売{D(r, "soldPerMonth"):F3} 価格{D(r, "unitPrice"):F3}]")));
             foreach (var r in region)
             {
                 double a = D(r, "addictionIndex");
