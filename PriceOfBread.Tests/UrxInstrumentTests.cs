@@ -47,7 +47,7 @@ public class UrxInstrumentTests
     {
         Match("農村→都市", 0.1, 0.3, 0.9, 0.9, capital: false);
         Match("都市→農村", 0.3, 0.1, 0.9, 0.9, capital: false);
-        Match("天井で切れる", 0.1, 0.5, 0.9, 0.9, capital: true, tweak: c => { c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0; });
+        Match("天井で切れる", 0.1, 0.5, 0.9, 0.9, capital: true, tweak: c => { c.UrbanCapOff = 0; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0; });
         Match("飢えの門が閉じる", 0.1, 0.3, 0.9, 0.2, capital: false, expectFlowNonZero: false);
         Match("農奴の門が絞る", 0.1, 0.3, 0.9, 0.9, capital: false, serfFree: 0.25, tweak: c => c.SerfMobilityGate = 1.0);
     }
@@ -55,8 +55,12 @@ public class UrxInstrumentTests
     [Fact]
     public void 駆動の写しは天井と門の印を正しく立てる()
     {
-        var (r, _, _, c) = Board(0.1, 0.5, 0.9, 0.9, capital: true); c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0;
+        var (r, _, _, c) = Board(0.1, 0.5, 0.9, 0.9, capital: true); c.UrbanCapOff = 0; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0;   // ★(687) 天井の枝（旗 0）の印の番人
         Assert.True(Instruments.UrxPdDrive(c, r, 1.0, out var d));
+        c.UrbanCapOff = 1;   // 旗 1＝天井なし＝印が立たず目標は切られない
+        Assert.True(Instruments.UrxPdDrive(c, r, 1.0, out var dOff));
+        Assert.False(dOff.CapBound, "旗 1 で天井の印が立った"); Assert.Equal(dOff.TargetPre, dOff.TargetCapped, 12);
+        c.UrbanCapOff = 0;
         Assert.True(d.CapBound, "天井で切れた印が立たない"); Assert.Equal(0.05, d.Cap, 12); Assert.True(d.TargetCapped < d.TargetPre);
         var (r2, _, _, c2) = Board(0.1, 0.3, 0.9, 0.2, capital: false);
         Assert.True(Instruments.UrxPdDrive(c2, r2, 1.0, out var d2));

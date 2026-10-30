@@ -171,6 +171,7 @@ public class HabitTests
         seeded.OpiumAddiction = 0.05;
         // ★(436) 合流：合わせた木（cl＋sb＋dq の点火）では、この 4 国の試合でロンドンにアヘンが 30 四半期以上届かなくなった（産地の無い盤面で輸入の軌道が動いた・需要は立っている）＝
         //   販売量の計器の口の番人が軌道に依らないように、種を置いた州の市場にアヘンの在庫を置く（計器なしと計器つきの両方に同じ盤面＝軌道の一致の主張は変わらない）。
+        foreach (var rgn in uk.Regions) rgn.Markets[Catalog.OpiumId].Stock = 5000;   // ★(687) 種を置いた州だけ→英の全ての州：UrbanCapOff の点火で最初の 12 四半期の軌道が動き、種の州だけでは販売量が 0 になった（販売量の計器の口の番人は国の行のどれかが正であれば足りる）
         seeded.Markets[Catalog.OpiumId].Stock = 5000;   // ★(504) 50→5000：①③の点火（主食の買い方が変わり最初の 12 四半期の軌道が動いた）で、四半期の末の月の販売量が 12 四半期とも 0 になった（原因は未特定＝推測は在庫 50 の売り切れ）＝計器の口の番人は在庫の多さに依らないようにした
         try
         {
@@ -204,7 +205,7 @@ public class HabitTests
             var seededRows = region.Where(r => r[I("nationIndex")] == "2").ToList();
             Assert.True(seededRows.Count >= quarters);
             // ★(344) 反証役 op〔v〕：販売量を積む計器の口（Instruments.HabitSold）が消えても緑のままだった＝種を置いた国の州の行で販売量が正の行があること
-            Assert.Contains(seededRows, r => D(r, "soldPerMonth") > 0);
+            Assert.True(seededRows.Any(r => D(r, "soldPerMonth") > 0), "種を置いた州の販売量が全て 0：" + string.Join(" ", seededRows.Take(12).Select(r => $"[q{r[I("quarter")]} 中毒{D(r, "addictionIndex"):F3} 販売{D(r, "soldPerMonth"):F3} 価格{D(r, "unitPrice"):F3}]")));
             foreach (var r in region)
             {
                 double a = D(r, "addictionIndex");
