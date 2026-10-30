@@ -520,6 +520,12 @@ public static class Politics
         CrownParliament.Step(w, c);
     }
 
+    /// <summary>(700) 組合の合法度∈{0, 0.5, 1}＝労働者の組織が合法の道を持つ度合い（容認 1.0・統制 0.5・非合法 0）。<see cref="MeasureMobilization"/> の組合の動員と、社会主義と共産主義の重みの設計書（2-1）の抑圧 <see cref="UnionRepression"/> が読む唯一の表（新しい表を書かない）。</summary>
+    internal static double UnionLegality(LaborUnionLaw law) => law switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 };
+
+    /// <summary>(700) 抑圧＝1 − 組合の合法度∈[0,1]（設計書 prdd の式 t＝eraComm·repress·mil·r[5] の repress）。いまは影の列（<see cref="Instruments"/> の prds_s）だけが読む＝世界の挙動は読まない。</summary>
+    internal static double UnionRepression(LaborUnionLaw law) => 1.0 - UnionLegality(law);
+
     /// <summary>★動員の測定＝改革派・急進派の力（POP の和×外圧の追い風×政権への期待 H）を World.ReformistPower／RadicalPower へ書く（書き手はこの1本）。
     /// 四半期の測定（<see cref="Step"/>）と、内戦の開戦で両陣営の POP が入れ替わった直後の測り直し（Diplomacy.DeclareCivilWar＝2026-09-29）が同じ式を通る。
     /// ⚠旧＝測定は四半期末の Step だけ＝開戦の四半期は、反乱国は測定0（革命圧力0＝崩壊の線1.0）・政府は出て行った首都の住民を含む前の測定（革命圧力1.0＝線0.6）のまま戦った
@@ -528,7 +534,7 @@ public static class Politics
     internal static (double Hope, double ConscSum, double SizeSum) MeasureMobilization(World w, Coefficients c)
     {
         // 労働運動の両義性（B-5）：容認/統制の組合は組織労働として改革派を動員する＝体制への改革圧力（闘争度緩和で革命radicalは下げつつ、ここで改革reformistを上げる）。非合法＝動員なし。
-        double unionMob = c.UnionMobilization * (w.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 });
+        double unionMob = c.UnionMobilization * UnionLegality(w.LaborUnion);   // (700) 組合の合法度の表は UnionLegality の 1 本（値は旧の switch と同じ）
         double reformist = 0, radical = 0, conscSum = 0, sizeSum = 0;
         foreach (var p in w.AllPops())
         {
