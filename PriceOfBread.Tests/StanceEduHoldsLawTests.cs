@@ -100,10 +100,16 @@ public class StanceEduHoldsLawTests
         Assert.Equal(EducationLaw.Public, Target(EducationLaw.Public, 1 /* Industrialize */, flag, preTarget: EducationLaw.Compulsory));
     }
 
-    // 旗の既定は 0（今の式で厳密恒等）。
+    // 旗の既定は 1（2026-10-30 に点火）。既定の盤面で、旗を触らずに義務教育の国の目標が畳まれる。
     [Fact]
-    public void 旗の既定は0()
+    public void 旗の既定は1で既定のままでも義務教育の国へ撤回の願いを書かない()
     {
-        Assert.Equal(0.0, new Coefficients().StanceEduHoldsLaw);
+        Assert.Equal(1.0, new Coefficients().StanceEduHoldsLaw);
+        var w = new Simulation(NationConfig.Japan().ToScenario(53), new NullAgent()).World;
+        foreach (var pp in w.AllPops()) if (!pp.Closed) pp.Militancy = 0;
+        w.PoliticalLockEnabled = false;
+        w.EducationLaw = EducationLaw.Compulsory;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
+        Assert.Equal(EducationLaw.Compulsory, w.Policy.EducationLaw);
     }
 }
