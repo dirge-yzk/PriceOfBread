@@ -1543,7 +1543,7 @@ public sealed class UtilityAgent : INationAgent
                 if ((w.Coef.TechThresholdOff > 0 || w.TechLevel > CensusSuffrageTechThreshold) && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b：旗 TechThresholdOff が正なら技術の閾値の 4 本を落とす（願いは無条件・可否は政治の門と国庫の緩衝が決める）
                 break;
             case Stance.Industrialize:
-                p.EducationLaw = EducationLaw.Public;
+                p.EducationLaw = w.Coef.StanceEduHoldsLaw > 0 && w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：旗 StanceEduHoldsLaw が正なら願いは〈公教育以上〉＝義務教育の国に撤回の願いを書き戻さない（事前登録 measurements/edq680_20261030_prereg.txt・Modernize は国庫の述語で戻す願いを残す）
                 p.EducationSpendingTarget = 0.6;
                 p.AdminSpendingTarget = 0.5;
                 p.IncomeTaxTarget = 0.15; p.TariffTarget = 0.2;
@@ -1591,7 +1591,7 @@ public sealed class UtilityAgent : INationAgent
                 }
                 if (w.Coef.MilitarizeEducationDrive > 0)
                 {
-                    p.EducationLaw = EducationLaw.Public;
+                    p.EducationLaw = w.Coef.StanceEduHoldsLaw > 0 && w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：Industrialize と同じ
                     p.EducationSpendingTarget = Math.Max(p.EducationSpendingTarget, 0.4);
                 }
                 p.Censorship = CensorshipLaw.StatePressOnly;    // 軍国＝報道統制（安定優先・革新は犠牲）
