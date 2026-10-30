@@ -1,0 +1,13 @@
+# (679) navf4 突然変異（隔離の写しに SimCore の 1 か所だけ変えて NavalPortProcurementTests を Release で回した・読み手 scripts/instruments/navf679/mutate.py・全 9 本で赤）
+# 木：枝 navf4（コミット 03f9f6b5）。番人 4 本（配り／予算の置き場／画面の充足／港の州の決済）。コンソールの日本語は化けるので本数と KILLED だけ読む。
+# M1 分母だけ Tier の条件を外す（IsPort && 取扱高が正）→ 赤 1（配りの番人）
+# M2 分子だけ Tier の条件を外す → 赤 2（配りの番人・予算の置き場の番人）
+# M3 割合の分母を 2 倍 → 赤 1（配りの番人）
+# M4 艦の決済の区分を Navy→Army → 赤 1（港の州の決済の番人）
+# M5 本国の港が無いとき首都へ落とさない → 赤 1（配りの番人）
+# M6 国の必要額（予算の上限）を首都の値段に戻す → 赤 1（配りの番人・手で置いた値段 10・30・100 の期待値）
+# M7 予算の割合を取扱高の比に戻す → 赤 1（配りの番人）
+# M8 州の予算の書き込みが割合を掛けない（NavalPortBudget が国の予算をそのまま返す）→ 赤 2（配りの番人・画面の充足の番人）
+# M9 Simulation の州ごとの予算の書き込みを首都だけにする（NavalPortBudget を通さない）→ 赤 1（予算の置き場の番人）
+# 限界：画面の充足の番人は SimCore の側の式（Σ州の予算 ÷ NavalPortSplit の必要額）を見る。App の GameViewModel.Politics.cs の 1 行そのものは Release ビルドで通ることまで（App を起動しない）。
+# Territory の移った州の戻し（旗 1 のときだけ NavalBudget=0・NavalOrder=null）の番人は無い（(669) から引き継ぎ・G7 が腕 B の全行で見る）。
