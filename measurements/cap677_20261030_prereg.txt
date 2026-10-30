@@ -1,0 +1,135 @@
+# (677) 計画 cap：資本の在庫と投資（段3）＝段0 と事前登録（波45・枝 cap677〔基点 main bd8cde45＝m675〕・worktree D:/PoB_work/wt_cap・仮番号・書いたモデル Claude Opus 5.5）
+
+[0] 先頭
+- 判定：**段0 の予言が悪くする＝記録だけ**。腕 A・B は回さない（[5] の算術で G3-3 が許される全ての π の定義で外れ、建設の需要が GDP の数%〜数十%ぶん消える見込み）。コードは 1 行も書いていない。シミュも回していない（読んだのは keep_675/m675_ins の生とソースだけ）。
+- 指示から外れる所：枝の名前が cap677（指示は cap）。手元の cap と origin/cap は古い診断の枝 fa1cff14（main の祖先ではない・退避は D:/PoB_work/branch_backup/origin_branches_20261030.bundle にある）。強制の push で上書きしないため別名にした。
+- smd の §9 Q1〜Q3 は 作者「全て推奨で進めてください。」で推奨を採った（作者が smd を読んだかは未確認）。この登録は Q1〜Q3 の推奨の形をそのまま使う：①貯蓄の在庫は投資の予算に入れない（今月の貯蓄の流れ＋借入だけ）②β＝建屋の組 1 単位（β÷年賃金を記録し、史実と 10 倍以上ずれたら出典の値へ）③段3 の旗は〈能力を在庫で縛る〉と〈在庫をお金で買う〉を同じ 1 本・機械の選択（段4）は入れない。
+- 門・止める線・計算量・種の規則は [6] で固定した。この後の 3 回までのループ（実装→腕 B〔種 1〜10〕→診断）を回すなら、この [6] を変えずに使う。最終の判定は種 11〜20 で 1 回だけ。
+
+[1] 出所
+- 設計書 smd＝docs/202610/20261030/20261030_資本の在庫と投資_設計.md（§3〜§8）。前の 7 回の失敗＝実装ログ (598)(611)(620)(633)(641)。igi4〔(667)〕の後の読み手＝PriceOfBread.Tests/IndustrializationReaderTests.cs の許可表（25 ファイル・72 行）。origin/sm7 の SlotMachines.OpenDerive・SlotWear・CommitOpen は型として読むだけ（載せ直さない）。
+- 道具：scripts/instruments/cap677/readers.py（許可表と同じ正規表現で読み手を列挙＋投資の係数と関数の名前）→ measurements/cap677_20261030_readers.txt（146 行＝W 72＋X 74）。scripts/instruments/cap677/s0.py（keep_675/m675_ins の spend_s・factory_s・class_s・nation_s を読む）→ measurements/cap677_20261030_s0.txt。
+
+[2] 段0 ①：smd §4 の座標を bd8cde45 で取り直した表（grep の結果・fbfd8d0d→bd8cde45）
+| 物 | smd の座標 | bd8cde45 の座標 |
+| 投資の取り置き（消費の予算から貯蓄の 5%） | EconomyStep 656〜657 | EconomyStep 656〜657（657＝RemainingBudget *= 1−IndInvestmentFrac） |
+| 私的投資の予算（貯蓄の在庫の 5%/月） | EconomyStep 970（注 955〜969） | EconomyStep 971（注 958〜970） |
+| InvestmentReturn の呼び | 978 | 979 |
+| 株式会社の倍率・速さ | 984・985 | 985・986 |
+| 吸収 | 993〜999 | 994〜999 |
+| 1 束の工業化度 | 1000〜1001・定義 2897〜2906 | 1001・定義 2901〜2909 |
+| 決済で工業化度に足す（privateIndGain・Distribute・Industrialization +=・累積） | 2138〜2144 | 2141〜2146 |
+| 工業化度の減価と開発度の記憶 | 760〜776 | 762〜778（式 768〜777） |
+| 機械化度 | 779〜780 | 781 |
+| 能力の倍率 indMult（旗 IndustrializationOff=1 で 1.0） | 782〜784・使う所 844〜845 | 783〜785・使う所 845〜847 |
+| インフラの保守を工業化度に比例 | 1076 | 1077 |
+| InvestmentReturn の定義 | 2781〜2788 | 2785〜2792 |
+| ReturnShare | 2792〜2797 | 2796〜2800 |
+| 機械化度の労働の節約 | 2990 | 2994 |
+| 技術の括弧 | World 2071〜2092 | World 2069〜2089（旗 TechProductivityBracketOff 2088）・呼び Simulation 2389 |
+| AI の近代化の信号 | World 2054〜2068・読み手 SelfPlay 461・668・1819・CapitalMarket 22・InstrumentsModernize 30 | World 2052〜2066・読み手 SelfPlay 462・669・1820・CapitalMarket 22・InstrumentsModernize 30 |
+| 国庫の近代化の適格と重み | （smd に無い） | World 2030（StateInvestEligible）・2033〜2048（StateInvestWeight） |
+| 設備の相対の取り分 FactoryEquipment | FactoryEquipment.cs 全体 | 同じ（143 行）・呼び EconomyStep 599・753・2144・2639・2650／Megaprojects 266／Simulation 2415／World 1893 |
+| 巨大建造物の工業化度の点 | Megaprojects 261〜268 | Megaprojects 262〜267（TargetOf 278） |
+| 開幕の焼き込み | OpeningBake 209 | OpeningBake 33・170・209〜210（旗 OpeningBakeEnabled＝既定 0 で読まれない） |
+| 係数 | Coefficients 1086・1108・1117〜1121・1177〜1187・162・2899 | IndDepreciation 1080・PrivateAbsorptionBlend 1102・IndInvestmentFrac 1111・IndInvestmentSpeed 1112・IndPerConstruction 1113・IndCapitalOutputYears 1115・IndProductivityGain 1171・IndProductivityScale 1172・IndCapitalCost 1180・IndTechLeverage 1181・JointStockInvestBonus 162・IndustryInvestRegionCap 2889・RecipeEquipment 1962・IndustrializationOff 1967・UrbanCapOff 1972・CapitalHeadroomFromReturn 1973 |
+| 貸出の金利 | smd §3-4〈World.LoanRatePerYear〉 | World 521＝LoanSpreadPerYear（Coefficients 917・既定 0）＋PolicyRateLoanWeight（918・既定 0）×InterestRate＝**全ての国・年で 0**（[4] ⑤） |
+
+[3] 段0 ②：工業化度と投資の読み手の処置の表（W＝許可表の正規表現に当たる 72 行・X＝投資の係数と関数）
+- 量の名前：〈資本年数〉CapitalYears(r)＝州の資本の値打ち（Σ工場の BuildingStock×建屋の組の参照価格＋ΣMachineCount×機械の参照価格）÷州の年の所得（参照価格×物価水準で実質に揃える）＝単位は年。旧の工業化度（無次元の指数）とは較正が違う＝置き換えた所の数は変わる（記録）。
+- 置換＝旗 1 で在庫から導く量を読む／消す＝旗 1 で読まない・最終の木で物理削除／記録＝計器・印字・入力のデータとして残す。**旗 0 では全ての行が今のまま**（厳密恒等）＝消す物は最終の木だけで物理削除する。
+| ファイル:行 | 中身 | 処置 |
+| CapitalMarket 22〜23 | 外資の余地 Headroom（旗 CapitalHeadroomFromReturn 0＝CapitalIndTarget−MeanIndustrialization） | 置換：段3 の旗 1 は CapitalHeadroomFromReturn の道（CapitalIndTarget×ModernizeReturnShare）を読む＝**別の腕を回さない**。ModernizeReturnShare は下の新しい信号。旧の枝は最終の木で消す |
+| World 2052〜2066 ModernizeReturnShare（読み手 SelfPlay 462・669・1820・CapitalMarket 22・InstrumentsModernize 30） | AI の近代化の信号＝ReturnShare の重みつき平均 | 置換：同じ名前と引数の 1 本のまま、体だけ〈π_i＞i の工場の資本の値打ちの割合〉（州を資本の値打ちで重みづけ）へ。AI とプレイヤーで同じ。SelfPlay の 3 行は文字が変わらない（edq と重ならない） |
+| World 2030・2033〜2048 StateInvestEligible／Weight | 州の上限 IndustryInvestRegionCap 5.0 までの余地 | 置換：適格＝資本区画と投資家 POP がある州（上限を読まない＝思想⑧）・重み＝建設材の手当だけ |
+| Coefficients 2889 IndustryInvestRegionCap | 州の上限 5.0 | 消す（思想⑧） |
+| Diplomacy 2579 | 戦災の損耗（Industrialization・OldVintageCapital） | 置換：同じ wear を BuildingStock と MachineCount に掛ける |
+| Discovery 591（読み手 SpreadNeed 239＝株式会社の必要性） | 州の最大工業化度 maxInd | 置換：州の CapitalYears の最大（立っている工業資本の大きさ）。必要性の閾値は旧の指数で較正＝開く年は記録 |
+| EconomyStep 768〜777 | 工業化度の減価・開発度の記憶 | 消す（§3-7 の財の損耗率へ） |
+| EconomyStep 779・781・783〜785・2994 | effInd・機械化度・indMult（どれも IndustrializationOff=1 で 0 か 1.0） | 消す（既に効いていない＝最終の木で物理削除）。段4 の項（SteamBoost・ElecBoost・技術の括弧）は触らない |
+| EconomyStep 657・971・979〜1001 | 取り置き・予算・InvestmentReturn・株式会社の倍率・速さ・吸収・1 束の工業化度 | 消す（旗 1 では資金 F_r と配りの 2 つ）。株式会社は倍率を消し、記録だけ（借入の器を広げる形は借入の道が無いので段3 では作らない＝[4] ⑥） |
+| EconomyStep 1077 | インフラの保守＝InfraMaintRate×TotalIndustrialization | 置換：保守のセメントは旗 1 で止める（建屋の損耗の買い直しが担う＝二重払いの除去）。軌道・機関車の保守は量の出所だけ CapitalYears×州の年の所得÷建屋の組の参照価格（係数は同じ・開幕の値は記録） |
+| EconomyStep 2141〜2146 | 決済（privateIndGain・Distribute・Industrialization +=・累積） | 置換：買えた組を BuildingStock_i へ足す（配った工場ごと）。累積の数え（CumPrivateIndustrialization）は消す |
+| EconomyStep 2785〜2800 InvestmentReturn・ReturnShare | 技術の梃子・飽和 sat・IndCapitalCost の門 | 消す（π_i と i へ）。InstrumentsModernize 30 は計器＝新しい π の列へ |
+| FactoryEquipment.cs 全体（呼び EconomyStep 599・753・2144・2639・2650／Megaprojects 266／Simulation 2415／World 1893） | 相対の設備の取り分 Scale | 置換：旗 1 では適格な工場の労働の重み prodW＝LaborWeight×BuildingStock（絶対量）。Distribute・Renormalize・Retire は呼ばない（退場した個体の建屋は損耗で減るだけ）。国営の持分＝国が買った建屋の量（BuiltScale を建屋の組の単位で持つ）。国営の完成（World 1893）は Scale+=FactoryBuildScale でなく、工事で買った組（FactoryMaterialFrac×fs.Cost÷建屋の組の参照価格）を BuildingStock へ。倒産で設備を消さない |
+| Megaprojects 262〜267・278 | 巨大建造物の工業化度の点 | 置換：その州の建屋の在庫へ（量＝効果の値×州の ΣN×β・(598) 推奨②）。TargetOf の "Industrialization" は CapitalYears |
+| Meritocracy 451〜453・PopDecision 16・53・56〜63（写し InstrumentsUrx 128・138） | 都市化の天井 UrbanShareCap（UrbanCapOff 0）・平滑 UrbanIndSmoothed | 消す：段3 の旗 1 は暦が進む月から UrbanCapOff の形（天井なし）。**旗 1 では工業化度の書き手が無く、天井が開幕の値で凍って 1783 年の都市の割合に張り付く**＝在庫から導く量へ置き換えるには開幕の正規化の定数（州ごと）が要り、思想⑩の〈新しい状態は BuildingStock と MachineCount だけ〉に反する。助走は今の規則のまま＝開幕の盤面は旗 0 と同じ＝焼き込みの取り直しは要らない（OpeningBakeEnabled＝0 で表を読まない）。★(665)② の〈天井なしの開幕の取り直し〉は別の段（この計画の外）。危うさ：(605)(619)(627) でアムステルダムの空洞化が天井の外しと重なった＝止める線 S3 の注意（[6]）。計器の写しは PopDecision 側と一緒に消す |
+| Model 998・1000・1006・1007・1045（＋ Industrialization 本体・Mechanization 997・DevelopmentPeak 999・CumPrivateIndustrialization 969） | 状態の宣言 | 消す（最終の木・⑩の代わりに消す状態） |
+| MultiNationSim 860〜861・World 216 IndustrialFrontier | 世界の最先端の工業化度 | 消す（本体の読み手 0・計器だけ） |
+| World 2656〜2662 MeanIndustrialization（読み手 CapitalMarket 23・SelfPlay 2145・MultiNationSim 860） | 人口加重の平均 | 消す（CapitalMarket は置換済み・SelfPlay 2145 は印字＝CapitalYears の人口加重へ） |
+| Simulation 548・1571 | 新しい州の Industrialization＝0 | 置換：BuildingStock＝0・MachineCount＝0 も同じ所で |
+| Simulation 925 | 開幕の配り cfg.Industrialization×IndShare | 記録（旗 0 の開幕だけ）：旗 1 の開幕の在庫は頭数から（[6] F1） |
+| Simulation 2406〜2408・2415 | 恐慌の廃棄 scrapKeep | 消す（旗 1 は廃棄しない＝損耗だけ・cp3 §1-1 の作者の答え「2.それでよい」） |
+| Simulation 2544〜2581・2645 | 出生の所得の項 FertilityIncomeSlope×avgInd | 消す（作者 2026-10-16「それを集計してバフ/デバフを与えるのは全て二重計上という判断です。」の対象＝工業化度の集計を出生に掛ける項）。人口が大きく動く見込み＝記録（igi4 の扶養力の項と同じ型）。出生の設計（作者 2026-10-15）の線が代わりを持つ |
+| SelfPlay 2233〜2234 | 工業化度の異常の検査（0〜10） | 置換：BuildingStock・MachineCount の有限・非負の検査（sm7 の型） |
+| NationBrief 128・NationConfig 77・Validation 127・169 | 入力のデータ（cfg.Industrialization）の読み・検証の印字 | 記録（入力のデータ＝状態ではない）。Validation 127 は印字を CapitalYears へ |
+| Territory 121 | 非有限の診断の印字 | 記録（印字の値だけ CapitalYears へ） |
+| OpeningBake 33・170・209〜210 | 焼き込みの表の列 | 記録：OpeningBakeEnabled＝0 で読まれない。旗 1 で焼き込みを使う日が来たら列に BuildingStock・MachineCount を足す（この計画の外） |
+| Instruments 1・InstrumentsCapacity 1・InstrumentsEquipment 2・InstrumentsLawGate 1・InstrumentsModernize 1・InstrumentsScore 2・InstrumentsUrx 4 | 計器 | 記録：旗 1 では工業化度の列が凍った値を出す＝計器の限界として名乗る。新しい列は [6] G の表 |
+| 許可表の数（旗 1 を入れた最終の木で） | 25 ファイル・72 行 | 目安：置換と消すで本体の行は 0 へ。残るのは NationBrief・NationConfig・Validation・Simulation 925（入力のデータ）と計器だけ |
+
+[4] 段0 ③：段3 の量（keep_675/m675_ins・種 1〜10・計器 9 国・十年級の区切りの種の中央値・詳しくは measurements/cap677_20261030_s0.txt）
+- 定義：E＝資本家の階級の所得（spend_s の階級の行の receipt）。消費＝階級の支払い−建設（材料と工賃・線路と機関車）−保守と再開の発注。流れ F＝E−消費（今の取り置きを外しても資本家の消費は変わらない前提＝資本家の予算は貯蓄の在庫で縛られない）。建設の額 C＝建設 2 行の支払い。K＝工場労働者の POP の頭数（factory_s の factoryLaborPopK＝開幕の枠 N0 の代理）×β（建屋の組 1 単位）×買った組 1 単位の値段（C÷建った組の量）。i＝国債金利（nation_s の bondRateMeanPerYear）。
+- 工場の持ち主は資本家（Simulation 508・988 の OwnerPopIndex）＝E は工場の利潤の上限の代理（国債と与信の利子を含む）。
+  ① 州ごとの〈持ち主の貯蓄の流れ÷今の建設の額〉F÷C：1783〜92 は 1.4〜6.3（米 0.7〜1.7）・1793〜1849 は −0.17〜5.3・1850〜82 は −0.03〜1.07（仏 0.12・露 −0.03・清 0.11・日 0.03）・1883〜 は −0.21〜2.2。州の分布は cons_s が 1823 年までしか無いので国の値（州の貯蓄の率＝国の率と置いた近似）。
+  ② 国ごとの〈資金÷資本の値打ち〉F÷K（1/年＝年数の逆数）：1783〜92 は 3.6〜6.9/年（＝0.15〜0.28 年で今の資本の全てを買える）・1793〜1849 は −0.16〜4.8・1850〜82 は −0.05（露）〜2.3（普）・1883〜 は −0.25（仏）〜2.5（米）。種の幅は露・仏・墺・日・清の後期で負から正へまたぐ。
+  ③ 今の建設の速さ C÷K＝0.25〜9.6/年（中央 約 1.3）＝β＝1 なら今の建設だけで枠を年 25〜960% 増やせる。建設の額÷GDP＝0.014〜0.73（中央 約 0.08・米 1785〜92 は 0.73）。
+  ④ 1 枠の値段÷工場労働者の年賃金（Q2 の物差し）＝0.15〜1.0 年。史実の工場の固定資本÷労働者は年賃金の数年分（Pollard 1964・Chapman 1970〈推〉）＝比は 1/3〜1/30＝**ほとんどの国で 10 倍の線の内側**（Q2 の置き直しは発火しない）。
+  ⑤ 利潤率の代理 E÷K＝0.6〜10/年（中央 約 4）・i＝0.022〜0.077・**(E÷K)÷i＝22〜373**（中央 約 150）。史実の工業の利潤率は年 10〜20%〈推〉＝E÷K は 20〜60 倍・K÷付加価値（smd §5 の記録）も 10 倍以上ずれる見込み〈推〉。**Q2 の物差し（β÷年賃金）は外れを捉えない**＝外れているのは物差しの方（AI の読み・確証なし）。工場の賃金は付加価値の小さな割合で、残りが持ち主へ行く（cp3 §4-8 の形）。
+  ⑥ i の出所：smd §3-4 の World.LoanRatePerYear は LoanSpreadPerYear＝0・PolicyRateLoanWeight＝0 のため全ての国・年で 0（(519)(527) と同じ）＝π＞i が恒に真になり G3-1 と G3-3 が定義できない＝**設計書の書き損じ（不具合の型）**。この登録は i＝その国の GovBondRatePerYear（(527) ⑧ の前例）。借入：投資家の需要で借りる道は無い。与信は Credit.Step の目標追従の制御器が首都州の投資家 POP にだけ渡す（Credit.cs 147〜158）。家計の与信 Bank.Lend は輸入の為替手形と消費者信用（PopDebtDriven＝0 の休眠）だけ。
+  ⑦ 旗 1 の q0 の能力÷旗 0 の見込み：開幕の枠 N0＝H0＋ΣM0（空きなし）・段3 は X＝H だけ（e を読まない）＝最初の月は定義で 1.000。2〜3 月目は頭数の取り分の動きが枠で止まる分だけ下がる（工場労働者の POP の伸び 約 0.5%/四半期）＝**0.98〜1.00**。(620) の 1.44〜1.52 は e×u（機械の労働力）が X に入ったため＝段3 には無い。
+
+[5] 段0 ④：段0 の予言（主な観測量の符号と大きさ・腕の前）
+- π の定義は 2 つしか許されない（smd §3-6〈1 枠を足したときの労働力の値打ち−占め手の変動費〉の読み方）：
+  (a) 占め手の要る形＝工場の頭数の取り分 H*_i（Size×fraction）が枠 N_i に届いているときだけ v_i＞0、空きの枠がある工場は v_i＝0（足した枠に人が入らない）。
+  (b) 雇える形＝空きがあっても v_i＝1 人あたりの粗利（売値−単位の費用）×1 人あたりの産出。
+- 予言 P1（G3-3・π÷i の工場×年の中央値）：(a) は工場×年が 0 の山と (22〜373)÷12 以上（縛った月が年に 1 か月でも 2〜30）の山に割れる＝中央値は 0 か 2 を大きく超える側＝[1/3, 3] に入る種は 0〜2/10。(b) は 22〜373 のまま（足した枠は空で産出が増えず売値も賃金も応答しない）＝[1/3, 3] に入るには建屋の組の値段が 50〜150 倍に上がる必要＝価格の発散（止める線）。**どちらの定義でも G3-3 は外れる**（(633) の〈rate は 0 の近くか 10 以上かの二択〉と同じ形）。
+- 予言 P2（建設の需要・主な観測量）：今の建設（C÷K 0.25〜9.6/年・GDP の約 8%）は IndustrializationOff＝1 の下で能力を 1 ビットも増やさない純粋な需要（indMult＝1.0・EconomyStep 783〜785）。(a) では要る量は〈頭数の伸び＋損耗〉×K＝0.03〜0.08 K/年＝**今の 1〜10%（−90〜−99%）**。消える需要＝GDP の 1.4〜73%（中央 約 8%）の建造物・機械・建設の工賃。お金は資本家の貯蓄に残る（流れの退蔵）。機械と建造物の産出は大きく落ち、建設の労働の需要が消える。(b) では資金を毎月全て使う＝今の 3〜5 倍（1783〜92）＝建造物と機械の値段の跳ね（P1 の発散）。
+- 予言 P3（G3-1・資金が使われず残る州×月の割合 u）：(a) は開幕の数か月で枠が頭数を越え、その後は損耗 2%/年と頭数の伸びで空きが埋まるまで縛らない＝u≈0.8〜1.0（上の枠 0.95 を越える種が出うる）。(b) は u≈0（π＞i が恒に真）＝外れ。
+- 予言 P4（G3-2）：(a) は購入が稀で塊（月に 1 度に F_r を少数の工場へ）＝国×四半期の標本が 100 に届かない種が出る＝判定不能の見込み。(b) は購入が値段を押し上げる＝正。
+- 予言 P5（G3-4）：0.98〜1.00＝通る。G3-0 は定義で通る。
+- 予言 P6（β を出典の値にした場合・Q2 の推奨を〈K÷付加価値〉で読み替えた場合＝この登録では採らない形）：E÷K を史実の年 10〜20% に寄せるには β を 20〜60 倍。F÷K も同じ倍だけ下がる＝1783〜92 は 0.06〜0.35/年で足りるが、1830 年以後の仏・露・墺・清・日は 0.02/年以下（露は負）＝損耗 0.02〜0.06/年＋頭数の伸びに届かない＝能力が頭数に追いつかず下がる（sm7 の世界の工場の能力 B÷A＜1 と同じ型）。借入の道（⑥）が無いので補えない。
+- 計算量の見込み：(a) は今の建設の 3 周（RecipeEquipmentScans）と InvestmentReturn が消え、π の評価は供給の段の適格な工場の走査に折り込める＝走査はほぼ同じ。建設の需要が消えて清算の財の歩が少し減る＝推定は −1〜+3 秒〈推〉。(b) は値段の跳ねで清算の空振りが増える＝不明。
+- **結論**：(a) は G3-3 が外れ、主な観測量（建設の需要）が GDP の約 8% ぶん消える＝〈悪くする〉。(b) は G3-1 と G3-3 が外れ、値段が発散する見込み。β を出典の値へ上げる形（P6）は Q2 の推奨の読み替えで、能力が後期に下がる。**腕を回さず記録だけで終える**（回す前に必要性を確かめる・(620) 後半と同じ扱い）。不具合（名指して直せる所）ではなく設計（前提が外れた）：smd §6-1〈買うほど値段が上がり在庫が増えるほど売値が下がる＝π が i に近づく〉は、資本が利潤に対し 20〜370 倍安く、能力を縛るのが資本でなく頭数（X＝H・fraction の割り）である盤面では成り立たない。
+
+[6] 事前登録（ループを回す場合に使う・ここで固定・ループの中で変えない）
+- 形は〈入口〉（能力の式と投資の決め方の入口を替える）。
+- 旗：Coefficients.CapitalStockInvest（double・既定 0＝今の規則を 1 ビットも変えない）。1 で次の F1〜F7 を同時に。POB_COEF と Runner の反射は UnitValues を通す。
+- 新しい状態（思想⑩・smd §8）：Producer.BuildingStock（double・建屋の組の単位・在庫＝接尾辞なし）・Producer.MachineCount（double[4]・台・畜力・水車・蒸気・電動）。セーブは名前と型で書く（double[] の分岐があるか savetest で確かめる）。導く量（貯めない）：枠 N_i＝BuildingStock÷β・資金 InvestFundPerMonth（MoneyPerMonth・州の月の流れ）・π_i（RatePerYear）。代わりに消す状態（最終の木）：Region.Industrialization・OldVintageCapital・StrandedVintage・DevelopmentPeak・Mechanization・CumPrivateIndustrialization・UrbanIndSmoothed・World.IndustrialFrontier・FactoryEquipment の Scale の設備の意味。
+  F1 開幕（暦が進む最初の月に 1 回・助走は今の規則）：適格な工場（FactoryEquipment.Eligible）ごとに H0＝HeadsLastMonth・M0_k＝機械につく人÷r₀（sm7 の OpenDerive の型・SteamFill と並存レシピの割合から）・N0＝H0＋ΣM0・BuildingStock＝β×N0（β＝1）。新しい数を置かない。
+  F2 能力：H_i＝min(Size×fraction_i, N_i−ΣM_i)・Capacity＝H_i×Productivity×boost×（今の項）。X＝H だけ（e を読まない）。prodW＝LaborWeight×BuildingStock。SteamBoost・ElecBoost・技術の括弧は今のまま。
+  F3 資金：F_r＝max(0, 投資家 POP の LastEarnedPerMonth−前月の消費)＋今月の与信の純増（首都州の投資家だけ・Credit.Step の lent＞0）。貯蓄の在庫は入れない（Q1）。取り置き（EconomyStep 657）は外す。
+  F4 π と配り：i＝GovBondRatePerYear。π_i（年）＝PerMonthToPerYear(v_i)÷(β×p_B)、v_i＝(Price_i−mc_i)×Capacity_i÷H_i を H*_i≧N_i−ΣM_i のときだけ（定義 (a)）、p_B＝BundleOf(r).Cost(r)×(1＋ConstructionLaborWageFrac)。F_r を π_i＞i の工場へ (π_i−i)×K_i に比例して配る。買う量＝配ったお金÷p_B（決済は今の建設の決済のまま＝資材と工賃の最小）。
+  F5 損耗：建屋＝建屋の組の財の WearRatePerMonth（建造物 0.00168・機械 0.005 を参照価格×量で重みづけた平均）・機械＝機械の財の 0.005。無条件。倒産で消さない。戦災は同じ wear を掛ける。
+  F6 読み手：[3] の表のとおり（置換と消すは旗 1 の分岐の中だけ・旗 0 の行は今のまま）。
+  F7 国家：国営の完成は買った組を BuildingStock へ（[3]）。プレイヤーと AI は同じ π と同じ資金の規則（IsPlayer を読まない）。
+- 種の規則：腕 A＝旗 0・5 種（b5_20261030_m675 と SOURCE-HASH の行を除き全行一致）。腕 B＝旗 1・計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS を毎回渡す・比べる側は keep_675/m675_ins。最終の判定は種 11〜20 で 1 回だけ（比べる側＝この波の最初に回した種 11〜20 の旗 0 の計器つき 10 種）。種 11〜20 で外れたら採らない（ループに戻らない）。
+- 狙いの数字（機構の観測量・数字はここで固定）：
+  G3-0（恒等の番人・狙いではない）：①購入額≦資金の違反の数＝0（全ての州×月・10/10 種）②能力＝在庫から導いた値（番人のテスト）③旗 0 の 10 種・5 種・計器つき 10 種が m675 の 3 枚と全行一致。
+  G3-1：1800〜1913 年の、資本区画と投資家 POP を持ち F_r＞0 の州×月のうち、π_i＞i の工場が 1 つも無く資金が全て使われずに残った割合 u が **[0.05, 0.95]** に入る種が **10/10**。あわせて〈資金のうち資本財に使われた割合〉を国×十年で記録（定義から 1 にならない量）。
+  G3-2：計器 9 国の国×四半期（1790〜1913・購入＞0 の四半期）で、建屋の組の値段÷(参照×物価水準) と購入の量（組）の、ln F を除いた偏順位の相関（スピアマン）が **0.1 以上**の種が **8/10 以上**。標本が 100 に満たない種は判定不能と書く（読み替えない）。判定不能が 3 種以上なら G3-2 は判定不能＝★(655) のとおり残りの門で決め、是非を作者に聞く。
+  G3-3：計器 9 国の適格・門が開いた・倒産でない工場の 1800〜1913 年の工場×年について、月の π_i の年の平均÷その国の i の年の平均、の中央値が **[1/3, 3]** に入る種が **8/10 以上**。
+  G3-4：q0 の能力（factory_s の capacityRefValuePerMonth・9 国の和）の旗 1÷旗 0（同じ種）が **[0.95, 1.05]** に入る種が **10/10**。
+  ヌル腕の読み方：G3-1〜G3-3 の量は旗 1 にしか無い＝ヌル腕の幅は無い（腕 B の種の幅だけを書く）。国ごとの数（工場の能力・人口・GDP の取り分）はヌル腕 N1・N2（keep_675/n1・n2）の幅と並べる。符号だけの門は置かない。
+- 止める線（MEAS・README ★(397)(636)(645)(655)(675)）：S1 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・S2 発散（1 四半期 100 倍以上・非有限・1e10 以上は NG／価格水準が開幕の 1000 倍以上は事象とともに記録し、事象が無ければ注視の先頭・同じ国で半分以上の種なら NG）・S3 空洞化（ピークの 1/10 未満・原因を問わない・例外の名簿だけ・都市化の天井の外しと重なる型〔アムステルダム〕に注意）・S4 計算量（推定＞248.5 秒、または木の .cost−m675 の 216.2 秒＞**14.0 秒**＝割り当て）・S5 機構と不変条件のテストの赤。史実の線・exact・near・NG・補給崩壊の倍化は記録。〈壊す〉①②③ は NG の判定（確証なし×壊す）のときだけヌル腕と並べて読む＝この計画で確証なしの物＝β＝1・π の定義 (a)・資金の定義 F3・i＝国債金利（AI の決め）。形（能力＝資本の在庫・お金で買う・損耗）は作者の決定＝確証あり。外した物差しを門として写していない（点検済み）。
+- 計算量（割り当て 14.0 秒）：台帳の新しい行 CapitalStockProducers（適格な工場×月＝π の評価と配りの 1 周・供給の段の走査に折り込む）。消える行＝RecipeEquipmentScans（購入の月の 3 周と退場の 2 周）・InvestmentReturn（州×月）・工業化度の減価。腕の前に census で単価を取り直す。判定は木の .cost を m675 と比べた累計（線ごとの増分の和ではない）。
+- 不具合と設計の分け方（診断の担当＝実装者でない opus）：
+  不具合（設計も門も変えずに直せる）の例＝購入額が資金を越える・能力が在庫から導いた値と違う・旗 0 が全行一致しない・損耗が無条件でない／倒産で在庫が消える・π の分母に 0 が入る（否定形のガードの書き損じ）・i に LoanRatePerYear（0）を読んだ・国営の完成が Scale に足される・資金に貯蓄の在庫が入った・prodW が BuildingStock を読んでいない。
+  設計（前提が外れた・門を満たせない）の例＝π÷i の中央値が資本の値段の桁のため帯の外（[5] P1）・持ち主が取り崩す国で在庫が損耗で痩せる（借入の道が無い）・建設の需要の消滅で建設の労働の州が空洞化・枠が頭数を越えて投資が止まり u＞0.95。
+- 計器の列（実装したら足す）：capst_s<seed>.tsv（国×四半期）＝fundPerMonth・purchasedMoneyPerMonth・purchasedBundlesPerMonth・unusedFundShare・unusedRegionMonthsShare・fundViolationCount・bindingFactoryShare・piOverIMedian・buildingStockSum・machineCountSum（4 列）・capitalValueStock・bundlePriceOverRefIndex・wearBundlesPerMonth・capitalYearsMean／capstf_s<seed>.tsv（工場×年の抜き出し＝piPerYearMean・iPerYearMean・bindingMonthsCount）。記録：世界の工場の能力 B÷A・英の綿の伸び・β÷年賃金・K0÷付加価値・暦の年・×0.29 の型の有無。
+
+[7] この計画の判定と次への申し送り（AI の推奨・作者の承認は未確認）
+- 判定＝記録だけ（腕なし）。旗も状態も入れていない。計算量は 0 秒を使った。
+- 上流の依存（次の計画の材料・どれも AI の読み・確証なし）：
+  U1 **資本が利潤に対して 20〜370 倍安い**（(E÷K)÷i＝22〜373）。お金で縛る形の前提（π が i へ寄る）が成り立つには、K の大きさ（β と開幕の K0÷付加価値）を出典から置くこと。物差しは β÷年賃金ではなく K÷付加価値（Feinstein 1988・Pollard 1964〈推〉）。
+  U2 **投資のための借入の道が無い**（与信は首都州の投資家への供給側の制御器だけ）。β を上げると 1830 年以後の仏・露・墺・清・日で資金が損耗に届かない＝需要で借りる道（返せる額の上限の中で）が先に要る。
+  U3 smd §3-4 の i＝LoanRatePerYear は 0＝設計書を国債金利（か貸出の上乗せの点火）へ直す。
+  U4 **今の私的な建設（貯蓄の在庫の 5%/月）は能力を 1 ビットも増やさない需要の吸い込み**（GDP の約 8%・IndustrializationOff＝1 の下）。資本の在庫の前に、このお金の行き先を 1 テーマで測る段（建設の予算を貯蓄の在庫から流れへ替えるだけ・読み手は今のまま）を置くのが推奨。
+  U5 能力を縛るのは頭数（X＝H・fraction の割り）で資本ではない＝資本が効くのは枠が頭数より少ない時だけ。段4（機械が人を置き換える）か U1 が無いと、段3 の在庫は能力を動かさない。
+- 3 回の規則：枠と機械は 7 回採らず、この計画も段0 で止まった＝次は設計書（smd の改訂＝U1〜U4）を経て計画にする。
+
+[8] 限界の自己申告
+- E は資本家の所得の全て（国債と与信の利子を含む）＝工場の利潤の上限。工場の利潤がその 1 割でも (E÷K)÷i は 2〜37＝前半の国では 3 を越える。
+- K は工場労働者の POP の頭数を枠の代理にした（工場ごとの HeadsLastMonth の和は計器に無い）。頭数の和が POP の頭数より小さければ K は小さく、E÷K はさらに大きい。
+- F÷C の州の分布は 1823 年まで（cons_s）＝国の値で代えた。消費は〈取り置きを外しても変わらない〉前提。
+- (a) の G3-1 と G3-2 の予言は弱い（枠が頭数を越える速さに依る）。P1 と P2 は算術で強い。

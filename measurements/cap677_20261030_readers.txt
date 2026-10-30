@@ -1,0 +1,146 @@
+X	CapitalMarket.cs:22	=> c.CapitalHeadroomFromReturn > 0 ? c.CapitalIndTarget * w.ModernizeReturnShare()
+W	CapitalMarket.cs:23	: System.Math.Max(0, c.CapitalIndTarget - w.MeanIndustrialization);
+X	Coefficients.cs:162	public double JointStockInvestBonus = 1.6;
+X	Coefficients.cs:1080	public double IndDepreciation = 0.003;
+X	Coefficients.cs:1102	public double PrivateAbsorptionBlend = 1.0;
+X	Coefficients.cs:1111	public RatePerMonth IndInvestmentFrac = new(0.05);
+X	Coefficients.cs:1112	public double IndInvestmentSpeed = 0.012;
+X	Coefficients.cs:1113	public double IndPerConstruction = 0.01;
+X	Coefficients.cs:1115	public double IndCapitalOutputYears = 1.0;
+X	Coefficients.cs:1171	public double IndProductivityGain = 1.2;
+X	Coefficients.cs:1172	public double IndProductivityScale = 2.5;
+X	Coefficients.cs:1180	public double IndCapitalCost = 0.7;
+X	Coefficients.cs:1181	public double IndTechLeverage = 2.4;
+X	Coefficients.cs:1962	public double RecipeEquipment = 1;
+X	Coefficients.cs:1967	public double IndustrializationOff = 1;
+X	Coefficients.cs:1972	public double UrbanCapOff = 0;
+X	Coefficients.cs:1973	public double CapitalHeadroomFromReturn = 0;
+W	Coefficients.cs:2889	public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */
+W	Diplomacy.cs:2579	rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
+W	Discovery.cs:591	if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
+X	EconomyStep.cs:599	bool eqOn = FactoryEquipment.On(coef, warmFrozen);
+X	EconomyStep.cs:600	bool indOff = coef.IndustrializationOff > 0;
+X	EconomyStep.cs:657	region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+X	EconomyStep.cs:753	if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }
+X	EconomyStep.cs:768	double dep = coef.IndDepreciation;
+W	EconomyStep.cs:771	double totNow = region.Industrialization + region.OldVintageCapital;
+X	EconomyStep.cs:772	if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
+X	EconomyStep.cs:773	if (region.DevelopmentPeak > 1e-9)
+X	EconomyStep.cs:774	dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
+W	EconomyStep.cs:776	region.Industrialization *= 1.0 - dep;
+W	EconomyStep.cs:777	region.OldVintageCapital *= 1.0 - dep;
+W	EconomyStep.cs:779	double effInd = region.ProductiveIndustrialization;
+X	EconomyStep.cs:781	region.Mechanization = coef.LaborSaveRate > 0 && !indOff ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;
+X	EconomyStep.cs:784	? 1.0 + coef.IndProductivityGain * effInd / (1.0 + effInd / coef.IndProductivityScale)
+X	EconomyStep.cs:934	double privateIndPerConstruction = coef.IndPerConstruction;
+X	EconomyStep.cs:971	double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+X	EconomyStep.cs:979	var (techLev, sat, grossReturn, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
+X	EconomyStep.cs:985	double jointStock = world is not null && world.JointStock ? coef.JointStockInvestBonus : 1.0;
+X	EconomyStep.cs:986	double desiredGrowth = coef.IndInvestmentSpeed * jointStock * Math.Max(0, netReturn);
+X	EconomyStep.cs:995	if (coef.PrivateAbsorptionBlend > 0 && world is not null)
+X	EconomyStep.cs:998	privateAbsorb = 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+X	EconomyStep.cs:1001	privateIndPerConstruction = PrivateIndPerConstruction(region, coef);
+W	EconomyStep.cs:1077	maintenance = coef.InfraMaintRate * region.TotalIndustrialization;
+WX	EconomyStep.cs:2144	if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, privateIndGain, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, privateIndGain, eqInst); }
+W	EconomyStep.cs:2145	region.Industrialization += privateIndGain;
+X	EconomyStep.cs:2146	region.CumPrivateIndustrialization += privateIndGain;
+X	EconomyStep.cs:2639	bool eqS = eqOn && FactoryEquipment.Eligible(s);
+X	EconomyStep.cs:2650	if (eqS && s.Scale > 0) FactoryEquipment.Retire(region, s, costL, insOn ? world : null);
+X	EconomyStep.cs:2785	internal static (double TechLev, double Sat, double Gross, double Hurdle) InvestmentReturn(Region region, Coefficients coef, double productivityMultiplier)
+WX	EconomyStep.cs:2788	double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;
+X	EconomyStep.cs:2789	double marginalGain = coef.IndProductivityGain / (sat * sat);
+X	EconomyStep.cs:2790	double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
+X	EconomyStep.cs:2791	return (techLev, sat, marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle);
+X	EconomyStep.cs:2796	internal static double ReturnShare(Region region, Coefficients coef, double productivityMultiplier)
+X	EconomyStep.cs:2798	var (_, _, gross, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
+X	EconomyStep.cs:2901	internal static double PrivateIndPerConstruction(Region region, Coefficients coef)
+X	EconomyStep.cs:2903	if (!(coef.IndCapitalOutputYears > 0)) return coef.IndPerConstruction;
+X	EconomyStep.cs:2906	double bundlesPerIndexPoint = coef.IndCapitalOutputYears * Calendar.PerMonthToPerYear(regionIncome).Value
+X	EconomyStep.cs:2908	return bundlesPerIndexPoint > 0 && !double.IsInfinity(bundlesPerIndexPoint) ? 1.0 / bundlesPerIndexPoint : coef.IndPerConstruction;
+X	EconomyStep.cs:2994	? inp.QtyPerOutput * (1.0 - c.ElecLaborSave * s.ElecFill) * (1.0 - c.LaborSaveRate * home.Mechanization)
+X	FactoryEquipment.cs:13	internal static class FactoryEquipment
+X	FactoryEquipment.cs:20	internal static bool On(Coefficients c, bool warmFrozen) => c.RecipeEquipment > 0 && !warmFrozen;
+W	Instruments.cs:1406	sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industrialization), F(r.ProductiveIndustrialization), F(scale),
+W	InstrumentsCapacity.cs:89	double ind = r.ProductiveIndustrialization;
+X	InstrumentsEquipment.cs:49	if (w.Coef.RecipeEquipment <= 0 || !(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
+W	InstrumentsEquipment.cs:57	if (r.TotalIndustrialization > indMax) indMax = r.TotalIndustrialization;
+X	InstrumentsEquipment.cs:60	if (!FactoryEquipment.Eligible(s))
+WX	InstrumentsEquipment.cs:82	sk.EqS.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), F(w.Coef.RecipeEquipment), F(points), F(installed), F(scaleSum), F(builtSum), F(scaleMax), I(scaleMaxGood), I(elig), I(open), I(bankrupt), F(w.MeanIndustrialization), 
+W	InstrumentsLawGate.cs:27	F(w.MeanIndustrialization), F(PoliticalQuantities.AvgLiteracy(w, coreOnly: true)), F(UtilityAgent.HomeUrbanShare(w))));
+X	InstrumentsModernize.cs:30	var (_, _, g, h) = EconomyStep.InvestmentReturn(r, w.Coef, w.TechProductivity(r));
+WX	InstrumentsModernize.cs:36	sk.ModSig.WriteLine(string.Join('	', I(q), I(w.Year), NameOf(w), F(w.MeanIndustrialization), F(w.IndustrialFrontier), F(w.ModernizeReturnShare()), I(n), F(wsum),
+W	InstrumentsScore.cs:44	F(w.MeanIndustrialization), F(w.TotalPopulation), I(rOld[i] <= great ? 1 : 0), I(rNew[i] <= great ? 1 : 0),
+W	InstrumentsScore.cs:73	w.MeanIndustrialization * IndustrializationWeight,
+X	InstrumentsUrx.cs:128	if (region.CapitalEnabled && !(coef.UrbanCapOff > 0))
+W	InstrumentsUrx.cs:130	double indForCap = region.TotalIndustrialization;
+W	InstrumentsUrx.cs:133	double sm = region.UrbanIndSmoothed;
+W	InstrumentsUrx.cs:134	if (sm < 0) sm = region.TotalIndustrialization;
+W	InstrumentsUrx.cs:135	sm += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - sm);
+X	InstrumentsUrx.cs:138	cap = PopDecision.UrbanShareCap(coef, indForCap);
+W	Megaprojects.cs:265	double indAdd = Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
+WX	Megaprojects.cs:266	if (c.RecipeEquipment > 0) FactoryEquipment.Distribute(r, c, indAdd, r.TotalIndustrialization, null);
+W	Megaprojects.cs:267	r.Industrialization += indAdd;
+W	Megaprojects.cs:278	"Industrialization" => r.Industrialization,
+X	Meritocracy.cs:451	if (c.UrbanCapOff > 0) return double.PositiveInfinity;
+W	Meritocracy.cs:452	double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
+X	Meritocracy.cs:453	double maxShare = PopDecision.UrbanShareCap(c, indForCap);
+X	Model.cs:969	public double CumPrivateIndustrialization;
+X	Model.cs:997	public double Mechanization;
+W	Model.cs:998	public double OldVintageCapital;
+X	Model.cs:999	public double DevelopmentPeak;
+W	Model.cs:1000	public double StrandedVintage;
+W	Model.cs:1006	public double TotalIndustrialization => Industrialization + OldVintageCapital;
+W	Model.cs:1007	public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
+W	Model.cs:1045	public double UrbanIndSmoothed = -1.0;
+W	MultiNationSim.cs:860	foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
+W	MultiNationSim.cs:861	foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
+X	MultiNationSim.cs:2002	"レシピごとの設備の配り：購入が起きた州×月の生産者の数（旗 RecipeEquipment が正のとき・配りは 3 周・退場は 2 周の走査 1 周につき州の生産者の数）",
+W	NationBrief.cs:128	double load = PoliticalQuantities.Clamp01((c.Provinces.Length + c.InitialColonies.Length + 3.0 * c.Industrialization) / 25.0);
+W	NationConfig.cs:77	public double Industrialization = 0.0;
+WX	OpeningBake.cs:33	internal static readonly string[] CapNames = ["Industrialization", "OldVintageCapital", "VintageTechLevel", "StrandedVintage", "DevelopmentPeak", "GridCapacity", "PriceLevel", "LocalPriceMultiplier"];
+WX	OpeningBake.cs:170	static double[] CapValues(Region r) => [r.Industrialization, r.OldVintageCapital, 0.0 /* ★(613) 退役した枠 VintageTechLevel＝焼き直しまで位置を保つ */, r.StrandedVintage, r.DevelopmentPeak, r.GridCapacity, r.PriceLevel, r.LocalPriceMultiplier];
+W	OpeningBake.cs:209	r.Industrialization = cap[0].GetDouble(); r.OldVintageCapital = cap[1].GetDouble(); /* cap[2]＝退役した枠（読み捨て） */ r.StrandedVintage = cap[3].GetDouble();
+X	OpeningBake.cs:210	r.DevelopmentPeak = cap[4].GetDouble(); r.GridCapacity = cap[5].GetDouble(); r.PriceLevel = cap[6].GetDouble(); r.LocalPriceMultiplier = cap[7].GetDouble();
+X	PopDecision.cs:16	internal static double UrbanShareCap(Coefficients c, double indForCap)
+X	PopDecision.cs:53	if (region.CapitalEnabled && !(coef.UrbanCapOff > 0))
+W	PopDecision.cs:56	double indForCap = region.TotalIndustrialization;
+W	PopDecision.cs:59	if (region.UrbanIndSmoothed < 0) region.UrbanIndSmoothed = region.TotalIndustrialization;
+W	PopDecision.cs:60	region.UrbanIndSmoothed += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - region.UrbanIndSmoothed);
+W	PopDecision.cs:61	indForCap = region.UrbanIndSmoothed;
+X	PopDecision.cs:63	double maxUrbanShare = UrbanShareCap(coef, indForCap);
+X	SelfPlay.cs:462	double indGap = w.ModernizeReturnShare();
+X	SelfPlay.cs:669	double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();
+X	SelfPlay.cs:1820	double retShare = w.ModernizeReturnShare();
+W	SelfPlay.cs:2145	w.MeanIndustrialization, NationalScore.MeanSatisfaction(w), w.SelfPower?.Colonies ?? 0, w.GdpPerMonth.Value,
+W	SelfPlay.cs:2233	if (!(w.Region.TotalIndustrialization is >= 0 and <= 10))
+W	SelfPlay.cs:2234	anomalies.Add($"Q{q + 1} {w.Region.Name}: 工業化度が異常（{w.Region.TotalIndustrialization:F2}）");
+W	Simulation.cs:548	Industrialization = 0.0,
+W	Simulation.cs:925	Industrialization = cfg.Industrialization * (p.IndShare >= 0 ? p.IndShare : share),
+W	Simulation.cs:1571	CapitalEnabled = true, Industrialization = 0.0,
+W	Simulation.cs:2406	r.Industrialization *= scrapKeep;
+W	Simulation.cs:2407	r.OldVintageCapital *= scrapKeep;
+W	Simulation.cs:2408	r.StrandedVintage *= scrapKeep;
+X	Simulation.cs:2415	if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);
+W	Simulation.cs:2544	double avgInd = 0; int actN = 0;
+W	Simulation.cs:2545	double indPopSum = 0, indPopWeight = 0;
+W	Simulation.cs:2555	avgInd += r.TotalIndustrialization; actN++;
+W	Simulation.cs:2557	indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
+W	Simulation.cs:2577	if (actN > 0) avgInd /= actN;
+W	Simulation.cs:2580	double indPopWeighted = indPopWeight > 1e-9 ? indPopSum / indPopWeight : avgInd;
+W	Simulation.cs:2581	avgInd += c.IndustrializationPopWeighted * (indPopWeighted - avgInd);
+W	Simulation.cs:2645	double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost);
+W	Territory.cs:121	Console.Error.WriteLine($"[非有限診断] Territory.Opportunity {r.Name}={o}　pop={r.SumPopulation()} 賃金P={r.WagePremium} 工業={r.TotalIndustrialization} 住居={r.HousingFill} 犯罪={r.CrimeRate} 耕地={r.ArableLand} 生産性={r.ProductivityBonus}");
+W	Validation.cs:127	w.Region.Name, r.TotalIndustrialization,
+W	Validation.cs:169	foreach (var x in nations) { indMax = Math.Max(indMax, x.Industrialization); indMin = Math.Min(indMin, x.Industrialization); }
+W	World.cs:216	public double IndustrialFrontier { get; internal set; }
+X	World.cs:1893	if (Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(p)) { p.Scale += Coef.FactoryBuildScale; if (Instruments.On) Instruments.EquipmentCompleted(this, Coef.FactoryBuildScale); }
+W	World.cs:2030	internal bool StateInvestEligible(Region r) => r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
+W	World.cs:2035	double cap = Coef.IndustryInvestRegionCap;
+W	World.cs:2036	double head = Math.Max(0, cap - r.TotalIndustrialization);
+X	World.cs:2052	public double ModernizeReturnShare()
+X	World.cs:2058	double share = EconomyStep.ReturnShare(r, Coef, TechProductivity(r));
+W	World.cs:2656	public double MeanIndustrialization
+W	World.cs:2661	foreach (var r in Regions) { double p = r.SumPopulation(); total += p; w += p * r.TotalIndustrialization; }
+W	World.cs:2662	return total > 1e-9 ? w / total : Region.TotalIndustrialization;
+X	Display\ProductionTables.cs:221	if (!(w.Coef.RecipeEquipment > 0)) return [];
+X	Display\ProductionTables.cs:230	if (!FactoryEquipment.Eligible(p) || !(p.Scale > 0)) continue;
