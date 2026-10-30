@@ -23,6 +23,14 @@ def rd(name, s):
 
 print(f'EDUHEAD\t入力={D}\t種={N}')
 
+# (670) 母集団＝開幕（四半期 0）に存在した国x種だけ（継承国・分離独立国・建国は除く）。nation_s の四半期 0 の行から作る
+OPEN = set()
+for s_ in SEEDS:
+    for x_ in rd('nation', s_):
+        if int(x_['quarter']) == 0:
+            OPEN.add((s_, x_['nation']))
+print(f'EDUPOP\t開幕に存在した国x種={len(OPEN)}\t（以下の O1・O2・O5・O6・O7 はこの集合に限る）')
+
 # O1 入口：四半期 8 超に L.EducationLaw の戦線が開く国x種
 o1 = {}
 codes = collections.Counter()
@@ -33,7 +41,7 @@ for s in SEEDS:
         rows_all += 1
         q = int(x['quarter'])
         for tok in x['openFrontStates'].split(';'):
-            if tok.startswith('L.EducationLaw:'):
+            if tok.startswith('L.EducationLaw:') and (s, x['nation']) in OPEN:
                 c = tok.split(':')[1]
                 if q > 8:
                     nat[x['nation']] += 1
@@ -59,6 +67,8 @@ for s in SEEDS:
     for x in rd('reform', s):
         hist[x['nation']].append((int(x['quarter']), int(x['year']), int(x['educationLawCode'])))
     for n, h in hist.items():
+        if (s, n) not in OPEN:
+            continue
         h.sort()
         ye = [(q, y, c) for (q, y, c) in h if q % 4 == 3]
         for (q0, y0, c0), (q1, y1, c1) in zip(ye, ye[1:]):
