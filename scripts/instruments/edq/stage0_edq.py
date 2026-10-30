@@ -10,10 +10,11 @@ sys.stdout.reconfigure(encoding='utf-8')
 D=(sys.argv[1] if len(sys.argv)>1 else 'D:/PoB_work/keep_675/m675_ins').rstrip('/')+'/'
 NS=int(sys.argv[2]) if len(sys.argv)>2 else 10
 MIL=int(sys.argv[3]) if len(sys.argv)>3 else 1
+S0=int(sys.argv[4]) if len(sys.argv)>4 else 1
 WRITERS={0,1}|({4} if MIL else set())
 SN={0:'Modernize',1:'Industrialize',2:'Welfare',3:'Fiscal',4:'Militarize',-1:'noApply'}
 tot=collections.Counter(); law=collections.Counter(); st=collections.Counter(); rewrite=0; writer_rows=0; rows=0; changes=0; join_miss=0; w3=0
-for s in range(1,NS+1):
+for s in range(S0,S0+NS):
     L={}
     with open(D+f'reform_s{s}.tsv',encoding='utf-8') as f:
         rd=csv.reader(f,delimiter='\t'); h=next(rd); iq=h.index('quarter'); inn=h.index('nation'); ic=h.index('educationLawCode')

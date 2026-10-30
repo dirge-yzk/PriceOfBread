@@ -17,12 +17,13 @@
 
 [1] 形（旗で戻せる・既定 0＝恒等）
   旗 `StanceEduHoldsLaw`（Coefficients・double・既定 0＝今の式で厳密恒等・正で有効・旗は 1 本）。
-  Apply の 3 か所（Modernize 1530・Industrialize 1546・Militarize 1594）の `p.EducationLaw = EducationLaw.Public;` を次に置き換える（他の行は 1 文字も変えない）：
+  Apply の **2 か所**（Industrialize 1546・Militarize 1594）の `p.EducationLaw = EducationLaw.Public;` を次に置き換える（★反証役の点検 2 を受けて Modernize 1530 は外した＝下の注）（他の行は 1 文字も変えない）：
      旧：`p.EducationLaw = EducationLaw.Public;`
      新：`p.EducationLaw = w.Coef.StanceEduHoldsLaw > 0 && w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;`
      ＝姿勢の願いは〈公教育以上〉。現行法が公教育より上（義務教育）の国には**願いを書き戻さず現行法を目標に残す**（GateLaw で 目標＝現行法 → 畳む＝撤回の願いが出ない）。現行法が 0・1・2 の国は今と同じ値（Public）。
      旗が NaN のときは `> 0` が偽＝古い式（Public）へ倒れる（NaN で新しい挙動に入らない向き）。
-  Modernize の次の行（述語が真のとき Compulsory へ上げる）は 1 文字も変えない。
+  Modernize（1530・1532 の述語）は 1 文字も変えない。理由（反証役の点検 2）：Modernize の 1530 行の Public は、国庫の述語（1532）が偽のときに残る値＝国庫が細ったら公教育へ戻すという**費用で決まる撤回の願い**。旗 1 で国庫を見ずに義務教育を持たせると維持の条件が無くなり、AI の姿勢に費用で決まる出口が 1 本も残らない（設計思想〈歯止めは値段と費用で〉〈片方向の錠なし〉に照らし避ける）。Industrialize・Militarize は国庫を見ずに無条件で Public を書く＝費用に応えない書き込みなので、ここだけが直す対象。
+  Q3 の注記も更新：形 X の否定はしない／edq の旗 1 は Industrialize・Militarize の無条件の撤回の願いを消すだけで、Modernize の述語の環（制定が国庫の条件を崩す）は作りの上で残る。
   **現行法 `w.EducationLaw` を読む理由**：議会の綱領（1654・1660）は目標 `p.EducationLaw` を読む形（`< Public` のときだけ上げる）。この線が現行法を読むのは、旗 1 の恒等の予言（[0]①）が**観測された量**（reform_s の educationLawCode＝全行 2）だけで閉じるため。目標を読む形は目標の履歴が計器に無く、帰納が未観測の量に依存する。
   両者の違い：他の書き手が置いた〈上向きの保留の目標〉（現行法 Public・目標 Compulsory）を、目標形は残し、この線の現行法形は Public へ戻す（今と同じ）。**他の書き手の保留の目標の置き直しはこの線では直さない（範囲の外）**。
   議会の与党の綱領（1654・1660）は既に〈Public 未満のときだけ上げる〉形＝触らない。
@@ -31,10 +32,10 @@
   新しい型・SaveGame の分岐は無い（double の旗を 1 本足すだけ・POB_COEF は UnitValues を通る）。
 
 [2] 腕
-  ・A（恒等）＝旗 0（既定）の 5 種。合否＝成績表が `b5_20261030_m675` と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+  ・A（恒等）＝旗 0（既定）の 5 種。★反証役の点検 5：旗 0 は `StanceEduHoldsLaw > 0 &&` が短絡するソースの自明＋DormantIdentityTests の表＝新しい事実を足さない。**A は省き、出荷する既定（旗 1）の A1 を 1 本回す**（実装の打ち間違いの保険）。
   ・A1（旗 1・恒等の見込み）＝旗 1 の 5 種。合否＝同じく `b5_20261030_m675` と全行バイト一致。これが旗 1 の世界の帰納の確認（段0 の予言①）。
   ・B（旗 1・計器つき 10 種・`INS=1 bash scripts/instruments/batch.sh run <腕>`・POB_INSTRUMENTS_NATIONS を毎回渡す）：**A1 が全行一致でないときだけ**回す（推奨）。回す場合は種 1〜10・比較先 `b10_20261030_m675_ins`・生 `D:/PoB_work/keep_675/m675_ins`。
-  ・種 11〜20（最終判定の 1 回）：旗 0 の計器つき 10 種（準備の担当の生）に対し旗 1 の計器つき 10 種。その前に stage0_edq.py を旗 0 の生へ走らせ、段 3 の行が 1 行でもあれば、そこが旗 1 の効く場所＝その国×種を名指しで読む。0 行なら旗 1 の腕は全行一致の見込みで、回さず帰納を確認の 5 種で代える。
+  ・種 11〜20（最終判定の 1 回）：その前に stage0_edq.py を旗 0 の生へ走らせた（`python stage0_edq.py D:/PoB_work/keep_675/a11 10 1 11`）。**結果＝現行法 147,133 行が全て段 2・段 3 は 0 行・現行法の変化 0・置き直し 0**（姿勢 Industrialize 53,213／Militarize 93,890／Welfare 6／noApply 24）。種 1〜10 と同じく、旗 1 の効く場所が世界に無い＝旗 1 の腕は全行一致の見込みで、種 11〜20 の腕は回さない（帰納の確認は種 1〜5 の A1 で足りる）。段 3 の行が出た場合の読み（回さない＝未使用）：その国×種を名指しで止める線と働き（撤回の願いが出ない・現行法が維持される）を読み、採るときの文言を〈潜在〉から〈世界の中で観測〉へ差し替える。
   ・ヌル腕は m675 の N1・N2 を共有（NG の判定のときだけ読む）。この線は NG の判定に至らない見込み。
   ・ng.sh は 100（基準 rd:measurements/ng675_20261030:m675）との差を ngset192.py で（旗 1 の腕を回したとき）。出力フォルダは D:/… の形で渡す。
 
@@ -45,18 +46,19 @@
 
 [4] 狙いの数字（機構の観測量だけ・結果の後に動かさない・符号だけの門を置かない）
   O1 番人（xUnit・突然変異で赤を確かめる・唯一の〈機構が働いた〉の門）：`SelfPlay.Apply` を姿勢を固定して呼ぶ（internal）。期待値はテスト側の定数（段 0 の数・Public・Compulsory の列挙値をテストに直接書く。SelfPlay の式から作らない）。
-     ① 現行法 Compulsory × 姿勢 {Modernize（述語が偽になる盤面〔現行法 ≧ Public・国庫 ≦ 閾値、TechThresholdOff=1〕）・Industrialize・Militarize} × 旗 1 → `p.EducationLaw` は Compulsory のまま。旗 0 → Public（今の挙動の固定）。
+     ① 現行法 Compulsory × 姿勢 {Industrialize・Militarize} × 旗 1 → 目標は Compulsory（現行法に畳まれる）。旗 0 → Public（今の挙動の固定）。
+     ①′ 現行法 Compulsory × Modernize × 国庫 0（述語が偽）× 旗 {0,1} → Public（Modernize は旗に届かない＝費用の出口の固定）。
      ② 現行法 {None・Religious・Public} × 3 姿勢 × 旗 {0,1} → Public（両旗で同じ）。
      ③ Welfare・Fiscal × 現行法 Compulsory × 旗 {0,1} → 書かない（`p.EducationLaw` は呼ぶ前の値のまま）。
      ④ Modernize の述語が真（国庫が閾値の上）× 現行法 Public × 旗 {0,1} → Compulsory（変えていないことの固定）。
      ⑥ 保留の目標の固定（変えていないことの固定）：現行法 Public・呼ぶ前に `p.EducationLaw` を Compulsory に置く・Industrialize・旗 1 → Public（現行法形の帰結。将来、目標を読む形へ替える線が出たとき、どちらを選んだかがテストで読める）。旗 0 → Public。
-     ⑤ 突然変異で赤を確かめる（どれも同値の変異でないものだけ）：(i) 旗 1 のとき常に現行法を返す（②が赤）(ii) 旗の項を落とす（①の旗 0 が赤）(iii) 常に Public を返す（①の旗 1 が赤）(iv) 現行法でなく Compulsory を返す（②が赤）。`>` を `>=` にする変異は値が同じ（現行法 ＝ Public のとき）＝同値の変異なので数えない。
+     ⑤ 突然変異で赤を確かめる（同値の変異は数えない。★反証役の点検 1：旧 (iv)〈現行法でなく Compulsory を返す〉は、現行法 ＞ Public なら現行法は必ず Compulsory（列挙の最上段）で値が同じ＝同値なので落とした）：(i) 旗 1 のとき常に現行法を返す（②の None・Religious が赤）(ii) 旗の項を落とす（①の旗 0 が赤）(iii) 常に Public を返す（①の旗 1 が赤）(iv) 旗 1 のとき常に Compulsory を返す（②が赤）(v) 条件を `> Public` でなく `>= Religious` にする（②の Religious が赤）。
   O2 恒等（世界の中の唯一の門）：A と A1 の成績表が `b5_20261030_m675` と全行一致。
   O3 置き直しの件数（記録・門ではない）：stage0_edq.py の ★ 行。基線 0。旗 1 の腕でも 0 の見込み。**旗 0 でも 0＝判別力が無い**ので採否に使わない。
   O4 二重計上なし：直すのは願いの書き込みの 1 本。点火する既存の読み手（`TechEducation.LiteracyRate` の Compulsory 0.007・`EliteMultiplier`・`Simulation.cs` の全額購入・`Politics.ConsciousnessConversion`・`Meritocracy`・`MultiNationSim.cs` の同化の加算）は現行法の値を読むだけ＝この線は動かさない。記録。
   ＊採否の規則（上から順・結果で読み替えない）：
      (a) A が恒等でない → 直すか外す。
-     (b) A1 が恒等でない → 旗 1 の世界が基線と違う＝〈現行法が 0〜2 のとき古い式と同じ値〉の仮定が破れた＝実装の不備を直す（直せなければ外す）。直したあとの A1 が恒等でなければ B（計器つき 10 種）を回して止める線で読む。
+     (b) A1 が恒等でない → 旗 1 の世界が基線と違う＝〈現行法が 0〜2 のとき古い式と同じ値〉の仮定が破れた＝予言が外れた。**採らずに形を読み直す**（B で止める線を読んでも、この形では (e) の文言〈潜在〉が偽になるので採らない。読み直しは別の登録で）。
      (c) O1 の番人が赤（突然変異で赤にならない場合を含む）→ 採らない。
      (d) 止める線に当たる → 採らない。
      (e) 上が全て通る → 既定を 1 にして採る。**採るときの文言＝〈潜在（世界の中で未観測）の直し・働きは番人でだけ確認〉**。〈機構が働いた〉〈教育法が改善した〉とは書かない。
@@ -72,8 +74,8 @@
   ・3 回の規則：教育法のテーマは edu（658）・edu2（670）の 2 回採らなかった。この線は別の形（願いの書き方）だが、**世界の中で働かない**。働かせる線（義務教育を制定する別の書き手）は、上流の依存（Modernize を選ばない根・段 3 の書き手）を読む線か設計書を経て〈計画〉にするのが先（この線のあとの課題）。
 
 [7] 触る行（合流の担当のために・並行の線 cap・dsc7・navf4・prdf との重なり）
-  SelfPlay.cs：Apply の 3 行（Modernize 1530・Industrialize 1546・Militarize 1594）。Coefficients.cs：旗 1 行。DormantIdentityTests.cs：旗名の配列に 1 つ（igi4 の配列＝機械的）。PriceOfBread.Tests：新ファイル 1 本（O1）。scripts/instruments/edq/stage0_edq.py（新規・この段0）。
-  cap との重なり：`ModernizeReturnShare` の体は World.cs＝この線は触らない（文字の重なりなし）。dsc7 が World.TechLevel そのものを消す範囲まで広げた場合、Apply 1532・1541 の `w.TechLevel` の項と同じ関数の中で動く（この線は 1530 の行だけを触り、1532 は触らない）。
+  SelfPlay.cs：Apply の 2 行（Industrialize 1546・Militarize 1594）。Coefficients.cs：旗 1 行。DormantIdentityTests.cs：旗名の配列に 1 つ（igi4 の配列＝機械的）。PriceOfBread.Tests：新ファイル 1 本（StanceEduHoldsLawTests.cs・O1）。scripts/instruments/edq/stage0_edq.py（新規・この段0）。
+  cap との重なり：`ModernizeReturnShare` の体は World.cs＝この線は触らない（文字の重なりなし）。dsc7 が World.TechLevel そのものを消す範囲まで広げた場合、Apply 1532・1541 の `w.TechLevel` の項と同じ関数の中で動く（この線は Modernize の行を触らない）。
   C# の計器の列は足さない。
 
 [8] 前に見たもの（正直な申告）
