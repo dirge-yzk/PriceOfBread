@@ -2066,8 +2066,21 @@ public sealed class Simulation
         double equipRoom = Math.Max(0, milEnvelope - payFull * soldierPayFill);   // 給与の後に残る器＝装備の上限（必要額で切る前＝恒常性の信号の分子）
         if (!(equipRoom >= 0)) equipRoom = 0;
         double equipClaimNat = 0;   // 州ループで立った装備の請求（首都・r を掛ける前）＝下の質の残り
+        // ★(606) 線 navf：旗 NavalPortProcurement が正のとき、国の艦の発注（FleetOrder＝首都の州で引く旧と同じ式）を月初に1回だけ引き、国の**本国格の港の州**へ取扱高の比で配る（EconomyStep.NavalPortSplit・★(669) 植民地格の港は配りに入れない）。
+        //   州の並びに依らない（EconomyStep の Run は州ごとに順に走り、前の州の決済で国の艦の在庫が増える＝Run の中で FleetOrder を引くと後の州の発注が減る）。FleetOrder が読む港の門 NationHasPort は州ループの中で毎月書く値なので先に写す。
+        double[]? navQ = null, navShare = null, navBudShare = null;
+        double navNeedNat = 0;   // 国の艦の発注の必要額（★(669) 追記 1：各州が自分の値段で買う額の和・首都だけに配る国は旧の NavalProcurementNeed と同じ）＝予算の上限を国の1本で引く
+        if (World.Coef.NavalPortProcurement > 0)
+        {
+            foreach (var pr in World.Regions) pr.NationHasPort = navalYard;
+            navShare = new double[World.Regions.Count]; navBudShare = new double[World.Regions.Count];
+            navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out navNeedNat);
+            World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断・旗が正のときだけ）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
+        }
+        int navIdx = -1;
         foreach (var r in World.Regions)
             {
+                navIdx++;
                 r.ColonialAccess = colonialAccess;
                 // 軍需調達：軍隊（兵士POP）＋治安維持力に比例、交戦中は増（武器需要ブーム）。財源は国庫の一部。
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
@@ -2119,6 +2132,22 @@ public sealed class Simulation
                 }
                 r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
                 r.NavalBudget = r.Id == 0 ? navalCap : 0;   // 艦は国の調達（首都の州の1本・港の門は EconomyStep.FleetOrder）
+                if (navShare is not null)
+                {
+                    // ★(606) 線 navf（旗 NavalPortProcurement が正）：国の海軍の予算（装備の器×海の金の割合を必要額で切った額・首都の1本で引いた旧と同じ値）と発注を国の本国格の港の州へ**同じ割合**で配る。
+                    //   Σ予算 ＝ 国の予算 navalNat（★(669) 追記 1：上限の必要額は各州の値段で買う額の和・首都だけに配る国は旧と同じ）。割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。
+                    double navalNat = equipRoom * seaShare;
+                    if (World.Coef.MilitaryBudgetNeedCapped > 0) navalNat = Math.Min(navalNat, navNeedNat);
+                    double sh = navShare[navIdx];
+                    r.NavalBudget = EconomyStep.NavalPortBudget(navalNat, sh, navBudShare![navIdx]);   // 追記 1：予算の割合は発注額の比（各州が自分の値段で買う額）・発注は取扱高の比
+                    double[]? nq = null;
+                    if (sh > 0 && navQ is not null)
+                    {
+                        nq = new double[navQ.Length];
+                        for (int k = 0; k < nq.Length; k++) nq[k] = navQ[k] * sh;
+                    }
+                    r.NavalOrder = nq;
+                }
                 equipClaimNat += r.MilitaryBudget + r.NavalBudget;   // ★(155) 吸い込みの2段目の請求（国の和）＝3段目（質）はこの残り
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
                 r.InsuranceCoverage = World.Coef.InsuranceCoverageMax.Value * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）

@@ -858,6 +858,7 @@ public class MilitaryTests
             int kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);
             var q = EconomyStep.FleetOrder(r, c, w, out double cost);
             Assert.True(q is not null && q[kw] > 0 && cost > 0, "前提が崩れた：帆船の軍艦の発注が無い");
+            r.NavalOrder = q;   // ★(679) 旗 NavalPortProcurement の既定 1：発注は月次の書き手 Simulation が州に配る（Run を直に呼ぶ本試験は Simulation を通らない）＝首都の州だけが港の盤面で Simulation が書く発注（国の発注×割合 1）を置く
             r.NavalBudget = frac * cost;
             EconomyStep.Run(r, c, 1.0, w.Bank, w);
             return (r.FleetUnits?[kw] ?? 0, r.StateSpent[(int)TreasuryCat.Navy], q![kw]);
