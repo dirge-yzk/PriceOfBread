@@ -1,5 +1,5 @@
 """(697) 線 ins7 の読み手＝往復の総量（urxrt_s）と州の生産の列（region_s の末尾 6 列）。読むだけ。
-使い方：python roundtrip.py <計器の出力 ins フォルダ> [--prod]  → 標準出力へ表。
+使い方：python roundtrip.py <計器の出力 ins フォルダ> [--prod [種 国 州]]  → 標準出力へ表。
   往復の表：国×十年×路（PopDecision・Meritocracy・Territory ほか）の都市への入り・都市からの出（千人・種の平均）。往復の総量＝入＋出・純＝入−出・総量÷|純|（純が小さい区間は大きくなる）。
   --prod：州の生産の列の使い方の 1 例＝全ての国の全ての州のうち、人口がピークから最も落ちた州（ピーク 1000 千人以上）の十年ごとの人口・工場の産出・採取の産出・操業中の数。
 ⚠限界は SimCore/InstrumentsUrx.cs（urxrt）と InstrumentsRegionProd.cs の頭に書いてある（挙げた国の POP だけ・助走は数えない・断面は四半期の末の月）。"""
@@ -53,20 +53,23 @@ def roundtrip(D):
     for route, (i, o) in sorted(rt.items()):
         print(f'{route}\tin={i:.0f}\tout={o:.0f}\tgross={i+o:.0f}\tnet={i-o:.0f}')
 
-def prod(D):
+def prod(D, want=None, s=None):
     sd = seeds(D, 'region')
-    s = sd[0]
+    s = s or sd[0]
     peak = {}; rows = defaultdict(list)
     for r in read(os.path.join(D, f'region_s{s}.tsv')):
         key = (r['nation'], r['region']); p = float(r['populationK'])
         peak[key] = max(peak.get(key, 0), p); rows[key].append(r)
     best = None
-    for key, rs in rows.items():
+    if want:
+        best = (float(rows[want][-1]['populationK']) / peak[want], want)
+    for key, rs in ([] if want else rows.items()):
         if peak[key] < 1000: continue
         last = float(rs[-1]['populationK']); ratio = last / peak[key]
         if best is None or ratio < best[0]: best = (ratio, key)
     ratio, key = best
-    print(f'\n# 州の生産の列の例（種 {s}）：人口がピークから最も落ちた州（ピーク 1000 千人以上）＝{key[0]}・{key[1]}・最後/ピーク={ratio:.3f}')
+    what = '指定の州' if want else '人口がピークから最も落ちた州（ピーク 1000 千人以上）'
+    print(f'\n# 州の生産の列の例（種 {s}）：{what}＝{key[0]}・{key[1]}・最後/ピーク={ratio:.3f}（ピーク {peak[key]:.0f} 千人）')
     print('year\tpopulationK\tfactoryOutRef/月\textractionOutRef/月\tfactoryActive\tfactoryBankrupt\textractionActive\textractionBankrupt')
     for r in rows[key]:
         if int(r['quarter']) % 20 != 3: continue
@@ -75,5 +78,10 @@ def prod(D):
 
 if __name__ == '__main__':
     D = sys.argv[1]
-    roundtrip(D)
-    if '--prod' in sys.argv: prod(D)
+    args = sys.argv[2:]
+    if '--prod' not in args or '--only-prod' not in args: roundtrip(D)
+    if '--prod' in args:
+        prod(D)
+        # --prod の後ろに「種 国 州」を渡すと、その州の例（hol の型＝植民地格の州の例：--prod 4 イギリス ナイン）
+        i = args.index('--prod')
+        if len(args) >= i + 4: prod(D, (args[i+2], args[i+3]), int(args[i+1]))
