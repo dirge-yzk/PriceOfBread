@@ -47,6 +47,7 @@ public static class Ideologies
         //   ⚠POP の理想点を読む＝BaseWeights が r（IdeologyShares）を書き換える**前**に求める（ループの頭）。
         var (dCoord, dLawGap) = FactionSnapshot.MembershipContext(w, true);
         int dSeen = 0;
+        var prds = Instruments.On ? Instruments.PrdsBegin(w, eraSoc, eraComm) : null;   // (700) 計器だけ＝影の列 prds_s（読むだけ・INS=1 のときだけ）
         foreach (var p in w.AllPops())
         {
             var r = p.IdeologyShares;
@@ -108,8 +109,11 @@ public static class Ideologies
                 double royalSupply = p.Closed ? royalPrivilege : (p.IsModernElite ? royalPatronage : 0);
                 if (royalSupply > 0) r[10] += cons * royalSupply;
             }
+            var shadow = prds is null ? default : Instruments.PrdsShadow(prds, r, mil);   // (700) 計器だけ（Normalize の前に r を読む・書かない）
             Normalize(r);
+            if (prds is not null) Instruments.PrdsAdd(prds, p, r, mil, shadow.T, shadow.ShadowAxis, shadow.SumRaw);   // (700) 計器だけ
         }
+        if (prds is not null) Instruments.PrdsEnd(prds);   // (700) 計器だけ
         w.Cost[CostLedger.ParticipationPops] += dSeen;   // 計算量の台帳（診断）：思想の入力で不満度を問うた POP の数
     }
 
@@ -194,7 +198,7 @@ public static class Ideologies
         return rich;
     }
 
-    private static void Normalize(double[] r)
+    internal static void Normalize(double[] r)
     {
         double sum = 0;
         for (int i = 0; i < r.Length; i++) { if (!(r[i] >= 0)) r[i] = 0; sum += r[i]; }   // 否定形＝NaN も 0 へ倒す（有限値では r[i] < 0 と同値）

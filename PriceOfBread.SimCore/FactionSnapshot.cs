@@ -241,7 +241,7 @@ public static class FactionSnapshot
         return lit / 6.0;
     }
 
-    private static int ArgMax(double[] shares)
+    internal static int ArgMax(double[] shares)
     {
         int best = 0; double bv = shares[0];
         for (int i = 1; i < shares.Length; i++) if (shares[i] > bv) { bv = shares[i]; best = i; }   // 同点＝先頭優先＝決定論

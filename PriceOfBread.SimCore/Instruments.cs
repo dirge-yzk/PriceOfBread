@@ -1840,6 +1840,7 @@ public static partial class Instruments
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
+        PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
@@ -1865,6 +1866,7 @@ public static partial class Instruments
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
         PrdfClose(sim);  // (681)
+        PrdsClose(sim);  // (700)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;
