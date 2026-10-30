@@ -28,6 +28,7 @@ public class DormantIdentityTests
         // ★TechMultipliersOff（(613) 線 tl 段3）は 2026-10-28 に 1 で**点火**＝この表から外した。TechGateByDiscovery・TechSignalOff・TechThresholdOff・EraOff（段1・2a・2b・4）も同日に 1 で点火。TechProductivityBracketOff（段5・腕 B5）は既定 0 のまま〔cp3 と同じ線か後〕
         // ★InheritanceLawGate（(650) 相続法）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は InheritanceLawTests。
         "TechProductivityBracketOff",
+        "NavalCedeFleetReturn",         // ★(688) 線 navf5：割譲で艦が州ごと移る代わりに送り手の首都の州へ戻す（既定 0＝今のまま・番人 NavalCedeFleetReturnTests）
         // ★StanceEduHoldsLaw（(680) 線 edq）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は StanceEduHoldsLawTests。
         "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // ★(640) 線 idn：思想の必要性を盤面の量から読む旗（既定 0＝今の式・番人 IdeaNeedBoardTests・G2b で落ちて差し戻し）。SpreadNeedFascismDecline は 1 で点火・IdeologyDevTermOff は読み手ごと消した（IdeologyDevFromUrban ほか 3 本も削除）
         // ★SpreadLiteracyFull・SpreadPrereqEdges（(621) 線 inst）は 2026-10-28 に点火＝この表から外した（SpreadLiteracyFull は既定 0.5・辺は Catalog.After の共産主義 ← 社会主義へ移して旗を消した）。旗 0 の経路の番人は InstitutionAnchorTests。

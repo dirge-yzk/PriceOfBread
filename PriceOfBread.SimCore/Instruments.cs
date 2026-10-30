@@ -68,6 +68,7 @@ public static partial class Instruments
 
     sealed class WState
     {
+        public double FleetMovedOutCeded, FleetReceivedCeded, FleetReturned;   // ★(688) 線 navf5：割譲で艦ごと出ていった隻数（送り手）・割譲で艦を受け取った隻数（受け手）・旗 NavalCedeFleetReturn で送り手の首都の州へ戻した隻数（送り手）の累計（読むだけ・World ごと）
         public double FleetMovedOutHome, FleetMovedOutColonial;   // ★(669) 線 navf3：この国（送り手）の州が割譲・分離独立などで FleetUnits ごと出ていった隻数の累計を、出た州の格（移る前の Tier）で分けた（読むだけ・World ごと）
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
@@ -1204,14 +1205,17 @@ public static partial class Instruments
     /// <summary>移し方の1本（<see cref="World.Transfer"/>）と人の移し方の1本（<see cref="Pop.Blend"/>）の入口：呼び出しの位置（コンパイル時の定数・[CallerFilePath]／[CallerLineNumber]）を、続く貯蓄の書き込みの経路名にする。</summary>
     internal static void Route(string file, int line, char fromSide, char toSide) { _routeFile = file; _routeLine = line; _routeFrom = fromSide; _routeTo = toSide; }
 
+    internal static void FleetReturned(World from, double ships) => S(from).FleetReturned += ships;   // ★(688) 線 navf5：割譲のとき送り手の首都の州へ戻した艦の隻数（旗 NavalCedeFleetReturn が正のときだけ呼ばれる）
+
     /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
-    internal static void RegionMoved(World from, World? to, Region r)
+    internal static void RegionMoved(World from, World? to, Region r, Territory.Rehoming how)
     {
         if (r.FleetUnits is { } fu)   // ★(669) 線 navf3：送り手の World ごとに、出ていく艦を出た州の格で分けて積む（(614) の [ThreadStatic] は種の数が違う腕を比べられなかった）
         {
             double sum = 0; foreach (double x in fu) sum += x;
             var sf = S(from);
             if (r.Tier == RegionTier.Colonial) sf.FleetMovedOutColonial += sum; else sf.FleetMovedOutHome += sum;
+            if (how == Territory.Rehoming.Ceded) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：割譲だけの内訳（送り手・受け手）
         }
         foreach (var p in r.Pops) { Sav(p, SavKind.RegionOut, -p.Savings.Value); PopOwner.Remove(p); }
         if (to is null) return;
@@ -2615,7 +2619,8 @@ public static partial class Instruments
         C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
         C("portFleetGoodsStock", nvPortStock); C("colonialFleetGoodsStock", nvColStock); C("inlandFleetGoodsStock", nvInlandStock); C("capitalFleetGoodsOutputPerMonth", nvOutCap); C("otherFleetGoodsOutputPerMonth", nvOutOther);   // ★(606) 線 navf：首都以外の港の州と港でない州の軍艦の市場の在庫・造船の産出（首都／首都以外）
         C("navalBudgetCapitalPerMonth", nvBudCap); C("navalBudgetOtherPerMonth", nvBudOther); C("navalOrderStatesCount", nvOrders);
-        C("navalBudgetColonialPerMonth", nvBudColonial); C("navyPaidPerMonth", nvPaid); C("fleetUnitsMovedOutHomeCum", S(w).FleetMovedOutHome); C("fleetUnitsMovedOutColonialCum", S(w).FleetMovedOutColonial);   // ★(606) 追記 2：植民地格の州へ行った予算・海軍の区分の支払い・州の割譲などで艦ごと移った隻数の累計（全ての国の和・読むだけ）   // 海軍の予算の配り（旗 NavalPortProcurement が 0 なら首都だけ・首都以外は 0）と艦を発注した州の数
+        C("navalBudgetColonialPerMonth", nvBudColonial); C("navyPaidPerMonth", nvPaid); C("fleetUnitsMovedOutHomeCum", S(w).FleetMovedOutHome); C("fleetUnitsMovedOutColonialCum", S(w).FleetMovedOutColonial); C("fleetUnitsMovedOutCededCum", S(w).FleetMovedOutCeded); C("fleetUnitsReceivedCededCum", S(w).FleetReceivedCeded); C("fleetUnitsReturnedToCapitalCum", S(w).FleetReturned);   // ★(688) 線 navf5：割譲だけの出た隻数・受け取った隻数・旗 1 で戻した隻数（累計）
+          // ★(606) 追記 2：植民地格の州へ行った予算・海軍の区分の支払い・州の割譲などで艦ごと移った隻数の累計（全ての国の和・読むだけ）   // 海軍の予算の配り（旗 NavalPortProcurement が 0 なら首都だけ・首都以外は 0）と艦を発注した州の数
         sk.Stock ??= Open("stock", seed);
         if (!sk.StockHeader) { sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Name))); sk.StockHeader = true; }
         sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Value)));

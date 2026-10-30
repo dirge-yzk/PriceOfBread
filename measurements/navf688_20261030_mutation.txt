@@ -3,3 +3,11 @@ M2 0の守りを > 0 にする: 赤1
 M3 旗1の分母の予算を首都だけにする: 赤1
 M4 2つの枝を入れ替える: 赤2
 (a) FleetAfford の突然変異 4 本はすべて赤（NavalPortProcurementTests 6 本中）
+navf5 (b) 旗 NavalCedeFleetReturn の突然変異（NavalCedeFleetReturnTests 4 本中）
+M1 旗の条件を外す: 赤1
+M2 戻し先を出ていく州のままにする: 赤3
+M3 how の条件を外す（建国も戻す）: 赤1
+M4 首都が出るとき戻し先を null にする: 赤1
+M5 出ていく州の艦を空にしない（二重に数える）: 赤2
+M6 戻し先の在庫を作らず捨てる: 赤2
+同値の突然変異：送り手の州が 0 のときの守りは homeReg の null 判定が担うため単独の条件にしなかった
