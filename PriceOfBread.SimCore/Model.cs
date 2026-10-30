@@ -420,6 +420,7 @@ public sealed class Pop
         double frac = n / s0;
         MoneyStock sav = from.Savings * frac, debt = from.Debt * frac, bond = from.BondHoldings * frac;
         from.Size -= n; to.Size += n;
+        if (Instruments.On) Instruments.UrxRtFlow(from, to, n, routeFile);   // (697) 計器（読むだけ）：都市への入りと都市からの出の総量を呼び手のファイルごとに（往復の表 urxrt_s）
         if (money) Carry(from, to, sav, debt, bond);
         return n;
     }

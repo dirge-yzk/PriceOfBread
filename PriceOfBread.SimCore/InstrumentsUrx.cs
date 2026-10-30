@@ -151,9 +151,66 @@ public static partial class Instruments
         return true;
     }
 
+    // ---------------------------------------------------------------- (697) 往復の表 urxrt_s（読むだけ・恒等） ----------------------------------------------------------------
+    // 人の移し方の 1 本（Pop.Blend）の呼び手のファイルごとに、国の都市 POP への入りと出の総量（千人）を数える。純（入−出）は urx_s の区間・urxpd_s の流れと同じ向きで、往復の総量＝入＋出。
+    // 数え方：同じ国の中の移動は農村→都市が入り・都市→農村が出（都市どうし・農村どうしは数えない）。国境を越える移動（越境移民・招聘）は受け手の国の都市 POP への着が入り・送り手の国の都市 POP からの発が出。
+    // route＝Blend の呼び手のファイル名（PopDecision＝州の中の農村↔都市・Meritocracy＝社会移動の職の移し・Territory＝州の間の移民と入植・Military＝徴兵と復員・MultiNationSim＝越境）。
+    // ⚠限界：①挙げた国の POP だけ（PopOwner の登録は月初＝その月の途中に生まれた POP の移動は数えない）②助走（その国の月が Active でない間）は数えない③呼び手のファイル 1 本の中に別の動詞が混ざる（Territory など）ときは区別しない
+    //   ④疫病・出生・死は人の移し方を通らない＝数えない（urx_s の区間の差とは別の物）。
+    internal const string UrxRtHeaderText = "quarter\tyear\tnation\troute\turbanInK\turbanOutK\tcalls";
+    sealed class UrxRtAcc { public readonly Dictionary<string, double[]> Routes = new(); public readonly List<string> Order = []; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<WState, UrxRtAcc> UrxRtStates = new();
+
+    /// <summary>Pop.Blend の末尾（読むだけ）：<paramref name="n"/> 人が <paramref name="from"/> から <paramref name="to"/> へ移った。呼び手のファイル名ごとに挙げた国の都市への入りと出を積む。</summary>
+    internal static void UrxRtFlow(Pop from, Pop to, double n, string routeFile)
+    {
+        if (!On) return;
+        bool srcUrban = from.IsUrban, dstUrban = to.IsUrban;
+        if (!srcUrban && !dstUrban) return;
+        PopOwner.TryGetValue(from, out var sf); PopOwner.TryGetValue(to, out var stt);
+        if (sf is null && stt is null) return;
+        bool same = sf is not null && ReferenceEquals(sf, stt);
+        if (same && srcUrban == dstUrban) return;
+        int cut = Math.Max(routeFile.LastIndexOf('/'), routeFile.LastIndexOf('\\')) + 1;
+        int dot = routeFile.LastIndexOf('.');
+        string route = dot > cut ? routeFile.Substring(cut, dot - cut) : routeFile.Substring(cut);
+        if (dstUrban && stt is not null && stt.Active && (!same || !srcUrban)) UrxRtAdd(stt, route, n, 0);
+        if (srcUrban && sf is not null && sf.Active && (!same || !dstUrban)) UrxRtAdd(sf, route, 0, n);
+    }
+
+    static void UrxRtAdd(WState st, string route, double inK, double outK)
+    {
+        var acc = UrxRtStates.GetValue(st, _ => new UrxRtAcc());
+        if (!acc.Routes.TryGetValue(route, out var a)) { a = new double[3]; acc.Routes[route] = a; acc.Order.Add(route); }
+        a[0] += inK; a[1] += outK; a[2] += 1;
+    }
+
+    /// <summary>番人用：今の四半期の積み（route → 入り・出・呼びの数）の写し。積みは消さない。</summary>
+    internal static Dictionary<string, (double In, double Out, double Calls)> UrxRtPeek(World w)
+    {
+        var res = new Dictionary<string, (double In, double Out, double Calls)>();
+        if (UrxRtStates.TryGetValue(S(w), out var acc)) foreach (var k in acc.Order) { var a = acc.Routes[k]; res[k] = (a[0], a[1], a[2]); }
+        return res;
+    }
+
+    static void UrxRtFold(Sink sk, ulong seed, World w, WState st, int q)
+    {
+        if (!UrxRtStates.TryGetValue(st, out var acc) || acc.Order.Count == 0) return;
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        sk.UrxRt ??= Open("urxrt", seed);
+        if (!sk.UrxRtHeader) { sk.UrxRt.WriteLine(UrxRtHeaderText); sk.UrxRtHeader = true; }
+        foreach (var name in acc.Order)
+        {
+            var a = acc.Routes[name];
+            if (a[2] > 0) sk.UrxRt.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), name, F(a[0]), F(a[1]), F(a[2])));
+            a[0] = a[1] = a[2] = 0;
+        }
+    }
+
     static void UrxFold(Sink sk, ulong seed, World w, WState st, int q)
     {
         if (!IsPicked(w, st)) return;
+        UrxRtFold(sk, seed, w, st, q);   // (697) 往復の表（Armed でなくても書く）
         if (!UrxStates.TryGetValue(w, out var ux) || !ux.Armed) return;
         UrxMark(w, "四半期末後");   // Fold の時点までの差を締める＝_level が region_s と同じ時点の水準になる
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

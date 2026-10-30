@@ -1214,6 +1214,16 @@ public class PolicyPoliticsTests
 
     [Fact]
     public void 実税が重い世界ほど生活が苦しく闘争度が高い()   // (f) 裁定C3 の鎖の番人（実税→可処分所得→充足→生活苦→闘争度）
+        => TaxChainCheck(capOff: true, minFixedMil: 0.0);   // 既定（UrbanCapOff=1）の物差しは (687) のまま変えない
+
+    /// <summary>★(697) 線 ins7（恒等・番人の追加だけ）：(687) urb2 の反証役の指摘。上の番人は旗 1（天井なし）の側の物差しだけを持ち、旗 0（旧の枝）で鎖の末端の闘争度の差が旧の大きさ（構成を固定した差で約 +0.135）
+    /// を保つかを誰も見ていなかった＝旗 1 の側の物差しが緩んだ（約 1/15・+0.0091）ことが旗 0 の同じ盤面との対でしか見えない。旗 0 の双子は同じ盤面・同じ 3 つの助走で、旗 1 の物差しは 1 ビットも変えず、
+    /// 旗 0 の闘争度の差が +0.08 以上であることを足す（下限 0.08 は (687) の診断の +0.135 の約 6 割＝この枝で先に決めた値・結果を見て選んでいない）。</summary>
+    [Fact]
+    public void 実税が重い世界ほど闘争度が高い_旗0の双子()
+        => TaxChainCheck(capOff: false, minFixedMil: 0.08);
+
+    private static void TaxChainCheck(bool capOff, double minFixedMil)
     {
         // ★盤面の直し（2026-10-01 段2A・主張は同じ）：充足と闘争度は60四半期目の1点ではなく**後半20四半期の平均**で比べる。
         //   人頭税の目標は35四半期ほどで効き始め（前半は軽税と重税で充足が同じ）、1点の値は四半期の揺れ（±0.02）に埋もれる＝段2A で発見していない財
@@ -1231,6 +1241,7 @@ public class PolicyPoliticsTests
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
+            w.Coef.UrbanCapOff = capOff ? 1 : 0;   // (697) 旗の側を明示（既定 1 の側は値を変えない＝旗 1 の物差しは 1 ビットも動かない）
             w.Coef.AusterityStartDebt = new RatioToGdpYear(99);   // 緊縮の逆進フロアを隔離＝「選んだ税率」だけを対照にする（旧クリップが低税側を押し上げると対照が壊れる）
             // 開幕の国債（仏1783＝world.json の govDebt）を消す＝国債の流れを隔離（2026-09-30 (135)）：連合維持費を撤去した後は、軽税の世界が国債を払えず不履行
             //   （大衆の暴動・信用の凍結）へ・重税の世界は利子を資本家へ払う＝税の差でなく国債の差が充足を動かし、鎖の向きが逆に見えた（充足 0.1068→0.1084）。
@@ -1288,6 +1299,7 @@ public class PolicyPoliticsTests
         Assert.True(dSav < 0, $"重税なのに大衆の貯蓄が減らない（3 つの助走の相対の差の合計 {dSav:F4}・充足の差の合計 {dSat:F4}＝記録）＝C3の鎖（実税→可処分所得）が切れている");
         Assert.True(dMil > 0, $"重税なのに闘争度が上がらない（3 つの助走の差の合計 {dMil:F4}）＝C3の鎖が切れている{diagSteps}");
         Assert.True(dSat < 0, $"重税なのに充足が下がらない（3 つの助走の差の合計 {dSat:F4}）＝C3の鎖（可処分所得→充足）が切れている");   // ★(533) 強い形へ戻した（下の注）
+        Assert.True(dMil >= minFixedMil, $"闘争度の差（構成を固定・3 つの助走の合計）{dMil:F4} が下限 {minFixedMil:F3} に届かない（UrbanCapOff={(capOff ? 1 : 0)}）{diagSteps}");   // ★(697) 旗 0 の双子の下限（旗 1 は 0＝上の dMil>0 と同じ）
     }
 
     [Fact]
