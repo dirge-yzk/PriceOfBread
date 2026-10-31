@@ -10,7 +10,7 @@ python -X utf8 -I $S/urb3/base.py a11=$K/a11 --seeds 11-20 > $O/urb3_base_a11.tx
 for a in base_ins:1 n1:1 n2:1 a11:11; do d=${a%%:*}; s=${a#*:}
   python -X utf8 -I $S/cesd/cess_read.py $O/cess_$d.tsv $K/$d > $O/cess_$d.txt 2>&1
   python -X utf8 -I $S/r1/judge_gate.py $K/$d $s 10 > $O/r1gate_$d.txt 2>&1
-  python -X utf8 $S/hol/an_h2.py $K/$d -v4 > $O/hol_$d.txt 2>&1
+  python -X utf8 $S/hol/an_h2.py $K/$d -v4 -ex old > $O/hol_$d.txt 2>&1
   python -X utf8 $S/hol/an_h2.py $K/$d -v4 -ex rule > $O/holrule_$d.txt 2>&1
 done
 python -X utf8 -I $S/m719/prereg_base.py $O > measurements/m719_20261031_prereg_base.txt

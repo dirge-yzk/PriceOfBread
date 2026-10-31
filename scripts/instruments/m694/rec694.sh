@@ -7,7 +7,7 @@ U0=D:/PoB_work/m694/out_ab_u0_10/ins; A0=D:/PoB_work/m694/out_ab_n0_10/ins; S11=
 OUT=D:/PoB_work/m694/rec_raw.txt; : > $OUT
 sec(){ echo "## ===== $1" >> $OUT; }
 for t in "ins:$M" "n1:$N1" "n2:$N2" "s11:$S11"; do n=${t%%:*}; d=${t#*:}; sec "plvl_$n"; if [ $n = s11 ]; then python -X utf8 -I $S/brk693/plvl_seeds.py $d >> $OUT 2>&1; else python -X utf8 -I $S/m609/plvl_all.py $d 10 $n >> $OUT 2>&1; python -X utf8 -I $S/brk693/plvl_seeds.py $d >> $OUT 2>&1; fi; done
-for t in "ins:$M" "n1:$N1" "n2:$N2" "s11:$S11"; do n=${t%%:*}; d=${t#*:}; sec "hol_$n"; python $S/hol/an_h2.py $d -v4 >> $OUT 2>&1; done
+for t in "ins:$M" "n1:$N1" "n2:$N2" "s11:$S11"; do n=${t%%:*}; d=${t#*:}; sec "hol_$n"; python $S/hol/an_h2.py $d -v4 -ex old >> $OUT 2>&1; done
 sec cap; python -X utf8 -I $S/sm7_620/an_cap.py $M $B $N1 $N2 >> $OUT 2>&1
 sec cap_n1; python -X utf8 -I $S/sm7_620/an_cap.py $N1 $M >> $OUT 2>&1
 sec cap_n2; python -X utf8 -I $S/sm7_620/an_cap.py $N2 $M >> $OUT 2>&1

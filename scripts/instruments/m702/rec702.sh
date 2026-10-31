@@ -7,7 +7,7 @@ B=D:/PoB_work/keep_694/m694_ins; BN1=D:/PoB_work/keep_694/n1; BN2=D:/PoB_work/ke
 OUT=$W/rec_raw.txt; : > $OUT
 sec(){ echo "## ===== $1" >> $OUT; }
 for t in "M:$M" "n1:$N1" "n2:$N2" "s11:$S11"; do n=${t%%:*}; d=${t#*:}; [ -d $d ] || continue; sec "plvl_$n"; python -X utf8 -I $S/brk693/plvl_seeds.py $d >> $OUT 2>&1; done
-for t in "M:$M" "n1:$N1" "n2:$N2" "s11:$S11"; do n=${t%%:*}; d=${t#*:}; [ -d $d ] || continue; sec "hol_$n"; python $S/hol/an_h2.py $d -v4 >> $OUT 2>&1; done
+for t in "M:$M" "n1:$N1" "n2:$N2" "s11:$S11"; do n=${t%%:*}; d=${t#*:}; [ -d $d ] || continue; sec "hol_$n"; python $S/hol/an_h2.py $d -v4 -ex old >> $OUT 2>&1; done
 sec cap; python -X utf8 -I $S/sm7_620/an_cap.py $M $B $N1 $N2 >> $OUT 2>&1
 sec cap_vs_A0; python -X utf8 -I $S/sm7_620/an_cap.py $M $A0 >> $OUT 2>&1
 sec judge; python $S/igi4_667/judge.py m694=$B m702=$M n1=$N1 n2=$N2 >> $OUT 2>&1
