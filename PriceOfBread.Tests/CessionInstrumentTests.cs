@@ -140,7 +140,7 @@ public class CessionInstrumentTests
             int taken = n0 - abs.ColonyList.Count;
             Assert.True(taken >= 1, "前提：講和で 1 件以上奪う");
             Assert.Equal(taken, rows.Count);
-            Assert.All(rows, r => { Assert.Equal("1", Col(r, "route")); Assert.Equal("ColonyList", Col(r, "tier")); Assert.Equal("0", Col(r, "loserIsNationFlag")); Assert.Contains(Col(r, "region"), names); Assert.Equal("nan", Col(r, "portFlag")); });
+            Assert.All(rows, r => { Assert.Equal("1", Col(r, "route")); Assert.Equal("ColonyList", Col(r, "tier")); Assert.Equal("0", Col(r, "loserIsNationFlag")); Assert.Contains(Col(r, "region"), names); Assert.Equal("nan", Col(r, "portFlag")); Assert.Equal(Col(r, "landAdjFlag") == "1" || Col(r, "canCrossFlag") == "1" ? "1" : "0", Col(r, "e2OkFlag")); });
             // 費用はエンジンが払った額＝予算の前後の差
             foreach (var r in rows)
                 Assert.Equal(double.Parse(Col(r, "budgetBeforeIndex"), System.Globalization.CultureInfo.InvariantCulture) - double.Parse(Col(r, "costEngineIndex"), System.Globalization.CultureInfo.InvariantCulture),

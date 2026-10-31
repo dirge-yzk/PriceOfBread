@@ -16,7 +16,7 @@ namespace PriceOfBread.SimCore;
 //     costEngineIndex＝エンジンが実際に払った費用（①②・③④は nan＝費用が無い）／costHcdShadowIndex＝基本の費用×(1＋重み×海路 km÷1 万×(1−世界の比))（座標が無ければ距離の項 0）を全ての経路に当てた影／
 //     costE2ShadowIndex＝案 E2 の費用（陸で隣り合う州＝基本の費用だけ・それ以外＝hcd の式）／budgetBeforeIndex・budgetAfterIndex＝その州を取る前後の講和の予算（①②はエンジンの値・③④は①②の残り＝エンジンは払わない）／
 //     reachKm・reachRangeKm＝③④の実効距離（海を渡る割り増し込み）と 4,000 km の円（係数）／colonialReachOnlyFlag＝③④で円の外なのに colonialReach で通った／
-//     e2OkFlag＝案 E2 の候補か（landAdjFlag か (portFlag かつ canCrossFlag)・座標の無い州は nan）／e2AltCount＝移った州の他の候補（経路の候補の母集団：② 植民地格・③ 首都以外・④ 全て）のうち E2 の候補になる数／
+//     e2OkFlag＝案 E2 の候補か（landAdjFlag か (portFlag かつ canCrossFlag)・①は港を問わず landAdjFlag か canCrossFlag・座標の無い州は nan）／e2AltCount＝移った州の他の候補（経路の候補の母集団：② 植民地格・③ 首都以外・④ 全て）のうち E2 の候補になる数／
 //     e2AltAdjCount＝うち陸で隣り合う数／e2AltAffordCount＝うち costE2 が budgetAfter 以内の数／e2AltNoCoordCount＝座標の無い他の州の数／poolCount＝候補の母集団の他の州の数。
 //   cessp_s：peaceSeq／year／winner／loser／winnerIsNationFlag／loserIsNationFlag／scoreIndex＝戦勝点（クランプ後）／absScoreIndex＝|戦勝点|（未クランプ）／budgetStartIndex／budgetEndIndex／n1Count〜n4Count＝経路ごとに移った件数／
 //     loserRegionCount＝講和の時点の敗者の州の数（抽象標的は 0）。
@@ -164,7 +164,7 @@ public static partial class Instruments
         double hcd = CessCost(c, resources, popUnits, true, seaKm, worldShare);
         double e2Cost = CessCost(c, resources, popUnits, !(adj == 1), seaKm, worldShare);
         double e2Ok = double.NaN;
-        if (!double.IsNaN(adj)) e2Ok = (adj == 1 || (port == 1 && can)) ? 1 : 0;
+        if (!double.IsNaN(adj)) e2Ok = (adj == 1 || (region is null ? can : (port == 1 && can))) ? 1 : 0;   // ①（ColonyList の項目）は港を問わない＝設計書 §2-1 の ① の規則（陸の隣接か CanCrossSea）
         // ③④ の予算＝この講和の①②の後の残り。①② は渡された前後をそのまま使い、残りを更新する。
         double bBefore = double.IsNaN(budgetBefore) ? st.BudgetLeft : budgetBefore;
         double bAfter = double.IsNaN(budgetAfter) ? bBefore : budgetAfter;
