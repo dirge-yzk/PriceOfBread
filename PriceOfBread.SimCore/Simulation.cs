@@ -2484,6 +2484,7 @@ public sealed class Simulation
             if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
             {
                 if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // (649) 計器（読むだけ）：PopDecision の駆動
+                if (Instruments.On) Instruments.RdhPd(World, r, serfFree);   // (721) 計器（読むだけ・助走の月も）：州ごとの PopDecision の駆動（rdh_s・RDH が空なら何もしない）
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
             }
         ProbeCheck("月次政治");
@@ -2731,6 +2732,7 @@ public sealed class Simulation
         for (int ri = 0; ri < regions.Count; ri++)
         {
             var r = regions[ri];
+            if (Instruments.On) Instruments.RdhRegion(r);   // (721) 計器（読むだけ）：出生と死の hook を足す州
             // ★(143) 出生の州の取り分＝州の出産年齢の女性の実数÷国の和（旧＝旧の鍵＝POP ごとの t=0 の凍結の分母で州へも配った＝ペルシャのタブリーズは国の平均より年 7‰ 少なく産んだ）。
             //   州の中の階級へは旧の鍵の比（凍結の分母のまま）＝階級の配り方を今のプールにすると、凍結の分母が膨らませていた識字の高い階級（聖職者 2.3→5.4%・資本家 4.1→6.1%
             //   〔日本・公教育の番人の盤面・30年〕）が膨らまなくなり、公教育の下で識字が 0.35→0.19 へ落ちて幕府の番人が赤＝教育の経路が凍結の分母に支えられていた＝9-2 で一緒に。
@@ -2795,6 +2797,7 @@ public sealed class Simulation
                 }
         }
         if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCat.OtherIn, fromWeights: estClaims);   // ★(650) 相続の移転（走査の後に 1 回・払い手ごとに自分の請求・自分の貯蓄まで）
+        if (Instruments.On) Instruments.RdhRegion(null);   // (721) 計器（読むだけ）：州のループの外
         World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // ★計器（2026-09-26・純記帳）
         World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0) - famineDead;   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く③飢えの上乗せで実際に減った人数を引く。実Size減と一致
         SmoothRegionalFoodFill(c);   // 州の食料充足の平滑（移民の飢饉の押し出し・州反乱・派閥の危機が読む）

@@ -1768,6 +1768,7 @@ public static partial class Instruments
         if (time == "warm") InpWorldTable(sim);   // (657)
         if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // (380)(403) 助走の月の成約を数えない・(579) 助走の着工の判断の回を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
+        RdhPhase(sim, seed, time);   // (721) rdh_s の O・W の行（RDH が空なら何もしない）
     }
 
     /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）。財政の月次の行を書き出し、階級の所得と支出の四半期の合計をゼロへ戻す。</summary>
@@ -1848,6 +1849,7 @@ public static partial class Instruments
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
+        RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
@@ -1874,6 +1876,7 @@ public static partial class Instruments
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
         PrdfClose(sim);  // (681)
+        RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)
         CessClose(sim, sk.Seed);   // (717) 割譲の表 cess_s・講和の表 cessp_s
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
