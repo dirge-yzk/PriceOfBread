@@ -1841,6 +1841,7 @@ public static partial class Instruments
         IdnTable(sim, seed);               // (640) 思想の必要性の表
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
+        DscTable(sim, seed, q);            // (705) 段0 の計器（発見の連続化の L の再生の材料）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
@@ -1867,6 +1868,7 @@ public static partial class Instruments
         IdnClose(sim);   // (640)
         PrdfClose(sim);  // (681)
         PrdsClose(sim);  // (700)
+        DscClose(sim);   // (705)
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;
