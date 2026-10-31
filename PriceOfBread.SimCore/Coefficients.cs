@@ -2896,6 +2896,12 @@ public sealed class Coefficients
     public double SpreadNeedFascismDecline = 1;       // ★(640) 線 idn：>0 でファシズムの必要性の強度に〈自国の国力の割合の落ち込み＝(在庫 ScoreStanding−今の ShareScores)÷在庫〉を掛ける（新しい状態なし）。0＝今の式（危機×人々の闘争度）。正で有効
     public double EraOff = 1;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
     public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効
+    // ★(705) 線 dsc1（発見の連続化＝改良度 L・1 の上・設計書 docs/202610/20261030/20261030_発見の連続化_設計.md・事前登録 measurements/dsc1_705_20261031_prereg.txt）。全て AI の推奨（確証なし）。
+    //   作者 2026-10-30 の案「現在の0..1を0..2(あるいはそれ以上)にします。…」・作者 2026-10-31「とりあえず全て設計書は推奨でよい。」で Q1〜Q7 の推奨を採った。
+    public double ImprovementDivisor = 0;             // K_L＝1 段ごとの費用の目盛り（>0 で改良度 L を積み、能力×L・労働の財の投入÷L・投資の techLev の後継にし、技術の括弧を外す＝U6）。0＝恒等（L を読まず書かない）。否定形＝NaN は 0 の側
+    public double ImprovementRho = 2.1;               // ρ＝1/b−1（学習曲線の指数 b≈0.32＝進歩率 80%・Wright 1936・Argote と Epple 1990〈頁は未確認〉）。旗 ImprovementDivisor が 0 なら読まない
+    public double ImprovementEngineerHalf = 0;        // D0＝技術者の密度（本国の高度労働力 月あたり÷本国の人口 千人）の半分点。段0 の canary の 1830〜1849 年の中央値から腕の前に決める（事前登録 [1]）。旗 0 なら読まない
+    public double ImprovementDemandHalf = 1.0;        // h＝産出の割合 E＝q÷(q＋h·国の需要) の半分点（自給の産出で E＝0.5）。旗 0 なら読まない
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ
     // 【墓標2026-09-26（棚卸し dorm-50）】ModernizationTechGain（近代化投資の直接の技術加点・「0で確定」2026-08-04）＝削除。制度疲労が技術採用を律しているので近代化投資が疲労を削れば技術は伸びる＝直接の加点は二重計上（実測で公教育の普 vs 宗教教育の露の差が消えた）
     public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 州の上限＝この工業化度に達した州は AI の近代化の信号（World.StateInvestEligible）の適格から外れ、巨大建造物の直接の足しもこれで切る。(583) 州へ撒く分を削除した後は国庫投資の入口の上限ではない（旧：富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）

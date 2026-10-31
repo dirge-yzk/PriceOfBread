@@ -444,6 +444,7 @@ public sealed class MultiNationSim
         // 新国家を birth BaseMoney(=S+T) で再基線化するため、子は baseline=S+T・TradeFlow=0 で保存が閉じる（親は −(S+T) を BaseMoney/TradeFlow 両方に記帳）。
         // ここに +S+T を足すと二重計上でプローブが即例外（検証済み）。MultiNationTestの世界合計式がspawnの子baselineを勘定しない側の非対応でありコードは正しい。
         nw.TechLevel = pw.TechLevel; nw.Elite = pw.Elite;
+        if (pw.ImprovementLevels is { } pimp) nw.ImprovementLevels = (double[])pimp.Clone();   // ★(705) 改良度も親から（独立は文明を巻き戻さない・旗 0 では null のまま＝この行は何もしない）
         // ★発見は親から（段2A・独立は文明を巻き戻さない＝技術水準と同じ）。移った州は新しい国の配列を読む（月次の写しを待たない）。
         System.Array.Copy(pw.Discovered, nw.Discovered, System.Math.Min(pw.Discovered.Length, nw.Discovered.Length));
         nw.WorldDiscovered = pw.WorldDiscovered;   // 世界の解禁の和は全ての国で同じ配列
@@ -597,6 +598,7 @@ public sealed class MultiNationSim
             }
             double[]? scoreNow = _coef.SpreadNeedFascismDecline > 0 || Instruments.On ? NationalScore.ShareScores(Nations.ConvertAll(s => s.World)) : null; for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv, scoreNow?[i]), _coef);   // ★(640) 線 idn：国力の今の値を判定の直前に 1 回だけ求めて渡す（旗 SpreadNeedFascismDecline が正か計器のときだけ・導出量・行数を増やさない＝flow_s が行番号を鍵にする）
             ShareWorldDiscovered();
+            if (_coef.ImprovementDivisor > 0) Improvement.Step(Nations.ConvertAll(s => s.World), Market.LastPairFlow, _coef, _quarter);   // ★(705) 線 dsc1：改良度の歩（判定と世界の解禁の写しの後・助走は evaluate が偽＝積まない・旗 0 は 1 命令も走らない）
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
         Market.DiscoveryGoodFlowQ = null;
@@ -1983,7 +1985,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, Count = 29;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ImprovementScans = 29, Count = 30;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2002,6 +2004,7 @@ public static class CostLedger
         "レシピごとの設備の配り：購入が起きた州×月の生産者の数（旗 RecipeEquipment が正のとき・配りは 3 周・退場は 2 周の走査 1 周につき州の生産者の数）",
         "主食の台帳と配り直し：POP×月×段（旗 StapleLedgerSum が正のとき決済後の締め 1 段・旗 StapleDemandRebalance が正のとき月の頭の前計算 1 段・(504)）",
         "海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
+        "改良度の歩：訪れた生産者＋更新した列（国×四半期・旗 ImprovementDivisor が正のとき・(705)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2054,6 +2057,7 @@ public static class CostLedger
         RecipeEquipmentScanUnitMicros,   // ★(495) レシピごとの設備の配り：州の生産者 1 件あたり（**上限の見積り**・census は無い・下の定数の注記）
         StapleLedgerUnitMicros,   // ★(504) 主食の台帳と配り直し：POP×月×段あたり（**上限の見積り**・census は無い・下の定数の注記）
         NavalOrderScanUnitMicros,   // ★(669) 海軍の発注の配り：州×月×周あたり（**上限の見積り**・census は無い・下の定数の注記）
+        ImprovementScanUnitMicros,   // ★(705) 改良度の歩：訪れた生産者か更新した列 1 件あたり（**上限の見積り**・census は無い・下の定数の注記）
     ];
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
@@ -2083,6 +2087,9 @@ public static class CostLedger
     /// <summary>★(669) 海軍の発注の配りの単価（マイクロ秒/件＝州×月×周）＝**上限の見積り**（census は無い）。州の取扱高と階級を比べて足す・割るだけの走査で、形が近い建設の見た生産者（0.013）より少し重い 0.02 を置く（旗 NavalPortProcurement が正のときだけ数える＝旗 0 の推定は不変）。
     ///   件数の上限＝国×月×州×3 周（61 国で全長 約 8 千州×月 3 周でも 1 試合 0.1 秒未満）。</summary>
     public const double NavalOrderScanUnitMicros = 0.02;
+    /// <summary>★(705) 改良度の歩の単価（マイクロ秒/件＝訪れた生産者か更新した列）＝**上限の見積り**（census は無い）。生産者の走査は門の照会と足し算だけで、形が近い世界の合計の巡回（0.06）と同じ値を置く。
+    ///   列の更新（冪 1 回と数回の演算）も同じ 0.06 で数える。旗 ImprovementDivisor が 0 では件数 0。腕 B の .cost の件数×単価が事前登録 measurements/dsc1_705_20261031_prereg.txt [5] の自分の台帳 ≦2.0 秒。</summary>
+    public const double ImprovementScanUnitMicros = 0.06;
     /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。★(486) 旗 MinimumWageAiFromFloor が正のときは AI の判断の読み（本国の州の生産者と財の走査・国×四半期）の件数も同じ台帳に立つ（法が無くても）。</summary>
     public const double MinimumWageBasketScanUnitMicros = 0.02;
     /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数

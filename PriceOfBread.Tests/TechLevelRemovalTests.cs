@@ -19,7 +19,7 @@ public class TechLevelRemovalTests
     [
         ("PriceOfBread.SimCore", "Agents.cs", 1), ("PriceOfBread.SimCore", "ArmyShape.cs", 1), ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),
         ("PriceOfBread.SimCore", "Colonial.cs", 1), ("PriceOfBread.SimCore", "Diplomacy.cs", 1), ("PriceOfBread.SimCore", "Discovery.cs", 2),
-        ("PriceOfBread.SimCore", "DiscoveryTables.cs", 1), ("PriceOfBread.SimCore", "FiscalTables.cs", 1), ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 2), ("PriceOfBread.SimCore", "InstrumentsScore.cs", 1),
+        ("PriceOfBread.SimCore", "DiscoveryTables.cs", 1), ("PriceOfBread.SimCore", "FiscalTables.cs", 1), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 2), ("PriceOfBread.SimCore", "InstrumentsScore.cs", 1),
         ("PriceOfBread.SimCore", "Megaprojects.cs", 3), ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 10),
         ("PriceOfBread.SimCore", "SelfPlay.cs", 5), ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 5),

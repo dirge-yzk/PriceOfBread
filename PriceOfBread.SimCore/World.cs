@@ -200,6 +200,10 @@ public sealed class World
     ///   投入を世界の値段で読む場合を賄えない＋倒産からの再開で0へ戻る（値段と関係の無い跳ね）＝足りない＝この欄を残した（1国に財の数＋1 の1本）。
     /// null＝未捕捉（最初の判定・建国した国＝瞬間の値で始める）。セーブに載る。</summary>
     public double[]? DiscoveryPrice;
+    /// <summary>★(705) 線 dsc1：改良度 L（国×列・<see cref="Improvement.ColumnOf"/>・長さ <see cref="Improvement.ColumnCount"/>）。旗 <see cref="Coefficients.ImprovementDivisor"/> が正のときだけ
+    /// <see cref="Improvement.Step"/> が最初の四半期に作って書く（旗 0 は null のまま＝読まず書かない）。新しい状態はこの 1 本（思想⑩の例外として名乗る＝改良は過去の生産と接触の積み重ねで盤面から導けない）。
+    /// 発見の表の行は L≧1 ⇔ <see cref="Discovered"/>（書くのは判定の後の 1 か所）。セーブに載る（配列の反射）。</summary>
+    public double[]? ImprovementLevels;
     /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・損耗の強さ＝画面と計器が同じ3項を出すため・★(159) 人件費の世界の平均は削除）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
     [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
     // ★(471) 計器 sf_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを1つも読まない）：兵士へ届いた年金の累計・売り手の国庫が払った〈安く売る〉の補助の累計（自国通貨）・
@@ -2085,7 +2089,7 @@ public sealed class World
         }
         // 満足度への直接バフ（時短whWell・福祉WelfareSatComponent・年金PensionWellbeing）は物理削除2026-08-21（思想⑨＝支出/法は財を経ずに満足度を動かさない。
         // 作者裁定8/19「満足度という値を捨てて生活水準＝買えたかのみ」）。時短は出力減 whOut・福祉/年金は現金給付（→消費→生活水準）としてのみ残る。
-        if (Coef.TechProductivityBracketOff > 0) return whOut * union;   // ★(613) 段5（腕 B5・既定 0＝今のとおり）：技術の括弧を外す（作者 2026-10-16〈技術水準は二重計上〉）。否定形＝NaN は旗 0
+        if (Coef.TechProductivityBracketOff > 0 || Coef.ImprovementDivisor > 0) return whOut * union;   // ★(705) U6：改良度の旗が正なら括弧も外す（同じ腕で外れる＝二重計上を作らない・片方だけの腕は作れない）。旗 0 は旧の条件と同じ   // ★(613) 段5（腕 B5・既定 0＝今のとおり）：技術の括弧を外す（作者 2026-10-16〈技術水準は二重計上〉）。否定形＝NaN は旗 0
         return (1.0 + Math.Min(TechLevel, TechProdDiminishKnee) + Math.Max(0.0, TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
     }
 

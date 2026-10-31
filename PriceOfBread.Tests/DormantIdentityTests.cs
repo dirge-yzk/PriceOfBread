@@ -30,6 +30,8 @@ public class DormantIdentityTests
         // ★InheritanceLawGate（(650) 相続法）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は InheritanceLawTests。
         // ★HcdColonyCessionDistance（(696) 線 hcd 講和の植民地格の州の複数割譲に距離）は 2026-10-31 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は ColonyCessionDistanceTests（旗を 0 に置いた走行）。
         "TechProductivityBracketOff",
+        "ImprovementEngineerHalf",      // ★(705) 線 dsc1：D0（段0 の canary から腕の前に決める・旗 ImprovementDivisor が 0 なら読まない）
+        "ImprovementDivisor",           // ★(705) 線 dsc1：発見の連続化（改良度 L・1 の上）の旗（既定 0＝L を読まず書かない・番人 ImprovementTests）
         // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalCedeFleetReturnTests（旗を 0 に置いた走行）。
         // ★StanceEduHoldsLaw（(680) 線 edq）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は StanceEduHoldsLawTests。
         "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // ★(640) 線 idn：思想の必要性を盤面の量から読む旗（既定 0＝今の式・番人 IdeaNeedBoardTests・G2b で落ちて差し戻し）。SpreadNeedFascismDecline は 1 で点火・IdeologyDevTermOff は読み手ごと消した（IdeologyDevFromUrban ほか 3 本も削除）

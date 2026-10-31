@@ -924,6 +924,9 @@ public static class EconomyStep
                 : isLabor ? indMult * gate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
                 : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + coef.EffBoost * s.EffFill)
                   * gate;        // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
+            // ★(705) 線 dsc1（旗 ImprovementDivisor が正のときだけ）：受容した列の改良度 L を能力に掛ける（作者 2026-10-30「…その品の生産能力そのものを変更するという扱いです。」・括弧は旗で外れている＝U6）。
+            //   領分の外（労働の財・役務・農家の手仕事・職人）は L＝1。控え ImprovementCache は EffectiveQty（労働の財の投入÷L）と投資の techLev の後継が読む。旗 0 はこの行に入らない（恒等）。
+            if (coef.ImprovementDivisor > 0) { double lv = Improvement.LevelOf(world, s); s.ImprovementCache = lv; if (lv > 1.0) boost *= lv; }
             // 05-A（2026-07-29）：戦災＝農業・畜産の産出減（劣勢側の戦場のみ・戦争終結で自然回復）。飢饉・食料充足・扶養力の丁寧な機構に
             // 戦争が一切影響しなかった欠落を閉じる（戦争→飢饉→闘争度→政変の連鎖）。畜産(19)は重め＝「馬は真っ先に持っていかれる」（徴発は市場価格経由で自動）。
             if (s.IsRgo && region.LastWarIntensity > 1e-12)
@@ -2869,6 +2872,7 @@ public static class EconomyStep
     internal static (double TechLev, double Sat, double Gross, double Hurdle) InvestmentReturn(Region region, Coefficients coef, double productivityMultiplier)
     {
         double techLev = Math.Max(0, productivityMultiplier - 1.0);
+        if (coef.ImprovementDivisor > 0) techLev = Math.Max(0, Improvement.RegionMean(region) * productivityMultiplier - 1.0);   // ★(705) 線 dsc1：技術の梃子の後継＝州の領分の生産者の改良度の値段の重みの平均×（括弧を外した）whOut×union（設計書 冒頭の訂正 中①の §4 の 10 行目・事前登録 [1]）。旗 0 は上の行のまま
         double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
         double marginalGain = coef.IndProductivityGain / (sat * sat);
         double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
@@ -3073,10 +3077,15 @@ public static class EconomyStep
 
     /// <summary>投入の有効係数：電化した工場は労働力の投入が減る（機械化＝電力が人手を節約する）。他の投入は不変。
     /// internal＝ProductionDiag が生産コストの内訳を**同じ式**で並べる（InputCostPerUnit と同じ理由）。<paramref name="home"/>＝生産者の所属州。</summary>
-    internal static double EffectiveQty(Producer s, Region home, Input inp, Coefficients c) =>
-        inp.GoodId == Catalog.LaborId && s.BuysLabor
+    internal static double EffectiveQty(Producer s, Region home, Input inp, Coefficients c)
+    {
+        double q = inp.GoodId == Catalog.LaborId && s.BuysLabor
             ? inp.QtyPerOutput * (1.0 - c.ElecLaborSave * s.ElecFill) * (1.0 - c.LaborSaveRate * home.Mechanization)   // 電化＋工業化由来の機械化で労働投入↓。LaborSaveRate=0で第2因子=1.0＝恒等。機械化度は所属州の量（旧 Producer.Mechanization の写しは2026-09-11に削除＝home は生産者の所属州を渡す）
             : inp.QtyPerOutput;
+        // ★(705) 線 dsc1（旗 ImprovementDivisor が正のときだけ）：受容した列の改良度 L で労働の財（労働力・高度労働力・農業労働力）の 1 単位あたりの投入を割る（能力の側の ×L と同じ値＝分子と分母を揃える）。
+        //   原料・燃料は割らない（設計書 §3-3）。L は能力の式が毎月書く控え（Producer.ImprovementCache）。旗 0 は上の値をそのまま返す（恒等）。
+        return c.ImprovementDivisor > 0 && s.ImprovementCache > 1.0 && Catalog.IsLaborGood(inp.GoodId) ? q / s.ImprovementCache : q;
+    }
 
     /// <summary>役務（教育・医療）の購入優先順位：0=下層（農民・労働者）→ 1=中流（近代エリート）→ 2=上流・閉鎖階級・兵士。
     /// 下層が基礎教育を先に買い、余剰が中流へ届く＝高等教育（専門職への転職資格）の表現。</summary>
