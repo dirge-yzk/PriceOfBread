@@ -32,11 +32,11 @@ public static partial class Instruments
         public bool HasLastCons; public int LastConsPop = -1; public double LastCons;
         public double CurPaid; public int Hist; public double H0, H1, D0;
         // (714) 番人の口（表の列ではない）：影が立った州×月で、本体の予算〈旗 InvestBudgetFromFlow が 1 のとき流れそのもの〉と影の予算の差の絶対値の和と、その月の数
-        public double FlowBudgetGapAbs; public long FlowBudgetGapN;
+        public double FlowBudgetGapAbs; public long FlowBudgetGapN, FlowBudgetHeldN;
         public void ClearQuarter()
         {
             Judged = Desiring = Bound = FlowAvail = FlowDesiring = FlowBound = Osc = 0;
-            FlowBudgetGapAbs = 0; FlowBudgetGapN = 0;
+            FlowBudgetGapAbs = 0; FlowBudgetGapN = 0; FlowBudgetHeldN = 0;
             Desired = Budget = Planned = BoundCut = FlowDesired = FlowBudget = FlowPlanned = FlowCurPlanned = FlowEarned = FlowCons = Paid = Built = OscPaid = OscAbsD1 = OscAbsD2 = OscLag = OscSq = OscSqLag = 0;
         }
         public void ClearAll() { ClearQuarter(); HasLastCons = false; LastConsPop = -1; LastCons = 0; CurPaid = 0; Hist = 0; H0 = H1 = D0 = 0; }
@@ -88,8 +88,14 @@ public static partial class Instruments
             double earned = r.Pops[ip].LastEarnedPerMonth.Value;
             double flow = earned - a.LastCons; if (!(flow > 0)) flow = 0;
             double keep = 1.0 - r.SeizureChill; if (!(keep > 0)) keep = 0;
+            double rawFlow = flow;   // (714) 番人の口：萎縮を掛ける前の流れ（本体は貯蓄までに留めてから萎縮を掛ける）
             if (r.SeizureChill > 0) flow *= keep;   // 本体の budget と同じ作法（萎縮が正の州だけ掛ける）
-            a.FlowBudgetGapAbs += Math.Abs(budget - flow); a.FlowBudgetGapN++;   // (714)
+            {
+                double held = r.Pops[ip].Savings.Value; if (!(held > 0)) held = 0;
+                double expect = rawFlow < held ? rawFlow : held; if (r.SeizureChill > 0) expect *= keep;
+                a.FlowBudgetGapAbs += Math.Abs(budget - expect); a.FlowBudgetGapN++;   // (714) 影の流れは変えない（pin の fbind は基線の影のまま）・番人だけ貯蓄までの留めを読む
+                if (budget < flow * (1 - 1e-9)) a.FlowBudgetHeldN++;
+            }
             a.FlowAvail++; a.FlowBudget += flow; a.FlowEarned += earned; a.FlowCons += a.LastCons;
             if (desiring)
             {

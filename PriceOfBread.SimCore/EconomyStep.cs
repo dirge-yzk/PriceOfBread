@@ -733,9 +733,15 @@ public static class EconomyStep
             p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
-        //   ★(714) 線 u4a：旗 InvestBudgetFromFlow が正なら外す（建設の予算は前月の流れから出る＝消費の予算から貯蓄の 5% を先に引く理由が無い）。否定形＝NaN の旗は旧の経路。
-        if (cap && region.InvestorPopIndex >= 0 && !(coef.InvestBudgetFromFlow > 0))
-            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+        //   ★(714) 線 u4a（腕の前の訂正・反証役の高①）：旗 InvestBudgetFromFlow が正なら、投資枠の代わりに〈私的な建設の予算そのもの〉（前月の流れ・貯蓄を上限）をここで 1 回だけ計算して控える
+        //   （1322・1515 の〈予定額を先に控える〉の作法）＝消費と建設が同じ貯蓄を二重に使わない規律は旗 1 でも保つ。1050 の建設の予算は同じ値を使う。否定形＝NaN の旗は旧の経路。
+        bool u4Flow = coef.InvestBudgetFromFlow > 0 && cap && region.InvestorPopIndex >= 0;
+        double u4FlowBudget = 0;
+        if (cap && region.InvestorPopIndex >= 0)
+        {
+            if (u4Flow) { u4FlowBudget = PrivateConstructionBudget(region, coef); region.Pops[region.InvestorPopIndex].RemainingBudget -= u4FlowBudget; }
+            else region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+        }
         // ★純テレメトリ（2026-08-21）：この州の pop がこの月に**使える**消費予算の総額（投資枠控除後）。
         double budgetStartDiag = 0;
         bool insOn = Instruments.On && world is not null;   // (271) 計器（読むだけ）：消費の予算の拘束を国×四半期へ（BudgetBindDiag と同じ行・同じ述語）
@@ -1050,7 +1056,7 @@ public static class EconomyStep
             //   （英GDP 290,733→2）＝資本コストの較正が巨大な貯蓄ストックを前提に組まれている＝建設費・減価・貯蓄を一緒に動かす大改修が要る。
             //   ★2026-09-26（棚卸し dorm-50）：「0で確定＝休眠」だった器を削除（再挑戦はその大改修と一緒に設計し直す＝検討 §10-10［金融1］）。
             //   ★(714) 線 u4a：予算の式は PrivateConstructionBudget の 1 本へ抜き出した（旗 InvestBudgetFromFlow が 0 の経路は式・順序・リテラルとも抜き出す前と同じ＝接収の代償②の萎縮もそこで掛かる）。
-            double budget = PrivateConstructionBudget(region, coef);
+            double budget = u4Flow ? u4FlowBudget : PrivateConstructionBudget(region, coef);   // 旗 1 は月の頭で控えた値そのもの（737）
             // （退蔵結晶化 段4a/段2の予算配線は Stage1 中止で2026-08-29撤去＝休眠削除・厳密恒等）
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
             // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
@@ -2867,7 +2873,9 @@ public static class EconomyStep
     }
 
     /// <summary>★(714) 線 u4a：私的な建設の予算（州×月・投資家 POP がある州だけ呼ぶ）。旗 <see cref="Coefficients.InvestBudgetFromFlow"/> が 0 なら今の規則＝<c>IndInvestmentFrac×max(0, 投資家の貯蓄)</c>（抜き出す前の式・順序・リテラルと同じ）。
-    /// 正なら〈投資家 POP の前月の所得−前月の消費の支払い〉の正の部分（否定形で NaN は 0）。どちらも最後に接収の代償②の萎縮（<see cref="Region.SeizureChill"/> が正の州だけ）を掛ける。
+    /// 正なら〈投資家 POP の前月の所得−前月の消費の支払い〉の正の部分（否定形で NaN は 0）を、持っている貯蓄の正の部分までに留める（腕の前の訂正・反証役の高①：持っていない金は使えない＝旧の規則の
+    /// 0.05×貯蓄 ≦ 貯蓄 と同じ資産の制約。これが無いと貯蓄の薄い州で建設の支払いが貯蓄を超え、月末の <c>BackstopNegativeSavings</c> が与信で埋める＝返さなくてよい金の湧き口になる）。
+    /// どちらも最後に接収の代償②の萎縮（<see cref="Region.SeizureChill"/> が正の州だけ）を掛ける。
     /// 純関数（状態を書かない）。AI とプレイヤーで同じ経路（<c>IsPlayer</c> を読まない）。</summary>
     internal static double PrivateConstructionBudget(Region region, Coefficients coef)
     {
@@ -2877,6 +2885,8 @@ public static class EconomyStep
         {
             budget = inv.LastEarnedPerMonth.Value - inv.LastConsumptionPaidPerMonth.Value;
             if (!(budget > 0)) budget = 0;
+            double held = inv.Savings.Value; if (!(held > 0)) held = 0;
+            if (budget > held) budget = held;
         }
         else budget = coef.IndInvestmentFrac.Value * Math.Max(0, inv.Savings.Value);
         // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。

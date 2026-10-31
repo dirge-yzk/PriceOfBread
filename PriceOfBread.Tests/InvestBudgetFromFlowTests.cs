@@ -9,7 +9,8 @@ namespace PriceOfBread.Tests;
 /// ②欄の書き手：旗 0 では <c>Pop.LastConsumptionPaidPerMonth</c> が全ての POP で 0 のまま／旗 1 では投資家 POP に正の値が入る。
 /// ③計器との自己一致：旗 1 の盤面で、本体が使った予算（<c>consf_s</c> の今の規則の予算の列）が、計器が別の写し（EntryCtx の消費の支払い）から作った流れの影の予算と州×月ごとに一致する
 ///   （本体の欄は PaidPerMonth をそのまま写し、計器は財のループの前後の差を取る＝出所が違う 2 本）。
-/// ④取り置き：旗 1 では資本家階級の月初の消費の予算÷貯蓄が旗 0 より高い（5% の取り置きを外した分）。
+/// ④先に控える（腕の前の訂正・反証役の高①）：旗 1 では建設の予算（流れ・貯蓄を上限）を消費の予算から先に控える＝資本家階級の月初の消費の予算（ce_s）＋本体の建設の予算（consf_s）が月初の貯蓄（ce_s）を超えない（二重に使わない）。
+///   控えを外す突然変異では赤になる（実装ログに対応の表）。
 /// ⑤軌道が旗 0 で変わらないことは DormantIdentityTests（旗 0 の明示）と InstrumentsTests の全ビット一致が見る。
 /// </summary>
 [Collection("Instruments")]
@@ -41,8 +42,9 @@ public class InvestBudgetFromFlowTests
         Assert.Equal(0.05 * sav * 0.5, EconomyStep.PrivateConstructionBudget(r, c));
         r.SeizureChill = 0;
 
-        // 旗 1：前月の所得 100・前月の消費の支払い 30・萎縮 0.25 → (100−30)×0.75＝52.5
+        // 旗 1：前月の所得 100・前月の消費の支払い 30・萎縮 0.25 → (100−30)×0.75＝52.5（貯蓄は十分＝上限に当たらない）
         c.InvestBudgetFromFlow = 1;
+        p.SetSavings(1e9);
         p.LastEarnedPerMonth = new MoneyPerMonth(100.0); p.LastConsumptionPaidPerMonth = new MoneyPerMonth(30.0);
         Assert.Equal(70.0, EconomyStep.PrivateConstructionBudget(r, c));
         r.SeizureChill = 0.25;
@@ -57,11 +59,18 @@ public class InvestBudgetFromFlowTests
         Assert.Equal(0.0, EconomyStep.PrivateConstructionBudget(r, c));
         p.LastEarnedPerMonth = new MoneyPerMonth(100.0); p.LastConsumptionPaidPerMonth = new MoneyPerMonth(double.NaN);
         Assert.Equal(0.0, EconomyStep.PrivateConstructionBudget(r, c));
-        // 旗 1 は貯蓄を読まない：貯蓄が違う 2 つの州で同じ流れなら同じ予算
         p.LastConsumptionPaidPerMonth = new MoneyPerMonth(40.0);
-        double b1 = EconomyStep.PrivateConstructionBudget(r, c);
-        Assert.Equal(60.0, b1);
+        Assert.Equal(60.0, EconomyStep.PrivateConstructionBudget(r, c));
+        // 貯蓄が上限（腕の前の訂正）：持っていない金は使えない＝流れ 60 でも貯蓄 40 なら 40・萎縮は貯蓄で留めた後に掛ける（40×0.75＝30）・貯蓄 0 と負と NaN は 0
+        p.SetSavings(40.0);
+        Assert.Equal(40.0, EconomyStep.PrivateConstructionBudget(r, c));
+        r.SeizureChill = 0.25; Assert.Equal(30.0, EconomyStep.PrivateConstructionBudget(r, c)); r.SeizureChill = 0;
+        p.SetSavings(80.0); Assert.Equal(60.0, EconomyStep.PrivateConstructionBudget(r, c));   // 貯蓄が流れを上回れば流れ
+        p.SetSavings(0.0); Assert.Equal(0.0, EconomyStep.PrivateConstructionBudget(r, c));
+        p.SetSavings(-5.0); Assert.Equal(0.0, EconomyStep.PrivateConstructionBudget(r, c));
+        p.SetSavings(double.NaN); Assert.Equal(0.0, EconomyStep.PrivateConstructionBudget(r, c));
         // 旗が NaN なら旧の経路（否定形）
+        p.SetSavings(sav);
         c.InvestBudgetFromFlow = double.NaN;
         Assert.Equal(0.05 * sav, EconomyStep.PrivateConstructionBudget(r, c));
     }
@@ -131,47 +140,56 @@ public class InvestBudgetFromFlowTests
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
-    private static double InvestorBudgetOverSavings(double flag)
+    /// <summary>資本家階級の（月初の貯蓄 − 月初の消費の予算 − 本体の建設の予算）の和（月の平均に揃えた値）と、貯蓄の和。負なら二重に使っている。</summary>
+    private static (double slack, double sav) InvestorSlack(double flag)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_u4a2_" + Guid.NewGuid().ToString("N"));
         try
         {
             var sim = Make(flag);
             Instruments.Configure(dir, "*");
-            int cls = -1;
+            var classes = new HashSet<int>();
             try
             {
                 Instruments.Phase(sim, 1789UL, "open");
                 sim.StartWarmup();
                 Instruments.Phase(sim, 1789UL, "warm");
-                foreach (var r in sim.Nations[0].World.Regions) if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) { cls = r.Pops[r.InvestorPopIndex].ClassId; break; }
+                foreach (var n in sim.Nations)
+                    foreach (var r in n.World.Regions) if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) classes.Add(r.Pops[r.InvestorPopIndex].ClassId);
                 try { for (int q = 0; q < 6; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
                 finally { Instruments.Close(sim); }
             }
             finally { Instruments.Configure(null, null); }
-            Assert.True(cls >= 0, "前提：投資家 POP の階級が分かる");
+            Assert.True(classes.Count > 0, "前提：投資家 POP の階級が分かる");
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "ce_s1789.tsv"));
-            var h = lines[0].Split('\t');
+            var h = lines[0].Split('	');
             int iScope = Array.IndexOf(h, "scope"), iCls = Array.IndexOf(h, "classId"), iSav = Array.IndexOf(h, "savingsStartStock"), iBud = Array.IndexOf(h, "budgetStartStock");
             Assert.True(iScope >= 0 && iCls >= 0 && iSav >= 0 && iBud >= 0, "ce_s の列が無い");
             double sav = 0, bud = 0;
             foreach (var l in lines.Skip(1))
             {
-                var f = l.Split('\t');
-                if (f[iScope] != "C" || f[iCls] != cls.ToString(System.Globalization.CultureInfo.InvariantCulture)) continue;
-                sav += double.Parse(f[iSav], System.Globalization.CultureInfo.InvariantCulture); bud += double.Parse(f[iBud], System.Globalization.CultureInfo.InvariantCulture);
+                var f = l.Split('	');
+                if (f[iScope] != "C" || !classes.Contains(int.Parse(f[iCls], inv))) continue;
+                sav += double.Parse(f[iSav], inv); bud += double.Parse(f[iBud], inv);
             }
+            var cl = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "consf_s1789.tsv"));
+            var ch = cl[0].Split('	');
+            int iB = Array.IndexOf(ch, "budgetMoneySum");
+            Assert.True(iB >= 0, "consf_s の列が無い");
+            double body = 0;
+            foreach (var l in cl.Skip(1)) body += double.Parse(l.Split('	')[iB], inv) / 3.0;   // 四半期 3 か月の和 → 月の平均（ce_s の月の平均に揃える）
             Assert.True(sav > 0, "対照：資本家階級の月初の貯蓄が 0");
-            return bud / sav;
+            return (sav - bud - body, sav);
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
     [Fact]
-    public void 旗1は投資の取り置きを外す_資本家階級の月初の消費の予算が貯蓄に近づく()
+    public void 旗1は建設の予算を消費の予算から先に控える_二重に使わない()
     {
-        double r0 = InvestorBudgetOverSavings(0.0), r1 = InvestorBudgetOverSavings(1.0);
-        // 旗 0：投資家 POP の予算は貯蓄の 95%（5% の取り置き）。旗 1：取り置きが無い＝差は取り置き分 0.05 のうち州の中の他の控除を除いて 0.03 以上
-        Assert.True(r1 - r0 >= 0.03, $"旗 1 の月初の消費の予算÷貯蓄 {r1:F4} が旗 0 の {r0:F4} より 0.03 以上高くない（取り置きが外れていない）");
+        var (slack1, sav1) = InvestorSlack(1.0);
+        // 控えが効いていれば、消費の予算＋建設の予算 ≦ 貯蓄（他の控除〔再点火の発注・反乱の武器〕は消費の予算をさらに減らすだけ）。許す誤差は桁落ちの 1e-9 だけ
+        Assert.True(slack1 >= -1e-9 * sav1, $"旗 1 で消費の予算＋建設の予算が貯蓄を超えている（余り {slack1:G6}・貯蓄 {sav1:G6}）＝二重に使っている");
     }
 }
