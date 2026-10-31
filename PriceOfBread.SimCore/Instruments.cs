@@ -211,6 +211,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? DiscContact; public bool DiscContactHeader;         // (328) 伝わりの接触の内訳（買い手×行×売り手）
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
+        public System.IO.StreamWriter? Consf; public bool ConsfHeader;                     // (707) U4 の段0 の表（挙げた国×区分×四半期・全期間・InstrumentsU4.cs）
         public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
         public System.IO.StreamWriter? Opium; public bool OpiumHeader;                     // (342) アヘンの表（州×四半期の行 R と国×四半期の行 N）
         public System.IO.StreamWriter? Ce; public bool CeHeader;                           // (345) 消費の入口の表（国×四半期×階級の行 C と国×窓×財の行 N）
@@ -624,6 +625,7 @@ public static partial class Instruments
     {
         readonly double[] cC, cNum, cDen, cBasket, cBought; Region reg = null!; int np;
         int[] cls = [];
+        internal bool U4;   // (707) 挙げた国の州だけ投資家 POP の消費の支払いを写す（EntryBegin が立てる）
         double[] size = [], y = [], sav0 = [], bud0 = [], paid0 = [], cur = [], want = [], pay = [];
         double sizeTot; int gi, grp; double d0Sum, num, cMax, b, bought;
         internal EntryCtx(double[] c, double[] num, double[] den, double[] basket, double[] bought) { cC = c; cNum = num; cDen = den; cBasket = basket; cBought = bought; }
@@ -717,6 +719,7 @@ public static partial class Instruments
                 if (p.RemainingBudget < 0) C[k + CeNegBudgetPopK] += s;
                 if (F + D <= Yp) C[k + CeCoveredPopK] += s;
                 if (F > S0) C[k + CeFoodUnaffordPopK] += s;
+                if (U4 && i == reg.InvestorPopIndex) U4ConsStash(reg, i, cons);   // (707) 翌月の流れの影が読む前月の消費の支払い
             }
         }
     }
@@ -730,6 +733,7 @@ public static partial class Instruments
         st.CeNum ??= new double[ng]; st.CeDen ??= new double[ng]; st.CeBasket ??= new double[ng]; st.CeBought ??= new double[ng];
         var e = st.Ent ??= new EntryCtx(st.CeC, st.CeNum, st.CeDen, st.CeBasket, st.CeBought);
         e.Begin(r);
+        e.U4 = IsPicked(w, st);   // (707)
         return e;
     }
     static void CeClear(WState st)
@@ -1368,6 +1372,7 @@ public static partial class Instruments
         var a = ConAccs.GetValue(r, _ => new ConAcc());
         a.Judged++; if (desiredUnits > 0) a.Desired += desiredUnits * unitMoney;
         a.Budget += budgetUnits * unitMoney; a.Planned += plannedUnits * unitMoney; a.PlannedUnits += plannedUnits;
+        U4Decide(r, desiredUnits, budgetUnits, unitMoney, plannedUnits);   // (707) U4 の段0 の表（月の単位の切り・流れの影・振動の履歴）
     }
     /// <summary>(300) 線 i1 段 0：希望の束を決める項を州×月で積む（読むだけ）。<paramref name="gainTech"/>＝限界収益×(1+技術の梃子×技術の水準)・<paramref name="sat"/>＝飽和の分母の底（1+生産的工業化度÷スケール）・
     /// <paramref name="techLev"/>＝技術の水準・<paramref name="hurdle"/>＝資本コスト＋クラウディング−金融の過熱・<paramref name="netReturn"/>＝gainTech−hurdle・<paramref name="joint"/>＝株式会社の速さの倍率・
@@ -1387,11 +1392,13 @@ public static partial class Instruments
         if (!IsPicked(w, S(w))) return;
         var a = ConAccs.GetValue(r, _ => new ConAcc());
         a.BuiltUnits += builtUnits; a.Paid += cost;
+        U4Paid(r, builtUnits, cost);   // (707)
     }
     /// <summary>(289) 助走の月の分は数えない（<see cref="ResetQuarter"/> と同じ扱い）。</summary>
     static void ClearCons(World w)
     {
         foreach (var r in w.Regions) if (ConAccs.TryGetValue(r, out var a)) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
+        U4ClearWorld(w);   // (707)
     }
     static string TermMean(ConAcc? a, double? sum) => a is null || a.TermMonths == 0 || sum is null ? "nan" : F(sum.Value / a.TermMonths);
     static void ClearTerms(ConAcc a) { a.TermMonths = a.DesiringMonths = 0; a.TermGain = a.TermSat = a.TermTech = a.TermCrowd = a.TermHeat = a.TermHurdle = a.TermNet = a.TermAbsorb = a.TermJoint = a.TermUnits = a.TermUnitMoney = 0; }
@@ -1827,6 +1834,7 @@ public static partial class Instruments
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
+            if (picked) ConsfRows(sk, seed, q, w);      // (707) U4 の段0 の表（全期間・挙げた国×区分）
             if (picked) PortRows(sk, seed, q, w);       // (292) 線P：港の建設の州ごとの表
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0; ResetQuarter(st);
             st.QGateObs = st.QGateClosed = st.QShortMonths = st.QRUnder1Months = 0; st.QInterest = st.QRevenue = st.QDirect = st.QIndirect = st.QShortfall = st.QBorrowed = 0;
@@ -1871,6 +1879,7 @@ public static partial class Instruments
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
+        sk.Consf?.Dispose(); sk.Consf = null;   // (707)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
         sk.Opium?.Dispose(); sk.Opium = null;   // (342)
         sk.Ce?.Dispose(); sk.Ce = null;   // (345)
