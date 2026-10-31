@@ -7,6 +7,9 @@
 #   W2  ＝対の名目の都市÷農村（Σ wIncU÷Σ wIncR）の 45 窓の中央値（窓の値＝種の中央値）。
 #   戻す割合＝社会移動の都市への純÷月次政治の純の符号を替えたもの（urx_s・本国の群・9 国・全期間の和）と、urxrt_s の路 Meritocracy／PopDecision の純の比。
 #   flip＝流れの向きが前の月と逆の州×月の割合（Σ flowFlipRegionMonths÷Σ regionMonths）。
+#   (713) urb4：列 wAbsGsym（Σ total×|g|）があれば W1abs＝45 窓の中央値（窓の値＝種ごとの Σ wAbsGsym÷Σ sumTotal の種の中央値・絶対値はとらない）と
+#     P＝g が 0 に閉じたときの名目の比の見込み 1＋(自給÷人＋家賃÷人)÷農村の現金÷人（窓の値＝種の中央値・45 窓の中央値）を出す。
+#     3 本以上を渡すと、事前登録（設計書 §4 段3 の事前登録・(713)）の規則で門の値を出す（先頭のラベル＝基線・P は基線から）。
 import sys, os, csv, statistics as st
 from collections import defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
@@ -49,6 +52,7 @@ def parse_seeds(a):
 def analyse(label, root, seeds):
     win = defaultdict(lambda: defaultdict(list))   # (nation, era) -> metric -> per-seed values
     hasG = None
+    hasA = None
     ret_ux = defaultdict(float)
     ret_seed = []
     rt = defaultdict(lambda: [0.0, 0.0, 0.0])
@@ -64,6 +68,7 @@ def analyse(label, root, seeds):
         for d in rows(p):
             if hasG is None:
                 hasG = 'wGsym' in d
+                hasA = 'wAbsGsym' in d
             e = era(int(d['year']))
             if not e:
                 continue
@@ -73,6 +78,8 @@ def analyse(label, root, seeds):
             if hasG:
                 for k in ('wSubV', 'wHousU', 'wGsym', 'flowFlipRegionMonths'):
                     a[k] += fl(d[k])
+                if hasA:
+                    a['wAbsGsym'] += fl(d['wAbsGsym'])
                 flip_era[e][0] += fl(d['flowFlipRegionMonths'])
                 flip_era[e][1] += fl(d['regionMonths'])
                 flipN += fl(d['flowFlipRegionMonths'])
@@ -92,6 +99,9 @@ def analyse(label, root, seeds):
                 m['flip'].append(a['flowFlipRegionMonths'] / a['regionMonths'] if a['regionMonths'] > 0 else float('nan'))
                 m['sv'].append(sv)
                 m['hu'].append(hu)
+                m['P'].append(1 + (sv + hu) / ir if ir > 0 else float('nan'))
+                if hasA:
+                    m['A'].append(a['wAbsGsym'] / T)
         # 往復（urx_s・本国の群）
         pu = os.path.join(root, f"urx_s{s}.tsv")
         if os.path.exists(pu):
@@ -114,7 +124,7 @@ def analyse(label, root, seeds):
                 a[0] += fl(d['urbanInK'])
                 a[1] += fl(d['urbanOutK'])
                 a[2] += fl(d['calls'])
-    out = {'label': label, 'seeds': used, 'hasG': bool(hasG)}
+    out = {'label': label, 'seeds': used, 'hasG': bool(hasG), 'hasA': bool(hasA)}
     keys = sorted(win)
     out['windows'] = len(keys)
     out['W2'] = med([med(win[k]['W2']) for k in keys])
@@ -123,6 +133,9 @@ def analyse(label, root, seeds):
         out['W1b'] = med([abs(med(win[k]['D'])) for k in keys])
         out['G_signed_median'] = med([med(win[k]['G']) for k in keys])
         out['sv'] = med([med(win[k]['sv']) for k in keys])
+        out['P'] = med([med(win[k]['P']) for k in keys])
+        if hasA:
+            out['W1abs'] = med([med(win[k]['A']) for k in keys])
         out['hu'] = med([med(win[k]['hu']) for k in keys])
         out['flip'] = flipN / flipD if flipD else float('nan')
         out['flip_by_era'] = {e: (v[0] / v[1] if v[1] else float('nan')) for e, v in sorted(flip_era.items())}
@@ -164,6 +177,9 @@ def main():
         if o['hasG']:
             print(f"W1（|wGsym÷sumTotal|の窓の中央値）\t{o['W1']:.4f}")
             print(f"W1b（手計算と同じ形・計器の実測の自給と家賃）\t{o['W1b']:.4f}")
+            if o['hasA']:
+                print(f"W1abs（Σ wAbsGsym÷Σ sumTotal の窓の中央値・(713) の門の定義）\t{o['W1abs']:.4f}")
+            print(f"P（g が 0 に閉じたときの名目の比の見込み 1＋(自給＋家賃)÷農村の現金・窓の中央値）\t{o['P']:.4f}")
             print(f"g の符号つきの窓の中央値（正＝都市の方が値打ちが高い）\t{o['G_signed_median']:.4f}")
             print(f"自給の値÷人（窓の中央値）\t{o['sv']:.4f}\t住居の費用÷人\t{o['hu']:.4f}")
             print(f"flowFlip（向きが前の月と逆の州×月の割合・全期間）\t{o['flip']:.4f}\t窓の中央値\t{o['flip_window_median']:.4f}")
@@ -174,10 +190,22 @@ def main():
         print()
     if len(res) >= 2:
         print('# 幅（最大−最小）')
-        for k in ('W2', 'W1', 'W1b', 'flip', 'ret_ux', 'ret_rt'):
+        for k in ('W2', 'W1', 'W1b', 'W1abs', 'P', 'flip', 'ret_ux', 'ret_rt'):
             v = [o[k] for o in res if k in o]
             if len(v) >= 2:
                 print(f"{k}\t" + ' '.join(f"{o['label']}={o[k]:.4f}" for o in res if k in o) + f"\t幅 {max(v) - min(v):.4f}")
+    if len(res) >= 3 and all(o.get('hasA') for o in res):
+        # (713) 事前登録の規則（設計書 §4 段3 の事前登録）：門の値は基線・N1・N2 の数から機械的に置く
+        wv = [o['W1abs'] for o in res]; wmin, ww = min(wv), max(wv) - min(wv)
+        g1 = min(0.5 * wmin, wmin - 3 * ww)
+        deg1 = (wmin - 3 * ww) <= 0.05 * wmin
+        xv = [o['W2'] for o in res]; xmax, xw = max(xv), max(xv) - min(xv)
+        P = res[0]['P']
+        g2 = max(xmax + 10 * xw, xmax + 0.25 * (P - xmax))
+        deg2 = (P - xmax) <= 10 * xw
+        print('# 門の値（(713) 事前登録の規則・先頭のラベル＝基線）')
+        print(f"W1abs の門\t腕 B の W1abs ≦ {g1:.4f}\tWmin {wmin:.4f}・幅 {ww:.4f}・0.5×Wmin {0.5 * wmin:.4f}・Wmin−3w {wmin - 3 * ww:.4f}\t{'判定力なし＝記録へ' if deg1 else '門'}")
+        print(f"W2 の門\t腕 B の W2 ≧ {g2:.4f}\tXmax {xmax:.4f}・幅 {xw:.4f}・P {P:.4f}・Xmax＋10x {xmax + 10 * xw:.4f}・Xmax＋0.25(P−Xmax) {xmax + 0.25 * (P - xmax):.4f}\t{'判定力なし＝記録へ' if deg2 else '門'}")
     print()
     print('# 窓ごと（種の中央値）：国\t年代\tG\tD(手計算の形)\tW2\tflip\t自給/人\t家賃/人\t[先頭のラベルのみ]')
     o = res[0]
