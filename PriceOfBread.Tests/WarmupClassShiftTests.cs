@@ -39,18 +39,19 @@ public class WarmupClassShiftTests
     public void 旗0の助走は工場労働者の割合を動かし_旗1の助走は動かさない_片割れだけの停止は足りない()
     {
         var open = WorkerShare(Fresh());
-        var off = Fresh(); off.StartWarmup();
+        var off = Fresh(); foreach (var n in off.Nations) n.World.Coef.WarmupStopClassShift = 0;   // 旗 0 を明示（既定を点火しても対照が崩れない）
+        off.StartWarmup();
         var on = Fresh(); foreach (var n in on.Nations) n.World.Coef.WarmupStopClassShift = 1;   // 国ごとに別の係数（World.Coef は国ごとのインスタンス）
         on.StartWarmup();
-        var meritOnly = Fresh(); foreach (var n in meritOnly.Nations) n.World.BakeRun = new OpeningBake.RunOptions { ThawCapacity = false, StopSocialMobility = true, StopPopDecision = false };
+        var meritOnly = Fresh(); foreach (var n in meritOnly.Nations) { n.World.Coef.WarmupStopClassShift = 0; n.World.BakeRun = new OpeningBake.RunOptions { ThawCapacity = false, StopSocialMobility = true, StopPopDecision = false }; }
         meritOnly.StartWarmup();
-        var popOnly = Fresh(); foreach (var n in popOnly.Nations) n.World.BakeRun = new OpeningBake.RunOptions { ThawCapacity = false, StopSocialMobility = false, StopPopDecision = true };
+        var popOnly = Fresh(); foreach (var n in popOnly.Nations) { n.World.Coef.WarmupStopClassShift = 0; n.World.BakeRun = new OpeningBake.RunOptions { ThawCapacity = false, StopSocialMobility = false, StopPopDecision = true }; }
         popOnly.StartWarmup();
         double dOff = MaxDiff(WorkerShare(off), open), dOn = MaxDiff(WorkerShare(on), open);
         double dMerit = MaxDiff(WorkerShare(meritOnly), open), dPop = MaxDiff(WorkerShare(popOnly), open);
-        Assert.True(dOff > 0.10, $"前提が崩れた：旗 0 の助走で 9 国の工場労働者の割合が動かない（最大 {dOff:F4}）＝対照にならない");
+        Assert.True(dOff > 10 * dOn, $"前提が崩れた：旗 0 の助走で 9 国の工場労働者の割合が動かない（最大 {dOff:F4}）＝対照にならない");
         Assert.True(dOn < 0.005, $"旗 1 の助走で工場労働者の割合が動いた（最大 {dOn:F4}・徴兵の分は 0.001 未満）");
-        Assert.True(dMerit > 0.10, $"社会移動だけ止めても階級遷移が動かす（最大 {dMerit:F4}）はずが動かない＝PopDecision の門の突然変異を拾えない");
-        Assert.True(dPop > 0.02, $"階級遷移だけ止めても社会移動が動かす（最大 {dPop:F4}）はずが動かない＝Meritocracy の門の突然変異を拾えない");
+        Assert.True(dMerit > 10 * dOn, $"社会移動だけ止めても階級遷移が動かす（最大 {dMerit:F4}）はずが動かない＝PopDecision の門の突然変異を拾えない");
+        Assert.True(dPop > 10 * dOn, $"階級遷移だけ止めても社会移動が動かす（最大 {dPop:F4}）はずが動かない＝Meritocracy の門の突然変異を拾えない");
     }
 }
