@@ -924,7 +924,7 @@ public static class EconomyStep
                 : isLabor ? indMult * gate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
                 : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + coef.EffBoost * s.EffFill)
                   * gate;        // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
-            // ★(705) 線 dsc1（旗 ImprovementDivisor が正のときだけ）：受容した列の改良度 L を能力に掛ける（作者 2026-10-30「…その品の生産能力そのものを変更するという扱いです。」・括弧は旗で外れている＝U6）。
+            // ★(705) 線 dsc1（旗 ImprovementDivisor が正のときだけ）：受容した列の改良度 L を能力に掛ける（AI の推奨・確証なし・設計書 docs/202610/20261030/20261030_発見の連続化_設計.md §3-3・括弧は旗で外れている＝U6）。
             //   領分の外（労働の財・役務・農家の手仕事・職人）は L＝1。控え ImprovementCache は EffectiveQty（労働の財の投入÷L）と投資の techLev の後継が読む。旗 0 はこの行に入らない（恒等）。
             if (coef.ImprovementDivisor > 0) { double lv = Improvement.LevelOf(world, s); s.ImprovementCache = lv; if (costL is not null) costL[CostLedger.ImprovementScans]++; if (lv > 1.0) boost *= lv; }
             // 05-A（2026-07-29）：戦災＝農業・畜産の産出減（劣勢側の戦場のみ・戦争終結で自然回復）。飢饉・食料充足・扶養力の丁寧な機構に
