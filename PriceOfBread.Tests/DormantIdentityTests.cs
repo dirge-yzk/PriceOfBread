@@ -25,6 +25,7 @@ public class DormantIdentityTests
         // ★ServiceClosedFixedPoint（(spa) A′ 役務の不動点の閉じた式）は 2026-10-23 に 1 で**点火**（S1c・ServiceClosedMaxCurv=0.01）＝この表から外した。
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
         // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は IndustrializationReaderTests（都市化の天井_旗1…旗0は旧のまま）。
+        "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
         "CapitalHeadroomFromReturn",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
         // ★TechMultipliersOff（(613) 線 tl 段3）は 2026-10-28 に 1 で**点火**＝この表から外した。TechGateByDiscovery・TechSignalOff・TechThresholdOff・EraOff（段1・2a・2b・4）も同日に 1 で点火。TechProductivityBracketOff（段5・腕 B5）は既定 0 のまま〔cp3 と同じ線か後〕
         // ★InheritanceLawGate（(650) 相続法）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は InheritanceLawTests。

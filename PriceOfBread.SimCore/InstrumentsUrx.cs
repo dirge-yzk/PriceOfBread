@@ -8,12 +8,14 @@ namespace PriceOfBread.SimCore;
 //   全ての区間の差の和＝（最後の水準−最初の水準）に構成上一致する（桁落ちの残差だけ）。助走（WarmupFrozen）の間は印を打たず、助走が明けた最初の印で据え直す（その印の差は書かない）。
 //   列：quarter／year／nation／group／section／months（印の数）／dUrbanK／dRuralK。四半期の末に section＝_level（Fold の時点の水準）、最初の Fold に section＝_base（据え直した水準）。
 // ■urxpd_s<種>.tsv：本国（Tier＝Core）の州の PopDecision.Run の直前の駆動（読むだけ・同じ式を組み直す）。列は UrxPdHeaderText。重みの付く列（w*）は total（pair の規模）で重みを付けた和＝読み手が sumTotal で割る。
+// ■(706) urb3：urxpd_s の末尾に 4 列（既存の列の並びと値は変えない）。wSubV＝対の農村の 1 人あたりの自給の値（月・名目）×total の和／wHousU＝対の都市の 1 人あたりの住居の費用×total の和／wGsym＝〈移る値打ち〉の対称の相対差 g×total の和（式は本物の PopDecision.MigrationValues＝旗が 0 でも出す）／
+//   flowFlipRegionMonths＝流れの向きが前の月と逆の州×月の数（前の月も今の月も流れが 0 でなく、符号が違う＝飢えの門で 0 になった月は数えず、その次の月の比べ先にもならない）。読み手が wX÷sumTotal で重みを付けた平均にする。
 // ⚠限界（計器が自己申告する）：①印の区間は〈その区間の間に起きた全て〉の差（月次政治には PopDecision のほか外交の間に挟まる人の動きも入る＝urxpd_s の sumFlowPos−sumFlowNeg と比べる）
 //   ②群は州の Tier の印＝印の間に Tier が変わった州の差は変わった側の群へ入る（国の合計では消える）③urxpd_s は PopDecision の式の写し＝式が変わったら番人（UrxInstrumentTests）が赤になる。
 public static partial class Instruments
 {
     internal const string UrxHeaderText = "quarter	year	nation	group	section	months	dUrbanK	dRuralK";
-    internal const string UrxPdHeaderText = "quarter	year	nation	regionMonths	noPair	capBound	serfGated	famineGated	sumFlowPos	sumFlowNeg	sumTotal	sumPairUrban	sumRegionPop	sumRegionUrban	wTargetPre	wTargetCapped	wCur	wCap	wIncU	wIncR	wZ";
+    internal const string UrxPdHeaderText = "quarter	year	nation	regionMonths	noPair	capBound	serfGated	famineGated	sumFlowPos	sumFlowNeg	sumTotal	sumPairUrban	sumRegionPop	sumRegionUrban	wTargetPre	wTargetCapped	wCur	wCap	wIncU	wIncR	wZ	wSubV	wHousU	wGsym	flowFlipRegionMonths";
     static readonly string[] UrxGroups = ["Core", "Other"];
 
     sealed class UrxState
@@ -27,6 +29,9 @@ public static partial class Instruments
         // urxpd_s の累積
         public long PdRegionMonths, PdNoPair, PdCapBound, PdSerfGated, PdFamineGated;
         public double PdFlowPos, PdFlowNeg, PdTotal, PdPairUrban, PdRegionPop, PdRegionUrban, PdWTargetPre, PdWTargetCapped, PdWCur, PdWCap, PdWIncU, PdWIncR, PdWZ;
+        public double PdWSubV, PdWHousU, PdWGsym;                                     // (706) urb3：〈移る値打ち〉の列（total で重みを付けた和）
+        public long PdFlipRegionMonths;                                               // (706) urb3：流れの向きが前の月と逆の州×月の数
+        public readonly Dictionary<Region, int> PdPrevSign = new(ReferenceEqualityComparer.Instance);   // (706) urb3：州ごとの前の月の流れの向き（−1／0／+1）。四半期をまたいで持つ（累積と違い Fold で消さない）
     }
     sealed class UrxAcc { public readonly double[] U = new double[2], R = new double[2]; public int N; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, UrxState> UrxStates = new();
@@ -96,7 +101,7 @@ public static partial class Instruments
         if (!On || w.WarmupFrozen || region.Tier != RegionTier.Core) return;
         var st = S(w); if (!IsPicked(w, st)) return;
         var ux = Ux(w);
-        if (!UrxPdDrive(w.Coef, region, serfFree, out var d)) { ux.PdNoPair++; return; }
+        if (!UrxPdDrive(w.Coef, region, serfFree, out var d)) { ux.PdNoPair++; ux.PdPrevSign[region] = 0; return; }
         ux.PdRegionMonths++;
         if (d.CapBound) ux.PdCapBound++;
         if (d.SerfGated) ux.PdSerfGated++;
@@ -106,9 +111,20 @@ public static partial class Instruments
         ux.PdRegionPop += region.SumPopulation(); ux.PdRegionUrban += region.SumUrbanPopulation();
         ux.PdWTargetPre += d.Total * d.TargetPre; ux.PdWTargetCapped += d.Total * d.TargetCapped; ux.PdWCur += d.Total * d.Cur; ux.PdWCap += d.Total * d.Cap;
         ux.PdWIncU += d.Total * d.IncUrban; ux.PdWIncR += d.Total * d.IncRural; ux.PdWZ += d.Total * d.Z;
+        ux.PdWSubV += d.Total * d.SubsistenceValue; ux.PdWHousU += d.Total * d.HousingCost; ux.PdWGsym += d.Total * d.Gsym;   // (706) urb3
+        int sgn = d.Flow > 0 ? 1 : d.Flow < 0 ? -1 : 0;   // (706) urb3：流れの向きの反転（前の月も今の月も 0 でなく、向きが逆）
+        if (ux.PdPrevSign.TryGetValue(region, out int prevSgn) && prevSgn != 0 && sgn != 0 && prevSgn != sgn) ux.PdFlipRegionMonths++;
+        ux.PdPrevSign[region] = sgn;
     }
 
-    internal readonly record struct UrxPdDriveRow(double Total, double UrbanSize, double IncUrban, double IncRural, double Z, double TargetPre, double TargetCapped, double Cur, double Cap, bool CapBound, bool SerfGated, bool FamineGated, double Flow);
+    /// <summary>番人用：今の四半期の urxpd_s の積みの写し（積みは消さない）。(706) 流れの向きの反転と〈移る値打ち〉の列を単体で確かめる口。</summary>
+    internal static (long RegionMonths, long FlipRegionMonths, double WSubV, double WHousU, double WGsym, double SumTotal) UrxPdPeek(World w)
+    {
+        var ux = Ux(w);
+        return (ux.PdRegionMonths, ux.PdFlipRegionMonths, ux.PdWSubV, ux.PdWHousU, ux.PdWGsym, ux.PdTotal);
+    }
+
+    internal readonly record struct UrxPdDriveRow(double Total, double UrbanSize, double IncUrban, double IncRural, double Z, double TargetPre, double TargetCapped, double Cur, double Cap, bool CapBound, bool SerfGated, bool FamineGated, double Flow, double SubsistenceValue, double HousingCost, double Gsym);
 
     /// <summary>PopDecision.Run の式の写し（読むだけ）。農村と都市の対が無い・規模が 0 なら false。流れ＝正は農村→都市の人数（千人）。番人（UrxInstrumentTests）が本物の Run の前後の差と突き合わせる。</summary>
     internal static bool UrxPdDrive(Coefficients coef, Region region, double serfFree, out UrxPdDriveRow d)
@@ -138,7 +154,9 @@ public static partial class Instruments
             cap = PopDecision.UrbanShareCap(coef, indForCap);
             if (target > cap) { target = cap; capBound = true; }
         }
-        double flow = coef.Mobility * (target - cur) * total;
+        // (706) urb3：〈移る値打ち〉V の列は常に出す（本物の式 PopDecision.MigrationValues を呼ぶ＝写しではない）。流れは旗 UrbanFlowReal に従い Run と同じ式
+        var mv = PopDecision.MigrationValues(region, coef, rural, urban);
+        double flow = coef.UrbanFlowReal > 0 ? (mv.Gsym > 0 ? coef.Mobility * mv.Gsym * rural.Size : coef.Mobility * mv.Gsym * urban.Size) : coef.Mobility * (target - cur) * total;
         bool serf = false, famine = false;
         if (flow > 0 && coef.SerfMobilityGate > 0)
         {
@@ -147,7 +165,7 @@ public static partial class Instruments
             flow *= f;
         }
         if (flow > 0 && urban.FoodFill < coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill) { flow = 0; famine = true; }
-        d = new UrxPdDriveRow(total, urban.Size, incUrban, incRural, z, targetPre, target, cur, cap, capBound, serf, famine, flow);
+        d = new UrxPdDriveRow(total, urban.Size, incUrban, incRural, z, targetPre, target, cur, cap, capBound, serf, famine, flow, mv.SubsistenceValue, mv.HousingCost, mv.Gsym);
         return true;
     }
 
@@ -237,10 +255,12 @@ public static partial class Instruments
             sk.UrxPdW.WriteLine(string.Join('	', qs, year, nm, ux.PdRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdNoPair.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ux.PdCapBound.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdSerfGated.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdFamineGated.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 F(ux.PdFlowPos), F(ux.PdFlowNeg), F(ux.PdTotal), F(ux.PdPairUrban), F(ux.PdRegionPop), F(ux.PdRegionUrban),
-                F(ux.PdWTargetPre), F(ux.PdWTargetCapped), F(ux.PdWCur), F(ux.PdWCap), F(ux.PdWIncU), F(ux.PdWIncR), F(ux.PdWZ)));
+                F(ux.PdWTargetPre), F(ux.PdWTargetCapped), F(ux.PdWCur), F(ux.PdWCap), F(ux.PdWIncU), F(ux.PdWIncR), F(ux.PdWZ),
+                F(ux.PdWSubV), F(ux.PdWHousU), F(ux.PdWGsym), ux.PdFlipRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             ux.PdRegionMonths = ux.PdNoPair = ux.PdCapBound = ux.PdSerfGated = ux.PdFamineGated = 0;
             ux.PdFlowPos = ux.PdFlowNeg = ux.PdTotal = ux.PdPairUrban = ux.PdRegionPop = ux.PdRegionUrban = 0;
             ux.PdWTargetPre = ux.PdWTargetCapped = ux.PdWCur = ux.PdWCap = ux.PdWIncU = ux.PdWIncR = ux.PdWZ = 0;
+            ux.PdWSubV = ux.PdWHousU = ux.PdWGsym = 0; ux.PdFlipRegionMonths = 0;   // (706) urb3
         }
     }
 }
