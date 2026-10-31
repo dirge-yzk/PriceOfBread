@@ -14,10 +14,10 @@ namespace PriceOfBread.SimCore;
 // ⚠限界（計器が自己申告する）：①影は静的な反事実＝希望・所得・消費は今の規則の軌道のまま（U4 の腕では応答する）。
 //   ②今の規則の消費の支払いは投資の取り置き（EconomyStep の投資家の RemainingBudget×(1−IndInvestmentFrac)）の後の値＝U4 で取り置きを外すと消費は増えうる＝腕の流れは影より小さい向き。
 //   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。
-//   ⑤州の持ち主が四半期の中で替わると、その州の積みは四半期の末の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
+//   ⑧工業化度の列は置かない（IndustrializationReaderTests の許可表＝新しい読み手を足さない）。⑤州の持ち主が四半期の中で替わると、その州の積みは四半期の末の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
 public static partial class Instruments
 {
-    internal const string ConsfHeaderText = "quarter\tyear\tnation\tscope\tregionsCount\tpopulationK\tinvestorSavingsStock\tindustrializationPopWeightedIndex\t"
+    internal const string ConsfHeaderText = "quarter\tyear\tnation\tscope\tregionsCount\tpopulationK\tinvestorSavingsStock\t"
         + "judgedRegionMonthsCount\tdesiringRegionMonthsCount\tbudgetBoundRegionMonthsCount\tdesiredMoneySum\tbudgetMoneySum\tplannedMoneySum\tbudgetBoundCutMoneySum\t"
         + "flowAvailableRegionMonthsCount\tflowDesiringRegionMonthsCount\tflowBoundRegionMonthsCount\tflowDesiredMoneySum\tflowBudgetMoneySum\tflowPlannedMoneySum\tflowEarnedLastMoneySum\tflowConsumptionPaidLastMoneySum\t"
         + "paidMoneySum\tbuiltUnitsSum\toscRegionMonthsCount\toscPaidMoneySum\toscAbsFirstDiffMoneySum\toscAbsSecondDiffMoneySum\toscFirstDiffLagProductSum\toscFirstDiffSquareSum\toscFirstDiffLagSquareSum\tflowCurrentPlannedMoneySum";
@@ -121,13 +121,13 @@ public static partial class Instruments
         {
             bool colonial = s == 1;
             long n = 0, judged = 0, desiring = 0, bound = 0, fAvail = 0, fDes = 0, fBound = 0, osc = 0;
-            double pop = 0, invSav = 0, indW = 0, desired = 0, budget = 0, planned = 0, cut = 0, fDesired = 0, fBudget = 0, fPlanned = 0, fCurPlanned = 0, fEarn = 0, fCons = 0, paid = 0, built = 0, oP = 0, oD1 = 0, oD2 = 0, oLag = 0, oSq = 0, oSqLag = 0;
+            double pop = 0, invSav = 0, desired = 0, budget = 0, planned = 0, cut = 0, fDesired = 0, fBudget = 0, fPlanned = 0, fCurPlanned = 0, fEarn = 0, fCons = 0, paid = 0, built = 0, oP = 0, oD1 = 0, oD2 = 0, oLag = 0, oSq = 0, oSqLag = 0;
             foreach (var r in w.Regions)
             {
                 if ((r.Tier == RegionTier.Colonial) != colonial) continue;
                 n++;
                 double rp = 0; foreach (var p in r.Pops) rp += p.Size;
-                pop += rp; indW += rp * r.Industrialization;
+                pop += rp;
                 if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) invSav += r.Pops[r.InvestorPopIndex].Savings.Value;
                 if (!U4Accs.TryGetValue(r, out var a)) continue;
                 judged += a.Judged; desiring += a.Desiring; bound += a.Bound; fAvail += a.FlowAvail; fDes += a.FlowDesiring; fBound += a.FlowBound; osc += a.Osc;
@@ -136,7 +136,7 @@ public static partial class Instruments
                 a.ClearQuarter();
             }
             if (n == 0) continue;
-            sk.Consf.WriteLine(string.Join('\t', I(q), I(w.Year), nation, ConsfScopes[s], I(n), F(pop), F(invSav), F(pop > 0 ? indW / pop : double.NaN),
+            sk.Consf.WriteLine(string.Join('\t', I(q), I(w.Year), nation, ConsfScopes[s], I(n), F(pop), F(invSav),
                 I(judged), I(desiring), I(bound), F(desired), F(budget), F(planned), F(cut),
                 I(fAvail), I(fDes), I(fBound), F(fDesired), F(fBudget), F(fPlanned), F(fEarn), F(fCons),
                 F(paid), F(built), I(osc), F(oP), F(oD1), F(oD2), F(oLag), F(oSq), F(oSqLag), F(fCurPlanned)));

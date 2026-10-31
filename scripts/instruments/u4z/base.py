@@ -8,7 +8,6 @@
 #   fplan/plan＝Σ影の計画÷Σ今の計画（同じ州×月＝影の判定があり希望が正の月で比べる・静的な反事実の計画の比）
 #   paid/plan＝Σ実際の支払い÷Σ今の計画（資材と労働の配給・決済の値段で計画が削られた割合）／fplan/paid＝Σ影の計画÷Σ実際の支払い（1 以上なら影の予算は今の配給の後の建設の額を縛らない見込み〈推〉）
 #   rho＝Σd_m d_{m-1}÷√(Σd_m²×Σd_{m-1}²)（月の建設の支払いの差の 1 つ遅れの自己相関・純な周期 2 で −1・白色雑音 −0.5・滑らか 0〜正）／amp＝Σ|d|÷Σx（振れ幅÷支払い）
-#   ind＝四半期の末の工業化度の人口加重の平均（区分の州・十年の四半期の平均）
 # 値は種の中央値（括弧は種の最大・rho は最小）。区分：home＝Core と Integrated の州・Colonial＝植民地格の州。
 # 限界（計器の頭の申告を写す）：影は静的な反事実（希望・所得・消費は今の規則の軌道のまま）・今の消費の支払いは投資の取り置き（貯蓄の 5%）の後の値・判定は資本の区画と投資家 POP がある州だけ。
 import csv, sys, statistics as st, collections as C, math
@@ -37,8 +36,6 @@ for s in range(SB, SB + NS):
             for key in ((n, dec(y), sc), (n, "all", sc)):
                 t = a[key]
                 for k in K: t[k] += float(x[k])
-                v = float(x["industrializationPopWeightedIndex"])
-                if v == v: ind[key].append(v)
     for key, t in a.items():
         m = {
             "bind": div(t["budgetBoundRegionMonthsCount"], t["desiringRegionMonthsCount"]),
@@ -52,7 +49,6 @@ for s in range(SB, SB + NS):
             "fplan/paid": div(t["flowPlannedMoneySum"], t["paidMoneySum"]),
             "rho": div(t["oscFirstDiffLagProductSum"], math.sqrt(t["oscFirstDiffSquareSum"] * t["oscFirstDiffLagSquareSum"])),
             "amp": div(t["oscAbsFirstDiffMoneySum"], t["oscPaidMoneySum"]),
-            "ind": st.mean(ind[key]) if ind[key] else float("nan"),
             "rm": t["desiringRegionMonthsCount"],
         }
         tgt = allp if key[1] == "all" else res
@@ -62,7 +58,7 @@ def med(v):
     v = [x for x in v if x == x]; return st.median(v) if v else float("nan")
 def mx(v, lo=False):
     v = [x for x in v if x == x]; return (min(v) if lo else max(v)) if v else float("nan")
-COLS = ["bind", "fbind", "cut", "fcut", "fav", "flow/paid", "fplan/plan", "paid/plan", "fplan/paid", "rho", "amp", "ind"]
+COLS = ["bind", "fbind", "cut", "fcut", "fav", "flow/paid", "fplan/plan", "paid/plan", "fplan/paid", "rho", "amp"]
 def fmt(r, c):
     return f"{med(r[c]):.3g}({mx(r[c], c == 'rho'):.3g})"
 L = [f"# (707) u4z U4 の段0 の基線の値（consf_s・種 {SB}〜{SB + NS - 1}・挙げた 9 国・州×月の単位）。値は種の中央値（括弧は種の最大・rho は種の最小）。列の定義は読み手 scripts/instruments/u4z/base.py の頭。",
