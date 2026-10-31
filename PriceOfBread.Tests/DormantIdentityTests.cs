@@ -128,6 +128,7 @@ public class DormantIdentityTests
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
+        "RadicalSplitByRepression",    // ★(715) 線 prd3：社会主義の重みの一部（eraComm×抑圧×闘争度×r[5]）を共産主義へ移す（設計 20261030_社会主義と共産主義の重み_設計.md §2）＝0 で今の式・1 ビットも変わらない。旗 1 の腕は後半（番人 RadicalSplitTests）
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

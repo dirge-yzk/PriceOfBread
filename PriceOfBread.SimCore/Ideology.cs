@@ -48,6 +48,9 @@ public static class Ideologies
         var (dCoord, dLawGap) = FactionSnapshot.MembershipContext(w, true);
         int dSeen = 0;
         var prds = Instruments.On ? Instruments.PrdsBegin(w, eraSoc, eraComm, dCoord, dLawGap) : null;   // (700) 計器だけ＝影の列 prds_s（読むだけ・INS=1 のときだけ）
+        // ★(715) 線 prd3：旗 RadicalSplitByRepression（既定 0）。正のときだけ、社会主義の重みの一部を共産主義へ移す（式は RadicalSplit の 1 本・抑圧は国の量なので POP のループの外で 1 回）。0 のときは何も求めない。
+        bool radicalSplit = w.Coef.RadicalSplitByRepression > 0;
+        double repress = radicalSplit ? Politics.UnionRepression(w.LaborUnion) : 0;
         foreach (var p in w.AllPops())
         {
             var r = p.IdeologyShares;
@@ -109,7 +112,13 @@ public static class Ideologies
                 double royalSupply = p.Closed ? royalPrivilege : (p.IsModernElite ? royalPatronage : 0);
                 if (royalSupply > 0) r[10] += cons * royalSupply;
             }
-            var shadow = prds is null ? default : Instruments.PrdsShadow(prds, r, mil);   // (700) 計器だけ（Normalize の前に r を読む・書かない）
+            var shadow = prds is null ? default : Instruments.PrdsShadow(prds, r, mil);   // (700) 計器だけ（Normalize の前に r を読む・書かない）。★(715) 影は移す前の r から同じ関数 RadicalSplit を呼ぶ＝旗 1 では下の移し替えの再現（二重に移さない）
+            if (radicalSplit)
+            {
+                // ★(715) 社会主義→共産主義の移し替え（思想の門 r[5] *= eraSoc の後＝eraSoc＝0 の国は r[5] が既に 0）。移すのは社会主義の重みの mil×repress の割合だけ＝他の思想の重みは 1 ビットも変えない。
+                double tSplit = RadicalSplit(eraComm, repress, mil, r[5]);
+                if (tSplit > 0) { r[5] -= tSplit; r[6] += tSplit; }
+            }
             Normalize(r);
             if (prds is not null) Instruments.PrdsAdd(prds, p, r, mil, shadow.T, shadow.ShadowAxis, shadow.SumRaw);   // (700) 計器だけ
         }
@@ -196,6 +205,15 @@ public static class Ideologies
             r[4] = 0.5;
         }
         return rich;
+    }
+
+    /// <summary>★(715) 線 prd3：社会主義の重み r5 のうち共産主義へ移す量 t＝<paramref name="eraComm"/>×<paramref name="repress"/>×<paramref name="mil"/>×<paramref name="r5"/>（設計書 2-1）。
+    /// eraComm（共産主義の発見の 2 値）・repress（1−組合の合法度）・mil（max(不満度, 闘争度)）は [0,1]・r5≧0 の積＝有限・t ≦ mil×r5（割り算なし・床も天井も置かない）。
+    /// 否定形＝t が 0・NaN・負なら 0（NaN の闘争度は何も移さない）。**本体（<see cref="UpdateShares"/>）と計器の影（<c>Instruments.PrdsShadow</c>）が呼ぶ唯一の式**（乗算の順を変えない＝ビット一致）。純関数。</summary>
+    internal static double RadicalSplit(double eraComm, double repress, double mil, double r5)
+    {
+        double t = eraComm * repress * mil * r5;
+        return !(t > 0) ? 0.0 : t;
     }
 
     internal static void Normalize(double[] r)

@@ -3312,6 +3312,7 @@ public sealed class Coefficients
 
     // 1934拡張E7 ファシズム：イデオロギー10番目。戦間期(1919〜)の危機で反動＋国民主義が権威主義へ結晶。0で休眠＝シェア0＝配列長9と数値等価（E9点火）
     public double FascismGate = 0.5;                   // **主フラグ**：0でファシズムのイデオロギーシェアが常に0＝恒等／>0で創発の強さ（eraFasc×mil×(反動+ナショ)に乗る＝(640) で dev を消した）。E9点火＝0.5（eraFasc=0<1919で較正/忠実度1914断面に無影響）
+    public double RadicalSplitByRepression = 0;        // ★(715) 線 prd3（設計 docs/202610/20261030/20261030_社会主義と共産主義の重み_設計.md §2）：社会主義の重みの一部を共産主義へ移す（毎四半期に作り直す重みの中の移し替え・和は代数では不変）。0＝今の式（1 ビットも変わらない・repress も求めない）。正＝思想の門（r[5] *= eraSoc; r[6] *= eraComm）の後・Normalize の前に t＝eraComm×repress×mil×r[5] を r[5] から r[6] へ移す（repress＝1−組合の合法度〔Politics.UnionRepression〕・mil＝max(不満度, 闘争度)）。0 か 1 の門であって強さではない（新しい倍率・天井・床・状態は無い）。式は Ideologies.RadicalSplit の 1 本（本体と計器の影 Instruments.PrdsShadow が同じ関数を呼ぶ）。事前登録 measurements/prd3_715_20261031_prereg.txt。旗 1 の腕は後半。AI の設計＝確証なし。
     // E3の掃除：NationBuildCostPerPop/NationBuildSavingsFrac は旧・抽象拠出ブロック（Fiscal）の廃止で読み手ゼロ＝削除（新聞財の市場購入に置換）
     public double NationBuildMobilizationWeight = 0.5;  // **主フラグ**：戦時徴兵の深さ（conscriptFrac）を国民意識でゲート＝大規模動員（nation-in-arms）には高い国民意識が要る。低国民意識/多民族は総動員が届かず浅い軍のみ（脱走・不服従＝1793 levée en masse vs 墺洪の限定動員）。conscriptFrac×=Max(0.05,1−これ×(1−NC))。0=恒等。EthnicUnityの軍質(UnityMilitaryQuality=量でなく質)とは別チャネル
     // --- 国家アイデンティティ（変名・formable・2026-07-12・点火済み2026-07-27）---
