@@ -19,19 +19,10 @@ def table(path):
         head = fh.readline().rstrip('\n').split('\t')
         for line in fh:
             yield dict(zip(head, line.rstrip('\n').split('\t')))
-PL = {}
-# ★(144)：旧の置き場（wt_hol）は片付けで消えた＝距離の列が全て nan だった（反証の指摘）＝リポジトリの places.json を先に読む（最初に見つかった1枚）
-for cand in [os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'PriceOfBread.SimCore', 'places.json'), 'C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/places.json']:   # 2026-10-10 リポジトリの相対を先頭へ（scratchpad 時代の絶対パスは後ろ）
-    if os.path.exists(cand):
-        for p in json.load(open(cand, encoding='utf-8')): PL[p['name']] = (p['lat'], p['lon'])
-        break
-if not PL: print('⚠ places.json が見つからない＝距離の列は nan')
-def dist(a, b):
-    if a not in PL or b not in PL: return float('nan')
-    la1, lo1 = map(math.radians, PL[a]); la2, lo2 = map(math.radians, PL[b])
-    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
-    return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h)))
-args = sys.argv[1:]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # (718) python -I でも同じ場所の hol_common を読む
+import hol_common
+from hol_common import PL, dist, EXEMPT_OLD
+EXMODE, args = hol_common.take_ex(sys.argv[1:])   # (718) -ex old（既定・旧の名簿）｜rule（規則の版）
 V = '-v' in args or '-v4' in args or '-v5' in args
 V4 = '-v4' in args or '-v5' in args
 V5 = '-v5' in args
@@ -42,8 +33,10 @@ TOT = collections.Counter()
 # 例外の名簿（作者 2026-10-15＝重要でない北極の植民地の州などは最小限の例外・主要国の州は例外にしない）＝州の名前で引く。
 # 名簿の州の事象は上の件数（止める線）から外し、下の別の行に数える（名簿の州の事象が無ければ出力は名簿を足す前とバイトで同じ）。
 # (368) で入れた＝ヌーク（英領・北極圏）だけ（推奨・作者の承認は未確認）。ペトロパヴロフスクは規模が大きいので入れない。
-EXEMPT = {'ヌーク', 'ナイン', 'イカルイト', 'フォートシンプソン'}   # 指示文に写された作者の回答〈例外はそれでよい〉（2026-10-26・原文は未確認）＝北極圏の植民地（(582) で足した）
+EXEMPT = EXEMPT_OLD   # (718) 実体は hol_common.py。指示文に写された作者の回答〈例外はそれでよい〉（2026-10-26・原文は未確認）＝北極圏の植民地（(582) で足した）
 TOTX = collections.Counter()
+EXALL = set()   # (718) 例外と判定した州（rule の版の表示用）
+EXSEEN = set()  # 例外の州のうち事象があった州
 URB = collections.defaultdict(lambda: [0.0, 0.0])
 MIG = collections.defaultdict(lambda: [0.0, 0.0])
 EV = []
@@ -74,6 +67,8 @@ for d in dirs:
                 v = fl(row['movedKPerQuarter'])
                 MP[row['fromRegion']][row['toRegion']] += v; MPq[row['fromRegion']].append((int(row['quarter']), row['toRegion'], v))
         for reg, rows in R.items():
+            exReg = hol_common.is_exempt(EXMODE, reg, hol_common.open_pop([x['pop'] for x in rows]))
+            if exReg: EXALL.add(reg)
             pk = 0.0; pkI = 0
             done = {10: False, 4: False}
             for i, r in enumerate(rows):
@@ -98,14 +93,14 @@ for d in dirs:
                     elif foodMean < 0.8: cause = '飢え'
                     else: cause = 'その他'
                     isCap = (r['q'], reg) in caps
-                    if reg in EXEMPT: TOTX[(div, cause)] += 1
+                    if exReg: TOTX[(div, cause)] += 1; EXSEEN.add(reg)
                     else: TOT[(div, cause)] += 1
                     if div == 10 or (V4 and cause == '移民') or V5:
                         dst = collections.Counter()
                         for (qq, dd, vv) in MPq.get(reg, []):
                             if rows[pkI]['q'] < qq <= r['q']: dst[dd] += vv
                         top = dst.most_common(3)
-                        EV.append(dict(ex=reg in EXEMPT, div=div, sd=sd, reg=reg, nat=r['nation'], tier=r['tier'], pk=pk, pky=rows[pkI]['yr'], yr=r['yr'], v=v, D=D, mig=mig, col=col, xb=xb, other=other,
+                        EV.append(dict(ex=exReg, div=div, sd=sd, reg=reg, nat=r['nation'], tier=r['tier'], pk=pk, pky=rows[pkI]['yr'], yr=r['yr'], v=v, D=D, mig=mig, col=col, xb=xb, other=other,
                                        cause=cause, cap=isCap, warMax=warMax, foodMin=foodMin, top=top, a=rows[pkI], z=r,
                                        dist=[dist(reg, t[0]) for t in top]))
 TOT10 = {k[1]: v for k, v in TOT.items() if k[0] == 10}
@@ -113,7 +108,11 @@ TOT4 = {k[1]: v for k, v in TOT.items() if k[0] == 4}
 print(f'## 種 {nseed}・ピーク {KMIN:g} 千人以上')
 print(f'## ピークの1/10 未満: {sum(TOT10.values())} 件 {TOT10}')
 print(f'## ピークの1/4 未満: {sum(TOT4.values())} 件 {TOT4}')
-if TOTX:
+if EXMODE == 'rule':   # (718) 規則の版＝規則の文と、当たった州を毎回出す（名簿が見えない版は検算できない）
+    print(f'## 例外の規則 [{hol_common.RULE_TEXT}] に当たる州 {sorted(EXALL)}')
+if TOTX and EXMODE == 'rule':
+    print(f'## 例外の規則の州の事象（上の件数の外）{sorted(EXSEEN)}: 1/10 ' + str({k[1]: v for k, v in TOTX.items() if k[0] == 10}) + ' 1/4 ' + str({k[1]: v for k, v in TOTX.items() if k[0] == 4}))
+elif TOTX:
     print(f'## 例外の名簿 {sorted(EXEMPT)} の事象（上の件数の外）: 1/10 ' + str({k[1]: v for k, v in TOTX.items() if k[0] == 10}) + ' 1/4 ' + str({k[1]: v for k, v in TOTX.items() if k[0] == 4}))
 EV10 = [e for e in EV if e['div'] == 10 and not e['ex']]
 by = collections.Counter((e['tier'], e['cause']) for e in EV10)

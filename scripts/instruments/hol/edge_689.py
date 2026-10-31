@@ -8,20 +8,11 @@ import sys, os, json, math, collections
 def fl(x):
     try: return float(x)
     except: return float('nan')
-PL = {}
-# an_h2.py の ★(144) と同じ＝リポジトリの相対を先に読む（作業の場所の絶対パスは片付けで消える＝距離の列が全て nan になる罠）
-for cand in [os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'PriceOfBread.SimCore', 'places.json'), 'C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/places.json']:
-    if os.path.exists(cand):
-        for p in json.load(open(cand, encoding='utf-8')): PL[p['name']] = (p['lat'], p['lon'])
-        break
-if not PL: print('⚠ places.json が見つからない＝距離の列は nan')
-def dist(a, b):
-    if a not in PL or b not in PL: return float('nan')
-    la1, lo1 = map(math.radians, PL[a]); la2, lo2 = map(math.radians, PL[b])
-    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
-    return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h)))
-EXEMPT = {'ヌーク', 'ナイン', 'イカルイト', 'フォートシンプソン'}
-args = sys.argv[1:]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # (718) python -I でも同じ場所の hol_common を読む
+import hol_common
+from hol_common import PL, dist, EXEMPT_OLD
+EXEMPT = EXEMPT_OLD   # (718) 実体は hol_common.py
+EXMODE, args = hol_common.take_ex(sys.argv[1:])   # (718) -ex old（既定・旧の名簿）｜rule（規則の版）
 pairs = [(args[i], args[i + 1]) for i in range(0, len(args), 2)]
 TOT = collections.Counter()
 for label, d in pairs:
@@ -41,6 +32,7 @@ for label, d in pairs:
                                fl(v[H['crossBorderOutKPerQuarter']]) - fl(v[H['crossBorderInKPerQuarter']]),
                                fl(v[H['settlerOutKPerQuarter']]) - fl(v[H['settlerInKPerQuarter']])))
         for reg, rows in R.items():
+            exReg = hol_common.is_exempt(EXMODE, reg, hol_common.open_pop([r[4] for r in rows]))
             pk = 0.0; pki = 0; best = (1.0, None, None)
             for i, r in enumerate(rows):
                 if r[4] > pk: pk = r[4]; pki = i
@@ -55,8 +47,8 @@ for label, d in pairs:
             mig = sum(r[5] for r in rows[a + 1:b + 1]); xb = sum(r[6] for r in rows[a + 1:b + 1]); st = sum(r[7] for r in rows[a + 1:b + 1])
             D = p0[4] - p1[4]
             typA = bool(ch) and d1 >= 3000
-            tag = ('A' if typA else '-') + ('・例外' if reg in EXEMPT else '') + ('・1/10' if rr < 0.1 else '')
-            TOT[(label, 'A' if typA else '-', reg in EXEMPT, rr < 0.1)] += 1
+            tag = ('A' if typA else '-') + ('・例外' if exReg else '') + ('・1/10' if rr < 0.1 else '')
+            TOT[(label, 'A' if typA else '-', exReg, rr < 0.1)] += 1
             print('%s\ts%d\t%s\t%s\t%s\t%.2f(%d・%s)→%.2f(%d・%s)\t比 %.3f\t替わり[%s]\t首都まで %.0f→%.0f km\t減り %.2f＝州の間 %.2f・越境 %.2f・入植 %.2f・他 %.2f'
                   % (label, sd, reg, p1[3], tag, p0[4], p0[1], p0[2], p1[4], p1[1], p1[2], rr, '・'.join(ch), d0, d1, D, mig, xb, st, D - mig - xb - st))
 print('## 集計（ラベル・型・例外の名簿・1/10 未満）')
