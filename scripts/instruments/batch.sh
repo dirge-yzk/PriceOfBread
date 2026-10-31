@@ -59,7 +59,7 @@ elif [ "$1" = run ]; then
   SEEDS=$N SNAP_DIR=$W/snap_$TAG POB_FIDELITY_BASELINE=$W/fid_$TAG.tsv POB_S3A_DIR=$O/s3a POB_DISC_DIR=$O/disc POB_NAVY_DIR=$O/navy POB_NEED_DIR=$O/need POB_FC_DIR=$O/hist POB_MIL_DIR=$O/hist POB_CAS_DIR=$O/cas POB_D165_DIR=$O/d165 POB_W171_DIR=$O/w171 POB_COL175_DIR=$O/col POB_W176_DIR=$O/w176 POB_F181_DIR=$O/f181 POB_TIER_DIR=$O/tier POB_NEED183_DIR=$O/need183 POB_SEC183_DIR=$O/sec183 POB_SERF184_DIR=$O/serf184 POB_G186_DIR=$O/g186 POB_NVY190_DIR=$O/nvy190 POB_MIG_DIR=$O/mig POB_CNL193_DIR=$O/cnl POB_MOB194_DIR=$O/mob POB_NVQ195_DIR=$O/nvq POB_POW_DIR=$O/pow POB_CAP_DIR=$O/cap POB_L186_DIR=$O/l186 POB_C201_DIR=$O/c201 POB_FX205_DIR=$O/fx205 POB_C206_DIR=$O/c206 POB_T203_DIR=$O/t203 POB_D204_DIR=$O/d204 POB_RV204_DIR=$O/rv204 POB_S208_DIR=$O/s208 \
     bash $SRC/measure.sh $W/b${N}_$TAG.txt selfplay-batch $XARGS >> $W/ms_$TAG.log 2>&1
   echo "rc=$? END $(date +%T)" >> $W/ms_$TAG.log
-  if [ -n "${INS:-}" ]; then python $SP/mon/an_mon.py $O/ins --tag $TAG --repo $SRC > $W/mon_$TAG.txt 2>&1; fi   # (651) 頻度の監視と注視の一覧の読み手（読むだけ・判定ではない）。INS が空の経路（腕 A）は 1 命令も変わらない。(655) 測った写しの木 $SRC から法の名簿と政体を引く（手元の木ではない）
+  if [ -n "${INS:-}" ]; then python $SP/mon/an_mon.py $O/ins --seeds $SB-$((SB+N-1)) --tag $TAG --repo $SRC > $W/mon_$TAG.txt 2>&1; fi   # (651) 頻度の監視と注視の一覧の読み手（読むだけ・判定ではない）。INS が空の経路（腕 A）は 1 命令も変わらない。(655) 測った写しの木 $SRC から法の名簿と政体を引く（手元の木ではない）。(702) 種の起点を --seeds で渡す（旧は既定の 1-10＝種 11〜20 の腕で 0 行だった）
   rm -rf $W/snap_$TAG
   tail -4 $W/ms_$TAG.log
   echo BATCHDONE $TAG
