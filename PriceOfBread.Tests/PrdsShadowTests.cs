@@ -250,6 +250,7 @@ public class PrdsShadowTests
             MultiNationSim on;
             List<double[]> onBits;
             var lastShares = new Dictionary<string, (double RealCom, double TotalK)>();
+            var comWeightMean = new Dictionary<string, double>();   // (724) 世界の POP を数え直した共産主義の重みの人数加重の平均（3 分位の列とは別の経路）
             var clusterCount = new Dictionary<string, (int ComBody, int ComCell, double ComMax, int SocBody)>();   // (708) 別の経路（本体の ComputeClusters）の数え直し
             try
             {
@@ -260,6 +261,8 @@ public class PrdsShadowTests
                     double all = 0, com = 0;
                     foreach (var p in n.World.AllPops()) { if (p.Size <= 1e-9) continue; all += p.Size; if (FactionSnapshot.ArgMax(p.IdeologyShares) == (int)Ideology.Communism) com += p.Size; }
                     lastShares[Instruments.NameOf(n.World)] = (all > 0 ? com / all : 0, all);
+                    double cw = 0; foreach (var p in n.World.AllPops()) { if (p.Size <= 1e-9) continue; cw += p.Size * p.IdeologyShares[6]; }
+                    comWeightMean[Instruments.NameOf(n.World)] = all > 0 ? cw / all : 0;
                     double totalPop = n.World.TotalPopulation, thr = FactionSnapshot.MinSizeFraction * totalPop, mx = 0;
                     int comBody = 0, comCell = 0, socBody = 0;
                     foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
@@ -298,6 +301,12 @@ public class PrdsShadowTests
                 var (realCom, total) = lastShares[Name(r)];
                 Assert.True(Math.Abs(Col(r, "realComAxisShare") - realCom) <= 1e-9, $"{Name(r)}：今の主軸の共産主義の割合 {Col(r, "realComAxisShare")} が数え直し {realCom} に合わない");
                 Assert.True(Math.Abs(Col(r, "popK") - total) <= 1e-9 * Math.Max(1.0, total), $"{Name(r)}：人口が合わない");
+                // (724) 末尾の 6 列：3 分位の人数の和＝人口・人数加重の平均を足し戻すと世界全体の共産主義の重みの平均に合う（世界の POP の数え直しとの照合）
+                double vK = Col(r, "popVoiceLoK") + Col(r, "popVoiceMidK") + Col(r, "popVoiceHiK");
+                Assert.True(Math.Abs(vK - total) <= 1e-9 * Math.Max(1.0, total), $"{Name(r)}：3 分位の人数の和 {vK} が人口 {total} と違う");
+                double vCom = (Col(r, "popVoiceLoK") * Col(r, "comShareVoiceLo") + Col(r, "popVoiceMidK") * Col(r, "comShareVoiceMid") + Col(r, "popVoiceHiK") * Col(r, "comShareVoiceHi")) / vK;
+                Assert.True(Math.Abs(vCom - comWeightMean[Name(r)]) <= 1e-9, $"{Name(r)}：3 分位から足し戻した共産主義の重み {vCom} が数え直し {comWeightMean[Name(r)]} と違う");
+                foreach (var bn in new[] { "Lo", "Mid", "Hi" }) Assert.InRange(Col(r, "comShareVoice" + bn), 0.0, 1.0 + 1e-12);
                 // 影は今以上（移し替えは共産主義の重みを上げ社会主義を下げる＝共産主義が首位の POP は首位のまま）
                 Assert.True(Col(r, "shadowComAxisShare") + 1e-12 >= Col(r, "realComAxisShare"));
                 Assert.True(Col(r, "shadowComAxisUrbanK") <= Col(r, "shadowComAxisK") + 1e-9);
@@ -323,5 +332,31 @@ public class PrdsShadowTests
             Assert.Contains(last, r => Col(r, "shadowComAxisShare") > Col(r, "realComAxisShare") + 1e-9);   // 対照：影の主軸が今と違う国がある（闘争度 1 の盤面）＝主軸の判定を検査している
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void 三分位は同点の組を割らず_順序に依らない()
+    {
+        // (724) 3 組：発言権 0（人数 30・共産主義 0.2）・0.5（30・0.1）・1（40・0.05）→ 累積の中点 0.15・0.45・0.80 → 低・中・高
+        var items = new List<(double Voice, double Size, double Com)> { (1.0, 40, 0.05), (0.0, 10, 0.3), (0.5, 30, 0.1), (0.0, 20, 0.15) };
+        var t = Instruments.PrdsVoiceTerciles(items);
+        Assert.Equal(30.0, t.Lo.K); Assert.Equal((10 * 0.3 + 20 * 0.15) / 30.0, t.Lo.Com, 12);
+        Assert.Equal(30.0, t.Mid.K); Assert.Equal(0.1, t.Mid.Com, 12);
+        Assert.Equal(40.0, t.Hi.K); Assert.Equal(0.05, t.Hi.Com, 12);
+        Assert.Equal(t, Instruments.PrdsVoiceTerciles(Enumerable.Reverse(items).ToList()));   // 順序に依らない
+        // 発言権 0（20）・0.5（20）・1（60）→ 中点 0.10・0.30・0.70 → 低・低・高（中は空）
+        var t2 = Instruments.PrdsVoiceTerciles(new List<(double Voice, double Size, double Com)> { (0.0, 20, 0.2), (0.5, 20, 0.1), (1.0, 60, 0.0) });
+        Assert.Equal(40.0, t2.Lo.K); Assert.Equal(0.15, t2.Lo.Com, 12);
+        Assert.Equal(0.0, t2.Mid.K); Assert.Equal(0.0, t2.Mid.Com);
+        Assert.Equal(60.0, t2.Hi.K); Assert.Equal(0.0, t2.Hi.Com);
+        // 全員が同じ発言権なら全て中
+        var t3 = Instruments.PrdsVoiceTerciles(new List<(double Voice, double Size, double Com)> { (0.3, 10, 0.2), (0.3, 30, 0.4) });
+        Assert.Equal(0.0, t3.Lo.K); Assert.Equal(40.0, t3.Mid.K); Assert.Equal(0.0, t3.Hi.K); Assert.Equal((10 * 0.2 + 30 * 0.4) / 40.0, t3.Mid.Com, 12);
+        // 空は全て 0
+        var t4 = Instruments.PrdsVoiceTerciles(new List<(double Voice, double Size, double Com)>());
+        Assert.Equal(0.0, t4.Lo.K + t4.Mid.K + t4.Hi.K);
+        // NaN の発言権は互いに等しい 1 組として先頭（低）へ並ぶ
+        var t5 = Instruments.PrdsVoiceTerciles(new List<(double Voice, double Size, double Com)> { (double.NaN, 30, 0.5), (double.NaN, 5, 0.5), (0.5, 30, 0.1), (1.0, 35, 0.0) });
+        Assert.Equal(35.0, t5.Lo.K); Assert.Equal(0.5, t5.Lo.Com, 12);
     }
 }
