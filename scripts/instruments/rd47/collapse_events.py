@@ -28,6 +28,7 @@
 import csv, os, sys
 from collections import defaultdict
 csv.field_size_limit(10**9)
+SUST = {}   # (710) rd48 R6：(フォルダ, 種) -> [(国の名, 最初に割った四半期, 最長の続いた四半期の数, その始まりの四半期, 途切れたか)]
 
 
 def rows(p):
@@ -81,6 +82,7 @@ def seed(d, s, keys):
             if t != 'Colonial':
                 a = home[u][q]; a[0] += p; a[1] += 1
     out = []
+    sust = SUST.setdefault((d, s), [])
     for u, lab in label.items():
         if first_q[u] != 0 or lab not in keys:
             continue
@@ -88,6 +90,17 @@ def seed(d, s, keys):
         if not ser:
             continue
         P0, R0 = ser[0][1]
+        # (710) R6：半分を割った状態（P＜0.5×P0 か R＜0.5×R0）の最長の連続（系列の連続した四半期）・途切れ（既存の C 行の計算は変えない）
+        run = best = 0; bstart = None; rstart = None; prevq = None; firstq = None
+        for q, (P, R) in ser:
+            below = P < 0.5 * P0 or R < 0.5 * R0
+            if below and firstq is None: firstq = q
+            if below and run > 0 and prevq is not None and q == prevq + 1: run += 1
+            elif below: run = 1; rstart = q
+            else: run = 0
+            if run > best: best = run; bstart = rstart
+            prevq = q
+        sust.append((lab, firstq, best, bstart, max(q for q, _ in ser) < last_q - 1))
         qc = None; why = None
         for q, (P, R) in ser:
             if P < 0.5 * P0:
@@ -196,6 +209,19 @@ def main():
             g = agg[k]
             summ.append('S\t%s\t%s\t崩れ %d/10・型 建国 %d・割譲 %d・人口 %d・途切れ %d・1825 年までに %d\t（epi_s の州の名が region_s に在る %d/%d）' % (name, k, g['n'], g['建国'], g['割譲'], g['人口'], g['途切れ'], g['<=1825'], chk[0], chk[1]))
     print('\n'.join(summ))
+    # (710) rd48 R6：D 行＝種ごとの〈半分を割った状態の最長の連続〉・R 行＝4 四半期以上続いた（か途切れた）種の数（既存の C 行・S 行は 1 バイトも変えない）
+    print('kind\tarm\tnation\tseed\tfirstBelowYear\tlongestRunQ\trunStartYear\ttruncated\tsustained4')
+    for name, d, s0 in arms:
+        cnt = defaultdict(lambda: [0, 0, 0])
+        for s in range(s0, s0 + 10):
+            for lab, fq, best, bs, tr in SUST.get((d, s), []):
+                ok = tr or best >= 4
+                c = cnt[lab]; c[0] += fq is not None or tr; c[1] += ok; c[2] += best >= 4
+                if fq is not None or tr:
+                    print('D\t%s\t%s\t%d\t%s\t%d\t%s\t%d\t%d' % (name, lab, s, 1783 + fq // 4 if fq is not None else '—', best, 1783 + bs // 4 if bs is not None else '—', tr, ok))
+        for k in keys:
+            c = cnt[k]
+            print('R\t%s\t%s\t割った（か途切れた）%d/10・4 四半期以上続いた（か途切れた）%d/10・続いた（途切れを除く）%d/10' % (name, k, c[0], c[1], c[2]))
 
 
 main()
