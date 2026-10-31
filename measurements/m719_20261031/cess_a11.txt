@@ -1,0 +1,47 @@
+# keep_719/a11（種 11..20・10 種・行 1609）
+key	r1	r2	r3h	r4h	r3c	r4c	home	cede_col	all
+adj	11	181	290	13	42	-	303	42	537
+budgetLeftSum	-	-	6.292e+04	3208	7406	-	6.612e+04	7406	7.353e+04
+costE2Sum	-	-	4.92e+04	3258	9823	-	5.245e+04	9823	6.228e+04
+e2CostLowerThanHcd	10	100	278	13	41	-	291	41	442
+e2Drop	1	104	317	17	41	-	334	41	480
+e2Drop_none	1	29	223	8	28	-	231	28	289
+e2Drop_reselect	-	75	94	9	13	-	103	13	191
+e2Ok	43	603	395	19	69	-	414	69	1129
+e2Ok_butUnaffordable	-	-	96	8	47	-	104	47	151
+far3000	36	690	439	14	84	-	453	84	1263
+far3000_sea_ratio_0.1-0.3	-	84	4	-	15	-	4	15	103
+far3000_sea_ratio_0.3-0.5	8	100	9	-	12	-	9	12	129
+far3000_sea_ratio_ge0.5	18	456	37	2	15	-	39	15	528
+far3000_sea_ratio_lt0.1	-	8	-	-	-	-	-	-	8
+farweak	14	214	354	12	66	-	366	66	660
+farweak_e2Drop	1	56	203	7	30	-	210	30	297
+farweak_seaCrossing	8	192	13	-	27	-	13	27	240
+farweak_seaCrossing_e2Drop	-	52	2	-	8	-	2	8	62
+keepE2	-	-	489	28	82	-	517	82	599
+keepE2Budget	-	-	386	21	33	-	407	33	440
+landOverGc_n	16	48	610	30	67	-	640	67	771
+loserAbstract	44	-	-	-	-	-	-	-	44
+mean_landOverGc	1.086	1.253	1.29	1.549	1.162	-	1.302	1.162	1.282
+mean_popUnits	0.606	1.101	4.061	14.21	6.68	-	4.55	6.68	3.072
+mean_resourceCount	0.5	1.458	1.799	2.167	1.745	-	1.817	1.745	1.618
+mean_seaOverGc	1.444	2.072	2.755	1.96	2.415	-	2.711	2.415	2.151
+n	44	707	712	36	110	-	748	110	1609
+notAdj	33	526	422	23	68	-	445	68	1072
+notAdj_inland	-	104	192	10	13	-	202	13	319
+notAdj_port	-	422	230	13	55	-	243	55	720
+notAdj_portUnknown	33	-	-	-	-	-	-	-	33
+sameLandmass	16	50	610	30	68	-	640	68	774
+sameLandmass_notAdj	6	37	345	17	37	-	362	37	442
+sameLandmass_notAdj_inland	-	8	171	8	2	-	179	2	189
+sameLandmass_notAdj_port	-	29	174	9	35	-	183	35	247
+sameNode	-	4	-	-	3	-	-	3	7
+seaCrossing	28	657	102	6	42	-	108	42	835
+seaOverGc_n	28	657	102	6	42	-	108	42	835
+shadowCostOverBudgetLeft	-	-	174	14	68	-	188	68	256
+viaColonialReach	-	-	-	-	41	-	-	41	41
+peaces	4569
+peaces_loserAbstract	94
+peaces_withBoth	159
+peaces_withR12	637
+peaces_withR34	858
