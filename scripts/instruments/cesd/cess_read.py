@@ -55,7 +55,7 @@ def count_seed(rows, peaces):
         adj = f(r["landAdjFlag"]); port = f(r["portFlag"]); can = r["canCrossFlag"] == "1"
         same = f(r["sameLandmassFlag"]); sea = f(r["seaKm"]); gcKm = f(r["gcKm"]); share = f(r["worldNavShare"]); rel = f(r["relSeaControlShare"])
         e2 = f(r["e2OkFlag"]); alt = int(r["e2AltCount"])
-        if r["route"] == "1" and not math.isnan(adj): e2 = 1.0 if (adj == 1 or can) else 0.0   # ①は港を問わない（eead4ddc の cess_s は港の規則のままだった＝読み手で取り直す）
+        if r["route"] == "1" and not math.isnan(adj): e2 = 1.0 if (adj == 1 or can) else 0.0   # ①は港を問わない（eead4ddc の cess_s は港の規則のままだった＝読み手で取り直す）。(719) 合流：d5537b93 以後の木の cess_s は計器の列がこの規則で出る＝この行は何もしない（同じ値の上書き）＝eead4ddc の生を読むときだけ効く
         budA = f(r["budgetAfterIndex"]); c2 = f(r["costE2ShadowIndex"]); ch = f(r["costHcdShadowIndex"]); ce = f(r["costEngineIndex"])
         far = (not math.isnan(sea)) and sea >= 3000
         altAff = int(r["e2AltAffordCount"])

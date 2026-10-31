@@ -1,0 +1,34 @@
+(719) 合流の予言（腕の前にコミット・RULE47）　波49・基点 main 2e260db0（基線 m702）
+書いたモデル：Claude Opus 5.5
+
+[0] この合流で入れる物と入れない物
+- docs と読み手：dsd2〔(716)・発見の連続化の設計書の改訂〕・hol2〔(718)・空洞化の例外の名簿の見直し・読み手 an_h2.py／edge_689.py に `-ex old|rule`・既定は旧の名簿 old〕。
+- 恒等の線：ces1〔(717)・計器 cess_s・cessp_s・INS=1 の時だけ・番人 6 本〕・urb4〔(713)〕の恒等の段（urxpd_s の末尾の列 wAbsGsym・自給の値の欄 SubsistenceValuePerMonth への足し込みを必要量で切る min・番人 2 本・UrxInstrumentTests:140 の死んだ assert の復旧）。
+- 挙動の線は 0 本：urb4 の腕 B（旗 UrbanFlowReal=1）＝空洞化 1/10 未満 2 件で採らない／u4a〔(714)〕＝G-U4-2 の②②′が外れて採らない／prd3〔(715)〕＝空洞化 1/10 未満 1 件で採らない。u4a と prd3 は記録だけ（C# は入れない・枝 origin/u4a・origin/prd3 に残す）。旗 UrbanFlowReal は既定 0 のまま。
+- 触った .cs 8 本（Diplomacy・EconomyStep・Instruments・InstrumentsCess・InstrumentsUrx・CessionInstrumentTests・UrbanFlowRealTests・UrxInstrumentTests）はどれも 1 本の枝だけが触り、merge の後の中身はその枝の先端と同一（git diff で 8 本とも 0 行）。
+- 挙動の線を採らない＝基線の名は m702 のまま。
+
+[1] 木と腕
+- 測る木＝この予言をコミットした後の m719 の先端（1 本）。
+- 腕 A＝素の 5 種／B＝計器つき 10 種（9 国）／N1＝B と同じ・SupplySlope=0.50000001／N2＝SupplySlope=0.49999999／A11＝計器つき・種 11〜20・旗 0。作業フォルダ D:/PoB_work/m719・2 本ずつ並べる。
+
+[2] 予言（バイト一致は cmp で読む・成績表に SOURCE-HASH の行は無い）
+- A の成績表は `measurements/b5_20261031_m702` と完全一致する。
+- B の成績表は `b10_20261031_m711_ins` と完全一致する（＝素の 10 種 `b10_20261031_m702` とも一致）。
+- N1 は `b10_20261031_m711_n1_ins` と、N2 は `_n2_ins` と、A11 は `b10s11_20261031_m711_ins` と完全一致する。
+- .cost の件数の行は一致し、推定の計算量は 220.2（A）・221.1（B）・219.1（N1）・222.5（N2）・219.7（A11）秒のまま（名目の余り 約 27.4 秒のまま）。
+- 注視の表はタグの行以外が一致する：先頭／注視／記録＝2713／1121／1173（B）・2780／1108／1118（N1）・2724／1095／1139（N2）・2612／1227／1220（A11）。
+- 計器の生（urb3/cmp_ins.py・keep_711 の base_ins・n1・n2・a11 と比べる・--known seconds,worldTotalPerMonth,sourceLine,wGsym,wSubV）：
+  - 腕にだけある表＝cess_s1〜10・cessp_s1〜10 の 20 本（A11 は種 11〜20 の 20 本）。基線にあって腕に無い表 0。
+  - 列が増えた表＝urxpd_s の 10 本（+wAbsGsym）。
+  - 既知の揺れの列だけが違う表＝burscan_s・clock_s の 20 本＋flow_s の sourceLine（ces1 で Diplomacy.cs の行が 4 行ずれた＝0〜10 本）。
+  - wGsym・wSubV の値が変わる urxpd_s＝B は種 5 の 1 本・N1 は種 2 の 1 本・N2 は 0 本（urb4 の回し直しの実測）・A11 は旗 0 で min を入れて回した者がいない＝0〜10 本（範囲）。
+  - それ以外に違う表 0 本。
+- urb3/base.py（新しい列 wAbsGsym）：W1abs 0.5083／0.5440／0.6065・W2 0.9928／0.9936／0.9922（基線／N1／N2・urb4 の回し直しと同じ値）。
+- cess_read.py（B）：行 1565・本国格 744・keepE2 532・keepE2Budget 449・講和 4789（ces1 の measurements/ces1_717_20261031_cess_table.txt と同じ・経路1 の e2Ok 25）。
+- NG は 93・新しい 0・外れた 0（基準 rd:measurements/ng702_20261031:m702）。空洞化 1/10 未満 0 件・1/4 未満 9 件（旧の名簿＝2e260db0 と同じ 4 州・既定 -ex old）。価格水準の最大 9.03・開幕の 1000 倍以上 0 件。世界の工場の能力は m702 と同じ（×0.29 の型にならない）。
+- 試験：`--list-tests` は 2093（2085＋ces1 6＋urb4 2）＝Category!=FullLength 2090（合格 2089・Skip 1）＋FullLength 3。
+- 挙動の線を合わせた木は無い＝〈主な数の向き〉は全て 0（世界は m702 と同じ）。
+
+[3] 一致しなければ
+- 止めて報告する（基線の名を変えず、どの線の何が割れたかを切り分ける）。
