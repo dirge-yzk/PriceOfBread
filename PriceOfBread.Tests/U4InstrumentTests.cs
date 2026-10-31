@@ -46,7 +46,7 @@ public class U4InstrumentTests
         Instruments.U4ConsStash(r, ip, 120.0);
         Assert.Equal(2, a.Judged); Assert.Equal(1, a.Bound);
         Assert.Equal(1, a.FlowAvail); Assert.Equal(1, a.FlowDesiring); Assert.Equal(1, a.FlowBound);
-        Assert.Equal(52.5, a.FlowBudget); Assert.Equal(80.0, a.FlowDesired); Assert.Equal(52.5, a.FlowPlanned);
+        Assert.Equal(52.5, a.FlowBudget); Assert.Equal(80.0, a.FlowDesired); Assert.Equal(52.5, a.FlowPlanned); Assert.Equal(80.0, a.FlowCurPlanned);   // 今の計画 40 束×2
         Assert.Equal(100.0, a.FlowEarned); Assert.Equal(30.0, a.FlowCons);
 
         // 月 3：前月の消費の支払い 120 ＞ 所得 100 → 影の予算 0（負にしない）・萎縮 0。希望 5 束×2＝10 → 影で切る
@@ -56,8 +56,8 @@ public class U4InstrumentTests
         Assert.Equal(52.5, a.FlowBudget); Assert.Equal(52.5, a.FlowPlanned);
         Assert.Equal(200.0, a.FlowEarned); Assert.Equal(150.0, a.FlowCons);   // 月 3 の前月の所得は 100 のまま
         // 振動：月ごとの支払い x＝0（月 1 の判定の時点）・7（月 1 の決済）・1（月 2 の決済）。月 3 の判定で初めて d と前の d が揃う：
-        //   d＝1−7＝−6・前の d＝7−0＝7 → |d|＝6・|1−2×7+0|＝13・d×前の d＝−42・d²＝36・x＝1
-        Assert.Equal(1, a.Osc); Assert.Equal(1.0, a.OscPaid); Assert.Equal(6.0, a.OscAbsD1); Assert.Equal(13.0, a.OscAbsD2); Assert.Equal(-42.0, a.OscLag); Assert.Equal(36.0, a.OscSq);
+        //   d＝1−7＝−6・前の d＝7−0＝7 → |d|＝6・|1−2×7+0|＝13・d×前の d＝−42・d²＝36・前の d²＝49・x＝1
+        Assert.Equal(1, a.Osc); Assert.Equal(1.0, a.OscPaid); Assert.Equal(6.0, a.OscAbsD1); Assert.Equal(13.0, a.OscAbsD2); Assert.Equal(-42.0, a.OscLag); Assert.Equal(36.0, a.OscSq); Assert.Equal(49.0, a.OscSqLag);
         Assert.Equal(8.0, a.Paid); Assert.Equal(4.0, a.Built);
 
         // 月 4：投資家 POP の添字が替わった＝写しは別の POP の物 → 影は数えない

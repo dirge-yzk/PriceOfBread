@@ -9,7 +9,8 @@ namespace PriceOfBread.SimCore;
 //   流れの影（U4 の形・§R2 高②の定義）：影の予算＝max(0, 投資家 POP の前月の所得〔LastEarnedPerMonth〕−前月の消費の支払い〔EntryCtx.Finish の cons＝消費の財のループの前後の PaidPerMonth の差〕)×max(0, 1−接収の萎縮)。
 //     前月の消費の支払いは、前の月の Finish で投資家 POP の添字とともに写しておく（計器の側の欄・シミュの状態ではない）。写しが無い月（助走の明けの最初の月・投資家 POP の添字が替わった月）は〈影が無い〉として数え、切ったとは数えない。
 //   周期 2 の振動の材料：州ごとの月の建設の支払い x_m（決済 ConsRegionPaid の cost の和・建てない月は 0）の差 d_m＝x_m−x_{m−1}。州×月で d_m と d_{m−1} が揃う月だけ
-//     |d|・|x_m−2x_{m−1}+x_{m−2}|・d_m×d_{m−1}・d_m² を足す＝読み手が ρ＝Σd_m d_{m−1}÷Σd_m²（純な周期 2 で −1・白色雑音で −0.5・滑らかな動きで 0 の近く〜正）と振れ幅 Σ|d|÷Σx を作る。
+//     |d|・|x_m−2x_{m−1}+x_{m−2}|・d_m×d_{m−1}・d_m²・d_{m−1}² を足す＝読み手が ρ＝Σd_m d_{m−1}÷√(Σd_m²×Σd_{m−1}²)（−1〜1・純な周期 2 で −1・白色雑音で −0.5・滑らかな動きで 0 の近く〜正）と振れ幅 Σ|d|÷Σx を作る。
+//   flowCurrentPlannedMoneySum＝影の判定がある州×月（希望が正）の今の計画の和＝影の計画と同じ州×月で比べる分母。
 // ⚠限界（計器が自己申告する）：①影は静的な反事実＝希望・所得・消費は今の規則の軌道のまま（U4 の腕では応答する）。
 //   ②今の規則の消費の支払いは投資の取り置き（EconomyStep の投資家の RemainingBudget×(1−IndInvestmentFrac)）の後の値＝U4 で取り置きを外すと消費は増えうる＝腕の流れは影より小さい向き。
 //   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。
@@ -19,21 +20,21 @@ public static partial class Instruments
     internal const string ConsfHeaderText = "quarter\tyear\tnation\tscope\tregionsCount\tpopulationK\tinvestorSavingsStock\tindustrializationPopWeightedIndex\t"
         + "judgedRegionMonthsCount\tdesiringRegionMonthsCount\tbudgetBoundRegionMonthsCount\tdesiredMoneySum\tbudgetMoneySum\tplannedMoneySum\tbudgetBoundCutMoneySum\t"
         + "flowAvailableRegionMonthsCount\tflowDesiringRegionMonthsCount\tflowBoundRegionMonthsCount\tflowDesiredMoneySum\tflowBudgetMoneySum\tflowPlannedMoneySum\tflowEarnedLastMoneySum\tflowConsumptionPaidLastMoneySum\t"
-        + "paidMoneySum\tbuiltUnitsSum\toscRegionMonthsCount\toscPaidMoneySum\toscAbsFirstDiffMoneySum\toscAbsSecondDiffMoneySum\toscFirstDiffLagProductSum\toscFirstDiffSquareSum";
+        + "paidMoneySum\tbuiltUnitsSum\toscRegionMonthsCount\toscPaidMoneySum\toscAbsFirstDiffMoneySum\toscAbsSecondDiffMoneySum\toscFirstDiffLagProductSum\toscFirstDiffSquareSum\toscFirstDiffLagSquareSum\tflowCurrentPlannedMoneySum";
     static readonly string[] ConsfScopes = ["home", "Colonial"];
 
     /// <summary>州ごとの積み（四半期の和）と、月をまたいで持つ写し（前月の消費の支払い・振動の履歴）。</summary>
     internal sealed class U4Acc
     {
         public long Judged, Desiring, Bound, FlowAvail, FlowDesiring, FlowBound, Osc;
-        public double Desired, Budget, Planned, BoundCut, FlowDesired, FlowBudget, FlowPlanned, FlowEarned, FlowCons, Paid, Built, OscPaid, OscAbsD1, OscAbsD2, OscLag, OscSq;
+        public double Desired, Budget, Planned, BoundCut, FlowDesired, FlowBudget, FlowPlanned, FlowCurPlanned, FlowEarned, FlowCons, Paid, Built, OscPaid, OscAbsD1, OscAbsD2, OscLag, OscSq, OscSqLag;
         // 月をまたぐ写し（四半期の末で戻さない）
         public bool HasLastCons; public int LastConsPop = -1; public double LastCons;
         public double CurPaid; public int Hist; public double H0, H1, D0;
         public void ClearQuarter()
         {
             Judged = Desiring = Bound = FlowAvail = FlowDesiring = FlowBound = Osc = 0;
-            Desired = Budget = Planned = BoundCut = FlowDesired = FlowBudget = FlowPlanned = FlowEarned = FlowCons = Paid = Built = OscPaid = OscAbsD1 = OscAbsD2 = OscLag = OscSq = 0;
+            Desired = Budget = Planned = BoundCut = FlowDesired = FlowBudget = FlowPlanned = FlowCurPlanned = FlowEarned = FlowCons = Paid = Built = OscPaid = OscAbsD1 = OscAbsD2 = OscLag = OscSq = OscSqLag = 0;
         }
         public void ClearAll() { ClearQuarter(); HasLastCons = false; LastConsPop = -1; LastCons = 0; CurPaid = 0; Hist = 0; H0 = H1 = D0 = 0; }
     }
@@ -62,7 +63,7 @@ public static partial class Instruments
             {
                 a.Osc++; a.OscPaid += x;
                 a.OscAbsD1 += Math.Abs(d); a.OscAbsD2 += Math.Abs(x - 2.0 * a.H0 + a.H1);
-                a.OscLag += d * a.D0; a.OscSq += d * d;
+                a.OscLag += d * a.D0; a.OscSq += d * d; a.OscSqLag += a.D0 * a.D0;
             }
             a.D0 = d;
         }
@@ -90,7 +91,7 @@ public static partial class Instruments
             {
                 a.FlowDesiring++; a.FlowDesired += desired;
                 double fp = desired < flow ? desired : flow;
-                a.FlowPlanned += fp;
+                a.FlowPlanned += fp; a.FlowCurPlanned += planned;
                 if (flow < desired * (1 - 1e-9)) a.FlowBound++;
             }
         }
@@ -120,7 +121,7 @@ public static partial class Instruments
         {
             bool colonial = s == 1;
             long n = 0, judged = 0, desiring = 0, bound = 0, fAvail = 0, fDes = 0, fBound = 0, osc = 0;
-            double pop = 0, invSav = 0, indW = 0, desired = 0, budget = 0, planned = 0, cut = 0, fDesired = 0, fBudget = 0, fPlanned = 0, fEarn = 0, fCons = 0, paid = 0, built = 0, oP = 0, oD1 = 0, oD2 = 0, oLag = 0, oSq = 0;
+            double pop = 0, invSav = 0, indW = 0, desired = 0, budget = 0, planned = 0, cut = 0, fDesired = 0, fBudget = 0, fPlanned = 0, fCurPlanned = 0, fEarn = 0, fCons = 0, paid = 0, built = 0, oP = 0, oD1 = 0, oD2 = 0, oLag = 0, oSq = 0, oSqLag = 0;
             foreach (var r in w.Regions)
             {
                 if ((r.Tier == RegionTier.Colonial) != colonial) continue;
@@ -130,15 +131,15 @@ public static partial class Instruments
                 if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) invSav += r.Pops[r.InvestorPopIndex].Savings.Value;
                 if (!U4Accs.TryGetValue(r, out var a)) continue;
                 judged += a.Judged; desiring += a.Desiring; bound += a.Bound; fAvail += a.FlowAvail; fDes += a.FlowDesiring; fBound += a.FlowBound; osc += a.Osc;
-                desired += a.Desired; budget += a.Budget; planned += a.Planned; cut += a.BoundCut; fDesired += a.FlowDesired; fBudget += a.FlowBudget; fPlanned += a.FlowPlanned; fEarn += a.FlowEarned; fCons += a.FlowCons;
-                paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq;
+                desired += a.Desired; budget += a.Budget; planned += a.Planned; cut += a.BoundCut; fDesired += a.FlowDesired; fBudget += a.FlowBudget; fPlanned += a.FlowPlanned; fCurPlanned += a.FlowCurPlanned; fEarn += a.FlowEarned; fCons += a.FlowCons;
+                paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq; oSqLag += a.OscSqLag;
                 a.ClearQuarter();
             }
             if (n == 0) continue;
             sk.Consf.WriteLine(string.Join('\t', I(q), I(w.Year), nation, ConsfScopes[s], I(n), F(pop), F(invSav), F(pop > 0 ? indW / pop : double.NaN),
                 I(judged), I(desiring), I(bound), F(desired), F(budget), F(planned), F(cut),
                 I(fAvail), I(fDes), I(fBound), F(fDesired), F(fBudget), F(fPlanned), F(fEarn), F(fCons),
-                F(paid), F(built), I(osc), F(oP), F(oD1), F(oD2), F(oLag), F(oSq)));
+                F(paid), F(built), I(osc), F(oP), F(oD1), F(oD2), F(oLag), F(oSq), F(oSqLag), F(fCurPlanned)));
         }
     }
 }
