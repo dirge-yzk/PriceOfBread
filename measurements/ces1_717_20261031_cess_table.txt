@@ -1,0 +1,47 @@
+# out_cc_10/ins（種 1..10・10 種・行 1565）
+key	r1	r2	r3h	r4h	r3c	r4c	home	cede_col	all
+adj	15	133	312	23	62	-	335	62	545
+budgetLeftSum	-	-	6.332e+04	3547	1.061e+04	110.5	6.687e+04	1.072e+04	7.759e+04
+costE2Sum	-	-	4.776e+04	3534	1.147e+04	482.1	5.13e+04	1.195e+04	6.324e+04
+e2CostLowerThanHcd	15	75	292	22	60	-	314	60	464
+e2Drop	-	102	303	15	53	1	318	54	474
+e2Drop_none	-	29	201	11	33	-	212	33	274
+e2Drop_reselect	-	73	102	4	20	1	106	21	200
+e2Ok	25	549	399	27	90	1	426	91	1091
+e2Ok_butUnaffordable	-	-	70	7	56	1	77	57	134
+far3000	16	624	438	14	110	2	452	112	1204
+far3000_sea_ratio_0.1-0.3	5	53	7	-	10	1	7	11	76
+far3000_sea_ratio_0.3-0.5	2	92	14	-	6	-	14	6	114
+far3000_sea_ratio_ge0.5	4	415	45	1	17	1	46	18	483
+far3000_sea_ratio_lt0.1	1	1	-	-	1	-	-	1	3
+farweak	10	180	354	13	88	1	367	89	646
+farweak_e2Drop	-	44	210	8	39	-	218	39	301
+farweak_seaCrossing	8	146	21	-	17	1	21	18	193
+farweak_seaCrossing_e2Drop	-	37	10	-	5	-	10	5	52
+keepE2	-	-	501	31	110	2	532	112	644
+keepE2Budget	-	-	427	22	55	1	449	56	505
+landOverGc_n	12	72	581	37	103	-	618	103	805
+loserAbstract	25	-	-	-	-	-	-	-	25
+mean_landOverGc	1.044	1.253	1.253	1.204	1.168	-	1.25	1.168	1.237
+mean_popUnits	0.6646	1.08	3.728	10.55	6.42	24.68	4.114	6.672	3.034
+mean_resourceCount	0.12	1.622	1.843	2.214	1.79	4	1.864	1.821	1.732
+mean_seaOverGc	1.402	2.084	3.035	1.366	2.07	1.385	2.969	2.034	2.22
+n	25	651	702	42	143	2	744	145	1565
+notAdj	10	518	390	19	81	2	409	83	1020
+notAdj_inland	-	102	187	12	22	1	199	23	324
+notAdj_port	-	416	203	7	59	1	210	60	686
+notAdj_portUnknown	10	-	-	-	-	-	-	-	10
+sameLandmass	13	79	581	37	107	-	618	107	817
+sameLandmass_notAdj	3	54	309	16	51	-	325	51	433
+sameLandmass_notAdj_inland	-	12	156	12	13	-	168	13	193
+sameLandmass_notAdj_port	-	42	153	4	38	-	157	38	237
+sameNode	-	4	-	-	4	-	-	4	8
+seaCrossing	12	572	121	5	36	2	126	38	748
+seaOverGc_n	12	572	121	5	36	2	126	38	748
+shadowCostOverBudgetLeft	-	-	144	13	77	2	157	79	236
+viaColonialReach	-	-	-	-	36	2	-	38	38
+peaces	4789
+peaces_loserAbstract	69
+peaces_withBoth	145
+peaces_withR12	560
+peaces_withR34	889
