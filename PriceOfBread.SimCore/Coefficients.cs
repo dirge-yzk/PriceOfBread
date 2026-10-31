@@ -1109,6 +1109,12 @@ public sealed class Coefficients
     public double[] LiteracyOddsByClass = [0.85 / 0.15, 0.80 / 0.20, 0.08 / 0.92, 0.25 / 0.75, 0.60 / 0.40, 0.80 / 0.20, 0.85 / 0.15, 0.70 / 0.30, 0.45 / 0.55, 0.30 / 0.70];
     // 【墓標2026-09-26（棚卸し dorm-50）】IndInvestFromIncome（私的投資の原資を貯蓄でなく所得にする器・「0で確定＝休眠」2026-08-04）＝削除。0.4×所得で点火すると世界が崩壊した（英GDP 290,733→2）＝資本コストの較正が貯蓄ストック（所得の175〜300年分）を前提に組まれている。再挑戦は建設費・減価・貯蓄を同じ回で動かす大改修と一緒に（検討 §10-10［金融1］）
     public RatePerMonth IndInvestmentFrac = new(0.05);       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
+    /// <summary>★(714) 線 u4a（資本の U4・設計 20261030_資本の在庫と投資_設計.md §11）：私的な建設の予算の出所を貯蓄の在庫から〈前月の流れ〉へ替える旗（既定 0＝今の規則＝1 ビットも変わらない）。
+    /// 正のとき 2 つを同時に替える（同じテーマ＝予算の出所）：①私的な建設の予算（<see cref="EconomyStep.PrivateConstructionBudget"/>）を〈投資家 POP の前月の所得−前月の消費の支払い〉の正の部分へ（接収の萎縮は今のまま掛ける）
+    /// ②投資の取り置き（<c>RemainingBudget *= 1−IndInvestmentFrac</c>）を外す（建設の予算は流れから出るので、消費の予算から貯蓄の 5% を先に引く理由が無い）。
+    /// 新しい倍率・係数・天井は置かない。<c>IndInvestmentFrac</c> の読み手は旗 1 で消える（係数は消さない）。確証：作者 2026-08-04「根本問題はコストをかければ工業化できることよりも、工業化なくしてコストをかけられる方」の形。
+    /// 前月の消費の支払いで引く形・取り置きを外す形は AI の推奨＝確証なし。腕は波49（事前登録は設計書 §11-7・番人 InvestBudgetFromFlowTests）。</summary>
+    public double InvestBudgetFromFlow = 0;
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）。★(300) 国家の経路（国庫の建設・巨大建造物）はこれのまま。私的な建設は IndCapitalOutputYears>0 なら州の実質の年所得で決まる（EconomyStep.PrivateIndPerConstruction）＝0 のときだけこの値
     // ★(583) 旗 ModernizationAbolished（(573) 近代化投資の廃止・既定 1）は旗ごと削除した＝州の StateBuildQueue へ撒く道は World.ApplyModernizationInvestment から物理削除（名前の復活は DormantIdentityTests.RetiredFields が禁じる）。招聘（ModernizationToRecruit）と高等教育の学費の補助（ModernizationToHigherEdu）は残る。

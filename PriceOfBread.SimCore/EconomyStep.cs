@@ -733,7 +733,8 @@ public static class EconomyStep
             p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
-        if (cap && region.InvestorPopIndex >= 0)
+        //   ★(714) 線 u4a：旗 InvestBudgetFromFlow が正なら外す（建設の予算は前月の流れから出る＝消費の予算から貯蓄の 5% を先に引く理由が無い）。否定形＝NaN の旗は旧の経路。
+        if (cap && region.InvestorPopIndex >= 0 && !(coef.InvestBudgetFromFlow > 0))
             region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
         // ★純テレメトリ（2026-08-21）：この州の pop がこの月に**使える**消費予算の総額（投資枠控除後）。
         double budgetStartDiag = 0;
@@ -1048,11 +1049,9 @@ public static class EconomyStep
             //   投資の原資を**所得（Earned）**にする案（器 IndInvestFromIncome）は、0.4×所得で点火すると旧式の約1/150になり世界が崩壊した
             //   （英GDP 290,733→2）＝資本コストの較正が巨大な貯蓄ストックを前提に組まれている＝建設費・減価・貯蓄を一緒に動かす大改修が要る。
             //   ★2026-09-26（棚卸し dorm-50）：「0で確定＝休眠」だった器を削除（再挑戦はその大改修と一緒に設計し直す＝検討 §10-10［金融1］）。
-            double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+            //   ★(714) 線 u4a：予算の式は PrivateConstructionBudget の 1 本へ抜き出した（旗 InvestBudgetFromFlow が 0 の経路は式・順序・リテラルとも抜き出す前と同じ＝接収の代償②の萎縮もそこで掛かる）。
+            double budget = PrivateConstructionBudget(region, coef);
             // （退蔵結晶化 段4a/段2の予算配線は Stage1 中止で2026-08-29撤去＝休眠削除・厳密恒等）
-            // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。
-            // 書き手は World.StepStateTargets の接収が成立した月だけ（★2026-08-29点火＝既定0.05。=0なら一度も走らない）。
-            if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
             // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
             // ★(416)：この 4 行の式は InvestmentReturn の 1 本へ抜き出した（式・順序・リテラルは抜き出す前と同じ）。AI の近代化投資の信号（World.ModernizeReturnShare）も同じ関数を通る。
@@ -2109,6 +2108,10 @@ public static class EconomyStep
         if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)consumedGoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見た POP×財（必要の無い財を除く）
         if (insOn) Instruments.ConsumeMonth(world!, insRows, insBound, insDesired, insDemand);   // (271) 計器（読むだけ）
         insEnt?.Finish();   // (345) 計器（読むだけ）：POP ごとの余り・取り崩しの派生量
+        // ★(714) 線 u4a：前月の消費の支払いを全ての POP に写す（旗 InvestBudgetFromFlow が正のときだけ・翌月の私的な建設の予算が読む）。月の頭の零化（732）から消費のループの前まで PaidPerMonth の書き手は無い
+        //   （書き手は 1886・2022 の財のループの中と、この後の工場の投入・建設の支払い）＝この時点の PaidPerMonth がそのまま消費の支払い＝計器（EntryCtx）の cons〈ループの後−前〉と同じ値。
+        if (coef.InvestBudgetFromFlow > 0)
+            foreach (var p in region.Pops) p.LastConsumptionPaidPerMonth = p.PaidPerMonth;
         // ★純テレメトリ（2026-08-21）：全財を買い終えた時点の**使い残し**。予算が binding なら 0 に張り付く。
         if (BudgetBindDiag.On)
         {
@@ -2861,6 +2864,25 @@ public static class EconomyStep
                 investDemand[bundle.G2] += bundle.Q2 * u;
                 investDemand[bundle.G3] += bundle.Q3 * u;
             }
+    }
+
+    /// <summary>★(714) 線 u4a：私的な建設の予算（州×月・投資家 POP がある州だけ呼ぶ）。旗 <see cref="Coefficients.InvestBudgetFromFlow"/> が 0 なら今の規則＝<c>IndInvestmentFrac×max(0, 投資家の貯蓄)</c>（抜き出す前の式・順序・リテラルと同じ）。
+    /// 正なら〈投資家 POP の前月の所得−前月の消費の支払い〉の正の部分（否定形で NaN は 0）。どちらも最後に接収の代償②の萎縮（<see cref="Region.SeizureChill"/> が正の州だけ）を掛ける。
+    /// 純関数（状態を書かない）。AI とプレイヤーで同じ経路（<c>IsPlayer</c> を読まない）。</summary>
+    internal static double PrivateConstructionBudget(Region region, Coefficients coef)
+    {
+        var inv = region.Pops[region.InvestorPopIndex];
+        double budget;
+        if (coef.InvestBudgetFromFlow > 0)
+        {
+            budget = inv.LastEarnedPerMonth.Value - inv.LastConsumptionPaidPerMonth.Value;
+            if (!(budget > 0)) budget = 0;
+        }
+        else budget = coef.IndInvestmentFrac.Value * Math.Max(0, inv.Savings.Value);
+        // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。
+        // 書き手は World.StepStateTargets の接収が成立した月だけ（★2026-08-29点火＝既定0.05。=0なら一度も走らない）。
+        if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
+        return budget;
     }
 
     /// <summary>★(416) 設備の限界収益（私的な投資家の建設の速さを決める式の 1 本）。<c>EconomyStep.Run</c> の私的投資と <see cref="World.ModernizeReturnShare"/>（AI の近代化投資の信号）が同じ関数を通る。

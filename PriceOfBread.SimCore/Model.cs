@@ -164,6 +164,10 @@ public sealed class Pop
     public double Militancy;         // 闘争度（0..1・§9-E）。不満・参政権欠如・外圧で伸びる
     public MoneyPerMonth LastEarnedPerMonth;   // ★前期の所得（2026-08-04）。Earned は EconomyStep 冒頭でゼロ化され期中に積み上がるので、
                                 //   期の初めに読む用途（私的投資の原資）には使えない。ゼロ化の直前にここへ退避する。
+    /// <summary>★(714) 線 u4a：前月の消費の支払い（消費の財のループの後の <see cref="PaidPerMonth"/>＝建設・工場の投入などの前の分）。旗 <c>InvestBudgetFromFlow</c> が正のときだけ、月の終わりの消費の後に全ての POP へ写す（旗 0 では書かない＝0 のまま）。
+    /// 読み手＝私的な建設の予算（<see cref="EconomyStep.PrivateConstructionBudget"/>）の 1 本だけ。月の頭では戻さない（翌月の予算が読む）。
+    /// ⑩の論（新しい状態を作らない）：<see cref="PaidPerMonth"/> は月の頭で零化される（EconomyStep の月初）ので、前月の消費の支払いを導く道が無い＝欄 1 本が要る。</summary>
+    public MoneyPerMonth LastConsumptionPaidPerMonth;
     public double[] IdeologyShares = new double[Ideologies.Count];   // イデオロギー分布（伝統/反動/自由/共和/ナショ/社会/共産/無政府/帝国/ファシズム/王党派・合計1）。階級×条件×時代から創発（Ideology.cs）＝政体遷移の力ベクトル
     public bool Closed;              // 閉鎖階級（世襲の特権身分＝貴族・聖職）。移民の出入りをしない（史実の身分制）
     public double Subsistence;       // 自給率（0..1）。必需(Staple)の一部を市場外で自足＝農民。市場で飢えない
