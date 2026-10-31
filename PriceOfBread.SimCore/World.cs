@@ -2059,7 +2059,7 @@ public sealed class World
         foreach (var r in Regions)
         {
             if (!StateInvestEligible(r)) continue;
-            double share = EconomyStep.ReturnShare(r, Coef, TechProductivity(r));
+            double share = EconomyStep.ReturnShare(r, Coef, TechProductivity(r), Cost);
             double wt = StateInvestWeight(r);
             n++; eqSum += share;
             num += wt * share; wsum += wt;

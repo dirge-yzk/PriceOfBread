@@ -46,8 +46,9 @@ internal static class Improvement
     }
 
     /// <summary>投資の techLev の後継の L̄_r＝州の領分の生産者（門が開いた・産出が正）の産出×値段の重みの控え <see cref="Producer.ImprovementCache"/> の平均（重みが 0 なら 1）。</summary>
-    internal static double RegionMean(Region r)
+    internal static double RegionMean(Region r, long[]? cost = null)
     {
+        if (cost is not null) cost[CostLedger.ImprovementScans] += r.Producers.Count;   // 計算量の台帳（診断）：州の生産者の 1 巡（点検 2026-10-31 中：台帳の外だった呼び手を数える）
         double num = 0, den = 0;
         foreach (var p in r.Producers)
         {
@@ -84,6 +85,7 @@ internal static class Improvement
     {
         double K = c.ImprovementDivisor;
         if (!(K > 0)) return;
+        if (!(c.ImprovementEngineerHalf > 0)) throw new System.InvalidOperationException("ImprovementDivisor が正のときは ImprovementEngineerHalf（D0）も正に置く（0 では T が D>0 の閾値の段差になる・事前登録 [9]）");
         int n = worlds.Count, nc = ColumnCount, nr = Catalog.Discoveries.Length, ng = Catalog.Goods.Length;
         double rho = c.ImprovementRho, d0 = c.ImprovementEngineerHalf, h = c.ImprovementDemandHalf;
         var olds = new double[n][];

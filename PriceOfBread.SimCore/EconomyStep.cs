@@ -926,7 +926,7 @@ public static class EconomyStep
                   * gate;        // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
             // ★(705) 線 dsc1（旗 ImprovementDivisor が正のときだけ）：受容した列の改良度 L を能力に掛ける（作者 2026-10-30「…その品の生産能力そのものを変更するという扱いです。」・括弧は旗で外れている＝U6）。
             //   領分の外（労働の財・役務・農家の手仕事・職人）は L＝1。控え ImprovementCache は EffectiveQty（労働の財の投入÷L）と投資の techLev の後継が読む。旗 0 はこの行に入らない（恒等）。
-            if (coef.ImprovementDivisor > 0) { double lv = Improvement.LevelOf(world, s); s.ImprovementCache = lv; if (lv > 1.0) boost *= lv; }
+            if (coef.ImprovementDivisor > 0) { double lv = Improvement.LevelOf(world, s); s.ImprovementCache = lv; if (costL is not null) costL[CostLedger.ImprovementScans]++; if (lv > 1.0) boost *= lv; }
             // 05-A（2026-07-29）：戦災＝農業・畜産の産出減（劣勢側の戦場のみ・戦争終結で自然回復）。飢饉・食料充足・扶養力の丁寧な機構に
             // 戦争が一切影響しなかった欠落を閉じる（戦争→飢饉→闘争度→政変の連鎖）。畜産(19)は重め＝「馬は真っ先に持っていかれる」（徴発は市場価格経由で自動）。
             if (s.IsRgo && region.LastWarIntensity > 1e-12)
@@ -1058,7 +1058,7 @@ public static class EconomyStep
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
             // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
             // ★(416)：この 4 行の式は InvestmentReturn の 1 本へ抜き出した（式・順序・リテラルは抜き出す前と同じ）。AI の近代化投資の信号（World.ModernizeReturnShare）も同じ関数を通る。
-            var (techLev, sat, grossReturn, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
+            var (techLev, sat, grossReturn, hurdle) = InvestmentReturn(region, coef, productivityMultiplier, costL);
             // クラウディングアウト（金利チャネル）：政府の借入で上がった国債金利プレミアムが民間投資のハードルを上げる
             // ＝高債務国ほど民間投資が締め出され工業化が鈍る（資本希少国で強く・金本位の信用国は弱い＝条件付き）。
             // 株式市場のバブル（改修2026-06-28・金融改革②）：与信過熱→株高→投資ハードル↓→過剰投資→さらに過熱…→ある日Confidence崩壊で投資急停止＝ブーム→恐慌が新規倍率なしで創発。較正(Heat=0)では中立。
@@ -2869,10 +2869,10 @@ public static class EconomyStep
     /// 戻り値＝(技術の梃子の量 techLev・飽和の変数 sat・総収益 gross・ハードル hurdle)。純関数（状態を書かない）。
     /// <c>sat＝1＋稼働資本÷IndProductivityScale</c>（<c>indMult</c> と同じ飽和点・座礁控除後）／<c>gross＝IndProductivityGain÷sat²×(1＋IndTechLeverage×techLev)</c>／
     /// <c>hurdle＝IndCapitalCost＋CrowdingOutWeight×締め出し−EquityHeatEuphoria×金融の熱</c>。<c>netReturn＝gross−hurdle</c> を呼び手が作る。</summary>
-    internal static (double TechLev, double Sat, double Gross, double Hurdle) InvestmentReturn(Region region, Coefficients coef, double productivityMultiplier)
+    internal static (double TechLev, double Sat, double Gross, double Hurdle) InvestmentReturn(Region region, Coefficients coef, double productivityMultiplier, long[]? cost = null)
     {
         double techLev = Math.Max(0, productivityMultiplier - 1.0);
-        if (coef.ImprovementDivisor > 0) techLev = Math.Max(0, Improvement.RegionMean(region) * productivityMultiplier - 1.0);   // ★(705) 線 dsc1：技術の梃子の後継＝州の領分の生産者の改良度の値段の重みの平均×（括弧を外した）whOut×union（設計書 冒頭の訂正 中①の §4 の 10 行目・事前登録 [1]）。旗 0 は上の行のまま
+        if (coef.ImprovementDivisor > 0) techLev = Math.Max(0, Improvement.RegionMean(region, cost) * productivityMultiplier - 1.0);   // ★(705) 線 dsc1：技術の梃子の後継＝州の領分の生産者の改良度の値段の重みの平均×（括弧を外した）whOut×union（設計書 冒頭の訂正 中①の §4 の 10 行目・事前登録 [1]）。旗 0 は上の行のまま
         double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
         double marginalGain = coef.IndProductivityGain / (sat * sat);
         double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
@@ -2881,9 +2881,9 @@ public static class EconomyStep
 
     /// <summary>★(416) 設備の収益の持ち分＝<c>Clamp01(1−hurdle÷gross)</c>＝総収益のうちハードルを越えて残る割合（<see cref="InvestmentReturn"/> の gross−hurdle を gross で割った物）。<c>gross≦0</c> か NaN は 0。
     /// <see cref="World.ModernizeReturnShare"/> が州ごとに呼ぶ（AI の近代化投資の信号）。</summary>
-    internal static double ReturnShare(Region region, Coefficients coef, double productivityMultiplier)
+    internal static double ReturnShare(Region region, Coefficients coef, double productivityMultiplier, long[]? cost = null)
     {
-        var (_, _, gross, hurdle) = InvestmentReturn(region, coef, productivityMultiplier);
+        var (_, _, gross, hurdle) = InvestmentReturn(region, coef, productivityMultiplier, cost);
         return !(gross > 0) ? 0 : PoliticalQuantities.Clamp01(1.0 - hurdle / gross);
     }
 

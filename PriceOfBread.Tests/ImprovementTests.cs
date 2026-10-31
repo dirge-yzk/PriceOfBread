@@ -138,4 +138,37 @@ public class ImprovementTests
         for (int r = 0; r < Catalog.Discoveries.Length; r++)
             if (Catalog.Discoveries[r].Good < 0) Assert.True(imp[r] == 0.0 || imp[r] == 1.0, $"財を持たない行 {Catalog.Discoveries[r].Name} が {imp[r]}");
     }
+
+    // ---- 投資の techLev の後継（点検 2026-10-31 中：要の経路の番人が無かった）-----------------------------------------------------
+    [Fact]
+    public void 投資のtechLevは州の領分の改良度の値段の重みの平均に括弧を外した乗数を掛けて1を引く()
+    {
+        var w = Britain().World; var r = w.Regions[0];
+        foreach (var p in r.Producers) p.Output = 0;   // 手の盤面：産出のある生産者を 2 件だけにする
+        var (_, cloth) = ClothProducer(w);
+        Producer? other = null;
+        foreach (var p in r.Producers)
+            if (p.GoodId != cloth.GoodId && Improvement.ColumnOf(p) >= 0 && p.GoodId < r.Markets.Length && Discovery.Gate(r, p) > 0) { other = p; break; }
+        Assert.NotNull(other);
+        Assert.True(Discovery.Gate(r, cloth) > 0, "前提：綿布の既定のレシピは門を通る");
+        cloth.Output = 10; cloth.ImprovementCache = 3.0; r.Markets[cloth.GoodId].Price = 2.0;
+        other!.Output = 5; other.ImprovementCache = 1.0; r.Markets[other.GoodId].Price = 4.0;
+        double mean = (10 * 2.0 * 3.0 + 5 * 4.0 * 1.0) / (10 * 2.0 + 5 * 4.0);   // 手の値＝(20·3＋20·1)÷40＝2
+        var c = w.Coef;
+        Assert.Equal(0.5, EconomyStep.InvestmentReturn(r, c, 1.5).TechLev, 12);   // 旗 0：productivityMultiplier−1（L を読まない）
+        c.ImprovementDivisor = 5;
+        var (techLev, _, _, _) = EconomyStep.InvestmentReturn(r, c, 1.2);
+        Assert.Equal(Math.Max(0, mean * 1.2 - 1.0), techLev, 12);
+        Assert.Equal(1.4, techLev, 12);   // 2×1.2−1
+        var cost = new long[CostLedger.Count];
+        EconomyStep.InvestmentReturn(r, c, 1.2, cost);
+        Assert.Equal(r.Producers.Count, cost[CostLedger.ImprovementScans]);   // 台帳：州の生産者の 1 巡
+    }
+
+    [Fact]
+    public void 旗が正でD0が0なら歩は止める()
+    {
+        var w = Britain().World; w.Coef.ImprovementDivisor = 5; w.Coef.ImprovementEngineerHalf = 0;
+        Assert.Throws<InvalidOperationException>(() => Improvement.Step([w], null, w.Coef, 0));
+    }
 }
