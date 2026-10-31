@@ -77,7 +77,7 @@ internal static class Improvement
 
     /// <summary>★(705) 四半期末の改良度の歩（<c>MultiNationSim.StepDiscoveries</c> の判定と世界の解禁の写しの後・助走の間は呼ばない）。事前登録 measurements/dsc1_705_20261031_prereg.txt [1]：
     /// ΔL＝(T＋E＋X)÷(3·K_L·L^ρ) − δ·(L−1)（L≧1 の列だけ）・T＝D÷(D＋D0)（D＝本国の州の生産者の高度労働力÷本国の人口 千人）・E＝q÷(q＋h·国の需要）・
-    /// X＝Σ_p c(n,p)·max(0, 1−L[n,k]÷L[p,k])（c＝輸入に占める相手の割合・前の四半期の組の取引・列ごとに年 1 回〔(列＋四半期) mod 4＝0〕に 4 倍）・δ＝四半期の置き換わり率×(1−E)。
+    /// X＝Σ_p c(n,p)·max(0, 1−L[n,k]÷L[p,k])（c＝輸入に占める相手の割合・この四半期の組の取引〔InternationalMarket.PairFlowQ〕・列ごとに年 1 回〔(列＋四半期) mod 4＝0〕に 4 倍）・δ＝四半期の置き換わり率×(1−E)。
     /// 天井なし（思想⑧）・上界は式で出る（番人 U5）。全ての国の新しい値を古い値から求めてから書く（国の順で X が変わらない）。発見の表の行は判定が立てた所で 0→1（L≧1 ⇔ Discovered）。
     /// 財を持たない行（制度・思想）は {0,1} だけ（増分を積まない）。<paramref name="pairFlow"/>＝[売り手][買い手]（国の添字・長さが国の数と違えば X を積まない＝建国と消滅の四半期）。</summary>
     internal static void Step(IReadOnlyList<World> worlds, double[][]? pairFlow, Coefficients c, int quarter)
@@ -109,7 +109,6 @@ internal static class Improvement
             double homePop = 0; long visited = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 bool home = r.Tier != RegionTier.Colonial;
                 if (home) foreach (var pp in r.Pops) if (!pp.IsSoldier && pp.Size > 0) homePop += pp.Size;
                 for (int g = 0; g < ng && g < r.Markets.Length; g++) { double d = r.Markets[g].LastDemand; if (d > 0) dg[g] += d; }

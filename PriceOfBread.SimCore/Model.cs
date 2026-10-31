@@ -692,8 +692,10 @@ public sealed class Producer
     /// <summary>★(519→524) 能力の式の頭数＝担い手の POP の Size×fraction（供給の段が最後に通った月の値・書くだけの控え）。読み手は交渉の取り分（<see cref="UnionBargaining"/>・旗 UnionBargaining が正のとき）。
     /// 作業領域（[NonSerialized]・セーブに載らない）＝供給の段が毎月書き直す。眠った生産者・倒産中は能力の式を通らない月なので 0。線 sm（枠と機械・(519)・採らない）の欄と書き手だけを持ち込んだ。</summary>
     [System.NonSerialized] internal double HeadsLastMonth;
-    /// <summary>★(705) 線 dsc1：この生産者の列の改良度 L の控え（作業領域・セーブに載らない＝能力の式が毎月 <see cref="Improvement.LevelOf"/> から書き直す）。旗 <see cref="Coefficients.ImprovementDivisor"/> が 0 なら書かず読まない。</summary>
-    [System.NonSerialized] internal double ImprovementCache = 1.0;
+    /// <summary>★(705) 線 dsc1：この生産者の列の改良度 L の控え（能力の式が毎月 <see cref="Improvement.LevelOf"/> から書き直す・眠った月は前の値のまま）。旗 <see cref="Coefficients.ImprovementDivisor"/> が 0 なら書かず読まない（1.0 のまま）。
+    /// ⚠セーブに載せる（[NonSerialized] にしない）：投資の techLev の後継（<see cref="Improvement.RegionMean"/>）と眠った生産者の投入（<see cref="EconomyStep.EffectiveQty"/>）が、能力の式より先にこの値を読む月がある
+    /// ＝作業領域にするとロード直後の 1.0 で読んで往復が割れる（savetest の旗 1 で 68/68 カ国 4.2E-3 を踏んだ）。</summary>
+    internal double ImprovementCache = 1.0;
     // ★配分信念（2026-08-22・恐慌をAIの賢さで抑える）：期待市場価値 付加価値×売れる量 のEMA（時定数＝SupplyAdjustSpeed）。
     //   生産者はスポット価格でなくこの信念で職を選ぶ＝コブウェブの教科書的減衰（適応的期待）。点火済み（2026-08-22）＝常時書かれる。
     public double LaborWeight;

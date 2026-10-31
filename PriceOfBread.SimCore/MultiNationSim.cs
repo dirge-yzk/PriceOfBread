@@ -598,7 +598,7 @@ public sealed class MultiNationSim
             }
             double[]? scoreNow = _coef.SpreadNeedFascismDecline > 0 || Instruments.On ? NationalScore.ShareScores(Nations.ConvertAll(s => s.World)) : null; for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv, scoreNow?[i]), _coef);   // ★(640) 線 idn：国力の今の値を判定の直前に 1 回だけ求めて渡す（旗 SpreadNeedFascismDecline が正か計器のときだけ・導出量・行数を増やさない＝flow_s が行番号を鍵にする）
             ShareWorldDiscovered();
-            if (_coef.ImprovementDivisor > 0) Improvement.Step(Nations.ConvertAll(s => s.World), Market.LastPairFlow, _coef, _quarter);   // ★(705) 線 dsc1：改良度の歩（判定と世界の解禁の写しの後・助走は evaluate が偽＝積まない・旗 0 は 1 命令も走らない）
+            if (_coef.ImprovementDivisor > 0) Improvement.Step(Nations.ConvertAll(s => s.World), Market.PairFlowQ, _coef, _quarter);   // ★(705) 線 dsc1：改良度の歩（判定と世界の解禁の写しの後・助走は evaluate が偽＝積まない・旗 0 は 1 命令も走らない）。組の取引はこの四半期に積んだ PairFlowQ（伝播の StepDiffusion が消費する前）＝ロードで消える LastPairFlow〔計器の退避〕は読まない（savetest）
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
         Market.DiscoveryGoodFlowQ = null;
