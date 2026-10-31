@@ -73,6 +73,26 @@ def collapsed_run(series, last_q):
     return False
 
 
+def sustained_open(P, R, last_q, k=4):
+    """(710) rd48 R6：本国の人口 P か州の数 R が系列の最初の値の 0.5 倍を割った状態が k 四半期以上続いたか（系列の連続した四半期で数える）。
+    返り値＝(途切れた, 最長の続いた四半期の数)。途切れ＝最後の四半期より前に系列が終わった（collapsed_open の途切れと同じ）。"""
+    if not P:
+        return False, 0
+    trunc = P[-1][0] < last_q - 1
+    p0 = P[0][1]; r0 = R[0][1]
+    run = best = 0; prevq = None
+    for (q, p), (_, r) in zip(P, R):
+        below = (p0 > 0 and p == p and p < 0.5 * p0) or (r0 > 0 and r == r and r < 0.5 * r0)
+        if below and run > 0 and prevq is not None and q == prevq + 1:
+            run += 1
+        elif below:
+            run = 1
+        else:
+            run = 0
+        best = max(best, run); prevq = q
+    return trunc, best
+
+
 def load_seed(d, s):
     # region_s -> (q, nationIndex) -> [homePop, homeN, allPop]
     agg = defaultdict(lambda: [0.0, 0, 0.0])
@@ -166,6 +186,8 @@ def analyse(d, min_peak, opening_only, check):
             pr, rr = collapsed_run(P, last_q), collapsed_run(R, last_q)
             c['legacy'] += leg; c['P_open'] += po; c['R_open'] += ro; c['E_open'] += (po or ro)
             c['P_run'] += pr; c['R_run'] += rr; c['E_run'] += (pr or rr)
+            tr, best = sustained_open(P, R, last_q)   # (710) R6：持続の列（既存の列は変えない・表は main の最後に別の節で出す）
+            c['E_open4'] += (tr or best >= 4); c['E_open4run'] += (best >= 4); c['E_trunc'] += tr
     return out, seeds, (mism, rows, maxdev, sn, sdev, uk[0])
 
 
@@ -234,6 +256,19 @@ def main():
         rowsout.append((mx, k, vals))
     for mx, k, vals in sorted(rowsout, key=lambda t: (-t[0], t[1]))[:40]:
         print(k + '\t' + '\t'.join('%d/%d' % (v.get('E_open', 0), v.get('eligible', 0)) for v in vals))
+    print_sustained(res, names, keys)
+
+
+def print_sustained(res, names, keys):
+    """(710) rd48 R6：E開 のうち〈半分を割った状態が 4 四半期以上続いた〉（または途切れた）種の数。既存の表の後に別の節として出す（既存の行は 1 バイトも変えない）。"""
+    print('\n## (710) R6 持続の表（各腕：出現した種: E開/E開4＝4 四半期以上続いたか途切れた/続いた〔途切れを除く〕/途切れ）')
+    print('国\t' + '\t'.join('%s[E開/E開4/続/途]' % n for n in names))
+    for k in keys:
+        cells = []
+        for n in names:
+            c = res[n][0].get(k)
+            cells.append('-' if not c or not c['eligible'] else '%d: %d/%d/%d/%d' % (c['eligible'], c['E_open'], c['E_open4'], c['E_open4run'], c['E_trunc']))
+        print(k + '\t' + '\t'.join(cells))
 
 
 if __name__ == '__main__':
