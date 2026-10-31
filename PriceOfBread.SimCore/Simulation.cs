@@ -1861,6 +1861,7 @@ public sealed class Simulation
         // 開始前の助走（World.WarmupFrozen・2026-08-10）＝**時間が経たない**四半期。
         // 止める＝技術の前進・膨張意欲の累積・四半期スナップショット・暦（Quarter/Year/_quarterIndex）。
         // 回す＝制度の施行・社会移動・景気循環・物価水準＝価格と生産が実勢へ落ち着くための経済側。
+        //   ⚠社会移動（と州の中の階級遷移 PopDecision.Run）は階級の構成を書き換える＝時間が経たない四半期の約束と食い違う。★(704) 旗 WarmupStopClassShift（既定 0＝今のまま）が正なら助走の間は両方を回さない（焼く試走の腕と同じ判定）。
         bool warm = World.WarmupFrozen; if (warm && World.Coef.OpeningMoneyFromRatioMode > 0 && World.OpeningBroadMoneyToGdpYear > 0) World.RescaleOpeningSavings(World.OpeningBroadMoneyToGdpYear);   // ★(574) 開幕の貨幣の量＝助走の各四半期の末の頭で、貯蓄の和÷年名目GDP を国のデータへ戻す（国庫・国債を助走の各四半期の終わりに置くのと同じ規律）。最初の物価の更新（下の UpdatePriceLevel）より前＝趨勢はこの貨幣で取る
         if (!warm) TechEducation.GrowTech(World, World.Coef);          // §2.8 技術＝社会の連続創発（カード廃止）。助走中は WarmupTech が別途担う＝ここで二重に進めない
         // ★発見（段2A・2026-10-01）：単独の世界だけここで判定する（伝わり＝0）。多国は MultiNationSim の四半期末の共有層が接触を求めてから判定する（同じ関数）。助走は判定しない（開幕の既知は助走の終わりに1度）。
@@ -1868,7 +1869,7 @@ public sealed class Simulation
         else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // ★(153) 損耗の記帳は判定で捨てる（助走は判定しない＝捨てるだけ・多国は MultiNationSim の共有層が捨てる）
         // （研究C＝制度の施行 Institutions.Step は 2026-10-01 (152) に削除＝特許・株式会社・鉄道は発見の表の行の2値〔World.PatentLaw ほか〕を読むだけ）
         Politics.Step(World, World.Coef);                   // §9-E
-        if (!(warm && World.BakeRun?.StopSocialMobility == true))
+        if (!(warm && (World.BakeRun?.StopSocialMobility == true || World.Coef.WarmupStopClassShift > 0)))   // ★(704) 旗 WarmupStopClassShift：普通の助走も社会移動を止める（0＝今のまま）
         {
             if (Instruments.On && !warm) Instruments.UrxEnter(World);   // (649) 計器（読むだけ）：社会移動の区間の前
             Meritocracy.Step(World, World.Coef);                // ★(490) 焼く試走の腕だけ止める（BakeRun は焼く側以外は null＝旧と同じ）／社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
@@ -2481,7 +2482,7 @@ public sealed class Simulation
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
-            if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
+            if (!(World.WarmupFrozen && (World.BakeRun?.StopPopDecision == true || World.Coef.WarmupStopClassShift > 0)))   // ★(490) 焼く試走の腕は止める／★(704) 旗 WarmupStopClassShift が正なら普通の助走も止める（0＝今のまま）
             {
                 if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // (649) 計器（読むだけ）：PopDecision の駆動
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
