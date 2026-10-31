@@ -47,7 +47,7 @@ public static class Ideologies
         //   ⚠POP の理想点を読む＝BaseWeights が r（IdeologyShares）を書き換える**前**に求める（ループの頭）。
         var (dCoord, dLawGap) = FactionSnapshot.MembershipContext(w, true);
         int dSeen = 0;
-        var prds = Instruments.On ? Instruments.PrdsBegin(w, eraSoc, eraComm) : null;   // (700) 計器だけ＝影の列 prds_s（読むだけ・INS=1 のときだけ）
+        var prds = Instruments.On ? Instruments.PrdsBegin(w, eraSoc, eraComm, dCoord, dLawGap) : null;   // (700) 計器だけ＝影の列 prds_s（読むだけ・INS=1 のときだけ）
         foreach (var p in w.AllPops())
         {
             var r = p.IdeologyShares;

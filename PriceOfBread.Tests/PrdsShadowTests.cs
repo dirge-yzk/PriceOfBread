@@ -9,6 +9,8 @@ namespace PriceOfBread.Tests;
 /// ①合法度の表（容認 1・統制 0.5・非合法 0）が旧の switch と全ビットで合い、動員の測定（MeasureMobilization）が表の値に比例して動く。
 /// ②影の式の性質（設計書 2-2・3-3 の G0）：eraComm＝0・組合容認・mil＝NaN で t＝0・t ≦ mil·r[5]・r を書かない（(702) 合流：〈和の保存〉はテストが自分で作った複製の和で本体を見ていない＝主張から外した）・主軸が変わるのは社会主義→共産主義の移し替えの向きだけ。
 /// ③短い走行で、影の列を出しても IdeologyShares が全ビットで変わらず、行の形（見出し・抑圧が組合法の表と合う・今の式の共産主義の主軸が世界の POP の数え直しに合う・影は今以上）が正しい。
+/// ④(708) prd2：影の N（運動体のセルの足切り 1% を写した列）。セルの数え方 <see cref="Instruments.PrdsCount"/> を手計算の表で確かめ、走行の行の「今の主軸」の列（…Real）が
+/// 本体の <see cref="FactionSnapshot.ComputeClusters"/>（別の経路）の数え直しと一致し、影は今以上（共産主義のセルの数・最大の規模）であることを見る。
 /// 期待値は本体と別の出所（手計算の表・設計書の数値例・世界の POP の数え直し）で作る。
 /// </summary>
 [Collection("Instruments")]
@@ -52,7 +54,7 @@ public class PrdsShadowTests
     private static (double T, int Axis, double SumRaw) Shadow(double eraComm, LaborUnionLaw law, double mil, double[] r)
     {
         var w = SharedWorld.Value; w.LaborUnion = law;
-        var a = Instruments.PrdsBegin(w, 1.0, eraComm);
+        var a = Instruments.PrdsBegin(w, 1.0, eraComm, [], []);
         return Instruments.PrdsShadow(a, r, mil);
     }
 
@@ -133,6 +135,78 @@ public class PrdsShadowTests
         Assert.True(moved > 50 && toComm > 20, $"対照：主軸が動く場合が足りない（動いた {moved}・共産主義へ {toComm}）＝この盤面は移し替えを検査していない");
     }
 
+    [Fact]
+    public void セルの数え方_手計算の表_足切りは全国人口の1パーセント以上_主軸ごと()
+    {
+        // 全国人口 1000・足切り 10。地域 0・束 2・共産主義：6+5=11（足切りを越える）／地域 0・束 1・共産主義：9.99（越えない）／地域 1・束 2・共産主義：10（ちょうど＝越える・以上）／
+        // 地域 1・束 2・社会主義：30（共産主義の勘定に入らない）。参加の重みを掛けた後の規模を渡す（重みの掛け算は呼び手）。
+        var items = new List<(int Region, int Bloc, int Axis, double Size)>
+        {
+            (0, 2, (int)Ideology.Communism, 6.0), (0, 2, (int)Ideology.Communism, 5.0),
+            (0, 1, (int)Ideology.Communism, 9.99),
+            (1, 2, (int)Ideology.Communism, 10.0),
+            (1, 2, (int)Ideology.Socialism, 30.0),
+        };
+        var com = Instruments.PrdsCount(items, (int)Ideology.Communism, 1000.0);
+        Assert.Equal(3, com.NCell); Assert.Equal(2, com.NBody); Assert.Equal(11.0 / 1000.0, com.MaxFrac, 12);
+        Assert.Equal(0, com.TopRegion); Assert.Equal(2, com.TopBloc);   // 最大のセル＝地域 0・束 2（6+5）
+        var none0 = Instruments.PrdsCount(new List<(int Region, int Bloc, int Axis, double Size)>(), (int)Ideology.Communism, 1000.0);
+        Assert.Equal(-1, none0.TopRegion); Assert.Equal(-1, none0.TopBloc);
+        var soc = Instruments.PrdsCount(items, (int)Ideology.Socialism, 1000.0);
+        Assert.Equal(1, soc.NCell); Assert.Equal(1, soc.NBody); Assert.Equal(0.03, soc.MaxFrac, 12);
+        var none = Instruments.PrdsCount(items, (int)Ideology.Anarchism, 1000.0);
+        Assert.Equal(0, none.NCell); Assert.Equal(0, none.NBody); Assert.Equal(0.0, none.MaxFrac);
+        // 人口 0 の世界は 0 を返す（0 割りで NaN にならない）
+        Assert.Equal(0.0, Instruments.PrdsCount(items, (int)Ideology.Communism, 0.0).MaxFrac);
+    }
+
+    [Fact]
+    public void セルの規模は参加の重みで測る_闘争度が中程度の盤面でも今の主軸の列が本体の数え直しに合う()
+    {
+        // 闘争度 0.3 の盤面＝参加の重み max(不満度, 闘争度) が 1 未満の POP が主＝重みを掛け忘れた数え方（人数のまま）は最大のセルの割合が合わない（突然変異で赤を確かめる）
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            var clusterMax = new Dictionary<string, double>();
+            var clusterBody = new Dictionary<string, int>();
+            try
+            {
+                var on = MakeSim(1789UL); RunQuarters(on, 4, instr: true, finalMil: 0.3);
+                foreach (var n in on.Nations)
+                {
+                    double totalPop = n.World.TotalPopulation, mx = 0; int body = 0;
+                    foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
+                    {
+                        if (ideo != (int)Ideology.Socialism && ideo != (int)Ideology.Communism) continue;
+                        if (size >= FactionSnapshot.MinSizeFraction * totalPop) body++;
+                        if (size > mx) mx = size;
+                    }
+                    clusterMax[Instruments.NameOf(n.World)] = totalPop > 0 ? mx / totalPop : 0; clusterBody[Instruments.NameOf(n.World)] = body;
+                }
+            }
+            finally { Instruments.Configure(null, null); }
+            var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "prds_s1789.tsv"));
+            var h = lines[0].Split('	');
+            var rows = lines.Skip(1).Select(l => l.Split('	')).ToList();
+            double Col(string[] r, string name) => double.Parse(r[Array.IndexOf(h, name)], System.Globalization.CultureInfo.InvariantCulture);
+            int maxQ = rows.Max(r => (int)Col(r, "quarter"));
+            var last = rows.Where(r => (int)Col(r, "quarter") == maxQ).GroupBy(r => r[Array.IndexOf(h, "nation")]).Select(g => g.Last()).ToList();
+            Assert.Equal(4, last.Count);
+            foreach (var r in last)
+            {
+                string nm = r[Array.IndexOf(h, "nation")];
+                // 社会主義と共産主義のセルの最大の割合（今の主軸）：計器の列は共産主義の最大と社会主義の体数しか持たない＝体数の和と共産主義の最大で突き合わせる
+                Assert.Equal(clusterBody[nm], (int)Col(r, "nBodyComReal") + (int)Col(r, "nBodySocReal"));
+                Assert.True(Col(r, "maxCellFracComReal") <= clusterMax[nm] + 1e-9, $"{nm}：共産主義の最大のセルが全体の最大を超える");
+                Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= Col(r, "maxCellFracComReal"));
+            }
+            // 重みを掛け忘れると人数のままの規模になり、足切りを越える体の数が増える（0.3 の重みなら人数の 0.3 倍）。対照：この盤面で運動体が立つ国がある
+            Assert.Contains(last, r => (int)Col(r, "nBodySocReal") + (int)Col(r, "nBodyComReal") > 0);
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
     private static MultiNationSim MakeSim(ulong seed)
         => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], seed, _ => new UtilityAgent());
 
@@ -145,7 +219,7 @@ public class PrdsShadowTests
         return l;
     }
 
-    private static void RunQuarters(MultiNationSim sim, int quarters, bool instr)
+    private static void RunQuarters(MultiNationSim sim, int quarters, bool instr, double finalMil = 1.0)
     {
         if (instr) Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
@@ -157,7 +231,7 @@ public class PrdsShadowTests
             for (int q = 0; q < quarters; q++)
             {
                 sim.StepQuarter();
-                if (q == quarters - 1) foreach (var n in sim.Nations) { foreach (var p in n.World.AllPops()) p.Militancy = 1.0; Ideologies.UpdateShares(n.World); }   // 最後の四半期の後にもう 1 回（人口が動かない状態で数え直しと突き合わせる・計器あり／なしの両方）
+                if (q == quarters - 1) foreach (var n in sim.Nations) { foreach (var p in n.World.AllPops()) p.Militancy = finalMil; Ideologies.UpdateShares(n.World); }   // 最後の四半期の後にもう 1 回（人口が動かない状態で数え直しと突き合わせる・計器あり／なしの両方）
                 if (instr) Instruments.Quarter(sim, 1789UL, q);
             }
         }
@@ -176,6 +250,7 @@ public class PrdsShadowTests
             MultiNationSim on;
             List<double[]> onBits;
             var lastShares = new Dictionary<string, (double RealCom, double TotalK)>();
+            var clusterCount = new Dictionary<string, (int ComBody, int ComCell, double ComMax, int SocBody)>();   // (708) 別の経路（本体の ComputeClusters）の数え直し
             try
             {
                 on = MakeSim(1789UL); RunQuarters(on, 4, instr: true);
@@ -185,6 +260,14 @@ public class PrdsShadowTests
                     double all = 0, com = 0;
                     foreach (var p in n.World.AllPops()) { if (p.Size <= 1e-9) continue; all += p.Size; if (FactionSnapshot.ArgMax(p.IdeologyShares) == (int)Ideology.Communism) com += p.Size; }
                     lastShares[Instruments.NameOf(n.World)] = (all > 0 ? com / all : 0, all);
+                    double totalPop = n.World.TotalPopulation, thr = FactionSnapshot.MinSizeFraction * totalPop, mx = 0;
+                    int comBody = 0, comCell = 0, socBody = 0;
+                    foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
+                    {
+                        if (ideo == (int)Ideology.Communism) { comCell++; if (size >= thr) comBody++; if (size > mx) mx = size; }
+                        else if (ideo == (int)Ideology.Socialism && size >= thr) socBody++;
+                    }
+                    clusterCount[Instruments.NameOf(n.World)] = (comBody, comCell, totalPop > 0 ? mx / totalPop : 0, socBody);
                 }
             }
             finally { Instruments.Configure(null, null); }
@@ -221,7 +304,21 @@ public class PrdsShadowTests
                 Assert.True(Col(r, "tPosUrbanShare") <= Col(r, "tPosShare") + 1e-12);
                 Assert.InRange(Col(r, "tShareLeft"), 0.0, 1.0 + 1e-12);
                 if (Col(r, "tPosShare") > 0) tPosSeen++;
+                // (708) 影の N：今の主軸の列は本体の ComputeClusters の数え直しと一致する（社会主義のセルも含めて＝数え方の検査）／影は今以上
+                var cc = clusterCount[Name(r)];
+                Assert.Equal(cc.ComBody, (int)Col(r, "nBodyComReal")); Assert.Equal(cc.ComCell, (int)Col(r, "nCellComReal"));
+                Assert.True(Math.Abs(cc.ComMax - Col(r, "maxCellFracComReal")) <= 1e-9, $"{Name(r)}：最大のセル {Col(r, "maxCellFracComReal")} が ComputeClusters の数え直し {cc.ComMax} と違う");
+                Assert.Equal(cc.SocBody, (int)Col(r, "nBodySocReal"));
+                Assert.True(Col(r, "nBodyComShadow") >= Col(r, "nBodyComReal"), $"{Name(r)}：影のセルの数が今より少ない");
+                Assert.True(Col(r, "nCellComShadow") >= Col(r, "nCellComReal"));
+                Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= Col(r, "maxCellFracComReal"));
+                Assert.True(Col(r, "nBodyComShadow") <= Col(r, "nCellComShadow"));
+                Assert.InRange(Col(r, "maxCellFracComShadow"), 0.0, 1.0 + 1e-9);
+                if (Col(r, "nBodyComShadow") > 0) Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= FactionSnapshot.MinSizeFraction, "N≧1 なのに最大のセルが足切り未満");
+                if (Col(r, "maxCellFracComShadow") >= FactionSnapshot.MinSizeFraction + 1e-9) Assert.True(Col(r, "nBodyComShadow") >= 1, "最大のセルが足切り以上なのに N＝0");
             }
+            Assert.Contains(last, r => Col(r, "nBodyComShadow") > Col(r, "nBodyComReal"));   // 対照：移し替えで新しく共産主義の運動体が立つ国がある（闘争度 1・組合非合法の盤面）＝影の N を検査している
+            Assert.Contains(last, r => Col(r, "nBodySocReal") > 0);   // 対照：社会主義の運動体が立つ国がある＝セルの数え方を検査している（共産主義だけでは基線で 0 のまま緑になる）
             Assert.True(tPosSeen > 0, "対照：t が正の POP が 1 つも無い＝この盤面は移し替えを検査していない");
             Assert.Contains(last, r => Col(r, "shadowComAxisShare") > Col(r, "realComAxisShare") + 1e-9);   // 対照：影の主軸が今と違う国がある（闘争度 1 の盤面）＝主軸の判定を検査している
         }
