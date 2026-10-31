@@ -20,11 +20,11 @@ public class UrbanFlowRealTests
     static readonly double[] Need = [0.55, 0.20, 0.25, 0.06, 0.04];   // goods.json の主食 5 財の基礎の必要量（literal・FoodLedgerTests と同じ）
 
     /// <summary>英国の開幕の州に 1 か月だけ消費を回す（収穫係数 1・在庫は十分・値段＝ratio×参照価格）。</summary>
-    static (World W, Region R) Month(double[] ratio, int months = 1)
+    static (World W, Region R) Month(double[] ratio, int months = 1, double harvest = 1.0)
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
         var r = w.Region;
-        r.ArableLand = 1e9; r.HarvestFactor = 1.0; r.WeatherBandFactor = 1.0; r.CropHealth = null;
+        r.ArableLand = 1e9; r.HarvestFactor = harvest; r.WeatherBandFactor = 1.0; r.CropHealth = null;
         foreach (var p in r.Pops) p.SetSavings(1e12);
         for (int i = 0; i < Staples.Length; i++)
         {
@@ -44,14 +44,39 @@ public class UrbanFlowRealTests
         int farmers = 0;
         foreach (var p in r.Pops)
         {
-            // 手の算術：自給で満たす量＝必要量(財ごと)×規模×自給率（収穫係数 1）・値段＝ratio×参照価格
+            // 手の算術：自給で満たす量＝必要量(財ごと)×規模×自給率（収穫係数 1）・値段＝ratio×参照価格。★(713) urb4：食べられる量＝必要量で切る（自給率≦1・収穫係数 1 の盤面では切りは効かない＝値は (706) と同じ）
             double expect = 0;
-            for (int i = 0; i < Staples.Length; i++) expect += Need[i] * p.Size * p.Subsistence * ratio[i] * Catalog.RefPrices[Staples[i]];
+            for (int i = 0; i < Staples.Length; i++) expect += Math.Min(Need[i] * p.Size * p.Subsistence, Need[i] * p.Size) * ratio[i] * Catalog.RefPrices[Staples[i]];
             Assert.Equal(expect, p.SubsistenceValuePerMonth.Value, 9);
             if (p.Subsistence > 0) { farmers++; Assert.True(p.SubsistenceValuePerMonth.Value > 0, "前提：自給のある POP の欄が 0"); }
             else Assert.Equal(0.0, p.SubsistenceValuePerMonth.Value);
         }
         Assert.True(farmers >= 1, "前提：自給率の正の POP が無い");
+    }
+
+    [Fact]
+    public void 自給の値は必要量で切る_豊作で自給の量が必要量を超えても食べられる分だけ()
+    {
+        // ★(713) urb4：収穫係数 4（豊作）＝自給で満たす量 必要量×自給率×4 が必要量を超える POP がある。値打ちは食べられる量（必要量）までで切る（met と同じ上限）。
+        double[] ratio = [2.0, 0.5, 1.0, 3.0, 1.5];
+        const double harvest = 4.0;
+        var (_, r) = Month(ratio, 1, harvest);
+        int capped = 0;
+        foreach (var p in r.Pops)
+        {
+            double expect = 0, uncapped = 0;
+            for (int i = 0; i < Staples.Length; i++)
+            {
+                double px = ratio[i] * Catalog.RefPrices[Staples[i]];
+                double raw = Need[i] * p.Size * p.Subsistence * harvest;   // 手の算術（goods.json の必要量の literal）
+                double need = Need[i] * p.Size;
+                expect += (raw < need ? raw : need) * px;
+                uncapped += raw * px;
+            }
+            Assert.Equal(expect, p.SubsistenceValuePerMonth.Value, 9);
+            if (expect < uncapped - 1e-9 * (1 + uncapped)) capped++;
+        }
+        Assert.True(capped >= 1, "前提：自給の量が必要量を超える POP が無い（収穫係数 4 で自給率 0.25 超の POP が要る）");
     }
 
     [Fact]
@@ -317,6 +342,31 @@ public class UrbanFlowRealTests
             Assert.Equal(2 * total * 0.05, p.WSubV, 9);
             Assert.Equal(2 * total * 0.06, p.WHousU, 9);
             Assert.Equal(2 * total * G(0.15, 0.54), p.WGsym, 9);
+            Assert.Equal(2 * total * Math.Abs(G(0.15, 0.54)), p.WAbsGsym, 9);   // (713) urb4
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void 計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない()
+    {
+        // ★(713) urb4：1 か月目は都市の値打ちが高い（g＞0）・2 か月目は低い（g＜0）。wGsym は符号つきの和＝打ち消し合う・wAbsGsym は |g| の和。期待値は盤面の量から手で（G＝対称の相対差の手の算術）。
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_urb4_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true);
+            double total = rural.Size + urban.Size;
+            double g1 = G(0.10 + 0.05, 0.60 - 0.03 * 2.0);   // 0.15 対 0.54 ＝ 正
+            Instruments.UrxPd(w, r, 1.0);
+            urban.EarnedPerMonth = new MoneyPerMonth(0.10 * urban.Size);
+            double g2 = G(0.10 + 0.05, 0.10 - 0.03 * 2.0);   // 0.15 対 0.04 ＝ 負
+            Instruments.UrxPd(w, r, 1.0);
+            Assert.True(g1 > 0 && g2 < 0, "前提：2 か月の g の符号が逆でない");
+            var p = Instruments.UrxPdPeek(w);
+            Assert.Equal(total * (g1 + g2), p.WGsym, 9);
+            Assert.Equal(total * (g1 - g2), p.WAbsGsym, 9);
+            Assert.True(p.WAbsGsym > Math.Abs(p.WGsym) + 0.1 * total, "wAbsGsym が符号つきの和の絶対値と区別できない");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

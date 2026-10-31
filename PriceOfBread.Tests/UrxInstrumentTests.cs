@@ -137,7 +137,8 @@ public class UrxInstrumentTests
             }
             // urxpd_s：本国の州の月次の行があり、regionMonths が正
             var (ph, prow) = Table(System.IO.Path.Combine(dir, "urxpd_s1789.tsv"));
-            Assert.Equal(25, ph.Length); Assert.True(prow.Count > 0 && prow.Any(r => D(r[3]) > 0), "urxpd の行が無い");
+            Assert.Equal(26, ph.Length);   // (713) urb4：末尾に wAbsGsym（25→26）
+            Assert.True(prow.Count > 0 && prow.Any(r => D(r[3]) > 0), "urxpd の行が無い");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

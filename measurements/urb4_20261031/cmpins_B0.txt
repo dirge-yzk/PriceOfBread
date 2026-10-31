@@ -1,0 +1,33 @@
+基線 921 本・腕 921 本
+バイト一致 891 本
+基線にあって腕に無い 0 本：[]
+腕にだけある 0 本：[]
+列が増えた表（基線の列は一致のものを含む）10 本
+   urxpd_s1.tsv	+['wAbsGsym']
+   urxpd_s10.tsv	+['wAbsGsym']
+   urxpd_s2.tsv	+['wAbsGsym']
+   urxpd_s3.tsv	+['wAbsGsym']
+   urxpd_s4.tsv	+['wAbsGsym']
+既知の揺れの列だけが違う表 21 本
+   burscan_s1.tsv	['seconds']
+   burscan_s10.tsv	['seconds']
+   burscan_s2.tsv	['seconds']
+   burscan_s3.tsv	['seconds']
+   burscan_s4.tsv	['seconds']
+   burscan_s5.tsv	['seconds']
+   burscan_s6.tsv	['seconds']
+   burscan_s7.tsv	['seconds']
+   burscan_s8.tsv	['seconds']
+   burscan_s9.tsv	['seconds']
+   clock_s1.tsv	['worldTotalPerMonth']
+   clock_s10.tsv	['worldTotalPerMonth']
+   clock_s2.tsv	['worldTotalPerMonth']
+   clock_s3.tsv	['worldTotalPerMonth']
+   clock_s4.tsv	['worldTotalPerMonth']
+   clock_s5.tsv	['worldTotalPerMonth']
+   clock_s6.tsv	['worldTotalPerMonth']
+   clock_s7.tsv	['worldTotalPerMonth']
+   clock_s8.tsv	['worldTotalPerMonth']
+   clock_s9.tsv	['worldTotalPerMonth']
+   urxpd_s5.tsv	['wGsym', 'wSubV']
+それ以外に違う表 0 本

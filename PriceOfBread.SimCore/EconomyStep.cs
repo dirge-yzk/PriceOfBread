@@ -2076,7 +2076,7 @@ public static class EconomyStep
                             if (fdLedger) { double raw = sub + qty; if (raw > p.GoodNeed) fdOvf[fdI] += raw - p.GoodNeed; else fdDfc[fdI] += p.GoodNeed - raw; }
                             if (fdd is not null) { fdd.Demand += p.GoodDemand; fdd.Sub += sub; }   // (504) 計器（読むだけ）
                         }
-                        if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; p.SubsistenceValuePerMonth += new MoneyPerMonth(sub * m.Price); }   // ★(706) 線 urb3：自給の値（読み手は PopDecision.MigrationValues と計器だけ）／主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
+                        if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; p.SubsistenceValuePerMonth += new MoneyPerMonth((sub > p.GoodNeed ? p.GoodNeed : sub) * m.Price); }   // ★(706) 線 urb3：自給の値（読み手は PopDecision.MigrationValues と計器だけ）。★(713) urb4：食べられる量＝必要量で切る（豊作で sub＞必要量の分は met にも入らない＝値打ちにも入れない・旗 0 では読み手が計器だけ＝世界は一致）／主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
                         else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。自給subは主食限定のまま（生産アンカーの較正に触らない・doc3-3の裁定）
                     }
                 }
