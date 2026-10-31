@@ -284,6 +284,11 @@ public sealed class Pop
     public MoneyPerMonth EarnedPerMonth;             // その月に得た総所得
     public MoneyPerMonth LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
     public MoneyPerMonth IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
+    /// <summary>★(706) 線 urb3：その月の自給の値＝Σ主食 [自給で満たした量 sub（<c>EconomyStep.Run</c> の自給充足）× その州のその主食の今の市場価格 <c>Market.Price</c>]（EarnedPerMonth と同じ〈その月の流れ〉・月の頭に 0 へ戻す）。
+    /// 州の中の移動の〈移る値打ち〉（<see cref="PopDecision.MigrationValues"/>）の農村の側だけが読む（旗 <c>UrbanFlowReal</c> が 0 の間は計器だけが読む＝世界は動かない）。
+    /// ⚠<c>Region.LastSubsistenceOutput</c> では足りない理由＝州ぜんたいの量で値段が掛かっておらず、POP ごとにも分かれない（対の農村の POP だけの値が要る）。
+    /// ⚠セーブに載る理由＝月の途中の状態（EarnedPerMonth と同じ）＝月の途中で保存して読み戻しても移る判断が同じになる（設計思想⑩の〈本当に必要な場合〉）。値段は買い手の楔を含まない基礎の価格（<c>revenue</c> に積む値と同じ）。</summary>
+    public MoneyPerMonth SubsistenceValuePerMonth;
 
     /// <summary>★人と動くお金の運搬の1本（2026-09-30 段4f・作者裁定 Q13＝書き手を Pop の中へ）：貯蓄・個人債務・国債の保有を、人と一緒に <paramref name="from"/> から
     /// <paramref name="to"/> へ同じ額で移す（両側を1回の呼び出しで書く＝湧かず消えない）。運ぶ額は呼び手が決める＝ストック×(運ぶ人数÷規模)（E3）・越境は運賃を引いた持参金と

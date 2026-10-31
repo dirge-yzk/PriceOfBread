@@ -730,6 +730,7 @@ public static class EconomyStep
             p.LastEarnedPerMonth = p.EarnedPerMonth;
             p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
             p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
+            p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
@@ -2075,7 +2076,7 @@ public static class EconomyStep
                             if (fdLedger) { double raw = sub + qty; if (raw > p.GoodNeed) fdOvf[fdI] += raw - p.GoodNeed; else fdDfc[fdI] += p.GoodNeed - raw; }
                             if (fdd is not null) { fdd.Demand += p.GoodDemand; fdd.Sub += sub; }   // (504) 計器（読むだけ）
                         }
-                        if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; }   // 主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
+                        if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; p.SubsistenceValuePerMonth += new MoneyPerMonth(sub * m.Price); }   // ★(706) 線 urb3：自給の値（読み手は PopDecision.MigrationValues と計器だけ）／主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
                         else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。自給subは主食限定のまま（生産アンカーの較正に触らない・doc3-3の裁定）
                     }
                 }
