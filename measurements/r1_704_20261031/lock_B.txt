@@ -1,0 +1,5 @@
+m702 151605 educatio=0.0000 suffrage=0.1007 censorsh=0.4469 bureaucr=0.3797 socialSe=0.0275 antitrus=0.0129 womenRig=0.0094 childLab=0.0000 workHour=0.0000
+n1 150566 educatio=0.0000 suffrage=0.0922 censorsh=0.4249 bureaucr=0.4579 socialSe=0.0317 antitrus=0.0174 womenRig=0.0089 childLab=0.0000 workHour=0.0000
+n2 150774 educatio=0.0000 suffrage=0.1097 censorsh=0.4238 bureaucr=0.5141 socialSe=0.0293 antitrus=0.0177 womenRig=0.0144 childLab=0.0000 workHour=0.0000
+B 150958 educatio=0.0001 suffrage=0.0962 censorsh=0.4327 bureaucr=0.5222 socialSe=0.0236 antitrus=0.0128 womenRig=0.0218 childLab=0.0000 workHour=0.0000
+B 対 m702,n1,n2 最大の段に張り付く割合 腕÷基準の最大（列ごとの最悪）=1.52（womenRightsCode）（2 以上で該当）
