@@ -2887,6 +2887,7 @@ public sealed class Diplomacy
         int captured = 0; var captNames = new List<string>();
         // ★是正（監査2026-09-02 #21）：旧経路（ColonyList奪取・下）と州奪取（旧の旗 ColonialRegionCession・後段）が別々に sa×ColonyCaptureBudget を取っていて講和1回の奪取予算が実質2倍だった＝予算を1本化して持ち越す
         double budget = sa * c.ColonyCaptureBudget;
+        if (Instruments.On) Instruments.CessPeace(this, _year, winner, loser, sa, absScore, budget);   // (717) 割譲の計器 cess_s・cessp_s（読むだけ・恒等）
         if (loser.ColonyList.Count > 0)
         {
             bool winnerIsPlayer = winner.IsPlayer;
@@ -2930,6 +2931,7 @@ public sealed class Diplomacy
                 }
                 if (cost <= budget)
                 {
+                    if (Instruments.On) Instruments.CessObserveColony(this, c, _year, winner, loser, col, cost, budget, budget - cost);   // (717)
                     budget -= cost; captNames.Add(col.Name); col.PlayerInterest = false;
                     // ⚠撤去2026-08-26（辺境の廃止）：旧はここで「獲得植民地と同名の自国 locked frontier 州」を解錠していた
                     //   （幕府の蝦夷地直轄化＝開拓と征服は同じ事象）。辺境という第3スキーマを畳んだので、解錠する対象がもう無い。
@@ -2984,6 +2986,7 @@ public sealed class Diplomacy
                     { pick = r; pickVal = val; pickCost = cost; }
                 }
                 if (pick is null) break;
+                if (Instruments.On) Instruments.CessObserveRegion(this, c, _year, 2, winner, loser, pick, pickCost, budget, budget - pickCost, double.NaN);   // (717)
                 budget -= pickCost; ctaken++; captured++;
                 captNames.Add(pick.Name);
                 CedeRegion(c, lcw, winner, wcw, pick, loser.Name);
@@ -3224,6 +3227,7 @@ public sealed class Diplomacy
             if (better) { best = g; cede = r; bestDist = dist; }
         }
         if (cede is null) return false;   // 移転できる州がない（投射圏内に候補なし＝賠償のみ）
+        if (Instruments.On && loser.SelfPower is { } cessLoserP) Instruments.CessObserveRegion(this, c, _year, takePrize ? 4 : 3, winner, cessLoserP, cede, double.NaN, double.NaN, double.NaN, bestDist);   // (717)
         CedeRegion(c, loser, winner, ww, cede, loserName);
         return true;   // ★是正（監査2026-09-02 #23）：戻り値＝実際に移転したか。_pendingRevanchの予約可否に使う（下）
     }
@@ -3287,7 +3291,7 @@ public sealed class Diplomacy
 
     /// <summary>海を渡れるか（陸続きかどうかの判定は含まない）＝攻者が艦を持ち、制海権が <see cref="Coefficients.SeaInvasionControlMin"/> 以上。上陸ゲート（<see cref="LandingGate"/>）と、講和の植民地奪取・植民地格の州の割譲の射程が同じ1本を読む
     /// （植民地格の州の候補を数える所〔CedeTerritory〕だけは、敗者の経済を持たない場合の既定の制海権 0.5 を持つので同じ式を手で書く）。</summary>
-    private bool CanCrossSea(Power attacker, Power defender, Coefficients c)
+    internal bool CanCrossSea(Power attacker, Power defender, Coefficients c)
         => attacker.NavalPower > 1e-9 && SeaControl(attacker, defender) >= c.SeaInvasionControlMin;
 
     /// <summary>★陸戦が成立するか（上陸ゲートの**正しい適用形**・2026-08-01 の敵対的レビューで是正）。

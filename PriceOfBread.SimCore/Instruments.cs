@@ -1875,6 +1875,7 @@ public static partial class Instruments
         IdnClose(sim);   // (640)
         PrdfClose(sim);  // (681)
         PrdsClose(sim);  // (700)
+        CessClose(sim, sk.Seed);   // (717) 割譲の表 cess_s・講和の表 cessp_s
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
         sk.Svc?.Dispose(); sk.Svc = null;
