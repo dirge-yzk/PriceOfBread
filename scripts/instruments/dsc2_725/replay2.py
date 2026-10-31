@@ -122,7 +122,7 @@ def replay(N, R, C, years, colname, D0):
             A = a_of(col, colname)
             dl = B_EXP * (T + E + X) / (A * l ** RHO) - rep3 * (1.0 - E) * (l - 1.0)
             newL[(uid, col)] = l + dl
-            traj[(q, uid, col)] = (l + dl, E)
+            traj[(q, uid, col)] = (l + dl, E, T, X)
             dec = (years[q] // 10) * 10
             cc = contrib[dec]; cc[0] += T; cc[1] += E; cc[2] += X
         L = newL
@@ -148,6 +148,24 @@ def by_year(N, R, years, traj, uids):
             nv = N.get((q, uid))
             if nv and den > 0:
                 out[(name, y)] = (num / den, nv['br'], vref)
+    return out
+
+
+def terms_by_year(R, years, traj, uids, ys):
+    # 記録（§10-5 の N3 の分け）：国ごとの T・E・X の名目の値段の重みの平均（年末）
+    out = {}
+    for q in sorted(years):
+        if q % 4 != 3 or years[q] not in ys:
+            continue
+        rows = R.get(q, {})
+        for name, uid in uids.items():
+            acc = [0.0, 0.0, 0.0]; den = 0.0
+            for (u, col), r in rows.items():
+                t = traj.get((q, u, col)) if u == uid else None
+                if t and r[1] > 0:
+                    acc[0] += r[1] * t[2]; acc[1] += r[1] * t[1]; acc[2] += r[1] * t[3]; den += r[1]
+            if den > 0:
+                out[(name, years[q])] = tuple(a / den for a in acc)
     return out
 
 
@@ -199,6 +217,9 @@ def main():
         print("国\t" + "\t".join(str(y) for y in YS))
         for name in NINE:
             print(name + "\t" + "\t".join((f"{lb[(name, y)][0]:.3f}/{lb[(name, y)][1]:.3f}" if (name, y) in lb else "-") for y in YS))
+        tb = terms_by_year(R, years, traj, uids, (1830, 1850))
+        for y in (1830, 1850):
+            print(f"[記録] {y} 年末の国ごとの T/E/X（名目の値段の重みの平均・N3 の分け）：" + "・".join(f"{n} {tb[(n, y)][0]:.3f}/{tb[(n, y)][1]:.3f}/{tb[(n, y)][2]:.4f}" for n in NINE if (n, y) in tb))
         print(f"[記録] 開幕 q0 に産出が正の蒸気機関以外の発見の行（国×行）の件数＝{q0d}")
         print(f"[記録] 国×四半期の Σc の最大＝{sigc[0]:.4g}（q, uid＝{sigc[1]}）")
         print("[記録] 項の寄与の和（全ての国×列・十年ごと T/E/X と X の割合）：" + "・".join(
