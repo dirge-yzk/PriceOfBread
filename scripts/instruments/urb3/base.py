@@ -10,6 +10,10 @@
 #   (713) urb4：列 wAbsGsym（Σ total×|g|）があれば W1abs＝45 窓の中央値（窓の値＝種ごとの Σ wAbsGsym÷Σ sumTotal の種の中央値・絶対値はとらない）と
 #     P＝g が 0 に閉じたときの名目の比の見込み 1＋(自給÷人＋家賃÷人)÷農村の現金÷人（窓の値＝種の中央値・45 窓の中央値）を出す。
 #     3 本以上を渡すと、事前登録（設計書 §4 段3 の事前登録・(713)）の規則で門の値を出す（先頭のラベル＝基線・P は基線から）。
+#   (713) 後半：腕 B は `--arm <ラベル>=<フォルダ>` で渡す（何本でも）。門の値は位置引数の先頭 3 本（基線・N1・N2）だけから出す＝腕の W1abs・W2 は門の値に混ざらない。
+#     事前登録に固定した値（W1abs ≦ 0.2136・W2 ≧ 1.1526）と規則の値が違えば警告を出し、判定は固定した値で行う（両方満たす＝働いた・片方＝働いていない）。
+#     記録（採否に使わない）：noPair の件数・対の都市の割合（Σ sumPairUrban÷Σ sumTotal）と州の都市の割合（Σ sumRegionUrban÷Σ sumRegionPop）の年代別の中央値・
+#     国×種の sumPairUrban の最小÷ピーク・region_s の本国格の州の都市 POP（populationK−ruralPopulationK）の最小÷ピークの件数（1/10・1/4 未満）。
 import sys, os, csv, statistics as st
 from collections import defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
@@ -49,6 +53,44 @@ def parse_seeds(a):
     return range(int(lo), int(hi) + 1)
 
 
+def region_urban(root, seeds):
+    # region_s の本国格の州の都市 POP（populationK−ruralPopulationK）の最小÷ピーク（種×州ごと）。ピークが 0 の州は数えない。
+    n = lt10 = lt25 = 0
+    worst = (9.0, '')
+    for s in seeds:
+        p = os.path.join(root, f"region_s{s}.tsv")
+        if not os.path.exists(p):
+            continue
+        mx = {}
+        mn = {}
+        for d in rows(p):
+            if d['tier'] != 'Core':
+                continue
+            k = (d['nation'], d['region'])
+            u = fl(d['populationK']) - fl(d['ruralPopulationK'])
+            if u != u:
+                continue
+            if k not in mx:
+                mx[k] = mn[k] = u
+            else:
+                if u > mx[k]:
+                    mx[k] = u
+                if u < mn[k]:
+                    mn[k] = u
+        for k, hi in mx.items():
+            if hi <= 0:
+                continue
+            r = mn[k] / hi
+            n += 1
+            if r < 0.1:
+                lt10 += 1
+            if r < 0.25:
+                lt25 += 1
+            if r < worst[0]:
+                worst = (r, f"種{s} {k[0]}/{k[1]}")
+    return {'n': n, 'lt10': lt10, 'lt25': lt25, 'worst': worst}
+
+
 def analyse(label, root, seeds):
     win = defaultdict(lambda: defaultdict(list))   # (nation, era) -> metric -> per-seed values
     hasG = None
@@ -59,6 +101,10 @@ def analyse(label, root, seeds):
     flipN = flipD = 0.0
     flip_era = defaultdict(lambda: [0.0, 0.0])
     used = 0
+    noPairSum = 0.0
+    pairfrac = defaultdict(list)     # era -> 種×国の窓の値
+    statefrac = defaultdict(list)
+    pairMinPeak = []                 # 国×種の sumPairUrban の最小÷ピーク
     for s in seeds:
         p = os.path.join(root, f"urxpd_s{s}.tsv")
         if not os.path.exists(p):
@@ -73,8 +119,12 @@ def analyse(label, root, seeds):
             if not e:
                 continue
             a = acc[(d['nation'], e)]
-            for k in ('sumTotal', 'wIncU', 'wIncR', 'regionMonths'):
+            for k in ('sumTotal', 'wIncU', 'wIncR', 'regionMonths', 'noPair', 'sumPairUrban', 'sumRegionUrban', 'sumRegionPop'):
                 a[k] += fl(d[k])
+            noPairSum += fl(d['noPair'])
+            pk = (d['nation'], 'pu')
+            acc[pk]['min'] = min(acc[pk].get('min', 1e300), fl(d['sumPairUrban']))
+            acc[pk]['max'] = max(acc[pk].get('max', 0.0), fl(d['sumPairUrban']))
             if hasG:
                 for k in ('wSubV', 'wHousU', 'wGsym', 'flowFlipRegionMonths'):
                     a[k] += fl(d[k])
@@ -85,9 +135,16 @@ def analyse(label, root, seeds):
                 flipN += fl(d['flowFlipRegionMonths'])
                 flipD += fl(d['regionMonths'])
         for key, a in acc.items():
+            if key[1] == 'pu':
+                if a['max'] > 0:
+                    pairMinPeak.append(a['min'] / a['max'])
+                continue
             T = a['sumTotal']
             if T <= 0:
                 continue
+            pairfrac[key[1]].append(a['sumPairUrban'] / T)
+            if a['sumRegionPop'] > 0:
+                statefrac[key[1]].append(a['sumRegionUrban'] / a['sumRegionPop'])
             m = win[key]
             iu, ir = a['wIncU'] / T, a['wIncR'] / T
             m['W2'].append(iu / ir if ir > 0 else float('nan'))
@@ -125,6 +182,12 @@ def analyse(label, root, seeds):
                 a[1] += fl(d['urbanOutK'])
                 a[2] += fl(d['calls'])
     out = {'label': label, 'seeds': used, 'hasG': bool(hasG), 'hasA': bool(hasA)}
+    out['noPair'] = noPairSum
+    out['pairfrac'] = {e: med(v) for e, v in sorted(pairfrac.items())}
+    out['statefrac'] = {e: med(v) for e, v in sorted(statefrac.items())}
+    out['pairMinPeak_min'] = min(pairMinPeak) if pairMinPeak else float('nan')
+    out['pairMinPeak_med'] = med(pairMinPeak)
+    out['regions'] = region_urban(root, seeds)
     keys = sorted(win)
     out['windows'] = len(keys)
     out['W2'] = med([med(win[k]['W2']) for k in keys])
@@ -160,18 +223,24 @@ def analyse(label, root, seeds):
 def main():
     seeds = range(1, 11)
     args = []
+    arms = []
     a = sys.argv[1:]
     i = 0
     while i < len(a):
         if a[i] == '--seeds':
             seeds = parse_seeds(a[i + 1])
             i += 2
+        elif a[i] == '--arm':
+            arms.append(a[i + 1])
+            i += 2
         else:
             args.append(a[i])
             i += 1
     res = [analyse(x.split('=', 1)[0], x.split('=', 1)[1], seeds) for x in args]
+    armres = [analyse(x.split('=', 1)[0], x.split('=', 1)[1], seeds) for x in arms]
+    allres = res + armres
     print('# urb3 (706) 基線の値（手計算の基線＝W1 0.217・W2 1.000・戻す割合 0.438〔m694 の軌道・eq.py〕）')
-    for o in res:
+    for o in allres:
         print(f"## {o['label']}  seeds={o['seeds']} windows={o['windows']} hasG={o['hasG']}")
         print(f"W2（名目の都市÷農村の窓の中央値）\t{o['W2']:.4f}")
         if o['hasG']:
@@ -187,14 +256,20 @@ def main():
         print(f"戻す割合（urx_s・社会移動÷月次政治・本国・合計）\t{o['ret_ux']:.4f}\t月次政治の純 {o['ret_ux_pd']:.0f}千人\t社会移動の純 {o['ret_ux_so']:.0f}千人\t種ごとの最小〜最大 {o['ret_seed_min']:.3f}〜{o['ret_seed_max']:.3f}")
         if 'ret_rt' in o:
             print(f"戻す割合（urxrt_s・路 Meritocracy の純÷路 PopDecision の純）\t{o['ret_rt']:.4f}\tPopDecision 入 {o['rt_pd'][0]:.0f}・出 {o['rt_pd'][1]:.0f}・Meritocracy 入 {o['rt_mer'][0]:.0f}・出 {o['rt_mer'][1]:.0f}（千人）\tPopDecision の総量÷純 {o['pd_gross_over_net']:.2f}")
+        print(f"記録：noPair の件数（全期間の和）\t{o['noPair']:.0f}\t対の都市の割合の年代別（種×国の中央値）\t" + '\t'.join(f"{e}:{v:.4f}" for e, v in o['pairfrac'].items()))
+        print("記録：州の都市の割合の年代別（Σ sumRegionUrban÷Σ sumRegionPop・種×国の中央値）\t" + '\t'.join(f"{e}:{v:.4f}" for e, v in o['statefrac'].items()))
+        print(f"記録：国×種の sumPairUrban の最小÷ピーク\t最小 {o['pairMinPeak_min']:.4f}\t中央値 {o['pairMinPeak_med']:.4f}")
+        rg = o['regions']
+        print(f"記録：本国格の州の都市 POP の最小÷ピーク（region_s・種×州）\t州数 {rg['n']}\t1/10 未満 {rg['lt10']}\t1/4 未満 {rg['lt25']}\t最小 {rg['worst'][0]:.4f}（{rg['worst'][1]}）")
         print()
     if len(res) >= 2:
         print('# 幅（最大−最小）')
         for k in ('W2', 'W1', 'W1b', 'W1abs', 'P', 'flip', 'ret_ux', 'ret_rt'):
             v = [o[k] for o in res if k in o]
             if len(v) >= 2:
-                print(f"{k}\t" + ' '.join(f"{o['label']}={o[k]:.4f}" for o in res if k in o) + f"\t幅 {max(v) - min(v):.4f}")
-    if len(res) >= 3 and all(o.get('hasA') for o in res):
+                print(f"{k}\t" + ' '.join(f"{o['label']}={o[k]:.4f}" for o in allres if k in o) + f"\t幅（位置引数だけ） {max(v) - min(v):.4f}")
+    if len(res) >= 3 and all(o.get('hasA') for o in res[:3]):
+        res = res[:3]
         # (713) 事前登録の規則（設計書 §4 段3 の事前登録）：門の値は基線・N1・N2 の数から機械的に置く
         wv = [o['W1abs'] for o in res]; wmin, ww = min(wv), max(wv) - min(wv)
         g1 = min(0.5 * wmin, wmin - 3 * ww)
@@ -206,6 +281,19 @@ def main():
         print('# 門の値（(713) 事前登録の規則・先頭のラベル＝基線）')
         print(f"W1abs の門\t腕 B の W1abs ≦ {g1:.4f}\tWmin {wmin:.4f}・幅 {ww:.4f}・0.5×Wmin {0.5 * wmin:.4f}・Wmin−3w {wmin - 3 * ww:.4f}\t{'判定力なし＝記録へ' if deg1 else '門'}")
         print(f"W2 の門\t腕 B の W2 ≧ {g2:.4f}\tXmax {xmax:.4f}・幅 {xw:.4f}・P {P:.4f}・Xmax＋10x {xmax + 10 * xw:.4f}・Xmax＋0.25(P−Xmax) {xmax + 0.25 * (P - xmax):.4f}\t{'判定力なし＝記録へ' if deg2 else '門'}")
+        # (713) 後半：腕 B の判定（事前登録に固定した値で行う）
+        FIX1, FIX2 = 0.2136, 1.1526
+        if abs(round(g1, 4) - FIX1) > 1e-4 or abs(round(g2, 4) - FIX2) > 1e-4:
+            print(f"!! 警告：規則の値（{g1:.4f}・{g2:.4f}）が事前登録に固定した値（{FIX1}・{FIX2}）と違う＝読む入力が違う。判定は固定した値で行う")
+        for o in armres:
+            if not o.get('hasA'):
+                print(f"## 判定 {o['label']}：wAbsGsym の列が無い＝判定不能")
+                continue
+            ok1 = o['W1abs'] <= FIX1
+            ok2 = o['W2'] >= FIX2
+            verdict = '働いた（両方満たす）' if (ok1 and ok2) else ('働いていない（片方だけ）' if (ok1 or ok2) else '働いていない（どちらも外れ）')
+            print(f"## 判定 {o['label']}\tW1abs {o['W1abs']:.4f} {'≦' if ok1 else '＞'} {FIX1}\tW2 {o['W2']:.4f} {'≧' if ok2 else '＜'} {FIX2}\t{verdict}")
+            print(f"## 読み方の材料 {o['label']}\tP {o['P']:.4f}（基線 {res[0]['P']:.4f}・N1 {res[1]['P']:.4f}・N2 {res[2]['P']:.4f}）\t戻す割合 urxrt {o.get('ret_rt', float('nan')):.4f}")
     print()
     print('# 窓ごと（種の中央値）：国\t年代\tG\tD(手計算の形)\tW2\tflip\t自給/人\t家賃/人\t[先頭のラベルのみ]')
     o = res[0]
