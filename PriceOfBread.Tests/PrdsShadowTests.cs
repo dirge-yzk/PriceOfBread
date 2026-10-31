@@ -149,6 +149,9 @@ public class PrdsShadowTests
         };
         var com = Instruments.PrdsCount(items, (int)Ideology.Communism, 1000.0);
         Assert.Equal(3, com.NCell); Assert.Equal(2, com.NBody); Assert.Equal(11.0 / 1000.0, com.MaxFrac, 12);
+        Assert.Equal(0, com.TopRegion); Assert.Equal(2, com.TopBloc);   // 最大のセル＝地域 0・束 2（6+5）
+        var none0 = Instruments.PrdsCount(new List<(int Region, int Bloc, int Axis, double Size)>(), (int)Ideology.Communism, 1000.0);
+        Assert.Equal(-1, none0.TopRegion); Assert.Equal(-1, none0.TopBloc);
         var soc = Instruments.PrdsCount(items, (int)Ideology.Socialism, 1000.0);
         Assert.Equal(1, soc.NCell); Assert.Equal(1, soc.NBody); Assert.Equal(0.03, soc.MaxFrac, 12);
         var none = Instruments.PrdsCount(items, (int)Ideology.Anarchism, 1000.0);

@@ -19,6 +19,7 @@ namespace PriceOfBread.SimCore;
 //   セルの鍵・参加の重み・足切りは Factions.Step が読む ComputeClusters と同じ物を通す（FactionSnapshot.BlocIdeo と同じ束・FactionSnapshot.Participation が参加の重み・足切りは MinSizeFraction×w.TotalPopulation）＝第二の定義を作らない。
 //   nBodyComShadow ＝ 影の主軸が共産主義のセルのうち規模（参加で重みづけた人数）が全国人口の 1% 以上の数＝設計書 §3-2 の影の N／nCellComShadow ＝ 足切りの前の数／maxCellFracComShadow ＝ 最大のセルの規模÷全国人口。
 //   nBodyComReal・nCellComReal・maxCellFracComReal ＝ 同じ量を今の主軸（移し替えなし）で数えた物＝prdf_s の nBodyCom・nCellCom・maxCellFracCom と同じ定義（Factions.Step の終わりの断面との照合用）。
+//   topRegionComShadow・topBlocComShadow ＝ 影の共産主義のセルのうち最大の物の（地域の番号・束）＝セルの同一性（結束は同じ州×束×主軸のセルに育つ＝N≧1 の連続がどのセルかを追える・無ければ -1）。
 //   nBodySocShadow ＝ 影の主軸が社会主義のセルの数（足切り後・移し替えで痩せた後）／nBodySocReal ＝ 今の主軸の同じ量（prdf_s の nBodySoc と照合できる）。
 //   足切り 1% 以外の閾値は maxCellFracComShadow から読める（N≧1 ⇔ 最大のセルが閾値以上）。
 // ⚠限界（計器が自己申告する）：国の量しか出ない（POP 別の行は無い）／mil が NaN の POP は t が正にならない（旗 0 の本体と同じく NaN は r を 0 へ倒す）／unionLaw と repress は四半期の値（UpdateShares の時点の w.LaborUnion）／
@@ -28,7 +29,7 @@ public static partial class Instruments
 {
     internal const string PrdsHeaderText = "quarter\tyear\tnation\tpolityCode\teraSoc\teraComm\tunionLaw\trepress\tpopK\ttPosShare\ttPosUrbanShare"
         + "\tshadowComAxisK\tshadowComAxisShare\tshadowComAxisUrbanK\trealComAxisShare\ttShareLeft\tmilMean\tmilMeanTPos"
-        + "\tnBodyComShadow\tnCellComShadow\tmaxCellFracComShadow\tnBodyComReal\tnCellComReal\tmaxCellFracComReal\tnBodySocShadow\tnBodySocReal";
+        + "\tnBodyComShadow\tnCellComShadow\tmaxCellFracComShadow\tnBodyComReal\tnCellComReal\tmaxCellFracComReal\tnBodySocShadow\tnBodySocReal\ttopRegionComShadow\ttopBlocComShadow";
 
     /// <summary>1 国の 1 四半期の累計（UpdateShares の POP のループの中で積む）。</summary>
     internal sealed class PrdsAcc
@@ -45,7 +46,7 @@ public static partial class Instruments
     internal readonly record struct PrdsCell(Pop P, int Bloc, double Part, int RealAxis, int ShadowAxis);
 
     /// <summary>(708) セルの集計の結果（足切りの前の数・足切り後の数・最大のセルの規模÷全国人口）。</summary>
-    internal readonly record struct PrdsCellCount(int NCell, int NBody, double MaxFrac);
+    internal readonly record struct PrdsCellCount(int NCell, int NBody, double MaxFrac, int TopRegion, int TopBloc);
 
     /// <summary>(708) 純関数：（地域・束・主軸）ごとの規模を足し、主軸 <paramref name="axis"/> のセルを数える。足切りは <see cref="FactionSnapshot.MinSizeFraction"/>×<paramref name="totalPop"/>（Factions.Step と同じ不等式）。
     /// 入力は（地域の番号・束・主軸・規模＝人数×参加の重み）。</summary>
@@ -60,8 +61,9 @@ public static partial class Instruments
         }
         double thr = FactionSnapshot.MinSizeFraction * totalPop, max = 0;
         int nBody = 0;
-        foreach (var v in cell.Values) { if (v >= thr) nBody++; if (v > max) max = v; }
-        return new PrdsCellCount(cell.Count, nBody, totalPop > 0 ? max / totalPop : 0.0);
+        int topReg = -1, topBloc = -1;
+        foreach (var (key, v) in cell) { if (v >= thr) nBody++; if (v > max) { max = v; topReg = key.Region; topBloc = key.Bloc; } }   // 同点＝挿入順で先のセル
+        return new PrdsCellCount(cell.Count, nBody, totalPop > 0 ? max / totalPop : 0.0, topReg, topBloc);
     }
 
     sealed class PrdsRow { public string Line = ""; }
@@ -149,7 +151,7 @@ public static partial class Instruments
             F(Fr(a.TPos)), F(Fr(a.TPosUrban)), F(a.ShadowCom), F(Fr(a.ShadowCom)), F(a.ShadowComUrban), F(Fr(a.RealCom)),
             F(leftMean > 0 ? tMean / leftMean : 0.0), F(a.MilN > 0 ? a.MilSum / a.MilN : 0.0), F(a.MilTPosN > 0 ? a.MilTPosSum / a.MilTPosN : 0.0),
             comS.NBody.ToString(inv), comS.NCell.ToString(inv), F(comS.MaxFrac), comR.NBody.ToString(inv), comR.NCell.ToString(inv), F(comR.MaxFrac),
-            socS.NBody.ToString(inv), socR.NBody.ToString(inv));
+            socS.NBody.ToString(inv), socR.NBody.ToString(inv), comS.TopRegion.ToString(inv), comS.TopBloc.ToString(inv));
         PrdsPending.GetOrCreateValue(w).Add(new PrdsRow { Line = line });
     }
 
