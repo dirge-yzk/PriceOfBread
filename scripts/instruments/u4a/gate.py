@@ -110,8 +110,13 @@ def judge(root, pinf, ns, sb, base=None):
     g1l, g2l = P['g2']['gate1_limit'], P['g2']['gate2_limit']
     out.append(f"縛る組 {len(tr)} 件：R の中央 {mt:.3f}（限界 {g1l:.3f}）→ ①{'通る' if ok(mt) and mt <= g1l else '外れ'}／縛る組の 2/3 以上で R ≦ 1−½(1−fp)：{sum(r <= 1 - 0.5 * (1 - c['fp']) for _, r, c in tr)}/{len(tr)}（記録）")
     out.append(f"緩む組 {len(lr)} 件：R の中央 {ml:.3f}（限界 {g2l:.3f}）→ ②{'通る' if ok(ml) and ml >= g2l else '外れ'}")
-    out.append(f"G-U4-2：{'通る' if ok(mt) and ok(ml) and mt <= g1l and ml >= g2l else '外れ'}")
-    out.append('## F1（周期 2 の振動）')
+    # ②′（腕の前の追記・反証役の中③・設計書 §11-8）：1880 年代以前の緩む組（お金が足りる国×十年＝今の配給で計画の 0.6 前後しか払えていない側）。限界は pin の W の比から機械的に取る（1 − その中央値）。
+    le = [(k, r, c) for k, r, c in lr if int(k.split('|')[1]) <= 1880]
+    wle = med([c['wratio'] for _, _, c in le]); l2 = 1 - wle; mle = med([r for _, r, _ in le])
+    out.append(f"早い緩む組（1880 年代以前）{len(le)} 件：R の中央 {mle:.3f}（限界 {l2:.3f}＝1 − W の比の中央 {wle:.3f}）→ ②′{'通る' if ok(mle) and mle >= l2 else '外れ'}")
+    g2ok = ok(mt) and ok(ml) and ok(mle) and mt <= g1l and ml >= g2l and mle >= l2
+    out.append(f"G-U4-2（①かつ②かつ②′）：{'通る' if g2ok else '外れ'}")
+    out.append('## F1（周期 2 の振動・分母は rho が有限な十年だけ＝建設の差が 0 の十年は分母から落ちる）')
     per = C.defaultdict(lambda: [0, 0])
     for key, c in P['g2_cells'].items():
         n, d = key.split('|'); r = cell(g2, (n, int(d)), 'rho')
@@ -167,6 +172,58 @@ def report(pinf):
         o.append(f"{n}	{d}	{c['fp']:.3f}	{ {'tight': '縛る', 'loose': '緩む', None: '-'}[c['group']] }	" + '	'.join(f'{x:.0f}' for x in c['paid']) + f"	{c['wratio']:.3f}	" + '	'.join(f'{x:.2f}' for x in c['rho']) + f"	{(c['wrho'] if c['wrho'] is not None else float('nan')):.2f}")
     return chr(10).join(o)
 
+def _series(root, ns, sb):
+    """money_s から 国×年 の（outstandingLoansStock・cumulativeFiatIssuedStock）の年末の値を種ごとに（記録用）。"""
+    out = C.defaultdict(lambda: C.defaultdict(list))
+    for s in range(sb, sb + ns):
+        last = {}
+        with open(f"{root}/money_s{s}.tsv", encoding='utf-8') as f:
+            for x in csv.DictReader(f, delimiter='	'):
+                n = x['nation']
+                if n not in NAT: continue
+                last[(n, int(x['year']))] = (float(x['outstandingLoansStock']), float(x['cumulativeFiatIssuedStock']))
+        for (n, y), v in last.items():
+            out[(n, y)]['loans'].append(v[0]); out[(n, y)]['fiat'].append(v[1])
+    return out
+
+def record(arm, roots, ns, sb, base=None):
+    """記録（採否に使わない・反証役の高②②・中④）。①貯蓄を埋める与信の増え：国ごとの年末の与信残高と不換の累計の種の中央値（基線・N1・N2・腕）。
+    ②貯蓄の上限が建設の予算を切った割合：budget÷flowBudget（本国格・植民地・国×十年）。③植民地の建設の支払いと bind。"""
+    out = ['## 記録 ①：与信の残高と不換の累計（money_s・種の中央値・年末）：基線／N1／N2／腕']
+    ser = [_series(r, ns, sb) for r in roots + [arm]]
+    for n in NAT:
+        for y in (1850, 1900, 1949):
+            row = []
+            for sr in ser:
+                k = (n, y)
+                row.append(f"{med(sr[k]['loans']):.4g}／{med(sr[k]['fiat']):.4g}" if k in sr else 'NA')
+            out.append(f"{n}	{y}	与信／不換の累計	" + '	'.join(row))
+    out.append('## 記録 ②③：consf_s の budgetMoneySum÷flowBudgetMoneySum（貯蓄の上限が効いた度合い・1 で上限なし）と paid・bind（国×十年・種の中央値・基線／腕）')
+    def agg(root, scope):
+        res = C.defaultdict(lambda: C.defaultdict(list))
+        for s in range(sb, sb + ns):
+            a = C.defaultdict(lambda: C.defaultdict(float))
+            with open(f"{root}/consf_s{s}.tsv", encoding='utf-8') as f:
+                for x in csv.DictReader(f, delimiter='	'):
+                    n = x['nation']
+                    if n not in NAT or x['scope'] != scope: continue
+                    if any(x.get(k) in (None, '') for k in ('budgetMoneySum', 'flowBudgetMoneySum', 'paidMoneySum', 'desiringRegionMonthsCount', 'budgetBoundRegionMonthsCount')): continue
+                    d = dec(int(x['year']))
+                    for k in ('budgetMoneySum', 'flowBudgetMoneySum', 'paidMoneySum', 'desiringRegionMonthsCount', 'budgetBoundRegionMonthsCount'): a[(n, d)][k] += float(x[k])
+            for key, t in a.items():
+                res[key]['ratio'].append(div(t['budgetMoneySum'], t['flowBudgetMoneySum'])); res[key]['paid'].append(t['paidMoneySum'])
+                res[key]['bind'].append(div(t['budgetBoundRegionMonthsCount'], t['desiringRegionMonthsCount']))
+        return res
+    for scope in ('home', 'Colonial'):
+        bs = agg(roots[0], scope); ar = agg(arm, scope)
+        for n in NAT:
+            for d in sorted({k[1] for k in ar if k[0] == n}):
+                k = (n, d)
+                if k not in bs: continue
+                out.append(f"{scope}	{n}	{d}	上限の度合い 基線 {med(bs[k]['ratio']):.3f}／腕 {med(ar[k]['ratio']):.3f}	paid 基線 {med(bs[k]['paid']):.4g}／腕 {med(ar[k]['paid']):.4g}	bind 基線 {med(bs[k]['bind']):.3f}／腕 {med(ar[k]['bind']):.3f}")
+    return chr(10).join(out)
+
+
 if __name__ == '__main__':
     a = sys.argv
     if a[1] == 'pin':
@@ -177,6 +234,9 @@ if __name__ == '__main__':
         print(nullcheck([a[2], a[3], a[4]], a[5], ns, sb))
     elif a[1] == 'report':
         print(report(a[2]))
+    elif a[1] == 'record':   # record <腕の生> <基線の生> <N1 の生> <N2 の生> [種の数] [種の起点]
+        ns = int(a[6]) if len(a) > 6 else 10; sb = int(a[7]) if len(a) > 7 else 1
+        print(record(a[2], [a[3], a[4], a[5]], ns, sb))
     elif a[1] == 'judge':
         ns = int(a[4]) if len(a) > 4 else 10; sb = int(a[5]) if len(a) > 5 else 1
         print(judge(a[2], a[3], ns, sb, a[6] if len(a) > 6 else None))
