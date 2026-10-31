@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// <summary>★(717) 線 ces1：割譲の表 <c>cess_s</c>・講和の表 <c>cessp_s</c>（読むだけの計器・恒等）の番人。
 /// 盤面は ColonyCessionDistanceTests と同じ（勝者＝フランス・敗者＝イギリス・第三者＝スペイン・凍結した外交・艦の強さを手で置く）。
 /// 期待値は計器の式を写さず、地理（マドラスは港で、フランスの州と陸で隣り合わない）と講和の結果（実際に移った州の名前と数）から取る。
-/// 陸の隣接の写し（<see cref="Instruments.CessAdjacent"/>）は <see cref="ArmyShape.Borders"/> と突き合わせる（辺の判定が替わったとき追いつかない写しの番人）。</summary>
+/// 陸の隣接の写し（<see cref="Diplomacy.CessionAdjacent"/>）は <see cref="ArmyShape.Borders"/> と突き合わせる（辺の判定が替わったとき追いつかない写しの番人）。</summary>
 [Collection("Instruments")]
 public class CessionInstrumentTests
 {
@@ -192,7 +192,7 @@ public class CessionInstrumentTests
                     var cc = Climate.CityCoord(r.Name);
                     if (cc.Lat == 0 && cc.Lon == 0) continue;
                     int nd = PathGraph.NearestNode(cc.Lat, cc.Lon);
-                    if (nd >= 0 && Instruments.CessAdjacent(nd, jNodes, out _)) { any = true; break; }
+                    if (nd >= 0 && Diplomacy.CessionAdjacent(nd, jNodes, out _)) { any = true; break; }
                 }
                 bool border = b[i * n + j] > 0;
                 if (any == border) agree++;

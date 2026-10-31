@@ -2888,6 +2888,8 @@ public sealed class Diplomacy
         // ★是正（監査2026-09-02 #21）：旧経路（ColonyList奪取・下）と州奪取（旧の旗 ColonialRegionCession・後段）が別々に sa×ColonyCaptureBudget を取っていて講和1回の奪取予算が実質2倍だった＝予算を1本化して持ち越す
         double budget = sa * c.ColonyCaptureBudget;
         if (Instruments.On) Instruments.CessPeace(this, _year, winner, loser, sa, absScore, budget);   // (717) 割譲の計器 cess_s・cessp_s（読むだけ・恒等）
+        // ★(723) 線 ces2：旗 CessionUnified が正のときだけ、講和の始めの勝者の側の文脈を作る（候補と費用の 1 本の判定 CessionTarget の入力）。0（既定）は null のまま＝下の 4 経路は旧の式。国を持たない勝者は旧のまま。
+        CessionReach? cessReach = c.CessionUnified > 0 && winner.Nation is not null ? CessionReachOf(c, winner, loser) : null;
         if (loser.ColonyList.Count > 0)
         {
             bool winnerIsPlayer = winner.IsPlayer;
@@ -2912,7 +2914,12 @@ public sealed class Diplomacy
                 // 距離実力ゲート（州割譲CessionMaxDistanceKmの植民地版）：勝者首都→植民地の海路距離×(1−制海権)でコスト増
                 // ＝海軍なき大国（清）は遠方（カリブ海等）を奪えず、海軍国（英）は距離を制海権で相殺＝地理無視の戦利品循環の是正。
                 // 座標(0,0)の抽象植民地は距離項なし（Colonial.cs維持費と同じ規約＝幻の遠距離を課さない）。
-                if (c.ColonyCaptureDistanceWeight > 0 && winner.Nation is { } winW &&
+                if (cessReach is not null && !(Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9))
+                {
+                    // ★(723) 旗 CessionUnified 正：4,000 km の門と距離の割り増しを 1 本の判定に置き換える（候補＝勝者の州と隣り合う 〈または〉 上陸の門 CanCrossSea・項目は港の区別が無いので全件に掛ける・費用は隣り合えば基本だけ）。
+                    if (!CessionTarget(c, cessReach, col.Latitude, col.Longitude, true, col.Resources.Length, col.Population, out cost)) { k++; continue; }
+                }
+                else if (c.ColonyCaptureDistanceWeight > 0 && winner.Nation is { } winW &&
                     !(Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9))
                 {
                     double km = Geo.SeaDistanceKm(winW.Latitude, winW.Longitude, col.Latitude, col.Longitude, suez, panama);   // 財13配線（監査2026-07-11 死2）。ColonyCaptureDistanceWeight=1.0 live・0で距離項なし
@@ -2952,7 +2959,7 @@ public sealed class Diplomacy
         //   V1（獲得時州化）点火後も「圧勝した帝国戦争は複数の植民地を再配分する」（七年戦争型）が保たれる。
         //   reach＝colonialReach と同じ規律（海軍あり＋制海権≧SeaInvasionControlMin）・首都(Id0)と最後の1州は対象外。0で不発。
         if (winner.Nation is { } wcw && loser.Nation is { } lcw
-            && CanCrossSea(winner, loser, c))
+            && (c.CessionUnified > 0 || CanCrossSea(winner, loser, c)))   // ★(723) 旗 1 は入口の門を外す（陸で隣り合う州は艦が無くても候補・港の州の上陸の門は CessionTarget の中）
         {
             int ctaken = captured;   // 旧経路（ColonyList奪取）との合算で ColonyCaptureMax を守る（予算budgetも上で1本化して共有）
             // ★(696) 線 hcd（旗 HcdColonyCessionDistance が正のとき）：ColonyList 経路（上）と同じ距離の項を植民地格の州の費用へ。世界最大の艦との比（敗者との相対でない）で相殺する規約も上と同じ。0 のときは何も計算しない。
@@ -2979,6 +2986,11 @@ public sealed class Diplomacy
                         var hcdXY = Climate.CityCoord(r.Name);
                         if (!(Math.Abs(hcdXY.Lat) < 1e-9 && Math.Abs(hcdXY.Lon) < 1e-9))
                             cost *= 1 + c.ColonyCaptureDistanceWeight * (Geo.SeaDistanceKm(wcw.Latitude, wcw.Longitude, hcdXY.Lat, hcdXY.Lon, hcdSuez, hcdPanama) / DistanceNormKm) * (1 - hcdSea);
+                    }
+                    if (cessReach is not null)   // ★(723) 旗 1：旧の費用を 1 本の判定の費用で置き換える（候補でなければ外す）
+                    {
+                        var cessXY = Climate.CityCoord(r.Name);
+                        if (!CessionTarget(c, cessReach, cessXY.Lat, cessXY.Lon, r.IsPort, r.Resources.Length, units, out cost)) continue;
                     }
                     if (cost > budget) continue;
                     double val = r.Resources.Length + 0.5 + units * 0.5;   // Colony.Value と同じ式（価値の高い順に取る）
@@ -3066,7 +3078,7 @@ public sealed class Diplomacy
                 {
                     if (GovCost(winner, loser, c) >= c.GovCostVassalThreshold)
                     {
-                        ceded = CedeTerritory(c, dw, winner, loser.Name, takePrize: false);   // 必要な土地＝境界州を割譲し、核（首都）は残して属国化＝間接統治（異民族/異教は直接統治が高コスト）
+                        ceded = CedeTerritory(c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 必要な土地＝境界州を割譲し、核（首都）は残して属国化＝間接統治（異民族/異教は直接統治が高コスト）
                         SetDependency(winner, loser);   // 異民族/異教＝間接統治の属国（金銭貢納・宗主のみ参戦義務）
                         Log.Add($"{_year} {winner.Name}が{loser.Name}を属国化（統治コスト高・戦勝点{absScore:0.00}）");
                         handled = true;
@@ -3082,11 +3094,11 @@ public sealed class Diplomacy
                             SetDependency(winner, loser);
                             Log.Add($"{_year} {winner.Name}が{loser.Name}を従属化（単州の同族国=併合不能のため保護国・戦勝点{absScore:0.00}）");
                         }
-                        else ceded = CedeTerritory(c, dw, winner, loser.Name, takePrize: true);   // 同族＝安く併呑＝首都含む価値ある州を直接併合（属国化せず吸収）
+                        else ceded = CedeTerritory(c, dw, winner, loser.Name, ref budget, cessReach, takePrize: true);   // 同族＝安く併呑＝首都含む価値ある州を直接併合（属国化せず吸収）
                         handled = true;
                     }
                 }
-                if (!handled) ceded = CedeTerritory(c, dw, winner, loser.Name, takePrize: false);   // 境界改定（壊滅未満の決定的勝利・既に従属/州なし）＝普仏戦争型
+                if (!handled) ceded = CedeTerritory(c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 境界改定（壊滅未満の決定的勝利・既に従属/州なし）＝普仏戦争型
                 // 機構B 矯正講和（2026-07-25・革命輸出doc §3）：壊滅級の勝利×政体イデオロギー距離≥閾値＝勝者が敗者の政体を自陣営へ矯正。
                 // 対称な一般則＝革命共和国の勝利→衛星共和国（バタヴィア1795/ヘルヴェティア1798）・君主同盟の勝利→反動介入（西1823/ハンガリー1849）
                 // ＝1本で両向き・国名も方向も書かない。新しい宣戦動詞は作らない（講和条項＝宣戦廃止の設計維持）。復古は自動創発（押し付け政体は
@@ -3167,10 +3179,11 @@ public sealed class Diplomacy
     /// 保存則：移転州の貯蓄総額 S・人口 P を賠償/越境移民と同型に**両国で相殺**（loser−/winner+）＝世界保存。Id は勝者内で一意の非ゼロを再付与。
     /// 選択：takePrize=false＝**最小GDPの非首都州**（境界改定＝アルザス・ロレーヌ型）。takePrize=true＝**最大GDPの州（首都を含む）**＝必要な土地を奪う（圧勝の併合）。
     /// 首都(Id0)を奪った場合は残active州から新首都を昇格＝「首都を持つ」不変条件を維持（国家消滅は別機構）。最後の1州だけは残す。決定論：tiebreak は Id 昇順・新規RNG draw なし。</summary>
-    private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, bool takePrize = false)
+    private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, ref double budget, CessionReach? cessReach, bool takePrize = false)
     {
         if (winner.Nation is not { } ww) return false;   // 抽象勢力は受け皿の World を持たない（呼び出し側で gate 済みだが二重防御）
         if (loser.Regions.Count <= 1) return false;   // 最後の1州は割譲しない（総征服=国家消滅は別機構＝回避）
+        if (cessReach is not null) return CedeTerritoryUnified(c, loser, winner, ww, loserName, ref budget, cessReach, takePrize);   // ★(723) 旗 CessionUnified 正：下の旧の選び方（4,000 km の円・渡海の割り増し・colonialReach）を通らない
         // 監査2026-07-05（投射圏）：割譲候補は**勝者の首都**から CessionMaxDistanceKm 以内の州に限る（実走で清がボストンを獲得＝地理無制約の是正）。
         // 再修正（同日）：当初は「全active州＋植民地」を拠点にしたが、獲得のたびに投射圏が伸び連鎖征服（清がカシュガル→ケーニヒスベルク→リガ→…と欧州へ）で
         // 制約が無効化された（実走で確認）。本国中核（首都）からの投射に限る＝アルザス・ロレーヌ型の地域戦争は生き、大陸間の州併呑は死ぬ。
@@ -3220,8 +3233,7 @@ public sealed class Diplomacy
             bool colonialReach = r.Tier == RegionTier.Colonial
                 && winner.NavalPower > 1e-9 && seaCtl >= c.SeaInvasionControlMin;
             if (constrained && dist > cessionRange && !colonialReach) continue;   // 投射圏外＝割譲候補にしない（圏は技術で伸びる）
-            double g = 0;
-            foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+            double g = RegionOutputValue(r);
             bool better = takePrize ? (g > best || (g == best && (cede is null || r.Id < cede.Id)))                                        // 価値ある州（最大GDP・首都含む・圏内）
                                     : (dist < bestDist || (dist == bestDist && (g < best || (g == best && (cede is null || r.Id < cede.Id)))));   // 境界州＝勝者に最も近い州（同距離はGDP小→Id）
             if (better) { best = g; cede = r; bestDist = dist; }
@@ -3230,6 +3242,40 @@ public sealed class Diplomacy
         if (Instruments.On && loser.SelfPower is { } cessLoserP) Instruments.CessObserveRegion(this, c, _year, takePrize ? 4 : 3, winner, cessLoserP, cede, double.NaN, double.NaN, double.NaN, bestDist);   // (717)
         CedeRegion(c, loser, winner, ww, cede, loserName);
         return true;   // ★是正（監査2026-09-02 #23）：戻り値＝実際に移転したか。_pendingRevanchの予約可否に使う（下）
+    }
+
+    /// <summary>州の生産の名目の価値（役務を除く・Output×RefPrice の和）＝割譲の選びの GDP（境界改定は小さい順・戦利品は大きい順）。</summary>
+    private static double RegionOutputValue(Region r)
+    {
+        double g = 0;
+        foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+        return g;
+    }
+
+    /// <summary>★(723) 旗 CessionUnified 正の <see cref="CedeTerritory"/>：候補は 1 本の判定 <see cref="CessionTarget"/>（勝者の州と隣り合う 〈または〉 港の州で上陸の門を通る）・払える（費用が講和の残りの予算以内）州だけ。
+    /// 選ぶ順は旧のまま（境界改定＝勝者の首都に最も近い〔同距離は GDP 小→Id〕・戦利品＝GDP 最大〔首都を含む〕）。近さは大圏距離（渡海の割り増しも 4,000 km の円も無い＝渡海の摩擦は費用の距離の項に入る）。選ばれた州の費用を講和の予算から引く（①②と 1 本）。</summary>
+    private bool CedeTerritoryUnified(Coefficients c, World loser, Power winner, World ww, string loserName, ref double budget, CessionReach reach, bool takePrize)
+    {
+        (double Lat, double Lon) cap = ww.Regions.Count > 0 ? Climate.CityCoord(ww.Regions[0].Name) : (0, 0);   // Regions[0]＝首都（旧と同じ）
+        bool capKnown = cap.Lat != 0 || cap.Lon != 0;
+        Region? cede = null; double best = takePrize ? double.MinValue : double.MaxValue; double bestDist = double.MaxValue, bestCost = 0;
+        foreach (var r in loser.Regions)
+        {
+            if (!takePrize && r.Id == 0) continue;   // 境界改定は首都を取らない（旧と同じ）
+            var cc = Climate.CityCoord(r.Name);
+            double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, ColonyUnitPop);   // Colony.Population と同じ物差し
+            if (!CessionTarget(c, reach, cc.Lat, cc.Lon, r.IsPort, r.Resources.Length, units, out double cost) || cost > budget) continue;
+            double dist = capKnown && !(cc.Lat == 0 && cc.Lon == 0) ? Geo.DistanceKm(cc.Lat, cc.Lon, cap.Lat, cap.Lon) : 0;
+            double g = RegionOutputValue(r);
+            bool better = takePrize ? (g > best || (g == best && (cede is null || r.Id < cede.Id)))
+                                    : (dist < bestDist || (dist == bestDist && (g < best || (g == best && (cede is null || r.Id < cede.Id)))));
+            if (better) { best = g; cede = r; bestDist = dist; bestCost = cost; }
+        }
+        if (cede is null) return false;   // 候補が無い・払えない＝賠償のみ
+        if (Instruments.On && loser.SelfPower is { } cessLoserP) Instruments.CessObserveRegion(this, c, _year, takePrize ? 4 : 3, winner, cessLoserP, cede, bestCost, budget, budget - bestCost, double.NaN);
+        budget -= bestCost;
+        CedeRegion(c, loser, winner, ww, cede, loserName);
+        return true;
     }
 
     /// <summary>割譲の1州（講和の割譲・植民地格の州の複数割譲）＝**講和の帰結だけ**を足す。
@@ -3293,6 +3339,93 @@ public sealed class Diplomacy
     /// （植民地格の州の候補を数える所〔CedeTerritory〕だけは、敗者の経済を持たない場合の既定の制海権 0.5 を持つので同じ式を手で書く）。</summary>
     internal bool CanCrossSea(Power attacker, Power defender, Coefficients c)
         => attacker.NavalPower > 1e-9 && SeaControl(attacker, defender) >= c.SeaInvasionControlMin;
+
+    // ---------------------------------------------------------------- (723) 割譲の候補と費用の器（設計書 docs/202610/20261031/20261031_割譲の候補と費用_設計.md 段2・旗 CessionUnified）----------------------------------------------------------------
+    // 旗 0（既定）は講和の 4 経路（ColonyList の奪取・植民地格の州の複数割譲・CedeTerritory の境界改定と戦利品）を旧の式のまま通し、この器は計器 Instruments.Cess*（読むだけ）だけが呼ぶ。
+    // 旗 1 の分岐だけが 1 本の判定（<see cref="CessionTarget"/>＝案 E2：候補は〈勝者の州と陸路グラフの辺で隣り合う〉か〈港の州で上陸の門 CanCrossSea を通る〉・費用は 基本×(陸で隣り合うなら 1・そうでなければ 1＋重み×海路 km÷1 万×(1−世界の比))）と、講和 1 回に 1 本の予算（budget）を読む。
+    // 隣り合うかは講和の始め（ColonyList の奪取の前）の勝者の州で数える＝講和の中で奪った州を足場に連鎖して取ることはない。新しい状態は持たない（<see cref="CessionReach"/> は講和 1 回の局所）。
+
+    /// <summary>講和 1 回の勝者の側の文脈（旗 1 の分岐だけが作る）：勝者の州の最寄りのノードの集合・上陸の門・スエズとパナマの開き具合・勝者の艦÷世界最大の艦・勝者の首都の座標。</summary>
+    internal sealed class CessionReach
+    {
+        public HashSet<int> Nodes = new(); public bool CanCross, Suez, Panama; public double WorldShare, Lat, Lon;
+    }
+
+    internal CessionReach CessionReachOf(Coefficients c, Power winner, Power loser)
+    {
+        double maxNav = 0; foreach (var p in Powers) maxNav = Math.Max(maxNav, p.NavalPower);
+        var w = winner.Nation!;
+        return new CessionReach
+        {
+            Nodes = CessionWinnerNodes(winner), CanCross = CanCrossSea(winner, loser, c), Suez = ChokeOpenFor(SuezId, winner), Panama = ChokeOpenFor(PanamaId, winner),
+            WorldShare = maxNav > 1e-9 ? winner.NavalPower / maxNav : 0, Lat = w.Latitude, Lon = w.Longitude,
+        };
+    }
+
+    /// <summary>案 E2 の 1 本の判定（旗 1 の 3 経路が共有）：その場所が講和の候補か。候補なら cost に費用を返す。座標の無い場所（テストの小世界）は隣接を判定せず候補・距離の項 0（旧挙動と同じ出口）。
+    /// port＝港の州か（ColonyList の項目は港の区別が無いので呼び手が true を渡す）。</summary>
+    internal bool CessionTarget(Coefficients c, CessionReach rc, double lat, double lon, bool port, int resources, double units, out double cost)
+    {
+        if (Math.Abs(lat) < 1e-9 && Math.Abs(lon) < 1e-9) { cost = CessionCost(c, resources, units, false, double.NaN, rc.WorldShare); return true; }
+        bool adjacent = CessionAdjacent(CessionNode(lat, lon), rc.Nodes, out _);
+        if (!(adjacent || (port && rc.CanCross))) { cost = double.NaN; return false; }
+        cost = CessionCost(c, resources, units, !adjacent, adjacent ? double.NaN : Geo.SeaDistanceKm(rc.Lat, rc.Lon, lat, lon, rc.Suez, rc.Panama), rc.WorldShare);
+        return true;
+    }
+
+    // ---- 陸路グラフの隣接（ArmyShape.Borders と同じ判定の写し・(717) の計器から移した）----
+    static readonly Lazy<int[][]> CessionAdj = new(CessionBuildAdj);
+    static int[][] CessionBuildAdj()
+    {
+        var nodes = PathGraph.Nodes;
+        var lists = new List<int>?[nodes.Length];
+        foreach (var e in PathGraph.Edges) { (lists[e.A] ??= []).Add(e.B); (lists[e.B] ??= []).Add(e.A); }
+        var res = new int[nodes.Length][];
+        for (int i = 0; i < nodes.Length; i++) res[i] = lists[i] is { } l ? [.. l] : [];
+        return res;
+    }
+
+    /// <summary>州の最寄りのノード（座標の無い州・ノードの無い州は -1）。</summary>
+    internal static int CessionNode(double lat, double lon) => (Math.Abs(lat) < 1e-9 && Math.Abs(lon) < 1e-9) ? -1 : PathGraph.NearestNode(lat, lon);
+
+    /// <summary>ノード nd が winnerNodes のどれかと辺で隣り合うか（峠を挟む隣りも）。同じノードは sameNode に。</summary>
+    internal static bool CessionAdjacent(int nd, HashSet<int> winnerNodes, out bool sameNode)
+    {
+        sameNode = false;
+        if (nd < 0) return false;
+        sameNode = winnerNodes.Contains(nd);
+        if (sameNode) return true;
+        var nodes = PathGraph.Nodes; var adj = CessionAdj.Value;
+        foreach (int v in adj[nd])
+        {
+            if (winnerNodes.Contains(v)) return true;
+            if (nodes[v].Kind == "pass")
+                foreach (int y in adj[v]) if (y != nd && winnerNodes.Contains(y)) return true;
+        }
+        return false;
+    }
+
+    internal static HashSet<int> CessionWinnerNodes(Power winner)
+    {
+        var set = new HashSet<int>();
+        if (winner.Nation is { } w)
+            foreach (var r in w.Regions)
+            {
+                var cc = Climate.CityCoord(r.Name);
+                int nd = CessionNode(cc.Lat, cc.Lon);
+                if (nd >= 0) set.Add(nd);
+            }
+        return set;
+    }
+
+    /// <summary>費用：基本×(1＋重み×海路 km÷1 万×(1−世界の比))。distance が false なら基本だけ（陸で隣り合う候補）。海路 km が nan なら距離の項 0。</summary>
+    internal static double CessionCost(Coefficients c, int resources, double units, bool distance, double seaKm, double worldShare)
+    {
+        double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * resources + c.ColonyCapturePopCost * units;
+        if (distance && c.ColonyCaptureDistanceWeight > 0 && !double.IsNaN(seaKm))
+            cost *= 1 + c.ColonyCaptureDistanceWeight * (seaKm / DistanceNormKm) * (1 - worldShare);
+        return cost;
+    }
 
     /// <summary>★陸戦が成立するか（上陸ゲートの**正しい適用形**・2026-08-01 の敵対的レビューで是正）。
     /// ⚠初版は押し合いの**両辺**にゲートを掛けたが、制海権は相補（和=1）で閾値は0.5超なので**通れるのは高々片側**＝

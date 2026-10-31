@@ -67,60 +67,6 @@ public static partial class Instruments
             I(st.N[0]), I(st.N[1]), I(st.N[2]), I(st.N[3]), I(st.LoserRegions)));
     }
 
-    // ---- 陸路グラフの隣接（ArmyShape.Borders と同じ判定の写し）----
-    static readonly int[][] CessAdj = CessBuildAdj();
-    static int[][] CessBuildAdj()
-    {
-        var nodes = PathGraph.Nodes;
-        var lists = new List<int>?[nodes.Length];
-        foreach (var e in PathGraph.Edges) { (lists[e.A] ??= []).Add(e.B); (lists[e.B] ??= []).Add(e.A); }
-        var res = new int[nodes.Length][];
-        for (int i = 0; i < nodes.Length; i++) res[i] = lists[i] is { } l ? [.. l] : [];
-        return res;
-    }
-
-    /// <summary>州の最寄りのノード（座標の無い州・ノードの無い州は -1）。</summary>
-    static int CessNode(double lat, double lon) => (Math.Abs(lat) < 1e-9 && Math.Abs(lon) < 1e-9) ? -1 : PathGraph.NearestNode(lat, lon);
-
-    /// <summary>ノード nd が winnerNodes のどれかと辺で隣り合うか（峠を挟む隣りも）。同じノードは sameNode に。</summary>
-    internal static bool CessAdjacent(int nd, HashSet<int> winnerNodes, out bool sameNode)
-    {
-        sameNode = false;
-        if (nd < 0) return false;
-        sameNode = winnerNodes.Contains(nd);
-        if (sameNode) return true;
-        var nodes = PathGraph.Nodes;
-        foreach (int v in CessAdj[nd])
-        {
-            if (winnerNodes.Contains(v)) return true;
-            if (nodes[v].Kind == "pass")
-                foreach (int y in CessAdj[v]) if (y != nd && winnerNodes.Contains(y)) return true;
-        }
-        return false;
-    }
-
-    static HashSet<int> CessWinnerNodes(Power winner)
-    {
-        var set = new HashSet<int>();
-        if (winner.Nation is { } w)
-            foreach (var r in w.Regions)
-            {
-                var cc = Climate.CityCoord(r.Name);
-                int nd = CessNode(cc.Lat, cc.Lon);
-                if (nd >= 0) set.Add(nd);
-            }
-        return set;
-    }
-
-    /// <summary>費用の影：基本×(1＋重み×海路 km÷1 万×(1−世界の比))。distance が false なら基本だけ（案 E2 の陸の候補）。座標が無ければ距離の項 0。</summary>
-    static double CessCost(Coefficients c, int resources, double units, bool distance, double seaKm, double worldShare)
-    {
-        double cost = c.ColonyCaptureCostBase + c.ColonyCaptureResourceCost * resources + c.ColonyCapturePopCost * units;
-        if (distance && c.ColonyCaptureDistanceWeight > 0 && !double.IsNaN(seaKm))
-            cost *= 1 + c.ColonyCaptureDistanceWeight * (seaKm / Diplomacy.DistanceNormKm) * (1 - worldShare);
-        return cost;
-    }
-
     /// <summary>①（ColonyList の奪取）を移す直前に呼ぶ（読むだけ）。col＝敗者の抽象標的の植民地。cost＝エンジンが払う費用（距離の項込み）・budgetBefore／budgetAfter＝エンジンの予算の前後。</summary>
     internal static void CessObserveColony(Diplomacy dip, Coefficients c, int year, Power winner, Power loser, Colony col, double cost, double budgetBefore, double budgetAfter)
         => CessCore(dip, c, year, 1, winner, loser, col.Name, "ColonyList", col.Latitude, col.Longitude, null, col.Resources.Length, col.Population, cost, budgetBefore, budgetAfter, double.NaN);
@@ -153,16 +99,16 @@ public static partial class Instruments
             landKm = PathGraph.LandDistanceKm(ww.Latitude, ww.Longitude, lat, lon);
             sameLm = Landmass.Same(ww.Latitude, ww.Longitude, lat, lon) ? 1 : 0;
         }
-        var wn = CessWinnerNodes(winner);
+        var wn = Diplomacy.CessionWinnerNodes(winner);
         double adj = double.NaN, same = double.NaN;
         if (ww is not null && coord)
         {
-            int nd = CessNode(lat, lon);
-            if (nd >= 0) { adj = CessAdjacent(nd, wn, out bool sn) ? 1 : 0; same = sn ? 1 : 0; }
+            int nd = Diplomacy.CessionNode(lat, lon);
+            if (nd >= 0) { adj = Diplomacy.CessionAdjacent(nd, wn, out bool sn) ? 1 : 0; same = sn ? 1 : 0; }
         }
         double port = region is null ? double.NaN : (region.IsPort ? 1 : 0);
-        double hcd = CessCost(c, resources, popUnits, true, seaKm, worldShare);
-        double e2Cost = CessCost(c, resources, popUnits, !(adj == 1), seaKm, worldShare);
+        double hcd = Diplomacy.CessionCost(c, resources, popUnits, true, seaKm, worldShare);
+        double e2Cost = Diplomacy.CessionCost(c, resources, popUnits, !(adj == 1), seaKm, worldShare);
         double e2Ok = double.NaN;
         if (!double.IsNaN(adj)) e2Ok = (adj == 1 || (region is null ? can : (port == 1 && can))) ? 1 : 0;   // ①（ColonyList の項目）は港を問わない＝設計書 §2-1 の ① の規則（陸の隣接か CanCrossSea）
         // ③④ の予算＝この講和の①②の後の残り。①② は渡された前後をそのまま使い、残りを更新する。
@@ -178,19 +124,19 @@ public static partial class Instruments
                 if (route == 3 && r.Id == 0) continue;
                 pool++;
                 var cc = Climate.CityCoord(r.Name);
-                int nd = CessNode(cc.Lat, cc.Lon);
+                int nd = Diplomacy.CessionNode(cc.Lat, cc.Lon);
                 if (nd < 0) { altNoCoord++; continue; }
-                bool a = CessAdjacent(nd, wn, out _);
+                bool a = Diplomacy.CessionAdjacent(nd, wn, out _);
                 if (!(a || (r.IsPort && can))) continue;
                 altN++; if (a) altAdj++;
                 double u = Math.Max(0, r.SumPopulation()) / Math.Max(1e-9, dip.ColonyUnitPop);
                 double sk = Geo.SeaDistanceKm(ww.Latitude, ww.Longitude, cc.Lat, cc.Lon, suez, panama);
-                if (CessCost(c, r.Resources.Length, u, !a, sk, worldShare) <= bAfter) altAfford++;
+                if (Diplomacy.CessionCost(c, r.Resources.Length, u, !a, sk, worldShare) <= bAfter) altAfford++;
             }
         double reachRange = c.CessionMaxDistanceKm;
         double colReachOnly = double.NaN;
         if (route >= 3) colReachOnly = (!double.IsNaN(reachKm) && c.CessionMaxDistanceKm > 0 && reachKm > c.CessionMaxDistanceKm) ? 1 : 0;
-        if (st.Open) { st.N[route - 1]++; if (route <= 2) st.BudgetLeft = bAfter; }
+        if (st.Open) { st.N[route - 1]++; if (route <= 2 || !double.IsNaN(budgetAfter)) st.BudgetLeft = bAfter; }   // ③④ はエンジンが払わない（旗 0・budgetAfter は nan）＝残りは動かさない／旗 CessionUnified 正は払うので残りを進める
         st.Rows.Add(string.Join('\t', I(st.Seq), I(year), NameOf(winner), NameOf(loser), winner.Nation is not null ? "1" : "0", loser.Nation is not null ? "1" : "0", name, tier, I(route),
             F(gc), F(seaKm), F(landKm), F(sameLm), F(adj), F(same), F(port), F(rel), F(worldShare), can ? "1" : "0",
             I(resources), F(popUnits), F(engineCost), F(hcd), F(e2Cost), F(bBefore), F(bAfter),
