@@ -3,7 +3,7 @@
 /// <summary>
 /// 国内の価格形成（三層時計の「鼓動」＝市場フロー）。月次決算（<see cref="EconomyStep"/>）が残した需給
 /// （LastDemand／LastProduced＋LastImport／Stock）を読み、価格を clearing 目標へ**少しずつ**寄せる。
-/// 速度は月次係数を <see cref="Coefficients.PriceFlowDailyDiv"/>（≒30日）で割った**1日あたり**の値で、
+/// 速度は月次係数を <see cref="Calendar.DaysPerMonth"/>（30日）で割った**1日あたり**の値で、
 /// 30日ぶんの積分が従来の月次1回の更新にほぼ一致する＝較正を温存する（旬次になっても1日あたりの式は変えない）。
 /// ★旬次（2026-09-26 A3・作者裁定「ゲームの高速化を優先し、多少の帯の悪化は受け入れる」）：呼び手（<see cref="Simulation.StepDayDaily"/>）は
 ///   旬の最終日（<see cref="Coefficients.PriceFlowStepDays"/>＝h 日ごと）にだけ呼び、h 日ぶんを1歩で進める。
@@ -83,7 +83,7 @@ public static class MarketFlow
     public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null, bool monthStart = true, MinimumWageLaw minWage = MinimumWageLaw.None)
     {
         int h = days;
-        double div = coef.PriceFlowDailyDiv;
+        double div = Calendar.DaysPerMonth;
         double k = coef.SoftBandSharpness;
         // ★2026-09-03（キューA-09／出典 トリアージ 2-A 10-4c）：財側の SoftBand の境界対数は**係数だけで決まる定数**なので、
         //   財×日ごとに Math.Log を2回呼ぶ必要がない。ここで1回だけ計算して渡す＝同じ double を使うのでビット恒等。

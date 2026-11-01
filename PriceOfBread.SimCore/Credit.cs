@@ -67,9 +67,9 @@ public static class Credit
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
         double targetConf = PoliticalQuantities.Clamp01(1.0 - c.PanicSensitivity * Math.Max(0, c.ConfidencePivot - avgSat) - c.DrawdownPanic * w.GdpDrawdown.Value - fiscalDefault - debtDeflation - bondLoss - overheatFragility);
-        // 信用は日次（三層時計）。速度を日数配分（÷PriceFlowDailyDiv）＝30日積分が従来の月次1回にほぼ一致＝較正温存。
+        // 信用は日次（三層時計）。速度を日数配分（÷Calendar.DaysPerMonth）＝30日積分が従来の月次1回にほぼ一致＝較正温存。
         // パニック/平時の非対称（速い崩落・遅い醸成）も貸し剥がし倍率も比なので、一律に割っても保たれる。
-        double div = c.PriceFlowDailyDiv;
+        double div = Calendar.DaysPerMonth;
         double spd = (targetConf < bank.Confidence ? c.PanicSpeed : c.ConfidenceSpeed) / div;
         if (days > 1) spd = 1.0 - Math.Pow(1.0 - spd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
         double confStart = bank.Confidence;
@@ -174,7 +174,7 @@ public static class Credit
         //   loanRate        … 年率の実効貸出金利＝スプレッド＋(無次元レバー×年率換算重み PolicyRateLoanWeight)。
         //   /Calendar.DaysPerYear … 年率を三層時計の1ステップ（日次）へ落とす除算。Step は日次で呼ばれる（Simulation.cs の日次ループ）ので、
         //     1年＝360ステップぶんの積分がちょうど年率 loanRate になる。
-        //   ⚠ 旧実装は /div（＝PriceFlowDailyDiv=30＝**1か月の日数**）で割っていた＝年率が**12倍**で着弾する未発見のバグ（金利doc B3・2026-07-30 是正）。
+        //   ⚠ 旧実装は /div（＝Calendar.DaysPerMonth=30＝**1か月の日数**）で割っていた＝年率が**12倍**で着弾する未発見のバグ（金利doc B3・2026-07-30 是正）。
         //     div は「月次係数を日次へ配分する」ための除数（信頼・与信調整の速度に使うのは正しい）であって、年率→日次の換算には使えない。
         //     既定 LoanSpreadPerYear=0・PolicyRateLoanWeight=0 ゆえ loanRate=0＝この節に入らない＝**是正時点ではビット恒等**。B4（点火）の前提として先に潰す。
         //   ※ 係数の単位注記は Coefficients.cs 側（LoanSpreadPerYear/PolicyRateLoanWeight/PolicyRateBondWeight/BondBaseRatePerYear）に付す提案を notes に列挙。
