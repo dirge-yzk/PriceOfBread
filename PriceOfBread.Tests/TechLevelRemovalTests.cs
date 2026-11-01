@@ -23,7 +23,7 @@ public class TechLevelRemovalTests
         ("PriceOfBread.SimCore", "Megaprojects.cs", 3), ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 10),
         ("PriceOfBread.SimCore", "SelfPlay.cs", 5), ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 5),
-        ("PriceOfBread.Runner", "PlayHarness.cs", 1), ("PriceOfBread.Runner", "Program.cs", 6),
+        ("PriceOfBread.Runner", "PlayHarness.cs", 1), ("PriceOfBread.Runner", "Program.cs", 2),
     ];
 
     [Fact]

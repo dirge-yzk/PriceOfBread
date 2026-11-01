@@ -209,15 +209,7 @@ public class GoodIdGuardTests
     [
         ("PriceOfBread.SimCore/Simulation.cs", "home.Markets[0]", 1, "Snapshot の既定（玩具の世界の食料＝0）。実世界では直後の主食探しが上書きする（監査 G03#4 の是正済み）"),
         ("PriceOfBread.SimCore/Simulation.cs", "home.Markets[1]", 1, "TurnSnapshot.ManufPrice＝読み手の無い欄（玩具の世界の工業品＝1・実世界では石炭を読む）＝死んだ欄（00一覧 00-R2 の報告に記録）"),
-        ("PriceOfBread.Runner/Program.cs", "(8, \"\"", 1, "助走の長さ（四半期）の見出しの組（財ではない）"),
-        ("PriceOfBread.Runner/Program.cs", "(16, \"\"", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(24, \"\"", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(44, \"\"", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(84, \"\"", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(204, \"\"", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 0, 8, 40, 80, 200, 320, 400 }", 1, "診断の掃引に使う四半期の並び（財ではない）"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 4, 100, 200, 320, 440 }", 1, "同上"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 8, 40, 120, 240, 400 }", 2, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "new[] { 8, 40, 120, 240, 400 }", 1, "診断の掃引に使う四半期の並び（財ではない）"),
         ("PriceOfBread.Runner/Program.cs", "watch = [5, 2, 6, 3, 4, 1]", 1, "chaintrace＝連鎖の玩具の世界（ScenarioKind.ProductionChain）の財の番号（木5・木材2・鉄鉱石6・鉄3・鉄鋼4・家具1）＝Catalog の財の番号ではない"),
     ];
 
