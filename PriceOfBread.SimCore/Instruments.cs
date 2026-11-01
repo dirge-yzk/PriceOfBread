@@ -1841,6 +1841,7 @@ public static partial class Instruments
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
+        PgripTable(sim, seed, q);          // (756) 議会の掌握の起債の項の旧と新の表
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
@@ -1869,6 +1870,7 @@ public static partial class Instruments
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        PgripClose(sim);     // (756)
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)

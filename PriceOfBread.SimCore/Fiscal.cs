@@ -376,7 +376,7 @@ public static class Fiscal
         double gdpDenom = gdpPerYear.Value;
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）。国債金利の債務比プレミアム・CapitalMarket の対外信用の債務の項・
         //   Government の緊縮の強度・Credit の銀行の評価損・PolicyPreferences の国家の歳入要求（どれも 2026-09-29 から）はこの単位（旧＝Credit は月次名目・Government/PolicyPreferences は月次実質）。
-        //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
+        //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝(756) 旗 ParliamentDebtGripYearGdp が正なら年次名目（この行と同じ単位）・0 は旧の月次名目の Clamp／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
         RatioToGdpYear dGdp = gdpDenom > 1e-9 ? Calendar.ToGdpYear(w.GovDebt, gdpPerYear) : (w.GovDebt.Value > 0 ? DebtToGdpYearUnbounded : default);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
         // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
         //   分母が**微小だが非ゼロ**のとき比が番兵を何桁も飛び越える（GDPが消えかけた残余国で万%＝WorstLossRate と同型）。

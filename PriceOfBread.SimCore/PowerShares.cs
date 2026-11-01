@@ -70,7 +70,10 @@ public static class PowerShares
     ///   「法的に確定した予算なしに行われた**行政**」の赦免を求めた＝**歳入は一度も問題にならなかった**。
     ///   だから政府は借入ではなく経常収入で回した＝**起債の項が低いほど議会は噛めない**。
     /// ⚠分母が0（税も債務も無い）＝掌握できる歳入が無い → 0（倒し先を明示）。</summary>
-    public static double ParliamentGrip(World w)
+    public static double ParliamentGrip(World w) => ParliamentGripOf(w, w.Coef.ParliamentDebtGripYearGdp > 0);
+
+    /// <summary>(756) 税の掌握＝年次議決に載る税÷（年次議決の税＋常設の税）（<see cref="ParliamentGrip"/> の前半・旗に依らない）。</summary>
+    internal static double TaxGrip(World w)
     {
         double annual = System.Math.Max(0, w.TaxRate.Value) + System.Math.Max(0, w.ProgressiveTax);
         // ★専売の項（2026-09-20）＝**実効平均率**＝専売の広さ×標準率（standing の単位＝率を保つ）。
@@ -83,8 +86,22 @@ public static class PowerShares
         double tot = annual + standing;
         double taxGrip = !(tot > 1e-12) ? 0 : annual / tot;
         if (!(taxGrip >= 0 && taxGrip <= 1)) taxGrip = 0;
-        double debtGrip = PoliticalQuantities.Clamp01(System.Math.Max(0, w.GovDebt.Value) / System.Math.Max(1.0, w.NominalGdpPerMonth.Value));
-        double v = PoliticalQuantities.ProbOr(taxGrip, debtGrip);
+        return taxGrip;
+    }
+
+    /// <summary>(756) 起債への依存（<see cref="ParliamentGrip"/> の後半）。<paramref name="yearGdp"/>＝true は国債残高÷<b>年</b>の名目GDP（注の式・Calendar.ToGdpYear と同じ単位・分母の守りは否定形で床を置かない）／false は旧（月の名目GDP・分母の床 1.0）。
+    /// 旗 <see cref="Coefficients.ParliamentDebtGripYearGdp"/> が 0 の旧の枝は焼かずに残す（同じ盤面で旧と新を並べる計器 pgrip_s が読む）。</summary>
+    internal static double DebtGrip(World w, bool yearGdp)
+    {
+        if (!yearGdp) return PoliticalQuantities.Clamp01(System.Math.Max(0, w.GovDebt.Value) / System.Math.Max(1.0, w.NominalGdpPerMonth.Value));
+        double gdpYear = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
+        return !(gdpYear > 0) ? 0 : PoliticalQuantities.Clamp01(System.Math.Max(0, w.GovDebt.Value) / gdpYear);
+    }
+
+    /// <summary>(756) 議会の掌握の純関数（分母の単位を引数で選ぶ）＝公開の <see cref="ParliamentGrip"/> は旗で選んでこれを呼ぶ。</summary>
+    internal static double ParliamentGripOf(World w, bool yearGdp)
+    {
+        double v = PoliticalQuantities.ProbOr(TaxGrip(w), DebtGrip(w, yearGdp));
         return !(v >= 0 && v <= 1) ? 0 : v;
     }
 
@@ -106,9 +123,12 @@ public static class PowerShares
     /// <summary>★★★**議会の実効統制**∈[0,1]＝<code>形式上の統制 × 歳入の掌握 ×（1 − 年次審議の外の歳出）</code>。
     /// ★★プロイセンはこの2つで、**形式上は立憲なのに議会の実効シェアがほぼゼロになる**——それが正しい出力である。
     /// ⚠英国型は起債（コンソル債）で掌握が立つので同じ式でも実効が残る＝国別の特例を書かない。</summary>
-    public static double ParliamentEffective(World w)
+    public static double ParliamentEffective(World w) => ParliamentEffectiveOf(w, ParliamentGrip(w));
+
+    /// <summary>(756) 議会の実効統制の純関数（掌握を引数で受ける）。</summary>
+    internal static double ParliamentEffectiveOf(World w, double grip)
     {
-        double v = ParliamentControl(w) * ParliamentGrip(w) * (1.0 - LockedSpending(w));
+        double v = ParliamentControl(w) * grip * (1.0 - LockedSpending(w));
         return !(v >= 0 && v <= 1) ? 0 : v;
     }
 
@@ -119,9 +139,11 @@ public static class PowerShares
     ///   スペイン14%・ブラジル8%・メキシコ10%・ポルトガル21%に対し**アンデス三国は約70%・チリ44%**）。
     ///   ギリシャの純軍政4件が小アジアの破局で文民政党の威信が焼けた直後に集中したのも同じ機構。
     /// ⚠国別の定数を1つも置かない＝地域差は**既存の制度の値の差**として出る（思想②＝データが運ぶ）。</summary>
-    public static double CivilianInstitutions(World w)
+    public static double CivilianInstitutions(World w) => CivilianInstitutionsOf(w, ParliamentEffective(w));
+
+    /// <summary>(756) 文民制度の厚みの純関数（議会の実効統制を引数で受ける）。</summary>
+    internal static double CivilianInstitutionsOf(World w, double parliament)
     {
-        double parliament = ParliamentEffective(w);   // ★形式上でなく**実効**（歳入を止められるか）で測る＝史学検証4
         double bureau = PoliticalQuantities.Clamp01(PoliticalQuantities.BureaucracyDepth(w.Bureaucracy));   // ★既存の唯一実装を読む
         double parties = PoliticalQuantities.Clamp01(Ideologies.Openness(w.Suffrage));
         // ★4本目＝正統性（史学検証5・東アジア）。**不処罰は累積する**（日本1928張作霖爆殺の行政処分のみ→三月事件の処罰なし→
