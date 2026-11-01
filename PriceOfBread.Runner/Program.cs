@@ -2310,41 +2310,6 @@ if (args.Length > 0 && args[0] == "initdump")
     return;
 }
 
-if (args.Length > 0 && args[0] == "initcheck")
-{
-    ulong icSeed = ArgUlong(args, 1, 1789UL);
-    var icsim = new MultiNationSim(WorldData.Nations(), icSeed, _ => new UtilityAgent());
-    foreach (var nn in icsim.Nations) nn.TelemetryEnabled = false;
-    icsim.Diplomacy.Log.Enabled = false;
-    icsim.StartWarmup();
-    // 助走＋2年＝教育市場が実勢に達した直後の断面（減衰の半減期29年に対して十分短い＝まだ識字は初期値に近い）
-    for (int q = 0; q < 8; q++) icsim.StepQuarter();
-    Console.WriteLine("=== 初期整合の検算（識字 対 教育市場の供給力・助走+2年断面） ===");
-    Console.WriteLine("  " + JpPad("国名", 14) + "実勢識字  教育充足  ⚠支えの無い識字（=減衰で失われる分）");
-    int icBad = 0, icTot = 0;
-    var icRows = new List<(string nm, double lit, double fill, double gap)>();
-    foreach (var n in icsim.Nations)
-    {
-        var w = n.World; if (w.SelfPower is null) continue;
-        double lit = 0, fill = 0, size = 0;
-        foreach (var pp in w.AllPops()) { lit += pp.Literacy * pp.Size; fill += pp.EducationFill * pp.Size; size += pp.Size; }
-        if (!(size > 1e-9)) continue;
-        lit /= size; fill /= size;
-        double gap = System.Math.Max(0, lit - fill);
-        icRows.Add((w.SelfPower.BaseName.Length > 0 ? w.SelfPower.BaseName : w.SelfPower.Name, lit, fill, gap));
-    }
-    foreach (var r in icRows.OrderByDescending(x => x.gap))
-    {
-        icTot++;
-        bool bad = r.gap > 0.10;
-        if (bad) icBad++;
-        Console.WriteLine("  " + JpPad(r.nm, 14) + $"{r.lit,7:F3}  {r.fill,7:F3}  {r.gap,7:F3}" + (bad ? "  ⚠不整合" : ""));
-    }
-    Console.WriteLine($"  ★不整合（gap>0.10）＝{icBad}/{icTot} カ国。⚠この分は「学校の裏付けの無い識字」として減衰で失われる");
-    Console.WriteLine("  ★恒久解の候補＝①LiteracyDecayIsGenerational（減衰を世代交代分に限定・休眠実装済み）②教育供給の初期規模づけ（再較正級・未着手）");
-    return;
-}
-
 // === 識字・政治意識の時系列とその入力： dotnet run -- eduprobe [seed] [終了年] ===
 // ⚠**読み取り専用**（世界の状態を1つも書かない）。「日本だけ識字と政治意識が130年間上がらない」の診断（2026-08-19）。
 // ★合成された指標から原因を推測しないため、素の構成要素だけを並べる：
@@ -4045,49 +4010,6 @@ if (args.Length > 0 && args[0] == "britcw")
     return;
 }
 
-// === 土地（耕地）の収穫逓減がどこで拘束するか実測： dotnet run -- landprobe [seed] ===
-// 各州の農村人口・耕地賦存量・landFactor を125年後に列挙。landFactor<1 の州＝土地が実際に効いている＝混雑。NYの農村/都市内訳も。
-if (args.Length > 0 && args[0] == "landprobe")
-{
-    ulong seed = args.Length > 1 && ulong.TryParse(args[1], out var s) ? s : 1789UL;
-    NationConfig[] lc = WorldData.Nations();
-    var lm = new MultiNationSim(lc, seed, _ => new UtilityAgent());
-    lm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    var landCoef = new Coefficients();
-    double expo = landCoef.LandDiminishExponent;
-    double LandFac(Region r)
-    {
-        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        return Territory.LandFactor(r, rural, landCoef);   // エンジン本体（Territory.cs）と同一式を直接呼ぶ＝式の二重定義をしない
-    }
-    double minSeen = 1.0; int bindCount = 0, activeCount = 0;
-    for (int q = 0; q < 500; q++)
-    {
-        lm.StepQuarter();
-        foreach (var n in lm.Nations) foreach (var r in n.World.Regions)
-            { double lf = LandFac(r); minSeen = System.Math.Min(minSeen, lf); }
-    }
-    Console.WriteLine($"=== landprobe seed {seed}：125年後の各州の土地係数（指数{expo}）===");
-    Console.WriteLine($"全期間で観測した最小 landFactor＝{minSeen:F3}（1.000＝一度も土地が拘束しなかった）");
-    foreach (var n in lm.Nations)
-    {
-        var name = n.World.SelfPower?.Name ?? "?";
-        foreach (var r in n.World.Regions)
-        {
-            activeCount++;
-            double rural = 0, urban = 0; foreach (var p in r.Pops) { if (p.IsUrban) urban += p.Size; else rural += p.Size; }
-            double lf = LandFac(r);
-            bool bind = lf < 0.98;
-            if (bind) bindCount++;
-            string land = r.ArableLand >= 1e8 ? "∞" : $"{r.ArableLand:F0}";
-            if (bind || (name == "アメリカ"))
-                Console.WriteLine($"  {name,-14} {r.Name,-10} 農村{rural,8:F0} 都市{urban,8:F0} 耕地{land,8} landFactor {lf:F3}{(bind ? "  ← 拘束" : "")}");
-        }
-    }
-    Console.WriteLine($"拘束中の州（landFactor<0.98）＝{bindCount}/{activeCount}（active州）");
-    return;
-}
-
 if (args.Length > 0 && args[0] == "refprobe")
 {
     // ★同定の計器（2026-09-06・一覧 §0-2「同定が先」）：休眠係数の目盛りを実測分布から決める。refprobe [四半期=480] [間隔=160]
@@ -4578,60 +4500,6 @@ if (args.Length > 0 && args[0] == "deficit")
     return;
 }
 
-// === 電化の時期：技術軌跡と電力/電化製品の需要・供給を年次で： dotnet run -- electime ===
-if (args.Length > 0 && args[0] == "electime")
-{
-    NationConfig[] ec = [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Russia(), NationConfig.Prussia(), NationConfig.Ottoman()];
-    var em = new MultiNationSim(ec, 1789UL, _ => new UtilityAgent());
-    em.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    em.WarmupEconomy(6);
-    Console.WriteLine("年    前線 | 各国 技術t/電力需要電/電化製品需要化");
-    int done = 0;
-    foreach (int q in new[] { 0, 8, 40, 80, 200, 320, 400 })
-    {
-        for (; done < q; done++) em.StepQuarter();
-        double front = em.Nations.Max(n => n.World.TechLevel);
-        var bits = em.Nations.Select(n =>
-        {
-            var w = n.World; var r = w.Region;
-            return $"{w.SelfPower?.Name?.Substring(0, 2)}:t{w.TechLevel:F1}/電{r.Markets[Catalog.ElectricityId].LastDemand:F0}/化{r.Markets[Catalog.ApplianceId].LastDemand:F0}";
-        });
-        Console.WriteLine($"{em.Nations[0].World.Year}  {front:F2} | {string.Join("  ", bits)}");
-    }
-    return;
-}
-
-// === 移民プローブ：R3の距離減衰の実効（欧州→米集中）＋移民pop貯蓄スケール（運賃係数の較正）： dotnet run -- migprobe [seed] ===
-if (args.Length > 0 && args[0] == "migprobe")
-{
-    ulong mseed = ArgUlong(args, 1, 1);
-    var mpm = new MultiNationSim(WorldData.Nations(), mseed, _ => new UtilityAgent());
-    mpm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    string[] watch = ["アメリカ", "イギリス", "フランス", "アイルランド", "清", "ロシア", "プロイセン"];
-    void Row(int year)
-    {
-        Console.WriteLine($"--- {year}年 ---");
-        foreach (var name in watch)
-        {
-            var s = mpm.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == name);
-            if (s is null) continue;
-            var w = s.World;
-            // 農民(1)・労働者(2)の1人当たり貯蓄（運賃係数の目安）＝最良/最悪州の平均
-            double pcSavPeasant = 0, pcSavWorker = 0; int rc = 0;
-            foreach (var r in w.Regions) { var pe = r.Pops.Find(x => x.ClassId == 1); var wo = r.Pops.Find(x => x.ClassId == 2); if (pe is { Size: > 1e-9 }) pcSavPeasant += pe.Savings.Value / pe.Size; if (wo is { Size: > 1e-9 }) pcSavWorker += wo.Savings.Value / wo.Size; rc++; }
-            if (rc > 0) { pcSavPeasant /= rc; pcSavWorker /= rc; }
-            Console.WriteLine($"  {name,-8} 人口{w.TotalPopulation,9:N0}  流入{w.LastImmigration,7:N0}/流出{w.LastEmigration,7:N0}  農民貯蓄/人{pcSavPeasant,7:F2}  労働者貯蓄/人{pcSavWorker,7:F2}");
-        }
-    }
-    int mdone = 0;
-    foreach (int q in new[] { 4, 100, 200, 320, 440 })   // 助走後・1784・1808・1833・1863・1893相当
-    {
-        for (; mdone < q; mdone++) mpm.StepQuarter();
-        Row(1783 + q / 4);
-    }
-    return;
-}
-
 // === 連鎖トイ経済の価格軌跡（木5/木材2/鉄鉱石6/鉄3）：振動か固着か： dotnet run -- chaintrace ===
 if (args.Length > 0 && args[0] == "chaintrace")
 {
@@ -4822,70 +4690,6 @@ if (args.Length > 0 && args[0] == "jobs")
     return;
 }
 
-// === 役務経済の診断： dotnet run -- services [quarters] ===
-if (args.Length > 0 && args[0] == "services")
-{
-    int sq = ArgInt(args, 1, 300);
-    NationConfig[] sc = [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
-    var sim4 = new MultiNationSim(sc, seed: 1789, _ => new UtilityAgent());   // 統治AI＝実プレイに近い診断
-    sim4.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    var lastPol = sim4.Nations.Select(n => n.World.Polity).ToArray();
-    for (int q = 0; q < sq; q++)
-    {
-        sim4.StepQuarter();
-        for (int i = 0; i < sim4.Nations.Count; i++)
-            if (sim4.Nations[i].World.Polity != lastPol[i])
-            {
-                var w2 = sim4.Nations[i].World;
-                Console.WriteLine($"  政変 {w2.Year}年 {w2.Region.Name}: {lastPol[i]} → {w2.Polity}（大衆闘争度 {Politics.AvgMassMilitancy(w2):F2}）");   // ★sweep-13：述語の写しをやめエンジンの1本へ
-                lastPol[i] = w2.Polity;
-            }
-        if (q % 4 == 3)   // パリの年次トレース（恐慌→政治の較正計測）
-        {
-            var wp = sim4.Nations[0].World;
-            var rp = wp.Region;
-            double mil2 = Politics.AvgMassMilitancy(wp), satM2 = NationalScore.MeanSatisfaction(wp);   // ★sweep-13：大衆の平均はエンジンの1本（闘争度・満足度とも同じ母集団）
-            var lm = rp.Markets[Catalog.LaborId];
-            double unemp = UnemploymentOf(rp, Catalog.LaborId);
-            var bk = wp.Bank;
-            Console.WriteLine($"  巴里 {wp.Year} 闘争{mil2:F2} 満足{satM2:F2} 失業{unemp:P0} 不作{wp.HarvestFactor:F2} パン価格{rp.Markets[Catalog.BreadId].Price:F2} 賃金{lm.Price:F2}" +
-                (bk is null ? "" : $" 信用{bk.Loans:F0}/金{bk.Gold:F0} 過熱{wp.FinancialHeat:F2} 信頼{bk.Confidence:F2} 金利{wp.InterestRate:F2}"));
-        }
-    }
-    Console.WriteLine($"=== 役務経済 診断 Q{sq} ===");
-    foreach (var n in sim4.Nations)
-    {
-        var w = n.World;
-        var r0 = w.Region;
-        double pop = w.TotalPopulation;
-        double lit = 0, ssz = 0;
-        foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; ssz += p.Size; }
-        var laborM = r0.Markets[Catalog.LaborId];
-        var eduM = r0.Markets[Catalog.EducationId];
-        var medM = r0.Markets[Catalog.HealthcareId];
-        double humanL = 0, steamL = 0, elecL = 0;
-        foreach (var p in r0.Producers)
-            if (p.GoodId == Catalog.LaborId)
-            {
-                if (p.Inputs.Count == 0) humanL += p.Output;
-                else if (p.RecipeName == "蒸気機関") steamL += p.Output;
-                else elecL += p.Output;
-            }
-        double massMil = Politics.AvgMassMilitancy(w);   // ★sweep-13：述語の写しをやめエンジンの1本へ
-        Console.WriteLine($"\n--- {r0.Name}（{w.EducationLaw}/{w.Polity}/自由{w.Freedom:F1}） 識字{lit / ssz:P0} 満足{NationalScore.MeanSatisfaction(w):F2} 国庫{w.Treasury:F0} 行政効率{w.AdminEfficiency:P0} 治安{w.PublicOrder:P0}（犯罪率{w.CrimeRate:P2}） 大衆闘争度{massMil:F2}");
-        var advM = r0.Markets[Catalog.AdvLaborId];
-        var farmM = r0.Markets[Catalog.FarmLaborId];
-        var facts = r0.Producers.Where(p => p.BuysLabor).ToList();
-        double elecFill = facts.Count > 0 ? facts.Sum(p => p.ElecFill * p.Output) / Math.Max(1e-9, facts.Sum(p => p.Output)) : 0;
-        Console.WriteLine($"  労働: 都市{laborM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.LaborId):P0}） 農村{farmM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.FarmLaborId):P0}） 技師{advM.Price:F2}");
-        Console.WriteLine($"  電化: 平均電化率{elecFill:P0} 送電容量{r0.GridCapacity:F0} 電力価格{r0.Markets[Catalog.ElectricityId].Price:F2} 石炭{r0.Markets[Catalog.CoalId].Price:F2}");
-        Console.WriteLine($"  教育: 価格{eduM.Price:F2} 生産{eduM.LastProduced:F1} 販売{eduM.LastSold:F1}　医療: 価格{medM.Price:F2} 生産{medM.LastProduced:F1}");
-        foreach (var p in r0.Pops)
-            Console.WriteLine($"    {p.ClassName,-6} 規模{p.Size,8:F0} 貯蓄/人{(p.Size > 1 ? p.Savings / p.Size : 0),8:F1} 識字{p.Literacy:P0} 教育Fill{p.EducationFill:F2} 満足{p.Satisfaction:F2} 闘争{p.Militancy:F2}");
-    }
-    return;
-}
-
 // === スコア内訳：国力スコアの各項（軍事・富＝GDP/工業/満足/植民地・金融）： dotnet run -- score [quarters] ===
 if (args.Length > 0 && args[0] == "score")
 {
@@ -4932,28 +4736,6 @@ if (args.Length > 0 && args[0] == "crimecorrupt")
     return;
 }
 
-// === 財政の診断：国庫の推移と税の状態（所得税ロック/各税率）： dotnet run -- fisc ===
-if (args.Length > 0 && args[0] == "fisc")
-{
-    NationConfig[] fc = [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Russia(), NationConfig.Prussia(), NationConfig.Ottoman()];
-    var fm = new MultiNationSim(fc, 1789UL, _ => new UtilityAgent());
-    fm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    fm.WarmupEconomy(6);
-    int done = 0;
-    foreach (int q in new[] { 8, 40, 120, 240, 400 })
-    {
-        for (; done < q; done++) fm.StepQuarter();
-        Console.WriteLine($"--- {fm.Nations[0].World.Year}年 ---");
-        foreach (var n in fm.Nations)
-        {
-            var w = n.World;
-            var p = w.Policy;
-            Console.WriteLine($"  {w.SelfPower?.Name,-8} 国庫{w.Treasury,11:F0} 行政効率{w.AdminEfficiency:P0} | 税:所得{w.TaxRate:F2}人頭{w.PollTax:F2}土地{w.LandTax:F2}専売の負担{w.StateMonopolyBreadth:F2} | 歳出目標:教育{p.EducationSpendingTarget:F1}行政{p.AdminSpendingTarget:F1}軍事{p.MilitarySpendingTarget:F1}福祉{p.SocialSecurityTarget:F1}強制{p.CoercionTarget:F0}");
-        }
-    }
-    return;
-}
-
 // === 軍需資金の内訳診断： dotnet run -- milfund ===
 // 「税収が少ない」か「装備コストが高い（軍が大きい/取り分0.25が小さい）」かを実数で切り分ける。
 if (args.Length > 0 && args[0] == "milfund")
@@ -4976,72 +4758,6 @@ if (args.Length > 0 && args[0] == "milfund")
         double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0;   // ★(252) 見出しの「債務/GDP」＝年GDP 比（旧＝月の名目GDP で割る＝12倍だった・診断の出力だけ＝帯に入らない・推奨で直した〔作者の承認は未確認〕・(251) 反証役 vm#3 で型を外した `.Value` が見つけた）
         Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear.Value,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
-    return;
-}
-
-// === 民族同化と国民意識の計器： dotnet run -- ethnoprobe [シード] [四半期] [間隔] ===
-// 段4（2026-09-09・設計メモ§7-7の実バグ2件）の物差し。⚠この2つは**到達年**でしか判定できない
-// （「アイルランドが1803年に0.5・1849年に0.9」＝速すぎるの正体は年である）ので、
-// 少数派州の中核度が 0.5／0.9 を越える**年**を全州ぶん記録して最後に表で出す。
-// ⚠計器の限界を自己申告する：①分離した州は走査から外す（州が消えると到達年が入らない＝「未到達」と区別できない）
-//   ②助走後の最初の観測で中核度<0.5 の州だけを「少数派州」として数える（開幕から中核の州は同化の対象ではない）。
-if (args.Length > 0 && args[0] == "ethnoprobe")
-{
-    ulong epSeed = args.Length > 1 && ulong.TryParse(args[1], out var eps) ? eps : 1789UL;
-    int epQ = args.Length > 2 && int.TryParse(args[2], out var epq) ? epq : Coefficients.GameQuarters;
-    int epEvery = args.Length > 3 && int.TryParse(args[3], out var epe) ? epe : 40;
-    var epsim = new MultiNationSim(WorldData.Nations(), epSeed, _ => new UtilityAgent());
-    epsim.StartWarmup();
-    foreach (var ns0 in epsim.Nations) ns0.TelemetryEnabled = false;
-    epsim.Diplomacy.Log.Enabled = false;
-    var epMinority = new Dictionary<string, (double core0, int y50, int y90, double coreLast, double litLast)>();
-    bool epFirst = true;
-    Console.WriteLine($"★係数: 同化基礎={new Coefficients().EthnicAssimilation:G6} 教育加点={new Coefficients().AssimilationEducationBonus:G6} 逆流={new Coefficients().AssimilationRevival:G6} 国民意識の導出={new Coefficients().NationConsciousnessDerived:G6}");
-    Console.WriteLine("年\t国\t統一度\t国民意識\t最少中核の州(中核度/識字)");
-    for (int q = 0; q < epQ; q++)
-    {
-        foreach (var ns in epsim.Nations)
-        {
-            var w = ns.World; if (!w.EthnicEnabled) continue;
-            foreach (var r in w.Regions)
-            {
-                double sz = 0, cs = 0, lt = 0;
-                foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare.Value; lt += p.Size * p.Literacy; }
-                if (!(sz > 1e-9)) continue;
-                double core = cs / sz;
-                string key = $"{w.SelfPower?.BaseName ?? "?"}/{r.Name}";
-                if (epFirst) { if (core < 0.5) epMinority[key] = (core, 0, 0, core, lt / sz); continue; }
-                if (!epMinority.TryGetValue(key, out var st)) continue;
-                if (st.y50 == 0 && core >= 0.5) st.y50 = w.Year;
-                if (st.y90 == 0 && core >= 0.9) st.y90 = w.Year;
-                st.coreLast = core; st.litLast = lt / sz;
-                epMinority[key] = st;
-            }
-        }
-        epFirst = false;
-        if (q % epEvery == epEvery - 1)
-            foreach (var ns in epsim.Nations)
-            {
-                var w = ns.World; if (!w.EthnicEnabled) continue;
-                Region? worst = null; double worstCore = 2, worstLit = 0;
-                foreach (var r in w.Regions)
-                {
-                    double sz = 0, cs = 0, lt = 0;
-                    foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare.Value; lt += p.Size * p.Literacy; }
-                    if (!(sz > 1e-9)) continue;
-                    if (cs / sz < worstCore) { worstCore = cs / sz; worst = r; worstLit = lt / sz; }
-                }
-                if (worst is null || worstCore > 0.999) continue;   // 全州が中核＝同化の対象がない国は出さない
-                Console.WriteLine($"{w.Year}\t{w.SelfPower?.BaseName}\t{w.EthnicUnity:F3}\t{Math.Max(0, w.NationalConsciousness):F3}\t{worst.Name}({worstCore:F3}/識{worstLit:F2})");
-            }
-        epsim.StepQuarter();
-    }
-    Console.WriteLine($"\n★少数派州 {epMinority.Count}件の到達年（0＝{epsim.Nations[0].World.Year}年までに未到達）");
-    Console.WriteLine("州\t開幕中核度\t0.5到達\t0.9到達\t最終中核度\t最終識字");
-    foreach (var kv in epMinority.OrderBy(k => k.Value.y50 == 0 ? 9999 : k.Value.y50).ThenBy(k => k.Key, StringComparer.Ordinal))
-        Console.WriteLine($"{kv.Key}\t{kv.Value.core0:F3}\t{kv.Value.y50}\t{kv.Value.y90}\t{kv.Value.coreLast:F3}\t{kv.Value.litLast:F2}");
-    int n50 = 0, n90 = 0; foreach (var kv in epMinority) { if (kv.Value.y50 > 0) n50++; if (kv.Value.y90 > 0) n90++; }
-    Console.WriteLine($"★合計: 0.5到達 {n50}/{epMinority.Count}件・0.9到達 {n90}/{epMinority.Count}件");
     return;
 }
 
@@ -5296,107 +5012,6 @@ if (args.Length > 0 && args[0] == "milstart")
     return;
 }
 
-// === 廃棄材の計器： dotnet run -- spoilprobe [国名] [シード] ===
-// 作者要望（2026-08-08）「特定材が失われ続けていないかのチェック」。1800/1850/1913 の3断面で、
-// 直近12ヶ月の廃棄量（腐敗・劣化＝Market.SpoiledLastYear・全Active州合算）上位15財を生産比つきで出す。
-// 生産比が高い財＝作り続けて捨て続けている（過剰生産の恒常化）。
-if (args.Length > 0 && args[0] == "spoilprobe")
-{
-    string spName = args.Length > 1 ? args[1] : "イギリス";
-    ulong spSeed = args.Length > 2 && ulong.TryParse(args[2], out var sps) ? sps : 1UL;
-    var spsim = new MultiNationSim(WorldData.Nations(), spSeed, _ => new UtilityAgent());
-    spsim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    foreach (var ns in spsim.Nations) ns.TelemetryEnabled = false;
-    spsim.Diplomacy.Log.Enabled = false;
-    int[] spMarks = [1800, 1850, 1913];
-    int spMi = 0;
-    for (int q = 0; q < Coefficients.GameQuarters && spMi < spMarks.Length; q++)
-    {
-        spsim.StepQuarter();
-        if (spsim.Year < spMarks[spMi]) continue;
-        var ns = spsim.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == spName);
-        if (ns is null) { spMi++; continue; }
-        var w = ns.World;
-        int ng = Catalog.Goods.Length;
-        double[] spoilYr = new double[ng], prodMo = new double[ng];
-        foreach (var r in w.Regions)
-        {
-            for (int gi = 0; gi < Math.Min(ng, r.Markets.Length); gi++)
-            { spoilYr[gi] += r.Markets[gi].SpoiledLastYear; prodMo[gi] += r.Markets[gi].LastProduced; }
-        }
-        Console.WriteLine($"━━ {w.Year} {spName} 廃棄上位15財（直近12ヶ月・生産比＝廃棄÷月次生産×12）━━");
-        foreach (var gi in Enumerable.Range(0, ng).OrderByDescending(i => spoilYr[i]).Take(15))
-        {
-            if (spoilYr[gi] < 0.5) break;
-            string ratio = prodMo[gi] > 1e-9 ? $"{spoilYr[gi] / Calendar.PerMonthToPerYear(prodMo[gi]):P0}" : "生産なし";
-            Console.WriteLine($"  {Catalog.Goods[gi].Name}	廃棄{spoilYr[gi]:N0}	生産{prodMo[gi]:N0}/月	生産比{ratio}");
-        }
-        spMi++;
-    }
-    return;
-}
-
-// === 所得と需要の翻訳の計器： dotnet run -- incomeprobe [シード] ===
-// 設計3段0（所得翻訳ゲート・2026-08-08）：r=(LastEarnedPerMonth/Size)÷basketRef（月収が基礎バスケット何個分か）を
-// 国別・階級別に出す。r(英労働者)/r(清農民) の勾配が細ければ翻訳器に入力が無い（→段5の賃金勾配を先に）。
-// GDP順位表（1800/1850/1913）と 資本家所得/人・貯蓄/月収比も併記＝(4)ビルマ>英 と (6)英14位 の直接の物差し。
-if (args.Length > 0 && args[0] == "incomeprobe")
-{
-    ulong ipSeed = args.Length > 1 && ulong.TryParse(args[1], out var ips) ? ips : 1UL;
-    var ipsim = new MultiNationSim(WorldData.Nations(), ipSeed, _ => new UtilityAgent());
-    ipsim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    foreach (var ns in ipsim.Nations) ns.TelemetryEnabled = false;
-    ipsim.Diplomacy.Log.Enabled = false;
-    string[] ipWatch = ["イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "清", "ビルマ", "日本"];
-    int[] ipMarks = [1800, 1850, 1913];
-    int ipMi = 0;
-    for (int q = 0; q < Coefficients.GameQuarters && ipMi < ipMarks.Length; q++)
-    {
-        ipsim.StepQuarter();
-        if (ipsim.Year < ipMarks[ipMi]) continue;
-        Console.WriteLine($"━━ {ipsim.Year} GDP順位（上位15）━━");
-        var ranked = ipsim.Nations.Where(n => n.World.SelfPower is not null)
-            .OrderByDescending(n => n.World.GdpPerMonth.Value).ToList();
-        for (int i = 0; i < Math.Min(15, ranked.Count); i++)
-            Console.WriteLine($"  {i + 1,2}位 {ranked[i].World.SelfPower!.BaseName}	GDP {ranked[i].World.GdpPerMonth:N0}");
-        Console.WriteLine("国	階級	r(月収/バスケット)	貯蓄/月収	所得/人	規模");
-        foreach (var nm in ipWatch)
-        {
-            var ns = ipsim.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == nm);
-            if (ns is null) continue;
-            var w = ns.World;
-            var home = w.Region;
-            double basketRef = 0;
-            foreach (var g in home.Goods) if (g.Tier == GoodTier.Staple || g.Tier == GoodTier.Daily) basketRef += g.BaseNeed * g.RefPrice;
-            if (basketRef <= 1e-9) continue;
-            // 階級別集計（全Active州合算）：農民(1)・労働者(2)・資本家(InvestorPopIndex)
-            double[] earn = new double[3], size = new double[3], sav = new double[3];
-            foreach (var r in w.Regions)
-            {
-                for (int pi = 0; pi < r.Pops.Count; pi++)
-                {
-                    var pp = r.Pops[pi];
-                    int slot = pp.ClassId == 1 ? 0 : pp.ClassId == 2 ? 1 : (r.InvestorPopIndex == pi ? 2 : -1);
-                    if (slot < 0) continue;
-                    earn[slot] += Math.Max(0, pp.LastEarnedPerMonth.Value); size[slot] += pp.Size; sav[slot] += Math.Max(0, pp.Savings.Value);
-                }
-            }
-            string[] names = ["農民", "労働者", "資本家"];
-            for (int s2 = 0; s2 < 3; s2++)
-            {
-                if (size[s2] <= 1e-9) continue;
-                double perCap = earn[s2] / size[s2];
-                double rr = perCap / basketRef;
-                double savMonths = earn[s2] > 1e-9 ? sav[s2] / earn[s2] : -1;
-                Console.WriteLine($"{nm}	{names[s2]}	{rr:F2}	{savMonths:F0}	{perCap:F1}	{size[s2]:F0}");
-            }
-        }
-        Console.WriteLine();
-        ipMi++;
-    }
-    return;
-}
-
 // === 女性就業率の検証（社会移動監査rank12・作者指示2026-08-16「女性の就業率が歴史と同程度か確認」）： dotnet run -- genderprobe [シード] ===
 // 読み取り専用の計器：国別の**実効女性労働参加率**（LaborSupply.FemaleParticipation＝構造値(賃金保持)+困窮上乗せ）を
 // 成人女性の加重平均で集計し、3断面（1800/1851/1913）で印字。史実アンカー＝**英1851の女性就業率≈30%・首位は家事奉公**
@@ -5440,53 +5055,6 @@ if (args.Length > 0 && args[0] == "genderprobe")
         }
         Console.WriteLine();
         gpMi++;
-    }
-    return;
-}
-
-// === 階級シェアの検証（旧 CohortGateK 点火A/Bの計器・2026-08-16・CohortGateK は 2026-10-11 (253) に削除＝今は階級シェアの読むだけの印字）： dotnet run -- classprobe [シード] ===
-// 読み取り専用：国別の上流/中流/下流シェア（Meritocracy.ClassOf＝失業プールと同じ物差し・兵士除外）を3断面で印字。
-// 史実アンカーの目安＝英中流は19世紀を通じ拡大（rank14の2.5%→4.4%は上層中流のみ・広義中流は15〜25%へ）。
-if (args.Length > 0 && args[0] == "classprobe")
-{
-    ulong cpSeed = ArgUlong(args, 1, 1UL);
-    var cpSim = new MultiNationSim(WorldData.Nations(), cpSeed, _ => new UtilityAgent());
-    cpSim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    foreach (var ns in cpSim.Nations) ns.TelemetryEnabled = false;
-    cpSim.Diplomacy.Log.Enabled = false;
-    string[] cpWatch = ["イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "清", "日本", "スペイン"];
-    int[] cpMarks = [1800, 1851, 1913];
-    int cpMi = 0;
-    Console.WriteLine("年,国,上流,中流,下流,失業プール計,総人口(M)");
-    for (int q = 0; q < Coefficients.GameQuarters && cpMi < cpMarks.Length; q++)
-    {
-        cpSim.StepQuarter();
-        if (cpSim.Year < cpMarks[cpMi]) continue;
-        foreach (var nm in cpWatch)
-        {
-            var ns = cpSim.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == nm);
-            if (ns is null) continue;
-            double up = 0, mid = 0, low = 0, unemp = 0, tot = 0;
-            foreach (var r in ns.World.Regions)
-            {
-                for (int pi = 0; pi < r.Pops.Count; pi++)
-                {
-                    var p = r.Pops[pi];
-                    if (p.Size <= 1e-9) continue;
-                    int cls = Meritocracy.ClassOf(r, pi);
-                    if (cls < 0 || p.IsSoldier) { tot += p.Size; continue; }   // 兵士は分母（総人口）のみ（★(155) ClassOf は兵士を下流の職に数える＝この計器は旧の物差しのまま兵士を外す）
-                    double emp = p.Size * (1.0 - p.UnemploymentRate.Value);
-                    if (cls == 2) up += emp; else if (cls == 1) mid += emp; else low += emp;
-                    unemp += p.Size * p.UnemploymentRate.Value;
-                    tot += p.Size;
-                }
-            }
-            double den = up + mid + low + unemp;
-            if (den <= 1e-9) continue;
-            Console.WriteLine($"{cpSim.Year},{nm},{up / den:F4},{mid / den:F4},{low / den:F4},{unemp / den:F4},{tot / 1e6:F1}");
-        }
-        Console.WriteLine();
-        cpMi++;
     }
     return;
 }
@@ -5808,121 +5376,6 @@ if (args.Length > 0 && args[0] == "deadend")
         foreach (var n in ds.Nations) { maxD = Math.Max(maxD, n.World.Region.Markets[g.Id].LastDemand); maxS = Math.Max(maxS, n.World.Region.Markets[g.Id].LastProduced); }
         if (maxD < 0.5) Console.WriteLine($"  死蔵: {g.Name}(id{g.Id}) 最大需要{maxD:F2} 最大生産{maxS:F2}");
     }
-    return;
-}
-
-// === 建設コスト妥当性テスト： dotnet run -- cost-test ===
-if (args.Length > 0 && args[0] == "cost-test")
-{
-    static Scenario Fr() => new() { Seed = 7, StartYear = 1783, Kind = ScenarioKind.France, PoliticsEnabled = true, InitialPolity = Polity.Absolutist, FiscalEnabled = true, TaxRate = 0.20, InitialTreasury = 200_000, BaseCoercion = 1500, EducationLaw = EducationLaw.Public, ExternalPressure = 0.1 };
-
-    // 定常状態の財政（建設しない場合の四半期黒字）を測る
-    var b = new Simulation(Fr(), new NullAgent());
-    b.Run(40);
-    double t0 = b.World.Treasury.Value, g0 = b.World.GdpPerMonth.Value;
-    b.Run(16);
-    double surplusPerQ = (b.World.Treasury.Value - t0) / 16.0;
-    Console.WriteLine($"=== 建設コスト妥当性テスト（フランス・税20%）===");
-    Console.WriteLine($"定常：国庫 {b.World.Treasury:N0}　四半期黒字 {surplusPerQ:N0}/Q　GDP {b.World.GdpPerMonth:N0}\n");
-
-    Console.WriteLine($"{"財",-8}{"カテゴリ",-7}{"総額",8}{"期間",6}{"/四半期",9}{"黒字比",8}{"国庫比",8}");
-    int[] reps = { Catalog.ClothingId, Catalog.SteelId, Catalog.RifleId, Catalog.MachineryId, Catalog.ApplianceId };   // 衣料/鋼/小銃/機械/電化製品（各カテゴリ代表）
-    foreach (int gid in reps)
-    {
-        var s = Catalog.FactorySpec(gid);
-        double payPerQ = s.Cost / s.Quarters;
-        string surplusRatio = surplusPerQ > 1 ? $"{payPerQ / surplusPerQ:F1}倍" : "—";
-        Console.WriteLine($"{Catalog.Goods[gid].Name,-8}{s.Category,-7}{s.Cost / 1000,6:F0}k{s.Quarters / 4.0,5:F1}年{payPerQ / 1000,7:F1}k{surplusRatio,8}{s.Cost / 200000.0,7:P0}");
-    }
-
-    // 鋼工場を実建設して国庫・工業化への影響を見る
-    var s2 = new Simulation(Fr(), new NullAgent());
-    s2.Run(40);
-    double tb = s2.World.Treasury.Value, indb = s2.World.Region.TotalIndustrialization;
-    var steel = s2.World.Regions[0].Producers.Find(p => p.GoodId == Catalog.SteelId)!;
-    s2.World.BuildFactory(0, Catalog.SteelId);
-    double minT = tb;
-    int guard = 0; while (steel.ConstructionLeft > 0 && guard++ < 40) { s2.Run(1); minT = Math.Min(minT, s2.World.Treasury.Value); }
-    double tDone = s2.World.Treasury.Value;
-    s2.Run(40);
-    Console.WriteLine($"\n鋼工場の実建設（70k・2年）:");
-    Console.WriteLine($"  着工前国庫 {tb:N0} → 建設中最低 {minT:N0} → 完成時 {tDone:N0} → 10年後 {s2.World.Treasury:N0}");
-    Console.WriteLine($"  完成後の鋼工場 稼働{steel.Scale * 100:F0}% 四半期損益{steel.LastRevenue - steel.LastCost:N0}　工業化 {indb:F2}→{s2.World.Region.TotalIndustrialization:F2}");
-    return;
-}
-
-// === 総合モニタ： dotnet run -- monitor [seed] ===（破綻/極端価格/政権遷移/戦争/植民地移譲/運河/輸送/技術登場）
-if (args.Length > 0 && args[0] == "monitor")
-{
-    ulong mseed = ArgUlong(args, 1, 1UL);
-    NationConfig[] mcfgs =
-    [
-        NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(),
-        NationConfig.Russia(), NationConfig.Prussia(), NationConfig.Ottoman(),
-        NationConfig.Austria(), NationConfig.Netherlands(), NationConfig.Iberia(), NationConfig.Sardinia(),
-    ];
-    var msim = new MultiNationSim(mcfgs, mseed, _ => new UtilityAgent());
-    int MQ = Coefficients.GameQuarters;
-    int MYear(int q) => 1783 + q / 4;
-    var adv = new Dictionary<int, string> { { Catalog.MachineGunId, "機関銃" }, { Catalog.IroncladId, "装甲艦" }, { Catalog.ApplianceId, "電化製品" }, { Catalog.ElectricityId, "電力" }, { Catalog.GridId, "送電網" } };
-    var firstYear = new Dictionary<int, int>();
-    var polPrev = new Polity[mcfgs.Length];
-    int polTrans = 0; bool mbroke = false; int mbrokeQ = -1; int mlogSeen = 0;
-    int mWars = 0, mConq = 0; var mCanals = new List<string>();
-
-    for (int q = 0; q < MQ; q++)
-    {
-        try { msim.StepQuarter(); }
-        catch (Exception) { mbroke = true; mbrokeQ = q; break; }
-        for (int n = 0; n < msim.Nations.Count; n++)
-        {
-            var w = msim.Nations[n].World;
-            foreach (var r in w.Regions)
-                foreach (var p in r.Producers)
-                    if (adv.ContainsKey(p.GoodId) && p.Output > 1.0 && !firstYear.ContainsKey(p.GoodId)) firstYear[p.GoodId] = MYear(q);
-            if (q > 0 && n < polPrev.Length && w.Polity != polPrev[n]) polTrans++;   // 分離独立/建国で Nations が polPrev(固定長)を超え得る＝既存国のみ政変計上（越境で IndexOutOfRange しない）
-            if (n < polPrev.Length) polPrev[n] = w.Polity;
-        }
-        var lg = msim.Diplomacy.Log;
-        for (; mlogSeen < lg.Count; mlogSeen++)
-        {
-            var l = lg[mlogSeen];
-            if (l.Contains("開戦")) mWars++;
-            if (l.Contains("が開通")) mCanals.Add(l);   // 2026-07-28：ログ文言の「運河運河」重複を是正したため照合語も追随
-            if (l.Contains("勝利") && l.Contains("植民地+")) mConq++;
-        }
-    }
-
-    Console.WriteLine($"=== 総合モニタ seed {mseed}：{(mbroke ? $"★破綻 Q{mbrokeQ}（{MYear(mbrokeQ)}年）" : $"完走 {MQ}Q→{MYear(MQ)}年")} ===");
-    Console.WriteLine($"1) 経済破綻: {(mbroke ? "★あり" : "なし")}");
-    {
-        int fl = 0, ce = 0; var ex = new List<string>();
-        for (int g = 0; g < msim.Market.Price.Count; g++)
-        {
-            if (Catalog.Goods[g].Tier == GoodTier.Service) continue;
-            double ratio = msim.Market.Price[g] / Math.Max(1e-9, Catalog.RefPrices[g]);
-            if (ratio <= 0.12) { fl++; ex.Add($"{Catalog.Goods[g].Name}↓"); }
-            else if (ratio >= 8.0) { ce++; ex.Add($"{Catalog.Goods[g].Name}↑"); }
-        }
-        Console.WriteLine($"2) 極端な世界価格: 床(≤0.12x){fl} 天井(≥8x){ce}　{string.Join(" ", ex)}");
-    }
-    Console.WriteLine($"3) 政権遷移: {polTrans}回　最終政体: {string.Join("/", msim.Nations.Select(n => n.World.Polity))}");
-    Console.WriteLine($"4) 戦争（開戦）回数: {mWars}（{MYear(MQ) - 1783}年間）");
-    Console.WriteLine($"5) 植民地の移譲（決定的勝利）: {mConq}回");
-    Console.WriteLine($"6) 運河の開通: {(mCanals.Count == 0 ? "なし" : string.Join(" / ", mCanals))}");
-    {
-        // 輸送：交易スロットル（1=容量十分/余剰、<1=容量不足）。容量/目標の列は撤去（目標は Transport.Step のローカル＝脅威/混雑の乗数込みで再導出できない・2026-09-11 #14）
-        double thr = 0; int rc = 0;
-        foreach (var nn2 in msim.Nations)
-            foreach (var r in nn2.World.Regions) { thr += r.LastTradeThrottle; rc++; }
-        Console.WriteLine($"7) 輸送: 平均交易スロットル {(rc > 0 ? thr / rc : 1):F2}（1=余裕/<1=不足）");
-    }
-    {
-        var sb = new List<string>();
-        foreach (var kv in adv) sb.Add(firstYear.TryGetValue(kv.Key, out int y) ? $"{kv.Value}={y}" : $"{kv.Value}=未登場");
-        Console.WriteLine($"8) 技術（先進財）の最速登場年: {string.Join(" / ", sb)}");
-    }
-    Console.WriteLine($"参考) 運河の現状: {string.Join(" ", msim.Diplomacy.Chokepoints.Select(cp => $"{cp.Name}={(cp.IsOpen ? "開" : "未")}{(cp.Owner is { } o ? $"[{o.Name}]" : "")}"))}");
     return;
 }
 
@@ -6354,34 +5807,6 @@ if (args.Length > 0 && args[0] == "selfplay")
     Console.WriteLine($"\n異常/要注意（{r.Anomalies.Count}件）:");
     if (r.Anomalies.Count == 0) Console.WriteLine("  なし");
     else foreach (var a in r.Anomalies) Console.WriteLine($"  ⚠ {a}");
-    return;
-}
-
-// === 初期生産トレース： dotnet run -- trace-prod [quarters] ===（先進財が1783に立たないか確認）
-if (args.Length > 0 && args[0] == "trace-prod")
-{
-    int qs = ArgInt(args, 1, 4);
-    NationConfig[] tc = [
-        NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(),
-        NationConfig.Russia(), NationConfig.Prussia(), NationConfig.Ottoman(),
-    ];
-    var tsim = new MultiNationSim(tc, 1, _ => new UtilityAgent());
-    tsim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    for (int q = 0; q < qs; q++) tsim.StepQuarter();
-    int[] watch = [Catalog.ApplianceId, Catalog.ElectricityId, Catalog.SteamEngineId, Catalog.SteelId, Catalog.MachineryId, Catalog.CementId];   // 電化製品・電力・蒸気機関・鋼・機械・セメント（★段1：発電機は機械へ畳んだ）
-    foreach (var nat in tsim.Nations.Take(2))
-    {
-        var tw = nat.World;
-        var r = tw.Region;
-        int visible = r.Producers.Count(p => p.Inputs.Count > 0 && p.Output > 1);
-        int total = r.Producers.Count(p => p.Inputs.Count > 0);
-        Console.WriteLine($"=== {tw.SelfPower?.Name ?? r.Name} {tw.Year}年（{qs}四半期後）地域[{r.Name}] 表示工場{visible}/{total}（Output>1）===");
-        foreach (int gid in watch)
-        {
-            var p = r.Producers.FirstOrDefault(x => x.GoodId == gid);
-            if (p != null) Console.WriteLine($"    {Catalog.Goods[gid].Name,-8} Output {p.Output,8:F2}  Scale {p.Scale:F3}  {(p.Output > 1 ? "表示" : "非表示")}");
-        }
-    }
     return;
 }
 
