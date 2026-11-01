@@ -20,7 +20,6 @@ public sealed class FactionState
     public double Size;                // 直近観測の規模（人口千人）
     public double AvgMilitancy;        // 直近観測の平均闘争度
     public double Cohesion;            // 結束∈[0,1]＝運動体としての持続の証（発火ゲート・F3b）
-    public int AbsentQuarters;         // 連続不在の四半期数（8Q＋低結束で除去）
     public bool Mutated;               // 変異済み（千年王国の旗）＝結束成長2倍
     public string MutantName = "";     // 変異名（「広州の太平会」等）。未変異は空＝表示は機械生成名
     public double Rejections;          // ★段3（内戦一元化doc §4・2026-08-30）：拒否の累積（弾圧・対決・別軸譲歩=本丸拒否が+1・受諾で0へ）。読み手は FactionRejectionMutation>0 の変異ロールのみ＝0では積むだけ＝恒等
@@ -40,7 +39,7 @@ public static class Factions
     private static readonly string[] MutantSuffixes = ["会", "団", "軍", "同盟"];
 
     private const double MutationCohesionGate = 0.3;   // 変異ロールに要る結束の下限（旗は結束した運動体のみ・頻度絞り2026-07-12）
-    private const double ForgetCohesionFloor = 0.05;   // これ未満の結束＋長期不在で運動を忘却
+    private const double ForgetCohesionFloor = 0.05;   // 不在の運動の結束がこれ未満で忘却
 
     /// <summary>四半期の更新（Politics.Step から・PoliticsEnabled世界のみ）。観測クラスタと永続状態を突き合わせ、結束を育て、危機で変異をロールする。</summary>
     public static void Step(World w, Coefficients c)
@@ -60,7 +59,6 @@ public static class Factions
             foreach (var f in w.Factions) if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo) { st = f; break; }
             if (st is null) { st = new FactionState { Region = reg, Bloc = bloc, Ideo = ideo }; w.Factions.Add(st); }
             st.Size = size; st.AvgMilitancy = milSum / size;
-            st.AbsentQuarters = 0;
             // 結束の成長＝意識ある層ほど組織が速い（指導部の創発）。変異済みは2倍（旗の下の凝集）。
             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
@@ -90,7 +88,7 @@ public static class Factions
                 }
             }
         }
-        // 3) 不在クラスタの減衰と忘却（走査は逆順＝除去安全）。観測済みは AbsentQuarters=0 に更新済み。
+        // 3) 不在クラスタの減衰と忘却（走査は逆順＝除去安全）。(739) 群11：忘却の時計（連続不在 8 四半期）は外した＝結束が床を割ったら忘れる。
         for (int i = w.Factions.Count - 1; i >= 0; i--)
         {
             var f = w.Factions[i];
@@ -98,9 +96,8 @@ public static class Factions
             foreach (var (reg, bloc, ideo, size, _) in observed)
                 if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo && size >= FactionSnapshot.MinSizeFraction * totalPop) { seen = true; break; }
             if (seen) continue;
-            f.AbsentQuarters++;
             f.Cohesion *= 1.0 - c.FactionCohesionDecay;
-            if (f.Cohesion < ForgetCohesionFloor && f.AbsentQuarters >= c.FactionForgetQuarters) w.Factions.RemoveAt(i);   // 忘れられた運動
+            if (f.Cohesion < ForgetCohesionFloor) w.Factions.RemoveAt(i);   // 忘れられた運動
         }
         // 4) ★段6（内戦一元化doc §3・spec §3-2＝唯一の新規実装・2026-08-30）：派閥の合流＝太平天国の北上（通過地の不満民を吸収）。
         //    条件3つ＝【敵】同ブロック×同イデオロギー（同じ的）・【手段】変異状態の一致（旗と旗・議会派と議会派）・【距離】FactionMergeRangeKm以内。
@@ -127,7 +124,7 @@ public static class Factions
                     var big = a.Size >= b.Size ? a : b; var small = big == a ? b : a;
                     big.Cohesion = PoliticalQuantities.Clamp01(big.Cohesion + c.FactionMergeCohesionGain.Value * small.Cohesion);
                     big.Rejections = System.Math.Max(big.Rejections, small.Rejections);   // 怨嗟は深い方が残る
-                    small.Cohesion = 0; small.AbsentQuarters = (int)c.FactionForgetQuarters;   // 吸収＝次の掃除で自然消滅（即Removeせず走査を壊さない）
+                    small.Cohesion = 0;   // 吸収＝次の掃除で自然消滅（即Removeせず走査を壊さない）
                     merged.Add(big); merged.Add(small);
                     w.LogAdd($"{w.Year} {DisplayName(small)}が{DisplayName(big)}に合流した");
                 }
