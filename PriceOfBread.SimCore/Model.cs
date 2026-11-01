@@ -198,7 +198,7 @@ public sealed class Pop
     /// ★史実：トクヴィル「最も繁栄していた地方が最も革命的だった」／Jカーブ（長期の改善の後の急落が革命を生む）。
     /// ⚠天命との二重計上にはならない＝**天命は水準・こちらは変化**（数学的に直交）。加えて3層分割で人口が厳密に割られている。
     /// ⚠−1＝未捕捉（初回に現在値で初期化＝立ち上がりの跳躍なし。SchoolingConvStock / UnemploymentEma と同じ作法）。
-    /// ⚠LivingRefWeight=0（＝旧式へ戻す対照用）では読み書きされず初期値のまま。</summary>
+    /// （旧の旗 LivingRefWeight は (739) で焼き込み＝常に読み書きされる。）</summary>
     // ★作者命名（2026-08-21）＝この機構の名前は**「失望」**（生活苦＝参照点からの落差）。「機構として正しいので存在するべき。
     //   リアリティのために必要であれば、純粋な生活水準低下だけにとどまらず、別要素を加算してもよい。
     //   ただハーネスが露骨に壊れて調整困難なら休眠でよい」（作者裁定）。
@@ -272,7 +272,7 @@ public sealed class Pop
             double need = FoodNeed + NeedTotal;
             if (!(need > 0)) return 1.0;
             double v = (FoodMet + NeedMet) / need;
-            return !(v >= 0) ? 0 : v > 1 ? 1 : v;   // 否定形＝NaN は 0 側（旧 SoldierWelfare の NaN の倒し先と同じ）
+            return PoliticalQuantities.Clamp01(v);   // NaN は 0 側（旧 SoldierWelfare の NaN の倒し先と同じ）・(739) 群2：−0.0 も +0.0
         }
     }
     /// <summary>★主食の充足∈[0,1]＝FoodMet÷FoodNeed（導出量・2026-09-30 処理の一元化 段4e H）。必要が無い（FoodNeed≈0）は 1＝飢えていない。

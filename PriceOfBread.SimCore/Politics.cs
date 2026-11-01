@@ -8,9 +8,6 @@
 /// </summary>
 public static class Politics
 {
-    // マジックナンバー一掃（2026-07-20・値据え置き・命名のみ）：天命による正統性増幅の対称クリップ境界（安全弁）
-    private const double DynMandateMulMin = 0.2, DynMandateMulMax = 1.8;
-
     /// <summary>探究/革新の自由度（倍率排除②）＝政体ラベルでなく**法律状態（参政権＋報道）から創発**。
     /// 世界の技術水準閾値(0.6)は**政治的開放度と報道の自由の両方**を要する＝検閲する社会は形式的参政権があっても先端で革新できない（採用・模倣に留まる＝閉じた社会の停滞）。
     /// 自由主義革命（立憲君主制/共和）は <see cref="FoundingPress"/> で報道を解放するので閾値を越える。検閲を保つ独裁（ブルジョア/プロレタリア独裁）は越えない。
@@ -95,22 +92,16 @@ public static class Politics
     //   ★段1は**読み手ゼロ**＝世界は1ビットも変わらない。下の3本は闘争度ループ（Step）と**同じ式の単一の定義**であり、
     //     ループはこの関数を呼ぶ（写経しない）＝二実装が生まれない（型の統合が静かに壊す・分子と分母の非対称の再発防止）。
 
-    /// <summary>生活の失望∈[−1,1]（闘争度ループと**同じ1本**・LivingRefWeight∈[0,1] のとき）。LivingRefWeight=0 なら旧式＝1−生活水準（絶対水準）、
-    /// >0 なら参照点からの【低下】＝失望（2026-08-19裁定・既定1.0で点火済み）。
+    /// <summary>生活の失望∈[−1,1]（闘争度ループと**同じ1本**）＝参照点からの【低下】（2026-08-19裁定・旧の旗 LivingRefWeight は (739) で焼き込み）。
     /// ⚠**成長期は負になりうる**（生活水準が参照点を上回る＝体制への支持）。呼び手はクランプの責任を持つ
     /// （闘争度は target のクランプが、不満度は <see cref="Discontent"/> 自身のクランプが吸う）。
     /// ⚠純関数＝**書き込まない**。参照点の未捕捉（LivingRef&lt;0）は現在値として読むだけで、初期化の書き込みは
     /// ループ側（力学の持ち主）に残す＝導出量の評価が盤面を動かさない。</summary>
     internal static double LivingWant(Pop p, Coefficients c)
     {
-        double want = 1.0 - p.Satisfaction;
-        if (c.LivingRefWeight > 0)
-        {
-            double refv = p.LivingRef < 0 ? p.Satisfaction : p.LivingRef;   // 未捕捉＝現在値（＝ループの初期化直後と同値・こちらは書かない）
-            double drop = refv - p.Satisfaction;                            // ★正＝落ちた（不満）／負＝上がった（体制への支持）
-            want = (1.0 - c.LivingRefWeight) * want + c.LivingRefWeight * drop;
-        }
-        return want;
+        // (739) 旧の旗 LivingRefWeight（1.0）の混合（(1−w)×(1−満足)＋w×落ち込み）は焼き込み＝落ち込みそのもの。
+        double refv = p.LivingRef < 0 ? p.Satisfaction : p.LivingRef;   // 未捕捉＝現在値（＝ループの初期化直後と同値・こちらは書かない）
+        return refv - p.Satisfaction;                                   // ★正＝落ちた（不満）／負＝上がった（体制への支持）
     }
 
     /// <summary>飢餓の駆動∈[0,1]（闘争度ループと計器の**同じ1本**）＝<b>平常からの急な落ち込み</b>（2026-09-22 回B・作者承認）。
@@ -276,7 +267,7 @@ public static class Politics
             // ⚠参照点は【前期の値】を読む（★更新はこの pop の処理の最後＝同一ティック内で閉じない）。
             // ⚠式は <see cref="LivingWant"/> **1本**（段1・2026-09-09）＝闘争度（ストック）と不満度（導出量）が同じ生活苦を読む＝二実装を作らない。
             //   未捕捉の初期化だけはここに残す（純関数は盤面を書かない）＝初期化直後の LivingWant は同じ現在値を読むのでビット同値。
-            if (c.LivingRefWeight > 0 && p.LivingRef < 0) p.LivingRef = p.Satisfaction;   // 未捕捉＝現在値で初期化（立ち上がりの跳躍なし）
+            if (p.LivingRef < 0) p.LivingRef = p.Satisfaction;   // 未捕捉＝現在値で初期化（立ち上がりの跳躍なし）
             // ★食料の平常（2026-09-22 回B）も同じ作法：未捕捉＝今の充足で初期化＝開始時の慢性の低さは「平常」として入る（1783年の塊の根）。
             //   分母なし（FoodNeed≈0）・NaN の月は捕捉も更新もしない（否定形の `>= 0` は NaN で false）。
             double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;   // ⚠生の比（飢餓の駆動と同じ・Pop.FoodFill の下限0の切りを通さない＝段4e の申し送り）
@@ -325,7 +316,7 @@ public static class Politics
             //   ⚠上昇鈍化（旧 UnityMilitancyRelief×EthnicUnity）は削除＝民族統一度の3度目の読みだった（一本鎖へ）。
             p.Militancy += c.MilitancySpeed * (target - p.Militancy);
             // ★参照点を今の生活水準へ寄せる（⚠want を計算した【後】＝同一ティック内で閉じない）。
-            if (c.LivingRefWeight > 0 && c.LivingRefSpeed > 0)
+            if (c.LivingRefSpeed > 0)
                 p.LivingRef += c.LivingRefSpeed * (p.Satisfaction - p.LivingRef);
             // ★食料の平常を今の充足へ寄せる（同じ慣れの速度・駆動を計算した【後】＝同一ティック内で閉じない）。
             //   ⚠利得に関わらず回す＝駆動が休眠の世界でも「慣れ」の分布を計器が測れる（起点と利得はその分布から導いた）。
@@ -393,8 +384,9 @@ public static class Politics
                 double capacity = clergyModeled && illit > 1e-9 ? Math.Min(1.0, clergySize / (illit * c.ClergyMediationPerCapita)) : 1.0;
                 dynE *= 1.0 - c.MandateReligiousCircuit * (1.0 - lawOpen * capacity);
             }
-            dynErodeMul = Math.Clamp(1.0 - c.DynMandateAmplify * dynE, DynMandateMulMin, DynMandateMulMax);   // [PORT:P3] 天命→正統性の連続項レバー（侵食/回復の対称クリップ乗数）。名君＝侵食が鈍る／暗君＝加速
-            dynRegenMul = Math.Clamp(1.0 + c.DynMandateAmplify * dynE, DynMandateMulMin, DynMandateMulMax);   // 対称クリップ＝安全弁（開幕即崩壊と無制限加速の両防止）
+            // (739) 群1：旧の挟み [0.2,1.8] は外した（dynE∈[−1,1]×DynMandateAmplify 0.8 で範囲は元から [0.2,1.8]＝縁は dynE＝±1 の最後の桁だけ）。
+            dynErodeMul = 1.0 - c.DynMandateAmplify * dynE;   // [PORT:P3] 天命→正統性の連続項レバー（侵食/回復の乗数）。名君＝侵食が鈍る／暗君＝加速
+            dynRegenMul = 1.0 + c.DynMandateAmplify * dynE;
         }
         double avgConsc = sizeSum > 1e-9 ? conscSum / sizeSum : 0;
         // 倍率排除⑥：政体別 erosion(絶対/専制/幕府=0.07・軍政=0.22)を**制度ギャップ**で一本化（恒久的な罠を作らない＝やがて革命）。
@@ -501,7 +493,7 @@ public static class Politics
         double coerce = PoliticalQuantities.EffectiveCoerce(w, c);   // 政体力学の実効保持力＝人口あたり強度（第5段5-1＝一元化・今期導出値＝従来と同時点）
 
         // 財政破綻は外科的な政体フリップでなく**経済悪化（信用収縮＝Credit）**として効かせ、政治的帰結は通常の遷移に委ねる（債務不履行→経済悪化の段階）。
-        Factions.Step(w, c);   // F3a：国内勢力の永続化と変異（牙＝下の CheckFactionRevolt・FactionRevoltScale=1.0 稼働中）
+        Factions.Step(w, c);   // F3a：国内勢力の永続化と変異（牙＝下の CheckFactionRevolt）
         // ★旧経路の内戦（第二の戦争エンジン＝ProcessCivilWar）を削除（2026-09-28 処理の一元化 段2 束3・作者裁定 a）＝内戦は全て戦争の形（首都の蜂起も）。
         //   旧＝CivilWarYears>0 の間は通常遷移・F3b・F1 を止めて抽象的な戦勝点で数年を戦った。
         //   ★首都が反乱国の手にある間（首都の分離独立の内戦中＝World.SecedingRegion）は通常の遷移と蜂起の判定をしない＝政体の問いは戦場で決まる
@@ -511,7 +503,7 @@ public static class Politics
         if (!capitalHeld) Transition(w, c, reformist, radical, coerce, eroding);
         bool capitalRose = w.PendingRebelRegions is not null;   // 首都の蜂起を予約した四半期＝他の蜂起は判定しない（旧＝旧経路の内戦が始まった四半期と同じ扱い）。予約は四半期末に回収＝この四半期の Transition だけが書く
         CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（旗 DominanceIsStock は 2026-09-26 に焼き込み）。分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
-        if (!capitalRose && !capitalHeld) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型・FactionRevoltScale=1.0稼働・0で観察のみ）
+        if (!capitalRose && !capitalHeld) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型）
         if (!capitalRose && !capitalHeld) CheckRegionalRevolt(w, c, coerce);   // F1 州一揆（王権議会F1・RegionalRevoltThreshold=0で無効・★段2で現行0.50）
 
         w.Freedom = FreedomFromLaws(w.Suffrage, w.Censorship);   // 倍率排除②：政体ラベルでなく参政権＋報道法から創発
@@ -880,7 +872,7 @@ public static class Politics
     // ⚠旧の民族分岐（本拠州が少数派→旧経路の単一州の分離戦）は 2026-09-28 段2 束3 で削除（作者裁定 g）＝民族の分離は支配度の分離独立（CheckSecession）の1本。
     private static void CheckFactionRevolt(World w, Coefficients c, double coerce)
     {
-        if (c.FactionRevoltScale <= 0 || w.FactionRng is null) return;
+        if (w.FactionRng is null) return;   // (739) 旧の旗 FactionRevoltScale（1.0）の門は焼き込み
         // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）＝**2026-09-29 点火**（作者裁定「蜂起の共有クールダウンは撤去＝根拠のない待ち」＝
         //   旗 RevoltCooldownRetire・タイマー World.RevoltCooldownQuarters・係数 RegionalRevoltCooldown を削除）。旧＝4四半期の固定タイマーで
         //   「同一国で年に何度も燃えない」を作っていた＝**物理でない待ち行列**（実測でヴュルテンベルクが69年間ぴったり毎年7月1日に蜂起＝
@@ -911,7 +903,7 @@ public static class Politics
             //   右辺の郷勇は w.AllPops() の**全国**スケール＝点火が人口に反比例し、人口最大の清で太平天国が最も出にくかった。
             //   新：戦力比は点火から外し（＝「勝てるか」は決着＝戦争側にだけ残す）、連言2門にする。
             //     門1＝組織された意志（示強量）：FactionStrength ÷ f.Size ＝ f.Size が代数的に約分され
-            //          AvgMilitancy×結束×(1−発言権)×FactionRevoltScale（全因子[0,1]）が残る＝規模の次元非対称が構造的に消える。
+            //          AvgMilitancy×結束×(1−発言権)（全因子[0,1]）が残る＝規模の次元非対称が構造的に消える。
             //     門2＝州の絶望：RegionRevoltHeat（F1の一揆と**同じ既存閾値** RegionalRevoltThreshold で測る）＋怨嗟。
             //   ⚠積にしない（闘争度が intensity と heat の両方に入り二重計上になる＝本プロジェクトで最も再発するバグ型）。
             //   ⚠選択キーも「最も強い運動」→「最も**絶望した**運動」へ移す。旧キーのままだと示強量0のクラスタが選定を専有し
@@ -1142,7 +1134,7 @@ public static class Politics
         //   ⚠否定形＝床0では有限値のとき必ず偽＝1命令も書き換えない厳密恒等。
         double silenced = 1.0 - voice;
         if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor;
-        double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced * c.FactionRevoltScale;
+        double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced;   // (739) 末尾の ×FactionRevoltScale（1.0）は焼き込み
         // ★第5因子＝装備（設計メモ§7 作者裁定2026-09-09 (a)・2026-09-11）：国軍の即応度が装備充足（MilitaryEquipFill）を掛けるのと同じ物差し
         //   （FactionState.EquipFill＝同じ関数 EconomyStep.EquipFill の値＝運動が市場で買えた武器の充足）。丸腰の運動は戦力を持たない
         //   （国軍の「材で詰まった戦争は負ける」と対称）。⚠段2の注記「装備＝資金÷人数」は**採らない**＝資金は市場で財に化けてから数える。
@@ -1613,11 +1605,11 @@ public static class Politics
             if (good.Id < 0 || good.Id >= r.Markets.Length || good.RefPrice <= 1e-9) continue;
             var m = r.Markets[good.Id];
             if (m.LastProduced <= 1e-9) continue;   // その州が実際に作っている財だけ＝その州の産業利害
-            double competitiveness = Math.Clamp((m.Price - good.RefPrice) / good.RefPrice, -1.0, 1.0);   // >0 高コスト→保護・<0 競争力→自由貿易
+            double competitiveness = PoliticalQuantities.ClampOr((m.Price - good.RefPrice) / good.RefPrice, -1.0, 1.0, 0);   // (739) 群3：NaN は 0   // >0 高コスト→保護・<0 競争力→自由貿易
             double wgt = m.LastProduced * good.RefPrice;   // 生産額で加重（大産業ほど州の関税姿勢を支配）
             pull += wgt * competitiveness; weight += wgt;
         }
-        return weight > 1e-9 ? Math.Clamp(pull / weight, -1.0, 1.0) : 0.0;
+        return weight > 1e-9 ? PoliticalQuantities.ClampOr(pull / weight, -1.0, 1.0, 0.0) : 0.0;   // (739) 群3：NaN は 0
     }
 
     /// <summary>州の平均闘争度（人口加重・閉鎖/兵士popを除く）。internal＝計器（factionprobe 段0）が

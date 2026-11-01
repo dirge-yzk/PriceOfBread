@@ -1,0 +1,27 @@
+# (739) 線 c2core の結果（事前登録 m739_20261101_prereg_c2core.txt の門で読む・結果の後に門を変えていない）
+
+## T0（G0 c-1〜c-6）  ident_20261101_c2core0.txt
+判定: 恒等（素の 5 種 b5_20261101_c2core0 対 b5_20261031_m702＝全行バイト一致 183 行・.cost 件数の行 29 本・推定 220.2 秒が一致）
+注：1 回目は --tree に git の無い写し（git archive）を渡して、batch.sh が git show で取る忠実度の前回値の表が空になり〈前回比〉の 10 行だけが違って〈不一致〉と出た＝木の誤り。git の worktree（detached）で回し直して〈恒等〉。
+
+## T1（G0＋G1 c-7〜c-10）  ident_20261101_c2core1.txt
+判定: 恒等（素の 5 種・計器つき 10 種 b10_20261101_c2core1_ins 対 b10_20261101_m727_ins＝全行バイト一致・.cost 一致〔220.2・221.1 秒〕・計器の表 881 本〔バイト一致 855・既知の揺れ 26〕・注視の表 5051 行一致・テストの数 2103＋3）
+⇒ G1 は〈測った 15 種で 1 ビットも変わらない＝実現した軌道では通らない枝〉として採る（証明ではない）。観測量は数えていない（恒等なので不要）。
+
+## T2（＋G2 c-11）腕 B＝計器つき 10 種  b10_20261101_c2coreB_ins
+門 A′：nullgate_20261101_c2coreB.txt＝O 191.7（組ごと 184・200・191）・較正 L 190・201・176＝上限 201 ⇒ 雑音の内（事前登録の 203 でも内）。3 本で同じ値なのに腕だけ違う列 11（兌換停止の回数 10→9・断面 1950 の国別ほか＝記録）。
+門 B（c-11）：E′＝7,017（使い捨ての木＝T2＋読むだけの数え・素の 5 種 1〜5）・結束の最大 0.049998 ＜ 0.05・E＝5,474 ⇒ 1,825〜16,422 の中 ⇒ 合格。
+  E′ の不在の四半期の内訳 1：4,251・2：562・3：739・4：599・5：251・6：287・7：328。
+止める線：破綻 0/10・デッドロック 0/10・発散（MONSUM 9）0・空洞化（hol_20261101_c2coreB.txt・規則 A2）1/10 未満 0 件・.cost 推定 220.6 秒（≦248.5・221.1 から上がらない・ヌル腕の幅 219.1〜222.5 の中）・savetest OK（全 63 カ国・最大相対差 0）・leakhunt 保存則違反なし。
+記録：NG 95（ng_20261101_c2coreB.txt・基準 93・新しい 16・外れた 14・ヌル腕の新しい NG は 12・15）・空洞化 1/4 未満 9 件（基線 8）・内戦分裂 7 回（基線 3・N1 6・N2 9）・分離独立の建国 22 回（基線 26・N1 20・N2 24）・ハーネス不合格 8/10（基線 10・N1 7・N2 8）・exact 平均 45.4・near 85.7。
+
+## フルスイート（T2）
+Category!=FullLength：合計 2103（--list-tests の 2103 と一致）・合格 2100・失敗 2・Skip 1。FullLength：3/3 合格。
+失敗 1＝DormantIdentityTests.係数は全て本体のどこかで読まれる（読み手 0 になる 9 欄：LivingRefWeight・CollapseImposeFromFront・PrizeLossProrated・IndustrializationPopWeighted・CrownRollbackRate・FactionForgetQuarters・FactionRevoltScale・CrownPressureRate・WomenEducationGate＝事前登録 ⑤ の見込みどおり・欄の削除は id の線）。
+失敗 2＝InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される（前提 rows.Count ≥ 5 が 4 で崩れた・InstrumentsTests.cs:2412）。T1 の木では同じテストが合格（単独で確かめた）＝c-11 の軌道の変化が原因。
+⇒ 機構のテストの赤＝止める線（RULE47）。この線はそのテストのファイルを書けず、同じ腕で物差し（種・四半期）を替えない ⇒ **c-11 は採らない**（門 A′・門 B・他の止める線は通ったが、採らない）。
+
+## 枝の形（決着）
+c-11（72ca108f）は e2c3bafb で戻した。`git diff a797b8c1 e2c3bafb -- PriceOfBread.SimCore PriceOfBread.App PriceOfBread.Tests PriceOfBread.Runner` は空＝枝のソースは T1 と同じ＝ident_20261101_c2core1（判定: 恒等）がそのまま当たる。
+読み手 0 になる欄は 8 本（LivingRefWeight・CollapseImposeFromFront・PrizeLossProrated・IndustrializationPopWeighted・CrownRollbackRate・FactionRevoltScale・CrownPressureRate・WomenEducationGate）＝DormantIdentityTests.係数は全て本体のどこかで読まれる はこの 8 本で赤（id の線の欄の削除で緑に戻る見込み）。FactionForgetQuarters と FactionState.AbsentQuarters は読み手が戻った＝消さない。
+門 A′ の上限：事前登録には m736 追記の 203 を写したが、nullgate.py の較正の出力は 201（O 191.7 はどちらでも内）。

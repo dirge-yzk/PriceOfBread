@@ -138,7 +138,7 @@ public sealed class War
     public bool CivilWarSecession;  // ★同時独立（2026-09-06）：分離独立の戦争＝反乱側（新国家）が勝てば独立が確定（政体は敷かない・再併合しない）。政府勝利＝再併合は同じ
     // 【削除2026-09-26（棚卸し dorm-42）】戦勝点の分解の診断の積算3本（SumPush・SumPushAbs・SumLuckAbs）＝旗 WarScoreDecomposition（既定0）が立つときだけ年表に1行出す材料を、
     //   既定でも毎月すべての戦争で積んでいた（⑩）。Runner に warprobe は無く「[分解]」を読む処理も無かった。要るなら Runner の計器として作り直す。
-    // ★崩壊講和の取り分（2026-08-12・CollapseImposeFromFront が読む）：各月の押しを side ごとに積む。
+    // ★崩壊講和の取り分（2026-08-12・崩壊講和の押し付けが読む）：各月の押しを side ごとに積む。
     //   単月スナップでは崩壊月の押しが歪むので、**戦争を通した累積**で見る。
     public double PushA, PushB;
 }
@@ -161,7 +161,7 @@ public sealed class EndedWarRecord
     /// （<see cref="Diplomacy.ResolvePeace"/> の注のとおり。旧の画面と報告は白紙の線の内側を全て白紙と書いていた）。それ以外は符号の側が勝ち。</summary>
     public static WarVerdict VerdictOf(double score, bool regimeWar, double whitePeaceScore)
     {
-        double s = Math.Clamp(score, -1, 1);
+        double s = PoliticalQuantities.ClampOr(score, -1, 1, 0);   // (739) 群3：NaN は 0
         if (Math.Abs(s) < whitePeaceScore && !(regimeWar && s != 0)) return WarVerdict.Blank;
         return s > 0 ? WarVerdict.AWon : WarVerdict.BWon;
     }
@@ -787,19 +787,16 @@ public sealed class Diplomacy
             cargoBase = victimThroughput * PoliticalQuantities.Clamp01(raidLoss);
             // 外4：raidLoss は victim の**総**損失（連合合算海軍基準）なのに、制海権を握る各raiderがそれぞれ総額基準で賞金化＝共同封鎖で二重取り。
             // 対策：同じ victim を封鎖する（sc>0.5 の）全交戦raiderの海軍力比で cargoBase を按分＝連合封鎖でも合計は総損失を超えない（保存整合）。
-            // PrizeLossProrated=1.0（既定・完全按分）。0で按分係数1＝旧挙動。
-            if (c.PrizeLossProrated > 1e-12)
+            // 完全按分（旧の旗 PrizeLossProrated＝1.0 は (739) で焼き込み）。⚠×share へは畳まない（1+(share−1) は share と同じビットとは限らない）。
+            double raiderNaval = 0;   // victim に制海権(sc>0.5)を握る全交戦raiderの海軍合計
+            foreach (var war in Wars)
             {
-                double raiderNaval = 0;   // victim に制海権(sc>0.5)を握る全交戦raiderの海軍合計
-                foreach (var war in Wars)
-                {
-                    Power? co = war.A == victim ? war.B : war.B == victim ? war.A : null;   // victim の対戦相手（＝raider候補）
-                    if (co is null) continue;
-                    if (SeaControl(co, victim) > 0.5) raiderNaval += co.NavalPower;
-                }
-                double share = raiderNaval > 1e-9 ? raider.NavalPower / raiderNaval : 1.0;   // この raider の海軍力比＝総損失の取り分
-                cargoBase *= 1.0 + c.PrizeLossProrated * (share - 1.0);   // PrizeLossProrated=0で係数1（恒等）／=1で share（完全按分）
+                Power? co = war.A == victim ? war.B : war.B == victim ? war.A : null;   // victim の対戦相手（＝raider候補）
+                if (co is null) continue;
+                if (SeaControl(co, victim) > 0.5) raiderNaval += co.NavalPower;
             }
+            double share = raiderNaval > 1e-9 ? raider.NavalPower / raiderNaval : 1.0;   // この raider の海軍力比＝総損失の取り分
+            cargoBase *= 1.0 + (share - 1.0);
         }
         double prizeRaw = c.PrizeMoneyRatePerMonth.Value * advantage * ((1.0 - c.PrizeCargoShare.Value) * Math.Max(0, vw.GdpPerMonth.Value) + c.PrizeCargoShare.Value * cargoBase);   // ⚠実質GDP（RealGdpPerMonth）を貨幣の額に使う（賠償金の基準・貢納と同じ型の外し方＝(251) 反証役 vm#4・定義の誤りは型で防げない＝史実の裁定の回に）
         if (!(prizeRaw > 1e-9)) return;
@@ -2708,14 +2705,11 @@ public sealed class Diplomacy
                 //   新＝勝者がこの戦線に**実際に届けた力の累計**の取り分だけを押し付けられる。届いていない国は白紙講和になる。
                 //   ⚠比でなく**シェア**で書く（比は分母が痩せると跳ねる＝2026-08-11に同型のバグを3件出した）。
                 //   両者とも1ミリも押せていない睨み合いは 0/(0+0+ε)=0＝誰も条件を押し付けられない＝安全側に倒れる。
-                if (c.CollapseImposeFromFront > 0)
-                {
-                    double winPush = aLoses ? war.PushB : war.PushA, losePush = aLoses ? war.PushA : war.PushB;
-                    double reach = PoliticalQuantities.Clamp01(2.0 * winPush / (winPush + losePush + 1e-12));   // 押し合いが五分＝1.0（現行と同じ満額）
-                    double impose = CollapseScore * (1.0 - c.CollapseImposeFromFront * (1.0 - reach));
-                    war.Score = aLoses ? -impose : impose;
-                }
-                else war.Score = aLoses ? -CollapseScore : CollapseScore;   // ★既存の1行をそのまま温存（式を括り直すだけで帯が動いた前科＝上の war.Score 更新の注記）
+                // 旧の旗 CollapseImposeFromFront（1.0）は (739) で焼き込み。⚠×reach へは畳まない（1−(1−reach) は reach と同じビットとは限らない）。
+                double winPush = aLoses ? war.PushB : war.PushA, losePush = aLoses ? war.PushA : war.PushB;
+                double reach = PoliticalQuantities.Clamp01(2.0 * winPush / (winPush + losePush + 1e-12));   // 押し合いが五分＝1.0（現行と同じ満額）
+                double impose = CollapseScore * (1.0 - (1.0 - reach));
+                war.Score = aLoses ? -impose : impose;
             }
             bool decisive = Math.Abs(war.Score) >= 1.0;
             // 早期講和（革命圧力で前倒し）。★2026-09-26（項目20 E・Q9 と同じ回）：膠着の打ち切り（WarMaxMonths=60 か月で白紙講和）を削除した。
@@ -2799,7 +2793,7 @@ public sealed class Diplomacy
     // internal＝ON経路テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀）。呼び出しは StepWars の講和判定のみ。
     internal void ResolvePeace(Coefficients c, War war)
     {
-        double s = Math.Clamp(war.Score, -1, 1);
+        double s = PoliticalQuantities.ClampOr(war.Score, -1, 1, 0);   // (739) 群3：NaN は 0
         // ★戦後処理の1本（2026-09-28 処理の一元化 段2 束2・作者「対外戦争・内戦・分離独立の戦後処理を全て1本に」）。
         //   入口はこの1本。**種類（内戦のタグ＝CivilWarParent／CivilWarSecession／CivilWarPolity）は条件だけを決める**＝州の行き先
         //   （対外＝割譲／内戦＝分断・独立の確定・再併合）と政体（反乱の勝ち＝CivilWarPolity）。当てはめる段は共通：

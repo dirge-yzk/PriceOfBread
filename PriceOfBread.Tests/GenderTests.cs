@@ -358,7 +358,7 @@ public class AgeStructureTests
         var p = w.Region.Pops[1];
         p.Literacy = 0.8; p.EducationFill = 0.0;   // 支えの無い識字（学校が無い）
         double motherLit = c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * w.WomenWageRetention;
-        if (c.WomenEducationGate > 0 && w.WomenEducationLaw) motherLit = System.Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
+        if (w.WomenEducationLaw) motherLit = System.Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
         double expect = p.GenerationalMix(0.8, motherLit * 0.8, 1);   // 若者は家庭で母の識字の比×大人の識字を持ち込む
         TechEducation.GrowLiteracy(w, c);
         Assert.Equal(expect, p.Literacy, 12);

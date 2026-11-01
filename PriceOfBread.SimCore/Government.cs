@@ -378,7 +378,7 @@ public static class Government
     }
 
     // 関税の目標＝国内政治由来の目標（5%刻み）＋外交層の報復/相互偏倚を、関税の下限（負の関税＝ダンピング）と 1 で挟む。施行（Step）と戦線の数え（CountOpenFronts）の 2 か所が共有する 1 本（係数は呼び手の物を渡す）。
-    private static double TariffTargetFloored(NationPolicy p, World w, Coefficients co) => Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, co.TariffFloor, 1);
+    private static double TariffTargetFloored(NationPolicy p, World w, Coefficients co) => PoliticalQuantities.ClampOr(Q5(p.TariffTarget) + w.TariffRetaliationBias, co.TariffFloor, 1, w.Tariff);   // (739) 群3：NaN は今の関税
 
     // スライダーの5%刻み：0..1の目標を0.05単位に丸める（UI/AI共通の「つまみは20段」仕様）。
     // ⚠internal（2026-09-20）：World.StateMonopolyBreadth が専売の広さを同じ格子へ乗せる（新しい丸め規則も新しい数も作らない）。

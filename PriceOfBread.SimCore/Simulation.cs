@@ -2573,7 +2573,7 @@ public sealed class Simulation
         World.FoodFill += c.FoodFillSmoothing * (rawFill - prevFood);
         // 扶養力：医療(乳児生存)で増、工業化(雇用・食料生産性)で増、都市化(少子化)で減、過重労働で微減、主食不足で減（飢饉）＝人口転換＋マルサス。
         double avgInd = 0; int actN = 0;
-        double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）。IndustrializationPopWeighted=1で非加重avgIndを置換
+        double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）＝非加重 avgInd を置換
         double sanitSum = 0, sanitPop = 0;   // 衛生（上下水道+石鹸+電化）の人口加重。施設の無い世界は各 Fill 既定で sanitation=1.0=中立（較正温存）
         double arableSum = 0, ruralSum = 0;   // 人2b 空き土地の扶養力（下のlandRoom）：耕地と農村人口の全国集計。ArableLand≥1e8（未設定＝較正/最小世界）は除外＝厳密恒等
         // B-高1（史実検証2026-07-22）：主食の純輸入。下の消費ベース補正コメントが「輸入の分子算入は将来課題＝Trade記録から」と自認していた欠落を埋める（FoodAnchorNetImport適用は下）。
@@ -2607,9 +2607,9 @@ public sealed class Simulation
         }
         if (actN > 0) avgInd /= actN;
         // 人16（工業化度の人口加重）：非加重avgInd（空の辺境州の追加で出生率/扶養力が変わる）を人口加重平均へブレンド。
-        // IndustrializationPopWeighted=0で avgInd（現行）・1で人口加重（Σ Ind×rpop/Σ rpop）。1州世界では両者が恒等＝較正中立。
+        // 旧の旗 IndustrializationPopWeighted（1.0）は (739) で焼き込み。⚠avgInd＝indPopWeighted へは畳まない（avgInd+(x−avgInd) は x と同じビットとは限らない）。
         double indPopWeighted = indPopWeight > 1e-9 ? indPopSum / indPopWeight : avgInd;
-        avgInd += c.IndustrializationPopWeighted * (indPopWeighted - avgInd);
+        avgInd += (indPopWeighted - avgInd);
         double sanitation = sanitPop > 1e-9 ? sanitSum / sanitPop : 1.0;
         // 人2（扶養力の食料産出アンカー・大改修スカフォールド→本実装）：現行は capacity＝初期人口(baseline)×有界乗数束のため天井が約2.5倍で
         // 19世紀の人口爆発（英4倍/米23倍）が構造的に不能。さらに消費ベースの foodMet/foodNeed は[0,1]クランプ（消費は需要で頭打ち）で農業拡大が capacity を押し上げる経路がない。
@@ -2667,13 +2667,13 @@ public sealed class Simulation
         // 初等識字（開始点まで）は出生率に効かない（実証準拠）＝無学な社会は従来の較正値のまま。
         // 倍率排除④：旧 WomenPropertyLaw?1:0.6 の2値を、賃金保持（連続）で 0.6→1.0 を補間（retention=0で0.6＝旧無法・retention=1で1.0＝旧有法）。
         double femaleLit = (litSum / pop) * TechEducation.MotherLiteracyRatio(c, World.WomenWageRetention);
-        // 1934拡張E6 女性教育権（★2026-08-10 以降は女性の権利の梯子の**教育権の段**）：女子教育が女性識字を底上げ（財産権の賃金保持とは別経路＝学校）。WomenEducationGate=0で不読＝恒等。
-        if (c.WomenEducationGate > 0 && World.WomenEducationLaw)
+        // 1934拡張E6 女性教育権（★2026-08-10 以降は女性の権利の梯子の**教育権の段**）：女子教育が女性識字を底上げ（財産権の賃金保持とは別経路＝学校）。（旧の旗 WomenEducationGate＝1.0 は (739) で焼き込み）。
+        if (World.WomenEducationLaw)
             femaleLit = Math.Min(litSum / pop, femaleLit * (1.0 + c.WomenEduLitBonus));
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。
         double landFertBoost = c.FertilityBase * landRoom;
-        double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost);
+        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);   // (739) 群3：NaN は床
         // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
         // net の収束速度から fertility を外す（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立（旧の旗 FertilityAffectsBirthsOnly は 2026-10-18 に焼き込み。
