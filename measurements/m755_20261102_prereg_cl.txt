@@ -1,0 +1,59 @@
+# (755) 線 c4cl の事前登録（区分 III＝統合の段2・天井床：需要の価格因子の挟みを外す）。結果が出る前に書く。門は 1 回目の腕の前に固定し、結果の後に変えない。
+# 出発＝段0 の読み手 (751) が決めた挙動の線。座標は main 6e5932a9 の物（EconomyStep.cs を grep で確かめた）。
+# 形＝〈入口〉（需要の入口の式から挟みを外す＝選んだ値を上限・下限で削らない・設計思想⑧・作者 2026-09-18）。挙動の線＝腕 B（計器つき 10 種）。比べる側＝基線 m749 の計器つき 10 種の生（D:/PoB_work/keep_749/base_ins）。
+# 作者の裁定の形（⑧）＝確証あり。NG の判定でヌル腕は読まない。計画は AI の案・作者「いったん全て推奨で」で推奨を採った（承認と書かない）。
+
+## 座標
+EconomyStep.cs:1714 elasMax（Daily＝DemandElasticityMaxDaily 2.5〔Coefficients.cs:2579〕・Luxury＝DemandElasticityMaxLuxury 2.0〔:2582〕・その他＝PriceFactorMax 1.4〔:38〕）
+:1717 selfFactor＝Pow(RefPrice/buyerPrice, ε)／:1718〜1722 交差弾力の枝（主食と食料の非主食）／:1724〜1725 else の枝 priceFactor＝Clamp(selfFactor, PriceFactorMin〔:37 0.4〕, elasMax)
+:1755 desired＝marketNeed×priceFactor。主食の挟みは (504) ② StapleDemandRebalance（Coefficients.cs:1134・既定 0）の持ち物。buyerPrice の楔の保険は ≦0.95（EconomyStep.cs:13）＝buyerPrice は有限の正。
+
+## 設計書との食い違い（grep で確かめた）
+天井床 doc §6-2 の〈主食は (504) で既に外した〉は誤り＝StapleDemandRebalance は 0（①③だけ点火）。doc の狙い〈安い工業製品の大量消費〉は紙では弱い（上の挟みが縛るのは英の 3.4% だけ）＝効きの本体は下の挟み 0.4。
+
+## 形
+旗 DemandFactorClampOff（この線の枝の既定 1・main への既定は合流が決める）。:1725 の else の枝だけ、旗が正のとき priceFactor＝selfFactor（挟まない）。:1721 の交差弾力の枝は触らない。
+欄 PriceFactorMin・PriceFactorMax・DemandElasticityMax* は消さない（:1721 が読む）。新しい守りは足さない（selfFactor は有限の正＝番人で確かめる）。新しい係数の数値 0・新しい状態変数 0。
+対象＝Daily・Luxury・役務・その他の需要のある財（主食でも食料でもない財）。実装の述語＝else の枝のうち !staple && !foodNonStaple（食料は交差弾力の枝に入らない場合〔CrossElasticity＝0 または stapleN≦1〕も挟んだまま＝食料は常に旧）。
+旗は有無だけ読む（1 以外の正の値も 1 と同じ）。
+
+## 同じ盤面で旧と新を両方数える計器 dfac_s（InstrumentsDfac.cs・計器が on のときだけ足す・読むだけ）
+行＝国×層×四半期（需要の入口を通った行が 1 つでもあった層だけ）。層＝1 日用品／2 奢侈品／3 役務その他（役務の優先配分でないもの）／4 役務の優先配分（BaseNeed＞0 の役務・高等教育。boughtUsedSum は 0＝この枝の外で買う）。食料（主食・食料の非主食）は出さない。
+列＝quarter・year・nation・tier・needSum（Σ marketNeed）・desiredOldSum（Σ marketNeed×Clamp(selfFactor, Min, elasMax)）・desiredNewSum（Σ marketNeed×selfFactor）・desiredUsedSum（Σ marketNeed×priceFactor）・
+lowBindNeedSum（selfFactor＜Min の行の marketNeed）・lowOldSum・lowUsedSum・highBindNeedSum（selfFactor＞elasMax）・highOldSum・highUsedSum・boughtUsedSum（予算の後に実際に買えた量＝GoodDemand×配給）。
+desired は所得の弾力・買い占め・予算の前の marketNeed×因子だけを数える（その後の掛け算を含まない）。旗 0 の木で計器以外の表は m749 と全行バイト一致（ident）。
+自己申告する限界：旧と新は同じ月の盤面から数えた反実仮想（旗 1 の軌道では旧の規則の世界は走らない）／lowOld と lowUsed は挟みに当たった行だけの和（行の中の比 lowUsed÷lowOld が狙いの量）／層 4 の買えた量は無い。
+
+## 段0 の予言（紙・推）
+keep_749 の pxgoods_s は 1783〜1794 の 9 か国×主食以外の 26 財だけ＝その期間の近似。f＝(1/(priceOverRefTimesLevelMedianRatio×regionPriceLevelMeanIndex))^ε（ε は goods.json・重み lastDemandQty・州の中央値の近似＝楔と州の散らばりを無視）。
+下の挟みが縛る需要の重み：英 0.283・露 0.147・清 0.144・オスマン 0.108・日 0.066・仏 0.058・普 0.057・墺 0.053・米 0.041（N1・N2 も ±0.01）。
+下の挟みを外したときの Σq·min(1, f/0.4)/Σq：英 0.819・清 0.930・露 0.943・オスマン 0.955・他 0.96〜0.97。縛られていた行の中の新÷旧（1−(1−上の値)/縛る重み）：英 0.36・仏 0.41・露 0.61。
+上の挟みが縛る重み：英 0.034・他 0。1795 年以降は計器が無い＝予言しない。価格水準は 1783〜1950 の国×四半期の 5〜95% が 0.59〜1.26（nation_s の priceLevel）＝名目の値段の暴走で挟みが縛っているのではない。役務は pxgoods に無い＝予言なし。
+主な観測量の向き：需要の量は下の側で下がる（縛られた行の新÷旧＜1）・上の側で上がる（行があれば）。予言が〈悪くする〉に当たるか：下の挟みが縛る行は安い財＝需要が減るのは正しい向き（安いのに買い控える挟みが無くなる向きでなく、旧は安い財の需要を下駄で嵩上げしていた）→ 腕を回す。
+
+## 門
+C1 実装：腕 B の dfac_s で desiredUsedSum＝desiredNewSum（相対差 ≦1e-9・全行）。突然変異：旗 0 → desiredUsed＝desiredOld＝外れる＝落ちる。
+C2 大きさ（狙いどおり・下の側）：lowUsedSum÷lowOldSum（全国×層 1・2・3・4 の和）の種の中央値 ≦0.85（紙 0.36〜0.61）。突然変異：旗 0 → 1.00＝落ちる／上だけ外す誤り → 1.00＝落ちる。
+門ごとの突然変異は紙か使い捨ての木で確かめて実装ログ向けの記録に書く（何もしない実装・間違った実装でも通る形にしない）。
+
+## 記録（門にしない）
+上の側の highUsedSum÷highOldSum（行が無い種があり得る）・縛る重みの割合（同じ盤面）・Σbought の層ごとの新÷旧（軌道）・価格の床に張り付いた財×四半期・欲しい量÷買えた量（安い財で桁で膨らむか）・
+門 A′（nullgate.py・判別の力が弱い＝大きなずれだけを拾う・記録の扱い）・exact・near・NG（96・基準 rd:measurements/ng749_20261102:m749・記録）・英の日用品の消費の量。
+
+## 止める線
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（値段・需要が桁で暴走＝⑧の例外の対象）・空洞化 1/10 未満の名簿の外（規則 A2・種 1〜20）・推定の計算量 ＞248.5 秒・機構のテストの赤（RULE47）。
+下の挟みは英で重みの 3 割を縛る＝効きが大きい＝①本国の崩れ（home_break.py の本国の版）は記録として読む（確証あり＝NG の判定には使わない）。
+
+## 計算量の割り当て
+0.1 秒（挟みを外すだけ・計器は on のときだけ）＝2 秒以下＝1 本の腕では門にしない・合流の累計の .cost で読む。
+
+## 腕
+A＝POB_COEF "DemandFactorClampOff=0" の素の 5 種で ident.sh（b5_20261102_m749・b10_20261102_m749_ins と全行一致・増えた計器の表 dfac は宣言）。B＝計器つき 10 種（旗 1・種 1〜10）。S11＝種 11〜20（B と同時）。ヌル腕は回さない。
+腕の前の確かめ：D:/PoB_work の空き（15GB 以上）。計器つきの腕は POB_INSTRUMENTS_NATIONS を渡す。
+
+## テスト
+DemandFactorClampTests.cs（新）：手の 1 州で、高い財・安い財の欲しい量が旗 1 で (RefPrice/buyerPrice)^ε そのもの・旗 0 で挟まれる・主食と交差弾力の食料は旗 1 でも挟まれる・極端な値段（床 ref×0.01・保険 0.95）で selfFactor が有限（突然変異 3 種で赤を確かめて記録）。
+書き換えるテスト 0（FoodLedgerTests.cs:75 は主食の欄の値の固定＝変わらない）。WriterRatchetTests の宣言の表は触らない（赤なら値を報告・合流が取り直す）。
+
+## 採否
+落ちたら採らないで止める（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ（理由を事前登録に追記してから）。最終の採否は種 11〜20 の 1 回。
