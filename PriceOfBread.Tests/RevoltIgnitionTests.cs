@@ -269,7 +269,7 @@ public class RevoltIgnitionTests
         sim.Run(20);
         var w = sim.World;
         Assert.True(w.Regions.Count > 1, "前提が崩れた：非首都州がない");
-        Assert.True(w.FactionRng is not null && w.Coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
+        Assert.True(w.FactionRng is not null, "前提が崩れた：F3bが遮蔽されている");
         var own = 巨大な運動を差し込む(w, w.Regions[1]);
         Assert.True(Politics.FactionStrength(w, w.Coef, own) > Politics.LocalizedHold(w, w.Coef, own.Region, PoliticalQuantities.EffectiveCoerce(w, w.Coef)) + Politics.LoyalistMilitia(w, w.Coef, own),
             "前提が崩れた：差し込んだ運動が保持力を超えていない");
@@ -372,7 +372,7 @@ public class RevoltIgnitionTests
         sim.Run(8);
         var pw = sim.Nations[0].World;
         Assert.True(coef.FactionOpportunism > 0, "前提が崩れた：好機のブレーキが休眠＝この番人は空洞");
-        Assert.True(pw.FactionRng is not null && coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
+        Assert.True(pw.FactionRng is not null, "前提が崩れた：F3bが遮蔽されている");
         if (civilWar) sim.Diplomacy.DeclareCivilWar(pw.SelfPower!, sim.Nations[1].World.SelfPower!, pw.Polity, coef);   // 反乱国が地図の上に立った状態
         Assert.False(sim.Diplomacy.Wars.Exists(w => (w.A == pw.SelfPower || w.B == pw.SelfPower) && w.CivilWarParent is null), "前提が崩れた：助走の間に外征が立った＝内戦だけの腕にならない");
         if (addExternalWar) sim.Diplomacy.Wars.Add(new War { A = pw.SelfPower!, B = sim.Nations[2].World.SelfPower! });   // 対照＝外征（内戦タグなし）
@@ -414,7 +414,7 @@ public class RevoltIgnitionTests
         foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);
         sim.Run(20);
         var w = sim.World;
-        Assert.True(w.Regions.Count > 1 && w.FactionRng is not null && w.Coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
+        Assert.True(w.Regions.Count > 1 && w.FactionRng is not null, "前提が崩れた：F3bが遮蔽されている");
         Assert.True(w.Suffrage < Suffrage.AdultMale, $"前提が崩れた：大衆の発言権が開いている（{w.Suffrage}）＝(1−発言権)=0 で強度が消える");
         var home = w.Regions[1];
         // ★段2：州の絶望＝RegionRevoltHeat＝**州平均闘争度そのもの**（欠乏因子との積はやめた）。
@@ -522,7 +522,7 @@ public class RevoltIgnitionTests
         };
         var mass = Make(2); var oldRuling = Make(0);
         const double floor = 0.2;
-        double full = 1000 * c.FactionRevoltScale;   // 声なき大衆の強度＝Size×闘争1×結束1×(1−0)×scale（★段2で org・年季は削除）
+        double full = 1000.0;   // 声なき大衆の強度＝Size×闘争1×結束1×(1−0)（★段2で org・年季は削除）
 
         // (i) 声を持たない側＝床より上＝**1ビットも動かない**（床は上限を作らない）
         Assert.True(w.Suffrage < Suffrage.AdultMale, "前提が崩れた：この時点で男子普選に達している");
@@ -1098,7 +1098,7 @@ public class RevoltIgnitionTests
         // 第5因子は掛からない＝EquipFill をどう振っても4因子の積そのもの（ビット恒等）。大衆は男子普選前＝発言権0＝(1−0)=1.0
         f.EquipFill = 0.25;
         Assert.True(w.Suffrage < Suffrage.AdultMale, "前提が崩れた：この時点で男子普選に達している");
-        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * c.FactionRevoltScale, Politics.FactionStrength(w, c, f));
+        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0, Politics.FactionStrength(w, c, f));
         // 法は選好に現れない（＝綱領・要求・戦線のどこにも載らない）し、目標を置いても施行経路が動かない
         var (trad, modern, mass, net) = PolicyPreferences.Stance(w, PolicyAxis.CivilianArms, increasing: true);
         Assert.True(trad == 0 && modern == 0 && mass == 0 && net == 0, $"休眠中に民間の武器購入の法が選好に現れた（{trad}/{modern}/{mass}）");
@@ -1128,7 +1128,7 @@ public class RevoltIgnitionTests
         Assert.True(f.EquipFill > 0 && f.EquipFill < 1, $"装備充足 {f.EquipFill:F3} が (0,1) に無い＝新しい運動は丸腰から数年かけて武装するはず");
         // 第5因子が掛かる（国軍の即応度×装備充足と同じ物差し）
         Assert.True(w.Suffrage < Suffrage.AdultMale);
-        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * c.FactionRevoltScale * f.EquipFill, Politics.FactionStrength(w, c, f), 12);
+        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * f.EquipFill, Politics.FactionStrength(w, c, f), 12);
 
         // 通しで1年走らせても貨幣保存の番人（Simulation の月次 CheckInvariants）が黙っている＋買い続けた武器庫が育つ（別の世界＝直接 Run の帳簿と混ぜない）
         var (sim2, f2, payer2) = 武装する運動(enabled: 1);

@@ -501,7 +501,7 @@ public static class Politics
         double coerce = PoliticalQuantities.EffectiveCoerce(w, c);   // 政体力学の実効保持力＝人口あたり強度（第5段5-1＝一元化・今期導出値＝従来と同時点）
 
         // 財政破綻は外科的な政体フリップでなく**経済悪化（信用収縮＝Credit）**として効かせ、政治的帰結は通常の遷移に委ねる（債務不履行→経済悪化の段階）。
-        Factions.Step(w, c);   // F3a：国内勢力の永続化と変異（牙＝下の CheckFactionRevolt・FactionRevoltScale=1.0 稼働中）
+        Factions.Step(w, c);   // F3a：国内勢力の永続化と変異（牙＝下の CheckFactionRevolt）
         // ★旧経路の内戦（第二の戦争エンジン＝ProcessCivilWar）を削除（2026-09-28 処理の一元化 段2 束3・作者裁定 a）＝内戦は全て戦争の形（首都の蜂起も）。
         //   旧＝CivilWarYears>0 の間は通常遷移・F3b・F1 を止めて抽象的な戦勝点で数年を戦った。
         //   ★首都が反乱国の手にある間（首都の分離独立の内戦中＝World.SecedingRegion）は通常の遷移と蜂起の判定をしない＝政体の問いは戦場で決まる
@@ -511,7 +511,7 @@ public static class Politics
         if (!capitalHeld) Transition(w, c, reformist, radical, coerce, eroding);
         bool capitalRose = w.PendingRebelRegions is not null;   // 首都の蜂起を予約した四半期＝他の蜂起は判定しない（旧＝旧経路の内戦が始まった四半期と同じ扱い）。予約は四半期末に回収＝この四半期の Transition だけが書く
         CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（旗 DominanceIsStock は 2026-09-26 に焼き込み）。分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
-        if (!capitalRose && !capitalHeld) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型・FactionRevoltScale=1.0稼働・0で観察のみ）
+        if (!capitalRose && !capitalHeld) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型）
         if (!capitalRose && !capitalHeld) CheckRegionalRevolt(w, c, coerce);   // F1 州一揆（王権議会F1・RegionalRevoltThreshold=0で無効・★段2で現行0.50）
 
         w.Freedom = FreedomFromLaws(w.Suffrage, w.Censorship);   // 倍率排除②：政体ラベルでなく参政権＋報道法から創発
@@ -880,7 +880,7 @@ public static class Politics
     // ⚠旧の民族分岐（本拠州が少数派→旧経路の単一州の分離戦）は 2026-09-28 段2 束3 で削除（作者裁定 g）＝民族の分離は支配度の分離独立（CheckSecession）の1本。
     private static void CheckFactionRevolt(World w, Coefficients c, double coerce)
     {
-        if (c.FactionRevoltScale <= 0 || w.FactionRng is null) return;
+        if (w.FactionRng is null) return;   // (739) 旧の旗 FactionRevoltScale（1.0）の門は焼き込み
         // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）＝**2026-09-29 点火**（作者裁定「蜂起の共有クールダウンは撤去＝根拠のない待ち」＝
         //   旗 RevoltCooldownRetire・タイマー World.RevoltCooldownQuarters・係数 RegionalRevoltCooldown を削除）。旧＝4四半期の固定タイマーで
         //   「同一国で年に何度も燃えない」を作っていた＝**物理でない待ち行列**（実測でヴュルテンベルクが69年間ぴったり毎年7月1日に蜂起＝
@@ -911,7 +911,7 @@ public static class Politics
             //   右辺の郷勇は w.AllPops() の**全国**スケール＝点火が人口に反比例し、人口最大の清で太平天国が最も出にくかった。
             //   新：戦力比は点火から外し（＝「勝てるか」は決着＝戦争側にだけ残す）、連言2門にする。
             //     門1＝組織された意志（示強量）：FactionStrength ÷ f.Size ＝ f.Size が代数的に約分され
-            //          AvgMilitancy×結束×(1−発言権)×FactionRevoltScale（全因子[0,1]）が残る＝規模の次元非対称が構造的に消える。
+            //          AvgMilitancy×結束×(1−発言権)（全因子[0,1]）が残る＝規模の次元非対称が構造的に消える。
             //     門2＝州の絶望：RegionRevoltHeat（F1の一揆と**同じ既存閾値** RegionalRevoltThreshold で測る）＋怨嗟。
             //   ⚠積にしない（闘争度が intensity と heat の両方に入り二重計上になる＝本プロジェクトで最も再発するバグ型）。
             //   ⚠選択キーも「最も強い運動」→「最も**絶望した**運動」へ移す。旧キーのままだと示強量0のクラスタが選定を専有し
@@ -1142,7 +1142,7 @@ public static class Politics
         //   ⚠否定形＝床0では有限値のとき必ず偽＝1命令も書き換えない厳密恒等。
         double silenced = 1.0 - voice;
         if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor;
-        double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced * c.FactionRevoltScale;
+        double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced;   // (739) 末尾の ×FactionRevoltScale（1.0）は焼き込み
         // ★第5因子＝装備（設計メモ§7 作者裁定2026-09-09 (a)・2026-09-11）：国軍の即応度が装備充足（MilitaryEquipFill）を掛けるのと同じ物差し
         //   （FactionState.EquipFill＝同じ関数 EconomyStep.EquipFill の値＝運動が市場で買えた武器の充足）。丸腰の運動は戦力を持たない
         //   （国軍の「材で詰まった戦争は負ける」と対称）。⚠段2の注記「装備＝資金÷人数」は**採らない**＝資金は市場で財に化けてから数える。
