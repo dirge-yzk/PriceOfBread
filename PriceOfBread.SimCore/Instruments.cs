@@ -219,8 +219,6 @@ public static partial class Instruments
         public System.IO.StreamWriter? AgeS; public bool AgeSHeader;                       // (478) 年齢の層の表（国×四半期×層の行 B と国×四半期の行 N）
         public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
-        public System.IO.StreamWriter? Rs3; public bool Rs3Header;                         // (558) 旧支配層の農地の法の減らす向きの強さの表（国×四半期・InstrumentsRs3.cs）
-        public System.IO.StreamWriter? Rs2; public bool Rs2Header;                         // (547) 旧支配層の農地の法への反対の強さの表（国×四半期・InstrumentsRs2.cs）
         public System.IO.StreamWriter? Ivf; public bool IvfHeader;                         // (536) 初期値の直し（資本の土台）の表（国×四半期・InstrumentsIvf.cs）
         public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
         public System.IO.StreamWriter? Bur; public bool BurHeader;                         // (389) AI の官僚制度の判断の表（国×四半期）
@@ -234,7 +232,6 @@ public static partial class Instruments
         public System.IO.StreamWriter? Epi; public bool EpiHeader;                         // (629) 疫病 1 件ごとの表 epi_s（全ての国・助走は書かない）
         public System.IO.StreamWriter? Csc; public bool CscHeader;                         // (403) 清算の見る範囲の絞りの表（年×国×役×行の種類）
         public System.IO.StreamWriter? Rule; public bool RuleHeader;                       // (399) 支配の4区分の表（国×四半期×州）
-        public System.IO.StreamWriter? Inh; public bool InhHeader;                         // (650) 相続法の表（全ての国×四半期・旗 InheritanceLawGate が正のときだけ）
         public System.IO.StreamWriter? Reform; public bool ReformHeader;                   // (404) 専制の改革の経路の表（国×四半期）
         public System.IO.StreamWriter? AdmRule; public bool AdmRuleHeader;                 // (408) 行政費の返りの表（国×四半期）
         public System.IO.StreamWriter? Ed; public bool EdHeader;                           // (452) 国家の教育の需要の表 ed_s（国×四半期）
@@ -244,9 +241,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Aib; public bool AibHeader;                         // (579) AI の国営工場の着工の門の表 aib_s（国×四半期・InstrumentsAiBuild.cs）
         public System.IO.StreamWriter? Lab; public bool LabHeader;                         // (459) 労働の値段の表 labor_s（国×四半期）
         public System.IO.StreamWriter? SbU, SbR, SbRReg; public bool SbUHeader, SbRHeader, SbRRegHeader;                  // (520) 交渉の取り分と地代の表 sbu_s（国×四半期）・sbr_s（国×四半期）・sbrreg_s（挙げた国×州×四半期）
-        public System.IO.StreamWriter? Wc, WcReg; public bool WcHeader, WcRegHeader;        // (514) 賃金の天井の表 wcap_s（国×くくり×四半期）・wcapreg_s（縛った州×くくり×四半期）
         public System.IO.StreamWriter? Pay; public bool PayHeader;                         // (486) 売上の払いの保存則の穴の表 pay_s（国×四半期・累計）
-        public System.IO.StreamWriter? Ma; public bool MaHeader;                           // (480) 最低賃金法の AI の判断の表 ma_s（国×四半期）
         public System.IO.StreamWriter? House; public bool HouseHeader;                     // (418) 農家の手仕事の表（国×四半期）
         public System.IO.StreamWriter? Chem, ChemGood; public bool ChemHeader, ChemGoodHeader;   // (493) 硫酸とソーダ灰の表（挙げた国×四半期×{ルブラン法・ソルベー法・電解・黄鉄鉱法}／×{硫酸・ソーダ灰}）
         public System.IO.StreamWriter? Fb; public bool FbHeader;   // (550) 工場の建屋の財（建造物）の表（旗 BuildingGoodBundle が正の国×四半期・InstrumentsFb.cs）
@@ -1486,7 +1481,6 @@ public static partial class Instruments
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
     internal static void MonthClose(World w)
     {
-        WcMonth(w);   // (514) 賃金の天井の表の蓄え（読むだけ・助走の月は読まない）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
@@ -1798,8 +1792,6 @@ public static partial class Instruments
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             IvfFold(sk, seed, w, q, picked, yearEnd);       // (536) 初期値の直し（資本の土台）の表（本土と植民地の物価の乗数・石炭の費用・建設の組の選び・資本財の需給）
-            Rs3Fold(sk, seed, w, q, picked, yearEnd);       // (558) 減らす向きの強さの表（得の式と Pref の返り値を並べる・読むだけ）
-            Rs2Fold(sk, seed, w, q, picked, yearEnd);       // (547) 旧支配層の農地の法への反対の強さの表（今の式と地代の損の式を並べる・読むだけ）
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
             CoupFold(sk, seed, w, st, q);   // (393) 軍の力の入口の表
             AnchorFold(sk, seed, w, q, picked, yearEnd);    // (369) 扶養力の錨の表
@@ -1809,7 +1801,6 @@ public static partial class Instruments
             UrxFold(sk, seed, w, st, q);                    // (649) 都市と農村の規模の差の区間別の表（挙げた国だけ）
             EpiFold(sk, seed, w, st, q);                    // (629) 疫病 1 件ごとの表（全ての国・TriggerEpidemic が置いた行）
             RuleFold(sk, seed, w, q, picked, yearEnd);      // (399) 支配の4区分の表（世界の状態を直に読む）
-            InhFold(sk, seed, w, q);                        // (650) 相続法の表（旗が正のときだけ・全ての国）
             MonFold(sim, seed, w, st, q, i, yearEnd);       // (660) 頻度の監視の第 2 段（monlaw_s の行・mongood_s の年末の標本・NationRow の後＝Uid 採番済み）
             ReformFold(sk, seed, w, st, q, picked, yearEnd);   // (404) 専制の改革の経路の表
             AdmRuleFold(sk, seed, w, q, picked, yearEnd);   // (408) 行政費の返りの表（国庫に届く割合と法の浸透の旧と新）
@@ -1819,11 +1810,9 @@ public static partial class Instruments
             SfFold(sk, seed, w, q, picked, yearEnd);        // (471) 兵士の年金・安く売る・議席の重み・負の予算の表
             AibFold(sk, seed, w, q, picked, yearEnd);       // (579) AI の国営工場の着工の門の表（呼ばれた回があった国だけ行を出す・蓄えは行を出したときに戻す）
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
-            WcFold(sk, seed, w, q, picked, yearEnd);        // (514) 賃金の天井の表（月末の役務の値段が帯のどこにいたか・縛った州）
             SbFold(sk, seed, w, q, picked);                 // (520) 交渉の取り分と地代の表（旗が正の国だけ行を出す・蓄えは四半期の末に戻す）
             InpFold(sk, seed, w, st, q, picked, yearEnd);   // (657) 工場に投入が届かない原因の表（挙げた国・年末）
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
-            MaFold(sk, seed, w, q, picked, yearEnd);        // (480) 最低賃金法の AI の判断の表（失業・床が縛る広がり・今と新しい規則の目標）
             HouseFold(sk, seed, w, q, picked, yearEnd);     // (418) 農家の手仕事の表（行の産出の割合と農民の能力の取り分）
             ChemFold(sk, seed, w, q, picked);               // (493) 硫酸とソーダ灰の表（新しい製法の産出の割合・財の産出と需要と値段）
             FbFold(sk, seed, w, q, picked, yearEnd);        // (550) 工場の建屋の財（建造物）の表（旗が正の国だけ行を出す・段のレシピごとの産出・門・値段・材料の需給）
@@ -1894,8 +1883,6 @@ public static partial class Instruments
         sk.Fm?.Dispose(); sk.Fm = null;       // (371)
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.Ivf?.Dispose(); sk.Ivf = null;     // (536)
-        sk.Rs3?.Dispose(); sk.Rs3 = null;     // (558)
-        sk.Rs2?.Dispose(); sk.Rs2 = null;     // (547)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
         sk.Bur?.Dispose(); sk.Bur = null;   // (389)
         sk.Coup?.Dispose(); sk.Coup = null;   // (393)
@@ -1906,7 +1893,6 @@ public static partial class Instruments
         sk.Epi?.Dispose(); sk.Epi = null;   // (629)
         sk.Inpf?.Dispose(); sk.Inpf = null; sk.Inpb?.Dispose(); sk.Inpb = null;   // (657)
         sk.Rule?.Dispose(); sk.Rule = null;   // (399)
-        sk.Inh?.Dispose(); sk.Inh = null;   // (650)
         sk.Reform?.Dispose(); sk.Reform = null;   // (404)
         sk.AdmRule?.Dispose(); sk.AdmRule = null;   // (408)
         sk.Ed?.Dispose(); sk.Ed = null;   // (452)
@@ -1915,10 +1901,8 @@ public static partial class Instruments
         sk.Sf?.Dispose(); sk.Sf = null;   // (471)
         sk.Aib?.Dispose(); sk.Aib = null;   // (579)
         sk.Lab?.Dispose(); sk.Lab = null;   // (459)
-        sk.Wc?.Dispose(); sk.Wc = null; sk.WcReg?.Dispose(); sk.WcReg = null;   // (514)
         sk.SbU?.Dispose(); sk.SbU = null; sk.SbR?.Dispose(); sk.SbR = null; sk.SbRReg?.Dispose(); sk.SbRReg = null;   // (520)
         sk.Pay?.Dispose(); sk.Pay = null;   // (486)
-        sk.Ma?.Dispose(); sk.Ma = null;   // (480)
         sk.House?.Dispose(); sk.House = null;   // (418)
         sk.Chem?.Dispose(); sk.Chem = null; sk.ChemGood?.Dispose(); sk.ChemGood = null;   // (493)
         sk.Fb?.Dispose(); sk.Fb = null;   // (550)
