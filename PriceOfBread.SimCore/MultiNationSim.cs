@@ -1869,8 +1869,7 @@ public sealed class MultiNationSim
                 if (!double.IsFinite(srcO)) continue;
                 // ⚠1人あたり実費＝基礎費 ×（相手が豊かなほどの割増）×（遠いほどの割増）
                 double premium = 1.0 + System.Math.Max(0, srcO - dstO) / System.Math.Max(1e-9, _coef.RecruitPremiumScale);
-                if (_coef.RecruitDistanceScale > 0)
-                    premium *= 1.0 + Geo.DistanceKm(src.Latitude, src.Longitude, dst.Latitude, dst.Longitude) / _coef.RecruitDistanceScale;
+                premium *= 1.0 + Geo.DistanceKm(src.Latitude, src.Longitude, dst.Latitude, dst.Longitude) / Diplomacy.DistanceNormKm;
                 double perHead = _coef.RecruitCostPerHead * premium;
                 if (!(perHead > 0) || !double.IsFinite(perHead)) continue;
                 double heads = System.Math.Min(dst.RecruitBudget / perHead, pool * _coef.RecruitMaxFracOfSource.Value) * (1.0 - ban);
