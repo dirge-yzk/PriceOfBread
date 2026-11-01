@@ -41,6 +41,7 @@ public static class Territory
         var plan = new List<(int S, int D, double F)>();
         var inflow = new double[k];
         var gap = new double[k];
+        double tech = w.WorldTechLevel;   // 世界の技術（月の中で動かない＝距離の項の時代の係数・計器の反実仮想の両方がこの1つを読む）
         bool ins = Instruments.On;   // 計器（読むだけ）：入口の形の反実仮想（migform_s）の作業の配列は計器が on のときだけ持つ
         var rawA = ins ? new double[k] : null; var kmA = ins ? new double[k] : null;
         var size0 = new double[k][];   // 出る州の POP の月初の規模（移す人数＝月初の規模×流量の割合）
@@ -59,13 +60,13 @@ public static class Territory
                 if (!(g > 0)) continue;   // ★否定形＝NaN も弾く。差が0以下の州へは1人も行かない
                 double km = Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]);
                 if (ins) { rawA![d] = g; kmA![d] = km; }
-                if (c.MigrationEntryFriction > 0) g -= EntryFrictionTerm(km, w.WorldTechLevel, c);   // ★(748) 入口の形：距離は止まる位置（差の符号）を動かす
-                else g *= MigrationDecay(km, w.WorldTechLevel, c);   // 旧の形：距離は流れを細らせるだけ（旗 0）
+                if (c.MigrationEntryFriction > 0) g -= EntryFrictionTerm(km, tech, c);   // ★(748) 入口の形：距離は止まる位置（差の符号）を動かす
+                else g *= MigrationDecay(km, tech, c);   // 旧の形：距離は流れを細らせるだけ（旗 0）
                 if (!(g > 0)) continue;
                 gap[d] = g; wSum += g;
                 if (g > gMax) gMax = g;
             }
-            if (ins) MigformTally(w, c, active, s, classes, rawA!, kmA!, gap, gMax, wSum);
+            if (ins) MigformTally(w, tech, c, active, s, classes, rawA!, kmA!, gap, gMax, wSum);
             if (!(wSum > 0)) continue;
             double fraction = PoliticalQuantities.ClampOr(c.RegionMobility * gMax, 0, MaxMigrationFraction, 0.0);   // NaN は動かさない（0）
             size0[s] = new double[active[s].Pops.Count];
@@ -108,7 +109,7 @@ public static class Territory
     /// <summary>★(748) 計器（読むだけ・<see cref="Instruments.On"/> のときだけ）：出る州 s の月の計画を、今の規則（旗に従う＝<paramref name="gap"/>・<paramref name="gMax"/>・<paramref name="wSum"/>）と
     /// 旧の規則（生の差に <see cref="MigrationDecay"/> を掛ける）の両方で同じ盤面から数え、migform_s の積みへ足す。本体の配列は読むだけ＝旧の規則用の配列は別に持つ。
     /// 数えるもの：生の差が正の組・今の規則でも正の組・3,000 km 超の行き先への計画の人数（割合×<see cref="Movable"/>）と全行き先の計画の人数（今・旧の各々）。</summary>
-    private static void MigformTally(World w, Coefficients c, List<Region> active, int s, int[] classes, double[] raw, double[] km, double[] gap, double gMax, double wSum)
+    private static void MigformTally(World w, double tech, Coefficients c, List<Region> active, int s, int[] classes, double[] raw, double[] km, double[] gap, double gMax, double wSum)
     {
         int k = active.Count; long rawPos = 0, livePos = 0;
         double oldMax = 0, oldSum = 0;
@@ -118,7 +119,7 @@ public static class Territory
             if (!(raw[d] > 0)) continue;
             rawPos++;
             if (gap[d] > 0) livePos++;
-            double go = raw[d] * MigrationDecay(km[d], w.WorldTechLevel, c);
+            double go = raw[d] * MigrationDecay(km[d], tech, c);
             if (!(go > 0)) continue;
             old[d] = go; oldSum += go;
             if (go > oldMax) oldMax = go;
