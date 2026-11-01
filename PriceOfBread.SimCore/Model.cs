@@ -987,8 +987,8 @@ public sealed class Region
     /// ★自己成就＝需要スパイク→価格↑→隣国も備蓄（緊張は相互）。在庫が満ちれば需要が消える＝自己有界（既存 TargetStock 機構に乗るだけ）。</summary>
     public double StockpileFactor(int goodId, Coefficients c)
     {
-        if (!(c.StockpilePanicWeight > 0) || !(WarScareTension > c.StockpileTensionThreshold)) return 1.0;   // 否定形＝NaN は在庫目標を動かさない側へ倒す（有限値では旧 <= と厳密同値）
-        double scare = PoliticalQuantities.Clamp01((WarScareTension - c.StockpileTensionThreshold) / System.Math.Max(1e-9, c.StockpileTensionSpan));
+        if (!(c.StockpilePanicWeight > 0) || !(WarScareTension > c.RivalTensionThreshold)) return 1.0;   // 否定形＝NaN は在庫目標を動かさない側へ倒す（有限値では旧 <= と厳密同値）
+        double scare = PoliticalQuantities.Clamp01((WarScareTension - c.RivalTensionThreshold) / System.Math.Max(1e-9, c.StockpileTensionSpan));
         bool priority = goodId >= 0 && goodId < Catalog.Goods.Length
                         && (Catalog.Goods[goodId].Tier == GoodTier.Staple || System.Array.IndexOf(c.MilitaryGoods, goodId) >= 0);
         return 1.0 + c.StockpilePanicWeight * scare * (priority ? 1.0 : c.StockpileOtherFrac);
