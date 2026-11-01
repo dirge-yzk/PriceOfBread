@@ -111,6 +111,8 @@ public static class PathGraph
     //   ⚠静的フィールドはテキスト順に初期化される＝Nodes の構築より前に置く（構築中に呼ばれても null にならない）。セーブには載らない（静的）。
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(long, long), int> NearestMemo = new();
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(long, long, long, long), double> LandKmMemo = new();
+    // ★(762) barriers.json の "fix": 1 の行（旗 LandGraphFixRows が正のときだけ読む）のうち、バリアでない点（峠）の印。⚠静的フィールドはテキスト順に初期化される＝Nodes（LoadNodes が書く）より前に置く。
+    private static bool[] Added = [];
     public static readonly Node[] Nodes = LoadNodes();
     private static readonly (int I, int J)[] Walls = BuildWalls();   // ★壁の線分（2026-09-05）。⚠静的フィールドはテキスト順に初期化される＝Edges より前に置く（Nodes と GeoCoef だけに依存）
     public static readonly Edge[] Edges = BuildEdges();
@@ -131,7 +133,18 @@ public static class PathGraph
         using var rd = new StreamReader(st);
         var rows = System.Text.Json.JsonSerializer.Deserialize<BarrierRow[]>(rd.ReadToEnd(), WorldData.Options)
                    ?? throw new InvalidOperationException("barriers.json の読込に失敗");
-        foreach (var r in rows) list.Add(new Node(r.Name, r.Kind, r.Lat, r.Lon));
+        // ★(762) 陸グラフのデータの直し：fix=-1 の行は旗が正のとき読まない（置き換えられる旧の行）・fix=1 の行は旗が正のときだけ読む。旗 0 では fix=1 の行を読まず、fix=-1 の行を従来どおり読む＝従来と同じ盤面。
+        bool fixOn = GeoCoef.LandGraphFixRows > 0;
+        var addedIdx = new List<int>();
+        foreach (var r in rows)
+        {
+            if (r.Fix > 0 && !fixOn) continue;
+            if (r.Fix < 0 && fixOn) continue;
+            if (r.Fix > 0 && r.Kind != "barrier") addedIdx.Add(list.Count);
+            list.Add(new Node(r.Name, r.Kind, r.Lat, r.Lon));
+        }
+        Added = new bool[list.Count];
+        foreach (int k in addedIdx) Added[k] = true;
         return [.. list];
     }
 
@@ -141,6 +154,7 @@ public static class PathGraph
         public double Lat { get; set; }
         public double Lon { get; set; }
         public string Kind { get; set; } = "barrier";
+        public int Fix { get; set; }   // ★(762) 0＝従来の行・1＝旗が正のときだけ読む行・-1＝旗が正のとき読まない行
     }
 
     /// <summary>★陸橋（地峡）＝別の陸塊どうしが**歩いて**繋がる場所（2026-08-02）。
@@ -216,6 +230,7 @@ public static class PathGraph
                 foreach (var (km2, j2) in cand)
                 {
                     if (Nodes[j2].Kind == "barrier") continue;   // バリアは隣人として数えない（辺を張らないので）
+                    if (Added[j2] && !Added[i]) continue;   // ★(762) 足した峠は既存の点の半径の数えに入れない（足した峠が既存の辺を押し出さない）
                     if (++seen < K) continue;
                     radius = km2; break;
                 }
@@ -247,7 +262,7 @@ public static class PathGraph
                 if (CrossesBarrier(i, j)) continue;   // 線分がバリアのごく近くを通る＝不通（山を貫通する辺を張らない）
                 if (CrossesWall(i, j) || CrossesWater(i, j, out double pkm)) continue;   // ★2026-09-05：壁の線分を横切る／水を渡る辺は張らない（器0で両方 false）
                 if (pkm > km) detourKm[(System.Math.Min(i, j), System.Math.Max(i, j))] = pkm;   // 沿岸の迂回を採った辺＝その長さを距離にする
-                taken++;
+                if (!(Added[j] && !Added[i])) taken++;   // ★(762) 足した峠は既存の点の枠を食わない（旗 0 では Added が全て false＝従来と同じ）
                 accepted[i].Add(j);
             }
         }
