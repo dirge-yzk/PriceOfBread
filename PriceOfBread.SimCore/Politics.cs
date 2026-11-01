@@ -485,7 +485,7 @@ public static class Politics
         // ★侵食が進行中＝この四半期の測定（侵食・回復・政治資本の請求・床）で正統性が下がった（2026-09-29 線2＝(102) の申し送り2 (b)・推奨で進めた）＝上からの改革の門が読む。
         bool eroding = w.Legitimacy < legStart;
         w.DefeatShock *= c.DefeatShockDecay;   // 敗戦ショックは四半期で減衰（leg が今期の全幅を浴びた後・数年で消える）。Politics.Step は四半期1回
-        w.VictoryShock *= c.VictoryShockDecay;   // 機能8-②（2026-07-28）：戦勝の熱狂も同様に数年で冷める（r[4]/r[8]の持続はこの減衰だけが決める＝Ideologyは毎期クリア再構成）
+        w.VictoryShock *= c.DefeatShockDecay;   // 機能8-②（2026-07-28）：戦勝の熱狂も敗戦ショックと同じ減衰で数年で冷める（r[4]/r[8]の持続はこの減衰だけが決める＝Ideologyは毎期クリア再構成）
         // 機能8-④（2026-07-28）：飢えの記憶＝ストック＋減衰（RegimeTrackRecordと同じ様式）。アンカーは天命と同じ飢饉基準（DynMandateFoodAnchor＝単一ソース）。
         // 「パンの値段」の題名に最も近い機構＝飢饉は過ぎ去っても急進思想（共和/社会）として残る（1789の記憶）。
         w.FamineMemory = w.FamineMemory * c.FamineMemoryDecay + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
