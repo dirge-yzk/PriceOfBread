@@ -241,7 +241,6 @@ public class PolicyPoliticsTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.Run(8);
         var w = sim.World;
-        Assert.True(w.Coef.LivingRefWeight >= 1.0, "前提が崩れた：失望（相対）でない＝下の drop の予言が成り立たない");
         double pop = 0;
         foreach (var r in w.Regions)
         {

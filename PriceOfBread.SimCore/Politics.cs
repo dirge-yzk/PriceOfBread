@@ -100,14 +100,9 @@ public static class Politics
     /// ループ側（力学の持ち主）に残す＝導出量の評価が盤面を動かさない。</summary>
     internal static double LivingWant(Pop p, Coefficients c)
     {
-        double want = 1.0 - p.Satisfaction;
-        if (c.LivingRefWeight > 0)
-        {
-            double refv = p.LivingRef < 0 ? p.Satisfaction : p.LivingRef;   // 未捕捉＝現在値（＝ループの初期化直後と同値・こちらは書かない）
-            double drop = refv - p.Satisfaction;                            // ★正＝落ちた（不満）／負＝上がった（体制への支持）
-            want = (1.0 - c.LivingRefWeight) * want + c.LivingRefWeight * drop;
-        }
-        return want;
+        // (739) 旧の旗 LivingRefWeight（1.0）の混合（(1−w)×(1−満足)＋w×落ち込み）は焼き込み＝落ち込みそのもの。
+        double refv = p.LivingRef < 0 ? p.Satisfaction : p.LivingRef;   // 未捕捉＝現在値（＝ループの初期化直後と同値・こちらは書かない）
+        return refv - p.Satisfaction;                                   // ★正＝落ちた（不満）／負＝上がった（体制への支持）
     }
 
     /// <summary>飢餓の駆動∈[0,1]（闘争度ループと計器の**同じ1本**）＝<b>平常からの急な落ち込み</b>（2026-09-22 回B・作者承認）。
@@ -273,7 +268,7 @@ public static class Politics
             // ⚠参照点は【前期の値】を読む（★更新はこの pop の処理の最後＝同一ティック内で閉じない）。
             // ⚠式は <see cref="LivingWant"/> **1本**（段1・2026-09-09）＝闘争度（ストック）と不満度（導出量）が同じ生活苦を読む＝二実装を作らない。
             //   未捕捉の初期化だけはここに残す（純関数は盤面を書かない）＝初期化直後の LivingWant は同じ現在値を読むのでビット同値。
-            if (c.LivingRefWeight > 0 && p.LivingRef < 0) p.LivingRef = p.Satisfaction;   // 未捕捉＝現在値で初期化（立ち上がりの跳躍なし）
+            if (p.LivingRef < 0) p.LivingRef = p.Satisfaction;   // 未捕捉＝現在値で初期化（立ち上がりの跳躍なし）
             // ★食料の平常（2026-09-22 回B）も同じ作法：未捕捉＝今の充足で初期化＝開始時の慢性の低さは「平常」として入る（1783年の塊の根）。
             //   分母なし（FoodNeed≈0）・NaN の月は捕捉も更新もしない（否定形の `>= 0` は NaN で false）。
             double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;   // ⚠生の比（飢餓の駆動と同じ・Pop.FoodFill の下限0の切りを通さない＝段4e の申し送り）
@@ -322,7 +317,7 @@ public static class Politics
             //   ⚠上昇鈍化（旧 UnityMilitancyRelief×EthnicUnity）は削除＝民族統一度の3度目の読みだった（一本鎖へ）。
             p.Militancy += c.MilitancySpeed * (target - p.Militancy);
             // ★参照点を今の生活水準へ寄せる（⚠want を計算した【後】＝同一ティック内で閉じない）。
-            if (c.LivingRefWeight > 0 && c.LivingRefSpeed > 0)
+            if (c.LivingRefSpeed > 0)
                 p.LivingRef += c.LivingRefSpeed * (p.Satisfaction - p.LivingRef);
             // ★食料の平常を今の充足へ寄せる（同じ慣れの速度・駆動を計算した【後】＝同一ティック内で閉じない）。
             //   ⚠利得に関わらず回す＝駆動が休眠の世界でも「慣れ」の分布を計器が測れる（起点と利得はその分布から導いた）。

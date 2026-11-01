@@ -20,7 +20,6 @@ public class DiscontentReaderTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.Run(8);
         var w = sim.World; var c = w.Coef;
-        Assert.True(c.LivingRefWeight >= 1.0, "前提が崩れた：失望（相対）でない＝drop の予言が成り立たない");
         c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0;
         foreach (var r in w.Regions)
             foreach (var p in r.Pops) { p.Militancy = militancy; p.Consciousness = 0; p.Satisfaction = 0.5; p.LivingRef = 0.5 + drop; }
