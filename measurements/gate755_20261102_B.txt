@@ -1,0 +1,29 @@
+seed 1	C2(lowUsed/lowOld)=0.5113	high=3.0775	lowBindNeedShare=0.0599
+seed 2	C2(lowUsed/lowOld)=0.5092	high=3.3114	lowBindNeedShare=0.0649
+seed 3	C2(lowUsed/lowOld)=0.5331	high=1.7913	lowBindNeedShare=0.0532
+seed 4	C2(lowUsed/lowOld)=0.4660	high=2.7058	lowBindNeedShare=0.0779
+seed 5	C2(lowUsed/lowOld)=0.4558	high=4.1775	lowBindNeedShare=0.0702
+seed 6	C2(lowUsed/lowOld)=0.4538	high=3.5005	lowBindNeedShare=0.0678
+seed 7	C2(lowUsed/lowOld)=0.4457	high=3.2450	lowBindNeedShare=0.0810
+seed 8	C2(lowUsed/lowOld)=0.4810	high=3.3315	lowBindNeedShare=0.0658
+seed 9	C2(lowUsed/lowOld)=0.4314	high=3.1095	lowBindNeedShare=0.0961
+seed 10	C2(lowUsed/lowOld)=0.4301	high=3.4000	lowBindNeedShare=0.0696
+行数=240480	C1 最大の相対差=0.000e+00	1e-9 超の行=0	C1 合格
+C2 種の中央値=0.4609（門 ≦0.85）	C2 合格
+記録	highUsed/highOld の中央値=3.2782	lowBindNeedShare の中央値=0.0687
+記録	層1	lowUsed/lowOld=0.3912	desiredUsed/bought=2.6731
+記録	層2	lowUsed/lowOld=0.5506	desiredUsed/bought=4.8812
+記録	層3	lowUsed/lowOld=0.9352	desiredUsed/bought=4.3627
+記録	層4	lowUsed/lowOld=0.9317	desiredUsed/bought=nan
+記録	国 アメリカ	lowUsed/lowOld=0.4982
+記録	国 イギリス	lowUsed/lowOld=0.3803
+記録	国 オスマン	lowUsed/lowOld=0.5170
+記録	国 オーストリア	lowUsed/lowOld=0.4484
+記録	国 フランス	lowUsed/lowOld=0.4662
+記録	国 プロイセン	lowUsed/lowOld=0.4939
+記録	国 ロシア	lowUsed/lowOld=0.5019
+記録	国 日本	lowUsed/lowOld=0.4510
+記録	国 清	lowUsed/lowOld=0.4696
+記録	層1	boughtUsed 新÷旧（旗 1 の軌道÷旗 0 の軌道）の種の中央値=1.2273	種=10
+記録	層2	boughtUsed 新÷旧（旗 1 の軌道÷旗 0 の軌道）の種の中央値=1.1310	種=10
+記録	層3	boughtUsed 新÷旧（旗 1 の軌道÷旗 0 の軌道）の種の中央値=0.9102	種=10
