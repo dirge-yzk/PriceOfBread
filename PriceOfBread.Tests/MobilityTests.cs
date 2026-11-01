@@ -235,7 +235,6 @@ public class MobilityTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(20);
         var w = sim.World; var c = w.Coef; var r = w.Region;
-        c.ProfessionGenderGate = 1.0;
         w.WomenRights = WomenRightsLaw.None;   // 権利の梯子なし＝専門職（技師/官僚/医者）の access=0
         w.WomenWageRetention = 0.0;
         // ①昇格だけを残して隔離（他の移動機構は率0）

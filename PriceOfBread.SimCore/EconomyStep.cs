@@ -1104,11 +1104,11 @@ public static class EconomyStep
                 investDemand[Catalog.LaborId] += conLaborUnits;
             }
             // ★束の採算（2026-08-03）：私的な工場建設は既に FactoryBuildAfford で絞っているのに、巨大建造物は
-            //   素通りで、高騰した束を国庫が買い切っていた。同じ式を通す（StateProcurePriceGate=0 で恒等）。
+            //   素通りで、高騰した束を国庫が買い切っていた。同じ式を通す。
             //   ★(599) 国家の手動建設の段〔StateBuildQueue を束の単位に直す段・州上限のヘッドルーム・工賃〕は削除した＝StateBuildQueue の書き手は (583) から 0 本で、段は常に 0 だった。
             double bundleRef = BundleRef(coef) * Math.Max(region.PriceLevel, Eps);   // ★実質で比べる（名目のままだと一般インフレで恒久的に絞られる・2026-08-04）
-            double bundleAfford = coef.StateProcurePriceGate > 0 && bundleRef > Eps
-                ? 1.0 - coef.StateProcurePriceGate * (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
+            double bundleAfford = bundleRef > Eps
+                ? 1.0 - (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
             // 巨大建造物（2026-07-28）：国家建設とは**別キュー**〔★(599) 国家建設の段は削除〕。★州上限5.0のヘッドルーム〔旧の stateHeadroomUnits〕を通さない＝
             // 建造物は工業化度に溶かさず専用の変換先を持つため（設計書§6 地雷#4）。資材は国家建設と同じ束、労働も同経路で買う。
             // MegaprojectEnabled=1.0（点火2026-07-28）で稼働。0 では MonumentBuildQueue を誰も積まず monumentConstruction=0＝このブロックは不実行。
@@ -1389,7 +1389,6 @@ public static class EconomyStep
         //     一般インフレで `現在/参照` が恒常的に1を超え、**平時の政府機能まで永久に絞られる**（実測R14＝全次元悪化・
         //     政体exact−4.4/人口−7.1）。買い控えるべきは「その財だけが**相対的に**高い」時であって、貨幣が薄まった時ではない。
         //     参照側に Region.PriceLevel（＝物価水準。MarketFlow の価格アンカーも rp×これでスケールする）を掛けて実質比にする。
-        //   ⚠StateProcurePriceGate=0 で 1.0 固定＝厳密恒等（休眠可）。
         // ★耐久装備の発注量（段2a）は <see cref="TierQty"/>（見積と発注が同じ1本・2026-09-28 に局所関数 StockOrder から移した）。
         double PriceAfford(int gid) => StatePriceAfford(region, coef, gid);   // 国家調達の価格の門の1本（2026-09-30 段4e K）
 
@@ -2930,20 +2929,19 @@ public static class EconomyStep
     /// （2026-09-30 処理の一元化 段4e K の <c>PriceAfford</c>）。国家の全ての調達（軍需の発注・行政と電力と軍用電力・植民地の補給・海軍の燃料・侵攻の物資・武力解錠＝
     /// <see cref="Colonial.BuyUpkeepGood"/>）と画面・診断の同じ量が読む。⚠旧＝EconomyStep の局所関数と BuyUpkeepGood と App と Runner の4つの写し
     /// （軍需財の門の倍率 MilitaryProcurePriceGateScale を読むのは局所関数だけ・参照価格の門が 1e-9 と Eps×物価水準で違った）。
-    /// ⚠StateProcurePriceGate=0 で 1.0＝厳密恒等（休眠可）。参照価格の無い財・範囲外の id は絞らない（fail-open）。
+    /// 参照価格の無い財・範囲外の id は絞らない（fail-open）。
     /// ★軍需財の価格ゲート倍率（2026-09-07・英の軍が立たない根＝armsdebug 実測：ロンドンの小銃価格は基準の3〜5倍→ゲートで発注が約13%に絞られ→前期需要（労働配分の重み）が
     ///   細り→生産者1・産出0.3〜20/期のまま→価格が下がらない＝**自己ロック**。史実の国家はマスケットを相場で買った（トタ）。MilitaryProcurePriceGateScale=1.0＝現行（厳密恒等）・
     ///   0＝軍需財は価格を見ずに発注（国庫の afford は別に効く）。対象＝MilitaryGoods（小銃/弾薬/火砲/艦/馬/自動車）のみ。</summary>
     internal static double StatePriceAfford(Region region, Coefficients coef, int gid)
     {
-        if (coef.StateProcurePriceGate <= 0) return 1.0;
         if (gid < 0 || gid >= region.Markets.Length || gid >= Catalog.RefPrices.Length) return 1.0;
         double rp = Catalog.RefPrices[gid] * Math.Max(region.PriceLevel, Eps);   // ★物価水準で実質化（2026-08-04）
         if (!(rp > Eps)) return 1.0;   // ⚠否定形＝参照価格が無い財は絞らない（fail-open）
         double a = coef.FactoryBuildAfford(Math.Max(region.Markets[gid].Price, Eps), rp);
-        double gate = coef.StateProcurePriceGate;
+        double gate = 1.0;
         if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
-        return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（0=旧恒等・1=満額適用）
+        return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（満額適用＝1.0・軍需財だけ MilitaryProcurePriceGateScale で下げる）
     }
 
     // ---- ★(541) 国家の 3 調達（行政・上下水道・電化インフラ）の共通の形（M14・恒等）。⚠3 つの違いは引数で渡す＝揃えない：

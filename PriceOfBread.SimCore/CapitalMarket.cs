@@ -91,17 +91,15 @@ public static class CapitalMarket
             //   技術側は同じ病に対して既に吸収能力ゲートを持つ（TechEducation の CatchupAbsorptionBlend＝コメントに
             //   「全球収束の是正」と明記）のに、資本側にだけ無かった。**同じ写像**を掛けて非対称を解消する。
             //   ＝資本は来るが、読める技師と情報流通が無ければ工業化には変換されない（史実の後発国の吸収能力）。
-            //   CapitalAbsorptionBlend=0 で恒等（既定1.0＝live）。
             //   ★床つき（2026-08-02の再修正）：初版は blend=1 で headroom×absorption の**乗算ゲート**にしたため、
             //     識字ゼロ×国家統制の国は外資が恒久的にゼロになり、工業化できないまま国家の義務だけが残って
             //     慢性赤字の負債化（損失financing 38.1%＝硬性ゲート赤）を生んだ。史実でも外資は非識字国へ流れている
             //     （エジプト・オスマンの鉄道）＝流れないのではなく、実らずに債務不履行で終わる。
             //     すぐ下の信用項が「乗算ゲートでなく床つきプレミアム」を選んでいるのと**同じ作法**に揃える。
             //     床は信用と同じ CapitalCreditFloor を共有＝新しい係数を作らない。
-            if (c.CapitalAbsorptionBlend > 0)
             {
                 double abs = c.CapitalCreditFloor + (1.0 - c.CapitalCreditFloor) * TechEducation.AbsorptionOf(w[i], c);
-                headroom *= 1.0 + (abs - 1.0) * c.CapitalAbsorptionBlend;
+                headroom *= 1.0 + (abs - 1.0);
             }
             // ①修正：信用は「ゲート（乗算）」でなく「リスクプレミアム（床つき）」＝信用が低くても高潜在なら資本を呼ぶ（史実の新大陸＝不換でも英資本を吸う）。
             // 信用低の代償は引き付けの消滅でなく、高い逃避率・配当（下記）＝資本は来るが脆い（新興国のブーム＝サドンストップ）。
