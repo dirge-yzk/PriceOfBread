@@ -5,6 +5,7 @@
 #   旧＝旗 0 の腕（A）の landfix_g・新＝旗 1 の腕（B）の landfix_g。陸グラフは静的で軌道に依らない＝種の間でバイト一致することも確かめる。
 #   終了コード：0＝全ての門が通る・1＝落ちた門がある。
 import argparse, glob, gzip, math, os, re, statistics, sys
+sys.stdout.reconfigure(encoding='utf-8')   # python -I は PYTHONUTF8 を無視する＝cp932 の端末でも日本語を落とさない
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--A', required=True)

@@ -1,0 +1,16 @@
+  失敗 PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [235 ms]
+  失敗 PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [6 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 13, declared: 235560) [1 m 40 s]
+   計算量「四半期末：POP×国」が 240305 件（宣言 235560・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ロ
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 7, declared: 706680) [< 1 ms]
+   計算量「月次：POP×月（決算の残り）」が 720915 件（宣言 706680・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイ
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 20, declared: 1413360) [< 1 ms]
+   計算量「奢侈品と家事奉仕の所得弾力：POP×月（世界の値の配りの走査と買い手の POP ごとの係数）」が 1441830 件（宣言 1413360・許し +2 %）＝**増えている**。増やすなら�
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 12, declared: 235560) [< 1 ms]
+   計算量「四半期首：POP×国（AI・議会・政府）」が 240305 件（宣言 235560・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこ�
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1877) [< 1 ms]
+   計算量「建設：見た生産者（旬）」が 1957 件（宣言 1877・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2365362) [< 1 ms]
+   計算量「外交：覇権の判定の国×国」が 4515588 件（宣言 2365362・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイ�
+  失敗 PriceOfBread.Tests.PathGraphTests.陸グラフは決定論で連結が保たれる [1 ms]
+失敗!   -失敗:     9、合格:  2124、スキップ:     1、合計:  2134、期間: 15 m 26 s - PriceOfBread.Tests.dll (net10.0)
