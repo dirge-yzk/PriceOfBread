@@ -117,6 +117,8 @@ SEEDS=5 bash measure.sh <出力パス> selfplay-batch          # 探索の腕（
 - ★(719)：**`sed -i` はリポジトリの外（`/dev/null`・D: の下書き）でも使わない**（波48 の合流と rd48・波49 u4a の違反）。1 行の置き換えはバイトで読み書きする Python で（CR の数と BOM を保つ）。
 - ★(727)：**止める線の空洞化の例外を規則 A2 へ**（波50 hol3〔(722)〕・効くのは波51 から）＝places.json が植民地格・緯度の絶対値 55 度以上・開幕の人口（world.json の popK）20 千人未満の州（今のデータで 7 州＝旧の 4 州＋バロー・フォートユーコン・チャーチル）。読み手 `hol/an_h2.py`・`edge_689.py` の既定は `-ex rule`（出力の〈## 例外の規則 … に当たる州〉の行を毎回確かめる）・旧の名簿で読み直すときは `-ex old`（`rd.sh:9` は既定で呼ぶ＝波50 以前の腕を rd で読み直すときは件数がずれる）。作者「いったん全て推奨で」で推奨を採った（承認の言葉ではない）。
 - ★(727)：**待ち方は Bash の run_in_background と完了の通知、Monitor の終了条件（until の条件や `grep -m1` にファイルの中身を書く・中に sleep を書かない）だけ**。`&`・`sleep`・`Start-Sleep`・`[Thread]::Sleep`・`Wait-Process -Timeout` の繰り返し・`timeout N … tail -f` の繰り返し・`read -t` の繰り返し・`read_terminal` の `wait_for_output_ms` をタイマーにすることは全て〈時間で待つ待ち〉として使わない（波49〜50 の線の自己申告で繰り返し出た）。
+- ★(736)：**恒等の証明は `bash scripts/instruments/ident/ident.sh run <ラベル> --tree <木> [宣言...]` の最後の行〈判定: 恒等〉で読む**（素の 5 種・計器つき 10 種・計器の表・注視の表・.cost・テストの数・`--saveleak`・`--ng`。消した計器は `--removed-tables`・消したテストは `--tests-delta` で宣言した分だけ許す）。累積の木を何本も確かめるときは木ごとに detached の worktree を作り、`--no-ins --no-tests` の素の 5 種を同時に回す（(736) で 5 本を約 14 分）。
+- ★(736)：**待ちは台本で**＝1 分を超える物は Bash の run_in_background で起こして完了の通知を待つ・終わりに印を書く物は `scripts/instruments/tools/waitmark.sh <その印>`（担当の命令に sleep を書かない）・1 行の置き換えは `tools/replace1.py`（sed -i の代わり）・腕の数は `tools/arms.sh free`（batch.sh の上限 6・満杯は終了コード 3）。
 
 ★ 作者 2026-10-14「正しい挙動＞バランスです。バランスを理由には差し戻さない。ただし、それが歴史的に正しい挙動だと確証がなく、かつバランスを破壊するものであればNGとする」。
 
