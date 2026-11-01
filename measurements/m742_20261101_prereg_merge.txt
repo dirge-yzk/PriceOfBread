@@ -1,0 +1,24 @@
+# (742) 波52 の合流の予言（合流の前に書く・結果の後に変えない）。基点 main 01f0a8d3。
+# 入れる線：c2geo (740)・c2id (738)・c2core (739)。空洞化の根の読む線 (741) はコミット無し（記録だけ）。
+# 採った挙動の線は 0 本の見込み：c2geo は g-1 だけ（g-2 は不採用＝revert 済み）・c2core は G0＋G1（c-11 は revert 済み）・c2id は恒等の焼き込みだけ。
+
+## 合流の順と木
+T_geo  = 01f0a8d3 + c2geo（g-1）
+T_id   = T_geo + c2id（id-1〜id-5）
+T_core = T_id + c2core（c-1〜c-10）
+T_fin  = T_core + 片付け（読み手 0 になった欄 8 本の削除・反証役の指摘の注の直し・CapitalMarket の裸の波括弧の畳み）
+  消す欄 8 本：LivingRefWeight・CollapseImposeFromFront・PrizeLossProrated・IndustrializationPopWeighted・CrownRollbackRate・FactionRevoltScale・CrownPressureRate・WomenEducationGate
+  消さない：FactionForgetQuarters（c-11 を戻したので読み手が生きている）・FactionState.AbsentQuarters（同じ）
+
+## 予言（どの成績表がどれとバイト一致するか）
+- T_geo・T_id・T_core：素の 5 種が b5_20261031_m702 と全行バイト一致（ident.sh --no-ins --no-tests）。.cost は件数 29 行・推定 220.2 秒で一致。
+- T_fin：ident.sh run（宣言なし・--saveleak --ng）で〈判定: 恒等〉。
+  素の 5 種＝b5_20261031_m702・計器つき 10 種＝b10_20261101_m727_ins（全行バイト一致）。.cost＝件数 29 行・推定 220.2／221.1 秒。
+  計器の表は keep_736/base_ins と恒等（既知の揺れだけ）。注視の表 mon_20261101_m727.txt と 5051 行一致。
+  テストの数 Category!=FullLength 2103・FullLength 3（tests-delta 0）。NG 93・m702 と同じ集合。savetest OK・leakhunt の保存則違反なし。
+- フルスイート（T_fin）：Category!=FullLength 合格 2102・Skip 1・失敗 0（DormantIdentityTests.係数は全て本体のどこかで読まれる が緑に戻る）・FullLength 3/3。
+- arm の線を足した木で動く物：無し（挙動を変えた項目を入れない）。
+
+## よって
+- 基線は m702 のまま・ident.cfg は変えない・N1・N2・種 11〜20 は回さない・keep_736 は残す。
+- 予言が外れたら（不一致）、外れた木の線を外して報告に回す（物差しを替えない）。
