@@ -8,9 +8,6 @@
 /// </summary>
 public static class Politics
 {
-    // マジックナンバー一掃（2026-07-20・値据え置き・命名のみ）：天命による正統性増幅の対称クリップ境界（安全弁）
-    private const double DynMandateMulMin = 0.2, DynMandateMulMax = 1.8;
-
     /// <summary>探究/革新の自由度（倍率排除②）＝政体ラベルでなく**法律状態（参政権＋報道）から創発**。
     /// 世界の技術水準閾値(0.6)は**政治的開放度と報道の自由の両方**を要する＝検閲する社会は形式的参政権があっても先端で革新できない（採用・模倣に留まる＝閉じた社会の停滞）。
     /// 自由主義革命（立憲君主制/共和）は <see cref="FoundingPress"/> で報道を解放するので閾値を越える。検閲を保つ独裁（ブルジョア/プロレタリア独裁）は越えない。
@@ -393,8 +390,9 @@ public static class Politics
                 double capacity = clergyModeled && illit > 1e-9 ? Math.Min(1.0, clergySize / (illit * c.ClergyMediationPerCapita)) : 1.0;
                 dynE *= 1.0 - c.MandateReligiousCircuit * (1.0 - lawOpen * capacity);
             }
-            dynErodeMul = Math.Clamp(1.0 - c.DynMandateAmplify * dynE, DynMandateMulMin, DynMandateMulMax);   // [PORT:P3] 天命→正統性の連続項レバー（侵食/回復の対称クリップ乗数）。名君＝侵食が鈍る／暗君＝加速
-            dynRegenMul = Math.Clamp(1.0 + c.DynMandateAmplify * dynE, DynMandateMulMin, DynMandateMulMax);   // 対称クリップ＝安全弁（開幕即崩壊と無制限加速の両防止）
+            // (739) 群1：旧の挟み [0.2,1.8] は外した（dynE∈[−1,1]×DynMandateAmplify 0.8 で範囲は元から [0.2,1.8]＝縁は dynE＝±1 の最後の桁だけ）。
+            dynErodeMul = 1.0 - c.DynMandateAmplify * dynE;   // [PORT:P3] 天命→正統性の連続項レバー（侵食/回復の乗数）。名君＝侵食が鈍る／暗君＝加速
+            dynRegenMul = 1.0 + c.DynMandateAmplify * dynE;
         }
         double avgConsc = sizeSum > 1e-9 ? conscSum / sizeSum : 0;
         // 倍率排除⑥：政体別 erosion(絶対/専制/幕府=0.07・軍政=0.22)を**制度ギャップ**で一本化（恒久的な罠を作らない＝やがて革命）。
