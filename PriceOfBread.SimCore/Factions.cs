@@ -8,7 +8,7 @@
 /// - **変異（Mutated）**＝危機（州の飢え・敗戦）の中の結束したクラスタが稀に千年王国的な旗を掲げる（太平天国・タボル派）。
 ///   独立RNG系列（World.FactionRng）＝主系列・豊凶・疫病と完全分離＝較正/決定論に非干渉。名前と結束ボーナスのみ＝
 ///   **要求は既存19法軸のまま**（ユーザー裁定2026-07-11＝宗教法ラダーは作らない）。
-/// - F3a は書く側（結束/変異/合流の状態更新）。読み手＝F3b（Politics.CheckFactionRevolt／FactionStrength＝FactionRevoltScale=1.0 稼働中・0で観察のみ）と表示。
+/// - F3a は書く側（結束/変異/合流の状態更新）。読み手＝F3b（Politics.CheckFactionRevolt／FactionStrength＝常に有効・旧の旗 FactionRevoltScale は (739) で焼き込み）と表示。
 /// 較正/最小世界＝ParliamentEnabled=false または FactionRng=null で完全不発（EthnicEnabled と同型の遮蔽）。
 /// SaveGame はリフレクション直列化で List/Region参照/RNG状態とも自動追従。
 /// </summary>

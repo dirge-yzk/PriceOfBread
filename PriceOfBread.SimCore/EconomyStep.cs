@@ -1066,7 +1066,7 @@ public static class EconomyStep
             double desiredGrowth = coef.IndInvestmentSpeed * jointStock * Math.Max(0, netReturn);
             // ★私的投資の吸収ゲート（2026-08-04・作者指摘「工業化なくしてコストをかけられる方が根本問題」への機構側の対）。
             //   金と機械は輸入で手に入るが、据えて動かすには読める技師と自由な情報流通が要る（洋務運動＝輸入した最新機械が
-            //   動かなかった）。**同じ病に対する吸収ゲートが技術（CatchupAbsorptionBlend）と外資（CapitalAbsorptionBlend）には
+            //   動かなかった）。**同じ病に対する吸収ゲートが技術（CatchupAbsorptionBlend）と外資（CapitalMarket の吸収能力の門・旧の旗は (738) で焼き込み）には
             //   既にあり、国内の私的投資にだけ無かった**＝この非対称が「農業国の資本家が工場を無限に建てる」の穴。
             //   ⚠**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）を使う＝新しい写像を作らない
             //     （敵対審査2026-08-04の推奨形＝天井でなく速度を絞る＝州上限に触れずデッドロックを作らない）。

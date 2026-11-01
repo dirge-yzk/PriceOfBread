@@ -217,11 +217,9 @@ public sealed class Coefficients
     //   A/B実測（世代減衰の上に重ねた差分・selfplay-batch 10）＝**壊れていない**：硬性ゲート全緑（破綻0/デッドロック0/異常0）・
     //   人口 27.1→**34.3**（+7.1・日本90%＝「ずっと貧しい国はずっと不満」が消えた＝徳川パスの安定化そのもの）・
     //   本国 +3.3・植民地 +2.5・法 +1.2・列強 +1.3・政体 ±0／⚠経済 32.5→22.5（−10.0＝記録して進む・破綻しない＞正しい挙動＞バランス）。
-    public double LivingRefWeight = 1.0;              // 旧式と新式の混合比∈[0,1]。0＝want=1−生活水準（旧式）／1＝want=**失望**（参照点−生活水準）。
-                                                      // ⚠ConsciousnessFromSchoolingStock と同じ混合の作法。
+    // 【墓標2026-11-01・旗の焼き込み（波52 core (739)）】LivingRefWeight・CollapseImposeFromFront・PrizeLossProrated・IndustrializationPopWeighted・FactionRevoltScale・WomenEducationGate（どれも既定 1.0 の満額＝1 の形だけを残した・0＝旧の経路は消した）と、同じ値の別名 CrownRollbackRate（＝SummonParliamentRate 0.02）・CrownPressureRate（＝ParliamentPressureRate 0.04）を消した。
     public double LivingRefSpeed = 0.03;              // 参照点が今の生活水準へ寄る四半期速度（★半減期≒6年＝「暮らしの慣れ」）。
     //   ⚠段2でσ（MilitancySpeed）が 0.03→0.30 になったので**闘争度より1桁遅い**＝「怒りは半年で鎮まるが、暮らしの慣れは6年かかる」。
-                                                      // ⚠LivingRefWeight=0 では未使用。
     // ★段2＝σ（設計メモ §7-3・作者裁定2026-09-09）：0.03（半減期**5.8年**＝史実の12倍遅い＝「何も鎮まらない」の正体）→**0.30**（半減期5.8か月）。
     //   ⚠**上昇の側で決まる**：σ < RegionalRevoltThreshold なら平穏から1四半期では門を越えられず、1−(1−σ)² > RegionalRevoltThreshold なら2四半期で越える
     //   ＝門0.50 では σ∈(0.293, 0.50) で、0.30 は硬い床のすぐ上。「半年の飢餓で大量の反乱軍・一瞬の飢餓では起きない」（作者原文）がこの2条件そのもの。
@@ -1300,7 +1298,6 @@ public sealed class Coefficients
     //   ★点火2026-08-13（実測10シード・硬性ゲート全緑）：8軸のうち6軸が改善し合計+23.1pt
     //   （政体exact 28.5→36.7・法 48.1→52.0＝初の50%ゲート突破・人口 10.0→15.7・領土本国 79.2→85.0・経済 23.8→27.5）。
     //   分離独立の建国も131→103回＝帝国が崩壊代入で解体されなくなった。
-    public double CollapseImposeFromFront = 1.0;
     // 【墓標2026-10-18・旗の焼き込み】WarLuckNeedsContact（E-17・既定1.0・点火2026-09-05）を消した＝戦況の運（WarLuck）は接触のある戦線だけに立つ（両者の押しが0＝投射0・上陸不能の戦線では運も0）。
     // ★2026-08-12（作者裁定②）：昇格の高等教育ゲートを「エリートに届いた余剰教育(higherEdu)」から
     //   「志望者本人が積んだ就学(EducationFill／EMA)」でも代替できるようにする**重み**（形は max＝下げる方向には働かない）。0=現行と厳密恒等（休眠）。
@@ -2572,7 +2569,6 @@ public sealed class Coefficients
     public double CapitalFlightDistrustThreshold = 0.02; // 逃避が始まる不信（累積切り下げ／名目GDP）＝切り下げ常習国だけが対象
     // 【墓標2026-09-28・段2-1】WelfarePensionClampToTreasury（財1＝福祉・年金を国庫残高で律速）を削除＝福祉・年金は請求×r（Fiscal）。
     public double FisherDeflationFloor = -0.02;   // 財4：Fisher期待インフレ項の下限。0.0=旧Max(0,·)と同値でデフレ遮断（数値中立）／負値-0.02程度でデフレ側を軽く通し「デフレ→低名目金利」を成立
-    public double PrizeLossProrated = 1.0;   // 外4（拿捕賞金の連合按分）：victimの総海運損失(raidLoss)を制海権を握る全交戦raiderの海軍力比で按分。0=按分なし（各raiderが総額基準＝現行の二重取り恒等）/1=完全按分（合計が総損失を超えない）。PrizeCargoShare>0のときのみ作用
     public Share FertileShareFloor = new(0.05);   // 人6：出産可能女性プールの相対基準の下限フロア。**0.05で有効化済み**（台帳訂正2026-07-12・旧注記「既定1e-6＝中立」は誤り）。捕捉時fertile≈0のpopで重みが桁違いに膨張し出生が集中するのを防ぐ（出生の配分に常に作用）
 
     // === リアリティ監査 2026-07-02 Wave2（経済・金融の機構）===
@@ -2702,7 +2698,6 @@ public sealed class Coefficients
     // （人9 の局地飢饉の絶対水準ゲート FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除＝飢えの死は POP の絶対の充足〔FamineDeathFillFloor〕だけが門）
     public double OverworkMortalityWeight = 0.015;   /* トレードオフ化2026-07-06:有効化。短時間側 OverworkHealthSlope=0.015 と対称の初期値＝無制限14hで扶養力−0.03（=+19%産出 whOut の対価）。0で旧挙動・要較正再走 */   // 人12（14hの健康被害が12hと同値）：WorkHoursCapacityの長時間側の超過死亡項。扶養力に−これ×max(0,hours−12)を加算。0=現行（Max(0,12−hours)の片側のみ）と厳密一致・>0で12h超に人口動態コスト
     public double EpidemicIntraCountrySpread = 0.5;   /* #17有効化 */   // 人14（疫病の州間伝播）：TriggerEpidemicの感染窓中に最過密州から次過密州へ与える二次スパイクの減衰致死率倍率。0=単一最過密州のみ（現行と厳密一致）・>0で次過密州へdeathFrac×これの二次死亡（1832コレラのパリ→リヨン型）。新規RNG消費なし（決定論不変）。1州世界は不発
-    public double IndustrializationPopWeighted = 1.0;   /* #17有効化 */   // 人16（工業化度の人口加重）：DemographicStepの出生率・扶養力に効く工業化度を非加重州平均(avgInd)から人口加重平均(ΣInd×rpop/Σrpop)へ。0=非加重（現行）と厳密一致・1で人口加重。1州世界では両者恒等＝較正中立
     // 【墓標2026-09-30・旗の焼き込み（処理の一元化 段4e I）】MigrationCarriesHumanCapital（人1・#17点火 1.0）＝移動サイトが識字・闘争度を運ぶ＝人の移し方の1本 Pop.Blend が常に運ぶ。
     public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。Pop.Blend の選抜の枝（残る人がいるときだけ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない
@@ -2994,10 +2989,10 @@ public sealed class Coefficients
     public double ArmyMilitarismAffinity = 0.25;      // **将校の任免権の所在**∈[−1,1]×これ＝軍帰属の向き（＋君主が任免／−内閣が任免／0軍が自分の主）。★2026-08-18＝旧は親軍法ONで一律王権寄り＝**符号が逆だった**（軍が王政を倒す例が反復＝伯1889/葡1910/西1931）。軍帰属（lean+これ・給与の乗算は2026-08-18撤去＝CrownParliament の帰属導出）に効く
     // --- 王権議会P1＝動学6フック（2026-07-10・P0の観測軸を動学化・点火済み。値は各行。P1-F は 2026-09-20 に削除＝残り5本）---
     public double SummonParliamentRate = 0.02;      // P1-H 破産召集（1789三部会）：緊縮(Austerity>0.5)の深さ×これ/四半期でParliamentControl↑。提案0.02
+                                                    // ⚠(739) 読み手は 2 つ＝召集（＋）と P1-E ストルイピン後退（敵対議会×高正統性×王権寄り軍で ParliamentControl−これ/四半期・旧 CrownRollbackRate）＝この値を動かすと両方が一緒に動く。
     public double GrantedControlOnReform = 0.3;    // P1-A 下賜（明治1889欽定）：上からの改革の遷移時にParliamentControlの床をこの値へ（弱い議会を与える）。提案0.3
     public double ParliamentBudgetVeto = 2.0;      // P1-C 予算闘争（憲法紛争1862）：所得税スライダーの抵抗に 統制力×max(0,−協力度)×これ を加算＝非協力議会は予算を通さない。提案2.0
     public double VictoryLegitBoost = 0.05;         // P1-D 勝利の免責（ビスマルク型）：決定的勝利で正統性ストック+これ×戦勝点＝敗戦ショックの対称。0.1は工業化の差別化を壊し**0.05で採用**（bisect2026-07-10）
-    public double CrownRollbackRate = 0.02;         // P1-E ストルイピン後退：敵対議会(coop<−0.5)×高正統性(>0.7)×王権寄り軍(>0.3)でParliamentControl−これ/四半期。提案0.02
     // P1-F（軍帰属のクーデタ変調）は 2026-09-20 に係数ごと削除＝軍帰属の lean は兵士の思想の読み直し（P9）で向きも史実と逆だった（旧 MilitaryCoupSupport の注記＝その係数も (393) で削除）。
     // --- 王権議会F1＝州一揆（2026-07-10・点火済み）---
     // ★段2（設計メモ §7-3・作者裁定2026-09-09）：0.25 → **0.50**。σ=0.30 のまま門が 0.25 だと**1四半期の欠乏で一揆が発火**して
@@ -3023,14 +3018,13 @@ public sealed class Coefficients
     //   意図（内戦に負けた政府は政治的に破産する）としては正しいが、「1歩と同額」という旧の規則を保つなら**通った**押し切り1歩の
     //   実測分布から再導出が要る（通過側の計器は未整備）＝作者裁定の対象（この回では動かさない）。
     public double RevoltConcessionSpend = 0.125;   // 内戦の講和で要求をのませる（Politics.ConcedeToFaction）ときの政治資本消費（旧＝余白押し切り1歩と同額＝負のマンデート）
-    // --- 創発的国内勢力F3＝牙と変異（2026-07-12・F3a=永続化/変異は即時・F3b=内乱化はFactionRevoltScale>0で解禁）---
+    // --- 創発的国内勢力F3＝牙と変異（2026-07-12・F3a=永続化/変異は即時・F3b=内乱化は常に有効〔旧の旗 FactionRevoltScale は (739) で焼き込み〕）---
     public double FactionCohesionGrowth = 0.05;    // 結束の四半期成長率×(0.5+ブロック意識)（変異済みは2倍）。観測が続く運動体だけが育つ
     public double FactionCohesionDecay = 0.10;     // 不在クラスタの結束減衰（0.05未満×8Q不在で忘却）
     public double FactionForgetQuarters = 8;       // 忘却に要する連続不在四半期数（8Q＝2年）。結束0.05未満と両方満たすと勢力を除去
     public double FactionMutationRate = 0.002;      // 変異の受理率×危機（州の飢え/敗戦ショック）。独立RNG系列・1クラスタ1回。狙い＝太平天国級が清で125年0-2回（F3aで実測して調整）
     public double FactionMutationCrisisFloor = 0.5;   // 変異ロールの危機下限（平時は絶対に変異しない）
     public double MutantCohesionFloor = 0.5;       // 変異時の結束の床（旗の下の凝集）
-    public double FactionRevoltScale = 1.0;        // **F3b主フラグ・1.0点火済み（稼働中）**：内乱化の勢い係数（規模×闘争×結束×これ vs coerce+湘軍）。0で牙なし＝F3aの観察のみ
     // ★武器の市場購入（設計メモ §7 作者裁定2026-09-09 の未実装3件(a)・実装2026-09-11・休眠）：反乱勢力（FactionState）が参加POPの貯蓄を資金に、
     //   **国軍と同じ市場で同じ財を**買う（首都州の運動は国庫と同じ配給を奪い合う）。
     //   必要量＝MilitaryUpkeepScale×参加人数 × MilitaryRates（DiscoveredRates を通す＝未発見の装備は要らない）＝Simulation の MilitaryScale と同じ換算（新しい原単位を書かない）。
@@ -3054,7 +3048,7 @@ public sealed class Coefficients
     //   蜂起は勝てるときにしか始まれず成功率が構造的に100%。さらに左辺は f.Size に比例する州クラスタ規模、右辺の郷勇は全国スケール＝
     //   点火が人口に**反比例**し、人口最大の清で太平天国が最も出にくかった（実測：125年でヴュルテンベルク65件・清0件）。
     //   >0 で点火を戦力比から切り離し（戦力比は「勝てるか」＝決着＝戦争側にだけ残る）、連言2門にする：
-    //     門1 組織された意志 ＝ FactionStrength ÷ f.Size（Size が代数的に約分され AvgMilitancy×結束×(1−発言権)×FactionRevoltScale が残る示強量）> この値
+    //     門1 組織された意志 ＝ FactionStrength ÷ f.Size（Size が代数的に約分され AvgMilitancy×結束×(1−発言権) が残る示強量〔旧の ×FactionRevoltScale は (739) で焼き込み〕）> この値
     //     門2 州の絶望 ＝ RegionRevoltHeat + RevoltGrievanceWeight×怨嗟 > RegionalRevoltThreshold（F1と同じ既存閾値＝新閾値を作らない）
     //   選択キーも「最も強い運動」から「最も絶望した運動」へ移る。0＝旧2門（力の門＋好機/圧倒）＝厳密恒等。
     //   ★値は段1の計器（Runner の factionprobe）の実測から同定した＝**0.15**（既定はまだ0＝休眠。点火は帯を測るラウンドで）。
@@ -3110,7 +3104,7 @@ public sealed class Coefficients
     public double PartyFormCohesion = 0.3;         // 政党化に要るクラスタの結束（蜂起の0.8より低い＝議会経路は組織の敷居が低い）
     // --- P3b 連続動学（2026-07-12・点火済み＝遷移グラフの置換素子。出口はP2の床交差再ラベル）---
     public double ParliamentPressureRate = 0.04;    // 議会圧力：max(0, 代議制支持−現政体支持)×これ/四半期で統制力が育つ（漸進の立憲化＝グラフのジャンプの置換）
-    public double CrownPressureRate = 0.04;         // 王権圧力：max(0, 王権形支持−代議制支持)×これ×正統性で統制力を巻き戻す（一般化した反動の常時項・P1-Eクーデタ型とは別）
+                                                    // ⚠(739) 読み手は 2 つ＝議会の圧力（＋）と王権の圧力（max(0, 王権形支持−代議制支持)×これ×正統性で統制力を巻き戻す・旧 CrownPressureRate）＝この値を動かすと両方が一緒に動く。
     // 【墓標2026-10-18・旗の焼き込み】RepublicanDeposition（既定1.0）を消した＝廃位イベント（統制力≥立憲床×共和支持−立憲支持>保持力差＝王冠廃止。1792/1910ポルトガル・議決＝失脚/債務否認なし）は常に有効。
     // 王権の形の変異（07_再設計 §1＋A1裁定・2026-07-31＝**実体駆動へ再設計して点火**）。旧の支持座標駆動は1789年に亜細亜の専制が一斉絶対王政化＝
     // Abs/Des/Shoは登録簿が歴史を運ぶ（P2知見＝軸で区別しない）ため支持駆動は不適だった。新＝形ごとに固有の実体トリガー（幕府＝外圧/内圧・専制＝行政力の継続）。
@@ -3171,7 +3165,7 @@ public sealed class Coefficients
     public double MandateReligiousCircuit = 1.0;   // 第5段5-5点火（2026-07-28）：天命の宗教媒介＝dynE×(1−これ×(1−開度×容量))。開度=国教法（無神論=0）・容量=聖職者/(文盲×ClergyMediationPerCapita)飽和。聖職者未モデル世界は素通し。0で旧恒等
     public double ClergyMediationPerCapita = 0.005;   // 第5段5-5：媒介飽和の基準＝文盲人口の0.5%の聖職者で容量1.0（仏1789実測≈1%＝開始時は各国飽和・世俗化/無神論で痩せて初めて効く）
     // DynMandateNcFade（手書きのNC減衰勾配）は第5段5-3（2026-07-27）で削除＝未教育人口シェアが天命の母数を自動で痩せさせる（改革のジレンマが導出になる）
-    public double DynMandateAmplify = 0.8;      // 効果幅：侵食×clamp(1−0.8e,0.2,1.8)・自然回復×clamp(1+0.8e,0.2,1.8)。対称クリップ=安全弁
+    public double DynMandateAmplify = 0.8;      // 効果幅：侵食×(1−0.8e)・自然回復×(1+0.8e)（e∈[−1,1]）。(739) で挟み [0.2,1.8] を外した＝定義域はこの値 ≦1 かつ MandateReligiousCircuit∈[0,1]（1.25 を超えると侵食の倍率が負になり向きが入れ替わる）
     public double NationBuildAccumRate = 0.03;         // v2蓄積率
     public double NationBuildDecayRate = 0.0025;       // v2減衰/四半期（1%/年起点・較正帯1〜2%/年。原案0.5%/年は半減期139年で弱すぎ）
     public double NationBuildCrisisDefense = 0.5;      // 危機乗数：交戦中（防衛戦争の代理・速度のみ＝天井は動かさない・無償の加算項は作らない）
@@ -3211,10 +3205,9 @@ public sealed class Coefficients
     //   ＝値0.5を持ち説明文まで付いた「live に見える死コード」＝16本を削除した理由と同じものが1本残っていた。
     //   ⚠失業給付が恐慌の政治的爆発を緩衝する史実は消えていない＝失業給付→可処分所得→満足→want の実経路が運ぶ
     //   （失業を want と二重に数えないという段2の裁定そのもの）。
-    // 1934拡張E6 女性教育権：女子教育→女性識字↑。0で恒等（E9点火）
+    // 1934拡張E6 女性教育権：女子教育→女性識字↑（旧の主旗 WomenEducationGate は (739) で焼き込み＝常に有効）
     // ★2026-08-10（女性法の統合）：「女性参政権法の前提」という役目はこの係数から外れた＝梯子の段の並び（教育権→選挙権）が構造として担う。
-    //   残る役目は**識字底上げの効き**のみ＝0で効果なし（恒等）／1で女子就学が出生転換を早める。
-    public double WomenEducationGate = 1.0;            // **主フラグ**：0で効果なし＝恒等／1で女性識字底上げ。E9点火（既定＝梯子は None ＝較正中立）
+    //   残る役目は**識字底上げの効き**のみ＝女子就学が出生転換を早める。
     public double WomenEduLitBonus = 0.25;             // 女性の権利が教育権の段以上で femaleLit ×(1+これ)（上限=全体識字）＝女子就学が出生転換を早める
     // 1934拡張E6 国教法：寛容化ほど十分の一税↓＋宗教ドラグ↓。0で恒等（E9点火）
     // 【墓標2026-10-18・旗の焼き込み】StateReligionGate（主旗・E9 点火）を消した＝国教法が十分の一税と宗教ドラグを変調する経路は常に有効（既定 StateChurch＝較正中立）。

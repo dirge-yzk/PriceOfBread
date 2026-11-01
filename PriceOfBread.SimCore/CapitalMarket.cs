@@ -97,10 +97,8 @@ public static class CapitalMarket
             //     （エジプト・オスマンの鉄道）＝流れないのではなく、実らずに債務不履行で終わる。
             //     すぐ下の信用項が「乗算ゲートでなく床つきプレミアム」を選んでいるのと**同じ作法**に揃える。
             //     床は信用と同じ CapitalCreditFloor を共有＝新しい係数を作らない。
-            {
-                double abs = c.CapitalCreditFloor + (1.0 - c.CapitalCreditFloor) * TechEducation.AbsorptionOf(w[i], c);
-                headroom *= 1.0 + (abs - 1.0);
-            }
+            double abs = c.CapitalCreditFloor + (1.0 - c.CapitalCreditFloor) * TechEducation.AbsorptionOf(w[i], c);
+            headroom *= 1.0 + (abs - 1.0);
             // ①修正：信用は「ゲート（乗算）」でなく「リスクプレミアム（床つき）」＝信用が低くても高潜在なら資本を呼ぶ（史実の新大陸＝不換でも英資本を吸う）。
             // 信用低の代償は引き付けの消滅でなく、高い逃避率・配当（下記）＝資本は来るが脆い（新興国のブーム＝サドンストップ）。
             // 政策金利（バンクレート）が外資を呼ぶ（carry＝高金利通貨へ資本が流れる・正貨還流）。信用(cr)でゲート＝破綻国は高金利でも呼べない。

@@ -577,7 +577,7 @@ public sealed class Simulation
         WirePortDistances(regions);
         // ★初期軍需の工廠備蓄（初期値調整2026-08-22・<see cref="InitialArmsIndustryGoods"/> の注記の続き）：
         //   初期軍隊の平時消費（StepMonth の MilitaryUpkeepScale×兵士 と同じ式）に対し、市場在庫が一律200では大軍の国は数日分
-        //   （清＝小銃200は6日分）＝助走中に価格が参照の3〜7倍へ発散し、国家調達の価格ゲート（StateProcurePriceGate・半減点2.5×）が
+        //   （清＝小銃200は6日分）＝助走中に価格が参照の3〜7倍へ発散し、国家調達の価格ゲート（半減点2.5×・旧の旗は (738) で焼き込み）が
         //   閉じて需要ごと消える→播種した軍需産業も労働を取れず（prodW=LastDemand×Scale）「火器0%」に固着する（milstart実測）。
         //   軍需調達は首都市場のみ（StepMonth の capShare）＝首都に平時消費 InitialArsenalMonths ヶ月分の備蓄を置く＝
         //   助走（StartWarmupQuarters）の間、価格を参照帯に保ち、軍需産業が需要に立ち上がる時間を買う。
@@ -765,7 +765,7 @@ public sealed class Simulation
     // 初期軍隊は平時の均衡で播く（BuildProvince の soldier 徴募）のに、軍需財の工場は Scale=0.05（前工業＝「工場はほぼ無い」）で
     // 始まる＝結果（軍隊）だけ置いて支え（工廠・火薬廠・造船所）を置かない不整合（識字と教育供給の不整合と同じ型）。
     // 実測（Runner の milstart・seed1）＝小銃/火砲の価格が助走で参照の5〜25倍へ発散→国家調達の価格ゲート
-    // （StateProcurePriceGate）が閉じて充足0%・軍艦は初期在庫200が配給1.0に見せて陸海再配分倍率
+    // （旧の旗は (738) で焼き込み）が閉じて充足0%・軍艦は初期在庫200が配給1.0に見せて陸海再配分倍率
     // （ShapeNavalShare/flatShare≈10.8）がそのまま「充足1083%」に露出していた。
     // ★1783年の現実＝マスケットは職人の産物（バーミンガム銃器街・リエージュ）・工廠（ウーリッジ/テュラ/springfield）・
     // 王立造船所（ポーツマス/ブレスト/トゥーロン）は操業中＝職人工房（AddArtisanProducers の Scale=1.0）と同じ扱いで

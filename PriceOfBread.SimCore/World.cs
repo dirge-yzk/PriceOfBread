@@ -391,7 +391,7 @@ public sealed class World
     public WomenRightsLaw WomenRights { get; internal set; } = WomenRightsLaw.None;
     /// <summary>女性財産権が成立しているか（＝梯子が財産権の段以上）。女性の労働参加0.4→0.7・女性識字・法的主体。</summary>
     public bool WomenPropertyLaw => WomenRights >= WomenRightsLaw.Property;
-    /// <summary>女性教育権が成立しているか（＝梯子が教育権の段以上）。女子就学が女性識字を底上げ（WomenEducationGate=0で効果なし＝恒等）。</summary>
+    /// <summary>女性教育権が成立しているか（＝梯子が教育権の段以上）。女子就学が女性識字を底上げ（旧の旗 WomenEducationGate は (739) で焼き込み）。</summary>
     public bool WomenEducationLaw => WomenRights >= WomenRightsLaw.Education;
     /// <summary>女性参政権が成立しているか（＝梯子が最上段）。男女普通選挙(Universal)の前提。</summary>
     public bool WomenSuffrage => WomenRights >= WomenRightsLaw.Suffrage;
