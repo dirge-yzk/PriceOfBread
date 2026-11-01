@@ -107,6 +107,7 @@ public class TerritoryTests
     {
         var sim = Board("フランス");
         var w = sim.Nations[0].World; var c = w.Coef;
+        c.MigrationEntryFriction = 0;   // ★(748) この番人は旧の形（差に乗算の減衰）の固定＝旗 0 に置く（入口の形の番人は下の別のテスト）
         c.ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e9);   // 受け入れの上限を外す（流れの比だけを見る）
         const double O = 2.0;
         Region S = w.Regions.First(r => r.Name == "リール"), a = w.Regions.First(r => r.Name == "パリ"), b = w.Regions.First(r => r.Name == "マルセイユ");
@@ -140,6 +141,48 @@ public class TerritoryTests
                       / Territory.MigrationDecay(Geo.DistanceKm(ca.Lat, ca.Lon, pb.Lat, pb.Lon), w.WorldTechLevel, c);
         Assert.True(expect > 1.03, $"前提が崩れた：距離の減衰の比 {expect} が1に近い");
         Assert.True(Math.Abs(da / db - expect) <= 1e-9 * expect, $"パリ÷マルセイユの流入 {da / db} ≠ 距離の減衰の比 {expect}");
+        Assert.True(Math.Abs(w.Regions.Sum(r => r.SumPopulation()) - total0) <= 1e-9 * total0, "人口が保存されない");
+    }
+
+    /// <summary>★(748) 入口の形（旗 MigrationEntryFriction が正）：距離は差の符号を動かす＝遠い行き先は差が負になり1人も行かない。
+    /// 仏の1か国の盤面（世界の技術 0＝時代の係数 1）で、出る州 S（リール）の残る値打ちを「他の州の機会 O−摩擦−δ」にそろえる（生の差＝δ＝0.006・他の州の機会は O にそろえる）。
+    /// 距離の項＝摩擦 0.15×km÷10000：パリ（約 200 km）0.003＜δ＝流れる・マルセイユ（約 830 km）0.0125＞δ＝1人も行かない（約 400 km が境）。人は保存。
+    /// ⚠突然変異「旗 0」（乗算の減衰＝生の差が正の全ての州へ流れる）・「符号の反転」（距離の項を足す）・「引かない」（減衰も引きもしない）で赤（マルセイユへ流れる）。</summary>
+    [Fact]
+    public void 入口の形_遠い行き先は差が負になり1人も行かない()
+    {
+        var sim = Board("フランス");
+        var w = sim.Nations[0].World; var c = w.Coef;
+        c.MigrationEntryFriction = 1.0;
+        c.ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e9);   // 受け入れの上限を外す（上限で縮められて0になるのを除く）
+        const double O = 2.0, delta = 0.006;
+        Region S = w.Regions.First(r => r.Name == "リール"), a = w.Regions.First(r => r.Name == "パリ"), b = w.Regions.First(r => r.Name == "マルセイユ");
+        Assert.True(Math.Abs(c.EraFactor(w.WorldTechLevel, c.EraMigrationScale) - 1.0) < 1e-12 && c.MigrationDistanceScale == 10000.0 && c.TransportFriction == 0.15, "前提が崩れた：時代の係数・尺・摩擦");
+        foreach (var r in w.Regions)
+        {
+            double o = Territory.Opportunity(r, c);
+            Assert.True(o > 0, $"前提が崩れた：{r.Name} の機会が0");
+            r.ProductivityBonus *= (ReferenceEquals(r, S) ? (O - c.TransportFriction - delta) / Territory.Holding(r, c) : O) / o;   // S の残る値打ち＝O−摩擦−δ・他の州の機会＝O
+        }
+        Assert.True(Math.Abs(Territory.Opportunity(a, c) - O) < 1e-9 && Math.Abs(Territory.Opportunity(S, c) * Territory.Holding(S, c) - (O - c.TransportFriction - delta)) < 1e-9, "前提が崩れた：機会が揃わない");
+        var cs = Places.Coord(S.Name); var pa = Places.Coord(a.Name); var pb = Places.Coord(b.Name);
+        double kmA = Geo.DistanceKm(cs.Lat, cs.Lon, pa.Lat, pa.Lon), kmB = Geo.DistanceKm(cs.Lat, cs.Lon, pb.Lat, pb.Lon);
+        Assert.True(kmA < 300 && kmB > 600, $"前提が崩れた：パリ {kmA} km・マルセイユ {kmB} km");
+        var pop0 = w.Regions.ToDictionary(r => r, r => r.SumPopulation());
+        double total0 = pop0.Values.Sum();
+
+        Territory.Step(w, c);
+
+        Assert.True(a.SumPopulation() - pop0[a] > 1e-9, "パリへ流れない（差が正のはず）");
+        Assert.True(S.SumPopulation() < pop0[S], "出る州から出ていない");
+        foreach (var r in w.Regions)
+        {
+            if (ReferenceEquals(r, S)) continue;
+            var pr = Places.Coord(r.Name);
+            double km = Geo.DistanceKm(cs.Lat, cs.Lon, pr.Lat, pr.Lon);
+            if (km > 450) Assert.True(r.SumPopulation() - pop0[r] <= 1e-12, $"{r.Name}（{km:F0} km）へ流れた＝距離の項が差を負にしていない");
+        }
+        Assert.True(b.SumPopulation() - pop0[b] <= 1e-12, "マルセイユへ流れた");
         Assert.True(Math.Abs(w.Regions.Sum(r => r.SumPopulation()) - total0) <= 1e-9 * total0, "人口が保存されない");
     }
 
