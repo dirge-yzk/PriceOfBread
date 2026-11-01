@@ -93,7 +93,7 @@ internal static class UnionBargaining
             double u = lpop.UnemploymentRate.Value;
             double sVote = vw + vo > 0 ? vw / (vw + vo) : 0.0;
             c.LastU = u; c.LastVw = vw; c.LastVo = vo; c.LastStrike = m;
-            c.LastS = SOf(sVote, m);
+            c.LastS = PoliticalQuantities.ProbOr(sVote, m);
             c.LastBeta = BetaOf(c.Kappa, u, c.LastS);
             c.LastBetaNoStrike = BetaOf(c.Kappa, u, sVote);   // 罷業の力を除いた場合（計器の U5＝統制と容認の差）
             c.LastLp = lp; c.LastOp = op;
@@ -108,9 +108,6 @@ internal static class UnionBargaining
         if (!(t > 0)) t = 0;
         return new Outcome(true, t, c.LastBeta, c.LastBetaNoStrike, c.LastS, c.LastVw, c.LastVo, c.LastU, excess * heads, guarded, c.LastStrike);
     }
-
-    /// <summary>S＝1−(1−S票)(1−m)＝票の道と罷業の道の積の合成。S票・m が 0〜1 なら S も 0〜1 で、どちらについても非減少。</summary>
-    internal static double SOf(double sVote, double strike) => 1.0 - (1.0 - sVote) * (1.0 - strike);
 
     /// <summary>β＝κ×(1−U)×S。否定形で書く（NaN は 0）。</summary>
     internal static double BetaOf(double kappa, double unemployment, double s)

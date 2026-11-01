@@ -247,7 +247,7 @@ public static class CrownParliament
                 // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight／World.civicCarriesEthnic）が消費する値への民族抵抗は「天井経由の一本」だけになる
                 // （原典の二重計上ガード＝分離は忠誠度のみ・NCは動員/天命/汚職のみ＝NCの新しい読み手は作らない）。
                 double openness = CivicOpenness(w);
-                double ceilScalar = ceilingNb * (1.0 - (1.0 - w.EthnicUnity) * (1.0 - openness));
+                double ceilScalar = ceilingNb * PoliticalQuantities.ProbOr(w.EthnicUnity, openness);
                 double prevNc2 = w.NationalConsciousness;
                 double headroom = System.Math.Max(0, ceilScalar - prevNc2);
                 double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;   // ★段4：積の順序は旧式のまま（×headroom を外に出しただけ＝ビット恒等）
@@ -374,7 +374,7 @@ public static class CrownParliament
                 if (p.NationalConsciousness < 0) p.NationalConsciousness = seed;
                 double coreShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare.Value);
                 // P12残渣①：民族抵抗は速度でなく天井（天井=ceiling×(1−民族距離×(1−開放度))）
-                double ceil = ceiling * (1.0 - (1.0 - coreShare) * (1.0 - openness));
+                double ceil = ceiling * PoliticalQuantities.ProbOr(coreShare, openness);
                 double head = System.Math.Max(0, ceil - p.NationalConsciousness);
                 double before = p.NationalConsciousness;
                 if (derived)
