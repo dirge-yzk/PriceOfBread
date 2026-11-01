@@ -1,0 +1,43 @@
+# (739) 波52 線 c2core（区分 II の本体＝縁だけ違う削除と恒等の焼き込み・hlp-5）の事前登録。腕の前に書く。結果の後に変えない。
+# 木＝枝 c2core（01f0a8d3 から）。計画は AI の案＝作者「いったん全て推奨で」で推奨を採った物（承認とは書かない）。
+# 門 A′・止める線・.cost は measurements/m736_20261101_prereg_classII.txt の★2026-11-01 追記を指す（写さない）。
+# 形＝〈尾〉（既定の経路で値が同じ・違いは縁の場合だけ）。座標は 01f0a8d3 で grep して取り直した。
+
+## 累積の木
+T0＝G0（c-1〜c-6）／T1＝G0＋G1（c-7〜c-10）／T2＝T1＋G2（c-11）。
+
+## G0 恒等の焼き込み（I′）＝T0 で `ident.sh run c2core0 --tree <T0> --no-ins --no-tests` が〈判定: 恒等〉であること（必須・不一致は誤り＝外して報告）
+c-1 hlp-5：CrownParliament.cs:38・39 CrownRollbackRate→SummonParliamentRate（共に 0.02）・:114・:118 CrownPressureRate→ParliamentPressureRate（共に 0.04）・App GameViewModel.Politics.cs:310・315・333・337 も同じ。上書きする書き手は repo に無い（grep）＝同じ double。
+c-2 WomenEducationGate（1.0）：Simulation.cs:2671・TechEducation.cs:50 の門を消す。テスト② GenderTests.cs:361。
+c-3 FactionRevoltScale（1.0）：Politics.cs:883 の門・:1145 の最後の ×1.0 を消す。テスト② RevoltIgnitionTests.cs:272・375・417・525・1101・1131。
+c-4 IndustrializationPopWeighted（1.0）：Simulation.cs:2612 → avgInd += (indPopWeighted - avgInd)（1.0×x＝x）。
+c-5 PrizeLossProrated（1.0）：Diplomacy.cs:791 の外枠・:801 → cargoBase *= 1.0 + (share - 1.0)。
+c-6 CollapseImposeFromFront（1.0）：Diplomacy.cs:2711 の外枠と else・:2715 → CollapseScore * (1.0 - (1.0 - reach))。
+予言：素の 5 種の成績表が b5_20261031_m702 と全行一致・.cost の件数の行も推定も一致。
+
+## G1 区分 II-a（縁だけ違う・予言 0）＝T1 で `ident.sh run c2core1 --tree <T1> --save 20261101`（素の 5 種・計器つき 10 種・テストの数）
+c-7 天命の挟み：Politics.cs:12 の const を消し :396・397 の Math.Clamp を外す。観測量＝生の値が [0.2,1.8] の外だった国×四半期。予言 0（dynE∈[−1,1]・DynMandateAmplify 0.8 ⇒ 範囲は [0.2,1.8]・縁は dynE がちょうど ±1 のときの最後の桁だけ）。
+c-8 Model.cs:275 → PoliticalQuantities.Clamp01(v)。観測量＝v が −0.0 だった回。予言 0。
+c-9 NaN を中立へ（既存の PoliticalQuantities.ClampOr・新しい補助関数なし）12 か所：CrownParliament.cs:210（0）・Simulation.cs:2676（c.FertilityFloor）・Government.cs:381（w.Tariff）・Credit.cs:34（c.CurrencyHoldingRatio.Value）・Credit.cs:110（0）・Credit.cs:122（0）・Habit.cs:35（0）・Politics.cs:1616（0）・Politics.cs:1620（0.0）・Diplomacy.cs:164（0）・Diplomacy.cs:2802（0）・SelfPlay.cs:713（0）。観測量＝入力が NaN だった回。予言 0（有限・±0・±∞ は同じ枝）。
+c-10 LivingRefWeight（1.0）：Politics.cs:104〜113 を refv − 満足度 を返す形へ・:279・:328 の門を消す。Model.cs:201 の注。テスト② DiscontentReaderTests.cs:23・DiscontentSplitTests.cs:24・PolicyPoliticsTests.cs:244 の前提の Assert を消す。観測量＝満足度が有限でない POP、または LivingRef が −0.0 で満足度が +0.0 の POP×四半期。予言 0。
+予言：〈判定: 恒等〉。恒等なら G1 は〈測った 15 種で 1 ビットも変わらない＝実現した軌道では通らない枝〉として採る（証明とは書かない）。不一致なら使い捨ての木で観測量を数えて項目を特定し、その項目だけ腕 B へ（切り分けは c-7〜c-10 を 1 本ずつ外した木の ident・最大 2 回）。
+
+## G2 区分 II-a（数がある）＝c-11 忘却の時計
+c-11 Factions.cs:103 の `&& f.AbsentQuarters >= c.FactionForgetQuarters` を消す・:130 の `small.AbsentQuarters = …` を消す・読み手 0 になる欄 FactionState.AbsentQuarters を消す（SaveGame は反射＝savetest）。欄 FactionForgetQuarters の削除は id の線。
+紙の計算：不在の間の結束は ×0.9／四半期＝不在の始まりの結束が 0.05÷0.9⁷≈0.104 未満の運動だけが早く消える（合流で吸収された運動は結束 0＝旧でも次の掃除で消える＝同じ）。
+観測量：
+  E ＝基線の軌道（使い捨ての木＝01f0a8d3＋読むだけの数え・素の 5 種）で〈不在 8 未満・結束 0.05 未満〉に初めてなった運動の数（腕の前に数える）。
+  E′＝T2 の軌道（使い捨ての木＝T2＋読むだけの数え・素の 5 種・同じ種）で消えた運動のうち旧の時計なら残っていた物（不在 8 未満）の数と、その結束の最大。
+門 B（大きさ・狙いどおり）：E′ が E と同じ桁（E/3 ≦ E′ ≦ 3E）かつ 結束の最大 ＜ 0.05。E＝0 なら門 B は〈働く場面が無い〉と名乗り、E′＝0 を予言とする。
+腕 B＝`INS=1 bash scripts/instruments/batch.sh run c2coreB 10`（計器つき 10 種・T2）。
+  門 A′＝`python scripts/instruments/tools/nullgate.py <腕> measurements/b10_20261101_m727_ins measurements/b10_20261101_m727_n1_ins measurements/b10_20261101_m727_n2_ins` の O ≦ 203（大きなずれだけを拾う弱い門と名乗る）。
+  止める線＝破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散・空洞化（規則 A2＝hol/an_h2.py -v4・ピークの 1/10 未満 0 件）・.cost の推定 ≦248.5 秒・機構のテスト（フルスイート）。
+  記録＝NG の新しい数（ng.sh・基準 rd:measurements/ng702_20261031:m702・ヌル腕の 12・15 と並べる）・蜂起の回数・空洞化 1/4 未満の件数・exact・near。
+計算量：G0・G1 は .cost の件数の行も推定も一致（予言）。G2 は推定の差がヌル腕の幅（219.1〜222.5 秒）の中（予言）・使う量の割り当て 0 秒（削除のみ）。
+
+## 事前登録とのずれ（結果より前に名乗る）
+① m736 の群 4・5・6・7・8・10・12 はこの線に無い（群 5・6 は geo の線・4・7・8・10・12 は段0 の読み手 (737) が外した）。
+② m736 の門 E・門 B の〈5・6 の .cost の推定の差 ≦0.5 秒〉は、ヌル腕の揺れ（N1 219.1・N2 222.5・基線 221.1）より狭い＝何もしない腕でも外れる門。c-11 は〈推定の差がヌル腕の幅 219.1〜222.5 秒の中〉と読む＝結果の前の較正（上限 248.5 秒と〈221.1 秒から上がらない〉は変えない）。
+③ .cost の件数の行を動かす項目は無い見込み＝ident の --cost-allow は使わない。
+④ 計画の要約にある ProfessionGenderGate（Meritocracy.cs・MobilityTests.cs:238）と ConservationTests.cs:370 はこの線の書いてよいファイルに無い＝入れない（合流へ）。
+⑤ 欄 LivingRefWeight・WomenEducationGate・FactionRevoltScale・IndustrializationPopWeighted・PrizeLossProrated・CollapseImposeFromFront・CrownRollbackRate・CrownPressureRate・FactionForgetQuarters は読み手 0 になる＝この枝だけでは DormantIdentityTests.係数は全て本体のどこかで読まれる が赤（欄の削除は id の線＝合流で緑に戻る見込み）。この 1 件は機構の赤ではない（読み手の数え）と名乗る。
