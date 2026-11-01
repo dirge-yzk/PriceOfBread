@@ -14,7 +14,6 @@ public static class CapitalMarket
 {
     private static readonly RatioToGdpYear NoGdpDistressDebtRatio = new(9);       // NominalGdpPerMonth≈0 かつ債務ありのときの代替（極大）債務比率（年の名目GDP の9倍＝DebtDistressRatio を越える番兵）
     private const double BondConfMin = 0.2;             // 国債スプレッドが対外信認を下げる際の下限クランプ
-    private const double ExchangeRateCreditFloor = 0.3; // 為替減価が対外信認を削る際の下限クランプ
 
     /// <summary>外資の余地 headroom（遅れている国ほど資本を呼ぶ吸引の素）。旧＝<c>CapitalIndTarget − 工業化度の平均</c>。★(605) 旗 <c>CapitalHeadroomFromReturn</c> が正なら
     /// <c>CapitalIndTarget × World.ModernizeReturnShare()</c>（国庫の配り先の設備の収益の持ち分＝AI の近代化投資の信号と同じ 1 本。★この 1 本は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む＝工業化度の直読みを外すだけで、在庫への結びは残る。CapitalIndTarget は旗 1 では 0〜1 の割合に掛ける目盛り）。旗 0 の式は抜き出す前と同じ。番人が直に呼ぶ。</summary>
@@ -72,16 +71,17 @@ public static class CapitalMarket
             // 国債二次流通との連動（改修2026-06-28・金融改革①）：国債の利回りスプレッド(暴落)が対外信用を下げる＝国債暴落→資本逃避→為替減価→（既存経路で）さらに国債金利↑のバーリング危機ループ。
             double bondSpread = System.Math.Max(0, (w[i].GovBondRatePerYear - c.BondBaseRatePerYear).Value);
             double bondConf = System.Math.Clamp(1.0 - c.BondYieldFlightWeight * bondSpread, BondConfMin, 1.0);
+            double fxCredit = System.Math.Clamp(w[i].ExchangeRate, c.ExchangeRateFloor, 1.0);   // 為替減価が対外信認を削る際の下限（ExchangeRateFloor）＝信用の項と記帳の 2 か所が共有
             double cr = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio)
                       * (c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility)   // 兌換可能性で対外信用を連続補間（倍率排除②・Conv=1で無ペナルティ・Conv=0で0.5）
-                      * System.Math.Clamp(w[i].ExchangeRate, ExchangeRateCreditFloor, 1.0)   // 減価＝対外信用の低下
+                      * fxCredit   // 減価＝対外信用の低下
                       * bondConf;   // 国債暴落＝信認喪失で外資が逃げる
             cred[i] = cr;
             // ★純記帳（2026-08-13）：信用と4つの内訳を World へ写す。読み手はUIだけ＝力学に一切影響しない。
             w[i].CreditRating = cr;
             w[i].CreditDebtTerm = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio);
             w[i].CreditGoldTerm = c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility;
-            w[i].CreditFxTerm = System.Math.Clamp(w[i].ExchangeRate, ExchangeRateCreditFloor, 1.0);
+            w[i].CreditFxTerm = fxCredit;
             w[i].CreditBondTerm = bondConf;
             double headroom = Headroom(c, w[i]);   // 改修2026-06-28：首都州のみ→全州平均（外資は国全体の工業化ギャップで流入先を選ぶ）
             // ★全球収束の是正・資本側（2026-08-02）：headroom は「遅れている国ほど資本を呼ぶ」無条件のポンプで、
