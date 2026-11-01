@@ -710,7 +710,7 @@ public sealed class UtilityAgent : INationAgent
             threatRatio = ratio;
             if (ratio > w.Coef.SurvivalThreatRatio)
             {
-                survival = w.Coef.SurvivalMilitaryWeight * Math.Clamp(ratio - w.Coef.SurvivalThreatRatio, 0, SurvivalRatioCap);
+                survival = w.Coef.SurvivalMilitaryWeight * PoliticalQuantities.ClampOr(ratio - w.Coef.SurvivalThreatRatio, 0, SurvivalRatioCap, 0);   // (739) 群3：NaN は 0
                 // ★②2026-08-26：見込みの薄さで割り引く（SurvivalHopelessScale=0 では分岐に入らない＝厳密恒等）。
                 if (w.Coef.SurvivalHopelessScale > 0)
                     survival *= 1.0 - w.Coef.SurvivalHopelessScale * (1.0 - PoliticalQuantities.Clamp01(w.Coef.SurvivalThreatRatio / ratio));

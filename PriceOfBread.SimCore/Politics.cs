@@ -1611,11 +1611,11 @@ public static class Politics
             if (good.Id < 0 || good.Id >= r.Markets.Length || good.RefPrice <= 1e-9) continue;
             var m = r.Markets[good.Id];
             if (m.LastProduced <= 1e-9) continue;   // その州が実際に作っている財だけ＝その州の産業利害
-            double competitiveness = Math.Clamp((m.Price - good.RefPrice) / good.RefPrice, -1.0, 1.0);   // >0 高コスト→保護・<0 競争力→自由貿易
+            double competitiveness = PoliticalQuantities.ClampOr((m.Price - good.RefPrice) / good.RefPrice, -1.0, 1.0, 0);   // (739) 群3：NaN は 0   // >0 高コスト→保護・<0 競争力→自由貿易
             double wgt = m.LastProduced * good.RefPrice;   // 生産額で加重（大産業ほど州の関税姿勢を支配）
             pull += wgt * competitiveness; weight += wgt;
         }
-        return weight > 1e-9 ? Math.Clamp(pull / weight, -1.0, 1.0) : 0.0;
+        return weight > 1e-9 ? PoliticalQuantities.ClampOr(pull / weight, -1.0, 1.0, 0.0) : 0.0;   // (739) 群3：NaN は 0
     }
 
     /// <summary>州の平均闘争度（人口加重・閉鎖/兵士popを除く）。internal＝計器（factionprobe 段0）が

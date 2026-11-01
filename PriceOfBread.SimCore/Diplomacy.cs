@@ -161,7 +161,7 @@ public sealed class EndedWarRecord
     /// （<see cref="Diplomacy.ResolvePeace"/> の注のとおり。旧の画面と報告は白紙の線の内側を全て白紙と書いていた）。それ以外は符号の側が勝ち。</summary>
     public static WarVerdict VerdictOf(double score, bool regimeWar, double whitePeaceScore)
     {
-        double s = Math.Clamp(score, -1, 1);
+        double s = PoliticalQuantities.ClampOr(score, -1, 1, 0);   // (739) 群3：NaN は 0
         if (Math.Abs(s) < whitePeaceScore && !(regimeWar && s != 0)) return WarVerdict.Blank;
         return s > 0 ? WarVerdict.AWon : WarVerdict.BWon;
     }
@@ -2793,7 +2793,7 @@ public sealed class Diplomacy
     // internal＝ON経路テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀）。呼び出しは StepWars の講和判定のみ。
     internal void ResolvePeace(Coefficients c, War war)
     {
-        double s = Math.Clamp(war.Score, -1, 1);
+        double s = PoliticalQuantities.ClampOr(war.Score, -1, 1, 0);   // (739) 群3：NaN は 0
         // ★戦後処理の1本（2026-09-28 処理の一元化 段2 束2・作者「対外戦争・内戦・分離独立の戦後処理を全て1本に」）。
         //   入口はこの1本。**種類（内戦のタグ＝CivilWarParent／CivilWarSecession／CivilWarPolity）は条件だけを決める**＝州の行き先
         //   （対外＝割譲／内戦＝分断・独立の確定・再併合）と政体（反乱の勝ち＝CivilWarPolity）。当てはめる段は共通：

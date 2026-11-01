@@ -2673,7 +2673,7 @@ public sealed class Simulation
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。
         double landFertBoost = c.FertilityBase * landRoom;
-        double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost);
+        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);   // (739) 群3：NaN は床
         // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
         // net の収束速度から fertility を外す（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立（旧の旗 FertilityAffectsBirthsOnly は 2026-10-18 に焼き込み。

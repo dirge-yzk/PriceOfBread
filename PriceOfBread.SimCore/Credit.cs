@@ -31,7 +31,7 @@ public static class Credit
         // 信用が崩れるほど手元に引き上げる＝準備が縮む＝与信上限が縮む＝さらに信用が崩れる（自己強化）。
         // ★Bank.Gold は BaseMoney からの導出のまま（ratio_eff が状態関数なら二重ソースは生じない＝07 §3の再結論）。
         // 保存則＝退蔵は BaseMoney の内訳が変わるだけで量は不変＝安全。HoardPanicWeight=0 で静的（旧）。
-        double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
+        double hoardRatio = PoliticalQuantities.ClampOr(c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax, c.CurrencyHoldingRatio.Value);   // (739) 群3：NaN は静的な退蔵率
         bank.Gold = new MoneyStock(Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio));
 
         // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
@@ -107,7 +107,7 @@ public static class Credit
         if (Instruments.On) Instruments.CreditCap(w, maxLoans, repayable, days);   // (271) 計器（読むだけ）：準備の側の上限と返せる額のどちらが縛ったか
         if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
-        double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax.Value);
+        double run = PoliticalQuantities.ClampOr(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax.Value, 0);   // (739) 群3：NaN は 0
         // 最後の貸し手（B-3 Bagehot）：危機（過熱 or 後退）かつ財政が健全（solvent）なら国庫/中銀が流動性を供給し取り付けを和らげる＝恐慌の底打ち（根治はしない）。AIの安全弁。
         bool crisis = bank.Heat > c.LolrHeatTrigger || w.GdpDrawdown.Value > c.LolrDrawdownTrigger.Value;
         if (crisis && w.FiscalFundingRatio > c.LolrMinFunding) run *= 1.0 - c.LolrStrength.Value;
@@ -119,7 +119,7 @@ public static class Credit
         // この Heat は World.FinancialHeat 経由で株式ユーフォリア項(EquityHeatEuphoria・既定有効)へ配線され、投資ハードルから減じられる＝
         // 「取り付けの最中に投資が刺激される」符号逆転を生む。安定準備(取り付け前 maxLoans＝run/lolr 反映前)基準の使用率なら、パニックで縮む分母に振り回されない。
         // 安定準備基準（旧の旗 EuphoriaUsesStableReserve＝#17較正で有効化・2026-10-18 焼き込み。旧・縮小後 effMaxLoans 基準は git の履歴）。
-        bank.Heat = maxLoans > 1e-9 ? Math.Clamp(bank.Loans.Value / maxLoans, 0, HeatClampMax) : 0;   // 与信使用率＝過熱度（取り付けで準備が縮んでも安定準備基準では不感）
+        bank.Heat = maxLoans > 1e-9 ? PoliticalQuantities.ClampOr(bank.Loans.Value / maxLoans, 0, HeatClampMax, 0) : 0;   // (739) 群3：NaN は 0   // 与信使用率＝過熱度（取り付けで準備が縮んでも安定準備基準では不感）
         double targetLoans = effMaxLoans * confL * appetite;
         // 説明API（金利doc B2・2026-07-30）：与信目標の加法分解＝「金利を動かしたとき何がどれだけ動いたか」を測れる状態にする。
         // 乗算連鎖 maxLoans×(1−run)×(1+lolr)×Confidence×appetite を before/after 差分で分解（AdminEfficiency と同型）。

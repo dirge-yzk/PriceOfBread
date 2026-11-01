@@ -209,7 +209,7 @@ public static class CrownParliament
         if (record > 0)   // 正の信認は時間が要る（始まったばかりの形態は実績を持てない）
             record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));
         int fam = RegimeFamily(w.Polity);
-        w.RegimeTrackRecord[fam] = System.Math.Clamp(w.RegimeTrackRecord[fam] + c.RegimeRecordAccumRate * record, -1, 1);
+        w.RegimeTrackRecord[fam] = PoliticalQuantities.ClampOr(w.RegimeTrackRecord[fam] + c.RegimeRecordAccumRate * record, -1, 1, 0);   // (739) 群3：NaN は中立 0
 
         // --- 5. 国民意識（市民的結束＝民主主義の前提・docs/2026-07-13_国民意識.md）---
         //     公教育×識字＋徴兵で育つ（ロジスティック）・多民族は育ちにくい（天井でなく抵抗＝floorでcivic克服＝米/スイス）・国難は既存結束で符号が決まる両刃。

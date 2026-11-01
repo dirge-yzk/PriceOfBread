@@ -32,7 +32,7 @@ public static class Habit
 
     /// <summary>1か月の更新後の在庫＝在庫＋習慣の強さ×1人あたり消費−減衰×在庫（0〜上限）。</summary>
     public static double NextStock(in HabitProfile h, double stock, double perCapita) =>
-        Math.Clamp(stock + h.Growth * perCapita - h.Decay * stock, 0, h.Cap);
+        PoliticalQuantities.ClampOr(stock + h.Growth * perCapita - h.Decay * stock, 0, h.Cap, 0);   // (739) 群3：NaN は 0
 
     /// <summary>依存が成人の労働供給を蝕む倍率（1＝蝕まない・床 0.5）。旧 <c>OpiumAddictionGrowth &gt; 0 &amp;&amp; 在庫 &gt; 0</c> のときだけ <c>max(0.5, 1−害×在庫)</c>。
     /// 州の1つの在庫に掛かる＝習慣性の財が1つの間はその行（<see cref="Coefficients.OpiumGoodId"/>）を読む。</summary>
