@@ -322,7 +322,7 @@ public sealed class Diplomacy
     public EventLog Log = new();
     public int WarsStarted;   // 開戦回数のスカラーカウンタ（Validationの開戦数＝旧・Log文字列走査の置換。Log.Enabled=falseでも数える）
     private readonly Dictionary<long, int> _warCount = [];   // ★診断（2026-08-01）：ペアごとの開戦回数。挙動非依存＝書くだけ
-    private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（HighTensionDecayRate=1.0 点火済み・0では読まれない）
+    private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（高緊張帯の冷める速さ＝平時の減衰×(1−遺恨)）
     // ★列強の介入と和平提案（器2026-08-01・旧の旗 PeaceInterventionEnabled は 2026-10-18 に焼き込み）
     // ★2026-09-03（キューB-08 の前段）：**同名衝突で州へ昇格できず ColonyList に残った回数**を数える。
     //   ⚠「読み手が空だから消してよい」は本プロジェクトで4回踏んだ推論（型の統合が起こす静かな破損）。
@@ -2733,8 +2733,8 @@ public sealed class Diplomacy
                 if (_pendingRevanch is { } pr)
                 {
                     AddTension(pr.w, pr.l, c.RevanchismTension, TensionReason.Revanchism);
-                    // ★2026-08-01：領土を奪ったペアに「遺恨」を立てる。これが薄れるまで高緊張帯は冷めない（DriftTension）。HighTensionDecayRate=1.0 点火済み。
-                    if (c.HighTensionDecayRate > 0) _grudge[Key(pr.w, pr.l)] = 1.0;
+                    // ★2026-08-01：領土を奪ったペアに「遺恨」を立てる。これが薄れるまで高緊張帯は冷めない（DriftTension）。
+                    _grudge[Key(pr.w, pr.l)] = 1.0;
                     _pendingRevanch = null;
                 }
             }
@@ -3437,14 +3437,14 @@ public sealed class Diplomacy
     public bool LandBattleHappens(Power a, Power b, Coefficients c)
         => LandingGate(a, b, c) > 0 || LandingGate(b, a, c) > 0;
 
-    /// <summary>攻者Xから見た標的Yの代表点（経済国＝首都、抽象標的＝攻者に最も近い植民地）と大圏距離。</summary>
-    private static (double lat, double lon, double km) TargetPoint(Power x, Power y)
+    /// <summary>攻者Xから見た標的Yの代表点（経済国＝首都、抽象標的＝攻者に最も近い植民地）。</summary>
+    private static (double lat, double lon) TargetPoint(Power x, Power y)
     {
         double xlat = x.Nation?.Latitude ?? 0, xlon = x.Nation?.Longitude ?? 0;
-        if (y.Nation is { } yw) return (yw.Latitude, yw.Longitude, Geo.DistanceKm(xlat, xlon, yw.Latitude, yw.Longitude));
+        if (y.Nation is { } yw) return (yw.Latitude, yw.Longitude);
         double best = double.MaxValue, blat = 0, blon = 0;
         foreach (var col in y.ColonyList) { double d = Geo.DistanceKm(xlat, xlon, col.Latitude, col.Longitude); if (d < best) { best = d; blat = col.Latitude; blon = col.Longitude; } }
-        return best < double.MaxValue ? (blat, blon, best) : (xlat, xlon, 0);
+        return best < double.MaxValue ? (blat, blon) : (xlat, xlon);
     }
 
     /// <summary>03手順6：海盆別プレゼンス重みの更新（月次）。沿岸州の取扱高シェア0.5＋植民地価値シェア0.5＝D1裁定（交易シェアで自動・レバーなし）。
@@ -3527,7 +3527,7 @@ public sealed class Diplomacy
     public bool IsSeaCrossing(Power x, Power y)   // ★(410) 使わない引数 Coefficients を外した（旧の旗 ContinentalLandReach の削除の後は係数を読まない）
     {
         if (x.Nation is not { } xw) return false;   // 抽象標的は投射しない（守る側）
-        var (tlat, tlon, _) = TargetPoint(x, y);
+        var (tlat, tlon) = TargetPoint(x, y);
         return !Landmass.Same(xw.Latitude, xw.Longitude, tlat, tlon);
     }
 
@@ -3537,7 +3537,7 @@ public sealed class Diplomacy
     public double Projection(Power x, Power y, Coefficients c)
     {
         if (x.Nation is not { } xw) return c.HomeDefenseBonus;   // 抽象標的＝自領で戦う＝投射せず地の利
-        var (tlat, tlon, _) = TargetPoint(x, y);
+        var (tlat, tlon) = TargetPoint(x, y);
         // 海路距離（船の補給線）：西方勢が東方（インド洋/太平洋）へ向かう投射は喜望峰/スエズ/パナマを回る＝SeaDistanceKm で創発（旧 km+=SuezDetourKm の一律加算を統一）。
         bool suezOpen = ChokeOpenFor(SuezId, x), panamaOpen = ChokeOpenFor(PanamaId, x);
         double km = Geo.SeaDistanceKm(xw.Latitude, xw.Longitude, tlat, tlon, suezOpen, panamaOpen);   // 財13配線（監査2026-07-11 死2）
@@ -3603,14 +3603,14 @@ public sealed class Diplomacy
             //   速さ＝**平時の減衰 × (1 − 遺恨)**。遺恨は下の _grudge＝講和時の復讐心で1に立ち、**失地と同じ半減期**（LostLandHalflifeQuarters＝80四半期＝20年＝アルザス）で薄れる。
             // ★これで「奪われた側は世代を跨いで冷めない／何も失っていないペアは平時と同じ速さで冷める」が両立する＝
             //   実測（2026-08-01）で判明した「同一ペアが最大9回・3回以上戦うペアが67組」の原因（38+70=108 が永久凍結帯に着地）を、値でなく機構で解く。
-            // HighTensionDecayRate＝「遺恨ゼロのとき平時の何倍で冷めるか」＝既定1.0（点火2026-08-01）が「平時と同じ」。0で分岐に入らない。
-            else if (c.HighTensionDecayRate > 0 && t >= c.HighTensionBand)
+            // 遺恨ゼロのときは平時と同じ速さで冷める（点火2026-08-01）。
+            else if (t >= c.HighTensionBand)
             {
-                double rate = c.TensionDecay * c.HighTensionDecayRate * (1.0 - PoliticalQuantities.Clamp01(_grudge.GetValueOrDefault(k)));
+                double rate = c.TensionDecay * (1.0 - PoliticalQuantities.Clamp01(_grudge.GetValueOrDefault(k)));
                 if (rate > 0) CoolSlot(k, ref slot, t, Math.Max(0, t - rate));
             }
         }
-        // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。HighTensionDecayRate=0 では _grudge が空のまま＝ループ0回。
+        // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。
         if (_grudge.Count > 0)
         {
             // ★2026-09-30 段4e 後半 4e-3：失地と同じ＝世代の置き換わり（τ＝0）。組の2国の月の置き換わり率の平均（国の無い抽象の勢力は標準のピラミッド）で薄れる。

@@ -28,18 +28,6 @@ public static class Geo
         // ★2026-08-01：旧・第7引数 hornEnabled（不読の死引数）と係数 HornCapeEnabled を撤去した。ホーン岬は海グラフの常設通路である。
         => SeaGraph.SeaDistanceKm(lat1, lon1, lat2, lon2, suezOpen, panamaOpen);
 
-    /// <summary>首都座標→海盆（§B）。地中海・インド洋・太平洋は座標から、その他は大西洋。黒海は内陸性のため NationConfig.BasinOverride で指定する。</summary>
-    public static Basin BasinOf(double lat, double lon)
-    {
-        if (lat >= 7 && lat <= 30 && lon >= -106 && lon <= -86) return Basin.Atlantic;    // 北米メキシコ湾/カリブ側（中央メキシコ・ヌエバエスパーニャ銀地帯＝ベラクルス経由で対欧大西洋交易）。lon<-95のPacific既定に落ちて大陸貫通・喜望峰/パナマ迂回になる問題を是正（B-1）。アルタ=カリフォルニア(lat37.8)等の真の太平洋岸は lat>30 で除外
-        if (lon > 95 || lon < -95) return Basin.Pacific;                                  // 極東・太平洋（日本＝139・清＝116）
-        if (lon >= 3 && lon <= 42 && lat >= 30 && lat <= 46) return Basin.Mediterranean;  // 地中海（サルデーニャ・オスマン・地中海岸）
-        if (lon > 42 && lon <= 95) return Basin.IndianOcean;                              // インド洋（紅海・ペルシャ湾・インド亜大陸・ベンガル湾）＝マラッカの手前・スエズ/ケープで欧州へ
-        if (lat < 0 && lon >= -82 && lon <= -66) return Basin.Pacific;                    // 南米西岸（ペルー/チリ/ボリビア＝アンデス太平洋側）。リマ(-12,-77)等が大西洋既定に落ちて大陸貫通する問題を是正（ホーン岬/パナマ経由が選ばれる）。コロンビア(lat+4.7)/ラ・プラタ(lon-58)は大西洋のまま
-        if (lon >= 34 && lon <= 42 && lat <= 28) return Basin.IndianOcean;                // 03地理 手順0（2026-07-28）：東アフリカ・紅海沿岸（ザンジバル39.2/ゴンダール37.5/メッカ39.8）。旧・大西洋既定に落ちて欧州と「同一海域系」＝海路がアフリカ大陸を直線貫通（ラゴス→ザンジバル×0.38・エチオピア×14.1）だった。lon>42は既存Indian・カイロ(lat30)/レヴァント/ロストフ(lat47)は上のMed/既定で不変
-        return Basin.Atlantic;                                                            // 大西洋＝既定（欧州西岸・新大陸・イベリアの大西洋側）
-    }
-
     // 大陸の識別（旧 ContinentOf・矩形5分岐）は03地理 手順0（2026-07-28）で削除＝陸続き判定は Landmass.Of（landmass.json の一次データ）へ。
     // 矩形方式は島の概念を持てず（23島陸塊がユーラシアへ接着）、マスカリン諸島がパリと地続きになる等の矩形調整の失敗が構造的だった。
 
