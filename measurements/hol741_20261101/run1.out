@@ -1,0 +1,28 @@
+## base_ins seeds 10
+gc	farShareMed 0.250	farVolMed 21284	totMed 77913	totRatio 1.000
+2a_min	farShareMed 0.224	farVolMed 17985	totMed 74134	totRatio 0.951
+2a_port	farShareMed 0.222	farVolMed 17831	totMed 73875	totRatio 0.948
+landfirst	farShareMed 0.224	farVolMed 17970	totMed 73969	totRatio 0.949
+2b_pre	farShareMed 0.257	farVolMed 13345	totMed 46875	totRatio 0.602
+2b_rail	farShareMed 0.225	farVolMed 14812	totMed 60083	totRatio 0.771
+## n1 seeds 10
+gc	farShareMed 0.292	farVolMed 20813	totMed 63568	totRatio 1.000
+2a_min	farShareMed 0.257	farVolMed 17367	totMed 59606	totRatio 0.938
+2a_port	farShareMed 0.253	farVolMed 16866	totMed 59396	totRatio 0.934
+landfirst	farShareMed 0.257	farVolMed 17355	totMed 59464	totRatio 0.935
+2b_pre	farShareMed 0.313	farVolMed 13526	totMed 40472	totRatio 0.637
+2b_rail	farShareMed 0.270	farVolMed 14654	totMed 50142	totRatio 0.789
+## n2 seeds 10
+gc	farShareMed 0.314	farVolMed 23582	totMed 64925	totRatio 1.000
+2a_min	farShareMed 0.266	farVolMed 18399	totMed 60053	totRatio 0.925
+2a_port	farShareMed 0.264	farVolMed 18239	totMed 59775	totRatio 0.921
+landfirst	farShareMed 0.267	farVolMed 18359	totMed 59890	totRatio 0.922
+2b_pre	farShareMed 0.324	farVolMed 14844	totMed 39905	totRatio 0.615
+2b_rail	farShareMed 0.285	farVolMed 16347	totMed 49576	totRatio 0.764
+## a11 seeds 10
+gc	farShareMed 0.281	farVolMed 17967	totMed 58583	totRatio 1.000
+2a_min	farShareMed 0.252	farVolMed 15349	totMed 55681	totRatio 0.950
+2a_port	farShareMed 0.249	farVolMed 15185	totMed 55498	totRatio 0.947
+landfirst	farShareMed 0.253	farVolMed 15330	totMed 55586	totRatio 0.949
+2b_pre	farShareMed 0.301	farVolMed 11418	totMed 34233	totRatio 0.584
+2b_rail	farShareMed 0.261	farVolMed 13037	totMed 45084	totRatio 0.770

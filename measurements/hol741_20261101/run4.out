@@ -1,0 +1,10 @@
+gc 10000 far 0.250 farVol 21284 tot 77913
+gc 5000 far 0.210 farVol 15842 tot 67837
+gc 3000 far 0.181 farVol 11989 tot 58301
+gc 2000 far 0.160 farVol 9288 tot 50378
+gc 1000 far 0.128 farVol 5647 tot 37073
+2a_port 10000 far 0.222 farVol 17831 tot 73875
+2a_port 5000 far 0.182 farVol 12799 tot 62524
+2a_port 3000 far 0.154 farVol 9487 tot 53340
+2a_port 2000 far 0.134 farVol 7261 tot 45857
+2a_port 1000 far 0.104 farVol 4348 tot 33556

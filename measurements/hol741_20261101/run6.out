@@ -1,0 +1,14 @@
+seed 1 g≦0 で流れのある量の割合 0.318 now 46060/0.415 add_gc 28722/0.247 add_route 25141/0.196 add_route_nodecay 29431/0.241
+seed 2 g≦0 で流れのある量の割合 0.179 now 41327/0.139 add_gc 32284/0.070 add_route 30877/0.057 add_route_nodecay 34833/0.066
+seed 3 g≦0 で流れのある量の割合 0.372 now 61966/0.324 add_gc 41879/0.145 add_route 38913/0.103 add_route_nodecay 44472/0.130
+seed 4 g≦0 で流れのある量の割合 0.305 now 76014/0.209 add_gc 53253/0.101 add_route 49630/0.081 add_route_nodecay 56181/0.098
+seed 5 g≦0 で流れのある量の割合 0.326 now 42830/0.257 add_gc 28950/0.166 add_route 26154/0.137 add_route_nodecay 30333/0.161
+seed 6 g≦0 で流れのある量の割合 0.169 now 50987/0.319 add_gc 33741/0.110 add_route 31375/0.069 add_route_nodecay 35723/0.086
+seed 7 g≦0 で流れのある量の割合 0.323 now 51840/0.222 add_gc 36165/0.079 add_route 33929/0.055 add_route_nodecay 38401/0.071
+seed 8 g≦0 で流れのある量の割合 0.246 now 78069/0.244 add_gc 56468/0.118 add_route 53986/0.099 add_route_nodecay 60753/0.126
+seed 9 g≦0 で流れのある量の割合 0.247 now 59673/0.263 add_gc 40438/0.084 add_route 37618/0.054 add_route_nodecay 42486/0.070
+seed 10 g≦0 で流れのある量の割合 0.182 now 67058/0.396 add_gc 39802/0.171 add_route 35729/0.109 add_route_nodecay 41204/0.134
+# now tot med 55757 far share med 0.260 far vol med 16075
+# add_gc tot med 37984 far share med 0.114 far vol med 5088
+# add_route tot med 34829 far share med 0.090 far vol med 3732
+# add_route_nodecay tot med 39803 far share med 0.112 far vol med 5193
