@@ -39,7 +39,7 @@ public static class Geo
 }
 
 /// <summary>★(746) 州の組の経路の km の表（c3rt・計器だけが引く＝本体の力学は読まない・移民の式には繋がない）。(741) の使い捨ての動詞 <c>routedump</c> の規則をそのまま部品にした物（値は動詞の出力と一致させる）。
-/// 州の集合＝開幕の世界（<see cref="WorldData.Nations"/> の州と初期の植民地のうち座標のある名前・名前で重複を除く・並びは国・州の順）。表は静的で、初めて引いたとき 1 度だけ作る
+/// 州の集合＝座標表 <c>places.json</c> の全ての名前（座標のある物）。並びは〈開幕の世界の州と初期の植民地（国・州の順）〉→〈残り（後から得る植民地・抽象の標的）〉。表は静的で、初めて引いたとき 1 度だけ作る
 /// （州の組の大圏 km と陸路 km を一度に・海路は運河の開閉 <c>cfg</c> ごとに初めて引いたとき）。セーブに載らない（導ける量は貯めない）・どの国の状態にも依らない純関数。
 /// <para>列の定義（km は実の km で、地形の係数と鉄道の低下は含めない）：
 /// <see cref="GreatCircle"/>＝座標の大圏。<see cref="Land"/>＝陸グラフの最短路（<see cref="PathGraph.LandMatrix"/>）＋両端の接ぎ木、別陸塊は +∞（貿易の陸直行の <c>raw + landGraft[a] + landGraft[b]</c> と同じ足す順）。
@@ -80,6 +80,7 @@ internal static class RouteKm
                 foreach (var p in n.Provinces) Add(p.City, p.Coastal);
                 foreach (var c in n.InitialColonies) Add(c.Name, Landmass.CoastalOf(c.Name, fallback: false));
             }
+            foreach (var pl in Places.All) Add(pl.Name, Landmass.CoastalOf(pl.Name, fallback: false));   // 開幕の世界に無い名前（後から得る植民地・標的）。港かどうかは植民地の州の昇格と同じ問い
             int m = names.Count;
             t.Names = [.. names]; t.Port = [.. port]; t.Lat = [.. lat]; t.Lon = [.. lon];
             int N = PathGraph.Nodes.Length; var lm = PathGraph.LandMatrix();

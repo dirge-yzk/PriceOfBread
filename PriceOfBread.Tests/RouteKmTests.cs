@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 /// ★(746) 州の組の経路の km の表 <see cref="RouteKm"/>（Geo.cs の末尾）と、それを引く計器（<c>migration_s</c> の列 routeKm・<c>xmig_s</c>）の番人。
 /// 表の主張：①自分への距離は 0 ②大圏 ≦ 陸路・大圏 ≦ 港経由の海路・大圏 ≦ 選んだ経路 ③陸路と港経由の海路は対称（相対 1e-9・足す順で最後の桁がずれる）
 /// ④選んだ経路の費用は選ばなかった物以下（貿易の PairKm と同じ比較）・陸直行と海経由の両方が実際に選ばれる ⑤海路の部品は <see cref="Geo.SeaDistanceKm"/> の港の座標どうしの値とビットで一致し、運河の 4 通りで値が分かれる
-/// ⑥開幕の世界の全ての州が表に引け、港かどうかが州の構築と合う ⑦陸路は貿易の経路の表 <c>trroute_s</c> の realLandKm（陸直行の行）と一致＝貿易と同じ部品を引いている。
+/// ⑥開幕の世界の全ての州が表に引け、港かどうかが州の構築と合い、座標表の全ての名前が表にある ⑦陸路は貿易の経路の表 <c>trroute_s</c> の realLandKm（陸直行の行）と一致＝貿易と同じ部品を引いている。
 /// 計器の主張：⑧<c>migration_s</c> の routeKm は表を直接引いた値と一致し大圏以上 ⑨<c>xmig_s</c> の組の量の和 ＝ <c>region_s</c> の越境の出の和 ＝ 入の和（四半期ごと）・両端の国の名前は <c>region_s</c> の国と一致（別の経路）。
 /// 何もしない番人は必ず緑になる＝陸直行と海経由が両方選ばれる・運河で値が変わる組がある・xmig_s に行が出る・migration_s に行が出る、を対照にする。
 /// </summary>
@@ -22,7 +22,7 @@ public class RouteKmTests
     public void 自分への距離は0で_大圏は全ての経路以下_陸路と港経由の海路は対称()
     {
         int m = RouteKm.Count;
-        Assert.True(m >= 300, $"州の数 {m}（開幕の世界の州と植民地は 300 を超える）");
+        Assert.True(m >= 300, $"州の数 {m}（座標表の名前は 300 を超える）");
         for (int i = 0; i < m; i++)
         {
             Assert.Equal(0.0, RouteKm.GreatCircle(i, i)); Assert.Equal(0.0, RouteKm.Land(i, i));
@@ -35,7 +35,7 @@ public class RouteKmTests
                 if (i == j) continue;
                 double gc = RouteKm.GreatCircle(i, j), land = RouteKm.Land(i, j);
                 double tol = 1e-9 * Math.Max(1.0, gc);
-                Assert.True(gc > 0, $"{RouteKm.NameOf(i)}→{RouteKm.NameOf(j)} の大圏が 0（同じ座標の州）");
+                Assert.True(gc >= 0);   // 同じ座標の名前の組（ボマ・コンゴ）は大圏 0
                 if (double.IsFinite(land)) { finiteLand++; Assert.True(gc <= land + tol, $"大圏 {gc} が陸路 {land} を超えた {RouteKm.NameOf(i)}→{RouteKm.NameOf(j)}"); Near(land, RouteKm.Land(j, i)); }
                 else Assert.True(double.IsPositiveInfinity(land));
                 for (int cfg = 0; cfg < 4; cfg++)
@@ -99,7 +99,7 @@ public class RouteKmTests
     }
 
     [Fact]
-    public void 開幕の世界の全ての州が表に引け_港かどうかは州の構築と合う()
+    public void 開幕の世界の全ての州が表に引け_港かどうかは州の構築と合い_座標表の全ての名前が引ける()
     {
         var sim = new MultiNationSim(WorldData.Nations(), 1UL, _ => new UtilityAgent());
         var seen = new Dictionary<string, bool>();
@@ -115,7 +115,8 @@ public class RouteKmTests
             Assert.True(i >= 0, $"{name} が表に無い");
             Assert.Equal(isPort, RouteKm.IsPort(i));
         }
-        Assert.Equal(seen.Count, RouteKm.Count);
+        Assert.True(seen.Count >= 300 && seen.Count <= RouteKm.Count);
+        Assert.Equal(Places.All.Count(p => p.Lat != 0 || p.Lon != 0), RouteKm.Count);   // 座標表の全ての名前（後から得る植民地・標的も）が引ける
         Assert.Equal(-1, RouteKm.IndexOf("存在しない州の名前"));
     }
 
