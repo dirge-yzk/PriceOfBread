@@ -322,7 +322,7 @@ public sealed class Diplomacy
     public EventLog Log = new();
     public int WarsStarted;   // 開戦回数のスカラーカウンタ（Validationの開戦数＝旧・Log文字列走査の置換。Log.Enabled=falseでも数える）
     private readonly Dictionary<long, int> _warCount = [];   // ★診断（2026-08-01）：ペアごとの開戦回数。挙動非依存＝書くだけ
-    private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（HighTensionDecayRate=1.0 点火済み・0では読まれない）
+    private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（高緊張帯の冷める速さ＝平時の減衰×(1−遺恨)）
     // ★列強の介入と和平提案（器2026-08-01・旧の旗 PeaceInterventionEnabled は 2026-10-18 に焼き込み）
     // ★2026-09-03（キューB-08 の前段）：**同名衝突で州へ昇格できず ColonyList に残った回数**を数える。
     //   ⚠「読み手が空だから消してよい」は本プロジェクトで4回踏んだ推論（型の統合が起こす静かな破損）。
@@ -2733,8 +2733,8 @@ public sealed class Diplomacy
                 if (_pendingRevanch is { } pr)
                 {
                     AddTension(pr.w, pr.l, c.RevanchismTension, TensionReason.Revanchism);
-                    // ★2026-08-01：領土を奪ったペアに「遺恨」を立てる。これが薄れるまで高緊張帯は冷めない（DriftTension）。HighTensionDecayRate=1.0 点火済み。
-                    if (c.HighTensionDecayRate > 0) _grudge[Key(pr.w, pr.l)] = 1.0;
+                    // ★2026-08-01：領土を奪ったペアに「遺恨」を立てる。これが薄れるまで高緊張帯は冷めない（DriftTension）。
+                    _grudge[Key(pr.w, pr.l)] = 1.0;
                     _pendingRevanch = null;
                 }
             }
@@ -3603,14 +3603,14 @@ public sealed class Diplomacy
             //   速さ＝**平時の減衰 × (1 − 遺恨)**。遺恨は下の _grudge＝講和時の復讐心で1に立ち、**失地と同じ半減期**（LostLandHalflifeQuarters＝80四半期＝20年＝アルザス）で薄れる。
             // ★これで「奪われた側は世代を跨いで冷めない／何も失っていないペアは平時と同じ速さで冷める」が両立する＝
             //   実測（2026-08-01）で判明した「同一ペアが最大9回・3回以上戦うペアが67組」の原因（38+70=108 が永久凍結帯に着地）を、値でなく機構で解く。
-            // HighTensionDecayRate＝「遺恨ゼロのとき平時の何倍で冷めるか」＝既定1.0（点火2026-08-01）が「平時と同じ」。0で分岐に入らない。
-            else if (c.HighTensionDecayRate > 0 && t >= c.HighTensionBand)
+            // 遺恨ゼロのときは平時と同じ速さで冷める（点火2026-08-01）。
+            else if (t >= c.HighTensionBand)
             {
-                double rate = c.TensionDecay * c.HighTensionDecayRate * (1.0 - PoliticalQuantities.Clamp01(_grudge.GetValueOrDefault(k)));
+                double rate = c.TensionDecay * (1.0 - PoliticalQuantities.Clamp01(_grudge.GetValueOrDefault(k)));
                 if (rate > 0) CoolSlot(k, ref slot, t, Math.Max(0, t - rate));
             }
         }
-        // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。HighTensionDecayRate=0 では _grudge が空のまま＝ループ0回。
+        // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。
         if (_grudge.Count > 0)
         {
             // ★2026-09-30 段4e 後半 4e-3：失地と同じ＝世代の置き換わり（τ＝0）。組の2国の月の置き換わり率の平均（国の無い抽象の勢力は標準のピラミッド）で薄れる。
