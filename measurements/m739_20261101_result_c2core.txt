@@ -20,3 +20,8 @@ Category!=FullLength：合計 2103（--list-tests の 2103 と一致）・合格
 失敗 1＝DormantIdentityTests.係数は全て本体のどこかで読まれる（読み手 0 になる 9 欄：LivingRefWeight・CollapseImposeFromFront・PrizeLossProrated・IndustrializationPopWeighted・CrownRollbackRate・FactionForgetQuarters・FactionRevoltScale・CrownPressureRate・WomenEducationGate＝事前登録 ⑤ の見込みどおり・欄の削除は id の線）。
 失敗 2＝InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される（前提 rows.Count ≥ 5 が 4 で崩れた・InstrumentsTests.cs:2412）。T1 の木では同じテストが合格（単独で確かめた）＝c-11 の軌道の変化が原因。
 ⇒ 機構のテストの赤＝止める線（RULE47）。この線はそのテストのファイルを書けず、同じ腕で物差し（種・四半期）を替えない ⇒ **c-11 は採らない**（門 A′・門 B・他の止める線は通ったが、採らない）。
+
+## 枝の形（決着）
+c-11（72ca108f）は e2c3bafb で戻した。`git diff a797b8c1 e2c3bafb -- PriceOfBread.SimCore PriceOfBread.App PriceOfBread.Tests PriceOfBread.Runner` は空＝枝のソースは T1 と同じ＝ident_20261101_c2core1（判定: 恒等）がそのまま当たる。
+読み手 0 になる欄は 8 本（LivingRefWeight・CollapseImposeFromFront・PrizeLossProrated・IndustrializationPopWeighted・CrownRollbackRate・FactionRevoltScale・CrownPressureRate・WomenEducationGate）＝DormantIdentityTests.係数は全て本体のどこかで読まれる はこの 8 本で赤（id の線の欄の削除で緑に戻る見込み）。FactionForgetQuarters と FactionState.AbsentQuarters は読み手が戻った＝消さない。
+門 A′ の上限：事前登録には m736 追記の 203 を写したが、nullgate.py の較正の出力は 201（O 191.7 はどちらでも内）。
