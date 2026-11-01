@@ -318,7 +318,7 @@ public sealed class World
             //     今の読み手（ParliamentGrip・表示）は微揺れを気にしないので外しても破綻しないが、外すと ParliamentGrip が動く
             //     ＝改名と切り離しの回で**削除の分だけ**を動かす規律に従い今回は外さない。是非は次の裁定へ。
             double x = Government.Q5(taxedBase / totalBase);
-            return !(x > 0) ? 0 : x > 1 ? 1 : x;   // 否定形＝NaN も0へ（Math.Clamp は NaN を通す＝「∈[0,1]」の名乗りが嘘になる）
+            return PoliticalQuantities.Clamp01(x);   // 否定形の Clamp01＝NaN も0へ（Math.Clamp は NaN を通す＝「∈[0,1]」の名乗りが嘘になる）
         }
     }
     /// <summary>梯子の**家計の購入額**（＝pop が実際に買った量×参照価格）を1回の走査で集計する唯一の場所。

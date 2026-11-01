@@ -127,7 +127,7 @@ public static class Politics
         if (fill > 1) fill = 1;                                  // 平常の側（更新）と同じ上限＝満腹を超えた分は落差に数えない
         double refv = p.FoodRef < 0 ? fill : p.FoodRef;          // 未捕捉＝今の充足（＝ループの初期化直後と同値・こちらは書かない）
         double drive = c.FamineDriveGain * (refv - fill - c.FamineDropOnset);
-        return !(drive > 0) ? 0 : drive > 1 ? 1 : drive;
+        return PoliticalQuantities.Clamp01(drive);
     }
 
     /// <summary>実効発言権∈[0,1]（闘争度ループと**同じ1本**）＝票の発言権 × 選挙の実在（1934拡張E5「紙の参政権」の是正）。
@@ -167,7 +167,7 @@ public static class Politics
     {
         double distance = c.DiscontentLawGap > 0 ? lawGap : AxisDistance(p, regimeCoord);
         double d = DiscontentRaw(w, c, p, distance);
-        return !(d > 0) ? 0 : d > 1 ? 1 : d;   // 否定形＝NaN も 0 へ畳む（有限値では Math.Clamp(d,0,1) と厳密同値）
+        return PoliticalQuantities.Clamp01(d);   // 否定形の Clamp01＝NaN も 0 へ畳む（有限値では Math.Clamp(d,0,1) と厳密同値）
     }
 
     /// <summary>★(431) 不満度の2項＝（生活の項 <see cref="Coefficients.WantWeight"/>×<see cref="LivingWant"/>・法の項 <see cref="Coefficients.PoliticalDistanceWeight"/>×<see cref="LawDistance"/>）。
@@ -319,7 +319,7 @@ public static class Politics
             // 外圧→闘争度の直加算（旧PressureWeight）はC裁定2026-07-09で撤去＝外圧はReformPressureBoost（改革派の力を押す）経路に一本化。
             // ★(431) 目標＝法の項＋民族＋厭戦＋飢餓（二量分離の完成・生活の失望は不満度だけが持つ＝闘争度は生命の危機と政治的距離の量）。
             double sum = voice + minorityMil + c.WarWearinessMilitancy * warWeariness + famineMil;
-            double target = !(sum > 0) ? 0 : sum > 1 ? 1 : sum;   // 否定形＝NaN も0へ畳む（Math.Clamp は NaN を通す＝闘争度が NaN 汚染される）。有限値では Math.Clamp(sum,0,1) と厳密同値
+            double target = PoliticalQuantities.Clamp01(sum);   // 否定形の Clamp01＝NaN も0へ畳む（Math.Clamp は NaN を通す＝闘争度が NaN 汚染される）。有限値では Math.Clamp(sum,0,1) と厳密同値
             // ★闘争度の追従速度 σ（設計メモ §7-3）＝**上昇の側で決まる**：σ < RegionalRevoltThreshold（1四半期では越えない）かつ
             //   1−(1−σ)² > RegionalRevoltThreshold（2四半期で越える）＝門0.50 では σ∈(0.293, 0.50)。
             //   ⚠上昇鈍化（旧 UnityMilitancyRelief×EthnicUnity）は削除＝民族統一度の3度目の読みだった（一本鎖へ）。
