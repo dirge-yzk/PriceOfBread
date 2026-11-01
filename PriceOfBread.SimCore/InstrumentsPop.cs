@@ -53,6 +53,7 @@ public static partial class Instruments
         Span<double> n0 = stackalloc double[AgeLayout.MaxSlots]; n0 = n0[..nb];
         for (int k = 0; k < n0.Length; k++) n0[k] = p.Ages[k] * size0;
         a.PopMonths += size0; a.Births += births; a.DeathsNormal += deaths; a.FertileWomenMonths += size0 * p.AgeShare(15, 50, 1);
+        RdhDemo(births, deaths, 0);   // (721) rdh：州ごとの出生と平常の死（RDH が空なら何もしない）
         for (int b = 0; b < nbands; b++) a.BandExposure[b] += n0[2 * b] + n0[2 * b + 1];
         if (deaths > 0)
         {
@@ -74,6 +75,7 @@ public static partial class Instruments
         for (int k = 0; k < n.Length; k++) n[k] = p.Ages[k] * p.Size;
         Pop.TakeWeighted(n, took, disasterW, d);
         a.DeathsFamine += d;
+        RdhDemo(0, 0, d);   // (721) rdh：州ごとの飢えの死
         for (int b = 0; b < Pop.Layout.Bands; b++) a.BandDeaths[b] += took[2 * b] + took[2 * b + 1];
     }
 
