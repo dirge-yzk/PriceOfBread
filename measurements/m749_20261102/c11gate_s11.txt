@@ -1,0 +1,17 @@
+files 1
+a=0
+b=0
+removed=33820
+Eprime=7038
+Eprime_cohesion0=2
+Eprime_cohesionPos=7036
+Eprime_abs1=4418
+Eprime_abs2=534
+Eprime_abs3=639
+Eprime_abs4=629
+Eprime_abs5=268
+Eprime_abs6=258
+Eprime_abs7=292
+Eprime_maxCohesion=0.04999826392721078
+removed_maxCohesion=0.049998753102448765
+門B 前半 合格 7038 ／後半 合格 0 0

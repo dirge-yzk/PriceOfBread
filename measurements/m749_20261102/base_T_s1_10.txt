@@ -1,0 +1,11 @@
+seed 1	T=7522	farShare=0.3819	total=67546
+seed 2	T=2860	farShare=0.1518	total=50350
+seed 3	T=10987	farShare=0.2669	total=98706
+seed 4	T=7301	farShare=0.1978	total=109419
+seed 5	T=2628	farShare=0.2128	total=63533
+seed 6	T=4040	farShare=0.3412	total=61339
+seed 7	T=5829	farShare=0.2276	total=76529
+seed 8	T=8583	farShare=0.2453	total=103582
+seed 9	T=5845	farShare=0.2541	total=79297
+seed 10	T=10358	farShare=0.3895	total=82014
+MEDIAN	T=6573	farShare=0.2497	total=77913

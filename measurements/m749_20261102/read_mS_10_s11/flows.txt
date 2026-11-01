@@ -1,0 +1,8 @@
+## D:/PoB_work/m749/out_mS_10_s11/ins
+イギリス settler 0	xb 465	int_same_Core 1713	int_same_Colonial 690	int_same_Integrated 84	settlerIn_Colonial 0	settlerIn_Core 0
+フランス settler 0	xb 5	int_same_Core 19	int_same_Colonial 1	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+プロイセン settler 0	xb 7	int_same_Core 11	int_same_Colonial 0	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+スペイン settler 0	xb 2	int_same_Core 25	int_same_Colonial 3	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+オランダ settler 0	xb 0	int_same_Core 0	int_same_Colonial 0	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+ロシア settler 0	xb 246	int_same_Core 2307	int_same_Colonial 1	int_same_Integrated 105	settlerIn_Colonial 0	settlerIn_Core 0
+ポルトガル settler 0	xb 0	int_same_Core 0	int_same_Colonial 0	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0

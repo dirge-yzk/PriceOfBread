@@ -1,0 +1,8 @@
+M 155303 educatio=0.0000 suffrage=0.1085 censorsh=0.4390 bureaucr=0.5194 socialSe=0.0397 antitrus=0.0273 womenRig=0.0094 childLab=0.0000 workHour=0.0000
+m702 151605 educatio=0.0000 suffrage=0.1007 censorsh=0.4469 bureaucr=0.3797 socialSe=0.0275 antitrus=0.0129 womenRig=0.0094 childLab=0.0000 workHour=0.0000
+N1 150566 educatio=0.0000 suffrage=0.0922 censorsh=0.4249 bureaucr=0.4579 socialSe=0.0317 antitrus=0.0174 womenRig=0.0089 childLab=0.0000 workHour=0.0000
+N2 150774 educatio=0.0000 suffrage=0.1097 censorsh=0.4238 bureaucr=0.5141 socialSe=0.0293 antitrus=0.0177 womenRig=0.0144 childLab=0.0000 workHour=0.0000
+S11 153427 educatio=0.0000 suffrage=0.1136 censorsh=0.4559 bureaucr=0.6814 socialSe=0.0389 antitrus=0.0222 womenRig=0.0072 childLab=0.0000 workHour=0.0000
+A11 151349 educatio=0.0000 suffrage=0.1075 censorsh=0.4427 bureaucr=0.5255 socialSe=0.0355 antitrus=0.0272 womenRig=0.0084 childLab=0.0000 workHour=0.0000
+M 対 m702,N1,N2 最大の段に張り付く割合 腕÷基準の最大（列ごとの最悪）=1.54（antitrustLawCode）（2 以上で該当）
+S11 対 A11 最大の段に張り付く割合 腕÷基準の最大（列ごとの最悪）=1.30（bureaucracy）（2 以上で該当）

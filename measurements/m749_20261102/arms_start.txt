@@ -1,0 +1,9 @@
+mB start 2026-11-02 00:29:44 from=- ins=1 N=10 SB=1 coef= HEAD=12993db4
+n1 start 2026-11-02 00:29:45 from=- ins=1 N=10 SB=1 coef=SupplySlope=0.50000001 HEAD=12993db4
+mS start 2026-11-02 00:29:45 from=- ins=1 N=10 SB=11 coef= HEAD=12993db4
+x2 start 2026-11-02 00:29:45 from=- ins=1 N=10 SB=1 coef= HEAD=12993db4
+c1 start 2026-11-02 00:29:45 from=- ins=0 N=5 SB=1 coef= HEAD=12993db4
+c11 start 2026-11-02 01:01:14 from=- ins=0 N=5 SB=11 coef= HEAD=12993db4
+n2 start 2026-11-02 01:03:11 from=- ins=1 N=10 SB=1 coef=SupplySlope=0.49999999 HEAD=12993db4
+m0 start 2026-11-02 01:03:11 from=- ins=1 N=10 SB=1 coef=MigrationEntryFriction=0 HEAD=12993db4
+mP start 2026-11-02 01:03:11 from=- ins=0 N=10 SB=1 coef= HEAD=12993db4
