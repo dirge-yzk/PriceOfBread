@@ -1576,6 +1576,7 @@ public sealed class Coefficients
     // 0で従来の固定値＝**厳密恒等**（休眠）。点火時は基礎を下げて技術項を上げる（例：基礎1500＋技術1200×t → 1783年1500km・1913年約5000km）。
     // 【墓標2026-09-26（棚卸し mil-21・dorm-41）】CessionRangeTechKm（上の器・休眠0）＝根拠のない4000kmに技術の倍率を足す形＝作者裁定4（09-08）の技術水準の倍率の撤去の方向＝削除
     public double CessionMaxDistanceKm = 4000;     // 監査2026-07-05：割譲の投射圏＝**勝者の首都**から割譲候補州までの大圏距離の上限。圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）。0以下=無制約（旧挙動）。首都座標未登録のテスト小世界は自動的に無制約
+    public double CessionUnified = 0;               // ★(723) 線 ces2（設計 docs/202610/20261031/20261031_割譲の候補と費用_設計.md 段2・案 E2）。0＝今の 4 経路（ColonyList の奪取・植民地格の州の複数割譲・境界改定・戦利品）の候補と費用と予算のまま・1 ビットも変わらない。正＝4 経路が 1 本の判定 Diplomacy.CessionTarget（候補は〈勝者の州と陸路グラフの辺で隣り合う〉か〈港の州で上陸の門 CanCrossSea を通る〉・費用は 基本×(隣り合えば 1・そうでなければ 1＋ColonyCaptureDistanceWeight×海路 km÷1 万×(1−世界の比))）と講和 1 回に 1 本の予算を読む。4,000 km の円（CessionMaxDistanceKm）・渡海の割り増し（CessionSeaCrossingWeight）・colonialReach・ColonyList の距離の門・植民地格の州の入口の門は読まれない。**旗 1 の腕は回していない**（段3＝波51 以後）。AI の設計＝確証なし。
     public double DefeatShockDecay = 0.85;         // 敗戦ショックの四半期減衰（1.0から数年で消える）
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）。**ストック意味論＝ショックは減衰0.85で毎期加算され累積Σ0.85^t≈6.67倍→旧0.5（フロー一回分）÷6.67≈0.075**＝敗戦一発の総打撃を旧水準に保つ
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）

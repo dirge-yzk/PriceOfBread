@@ -1,0 +1,4 @@
+# 基準 rd:measurements/ng702_20261031:m702＝NG 93／比べる rd:D:/PoB_work/ces2_723/ngout:m723＝NG 93
+## 新しい NG（基準では NG でない）: 0
+## 外れた NG（比べる側で NG でない）: 0
+## 前からの NG: 93
