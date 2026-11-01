@@ -556,7 +556,7 @@ public static class PathGraph
 
     /// <summary>陸グラフの最短路距離（km）。到達不能＝+∞（別陸塊・孤立成分）。始点/終点はグラフ外の座標でよい（最近傍ノードへ接ぎ木）。</summary>
     // ★全点対の陸路距離（2026-08-26・作者指摘「陸上の交易は計算されていない？」への配線）。
-    //   ⚠LandDistanceKm は**呼ぶたびに Dijkstra を回す**ので、交易の州×州のループでは使えない（州245なら6万回/財）。
+    //   ⚠LandDistanceKm は以前**呼ぶたびに Dijkstra を回した**ので、交易の州×州のループでは使えなかった（州245なら6万回/財）。(740) 以後は本表の1要素を読む。
     //     海路が SeaGraph.Matrix で全点対を持つのと同じ形にする＝306ノードで約94千要素（750KB）・構築は起動時に1回。
     //   ⚠接ぎ木（ノードまでの大圏）は含まない＝呼び出し側が足す（LandDistanceKm と同じ規約）。到達不能は +∞（別陸塊）。
     private static double[]? _landMatrix;
@@ -590,7 +590,7 @@ public static class PathGraph
         else
         {
             double stitch = Geo.DistanceKm(lat1, lon1, Nodes[s].Lat, Nodes[s].Lon) + Geo.DistanceKm(lat2, lon2, Nodes[t].Lat, Nodes[t].Lon);
-            km = Dijkstra(s, t, null) + stitch;
+            km = LandMatrix()[s * Nodes.Length + t] + stitch;   // (740) 全点対の表の1要素（開幕に作る純関数）＝t を取り出した時点の最短距離と同値
         }
         LandKmMemo.TryAdd(key, km);
         return km;
