@@ -199,7 +199,7 @@ public sealed class Coefficients
     public double RecruitCostPerHead = 100.0;      // ★点火2026-08-29（R16同席）：技師1人を呼ぶ基礎費用。⚠実費はこれ×相手が豊かなほどの割増×距離
     public double RecruitPremiumScale = 0.5;       // 割増の物差し＝相手国の機会がこれだけ上回ると費用が2倍（★お雇い外国人は大臣より高給）
     public RatePerQuarter RecruitMaxFracOfSource = new(0.02);   // 1四半期に1国から抜ける上限（送出側の規模比）。⚠技師は桁違いに少ないので上限が要る（大衆と同じ式なら先進国が一瞬で空になる）
-    public double RecruitDistanceScale = 10000.0;  // ★点火2026-08-29（R16同席）：招聘の距離割増の物差し（1万kmで費用2倍）。⚠遠いほど高くつく（渡航・家族同伴・契約年数）
+    // 【削除 2026-11-01 (736)】RecruitDistanceScale（既定 10000）＝招聘の距離割増は Diplomacy.DistanceNormKm（1万km・同じ値）で割る形へ（(732) eco-5）。
 
     // --- 政治（§9-E／§A-11・段3）---
     // 政体閾値の人口正規化：動員（改革派＋急進派＝Σ規模×意識）は人口に比例するので、保持力も「人口あたりの強度」として
@@ -339,7 +339,7 @@ public sealed class Coefficients
                                                       //   R1 で金の国が減るのは銀の国の工業化が閾に届かなくなるため【推】（為替の段と工業化への入口は数えていない＝(212) 反証役 vs1#5・scratchpad/m208・SelfPlay.DecideQuarter の注記）。工業化度は廃止の予定（00一覧 §0-A の 7）＝置き換えは作者への報告。
     // 【削除 2026-10-04 (210)】GoldStandardFrontierRatio（休眠の前線比＝工業化 ≥ 比×世界の先端）＝(210) で 0.875（r207 の 3.5÷先端の中央 約4.0）を測った＝R1 の上でも 1913 年の金の国 29 を保つが
     //   波が早すぎる（1833 年に 21・普 1784 年）＝絶対の閾が持っていた「時代の代わり」を失う＝入れない・器ごと削除。
-    public double SuffrageReformThreshold = 0.5;      // AI挙動：大衆の闘争度がこれを超えると AI は参政権を AdultMale へ拡大（革命を改革で回避＝Reform Acts）
+    // 【削除 2026-11-01 (736)】SuffrageReformThreshold（既定 0.5）＝AI の参政権の拡大の閾値は RiotMilitancyThreshold（0.5・同じ値）を読む（(730) hlp-4）。
     public double FiscalStressBufferMonths = 5.0;     // AI挙動（監査2026-07-11 リ4）：財政逼迫の物差し＝月次義務（維持費+利払い+行政・軍装備請求権）の何か月分を安全水準とするか。国庫がこれを下回るほど逼迫度→1（旧＝絶対額50,000固定を53カ国へ一律適用＝小国が恒久破産モード・大国は無風の規模非中立）。義務教育の解禁は3倍水準（旧150,000と同比）
     // 【墓標2026-09-26（回5-1 項目19）】TraditionalistLawGate（AIだけの伝統主義ゲート＝伝統教義・議会なし・緊張40以下・大衆闘争0.5以下で近代化の法を目標に置かない・裁定2026-07-09 黒船動学・1.0 live）＝削除。
     //   プレイヤーには無い門＝思想⑤の違反。⚠2026-08-19 の実測（eduprobe）で日本の近代化の凍結の真因はこの門ではなかった（政体の参加軸の cap と倒幕の行き先）＝門を消した腕の日本はその前提で読む。
@@ -413,7 +413,7 @@ public sealed class Coefficients
     //   同じ項の二重計上2本も係数ごと削除（P9）：WarExhaustionCoupBoost（厭戦の明示乗数＝厭戦は兵士の闘争度に既に入る）・AllegianceCoupWeight（軍帰属の変調＝兵士の思想の読み直し）。
     // 窮乏チャネル（パンの蜂起＝1789）：意識（識字・教育）が低くても、窮乏で闘争度が暴動水準を超えた群衆は革命的脅威になる。
     // 史実の革命は識字でなく飢えが起こした＝意識ゲートとは別の経路。挑戦力（radical）に上乗せ。平穏な大衆（低闘争）には発火しない＝徳川パス温存。
-    public double RiotMilitancyThreshold = 0.5;  // 群衆が暴動＝革命的脅威になる闘争度の閾値（これ以下は蜂起しない＝平穏な抑圧は留まる）
+    public double RiotMilitancyThreshold = 0.5;  // 群衆が暴動＝革命的脅威になる闘争度の閾値（これ以下は蜂起しない＝平穏な抑圧は留まる）。AI の参政権の拡大と労働軸の闘争譲歩の発火閾値も読む
     public double DesperationChallengeWeight = 1.0; // 閾値超の怒り（窮乏）が radical 挑戦力に寄与する強さ（意識非依存＝飢えた群衆そのもの）。0.5では治安維持力を超えられず罠のまま＝1.0で権威国が蜂起で脱出
     public double DesperationConsciousnessGate = 1.0;   // 二重計上監査C1（2026-07-11）：窮乏チャネル×=(1−これ×Consciousness)＝高意識militantの二重計上を直交化（1で完全ゲート）。DesperationChallengeWeightの補償とセットで有効化。0で旧（休眠可）
     // 【削除 2026-10-11 (271)】DesperationMilitancyOverride（闘争度による層の上書き）・DesperationLayerBlend（3層の振る舞い分け）＝既定 0 の枝だった。作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝意識を識字で頭打ちにしない（設計思想⑧ 天井の廃止）。
@@ -550,8 +550,8 @@ public sealed class Coefficients
     public double ChildWorkFactor = 0.5;         // 児童労働の半人前係数（働く子供は0.5人分の労働力を算出）
     // 倍率排除④：労働供給の時間配分化（労働/教育/休息）。女性参加・児童労働の2値切替を、家計困窮(満足)・賃金保持(財産権)・就学(教育充足)から創発させる連続モデルへ。
     // 較正harness（教育財なし・法デフォルト）では retention=0・no-school で旧式に恒等一致＝較正中立（WorkHoursと同型）。創発は教育財のある実ゲームでのみ発現。
-    public double WomenRightsFollowSpeed = 0.15;  // 女性財産権法→賃金保持(WomenWageRetention)の月次収束速度（法は離散だが社会的確立は連続）
-    public double ChildLaborFollowSpeed = 0.15;   // 児童労働法→合法度(ChildLaborLegal)の月次収束速度（禁止は取締りで徐々に浸透）
+    public double WomenRightsFollowSpeed = 0.15;  // 法の浸透の月次収束速度＝女性財産権法→賃金保持(WomenWageRetention)・児童労働法→合法度(ChildLaborLegal)・実労働時間→法定上限の 3 つで共有（法は離散だが社会的確立は連続）
+    // 【削除 2026-11-01 (736)】ChildLaborFollowSpeed・WorkHoursFollowSpeed（既定 0.15）＝児童労働法と労働時間の浸透も WomenRightsFollowSpeed（0.15・同じ値）を読む（(732) eco-6＝3 つの法で共有）。
     public double FemaleNeedWeight = 0.5;         // 家計困窮(1−満足)が女性の追加就労を押し上げる強さ。賃金を保持できる(retention)時のみ効く＝困窮しても賃金を取られるなら formal 労働に出る誘因がない
     public double FemaleLitFloor = 0.6;           // 賃金保持なし時の女性識字の実効係数（女子が就学を後回しにされる＝人口転換の出生率項。retention=1で1.0＝旧 WomenPropertyLaw?1:0.6 の連続版）
     // ★修正予約7（2026-07-13）の係数 DecoupleWomenSuffrage は**撤去**（2026-08-10・女性法の統合）。
@@ -629,13 +629,11 @@ public sealed class Coefficients
     //   ④備蓄（裁定2'）：食料が在庫切れで買えなかった分の予算は同じ月の下の階層へ流さない（残予算から外す＝金は Savings に残る）。
     //   ⚠動物性タンパクが食料の側に入るのは FoodIncludesAnimalProtein（休眠・別の器）を点けたときだけ＝今は主食だけが抜ける。
     // 留保賃金（賃金の下方硬直の創発源）：賃金は留保賃金（労働者が慣れた賃金）を下限に動く。留保賃金は賃上げに速く（Rise）追従し賃下げに遅く（Fall）追従＝「慣れた賃金より下では働きを引き上げる」非対称が下方硬直を生む（固定倍率0.25を排除）。Fall=0.25/Rise=1.0 は旧 WageStickiness と挙動同値（較正温存）。
-    //   ⚠ Rise/Fall は**1日あたり**の定数（÷PriceFlowDailyDiv しない）＝旬次（A3）でも労働3財は旬の歩の中で日次の写像を h 回まわす（閉じた式に畳まない）。
+    //   ⚠ Rise/Fall は**1日あたり**の定数（÷Calendar.DaysPerMonth しない）＝旬次（A3）でも労働3財は旬の歩の中で日次の写像を h 回まわす（閉じた式に畳まない）。
     public double ReservationWageFall = 0.25;    // 留保賃金が下方の目標へ追従する速度（小さいほど賃下げに抗う＝下方硬直が強い）
     public double ReservationWageRise = 1.0;     // 留保賃金が上方の目標へ追従する速度（賃上げ＝新しい生活水準へすぐ慣れる）
-    // 価格形成の1日あたりの速度配分（月次係数÷これ）。月次で較正した速度を30日へ割り振った＝30日ぶんの積分が月次1回の更新にほぼ一致＝較正温存。
-    //   ★2026-09-26 A3（旬次）の後も意味は変えない＝式の中の速度は1日あたりのまま。変わったのは積分の刻みだけ（下の PriceFlowStepDays）。
-    //   Credit.Step も同じ÷で信用の速度を日へ配る（2026-09-30 S3c から旬次＝旬の初日に h 日ぶん・Simulation.StepDayDaily）。
-    public double PriceFlowDailyDiv = 30.0;
+    // 【削除 2026-11-01 (736)】PriceFlowDailyDiv（既定 30）＝価格形成と信用の 1 日あたりの速度配分（月次係数÷30）は Calendar.DaysPerMonth（30・同じ値）で割る（(732) eco-1）。
+    //   式の中の速度は 1 日あたりのまま。積分の刻みは下の PriceFlowStepDays（旬次・Credit.Step も旬の初日に h 日ぶん）。
     // ★国内価格の旬次化（2026-09-26 A3・作者裁定「ゲームの高速化を優先し、多少の帯の悪化は受け入れる」）：MarketFlow を h 日ごと（旬の最終日）にだけ呼び、h 日ぶんを1歩で進める。
     //   許すのは30（Calendar.DaysPerMonth）の約数だけ＝旬は月をまたがない（それ以外は Simulation.StepDayDaily が例外で止める）。1＝旧来の日次と1ビットも変わらない。
     //   1歩の式＝内側（|ln(P/rp)|/帯の対数 < 0.5）の財と役務は P′＝SB_h(P0·(1＋y0)^h)（SB_h＝SoftBand を h 回重ねた厳密な形）。帯の端・休眠の上乗せ・
@@ -815,7 +813,7 @@ public sealed class Coefficients
     public double LaborFatigueExp = 0.37;         // 労働時間→工場出力の疲労逓減指数：whOut=(hours/14)^exp。h=14で1.0、短いほど産出↓だが逓減（8h=0.81・10h=0.88・12h=0.94＝旧テーブルとほぼ一致）
     public double LaborFatiguePenalty = 0.03;     // トレードオフ化2026-07-06:12h超の過労で産出が頭打ち〜微減（whOut×(1−これ×max(0,hours−12))）。0.03で14h=×0.94＝実効産出0.940<12hの0.944＝**12hが産出最適・無制限は好況でも損**（賞金消失）。0で旧（14h最大＝単調）＝要較正再走
     public double OverworkHealthSlope = 0.015;    // 労働時間→扶養力：12時間（過重労働の基準）より短い1時間ごとに健康改善で扶養力↑（8h=+0.06・10h=+0.03・12h以上=±0＝旧テーブルと一致）
-    public double WorkHoursFollowSpeed = 0.15;    // 実労働時間が法定上限へ収束する月次速度（法は離散だが現場の労働時間は連続で追従＝移行期に中間値）
+    // 【削除 2026-11-01 (736)】WorkHoursFollowSpeed＝実労働時間の法定上限への収束は WomenRightsFollowSpeed を読む（上の ChildLaborFollowSpeed の墓標）。
     // 【削除 2026-10-11 (271)】UnionSatBonus（組合の満足度への加算・既定 0）と、それだけを通して働いていた UnionWageRiseBoost（組合厚生 LaborWellbeing 1.0 あたりの留保賃金の上昇速度の上乗せ）＝
     //   作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝満足度への上乗せは賃金の経路と二重（設計思想⑨）。旧＝作者裁定 2026-08-19「労働組合は団体交渉権などに使うので休眠」。
     //   ⚠賃金交渉の経路（組織率→留保賃金の上昇速度）は LaborWellbeing（＝UnionSatBonus=0 のため常に 0）を通っていたので、削除で消えた挙動は無い（恒等）。団体交渉権として戻すなら、組織率を直接読む新しい線（挙動を変える）として起こす（棚卸し dorm-21）。
@@ -1093,8 +1091,8 @@ public sealed class Coefficients
     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）。大恐慌(DD50%・閾値0.2→超過0.3)で月1.8%の資本廃棄。※深め過ぎは逆効果（挑戦者をより壊す）＝中庸0.06が最適
     public Share DepressionScrapThreshold = new(0.20);  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
     // 〔7-1〕恐慌の資本破壊を BuiltScale へ（2026-09-06・作者裁定§4-1「工場が1棟も消えないのは史実に反する」）：恐慌の同じ月に、床（BuiltScale）に
-    //   支えられて操業している工場＝床が無ければ閉鎖している工場だけ、BuiltScale を同じ scrapKeep で廃棄する（RGO は対象外）。0＝従来（厳密恒等）。
-    public double DepressionScrapsBuiltScale = 1.0;   /* ★点火2026-09-06＝0.0→1.0・〔7-1〕恐慌の資本破壊を BuiltScale へ（採算割れの工場だけ閉鎖） */
+    //   支えられて操業している工場＝床が無ければ閉鎖している工場だけ、BuiltScale を同じ scrapKeep で廃棄する（RGO は対象外）。
+    // 【削除 2026-11-01 (736)】DepressionScrapsBuiltScale（旗・2026-09-06 に 1 で点火）＝門を焼き込んで欄を消した（(732) eco-4・旧の 0 の枝は無い）。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RevolutionLandReform＝革命が土地権力を壊す＝共和革命で限定・プロ独裁で全面の土地改革を floor-raise（2026-08-04 点火）
     // BlockedLawGrievance（阻止された要求の不満）は 2026-09-20 に係数ごと削除＝裁定C2（PushedLawGrievance と対・段の点火で不到達になった）。
     public double OpulenceTaxRelief = 1.0;         // ★2026-08-04（P4）：国庫が月次義務の8四半期分を超えたら超過に比例してAIの税目標を縮める（床0.25）。旧＝スタンスの税目標が固定率で、黒字国が経済から貨幣を吸い上げ続けデフレ螺旋（プロイセン国庫1.3M/GDP17k・米38M）。0で厳密恒等
@@ -1273,15 +1271,15 @@ public sealed class Coefficients
     // ★狙い＝実測で判明した「同一ペアの再戦：平均 最多7.2回・3回以上戦うペア67組・最悪 清×ボルネオ9回」の構造的原因を潰す。
     //   原因＝講和後の PostWarTension(38)+RevanchismTension(70)=108 が**100超＝永久凍結帯**に着地し、開戦閾値140への一方通行になる。
     //   奪われた側は世代を跨いで冷めない（アルザス）が、**何も失っていないペアは平時と同じ速さで冷める**＝繰り返し開戦が止まる。
-    // 0 で分岐に入らず厳密恒等（遺恨も書かれない）。1.0＝「遺恨ゼロなら平時と同じ速さ」＝新しい水準を1つも発明しない。
-    public double HighTensionDecayRate = 1.0;   /* **点火2026-08-01＝遺恨ゼロなら平時と同じ速さ** */
+    // 【削除 2026-11-01 (736)】HighTensionDecayRate（倍率・2026-08-01 に 1.0 で点火）＝×1.0 と門（>0）を外して欄を消した（(731) dip-2）。
+    //   今の式＝TensionDecay ×(1 − 遺恨)（遺恨ゼロなら平時と同じ速さ＝新しい水準を1つも発明しない）。上の経緯の〈倍率〉は旧の意味。
     // ★2026-09-03（キューAUD-10・監査「その他」）：高緊張帯の境目 100 が DriftTension の4箇所に**直書き**だった。
     //   ⚠開戦閾値（WarDeclareTension=140）と乖離しており、100〜140 は「開戦しないのに高緊張帯」として扱われる。
     //   まず**値を据え置いたまま1本へ集約**（厳密恒等）＝以後この帯を動かすときに4箇所を直し忘れる事故が起きない。
     public double HighTensionBand = 100.0;
     public double TensionDecay = 0.42;            // 平時の緊張の自然減（月）。0.18→0.42＝冷却を速め全体の緊張水準を下げ開戦回数を抑える（100年で〜10回狙い）。小さい＝周期的列強戦争が増える
     public double FriendlyTensionMax = 20;        // これ未満＝友好（同盟の条件）
-    public double RivalTensionThreshold = 40;     // これ超＝ライバル（共通の敵）
+    public double RivalTensionThreshold = 40;     // これ超＝ライバル（共通の敵）。戦時備蓄が始まる緊張（Model.StockpileFactor）も読む
     public int WarTriggerMonths = 6;              // 緊張100以上がこれだけ続くと開戦（攻守区別なし）。戦争過多を抑えるため3→6（長い緊張の末に開戦）
     public double AllyJoinTension = 40;           // 同盟国が参戦する敵への緊張（参加義務なし＝利害一致時のみ）
     public int MaxAlliances = 2;                  // 1国の同盟数の上限（全員同盟を防ぐ）
@@ -1477,7 +1475,7 @@ public sealed class Coefficients
     // ★InvadeWillBase / InvadeWillPerMilitary / InvadeWarFeverMin / EnableActiveInvasion は撤去（作者裁定2026-08-23の1本化）。
     //   要求余剰戦力は国力比の単一式（Diplomacy.ColonizeWillCost＝上限÷(1+割引×実効戦力/屈服線)）へ移り、固定費も戦争熱の別閾値も持たない。
     public double InvadeShipsBase         = 60.0;  // 遠征に要る船（帆船+汽船）の基礎在庫
-    public double InvadeShipDistanceScale = 1.0;   // ×距離1万kmあたりの船の追加要求（遠方ほど大船団＝近接有利）
+    // 【削除 2026-11-01 (736)】InvadeShipDistanceScale（既定 1.0）＝遠征の船の距離の追加要求は DistanceWarDecay（1.0・同じ値）を読む（(731) dip-5）。
     public double InvadeMilitaryFactor    = 1.2;   // 自軍の実効戦力が標的軍事力×これ以上で挑める
     // マラリア（熱帯の疫病・偽ブレーキの実コスト化）：硬直キニーネゲートを廃し、損耗は「物理的曝露 × 既存の致死率」から創発させる（マラリア専用の致死倍率は置かない）。
     //  ・遠征の防護に要るキニーネ＝養う遠征軍と同規模＝缶詰要求量(InvadeCannedReq)を流用＝曝露は物理。未防護の兵が EpidemicSeverity（既存の疫病致死率）で死ぬ。
@@ -1577,7 +1575,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し mil-21・dorm-41）】CessionRangeTechKm（上の器・休眠0）＝根拠のない4000kmに技術の倍率を足す形＝作者裁定4（09-08）の技術水準の倍率の撤去の方向＝削除
     public double CessionMaxDistanceKm = 4000;     // 監査2026-07-05：割譲の投射圏＝**勝者の首都**から割譲候補州までの大圏距離の上限。圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）。0以下=無制約（旧挙動）。首都座標未登録のテスト小世界は自動的に無制約
     public double CessionUnified = 0;               // ★(723) 線 ces2（設計 docs/202610/20261031/20261031_割譲の候補と費用_設計.md 段2・案 E2）。0＝今の 4 経路（ColonyList の奪取・植民地格の州の複数割譲・境界改定・戦利品）の候補と費用と予算のまま・1 ビットも変わらない。正＝4 経路が 1 本の判定 Diplomacy.CessionTarget（候補は〈勝者の州と陸路グラフの辺で隣り合う〉か〈港の州で上陸の門 CanCrossSea を通る〉・費用は 基本×(隣り合えば 1・そうでなければ 1＋ColonyCaptureDistanceWeight×海路 km÷1 万×(1−世界の比))）と講和 1 回に 1 本の予算を読む。4,000 km の円（CessionMaxDistanceKm）・渡海の割り増し（CessionSeaCrossingWeight）・colonialReach・ColonyList の距離の門・植民地格の州の入口の門は読まれない。**旗 1 の腕は回していない**（段3＝波51 以後）。AI の設計＝確証なし。
-    public double DefeatShockDecay = 0.85;         // 敗戦ショックの四半期減衰（1.0から数年で消える）
+    public double DefeatShockDecay = 0.85;         // 敗戦ショックと戦勝ショックの四半期減衰（1.0から数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）。**ストック意味論＝ショックは減衰0.85で毎期加算され累積Σ0.85^t≈6.67倍→旧0.5（フロー一回分）÷6.67≈0.075**＝敗戦一発の総打撃を旧水準に保つ
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）
     public double RevanchismTension = 70.0;        // #15 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値40超＝講和の後に失地回復戦を駆動。仏アルザス・ロレーヌ1871→1914型）
@@ -1780,7 +1778,7 @@ public sealed class Coefficients
     public double WarChainDepthPenalty = 1.5;      // 機能5-④-2：2段目以降の参戦閾値×これ^depth（連鎖は段ごとに渋る＝全世界戦争の防壁）。1.0で減衰なし
     public double VictoryNationalism = 0.5;        // 機能8-②点火（2026-07-28）：戦勝ショック→r[4]（戦勝→主戦論＝日清・日露後の日本型。敗戦のr[4]+r[1]に対する対称）。0で恒等
     public double VictoryImperialism = 0.3;        // 機能8-②：戦勝ショック→r[8]（植民地熱。帝国主義の門＝発見の2値が見つけるまでを抑える）。0で恒等
-    public double VictoryShockDecay = 0.85;        // 機能8-②d：戦勝ショックの四半期減衰（DefeatShockDecayと同水準＝噴出は数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
+    // 【削除 2026-11-01 (736)】VictoryShockDecay（既定 0.85）＝戦勝ショックの四半期減衰は DefeatShockDecay（0.85・同じ値）を読む（(731) dip-3）。
     public double FamineRepublicanism = 0.3;       // 機能8-④点火（2026-07-28）：飢えの記憶→r[3]共和（1789＝「パンの値段」の題名に最も近い機構）。0で恒等
     public double FamineSocialism = 0.3;           // 機能8-④：飢えの記憶→r[5]社会。0で恒等
     public double FamineMemoryDecay = 0.95;        // 機能8-④：飢えの記憶の四半期残存率（半減期≈3.4年＝飢饉は忘れられるが世代内は残る）
@@ -2209,7 +2207,7 @@ public sealed class Coefficients
     // 「戦争の匂いでパンが高くなる」＝緊張が閾値を超えた国は在庫目標を引き上げ、需要スパイクが価格を押し上げ、隣国も備蓄する（緊張は相互＝自己成就）。
     // 在庫が満ちれば需要は消える＝自己有界。既存 TargetStock 機構に乗るだけで新しいストックを作らない。
     public double StockpilePanicWeight = 0.5;                 // 満点の恐慌時に在庫目標を何割増しにするか（主食・軍需＝満額）
-    public double StockpileTensionThreshold = 40.0;           // 備蓄が始まる緊張（黒船と同水準）
+    // 【削除 2026-11-01 (736)】StockpileTensionThreshold（既定 40）＝備蓄が始まる緊張は RivalTensionThreshold（40・同じ値）を読む（(731) dip-4）。
     public double StockpileTensionSpan = 60.0;                // 満点に達するまでの幅（40→100＝開戦ポップアップ水準で満点）
     public double StockpileOtherFrac = 0.33;                  // A5裁定＝主食/軍需以外も「控えめに」＝優先財の1/3
     public Share SmugglingMax = new(0.5);                         // 行政が完全に無力(AdminFill=0)なとき禁令をすり抜ける割合。0.5＝旧の専売の徴収漏れ（0.5+0.5×AdminFill）と同じ値（2026-09-30 (127) に専売の漏れは StateMonopolyLeakMax＝0.6 へ分けた＝あちらは課された上乗せのうち国庫へ届かない割合）。0で漏れゼロ＝旧「禁令＝完全遮断」
@@ -2337,7 +2335,7 @@ public sealed class Coefficients
     //   ＝EconomyStep.FleetGaugeDenominator（SoldiersPerMilitary × MilitaryUpkeepScale × Σ(rate×RefPrice) ÷ WearRatePerMonth）。★(189) 単位の換算として残す（艦の強さのゲージ＝建造費×段の乗数の和÷これ・開幕の艦隊の播種）
     public int WarshipGoodId = Catalog.WarshipId;                // 軍艦（★(189) 1隻の乗員の物差し＝帆船の戦列艦〔EconomyStep.FleetCrewPerHull〕。旧＝修理需要の宛先〔撤去〕）
     public Share AbstractNavalShare = new(0.10);      // 抽象標的（被植民地勢力）の海軍シェア＝弱小（陸の守りが主）
-    public double DistanceWarDecay = 1.0;         // 戦力投射の距離減衰（1あたり1万km）。遠い戦線ほど押し合いが鈍る＝クリミア/ボーア型の兵站難
+    public double DistanceWarDecay = 1.0;         // 戦力投射の距離減衰（1あたり1万km）。遠い戦線ほど押し合いが鈍る＝クリミア/ボーア型の兵站難。遠征の船の距離の追加要求（World.InvadeShipReq）も読む
     // 倍率排除：旧 SuezDetourKm（投射の一律ケープ迂回加算）は撤去。投射距離も Geo.SeaDistanceKm が喜望峰/スエズ/パナマ経由で表現する。
     public double HomeDefenseBonus = 1.25;        // 本土防衛の地の利（抽象標的＝自領で戦う側は投射せず守りに専念）
     public double InvadeSeaControlMin = 0.45;     // 海越え侵略に要る最低制海権（弱海軍の内陸国は海外植民地を取れない＝英の海上覇権が意味を持つ）
@@ -2878,7 +2876,7 @@ public sealed class Coefficients
     public double InterestGroupHeadcountWeight = 0.25;   /* 法多様性L1有効化 2026-07-07 */ // 政11：利益集団の力の頭数按分。0=純富シェア（貧しい多数派の力≈0）／>0でbase=(1−これ)×富シェア+これ×人口シェア＝FranchiseVoiceを持つ層に頭数由来の力。実測：0.15で労組27/24/2・0.35で過回転→0.25採用
     public double PensionOldWeight = 2.5;               /* 法多様性L2 2026-07-07・Round2 2026-07-08：5.0→2.5 */ // 年金の受益者項：SocialSecurity Pref にブロックの高齢比率×これを加算＝高齢化した国だけ年金が通る（ビスマルク1889型分岐）。5.0はFull81%と過強（史実1914年時点の年金は独/丁/NZ程度＝少数派のはず）→2.5で「高齢化の進んだ国だけ」に絞る。0で受益者不在＝年金0/53の旧挙動
     public double LaborMilitancyConcession = 4.0;       /* 法多様性L3 2026-07-07 */ // 労働軸（労組容認・時短）への闘争譲歩：資本/旧支配層の反対が大衆闘争度で緩む（参政権SuffrageConcessionと同型）。閾値超過分のみ＝晩期の全国一斉開放を防ぐ
-    public double LaborConcessionThreshold = 0.5;       /* 法多様性L3 2026-07-07 */ // 闘争譲歩の発火閾値＝max(0, 大衆平均闘争度−これ)。晩期の全国水準（≈0.38）では発火せず、高闘争国だけが譲歩を引き出す
+    // 【削除 2026-11-01 (736)】LaborConcessionThreshold（既定 0.5）＝労働軸の闘争譲歩の発火閾値は RiotMilitancyThreshold（0.5・同じ値）を読む（(730) hlp-4）。
     public double BourgeoisCoupWeight = 1.5;            /* 法多様性・政体 2026-07-07 */
     // ★2026-08-12（既定1.0＝是正側）：ブルジョア独裁の引き金に、一党支配→独裁化（Politics.cs:499）と**同じ危機ゲート**
     //   （MeanSatisfactionPol < DominanceInstabilitySatisfaction）を課す。0で旧挙動＝素通り。
