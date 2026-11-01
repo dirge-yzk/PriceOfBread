@@ -3021,8 +3021,8 @@ public sealed class Coefficients
     public double RevoltConcessionSpend = 0.125;   // 内戦の講和で要求をのませる（Politics.ConcedeToFaction）ときの政治資本消費（旧＝余白押し切り1歩と同額＝負のマンデート）
     // --- 創発的国内勢力F3＝牙と変異（2026-07-12・F3a=永続化/変異は即時・F3b=内乱化は常に有効〔旧の旗 FactionRevoltScale は (739) で焼き込み〕）---
     public double FactionCohesionGrowth = 0.05;    // 結束の四半期成長率×(0.5+ブロック意識)（変異済みは2倍）。観測が続く運動体だけが育つ
-    public double FactionCohesionDecay = 0.10;     // 不在クラスタの結束減衰（0.05未満×8Q不在で忘却）
-    public double FactionForgetQuarters = 8;       // 忘却に要する連続不在四半期数（8Q＝2年）。結束0.05未満と両方満たすと勢力を除去
+    public double FactionCohesionDecay = 0.10;     // 不在クラスタの結束減衰（四半期あたり・結束が 0.05 未満になった四半期に忘却＝★(749) c-11 で連続不在の時計を外した）
+    // 【墓標2026-11-02・(749) 合流（c-11・(747)）】FactionForgetQuarters（8＝忘却に要る連続不在の四半期の数）と欄 FactionState.AbsentQuarters を消した＝不在の運動は結束が床 0.05 を割った四半期に忘れる（Factions.Step の節 3）。
     public double FactionMutationRate = 0.002;      // 変異の受理率×危機（州の飢え/敗戦ショック）。独立RNG系列・1クラスタ1回。狙い＝太平天国級が清で125年0-2回（F3aで実測して調整）
     public double FactionMutationCrisisFloor = 0.5;   // 変異ロールの危機下限（平時は絶対に変異しない）
     public double MutantCohesionFloor = 0.5;       // 変異時の結束の床（旗の下の凝集）
@@ -3040,7 +3040,7 @@ public sealed class Coefficients
     public double RebelArmsMarketEnabled = 0.0;
     // ★段2で削除（作者裁定2026-09-09 part3）：FactionSeniorityQuarters＝年季飽和。**経過時間だけで運動が強くなる成長タイマー**であり、
     //   「根拠のないクールダウンを作らない」の鏡像。しかも結束（Cohesion）が既に4〜16年で育つ＝「長く続いた運動は組織されている」の二重。
-    //   FactionState.QuartersActive はこの1本が唯一の読み手だったので、フィールドごと削除した（合流/離脱は AbsentQuarters が見ている）。
+    //   FactionState.QuartersActive はこの1本が唯一の読み手だったので、フィールドごと削除した（★(749)：連続不在の数え AbsentQuarters も c-11 で消した＝忘却は結束の床だけ）。
     public double FactionCohesionFightThreshold = 0.8;   // 内乱化に要る結束（≈持続3年超の組織運動のみ＝一揆や瞬間革命と役割分担）
     // ★段2＝鎮圧の後始末（F3b蜂起doc §3-4・作者裁定②＝A・2026-09-08）の係数 RevoltAftermathOnWarPath は 2026-09-28（処理の一元化 段2 束2）に削除した＝
     //   戦争の形の再併合も旧経路の鎮圧の行（Politics.SettleRevolt の1本＝返還州の闘争度の緩和・断裂の窓・運動の燃え尽き）を常に通る。
