@@ -336,7 +336,7 @@ public static class Government
         // ★旧「海軍偏重」の漸進（Move(w.NavalEmphasis, …)）は撤去（2026-08-10 作者裁定）＝陸海の配分は上の2本の維持費だけが決める。
         //   政治ゲートは合計に1回だけ掛かる（PolicyAxis.Coercion）＝内訳に2枚目のゲートは無い。
         // 関税目標＝国内政治由来(p.TariffTarget)＋外交層の報復/相互偏倚(TariffRetaliationBias)。偏倚は既定0＝従来。多国かつTariffRetaliation>0でのみ非0
-        w.Tariff            = Move(w.Tariff,            Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, c.TariffFloor, 1), c, w, PolicyAxis.Tariff);   // 下限＝負の関税（ダンピング）。AIも産業スタンスの輸出攻勢で負値を使う（SelfPlay側のダンピング＝条件を外れると0へ解除・監査2026-07-11 他6）
+        w.Tariff            = Move(w.Tariff,            TariffTargetFloored(p, w, c), c, w, PolicyAxis.Tariff);   // 下限＝負の関税（ダンピング）。AIも産業スタンスの輸出攻勢で負値を使う（SelfPlay側のダンピング＝条件を外れると0へ解除・監査2026-07-11 他6）
         // 金利＝中央銀行の金融政策レバー（利益集団の抵抗は受けない）。目標へ寄る。
         // ★トリレンマを閉じる②（2026-08-13）：**「兌換維持＋資本自由」のときだけ金利は自分のものでなくなる**。
         //   このとき目標は政策の意思でなく**正貨のカバー率を守るための帰結**＝カバー率が目標を下回れば上げ、十分なら下げる。
@@ -376,6 +376,9 @@ public static class Government
         if (Instruments.On) Instruments.StockAtStepEnd(w);   // 計器（読むだけ・(278)）：Step の末尾の政治資本の在庫
         w.AusterityIntensity = austerity;
     }
+
+    // 関税の目標＝国内政治由来の目標（5%刻み）＋外交層の報復/相互偏倚を、関税の下限（負の関税＝ダンピング）と 1 で挟む。施行（Step）と戦線の数え（CountOpenFronts）の 2 か所が共有する 1 本（係数は呼び手の物を渡す）。
+    private static double TariffTargetFloored(NationPolicy p, World w, Coefficients co) => Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, co.TariffFloor, 1);
 
     // スライダーの5%刻み：0..1の目標を0.05単位に丸める（UI/AI共通の「つまみは20段」仕様）。
     // ⚠internal（2026-09-20）：World.StateMonopolyBreadth が専売の広さを同じ格子へ乗せる（新しい丸め規則も新しい数も作らない）。
@@ -536,7 +539,7 @@ public static class Government
         // ★旧「海軍偏重」の戦線は撤去（2026-08-10 作者裁定）＝陸海の内訳は独立の政治戦線を持たない（軍事費の合計だけが戦線）。
         //   ⚠意図した副作用：軸が1本減る＝目標が動かない幽霊戦線が消え、PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる。
         if (!w.CoercionFollowsForce) Front(w.BaseCoercion / Math.Max(1e-9, w.Coef.CoercionMax), Q5(p.CoercionTarget / Math.Max(1e-9, w.Coef.CoercionMax)), 'C', 0, PolicyAxis.Coercion);
-        Front(w.Tariff, Q5(Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, w.Coef.TariffFloor, 1)), 'T', 0, PolicyAxis.Tariff);   // 戦線数の側も施行と同じ式。関税は R3 で段の対象外＝Q5 のまま   // wave2b：施行側（L157相当＝報復偏倚＋関税床込み）と同じ目標式へ。旧は偏倚/床を無視していた
+        Front(w.Tariff, Q5(TariffTargetFloored(p, w, w.Coef)), 'T', 0, PolicyAxis.Tariff);   // 戦線数の側も施行と同じ式。関税は R3 で段の対象外＝Q5 のまま   // wave2b：施行側（L157相当＝報復偏倚＋関税床込み）と同じ目標式へ。旧は偏倚/床を無視していた
         return n;
     }
 
