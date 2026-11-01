@@ -272,7 +272,7 @@ public sealed class Pop
             double need = FoodNeed + NeedTotal;
             if (!(need > 0)) return 1.0;
             double v = (FoodMet + NeedMet) / need;
-            return !(v >= 0) ? 0 : v > 1 ? 1 : v;   // 否定形＝NaN は 0 側（旧 SoldierWelfare の NaN の倒し先と同じ）
+            return PoliticalQuantities.Clamp01(v);   // NaN は 0 側（旧 SoldierWelfare の NaN の倒し先と同じ）・(739) 群2：−0.0 も +0.0
         }
     }
     /// <summary>★主食の充足∈[0,1]＝FoodMet÷FoodNeed（導出量・2026-09-30 処理の一元化 段4e H）。必要が無い（FoodNeed≈0）は 1＝飢えていない。
