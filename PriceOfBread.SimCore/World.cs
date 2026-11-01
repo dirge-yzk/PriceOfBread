@@ -1923,8 +1923,8 @@ public sealed class World
 
     /// <summary>近代化投資の四半期予算＝この四半期に国庫から出ていく額（配分前の総額）。
     /// ★UI（財政タブの金額表示）とエンジンが**同じ式**を読むための単一の出所（2026-08-10）。
-    ///   旧UIは休眠側の旧式 `frac×国庫×0.5` を独自に計算して表示しており、実際に引かれる額と一致していなかった
-    ///   （<see cref="Coefficients.ModernizationCostGdpShare"/>&gt;0 が現行＝GDP比の凸コスト）。予算表の他の行と同じく
+    ///   旧UIは旧式 `frac×国庫×0.5`（今は無い）を独自に計算して表示しており、実際に引かれる額と一致していなかった
+    ///   （現行は<see cref="Coefficients.ModernizationCostGdpShare"/>のGDP比の凸コスト）。予算表の他の行と同じく
     ///   「エンジンの式を読む」に揃える＝UI式とエンジン式の乖離を構造的に断つ。
     /// frac=0（既定）や国庫が空なら0＝AI/テストは従来どおり無影響。</summary>
     public double ModernizationBudget()
@@ -1938,7 +1938,6 @@ public sealed class World
         //   ── コスト倍率 ────────────────────────────────────────────────────────
         //   技術が遅れた国ほど、同じ近代化に多くの金がかかる（既存の状態量だけで作る）。
         //   ＝技術を輸入に頼る国の割高さ。
-        //   ⚠ModernizationCostGdpShare=0 で旧式（国庫比）に戻る＝休眠。
         double costMul = 1.0
             + (Coef.TechMultipliersOff > 0 ? 0.0   // ★(613) 段3：遅れの割増なし
                : Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0));
@@ -1948,24 +1947,19 @@ public sealed class World
         //   低い frac は安く、速く近代化しようとするほど1単位が高くつく＝史実の「急速な近代化は割高」。
         double convex = ModernizationFrac >= 1.0 ? double.PositiveInfinity
                       : ModernizationFrac / Math.Max(1e-9, 1.0 - ModernizationFrac);
-        double budget;
-        if (Coef.ModernizationCostGdpShare > 0)
-        {
-            double demand = Coef.ModernizationCostGdpShare * Math.Max(0, NominalGdpPerMonth.Value) * costMul * convex;   // 要求額（frac→1で発散）
-            double half = Math.Max(0, Treasury.Value) * 0.5;                 // 国庫の半分/四半期は依然として上限（暴走防止）
-            // ★R4 蜂起R群2026-08-16（診断B3・ModernizationBudgetSoftCap=0＝旧minと**ビット恒等**）：minクランプ→漸近逓減。
-            //   旧＝min(demand, half) が上の凸コスト frac/(1−frac) を食い、frac≳0.5で**コストも効果もフラット＝0.6と1.0の区別が消滅**
-            //  （設計コメント「100%はほとんどの国で不可能」が実挙動に不存在）。ソフト形＝demand/(1+demand/half)
-            //  （SelfPlay.Score.Military と同じ既存の逓減形）＝fracの序が全帯で保存され、frac=1.0 の漸近値は旧の壁と同額（上限は保存）。
-            //   ⚠書き方＝half/(1+half/demand)（代数的に同値）：convex=+∞（frac=1.0）のとき demand/(1+demand/half)=∞/∞=NaN になるのを避け、
-            //   漸近値 half にIEEEで正しく落とす（half>0 は冒頭の Treasury<=0 早期returnが保証・demand=0 は half/(1+∞)=0＝旧min(0,half)と一致）。
-            //   AIは AutoModernizationFrac（indGap×財政余力×スタンス率≤0.15）でフラット帯に構造的に入らない＝**プレイヤーの極端にだけ効く**。
-            //   ★2026-08-16の点火梯子で 1.0 へ点火済み（live）＝下の三項は漸近側を通る。
-            budget = Coef.ModernizationBudgetSoftCap > 0
-                ? half / (1.0 + half / demand)
-                : Math.Min(demand, half);
-        }
-        else budget = ModernizationFrac * Math.Max(0, Treasury.Value) * 0.5;  // ModernizationCostGdpShare=0＝旧式（既定1.0＝この枝は通らない）
+        double demand = Coef.ModernizationCostGdpShare * Math.Max(0, NominalGdpPerMonth.Value) * costMul * convex;   // 要求額（frac→1で発散）
+        double half = Math.Max(0, Treasury.Value) * 0.5;                 // 国庫の半分/四半期は依然として上限（暴走防止）
+        // ★R4 蜂起R群2026-08-16（診断B3・ModernizationBudgetSoftCap=0＝旧minと**ビット恒等**）：minクランプ→漸近逓減。
+        //   旧＝min(demand, half) が上の凸コスト frac/(1−frac) を食い、frac≳0.5で**コストも効果もフラット＝0.6と1.0の区別が消滅**
+        //  （設計コメント「100%はほとんどの国で不可能」が実挙動に不存在）。ソフト形＝demand/(1+demand/half)
+        //  （SelfPlay.Score.Military と同じ既存の逓減形）＝fracの序が全帯で保存され、frac=1.0 の漸近値は旧の壁と同額（上限は保存）。
+        //   ⚠書き方＝half/(1+half/demand)（代数的に同値）：convex=+∞（frac=1.0）のとき demand/(1+demand/half)=∞/∞=NaN になるのを避け、
+        //   漸近値 half にIEEEで正しく落とす（half>0 は冒頭の Treasury<=0 早期returnが保証・demand=0 は half/(1+∞)=0＝旧min(0,half)と一致）。
+        //   AIは AutoModernizationFrac（indGap×財政余力×スタンス率≤0.15）でフラット帯に構造的に入らない＝**プレイヤーの極端にだけ効く**。
+        //   ★2026-08-16の点火梯子で 1.0 へ点火済み（live）＝下の三項は漸近側を通る。
+        double budget = Coef.ModernizationBudgetSoftCap > 0
+            ? half / (1.0 + half / demand)
+            : Math.Min(demand, half);
         // ★旧体制の反対（2026-08-04・作者指示「旧体制がこれらに反対するようにする」）。
         //   近代化投資は鉄道の免許・検地・工場の認可を要する＝**それを握っているのが旧支配層**なので、
         //   彼らの政治力が強いほど話が進まない。新しい状態も新しい軸も置かず、既存のブロック政治力から導く。
