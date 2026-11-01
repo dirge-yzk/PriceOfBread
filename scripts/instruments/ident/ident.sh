@@ -17,11 +17,13 @@
 #   --removed-tables <表の名前の頭,...>   基準にあって腕に無くてよい計器の表（消した計器）
 #   --added-tables   <表の名前の頭,...>   腕にだけあってよい計器の表（足した計器）
 #   --grown-ok       <表の名前の頭,...>   列が末尾に増えてよい表（足した列）
-#   --known-extra    <列名,...>           既知の揺れの列に足す列（cfg の KNOWN 以外。表ごとの揺れの本数を報告に出す）
+#   --known-extra    <表:列[@列=値],...>  既知の揺れに足す表と列（cfg の KNOWN 以外。@列=値 はその値の行だけ。表ごとの揺れの本数を報告に出す）
+#   （flow_s は呼び出し位置 sourceFile・sourceLine を除いた行の多重集合で比べる＝並べ替え・移動は宣言なしで通る。2 つの呼び出し位置を 1 つに合わせると不一致＝その宣言はまだ無い）
 #   --tests-delta    <整数>               Category!=FullLength の数の増減（消したメンバーのテスト分だけ減ってよい＝負の数）
 #   --cost-allow     <件数の行の名前の頭,...>  .cost の件数の行が違ってよい線（コードの削除で件数が変わる〈番人を写しただけ〉の例外＝線ごとに名乗る）
 #   --ng                                   ng.sh を回して NG の集合を基準と比べる（既定は回さない）
-# 終了コード：0＝恒等・1＝不一致・2＝走りが足りない（出力が無い）。最後の行が  判定: 恒等  か  判定: 不一致  か  判定: 未了。
+# 終了コード：0＝恒等・1＝不一致・2＝走りが足りない（出力が無い・腕の終了コードが 0 でない・出力の SOURCE-HASH が測る木の物と違う）。最後の行が  判定: 恒等  か  判定: 不一致  か  判定: 未了。
+# start は同じラベルの前の回の出力を消してから走る（古い出力で〈恒等〉にならない）。
 export PYTHONUTF8=1 AVALONIA_TELEMETRY_OPTOUT=1
 export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/Program Files/dotnet:$PATH"
 SP="${IDENT_SP:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"      # scripts/instruments/ident（実行中に台本を書き換えられても壊れないよう、start／run は台本を作業フォルダへ写してそれを走らせる＝写しからは IDENT_SP で元の場所を渡す）
@@ -58,6 +60,12 @@ case "$CMD" in
       *) EXTRA+=("$1"); shift ;; esac; done
     TREE="$(cd "$TREE" && pwd)"; W="${W:-/d/PoB_work/ident_$LABEL}"; mkdir -p "$W/marks"
     rm -f "$W/marks/"*.done "$W/tests_count.txt"
+    # 前の回の出力を消す（同じラベルで回し直して腕が走らなかったとき、古い出力で〈恒等〉にならないように）。写しの木 src_*・ビルド art_* は prep が作り直す
+    rm -rf "$W"/b5_ia_5.txt* "$W"/b10_ib_10.txt* "$W/mon_ib_10.txt" "$W/out_ia_5" "$W/out_ib_10" "$W"/tests_list_*.txt "$W/tests_build.txt" \
+           "$W/savetest.txt" "$W/leakhunt.txt" "$W/saveleak.log" "$W/ng" "$W/marks/tree_hash.txt"
+    # 測る木の SOURCE-HASH（measure.sh の src_manifest と同じ数え方＝写した後と同じ値）。check が腕 a・b のマニフェストと突き合わせる
+    ( cd "$TREE" && find . \( -name bin -o -name obj -o -name docs -o -name dist -o -name .vs -o -name .git -o -name measurements -o -name uishot \) -prune \
+        -o -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) -print | sort | xargs sha256sum ) | sha256sum | cut -c1-16 > "$W/marks/tree_hash.txt"
     ARMS="a"; [ $NOINS = 0 ] && ARMS="$ARMS b"; [ $NOTESTS = 0 ] && ARMS="$ARMS t"; [ $SAVELEAK = 1 ] && ARMS="$ARMS s"
     echo "ident start：ラベル=$LABEL 木=$TREE 作業=$W 腕=[$ARMS] 開始=$(date '+%F %T')"
     echo "$ARMS" > "$W/marks/arms.txt"
