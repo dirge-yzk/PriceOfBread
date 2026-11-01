@@ -57,3 +57,10 @@ DemandFactorClampTests.cs（新）：手の 1 州で、高い財・安い財の�
 
 ## 採否
 落ちたら採らないで止める（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ（理由を事前登録に追記してから）。最終の採否は種 11〜20 の 1 回。
+
+## 追記（腕の前・実装の前＝結果より前。opus の反証役の指摘 1）
+- 述語の明示：除外は計算済みの staple || foodNonStaple だけ。既定では FoodIncludesAnimalProtein＝0 なので foodNonStaple は常に false ＝加工肉・干物（Nutrition＞0 の非主食）は else の枝に落ち、旗 1 で挟みが外れる（対象〔主食でも、交差弾力の枝に入る食料でもない財〕と整合）。上の〈食料は常に旧〉は主食と食料の非主食（旗が立つとき）を指す。
+  計器の層の写像は insEnt と同じ（staple || foodNonStaple → 食料〔出さない〕、それ以外は Tier）に揃える。
+- 助走の月：EntryBegin と同じく計器は null（World.WarmupFrozen の間は何も積まない）。
+- ident の旗 0：batch.sh は $W/coef_<腕>.txt を POB_COEF に読む＝ident の作業フォルダ D:/PoB_work/c4cl/ident_<ラベル> に coef_ia.txt・coef_ib.txt（中身 DemandFactorClampOff=0）を先に置く。
+- 門の突然変異は使い捨ての手の 1 州（テストと同じ盤面）で計器の列から読む。

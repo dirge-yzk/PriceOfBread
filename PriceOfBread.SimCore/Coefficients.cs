@@ -36,6 +36,7 @@ public sealed class Coefficients
     public Share ReignitionDemandFrac = new(0.03);  // 入力需要の再点火トリクル＝採算が合えば「作りたい量」のこの割合を最低需要に（産出の床に代わるデッドロック防止。死んだ工場も需要を残し価格で蘇生＝無から有なし）
     public double PriceFactorMin = 0.4;      // 価格弾力の下クランプ
     public double PriceFactorMax = 1.4;      // 価格弾力の上クランプ
+    public double DemandFactorClampOff = 1.0;   // ★(755) c4cl 天井床：需要の価格因子の挟み（PriceFactorMin／elasMax）を外す。0＝今の挟み＝厳密恒等。正のとき、交差弾力の枝に入らない財（主食でも食料の非主食でもない Daily・Luxury・役務・その他）の priceFactor＝(RefPrice/買い手価格)^ε そのもの。主食と食料は変わらない。旗は有無だけ読む。事前登録 measurements/m755_20261102_prereg_cl.txt。AI の設計＝確証なし（作者の思想⑧の形）
     // 交差弾力性（B-2）：主食内の相対価格で需要を再配分（パン高騰→芋へ＝飢饉の核心）。基準＝主食の(価格/参照価格)の幾何平均、平均の財は不変、安い財ほど需要↑。0で無効。
     public double CrossElasticity = 0.6;     // 主食間の代替の強さ（相対価格の指数）。上限/下限は PriceFactorMin/Max を流用
     // 価格の床/天井＝参照価格×これ。段B（弾力性均衡）で**非load-bearingの安全網**に降格：弾力性の復元力が価格を帯のはるか内側で抑えるため通常は張り付かない

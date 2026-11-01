@@ -741,6 +741,7 @@ public static class EconomyStep
         long insRows = 0, insBound = 0; double insDesired = 0, insDemand = 0;
         double[]? insSpend = insOn ? Instruments.SpendBuf(world!) : null;   // (286) 計器（読むだけ）：階級×支払いの種類の積算（支払いの位置で積む）
         var insEnt = insOn ? Instruments.EntryBegin(world!, region) : null;   // (345) 計器（読むだけ）：消費の入口の材料（使える所得・籠の費用・余り・取り崩し・必需の割合の影）。助走の月は null
+        var dfac = insOn ? Instruments.DfacBegin(world!) : null;   // (755) 計器（読むだけ）：需要の価格因子の旧（挟む）と新（挟まない）の層ごとの積み。助走の月は null
         var insInp = insOn ? Instruments.InpBegin(world!, region, ng, goodGate, demandGate, producerCount) : null;   // (657) 計器（読むだけ）：工場に投入が届かない原因の表の財ごとの内訳（助走の月・挙げていない国は null）
         if (insOn) Instruments.HigherPaidBegin(region);   // ★(590) 計器（読むだけ）：高等教育の授業料の総額と国庫の負担分の月の蓄えを州・月の頭で 0 に戻す（その月に高等教育の配分が飛ばされても前の月の値を残さない）
         if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
@@ -1700,7 +1701,7 @@ public static class EconomyStep
                 && !habit.Active
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
             // ★必要の無い財は楔・価格弾力の冪を求めない（計算量・恒等）：下で使うのは POP のループ（needless なら回さない）と後段の POP のループ（同）だけ＝needless の財では値が読まれない。
-            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0, fdOldFactor = 0;
+            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0, fdOldFactor = 0, dfSelf = 0, dfMax = 0;
             if (!needless)
             {
                 // 買い手価格の楔5項＝唯一定義 BuyerWedge（ProductionDiag.ExplainPrice／PolicyPreferences.EffectiveStateMonopoly も同じものを呼ぶ・2026-09-11 M5）
@@ -1721,10 +1722,14 @@ public static class EconomyStep
                     priceFactor = Math.Clamp(selfFactor * subst, coef.PriceFactorMin, elasMax);
                     if (fdRebalance && staple) { fdOldFactor = priceFactor; priceFactor = subst; }   // ★(504) ②：主食の挟み（PriceFactorMin／Max）を外し、POP ごとの norm で欲しい量の和を市場に出す必要量の和へ合わせる（下の desired）
                 }
+                else if (coef.DemandFactorClampOff > 0 && !staple && !foodNonStaple)
+                    priceFactor = selfFactor;   // ★(755) 天井床：食料でない財の需要の価格因子は挟まない（旗 0＝下の else＝今の挟み）
                 else
                     priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
+                dfSelf = selfFactor; dfMax = elasMax;   // (755) 計器（読むだけ）：下の POP のループが旧と新の因子を数える
             }
             if (!needless) consumedGoods++;
+            int dfacT = dfac is not null && !needless ? Instruments.DfacTier(good.Tier, staple || foodNonStaple, isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId) && !(gi == Catalog.DomesticServiceId && coef.DomesticServiceMarketRation > 0)) : -1;   // (755) 計器（読むだけ）：層（食料は -1＝積まない）
             if (insEnt is not null && !needless) insEnt.GoodBegin(gi, staple || foodNonStaple ? 0 : good.Tier == GoodTier.Daily ? 1 : good.Tier == GoodTier.Luxury ? 2 : 3);   // (345) 計器（読むだけ）：層＝食料・日用品・奢侈品・役務その他
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
             bool incomeElasticGood = incomeFactorOfPop is not null && ((good.Tier == GoodTier.Luxury && !isService[gi] && !habit.Forms) || (gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent > 0));   // ★(302) 対象の財：Luxury 階層の非役務（アヘンを除く）と、切り替えが立つときの家事奉仕
@@ -1754,6 +1759,7 @@ public static class EconomyStep
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
+                    if (dfacT >= 0) Instruments.DfacWant(dfac!, dfacT, marketNeed, dfSelf, coef.PriceFactorMin, dfMax, priceFactor);   // (755) 計器（読むだけ）
                     if (fdRebalance && staple) desired *= fdNorm[pIdx];   // ★(504) ②：Σ欲しい量＝Σ市場に出す必要量（予算の前）
                     if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.Subsistence) * (fdRebalance ? fdOldFactor : priceFactor); }   // (504) 計器（読むだけ）
                     if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceIncomeFactorExponent) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
@@ -2010,6 +2016,7 @@ public static class EconomyStep
                 {
                     var p = region.Pops[fdI];
                     double qty = p.GoodDemand * ration[gi];
+                    if (dfacT >= 0) Instruments.DfacBought(dfac!, dfacT, qty);   // (755) 計器（読むだけ）
                     if (insEnt is not null) insI++;
                     if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
                     if (insEnt is not null && gi == Catalog.DomesticServiceId) Instruments.SvcBuyGot(region, p, qty);   // (433) 計器（読むだけ）：家事奉仕の階級ごとの買えた量（旗が立ったときの比例の配給）
