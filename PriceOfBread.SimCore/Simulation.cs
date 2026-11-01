@@ -2666,7 +2666,7 @@ public sealed class Simulation
         // 出生率＝女性の識字で下がる（人口転換の因果＝女子教育→少子化）。賃金保持の無い社会は女子に教育が届きにくい（係数 FemaleLitFloor＝0.6）。
         // 初等識字（開始点まで）は出生率に効かない（実証準拠）＝無学な社会は従来の較正値のまま。
         // 倍率排除④：旧 WomenPropertyLaw?1:0.6 の2値を、賃金保持（連続）で 0.6→1.0 を補間（retention=0で0.6＝旧無法・retention=1で1.0＝旧有法）。
-        double femaleLit = (litSum / pop) * (c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * World.WomenWageRetention);
+        double femaleLit = (litSum / pop) * TechEducation.MotherLiteracyRatio(c, World.WomenWageRetention);
         // 1934拡張E6 女性教育権（★2026-08-10 以降は女性の権利の梯子の**教育権の段**）：女子教育が女性識字を底上げ（財産権の賃金保持とは別経路＝学校）。WomenEducationGate=0で不読＝恒等。
         if (c.WomenEducationGate > 0 && World.WomenEducationLaw)
             femaleLit = Math.Min(litSum / pop, femaleLit * (1.0 + c.WomenEduLitBonus));

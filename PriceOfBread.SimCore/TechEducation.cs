@@ -6,6 +6,9 @@
 /// </summary>
 public static class TechEducation
 {
+    /// <summary>女性の識字の比＝FemaleLitFloor から 1 へ賃金保持（連続）で補間（教育権の枝は呼び手が別に掛ける＝形が違う）。GrowLiteracy の母の識字の比と Simulation.DemographicStep の出生の女性識字が共有する 1 本。</summary>
+    internal static double MotherLiteracyRatio(Coefficients c, double womenWageRetention) => c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * womenWageRetention;
+
     // 識字の伸び速度（教育法別）＝買えた教育を天井に漸近する月次レート
     private const double LiteracyRateNone = 0.0001;        // 学校なし＝ほぼ伸びない（教育財の供給も無い）
     private const double LiteracyRateReligious = 0.004;    // 宗教学校＝伸びる（ただし天井＝買えた教育）
@@ -43,7 +46,7 @@ public static class TechEducation
         //   止めると Elite=0 のまま GrowTech の入口ガードに弾かれ、技術の助走（WarmupTech）が丸ごと不発になる（実測）。
         double baseSpeed = w.WarmupFrozen ? 0 : LiteracyRate(w.EducationLaw);
         // 母の識字の比（家庭で伝わる割合 τ）＝人口動態の女性の識字の式と同じ（Simulation.DemographicStep の femaleLit÷平均識字）。
-        double motherLit = c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * w.WomenWageRetention;
+        double motherLit = MotherLiteracyRatio(c, w.WomenWageRetention);
         if (c.WomenEducationGate > 0 && w.WomenEducationLaw) motherLit = Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
         if (baseSpeed > 0)
             foreach (var r in w.Regions)
