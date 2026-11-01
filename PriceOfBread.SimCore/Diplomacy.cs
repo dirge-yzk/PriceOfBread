@@ -3437,14 +3437,14 @@ public sealed class Diplomacy
     public bool LandBattleHappens(Power a, Power b, Coefficients c)
         => LandingGate(a, b, c) > 0 || LandingGate(b, a, c) > 0;
 
-    /// <summary>攻者Xから見た標的Yの代表点（経済国＝首都、抽象標的＝攻者に最も近い植民地）と大圏距離。</summary>
-    private static (double lat, double lon, double km) TargetPoint(Power x, Power y)
+    /// <summary>攻者Xから見た標的Yの代表点（経済国＝首都、抽象標的＝攻者に最も近い植民地）。</summary>
+    private static (double lat, double lon) TargetPoint(Power x, Power y)
     {
         double xlat = x.Nation?.Latitude ?? 0, xlon = x.Nation?.Longitude ?? 0;
-        if (y.Nation is { } yw) return (yw.Latitude, yw.Longitude, Geo.DistanceKm(xlat, xlon, yw.Latitude, yw.Longitude));
+        if (y.Nation is { } yw) return (yw.Latitude, yw.Longitude);
         double best = double.MaxValue, blat = 0, blon = 0;
         foreach (var col in y.ColonyList) { double d = Geo.DistanceKm(xlat, xlon, col.Latitude, col.Longitude); if (d < best) { best = d; blat = col.Latitude; blon = col.Longitude; } }
-        return best < double.MaxValue ? (blat, blon, best) : (xlat, xlon, 0);
+        return best < double.MaxValue ? (blat, blon) : (xlat, xlon);
     }
 
     /// <summary>03手順6：海盆別プレゼンス重みの更新（月次）。沿岸州の取扱高シェア0.5＋植民地価値シェア0.5＝D1裁定（交易シェアで自動・レバーなし）。
@@ -3527,7 +3527,7 @@ public sealed class Diplomacy
     public bool IsSeaCrossing(Power x, Power y)   // ★(410) 使わない引数 Coefficients を外した（旧の旗 ContinentalLandReach の削除の後は係数を読まない）
     {
         if (x.Nation is not { } xw) return false;   // 抽象標的は投射しない（守る側）
-        var (tlat, tlon, _) = TargetPoint(x, y);
+        var (tlat, tlon) = TargetPoint(x, y);
         return !Landmass.Same(xw.Latitude, xw.Longitude, tlat, tlon);
     }
 
@@ -3537,7 +3537,7 @@ public sealed class Diplomacy
     public double Projection(Power x, Power y, Coefficients c)
     {
         if (x.Nation is not { } xw) return c.HomeDefenseBonus;   // 抽象標的＝自領で戦う＝投射せず地の利
-        var (tlat, tlon, _) = TargetPoint(x, y);
+        var (tlat, tlon) = TargetPoint(x, y);
         // 海路距離（船の補給線）：西方勢が東方（インド洋/太平洋）へ向かう投射は喜望峰/スエズ/パナマを回る＝SeaDistanceKm で創発（旧 km+=SuezDetourKm の一律加算を統一）。
         bool suezOpen = ChokeOpenFor(SuezId, x), panamaOpen = ChokeOpenFor(PanamaId, x);
         double km = Geo.SeaDistanceKm(xw.Latitude, xw.Longitude, tlat, tlon, suezOpen, panamaOpen);   // 財13配線（監査2026-07-11 死2）
