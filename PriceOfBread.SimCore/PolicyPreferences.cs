@@ -632,7 +632,7 @@ public static class PolicyPreferences
         for (int b = 0; b < BlocCount; b++)
         {
             double v = wsum[b] > 1e-9 ? gap[b] / wsum[b] : 0;
-            gap[b] = !(v > 0) ? 0 : v > 1 ? 1 : v;   // 否定形＝NaN も 0 へ（Math.Clamp は NaN を通す＝「∈[0,1]」の名乗りが嘘になる）
+            gap[b] = PoliticalQuantities.Clamp01(v);   // 否定形＝NaN も 0 へ（Math.Clamp は NaN を通す＝「∈[0,1]」の名乗りが嘘になる）
         }
         return gap;
     }

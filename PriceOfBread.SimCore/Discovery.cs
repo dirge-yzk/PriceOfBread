@@ -98,7 +98,7 @@ public static class Discovery
         if (!(d > 0)) return 1.0;
         if (!(a > 0)) return 0.0;
         double f = a / (a + c.DiscoveryEngineerHalfPerMonth * d);
-        return !(f > 0) ? 0.0 : f > 1.0 ? 1.0 : f;
+        return PoliticalQuantities.Clamp01(f);
     }
 
     /// <summary>★(461) 世界の高度労働力の雇用の合計 W（月あたり・全ての財の和）＝全ての国の稼働中の州の、ゲートの開いた生産者の <see cref="EngineerUse"/> の和。時計 S の W＝全ての行・全ての国で同じ 1 つのスカラー。
@@ -149,7 +149,7 @@ public static class Discovery
         double w0 = c.DiscoveryClockWorldPerMonth, width = c.DiscoveryClockRampWidth;
         if (!(w > 0) || !(w0 > 0) || !(width > 0)) return 0.0;
         double s = (w / (w0 * d) - 1.0) / width + 0.5;
-        return !(s > 0) ? 0.0 : s > 1.0 ? 1.0 : s;
+        return PoliticalQuantities.Clamp01(s);
     }
 
     /// <summary>★(461)(430) 自国の項 C∈[0,1]＝<c>A÷(A＋Am)</c>（A＝自国のその発見の親の産業の技師・Am＝<see cref="Coefficients.DiscoveryOwnHalfPerMonth"/>）。d が0以下の行は1・A が0以下か NaN は0。
@@ -161,7 +161,7 @@ public static class Discovery
         if (!(a > 0)) return 0.0;
         double am = c.DiscoveryOwnHalfPerMonth > 0 ? c.DiscoveryOwnHalfPerMonth : 0;   // 否定形＝NaN・負は0（A が正なら1）
         double f = a / (a + am);
-        return !(f > 0) ? 0.0 : f > 1.0 ? 1.0 : f;
+        return PoliticalQuantities.Clamp01(f);
     }
 
     public static bool Known(bool[]? known, int row) => row >= 0 && known is not null && row < known.Length && known[row];
@@ -264,7 +264,7 @@ public static class Discovery
     {
         if (now is not { } n || !(standing > 0) || !(n >= 0)) return 0.0;
         double d = (standing - n) / standing;
-        return !(d > 0) ? 0.0 : d > 1.0 ? 1.0 : d;
+        return PoliticalQuantities.Clamp01(d);
     }
 
     /// <summary>★(640) <see cref="IdeaBoard"/> を求める（兵士でない POP を 1 巡・<see cref="Score"/> が旗が正のときだけ呼ぶ・計器 <c>idn_s</c> は旗 0 でも同じ関数を呼ぶ）。
@@ -286,7 +286,7 @@ public static class Discovery
                 if (ir > 0) rent += ir;
                 if (p.ClassId != PopClass.Worker) continue;
                 workerPop += p.Size;
-                double sub = p.Subsistence; sub = !(sub > 0) ? 0 : sub > 1 ? 1 : sub;
+                double sub = p.Subsistence; sub = PoliticalQuantities.Clamp01(sub);
                 double dep = p.Size * (1.0 - sub);
                 double fill = p.SupplyFill;
                 wage += dep; unmet += dep * (1.0 - fill); fillW += p.Size * fill;
@@ -326,7 +326,7 @@ public static class Discovery
         foreach (var pr in r.Producers)
             if (pr.GoodId == gid && !Unfound(pr)) { double g = Gate(r, pr); if (g > best) best = g; }
         if (best < 0) { int row = Catalog.DefaultDiscoveryRowOf(gid); best = row < 0 ? 1.0 : Known(r.Discovered, row) ? 1.0 : 0.0; }
-        return !(best > 0) ? 0.0 : System.Math.Min(1.0, best);
+        return PoliticalQuantities.Clamp01(best);
     }
 
     /// <summary><see cref="GoodGate"/> を全ての財について1回の走査で（州の生産者を1周）＝与えた解禁の配列で読む（国の解禁＝<see cref="Region.Discovered"/>・
@@ -345,7 +345,7 @@ public static class Discovery
         {
             double b = into[g];
             if (b < 0) { int row = Catalog.DefaultDiscoveryRowOf(g); b = row < 0 ? 1.0 : Known(known, row) ? 1.0 : 0.0; }
-            into[g] = !(b > 0) ? 0.0 : System.Math.Min(1.0, b);
+            into[g] = PoliticalQuantities.Clamp01(b);
         }
     }
 
@@ -1052,7 +1052,7 @@ public static class Discovery
             double p = r.LastTradePotential;
             if (!(p > 0)) continue;
             double t = r.LastTradeThrottle;
-            t = !(t > 0) ? 0 : t > 1 ? 1 : t;   // 否定形＝NaN は「通らない」の側（律速率の定義域 [0,1] の守り）
+            t = PoliticalQuantities.Clamp01(t);   // 否定形＝NaN は「通らない」の側（律速率の定義域 [0,1] の守り）
             pot += p; served += p * t;
         }
         return pot > 1e-12 ? served / pot : 1.0;
@@ -1173,7 +1173,7 @@ public static class Discovery
         {
             double diff = Difficulty(row, c);
             ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
-            ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+            ratio = PoliticalQuantities.Clamp01(ratio);
         }
         return ratio;
     }
@@ -1187,7 +1187,7 @@ public static class Discovery
         {
             double diff = DifficultyOf(site.Decade, c);
             ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
-            ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+            ratio = PoliticalQuantities.Clamp01(ratio);
         }
         double people = 0;
         foreach (var q in r.Pops)
