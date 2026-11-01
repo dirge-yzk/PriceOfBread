@@ -2,6 +2,8 @@
 #   python -I ident_check.py <ラベル> --root <木> [--work <作業フォルダ>] [--cfg <設定>] [--tree <測った木>] [--save <日付>] [宣言...] [--saveleak] [--ng]
 # 判定の規則：宣言の無い違いは全て〈不一致〉。基準の生が無い・出力が無いなど突き合わせられない所は〈未了〉（恒等とは言わない）。
 import sys, os, re, csv, hashlib, shutil, subprocess, datetime
+from collections import Counter
+from itertools import zip_longest
 from concurrent.futures import ThreadPoolExecutor
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -156,25 +158,77 @@ def cmp_cost(title, new, base, allow):
 
 
 # ---------- 3 計器の表（バイト一致・違う表は列まで） ----------
-def cols_diff(pa, pb):
+TABLE_RE = re.compile(r'^(.+?)_s\d+\.tsv$')
+
+
+def table_of(f):   # 'clock_s3.tsv' → 'clock_s'（表の名前＝種の番号の前）
+    m = TABLE_RE.match(f)
+    return m.group(1) + '_s' if m else f
+
+
+def parse_known(items):   # 'clock_s:worldTotalPerMonth@kind=C' → {'clock_s': {'worldTotalPerMonth': ('kind', 'C')}}・'@' が無ければ全ての行
+    k = {}
+    for it in items:
+        if not it:
+            continue
+        if ':' not in it:
+            print('既知の揺れは 表:列[@列=値] で書く：', it); sys.exit(2)
+        t, c = it.split(':', 1)
+        flt = None
+        if '@' in c:
+            c, f = c.split('@', 1)
+            flt = tuple(f.split('=', 1))
+        k.setdefault(t, {})[c] = flt
+    return k
+
+
+def cols_diff(pa, pb, kmap):   # pa＝基準・pb＝腕。返す物＝（既知の揺れの列・宣言の無い違い・腕で増えた列）
     with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
         ra = csv.reader(fa, delimiter='\t'); rb = csv.reader(fb, delimiter='\t')
-        ha = next(ra); hb = next(rb)
+        ha = next(ra, []); hb = next(rb, [])
         extra = [c for c in hb if c not in ha]
         common = [c for c in ha if c in hb]
         ia = {c: ha.index(c) for c in common}; ib = {c: hb.index(c) for c in common}
-        diff = set()
+        real, kn = set(), set()
         if [c for c in hb if c in ha] != ha:
-            diff.add('HEADER_ORDER_OR_MISSING')
-        for xa, xb in zip(ra, rb):
+            real.add('HEADER_ORDER_OR_MISSING')
+        for xa, xb in zip_longest(ra, rb):
+            if xa is None or xb is None:   # 行数が違う（片方が尽きた）
+                real.add('ROWS'); break
+            if len(xa) != len(ha) or len(xb) != len(hb):   # 欄の数が見出しと違う行
+                real.add('FIELDS')
             for c in common:
-                if c in diff:
+                va = xa[ia[c]] if ia[c] < len(xa) else None
+                vb = xb[ib[c]] if ib[c] < len(xb) else None
+                if va == vb:
                     continue
-                if ia[c] < len(xa) and ib[c] < len(xb) and xa[ia[c]] != xb[ib[c]]:
-                    diff.add(c)
-        if sum(1 for _ in ra) or sum(1 for _ in rb):
-            diff.add('ROWS')
-    return sorted(diff), extra
+                if c not in kmap:
+                    real.add(c); continue
+                flt = kmap[c]
+                if flt is None:
+                    kn.add(c); continue
+                fc, fv = flt   # 揺れが許されるのは、その行の fc の値が両側とも fv の行だけ
+                if fc in ia and ia[fc] < len(xa) and ib[fc] < len(xb) and xa[ia[fc]] == fv and xb[ib[fc]] == fv:
+                    kn.add(f'{c}@{fc}={fv}')
+                else:
+                    real.add(c)
+    return sorted(kn), sorted(real), extra
+
+
+FLOW_LOC = ('sourceFile', 'sourceLine')   # flow_s の呼び出し位置（Instruments.cs の FlowRows はこの順で並べる＝行を動かすと並びも変わる）
+
+
+def flow_same_but_location(pa, pb):   # 呼び出し位置を除いた行の多重集合が同じか（並べ替え・行の移動・別ファイルへの移動は通る・2 行を 1 行に合わせたら通らない）
+    with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
+        ra = list(csv.reader(fa, delimiter='\t')); rb = list(csv.reader(fb, delimiter='\t'))
+    if not ra or not rb or ra[0] != rb[0] or any(c not in ra[0] for c in FLOW_LOC):
+        return False
+    keep = [i for i, c in enumerate(ra[0]) if c not in FLOW_LOC]
+    n = len(ra[0])
+    if any(len(x) != n for x in ra[1:] + rb[1:]):
+        return False
+    key = lambda rows: Counter(tuple(x[i] for i in keep) for x in rows[1:])
+    return len(ra) == len(rb) and key(ra) == key(rb)
 
 
 def cmp_ins(new, base, known, removed, added, grown):
@@ -206,14 +260,19 @@ def cmp_ins(new, base, known, removed, added, grown):
     for f in diffs:
         if not f.endswith('.tsv'):
             real.append((f, ['NONTSV'])); continue
-        d, extra = cols_diff(J(base, f), J(new, f))
+        t = table_of(f)
+        if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
+            known_hit.append((f, ['呼び出し位置だけ'])); continue
+        kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}))
         if extra:
             if pref(f, grown):
                 grown_hit.append((f, extra))
             else:
-                real.append((f, ['列が増えた:' + ','.join(extra)]));
+                real.append((f, ['列が増えた:' + ','.join(extra)]))
         if d:
-            (known_hit if set(d) <= known else real).append((f, d))
+            real.append((f, d))
+        elif kn:
+            known_hit.append((f, kn))
         elif not extra:
             real.append((f, ['BYTES_ONLY']))
     # 既知の揺れだけが違う表は known_hit、それ以外が real。増えた列で real に入った表は上で入れ済み
@@ -227,7 +286,7 @@ def cmp_ins(new, base, known, removed, added, grown):
     if known_hit:
         by = {}
         for f, d in known_hit:
-            by.setdefault(f.split('_s')[0] + '_s:' + ','.join(d), []).append(f)
+            by.setdefault(table_of(f) + ':' + ','.join(d), []).append(f)
         say(f'  既知の揺れの列だけが違う表 {len(known_hit)} 本：' + '・'.join(f'{k}×{len(v)}' for k, v in sorted(by.items())))
     if bad_missing:
         fail(f'計器の表：基準にあって腕に無い {len(bad_missing)} 本 {bad_missing[:5]}')
@@ -351,7 +410,7 @@ def main():
     W = norm(a['work'] or f'/d/PoB_work/ident_{a["label"]}')
     arms_p = J(W, 'marks', 'arms.txt')
     arms = open(arms_p, encoding='utf-8').read().split() if os.path.exists(arms_p) else ['a', 'b', 't']
-    known = set(cfg.get('KNOWN', '').split(',')) | set(a['known_extra'])
+    known = parse_known(cfg.get('KNOWN', '').split(',') + a['known_extra'])
     base = lambda k: cfg[k] if os.path.isabs(cfg[k]) or re.match(r'^[a-zA-Z]:', cfg[k]) else J(root, cfg[k])
     say(f'=== 恒等の証明 {a["label"]}（{datetime.datetime.now():%F %T}）===')
     tree = norm(a['tree'] or root)
@@ -361,9 +420,25 @@ def main():
     for ar in ('a', 'b', 't', 's'):
         if ar in arms:
             dp = J(W, 'marks', ar + '.done')
-            say(f'腕 {ar}：{open(dp).read().strip() if os.path.exists(dp) else "印なし（走っていないか途中）"}')
-    say()
+            mk = open(dp, encoding='utf-8').read().strip() if os.path.exists(dp) else ''
+            say(f'腕 {ar}：{mk or "印なし（走っていないか途中）"}')
+            if not mk:
+                miss(f'腕 {ar} の完了の印が無い（走っていないか途中）')
+            elif not mk.startswith('rc=0 '):
+                miss(f'腕 {ar} の終了コードが 0 でない（{mk}）＝測れていない（腕が満杯の 3・ビルドや measure.sh の失敗）')
     pa, pb = J(W, 'b5_ia_5.txt'), J(W, 'b10_ib_10.txt')
+    # 測った木と出力の SOURCE-HASH を突き合わせる（ident.sh start が測る木から数えた値＝measure.sh の src_manifest と同じ数え方）
+    thp = J(W, 'marks', 'tree_hash.txt')
+    th = open(thp, encoding='utf-8').read().strip() if os.path.exists(thp) else ''
+    if not th:
+        miss('測る木の SOURCE-HASH の印（marks/tree_hash.txt）が無い')
+    for ar, p in (('a', pa), ('b', pb)):
+        if ar in arms:
+            h = first_line(p + '.manifest', 'SOURCE-HASH').replace('SOURCE-HASH:', '').strip()
+            if th and h != th:
+                miss(f'腕 {ar} のマニフェストの SOURCE-HASH {h} が測る木の {th} と違う＝この木を測った出力ではない')
+    say(f'測る木の SOURCE-HASH：{th or "（無い）"}')
+    say()
     if 'a' in arms:
         say('SOURCE-HASH（素の 5 種）' + first_line(pa + '.manifest', 'SOURCE-HASH'))
         cmp_report('素の 5 種', pa, base('B5'))
@@ -407,4 +482,5 @@ def main():
     sys.exit({'恒等': 0, '不一致': 1, '未了': 2}[verdict])
 
 
-main()
+if __name__ == "__main__":
+    main()
