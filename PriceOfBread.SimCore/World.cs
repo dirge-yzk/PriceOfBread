@@ -2178,7 +2178,7 @@ public sealed class World
     private double InvadeWillCost(Power t) => Diplomacy is not null && SelfPower is not null
         ? Diplomacy.ColonizeWillCost(SelfPower, t, Coef)
         : Coef.ExpansionWillCap;
-    private double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.InvadeShipDistanceScale * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
+    private double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.DistanceWarDecay * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
 
     /// <summary>侵略の可否＝**唯一のゲート**（旧「植民地化」と1本化・作者裁定2026-08-23）。AI・プレイヤー・UI がこの1本だけを読む。
     /// 標的は弱小（Minor）＝抽象標的でも実在の弱小国でもよい。行為者のランクは問わない（旧・植民地化の「列強のみ」は撤去）＝
