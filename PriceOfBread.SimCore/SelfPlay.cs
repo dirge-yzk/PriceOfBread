@@ -2198,7 +2198,7 @@ public static class SelfPlayMatch
         var isMajor = new bool[sim.Nations.Count];
         for (int i = 0; i < sim.Nations.Count; i++)
             isMajor[i] = sim.Nations[i].World.SelfPower is { } mp && majorSet.Contains(mp.BaseName.Length > 0 ? mp.BaseName : mp.Name);
-        const double depEnter = DepressionEnterDrawdown, depExit = DepressionExitDrawdown, warmupQ = 12, gdpSmooth = 0.18, overheatMark = 0.55, harvestMark = 0.12;
+        const double depEnter = DepressionEnterDrawdown, depExit = DepressionExitDrawdown, warmupQ = 12, overheatMark = 0.55, harvestMark = 0.12;
         const double lossRateSmooth = 0.18, monthsPerQuarter = 3.0;
 
         try
@@ -2264,7 +2264,7 @@ public static class SelfPlayMatch
                     // 恐慌計測：助走後、平滑化GDP（トレンド）のピーク比収縮を追う
                     if (q >= warmupQ)
                     {
-                        gdpTrend[i] += gdpSmooth * (w.GdpPerMonth.Value - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
+                        gdpTrend[i] += w.Coef.GdpTrendSmoothing * (w.GdpPerMonth.Value - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
                         if (gdpTrend[i] > gdpPeak[i]) gdpPeak[i] = gdpTrend[i];
                         worldTrendThis += gdpTrend[i];
                         // ★DDの産出床（史実基準化）：残骸国家（世界平均の1/1000未満）の〜100%収縮を世界DDに数えない。
@@ -2276,7 +2276,7 @@ public static class SelfPlayMatch
                         if (isMajor[i])
                         {
                             double pc = (w.GdpPerMonth / System.Math.Max(1.0, w.TotalPopulation)).Value;
-                            gdpPcTrend[i] += gdpSmooth * (pc - gdpPcTrend[i]);
+                            gdpPcTrend[i] += w.Coef.GdpTrendSmoothing * (pc - gdpPcTrend[i]);
                             if (gdpPcTrend[i] > gdpPcPeak[i]) gdpPcPeak[i] = gdpPcTrend[i];
                             double ddPc = gdpPcPeak[i] > 0 && gdpPeak[i] > ddFloor ? 1.0 - gdpPcTrend[i] / gdpPcPeak[i] : 0;
                             if (ddPc > majorMaxDrawdown)
