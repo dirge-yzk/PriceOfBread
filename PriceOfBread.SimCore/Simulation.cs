@@ -2435,7 +2435,7 @@ public sealed class Simulation
                     r.Industrialization *= scrapKeep;
                     r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
                     r.StrandedVintage *= scrapKeep;
-                    if (World.Coef.DepressionScrapsBuiltScale > 0 && scrapKeep < 1)
+                    if (scrapKeep < 1)
                         foreach (var fp in r.Producers)
                             if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9)
                             {
