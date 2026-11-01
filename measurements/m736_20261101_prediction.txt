@@ -1,0 +1,11 @@
+# (736) 波51 区分 I の合流の予言（合流の前に書く・結果の後に変えない）
+# 基点 main 1db04f55（(728) c1 の道具まで）。入れる線：clrun (734)・clins (733)・clhlp (730)・cldip (731)・cleco (732)、その後に掃除の段（cross）。
+# 全ての段は結果を 1 ビットも変えない（区分 I）。予言は次のとおり。
+1. 累積の木（s1=+clrun・s2=+clins・s3=+clhlp・s4=+cldip・s5=+cleco・最後=cross の後）の素の 5 種の成績表は、どれも b5_20261031_m702 と全行バイト一致（名乗り行・SOURCE-HASH を除く）。.cost の件数の行 29 本と推定 220.2 秒も一致。
+2. 最後の木の計器つき 10 種の成績表は b10_20261101_m727_ins と全行バイト一致。.cost の推定 221.1 秒も一致。
+3. 最後の木の計器の表は D:/PoB_work/keep_727/base_ins とバイト一致。違ってよいのは、消した計器の表（rs2_s・rs3_s・wcap_s・wcapreg_s・ma_s・inh_s＝clins、pfix_s・pjump_s・devcap_s＝cross の X4 で消すなら）と既知の揺れ（burscan_s:seconds・clock_s:worldTotalPerMonth@kind=C・flow_s の呼び出し位置）だけ。
+4. 注視の表は mon_20261101_m727.txt とタグの行以外が一致。
+5. NG は 93 件・基準 rd:measurements/ng702_20261031:m702 と同じ集合（新しい 0・外れた 0）。
+6. --list-tests：Category!=FullLength は 2104 から、消したメンバーのテストの分だけ減る（clins の WageCeilingInstrumentTests 1 本と、X4 で消す計器のテスト。数は --list-tests で数えて名指す）。FullLength は 3。
+7. savetest OK・leakhunt は保存則違反なし。
+8. 計器を消すので、最後の木で計器つき 10 種（基線）・N1（SupplySlope=0.50000001）・N2（0.49999999）・種 11〜20 を 1 回ずつ回す。成績表は b10_20261101_m727_ins・b10_20261101_m727_n1_ins・b10_20261101_m727_n2_ins・b10s11_20261101_m727_ins とそれぞれ全行バイト一致。基線の名は m702 のまま。一致しなければ止めて報告する。

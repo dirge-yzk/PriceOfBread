@@ -1,0 +1,29 @@
+# (736) 波52 の事前登録（区分 II＝ほとんど影響のない削除の束・1 本の腕）。結果が出る前に書く。門は 1 回目の腕の前に固定し、結果の後に変えない。
+# 出典＝(729) 持ち主の読みの classII の表 (a)。座標は main 1db04f55 の物＝腕の前に grep で取り直す。計画は AI の案＝作者「いったん全て推奨で」で推奨を採った物（承認とは書かない）。
+# 形＝〈尾〉（既定の経路で値がほとんど同じ・違いは縁の場合だけ）。挙動の線＝腕 B（計器つき 10 種）。比べる側＝基線 m702 の計器つき 10 種の生（keep_736/base_ins＝合流 (736) の後）。
+
+## 項目（12 群）
+1  天命の倍率の挟み DynMandateMulMin/Max を消す            Politics.cs:12・396〜397          dynE＝1 のとき 1−0.8＝0.19999999999999996 で挟みが効く
+2  `!(v >= 0) ? 0 : …` を Clamp01 へ                        Model.cs:275                      −0.0 を −0.0 で返す（Clamp01 は +0.0）
+3  段1′ NaN の否定形                                        CrownParliament.cs:211・Simulation.cs:2674・Government.cs:339・539・Credit.cs:34・110・122・Habit.cs:35・Politics.cs:1616・1620・Diplomacy.cs:164・2801・SelfPlay.cs:716   健全な走りでは同じ見込み・証明できない
+4  計器の張り付きの帯 PriceFloorRefFrac・PriceCeilRefFrac を PriceFloorFactor・PriceCeilFactor から作る   Validation.cs:103・104・121・122   計器の値が変わる
+5  LandDistanceKm を LandMatrix の行へ                       PathGraph.cs                      道の和の順・.cost が動く
+6  ArcKm の式を Geo.DistanceKm（atan2）へ                     PathGraph.cs:76・101・420          陸の辺の重みが最後の桁で動く
+7  ReplacementRate(四半期) を 1 回に                          Politics.cs:212・CrownParliament.cs:206   間で POP が動きうる
+8  飽和 x/(x+h) の寄せ・装備の購入額の写し・移民の流入率の門   EconomyStep.cs:199・1349・Military.cs:131・Simulation.cs:604・2104・2107・PolicyPreferences.cs:346・SelfPlay.cs:843   掛ける順・守り・空の値が場所で違う
+9  混ぜる形の旗の焼き込み（LivingRefWeight・StateProcurePriceGate・CapitalAbsorptionBlend・FaminePushRegionBlend・IndustrializationPopWeighted・PrizeLossProrated・CollapseImposeFromFront）   10-23 一覧 M02   0×∞ と丸め
+10 計器の都市化の式の写しを本体の 1 本へ                      InstrumentsUrx.cs:143〜144・PopDecision.cs:88〜89   小さい値の守り（Eps と 1e-9）
+11 国内勢力の忘却の時計 FactionForgetQuarters を消す           Factions.cs:103・130              結束 0.116 未満で消えた運動だけ
+12 10-23 一覧で〈恒等〉とされたが確かめていない行（M13・M31・M32・M61・M66・M67）   段0 で 1 行ずつ読み直す
+（(736) の合流で区分 II へ回した物も足す＝CrownPressureRate・CrownRollbackRate の読み手の付け替え〔App の読み手と一緒に・hlp-5〕。実装ログ (736) を参照）
+
+## 腕の前に固定する門
+A. 狙いの門〈ほとんど影響がない〉：計器つき 10 種の成績表の全ての列が、m702 のヌル腕 N1（b10_20261101_m727_n1_ins・219.1 秒）と N2（b10_20261101_m727_n2_ins・222.5 秒）の成績表の列ごとの最小〜最大の幅（基線 m702 を含めた 3 本の幅）の中。
+B. 項目ごとの大きさの門（機構の観測量・予言つき・外れたら採らない）：
+   1＝倍率が 0.2 に当たった国×四半期の数（予言 0）／2＝−0.0 を返した回数（予言 0）／3＝NaN の枝を通った回数（予言 0）／4＝張り付きの財の数の差（計器だけ・記録）／11＝結束 0.116 未満で消えた運動の数（記録）／5・6＝.cost の推定の差（予言 |差| ≦0.5 秒）。
+   それ以外の群は門 A だけで読む。
+C. NG：基準 rd:measurements/ng702_20261031:m702 から増えた NG が 0（正味で読まない）。
+D. 止める線が全て緑：破綻（クラッシュ・セーブ破れ・NaN・保存則・進行不能）・発散（価格水準が開幕の 1000 倍以上は記録＝事象なしで同じ国が半分以上の種なら NG）・空洞化（規則 A2＝scripts/instruments/hol/an_h2.py の既定 -ex rule・ピークの 1/10 未満が 0 件）・計算量（.cost の推定 ≦248.5 秒・推定が m702 の 221.1 秒から上がらない）・機構のテスト（フルスイート・合計を --list-tests と突き合わせ）。
+E. .cost の件数の行は、上で名乗った項目（5・6）だけが動いてよい。
+F. 落ちたら群（1〜12）ごとに切り分ける。同じ腕で物差し（閾値・指標・盤面・種）を替えない（RULE47）。最終の採否は種 11〜20 の計器つき 10 種で 1 回だけ（同じ門）。
+G. 〈ほとんど影響がない〉は記録だけの門ではない＝A が外れた群は採らない（挙動の線として別に設計する）。
