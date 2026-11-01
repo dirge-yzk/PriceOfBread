@@ -308,7 +308,7 @@ def run_ng(W, cfg, root):   # root＝基準のフォルダの根
         base = 'rd:' + J(root, base[3:]).replace(chr(92), '/')
     if not os.path.isdir(ins) or not base:
         miss('NG：計器の出力か基準が無い'); return
-    r = subprocess.run(['bash', J(os.path.dirname(os.path.abspath(__file__)), '..', 'ng.sh'), ins, 'ident', outd, base],
+    r = subprocess.run([shutil.which('bash') or 'bash', J(os.path.dirname(os.path.abspath(__file__)), '..', 'ng.sh'), ins, 'ident', outd, base],
                        capture_output=True, text=True, encoding='utf-8', errors='replace', env={**os.environ, 'PYTHONUTF8': '1'})
     txt = r.stdout
     m1 = re.search(r'＝NG (\d+)／比べる .*＝NG (\d+)', txt)
