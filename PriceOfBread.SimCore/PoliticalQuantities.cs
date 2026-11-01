@@ -262,6 +262,8 @@ public static class PoliticalQuantities
 
     /// <summary>NaN を0側へ倒す [0,1] クランプ（否定形＝<see cref="Math.Clamp"/> は NaN を消さない＝memory「NaNとfail-openガード」）。</summary>
     internal static double Clamp01(double x) => !(x > 0) ? 0 : x > 1 ? 1 : x;   // −0.0 も +0.0 へ（規定形＝Ideologies の旧 `!(x >= 0)` 形を吸収・2026-09-11）
+    /// <summary>NaN・負を0側へ倒す正の部分（否定形＝<see cref="Math.Max(double,double)"/> は NaN を除去しない）。SelfPlay・Discovery・Ideologies・本クラスの末尾にあった同じ式の写しの一本化。</summary>
+    internal static double Pos(double x) => !(x > 0) ? 0 : x;
     /// <summary>lo≦hi かつ境界が有限のとき、x が NaN 以外なら `Math.Clamp(x, lo, hi)` と同じ値（−0.0 の符号も保つ）。⚠ lo＞hi のとき `Math.Clamp` は例外を投げるがこちらは lo を返す・境界が NaN で x が有限のときは <paramref name="neutral"/> を返す（既定の係数ではどちらも起きない）。NaN だけ <paramref name="neutral"/> へ倒す（`Math.Clamp` は NaN をそのまま通す＝この区間の外の値の守りにならない）。</summary>
     internal static double ClampOr(double x, double lo, double hi, double neutral) => x < lo ? lo : x > hi ? hi : (x >= lo ? x : neutral);
 
@@ -301,7 +303,7 @@ public static class PoliticalQuantities
         double aff = Ideologies.SupportAt(Ideologies.National(w), DriftedPolityCoord(w.Polity, w.Suffrage, c), c.IdeologyAffinitySlope);
         double sup = Clamp01((aff - Ideologies.AffMin) / (Ideologies.AffMax - Ideologies.AffMin));
         double b = c.MandateWeight * c.MandateSpendRate * (w.Legitimacy + sup);
-        return !(b > 0) ? 0 : b;   // 否定形＝NaN も0側へ（Math.Max は NaN を除去しない）
+        return Pos(b);   // 否定形＝NaN も0側へ（Math.Max は NaN を除去しない）
     }
 
     /// <summary>★政治的な実行度 ∈(0,1]（作者裁定N2・2026-09-21）＝「どれだけ頻繁に決められるか」。**制度の摩擦だけ**から作る。

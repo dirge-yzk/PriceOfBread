@@ -242,7 +242,7 @@ public static class Discovery
         else if (row == ImperialismRow) s = colonialShare;
         else if (row == FascismRow) { if (double.IsNaN(crisis)) crisis = Ideologies.FascismCrisis(w); s = c.SpreadNeedFascismDecline > 0 ? FasStrength(crisis, popMil, b) : crisis * popMil; }
         else s = 0;
-        return !(s > 0) ? 0 : s;   // 否定形＝NaN・負は0
+        return PoliticalQuantities.Pos(s);   // 否定形＝NaN・負は0
     }
 
     /// <summary>★(640) 線 idn：思想の必要性の盤面の量（<see cref="IdeaBoardOf"/> が兵士でない POP を 1 巡して返す・読むだけ・状態を書かない）。

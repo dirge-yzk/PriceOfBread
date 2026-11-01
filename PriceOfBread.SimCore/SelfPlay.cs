@@ -36,8 +36,6 @@ public static class NationalScore
         internal double this[int i] => i switch { 0 => Soldiers, 1 => MilitarySpend, 2 => Iron, 3 => Energy, 4 => UrbanPop, _ => TotalPop };
     }
 
-    private static double Pos(double x) => !(x > 0) ? 0 : x;   // 否定形＝NaN も 0（総量に NaN を混ぜない）
-
     internal static ScoreTerms TermsOf(World w)
     {
         double soldiers = 0, urban = 0, total = 0, iron = 0, energy = 0;
@@ -47,18 +45,18 @@ public static class NationalScore
             if (r.Tier == RegionTier.Colonial) continue;
             foreach (var p in r.Pops)
             {
-                double s = Pos(p.Size);
+                double s = PoliticalQuantities.Pos(p.Size);
                 total += s;
                 if (p.IsUrban) urban += s;
                 if (p.IsSoldier) soldiers += s;
             }
             var mk = r.Markets;
-            if (Catalog.IronId < mk.Length) iron += Pos(mk[Catalog.IronId].LastProduced);
-            if (Catalog.CoalId < mk.Length) energy += Pos(mk[Catalog.CoalId].LastSold);
-            if (Catalog.CrudeOilId < mk.Length) energy += Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCoal;
+            if (Catalog.IronId < mk.Length) iron += PoliticalQuantities.Pos(mk[Catalog.IronId].LastProduced);
+            if (Catalog.CoalId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CoalId].LastSold);
+            if (Catalog.CrudeOilId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCoal;
         }
         double pl = w.PriceLevel;
-        double mil = !(pl > 0) ? 0 : Pos(Pos(w.LastMilitaryClaimPerMonth.Value) + Pos(w.LastSoldierPayPerMonth.Value)) / pl;
+        double mil = !(pl > 0) ? 0 : PoliticalQuantities.Pos(PoliticalQuantities.Pos(w.LastMilitaryClaimPerMonth.Value) + PoliticalQuantities.Pos(w.LastSoldierPayPerMonth.Value)) / pl;
         return new ScoreTerms(soldiers, mil, iron, energy, urban, total);
     }
 
