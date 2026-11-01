@@ -42,8 +42,6 @@ public static class Territory
         var inflow = new double[k];
         var gap = new double[k];
         double tech = w.WorldTechLevel;   // 世界の技術（月の中で動かない＝距離の項の時代の係数・計器の反実仮想の両方がこの1つを読む）
-        bool ins = Instruments.On;   // 計器（読むだけ）：入口の形の反実仮想（migform_s）の作業の配列は計器が on のときだけ持つ
-        var rawA = ins ? new double[k] : null; var kmA = ins ? new double[k] : null;
         var size0 = new double[k][];   // 出る州の POP の月初の規模（移す人数＝月初の規模×流量の割合）
         long seenPairs = 0;   // 計算量の台帳（診断）：出る州×行き先の組（(146)＝O(州²)・旧は数えず単価に入っていた）
         for (int s = 0; s < k; s++)
@@ -54,19 +52,16 @@ public static class Territory
             for (int d = 0; d < k; d++)
             {
                 gap[d] = 0;
-                if (ins) rawA![d] = 0;
                 if (d == s || !double.IsFinite(opp[d])) continue;
                 double g = opp[d] - stay[s] - c.TransportFriction;
                 if (!(g > 0)) continue;   // ★否定形＝NaN も弾く。差が0以下の州へは1人も行かない
                 double km = Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]);
-                if (ins) { rawA![d] = g; kmA![d] = km; }
                 if (c.MigrationEntryFriction > 0) g -= EntryFrictionTerm(km, tech, c);   // ★(748) 入口の形：距離は止まる位置（差の符号）を動かす
                 else g *= MigrationDecay(km, tech, c);   // 旧の形：距離は流れを細らせるだけ（旗 0）
                 if (!(g > 0)) continue;
                 gap[d] = g; wSum += g;
                 if (g > gMax) gMax = g;
             }
-            if (ins) MigformTally(w, tech, c, active, s, classes, rawA!, kmA!, gap, gMax, wSum);
             if (!(wSum > 0)) continue;
             double fraction = PoliticalQuantities.ClampOr(c.RegionMobility * gMax, 0, MaxMigrationFraction, 0.0);   // NaN は動かさない（0）
             size0[s] = new double[active[s].Pops.Count];
@@ -105,45 +100,6 @@ public static class Territory
     /// 旗 MigrationEntryFriction が 0 のときは使わない（旧＝<see cref="MigrationDecay"/> を差に掛けた）。国内の移民だけ（越境は MigrationDecay のまま）。</summary>
     internal static double EntryFrictionTerm(double km, double worldTech, Coefficients c)
         => c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
-
-    /// <summary>★(748) 計器（読むだけ・<see cref="Instruments.On"/> のときだけ）：出る州 s の月の計画を、今の規則（旗に従う＝<paramref name="gap"/>・<paramref name="gMax"/>・<paramref name="wSum"/>）と
-    /// 旧の規則（生の差に <see cref="MigrationDecay"/> を掛ける）の両方で同じ盤面から数え、migform_s の積みへ足す。本体の配列は読むだけ＝旧の規則用の配列は別に持つ。
-    /// 数えるもの：生の差が正の組・今の規則でも正の組・3,000 km 超の行き先への計画の人数（割合×<see cref="Movable"/>）と全行き先の計画の人数（今・旧の各々）。</summary>
-    private static void MigformTally(World w, double tech, Coefficients c, List<Region> active, int s, int[] classes, double[] raw, double[] km, double[] gap, double gMax, double wSum)
-    {
-        int k = active.Count; long rawPos = 0, livePos = 0;
-        double oldMax = 0, oldSum = 0;
-        var old = new double[k];
-        for (int d = 0; d < k; d++)
-        {
-            if (!(raw[d] > 0)) continue;
-            rawPos++;
-            if (gap[d] > 0) livePos++;
-            double go = raw[d] * MigrationDecay(km[d], tech, c);
-            if (!(go > 0)) continue;
-            old[d] = go; oldSum += go;
-            if (go > oldMax) oldMax = go;
-        }
-        double liveFrac = wSum > 0 ? PoliticalQuantities.ClampOr(c.RegionMobility * gMax, 0, MaxMigrationFraction, 0.0) : 0.0;
-        double oldFrac = oldSum > 0 ? PoliticalQuantities.ClampOr(c.RegionMobility * oldMax, 0, MaxMigrationFraction, 0.0) : 0.0;
-        double liveFar = 0, liveAll = 0, oldFar = 0, oldAll = 0;
-        for (int d = 0; d < k; d++)
-        {
-            if (!(raw[d] > 0)) continue;
-            bool far = km[d] > 3000.0;
-            if (gap[d] > 0)
-            {
-                double pl = liveFrac * (gap[d] / wSum) * Movable(active[s], classes[d]);
-                liveAll += pl; if (far) liveFar += pl;
-            }
-            if (old[d] > 0)
-            {
-                double po = oldFrac * (old[d] / oldSum) * Movable(active[s], classes[d]);
-                oldAll += po; if (far) oldFar += po;
-            }
-        }
-        Instruments.MigformObserve(w, rawPos, livePos, liveFar, liveAll, oldFar, oldAll);
-    }
 
     /// <summary>★(125)：src から行き先へ動ける人数＝閉鎖階級と兵士を除き、行き先に同じ階級（兵士を除く POP＝<paramref name="dstClasses"/> のビット）が居る POP の規模の和
     /// ＝<see cref="MoveRegion"/> が実際に動かす母集団（★(141)：行き先の階級は PopOf と同じ述語＝旧は兵士の POP も「居る」に数えた）。</summary>
