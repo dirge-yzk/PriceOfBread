@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # (718) python 
 import hol_common
 from hol_common import PL, dist, EXEMPT_OLD
 EXEMPT = EXEMPT_OLD   # (718) 実体は hol_common.py
-EXMODE, args = hol_common.take_ex(sys.argv[1:])   # (718) -ex old（既定・旧の名簿）｜rule（規則の版）
+EXMODE, args = hol_common.take_ex(sys.argv[1:])   # (722) -ex rule（既定・規則の版）｜old（旧の名簿・(718) の前の既定）
 pairs = [(args[i], args[i + 1]) for i in range(0, len(args), 2)]
 TOT = collections.Counter()
 for label, d in pairs:
@@ -32,7 +32,7 @@ for label, d in pairs:
                                fl(v[H['crossBorderOutKPerQuarter']]) - fl(v[H['crossBorderInKPerQuarter']]),
                                fl(v[H['settlerOutKPerQuarter']]) - fl(v[H['settlerInKPerQuarter']])))
         for reg, rows in R.items():
-            exReg = hol_common.is_exempt(EXMODE, reg, hol_common.open_pop([r[4] for r in rows]))
+            exReg = hol_common.is_exempt(EXMODE, reg)   # (722) 規則の版の開幕の人口は world.json の popK
             pk = 0.0; pki = 0; best = (1.0, None, None)
             for i, r in enumerate(rows):
                 if r[4] > pk: pk = r[4]; pki = i

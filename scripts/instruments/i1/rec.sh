@@ -8,6 +8,6 @@ python $R/measurements/rev1_20261012_readers/l4w.py "$INS" > "$OUT/${ARM}_l4w.tx
 python $R/measurements/rev1_20261012_readers/supply_n.py "$INS" $N > "$OUT/${ARM}_supply.txt" 2>&1
 python $R/scripts/instruments/h6/an_h6.py $ARM="$INS" > "$OUT/${ARM}_h6.txt" 2>&1
 python $R/scripts/instruments/h6/binder_split.py "$INS" 6 40 > "$OUT/${ARM}_binder.txt" 2>&1
-python $R/scripts/instruments/hol/an_h2.py "$INS" -v4 > "$OUT/${ARM}_hollow.txt" 2>&1
+python $R/scripts/instruments/hol/an_h2.py "$INS" -v4 -ex old > "$OUT/${ARM}_hollow.txt" 2>&1
 mkdir -p "$OUT/${ARM}_d289" && python $R/scripts/instruments/d289/an_d289.py "$INS" "$OUT/${ARM}_d289" a b > /dev/null 2>&1
 echo REC_DONE $ARM
