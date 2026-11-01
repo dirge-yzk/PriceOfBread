@@ -4,7 +4,7 @@
 System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-// 引数の数値パースは投げない：タイプミスや不正入力で診断CLIが生スタックトレースで落ちず既定へフォールバック（chronicle/integration 等の TryParse コマンドと挙動統一）。
+// 引数の数値パースは投げない：タイプミスや不正入力で診断CLIが生スタックトレースで落ちず既定へフォールバック（chronicle 等の TryParse コマンドと挙動統一）。
 static int ArgInt(string[] a, int i, int def) => a.Length > i && int.TryParse(a[i], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : def;
 static ulong ArgUlong(string[] a, int i, ulong def) => a.Length > i && ulong.TryParse(a[i], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : def;
 static double? ArgDouble(string[] a, int i, double? def) => a.Length > i && double.TryParse(a[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : def;
@@ -33,7 +33,7 @@ static string JpPad(string s, int width)
     return s + new string(' ', System.Math.Max(0, width - w));
 }
 
-// 政体名の和訳（chronicle/explain/integration が共有する1本＝重複定義をしない）。
+// 政体名の和訳（chronicle/explain が共有する1本＝重複定義をしない）。
 static string PolJa(Polity p) => p switch
 {
     Polity.Absolutist => "絶対君主制", Polity.Despotic => "専制君主制", Polity.ConstitutionalMonarchy => "立憲君主制",
@@ -2040,13 +2040,6 @@ if (args.Length > 0 && args[0] == "poweraff")
 // 【削除2026-09-26（棚卸し pol-09）】powershares（権力の取り分の表モデル＝階級×機関の表・取り分・軍政の判定の観測）＝表モデルごと削除。
 //   同じ問いの現行の計器は poweraff（PowerAffinity＝正統性の按分・軍の独占）。旧い計器は `git show b7fd1c8:PriceOfBread.Runner/Program.cs` にある。
 
-// === 初期整合の検算： dotnet run -- initcheck [seed] ===
-// ★作者裁定2026-08-21（初期整合パス「これは作る」）の**第1段＝検算と警告**。
-//   ⚠「手置きの限界」の正体＝結果（識字・国債・特権）だけを置いて、それを支える在庫（教育供給・受益・政治力）を置いていないこと。
-//   ★EducationFill は**フロー**（毎月0にリセット→購入で埋め直し）なので「初期値を合わせる」対処は存在しない＝
-//     支えの実体は**教育市場の供給力**。⇒ 助走直後の実勢を測り、識字との差＝**支えの無い識字**（＝減衰で失われる分）を国別に警告する。
-//   ⚠第2段（支えの逆算配置＝教師POPの規模づけ等）は Pops.Count の罠（POP追加＝全世界の軌道が動く）があるため、
-//     この検算で不整合の大きさを見てから設計する（再較正級）。
 // === 初期値の抽出（読むだけ・標準の計器 (242)＝2026-10-09 に注入のパッチ measurements/init_20261009_initdump.diff で作り、2026-10-10 に本体へ入れた）： dotnet run -- initdump <出力TSV> [seed] ===
 // 開幕（構築直後＝StartWarmup の前）と助走の終わり（StartWarmup の直後）の2点で、国ごとの量を書き出す。
 if (args.Length > 0 && args[0] == "initdump")
