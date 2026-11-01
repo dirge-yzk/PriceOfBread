@@ -22,7 +22,10 @@ def table(path):
     with open(path, encoding='utf-8') as fh:
         head = fh.readline().rstrip('\n').split('\t')
         for line in fh:
-            yield dict(zip(head, line.rstrip('\n').split('\t')))
+            c = line.rstrip('\n').split('\t')
+            if len(c) != len(head):
+                continue   # 書きかけの行（走っている途中の表）は読まない
+            yield dict(zip(head, c))
 
 
 def region_rows(d, sd, reg):
