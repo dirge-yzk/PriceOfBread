@@ -766,77 +766,6 @@ if (args.Length > 0 && args[0] == "afforddump")
     return;
 }
 
-// === 診断：開幕時点の各国の軍と財政（案Bの較正用・2026-07-31）===
-if (args.Length > 0 && args[0] == "armydump")
-{
-    var ms0 = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    var co0 = new PriceOfBread.SimCore.Coefficients();
-    System.Console.WriteLine("国名,初期兵,定員,GDP,軍事費,GDP当たり必要係数");
-    foreach (var sim0 in ms0.Nations)
-    {
-        var w0 = sim0.World; double sol = w0.SoldierSizeK();
-        double head = PriceOfBread.SimCore.Military.EstablishmentOf(w0, co0, out _);   // ★(155) 定員（旧 (145)＝扶養限界の目標×軍拡の倍率）
-        double need = w0.GdpPerMonth.Value > 1e-9 && w0.MilitarySpending.Value > 1e-9 ? sol / (w0.MilitarySpending.Value * w0.GdpPerMonth).Value : 0;
-        System.Console.WriteLine($"{w0.SelfPower?.Name},{sol:F1},{head:F1},{w0.GdpPerMonth:F0},{w0.MilitarySpending:F2},{need:F6}");
-    }
-    return;
-}
-
-// === 診断（2026-08-02）：軍ゲージ Power.Military の年次推移： dotnet run -- powerdump [seed] ===
-// 作者の問い「日本14・ネーデルラント1・朝鮮7・オスマン1は本当に正しい？」に答えるための計器。
-// ⚠ゲージは兵士数そのものではない＝SoldierSizeK/SoldiersPerMilitary × 充足率 × 質（上位軍需・結束・軍国・技術）。
-//   初期兵（armydump）は英1125・普900・墺650・露500・西500・仏450・オスマン375・日300 で史実整合だが、
-//   ゲージは充足率と質で桁が動くので、**どの年でどう開くか**を見ないと妥当性を判断できない。
-if (args.Length > 0 && args[0] == "powerdump")
-{
-    ulong sd = args.Length > 1 && ulong.TryParse(args[1], out var s1) ? s1 : 1789UL;
-    var msP = new MultiNationSim(WorldData.Nations(), sd, _ => new UtilityAgent());
-    msP.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    string[] watch = ["イギリス", "フランス", "オスマン", "日本", "朝鮮", "ネーデルラント", "プロイセン", "オーストリア", "ロシア", "清", "アメリカ"];
-    bool detail = args.Contains("detail");
-    string[] deep = ["イギリス", "フランス", "日本", "清", "オスマン"];
-    var cD = new PriceOfBread.SimCore.Coefficients();
-    Console.WriteLine(detail ? "年,国,ゲージ,兵士,充足率,理想軍隊×充足率,装備質,結束,軍国,技術質" : "年," + string.Join(",", watch));
-    for (int y = 0; y <= 131; y++)
-    {
-        if (y % 10 == 0 || y == 131)
-        {
-            if (!detail)
-            {
-                var vals = watch.Select(n =>
-                {
-                    var p = msP.Diplomacy.Powers.Find(x => x.Name == n || x.BaseName == n);
-                    return p is null ? "—" : (p.Military * 100).ToString("F0");
-                });
-                Console.WriteLine($"{1783 + y}," + string.Join(",", vals));
-            }
-            else
-                foreach (var n in deep)
-                {
-                    var p = msP.Diplomacy.Powers.Find(x => x.Name == n || x.BaseName == n);
-                    if (p?.Nation is not { } nw) { Console.WriteLine($"{1783 + y},{n},—"); continue; }
-                    double coh = nw.EthnicEnabled ? 1 + cD.UnityMilitaryQuality * (nw.EthnicUnity - 0.5) : 1.0;
-                    double milB = 1.0 + (cD.MilitarismStrengthBonus - 1.0) * PoliticalQuantities.ArmyProfessionalism(nw);   // ★2026-08-18＝軍の練度（親軍法の撤去）
-                    double tq = cD.TechMultipliersOff > 0 ? 1.0 : cD.TechMilLowFloor + (1 - cD.TechMilLowFloor) * Math.Clamp(nw.TechLevel / cD.TechMilFullLevel, 0, 1);
-                    double eq = 1 + cD.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + cD.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill;
-                    double ideal = nw.SoldierSizeK() / cD.SoldiersPerMilitary;   // 理想軍隊＝兵士POP（艦隊ゲージの合算は 2026-10-11 (271) に削除）
-                    Console.WriteLine($"{1783 + y},{n},{p.Military * 100:F0},{nw.SoldierSizeK():F0},{nw.MilitaryReadiness:F2},{ideal * nw.MilitaryReadiness * 100:F0},{eq:F2},{coh:F2},{milB:F2},{tq:F2}");
-                }
-        }
-        for (int q = 0; q < 4; q++) msP.StepQuarter();
-    }
-    return;
-}
-
-// === 診断：構築直後のチョークポイントの実値（巨大建造物§4-1 のデータ移設が旧挙動と一致するかの検証用）===
-if (args.Length > 0 && args[0] == "cpdump")
-{
-    var d0 = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent()).Diplomacy;
-    foreach (var cp in d0.Chokepoints)
-        System.Console.WriteLine($"id={cp.Id} name={cp.Name} host={cp.Host} open={cp.IsOpen} canal={cp.IsCanal} buildCost={cp.BuildCost:R} techGate={cp.TechGate:R} basins={string.Join(",", cp.ServesBasins)}");
-    return;
-}
-
 // === 世界データの外部化：現C#設定から world.json を自動生成（一時dump・挙動同値の移行用）： dotnet run -- dumpworld <出力パス> ===
 // ⚠(248) 移行用の旧い道具：WorldData.Serialize は全ての欄を書く（DefaultIgnoreCondition.Never）＝(247) の「国は既定と違う値のキーだけを書く」形と合わない。
 //   書き出した world.json は読めば同じ挙動だが、番人 InitialDefaultsTests が数百件で赤になる＝そのまま置き換えない（既定と同じ値のキーを外してから使う）。
@@ -3118,36 +3047,6 @@ if (args.Length > 0 && args[0] == "trenchprobe")
         foreach (var w2 in simT3.Diplomacy.EndedWars)
             if (w2.EndYear >= lo && w2.EndYear <= hi) { cnt++; mo += w2.Months; dead += w2.DeadA + w2.DeadB; }
         Console.WriteLine($"  {name,-10} {cnt,4}件  平均 {(cnt > 0 ? mo / cnt : 0),6:F1}ヶ月  平均戦死 {(cnt > 0 ? dead / cnt : 0),8:F0}");
-    }
-    return;
-}
-
-// === 列強の顔ぶれの内訳： dotnet run -- rankprobe [seed] [四半期] ===
-// ⚠実測2026-08-12：1883年の列強に「ラオス・ヒヴァ・ダホメ王国」が入り、仏露普米が居なかった。
-// 国力スコア＝軍＋豊かさ＋金融＋技術。どの項が順位を作っているかを分解して出す（史実の列強も併記）。
-if (args.Length > 0 && args[0] == "rankprobe")
-{
-    ulong sdR = ArgUlong(args, 1, 1);
-    int qsR = ArgInt(args, 2, 400);
-    var simR2 = new MultiNationSim(WorldData.Nations(), sdR, _ => new UtilityAgent());
-    simR2.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    for (int q = 0; q < qsR; q++) simR2.StepQuarter();
-    var dipR = simR2.Diplomacy;
-    var rows = simR2.Nations.Select(n => n.World).Where(w => w.SelfPower is not null)
-        .Select(w => (W: w, S: NationalScore.Of(w), B: NationalScore.BreakdownOf(w)))   // ★(449) 内訳は NationalScore の 1 本
-        .OrderByDescending(x => x.S).ToList();
-    if (rows.Count == 0) { System.Console.WriteLine("国力の行が無い（実在の国が 0）"); return; }   // ★(456) 国が 0 の世界で rows[0] に落ちない
-    System.Console.WriteLine($"seed={sdR}　{simR2.Nations[0].World.Year}年　（列強の定員={simR2.Coef.GreatPowerCount}）");
-    System.Console.WriteLine($"{"順",3}{"国",-16}{"スコア",8}" + string.Join("", rows[0].B.Select(l => $"{l.Label,10}")) + $"{"GDP",10}{"工業化",7}{"満足",7}{"植民地",6}");
-    void Line(int rank, (World W, double S, NationalScore.ScoreLine[] B) x)
-        => System.Console.WriteLine($"{rank,3}{x.W.SelfPower!.Name,-16}{x.S,8:F1}" + string.Join("", x.B.Select(l => $"{l.Points,10:F1}"))
-            + $"{x.W.GdpPerMonth,10:F0}{x.W.MeanIndustrialization,7:F2}{NationalScore.MeanSatisfaction(x.W),7:F2}{x.W.SelfPower!.Colonies,6}");
-    for (int i = 0; i < Math.Min(12, rows.Count); i++) Line(i + 1, rows[i]);
-    System.Console.WriteLine("--- 史実の列強（1914年の8カ国）---");
-    foreach (var nm in new[] { "イギリス", "フランス", "ロシア", "プロイセン", "オーストリア", "アメリカ", "日本", "イタリア" })
-    {
-        int ix = rows.FindIndex(x => x.W.SelfPower!.Name == nm);
-        if (ix >= 0 && ix >= 12) Line(ix + 1, rows[ix]);
     }
     return;
 }
@@ -6242,38 +6141,6 @@ if (args.Length > 0 && args[0] == "clergydbg")
         if (q % 40 == 0) Console.WriteLine($"Q{q}	教育法={csim.World.EducationLaw}	目標={csim.World.Policy.EducationLaw}	識字≈{csim.World.Elite:F2}	国庫={csim.World.Treasury:N0}");
     }
     Console.WriteLine($"最終: {csim.World.EducationLaw} 目標 {csim.World.Policy.EducationLaw}");
-    return;
-}
-
-// === 国力スコアの分解： dotnet run -- scorebreak [シード] ===
-// 列強・再現率の診断（2026-08-04）：1914年断面で上位国＋史実列強の国力を項別に分解＝どの項が偽の列強を立てているか。
-if (args.Length > 0 && args[0] == "scorebreak")
-{
-    ulong sbSeed = args.Length > 1 && ulong.TryParse(args[1], out var sbs) ? sbs : 1UL;
-    var sbsim = new MultiNationSim(WorldData.Nations(), sbSeed, _ => new UtilityAgent());
-    sbsim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    foreach (var ns in sbsim.Nations) ns.TelemetryEnabled = false;
-    sbsim.Diplomacy.Log.Enabled = false;
-    while (sbsim.Year < 1914) sbsim.StepQuarter();
-    var rows = new List<(string Name, double Total, NationalScore.ScoreLine[] B)>();
-    var sbWs = sbsim.Nations.Count > 0 ? NationalScore.NationWorldsOf(sbsim.Nations[0].World) : [];   // ★(456) 総量の集合は外交のランクと同じ（国が 0 の世界でも落ちない）   // ★(449) 内訳は NationalScore.Breakdowns の 1 本（全国分を 1 回で）
-    var sbSc = NationalScore.Scores(sbWs); var sbBd = NationalScore.Breakdowns(sbWs);
-    for (int ix = 0; ix < sbWs.Count; ix++)
-    {
-        var sp = sbWs[ix].SelfPower; if (sp is null) continue;
-        rows.Add((sp.BaseName, sbSc[ix], sbBd[ix]));
-    }
-    rows.Sort((a, b) => b.Total.CompareTo(a.Total));
-    if (rows.Count == 0) { Console.WriteLine("国力の行が無い（実在の国が 0）"); return; }   // ★(456) 国が 0 の世界で rows[0] に落ちない
-    Console.WriteLine("順位	国	合計	" + string.Join("	", rows[0].B.Select(l => l.Label)));
-    int rank = 0;
-    var refs = new HashSet<string> { "イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "オーストリア", "日本", "オスマン", "清" };
-    foreach (var r in rows)
-    {
-        rank++;
-        if (rank <= 12 || refs.Contains(r.Name))
-            Console.WriteLine($"{rank}	{r.Name}	{r.Total:F1}	" + string.Join("	", r.B.Select(l => $"{l.Points:F1}")));
-    }
     return;
 }
 
