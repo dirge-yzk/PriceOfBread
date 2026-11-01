@@ -7,6 +7,10 @@ from concurrent.futures import ThreadPoolExecutor
 sys.stdout.reconfigure(encoding='utf-8')
 csv.field_size_limit(1 << 26)
 
+def J(*a):   # パスは / で揃える（bash に渡す物が円記号で壊れない）
+    return os.path.normpath(os.path.join(*a)).replace(chr(92), '/')
+
+
 OUT = []        # 報告の行
 FAILS = []      # 不一致の理由
 MISSING = []    # 未了の理由
@@ -179,12 +183,12 @@ def cmp_ins(new, base, known, removed, added, grown):
         miss('計器の出力フォルダが無い'); return
     if not os.path.isdir(base):
         miss(f'基準の生が無い（{base}）＝計器の表は突き合わせられない'); return
-    fa = sorted(x for x in os.listdir(base) if os.path.isfile(os.path.join(base, x)))
-    fb = sorted(x for x in os.listdir(new) if os.path.isfile(os.path.join(new, x)))
+    fa = sorted(x for x in os.listdir(base) if os.path.isfile(J(base, x)))
+    fb = sorted(x for x in os.listdir(new) if os.path.isfile(J(new, x)))
     sb, sa = set(fb), set(fa)
 
     def pair(f):
-        pa, pb = os.path.join(base, f), os.path.join(new, f)
+        pa, pb = J(base, f), J(new, f)
         if os.path.getsize(pa) == os.path.getsize(pb) and sha(pa) == sha(pb):
             return f, 'same'
         return f, 'diff'
@@ -202,7 +206,7 @@ def cmp_ins(new, base, known, removed, added, grown):
     for f in diffs:
         if not f.endswith('.tsv'):
             real.append((f, ['NONTSV'])); continue
-        d, extra = cols_diff(os.path.join(base, f), os.path.join(new, f))
+        d, extra = cols_diff(J(base, f), J(new, f))
         if extra:
             if pref(f, grown):
                 grown_hit.append((f, extra))
@@ -259,16 +263,18 @@ def cmp_mon(new, base):
 
 
 # ---------- 5 テストの数 ----------
+def count_listed(p):   # --list-tests の出力の、テスト名の行（先頭が空白 4 つ）の数
+    if not os.path.exists(p):
+        return -1
+    return sum(1 for l in open(p, encoding='utf-8', errors='replace') if re.match(r'^ {4}\S', l))
+
+
 def cmp_tests(W, cfg, delta):
     say('[テストの数] --list-tests')
-    p = os.path.join(W, 'tests_count.txt')
-    if not os.path.exists(p):
-        miss('テストの数の出力が無い'); return
-    d = dict(l.split() for l in open(p, encoding='utf-8').read().split('\n') if l.strip())
-    nf, fu = int(d.get('nonfull', -1)), int(d.get('full', -1))
+    nf, fu = count_listed(J(W, 'tests_list_nonfull.txt')), count_listed(J(W, 'tests_list_full.txt'))
     bn, bf = int(cfg['TESTS_NONFULL']), int(cfg['TESTS_FULL'])
-    if nf <= 0:
-        miss('Category!=FullLength の数が読めない（出力の形を確かめる）'); return
+    if nf <= 0 or fu < 0:
+        miss('テストの数の出力が無いか読めない'); return
     if nf == bn + delta and fu == bf:
         ok(f'Category!=FullLength {nf}（基準 {bn}' + (f'{delta:+d} を宣言' if delta else '') + f'）・FullLength {fu}（基準 {bf}）')
     else:
@@ -278,7 +284,7 @@ def cmp_tests(W, cfg, delta):
 # ---------- 6 savetest と leakhunt ----------
 def cmp_saveleak(W):
     say('[savetest と leakhunt]')
-    s, l = os.path.join(W, 'savetest.txt'), os.path.join(W, 'leakhunt.txt')
+    s, l = J(W, 'savetest.txt'), J(W, 'leakhunt.txt')
     if not (os.path.exists(s) and os.path.exists(l)):
         miss('savetest か leakhunt の出力が無い'); return
     ts, tl = open(s, encoding='utf-8', errors='replace').read(), open(l, encoding='utf-8', errors='replace').read()
@@ -295,14 +301,14 @@ def cmp_saveleak(W):
 # ---------- 7 NG の集合（任意） ----------
 def run_ng(W, cfg, root):   # root＝基準のフォルダの根
     say('[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）')
-    ins = os.path.join(W, 'out_ib_10', 'ins')
+    ins = J(W, 'out_ib_10', 'ins')
     outd = W + '/ng'
     base = cfg.get('NG_BASE', '')
     if base.startswith('rd:') and not re.match(r'^rd:([a-zA-Z]:|/)', base):
-        base = 'rd:' + os.path.join(root, base[3:]).replace(chr(92), '/')
+        base = 'rd:' + J(root, base[3:]).replace(chr(92), '/')
     if not os.path.isdir(ins) or not base:
         miss('NG：計器の出力か基準が無い'); return
-    r = subprocess.run(['bash', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'ng.sh'), ins, 'ident', outd, base],
+    r = subprocess.run(['bash', J(os.path.dirname(os.path.abspath(__file__)), '..', 'ng.sh'), ins, 'ident', outd, base],
                        capture_output=True, text=True, encoding='utf-8', errors='replace', env={**os.environ, 'PYTHONUTF8': '1'})
     txt = r.stdout
     m1 = re.search(r'＝NG (\d+)／比べる .*＝NG (\d+)', txt)
@@ -340,13 +346,13 @@ def norm(p):   # MSYS の /d/… も Windows の D:\… も D:/… に揃える
 def main():
     a = parse_args(sys.argv[1:])
     root = norm(a['root'])
-    cfgp = a['cfg'] or os.path.join(root, 'scripts', 'instruments', 'ident', 'ident.cfg')
+    cfgp = a['cfg'] or J(root, 'scripts', 'instruments', 'ident', 'ident.cfg')
     cfg = load_cfg(cfgp)
     W = norm(a['work'] or f'/d/PoB_work/ident_{a["label"]}')
-    arms_p = os.path.join(W, 'marks', 'arms.txt')
+    arms_p = J(W, 'marks', 'arms.txt')
     arms = open(arms_p, encoding='utf-8').read().split() if os.path.exists(arms_p) else ['a', 'b', 't']
     known = set(cfg.get('KNOWN', '').split(',')) | set(a['known_extra'])
-    base = lambda k: cfg[k] if os.path.isabs(cfg[k]) or re.match(r'^[a-zA-Z]:', cfg[k]) else os.path.join(root, cfg[k])
+    base = lambda k: cfg[k] if os.path.isabs(cfg[k]) or re.match(r'^[a-zA-Z]:', cfg[k]) else J(root, cfg[k])
     say(f'=== 恒等の証明 {a["label"]}（{datetime.datetime.now():%F %T}）===')
     tree = norm(a['tree'] or root)
     say(f'測った木：{tree}（HEAD {sh_out(["git", "-C", tree, "rev-parse", "--short", "HEAD"])}・未コミット {len(sh_out(["git", "-C", tree, "status", "--porcelain"]).splitlines())} 本）')
@@ -354,10 +360,10 @@ def main():
     say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'known_extra', 'cost_allow') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
     for ar in ('a', 'b', 't', 's'):
         if ar in arms:
-            dp = os.path.join(W, 'marks', ar + '.done')
+            dp = J(W, 'marks', ar + '.done')
             say(f'腕 {ar}：{open(dp).read().strip() if os.path.exists(dp) else "印なし（走っていないか途中）"}')
     say()
-    pa, pb = os.path.join(W, 'b5_ia_5.txt'), os.path.join(W, 'b10_ib_10.txt')
+    pa, pb = J(W, 'b5_ia_5.txt'), J(W, 'b10_ib_10.txt')
     if 'a' in arms:
         say('SOURCE-HASH（素の 5 種）' + first_line(pa + '.manifest', 'SOURCE-HASH'))
         cmp_report('素の 5 種', pa, base('B5'))
@@ -366,8 +372,8 @@ def main():
         say('SOURCE-HASH（計器つき 10 種）' + first_line(pb + '.manifest', 'SOURCE-HASH'))
         cmp_report('計器つき 10 種', pb, base('B10INS'))
         cmp_cost('計器つき 10 種の .cost', pb + '.cost', base('B10INS') + '.cost', a['cost_allow'])
-        cmp_ins(os.path.join(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'])
-        cmp_mon(os.path.join(W, 'mon_ib_10.txt'), base('MON'))
+        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'])
+        cmp_mon(J(W, 'mon_ib_10.txt'), base('MON'))
         if a['ng']:
             run_ng(W, {**cfg}, root)
     if 't' in arms:
@@ -386,16 +392,16 @@ def main():
             say('  - ' + m)
     say(f'判定: {verdict}')
     if a['save']:
-        d, mdir = a['save'], os.path.join(root, 'measurements')
+        d, mdir = a['save'], J(root, 'measurements')
         lab = a['label']
         for src, dst in ((pa, f'b5_{d}_{lab}'), (pb, f'b10_{d}_{lab}_ins')):
             for suf in ('', '.manifest', '.cost'):
                 if os.path.exists(src + suf):
-                    shutil.copyfile(src + suf, os.path.join(mdir, dst + suf))
-        mp = os.path.join(W, 'mon_ib_10.txt')
+                    shutil.copyfile(src + suf, J(mdir, dst + suf))
+        mp = J(W, 'mon_ib_10.txt')
         if os.path.exists(mp):
-            shutil.copyfile(mp, os.path.join(mdir, f'mon_{d}_{lab}.txt'))
-        with open(os.path.join(mdir, f'ident_{d}_{lab}.txt'), 'wb') as o:
+            shutil.copyfile(mp, J(mdir, f'mon_{d}_{lab}.txt'))
+        with open(J(mdir, f'ident_{d}_{lab}.txt'), 'wb') as o:
             o.write(('\n'.join(OUT) + '\n').encode('utf-8'))
         print(f'成績表・マニフェスト・.cost・注視の表・この報告を {mdir} に残した（{d}_{lab}）')
     sys.exit({'恒等': 0, '不一致': 1, '未了': 2}[verdict])

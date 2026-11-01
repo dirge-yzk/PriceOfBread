@@ -24,7 +24,7 @@
 # 終了コード：0＝恒等・1＝不一致・2＝走りが足りない（出力が無い）。最後の行が  判定: 恒等  か  判定: 不一致  か  判定: 未了。
 export PYTHONUTF8=1 AVALONIA_TELEMETRY_OPTOUT=1
 export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/Program Files/dotnet:$PATH"
-SP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"      # scripts/instruments/ident
+SP="${IDENT_SP:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"      # scripts/instruments/ident（実行中に台本を書き換えられても壊れないよう、start／run は台本を作業フォルダへ写してそれを走らせる＝写しからは IDENT_SP で元の場所を渡す）
 IS="$(cd "$SP/.." && pwd)"                               # scripts/instruments
 ROOT="$(cd "$SP/../../.." && pwd)"                       # この台本のある木
 CMD="${1:-}"; LABEL="${2:-}"
@@ -41,11 +41,9 @@ case "$CMD" in
       t) bash "$IS/batch.sh" prep it "dir:$TREE" plain && {
            T="$W/src_it"
            dotnet build "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --artifacts-path "$W/art_it" --disable-build-servers > "$W/tests_build.txt" 2>&1 || exit 1
-           for f in "Category!=FullLength:nonfull" "Category=FullLength:full"; do
+           for f in "Category!=FullLength:nonfull" "Category=FullLength:full"; do   # 数えるのは ident_check.py（出力の tests_list_*.txt の 4 空白で始まる行）
              dotnet test "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --no-build --artifacts-path "$W/art_it" --list-tests --filter "${f%%:*}" > "$W/tests_list_${f##*:}.txt" 2>&1
-             echo "${f##*:} $(awk '/The following Tests are available|次のテストを利用できます/{on=1;next} on && /^    [^ ]/{n++} END{print n+0}' "$W/tests_list_${f##*:}.txt")" >> "$W/tests_count.txt.tmp"
            done
-           mv "$W/tests_count.txt.tmp" "$W/tests_count.txt"
          } ;;
       s) POB_WORK="$W" SAVELEAK_SRC="$TREE" bash "$IS/saveleak.sh" ;;
     esac
@@ -63,11 +61,12 @@ case "$CMD" in
     ARMS="a"; [ $NOINS = 0 ] && ARMS="$ARMS b"; [ $NOTESTS = 0 ] && ARMS="$ARMS t"; [ $SAVELEAK = 1 ] && ARMS="$ARMS s"
     echo "ident start：ラベル=$LABEL 木=$TREE 作業=$W 腕=[$ARMS] 開始=$(date '+%F %T')"
     echo "$ARMS" > "$W/marks/arms.txt"
-    printf '%s\n' $ARMS | xargs -P 4 -I{} bash "$SP/ident.sh" _arm {} "$LABEL" "$TREE" "$W" "" > "$W/marks/start.log" 2>&1
+    cp "$SP/ident.sh" "$W/ident_run.sh"; export IDENT_SP="$SP"   # 走っている最中に元の台本が書き換えられても、この走りは写しを読む
+    printf '%s\n' $ARMS | xargs -P 4 -I{} bash "$W/ident_run.sh" _arm {} "$LABEL" "$TREE" "$W" "" > "$W/marks/start.log" 2>&1
     echo "rc=0 end=$(date '+%F %T')" > "$W/marks/all.done"
     echo "ident start：腕は全て終わった（$(ls "$W/marks" | grep -c '\.done$') 印）"
     if [ "$CMD" = run ]; then
-      exec bash "$SP/ident.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
+      exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
     fi ;;
   check)
     exec python -I "$SP/ident_check.py" "$LABEL" --root "$ROOT" "$@" ;;
