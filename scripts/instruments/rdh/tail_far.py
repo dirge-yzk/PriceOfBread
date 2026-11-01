@@ -14,7 +14,7 @@ for sd, reg, nat, tier, y0, y1 in ev:
     tot = far = 0.0
     for line in open(os.path.join(d, f'migration_s{sd}.tsv'), encoding='utf-8'):
         c = line.rstrip('\n').split('\t')
-        if len(c) != 4 or c[1] != reg or not c[0].isdigit(): continue
+        if len(c) < 4 or c[1] != reg or not c[0].isdigit(): continue
         y = 1783 + int(c[0]) // 4
         if not (y0 <= y <= y1): continue
         v = float(c[3]); tot += v

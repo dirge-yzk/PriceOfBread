@@ -19,7 +19,7 @@ for sd in seeds:
     T = tot = far = 0.0
     for ln in open(os.path.join(d, f'migration_s{sd}.tsv'), encoding='utf-8'):
         c = ln.rstrip('\n').split('\t')
-        if len(c) != 4 or not c[0].isdigit(): continue
+        if len(c) < 4 or not c[0].isdigit(): continue   # (749) c3rt の後は migration_s が 5 列（末尾 routeKm）
         v = float(c[3]); km = hol_common.dist(c[1], c[2])
         if km != km: continue
         tot += v

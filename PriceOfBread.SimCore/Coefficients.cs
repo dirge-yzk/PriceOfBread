@@ -927,7 +927,7 @@ public sealed class Coefficients
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
     // 【墓標2026-10-01 (141)】MigrationSecondDestShare（0.3＝州間移民の第2目的地への分岐率・監査2026-07-05 D2）＝行き先は機会の差の比で全ての州へ（越境移民と同じ規則・Territory.Step）。
     public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本／★(748) 旗 MigrationEntryFriction が正の国内の移民は距離の項も同じ摩擦に掛けて差から引く）
-    public double MigrationEntryFriction = 1.0;     // 【線の枝 c3h1 の既定1・main へは0で合流】★(748) 国内の移民の入口の形：0＝旧（差に乗算の減衰 MigrationDecay）・正＝差から摩擦×km÷(MigrationDistanceScale×EraFactor) を引き乗算の減衰は掛けない（距離が止まる位置を動かす）。旗は有無だけ読む（大きさは使わない）。越境は式を変えない
+    public double MigrationEntryFriction = 1.0;     // ★(749) 合流で採った既定 1・(748) 国内の移民の入口の形：0＝旧（差に乗算の減衰 MigrationDecay）・正＝差から摩擦×km÷(MigrationDistanceScale×EraFactor) を引き乗算の減衰は掛けない（距離が止まる位置を動かす）。旗は有無だけ読む（1 以外の正の値も 1 と同じ・大きさは使わない）。越境は式を変えない
     // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。移民（国家間移民）で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
     // ★段2で削除（設計メモ §7-3）：UnityMilitancyRelief（上昇鈍化）と UnitySecessionMilitancy（国項）。
     //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**＝同じ民族統一度を闘争度の中で3度読んでいた

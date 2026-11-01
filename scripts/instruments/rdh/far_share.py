@@ -9,7 +9,7 @@ for sd in seeds:
     tot = far = vfar = 0.0
     for line in open(os.path.join(d, f'migration_s{sd}.tsv'), encoding='utf-8'):
         c = line.rstrip('\n').split('\t')
-        if len(c) != 4 or not c[0].isdigit():
+        if len(c) < 4 or not c[0].isdigit():   # (749) c3rt の後は 5 列
             continue
         v = float(c[3]); km = hol_common.dist(c[1], c[2])
         if km != km:
