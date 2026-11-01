@@ -13,7 +13,10 @@
 /// 貿易（清算1回分の輸出と輸入）。史実比較の桁の読み手（NG の読み手の入力 11 種）の入力＝旧の注入（scripts/instruments の inj_*.py）の代わり。</item>
 /// <item><c>flow_s&lt;seed&gt;.tsv</c> ★(262) 貯蓄の書き手の台帳（挙げた国だけ・四半期ごと・階級×書き手の種類×呼び出しの位置×相手の側の月平均の額と件数）。階級の貯蓄の増減が書き手の和に閉じる。</item>
 /// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足・★(323) 窃盗の列（<c>theftPoolPerMonth</c>＝州のその四半期の盗まれた額の月平均・<c>theftRecipientsEarnedPerMonth</c>＝受け手〔困窮大衆〕の前の月の所得の月平均・<c>earnedPerMonth</c>＝州の全 POP の前の月の所得の和〔四半期の末〕）。
-/// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
+/// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。
+/// ★(746) 末尾に <c>routeKm</c>（その組の経路の実の km＝<see cref="RouteKm"/> の表・貿易の PairKm と同じ比較で選んだ経路）。
+/// <c>xmig_s&lt;seed&gt;.tsv</c> ★(746) 越境の移民の組（出る州→入る州×四半期・<c>fromNation</c>／<c>toNation</c> は四半期の末の持ち主・<c>movedKPerQuarter</c> は求めた流量〔region_s の越境の列と同じ定義〕・<c>greatCircleKm</c>・<c>routeKm</c>）。
+/// ⚠限界：四半期の断面（月の流れは足した和）・経路の港の選び方は貿易と違う静的な規則（<see cref="RouteKm"/> の注）・地形と鉄道は含めない。</item>
 /// <item><c>opium_s&lt;seed&gt;.tsv</c> ★(342) アヘンの表（<c>scope</c> 列で2種類の行）：<c>R</c>＝州×四半期（中毒度・販売量・闇栽培の係数のどれかが動いている州だけ）・<c>N</c>＝国×四半期（禁令・輸出入・緊張の積みのどれかが有る国だけ）。読み手 <c>scripts/instruments/op/an_op.py</c>。列は <see cref="OpiumRows"/> の注。</item>
 /// <item><c>ce_s&lt;seed&gt;.tsv</c> ★(345) 消費の入口 段A：予算の3層の材料（<c>scope</c> 列で2種類の行）：<c>C</c>＝国×四半期×階級（挙げた国は毎四半期・他の国は年末の7階級）の月の和を月数で割った額＝使える所得（前の月の確定した所得）・月初の貯蓄と消費の予算・食料／日用品／奢侈品／役務その他の籠の費用（欲しい量×買い手の値段）と予算で切った後の需要と実際の支払い・所得を超えた支払い（貯蓄の取り崩し）・余り（所得−食料の籠−日用品の籠）ほか。<c>N</c>＝国×窓（40四半期）×財の必需の割合の影（導いた値を書くだけ＝力学は読まない・読み手は <c>an_ce.py</c> の N 行の表）。読み手 <c>scripts/instruments/ce/an_ce.py</c>。列は <see cref="CeColNames"/> の注。</item>
 /// <item><c>pop_s&lt;seed&gt;.tsv</c> ★(361) 人口の作り替え 段A・B（<c>scope</c> 列で2種類の行・実装は <c>InstrumentsPop.cs</c>）：<c>N</c>＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）の粗出生・粗死亡（平常・飢え・疫病ほか・戦死は別）・層別（10歳刻み8本）の死と死の率・10歳までの生存・60歳以後の余命・合計出生率の代理・回復期（平常の死が0の月）の数・子の価値 <c>v</c>（ψ＝0）とその項（稼ぎ・費用・老後の扶養）・結婚の割合 <c>m</c> と制限 <c>c</c> と合計出生率の影・影の出生。<c>C</c>＝国×四半期×階級（挙げた国は全階級・他は年末の7階級）の影の項。籠は <c>ce_s</c> の積算を読む。読み手 <c>scripts/instruments/pop/an_pop.py</c>。新しい数（θ・m_max・合計出生率7.5）は計器の const＝力学の係数ではない。</item>
@@ -227,6 +230,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Cap; public bool CapHeader; public System.IO.StreamWriter? Ide; public bool IdeHeader;   // (390) 工場の能力の内訳の表・思想の割合の表（国×四半期）
         public System.IO.StreamWriter? Sec; public bool SecHeader;                         // (395) 州の分離の内訳の表（国×四半期×州）
         public System.IO.StreamWriter? UrxRt; public bool UrxRtHeader;   // (697) 往復の表 urxrt_s
+        public System.IO.StreamWriter? Xmig; public bool XmigHeader;                        // (746) 越境の移民の組の表 xmig_s（出る州→入る州×四半期）
         public System.IO.StreamWriter? Urx, UrxPdW; public bool UrxHeader, UrxPdHeader;   // (649) 都市と農村の規模の差の区間別の表 urx_s と PopDecision の駆動の表 urxpd_s
         public System.IO.StreamWriter? Inpf, Inpb; public bool InpHeader;                   // (657) 工場に投入が届かない原因の表 inpf_s・inpb_s（挙げた国・年末）
         public System.IO.StreamWriter? Epi; public bool EpiHeader;                         // (629) 疫病 1 件ごとの表 epi_s（全ての国・助走は書かない）
@@ -1884,6 +1888,7 @@ public static partial class Instruments
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.Ivf?.Dispose(); sk.Ivf = null;     // (536)
         sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
+        sk.Xmig?.Dispose(); sk.Xmig = null;   // (746)
         sk.Bur?.Dispose(); sk.Bur = null;   // (389)
         sk.Coup?.Dispose(); sk.Coup = null;   // (393)
         sk.Anc?.Dispose(); sk.Anc = null;   // (369)
@@ -1924,6 +1929,7 @@ public static partial class Instruments
         public double HabitSoldSum;   // ★(342) 州のアヘンの月ごとの販売量の和（四半期の末に opium_s へ書いて 0 へ戻す）
         public double TheftPoolSum, TheftRecipientsEarnedSum;   // ★(323) 四半期の月ごとの窃盗の額の和・その月の受け手（困窮大衆）の前の月の所得の和（Crime.Step の Transfer の直後・読むだけ）
         public Dictionary<Region, double>? MigrationTo;   // 出る州→入る州ごとの量（四半期の合計・州の間の移民だけ）
+        public Dictionary<Region, double>? CrossBorderTo; // ★(746) 出る州→入る州ごとの求めた流量（四半期の合計・越境の移民だけ・xmig_s の行）
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RegionFlow> Flows = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, double[]> SettlerOut = new();   // 入植で本国の pop から出た量（四半期の合計）＝出た pop が居る州の行に書く
@@ -1953,7 +1959,9 @@ public static partial class Instruments
     /// <summary>越境の移民（<c>MultiNationSim.MoveMigrants</c> の運搬の前・読むだけ）。★(257) 反証役 C1 低#4：足すのは**求めた流量 flow**＝実際に動いた量（Pop.Blend の戻り値 moved）ではない（旧の注入と同じ定義・moved が flow より小さい月は差が出る）。</summary>
     internal static void CrossBorder(Region src, Region dst, double flowK)
     {
-        FlowOf(src).CrossBorderOutK += flowK; FlowOf(dst).CrossBorderInK += flowK;
+        var f = FlowOf(src); f.CrossBorderOutK += flowK; FlowOf(dst).CrossBorderInK += flowK;
+        var to = f.CrossBorderTo ??= new();   // ★(746) 組ごとの量（xmig_s）。region_s の越境の列と同じ量を組に分けただけ
+        to[dst] = to.GetValueOrDefault(dst) + flowK;
     }
 
     /// <summary>州ごとの行（<c>region</c>＝全ての国の全ての州・四半期の末）と州の間の移民の組（<c>migration</c>＝出る州→入る州の量）。州の空洞化（F1 の線）の読み手 <c>scripts/instruments/hol/an_h2.py</c> が読む。
@@ -1963,14 +1971,25 @@ public static partial class Instruments
     {
         sk.Region ??= Open("region", seed);
         sk.Migration ??= Open("migration", seed);
+        sk.Xmig ??= Open("xmig", seed);   // (746)
         if (!sk.RegionHeader)
         {
             sk.Region.WriteLine("quarter\tyear\tnationIndex\tnation\tregion\ttier\tactiveFlag\tpopulationK\truralPopulationK\topportunityIndex\tholdingFactor\twageFactor\tlandFactor\temploymentShare\tpushFactor\thousingFactor\twagePremium\tarableLand\t"
                 + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tsettlerOutKPerQuarter\tsettlerInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare\t"
                 + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth\t" + RegionProdHeaderText);   // (697) 末尾へ州の生産の列を足す
-            sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter");
+            sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter\trouteKm");   // (746) 末尾に routeKm
             sk.RegionHeader = true;
         }
+        if (!sk.XmigHeader) { sk.Xmig.WriteLine("quarter\tfromRegion\ttoRegion\tfromNation\ttoNation\tmovedKPerQuarter\tgreatCircleKm\trouteKm"); sk.XmigHeader = true; }   // (746)
+        // ★(746) 経路の km（RouteKm・Geo.cs の末尾の静的な表）：貿易の PairKm と同じ比較で選んだ経路の実の km（運河の開閉はその国の通れるか・地形と鉄道は含めない）。表に無い州の名前は nan。
+        //   ⚠限界：港の選び方は貿易と違う（全ての国の港から陸路の最短を静的に選ぶ・貿易は同じ国の港を大圏の最短で選び四半期ごとに張り直す）・港は開幕の値で固定・同じ港の州どうしの海路は 0。
+        //   migration_s の運河の開閉は出る州の国のもの（州の間の移民は国内＝両端が同じ国）。xmig_s は両端の国が共に通れるときだけ開（BilateralMarket の suezOkN と同じ積）。
+        string RouteText(Region a, Region b, int cfg, Coefficients cf)
+        {
+            int ia = RouteKm.IndexOf(a.Name), ib = RouteKm.IndexOf(b.Name);
+            return ia < 0 || ib < 0 ? "nan" : F(RouteKm.Km(ia, ib, cfg, cf));
+        }
+        Dictionary<Region, (int Index, World W)>? ownerOf = null;   // 越境の移民の行き先の州の持ち主（四半期の末・初めて要るとき 1 度だけ作る）
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         int year = sim.Nations[0].World.Year;
         for (int i = 0; i < sim.Nations.Count; i++)
@@ -1997,8 +2016,28 @@ public static partial class Instruments
                     F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)) + "\t" + string.Join('\t', RegionProdRow(r).Select(F)));   // ★(323) 窃盗の列（四半期の月平均・窃盗の無い州は 0）・(697) 末尾に州の生産の列
                 if (f.MigrationTo is { } to)
                 {
-                    foreach (var kv in to) if (kv.Value > 0) sk.Migration.WriteLine(string.Join('\t', I(q), r.Name, kv.Key.Name, F(kv.Value)));
+                    int cfgW = RouteKm.CfgOf(w);
+                    foreach (var kv in to) if (kv.Value > 0) sk.Migration.WriteLine(string.Join('\t', I(q), r.Name, kv.Key.Name, F(kv.Value), RouteText(r, kv.Key, cfgW, c)));
                     to.Clear();
+                }
+                if (f.CrossBorderTo is { } xto)   // ★(746) 越境の移民の組（求めた流量・四半期の合計）
+                {
+                    if (ownerOf is null)
+                    {
+                        ownerOf = new();
+                        for (int oi = 0; oi < sim.Nations.Count; oi++) foreach (var orr in sim.Nations[oi].World.Regions) ownerOf[orr] = (oi, sim.Nations[oi].World);
+                    }
+                    int cfgS = RouteKm.CfgOf(w);
+                    var (sla, slo) = Places.Coord(r.Name);
+                    foreach (var kv in xto)
+                    {
+                        if (!(kv.Value > 0)) continue;
+                        bool known = ownerOf.TryGetValue(kv.Key, out var ow);
+                        var (dla, dlo) = Places.Coord(kv.Key.Name);
+                        sk.Xmig.WriteLine(string.Join('\t', I(q), r.Name, kv.Key.Name, nation, known ? NameOf(ow.W) : "(なし)", F(kv.Value), F(Geo.DistanceKm(sla, slo, dla, dlo)),
+                            RouteText(r, kv.Key, known ? cfgS & RouteKm.CfgOf(ow.W) : cfgS, c)));
+                    }
+                    xto.Clear();
                 }
                 f.MigrationOutK = f.MigrationInK = f.SettlerInK = f.CrossBorderOutK = f.CrossBorderInK = 0;   f.TheftPoolSum = f.TheftRecipientsEarnedSum = 0;
             }
