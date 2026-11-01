@@ -51,6 +51,15 @@ elif [ "$1" = run ]; then
   N=${3:-10}; SB=${4:-1}; TAG=${ARM}_$N; XARGS=""
   if [ "$SB" != "1" ]; then TAG=${ARM}_${N}_s$SB; XARGS="$N - 0 $SB"; fi
   O=$W/out_$TAG
+  # (728) 道具の段：①同時に走る腕の数の管理（満杯なら走らずに 3 で止まる＝tools/arms.sh）②INS=1 のとき計器の国の既定は 9 国（渡し忘れの型を消す・空を明示したら止まる）③同じ腕の名の計器の生を消す前に要約を残す（tools/keepsum.py）
+  bash $SP/tools/arms.sh acquire "$ARM" $$ || exit 3
+  trap 'bash $SP/tools/arms.sh release "$ARM" $$' EXIT
+  if [ -n "${INS:-}" ]; then
+    if [ -z "${POB_INSTRUMENTS_NATIONS+x}" ]; then export POB_INSTRUMENTS_NATIONS="清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ"; echo "INS=1：POB_INSTRUMENTS_NATIONS の既定（9 国）を使う"
+    elif [ -z "$POB_INSTRUMENTS_NATIONS" ] && [ "${INS_NO_NATIONS:-}" != "1" ]; then echo "INS=1 で POB_INSTRUMENTS_NATIONS が空＝止める（挙げた国の表が出ない。国なしで回すなら INS_NO_NATIONS=1）"; exit 2
+    fi
+  fi
+  if [ -d $O/ins ] && [ -n "$(ls -A $O/ins 2>/dev/null)" ]; then python -I $SP/tools/keepsum.py $O/ins $W/rawsum_${TAG}_prev.txt; fi
   rm -rf $O $W/snap_$TAG && mkdir -p $O/s3a $O/disc $O/navy $O/need $O/hist $O/cas $O/d165 $O/w171 $O/col $O/w176 $O/f181 $O/tier $O/need183 $O/sec183 $O/serf184 $O/g186 $O/nvy190 $O/mig $O/cnl $O/mob $O/nvq $O/pow $O/cap $O/l186 $O/c201 $O/fx205 $O/c206 $O/t203 $O/d204 $O/rv204 $O/s208
   (cd $REPO && git show 1a3c227:.pob-fidelity-baseline.tsv) > $W/fid_$TAG.tsv
   echo "START $(date +%T) selfplay-batch N=$N SRC=$SRC" > $W/ms_$TAG.log
