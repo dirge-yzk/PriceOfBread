@@ -1,0 +1,13 @@
+# (740) c2geo g-2 の静的な数え（腕の前・予言のコミット 00ac764c の後・使い捨ての木で数えた＝木と計器は残さない）
+# 数え方：ArcKm の旧（acos）と新（atan2）を同じ呼び出しで両方計算し、旧の経路と新の経路で BuildEdges を 2 回回して辺・辺の重み・LandMatrix を突き合わせた。
+nodes=419 edgesNew=1070 edgesOld=1070 onlyNew=0 onlyOld=0
+[1] wallSampleCalls=2899513 wallFlips=0 minRelMarginToLimit=6.169E-006 detourCalls=311 detourArgminFlips=1 detourPkmGtKmFlips=0
+[2] edgesWithWeightBitDiff=202 maxRelWeightDiff=1.279E-012 detourBestMaxRelDiff=1.279E-012
+[3] maxRel(ArcKmNew vs Geo)=2.264E-014 maxRel(ArcKmOld vs Geo)=3.157E-012
+[4] landMatrixElements=175561 changedBits=35769 maxRelChange=1.279E-012
+# 読み：
+#  ①壁の判定（サンプル 2,899,513 回）の反転 0・迂回の採否（pkm>km）の反転 0・辺の集合は旧新で同一（1070 本・片方だけの辺 0）＝予言 0 どおり。
+#    ただし迂回の経由点の最小の選び（km<best の選び）が 1 回だけ別の候補になった（2 つの候補の長さが 1e-12 内の同値＝辺の長さの差は下の②の範囲）。
+#  ②辺の重みの最大の相対の差 1.279E-12（予言 ≦1e-9 の内）。重みが 1 ビットでも変わった辺は 202 本（迂回の辺のみ）。
+#  ③新しい ArcKm と Geo.DistanceKm の最大の相対差 2.264E-14（予言 ≦1e-12 の内）・旧は 3.157E-12（予言の線 1e-12 の外＝旧の桁落ちが除かれた）。
+#  ④LandMatrix の要素 175,561 のうち 35,769 が 1 ビット以上変わる（最大の相対 1.279E-12）＝陸の距離を読む側は最後の桁で動く。軌道が変わるかは ident／腕 B で測る。
