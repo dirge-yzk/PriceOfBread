@@ -2667,8 +2667,8 @@ public sealed class Simulation
         // 初等識字（開始点まで）は出生率に効かない（実証準拠）＝無学な社会は従来の較正値のまま。
         // 倍率排除④：旧 WomenPropertyLaw?1:0.6 の2値を、賃金保持（連続）で 0.6→1.0 を補間（retention=0で0.6＝旧無法・retention=1で1.0＝旧有法）。
         double femaleLit = (litSum / pop) * TechEducation.MotherLiteracyRatio(c, World.WomenWageRetention);
-        // 1934拡張E6 女性教育権（★2026-08-10 以降は女性の権利の梯子の**教育権の段**）：女子教育が女性識字を底上げ（財産権の賃金保持とは別経路＝学校）。WomenEducationGate=0で不読＝恒等。
-        if (c.WomenEducationGate > 0 && World.WomenEducationLaw)
+        // 1934拡張E6 女性教育権（★2026-08-10 以降は女性の権利の梯子の**教育権の段**）：女子教育が女性識字を底上げ（財産権の賃金保持とは別経路＝学校）。（旧の旗 WomenEducationGate＝1.0 は (739) で焼き込み）。
+        if (World.WomenEducationLaw)
             femaleLit = Math.Min(litSum / pop, femaleLit * (1.0 + c.WomenEduLitBonus));
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。

@@ -47,7 +47,7 @@ public static class TechEducation
         double baseSpeed = w.WarmupFrozen ? 0 : LiteracyRate(w.EducationLaw);
         // 母の識字の比（家庭で伝わる割合 τ）＝人口動態の女性の識字の式と同じ（Simulation.DemographicStep の femaleLit÷平均識字）。
         double motherLit = MotherLiteracyRatio(c, w.WomenWageRetention);
-        if (c.WomenEducationGate > 0 && w.WomenEducationLaw) motherLit = Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
+        if (w.WomenEducationLaw) motherLit = Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
         if (baseSpeed > 0)
             foreach (var r in w.Regions)
             {
