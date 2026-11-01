@@ -1,0 +1,15 @@
+(751) 段0 の読み（波54・読むだけ・座標は 6e5932a9）の入れなかった候補と申し送り＝段0 の担当の報告の写し（合流 (757) が残す）。AI の推奨（作者の承認は未確認）。
+
+■ 区分 III の候補のうち入れなかった物と理由
+【距離 doc §4-3】2a・2b（経路の km を国内・越境の移民へ）＝波55・Territory.cs は c4bk の持ち物。2c＝入れた（c4pl）。g-2＝入れた（c4pl の旗 ArcKmAtan2・単独の線では〈狙いどおり〉の大きさの門が作れない）。2d RouteKmArmy（投射・分離の保持・法の到達・行政費・侵略の船・標的・補給線）＝7 系統にまたがる設計が要る＝次の波の距離の線。2e（発見の着値の km・Discovery.cs:440）・2f（海盆の内訳を辺の重みで・SeaGraph.cs）＝距離の枠は 1 本。2g D5（派閥の合流 800 km→陸グラフの隣接）・D4（疫病）・D3（近接の緊張）＝枠の外・D5 は〈隣接〉の定義の設計が要る。D2 条約港 6,000 km の置き換え＝属国の離反の不等式を属国化にも使う設計と予言の紙が無い。法の浸透 800 km＝2d の後。
+【天井床 doc §6-2】2-A 価格に似た挟みを柔らかい帯へ＝帯の端と否定形の設計が要る（Simulation.cs:1823・1827 は c4pl と同じファイル）。2-B＝入れた（c4cl・主食以外）。主食の挟みは (504) ② StapleDemandRebalance（既定 0）の持ち物。2-C 状態の天井（緊張 200 と物差し・OpiumAddictionCap・MutantCohesionFloor・ConcertRestraintMax・FinanceCap・SurvivalRatioCap・ForeignBondYieldRatioCap・HeatClampMax）＝doc の推奨の順で最後。2-D 0/1 の反転を比例へ（最後の貸し手・資本の不信・住居・飢饉の移住・派閥の戦い・落ちる段差・参政権・厭戦）＝根ごとに 1 本ずつ・飢饉の移住は移民のテーマ。分母の絶対値の床 6 か所（Credit.cs:65・World.cs:1666・SelfPlay.cs:2160・2436・MultiNationSim.cs:1145・Simulation.cs:2658）＝張り付く国×四半期の計器が先。
+【H16 の残り】資本逃避の 0.02 の束（Fiscal.cs:209・SelfPlay.cs:1114・CapitalMarket.cs:143）＝閾値を据え置くとヒンジの値が 1/12 に縮む＝予言が無い・12 で割れば bool の 2 か所は恒等でヒンジだけ非恒等＝1 テーマにならない。debtGrip＝入れた（c4dg）。
+【時間 doc §7 段2】T1 人が運ぶ記憶の世代化＝年齢の層の設計書の線。T2 時計の撤去＝置き換え先の設計が要る（FactionForgetQuarters は c3cf で削除済み）。T3 FrozenTensionDecayRate（Diplomacy.cs:3590・0.2）を一般の高緊張の枝へ＝keep_749 に凍った組の緊張と遺恨の計器が無い＝計器を区分 I で先に。T4 ManifestoCreditDecay＝半減期か平均寿命かは AI の選び＝確証なし。T5＝設計。T6 移住の速さを 1 本に＝c4bk と (752) の持ち物。T7＝枠の外。T8 耐用 4→17 年（TransportDecay 0.02→0.005）＝前提がソースと合わない（TransportDecay は資本・船員・修繕をまとめた率＝Coefficients.cs:3578・Transport.cs:170 の汽船の寿命の燃料と Discovery.cs:1000 の鉄道の必要性も動く）。T9＝他の線へ。
+【繰り返す不具合 §2′】A2 比の分母を台帳の恒等式へ（一般）＝この回は debtGrip だけ。A3 発見の門を連続の形へ＝設計が要る（dsc2 (725) が no-go）。A4 ① 助走で回す段を本番と同じに＝移民の段は Territory.cs・成績表が全部動く大きな線・〈初期値が先〉の順。
+【申し送り】hlp-5 の結合を割る（SummonParliamentRate・ParliamentPressureRate）＝新しい係数を作る＝作者の判断。越境の式を国内と同じ入口の形へ（pop-24）・(b1) 海と陸の尺＝移民のテーマ。〈近い流れを保つ〉下限の門＝次の移民の挙動の腕の物。
+
+■ 設計書と現物の食い違い（grep で再現した物）
+①天井床 doc の〈主食は (504) で既に外した〉＝誤り（StapleDemandRebalance＝0・Coefficients.cs:1134）。②天井床 doc 2-B の狙い〈安い工業製品の大量消費〉は紙では上の挟みが英の 3.4% しか縛らない＝効きの本体は下の挟み 0.4（英で重みの 28%）。③時間 doc T8〈同じ財が 17 年〉は倉庫の損耗と船員・修繕を含む時間の費用を同じ量と読んでいた。④Fiscal.cs:379 の〈debtGrip＝月次・触らない〉は AI の台帳の注で ParliamentGrip の注（年の比）と食い違う＝c4dg で直した。⑤距離 doc 2c の門〈港の付け替えが起きた州の数〉は紙で決まる（開幕 8 州）。
+
+■ 予言が 0（恒等）と読める物＝区分 I へ
+距離 doc 1-7 の畳み（B3 RecruitDistanceScale・B11 InlandPortDistanceDecay・B12 DistanceMarginScale→B1・B6 UpkeepDistanceGeneral・B7 InvadeShipDistanceScale→B5・B2 は線 tl 段6 の後・B8 は ces2 の後）。時間 doc 段1 の 1-2〜1-8 と時代係数 9 本。天井床 doc 段1（点火済みの旗の焼き込み・闘争度 0.5 の 4 本・緊張 40・ExchangeRateCreditFloor・関税の挟みの写し・Clamp01 と Pos と SOf）。H16 の bool の 2 か所（Fiscal.cs:209・SelfPlay.cs:1114）を Calendar.ToGdpYear と閾値÷12 へ（境の 1 ulp を除き一致＝〈測った種で一致〉）。T3 の前の計器 tdec_s。
