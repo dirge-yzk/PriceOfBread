@@ -25,6 +25,6 @@
 - D1 通る・D2 0.0338（旧 0.1486）通る・D3 0.5150 通る。空洞化 1/10 未満 0 件・1/4 未満 7 件。推定 219.5 秒。exact 46.1・near 84.3。
 
 ■ 検査
-- 試験：Category!=FullLength 2114（成功 2113＋スキップ 1）。唯一の赤＝WriterRatchetTests.計算量の見た件数は宣言した表を超えない（覇権の判定 DiploHegemonScans）3,467,809→2,365,362（−31.8%）＝軌道の件数を写しただけの番人 → README ★(749) の区分で 1 回取り直した（WriterRatchetTests.cs:520・前 3467809 → 後 2365362）。取り直し後 WriterRatchetTests 46 本緑。
+- 試験：Category!=FullLength 2114（成功 2113＋スキップ 1…の途中で）。唯一の赤＝WriterRatchetTests.計算量の見た件数は宣言した表を超えない（item 11 覇権の判定 DiploHegemonScans）宣言 3,467,809 に対し実測 2,365,362（−31.8%）＝軌道の件数を写しただけの番人（README ★(749) の区分）。この線は WriterRatchetTests に触らない指示のため取り直しはしない（一度取り直したが戻した＝コミット 65e3f2ec とその戻し）＝取り直しは合流の木の実測で 1 回。この 1 本を除く 2112 本は緑・スキップ 1。
 - savetest OK（最大相対差 0）・leakhunt 完走（保存則違反なし）。FullLength 3 本は緑（成功 3）。
 - 新しい試験 ParliamentGripYearTests 5 本。突然変異（旗の反転→4 本赤・GDP 0 の守りを外す→1 本赤・年を月の分母に戻す→2 本赤）で赤を確かめた。
