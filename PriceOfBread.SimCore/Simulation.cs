@@ -2011,7 +2011,8 @@ public sealed class Simulation
         //   ★(399) で旧の門（第6段6-8a の執行の飢餓＝行政効率÷LawEnforcementAdminGate）を物理削除した（先進方向〔短縮・禁止・保持確立〕の浸透だけが掛かる・緩和方向は即時＝規制撤廃に監督官は不要）。
         double enforce = Politics.StateReach(World, World.Coef);
         double hoursTarget = World.WorkHours.Hours();
-        World.WorkHoursValue += World.Coef.WorkHoursFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0) * (hoursTarget - World.WorkHoursValue);
+        World.WorkHoursValue += World.Coef.WomenRightsFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0) * (hoursTarget - World.WorkHoursValue);
+        // 法の浸透の速さ WomenRightsFollowSpeed（0.15）は労働時間・賃金保持・児童労働の 3 本の法で共有する（3 本とも同じ形・同じ月次）。
         // 賃金保持・児童労働合法度の連続追従（倍率排除④）：法は離散だが社会への浸透は連続（女性の賃金保持の確立／児童労働禁止の取締り）。
         World.WomenWageRetention += World.Coef.WomenRightsFollowSpeed * enforce * ((World.WomenPropertyLaw ? 1.0 : 0.0) - World.WomenWageRetention);
         // 第6段6-7：児童労働の再合法化（禁止→合法）は政治軸を持たない連続追従のため、ここで不可逆を判定＝戦時・断裂の窓のみ可（英1915軍需品法型）。
@@ -2020,7 +2021,7 @@ public sealed class Simulation
         // 交戦判定は国スコープ（州非依存）。毎州の再評価とラムダ・クロージャの確保を避け、ループ前に一度だけ算出して児童労働の不可逆判定・軍需調達・Military.Step で共用する。
         bool atWarNation = World.Diplomacy is { } dipN && World.SelfPower is { } spN && dipN.Wars.Any(war => war.A == spN || war.B == spN);
         if (!(World.Coef.IrreversibleLaws > 0 && childRegress && !atWarNation && World.RuptureWindowQuarters <= 0))
-            World.ChildLaborLegal += World.Coef.ChildLaborFollowSpeed * (childRegress ? 1.0 : enforce) * (childTarget - World.ChildLaborLegal);
+            World.ChildLaborLegal += World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce) * (childTarget - World.ChildLaborLegal);
         double colonialAccess = ColonialAccess();                        // 植民地素材の入手率（植民地×制海・封鎖で↓）
         double nationPop = World.TotalPopulation;                        // 行政予算の地域按分に使う
         bool navalYard = false;   // ★2026-08-01：国内に稼働中の港州が1つでもあるか（州ループの外で1回だけ数える）
