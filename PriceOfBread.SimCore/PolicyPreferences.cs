@@ -282,11 +282,11 @@ public static class PolicyPreferences
             case PolicyAxis.CornLaws:         // 穀物法＝地主が賛成・産業/大衆は安いパンで撤廃
                 return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (trad ? 0 : 1.0);
             case PolicyAxis.LaborUnion:       // 労働組合＝労働者（大衆）が賛成・資本（近代）が反対。法多様性L3＝闘争譲歩（参政権と同型・閾値付き＝高闘争国だけ資本が譲歩＝ストの脅威が容認を引き出す）
-                double unionConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.LaborConcessionThreshold);
+                double unionConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.RiotMilitancyThreshold);
                 return mass ? 1.0 : -0.5 + unionConc;
             case PolicyAxis.ShorterHours:     // 労働時間（WorkHours enum）。**Pref は「進める向き＝enum増＝長時間化」への賛否**（A-1#2配線2026-06-24）。WorkHours enum は Eight<Ten<Twelve<Unlimited＝増が長時間。長時間化＝雇用主(資本)が賛成・労働者(大衆)が反対。StepEnum が短縮(enum減)時に符号反転し「短縮＝大衆賛成・資本反対」になる。法多様性L3＝闘争譲歩で資本の長時間支持が緩む（閾値付き）
             case PolicyAxis.ChildLabor:       // 児童労働（02断線走査2026-07-28）＝軸の増＝合法化。ShorterHoursと同型：資本が賛成（安価な労働）・大衆が反対（子を取られる）・闘争譲歩で資本が緩む
-                double hoursConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.LaborConcessionThreshold);
+                double hoursConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.RiotMilitancyThreshold);
                 return mass ? -1.0 : modern ? 1.0 - hoursConc : 0;
             case PolicyAxis.Coercion:         // 治安維持力＝それで地位を守る側（旧支配層）が賛成・抑圧される大衆が反対
             case PolicyAxis.ConscriptionLaw:   // 徴兵法（E5）＝旧支配層/軍が賛成（大軍＝権威）・大衆が反対（取られる）＝治安維持力と同型
