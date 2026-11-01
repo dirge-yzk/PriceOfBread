@@ -2386,7 +2386,8 @@ public class InstrumentsTests
                 foreach (var n0 in sim.Nations) openNames.Add(n0.World.SelfPower?.BaseName ?? "");
                 Instruments.Phase(sim, DSEED, "open"); sim.StartWarmup(); Instruments.Phase(sim, DSEED, "warm");
                 // ★(579) 線 ukf：160→300 四半期（AI の国営工場の着工の総費用の門を削除した軌道では、運び手の財の越境の買いが 160 四半期〔〜1823 年〕までに 9 種〔種 1789〜1797〕のどれにも出ず接触の内訳の表が無かった＝境の上の番人の入口が遅れた軌道の宣言。原因は未確認〔推測：国内の着工が増え越境の買いが後ろへずれた〕。種 1791 は 300 四半期で緑）
-                for (int q = 0; q < 300; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
+                // ★(747) c-11 の盤面：300→450（閾値 rows.Count >= 5 と行ごとの規則の検査は変えない）。忘却の時計を外した木（72ca108f）では同じ種 1796 の 300 四半期の行が 4 で前提 5 を割る＝軌道が別（機構の主張ではない・読み手 (745)）。同じ種なので前の軌道は同じで行は積むだけ。450 は両木で前提の 2 倍（10 行）を越える最初の 50 刻み。
+                for (int q = 0; q < 450; q++) { sim.StepQuarter(); Instruments.Quarter(sim, DSEED, q); }
                 Instruments.Close(sim);
             }
             finally { Instruments.Configure(null, null); }
