@@ -1,0 +1,16 @@
+## D:/PoB_work/keep_736/base_ins
+イギリス settler 0	xb 290	int_same_Core 1775	int_same_Colonial 2501	int_same_Integrated 9	settlerIn_Colonial 0	settlerIn_Core 0
+フランス settler 0	xb 0	int_same_Core 3	int_same_Colonial 2	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+プロイセン settler 0	xb 5	int_same_Core 104	int_same_Colonial 0	int_same_Integrated 7	settlerIn_Colonial 0	settlerIn_Core 0
+スペイン settler 0	xb 2	int_same_Core 23	int_same_Colonial 78	int_same_Integrated 1	settlerIn_Colonial 0	settlerIn_Core 0
+オランダ settler 0	xb 0	int_same_Core 0	int_same_Colonial 0	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+ロシア settler 0	xb 156	int_same_Core 3699	int_same_Colonial 1	int_same_Integrated 117	settlerIn_Colonial 0	settlerIn_Core 0
+ポルトガル settler 0	xb 0	int_same_Core 4	int_same_Colonial 2	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+## D:/PoB_work/c3h1_B/out_c3h1B_10/ins
+イギリス settler 0	xb 239	int_same_Core 1752	int_same_Colonial 129	int_same_Integrated 13	settlerIn_Colonial 0	settlerIn_Core 0
+フランス settler 0	xb 1	int_same_Core 10	int_same_Colonial 1	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+プロイセン settler 0	xb 5	int_same_Core 27	int_same_Colonial 0	int_same_Integrated 12	settlerIn_Colonial 0	settlerIn_Core 0
+スペイン settler 0	xb 22	int_same_Core 113	int_same_Colonial 54	int_same_Integrated 9	settlerIn_Colonial 0	settlerIn_Core 0
+オランダ settler 0	xb 0	int_same_Core 0	int_same_Colonial 0	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
+ロシア settler 0	xb 264	int_same_Core 4011	int_same_Colonial 2	int_same_Integrated 100	settlerIn_Colonial 0	settlerIn_Core 0
+ポルトガル settler 0	xb 0	int_same_Core 0	int_same_Colonial 0	int_same_Integrated 0	settlerIn_Colonial 0	settlerIn_Core 0
