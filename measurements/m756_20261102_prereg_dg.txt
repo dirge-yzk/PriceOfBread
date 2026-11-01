@@ -1,0 +1,50 @@
+(756) c4dg 事前登録（波54・区分 III・比の分母：議会の掌握の起債の項を年の名目 GDP で割る）　★段0 (751) の読み手が決めた線＝AI の推奨・作者の承認は未確認
+基線＝m749（main 6e5932a9 の旗の既定）。ヌル腕＝m749 の N1・N2（measurements/b10_20261102_m749_n1_ins・_n2_ins・生は D:/PoB_work/keep_749/n1・n2）。この線ではヌル腕を回さない。
+
+■ テーマと形の種類
+- 比の分母（§2′ A2・10-23 一覧 H16 の debtGrip の部分）。形の種類＝〈入口〉（議会の掌握の式の分母の単位を直す）。
+- 座標：PowerShares.cs:73〜90 ParliamentGrip（:86 `debtGrip = Clamp01(Max(0, GovDebt)/Max(1.0, NominalGdpPerMonth))`・:87 ProbOr）・:109 ParliamentEffective・:122〜135 CivilianInstitutions。読み手 PoliticalQuantities.cs:325・PlayText.cs:166・Instruments.cs:1479（nation_s の parliamentGripIndex）。ParliamentGrip の注（:66）は〈起債＝国債残高/名目GDP〉＝年の比で書かれている。食い違う注＝Fiscal.cs:379〈debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）〉＝2026-09-11 の AI の台帳の注（作者の裁定ではない）＝この線で直す。
+- 確証＝単位の規則（README §1-9・Calendar.ToGdpYear）と ParliamentGrip の注の式（起債＝国債残高/名目GDP）＝物理の形。NG の判定でヌル腕は読まない。
+
+■ 形
+- 旗 ParliamentDebtGripYearGdp（線の枝の既定 1・main への既定は合流が決める）。旗が正のとき debtGrip＝Clamp01(Max(0, GovDebt)÷年の名目 GDP)。年＝Calendar.PerMonthToPerYear(NominalGdpPerMonth)。分母の守りは否定形 `!(gdpYear > 0) ? 0`（絶対値の床 1.0 を外す＝〈比のガードは絶対値で書かない〉）。Clamp01 は残す（noisy-or の入力の定義域）。〈挟みを飽和の形へ〉は別の線（先に単位、次に形）。
+- 内部の純関数 ParliamentGripOf(w, yearGdp)・ParliamentEffectiveOf(w, grip)・CivilianInstitutionsOf(w, pe) に割り、公開の 3 本は旗で選んで呼ぶ（式の写しを作らない）。
+- 新しい係数の数値 0・新しい状態変数 0。資本逃避の 0.02 の束（Fiscal.cs:209・SelfPlay.cs:1114・CapitalMarket.cs:143）は入れない。
+- 同じ盤面で旧と新を両方数える計器 pgrip_s（InstrumentsPgrip.cs・計器が on のときだけ・国×四半期の末）：quarter・year・nation・debtToGdpYearRatio・taxGrip・debtGripOld（月の分母・床 1.0）・debtGripNew（年の分母）・debtGripUsed・gripOld・gripNew・gripUsed・peOld・peNew・civOld・civNew。旗 0 の木で計器以外の表は m749 と全行バイト一致（ident）。
+
+■ 予言（紙・keep_749 の nation_s〔govDebtStock・nominalGdpPerYear・parliamentGripIndex〕の国×四半期・年の名目 GDP＞0）
+- 旧の規則で debtGrip が 1 に張り付く割合：base 0.1503・N1 0.1325・N2 0.1482。同じ盤面の新の規則で 0.0376・0.0326・0.0356。
+- 債務が正の行の debtGrip の新÷旧の中央値：0.347・0.359・0.349。
+- 債務が正の行の Σ掌握の新÷旧：0.518・0.514・0.514（張り付いた行の税の掌握を 0 と置いた下限＝推）。
+- 国ごとの掌握の平均（旧→新の下限・推）：英 0.596→0.444・仏 0.518→0.262・普 0.497→0.203・露 0.651→0.330・清 0.497→0.357。
+- 下流（文民制度の厚み・政治資本の速さ・クーデタの門・政体の年）は予言しない（軌道）。
+
+■ 門（腕の前に固定・結果の後に変えない）
+D1 実装：腕 B の pgrip_s の全行で debtGripUsed＝debtGripNew・gripUsed＝gripNew（相対差 ≦1e-12）。
+   突然変異：旗 0 → Used＝Old＝外れる＝落ちる。
+D2 大きさ（狙いどおり）：使った debtGrip が 1 に張り付く国×四半期の割合（全種の和）≦0.066（＝ヌル腕 3 本の旧の割合の最小 0.1325 の半分・紙 0.033〜0.038）。
+   突然変異：旗 0 → 0.13〜0.15＝落ちる／分母の取り違え（年を 12 で割る・月に戻す）→ 張り付きが増える＝落ちる。
+D3 大きさ：債務が正の行で Σ gripUsed ÷ Σ gripOld（同じ盤面）≦0.85（紙の下限 0.514〜0.518）。
+   突然変異：旗 0 → 1.00＝落ちる。
+- 門 D1〜D3 は機構の観測量（門が閉じたか・単位）。史実の大きさ・年・倍率は門にしない。
+- 門 A′（記録の扱い）：python scripts/instruments/tools/nullgate.py <腕の成績表> measurements/b10_20261102_m749_ins measurements/b10_20261102_m749_n1_ins measurements/b10_20261102_m749_n2_ins。判別の力が弱い＝大きなずれだけを拾う。
+
+■ 記録（門にしない）
+- 英仏普露清の掌握・実効の統制・文民制度の厚みの新旧（同じ盤面）・coupgate の通過・政体の年・門 A′・exact・near・NG（基準 rd:measurements/ng749_20261102:m749）。史実の向き（英はコンソル債で掌握が残り普は低い＝注の史学検証4）は記録（史実の大きさを門にしない）。
+
+■ 止める線
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散・空洞化 1/10 未満の名簿の外（規則 A2・種 1〜20）・推定の計算量 ＞248.5 秒・機構のテストの赤（RULE47）。
+
+■ 計算量の割り当て
+- 0.0 秒（割り算の分母を替えるだけ・計器は on のときだけ）＝門にしない・合流の累計の .cost で読む。
+
+■ 腕
+- A＝POB_COEF "ParliamentDebtGripYearGdp=0" の素の 5 種で ident.sh（b5_20261102_m749 と全行一致）。B＝計器つき 10 種（旗 1）。S11＝種 11〜20。ヌル腕は回さない。
+- 形の変え直しは 1 回だけ（理由を事前登録に追記してから）。落ちたら採らずに止める（同じ腕で物差しを替えない）。
+
+■ テスト
+- ParliamentGripYearTests.cs（新）：債務＝年 GDP の 0.3 の手の国で旗 1 の debtGrip＝0.3・旗 0 は 1（張り付き）・GDP 0 の国は 0（突然変異 3 種で赤を確かめて記録）。書き換えるテスト 0（PowerSharesTests.cs:86・91 は税の掌握 1／債務 0 の縁＝旗で変わらない）。WriterRatchetTests は触らない。
+
+■ 各門の突然変異の紙の確かめ
+- 旗 0：D1 落ちる・D2 落ちる（0.13〜0.15）・D3 落ちる（1.00）。
+- 年を 12 で割る（分母が月の 1/12 ）：張り付き増加＝D2 落ちる。月の分母に戻す：D2・D3 落ちる。
