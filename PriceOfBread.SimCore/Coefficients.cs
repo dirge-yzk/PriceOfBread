@@ -978,6 +978,7 @@ public sealed class Coefficients
     public Share GoldCoverMin = new(0.25);            // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney。これ未満で兌換停止クライシス(金流出で守れない)。
                                                     // 有効化2026-07-10（キュー1）：実測（goldprobe 5seeds×500Q・加入国10.9万サンプル）＝健全帯 中央0.52/p25 0.48/p1 0.43・危機の谷は0.21以下〜負値へ突き抜ける。
                                                     // 0.25＝健全帯の床(p1=0.43)より下・危機の谷より上＝下回りは加入四半期の約0.1%＝「実在するが常態でない」兌換停止（1797英/1893米型）。0.5だと36.6%が下回り常時発火＝不採用
+    public double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 GoldStandardMinFunding とは別（ヒステリシス）。旧＝Fiscal.cs の private const（(736) で係数表へ・同じ値）
     public Share GoldStandardMinFunding = new(0.85);    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）。危機でこれを割ると強制離脱（兌換停止）
     public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）。Convertibilityでlerp＝部分兌換は中間
     // 兌換可能性 Convertibility∈[0,1]（倍率排除②）：金本位/不換の bool 分岐を連続化。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従＝部分兌換の移行を表現。
@@ -1982,6 +1983,8 @@ public sealed class Coefficients
     // 【墓標2026-10-01 (152)】IdeologyReachGate（1.0・2026-09-04 点火）＝思想の門 era＝max(発展度の傾斜, これ×到達)＝門は発見の表の思想の行の2値へ・到達は発見の「伝わり」の項へ（設計 §1A-6・§1A-7）。
     public double IsolationExportWeight = 1.0;   // ★点火2026-08-31（T2腕＝欧州内50.3%/英世界工場復帰）   // ★鎖国の対称化（2026-08-31・pairprobe実測「関税100%の朝鮮が世界一の輸出国」＝輸入関税だけで鎖国を表現する構造穴）：売り側access×=(1−これ×関税²)。二乗＝新しい数を作らず**高関税レジームだけ**を閉じる（0.25→×0.94・0.8→×0.36・1.0→×0＝真の鎖国）。関税が政治で下がれば輸出も開く＝開国が貿易の両面を開く。0＝旧＝厳密恒等
     public double TariffExportOppositionWeight = 3.0;   // ★点火2026-08-31（T2腕＝英の自由貿易転換が政治から創発・純支持−0.41）   // ★関税の全員暴走の対（2026-08-31・pairprobe実測＝仏99%英高率で欧州相互貿易が絞殺）：近代エリートの関税選好へ**輸出利害の反対**を加える＝−これ×輸出/GDPシェア（マンチェスター学派＝輸出で食う資本は自由貿易を推す。反リカード側の保護利害 TariffInterestPref と対）。IsolationExportWeight とセット＝「高関税は輸出も殺す」物理ができて初めて政治の負帰還が史実の向きになる。0＝厳密恒等
+    public double AiTariffEmaRate = 0.25;               // AI の保護関税の輸入EMAの追従率（四半期0.25＝約1年の記憶＝「前年比」の最小実装。状態はAI個体の _importEma 1本だけ）。旧＝SelfPlay.cs の private const（(736) で係数表へ・同じ値）
+    public double TradeValueSmoothing = 0.1;            // 列強の貿易取扱高EMAの四半期の追従率（約2.5年・MultiNationSim.UpdateTradeWeights）。旧＝MultiNationSim.cs の private const（(736) で係数表へ・同じ値）
     public double AiTariffRelaxation = 0.1;             // ★点火2026-08-31（T2腕＝AI目標が5-10%帯へ・保護と自由化の波の対称化）             // ★案A（作者裁定2026-08-31）＝AI保護関税ラチェットの対動詞：急増の無い平時に目標を毎四半期 TariffReactionMax×これ だけ漸減（保護の波→自由化の波の対称化。ReactProtectiveTariff の「下げはしない」の是正）。0＝厳密恒等（点火候補0.1＝約−10%/年）
     // 【墓標2026-10-18・旗の焼き込み】TradeTreatyEnabled（案B・既定1.0・点火2026-08-31 T2腕）を消した＝通商条約（平時×両国の産業利害が自由貿易側の実国家ペアが関税目標を低い方へ収束）は常に有効。
     // 【墓標2026-10-28 (604)】TradeTreatyAbolished（通商条約の廃止の旗・既定 0）を消した＝Diplomacy.TradeTreaties の四半期の掃引は無い（作者 2026-10-27・腕 B の軌道を常に）。関税の目標を動かすのは国内の利害・議会・AI の反応の今ある道だけ。

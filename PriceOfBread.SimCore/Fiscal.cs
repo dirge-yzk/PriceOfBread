@@ -11,7 +11,6 @@
 public static class Fiscal
 {
     // マジックナンバー命名（挙動不変・値据え置き）
-    private const double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 c.GoldStandardMinFunding とは別（ヒステリシス）
     private const double ForeignBondYieldRatioCap = 3.0;     // 対外債容量の信認の倍率クランプ上限（BondBaseRatePerYear/GovBondRatePerYear の上限＝2026-09-29 に向きを是正）
     private const double FranchiseAdultMale = 0.7;           // 参政権レベル→市民運動基盤の重み（男子普通選挙）
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
@@ -402,7 +401,7 @@ public static class Fiscal
             if (w.OnGoldStandard)
             {
                 // ★3値化2026-08-13：兌換の規律は**銀本位でも同じ足枷**＝MetallicStandardLaw（銀でも金でも真）を読む。休眠時は旧 GoldStandardLaw と厳密に一致。
-                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin.Value)
+                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < c.GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin.Value)
                 {
                     w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;   // 自発離脱 or 危機での強制停止（準備枯渇＝兌換停止クライシス含む）
                     // GoldCoverMin有効化2026-07-10：強制停止を観測可能に（スカラーカウンタ＝batch頻度集計・Diplomacyログ＝年代記）。自発離脱（AIが志向を下げた）は数えない。

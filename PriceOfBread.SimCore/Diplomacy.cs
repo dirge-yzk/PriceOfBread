@@ -393,6 +393,7 @@ public sealed class Diplomacy
     private const double ThreatMilitaryWeight = 0.20;
     private const double DefectionTensionResidue = 30;        // 従属離反が残す遺恨（緊張）
     internal const double CollapseScore = 1.5;   // ★internal（2026-09-06）：旧経路の内戦の戦勝点も同じ物差しで決着した（その経路は 2026-09-28 に削除＝内戦は戦争の形で同じ戦勝点）                 // 戦勝点の絶対上限＝厭戦崩壊の決定的スコア
+    internal const double TensionMax = 200.0;                 // 緊張の尺度＝AddTension のクランプ上限（CrownParliament が外圧を0..1へ正規化して内圧〔闘争度〕と比べるときも同じ尺度で割る）。旧＝直書きの 200 と CrownParliament の TensionScale（(736) で 1 本へ）
     internal const double DistanceNormKm = 10_000.0;          // 距離減衰の正規化単位（km）＝エンジン内の距離の物差しの1本（2026-09-28 処理の一元化 段1＝植民地の維持費と入植・国際市場の運賃と危険料・侵略の船需要の同値の写し3本を畳んだ）。★internal 化2026-09-03＝Politics の分離判定が**同じ物差し**で保持力を割るため（「軍が届くか」の物差しはエンジン内で1本）
     private const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
     private const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
@@ -614,7 +615,7 @@ public sealed class Diplomacy
         //   （旧も無い鍵はこの書き込みで入った＝入る時点と順は同じ・増分が 0 でも入る）。
         ref double slot = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_tension, k, out _);
         double old = slot;
-        double now = Math.Clamp(old + d, 0, 200);
+        double now = Math.Clamp(old + d, 0, TensionMax);
         slot = now;
         if (now != old) Why(k)[(int)reason] += now - old;
         return now - old;

@@ -246,7 +246,6 @@ public sealed class UtilityAgent : INationAgent
     // ★鋼市場診断#4（2026-08-16・旧の旗 AiSupplyChainEyes は 2026-10-18 に焼き込み）：
     private const double AiChainStarvedFill = 0.9;   // 投入の配給率（Market.LastRation＝生産タブの「供給:n%」と同じ出所）がこれ未満＝その材が連鎖の律速（上流を候補に足す）
     // ★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）判定線：
-    private const double AiTariffEmaRate = 0.25;          // 輸入EMAの追従率（四半期0.25＝約1年の記憶＝「前年比」の最小実装。新しい状態はAI個体の _importEma 1本だけ）
     private const double AiTariffSurgeRatio = 1.5;        // 対EMA比これ超＝輸入急増（1870年代の穀物侵入・英国鋼の輸出攻勢級の流入）
     private const double AiTariffImportFloorShare = 0.001; // 急増と数える最小規模＝輸入額（清算単位＝月次清算では直近1か月分・NominalGdpPerMonth も月次フロー）>名目GDP×これ（規模中立＝微小財の雑音で関税を動かさない）
     private const double TensionNormalizer = 100.0;            // 緊張の正規化スケール
@@ -1202,7 +1201,7 @@ public sealed class UtilityAgent : INationAgent
         for (int g = 0; g < imp.Length; g++)
         {
             double cur = imp[g], prev = ema[g];
-            ema[g] = prev + AiTariffEmaRate * (cur - prev);    // 記憶は毎期更新（判定の成否に依らない＝観測と判断を分ける）
+            ema[g] = prev + w.Coef.AiTariffEmaRate * (cur - prev);    // 記憶は毎期更新（判定の成否に依らない＝観測と判断を分ける）
             if (surge) continue;                                // 判定は済み。ただしEMAは全財ぶん更新しきる
             if (!(cur > floor)) continue;                       // 規模の床（否定形＝NaNは急増と数えない）
             if (!(prev > 1e-9)) continue;                       // 記憶が無い財は比が無限＝急増と数えない（初回輸入の雑音）

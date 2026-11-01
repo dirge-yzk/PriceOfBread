@@ -10,7 +10,6 @@ namespace PriceOfBread.SimCore;
 public static class CrownParliament
 {
     private const int RegimeFamilyCount = 4;                    // 政体実績の4系統（0君主/1議会制/2強権/3急進）
-    private const double TensionScale = 200.0;                  // 緊張の尺度（AddTension のクランプ上限）＝外圧を0..1へ正規化して内圧（闘争度）と比べるため
     // ⚠internal＝**読み取り専用の公開**（値も式も不変・InternalsVisibleTo("PriceOfBread.App")）。政治タブ「権力の奪い合い」が
     //   王権の巻き返しの発火条件を**同じ定数**で判定するため（UIが 0.7/0.3 を書き写すと閾値が2箇所に割れる）。
     internal const double CrownRollbackLegitimacyMin = 0.7;      // ストルイピン後退の発火＝高正統性の下限
@@ -153,7 +152,7 @@ public static class CrownParliament
                     {
                         w.Crown = CrownForm.Absolutist;
                         // 内圧が外圧の相対強度（緊張を0..1へ正規化＝開戦閾値200が満点）を上回るなら「下からの倒幕」＝議会つき
-                        if (fromBelow && mil >= tension / TensionScale)
+                        if (fromBelow && mil >= tension / Diplomacy.TensionMax)
                         {
                             w.ParliamentControl = System.Math.Max(w.ParliamentControl, c.ConstitutionalControlFloor);
                             w.LogAdd($"{w.Year} {w.SelfPower?.Name}の幕府が倒れ議会が開かれた");

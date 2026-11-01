@@ -1602,7 +1602,7 @@ public sealed class MultiNationSim
             if (p.Nation is { } nw)
             {
                 double v = Math.Max(0, nw.LastExportValue) + Math.Max(0, nw.LastImportValue);
-                nw.TradeValueSmoothed += TradeValueSmoothing * (v - nw.TradeValueSmoothed);   // 数期平滑＝単四半期の禁輸/封鎖スパイクで比重が跳ねない
+                nw.TradeValueSmoothed += _coef.TradeValueSmoothing * (v - nw.TradeValueSmoothed);   // 数期平滑＝単四半期の禁輸/封鎖スパイクで比重が跳ねない
                 total += nw.TradeValueSmoothed; count++;
             }
         if (total <= 1e-9 || count == 0) return;
@@ -1613,7 +1613,6 @@ public sealed class MultiNationSim
             p.TradeWeight = _coef.TradeWeightBase + _coef.TradeWeightGdpSlope * relative;   // 貿易の大きい国ほど交易比重が増す（禁輸の痛み・国際価格形成の重み）
         }
     }
-    private const double TradeValueSmoothing = 0.1;   // 取扱高EMAの時定数（約2.5年）
 
     // 民族の同化の段（回1-2・2026-09-27＝旧 MigrateInternational の同化の部分だけを残した。世界プール＝ゲーム外から人と持参金が湧く経路は削除）。
     internal void StepAssimilation()   // ★段4（2026-09-09）：internal＝同化の式をテストから単離して検証するため（AccumulatePopConsciousness と同じ扱い）
