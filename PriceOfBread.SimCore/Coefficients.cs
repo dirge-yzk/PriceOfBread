@@ -926,7 +926,8 @@ public sealed class Coefficients
     // 【墓標2026-10-25 (551)・恒等の線 gc1】FrontierDevelopmentRate（0.01＝locked 地域のインフラ開発速度）・FrontierUnlockThreshold（1.0＝インフラがこれを超えたら active 化）＝Territory.Step の locked 州の解錠の道ごと削除（本番の盤面は州を Locked にしない＝読み手は死んだ枝の中だけ）。
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
     // 【墓標2026-10-01 (141)】MigrationSecondDestShare（0.3＝州間移民の第2目的地への分岐率・監査2026-07-05 D2）＝行き先は機会の差の比で全ての州へ（越境移民と同じ規則・Territory.Step）。
-    public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本）
+    public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本／★(748) 旗 MigrationEntryFriction が正の国内の移民は距離の項も同じ摩擦に掛けて差から引く）
+    public double MigrationEntryFriction = 1.0;     // 【線の枝 c3h1 の既定1・main へは0で合流】★(748) 国内の移民の入口の形：0＝旧（差に乗算の減衰 MigrationDecay）・正＝差から摩擦×km÷(MigrationDistanceScale×EraFactor) を引き乗算の減衰は掛けない（距離が止まる位置を動かす）。旗は有無だけ読む（大きさは使わない）。越境は式を変えない
     // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。移民（国家間移民）で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
     // ★段2で削除（設計メモ §7-3）：UnityMilitancyRelief（上昇鈍化）と UnitySecessionMilitancy（国項）。
     //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**＝同じ民族統一度を闘争度の中で3度読んでいた
@@ -2706,7 +2707,7 @@ public sealed class Coefficients
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。MigrationDistanceScale は既定 10000 で点火済み（scale=0→減衰1.0）。運賃 MigrationFarePerkKm は (551) で削除。
-    public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民（★(141) 国内の移民も＝Territory.MigrationDecay の1本・州の座標の間）の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
+    public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民（★(141) 国内の移民も＝Territory.MigrationDecay の1本・州の座標の間〔★(748) 旗 MigrationEntryFriction が正の国内の移民は乗算でなく摩擦に km÷(これ×時代の係数) を掛けて引く＝この値は「摩擦が倍になる距離」の意味〕）の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
     // 【墓標2026-10-25 (551)・恒等の線 gc1】MigrationFarePerkKm（0＝越境移民の渡航運賃〔距離比例・貯蓄が運賃に満たない層は動けない〕・2026-07-14 の再点火は住民が 0 まで流出した国のゾンビ残存で差し戻し）＝作者の答え〈推奨で消す〉で削除。MoveMigrants の運賃・MoveAbroad の fare 引数・MigrateBetweenNations の払える割合も消した。運賃を入れ直すなら古い設計の一覧 M21 のとおり 1 か所で州の座標から。
     public RatePerQuarter ImmigrationReceiveCapPerQuarter = new(0.012);   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。★回1-2（2026-09-27）：世界プールの上限から国家間移民の受入の上限へ（超えた分は送出州に残る）
     // ★移民制限法の効き（2026-08-01）。⚠既定は Open＝1.0 なのでどちらも読まれない＝厳密恒等。
