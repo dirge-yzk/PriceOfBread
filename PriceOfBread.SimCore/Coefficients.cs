@@ -47,7 +47,7 @@ public sealed class Coefficients
     public double TargetStockBuffer = 1.0;   // 在庫目標 ＝ 総需要 × これ（≒保有したい在庫＝数期分の需要）。⚠DesiredInventoryCover と対＝セットでのみ動かす（下記参照）
     // === テーマH（産業組織・固定資本・住宅）===
     public double InventoryAdjustGain = 0.1;     // メッツラー在庫循環＝在庫についての期待。05-B1（2026-07-29）点火：期待導入の最初の一歩（増幅側＝恐慌を増やす方向・05 §5）。0で旧恒等
-    public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）。⚠TargetStockBuffer と対＝一致しないと定常でギャップが残る。片方だけ動かさない（GridReplaceRate/GridDecayRateと同型）
+    public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）。⚠TargetStockBuffer と対＝一致しないと定常でギャップが残る。片方だけ動かさない（GridReplaceRate/GridKeepPerMonthと同型）
     public double TargetStockFloor = 1.0;    // 在庫目標の下限（需要≈0でのゼロ除算回避）＝**「量として意味を持たない」の既存の物差し**（下の幻の生産のスナップもこの実用スケールを流用する）
     // ★墓標（2026-08-22・需要と供給の組み換え＝点火と削除）：労働配分の重みは「需要量×Scale」から「準レント×単位能力×Scale」＋配分信念EMAへ**無条件**に切替（EconomyStep の prodW 注記）。
     //   LaborRentWeight（構造スイッチ）・CrowdRentExpectation（混雑予期＝効果−2.4回・赤1件）・LaborFloorMix（均等床0.15＝準レント下では不要）・ExportDemandWeight（0.25の別建て加算＝価格に輸出が載るので次元不整合）は削除。
@@ -630,8 +630,8 @@ public sealed class Coefficients
     //   ⚠動物性タンパクが食料の側に入るのは FoodIncludesAnimalProtein（休眠・別の器）を点けたときだけ＝今は主食だけが抜ける。
     // 留保賃金（賃金の下方硬直の創発源）：賃金は留保賃金（労働者が慣れた賃金）を下限に動く。留保賃金は賃上げに速く（Rise）追従し賃下げに遅く（Fall）追従＝「慣れた賃金より下では働きを引き上げる」非対称が下方硬直を生む（固定倍率0.25を排除）。Fall=0.25/Rise=1.0 は旧 WageStickiness と挙動同値（較正温存）。
     //   ⚠ Rise/Fall は**1日あたり**の定数（÷Calendar.DaysPerMonth しない）＝旬次（A3）でも労働3財は旬の歩の中で日次の写像を h 回まわす（閉じた式に畳まない）。
-    public double ReservationWageFall = 0.25;    // 留保賃金が下方の目標へ追従する速度（小さいほど賃下げに抗う＝下方硬直が強い）
-    public double ReservationWageRise = 1.0;     // 留保賃金が上方の目標へ追従する速度（賃上げ＝新しい生活水準へすぐ慣れる）
+    public double ReservationWageFallPerDay = 0.25;    // 留保賃金が下方の目標へ追従する 1 日あたりの速度（小さいほど賃下げに抗う＝下方硬直が強い）
+    public double ReservationWageRisePerDay = 1.0;     // 留保賃金が上方の目標へ追従する 1 日あたりの速度（賃上げ＝新しい生活水準へすぐ慣れる）
     // 【削除 2026-11-01 (736)】PriceFlowDailyDiv（既定 30）＝価格形成と信用の 1 日あたりの速度配分（月次係数÷30）は Calendar.DaysPerMonth（30・同じ値）で割る（(732) eco-1）。
     //   式の中の速度は 1 日あたりのまま。積分の刻みは下の PriceFlowStepDays（旬次・Credit.Step も旬の初日に h 日ぶん）。
     // ★国内価格の旬次化（2026-09-26 A3・作者裁定「ゲームの高速化を優先し、多少の帯の悪化は受け入れる」）：MarketFlow を h 日ごと（旬の最終日）にだけ呼び、h 日ぶんを1歩で進める。
@@ -1575,7 +1575,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し mil-21・dorm-41）】CessionRangeTechKm（上の器・休眠0）＝根拠のない4000kmに技術の倍率を足す形＝作者裁定4（09-08）の技術水準の倍率の撤去の方向＝削除
     public double CessionMaxDistanceKm = 4000;     // 監査2026-07-05：割譲の投射圏＝**勝者の首都**から割譲候補州までの大圏距離の上限。圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）。0以下=無制約（旧挙動）。首都座標未登録のテスト小世界は自動的に無制約
     public double CessionUnified = 0;               // ★(723) 線 ces2（設計 docs/202610/20261031/20261031_割譲の候補と費用_設計.md 段2・案 E2）。0＝今の 4 経路（ColonyList の奪取・植民地格の州の複数割譲・境界改定・戦利品）の候補と費用と予算のまま・1 ビットも変わらない。正＝4 経路が 1 本の判定 Diplomacy.CessionTarget（候補は〈勝者の州と陸路グラフの辺で隣り合う〉か〈港の州で上陸の門 CanCrossSea を通る〉・費用は 基本×(隣り合えば 1・そうでなければ 1＋ColonyCaptureDistanceWeight×海路 km÷1 万×(1−世界の比))）と講和 1 回に 1 本の予算を読む。4,000 km の円（CessionMaxDistanceKm）・渡海の割り増し（CessionSeaCrossingWeight）・colonialReach・ColonyList の距離の門・植民地格の州の入口の門は読まれない。**旗 1 の腕は回していない**（段3＝波51 以後）。AI の設計＝確証なし。
-    public double DefeatShockDecay = 0.85;         // 敗戦ショックと戦勝ショックの四半期減衰（1.0から数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
+    public double DefeatShockKeepPerQuarter = 0.85;         // 敗戦ショックと戦勝ショックの四半期の残存率（1.0から数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）。**ストック意味論＝ショックは減衰0.85で毎期加算され累積Σ0.85^t≈6.67倍→旧0.5（フロー一回分）÷6.67≈0.075**＝敗戦一発の総打撃を旧水準に保つ
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）
     public double RevanchismTension = 70.0;        // #15 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値40超＝講和の後に失地回復戦を駆動。仏アルザス・ロレーヌ1871→1914型）
@@ -1605,7 +1605,7 @@ public sealed class Coefficients
     public double ProtectorTensionRate = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護の緊張（月）＝これ×grievance（相手国内の自宗教州人口比0..1・完全一致のみ＝同族異端はReligionHeresyBonusの領分で重複計上しない）。休眠側の設計値0.02目安＝EthnicTensionRate 0.06/ReligionTensionRate 0.03 の弟分。0=不走行（厳密恒等）
     public double ProtectorInterventionWeight = 0.5;  // 【点火2026-08-09 同上】// 列強介入の動機×(1+これ×grievance)＝介入口実（InterventionMotive の1箇所のみ・新しい介入経路は作らない）。休眠側の設計値0.5目安。0=乗算自体を踏まない（PeaceInterventionEnabled=1.0 live下でも厳密恒等）
     // 従属関係（属国/衛星国/傀儡）。旧の旗 EnableDependency〔既定 true〕は 2026-10-23 に焼き込み＝常に有効。
-    public double VassalTributeRate = 0.015;      // 属国/傀儡の貢納＝従属GDP×これを毎四半期 宗主国庫へ（運河通行料の両建てを流用・保存）。搾取だが過大にしない
+    public double VassalTributeMonthGdpPerQuarter = 0.015;      // 属国/傀儡の貢納＝従属の月の GDP×これを毎四半期 宗主国庫へ（四半期ごとに月 GDP の 1.5%＝年 GDP の 0.5%・運河通行料の両建てを流用・保存）。搾取だが過大にしない
     public double DependencyAlignmentRelief = 1.2; // 従属-宗主間の緊張を毎月これだけ下げる＝整列（従属は宗主に開戦しない）。衛星=外交整列・属国/傀儡も従属下で反目しない
     public double VassalHoldScale = 0.5;          // 属国の抑え＝宗主の陸軍力×投射(距離減衰)×これ。属国の軍がこれを超え反目が高いと離反（過伸展した帝国は遠方の強い属国を失う）。改修2026-06-28の次元修正で実効化
     public double VassalDefectionMilitancy = 0.6;  // 離反の意志ゲート＝属国民の平均闘争度がこれを超え、かつ軍事条件（VassalHoldScale）を満たすと従属を脱する。監査2026-07-11死1：旧・緊張条件は整列緩和が流入を恒常的に上回り到達不能＝死蔵だった離反を実在量（pop闘争度）駆動へ交代。0.35初版はseed1で離反107回/125年＝従属の史実固着（SubjugatedOk33カ国）が崩れ忠実度exact73→61へ悪化＝0.6（強い不満の属国だけが離反）へ再調整（2026-07-12 batch実測）
@@ -1778,13 +1778,13 @@ public sealed class Coefficients
     public double WarChainDepthPenalty = 1.5;      // 機能5-④-2：2段目以降の参戦閾値×これ^depth（連鎖は段ごとに渋る＝全世界戦争の防壁）。1.0で減衰なし
     public double VictoryNationalism = 0.5;        // 機能8-②点火（2026-07-28）：戦勝ショック→r[4]（戦勝→主戦論＝日清・日露後の日本型。敗戦のr[4]+r[1]に対する対称）。0で恒等
     public double VictoryImperialism = 0.3;        // 機能8-②：戦勝ショック→r[8]（植民地熱。帝国主義の門＝発見の2値が見つけるまでを抑える）。0で恒等
-    // 【削除 2026-11-01 (736)】VictoryShockDecay（既定 0.85）＝戦勝ショックの四半期減衰は DefeatShockDecay（0.85・同じ値）を読む（(731) dip-3）。
+    // 【削除 2026-11-01 (736)】VictoryShockDecay（既定 0.85）＝戦勝ショックの四半期減衰は DefeatShockKeepPerQuarter（0.85・同じ値）を読む（(731) dip-3）。
     public double FamineRepublicanism = 0.3;       // 機能8-④点火（2026-07-28）：飢えの記憶→r[3]共和（1789＝「パンの値段」の題名に最も近い機構）。0で恒等
     public double FamineSocialism = 0.3;           // 機能8-④：飢えの記憶→r[5]社会。0で恒等
-    public double FamineMemoryDecay = 0.95;        // 機能8-④：飢えの記憶の四半期残存率（半減期≈3.4年＝飢饉は忘れられるが世代内は残る）
+    public double FamineMemoryKeepPerQuarter = 0.95;        // 機能8-④：飢えの記憶の四半期残存率（半減期≈3.4年＝飢饉は忘れられるが世代内は残る）
     public double ExternalPressureNationalism = 0.3;   // 機能8-⑤点火（2026-07-28）：外圧→r[4]（攘夷→富国強兵・清の反帝国主義）。ExternalPressureDerived=1と同時点火＝外圧が実体（技術格差×海の接触）を持つ。0で恒等
     public double DefeatShockTensionRelief = 2.0;  // 機能9-1点火（2026-07-28）：ハイエナ抑制＝敗戦ショックが高い相手への緊張は100超でも減衰（普仏戦争後の仏が連続で食われない）。月次×max(両者shock)。0で恒等
-    public double DefeatShockProtectMin = 0.3;     // 機能9-1：保護が効く敗戦ショックの下限（数年で切れる＝DefeatShockDecayが窓）
+    public double DefeatShockProtectMin = 0.3;     // 機能9-1：保護が効く敗戦ショックの下限（数年で切れる＝DefeatShockKeepPerQuarterが窓）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】ParliamentBudgetScope＝予算協賛の対象を全税軸へ（機能2-1・2026-07-28 点火）
     // 【墓標2026-10-18・旗の焼き込み】ElectionEventEnabled（既定1.0・点火2026-08-17 A/B＝def4(38.2/74.3/61.5/0.63)→eD(exact40.2/73.1/61.3/0.66)・硬性緑・372緑）を消した＝総選挙の公示とプレイヤー/AIの加担の押し込みは常に有効。0＝公示が立たない旧は git の履歴から戻せる。
     // ★E3''（確定形2026-08-17・作者裁定 docs/202608/20260817_選挙の押し込みの凸性_部分完了.md §3）：**代価は曲げない・効きを曲げる**。
@@ -2605,8 +2605,8 @@ public sealed class Coefficients
     public double MaintLocoRate = 0.5;   // 経18（係数化・中立）：インフラ保守1単位あたりの機関車(車両更新)消費率。既定0.5=旧直書きと同値
     public double MaintAdvLaborRate = 0.4;   // 経18（係数化・中立）：インフラ保守1単位あたりの高度労働力(機関士・保線技師)消費率。既定0.4=旧直書きと同値
     public double MaintLaborRate = 0.3;   // 経18（係数化・中立）：インフラ保守1単位あたりの労働力(火夫・荷役)消費率。既定0.3=旧直書きと同値
-    public double GridReplaceRate = 0.002;   // 経18（係数化・中立）：送電網の置換需要率。既定0.002=旧直書きと同値。※二重計上ではない（第2段2-9訂正3・2026-07-27）＝GridDecayRate と**相殺する対**（決済は減価の前）。ただし2本が (1−x) 関係で結ばれていないため片方だけ動かすと定常が崩れる＝動かす時は必ずセットで
-    public double GridDecayRate = 0.998;   // 経18（係数化・中立）：送電網の経年劣化率(毎月GridCapacityに乗算)。既定0.998=旧直書きと同値。GridReplaceRate の対（上の注記参照＝セットでのみ動かす）
+    public double GridReplaceRate = 0.002;   // 経18（係数化・中立）：送電網の置換需要率。既定0.002=旧直書きと同値。※二重計上ではない（第2段2-9訂正3・2026-07-27）＝GridKeepPerMonth と**相殺する対**（決済は減価の前）。ただし2本が (1−x) 関係で結ばれていないため片方だけ動かすと定常が崩れる＝動かす時は必ずセットで
+    public double GridKeepPerMonth = 0.998;   // 経18（係数化・中立）：送電網の月の残存率(毎月GridCapacityに乗算＝1−これが経年劣化)。既定0.998=旧直書きと同値。GridReplaceRate の対（上の注記参照＝セットでのみ動かす）
     // 【墓標(410)・恒等の削除】ColonialImportLagMonths（経19・植民地輸入の海上リードタイム・1.0）を消した＝EconomyStep の `ColonialResources is {} cres` の枝は空の配列を回すだけだった（多国の植民地財は植民地の州が自分で産んで売る）。Region.ColonialSupply・ColonialOutput・ColonialImportPipeline も同時に物理削除。
     // **点火2026-07-31（07_再設計 第2弾2b・A3裁定「入れるべき（恐慌が大きくなるが正しい）」）**：タンス預金の2段階。
     //   静的＝手元現金は常に1割。動的＝銀行の信用が崩れるほど引き出しが増える（ratio_eff = ratio × (1 + HoardPanicWeight×(1−Confidence))）
@@ -2908,8 +2908,8 @@ public sealed class Coefficients
     public double FascismCrisisSlumpRef = 0.20;   // 恐慌の物差し＝GDPドローダウンがこれで満額（0.20＝−20%＝史実の大恐慌級）＝ファシズムの発見の必要性（危機）
     public Share FascismCrisisLeftRef = new(0.30);    // 左派の脅威の物差し＝社会主義＋共産主義のシェアがこれで満額＝同上
     // 【墓標2026-09-27・旗の焼き込み（回2-1b・mil-01・x-01）】CasualtiesFromContact（外2・1.0で点火済み）＝戦死の基準を自軍の Military にする0の枝を削除。戦死の式は Diplomacy.WarCasualties（兵の頭数×接触÷自軍のゲージ×WarCasualtyRatePerMonth）
-    // 【墓標2026-10-18・旗の焼き込み】WarWearinessDecays（外3・既定1.0）を消した＝非交戦国の厭戦は WarWearinessDecayRate で指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。即時0リセットの旧は git の履歴から戻せる。
-    public double WarWearinessDecayRate = 0.97;   // 外3：非交戦国厭戦の月次残存率（旧の旗 WarWearinessDecays は 2026-10-18 に焼き込み＝常に使う）
+    // 【墓標2026-10-18・旗の焼き込み】WarWearinessDecays（外3・既定1.0）を消した＝非交戦国の厭戦は WarWearinessKeepPerMonth で指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。即時0リセットの旧は git の履歴から戻せる。
+    public double WarWearinessKeepPerMonth = 0.97;   // 外3：非交戦国厭戦の月次残存率（旧の旗 WarWearinessDecays は 2026-10-18 に焼き込み＝常に使う）
     // 【墓標2026-09-26】AbstractTargetReparations（外8・抽象標的の国庫の3割を賠償へ）＝回1-1で削除。抽象標的は World を持たない＝受け手だけが +rep を記帳して金が世界の外から湧いた（片側記帳・段0の番人 fis-21）
     // 【墓標2026-10-18・旗の焼き込み】ThreatUsesColonyValue（外10・既定1.0・#17有効化）を消した＝脅威評価・海軍シェアの植民地規模は Σ Colony.Value（資源数＋人口）。個数 p.Colonies の旧（インド1個<小島3個）は git の履歴から戻せる。
     // 【墓標2026-10-18・旗の焼き込み】FrozenTensionDecays（外11・既定1.0）を消した＝開戦経路が塞がれた（従属）ペアの緊張≥100 は FrozenTensionDecayRate で微小減衰する（永久凍結の旧は git の履歴から戻せる）。

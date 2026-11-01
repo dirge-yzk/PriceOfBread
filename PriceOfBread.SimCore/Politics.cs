@@ -474,7 +474,7 @@ public static class Politics
         //   直近の政変が1回以下（H=1）なら床0＝何もしない。
         double orderFloor = 1.0 - hope;
         // ③★敗戦は床を通さない（2026-09-29 線2・推奨で進めた）＝床は受け入れた層が下から支える量＝敗戦はその受け入れそのものを取り消す
-        //   （1870年5月の人民投票83%〔信任帝政〕→9月のセダンで第二帝政が倒れた・1918 の独墺露）＝床×(1−敗戦ショック)。敗戦の四半期は床0・ショックの減衰（DefeatShockDecay）とともに戻る。
+        //   （1870年5月の人民投票83%〔信任帝政〕→9月のセダンで第二帝政が倒れた・1918 の独墺露）＝床×(1−敗戦ショック)。敗戦の四半期は床0・ショックの減衰（DefeatShockKeepPerQuarter）とともに戻る。
         //   ⚠旧＝床が敗戦の崩れを支えた（半減期50年の失望で 1870 の仏の床≈0.77）。係数0（敗戦ショックは0..1＝ResolvePeace が1.0を置き四半期で減衰する既存の量）。
         double legFloor = Math.Max(mandateFloor, orderFloor) * (1.0 - PoliticalQuantities.Clamp01(w.DefeatShock));   // 旧＝①を当ててから②を当てる2行＝同じ値（max は結合的）。否定形の Clamp01＝NaN は床を残す側
         if (w.Legitimacy < legFloor)
@@ -484,11 +484,11 @@ public static class Politics
         }
         // ★侵食が進行中＝この四半期の測定（侵食・回復・政治資本の請求・床）で正統性が下がった（2026-09-29 線2＝(102) の申し送り2 (b)・推奨で進めた）＝上からの改革の門が読む。
         bool eroding = w.Legitimacy < legStart;
-        w.DefeatShock *= c.DefeatShockDecay;   // 敗戦ショックは四半期で減衰（leg が今期の全幅を浴びた後・数年で消える）。Politics.Step は四半期1回
-        w.VictoryShock *= c.DefeatShockDecay;   // 機能8-②（2026-07-28）：戦勝の熱狂も敗戦ショックと同じ減衰で数年で冷める（r[4]/r[8]の持続はこの減衰だけが決める＝Ideologyは毎期クリア再構成）
+        w.DefeatShock *= c.DefeatShockKeepPerQuarter;   // 敗戦ショックは四半期で減衰（leg が今期の全幅を浴びた後・数年で消える）。Politics.Step は四半期1回
+        w.VictoryShock *= c.DefeatShockKeepPerQuarter;   // 機能8-②（2026-07-28）：戦勝の熱狂も敗戦ショックと同じ減衰で数年で冷める（r[4]/r[8]の持続はこの減衰だけが決める＝Ideologyは毎期クリア再構成）
         // 機能8-④（2026-07-28）：飢えの記憶＝ストック＋減衰（RegimeTrackRecordと同じ様式）。アンカーは天命と同じ飢饉基準（DynMandateFoodAnchor＝単一ソース）。
         // 「パンの値段」の題名に最も近い機構＝飢饉は過ぎ去っても急進思想（共和/社会）として残る（1789の記憶）。
-        w.FamineMemory = w.FamineMemory * c.FamineMemoryDecay + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
+        w.FamineMemory = w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
 
         // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は軍が前線へ取られ国内の治安維持力が下がる（厭戦＝長期戦ほど大→本国で革命機会＝1917型）。
         // 機能6-1（第7段第2波・2026-07-28）：戦時の結束（rally around the flag）＝開戦直後は保持力が上がるが厭戦で減衰し（WarRallyDecayPoint超でゼロ）、

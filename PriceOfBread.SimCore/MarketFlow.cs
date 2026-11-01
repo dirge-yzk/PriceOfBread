@@ -168,7 +168,7 @@ public static class MarketFlow
                         double target = P * (1 + adj);   // 無拘束の目標賃金（需給が指す clearing）
                         double rw = RW;
                         if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
-                        double rwSpeed = target >= rw ? coef.ReservationWageRise : coef.ReservationWageFall;
+                        double rwSpeed = target >= rw ? coef.ReservationWageRisePerDay : coef.ReservationWageFallPerDay;
                         rw += (target - rw) * rwSpeed;
                         double want = System.Math.Max(target, rw);
                         double p1 = bandFloorOff && want < wrp
@@ -179,7 +179,7 @@ public static class MarketFlow
                         bool still = Same(p1, P) && Same(rw, RW);
                         P = p1; RW = rw;
                         if (still) break;
-                        if (free1 && LaborClosed(P, RW, adj, h - 1, wrp, mwFloor, coef.ReservationWageRise, coef.ReservationWageFall, out double pL))
+                        if (free1 && LaborClosed(P, RW, adj, h - 1, wrp, mwFloor, coef.ReservationWageRisePerDay, coef.ReservationWageFallPerDay, out double pL))
                         {   // ★(spb) 残りの h−1 日を閉じた式で（値段と留保賃金は同じ値に座る）
                             P = pL; RW = pL;
                             nClosedL++;

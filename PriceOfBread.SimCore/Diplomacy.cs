@@ -940,7 +940,7 @@ public sealed class Diplomacy
             bool fighting = false;
             foreach (var war in Wars) if (war.A == p || war.B == p) { fighting = true; break; }
             // （旧経路の内戦〔CivilWarYears〕の国を交戦中と数える枝は 2026-09-28 段2 束3 で削除＝内戦は全て Wars にある戦争＝上の走査が数える）
-            if (!fighting) p.WarExhaustion = p.WarExhaustion * c.WarWearinessDecayRate;
+            if (!fighting) p.WarExhaustion = p.WarExhaustion * c.WarWearinessKeepPerMonth;
         }
 
         StepTensionRamp(c);            // 予約された緊張操作を毎月少しずつ反映（2026-07-04・政治的帰結と近隣波及は動いた分だけ＝2026-09-28）
@@ -1372,7 +1372,7 @@ public sealed class Diplomacy
             // 貢納（属国→宗主・四半期）。運河通行料と同じ両建てで保存。
             if (month % Calendar.MonthsPerQuarter == 0)
             {
-                double tributeClaim = c.VassalTributeRate * Math.Max(0, d.GdpPerMonth.Value);
+                double tributeClaim = c.VassalTributeMonthGdpPerQuarter * Math.Max(0, d.GdpPerMonth.Value);
                 double tribute = tributeClaim * d.Nation.FiscalFundingRatio.Value;   // 属国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
                 d.Nation.LastTributeOutPerQuarter = tributeClaim;   // 請求（r を掛ける前）＝翌月以降の月初の請求の見込み（Simulation）と予算表が読む
                 // ★段3-3（2026-09-30）：払いは移し方の1本（属国の国庫→宗主の国庫・国境をまたぐ＝為替で換算・台帳も移し方が書く）。
@@ -3595,7 +3595,7 @@ public sealed class Diplomacy
             else if (t >= c.HighTensionBand && CannotDeclareWar(k))
                 CoolSlot(k, ref slot, t, Math.Max(0, t - c.FrozenTensionDecayRate));
             // 機能9-1（2026-07-28）ハイエナ抑制：敗戦ショックの高い国が絡むペアは緊張≥100でも減衰＝直近に倒れた国は保護される
-            //（普仏戦争後の仏が連続で食われない・列強の焦土均衡）。窓＝DefeatShockDecay（数年で切れる）。機能9-2（凍結条件拡張）とは二者択一＝本案採用。0で恒等。
+            //（普仏戦争後の仏が連続で食われない・列強の焦土均衡）。窓＝DefeatShockKeepPerQuarter（数年で切れる）。機能9-2（凍結条件拡張）とは二者択一＝本案採用。0で恒等。
             else if (c.DefeatShockTensionRelief > 0 && t >= c.HighTensionBand && DefeatedShock(k) is var shock && shock >= c.DefeatShockProtectMin)
                 CoolSlot(k, ref slot, t, Math.Max(0, t - c.DefeatShockTensionRelief * shock));
             // ★★ラチェット解消（2026-08-01・固定値を置かない形へ再設計）：上の3つの例外に当たらない一般の高緊張ペアも冷める。
