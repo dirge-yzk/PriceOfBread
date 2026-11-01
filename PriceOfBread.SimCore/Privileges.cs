@@ -140,6 +140,6 @@ public static class Privileges
     public static double Strength(World w, Coefficients c, int kind)
     {
         double y = System.Math.Max(0, w.PrivilegeHeldYears[kind]) / System.Math.Max(1e-9, c.DominanceMatureYears);
-        return !(y > 0) ? 0 : y > 1 ? 1 : y;
+        return PoliticalQuantities.Clamp01(y);
     }
 }

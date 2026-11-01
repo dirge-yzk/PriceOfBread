@@ -351,7 +351,7 @@ public static class Ideologies
             if (gain > 0) sum += agg[k] * gain;
         }
         double d = sum / (AffMax - AffMin);
-        return !(d > 0) ? 0.0 : d;
+        return PoliticalQuantities.Pos(d);
     }
 
     /// <summary>ある政体への支持＝静的基準座標で評価（Runner診断・後方互換）。遷移本体は SupportAt にドリフト座標を渡す。</summary>

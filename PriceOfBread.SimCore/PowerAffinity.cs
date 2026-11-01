@@ -162,11 +162,11 @@ public static class PowerAffinity
             //   日本が全13断面で議会0%（★1890年の帝国議会開設後も）になった。★noisy-or へ＝**どちらか一方があれば届く**。
             double vote = InterestGroups.FranchiseVoice(p, w.Suffrage, w.Coef);
             if (!(vote >= 0 && vote <= 1)) vote = 0;
-            double franchise = 1.0 - (1.0 - vote) * (1.0 - pctl);
+            double franchise = PoliticalQuantities.ProbOr(vote, pctl);
             if (!(franchise >= 0 && franchise <= 1)) franchise = 0;
             double crownTrust = (aC - Ideologies.AffMin) / (Ideologies.AffMax - Ideologies.AffMin);
             if (!(crownTrust >= 0 && crownTrust <= 1)) crownTrust = 0;
-            double reach = 1.0 - (1.0 - franchise) * (1.0 - crownTrust);
+            double reach = PoliticalQuantities.ProbOr(franchise, crownTrust);
             double outside = m * (1.0 - reach);          // ⚠体制の外へ出た分
             if (!(outside >= 0 && outside <= 1)) outside = 0;
 

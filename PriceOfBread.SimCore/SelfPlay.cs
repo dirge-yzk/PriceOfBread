@@ -36,8 +36,6 @@ public static class NationalScore
         internal double this[int i] => i switch { 0 => Soldiers, 1 => MilitarySpend, 2 => Iron, 3 => Energy, 4 => UrbanPop, _ => TotalPop };
     }
 
-    private static double Pos(double x) => !(x > 0) ? 0 : x;   // 否定形＝NaN も 0（総量に NaN を混ぜない）
-
     internal static ScoreTerms TermsOf(World w)
     {
         double soldiers = 0, urban = 0, total = 0, iron = 0, energy = 0;
@@ -47,18 +45,18 @@ public static class NationalScore
             if (r.Tier == RegionTier.Colonial) continue;
             foreach (var p in r.Pops)
             {
-                double s = Pos(p.Size);
+                double s = PoliticalQuantities.Pos(p.Size);
                 total += s;
                 if (p.IsUrban) urban += s;
                 if (p.IsSoldier) soldiers += s;
             }
             var mk = r.Markets;
-            if (Catalog.IronId < mk.Length) iron += Pos(mk[Catalog.IronId].LastProduced);
-            if (Catalog.CoalId < mk.Length) energy += Pos(mk[Catalog.CoalId].LastSold);
-            if (Catalog.CrudeOilId < mk.Length) energy += Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCoal;
+            if (Catalog.IronId < mk.Length) iron += PoliticalQuantities.Pos(mk[Catalog.IronId].LastProduced);
+            if (Catalog.CoalId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CoalId].LastSold);
+            if (Catalog.CrudeOilId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCoal;
         }
         double pl = w.PriceLevel;
-        double mil = !(pl > 0) ? 0 : Pos(Pos(w.LastMilitaryClaimPerMonth.Value) + Pos(w.LastSoldierPayPerMonth.Value)) / pl;
+        double mil = !(pl > 0) ? 0 : PoliticalQuantities.Pos(PoliticalQuantities.Pos(w.LastMilitaryClaimPerMonth.Value) + PoliticalQuantities.Pos(w.LastSoldierPayPerMonth.Value)) / pl;
         return new ScoreTerms(soldiers, mil, iron, energy, urban, total);
     }
 
@@ -1638,7 +1636,7 @@ public sealed class UtilityAgent : INationAgent
         // 革命を避ける参政権の譲歩（Reform Acts／ビスマルク型の上からの改革）：大衆の闘争度が高い＝革命脅威が迫ると、
         // AIは参政権を拡大して不満を**改革＝票**へ流す（転覆より分権が得）。空間モデルでは新規有権者の乖離が暴動でなく投票へ流れて沈静化。
         // ＝硬直して革命される（旧挙動）でなく、史実の英のように改革で生き延びる。実際に通るかは政治ロック（エリートの譲歩・PolicyPreferences）が決める。
-        if (Politics.AvgMassMilitancy(w) > w.Coef.SuffrageReformThreshold && p.Suffrage < Suffrage.AdultMale)
+        if (Politics.AvgMassMilitancy(w) > w.Coef.RiotMilitancyThreshold && p.Suffrage < Suffrage.AdultMale)
             p.Suffrage = Suffrage.AdultMale;
 
         // ★議会の構成を読む（回5-1 項目17・2026-09-26）：旧 Parliament.ApplyPlatform の法軸の段を AI の意図へ移した＝値も適用範囲も同じ
@@ -1922,7 +1920,7 @@ public sealed class UtilityAgent : INationAgent
         // ⚠0＝この if 以外は1命令も変わらない（従来の無ゲート代入がそのまま目標）＝ビット恒等。
         // ★要求は法の経路（作者裁定2026-09-11）：危機が立った運動（PendingFactionCrisis＝通知＝プレイヤーと同じ札）の要求と、
         //   F1 州一揆に譲歩した段（World.PendingRevoltDemand＝Politics.ConcedeToRevolt が記録）を法の目標に置く
-        //   ＝下からの改革圧力（上の参政権の譲歩 SuffrageReformThreshold）と同じ型＝**要求への応答も法目標の1つ**。置く/置かないは法律タブと同じ GateInfo
+        //   ＝下からの改革圧力（上の参政権の譲歩 RiotMilitancyThreshold）と同じ型＝**要求への応答も法目標の1つ**。置く/置かないは法律タブと同じ GateInfo
         //   （Parliament.TargetCrisisDemands＝gated）＝通らない段は置かない＝拒否。プレイヤー国は Apply を通らず法律タブで同じ p.X を書く＝IsPlayer で分岐しない。
         //   ⚠必ず全法書き込みの後・GateAllLawTargets の前＝スタンス既定（Censorship/LaborUnion/WorkHours の毎期再代入）や DecideModernLaws・財政逼迫の ×ease に
         //     上書きされない位置（危機の要求が最後の言葉・整形は GateAllLawTargets が旧どおり）。
@@ -2200,7 +2198,7 @@ public static class SelfPlayMatch
         var isMajor = new bool[sim.Nations.Count];
         for (int i = 0; i < sim.Nations.Count; i++)
             isMajor[i] = sim.Nations[i].World.SelfPower is { } mp && majorSet.Contains(mp.BaseName.Length > 0 ? mp.BaseName : mp.Name);
-        const double depEnter = DepressionEnterDrawdown, depExit = DepressionExitDrawdown, warmupQ = 12, gdpSmooth = 0.18, overheatMark = 0.55, harvestMark = 0.12;
+        const double depEnter = DepressionEnterDrawdown, depExit = DepressionExitDrawdown, warmupQ = 12, overheatMark = 0.55, harvestMark = 0.12;
         const double lossRateSmooth = 0.18, monthsPerQuarter = 3.0;
 
         try
@@ -2266,7 +2264,7 @@ public static class SelfPlayMatch
                     // 恐慌計測：助走後、平滑化GDP（トレンド）のピーク比収縮を追う
                     if (q >= warmupQ)
                     {
-                        gdpTrend[i] += gdpSmooth * (w.GdpPerMonth.Value - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
+                        gdpTrend[i] += w.Coef.GdpTrendSmoothing * (w.GdpPerMonth.Value - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
                         if (gdpTrend[i] > gdpPeak[i]) gdpPeak[i] = gdpTrend[i];
                         worldTrendThis += gdpTrend[i];
                         // ★DDの産出床（史実基準化）：残骸国家（世界平均の1/1000未満）の〜100%収縮を世界DDに数えない。
@@ -2278,7 +2276,7 @@ public static class SelfPlayMatch
                         if (isMajor[i])
                         {
                             double pc = (w.GdpPerMonth / System.Math.Max(1.0, w.TotalPopulation)).Value;
-                            gdpPcTrend[i] += gdpSmooth * (pc - gdpPcTrend[i]);
+                            gdpPcTrend[i] += w.Coef.GdpTrendSmoothing * (pc - gdpPcTrend[i]);
                             if (gdpPcTrend[i] > gdpPcPeak[i]) gdpPcPeak[i] = gdpPcTrend[i];
                             double ddPc = gdpPcPeak[i] > 0 && gdpPeak[i] > ddFloor ? 1.0 - gdpPcTrend[i] / gdpPcPeak[i] : 0;
                             if (ddPc > majorMaxDrawdown)
