@@ -3,7 +3,7 @@
 /// <summary>
 /// 国内の価格形成（三層時計の「鼓動」＝市場フロー）。月次決算（<see cref="EconomyStep"/>）が残した需給
 /// （LastDemand／LastProduced＋LastImport／Stock）を読み、価格を clearing 目標へ**少しずつ**寄せる。
-/// 速度は月次係数を <see cref="Coefficients.PriceFlowDailyDiv"/>（≒30日）で割った**1日あたり**の値で、
+/// 速度は月次係数を <see cref="Calendar.DaysPerMonth"/>（30日）で割った**1日あたり**の値で、
 /// 30日ぶんの積分が従来の月次1回の更新にほぼ一致する＝較正を温存する（旬次になっても1日あたりの式は変えない）。
 /// ★旬次（2026-09-26 A3・作者裁定「ゲームの高速化を優先し、多少の帯の悪化は受け入れる」）：呼び手（<see cref="Simulation.StepDayDaily"/>）は
 ///   旬の最終日（<see cref="Coefficients.PriceFlowStepDays"/>＝h 日ごと）にだけ呼び、h 日ぶんを1歩で進める。
@@ -83,7 +83,7 @@ public static class MarketFlow
     public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null, bool monthStart = true, MinimumWageLaw minWage = MinimumWageLaw.None)
     {
         int h = days;
-        double div = coef.PriceFlowDailyDiv;
+        double div = Calendar.DaysPerMonth;
         double k = coef.SoftBandSharpness;
         // ★2026-09-03（キューA-09／出典 トリアージ 2-A 10-4c）：財側の SoftBand の境界対数は**係数だけで決まる定数**なので、
         //   財×日ごとに Math.Log を2回呼ぶ必要がない。ここで1回だけ計算して渡す＝同じ double を使うのでビット恒等。
@@ -157,7 +157,7 @@ public static class MarketFlow
                         mwFloor = MinimumWageFloor.AbsFloor(region, gi, wrp * effWageMax, minWage);
                         if (cost is not null) cost[CostLedger.MinimumWageBasketScans] += region.Goods.Count + region.Producers.Count;   // 計算量の台帳（診断）：床を求めた回の（財の走査＋生産者の走査）
                     }
-                    // ★(469) 線 mw：帯の下側（WageClampMin）の撤去。ゲート 0（既定）では下の分岐に入らない＝旧と1ビットも変わらない。教育・医療の役務の枝は別の枝＝触らない。
+                    // ★(469) 線 mw：帯の下側（WageClampMin）の撤去。ゲート 1（既定）で撤去・0 では下の分岐に入らない＝旧と1ビットも変わらない。教育・医療の役務の枝は別の枝＝触らない。
                     bool bandFloorOff = coef.LaborBandFloorOffGate > 0;
                     bool laborClosed = h > 1 && bandFloorOff && coef.LaborClosedForm > 0;   // ★(spb) 案 B（係数 LaborClosedForm の注）
                     double P = m.Price, RW = m.ReservationWage;
@@ -238,7 +238,7 @@ public static class MarketFlow
             else
             {
                 // 加速度的な是正（要望）：平衡(100%)近くは緩やか、端ほど急峻。距離は対数 |ln(価格/参照価格)| で測り
-                // ＝床(5%)と天井(2000%)が同じ正規化距離1.0＝対称。倍率＝Center＋(Edge−Center)×ndist^Power。
+                // ＝床(PriceFloorFactor＝1%)と天井(PriceCeilFactor＝10000%)が同じ正規化距離1.0＝対称。倍率＝Center＋(Edge−Center)×ndist^Power。
                 double rp = System.Math.Max(good.RefPrice * pl, Eps);
                 // ★価格法則の輸出反映（2026-08-22・PriceLawSeesExports）：輸入は供給側に載るのに輸出は在庫にしか載らない非対称を閉じる。
                 //   輸出州の産出が「過剰供給」と読まれて価格が崩れ、地元価格で決まる採算が産出を絞り輸出余剰が消える自壊を止める。
