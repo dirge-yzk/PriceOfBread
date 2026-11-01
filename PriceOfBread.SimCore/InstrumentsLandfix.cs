@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (762) 陸グラフのデータの直しの表 landfix_g・landfix_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsPgrip.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsPgrip.cs〔(761) で削除〕の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない。
 // 目的＝事前登録 measurements/m762_20261102_prereg_lg.txt の門 S1〜S6（静的）と P1〜P3（動的）を同じ盤面で読む。
 // landfix_g（最初の呼びで 1 回・静的）：行の種類 row＝H（見出し：nodes・edges・comps・largest・flag）／E（辺：a・b・landKm＝辺の長さ）／P（places の座標のある全ての名前の非順序対：a・b・gcKm・landKm＝PathGraph.LandDistanceKm＝接ぎ木込み）。
 //   陸グラフは静的で軌道に依らない＝旗 0 の腕の landfix_g が旧・旗 1 の腕の landfix_g が新（同じ盤面の旧新）。種の間でバイト一致するはず。

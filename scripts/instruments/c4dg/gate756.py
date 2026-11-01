@@ -1,5 +1,6 @@
 """(756) c4dg：事前登録 m756 の門 D1・D2・D3 と記録を pgrip_s から読む（読むだけ）。
 python -X utf8 gate756.py <計器の出力ディレクトリ> [種...]
+  ⚠(761) で計器 pgrip_s を削除した＝この読み手は (761) より前の木の生（keep_757・c4dg の枝の腕）にだけ当てる（過去の記録の道具）。
   D1 ＝ 全行で debtGripUsed＝debtGripNew・gripUsed＝gripNew（相対差 ≦1e-12）。違う行の数を出す。
   D2 ＝ 使った debtGrip が 1 に張り付く行（国×四半期）の割合（全種の和）≦0.066。旧の割合（debtGripOld が 1）も並べる。
   D3 ＝ 債務が正の行（debtToGdpYearRatio>0）で Σ gripUsed ÷ Σ gripOld ≦0.85。
