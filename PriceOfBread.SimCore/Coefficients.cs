@@ -2771,6 +2771,10 @@ public sealed class Coefficients
     // 【墓標2026-10-18・旗の焼き込み】LandEdgesAvoidWater（既定1.0・点火2026-09-05・作者指摘「陸上取引の一部が内海を無視している」）を消した＝陸の辺は水を渡らない（迂回路があれば辺の距離にする）。
     // 【墓標2026-10-18・旗の焼き込み】BarrierWallSegments（既定1.0・点火2026-09-05・作者指摘「山脈などのバリアは正しく機能しているか」）を消した＝同じ山脈名（語幹）のバリア点を線分の壁にして、壁を横切る辺を張らない。
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
+    // ★(754) 距離の測り方を 1 本に（線 c4pl・旗 2 本・線の枝の既定 1）。PortByLandRoute＝内陸州の最寄り港を同じ国の港のうち**陸路**（PathGraph.LandDistanceKm）の最小で選び（有限の港が無ければ大圏へ倒す）、内陸の鉄道の減衰（InlandPortDistanceDecay）の km を陸路にする。0＝旧（大圏の最小の港・大圏の km）。静的に読む（呼び手の MultiNationSim.RewirePorts に引数を足さない）。
+    public double PortByLandRoute = 1.0;
+    // ArcKmAtan2＝PathGraph.ArcKm を 6371×atan2(|a×b|, a·b) にする（Geo.DistanceKm と同じ atan2・近い点で acos が痩せる桁落ちを除く）。0＝旧の acos。静的に読む（GeoCoef）。
+    public double ArcKmAtan2 = 1.0;
 
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）
     public double DominanceSpeed = 0.025;            //   四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）

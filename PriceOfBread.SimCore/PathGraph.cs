@@ -73,9 +73,14 @@ public static class PathGraph
     }
 
     /// <summary>2点間の大圏距離km（3次元単位ベクトルの角距離）。⚠Geo.DistanceKm と同値だがベクトル入力。</summary>
-    private static double ArcKm((double X, double Y, double Z) a, (double X, double Y, double Z) b)
+    internal static double ArcKm((double X, double Y, double Z) a, (double X, double Y, double Z) b)
     {
         double d = a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+        if (GeoCoef.ArcKmAtan2 > 0)   // (754) |a×b|＝sin θ・a·b＝cos θ を atan2 へ（Geo.DistanceKm と同じ atan2 の形・近い点で acos が痩せる桁落ちが無い）。0＝旧の acos
+        {
+            double cx = a.Y * b.Z - a.Z * b.Y, cy = a.Z * b.X - a.X * b.Z, cz = a.X * b.Y - a.Y * b.X;
+            return 6371.0 * System.Math.Atan2(System.Math.Sqrt(cx * cx + cy * cy + cz * cz), d);
+        }
         return 6371.0 * System.Math.Acos(d > 1 ? 1 : d < -1 ? -1 : d);
     }
 
