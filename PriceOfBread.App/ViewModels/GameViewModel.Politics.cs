@@ -306,13 +306,13 @@ public partial class GameViewModel
         if (c.SummonParliamentRate > 0 && w.AusterityIntensity > 0.5)
             Add("破産による議会の召集", c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0,
                 $"債務緊縮の強度 {w.AusterityIntensity:P0}　発火の下限 50%");
-        // ② 王権の巻き返し（1907六三クーデタ）＝CrownParliament.Step の CrownRollbackRate 節（閾値の定数もエンジンから読む）
-        if (c.CrownRollbackRate > 0
+        // ② 王権の巻き返し（1907六三クーデタ）＝CrownParliament.Step の巻き返しの節（率は SummonParliamentRate・閾値の定数もエンジンから読む）
+        if (c.SummonParliamentRate > 0
             && w.Crown != CrownForm.None
             && w.CoopParliamentCrown < -0.5
             && w.Legitimacy > CrownParliament.CrownRollbackLegitimacyMin
             && w.ArmyAllegiance > CrownParliament.CrownRollbackArmyAllegianceMin)
-            Add("王権の巻き返し", -c.CrownRollbackRate,
+            Add("王権の巻き返し", -c.SummonParliamentRate,
                 $"王権と議会の協力度 {Fmt.Signed2(w.CoopParliamentCrown)}　正統性 {w.Legitimacy:P0}　軍の忠誠 {Fmt.Signed2(w.ArmyAllegiance)}");
 
         // ③〜⑤ 連続動学（P3b）＝CrownParliament.Step の該当節。外周ゲート（奪取中は凍結）もエンジンと同じ形で持つ。
@@ -329,12 +329,12 @@ public partial class GameViewModel
             if (c.ParliamentPressureRate > 0 && rep - cur > inertia && challenge > coerce)
                 Add("議会の圧力", c.ParliamentPressureRate * (rep - cur),
                     $"代議制の支持 {rep:F2}　現政体の支持 {cur:F2}　慣性 {inertia:F2}\n動員 {challenge:F1}　実効治安維持力 {coerce:F1}");
-            // ④ 王権の圧力（反動の常時項）＝CrownPressureRate
-            if (c.CrownPressureRate > 0 && w.Crown != CrownForm.None)
+            // ④ 王権の圧力（反動の常時項）＝率は ParliamentPressureRate
+            if (c.ParliamentPressureRate > 0 && w.Crown != CrownForm.None)
             {
                 double crown = Math.Max(S(Polity.Absolutist), Math.Max(S(Polity.Despotic), S(Polity.Shogunate)));
                 if (crown > rep)
-                    Add("王権の圧力", -c.CrownPressureRate * (crown - rep) * w.Legitimacy,
+                    Add("王権の圧力", -c.ParliamentPressureRate * (crown - rep) * w.Legitimacy,
                         $"王権の形の支持 {crown:F2}　代議制の支持 {rep:F2}　正統性 {w.Legitimacy:P0}");
             }
             // ⑤ 軍の圧力（統帥権＝プロイセン憲法紛争1862）＝ArmyPcPressure
