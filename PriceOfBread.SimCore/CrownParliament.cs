@@ -32,12 +32,12 @@ public static class CrownParliament
         // P1-E ストルイピン後退：敵対的議会×高正統性×王権寄りの軍＝王権が統制力を段階的に巻き戻す（1907六三クーデタ）。既定0.02で点火（0で休眠）。
         // ★2026-08-12：`w.Crown != CrownForm.None` を追加（旧の旗 CrownlessCollapseKeepsRepublic〔2026-10-18 焼き込み〕）
         //   ＝**王冠の無い共和国で「王権が統制力を巻き戻す」処理が走っていた**。
-        //   すぐ下の CrownPressureRate（②王権圧力）と RepublicanDeposition（③廃位）は同じガードを持っており、ここだけ欠けていた。
+        //   すぐ下の ParliamentPressureRate（②王権圧力）と RepublicanDeposition（③廃位）は同じガードを持っており、ここだけ欠けていた。
         //   実測の被害：アメリカ（Republic・Crown=None）の統制力が一方通行で削られて立憲床を割り、LabelFromAxes の
         //   「無君主×議会を潰した＝通常到達不能」と自称する枝から BourgeoisDictatorship へ落ちる。反動政体への遷移は
         //   自由化ラチェットを外すので、参政権 AdultMale→Census・報道 FreePress→Censorship が各1段剥奪される（1923年の実測値と一致）。
-        if (c.CrownRollbackRate > 0 && w.Crown != CrownForm.None && w.CoopParliamentCrown < -0.5 && w.Legitimacy > CrownRollbackLegitimacyMin && w.ArmyAllegiance > CrownRollbackArmyAllegianceMin)
-            w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.CrownRollbackRate);
+        if (c.SummonParliamentRate > 0 && w.Crown != CrownForm.None && w.CoopParliamentCrown < -0.5 && w.Legitimacy > CrownRollbackLegitimacyMin && w.ArmyAllegiance > CrownRollbackArmyAllegianceMin)
+            w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.SummonParliamentRate);
 
         // --- 2. 協力度3チャネル（§5判断③＝6ペア行列でなく3チャネル）---
         // ②議会↔王権：③階級親和（王権の基盤=旧支配層〔判断②〕と議席の構成の距離＝Σ議席×(1−族番号)＝保守の議席−社会の議席∈[−1,1]・王冠なしは0）
@@ -56,7 +56,7 @@ public static class CrownParliament
             //   旧の指数減衰の S は実測で 中央0.0041／p90 0.0487／最大0.1417＝そもそも Min(1.0,·) に一度も触っていない。
             //   θ を退役して在庫だけの門にすると S は 中央0.1196／p90 0.1748／最大0.2399（b 中央0.1804）＝**中央で29倍に厚くなる**（隔離計器・seed1・604四半期）
             //   （線形回復のもとでは常に b 近傍まで使い切るから）。Min(1.0,·) が効かないのは新旧どちらも同じで、変わるのは値の桁。
-            //   ⇒ −CoopConflictMemoryWeight×memory は −0.004 → −0.120（最悪 −0.24）＝CrownRollbackRate の発火線
+            //   ⇒ −CoopConflictMemoryWeight×memory は −0.004 → −0.120（最悪 −0.24）＝SummonParliamentRate で巻き戻す節（ストルイピン後退）の発火線
             //     CoopParliamentCrown < −0.5（ストルイピン後退・1907六三クーデタ）へ紛争記憶だけで線の24%を供給する＝**届きやすくなる**。
             //   ⚠例外＝Politics.ConcedeToFaction（内戦の講和）は門を通さず積むので S>b は作れる（そのとき残り a=0＝政治資本が尽きた状態）。
             double memory = System.Math.Min(1.0, w.MandateSpent);                // 紛争記憶（目減り S＝b/40×実行度で線形に薄れる。Politics が毎期回復済み）
@@ -112,11 +112,11 @@ public static class CrownParliament
             // ②王権圧力：王権の形の支持が代議制を上回る分×正統性で巻き戻す（一般化した反動の常時項。P1-Eクーデタ型とは別）。
             //   慣性バーなし＝**旧グラフの平和的復帰の置換素子**（王権は代議制優位でない限り常に取り返す。旧世界では緊縮の
             //   P1-H召集でPCが床を越えてもグラフが翌期Despoticへ戻していた＝これなしではオマーン1809立憲が固着＝2026-07-12実測）。
-            if (c.CrownPressureRate > 0 && w.Crown != CrownForm.None)
+            if (c.ParliamentPressureRate > 0 && w.Crown != CrownForm.None)
             {
                 double crown = System.Math.Max(S(Polity.Absolutist), System.Math.Max(S(Polity.Despotic), S(Polity.Shogunate)));
                 if (crown > rep)
-                    w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.CrownPressureRate * (crown - rep) * w.Legitimacy);
+                    w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.ParliamentPressureRate * (crown - rep) * w.Legitimacy);
             }
             // ②'（第6段6-2・2026-07-28）4主体の欠けていた腕＝軍：王権寄りの軍（lean>0）が文民統制の確立を組織として押し戻す
             //   （プロイセン統帥権・憲法紛争1862＝議会が予算を握っても軍は王に従った）。力＝軍の政治力（6-4と同源＝兵士シェア×(1−PC)）×王権傾き。
