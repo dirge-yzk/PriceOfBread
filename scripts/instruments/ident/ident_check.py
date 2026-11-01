@@ -424,8 +424,10 @@ def main():
             say(f'腕 {ar}：{mk or "印なし（走っていないか途中）"}')
             if not mk:
                 miss(f'腕 {ar} の完了の印が無い（走っていないか途中）')
-            elif not mk.startswith('rc=0 '):
-                miss(f'腕 {ar} の終了コードが 0 でない（{mk}）＝測れていない（腕が満杯の 3・ビルドや measure.sh の失敗）')
+            elif not re.match(r'^rc=(0|1|2) ' if ar in ('a', 'b') else r'^rc=0 ', mk):
+                # 腕 a・b の 0・1・2 は measure.sh が試合の結果として返す値（1＝ハーネス不合格を含む＝基準の m702 も 5/5 で 1。measure.sh も 0〜2 を写しの対象にする）。
+                # ビルドの失敗も 1 だが成績表が出ない＝前の回の出力は start が消してある＝下の突き合わせで未了になる。3＝腕が満杯で走っていない
+                miss(f'腕 {ar} の終了コードが測れた走りの物でない（{mk}）＝腕が満杯の 3・ビルドや measure.sh の失敗')
     pa, pb = J(W, 'b5_ia_5.txt'), J(W, 'b10_ib_10.txt')
     # 測った木と出力の SOURCE-HASH を突き合わせる（ident.sh start が測る木から数えた値＝measure.sh の src_manifest と同じ数え方）
     thp = J(W, 'marks', 'tree_hash.txt')

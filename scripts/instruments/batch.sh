@@ -52,7 +52,7 @@ elif [ "$1" = run ]; then
   if [ "$SB" != "1" ]; then TAG=${ARM}_${N}_s$SB; XARGS="$N - 0 $SB"; fi
   O=$W/out_$TAG
   # (728) 道具の段：①同時に走る腕の数の管理（満杯なら走らずに 3 で止まる＝tools/arms.sh）②INS=1 のとき計器の国の既定は 9 国（渡し忘れの型を消す・空を明示したら止まる）③同じ腕の名の計器の生を消す前に要約を残す（tools/keepsum.py）
-  #   終了コード：0＝measure.sh が 0 で終わった・3＝腕が満杯で走っていない（ms_$TAG.log の末尾に ARMFULL の行）・それ以外＝measure.sh の終了コード（BATCHDONE の行が出ても 0 でなければ測れていない＝呼び手は終了コードを見る）
+  #   終了コード：3＝腕が満杯で走っていない（ms_$TAG.log の末尾に ARMFULL の行）・それ以外＝measure.sh の終了コード（0〜2 は試合の結果＝1 はハーネス不合格を含む〔基線も 1〕。ビルドの失敗も 1 だが成績表が出ない）＝呼び手は終了コードと出力の有無を見る
   bash $SP/tools/arms.sh acquire "$ARM" $$ || { echo "ARMFULL $(date '+%F %T') $TAG（走っていない＝出力は前の回の物か無い）" | tee -a $W/ms_$TAG.log; exit 3; }
   trap 'bash $SP/tools/arms.sh release "$ARM" $$' EXIT
   if [ -n "${INS:-}" ]; then
