@@ -18,6 +18,8 @@ for n, (lf, la, of, oa) in acc.items():
     for j, v in enumerate((lf, la, of, oa)): tot[j] += v
     rows.append((oa, n, (la - lf) / (oa - of) if oa - of else float('nan'), lf / of if of else float('nan'), la / oa if oa else float('nan')))
 print('nation\tnear(新÷旧)\tfar(新÷旧)\tall(新÷旧)\toldAllPlanK')
-for oa, n, nr, fr, ar in sorted(rows, reverse=True)[:25]: print(f'{n}\t{nr:.3f}\t{fr:.3f}\t{ar:.3f}\t{oa:.0f}')
+KEY = {'イギリス', 'フランス', 'プロイセン', 'ロシア', 'スペイン', '清', 'アメリカ', 'オーストリア', '日本', 'オスマン'}
+for k, (oa, n, nr, fr, ar) in enumerate(sorted(rows, reverse=True)):
+    if k < 25 or n in KEY: print(f'{n}\t{nr:.3f}\t{fr:.3f}\t{ar:.3f}\t{oa:.0f}')
 lf, la, of, oa = tot
 print(f'WORLD\t{(la-lf)/(oa-of):.3f}\t{lf/of:.3f}\t{la/oa:.3f}\t{oa:.0f}')
