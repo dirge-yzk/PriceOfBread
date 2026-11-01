@@ -1731,8 +1731,8 @@ public sealed class MultiNationSim
                     var sp = r.PopOf(cls);
                     if (sp is null || !(sp.Size >= 1e-9)) continue;   // ★否定形＝NaN の Size も弾く
                     // 危機時の上限緩和：故郷の飢饉(1-FoodFill)に比例して MaxFrac を引き上げ＝アイルランド型の大量脱出。
-                    // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド（RegionBlend=0で国平均のみ）。
-                    double effFill = src.FoodFill + _coef.FaminePushRegionBlend * (r.FoodFill - src.FoodFill);
+                    // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド。
+                    double effFill = src.FoodFill + (r.FoodFill - src.FoodFill);
                     double srcFamine = Math.Max(0.0, 1.0 - effFill);
                     double maxFrac = _coef.EmigrationMaxPerQuarter.Value * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
                     double flow = Math.Min(_coef.EmigrationRate * gMax, maxFrac) * sp.Size;

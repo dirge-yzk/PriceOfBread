@@ -367,7 +367,7 @@ public class ConservationTests
             var w = n.World;
             foreach (var r in w.Regions)
             {
-                double effFill = w.FoodFill + c.FaminePushRegionBlend * (r.FoodFill - w.FoodFill);
+                double effFill = w.FoodFill + (r.FoodFill - w.FoodFill);
                 double maxFrac = c.EmigrationMaxPerQuarter.Value * (1.0 + c.FaminePushMaxFracBoost * System.Math.Max(0.0, 1.0 - effFill));
                 foreach (var p in r.Pops)
                     if (!p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker) && p.Size > 1e-9)

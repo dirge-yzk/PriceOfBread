@@ -187,11 +187,8 @@ public static class Colonial
         if (!(want > 1e-9) || goodId >= r.Markets.Length) return 0;   // ⚠否定形＝NaN も弾く（LastDemand を汚さない）
         // ★国家調達の価格感応（2026-08-03・全ての政府支出で同じ式）：参照価格より高騰していれば買い控える＝価格の門の1本（EconomyStep.StatePriceAfford・段4e K）。
         //   ⚠燃料・糧食を買い控えた分は維持費が浮く（国庫に残る）＝補給が細れば植民地の不満が育つ経路が既にある。
-        if (w.Coef.StateProcurePriceGate > 0)
-        {
-            want *= EconomyStep.StatePriceAfford(r, w.Coef, goodId);
-            if (!(want > 1e-9)) return 0;
-        }
+        want *= EconomyStep.StatePriceAfford(r, w.Coef, goodId);
+        if (!(want > 1e-9)) return 0;
         // 植民地の補給財の請求（r を掛ける前）を植民地維持費の請求へ積む＝翌月の月初の国家の支払いの請求に入る（例外なし・作者裁定 Q2）。
         //   ⚠旧は国庫の残りで買える分だけ買った（月の最後の残りを取る＝暗黙の最下位の優先順位）＝英・西・蘭・葡・オマーンでは補給財の請求が歳入を超える（2026-09-28 canary）。
         if (cat == TreasuryCat.ColonialUpkeep) w.LastColonialUpkeepPerMonth += new MoneyPerMonth(want * Math.Max(r.Markets[goodId].Price, 1e-9));

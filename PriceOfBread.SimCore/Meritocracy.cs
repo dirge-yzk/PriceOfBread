@@ -624,18 +624,16 @@ public static class Meritocracy
         return (1.0 - f) + f * depth;
     }
 
-    /// <summary>rank12（点火 ProfessionGenderGate=1.0）：行き先職の女性アクセス（1.0＝制約なし）。**新しい法は作らない**（作者裁定）＝
+    /// <summary>rank12：行き先職の女性アクセス（1.0＝制約なし）。**新しい法は作らない**（作者裁定）＝
     /// 既存の「女性の権利」梯子（なし0／財産権1/3／教育権2/3／選挙権1＝FactionSnapshotと同じ物差し）×WomenWageRetention
     /// （財産権の社会的確立の連続量＝法直後の段差を平滑化）から導出。制約は専門職（技師/官僚/医者）のみ＝教師/使用人/その他は1.0。
     /// 女性教育権の通過で教職の女性化が創発し、技師・官僚は世紀を通じ男性のまま＝両方向が同じ1本の法から出る。
-    /// gate=0で常に1.0（Moveの選抜ブロックが走らない）＝従来の按分混合とビット恒等。</summary>
+    /// 専門職以外の行き先は常に1.0（Moveの選抜ブロックが走らない）。</summary>
     private static double GenderAccess(World w, Region r, int targetIdx, Coefficients c)
     {
-        double g = c.ProfessionGenderGate;
-        if (g <= 0) return 1.0;
         if (targetIdx != r.MeritToIndex && targetIdx != r.BureaucratPopIndex && targetIdx != r.DoctorPopIndex) return 1.0;
         double access = (int)w.WomenRights / (double)(int)WomenRightsLaw.Suffrage * w.WomenWageRetention;   // 選挙権=1.0／教育権=中（2/3）／財産権以下=低（≤1/3）
-        return 1.0 - g * (1.0 - access);
+        return 1.0 - (1.0 - access);
     }
 
     /// <summary>階級間の移動（規模＋貯蓄を比例移動＝保存）＝人の移し方の1本（<see cref="Pop.Blend"/>・2026-09-30 処理の一元化 段4e I）。
@@ -643,7 +641,7 @@ public static class Meritocracy
     /// 没落の不満は固定上乗せでなく、転落先の低所得→満足度↓→want↑→闘争度（Politics）が自然に拾う（倍率排除＝二重計上解消）。
     /// 人1：selectLiteracy=true の昇格は識字上位を選抜し src の識字を引き下げる（PromotionLiteracySelection ゲート・昇格ポンプの自己補充＝二重計上を解消）。
     ///   選抜コホートの識字＝src平均＋選抜強度×(1−src平均)（上位ほど識字が高い方向）。残留は質量保存で下がる（Blend の選抜の枝）。
-    /// rank12：genderAccess&lt;1（点火 ProfessionGenderGate=1.0 の専門職行き）では移動コホートの FemaleShare=src×access に選抜し、
+    /// rank12：genderAccess&lt;1（専門職行き）では移動コホートの FemaleShare=src×access に選抜し、
     /// 残留側で質量保存（識字選抜と同型・男が出て女は残る＝srcの女性比が上がる）。
     /// ⚠旧＝ここの写しは女性比を子供込みの規模で重み付けた（成人のうちの女性比＝Blend は成人数で重み付ける）。旧の旗 MigrationCarriesHumanCapital（識字の運搬と選抜の門）は焼き込み。</summary>
     private static void Move(Pop fromPop, Pop toPop, double flow, Coefficients c, bool selectLiteracy = false, double genderAccess = 1.0)
