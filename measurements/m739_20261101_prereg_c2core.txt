@@ -41,3 +41,7 @@ c-11 Factions.cs:103 の `&& f.AbsentQuarters >= c.FactionForgetQuarters` を消
 ③ .cost の件数の行を動かす項目は無い見込み＝ident の --cost-allow は使わない。
 ④ 計画の要約にある ProfessionGenderGate（Meritocracy.cs・MobilityTests.cs:238）と ConservationTests.cs:370 はこの線の書いてよいファイルに無い＝入れない（合流へ）。
 ⑤ 欄 LivingRefWeight・WomenEducationGate・FactionRevoltScale・IndustrializationPopWeighted・PrizeLossProrated・CollapseImposeFromFront・CrownRollbackRate・CrownPressureRate・FactionForgetQuarters は読み手 0 になる＝この枝だけでは DormantIdentityTests.係数は全て本体のどこかで読まれる が赤（欄の削除は id の線＝合流で緑に戻る見込み）。この 1 件は機構の赤ではない（読み手の数え）と名乗る。
+
+## 腕 B の前に数えた E（2026-11-01・使い捨ての木＝01f0a8d3＋読むだけの数え・素の 5 種 1〜5）
+E＝5,474（不在 1：3,228・2：467・3：503・4：573・5：212・6：226・7：265）・結束の最大 0.049999874。
+⇒ 門 B＝E′ が 1,825〜16,422 の中・かつ E′ の結束の最大 ＜ 0.05（腕の前に固定・変えない）。
