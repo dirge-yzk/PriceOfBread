@@ -28,3 +28,12 @@
 
 [3] 一致しなければ
 - 止めて報告する（基線の名を変えず、どの木で割れたか〔C1・C2・T〕で線を切り分ける）。
+
+[4] 結果の後の追記＝赤の直し（2026-11-01・腕の後・名乗る）
+- 合流の木 T（64da6df8＝e563a0df・99415848 と C# は同じ）のフルスイート（Category!=FullLength）で番人 2 本が赤：
+  ① ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い＝PriceOfBread.SimCore/InstrumentsDsc.cs の `if (r.State != RegionState.Active) continue;`（dsc2〔(725)〕が (705) dsc1_s から写した行・本番の州は常に稼働中＝恒真）。
+  ② TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり＝同じファイルの N 行の techLevel の列（記録）。
+  どちらもソースを走査する番人（機構の向きや大きさを主張しない）。dsc2 の線はフルスイートを回していなかった（線の自己申告）。
+- 直し＝T′：①は恒真の 1 行を消す（許可表は変えない＝物差しを替えない）。②は許可表に InstrumentsDsc.cs＝1 を足す（既に InstrumentsScalars.cs 2・InstrumentsScore.cs 1 が記録の計器として許されている前例・取り直した番人として名乗る）。どちらの行も POB_INSTRUMENTS_DSC=1 のときだけ走る計器の中＝既定の世界には 1 命令も無い。
+- 予言（T′ を回す前）：素の 5 種は b5_20261031_m702 と完全一致・.cost の件数の行と推定 220.2 秒も一致。--list-tests は 2107 のまま・Category!=FullLength 2104（合格 2103・Skip 1・失敗 0）＋FullLength 3（合格 3）。savetest OK・leakhunt 完走。
+- 計器つき 10 種・N1・N2・種 11〜20 は T′ で回し直さない（T と T′ の差は DSC=1 の時だけ走る計器の 1 行＝既定の世界は同じ・回す前に必要性を確かめる）。keep_727 の木は 64da6df8（main とは InstrumentsDsc.cs の 1 行が違う）と名乗る。

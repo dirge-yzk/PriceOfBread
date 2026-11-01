@@ -48,7 +48,6 @@ public static partial class Instruments
             double homePop = 0, allPop = 0;
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 bool home = r.Tier != RegionTier.Colonial;
                 foreach (var p in r.Pops) if (!p.IsSoldier && p.Size > 0) { allPop += p.Size; if (home) homePop += p.Size; }
                 for (int g = 0; g < ng && g < r.Markets.Length; g++) { double d = r.Markets[g].LastDemand; if (d > 0) dg[g] += d; }
