@@ -14,9 +14,9 @@ public static class Territory
     public static void Step(World w, Coefficients c)
     {
         // active 地域間の移民（§2.2.1）。
-        // ★2026-10-01 (141)：行き先は**機会の差の比で全ての州へ**配り、**距離で減らす**＝越境移民（MultiNationSim.MigrateBetweenNations）と同じ規則。
-        //   出る州 s から行き先 d への差 g_sd＝(d の機会−s の残る値打ち−摩擦 TransportFriction)×距離の減衰（MigrationDecay＝越境と同じ1本）。
-        //   ★(748) 旗 MigrationEntryFriction が正のときは入口の形：g_sd＝d の機会−s の残る値打ち−摩擦×(1＋km÷(MigrationDistanceScale×EraFactor))（距離の項を**引く**＝EntryFrictionTerm・乗算の減衰は掛けない）。
+        // ★2026-10-01 (141)：行き先は**機会の差の比で全ての州へ**配る（越境移民 MultiNationSim.MigrateBetweenNations と同じ形）。
+        //   ★(748) 距離は差から**引く**（入口の形）：出る州 s から行き先 d への差 g_sd＝d の機会−s の残る値打ち−摩擦 TransportFriction×(1＋km÷(MigrationDistanceScale×EraFactor))
+        //   （距離の項＝EntryFrictionTerm・遠い行き先は差が負になり1人も行かない）。越境は乗算の減衰 MigrationDecay のまま（差の符号は変えず流れを細らせる）。
         //   s の流量の割合＝RegionMobility×最良の行き先の差（上限 MaxMigrationFraction＝流出の上限は1回だけ＝行き先の数に依らない）を g_sd の比で全ての行き先へ
         //   （越境の段3〜4 と同じ形）。受け入れる州ごとに上限で縮め（(125)・縮んだ分は出る州に残る）、決まった人数を移す（越境の段5 と同じ）。
         //   旧＝最大の機会の1州（と第2の州に MigrationSecondDestShare＝0.3）だけへ、距離に依らず流した＝上位2州の受け入れの上限が国の移民の総量を決め
@@ -41,7 +41,7 @@ public static class Territory
         var plan = new List<(int S, int D, double F)>();
         var inflow = new double[k];
         var gap = new double[k];
-        double tech = w.WorldTechLevel;   // 世界の技術（月の中で動かない＝距離の項の時代の係数・計器の反実仮想の両方がこの1つを読む）
+        double tech = w.WorldTechLevel;   // 世界の技術（月の中で動かない＝距離の項の時代の係数）
         var size0 = new double[k][];   // 出る州の POP の月初の規模（移す人数＝月初の規模×流量の割合）
         long seenPairs = 0;   // 計算量の台帳（診断）：出る州×行き先の組（(146)＝O(州²)・旧は数えず単価に入っていた）
         for (int s = 0; s < k; s++)
@@ -56,8 +56,7 @@ public static class Territory
                 double g = opp[d] - stay[s] - c.TransportFriction;
                 if (!(g > 0)) continue;   // ★否定形＝NaN も弾く。差が0以下の州へは1人も行かない
                 double km = Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]);
-                if (c.MigrationEntryFriction > 0) g -= EntryFrictionTerm(km, tech, c);   // ★(748) 入口の形：距離は止まる位置（差の符号）を動かす
-                else g *= MigrationDecay(km, tech, c);   // 旧の形：距離は流れを細らせるだけ（旗 0）
+                g -= EntryFrictionTerm(km, tech, c);   // ★(748) 入口の形：距離は止まる位置（差の符号）を動かす
                 if (!(g > 0)) continue;
                 gap[d] = g; wSum += g;
                 if (g > gMax) gMax = g;
@@ -87,17 +86,16 @@ public static class Territory
         }
     }
 
-    /// <summary>★(141)：移民の距離の減衰＝越境移民（MultiNationSim.MigrateBetweenNations）と地域間移民（<see cref="Step"/>）の同じ1本。
+    /// <summary>★(141)：越境移民（MultiNationSim.MigrateBetweenNations）の距離の減衰。
     /// 1/(1＋距離km÷(MigrationDistanceScale×EraFactor(世界の技術, EraMigrationScale)))＝時代とともに遠くへ行きやすくなる（大西洋横断が6週間→6日）。
-    /// 差（行き先の機会−出る側の残る値打ち−摩擦）に掛ける＝遠い行き先ほど選ばれにくく、流れが細い（止まる位置＝差の符号は変えない）。MigrationDistanceScale≦0 は1（距離に無感応）。
-    /// 国内の移民は旗 MigrationEntryFriction が 0 のときだけこの形（旗が正なら <see cref="EntryFrictionTerm"/> を差から引く）。越境は常にこの形。
-    /// 旧＝越境だけが国の座標の間で読み（MultiNationSim の中の式）、国内の移民は距離を読まなかった（棚卸し pop-24「同じ移動で規則が2つ」）。</summary>
+    /// 差（行き先の機会−出る側の残る値打ち−閾値）に掛ける＝遠い行き先ほど選ばれにくく、流れが細い（止まる位置＝差の符号は変えない）。MigrationDistanceScale≦0 は1（距離に無感応）。
+    /// 国内の移民（<see cref="Step"/>）はこの形でなく <see cref="EntryFrictionTerm"/> を差から引く（★(748)）＝越境の乗算の減衰とは別の規則（棚卸し pop-24 の非対称が戻った・揃えるのは次の線）。</summary>
     internal static double MigrationDecay(double km, double worldTech, Coefficients c)
         => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
 
     /// <summary>★(748)：入口の形の距離の項＝摩擦 TransportFriction × km ÷ (MigrationDistanceScale × EraFactor(世界の技術, EraMigrationScale))（<see cref="MigrationDecay"/> と同じ尺と時代の係数）。
     /// 差（行き先の機会−出る側の残る値打ち−摩擦）から**引く**＝遠い行き先は差が負になり1人も行かない（止まる位置＝差の符号が距離で動く）。MigrationDistanceScale≦0 は 0（距離に無感応）。
-    /// 旗 MigrationEntryFriction が 0 のときは使わない（旧＝<see cref="MigrationDecay"/> を差に掛けた）。国内の移民だけ（越境は MigrationDecay のまま）。</summary>
+    /// 国内の移民だけ（越境は <see cref="MigrationDecay"/> のまま）。</summary>
     internal static double EntryFrictionTerm(double km, double worldTech, Coefficients c)
         => c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
 
