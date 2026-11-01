@@ -1,7 +1,7 @@
 ﻿namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (629) 疫病 1 件ごとの表 epi_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsMa.cs・InstrumentsSecession.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsSecession.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない。
 // 目的＝事前登録 measurements/urb_629_20261028_prereg.txt の観測量（疫病が当たった州・件数・州の都市の割合と国の都市の割合と最大の州の割合・死者）を読む。
 // 行＝疫病に当たった州 1 件ごと（World.TriggerEpidemic の内部）。**全ての国**を出す（POB_INSTRUMENTS_NATIONS で絞らない）。助走（WarmupFrozen の間）は書かない。
 // 列：quarter／year／nation／region／tier／origin（0＝国内の発生・1＝他国からの伝播・2＝同じ疫病の二次の波＝1 つ目を除いた都市の人口の重みで抽選した州）／regionUrbanShare（その州の都市の割合・死の前）／

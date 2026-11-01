@@ -5,7 +5,7 @@ using Inv = System.Globalization.CultureInfo;
 namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (660) 頻度の監視の第 2 段＝読むだけの 3 表 monlaw_s・mongood_s・monai_s（恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsInh.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しい状態を本体に足さない・採番しない。INS=1 のときだけ動く。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsEpi.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しい状態を本体に足さない・採番しない。INS=1 のときだけ動く。
 // 事前登録＝measurements/mon660_20261030_prereg.txt と 追記 1。溜めは自前の登録簿（MonSink・MonW＝MultiNationSim／World ごと）＝Sink の欄・Dispose の列は足さない（隣の線との衝突を減らす）。
 // 表：
 //   monlaw_s<種>.tsv  全ての国×四半期（人口 0 の国は出さない）。Government.LevelLaws の全行の現在段（Get）と目標（Target）。Set・Enact は呼ばない（Enact は MechanismProbe を起こす）。見出しは実行時に表から作る。
