@@ -2573,7 +2573,7 @@ public sealed class Simulation
         World.FoodFill += c.FoodFillSmoothing * (rawFill - prevFood);
         // 扶養力：医療(乳児生存)で増、工業化(雇用・食料生産性)で増、都市化(少子化)で減、過重労働で微減、主食不足で減（飢饉）＝人口転換＋マルサス。
         double avgInd = 0; int actN = 0;
-        double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）。IndustrializationPopWeighted=1で非加重avgIndを置換
+        double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）＝非加重 avgInd を置換
         double sanitSum = 0, sanitPop = 0;   // 衛生（上下水道+石鹸+電化）の人口加重。施設の無い世界は各 Fill 既定で sanitation=1.0=中立（較正温存）
         double arableSum = 0, ruralSum = 0;   // 人2b 空き土地の扶養力（下のlandRoom）：耕地と農村人口の全国集計。ArableLand≥1e8（未設定＝較正/最小世界）は除外＝厳密恒等
         // B-高1（史実検証2026-07-22）：主食の純輸入。下の消費ベース補正コメントが「輸入の分子算入は将来課題＝Trade記録から」と自認していた欠落を埋める（FoodAnchorNetImport適用は下）。
@@ -2607,9 +2607,9 @@ public sealed class Simulation
         }
         if (actN > 0) avgInd /= actN;
         // 人16（工業化度の人口加重）：非加重avgInd（空の辺境州の追加で出生率/扶養力が変わる）を人口加重平均へブレンド。
-        // IndustrializationPopWeighted=0で avgInd（現行）・1で人口加重（Σ Ind×rpop/Σ rpop）。1州世界では両者が恒等＝較正中立。
+        // 旧の旗 IndustrializationPopWeighted（1.0）は (739) で焼き込み。⚠avgInd＝indPopWeighted へは畳まない（avgInd+(x−avgInd) は x と同じビットとは限らない）。
         double indPopWeighted = indPopWeight > 1e-9 ? indPopSum / indPopWeight : avgInd;
-        avgInd += c.IndustrializationPopWeighted * (indPopWeighted - avgInd);
+        avgInd += (indPopWeighted - avgInd);
         double sanitation = sanitPop > 1e-9 ? sanitSum / sanitPop : 1.0;
         // 人2（扶養力の食料産出アンカー・大改修スカフォールド→本実装）：現行は capacity＝初期人口(baseline)×有界乗数束のため天井が約2.5倍で
         // 19世紀の人口爆発（英4倍/米23倍）が構造的に不能。さらに消費ベースの foodMet/foodNeed は[0,1]クランプ（消費は需要で頭打ち）で農業拡大が capacity を押し上げる経路がない。
