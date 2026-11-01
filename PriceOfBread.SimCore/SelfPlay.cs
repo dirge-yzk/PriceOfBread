@@ -805,9 +805,8 @@ public sealed class UtilityAgent : INationAgent
         if (GuildTargetFromBoard(w) is { } guildTarget)
             p.Guild = guildTarget;
         // ★最低賃金法（線 lw (459)）：★(486) から既定は旗 MinimumWageAiFromFloor＝1＝盤面の規則（本国の労働の失業と床が縛る広がり・線 4 本・AI の選び＝確証なし）。旗 0 の旧の規則＝賃金労働者（本国の都市人口）が多数になった国は床を求める（反トラスト・同業組合と同じ線）。ゲート0＝目標を書かない＝恒等
-        {   // ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。計器の欄は読むだけ。
+        {   // ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。
             var mwChosen = MinimumWageTargetChosen(w);
-            if (Instruments.On) w.DiagMaTargetOrd = mwChosen is { } mwOrd ? (int)mwOrd : -1;
             if (mwChosen is { } mwTarget)
                 p.MinimumWage = mwTarget;
         }

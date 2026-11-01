@@ -141,7 +141,7 @@ public sealed class World
     public GuildLaw Guild { get; internal set; } = GuildLaw.Full;                                   // ★同業組合法（現在値・特権 段4・2026-09-07）。保護＝職人の参入制限レント＋工場への移動の遅れ
     public MinimumWageLaw MinimumWage { get; internal set; } = MinimumWageLaw.None;                   // ★最低賃金法（現在値・線 lw (459)・2026-10-20）。None＝法なし。MinimumWageLawGate=0 では動かない＝恒等
     public InheritanceLaw Inheritance { get; internal set; } = InheritanceLaw.None;                   // ★相続法（現在値・線 inh (650)）。None＝取らない。InheritanceLawGate=0 では動かない＝恒等
-    public double LastEstateDutyPerMonth { get; internal set; }   // ★(650) 診断：直近月に相続で POP から国庫へ移った額（計器 inh_s が読む・力学は読まない）
+    public double LastEstateDutyPerMonth { get; internal set; }   // ★(650) 診断：直近月に相続で POP から国庫へ移った額（Runner の保存の検査と試験が読む・力学は読まない）
     public bool Mobilized { get; set; }                                                              // 総動員（#106・プレイヤーの戦時レバー・UIが直接トグル）。交戦中ONで戦時徴兵の深さを levée en masse 水準へ引き上げ＝非兵士POP(農民/都市労働者)を兵士へ大量変換（★M1 2026-09-19：徴兵法≥選抜の国だけ＝志願兵制は迂回しない）。既定false。⚠**AI側の書き手は SelfPlay.DecideQuarter の1本**（軍事費の段の最上段＝戦時経済の入口・2026-09-12 R2・2026-09-20 の段の点火で常時 live）（読み手＝Military.cs の徴兵深度／Government.MilitaryTotalTarget の段4の解禁＝M2 2026-09-19・押し上げはしない）
     public bool WartimeRationing { get; internal set; }                                              // 戦時配給法（現在値・1934拡張E6）。戦時のみ発火＝封鎖の飢餓厭戦を緩和。
     public bool MilitaryExportBan { get; internal set; }                                             // 軍需輸出の法（現在値・禁制品doc C5・2026-07-30）。禁止＝緊張の高い相手へ武器を売らない（相手は法が選ぶ）
@@ -209,8 +209,6 @@ public sealed class World
     [System.NonSerialized] internal double DiagSfBiasSwitchCum, DiagSfStressFoldCum;
     // ★(486) 計器 pay_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：PaySales の〈商人 POP の人数が 0〉の枝に入った回数と額の累計（InstrumentsPay.cs）。
     [System.NonSerialized] internal double[]? DiagPay;
-    // ★(480) 計器 ma_s の診断の欄（読むだけ・INS=1 のときだけ書く・セーブに載らない・シミュの値はこれを読まない）：この四半期に AI の最低賃金法の規則が p に書いた目標の序数（書かなかった＝−1）。
-    [System.NonSerialized] internal int DiagMaTargetOrd = -1;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
