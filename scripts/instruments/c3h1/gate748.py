@@ -3,7 +3,8 @@ python -X utf8 gate748.py <計器の出力ディレクトリ> [種...]
   T  ＝出る州が植民地格（region_s の tier=Colonial・その四半期）の国内の移民のうち大圏 3,000 km 超の量（千人・全四半期の和）の種の中央値。
   M1 ＝migform_s の liveFarPlanK÷oldFarPlanK（全四半期の和）の種の中央値（旗 0 で 1.000）。
   M2 ＝1−Σ livePosPairs÷Σ rawPosPairs（生の差が正の組のうち距離の項を引いて負になった割合）の種の中央値（旗 0 で 0）。
-距離＝hol_common.dist（州の座標の大圏 km・an_h2 と同じ）。migform_s が無い出力（基線）は M1・M2 を出さない。"""
+距離＝hol_common.dist（州の座標の大圏 km・an_h2 と同じ）。migform_s が無い出力（基線）は M1・M2 を出さない。
+⚠(748) の記録の読み手：migform_s は (753) c4bk の焼き込みで削除＝M1・M2 は keep_749 の生（m749 の木の出力）でだけ読める。"""
 import sys, os, statistics as st, collections
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'hol'))
 import hol_common

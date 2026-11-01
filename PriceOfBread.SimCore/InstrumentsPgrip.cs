@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (756) 議会の掌握の起債の項の表 pgrip_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsMigform.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（四半期の末に純関数を読むだけ）。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（(748) InstrumentsMigform.cs の先例・その計器は (753) で削除）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（四半期の末に純関数を読むだけ）。
 // 目的＝事前登録 measurements/m756_20261102_prereg_dg.txt の D1（実装）・D2（張り付き）・D3（掌握の新÷旧）を同じ盤面で読む。
 // 行＝国×四半期（四半期の末）。debtGripOld＝旧（月の名目GDP・床 1.0）／debtGripNew＝年の名目GDP／Used＝今の旗（ParliamentDebtGripYearGdp）が選ぶ側。
 //   gripOld・gripNew＝ParliamentGripOf を両方の分母で数えた値／gripUsed＝公開の PowerShares.ParliamentGrip（旗で選ぶ本物の経路）／peOld・peNew＝議会の実効統制／civOld・civNew＝文民制度の厚み。

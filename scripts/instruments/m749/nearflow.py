@@ -1,5 +1,6 @@
 """(749) 合流：c3h1 の反証役 中 1 の記録＝近い流れ（3,000 km 以下）の計画の新÷旧＝(liveAll−liveFar)/(oldAll−oldFar)を国ごとに（migform_s・読むだけ・全四半期と種の和）。
-python -X utf8 nearflow.py <計器の出力> [種...]  （計画は受け入れの上限で縮める前の量＝実現した流れではない）"""
+python -X utf8 nearflow.py <計器の出力> [種...]  （計画は受け入れの上限で縮める前の量＝実現した流れではない）
+⚠(749) の記録の読み手：migform_s は (753) c4bk の焼き込みで削除＝keep_749 の生（m749 の木の出力）にだけ当てる（新しい木の出力では種が空になり 0/0 で落ちる）。"""
 import sys, os, collections
 d = sys.argv[1]
 seeds = [int(x) for x in sys.argv[2:]] or sorted(int(f[len('migform_s'):-4]) for f in os.listdir(d) if f.startswith('migform_s'))
