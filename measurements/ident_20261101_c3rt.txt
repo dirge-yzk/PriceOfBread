@@ -1,0 +1,37 @@
+=== 恒等の証明 c3rt（2026-11-01 22:23:28）===
+測った木：D:/PoB_work/wt_c3rt（HEAD c3366aca・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c3rt/scripts/instruments/ident/ident.cfg
+宣言：added=['xmig_s'] grown=['migration_s'] tests_delta=5
+腕 a：rc=1 end=2026-11-01 22:10:53
+腕 b：rc=1 end=2026-11-01 22:17:52
+腕 t：rc=0 end=2026-11-01 21:45:15
+腕 s：rc=0 end=2026-11-01 22:08:09
+測る木の SOURCE-HASH：d6cfb6a751a5999e
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: d6cfb6a751a5999e
+[素の 5 種] b5_ia_5.txt 対 b5_20261031_m702
+  ○ 全行バイト一致（183 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261031_m702.cost
+  ○ 件数の行 29 本・推定 220.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: d6cfb6a751a5999e
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261101_m727_ins
+  ○ 全行バイト一致（183 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261101_m727_ins.cost
+  ○ 件数の行 29 本・推定 221.1 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c3rt/out_ib_10/ins  対  基準 D:/PoB_work/keep_736/base_ins
+  基準 881 本・腕 891 本・バイト一致 841 本
+  腕にだけある 10 本（うち宣言 10）
+  列が増えた表（--grown-ok の宣言）10 本：migration_s1.tsv+1列・migration_s10.tsv+1列・migration_s2.tsv+1列・migration_s3.tsv+1列・migration_s4.tsv+1列・migration_s5.tsv+1列
+  既知の揺れの列だけが違う表 30 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 841・既知の揺れ 30・宣言された増減 20）
+[注視の表] mon_ib_10.txt 対 mon_20261101_m727.txt（タグの行を除く）
+  ○ タグの行以外が一致（5051 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 93 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_c3rt/measurements/ng702_20261031:m702）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2108（基準 2103+5 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
