@@ -1836,6 +1836,7 @@ public static partial class Instruments
         }
         RegionRows(sk, seed, q, sim);
         OpiumRows(sk, seed, q, sim);    // (342) アヘンの表
+        HabitcapTable(sim, seed, q);    // (771) アヘンの蓋の旧新の表
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
