@@ -611,7 +611,7 @@ public sealed class Simulation
 
     /// <summary>内陸州の最寄り港距離を設定（監査2026-07-05・trade-capacity-even-share-not-network のデータ側配線）。
     /// 従来 NearestPortDistanceKm はどこからも代入されず、InlandPortDistanceDecay（dormant）を有効化しても減衰式が不発だった（#17較正の阻害）。
-    /// 州都市座標（Climate）から同国の港を選び距離を設定（★(770) 旗 PortByLandRoute が正＝港ごとの eff〈陸路が有限なら陸路 km・無限なら大圏 km〉の最小の港とその eff・0＝旧の大圏の最小の港と大圏 km＝Simulation.PortChoice）。座標未登録・港なし世界は 0＝減衰なし（従来挙動）。係数0の既定では挙動不変（較正中立）。
+    /// 州都市座標（Climate）から同国の港を選び距離を設定（(770)(779)＝港ごとの eff〈陸路が有限なら陸路 km・無限なら大圏 km〉の最小の港とその eff＝Simulation.PortChoice）。座標未登録・港なし世界は 0＝減衰なし（従来挙動）。係数0の既定では挙動不変（較正中立）。
     ///
     /// ★rewire＝再配線モード（W2・是正1/是正2案B・2026-08-16・doc 20260812_港の配線を領土に追随させる）。
     /// 領土が動いた国（割譲・分離独立・植民地州昇格）の配線を張り直す。構築時（rewire=false・既定）との差は1点だけ
@@ -636,8 +636,8 @@ public sealed class Simulation
             if (r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             if (cc.Lat == 0 && cc.Lon == 0) continue;
-            var pick = PortChoice(cc.Lat, cc.Lon, ports, PortByLand, PortSameLm);   // (770) 港を選ぶ式は 1 本（★(784) 計器 portch_s は PortChoice を sameLmFirst なしで呼ぶ＝旗 PortSameLandmassFirst 1 では portch_s の portNew は今の形 (a) の反実仮想・実際の港は portlm_s の portUsed／portD）
-            r.NearestPortDistanceKm = PortByLand ? pick.LandKm : pick.GcKm;   // (770) 旗が正＝BilateralMarket の内陸の鉄道の減衰が陸路の km を読む（0＝旧の大圏 km）
+            var pick = PortChoice(cc.Lat, cc.Lon, ports);   // (770)(779) 港を選ぶ式は 1 本（計器 portch_s の portNew は形 (d) の前の (a) の反実仮想・実際の港は portlm_s の portUsed／portD）
+            r.NearestPortDistanceKm = pick.LandKm;   // (770) BilateralMarket の内陸の鉄道の減衰が陸路の km を読む
             r.NearestPortName = pick.Name;   // 03 §12-3：どの港かを記憶（キエフ/ハリコフ→ロストフ＝穀物動線がデータを足さずに出る）
             // 03手順4A：陸脚＝陸グラフの最短路（山脈迂回込み）。孤立成分（別陸塊等）は大圏で退避＝0を残さない（0=港州の意味）
             r.PortLandKm = pick.LandKm;
@@ -646,54 +646,30 @@ public sealed class Simulation
         }
     }
 
-    // (770) 旗 PortByLandRoute を静的に 1 回読む（呼び手 MultiNationSim.RewirePorts に引数を足さない・PathGraph.GeoCoef と同じ前例）。
-    private static readonly bool PortByLand = new Coefficients().PortByLandRoute > 0;
-    // (779) 旗 PortSameLandmassFirst も同じ前例で静的に 1 回読む（国ごとの Coef ではない）。
-    private static readonly bool PortSameLm = new Coefficients().PortSameLandmassFirst > 0;
-
     /// <summary>(770) 内陸の1州（座標 lat,lon）が使う港を選ぶ純関数（乱数なし・盤面だけから決まる）。ports＝同じ国の港（座標つき）の並び。
     /// 港ごとの eff＝〈陸グラフの距離（PathGraph.LandDistanceKm）が有限 ? その陸路 km : 大圏 km〉（欄 PortLandKm と同じ物差し・別陸塊や島の港は大圏で比べる＝除外も優遇もしない）。
-    /// byLand=true＝eff の最小の港（同率は先着＝並びの先）。byLand=false＝旧の規則＝大圏の最小の港（同率は先着）を選んでからその港への陸路を 1 回引く。
+    /// 形 (d)（(779)）：州の陸塊の札（<see cref="Landmass.Of"/>）と同じ札で陸路が有限の港が 1 つでもあれば、陸路∞の港を外して有限の港の eff の最小（同率は先着＝並びの先）・無ければ全ての港の eff の最小（同率は先着）。
     /// 返り値＝港の名前・その港までの大圏 km・その港の eff（＝PortLandKm・陸路 ∞ は大圏で退避＝0 を残さない）。</summary>
-    internal static (string Name, double GcKm, double LandKm) PortChoice(double lat, double lon, List<(double Lat, double Lon, string Name)> ports, bool byLand, bool sameLmFirst = false)
+    internal static (string Name, double GcKm, double LandKm) PortChoice(double lat, double lon, List<(double Lat, double Lon, string Name)> ports)
     {
-        if (byLand)
+        // 1 パスで両方の最小を持つ＝全ての港の eff の最小（bestEff）と、陸路が有限の港だけの陸路の最小（finEff）。
+        double bestEff = double.MaxValue, bestGc = 0; string pickName = "";
+        string lmR = Landmass.Of(lat, lon);
+        double finEff = double.MaxValue, finGc = 0; string finName = ""; bool sameFin = false;
+        foreach (var p in ports)
         {
-            double bestEff = double.MaxValue, bestGc = 0; string pickName = "";
-            if (sameLmFirst)
+            double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon);
+            double l = PathGraph.LandDistanceKm(lat, lon, p.Lat, p.Lon);
+            bool fin = double.IsFinite(l);
+            double e = fin ? l : d;
+            if (e < bestEff) { bestEff = e; bestGc = d; pickName = p.Name; }
+            if (fin)
             {
-                // (779) 形 (d)：州と同じ札で陸路が有限の港が 1 つでもあれば、陸路∞の港を外して有限の港の陸路の最小（同率は先着）・無ければ今の形 (a) の最小。1 パスで両方の最小を持つ。
-                string lmR = Landmass.Of(lat, lon);
-                double finEff = double.MaxValue, finGc = 0; string finName = ""; bool sameFin = false;
-                foreach (var p in ports)
-                {
-                    double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon);
-                    double l = PathGraph.LandDistanceKm(lat, lon, p.Lat, p.Lon);
-                    bool fin = double.IsFinite(l);
-                    double e = fin ? l : d;
-                    if (e < bestEff) { bestEff = e; bestGc = d; pickName = p.Name; }
-                    if (fin)
-                    {
-                        if (e < finEff) { finEff = e; finGc = d; finName = p.Name; }
-                        if (!sameFin && Landmass.Of(p.Lat, p.Lon) == lmR) sameFin = true;
-                    }
-                }
-                return sameFin ? (finName, finGc, finEff) : (pickName, bestGc, bestEff);
+                if (e < finEff) { finEff = e; finGc = d; finName = p.Name; }
+                if (!sameFin && Landmass.Of(p.Lat, p.Lon) == lmR) sameFin = true;
             }
-            foreach (var p in ports)
-            {
-                double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon);
-                double l = PathGraph.LandDistanceKm(lat, lon, p.Lat, p.Lon);
-                double e = double.IsFinite(l) ? l : d;
-                if (e < bestEff) { bestEff = e; bestGc = d; pickName = p.Name; }
-            }
-            return (pickName, bestGc, bestEff);
         }
-        double best = double.MaxValue; string bestName = "";
-        var bestP = (Lat: 0.0, Lon: 0.0);
-        foreach (var p in ports) { double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon); if (d < best) { best = d; bestName = p.Name; bestP = (p.Lat, p.Lon); } }
-        double lg = PathGraph.LandDistanceKm(lat, lon, bestP.Lat, bestP.Lon);
-        return (bestName, best, double.IsPositiveInfinity(lg) ? best : lg);
+        return sameFin ? (finName, finGc, finEff) : (pickName, bestGc, bestEff);
     }
 
     /// <summary>1つの州（代表都市）を生成。国全体の各階級を Share で按分し、独立したカタログ全財の経済を持たせる（州ごとに世界市場と交易）。</summary>
