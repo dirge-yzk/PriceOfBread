@@ -9,20 +9,20 @@ namespace PriceOfBread.SimCore;
 // 行＝崩壊の事象（月×敗者）ごとに 1 行。事象＝その月にその敗者が負けた外交の講和で、白紙でなく賠償の枝（hit）まで進んだ物の全て。nCollapse＝うち崩壊と書き直せた物の数。
 // 列：month／year／loser／nCollapse／nOther（崩壊でない講和＝押しで決まった物の数）／nGrouped（旗 1 の集合に入った講和の数）／u2Count（集合の中の崩壊でない講和の数）／u3Count（押しが正なのに取り分 0 の勝者の数）／
 //   saMaxIndex（崩壊の講和の |クランプ後の戦勝点| の最大）／repOldIndex（Σ 賠償の元の単位×sa〔戦争ごと〕）／repNewIndex（Σ 賠償の元の単位×saMax×式の取り分〔1 回分〕）／repRealIndex（実際の Σ 賠償の元×支払い率〔会議の削りと条約港の倍率の前〕）／
-//   budOldIndex／budNewIndex／budRealIndex（植民地の奪取の予算＝Σ sa×ColonyCaptureBudget／Σ saMax×ColonyCaptureBudget×式の取り分／実際の Σ 予算）／capturedCount（実際に奪った植民地の数）／
+//   budOldIndex／budNewIndex／budRealIndex（植民地の奪取の予算＝Σ sa×ColonyCaptureBudget／Σ saMax×ColonyCaptureBudget×式の取り分／実際の Σ 予算）／capturedCount（実際に奪った植民地の数）／repMovedIndex（実際に移った賠償の Σ＝会議の削り・条約港の倍率・支払い率の後の rep〔(800)・末尾の列〕。repRealIndex は ResolvePeace の中で組み直した講和の前の値）／
 //   cedeEligCount（本国の割譲の門〔|戦勝点|≧TerritoryCessionScore〕を通る崩壊の講和の数＝旧の割譲の最大回数）／cedeRealCount（実際に州が移った講和の数）／shares（勝者ごとの取り分〔押しの累計の比・式〕と実際に使った取り分）。
 // ⚠限界（計器が自分で申告する）：①repUnit は講和の時点の敗者の GdpPerMonth×支払い率 r を戦争ごとに読む（割譲で GDP が動けば戦争ごとにずれる＝repNew は最初の講和の値）②会議の削りと条約港の倍率は repReal から除いてある
 //   （期待の側にも入れていない＝比に出ない）。repNew は戦争ごとの講和の時点の単位を使う（割譲で敗者の支払い率が動いても期待が実際とずれない）③旗 0 では nGrouped と実際の取り分は 0／nan。
 public static partial class Instruments
 {
-    internal const string CpeaceHeaderText = "month\tyear\tloser\tnCollapse\tnOther\tnGrouped\tu2Count\tu3Count\tsaMaxIndex\trepOldIndex\trepNewIndex\trepRealIndex\tbudOldIndex\tbudNewIndex\tbudRealIndex\tcapturedCount\tcedeEligCount\tcedeRealCount\tshares";
+    internal const string CpeaceHeaderText = "month\tyear\tloser\tnCollapse\tnOther\tnGrouped\tu2Count\tu3Count\tsaMaxIndex\trepOldIndex\trepNewIndex\trepRealIndex\tbudOldIndex\tbudNewIndex\tbudRealIndex\tcapturedCount\tcedeEligCount\tcedeRealCount\tshares\trepMovedIndex";
 
     internal sealed class CpRec
     {
         public int Month, Year, Gid; public string Loser = "", Winner = "";
         public bool Collapsed, Hit, Ceded, Valid;
         public double SaJ, AbsJ, WinPush, LosePush, RepUnit, CapBudget, TerritoryScore, ShareReal;
-        public double RepRealR, Budget0, Fr; public int Captured;
+        public double RepRealR, RepMoved, Budget0, Fr; public int Captured;
     }
     sealed class CpState
     {
@@ -70,6 +70,7 @@ public static partial class Instruments
         r.Hit = d.CpHit;
         if (!r.Hit) return;   // 白紙・内戦・賠償の枝の前で終わった講和は事象に入れない（国を持たない側がいる講和は入れる＝取り分の分母に押しが残る）
         r.Budget0 = d.CpBudget0; r.Captured = d.CpCaptured; r.Ceded = d.CpCeded;
+        r.RepMoved = d.CpRep;   // 実際に移った賠償（ResolvePeace の rep＝会議の削り・条約港の倍率・支払い率 r の後）
         r.RepRealR = r.Valid ? d.CpRepRaw * r.Fr : 0;   // 賠償の元（戦勝点は集合の 1 回分×取り分）×講和の前の支払い率（会議の削りと条約港の倍率の前）
         CpOf(d).Recs.Add(r);
     }
@@ -92,7 +93,7 @@ public static partial class Instruments
         {
             var lst = groups[key];
             int nCol = 0, nOth = 0, nGrp = 0, u2 = 0, u3 = 0, capt = 0, elig = 0, cede = 0;
-            double saMax = 0, repOld = 0, repNew = 0, repReal = 0, budOld = 0, budNew = 0, budReal = 0;
+            double saMax = 0, repOld = 0, repNew = 0, repReal = 0, repMoved = 0, budOld = 0, budNew = 0, budReal = 0;
             double wsum = 0;
             foreach (var r in lst) if (r.Collapsed) { wsum += r.WinPush > 0 ? r.WinPush : 0; saMax = System.Math.Max(saMax, r.SaJ); }
             var sh = new System.Text.StringBuilder();
@@ -104,7 +105,7 @@ public static partial class Instruments
                 double fsh = wsum > 0 ? (r.WinPush > 0 ? r.WinPush : 0) / wsum : 1.0 / System.Math.Max(1, nCol);   // 式で書いた取り分（勝者の押しの累計の比・エンジンの取り分を読まない）
                 repOld += r.RepUnit * r.SaJ; budOld += r.SaJ * r.CapBudget;               // 旧＝戦争ごとに自分の戦勝点で満額
                 repNew += r.RepUnit * saMax * fsh; budNew += r.CapBudget * saMax * fsh;   // 新＝1 回分の戦勝点（最大）×式の取り分
-                repReal += r.RepRealR; budReal += r.Budget0; capt += r.Captured;
+                repReal += r.RepRealR; repMoved += r.RepMoved; budReal += r.Budget0; capt += r.Captured;
                 if (r.AbsJ >= r.TerritoryScore) elig++;
                 if (r.Ceded) cede++;
                 double used = r.Gid > 0 ? r.ShareReal : fsh;
@@ -113,7 +114,7 @@ public static partial class Instruments
                 sh.Append(r.Winner).Append(':').Append(F(fsh)).Append(':').Append(F(r.Gid > 0 ? r.ShareReal : double.NaN));
             }
             if (nCol == 0) continue;
-            wr.WriteLine(string.Join('\t', I(key.Item1), I(lst[0].Year), key.Item2, I(nCol), I(nOth), I(nGrp), I(u2), I(u3), F(saMax), F(repOld), F(repNew), F(repReal), F(budOld), F(budNew), F(budReal), I(capt), I(elig), I(cede), sh.ToString()));
+            wr.WriteLine(string.Join('\t', I(key.Item1), I(lst[0].Year), key.Item2, I(nCol), I(nOth), I(nGrp), I(u2), I(u3), F(saMax), F(repOld), F(repNew), F(repReal), F(budOld), F(budNew), F(budReal), I(capt), I(elig), I(cede), sh.ToString(), F(repMoved)));
         }
     }
 }

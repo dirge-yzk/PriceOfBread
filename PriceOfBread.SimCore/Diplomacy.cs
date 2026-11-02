@@ -379,7 +379,7 @@ public sealed class Diplomacy
     private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
     private int _rankClock;   // P14（2026-07-17）：ランク再分類の間引きカウンタ（月次Step単位）。RankUpdateIntervalQuarters=1で毎月（現行恒等）・4で年次
     private int _year;
-    internal bool CpHit, CpCeded; internal double CpRep, CpRepBase, CpBudget0, CpRepRaw; internal int CpCaptured;   // (791) 計器（読むだけ・Instruments.On のときだけ書く）
+    [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // (791) 計器（読むだけ・Instruments.On のときだけ書く・セーブに乗せない〔(800)〕）
     // ⚠「年内の月」（旧 _monthOfYear・2026-08-04）は削除（2026-08-10）。戦闘ログの本文に年月を書くためだけの状態で、
     //   その年月は出来事パネルの配信日と二重に見えていた＝本文の日付を落としたので読み手が居なくなった。
 
@@ -3107,7 +3107,7 @@ public sealed class Diplomacy
             World.Transfer((lw, null), (ww, null, null), rep, TreasuryCat.WarCost);
             Fiscal.BookForeignDebt(null, new MoneyStock(repBase - rep), lw, ww);
         }
-        if (Instruments.On) { CpHit = true; CpRep = rep; CpRepBase = repBase; CpBudget0 = budget0; CpCaptured = captured; CpCeded = false; CpRepRaw = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay).Value; }   // (791) 計器（読むだけ）
+        if (Instruments.On) { CpHit = true; CpRep = rep; CpBudget0 = budget0; CpCaptured = captured; CpCeded = false; CpRepRaw = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay).Value; }   // (791) 計器（読むだけ）
         Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
 
         // 決定的敗北の本国帰結（doc改善#3）：敗戦ショックで正統性を揺るがし（→Politics 遷移＝敗戦→革命・仏1870/露1917）、
