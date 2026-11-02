@@ -636,16 +636,42 @@ public sealed class Simulation
             if (r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             if (cc.Lat == 0 && cc.Lon == 0) continue;
-            double best = double.MaxValue; string bestName = "";
-            foreach (var p in ports) { double d = Geo.DistanceKm(cc.Lat, cc.Lon, p.Lat, p.Lon); if (d < best) { best = d; bestName = p.Name; } }
-            r.NearestPortDistanceKm = best;
-            r.NearestPortName = bestName;   // 03 §12-3：どの港かを記憶（キエフ/ハリコフ→ロストフ＝穀物動線がデータを足さずに出る）
+            var pick = PortChoice(cc.Lat, cc.Lon, ports, PortByLand);   // (770) 港を選ぶ式は 1 本（計器 portch_s も同じ関数を呼ぶ）
+            r.NearestPortDistanceKm = PortByLand ? pick.LandKm : pick.GcKm;   // (770) 旗が正＝BilateralMarket の内陸の鉄道の減衰が陸路の km を読む（0＝旧の大圏 km）
+            r.NearestPortName = pick.Name;   // 03 §12-3：どの港かを記憶（キエフ/ハリコフ→ロストフ＝穀物動線がデータを足さずに出る）
             // 03手順4A：陸脚＝陸グラフの最短路（山脈迂回込み）。孤立成分（別陸塊等）は大圏で退避＝0を残さない（0=港州の意味）
-            var bp = Climate.CityCoord(bestName);
-            double lg = PathGraph.LandDistanceKm(cc.Lat, cc.Lon, bp.Lat, bp.Lon);
-            r.PortLandKm = double.IsPositiveInfinity(lg) ? best : lg;
+            r.PortLandKm = pick.LandKm;
+            var bp = Climate.CityCoord(pick.Name);
             r.SeaBasin = SeaGraph.BasinAt(bp.Lat, bp.Lon);   // 03手順5：内陸州＝最寄り港の海盆を継承（キエフ→ロストフ＝黒海勢が自動で出る・§12-3）
         }
+    }
+
+    // (770) 旗 PortByLandRoute を静的に 1 回読む（呼び手 MultiNationSim.RewirePorts に引数を足さない・PathGraph.GeoCoef と同じ前例）。
+    private static readonly bool PortByLand = new Coefficients().PortByLandRoute > 0;
+
+    /// <summary>(770) 内陸の1州（座標 lat,lon）が使う港を選ぶ純関数（乱数なし・盤面だけから決まる）。ports＝同じ国の港（座標つき）の並び。
+    /// 港ごとの eff＝〈陸グラフの距離（PathGraph.LandDistanceKm）が有限 ? その陸路 km : 大圏 km〉（欄 PortLandKm と同じ物差し・別陸塊や島の港は大圏で比べる＝除外も優遇もしない）。
+    /// byLand=true＝eff の最小の港（同率は先着＝並びの先）。byLand=false＝旧の規則＝大圏の最小の港（同率は先着）を選んでからその港への陸路を 1 回引く。
+    /// 返り値＝港の名前・その港までの大圏 km・その港の eff（＝PortLandKm・陸路 ∞ は大圏で退避＝0 を残さない）。</summary>
+    internal static (string Name, double GcKm, double LandKm) PortChoice(double lat, double lon, List<(double Lat, double Lon, string Name)> ports, bool byLand)
+    {
+        if (byLand)
+        {
+            double bestEff = double.MaxValue, bestGc = 0; string pickName = "";
+            foreach (var p in ports)
+            {
+                double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon);
+                double l = PathGraph.LandDistanceKm(lat, lon, p.Lat, p.Lon);
+                double e = double.IsFinite(l) ? l : d;
+                if (e < bestEff) { bestEff = e; bestGc = d; pickName = p.Name; }
+            }
+            return (pickName, bestGc, bestEff);
+        }
+        double best = double.MaxValue; string bestName = "";
+        var bestP = (Lat: 0.0, Lon: 0.0);
+        foreach (var p in ports) { double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon); if (d < best) { best = d; bestName = p.Name; bestP = (p.Lat, p.Lon); } }
+        double lg = PathGraph.LandDistanceKm(lat, lon, bestP.Lat, bestP.Lon);
+        return (bestName, best, double.IsPositiveInfinity(lg) ? best : lg);
     }
 
     /// <summary>1つの州（代表都市）を生成。国全体の各階級を Share で按分し、独立したカタログ全財の経済を持たせる（州ごとに世界市場と交易）。</summary>
