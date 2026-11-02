@@ -1,0 +1,38 @@
+(777) 事前登録 c7pg：港の陸塊の計器 portlm_s と、別の陸塊の港の形の紙（恒等の線＝挙動は変えない）
+枝 c7pg（c5b868d1 から）・worktree D:/PoB_work/wt_c7pg・書いたモデル Claude Opus 5.5・2026-11-02
+形の区分：恒等の線（尾でも入口でもない＝世界に何も足さない・計器は INS のときだけ動く）
+
+[1] 恒等の線・予言 0
+  - 足す物＝新しい計器の表 portlm_s（SimCore/InstrumentsPortlm.cs・部分クラス）・Instruments.cs の登録 2 行（Quarter の PortchTable の直後に PortlmTable・Close の PortchClose の直後に PortlmClose）・PortByLandTests.cs に試験を足すだけ・紙の台本 measurements/m777_20261102_paper_pg.py。
+  - 世界を書かない・乱数を引かない・新しい状態変数を作らない・CostLedger の行を足さない。呼ぶのは純関数だけ（Landmass.Of・PathGraph.LandDistanceKm・Geo.DistanceKm・Geo.SeaDistanceKm・Diplomacy.ChokeOpenFor・Climate.CityCoord）。静的な記憶（座標の厳密なビットを鍵にした辞書・海の全点対の表の遅延の構築）に項目が増えることはあるが、値は同じ入力の純関数＝軌道は変わらない（限界の申告：leakhunt と計器を同時に立てると、海の孤立成分の stderr の診断〔同じ組は 1 回だけ〕の出る順が変わりうる＝軌道ではない）。
+
+[2] 合否（これだけ）
+  - 素の 5 種の成績表が b5_20261102_m773 と、計器つき 10 種の成績表が b10_20261102_m773_ins と、名乗り行（SOURCE-HASH）を除いて全行バイト一致。
+  - 計器の生は portlm_s が増えるだけ（ident.sh の --added-tables portlm_s・他の表は基準の生 keep_773/base_ins と一致）。.cost の件数の行が一致（--cost-allow なし）。
+  - NG の集合は ng.sh で 77・m773 と同じ（新しい 0・外れた 0）。
+  - テストは Category!=FullLength が 2139＋N（N＝足した試験の数・報告に書く）・FullLength 3。
+[3] ident.sh の〈判定: 恒等〉なら採る（〈測った種で一致〉と名乗る）。不一致なら変更を外して報告に回す。
+
+[4] 計器 portlm_s の定義（年末＝q%4==3・portch_s と同じ時点・同じ母集合〔全ての国の内陸州で座標のある州・港の一覧は IsPort かつ座標あり＝Simulation.WirePortDistances の写し〕）
+  指示の列（この順）：year・nation・region・lmRegion（州の陸塊の札＝Landmass.Of(州の座標)＝IsSeaCrossing と同じ札）・portGc（大圏の最小の港＝PortChoice(false)）・lmGc・portUsed（実際の NearestPortName）・lmUsed・landKmUsed（PathGraph.LandDistanceKm(州→portUsed) の生の値・∞は inf＝欄 PortLandKm〔∞は大圏で退避〕は読まない）・gcKmUsed（州→portUsed の大圏）・crossLandmass（lmUsed≠lmRegion なら 1・同じなら 0）。
+  紙のために足す列（反実仮想＝同じ盤面に形 b・c・c′・d を当てた答え・世界は走らない）：
+    lmRegionPortCount（同じ国の港のうち札が lmRegion の数）・finitePortCount（陸路が有限の港の数）・sameLmFinitePortCount（札が lmRegion かつ陸路が有限の港の数）・gcKmMin（portGc までの大圏＝U2 の分母）・
+    portFin・lmFin・effFinKm（形 b）・portSea・lmSea・effSeaKm（形 c）・portShore・lmShore・effShoreKm・shoreName（形 c′）・portDrop・lmDrop・effDropKm（形 d）。
+  陸塊の札の出どころ＝埋め込みの landmass.json（Landmass.Of＝最近傍の登録点＝州は全て登録済み）。陸グラフの連結成分は使わない（理由：陸路が有限か無限かは landKmUsed の列が別に持つ＝札と陸路の 2 本で読む）。
+
+[5] 形の定義（紙で同じ盤面に当てる）。eff は km。同率は港の並びの先（PortChoice と同じ）。
+  (a) 今の形＝港ごとの eff＝〈陸路が有限 ? 陸路 : 大圏〉の最小（実際の portUsed）。
+  (b) 有限だけから選ぶ（波54 c4pl の形）＝陸路が有限の港のうち陸路の最小・有限が 1 つも無ければ大圏の最小（c4pl と同じ倒し方）。
+  (c) 海の脚を足す形（指示の字義）＝陸路が∞の港 P の eff を〈州から陸路で行ける同じ国の港のうち陸路の最小の港 Q*（最寄りの岸）までの陸路＋Q* から P までの海路（Geo.SeaDistanceKm・運河は国の ChokeOpenFor）〉・有限の港は陸路・Q* が無ければ (a) と同じ（大圏）。
+       ★段0 の予言（ソースから）：eff(Q*)＝陸路(Q*) ＜ 陸路(Q*)＋海路(Q*,P)＝どの∞の港も Q* に負ける＝(c) は Q* があれば必ず Q*＝(b) と同じ港を選ぶ（構成上の一致）。紙はこの一致を確かめる（不一致の行は 0 の予言）。
+  (c′) 海の脚の岸を全ての国の港に広げた形（担当が足した変種＝指示に無い）＝岸 S*＝陸路で行ける全ての国の港のうち陸路の最小・港ごとの eff＝min(陸路が有限なら陸路, 陸路(S*)＋海路(S*,P))（P＝S* なら海路 0）・S* が無ければ (a) と同じ。
+  (d) 外す形＝札が lmRegion で陸路が有限の同じ国の港が 1 つでもあれば、陸路が∞の港を候補から外して (a) の eff の最小・無ければ (a) と同じ。
+       ★段0 の予言：(b) と (d) が違うのは、陸路が有限の港が全て別の札にある行だけ（例：スエズ地峡で陸路が有限なら、ユーラシアの州とアフリカの港）。
+
+[6] 紙の量（種 1〜10＝ident の腕 b の計器の生・種 11〜20＝同じ木の計器つき 10 種〔種の起点 11〕を回せたときだけ・① は keep_773 の portch_s と landmass.json だけで種 1〜20）
+  ① 今の形の crossLandmass の行の割合：分母 2 通り＝(i) 全ての内陸州×年の行 (ii) 港が変わった行（portUsed≠portGc＝★(773) の 13.9%／16.4% の分母）。上位の州（行の数）を名指し。
+     自己検査＝Python の札（landmass.json の名前の引き・無ければ最近傍の大圏）と portlm_s の lmRegion・lmUsed の一致（種 1〜10・不一致 0 の予言）。
+  ② 形 (a)(b)(c)(c′)(d) ごとに：crossLandmass の割合（分母 (i)(ii)）・U2（eff(選んだ港)＞2×gcKmMin の割合・分母 (i)(ii)）・島に住む州が自分の島の港を選ぶ割合（分母＝lmRegion が島〔大陸の札＝eurasia・africa・north-america・south-america・australia 以外〕で lmRegionPortCount≧1 の行）・名指しの 3 州（中央メキシコ・リヨン・トゥールーズ＝(a) が別の陸塊を選んだ行の持ち主と年）の選ぶ港の最頻。
+     開幕の盤面＝最初の年（1784）の行で同じ表を別に出す。
+  ③ 次の波の門の素案を notes に（下限＝狙いの量・上限＝crossLandmass の割合〔(a) が落ちる値〕と U2〔(b) が落ちる値〕）。門ではない＝この線の採否に使わない。
+  計算量：計器は INS のときだけ・CostLedger に触れない＝推定は変わらない（使う量 0 秒）。
