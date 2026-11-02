@@ -1,0 +1,17 @@
+    0 エラー
+
+経過時間 00:01:25.74
+D:\PoB_work\c11dm\art_mut\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:05.40]     PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる [FAIL]
+  失敗 PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる [4 s]
+  エラー メッセージ:
+   読み手のない係数 ScoreTechWeight。使わないなら削除する（記録は墓標のコメントと docs へ）。休眠の器なら読む枝を置くこと
+     at PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる() in D:\PoB_work\c11dm\mut_gate\PriceOfBread.Tests\DormantIdentityTests.cs:line 316
+[xUnit.net 00:00:05.43]     PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない [FAIL]
+  失敗 PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない [22 ms]
+  エラー メッセージ:
+   棚卸しと削除の回（(253) 以後・名簿の注記）で削除した係数・州の欄「ScoreTechWeight」が Coefficients か Region に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと
+     at PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない() in D:\PoB_work\c11dm\mut_gate\PriceOfBread.Tests\DormantIdentityTests.cs:line 338
+
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
