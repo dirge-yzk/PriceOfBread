@@ -68,5 +68,5 @@ if a.x0 is not None:
     verdict('L1', a.x0 >= 6 and L1 <= int(a.x0 // 3)) if a.x0 >= 6 else print('# L1: X0<6 のため記録に下げる')
     verdict('L2', l2_seeds >= 9)
     verdict('U1a', u1a_viol == 0)
-    if a.pend0 is not None: verdict('U1b', (pm_all >= 0.5 * a.pend0) if a.pend0 >= 1 else True)
+    if a.pend0 is not None: verdict('U1b', (pm_all >= 0.5 * a.pend0) if a.pend0 >= 0.05 else True)
 verdict('L1p', L1p <= 6, a.x0 is None); verdict('U2', u2 >= a.floor_u2, a.x0 is None); verdict('U2r', u2r >= a.floor_u2r, a.x0 is None)
