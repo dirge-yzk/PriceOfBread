@@ -1,0 +1,47 @@
+(798) c11dm 事前登録（波61・恒等の線・仮番号・書いたモデル Claude Sonnet 5.5）— 差し戻しの休眠の器と何もしない値の削除
+基点 a9187101（m797）。枝 c11dm。worktree D:/PoB_work/wt_c11dm。作者の指示の外へ出ない（新しい係数 0・新しい状態変数 0・エンジンの挙動を変えない）。
+形：入口でも尾でもない＝削除だけの恒等の線。
+
+[1] 恒等の線・予言 0
+  成績表 3 枚（素の 10 種 b10_20261103_m797・5 種 b5_20261103_m797・計器つき 10 種 b10_20261103_m797_ins）が、名乗り行の SOURCE-HASH を除いて全行バイト一致する。
+  計器の表の差は宣言だけ：score_s の 3 列（scoreOld・rankOld・isGreatOld）を --removed-cols で宣言。それ以外の表・列は 1 バイトも違えない。
+  .cost の件数の行も一致（推定の計算量 221.2 秒のまま）。〈判定: 恒等〉なら採る。一致しなければ該当の変更を外して報告に回す。
+  テストの数：ident.cfg の TESTS_NONFULL 2191 から消す物の分だけ減る（予想 −10＝OpeningMoneyRatioTests の 7 本全部＋IdeaNeedBoardTests の旗 1 の 3 本・足す試験は +1〜+2）。--list-tests で実測して合わせる。
+
+[2] 消す物と残す物（読み手は SimCore・App・Runner・Tests・XAML・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前・world.json を grep で確かめた）
+  差し戻しの記録（00一覧 docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md）：
+    I8a 社会主義・共産主義の盤面の旗＝00一覧 255 行〈社会主義と共産主義の旗は既定 0 で差し戻し〉（★(640) 線 idn・G2b で落ちた）。
+    I8b 開幕の貨幣の量＝00一覧 296 行〈採らない〉（★(574) 線 svf・B1 は CEIL で外れた）。
+  I8a（消す）
+    係数 SpreadNeedSocialismBoard・SpreadNeedCommunismBoard（Coefficients.cs:2895-2896）。読み手＝Discovery.cs:240,241（SpreadNeed の三項）・:656（board を求める門）・試験 IdeaNeedBoardTests.cs（旗 1 の 3 本＝消す）・DormantIdentityTests.cs:40（DormantZeroFields の 1 行＝消して RetiredFields に墓標）・scripts/instruments/idn640/an_idn640.py:128（閉じた線の解析の辞書。POB_COEF では使っていない＝触らない）。POB_COEF・Runner・App の読みは 0。
+    Discovery.cs:240 は `s = workerMil`、:241 は `s = workerMil`（旗 0 の式そのまま）。:656 は `c.SpreadNeedFascismDecline > 0 ? IdeaBoardOf(...) : default`（既定 1 なので IdeaBoardOf は今と同じく走る＝計算量不変）。
+  I8a（残す）
+    ComStrength（Discovery.cs）＝もう 1 つの読み手 InstrumentsIdn.cs:41（計器 idn_s の列）がある＝読み手 0 ではない。計器の列を変えないため残す（呼び出しの式も変えない）。IdeaBoard の WageShare・WageUnmet・OwnerTake も同じ計器が読む＝残す。
+  I8b（消す）
+    係数 OpeningMoneyFromRatioMode（Coefficients.cs:1956）／Simulation.cs:1888 の呼びの枝（`warm` の宣言は後ろで使うので残す）／World.RescaleOpeningSavings・World.OpeningBroadMoneyToGdpYear（World.cs:2669,2682）／Simulation.cs:119 の OpeningBroadMoneyToGdpYear の初期化子／Pop.ScaleSavings（Model.cs:139・書き手は 1 つだけ＝RescaleOpeningSavings）／Bank.ScaleCredit（Bank.cs・書き手は 1 つだけ）／NationConfig.BroadMoneyToGdpYear とそのコメント（NationConfig.cs:36-43）／world.json の broadMoneyToGdpYear 28 行（System.Text.Json は未知のキーを読み捨てる既定＝読み込みは変わらない）。
+    試験 OpeningMoneyRatioTests.cs は 7 本全部が消す物を読む（データの表の試験を含む）＝ファイルごと消す。DormantIdentityTests.cs:124 の行を消して RetiredFields へ墓標。
+    貯蓄の書き手の台帳 SavKind.Rebase は国の換算が引き続き使う＝残す。
+  I9a（何もしない値）
+    CrownParliament.cs:218 の `if (c.NationalConsciousnessCorruptionWeight > 0 || c.NationBuildMobilizationWeight > 0)`＝左は既定 0.2 で常に真。門だけを消し、ブロックを 1 段字下げ（空白だけの変更）。
+    係数 NationalConsciousnessCorruptionWeight は World.civicCarriesEthnic が読む＝残す。Coefficients.cs:3130 の注を事実に合わせる。
+    読み手の確認（grep）：Tests・Runner・scripts・App で NationalConsciousnessCorruptionWeight を代入する所 0。NationBuildMobilizationWeight を 0 にする所 0（Military.cs:215・App は読むだけ）。
+  I9b（ScoreTechWeight・推奨どおり列ごと消す）
+    係数 ScoreTechWeight（Coefficients.cs:1699）の読み手は InstrumentsScore.cs:85 の OldScore.Tech だけ。OldScore.Of は Tech を含む＝列を残すと係数を計器の定数にするだけになる。推奨の通り OldScore と 3 列（scoreOld・rankOld・isGreatOld）を消す（--removed-cols score_s:scoreOld,score_s:rankOld,score_s:isGreatOld で宣言。他の列は全行バイト一致）。
+    孤児になる物：SelfPlay.cs の NationalScore.MeanSupplyFill（読み手は OldScore.WealthParts だけ＝grep で確かめた）を消す。NationalScore.Finance は画面（GameViewModel.Header.cs）が読む＝残す。
+    読めなくなる解析台本：scripts/instruments/sc/an_sc416.py・sp/an_sp449.py の旧の列の側（閉じた線の解析。(457) 申し送りが予告した結果）＝触らない。
+    試験 ScoreReaderTests は OldScore を InstrumentsScore.cs の外で読むのを禁じるだけ＝消した後も緑（試験は触らない）。
+  ついで（台本だけ）
+    scripts/instruments/c6pr/gate770.py：portch_s に portNew が無いときは portlm_s の portA を（year,nation,region）で突き合わせて読む。keep_797/base_ins に当てて KeyError にならないことを確かめる。
+
+[3] 足す試験と、それぞれを赤にする突然変異
+  T1 国民意識の蓄積の門（新しい試験のファイル。CrownParliament.Step の NC の初期化＋蓄積が、2 つの重みが 0 でも走る）。期待値は試験が手で作る（World.NationalConsciousness が負でなくなる）。突然変異：`if (c.NationalConsciousnessCorruptionWeight > 0 || c.NationBuildMobilizationWeight > 0)` を戻す → 赤。
+  T2 削除した休眠の係数は戻っていない（既存の試験・RetiredFields に SpreadNeedSocialismBoard・SpreadNeedCommunismBoard・OpeningMoneyFromRatioMode・ScoreTechWeight を墓標）。突然変異：ScoreTechWeight を 1 つ戻す → 赤。
+  突然変異は使い捨ての木（D:/PoB_work/c11dm/mut_<名>）で試験を 1 本ずつ回し、出力を measurements/m798_20261103/ に置く。
+  ★(743) の区分で書き換える試験：IdeaNeedBoardTests の旗 0 の試験から旗 1 の陽性対照と SpreadNeedSocialismBoard・SpreadNeedCommunismBoard の既定値の Assert を削る（① 消したメンバーの参照）／同ファイルの旗 1 の 3 本を消す（①）／OpeningMoneyRatioTests ファイル全体を消す（①）／DormantIdentityTests の DormantZeroFields から 3 行を消し RetiredFields に 4 行足す（名簿＝①）。機構の向き・大きさ・判定の Assert は書き換えない。
+
+[4] 恒等の合否
+  `bash scripts/instruments/ident/ident.sh run c11dm --tree D:/PoB_work/wt_c11dm --saveleak --tests-delta <実測> --removed-cols score_s:scoreOld,score_s:rankOld,score_s:isGreatOld`（run_in_background・arms.sh free が 4 以上のときに始める）。
+  追加：savetest・leakhunt（--saveleak）・フルスイートを Category!=FullLength と =FullLength に分けて回し合計を --list-tests と突き合わせる。
+  NG の集合（ng.sh）は挙動が変わらないので回さない（成績表が全行一致なら史実比較の桁も同じ）。
+
+[5] 採る条件：〈判定: 恒等〉（測った種で一致）。一致しなければ該当の変更を外して報告に回す。
