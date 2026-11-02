@@ -6,7 +6,7 @@
 /// <param name="Forms">この財が習慣性の行を持つか（財の番号で決まる・<see cref="Growth"/> が 0 でも真）。需要の上乗せと所得弾力の除外と中毒度の更新（減衰）が読む。</param>
 /// <param name="Growth">習慣の強さ＝1人あたり消費が依存を育てる率。<b>0 でこの財の機構の全体が止まる</b>（主フラグ＝労働への害・困窮ゲート・禁令の機構が読む）。</param>
 /// <param name="Decay">依存の自然減。</param>
-/// <param name="Cap">依存の上限（蓋 <see cref="Coefficients.OpiumAddictionCap"/>・旗 <see cref="Coefficients.OpiumAddictionCapOff"/> が正なら +∞＝蓋なし）。</param>
+/// <param name="Cap">依存の上限（旗 <see cref="Coefficients.OpiumAddictionCapOff"/> が正〔既定〕なら +∞＝蓋なし・0 なら蓋 <see cref="Coefficients.OpiumAddictionCap"/>）。</param>
 /// <param name="LaborPenalty">依存が労働供給を蝕む強さ（成人労働×(1−これ×依存)）。</param>
 /// <param name="MiseryScale">素の必要量の困窮ゲート＝基礎の必要量×clamp(これ×(1−補給の充足),0,1)。</param>
 public readonly record struct HabitProfile(bool Forms, double Growth, double Decay, double Cap, double LaborPenalty, double MiseryScale)

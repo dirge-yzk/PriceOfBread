@@ -2540,8 +2540,8 @@ public sealed class Coefficients
     // アヘン（特殊資材・実験）：消費するほど中毒度が上がり、それが需要に上乗せされる＝供給が需要を生む正のフィードバック（暴走する想定）。
     public int OpiumGoodId = Catalog.OpiumId;                     // アヘンの good.Id
     public double OpiumAddictionGrowth = 0.1;        // P3点火0.1（2026-07-18＝Phase B実現。0.2はハーネス13/30＝依存→満足↓→困窮消費の発散で却下）。0=機構全体オフ（恒等）。点火で困窮ゲート消費・労働/満足ペナルティ・世界プール参加・AI禁令・輸出国緊張が全て連動
-    public double OpiumAddictionCap = 0.2;           // 中毒度ストックの生理的上限（州人口の実効障害の飽和＝発散の物理的な蓋）
-    public double OpiumAddictionCapOff = 0;          // (771) c6op 段1：アヘンの蓋の旗＝0 で蓋 OpiumAddictionCap（0.2）・正で蓋なし（段2 で既定 1 にする）。確証なし（蓋を外すと労働の床 0.5＝Habit.LaborFactor へ張り付きが移る・Growth 0.2 は発散で却下）
+    public double OpiumAddictionCap = 0.2;           // 旧の蓋（旗 OpiumAddictionCapOff が 0 のときだけ効く＝旗 0 の経路の番人用）。(787) 段2 で既定は蓋なし
+    public double OpiumAddictionCapOff = 1;          // (771) 段1 で入れ (787) c9op 段2 で既定 1＝蓋なし（設計思想⑧）。0 で旧の蓋 OpiumAddictionCap（0.2）。依存の在庫は 成長×1人あたり消費−減衰×在庫 で決まる（釣り合い＝成長÷減衰×消費）。確証なし（蓋を外すと労働の床 0.5＝Habit.LaborFactor へ張り付きが移りうる）
     public double OpiumAddictionDecay = 0.02;        // 中毒度の自然減（成長>減衰なら発散）
 
     // === リアリティ監査 2026-07-02 Wave1（致命バグ・保存則・ガード）===

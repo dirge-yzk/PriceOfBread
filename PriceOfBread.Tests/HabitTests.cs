@@ -37,7 +37,9 @@ public class HabitTests
     {
         var h = Habit.Of(new Coefficients(), Catalog.OpiumId);
         Assert.Equal(0.079, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);   // 0.05＋0.1×0.3−0.02×0.05
-        Assert.Equal(Math.Min(0.2862, h.Cap), Habit.NextStock(h, 0.19, 1.0), 12);                           // 0.19＋0.1−0.0038＝0.2862 → 上限 0.2
+        Assert.Equal(0.2862, Habit.NextStock(h, 0.19, 1.0), 12);                                            // 0.19＋0.1−0.0038＝0.2862（既定は蓋なし＝(787) 段2。期待の式 Math.Min(0.2862, h.Cap) を同じ double の literal へ＝★(743) ②）
+        var h0 = Habit.Of(new Coefficients { OpiumAddictionCapOff = 0 }, Catalog.OpiumId);
+        Assert.Equal(0.2, Habit.NextStock(h0, 0.19, 1.0), 12);                                              // 旗 0（旧の蓋）では上限 0.2 に止まる＝旗 0 の経路の番人
         Assert.Equal(0.0098, Habit.NextStock(h, 0.01, 0.0), 12);                         // 消費が無ければ 2% ずつ減る
         Assert.Equal(0.0, Habit.NextStock(h, 0.0, 0.0), 12);
         // 習慣性の無い財の行（全て 0）：在庫は 0 に潰れる（行を持たない財では呼ばれない＝呼び手の Forms で守る）
@@ -81,8 +83,12 @@ public class HabitTests
         var (r0, _) = OneMonth(0.05, c => c.OpiumAddictionGrowth = 0);
         Assert.Equal(0.049, r0.OpiumAddiction, 12);
         // 既定の成長 0.1：消費が正なら減衰の後より大きい（0.049 以上・上限 0.2 以下）
-        var (r1, c1) = OneMonth(0.05, c => { });
-        Assert.InRange(r1.OpiumAddiction, 0.049 - 1e-12, Habit.Of(c1, Catalog.OpiumId).Cap);
+        // (787) 旗 0（旧の蓋）を明示：上限 0.2。既定（蓋なし）は有限の上限＝max(前の在庫, 5×1人あたり消費)（5＝成長 0.1÷減衰 0.02 の literal・1人あたり消費は市場の売れた量÷人口で機構を呼ばずに読む）
+        var (r1, _) = OneMonth(0.05, c => c.OpiumAddictionCapOff = 0);
+        Assert.InRange(r1.OpiumAddiction, 0.049 - 1e-12, 0.2);
+        var (r1b, _) = OneMonth(0.05, c => { });
+        double pcB = r1b.Markets[Catalog.OpiumId].LastSold / r1b.Pops.Sum(p => p.Size);
+        Assert.InRange(r1b.OpiumAddiction, 0.049 - 1e-12, Math.Max(0.05, 5.0 * pcB) * (1 + 1e-9) + 1e-12);
         // 習慣性の行を持つ財が無い世界（アヘンの番号を存在しない財へ）：在庫は 1 か月後もそのまま＝他の財の経路が在庫に触れない
         var (r2, _) = OneMonth(0.05, c => c.OpiumGoodId = -1);
         Assert.Equal(0.05, r2.OpiumAddiction);
@@ -208,10 +214,16 @@ public class HabitTests
             Assert.True(seededRows.Count >= quarters);
             // ★(344) 反証役 op〔v〕：販売量を積む計器の口（Instruments.HabitSold）が消えても緑のままだった＝種を置いた国の州の行で販売量が正の行があること
             Assert.True(seededRows.Any(r => D(r, "soldPerMonth") > 0), "英の州の販売量が全て 0（置いたアヘンの在庫は助走の間に売り切れ・ロンドンに産地は無い＝輸入が数える 12 四半期に届かないとこうなる〔(697) の診断：在庫をロンドンだけに置くと旗 1 では 12 四半期とも届かず〔旗 0 は 8 四半期目〕・英の全ての州に置くと 12 四半期目に届く〕）：" + string.Join(" ", seededRows.Take(12).Select(r => $"[q{r[I("quarter")]} 中毒{D(r, "addictionIndex"):F3} 販売{D(r, "soldPerMonth"):F3} 価格{D(r, "unitPrice"):F3}]")));
+            var bl = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitbal_s1789.tsv")); var bh = bl[0].Split('	');
+            int bq = Array.IndexOf(bh, "quarter"), bn = Array.IndexOf(bh, "nationIndex"), br = Array.IndexOf(bh, "region"), bpc = Array.IndexOf(bh, "pcMaxPerMonth"), bsb = Array.IndexOf(bh, "stockBeforeMaxIndex");
+            var balMax = bl.Skip(1).Select(l => l.Split('	')).ToDictionary(x => (x[bq], x[bn], x[br]),
+                x => Math.Max(double.Parse(x[bsb], System.Globalization.CultureInfo.InvariantCulture), 5.0 * double.Parse(x[bpc], System.Globalization.CultureInfo.InvariantCulture)));
             foreach (var r in region)
             {
                 double a = D(r, "addictionIndex");
-                Assert.InRange(a, 0, Habit.Of(new Coefficients(), Catalog.OpiumId).Cap + 1e-12);                                                  // 上限（係数の既定 0.2）
+                var balKey = (r[I("quarter")], r[I("nationIndex")], r[I("region")]);
+                double ceil = balMax.TryGetValue(balKey, out var cv) ? cv : 0.0;
+                Assert.InRange(a, 0, ceil * (1 + 1e-7) + 1e-9);   // (787) 有限の上限（既定は蓋なし）＝その州のその四半期の max(前の在庫の最大, 5×1人あたり消費の最大)（5＝成長 0.1÷減衰 0.02 の literal・habitbal_s の別の出所の列）
                 Assert.InRange(D(r, "laborFactorIndex"), Math.Max(0.5, 1.0 - a) - 1e-9, Math.Max(0.5, 1.0 - a) + 1e-9);   // 労働の倍率は手の算術（害 1.0・床 0.5）。★(383) 桁の丸め（8 桁）で境界の値が 1e-8 ずれた→★(387) 絶対の許容差 1e-9（表は有効数字 10 桁＝丸めの境界に依らない・反証役 ae〔bv〕低）
                 Assert.True(D(r, "soldPerMonth") >= 0);
                 Assert.InRange(D(r, "productionFactorIndex"), 0, 1);
@@ -241,10 +253,11 @@ public class HabitTests
     // ---------------------------------------------------------------- (771) c6op アヘンの蓋の段1：旗 OpiumAddictionCapOff と旧新の計器 habitcap_s ----------------------------------------------------------------
 
     [Fact]
-    public void アヘンの蓋の旗は既定0_旗1で蓋だけが外れる_他の5値は変わらない()
+    public void アヘンの蓋の旗は既定1_旗0で旧の蓋が戻り_旗1で蓋だけが外れる_他の5値は変わらない()
     {
-        var c0 = new Coefficients();
-        Assert.Equal(0.0, c0.OpiumAddictionCapOff);
+        var c0 = new Coefficients { OpiumAddictionCapOff = 0 };
+        Assert.Equal(1.0, new Coefficients().OpiumAddictionCapOff);   // (787) 段2：既定 1（静的な値の番人＝事前登録の予言と一致する値・★(764)）
+        Assert.Equal(double.PositiveInfinity, Habit.Of(new Coefficients(), Catalog.OpiumId).Cap);
         var c1 = new Coefficients { OpiumAddictionCapOff = 1 };
         var h0 = Habit.Of(c0, Catalog.OpiumId); var h1 = Habit.Of(c1, Catalog.OpiumId);
         Assert.Equal(double.PositiveInfinity, h1.Cap);
@@ -311,6 +324,30 @@ public class HabitTests
             Assert.True(compared >= quarters, "突き合わせた行が少ない（主張が空洞）");
         }
         finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
+    }
+
+    // ---------------------------------------------------------------- (787) c9op アヘンの蓋の段2：蓋なしの釣り合い ----------------------------------------------------------------
+
+    [Fact]
+    public void 蓋なしで在庫は釣り合いへ収束し_毎月の不変式を破らない_旗0は蓋へ()
+    {
+        // 手の算術：消費 0.3 一定・成長 0.1・減衰 0.02 → 釣り合い＝(0.1/0.02)×0.3＝1.5。各月 s' ≦ max(s, 1.5)。減衰は月 2% ＝1000 か月で (0.98)^1000≒1.7e-9
+        var hOff = Habit.Of(new Coefficients(), Catalog.OpiumId);
+        double s = 0.0;
+        for (int m = 0; m < 1000; m++)
+        {
+            double n = Habit.NextStock(hOff, s, 0.3);
+            Assert.True(n <= Math.Max(s, 1.5) * (1 + 1e-9) + 1e-15, $"不変式が破れた月 {m}: {s} → {n}");
+            s = n;
+        }
+        Assert.Equal(1.5, s, 6);                                   // 蓋 0.2 を大きく超えて釣り合いへ
+        double s2 = 4.0;                                           // 釣り合いより上から始めても減衰で釣り合いへ降りる
+        for (int m = 0; m < 1000; m++) s2 = Habit.NextStock(hOff, s2, 0.3);
+        Assert.Equal(1.5, s2, 6);
+        var hOn = Habit.Of(new Coefficients { OpiumAddictionCapOff = 0 }, Catalog.OpiumId);   // 旗 0＝旧の蓋 0.2
+        double s3 = 0.0;
+        for (int m = 0; m < 1000; m++) { s3 = Habit.NextStock(hOn, s3, 0.3); Assert.True(s3 <= 0.2 + 1e-15); }
+        Assert.Equal(0.2, s3, 12);
     }
 
     // ---------------------------------------------------------------- (787) c9op アヘンの蓋の段2：釣り合いの表 habitbal_s ----------------------------------------------------------------

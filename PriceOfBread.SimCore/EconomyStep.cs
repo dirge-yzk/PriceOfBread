@@ -1834,7 +1834,7 @@ public static class EconomyStep
                 double perCapita = totalPop > Eps ? sold / totalPop : 0;
                 if (insOn) Instruments.HabitSold(region, sold);   // (342) 計器（読むだけ）：州のその月の販売量
                 if (insOn && !world!.WarmupFrozen) Instruments.HabitCapStep(region, coef, habit, region.OpiumAddiction, perCapita);   // (771) 計器（読むだけ）：アヘンの蓋の旧新の次の在庫（更新の前＝同じ前の在庫・助走の月は数えない）
-                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // P3：生理的上限＝依存→満足↓→困窮消費↑の正帰還に物理の蓋（0.2上限でも労働−最大20%・満足−最大10%）
+                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // P3：依存→満足↓→困窮消費↑の正帰還。(787) 段2 で既定は蓋なし（旗 OpiumAddictionCapOff＝1・旗 0 で旧の蓋 0.2）
             }
 
             // ★popが自腹で買った量の階級別記帳（作者フィードバック2026-08-10 項目6）＝生産タブの「用途」先頭行が読む唯一の出所。
