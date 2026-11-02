@@ -1,0 +1,2 @@
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+成功!   -失敗:     0、合格:  2167、スキップ:     1、合計:  2168、期間: 15 m 19 s - PriceOfBread.Tests.dll (net10.0)
