@@ -1839,6 +1839,7 @@ public static partial class Instruments
         RegionRows(sk, seed, q, sim);
         OpiumRows(sk, seed, q, sim);    // (342) アヘンの表
         HabitcapTable(sim, seed, q);    // (771) アヘンの蓋の旧新の表
+        HabitbalTable(sim, seed, q);    // (787) アヘンの釣り合いの表
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         SilverParityTable(sim, seed, q);   // (775) 銀の平価の自己参照の表（注入の直後の捕捉と四半期の末の E）
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
