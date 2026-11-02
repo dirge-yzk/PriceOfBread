@@ -125,6 +125,25 @@ public class CollapsePeaceTests
     }
 
     [Fact]
+    public void 旗1は両者の厭戦が1_0で並ぶ戦争も集合に入る()
+    {
+        // 敗者はフランス。1 本目はフランスもイギリスも厭戦 1.0（頭打ちで並ぶ）＝歩の本体の規則（同値なら押しが小さい A 側・同じなら B 側が負ける）で敗者が決まる。2 本目はスペインとの崩壊。
+        // 盤面の押し（月の初めの FrontPush）はフランスの方が小さい＝A のフランスが 1 本目も負ける（前提として確かめる）。フランスは 2 本とも負け、合計は単独の賠償。
+        var (sim, fr, uk, es, w1, w2) = Board(1);
+        sim.Diplomacy.Wars.Clear();
+        fr.WarExhaustion = 1.0; uk.WarExhaustion = 1.0; es.WarExhaustion = 0;
+        fr.Nation!.FiscalFundingRatio = new Share(0.8);
+        var a = new War { A = fr, B = uk, PushA = 1, PushB = 3e12 };   // 勝者はイギリス（B 側の押し）
+        var b = new War { A = es, B = fr, PushA = 1e12, PushB = 1 };   // 勝者はスペイン（A 側の押し）
+        sim.Diplomacy.Wars.Add(a); sim.Diplomacy.Wars.Add(b);
+        double u0 = Led(uk), e0 = Led(es);
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        Assert.Empty(sim.Diplomacy.Wars);
+        Assert.True(a.Score < -1.0 && b.Score > 1.0, $"前提が崩れた：フランスが 2 本とも満額で負けていない（戦勝点 {a.Score:G6}/{b.Score:G6}）");
+        Close(0.2 * fr.GdpPerMonth.Value * 0.8, (Led(uk) - u0) + (Led(es) - e0));
+    }
+
+    [Fact]
     public void 旗1で押しが正の勝者は取り分が0にならない()
     {
         var o = Run(1, pushFr: 1e12, pushEs: 5.0);    // 小さい押しでも正なら取り分は正

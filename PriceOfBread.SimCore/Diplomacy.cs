@@ -2628,7 +2628,8 @@ public sealed class Diplomacy
                 var cw = Wars[wi];
                 if (cw.CivilWarParent is not null || cw.ForcedPeace) continue;
                 bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
-                Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : null) : ac ? cw.A : bc ? cw.B : null;
+                // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら月の初めの押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
+                Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (pushA[wi] < pushB[wi] ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
                 if (pl is null) continue;
                 cpCount[pl] = cpCount.GetValueOrDefault(pl) + 1;
                 if (cpSeen.Add(pl)) { if (!cpFlushAt.TryGetValue(wi, out var fl)) cpFlushAt[wi] = fl = []; fl.Add(pl); }
