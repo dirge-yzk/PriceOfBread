@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (771) アヘンの蓋の旧新の表 habitcap_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsLandfix.cs の型）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（蓄えは計器の側の ConditionalWeakTable）。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（(762) の InstrumentsLandfix.cs の型・(769) で削除）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（蓄えは計器の側の ConditionalWeakTable）。
 // 目的＝旗 OpiumAddictionCapOff（蓋 0.2 を外す）の旧新を同じ盤面で読む。毎月の更新の前（同じ前の在庫）で、旧＝蓋 OpiumAddictionCap・新＝蓋なし(+∞)・実際＝いま使っている蓋 の 3 通りの次の在庫を並べる。
 // 表 habitcap_s（四半期の末・州の行・前の在庫か 1 人あたり消費が正の月があった州だけ）：
 //   monthsCount＝計器の口が呼ばれた月数／bindMonthsCount＝新が旧より大きい月（蓋が効いた月）／capIndex＝旧の蓋（係数）／capOffFlag＝旗の値／
@@ -18,6 +18,7 @@ public static partial class Instruments
         public double Before, Used, Old, New, Excess, NewMax;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, HabitcapAcc> HabitcapAccs = new();
+    static string HabitcapR(double v) => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);   // (773) 合流：c6bk が InstrumentsLandfix.cs（LandfixR の定義）を消したので同じ中身を局所に置く（文字の移し替えだけ）
     sealed class HabitcapSink { public bool Started; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, HabitcapSink> HabitcapSinks = new();
 
@@ -55,7 +56,7 @@ public static partial class Instruments
                 if (!HabitcapAccs.TryGetValue(r, out var a)) continue;
                 if (a.Seen)
                     sb.Append(string.Join('	', q.ToString(inv), w.Year.ToString(inv), i.ToString(inv), NameOf(w), r.Name, a.Months.ToString(inv), a.BindMonths.ToString(inv),
-                        LandfixR(w.Coef.OpiumAddictionCap), LandfixR(w.Coef.OpiumAddictionCapOff), LandfixR(a.Before), LandfixR(a.Used), LandfixR(a.Old), LandfixR(a.New), LandfixR(a.Excess), LandfixR(a.NewMax))).Append('\n');
+                        HabitcapR(w.Coef.OpiumAddictionCap), HabitcapR(w.Coef.OpiumAddictionCapOff), HabitcapR(a.Before), HabitcapR(a.Used), HabitcapR(a.Old), HabitcapR(a.New), HabitcapR(a.Excess), HabitcapR(a.NewMax))).Append('\n');
                 HabitcapAccs.Remove(r);
             }
         }
