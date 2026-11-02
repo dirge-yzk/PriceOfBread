@@ -4,20 +4,20 @@ namespace PriceOfBread.SimCore;
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsLandfix.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（世界を書かない）。INS=1（POB_INSTRUMENTS）のときだけ動く。
 // 目的＝事前登録 measurements/m770_20261102_prereg_pr.txt の P1（配線）・P2（鉄道の減衰の新÷旧）・P3（港が変わる州の数）・U1（eff が旧より増えない）・U2（島の罠）を同じ盤面で読む。
 // 取り方＝Instruments.Quarter の年末（q%4==3＝その四半期の港の張り直し <c>MultiNationSim.RewirePorts</c> の後）に全ての国の内陸州（港でない・座標のある州）を 1 巡し、
-//   エンジンの港を選ぶ関数 <see cref="Simulation.PortChoice"/> は呼ばない（(785) で旗を焼き込み旧の経路〈大圏の最小〉が消えた）：portGc＝<see cref="PortchGcNearest"/>（大圏の最小の港＝旧の規則・計器の局所の書き方）・
-//   portNew＝<see cref="PortlmAD"/> の PortA（港ごとの eff の最小＝形 (d) の前の (a) の反実仮想。旗 PortSameLandmassFirst の焼き込み後は実際の港 portUsed と食い違う行がある＝実際は portlm_s の portUsed／portD）。portUsed・railUsedKm は州の欄の実際の値（エンジンが張った港と km）。
+//   エンジンの港を選ぶ関数 <see cref="Simulation.PortChoice"/> は呼ばない（(785) で旗を焼き込み旧の経路〈大圏の最小〉が消えた）：portGc＝<see cref="PortchGcNearest"/>（大圏の最小の港＝旧の規則・計器の局所の書き方）。
+//   portUsed・railUsedKm は州の欄の実際の値（エンジンが張った港と km）。(792) で列 portNew（<see cref="PortlmAD"/> の PortA＝形 (d) の前の (a) の反実仮想）を消した：portlm_s の portA と 10 種 202,943 行で全行一致（measurements/m792_20261103_portnew_cmp.txt）＝同じ純関数の写しだった。(a) の反実仮想の港は portlm_s の portA を読む。
 //   landKmOld・landKmNew・gcKm は PortChoice の返り値を写さず、PathGraph.LandDistanceKm と Geo.DistanceKm を計器が直接引く（P1・U1 が PortChoice の中の誤りも拾えるように）。
-// 行＝内陸州×年。列（接尾辞：Km・Index）：year・nation・region・portGc（大圏の最小の港＝旧の規則）・portNew（(a) の反実仮想＝PortlmAD の PortA）・portUsed（実際に張った NearestPortName）・
+// 行＝内陸州×年。列（接尾辞：Km・Index）：year・nation・region・portGc（大圏の最小の港＝旧の規則）・portUsed（実際に張った NearestPortName）・
 //   gcKm（portGc までの大圏）・landKmOld（portGc の eff＝〈陸路が有限 ? 陸路 : 大圏〉＝旧の PortLandKm）・landKmNew（portUsed の eff）・railUsedKm（実際の NearestPortDistanceKm）・
 //   railDecayOldIndex＝1/(1+k·gcKm/N)（旧の規則では NearestPortDistanceKm＝gcKm）・railDecayUsedIndex＝1/(1+k·railUsedKm/N)（k＝InlandPortDistanceDecay・N＝Diplomacy.DistanceNormKm・BilateralMarket.cs:272-273 と同じ式と門）・
 //   basinOld（portGc の海盆）・basinNew（r.SeaBasin＝実際の海盆）・
 //   fareLandOldIndex＝landKmOld×terrCost×landRatio・fareLandNewIndex＝landKmNew×terrCost×landRatio（BilateralMarket.cs:421 の陸の脚の運賃 landKm*terrCost*landRatio の同じ盤面の旧と新。km に線形＝新÷旧＝landKmNew÷landKmOld）。
 // ⚠限界（計器が自己申告する）：年末の断面（四半期の途中の張り直しは見ない）／港の一覧の作り方（IsPort かつ座標あり）は Simulation.WirePortDistances の写し＝そこが替われば追いつかない／
 //   railDecayOldIndex・landKmOld・fareLandOldIndex は旧の規則を今の盤面に当てた反実仮想（旗 1 の軌道では旧の規則の世界は走らない）／
-//   terrCost・landRatio の式は BilateralMarket.cs の 308-316 行の写し（そこが替われば追いつかない・新÷旧は km の比なので写しの誤りには強い）／portNew は WirePortDistances が呼ぶのと同じ純関数＝P1 は配線しか拾わない。
+//   terrCost・landRatio の式は BilateralMarket.cs の 308-316 行の写し（そこが替われば追いつかない・新÷旧は km の比なので写しの誤りには強い）。
 public static partial class Instruments
 {
-    internal const string PortchHeaderText = "year\tnation\tregion\tportGc\tportNew\tportUsed\tgcKm\tlandKmOld\tlandKmNew\trailUsedKm\trailDecayOldIndex\trailDecayUsedIndex\tbasinOld\tbasinNew\tfareLandOldIndex\tfareLandNewIndex";
+    internal const string PortchHeaderText = "year\tnation\tregion\tportGc\tportUsed\tgcKm\tlandKmOld\tlandKmNew\trailUsedKm\trailDecayOldIndex\trailDecayUsedIndex\tbasinOld\tbasinNew\tfareLandOldIndex\tfareLandNewIndex";
 
     sealed class PortchSink { public System.IO.StreamWriter? W; public bool Header; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, PortchSink> PortchSinks = new();
@@ -65,7 +65,6 @@ public static partial class Instruments
                 var cc = Climate.CityCoord(r.Name);
                 if (cc.Lat == 0 && cc.Lon == 0) continue;
                 string gcPickName = PortchGcNearest(cc.Lat, cc.Lon, ports);
-                string newPickName = PortlmAD((cc.Lat, cc.Lon), Landmass.Of(cc.Lat, cc.Lon), ports).PortA;   // portNew＝(a) の反実仮想（列の名前は ident の宣言の都合で変えない）
                 var pOld = Climate.CityCoord(gcPickName); var pUsed = Climate.CityCoord(r.NearestPortName);
                 var (gcKm, landKmOld) = PortchEff((cc.Lat, cc.Lon), (pOld.Lat, pOld.Lon));
                 var (_, landKmNew) = PortchEff((cc.Lat, cc.Lon), (pUsed.Lat, pUsed.Lon));
@@ -81,7 +80,7 @@ public static partial class Instruments
                 double decayUsed = k > 1e-12 && r.NearestPortDistanceKm > 1e-9 ? 1.0 / (1.0 + k * r.NearestPortDistanceKm / norm) : 1.0;
                 sk.W ??= Open("portch", seed);
                 if (!sk.Header) { sk.W.WriteLine(PortchHeaderText); sk.Header = true; }
-                sk.W.WriteLine(string.Join('\t', w.Year.ToString(inv), nat, r.Name, gcPickName, newPickName, r.NearestPortName,
+                sk.W.WriteLine(string.Join('\t', w.Year.ToString(inv), nat, r.Name, gcPickName, r.NearestPortName,
                     PortchR(gcKm), PortchR(landKmOld), PortchR(landKmNew), PortchR(r.NearestPortDistanceKm),
                     PortchR(decayOld), PortchR(decayUsed),
                     SeaGraph.BasinAt(pOld.Lat, pOld.Lon).ToString(), r.SeaBasin.ToString(),
