@@ -60,3 +60,7 @@
 ## [8] 重なりの読み（合流の材料）
   触る行：Fiscal.cs:160〜161・Coefficients.cs:3552〜3553（墓標の注と係数の行）・InstrumentsSilverParity.cs の 5 行（注 10 行目・ヘッダ 19 行目・欄 25 行目・計算 47・51・70 行目・書き出し 101 行目）・FiscalTests.cs の末尾に Fact を 1 本・ident_check.py の cols_diff・cmp_ins・parse_args。
   他の c9* の枝が同じ行を触るかは合流で見る（c9bk・c9op は基点から同じ行を持つ）。
+
+## [9] 訂正（腕の前・コードを入れる前・結果を見る前）
+  [8] の〈FiscalTests.cs の末尾に Fact を 1 本〉は誤り＝Theory 1 本（InlineData 7 行）。`--list-tests` は InlineData の行を 1 本ずつ数える（c7hl の ident.cfg の注と同じ数え方）ので、ident の --tests-delta は +7（足した後に --list-tests で数えて確かめる）。
+  [2] の助走の結果は measurements/m786_20261102_stage0_warmup_probe.txt（B の行 0 件・助走の最大 b＝0.9868）。進める条件を満たしたのでコードを入れる。
