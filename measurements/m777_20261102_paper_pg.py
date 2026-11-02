@@ -102,7 +102,7 @@ def part2(lm, dirs, portch_dirs, out):
             out.append(f"- {d}: portlm_s が無い"); continue
         seeds = f"{seed_of(fs[0])}〜{seed_of(fs[-1])}"
         allrows = []; opening = []
-        selfchk = collections.Counter()
+        selfchk = collections.Counter({k: 0 for k in ("行", "州の札の不一致", "港の札の不一致", "形 c と形 b の港の不一致", "crossLandmass の列の不一致", "portch_s に無い行", "portch_s と portUsed の不一致")})
         pch = {}
         for pd in portch_dirs:
             for p in files(pd, "portch"):
@@ -132,10 +132,10 @@ def part2(lm, dirs, portch_dirs, out):
         out.append("- 自己検査：" + "・".join(f"{k} {v}" for k, v in selfchk.items()))
         for label, rows in (("全期間", allrows), ("開幕（各種の最初の年）", opening)):
             out.append(f"- {label}（行 {len(rows)}）")
-            out.append("  | 形 | cross (i) 全ての行 | cross (ii) 港が変わった行 | (iii) 移った行 | 避けられる cross（札が同じ有限の港があるのに別の札） | U2 (i) 全ての行 | U2 (ii) 港が変わった行 | 島の州が自分の島の港 | 港が変わった行の数 |")
-            out.append("  |---|---|---|---|---|---|---|---|---|")
+            out.append("  | 形 | cross (i) 全ての行 | cross (ii) 港が変わった行 | (iii) 移った行 | 避けられる cross（札が同じ有限の港があるのに別の札） | U2 (i) 全ての行 | U2 (ii) 港が変わった行 | U2 かつ cross（港が変わった行・別の札への遠回り） | 島の州が自分の島の港 | 港が変わった行の数 |")
+            out.append("  |---|---|---|---|---|---|---|---|---|---|")
             for name, pc, lc, ec in SHAPES:
-                n = len(rows); cr = chg = chgcr = u2 = chgu2 = isl = islself = moved = avoid = 0
+                n = len(rows); cr = chg = chgcr = u2 = chgu2 = isl = islself = moved = avoid = chgu2cr = 0
                 for r in rows:
                     port = r[pc]; lmx = r[lc]
                     e = eff_a(r) if ec is None else fnum(r[ec])
@@ -144,15 +144,22 @@ def part2(lm, dirs, portch_dirs, out):
                     u = (e > 2.0 * g) if (math.isfinite(e) and math.isfinite(g)) else False
                     ch = port != r["portGc"]
                     cr += c; u2 += u
-                    if ch: chg += 1; chgcr += c; chgu2 += u; moved += (c and r["lmGc"] == r["lmRegion"])
+                    if ch: chg += 1; chgcr += c; chgu2 += u; moved += (c and r["lmGc"] == r["lmRegion"]); chgu2cr += (c and u)
                     avoid += (c and int(r["sameLmFinitePortCount"]) >= 1)
                     if r["lmRegion"] not in CONT and int(r["lmRegionPortCount"]) >= 1:
                         isl += 1; islself += (lmx == r["lmRegion"])
-                out.append(f"  | ({name}) | {pct(cr, n)} | {pct(chgcr, chg)} | {pct(moved, chg)} | {pct(avoid, n)} | {pct(u2, n)} | {pct(chgu2, chg)} | {pct(islself, isl)} | {chg} |")
+                out.append(f"  | ({name}) | {pct(cr, n)} | {pct(chgcr, chg)} | {pct(moved, chg)} | {pct(avoid, n)} | {pct(u2, n)} | {pct(chgu2, chg)} | {pct(chgu2cr, chg)} | {pct(islself, isl)} | {chg} |")
         ca = [r for r in allrows if r["crossLandmass"] == "1"]
         fin = sum(1 for r in ca if math.isfinite(fnum(r["landKmUsed"])))
         nolm = sum(1 for r in ca if r["lmRegionPortCount"] == "0")
+        hop = [r for r in ca if not math.isfinite(fnum(r["landKmUsed"])) and int(r["sameLmFinitePortCount"]) >= 1]
+        chg_n = sum(1 for r in allrows if r["portUsed"] != r["portGc"])
+        hop_chg = sum(1 for r in hop if r["portUsed"] != r["portGc"])
+        tgt = [r for r in hop]
+        sw = {nm: sum(1 for r in tgt if r[pc] and r[lc] == r["lmRegion"]) for nm, pc, lc, ec in SHAPES}
         out.append(f"- (a) の crossLandmass {len(ca)} 行の内訳：使った港への陸路が有限（札は違うが陸で繋がる＝例 シナイ）{pct(fin, len(ca))}・州の札に同じ国の港が 1 つも無い（別の札へ出るしかない）{pct(nolm, len(ca))}")
+        out.append(f"- (a) に固有の誤り〈海を渡る跳び〉＝crossLandmass かつ使った港への陸路が∞ かつ 札が同じで陸路が有限の同じ国の港がある：全ての行の {pct(len(hop), len(allrows))}・港が変わった行の {pct(hop_chg, chg_n)}（形 b・c・d は構成上 0＝有限の港があれば∞を選ばない）")
+        out.append("  - この跳びの行で、形ごとに州と同じ札の港を選ぶ割合（下限の門の素案の量＝何もしない実装〈今の形〉は 0）：" + "・".join(f"({nm}) {pct(v, len(tgt))}" for nm, v in sw.items()))
         # (b) と (d) が違う行の型
         diff_bd = [r for r in allrows if r["portFin"] != r["portDrop"]]
         out.append(f"- (b) と (d) が違う行 {len(diff_bd)}（予言：有限の港が全て別の札の行だけ）：sameLmFinitePortCount=0 の行 {sum(1 for r in diff_bd if r['sameLmFinitePortCount']=='0')}")
