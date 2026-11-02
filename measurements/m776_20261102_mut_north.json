@@ -1,0 +1,79 @@
+{
+ "old": "orig",
+ "new": "north",
+ "pairs": 117992,
+ "box_touching_pairs": 1370,
+ "land_mask": {
+  "inbox": 23,
+  "add": 0,
+  "remove": 23,
+  "outbox": 0
+ },
+ "sea_mask": {
+  "inbox": 24,
+  "add": 0,
+  "remove": 24,
+  "outbox": 0
+ },
+ "changed_pairs_directed": {
+  "land": {
+   "box_touching": 0,
+   "both_outside": 0
+  },
+  "sea_gc": {
+   "box_touching": 0,
+   "both_outside": 0
+  },
+  "sea_port": {
+   "box_touching": 0,
+   "both_outside": 0
+  },
+  "port": {
+   "box_touching": 0,
+   "both_outside": 0
+  },
+  "legs": {
+   "box_touching": 0,
+   "both_outside": 0
+  }
+ },
+ "S1": {
+  "hel_spb": {
+   "gc": 300.87275736183307,
+   "old": 2421.514137527025,
+   "new": 2421.514137527025,
+   "ratio_new": 8.048299748903101,
+   "ratio_old": 8.048299748903101
+  },
+  "hel_riga": {
+   "gc": 361.2617369183143,
+   "old": 2912.3321813833372,
+   "new": 2912.3321813833372
+  }
+ },
+ "S3": {
+  "max_growth_km": 0.0,
+  "grow_over_1km": 0,
+  "sample": []
+ },
+ "edges": {
+  "land_old": 1084,
+  "land_new": 1084,
+  "sea_old": 229,
+  "sea_new": 229,
+  "sea_same": true,
+  "land_added": [],
+  "land_removed": [],
+  "land_changed_km": []
+ },
+ "hel_land_changes": [],
+ "hel_land_changed_count": 0,
+ "gates": {
+  "S1a_hel_spb<=1.5gc": false,
+  "S1b_hel_riga<=1000": false,
+  "S2a_outside_pixels_0": true,
+  "S2b_both_outside_pairs_0": true,
+  "S2c_sea_edges_same": true,
+  "S3_growth<=1km": true
+ }
+}

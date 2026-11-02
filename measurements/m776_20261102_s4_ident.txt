@@ -1,0 +1,6 @@
+# (776) S4 恒等の記録（事前登録 §2）。
+S4a 焼きの道具：無改変の SVG（c5b868d1）を App --bakemask で焼いた 2 枚は main の SimCore/landmask_land.bin・landmask.bin とバイト一致（cmp 一致）。
+S4b fix=-1 の削除：ドロミテの fix=-1 の行（barriers.json）と `if (r.Fix < 0) continue;`（PathGraph.cs）を消した木と消す前の木で、同じ 2 枚の .bin（fix の焼き）を使い edgedump765／routedump の出力を比べた：
+  edges（陸 1084・海 229）sha256 = 77d0eca52f11804477c194a3b6af26b31ff60251a961f0f763717a9a5b472770（前後で同一）
+  routedump（344 州・港の全ての対）sha256 = 9b6917e732983d04cabdf6aa0d38483a74325cc93ad7649d1e32e3831e8e8a01（前後で同一）
+  台本 scripts/instruments/c7hl/runvar.sh（変種 fix／fixnb）

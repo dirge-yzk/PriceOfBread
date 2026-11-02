@@ -1,0 +1,10 @@
+# (776) 腕 B の NG の集合の差の較正：ヌル腕 N1・N2（keep_773/n1・n2）を同じ基準 rd:measurements/ng773_20261102:m773 と ng.sh で比べた行（腕 B は m776_20261102_arm_ng.txt）
+N1 # 基準 rd:D:/PoB_work/wt_c7hl/measurements/ng773_20261102:m773＝NG 77／比べる rd:D:/PoB_work/c7hl_arm/ng_n1:n1＝NG 88
+N1 ## 新しい NG（基準では NG でない）: 24
+N1 ## 外れた NG（比べる側で NG でない）: 13
+N1 ## 前からの NG: 64
+N2 # 基準 rd:D:/PoB_work/wt_c7hl/measurements/ng773_20261102:m773＝NG 77／比べる rd:D:/PoB_work/c7hl_arm/ng_n2:n2＝NG 91
+N2 ## 新しい NG（基準では NG でない）: 24
+N2 ## 外れた NG（比べる側で NG でない）: 10
+N2 ## 前からの NG: 67
+腕 B：# 基準…＝NG 77／比べる＝NG 85 ・## 新しい NG: 19 ・## 外れた NG: 11
