@@ -1841,7 +1841,6 @@ public static partial class Instruments
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
-        LandfixTable(sim, seed, q);        // (762) 陸グラフのデータの直しの表（landfix_g は最初の呼びで 1 回・landfix_s は Q4）
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
