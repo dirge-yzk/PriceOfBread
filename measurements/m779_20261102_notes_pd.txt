@@ -36,3 +36,8 @@
   - 旗 1 の木（bd1e3f4d）：Category=FullLength 3 件 全て通る（3 m 1 s）・savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（seed=1789・200 四半期・保存則違反なし）。Category!=FullLength は合計 2157（--list-tests の 2153＋4 と一致）で 2153 件が通り 3 件が赤（WriterRatchetTests のみ）・スキップ 1（既存）。FullLength 3＋Category!=FullLength 2157＝--list-tests と一致。
 ■ 書き換えたテスト：0（テストの Assert・母集合・判定は書き換えていない。足したのは PortByLandTests の形d_ 4 本と DormantIdentityTests の DormantZeroFields への旗の 1 行〔点火したので外した〕）。WriterRatchetTests の宣言の表は取り直していない（上の 3 件は赤のまま＝合流が取り直す）。
 ■ 触った行（合流用）：Coefficients.cs（旗 PortSameLandmassFirst の 1 行＋注の行・PortByLandRoute の直後）・Simulation.cs（PortSameLm の 1 行・WirePortDistances の PortChoice の呼び 1 行・PortChoice の引数 sameLmFirst と byLand の枝の 1 パス）・InstrumentsPortlm.cs（ヘッダーの末尾 8 列・関数 PortlmAD・書き出しの行の末尾）・PortByLandTests.cs（足すだけ）・DormantIdentityTests.cs（コメント 1 行）。足した計器の列（portlm_s の末尾）：portA・lmA・effA・landKmA・portD・lmD・effD・usedEqD。
+■ 追記（報告の前の確かめ）
+  - 空洞化 1/4 未満の件数：この腕 6・m778 5・ヌル腕 N1 10（1/10 未満 1 件）・N2 10＝ヌル腕の幅の内（記録）。事前登録 [7] の〈1/4 未満 5 件が増えない〉は外れ（+1）だが雑音の内。1/10 未満は 0 件（止める線は通った）。
+  - WriterRatchetTests の赤 3 件は軌道の差（README ★(749)・★(778)：線の担当は取り直さない）。同じ項目の 10 種の .cost の件数の差（m778 → この腕）は 覇権の判定の国×国 −0.72%・請求：見た生産者（月）+2.01%・建設：見た生産者（旬）−4.44%＝1 種 40 四半期の件数（+57%／−10.8%／−16.9%）とは別の大きさ＝追加の費用ではなく 1 種の軌道の揺れ。
+  - 限界：突然変異 M-b の生（portlm_s）は報告の後に消した＝M-b の 1.88%（354/18850）は成績表 b10_20261102_m779mb_ins と m779_20261102_mutation_pd.txt の台本の出力からしか読めない（数え直せない）。
+  - ident の〈恒等〉は e82e817e の木（scripts/instruments/c8pd/gate.py は未コミットだった＝台本だけ・SOURCE-HASH に影響しない）で測った。
