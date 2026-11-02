@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// 盤面＝敗者イギリスが 2 本の戦争（フランスと・スペインと）で同じ月に厭戦の崩壊で負ける。敗者は 1 本目で B・2 本目で A（押しの向きが入れ替わる）。
 /// 勝者の押しの累計 PushA／PushB は手で置く（取り分の期待値は置いた値の比から作る＝本体の式を呼ばない）。
 /// 期待値は賠償の式のリテラル：ReparationGdpFraction（0.2 の係数）×敗者の GdpPerMonth×戦勝点×支払い率 r。
-/// ⚠突然変異「旗を読まない」「取り分を二重に掛ける」「押しで決まる講和も集合に入れる」「取り分を 0 にする」で赤（使い捨ての木・measurements/m791_*_mutation.txt）。</summary>
+/// ⚠突然変異〈旗を読まない〉〈取り分を二重に掛ける〉〈白紙の崩壊の講和も集合に入れる〉〈押しが最小の勝者の取り分を 0 にする〉〈本国の割譲の枠を減らさない〉で赤（使い捨ての木・measurements/m791_20261103_mutation_final.txt）。</summary>
 [Collection("Instruments")]
 public class CollapsePeaceTests
 {
