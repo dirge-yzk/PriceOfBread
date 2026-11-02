@@ -3,7 +3,7 @@
 #       〈現行法が Public より上（Compulsory）なのに目標を Public へ書き戻す〉国×四半期（＝撤回の願いの置き直し）は世界の中に何件あるか。
 # 入力：計器つき 10 種の ins フォルダ（reform_s<種>.tsv の educationLawCode＝四半期末の現行法 0〜3、modsig_s<種>.tsv の stance＝Apply が選んだ姿勢）。
 # 出力：種ごとと合計の ①行数 ②現行法の分布 ③姿勢の分布 ④書き手の姿勢の割合 ⑤置き直しの件数（現行法 3 かつ書き手の姿勢）⑥現行法の変化（国ごとの隣の四半期との差）の件数。
-# 書き手の姿勢＝Modernize(0)・Industrialize(1)・Militarize(4。MilitarizeEducationDrive=1.0 の既定で書く)。Welfare(2)・Fiscal(3)・Apply が走らない(-1)は書かない。
+# 書き手の姿勢＝Modernize(0)・Industrialize(1)・Militarize(4。MilitarizeEducationDrive=1.0 の既定で書く＝(772) c6sp で焼き込み済み・欄は墓標)。Welfare(2)・Fiscal(3)・Apply が走らない(-1)は書かない。
 # 使い方：PYTHONUTF8=1 python stage0_edq.py <ins フォルダ> [種の数=10] [書き手に Militarize を含める=1]
 import csv,sys,collections
 sys.stdout.reconfigure(encoding='utf-8')
