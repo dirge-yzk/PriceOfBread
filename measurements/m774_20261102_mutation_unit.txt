@@ -1,0 +1,17 @@
+# (774) 機構のテスト InheritIntentTests（6 本）の突然変異（使い捨ての木・scripts/instruments/c7sw/mutate_m1〜m3.py・実行 mt_run.sh）。2026-11-02
+# base＝元の木で 6 本とも緑。M1＝旗を読まない（if (false)）・M2＝エンジンの規則を 0 にする・M3＝毎月全ての州に Math.Min（World.StepStateTargets の頭）
+== base
+成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+== m1
+  失敗 PriceOfBread.Tests.InheritIntentTests.割譲と再併合でも同じ規則 [1 s]
+  失敗 PriceOfBread.Tests.InheritIntentTests.計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい [4 s]
+  失敗 PriceOfBread.Tests.InheritIntentTests.分離独立で移る州の意志は今の棟数まで下がる_棟数以下の意志は動かない_移らない州は不変 [51 ms]
+失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== m2
+  失敗 PriceOfBread.Tests.InheritIntentTests.割譲と再併合でも同じ規則 [2 s]
+  失敗 PriceOfBread.Tests.InheritIntentTests.計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい [6 s]
+  失敗 PriceOfBread.Tests.InheritIntentTests.分離独立で移る州の意志は今の棟数まで下がる_棟数以下の意志は動かない_移らない州は不変 [50 ms]
+失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+== m3
+  失敗 PriceOfBread.Tests.InheritIntentTests.毎月の駆動は移らない州の意志を消さない [22 ms]
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 10 s - PriceOfBread.Tests.dll (net10.0)

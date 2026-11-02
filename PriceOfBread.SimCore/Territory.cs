@@ -290,6 +290,9 @@ public static class Territory
         }
     }
 
+    /// <summary>★(774) 移る州の国営工場の意志の取り下げの規則の 1 本＝意志 <paramref name="target"/> を今の棟数 <paramref name="units"/> まで（超えている分だけ）下げる。エンジン（<see cref="TransferRegion"/>）と計器の〈新〉の列が同じ関数を呼ぶ。</summary>
+    internal static int DroppedStateTarget(int target, int units) => Math.Min(target, units);
+
     /// <summary>★州の移し替えの1本（2026-09-28 処理の一元化 段2 B）＝割譲（講和の割譲・植民地格の州の複数割譲）・
     /// 建国（新しい国の器は呼び手が州から組む＝<paramref name="to"/> が null）・再併合が必ず通る。種類の差は <see cref="Rehome"/> の引数だけ。
     /// ⚠旧＝割譲（Diplomacy.TransferRegion）・建国（MultiNationSim.SpawnNation）・再併合（ReabsorbNations）が州を外し・Id を振り・台帳を付ける手順を
@@ -332,6 +335,12 @@ public static class Territory
             }
         }
         from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
+        // ★(774) 継いだ着工の意志の取り下げ（旗 InheritedStateIntentDrop が正のとき）：移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる。意志は政府のもの＝建物（BuiltScale）は州と一緒に移るが、旧の政府の着工の意志は新しい持ち主へ移らない。
+        //   計器の InheritIntentBefore／After は読むだけ（旧の値と、旗に依らず同じ純関数で作った新の値を並べる）。
+        if (Instruments.On) Instruments.InheritIntentBefore(from, r, how);
+        if (from.Coef.InheritedStateIntentDrop > 0)
+            foreach (var pr in r.Producers) pr.StateTarget = DroppedStateTarget(pr.StateTarget, World.StateUnits(pr, from.Coef));
+        if (Instruments.On) Instruments.InheritIntentAfter(from, r);
         // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
         //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。
         //   建国（to＝null）は新しい国の為替が親の値から始まる（MultiNationSim.SpawnNation）＝換算しない。受け手の台帳は換算後の和（同じ値を両辺に）。

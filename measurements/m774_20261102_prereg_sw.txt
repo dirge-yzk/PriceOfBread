@@ -1,0 +1,139 @@
+# (774) 波57 c7sw の事前登録（継いだ着工の意志の取り下げ＝割譲・分離独立・再併合で州が別の国へ移るとき、移る州の国営工場を建てる意志 StateTarget を今の棟数まで下げる）。腕・実装・結果より前に書く。
+# 形：〈入口〉（意志の持ち主は政府＝州と一緒に移るのは建物であって旧の政府の着工の意志ではない・物理の形）。旗 InheritedStateIntentDrop（線の枝で最後に既定 1・0＝旧）。1 テーマ 1 計測＝腕 B は 1 本。
+# 出発＝(766) 小アンティル王国の読み（docs/202609/99_実装ログ_20260903.md）＝歳入 6/月の新しい国が工費 30,000・工賃 1,000/月の製材工場を 1810 年に着工し借入と切り下げで払い続けた＝30 年の物価の上昇の根。波55・波56 で同じ国が 3 腕で開幕の 1000 倍を超えた。
+#   頻度の線ではなく設計の誤りとして直す。**AI の推奨・確証なし**（物理の形としては筋。作者の承認は無い）。代案〈毎月の再挑戦にも AI の予算の門を通す〉は AI とプレイヤーの対称に触るので採らない（記録だけ）。
+# 比べる側＝基線 m773 の計器つき 10 種の生（D:/PoB_work/keep_773/base_ins）・種 11〜20（keep_773/a11）・ヌル腕 N1/N2（keep_773/n1・n2）。ヌル腕は回さない（m773 を共有）。
+# 計算量の割り当て：0.1 秒（移しの 1 回ごとに Math.Min を 1 回・移しは 1 試合に数百件）＝2 秒以下＝1 本の腕で門にしない・合流の木の累計の .cost で読む。
+# 触るファイル：Territory.cs（TransferRegion とその純関数だけ）・InstrumentsInheritIntent.cs（新）・Instruments.cs の登録の 1 行・Coefficients.cs の旗の 1 行・DormantIdentityTests.cs の DormantZeroFields に旗の 1 行・InheritIntentTests.cs（新）・scripts/instruments/c7sw/・measurements/m774_*。
+#   World.cs・SelfPlay.cs・Simulation.cs・App・SimCore/Display・Runner/PlayHarness は触らない。
+
+## 0. 形
+旗 InheritedStateIntentDrop（既定 0 で入れ、腕 B の前に 1 へ）。純関数 Territory.DroppedStateTarget(int target, int units) ＝ Math.Min(target, units)（units＝World.StateUnits(p, from.Coef)＝今の棟数）を 1 本だけ持つ。
+  エンジン：TransferRegion の中で、旗が正のとき移る州の全ての生産者の StateTarget を DroppedStateTarget へ。割譲・分離独立（to＝null）・再併合の全ての経路が同じ 1 か所を通る（経路で分けない＝AI とプレイヤーの対称）。
+  計器：stateTargetNew は旗に依らず同じ純関数から計算する（旧と新を同じ盤面で両方数える）。
+  新しい係数の数値 0（旗の 1 行だけ）・新しい状態変数 0・天井と床を足さない（今の棟数は既にある量）。工事中の棟（ConstructionLeft＞0）は継ぐ（別の増幅器・触らない）＝完成すると World.StepConstruction が StateTarget を現在の棟数まで引き上げる。
+  旗 0 では計器以外の表が m773 と全行バイト一致（inheritintent_s は旗 0 でも出る＝宣言した増の表）。
+
+## 1. 計器 inheritintent_s（読むだけ・計器が on のときだけ・全ての国・移しの事象ごと）
+InstrumentsInheritIntent.cs（新）。移しの事象（TransferRegion）を計器の側の ConditionalWeakTable に溜め、Instruments.Quarter の最後で行にする（quarter は q を押す＝World.Quarter から作らない）。
+スコープ（scope 列）：
+  E＝事象の行（移る州の生産者のうち StateTarget＞0 のもの）：quarter・year・how（Ceded/Seceded/Returned）・fromNation・toNation（分離独立は移しの時点で国が無い＝四半期の末の持ち主の名前で補う・見つからなければ空）・
+    toBornQuarter（受け手が初めて計器に現れた四半期＝nation_s の生まれと同じ定義）・region・producer（財）・stateTargetOld（下げる前）・stateTargetNew（DroppedStateTarget＝旗に依らず計算）・builtCount（今の棟数）・
+    stateTargetUsed（規則を当てた後に実際に残った値）・constructionLeftDays（工事中なら残り日数）・buildCostPerMonthOld（旧の意志が着工させる月の工費の見込み＝stateTargetOld＞builtCount かつ工事中でないとき、World.FactoryPayPerDay×DaysPerMonth＋World.ConstructionMaterialPerMonth〔組み立てた量・自己申告〕）。
+  Q＝四半期の行（年末 q%4==3・全ての国）：quarter・year・nation・bornQuarter・pendingWillCount（StateTarget＞今の棟数 の生産者の数）・pendingWillSum（Σ max(0, StateTarget−棟数)）・builtSum（Σ棟数）。
+    ＝〈移しの外の州〉で意志が残っているかを数える列（突然変異〈毎月全ての州で Math.Min〉は事象の行を一つも出さない＝事象の行だけでは見えない）。
+⚠限界（計器が自己申告する）：分離独立の toNation は四半期の末の持ち主の名前（同じ四半期に州が再び移ると外れる）／toBornQuarter は計器に現れた最初の四半期／buildCostPerMonthOld は工賃＋素材の月の見込みで、工事の途中の借入や切り下げの費用は含まない／stateTargetOld＝0 の生産者は行にしない。
+
+## 2. 紙の予言（keep_773 の既存の表）＝台本 measurements/m774_20261102_paper_sw.py（出力は末尾）
+既存の表に StateTarget は無い。**〈継いだ意志の型〉は紙では数えられない**＝代用（proxy）を出す：後から生まれた国の、生まれて 12 四半期以内の国営の着工（nation_s.stateFacilityStartedCount）。AI の着工の決定の回に入った件（aib_s.startedCount）は 10 種でほぼ 0＝大半が月次の再挑戦。
+  ⚠代用は過大側（AI 自身が拒まれて立てた意志の再挑戦も入る）。正確な数は旗 0 の計器つき 10 種（ident の b 腕＝m773 の盤面）の inheritintent_s と nation_s.stateFacilityStartedGoods の結合から取る＝**〈紙の取り直し〉として腕 B の前に追記する**（追記は腕 B の前＝結果の後の変更ではない）。
+後から生まれた国の 12 四半期以内の国営の着工の 10 種の和（代用）：m773 18・N1 20・N2 20・種 11〜20 32。誕生は 1 種あたり 12〜38 国。
+開幕からの国の国営の着工（全期間）の種ごとの値の幅：基線 1793〜2929（中央値 2319）・N1 1505〜2861（2263）・N2 1691〜3000（2457.5）。うち AI の着工の決定の回に入らない件（再挑戦）は 80〜322（中央値 130〜147）＝**開幕からの国の着工の約 93% は AI の決定の回・約 7% が再挑戦**。
+  ⇒ 突然変異〈毎月全ての州に当てる〉が開幕からの国の着工の総数を落とす量は高々 7%（種の揺れ 約±30% より小さい）＝**U2 の総数の門は判別力が弱い**と名乗る。判別するのは再挑戦の件数（U2r）と、意志が残っているか（U1b）。
+名指しの確かめ（紙）：m773 N2 種 3 の小アンティル王国＝生まれ q52・P 最大 2.079e6（q210）・国営の着工 q64 と q186／種 11 の小アンティル王国＝生まれ q72・P 最大 4.588e5（q283）・国営の着工 q81。
+  腕：旗 1（POB_COEF "InheritedStateIntentDrop=1"）の使い捨ての木で 1 種ずつ計器つきで回す（N2 は SupplySlope=0.49999999 を足す）。**P 最大が 10 未満に下がるか**を記録。下がらなければ鎖の読みが違う＝報告の先頭。
+段0 の予言：①旗 1 の腕で inheritintent_s の stateTargetUsed＝stateTargetNew（全行）・旗 0 の腕で stateTargetUsed＝stateTargetOld（全行）。②後から生まれた国の継いだ意志の型の着工は旗 1 でほぼ消える（残るのは受け手 AI 自身の新しい意志）。③開幕からの国の着工の総数はほぼ動かない（±揺れ）。
+  ④名指しの 2 種の P 最大が 10 未満になる見込みは**確証が無い**（意志は根の一つで、増幅器が他にも並ぶ〔(766)：着工の門が 1 日分の工賃だけ・工事中の棟を継ぐ・請求と払いの非対称・ExchangeRateFloor 0.3 ほか〕）＝回して見る。
+
+## 3. 門（腕の前に固定・結果の後に変えない）
+以下の〈m773 の盤面の値〉は、旗 0 の計器つき 10 種（ident の b 腕）の inheritintent_s・nation_s から取る。結合の台本は scripts/instruments/c7sw/gate774.py（腕 B と旗 0 の腕に同じ台本を当てる）。
+L1 下限（狙い＝継いだ意志の型の着工が消える）：種 1〜10 の和で、〈後から生まれた国（toBornQuarter＞0）の、生まれて 12 四半期以内（quarter−toBornQuarter＜12）の国営の着工のうち、(toNation, 財) が inheritintent_s の stateTargetOld＞stateTargetNew の行に当たる件〉（nation_s.stateFacilityStartedGoods の結合）が、
+   腕 B で 旗 0 の腕の値 X0 の 1/3 以下（⌊X0/3⌋ 以下）。X0＜6 なら 1/3 を分解できない＝L1 は記録に下げてそう名乗る。突然変異：旗を読まない（＝旗 0 の腕そのもの）→ X0 のままで落ちる。
+L1p 下限（代用・既存の表だけ）：腕 B の〈後から生まれた国の、生まれて 12 四半期以内の国営の着工〉の 10 種の和（nation_s のみ）≦ ⌊18/3⌋＝6。旗 0 → 18 で落ちる（紙で確かめ済み）。
+L2 下限（働いた）：腕 B の inheritintent_s で stateTargetOld＞stateTargetUsed の行（実際に下げた行）が 1 本以上ある種が 10 種のうち 9 種以上。旗 0 では stateTargetUsed＝stateTargetOld＝0 種で落ちる。
+   〈移しは毎種ある〉の前提は旗 0 の腕の inheritintent_s（stateTargetOld＞stateTargetNew の行がある種の数）で確かめる＝紙の取り直しに追記。9/10 に満たなければ L2 は記録に下げてそう名乗る。
+U1a 上限（形の誤り＝規則の配線）：腕 B の inheritintent_s の全行で stateTargetUsed＝stateTargetNew。突然変異：Math.Min を外して 0 にする（棟数より下げる）→ builtCount＞0 の行で stateTargetUsed≠stateTargetNew で落ちる（builtCount＞0 の行がある前提は旗 0 の腕で確かめる・無ければ機構のテスト ③ で担う）。
+U1b 上限（形の誤り＝移しの外の州の意志を消す）：腕 B の scope Q の行（開幕からの国＝bornQuarter＝0・年末）の pendingWillCount の 10 種×全期間の平均が、旗 0 の腕の同じ平均の 1/2 以上（≧0.5×旗 0）。旗 0 の平均＜1 なら分解できない＝記録に下げる。
+   突然変異：毎月全ての州に Math.Min を当てる → ほぼ 0 で落ちる（使い捨ての木の 1 種の走りで実測して記録）。⚠旗 0 との比較は同じ盤面でない軌道（旗 1 は別の軌道）＝1/2 は軌道の揺れ（実測 ±数 %）より遥かに大きい形の誤りの量として置いた AI の値。
+U2 上限（形の誤り＝自国の意志を消す・総数）：開幕からの国の国営の着工（nation_s.stateFacilityStartedCount・全期間）の種ごとの値の中央値 ≧ 基線・N1・N2 の 30 個の下から 4 番目＝1861。**判別力は弱い**（上の予言）。
+U2r 上限（形の誤り＝自国の意志を消す・再挑戦）：開幕からの国の再挑戦の着工（nation_s の着工−aib_s の startedCount・全期間）の種ごとの値の中央値 ≧ 30 個の下から 4 番目＝106（基線・N1・N2 の中央値 130〜147）。突然変異：毎月全ての州に当てる → 再挑戦の元の意志が消えて落ちる（実測して記録）。
+記録（門にしない）：開幕の 1000 倍以上（〈記録（事象が無ければ注視の先頭・同じ国で半分以上の種なら NG）〉の段）・門 A′（nullgate.py）・exact・near・NG（基準 rd:measurements/ng773_20261102:m773）・空洞化（an_h2.py の規則 A2）・.cost・名指しの 2 種の P 最大・同じ盤面の新÷旧（stateTargetNew÷stateTargetOld の和）・受け手の AI の自前の着工。
+
+## 4. 機構のテスト InheritIntentTests.cs（新・手の盤面）
+①分離独立（to＝null）で移る州の StateTarget が今の棟数へ下がる ②移らない州は不変 ③今の棟数以上の意志が無い州（StateTarget≦棟数）は不変 ④旗 0 で旧と同じ（StateTarget が移るまま）⑤割譲でも再併合でも同じ規則。突然変異：Math.Min を外して 0 → ③ が赤・旗を読まない → ① が赤・毎月全ての州に当てる → ② が赤。使い捨ての木で赤を確かめて measurements/ へ。
+
+## 5. 止める線
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散・空洞化 1/10 未満の名簿の外（規則 A2＝an_h2.py の既定・種 1〜20）・推定の計算量＞248.5 秒・機構のテスト（InheritIntentTests と既存の TransferRegion を通るテスト）の赤（RULE47）。
+確証＝なし（AI の推奨）。NG の判定は〈歴史的に正しい確証がなく、かつバランスを破壊する〉の両方が揃ったときだけ・ヌル腕を読む必要が出たときだけ読む。
+
+## 6. 腕
+A＝旗 0 の ident（bash scripts/instruments/ident/ident.sh run c7swz --tree <木> --added-tables inheritintent --tests-delta <InheritIntentTests の本数>）＝素の 5 種・計器つき 10 種が m773 と全行一致（〈判定: 恒等〉なら〈測った種で一致〉と名乗る）。
+B＝旗 1・計器つき 10 種（種 1〜10）。S11＝種 11〜20（止める線・B と同時）。ヌル腕は回さない。
+形の変え直しは 1 回だけ（理由を事前登録に追記してから）。生は合流の判断まで消さない。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+## 付録：紙の台本の出力（measurements/m774_20261102_paper_sw.py・keep_773）
+# arm seed bornNations withStart12Q starts12Q aibStarts12Q retryProxy12Q openingNationStartsAllGame
+base_ins 1 14 1 1 0 1 1793
+base_ins 2 24 1 1 0 1 1999
+base_ins 3 16 3 3 0 3 2496
+base_ins 4 32 3 3 0 3 2142
+base_ins 5 21 0 0 0 0 2769
+base_ins 6 12 1 1 0 1 1917
+base_ins 7 22 5 5 0 5 1999
+base_ins 8 25 2 2 0 2 2782
+base_ins 9 21 2 2 0 2 2929
+base_ins 10 25 0 0 0 0 2775
+n1 1 21 1 1 0 1 2601
+n1 2 38 4 4 0 4 2688
+n1 3 26 2 2 0 2 2861
+n1 4 25 2 2 0 2 2131
+n1 5 27 3 3 0 3 2012
+n1 6 24 2 2 0 2 2594
+n1 7 25 3 3 0 3 2395
+n1 8 24 1 1 0 1 2055
+n1 9 25 1 1 0 1 1505
+n1 10 33 1 1 0 1 1861
+n2 1 26 0 0 0 0 2747
+n2 2 18 0 0 0 0 2427
+n2 3 27 4 4 1 3 1691
+n2 4 33 4 4 0 4 2234
+n2 5 23 3 3 0 3 2488
+n2 6 37 1 1 0 1 2379
+n2 7 23 1 1 0 1 1917
+n2 8 35 4 4 0 4 3000
+n2 9 17 1 1 0 1 2519
+n2 10 24 2 2 0 2 2603
+a11 11 35 4 4 0 4 1981
+a11 12 28 1 1 0 1 2763
+a11 13 24 1 1 0 1 1684
+a11 14 30 3 3 0 3 2072
+a11 15 24 0 0 0 0 3090
+a11 16 23 6 6 1 5 2231
+a11 17 26 4 4 0 4 2678
+a11 18 31 6 6 0 6 2506
+a11 19 32 5 5 1 4 1671
+a11 20 22 2 2 0 2 1334
+# 10 種の和（withStart12Q・starts12Q・aibStarts12Q・retryProxy12Q）
+#   base_ins: [18, 18, 0, 18]
+#   n1: [20, 20, 0, 20]
+#   n2: [20, 20, 1, 19]
+#   a11: [32, 32, 2, 30]
+# 開幕からの国の国営の着工（全期間）の種ごとの中央値（U2 の基準）
+#   base_ins: 2319.0
+#   n1: 2263.0
+#   n2: 2457.5
+#   a11: 2151.5
+# 名指し（P 最大＝nation_s.priceLevel の全期間の最大・開幕の値を 1 としない絶対値）
+#   n2 s3 小アンティル王国: bornQ 52 Pmax 2.079e+06 (q210) 国営の着工の四半期 [(64, 1), (186, 1)]
+#   a11 s11 小アンティル王国: bornQ 72 Pmax 4.588e+05 (q283) 国営の着工の四半期 [(81, 1)]
+#   n2 s4 ジャマイカ王国: bornQ 62 Pmax 4.617e+05 (q231) 国営の着工の四半期 [(75, 1), (190, 1)]
+#   base_ins s6 ジャマイカ王国: nation_s に無い
+# U2 の床（開幕からの国の国営の着工・全期間・30 個の下から 4 番目） 1861  下位 6 個 [1505, 1691, 1793, 1861, 1917, 1917]
+# U2r の床（開幕からの国の再挑戦の着工＝nation_s−aib・30 個の下から 4 番目） 106  下位 6 個 [80, 89, 101, 106, 108, 114]  中央値 131.5
+# L1p の上限（代用 retryProxy ではなく nation_s の starts12Q の和・基線の 1/3 の切り捨て） 6
+
+## 追記 1（2026-11-02・紙の取り直し・旗 0・結果の前＝腕 B より前）
+旗 0 の ident（c7swz・判定: 恒等＝測った種で一致。素の 5 種・計器つき 10 種が m773 と全行一致・計器の表 895 一致＋既知の揺れ 20＋宣言 10・テスト 2145＝2139＋6・成績表 measurements/b5_20261102_c7swz・b10_20261102_c7swz_ins・ident_20261102_c7swz.txt）の計器つき 10 種（＝m773 の盤面）に gate774.py を当てた値（出力 measurements/m774_20261102_gate_flag0.txt）：
+  L1 の X0＝18（結合の件数＝代用 L1p の 18 と一致＝後から生まれた国の 12 四半期以内の国営の着工は全て〈継いだ意志の型〉）。腕 B の L1 は ⌊18/3⌋＝6 以下。X0≧6 なので L1 は記録に下げない。
+  L2 の前提：stateTargetOld＞stateTargetNew の事象の行がある種 10/10（行 208）＝前提を満たす（記録に下げない）。旗 0 では stateTargetOld＞stateTargetUsed の行 0（L2 は 0/10 で落ちる）。
+  U1a の前提：builtCount＞0 の事象の行 642（M2〔Math.Min を外して 0〕を捕まえる行がある）。旗 0 では stateTargetUsed≠stateTargetNew の違反 208 行（＝旗を読まない形も U1a で落ちる）。
+  U1b の基準：開幕からの国の pendingWillCount の平均 0.4040（101,872 行・種ごとの平均 0.309〜0.529）。
+  U2 の旗 0 の値 2319.0（床 1861 を通る）・U2r 129.5（床 106 を通る）。
+⚠追記 2（腕 B の前・理由つき・名乗り）：U1b の〈旗 0 の平均＜1 なら記録に下げる〉は、平均が小さくても分解できる場合（今回＝101,872 行の平均 0.404・種ごとの幅 0.31〜0.53 で、突然変異 M3 の ほぼ 0 と 1/2 の線 0.202 の間が開く）を殺す。
+  ⇒ U1b の〈分解できない〉の線を〈旗 0 の平均＜0.05〉に直す（今回の 0.404 は分解できる＝U1b は門として働く）。1/2 の比は変えない（腕 B の平均 ≧ 0.5×0.4040＝0.2020）。
+  この直しは〈門を締める向き〉（記録だった物が門になる）。**この直しの前に見た旗 1 の値は、名指しの確かめ N2 種 3 の単独の走りの pendMean 0.282 だけ**（10 種の腕 B は未実行）。直しは結果の後ではなく腕 B の前。
+  単独の走り（突然変異）の読み方：同じ種の旗 0 の pendMean の 1/2 を線にする（種 3＝0.409→0.2045）。
+
+## 追記 3（腕 B の後・名乗りの訂正）
+追記 2 の〈直しは結果の後ではなく腕 B の前〉は、**結果の一部（N2 種 3 の旗 1 の単独の走りの pendMean 0.282）を見た後・10 種の腕 B の前の変更**と読み直す（締める向き＝記録だった U1b が門になった）。腕 B は U1b を含む全ての門で通った（値は m774_20261102_gate_B.txt・gate_S11.txt）。
+名指しの確かめ（measurements/m774_20261102_named.txt）：旗 1 の走りで小アンティル王国は 30〜31 四半期で消え、P 最大 1.0 は〈生きている間に物価が動かなかった〉であって鎖（継いだ意志→物価の上昇）の直接の検証ではない（世界の P 最大 7.86／5.03 は軌道の違いを含む）。

@@ -1844,6 +1844,7 @@ public static partial class Instruments
         IdnTable(sim, seed);               // (640) 思想の必要性の表
         PortchTable(sim, seed, q);         // (770) 内陸州の港の選び方の表（年末）
         PortlmTable(sim, seed, q);         // (777) 内陸州の港の陸塊の表（年末）
+        InheritIntentTable(sim, seed, q);  // (774) 継いだ着工の意志の表（移しの事象の行と年末の国の行）
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
