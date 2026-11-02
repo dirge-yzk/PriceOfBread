@@ -157,8 +157,9 @@ public static class Fiscal
         {
             double refSilver = Catalog.RefPrices[Catalog.SilverId];
             double b = refSilver > 1e-9 ? refSilver / w.WorldSilverPrice : 1.0;
-            b = Math.Clamp(b, 1.0, c.GoldDebtBurdenCap);
-            if (!(b >= 1.0 && b <= c.GoldDebtBurdenCap)) b = 1.0;   // NaNは負担なしへ倒す（否定形＝Clampは NaN を消さない）
+            // 下端 1.0＝銀が参照より高い四半期は負担なし。上端の挟みは無い（設計思想⑧：定数の上限は発散への指数関数的ロックではない・(786) 本走 20 種と助走で 0 件）。
+            //   b は有限＝比の経路では局所価格の帯 [PriceFloorFactor, PriceCeilFactor] から約 1e4 が上限・旧の統計の経路では 10。NaN・+∞・1 未満は負担なしへ倒す（否定形＝Math.Max は NaN を伝える）。
+            if (!(b >= 1.0 && b < double.PositiveInfinity)) b = 1.0;
             goldDebtBurden = b;
         }
         double foreignShare = w.GovDebt.Value > 1e-9 ? PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt) : 0;
