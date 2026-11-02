@@ -37,7 +37,6 @@ public class DormantIdentityTests
         "TechProductivityBracketOff",
         // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalCedeFleetReturnTests（旗を 0 に置いた走行）。
         // ★StanceEduHoldsLaw（(680) 線 edq）は 2026-10-30 に 1 で**点火**＝この表から外した。(772) c6sp で焼き込み（欄は墓標・旗 0 の経路は無い）＝番人 StanceEduHoldsLawTests は既定の形だけを確かめる。
-        "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // ★(640) 線 idn：思想の必要性を盤面の量から読む旗（既定 0＝今の式・番人 IdeaNeedBoardTests・G2b で落ちて差し戻し）。SpreadNeedFascismDecline は 1 で点火・IdeologyDevTermOff は読み手ごと消した（IdeologyDevFromUrban ほか 3 本も削除）
         // ★SpreadLiteracyFull・SpreadPrereqEdges（(621) 線 inst）は 2026-10-28 に点火＝この表から外した（SpreadLiteracyFull は既定 0.5・辺は Catalog.After の共産主義 ← 社会主義へ移して旗を消した）。旗 0 の経路の番人は InstitutionAnchorTests。
         // ★MandateWallStockCap（(615) 政治資本の壁の一歩の勘定）は 2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。旗 0 の経路の番人は MandateWallStockCapTests。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
@@ -299,6 +298,7 @@ public class DormantIdentityTests
         "ColoniesAreRegions",
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
+        "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // (798) c11dm：★(640) 線 idn の盤面の旗（00一覧 255 行で差し戻し）。式は工場労働者の人数×闘争度のまま
         "FrontierDevelopmentRate", "FrontierUnlockThreshold", "ForceUnlockRate", "ForceUnlockTreasuryCostPerMonth", "ForceUnlockMilitancy",
         "PreemptiveSeizeWeight", "FertileAbsoluteBlend", "MigrationFarePerkKm", "NationalismFromConsciousness", "WorldPriceStatUnclamped",
     ];

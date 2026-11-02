@@ -2892,8 +2892,6 @@ public sealed class Coefficients
     public double TechSignalOff = 1;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
     public double TechThresholdOff = 1;               // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
     public Share SpreadLiteracyFull = new(0.5);       // ★(621) 線 inst（2026-10-28 に 0.5 で**点火**）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（TechThresholdOff）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）。0＝旧の比（TechThresholdOff の式）
-    public double SpreadNeedSocialismBoard = 0;       // ★(640) 線 idn（事前登録 measurements/idn640_20261028_prereg.txt）：>0 で社会主義の必要性の強度を〈賃金だけで暮らす人（工場労働者）の、暮らしが必要に届かない人数÷人口〉（Discovery.IdeaBoardOf・Pop.SupplyFill）にする。0＝今の式（工場労働者の人数×闘争度÷人口）。正で有効
-    public double SpreadNeedCommunismBoard = 0;       // ★(640) 線 idn：>0 で共産主義の必要性の強度を〈工場の稼ぎのうち持ち主の取り分×賃金だけで暮らす人の人口比〉（Pop.IndustrialRentPerMonth の初めての読み手）にする。0＝今の式。正で有効
     public double SpreadNeedFascismDecline = 1;       // ★(640) 線 idn：>0 でファシズムの必要性の強度に〈自国の国力の割合の落ち込み＝(在庫 ScoreStanding−今の ShareScores)÷在庫〉を掛ける（新しい状態なし）。0＝今の式（危機×人々の闘争度）。正で有効
     public double EraOff = 1;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
     public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効

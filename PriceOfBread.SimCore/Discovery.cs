@@ -231,14 +231,14 @@ public static class Discovery
     /// ・ファシズム＝危機（敗戦か恐慌×左派の脅威＝<see cref="Ideologies.FascismCrisis"/>＝旧の門に掛けていた条件・設計 §1A-6「そのまま適性へ」）×人々の闘争度（Σ人数×闘争度÷人口）
     ///   ＝危機の中で闘う人の割合（思想の4行の強度を同じ単位＝人口の割合にそろえる＝半分点が分野で1本だから・推奨で決めた）。
     ///   ⚠危機だけ（0〜1の国の指数）では負けた戦争1つで強度が 0.85 へ跳び、技術水準 3 の国が1870〜80年代に見つけた（(152) の試走 v1）。
-    ///   ★(640) 線 idn（旗 4 本・既定 0＝今の式）：社会主義＝<see cref="IdeaBoard.WageUnmet"/>・共産主義＝<see cref="ComStrength"/>・ファシズム＝<see cref="FasStrength"/>（<see cref="IdeaBoardOf"/> の盤面の量）。</summary>
+    ///   ★(640) 線 idn：ファシズム＝<see cref="FasStrength"/>（旗 SpreadNeedFascismDecline・<see cref="IdeaBoardOf"/> の盤面の量）。社会主義と共産主義の盤面の旗は (798) で消した（差し戻し・式は上の工場労働者の人数×闘争度）。</summary>
     private static double SpreadNeed(int row, World w, double maxInd, double workerMil, double colonialShare, double popMil, ref double crisis, in IdeaBoard b, Coefficients c)
     {
         double s;
         if (row == PatentRow) s = w.EliteCore;
         else if (row == JointStockRow) s = maxInd;
-        else if (row == SocialismRow) s = c.SpreadNeedSocialismBoard > 0 ? b.WageUnmet : workerMil;
-        else if (row == CommunismRow) s = c.SpreadNeedCommunismBoard > 0 ? ComStrength(b) : workerMil;
+        else if (row == SocialismRow) s = workerMil;
+        else if (row == CommunismRow) s = workerMil;
         else if (row == ImperialismRow) s = colonialShare;
         else if (row == FascismRow) { if (double.IsNaN(crisis)) crisis = Ideologies.FascismCrisis(w); s = c.SpreadNeedFascismDecline > 0 ? FasStrength(crisis, popMil, b) : crisis * popMil; }
         else s = 0;
@@ -254,7 +254,7 @@ public static class Discovery
     /// ・<see cref="WorkerSupplyFill"/>＝工場労働者の充足の人数加重平均（計器だけが読む・工場労働者が居なければ NaN）。</summary>
     internal readonly record struct IdeaBoard(double WageShare, double WageUnmet, double OwnerTake, double Decline, double WorkerMil, double ColonialShare, double PopMil, double WorkerSupplyFill);
 
-    /// <summary>共産主義の強度（旗 <see cref="Coefficients.SpreadNeedCommunismBoard"/>）＝持ち主の取り分×賃金だけで暮らす人の人口比。</summary>
+    /// <summary>共産主義の強度の盤面の量＝持ち主の取り分×賃金だけで暮らす人の人口比（読み手は計器 idn_s だけ・(798) で旗を消した）。</summary>
     internal static double ComStrength(in IdeaBoard b) => b.OwnerTake * b.WageShare;
     /// <summary>ファシズムの強度（旗 <see cref="Coefficients.SpreadNeedFascismDecline"/>）＝危機×人々の闘争度×国力の落ち込み（今の式に落ち込みを掛ける）。</summary>
     internal static double FasStrength(double crisis, double popMil, in IdeaBoard b) => crisis * popMil * b.Decline;
@@ -652,8 +652,8 @@ public static class Discovery
         }
         double workerMil = popSum > 1e-12 ? workerMilSum / popSum : 0, colonialShare = popSum > 1e-12 ? colonialPop / popSum : 0, popMil = popSum > 1e-12 ? milSum / popSum : 0;
         double crisis = double.NaN;   // ファシズムの必要性＝危機（国の思想の集計の1巡が要る＝その行を見るときだけ求める）
-        // ★(640) 線 idn：思想の必要性の盤面の量（旗 SpreadNeed*Board／FascismDecline が正のときだけ POP の 1 巡を足す・旗 0 は何も増えない）
-        IdeaBoard board = c.SpreadNeedSocialismBoard > 0 || c.SpreadNeedCommunismBoard > 0 || c.SpreadNeedFascismDecline > 0 ? IdeaBoardOf(w, view?.ScoreNow) : default;
+        // ★(640) 線 idn：思想の必要性の盤面の量（旗 SpreadNeedFascismDecline が正のときだけ POP の 1 巡を足す・旗 0 は何も増えない）
+        IdeaBoard board = c.SpreadNeedFascismDecline > 0 ? IdeaBoardOf(w, view?.ScoreNow) : default;
         double spreadLit = double.NaN;   // ★(621) 制度と思想の技術の比の識字（旗 SpreadLiteracyFull が正のとき・d＞0 の行を見るときだけ1度求める）
         var reach = w.SpreadReach;
         for (int row = 0; row < nr; row++)
