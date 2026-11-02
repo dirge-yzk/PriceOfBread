@@ -1,0 +1,36 @@
+(790) 合流の予言（波59・腕の前にコミットする）・書いたモデル Claude Opus 5.5
+基点 main 9d16437e（基線 m784）。worktree D:/PoB_work/wt_m790（枝 m790）。作者「いったん全て推奨で」「止めずに作業してください」で推奨を採って進める。
+
+[1] 入れる線と外す線（腕の前に決める）
+- c9bk (785) 恒等の線＝港の旗 2 本の焼き込み：入れる（origin/c9bk f1d356e1 を merge）。線の ident〈判定: 恒等〉・反証役 low 3 件（high なし）。
+- c9gd (786) 恒等の線＝Fiscal の GoldDebtBurdenCap の削除：入れる（origin/c9gd 418b6644 を merge）。段 0＝本走 20 種で上端 0 件・助走のプローブ（種 1〜2）で 0 件＝助走を含めて 0（README ★(784)）。線の ident〈判定: 恒等〉・反証役 low 1・記録 2。
+- c9op (787) 挙動の線＝アヘンの蓋の段2：**採らない**。線の腕 B が事前登録の門 U2（次の在庫の最大 113.14・門 ≦3.30）と U3（床が効く月 1.3176%・門 ≦1.0%）で落ちた＝事前登録の門のまま（変えない）。旗 1 のコミット cd58eaea は入れない。
+  恒等の 3 本（3af504b6 事前登録・b063538e 計器 habitbal_s と試験 2 本〔旗 0 明示〕・c619b25f ident の記録）は `git merge --no-ff c619b25f` で入れ、記録だけの 6 本（57923f7f・949b0cb1・158052b5・07e17928・2f828eb4・930ad3d3＝measurements/ だけ）を cherry-pick する。origin/c9op の先頭は merge しない（旗 1 のまま）。
+- 読むだけ (788)(789)：main のコードを書かない。台本を scripts/instruments/r788/・r789/ へ写す。
+- ＝**挙動を変えた線は 0 本＝基線は m784 のまま**。M・N1・N2・S11 の腕は回さない（★(778) の腕 Z は旗のある線を 2 本以上合わせるときだけ＝合わせた木で OpiumAddictionCapOff は既定 0 のまま＝ident の腕 b がそのまま旗 0 の腕）。
+
+[2] ★(773) の grep（merge の前に済ませた）
+消す名前 PortByLandRoute・PortSameLandmassFirst・PortByLand・PortSameLm・byLand・sameLmFirst（c9bk）・GoldDebtBurdenCap・fiscalBAt3Count・BAt3（c9gd）を origin/c9bk・origin/c9gd・c619b25f（c9op の恒等の先頭）で git grep（measurements・docs を除く）＝他の線の枝にある出現は全て基点 9d16437e と同じ行（新しい読み手 0）。git merge-tree の試し＝c9bk×c9gd・c9bk×c619b25f・c9gd×c619b25f の 3 組とも衝突 0。（DormantIdentityTests.cs の衝突は cd58eaea だけが起こす＝入れない。）
+
+[3] 合わせた木の恒等の予言（ident.sh run m790・合わせた木の ident の台本〔c9gd の --removed-cols つき〕で回す）
+宣言：--added-tables habitbal_s／--removed-cols silverpar_s:fiscalBAt3Count／--tests-delta 7／--saveleak --ng
+- 素の 5 種 ≡ b5_20261102_m784（名乗り行の SOURCE-HASH を除いて全行バイト一致）・.cost の推定 220.6 秒で件数の行が一致。
+- 計器つき 10 種 ≡ b10_20261102_m784_ins（全行バイト一致）・.cost の推定 219.7 秒で一致。
+- 計器の表（基準 keep_784/base_ins）：habitbal_s は腕にだけある（足した表）・silverpar_s は列 fiscalBAt3Count だけが消え残りは全行一致・portch_s・portlm_s を含む他の表はバイト一致・既知の揺れ burscan_s:seconds・clock_s の C 行だけ・flow_s は呼び出し位置を除いた多重集合で一致。
+- 注視の表 mon は 4834 行一致。
+- --list-tests：Category!=FullLength 2161 −2（c9bk）＋7（c9gd）＋2（c9op b063538e）＝**2168**・FullLength **3**。
+- NG：87 件・新しい 0・外れた 0（基準 rd:measurements/ng784_20261102:m784）。
+- savetest OK・leakhunt 保存則違反なし。
+- WriterRatchetTests は取り直さない（.cost の件数が一致する予言＝赤なら .cost と矛盾＝読む）。
+- 判定の行〈判定: 恒等〉。1 行でも違えば止めて、線を 1 本ずつ外した木で切り分ける。
+
+[4] 止める線の段
+- 挙動の線を入れない＝止める線（破綻・100 倍・1e10 倍・空洞化・計算量）は成績表の全行一致で m784 と同じ（読み直す腕は無い）。テスト：フルスイートを Category!=FullLength と FullLength に分けて回し、合計を --list-tests と突き合わせる。機構のテストの赤は止める線。
+
+[5] 記録の段（採否に使わない）
+- c9op の線の腕 B の門（線の事前登録 m787_20261102_prereg_op.txt の門・値は線の記録 m787_20261103_armB_gate.txt から写す）：L1・L2・L3・L3b・U1 は通る／U2・U3 が落ちる。合流では腕を回し直さない（採らない線）。
+- 開幕の 1000 倍以上・英の国債の不履行の種の数・ヌル腕の空洞化 1/10 未満は m784 の記録のまま（M 2・S11 7・N1 7・N2 6／N1 種 5 ネーデルラント 1798 年 1,908 倍＝直前に敗戦と内戦＝見逃す／N1 0・N2 0）＝基線が変わらないので数え直さない。
+- 成績表の数字（exact 45.2・near 86.4）は m784 と同じ字＝改善・悪化と書かない。
+
+[6] 基準の引き継ぎ
+- ident.cfg：B5・B10INS・MON・NG_BASE は m784 の字のまま。INSRAW を合わせた木の ident の計器の生（D:/PoB_work/keep_790/base_ins）へ（habitbal_s あり・silverpar_s の列 22）。TESTS_NONFULL 2168。keep_784 の n1・n2・a11 は m784 のヌル腕と種 11〜20 の生のまま残す。
