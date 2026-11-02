@@ -1,0 +1,62 @@
+# (786) 波59 c9gd の事前登録（Fiscal の b の上端 GoldDebtBurdenCap の削除＝設計思想⑧）。腕・実装より前に書く。区分 I の恒等の線（予言 0）。形：〈尾〉（金建て債務の負担 b の外れ値の挟みを外す＝届かないなら値は 1 ビットも変わらない）。
+# 出発：(780) c8sv の段 0＝Fiscal.cs:160 の `b = Math.Clamp(b, 1.0, c.GoldDebtBurdenCap)` の上端（3.0）は m778 の本走 20 種（13,360 国×四半期）で 0 件。World の銀の平価の挟みは助走で効いた（240 国×月）ので c8sv は止まったが、Fiscal の上端は助走も 0 だった。
+# 触るファイル：Fiscal.cs（b の 2 行→否定形の 1 行）・Coefficients.cs（係数 GoldDebtBurdenCap の行 1 本と注）・InstrumentsSilverParity.cs（列 fiscalBAt3Count）・Tests/FiscalTests.cs（機構のテスト 1 本を足す）・scripts/instruments/ident/ident_check.py（宣言 --removed-cols）・scripts/instruments/c9gd/・measurements/m786_*。
+# 新しい係数 0（1 本削除）・新しい状態変数 0・新しい補助関数 0。国ごとの特例 0。テストの書き換え 0（足すだけ）。
+
+## [1] 形（区分 I・恒等・予言 0）
+  Fiscal.cs：
+    旧  b = Math.Clamp(b, 1.0, c.GoldDebtBurdenCap);
+        if (!(b >= 1.0 && b <= c.GoldDebtBurdenCap)) b = 1.0;
+    新  if (!(b >= 1.0 && b < double.PositiveInfinity)) b = 1.0;
+  同じ値になることの確かめ（入力 b の場合分け）：
+    b が [1.0, 3.0]：旧＝そのまま（Clamp は内側を返す）・新＝そのまま。 → 同じ。
+    b < 1.0：旧＝Clamp が 1.0・新＝否定形のガードが 1.0。 → 同じ。
+    b が NaN：旧＝Clamp は NaN を返し（比較が全て偽）次の行のガードが 1.0・新＝ガードが 1.0。 → 同じ。
+    b > 3.0 有限：旧＝3.0・新＝そのまま。 → ここだけ違う（段 0 で 0 件）。
+    b = +∞：旧＝3.0・新＝1.0。 → 違う。到達不能（b＝RefPrice[銀]÷WorldSilverPrice・WorldSilverPrice＞1e-9 の節の中・RefPrice[銀] は有限の定数）。
+  ⚠ Math.Max は NaN を伝える（[pob-nan-fail-open-guards]）ので使わない。否定形のガード 1 本で NaN・+∞・1 未満を 1.0 へ倒す。
+  ⚠ 事実の記録（この線は直さない）：b の下端 1.0 は、下流の `goldDebtBurden > 1.0` の 3 箇所（Fiscal.cs の利払いの倍率・ForeignFrac）が 1 以下を同じに扱うため、値は変えても挙動は変えない（b＜1 の 5,139 行は挙動に出ない）。下端も冗長。残すのは指示どおり（この線の範囲は上端だけ）。
+  Coefficients.cs：GoldDebtBurdenCap の行を消す（墓標の注へ 1 行）。POB_COEF の名前解決・Runner・App・Tests・scripts・measurements の台本の読み手は grep で 0（下の [2b]）。
+
+## [2] 段 0（腕の前・m784 の盤面で取り直す・必ず助走を含む）
+  本走：scripts/instruments/c9gd/stage0_b_hits.py を keep_784/base_ins（種 1〜10）と a11（種 11〜20）の silverpar_s に当てる。出力 measurements/m786_20261102_stage0_hits.txt（コミット）。
+    結果：20 種×668 四半期＝13,360 行・b>=3.0 は 2 通りの数え（fiscalBAt3Count>0 の行・1÷usedParityIndex）で 0 と 0・usedParityIndex の非有限・非正 0・b の最大 1.40035・最小 0.637489・b<1.0 は 5,139 行。
+  助走（_calendarFrozen・20 四半期）：silverpar_s は助走の注入を捕捉しない（MultiNationSim の `Instruments.On && !_calendarFrozen`）＝使い捨ての木（batch.sh prep probe … plain scripts/instruments/c9gd/probe_warmup_b.py）で Fiscal.cs の b の評価の直前を数える。
+    読むだけ（値を変えない）：評価の通し番号（助走・本走別）が 2 のべきに届いた月と最大の b を更新した月の見本の行（S）と、b>=3.0 か非有限・非正の評価の全ての行（B）を D:/PoB_work/c9gd/probe_b.txt へ追記。種 1〜2（run_in_background）。結果は measurements/m786_20261102_stage0_warmup_probe.txt と生の濾過（measurements/m786_20261102_probe_b_raw.tsv）。
+  進める条件：本走の 0 かつ助走の B 行が 0 件。**1 件でもあれば削除せず、件数・国・四半期を表にして止める**（コードは変えない・ident は回さない）。
+  [2b] ★(773) の grep（全域）：GoldDebtBurdenCap は Fiscal.cs:160・161（消す）・Coefficients.cs:3553（消す）・InstrumentsSilverParity.cs:51（列 fiscalBAt3Count の計算＝消す）のみ。Runner・App・Tests・POB_COEF の名前・scripts の台本の「係数名」としての読みは 0。
+    scripts/instruments/c7ag/gates775.py と c8sv/stage0_clamp_hits.py は列名 fiscalBAt3Count を旧の生（keep_778 以前）から読む閉じた線の台本＝消さない（旧の生にはその列がある）。c8sv/probe_warmup_edit.py は旧の木の文字列に当てる台本。他の c9* の枝（c9bk・c9op）の読み手 0（grep：Fiscal.cs・Coefficients.cs・InstrumentsSilverParity.cs の同じ行を持つだけ＝触る行が重なる→[8]）。
+
+## [3] 設計思想⑧の判断
+  ⑧の例外は〈発散する量への指数関数的ロック〉だけ。この挟みは定数の上限（3.0）で指数関数的ではない・b は帯で有限（比の経路で局所価格の帯 PriceFloorFactor 0.01・PriceCeilFactor 100 から rel ∈[1e-4, 1e4]・b の上限は約 1e4＝MultiNationSim の注。旧の統計の経路で 10）・観測で一度も届かない（本走 13,360 行・助走）。
+  ⇒ ⑧に従って消す。Coefficients.cs の注〈青天井にすると銀の谷で利払いが発散し「破綻しない」を割る〉は、上端が観測で 0 件・b は有限（約 1e4 が上限）の事実なので消す（注ごと）。Fiscal.cs の注は、今の帯の上限の事実（有限・約 1e4）へ直す。
+  ⚠自己申告：b が 1e4 まで届けば利払いの倍率は 1＋対外の割合×(1e4−1) で桁が跳ぶ。観測された最大は 1.40（本走）。届く経路があれば、それは上流（局所価格の帯・銀の世界価格）の問題であり、この挟みは 3.0 に貼り付くだけで利払いが 3 倍になる設計の値を隠していた。⑧は選んだ値を挟みで削らない。
+
+## [4] 計器の列の扱い
+  選ぶ：列 fiscalBAt3Count を**消す**（b の最大値などの代わりの列は足さない＝新しい計器の面を増やさない・助走を数える計器が要るなら別の線）。理由：列は GoldDebtBurdenCap を読む唯一の計器で、係数が無くなる。計器に 3.0 のリテラルを書かない。
+  影響：silverpar_s の列が 23→22。位置は wAgShare と nationCount の間。他の列の値は 1 ビットも変わらない（残りの列は別の量）。
+  ident の宣言：--removed-cols silverpar_s:fiscalBAt3Count（今回足す。ident_check.py の cmp_ins で、基準にあって腕に無い列を宣言した分だけ許し、残りの列の値と順序は全行バイト一致を要求する）。足した宣言の自己点検＝scripts/instruments/c9gd/removed_cols_selftest.py（宣言あり＝恒等・宣言なし＝不一致・値の変更＝不一致・列順の変更＝不一致）。
+  旧の生を読む台本（gates775.py・stage0_clamp_hits.py）は旧の表（keep_778 以前）に対して動く。keep_784 は列を持つ。次の基線（この線を採った木）からは列が無い→ stage0_b_hits.py は usedParityIndex から b を取る（列に頼らない）。
+
+## [5] 合否（この線の唯一の門）
+  `bash scripts/instruments/ident/ident.sh run c9gd --tree D:/PoB_work/wt_c9gd --removed-cols silverpar_s:fiscalBAt3Count --tests-delta <足した試験の数>`（run_in_background）：
+    素の 5 種（b5_20261102_m784）と計器つき 10 種（b10_20261102_m784_ins）が名乗り行を除いて全行バイト一致・計器の表は silverpar_s の列の宣言の差だけ（370 本余りは基準とバイト一致）・.cost の推定が一致（計器つきの腕の件数の行に差が出れば --cost-allow を名乗る）・テストの数は基準 2161＋3 に足した試験の数。
+  〈判定: 恒等〉なら〈測った種で一致〉と名乗る（証明とは書かない）。一致しなければ止める（同じ腕で物差しを替えない・変更を外して報告に回す）。種 11〜20 は合流が回す。
+  門の突然変異：恒等の門は〈何もしない実装でも通る〉形＝突然変異の対象は機構のテスト（[6]）と宣言の自己点検（[4]）。働きの確かめは段 0 の数（届いた回数）と機構のテストが担う。
+
+## [6] 機構のテスト（手の盤面・FiscalTests に足す）
+  Fiscal.Step を英の静かな盤面（QuietBritain）で 1 回踏む。銀本位・国債 1e9・対外 5e8（割合 0.5）・世界の銀価格だけを替える。b＝1 の盤面の LastInterestPerMonth を基準に、その倍率が定義の式 1＋0.5×(b−1)（b＜1 は 1）になること。
+    入力（世界の銀価格＝参照×k）：k＝2（b＝0.5→倍率 1）・k＝1（1）・k＝NaN（銀の節に入らない→1）・k＝+∞（b＝0→1）・k＝1/1.7（旧の上端の内側→1.35）・k＝1/5（旧の上端の外→3.0・旧は 2.0）・k＝1/1e4（比の経路の上限の桁→5000.5）。期待は式から（コードの形ではない）。
+  ⚠到達できない入力：b そのものが NaN・+∞ になる盤面は作れない（RefPrice[銀] が有限の定数）＝否定形のガードの NaN・+∞ の枝は手の盤面で踏めない。踏めるのは上端の外（k＝1/5・1/1e4）と、下端以下・銀の節に入らない入力。
+  突然変異（使い捨ての木で確かめ measurements/m786_20261102_mutations.txt にコミット）：
+    M1 上端の挟みを戻す（`b = Math.Min(b, 3.0)` を否定形の後に足す）→ k＝1/5 と k＝1/1e4 の 2 行が赤。
+    M2 下端を壊す（否定形を `if (!(b < double.PositiveInfinity)) b = 1.0;` にする）→ 下流の `> 1.0` が同じに扱うので**緑のまま**（下端が挙動に出ない事実の確認・テストが拾えない側を名乗る）。
+    M3 否定形のガードを消す（+∞ を通す）→ b を +∞ にできないので**緑のまま**（到達不能の確認）。
+  消した挟みを固定していた既存の試験：grep で 0（FiscalTests・MultiNationTests・SmallFixes471Tests に GoldDebtBurdenCap の読み手は無い）＝★(743) の書き換え 0。
+
+## [7] 記録（採否に使わない）
+  段 0 の数（本走・助走）・⑧の判断・消した行・計器の列の扱い・判定文・テストの数の差・M1〜M3 の結果。計算量は恒等の整理＝.cost の推定が m784 と一致。実装ログと 00一覧は書かない（合流が書く）。
+
+## [8] 重なりの読み（合流の材料）
+  触る行：Fiscal.cs:160〜161・Coefficients.cs:3552〜3553（墓標の注と係数の行）・InstrumentsSilverParity.cs の 5 行（注 10 行目・ヘッダ 19 行目・欄 25 行目・計算 47・51・70 行目・書き出し 101 行目）・FiscalTests.cs の末尾に Fact を 1 本・ident_check.py の cols_diff・cmp_ins・parse_args。
+  他の c9* の枝が同じ行を触るかは合流で見る（c9bk・c9op は基点から同じ行を持つ）。
