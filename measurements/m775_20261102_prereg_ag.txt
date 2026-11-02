@@ -67,3 +67,15 @@
 ## 7. 変えない物
   coefficients のリテラル・計算の順序（注入の節は 1 行の条件だけ旗で切る）。旗 0 の経路は旧の式そのまま。
   触る行：MultiNationSim.cs の注入の節（計器の呼び出し 1 行）・Instruments.cs の Close（1 行）・Coefficients.cs の SilverParityFromRatio の既定と注・InstrumentsSilverParity.cs（新）・MultiNationTests.cs の :52〜61 の後ろに試験を足す・DormantIdentityTests.cs の名簿の 1 行（既定 1 のときだけ外す＝★(743)④）。
+
+## 8. 追記 1（腕の前・紙の検算 2＝反証役の助言を受けて）
+  台本 scripts/instruments/c7ag/paper_rel.py・出力 measurements/m775_20261102_paper_rel_m773.txt（m773 の生の metal_s の lnAgAuMean＝旗 1 が注入する rel の対数そのもの・四半期ごと）。
+  rel の範囲＝10 種とも 0.75〜1.70（ln で −0.29〜+0.53）。挟み（0.31・2.99）の外の四半期＝0（旗 1 の一次近似で L1 は通る見込み。外れるなら rel でなく E の混ぜ（Convertibility・floatTarget）か旗 1 の世界の価格の変化）。
+  U1 の傾きの減衰の見込み：E は ExchangeRateSpeed=0.2 で目標へ寄る（World.cs の月次の更新・月ごと）。rel の対数と、それを 0.2/月で平滑した E の対数の回帰の傾き＝種ごと 0.95〜0.99（0.2/四半期なら 0.85〜0.97）。
+  銀本位国の Convertibility の平均 0.98 を掛けて 0.83〜0.97＝U1 の帯 [0.8,1.2] の内側。10 種を併せた傾きの見込み 0.9〜0.97。rel の対数の標準偏差は 0.04〜0.13（四半期差は 0.012〜0.019）＝回帰に十分な分散がある。
+  計器の限界の訂正：Market.Price[銀] は BilateralMarket で RefPrice×[0.1,10] に挟まれた後の値＝oldRawIndex は〈[0.1,10] の挟みの後・[0.3,3] の挟みの前〉。
+  腕 B の報告に必ず出す列：ratioOkFlag＝0 の四半期の数（旗 1 でもそこでは旧の統計へ倒れる＝輪がその四半期だけ戻る）。0 でなければ L1 の失敗の内訳として分ける（物差しは替えない）。
+  計器の配線（反証役の助言）：注入の直後に呼ぶ 1 行は値の捕捉だけ（InstrumentsSilverParity.cs の側で州を歩いて relRecomputed・mAg・mAu・wAg・usedParity を取り、ConditionalWeakTable に貯める）。
+    行は Instruments.Quarter から書く（四半期の末の E・法・fiscalB を読む＝注入時の rel に E が寄った後の値）。助走中は貯めた値が上書きされるだけで Quarter は呼ばれない（計器の限界）。
+    usedParity と newParity の一致は注入時に取った写しどうしで読む。
+  腕 S の限界：挟み（ExchangeRateFloor・Ceil）は floatTarget（不換・部分兌換の経路）にも掛かっている＝腕 S は全ての国の変動相場の経路も外す。U2 は銀本位国の E だけ読む。突然変異の腕でクラッシュした種は〈落ちた〉として扱う。
