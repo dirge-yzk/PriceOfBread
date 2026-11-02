@@ -1841,6 +1841,7 @@ public static partial class Instruments
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
+        PortchTable(sim, seed, q);         // (770) 内陸州の港の選び方の表（年末）
         LandfixTable(sim, seed, q);        // (762) 陸グラフのデータの直しの表（landfix_g は最初の呼びで 1 回・landfix_s は Q4）
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
@@ -1870,6 +1871,7 @@ public static partial class Instruments
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        PortchClose(sim);    // (770)
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)
