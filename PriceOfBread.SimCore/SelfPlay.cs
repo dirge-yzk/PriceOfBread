@@ -1111,7 +1111,7 @@ public sealed class UtilityAgent : INationAgent
         // AIは実力どおりの新平価を選ぶ（ポワンカレ型）＝旧平価に戻すという自傷は**プレイヤーだけが選べる選択肢**。
         // 機構は対称で、判断だけが違う（巨大建造物と同じ作法）。ゲートは Fiscal が持つので、ここは意思だけ。
         if (!w.OnGoldStandard && w.CurrencyReformCooldown <= 0
-            && w.NominalGdpPerMonth.Value > 1e-9 && w.CumulativeDevaluation / w.NominalGdpPerMonth.Value > w.Coef.CapitalFlightDistrustThreshold
+            && Fiscal.CurrencyMemoryBroken(w.CumulativeDevaluation, w.NominalGdpPerMonth.Value, w.Coef.CapitalFlightDistrustThreshold)
             && w.NoDevaluationMonths >= w.Coef.CurrencyReformCalmMonths)
             w.RequestCurrencyReform(w.ExchangeRate);
         // ★潤沢の減税（RelieveOpulence）は Apply の中＝門（GateAllLawTargets）の前へ移した（2026-09-28 (85)）。
