@@ -57,7 +57,7 @@ public static partial class Instruments
         r.Collapsed = CpIterFlags.TryGetValue(war, out var cf) && cf.Value;   // その戦争の月の歩で崩壊と判定されたか（CpIter が記録した値＝保留の判断とは別の経路）
         r.Valid = loser.Nation is not null && winner.Nation is not null;       // 賠償は貨幣経済を持つ 2 国の間だけ
         double gdp = loser.GdpPerMonth.Value, fr = loser.Nation?.FiscalFundingRatio.Value ?? double.NaN;
-        r.Fr = fr; r.RepUnit = c.ReparationGdpFraction.Value * gdp * fr;   // 戦勝点 1 の賠償の元×支払い率（会議の削りと条約港の倍率の前）
+        r.Fr = fr; r.RepUnit = r.Valid ? c.ReparationGdpFraction.Value * gdp * fr : 0;   // 国を持たない側がいる講和は賠償が無い（単位 0）。取り分の分母〔勝者の押し〕には残す＝エンジンの取り分と同じ   // 戦勝点 1 の賠償の元×支払い率（会議の削りと条約港の倍率の前）
         if (cg is not null) { if (!st.Gids.TryGetValue(cg, out int gid)) st.Gids[cg] = gid = ++st.GidSeq; r.Gid = gid; r.ShareReal = share; }
         else r.ShareReal = double.NaN;
         return new CpPre { Rec = r };
@@ -68,9 +68,9 @@ public static partial class Instruments
     {
         var r = pre.Rec;
         r.Hit = d.CpHit;
-        if (!r.Hit || !r.Valid) return;   // 白紙・内戦・賠償の枝の前で終わった講和は事象に入れない
+        if (!r.Hit) return;   // 白紙・内戦・賠償の枝の前で終わった講和は事象に入れない（国を持たない側がいる講和は入れる＝取り分の分母に押しが残る）
         r.Budget0 = d.CpBudget0; r.Captured = d.CpCaptured; r.Ceded = d.CpCeded;
-        r.RepRealR = d.CpRepRaw * r.Fr;   // 賠償の元（戦勝点は集合の 1 回分×取り分）×講和の前の支払い率（会議の削りと条約港の倍率の前）
+        r.RepRealR = r.Valid ? d.CpRepRaw * r.Fr : 0;   // 賠償の元（戦勝点は集合の 1 回分×取り分）×講和の前の支払い率（会議の削りと条約港の倍率の前）
         CpOf(d).Recs.Add(r);
     }
 

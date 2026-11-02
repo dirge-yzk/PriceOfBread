@@ -12,7 +12,7 @@ namespace PriceOfBread.Tests;
 [Collection("Instruments")]
 public class CollapsePeaceTests
 {
-    private static (MultiNationSim sim, Power fr, Power uk, Power es, War w1, War w2) Board(double flag, double pushFr = 3e12, double pushEs = 1e12)
+    private static (MultiNationSim sim, Power fr, Power uk, Power es, War w1, War w2) Board(double flag, double pushFr = 3e12, double pushEs = 1e12, double loseFr = 1)
     {
         var sim = new MultiNationSim(System.Array.ConvertAll(new[] { "フランス", "イギリス", "スペイン" }, OpeningFixture.Named), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var c = sim.Coef;
@@ -27,7 +27,7 @@ public class CollapsePeaceTests
         uk.WarExhaustion = 1.0;                    // 敗者は崩壊（閾値以上）
         uk.Nation!.FiscalFundingRatio = new Share(0.8);
         // 1 本目：A＝フランス・B＝イギリス（勝者は A 側＝PushA）・2 本目：A＝イギリス・B＝スペイン（勝者は B 側＝PushB）
-        var w1 = new War { A = fr, B = uk, PushA = pushFr, PushB = 1 };
+        var w1 = new War { A = fr, B = uk, PushA = pushFr, PushB = loseFr };
         var w2 = new War { A = uk, B = es, PushA = 1, PushB = pushEs };
         sim.Diplomacy.Wars.Add(w1); sim.Diplomacy.Wars.Add(w2);
         return (sim, fr, uk, es, w1, w2);
@@ -108,6 +108,20 @@ public class CollapsePeaceTests
         double unit = 0.2 * uk.GdpPerMonth.Value * uk.Nation!.FiscalFundingRatio.Value;
         Close(unit * 1.0, Led(fr) - f0);     // 戦勝点はクランプ後 1.0（旧のまま満額）
         Close(unit * 1.0, Led(es) - e0);
+    }
+
+    [Fact]
+    public void 旗1は白紙の崩壊の講和を集合に入れず他の勝者は満額()
+    {
+        // 1 本目は勝者の押しが敗者の押しの 1/100＝戦勝点が白紙の線（WhitePeaceScore）の下＝賠償は無い。2 本目だけが払う
+        var (sim, fr, uk, es, w1, w2) = Board(1, pushFr: 1e12, pushEs: 1e12, loseFr: 1e14);
+        sim.Coef.WarPeaceExhaustion = 0.5; fr.WarExhaustion = 0.6;   // 白紙の 1 本目も〈疲れた〉側で講和の枝に入る（崩壊はしない側の厭戦 0.6＞0.5・敗者イギリスは崩壊の 1.0）
+        double f0 = Led(fr), e0 = Led(es);
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        Assert.Empty(sim.Diplomacy.Wars);
+        Assert.True(Math.Abs(w1.Score) < sim.Coef.WhitePeaceScore, $"前提が崩れた：1 本目の戦勝点が白紙の線の下でない（{w1.Score:G6}）");
+        Close(0.2 * uk.GdpPerMonth.Value * uk.Nation!.FiscalFundingRatio.Value, Led(es) - e0);   // 2 本目の勝者は満額（白紙が取り分を持っていかない）
+        Assert.Equal(0.0, Led(fr) - f0);
     }
 
     [Fact]
