@@ -1,0 +1,21 @@
+# (777) 番人の突然変異（使い捨ての木 D:/PoB_work/c7pg/mut・InstrumentsPortlm.cs に 1 か所ずつ入れて PortByLandTests と PortlmInstrumentTests を回した・木 4ab3916f）
+# M1 札の比較の反転（lmP != lmR → ==）／M2 形 d の外す条件 sameLmFinite>0 → finite>0（形 b に退化）／M3 計器が州の欄 NearestPortDistanceKm を書く／M4 形 c の∞の港の eff を大圏へ（形 a に退化）
+M1：札の比較の向きを反転
+M1 rc=1
+  失敗 PriceOfBread.Tests.PortByLandTests.港の陸塊の判定は札で数え_同じ陸塊は0_別の陸塊は1_陸路が無限はinf [1 ms]
+  失敗 PriceOfBread.Tests.PortByLandTests.札が違えば陸路が有限でも別の陸塊と数える [< 1 ms]
+  失敗 PriceOfBread.Tests.PortlmInstrumentTests.港の陸塊の表は列が揃い札の比較と合い_計器を出しても軌道は変わらない [16 s]
+失敗!   -失敗:     3、合格:     8、スキップ:     0、合計:    11、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+M2：形 d の外す条件を〈有限が 1 つでも〉へ（＝形 b に退化）
+M2 rc=1
+  失敗 PriceOfBread.Tests.PortByLandTests.形dは有限の港が全て別の札なら外さず_形bは外す [175 ms]
+失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 33 s - PriceOfBread.Tests.dll (net10.0)
+M3：計器が州の欄を書く
+M3 rc=1
+  失敗 PriceOfBread.Tests.PortlmInstrumentTests.港の陸塊の表は列が揃い札の比較と合い_計器を出しても軌道は変わらない [25 s]
+失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 31 s - PriceOfBread.Tests.dll (net10.0)
+M4：形 c の∞の港の eff を大圏へ（＝形 a に退化）
+M4 rc=1
+  失敗 PriceOfBread.Tests.PortByLandTests.形bcdは島の港より陸路の港を選び_形cの字義は形bと同じ港_岸を広げた形は近い岸から海を渡る [5 ms]
+失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+end
