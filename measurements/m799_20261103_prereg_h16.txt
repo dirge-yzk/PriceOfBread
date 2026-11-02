@@ -1,0 +1,25 @@
+(799) c11h16 資本逃避の不信の bool 2 か所を単位の型へ（恒等の線・波61）事前登録 2026-11-03
+基線＝m797（main a9187101）。枝 c11h16（a9187101 から）。出発＝(796) 読み手の棚卸し（表 3 の I6＝H16 資本逃避の 0.02 の束のうち bool の 2 か所）。README §1-9（単位とスケールを名前と型で）。
+このコミットは事前登録だけ（実装は次のコミット）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。
+
+[1] 恒等の線（予言 0）
+    - 形：エンジンの挙動を変えない。新しい係数 0・新しい状態変数 0・係数のリテラルを書き換えない（CapitalFlightDistrustThreshold は 0.02 の double のまま・月の名目GDP 比の宣言）。
+    - 変える物：累積の切下げが閾値を超える述語（旧：累積の切下げ ÷ **月の**名目GDP ＞ 閾値）を、Calendar.ToGdpYear（在庫 ÷ **年**の名目GDP＝月を PerMonthToPerYear で年に直す）と閾値の ÷12（Calendar.MonthsPerYear）の形にし、1 本の述語 Fiscal.CurrencyMemoryBroken へ括る。読み手は 2 か所を 1 本へ畳む（新しい補助関数を足す理由＝同じ式の写し 2 か所を 1 本にする減らす向きの括り出し。似た物は grep で確かめた：CumulativeDevaluation を名目GDP で割る比較は Fiscal.cs:205・SelfPlay.cs:1114・Display/FiscalTables.cs:229・CapitalMarket.cs:143・Fiscal.cs:235 の 5 か所で、述語に畳むのは bool の 3 つのうち SimCore 本体の 2 か所）。
+    - 触らない物：CapitalMarket.cs:143 のヒンジ（c11fl の区域の隣）・Fiscal.cs:235 の forgiveRatio（bool でなく比の値）・SimCore/Display/FiscalTables.cs:229 の同じ bool の 3 つ目の写し（この回の決まりで SimCore/Display に触れない＝合流で述語を呼ぶ形へ寄せる候補として報告）。
+    - 計算の順序：述語の式は x ÷ (g×12) ＞ t ÷ 12（x＝累積の切下げ・g＝月の名目GDP・t＝閾値）。旧の式 x ÷ g ＞ t と数学では同値、浮動小数では境の 1 ulp の外で同値（下の [2]）。
+
+[2] 紙の台本（境の 1 ulp・同じ盤面 keep_797/base_ins＝m797 の計器つき 10 種と同じ種 1〜10・旗なし）
+    - 方法：計器の表に累積の切下げ（World.CumulativeDevaluation）の列は無い＝使い捨ての木（probe_tree＝この枝の述語に旧の式の並行評価と数え上げを足しただけ・出力 D:/PoB_work/c11h16/probe_out.txt）で、素の 10 種（種 1〜10）を回して述語の全呼び出しで旧と新を両方評価し食い違いを数える。木の述語の戻りは新の側＝成績表は m797 と全行一致する。
+    - 台本：scripts/instruments/c11h16/（probe の差分と集計）・出力 measurements/m799_20261103_probe.txt。
+    - 予言：食い違い 0 件（境の 1 ulp は x÷g が閾値の 1 ulp 以内のときだけ起きる。ランダムな近境界の標本では 3.5% が食い違う＝境の丸めは実在するが、軌道の値が閾値の 1 ulp 以内に入る確率は評価の回数 N に 1e-16 のオーダーを掛けた値で、N が 1e7 でも 1e-9 以下）。
+    - 結果は measurements/m799_20261103_probe.txt へ（腕は事前登録のコミットの前に起動済み・予言を書いた後で結果は見ていない＝順序の申告）。
+    - 0 でなければ止めて報告（その変更を外す）。0 なら〈測った種で一致〉と名乗る（〈証明〉と書かない）。
+
+[3] 足す試験（PriceOfBread.Tests/CurrencyMemoryBrokenTests.cs・FiscalTests.cs には足さない）と突然変異
+    - 試験：閾値の既定が 0.02（単位の前提）／閾値の両側（ちょうど・1 ulp 下・1 ulp 上）を GDP 4 通りで／月と年を取り違えると向きが変わる盤面 4 通り／分母と入力の守り（GDP 0・負・番兵ちょうど・NaN・累積 NaN・負・0・無限大）／2 つの呼び手が述語を通る（係数の読みは述語の引数としてだけ現れる）。期待値は手で書いた盤面と真偽の字面（述語の式から作らない）。
+    - 突然変異（使い捨ての木 mut_tree・出力 measurements/m799_20261103_mutation.txt）：M1 閾値の ÷12 を外す／M2 月→年の換算を逆（年→月）にする／M3 閾値を ×12 にする／M4 ＞ を ≧ にする／M5 番兵の守りを消す／M6 SelfPlay の呼び手を旧の直書きへ戻す。全て赤、元の木は緑。
+    - 既存の番人の更新（宣言どおり）：UnitTypeTests.cs の `new MoneyStock(` の件数 64→65（述語の中で累積の切下げ〔double の累積〕を在庫の型に包む 1 件＝在庫の値を作る所）。★(743) の ①〜④ ではなく、この番人自身の更新の手順（増やすコミットは数を上げて理由を書く）に従う＝verdict に列挙。
+
+[4] 素の 5 種・計器つき 10 種は m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行を除いて全行一致。計器の表の差は 0（宣言なし）。.cost の推定も m797 と一致（221.2 秒）。テスト数：Category!=FullLength 2191＋CurrencyMemoryBrokenTests 11（Fact 3＋Theory 4 行＋4 行）＝2202、--tests-delta 11。FullLength 3。savetest・leakhunt。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
