@@ -98,4 +98,137 @@ public class PortByLandTests
         Assert.Equal(on ? want.LandKm : want.GcKm, r.NearestPortDistanceKm);   // 旗が正＝鉄道の減衰の km は陸路（PortLandKm と同じ値）・0＝大圏
         Assert.Equal(on ? "天津" : "広州", r.NearestPortName);          // 期待は PortChoice の外で書く（旗が正＝陸路の最小の天津・0＝大圏の最小の広州）
     }
+
+    // ---------------------------------------------------------------- (777) 港の陸塊の表 portlm_s（線 c7pg・計器と紙だけ） ----------------------------------------------------------------
+    // 期待の札は文字列で手で書く（Landmass.Of から作らない＝同語反復にしない）。
+
+    [Fact]
+    public void 港の陸塊の判定は札で数え_同じ陸塊は0_別の陸塊は1_陸路が無限はinf()
+    {
+        var paris = Climate.CityCoord("パリ");
+        var havre = Climate.CityCoord("ルアーヴル"); var london = Climate.CityCoord("ロンドン");
+        var same = Instruments.PortlmClassify(paris, havre);
+        Assert.Equal("eurasia", same.LmRegion);
+        Assert.Equal("eurasia", same.LmPort);
+        Assert.False(same.Cross);
+        Assert.True(double.IsFinite(same.LandKm));
+        Assert.InRange(same.GcKm, 170, 185);                 // パリ→ルアーヴル 177.7 km（portch_s の 1784 年の行）
+        var cross = Instruments.PortlmClassify(paris, london);
+        Assert.Equal("eurasia", cross.LmRegion);
+        Assert.Equal("britain", cross.LmPort);
+        Assert.True(cross.Cross);
+        Assert.True(double.IsPositiveInfinity(cross.LandKm));   // 陸路∞（欄 PortLandKm のように大圏で退避しない）
+        var lhasa = Climate.CityCoord("ラサ"); var tianjin = Climate.CityCoord("天津");
+        var cn = Instruments.PortlmClassify(lhasa, tianjin);
+        Assert.False(cn.Cross);
+        Assert.InRange(cn.LandKm, 2700, 2800);                // 陸路は生の値（ラサ→天津と同じ盤面）
+    }
+
+    [Fact]
+    public void 札が違えば陸路が有限でも別の陸塊と数える()
+    {
+        var cairo = Climate.CityCoord("カイロ"); var jeru = Climate.CityCoord("エルサレム");
+        var r = Instruments.PortlmClassify(jeru, cairo);
+        Assert.Equal("eurasia", r.LmRegion);
+        Assert.Equal("africa", r.LmPort);
+        Assert.True(r.Cross);
+        Assert.True(double.IsFinite(r.LandKm), "シナイの陸路が無限＝この試験の前提（札と陸路が別の物差し）が崩れた：" + r.LandKm);
+    }
+
+    [Fact]
+    public void 形bcdは島の港より陸路の港を選び_形cの字義は形bと同じ港_岸を広げた形は近い岸から海を渡る()
+    {
+        var paris = Climate.CityCoord("パリ");
+        var ports = new List<(double Lat, double Lon, string Name)> { P("ロンドン"), P("マルセイユ") };   // ロンドン＝大圏 344 km・陸路∞（今の形はこちら）／マルセイユ＝陸路 668 km
+        var shores = new List<(double Lat, double Lon, string Name)> { P("ルアーヴル"), P("ロンドン"), P("マルセイユ") };   // 岸＝全ての国の港（ルアーヴルは陸路 約 178 km）
+        Assert.Equal("ロンドン", Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: true).Name);   // (a)
+        var s = Instruments.PortlmShapes(paris, "eurasia", ports, shores, false, false);
+        Assert.Equal(1, s.LmPorts);          // 札が eurasia の港はマルセイユだけ
+        Assert.Equal(1, s.Finite);
+        Assert.Equal(1, s.SameLmFinite);
+        Assert.InRange(s.GcKmMin, 330, 360);
+        Assert.Equal("マルセイユ", s.Fin.Port);  Assert.InRange(s.Fin.EffKm, 660, 680);   // (b) 有限だけ
+        Assert.Equal("マルセイユ", s.Sea.Port);  Assert.Equal(s.Fin.EffKm, s.Sea.EffKm); // (c) 字義＝∞の港は〈マルセイユまでの陸路＋海路〉＝必ずマルセイユに負ける
+        Assert.Equal("マルセイユ", s.Drop.Port); Assert.Equal(s.Fin.EffKm, s.Drop.EffKm); // (d) 札が同じで有限の港がある＝∞を外す
+        Assert.Equal("ルアーヴル", s.ShoreName);                                         // (c′) 岸＝陸路の最小の港（どの国でも）
+        Assert.Equal("ロンドン", s.Shore.Port);                                           // ルアーヴルから英仏海峡を渡る方がマルセイユの陸路より短い
+        Assert.InRange(s.Shore.EffKm, 178, 660);
+    }
+
+    [Fact]
+    public void 形dは有限の港が全て別の札なら外さず_形bは外す()
+    {
+        var tls = Climate.CityCoord("トゥールーズ");
+        var cairo = Climate.CityCoord("カイロ");
+        // 手の盤面（モロッコ領トゥールーズの型）：同じ国の港＝カイロの座標の港「甲」（africa・陸路は有限だが遠い）と島の港アジャクシオ（corsica・陸路∞・大圏は近い）
+        var ports = new List<(double Lat, double Lon, string Name)> { (cairo.Lat, cairo.Lon, "甲"), P("アジャクシオ") };
+        var s = Instruments.PortlmShapes(tls, "eurasia", ports, ports, false, false);
+        Assert.Equal(0, s.LmPorts);
+        Assert.Equal(0, s.SameLmFinite);
+        Assert.Equal(1, s.Finite);
+        Assert.Equal("甲", s.Fin.Port);                                                    // (b)：有限なら札を問わない＝大陸を回る遠い港
+        Assert.True(s.Fin.EffKm > 2 * s.GcKmMin, "形 b の陸路が大圏の最小の 2 倍以下（U2 の型の前提が崩れた）：" + s.Fin.EffKm + " / " + s.GcKmMin);
+        Assert.Equal("アジャクシオ", s.Drop.Port);                                          // (d)：札が同じ有限の港が無い＝外さず (a) のまま
+        var a = Simulation.PortChoice(tls.Lat, tls.Lon, ports, byLand: true);
+        Assert.Equal("アジャクシオ", a.Name);
+        Assert.Equal(a.LandKm, s.Drop.EffKm);
+    }
+}
+
+/// <summary>(777) 計器 portlm_s は世界を書かない（計器なし＝計器つき）・表の列が揃い crossLandmass が札の比較と合う。Instruments.On は全体の静的な旗＝別の収集（Instruments）で直列に回す。</summary>
+[Collection("Instruments")]
+public class PortlmInstrumentTests
+{
+    private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
+
+    private static (long Digest, string? Dir) RunMatch(int quarters, bool instr)
+    {
+        string? dir = instr ? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_portlm_" + Guid.NewGuid().ToString("N")) : null;
+        if (instr) Instruments.Configure(dir, null);
+        var sim = MakeMatch();
+        try
+        {
+            if (instr) Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            if (instr) Instruments.Phase(sim, 1789UL, "warm");
+            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (instr) Instruments.Quarter(sim, 1789UL, q); }
+        }
+        finally { if (instr) { Instruments.Close(sim); Instruments.Configure(null, null); } }
+        long d = 17;
+        foreach (var n in sim.Nations)
+        {
+            d = d * 31 + BitConverter.DoubleToInt64Bits(n.World.Treasury.Value);
+            foreach (var r in n.World.Regions)
+                d = d * 31 + BitConverter.DoubleToInt64Bits(r.NearestPortDistanceKm) + BitConverter.DoubleToInt64Bits(r.PortLandKm) + StringComparer.Ordinal.GetHashCode(r.NearestPortName) + r.Pops.Count;
+        }
+        return (d, dir);
+    }
+
+    [Fact]
+    public void 港の陸塊の表は列が揃い札の比較と合い_計器を出しても軌道は変わらない()
+    {
+        const int quarters = 4;   // 年末（q%4==3）の 1 回
+        var (plain, _) = RunMatch(quarters, instr: false);
+        var (withIns, dir) = RunMatch(quarters, instr: true);
+        try
+        {
+            Assert.Equal(plain, withIns);   // 計器は読むだけ＝国庫と州の港の欄がビットで一致（全軌道の一致の根拠は計器つきの成績表が計器なしと全行一致すること）
+            var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "portlm_s1789.tsv"));
+            Assert.Equal(Instruments.PortlmHeaderText, lines[0]);
+            var h = lines[0].Split('\t');
+            var rows = new List<string[]>();
+            for (int i = 1; i < lines.Length; i++) rows.Add(lines[i].Split('\t'));
+            Assert.True(rows.Count >= 10, "内陸州の行が少ない：" + rows.Count);
+            int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
+            foreach (var r in rows)
+            {
+                Assert.Equal(h.Length, r.Length);
+                Assert.Equal(r[I("lmUsed")] != r[I("lmRegion")] ? "1" : "0", r[I("crossLandmass")]);
+                Assert.NotEqual("", r[I("lmRegion")]);
+            }
+            Assert.Contains(rows, r => r[I("nation")] == "フランス" && r[I("region")] == "パリ" && r[I("lmRegion")] == "eurasia" && r[I("lmUsed")] == "eurasia" && r[I("crossLandmass")] == "0");
+            Assert.Contains(rows, r => r[I("nation")] == "イギリス" && r[I("lmRegion")] == "britain" && r[I("lmUsed")] == "britain");
+        }
+        finally { if (dir is not null && System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true); }
+    }
 }

@@ -1843,6 +1843,7 @@ public static partial class Instruments
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
         PortchTable(sim, seed, q);         // (770) 内陸州の港の選び方の表（年末）
+        PortlmTable(sim, seed, q);         // (777) 内陸州の港の陸塊の表（年末）
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
@@ -1872,6 +1873,7 @@ public static partial class Instruments
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
         PortchClose(sim);    // (770)
+        PortlmClose(sim);    // (777)
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)
