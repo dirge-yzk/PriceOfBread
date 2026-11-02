@@ -6,24 +6,11 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(770) 港の選び方のやり直し（線 c6pr）の機構の番人。内陸州が使う港を選ぶ純関数 <see cref="Simulation.PortChoice"/>（(785) で旗を焼き込み・引数は無い）：
-/// 港ごとの eff＝〈陸路が有限 ? 陸路 : 大圏〉の最小（①島の港は大圏の eff で比べ、遠い陸の港に負けない ②陸路が全て∞なら大圏の最小 ③陸路が有限どうしなら陸路の最小 ④同率は先着）と、
+/// 港ごとの eff＝〈陸路が有限 ? 陸路 : 大圏〉の最小（①島の港は大圏の eff で比べる〈(785) 以後は同じ陸塊の札で陸路が有限の港が無いときだけ＝有れば形 (d) が島の港を外す〉 ②陸路が全て∞なら大圏の最小 ③陸路が有限どうしなら陸路の最小 ④同率は先着）と、
 /// 配線 <see cref="Simulation.WirePortDistances"/> が選んだ港と km を欄に書く（⑥）。座標は州と港の実在の座標、陸路は実の陸グラフ（山脈の迂回・海を渡れない）。</summary>
 public class PortByLandTests
 {
     static (double Lat, double Lon, string Name) P(string name) { var c = Climate.CityCoord(name); return (c.Lat, c.Lon, name); }
-
-    [Fact]
-    public void 島の港は大圏の距離で比べ遠い陸の港に負けない()
-    {
-        var paris = Climate.CityCoord("パリ");
-        var london = P("ロンドン");
-        var ports = new List<(double Lat, double Lon, string Name)> { (london.Lat, london.Lon, "島の港"), P("マルセイユ") };   // 島の港＝ロンドンの座標（大圏 344 km・陸路 ∞）・マルセイユは大圏 659 km・陸路 668 km
-        Assert.True(double.IsPositiveInfinity(PathGraph.LandDistanceKm(paris.Lat, paris.Lon, london.Lat, london.Lon)));
-        var r = Simulation.PortChoice(paris.Lat, paris.Lon, ports);
-        Assert.Equal("島の港", r.Name);
-        Assert.InRange(r.GcKm, 330, 360);
-        Assert.Equal(r.GcKm, r.LandKm);                 // 陸路 ∞ は大圏で退避（0 を残さない）
-    }
 
     [Fact]
     public void 島の港が陸の港より遠ければ陸の港を選ぶ()
