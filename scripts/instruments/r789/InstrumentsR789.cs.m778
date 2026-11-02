@@ -1,0 +1,106 @@
+namespace PriceOfBread.SimCore;
+
+// ---------------------------------------------------------------- (789) 読み手 r789 の州の生産者と POP の表（使い捨て・読むだけ・恒等） ----------------------------------------------------------------
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsHabitcap.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・シミュの状態を足さない。
+// 環境変数 POB_R789_REGIONS（州の名前のカンマ区切り）に挙げた州だけ・INS=1（Instruments.On）のときだけ・四半期の末の断面（Instruments.Quarter の末尾から呼ぶ）。空なら何もしない。
+// ■r789g_s<種>.tsv：州×財（その州に生産者が 1 人以上いる財）。生産者の和（数・操業規模・能力・産出・前の月の売上 LastRevenue・費用 LastCost・投入充足の産出加重）と、
+//   その州の市場（値段・参照価格・産出・販売・需要・在庫・輸出入）と、単位あたりの自己費用・投入費・うち労働の投入費（EconomyStep.MineralSelfCost・InputCostPerUnit・EffectiveQty と同じ式＝純関数）。
+// ■r789c_s<種>.tsv：州×POP。規模・都市か・前の月の所得 LastEarnedPerMonth・今の月の所得 EarnedPerMonth（月の途中なら積みかけ）・地代・工業レント・失業・貯蓄・満足・闘争度とその内訳 MilVoice/MilWar/MilNation/MilFamine。
+// ■r789r_s<種>.tsv：州の行（持ち主の国の税と関税・戦争の有無・輸送の律速・住居の充足・州の賃金の割増・物価の乗数・機械化）。
+// ⚠限界（自己申告）：①四半期の末の 1 か月の断面（年の平均は読み手が 4 行を均す）②LastRevenue／LastCost は EconomyStep の④（国内の売上の按分）だけ＝二国間の清算の売上（PaySales）は入らない
+//   ③EarnedPerMonth は呼ばれた時点の積みかけ（四半期の末の Quarter は月の処理の後＝その月の分）④値段は自国通貨の名目。
+public static partial class Instruments
+{
+    static string[]? _r789Regions;
+    static string[] R789Regions => _r789Regions ??= (System.Environment.GetEnvironmentVariable("POB_R789_REGIONS") ?? "").Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries);
+    sealed class R789Sink { public bool Started; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, R789Sink> R789Sinks = new();
+
+    static readonly ulong R789Seed = ulong.TryParse(System.Environment.GetEnvironmentVariable("POB_R789_SEED"), out var sv) ? sv : 0;   // 0＝全ての種
+    static readonly int R789Y0 = int.TryParse(System.Environment.GetEnvironmentVariable("POB_R789_Y0"), out var yv) ? yv : 0;           // この年より前は書かない
+    static string R789F(double v) => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+    static void R789Table(MultiNationSim sim, ulong seed, int q)
+    {
+        var names = R789Regions;
+        if (names.Length == 0) return;
+        if (R789Seed != 0 && seed != R789Seed) return;
+        if (sim.Nations.Count > 0 && sim.Nations[0].World.Year < R789Y0) return;
+        var sk = R789Sinks.GetValue(sim, _ => new R789Sink());
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var g = new System.Text.StringBuilder(); var c = new System.Text.StringBuilder(); var rr = new System.Text.StringBuilder(); var pp = new System.Text.StringBuilder();
+        if (!sk.Started)
+        {
+            g.Append("quarter\tyear\tnation\tregion\tgoodId\tgood\tgoodTier\tnProd\tnActive\tnBankrupt\tscaleSum\tbuiltScaleSum\tcapacitySum\toutputSum\tdesiredSum\theadsSum\tlastRevenueSum\tlastCostSum\tinputFillW\tmcSelfW\tinputCostPerUnitW\tlaborCostPerUnitW\tprice\trefPrice\tproduced\tsold\tdemand\tshortage\tstock\tprevImport\tlastImport\tprevExport\tlastExport\tration\tinvestorOwnedOutput\n");
+            c.Append("quarter\tyear\tnation\tregion\tpopIndex\tclassId\tclassName\turbanFlag\tsizeK\tlastEarnedPerMonth\tearnedPerMonth\tlandRentPerMonth\tindustrialRentPerMonth\tsubsistenceValuePerMonth\tunemploymentShare\tsavings\tsatisfaction\tmilitancy\tmilVoice\tmilWar\tmilNation\tmilFamine\tcoreEthnicShare\tfoodFill\n");
+            rr.Append("quarter\tyear\tnation\tregion\ttier\tportFlag\ttariff\tpollTax\tlandTax\tprogressiveTax\ttaxRate\tatWarFlag\twarIntensity\ttradeThrottle\ttradePotential\thousingFill\twagePremium\tlocalPriceMul\tpriceLevel\tcostPriceLevel\tmechanization\tindustrialization\tproductiveIndustrialization\tblockadeRisk\tpopTotalK\n");
+            pp.Append("quarter\tyear\tnation\tregion\tprodIndex\tgoodId\tgood\trecipe\tisRgo\tbankruptFlag\tscale\tbuiltScale\tcapacity\toutput\tdesired\theads\tlastRevenue\tlastCost\tinputFill\tmcSelf\tinputCostPerUnit\tlaborCostPerUnit\tprice\townerClass\tlaborClass\tsteamFill\telecFill\tsubsidyRate\n");
+        }
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; var cf = w.Coef; string nation = NameOf(w);
+            foreach (var r in w.Regions)
+            {
+                if (System.Array.IndexOf(names, r.Name) < 0) continue;
+                string head = string.Join('\t', q.ToString(inv), w.Year.ToString(inv), nation, r.Name);
+                rr.Append(head).Append('\t').Append(string.Join('\t', r.Tier.ToString(), r.IsPort ? "1" : "0", R789F(w.Tariff), R789F(w.PollTax), R789F(w.LandTax), R789F(w.ProgressiveTax), R789F(w.TaxRate.Value),
+                    w.AtWarNow ? "1" : "0", R789F(r.LastWarIntensity), R789F(r.LastTradeThrottle), R789F(r.LastTradePotential), R789F(r.HousingFill), R789F(r.WagePremium), R789F(r.LocalPriceMultiplier),
+                    R789F(w.PriceLevel), R789F(w.CostPriceLevel), R789F(r.Mechanization), R789F(r.Industrialization), R789F(r.ProductiveIndustrialization), R789F(w.LastBlockadeRisk), R789F(r.SumPopulation()))).Append('\n');
+                for (int pi = 0; pi < r.Pops.Count; pi++)
+                {
+                    var p = r.Pops[pi];
+                    c.Append(head).Append('\t').Append(string.Join('\t', pi.ToString(inv), p.ClassId.ToString(inv), p.ClassName, p.IsUrban ? "1" : "0", R789F(p.Size),
+                        R789F(p.LastEarnedPerMonth.Value), R789F(p.EarnedPerMonth.Value), R789F(p.LandRentPerMonth.Value), R789F(p.IndustrialRentPerMonth.Value), R789F(p.SubsistenceValuePerMonth.Value),
+                        R789F(p.UnemploymentRate.Value), R789F(p.Savings.Value), R789F(p.Satisfaction), R789F(p.Militancy), R789F(p.MilVoice), R789F(p.MilWar), R789F(p.MilNation), R789F(p.MilFamine),
+                        R789F(p.CoreEthnicShare.Value), R789F(p.FoodFill))).Append('\n');
+                }
+                // 財ごとに生産者を集める（州の生産者の並びの順に初出の財の順＝決定的）
+                var order = new List<int>(); var idx = new Dictionary<int, int>();
+                foreach (var s in r.Producers) if (!idx.ContainsKey(s.GoodId)) { idx[s.GoodId] = order.Count; order.Add(s.GoodId); }
+                int n = order.Count;
+                var a = new double[n, 16];
+                foreach (var s in r.Producers)
+                {
+                    int k = idx[s.GoodId];
+                    a[k, 0]++;
+                    if (s.Bankrupt) a[k, 2]++; else if (s.Scale != 0 || s.Output != 0) a[k, 1]++;
+                    a[k, 3] += s.Scale; a[k, 4] += s.BuiltScale; a[k, 5] += s.Capacity; a[k, 6] += s.Output; a[k, 7] += s.DesiredOutput; a[k, 8] += s.HeadsLastMonth;
+                    a[k, 9] += s.LastRevenue; a[k, 10] += s.LastCost; a[k, 11] += s.Output * s.LastInputFill;
+                    double mcSelf = EconomyStep.MineralSelfCost(s, r, cf, w);
+                    double ic = EconomyStep.InputCostPerUnit(s, r, r, cf);
+                    double lc = 0;
+                    foreach (var inp in s.Inputs) if (Catalog.IsLaborGood(inp.GoodId)) lc += r.Markets[inp.GoodId].Price * EconomyStep.EffectiveQty(s, r, inp, cf);
+                    a[k, 12] += s.Output * mcSelf; a[k, 13] += s.Output * ic; a[k, 14] += s.Output * lc;
+                    if (s.OwnerPopIndex == r.InvestorPopIndex && r.InvestorPopIndex >= 0) a[k, 15] += s.Output;
+                    if (r.Name == names[0])
+                    {
+                        string oc = s.OwnerPopIndex >= 0 && s.OwnerPopIndex < r.Pops.Count ? r.Pops[s.OwnerPopIndex].ClassName : "-";
+                        string lcN = s.LaborPopIndex >= 0 && s.LaborPopIndex < r.Pops.Count ? r.Pops[s.LaborPopIndex].ClassName : "-";
+                        pp.Append(head).Append('\t').Append(string.Join('\t', r.Producers.IndexOf(s).ToString(inv), s.GoodId.ToString(inv), Catalog.Goods[s.GoodId].Name, s.RecipeName.Length == 0 ? "-" : s.RecipeName, s.IsRgo ? "1" : "0", s.Bankrupt ? "1" : "0",
+                            R789F(s.Scale), R789F(s.BuiltScale), R789F(s.Capacity), R789F(s.Output), R789F(s.DesiredOutput), R789F(s.HeadsLastMonth), R789F(s.LastRevenue), R789F(s.LastCost), R789F(s.LastInputFill),
+                            R789F(mcSelf), R789F(ic), R789F(lc), R789F(r.Markets[s.GoodId].Price), oc, lcN, R789F(s.SteamFill), R789F(s.ElecFill), R789F(s.SubsidyRate.Value))).Append('\n');
+                    }
+                }
+                for (int k = 0; k < n; k++)
+                {
+                    int gi = order[k]; var m = r.Markets[gi]; double o = a[k, 6];
+                    double W(int col) => o > 0 ? a[k, col] / o : double.NaN;
+                    g.Append(head).Append('\t').Append(string.Join('\t', gi.ToString(inv), Catalog.Goods[gi].Name, Catalog.Goods[gi].Tier.ToString(),
+                        R789F(a[k, 0]), R789F(a[k, 1]), R789F(a[k, 2]), R789F(a[k, 3]), R789F(a[k, 4]), R789F(a[k, 5]), R789F(o), R789F(a[k, 7]), R789F(a[k, 8]), R789F(a[k, 9]), R789F(a[k, 10]),
+                        R789F(W(11)), R789F(W(12)), R789F(W(13)), R789F(W(14)),
+                        R789F(m.Price), R789F(Catalog.RefPrices[gi]), R789F(m.LastProduced), R789F(m.LastSold), R789F(m.LastDemand), R789F(m.LastShortage), R789F(m.Stock),
+                        R789F(m.PrevImport), R789F(m.LastImport), R789F(m.PrevExport), R789F(m.LastExport), R789F(m.LastRation.Value), R789F(a[k, 15]))).Append('\n');
+                }
+            }
+        }
+        System.IO.Directory.CreateDirectory(Dir);
+        var enc = new System.Text.UTF8Encoding(false);
+        void Put(string kind, System.Text.StringBuilder sb)
+        {
+            string path = System.IO.Path.Combine(Dir, $"{kind}_s{seed}.tsv");
+            if (!sk.Started) System.IO.File.WriteAllText(path, sb.ToString(), enc); else System.IO.File.AppendAllText(path, sb.ToString(), enc);
+        }
+        Put("r789g", g); Put("r789c", c); Put("r789r", rr); Put("r789p", pp);
+        sk.Started = true;
+    }
+}

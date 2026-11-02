@@ -1,0 +1,13 @@
+base_ins	s5	マドリード	スペイン/Core	pk 3789@1837	urb 2116	min 0.144@1931	ipcHalf@1861	pop-10%@1862	owner_end スペイン
+n1	s1	ニューヨーク	アメリカ/Core	pk 12871@1879	urb 5583	min 0.191@1947	ipcHalf@1922	pop-10%@1897	owner_end アメリカ
+n1	s1	フィラデルフィア	アメリカ/Core	pk 7284@1887	urb 3460	min 0.245@1949	ipcHalf@1946	pop-10%@1902	owner_end アメリカ
+n1	s1	チャールストン	アメリカ/Core	pk 4214@1884	urb 1837	min 0.178@1949	ipcHalf@1888	pop-10%@1896	owner_end アメリカ
+n1	s4	バーミンガム	イギリス/Core	pk 2588@1795	urb 1605	min 0.195@1949	ipcHalf@1805	pop-10%@1804	owner_end ポルトガル
+n1	s5	バーミンガム	イギリス/Core	pk 2636@1799	urb 1630	min 0.231@1949	ipcHalf@1906	pop-10%@1805	owner_end スペイン
+n1	s5	ロッテルダム	ネーデルラント/Core	pk 1039@1783	urb 819	min 0.241@1949	ipcHalf@1904	pop-10%@1786	owner_end オーストリア
+n2	s10	バーミンガム	イギリス/Core	pk 2585@1799	urb 1623	min 0.101@1947	ipcHalf@1868	pop-10%@1817	owner_end フランス
+n2	s8	アンカラ	オスマン/Core	pk 3551@1881	urb 1661	min 0.118@1948	ipcHalf@1887	pop-10%@1883	owner_end オスマン
+n2	s8	ダマスカス	オスマン/Core	pk 3101@1875	urb 1546	min 0.234@1936	ipcHalf@1877	pop-10%@1883	owner_end オスマン
+n2	s8	ソフィア	オスマン/Core	pk 2555@1881	urb 1189	min 0.147@1949	ipcHalf@1885	pop-10%@1884	owner_end オスマン
+a11	s12	トゥールーズ	モロッコ/Integrated	pk 1755@1864	urb 952	min 0.239@1949	ipcHalf@1890	pop-10%@1899	owner_end モロッコ
+a11	s13	バーミンガム	イギリス/Core	pk 2518@1809	urb 1583	min 0.222@1949	ipcHalf@1802	pop-10%@1816	owner_end イギリス
