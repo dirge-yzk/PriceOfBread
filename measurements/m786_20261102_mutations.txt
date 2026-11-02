@@ -1,0 +1,19 @@
+# (786) c9gd 突然変異の記録（機構のテスト FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い・Theory 7 行）
+# 使い捨ての木（D:/PoB_work/c9gd/mut/M1〜M3＝この線の木のコピー）の Fiscal.cs の否定形の 1 行を scripts/instruments/c9gd/mutate_gd.py で書き換え、dotnet test --filter 金建て債務の負担 を Release で回した。
+
+## M1 上端の挟みを戻す（否定形の後に b = Math.Min(b, 3.0)）：期待＝赤 2 行
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い(silverVsRef: 0.0001, expectedB: 10000)
+   b＝10000 の利払いの倍率 2（期待 5000.5）
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い(silverVsRef: 0.20000000000000001, expectedB: 5)
+   b＝5 の利払いの倍率 2（期待 3）
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+
+## M2 下端を壊す（if (!(b < double.PositiveInfinity)) b = 1.0;）：期待＝緑のまま（下流の goldDebtBurden > 1.0 が 1 以下を同じに扱う＝下端 1.0 は挙動に出ない・テストが拾えない側）
+成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+
+## M3 否定形のガードを消す：期待＝緑のまま（b を NaN・+∞ にする盤面は作れない＝RefPrice[銀] は有限の定数・WorldSilverPrice の NaN と +∞ は節に入らないか b＝0 になる）
+成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+
+## 読み
+  M1 が赤＝上端の外（b＝5・b＝1e4）で利払いの倍率が定義の式 1＋0.5×(b−1) に従うこと（旧は 3.0 に挟んで 2.0）を、このテストが拾う。
+  M2・M3 が緑＝下端と否定形のガードの枝はこのテストで落ちない（名乗る）。下端は下流の > 1.0 の門が同じに扱うので挙動に出ない。NaN・+∞ の枝は到達不能。恒等の門は ident（全行バイト一致）が担う。
