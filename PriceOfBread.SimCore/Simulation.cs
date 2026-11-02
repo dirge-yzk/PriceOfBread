@@ -636,7 +636,7 @@ public sealed class Simulation
             if (r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             if (cc.Lat == 0 && cc.Lon == 0) continue;
-            var pick = PortChoice(cc.Lat, cc.Lon, ports, PortByLand);   // (770) 港を選ぶ式は 1 本（計器 portch_s も同じ関数を呼ぶ）
+            var pick = PortChoice(cc.Lat, cc.Lon, ports, PortByLand, PortSameLm);   // (770) 港を選ぶ式は 1 本（計器 portch_s も同じ関数を呼ぶ）
             r.NearestPortDistanceKm = PortByLand ? pick.LandKm : pick.GcKm;   // (770) 旗が正＝BilateralMarket の内陸の鉄道の減衰が陸路の km を読む（0＝旧の大圏 km）
             r.NearestPortName = pick.Name;   // 03 §12-3：どの港かを記憶（キエフ/ハリコフ→ロストフ＝穀物動線がデータを足さずに出る）
             // 03手順4A：陸脚＝陸グラフの最短路（山脈迂回込み）。孤立成分（別陸塊等）は大圏で退避＝0を残さない（0=港州の意味）
@@ -648,16 +648,38 @@ public sealed class Simulation
 
     // (770) 旗 PortByLandRoute を静的に 1 回読む（呼び手 MultiNationSim.RewirePorts に引数を足さない・PathGraph.GeoCoef と同じ前例）。
     private static readonly bool PortByLand = new Coefficients().PortByLandRoute > 0;
+    // (779) 旗 PortSameLandmassFirst も同じ前例で静的に 1 回読む（国ごとの Coef ではない）。
+    private static readonly bool PortSameLm = new Coefficients().PortSameLandmassFirst > 0;
 
     /// <summary>(770) 内陸の1州（座標 lat,lon）が使う港を選ぶ純関数（乱数なし・盤面だけから決まる）。ports＝同じ国の港（座標つき）の並び。
     /// 港ごとの eff＝〈陸グラフの距離（PathGraph.LandDistanceKm）が有限 ? その陸路 km : 大圏 km〉（欄 PortLandKm と同じ物差し・別陸塊や島の港は大圏で比べる＝除外も優遇もしない）。
     /// byLand=true＝eff の最小の港（同率は先着＝並びの先）。byLand=false＝旧の規則＝大圏の最小の港（同率は先着）を選んでからその港への陸路を 1 回引く。
     /// 返り値＝港の名前・その港までの大圏 km・その港の eff（＝PortLandKm・陸路 ∞ は大圏で退避＝0 を残さない）。</summary>
-    internal static (string Name, double GcKm, double LandKm) PortChoice(double lat, double lon, List<(double Lat, double Lon, string Name)> ports, bool byLand)
+    internal static (string Name, double GcKm, double LandKm) PortChoice(double lat, double lon, List<(double Lat, double Lon, string Name)> ports, bool byLand, bool sameLmFirst = false)
     {
         if (byLand)
         {
             double bestEff = double.MaxValue, bestGc = 0; string pickName = "";
+            if (sameLmFirst)
+            {
+                // (779) 形 (d)：州と同じ札で陸路が有限の港が 1 つでもあれば、陸路∞の港を外して有限の港の陸路の最小（同率は先着）・無ければ今の形 (a) の最小。1 パスで両方の最小を持つ。
+                string lmR = Landmass.Of(lat, lon);
+                double finEff = double.MaxValue, finGc = 0; string finName = ""; bool sameFin = false;
+                foreach (var p in ports)
+                {
+                    double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon);
+                    double l = PathGraph.LandDistanceKm(lat, lon, p.Lat, p.Lon);
+                    bool fin = double.IsFinite(l);
+                    double e = fin ? l : d;
+                    if (e < bestEff) { bestEff = e; bestGc = d; pickName = p.Name; }
+                    if (fin)
+                    {
+                        if (e < finEff) { finEff = e; finGc = d; finName = p.Name; }
+                        if (!sameFin && Landmass.Of(p.Lat, p.Lon) == lmR) sameFin = true;
+                    }
+                }
+                return sameFin ? (finName, finGc, finEff) : (pickName, bestGc, bestEff);
+            }
             foreach (var p in ports)
             {
                 double d = Geo.DistanceKm(lat, lon, p.Lat, p.Lon);
