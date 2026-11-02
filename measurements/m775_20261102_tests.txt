@@ -1,3 +1,6 @@
 # (775) FullLength（Category=FullLength・旗 1 の最終の木 d2c4e5fb 相当）
 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 15 s - PriceOfBread.Tests.dll (net10.0)
 # --list-tests：Category!=FullLength 2142（基準 2139＋計器の番人 3）・Category=FullLength 3
+# Category!=FullLength（旗 1 の最終の木・計算量の宣言の表を取り直した後）
+成功!   -失敗:     0、合格:  2141、スキップ:     1、合計:  2142、期間: 15 m 43 s - PriceOfBread.Tests.dll (net10.0)
+# 取り直し前の同じ木：失敗 4（WriterRatchetTests の 4 行・軌道の件数の写し）・合格 2137・スキップ 1・合計 2142
