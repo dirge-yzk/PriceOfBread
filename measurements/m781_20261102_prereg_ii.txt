@@ -1,0 +1,49 @@
+# (781) 波58 c8ii の事前登録（継いだ意志の計器の直し＝再併合の行が出ない穴・工事中の棟を継いだ受け手の並行の着工の数え）。腕・実装・結果より前に書く。
+# 形：〈計器と数えだけ〉・恒等の線・予言 0（結果を 1 ビットも変えない）。挙動の線ではない＝ヌル腕は回さない（採否の物差しを持たない）。
+# 出発＝(778) の反証役の指摘 2 件。①事前登録 m774_20261102_prereg_sw.txt は〈工事中の棟（ConstructionLeft＞0）は継ぐ〉と書いたが、実装（Territory.TransferRegion の DroppedStateTarget＝Math.Min(target, StateUnits)）は
+#   工事中の生産者の意志も今の棟数（BuiltScale だけを数える StateUnits）へ下げる（下げた行の 39.9%〔m778 の腕 M〕・50.3%〔種 11〜20〕が工事中）。完成のとき World.StepConstruction が意志を棟数まで戻すので着工は止まらないが、
+#   工事の残りの間は SelfPlay の pw（州ごとの未達の意志）と World の pendingWill が 0 になる＝受け手がその州で並行して着工できる、とソースから読める（推測・未計測）。自国で始めた工事は完成まで pw＞0 で州を止める＝継いだ工事だけが緩い非対称。
+#   ②再併合（Returned）の行が全長の計器に 0 行：送り手の反乱国が四半期の末より前に sim.Nations から消え、送り手の World に結んだ蓄えが出ない。
+# 触るファイル：InstrumentsInheritIntent.cs・Territory.cs（計器の呼び出しの行だけ＝今回は変更なしの見込み）・Instruments.cs（FacilityStarted／FacilityCompleted に計器の呼び出しの 1 行ずつ・Close に登録の 1 行）・InheritIntentTests.cs（足すだけ）・
+#   scripts/instruments/c8ii/・scripts/instruments/ident/ident_check.py（宣言の 1 本 --rows-grown-ok を足す＝基準の行が腕の行の順序つき部分列であることを確かめる・既存の宣言は変えない）・measurements/m781_*。
+#   World.cs・SelfPlay.cs・Simulation.cs・App・SimCore/Display・Runner/PlayHarness・Coefficients.cs は触らない。係数の数値 0・新しい状態変数 0（蓄えは計器の側の ConditionalWeakTable）。計算量の割り当て 0 秒（INS=1 のときだけ動く・推定の計算量は変えない）。
+
+## 0. 形
+(a) inheritintent_s の蓄えを送り手の World でなく試合（Diplomacy＝多国で共有のインスタンス）に結んだ登録簿でも持つ：移しの事象を蓄えた World を登録簿に覚え、四半期の末に〈sim.Nations の順の行〉（旧と同じ順）を先に出し、sim.Nations から消えた送り手の行をその後ろに追記する。
+    ＝旧の行は 1 行も動かず、消えた送り手の分（再併合・全滅した国の割譲）の行が増えるだけ（順序つき部分列）。
+(b) 列を末尾に足す：inProgressAtTransfer（移しの時に ConstructionLeft＞0 なら 1）・stateTargetPrereg（事前登録 m774 の文の規則を、エンジンの関数 DroppedStateTarget を呼ばずに独立に書く＝min(旧の意志, 棟数＋工事中なら 1)）。Q の行は空。
+(c) 新しい表 inheritpar_s（移しの事象ごと＝E の行と同じ生産者・計器が on のときだけ・読むだけ）：
+    transferQuarter／toNation／region／producer／inProgressAtTransfer／completedQuarter／parallelStarts／parallelStartsOwnBaseline
+    ＋fromNation／how／stateTargetOld／builtCount（結合の鍵）／windowQuarters／ownExposureRegionQuarters（比のための分母）。
+    - 窓＝移しから、継いだ工事（その生産者の ConstructionLeft）が完成するまで。完成しないまま試合が終わった行は completedQuarter＝−1（窓は打ち切り）。inProgressAtTransfer＝0 の行は窓を持たない（completedQuarter・parallelStarts・parallelStartsOwnBaseline・windowQuarters・ownExposureRegionQuarters はすべて −1）。
+    - parallelStarts＝窓の間に、移った州で別の生産者の国営の着工（World.BuildFactory が通る Instruments.FacilityStarted）が起きた回数。
+    - parallelStartsOwnBaseline＝同じ窓の間に、受け手の別の州で、〈その州に受け手自身が始めた工事が工事中〉のときに起きた国営の着工の回数（自国の工事＝FacilityStarted で受け手の World が始めたと記録した生産者）。
+    - windowQuarters＝窓が開いたまま四半期の末を迎えた回数（移った四半期の末も数える・完成したその四半期は数えない）。ownExposureRegionQuarters＝同じ四半期の末ごとに、受け手の別の州のうち受け手自身が始めた工事が工事中の州の数の累計。
+      ＝率の比較のための分母（窓の長さが行ごとに違う・州の数が違うため、件数だけでは比べられない）。
+    ⚠限界（計器が自己申告する）：toNation は移した四半期の末のその州の持ち主・窓の間に州がさらに別の国へ移ると窓は追わない／四半期の末の標本（日ごとではない）／自国の工事の判定は計器が見た FacilityStarted だけ（開幕から継いだ工事・助走の間の着工は自国にならない）／
+      同じ州に継いだ工事が複数あると、窓の重なる行どうしが同じ着工を数える。
+(d) 計器は世界を書かない・乱数を引かない・新しいシミュの状態を作らない。
+
+## 1. 恒等の線（この回の合否）
+[1] 恒等の線・予言 0。ident.sh run c8ii の判定が〈判定: 恒等〉であること。宣言：--added-tables inheritpar_s --grown-ok inheritintent_s --rows-grown-ok inheritintent_s --tests-delta +<足した数>。
+[2] 素の 5 種（b5_20261102_m778）・計器つき 10 種（b10_20261102_m778_ins）が名乗り行（SOURCE-HASH）を除いて全行一致。計器の生は inheritintent_s の列と行が増え、inheritpar_s の表が増えるだけ（他の表はバイト一致）。.cost の推定が一致。
+[3] 〈判定: 恒等〉なら採る（挙動を変えない線の合否はこれだけ）。〈測った種で一致〉と名乗る（〈証明〉と書かない）。
+[4] 数えの判定の規則（腕の前に固定・計器つき 10 種の生で数える・台本 measurements/m781_20261102_count_ii.py）：
+    ① 再併合の行（how＝Returned）の数が 0 でなくなったか。
+    ② 工事中で継いだ行（inProgressAtTransfer＝1）の parallelStarts≧1 の件数と割合。
+    ③ 比べる側との比：率_継ぎ＝Σ parallelStarts ÷ Σ windowQuarters（inProgressAtTransfer＝1 の行）・率_自国＝Σ parallelStartsOwnBaseline ÷ Σ ownExposureRegionQuarters。窓の標本が無い（分母 0）なら比は〈測れない〉と名乗る。
+    ④ stateTargetPrereg と stateTargetUsed が違う行の数と、その行の parallelStarts。
+    判定の推奨：Σ parallelStarts（工事中で継いだ行）≧10 かつ 率_継ぎ ≧ 10×率_自国（Σ parallelStartsOwnBaseline＝0 のときは 0.5 件として率_自国を置く）なら、次の波に〈事前登録の形 (a)＝工事中は units＋1〉の挙動の線を推奨。
+    そうでなければ〈今の形のまま・記録〉。分母が 0 または Σ parallelStarts＜10 なら〈測れない・記録〉。この規則は結果を見た後に変えない（変えたなら〈結果の後の変更〉と名乗る）。
+    ⚠この数えは判定ではなく次の波への推奨の材料（採否の物差しではない）。挙動の線の採否は次の波の事前登録で決める。
+
+## 2. 機構のテスト（InheritIntentTests.cs に足すだけ・手の盤面・期待値は規則の関数を呼ばず棟数と意志のリテラルから作る）
+① 再併合で送り手が sim.Nations から消えても E の行（how＝Returned）が出る ② stateTargetPrereg が工事中なら units＋1・それ以外は units（リテラル）／inProgressAtTransfer の値
+③ 計器が世界を書かない（同じ手順を計器なし・計器つきで走らせ、世界の量が全てビット一致） ④ inheritpar_s の並行の着工・自国の基準・完成の四半期（手で FacilityStarted／FacilityCompleted を呼ぶ）。
+突然変異（使い捨ての木で赤を確かめて measurements/ へ）：送り手の登録簿を外す→① が赤・stateTargetPrereg を units のまま→② が赤・窓の間でない着工も数える→④ が赤・計器が StateTarget を書く→③ が赤。
+
+## 3. 止める線
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）・推定の計算量＞248.5 秒・機構のテストの赤（RULE47）・ident の不一致。空洞化・NG は挙動を変えないので ident の一致で足りる（ng.sh は回さない）。
+
+## 4. 腕
+ident.sh run c8ii（素の 5 種・計器つき 10 種・テストの数・--saveleak）。生は合流まで消さない。
