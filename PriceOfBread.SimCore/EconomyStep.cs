@@ -2684,7 +2684,7 @@ public static class EconomyStep
                 Privileges.Record(world, Privileges.Seigneurial, rent * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
             else if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
                      && !(s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].GrainChain))
-                region.Pops[s.OwnerPopIndex].IndustrialRentPerMonth += new MoneyPerMonth(rent);   // 工業レントの物差し（書き込み専用タグ・挙動の読者なし。powertrace/incomeprobe が読む）
+                region.Pops[s.OwnerPopIndex].IndustrialRentPerMonth += new MoneyPerMonth(rent);   // 工業レントの物差し（書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読んで外資の利札の入力にする。powertrace/incomeprobe も読む）
             // 課題8（RGO第2層・2026-08-08）：穀物加工チェーン（麦・小麦粉＝GrainChain）は除外＝人口×食料需要に比例する
             // 加工利潤であって「工業」ではない（ビルマ投資家所得>英 の正体）。除外後の IndustrialRent が真の工業利潤の物差し。
             s.LastRevenue = producerRevenue; s.LastCost = inputCost[pi] + wages;   // 工場別の収入・支出（損益＝収入−支出。UI表示用）

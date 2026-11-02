@@ -1487,6 +1487,7 @@ public static partial class Instruments
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
     internal static void MonthClose(World w)
     {
+        DivhostMonth(w);   // (801) 投資家の工業レントの月の和
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
@@ -1850,7 +1851,7 @@ public static partial class Instruments
         PortlmTable(sim, seed, q);         // (777) 内陸州の港の陸塊の表（年末）
         InheritIntentTable(sim, seed, q);  // (774) 継いだ着工の意志の表（移しの事象の行と年末の国の行）
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
-        RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
+        DivhostTable(sim, seed, q); RdhTable(sim, seed, q);            // (801) 外資の配当の旧新の表 // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
@@ -1879,7 +1880,7 @@ public static partial class Instruments
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
         SilverParityClose(sim);   // (775)
-        PortchClose(sim);    // (770)
+        DivhostClose(sim); PortchClose(sim);    // (801)(770)
         PortlmClose(sim);    // (777)
         InheritIntentClose(sim);   // (781) 開いたままの継いだ工事の窓を書く
         PrdfClose(sim);  // (681)

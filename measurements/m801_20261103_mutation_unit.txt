@@ -1,0 +1,51 @@
+(801) 突然変異（使い捨ての木 D:/PoB_work/c11fl_mut/src_c11flMu1..5・scripts/instruments/c11fl/mutate.py・旗の既定 1）に CapitalDividendHostRentTests（8 本）を当てた結果。Mu1 率×外資の負債のまま／Mu2 貯蓄で引く／Mu3 利札 0／Mu4 持ち分の二乗／Mu5 月の値を 3 倍しない。全て赤（失敗 3・4・3・1・2 本）。
+## ===== Mu1
+[xUnit.net 00:00:04.92]     PriceOfBread.Tests.CapitalDividendHostRentTests.レントが負_非有限なら利札は0で貨幣はNaNにならない(monthly: Infinity) [FAIL]
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.レントが負_非有限なら利札は0で貨幣はNaNにならない(monthly: Infinity) [3 s]
+  エラー メッセージ:
+[xUnit.net 00:00:05.02]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [FAIL]
+[xUnit.net 00:00:05.08]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [FAIL]
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [39 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [19 ms]
+  エラー メッセージ:
+失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+## ===== Mu2
+[xUnit.net 00:00:03.00]     PriceOfBread.Tests.CapitalDividendHostRentTests.レントが負_非有限なら利札は0で貨幣はNaNにならない(monthly: Infinity) [FAIL]
+[xUnit.net 00:00:03.04]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [FAIL]
+[xUnit.net 00:00:03.05]     PriceOfBread.Tests.CapitalDividendHostRentTests.払えない利札は積まない_貯蓄を超えて取らない [FAIL]
+[xUnit.net 00:00:03.06]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [FAIL]
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.レントが負_非有限なら利札は0で貨幣はNaNにならない(monthly: Infinity) [1 s]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [15 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.払えない利札は積まない_貯蓄を超えて取らない [5 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [7 ms]
+  エラー メッセージ:
+失敗!   -失敗:     4、合格:     4、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+## ===== Mu3
+[xUnit.net 00:00:10.59]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [FAIL]
+[xUnit.net 00:00:10.74]     PriceOfBread.Tests.CapitalDividendHostRentTests.払えない利札は積まない_貯蓄を超えて取らない [FAIL]
+[xUnit.net 00:00:10.82]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [FAIL]
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [175 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.払えない利札は積まない_貯蓄を超えて取らない [61 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [84 ms]
+  エラー メッセージ:
+失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+## ===== Mu4
+[xUnit.net 00:00:05.44]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [FAIL]
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [36 ms]
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+## ===== Mu5
+[xUnit.net 00:00:03.78]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [FAIL]
+[xUnit.net 00:00:03.81]     PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [FAIL]
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が貯蓄よりずっと大きいと持ち分は1に近づくが利札は四半期のレントを超えない [39 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.CapitalDividendHostRentTests.外資の負債が投資家の貯蓄と等しければ持ち分は半分_利札は四半期のレントの半分 [12 ms]
+  エラー メッセージ:
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+MUTTESTS-END

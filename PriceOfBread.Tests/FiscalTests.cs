@@ -616,7 +616,7 @@ public class FiscalTests
         // ★2026-09-27（C）：払えない逃避は不履行＝債権ごと消える（受入国の負債と持ち主の対外資産が同じ額だけ減る・貨幣は払えた額しか動かない）。
         //   旧＝負債は払えた額しか減らず、払えなかった元本が毎四半期もう一度の逃避と配当を請求され続けた。払えない配当は積まない（同じ規則）。
         // 国際金融の外資以外の流れ（新規の資本移動・国内資本の逃避・外債の元利）を止め、仏の外資の負債を投資家の貯蓄の千倍にする（持ち主は英）。
-        var coef = new Coefficients { CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0) };   // 外債の元利は構築直後で空（新規の起債も利払いも無い）
+        var coef = new Coefficients { CapitalDividendFromHostRent = 0, CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0) };   // ★(801) 旗 0 を明示（この試験は旧の形の払い＝率×外資の負債を確かめる）。外債の元利は構築直後で空（新規の起債も利払いも無い）
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
         var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
         var all = new[] { br, fr, pr };
@@ -1237,7 +1237,7 @@ public class FiscalTests
     [Fact]
     public void 外資の配当は金の値打ちで換算して持ち主の国の投資家へ届く()
     {
-        var coef = new Coefficients { CapitalFlightRatePerQuarter = new RatePerQuarter(0), CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0) };   // 配当だけ
+        var coef = new Coefficients { CapitalDividendFromHostRent = 0, CapitalFlightRatePerQuarter = new RatePerQuarter(0), CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0) };   // 配当だけ（★(801) 旗 0 を明示＝旧の形の払い）
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
         CapitalMarket.Step(sim.Nations, coef);   // 開始盤面の繰上げを1回
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
