@@ -6,7 +6,7 @@
 /// <param name="Forms">この財が習慣性の行を持つか（財の番号で決まる・<see cref="Growth"/> が 0 でも真）。需要の上乗せと所得弾力の除外と中毒度の更新（減衰）が読む。</param>
 /// <param name="Growth">習慣の強さ＝1人あたり消費が依存を育てる率。<b>0 でこの財の機構の全体が止まる</b>（主フラグ＝労働への害・困窮ゲート・禁令の機構が読む）。</param>
 /// <param name="Decay">依存の自然減。</param>
-/// <param name="Cap">依存の上限（今は定数の蓋）。</param>
+/// <param name="Cap">依存の上限（蓋 <see cref="Coefficients.OpiumAddictionCap"/>・旗 <see cref="Coefficients.OpiumAddictionCapOff"/> が正なら +∞＝蓋なし）。</param>
 /// <param name="LaborPenalty">依存が労働供給を蝕む強さ（成人労働×(1−これ×依存)）。</param>
 /// <param name="MiseryScale">素の必要量の困窮ゲート＝基礎の必要量×clamp(これ×(1−補給の充足),0,1)。</param>
 public readonly record struct HabitProfile(bool Forms, double Growth, double Decay, double Cap, double LaborPenalty, double MiseryScale)
@@ -24,7 +24,7 @@ public static class Habit
     /// ⚠★(344) 反証役 op〔v〕：2 財目の行を足す前に、在庫を州×財へ分ける（今の在庫は <see cref="Region.OpiumAddiction"/> の 1 本＝<see cref="StockOf"/> と更新はどの財でもこの 1 本を読み書きする＝足すと黙って共有・上書きする）。番人＝HabitTests の〈行を持つ財は 1 つだけ〉。</summary>
     public static HabitProfile Of(Coefficients c, int goodId) =>
         goodId == c.OpiumGoodId
-            ? new HabitProfile(true, c.OpiumAddictionGrowth, c.OpiumAddictionDecay, c.OpiumAddictionCap, c.OpiumLaborPenalty, c.OpiumMiseryScale)
+            ? new HabitProfile(true, c.OpiumAddictionGrowth, c.OpiumAddictionDecay, c.OpiumAddictionCapOff > 0 ? double.PositiveInfinity : c.OpiumAddictionCap, c.OpiumLaborPenalty, c.OpiumMiseryScale)
             : default;
 
     /// <summary>その州の依存の在庫（その財の行を持たなければ 0）。</summary>
