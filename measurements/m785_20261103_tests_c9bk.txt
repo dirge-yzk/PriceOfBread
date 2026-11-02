@@ -1,0 +1,12 @@
+(785) c9bk 試験と突然変異の記録（Claude Sonnet 5.5・木 d31ac929 + 記録の追加コミット）
+[フルスイート Category!=FullLength・Release・隔離ビルド] 成功! 失敗 0・合格 2158・スキップ 1・合計 2159（33 分 32 秒）＝--list-tests の 2159（2161−2）と一致。スキップ 1 は m784 の木から有る TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（Skip 属性）。
+[FullLength] 成功! 失敗 0・合格 3・合計 3（3 分 28 秒）＝--list-tests の 3 と一致。
+[savetest] OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）。[leakhunt] 完走（seed=1789・200 四半期・保存則違反なし・世界の台帳の説明できない増減 0）。
+[突然変異（使い捨ての木 D:/PoB_work/c9bk_work/mut・出力は残さない）]
+  M1＝PortChoice の形 (d) の外し（sameFin のときの有限の港への倒し）を無効に → 形d_ の 2 本が赤（形d_配線は旗の示す港を欄に書く_計器の独立の書き方とも一致する・形d_札が同じで陸路が有限の港があれば陸路無限の港を外す）。
+  M2＝WirePortDistances の NearestPortDistanceKm を pick.GcKm へ → 配線は旗の示す港と距離を欄に書く が赤（この回の M2 は削除前の 島の港は大圏の距離で… も赤。削除後は配線の 1 本が捕まえる）。
+[試験の書き換え（README ★(743)）]
+  ① 消した経路の試験の削除 2 本：PortByLandTests.形d_旗0の引数と既定は旧と同じ＿byLandがfalseなら引数は効かない（旗 0 の経路だけ）・PortByLandTests.島の港は大圏の距離で比べ遠い陸の港に負けない（消えた (a) の既定の経路だけを確かめていた。焼き込み後は形 (d) が唯一の経路で答えはマルセイユ＝形d_札が同じで… が手で書いた期待で同じ盤面を確かめる）。
+  ① 消した経路の Assert の行の削除：byLand: false・sameLmFirst: false の呼び出しとその Assert（PortByLandTests の 旧と同じ港・陸路無限・同率の各試験と形d_ の試験の (a) の行、Assert.Equal(a, d) など）。
+  ② 期待を焼き込んだ値へ：配線は旗の示す港と距離を欄に書く（旗の読みで作っていた期待 → 天津・陸路 km＝手で書く）・形d_配線は旗の示す港を欄に書く（マルセイユ）。
+  呼び出しの形の付け替え：byLand: true・sameLmFirst: true の名前つき引数を落とす。DormantIdentityTests.cs は注の 1 行の文言だけ（Assert は動かない）。
