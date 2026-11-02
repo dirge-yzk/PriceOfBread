@@ -1,0 +1,40 @@
+# (780) 波58 c8sv の事前登録（銀の平価の挟みの削除＝設計思想⑧）。腕・実装より前に書く。区分 I の恒等の線（予言 0）。形：〈尾〉（銀本位国の平価・金建て債務の負担の外れ値の挟みを外す＝届かないなら値は 1 ビットも変わらない）。
+# 出発：(775) c7ag が SilverParityFromRatio を既定 1 にした（m778）。旗 1 では銀の為替 E が 0.77〜1.59・天井に届く国×四半期は 0。World.cs の銀本位の平価の節（silverRel の Clamp [ExchangeRateFloor, ExchangeRateCeil]）と
+#   Fiscal.cs の金建て債務の負担 b の Clamp [1.0, GoldDebtBurdenCap] のうち、届かない側は死んだ挟み。
+# 触るファイル：World.cs（平価の節の 2 行だけ）・Fiscal.cs（b の 2 行だけ）・Coefficients.cs の注だけ・Tests の該当の試験 1 本・scripts/instruments/c8sv/・measurements/m780_*。
+# 新しい係数 0・新しい状態変数 0。ExchangeRateFloor・ExchangeRateCeil・GoldDebtBurdenCap の係数は消さない（Floor・Ceil は floatTarget・通貨改革・CapitalMarket・計器が読む／GoldDebtBurdenCap は計器 silverpar_s の fiscalBAt3Count が読む）。
+
+## [1] 形（区分 I・恒等・予言 0）
+  World.cs：`silverRel = Math.Clamp(...)` と NaN のガードの 2 行を、否定形の 1 行 `if (!(silverRel > 0 && silverRel < double.PositiveInfinity)) silverRel = 1.0;` へ（NaN・非正・無限大だけを平価どおり 1.0 に倒す）。
+    ⚠意味の差（届かない入力でだけ違う）：旧は +inf を 3.0・0 以下を 0.3 に挟んでいた／新は 1.0。到達の前提 WorldSilverPrice > 1e-9 と refSilver > 1e-9 の下で silverRel は有限の正＝この枝は到達しない。
+  Fiscal.cs：下端の 1.0 は残す（段 0 の下側が届く＝負担なしの床）。上端の GoldDebtBurdenCap の挟みだけ消す。`b = Math.Max(1.0, b); if (!(b >= 1.0 && b < double.PositiveInfinity)) b = 1.0;`（Math.Max は NaN を伝える＝否定形のガードが 1.0 に倒す）。
+    届く側だけ残して名乗る：Fiscal の下端 1.0（b<1.0＝銀が参照より高い四半期）は 13360 銀行の四半期のうち 4884 で値を変える＝残す。
+
+## [2] 段 0（腕の前・m778 の生 D:/PoB_work/keep_778/base_ins〔種 1〜10〕と a11〔種 11〜20〕の silverpar_s）
+  台本 scripts/instruments/c8sv/stage0_clamp_hits.py・出力 measurements/m780_20261102_stage0_hits.txt（コミット）。
+  読み方：usedParityIndex（実際に各国へ注入された WorldSilverPrice÷RefPrice）＝World.cs の silverRel と同じ量（注入は四半期に 1 回・月次の World は同じ値を使う）。b＝1÷usedParityIndex。
+  結果（20 種×668 四半期＝13360 行・銀本位国が居る四半期は 13360）：silverRel<0.3＝0・silverRel>3.0＝0・b>=3.0＝0（国数でも 0）・b<1.0＝4884。usedParityIndex の幅 0.7237〜1.6443。
+  進める条件（世界の挟みと Fiscal の上端）＝上の 0 が全て 0。**0 でなければ削除しない**（回数・国・年を表にして報告し線を止める）。
+  ⚠限界（自己申告）：silverpar_s は助走（_calendarFrozen・20 四半期）の注入を捕捉しない。助走の月も同じ挟みを通る。さらに助走の最初の注入で ratioOk=false（生きた市場が無い）なら silverWorld は旧の統計
+    Market.Price[銀]（RefPrice×[0.1,10] に挟んだ表示用の統計）へ倒れ、[0.3,3.0] の外もありうる。→ 助走を含めた補いを使い捨ての木で取る（scripts/instruments/c8sv/probe_warmup_edit.py・種 1〜2）＝結果は本ファイルの末尾に追記する。
+    補いで 1 件でも届けば削除しない（線を止める）。補いを取れない場合でも、恒等の判定（ident の素の 5 種＋計器つき 10 種の全行一致）が助走を含む実走で測る＝一致しない種があれば止める。
+
+## [3] 合否（この線の唯一の門）
+  素の 5 種（b5_20261102_m778）と計器つき 10 種（b10_20261102_m778_ins・計器の表も）が、名乗り行を除いて全行バイト一致。`bash scripts/instruments/ident/ident.sh run c8sv --tree D:/PoB_work/wt_c8sv --tests-delta <足した試験の数>`（run_in_background）で〈判定: 恒等〉。
+  〈判定: 恒等〉なら〈測った種で一致〉と名乗る（証明とは書かない）。一致しなければ止める（同じ腕で物差しを替えない・変更を外して報告に回す）。種 11〜20 は合流が回す。
+  門の突然変異：恒等の門は〈何もしない実装でも通る〉形＝突然変異の対象は機構のテストの 1 本（[4]）。恒等の門そのものは変更を外せば自明に通るので、働きの確かめは段 0 の台本（届いた回数）と機構のテストが担う。
+
+## [4] 機構のテスト（手の盤面）
+  銀本位・Convertibility=1 の手の盤面で WorldSilverPrice を +inf に置き、為替の節を 1 回進めて ExchangeRate が有限・平価どおり（GoldParity）の経路に倒れることを確かめる。
+  突然変異＝ガードを消すと NaN／無限大が為替に伝わり赤になることを使い捨ての木で確かめ、measurements/m780_20261102_mutations.txt に残す。
+  消した挟みを固定していた既存の試験があれば README ★(743) ①③ で名乗って直す（grep の結果を実装ログではなく verdict に書く）。
+
+## [5] 記録（採否に使わない）
+  段 0 の数・消した行・判定文・テストの数の差。計算量は恒等の整理＝.cost の推定が m778 と一致。
+
+## [6] 結果の追記（腕の前・コードを変える前に取った補い）
+  助走を含む補い（measurements/m780_20261102_stage0_warmup_probe.txt）：World.cs の silverRel の挟みは助走の最初の月々に 4.2〜6.6 を 3.0 へ挟む（銀本位 60 国×2 値×種 2＝240 国×月）＝届く。本走（助走の後）の 13360 四半期は 0。
+  Fiscal の b の上端は助走も本走も 0。
+  事前登録 [2] の条件（どちらも 0 のときだけ進める）を満たさない＝**削除しない・コードを変えず線を止める**（挙動の線に替えない・この回は削除をしない）。ident は回さない（変更が無いので自明）。
+  申し送り（次の回の材料・推奨ではなく事実）：助走の最初の月の silverRel が 4〜6.6 になるのは、構築直後の盤面の局所の銀価格と金鉱価格の比が RefPrice の比から離れているため。World の挟みを消すなら
+  開幕の盤面（助走）の値が動く＝挙動の線として別に腕を立てる必要がある。Fiscal の上端だけなら届かない（本走 0・助走 0）が、事前登録の条件（どちらも）に従い今回は触らない。
