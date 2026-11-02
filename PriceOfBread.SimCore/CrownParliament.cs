@@ -213,8 +213,8 @@ public static class CrownParliament
 
         // --- 5. 国民意識（市民的結束＝民主主義の前提・docs/2026-07-13_国民意識.md）---
         //     公教育×識字＋徴兵で育つ（ロジスティック）・多民族は育ちにくい（天井でなく抵抗＝floorでcivic克服＝米/スイス）・国難は既存結束で符号が決まる両刃。
-        //     (798)：以前は両 weight が 0 のとき一切走らない門があった（左の NationalConsciousnessCorruptionWeight は既定 0.2 で常に真）＝門を消した。
-        //     ⚠C2-C5撤去（2026-08-16）：旧・汚職チャネル（civicGraft→Fiscal leak）はV2恒久ONで物理撤去済み＝CorruptionWeight の現読者は World.civicCarriesEthnic だけ。
+        //     (798)：以前は NationalConsciousnessCorruptionWeight（既定 0.2・読み手はこの門だけ＝左が常に真）か NationBuildMobilizationWeight が正のときだけ走る門があった＝門と係数を消した。
+        //     ⚠C2-C5撤去（2026-08-16）：旧・汚職チャネル（civicGraft→Fiscal leak）はV2恒久ONで物理撤去済み。
         if (w.NationalConsciousness < 0)   // 未捕捉のみ初期化（跳躍なし）＝データ初期値（既定0.075・米0.32/仏0.1）。第3段3-6：v1（一律0.3）の到達不能枝を焼き込み削除
             w.NationalConsciousness = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
         double eduLvl = w.EducationLaw switch { EducationLaw.Compulsory => 1.0, EducationLaw.Public => 0.6, EducationLaw.Religious => 0.2, _ => 0.0 };

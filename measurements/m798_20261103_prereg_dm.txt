@@ -45,3 +45,8 @@
   NG の集合（ng.sh）は挙動が変わらないので回さない（成績表が全行一致なら史実比較の桁も同じ）。
 
 [5] 採る条件：〈判定: 恒等〉（測った種で一致）。一致しなければ該当の変更を外して報告に回す。
+
+[追記 1] 腕の前の訂正（I9a・試験の赤から）
+  [2] の I9a は〈係数 NationalConsciousnessCorruptionWeight は World.civicCarriesEthnic が読むので残す〉と書いたが、Coefficients.cs の注の言い分で、grep で確かめていなかった。civicCarriesEthnic はどのファイルにも無い（全域 grep）。
+  門を消した後、既存の試験〈係数は全て本体のどこかで読まれる〉（機構の番人）が NationalConsciousnessCorruptionWeight を読み手なしと赤で知らせた＝この係数の読み手は消した門の左の項だけだった。試験の指示（使わないなら削除）どおり、係数も消す（既定 0.2 は常に真だったので挙動は変わらない）・RetiredFields に墓標・T1 は NationBuildMobilizationWeight だけを 0 にする形へ直す（突然変異は門 `if (c.NationBuildMobilizationWeight > 0)` を足す）。物差しは替えない。
+  .cost・成績表への予言は変わらない（予言 0）。

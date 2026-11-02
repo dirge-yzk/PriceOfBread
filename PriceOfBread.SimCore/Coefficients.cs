@@ -3122,7 +3122,6 @@ public sealed class Coefficients
     // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
     // NationalConsciousnessInitial / NationBuildRate / NationBuildReligiousDrag / NationBuildCrisisWeight は第3段3-6（2026-07-27）で削除＝v1国民意識（到達不能）の専用係数。宗教civicは第5段5-5で新設計へ。
     public double NationBuildConscript = 0.5 / Military.WorkingMenStdShare;      // 徴兵（兵士POP比）の重み＝国民軍の国民形成（ウェーバー「軍は国民の学校」）（(145) 兵の単位の読み替え＝旧値 0.5÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
-    public double NationalConsciousnessCorruptionWeight = 0.2;  // **主フラグ**：⚠旧・汚職チャネル（civicGraft→Fiscal leak別項）は汚職V2恒久ONにつきC2-C5で物理撤去（2026-08-16）＝現在の生き読者は2箇所＝World.civicCarriesEthnic（代議制で民族の行政痩せを切る二重計上回避ゲート）と CrownParliament の国民意識蓄積チャネルゲート。0にすると両者の挙動が変わる＝**掃除対象外（読者あり）**。ゲートの意味の再裁定は較正ラウンドへ
     // P9 国民意識v2「購入モデル」（2026-07-17）：NCは育つものでなく買うもの（機会費用＋維持費で全国飽和を根治）。主フラグは2026-07-27にNationBuildPurchaseMode=1（常にv2）を焼き込み削除済み＝v1蓄積式へ戻す道は無い
     // P8 天命 DynasticMandate v1.1（2026-07-17・プローブ検証済み仕様）：前近代の正統性＝統治パフォーマンス直結。「パンの値段→天命→正統性→革命」。
     // Legitimacy（制度のストック・既存不変）と役割を完全分離＝Mandateは民のパフォーマンス評価EMA。⚠命名：Mandate単独は既存の政治資本（MandateSpent/MandateGate/MandateWeight）と衝突するため DynMandate 接頭辞
