@@ -1,0 +1,10 @@
+# (775) 英の歳入の内訳（記録）：nation_s の revenueBaseMeanPerMonth・directTaxNetMeanPerMonth・indirectRevenueMeanPerMonth・interestMeanPerMonth（月あたり・千）。1783〜1795 年（債務不履行の前）の 10 種の中央値
+旗0 revenueBaseMeanPerMonth=7140.4 directTaxNetMeanPerMonth=951.5 indirectRevenueMeanPerMonth=6199.4 interestMeanPerMonth=3414.2 importsPerClearing=2205.7 exportsPerClearing=44.2 nominalGdpPerYear=785229.6
+旗1 revenueBaseMeanPerMonth=6545.5 directTaxNetMeanPerMonth=1101.9 indirectRevenueMeanPerMonth=5442.4 interestMeanPerMonth=3389.4 importsPerClearing=880.7 exportsPerClearing=462.3 nominalGdpPerYear=803487.4
+revenueBaseMeanPerMonth: 旗1÷旗0 = 0.917
+directTaxNetMeanPerMonth: 旗1÷旗0 = 1.158
+indirectRevenueMeanPerMonth: 旗1÷旗0 = 0.878
+interestMeanPerMonth: 旗1÷旗0 = 0.993
+importsPerClearing: 旗1÷旗0 = 0.399
+exportsPerClearing: 旗1÷旗0 = 10.455
+nominalGdpPerYear: 旗1÷旗0 = 1.023

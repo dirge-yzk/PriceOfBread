@@ -893,6 +893,7 @@ public sealed class MultiNationSim
                 double silverWorld = Market.Price[Catalog.SilverId];
                 if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
                 foreach (var n in Nations) { n.World.WorldSilverPrice = silverWorld; n.World.SilverGoldRatio = rel; }
+                if (Instruments.On && !_calendarFrozen) Instruments.SilverParityCapture(this, silverWorld, rel, ratioOk);   // (775) 計器（読むだけ）：注入の直後の旧と新の平価
             }
             // ★交易網の引力（タスク#75再開・2026-08-21・(210) で組ごとの相手へ）：TradeGoldPull_i ＝（自国の取引の相手の本位の差）×（自国の貿易開放度）。
             //   相手の本位の差＝World.TradePartnerStandardBalance（BilateralMarket が越境の成約ごとに相手の本位の符号で積む＝金＋1・銀−1・不換0・−1..1）。

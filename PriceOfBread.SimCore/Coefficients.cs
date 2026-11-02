@@ -3469,14 +3469,14 @@ public sealed class Coefficients
     //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】※旗の2本（SilverStandardGate・SilverLightDiscipline）は 2026-10-18 に焼き込んで消えた＝戻すなら git の履歴から（残るのは MonetaryPeerPullScale の1係数だけ・★(599) GoldStandardIndThreshold も消えた）。
     //   ★(210) MonetaryPeerPullScale の入力は組ごとの相手と比の外れへ・銀の下落は同じ州の比へ（PolicyPreferences）＝この墓標の4係数の戻し方は旧の記録。
     // 【墓標2026-10-18・旗の焼き込み】SilverStandardGate（銀本位の主旗・既定1.0・点火2026-08-21 銀本位ラウンド＝4係数一括：同一ソースA/B seeds1-10 ◎7割帯 11→17・逸脱過多 9→7・法+1.9・植民地+3.4・人口+1.4／代償=経済規模−5.0・政体exact−2.3・列強再現−2.5）を消した＝不換→銀→金の3段の梯子が常に開く（旧の2値の経路は削除）。
-    // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
+    // ★器 SilverParityFromRatio（2026-09-07 の器・(775) で既定 1 に点火）：銀本位国の平価の元 WorldSilverPrice は旧は Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
     //   連結州平均（表示統計・RefPrice×[0.1,10]でクランプ）。銀本位国の E はその平均から作られ、平均は E を含む＝**E→平均→E の自己参照（正帰還）**。
     //   silverprobe 実測で天井 ExchangeRateCeil(3.0) 近傍に乗数2.8で張り付いた根。
     //   1＝同一市場内の比（州の 銀価格/金鉱価格 の全 Active 州の算術平均 R）を RefPrice 比（RefPrices[銀]/RefPrices[金鉱]）で割り
     //   RefPrices[銀] の単位へ戻す（R/refRatio×RefPrices[銀]）。同一市場の比は PriceLevel も ExchangeRate も約分され単位を持たない＝
     //   クランプ不要・自己参照無し。読み手（World 平価／Fiscal 金建て債務／PolicyPreferences 銀下落）は WorldSilverPrice/RefPrices[銀] のまま不変。
-    //   0（既定・休眠）＝旧統計をそのまま注入＝厳密恒等。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。
-    public double SilverParityFromRatio = 0.0;
+    //   0＝旧統計をそのまま注入。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。(775) で既定 1＝平価は世界の金銀比 rel×Ref（計器 silverpar_s が旧と新を同じ盤面で数える）。
+    public double SilverParityFromRatio = 1.0;   // ★(775) 1.0 に点火（既定 0.0 → 1.0・波57 c7ag）
     // 【削除 2026-10-04 (210)】SilverStandardIndThreshold（銀本位に届く工業化＝0＝銀は誰でも持てる・読み手は AI の目標の1行だけ＝常に真）＝不換の国は銀を志向する（SelfPlay.DecideQuarter）。
     public double StandardMetalMintGate = 1.0;         // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30）：0で造幣は旧来どおり金鉱だけを買う／1で**本位金属**（銀本位なら銀）を買う＝需要が法に従って現れ・消える。⚠銀価格暴落の線は閉鎖のまま（20-3打ち切り線）
     // ★銀本位の再開（作者裁定2026-09-06「一時的に壊れるのは問題ない。その後に復旧する仕組みが必要」・銀本位doc §7）。

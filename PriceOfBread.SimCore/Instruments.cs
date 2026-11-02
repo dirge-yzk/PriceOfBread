@@ -1838,6 +1838,7 @@ public static partial class Instruments
         OpiumRows(sk, seed, q, sim);    // (342) アヘンの表
         HabitcapTable(sim, seed, q);    // (771) アヘンの蓋の旧新の表
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
+        SilverParityTable(sim, seed, q);   // (775) 銀の平価の自己参照の表（注入の直後の捕捉と四半期の末の E）
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
@@ -1873,6 +1874,7 @@ public static partial class Instruments
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        SilverParityClose(sim);   // (775)
         PortchClose(sim);    // (770)
         PortlmClose(sim);    // (777)
         PrdfClose(sim);  // (681)
