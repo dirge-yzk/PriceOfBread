@@ -65,6 +65,17 @@ public class InheritIntentTests
     }
 
     [Fact]
+    public void 毎月の駆動は移らない州の意志を消さない()
+    {
+        // 移しの外では規則を当てない：旗 1 でも、月次の駆動（StepStateTargets）は門が開いている生産者の意志（棟数より上の分）を取り下げない
+        var (_, uk, _, _, other) = Setup(1.0);
+        var pending = other.Producers.Take(Layout.Length).Where(p => Discovery.Gate(other, p) > 0 && p.StateTarget > uk.StateUnitsOf(p)).ToList();
+        Assert.NotEmpty(pending);   // 前提：門が開いて意志が棟数を超える生産者がある
+        uk.StepStateTargets();
+        foreach (var p in pending) Assert.True(p.StateTarget > uk.StateUnitsOf(p), "移しの外の州の意志が消えた");
+    }
+
+    [Fact]
     public void 割譲と再併合でも同じ規則()
     {
         var (_, uk, fr, r, other) = Setup(1.0);
