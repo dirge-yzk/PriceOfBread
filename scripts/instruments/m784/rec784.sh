@@ -8,7 +8,7 @@ PB=D:/PoB_work/c8pd/B/out_c8pdB_10/ins
 B=D:/PoB_work/keep_778/base_ins; BN1=D:/PoB_work/keep_778/n1; BN2=D:/PoB_work/keep_778/n2; A11=D:/PoB_work/keep_778/a11
 OUT=$W/rec_raw.txt; : > $OUT
 sec(){ echo "## ===== $1" >> $OUT; }
-sec rawcmp_M_vs_c8pdB; python -X utf8 -I $S/m764/rawcmp.py $M $PB inheritintent_s,inheritpar_s >> $OUT 2>&1
+sec rawcmp_M_vs_c8pdB; python -X utf8 -I $S/m764/rawcmp.py $M $PB inheritintent_s,inheritpar_s,flow_s >> $OUT 2>&1; python -X utf8 $S/m784/iicmp.py $M $PB >> $OUT 2>&1
 sec flowcmp_M_vs_c8pdB; python -X utf8 $S/m778/flowcmp.py $M $PB >> $OUT 2>&1
 sec gate779_M; python -X utf8 -I $S/c8pd/gate.py $M --detail --out $W/gate779_M.txt >> $OUT 2>&1; echo "rc=$?" >> $OUT
 sec gate779_S11; python -X utf8 -I $S/c8pd/gate.py $S11 --detail --out $W/gate779_S11.txt >> $OUT 2>&1; echo "rc=$?" >> $OUT
