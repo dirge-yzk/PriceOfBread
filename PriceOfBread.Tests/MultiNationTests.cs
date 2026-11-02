@@ -191,6 +191,77 @@ public class MultiNationTests
 
 }
 
+/// <summary>★(775) 計器 silverpar_s（銀の平価の自己参照・読むだけ）の番人。
+/// ①旗 1：注入された平価 usedParityIndex が、計器が自分で生きた市場の対数平均から取り直した relRecomputedIndex と一致（1e-9）し、newParityIndex とも一致＝注入と計器が独立な式で同じ量
+///   （片方の符号・平均の取り方・死んだ市場の算入が壊れると食い違う）／旗 0：usedParityIndex が旧の統計 oldRawIndex と一致（旧の経路そのまま）。
+/// ②非空虚：3 四半期 × 3 法の行が出て、銀本位国の数が正の行がある／計器が on でも軌道（E・注入された平価）が変わらない。</summary>
+[Collection("Instruments")]
+public class SilverParityInstrumentTests
+{
+    private static List<Dictionary<string, string>> Rows(string path)
+    {
+        var lines = System.IO.File.ReadAllLines(path);
+        var h = lines[0].Split('	');
+        return lines.Skip(1).Select(l => { var p = l.Split('	'); var d = new Dictionary<string, string>(); for (int i = 0; i < h.Length; i++) d[h[i]] = p[i]; return d; }).ToList();
+    }
+    private static double D(Dictionary<string, string> r, string k) => r[k] switch { "nan" => double.NaN, var s => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture) };
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 平価の計器は注入と独立な式で同じ平価を取り直す(double gate)
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_sp_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityFromRatio = gate });
+            try { for (int q = 0; q < 3; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+            finally { Instruments.Close(sim); }
+            var rows = Rows(System.IO.Path.Combine(dir, "silverpar_s1789.tsv"));
+            Assert.Equal(9, rows.Count);
+            Assert.Equal(new[] { "S", "G", "F" }, rows.Take(3).Select(r => r["law"]).ToArray());
+            int withSilver = 0;
+            foreach (var r in rows)
+            {
+                Assert.Equal(1.0, D(r, "ratioOkFlag"));
+                if (gate > 0)
+                {
+                    Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "relRecomputedIndex")) <= 1e-9, $"注入 {r["usedParityIndex"]} と計器の取り直し {r["relRecomputedIndex"]} が合わない");
+                    Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "newParityIndex")) <= 1e-12);
+                }
+                else
+                    Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "oldRawIndex")) <= 1e-12, "旗 0 の注入が旧の統計と違う");
+                Assert.True(D(r, "relRecomputedIndex") > 0 && D(r, "wAgShare") is >= 0 and <= 1);
+                if (r["law"] == "S" && D(r, "nationCount") > 0) withSilver++;
+            }
+            Assert.True(withSilver > 0, "銀本位国が 1 つも無い（計器の法の振り分けが空振り）");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void 平価の計器は軌道を変えない()
+    {
+        double[] Run(bool ins)
+        {
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_sp2_" + Guid.NewGuid().ToString("N"));
+            if (ins) Instruments.Configure(dir, "*");
+            try
+            {
+                var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityFromRatio = 1.0 });
+                try { for (int q = 0; q < 3; q++) { sim.StepQuarter(); if (ins) Instruments.Quarter(sim, 1789UL, q); } }
+                finally { if (ins) Instruments.Close(sim); }
+                return sim.Nations.SelectMany(n => new[] { n.World.ExchangeRate, n.World.WorldSilverPrice, n.World.SilverGoldRatio }).ToArray();
+            }
+            finally { if (ins) { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } } }
+        }
+        var a = Run(false); var b = Run(true);
+        Assert.Equal(a.Length, b.Length);
+        for (int i = 0; i < a.Length; i++) Assert.Equal(BitConverter.DoubleToInt64Bits(a[i]), BitConverter.DoubleToInt64Bits(b[i]));
+    }
+}
+
 /// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人をクラスへ分けた（中身は変えない）。</summary>
 public class MultiNationTests2
 {
