@@ -7,22 +7,23 @@ namespace PriceOfBread.SimCore;
 //   ②<see cref="SilverParityTable"/>：Instruments.Quarter（四半期の末）から呼ばれ、溜めた捕捉と**その時の** E（注入の rel に月次で寄った後の値）・法・国の数を合わせて 1 四半期 3 行（S・G・F）を書く。
 // 行＝四半期×法（S＝銀本位・G＝金本位・F＝不換）。世界の列は 3 行に同じ値。列（接尾辞：Index・Count・Share・Flag）：
 //   世界：quarter・year・ratioOkFlag・oldRawIndex（Market.Price[銀]÷RefPrice＝RefPrice×[0.1,10] に挟んだ後・[ExchangeRateFloor,Ceil] に挟む前）・oldParityIndex（oldRawIndex を [Floor,Ceil] に挟んだ値＝旧の経路の平価の元）・
-//         usedParityIndex（実際に各国へ注入された WorldSilverPrice÷RefPrice）・newParityIndex（rel＝比が不正なら nan）・relRecomputedIndex（計器が自分で取り直した rel）・wAgShare（銀の局所価格が正の州のうち銀本位国の州の割合）・fiscalBAt3Count（銀本位国のうち b＝RefPrice[銀]÷WorldSilverPrice が GoldDebtBurdenCap 以上の国の数）。
+//         usedParityIndex（実際に各国へ注入された WorldSilverPrice÷RefPrice）・newParityIndex（rel＝比が不正なら nan）・relRecomputedIndex（計器が自分で取り直した rel）・wAgShare（銀の局所価格が正の州のうち銀本位国の州の割合）。
 //   法：law・nationCount・eMean・eMedian（その時の E・人口＞0 の国）・eAtCeilCount・eAtFloorCount・
 //         provCount・mAgIndex・mAgEIndex・mAuIndex（その法の国の州のうち銀と金鉱の両方の市場が生きて価格が正の州。局所の銀の値段÷RefPrice・同×E・局所の金鉱の値段÷RefPrice の算術平均）・
 //         agCount・mAgAllIndex・mAgEAllIndex（銀の局所価格が正の州〔Market.Step の平均価格の節と同じ集合に近い〕。不動点 E*＝(1−wAg)·mAgEAll(非S)/(1−wAg·mAgAll(S)) の確かめ用）。
+// (786) 列 fiscalBAt3Count（b が上限に届いた国の数）は、上限 GoldDebtBurdenCap の削除で読む係数が無くなったため消した（旧の表を読む台本は scripts/instruments/c7ag・c8sv）。
 // ⚠限界（計器が自己申告する）：州の集合は Market.Step の参加州（linked）の写しではなく〈Markets[銀] の局所価格が正の州〉＝座標なし・凍結港の州の扱いが違えば Market.Price の平均と一致しない／
 //   州の法の振り分けは注入の時の法・E と国の数は四半期の末の法（法が四半期の中で替わった国は食い違う）／助走中の注入は溜めた値が上書きされるだけ（Quarter は呼ばれない）／
 //   relRecomputed は注入の式と同じ定義の独立な再計算＝定義そのものの誤りは拾えない（U1 の突然変異で符号と平均の取り方だけ確かめる）。
 public static partial class Instruments
 {
-    internal const string SilverparHeaderText = "quarter\tyear\tlaw\tratioOkFlag\toldRawIndex\toldParityIndex\tusedParityIndex\tnewParityIndex\trelRecomputedIndex\twAgShare\tfiscalBAt3Count\tnationCount\teMean\teMedian\teAtCeilCount\teAtFloorCount\tprovCount\tmAgIndex\tmAgEIndex\tmAuIndex\tagCount\tmAgAllIndex\tmAgEAllIndex";
+    internal const string SilverparHeaderText = "quarter\tyear\tlaw\tratioOkFlag\toldRawIndex\toldParityIndex\tusedParityIndex\tnewParityIndex\trelRecomputedIndex\twAgShare\tnationCount\teMean\teMedian\teAtCeilCount\teAtFloorCount\tprovCount\tmAgIndex\tmAgEIndex\tmAuIndex\tagCount\tmAgAllIndex\tmAgEAllIndex";
 
     sealed class SilverparSink
     {
         public System.IO.StreamWriter? W; public bool Header;
         public bool Pending;                                   // 注入の直後に捕捉した値がある（Quarter で書いたら下ろす）
-        public int RatioOkFlag; public double OldRaw, OldParity, Used, NewParity, RelRecomputed, WAg; public int BAt3;
+        public int RatioOkFlag; public double OldRaw, OldParity, Used, NewParity, RelRecomputed, WAg;
         public readonly int[] Prov = new int[3], AgCnt = new int[3];   // 添字＝法（0 不換・1 銀・2 金＝MonetaryStandardLaw の順）
         public readonly double[] SAg = new double[3], SAgE = new double[3], SAu = new double[3], SAgAll = new double[3], SAgEAll = new double[3];
     }
@@ -44,11 +45,10 @@ public static partial class Instruments
         sk.Used = refAg > 1e-9 ? silverWorld / refAg : double.NaN;
         sk.NewParity = ratioOk ? rel : double.NaN;
         Array.Clear(sk.Prov); Array.Clear(sk.AgCnt); Array.Clear(sk.SAg); Array.Clear(sk.SAgE); Array.Clear(sk.SAu); Array.Clear(sk.SAgAll); Array.Clear(sk.SAgEAll);
-        double lnAg = 0, lnAu = 0; int cnt = 0, agTotal = 0, agSilver = 0, bAt3 = 0;
+        double lnAg = 0, lnAu = 0; int cnt = 0, agTotal = 0, agSilver = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World; int law = (int)w.MonetaryLaw; double e = w.FxRate;
-            if (w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9 && refAg > 1e-9 && refAg / w.WorldSilverPrice >= w.Coef.GoldDebtBurdenCap) bAt3++;
             foreach (var r in w.Regions)
             {
                 if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
@@ -67,7 +67,6 @@ public static partial class Instruments
         }
         sk.RelRecomputed = cnt > 0 && refAu > 1e-9 && refAg > 1e-9 ? Math.Exp((lnAg - lnAu) / cnt - Math.Log(refAg / refAu)) : double.NaN;
         sk.WAg = agTotal > 0 ? (double)agSilver / agTotal : double.NaN;
-        sk.BAt3 = bAt3;
         sk.Pending = true;
     }
 
@@ -98,7 +97,7 @@ public static partial class Instruments
             double mean = list.Count == 0 ? double.NaN : list.Sum() / list.Count;
             int pc = sk.Prov[law], ac = sk.AgCnt[law];
             sk.W.WriteLine(string.Join('\t', q.ToString(inv), yr.ToString(inv), lawName[law], sk.RatioOkFlag.ToString(inv),
-                SilverparR(sk.OldRaw), SilverparR(sk.OldParity), SilverparR(sk.Used), SilverparR(sk.NewParity), SilverparR(sk.RelRecomputed), SilverparR(sk.WAg), sk.BAt3.ToString(inv),
+                SilverparR(sk.OldRaw), SilverparR(sk.OldParity), SilverparR(sk.Used), SilverparR(sk.NewParity), SilverparR(sk.RelRecomputed), SilverparR(sk.WAg),
                 list.Count.ToString(inv), SilverparR(mean), SilverparR(med), atCeil[law].ToString(inv), atFloor[law].ToString(inv),
                 pc.ToString(inv), SilverparR(pc > 0 ? sk.SAg[law] / pc : double.NaN), SilverparR(pc > 0 ? sk.SAgE[law] / pc : double.NaN), SilverparR(pc > 0 ? sk.SAu[law] / pc : double.NaN),
                 ac.ToString(inv), SilverparR(ac > 0 ? sk.SAgAll[law] / ac : double.NaN), SilverparR(ac > 0 ? sk.SAgEAll[law] / ac : double.NaN)));
