@@ -8,6 +8,7 @@ B=D:/PoB_work/keep_773/base_ins; BN1=D:/PoB_work/keep_773/n1; BN2=D:/PoB_work/ke
 OUT=$W/rec_raw.txt; : > $OUT
 sec(){ echo "## ===== $1" >> $OUT; }
 sec rawcmp_Z_vs_c7hlB; python -X utf8 -I $S/m764/rawcmp.py $Z $HB portlm_s,inheritintent_s,silverpar_s >> $OUT 2>&1
+sec flowcmp_Z_vs_c7hlB; python -X utf8 $S/m778/flowcmp.py $Z $HB >> $OUT 2>&1   # flow_s は呼び出し位置を除いた多重集合で比べる（ident.cfg の FLOW_LOC と同じ・merge で行の番号が動く）
 # c7sw の門（gate774.py）：Z の値を旗 0 の基準に
 sec gate774_Z; python -X utf8 -I $S/c7sw/gate774.py $Z > $W/gate774_Z.txt 2>&1; cat $W/gate774_Z.txt >> $OUT
 X0=$(grep -o 'L1（結合・種の和）=[0-9]*' $W/gate774_Z.txt | grep -o '[0-9]*$'); P0=$(grep -o '平均（年末×国×種）=[0-9.]*' $W/gate774_Z.txt | grep -o '[0-9.]*$')
