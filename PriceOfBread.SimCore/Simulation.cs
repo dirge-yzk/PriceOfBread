@@ -636,7 +636,7 @@ public sealed class Simulation
             if (r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             if (cc.Lat == 0 && cc.Lon == 0) continue;
-            var pick = PortChoice(cc.Lat, cc.Lon, ports);   // (770)(779) 港を選ぶ式は 1 本（計器 portch_s の portNew は形 (d) の前の (a) の反実仮想・実際の港は portlm_s の portUsed／portD）
+            var pick = PortChoice(cc.Lat, cc.Lon, ports);   // (770)(779) 港を選ぶ式は 1 本（形 (d) の前の (a) の反実仮想の港は計器 portlm_s の portA・実際の港は portlm_s の portUsed／portD）
             r.NearestPortDistanceKm = pick.LandKm;   // (770) BilateralMarket の内陸の鉄道の減衰が陸路の km を読む
             r.NearestPortName = pick.Name;   // 03 §12-3：どの港かを記憶（キエフ/ハリコフ→ロストフ＝穀物動線がデータを足さずに出る）
             // 03手順4A：陸脚＝陸グラフの最短路（山脈迂回込み）。孤立成分（別陸塊等）は大圏で退避＝0を残さない（0=港州の意味）

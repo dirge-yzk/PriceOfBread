@@ -6,7 +6,8 @@ python -X utf8 gate770.py <計器の出力ディレクトリ(ins)> [種...]
   U1 ＝全ての行で landKmNew ≦ landKmOld+1e-9。違反の行の数（0 で通る）。
   U2 ＝portUsed≠portGc の行のうち landKmNew ＞ 2×gcKm の行の割合（≦0.15 で通る）。母集団 30 行未満の種は種ごとの判定から外し合算で読む。
   記録＝海盆が変わる州×年の年平均・railDecay の新÷旧の分布・fareLand の新÷旧の分布・国ごとの港が変わる州（年平均）。
-列は見出しの名前で読む（列の数で行を捨てない）。portch_s の無い出力は何も出さない。"""
+列は見出しの名前で読む（列の数で行を捨てない）。portch_s の無い出力は何も出さない。
+(792) 閉じた線の台本：portch_s の列 portNew は (792) で消えた（portlm_s の portA と 10 種 202,943 行で全行一致）＝この台本は (770) 当時から (791) までの出力用。今の出力で P1 を読むなら portNew を portlm_s の portA に読み替える。"""
 import sys, os, statistics as st, collections
 d = sys.argv[1]
 seeds = [int(x) for x in sys.argv[2:]] or sorted(int(f[len('portch_s'):-4]) for f in os.listdir(d) if f.startswith('portch_s') and f.endswith('.tsv'))

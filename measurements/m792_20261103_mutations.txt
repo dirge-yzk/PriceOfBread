@@ -1,0 +1,42 @@
+# (792) c10tg 突然変異の記録（使い捨ての木 c10tg の 6989e833 の worktree・scripts/instruments/c10tg/run_mutations.sh・フィルタ FiscalTests＋PortByLandTests・合計 77）
+# 紙の予言（腕の前）：M1＝新 Theory の 5・1e4 と (786) の世界を通す Theory の 2 行が赤／M2＝新 Theory の b＝0.5・−1 の 2 行だけ赤／M3＝新 Theory の 5 行（0.5・−1・NaN・+∞・1/0）が赤／M4＝新 Theory の倒れる行が赤／Mb＝新しい PortChoice の試験だけ赤・既存の PortByLandTests は緑
+# 結果＝全て予言どおり。M2 は (786) の世界を通す Theory では緑のままだった（括り出し前の c9gd の記録 measurements/m786_20261102_mutations.txt の M2・M3 緑と同じ穴）が、括り出した関数への手の盤面で赤になる。Mb は既存の PortByLandTests 全部が緑のまま＝穴の証明。
+
+mutated M1
+## M1
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 5, worldSilver: 1, expected: 5) [20 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 10000, worldSilver: 1, expected: 10000) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い(silverVsRef: 0.0001, expectedB: 10000) [25 ms]
+   b＝10000 の利払いの倍率 2（期待 5000.5）
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い(silverVsRef: 0.20000000000000001, expectedB: 5) [23 ms]
+   b＝5 の利払いの倍率 2（期待 3）
+失敗!   -失敗:     4、合格:    73、スキップ:     0、合計:    77、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+mutated M2
+## M2
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: 2, expected: 1) [2 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: -1, expected: 1) [< 1 ms]
+失敗!   -失敗:     2、合格:    75、スキップ:     0、合計:    77、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+mutated M3
+## M3
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: 2, expected: 1) [2 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: Infinity, worldSilver: Infinity, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: -1, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: 0, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: Infinity, worldSilver: 1, expected: 1) [< 1 ms]
+失敗!   -失敗:     5、合格:    72、スキップ:     0、合計:    77、期間: 13 s - PriceOfBread.Tests.dll (net10.0)
+mutated M4
+## M4
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: 2, expected: 1) [3 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: Infinity, worldSilver: Infinity, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: -1, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: 1, worldSilver: 0, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(refSilver: Infinity, worldSilver: 1, expected: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い(silverVsRef: 2, expectedB: 1) [60 ms]
+   b＝1 の利払いの倍率 1.5（期待 1）
+  失敗 PriceOfBread.Tests.FiscalTests.金建て債務の負担は下端1で残り上端の挟みは無い(silverVsRef: Infinity, expectedB: 1) [44 ms]
+   b＝1 の利払いの倍率 1.5（期待 1）
+失敗!   -失敗:     7、合格:    70、スキップ:     0、合計:    77、期間: 13 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mb
+## Mb
+  失敗 PriceOfBread.Tests.PortByLandTests.形d_戻りの枝はeffの最小を選び大圏の最小を選ばない [3 ms]
+失敗!   -失敗:     1、合格:    76、スキップ:     0、合計:    77、期間: 12 s - PriceOfBread.Tests.dll (net10.0)

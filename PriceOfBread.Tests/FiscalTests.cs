@@ -1686,4 +1686,23 @@ public class FiscalTests
         Assert.True(Math.Abs(got - want) <= 1e-9 * want, $"b＝{expectedB} の利払いの倍率 {got}（期待 {want}）");
     }
 
+    /// <summary>★(792) 金建て債務の負担 b の否定形のガード <see cref="Fiscal.GoldDebtBurden"/>（括り出した純関数）の手の盤面。上の Theory は世界を通すので、b が NaN・+∞・1 未満・負になる入口（参照の銀価格・世界の銀価格の非有限や負）には届かず、
+    /// 下端 1.0 の倒し先を壊す突然変異（(786) の M2・M3）が緑のままだった（goldDebtBurden の読み手は `&gt; 1.0` の比較だけ＝1 未満は下流に出ない）。ここは関数の返り値を直接読む＝期待は手で書く（式から作らない）。
+    /// 1 以上で有限なら b をそのまま返し（上端の挟みは無い）、NaN・+∞・1 未満・負は 1.0 へ倒れる（否定形＝NaN は倒れる側）。</summary>
+    [Theory]
+    [InlineData(1.0, 2.0, 1.0)]                                      // b＝0.5＜1 → 1.0
+    [InlineData(1.0, -1.0, 1.0)]                                     // b＝−1 → 1.0
+    [InlineData(double.PositiveInfinity, double.PositiveInfinity, 1.0)]   // b＝∞÷∞＝NaN → 1.0
+    [InlineData(double.PositiveInfinity, 1.0, 1.0)]                  // b＝+∞ → 1.0
+    [InlineData(1.0, 0.0, 1.0)]                                      // b＝1÷0＝+∞ → 1.0
+    [InlineData(1e-10, 1.0, 1.0)]                                    // 参照の銀価格が 1e-9 以下＝b を割らず 1.0
+    [InlineData(1.0, 1.0, 1.0)]                                      // b＝1 ちょうど → 1.0（そのまま）
+    [InlineData(1.7, 1.0, 1.7)]                                      // 有限で 1 以上 → そのまま
+    [InlineData(5.0, 1.0, 5.0)]                                      // 旧の上端 3.0 の外側でもそのまま
+    [InlineData(1e4, 1.0, 1e4)]                                      // 比の経路の上限の桁でもそのまま
+    public void 金建て債務の負担の関数は非有限と1未満を1へ倒し有限の1以上はそのまま返す(double refSilver, double worldSilver, double expected)
+    {
+        Assert.Equal(expected, Fiscal.GoldDebtBurden(refSilver, worldSilver));
+    }
+
 }

@@ -1,0 +1,6 @@
+# (792) c10tg フルスイート（Release・木 d4edbc8f の成績表の測定と同じ木）。--list-tests＝Category!=FullLength 2179（2168＋足した 11）・FullLength 3。
+## Category!=FullLength
+成功!   -失敗:     0、合格:  2178、スキップ:     1、合計:  2179、期間: 29 m 33 s - PriceOfBread.Tests.dll (net10.0)
+## Category=FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 8 m 49 s - PriceOfBread.Tests.dll (net10.0)
+スキップ 1 本は TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（(495) から [Fact(Skip)]・基準の木にもある）

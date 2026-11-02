@@ -155,12 +155,7 @@ public static class Fiscal
         double goldDebtBurden = 1.0;
         if (w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9)
         {
-            double refSilver = Catalog.RefPrices[Catalog.SilverId];
-            double b = refSilver > 1e-9 ? refSilver / w.WorldSilverPrice : 1.0;
-            // 下端 1.0＝銀が参照より高い四半期は負担なし。上端の挟みは無い（設計思想⑧：定数の上限は発散への指数関数的ロックではない・(786) 本走 20 種と助走で 0 件）。
-            //   b は有限＝比の経路では局所価格の帯 [PriceFloorFactor, PriceCeilFactor] から約 1e4 が上限・旧の統計の経路では 10。NaN・+∞・1 未満は負担なしへ倒す（否定形＝Math.Max は NaN を伝える）。
-            if (!(b >= 1.0 && b < double.PositiveInfinity)) b = 1.0;
-            goldDebtBurden = b;
+            goldDebtBurden = GoldDebtBurden(Catalog.RefPrices[Catalog.SilverId], w.WorldSilverPrice);
         }
         double foreignShare = w.GovDebt.Value > 1e-9 ? PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt) : 0;
         if (goldDebtBurden > 1.0) interest *= 1.0 + foreignShare * (goldDebtBurden - 1.0);   // 対外分だけが金建て＝国内債は自国通貨のまま
@@ -575,6 +570,16 @@ public static class Fiscal
             s += rp * AdminDistanceMul(w, r); n += rp;
         }
         return n > 0 ? s / n : 1.0;
+    }
+
+    /// <summary>★(792) 金建て債務の実質負担 b＝参照の銀価格÷世界の銀価格（<see cref="Step"/> の銀本位国の節から括り出した＝式は同じ・試験が b の否定形のガードに届く入口はこの関数だけ：goldDebtBurden の読み手は `&gt; 1.0` の比較だけで、b が NaN・+∞ になるのは参照の銀価格が非有限のときだけ＝呼び手の局所の b には手の盤面が届かない）。
+    /// 下端 1.0＝銀が参照より高い四半期は負担なし。上端の挟みは無い（設計思想⑧：定数の上限は発散への指数関数的ロックではない・(786) 本走 20 種と助走で 0 件）。
+    /// b は有限＝比の経路では局所価格の帯 [PriceFloorFactor, PriceCeilFactor] から約 1e4 が上限・旧の統計の経路では 10。NaN・+∞・1 未満は負担なしへ倒す（否定形＝Math.Max は NaN を伝える）。</summary>
+    internal static double GoldDebtBurden(double refSilver, double worldSilverPrice)
+    {
+        double b = refSilver > 1e-9 ? refSilver / worldSilverPrice : 1.0;
+        if (!(b >= 1.0 && b < double.PositiveInfinity)) b = 1.0;
+        return b;
     }
 
     /// <summary>★借入の門（2026-10-03 (175) に <see cref="Borrow"/> の3行を1本へ畳んだ＝挙動は同じ）＝冷却中でない（デフォルト後の信用喪失）・開始前の助走でない・

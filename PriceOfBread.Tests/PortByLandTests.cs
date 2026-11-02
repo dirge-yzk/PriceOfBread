@@ -182,6 +182,32 @@ public class PortByLandTests
         Assert.Equal("アジャクシオ", Simulation.PortChoice(tls.Lat, tls.Lon, mixed).Name);   // 有限の港が別の札（africa）だけ＝外さない
     }
 
+    /// <summary>★(792) 戻りの枝（州と同じ陸塊の札で陸路が有限の港が無い）で eff の最小と大圏の最小が食い違う盤面：アテネ（札 eurasia）の港が カイロ（札 africa・陸路は有限だが約 3,300 km の遠回り・大圏は約 1,120 km）と
+    /// カリャリ（札 sardinia・陸路∞・大圏は約 1,280 km＝eff も約 1,280 km）の 2 つだけ。札が eurasia の港が無いので形 (d) は何も外さず戻りの枝＝全ての港の eff の最小＝カリャリ。
+    /// 戻りの枝で大圏の最小（カイロ）を選ぶ誤りはこの盤面だけが拾う（既存の試験の盤面は eff の最小と大圏の最小が同じ港）。期待の港は手で書く（PortChoice の答えから作らない）・前提は札の文字列と距離で先に確かめる。</summary>
+    [Fact]
+    public void 形d_戻りの枝はeffの最小を選び大圏の最小を選ばない()
+    {
+        var athens = Climate.CityCoord("アテネ"); var cairo = Climate.CityCoord("カイロ"); var cagliari = Climate.CityCoord("カリャリ");
+        Assert.Equal("eurasia", Landmass.Of(athens.Lat, athens.Lon));
+        Assert.Equal("africa", Landmass.Of(cairo.Lat, cairo.Lon));
+        Assert.Equal("sardinia", Landmass.Of(cagliari.Lat, cagliari.Lon));      // どの港も州と同じ札でない＝戻りの枝
+        double gcCairo = Geo.DistanceKm(athens.Lat, athens.Lon, cairo.Lat, cairo.Lon);
+        double gcCagliari = Geo.DistanceKm(athens.Lat, athens.Lon, cagliari.Lat, cagliari.Lon);
+        double landCairo = PathGraph.LandDistanceKm(athens.Lat, athens.Lon, cairo.Lat, cairo.Lon);
+        Assert.InRange(gcCairo, 1100, 1140);
+        Assert.InRange(gcCagliari, 1260, 1290);
+        Assert.True(double.IsFinite(landCairo) && landCairo > 3000, "カイロへの陸路が有限で遠回りという前提が崩れた：" + landCairo);
+        Assert.True(double.IsPositiveInfinity(PathGraph.LandDistanceKm(athens.Lat, athens.Lon, cagliari.Lat, cagliari.Lon)), "カリャリへの陸路が∞という前提が崩れた");
+        var ports = new List<(double Lat, double Lon, string Name)> { P("カイロ"), P("カリャリ") };
+        var r = Simulation.PortChoice(athens.Lat, athens.Lon, ports);
+        Assert.Equal("カリャリ", r.Name);                // eff の最小（大圏の最小のカイロではない）
+        Assert.Equal(r.GcKm, r.LandKm);                  // 陸路∞の港の eff は大圏で退避
+        Assert.InRange(r.LandKm, 1260, 1290);
+        ports.Reverse();
+        Assert.Equal("カリャリ", Simulation.PortChoice(athens.Lat, athens.Lon, ports).Name);   // 並びに依らない
+    }
+
     [Fact]
     public void 形d_配線は旗の示す港を欄に書く_計器の独立の書き方とも一致する()
     {
