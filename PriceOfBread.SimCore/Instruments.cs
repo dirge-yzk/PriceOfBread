@@ -1842,6 +1842,7 @@ public static partial class Instruments
         EngineerTable(sk, seed, q, sim);   // (415) 発見の表の行の親の産業の技師の量（census）
         ClockTable(sk, seed, sim);         // (461) 発見の時計の表（census）
         IdnTable(sim, seed);               // (640) 思想の必要性の表
+        PortchTable(sim, seed, q);         // (770) 内陸州の港の選び方の表（年末）
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         RdhTable(sim, seed, q);            // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
@@ -1870,6 +1871,7 @@ public static partial class Instruments
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        PortchClose(sim);    // (770)
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)
@@ -1983,7 +1985,7 @@ public static partial class Instruments
         }
         if (!sk.XmigHeader) { sk.Xmig.WriteLine("quarter\tfromRegion\ttoRegion\tfromNation\ttoNation\tmovedKPerQuarter\tgreatCircleKm\trouteKm"); sk.XmigHeader = true; }   // (746)
         // ★(746) 経路の km（RouteKm・Geo.cs の末尾の静的な表）：貿易の PairKm と同じ比較で選んだ経路の実の km（運河の開閉はその国の通れるか・地形と鉄道は含めない）。表に無い州の名前は nan。
-        //   ⚠限界：港の選び方は貿易と違う（全ての国の港から陸路の最短を静的に選ぶ・貿易は同じ国の港を大圏の最短で選び四半期ごとに張り直す）・港は開幕の値で固定・同じ港の州どうしの海路は 0。
+        //   ⚠限界：港の選び方は貿易と違う（全ての国の港から陸路の最短を静的に選ぶ・貿易は同じ国の港を〈★(770) 旗 PortByLandRoute が正＝港ごとの eff（陸路が有限なら陸路・無限なら大圏）の最短・0＝大圏の最短〉で選び四半期ごとに張り直す）・港は開幕の値で固定・同じ港の州どうしの海路は 0。
         //   migration_s の運河の開閉は出る州の国のもの（州の間の移民は国内＝両端が同じ国）。xmig_s は両端の国が共に通れるときだけ開（BilateralMarket の suezOkN と同じ積）。
         string RouteText(Region a, Region b, int cfg, Coefficients cf)
         {

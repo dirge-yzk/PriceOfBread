@@ -1,0 +1,98 @@
+# (770) 波56 c6pr の事前登録（港の選び方のやり直し＝港ごとに〈陸路が∞なら大圏・有限なら陸路〉の最小で選ぶ＝物差し 1 本）。腕・実装・結果より前に書く。
+# 区分 III の挙動の線（統合の段2）。形：〈入口〉（内陸州が使う港そのものが変わる州がある・鉄道の減衰の km が陸路へ変わる）。1 テーマ 1 計測＝腕 B は 1 本（旗は 1 つ）。
+# 比べる側＝基線 m764 の計器つき 10 種の生（D:/PoB_work/keep_764/base_ins）と種 11〜20 の生（keep_764/a11）。ヌル腕は回さない（m764 の N1・N2 を共有）。
+# 出発＝波54 c4pl（origin/c4pl・6e5932a9 の上・事前登録 m754_20261102_prereg_pl.txt）の PortByLandRoute・計器 portch_s・機構のテストを 2d341586 の上へ載せ直し、**選ぶ基準だけ直す**。
+#   c4pl の形（陸路が有限の港だけから陸路の最小）は、大圏で近い島の港や別陸塊の港を外して遠い陸の港へ寄せる〈島の罠〉があった（この回の指示文による数＝腕 B の港が変わった行の 42% で 陸路の km＞2×大圏・生は手元に無く未確認）。
+#   ＝**作者の指示ではなく AI（私）の設計の直し**（作者の承認は無い）。
+# 外す物：c4pl の g-2（ArcKmAtan2・PathGraph.cs の ArcKm）＝PathGraph.cs は c6bk の持ち物＝別の項目として申し送る（迂回の選びの反転 1 の区分 II）。c4pl の PortByLandTests のうち ArcKm の試験も外す。
+
+## 0. 形
+旗 PortByLandRoute（線の枝の既定 1・0 で旧＝2d341586 と同じ）。純関数 Simulation.PortChoice(lat, lon, ports, byLand) を 1 本だけ持ち、WirePortDistances と計器 portch_s の両方が呼ぶ（港を選ぶ式の写しを作らない）。
+  eff(港) ＝ 〈PathGraph.LandDistanceKm(州, 港) が有限 ? その陸路 km : 州から港への大圏 km〉。＝欄 PortLandKm が既に持つ量と同じ物差し（旧の PortLandKm＝lg が∞なら best〈大圏〉・有限なら lg）。
+  byLand＝true：同じ国の全ての港の eff の最小の港（同率は先着＝港の並び＝州の並び＝旧と同じ決定論）。有限でない陸路の港は〈大圏の km で比べる〉＝島・別陸塊の港が除外も優遇もされない（有限だけから選ばない）。
+  byLand＝false：旧の式そのまま（大圏の最小の港を選んでから、その港への LandDistanceKm を 1 回引く＝呼び出しの回数も旧と同じ）。
+  返り値＝(港の名前, 選んだ港までの大圏 km, 選んだ港の eff＝PortLandKm)。
+  WirePortDistances：NearestPortName＝選んだ港・PortLandKm＝eff・NearestPortDistanceKm＝（旗が正 ? PortLandKm : 大圏 km）。海盆は選んだ港から（旧と同じ書き方）。BilateralMarket.cs:273 の内陸の鉄道の減衰（InlandPortDistanceDecay×NearestPortDistanceKm÷DistanceNormKm）が陸路の km を読む（BilateralMarket.cs は触らない）。
+  旗の読みは静的な new Coefficients()（PathGraph.GeoCoef と同じ前例）＝理由＝呼び手 MultiNationSim.cs の毎四半期の張り直し RewirePorts に引数を足せないこと。テストは byLand を引数で明示して呼ぶ。新しい係数の数値 0・新しい状態変数 0。
+  注の直し（旗 1 で嘘になる物・注の行だけ）：Model.cs の NearestPortDistanceKm〈海路距離km〉・Coefficients.cs の InlandPortDistanceDecay〈海路距離で減衰〉・Geo.cs の〈同じ国の港を大圏の最短で選び〉。
+触らない：PathGraph.cs・barriers.json・BilateralMarket.cs・MultiNationSim.cs・Territory.cs・App・SimCore/Display・Runner/PlayHarness。
+
+## 1. 計器 portch_s（読むだけ・計器が on のときだけ・毎年 Q4＝q%4==3 の張り直しの後・内陸州〔港でなく座標のある州〕×年・全ての国）
+同じ盤面で旧と新を両方数える。旧の値は同じ盤面で PortChoice(false) から計算する（軌道の値を写さない）。
+列（接尾辞の規約：Km・Index）：year・nation・region・
+  portGc（PortChoice(false)＝大圏の最小の港＝旧の規則）・portNew（PortChoice(true)＝新の規則の答え）・portUsed（エンジンが実際に張った NearestPortName）・
+  gcKm（州から portGc までの大圏）・
+  landKmOld（portGc の eff＝旧の PortLandKm・PathGraph.LandDistanceKm を計器が直接引いて計算＝PortChoice の返り値を写さない）・
+  landKmNew（portUsed の eff＝同じく計器が直接引く）・railUsedKm（エンジンの NearestPortDistanceKm）・
+  railDecayOldIndex＝1/(1+k·gcKm/N)（旧の規則では NearestPortDistanceKm＝gcKm）・railDecayUsedIndex＝1/(1+k·railUsedKm/N)（k＝InlandPortDistanceDecay・N＝Diplomacy.DistanceNormKm・BilateralMarket.cs:272-273 と同じ式と同じ門〈k＞1e-12・距離＞1e-9 でなければ 1〉）・
+  basinOld（portGc の海盆）・basinNew（r.SeaBasin＝エンジンの実際の海盆）・
+  fareLandOldIndex＝landKmOld×（terrCost×landRatio）・fareLandNewIndex＝landKmNew×（terrCost×landRatio）
+    ＝BilateralMarket.cs:421 の陸の脚の運賃 `landKm * terrCost * landRatio` の同じ盤面の旧と新。**この式は landKm に線形**（terrCost は地形・発見の機関車の門〔308-316 行〕・landRatio は LandSeaCostRatio×鉄道の低下＝どちらも州と国の性質で km に依らない）＝fareLand の新÷旧＝landKmNew÷landKmOld。計器は 308-316 行の式を写す（terrCost と landRatio の写し＝⚠限界）。
+⚠限界（計器が自己申告する）：年末の断面（四半期の途中の張り直しは見ない）／港の一覧の作り方（IsPort かつ座標あり）は Simulation.WirePortDistances の写し／railDecayOldIndex・landKmOld・fareLandOldIndex は旧の規則を今の盤面に当てた反実仮想（旗 1 の軌道では旧の規則の世界は走らない）／
+  fare の terrCost・landRatio の式は BilateralMarket.cs の写し＝そこが替われば追いつかない（新÷旧は km の比なので写しの誤りには強い）。
+旗 0 では計器以外の表が m764 と全行バイト一致（portch_s は旗 0 でも出る＝宣言した増の表）。
+
+## 2. 紙の予言（m764 の陸グラフ・開幕の盤面）＝台本 measurements/m770_20261102_paper_pr.py（入力は探針 measurements/m770_20261102_probe_PaperProbe.cs.txt を使い捨ての Tests に置いて回した paper_raw.tsv）。出力を末尾に貼る。
+**波54 の事前登録の数（開幕の港が変わる 8 州・Σ1.198・最小 0.808 のトビリシ）は写さない**＝c5lg (762) でカフカスの峠が入り陸グラフが変わった（トビリシの迂回は消えた）・規則も違う（教訓⑧）。
+開幕の内陸州（港のある国の内陸州）119・港が変わる州 8＝ウラジオストク→オホーツク（シベリア）・ヌエバ・エスパーニャ銀地帯 ルイジアナ・フロリダ→ロレート・中央メキシコ ルイジアナ・フロリダ→キューバ・イキトス ペルー→カラカス・ラパス ペルー→チリ・ラサ 広州→天津・テヘラン／メシェッド バクー→ブーシェフル。
+鉄道の減衰の新÷旧（旧＝大圏の km・新＝eff）＝中央値 1.0000・最小 0.9333（ラパス）・0.99 未満 24 州・Σ(1−新÷旧)＝0.6925（新÷旧が 1 を超える州 0）。
+海盆が変わる州 4＝ヌエバ・エスパーニャ銀地帯（大西洋→太平洋）・イキトス（太平洋→大西洋）・テヘラン／メシェッド（カスピ海→インド洋）。
+全ての港への陸路が∞の州（紙の証人）5＝蝦夷地（仙台 534 km）・ヌエバ・グラナダ（カラカス 944）・レオン（キューバ 1,281）・トリノ（カリャリ 661）・ノヴァーラ（カリャリ 694）→ 大圏で比べる（eff＝大圏）＝旧と同じ港のまま。
+fareLand 相当（effNew÷effOld）＝中央値 1.0000・最小 0.4835・0.99 未満 7 州。
+U2 の母集団：旧の eff が 2×大圏を超える州＝5（ヌエバ・エスパーニャ銀地帯・中央メキシコ・イキトス・ラパス・テヘラン）。新の規則で港が変わった 8 州の effNew はどれも 2×gcOld 以下＝紙の U2＝0/8。
+変異（波54 の形＝有限な港だけから選ぶ）の紙：港が変わる州 8（サンタフェ・エルパソを足し、ヌエバ・エスパーニャ銀地帯・中央メキシコを外す）・**U1 違反 2〔サンタフェ・エルパソ＝ロレートが陸路∞の島の罠〕**。開幕の U2 は変異でも 0/8＝U2 は開幕の盤面では力を持たず、U1 と実際の軌道の U2 が力を持つ。
+段0 の予言（符号と大きさ）：①鉄道の減衰は港が遠くなる向きにしか動かない（eff≧大圏）＝新÷旧は 1 以下＝Σ(1−新÷旧)＞0。②選んだ港の eff は旧の規則の港の eff 以下（最小を選ぶ構成上）。③貿易・人口などの軌道の量は予言しない（狙いでない量は同じ盤面の新÷旧で読む）。
+
+## 3. 門（腕の前に固定・結果の後に変えない）
+P1 配線：腕 B の portch_s の全行で portUsed＝portNew（計器が PortChoice(true) を呼んだ答え）かつ railUsedKm＝landKmNew（1e-8 以内・計器の値は G10 ではなく R で書く）。1 行でも外れたら落ちる。
+   **P1 は配線（旗が読まれない・欄の写し忘れ・km の欄の取り違え）しか拾わない**。選び方の正しさ（島の港・陸路∞・同率）は機構のテスト PortByLandTests と U1 が担う。
+   突然変異：旗 0（腕 A の portch_s に gate770.py を当てる〔実測〕）→ portUsed＝portGc で紙の 8 州×年が外れて落ちる。
+P2 下限（狙い）：種ごとの〈年あたり Σ_州(1−railDecayUsedIndex÷railDecayOldIndex)〉（行のある年の平均）の種の中央値 ≧ 0.231（＝紙 0.6925 の 1/3）。ヌル腕は 0（旧の規則）。突然変異：旗 0 → 0 で落ちる（腕 A の portch_s で実測）。
+P3 下限：種ごとの〈年あたり portUsed≠portGc の州の数〉の種の中央値 ≧ 2.67（＝紙 8 の 1/3）。突然変異：旗 0 → 0 で落ちる（腕 A で実測）。
+U1 上限（不変条件）：全行で landKmNew ≦ landKmOld + 1e-9 の違反 0。突然変異：有限な港だけから選ぶ形（波54）→ 紙で開幕に 2 州（サンタフェ・エルパソ）。軌道の上で落ちることを使い捨ての木の短い計器つきの試走（1 種）で確かめて記録。
+U2 上限（形の誤り＝島の罠）：portUsed≠portGc の行のうち landKmNew ＞ 2×gcKm の行の割合 ≦ 0.15（紙 0/8＝0。波54 の腕 B で 42% とこの回の指示文が言う・未確認。0.15＝紙の値に割譲・建国で動く分の余裕を足した値）。母集団の行数が 30 未満の種は種ごとの判定から外して合算で読む。
+   突然変異：有限な港だけから選ぶ形 → 実際の軌道の上で割合を数えて記録（波54 は 42% と言われている＝0.15 を超えるはず）。
+**〈最大を選ぶ〉の突然変異**→ 機構のテストが赤（P2・P3 を機構の観測量として落とす力は無い＝テストが担う）。
+記録（門にしない）：門 A′（nullgate.py）・exact・near・NG（基準 rd:measurements/ng764_20261102:m764）・貿易開放度（英仏普露・ペルシャ・西・清）・fareLand の新÷旧・海盆が変わる州・推定の計算量。
+   **波54 の貿易開放度の当たり 0.30（ヌル腕 0.70〜0.90 の外）の帰属**を、州ごとの landKmNew÷landKmOld と fareLand の新÷旧（portch_s）で読む＝どの州・どの国の km の変化が貿易の運賃に効いたか（名乗るのは km の比と運賃の線形性まで＝貿易量への因果は名乗らない）。
+
+## 4. 止める線
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（金利・人口・値段が桁で暴走）・空洞化 1/10 未満の名簿の外（規則 A2＝an_h2.py の既定・種 1〜20）・推定の計算量 ＞248.5 秒・機構のテスト（PortByLandTests）の赤（RULE47＝赤を同じ腕で物差しを替えて緑にしない）。
+確証＝〈同じ脚を 1 つの物差しで測る〉物理の形（大圏で近い港と陸で近い港を 1 つの eff で比べる）＝NG の判定でヌル腕は読まない。
+計算量の割り当て：0.3 秒（LandDistanceKm は座標のビットが鍵の記憶つき・港の数ぶんの引きが増える）＝2 秒以下＝1 本の腕で門にしない・合流の木の累計の .cost で読む。
+
+## 5. 腕
+A＝POB_COEF "PortByLandRoute=0" の素の 5 種で ident.sh（〈判定: 恒等〉なら〈測った種で一致〉と名乗る。増えた計器の表 portch_s と増えたテスト〔PortByLandTests〕は宣言）。
+B＝旗は既定 1・計器つき 10 種（種 1〜10）。S11＝種 11〜20（止める線・B と同時）。ヌル腕は回さない。
+機構のテスト PortByLandTests.cs（新）：手の盤面で ①島の港が大圏で最寄り・陸の港が遠い州 → eff の最小（島の港は大圏の eff で比べる）②全ての港への陸路が∞の州 → 大圏の最小（旧と同じ港）③陸路が有限の港どうし → 陸路の最小 ④同率 → 先着 ⑤byLand=false → 旧と同じ港。突然変異 3 種（有限だけから選ぶ・最大を選ぶ・旗を読まない）で赤を確かめて記録。
+採否＝P1・P2・P3・U1・U2 と 止める線。落ちたら採らないで止める（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ（理由を追記してから）。生（腕 B・S11）は合流の判断まで消さない。
+
+## 付録：紙の台本の出力（measurements/m770_20261102_paper_pr.py・m764 の陸グラフ）
+# inland states (with a port) 119
+# new-rule port changes 8
+#    ロシア シベリア ウラジオストク -> オホーツク  gcOld=2284 effOld=2824 effNew=2805  basin Pacific -> Pacific
+#    スペイン ヌエバ・エスパーニャ銀地帯 ルイジアナ・フロリダ -> ロレート  gcOld=1160 effOld=2952 effNew=1427  basin Atlantic -> Pacific
+#    スペイン 中央メキシコ ルイジアナ・フロリダ -> キューバ  gcOld=1346 effOld=2925 effNew=1488  basin Atlantic -> Atlantic
+#    スペイン イキトス ペルー -> カラカス  gcOld=1013 effOld=2028 effNew=1726  basin Pacific -> Atlantic
+#    スペイン ラパス ペルー -> チリ  gcOld=1082 effOld=3557 effNew=1874  basin Pacific -> Pacific
+#    清 ラサ 広州 -> 天津  gcOld=2317 effOld=3231 effNew=2754  basin Pacific -> Pacific
+#    ペルシャ テヘラン バクー -> ブーシェフル  gcOld=538 effOld=1088 effNew=749  basin Caspian -> IndianOcean
+#    ペルシャ メシェッド バクー -> ブーシェフル  gcOld=964 effOld=1831 effNew=1175  basin Caspian -> IndianOcean
+# rail decay ratio (new/old, old = gc-based as in the m764 engine): median 1.0000 min 0.9333 n<0.99 24  sum(1-ratio)=0.6925
+#   of which ratio>1 (new closer than old gc-based): 0, sum(ratio-1 where >1)=0.0000
+#   min row スペイン ラパス old ペルー new チリ ratio 0.9333
+# basin changes 4 [('スペイン', 'ヌエバ・エスパーニャ銀地帯', 'Atlantic', 'Pacific'), ('スペイン', 'イキトス', 'Pacific', 'Atlantic'), ('ペルシャ', 'テヘラン', 'Caspian', 'IndianOcean'), ('ペルシャ', 'メシェッド', 'Caspian', 'IndianOcean')]
+# all-land-inf states (gc fallback) 5 [('日本', '蝦夷地', '仙台', '534'), ('スペイン', 'ヌエバ・グラナダ', 'カラカス', '944'), ('スペイン', 'レオン', 'キューバ', '1281'), ('サルデーニャ＝ピエモンテ', 'トリノ', 'カリャリ', '661'), ('サルデーニャ＝ピエモンテ', 'ノヴァーラ', 'カリャリ', '694')]
+# fareLand-like ratio effNew/effOld: median 1.0000 min 0.4835 n<0.99 7
+# U2 (new rule): changed rows with effNew > 2*gcOld: 0 / 8
+# mutation (finite-only, wave-54 form): changes 8
+#   changed rows with landNew > 2*gcOld: 0 / 8  U1 violations (effNew > effOld+1e-9): 2
+#    mut ロシア シベリア ウラジオストク -> オホーツク gcOld=2284 effOld=2824 effNew=2805
+#    mut スペイン サンタフェ ロレート -> ルイジアナ・フロリダ gcOld=1191 effOld=1191 effNew=1612
+#    mut スペイン エルパソ ロレート -> ルイジアナ・フロリダ gcOld=796 effOld=796 effNew=1576
+#    mut スペイン イキトス ペルー -> カラカス gcOld=1013 effOld=2028 effNew=1726
+#    mut スペイン ラパス ペルー -> チリ gcOld=1082 effOld=3557 effNew=1874
+#    mut 清 ラサ 広州 -> 天津 gcOld=2317 effOld=3231 effNew=2754
+#    mut ペルシャ テヘラン バクー -> ブーシェフル gcOld=538 effOld=1088 effNew=749
+#    mut ペルシャ メシェッド バクー -> ブーシェフル gcOld=964 effOld=1831 effNew=1175
+# states with effOld > 2*gcOld: 5 / 119 ['スペイン ヌエバ・エスパーニャ銀地帯 ルイジアナ・フロリダ gc=1160 eff=2952', 'スペイン 中央メキシコ ルイジアナ・フロリダ gc=1346 eff=2925', 'スペイン イキトス ペルー gc=1013 eff=2028', 'スペイン ラパス ペルー gc=1082 eff=3557', 'ペルシャ テヘラン バクー gc=538 eff=1088']

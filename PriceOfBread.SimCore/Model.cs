@@ -910,7 +910,7 @@ public sealed class Region
     //   リセット＝四半期の第1清算（LastPortThroughput と同じ暦）。地図が PathGraph の実経路で描く。
     public string LastLandPartnerName = "";
     public double LastLandPartnerFlow;                 // 陸路の最大の取引の額（上の注記）
-    public double NearestPortDistanceKm;              // 最寄り港への海路距離km（trade-capacity-even-share-not-network）。内陸州のrailToPort減衰に使用。0=未設定（港州/距離不問）＝減衰なし（現行）
+    public double NearestPortDistanceKm;              // 最寄り港への距離km（旗 PortByLandRoute が正＝PortLandKm と同じ値・0＝大圏。trade-capacity-even-share-not-network）。内陸州のrailToPort減衰に使用。0=未設定（港州/距離不問）＝減衰なし（現行）
     public string NearestPortName = "";               // 03 §12-3（2026-07-28）：最寄り港の州名（内陸州が「どの港から海へ出るか」＝手順4の3脚距離と手順5の海盆継承が読む。港州/未設定は空）
     public double PortLandKm;                         // 03手順4A：最寄り港への**陸グラフ**距離km（静的＝構築時にPathGraphで1回計算。港州/未設定=0）。3脚の陸脚
     // ── Stage C（03 §11-6・裁定A3・2026-08-09）：内陸国トランジット。港州ゼロ国の州だけに MultiNationSim.WireTransitPorts が

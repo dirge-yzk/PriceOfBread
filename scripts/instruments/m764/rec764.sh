@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (764) 合流の記録の駆動（読むだけ）
+# (764) 合流の記録の駆動（読むだけ）。⚠ (773)：中で呼ぶ c5lg/gate762.py と計器 landfix_g・landfix_s は (769) c6bk（2a726618）で削除＝回し直すなら 2d341586 以前の木で回す（過去の記録）
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 cd D:/PoB_work/wt_m764; S=scripts/instruments; W=D:/PoB_work/m764
 M=$W/out_mB_10/ins; N1=$W/out_n1_10/ins; N2=$W/out_n2_10/ins; S11=$W/out_mS_10_s11/ins

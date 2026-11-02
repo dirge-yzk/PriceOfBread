@@ -1,0 +1,43 @@
+// (770) c6pr の紙の探針（使い捨て・コミットしない木で Tests に PaperProbeScratch.cs として置いて回す）。
+// 開幕の盤面（MultiNationSim の構築直後）で、全ての国の内陸州×同じ国の港の対ごとに 大圏 km・陸路 km（PathGraph.LandDistanceKm・∞は inf）・港の海盆 を吐く。
+// 港の一覧は Simulation.WirePortDistances と同じ作り（IsPort かつ Climate.CityCoord が 0,0 でない）。港を選ぶ式は書かない（選ぶのは measurements/m770_*_paper_pr.py）。
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+public class PaperProbeScratch
+{
+    [Fact]
+    public void Dump()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1UL, _ => new UtilityAgent());
+        var inv = CultureInfo.InvariantCulture;
+        string F(double x) => double.IsPositiveInfinity(x) ? "inf" : x.ToString("R", inv);
+        using var o = new StreamWriter(Environment.GetEnvironmentVariable("PROBE_OUT") ?? "paper_raw.tsv");
+        o.WriteLine("nation\tregion\tport\tgcKm\tlandKm\tbasin\tnearestName\tnearestKm\tportLandKm");
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            var ports = new List<(double Lat, double Lon, string Name)>();
+            foreach (var r in w.Regions)
+                if (r.IsPort) { var pc = Climate.CityCoord(r.Name); if (pc.Lat != 0 || pc.Lon != 0) ports.Add((pc.Lat, pc.Lon, r.Name)); }
+            foreach (var r in w.Regions)
+            {
+                if (r.IsPort) continue;
+                var cc = Climate.CityCoord(r.Name);
+                if (cc.Lat == 0 && cc.Lon == 0) continue;
+                foreach (var p in ports)
+                {
+                    double gc = Geo.DistanceKm(cc.Lat, cc.Lon, p.Lat, p.Lon);
+                    double land = PathGraph.LandDistanceKm(cc.Lat, cc.Lon, p.Lat, p.Lon);
+                    o.WriteLine(string.Join('\t', Instruments.NameOf(w), r.Name, p.Name, F(gc), F(land), SeaGraph.BasinAt(p.Lat, p.Lon).ToString(), r.NearestPortName, F(r.NearestPortDistanceKm), F(r.PortLandKm)));
+                }
+            }
+        }
+    }
+}
