@@ -1,0 +1,62 @@
+(773) 合流（波56）の予言と採否の門　＝腕と merge の前のコミット（結果を見た後に書き換えない）
+基点 main 2d341586（基線 m764）。線＝c6bk (769)・c6pr (770)・c6op (771)・c6sp (772)。読むだけ＝ヘルシンキの陸マスク (765)・小アンティル王国 (766)・銀の為替の天井 (767)・恒等の線の読み (768)。
+作者 2026-11-01「いったん全て推奨で」「止めずに作業してください」で推奨を採って進める（承認の言葉ではない）。
+
+■ 1. 採否（腕の前に決める）
+- c6bk (769) 旗 LandGraphFixRows の焼き込み・計器 landfix_g／landfix_s と gate762.py の削除＝入れる（恒等・ident〈判定: 恒等〉＝測った種で一致・反証役は低 3 件＝合流で注を直す）。barriers.json はバイト不変＝opening_bake.json の焼き直しは無い。
+- c6op (771) アヘンの蓋の段1（旗 OpiumAddictionCapOff 既定 0・計器 habitcap_s）＝入れる（恒等・測った種で一致）。
+  反証役の high 1 件（InstrumentsHabitcap.cs が c6bk の消す InstrumentsLandfix.cs の LandfixR を 8 回呼ぶ＝両方を入れると CS0103）は合流の直しで晴らす：
+  InstrumentsHabitcap.cs に局所の HabitcapR（中身は LandfixR と同じ `v.ToString("R", CultureInfo.InvariantCulture)`）を置いて 8 か所を付け替える＝文字の移し替えだけ（線の変更ではない）。habitcap_s がバイトで同じかを §3 の予言で確かめる。
+  線の担当が指示から外した 1 か所（計器の行を `if (insOn && !world!.WarmupFrozen)`）は受け入れる（線の推奨・恒等の判定は変わらない）。
+- c6sp (772) SelfPlay の点火済みの旗 3 本の焼き込み＝入れる（恒等・測った種で一致）。欄 StanceEduHoldsLaw・MilitarizeAgrarianTaxes・MilitarizeEducationDrive（Coefficients.cs:2494-2496）を合流で墓標 1 行へ（c5bk の型＝Coefficients.cs:930）。DormantIdentityTests.cs:36 の注・scripts/instruments/edq/stage0_edq.py:6 の注に〈焼き込み済み〉。
+- c6pr (770) 港の選び方のやり直し（旗 PortByLandRoute 既定 1・計器 portch_s）＝入れる。反証役に high なし。
+  medium 1（港が変わった行の 14〜16% が別の陸塊の港へ移る＝陸路 km は迂回を含み大圏は含まない＝島と別陸塊の港へ構成上寄る・この形に固有の誤りを測る上限の門が無い）は記録して次の波の事前登録の上限の門〈港が変わった行のうち新の港が別陸塊の割合〉へ。
+  low（U2 は飛び地の遠さを数えた・Discovery.cs:1013 の RailCostIndex も PortLandKm を読む・Simulation.cs:614 と Instruments.cs:1988 の注が古い）は合流で注を直し、記録に書く。
+  旗の既定：線の担当＝1・合流＝1（食い違いなし）。
+- 外す線は無い（high が晴れない線は無い）。読むだけの 4 本は 00一覧と実装ログへ写す（腕なし）。
+
+■ 2. merge の衝突の見込みと順
+- 順＝c6bk → c6op → c6sp → c6pr（恒等の線が先）。
+- c6op：git の衝突なし（Instruments.cs は OpiumRows の直後・c6bk の消す行は :1844＝離れている）。ただし上の LandfixR の直しをこの merge の直後に 1 コミット。
+- c6sp：衝突なし（SelfPlay.cs と StanceEduHoldsLawTests.cs だけ）。直後に欄の墓標と注のコミット（DormantIdentityTests〈係数は全て本体のどこかで読まれる〉の赤 3 名が消える）。
+- c6pr：Instruments.cs で衝突（c6pr は LandfixTable の直前に PortchTable の 1 行・c6bk は LandfixTable の行を消す）＝PortchTable を残し LandfixTable を消す。PortchClose の行は IdnClose の直後で衝突なし。
+  Coefficients.cs で衝突（c6pr は LandGraphFixRows の直前に PortByLandRoute の 2 行・c6bk は LandGraphFixRows を墓標へ）＝PortByLandRoute の 2 行を残し、その後に c6bk の墓標の行。
+  直後に注のコミット（Simulation.cs:614 の WirePortDistances の summary・Instruments.cs:1988 前後の RouteKm の注〈同じ国の港を大圏の最短で選び〉・scripts/instruments/m764/rec764.sh の頭に〈gate762.py は (769) で削除＝2d341586 以前の木で回す〉）。
+- 全ての merge コミットの最後に Co-Authored-By（`# Conflicts:` の行は消す）。コミットの前に git ls-files --eol。
+
+■ 3. 合流の木 M（4 線・既定）の予言
+- M の計器つき 10 種の成績表 ≡ measurements/b10_20261102_c6prB_ins（名乗り行の SOURCE-HASH を除く全行バイト一致）。
+  理由：c6bk・c6op・c6sp は恒等（測った種で一致）・c6pr は同じ基点 2d341586 からの線＝合わせた木の軌道は c6pr の腕 B と同じ。
+- S11（種 11〜20・計器つき）≡ measurements/b10s11_20261102_c6prB_ins（全行一致）。
+- M の素の 10 種（P）の成績表 ≡ M（全行一致）。素の 5 種（P5）＝新しい b5（比べる物は無い）。
+- .cost の推定 ≡ M 221.2 秒・S11 217.4 秒・件数の行も c6prB と一致（違うのは SOURCE-HASH・実測の CPU 秒・覆う割合だけ）。
+- 計器の表：M の生 ≡ c6pr の腕 B の生（D:/PoB_work/c6pr/out_c6prB_10/ins）から landfix_g・landfix_s を除き habitcap_s を足した物（既知の揺れ burscan_s の seconds・clock_s の C 行を除いてバイト一致）。portch_s は 10 種でバイト一致。
+  S11 の生 ≡ D:/PoB_work/c6pr/out_c6prS_10_s11/ins（同じ除き方）。
+  habitcap_s は旗 0 で c6op の生と別の軌道（c6pr が動かす）＝バイトの比べ物は無い。代わりに全行で usedNext＝oldNext（旗 0 の不変条件）を読む。
+- gate770.py（c6pr の事前登録 m770_20261102_prereg_pr.txt の門・閾値を変えない）を M と S11 に当てた値 ≡ measurements/gate770_20261102_c6prB_s1_10.txt・gate770_20261102_c6prB_s11_20.txt と同じ：
+  P1 外れ 0・P2 種の中央値 M 1.275／S11 0.919（≧0.231）・P3 M 8.76／S11 7.69（≧2.67）・U1 違反 0・U2 M 0.028／S11 0.001（≦0.15・判別力なしと名乗った門）。
+  最終の採否は S11 で 1 回だけ（同じ門）。
+- テスト：--list-tests は Category!=FullLength 2132＋0（c6bk）＋4（c6op）−3（c6sp）＋6（c6pr）＝2139・FullLength 3。
+  番人の取り直しの前の木の赤＝WriterRatchetTests の 3 行だけ（c6pr の報告の値＝建設 1957→2472・請求 1755→1984・覇権の判定 4515588→2733079 が合流の木でも出る見込み＝取り直しは合流の木の実測で）。
+  DormantIdentityTests の赤は欄の墓標で消える。OpeningBakeTests と PathGraphTests は緑のまま（barriers.json・places.json・world.json はバイト不変）。
+- 止める線：破綻 0/10・NaN 0・開幕の 1000 倍以上 0（plvl）・空洞化 1/10 未満 0 件（規則 A2・M・S11・N1・N2）・推定の計算量 ≦248.5 秒（221.2 の見込み）・savetest OK・leakhunt 保存則違反なし・機構のテスト（PortByLandTests・HabitTests・StanceEduHoldsLawTests・LandGraphFixTests ほか）緑。
+- 記録（採否に使わない）：exact 45.9／near 85.7（M）・46／86（S11）・NG 77（M・基準 m764 に対し新しい 9・外れた 28）・門 A′ 雑音の内（O 148.7・上限 212）・空洞化 1/4 未満 M 8・S11 5・貿易開放度 6.7%。
+  反証役の数え（港が変わった行のうち新の港が別の陸塊＝B 13.9%・S11 16.4%）と、Discovery.cs:1013 の機関車の必要性の読み手の追加（同じ盤面の新÷旧は合流では読まない＝次の波へ）。
+- 新しいヌル腕 N1・N2（SupplySlope 0.50000001／0.49999999・計器つき 10 種）は予言しない（新しい基線の幅を作るだけ）。
+- 予言が外れたとき：M が c6prB の成績表と 1 行でも違えば止める（恒等の線の合わせの証拠はこの一致だけ）。合流の木の旗 0（POB_COEF PortByLandRoute=0）の計器つき 10 種を回し、m764_ins との一致（landfix の表を除き habitcap_s・portch_s を足す）で恒等の線の合成を切り分ける。当たれば旗 0 の切り分けの腕は回さない（前例 (764)）。
+
+■ 4. 番人の取り直し（区分を先に名乗る）
+- WriterRatchetTests の 3 行＝計算量の宣言の表＝README ★(749) の区分（合流の木の実測で 1 回・注に〈表の更新（線 c6pr＝軌道が動いた分の宣言・新しい計数の処理は無い）〉と前後の値）。
+- ★(743) ①〜④・★(764) の焼き直しは無い見込み（入力の資源は不変）。機構の向き・大きさ・判定・母集合の Assert は書き換えない。
+- 線の中で書き換えたテスト（verdict に列挙）：c6bk LandGraphFixTests.cs:7・:9 の注だけ／c6op HabitTests.cs:39・:84・:212（★(743)②）と :17 の後の旗 0 の明示 1 行／c6sp StanceEduHoldsLawTests.cs（★(743)① と ④〔④ は合流の欄の削除と組＝この合流で前提が揃う〕）。
+
+■ 5. 腕（6 本を 1 回に・腕の上限 6）
+M（計器つき 10 種）・P（素の 10 種）・P5（素の 5 種）・N1（計器つき 10 種・SupplySlope=0.50000001）・N2（0.49999999）・S11（計器つき 10 種・種 11〜20）。駆動＝scripts/instruments/m773/arm.sh（git archive の HEAD）。
+腕の前に合流の木で Release のビルドと --list-tests（2139／3）と関係するテストの組（PortByLandTests・HabitTests・LandGraphFixTests・StanceEduHoldsLawTests・DormantIdentityTests・OpeningBakeTests・PathGraphTests・WriterRatchetTests）を回し、赤が WriterRatchetTests の 3 行だけであることを確かめる。
+
+■ 6. 新しい基線（採ったら）
+- m773＝成績表 b10_20261102_m773（素の 10 種）・b5_20261102_m773・b10_20261102_m773_ins・種 11〜20 b10s11_20261102_m773_ins・ヌル腕 _m773_n1_ins・_n2_ins。
+- 生は D:/PoB_work/keep_773（base_ins・n1・n2・a11）・keep_764 は keep_773 ができ、記録の読み（ヌル腕の比べ）を終えたら消す。NG の新しい基準 rd:measurements/ng773_20261102:m773。ident.cfg を m773 へ（TESTS_NONFULL 2139・計器の表の増減＝landfix_g・landfix_s −・habitcap_s・portch_s ＋）。
+
+■ 7. 事前登録の点検
+- 補給崩壊の倍・10pt・NG の正味を門にしていない。符号だけの門・最大以下の門・尾の門・史実の大きさの門なし（門は c6pr の事前登録の物をそのまま使う）。
