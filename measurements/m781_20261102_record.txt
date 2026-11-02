@@ -1,0 +1,38 @@
+# (781) 波58 c8ii の記録（継いだ意志の計器の直し・恒等の線）。事前登録 measurements/m781_20261102_prereg_ii.txt。
+
+## 入れた物
+- inheritintent_s：送り手の World が四半期の末より前に sim.Nations から消えても（再併合・全滅した国の割譲）E の行が出る＝移しを蓄えた World を試合（Diplomacy）の登録簿にも覚え、sim.Nations の順の行（旧と同じ順）の後ろへ追記。
+  列を末尾に 2 本：inProgressAtTransfer・stateTargetPrereg（事前登録 m774 の文の規則 min(旧の意志, 棟数＋工事中なら 1)・エンジンの DroppedStateTarget を呼ばずに独立に書く）。Q の行は空。
+- 新しい表 inheritpar_s（14 列）：transferQuarter・toNation・region・producer・inProgressAtTransfer・completedQuarter・parallelStarts・parallelStartsOwnBaseline・fromNation・how・stateTargetOld・builtCount・windowQuarters・ownExposureRegionQuarters。
+- 触った行：InstrumentsInheritIntent.cs（本体）・Instruments.cs の 3 行（FacilityStarted の末尾に InheritParStarted、FacilityCompleted の先頭に InheritParCompleted、Close に InheritIntentClose）・Territory.cs は変更なし。
+- ident の道具：scripts/instruments/ident/ident_check.py と ident.sh に宣言 --rows-grown-ok（基準の行が腕の行の順序つき部分列であれば行が増えてよい）を 1 本足した（既存の宣言は変えない）。再併合の行が増える計器の表を、順序と既存の行を縛ったまま通すため。
+- 機構のテスト 4 本（InheritIntentTests.cs に足すだけ）：再併合で送り手がsimから消えてもEの行が出る／事前登録の規則の列は工事中なら棟数足す1_それ以外は棟数／計器は世界を書かない／継いだ工事の窓の間の並行の着工と自国の基準を数える。Category!=FullLength 2153→2157。
+
+## 判定
+- ident：判定: 恒等（measurements/ident_20261102_c8ii.txt）。素の 5 種・計器つき 10 種が m778 と名乗り行を除いて全行バイト一致・.cost 一致（推定 223.0／220.8 秒）・計器の表はバイト一致 903 本＋既知の揺れ 20＋宣言された増減 28（腕にだけ 10＝inheritpar_s・列が増えた 10＝inheritintent_s・行が増えた 8＝再併合の 63 行）・注視の表一致・savetest OK・leakhunt 保存則違反なし・テスト数は宣言どおり。
+  〈測った種で一致〉と名乗る（SOURCE-HASH 9b942a4a0a1cce02・測った木 4886603c）。
+- テスト：Category!=FullLength 2157（合格 2156・スキップ 1〔旧からの TechInstitutionTests の 1 本〕・失敗 0・21 分 32 秒）・FullLength 3 全て緑（6 分 15 秒）・InheritIntentTests 10 本（既存 6＋新 4）は 3 回繰り返しても緑。--list-tests の件数と合計が一致。出力 measurements/m781_20261102_tests.txt。
+- ident に足した宣言 --rows-grown-ok の負の確かめ：基準の行の入れ替え・欠け・値の変更の腕は全て ROWS_NOT_SUBSEQUENCE で落ちる（measurements/m781_20261102_rowsgrown_neg.txt）。ident の実行の宣言は --added-tables inheritpar_s --grown-ok inheritintent_s --rows-grown-ok inheritintent_s --tests-delta 4 --saveleak。
+- 2 回目の ident（ラベル c8iing・--no-tests --ng・測った木 2ddc2fc5 の clean な木・measurements/ident_20261102_c8iing.txt）も〈判定: 恒等〉・SOURCE-HASH は 1 回目と同じ 9b942a4a0a1cce02。NG 89 件・新しい 0・外れた 0（基準 rd:measurements/ng778_20261102:m778）。計器つき 10 種の inheritintent_s・inheritpar_s は 1 回目とバイト一致（再現）。
+- 突然変異 5 本（measurements/m781_20261102_mutation_tests.txt）：登録簿を外す→再併合のテストが赤・事前登録の列を棟数のまま→規則の列のテストが赤・窓が閉じた後も数える→並行のテストが赤・自国の基準を移った州で数える→並行のテストが赤・計器が世界を書く→ビット一致のテストが赤。全て赤。
+
+## 数え（計器つき 10 種の生・台本 measurements/m781_20261102_count_ii.py・出力 measurements/m781_20261102_count_ii_b10.txt）
+| 量 | 値 |
+|---|---|
+| E の行 | 974（旧の計器 911＋再併合 63）・Ceded 836・Seceded 75・Returned 63 |
+| ① 再併合の行 | 0 → 63 行（8／10 種に出る・種ごと 3〜11） |
+| 工事中で継いだ行 | 88（E の 9.0%）・Ceded 77・Seceded 8・Returned 3・全て試合の終わりまでに完成 |
+| ② parallelStarts≧1 | 5 行／88（5.7%）・Σ parallelStarts＝5 |
+| ③ 窓の標本 | Σ windowQuarters＝1,947（窓が 40 四半期以上の 9 行が 1,515・そこの並行は 0）・40 未満の 79 行が 432（並行 5） |
+| ③ 自国の基準 | Σ parallelStartsOwnBaseline＝0／Σ ownExposureRegionQuarters＝1,359（40 未満の行の中では 0／511） |
+| ③ 率 | 率_継ぎ 0.0026（40 未満の行だけなら 0.0116）・率_自国 0.0004（基準 0 件につき 0.5 件を置いた）・比 6.98 |
+| ④ prereg≠used | 85 行（E の 8.7%・Ceded 77・Seceded 8）・その parallelStarts は Σ5・≧1 が 5 行（結合できなかった行 0） |
+- 事前登録 [4] の規則（Σ parallelStarts≧10 かつ 率_継ぎ≧10×率_自国）：Σ parallelStarts＝5＜10 なので〈測れない・記録〉。比 6.98 は閾値 10 に届かず、そもそも自国の基準が 0 件で下限の置き方に左右される。
+- 読み：並行の着工は継いだ 88 行のうち 5 行でだけ起きた（すべて窓が 1〜4 四半期の Ceded）。自国の工事の工事中に同じ受け手が別の州で着工する例は、曝露 1,359 州四半期の間に 0 件。
+  継いだ側と同じ率（40 未満の窓で 0.0116／州四半期）なら自国の曝露 511 で期待 5.9 件のところ 0 件＝弱い示唆（件数が少ない）。反証役の推測〈工事中の下げが受け手の並行の着工を許す〉は、向きは合うが大きさは小さい（数えた事象 5 件）。
+- 副次の所見（記録）：継いだ工事のうち 9 行は窓が 40 四半期以上（最大 490：モロッコ領カナダの革 q100→q590・オーストリア領カナダの革 q89→q352 ほか）＝長く止まったままの継いだ工事がある。止まっている間の並行の着工は 0。止まりの原因は読んでいない。
+
+## 次の波への推奨（AI の推奨・作者の承認は未確認）
+- 〈事前登録の形 (a)＝工事中は units＋1〉の挙動の線は今は推奨しない（測れない）。件数が足りないのは事象の少なさ（10 種で 5 件）で、挙動の線にしても動く量は 1 試合あたり 0.5 件の着工の許可の差にとどまる見込み。
+- 続けて数えたいなら、同じ計器を種 11〜20（keep_778/a11 の腕）に当てて 10 件を超えるかを 1 回読む（挙動を変えない腕・約 12 分・ヌル腕不要）。10 件を超えて比が 10 以上になれば挙動の線を推奨、そうでなければ閉じる。
+- 副次の所見の窓が 40 四半期以上の継いだ工事（カナダの革ほか）は、止まりの原因を読むだけの線の候補（工事が進まない州での国庫の払いと材料の不足か）。

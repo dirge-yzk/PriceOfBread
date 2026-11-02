@@ -1,0 +1,14 @@
+# c8ii_ident_b10  種 10：[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+① E の行（移しの事象の生産者ごと）の種類別：Ceded=836・Returned=63・Seceded=75
+   再併合の行 63 行（行のある種 8／10）  種ごと：{1: 3, 2: 8, 3: 9, 4: 8, 5: 10, 7: 8, 8: 6, 10: 11}
+   inheritpar_s の行 974（E の行 974。差は同じ四半期の再移しなどで窓を持たない行・または E が 0 行の種）
+② 工事中で継いだ行 88（E の行の 9.0%）：完成 88・打ち切り（試合の終わりまで未完成）0
+   parallelStarts≧1 の行 5（5.7%）・分布 {0: 83, 1: 5}
+   完成：行 88・parallelStarts≧1 5・Σpar 5・Σ窓 1947
+③ Σ parallelStarts=5・Σ windowQuarters=1947・Σ parallelStartsOwnBaseline=0・Σ ownExposureRegionQuarters=1359
+   率_継ぎ=0.0026（件/窓の四半期）・率_自国=0.0004（件/州四半期・基準 0 件なので 0.5 件を置いた）・比=6.98
+   （参考）窓の標本が 1 以上の行 88：Σpar=5・Σ窓=1947・parallelStarts≧1 の行 5
+   （参考）窓の長さ：中央値 4・最大 490・窓が 40 四半期以上の行 9（Σ窓 1515・Σpar 0）・40 未満の行 79（Σ窓 432・Σpar 5・Σ自国の基準 0・Σ自国の曝露 511）
+④ E の行 974・うち工事中 88・stateTargetPrereg≠stateTargetUsed の行 85（8.7%）  うち how：{'Seceded': 8, 'Ceded': 77}
+   その行の parallelStarts：Σ=5・≧1 の行 5・結合できなかった行 0
+判定の推奨：測れない・記録（Σ parallelStarts＜10）

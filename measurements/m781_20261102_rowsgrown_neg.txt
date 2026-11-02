@@ -1,0 +1,5 @@
+# (781) ident_check.py の --rows-grown-ok の負の確かめ（使い捨ての 3 行の表・cols_diff(基準, 腕, {}, rows_grown=True) の宣言の無い違い）
+ok    （基準の行の間に別の行を足した腕）[]
+swap  （基準の 2 行の順序を入れ替えた腕）['ROWS_NOT_SUBSEQUENCE']
+lost  （基準の 1 行を欠いた腕）['ROWS_NOT_SUBSEQUENCE']
+chg   （基準の 1 行の値を変えた腕）['ROWS_NOT_SUBSEQUENCE']

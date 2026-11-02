@@ -1120,6 +1120,7 @@ public static partial class Instruments
         st.FacStarted++; if (closed) st.FacStartedClosed++;
         st.FacStartedGoods.Add(Catalog.Goods[p.GoodId].Name);
         StartGates.GetValue(p, _ => new GateAtStart()).Closed = closed;
+        InheritParStarted(w, r, p);   // (781) 継いだ工事の窓の間の並行の着工の数え（InstrumentsInheritIntent.cs）
     }
 
     // ---------------------------------------------------------------- 輪と動詞の個体の食い違い（(263) 線E2 A） ----------------------------------------------------------------
@@ -1188,6 +1189,7 @@ public static partial class Instruments
     /// 着工の時点でも閉じていた分と、工期の途中で（後継の発見により）閉じた分は、最後の列が分ける。</summary>
     internal static void FacilityCompleted(World w, Region r, Producer p)
     {
+        InheritParCompleted(w, p);   // (781) 継いだ工事の窓を閉じる印
         var st = S(w);
         st.FacDone++;
         if (Discovery.Gate(r, p) > 0) return;
@@ -1877,6 +1879,7 @@ public static partial class Instruments
         SilverParityClose(sim);   // (775)
         PortchClose(sim);    // (770)
         PortlmClose(sim);    // (777)
+        InheritIntentClose(sim);   // (781) 開いたままの継いだ工事の窓を書く
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)

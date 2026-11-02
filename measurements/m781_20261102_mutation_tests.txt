@@ -1,0 +1,9 @@
+# (781) c8ii 機構のテストの突然変異（コミット済みの木 4886603c）
+M1_登録簿を外す（消えた送り手の行を出さない）	赤になるはずのテスト＝再併合で送り手がsimから消えてもEの行が出る	赤になった＝はい	失敗 PriceOfBread.Tests.InheritIntentTests.再併合で送り手がsimから消えてもEの行が出る [1 s]	失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+M2_事前登録の列を棟数のまま（工事中の+1 を落とす）	赤になるはずのテスト＝事前登録の規則の列は工事中なら棟数足す1_それ以外は棟数	赤になった＝はい	失敗 PriceOfBread.Tests.InheritIntentTests.事前登録の規則の列は工事中なら棟数足す1_それ以外は棟数 [1 s]	失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+M3_窓が閉じた後も並行の着工を数える	赤になるはずのテスト＝継いだ工事の窓の間の並行の着工と自国の基準を数える	赤になった＝はい	失敗 PriceOfBread.Tests.InheritIntentTests.継いだ工事の窓の間の並行の着工と自国の基準を数える [5 s]	失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+M4_自国の基準を受け手の別の州でなく移った州で数える	赤になるはずのテスト＝継いだ工事の窓の間の並行の着工と自国の基準を数える	赤になった＝はい	失敗 PriceOfBread.Tests.InheritIntentTests.継いだ工事の窓の間の並行の着工と自国の基準を数える [6 s]	失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 22 s - PriceOfBread.Tests.dll (net10.0)
+M5_計器が世界を書く（Before/After の After で棟を動かす）	赤になるはずのテスト＝計器は世界を書かない_計器なしと計器つきで世界の量がビット一致	赤になった＝はい	失敗 PriceOfBread.Tests.InheritIntentTests.計器は世界を書かない_計器なしと計器つきで世界の量がビット一致 [5 s]	失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+# 終わり（木は git checkout で戻した）：?? measurements/m781_20261102_count_ii.py
+?? measurements/m781_20261102_mutation_tests.txt
+?? scripts/instruments/c8ii/

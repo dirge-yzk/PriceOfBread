@@ -133,4 +133,163 @@ public class InheritIntentTests
             try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
         }
     }
+
+    // ---------------------------------------------------------------- (781) c8ii 継いだ意志の計器の直し ----------------------------------------------------------------
+
+    static (string[] Header, List<string[]> Rows) ReadTable(string dir, string file)
+    {
+        var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, file));
+        return (lines[0].Split('\t'), lines.Skip(1).Select(l => l.Split('\t')).ToList());
+    }
+
+    static string NewDir() => System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_inherit_" + Guid.NewGuid().ToString("N"));
+
+    static void RelayBoard(World uk, Region r)
+    {
+        for (int i = 0; i < Layout.Length; i++) { var p = r.Producers[i]; p.BuiltScale = Layout[i].Built * uk.Coef.FactoryBuildScale; p.StateTarget = Layout[i].Target; p.ConstructionLeft = 0; }
+        for (int i = Layout.Length; i < r.Producers.Count; i++) r.Producers[i].StateTarget = 0;
+    }
+
+    [Fact]
+    public void 再併合で送り手がsimから消えてもEの行が出る()
+    {
+        string dir = NewDir();
+        Instruments.Configure(dir, null);
+        var (sim, uk, fr, r, _) = Setup(1.0);
+        try
+        {
+            Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, 1789UL, "warm");
+            RelayBoard(uk, r);
+            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Returned);
+            sim.StepQuarter();
+            sim.Nations.RemoveAll(n => n.World == uk);   // 再併合の反乱国は四半期の末より前に sim.Nations から消える
+            Assert.DoesNotContain(sim.Nations, n => n.World == uk);
+            Instruments.Quarter(sim, 1789UL, 3);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        var (h, rows) = ReadTable(dir, "inheritintent_s1789.tsv");
+        int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
+        var ev = rows.Where(x => x[I("scope")] == "E").ToList();
+        Assert.Equal(4, ev.Count);
+        Assert.All(ev, x => { Assert.Equal("Returned", x[I("how")]); Assert.Equal("イギリス", x[I("fromNation")]); Assert.Equal("フランス", x[I("toNation")]); });
+        Assert.Equal([5, 3, 1, 4], ev.Select(x => int.Parse(x[I("stateTargetOld")])).ToArray());
+        try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
+    }
+
+    [Fact]
+    public void 事前登録の規則の列は工事中なら棟数足す1_それ以外は棟数()
+    {
+        string dir = NewDir();
+        Instruments.Configure(dir, null);
+        var (sim, uk, fr, r, _) = Setup(1.0);
+        try
+        {
+            Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, 1789UL, "warm");
+            RelayBoard(uk, r);
+            r.Producers[0].ConstructionLeft = 50; r.Producers[1].ConstructionLeft = 50;   // 生産者 0（棟 2・意志 5）と 1（棟 3・意志 3）が工事中
+            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+            sim.StepQuarter();
+            Instruments.Quarter(sim, 1789UL, 3);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        var (h, rows) = ReadTable(dir, "inheritintent_s1789.tsv");
+        int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
+        var ev = rows.Where(x => x[I("scope")] == "E").ToList();
+        Assert.Equal(4, ev.Count);
+        Assert.Equal([1, 1, 0, 0], ev.Select(x => int.Parse(x[I("inProgressAtTransfer")])).ToArray());
+        Assert.Equal([3, 3, 1, 0], ev.Select(x => int.Parse(x[I("stateTargetPrereg")])).ToArray());   // 工事中は棟数＋1 まで（2+1＝3・3+1 は意志 3 で頭打ち）・それ以外は棟数以下の意志は動かさず棟数 0 は 0
+        Assert.Equal([2, 3, 1, 0], ev.Select(x => int.Parse(x[I("stateTargetUsed")])).ToArray());     // 実際（旗 1）は工事中も棟数まで
+        Assert.All(rows.Where(x => x[I("scope")] == "Q"), x => { Assert.Equal("", x[I("inProgressAtTransfer")]); Assert.Equal("", x[I("stateTargetPrereg")]); });
+        try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
+    }
+
+    static double[] WorldVector(MultiNationSim sim)
+    {
+        var v = new List<double>();
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            v.Add(w.Treasury.Value); v.Add(w.Regions.Count);
+            foreach (var rg in w.Regions)
+            {
+                v.Add(rg.SumSavings().Value); v.Add(rg.SumPopulation());
+                foreach (var pr in rg.Producers) { v.Add(pr.BuiltScale); v.Add(pr.StateTarget); v.Add(pr.ConstructionLeft); v.Add(pr.Scale); }
+            }
+        }
+        return v.ToArray();
+    }
+
+    [Fact]
+    public void 計器は世界を書かない_計器なしと計器つきで世界の量がビット一致()
+    {
+        double[] Run(bool ins)
+        {
+            string dir = NewDir();
+            if (ins) Instruments.Configure(dir, null);
+            var (sim, uk, fr, r, _) = Setup(1.0);
+            try
+            {
+                if (ins) Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                if (ins) Instruments.Phase(sim, 1789UL, "warm");
+                RelayBoard(uk, r);
+                r.Producers[0].ConstructionLeft = 50;
+                Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Returned);
+                sim.StepQuarter();
+                if (ins) Instruments.Quarter(sim, 1789UL, 3);
+                sim.StepQuarter();
+                if (ins) Instruments.Quarter(sim, 1789UL, 4);
+                return WorldVector(sim);
+            }
+            finally { if (ins) { Instruments.Close(sim); Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { } } }
+        }
+        var off = Run(false); var on = Run(true);
+        Assert.Equal(off.Length, on.Length);
+        for (int i = 0; i < off.Length; i++) Assert.True(BitConverter.DoubleToInt64Bits(off[i]) == BitConverter.DoubleToInt64Bits(on[i]), $"世界の量 {i} が計器の有無で違う {off[i]} / {on[i]}");
+    }
+
+    [Fact]
+    public void 継いだ工事の窓の間の並行の着工と自国の基準を数える()
+    {
+        string dir = NewDir();
+        Instruments.Configure(dir, null);
+        var (sim, uk, fr, r, _) = Setup(1.0);
+        string Name(Region reg, int i) => Catalog.Goods[reg.Producers[i].GoodId].Name;
+        string n0 = "", n1 = "", n2 = "", n3 = "";
+        try
+        {
+            Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, 1789UL, "warm");
+            RelayBoard(uk, r);
+            var g = fr.Regions.Find(x => x.Id != 0 && x.Tier == RegionTier.Core)!;   // 受け手自身の州
+            n0 = Name(r, 0); n1 = Name(r, 1); n2 = Name(r, 2); n3 = Name(r, 3);
+            r.Producers[0].ConstructionLeft = 50; r.Producers[3].ConstructionLeft = 50;   // 継ぐ工事 2 つ
+            g.Producers[0].ConstructionLeft = 30; Instruments.FacilityStarted(fr, g, g.Producers[0]);   // 受け手自身が g で始めた工事（自国の工事）
+            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+            r.Producers[2].ConstructionLeft = 40; Instruments.FacilityStarted(fr, r, r.Producers[2]);   // 移った州での別の生産者の着工＝並行 1
+            g.Producers[1].ConstructionLeft = 40; Instruments.FacilityStarted(fr, g, g.Producers[1]);   // 受け手の別の州 g で、自国の工事の工事中の着工＝自国の基準 1
+            Instruments.Quarter(sim, 1789UL, 3);
+            r.Producers[0].ConstructionLeft = 0; Instruments.FacilityCompleted(fr, r, r.Producers[0]);  // 継いだ工事 0 が完成
+            r.Producers[1].ConstructionLeft = 40; Instruments.FacilityStarted(fr, r, r.Producers[1]);   // 窓が開いたままの 3 だけが並行 2 になる
+            Instruments.Quarter(sim, 1789UL, 4);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        var (h, rows) = ReadTable(dir, "inheritpar_s1789.tsv");
+        int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
+        Assert.All(rows, x => Assert.Equal(h.Length, x.Length));
+        Assert.Equal(4, rows.Count);
+        string[] Row(string good) => rows.Single(x => x[I("producer")] == good);
+        int[] Vals(string[] x) => new[] { "inProgressAtTransfer", "completedQuarter", "parallelStarts", "parallelStartsOwnBaseline", "windowQuarters", "ownExposureRegionQuarters" }.Select(c => int.Parse(x[I(c)])).ToArray();
+        Assert.Equal([1, 4, 1, 1, 1, 1], Vals(Row(n0)));     // 完成した行：並行 1（完成の後の着工は数えない）・自国の基準 1・窓の標本 1 回
+        Assert.Equal([1, -1, 2, 1, 2, 2], Vals(Row(n3)));    // 開いたまま試合が終わった行：並行 2・窓の標本 2 回
+        Assert.Equal([0, -1, -1, -1, -1, -1], Vals(Row(n1))); // 工事中でなかった行は窓を持たない
+        Assert.Equal([0, -1, -1, -1, -1, -1], Vals(Row(n2)));
+        Assert.All(rows, x => { Assert.Equal("フランス", x[I("toNation")]); Assert.Equal("3", x[I("transferQuarter")]); Assert.Equal("Ceded", x[I("how")]); });
+        try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
+    }
 }
