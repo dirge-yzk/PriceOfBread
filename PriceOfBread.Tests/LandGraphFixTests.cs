@@ -4,8 +4,8 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(762) 陸グラフのデータの直し（峠 4 本の追加とドロミテの点・事前登録 measurements/m762_20261102_prereg_lg.txt の §6）の番人。
-/// 旧の値は 191ca9c8 の陸グラフを別の木で数えた定数（コードから期待値を作らない）。旗 LandGraphFixRows の既定（1）で読む。
-/// 突然変異（Release で回して戻した）：測った結果＝M-flag0＝旗の既定を 0（①②④が赤・8 本）／M-slot＝足した峠が既存の点の枠を食う（②③が赤）／M-dolo46.4＝ドロミテを 46.4 のまま（①②が赤・2 本）（事前登録の予言は M-flag0＝①②・M-dolo46.4＝①）。</summary>
+/// 旧の値は 191ca9c8 の陸グラフを別の木で数えた定数（コードから期待値を作らない）。(769) で旗 LandGraphFixRows を焼き込んだ（常に fix=1 の行を読む）。
+/// 突然変異（Release で回して戻した）：測った結果＝M-flag0＝旗の既定を 0（①②④が赤・8 本）／M-slot＝足した峠が既存の点の枠を食う（②③が赤）／M-dolo46.4＝ドロミテを 46.4 のまま（①②が赤・2 本）（事前登録の予言は M-flag0＝①②・M-dolo46.4＝①）。M-flag0 は (769) の焼き込みで旗が無い＝fix=1 の行を読まない変異（PathGraph の Fix>0 の行を飛ばす）に読み替えて確かめる（(769) の記録）。</summary>
 public class LandGraphFixTests
 {
     private static double Land(string a, string b)

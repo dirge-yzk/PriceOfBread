@@ -111,7 +111,7 @@ public static class PathGraph
     //   ⚠静的フィールドはテキスト順に初期化される＝Nodes の構築より前に置く（構築中に呼ばれても null にならない）。セーブには載らない（静的）。
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(long, long), int> NearestMemo = new();
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(long, long, long, long), double> LandKmMemo = new();
-    // ★(762) barriers.json の "fix": 1 の行（旗 LandGraphFixRows が正のときだけ読む）のうち、バリアでない点（峠）の印。⚠静的フィールドはテキスト順に初期化される＝Nodes（LoadNodes が書く）より前に置く。
+    // ★(762) barriers.json の "fix": 1 の行（(769) で焼き込み＝常に読む）のうち、バリアでない点（峠）の印。⚠静的フィールドはテキスト順に初期化される＝Nodes（LoadNodes が書く）より前に置く。
     private static bool[] Added = [];
     public static readonly Node[] Nodes = LoadNodes();
     private static readonly (int I, int J)[] Walls = BuildWalls();   // ★壁の線分（2026-09-05）。⚠静的フィールドはテキスト順に初期化される＝Edges より前に置く（Nodes と GeoCoef だけに依存）
@@ -133,13 +133,11 @@ public static class PathGraph
         using var rd = new StreamReader(st);
         var rows = System.Text.Json.JsonSerializer.Deserialize<BarrierRow[]>(rd.ReadToEnd(), WorldData.Options)
                    ?? throw new InvalidOperationException("barriers.json の読込に失敗");
-        // ★(762) 陸グラフのデータの直し：fix=-1 の行は旗が正のとき読まない（置き換えられる旧の行）・fix=1 の行は旗が正のときだけ読む。旗 0 では fix=1 の行を読まず、fix=-1 の行を従来どおり読む＝従来と同じ盤面。
-        bool fixOn = GeoCoef.LandGraphFixRows > 0;
+        // ★(762)(769) 陸グラフのデータの直し：fix=-1 の行は読まない（置き換えられた旧の行）・fix=1 の行は読む（旗 LandGraphFixRows は (769) で焼き込み済み＝1 の形だけを残した）。
         var addedIdx = new List<int>();
         foreach (var r in rows)
         {
-            if (r.Fix > 0 && !fixOn) continue;
-            if (r.Fix < 0 && fixOn) continue;
+            if (r.Fix < 0) continue;
             if (r.Fix > 0 && r.Kind != "barrier") addedIdx.Add(list.Count);
             list.Add(new Node(r.Name, r.Kind, r.Lat, r.Lon));
         }
@@ -154,7 +152,7 @@ public static class PathGraph
         public double Lat { get; set; }
         public double Lon { get; set; }
         public string Kind { get; set; } = "barrier";
-        public int Fix { get; set; }   // ★(762) 0＝従来の行・1＝旗が正のときだけ読む行・-1＝旗が正のとき読まない行
+        public int Fix { get; set; }   // ★(762)(769) 0＝従来の行・1＝足した行（常に読む）・-1＝置き換えられた旧の行（読まない）
     }
 
     /// <summary>★陸橋（地峡）＝別の陸塊どうしが**歩いて**繋がる場所（2026-08-02）。
