@@ -39,6 +39,7 @@ public static partial class Instruments
         a.Before = stock; a.Used = u; a.Old = o; a.New = n;
         a.Excess += n - o;
         if (n > a.NewMax) a.NewMax = n;
+        HabitBalStep(r, c, stock, perCapita, u);   // (787) 釣り合いの表の蓄え（係数だけから組み立てる＝Habit.Of を呼ばない）
     }
 
     /// <summary>四半期の末（<see cref="Quarter"/>）：蓄えた州の行を追記し、蓄えを 0 へ戻す。</summary>
@@ -62,6 +63,77 @@ public static partial class Instruments
         }
         System.IO.Directory.CreateDirectory(Dir);
         string path = System.IO.Path.Combine(Dir, $"habitcap_s{seed}.tsv");
+        var enc = new System.Text.UTF8Encoding(false);
+        if (!sk.Started) { System.IO.File.WriteAllText(path, sb.ToString(), enc); sk.Started = true; }
+        else System.IO.File.AppendAllText(path, sb.ToString(), enc);
+    }
+
+    // ---------------------------------------------------------------- (787) c9op アヘンの蓋の段2：釣り合いの表 habitbal_s（読むだけ・恒等） ----------------------------------------------------------------
+    // 目的＝蓋を外したときの上限の門を〈式から書いた釣り合い〉で読む。1 か月の更新 s' = s + G·pc − D·s（G＝成長・D＝減衰・pc＝1 人あたり消費）は、s ≦ (G/D)·pc なら s' ≦ (G/D)·pc、s がそれを超えていれば s' < s
+    //   ＝ s' ≦ max(s, (G/D)·pc) が蓋なしでも毎月成り立つ（減衰を壊した実装・成長を過大にした実装は破れる）。釣り合いの値は係数 OpiumAddictionGrowth・OpiumAddictionDecay から直に組む（Habit.Of・Habit.NextStock の式は使わない・実際の次の在庫 u だけを読む）。
+    // 表 habitbal_s（四半期の末・州の行・habitcap_s と同じ条件の州だけ）：
+    //   monthsCount＝口が呼ばれた月数／pcMaxPerMonth＝その四半期の 1 人あたり消費の最大（毎月）／stockBeforeMaxIndex・stockUsedMaxIndex＝前の在庫・実際の次の在庫の最大／
+    //   balViolMonthsCount＝s' が max(s, (G/D)·pc) を（相対 1e-9＋絶対 1e-15 を超えて）破った月数／balViolMaxIndex＝破った量の最大／floorMonthsCount＝実際の次の在庫で労働の床が効く月（害×在庫 ≧ 0.5）。
+    // ⚠限界（自己申告）：助走の月は数えない。1 人あたり消費 pc は州の売れた量÷州の人口で、人口の消費だけでなく工場の投入ほかを含む（産地・交易の州では高く出る＝依存の高さが人の消費の多さを意味しない）。
+    internal const string HabitbalHeaderText = "quarter	year	nationIndex	nation	region	monthsCount	pcMaxPerMonth	stockBeforeMaxIndex	stockUsedMaxIndex	balViolMonthsCount	balViolMaxIndex	floorMonthsCount";
+
+    sealed class HabitbalAcc
+    {
+        public int Months, ViolMonths, FloorMonths; public bool Seen;
+        public double PcMax, BeforeMax, UsedMax, ViolMax;
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, HabitbalAcc> HabitbalAccs = new();
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, HabitcapSink> HabitbalSinks = new();
+
+    /// <summary>釣り合いの上限 max(s, (G/D)·pc)。減衰が 0 以下なら上限なし(+∞)。係数だけから組む。</summary>
+    internal static double HabitBalCeiling(double growth, double decay, double stock, double perCapita)
+        => Math.Max(stock, decay > 0 ? growth / decay * perCapita : double.PositiveInfinity);
+
+    /// <summary>次の在庫 <paramref name="used"/> が釣り合いの上限を破るか（否定形＝NaN も破りとして数える）。</summary>
+    internal static bool HabitBalViolates(double growth, double decay, double stock, double perCapita, double used)
+    {
+        double ceil = HabitBalCeiling(growth, decay, stock, perCapita);
+        return !(used <= ceil * (1.0 + 1e-9) + 1e-15);
+    }
+
+    static void HabitBalStep(Region r, Coefficients c, double stock, double perCapita, double used)
+    {
+        var a = HabitbalAccs.GetValue(r, _ => new HabitbalAcc());
+        a.Months++;
+        if (stock > 0 || perCapita > 0) a.Seen = true;
+        if (perCapita > a.PcMax) a.PcMax = perCapita;
+        if (stock > a.BeforeMax) a.BeforeMax = stock;
+        if (used > a.UsedMax) a.UsedMax = used;
+        if (HabitBalViolates(c.OpiumAddictionGrowth, c.OpiumAddictionDecay, stock, perCapita, used))
+        {
+            a.ViolMonths++;
+            double over = used - HabitBalCeiling(c.OpiumAddictionGrowth, c.OpiumAddictionDecay, stock, perCapita);
+            if (over > a.ViolMax) a.ViolMax = over;
+        }
+        if (c.OpiumLaborPenalty * used >= 0.5) a.FloorMonths++;
+    }
+
+    /// <summary>四半期の末（<see cref="Quarter"/>）：蓄えた州の行を追記し、蓄えを 0 へ戻す。</summary>
+    static void HabitbalTable(MultiNationSim sim, ulong seed, int q)
+    {
+        var sk = HabitbalSinks.GetValue(sim, _ => new HabitcapSink());
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var sb = new System.Text.StringBuilder();
+        if (!sk.Started) sb.Append(HabitbalHeaderText).Append('\n');
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World;
+            foreach (var r in w.Regions)
+            {
+                if (!HabitbalAccs.TryGetValue(r, out var a)) continue;
+                if (a.Seen)
+                    sb.Append(string.Join('	', q.ToString(inv), w.Year.ToString(inv), i.ToString(inv), NameOf(w), r.Name, a.Months.ToString(inv),
+                        HabitcapR(a.PcMax), HabitcapR(a.BeforeMax), HabitcapR(a.UsedMax), a.ViolMonths.ToString(inv), HabitcapR(a.ViolMax), a.FloorMonths.ToString(inv))).Append('\n');
+                HabitbalAccs.Remove(r);
+            }
+        }
+        System.IO.Directory.CreateDirectory(Dir);
+        string path = System.IO.Path.Combine(Dir, $"habitbal_s{seed}.tsv");
         var enc = new System.Text.UTF8Encoding(false);
         if (!sk.Started) { System.IO.File.WriteAllText(path, sb.ToString(), enc); sk.Started = true; }
         else System.IO.File.AppendAllText(path, sb.ToString(), enc);

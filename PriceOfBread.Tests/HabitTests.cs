@@ -162,11 +162,12 @@ public class HabitTests
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
 
     /// <summary>英の最初の活きた州に中毒度 0.05 を置いて <paramref name="quarters"/> 四半期。計器を出すなら opium_s の読み先を返す。最後の英の州の中毒度と国庫のビット列も返す。</summary>
-    private static (long Digest, string? Dir) RunMatch(int quarters, bool instr)
+    private static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? capOff = null)
     {
         string? dir = instr ? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_opium_" + Guid.NewGuid().ToString("N")) : null;
         if (instr) Instruments.Configure(dir, null);
         var sim = MakeMatch();
+        if (capOff is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionCapOff = capOff.Value;   // (787) 旗を明示して回す（既定が 1 になっても旗 0 の経路の番人が動く）
         var uk = sim.Nations[2].World;
         var seeded = uk.Regions.First();
         seeded.OpiumAddiction = 0.05;
@@ -277,7 +278,7 @@ public class HabitTests
     public void アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい()
     {
         const int quarters = 12;
-        var (_, dir) = RunMatch(quarters, instr: true);
+        var (_, dir) = RunMatch(quarters, instr: true, capOff: 0);   // (787) 旗 0 を明示（旗 0 の経路の番人）
         try
         {
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitcap_s1789.tsv"));
@@ -308,6 +309,56 @@ public class HabitTests
                 compared++;
             }
             Assert.True(compared >= quarters, "突き合わせた行が少ない（主張が空洞）");
+        }
+        finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
+    }
+
+    // ---------------------------------------------------------------- (787) c9op アヘンの蓋の段2：釣り合いの表 habitbal_s ----------------------------------------------------------------
+
+    [Fact]
+    public void 釣り合いの上限と破りの判定は式の手の算術()
+    {
+        // 上限＝max(在庫, (成長/減衰)×消費)：成長 0.1・減衰 0.02 → 5×消費
+        Assert.Equal(2.0, Instruments.HabitBalCeiling(0.1, 0.02, 0.2, 0.4), 12);     // 5×0.4＝2.0 ＞ 在庫 0.2
+        Assert.Equal(3.0, Instruments.HabitBalCeiling(0.1, 0.02, 3.0, 0.4), 12);     // 在庫 3.0 ＞ 2.0 → 在庫
+        Assert.True(double.IsPositiveInfinity(Instruments.HabitBalCeiling(0.1, 0.0, 0.2, 0.4)));   // 減衰 0 以下は上限なし
+        // 式どおりの次の在庫は破らない：0.2＋0.1×0.4−0.02×0.2＝0.236 ≦ 2.0／釣り合いの値そのものも破らない
+        Assert.False(Instruments.HabitBalViolates(0.1, 0.02, 0.2, 0.4, 0.236));
+        Assert.False(Instruments.HabitBalViolates(0.1, 0.02, 2.0, 0.4, 2.0));
+        // 減衰を壊した次の在庫（0.2＋0.1×0.4＝0.24 は上限 2.0 の内だが、在庫が釣り合いの近くにあれば破る）
+        Assert.True(Instruments.HabitBalViolates(0.1, 0.02, 2.0, 0.4, 2.04));         // 減衰 0：2.0＋0.04 ＞ 上限 2.0
+        Assert.True(Instruments.HabitBalViolates(0.1, 0.02, 0.2, 0.4, 2.5));
+        Assert.True(Instruments.HabitBalViolates(0.1, 0.02, 0.2, 0.4, double.NaN));   // NaN は破りとして数える
+    }
+
+    [Fact]
+    public void 釣り合いの表は旗0で違反0_床0_蓋の表と月数が合う()
+    {
+        const int quarters = 12;
+        var (_, dir) = RunMatch(quarters, instr: true, capOff: 0);
+        try
+        {
+            var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitbal_s1789.tsv"));
+            var h = lines[0].Split('	'); var rows = lines.Skip(1).Select(l => l.Split('	')).ToList();
+            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
+            int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
+            double D(string[] r, string c) => double.Parse(r[I(c)], System.Globalization.CultureInfo.InvariantCulture);
+            Assert.Equal(rows.Count, rows.Select(r => (r[I("quarter")], r[I("nationIndex")], r[I("region")])).Distinct().Count());
+            Assert.True(rows.Count(r => r[I("nationIndex")] == "2") >= quarters, "種を置いた英の州の行が四半期ごとに出ていない");
+            foreach (var r in rows)
+            {
+                Assert.Equal(0, int.Parse(r[I("balViolMonthsCount")]));   // 旗 0（蓋あり）でも式の不変式は成り立つ
+                Assert.Equal(0, int.Parse(r[I("floorMonthsCount")]));     // 蓋 0.2×害 1.0 ＜ 0.5：労働の床は効かない
+                Assert.True(D(r, "pcMaxPerMonth") >= 0 && D(r, "stockUsedMaxIndex") >= 0 && D(r, "stockBeforeMaxIndex") >= 0);
+                Assert.InRange(D(r, "stockUsedMaxIndex"), 0, 0.2 + 1e-12);   // 旗 0：次の在庫は蓋 0.2 以下
+                Assert.True(D(r, "balViolMaxIndex") == 0);
+            }
+            // 蓋の表と同じ口：州×四半期の行の月数が一致する
+            var cl = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitcap_s1789.tsv"));
+            var ch = cl[0].Split('	'); int cq = Array.IndexOf(ch, "quarter"), cn = Array.IndexOf(ch, "nationIndex"), cr = Array.IndexOf(ch, "region"), cm = Array.IndexOf(ch, "monthsCount");
+            var capMonths = cl.Skip(1).Select(l => l.Split('	')).ToDictionary(r => (r[cq], r[cn], r[cr]), r => r[cm]);
+            Assert.Equal(capMonths.Count, rows.Count);
+            foreach (var r in rows) Assert.Equal(capMonths[(r[I("quarter")], r[I("nationIndex")], r[I("region")])], r[I("monthsCount")]);
         }
         finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
     }
