@@ -1,0 +1,7 @@
+# (781) 最終の木（SOURCE-HASH 9b942a4a0a1cce02 の機能のコード・測った木 4886603c）のテスト。2026-11-02
+## Category!=FullLength
+成功!   -失敗:     0、合格:  2156、スキップ:     1、合計:  2157、期間: 21 m 32 s - PriceOfBread.Tests.dll (net10.0)
+## --list-tests: Category!=FullLength 2157（基準 2153＋InheritIntentTests 4）・FullLength 3（ident の t 腕）
+## InheritIntentTests 10 本（既存 6＋新 4）は上の合計に含まれる（全て緑・3 回繰り返しても緑）
+## Category=FullLength
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 15 s - PriceOfBread.Tests.dll (net10.0)
