@@ -1,0 +1,17 @@
+(771) c6op アヘンの蓋 OpiumAddictionCap の段1（物差しの直しの線・旗 OpiumAddictionCapOff 既定 0・旧新の計器 habitcap_s）事前登録 2026-11-02
+基線＝m764（main 2d341586）。枝 c6op（2d341586 から）。段0 の読み手 (768) が決めた恒等の線。
+
+[1] 線の種類＝恒等（予言 0）。旗 OpiumAddictionCapOff 既定 0・挙動は変えない。尾でも入口でもなく、物差し（蓋）の外し方を旗で用意するだけ。
+    入れる物：Coefficients.OpiumAddictionCapOff（0＝蓋 0.2・正＝蓋なし）／Habit.Of の Cap の引数／計器 HabitCapPair・HabitCapStep・表 habitcap_s／テスト +4／DormantZeroFields 1 行。
+[2] 予言（腕の前に固定）：
+    - ident の素の 5 種・計器つき 10 種の成績表が m764 と名乗り行を除いて全行バイト一致。
+    - 計器の生は habitcap_s が増えるだけ（--added-tables habitcap_s）。既存の表の列と行は変わらない。
+    - テストは Category!=FullLength が 2132 から +4（HabitTests に 4 本）。FullLength は 3 のまま。
+    - .cost の件数の行は m764 と一致（計器は insOn の中だけ・計算量の推定は変わらない）。
+    - 旗 0 の habitcap_s では全ての行で usedNext＝oldNext＝min(newNext, capIndex)（ビット一致）。
+[3] 採否＝ident の判定が〈恒等〉なら採る（〈測った種で一致〉と名乗る・証明とは書かない）。〈不一致〉なら原因の項目を戻して報告（物差しを替えて通さない）。
+[4] テストの書き換え：HabitTests の :39・:84・:212 は ★(743)② （比べる double が既定で同じ 0.2＝期待を行の Cap から読む）。:20 は書き換えない（期待側を行から読むと同語反復）＝直前に旗 0 の明示 1 行を足す。:7 の注の足し。
+[5] 段2（既定 1）の門は次の波で事前登録する（habitcap_s の bindMonthsCount・excessSumIndex で蓋が外れた量を両側で読む・労働の床 0.5 への張り付きを上限の門）。この線では門にしない。腕 B（旗 1）はこの回に回さない。
+[6] 確証＝蓋を外す形は AI の推奨（確証なし）。蓋 0.2 を外すと張り付きが労働の床 0.5（Habit.LaborFactor）へ移る見込み（Coefficients.cs の注〈Growth 0.2 は発散で却下〉）。
+[7] 突然変異（使い捨ての木で赤を確かめる）：M1 Habit.Of が旗を読まない／M2 旗の向きの反転／M3 Old を +∞ で計算／M4 New を Cap で計算／M5 計器の行を更新の後へ移す／M6 計器が region.OpiumAddiction に書く。
+[8] 計算量：割り当て 0 秒（計器は insOn の中だけ）。
