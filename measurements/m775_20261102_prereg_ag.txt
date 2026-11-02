@@ -1,0 +1,69 @@
+# (775) 波57 c7ag の事前登録（銀の平価の自己参照を断つ＝休眠の器 SilverParityFromRatio の点火）。腕・実装・結果より前に書く。
+# 区分 III の挙動の線。形：〈入口〉（銀本位国の為替 E の平価の元 WorldSilverPrice が変わる＝全ての銀本位国の E・対外債務の金建て負担 b が動く）。1 テーマ 1 計測＝旗は 1 つ（SilverParityFromRatio）。
+# 出発＝(767) の銀の為替の読み（docs/202609/99_実装ログ_20260903.md の (765)〜(767) と 00一覧 §0-2 ★(773)・measurements/r766_20261102）。
+#   E が天井 3.0（1843〜99 年）と下限 0.30（1802〜24 年）に張り付く根＝挟みでなく自己参照（E → 表示用の世界の銀の値段 Market.Price[銀] → 平価 → E）。
+#   Market.Price[銀]＝参加州の〈局所価格×その国の ExchangeRate〉の算術平均（BilateralMarket.cs の平均価格の節・RefPrice×[0.1,10] に挟む表示用の統計）。銀本位国の E は parity＝GoldParity×(WorldSilverPrice/Ref を [0.3,3] に挟む) を Convertibility で混ぜた目標へ寄る（World.cs の為替の節）。
+#   E_ag ≈ silverRel ≈ w·E_ag·m_ag + (1−w)·mE_他（w＝銀本位国の州の割合・m_ag＝銀本位国の州の局所の銀の値段÷Ref）＝不動点 E* = (1−w)·mE_他 / (1−w·m_ag)。輪の利得 w·m_ag がほぼ 1 のとき E* は発散し挟みに貼り付く。
+# 直す形＝休眠の器 SilverParityFromRatio（Coefficients.cs・MultiNationSim.cs の注入の節の 1 行）。平価を、世界の金銀比 rel×RefPrice[銀] から取る（rel＝同じ市場の 銀/金鉱 の価格比の生きた州の対数平均÷RefPrice の比＝通貨と PriceLevel が約分されて単位を持たない）。
+#   E が平均に入らない＝輪が切れる。読み手（World の平価・Fiscal の金建て負担 b・PolicyPreferences の銀下落）は WorldSilverPrice のまま不変。
+# **これは AI の推奨であって作者の指示ではない（確証なし）**。R1（この器の点火）は (204)(207)(214) で 3 回差し戻されたが、理由は史実の線か NG＝作者 2026-10-17「史実度の低下は差し戻し理由にはなりません」の物差しでは記録。
+#   作者「バランスより正しい挙動を優先してください」。今回は〈機構が狙いどおり働くか〉の観測量だけで採否を決める。
+# 触らない：World.cs の挟み（ExchangeRateFloor 0.3・天井）と Fiscal.cs の b（読み手のまま・挟みの削除は後の恒等の線）。器の中身は変えない。新しい係数の数値 0・新しい状態変数 0。
+
+## 0. 形（旗と計器）
+旗 SilverParityFromRatio：線の枝の最後のコミットで既定 0→1（腕 B）。それまでの全てのコミットは既定 0＝旧と全行バイト一致（ident で証明）。
+計器 silverpar_s（InstrumentsSilverParity.cs・読むだけ・計器が on のときだけ・MultiNationSim の注入の直後に呼ぶ＝注入と同じ盤面・四半期ごと・助走中は書かない）。
+  行＝四半期×法（S＝銀本位・G＝金本位・F＝不換）。世界の列は 3 行に同じ値。列（接尾辞：Km・Index・Count）：
+  世界の列：quarter・year・ratioOkFlag・oldRawIndex（Market.Price[銀]÷RefPrice＝挟む前の旧の統計）・oldParityIndex（oldRawIndex を [ExchangeRateFloor, Ceil] に挟んだ値＝旧の経路で World が使う平価の元）・
+    usedParityIndex（実際に各国へ注入された WorldSilverPrice÷RefPrice）・newParityIndex（rel）・relRecomputedIndex（計器が自分で生きた市場の対数平均を取り直した値÷RefPrice の比＝注入の変数と式を共有しない）・
+    wAgShare（銀の局所価格が正の州のうち銀本位国の州の割合）・fiscalBAt3Count（銀本位国のうち b＝RefPrice[銀]÷WorldSilverPrice が GoldDebtBurdenCap 以上の国の数＝Fiscal.cs の b が上限に貼り付く国）・
+  法の列：law・nationCount（その法の人口＞0 の国の数）・eMean・eMedian・eAtCeilCount（E≥Ceil−1e-9）・eAtFloorCount（E≤Floor+1e-9）・
+    provCount（その法の国の州のうち銀と金鉱の両方の市場が生きて価格が正の州の数）・mAgIndex（その州の局所の銀の値段÷RefPrice[銀] の算術平均）・mAgEIndex（同じ州の 局所の銀の値段×E÷RefPrice[銀] の算術平均）・mAuIndex（その州の局所の金鉱の値段÷RefPrice[金鉱] の算術平均）。
+  不動点の確かめ（読むだけ・門ではない）：E*＝(1−wAg)·mAgE(非S)/(1−wAg·mAg(S))、wAg は provCount の比。
+⚠限界（計器が自己申告する）：州の集合は Market.Step の参加州（linked）の写しではなく〈Markets[銀] の局所価格が正の州〉＝座標なし・凍結港の州の扱いが違えば Market.Price の平均と一致しない／
+  断面は注入の直後（月の途中の E は見ない）／relRecomputed は注入の式と同じ定義の独立な再計算＝定義そのものの誤りは拾えない（U1 の突然変異で符号と平均の取り方だけ確かめる）。
+
+## 1. 紙の予言（m773 の木の生 D:/PoB_work/keep_773/base_ins の nation_s の fxRate と monlaw_s の MonetaryStandard）
+台本 scripts/instruments/c7ag/paper_forecast.py・出力 measurements/m775_20261102_paper_forecast_m773.txt。
+  銀本位国（MonetaryStandard=1）の E の中央値が 2.99 以上か 0.31 以下の四半期＝種ごと 195・226・189・223・242・249・165・222・95・239（10 種とも 10 を超える・10 以下の種 0/10）。
+  国×四半期の割合＝E≥2.9 が 22.3%・E≤0.31 が 13.65%（m764 の計器つき 10 種の読み 19.9%・13.8% と同じ桁）。
+  下限側の E≤0.31 の国×四半期のうち priceLevel≥3.0（PPP の経路でも下限に届く）は 0/46056＝下限の張り付きは平価の経路で起きている（旗で直せる側）。
+  銀本位国の Convertibility の平均 0.98（m773 の計器つき 10 種・挙げた国のうち銀本位の月・n=51597）＝E_ag の rel への弾性は最大でも約 0.98＝U1 の傾き [0.8,1.2] は正しい実装の期待値の帯に入る。
+  Fiscal の b の 3.0 張り付きの旗 0 の値は ident の腕 b（旗 0 の計器つき 10 種）の silverpar_s から取り、この文書に追記する（腕 B の前）。
+
+## 2. 予言（腕 B の前に書く・結果を見て変えない）
+  E_ag の中央値（銀本位国・四半期ごと）の幅＝0.7〜1.4（記録）。銀本位国の E の貼り付き（Ceil または Floor）は旗 0 の国×四半期の約 1/3 から 1/10 以下へ。
+  L1・L2・U1・U2 が通る見込み。外れうる所＝(a) 銀の暴落が深い四半期は rel 自体が 0.31 を下回る（銀/金の比が RefPrice の比の 1/3 以下）＝L1 の許容 10 四半期（種ごと）は超えうる／
+  (b) Convertibility が 1 でない国の混ざり（0.98 の平均）／(c) 銀本位国が少数に減った晩年は中央値が 1〜2 国で決まる。外れたら採らない（物差しを替えない）。
+
+## 3. 門（両側・腕の前に固定・読み手 scripts/instruments/c7ag/gates775.py）
+  L1 下限（働いた）：銀本位国の E の中央値が 2.99 以上か 0.31 以下の四半期（nationCount_S≥1 の四半期）が 1 種あたり 10 以下の種が 10 種中 9 以上。旗 0（紙の予言）→ 0/10 で落ちる。
+  L2 下限（働いた）：fiscalBAt3Count＞0 の四半期の数（国数の和でなく〈国×四半期〉の和＝Σ fiscalBAt3Count）が旗 0 の腕 b の値の 1/5 以下。旗 0 の値が 0 のときは L2 を判定に使わず記録（腕 B の前に追記して固定）。
+  U1 上限（形の誤り＝符号）：銀本位国の四半期の E の中央値（nationCount_S≥3 の四半期・10 種を併せて）の ln を relRecomputedIndex の ln に回帰した傾きが [0.8, 1.2]。突然変異 M1（Ref÷rel）で −1 付近になり落ちる。
+  U2 上限（形の誤り＝平均の取り方・死んだ市場）：ExchangeRateFloor=0.0001・ExchangeRateCeil=10000（POB_COEF）で挟みを実質外した旗 1 の腕 S（計器つき 3 種＝seed 1〜3）で、銀本位国の E の中央値（nationCount_S≥1 の四半期）が [0.5, 2.0] に入る四半期の割合が 0.9 以上かつ全体の中央値が [0.7, 1.4]。
+    突然変異 M2（算術平均）・M3（死んだ市場を算入）の腕（同じ挟み外し・計器つき 3 種）で落ちる。
+  記録（採否に使わない）：E_ag の幅・英の輸出÷輸入 1783〜1812・1913 年の金本位国の数・exact・near・NG（ng.sh・基準 rd:measurements/ng773_20261102:m773）・
+    ExchangeRateFloor 0.3 に 20 年以上（80 四半期）張り付いた国の数（(766) の小アンティル王国の申し送り・N2 種 4 の 1818〜40 年 91 四半期中 78）。
+  止める線（RULE47）：クラッシュ・NaN・保存則・savetest・進行不能・発散・空洞化 1/10 未満（規則 A2）・推定の計算量＞248.5 秒・機構のテストの赤。腕 B で赤が出れば採らない。
+
+## 4. 突然変異（使い捨ての木・D:/PoB_work/c7ag/mut_*）
+  使い捨ての木は最終の旗 1 の木の写し＝MultiNationSim.cs の注入の節だけを変える。出力は measurements/m775_20261102_mutations.txt。
+  M1：silverWorld = Catalog.RefPrices[Catalog.SilverId] / rel（符号）→ 通常の挟み・計器つき 3 種・U1 が落ちる（傾き＜0.5 で落ちとする）。
+  M2：meanRatio を対数平均でなく算術平均 Σ(pAg/pAu)/cnt に替える → 挟み外し・計器つき 3 種・U2 が落ちる。
+  M3：生きた市場の条件（LastDemand/LastProduced）を外す（死んだ州の凍った比を算入）→ 挟み外し・計器つき 3 種・U2 が落ちる。
+  M0（何もしない＝旗 0）：L1 が落ちる（紙の予言で確認済み・ident の腕 b の計器で再確認）。
+  突然変異が落ちない門は〈何でも通る門〉＝その門を採否に使わず記録へ下げ、報告に書く。
+
+## 5. 腕
+  ident（旗 0・恒等の証明）：`bash scripts/instruments/ident/ident.sh run c7agz --tree D:/PoB_work/wt_c7ag --added-tables silverpar_s --tests-delta <計器の試験の数>`。
+  腕 B（旗 1・計器つき 10 種）：`INS=1 bash scripts/instruments/batch.sh run c7agB 10`。
+  腕 S（旗 1・挟み外し・計器つき 3 種）と M1〜M3（使い捨ての木）。ヌル腕は回さない（m773 の N1・N2 を共有）。ヌル腕を読むのは NG の判定のときだけ。
+  作者が〈消す／こうする〉と裁定した形ではない（AI の推奨）＝NG の判定になったときは確証なしと報告に書く。
+
+## 6. 計算量の割り当て
+  使う量 0.5 秒（挟みの外の E の寄りが変わるだけ・新しい走査なし＝注入の節の走査は既存の 1 本）。計器の走査は計器が on のときだけ＝素の腕の計算量は不変。名目の余り 約 27.3 秒の内。
+  推定の計算量＞248.5 秒なら止める線。.cost を m773 と比べる（2 秒以下の割り当ては 1 本の腕で門にしない）。
+
+## 7. 変えない物
+  coefficients のリテラル・計算の順序（注入の節は 1 行の条件だけ旗で切る）。旗 0 の経路は旧の式そのまま。
+  触る行：MultiNationSim.cs の注入の節（計器の呼び出し 1 行）・Instruments.cs の Close（1 行）・Coefficients.cs の SilverParityFromRatio の既定と注・InstrumentsSilverParity.cs（新）・MultiNationTests.cs の :52〜61 の後ろに試験を足す・DormantIdentityTests.cs の名簿の 1 行（既定 1 のときだけ外す＝★(743)④）。
