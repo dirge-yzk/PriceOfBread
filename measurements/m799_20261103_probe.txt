@@ -1,0 +1,7 @@
+(799) c11h16 紙の台本＝境の 1 ulp の食い違いの数え（素の 10 種・種 1〜10・木は述語に旧の式の並行評価を足した使い捨て probe_tree・台本 scripts/instruments/c11h16/）
+述語 Fiscal.CurrencyMemoryBroken の全呼び出し（Fiscal の通貨改革の門 broken と SelfPlay の AI の改革の意思）で、旧 x/g>t と新 ToGdpYear(x,PerMonthToPerYear(g))>t/12 を両方評価:
+pid=25784 evals=1289810 guardPass=1289792 oldTrue=147436 mismatch=0 near1e-9=0 nonfinite=0
+食い違いの行: 0 行（probe_mismatch.txt は作られなかった）
+読み方：evals＝述語の呼び出し・guardPass＝名目GDP＞1e-9・oldTrue＝旧が真・mismatch＝旧と新の食い違い・near1e-9＝x/g が閾値の相対 1e-9 以内の呼び出し（0＝境に触れた呼び出しは無い）・nonfinite＝累積が非有限
+予言 0 に対して 0 件＝〈測った種で一致〉。
+述語の戻りは新の側の木の素の 10 種の成績表（b10_c11h16p_10）は measurements/b10_20261103_m797（素の 10 種）と SOURCE-HASH の行を除いて全行一致（diff 出力 0 行）。

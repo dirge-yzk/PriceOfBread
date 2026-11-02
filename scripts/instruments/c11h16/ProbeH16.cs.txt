@@ -1,0 +1,29 @@
+namespace PriceOfBread.SimCore;
+public static class ProbeH16
+{
+    static long n, guard, mis, nearBoundary, trueCount, nan;
+    static readonly object L = new();
+    static ProbeH16()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            lock (L) File.AppendAllText("D:/PoB_work/c11h16/probe_out.txt",
+                $"pid={Environment.ProcessId} evals={n} guardPass={guard} oldTrue={trueCount} mismatch={mis} near1e-9={nearBoundary} nonfinite={nan}\n");
+        };
+    }
+    public static void Count(double x, double g, double t, bool old, bool neu)
+    {
+        Interlocked.Increment(ref n);
+        if (!(g > 1e-9)) return;
+        Interlocked.Increment(ref guard);
+        if (old) Interlocked.Increment(ref trueCount);
+        if (double.IsNaN(x) || double.IsInfinity(x)) Interlocked.Increment(ref nan);
+        double r = x / g;
+        if (Math.Abs(r / t - 1.0) < 1e-9) Interlocked.Increment(ref nearBoundary);
+        if (old != neu)
+        {
+            Interlocked.Increment(ref mis);
+            lock (L) File.AppendAllText("D:/PoB_work/c11h16/probe_mismatch.txt", $"x={x:R} g={g:R} t={t:R} old={old} new={neu}\n");
+        }
+    }
+}
