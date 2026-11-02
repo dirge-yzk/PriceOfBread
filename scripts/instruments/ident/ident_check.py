@@ -38,7 +38,7 @@ def ok(s):
 
 
 def parse_args(argv):
-    a = {'label': argv[0], 'removed': [], 'added': [], 'grown': [], 'rows_grown': [], 'known_extra': [], 'cost_allow': [],
+    a = {'label': argv[0], 'removed': [], 'added': [], 'grown': [], 'rows_grown': [], 'removed_cols': [], 'known_extra': [], 'cost_allow': [],
          'tests_delta': 0, 'saveleak': False, 'ng': False, 'save': None, 'work': None, 'cfg': None, 'tree': None, 'root': None}
     i = 1
     while i < len(argv):
@@ -55,6 +55,7 @@ def parse_args(argv):
         elif k == '--added-tables': a['added'] = [x for x in v.split(',') if x]
         elif k == '--grown-ok': a['grown'] = [x for x in v.split(',') if x]
         elif k == '--rows-grown-ok': a['rows_grown'] = [x for x in v.split(',') if x]
+        elif k == '--removed-cols': a['removed_cols'] = [x for x in v.split(',') if x]   # (786) 表:列（基準にある列を腕で消してよい＝消した計器の列）
         elif k == '--known-extra': a['known_extra'] = [x for x in v.split(',') if x]
         elif k == '--cost-allow': a['cost_allow'] = [x for x in v.split(',') if x]
         elif k == '--tests-delta': a['tests_delta'] = int(v)
@@ -184,17 +185,22 @@ def parse_known(items):   # 'clock_s:worldTotalPerMonth@kind=C' → {'clock_s': 
 
 
 ROWS_ADDED = {}   # --rows-grown-ok の表：{基準のファイル: 腕で増えた行数}
+COLS_REMOVED = {}   # --removed-cols の表：{基準のファイル: 腕で消えた列（宣言どおり）}（(786)）
 
 
-def cols_diff(pa, pb, kmap, rows_grown=False):   # pa＝基準・pb＝腕。返す物＝（既知の揺れの列・宣言の無い違い・腕で増えた列）。rows_grown＝基準の行（共通の列）が腕の行の順序つき部分列であれば、腕で増えた行を許す（(781)）
+def cols_diff(pa, pb, kmap, rows_grown=False, removed_cols=()):   # pa＝基準・pb＝腕。返す物＝（既知の揺れの列・宣言の無い違い・腕で増えた列）。rows_grown＝基準の行（共通の列）が腕の行の順序つき部分列であれば、腕で増えた行を許す（(781)）
     with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
         ra = csv.reader(fa, delimiter='\t'); rb = csv.reader(fb, delimiter='\t')
         ha = next(ra, []); hb = next(rb, [])
         extra = [c for c in hb if c not in ha]
-        common = [c for c in ha if c in hb]
+        gone = [c for c in ha if c in removed_cols and c not in hb]   # (786) 宣言された消した列（腕に残っていれば普通に比べる）
+        if gone:
+            COLS_REMOVED[pa] = gone
+        ha_eff = [c for c in ha if c not in gone]
+        common = [c for c in ha_eff if c in hb]
         ia = {c: ha.index(c) for c in common}; ib = {c: hb.index(c) for c in common}
         real, kn = set(), set()
-        if [c for c in hb if c in ha] != ha:
+        if [c for c in hb if c in ha_eff] != ha_eff:
             real.add('HEADER_ORDER_OR_MISSING')
         if rows_grown:
             rows_b = list(rb); j = 0; added = 0
@@ -248,7 +254,7 @@ def flow_same_but_location(pa, pb):   # 呼び出し位置を除いた行の多�
     return len(ra) == len(rb) and key(ra) == key(rb)
 
 
-def cmp_ins(new, base, known, removed, added, grown, rows_grown=()):
+def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}')
     if not os.path.isdir(new):
         miss('計器の出力フォルダが無い'); return
@@ -273,14 +279,17 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=()):
     pref = lambda f, L: any(f.startswith(x) for x in L)
     bad_missing = [f for f in missing if not pref(f, removed)]
     bad_only = [f for f in only if not pref(f, added)]
-    known_hit, grown_hit, real, rows_hit = [], [], [], []
+    known_hit, grown_hit, real, rows_hit, cols_hit = [], [], [], [], []
     for f in diffs:
         if not f.endswith('.tsv'):
             real.append((f, ['NONTSV'])); continue
         t = table_of(f)
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
             known_hit.append((f, ['呼び出し位置だけ'])); continue
-        kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown))
+        rcs = [x.split(':', 1)[1] for x in removed_cols if ':' in x and f.startswith(x.split(':', 1)[0])]
+        kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown), removed_cols=rcs)
+        if J(base, f) in COLS_REMOVED and not d and not extra and not kn and not (pref(f, rows_grown) and ROWS_ADDED.get(J(base, f), 0) > 0):
+            cols_hit.append((f, COLS_REMOVED[J(base, f)])); continue
         if pref(f, rows_grown) and not d and J(base, f) in ROWS_ADDED and ROWS_ADDED[J(base, f)] > 0:
             rows_hit.append((f, ROWS_ADDED[J(base, f)]))
             if not extra and not kn:
@@ -306,6 +315,8 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=()):
         say(f'  列が増えた表（--grown-ok の宣言）{len(grown_hit)} 本：' + '・'.join(f'{f}+{len(e)}列' for f, e in grown_hit[:6]))
     if rows_hit:
         say(f'  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）{len(rows_hit)} 本・増えた行 {sum(n for _, n in rows_hit)}：' + '・'.join(f'{table_of(f)}+{n}' for f, n in rows_hit[:6]))
+    if cols_hit:
+        say(f'  列が消えた表（--removed-cols の宣言・残りの列は全行バイト一致）{len(cols_hit)} 本：' + '・'.join(sorted(set(table_of(f) + ':' + ','.join(c) for f, c in cols_hit))))
     if known_hit:
         by = {}
         for f, d in known_hit:
@@ -320,7 +331,7 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=()):
         for f, d in real[:10]:
             say(f'      {f}\t{d[:6]}')
     if not (bad_missing or bad_only or real):
-        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {len(known_hit)}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + len(grown_hit) + len(rows_hit)}）')
+        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {len(known_hit)}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + len(grown_hit) + len(rows_hit) + len(cols_hit)}）')
 
 
 # ---------- 4 注視の表（タグの行以外） ----------
@@ -439,7 +450,7 @@ def main():
     tree = norm(a['tree'] or root)
     say(f'測った木：{tree}（HEAD {sh_out(["git", "-C", tree, "rev-parse", "--short", "HEAD"])}・未コミット {len(sh_out(["git", "-C", tree, "status", "--porcelain"]).splitlines())} 本）')
     say(f'基準の設定：{cfgp}')
-    say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'rows_grown', 'known_extra', 'cost_allow') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
+    say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'rows_grown', 'removed_cols', 'known_extra', 'cost_allow') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
     for ar in ('a', 'b', 't', 's'):
         if ar in arms:
             dp = J(W, 'marks', ar + '.done')
@@ -472,7 +483,7 @@ def main():
         say('SOURCE-HASH（計器つき 10 種）' + first_line(pb + '.manifest', 'SOURCE-HASH'))
         cmp_report('計器つき 10 種', pb, base('B10INS'))
         cmp_cost('計器つき 10 種の .cost', pb + '.cost', base('B10INS') + '.cost', a['cost_allow'])
-        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'], a['rows_grown'])
+        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'], a['rows_grown'], a['removed_cols'])
         cmp_mon(J(W, 'mon_ib_10.txt'), base('MON'))
         if a['ng']:
             run_ng(W, {**cfg}, root)
