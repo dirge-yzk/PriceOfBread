@@ -1,0 +1,36 @@
+ident start：ラベル=c6op 木=/d/PoB_work/wt_c6op 作業=D:/PoB_work/c6op_work/ident 腕=[a b t] 開始=2026-11-02 10:08:02
+ident start：腕は全て終わった（4 印）
+=== 恒等の証明 c6op（2026-11-02 10:30:16）===
+測った木：D:/PoB_work/wt_c6op（HEAD c36c69ab・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c6op/scripts/instruments/ident/ident.cfg
+宣言：added=['habitcap_s'] tests_delta=4
+腕 a：rc=1 end=2026-11-02 10:28:33
+腕 b：rc=1 end=2026-11-02 10:30:16
+腕 t：rc=0 end=2026-11-02 10:12:25
+測る木の SOURCE-HASH：e804ad2e70c3f114
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: e804ad2e70c3f114
+[素の 5 種] b5_ia_5.txt 対 b5_20261102_m764
+  ○ 全行バイト一致（183 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261102_m764.cost
+  ○ 件数の行 29 本・推定 223.6 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: e804ad2e70c3f114
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261102_m764_ins
+  ○ 全行バイト一致（184 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261102_m764_ins.cost
+  ○ 件数の行 29 本・推定 222.8 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c6op_work/ident/out_ib_10/ins  対  基準 D:/PoB_work/keep_764/base_ins
+  基準 914 本・腕 924 本・バイト一致 894 本
+  腕にだけある 10 本（うち宣言 10）
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 894・既知の揺れ 20・宣言された増減 10）
+[注視の表] mon_ib_10.txt 対 mon_20261102_m764.txt（タグの行を除く）
+  ○ タグの行以外が一致（5349 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2136（基準 2132+4 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等
+
+--- 足した計器の表 habitcap_s の集計（計器つき 10 種・旗 0・記録＝門にしない）---
+行 2,131,779（州×四半期・前の在庫か消費が正の月があった州）／計器の口が呼ばれた月の合計 6,395,337／新が旧より大きい月（蓋が効いた月）82,056（1.28%）／Σ(新−旧) 714.88／新の次の在庫の最大 0.2397（蓋 0.2 を僅かに超える）／全行で usedNext＝oldNext（ビット一致・文字列一致）。
+ident の腕 a・b の rc=1 は batch.sh の終了コード（忠実度の行の注意）で、ident_check の許す 0|1|2（c6prz の腕も同じ）。
