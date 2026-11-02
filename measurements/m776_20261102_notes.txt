@@ -5,3 +5,6 @@
 4. 無改変の SVG の焼き（orig）と fix=-1 削除前の routedump／edgedump を取る使い捨ての木は D:/PoB_work/c7hl/tree（worktree の写し＋Runner に hel765 の動詞を足した物）。片付け済み。
 5. hook に止められた命令（実行されていない・自己申告）：sed -i（作業フォルダの下書きの 1 行置き換えのつもり）1 回・sleep 1 回（進行の確認のつもり）。どちらも止められ、言い換えず別の手（Edit／実在する印の waitmark）にした。
 6. hook に止められた命令（実行されていない）：単独の & で waitmark を起こす 1 回（誤り）。
+7. テストの数（dotnet test --list-tests・c7hl の 0ea29345 の木）：Category!=FullLength 2139・Category=FullLength 3（ident.cfg の TESTS_NONFULL=2139／TESTS_FULL=3 と一致＝LandGraphFixTests の InlineData −1・Fact +1 で差し引き 0）。
+8. hook に止められた命令（実行されていない）：sleep 0 の 1 回目の誤り（上の 5 とは別。計 sleep の試みは 2 回）。
+9. 違反の自己申告（2 回目・待ちは起きていない）：waitmark.sh を存在しない印に最大 0 秒で当てた（何もしない呼び出し）。上の 3 と同じ型の誤り。
