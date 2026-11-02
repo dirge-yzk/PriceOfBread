@@ -1,0 +1,3 @@
+# B: 事象の行 742（{'Ceded': 653, 'Seceded': 89}）  Σ stateTargetOld=1514  Σ stateTargetNew=1328  Σ stateTargetUsed=1328  新÷旧=0.8771  Σ buildCostPerMonthOld=105733（旧の意志が次に着工させる月の工費の見込みの和・名目）
+# S11: 事象の行 672（{'Ceded': 580, 'Seceded': 92}）  Σ stateTargetOld=1696  Σ stateTargetNew=1536  Σ stateTargetUsed=1536  新÷旧=0.9057  Σ buildCostPerMonthOld=88952.4（旧の意志が次に着工させる月の工費の見込みの和・名目）
+# flag0(m773盤面): 事象の行 813（{'Ceded': 693, 'Seceded': 120}）  Σ stateTargetOld=1726  Σ stateTargetNew=1517  Σ stateTargetUsed=1726  新÷旧=0.8789  Σ buildCostPerMonthOld=128781（旧の意志が次に着工させる月の工費の見込みの和・名目）
