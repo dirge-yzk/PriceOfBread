@@ -1220,7 +1220,7 @@ public sealed class Coefficients
 
     // --- 輸送・物流（§5.1拡張：港・鉄道・船。世界市場は港州のみ、内陸は鉄道で港経由。容量不足→購入量限界縮小→価格上昇）---
     // 【墓標2026-10-18・旗の焼き込み】TransportEnabled（輸送ゲートの有効化・既定 true）を消した＝輸送の容量制約は常に有効。
-    public double InlandPortDistanceDecay = 1.0;    // 内陸州のrailToPort容量を最寄り港までの距離（旗 PortByLandRoute が正＝陸路 km〈陸路∞は大圏〉・0＝大圏 km）で減衰（trade-capacity-even-share-not-network）＝遠い内陸ほど鉄道を食い港集約が創発。減衰=1/(1+これ×NearestPortDistanceKm/10000)。0で均等割りそのまま（恒等）
+    public double InlandPortDistanceDecay = 1.0;    // 内陸州のrailToPort容量を最寄り港までの距離（選んだ港までの陸路 km〈陸路∞は大圏〉＝PortLandKm と同じ値）で減衰（trade-capacity-even-share-not-network）＝遠い内陸ほど鉄道を食い港集約が創発。減衰=1/(1+これ×NearestPortDistanceKm/10000)。0で均等割りそのまま（恒等）
     public double TransportDecay = 0.02;            // 鉄道/船容量の月次減耗（維持に投資が要る＝持続需要）
     public double TransportTargetPerPop = 0.08;     // 目標容量＝人口×これ（必要数を増やし鉄道供給網の構築を要求）
                                                     //   ⚠読み手は2つ（2026-10-02 (167)・反証役の指摘）＝①鉄道の容量の目標（Transport.Step＝人口×これ×(1＋脅威の項)×(1＋混雑)）
@@ -2771,10 +2771,7 @@ public sealed class Coefficients
     // 【墓標2026-10-18・旗の焼き込み】LandEdgesAvoidWater（既定1.0・点火2026-09-05・作者指摘「陸上取引の一部が内海を無視している」）を消した＝陸の辺は水を渡らない（迂回路があれば辺の距離にする）。
     // 【墓標2026-10-18・旗の焼き込み】BarrierWallSegments（既定1.0・点火2026-09-05・作者指摘「山脈などのバリアは正しく機能しているか」）を消した＝同じ山脈名（語幹）のバリア点を線分の壁にして、壁を横切る辺を張らない。
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
-    // ★(770) 港の選び方のやり直し（線 c6pr・線の枝の既定 1）。PortByLandRoute＝内陸州が使う港を同じ国の港の eff（陸路が有限 ? 陸路 km : 大圏 km）の最小で選び、内陸の鉄道の減衰（InlandPortDistanceDecay）の km を選んだ港までの eff にする。0＝旧（大圏の最小の港・大圏の km）。静的に読む（呼び手の MultiNationSim.RewirePorts に引数を足さない）。
-    public double PortByLandRoute = 1.0;
-    // ★(779) 港の形 (d)（線 c8pd・事前登録 measurements/m779_20261102_prereg_pd.txt・確証なし＝AI の推奨・線の枝の既定 1）。PortSameLandmassFirst＞0＝PortByLandRoute の港の選び方で、州の陸塊の札（Landmass.Of）と同じ札で陸路が有限の同じ国の港が 1 つでもあれば、陸路∞の港を候補から外す（無ければ今の形）。0＝今の形。静的に読む（国ごとの Coef ではない）。
-    public double PortSameLandmassFirst = 1.0;
+    // ★(785) 旗 PortByLandRoute（(770)）・PortSameLandmassFirst（(779)）は既定 1 の経路だけを残して焼き込んだ（線 c9bk）。港の選び方は Simulation.PortChoice の 1 本＝同じ国の港の eff（陸路が有限 ? 陸路 km : 大圏 km）の最小。ただし州と同じ陸塊の札（Landmass.Of）で陸路が有限の港が 1 つでもあれば、陸路∞の港を候補から外す（無ければ eff の最小のまま）。内陸の鉄道の減衰（InlandPortDistanceDecay）の km は選んだ港までの eff（PortLandKm と同じ値）。
     // ★(774) 継いだ着工の意志の取り下げ（線 c7sw・線の枝の既定 1・0＝旧）。InheritedStateIntentDrop＞0＝州が別の国へ移るとき（割譲・分離独立・再併合＝Territory.TransferRegion）、移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる（意志は政府のもの＝建物は州と一緒に移るが旧の政府の着工の意志は移らない）。0＝旧（意志がそのまま移る）。確証なし（AI の推奨）。
     public double InheritedStateIntentDrop = 1.0;
     // 【墓標2026-11-02・旗の焼き込み（769）】LandGraphFixRows（既定1.0・点火2026-11-02 (762)・事前登録 measurements/m762_20261102_prereg_lg.txt）を消した＝barriers.json の fix=1 の行（ドロミテの点 46.6 と峠 4 本）を常に読み、fix=-1 の旧の行は読まない。足した峠は既存の点の枠と半径を食わない。0＝旧の盤面は git の履歴から戻せる。

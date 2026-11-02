@@ -2,10 +2,10 @@ namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (777) 内陸州の港の陸塊の表 portlm_s（読むだけ・恒等） ----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsPortch.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（世界を書かない）。INS=1（POB_INSTRUMENTS）のときだけ動く。
-// 目的＝事前登録 measurements/m777_20261102_prereg_pg.txt：(770) の港の選び方（旗 PortByLandRoute）が別の陸塊の港を選ぶ行（crossLandmass）を陸塊の札で数え、形 b・c・c′・d を同じ盤面に当てる（次の波の門の材料）。
+// 目的＝事前登録 measurements/m777_20261102_prereg_pg.txt：(770) の港の選び方（旗 PortByLandRoute は (785) で焼き込み）が別の陸塊の港を選ぶ行（crossLandmass）を陸塊の札で数え、形 b・c・c′・d を同じ盤面に当てる（次の波の門の材料）。
 // 取り方＝portch_s と同じ時点（Instruments.Quarter の年末 q%4==3＝その四半期の港の張り直し MultiNationSim.RewirePorts の後）・同じ母集合（全ての国の内陸州で座標のある州・港の一覧は IsPort かつ座標あり＝Simulation.WirePortDistances の写し）。
 // 陸塊の札＝Landmass.Of（埋め込みの landmass.json の最近傍の登録点＝Diplomacy.IsSeaCrossing と同じ札）。陸路＝PathGraph.LandDistanceKm（∞＝別の陸塊・孤立成分）。海路＝Geo.SeaDistanceKm（運河は国の ChokeOpenFor＝Geo.CfgOf と同じ問い）。
-// 列（指示の順）：year・nation・region・lmRegion・portGc（大圏の最小の港＝PortChoice(false)）・lmGc・portUsed（実際の NearestPortName）・lmUsed・landKmUsed（州→portUsed の陸路の生の値・∞は inf＝欄 PortLandKm〔∞は大圏で退避〕は読まない）・
+// 列（指示の順）：year・nation・region・lmRegion・portGc（大圏の最小の港＝PortchGcNearest・旧の規則の局所の書き方）・lmGc・portUsed（実際の NearestPortName）・lmUsed・landKmUsed（州→portUsed の陸路の生の値・∞は inf＝欄 PortLandKm〔∞は大圏で退避〕は読まない）・
 //   gcKmUsed（州→portUsed の大圏）・crossLandmass（lmUsed≠lmRegion なら 1）。
 // 紙のための反実仮想の列（同じ盤面に形を当てた答え・世界は走らない）：lmRegionPortCount（同じ国の港のうち札が lmRegion の数）・finitePortCount（陸路が有限の港の数）・sameLmFinitePortCount（札が lmRegion かつ陸路が有限の数）・
 //   gcKmMin（portGc までの大圏＝U2 の分母）・形 b（有限だけ）portFin・lmFin・effFinKm・形 c（∞の港に〈最寄りの同じ国の有限の港までの陸路＋海路〉）portSea・lmSea・effSeaKm・
@@ -156,8 +156,8 @@ public static partial class Instruments
                 if (r.IsPort) continue;
                 var cc = Climate.CityCoord(r.Name);
                 if (cc.Lat == 0 && cc.Lon == 0) continue;
-                var gcPick = Simulation.PortChoice(cc.Lat, cc.Lon, ports, false);
-                var pg = Climate.CityCoord(gcPick.Name); var pu = Climate.CityCoord(r.NearestPortName);
+                string gcPickName = PortchGcNearest(cc.Lat, cc.Lon, ports);
+                var pg = Climate.CityCoord(gcPickName); var pu = Climate.CityCoord(r.NearestPortName);
                 var used = PortlmClassify((cc.Lat, cc.Lon), (pu.Lat, pu.Lon));
                 string lmGc = Landmass.Of(pg.Lat, pg.Lon);
                 var sh = PortlmShapes((cc.Lat, cc.Lon), used.LmRegion, ports, shores, suez, panama);
@@ -166,7 +166,7 @@ public static partial class Instruments
                 sk.W ??= Open("portlm", seed);
                 if (!sk.Header) { sk.W.WriteLine(PortlmHeaderText); sk.Header = true; }
                 bool noPort = r.NearestPortName.Length == 0;   // 張り直しで港が付かなかった州（港の無い国は上で飛ばす＝通常は来ない）＝札と km を空・crossLandmass 0
-                sk.W.WriteLine(string.Join('\t', w.Year.ToString(inv), nat, r.Name, used.LmRegion, gcPick.Name, lmGc, r.NearestPortName, noPort ? "" : used.LmPort,
+                sk.W.WriteLine(string.Join('\t', w.Year.ToString(inv), nat, r.Name, used.LmRegion, gcPickName, lmGc, r.NearestPortName, noPort ? "" : used.LmPort,
                     noPort ? "" : PortchR(used.LandKm), noPort ? "" : PortchR(used.GcKm), !noPort && used.Cross ? "1" : "0",
                     sh.LmPorts.ToString(inv), sh.Finite.ToString(inv), sh.SameLmFinite.ToString(inv), PortchR(sh.GcKmMin),
                     sh.Fin.Port, Lm(sh.Fin.Port), PortchR(sh.Fin.EffKm),

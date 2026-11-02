@@ -1,0 +1,36 @@
+(785) c9bk 港の旗 2 本の焼き込み（PortByLandRoute・PortSameLandmassFirst）事前登録（波59・区分 I・恒等の線・仮番号・腕を回す前に固定する）
+書いたモデル：Claude Sonnet 5.5。基線 m784（9d16437e）。形：尾でも入口でもない＝既定の値の経路だけを残す焼き込み。
+
+[1] 恒等の線・予言 0
+  既定（両方 1.0）の経路だけを残す。旗 0 の経路（大圏の最短を選ぶ形・PortChoice の byLand=false）と引数 byLand・sameLmFirst を消す。
+  計算の順序・比較の種類（strict <・同率は先着）・係数のリテラルは変えない。キャッシュ化しない。新しい係数 0・新しい状態変数 0・新しい補助関数は計器側に 1 本だけ（[3]）。
+  予言＝素の 5 種と計器つき 10 種の成績表・計器の表・注視の表が m784 と名乗り行を除いて全行バイト一致。.cost の推定も一致（計算量は動かない）。
+
+[2] 消す行と経路の一覧
+  Coefficients.cs：PortByLandRoute の行と注（2774-2775）・PortSameLandmassFirst の行と注（2776-2777）。1223 行の InlandPortDistanceDecay の注の〈旗 PortByLandRoute が正〉を今の規則へ直す。
+  Simulation.cs：静的な読み PortByLand・PortSameLm（650・652）・WirePortDistances の呼び出し PortChoice(..., PortByLand, PortSameLm) を PortChoice(cc.Lat, cc.Lon, ports) へ・NearestPortDistanceKm = PortByLand ? pick.LandKm : pick.GcKm を pick.LandKm へ（PortByLand は常に真）。
+  PortChoice：引数 byLand・sameLmFirst と byLand=false の枝（大圏の最小の港を選んでから陸路を 1 回引く）・sameLmFirst=false の枝（1 パスで eff の最小だけ）を消し、今の既定の経路（形 (d) の 1 パス）だけ残す。
+  注の直し：Simulation.cs の WirePortDistances の doc・PortChoice の doc・Model.cs の NearestPortDistanceKm の注・Geo.cs:49・Instruments.cs の 1996 付近・InstrumentsPortch.cs と InstrumentsPortlm.cs の頭書き。
+
+[3] 計器の扱い（選択と ident の宣言）
+  選択＝portch_s と portlm_s の PortChoice(…, false)（portGc・大圏の最小の港）と portch_s の PortChoice(…, true)（portNew）を、エンジンの関数を呼ばない局所の書き方へ移す。
+    portGc＝InstrumentsPortch.cs に小さな関数 PortchGcNearest を 1 本（大圏の最小・strict <・同率は並びの先＝旧の規則と同じ式）。既存の似た物の確認＝Instruments の下に州から最寄りの港を大圏で名指す関数は無い（PortlmShapes の gcBest は名前を返さず距離だけ）。
+    portNew＝既に独立の書き方で在る PortlmAD の PortA を呼ぶ（新しい関数を作らない）。PortlmAD は PortChoice も PortlmShapes も呼ばない。
+  列の名前は変えない（portNew は (a) の反実仮想）。理由＝ident に列の改名・中ほどの列の削除を名乗る宣言が無く、改名は表の違いとして落ちる。表と列は 1 バイトも変わらない＝ident の宣言は計器について不要（--removed-tables も --grown-ok も渡さない）。
+  portNew が (a) の反実仮想である旨は頭書きの注で名乗る。portlm_s の portA・portD は PortChoice を呼ばない独立の書き方＝そのまま。
+  旧の経路を計器のためだけにエンジンに残さない（PortChoice の byLand=false の枝は消える）。
+
+[4] テスト（★(743) の区分で名乗って直す。機構の Assert は書き換えない）
+  PortByLandTests.cs：byLand: true と sameLmFirst: true の名前つき引数を落とす（呼び出しの形の付け替え）。byLand: false・sameLmFirst: false の経路だけを確かめる Assert の行を消す（①）。
+  形d_旗0の引数と既定は旧と同じ＿byLandがfalseなら引数は効かない を削除（①・旗 0 の経路だけの試験）＝Category!=FullLength の数 2161→2160（--tests-delta -1）。
+  配線は旗の示す港と距離を欄に書く・形d_配線は旗の示す港を欄に書く：旗の読みで作っていた期待を、焼き込んだ後の値（天津・マルセイユ＝手で書く）へ（②・期待の値は同じ）。
+  DormantIdentityTests.cs：注の 1 行の文言だけ（Assert は動かない）。
+
+[5] 採否
+  ident が 判定: 恒等 なら採る（測った種で一致）。一致しなければ止める（同じ腕で物差しを替えない）。
+  ★(773) の grep＝消す名前（PortByLandRoute・PortSameLandmassFirst・PortByLand・PortSameLm・byLand・sameLmFirst・PortChoice の引数）を Runner・App・Tests・scripts・measurements・他の c9* の枝で数える。
+
+[6] 突然変異（番人の確かめ）
+  M1＝PortChoice の (d) の外し（sameFin のときの有限の港への倒し）を無効にする → 形d_ の試験が赤になること。
+  M2＝WirePortDistances の NearestPortDistanceKm を pick.GcKm へ → 配線の試験が赤になること。
+  （使い捨ての木で回す。出力は measurements/ にコミットしない＝結果は報告に書く）
