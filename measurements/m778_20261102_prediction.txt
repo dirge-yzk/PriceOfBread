@@ -1,0 +1,79 @@
+(778) 合流（波57）の予言と採否の門　＝腕と merge の前のコミット（結果を見た後に書き換えない）
+基点 main c5b868d1（基線 m773）。線＝c7sw (774)・c7ag (775)・c7hl (776)・c7pg (777)。読むだけの線は無し。
+作者 2026-11-01「いったん全て推奨で」「止めずに作業してください」で推奨を採って進める（承認の言葉ではない）。
+
+■ 1. 採否（腕の前に決める）
+- c7pg (777) 計器 portlm_s・試験 5 本＝入れる（恒等・ident〈判定: 恒等〉＝測った種で一致）。
+  反証役 medium（形 (b)(c)(c′)(d) の紙の数は生が消えて数え直せない）＝合流で c7pg の木 a125483d の計器つき 10 種（腕 G・種 1〜10）を 1 回回し、
+  measurements/m777_20261102_paper_pg.py の出力が measurements/m777_20261102_paper_pg_out.txt と一致するかを確かめる（記録・採否に使わない）。
+  low 3 件＝記録で処置（(c′) は上限 A・B で〈評価できない〉と書く／00一覧の 461 行〈海の脚〉を直し 462 行 ① を更新／7e6053fa の件名の〈恒等の証明〉は〈測った種で一致〉と読む）。
+- c7hl (776) ヘルシンキの陸マスクのデータの直し・barriers.json の fix=-1 の行と PathGraph.cs の読みの削除＝入れる（挙動の線・データの直しで旗なし）。
+  反証役 medium（上限の門が箱の外しか数えない）＝記録して次の地理の線の門へ（〈ヘルシンキを含まない陸路の変化 0〉〈60.1N より南の新しい陸画素 0〉〈ヘルシンキ–リガの湾回りの下限〉）。
+  合流で静的に 2 つを確かめる（記録）：陸路が変わる対のうちヘルシンキを含まない物 0（m776_20261102_paper_hel_pairs.tsv）・新しく陸になる画素が 60.1N より南に 0（2 枚の .bin のビットの比べ）。
+  low（WriterRatchetTests を線の木で取り直し・c7ag と同じ行で衝突）＝どちらの値も採らず合流の木の実測で 1 回だけ（§4）。
+- c7sw (774) 継いだ着工の意志の取り下げ（旗 InheritedStateIntentDrop）＝入れる。旗の既定：線の担当 1・合流 1（食い違いなし）。
+  ⚠反証役 medium（事前登録 §0 は〈工事中の棟（ConstructionLeft＞0）は継ぐ・触らない〉・実装 Territory.cs は工事中の生産者も含め全ての生産者に Math.Min）＝報告の先頭に書く。
+  処置＝(b)：今の形（全ての生産者）を採り、合流の記録で実際の規則を名乗る。線の再走はしない。L1・L2・同じ盤面の新÷旧を M の inheritintent_s の
+  constructionLeftDays=0 の行だけでも出し直す（記録・門の閾値は変えない＝自己記述の直し）。工事中の下げが受け手に並行の着工を許すか（反証役の推測）は次の波の読むだけの線へ。
+  low（再併合の行が全長の計器に出ない）＝記録に 1 行。
+- c7ag (775) 銀の平価の自己参照を断つ（旗 SilverParityFromRatio 既定 1）＝入れる。旗の既定：線の担当 1・合流 1（食い違いなし）。
+  反証役 low（点火のコメントの一巡）＝合流の直しで MultiNationSim.cs:866・:891〜892・MultiNationTests.cs:52〜55・Coefficients.cs:3473〈算術平均→対数平均〉を直す（注だけ）。
+  記録 4 件（金本位への移行の遅れ・英の債務不履行の根・U2→U3 の入れ替えは採否に効かない・DormantIdentityTests:112 は c7ag 側）。
+- high の指摘はどの線にも無い＝外す線は無い（予言）。合わせた木で線の門が落ちたら §7 の帰属で原因の線だけ外す。
+
+■ 2. merge の順と衝突の見込み
+- 順＝c7pg（恒等）→ c7hl → c7sw → c7ag。
+- ★(773) の grep：c7hl が消す `if (r.Fix < 0) continue;`（PathGraph.cs:140）と barriers.json の fix=-1 の行（旧ドロミテ）＝他の 3 枝の読み手は PathGraph.cs 自身だけ（Fix 欄は残る・Tests に fix=-1 を見る試験は無い）。
+  c7ag が名簿から外す DormantIdentityTests:112 の SilverParityFromRatio＝他の枝は旧の行のまま（触っていない）＝c7ag 側を採る。消す型・関数は他に無い（c7pg の InstrumentsPortlm は InstrumentsPortch.cs の PortchR を呼ぶ＝誰も消さない）。
+- 見込みの衝突：Instruments.cs（c7pg 1846・1876／c7sw 1846／c7ag 1841・1875）＝3 本の Table の登録と 2 本の Close の登録を全て残す。
+  WriterRatchetTests.cs:401・:520（c7hl と c7ag が別の値）＝どちらの値も採らず §4 で取り直す（merge の時点では一方を置き、取り直しのコミットで実測へ）。
+  Coefficients.cs（c7sw の旗の 2 行・c7ag の 3470〜3477）＝離れている＝衝突なしの見込み。
+- 全ての merge コミットの最後に Co-Authored-By（`# Conflicts:` の行は消す）。コミットの前に git ls-files --eol。
+
+■ 3. 合わせた木の旗 0 の腕 Z の予言（合わせた木の恒等の証拠）
+- 腕 Z＝合流の木・計器つき 10 種（種 1〜10）・POB_COEF "InheritedStateIntentDrop=0;SilverParityFromRatio=0"。
+- Z の成績表 ≡ measurements/b10_20261102_c7hlB_ins（名乗り行の SOURCE-HASH を除く全行バイト一致）。理由：c7pg は恒等・c7sw と c7ag は旗 0 で恒等（各線の ident）・c7hl はデータの直しで旗なし＝旗 0 の合わせた木の軌道は c7hl の腕 B と同じ。
+- Z の .cost の件数の行 ≡ c7hlB の .cost（違うのは SOURCE-HASH・実測の CPU 秒・覆う割合だけ）。推定の計算量 217.6 秒。
+- Z の計器の生 ≡ D:/PoB_work/c7hl_arm/out_c7hlB_10/ins から portlm_s・inheritintent_s・silverpar_s を足した物（既知の揺れ burscan_s の seconds・clock_s の C 行を除いてバイト一致）。
+- Z は c7sw の gate774.py の --x0・--pend0 と c7ag の gates775.py の --l2base の〈同じ木の旗 0〉の出所（m773 の値でなく合わせた木の旗 0 を比べる）。S11 にも種 1〜10 の Z の値を使う（線と同じ扱い・名乗る）。
+- 予言が外れたら（1 行でも違えば）止めてアブレーション（c7hl を抜いた木の旗 0 と m773_ins の一致で切り分け）。
+
+■ 4. 合流の木 M（全ての旗が既定＝c7sw 1・c7ag 1）の予言
+- M はどの線の腕 B とも一致しない（挙動の線 3 本を合わせるため）＝成績表のバイト一致の予言は無い。
+- 各線の事前登録の門を M でもう一度読み、最終の採否は S11（種 11〜20）で 1 回だけ（同じ門・閾値は変えない）：
+  c7sw（gate774.py・--x0 と --pend0 は Z から）：L1（結合）≦⌊X0/3⌋（X0＜6 なら記録と名乗る）・L1p ≦6・L2 ≧9/10 種・U1a 違反 0・U1b ≧0.5×Z の平均（Z の平均＜0.05 なら記録）・U2 ≧1861・U2r ≧106。予言＝全て通る（線の腕 B の値の近く：L1 0・L2 10/10・U1b 比 0.8〜0.95・U2 2100〜2400・U2r 130〜200）。
+  c7ag（gates775.py・--l2base は Z の Σ fiscalBAt3Count）：L1 9/10 種以上で E の中央値の挟みの四半期 ≦10・L2 ≦ Z の 1/5・U1 傾き [0.8,1.2]・U3 ≦1e-9（U2 は記録）。予言＝全て通る（L1 0・L2 0・U1 0.9〜0.97・U3 1e-14 の桁）。
+  c7hl（静的・S1〜S4）：合流の木の worldmap.svg・landmask.bin・landmask_land.bin・barriers.json が origin/c7hl とバイト一致＝門の値は線と同じ（S1 サンクトペテルブルク 425.5 km・リガ 916.3 km・S2 箱の外の画素 0・S3 +0.35 km・S4 恒等）。腕の量は記録。
+  c7pg（恒等の線）：portlm_s の自己検査（portch_s の portUsed と portlm_s の portUsed の不一致 0 行）を M・S11 で読む（記録）。
+- 同じ盤面の新÷旧：c7sw Σ stateTargetNew÷Σ stateTargetOld（全ての行と constructionLeftDays=0 の行）・c7ag usedParity÷oldParity（銀本位の行）＝記録の表に出す。
+- 予言の大きさ（記録）：exact は 43〜48・near 82〜86・NG は 77 から 90〜110（c7ag の 102 が主）・英の債務不履行は M でも 3〜6/10 種（c7ag の線 5/10）。
+
+■ 5. 止める線と記録の段
+- 止める線（M・S11・N1・N2・Z の全て）：破綻（クラッシュ・NaN・保存則）0・1 四半期 100 倍以上 0・開幕の 1e10 倍以上 0（README ★(617) の絶対の線）・
+  空洞化 1/10 未満の名簿の外 0 件（規則 A2・an_h2.py -v4・種 1〜20）・推定の計算量 ≦248.5 秒（見込み 216〜222）・savetest OK・leakhunt 保存則違反なし・機構のテストの赤 0（§6）。
+- 記録（採否に使わない）：開幕の 1000 倍以上（〈記録（事象が無ければ注視の先頭・同じ国で半分以上の種なら NG）〉の段・小アンティル王国とジャマイカ王国が M・S11・N1・N2 で消えたか）・
+  exact・near・NG（基準 rd:measurements/ng773_20261102:m773）・門 A′（nullgate.py・m773 の 3 本）・空洞化 1/4 未満・英の債務不履行の種の数・金本位国の数の年ごと（c7ag の反証役）・
+  首位の国の取り分（top_share.py）・本国の崩れ（home_break.py）・c7hl の静的 2 検査（§1）。
+
+■ 6. 試験
+- --list-tests：Category!=FullLength 2139＋5（c7pg）＋6（c7sw）＋3（c7ag）＋0（c7hl＝InlineData −1・Fact +1）＝2153・FullLength 3。
+- 腕の前の煙試験の赤の見込み＝WriterRatchetTests の宣言の表だけ（少なくとも :401 建設：見た生産者〔旬〕・:520 外交：覇権の判定の国×国。c7ag の :408 請求の清算の行・:413 外交の力の月も見込み・合わせた木の軌道は別なので他の行が出てもこの区分）。
+  OpeningBakeTests・PathGraphTests（辺 1084）・LandGraphFixTests・PortByLandTests・InheritIntentTests・SilverParityInstrumentTests・DormantIdentityTests は緑。
+  opening_bake.json は c7hl の表（inputHash 766cc4aa61216eb9）を入れ、他の線は埋め込みの資源に触れない＝焼き直さない。
+
+■ 7. 帰属（合わせた木で線の門が落ちたとき）
+- c7sw・c7ag の門が M で落ちたら、同じ木でその線の旗だけ 0 の計器つき 10 種を 1 本回す（各線の ident が旗 0 で恒等を示した＝その線を抜いた木と等価と名乗る）。
+- c7hl の量が原因と見えるときは c7hl を抜いた木（wt_m778 の c7hl の merge の前の親の上に c7sw・c7ag）の腕を 1 本。原因の線だけ外す。
+
+■ 8. 腕（駆動 scripts/instruments/m778/arm.sh・git archive の HEAD）
+1 巡目＝Z・M・S11・N1（SupplySlope=0.50000001）・N2（0.49999999）・P5（素の 5 種）。2 巡目＝P（素の 10 種＝予言 P ≡ M）・G（c7pg の木 a125483d の計器つき 10 種＝成績表 ≡ b10_20261102_m773_ins・紙の再現）。
+腕の前に合流の木で Release のビルドと --list-tests と関係するテストの組を回し、WriterRatchetTests を取り直してから腕を起こす（腕は取り直しの後の HEAD＝表の値は成績表に効かない）。
+
+■ 9. 新しい基線（採ったら）
+- m778＝b10_20261102_m778（素の 10 種）・b5_20261102_m778・b10_20261102_m778_ins・b10s11_20261102_m778_ins・ヌル腕 _m778_n1_ins・_n2_ins。
+- 生は D:/PoB_work/keep_778（base_ins・n1・n2・a11）・keep_773 は keep_778 ができ記録の読みを終えたら消す。NG の新しい基準 rd:measurements/ng778_20261102:m778。
+- ident.cfg を m778 へ（TESTS_NONFULL 2153・計器の表の増＝portlm_s・inheritintent_s・silverpar_s）。
+
+■ 10. 事前登録の点検
+- 補給崩壊の倍・10pt・NG の正味を門にしていない。新しい門は置かない（各線の事前登録の門をそのまま使う）。符号だけの門・最大以下の門・尾の門・史実の大きさの門なし。
+- 計算量：各線の割り当て（c7sw 0.1・c7ag 0・c7hl 0・c7pg 0）＝合計 0.1 秒＝余り 約 27.3 秒の内。
