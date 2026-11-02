@@ -1,0 +1,69 @@
+using System.Collections.Generic;
+namespace PriceOfBread.SimCore;
+
+// (794) 読み手 r794：国際金融の 3 本の流れ（国内の逃避の預け・外資の新規流入・配当）の国ごと×四半期の表（使い捨て・読むだけ・恒等）。
+// CapitalMarket.Step の中の値を写すだけ＝力学の値を 1 つも書かない・乱数を引かない・演算の順を変えない。Instruments.On のときだけ。
+// ■r794n_s<種>.tsv：国×CapitalMarket.Step の呼び出し 1 回（四半期）。額は各国の通貨・e＝FxRate（金建て＝額×e）。
+// ■r794w_s<種>.tsv：世界の行（金建ての和・fx の残差・185 行の Max(0) が効いた件数）。
+// ⚠限界（自己申告）：①fShadow（外資の負債のうち国内の逃避の預けに由来する分）は近似＝166 行で足し、172 行の逃避で比例して引く。併合（MultiNationSim:1216）では吸われた国の影は失われる。
+//   ②ThreadStatic の緩衝＝1 試合は 1 本のスレッドで回る前提（Runner の Parallel.For は種ごと）。Diplomacy の参照が合わない四半期は捨てて件数を数える。
+public static partial class Instruments
+{
+    [System.ThreadStatic] static System.Text.StringBuilder? _r794N, _r794W;
+    [System.ThreadStatic] static object? _r794Key;
+    [System.ThreadStatic] static System.Runtime.CompilerServices.ConditionalWeakTable<World, double[]>? _r794Shadow;
+    [System.ThreadStatic] static int _r794Call;
+    [System.ThreadStatic] static int _r794Dropped;
+    sealed class R794Sink { public bool Started; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, R794Sink> R794Sinks = new();
+    static string R794F(double v) => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+    internal static double[] R794Shadow(World w)
+    {
+        _r794Shadow ??= new();
+        return _r794Shadow.GetValue(w, _ => new double[1]);
+    }
+
+    // CapitalMarket.Step の末尾から呼ぶ。cols＝国ごとの列（順は R794NHead）・world＝世界の列（順は R794WHead）。
+    internal const string R794NHead = "e\tcred\tngdp\tinvSav\tfciBefore\tcaBefore\tfShadowBefore\tdomWant\tdomGot\tdomIn\tflightReq\tflightTaken\tdivReq\tdivTaken\tbackK\tbackMoved\trefund\tsentK\trecvK\tfciAfter\tcaAfter\tfShadowAfter\tinvSavAfter\tinvestorCount";
+    internal const string R794WHead = "abroadSumGold\tbackTotalGold\tflightTotalGold\ttakenSum\tfx\tmax0BindCount\tfciSumGoldAfter\tcaSumGoldAfter\tfShadowSumGoldAfter\ttraded\triskAppetite\tworldRate";
+    internal static void R794Record(IReadOnlyList<Simulation> nations, double[,] cols, double[] world)
+    {
+        if (!On) return;
+        var key = nations.Count > 0 ? (object?)nations[0].World.Diplomacy : null;
+        if (!ReferenceEquals(key, _r794Key)) { _r794N = new(); _r794W = new(); _r794Key = key; }
+        _r794N ??= new(); _r794W ??= new();
+        int call = _r794Call++;
+        for (int i = 0; i < nations.Count; i++)
+        {
+            var w = nations[i].World;
+            _r794N.Append(call).Append('\t').Append(w.Year).Append('\t').Append(w.Region.Name);
+            for (int k = 0; k < cols.GetLength(1); k++) _r794N.Append('\t').Append(R794F(cols[i, k]));
+            _r794N.Append('\n');
+        }
+        _r794W.Append(call).Append('\t').Append(nations.Count > 0 ? nations[0].World.Year : 0).Append('\t').Append(nations.Count);
+        foreach (var v in world) _r794W.Append('\t').Append(R794F(v));
+        _r794W.Append('\n');
+    }
+
+    static void R794Table(MultiNationSim sim, ulong seed, int q)
+    {
+        if (_r794N is null || _r794W is null) return;
+        var key = sim.Nations.Count > 0 ? (object?)sim.Nations[0].World.Diplomacy : null;
+        if (!ReferenceEquals(key, _r794Key)) { _r794Dropped++; _r794N.Clear(); _r794W.Clear(); return; }
+        var sk = R794Sinks.GetValue(sim, _ => new R794Sink());
+        var enc = new System.Text.UTF8Encoding(false);
+        string pn = System.IO.Path.Combine(Dir, $"r794n_s{seed}.tsv"), pw = System.IO.Path.Combine(Dir, $"r794w_s{seed}.tsv");
+        if (!sk.Started)
+        {
+            System.IO.File.WriteAllText(pn, "q\tcall\tyear\tnation\t" + R794NHead + "\n", enc);
+            System.IO.File.WriteAllText(pw, "q\tcall\tyear\tnations\t" + R794WHead + "\tdroppedQuarters\n", enc);
+            sk.Started = true;
+        }
+        var bn = new System.Text.StringBuilder(); var bw = new System.Text.StringBuilder();
+        foreach (var line in _r794N.ToString().Split('\n', System.StringSplitOptions.RemoveEmptyEntries)) bn.Append(q).Append('\t').Append(line).Append('\n');
+        foreach (var line in _r794W.ToString().Split('\n', System.StringSplitOptions.RemoveEmptyEntries)) bw.Append(q).Append('\t').Append(line).Append('\t').Append(_r794Dropped).Append('\n');
+        System.IO.File.AppendAllText(pn, bn.ToString(), enc); System.IO.File.AppendAllText(pw, bw.ToString(), enc);
+        _r794N.Clear(); _r794W.Clear();
+    }
+}

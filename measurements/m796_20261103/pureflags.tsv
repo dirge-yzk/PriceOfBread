@@ -1,0 +1,58 @@
+line	name	default	simreads	files	tests	runner	app	kw	comment
+158	InnovationEliteSubstitute	1.0	1	TechEducation.cs	0	0	0	点火	 // 【#22点火2026-07-15＝1.0・革新の自由度緩和】自由の代替＝高エリート技術力(w.Elite≥EliteForFullTech)でも革新可に（★(383) で行政効率の連言 InnovationAdminThreshold は物理削除）。0=自由必須・>0で検閲下でも技術力の高い国（ドイツ帝国/明治
+254	LordOppositionByRentLoss	1.0	2	PolicyPreferences.cs	7	0	0	点火,器	//   0＝今の式 StatusScale×(0.5＋W0)（W0＝旧支配層の貯蓄の割合＝同じ貴族の富が政治力〔InterestGroups〕と反対の強さの両方に入り、農奴制が続くほど強まる）＝厳密恒等。 //   **既定は 1（2026-10-25 (547) 点火・腕 B＝計器つき 10 種で M1〜M6 と止
+259	LordOppositionReverseGain	1.0	2	PolicyPreferences.cs	12	0	0	点火,旗,器	//   進める向きは rs2 の損の式のまま（1 ビットも変えない）。0＝rs2 のまま＝減らす向きは進める向きの値の符号反転（全面の国は床 1.0）＝厳密恒等。既定 1（2026-10-25 に点火＝腕 B・計器つき 10 種・止める線に当たらず・G1〜G5・G7 が通る。事前登録 measurements/rs3
+659	ServiceClosedFixedPoint	1.0	1	MarketFlow.cs	1	0	0		//   ③2次のケーニヒスの式の項 |A·e0| が 0.05 未満、のときだけ h 日を1回の式で進める。段0（spg3 の木・seed1・300 四半期）の誤差＝日次に対して最大 2.9e-5（相対）・平均 1.9e-7。 //   ★既定 1（2026-10-23 フォーク元の採否「spa は S1c（Serv
+668	LaborClosedForm	1.0	1	MarketFlow.cs	1	0	0	器	//   段0（m516 の木・seed1・668 四半期）：労働の日次の回 5,836 万のうち 4,461 万（76%）が当たり、日次に対する誤差は相対 2.1e-15 以内（丸めの桁）。参照より上の側（S1c と同じ帯の形）は使わない。 //   ★既定 1（2026-10-24 フォーク元の採否「案 B（spb
+743	HouseholdCreditStapleOnly	1.0	1	EconomyStep.cs	1	0	0		// 家財＝質屋の担保が概ね数週間〜2ヶ月分の所得）。0＝借りない // 入口B：主食のtierでのみ借りる（1＝主食限定）。質屋は食い扶持のための信用であって奢侈のためではない
+777	MilitaryBudgetNeedCapped	1.0	2	Simulation.cs	1	0	0	点火	// 上限がそこで binding すると `remaining = MilitaryBudget − estCost×afford` が**厳密に0**＝機関銃/装甲艦/戦車/弩級戦艦/空軍が**全世界で調達不能**になっていた（死蔵財を増やす向き）。 // 全段なら afford=1 のとき残余＝上位3段の必要額ち
+1131	StapleElasticityZero	1.0	2	EconomyStep.cs	4	0	0	点火	// ★塊1 飢饉の深さ（AI審査2-1/2-2・docs/20260830/20260830_塊1）。段0と段1bは**別々に測る**（符号の是正と参加者追加は別の帯）。 // ★点火2026-08-31（ラウンドB）＝段0：主食の自己価格弾力を0に＝必要量は生理的に決まり、買えるかは予算制約が決める（符号の是正＝正
+1137	HarvestShortfallToMarket	1.0	3	EconomyStep.cs,InstrumentsFd.cs	2	0	0	点火,確証なし	//   主食の欲しい量を 市場に出す量×(相対価格の冪)×norm にする（挟みなし・norm は POP ごと＝Σ欲しい量が Σ市場に出す量〔必要量×(1−自給)〕に一致するように月の頭に求める）。①が 0 だと過分が捨てられる＝腕 B は 3 本とも 1。AI の設計＝確証なし。 // ★点火 2026-10-2
+1202	BuildingGoodBundle	1.0	8	EconomyStep.cs,InstrumentsFb.cs,Simulation.cs,Validation.cs	21	0	0	旗,器,確証なし	//   旗 0 では建造物の作り手を 1 本も置かない（買い手も売り手も居ない財＝成績表は旗の追加前と同じ・財の表と市場の器だけは在る）。旗が正（既定）だと作り手 5 本が全ての州に置かれる。ivf の F2（時代の組・旗 ConstructionEraBundle ほか 5 本）は道ごと消した（読む線 fbd ⑤）
+1207	RegionalPriceBaseExcludesColonies	1.0	1	Simulation.cs	5	0	0	点火,確証なし	//   根＝英の国平均の 1 人あたり貯蓄にベンガルなど植民地の 3,000 万人が入り、本土の乗数が 1.379 になる（iv ①）。 //   ★2026-10-25 点火（既定 1）：腕 C（F1＋F3）で G3〈英本土の石炭の自己費用 0.30〜0.36〉0.3315・G4〈英÷他の欧州の中央値 ≦1.15〉
+1210	MachineCastIronRecipe	1.0	1	Simulation.cs	4	0	0	点火,確証なし	// ★(536) 線 ivf：機械（財）の地理差のレシピ〈鋳鉄の機械〉（鉄 2.52＋銅 0.57・0＝足さない）。事前登録 [0] F3。換算は鋳鉄の機関の比の流用＝既定の機械の鋼 1.514 を鉄 2.52 に置き換える（確証なし）。 //   ★2026-10-25 点火（既定 1）：腕 C で G9〈鋳鉄の機
+1360	ScarceMineralOnlySulfur	1.0	4	Catalog.cs	0	0	0		 // 測定用（裁定⑥）：1で硫黄5のみを対象にする。0で6財すべて。   // ★段階（2026-09-06）：1＝硫黄だけ／2＝硫黄+硝石+金+銀（クロム・錫は除く＝G2 でハーネス赤）／0＝6鉱物すべて
+1407	ArmsStockEnabled	1.0	3	EconomyStep.cs	0	0	1		 
+1493	MegaprojectEnabled	1.0	3	Megaprojects.cs,MultiNationSim.cs	3	0	0	点火,休眠	// === 巨大建造物（設計docは2026-07-28「巨大建造物」・パスは事後の棚卸リネームで陳腐化するため書かない）=== // **休眠＝0 で機構ごと非実行＝厳密恒等**（較正中立も同じガードで担保）。>0 で点火。 // **点火2026-07-28（巨大建造物 段3/段4）**      // 巨大建造
+1509	MegaprojectForeignMinRank	1.0	1	Megaprojects.cs	2	0	0		 // 1=列強のみが外資になれる（0で全国）。史実の資本輸出国＝列強という制約
+1549	HcdColonyCessionDistance	1.0	1	Diplomacy.cs	1	0	0	点火	// ★(696) 線 hcd（講和の植民地格の州の複数割譲に距離を戻す・2026-10-31 に既定 1 で点火）：0＝旧（植民地格の州の複数割譲の費用は 基本＋資源＋人口 だけ＝距離を見ない・射程の門は 敗者との相対の CanCrossSea だけ）／正＝植民地格の州の費用に、ColonyList 経路（上）と同じ
+1702	BattleLogEnabled	1.0	1	Diplomacy.cs	0	0	0		// 外交アクション（プレイヤー/AI 共通・同ランク間が原則）：緊張の上げ下げ・防衛同盟・植民地化。 // ★戦闘のラウンド記録（2026-08-04・作者仕様(1)「戦争をラウンド化する。1ヵ月1ラウンド」）。戦争の解決は元から月次＝ラウンドの実体はあり、欠けていたのは「その月に何が起きたか」の可視化だった // 
+1750	FactionOpportunism	1.0	1	Politics.cs	1	0	0	点火	// ⚠撤去2026-09-11（要求は法の経路の点火）：第6段6-6の別軸譲歩（主フラグ・緩和・結束残存の係数3本と Politics の施行関数）は読み手ごと物理削除。 //   別軸譲歩の実体は「本丸以外の要求の法だけが通常経路で動いた」（Politics.CrisisThroughLawPath の moved
+1880	ParishEduFunded	1.0	1	Simulation.cs	6	0	0	確証なし	//   （担い手は教区学校＝聖職者のまま・買う量の上限は担い手の産出の残り）。〈教育法は担い手を決め、教育費は国が買う量を決める〉。新しい数字を置かず既存の PublicEduFundingShare を共有する（〈確証なし〉）。 //   史実の形＝英 1833 の学校建設補助金が国教会系・非国教会系の協会を通って
+1884	StateEduDemandInFront	1.0	1	EconomyStep.cs	4	0	0	点火	//   0＝旧（取れた分だけ足す・供給が尽きた月は国家の需要が値段に出ない）／1＝買いたい分（取れなかった分も）を足す。順位の配分・購入量・支払い・保存は旧のまま（足すのは需要の記録だけ）。 //   ★2026-10-20 (452) に 1 で**点火**（既定を 1 へ・止める線に当たらず・採った理由と数字は 
+1931	DiscoveryPriceInitFromCost	1.0	1	Discovery.cs	3	0	0		/// 必要性が立つ（r314 の 10 種で蒸気機関を最初の四半期に解禁する英以外の国が 34〜37 か国・全て産業の基盤の薄い国・清は 10/10 の種）。⚠世界の値段の平均を先入観にする形（産出重み）は /// 不採用＝canary で主要国まで最初の四半期に解禁した（産出の大きい非産業国の高い値段が平均を引き上
+1937	DiscoveryCarrierDownstream	1.0	1	BilateralMarket.cs	2	0	0		/// 自分で蒸気機関を持つ国しか蒸気機関の財を買わない＝解禁の前に伝わる道が無い（日本・デンマークほか 7 国が 1950 年まで蒸気機関を持たない・measurements/g3r_20261016_root.txt）。 /// 新しい状態も閾値も国ごとの分岐も無い。接触の分母（世界のその運び手の財の取引額）も足し
+1965	IndustrializationOff	1.0	1	EconomyStep.cs	6	0	0	点火,旗,確証なし	//   β＝[法≠禁止]×運動体の結束の割合 κ×(1−失業率)×S（S＝1−(1−V_w÷(V_w+V_o))(1−m)・V_w＝労働者 POP の票の声・V_o＝持ち主 POP の票の声・m＝容認のときの労働者 POP の闘争度）。段ごとの固定の値は置かない。同時に World.TechProductivity 
+1970	UrbanCapOff	1.0	3	InstrumentsUrx.cs,Meritocracy.cs,PopDecision.cs	14	0	0	点火,旗,既定 0,確証なし	//   残りの旗（CapitalHeadroomFromReturn）は既定 0＝今のまま（UrbanCapOff は (687) で既定 1 に点火）（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。 //   ★(667) 線 igi4：疫病の衛生・信用の深さ・開幕の交易の比重・扶養力の 4 本の旗（Epidem
+2066	ChilledMeatEnabled	1.0	1	Simulation.cs	0	0	0	点火	// ★石油ケロシン（灯油doc・2026-08-13）：灯油の第2レシピ。原油の「1859年から40年の買い手ゼロ」を埋める。 //   鋼（坩堝→ベッセマー）と極性が逆＝**新レシピの方が安い**ので、onset後にコストで自動的に鯨油を駆逐する（捕鯨船団735隻→39隻）。 // ★点火2026-09-04：実測
+2069	KeroseneFromOilEnabled	1.0	1	Simulation.cs	0	0	0	点火	 // ★点火2026-08-14（n22実測：列強再現率+6.2・領土植民地+5.8／人口−5.7・政体exact−2.1・◎20vs21＝混合。原油の40年の買い手ゼロは実在の穴＝正しい挙動＞バランスで採用・#17で見直す）
+2162	BaseArmsStockEnabled	1.0	2	EconomyStep.cs	0	3	1		//   ⚠**これは軍縮を創発させない**（軍縮エピソードは0件のまま）。①は「1ヶ月の事故」を消しただけで、 //     「何年も買えない国」は消していない（アメリカの軍事力0が残る＝軍需産業の不在と貿易の消滅が原因）。次の根はそちら。 
+2280	FleetContactPerGdp	1.0	1	ArmyShape.cs	2	5	0		//   0＝自国の越境の交易額（World.TradeValueSmoothed）÷全ての国の平均（旧＝(194)）／1＝自国の越境の交易額÷自国の年の名目GDP（開放度）を全ての国の平均で割った相対（平滑の量・平均で割る形・注意配分の列の正規化は同じ）。 //   動機＝旧の重みは絶対額なので名目の大きい国（清は平
+2300	NavalProcurementNeedsPort	1.0	1	EconomyStep.cs	1	0	0	器	// ★軍艦は港でしか造れない（2026-08-01）。0＝旧（内陸州も軍艦を買う）／1＝港の州が1つも無い国は艦を買わない（(189) 海軍の調達の必要額が0＝海軍の予算は装備の器の残りへ）。 // 実測の動機＝1914年の海軍力1位が**内陸の西安王国**、艦隊ストック2位が広州王国だった（docs/202608/
+2309	NavalCedeFleetReturn	1.0	1	Territory.cs	1	0	0	点火,確証なし	//   艦隊は国のもの（Diplomacy の FleetGauge は国内の全州の艦の在庫の和）で、州の艦の在庫は帳簿上の置き場＝割譲で艦が相手の海軍に渡るのは稀（推測・確証なし）。建国〔Seceded〕・再併合〔Returned〕は変えない。 //   新しい倍率・状態・天井は無い。形は〈尾〉（艦の置き場）。既定
+2361	MonopolyBurdenPushMode	1.0	1	SelfPlay.cs	3	0	0		//   0＝旧（払えない請求〔1−r＞0〕があるときだけ 1 段広げる）／1＝加えて、確率 p＝重さ×余裕の因子 で 1 段広げる //   （重さ＝(利払い−MaxInterestShareOfRevenue×歳入)÷利払い・余裕の因子＝安全水準÷(安全水準＋国庫)。符号の段差でなく大きさに比例＝§1-8）。外れた
+2379	ClearingIdleThrottledScan	1.0	1	BilateralMarket.cs	2	0	0	確証なし	//   ClearingIdleThrottledScan（(ii)・0／1）：1＝買い手の州が前の四半期の最初の清算で律速だった（LastTradeThrottle＜1）行は番でなくても走査する（時計でなく既存の状態の条件で起こす）。 //   ClearingIdlePotentialReweight（①・0／1
+2380	ClearingIdlePotentialReweight	1.0	1	BilateralMarket.cs	1	0	0		 
+2501	SovietTaxProfile	1.0	1	SelfPlay.cs	0	0	0	点火	// 半分を切ると買い占めが加速（希少→退蔵購入→さらに希少＝バンクランの財版。HoardPanicWeight=資金側は既にlive）。 // 予算とelasMaxが物理蓋・0=乗算ごとスキップ=厳密恒等。点火0.5 // ソ連風税制（2026-08-08作者裁定＝完全な計画経済の代替）：プロレタリア独裁は
+2593	DomesticServiceMarketRation	1.0	2	EconomyStep.cs	2	0	0	点火,既定 0	//   1＝比例の配給（他の財と同じ・買いたい量の割合のまま買える）。満足度の台帳には載せない（needW＝0＝今と同じ・役務は充足度に数えない）。新しい状態・倍率なし。 //   0＝旧の配分（優先配分）＝(433) 以前の挙動。事前登録 measurements/sb433_20261019_prereg.txt
+2706	CrossBorderMigrationByOpportunity	1.0	1	MultiNationSim.cs	0	0	0	点火,旗,墓標	// 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない // 【削除2026-09-30 段4e 後半 4e-3】LiteracyGenerationalDecay（識字の世代減衰の月率0
+2776	InheritedStateIntentDrop	1.0	1	Territory.cs	2	0	0	旗,確証なし	// ★(785) 旗 PortByLandRoute（(770)）・PortSameLandmassFirst（(779)）は既定 1 の経路だけを残して焼き込んだ（線 c9bk）。港の選び方は Simulation.PortChoice の 1 本＝同じ国の港の eff（陸路が有限 ? 陸路 km : 大圏 km）
+2819	HouseholdProductionEnabled	1.0	1	Simulation.cs	3	0	0	点火,器	//   ★形は 2 度直した（事前登録 追記2・追記3）：①職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで農民の時間が二重に使われた→農業労働力を投入に置いた。②手書きの原料展開の表＝中間の段の付加価値を払わず構造的に安い（canary で 4 財がほぼ 100%）→財の表の
+2888	TechMultipliersOff	1.0	4	ArmyShape.cs,Diplomacy.cs,FiscalTables.cs,World.cs	8	0	0	点火,確証なし	 // ★(613) 線 tl 段3（**2026-10-28 に既定 1 へ点火**＝腕 B が止める線に当たらず。0 は旧の挙動）：技術水準を掛ける3つの倍率を 1 にする（軍の質の技術の因子 ArmyShape.Quality・海越えの遠征の門 Diplomacy.ExpeditionLift・近代化費用の遅れの
+2890	TechGateByDiscovery	1.0	4	Megaprojects.cs,MultiNationSim.cs	3	1	0	点火,旗,器,既定 0	// ★(613) 線 tl 後半（**2026-10-28 に段1・2a・2b・4 を既定 1 へ点火**＝腕 B〔計器つき 10 種〕が止める線に当たらず。0 は旧の挙動〔テストの陽性対照が使う〕。段5 は既定 0 のまま〔腕 B5・cp3 と同じ線か後〕。否定形で NaN は 0 へ倒す。旗は段6 の物理削除と一
+2891	TechSignalOff	1.0	2	MultiNationSim.cs,SelfPlay.cs	4	0	0		 // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
+2892	TechThresholdOff	1.0	7	Agents.cs,Discovery.cs,SelfPlay.cs	14	0	0		 // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
+2896	SpreadNeedFascismDecline	1.0	3	Discovery.cs,MultiNationSim.cs	4	0	0		 // ★(640) 線 idn：>0 でファシズムの必要性の強度に〈自国の国力の割合の落ち込み＝(在庫 ScoreStanding−今の ShareScores)÷在庫〉を掛ける（新しい状態なし）。0＝今の式（危機×人々の闘争度）。正で有効
+2897	EraOff	1.0	3	Coefficients.cs,DiscoveryTables.cs,InternationalMarket.cs	9	0	0		 // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
+2969	MandateWallStockCap	1.0	1	Government.cs	2	0	0	旗,確証なし	//   正のとき、Government.Spend が S へ足す量を残りの在庫 max(0, b−S) で止める＝在庫を使い切る（S は b で止まる）。b を超える分は S に載らず、正統性だけが払う（MandateSpentNew は代価の全額のまま＝Politics.Step が 1 回だけ引く）。 //  
+3129	NationalConsciousnessCorruptionWeight	0.2	1	CrownParliament.cs	0	0	0		 // **主フラグ**：⚠旧・汚職チャネル（civicGraft→Fiscal leak別項）は汚職V2恒久ONにつきC2-C5で物理撤去（2026-08-16）＝現在の生き読者は2箇所＝World.civicCarriesEthnic（代議制で民族の行政痩せを切る二重計上回避ゲート）と CrownParliamen
+3222	AntitrustGate	1.0	3	LawCatalog.cs,PopTables.cs,Simulation.cs	0	0	0	点火	// 1934拡張E6 独占禁止法：独占レント(塩/茶)の実効倍率。0で恒等（E9点火） // **主フラグ**：0で効果なし＝MonopolyRentFactor常に1.0＝恒等／1で独禁法が独占レントを変調。E9点火（既定None＝較正中立）
+3229	NationalizationGate	1.0	8	LawCatalog.cs,LawTables.cs,Simulation.cs	3	0	0	点火	// 1934拡張E6 国有化法：該当部門の利潤を国庫へ。0で恒等（E9点火） // **主フラグ**：0で効果なし＝Region.NationalizedMask常に0＝恒等／1で国有化（5部門＋『全て』＝§11-6d統合後の6行）が発火。E9点火（既定全false＝較正中立）
+3363	LaborFloorOffGate	2.0	1	EconomyStep.cs	6	0	0	確証なし	//   ★(475) 合流で3本とも既定を倒した（2・1・1）＝作者 2026-10-20「弾力は調整が必要ですが、下限は最低賃金法に移したので、差し戻す必要はありません。」「理由のない底よりは、底なしの方が健全です。」 //     形 1（弾力ゼロ）の分岐は同じ合流で消した＝LaborFloorOffGate は
+3364	LaborBandFloorOffGate	1.0	1	MarketFlow.cs	4	0	0		 
+3365	MinimumWageLawGate	1.0	8	Government.cs,LawCatalog.cs,Parliament.cs,PolicyPreferences.cs,Politics.cs,SelfPlay.cs	14	0	0		 
+3370	InheritanceLawGate	1.0	8	Government.cs,LawCatalog.cs,Parliament.cs,PolicyPreferences.cs,Politics.cs,SelfPlay.cs,Simulation.cs	3	0	0	点火,旗,器	//   事前登録 measurements/inh_650_20261030_prereg.txt と _prereg2.txt。 //   ★2026-10-30 に 1 で**点火**（腕 A〔旗 0〕は基線 m645 と全行バイト一致・腕 B〔計器つき 10 種〕は止める線に当たらず・狙いの数字 ③a ③d が
+3459	MintPriceFloorGate	1.0	1	Simulation.cs	3	0	0	点火	 // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30＝列強+5.8・破綻0）：0で旧来（産出比例上限・国内鉱山限定）／1で自由鋳造＝平価未満なら在庫から買い上げる（床）
+3478	SilverParityFromRatio	1.0	1	MultiNationSim.cs	3	0	0	点火,器,既定 0	//   クランプ不要・自己参照無し。読み手（World 平価／Fiscal 金建て債務／PolicyPreferences 銀下落）は WorldSilverPrice/RefPrices[銀] のまま不変。 //   0＝旧統計をそのまま注入。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。(775) 
+3480	StandardMetalMintGate	1.0	1	Simulation.cs	3	2	0	点火	// 【削除 2026-10-04 (210)】SilverStandardIndThreshold（銀本位に届く工業化＝0＝銀は誰でも持てる・読み手は AI の目標の1行だけ＝常に真）＝不換の国は銀を志向する（SelfPlay.DecideQuarter）。 // **主フラグ**★点火2026-08-29（夜間R2
+3613	ModernizationBudgetSoftCap	1.0	1	World.cs	4	0	0	点火	//   熱が**闘争度1量**になった＝欠乏因子そのものが消えた（欠乏は闘争度の中の飢餓の駆動項が運ぶ＝外側で再び掛けない）。 //   このゲートが解いていた「FoodFill=1.0 で熱が恒久0」という遮断スイッチも、同じ変更で構造的に消えている。 // 【点火1.0・2026-08-16 点火梯子＝単独 ex

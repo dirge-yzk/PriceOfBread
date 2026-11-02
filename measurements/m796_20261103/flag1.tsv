@@ -1,0 +1,94 @@
+87	PriceLawSeesExports	1.0	sim=1	self=1	ins=0	t=1	>0	点火,休眠,旗,既定 0,差し戻し,墓標
+152	CatchupAbsorptionBlend	1.0	sim=2	self=0	ins=0	t=0	>0	休眠
+158	InnovationEliteSubstitute	1.0	sim=1	self=0	ins=0	t=0	>0	点火
+254	LordOppositionByRentLoss	1.0	sim=2	self=0	ins=0	t=7	>0	点火,器
+259	LordOppositionReverseGain	1.0	sim=2	self=0	ins=0	t=12	>0	点火,旗,器
+327	ParticipationDiscontent	1.0	sim=4	self=0	ins=0	t=10	>0	点火
+659	ServiceClosedFixedPoint	1	sim=1	self=0	ins=0	t=1	>0	
+668	LaborClosedForm	1	sim=1	self=0	ins=0	t=1	>0	器
+743	HouseholdCreditStapleOnly	1.0	sim=1	self=0	ins=0	t=1	<=0	
+777	MilitaryBudgetNeedCapped	1.0	sim=2	self=0	ins=0	t=1	>0	点火
+831	MerchantArtisanCapitalRise	1.0	sim=3	self=0	ins=0	t=2	>0	点火
+839	SerfMobilityGate	1.0	sim=6	self=0	ins=3	t=5	>0	点火
+840	ServiceUnemployment	1.0	sim=2	self=0	ins=0	t=0	>0	点火
+986	ConvertibilityCoverageBand	1.0	sim=2	self=0	ins=0	t=0	>0	点火
+1098	OpulenceTaxRelief	1.0	sim=2	self=0	ins=0	t=2	<=0	点火,旗,墓標
+1100	PrivateAbsorptionBlend	1.0	sim=2	self=0	ins=0	t=0	>0	
+1113	IndCapitalOutputYears	1.0	sim=2	self=0	ins=0	t=6	>0	旗
+1131	StapleElasticityZero	1.0	sim=2	self=0	ins=0	t=4	>0	点火
+1133	StapleLedgerSum	1	sim=2	self=0	ins=2	t=2	>0	点火
+1137	HarvestShortfallToMarket	1	sim=1	self=0	ins=2	t=2	>0	点火,確証なし
+1202	BuildingGoodBundle	1	sim=7	self=0	ins=1	t=21	>0	旗,器,確証なし
+1207	RegionalPriceBaseExcludesColonies	1	sim=1	self=0	ins=0	t=5	>0	点火,確証なし
+1210	MachineCastIronRecipe	1	sim=1	self=0	ins=0	t=4	>0	点火,確証なし
+1325	ImmigrationAbsorbExponent	2.0	sim=2	self=0	ins=0	t=1	>0	
+1360	ScarceMineralOnlySulfur	1.0	sim=4	self=0	ins=0	t=0	>0 >=2 >=3 >=4	
+1407	ArmsStockEnabled	1.0	sim=3	self=0	ins=0	t=0	>0	
+1493	MegaprojectEnabled	1.0	sim=3	self=0	ins=0	t=3	>0	点火,休眠
+1504	MegaprojectCounterCyclical	1.0	sim=3	self=0	ins=0	t=1	>0	点火
+1509	MegaprojectForeignMinRank	1.0	sim=1	self=0	ins=0	t=2	>0	
+1529	PortCapToThroughput	1.0	sim=3	self=0	ins=0	t=5	>0	
+1549	HcdColonyCessionDistance	1	sim=1	self=0	ins=0	t=1	>0	点火
+1550	ColonyCaptureDistanceWeight	1.0	sim=6	self=0	ins=0	t=0	>0	休眠
+1702	BattleLogEnabled	1.0	sim=1	self=0	ins=0	t=0	>0	
+1737	SurvivalHopelessScale	1.0	sim=2	self=0	ins=0	t=0	>0	差し戻し
+1745	IrreversibleLaws	1.0	sim=6	self=0	ins=0	t=0	<=0 >0 >=1.0	点火
+1750	FactionOpportunism	1.0	sim=1	self=0	ins=0	t=1	>0	点火
+1754	FactionTargetsWeakAxis	1.0	sim=2	self=0	ins=0	t=3	>0	点火
+1784	DefeatShockTensionRelief	2.0	sim=2	self=0	ins=0	t=0	>0	点火
+1880	ParishEduFunded	1	sim=1	self=0	ins=0	t=6	>0	確証なし
+1884	StateEduDemandInFront	1	sim=1	self=0	ins=0	t=4	>0	点火
+1897	AISubmitMilRatio	3.0	sim=5	self=0	ins=0	t=0	>0 >1.0	
+1931	DiscoveryPriceInitFromCost	1	sim=1	self=0	ins=0	t=3	>0	
+1937	DiscoveryCarrierDownstream	1	sim=1	self=0	ins=0	t=2	>0	
+1960	RecipeEquipment	1	sim=6	self=0	ins=2	t=7	>0	点火
+1963	UnionBargaining	1	sim=7	self=0	ins=3	t=22	>0	点火,確証なし
+1965	IndustrializationOff	1	sim=1	self=0	ins=0	t=6	>0	点火,旗,確証なし
+1970	UrbanCapOff	1	sim=2	self=0	ins=1	t=14	>0	点火,旗,既定 0,確証なし
+1978	DiffusionWeight	1.0	sim=3	self=0	ins=0	t=0	>0	点火,休眠,墓標
+1980	IsolationExportWeight	1.0	sim=3	self=0	ins=0	t=0	>0	点火,墓標
+1981	TariffExportOppositionWeight	3.0	sim=2	self=0	ins=0	t=0	>0	点火
+2044	TransportCongestionWeight	1.0	sim=2	self=0	ins=0	t=0	>0	点火
+2066	ChilledMeatEnabled	1.0	sim=1	self=0	ins=0	t=0	>0	点火
+2069	KeroseneFromOilEnabled	1.0	sim=1	self=0	ins=0	t=0	>0	点火
+2083	LandAnchorCapacityWeight	1.0	sim=2	self=0	ins=0	t=0	>0	休眠
+2162	BaseArmsStockEnabled	1.0	sim=2	self=0	ins=0	t=0	>0	
+2300	NavalProcurementNeedsPort	1.0	sim=1	self=0	ins=0	t=1	>0	器
+2304	NavalPortProcurement	1.0	sim=6	self=0	ins=0	t=6	>0	点火,旗
+2309	NavalCedeFleetReturn	1.0	sim=1	self=0	ins=0	t=1	>0	点火,確証なし
+2361	MonopolyBurdenPushMode	1	sim=1	self=0	ins=0	t=3	<=0	
+2379	ClearingIdleThrottledScan	1	sim=1	self=0	ins=0	t=2	>0	確証なし
+2380	ClearingIdlePotentialReweight	1	sim=1	self=0	ins=0	t=1	>0	
+2501	SovietTaxProfile	1.0	sim=1	self=0	ins=0	t=0	>0	点火
+2587	DomesticServiceIncomeFactorExponent	2	sim=3	self=0	ins=0	t=3	!=1.0 >0	点火,既定 0,確証なし
+2593	DomesticServiceMarketRation	1	sim=2	self=0	ins=0	t=2	>0	点火,既定 0
+2653	LandRouteEnabled	1.0	sim=7	self=0	ins=0	t=3	>0	点火
+2706	CrossBorderMigrationByOpportunity	1.0	sim=1	self=0	ins=0	t=0	>0	点火,旗,墓標
+2752	SecessionCultureAdditive	3.0	sim=2	self=0	ins=2	t=0	>0	点火
+2776	InheritedStateIntentDrop	1.0	sim=1	self=0	ins=0	t=2	>0	旗,確証なし
+2819	HouseholdProductionEnabled	1.0	sim=1	self=0	ins=0	t=3	>0	点火,器
+2888	TechMultipliersOff	1	sim=4	self=0	ins=0	t=8	>0	点火,確証なし
+2890	TechGateByDiscovery	1	sim=4	self=0	ins=0	t=3	>0	点火,旗,器,既定 0
+2891	TechSignalOff	1	sim=2	self=0	ins=0	t=4	>0	
+2892	TechThresholdOff	1	sim=7	self=0	ins=0	t=14	>0	
+2896	SpreadNeedFascismDecline	1	sim=3	self=0	ins=0	t=4	>0	
+2897	EraOff	1	sim=2	self=1	ins=0	t=9	>0	
+2969	MandateWallStockCap	1	sim=1	self=0	ins=0	t=2	>0	旗,確証なし
+2978	MandateOverStockLegitPower	2	sim=2	self=0	ins=0	t=30	>0	確証なし
+2999	ParliamentBudgetVeto	2.0	sim=2	self=0	ins=0	t=0	>0	
+3170	MandateReligiousCircuit	1.0	sim=2	self=0	ins=0	t=0	>0	点火
+3193	NationConsciousnessPerPop	1.0	sim=5	self=0	ins=0	t=0	<=0 >0	点火,器
+3222	AntitrustGate	1.0	sim=3	self=0	ins=0	t=0	>0	点火
+3229	NationalizationGate	1.0	sim=8	self=0	ins=0	t=3	>0	点火
+3363	LaborFloorOffGate	2.0	sim=1	self=0	ins=0	t=6	>0	確証なし
+3364	LaborBandFloorOffGate	1.0	sim=1	self=0	ins=0	t=4	>0	
+3365	MinimumWageLawGate	1.0	sim=8	self=0	ins=0	t=14	>0	
+3370	InheritanceLawGate	1.0	sim=8	self=0	ins=0	t=3	>0	点火,旗,器
+3375	MinimumWageAiFromFloor	1.0	sim=2	self=0	ins=0	t=5	>0	点火,旗
+3419	MintDemandCounted	1.0	sim=2	self=0	ins=0	t=0	>0	点火
+3459	MintPriceFloorGate	1.0	sim=1	self=0	ins=0	t=3	>0	点火
+3478	SilverParityFromRatio	1.0	sim=1	self=0	ins=0	t=3	>0	点火,器,既定 0
+3480	StandardMetalMintGate	1.0	sim=1	self=0	ins=0	t=3	>0	点火
+3548	SecessionConsciousnessWeight	1.0	sim=2	self=0	ins=2	t=0	>0	点火
+3550	MintReserveTargetWeight	1.0	sim=2	self=0	ins=0	t=1	>0	点火,旗,墓標
+3613	ModernizationBudgetSoftCap	1.0	sim=1	self=0	ins=0	t=4	>0	点火

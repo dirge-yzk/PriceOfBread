@@ -1,0 +1,220 @@
+line	name	default	total_reads	cmp_reads	pure	files	kw
+21	PriceElasticity	0.5	6	1	mixed	BilateralMarket.cs,Discovery.cs,MarketFlow.cs	
+24	PriceAmpLnScale	2.9957	3	1	mixed	MarketFlow.cs	
+40	CrossElasticity	0.6	4	2	mixed	EconomyStep.cs	
+44	PriceCeilFactor	100.0	3	1	mixed	Discovery.cs,MarketFlow.cs	
+50	InventoryAdjustGain	0.1	2	1	mixed	EconomyStep.cs	点火
+87	PriceLawSeesExports	1.0	2	1	mixed	Coefficients.cs,MarketFlow.cs	点火,休眠,旗,既定 0,差し戻し,墓標
+152	CatchupAbsorptionBlend	1.0	2	1	mixed	TechEducation.cs	休眠
+158	InnovationEliteSubstitute	1.0	1	1	pure	TechEducation.cs	点火
+199	RecruitCostPerHead	100.0	2	1	mixed	MultiNationSim.cs	点火
+221	LivingRefSpeed	0.03	4	2	mixed	Politics.cs	旗,墓標
+254	LordOppositionByRentLoss	1.0	2	2	pure	PolicyPreferences.cs	点火,器
+259	LordOppositionReverseGain	1.0	2	2	pure	PolicyPreferences.cs	点火,旗,器
+306	FamineDriveGain	30.0	2	1	mixed	Politics.cs	
+327	ParticipationDiscontent	1.0	4	3	mixed	FactionSnapshot.cs,MultiNationSim.cs	点火
+388	RevolutionTerror	0.25	4	1	mixed	Politics.cs	休眠
+503	StrikeProductionHit	0.25	3	2	mixed	InstrumentsDiscontent.cs,World.cs	既定0
+529	LaborSaveRate	0.25	2	1	mixed	EconomyStep.cs	
+540	EnergyPerOutput	0.05	3	1	mixed	EconomyStep.cs	
+577	DoctorHealthcareSubstitute	0.5	2	1	mixed	Simulation.cs	点火,休眠,既定0,墓標
+653	PriceOnlyStepDays	15.0	3	1	mixed	Simulation.cs	
+659	ServiceClosedFixedPoint	1.0	1	1	pure	MarketFlow.cs	
+668	LaborClosedForm	1.0	1	1	pure	MarketFlow.cs	器
+709	TariffRetaliation	0.5	2	1	mixed	Diplomacy.cs	
+743	HouseholdCreditStapleOnly	1.0	1	1	pure	EconomyStep.cs	
+777	MilitaryBudgetNeedCapped	1.0	2	2	pure	Simulation.cs	点火
+829	JobPoolTemperature	0.15	2	1	mixed	Meritocracy.cs	点火,差し戻し
+831	MerchantArtisanCapitalRise	1.0	3	2	mixed	Meritocracy.cs	点火
+839	SerfMobilityGate	1.0	9	3	mixed	InstrumentsUrx.cs,Meritocracy.cs,PopDecision.cs	点火
+840	ServiceUnemployment	1.0	2	1	mixed	EconomyStep.cs	点火
+842	JobSearchUsesEma	0.02	3	2	mixed	EconomyStep.cs,Meritocracy.cs	点火
+845	FallAnchorReform	0.3	3	1	mixed	Meritocracy.cs	点火
+972	RegionalPriceLevelWeight	0.3	2	1	mixed	Simulation.cs	
+986	ConvertibilityCoverageBand	1.0	2	1	mixed	World.cs	点火
+1027	TreatyPortWinnerDistanceKm	6000.0	4	2	mixed	Diplomacy.cs	
+1033	TradeBiasStrength	0.25	8	3	mixed	BilateralMarket.cs,SelfPlay.cs,Simulation.cs	旗
+1091	DepressionScrapRate	0.06	2	1	mixed	Simulation.cs	
+1098	OpulenceTaxRelief	1.0	2	1	mixed	SelfPlay.cs	点火,旗,墓標
+1099	LandedPowerCapitalization	8000.0	2	1	mixed	InterestGroups.cs	
+1100	PrivateAbsorptionBlend	1.0	2	1	mixed	EconomyStep.cs	
+1113	IndCapitalOutputYears	1.0	2	1	mixed	EconomyStep.cs	旗
+1114	FactoryBuildScale	0.5	12	3	mixed	FactoryEquipment.cs,World.cs	
+1120	FactoryBuildPriceCeil	2.5	2	1	mixed	Coefficients.cs	
+1127	FactoryMothballRate	0.05	2	1	mixed	EconomyStep.cs	点火
+1131	StapleElasticityZero	1.0	2	2	pure	EconomyStep.cs	点火
+1133	StapleLedgerSum	1.0	4	3	mixed	EconomyStep.cs,InstrumentsFd.cs,MultiNationSim.cs	点火
+1137	HarvestShortfallToMarket	1.0	3	3	pure	EconomyStep.cs,InstrumentsFd.cs	点火,確証なし
+1172	ScaleEconomyGain	0.3	2	1	mixed	EconomyStep.cs	
+1175	RefrigerationEffect	0.7	2	1	mixed	EconomyStep.cs	
+1180	UrbanCapFollowSpeed	0.02	5	3	mixed	InstrumentsUrx.cs,Meritocracy.cs,PopDecision.cs	点火
+1202	BuildingGoodBundle	1.0	8	8	pure	EconomyStep.cs,InstrumentsFb.cs,Simulation.cs,Validation.cs	旗,器,確証なし
+1207	RegionalPriceBaseExcludesColonies	1.0	1	1	pure	Simulation.cs	点火,確証なし
+1210	MachineCastIronRecipe	1.0	1	1	pure	Simulation.cs	点火,確証なし
+1223	InlandPortDistanceDecay	1.0	3	1	mixed	BilateralMarket.cs,InstrumentsPortch.cs	旗,墓標
+1229	TransportCapPerUnit	30.0	5	1	mixed	Discovery.cs,Transport.cs	
+1293	HegemonContainmentTrade	0.4	2	1	mixed	Diplomacy.cs	
+1317	PromotionGateOwnSchooling	0.15	4	2	mixed	Meritocracy.cs	
+1325	ImmigrationAbsorbExponent	2.0	2	1	mixed	Territory.cs	
+1360	ScarceMineralOnlySulfur	1.0	4	4	pure	Catalog.cs	
+1407	ArmsStockEnabled	1.0	3	3	pure	EconomyStep.cs	
+1414	TrenchDefenseWeight	0.5	3	1	mixed	Diplomacy.cs	点火
+1431	SeaInvasionControlMin	0.65	6	2	mixed	Coefficients.cs,Diplomacy.cs	
+1493	MegaprojectEnabled	1.0	3	3	pure	Megaprojects.cs,MultiNationSim.cs	点火,休眠
+1500	MegaprojectPrestige	0.05	2	1	mixed	Megaprojects.cs	点火
+1504	MegaprojectCounterCyclical	1.0	3	2	mixed	Megaprojects.cs	点火
+1509	MegaprojectForeignMinRank	1.0	1	1	pure	Megaprojects.cs	
+1511	MegaprojectForeignYield	0.004	4	2	mixed	Megaprojects.cs,Simulation.cs	
+1529	PortCapToThroughput	1.0	3	1	mixed	BilateralMarket.cs,MultiNationSim.cs	
+1530	PortFeeRate	0.01	3	1	mixed	BilateralMarket.cs	
+1535	MarinePremiumRate	0.003	2	1	mixed	BilateralMarket.cs	
+1549	HcdColonyCessionDistance	1.0	1	1	pure	Diplomacy.cs	点火
+1550	ColonyCaptureDistanceWeight	1.0	6	3	mixed	Diplomacy.cs	休眠
+1551	ExpansionWillBourgeois	0.4	2	1	mixed	World.cs	
+1554	ExpeditionTechLevel	0.8	2	1	mixed	Diplomacy.cs	
+1574	CessionMaxDistanceKm	4000.0	8	4	mixed	Diplomacy.cs,InstrumentsCess.cs	点火,休眠,器,墓標
+1583	ConcertReparationRestraint	0.04	2	1	mixed	Diplomacy.cs	点火
+1586	RouteDependenceTensionRate	0.1	2	1	mixed	Diplomacy.cs	点火
+1603	ProtectorTensionRate	0.02	3	1	mixed	Diplomacy.cs	点火,休眠
+1604	ProtectorInterventionWeight	0.5	2	1	mixed	Diplomacy.cs	点火,休眠
+1671	RankUpdateIntervalQuarters	4.0	2	1	mixed	Diplomacy.cs	点火,旗
+1702	BattleLogEnabled	1.0	1	1	pure	Diplomacy.cs	
+1705	ActionTensionStep	25.0	7	1	mixed	Diplomacy.cs	
+1710	TensionPoliticsScale	0.03	2	1	mixed	Diplomacy.cs	
+1713	ProvokeProximitySpread	0.3	2	1	mixed	Diplomacy.cs	既定 0
+1737	SurvivalHopelessScale	1.0	2	1	mixed	SelfPlay.cs	差し戻し
+1744	RevolutionConsciousness	0.25	3	1	mixed	Politics.cs	点火
+1745	IrreversibleLaws	1.0	6	5	mixed	Government.cs,Simulation.cs	点火
+1750	FactionOpportunism	1.0	1	1	pure	Politics.cs	点火
+1754	FactionTargetsWeakAxis	1.0	2	1	mixed	FactionSnapshot.cs	点火
+1755	PoliticalBudgetGate	0.5	2	1	mixed	Government.cs	点火
+1756	ArmyPoliticalWeight	5.0	2	1	mixed	PolicyPreferences.cs	点火
+1757	ArmyPcPressure	0.02	2	1	mixed	CrownParliament.cs	点火
+1774	AllyRefusalTension	60.0	6	3	mixed	Diplomacy.cs	点火
+1784	DefeatShockTensionRelief	2.0	2	1	mixed	Diplomacy.cs	点火
+1799	ManifestoCreditDecay	0.05	2	1	mixed	Parliament.cs	
+1802	NoConfidenceThreshold	0.2	4	1	mixed	Parliament.cs,SelfPlay.cs	点火,旗,墓標
+1805	TreatyRatificationWeight	0.5	2	1	mixed	Diplomacy.cs	点火,旗,墓標
+1836	ColonialUnrestHomeWeight	0.006	2	1	mixed	Colonial.cs	点火,旗,墓標
+1844	LandRoomFertilityWeight	0.3	2	1	mixed	Simulation.cs	休眠
+1856	TransportRevolutionMax	0.5	3	2	mixed	BilateralMarket.cs,InternationalMarket.cs	点火
+1858	TransportRevolutionSpan	1.2	4	1	mixed	Coefficients.cs,DiscoveryTables.cs,InternationalMarket.cs	
+1866	TaxConsentWeight	0.35	3	2	mixed	Fiscal.cs	休眠
+1880	ParishEduFunded	1.0	1	1	pure	Simulation.cs	確証なし
+1884	StateEduDemandInFront	1.0	1	1	pure	EconomyStep.cs	点火
+1888	ReformAnticipationWeight	0.2	2	1	mixed	Politics.cs	点火
+1892	ReformGrantPcWidth	0.15	2	1	mixed	Politics.cs	点火
+1897	AISubmitMilRatio	3.0	5	2	mixed	Diplomacy.cs	
+1931	DiscoveryPriceInitFromCost	1.0	1	1	pure	Discovery.cs	
+1937	DiscoveryCarrierDownstream	1.0	1	1	pure	BilateralMarket.cs	
+1944	DiscoverySiteFindHalfPop	10.0	2	1	mixed	Discovery.cs	
+1947	DiscoveryEngineerHalfPerMonth	3.42	6	5	mixed	Discovery.cs,MultiNationSim.cs,Simulation.cs	点火
+1950	DiscoveryClockWorldPerMonth	7854.08	3	2	mixed	Discovery.cs,MultiNationSim.cs	旗,既定 0,確証なし
+1953	DiscoveryClockRampWidth	0.1	3	2	mixed	Discovery.cs,MultiNationSim.cs	確証なし
+1954	DiscoveryOwnHalfPerMonth	12.5677	2	1	mixed	Discovery.cs	既定 0
+1960	RecipeEquipment	1.0	8	6	mixed	FactoryEquipment.cs,InstrumentsEquipment.cs,Megaprojects.cs,MultiNationSim.cs,ProductionTables.cs,Simulation.cs,World.cs	点火
+1963	UnionBargaining	1.0	11	4	mixed	EconomyStep.cs,InstrumentsSb.cs,InternationalMarket.cs,UnionBargaining.cs,World.cs	点火,確証なし
+1965	IndustrializationOff	1.0	1	1	pure	EconomyStep.cs	点火,旗,確証なし
+1970	UrbanCapOff	1.0	3	3	pure	InstrumentsUrx.cs,Meritocracy.cs,PopDecision.cs	点火,旗,既定 0,確証なし
+1978	DiffusionWeight	1.0	3	2	mixed	BilateralMarket.cs,MultiNationSim.cs	点火,休眠,墓標
+1980	IsolationExportWeight	1.0	3	2	mixed	BilateralMarket.cs	点火,墓標
+1981	TariffExportOppositionWeight	3.0	2	1	mixed	PolicyPreferences.cs	点火
+1984	AiTariffRelaxation	0.1	2	1	mixed	SelfPlay.cs	点火
+2009	SubsidySoftBudgetDecay	0.4	2	1	mixed	EconomyStep.cs	点火
+2031	GoldCoverCreditRestraint	0.5	3	1	mixed	Credit.cs,World.cs	点火
+2035	CivilWarEconomyDisruption	0.2	2	1	mixed	EconomyStep.cs	点火
+2036	WarCivilianToll	0.002	2	1	mixed	Diplomacy.cs	点火
+2037	WarZoneCapitalDamage	0.01	2	1	mixed	Diplomacy.cs	点火
+2044	TransportCongestionWeight	1.0	2	1	mixed	Transport.cs	点火
+2047	TariffInterestPrefWeight	0.3	2	1	mixed	PolicyPreferences.cs	点火
+2048	TariffStateRevenueWeight	0.08	2	1	mixed	PolicyPreferences.cs	点火
+2050	EpidemicOnsetSanitationWeight	0.4	2	1	mixed	World.cs	点火,旗,墓標
+2051	HealthcareRealGate	0.5	2	1	mixed	Simulation.cs	点火
+2066	ChilledMeatEnabled	1.0	1	1	pure	Simulation.cs	点火
+2069	KeroseneFromOilEnabled	1.0	1	1	pure	Simulation.cs	点火
+2083	LandAnchorCapacityWeight	1.0	2	1	mixed	Simulation.cs	休眠
+2121	ConscriptGrievanceRate	0.05	3	1	mixed	Military.cs	
+2162	BaseArmsStockEnabled	1.0	2	2	pure	EconomyStep.cs	
+2191	InitialArsenalMonths	60.0	2	1	mixed	Simulation.cs	
+2208	StockpilePanicWeight	0.5	2	1	mixed	Model.cs	
+2249	SkillTensionWeight	0.5	2	1	mixed	Diplomacy.cs	
+2280	FleetContactPerGdp	1.0	1	1	pure	ArmyShape.cs	
+2300	NavalProcurementNeedsPort	1.0	1	1	pure	EconomyStep.cs	器
+2304	NavalPortProcurement	1.0	6	5	mixed	EconomyStep.cs,MultiNationSim.cs,Simulation.cs,Territory.cs	点火,旗
+2309	NavalCedeFleetReturn	1.0	1	1	pure	Territory.cs	点火,確証なし
+2361	MonopolyBurdenPushMode	1.0	1	1	pure	SelfPlay.cs	
+2371	ClearingIdleSearchQuarters	4.0	2	1	mixed	BilateralMarket.cs	
+2379	ClearingIdleThrottledScan	1.0	1	1	pure	BilateralMarket.cs	確証なし
+2380	ClearingIdlePotentialReweight	1.0	1	1	pure	BilateralMarket.cs	
+2391	HarvestSkew	0.3	2	1	mixed	Simulation.cs	点火
+2475	ThreatRailTargetWeight	16.6	2	1	mixed	Transport.cs	点火
+2501	SovietTaxProfile	1.0	1	1	pure	SelfPlay.cs	点火
+2535	ColonyFuelOilEnergyRatio	1.5	5	2	mixed	Colonial.cs,SelfPlay.cs	墓標
+2542	OpiumAddictionGrowth	0.1	9	6	mixed	BilateralMarket.cs,Diplomacy.cs,Habit.cs,InstrumentsHabitcap.cs,LawCatalog.cs,SelfPlay.cs,Simulation.cs	点火
+2584	LuxuryIncomeElasticity	0.5	3	2	mixed	EconomyStep.cs,MultiNationSim.cs	点火,既定 0,確証なし
+2587	DomesticServiceIncomeFactorExponent	2.0	3	2	mixed	EconomyStep.cs	点火,既定 0,確証なし
+2593	DomesticServiceMarketRation	1.0	2	2	pure	EconomyStep.cs	点火,既定 0
+2629	WarLivestockRequisition	0.03	2	1	mixed	Simulation.cs	点火
+2632	FreightRatePer10Mm	0.1	4	1	mixed	BilateralMarket.cs,InstrumentsTransport.cs	
+2653	LandRouteEnabled	1.0	7	4	mixed	BilateralMarket.cs,Geo.cs	点火
+2677	TerrainWaterMajorCost	0.15	8	3	mixed	BilateralMarket.cs,Discovery.cs,InstrumentsPortch.cs,InstrumentsTransport.cs	点火,旗,差し戻し,墓標
+2678	TerrainWaterMinorCost	0.4	8	3	mixed	BilateralMarket.cs,Discovery.cs,InstrumentsPortch.cs,InstrumentsTransport.cs	
+2688	TransportWeightMarginScale	0.3	4	1	mixed	BilateralMarket.cs,InstrumentsTransport.cs	点火,旗,墓標
+2706	CrossBorderMigrationByOpportunity	1.0	1	1	pure	MultiNationSim.cs	点火,旗,墓標
+2710	MigrationDistanceScale	10000.0	4	2	mixed	Territory.cs	点火
+2752	SecessionCultureAdditive	3.0	4	2	mixed	InstrumentsSecession.cs,Politics.cs	点火
+2776	InheritedStateIntentDrop	1.0	1	1	pure	Territory.cs	旗,確証なし
+2792	ProjectionRuleMin	1.1	2	1	mixed	Diplomacy.cs	器
+2819	HouseholdProductionEnabled	1.0	1	1	pure	Simulation.cs	点火,器
+2865	ElectoralDistortion	0.3	2	1	mixed	Parliament.cs	
+2886	ModernizationOldGuardResist	0.5	3	1	mixed	FiscalTables.cs,World.cs	旗,墓標
+2888	TechMultipliersOff	1.0	4	4	pure	ArmyShape.cs,Diplomacy.cs,FiscalTables.cs,World.cs	点火,確証なし
+2890	TechGateByDiscovery	1.0	4	4	pure	Megaprojects.cs,MultiNationSim.cs	点火,旗,器,既定 0
+2891	TechSignalOff	1.0	2	2	pure	MultiNationSim.cs,SelfPlay.cs	
+2892	TechThresholdOff	1.0	7	7	pure	Agents.cs,Discovery.cs,SelfPlay.cs	
+2896	SpreadNeedFascismDecline	1.0	3	3	pure	Discovery.cs,MultiNationSim.cs	
+2897	EraOff	1.0	3	3	pure	Coefficients.cs,DiscoveryTables.cs,InternationalMarket.cs	
+2918	ConquestColonyMilitancy	1.5	2	1	mixed	Diplomacy.cs	
+2969	MandateWallStockCap	1.0	1	1	pure	Government.cs	旗,確証なし
+2978	MandateOverStockLegitPower	2.0	2	1	mixed	Government.cs	確証なし
+2996	SummonParliamentRate	0.02	4	2	mixed	CrownParliament.cs	点火
+2998	GrantedControlOnReform	0.3	2	1	mixed	Politics.cs	
+2999	ParliamentBudgetVeto	2.0	2	1	mixed	Government.cs	
+3000	VictoryLegitBoost	0.05	2	1	mixed	Diplomacy.cs	
+3006	RegionalRevoltThreshold	0.5	3	1	mixed	Politics.cs	
+3104	LoyalistMilitiaWeight	0.5	2	1	mixed	Politics.cs	
+3111	ParliamentPressureRate	0.04	4	2	mixed	CrownParliament.cs	点火
+3125	RegimeTrackRecordWeight	0.3	2	1	mixed	Politics.cs	
+3129	NationalConsciousnessCorruptionWeight	0.2	1	1	pure	CrownParliament.cs	
+3155	OpiumBanTensionRate	2.5	3	1	mixed	Diplomacy.cs	
+3170	MandateReligiousCircuit	1.0	2	1	mixed	Politics.cs	点火
+3193	NationConsciousnessPerPop	1.0	5	4	mixed	CrownParliament.cs,Politics.cs,World.cs	点火,器
+3196	NationConsciousnessReachDecay	800.0	2	1	mixed	CrownParliament.cs	
+3222	AntitrustGate	1.0	3	3	pure	LawCatalog.cs,PopTables.cs,Simulation.cs	点火
+3229	NationalizationGate	1.0	8	8	pure	LawCatalog.cs,LawTables.cs,Simulation.cs	点火
+3237	NationalizationSeizureRate	0.05	4	3	mixed	Simulation.cs,World.cs	点火
+3311	FascismGate	0.5	2	1	mixed	Ideology.cs	点火,休眠
+3313	NationBuildMobilizationWeight	0.5	3	2	mixed	CrownParliament.cs,Military.cs	
+3316	FormationLegitimacyBoost	0.1	2	1	mixed	Formations.cs	点火,旗,墓標
+3363	LaborFloorOffGate	2.0	1	1	pure	EconomyStep.cs	確証なし
+3364	LaborBandFloorOffGate	1.0	1	1	pure	MarketFlow.cs	
+3365	MinimumWageLawGate	1.0	8	8	pure	Government.cs,LawCatalog.cs,Parliament.cs,PolicyPreferences.cs,Politics.cs,SelfPlay.cs	
+3370	InheritanceLawGate	1.0	8	8	pure	Government.cs,LawCatalog.cs,Parliament.cs,PolicyPreferences.cs,Politics.cs,SelfPlay.cs,Simulation.cs	点火,旗,器
+3375	MinimumWageAiFromFloor	1.0	2	1	mixed	MultiNationSim.cs,SelfPlay.cs	点火,旗
+3386	FactionRejectionMutation	0.5	3	1	mixed	Factions.cs,Politics.cs	点火
+3388	FactionMergeRangeKm	800.0	2	1	mixed	Factions.cs	点火
+3419	MintDemandCounted	1.0	2	1	mixed	Simulation.cs	点火
+3459	MintPriceFloorGate	1.0	1	1	pure	Simulation.cs	点火
+3478	SilverParityFromRatio	1.0	1	1	pure	MultiNationSim.cs	点火,器,既定 0
+3480	StandardMetalMintGate	1.0	1	1	pure	Simulation.cs	点火
+3515	MonetaryPeerPullScale	5.0	5	2	mixed	MultiNationSim.cs,PolicyPreferences.cs	点火,墓標
+3548	SecessionConsciousnessWeight	1.0	4	2	mixed	InstrumentsSecession.cs,Politics.cs	点火
+3550	MintReserveTargetWeight	1.0	2	1	mixed	Simulation.cs	点火,旗,墓標
+3560	ParliamentStreetSupersede	0.5	6	3	mixed	InstrumentsFm.cs,PolicyPreferences.cs	点火,休眠,既定 0,墓標
+3561	RumpReabsorbYears	5.0	2	1	mixed	MultiNationSim.cs	点火
+3576	RailCoalRate	0.22	4	1	mixed	EconomyStep.cs	点火
+3579	ShipFuelRate	0.0016	5	2	mixed	Colonial.cs,Transport.cs	点火
+3591	AirFuelRate	0.045	2	1	mixed	EconomyStep.cs	点火
+3593	MotorFuelRate	0.05	2	1	mixed	EconomyStep.cs	点火
+3607	FactionRevoltLocalCoerce	0.5	2	1	mixed	Politics.cs	点火
+3613	ModernizationBudgetSoftCap	1.0	1	1	pure	World.cs	点火
