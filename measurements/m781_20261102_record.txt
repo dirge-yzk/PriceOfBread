@@ -11,6 +11,9 @@
 ## 判定
 - ident：判定: 恒等（measurements/ident_20261102_c8ii.txt）。素の 5 種・計器つき 10 種が m778 と名乗り行を除いて全行バイト一致・.cost 一致（推定 223.0／220.8 秒）・計器の表はバイト一致 903 本＋既知の揺れ 20＋宣言された増減 28（腕にだけ 10＝inheritpar_s・列が増えた 10＝inheritintent_s・行が増えた 8＝再併合の 63 行）・注視の表一致・savetest OK・leakhunt 保存則違反なし・テスト数は宣言どおり。
   〈測った種で一致〉と名乗る（SOURCE-HASH 9b942a4a0a1cce02・測った木 4886603c）。
+- テスト：Category!=FullLength 2157（合格 2156・スキップ 1〔旧からの TechInstitutionTests の 1 本〕・失敗 0・21 分 32 秒）・FullLength 3 全て緑（6 分 15 秒）・InheritIntentTests 10 本（既存 6＋新 4）は 3 回繰り返しても緑。--list-tests の件数と合計が一致。出力 measurements/m781_20261102_tests.txt。
+- ident に足した宣言 --rows-grown-ok の負の確かめ：基準の行の入れ替え・欠け・値の変更の腕は全て ROWS_NOT_SUBSEQUENCE で落ちる（measurements/m781_20261102_rowsgrown_neg.txt）。ident の実行の宣言は --added-tables inheritpar_s --grown-ok inheritintent_s --rows-grown-ok inheritintent_s --tests-delta 4 --saveleak。
+- 2 回目の ident（ラベル c8iing・--no-tests --ng・測った木 2ddc2fc5 の clean な木・measurements/ident_20261102_c8iing.txt）も〈判定: 恒等〉・SOURCE-HASH は 1 回目と同じ 9b942a4a0a1cce02。NG 89 件・新しい 0・外れた 0（基準 rd:measurements/ng778_20261102:m778）。計器つき 10 種の inheritintent_s・inheritpar_s は 1 回目とバイト一致（再現）。
 - 突然変異 5 本（measurements/m781_20261102_mutation_tests.txt）：登録簿を外す→再併合のテストが赤・事前登録の列を棟数のまま→規則の列のテストが赤・窓が閉じた後も数える→並行のテストが赤・自国の基準を移った州で数える→並行のテストが赤・計器が世界を書く→ビット一致のテストが赤。全て赤。
 
 ## 数え（計器つき 10 種の生・台本 measurements/m781_20261102_count_ii.py・出力 measurements/m781_20261102_count_ii_b10.txt）
