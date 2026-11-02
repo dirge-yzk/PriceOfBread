@@ -51,7 +51,7 @@ public class MultiNationTests
 
     // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
     //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
-    //   既定0＝旧統計 Market.Price[銀] と同一であること。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
+    //   0＝旧統計 Market.Price[銀] と同一であること（(775) で既定は 1）。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
     //   （World.Coef は国ごと別インスタンスで、ここでは読まれない）。
     [Theory]
     [InlineData(0.0)]

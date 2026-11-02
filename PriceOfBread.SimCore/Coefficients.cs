@@ -3472,7 +3472,7 @@ public sealed class Coefficients
     // ★器 SilverParityFromRatio（2026-09-07 の器・(775) で既定 1 に点火）：銀本位国の平価の元 WorldSilverPrice は旧は Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
     //   連結州平均（表示統計・RefPrice×[0.1,10]でクランプ）。銀本位国の E はその平均から作られ、平均は E を含む＝**E→平均→E の自己参照（正帰還）**。
     //   silverprobe 実測で天井 ExchangeRateCeil(3.0) 近傍に乗数2.8で張り付いた根。
-    //   1＝同一市場内の比（州の 銀価格/金鉱価格 の全 Active 州の算術平均 R）を RefPrice 比（RefPrices[銀]/RefPrices[金鉱]）で割り
+    //   1＝同一市場内の比（州の 銀価格/金鉱価格 の生きた Active 州の対数平均 R）を RefPrice 比（RefPrices[銀]/RefPrices[金鉱]）で割り
     //   RefPrices[銀] の単位へ戻す（R/refRatio×RefPrices[銀]）。同一市場の比は PriceLevel も ExchangeRate も約分され単位を持たない＝
     //   クランプ不要・自己参照無し。読み手（World 平価／Fiscal 金建て債務／PolicyPreferences 銀下落）は WorldSilverPrice/RefPrices[銀] のまま不変。
     //   0＝旧統計をそのまま注入。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。(775) で既定 1＝平価は世界の金銀比 rel×Ref（計器 silverpar_s が旧と新を同じ盤面で数える）。

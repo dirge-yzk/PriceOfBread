@@ -863,7 +863,7 @@ public sealed class MultiNationSim
             //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
             // ★銀と金の比（(210)・00一覧 §0-A の 10＝金への入力を同じ州の比の世界で＝表示用の統計に乗せない）：同一市場内の 銀/金鉱 比の全 Active 州の対数平均 R
             //   を RefPrice 比で正規化（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）＝World.SilverGoldRatio（通貨制度の選好の入力）。
-            //   器 SilverParityFromRatio（R1・休眠）は同じ R を銀本位国の平価の元へ使う＝走査はこの1本（旧＝器の枝の中だけで数えた）。
+            //   器 SilverParityFromRatio（R1・(775) で既定 1 に点火）は同じ R を銀本位国の平価の元へ使う＝走査はこの1本（旧＝器の枝の中だけで数えた）。
             //   ⚠平均は**対数平均**・両市場が生きている州だけ（レビュー是正2026-09-07）：局所価格は rp×[PriceFloorFactor,PriceCeilFactor] の帯を持つので
             //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
             //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
@@ -888,8 +888,8 @@ public sealed class MultiNationSim
                 double rel = ratioOk ? meanRatio / refRatio : 1.0;
                 // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
                 //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
-                // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：Market.Price[銀] は「局所価格×ExchangeRate」の平均＝銀本位国の E がこの平均から
-                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1＝上の R を RefPrices[銀] の単位へ戻して平価の元にする。0（既定）＝旧統計。
+                // ★器 SilverParityFromRatio（2026-09-07 の器・(775) で既定 1 に点火）：Market.Price[銀] は「局所価格×ExchangeRate」の平均＝銀本位国の E がこの平均から
+                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1（既定）＝上の R を RefPrices[銀] の単位へ戻して平価の元にする。0＝旧統計。
                 double silverWorld = Market.Price[Catalog.SilverId];
                 if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
                 foreach (var n in Nations) { n.World.WorldSilverPrice = silverWorld; n.World.SilverGoldRatio = rel; }
