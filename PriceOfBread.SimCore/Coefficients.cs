@@ -1696,7 +1696,6 @@ public sealed class Coefficients
     // 軍の質＝**低技術の大軍を割り引く**（監査案3）：素兵数×(LowFloor〜1.0)＝前近代の大軍は訓練/兵器で無力化（アヘン戦争・下関）、先端は満額。
     public double TechMilLowFloor = 0.4;           // 技術0の軍の実効戦力（素兵数の40%＝前近代）。Power.Military ×(LowFloor + (1−LowFloor)×min(Tech/FullLevel,1))
     public double TechMilFullLevel = 2.5;          // この技術水準で軍の質が満額(1.0)。欧州先端は満額・巨大人口の追従国(清/印)は割引＝技術が軍の質の差を生む
-    public double ScoreTechWeight = 12.0;          // ★(456) 読み手は計器 score_s の旧の列〔Instruments.OldScore.Tech〕だけ（国力そのものは世界の総量に対する割合へ移った）。技術水準1あたりの加点（1人あたりの発展＝非規模）
     // 外交アクション（プレイヤー/AI 共通・同ランク間が原則）：緊張の上げ下げ・防衛同盟・植民地化。
     // ★戦闘のラウンド記録（2026-08-04・作者仕様(1)「戦争をラウンド化する。1ヵ月1ラウンド」）。戦争の解決は元から月次＝ラウンドの実体はあり、欠けていたのは「その月に何が起きたか」の可視化だった
     public double BattleLogEnabled = 1.0;          // 1で毎月の戦闘結果を年表へ書く。0で1行も書かない（挙動には一切影響しない純記帳）
