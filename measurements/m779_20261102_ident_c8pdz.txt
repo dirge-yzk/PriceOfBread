@@ -1,0 +1,32 @@
+ident start：ラベル=c8pdz 木=/d/PoB_work/wt_c8pd 作業=D:/PoB_work/c8pd/identz 腕=[a b t] 開始=2026-11-02 16:51:44
+ident start：腕は全て終わった（4 印）
+=== 恒等の証明 c8pdz（2026-11-02 17:13:45）===
+測った木：D:/PoB_work/wt_c8pd（HEAD e82e817e・未コミット 1 本）
+基準の設定：D:/PoB_work/wt_c8pd/scripts/instruments/ident/ident.cfg
+宣言：grown=['portlm'] tests_delta=4
+腕 a：rc=1 end=2026-11-02 17:10:20
+腕 b：rc=1 end=2026-11-02 17:13:44
+腕 t：rc=0 end=2026-11-02 16:53:00
+測る木の SOURCE-HASH：b385e5d6a685a2f4
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: b385e5d6a685a2f4
+[素の 5 種] b5_ia_5.txt 対 b5_20261102_m778
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261102_m778.cost
+  ○ 件数の行 29 本・推定 223.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: b385e5d6a685a2f4
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261102_m778_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261102_m778_ins.cost
+  ○ 件数の行 29 本・推定 220.8 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c8pd/identz/out_ib_10/ins  対  基準 D:/PoB_work/keep_778/base_ins
+  基準 933 本・腕 933 本・バイト一致 893 本
+  列が増えた表（--grown-ok の宣言）10 本：portlm_s1.tsv+8列・portlm_s10.tsv+8列・portlm_s2.tsv+8列・portlm_s3.tsv+8列・portlm_s4.tsv+8列・portlm_s5.tsv+8列
+  既知の揺れの列だけが違う表 30 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 893・既知の揺れ 30・宣言された増減 10）
+[注視の表] mon_ib_10.txt 対 mon_20261102_m778.txt（タグの行を除く）
+  ○ タグの行以外が一致（4698 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2157（基準 2153+4 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等
