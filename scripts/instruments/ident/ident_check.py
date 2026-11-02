@@ -38,7 +38,7 @@ def ok(s):
 
 
 def parse_args(argv):
-    a = {'label': argv[0], 'removed': [], 'added': [], 'grown': [], 'known_extra': [], 'cost_allow': [],
+    a = {'label': argv[0], 'removed': [], 'added': [], 'grown': [], 'rows_grown': [], 'known_extra': [], 'cost_allow': [],
          'tests_delta': 0, 'saveleak': False, 'ng': False, 'save': None, 'work': None, 'cfg': None, 'tree': None, 'root': None}
     i = 1
     while i < len(argv):
@@ -54,6 +54,7 @@ def parse_args(argv):
         elif k == '--removed-tables': a['removed'] = [x for x in v.split(',') if x]
         elif k == '--added-tables': a['added'] = [x for x in v.split(',') if x]
         elif k == '--grown-ok': a['grown'] = [x for x in v.split(',') if x]
+        elif k == '--rows-grown-ok': a['rows_grown'] = [x for x in v.split(',') if x]
         elif k == '--known-extra': a['known_extra'] = [x for x in v.split(',') if x]
         elif k == '--cost-allow': a['cost_allow'] = [x for x in v.split(',') if x]
         elif k == '--tests-delta': a['tests_delta'] = int(v)
@@ -182,7 +183,10 @@ def parse_known(items):   # 'clock_s:worldTotalPerMonth@kind=C' → {'clock_s': 
     return k
 
 
-def cols_diff(pa, pb, kmap):   # pa＝基準・pb＝腕。返す物＝（既知の揺れの列・宣言の無い違い・腕で増えた列）
+ROWS_ADDED = {}   # --rows-grown-ok の表：{基準のファイル: 腕で増えた行数}
+
+
+def cols_diff(pa, pb, kmap, rows_grown=False):   # pa＝基準・pb＝腕。返す物＝（既知の揺れの列・宣言の無い違い・腕で増えた列）。rows_grown＝基準の行（共通の列）が腕の行の順序つき部分列であれば、腕で増えた行を許す（(781)）
     with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
         ra = csv.reader(fa, delimiter='\t'); rb = csv.reader(fb, delimiter='\t')
         ha = next(ra, []); hb = next(rb, [])
@@ -192,6 +196,19 @@ def cols_diff(pa, pb, kmap):   # pa＝基準・pb＝腕。返す物＝（既知�
         real, kn = set(), set()
         if [c for c in hb if c in ha] != ha:
             real.add('HEADER_ORDER_OR_MISSING')
+        if rows_grown:
+            rows_b = list(rb); j = 0; added = 0
+            cmpc = [c for c in common if c not in kmap]   # 既知の揺れの列は比べない
+            for xa in ra:
+                while j < len(rows_b) and any((xa[ia[c]] if ia[c] < len(xa) else None) != (rows_b[j][ib[c]] if ib[c] < len(rows_b[j]) else None) for c in cmpc):
+                    j += 1; added += 1
+                if j >= len(rows_b):
+                    real.add('ROWS_NOT_SUBSEQUENCE'); break
+                j += 1
+            else:
+                added += len(rows_b) - j
+                ROWS_ADDED[pa] = added
+            return sorted(kn), sorted(real), extra
         for xa, xb in zip_longest(ra, rb):
             if xa is None or xb is None:   # 行数が違う（片方が尽きた）
                 real.add('ROWS'); break
@@ -231,7 +248,7 @@ def flow_same_but_location(pa, pb):   # 呼び出し位置を除いた行の多�
     return len(ra) == len(rb) and key(ra) == key(rb)
 
 
-def cmp_ins(new, base, known, removed, added, grown):
+def cmp_ins(new, base, known, removed, added, grown, rows_grown=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}')
     if not os.path.isdir(new):
         miss('計器の出力フォルダが無い'); return
@@ -256,14 +273,18 @@ def cmp_ins(new, base, known, removed, added, grown):
     pref = lambda f, L: any(f.startswith(x) for x in L)
     bad_missing = [f for f in missing if not pref(f, removed)]
     bad_only = [f for f in only if not pref(f, added)]
-    known_hit, grown_hit, real = [], [], []
+    known_hit, grown_hit, real, rows_hit = [], [], [], []
     for f in diffs:
         if not f.endswith('.tsv'):
             real.append((f, ['NONTSV'])); continue
         t = table_of(f)
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
             known_hit.append((f, ['呼び出し位置だけ'])); continue
-        kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}))
+        kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown))
+        if pref(f, rows_grown) and not d and J(base, f) in ROWS_ADDED and ROWS_ADDED[J(base, f)] > 0:
+            rows_hit.append((f, ROWS_ADDED[J(base, f)]))
+            if not extra and not kn:
+                continue
         if extra:
             if pref(f, grown):
                 grown_hit.append((f, extra))
@@ -283,6 +304,8 @@ def cmp_ins(new, base, known, removed, added, grown):
         say(f'  腕にだけある {len(only)} 本（うち宣言 {len(only) - len(bad_only)}）')
     if grown_hit:
         say(f'  列が増えた表（--grown-ok の宣言）{len(grown_hit)} 本：' + '・'.join(f'{f}+{len(e)}列' for f, e in grown_hit[:6]))
+    if rows_hit:
+        say(f'  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）{len(rows_hit)} 本・増えた行 {sum(n for _, n in rows_hit)}：' + '・'.join(f'{table_of(f)}+{n}' for f, n in rows_hit[:6]))
     if known_hit:
         by = {}
         for f, d in known_hit:
@@ -297,7 +320,7 @@ def cmp_ins(new, base, known, removed, added, grown):
         for f, d in real[:10]:
             say(f'      {f}\t{d[:6]}')
     if not (bad_missing or bad_only or real):
-        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {len(known_hit)}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + len(grown_hit)}）')
+        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {len(known_hit)}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + len(grown_hit) + len(rows_hit)}）')
 
 
 # ---------- 4 注視の表（タグの行以外） ----------
@@ -449,7 +472,7 @@ def main():
         say('SOURCE-HASH（計器つき 10 種）' + first_line(pb + '.manifest', 'SOURCE-HASH'))
         cmp_report('計器つき 10 種', pb, base('B10INS'))
         cmp_cost('計器つき 10 種の .cost', pb + '.cost', base('B10INS') + '.cost', a['cost_allow'])
-        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'])
+        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'], a['rows_grown'])
         cmp_mon(J(W, 'mon_ib_10.txt'), base('MON'))
         if a['ng']:
             run_ng(W, {**cfg}, root)
