@@ -2541,6 +2541,7 @@ public sealed class Coefficients
     public int OpiumGoodId = Catalog.OpiumId;                     // アヘンの good.Id
     public double OpiumAddictionGrowth = 0.1;        // P3点火0.1（2026-07-18＝Phase B実現。0.2はハーネス13/30＝依存→満足↓→困窮消費の発散で却下）。0=機構全体オフ（恒等）。点火で困窮ゲート消費・労働/満足ペナルティ・世界プール参加・AI禁令・輸出国緊張が全て連動
     public double OpiumAddictionCap = 0.2;           // 中毒度ストックの生理的上限（州人口の実効障害の飽和＝発散の物理的な蓋）
+    public double CollapsePeaceOneShare = 1;         // (791) c10cp：崩壊の講和の取り分の旗（既定 1＝腕 B の採否の後に確定）＝0 で旧（同じ月に同じ敗者が崩壊で負ける戦争ごとに賠償の元・植民地の奪取の予算・本国の割譲が満額＝連合の N 本で N 倍・設計思想⑨の二重計上）・正で 1 回分（賠償の元＝max 戦勝点×取り分・植民地の奪取の予算＝同×ColonyCaptureBudget×取り分・本国の割譲＝集合で 1 回・取り分＝勝者の押しの累計 PushA／PushB の比）。新しい定数・倍率・状態は無い。AI とプレイヤーで同じ経路。
     public double OpiumAddictionCapOff = 0;          // (771) c6op 段1：アヘンの蓋の旗＝0 で蓋 OpiumAddictionCap（0.2）・正で蓋なし（段2 で既定 1 にする）。確証なし（蓋を外すと労働の床 0.5＝Habit.LaborFactor へ張り付きが移る・Growth 0.2 は発散で却下）
     public double OpiumAddictionDecay = 0.02;        // 中毒度の自然減（成長>減衰なら発散）
 

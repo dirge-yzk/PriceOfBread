@@ -1,0 +1,91 @@
+(791) c10cp 突然変異の結果（最終の木 fbcefe1d＝旗 1・ForcedPeace を集合に入れた木・種 1〜2・計器つき・全長）2026-11-03
+門の読み手 scripts/instruments/c10cp/gates.py --p0 0.782 --l1 0.60（事前登録どおり）。生は D:/PoB_work/c10cp/out_c10cpN{1,2,4,5}_2（合流の判断まで残す）。
+Mu3（白紙の崩壊を集合に入れる）は盤面に白紙の崩壊の講和が無く門で落ちない＝機構の試験で赤を確かめた（下の xunit）。
+
+=== Mu1
+# D:/PoB_work/c10cp/out_c10cpN1_2/ins・種 2・崩壊の事象 331（N=1: 250・N>=2: 81）・N の分布 [(1, 250), (2, 53), (3, 14), (4, 9), (5, 1), (6, 3), (12, 1)]
+落ちる	R_up 賠償の元 実際÷1回分 の最大 ≦1.5	11.5838	事象 80
+通る	R_lo 同 最小 ≧0.999	1.5927	
+落ちる	B_up 植民地の奪取の予算 実際÷1回分 の最大 ≦1.5	11.5838	事象 81
+通る	B_lo 同 最小 ≧0.999	1.5927	
+落ちる	C_up 本国の割譲 集合あたり 最大 ≦1	7	N>=2 の事象 81
+通る	C_lo 門を通る講和を持つ事象で 1 回以上割譲した割合 ≧ p0−0.10	0.778（p0=0.782・事象 81）	
+通る	U2 集合の中の崩壊でない講和 =0	0	
+通る	U3 押しが正で取り分 0 の勝者 =0	0	
+落ちる	L1 働いた：Σ実際÷Σ旧の式 ≦0.6	1.0000	N>=2 の事象の合計
+総合	落ちる門あり
+
+=== Mu2
+# D:/PoB_work/c10cp/out_c10cpN2_2/ins・種 2・崩壊の事象 264（N=1: 194・N>=2: 70）・N の分布 [(1, 194), (2, 41), (3, 22), (4, 5), (5, 2)]
+通る	R_up 賠償の元 実際÷1回分 の最大 ≦1.5	0.9851	事象 67
+落ちる	R_lo 同 最小 ≧0.999	0.2581	
+通る	B_up 植民地の奪取の予算 実際÷1回分 の最大 ≦1.5	0.9851	事象 70
+落ちる	B_lo 同 最小 ≧0.999	0.2581	
+通る	C_up 本国の割譲 集合あたり 最大 ≦1	1	N>=2 の事象 70
+通る	C_lo 門を通る講和を持つ事象で 1 回以上割譲した割合 ≧ p0−0.10	0.786（p0=0.782・事象 70）	
+通る	U2 集合の中の崩壊でない講和 =0	0	
+通る	U3 押しが正で取り分 0 の勝者 =0	0	
+通る	L1 働いた：Σ実際÷Σ旧の式 ≦0.6	0.2283	N>=2 の事象の合計
+総合	落ちる門あり
+
+=== Mu4
+# D:/PoB_work/c10cp/out_c10cpN4_2/ins・種 2・崩壊の事象 209（N=1: 149・N>=2: 60）・N の分布 [(1, 149), (2, 29), (3, 19), (4, 7), (5, 1), (6, 2), (7, 1), (9, 1)]
+通る	R_up 賠償の元 実際÷1回分 の最大 ≦1.5	0.9931	事象 60
+落ちる	R_lo 同 最小 ≧0.999	0.5092	
+通る	B_up 植民地の奪取の予算 実際÷1回分 の最大 ≦1.5	0.9931	事象 60
+落ちる	B_lo 同 最小 ≧0.999	0.5092	
+通る	C_up 本国の割譲 集合あたり 最大 ≦1	1	N>=2 の事象 60
+通る	C_lo 門を通る講和を持つ事象で 1 回以上割譲した割合 ≧ p0−0.10	0.867（p0=0.782・事象 60）	
+通る	U2 集合の中の崩壊でない講和 =0	0	
+落ちる	U3 押しが正で取り分 0 の勝者 =0	60	
+通る	L1 働いた：Σ実際÷Σ旧の式 ≦0.6	0.2631	N>=2 の事象の合計
+総合	落ちる門あり
+
+=== Mu5
+# D:/PoB_work/c10cp/out_c10cpN5_2/ins・種 2・崩壊の事象 324（N=1: 251・N>=2: 73）・N の分布 [(1, 251), (2, 40), (3, 17), (4, 12), (5, 3), (6, 1)]
+通る	R_up 賠償の元 実際÷1回分 の最大 ≦1.5	1.0000	事象 72
+通る	R_lo 同 最小 ≧0.999	1.0000	
+通る	B_up 植民地の奪取の予算 実際÷1回分 の最大 ≦1.5	1.0000	事象 73
+通る	B_lo 同 最小 ≧0.999	1.0000	
+落ちる	C_up 本国の割譲 集合あたり 最大 ≦1	5	N>=2 の事象 73
+通る	C_lo 門を通る講和を持つ事象で 1 回以上割譲した割合 ≧ p0−0.10	0.808（p0=0.782・事象 73）	
+通る	U2 集合の中の崩壊でない講和 =0	0	
+通る	U3 押しが正で取り分 0 の勝者 =0	0	
+通る	L1 働いた：Σ実際÷Σ旧の式 ≦0.6	0.3876	N>=2 の事象の合計
+総合	落ちる門あり
+
+=== xunit（CollapsePeaceTests 12 本・使い捨ての木 mut_tree・最終の木）
+=== baseline
+成功!   -失敗:     0、合格:    12、スキップ:     0、合計:    12、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu1
+=== Mu1
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は両者の厭戦が1_0で並ぶ戦争も集合に入る [79 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は同じ月の同じ敗者の崩壊の講和の賠償を1回分にして押しの累計の比で配る [55 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1で押しが正の勝者は取り分が0にならない [45 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1の取り分は押しの向きが入れ替わっても勝者の押しで決まる [42 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る [89 ms]
+失敗!   -失敗:     5、合格:     7、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu2
+=== Mu2
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は両者の厭戦が1_0で並ぶ戦争も集合に入る [29 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は同じ月の同じ敗者の崩壊の講和の賠償を1回分にして押しの累計の比で配る [53 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1の取り分は押しの向きが入れ替わっても勝者の押しで決まる [54 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る [95 ms]
+失敗!   -失敗:     4、合格:     8、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu3
+=== Mu3
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は白紙の崩壊の講和を集合に入れず他の勝者は満額 [3 s]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu4
+=== Mu4
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は両者の厭戦が1_0で並ぶ戦争も集合に入る [27 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は同じ月の同じ敗者の崩壊の講和の賠償を1回分にして押しの累計の比で配る [61 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1で押しが正の勝者は取り分が0にならない [57 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1の取り分は押しの向きが入れ替わっても勝者の押しで決まる [32 ms]
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る [125 ms]
+失敗!   -失敗:     5、合格:     7、スキップ:     0、合計:    12、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu5
+=== Mu5
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.本国の割譲は集合で1回_旗なしの2本は2回 [151 ms]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+ALLDONE

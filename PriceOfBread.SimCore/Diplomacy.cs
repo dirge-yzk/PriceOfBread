@@ -379,6 +379,7 @@ public sealed class Diplomacy
     private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
     private int _rankClock;   // P14（2026-07-17）：ランク再分類の間引きカウンタ（月次Step単位）。RankUpdateIntervalQuarters=1で毎月（現行恒等）・4で年次
     private int _year;
+    internal bool CpHit, CpCeded; internal double CpRep, CpRepBase, CpBudget0, CpRepRaw; internal int CpCaptured;   // (791) 計器（読むだけ・Instruments.On のときだけ書く）
     // ⚠「年内の月」（旧 _monthOfYear・2026-08-04）は削除（2026-08-10）。戦闘ログの本文に年月を書くためだけの状態で、
     //   その年月は出来事パネルの配信日と二重に見えていた＝本文の日付を落としたので読み手が居なくなった。
 
@@ -920,6 +921,7 @@ public sealed class Diplomacy
     public void Step(Coefficients c, DeterministicRng rng, int month)
     {
         Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
+        if (Instruments.On) Instruments.CpMonth(this, month, _year);   // (791) 計器（読むだけ）
         // ★開幕（2026-10-01 (151)）＝経済を持つ国のどれもまだ艦隊を播いていない最初の同期（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）。
         bool opening = true;   // ★(189) 艦隊駆動の旗（NavalPowerFromFleet）は削除＝経済を持つ国は常に艦の在庫から
         foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
@@ -2609,6 +2611,30 @@ public sealed class Diplomacy
                 }
             }
         }
+        // 革命圧力が講和意欲の閾値を下げる（崩壊閾値の判定の入力）。(791) で崩壊の前走査（下）も読むためループの外へ持ち上げた＝式は同じ。
+        double RevCut(Power q) => 1.0 - (q.Nation is { } qn ? c.RevolutionSurrenderWeight * Politics.RevolutionPressure(qn) : 0);
+        // ★(791) 旗 CollapsePeaceOneShare（崩壊の講和の取り分を 1 回分にする・設計思想⑨）。0（既定）は下の準備を 1 行も通らない＝旧のまま。
+        //   同じ月に同じ敗者 L が厭戦の崩壊で負ける戦争（外交の戦争は 1 対 1＝同盟・宗主・参戦は別の戦争を立てる）が 2 本以上あるとき、それらの講和を月の走査の終わり（その敗者の最後の戦争の歩）まで保留し、
+        //   賠償の元・植民地の奪取の予算・本国の割譲の回数を 1 回分だけ立てて、勝者たちへ戦線の押しの累計（PushA／PushB）の取り分で配る（FlushCollapseGroup）。保留は月の中の一時の集計だけ（新しい状態なし）。
+        //   前走査は保留するかを決めるだけ（旧の走査の順・各戦争の歩は変えない）。1 本だけの崩壊は旧の経路をそのまま通る。
+        bool cpOn = c.CollapsePeaceOneShare > 0;
+        Dictionary<Power, int>? cpCount = null; Dictionary<int, List<Power>>? cpFlushAt = null; Dictionary<Power, List<War>>? cpPending = null;
+        if (cpOn)
+        {
+            cpCount = new(); cpFlushAt = new(); cpPending = new();
+            var cpSeen = new HashSet<Power>();
+            for (int wi = 0; wi < Wars.Count; wi++)   // 添字の昇順＝最初に見た添字がその敗者の最も低い添字（走査は添字の降順なので最後に歩く戦争）
+            {
+                var cw = Wars[wi];
+                if (cw.CivilWarParent is not null) continue;   // 列強の調停の戦争も数える（歩の本体は調停の白紙〔戦勝点 0〕を崩壊の戦勝点で上書きして講和する＝賠償を払う）
+                bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
+                // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら月の初めの押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
+                Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (pushA[wi] < pushB[wi] ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
+                if (pl is null) continue;
+                cpCount[pl] = cpCount.GetValueOrDefault(pl) + 1;
+                if (cpSeen.Add(pl)) { if (!cpFlushAt.TryGetValue(wi, out var fl)) cpFlushAt[wi] = fl = []; fl.Add(pl); }
+            }
+        }
         for (int i = Wars.Count - 1; i >= 0; i--)
         {
             var war = Wars[i];
@@ -2687,15 +2713,17 @@ public sealed class Diplomacy
 
             // 機能6-2（第7段第2波・2026-07-28）：革命圧力が講和意欲の閾値を下げる＝内戦の懸念がある国は**余力を残して降伏**（独1918・露1917）。
             // 崩壊閾値（厭戦100%）と早期講和閾値の両方に適用（出典docの引用行は開戦側だったが機能の本義＝降伏＝講和判定へ・裁定を記録）。RevolutionSurrenderWeight=0で旧恒等。
-            double RevCut(Power q) => 1.0 - (q.Nation is { } qn ? c.RevolutionSurrenderWeight * Politics.RevolutionPressure(qn) : 0);
             double aCut = RevCut(war.A), bCut = RevCut(war.B);
             // 厭戦100%（革命圧力で前倒し）＝無条件敗北（厭戦は上で Power単位に更新済み）。戦勝点を決定的敗北に上書き。
             bool aCollapse = war.A.WarExhaustion >= 1.0 * aCut, bCollapse = war.B.WarExhaustion >= 1.0 * bCut;
+            Power? cpLoser = null;   // (791) 旗 1 のときだけ置く崩壊の敗者
+            if (Instruments.On) Instruments.CpIter(war, aCollapse || bCollapse);   // (791) 計器（読むだけ）：この戦争の歩で崩壊と判定されたか
             if (aCollapse || bCollapse)
             {
                 bool aLoses = aCollapse && bCollapse
                     ? (war.A.WarExhaustion != war.B.WarExhaustion ? war.A.WarExhaustion > war.B.WarExhaustion : aPush < bPush)
                     : aCollapse;
+                if (cpOn) cpLoser = aLoses ? war.A : war.B;
                 // ★2026-08-12（作者裁定①「小国が勝てる方が問題」）：崩壊講和の取り分に**その戦線の物理**を通す。
                 //   旧＝厭戦が1.0に達した国は、抱えている**全戦争**へ一律 ±1.5 が代入される。この代入は押し合い・投射距離・
                 //   上陸ゲート・制海権・兵数を1つも参照しない＝2026-08-01の上陸ゲートも距離減衰も、実際に領土・属国・政体を
@@ -2722,19 +2750,71 @@ public sealed class Diplomacy
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);
             if (decisive || weary || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）
             {
-                ResolvePeace(c, war); EndWar(war, i, c);   // 終戦の記録は EndWar の中（国の除去 RemovePower と同じ1本）
-                // 監査2026-07-11（他3）：復讐心は EndWar の緊張リセット（_tension[k]=PostWarTension）より後に積む。
-                // 旧＝ResolvePeace 内で AddTension → 直後の EndWar が同ペアキーへ代入し同ティック内で必ず消えていた（失地回復戦が一度も発火しない死蔵）。
-                if (_pendingRevanch is { } pr)
+                // ★(791) 旗 1：同じ敗者の崩壊の講和が 2 本以上ありうる月は、白紙でない崩壊の講和を保留する（FlushCollapseGroup が 1 回分で配る）。それ以外は旧の経路。
+                if (cpLoser is not null && war.CivilWarParent is null && cpCount!.GetValueOrDefault(cpLoser) >= 2
+                    && EndedWarRecord.VerdictOf(war.Score, false, c.WhitePeaceScore) != WarVerdict.Blank)
                 {
-                    AddTension(pr.w, pr.l, c.RevanchismTension, TensionReason.Revanchism);
-                    // ★2026-08-01：領土を奪ったペアに「遺恨」を立てる。これが薄れるまで高緊張帯は冷めない（DriftTension）。
-                    _grudge[Key(pr.w, pr.l)] = 1.0;
-                    _pendingRevanch = null;
+                    if (!cpPending!.TryGetValue(cpLoser, out var pend)) cpPending[cpLoser] = pend = [];
+                    pend.Add(war);
                 }
+                else ConcludeWar(c, war, i, null, 1.0);
             }
+            if (cpFlushAt is not null && cpFlushAt.TryGetValue(i, out var flushLosers))
+                foreach (var fl in flushLosers) FlushCollapseGroup(c, fl, cpPending!);
+        }
+        if (cpPending is not null)   // 前走査と歩の食い違い（講和の途中で閾値が動いた）で残った保留の安全網
+            foreach (var p in new List<Power>(cpPending.Keys)) FlushCollapseGroup(c, p, cpPending);
+    }
+
+    /// <summary>講和の 1 本＝ResolvePeace → EndWar → 復讐心の積み（月の走査の本体と FlushCollapseGroup が同じ 1 本を通る）。cg が null なら旧の単独の講和。</summary>
+    private void ConcludeWar(Coefficients c, War war, int i, CollapseGroup? cg, double cgShare)
+    {
+        var cpPre = Instruments.On ? Instruments.CpBefore(this, c, war, cg, cgShare) : null;
+        ResolvePeace(c, war, cg, cgShare); EndWar(war, i, c);   // 終戦の記録は EndWar の中（国の除去 RemovePower と同じ1本）
+        if (cpPre is not null) Instruments.CpAfter(this, war, cpPre);   // 計器（読むだけ）
+        // 監査2026-07-11（他3）：復讐心は EndWar の緊張リセット（_tension[k]=PostWarTension）より後に積む。
+        // 旧＝ResolvePeace 内で AddTension → 直後の EndWar が同ペアキーへ代入し同ティック内で必ず消えていた（失地回復戦が一度も発火しない死蔵）。
+        if (_pendingRevanch is { } pr)
+        {
+            AddTension(pr.w, pr.l, c.RevanchismTension, TensionReason.Revanchism);
+            // ★2026-08-01：領土を奪ったペアに「遺恨」を立てる。これが薄れるまで高緊張帯は冷めない（DriftTension）。
+            _grudge[Key(pr.w, pr.l)] = 1.0;
+            _pendingRevanch = null;
         }
     }
+
+    /// <summary>★(791) 同じ月に同じ敗者が崩壊で負けた講和の集合を 1 回分で配る（旗 CollapsePeaceOneShare）。
+    /// ①1 回分の戦勝点 sa＝集合の戦争の |クランプ後の戦勝点| の最大（賠償の元と植民地の奪取の予算が読む）。
+    /// ②取り分＝その戦争の勝者の押しの累計（敗者が A なら PushB・B なら PushA）÷集合の和（和が 0 なら等分）。賠償の元は sa×取り分・植民地の奪取の予算は sa×ColonyCaptureBudget×取り分。
+    /// ③本国の割譲は集合で 1 回（CollapseGroup.CedeLeft）。講和の順＝取り分の大きい順（同点は戦争の添字の大きい方から＝旧の走査と同じ向き）。割譲の枠は実際に州が移ったときに 1 つ減る＝先の勝者が移せなければ次の勝者へ。
+    /// 1 本だけの集合は旧の経路（cg なし）をそのまま通る。</summary>
+    private void FlushCollapseGroup(Coefficients c, Power loser, Dictionary<Power, List<War>> pending)
+    {
+        if (!pending.TryGetValue(loser, out var members) || members.Count == 0) return;
+        var list = new List<War>(members); members.Clear();
+        if (list.Count == 1) { int ix = Wars.IndexOf(list[0]); if (ix >= 0) ConcludeWar(c, list[0], ix, null, 1.0); return; }
+        int m = list.Count;
+        var push = new double[m]; var share = new double[m]; var pos = new int[m];
+        double sum = 0, saGroup = 0, absGroup = 0;
+        for (int k = 0; k < m; k++)
+        {
+            var w = list[k];
+            double wp = w.A == loser ? w.PushB : w.PushA;   // 押しの向き＝敗者が A の戦争では B 側・B の戦争では A 側
+            push[k] = wp > 0 ? wp : 0;                       // 否定形＝NaN と負は 0
+            sum += push[k];
+            saGroup = Math.Max(saGroup, Math.Abs(PoliticalQuantities.ClampOr(w.Score, -1, 1, 0)));
+            absGroup = Math.Max(absGroup, Math.Abs(w.Score));
+            pos[k] = Wars.IndexOf(w);
+        }
+        for (int k = 0; k < m; k++) share[k] = sum > 0 ? push[k] / sum : 1.0 / m;
+        var order = new int[m]; for (int k = 0; k < m; k++) order[k] = k;
+        Array.Sort(order, (x, y) => share[x] != share[y] ? share[y].CompareTo(share[x]) : pos[y].CompareTo(pos[x]));
+        var cg = new CollapseGroup { Sa = saGroup, AbsMax = absGroup, CedeLeft = 1 };
+        foreach (int k in order) { int ix = Wars.IndexOf(list[k]); if (ix >= 0) ConcludeWar(c, list[k], ix, cg, share[k]); }
+    }
+
+    /// <summary>★(791) 崩壊の講和の集合の 1 回分（FlushCollapseGroup が立て、ResolvePeace が読む）。Sa＝1 回分の戦勝点（|クランプ後|の最大）・AbsMax＝1 回分の未クランプの |戦勝点| の最大（本国の割譲の門 TerritoryCessionScore が読む）・CedeLeft＝残りの本国の割譲の枠。月の中だけで捨てる。</summary>
+    internal sealed class CollapseGroup { public double Sa, AbsMax; public int CedeLeft; }
 
     /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyCapPerMonth で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
     /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。
@@ -2791,7 +2871,7 @@ public sealed class Diplomacy
 
     // 戦勝点に応じた講和（戦争目標は事前に設定しない・白紙〜決定的勝利まで連続）。戦争は基本的に国を痩せさせる。
     // internal＝ON経路テスト用（InternalsVisibleTo・TreatyPortLapse と同じ流儀）。呼び出しは StepWars の講和判定のみ。
-    internal void ResolvePeace(Coefficients c, War war)
+    internal void ResolvePeace(Coefficients c, War war, CollapseGroup? cg = null, double cgShare = 1.0)
     {
         double s = PoliticalQuantities.ClampOr(war.Score, -1, 1, 0);   // (739) 群3：NaN は 0
         // ★戦後処理の1本（2026-09-28 処理の一元化 段2 束2・作者「対外戦争・内戦・分離独立の戦後処理を全て1本に」）。
@@ -2866,6 +2946,7 @@ public sealed class Diplomacy
             return;
         }
         double sa = Math.Abs(s);
+        double saPay = cg is null ? sa : cg.Sa * cgShare;   // (791) 賠償の元と植民地の奪取の予算が読む戦勝点＝旧は自分の戦争の sa・旗 1 の集合は 1 回分の sa×取り分
         // #21 会議外交（賠償抑制アーム・計測2026-07-15＝0.10で却下＝下記係数コメント参照）：純読み取りで「会議度」を導出（副作用なし＝ThreatScore/AtWar/IsGreatPower は純関数）。
         // 会議度＝傍観する非交戦の列強数 × 勝者の覇権度（ThreatScore）。賠償抑制率 repCut = Min(上限, 主レバー × 会議度)。ConcertReparationRestraint=0.04（点火2026-07-28）・0でスキップ。
         double repCut = 0.0;
@@ -2881,7 +2962,8 @@ public sealed class Diplomacy
         // 価値の高い順に「買える範囲」で奪い、上限は ColonyCaptureMax（完全勝利でも3つほど）。
         int captured = 0; var captNames = new List<string>();
         // ★是正（監査2026-09-02 #21）：旧経路（ColonyList奪取・下）と州奪取（旧の旗 ColonialRegionCession・後段）が別々に sa×ColonyCaptureBudget を取っていて講和1回の奪取予算が実質2倍だった＝予算を1本化して持ち越す
-        double budget = sa * c.ColonyCaptureBudget;
+        double budget = saPay * c.ColonyCaptureBudget;
+        double budget0 = budget;   // (791) 計器用
         if (Instruments.On) Instruments.CessPeace(this, _year, winner, loser, sa, absScore, budget);   // (717) 割譲の計器 cess_s・cessp_s（読むだけ・恒等）
         // ★(723) 線 ces2：旗 CessionUnified が正のときだけ、講和の始めの勝者の側の文脈を作る（候補と費用の 1 本の判定 CessionTarget の入力）。0（既定）は null のまま＝下の 4 経路は旧の式。国を持たない勝者は旧のまま。
         CessionReach? cessReach = c.CessionUnified > 0 && winner.Nation is not null ? CessionReachOf(c, winner, loser) : null;
@@ -3006,7 +3088,7 @@ public sealed class Diplomacy
         bool farCrush = c.TreatyPortWinnerDistanceKm > 0 && Math.Abs(war.Score) >= c.VassalizeWinScore   // ★是正（監査2026-09-02 #22）：saは[-1,1]にクランプ済みでVassalizeWinScore=1.4と比較すると恒久false（死コード）。tooFarToRuleと同じ未クランプ物差しに揃える
             && winner.Nation is { } wf0 && loser.Nation is { } lf0
             && Geo.DistanceKm(wf0.Latitude, wf0.Longitude, lf0.Latitude, lf0.Longitude) > c.TreatyPortWinnerDistanceKm;
-        double repBase = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * sa * (farCrush ? c.TreatyPortReparationMult : 1.0)).Value;
+        double repBase = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay * (farCrush ? c.TreatyPortReparationMult : 1.0)).Value;
         repBase -= repCut * repBase;   // #21 会議外交：会議度に応じ賠償を削る（repCut=0＝現行ビット恒等・x−0*x==x）。植民地/割譲は不変＝賠償のみ抑制
         // ★賠償は**貨幣経済を持つ2国の間だけ**で動く（回1-1・2026-09-26・段0の番人 fis-21 が全長で発見）。
         //   抽象標的（Nation の無い勢力）は World を持たない＝国庫も基礎貨幣も無い。
@@ -3025,6 +3107,7 @@ public sealed class Diplomacy
             World.Transfer((lw, null), (ww, null, null), rep, TreasuryCat.WarCost);
             Fiscal.BookForeignDebt(null, new MoneyStock(repBase - rep), lw, ww);
         }
+        if (Instruments.On) { CpHit = true; CpRep = rep; CpRepBase = repBase; CpBudget0 = budget0; CpCaptured = captured; CpCeded = false; CpRepRaw = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay).Value; }   // (791) 計器（読むだけ）
         Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
 
         // 決定的敗北の本国帰結（doc改善#3）：敗戦ショックで正統性を揺るがし（→Politics 遷移＝敗戦→革命・仏1870/露1917）、
@@ -3037,7 +3120,7 @@ public sealed class Diplomacy
             //   ②壊滅(≥VassalizeWinScore=1.4)かつ敗者が独立で州が残る → 残りの帰結（**属国一本化**・傀儡/レジームチェンジは撤去）：
             //      ・統治コスト高(異民族/異教≥GovCostVassalThreshold) → 属国化（間接統治＝直接併合が高コスト・境界州割譲＋核を属国に残す）
             //      ・統治コスト低(同族) → 追加割譲で直接併合（安く呑める＝属国化しない）
-            if (absScore >= c.TerritoryCessionScore && winner.Nation is { } ww0)
+            if ((cg is null ? absScore : cg.AbsMax) >= c.TerritoryCessionScore && winner.Nation is { } ww0)   // (791) 集合の割譲の門は 1 回分の |戦勝点|（最大）を読む
             {
                 bool crushing = absScore >= c.VassalizeWinScore;
                 bool handled = false;
@@ -3073,7 +3156,7 @@ public sealed class Diplomacy
                 {
                     if (GovCost(winner, loser, c) >= c.GovCostVassalThreshold)
                     {
-                        ceded = CedeTerritory(c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 必要な土地＝境界州を割譲し、核（首都）は残して属国化＝間接統治（異民族/異教は直接統治が高コスト）
+                        ceded = CedeTerritoryOnce(cg, c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 必要な土地＝境界州を割譲し、核（首都）は残して属国化＝間接統治（異民族/異教は直接統治が高コスト）
                         SetDependency(winner, loser);   // 異民族/異教＝間接統治の属国（金銭貢納・宗主のみ参戦義務）
                         Log.Add($"{_year} {winner.Name}が{loser.Name}を属国化（統治コスト高・戦勝点{absScore:0.00}）");
                         handled = true;
@@ -3089,11 +3172,11 @@ public sealed class Diplomacy
                             SetDependency(winner, loser);
                             Log.Add($"{_year} {winner.Name}が{loser.Name}を従属化（単州の同族国=併合不能のため保護国・戦勝点{absScore:0.00}）");
                         }
-                        else ceded = CedeTerritory(c, dw, winner, loser.Name, ref budget, cessReach, takePrize: true);   // 同族＝安く併呑＝首都含む価値ある州を直接併合（属国化せず吸収）
+                        else ceded = CedeTerritoryOnce(cg, c, dw, winner, loser.Name, ref budget, cessReach, takePrize: true);   // 同族＝安く併呑＝首都含む価値ある州を直接併合（属国化せず吸収）
                         handled = true;
                     }
                 }
-                if (!handled) ceded = CedeTerritory(c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 境界改定（壊滅未満の決定的勝利・既に従属/州なし）＝普仏戦争型
+                if (!handled) ceded = CedeTerritoryOnce(cg, c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 境界改定（壊滅未満の決定的勝利・既に従属/州なし）＝普仏戦争型
                 // 機構B 矯正講和（2026-07-25・革命輸出doc §3）：壊滅級の勝利×政体イデオロギー距離≥閾値＝勝者が敗者の政体を自陣営へ矯正。
                 // 対称な一般則＝革命共和国の勝利→衛星共和国（バタヴィア1795/ヘルヴェティア1798）・君主同盟の勝利→反動介入（西1823/ハンガリー1849）
                 // ＝1本で両向き・国名も方向も書かない。新しい宣戦動詞は作らない（講和条項＝宣戦廃止の設計維持）。復古は自動創発（押し付け政体は
@@ -3132,8 +3215,18 @@ public sealed class Diplomacy
                 // 適用は EndWar の緊張リセット後（呼び出し側）＝ここでは予約のみ（監査2026-07-11 他3）。同ティック内で消費される一時状態＝セーブ非対象で安全。
                 // ★是正（監査2026-09-02 #23）：実際に領土が移転した(ceded)ときだけ予約＝条約港/従属化のみ（土地は動かない）で遺恨が積まれていた誤りを閉じる
                 if (ceded) _pendingRevanch = (winner, loser);
+                if (Instruments.On) CpCeded = ceded;   // (791) 計器
             }
         }
+    }
+
+    /// <summary>★(791) 本国の割譲の呼び口＝崩壊の講和の集合（cg）が枠（1 回分）を持つときだけ枠を見る。cg なしは <see cref="CedeTerritory"/> そのもの。</summary>
+    private bool CedeTerritoryOnce(CollapseGroup? cg, Coefficients c, World loser, Power winner, string loserName, ref double budget, CessionReach? cessReach, bool takePrize)
+    {
+        if (cg is not null && cg.CedeLeft <= 0) return false;
+        bool ok = CedeTerritory(c, loser, winner, loserName, ref budget, cessReach, takePrize);
+        if (ok && cg is not null) cg.CedeLeft--;
+        return ok;
     }
 
     /// <summary>⑤勝敗の帰結（戦後処理の1本・2026-09-28 処理の一元化 段2 束2＝旧は対外の講和の中だけ）。決定的（|戦勝点|≧1）なら

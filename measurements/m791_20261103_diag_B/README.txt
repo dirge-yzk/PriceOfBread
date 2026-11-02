@@ -1,0 +1,1 @@
+(791) 腕 B（旗 1・ForcedPeace を除外した木 14d87b09）で集合に入らなかった崩壊の講和の理由を書く診断（使い捨ての木 dbg_tree に DbgLine だけを足した物・種 2・5・7・10 を単独で回した）。列：年・A・B・loser・count（前走査の数）・idx・exA・exB・cutA・cutB・preCutA・preCutB・rawA・rawB・adjA・adjB・前走査の印・blank・forced。落ちた 5 事象は全て forced=True の戦争を含む（列強の調停が崩壊で上書きされて賠償を払う）。ファイル名の数は処理の番号（種は 21736・23896・25240・25428 の順に 2・5・7・10 のどれか）。
