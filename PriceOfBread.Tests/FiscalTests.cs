@@ -1655,4 +1655,35 @@ public class FiscalTests
         Assert.True(Math.Abs(shortM.clergyEarned - shortM.tithe) <= 1e-9, "聖職の所得（Earned）が受け取った十分の一税と一致しない");
     }
 
+    /// <summary>★(786) 金建て債務の実質負担 b＝参照の銀価格÷世界の銀価格（銀本位国・対外分だけ）。下端 1.0 は残り（銀が参照より高い＝負担なし）、上端の挟み GoldDebtBurdenCap（3.0）は消えた＝
+    /// b が旧の上端を越えてもそのまま利払いに掛かる（有限）。手の盤面：英の静かな盤面を銀本位・対外債 0.5 の割合にし、世界の銀価格だけを替えて 1 か月の利払い（LastInterestPerMonth）を比べる。
+    /// 期待は式 1＋対外の割合×(b−1)（b＜1 は 1）から作る（コードの形ではなく定義から）。</summary>
+    [Theory]
+    [InlineData(2.0, 1.0)]      // 銀が参照の 2 倍＝b＝0.5＜1 → 下端で負担なし
+    [InlineData(1.0, 1.0)]      // b＝1
+    [InlineData(1.0 / 1.7, 1.7)]   // 旧の上端の内側：そのまま
+    [InlineData(1.0 / 5.0, 5.0)]   // 旧の上端 3.0 の外側：旧は 3.0 に挟んだ（利払い 1＋0.5×2）・今はそのまま 5
+    [InlineData(double.NaN, 1.0)]  // 世界の銀価格が NaN＝負担の節に入らない（> 1e-9 が偽）→ 負担なし
+    [InlineData(double.PositiveInfinity, 1.0)]   // 世界の銀価格が +∞＝b＝0 → 下端で負担なし
+    [InlineData(1.0 / 1e4, 1e4)]   // 比の経路の上限の桁（局所価格の帯 0.01〜100 から約 1e4）：有限のまま
+    public void 金建て債務の負担は下端1で残り上端の挟みは無い(double silverVsRef, double expectedB)
+    {
+        double refSilver = Catalog.RefPrices[Catalog.SilverId];
+        double Interest(double ws)
+        {
+            var w = QuietBritain();
+            w.MonetaryLaw = MonetaryStandardLaw.Silver;
+            w.GovDebt = new MoneyStock(1e9); w.ForeignDebt = new MoneyStock(5e8);   // 対外の割合 0.5
+            w.WorldSilverPrice = ws;
+            w.FiscalFundingRatio = new Share(1.0);
+            Fiscal.Step(w, w.Coef, 0);
+            return w.LastInterestPerMonth.Value;
+        }
+        double i0 = Interest(refSilver);   // b＝1（負担なし）
+        Assert.True(i0 > 0, "前提が崩れた：利払いが立たない");
+        double got = Interest(refSilver * silverVsRef) / i0;
+        double want = 1.0 + 0.5 * (expectedB - 1.0);
+        Assert.True(Math.Abs(got - want) <= 1e-9 * want, $"b＝{expectedB} の利払いの倍率 {got}（期待 {want}）");
+    }
+
 }
