@@ -1,0 +1,39 @@
+ident start：ラベル=c8ii 木=/d/PoB_work/c8ii/wt_id 作業=/d/PoB_work/ident_c8ii 腕=[a b t s] 開始=2026-11-02 16:58:04
+ident start：腕は全て終わった（5 印）
+=== 恒等の証明 c8ii（2026-11-02 17:16:09）===
+測った木：D:/PoB_work/c8ii/wt_id（HEAD 4886603c・未コミット 0 本）
+基準の設定：D:/PoB_work/c8ii/wt_id/scripts/instruments/ident/ident.cfg
+宣言：added=['inheritpar_s'] grown=['inheritintent_s'] tests_delta=4
+腕 a：rc=1 end=2026-11-02 17:13:37
+腕 b：rc=1 end=2026-11-02 17:16:08
+腕 t：rc=0 end=2026-11-02 17:01:47
+腕 s：rc=0 end=2026-11-02 17:13:45
+測る木の SOURCE-HASH：9b942a4a0a1cce02
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 9b942a4a0a1cce02
+[素の 5 種] b5_ia_5.txt 対 b5_20261102_m778
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261102_m778.cost
+  ○ 件数の行 29 本・推定 223.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 9b942a4a0a1cce02
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261102_m778_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261102_m778_ins.cost
+  ○ 件数の行 29 本・推定 220.8 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c8ii/out_ib_10/ins  対  基準 D:/PoB_work/keep_778/base_ins
+  基準 933 本・腕 943 本・バイト一致 903 本
+  腕にだけある 10 本（うち宣言 10）
+  列が増えた表（--grown-ok の宣言）10 本：inheritintent_s1.tsv+2列・inheritintent_s10.tsv+2列・inheritintent_s2.tsv+2列・inheritintent_s3.tsv+2列・inheritintent_s4.tsv+2列・inheritintent_s5.tsv+2列
+  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）8 本・増えた行 63：inheritintent_s+3・inheritintent_s+11・inheritintent_s+8・inheritintent_s+9・inheritintent_s+8・inheritintent_s+10
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 903・既知の揺れ 20・宣言された増減 28）
+[注視の表] mon_ib_10.txt 対 mon_20261102_m778.txt（タグの行を除く）
+  ○ タグの行以外が一致（4698 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2157（基準 2153+4 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
+

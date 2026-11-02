@@ -76,6 +76,12 @@ def main():
     ip1 = [r for r in ip if int(r['windowQuarters']) >= 1]
     if ip1:
         print(f'   （参考）窓の標本が 1 以上の行 {len(ip1)}：Σpar={sum(int(r["parallelStarts"]) for r in ip1)}・Σ窓={sum(int(r["windowQuarters"]) for r in ip1)}・parallelStarts≧1 の行 {sum(1 for r in ip1 if int(r["parallelStarts"]) >= 1)}')
+    if ip:   # （参考）窓の長さの分布：長く止まった継いだ工事（窓が 40 四半期以上）が分母の多くを占めるかを見る
+        ws = sorted(int(r['windowQuarters']) for r in ip)
+        long_ = [r for r in ip if int(r['windowQuarters']) >= 40]
+        short = [r for r in ip if int(r['windowQuarters']) < 40]
+        print(f'   （参考）窓の長さ：中央値 {ws[len(ws) // 2]}・最大 {ws[-1]}・窓が 40 四半期以上の行 {len(long_)}（Σ窓 {sum(int(r["windowQuarters"]) for r in long_)}・Σpar {sum(int(r["parallelStarts"]) for r in long_)}）'
+              f'・40 未満の行 {len(short)}（Σ窓 {sum(int(r["windowQuarters"]) for r in short)}・Σpar {sum(int(r["parallelStarts"]) for r in short)}・Σ自国の基準 {sum(int(r["parallelStartsOwnBaseline"]) for r in short)}・Σ自国の曝露 {sum(int(r["ownExposureRegionQuarters"]) for r in short)}）')
     # ④ prereg と used
     diff = []
     for s in seeds:
