@@ -133,11 +133,10 @@ public static class PathGraph
         using var rd = new StreamReader(st);
         var rows = System.Text.Json.JsonSerializer.Deserialize<BarrierRow[]>(rd.ReadToEnd(), WorldData.Options)
                    ?? throw new InvalidOperationException("barriers.json の読込に失敗");
-        // ★(762)(769) 陸グラフのデータの直し：fix=-1 の行は読まない（置き換えられた旧の行）・fix=1 の行は読む（旗 LandGraphFixRows は (769) で焼き込み済み＝1 の形だけを残した）。
+        // ★(762)(769)(776) 陸グラフのデータの直し：fix=1 の行（足した点）を印つきで読む。置き換えられた旧の行（fix=-1）は (776) で barriers.json から消した＝読み飛ばす枝も無い（旗 LandGraphFixRows は (769) で焼き込み済み）。
         var addedIdx = new List<int>();
         foreach (var r in rows)
         {
-            if (r.Fix < 0) continue;
             if (r.Fix > 0 && r.Kind != "barrier") addedIdx.Add(list.Count);
             list.Add(new Node(r.Name, r.Kind, r.Lat, r.Lon));
         }
@@ -152,7 +151,7 @@ public static class PathGraph
         public double Lat { get; set; }
         public double Lon { get; set; }
         public string Kind { get; set; } = "barrier";
-        public int Fix { get; set; }   // ★(762)(769) 0＝従来の行・1＝足した行（常に読む）・-1＝置き換えられた旧の行（読まない）
+        public int Fix { get; set; }   // ★(762)(769)(776) 0＝従来の行・1＝足した行
     }
 
     /// <summary>★陸橋（地峡）＝別の陸塊どうしが**歩いて**繋がる場所（2026-08-02）。
