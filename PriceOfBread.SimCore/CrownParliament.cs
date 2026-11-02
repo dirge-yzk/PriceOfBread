@@ -213,117 +213,114 @@ public static class CrownParliament
 
         // --- 5. 国民意識（市民的結束＝民主主義の前提・docs/2026-07-13_国民意識.md）---
         //     公教育×識字＋徴兵で育つ（ロジスティック）・多民族は育ちにくい（天井でなく抵抗＝floorでcivic克服＝米/スイス）・国難は既存結束で符号が決まる両刃。
-        //     **読みチャネルが有効な時だけ蓄積を走らせる**＝両weight0では一切走らず厳密恒等（累積の副作用も含めて完全休眠）。
-        //     ⚠C2-C5撤去（2026-08-16）：旧・汚職チャネル（civicGraft→Fiscal leak）はV2恒久ONで物理撤去済み＝CorruptionWeight の現読者は本ゲートと World.civicCarriesEthnic（ゲートは実挙動に効く＝残置）。
-        if (c.NationalConsciousnessCorruptionWeight > 0 || c.NationBuildMobilizationWeight > 0)
+        //     (798)：以前は両 weight が 0 のとき一切走らない門があった（左の NationalConsciousnessCorruptionWeight は既定 0.2 で常に真）＝門を消した。
+        //     ⚠C2-C5撤去（2026-08-16）：旧・汚職チャネル（civicGraft→Fiscal leak）はV2恒久ONで物理撤去済み＝CorruptionWeight の現読者は World.civicCarriesEthnic だけ。
+        if (w.NationalConsciousness < 0)   // 未捕捉のみ初期化（跳躍なし）＝データ初期値（既定0.075・米0.32/仏0.1）。第3段3-6：v1（一律0.3）の到達不能枝を焼き込み削除
+            w.NationalConsciousness = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
+        double eduLvl = w.EducationLaw switch { EducationLaw.Compulsory => 1.0, EducationLaw.Public => 0.6, EducationLaw.Religious => 0.2, _ => 0.0 };
+        double popSz = 0, soldierSz = 0, radioSum = 0;
+        foreach (var p in w.AllPops()) { popSz += p.Size; if (p.IsSoldier) soldierSz += p.Size; radioSum += p.RadioFill * p.Size; }
+        double avgLit = PoliticalQuantities.AvgLiteracy(w);   // 唯一定義（同じ集合・同じ順の加重平均＝ビット恒等・2026-09-11 M8）
+        double conscript = popSz > 1e-9 ? soldierSz / popSz : 0;
         {
-            if (w.NationalConsciousness < 0)   // 未捕捉のみ初期化（跳躍なし）＝データ初期値（既定0.075・米0.32/仏0.1）。第3段3-6：v1（一律0.3）の到達不能枝を焼き込み削除
-                w.NationalConsciousness = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
-            double eduLvl = w.EducationLaw switch { EducationLaw.Compulsory => 1.0, EducationLaw.Public => 0.6, EducationLaw.Religious => 0.2, _ => 0.0 };
-            double popSz = 0, soldierSz = 0, radioSum = 0;
-            foreach (var p in w.AllPops()) { popSz += p.Size; if (p.IsSoldier) soldierSz += p.Size; radioSum += p.RadioFill * p.Size; }
-            double avgLit = PoliticalQuantities.AvgLiteracy(w);   // 唯一定義（同じ集合・同じ順の加重平均＝ビット恒等・2026-09-11 M8）
-            double conscript = popSz > 1e-9 ? soldierSz / popSz : 0;
+            // P9 v2 購入モデル（2026-07-17）→ E3財化（2026-07-19）：NC ← NC×(1−減衰) + 蓄積率×(新聞項＋ラジオ項＋徴兵項)×drag×危機×headroom。
+            // 第3段3-6（2026-07-27）：NationBuildPurchaseMode=1（2026-07-18点火）を焼き込み＝v1（自動成長）の到達不能本体を削除・v2を直走。
+            // 新聞項＝NationBuildingSpending（Fiscal＝識字×NewsFill×熱意の実測）×学校の器。旧・avgLit因子は新聞需要の識字比例に内包済み＝二重を排し、
+            // (1−汚職)因子は国庫を通らない家計消費に理論的根拠がなく削除（汚職の代償は汚職サブシステム側＝V2の leak/正統性侵食が担う。旧・読み手 civicGraft はC2-C5撤去2026-08-16で消滅）。
+            // ラジオ項＝識字不要・**検閲非依存**（国営宣伝は国民精神を育てるが政治意識は育てない＝Politicsのpress側と分業）。
+            // 徴兵項＝軍は国民の学校（非財政・識字不要＝貧国の唯一の経路）。天井＝教育法×識字（法の後退で成長停止＋減衰＝反動の巻き戻し）。
+            double spendTerm = w.NationBuildingSpending * eduLvl;
+            double radioTerm = c.RadioNationWeight * (popSz > 1e-9 ? radioSum / popSz : 0);
+            double conscriptTerm = c.NationBuildConscript * conscript;
+            bool nbAtWar = false;
+            if (w.Diplomacy is { } dipW && w.SelfPower is { } spW)
+                foreach (var war in dipW.Wars) if (war.A == spW || war.B == spW) { nbAtWar = true; break; }
+            double crisisMult = 1.0 + (nbAtWar ? c.NationBuildCrisisDefense : 0)
+                                    + (w.InCivilWar ? c.NationBuildCrisisCivilWar : 0)   // ★B3：述語1本
+                                    + (w.BornOfSecession && nbAtWar ? c.NationBuildCrisisIndependence : 0);
+            double lawCeil = w.EducationLaw switch { EducationLaw.Compulsory => 0.9, EducationLaw.Public => 0.7, EducationLaw.Religious => 0.4, _ => 0.2 };
+            double ceilingNb = lawCeil * System.Math.Min(1.0, avgLit / 0.6);
+            // ★P12残渣①（原典2026-07-17・旧の旗 CivicOpennessEnabled は 2026-10-18 に焼き込み）：民族抵抗を速度dragから「天井=1−民族距離×(1−開放度)」へ移す。
+            // 速度dragは無い（当てがい値 EthnicUnity+NationBuildCivicFloor の廃止）・スカラー経路は国平均の民族距離(1−EthnicUnity)で同型の天井。
+            // POP経路は AccumulatePopConsciousness 内で per-pop の民族距離(1−CoreEthnicShare)を天井に適用（core速度係数は1.0へ）
+            // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight／World.civicCarriesEthnic）が消費する値への民族抵抗は「天井経由の一本」だけになる
+            // （原典の二重計上ガード＝分離は忠誠度のみ・NCは動員/天命/汚職のみ＝NCの新しい読み手は作らない）。
+            double openness = CivicOpenness(w);
+            double ceilScalar = ceilingNb * PoliticalQuantities.ProbOr(w.EthnicUnity, openness);
+            double prevNc2 = w.NationalConsciousness;
+            double headroom = System.Math.Max(0, ceilScalar - prevNc2);
+            double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;   // ★段4：積の順序は旧式のまま（×headroom を外に出しただけ＝ビット恒等）
+            double gain = ncDrive * headroom;
+            double lose = prevNc2 * c.NationBuildDecayRate;
+            // ★★段4（2026-09-09・作者裁定5「国民意識は廃止しない。盤面で読めるようにするだけ」／設計メモ§7-7バグb）：
+            //   蓄積スタック（自前の減衰率・天井・蓄積率を持つ記憶）をやめ、**同じ漸化式の不動点**を毎期そのまま置く。
+            //     NC ← NC(1−decay) + drive×(天井−NC)  の不動点は  NC* = 天井 × drive/(decay+drive)
+            //   ＝新しい量も新しい係数の意味も導入せず（drive・天井・decay は上でいま計算した現物）、記憶だけが消える。
+            //   ⇒ 盤面（教育法・識字・新聞/ラジオ支出・徴兵率・民族構成・開放度・戦争）が変われば**その場で**変わる。
+            //   ⇒ 国内経路の運搬漏れ（階級昇格・徴兵/復員・職業移動・州内移住が NC を混ぜていない＝§7-7バグb）は
+            //     「運ぶべき状態」が無くなるので**定義ごと消える**（保存則の対象でなくなる）。
+            //   0＝旧＝ストック＝厳密恒等。点火値 1.0。
+            bool ncDerived = c.NationConsciousnessDerived > 0;
+            // ★2026-09-03（J-004＝作者裁定「修正対象」）：⚠**台帳が別の量の話をしていた**のが残差の正体だった。
+            //   `World.NationalConsciousness` の getter は `NationConsciousnessPerPop>0`（現行1.0）のとき
+            //   **POPのsize加重平均を返し、setter が書く _ncScalar を一切読まない**。
+            //   ⇒ 上のスカラー漸化式（前期＋新聞＋ラジオ＋徴兵−減衰）は**表示されていない量**の内訳であり、
+            //   実値と合わないのは当然だった（記帳漏れの書き手ではなく、**主語の取り違え**）。
+            //   ★是正＝POP側の物語で書く（下の PerPop ブロックで Reset して4行を積む）。
+            //   ⚠スカラー側の漸化式は _ncScalar の更新として残す（PerPop=0 の世界＝較正/単体テストではこちらが実値）。
+            double rawNc2 = ncDerived
+                ? (!(c.NationBuildDecayRate + ncDrive > 0) ? 0.0 : ceilScalar * ncDrive / (c.NationBuildDecayRate + ncDrive))   // NaNは否定形で0側へ倒す
+                : prevNc2 - lose + gain;
+            if (w.Explain != null && !(c.NationConsciousnessPerPop > 0))
             {
-                // P9 v2 購入モデル（2026-07-17）→ E3財化（2026-07-19）：NC ← NC×(1−減衰) + 蓄積率×(新聞項＋ラジオ項＋徴兵項)×drag×危機×headroom。
-                // 第3段3-6（2026-07-27）：NationBuildPurchaseMode=1（2026-07-18点火）を焼き込み＝v1（自動成長）の到達不能本体を削除・v2を直走。
-                // 新聞項＝NationBuildingSpending（Fiscal＝識字×NewsFill×熱意の実測）×学校の器。旧・avgLit因子は新聞需要の識字比例に内包済み＝二重を排し、
-                // (1−汚職)因子は国庫を通らない家計消費に理論的根拠がなく削除（汚職の代償は汚職サブシステム側＝V2の leak/正統性侵食が担う。旧・読み手 civicGraft はC2-C5撤去2026-08-16で消滅）。
-                // ラジオ項＝識字不要・**検閲非依存**（国営宣伝は国民精神を育てるが政治意識は育てない＝Politicsのpress側と分業）。
-                // 徴兵項＝軍は国民の学校（非財政・識字不要＝貧国の唯一の経路）。天井＝教育法×識字（法の後退で成長停止＋減衰＝反動の巻き戻し）。
-                double spendTerm = w.NationBuildingSpending * eduLvl;
-                double radioTerm = c.RadioNationWeight * (popSz > 1e-9 ? radioSum / popSz : 0);
-                double conscriptTerm = c.NationBuildConscript * conscript;
-                bool nbAtWar = false;
-                if (w.Diplomacy is { } dipW && w.SelfPower is { } spW)
-                    foreach (var war in dipW.Wars) if (war.A == spW || war.B == spW) { nbAtWar = true; break; }
-                double crisisMult = 1.0 + (nbAtWar ? c.NationBuildCrisisDefense : 0)
-                                        + (w.InCivilWar ? c.NationBuildCrisisCivilWar : 0)   // ★B3：述語1本
-                                        + (w.BornOfSecession && nbAtWar ? c.NationBuildCrisisIndependence : 0);
-                double lawCeil = w.EducationLaw switch { EducationLaw.Compulsory => 0.9, EducationLaw.Public => 0.7, EducationLaw.Religious => 0.4, _ => 0.2 };
-                double ceilingNb = lawCeil * System.Math.Min(1.0, avgLit / 0.6);
-                // ★P12残渣①（原典2026-07-17・旧の旗 CivicOpennessEnabled は 2026-10-18 に焼き込み）：民族抵抗を速度dragから「天井=1−民族距離×(1−開放度)」へ移す。
-                // 速度dragは無い（当てがい値 EthnicUnity+NationBuildCivicFloor の廃止）・スカラー経路は国平均の民族距離(1−EthnicUnity)で同型の天井。
-                // POP経路は AccumulatePopConsciousness 内で per-pop の民族距離(1−CoreEthnicShare)を天井に適用（core速度係数は1.0へ）
-                // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight／World.civicCarriesEthnic）が消費する値への民族抵抗は「天井経由の一本」だけになる
-                // （原典の二重計上ガード＝分離は忠誠度のみ・NCは動員/天命/汚職のみ＝NCの新しい読み手は作らない）。
-                double openness = CivicOpenness(w);
-                double ceilScalar = ceilingNb * PoliticalQuantities.ProbOr(w.EthnicUnity, openness);
-                double prevNc2 = w.NationalConsciousness;
-                double headroom = System.Math.Max(0, ceilScalar - prevNc2);
-                double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;   // ★段4：積の順序は旧式のまま（×headroom を外に出しただけ＝ビット恒等）
-                double gain = ncDrive * headroom;
-                double lose = prevNc2 * c.NationBuildDecayRate;
-                // ★★段4（2026-09-09・作者裁定5「国民意識は廃止しない。盤面で読めるようにするだけ」／設計メモ§7-7バグb）：
-                //   蓄積スタック（自前の減衰率・天井・蓄積率を持つ記憶）をやめ、**同じ漸化式の不動点**を毎期そのまま置く。
-                //     NC ← NC(1−decay) + drive×(天井−NC)  の不動点は  NC* = 天井 × drive/(decay+drive)
-                //   ＝新しい量も新しい係数の意味も導入せず（drive・天井・decay は上でいま計算した現物）、記憶だけが消える。
-                //   ⇒ 盤面（教育法・識字・新聞/ラジオ支出・徴兵率・民族構成・開放度・戦争）が変われば**その場で**変わる。
-                //   ⇒ 国内経路の運搬漏れ（階級昇格・徴兵/復員・職業移動・州内移住が NC を混ぜていない＝§7-7バグb）は
-                //     「運ぶべき状態」が無くなるので**定義ごと消える**（保存則の対象でなくなる）。
-                //   0＝旧＝ストック＝厳密恒等。点火値 1.0。
-                bool ncDerived = c.NationConsciousnessDerived > 0;
-                // ★2026-09-03（J-004＝作者裁定「修正対象」）：⚠**台帳が別の量の話をしていた**のが残差の正体だった。
-                //   `World.NationalConsciousness` の getter は `NationConsciousnessPerPop>0`（現行1.0）のとき
-                //   **POPのsize加重平均を返し、setter が書く _ncScalar を一切読まない**。
-                //   ⇒ 上のスカラー漸化式（前期＋新聞＋ラジオ＋徴兵−減衰）は**表示されていない量**の内訳であり、
-                //   実値と合わないのは当然だった（記帳漏れの書き手ではなく、**主語の取り違え**）。
-                //   ★是正＝POP側の物語で書く（下の PerPop ブロックで Reset して4行を積む）。
-                //   ⚠スカラー側の漸化式は _ncScalar の更新として残す（PerPop=0 の世界＝較正/単体テストではこちらが実値）。
-                double rawNc2 = ncDerived
-                    ? (!(c.NationBuildDecayRate + ncDrive > 0) ? 0.0 : ceilScalar * ncDrive / (c.NationBuildDecayRate + ncDrive))   // NaNは否定形で0側へ倒す
-                    : prevNc2 - lose + gain;
-                if (w.Explain != null && !(c.NationConsciousnessPerPop > 0))
+                w.Explain.Reset("NationalConsciousness");
+                if (ncDerived)
+                {   // 導出量＝記憶を持たないので「前期」の行は無い。天井と、駆動が天井のどこまで届いたかの2行。
+                    w.Explain.Add("NationalConsciousness", "国民化の天井（教育法×識字×民族の距離）", ceilScalar);
+                    w.Explain.Add("NationalConsciousness", "天井に届かない分（新聞・ラジオ・徴兵の弱さ）", rawNc2 - ceilScalar);
+                }
+                else
                 {
+                    w.Explain.Add("NationalConsciousness", "前期からの国民意識（履歴の累積）", prevNc2);
+                    w.Explain.Add("NationalConsciousness", "新聞を読む国民", c.NationBuildAccumRate * spendTerm * crisisMult * headroom);
+                    w.Explain.Add("NationalConsciousness", "ラジオ放送", c.NationBuildAccumRate * radioTerm * crisisMult * headroom);
+                    w.Explain.Add("NationalConsciousness", "徴兵による育成", c.NationBuildAccumRate * conscriptTerm * crisisMult * headroom);
+                    w.Explain.Add("NationalConsciousness", "減衰", -lose);
+                }
+            }
+            // ★2026-09-03（J-004＝作者裁定「修正対象」）：**クランプ分を記帳する**。
+            //   ⚠内訳は 前期＋3つの増分−減衰 の5行なのに、実値は [0,1] でクランプされた値＝
+            //   天井/床に当たった四半期だけ内訳合計と実値がずれる（実測＝仏で 4.9e-5）。
+            //   ★これは既知の教訓（「Explain会計＝クランプ分も記帳する」）の**同じ型の再発**である。
+            //   ⚠Explain は既定 null＝バッチ/較正では1命令も走らない＝厳密恒等。
+            w.NationalConsciousness = PoliticalQuantities.Clamp01(rawNc2);   // ⚠PerPop>0 では _ncScalar を書くだけ（getter は読まない）
+            // ★国民意識のPOP化（点火2026-08-01）：国のスカラーは上のまま残し、**POP側にも同じ形で積む**。
+            // 違いは3つだけ——⑴民族の抵抗を国平均(EthnicUnity)でなく**そのPOPの中核民族シェア**で見る、
+            // ⑵**首都からの距離**で配信が減衰する（学校も新聞も鉄道の先には届きにくい）、⑶天井はPOPごとに残る。
+            // 国の値は最後に「スカラー」と「POP加重平均」の混合になる（レバー0＝旧値そのまま＝厳密恒等）。
+            if (c.NationConsciousnessPerPop > 0)
+            {
+                double drive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
+                double prevReported = w.NationalConsciousness;   // ★J-004：**実際に報告される量**（POP加重平均）の前期値
+                double popAvg = AccumulatePopConsciousness(w, c, drive, ceilingNb, c.NationBuildDecayRate, openness, out double wGain, out double wLose);
+                double lever = PoliticalQuantities.Clamp01(c.NationConsciousnessPerPop);
+                w.NationalConsciousness = PoliticalQuantities.Clamp01((1 - lever) * w.NationalConsciousness + lever * popAvg);
+                // ★J-004：台帳をPOP側の物語で書き直す＝**報告される量そのもの**の内訳になる。
+                //   ⚠4行目「人口構成の変化」は残差ではなく**実体のある項**＝移民・出生・階級移動で加重（POPの大きさ）が動くと、
+                //   一人ひとりの意識が変わらなくても国の加重平均は動く。単純な漸化式が合わない理由がこれである。
+                if (w.Explain != null)
+                {
+                    double reported = w.NationalConsciousness;
                     w.Explain.Reset("NationalConsciousness");
-                    if (ncDerived)
-                    {   // 導出量＝記憶を持たないので「前期」の行は無い。天井と、駆動が天井のどこまで届いたかの2行。
-                        w.Explain.Add("NationalConsciousness", "国民化の天井（教育法×識字×民族の距離）", ceilScalar);
-                        w.Explain.Add("NationalConsciousness", "天井に届かない分（新聞・ラジオ・徴兵の弱さ）", rawNc2 - ceilScalar);
-                    }
-                    else
-                    {
-                        w.Explain.Add("NationalConsciousness", "前期からの国民意識（履歴の累積）", prevNc2);
-                        w.Explain.Add("NationalConsciousness", "新聞を読む国民", c.NationBuildAccumRate * spendTerm * crisisMult * headroom);
-                        w.Explain.Add("NationalConsciousness", "ラジオ放送", c.NationBuildAccumRate * radioTerm * crisisMult * headroom);
-                        w.Explain.Add("NationalConsciousness", "徴兵による育成", c.NationBuildAccumRate * conscriptTerm * crisisMult * headroom);
-                        w.Explain.Add("NationalConsciousness", "減衰", -lose);
-                    }
+                    w.Explain.Add("NationalConsciousness", "前期の国民意識（POP加重平均）", prevReported);
+                    w.Explain.Add("NationalConsciousness", "育成（新聞・ラジオ・徴兵）", wGain);
+                    w.Explain.Add("NationalConsciousness", "減衰", -wLose);
+                    w.Explain.Add("NationalConsciousness", "人口構成の変化（移民・出生・階級移動）", reported - prevReported - wGain + wLose);
                 }
-                // ★2026-09-03（J-004＝作者裁定「修正対象」）：**クランプ分を記帳する**。
-                //   ⚠内訳は 前期＋3つの増分−減衰 の5行なのに、実値は [0,1] でクランプされた値＝
-                //   天井/床に当たった四半期だけ内訳合計と実値がずれる（実測＝仏で 4.9e-5）。
-                //   ★これは既知の教訓（「Explain会計＝クランプ分も記帳する」）の**同じ型の再発**である。
-                //   ⚠Explain は既定 null＝バッチ/較正では1命令も走らない＝厳密恒等。
-                w.NationalConsciousness = PoliticalQuantities.Clamp01(rawNc2);   // ⚠PerPop>0 では _ncScalar を書くだけ（getter は読まない）
-                // ★国民意識のPOP化（点火2026-08-01）：国のスカラーは上のまま残し、**POP側にも同じ形で積む**。
-                // 違いは3つだけ——⑴民族の抵抗を国平均(EthnicUnity)でなく**そのPOPの中核民族シェア**で見る、
-                // ⑵**首都からの距離**で配信が減衰する（学校も新聞も鉄道の先には届きにくい）、⑶天井はPOPごとに残る。
-                // 国の値は最後に「スカラー」と「POP加重平均」の混合になる（レバー0＝旧値そのまま＝厳密恒等）。
-                if (c.NationConsciousnessPerPop > 0)
-                {
-                    double drive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
-                    double prevReported = w.NationalConsciousness;   // ★J-004：**実際に報告される量**（POP加重平均）の前期値
-                    double popAvg = AccumulatePopConsciousness(w, c, drive, ceilingNb, c.NationBuildDecayRate, openness, out double wGain, out double wLose);
-                    double lever = PoliticalQuantities.Clamp01(c.NationConsciousnessPerPop);
-                    w.NationalConsciousness = PoliticalQuantities.Clamp01((1 - lever) * w.NationalConsciousness + lever * popAvg);
-                    // ★J-004：台帳をPOP側の物語で書き直す＝**報告される量そのもの**の内訳になる。
-                    //   ⚠4行目「人口構成の変化」は残差ではなく**実体のある項**＝移民・出生・階級移動で加重（POPの大きさ）が動くと、
-                    //   一人ひとりの意識が変わらなくても国の加重平均は動く。単純な漸化式が合わない理由がこれである。
-                    if (w.Explain != null)
-                    {
-                        double reported = w.NationalConsciousness;
-                        w.Explain.Reset("NationalConsciousness");
-                        w.Explain.Add("NationalConsciousness", "前期の国民意識（POP加重平均）", prevReported);
-                        w.Explain.Add("NationalConsciousness", "育成（新聞・ラジオ・徴兵）", wGain);
-                        w.Explain.Add("NationalConsciousness", "減衰", -wLose);
-                        w.Explain.Add("NationalConsciousness", "人口構成の変化（移民・出生・階級移動）", reported - prevReported - wGain + wLose);
-                    }
-                    // ★2026-09-03（キューA-04）：**記帳漏れだった書き手**。台帳の恒等式番人を全量へ広げたら仏で 4.9e-5 のズレとして出た。
-                    //   ⚠Explain は既定 null＝バッチ/較正では1命令も走らない（恒等）。
-                    // ⚠旧「POP加重平均への混合」の行は撤去＝上の4行が**報告される量そのもの**を説明しており、
-                    //   スカラーとの差を足すと二重になる（lever=1 では混合という現象自体が無い）。
-                }
+                // ★2026-09-03（キューA-04）：**記帳漏れだった書き手**。台帳の恒等式番人を全量へ広げたら仏で 4.9e-5 のズレとして出た。
+                //   ⚠Explain は既定 null＝バッチ/較正では1命令も走らない（恒等）。
+                // ⚠旧「POP加重平均への混合」の行は撤去＝上の4行が**報告される量そのもの**を説明しており、
+                //   スカラーとの差を足すと二重になる（lever=1 では混合という現象自体が無い）。
             }
         }
     }
