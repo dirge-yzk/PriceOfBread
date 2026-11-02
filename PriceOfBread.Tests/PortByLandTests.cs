@@ -173,6 +173,77 @@ public class PortByLandTests
         Assert.Equal("アジャクシオ", a.Name);
         Assert.Equal(a.LandKm, s.Drop.EffKm);
     }
+
+    // ---------------------------------------------------------------- (779) 港の形 (d)（線 c8pd・旗 PortSameLandmassFirst） ----------------------------------------------------------------
+    // 期待の港は手で書く（PortChoice の答えから作らない）。引数 sameLmFirst を明示する＝旗の読みに依らない。
+
+    [Fact]
+    public void 形d_札が同じで陸路が有限の港があれば陸路無限の港を外す()
+    {
+        var paris = Climate.CityCoord("パリ");
+        var ports = new List<(double Lat, double Lon, string Name)> { P("ロンドン"), P("マルセイユ") };   // ロンドン＝大圏 344 km・陸路∞・札 britain ／ マルセイユ＝陸路 668 km・札 eurasia（パリと同じ）
+        Assert.Equal("ロンドン", Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: true, sameLmFirst: false).Name);   // 今の形 (a)＝海を渡る跳び
+        var d = Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: true, sameLmFirst: true);
+        Assert.Equal("マルセイユ", d.Name);
+        Assert.InRange(d.LandKm, 660, 680);
+        Assert.InRange(d.GcKm, 640, 680);
+        ports.Reverse();
+        Assert.Equal("マルセイユ", Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: true, sameLmFirst: true).Name);   // 並びに依らない
+    }
+
+    [Fact]
+    public void 形d_札が同じで陸路が有限の港が無ければ今の形と同じ()
+    {
+        var paris = Climate.CityCoord("パリ");
+        var allInf = new List<(double Lat, double Lon, string Name)> { P("ダブリン"), P("ロンドン") };   // どちらも陸路∞（大圏 781 km と 344 km）
+        var a = Simulation.PortChoice(paris.Lat, paris.Lon, allInf, byLand: true, sameLmFirst: false);
+        var d = Simulation.PortChoice(paris.Lat, paris.Lon, allInf, byLand: true, sameLmFirst: true);
+        Assert.Equal("ロンドン", d.Name);
+        Assert.Equal(a, d);
+        var tls = Climate.CityCoord("トゥールーズ"); var cairo = Climate.CityCoord("カイロ");
+        var mixed = new List<(double Lat, double Lon, string Name)> { (cairo.Lat, cairo.Lon, "甲"), P("アジャクシオ") };   // 甲＝札 africa で陸路は有限（シナイ）・アジャクシオ＝札 corsica で陸路∞
+        Assert.True(double.IsFinite(PathGraph.LandDistanceKm(tls.Lat, tls.Lon, cairo.Lat, cairo.Lon)), "シナイの陸路が無限＝この試験の前提が崩れた（データの前提の赤）");
+        Assert.Equal("アジャクシオ", Simulation.PortChoice(tls.Lat, tls.Lon, mixed, byLand: true, sameLmFirst: true).Name);   // 有限の港が別の札（africa）だけ＝外さない
+        Assert.Equal(Simulation.PortChoice(tls.Lat, tls.Lon, mixed, byLand: true, sameLmFirst: false), Simulation.PortChoice(tls.Lat, tls.Lon, mixed, byLand: true, sameLmFirst: true));
+    }
+
+    [Fact]
+    public void 形d_旗0の引数と既定は旧と同じ_byLandがfalseなら引数は効かない()
+    {
+        var paris = Climate.CityCoord("パリ");
+        var ports = new List<(double Lat, double Lon, string Name)> { P("ロンドン"), P("マルセイユ") };
+        var viaDefault = Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: true);
+        Assert.Equal(Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: true, sameLmFirst: false), viaDefault);
+        Assert.Equal("ロンドン", viaDefault.Name);
+        Assert.Equal("ロンドン", Simulation.PortChoice(paris.Lat, paris.Lon, ports, byLand: false, sameLmFirst: true).Name);   // 旧の大圏の最小（引数は byLand の枝だけ）
+    }
+
+    [Fact]
+    public void 形d_配線は旗の示す港を欄に書く_計器の独立の書き方とも一致する()
+    {
+        var c = new Coefficients();
+        var regions = new List<Region>
+        {
+            new() { Id = 0, Name = "パリ", IsPort = false },
+            new() { Id = 1, Name = "ロンドン", IsPort = true },
+            new() { Id = 2, Name = "マルセイユ", IsPort = true },
+        };
+        Simulation.WirePortDistances(regions);
+        string want = c.PortByLandRoute > 0 ? (c.PortSameLandmassFirst > 0 ? "マルセイユ" : "ロンドン") : "ロンドン";   // byLand 0＝大圏の最小のロンドン
+        Assert.Equal(want, regions[0].NearestPortName);
+        var paris = Climate.CityCoord("パリ");
+        var ports = new List<(double Lat, double Lon, string Name)> { P("ロンドン"), P("マルセイユ") };
+        var ad = Instruments.PortlmAD(paris, "eurasia", ports);   // 計器の独立の書き方（PortChoice を呼ばない）
+        Assert.Equal("ロンドン", ad.PortA);
+        Assert.Equal("マルセイユ", ad.PortD);
+        Assert.True(double.IsPositiveInfinity(ad.LandA));
+        Assert.InRange(ad.EffD, 660, 680);
+        var tls = Climate.CityCoord("トゥールーズ"); var cairo = Climate.CityCoord("カイロ");
+        var mixed = new List<(double Lat, double Lon, string Name)> { (cairo.Lat, cairo.Lon, "甲"), P("アジャクシオ") };
+        var ad2 = Instruments.PortlmAD(tls, "eurasia", mixed);
+        Assert.Equal("アジャクシオ", ad2.PortA);
+        Assert.Equal("アジャクシオ", ad2.PortD);
+    }
 }
 
 /// <summary>(777) 計器 portlm_s は世界を書かない（計器なし＝計器つき）・表の列が揃い crossLandmass が札の比較と合う。Instruments.On は全体の静的な旗＝別の収集（Instruments）で直列に回す。</summary>

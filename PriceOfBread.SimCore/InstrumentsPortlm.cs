@@ -10,6 +10,7 @@ namespace PriceOfBread.SimCore;
 // 紙のための反実仮想の列（同じ盤面に形を当てた答え・世界は走らない）：lmRegionPortCount（同じ国の港のうち札が lmRegion の数）・finitePortCount（陸路が有限の港の数）・sameLmFinitePortCount（札が lmRegion かつ陸路が有限の数）・
 //   gcKmMin（portGc までの大圏＝U2 の分母）・形 b（有限だけ）portFin・lmFin・effFinKm・形 c（∞の港に〈最寄りの同じ国の有限の港までの陸路＋海路〉）portSea・lmSea・effSeaKm・
 //   形 c′（岸を全ての国の港に広げる）portShore・lmShore・effShoreKm・shoreName・形 d（札が同じで有限の港があれば∞を外す）portDrop・lmDrop・effDropKm。定義は <see cref="PortlmShapes"/>。
+// (779) 末尾の列：portA・lmA・effA・landKmA（今の形 (a) の反実仮想の港・eff・州→portA の陸路の生の値）・portD・lmD・effD（形 (d) の港＝PortlmAD＝PortChoice も PortlmShapes も呼ばない独立の書き方）・usedEqD（NearestPortName==portD なら 1）。
 // ⚠限界（計器が自己申告する）：年末の断面（四半期の途中の張り直しは見ない）／港の一覧の作り方は WirePortDistances の写し＝そこが替われば追いつかない／
 //   形 b・c・c′・d は今の盤面に当てた反実仮想（その形の世界は走らない＝港を替えた後の軌道の差は含まない）／海路は SeaDistanceKm の生（到達不能は大圏×2 の退避のまま）／
 //   静的な記憶（陸路・陸塊・海の最寄りノードの辞書・海の全点対の表の遅延の構築）に項目が増える＝値は同じ入力の純関数で軌道は変わらない（leakhunt と同時に立てると海の孤立成分の stderr の診断の出る順だけが変わりうる）／
@@ -18,7 +19,8 @@ public static partial class Instruments
 {
     internal const string PortlmHeaderText = "year\tnation\tregion\tlmRegion\tportGc\tlmGc\tportUsed\tlmUsed\tlandKmUsed\tgcKmUsed\tcrossLandmass"
         + "\tlmRegionPortCount\tfinitePortCount\tsameLmFinitePortCount\tgcKmMin"
-        + "\tportFin\tlmFin\teffFinKm\tportSea\tlmSea\teffSeaKm\tportShore\tlmShore\teffShoreKm\tshoreName\tportDrop\tlmDrop\teffDropKm";
+        + "\tportFin\tlmFin\teffFinKm\tportSea\tlmSea\teffSeaKm\tportShore\tlmShore\teffShoreKm\tshoreName\tportDrop\tlmDrop\teffDropKm"
+        + "\tportA\tlmA\teffA\tlandKmA\tportD\tlmD\teffD\tusedEqD";
 
     sealed class PortlmSink { public System.IO.StreamWriter? W; public bool Header; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, PortlmSink> PortlmSinks = new();
@@ -102,6 +104,33 @@ public static partial class Instruments
         return (fin_, sea_, shore_, shoreName, drop_, lmPorts, finite, sameLmFinite, gcBest < 0 ? double.NaN : gcMin);
     }
 
+    /// <summary>(779) 今の形 (a) の反実仮想の港と形 (d) の港（事前登録 measurements/m779_20261102_prereg_pd.txt [2] の文から独立に書く＝<see cref="Simulation.PortChoice"/> も <see cref="PortlmShapes"/> も呼ばない）。
+    /// (a)＝港ごとの eff〈陸路が有限なら陸路・∞なら大圏〉の最小（同率は並びの先）。(d)＝州の札 lmRegion と同じ札で陸路が有限の港が 1 つでもあれば、候補を陸路が有限の港だけに絞る（無ければ候補は全部）→ 候補の eff の最小（同率は先）。
+    /// 返り値の LandA＝州→portA の陸路の生の値（∞は inf）。</summary>
+    internal static (string PortA, double EffA, double LandA, string PortD, double EffD) PortlmAD((double Lat, double Lon) r, string lmRegion, List<(double Lat, double Lon, string Name)> ports)
+    {
+        var cand = new List<(string Name, double Eff, double Land, bool Fin)>();
+        foreach (var p in ports)
+        {
+            double land = PathGraph.LandDistanceKm(r.Lat, r.Lon, p.Lat, p.Lon);
+            double gcKm = Geo.DistanceKm(r.Lat, r.Lon, p.Lat, p.Lon);
+            bool fin = double.IsFinite(land);
+            cand.Add((p.Name, fin ? land : gcKm, land, fin));
+        }
+        var lmOf = new Dictionary<string, string>();
+        foreach (var p in ports) lmOf[p.Name] = Landmass.Of(p.Lat, p.Lon);
+        bool anySameFinite = false;
+        foreach (var c in cand) if (c.Fin && lmOf[c.Name] == lmRegion) anySameFinite = true;
+        (string Name, double Eff, double Land) a = ("", double.NaN, double.NaN), d = ("", double.NaN, double.NaN);
+        foreach (var c in cand)
+        {
+            if (a.Name.Length == 0 || c.Eff < a.Eff) a = (c.Name, c.Eff, c.Land);
+            if (anySameFinite && !c.Fin) continue;
+            if (d.Name.Length == 0 || c.Eff < d.Eff) d = (c.Name, c.Eff, c.Land);
+        }
+        return (a.Name, a.Eff, a.Land, d.Name, d.Eff);
+    }
+
     /// <summary>年末の四半期の末（<see cref="Quarter"/>）：全ての国の内陸州を 1 行ずつ書く。</summary>
     static void PortlmTable(MultiNationSim sim, ulong seed, int q)
     {
@@ -132,6 +161,7 @@ public static partial class Instruments
                 var used = PortlmClassify((cc.Lat, cc.Lon), (pu.Lat, pu.Lon));
                 string lmGc = Landmass.Of(pg.Lat, pg.Lon);
                 var sh = PortlmShapes((cc.Lat, cc.Lon), used.LmRegion, ports, shores, suez, panama);
+                var ad = PortlmAD((cc.Lat, cc.Lon), used.LmRegion, ports);
                 string Lm(string port) { var c = Climate.CityCoord(port); return port.Length == 0 ? "" : Landmass.Of(c.Lat, c.Lon); }
                 sk.W ??= Open("portlm", seed);
                 if (!sk.Header) { sk.W.WriteLine(PortlmHeaderText); sk.Header = true; }
@@ -142,7 +172,8 @@ public static partial class Instruments
                     sh.Fin.Port, Lm(sh.Fin.Port), PortchR(sh.Fin.EffKm),
                     sh.Sea.Port, Lm(sh.Sea.Port), PortchR(sh.Sea.EffKm),
                     sh.Shore.Port, Lm(sh.Shore.Port), PortchR(sh.Shore.EffKm), sh.ShoreName,
-                    sh.Drop.Port, Lm(sh.Drop.Port), PortchR(sh.Drop.EffKm)));
+                    sh.Drop.Port, Lm(sh.Drop.Port), PortchR(sh.Drop.EffKm),
+                    ad.PortA, Lm(ad.PortA), PortchR(ad.EffA), PortchR(ad.LandA), ad.PortD, Lm(ad.PortD), PortchR(ad.EffD), noPort ? "" : (r.NearestPortName == ad.PortD ? "1" : "0")));
             }
         }
     }
