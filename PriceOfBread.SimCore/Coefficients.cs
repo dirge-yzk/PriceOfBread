@@ -2773,8 +2773,8 @@ public sealed class Coefficients
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
     // ★(770) 港の選び方のやり直し（線 c6pr・線の枝の既定 1）。PortByLandRoute＝内陸州が使う港を同じ国の港の eff（陸路が有限 ? 陸路 km : 大圏 km）の最小で選び、内陸の鉄道の減衰（InlandPortDistanceDecay）の km を選んだ港までの eff にする。0＝旧（大圏の最小の港・大圏の km）。静的に読む（呼び手の MultiNationSim.RewirePorts に引数を足さない）。
     public double PortByLandRoute = 1.0;
-    // ★(779) 港の形 (d)（線 c8pd・事前登録 measurements/m779_20261102_prereg_pd.txt・確証なし＝AI の推奨）。PortSameLandmassFirst＞0＝PortByLandRoute の港の選び方で、州の陸塊の札（Landmass.Of）と同じ札で陸路が有限の同じ国の港が 1 つでもあれば、陸路∞の港を候補から外す（無ければ今の形）。0＝今の形。静的に読む（国ごとの Coef ではない）。
-    public double PortSameLandmassFirst = 0.0;
+    // ★(779) 港の形 (d)（線 c8pd・事前登録 measurements/m779_20261102_prereg_pd.txt・確証なし＝AI の推奨・線の枝の既定 1）。PortSameLandmassFirst＞0＝PortByLandRoute の港の選び方で、州の陸塊の札（Landmass.Of）と同じ札で陸路が有限の同じ国の港が 1 つでもあれば、陸路∞の港を候補から外す（無ければ今の形）。0＝今の形。静的に読む（国ごとの Coef ではない）。
+    public double PortSameLandmassFirst = 1.0;
     // ★(774) 継いだ着工の意志の取り下げ（線 c7sw・線の枝の既定 1・0＝旧）。InheritedStateIntentDrop＞0＝州が別の国へ移るとき（割譲・分離独立・再併合＝Territory.TransferRegion）、移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる（意志は政府のもの＝建物は州と一緒に移るが旧の政府の着工の意志は移らない）。0＝旧（意志がそのまま移る）。確証なし（AI の推奨）。
     public double InheritedStateIntentDrop = 1.0;
     // 【墓標2026-11-02・旗の焼き込み（769）】LandGraphFixRows（既定1.0・点火2026-11-02 (762)・事前登録 measurements/m762_20261102_prereg_lg.txt）を消した＝barriers.json の fix=1 の行（ドロミテの点 46.6 と峠 4 本）を常に読み、fix=-1 の旧の行は読まない。足した峠は既存の点の枠と半径を食わない。0＝旧の盤面は git の履歴から戻せる。
