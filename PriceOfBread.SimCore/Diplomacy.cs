@@ -2999,7 +2999,7 @@ public sealed class Diplomacy
                 CedeRegion(c, lcw, winner, wcw, pick, loser.Name);
             }
         }
-        // 賠償＝ReparationGdpFraction×敗者GDP×|戦勝点|（条約港講和は TreatyPortReparationMult 倍）。払える範囲（国庫上限）。
+        // 賠償＝ReparationGdpFraction×敗者GDP×|戦勝点|（条約港講和は TreatyPortReparationMult 倍）。★(784) 敗者の GDP は月の値（GdpPerMonth）・払う額＝repBase×敗者の支払い率 r（段2-1）・払えない分は対外債（Q6）・国庫の床は無い（旧の〈国庫上限〉の門は 2026-09-28 に消えた）。
         // ★条約港の賠償（2026-08-04）：**賠償の計算そのものを厚くする**。
         //   ⚠最初の実装は講和の後段で追加徴収したが、その時点では通常の賠償で敗者の国庫が空＝**常に0**だった（実測）。
         //     金は「取れる時に取れるだけ」しか動かせないので、倍率は**取り立ての前**に掛けなければ意味がない。
