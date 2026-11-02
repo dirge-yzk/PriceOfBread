@@ -2543,6 +2543,7 @@ public sealed class Coefficients
     public int OpiumGoodId = Catalog.OpiumId;                     // アヘンの good.Id
     public double OpiumAddictionGrowth = 0.1;        // P3点火0.1（2026-07-18＝Phase B実現。0.2はハーネス13/30＝依存→満足↓→困窮消費の発散で却下）。0=機構全体オフ（恒等）。点火で困窮ゲート消費・労働/満足ペナルティ・世界プール参加・AI禁令・輸出国緊張が全て連動
     public double OpiumAddictionCap = 0.2;           // 中毒度ストックの生理的上限（州人口の実効障害の飽和＝発散の物理的な蓋）
+    public double OpiumAddictionCapOff = 0;          // (771) c6op 段1：アヘンの蓋の旗＝0 で蓋 OpiumAddictionCap（0.2）・正で蓋なし（段2 で既定 1 にする）。確証なし（蓋を外すと労働の床 0.5＝Habit.LaborFactor へ張り付きが移る・Growth 0.2 は発散で却下）
     public double OpiumAddictionDecay = 0.02;        // 中毒度の自然減（成長>減衰なら発散）
 
     // === リアリティ監査 2026-07-02 Wave1（致命バグ・保存則・ガード）===
