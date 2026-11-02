@@ -1,0 +1,7 @@
+(772) c6sp 事前登録 2026-11-02（SelfPlay の点火済みの旗 3 本の焼き込み・StanceEduHoldsLaw・MilitarizeAgrarianTaxes・MilitarizeEducationDrive）
+[1] 線の種類＝恒等（予言 0）の焼き込み（区分 I・c5bk 型）。旗 3 本の既定 1 の枝だけ残す。書くファイル＝SelfPlay.cs と StanceEduHoldsLawTests.cs だけ。
+[2] 予言＝素の 5 種（b5_20261102_m764）・計器つき 10 種（b10_20261102_m764_ins）の成績表と計器の生が全行バイト一致・テストは −3（README ★(743) ①④・④′・⑥ の旗 0 の行）・.cost の件数の行は一致・増えた計器の表なし。
+[3] 採否＝ident.sh が〈判定: 恒等〉なら採る（測った種で一致と名乗る）。不一致なら採らない。
+[4] 線で赤になる物の予言＝DormantIdentityTests〈係数は全て本体のどこかで読まれる〉の 3 名（StanceEduHoldsLaw・MilitarizeAgrarianTaxes・MilitarizeEducationDrive）だけ＝欄の削除は合流（Coefficients.cs:2494-2496 を墓標 1 行へ・DormantIdentityTests.cs:36 の注・scripts/instruments/edq/stage0_edq.py:6 の注）。ほかの赤は機構の赤＝採らない。
+[5] 確証＝作者が点火を採った形（edq は推奨で採った＝承認ではない・(680)）。焼き込みは結果を変えない（旗は 1 で正＝`true && c ? a : b` は `c ? a : b` と同じ枝・同じ値）。
+[6] 突然変異＝M1 SelfPlay の Industrialize の教育法の式を常に Public にする→StanceEduHoldsLawTests ① が赤。M2 Militarize の同じ式を常に現行法にする→⑥ か ② が赤。M3 Militarize の農業税の 2 行を消す→テストは赤にならない（番人なし）＝ident の素の 5 種に軍国の国の土地税・関税の目標が出るかで読む（露）。

@@ -1539,7 +1539,7 @@ public sealed class UtilityAgent : INationAgent
                 if ((w.Coef.TechThresholdOff > 0 || w.TechLevel > CensusSuffrageTechThreshold) && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b：旗 TechThresholdOff が正なら技術の閾値の 4 本を落とす（願いは無条件・可否は政治の門と国庫の緩衝が決める）
                 break;
             case Stance.Industrialize:
-                p.EducationLaw = w.Coef.StanceEduHoldsLaw > 0 && w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：旗 StanceEduHoldsLaw が正なら願いは〈公教育以上〉＝義務教育の国に撤回の願いを書き戻さない（事前登録 measurements/edq680_20261030_prereg.txt・Modernize は国庫の述語で戻す願いを残す）
+                p.EducationLaw = w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：願いは〈公教育以上〉＝義務教育の国に撤回の願いを書き戻さない（事前登録 measurements/edq680_20261030_prereg.txt・Modernize は国庫の述語で戻す願いを残す）。(772) 旗 StanceEduHoldsLaw を焼き込み（既定 1 の枝だけ残す）
                 p.EducationSpendingTarget = 0.6;
                 p.AdminSpendingTarget = 0.5;
                 p.IncomeTaxTarget = 0.15; p.TariffTarget = 0.2;
@@ -1580,16 +1580,11 @@ public sealed class UtilityAgent : INationAgent
                 // 露普歳入是正（2026-08-08）：Militarize が土地税・関税・教育を一切書かない唯一の主要スタンスだった＝
                 // 軍国こそ地租と関税で軍を養い（地租改正・ユンカーのGrundsteuer）、義務教育は兵営国家の発明（プロイセン1763・明治学制）。
                 // 露＝militarism固定でこのスタンスに130年閉じ込められ、教育が一度も目標化されず識字逆行→技術凍結が第一原因。
-                if (w.Coef.MilitarizeAgrarianTaxes > 0)
-                {
-                    p.LandTaxTarget = Math.Max(p.LandTaxTarget, Government.LandTaxTop);
-                    p.TariffTarget = Math.Max(p.TariffTarget, 0.3);
-                }
-                if (w.Coef.MilitarizeEducationDrive > 0)
-                {
-                    p.EducationLaw = w.Coef.StanceEduHoldsLaw > 0 && w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：Industrialize と同じ
-                    p.EducationSpendingTarget = Math.Max(p.EducationSpendingTarget, 0.4);
-                }
+                // (772) 旗 MilitarizeAgrarianTaxes・MilitarizeEducationDrive を焼き込み（既定 1.0 の枝だけ残す）。
+                p.LandTaxTarget = Math.Max(p.LandTaxTarget, Government.LandTaxTop);
+                p.TariffTarget = Math.Max(p.TariffTarget, 0.3);
+                p.EducationLaw = w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：Industrialize と同じ
+                p.EducationSpendingTarget = Math.Max(p.EducationSpendingTarget, 0.4);
                 p.Censorship = CensorshipLaw.StatePressOnly;    // 軍国＝報道統制（安定優先・革新は犠牲）
                 p.LaborUnion = LaborUnionLaw.Illegal;           // 軍国＝労働組合を非合法（統制）
                 // 民主的後退（ワイマール→ナチ型＝**合法的な選挙法の巻き戻し**）：軍国教義の議会制民主国（立憲/共和）は

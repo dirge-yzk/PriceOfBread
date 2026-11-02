@@ -1,0 +1,33 @@
+=== 恒等の証明 c6sp（2026-11-02 10:27:48）===
+測った木：D:/PoB_work/wt_c6sp（HEAD c19891e6・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c6sp/scripts/instruments/ident/ident.cfg
+宣言： tests_delta=-3
+腕 a：rc=1 end=2026-11-02 10:00:42
+腕 b：rc=1 end=2026-11-02 10:27:32
+腕 t：rc=0 end=2026-11-02 09:47:06
+測る木の SOURCE-HASH：1bce0ea3de9c31e1
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 1bce0ea3de9c31e1
+[素の 5 種] b5_ia_5.txt 対 b5_20261102_m764
+  ○ 全行バイト一致（183 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261102_m764.cost
+  ○ 件数の行 29 本・推定 223.6 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 1bce0ea3de9c31e1
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261102_m764_ins
+  ○ 全行バイト一致（184 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261102_m764_ins.cost
+  ○ 件数の行 29 本・推定 222.8 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c6sp_work/ident/out_ib_10/ins  対  基準 D:/PoB_work/keep_764/base_ins
+  基準 914 本・腕 914 本・バイト一致 894 本
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 894・既知の揺れ 20・宣言された増減 0）
+[注視の表] mon_ib_10.txt 対 mon_20261102_m764.txt（タグの行を除く）
+  ○ タグの行以外が一致（5349 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2129（基準 2132-3 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等
+
+(追記) フルスイート（Category!=FullLength・Release）：合計 2129（--list-tests 2132−3 と一致）・失敗 1（DormantIdentityTests.係数は全て本体のどこかで読まれる＝読み手のない係数 MilitarizeAgrarianTaxes, MilitarizeEducationDrive, StanceEduHoldsLaw の 3 名だけ＝予言どおり・欄の削除は合流）・スキップ 1（既存）。
+突然変異：M1 Industrialize の教育法を常に Public→StanceEduHoldsLawTests 2 本赤。M2 Militarize の教育法を常に Public→1 本赤。M3 農業税の 2 行を消す→StanceEduHoldsLawTests 緑のまま（番人なし・予言どおり）。
+腕 a・b は満杯（他の担当の腕）で一度 rc=3 になり、a・b を別々に起こして同じ作業フォルダに出した（腕の中身は ident.sh の _arm そのもの）。
