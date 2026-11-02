@@ -72,14 +72,27 @@ public class LandGraphFixTests
     [InlineData("バローダ", "マスカット", 6230.990613016959)]
     [InlineData("ゴンダール", "モカ", 4966.668136412775)]
     [InlineData("ムルズク", "バルセロナ", 6593.436463662339)]
-    [InlineData("ヘルシングフォシュ", "リガ", 2912.3321813833372)]
     [InlineData("ラパス", "ペルー", 3556.7944302065152)]
     [InlineData("チリ", "プンタアレナス", 9267.030902125978)]
     [InlineData("ウジジ", "キサンガニ", 4528.614889854197)]
     [InlineData("オムスク", "グリエフ", 2054.2864629764777)]
-    public void 直さない13対の陸路は旧とビット一致(string a, string b, double oldKm)
+    public void 直さない12対の陸路は旧とビット一致(string a, string b, double oldKm)
     {
         Assert.Equal(oldKm, Land(a, b));
+    }
+
+    // ★(776) ヘルシンキの陸マスクのデータの直し（worldmap.svg の path4682 の南岸・事前登録 measurements/m776_20261102_prereg_hl.txt の S1）：首都の格子が陸になり、
+    //   旧の定数（(765) の読み手と 191ca9c8 の陸グラフを別の木で数えた値）の 8.05 倍と 8.06 倍だった陸路が、大圏の 1.5 倍以下と 1,000 km 以下になる。ヘルシンキ–リガは旧の〈直さない対〉の 1 行だった（2912.33）。
+    [Fact]
+    public void ヘルシンキの陸路はサンクトペテルブルクが大圏の1_5倍以下でリガが1000km以下()
+    {
+        double oldSpb = 2421.514137527025, oldRiga = 2912.3321813833372;   // 旧の定数（コードから期待値を作らない）
+        double gcSpb = Gc("ヘルシングフォシュ", "サンクトペテルブルク");
+        Assert.True(oldSpb / gcSpb > 3.0, $"旧の定数が3倍を超えていない: {oldSpb / gcSpb:F2}");
+        double spb = Land("ヘルシングフォシュ", "サンクトペテルブルク");
+        Assert.True(spb <= 1.5 * gcSpb, $"ヘルシンキ-サンクトペテルブルク: 陸路÷大圏 = {spb / gcSpb:F2}（{spb:F0}km）");
+        double riga = Land("ヘルシングフォシュ", "リガ");
+        Assert.True(oldRiga > 1000.0 && riga <= 1000.0, $"ヘルシンキ-リガ: {riga:F0}km");
     }
 
     [Fact]
