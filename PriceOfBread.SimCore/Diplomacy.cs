@@ -2626,7 +2626,7 @@ public sealed class Diplomacy
             for (int wi = 0; wi < Wars.Count; wi++)   // 添字の昇順＝最初に見た添字がその敗者の最も低い添字（走査は添字の降順なので最後に歩く戦争）
             {
                 var cw = Wars[wi];
-                if (cw.CivilWarParent is not null || cw.ForcedPeace) continue;
+                if (cw.CivilWarParent is not null) continue;   // 列強の調停の戦争も数える（歩の本体は調停の白紙〔戦勝点 0〕を崩壊の戦勝点で上書きして講和する＝賠償を払う）
                 bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
                 // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら月の初めの押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
                 Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (pushA[wi] < pushB[wi] ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
@@ -2751,7 +2751,7 @@ public sealed class Diplomacy
             if (decisive || weary || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）
             {
                 // ★(791) 旗 1：同じ敗者の崩壊の講和が 2 本以上ありうる月は、白紙でない崩壊の講和を保留する（FlushCollapseGroup が 1 回分で配る）。それ以外は旧の経路。
-                if (cpLoser is not null && !war.ForcedPeace && war.CivilWarParent is null && cpCount!.GetValueOrDefault(cpLoser) >= 2
+                if (cpLoser is not null && war.CivilWarParent is null && cpCount!.GetValueOrDefault(cpLoser) >= 2
                     && EndedWarRecord.VerdictOf(war.Score, false, c.WhitePeaceScore) != WarVerdict.Blank)
                 {
                     if (!cpPending!.TryGetValue(cpLoser, out var pend)) cpPending[cpLoser] = pend = [];

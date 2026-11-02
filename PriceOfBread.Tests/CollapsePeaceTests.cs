@@ -144,6 +144,19 @@ public class CollapsePeaceTests
     }
 
     [Fact]
+    public void 旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る()
+    {
+        // 調停の戦争（ForcedPeace・戦勝点 0）でも、敗者の厭戦が崩壊の線なら歩の本体が戦勝点を崩壊の値で上書きして講和する（旧の挙動＝賠償を払う）。2 本目と同じ集合で 1 回分。
+        var (sim, fr, uk, es, w1, w2) = Board(1);
+        w1.ForcedPeace = true; w1.Score = 0;
+        double f0 = Led(fr), e0 = Led(es);
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        Assert.Empty(sim.Diplomacy.Wars);
+        Assert.True(Math.Abs(w1.Score) >= 1.0 && Math.Abs(w2.Score) >= 1.0, $"前提が崩れた：調停の戦争が崩壊で上書きされていない（{w1.Score:G6}/{w2.Score:G6}）");
+        Close(0.2 * uk.GdpPerMonth.Value * uk.Nation!.FiscalFundingRatio.Value, (Led(fr) - f0) + (Led(es) - e0));
+    }
+
+    [Fact]
     public void 旗1で押しが正の勝者は取り分が0にならない()
     {
         var o = Run(1, pushFr: 1e12, pushEs: 5.0);    // 小さい押しでも正なら取り分は正

@@ -6,7 +6,8 @@ sys.path.insert(0, 'D:/PoB_work/c10cp/tools')
 from edit import rep
 import os
 root = sys.argv[1]; mu = sys.argv[2] if len(sys.argv) > 2 else os.environ['MU']   # batch.sh prep は木の根だけを渡す＝環境変数 MU で選ぶ
-rep(root + '/PriceOfBread.SimCore/Coefficients.cs', 'public double CollapsePeaceOneShare = 0; ', 'public double CollapsePeaceOneShare = 1; ')   # 突然変異の木は旗 1 の既定
+try: rep(root + '/PriceOfBread.SimCore/Coefficients.cs', 'public double CollapsePeaceOneShare = 0; ', 'public double CollapsePeaceOneShare = 1; ')   # 突然変異の木は旗 1 の既定（既定がもう 1 の木では何もしない）
+except AssertionError: pass
 D = root + '/PriceOfBread.SimCore/Diplomacy.cs'
 if mu == 'Mu1':
     rep(D, "        bool cpOn = c.CollapsePeaceOneShare > 0;", "        bool cpOn = false;   // MUTANT")
