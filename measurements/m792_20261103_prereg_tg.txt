@@ -1,0 +1,41 @@
+(792) c10tg 機構のテストの穴と港の計器の整理 事前登録（波60・区分 I・恒等の線・仮番号・腕を回す前に固定する）
+書いたモデル：Claude Sonnet 5.5。基線 m784（合わせた木 83a13237 の ident の計器の生 keep_790/base_ins）。形：尾でも入口でもない＝試験と計器の整理（エンジンの挙動は変えない）。
+
+[1] 恒等の線・予言 0
+  エンジンの挙動を変えない。新しい係数 0・新しい状態変数 0。計算の順序・リテラル・比較の種類は変えない。
+  Fiscal.cs の金建て債務の負担 b の否定形のガード（`if (!(b >= 1.0 && b < double.PositiveInfinity)) b = 1.0;`）は、呼び出し側の局所変数 b のまま試験に届かない。
+  届かない理由（ソースから）：goldDebtBurden の読み手は Fiscal.cs の 166・255・256 行の `goldDebtBurden > 1.0` だけ＝b が 1 未満・NaN でも下流の挙動は同じ。b が NaN・+∞ になる入口は
+  Catalog.RefPrices[SilverId] が非有限のときだけ（世界の銀価格は `> 1e-9` の門を通ってから割るので有限）。RefPrices は静的な共有の配列で、試験から書き換えると並行の他の試験を壊す。
+  よって b を作る式とガードを internal static の純関数 1 本（Fiscal.GoldDebtBurden(refSilver, worldSilverPrice)）へ括り出す。式は 1 文字も替えない（`refSilver > 1e-9 ? refSilver / worldSilverPrice : 1.0` と同じ否定形のガード）。
+  新しい補助関数を作る理由＝試験が b に届く入口が他に無い（README §1-10・既存の似た物は無いことを grep で確かめた）。呼び出しは Fiscal.Step の 1 箇所（JIT でインライン化されても同じ倍精度の演算）。
+  予言＝素の 5 種・計器つき 10 種の成績表と計器の表が、portch_s の portNew 列を除いて m784 と名乗り行を除いて全行バイト一致。.cost の推定も一致。
+
+[2] 足す試験と、それぞれを赤にする突然変異
+  (a) FiscalTests：金建て債務の負担のガード。手の盤面で GoldDebtBurden(ref, ws)＝
+      b＝NaN（ref=+∞, ws=+∞）・b＝+∞（ref=+∞, ws=1）・b＝0.5（ref=1, ws=2）・b＝−1（ref=1, ws=−1）→ 1.0 に倒れる。b＝1.7・5・1e4（ref=1.7/5/1e4, ws=1）→ そのまま通る。b＝1.0 ちょうど→ 1.0。
+      期待は手で書く（式から作らない）。
+      突然変異（scripts/instruments/c10tg/mutate_tg.py）：M1＝上端の挟みを戻す（既存の試験 2 行＋足す試験の b＝5・1e4 が赤になる）・
+      M2＝下端を壊す（否定形を +∞ だけにする→足す試験の b＝0.5・−1 が赤）・M3＝ガードを消す（b＝NaN・+∞・0.5・−1 が赤）・
+      M4＝ガードの倒し先を 1.0 から 2.0 へ（足す試験の全ての倒れる行が赤）。
+      既存の c9gd の M2・M3 は呼び出し側の局所の b では緑のまま（同値の突然変異）だったことを、括り出し前の木で再現して記録する。
+  (b) PortByLandTests：PortChoice の戻りの枝（同じ陸塊の札で陸路が有限の港が無い）で、eff の最小と大圏の最小が食い違う盤面を 1 本。
+      盤面は実の座標（Landmass.PointsAll と陸グラフ）から探して手で固定する（探し方は使い捨ての試験で行い、コミットしない）。
+      探した結果（腕の前）：アテネ（札 eurasia）の港が カイロ（africa・大圏 約 1,121 km・陸路 約 3,344 km）とカリャリ（sardinia・陸路∞・大圏 約 1,276 km）の 2 つ＝eff の最小はカリャリ・大圏の最小はカイロ。期待の港は手で書く（PortChoice の答えから作らない）。
+      突然変異：Mb＝戻りの枝で eff の最小の代わりに大圏の最小の港を返す（`pickName` を大圏の最小で選ぶ）→ 足す試験が赤・既存の試験は緑のままであること（穴の確認）。
+
+[3] portch_s の portNew 列
+  portNew＝PortlmAD の PortA＝portlm_s の portA と同じ純関数。keep_790/base_ins の portch_s と portlm_s を同じ（種・年・国・州）で突き合わせ、全行一致なら portch_s の portNew 列を消す。
+  突き合わせの結果（腕の前に取った）：10 種・202,943 行・不一致 0・キーの欠け 0（scripts/instruments/c10tg/cmp_portnew.py・出力 measurements/m792_20261103_portnew_cmp.txt）。
+  扱い＝一致したので消す（InstrumentsPortch.cs の PortchHeaderText・行の書き出し・頭書きの注・PortlmAD への呼び出し）。ident は --removed-cols portch_s:portNew を名乗る。
+  読み手の grep：scripts/instruments/c6pr/gate770.py（閉じた線 (770) の P1 の門）が portNew を読む＝その台本は閉じた線の読み手のため、列が無いことの注を頭に足す（挙動は変えない）。docs・measurements の既存の記録は書き換えない。
+
+[4] ident の合否
+  `bash scripts/instruments/ident/ident.sh run c10tg --tree <木> --removed-cols portch_s:portNew --tests-delta <足した試験の数>` が 判定: 恒等。
+  素の 5 種・計器つき 10 種が m784 と名乗り行を除いて全行一致・計器の表は portch_s の portNew の消去だけ。一致しなければ止める（同じ腕で物差しを替えない）。
+
+[5] 採否
+  判定: 恒等 なら採る（測った種で一致）。突然変異の期待どおりに赤になった数・緑のままだった数を verdict に書く。
+  テストの数の差＝足した [Fact]／[Theory] の行の数（Theory は InlineData の行ごとに 1 と数える＝--list-tests の数え方）。
+
+[6] 試験の書き換え（★(743)）
+  既存の試験は書き換えない。足すだけ（FiscalTests.cs の末尾の近く・PortByLandTests.cs）。
