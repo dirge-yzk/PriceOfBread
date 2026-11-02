@@ -11,7 +11,8 @@ namespace PriceOfBread.SimCore;
 //   Q＝四半期の行（年末 q%4==3・州のある国）：quarter／year／nation／bornQuarter／pendingWillCount（StateTarget＞今の棟数の生産者の数）／pendingWillSum（Σ(StateTarget−今の棟数)）／builtSum（Σ今の棟数）。
 //     ＝〈移しの外の州〉で意志が残っているかを数える列（事象の行を出さない形の誤りは Q の行で見える）。
 // ⚠限界（計器が自己申告する）：分離独立では移しの時点で国が無い＝toNation は四半期の末の持ち主の名前（同じ四半期に州が再び移ると外れる）／toBornQuarter は計器に現れた最初の四半期／
-//   buildCostPerMonthOld は工賃＋素材の月の見込みで、工事の途中の借入や切り下げの費用は含まない／stateTargetOld＝0 の生産者は行にしない／単国の試験（MultiNationSim なし）では出さない。
+//   buildCostPerMonthOld は工賃＋素材の月の見込みで、工事の途中の借入や切り下げの費用は含まない／stateTargetOld＝0 の生産者は行にしない／単国の試験（MultiNationSim なし）では出さない／
+//   移した州の送り手の World が同じ四半期のうちに sim.Nations から消えると、蓄えた E の行は出ない／toNation の結合は BaseName（同じ BaseName の後継国は取り違える）。
 public static partial class Instruments
 {
     internal const string InheritIntentHeaderText = "scope\tquarter\tyear\thow\tfromNation\ttoNation\ttoBornQuarter\tregion\tgood\trecipe\tstateTargetOld\tstateTargetNew\tbuiltCount\tstateTargetUsed\tconstructionLeftDays\tbuildCostPerMonthOld\tnation\tbornQuarter\tpendingWillCount\tpendingWillSum\tbuiltSum";

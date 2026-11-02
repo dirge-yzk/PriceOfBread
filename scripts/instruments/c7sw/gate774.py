@@ -2,6 +2,7 @@
 #   python -I scripts/instruments/c7sw/gate774.py <生の根（nation_s・aib_s・inheritintent_s がある所）> [--seeds 1-10] [--x0 N] [--pend0 X] [--floor-u2 1861] [--floor-u2r 106]
 #   --x0   旗 0 の腕の L1 の値（腕 B に当てるとき・⌊x0/3⌋ 以下で合格）
 #   --pend0 旗 0 の腕の pendingWillCount の平均（腕 B に当てるとき・0.5 倍以上で合格）
+# ⚠限界：nation_s.stateFacilityStartedGoods は着工 1 件ごとに財の名前を 1 つ足す List（重複あり）＝同じ財の着工を数え落とさない／結合は国の名前（BaseName）＝同じ BaseName の後継国は取り違える。
 # 出力＝種ごとの数と、門ごとの値・合否（旗 0 の腕に当てると合否は〈参考〉・値だけ読む）。
 import csv, sys, statistics, argparse, os
 ap = argparse.ArgumentParser()
@@ -17,7 +18,7 @@ def rows(name, s):
         for row in r:
             if len(row) < len(h): row += [''] * (len(h) - len(row))
             yield dict(zip(h, row))
-L1 = L1p = 0; l2_seeds = 0; u1a_viol = 0; built_pos_rows = 0; pend_vals = []; u2_vals = []; u2r_vals = []; e_old_gt_new_total = 0; e_old_gt_used_total = 0
+L1 = L1p = 0; l2_seeds = 0; eng_seeds = 0; u1a_viol = 0; built_pos_rows = 0; pend_vals = []; u2_vals = []; u2r_vals = []; e_old_gt_new_total = 0; e_old_gt_used_total = 0
 print('seed  bornNations  L1join  L1p(starts12Q)  Eold>new  Eold>used  Ebuilt>0  U1aViol  openStarts  openRetry  pendMean')
 for s in seeds:
     # 国営の着工（nation_s）
@@ -52,13 +53,14 @@ for s in seeds:
             if q - b < a.window:
                 l1p += c
                 l1 += sum(1 for g in goods if (n, g) in keys)
+    eng_seeds += eng > 0
     L1 += l1; L1p += l1p; l2_seeds += egu > 0; u1a_viol += viol; built_pos_rows += ebp; e_old_gt_new_total += eng; e_old_gt_used_total += egu
     pm = sum(pend) / len(pend) if pend else float('nan'); pend_vals.extend(pend); u2_vals.append(op); u2r_vals.append(opr)
     print(f'{s:4d}  {nb:10d}  {l1:6d}  {l1p:13d}  {eng:8d}  {egu:9d}  {ebp:8d}  {viol:7d}  {op:10d}  {opr:9d}  {pm:8.3f}')
 pm_all = sum(pend_vals) / len(pend_vals) if pend_vals else float('nan')
 u2 = statistics.median(u2_vals); u2r = statistics.median(u2r_vals)
 print(f'# L1（結合・種の和）={L1}  L1p（nation_s のみ・種の和）={L1p}  L2（実際に下げた行のある種）={l2_seeds}/{len(seeds)}  U1a 違反の行={u1a_viol}  builtCount>0 の事象の行={built_pos_rows}')
-print(f'# 事象の行 old>new={e_old_gt_new_total}  old>used={e_old_gt_used_total}')
+print(f'# 事象の行 old>new={e_old_gt_new_total}（ある種 {eng_seeds}/{len(seeds)}＝L2 の前提）  old>used={e_old_gt_used_total}（ある種 {l2_seeds}/{len(seeds)}）')
 print(f'# U1b 開幕からの国の pendingWillCount の平均（年末×国×種）={pm_all:.4f}（行数 {len(pend_vals)}）')
 print(f'# U2 開幕からの国の国営の着工（全期間）の種ごとの中央値={u2}（床 {a.floor_u2}）  U2r 再挑戦の着工の種ごとの中央値={u2r}（床 {a.floor_u2r}）')
 def verdict(name, ok, ref=False): print(f'# {name}: {"通る" if ok else "落ちる"}{"（参考）" if ref else ""}')
