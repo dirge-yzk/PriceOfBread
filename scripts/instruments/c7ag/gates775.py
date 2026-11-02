@@ -29,7 +29,7 @@ def ols(x, y):
 print(f'# gates775 tag={a.tag} mode={a.mode} ins={a.ins} seeds={seeds[0]}-{seeds[-1]}')
 L1_out = {}; sum_b = 0; qb = 0; seeds_missing = []
 U1x = []; U1y = []; U1xl = []; U1yl = []
-allmed = []; in_band = 0; tot_q = 0
+allmed = []; in_band = 0; tot_q = 0; used_l = []; rel_l = []
 okflag0 = 0; ceilN = 0; floorN = 0; ratio_new_old = []; fp_rows = []; used_vs_rel = []
 for s in seeds:
     path = os.path.join(a.ins, f'silverpar_s{s}.tsv')
@@ -47,7 +47,7 @@ for s in seeds:
         ceilN += int(r['eAtCeilCount']); floorN += int(r['eAtFloorCount'])
         old = fl(r['oldParityIndex']); used = fl(r['usedParityIndex'])
         if old > 0 and used > 0: ratio_new_old.append(used / old)
-        if rel > 0 and used > 0: used_vs_rel.append(abs(used - rel))
+        if rel > 0 and used > 0: used_vs_rel.append(abs(used - rel)); used_l.append(used); rel_l.append(rel)
         if nS >= 1 and med == med:
             tot_q += 1; allmed.append(med)
             if med >= HI or med <= LO: out += 1
@@ -76,6 +76,9 @@ if a.l2base:
 sl = ols(U1x, U1y); sll = ols(U1xl, U1yl)
 print('--- U1（ln 銀本位国の E の中央値 を ln relRecomputedIndex に回帰した傾き・nationCount_S≥3 の四半期）')
 print(f'  n={len(U1x)}  傾き={sl:.4f} → U1 ' + ('通る' if 0.8 <= sl <= 1.2 else '落ちる') + '（[0.8,1.2]）   記録：rel を 1 四半期遅らせた傾き={:.4f}'.format(sll))
+mx_rel = max((abs(u - r) / r for u, r in zip(used_l, rel_l)), default=float('nan'))
+print('--- U3（注入された平価 usedParityIndex と計器が独立に取り直した relRecomputedIndex の相対差の最大・銀本位行の全四半期・旗 1 の腕）')
+print(f'  n={len(used_l)}  最大の相対差={mx_rel:.3e} → U3 ' + ('通る' if mx_rel <= 1e-9 else '落ちる') + '（1e-9 以下で通る・旗 0 の腕では旧の統計と新の rel の差なので判定しない）')
 print('--- U2（挟みを外した腕で E の中央値が [0.5,2.0] に入る四半期の割合 ≥0.9 かつ全体の中央値 [0.7,1.4]）')
 gm = statistics.median(allmed) if allmed else float('nan')
 frac = in_band / tot_q if tot_q else float('nan')
