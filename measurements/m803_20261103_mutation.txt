@@ -1,4 +1,4 @@
-(803) c12lw 突然変異の記録（焼き込み後の木 70c472f7・scripts/instruments/c12lw/mut_run.sh・使い捨ての木）。M1 は最初の回でログが欠けたので単独で回し直した（4 失敗）。
+(803) c12lw 突然変異の記録（焼き込み後の木 70c472f7・scripts/instruments/c12lw/mut_run.sh・使い捨ての木）。M1 は最初の回で試験の要約の行が出ず（rc=1・同時に走っていた ident のビルドの負荷による試験ホストの中断の疑い）、単独で回し直して 4 失敗を確かめた。
 対照＝変異なしの 7 組（Rs2・Rs3・MandateWall・Revolt・Dormant・PolicyPolitics・ReformPath の 187 本）は全て合格（焼き込み後の木・変異なし）。
 
 == M1 M1: applied to PriceOfBread.SimCore/PolicyPreferences.cs
