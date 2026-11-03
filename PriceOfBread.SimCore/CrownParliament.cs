@@ -243,7 +243,7 @@ public static class CrownParliament
             // ★P12残渣①（原典2026-07-17・旧の旗 CivicOpennessEnabled は 2026-10-18 に焼き込み）：民族抵抗を速度dragから「天井=1−民族距離×(1−開放度)」へ移す。
             // 速度dragは無い（当てがい値 EthnicUnity+NationBuildCivicFloor の廃止）・スカラー経路は国平均の民族距離(1−EthnicUnity)で同型の天井。
             // POP経路は AccumulatePopConsciousness 内で per-pop の民族距離(1−CoreEthnicShare)を天井に適用（core速度係数は1.0へ）
-            // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight／World.civicCarriesEthnic）が消費する値への民族抵抗は「天井経由の一本」だけになる
+            // ＝読み手（Military の徴兵ゲート NationBuildMobilizationWeight）が消費する値への民族抵抗は「天井経由の一本」だけになる
             // （原典の二重計上ガード＝分離は忠誠度のみ・NCは動員/天命/汚職のみ＝NCの新しい読み手は作らない）。
             double openness = CivicOpenness(w);
             double ceilScalar = ceilingNb * PoliticalQuantities.ProbOr(w.EthnicUnity, openness);

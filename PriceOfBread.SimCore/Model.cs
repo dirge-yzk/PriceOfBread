@@ -252,7 +252,7 @@ public sealed class Pop
     /// <summary>★補給の充足∈[0,1]＝食料の台帳＋満足度の台帳＝(FoodMet+NeedMet)/(FoodNeed+NeedTotal)（導出量＝状態を持たない）。
     /// 階層3分割（作者裁定2026-09-20・2026-09-22 既定化）の後も「食えて、買えているか」の全体＝分割前の満足度と同じ量
     /// （主食の重み1.0は旧台帳の重みそのもの＝新しい数はゼロ）。政治の読み手（不満・闘争度）は読まない＝物理・経済の行動・評価の読み手だけ：
-    /// 兵卒の実質（PowerShares.SoldierWelfare→即応度）・国力の生活水準項（NationalScore.MeanSupplyFill）・
+    /// 兵卒の実質（PowerShares.SoldierWelfare→即応度）・
     /// 家計の困窮（LaborSupply＝女性の就労と児童労働）・阿片の困窮ゲート（EconomyStep）。
     /// ⚠月次の累積器から導く＝EconomyStep.Run の月頭のゼロ化の後（同じ月の消費の途中）に読んではならない（Run の中の読み手は月頭に撮った前月の値＝Scratch.LastSupply）。
     /// 台帳が空（決算前）は 1.0＝満足度の初期値と同じ中立。</summary>
@@ -274,7 +274,7 @@ public sealed class Pop
     public MoneyPerMonth PaidPerMonth;               // その月に支払った総額
     public MoneyPerMonth EarnedPerMonth;             // その月に得た総所得
     public MoneyPerMonth LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
-    public MoneyPerMonth IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読む＝外資の利札の入力。ほかの読み手は計器と Discovery の旗つきの式）
+    public MoneyPerMonth IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読む＝外資の利札の入力。ほかの読み手は計器と Discovery.IdeaBoardOf〔旗 SpreadNeedFascismDecline の盤面・計器 idn_s〕）
     /// <summary>★(706) 線 urb3：その月の自給の値＝Σ主食 [自給で満たした量 sub（<c>EconomyStep.Run</c> の自給充足）× その州のその主食の今の市場価格 <c>Market.Price</c>]（EarnedPerMonth と同じ〈その月の流れ〉・月の頭に 0 へ戻す）。
     /// 州の中の移動の〈移る値打ち〉（<see cref="PopDecision.MigrationValues"/>）の農村の側だけが読む（旗 <c>UrbanFlowReal</c> が 0 の間は計器だけが読む＝世界は動かない）。
     /// ⚠<c>Region.LastSubsistenceOutput</c> では足りない理由＝州ぜんたいの量で値段が掛かっておらず、POP ごとにも分かれない（対の農村の POP だけの値が要る）。
