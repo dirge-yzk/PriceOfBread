@@ -1,0 +1,3 @@
+成功!   -失敗:     0、合格:  2208、スキップ:     1、合計:  2209、期間: 14 m 14 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 27 s - PriceOfBread.Tests.dll (net10.0)
+（最後の木 9ca53a01 以降・旗 0 の器・Category!=FullLength 2209〔2202+7〕・FullLength 3 の合計は --list-tests と一致・中止の行 0・スキップ 1 は基線にもある〔公教育の自由国は世界の技術水準へ到達する〕）
