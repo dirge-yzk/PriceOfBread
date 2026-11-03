@@ -355,7 +355,7 @@ public class RevoltIgnitionTests
     // ============================================================================================
     // ★段3＝亡霊の残り(i)（F3b蜂起doc・2026-09-08・係数なし）：好機の「弱み」から**内戦を除く**。
     //   Government.AtWar は CivilWarParent 付きの戦争も数えるので、内戦一元化の主経路では反乱が1つ立った瞬間に
-    //   親が恒久に弱みになり、好機のブレーキ（FactionOpportunism）も圧倒判定も両方外れた＝1つ目の蜂起が2つ目を呼ぶ。
+    //   親が恒久に弱みになり、好機のブレーキも圧倒判定も両方外れた＝1つ目の蜂起が2つ目を呼ぶ。
     //   ⚠2本の腕の違いは**普通の戦争を1本足したかどうかだけ**＝点火したなら弱みの項が読んだのは外征だと確定する
     //     （足りない強度で落ちたのではないことは、外征ありの腕が点火することが証明する）。
     //   ★2026-09-29 段6 の点火（共有クールダウンの撤去）で、内戦の最中は状態の排他（World.InCivilWar）が選定そのものを止める
@@ -371,7 +371,6 @@ public class RevoltIgnitionTests
                                      seed: 1789, coef: coef);
         sim.Run(8);
         var pw = sim.Nations[0].World;
-        Assert.True(coef.FactionOpportunism > 0, "前提が崩れた：好機のブレーキが休眠＝この番人は空洞");
         Assert.True(pw.FactionRng is not null, "前提が崩れた：F3bが遮蔽されている");
         if (civilWar) sim.Diplomacy.DeclareCivilWar(pw.SelfPower!, sim.Nations[1].World.SelfPower!, pw.Polity, coef);   // 反乱国が地図の上に立った状態
         Assert.False(sim.Diplomacy.Wars.Exists(w => (w.A == pw.SelfPower || w.B == pw.SelfPower) && w.CivilWarParent is null), "前提が崩れた：助走の間に外征が立った＝内戦だけの腕にならない");

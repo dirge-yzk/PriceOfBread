@@ -1550,7 +1550,7 @@ public class InstrumentsTests
                 ledgerRows++;
                 // ① 台帳の恒等式（出所が別＝World の目減りの差と、MandateGate／Move の払いの積算）
                 double tol = 1e-9 * (1 + Math.Abs(head));
-                // （(615) MandateWallStockCap 既定 1：壁の一歩は S へ残りの在庫 b までしか足さない＝S の目減りの差は払いより小さい。等式は壁の一歩の無い行だけ。壁の一歩のある行は下の ③ の後で見る）
+                // （(615) 政治資本の壁の一歩の勘定：壁の一歩は S へ残りの在庫 b までしか足さない＝S の目減りの差は払いより小さい。等式は壁の一歩の無い行だけ。壁の一歩のある行は下の ③ の後で見る）
                 Assert.InRange(Col(nh, row, "ratePaidInQuarter") + Col(nh, row, "militaryPaidInQuarter") + Col(nh, row, "tariffPaidInQuarter") + Col(nh, row, "securityPaidInQuarter"), cont - 1e-9 * (1 + cont), cont + 1e-9 * (1 + cont));   // 列は G10 の桁で丸めて書く
                 if (lvl > 0) levelPaidRows++;
                 if (cont > 0) contPaidRows++;
