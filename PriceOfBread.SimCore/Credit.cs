@@ -71,7 +71,7 @@ public static class Credit
         // パニック/平時の非対称（速い崩落・遅い醸成）も貸し剥がし倍率も比なので、一律に割っても保たれる。
         double div = Calendar.DaysPerMonth;
         double spd = (targetConf < bank.Confidence ? c.PanicSpeed : c.ConfidenceSpeed) / div;
-        if (days > 1) spd = 1.0 - Math.Pow(1.0 - spd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
+        if (days > 1) spd = Calendar.OverSteps(spd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
         double confStart = bank.Confidence;
         bank.Confidence = PoliticalQuantities.Clamp01(bank.Confidence + spd * (targetConf - bank.Confidence));
         // ★旬次（S3c）：与信の目標が読む信頼＝旬の中の平均（始めと終わりの台形）＝日次は毎日その日の信頼で目標を引き直す（終わりの値だけでは与信が旬の分だけ先回りする）。h=1 は旧のまま。
@@ -135,7 +135,7 @@ public static class Credit
         // 貸し剥がしの非対称（倍率排除）：独立した RecallMultiple 倍率を撤去し、非対称は**信頼の崩落速度**（PanicSpeed≫ConfidenceSpeed）に一本化。
         // Confidence が一夜で崩れると targetLoans=maxLoans×Confidence×appetite も急落するため、対称な CreditAdjustSpeed でも回収が速くなる＝「剥がしは一夜」は信頼の非対称から創発。
         double adjSpd = c.CreditAdjustSpeed / div;
-        if (days > 1) adjSpd = 1.0 - Math.Pow(1.0 - adjSpd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
+        if (days > 1) adjSpd = Calendar.OverSteps(adjSpd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
         double delta = adjSpd * (targetLoans - bank.Loans.Value);
         if (bank.Loans.Value + delta < 0) delta = -bank.Loans.Value;
 
