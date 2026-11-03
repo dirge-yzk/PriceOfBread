@@ -58,7 +58,7 @@ public class MultiNationTests
     [InlineData(1.0)]
     public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る(double gate)
     {
-        var coef = new Coefficients { SilverParityFromRatio = gate };
+        var coef = new Coefficients { SilverParityFromRatio = gate, SilverParityDemandWeighted = 0.0 };   // ★(807) 旗 SilverParityDemandWeighted を 0 に置いた走行（この試験の期待は等重みの対数平均＝旧の形）
         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: coef);
         sim.Run(3);
         double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];
@@ -215,7 +215,7 @@ public class SilverParityInstrumentTests
         Instruments.Configure(dir, "*");
         try
         {
-            var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityFromRatio = gate });
+            var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityFromRatio = gate, SilverParityDemandWeighted = 0.0 });   // ★(807) 旗を 0 に置いた走行（計器 silverpar_s の relRecomputed は等重みの対数平均）
             try { for (int q = 0; q < 3; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
             finally { Instruments.Close(sim); }
             var rows = Rows(System.IO.Path.Combine(dir, "silverpar_s1789.tsv"));
