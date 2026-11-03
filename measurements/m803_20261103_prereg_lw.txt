@@ -1,0 +1,85 @@
+(803) c12lw 法の旗 8 本の焼き込み（(796) の I3・恒等の線）事前登録 2026-11-03
+基線＝m797（main 618e3e21）。枝 c12lw（618e3e21 から）。出発＝(796) の表 3 の I3 と表 4。作者「いったん全て推奨で」で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。
+
+[0] 形の種類＝尾（読み手の整理）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0・新しい補助関数 0。AI とプレイヤーで同じ経路（法の門は GateInfo のまま）。
+    確証＝あり（旗の旧い枝の削除＝挙動なし）。浮動小数の計算は 1 つも書き換えない（条件の枝を消すだけ。a*b/c の順序・和の順・÷12 の位置は触れない）。
+
+[1] 恒等の線・予言 0
+    素の 5 種・計器つき 10 種の成績表が m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行（SOURCE-HASH）を除いて全行一致。
+    計器の表の差は 0（宣言なし）。.cost の件数の行の差は 0。NG の集合は触らない（ng.sh は回さない＝成績表の全行一致が NG の同一を含意する）。
+    浮動小数の順序が変わる箇所＝0（紙の台本で数える：旧の条件が真の枝＝新の式と、旧の式の食い違いの数＝0。下の [2] の各行に式を並べた）。
+
+[2] 消す物と残す物（読み手の grep：SimCore・Runner・App・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表）
+    ★最初に決めた線＝App・SimCore/Display・Runner に読み手がある旗は消さずに残して報告に回す（指示文の規則）。8 本のうち 4 本は SimCore/Display に読み手がある。
+
+  (A) 残す（Display に読み手がある＝この回では触らない。4 本）
+    MinimumWageLawGate  ：SimCore/Display/LawCatalog.cs:71（法の行の出す条件）。他の読み手は Government.cs:148・Parliament.cs:373・PolicyPreferences.cs:324・Politics.cs:1297・SelfPlay.cs:372,991,1006・MarketFlow.cs:152（注）。
+    InheritanceLawGate  ：SimCore/Display/LawCatalog.cs:104。他は Government.cs:183・Parliament.cs:372・PolicyPreferences.cs:327・Politics.cs:1298・SelfPlay.cs:371・Simulation.cs:2751,2752。
+    AntitrustGate       ：SimCore/Display/LawCatalog.cs:92・SimCore/Display/PopTables.cs:63。他は Simulation.cs:2059。
+    NationalizationGate ：SimCore/Display/LawCatalog.cs:120〜130（6 行）・SimCore/Display/LawTables.cs:45。他は Simulation.cs:2062。
+    ⚠Display だけを残して SimCore の本体の読みだけを畳む半端は作らない（POB_COEF の旗 0 で Display は法を隠し本体は動く、の食い違いになる）。4 本とも 1 行も触らない。
+
+  (B) 消す（4 本。読み手の grep の結果は下のとおり。App・Runner・Display・scripts・POB_COEF・SaveGame の名前の表に読み手 0）
+    LordOppositionByRentLoss（Coefficients.cs:254 の欄）
+        読み手：PolicyPreferences.cs:646（LordStake の条件）・:653（DirectionAware の条件）。
+        式（旧）  ByRentLoss>0 ? (!increasing && ReverseGain>0 ? LordIncomeGain : LordIncomeLoss) : e.Wealth[0]
+        式（新）  !increasing ? LordIncomeGain : LordIncomeLoss     （既定 1・1 のとき旧と同じ値を返す。e.Wealth[0] の枝が死ぬ）
+    LordOppositionReverseGain（Coefficients.cs:259 の欄）
+        読み手：PolicyPreferences.cs:647（上の式の内側）・:653。
+        DirectionAware（旧）  b==0 && ByRentLoss>0 && ReverseGain>0 && (a==SerfEmancipation||a==LandReform)
+        DirectionAware（新）  b==0 && (a==SerfEmancipation||a==LandReform)     （署名は変えない＝w は使わなくなるが呼び手 FactionSnapshot.cs:193 と試験の署名を動かさない）
+    MandateWallStockCap（Coefficients.cs:2966 の欄）
+        読み手：Government.cs:871（Spend の条件の左項）。
+        式（旧）  if (cap>0 && !(S+amount<=b)) applied = b>S ? b-S : 0
+        式（新）  if (!(S+amount<=b)) applied = b>S ? b-S : 0
+    FactionOpportunism（Coefficients.cs:1750 の欄）
+        読み手：Politics.cs:941（if (c.FactionOpportunism > 0) { … } の包み）。包みは RevoltIgnitionIntensity>0 でない側（既定 0.0 ＝生きている経路）の中にある。
+        新＝包みを外して中身を同じ順序で残す（externalWar の走査・weakness の 3 項・圧倒判定）。
+        Coefficients.cs:3642 の POB_COEF の使用例の文字列は、読めない名前を指す（ParseOverrides は未知の名前で例外）ので生きた係数の名前に差し替える。
+    欄は消して DormantIdentityTests の RetiredFields へ 4 名を 1 行で墓標（★(743) 注記）。Coefficients.cs の墓標コメントは今の意味 1〜2 行。
+    スクリプトの読み手＝scripts/instruments/rs2547/mut_apply.py・rs3558/mut_apply.py・m560/mut_apply.py（閉じた線の突然変異の台本が旧のソースの文字列を置換する）。閉じた線の記録のまま触らない（古い）。
+    ParticipationDiscontent と FactionSnapshot.MilitancyThreshold（(796) の表 4）は焼き込まない：8 本には入っておらず（ParticipationDiscontent は flagpure.tsv で mixed＝FactionSnapshot.cs:63 の計算量の台帳の条件・:80・:101 と MultiNationSim.cs の見積りの注）、MilitancyThreshold は InstrumentsDiscontent.cs:71（pOld の列＝生きた計器の表）が読む。旗 0 の枝だけが読み手ではない。
+
+[3] 試験（★(743) の札で名乗る）と突然変異
+    1 本ずつ名乗る（-＝削除・~＝書き直し・〃＝同じ試験の Assert の行）
+    Rs2LordOppositionTests（.cs）
+        - 旗0なら今の式のまま旧支配層の反対は貯蓄の割合から作られる   ① 旗 0 の経路だけ
+        ~ 旗1なら農奴解放の反対は…                                  ③ `w.Coef.LordOppositionByRentLoss = 1.0;` の行を消す（既定と同じ値）
+        ~ 旗1なら旧支配層の貯蓄を10倍にしても…旗0では動く            ① 旗 0 の対照の Assert（Opp(0.0, …)）を消し、代わりに〈貯蓄を 10 倍にした盤面で貯蓄の割合 W0 が上がる〉の前提 Assert（POP を直に数える・旧の式を使わない）を足す。名前から〈旗0では動く〉を落とす
+        ~ 慣習の取り分が上限以下の国は…                              ③ 旗の行を消す
+        ~ 計器の表は旗0と旗1のどちらでも…                            ① used0（旗 0）の行と Assert を消す。used1 は既定の経路＝そのまま
+    Rs3LordReverseGainTests（.cs）
+        - 旗0なら全軸全ブロックで減らす向きは進める向きとビット一致する   ① 旗 0 の経路だけ
+        - rs2の旗が0なら新しい旗が1でも無効で今の式のまま              ① 旗 0 の経路だけ
+        ~ 旗1なら減らす向きは…・慣習が上限以下の国は…・旗1なら貯蓄10倍…    ③ 旗の行を消す
+        ~ 旗1でも進める向きと近代エリートと大衆の項は変わらない         ① before/after のビット比較（旗 0 との差）を消す。b>0 の Dec==Inc と Inc の手の式は残す
+        ~ 要求の順位は旧支配層の土地改革を減らす要求の強さを得から取り直す  旗 0／1 の比の試験＝旗 1 の点だけ手の式（反対の力は触らず点÷点の比は作れない）が組めるなら書き直す。組めなければ ① で削除（理由を報告）
+        ~ 純支持は旗1で旧支配層の減らす向きの支持が強まり進める向きは変わらない   同上
+        ~ 旗1の減らす向きで内訳の合計は純支持と一致し議会の保守党の項が得に替わる   ① foreach の flag 0 の周を消し、Cons(0.0) の Assert を消す
+    MandateWallStockCapTests（.cs）
+        - 既定は1_係数の既定は在庫で止める勘定                            ④ 消す欄を名指す前提の Assert
+        - 旗0_壁の一歩を払うとSは代価の全額でbを超える_今のまま          ① 旗 0 の経路だけ
+        ~ 旗1_…（Board(1)→Board()）・Board(cap) の引数と代入を消す       ③
+        ~ 旗1でも正統性は…・旗1でも普通の一歩は旗0と1ビットも同じ・スライダー・40 四半期  ① 旗 0 の対照の周を消し、旗 1 の半分（S<b・S+amount の等式・n1∈[39,41]・S≦b）を残す
+    RevoltIgnitionTests（.cs:374）
+        - Assert.True(coef.FactionOpportunism > 0, …)                    ④ 消す欄を名指す前提の Assert（行だけ）
+    DormantIdentityTests（.cs）
+        + RetiredFields に 4 名を 1 行で足す（LordOppositionByRentLoss・LordOppositionReverseGain・MandateWallStockCap・FactionOpportunism）。42・129・130 行の注記を（RetiredFields）へ。
+    新しい試験を足さない理由＝焼き込み後の既定の経路の機構（Gain/Loss の向き・壁の一歩の S の止まり・好機のブレーキ）は上の残す試験が既に確かめている。突然変異で赤になることを下で確かめる（赤にならなければ足す）。
+    突然変異（使い捨ての木・焼き込み後のソースに当てる・scripts/instruments/c12lw/mut_apply.py。出力は measurements/m803_20261103_mutation.txt にコミット）
+        M1  LordStake を `!increasing ? Loss : Loss`（減らす向きも損）          → Rs3 の旗1 系が赤のはず
+        M2  LordStake を `e.Wealth[0]`（貯蓄の割合）に戻す                        → Rs2 の手の式の試験が赤のはず
+        M3  DirectionAware を `false` にする                                     → Rs3 の要求の順位・純支持が赤のはず
+        M4  Spend の `applied = amount` を無条件にする（壁の一歩の止めを外す）    → MandateWallStockCapTests が赤のはず
+        M5  FactionOpportunism の中の weakness を `true` に（ブレーキを外す）     → RevoltIgnitionTests の段 3 が赤のはず
+        M6  M5 の圧倒判定の行を消す                                               → 同上（赤か緑かを記録）
+    ㉑ 書き換える件数の番人＝DormantIdentityTests.係数は全て本体のどこかで読まれる（Coefficients の公開欄を走査）は、欄を消すことで走査の母集合が 4 減るだけ（赤にならない）。RetiredFields の長さの番人は無い。WriterRatchetTests など計算量の件数の表は触れない（予言＝変化 0）。
+    テストの数の予言（--tests-delta）＝Rs2 −1・Rs3 −2（上の 6 本の判定に依る：要求の順位・純支持を削除した場合は −4）・MandateWall −2・Revolt 0・Dormant 0。確定は試験のコミットで書き、ident に渡す。
+
+[4] 腕（挙動を変えない＝腕 A のみ）
+    `bash scripts/instruments/ident/ident.sh run c12lw --tree D:/PoB_work/wt_c12lw --tests-delta <整数> --saveleak`（run_in_background）。
+    素の 5 種（b5）・計器つき 10 種（b10_ins）・テストの数・savetest・leakhunt。ヌル腕は回さない。腕の枠は arms.sh free が 4 以上のときに始める。
+
+[5]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す（外した枝は読み手の残る旗として報告）。
+    フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる（期待＝ident.cfg の値＋ --tests-delta）。
