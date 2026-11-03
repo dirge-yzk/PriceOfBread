@@ -9,7 +9,7 @@ mkdir -p $POB_WORK
 for m in M1 M2 M3; do
   cat > $POB_WORK/mut_$m.py <<PY
 import subprocess, sys
-sys.exit(subprocess.call([sys.executable, '-I', r'$D/mutate.py', sys.argv[1], '$m']))
+sys.exit(subprocess.call([sys.executable, '-I', r'$(cd "$D" && pwd -W)/mutate.py', sys.argv[1], '$m']))
 PY
   bash $D/../batch.sh prep c12sv$m "dir:$T" plain $POB_WORK/mut_$m.py || exit 1
 done
