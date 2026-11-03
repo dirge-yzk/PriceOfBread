@@ -102,7 +102,7 @@ public static class NationalScore
     }
 
     // ===== ★(449) 国力の内訳と国ごとの値の 1 本＝画面のホバー・国の一覧の詳細・Runner の報告・国名鑑が同じこの 1 本を読む =====
-    // ★(456) 旧の 4 項〔軍事・生産の豊かさ・金融・技術〕の式は計器 score_s の旧の列〔scoreOld・rankOld・isGreatOld〕だけが読む＝Instruments.OldScore に移した（NationalScore には無い・番人 ScoreReaderTests が復活を禁じる）。
+    // ★(456) 旧の 4 項〔軍事・生産の豊かさ・金融・技術〕の式は計器 score_s の旧の列だけが読んだ＝Instruments.OldScore に移し、(798) で列ごと消した（NationalScore には無い・番人 ScoreReaderTests が復活を禁じる）。
     /// <summary>国力の内訳 1 行（ラベルと点）。点の和は <see cref="Scores"/> の国力と同じ（6 項の割合の点〔100×割合÷使った項数〕の和）。</summary>
     public readonly record struct ScoreLine(string Label, double Points);
 
@@ -190,15 +190,6 @@ public static class NationalScore
     {
         double s = 0, n = 0;
         foreach (var p in w.AllPops()) if (Politics.IsMassPop(p)) { s += p.Satisfaction * p.Size; n += p.Size; }
-        return n > 0 ? s / n : 0;
-    }
-
-    /// <summary>国の補給の充足（Pop.SupplyFill の人口加重平均＝食料＋日用品）。読み手は国力の生活水準項だけ（2026-09-22）。
-    /// 分母は**全POP**（国民1人あたりの物差し）＝2026-09-25 に MeanSatisfaction を大衆へ絞った後も据え置き（大衆へ絞っても国間の標準偏差は 0.0807→0.0806＝重み12の較正に影響しない）。</summary>
-    public static double MeanSupplyFill(World w)
-    {
-        double s = 0, n = 0;
-        foreach (var p in w.AllPops()) { s += p.SupplyFill * p.Size; n += p.Size; }
         return n > 0 ? s / n : 0;
     }
 }

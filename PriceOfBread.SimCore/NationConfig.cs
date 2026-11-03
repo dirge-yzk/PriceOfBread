@@ -33,14 +33,6 @@ public sealed class NationConfig
     //   world.json の値は腕 B の書き換え（scripts/instruments/e7/make_world_b.py）を (388) で採ったもの。
     public double TreasuryMonths = 0;
     public double GovDebtToGdpYear = 0;
-    // ★(574) 開幕の広義の貨幣÷年名目GDP（世界の貨幣の厚み・全61国）。読み手は World.OpeningBroadMoneyToGdpYear 経由で Simulation.QuarterEnd（助走の各四半期の末の頭・World.RescaleOpeningSavings）だけ＝係数 OpeningMoneyFromRatioMode が1以上のときだけ（0＝何もしない＝旧と同じ軌道）。
-    //   全階級の貯蓄の和がこの比になるよう、全 Pop の貯蓄を国ごとの1つの倍率で戻す（階級の相対配分は構築の直書きのまま）。既定は最頻の 0.1（世界の33国）・world.json は既定と違う28国だけ書く。
-    //   ★4階（(221) の表をそのまま戻した）：①英・蘭 0.5 ②仏・西・サルデーニャ＝ピエモンテ・スウェーデン・デンマーク・スイス・葡・ジェノヴァ・トスカーナ・ヴェネツィア 0.35
-    //   ③日・米・露・普・オスマン・墺・清・朝鮮・波・ライン諸邦・両シチリア・教皇領・バイエルン・ザクセン・ハノーファー・ヴュルテンベルク 0.2 ④南アジア・東南アジア・中央アジア・アラビア・アフリカ・ハワイ（既定）0.1。
-    //   値は全て【推・幅が広い・記憶から読んだ桁・原典の数字は未取得】：Capie & Webber 1985 *A Monetary History of the United Kingdom 1870–1982*・Cameron 編 1967 *Banking in the Early Stages of Industrialization*・
-    //   de Vries & van der Woude 1997 *The First Modern Economy*・ネッケル 1784 の正貨推計・von Glahn 1996 *Fountain of Fortune*・Sylla（*Historical Statistics of the US*）。階の振り分けは AI の決め（確証なし）。
-    //   定義の注意：分母の年名目GDP は World.NominalGdpPerMonth×12＝総産出（役務を除き中間財を重ねる）で、史実の GDP（付加価値）と定義が違う。
-    public double BroadMoneyToGdpYear = 0.1;
     public double GovDebt = 0;      // 初期国債残高（国内債＝利払いは国庫→資本家の内部移転・保有は Fiscal.SeedBondHoldings が購入と同じ規則で起票）
     // ★1783年の国債÷年GDP の史実（2026-09-29・world.json の govDebt＝開幕〔助走の後〕の年名目GDP×比）：英 約1.1（1783 約2.4億ポンド÷GDP 約2億）・仏 約0.6（米独立戦争の後・1789 0.6〜0.8）・
     //   蘭 約1.6（ホラント州を主とする約6億ギルダー）・米 約0.4（大陸会議と各州の独立戦争債務 約7,800万ドル・1790 の引き受け）・西 約0.3（王室債と国王証券 vales reales）・

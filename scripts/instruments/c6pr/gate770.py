@@ -7,7 +7,7 @@ python -X utf8 gate770.py <計器の出力ディレクトリ(ins)> [種...]
   U2 ＝portUsed≠portGc の行のうち landKmNew ＞ 2×gcKm の行の割合（≦0.15 で通る）。母集団 30 行未満の種は種ごとの判定から外し合算で読む。
   記録＝海盆が変わる州×年の年平均・railDecay の新÷旧の分布・fareLand の新÷旧の分布・国ごとの港が変わる州（年平均）。
 列は見出しの名前で読む（列の数で行を捨てない）。portch_s の無い出力は何も出さない。
-(792) 閉じた線の台本：portch_s の列 portNew は (792) で消えた（portlm_s の portA と 10 種 202,943 行で全行一致）＝この台本は (770) 当時から (791) までの出力用。今の出力で P1 を読むなら portNew を portlm_s の portA に読み替える。"""
+(792) portch_s の列 portNew は (792) で消えた（portlm_s の portA と 10 種 202,943 行で全行一致）。(798) c11dm：portNew が無い出力では、同じ種の portlm_s の portA を（year,nation,region）で突き合わせて portNew の代わりに読む（portlm_s も無ければ P1 の港の側は読めない＝その旨を出して終わる）。"""
 import sys, os, statistics as st, collections
 d = sys.argv[1]
 seeds = [int(x) for x in sys.argv[2:]] or sorted(int(f[len('portch_s'):-4]) for f in os.listdir(d) if f.startswith('portch_s') and f.endswith('.tsv'))
@@ -30,14 +30,31 @@ for sd in seeds:
         sumLoss = collections.defaultdict(float); chg = collections.Counter(); bas = collections.Counter(); yrs = set()
         natChg = collections.Counter()
         bad = u1 = n = nchg = nu2 = 0
+        portA = None   # (798) portNew の列が無いとき：key=(year,nation,region) -> [portA,...]（行の順）
+        if 'portNew' not in ix:
+            lmPath = os.path.join(d, f'portlm_s{sd}.tsv')
+            if not os.path.exists(lmPath):
+                print(f'seed {sd}\tportNew も portlm_s も無い＝P1 の港の側は読めない'); continue
+            portA = collections.defaultdict(list)
+            with open(lmPath, encoding='utf-8') as lf:
+                lh = lf.readline().rstrip('\n').split('\t'); lx = {h: i for i, h in enumerate(lh)}
+                for lln in lf:
+                    lc = lln.rstrip('\n').split('\t')
+                    if len(lc) < len(lh): continue
+                    portA[(lc[lx['year']], lc[lx['nation']], lc[lx['region']])].append(lc[lx['portA']])
+            seen = collections.Counter()
         for ln in fh:
             c = ln.rstrip('\n').split('\t')
             if len(c) < len(head): continue
             n += 1
             y = int(c[ix['year']]); yrs.add(y)
-            pu, pn, pg = c[ix['portUsed']], c[ix['portNew']], c[ix['portGc']]
+            if portA is None: pn = c[ix['portNew']]
+            else:
+                key = (c[ix['year']], c[ix['nation']], c[ix['region']]); lst = portA.get(key); k = seen[key]; seen[key] += 1
+                pn = lst[k] if lst is not None and k < len(lst) else None   # 突き合わせられない行は P1 の外れに数える
+            pu, pg = c[ix['portUsed']], c[ix['portGc']]
             ru, lnw, lold, gc = num(c[ix['railUsedKm']]), num(c[ix['landKmNew']]), num(c[ix['landKmOld']]), num(c[ix['gcKm']])
-            if not (pu == pn and abs(ru - lnw) <= 1e-8 * max(1.0, abs(lnw))): bad += 1
+            if not (pn is not None and pu == pn and abs(ru - lnw) <= 1e-8 * max(1.0, abs(lnw))): bad += 1
             if not (lnw <= lold + 1e-9): u1 += 1
             do, du = num(c[ix['railDecayOldIndex']]), num(c[ix['railDecayUsedIndex']])
             if do > 0:

@@ -1,0 +1,15 @@
+    0 エラー
+
+経過時間 00:01:41.84
+D:\PoB_work\c11dm\art_mut\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:05.00]     PriceOfBread.Tests.NationalConsciousnessGateTests.戦時徴兵の重みが0でも国民意識の蓄積は走りPOPの国民意識が捕捉される [FAIL]
+  失敗 PriceOfBread.Tests.NationalConsciousnessGateTests.戦時徴兵の重みが0でも国民意識の蓄積は走りPOPの国民意識が捕捉される [3 s]
+  エラー メッセージ:
+   重みが 0 でも蓄積の §5 は走るはず（門を消した）
+  スタック トレース:
+     at PriceOfBread.Tests.NationalConsciousnessGateTests.戦時徴兵の重みが0でも国民意識の蓄積は走りPOPの国民意識が捕捉される() in D:\PoB_work\c11dm\mut_gate\PriceOfBread.Tests\NationalConsciousnessGateTests.cs:line 24
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

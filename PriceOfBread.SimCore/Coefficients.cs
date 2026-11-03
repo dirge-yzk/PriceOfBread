@@ -1696,7 +1696,6 @@ public sealed class Coefficients
     // 軍の質＝**低技術の大軍を割り引く**（監査案3）：素兵数×(LowFloor〜1.0)＝前近代の大軍は訓練/兵器で無力化（アヘン戦争・下関）、先端は満額。
     public double TechMilLowFloor = 0.4;           // 技術0の軍の実効戦力（素兵数の40%＝前近代）。Power.Military ×(LowFloor + (1−LowFloor)×min(Tech/FullLevel,1))
     public double TechMilFullLevel = 2.5;          // この技術水準で軍の質が満額(1.0)。欧州先端は満額・巨大人口の追従国(清/印)は割引＝技術が軍の質の差を生む
-    public double ScoreTechWeight = 12.0;          // ★(456) 読み手は計器 score_s の旧の列〔Instruments.OldScore.Tech〕だけ（国力そのものは世界の総量に対する割合へ移った）。技術水準1あたりの加点（1人あたりの発展＝非規模）
     // 外交アクション（プレイヤー/AI 共通・同ランク間が原則）：緊張の上げ下げ・防衛同盟・植民地化。
     // ★戦闘のラウンド記録（2026-08-04・作者仕様(1)「戦争をラウンド化する。1ヵ月1ラウンド」）。戦争の解決は元から月次＝ラウンドの実体はあり、欠けていたのは「その月に何が起きたか」の可視化だった
     public double BattleLogEnabled = 1.0;          // 1で毎月の戦闘結果を年表へ書く。0で1行も書かない（挙動には一切影響しない純記帳）
@@ -1953,8 +1952,6 @@ public sealed class Coefficients
     public double DiscoveryClockRampWidth = 0.1;    // ★(461) 同・傾斜の幅 w（無次元・S が 0 から 1 に動く W の幅は W0·d·w）。DiscoveryClockWorldPerMonth が正のときだけ読む。0.1 は制度の細ランプの先例（幅 0.2 の広ランプは列強の再現を下げた）で掃引しない。
     public double DiscoveryOwnHalfPerMonth = 12.5677;     // ★(461) 同・（★2026-10-20 腕 B の採用で既定 0→12.5677＝予備計測の規則から）C＝自国の親の産業の技師 A÷(A＋これ)（有界の飽和＝大国の絶対量で先取りせず、産業の無い国・小さい工房の国は抑える）。単位は W0 と同じ。DiscoveryClockWorldPerMonth が正のときだけ読む。
     public double DiscoveryClockMotorParent = 0;    // ★(461) 同・正のとき（かつ DiscoveryClockWorldPerMonth が正）電動機の行の親の産業の技師を蒸気機関の財にする（既定 0＝今の規則＝電力の産業が立つまで電動機の A は 0）。時計の形とは別の旗＝反証役の指摘（親の変更が時計の効きと混ざる）で切り離した。出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）。
-    public int OpeningMoneyFromRatioMode = 0;       // ★(574) 開幕の貨幣の量（読む線 sv〔(564)〕・事前登録 measurements/svf574_20261026_prereg.txt 追記 2・4）。0＝何もしない（旧と1ビットも変わらない）／1以上＝助走の各四半期の末の頭（Simulation.QuarterEnd）に全 Pop の貯蓄と与信（Bank.Loans・HouseholdLoans・Pop.Debt）を国ごとの1つの倍率で戻し、
-                                                    //   貯蓄の和÷年名目GDP を NationConfig.BroadMoneyToGdpYear にする（World.RescaleOpeningSavings＝国庫・国債を助走の各四半期の終わりに置く (332) と同じ規律）。(332) の国債の年GDP は名目のまま（貨幣の m と同じ測り方＝追記 4 でモード2の実質の測りを外した）。採否未定（入口の形・AI の設計＝確証なし）。
     public double OpeningBakeEnabled = 0;           // ★(490) 開幕の焼き込み（<see cref="OpeningBake"/>）の読み込みの旗。0＝表（opening_bake.json）を開きもしない＝厳密恒等。正のとき <see cref="MultiNationSim.StartWarmup"/> の頭で 1 回、凍結を解いた試走で落ち着いた盤面（州×レシピの能力・州の資本・州×財の在庫と値段・州×階級の貯蓄）を構築直後の盤面に書く
                                                     //   （鍵が今の世界と全て一致しなければ例外）。**倒さない**（焼くのは工業化度の削除の後＝(464) の順）。測りの名乗りは焼いた表の頭書き（SOURCE-HASH・入力のハッシュ・試走の四半期数）。
     public double RecipeEquipment = 1;              // ★(495) **2026-10-23 に 1 で点火**（腕 B・止める線に当たらず・事前登録 measurements/eq495_20261023_prereg.txt 追記 6）。レシピごとの設備。0＝旧の規則（操業規模 Scale は利幅を目標にただで伸び縮みする）＝厳密恒等。正のとき、**暦が進む月だけ**（助走は旧の規則）、設備を持つ生産者
@@ -2892,8 +2889,6 @@ public sealed class Coefficients
     public double TechSignalOff = 1;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
     public double TechThresholdOff = 1;               // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
     public Share SpreadLiteracyFull = new(0.5);       // ★(621) 線 inst（2026-10-28 に 0.5 で**点火**）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（TechThresholdOff）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）。0＝旧の比（TechThresholdOff の式）
-    public double SpreadNeedSocialismBoard = 0;       // ★(640) 線 idn（事前登録 measurements/idn640_20261028_prereg.txt）：>0 で社会主義の必要性の強度を〈賃金だけで暮らす人（工場労働者）の、暮らしが必要に届かない人数÷人口〉（Discovery.IdeaBoardOf・Pop.SupplyFill）にする。0＝今の式（工場労働者の人数×闘争度÷人口）。正で有効
-    public double SpreadNeedCommunismBoard = 0;       // ★(640) 線 idn：>0 で共産主義の必要性の強度を〈工場の稼ぎのうち持ち主の取り分×賃金だけで暮らす人の人口比〉（Pop.IndustrialRentPerMonth の初めての読み手）にする。0＝今の式。正で有効
     public double SpreadNeedFascismDecline = 1;       // ★(640) 線 idn：>0 でファシズムの必要性の強度に〈自国の国力の割合の落ち込み＝(在庫 ScoreStanding−今の ShareScores)÷在庫〉を掛ける（新しい状態なし）。0＝今の式（危機×人々の闘争度）。正で有効
     public double EraOff = 1;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
     public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効
@@ -3127,7 +3122,6 @@ public sealed class Coefficients
     // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
     // NationalConsciousnessInitial / NationBuildRate / NationBuildReligiousDrag / NationBuildCrisisWeight は第3段3-6（2026-07-27）で削除＝v1国民意識（到達不能）の専用係数。宗教civicは第5段5-5で新設計へ。
     public double NationBuildConscript = 0.5 / Military.WorkingMenStdShare;      // 徴兵（兵士POP比）の重み＝国民軍の国民形成（ウェーバー「軍は国民の学校」）（(145) 兵の単位の読み替え＝旧値 0.5÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
-    public double NationalConsciousnessCorruptionWeight = 0.2;  // **主フラグ**：⚠旧・汚職チャネル（civicGraft→Fiscal leak別項）は汚職V2恒久ONにつきC2-C5で物理撤去（2026-08-16）＝現在の生き読者は2箇所＝World.civicCarriesEthnic（代議制で民族の行政痩せを切る二重計上回避ゲート）と CrownParliament の国民意識蓄積チャネルゲート。0にすると両者の挙動が変わる＝**掃除対象外（読者あり）**。ゲートの意味の再裁定は較正ラウンドへ
     // P9 国民意識v2「購入モデル」（2026-07-17）：NCは育つものでなく買うもの（機会費用＋維持費で全国飽和を根治）。主フラグは2026-07-27にNationBuildPurchaseMode=1（常にv2）を焼き込み削除済み＝v1蓄積式へ戻す道は無い
     // P8 天命 DynasticMandate v1.1（2026-07-17・プローブ検証済み仕様）：前近代の正統性＝統治パフォーマンス直結。「パンの値段→天命→正統性→革命」。
     // Legitimacy（制度のストック・既存不変）と役割を完全分離＝Mandateは民のパフォーマンス評価EMA。⚠命名：Mandate単独は既存の政治資本（MandateSpent/MandateGate/MandateWeight）と衝突するため DynMandate 接頭辞

@@ -116,7 +116,7 @@ public sealed class Simulation
             Bureaucracy = scenario.InitialBureaucracy,   // ★官僚制度の初期値（2026-08-04）
             InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
-            Longitude = scenario.NationConfig?.Longitude ?? 0, OpeningTreasuryMonths = scenario.NationConfig?.TreasuryMonths ?? 0, OpeningGovDebtToGdpYear = scenario.NationConfig?.GovDebtToGdpYear ?? 0, OpeningStateMonopolyTier = scenario.NationConfig?.OpeningStateMonopolyTier ?? 0, OpeningBroadMoneyToGdpYear = scenario.PrebuiltRegions is null ? scenario.NationConfig?.BroadMoneyToGdpYear ?? 0 : 0,   // ★(332) 開幕の国庫（歳入×月数）と国債（比×年の名目GDP）の規則（world.json の treasuryMonths／govDebtToGdpYear・0＝規則なし＝旧の戻し・行を増やさず鍵の行番号を動かさない）
+            Longitude = scenario.NationConfig?.Longitude ?? 0, OpeningTreasuryMonths = scenario.NationConfig?.TreasuryMonths ?? 0, OpeningGovDebtToGdpYear = scenario.NationConfig?.GovDebtToGdpYear ?? 0, OpeningStateMonopolyTier = scenario.NationConfig?.OpeningStateMonopolyTier ?? 0,   // ★(332) 開幕の国庫（歳入×月数）と国債（比×年の名目GDP）の規則（world.json の treasuryMonths／govDebtToGdpYear・0＝規則なし＝旧の戻し・行を増やさず鍵の行番号を動かさない）
             EthnicEnabled = scenario.NationConfig is not null,   // 民族統一度（倍率排除⑧）は各popの CoreEthnicShare 加重平均から創発。NationConfig 由来の国だけ有効化＝合成較正/最小世界は無効で較正不変
             MonetaryEnabled = scenario.NationConfig is not null,       // 物価水準（インフレ/デフレ）も実在国だけ＝合成較正/最小世界は P≡1 で従来同値
             ParliamentEnabled = scenario.NationConfig is not null,     // 議会・選挙も実在国だけ＝合成較正は従来の政治モデルのまま（33/33/33不変）
@@ -1885,7 +1885,7 @@ public sealed class Simulation
         // 開始前の助走（World.WarmupFrozen・2026-08-10）＝**時間が経たない**四半期。
         // 止める＝技術の前進・膨張意欲の累積・四半期スナップショット・暦（Quarter/Year/_quarterIndex）。
         // 回す＝制度の施行・社会移動・景気循環・物価水準＝価格と生産が実勢へ落ち着くための経済側。
-        bool warm = World.WarmupFrozen; if (warm && World.Coef.OpeningMoneyFromRatioMode > 0 && World.OpeningBroadMoneyToGdpYear > 0) World.RescaleOpeningSavings(World.OpeningBroadMoneyToGdpYear);   // ★(574) 開幕の貨幣の量＝助走の各四半期の末の頭で、貯蓄の和÷年名目GDP を国のデータへ戻す（国庫・国債を助走の各四半期の終わりに置くのと同じ規律）。最初の物価の更新（下の UpdatePriceLevel）より前＝趨勢はこの貨幣で取る
+        bool warm = World.WarmupFrozen;
         if (!warm) TechEducation.GrowTech(World, World.Coef);          // §2.8 技術＝社会の連続創発（カード廃止）。助走中は WarmupTech が別途担う＝ここで二重に進めない
         // ★発見（段2A・2026-10-01）：単独の世界だけここで判定する（伝わり＝0）。多国は MultiNationSim の四半期末の共有層が接触を求めてから判定する（同じ関数）。助走は判定しない（開幕の既知は助走の終わりに1度）。
         if (!warm && World.StepsDiplomacy) { Discovery.AdvancePrice(World, World.Coef); Discovery.Step(World, null, World.Coef); }   // ★(159) 平滑化した値段は判定の段の頭で1歩（判定は読むだけ）
