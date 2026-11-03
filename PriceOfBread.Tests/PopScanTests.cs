@@ -239,16 +239,20 @@ public class PopScanTests
         sim.Run(2);
         var w = sim.World;
         w.Coef.RegionalPriceLevelWeight = 0.3;
-        w.Coef.RegionalPriceBaseExcludesColonies = 0;   // ★(536) 2026-10-25：旧の 2 周の式（写し）は全ての州の平均＝旗 0 の経路との一致を見る（旗 1 は植民地を外す・IvfInitialValuesTests が見る）
         Assert.True(w.Regions.Count >= 4);
         for (int i = 0; i < w.Regions.Count; i++)
             foreach (var p in w.Regions[i].Pops) { p.SetSavings(p.Savings.Value * (1.0 + 0.37 * i) + 0.1 * i); p.EarnedPerMonth = new MoneyPerMonth(p.EarnedPerMonth.Value * (1.0 + 0.21 * i) + 0.3); }
         var c = w.Coef;
         var prevPrem = w.Regions.Select(r => r.WagePremium).ToArray();
         // ── 旧の 2 周の式（写し） ──
-        double natSav = 0, natEarn = 0, natPop = 0;
+        double natSav = 0, natEarn = 0, natPop = 0, mainSav = 0, mainEarn = 0, mainPop = 0;
         foreach (var r in w.Regions)
-            foreach (var p in r.Pops) { natSav += p.Savings.Value; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
+        {
+            double rs = 0, re = 0, rz = 0;
+            foreach (var p in r.Pops) { natSav += p.Savings.Value; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; rs += p.Savings.Value; re += p.EarnedPerMonth.Value; rz += p.Size; }
+            if (r.Tier != RegionTier.Colonial) { mainSav += rs; mainEarn += re; mainPop += rz; }
+        }
+        if (mainPop > 1e-9) { natSav = mainSav; natEarn = mainEarn; natPop = mainPop; }   // ★(811) 国平均は植民地の格の州を除く（旗 RegionalPriceBaseExcludesColonies の焼き込み・IvfInitialValuesTests が手の式で見る）
         double natPerCap = natPop > 1e-9 ? natSav / natPop : 0, natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;
         var expMult = new double[w.Regions.Count]; var expPrem = new double[w.Regions.Count];
         for (int i = 0; i < w.Regions.Count; i++)

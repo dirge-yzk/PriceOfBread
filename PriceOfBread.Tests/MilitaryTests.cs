@@ -166,14 +166,11 @@ public class MilitaryTests
     }
 
     /// <summary>M4（2026-09-11）：恒常性の信号の分子は上限（MilitaryBudgetCeiling）1本＝旧 Math.Max(Ceiling, Budget) は Budget ≤ Ceiling の単調性で同値。
-    /// 必要額で切る腕・切らない腕の両方で全 Active 州が Budget ≤ Ceiling を保つ（分子と分母の非対称を作らない番人）。</summary>
-    [Theory]
-    [InlineData(1.0)]
-    [InlineData(0.0)]
-    public void 軍需予算は上限を超えない(double needCapped)
+    /// 全 Active 州が Budget ≤ Ceiling を保つ（分子と分母の非対称を作らない番人）。（旗 MilitaryBudgetNeedCapped は (811) で焼き込み＝必要額で切る腕だけ）</summary>
+    [Fact]
+    public void 軍需予算は上限を超えない()
     {
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
-        foreach (var n in sim.Nations) n.World.Coef.MilitaryBudgetNeedCapped = needCapped;
         sim.StepQuarter();
         int checkedRegions = 0, capitals = 0;
         foreach (var n in sim.Nations)
@@ -181,7 +178,7 @@ public class MilitaryTests
             {
                 checkedRegions++;
                 Assert.True(r.MilitaryBudget <= r.MilitaryBudgetCeiling,
-                    $"{n.World.SelfPower?.Name}／{r.Name}：予算 {r.MilitaryBudget} > 上限 {r.MilitaryBudgetCeiling}（NeedCapped={needCapped}）");
+                    $"{n.World.SelfPower?.Name}／{r.Name}：予算 {r.MilitaryBudget} > 上限 {r.MilitaryBudgetCeiling}");
                 Assert.True(r.MilitaryBudgetCeiling >= 0 && double.IsFinite(r.MilitaryAffordRaw) && r.MilitaryAffordRaw >= 0,
                     $"{n.World.SelfPower?.Name}／{r.Name}：上限 {r.MilitaryBudgetCeiling}／支払能力 {r.MilitaryAffordRaw} が不正");
                 if (ReferenceEquals(r, n.World.Region)) { capitals++; Assert.True(r.MilitaryBudgetCeiling > 0, "首都の軍需予算上限が0＝Simulation の書き手を経ていない"); }

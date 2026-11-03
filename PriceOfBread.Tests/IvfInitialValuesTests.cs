@@ -8,10 +8,10 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// (536) 線 ivf：初期値の直し（資本の土台）の番人。事前登録 <c>measurements/ivf536_20261024_prereg.txt</c>。
-/// 旗 2 本（どちらも 2026-10-25 に既定 1 へ点火）：F1 <c>RegionalPriceBaseExcludesColonies</c>（州の物価の乗数と賃金の割増の国平均から植民地の格の州を外す）・
-/// F3 <c>MachineCastIronRecipe</c>（機械の地理差のレシピ〈鋳鉄の機械〉）。F2（建設の資材の束の時代の組・旗 ConstructionEraBundle）は採らず、(550) 線 fb で道ごと消した（建造物の組へ置き換え＝BuildingGoodBundleTests）。
+/// 旗 2 本（どちらも 2026-10-25 に既定 1 へ点火・(811) で焼き込み＝旗は無い）：F1 州の物価の乗数と賃金の割増の国平均から植民地の格の州を外す・
+/// F3 機械の地理差のレシピ〈鋳鉄の機械〉。F2（建設の資材の束の時代の組・旗 ConstructionEraBundle）は採らず、(550) 線 fb で道ごと消した（建造物の組へ置き換え＝BuildingGoodBundleTests）。
 /// 期待値は本体の式の写しでなく<b>手の値</b>で書く（参照価格は Runner の <c>refprice</c> の出力・束の量は事前登録の数字・乗数は州の貯蓄の素の和から）。
-/// 旗は Scenario.Coef に差す（州の構築時に届く＝<c>HouseholdProductionTests</c> の先例）。
+/// 係数は Scenario.Coef に差す（州の構築時に届く＝<c>HouseholdProductionTests</c> の先例）。
 /// </summary>
 public class IvfInitialValuesTests
 {
@@ -26,14 +26,12 @@ public class IvfInitialValuesTests
 
     private static Region CapitalRegion(World w) => w.Regions.First(r => r.CapitalEnabled && r.InvestorPopIndex >= 0);
 
-    // ---------------------------------------------------------------- 旗の既定
+    // ---------------------------------------------------------------- 係数の既定
 
     [Fact]
-    public void 旗の既定はF1とF3が1_鋼の組の量は動かしていない()
+    public void 鋼の組の量は動かしていない()
     {
         var c = new Coefficients();
-        Assert.Equal(1.0, c.RegionalPriceBaseExcludesColonies);    // F1＝2026-10-25 点火
-        Assert.Equal(1.0, c.MachineCastIronRecipe);                // F3＝2026-10-25 点火
         // 鋼の組の量（係数のリテラル）も動かしていない（F2＝時代の組は (550) 線 fb で道ごと消した＝建造物の組は BuildingGoodBundleTests）
         Assert.Equal(1.0, c.ConsSteel); Assert.Equal(0.15, c.ConsMachine); Assert.Equal(0.4, c.ConsCement); Assert.Equal(0.5, c.ConsLumber);
     }
@@ -41,17 +39,13 @@ public class IvfInitialValuesTests
     // ---------------------------------------------------------------- F3：鋳鉄の機械
 
     [Fact]
-    public void 鋳鉄の機械は旗1でだけ全ての州に1本入り_入力は手の値()
+    public void 鋳鉄の機械は全ての州に1本入り_入力は手の値()
     {
-        var off = Make(NationConfig.Britain(), c => c.MachineCastIronRecipe = 0);
-        var on = Make(NationConfig.Britain(), c => c.MachineCastIronRecipe = 1);
-        Assert.Equal(0, off.World.Regions.Sum(r => r.Producers.Count(p => p.RecipeName == "鋳鉄の機械")));
+        var on = Make(NationConfig.Britain(), _ => { });
         int regions = 0;
         foreach (var r in on.World.Regions)
         {
             var rows = r.Producers.Where(p => p.RecipeName == "鋳鉄の機械").ToList();
-            var offRegion = off.World.Regions.First(x => x.Id == r.Id);
-            Assert.Equal(offRegion.Producers.Count + 1, r.Producers.Count);   // 旗 0 に対しちょうど 1 件
             Assert.Single(rows); regions++;
             var p = rows[0];
             Assert.Equal(Catalog.MachineryId, p.GoodId);
@@ -107,19 +101,18 @@ public class IvfInitialValuesTests
         Assert.True(main > all * 1.2, "前提が崩れた：本土の 1 人あたり貯蓄が国の全体の平均より十分に高い形になっていない");
         double wgt = w.Coef.RegionalPriceLevelWeight, lo = w.Coef.RegionalPriceLevelMin, hi = w.Coef.RegionalPriceLevelMax;
 
-        w.Coef.RegionalPriceBaseExcludesColonies = 0; uk.UpdateRegionalPriceLevels();
-        var m0 = act.Select(r => r.LocalPriceMultiplier).ToArray();
-        w.Coef.RegionalPriceBaseExcludesColonies = 1; uk.UpdateRegionalPriceLevels();
+        uk.UpdateRegionalPriceLevels();
         var m1 = act.Select(r => r.LocalPriceMultiplier).ToArray();
+        // ★(811) 旗 RegionalPriceBaseExcludesColonies の焼き込み：旧の形（全ての州の平均）は手の式で出す（エンジンに旗 0 の走りは無い）
+        double Old(int i) => Math.Clamp(Math.Pow(act[i].Pops.Sum(p => p.Savings.Value) / act[i].Pops.Sum(p => p.Size) / all, wgt), lo, hi);
         for (int i = 0; i < act.Count; i++)
         {
             double perCap = act[i].Pops.Sum(p => p.Savings.Value) / act[i].Pops.Sum(p => p.Size);
-            Assert.Equal(Math.Clamp(Math.Pow(perCap / all, wgt), lo, hi), m0[i], 12);    // 旗 0＝全ての州の平均
-            Assert.Equal(Math.Clamp(Math.Pow(perCap / main, wgt), lo, hi), m1[i], 12);   // 旗 1＝本土の州の平均
-            if (act[i].Tier == RegionTier.Colonial) Assert.True(m1[i] <= m0[i] + 1e-12);   // 植民地の乗数は旗 1 で上がらない（下限に座るかは開幕の盤面の性質＝記録 R10・門にしない）
+            Assert.Equal(Math.Clamp(Math.Pow(perCap / main, wgt), lo, hi), m1[i], 12);   // 本土の州の平均
+            if (act[i].Tier == RegionTier.Colonial) Assert.True(m1[i] <= Old(i) + 1e-12);   // 植民地の乗数は全ての州の平均より上がらない（下限に座るかは開幕の盤面の性質＝記録 R10・門にしない）
         }
         int cap = act.FindIndex(r => r.Tier != RegionTier.Colonial);
-        Assert.True(Math.Abs(m1[cap] - 1.0) < Math.Abs(m0[cap] - 1.0), "本土の州の乗数が旗 1 で 1 に近づかない");
+        Assert.True(Math.Abs(m1[cap] - 1.0) < Math.Abs(Old(cap) - 1.0), "本土の州の乗数が全ての州の平均より 1 に近づかない");
         Assert.True(Math.Abs(m1[cap] - 1.0) < 0.05, $"本土の州の乗数が 1 に届かない（{m1[cap]}）");   // 3/3.0 の本土同士＝比 1
     }
 
@@ -127,7 +120,6 @@ public class IvfInitialValuesTests
     public void 賃金の割増の国平均も植民地を外す()
     {
         var (uk, act) = UkWithColonies();
-        var w = uk.World;
         foreach (var r in act) foreach (var p in r.Pops) { p.SetSavings(p.Size); p.EarnedPerMonth = new MoneyPerMonth(p.Size * (r.Tier == RegionTier.Colonial ? 0.2 : 1.0)); }
         double ea = 0, pa = 0, em = 0, pm = 0;
         foreach (var r in act)
@@ -137,18 +129,13 @@ public class IvfInitialValuesTests
         }
         var cap = act.First(r => r.Tier != RegionTier.Colonial);
         double perCap = cap.Pops.Sum(p => p.EarnedPerMonth.Value) / cap.Pops.Sum(p => p.Size);
-        double Prem(double flag)
-        {
-            w.Coef.RegionalPriceBaseExcludesColonies = flag;
-            foreach (var r in act) r.WagePremium = 1.0;
-            uk.UpdateRegionalPriceLevels();
-            return cap.WagePremium;
-        }
-        double e0 = 0.75 * 1.0 + 0.25 * Math.Clamp(perCap / (ea / pa), 0.25, 4.0);
+        foreach (var r in act) r.WagePremium = 1.0;
+        uk.UpdateRegionalPriceLevels();
+        double p1 = cap.WagePremium;
+        double e0 = 0.75 * 1.0 + 0.25 * Math.Clamp(perCap / (ea / pa), 0.25, 4.0);   // 旧の形（全ての州の平均）の手の式
         double e1 = 0.75 * 1.0 + 0.25 * Math.Clamp(perCap / (em / pm), 0.25, 4.0);
-        double p0 = Prem(0.0), p1 = Prem(1.0);
-        Assert.Equal(e0, p0, 12); Assert.Equal(e1, p1, 12);
-        Assert.True(p1 < p0, "旗 1 で本土の賃金の割増が下がらない（植民地の低い所得が平均から外れた）");
+        Assert.Equal(e1, p1, 12);
+        Assert.True(p1 < e0, "本土の賃金の割増が全ての州の平均より下がらない（植民地の低い所得が平均から外れた）");
         Assert.Equal(1.0, p1, 12);   // 本土の 1 人あたりの所得が平均＝割増 1
     }
 }
