@@ -1,0 +1,36 @@
+(802) 合流（波61）の予言（腕の前に固定・書いたモデル Claude Opus 5.5）
+基点 main a9187101（基線 m797）。線＝c11dm (798)・c11h16 (799)・c11cp (800)〔いずれも恒等の線〕・c11fl (801)〔挙動の線・旗 CapitalDividendFromHostRent 既定 1〕。
+
+[1] 入れる順と入れる理由（反証役の high は 4 線とも 0）
+- c11dm（ident〈判定: 恒等〉・反証役 中 1〔許可表 2 行の書き換えは ★(764) 追記② の予言の外＝記録〕・低 3）→ 入れる。
+- c11h16（ident〈判定: 恒等〉を最終の木で取り直し・反証役 低のみ）→ 入れる。
+- c11cp（ident〈判定: 恒等〉・反証役 中 1〔(c) TrenchAdjust は cpOn の中のエンジンの変更で m797 の旗 1 の出力の後＝⑭に数える。別の線で事前登録し恒等を測った、も併記〕・低 4）→ 入れる。
+- c11fl（線の腕 B で門 U・L・形の一致・O と止める線を全て通過・反証役 high 0）→ 入れる。最終の採否は合わせた木の S11 で同じ門を 1 回だけ読む。
+- ★(773) の grep：c11dm が消す名前（SpreadNeedSocialismBoard・SpreadNeedCommunismBoard・OpeningMoneyFromRatioMode・RescaleOpeningSavings・OpeningBroadMoneyToGdpYear・ScaleSavings・ScaleCredit・BroadMoneyToGdpYear・NationalConsciousnessCorruptionWeight・ScoreTechWeight・OldScore・MeanSupplyFill・score_s の scoreOld／rankOld／isGreatOld）と c11cp が消す CpRepBase は、c11h16・c11cp・c11fl の足した行に 0（腕の前に確かめた）。c11h16・c11fl が消す名前 0。`new MoneyStock(` を足す・消す線は c11h16（+1＝65）だけ。
+
+[2] 腕の前に済ませる物（測る木に入れる＝SOURCE-HASH は Tests の .cs と SimCore の .json を含む）
+- merge 4 本・注の直し（Model.cs の SpreadNeedCommunismBoard を指す注・MultiNationSim.cs の ★(351) 共有層の表に CapitalMarket が工業レントを読む行・反証役の挙げた古い注）。
+- WriterRatchetTests の 2 行を ★(749) で取り直す：予言＝合わせた木の実測は c11fl の値と同じ（覇権の判定 2787201→2313056・見た生産者〔旬〕1777→1859）。
+- opening_bake.json の焼き直し（c11dm が world.json の 28 行を消した＝入力ハッシュ 766cc4aa61216eb9 → c11dm が報告した世界側の 81c222ceeec0309e の見込み）。焼くのは合わせた木（旗 CapitalDividendFromHostRent 1）。旗 OpeningBakeEnabled 0＝読まれない＝成績表は動かない。
+- テストの数（--list-tests）：Category!=FullLength 2202＝2191 −9（c11dm）+11（c11h16）+1（c11cp）+8（c11fl）・FullLength 3。
+
+[3] バイト一致の予言（名乗り行の SOURCE-HASH を除く）
+- M（合わせた木・既定＝旗 1・計器つき 10 種・種 1〜10）の成績表 ≡ measurements/b10_20261103_c11flB_ins。.cost の件数の行も一致・推定 218.7 秒。
+- M の計器の生 ≡ c11fl の腕 B の生 D:/PoB_work/c11fl/out_c11flB_10/ins：score_s は c11dm が消した 3 列を除いて一致・cpeace_s は c11cp が足した末尾の列 repMovedIndex を除いて一致・flow_s は呼び出し位置を除いた多重集合で一致・既知の揺れ（burscan_s の seconds・clock_s の C 行）。
+- P（合わせた木・素の 10 種）≡ M。P5（素の 5 種）は比べる成績表が無い（旗 1 の 5 種は初出）＝新しい基線の 5 種として名乗る。
+- Z（合わせた木・`CapitalDividendFromHostRent=0` を coef_ia.txt・coef_ib.txt で置く）＝ident〈判定: 恒等〉：素の 5 種 ≡ b5_20261103_m797・計器つき 10 種 ≡ b10_20261103_m797_ins・.cost の件数の行一致・NG 101（新しい 0・外れた 0）。宣言 --added-tables divhost_s --grown-ok cpeace_s --removed-cols score_s:scoreOld,score_s:rankOld,score_s:isGreatOld --tests-delta 11 --ng（--saveleak は旗 1 の既定で走る＝最終の木の savetest・leakhunt を兼ねる）。
+- ⚠非恒等の穴：c11h16 は構造上は非恒等（x/g>t → x/(12g)>t/12）。probe は旗 0 の軌道 1,289,810 回で境に触れなかっただけで、旗 1 の軌道では確かめていない。**M ≠ c11flB なら最初に疑うのは c11h16**＝帰属は c11h16 を抜いた木（c11dm・c11cp・c11fl）の計器つき 10 種の腕 1 本で決める（この手順は腕の前に固定）。Z は m797 と同じ軌道＝probe が効く＝恒等の見込み。c11dm・c11cp は構造上の恒等（死んだ枝の削除・同じ式の括り出し）。
+
+[4] 門（c11fl の事前登録 m801_20261103_prereg_fl.txt [4]・閾値は変えない・読み手 divhost_read.py と inv_income.py）
+- U 違反 0 件（paid ≦ 3×rentMonth3）・L 違反 0 件（払い÷min(新の利札,貯蓄) ≧0.999）・形の一致（エンジンの請求と計器の式の不一致 0）・O ≦0.5（9 国・1850〜1949）。
+- M：B と同じ値（U 0／400,846・L 0・O 0.2348）＝予言。S11（種 11〜20・最終の採否は 1 回だけ）：U 0・L 0・形 0（構造の門＝軌道によらない）・O は旗 0 の S11 の側（keep_797/a11 の inv_income）と並べて読む・O ≦0.5 の見込み（一次の予言 0.27〜0.32 と B 0.23）。
+- 門が落ちたら c11fl を抜いた木の腕を 1 本回して帰属を決める。物差しは替えない。
+
+[5] 止める線（M・S11 で読む＝基準 keep_797/base_ins・N1・N2・新しい N1・N2 を同じ台本で数え直す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）0。価格水準の 1 四半期 100 倍以上 0・1e10 倍以上 0。名目 GDP の 1 四半期 100 倍以上は建国の直後の型（系列の最初の行から 4 四半期以内・gdp_jump797.py）だけ＝M は B と同じ 1 件（オーストラリア 1789）。空洞化 1/10 未満（規則 A2・an_h2.py -v4）0 件。推定の計算量 ≦248.5 秒（M 218.7 の見込み）。機構のテストの赤 0（OpeningBakeTests は焼き直しで緑・WriterRatchet は ★(749) の取り直し）。
+
+[6] 記録の段（採否に使わない）
+- exact・near（M＝B の 45.7・84.1 の見込み）・NG（M＝B の 93 の見込み・基準 m797）・nullgate・空洞化 1/4 未満（M＝B の 11 の見込み）・英の国債の不履行の種の数（M・S11・N1・N2・m797）・開幕の 1000 倍以上・首位の国の取り分・本国の崩れ・勝者。
+- 新しいヌル腕 N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）はこの合流で 1 回だけ回す。
+
+[7] 腕の構成：1 巡目 6 本＝M・S11・N1・N2・Z（a・b）＋Z の t・s。2 巡目＝P・P5。フルスイート（Category!=FullLength と =FullLength を分けて）は腕と並べない。
