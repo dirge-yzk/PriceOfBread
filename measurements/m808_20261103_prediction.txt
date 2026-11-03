@@ -1,0 +1,31 @@
+(808) 合流（波62）の予言（merge の前に固定・書いたモデル Claude Opus 5.5）
+基点 main 618e3e21（基線 m797）。線＝c12lw (803)・c12ds (804)・c12cm (805)〔恒等の線〕・c12rd (806)〔読むだけ＝コミット 0〕・c12sv (807)〔挙動の線・腕 B で門 W2b が破れた＝採らない〕。
+
+[1] 入れる順と理由（反証役の high は 5 線とも 0）
+- c12lw（ident〈判定: 恒等〉・反証役 低 4・情報 5）→ 入れる。旗 8 本のうち 4 本（Display に読み手）は残したまま。
+- c12ds（ident〈判定: 恒等〉・NG 101 新 0 外 0・反証役 低 3）→ 入れる。B12・I13 は入れていない（報告どおり）。
+- c12cm（ident〈判定: 恒等〉・cpeace_s 末尾 +3 列・反証役 低 7）→ 入れる。
+- c12sv（腕 B の門 W2b が破れた＝旗 SilverParityDemandWeighted の点火は採らない）→ 旗 0 の器と計器 silverwt_s だけを入れる（枝の末尾 ba1e8615 の SimCore・Tests は ident c12svz で測った 3200fa20 と同一）。c11fl と同じ型。
+- c12rd → 台本と表を scripts/instruments/r806/・measurements/m806_20261103/ へ写す。生は keep_808/rd806 へ移す。
+- ★(773) の grep：c12lw が消す 4 名（LordOppositionByRentLoss・LordOppositionReverseGain・MandateWallStockCap・FactionOpportunism）・c12ds が消す 2 名（UpkeepDistanceGeneral・InlandPortDistanceDecay）・c12cm が消す注の名（civicCarriesEthnic・ScaleSavings）・repRealIndex の読み手を、他の 3 枝の追加行で grep した＝新しい使い手 0（墓標と注だけ）。重なるファイルは Coefficients.cs・DormantIdentityTests.cs（3 枝）・InstrumentsTests.cs（2 枝・別の塊）。
+
+[2] 腕の前に済ませる物（測る木に入れる）
+- merge 4 本（--no-ff）。
+- 注だけの直し：PolicyPreferences.cs:192 付近（消した旗 LordOppositionReverseGain を条件に書いた注）・Diplomacy.cs:382〜383（c12cm の 2 つの注が入れ替わっている・〈rep が 0 の講和の r は NaN〉を〈どちらかが国でない講和の r は NaN〉へ）・InstrumentsPortch.cs:78（BilateralMarket の古い座標）。
+- 試験の .cs は触らない（HousingGateSharedTests の xUnit2004 の警告 6 件は直さない＝記録）。
+- 台本の直し（SOURCE-HASH の外）：c12cm/gates_expect.py に〈E1 が空なら落とす〉〈期待≦0 で移った額≠0 なら落とす〉と [記録] の行・m802/gdp_zero.py の型を人口 10 千人以上・4 四半期以上の連続で数える台本へ（新しい台本を m808/ に置く）。
+
+[3] バイト一致の予言（合わせた木＝注の直しの後の木を ident c12m808 で測る）
+- 素の 5 種の成績表 ≡ b5_20261103_m797（名乗り行を除く全行）。計器つき 10 種 ≡ b10_20261103_m797_ins。.cost の推定 220.1 秒（5 種）・221.2 秒（10 種）。
+- 計器の表：cpeace_s は末尾 3 列が増える（--grown-ok cpeace_s）・silverwt_s は新しい表（--added-tables silverwt_s）・他は全てバイト一致（既知の揺れは burscan・clock・flow だけ）。注視の表 4636 行一致。
+- 試験の数：Category!=FullLength＝2202 −6（c12lw）＋12（c12ds）＋6（c12cm）＋7（c12sv）＝2221・FullLength 3。
+- NG 101・新しい 0・外れた 0（基準 rd:measurements/ng797_20261103:m797）。savetest OK・leakhunt 保存則違反なし。
+- 判定〈恒等〉なら基線の名と成績表は m797 のまま。INSRAW を合わせた木の生 keep_808/base_ins へ移し、keep_802 を消す。
+
+[4] 止める線（この回は挙動の線を入れない＝恒等の不一致がそのまま止める線）
+- ident の不一致・試験の数の食い違い・フルスイートの赤（機構のテスト）・savetest・leakhunt。不一致なら、その線を外した木で帰属を決める。
+
+[5] 記録の段（採否に使わない）
+- c12cm の門 G を合わせた木の生で読み直す（期待＞0 の事象 1018 で 実際÷期待＝1・Mu6 6.14 で落ちる＝c12cm の突然変異の記録から写す）。
+- 名目 GDP 0 の続き（人口 1 万以上・4 四半期以上）・空洞化 1/10 未満は基線と同じ生なので 0 件の予言。
+- c12rd の結論と反証役の訂正・c12sv の腕 B の記録（採らない）。
