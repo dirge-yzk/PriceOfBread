@@ -1,3 +1,4 @@
+# (805) [記録] の 2 行の〈Σ賠償の実際〉は repRealIndex（講和の前の組み直し）でなく実際に移った repMovedIndex を足す（ラベルを直した）。
 # (800) c11cp 門の読み手（c10cp/gates.py を、実際に移った賠償の列 repMovedIndex で R_up・R_lo・L1 を読み直す版。旧の列 repRealIndex の値を並べて出す）
 # 元の説明：(791) c10cp 門の読み手：計器 cpeace_s（崩壊の事象〔月×敗者〕ごとに 1 行・旗 0 でも旗 1 でも同じ列）から、事前登録の門を読む。
 #   使い方: python -I gates.py <ins フォルダ> [--seeds 1..10] [--p0 0.xx] [--l1 0.80]
@@ -56,7 +57,7 @@ print('総合\t' + ('全て通る' if ok else '落ちる門あり'))
 # 記録（門にしない）
 UK = 'イギリス'
 U = [e for e in ev if e['loser'] == UK and 1784 <= int(e['year']) <= 1815]
-print(f'[記録] 英が敗者の崩壊の事象（1784〜1815）{len(U)}・講和の数 {sum(int(e["nCollapse"]) for e in U)}・Σ賠償の実際 {sum(F(e["repRealIndex"]) for e in U):.0f}（旧の式 {sum(F(e["repOldIndex"]) for e in U):.0f}）')
-print(f'[記録] 全事象 Σ賠償の実際 {sum(F(e["repRealIndex"]) for e in ev):.0f}・旧の式 {sum(F(e["repOldIndex"]) for e in ev):.0f}・奪った植民地 {sum(int(e["capturedCount"]) for e in ev)}・割譲 {sum(int(e["cedeRealCount"]) for e in ev)}')
+print(f'[記録] 英が敗者の崩壊の事象（1784〜1815）{len(U)}・講和の数 {sum(int(e["nCollapse"]) for e in U)}・Σ賠償の実際（実際に移った repMovedIndex） {sum(F(e[KEY]) for e in U):.0f}（旧の式 {sum(F(e["repOldIndex"]) for e in U):.0f}）')
+print(f'[記録] 全事象 Σ賠償の実際（実際に移った repMovedIndex） {sum(F(e[KEY]) for e in ev):.0f}・旧の式 {sum(F(e["repOldIndex"]) for e in ev):.0f}・奪った植民地 {sum(int(e["capturedCount"]) for e in ev)}・割譲 {sum(int(e["cedeRealCount"]) for e in ev)}')
 mixed = sum(1 for e in ev if int(e['nOther']) > 0)
 print(f'[記録] 同じ月・同じ敗者に崩壊でない講和も有った事象 {mixed}')
