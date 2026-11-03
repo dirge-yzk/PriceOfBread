@@ -73,3 +73,10 @@
 [5] 採否：〈判定: 恒等〉なら採る（〈測った種で一致〉と名乗る）。恒等でなければ、その変更を外して報告に回す。(b) の読み直しの結果は記録だけ＝c10cp（波60 で採った崩壊の講和）の採否は変えない。
 
 [6] 計算量：恒等の整理は推定を変えない（.cost の推定が m797 の 221.2 秒と一致）。住居の門の関数・飽和の関数は月に 1 回の呼び出しの付け替え（EconomyStep は州ごとに月 1 回・PopDecision は州ごとに月 1 回）＝呼び出しの数は変わらない。
+
+[7] 追記（腕の前・結果を見る前）2026-11-03
+    - (c) ScoreReaderTests：InstrumentsScore.cs に許していた例外 3 つ（旧の項の宣言 decl・NationalScore.Finance・OldScore）を全て外す。確かめ：InstrumentsScore.cs のコード行に static Military／Wealth／Tech／WealthParts の宣言 0・NationalScore.Finance 0・OldScore 0（grep・コメント行を除く）。
+      ㉑ 予言を直す：許す名前の数 decl 1→0・Finance 2→1（GameViewModel.Header.cs だけ）・OldScore 1→0。走査の結果は空のまま。
+    - (c) 触らなかった物（grep で既に直っていると確かめた）：Coefficients.cs:2825（score_s の旧の列は (798) で消したと既に書いてある）・Model.cs の MeanSupplyFill と Discovery の旗つきの式（grep 0 件）・CrownParliament.cs の civicCarriesEthnic（該当の字は World.cs:871 だけ＝そこを直した）・World.cs:1653 付近（紙幣増発の注＝事実と合う）。
+    - 試験の数：HousingGateSharedTests の Fact 4（述語 3＋飽和 1）・CpeaceColumnsTests の Fact 2＝足した試験 6。Category!=FullLength は 2202→2208（--tests-delta 6）。
+    - 計器つきの腕の国の名簿：batch.sh の既定の 9 国（清・ロシア・オスマン・フランス・イギリス・プロイセン・オーストリア・日本・アメリカ）を ident が使う。
