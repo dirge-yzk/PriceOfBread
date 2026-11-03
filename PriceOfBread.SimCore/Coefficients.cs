@@ -2289,9 +2289,8 @@ public sealed class Coefficients
     //   艦は海軍の予算（Region.NavalBudget＝装備の器×海の金の割合）と目標の艦隊（海の必要量）の差で買う（EconomyStep.FleetOrder）＝兵の頭数に比例させない（00一覧 §0-A の 0h）。
     //   陸の装備の段は艦を買わない（陸の装備の必要量・充足・在庫の目標から艦を外す＝陸の質の乗数は陸の装備だけ）。
     // ⚠撤去2026-08-12（段B未実装（読み手ゼロ））: FleetPowerWeight  段B のゲート：0=NavalPower は従来（Military×NavalShare）＝厳密恒等／>0 で艦隊ストックから立てる
-    // ★軍艦は港でしか造れない（2026-08-01）。0＝旧（内陸州も軍艦を買う）／1＝港の州が1つも無い国は艦を買わない（(189) 海軍の調達の必要額が0＝海軍の予算は装備の器の残りへ）。
-    // 実測の動機＝1914年の海軍力1位が**内陸の西安王国**、艦隊ストック2位が広州王国だった（docs/202608/99_実装ログ）。
-    public double NavalProcurementNeedsPort = 1.0;
+    // 【墓標2026-11-03 (812)・旗の焼き込み】NavalProcurementNeedsPort（軍艦は港でしか造れない・2026-08-01・既定 1）＝港の州が1つも無い国は艦を買わない（EconomyStep.FleetOrder が常にこの門を通る・(189) 海軍の調達の必要額が0＝海軍の予算は装備の器の残りへ）。
+    //   動機＝1914年の海軍力1位が**内陸の西安王国**、艦隊ストック2位が広州王国だった（docs/202608/99_実装ログ）。旧（内陸州も軍艦を買う）の枝は消した。
     // ★(606) 線 navf／★(669) 線 navf3（海軍の需要の道）：0＝旧（艦の発注と予算は首都の州の1本・英の造船所32のうち31は需要も値段の信号も受けない）／正＝国の海軍の発注と予算を国の**本国格（Core・Integrated）の港の州**へ**同じ割合**で配る
     //   （割合＝本国格の港の取扱高の比・分子と分母は同じ述語 EconomyStep.NavalHomePort・植民地格の港は配りに入れない〔(614) の F1 は入れた〕・EconomyStep.NavalPortSplit）＝各州が自分の市場で普通の経路（需要→配給→決済→艦の在庫）で買う。AI とプレイヤーで同じ道（国の動詞は無い）。
     //   旗の読み手＝Simulation（月初の配り・予算）・EconomyStep（発注と決済の述語 navPort）。既定 1（(679) 線 navf4 で点火＝腕 B・B11 が止める線に当たらず・G7／G1／G1b／G6 が通り〈壊す〉の物差し ①②③ が鳴らず採った・作者 2026-10-30「全て推奨で進めてください。」で推奨を採った〔作者の承認の言葉ではない〕・形の史実の確証は無い）。
@@ -2698,7 +2697,7 @@ public sealed class Coefficients
     public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。Pop.Blend の選抜の枝（残る人がいるときだけ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない
     // 【削除2026-09-30 段4e 後半 4e-3】LiteracyGenerationalDecay（識字の世代減衰の月率0.002）＝世代の流れ（20歳になる若者が max(学校, 母の識字の比×大人の識字) を持ち込む）が置き換えた（設計書 §4-2・§5-2）。
-    public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
+    // 【墓標2026-11-03 (812)・旗の焼き込み】CrossBorderMigrationByOpportunity（人3/外14・既定 1）＝国家間移民を州の機会で常に判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0＝越境移民なしの枝は消した（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）。
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。MigrationDistanceScale は既定 10000 で点火済み（scale=0→減衰1.0）。運賃 MigrationFarePerkKm は (551) で削除。
@@ -3025,7 +3024,7 @@ public sealed class Coefficients
     // ★武器の市場購入（設計メモ §7 作者裁定2026-09-09 の未実装3件(a)・実装2026-09-11・休眠）：反乱勢力（FactionState）が参加POPの貯蓄を資金に、
     //   **国軍と同じ市場で同じ財を**買う（首都州の運動は国庫と同じ配給を奪い合う）。
     //   必要量＝MilitaryUpkeepScale×参加人数 × MilitaryRates（DiscoveredRates を通す＝未発見の装備は要らない）＝Simulation の MilitaryScale と同じ換算（新しい原単位を書かない）。
-    //   陸海＝国軍の「港を持たない者は艦を買わない・総額は陸へ」（NavalProcurementNeedsPort）と同じ式を運動に当てる（運動は港を持たない）。
+    //   陸海＝国軍の「港を持たない者は艦を買わない・総額は陸へ」（EconomyStep.FleetOrder の港の門）と同じ式を運動に当てる（運動は港を持たない）。
     //   質＝国軍の装備充足と**同じ関数**（EconomyStep.ArmsFillContribution／EquipFill）＝耐久品は運動の武器庫（FactionState.ArmsStock）に溜まり同じ摩耗で減る
     //   ＝新しい運動は丸腰から数年（1/摩耗≒50か月）かけて武装する。
     //   資金＝参加POPの貯蓄の合計（導出量・勢力の金庫は作らない）。支払いは参加POPの Paid（貯蓄から減る）→売り手の revenue（普通の市場経路）＝保存。

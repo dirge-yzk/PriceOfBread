@@ -342,13 +342,13 @@ public static class EconomyStep
     /// ・発注＝財ごとに（目標の隻数〔<see cref="FleetTargetUnits"/>〕−国の在庫〔<see cref="FleetHeldUnits"/>〕）⁺＝耐久の陸の装備（<see cref="TierQty"/>）と同じ「目標−在庫」の形
     ///   （沈んだ艦・劣化した艦の補充も同じ式から出る）。財ごと＝新しい段の艦を発見すればその艦の目標が立って建艦が始まる（古い段の艦が多くても＝段の効きが更新を呼ぶ・
     ///   古い段の艦は目標を超える分を買わず劣化で減る）。払える分は海軍の予算（Region.NavalBudget）が切る（Run の afford）。
-    /// ・港の州が1つも無い国は艦を買わない（<see cref="Coefficients.NavalProcurementNeedsPort"/>＝造船は港）。目標が無い・全ての財で目標に届いている＝null（必要額0）。
+    /// ・港の州が1つも無い国は艦を買わない（造船は港）。目標が無い・全ての財で目標に届いている＝null（必要額0）。
     /// 予算の上限（Simulation の NavalBudget＝min(装備の器×海の金の割合, 必要額)）と発注（Run）が同じ1本を読む。</summary>
     internal static double[]? FleetOrder(Region region, Coefficients coef, World? world, out double cost)
     {
         cost = 0;
         if (world is null) return null;
-        if (coef.NavalProcurementNeedsPort > 0 && !region.NationHasPort) return null;
+        if (!region.NationHasPort) return null;
         if (FleetTargetUnits(region, coef, world) is not { } t) return null;
         var have = FleetHeldUnits(world, coef);
         double[]? q = null;
