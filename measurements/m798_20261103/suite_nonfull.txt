@@ -1,0 +1,47 @@
+D:\PoB_work\c11dm\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:25.89]     PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [FAIL]
+  失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [1 s]
+  エラー メッセージ:
+   PriceOfBread.SimCore|InstrumentsScore.cs: 0 行（許可 1）＝減った。許可表を直すこと
+  スタック トレース:
+     at PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり() in D:\PoB_work\wt_c11dm\PriceOfBread.Tests\TechLevelRemovalTests.cs:line 57
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:15.23]     PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [FAIL]
+  失敗 PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [712 ms]
+  エラー メッセージ:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["入力のハッシュが違う（表 766cc4aa61216eb9 ≠ 世界 81c222ceeec0309"···]
+  スタック トレース:
+     at PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う() in D:\PoB_work\wt_c11dm\PriceOfBread.Tests\OpeningBakeTests.cs:line 185
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:23.53]     PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [FAIL]
+  失敗 PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [84 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "81c222ceeec0309e"
+Actual:   "766cc4aa61216eb9"
+           ↑ (pos 0)
+  スタック トレース:
+     at PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない() in D:\PoB_work\wt_c11dm\PriceOfBread.Tests\OpeningBakeTests.cs:line 161
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:07:26.25]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+[xUnit.net 00:08:21.17]     PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [FAIL]
+  失敗 PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [350 ms]
+  エラー メッセージ:
+   InstrumentsScore.cs: 1 行（許可 2）＝減った。許可表を直すこと
+  スタック トレース:
+     at PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり() in D:\PoB_work\wt_c11dm\PriceOfBread.Tests\IndustrializationReaderTests.cs:line 54
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     4、合格:  2177、スキップ:     1、合計:  2182、期間: 37 m 41 s - PriceOfBread.Tests.dll (net10.0)
