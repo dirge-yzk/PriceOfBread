@@ -948,10 +948,10 @@ public sealed class Diplomacy
         _rankClock++;                  // P14：再分類の減速（閾値付近のGreat⇔Middleチャタリング＝列強動詞の点滅を抑える）。≤1=毎月（現行と厳密恒等）・4=年次（威信の残光＝スコア急落国が最長1年Greatを保つ）
         if (c.RankUpdateIntervalQuarters <= 1.001 || _rankClock >= (int)(c.RankUpdateIntervalQuarters * (double)Calendar.MonthsPerQuarter)) { ComputeRanks(c); _rankClock = 0; }   // 国家ランク（列強/中堅/弱小）を相対スコアで再分類（アクション可否・UI表示・ラベルのみ）
         ThreatTension(c);              // 経済/軍事大国であること自体が周囲の緊張を生む（覇権防止）
-        RouteTension(c);               // 13l地政学：閉鎖海盆の出口を扼する相手への緊張（RouteDependenceTensionRate=0.10＝点火2026-09-03・0で不走行）
+        RouteTension(c);               // 13l地政学：閉鎖海盆の出口を扼する相手への緊張（RouteDependenceTensionPerMonth=0.10＝点火2026-09-03・0で不走行）
         IdeologyTension(c);            // 異なる政体は反目し同じ政体は親近する（イデオロギーのブロック化）
         OpiumTension(c);               // P3：アヘン禁令国×輸出国の緊張（取締り・没収が敵意を積む＝林則徐→アヘン戦争。主フラグOFFで不走行）
-        AffinityTensions(c);   // ★(spdip) 民族・法・宗教・保護の 4 本を 1 回の組の走査で（恒等・AffinityTensions の注）。民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionRate=0.02 点火済み・0で不走行）
+        AffinityTensions(c);   // ★(spdip) 民族・法・宗教・保護の 4 本を 1 回の組の走査で（恒等・AffinityTensions の注）。民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionPerMonth=0.02 点火済み・0で不走行）
         StepDependency(c, month);   // 従属の整列(緊張抑制)・貢納(属国→宗主)・離反独立
         TreatyPortLapse(c, month);     // 条約港の自然失効（案A・2026-08-16点火）＝力の差が縮んだ国の不平等条約が風化
         BreakStrainedAlliances(c);     // 緊張が高まった同盟は崩れる→強国は孤立へ
@@ -1041,7 +1041,7 @@ public sealed class Diplomacy
     /// ⚠扼者が征服で交代すれば矛先も自動で付け替わる（Owner は毎四半期解決・観測でジブラルタル英→波の交代を確認済み）。</summary>
     private void RouteTension(Coefficients c)
     {
-        if (!(c.RouteDependenceTensionRate > 0)) return;   // 0で1命令も実行しない（否定形＝NaNもここへ倒す）。⚠既定は0.10＝点火済み（2026-09-03・B-02）
+        if (!(c.RouteDependenceTensionPerMonth > 0)) return;   // 0で1命令も実行しない（否定形＝NaNもここへ倒す）。⚠既定は0.10＝点火済み（2026-09-03・B-02）
         foreach (var cp in Chokepoints)
         {
             if (cp.ExitOfBasin < 0 || !cp.IsOpen || cp.Owner is not { } holder || holder.Nation is null) continue;
@@ -1049,7 +1049,7 @@ public sealed class Diplomacy
             {
                 if (p == holder || p.Nation is null || AtWar(p, holder)) continue;
                 double dep = cp.ExitOfBasin < p.BasinPresence.Length ? p.BasinPresence[cp.ExitOfBasin] : 0;
-                if (dep > 1e-9) AddTension(p, holder, c.RouteDependenceTensionRate * dep, TensionReason.RouteDependence);
+                if (dep > 1e-9) AddTension(p, holder, c.RouteDependenceTensionPerMonth * dep, TensionReason.RouteDependence);
             }
         }
     }
@@ -1092,7 +1092,7 @@ public sealed class Diplomacy
                     if (other.Nation is not null && other != big && !atWar!.Contains(Key(big, other)))
                     {
                         double reach = ThreatReach(big, other, border[bi * n + at[other]], c);
-                        if (reach > 0) AddTension(big, other, c.ThreatTensionRate * threat * reach, TensionReason.Threat);
+                        if (reach > 0) AddTension(big, other, c.ThreatTensionPerMonth * threat * reach, TensionReason.Threat);
                     }
             }
     }
@@ -1173,7 +1173,7 @@ public sealed class Diplomacy
                 if (na.Polity == nb.Polity)
                     AddTension(a, b, -c.IdeologyAffinityRelief, TensionReason.Ideology);                                     // 同政体＝親近
                 else
-                    AddTension(a, b, c.IdeologyTensionRate * Math.Abs(Ideology(na.Polity) - Ideology(nb.Polity)), TensionReason.Ideology);  // 隔たり＝反目
+                    AddTension(a, b, c.IdeologyTensionPerMonth * Math.Abs(Ideology(na.Polity) - Ideology(nb.Polity)), TensionReason.Ideology);  // 隔たり＝反目
             }
     }
 
@@ -1243,7 +1243,7 @@ public sealed class Diplomacy
     {
         int n = Powers.Count;
         var atWar = WarKeySet();
-        bool protector = c.ProtectorTensionRate > 1e-12;
+        bool protector = c.ProtectorTensionPerMonth > 1e-12;
         var grp = new string[n]; var fam = new string[n];
         double[]? popTotal = protector ? new double[n] : null;
         Dictionary<string, double>?[]? popByRel = protector ? new Dictionary<string, double>?[n] : null;
@@ -1287,9 +1287,9 @@ public sealed class Diplomacy
                 {
                     if (a.Culture == b.Culture) AddTensionKeyed(k, -c.EthnicAffinityRelief, TensionReason.Ethnic);                          // 同一民族＝強い親近
                     else if (grp[i] == grp[j]) AddTensionKeyed(k, -0.5 * c.EthnicAffinityRelief, TensionReason.Ethnic);  // 同グループ（汎スラヴ等）＝穏やかな親近
-                    else AddTensionKeyed(k, c.EthnicTensionRate, TensionReason.Ethnic);                                                     // 異グループ＝反目
+                    else AddTensionKeyed(k, c.EthnicTensionPerMonth, TensionReason.Ethnic);                                                     // 異グループ＝反目
                 }
-                AddTensionKeyed(k, c.LawTensionRate * Math.Abs(na.Freedom - nb.Freedom), TensionReason.Law);
+                AddTensionKeyed(k, c.LawTensionPerMonth * Math.Abs(na.Freedom - nb.Freedom), TensionReason.Law);
                 if (a.Religion.Length != 0 && b.Religion.Length != 0)
                 {
                     if (a.Religion == b.Religion) AddTensionKeyed(k, -c.ReligionAffinityRelief, TensionReason.Religion);        // 同一宗教＝親近
@@ -1297,14 +1297,14 @@ public sealed class Diplomacy
                     {
                         string fa = fam[i], fb = fam[j];
                         double dist = (fa == fb) ? c.ReligionHeresyBonus : Math.Abs(FamilyCoord(fa) - FamilyCoord(fb)); // 同族異端ボーナス or 異ファミリー座標距離
-                        AddTensionKeyed(k, c.ReligionTensionRate * dist, TensionReason.Religion);
+                        AddTensionKeyed(k, c.ReligionTensionPerMonth * dist, TensionReason.Religion);
                     }
                 }
                 if (protector)
                 {
                     double gab = Grievance(i, j), gba = Grievance(j, i);   // 緊張はペア対称ストア＝両方向の利害を同じ鍵へ積む
-                    if (gab > 1e-12) AddTensionKeyed(k, c.ProtectorTensionRate * gab, TensionReason.Protector);
-                    if (gba > 1e-12) AddTensionKeyed(k, c.ProtectorTensionRate * gba, TensionReason.Protector);
+                    if (gab > 1e-12) AddTensionKeyed(k, c.ProtectorTensionPerMonth * gab, TensionReason.Protector);
+                    if (gba > 1e-12) AddTensionKeyed(k, c.ProtectorTensionPerMonth * gba, TensionReason.Protector);
                 }
             }
     }
@@ -1474,7 +1474,7 @@ public sealed class Diplomacy
     // ★C3で一般規則になった＝「相手が輸出許可のままなら緊張」。相手が輸出法を禁止に変えれば緊張は積まなくなる＝外交で解ける（1907年の英清阿片協定型）。
     private void OpiumTension(Coefficients c)
     {
-        if (c.OpiumAddictionGrowth <= 0 || c.OpiumBanTensionRate <= 0) return;
+        if (c.OpiumAddictionGrowth <= 0 || c.OpiumBanTensionPerMonth <= 0) return;
         foreach (var a in Powers)
         {
             if (a.Nation is not { } an || an.OpiumPossession == ReformLevel.None) continue;
@@ -1497,7 +1497,7 @@ public sealed class Diplomacy
                         foreach (var g in r.Resources) if (g == c.OpiumGoodId) { exporter = true; break; }
                         if (exporter) break;
                     }
-                if (exporter && !AtWar(a, b) && !InDependency(a, b)) { AddTension(a, b, c.OpiumBanTensionRate, TensionReason.Opium); if (Instruments.On) Instruments.OpiumTension(an, c.OpiumBanTensionRate, OpiumReasonLevel(a, b)); }   // (342) 計器（読むだけ）：積んだ率と、その組のアヘン由来の緊張の今の値
+                if (exporter && !AtWar(a, b) && !InDependency(a, b)) { AddTension(a, b, c.OpiumBanTensionPerMonth, TensionReason.Opium); if (Instruments.On) Instruments.OpiumTension(an, c.OpiumBanTensionPerMonth, OpiumReasonLevel(a, b)); }   // (342) 計器（読むだけ）：積んだ率と、その組のアヘン由来の緊張の今の値
             }
         }
     }

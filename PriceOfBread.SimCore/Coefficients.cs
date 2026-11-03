@@ -1579,25 +1579,25 @@ public sealed class Coefficients
     // **植民地/割譲アームは不採用**（ベルリン会議1884-85はアフリカ分割を「加速」＝史実逆行、かつ植民地→ThreatScore→開戦網への非局所波及）。賠償のみ＝Treasury移転で保存則内に閉じる。
     public double ConcertReparationRestraint = 0.04;  // 第7段第1波⑤点火（2026-07-28）：会議外交＝ウィーン体制（傍観する非交戦列強が勝者の賠償を削る＝サンステファノ→ベルリン1878）。旧0.10は2026-07-15却下（賠償削減が富移転を減らし清entrench）→副作用警告に従い0.04へ減量して点火。0でビット恒等。
     public double ConcertRestraintMax = 0.5;         // 抑制の上限（会議度が高くても賠償の半分まで）。非0だが主レバー0が積を先にゼロ化＝恒等不破。
-    public double ThreatTensionRate = 0.10;       // 経済/植民地の大国であること自体が周囲の緊張を高める（覇権防止）。0.25は軍事0で空振りしていたが、GDP+植民地基準に修正(2026-06-23)したら戦争過多(76回)になったため0.10へ＝覇権国を「時々」包囲（常時でなく）
-    public double RouteDependenceTensionRate = 0.10;   // ★点火2026-09-03（B-02・単独A/B batch10・値は設計目安どおり ThreatTensionRate と同桁＝新しい数字を作らない）。
+    public double ThreatTensionPerMonth = 0.10;       // 経済/植民地の大国であること自体が周囲の緊張を高める（覇権防止）。0.25は軍事0で空振りしていたが、GDP+植民地基準に修正(2026-06-23)したら戦争過多(76回)になったため0.10へ＝覇権国を「時々」包囲（常時でなく）
+    public double RouteDependenceTensionPerMonth = 0.10;   // ★点火2026-09-03（B-02・単独A/B batch10・値は設計目安どおり ThreatTensionPerMonth と同桁＝新しい数字を作らない）。
                                                       //   ⚠全ゲート緑（破綻0/デッドロック0/異常0/ハーネス0/要注意フラグ0）で **◎7割帯 13→19**（主指標）。
                                                       //   ⚠記録＝政体exact 46.9→43.3／near 80.0→79.0／法 58.6→57.1／列強再現率 16.3→12.5／領土本国 66.0→61.7／経済 21.3→20.0。
-                                                      //   差し戻し口＝この値を0へ。   // ★13l地政学（点火済み・作者裁定2026-08-14）：閉鎖海盆の出口を扼する相手への緊張（月・依存度1あたり）。露⇔土（黒海×ボスポラス）・普/瑞⇔丁（バルト×エーレスンド）の受け皿＝経済の内積からは出ない対立（観測4回で≈0・99_実装ログ§4-6）。設計目安はThreatTensionRate同桁（依存1.0の国は覇権国並みに扼者を警戒）。0＝RouteTensionが1命令も走らない厳密恒等（⚠既定は0.10＝2026-09-03に点火済み。旧注記「点火はS2測定キュー」は消化済み＝B-02）
-    public double IdeologyTensionRate = 0.22;     // 異なる政体間の緊張（イデオロギー距離1あたり・月）。陣営化の駆動。0.35→0.22＝開戦回数の抑制（覇権の脅威緊張ThreatTensionRateは温存）
+                                                      //   差し戻し口＝この値を0へ。   // ★13l地政学（点火済み・作者裁定2026-08-14）：閉鎖海盆の出口を扼する相手への緊張（月・依存度1あたり）。露⇔土（黒海×ボスポラス）・普/瑞⇔丁（バルト×エーレスンド）の受け皿＝経済の内積からは出ない対立（観測4回で≈0・99_実装ログ§4-6）。設計目安はThreatTensionPerMonth同桁（依存1.0の国は覇権国並みに扼者を警戒）。0＝RouteTensionが1命令も走らない厳密恒等（⚠既定は0.10＝2026-09-03に点火済み。旧注記「点火はS2測定キュー」は消化済み＝B-02）
+    public double IdeologyTensionPerMonth = 0.22;     // 異なる政体間の緊張（イデオロギー距離1あたり・月）。陣営化の駆動。0.35→0.22＝開戦回数の抑制（覇権の脅威緊張ThreatTensionPerMonthは温存）
     public double IdeologyAffinityRelief = 0.30;  // 同じ政体間の緊張低下（月）。同イデオロギーの親近
     // 緊張の差分化（民族/宗教/法の隔たり＝陣営化の駆動。旧の旗 EnableCivilizationTension〔既定 true〕は 2026-10-23 に焼き込み＝常に走る）。時代適合の重み：民族≳法＞宗教
-    public double EthnicTensionRate = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループは反目）。月。政体緊張0.22より十分小＝war-spam回避
+    public double EthnicTensionPerMonth = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループは反目）。月。政体緊張0.22より十分小＝war-spam回避
     public double EthnicAffinityRelief = 0.12;    // 同民族グループ間の緊張低下（月・同一民族はさらに強い）
-    public double LawTensionRate = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由主義 vs 反動＝1848型）。月。政体距離と相関するため控えめ
-    public double ReligionTensionRate = 0.03;     // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）。ファミリー座標距離＋同族異端ボーナス。月
+    public double LawTensionPerMonth = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由主義 vs 反動＝1848型）。月。政体距離と相関するため控えめ
+    public double ReligionTensionPerMonth = 0.03;     // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）。ファミリー座標距離＋同族異端ボーナス。月
     public double ReligionHeresyBonus = 0.22;     // 同ファミリー異宗派（スンナ⇔シーア・カトリック⇔プロテスタント）の摩擦加算＝「異端は異教より揉める（小さな差異のナルシシズム）」。多くの異ファミリー距離を上回る
     public double ReligionAffinityRelief = 0.06;  // 同一宗教間の緊張低下（月）
     // P11 東方問題パック「同宗教保護」（原典2026-07-17・実装2026-08-09・点火済み）：自国と同宗教の州を異宗教の国が支配している→保護利害（緊張チャネル＋介入口実）。
     // 宣言は保存しない＝宗教ラベルの構造から毎期導出（新規状態ゼロ）。書き手＝なし（純係数）。読み手＝Diplomacy.ProtectorTension（緊張）・Diplomacy.InterventionMotive（介入口実）。
     // 番人＝ProtectorTests（既定ピン＋ON経路の式検証）。
     // 再現＝露のバルカン正教保護・聖地管理権争い（クリミアの引き金）・汎イスラム主義（スルタン=カリフ＝オスマン側の同式運用）。台本なし＝州宗教ラベルから創発。
-    public double ProtectorTensionRate = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護の緊張（月）＝これ×grievance（相手国内の自宗教州人口比0..1・完全一致のみ＝同族異端はReligionHeresyBonusの領分で重複計上しない）。休眠側の設計値0.02目安＝EthnicTensionRate 0.06/ReligionTensionRate 0.03 の弟分。0=不走行（厳密恒等）
+    public double ProtectorTensionPerMonth = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護の緊張（月）＝これ×grievance（相手国内の自宗教州人口比0..1・完全一致のみ＝同族異端はReligionHeresyBonusの領分で重複計上しない）。休眠側の設計値0.02目安＝EthnicTensionPerMonth 0.06/ReligionTensionPerMonth 0.03 の弟分。0=不走行（厳密恒等）
     public double ProtectorInterventionWeight = 0.5;  // 【点火2026-08-09 同上】// 列強介入の動機×(1+これ×grievance)＝介入口実（InterventionMotive の1箇所のみ・新しい介入経路は作らない）。休眠側の設計値0.5目安。0=乗算自体を踏まない（PeaceInterventionEnabled=1.0 live下でも厳密恒等）
     // 従属関係（属国/衛星国/傀儡）。旧の旗 EnableDependency〔既定 true〕は 2026-10-23 に焼き込み＝常に有効。
     public double VassalTributeMonthGdpPerQuarter = 0.015;      // 属国/傀儡の貢納＝従属の月の GDP×これを毎四半期 宗主国庫へ（四半期ごとに月 GDP の 1.5%＝年 GDP の 0.5%・運河通行料の両建てを流用・保存）。搾取だが過大にしない
@@ -3143,7 +3143,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し econ-16・dorm-22）】OpiumSatisfactionPenalty（満足度への直接の減算・休眠0＝作者裁定2026-08-19「阿片も抜く」）＝思想⑨の裏返し＝削除。
                                                  // ★「中毒者は阿片を**需要する**」形は既に入っている（EconomyStep の必要量に州の中毒度を足す・困窮の門の外）＝買えなければ NeedMet が下がり満足度が自然に落ちる。この減算は⑨の二重計上（2026-09-26 訂正・棚卸し dorm-22）。旧0.5
                                                  // （旧注記：1.0はハーネス13/30＝満足↓→困窮ゲート消費↑の正帰還が強すぎ→0.5へ・2026-07-18）
-    public double OpiumBanTensionRate = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
+    public double OpiumBanTensionPerMonth = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
     public double OpiumBanThreshold = 0.05;      // AIが禁令を出す全国平均中毒度の閾値（解除は×0.3のヒステリシス）
     public double DynMandateSatWeight = 0.6;    // perf: 満足重み×(未教育層加重の平均満足−中立点)÷(1−中立点)（第5段5-3＝天命の母数を未教育層へ再定義）
     // 天命の満足項の中立点（これ未満で天命を削る）。旧＝式に埋め込みの0.5（(満足−0.5)×2）。

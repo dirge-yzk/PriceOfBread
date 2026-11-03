@@ -880,9 +880,9 @@ public class MilitaryTests
         var sim = Frozen152("フランス", "スペイン", "日本");
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var jp = sim.Nations[2].World.SelfPower!;
-        c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
-        c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionRate = 0;
-        c.TensionDecay = 0; c.ProtectorTensionRate = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionRate = 0;
+        c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
+        c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionPerMonth = 0;
+        c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionPerMonth = 0;
         Ally152(dip, fr, es);
         double fe0 = dip.Tension(fr, es), fj0 = dip.Tension(fr, jp), ej0 = dip.Tension(es, jp);
         dip.Step(c, sim.Rng, 1);   // 四半期の境でない月＝AI・調停は走らない
@@ -1078,9 +1078,9 @@ public class MilitaryTests
             var sim = Frozen152("フランス", "スペイン", "日本");
             var dip = sim.Diplomacy; var c = sim.Coef;
             var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!;
-            c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
-            c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionRate = 0;
-            c.TensionDecay = 0; c.ProtectorTensionRate = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionRate = 0;
+            c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
+            c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionPerMonth = 0;
+            c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionPerMonth = 0;
             if (mountain) foreach (var r in sim.Nations[0].World.Regions) r.Terrain = Terrain.Mountain;
             double t0 = dip.Tension(fr, es);
             dip.Step(c, sim.Rng, 1);   // 四半期の境でない月＝AI・調停は走らない

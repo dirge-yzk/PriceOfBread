@@ -33,7 +33,7 @@ public class ProtectorTests(ITestOutputHelper output)
     public void 係数の既定は点火済み()
     {
         var c = new Coefficients();
-        Assert.Equal(0.02, c.ProtectorTensionRate);   // 点火2026-08-09（ign_p11＝硬性緑・Δ総合+8.2）。0に戻せばビット恒等（既存フルスイートが番人）。休眠側の設計値0.02目安
+        Assert.Equal(0.02, c.ProtectorTensionPerMonth);   // 点火2026-08-09（ign_p11＝硬性緑・Δ総合+8.2）。0に戻せばビット恒等（既存フルスイートが番人）。休眠側の設計値0.02目安
         Assert.Equal(0.5, c.ProtectorInterventionWeight); // 点火2026-08-09（同上）。0に戻せば乗算自体を踏まない。旧休眠側の設計値0.5目安（点火は測定ラウンドで）
     }
 
@@ -43,11 +43,11 @@ public class ProtectorTests(ITestOutputHelper output)
         var sim = Synthetic();
         var c = sim.Coef;
         // 他の全緊張チャネルを黙らせ、緊張の増分＝同宗教保護だけにする（会計の単離）
-        c.ThreatTensionRate = 0; c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0;
-        c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
-        c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0;
-        c.OpiumBanTensionRate = 0; c.TensionDecay = 0;
-        c.ProtectorTensionRate = 0.02;   // 休眠側の設計値で点火
+        c.ThreatTensionPerMonth = 0; c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0;
+        c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
+        c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0;
+        c.OpiumBanTensionPerMonth = 0; c.TensionDecay = 0;
+        c.ProtectorTensionPerMonth = 0.02;   // 休眠側の設計値で点火
         var a = sim.Nations[0].World.SelfPower!; var b = sim.Nations[1].World.SelfPower!; var g3 = sim.Nations[2].World.SelfPower!;
         double tAB0 = sim.Diplomacy.Tension(a, b), tAC0 = sim.Diplomacy.Tension(a, g3), tBC0 = sim.Diplomacy.Tension(b, g3);
         sim.Diplomacy.Step(c, sim.Rng, 1);   // 月1＝四半期境界でない（AI/介入/編成は不走行）。宗教同期→緊張チャネルが同ティックで走る
@@ -58,7 +58,7 @@ public class ProtectorTests(ITestOutputHelper output)
         Assert.Equal(0.0, Diplomacy.ProtectorGrievance(a, g3));        // Cの州は全部Cの宗教＝0
         Assert.Equal(0.0, Diplomacy.ProtectorGrievance(g3, b));        // 同宗教の対（C=B=イスラム）＝利害は立たない
         // 緊張の増分＝rate×(gAB+gBA)＝rate×0.3（同じ場所・同じAddTensionクランプで積まれたことの検証）
-        Assert.Equal(c.ProtectorTensionRate * gab, sim.Diplomacy.Tension(a, b) - tAB0, 12);
+        Assert.Equal(c.ProtectorTensionPerMonth * gab, sim.Diplomacy.Tension(a, b) - tAB0, 12);
         Assert.Equal(0.0, sim.Diplomacy.Tension(a, g3) - tAC0, 12);    // 利害なしの対は増えない
         Assert.Equal(0.0, sim.Diplomacy.Tension(b, g3) - tBC0, 12);    // 同宗教の対は増えない
     }
