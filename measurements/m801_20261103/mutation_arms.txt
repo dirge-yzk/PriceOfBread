@@ -1,0 +1,20 @@
+=== Mu1（使い捨ての木 D:/PoB_work/c11fl_mut/src_c11flMu1・計器つき 2 種・全長）
+■③門 U（paid ≦ 3×rentMonth3×(1+1e-9)）：違反 10588 / 払いのある行 81978・paid÷(3×rentMonth3) の最大 63.2748
+■④門 L（rentMonth3>0 かつ fci>0 かつ 分母>1e-9 の行で paid÷min(divNewIndex,invSav) ≧0.999）：違反 63669 / 82138・最小 0・分母が 1e-9 以下で除いた行 588
+■⑦計器と実装の形の一致：divReqIndex==divNewIndex の行 1・divReqIndex==divOldIndex の行 588・どちらでもない行 82138（旗 0 なら old、旗 1 なら new に全て一致するはず）
+=== Mu2（使い捨ての木 D:/PoB_work/c11fl_mut/src_c11flMu2・計器つき 2 種・全長）
+■③門 U（paid ≦ 3×rentMonth3×(1+1e-9)）：違反 37563 / 払いのある行 74515・paid÷(3×rentMonth3) の最大 103.961
+■④門 L（rentMonth3>0 かつ fci>0 かつ 分母>1e-9 の行で paid÷min(divNewIndex,invSav) ≧0.999）：違反 11539 / 74515・最小 0.0805027・分母が 1e-9 以下で除いた行 6457
+■⑦計器と実装の形の一致：divReqIndex==divNewIndex の行 1・divReqIndex==divOldIndex の行 0・どちらでもない行 80972（旗 0 なら old、旗 1 なら new に全て一致するはず）
+=== Mu3（使い捨ての木 D:/PoB_work/c11fl_mut/src_c11flMu3・計器つき 2 種・全長）
+■③門 U（paid ≦ 3×rentMonth3×(1+1e-9)）：違反 0 / 払いのある行 0・paid÷(3×rentMonth3) の最大 0
+■④門 L（rentMonth3>0 かつ fci>0 かつ 分母>1e-9 の行で paid÷min(divNewIndex,invSav) ≧0.999）：違反 81843 / 81843・最小 0・分母が 1e-9 以下で除いた行 95
+■⑦計器と実装の形の一致：divReqIndex==divNewIndex の行 1・divReqIndex==divOldIndex の行 0・どちらでもない行 81938（旗 0 なら old、旗 1 なら new に全て一致するはず）
+=== Mu4（使い捨ての木 D:/PoB_work/c11fl_mut/src_c11flMu4・計器つき 2 種・全長）
+■③門 U（paid ≦ 3×rentMonth3×(1+1e-9)）：違反 0 / 払いのある行 80762・paid÷(3×rentMonth3) の最大 0.99073
+■④門 L（rentMonth3>0 かつ fci>0 かつ 分母>1e-9 の行で paid÷min(divNewIndex,invSav) ≧0.999）：違反 80493 / 80963・最小 0・分母が 1e-9 以下で除いた行 467
+■⑦計器と実装の形の一致：divReqIndex==divNewIndex の行 466・divReqIndex==divOldIndex の行 0・どちらでもない行 80964（旗 0 なら old、旗 1 なら new に全て一致するはず）
+=== Mu5（使い捨ての木 D:/PoB_work/c11fl_mut/src_c11flMu5・計器つき 2 種・全長）
+■③門 U（paid ≦ 3×rentMonth3×(1+1e-9)）：違反 0 / 払いのある行 81154・paid÷(3×rentMonth3) の最大 0.33269
+■④門 L（rentMonth3>0 かつ fci>0 かつ 分母>1e-9 の行で paid÷min(divNewIndex,invSav) ≧0.999）：違反 80630 / 81154・最小 0.333333・分母が 1e-9 以下で除いた行 1009
+■⑦計器と実装の形の一致：divReqIndex==divNewIndex の行 1・divReqIndex==divOldIndex の行 0・どちらでもない行 82163（旗 0 なら old、旗 1 なら new に全て一致するはず）

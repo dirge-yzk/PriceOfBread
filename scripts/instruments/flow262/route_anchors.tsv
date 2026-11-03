@@ -24,7 +24,7 @@ BilateralMarket.cs	World.Transfer((nations[k.U].World, null), (nations[k.O].Worl
 CapitalMarket.cs	double got = TakeGold(w[i], want);	国内資本の逃避(投資家→国境の外・不信の国だけ)	
 CapitalMarket.cs	GiveGold(w[h], k);	国内資本の逃避の受け皿(国境の外→受け皿国の投資家)	
 CapitalMarket.cs	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }	外資の逃避(受け入れ国の投資家→国境の外)	
-CapitalMarket.cs	if (div > 1e-9) taken[i] += TakeGold(w[i], div);	外資への配当(受け入れ国の投資家→国境の外)	
+CapitalMarket.cs	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord(nations, i, e[i], divFci0, divSav0, div, divPaid0);	外資への配当(受け入れ国の投資家→国境の外)	
 CapitalMarket.cs	GiveGold(w[i], k);	外資の逃避と配当の還流(国境の外→債権国の投資家)	
 CapitalMarket.cs	if (taken[i] > 0) GiveGold(w[i], taken[i]);	還流の返金(対外保有が無い期＝抜いた国の投資家へ)	
 CapitalMarket.cs	double k = TakeGold(w[i], supply[i] * sFill / e[i]);	資本の輸出の送り出し(投資家→国境の外)	

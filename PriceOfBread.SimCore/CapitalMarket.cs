@@ -170,8 +170,8 @@ public static class CapitalMarket
             }
             double flight = System.Math.Min(w[i].ForeignCapitalIn.Value, (w[i].ForeignCapitalIn * c.CapitalFlightRatePerQuarter.Value * (1.0 - cred[i])).Value);
             if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
-            double div = (w[i].ForeignCapitalIn * c.CapitalDividendRatePerQuarter.Value).Value;
-            if (div > 1e-9) taken[i] += TakeGold(w[i], div);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
+            double divFci0 = w[i].ForeignCapitalIn.Value, divSav0 = Instruments.On ? InvestorSavings(w[i]) : 0; double div = c.CapitalDividendFromHostRent > 0 ? HostRentDividend(w[i]) : (w[i].ForeignCapitalIn * c.CapitalDividendRatePerQuarter.Value).Value;
+            double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord(nations, i, e[i], divFci0, divSav0, div, divPaid0);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
         }
         ProbeDiff("逃避配当");
         // 按分は金建て（対外資産×為替の比）＝逃避の請求権と戻る金を金建てで配り、各国の通貨へ戻す。
@@ -342,5 +342,22 @@ public static class CapitalMarket
         if (inv > 1e-9)
             for (int j = 0; j < n; j++)
                 if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims += new MoneyStock(g * (InvestorSavings(wj) * wj.FxRate / inv) / wj.FxRate); }
+    }
+
+    /// <summary>★(801) 外資の利札（旗 <c>CapitalDividendFromHostRent</c>・設計思想⑨⑩）：受け皿 <paramref name="w"/> が外資の負債（<see cref="World.ForeignCapitalIn"/>）の持ち主へ払う四半期の額＝
+    /// 受け皿の投資家の工業レント（四半期分）×外資の負債÷(外資の負債＋投資家の貯蓄)。預けた金は受け皿の投資家の富の一部として、その富が実際に稼いだ分の持ち分を受ける（旧＝産出と結ばない固定の率×外資の負債）。
+    /// 工業レント＝<see cref="Pop.IndustrialRentPerMonth"/>（第 3 月の値・四半期の共有層は第 3 月の決算の後なので 1 か月分が残っている）を 3 倍して四半期分にする（新しい状態を作らない）。
+    /// 払い手と受け手と按分は旧と同じ（払えない分は積まない）。レントが 0・負・非有限、外資の負債が 0 以下なら 0（否定形で書く）。
+    /// ヘルパーの理由（README §1-10）：似た物は <see cref="InvestorSavings"/>（貯蓄だけの和）。レントと貯蓄を同じ投資家の集合で 1 巡して取るため別に置く。</summary>
+    internal static double HostRentDividend(World w)
+    {
+        double fci = w.ForeignCapitalIn.Value;
+        if (!(fci > 0)) return 0;   // 外資が無い国は pop を 1 巡しない
+        double rent = 0, sav = 0;
+        foreach (var (_, p) in w.AllPopsWithRegion())
+            if (IsInvestor(p)) { rent += p.IndustrialRentPerMonth.Value; sav += System.Math.Max(0, p.Savings.Value); }
+        if (!(rent > 0)) return 0;
+        double d = Calendar.PerMonthToPerQuarter(rent) * (fci / (fci + sav));
+        return double.IsFinite(d) ? d : 0;
     }
 }
