@@ -28,7 +28,7 @@ public class DormantIdentityTests
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
-        // ★SilverParityDemandWeighted（(807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は MultiNationTests の銀平価の試験（旗を 0 に明示）と SilverParityDemandWeightedTests。
+        "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
         "OpiumAddictionCapOff",   // (771) c6op アヘンの蓋の段1（0＝蓋 0.2・段2 で 1）
         // ★PortSameLandmassFirst（(779) c8pd 港の形 (d)）は線の枝で 1 に**点火**＝この表から外した。(785) c9bk で旗ごと焼き込み（欄は削除）＝番人は PortByLandTests の形d_ 3 本。
