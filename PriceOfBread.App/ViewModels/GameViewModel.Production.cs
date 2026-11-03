@@ -15,7 +15,7 @@ namespace PriceOfBread.App.ViewModels;
 // ===== 生産ページ（Qキー・(501) 段3＝旧の生産タブ〔TABキー・全画面〕を欄に分けた物）=====
 // 素材（上）→加工財（下）の層状DAG（縦並び・逆ピラミッド＝作者指示2026-08-15。旧は左→右）。ノード＝財カード（世界価格比・工場の棟数と全国目標・稼働率・供給・生産量・過不足）、辺＝レシピ（材料→製品）。
 // 財を選ぶと右パネルに全国の需給・首都価格と世界価格・用途の内訳と、州別の生産・過不足・材料価格・国営工場カウンター、補助金/専売/売買方針を出す。
-// レイアウトは静的（初回に一度だけ計算）：最長経路で層 → 層内は tier→50音順にソート → 幅予算(PRowBudgetW)を超える層は複数行へ分割。
+// レイアウトは静的（初回に一度だけ計算）：基本レシピの最長経路で層（代替レシピは辺だけ） →層内は tier→50音順にソート → 幅予算(PRowBudgetW)を超える層は複数行へ分割。
 public partial class GameViewModel
 {
     // ★★巨大建造物の可視化（2026-08-02・作者指摘「巨大建築物がUI側にない」）。
@@ -290,13 +290,17 @@ public partial class GameViewModel
             foreach (var rg in n.World.Regions)
                 foreach (var p in rg.Producers)
                     foreach (var inp in p.Inputs) AddEdge(inp.GoodId, p.GoodId);
+        // 層＝**基本レシピ**（Catalog.Goods の材）だけで数えた加工の深さ。代替レシピの辺は描くが層には数えない
+        //   ＝全レシピの最長経路だと、採取財の機械化レシピ（鉱山＝機械→原油）や合成染料・電解ソーダ灰を伝って衣料が tier9 になっていた（作者指摘 2026-11-04）。
+        //   代替レシピの辺は上向き・同じ層の向きにもなる（描き方は ApplyProdPlacement）。
         int LayerOf(PNode n)
         {
             if (n.Layer >= 0) return n.Layer;
             if (n.Layer == -2) return 0;            // 循環ガード（レシピは非循環のはず＝保険）
             n.Layer = -2;
             int l = 0;
-            foreach (var i in n.In) l = Math.Max(l, LayerOf(map[i]) + 1);
+            foreach (var i in Catalog.Goods[n.Id].Inputs)
+                if (i.GoodId != n.Id && map.TryGetValue(i.GoodId, out var src)) l = Math.Max(l, LayerOf(src) + 1);
             n.Layer = l;
             return l;
         }
@@ -440,14 +444,18 @@ public partial class GameViewModel
         foreach (var e in ProdEdges)
         {
             var pn = lay[e.From]; var tn = lay[e.To];
-            double x1 = outPort[(e.From, e.To)], y1 = pn.Y + PNodeH;
-            double x2 = inPort[(e.From, e.To)], y2 = tn.Y;
-            double dyc = Math.Max(28, (y2 - y1) * 0.45);
+            double x1 = outPort[(e.From, e.To)], x2 = inPort[(e.From, e.To)];
+            // 層は基本レシピで数える（EnsureProdLayout）＝代替レシピの辺は上の行・同じ行へも向く。
+            //   下向き＝材の下辺→製品の上辺／上向き＝材の上辺→製品の下辺／同じ行＝両方の上辺を上へ弧で結ぶ。
+            double y1, y2, c1, c2;
+            if (tn.Y > pn.Y) { y1 = pn.Y + PNodeH; y2 = tn.Y; double dyc = Math.Max(28, (y2 - y1) * 0.45); c1 = y1 + dyc; c2 = y2 - dyc; }
+            else if (tn.Y < pn.Y) { y1 = pn.Y; y2 = tn.Y + PNodeH; double dyc = Math.Max(28, (y1 - y2) * 0.45); c1 = y1 - dyc; c2 = y2 + dyc; }
+            else { y1 = pn.Y; y2 = tn.Y; c1 = y1 - 40; c2 = y2 - 40; }
             var geo = new StreamGeometry();
             using (var ctx = geo.Open())
             {
                 ctx.BeginFigure(new global::Avalonia.Point(x1, y1), false);
-                ctx.CubicBezierTo(new global::Avalonia.Point(x1, y1 + dyc), new global::Avalonia.Point(x2, y2 - dyc), new global::Avalonia.Point(x2, y2));
+                ctx.CubicBezierTo(new global::Avalonia.Point(x1, c1), new global::Avalonia.Point(x2, c2), new global::Avalonia.Point(x2, y2));
                 ctx.EndFigure(false);
             }
             e.Data = geo;
