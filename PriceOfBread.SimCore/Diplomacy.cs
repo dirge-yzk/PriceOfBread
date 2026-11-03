@@ -379,8 +379,8 @@ public sealed class Diplomacy
     private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
     private int _rankClock;   // P14（2026-07-17）：ランク再分類の間引きカウンタ（月次Step単位）。RankUpdateIntervalQuarters=1で毎月（現行恒等）・4で年次
     private int _year;
-    [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // (805) 足した欄：ResolvePeace が実際の rep に掛けた会議の削り・条約港の倍率・支払い率 r（rep が 0 の講和の r は NaN）
-    [System.NonSerialized] internal double CpRepCut, CpTpMult, CpPayR;   // (791) 計器（読むだけ・Instruments.On のときだけ書く・セーブに乗せない〔(800)〕）
+    [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // (791) 計器（読むだけ・Instruments.On のときだけ書く・セーブに乗せない〔(800)〕）
+    [System.NonSerialized] internal double CpRepCut, CpTpMult, CpPayR;   // (805) 足した欄：ResolvePeace が実際の rep に掛けた会議の削り・条約港の倍率・支払い率 r（どちらかの側が国でない講和の r は NaN）
     // ⚠「年内の月」（旧 _monthOfYear・2026-08-04）は削除（2026-08-10）。戦闘ログの本文に年月を書くためだけの状態で、
     //   その年月は出来事パネルの配信日と二重に見えていた＝本文の日付を落としたので読み手が居なくなった。
 

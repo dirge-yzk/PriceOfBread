@@ -189,7 +189,7 @@ public static class PolicyPreferences
 
     /// <summary>★(547) 線 rs2：<paramref name="axis"/>（農奴解放か土地改革）の次の一段で旧支配層が失う所得の割合＝
     /// (今の実効の取り分−次の実効の取り分)÷今の実効の取り分 × <paramref name="lordRentToIncome"/>。実効の取り分＝min(慣習, 地代の上限)・地代の上限は FarmRentCap と同じ式
-    /// （土地改革と農奴解放の上限の小さい方・<see cref="Simulation.RentCap"/>）。次の一段＝その軸だけ 1 段進める（Full の次は Full＝失う 0）。減らす向きの Pref も同じ値を読む（今の式も向きに対称。旗 <c>LordOppositionReverseGain</c>＞0 のときを除く＝そのとき減らす向きは <see cref="LordIncomeGain"/>）。</summary>
+    /// （土地改革と農奴解放の上限の小さい方・<see cref="Simulation.RentCap"/>）。次の一段＝その軸だけ 1 段進める（Full の次は Full＝失う 0）。減らす向きの Pref はこの値でなく <see cref="LordIncomeGain"/> を読む（(803) で旗を焼き込んだ）。</summary>
     internal static double LordIncomeLoss(World w, PolicyAxis axis, double lordRentToIncome)
     {
         EffectiveRentShares(w, axis, out double now, out double next);
