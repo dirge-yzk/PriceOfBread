@@ -1,0 +1,9 @@
+Fiscal.CurrencyMemoryBroken の本体を次に差し替える（戻りは新の側のまま）：
+    {
+        bool neu = nominalGdpPerMonth > 1e-9
+           && Calendar.ToGdpYear(new MoneyStock(cumulativeDevaluation), Calendar.PerMonthToPerYear(new MoneyPerMonth(nominalGdpPerMonth))).Value
+              > distrustThresholdPerMonthGdp / Calendar.MonthsPerYear;
+        bool old = nominalGdpPerMonth > 1e-9 && cumulativeDevaluation / nominalGdpPerMonth > distrustThresholdPerMonthGdp;
+        ProbeH16.Count(cumulativeDevaluation, nominalGdpPerMonth, distrustThresholdPerMonthGdp, old, neu);
+        return neu;
+    }

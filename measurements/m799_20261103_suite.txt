@@ -1,0 +1,5 @@
+(799) c11h16 フルスイート（Release・測った木 HEAD 58fcef22 と同じソース・Category!=FullLength と =FullLength を分けて回す）
+成功!   -失敗:     0、合格:  2201、スキップ:     1、合計:  2202、期間: 18 m 56 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 16 s - PriceOfBread.Tests.dll (net10.0)
+合計 2202 + 3 = --list-tests（2191 + CurrencyMemoryBrokenTests 11 = 2202・FullLength 3）と一致。スキップ 1 は TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（もとからの SKIP）。
+途中経過の申告：最初の木（e97afc63〜）の走りで CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで が赤（裸の / Calendar.MonthsPerYear）だった→Calendar.PerYearToPerMonth へ直し（6672fabc）、走りは止めて最終の木で最初から取り直した。
