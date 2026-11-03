@@ -11,25 +11,24 @@ using System.Threading.Tasks;
 
 namespace PriceOfBread.App.Views;
 
-/// <summary>--uishot の撮影の段（(501) 段3・財政と貨幣／人口／発見）。各ページを 1 枚・左右 2・4 分割で撮り、外側が縦に流れていないこと（LogOuterFlow）・
+/// <summary>--uishot の撮影の段（(501) 段3・財政と貨幣／人口／発見）。各ページを撮り、外側が縦に流れていないこと（LogOuterFlow）・
 /// 表の見出しの列と値の列の左端が揃うこと・畳まれた欄・段の押し釦の書き込みが表へ戻ることを BootLog に書く。</summary>
 public partial class MainWindow
 {
     private async Task ShootPagesFiscalPopulationDiscovery(string dir, GameViewModel gvm, GameView gameView, LayoutModel lay)
     {
         foreach (var slot in new[] { Slot.FiscalMoney, Slot.Population, Slot.Discovery })
-            foreach (var shape in new[] { SplitShape.One, SplitShape.LeftRight, SplitShape.Four })
-            {
-                lay.Reset(); lay.SetShape(shape); lay.Open(slot, 0);
-                await Task.Delay(1300);
-                string tag = $"{SlotInfo.Name(slot)} {SlotInfo.ShapeName(shape)}";
-                Capture(dir, $"P2_{SlotInfo.Name(slot)}_{SlotInfo.ShapeName(shape)}.png");
-                LogOuterFlow(gameView, tag);
-                LogTables(gameView, slot, tag);
-            }
+        {
+            lay.Reset(); lay.Open(slot);
+            await Task.Delay(1300);
+            string tag = SlotInfo.Name(slot);
+            Capture(dir, $"P2_{SlotInfo.Name(slot)}.png");
+            LogOuterFlow(gameView, tag);
+            LogTables(gameView, slot, tag);
+        }
 
         // 段の押し釦の書き込み：行政費を最上段へ置く→表の目標の段が動く→元へ戻す（押した直後に停止中でも表が読み直されること）
-        lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.FiscalMoney, 0);
+        lay.Reset(); lay.Open(Slot.FiscalMoney);
         await Task.Delay(900);
         try
         {
@@ -58,7 +57,7 @@ public partial class MainWindow
     /// <summary>ページの表ごとに、見出しの列と値の列の左端が揃っているか・行の数・畳まれた欄を BootLog に書く（設計 §7-3）。</summary>
     private void LogTables(GameView gv, Slot slot, string tag)
     {
-        var host = gv.FindControl<SplitHost>("Splits");
+        var host = gv.FindControl<PageHost>("Center");
         if (host is null) return;
         foreach (var (_, s, page) in host.Mounted())
         {

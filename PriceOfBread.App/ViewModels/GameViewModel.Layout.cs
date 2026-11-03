@@ -1,6 +1,6 @@
-// GameViewModel.Layout.cs ＝ 画面の配置（(501) UI の作り直し 段2）。分割の形・各枠のページ・選んでいる枠・左右の列の開閉は LayoutModel が持ち、
-// ここは「何が見えているか」を配置から導く読み取り専用の名前（旧の Tab*／ProductionShown／DiscoveryShown）と、見えた瞬間の更新・ヘッダーのページの押し釦・
-// 左の列の問題の一覧とピン留めの器を持つ。新しい状態は作らない（見えているかは毎回 Layout から導く）。
+// GameViewModel.Layout.cs ＝ 画面の配置（(501) UI の作り直し 段2。2026-11-04 に分割とピン留めを廃止）。中央に出しているもの・左の列の開閉は LayoutModel が持ち、
+// ここは「何が見えているか」を配置から導く読み取り専用の名前（旧の Tab*／ProductionShown／DiscoveryShown）と、見えた瞬間の更新・ヘッダーのページの押し釦を持つ。
+// 新しい状態は作らない（見えているかは毎回 Layout から導く）。
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -34,8 +34,6 @@ public partial class GameViewModel
 
     public bool LeftOpen => Layout.LeftOpen;
     public bool LeftClosed => !Layout.LeftOpen;
-    public bool RightOpen => Layout.RightOpen;
-    public bool RightClosed => !Layout.RightOpen;
 
     public ObservableCollection<PageButtonVM> PageButtons { get; } = new();
 
@@ -43,7 +41,7 @@ public partial class GameViewModel
 
     private void InitLayout()
     {
-        foreach (var s in SlotInfo.All) PageButtons.Add(new PageButtonVM(s));
+        foreach (var s in SlotInfo.Pages) PageButtons.Add(new PageButtonVM(s));   // 地図は釦を持たない（Tab で生産と切り替える）
         _shownPrev = new HashSet<Slot>(Layout.Shown());
         Layout.Changed += OnLayoutChanged;
         SyncPageButtons();
@@ -57,7 +55,7 @@ public partial class GameViewModel
         _shownPrev = now;
         if (now.Contains(Slot.PoliticsLaw)) PoliticsTabAlert = false;   // 動かせる法の点灯は、政治と法のページを見たら消灯
         foreach (var s in added) RefreshOnShown(s);
-        OnPropertyChanged(nameof(LeftOpen)); OnPropertyChanged(nameof(LeftClosed)); OnPropertyChanged(nameof(RightOpen)); OnPropertyChanged(nameof(RightClosed));
+        OnPropertyChanged(nameof(LeftOpen)); OnPropertyChanged(nameof(LeftClosed));
         SyncPageButtons();
         LayoutStore.Save(Layout);
     }
@@ -89,21 +87,12 @@ public partial class GameViewModel
 
     partial void OnPlayerAtWarChanged(bool value) => SyncPageButtons();
 
-    /// <summary>ヘッダーの押し釦＝選んでいる枠へ開く。</summary>
+    /// <summary>ヘッダーの押し釦＝キーと同じ（出ていなければ出す・もう出ていれば地図へ戻る）。</summary>
     [RelayCommand]
-    private void OpenSlot(Slot slot) => OpenSlotByKey(slot, false);   // 押し釦＝キーと同じ（生産は全面）
+    private void OpenSlot(Slot slot) => Layout.Toggle(slot);
 
-    /// <summary>キー（Shift を足すと次の枠へ開く）。</summary>
-    public void OpenSlotByKey(Slot slot, bool toNext)
-    {
-        if (toNext) Layout.OpenInNext(slot);
-        else if (slot == Slot.Production) Layout.ToggleFull(Slot.Production);   // 生産のキー＝1 枚の全面（もう一度で前の配置へ）。見出しの一覧から選んだときは分割の中（PaneView.PickSlot は Open を呼ぶ）
-        else Layout.OpenInSelected(slot);
-    }
+    /// <summary>Tab（作者の指示 2026-11-04）：生産と地図（背景）を切り替える。</summary>
+    public void ToggleProductionMap() => Layout.ToggleProductionMap();
 
-    /// <summary>Tab（作者の指示 2026-11-03）：生産の全面と地図の全面を切り替える。全面でなければ生産の全面へ入る（戻るのは Q・Esc・他のページのキー）。</summary>
-    public void ToggleProductionMap() => Layout.FullTo(Layout.FullSlot == Slot.Production ? Slot.Map : Slot.Production);
-
-    [RelayCommand] private void ToggleLeftColumn() => Layout.SetColumns(!Layout.LeftOpen, Layout.RightOpen);
-    [RelayCommand] private void ToggleRightColumn() => Layout.SetColumns(Layout.LeftOpen, !Layout.RightOpen);
+    [RelayCommand] private void ToggleLeftColumn() => Layout.SetLeftOpen(!Layout.LeftOpen);
 }

@@ -231,9 +231,8 @@ public partial class GameViewModel : ViewModelBase
 
     // ロード用：復元済みシム＋エンベロープ（UI側の経過日数・年次グラフ・戦争UI状態）から再開。
     private GameViewModel(MultiNationSim sim, int playerIndex, double simDays, int dayInQuarterUI, int lastSampledYear,
-                          SeriesStore series, Action? onExit, Action? onLoad, WarUiSave? warUi = null, IReadOnlyList<PinRef>? pins = null)
+                          SeriesStore series, Action? onExit, Action? onLoad, WarUiSave? warUi = null)
     {
-        LoadPins(pins);   // ピン留めはセーブの追記ブロック（最初の Refresh より前に置く）
         _series = series;   // セーブから読んだ名前つきの系列をそのまま持つ（足された系列は旧セーブに無い＝空で始まる）
         _playerIndex = playerIndex;
         _onExit = onExit;

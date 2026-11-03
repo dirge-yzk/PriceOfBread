@@ -10,37 +10,41 @@ public class DisplayCatalogTests
 {
     private static World Board() => new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789).Nations[0].World;
 
-    // ===== キー（作者の指示 2026-10-23「切り替えキーは QWERASDFZXCV の優先度で、順に埋める」）=====
+    // ===== キー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・市場を Q・地図のキーは無し」）=====
 
     [Fact]
-    public void キーは作者の優先度の列を前から順にページ_地図_空きへ割り当てる()
+    public void キーは生産がTab_残りのページが作者の優先度の列を前から順_地図にキーは無く_空きが残る()
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var pages = Enum.GetValues<Page>();
         Assert.Equal(7, pages.Length);
-        Assert.Equal("QWERASD", new string(pages.Select(PageKeys.Key).ToArray()));
-        Assert.Equal('F', PageKeys.MapKey);
-        Assert.Equal("ZXCV", PageKeys.FreeKeys);
-        // 重なりが無く、ページと地図と空きで列が過不足なく埋まる
-        string all = new string(pages.Select(PageKeys.Key).ToArray()) + PageKeys.MapKey + PageKeys.FreeKeys;
+        Assert.Equal('\0', PageKeys.Key(Page.Production));
+        var lettered = pages.Where(p => p != Page.Production).ToArray();
+        Assert.Equal("QWERAS", new string(lettered.Select(PageKeys.Key).ToArray()));
+        Assert.Equal("DFZXCV", PageKeys.FreeKeys);
+        // 重なりが無く、ページと空きで列が過不足なく埋まる
+        string all = new string(lettered.Select(PageKeys.Key).ToArray()) + PageKeys.FreeKeys;
         Assert.Equal(PageKeys.Priority, all);
         Assert.Equal(all.Length, all.Distinct().Count());
     }
 
     [Fact]
-    public void ページの名前と押し釦の文字は規則に合い_キーから引ける()
+    public void ページの名前と押し釦の文字は規則に合い_文字のキーから引ける()
     {
         foreach (var p in Enum.GetValues<Page>())
         {
             Assert.True(DisplayNames.IsValid(PageKeys.Name(p)), $"ページの名前が規則に合わない: {p}");
+            if (p == Page.Production) continue;   // 生産は Tab＝文字で引かない
             Assert.Equal($"{PageKeys.Key(p)}:{PageKeys.Name(p)}", PageKeys.ButtonText(p));
             Assert.Equal(p, PageKeys.PageOfKey(PageKeys.Key(p)));
             Assert.Equal(p, PageKeys.PageOfKey(char.ToLowerInvariant(PageKeys.Key(p))));
         }
-        Assert.Null(PageKeys.PageOfKey(PageKeys.MapKey));
+        Assert.Null(PageKeys.PageOfKey('F'));   // 地図のキーは無い
+        Assert.Null(PageKeys.PageOfKey('\0'));
         Assert.Null(PageKeys.PageOfKey('Z'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
-        Assert.Equal("Q:生産", PageKeys.ButtonText(Page.Production));
+        Assert.Equal("Tab:生産", PageKeys.ButtonText(Page.Production));
+        Assert.Equal("Q:市場・清算・貿易", PageKeys.ButtonText(Page.Market));
         Assert.True(DisplayNames.IsValid(PageKeys.MapName));
     }
 

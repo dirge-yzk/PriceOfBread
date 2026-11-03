@@ -341,7 +341,6 @@ public partial class GameViewModel
             Key = title,
             BoxWidth = boxWidth,
             Points = has ? pts : new(),
-            Values = has ? series : null,
             RangeText = has ? $"{startYear}〜{startYear + series.Count - 1}年　最小:{fmt(min)}　最大:{fmt(max)}" : "",
         };
     }

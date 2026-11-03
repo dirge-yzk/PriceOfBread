@@ -134,6 +134,24 @@ public partial class GameViewModel
     private static readonly IBrush PDimText    = new SolidColorBrush(Color.Parse("#8A7A5E"));
     private static readonly IBrush PNameText   = new SolidColorBrush(Color.Parse("#2A2118"));   // 財名の通常色（ボトルネック時は PMinus 赤）
     private static readonly IBrush PUtilText   = new SolidColorBrush(Color.Parse("#5A4E3C"));   // 稼働率行の通常色（原料欠乏時は PMinus 赤）
+
+    // 稼働率の色＝赤（0%）→黄（50%）→緑（100%）の連続（作者の指示 2026-11-04）。10% 刻みに量子化して筆を使い回す（毎月 数百枚のカードで筆を作らない）。
+    private static readonly IBrush[] UtilBrushes = BuildUtilBrushes();
+    private static IBrush[] BuildUtilBrushes()
+    {
+        static byte Lerp(byte a, byte b, double t) => (byte)Math.Round(a + (b - a) * t);
+        var red = Color.Parse("#B02418"); var yellow = Color.Parse("#C99A1E"); var green = Color.Parse("#1E7A3E");
+        var r = new IBrush[11];
+        for (int i = 0; i <= 10; i++)
+        {
+            double t = i / 10.0;
+            var (c0, c1, u) = t < 0.5 ? (red, yellow, t / 0.5) : (yellow, green, (t - 0.5) / 0.5);
+            r[i] = new SolidColorBrush(Color.FromRgb(Lerp(c0.R, c1.R, u), Lerp(c0.G, c1.G, u), Lerp(c0.B, c1.B, u)));
+        }
+        return r;
+    }
+    /// <summary>稼働率（0〜1）→ 赤→黄→緑の筆。範囲外・NaN は赤側へ落とす（呼び手が 0〜1 に収める）。</summary>
+    private static IBrush UtilColor(double util) => UtilBrushes[(int)Math.Round((!(util > 0) ? 0 : util < 1 ? util : 1) * 10)];
     // 技術不足の灰色（作者仕様2026-08-09 項目13）。tier色を捨てて灰に置き換える＝「今は作れない」を地色で一目に。凡例のヘッダーに同じ色の■技術不足を出す。
     private static readonly IBrush PBgTechShort = new SolidColorBrush(Color.Parse("#DCD8D2"));
     private static readonly IBrush PAccTechShort= new SolidColorBrush(Color.Parse("#9A948C"));
@@ -521,7 +539,7 @@ public partial class GameViewModel
         var unavail = ProductionDiag.UnavailableGoods(_sim, _player.Coef);
         var all = ProductionTables.AllLines(_sim, _player, st, unavail);
 
-        // ノード（ボタン＝品名＋世界価格との差／稼働率:a%　供給:b%／生産:c　過不足:d。縦線の中は工場の棟数と全国目標。地色は tier で最初から明るく、選択で連鎖を強調）
+        // ノード（ボタン＝品名＋世界価格との差。縦線の中は合計の棟数と実質稼働数。地色は tier で最初から明るく、選択で連鎖を強調）
         var blockedOf = new bool[n]; var inactiveOf = new bool[n];   // 選択だけの塗り直し（ApplyProdSelection）へ持ち越す集計の産物
         foreach (var ln in all)
         {
@@ -534,14 +552,7 @@ public partial class GameViewModel
             //   赤（starving）は立てない。
             double inpFill = ln.InpFill;
             double surplusRate = ln.SurplusRate;   // 過不足＝**生産に対する比**。NaN＝生産なし
-            string util1 = none ? (blocked ? "技術不足" : hasProducer[gi] ? "稼働率:0%" : "産地なし")   // ★2026-09-07：棟はあるのに「生産なし」だと縦線の「87/87」と矛盾して読める＝止まっている事実（稼働率0）を他の材と同じ語で書く
-                                : isFactory ? $"稼働率:{util:P0}　供給:{(double.IsNaN(inpFill) ? 0.0 : inpFill):P0}" : $"稼働率:{util:P0}";
-            // ★語は「供給」（2026-09-07・作者要望(2)の寸法是正）＝生産コスト欄の材別「供給:n%」と同じ語に揃えた。
-            //   旧「材料供給」は 稼働率100%×材料供給100% でカード幅を1px級で超え、末尾の「%」が無言でクリップされていた（ClipToBounds）。
-            // 「産地:n」は削除（作者仕様2026-08-09 項目4）＝州別リストの工場列で州ごとに読める
-            // 工場の棟数は**縦線の中のカウンター**へ移した（2026-09-07・作者要望(1)）＝この行は量だけを持つ
-            string prod2 = none ? "" : $"生産:{Fmt.Qty(prod[gi])}";
-            string sur2 = none ? "" : SurplusText(surplusRate);
+            // ★2026-11-04（作者）：カードは材名＋価格％だけを大きく出す（稼働率・生産・過不足は財の表にある）。工場の縦線は〈合計の棟数〉と〈実質稼働数＝棟数×稼働率〉の2行。
             // 世界価格との比較（項目3）＝首都価格×為替／世界価格−1（本体の目録の PriceGap）。安い＝青・高い＝赤。
             // グラフ本体は四半期再構築なので、この％も四半期（右パネルの首都価格行は日次）。
             bool hasPd = !double.IsNaN(ln.PriceGap);   // まだ存在しない財は世界価格との比を出さない（作者裁定2026-08-10）
@@ -561,11 +572,6 @@ public partial class GameViewModel
             //   ⚠色は割れていなかった（`!(x < 0)` は -0.002 を正しく赤に落とす）＝色の式は触らない。
             nd.PriceDiff = hasPd ? pdg.ToString("+0%;-0%;0%") : "";
             nd.PriceDiffBrush = pdg <= 0 ? PPriceBelow : PPriceAbove;
-            nd.Util = util1;
-            nd.UtilBrush = starving ? PMinus : PUtilText;
-            nd.Prod = prod2;
-            nd.Surplus = sur2;
-            nd.SurplusBrush = !(surplusRate < 0) ? PPlus : PMinus;   // 否定形＝NaN（生産なし）も緑側に落とす
             nd.Accent = blocked ? PAccTechShort : TierAccent(d.Tier);
             blockedOf[gi] = blocked; inactiveOf[gi] = inactive;   // 地色・枠・沈みは選択と併せて ApplyProdSelection が塗る（式は1箇所）
             // 縦線の中の工場カウンター（作者仕様2026-09-07 (1)）＝「今ある棟数 / 予定を含めた棟数」。
@@ -573,30 +579,18 @@ public partial class GameViewModel
             //   ▲を押すと予定が1増え、エンジンが最も効率の良い州へ国営工場を建てて分子が追いつく。
             //   ▼は**予定のうちまだ州へ配っていない分**しか削れない（建った棟は壊せない）＝削る余地が無い時は押せない状態で出す
             //   （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない）。
-            // ★2026-09-23 作者の図＝増加は上三角・減少は下三角。＋−の横並び1段を ▲▼ の上下2段に組み替え、民営/国営の2行を挟む。
-            //   動く値は変えていない（▲▼＝全国工場目標＝国営行の分母。民営行は▲▼では動かない）。
-            // ★2026-09-08 作者指示「カードに民営数x/y、国営数x/yを表示する」＝合計1本から所有別の2本へ。
-            //   民営の分母は民営の建設中を含む（＝民間建設が盤面に無い現状は完成数と一致する）。国営の分母は完成＋建設予定。
-            // ★2026-09-23（作者裁定）：民営は**1つ書き**へ戻した。分子と分母が同じ `pvU` の2回書きで、
-            //   「民営100/100」は常に n/n＝**情報量が0**のまま59.83pxを占め、縦線56pxを3.83px超えて末尾が無言で切れていた。
-            //   ＝「切れる」の直しは幅を広げることではなく、同じ値を2度書くのをやめること（民間の建設が盤面に入ったら分母が意味を持つ）。
-            // ★2026-09-23（3度目・撮影で「国営100/100」の見切れが確定）：国営も**分母をやめる**。
-            //   分母 stU+pendU は予定の無い月は stU と同じ値＝民営と同じ「同じ値を2度書く」形で、3桁どうしになると
-            //   59.83px＝縦線56pxを3.83px超えて末尾が無言で切れていた（縦線は本文124.35pxの都合で57.65pxまでしか広げられない＝広げても直らない）。
-            //   ⇒ 残りの意志がある月だけ**その差分**を足す＝「国営{完成}+{まだ建っていない意志}」。
-            //     差分は planU−stU−pvU＝建設予定（pendU）＋まだ州へ配っていない分＝**▲▼が動かしている当の数**
-            //     （▲を押した瞬間に planU が1増える＝押した手応えが同じ月に出る。旧の分母 stU+pendU はエンジンが州へ配る翌月まで動かなかった）。
-            //     planU ≥ stU+pvU+pendU（World.FactoryCounter の Planned）なので差分は常に0以上＝pendU 以上。
-            //   幅（11px太字の実寸・Yu Gothic UI の hmtx）＝「国営100」38.64px・「国営100+1」50.70px・「国営12+12」50.70px＝収まる。
-            //     3桁＋2桁（「国営100+12」56.81px〜「国営999+99」60.33px）は超える＝TextTrimming が「国営100+…」と出す（無言で切らない）。
-            //     ⚠これは幅では直せない＝二数を置く形はどれも3桁+2桁を56pxに収められない
-            //       （最も細い区切りでも「国営999/99」57.25px・半角スペースの「国営444 44」56.71px）。
-            //   ⚠完成＋建設予定の内訳と全国目標は縦線のツールチップ（FactoryTip）に出る＝画面から消えた数は無い。
-            nd.PrivateCount = $"民営{pvU}";
-            nd.StateCount = planU - stU - pvU > 0 ? $"国営{stU}+{planU - stU - pvU}" : $"国営{stU}";
+            // ★2026-11-04（作者「国営と民営の数を分ける必要を感じない＝合計値」「実質稼働数（工場数×稼働率）で表示」「稼働率が低い場合は色（赤→黄→緑）」）：
+            //   1行目＝国営＋民営の完成した合計棟数（まだ建っていない意志があれば「+差分」を足す＝▲を押した手応え）。
+            //   2行目＝実質稼働数＝合計棟数×稼働率（四捨五入）。色は稼働率で赤→黄→緑（<see cref="UtilColor"/>・棟が無い間は墨）。
+            //   内訳（国営・民営・建設予定・全国目標・稼働率）は縦線のツールチップ（FactoryTip）に残る。
+            int totU = stU + pvU, wantU = planU - totU;
+            double utilV = !(util > 0) ? 0 : util < 1 ? util : 1;   // NaN（産出なし＝未測定）は0・上限1（否定形で NaN を落とす）
+            nd.TotalCount = wantU > 0 ? $"合計{totU}+{wantU}" : $"合計{totU}";
+            nd.RunningCount = $"稼働{Math.Round(totU * utilV):0}";
+            nd.RunningBrush = totU > 0 ? UtilColor(utilV) : PDimText;
             nd.CanUpFactory = planU < _player.FactoryTargetMax;
             nd.CanDownFactory = planU > stU + pvU + pendU;
-            nd.FactoryTip = $"国営 {stU}棟　民営 {pvU}棟　建設予定 {pendU}棟　全国目標 {planU}棟";
+            nd.FactoryTip = $"国営 {stU}棟　民営 {pvU}棟　建設予定 {pendU}棟　全国目標 {planU}棟　稼働率 {utilV:P0}";
         }
         _sBlocked = blockedOf; _sInactive = inactiveOf;
         // 財の表・設備の表・労働の表（本体の目録が行と列を名乗る）。財の表は盤の節点と同じ集計から（二度走査しない）。
@@ -1379,17 +1373,13 @@ public sealed partial class ProdNode : ObservableObject
     [ObservableProperty] private IBrush? _nameBrush;        // 通常#2A2118／技術不足・産地なし＝灰(PDimText)
     [ObservableProperty] private string _priceDiff = "";    // 品名の隣＝首都価格の世界価格比（＋12%／−8%）。安い＝青・高い＝赤（2026-08-09 項目3）
     [ObservableProperty] private IBrush? _priceDiffBrush;
-    [ObservableProperty] private string _util = "";         // 「稼働率:87%　材料供給:92%」または「産地なし」等の状態
-    [ObservableProperty] private IBrush? _utilBrush;        // 通常#5A4E3C／原料欠乏（充足<95%）＝赤
-    [ObservableProperty] private string _prod = "";         // 「生産:1.2k」
-    [ObservableProperty] private string _surplus = "";      // 「余剰12%」／「不足8%」（SurplusText・生産が実用ゼロなら空）
-    [ObservableProperty] private IBrush? _surplusBrush;
     [ObservableProperty] private IBrush? _accent;
     // 工場カウンター（作者要望2026-09-07 (1)）＝カテゴリを示す縦線を広げてその中に「今ある棟数/予定を含めた棟数」を出し、分母を▲/▼で動かす（2026-09-23）。
     // 民営＝完成した棟数の**1つ書き**（2026-09-23＝分子と分母が同じ値だった2つ書きをやめた）、
     // 国営＝完成/完成＋建設予定の2つ書き（World.FactoryCounter の1本）。満たすまでエンジンが最も効率の良い州へ国営工場を建てる。
-    [ObservableProperty] private string _privateCount = "";
-    [ObservableProperty] private string _stateCount = "";
+    [ObservableProperty] private string _totalCount = "";     // 「合計12」「合計12+1」（国営＋民営の完成した棟数＋まだ建っていない意志）
+    [ObservableProperty] private string _runningCount = "";   // 「稼働9」＝実質稼働数（棟数×稼働率）
+    [ObservableProperty] private IBrush? _runningBrush;       // 稼働率で赤→黄→緑
     [ObservableProperty] private bool _canUpFactory;
     [ObservableProperty] private bool _canDownFactory;
     [ObservableProperty] private string? _factoryTip;   // 「国営 n棟　民営 n棟　目標 n棟」＝データのツールチップ

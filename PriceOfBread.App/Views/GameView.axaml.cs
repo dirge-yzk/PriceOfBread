@@ -39,7 +39,7 @@ public partial class GameView : UserControl
     /// <summary>枠に置くものの部品（種類ごとに 1 つ・作り直さない）。ページは Views/Pages・地図は MapView。</summary>
     private Control PartOf(Slot slot)
     {
-        if (slot == Slot.Map) { _diploPage?.HostMap(null); return MapView; }   // 地図が枠に単独で載る＝外交と戦争の欄から外す（同じ部品は同時に 1 か所にしか置けない）
+        if (slot == Slot.Map) { _diploPage?.HostMap(null); return MapView; }   // 地図が中央に出る＝外交と戦争の欄から外す（同じ部品は同時に 1 か所にしか置けない）
         if (!_pages.TryGetValue(slot, out var c))
         {
             _pages[slot] = c = Pages.PageFactory.Create(slot);
@@ -62,11 +62,11 @@ public partial class GameView : UserControl
         if (_layoutVm is not null) { _layoutVm.Layout.Changed -= SyncMapHost; _layoutVm = null; }
         if (DataContext is ViewModels.GameViewModel vm)
         {
-            Splits.Attach(vm.Layout, PartOf);
-            _layoutVm = vm; vm.Layout.Changed += SyncMapHost;   // 外枠（SplitHost）の購読より後に走る＝枠の付け替えが済んでから、地図の置き場を決める
+            Center.Attach(vm.Layout, PartOf);
+            _layoutVm = vm; vm.Layout.Changed += SyncMapHost;   // 中央の箱（PageHost）の購読より後に走る＝付け替えが済んでから、地図の置き場を決める
             SyncMapHost();
         }
-        else Splits.Detach();
+        else Center.Detach();
     }
 
     /// <summary>地図の置き場を決める。地図が単独の枠にあればそこ・無ければ外交と戦争のページの欄（ページが作られていれば。見えていなくても欄が持つ）。
@@ -105,9 +105,7 @@ public partial class GameView : UserControl
         {
             _vmHooked = vm;
             Controls.TableView.DefaultConfirm = vm.ConfirmVerb;   // 共通の表の動詞の確かめの口（確かめの文を持つ動詞は、この窓を通らずには発動しない）
-            Controls.PinHost.Current = vm;                         // 表の行・線グラフ・ヘッダーの指標の右クリックのピン留めの受け口
-            vm.FocusRequested += OnFocusRequested;                 // 問題の一覧とピン留めの飛び先（ページの表の行・欄）
-            HeaderStatList.AddHandler(ContextRequestedEvent, OnHeaderContext, RoutingStrategies.Bubble);
+            vm.FocusRequested += OnFocusRequested;                 // 問題の一覧の飛び先（ページの表の行・欄）
             vm.RebuildPoliticalFill();   // 背景（塗りの型紙）は MapPane の構築で焼き済み＝型紙付きで1枚焼き直す
         }
     }
@@ -120,24 +118,11 @@ public partial class GameView : UserControl
         _keyTop = null;
         _heldKey = Key.None;
         Controls.TableView.DefaultConfirm = null;
-        if (ReferenceEquals(Controls.PinHost.Current, _vmHooked)) Controls.PinHost.Current = null;
         if (_vmHooked is not null) _vmHooked.FocusRequested -= OnFocusRequested;
-        HeaderStatList.RemoveHandler(ContextRequestedEvent, OnHeaderContext);
         _vmHooked = null;
     }
 
-    /// <summary>ヘッダーの指標の右クリック＝ピン留め／ピン留めを外す。</summary>
-    private void OnHeaderContext(object? sender, ContextRequestedEventArgs e)
-    {
-        if (DataContext is not ViewModels.GameViewModel vm || e.Source is not Control src || src.DataContext is not ViewModels.HeaderStat st) return;
-        var pin = vm.HeaderPin(st);
-        var mi = new MenuItem { Header = vm.IsPinned(pin.Id) ? "ピン留めを外す" : "ピン留め" };
-        mi.Click += (_, _) => vm.Toggle(pin);
-        new MenuFlyout { ItemsSource = new object[] { mi } }.ShowAt(src);
-        e.Handled = true;
-    }
-
-    /// <summary>問題の一覧とピン留めの飛び先：欄を開き（畳まれていれば）、表の行を見える所へ送って目印を付ける。生産の財の表は財を選ぶ（行を押したのと同じ）。
+    /// <summary>問題の一覧の飛び先：欄を開き（畳まれていれば）、表の行を見える所へ送って目印を付ける。生産の財の表は財を選ぶ（行を押したのと同じ）。
     /// 部品の配置が済むまで 1 回後ろへ回し、行がまだ無ければ数回だけ待つ。</summary>
     private void OnFocusRequested(ViewModels.FocusRequest r)
     {
@@ -162,15 +147,15 @@ public partial class GameView : UserControl
         if (DataContext is not ViewModels.GameViewModel vm) return;
         // モーダル（確認/Escメニュー/#106外交・戦争・国内危機ポップアップ）表示中はタブ・速度・停止系ショートカットを無視（Esc/F5/F9/F11は従来どおり）
         bool modal = vm.AnyPopupOpen;   // ★2026-08-24：VM側の1本と同じ集合（旧＝ここに列挙していて**選挙モーダルが漏れ**、公示中にスペースで時間が動いた）
-        // ページと地図のキー（PageKeys.Priority の QWERASDFZXCV＝空きのキーも含む）。モーダル中は何もしない
+        // ページのキー（PageKeys.Priority の QWERASDFZXCV＝空きのキーも含む）と Tab。モーダル中は何もしない
         char? letter = e.Key >= Key.A && e.Key <= Key.Z && (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) == 0 ? (char)('A' + (e.Key - Key.A)) : null;
         bool isPriorityKey = letter is { } lc && PageKeys.Priority.Contains(lc);
-        if (modal && (e.Key is Key.Space or (>= Key.D1 and <= Key.D3) or (>= Key.NumPad1 and <= Key.NumPad3) || isPriorityKey)) return;
+        if (modal && (e.Key is Key.Space or Key.Tab or (>= Key.D1 and <= Key.D3) or (>= Key.NumPad1 and <= Key.NumPad3) || isPriorityKey)) return;
         // 押しっぱなしのリピート（毎秒30回）を捨てる。Avalonia 12 の KeyEventArgs にリピートの印は無いので、握ったキーを1つ覚えて同じキーの再入を捨てる
         //（Windowsのリピートは最後に押した1キーだけ＝覚えるのは1つで足りる）。これが無いと切り替え系（スペース＝停止/再開・ページと地図のキー・F11・Esc）は
         // 離した時の状態が押した長さ任せになり、F5/F9 は押している間ずっと保存/読込が走る。
         if (_heldKey != Key.None && e.Key == _heldKey) { e.Handled = true; return; }
-        if (e.Key == Key.Tab) { if (!modal) vm.ToggleProductionMap(); e.Handled = true; }   // Tab＝生産の全面と地図の全面の切替（2026-11-03 作者）。既定のフォーカス移動は握って抑止
+        if (e.Key == Key.Tab) { vm.ToggleProductionMap(); e.Handled = true; }   // Tab＝生産と地図（背景）の切替（2026-11-04 作者）。既定のフォーカス移動も握って抑止
         else if (e.Key == Key.Space)
         {
             vm.TogglePauseCommand.Execute(null);
@@ -197,10 +182,11 @@ public partial class GameView : UserControl
             if (_keyTop is Window w) w.WindowState = w.WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
             e.Handled = true;
         }
-        // ページと地図のキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」）：割り当ては本体の PageKeys が持つ（Q 生産・W 市場・清算・貿易・E 財政と貨幣・R 人口・A 政治と法・S 外交と戦争・D 発見・F 地図・ZXCV 空き）。
-        // 選んでいる枠へ開く。Shift を足すと次の枠へ開く。空きのキーは何もしない。旧の TAB（生産）・Q（財政）・W（法律）などの割り当ては、この表に置き換えた。
-        else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotByKey(slot, (e.KeyModifiers & KeyModifiers.Shift) != 0); e.Handled = true; }   // 生産（Q）は全面の入り切り・全面の間の別のキーは前の配置へ戻ってから開く（LayoutModel.Open）
-        else if (isPriorityKey) { vm.Layout.LeaveFull(); e.Handled = true; }   // 空きのキー＝何も開かないが、生産の全面からは戻る
+        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・市場が Q・地図のキーは無い」）：
+        // 割り当ては本体の PageKeys が持つ（Q 市場・清算・貿易・W 財政と貨幣・E 人口・R 政治と法・A 外交と戦争・S 発見・DFZXCV 空き）。
+        // 出ていなければ出す・もう出ていれば地図へ戻る。空きのキーは何もしない。Tab（生産と地図の切り替え）は上で処理する。
+        else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotCommand.Execute(slot); e.Handled = true; }
+        else if (isPriorityKey) { vm.Layout.LeaveToMap(); e.Handled = true; }   // 空きのキー＝何も開かないが、開いているページからは地図へ戻る
         // ESC＝一元処理：開いている物（メニュー→モーダル）を手前から閉じ、何も無ければメニューを開く（ページは常に枠にある＝閉じる物ではない）
         else if (e.Key == Key.Escape) { vm.HandleEscape(); e.Handled = true; }
         // F5＝クイックセーブ／F9＝クイックロード

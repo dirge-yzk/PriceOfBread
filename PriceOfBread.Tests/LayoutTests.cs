@@ -4,19 +4,21 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(501) 段2：画面の配置（分割の形・枠のページ・キー・保存）と、ページの欄の並べの計算の番人。描画そのものは --uishot が見る＝ここは Avalonia に依らない部分だけを見る。</summary>
+/// <summary>★(501) 段2：画面の配置（中央に出すもの・キー・保存）と、ページの欄の並べの計算の番人。描画そのものは --uishot が見る＝ここは Avalonia に依らない部分だけを見る。</summary>
 public class LayoutTests
 {
     [Fact]
-    public void キーは作者の指示の順_Q生産_W市場_E財政_R人口_A政治と法_S外交と戦争_D発見_F地図_ZXCVは空き()
+    public void キーは生産がTab_残りが作者の指示の順_Q市場_W財政_E人口_R政治と法_A外交と戦争_S発見_地図にキーは無い_DFZXCVは空き()
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var expected = new (Slot Slot, char Key, string Name)[]
         {
-            (Slot.Production, 'Q', "生産"), (Slot.Market, 'W', "市場・清算・貿易"), (Slot.FiscalMoney, 'E', "財政と貨幣"), (Slot.Population, 'R', "人口"),
-            (Slot.PoliticsLaw, 'A', "政治と法"), (Slot.DiplomacyWar, 'S', "外交と戦争"), (Slot.Discovery, 'D', "発見"), (Slot.Map, 'F', "地図"),
+            (Slot.Market, 'Q', "市場・清算・貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "人口"),
+            (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"),
         };
-        Assert.Equal(expected.Length, SlotInfo.All.Count);
+        Assert.Equal(8, SlotInfo.All.Count);
+        Assert.Equal(7, SlotInfo.Pages.Count);   // 押し釦に並ぶのは 7 ページ（地図は釦もキーも持たない）
+        Assert.DoesNotContain(Slot.Map, SlotInfo.Pages);
         foreach (var (slot, key, name) in expected)
         {
             Assert.Equal(key, SlotInfo.Key(slot));
@@ -24,176 +26,107 @@ public class LayoutTests
             Assert.Equal(slot, SlotInfo.OfKey(key));
             Assert.Equal(slot, SlotInfo.OfKey(char.ToLowerInvariant(key)));   // 小文字でも引ける
         }
-        foreach (char free in "ZXCV") Assert.Null(SlotInfo.OfKey(free));      // 空きのキーは何にも割り当てない
-        Assert.Equal("ZXCV", PageKeys.FreeKeys);
+        Assert.Equal("Tab:生産", SlotInfo.ButtonText(Slot.Production));
+        Assert.Equal("生産", SlotInfo.Name(Slot.Production));
+        Assert.Equal("地図", SlotInfo.Name(Slot.Map));
+        Assert.Null(SlotInfo.OfKey('\0'));   // 生産（Tab）と地図は文字のキーで引けない
+        foreach (char free in "DFZXCV") Assert.Null(SlotInfo.OfKey(free));   // 空きのキー（旧の地図の F を含む）は何にも割り当てない
+        Assert.Equal("DFZXCV", PageKeys.FreeKeys);
         Assert.Null(SlotInfo.OfKey('1'));
     }
 
     [Fact]
-    public void 分割の形ごとの枠の数と置き場所_枠は格子の中で重ならず_境目は枠の間を通る()
-    {
-        Assert.Equal(1, SlotInfo.PaneCount(SplitShape.One)); Assert.Equal(2, SlotInfo.PaneCount(SplitShape.LeftRight)); Assert.Equal(2, SlotInfo.PaneCount(SplitShape.TopBottom));
-        Assert.Equal(3, SlotInfo.PaneCount(SplitShape.LeftAndRightStack)); Assert.Equal(4, SlotInfo.PaneCount(SplitShape.Four));
-        foreach (var shape in Enum.GetValues<SplitShape>())
-        {
-            var p = SlotInfo.Place(shape);
-            Assert.Equal(SlotInfo.PaneCount(shape), p.Panes.Length);
-            // 3×3 の格子の各マスを占める枠は高々 1 つ
-            var taken = new HashSet<(int, int)>();
-            foreach (var c in p.Panes)
-                for (int r = c.Row; r < c.Row + c.RowSpan; r++)
-                    for (int col = c.Col; col < c.Col + c.ColSpan; col++)
-                        Assert.True(taken.Add((r, col)), $"{shape}: 枠が重なる ({r},{col})");
-            foreach (var c in p.Panes) { Assert.InRange(c.Row + c.RowSpan, 1, 3); Assert.InRange(c.Col + c.ColSpan, 1, 3); }
-            // 境目のマスは枠のどれにも占められない（枠が境目にかぶらない）か、枠が境目の列・行をまたぐだけ（1 枚・上下の枠が縦の境目を、左右の枠が横の境目をまたぐ）
-            if (p.VerticalSplitter is { } v) Assert.Equal(1, v.Col);
-            if (p.HorizontalSplitter is { } h) Assert.Equal(1, h.Row);
-        }
-        Assert.Null(SlotInfo.Place(SplitShape.One).VerticalSplitter);
-        Assert.NotNull(SlotInfo.Place(SplitShape.Four).VerticalSplitter);
-        Assert.NotNull(SlotInfo.Place(SplitShape.Four).HorizontalSplitter);
-    }
-
-    [Fact]
-    public void 初めの配置は左右に2つ_生産と市場_左右の列は開く()
+    public void 初めの配置は地図_左の列は開く_中央に出るのは常に1つ()
     {
         var m = new LayoutModel();
-        Assert.Equal(SplitShape.LeftRight, m.Shape);
-        Assert.Equal(2, m.PaneCount);
-        Assert.Equal(Slot.Production, m.SlotAt(0)); Assert.Equal(Slot.Market, m.SlotAt(1));
-        Assert.True(m.LeftOpen && m.RightOpen);
-        Assert.Equal(0, m.Selected);
-        Assert.True(m.MainRatio > 0.5);   // 生産が広め
+        Assert.Equal(Slot.Map, m.Current);
+        Assert.True(m.LeftOpen);
+        Assert.Equal([Slot.Map], m.Shown().ToArray());
+        Assert.True(m.IsShown(Slot.Map));
+        Assert.False(m.IsShown(Slot.Production));
     }
 
-    private static void AssertSeatsDistinct(LayoutModel m) => Assert.Equal(4, m.Seats.Distinct().Count());
-
     [Fact]
-    public void 開く操作は4つの席を常に違う物に保つ_別の席にあれば入れ替え_どこにも無ければ置き換え()
+    public void 開く操作は中央を差し替える_同じ物を開いても変わりとしない()
     {
         var m = new LayoutModel();
         int changed = 0; m.Changed += () => changed++;
-        m.Open(Slot.Population, 0);          // 席 3 にある（見えていない）→ 入れ替え
-        Assert.Equal(Slot.Population, m.SlotAt(0)); Assert.Equal(Slot.Production, m.Seats[3]);
-        AssertSeatsDistinct(m);
-        m.Open(Slot.Map, 1);                 // どの席にも無い → 置き換え（市場は席から外れる）
-        Assert.Equal(Slot.Map, m.SlotAt(1)); Assert.DoesNotContain(Slot.Market, m.Seats);
-        AssertSeatsDistinct(m);
-        m.Open(Slot.Population, 1);          // 見えている別の枠にある → 入れ替え
-        Assert.Equal(Slot.Population, m.SlotAt(1)); Assert.Equal(Slot.Map, m.SlotAt(0));
-        AssertSeatsDistinct(m);
-        Assert.Equal(1, m.Selected);         // 開いた枠が選んでいる枠になる
-        Assert.Equal(3, changed);
-        // 同じ物をその枠へ開き直しても席は変わらない
-        var before = m.Seats.ToArray();
-        m.Open(Slot.Population, 1);
-        Assert.Equal(before, m.Seats.ToArray());
-        // 全ての組み合わせの操作の後も 4 つは違う（総当たり）
-        foreach (var s in SlotInfo.All)
-            for (int pane = 0; pane < 4; pane++)
-            {
-                var x = new LayoutModel(); x.SetShape(SplitShape.Four);
-                x.Open(s, pane);
-                AssertSeatsDistinct(x);
-                Assert.Equal(s, x.SlotAt(pane));
-            }
+        m.Open(Slot.Market);
+        Assert.Equal(Slot.Market, m.Current);
+        Assert.Equal([Slot.Market], m.Shown().ToArray());
+        Assert.Equal(1, changed);
+        m.Open(Slot.Market);   // すでに出ている＝変わらない
+        Assert.Equal(1, changed);
+        m.Open(Slot.Map);
+        Assert.Equal(Slot.Map, m.Current);
+        Assert.Equal(2, changed);
     }
 
     [Fact]
-    public void 選んでいる枠へ開く_Shiftは次の枠へ開く_枠が1つなら同じ枠()
+    public void ページのキーは出ていなければ出す_もう出ていれば地図へ戻る()
     {
         var m = new LayoutModel();
-        m.OpenInSelected(Slot.FiscalMoney);
-        Assert.Equal(Slot.FiscalMoney, m.SlotAt(0)); Assert.Equal(0, m.Selected);
-        m.OpenInNext(Slot.Discovery);
-        Assert.Equal(Slot.Discovery, m.SlotAt(1)); Assert.Equal(1, m.Selected);
-        m.OpenInNext(Slot.Map);              // 次は先頭へ戻る
-        Assert.Equal(Slot.Map, m.SlotAt(0)); Assert.Equal(0, m.Selected);
-        m.SetShape(SplitShape.One);
-        m.OpenInNext(Slot.Market);
-        Assert.Equal(Slot.Market, m.SlotAt(0)); Assert.Equal(0, m.Selected);
-        Assert.Equal(1, m.PaneCount);
-        Assert.True(m.IsShown(Slot.Market)); Assert.False(m.IsShown(Slot.Map));
+        m.Toggle(Slot.Market);
+        Assert.Equal(Slot.Market, m.Current);
+        m.Toggle(Slot.FiscalMoney);   // 別のページのキー＝そのページへ（地図を経由しない）
+        Assert.Equal(Slot.FiscalMoney, m.Current);
+        m.Toggle(Slot.FiscalMoney);   // 同じキーをもう一度＝地図へ戻る
+        Assert.Equal(Slot.Map, m.Current);
     }
 
     [Fact]
-    public void 生産の全面_1枚に置き左右の列を畳む_もう一度で前の配置へ戻る_別のページを開いても戻る_保存は前の配置()
+    public void Tabは生産と地図の切り替え_他のページからは生産へ()
     {
         var m = new LayoutModel();
-        m.SetShape(SplitShape.Four); m.OpenInSelected(Slot.Discovery); m.Select(2); m.SetRatios(0.4, 0.3);
-        string before = m.ToJson();
-        var seats = m.Seats.ToArray(); int sel = m.Selected;
-        m.ToggleFull(Slot.Production);
-        Assert.True(m.IsFull); Assert.Equal(Slot.Production, m.FullSlot);
-        Assert.Equal(SplitShape.One, m.Shape); Assert.Equal(0, m.Selected); Assert.Equal(Slot.Production, m.SlotAt(0));
-        Assert.False(m.LeftOpen); Assert.False(m.RightOpen);
-        Assert.Equal(before, m.ToJson());              // 保存するのは入る前の配置（全面のまま落ちても次は元の配置）
-        m.ToggleFull(Slot.Production);                 // もう一度で戻る
-        Assert.False(m.IsFull);
-        Assert.Equal(before, m.ToJson());
-        Assert.Equal(seats, m.Seats.ToArray()); Assert.Equal(sel, m.Selected); Assert.Equal(SplitShape.Four, m.Shape);
-        Assert.True(m.LeftOpen && m.RightOpen);
-        // 別のページを開く（キーでも見出しからでも）＝前の配置へ戻ってから開く
-        m.ToggleFull(Slot.Production);
-        m.OpenInSelected(Slot.Market);
-        Assert.False(m.IsFull); Assert.Equal(SplitShape.Four, m.Shape); Assert.Equal(Slot.Market, m.SlotAt(sel));
-        // Esc（LeaveFull）・形の選び直し・列の開け閉め
-        m.ToggleFull(Slot.Production); Assert.True(m.LeaveFull()); Assert.False(m.IsFull); Assert.False(m.LeaveFull());
-        m.ToggleFull(Slot.Production); m.SetShape(SplitShape.LeftRight); Assert.False(m.IsFull); Assert.Equal(SplitShape.LeftRight, m.Shape);
-        m.ToggleFull(Slot.Production); m.SetColumns(true, false);
-        Assert.False(m.IsFull); Assert.Equal(SplitShape.One, m.Shape); Assert.True(m.LeftOpen);   // 列を自分で開けたら全面の印だけ外す（今の配置のまま）
-        // 全面に入るページが席に無くても入れる・戻ると席は元のまま
-        var m2 = new LayoutModel(); m2.OpenInSelected(Slot.Discovery); m2.OpenInSelected(Slot.Map);
-        Assert.False(m2.Seats.Contains(Slot.Production));
-        var seats2 = m2.Seats.ToArray();
-        m2.ToggleFull(Slot.Production); Assert.Equal(Slot.Production, m2.SlotAt(0)); Assert.Equal(4, m2.Seats.Distinct().Count());
-        m2.LeaveFull(); Assert.Equal(seats2, m2.Seats.ToArray());
-        m2.ToggleFull(Slot.Production); m2.Reset(); Assert.False(m2.IsFull);
+        m.ToggleProductionMap();
+        Assert.Equal(Slot.Production, m.Current);
+        m.ToggleProductionMap();
+        Assert.Equal(Slot.Map, m.Current);
+        m.Open(Slot.Discovery);
+        m.ToggleProductionMap();   // 地図以外（発見）からは生産へ
+        Assert.Equal(Slot.Production, m.Current);
     }
 
     [Fact]
-    public void 形を小さくしても席の中身は残る_選んでいる枠は範囲に収まる_見えているものだけが見えている()
+    public void Escは地図へ戻る_もう地図なら何もしない_戻ったときだけ真()
     {
         var m = new LayoutModel();
-        m.SetShape(SplitShape.Four);
-        m.Select(3);
-        var seats = m.Seats.ToArray();
-        m.SetShape(SplitShape.LeftRight);
-        Assert.Equal(1, m.Selected);         // 範囲に収まる
-        Assert.Equal(seats, m.Seats.ToArray());
-        Assert.False(m.IsShown(seats[3]));
-        m.SetShape(SplitShape.Four);
-        Assert.True(m.IsShown(seats[3]));    // 戻すと現れる
-        Assert.Equal(seats.ToHashSet(), m.Shown().ToHashSet());
+        Assert.False(m.LeaveToMap());   // 地図＝Esc はメニューの仕事
+        m.Open(Slot.Production);
+        Assert.True(m.LeaveToMap());
+        Assert.Equal(Slot.Map, m.Current);
+        Assert.False(m.LeaveToMap());
     }
 
     [Fact]
-    public void 境目の割合は端まで動かせない_非有限は既定へ()
+    public void 左の列の開閉は変わったときだけ知らせる()
     {
         var m = new LayoutModel();
-        m.SetRatios(0.0, 1.0);
-        Assert.InRange(m.MainRatio, 0.15, 0.85); Assert.InRange(m.SubRatio, 0.15, 0.85);
-        m.SetRatios(double.NaN, double.PositiveInfinity);
-        Assert.Equal(LayoutModel.DefaultMainRatio, m.MainRatio); Assert.InRange(m.SubRatio, 0.15, 0.85);
+        int changed = 0; m.Changed += () => changed++;
+        m.SetLeftOpen(true);
+        Assert.Equal(0, changed);
+        m.SetLeftOpen(false);
+        Assert.False(m.LeftOpen);
+        Assert.Equal(1, changed);
     }
 
     [Fact]
-    public void 配置の保存は往復する_壊れた保存は初めの配置へ_席の重なりや欠けを捨てる()
+    public void 配置の保存は往復する_中央に出すものは保存しない_壊れた保存は初めの配置へ_廃止した分割の保存も読める()
     {
         var m = new LayoutModel();
-        m.SetShape(SplitShape.LeftAndRightStack); m.Open(Slot.Map, 1); m.Open(Slot.Discovery, 2); m.SetRatios(0.4, 0.3); m.SetColumns(false, true);
-        var json = m.ToJson();
-        var back = LayoutModel.FromJson(json);
-        Assert.Equal(json, back.ToJson());
-        Assert.Equal(m.Shape, back.Shape); Assert.Equal(m.Seats.ToArray(), back.Seats.ToArray());
-        Assert.Equal(m.Selected, back.Selected); Assert.False(back.LeftOpen); Assert.True(back.RightOpen);
-        var init = new LayoutModel().ToJson();
-        Assert.Equal(init, LayoutModel.FromJson(null).ToJson());
-        Assert.Equal(init, LayoutModel.FromJson("").ToJson());
-        Assert.Equal(init, LayoutModel.FromJson("{壊れ").ToJson());
-        Assert.Equal(init, LayoutModel.FromJson("{\"Shape\":\"Nope\",\"Seats\":[]}").ToJson());
-        Assert.Equal(init, LayoutModel.FromJson("{\"Shape\":\"One\",\"Seats\":[\"Map\",\"Map\",\"Market\",\"Population\"]}").ToJson());   // 席が重なる
-        Assert.Equal(init, LayoutModel.FromJson("{\"Shape\":\"One\",\"Seats\":[\"Map\",\"Market\"]}").ToJson());                          // 席が欠ける
+        m.Open(Slot.Production); m.SetLeftOpen(false);
+        var back = LayoutModel.FromJson(m.ToJson());
+        Assert.Equal(m.ToJson(), back.ToJson());
+        Assert.False(back.LeftOpen);
+        Assert.Equal(Slot.Map, back.Current);   // 起動は地図から
+        Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("").ToJson());
+        Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("{壊れた").ToJson());
+        Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("null").ToJson());
+        // 分割を廃止する前の保存（形・席・割合を持つ）＝知らない項目は読み捨て・左の列と欄の記録は生きる
+        var old = LayoutModel.FromJson("{\"Shape\":\"Four\",\"Seats\":[\"Production\",\"Market\",\"FiscalMoney\",\"Population\"],\"Selected\":2,\"MainRatio\":0.4,\"SubRatio\":0.5,\"LeftOpen\":false,\"RightOpen\":false,\"Sections\":{\"Market\":{\"Opened\":[\"a\"],\"Closed\":[]}}}");
+        Assert.False(old.LeftOpen);
+        Assert.Equal(Slot.Map, old.Current);
+        Assert.Equal(["a"], old.SectionState("Market").Opened);
     }
 
     [Fact]
@@ -213,7 +146,7 @@ public class LayoutTests
         Assert.Equal(["equipment", "goods"], back.SectionState("Production").Opened);
         Assert.Empty(back.SectionState("Market").Opened);
         // 知らないページの記録・空の記録は読まない
-        var junk = LayoutModel.FromJson("{\"Shape\":\"LeftRight\",\"Seats\":[\"Production\",\"Market\",\"FiscalMoney\",\"Population\"],\"Sections\":{\"Nope\":{\"Opened\":[\"a\"],\"Closed\":[]},\"Market\":{\"Opened\":[],\"Closed\":[]}}}");
+        var junk = LayoutModel.FromJson("{\"Sections\":{\"Nope\":{\"Opened\":[\"a\"],\"Closed\":[]},\"Market\":{\"Opened\":[],\"Closed\":[]}}}");
         Assert.Empty(junk.SectionState("Market").Opened);
         Assert.Empty(junk.SectionState("Market").Closed);
         Assert.DoesNotContain("Nope", junk.ToJson());
@@ -233,7 +166,7 @@ public class LayoutTests
         {
             LayoutStore.PathOverride = Path.Combine(dir, "配置.json");
             Assert.Equal(new LayoutModel().ToJson(), LayoutStore.Load().ToJson());   // 無ければ初めの配置
-            var m = new LayoutModel(); m.SetShape(SplitShape.Four); m.Open(Slot.Map, 2);
+            var m = new LayoutModel(); m.SetLeftOpen(false);
             LayoutStore.Save(m);
             Assert.Equal(m.ToJson(), LayoutStore.Load().ToJson());
         }

@@ -198,14 +198,12 @@ public sealed partial class HeaderStat : ObservableObject
     public global::Avalonia.Points SafePoints => Points ?? new();
     partial void OnPointsChanged(global::Avalonia.Points value) => OnPropertyChanged(nameof(SafePoints));
     [ObservableProperty] private string _rangeText = "";
-    /// <summary>年次の系列そのもの（ピン留めの小さな線が描く元。系列の実体への参照で、年ごとに伸びる）。グラフを持たない項目は null。</summary>
-    public IReadOnlyList<double>? Values { get; set; }
     // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：説明API内訳（Terms）はヘッダーから撤去した。
     //   内訳の行き先＝外資信用/行政力→財政タブ・正統性/国民意識→政治タブ・人口/識字率/満足度/闘争度→POPタブ。
     public bool HasHover => HasGraph;   // ホバー＝折れ線だけ
     public bool Plain => !HasGraph;     // 素のテキスト（ホバーなし）
     partial void OnHasGraphChanged(bool value) { OnPropertyChanged(nameof(HasHover)); OnPropertyChanged(nameof(Plain)); }
-    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Brush = s.Brush; Points = s.Points; RangeText = s.RangeText; Values = s.Values; }
+    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Brush = s.Brush; Points = s.Points; RangeText = s.RangeText; }
 }
 
 /// <summary>ヘッダーの深刻度の色（2026-11-03）。通常＝墨・注意＝琥珀・危険＝赤。帯の境目は各項目の側（Refresh.cs）。</summary>

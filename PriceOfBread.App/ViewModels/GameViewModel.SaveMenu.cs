@@ -77,7 +77,6 @@ public partial class GameViewModel
             }
             bw.Write(PastWarRows.Count);
             foreach (var pw in PastWarRows) { bw.Write(pw.Key); bw.Write(pw.EndDay); bw.Write(pw.Title); bw.Write(pw.Detail); }
-            WritePins(bw);   // ★(501) 段4：ピン留め（追記ブロック・旧セーブには無い＝EOF を許す読み手）
             bw.Flush();
             DeliverNews("💾", slot == 0 ? "セーブした" : $"スロット{slot}にセーブした", NewsBlue, _simDays);
             NotifySlots();   // 初セーブでEscメニューの「ロード」が活性化
@@ -128,8 +127,7 @@ public partial class GameViewModel
                 }
             }
             catch { warUi = null; }
-            var pins = warUi is null ? new List<PinRef>() : ReadPins(br);   // 戦争の追記ブロックを読み切れた版だけ（読み切れなければピン留めの位置も分からない）
-            return new GameViewModel(sim, pi, simDays, dq, lsy, series, onExit, onLoad, warUi, pins);
+            return new GameViewModel(sim, pi, simDays, dq, lsy, series, onExit, onLoad, warUi);   // 旧セーブの末尾にあるピン留めのブロック（廃止）は読まずに捨てる
         }
         catch
         {
@@ -168,7 +166,7 @@ public partial class GameViewModel
     // === Escメニュー・終局・タイトル復帰 ===============================================
 
     /// <summary>Escキーの一元処理：開いている物を手前から閉じ、何も無ければメニューをトグル。
-    /// ★(501) 段2：ページは常に枠のどれかに置かれる（閉じる物ではない）＝旧の「発見・生産・タブを閉じる」段は無い。</summary>
+    /// ★2026-11-04：開いているページ（生産を含む）は地図へ戻る＝Esc の段の1つ。</summary>
     public void HandleEscape()
     {
         if (MenuOpen) { MenuOpen = false; return; }
@@ -177,7 +175,7 @@ public partial class GameViewModel
         if (TensionPopupOpen) { TensionIgnore(); return; }   // ✕と同じ（何もせず閉じる）
         if (WarEndPopupOpen) { WarEndAck(); return; }        // ✕／了解と同じ
         if (WarPopupOpen || FactionCrisisOpen || ElectionPopupOpen || CallToArmsOpen) return;   // 選択必須＝Escでは閉じず、メニューも重ねない
-        if (Layout.LeaveFull()) return;   // 生産の全面＝前の配置へ戻る（メニューより先）
+        if (Layout.LeaveToMap()) return;   // 開いているページ（生産を含む）＝地図へ戻る（メニューより先）
         MenuOpen = true;
     }
 

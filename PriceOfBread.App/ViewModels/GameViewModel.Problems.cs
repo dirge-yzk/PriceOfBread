@@ -116,7 +116,7 @@ public partial class GameViewModel
     /// （見えた瞬間の更新は <see cref="GameViewModel.RefreshOnShown"/> が同期で済ませる。部品の配置が済むのを待つため 1 回だけ後ろへ回す）。</summary>
     public void OpenAndFocus(Page page, string tableKey, string rowKey, string section)
     {
-        Layout.OpenInSelected((Slot)(int)page);
+        Layout.Open((Slot)(int)page);
         var req = new FocusRequest(page, tableKey, rowKey, section);
         Avalonia.Threading.Dispatcher.UIThread.Post(() => FocusRequested?.Invoke(req), Avalonia.Threading.DispatcherPriority.Background);
     }

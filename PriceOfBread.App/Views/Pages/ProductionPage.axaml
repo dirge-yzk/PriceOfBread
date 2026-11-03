@@ -126,48 +126,16 @@
                                         BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}"
                                         CornerRadius="3" Opacity="{Binding Opacity}" ClipToBounds="True"
                                         PointerPressed="OnProdNodePressed">
-                                    <!-- 縦の余白は 0＝縦線の中に4段（▲/民営/国営/▼）を積むための実寸を作る。
-                                         内寸＝56 −枠1.5×2 ＝53（選択中は枠3.0で50）＝カウンター 12+13+13+12＝50 が収まる
-                                         （2026-09-23 に ＋−の横並び1段を ▲▼ の上下2段へ＝作者の図どおり民営/国営の行を挟む）。
-                                         ★2026-09-23（3度目・撮影で潰れが確定した後）：縦の余白 2 を捨てて 46→**50** を取り、
-                                           配分を 10+13+13+10 から **12+13+13+12** へ組み替えた＝▲▼ の当たり判定が 56×10→56×12。
-                                           ⚠文字の2行は 13px から下げられない（Yu Gothic UI・11px の ink 下端＝「営」12.72px・「国」12.76px・数字12.00px）
-                                             ＝46 のままでは ▲11/民営12/国営12/▼11 しか作れず、三角の潰れを字の潰れに替えるだけになる。50 なら両方入る。
-                                           ⚠余白を削っても本文は痩せない＝右の3行は 15.96(12px)+14.63+14.63＝45.22px で、
-                                             46 のときは上下 0.39px しか無かった余りが 50 では 2.39px＝**本文側の余裕も増える**
-                                             （どちらも縦中央寄せ＝見た目の位置は動かない）。
-                                         横の余白は 5＝本文の可用幅は 204 −枠1.5×2 −5×2 −(縦線56+隙間6) ＝129px／選択中126px
-                                         （GameViewModel.Production.cs の算術と同じ1本）。 -->
+                                    <!-- ★2026-11-04（作者）：カードは材名＋価格％を大きく出すだけ（稼働率・生産・過不足は財の表にある）。
+                                         縦線は工場カウンター＝▲／合計の棟数／実質稼働数（棟数×稼働率・稼働率で赤→黄→緑）／▼。国営と民営は分けない（内訳はツールチップ）。
+                                         縦の余白は 0＝縦線の中に4段（▲/合計/稼働/▼）を積む。内寸＝56 −枠1.5×2 ＝53（選択中は枠3.0で50）＝12+13+13+12＝50 が収まる。
+                                         ⚠▲▼ は字でなく図形（Path）＝書体に依らず指定した寸法で出る。Fill は継承した前景を自分で引く（:disabled が落とすのは前景だけ＝
+                                         ここを書かないと押せない▼が濃いまま出る）。
+                                         ▲が動かすのは全国工場目標（StepFactoryTargetAll）＝合計の「+n」だけが動く。▲を押すとエンジンが最も効率の良い州へ国営工場を建てる。
+                                         ★Button は押下を Handled にする＝親 Border の OnProdNodePressed（財の選択）と衝突しない。
+                                         ★無効なボタンはツールチップを出せないので枠側に載せる（画面の作法）。▼は削る余地が無い時も押せない状態で出す（0の時も隠さない）。 -->
                                     <DockPanel Margin="5,0">
-                                        <!-- ★カテゴリの縦線を工場カウンターへ拡張（作者要望2026-09-07 (1)）＝色は従来どおり tier のアクセント。
-                                             中身＝▲／民営「完成した棟数」／国営「完成した棟数（＋まだ建っていない意志）」／▼。
-                                             ★2026-09-23 作者の図＝増加は上三角・減少は下三角で、民営と国営の2行を上下から挟む
-                                               （旧は＋−を最下段に横並び1段）。▲▼ が動かすのは**全国工場目標**（GameViewModel.Production.cs の
-                                               StepFactoryTargetAll）＝国営行の「+n」だけが動く。民営行は▲▼では動かない。
-                                             ▲を押すと予定が増え、満たすまでエンジンが最も効率の良い州へ国営工場を建てる（州の選び方はAIの物差しと同じ1本）。
-                                             ★Button は押下を Handled にする＝親 Border の OnProdNodePressed（財の選択）と衝突しない。
-                                             ★無効なボタンはツールチップを出せないので枠側に載せる（画面の作法）＝
-                                               「国営 n棟　民営 n棟　建設予定 n棟　予定を含めて n棟」。
-                                             ★▼は予定のうちまだ州へ配っていない分しか削れない＝削る余地が無い時も**押せない状態で出す**
-                                               （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない。
-                                                Button.counter:disabled が地色を保ったまま記号だけ薄い墨にする）。
-                                             ★▲▼ は**字をやめて図形で置く**（2026-09-23・3度目＝撮影で潰れが確定した）。
-                                               字は 11px で行箱 14.63px（hhea の ascender 2210 + descender 514 を 2048分の11）・ink が 8.64px あり、
-                                               枠1×2 を引いた内寸の箱には上下が切られて入る＝実機では ▲ が 2×3px の点・▼ が幅10pxの線にしか写らなかった。
-                                               Path は書体に依らず**指定した寸法そのもの**で出る＝内寸10px の中へ 10×6 の三角を中央に置く（上下に2pxずつ）。
-                                             ★Fill は継承した前景を自分で引く＝Button.counter の #5A4526 と :disabled の #8C7A55 を
-                                               そのまま使う（色の定義は App.axaml の1箇所のまま＝押せない▼が薄い墨になる規則を壊さない）。
-                                               ⚠Shape.Fill は TextElement.Foreground を自動では読まない（:disabled が落とすのは前景だけ）
-                                                 ＝$self の添付プロパティを束ねる1行が要る。ここを書かないと押せない▼が濃いまま出る。
-                                             ★幅56の中身（11px太字の実寸＝Yu Gothic UI Bold の hmtx。漢字11.00・0=6.107・1=4.426・4=6.338・+=7.638・/=4.549）
-                                               ＝「民営100」38.64px・「民営10000」50.85px＝1つ書きにしたので5桁まで収まる。
-                                               国営の2つ書き「国営100/100」は**59.83px＝3.83px超過**で末尾が無言で切れていた（撮影で確定）。
-                                               ⇒ 分母をやめて**残りの意志がある月だけ差分を足す**＝「国営100」38.64px／「国営100+1」50.70px・
-                                                 「国営12+12」50.70px（予定0の月は 100/100 のように同じ値を2度書かない）。
-                                               ★3桁＋2桁（「国営100+12」56.81px〜「国営999+99」60.33px）は超える＝TextTrimming が「国営100+…」と出す
-                                                 （固定幅で無言にクリップさせない）。数は縦線のツールチップに出る。
-                                                 ⚠これは幅では直せない＝二数を置く形はどれも3桁+2桁を56pxに収められない
-                                                   （最も細い区切りでも「国営999/99」57.25px・半角スペースの「国営444 44」56.71px）。 -->
+                                        <!-- 縦線＝カテゴリの色（tier のアクセント）＋工場カウンター。説明は上の注記。 -->
                                         <Border DockPanel.Dock="Left" Width="56" Background="{Binding Accent}" CornerRadius="1" Margin="0,0,6,0"
                                                 ToolTip.Tip="{Binding FactoryTip}" ToolTip.ShowDelay="200">
                                             <StackPanel VerticalAlignment="Center">
@@ -178,10 +146,13 @@
                                                           Fill="{Binding $self.(TextElement.Foreground)}"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
-                                                <TextBlock Text="{Binding PrivateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
+                                                <TextBlock Text="{Binding TotalCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
                                                            Foreground="#FFF6E8" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding StateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
-                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
+                                                <!-- 実質稼働数は色が意味を持つ＝縦線の地色（tier のアクセント）の上でも読める白い縁取りの面を敷く -->
+                                                <Border Background="#F4EEDD" CornerRadius="2" Height="13" Margin="2,0">
+                                                    <TextBlock Text="{Binding RunningCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
+                                                               Foreground="{Binding RunningBrush}" TextAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                </Border>
                                                 <Button Classes="counter" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
                                                         HorizontalAlignment="Stretch"
                                                         Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}">
@@ -194,13 +165,8 @@
                                         <StackPanel VerticalAlignment="Center" Spacing="0">
                                             <!-- 品名の隣＝世界価格との比較（2026-08-09 項目3）。安い＝青・高い＝赤。値が無い財は空文字＝行は詰まらない -->
                                             <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{Binding NameBrush}"/>
-                                                <TextBlock Text="{Binding PriceDiff}" FontSize="{StaticResource FontTiny}" FontWeight="Bold" Foreground="{Binding PriceDiffBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <TextBlock Text="{Binding Util}" FontSize="{StaticResource FontTiny}" Foreground="{Binding UtilBrush}"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="{Binding Prod}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}"/>
-                                                <TextBlock Text="{Binding Surplus}" FontSize="{StaticResource FontTiny}" FontWeight="Bold" Foreground="{Binding SurplusBrush}"/>
+                                                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{Binding NameBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding PriceDiff}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{Binding PriceDiffBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </DockPanel>

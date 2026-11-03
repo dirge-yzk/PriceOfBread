@@ -4,15 +4,16 @@ namespace PriceOfBread.SimCore.Display;
 /// （<see cref="PlayText"/> と同じ立場＝シムの軌道に触れない）。</summary>
 public enum Page { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery }
 
-/// <summary>ページと地図の切り替えキー（作者の指示 2026-10-23「切り替えキーは QWERASDFZXCV の優先度で、順に埋める」）。
-/// 優先度の列 <see cref="Priority"/> を前から順に、ページ（<see cref="Page"/> の宣言順）・地図の順で割り当てる。残りは空き。
+/// <summary>ページの切り替えキー。生産は Tab（地図との切り替え・作者の指示 2026-11-04）・残りのページは優先度の列 <see cref="Priority"/>（作者の指示 2026-10-23
+/// 「QWERASDFZXCV の優先度で、順に埋める」）を前から、<see cref="Page"/> の宣言順に割り当てる（生産を除く＝市場が Q）。残りは空き。
+/// 地図にはキーが無い（Tab で生産と切り替える・開いているページのキーをもう一度押すか Esc で戻る）。
 /// 割り当ては列と宣言順から導く＝表を手で書かない（ページを足すと自動で次のキーが埋まる）。</summary>
 public static class PageKeys
 {
     /// <summary>キーの優先度の列（作者の指示）。</summary>
     public const string Priority = "QWERASDFZXCV";
 
-    /// <summary>ページの名前（ヘッダーの押し釦・分割の見出し）。漢字 1 字の名前・かっこの補足は置かない。</summary>
+    /// <summary>ページの名前（ヘッダーの押し釦）。漢字 1 字の名前・かっこの補足は置かない。</summary>
     public static string Name(Page page) => page switch
     {
         Page.Production => "生産",
@@ -25,26 +26,26 @@ public static class PageKeys
         _ => "",
     };
 
-    /// <summary>地図（分割に単独で置く）の名前。</summary>
+    /// <summary>地図の名前。</summary>
     public const string MapName = "地図";
 
-    /// <summary>ページのキー（<see cref="Priority"/> の前から、ページの宣言順）。</summary>
-    public static char Key(Page page) => Priority[(int)page];
+    /// <summary>生産のキーの名前（押し釦の文字）。生産だけは文字のキーでなく Tab。</summary>
+    public const string ProductionKeyName = "Tab";
 
-    /// <summary>地図のキー＝ページの次の優先度。</summary>
-    public static char MapKey => Priority[System.Enum.GetValues<Page>().Length];
+    /// <summary>ページの文字のキー（<see cref="Priority"/> の前から、生産を除くページの宣言順）。生産は文字のキーを持たない（'\0'）。</summary>
+    public static char Key(Page page) => page == Page.Production ? '\0' : Priority[(int)page - 1];
 
-    /// <summary>空きのキー（地図の次から末尾まで）。</summary>
-    public static string FreeKeys => Priority[(System.Enum.GetValues<Page>().Length + 1)..];
+    /// <summary>空きのキー（最後のページの次から末尾まで）。</summary>
+    public static string FreeKeys => Priority[(System.Enum.GetValues<Page>().Length - 1)..];
 
-    /// <summary>キーで引くページ。ページのキーでなければ null。</summary>
+    /// <summary>キーで引くページ。文字のキーを持つページでなければ null（生産の Tab は文字でないので引かない）。</summary>
     public static Page? PageOfKey(char key)
     {
         char k = char.ToUpperInvariant(key);
-        foreach (var p in System.Enum.GetValues<Page>()) if (Key(p) == k) return p;
+        foreach (var p in System.Enum.GetValues<Page>()) if (p != Page.Production && Key(p) == k) return p;
         return null;
     }
 
-    /// <summary>押し釦の文字（今の「Q:財政」の形）。</summary>
-    public static string ButtonText(Page page) => $"{Key(page)}:{Name(page)}";
+    /// <summary>押し釦の文字（「Tab:生産」「Q:市場・清算・貿易」の形）。</summary>
+    public static string ButtonText(Page page) => $"{(page == Page.Production ? ProductionKeyName : Key(page).ToString())}:{Name(page)}";
 }

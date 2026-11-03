@@ -99,7 +99,7 @@ public sealed class TableView : UserControl
         foreach (var kv in _rows) kv.Value.SetSelected(SelectedKey is not null && kv.Key == SelectedKey);
     }
 
-    /// <summary>行へ飛ぶ（問題の一覧とピン留めから）。行を見える所へ送り、目印の背景を付ける。行が無ければ false（表がまだ読まれていない・消えた行）。</summary>
+    /// <summary>行へ飛ぶ（問題の一覧から）。行を見える所へ送り、目印の背景を付ける。行が無ければ false（表がまだ読まれていない・消えた行）。</summary>
     public bool FocusRow(string rowKey)
     {
         if (!_rows.TryGetValue(rowKey, out var rp)) return false;
@@ -111,19 +111,6 @@ public sealed class TableView : UserControl
 
     /// <summary>最後に飛んできた行の鍵（撮影の検査が飛び先の行に着いたかを読む）。</summary>
     public string? FocusedKey { get; private set; }
-
-    /// <summary>行の右クリックのメニュー（ピン留め／ピン留めを外す）。表の鍵・ページの無い表（見本など）は出さない。</summary>
-    private IReadOnlyList<object> PinMenuItems(string rowKey)
-    {
-        var host = PinHost.Current; var snap = Snapshot;
-        if (host is null || snap is null || snap.Key.Length == 0 || snap.Page is null) return [];
-        var row = snap.Rows.FirstOrDefault(r => r.Key == rowKey);
-        if (row is null) return [];
-        var pin = new PinRef(PinKind.Row, snap.Page.Value.ToString(), snap.Key, rowKey, row.Name, snap.Name);
-        var mi = new MenuItem { Header = host.IsPinned(pin.Id) ? "ピン留めを外す" : "ピン留め" };
-        mi.Click += (_, _) => host.Toggle(pin);
-        return [mi];
-    }
 
     public TableView()
     {
@@ -177,7 +164,6 @@ public sealed class TableView : UserControl
     private void Rebuild()
     {
         var snap = Snapshot ?? TableSnapshot.Empty;
-        if (snap.Key.Length > 0) PinHost.Current?.SnapshotSeen(snap);   // ピン留めが引き直す元（見えていないページの表も最後に見えた形が残る）
         string sig = string.Join("|", snap.Columns.Select(c => c.Key + ":" + c.Kind));
         if (sig != _columnSig)
         {
@@ -309,9 +295,6 @@ public sealed class TableView : UserControl
         public RowPresenter(TableView owner, IReadOnlyList<ColumnSpec> cols)
         {
             _owner = owner;
-            var flyout = new MenuFlyout();
-            flyout.Opening += (_, _) => { var items = owner.PinMenuItems(_key); flyout.ItemsSource = items; };
-            Root.ContextFlyout = flyout;
             Layout(cols);
             Root.PointerPressed += (_, e) =>
             {

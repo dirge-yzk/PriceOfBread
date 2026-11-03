@@ -18,38 +18,7 @@ public sealed class LineChart : Control
     public static readonly StyledProperty<Func<double, string>?> LabelFormatProperty = AvaloniaProperty.Register<LineChart, Func<double, string>?>(nameof(LabelFormat));
     public static readonly StyledProperty<bool> ShowLabelsProperty = AvaloniaProperty.Register<LineChart, bool>(nameof(ShowLabels), true);
 
-    /// <summary>ピン留めの鍵・枠の名前・元のページの名前（<c>SimCore.Display.Page</c> の名前）。鍵が空なら右クリックのピン留めを出さない（部品の見本など）。</summary>
-    public static readonly StyledProperty<string> PinKeyProperty = AvaloniaProperty.Register<LineChart, string>(nameof(PinKey), "");
-    public static readonly StyledProperty<string> PinNameProperty = AvaloniaProperty.Register<LineChart, string>(nameof(PinName), "");
-    public static readonly StyledProperty<string> PinPageProperty = AvaloniaProperty.Register<LineChart, string>(nameof(PinPage), "");
-    public string PinKey { get => GetValue(PinKeyProperty); set => SetValue(PinKeyProperty, value); }
-    public string PinName { get => GetValue(PinNameProperty); set => SetValue(PinNameProperty, value); }
-    public string PinPage { get => GetValue(PinPageProperty); set => SetValue(PinPageProperty, value); }
-
     static LineChart() => AffectsRender<LineChart>(ValuesProperty, StrokeProperty, StrokeThicknessProperty, LabelFormatProperty, ShowLabelsProperty);
-
-    public LineChart()
-    {
-        var flyout = new MenuFlyout();
-        flyout.Opening += (_, _) => flyout.ItemsSource = PinMenuItems();
-        ContextFlyout = flyout;
-    }
-
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-        if (PinKey.Length > 0) PinHost.Current?.ChartSeen(PinKey, this);   // ピン留めが値と書式を引き直せるよう名乗る
-    }
-
-    private IReadOnlyList<object> PinMenuItems()
-    {
-        var host = PinHost.Current;
-        if (host is null || PinKey.Length == 0) return [];
-        var pin = new PinRef(PinKind.Chart, PinPage, PinKey, "", PinName.Length > 0 ? PinName : PinKey, "");
-        var mi = new MenuItem { Header = host.IsPinned(pin.Id) ? "ピン留めを外す" : "ピン留め" };
-        mi.Click += (_, _) => host.Toggle(pin);
-        return [mi];
-    }
 
     public IReadOnlyList<double>? Values { get => GetValue(ValuesProperty); set => SetValue(ValuesProperty, value); }
     public IBrush? Stroke { get => GetValue(StrokeProperty); set => SetValue(StrokeProperty, value); }
