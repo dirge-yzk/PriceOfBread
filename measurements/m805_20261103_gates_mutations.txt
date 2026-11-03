@@ -1,4 +1,4 @@
-(805) c12cm 門 G を落とす突然変異の腕（使い捨ての木・種 1〜2・計器つき・全長・測る木 ef48a114 の写し）。読み手 scripts/instruments/c12cm/gates_expect.py（許容 1e-9）。生は D:/PoB_work/c12cm_mut/out_c12cm<名>_2/ins（合流の判断まで残す）
+(805) c12cm 門 G を落とす突然変異の腕（使い捨ての木・種 1〜2・計器つき・全長・測る木 e5732421＋作業ツリーの未コミット差〔ef48a114 との差は注と試験だけ＝シムの出力は同じ〕の写し）。読み手 scripts/instruments/c12cm/gates_expect.py（許容 1e-9）。生は D:/PoB_work/c12cm_mut/out_c12cm<名>_2/ins（合流の判断まで残す）
 
 === Mu6
 # D:/PoB_work/c12cm_mut/out_c12cmMu6_2/ins・種 2・崩壊の事象 248（repExpectIndex>0: 246・うち N>=2: 59）・許容 1e-09

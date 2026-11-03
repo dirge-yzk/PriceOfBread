@@ -1,4 +1,4 @@
-(805) c12cm 突然変異の結果 2026-11-03（測る木 ef48a114 の写し D:/PoB_work/c12cm/mut_tree・台本 scripts/instruments/c12cm/mutate.py・mut_tests.sh・mut_arms.sh）。
+(805) c12cm 突然変異の結果 2026-11-03（試験の突然変異の測る木 ef48a114 の写し D:/PoB_work/c12cm/mut_tree。腕の突然変異の木は e5732421＋未コミット差〔ef48a114 との差は注と試験だけ〕・台本 scripts/instruments/c12cm/mutate.py・mut_tests.sh・mut_arms.sh）。
 
 === 試験の突然変異（対照＝何も入れない木で関連する試験 63 本が全て緑 → 1 つ入れるごとに足した試験が赤）
 --- ctrl（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~UrbanFlowRealTests|FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~FactoryEquipmentTests|FullyQualifiedName~ModernizeReturnAndScoreTests|FullyQualifiedName~CpeaceColumn
