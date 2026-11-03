@@ -379,7 +379,7 @@ public sealed class Diplomacy
     private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
     private int _rankClock;   // P14（2026-07-17）：ランク再分類の間引きカウンタ（月次Step単位）。RankUpdateIntervalQuarters=1で毎月（現行恒等）・4で年次
     private int _year;
-    internal bool CpHit, CpCeded; internal double CpRep, CpRepBase, CpBudget0, CpRepRaw; internal int CpCaptured;   // (791) 計器（読むだけ・Instruments.On のときだけ書く）
+    [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // (791) 計器（読むだけ・Instruments.On のときだけ書く・セーブに乗せない〔(800)〕）
     // ⚠「年内の月」（旧 _monthOfYear・2026-08-04）は削除（2026-08-10）。戦闘ログの本文に年月を書くためだけの状態で、
     //   その年月は出来事パネルの配信日と二重に見えていた＝本文の日付を落としたので読み手が居なくなった。
 
@@ -2455,6 +2455,30 @@ public sealed class Diplomacy
         return (x >> 11) * (1.0 / 9007199254740992.0);
     }
 
+    /// <summary>★塹壕の補正の 1 本（(800) で歩の本体から括り出した＝式も順序も同じ）。歩の本体（StepWars の戦争ごとの歩）と崩壊の前走査（同値の厭戦の敗者決め）が同じ関数を呼ぶ＝
+    /// 敗者の判定が塹壕の前後で割れない。TrenchDefenseWeight=0 では何もしない。</summary>
+    private static void TrenchAdjust(Coefficients c, War war, ref double aPush, ref double bPush)
+    {
+        // ★塹壕（2026-08-13・doc 20260812_塹壕と戦車）：守る側の機関銃が壁を作り、攻める側の戦車だけが壁を消す。
+        //   ⚠読むのは**陸分**の充足率（MilitaryQualityFill/MilitaryTier3Fill＝艦は決済に入らないので陸の装備だけ）。艦を含む合算を読むと
+        //     弩級戦艦で塹壕を破れてしまう（上位段とtier3は陸海が同居している）。
+        //   ⚠0 を掛ける形で守らない（相手が非有限なら NaN を作る）＝**分岐**で守り、範囲外は否定形で0へ倒す
+        //     （Math.Clamp は NaN を除去しない＝本プロジェクトの教訓）。
+        //   ★StepWars の接触の強さ（contactStrength）には**掛けない**＝「戦線は動かないが人は死ぬ」がWWIの実相。
+        //     接触側にも壁を掛けると塹壕戦が穏やかな戦争になり、狙い（厭戦→革命）が消える。意図的な非対称。
+        if (c.TrenchDefenseWeight > 0)
+        {
+            double qA = war.A.Nation?.Region.MilitaryQualityFill ?? 0, qB = war.B.Nation?.Region.MilitaryQualityFill ?? 0;
+            double t3A = war.A.Nation?.Region.MilitaryTier3Fill ?? 0, t3B = war.B.Nation?.Region.MilitaryTier3Fill ?? 0;
+            if (!(qA >= 0 && qA <= 1)) qA = 0;
+            if (!(qB >= 0 && qB <= 1)) qB = 0;
+            if (!(t3A >= 0 && t3A <= 1)) t3A = 0;
+            if (!(t3B >= 0 && t3B <= 1)) t3B = 0;
+            aPush *= 1.0 - c.TrenchDefenseWeight * qB * (1.0 - t3A);   // Aの押しを削るのは**Bの**機関銃、取り戻すのは**Aの**戦車
+            bPush *= 1.0 - c.TrenchDefenseWeight * qA * (1.0 - t3B);
+        }
+    }
+
     private void StepWars(Coefficients c)
     {
         foreach (var p0 in Powers)   // 05-A：戦場強度の月次リセット（戦争が終われば産出乗数は即回復＝ストックでなくフロー減衰）
@@ -2628,8 +2652,9 @@ public sealed class Diplomacy
                 var cw = Wars[wi];
                 if (cw.CivilWarParent is not null) continue;   // 列強の調停の戦争も数える（歩の本体は調停の白紙〔戦勝点 0〕を崩壊の戦勝点で上書きして講和する＝賠償を払う）
                 bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
-                // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら月の初めの押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
-                Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (pushA[wi] < pushB[wi] ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
+                // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら塹壕の後の押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
+                double tA = pushA[wi], tB = pushB[wi]; if (ac && bc) TrenchAdjust(c, cw, ref tA, ref tB);   // 同値の厭戦の敗者決めは塹壕の後の押し（歩の本体と同じ関数）
+                Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (tA < tB ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
                 if (pl is null) continue;
                 cpCount[pl] = cpCount.GetValueOrDefault(pl) + 1;
                 if (cpSeen.Add(pl)) { if (!cpFlushAt.TryGetValue(wi, out var fl)) cpFlushAt[wi] = fl = []; fl.Add(pl); }
@@ -2643,24 +2668,7 @@ public sealed class Diplomacy
             double luck = c.WarLuck * (Hash01(Key(war.A, war.B) ^ ((long)_year << 20), war.Months) * 2 - 1);
             // 押し合い＝上の接触の走査で戦線ごとに1回だけ計算した値（mil-11・式は1か所）。
             double aPush = pushA[i], bPush = pushB[i];
-            // ★塹壕（2026-08-13・doc 20260812_塹壕と戦車）：守る側の機関銃が壁を作り、攻める側の戦車だけが壁を消す。
-            //   ⚠読むのは**陸分**の充足率（MilitaryQualityFill/MilitaryTier3Fill＝艦は決済に入らないので陸の装備だけ）。艦を含む合算を読むと
-            //     弩級戦艦で塹壕を破れてしまう（上位段とtier3は陸海が同居している）。
-            //   ⚠0 を掛ける形で守らない（相手が非有限なら NaN を作る）＝**分岐**で守り、範囲外は否定形で0へ倒す
-            //     （Math.Clamp は NaN を除去しない＝本プロジェクトの教訓）。
-            //   ★上の contactStrength には**掛けない**＝「戦線は動かないが人は死ぬ」がWWIの実相。
-            //     接触側にも壁を掛けると塹壕戦が穏やかな戦争になり、狙い（厭戦→革命）が消える。意図的な非対称。
-            if (c.TrenchDefenseWeight > 0)
-            {
-                double qA = war.A.Nation?.Region.MilitaryQualityFill ?? 0, qB = war.B.Nation?.Region.MilitaryQualityFill ?? 0;
-                double t3A = war.A.Nation?.Region.MilitaryTier3Fill ?? 0, t3B = war.B.Nation?.Region.MilitaryTier3Fill ?? 0;
-                if (!(qA >= 0 && qA <= 1)) qA = 0;
-                if (!(qB >= 0 && qB <= 1)) qB = 0;
-                if (!(t3A >= 0 && t3A <= 1)) t3A = 0;
-                if (!(t3B >= 0 && t3B <= 1)) t3B = 0;
-                aPush *= 1.0 - c.TrenchDefenseWeight * qB * (1.0 - t3A);   // Aの押しを削るのは**Bの**機関銃、取り戻すのは**Aの**戦車
-                bPush *= 1.0 - c.TrenchDefenseWeight * qA * (1.0 - t3B);
-            }
+            TrenchAdjust(c, war, ref aPush, ref bPush);   // ★塹壕（2026-08-13）：式は TrenchAdjust の 1 本（前走査の同値の厭戦の敗者決めも同じ関数を呼ぶ）
             // ⚠**元の式をそのまま残す**（2026-08-04）：記帳のために `delta` を括り出して
             //   `war.Score + delta` に書き換えたところ、`(Score + X) + luck` から `Score + (X + luck)` へ
             //   結合順が変わって最終ビットがずれ、**帯が動いた**（政体exact+1.9・列強+3.8＝純記帳のはずが軌道が発散）。
@@ -3107,7 +3115,7 @@ public sealed class Diplomacy
             World.Transfer((lw, null), (ww, null, null), rep, TreasuryCat.WarCost);
             Fiscal.BookForeignDebt(null, new MoneyStock(repBase - rep), lw, ww);
         }
-        if (Instruments.On) { CpHit = true; CpRep = rep; CpRepBase = repBase; CpBudget0 = budget0; CpCaptured = captured; CpCeded = false; CpRepRaw = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay).Value; }   // (791) 計器（読むだけ）
+        if (Instruments.On) { CpHit = true; CpRep = rep; CpBudget0 = budget0; CpCaptured = captured; CpCeded = false; CpRepRaw = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay).Value; }   // (791) 計器（読むだけ）
         Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
 
         // 決定的敗北の本国帰結（doc改善#3）：敗戦ショックで正統性を揺るがし（→Politics 遷移＝敗戦→革命・仏1870/露1917）、

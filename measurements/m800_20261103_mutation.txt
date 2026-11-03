@@ -1,0 +1,17 @@
+(800) c11cp 突然変異の結果 2026-11-03（木 edab05cf 以降・使い捨ての木またはこの木に当てて戻した）。台本 scripts/instruments/c11cp/mutate.py。
+
+=== T1（試験 CollapsePeaceTests.旗1は塹壕の前後で押しの大小が入れ替わる戦争も敗者を歩の本体と同じに決める・PriceOfBread.Tests/CollapsePeaceTests.cs の Fact）
+直す前（試験だけを足した木 a34d8645＋試験）：赤。期待 6157.4733757945105・実 12314.946751589021（ちょうど 2 倍＝イギリスの崩壊が集合に入らず 2 本とも満額で払った）。前提の assert（塹壕の前後で大小が入れ替わっている）は通った。
+直した後（TrenchAdjust を前走査も呼ぶ・コミット defcbf3f）：緑（CollapsePeaceTests 13／13）。
+T1m1（前走査が TrenchAdjust を呼ばない＝塹壕の前の押しで同値の敗者を決める今までの形）：赤。期待 6157.47・実 12314.95（2 倍）＝Close の assert が落ちた。
+T1m2（TrenchAdjust の A 側の補正が qB でなく qA を読む＝A・B の機関銃の取り違え）：赤。前提の assert が落ちた（前 0.0390625<0.111542・後 0.0390625>0.0557711＝塹壕の後も大小が入れ替わらない）。機構の assert（Close）に届く前に前提で止まる＝取り違えは本体の式なので、前提が崩れる形で捕まる。
+他の CollapsePeaceTests 12 本は T1m1・T1m2 の木でも緑（12 合格）。
+
+=== 試験の書き換え（README ★(743)）：既存の試験の書き換え 0。足した試験 1（T1）。
+
+=== Mu6（repBase の戦勝点が saPay でなく sa のまま＝取り分を掛けない・使い捨ての木 c11cpM6・種 1〜2・計器つき・全長）
+旧の列 repRealIndex（CpRepRaw＝saPay で組み直した値）：R_up 1.0000・R_lo 1.0000・L1 0.3665＝全て通る（Mu6 を捕まえない）。
+新の列 repMovedIndex：R_up の最大 8.9196（落ちる）・R_lo の最小 1.1581（通る）・L1 1.1053（落ちる）＝捕まえる。比が 1 の事象 0／59（基線は 38／274）。
+基線（種 1〜2）の新しい列：R_up 2.5（条約港の倍率）・R_lo 0.5（会議の削り）・L1 0.3486。読みは m800_20261103_gates_moved.txt。
+出力：measurements/m800_20261103_gates_moved.txt。生は D:/PoB_work/c11cp/out_c11cpM6_2（合流の判断まで残す）・基線の生は D:/PoB_work/ident_c11cpz/out_ib_10（同）。
+Mu6 の木の他の門（旧の列の読み）：B_up/B_lo 1.0000・C_up 1・C_lo 0.807・U2 0・U3 0 は通る＝Mu6 は賠償の元の取り分だけを壊し、植民地の予算と割譲には触れない。

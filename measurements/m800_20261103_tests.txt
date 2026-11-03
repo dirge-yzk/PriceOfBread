@@ -1,0 +1,9 @@
+(800) c11cp フルスイート（Release・scripts/instruments/c11cp/suite.sh・木 edab05cf 以降のコミット 28662769）2026-11-03
+--list-tests（ident c11cpz の腕 t）：Category!=FullLength 2192・FullLength 3
+nonfull rc=0 2342s
+full rc=0 385s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2191、スキップ:     1、合計:  2192、期間: 38 m 48 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 22 s - PriceOfBread.Tests.dll (net10.0)
+CollapsePeaceTests 13（12＋T1）緑。合計 2192＋3 を --list-tests と突き合わせて一致。スキップ 1 は TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（既存。m791 の記録にも同じスキップ 1 がある）。

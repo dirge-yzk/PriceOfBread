@@ -176,6 +176,42 @@ public class CollapsePeaceTests
         Close(a.esGain, Led(es) - e0);
     }
 
+    [Fact]
+    public void 旗1は塹壕の前後で押しの大小が入れ替わる戦争も敗者を歩の本体と同じに決める()
+    {
+        // TrenchDefenseWeight は既定の 0.5 のまま。1 本目は両者の厭戦が 1.0 で並ぶ（同値）＝敗者は〈塹壕の後の押しが小さい A 側〉で決まる。
+        // 塹壕の前の押しはフランス（A）の方が小さい（前走査が塹壕の前の押しで読めばフランスが敗者）。だが相手（イギリス）の機関銃が無く・フランスの機関銃は満額
+        // ＝イギリスの押しだけが半分に削られて、塹壕の後はフランスの押しの方が大きい＝歩の本体はイギリスを敗者にする。
+        // 2 本目はイギリスがスペインに崩壊で負ける。前走査と本体の敗者が割れると、イギリスの崩壊は集合に入らず 2 本とも満額で払う（連合の N 倍）。
+        // 月の押しは Step の中で作り直される（戦力の同期・艦隊の割合）ので外から置けない＝塹壕なしの同じ盤面を先に 1 回回して押しの比を読み、フランスの即応度で比を 0.7 に置く。
+        (MultiNationSim sim, Power fr, Power uk, Power es, War w1, War w2) Setup(double trench, double frScale)
+        {
+            var b = Board(1);
+            var c0 = b.sim.Coef;
+            c0.TrenchDefenseWeight = trench;
+            b.fr.WarExhaustion = 1.0; b.uk.WarExhaustion = 1.0;
+            b.fr.Nation!.Region.MilitaryQualityFill = 1.0; b.uk.Nation!.Region.MilitaryQualityFill = 0.0;
+            b.fr.Nation.Region.MilitaryTier3Fill = 0.0; b.uk.Nation.Region.MilitaryTier3Fill = 0.0;
+            b.fr.Nation.FiscalFundingRatio = new Share(0.8);
+            b.fr.Nation.MilitaryReadiness *= frScale;
+            return b;
+        }
+        var cal = Setup(0, 1.0);
+        cal.sim.Diplomacy.Step(cal.sim.Coef, cal.sim.Rng, month: 61);
+        double calA = cal.w1.PushA - 3e12, calB = cal.w1.PushB - 1;   // 塹壕なし＝月の押しそのもの（Board の累計の初期値 3e12・1 を引く）
+        Assert.True(calA > 0 && calB > 0, $"前提が崩れた：押しが 0（{calA:G6}/{calB:G6}）");
+
+        var (sim, fr, uk, es, w1, w2) = Setup(0.5, 0.7 * calB / calA);
+        double f0 = Led(fr), e0 = Led(es);
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        double frPost = w1.PushA - 3e12, ukPost = w1.PushB - 1;
+        double frPre = frPost, ukPre = ukPost / (1.0 - 0.5 * 1.0 * (1.0 - 0.0));   // 本体の式を手で逆算：フランスは相手の機関銃 0 で削られず・イギリスはフランスの機関銃 1 で半分
+        Assert.True(frPre < ukPre && frPost > ukPost, $"前提が崩れた：塹壕の前後で大小が入れ替わっていない（前 {frPre:G6}<{ukPre:G6}・後 {frPost:G6}>{ukPost:G6}）");
+        Assert.Empty(sim.Diplomacy.Wars);
+        Assert.True(w1.Score > 1.0 && w2.Score < -1.0, $"前提が崩れた：イギリスが 2 本とも満額で負けていない（戦勝点 {w1.Score:G6}/{w2.Score:G6}）");
+        Close(0.2 * uk.GdpPerMonth.Value * 0.8, (Led(fr) - f0) + (Led(es) - e0));   // 集合で 1 回分（2 本とも満額なら 2 倍）
+    }
+
     // ---- 直に ResolvePeace を呼ぶ：植民地の奪取の予算と本国の割譲の回数 ----
 
     private static MultiNationSim Cess(double flag)
