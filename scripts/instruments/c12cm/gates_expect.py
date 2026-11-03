@@ -25,18 +25,27 @@ E1 = [e for e in ev if F(e['repExpectIndex']) > 0 and F(e['repMovedOverExpect'])
 E2 = [e for e in E1 if int(e['nCollapse']) >= 2]
 print(f'# {d}・種 {len(set(e["seed"] for e in ev))}・崩壊の事象 {len(ev)}（repExpectIndex>0: {len(E1)}・うち N>=2: {len(E2)}）・許容 {tol:g}')
 ok = True
-def gate(name, E):
+def gate(name, E, must=False):
     global ok
     q = [F(e['repMovedOverExpect']) for e in E]
     if not q:
-        print(f'空\t{name}\t事象 0'); return
+        if must: ok = False   # (808) 合流：全ての事象の母集合が空＝期待の側が全て 0 に落ちる誤り（何もしない計器）でも通る門にしない
+        print(f'{"落ちる" if must else "空"}\t{name}\t事象 0'); return
     hi, lo = max(q), min(q)
     up = hi <= 1 + tol; lw = lo >= 1 - tol
     ok = ok and up and lw
     print(f'{"通る" if up else "落ちる"}\tR_up\' {name} 実際÷期待 の最大 ≦1+{tol:g}\t{hi:.10g}\t事象 {len(q)}')
     print(f'{"通る" if lw else "落ちる"}\tR_lo\' {name} 同 最小 ≧1-{tol:g}\t{lo:.10g}')
-gate('全ての崩壊の事象', E1)
+gate('全ての崩壊の事象', E1, must=True)
 gate('N>=2 の事象', E2)
+# (808) 合流：期待≦0 の事象は実際に移った額も 0 であること（期待の側が 0 に落ちる誤りを母集合の外へ逃がさない）
+Z = [e for e in ev if not (F(e['repExpectIndex']) > 0)]
+Zbad = [e for e in Z if not (F(e['repMovedIndex']) == 0)]
+ok = ok and not Zbad
+print(f'{"落ちる" if Zbad else "通る"}\tR_zero 期待≦0 の事象で 実際に移った額 repMovedIndex＝0\t違反 {len(Zbad)}\t事象 {len(Z)}')
+for e in Zbad[:20]:
+    print('  ', e['seed'], e['year'], e['month'], e['loser'], e['repExpectIndex'], e['repMovedIndex'])
+print(f'[記録] 事象 {len(ev)}・repExpectIndex が 0 以下の事象 {len(Z)}（うち repMovedIndex≠0 は {len(Zbad)}）')
 bad = [e for e in E1 if abs(F(e['repMovedOverExpect']) - 1) > tol]
 if bad:
     print(f'落ちた事象 {len(bad)} 件（上位 20 件・比が 1 から遠い順）：種・年・月・敗者・nCollapse・比・repFactors')
