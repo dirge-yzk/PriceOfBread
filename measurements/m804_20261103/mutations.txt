@@ -1,0 +1,8 @@
+元の木（変更なし）: 成功!   -失敗:     0、合格:    12、スキップ:     0、合計:    12、期間: 259 ms - PriceOfBread.Tests.dll (net10.0) 
+MB6-1 減衰の重みを落とす:   失敗 PriceOfBread.Tests.FiscalTests.行政の距離の割増の純関数は手で書いた値を返す(km: 20000, decay: 0.5, expected: 2) [< 1 ms] 失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 38 ms - PriceOfBread.Tests.dll (net10.0) 
+MB6-2 IsFinite を外す:   失敗 PriceOfBread.Tests.FiscalTests.行政の距離の割増の純関数は手で書いた値を返す(km: Infinity, decay: 1, expected: 1) [2 ms] 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 35 ms - PriceOfBread.Tests.dll (net10.0) 
+MB6-3 km>0 を外す:   失敗 PriceOfBread.Tests.FiscalTests.行政の距離の割増の純関数は手で書いた値を返す(km: -5000, decay: 1, expected: 1) [2 ms] 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 37 ms - PriceOfBread.Tests.dll (net10.0) 
+MB6-4 ÷1万を ×1万にする:   失敗 PriceOfBread.Tests.FiscalTests.行政の距離の割増の純関数は手で書いた値を返す(km: 10000, decay: 1, expected: 2) [< 1 ms] 失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 37 ms - PriceOfBread.Tests.dll (net10.0) 
+MB11-1 1.0+ を 0.5+ にする:   失敗 PriceOfBread.Tests.TradeThemeTests.内陸の鉄道の減衰の純関数は手で書いた値を返す(rail: 100, km: 10000, expected: 50) [< 1 ms] 失敗!   -失敗:     4、合格:     0、スキップ:     0、合計:     4、期間: 42 ms - PriceOfBread.Tests.dll (net10.0) 
+MB11-2 ÷1万を落とす:   失敗 PriceOfBread.Tests.TradeThemeTests.内陸の鉄道の減衰の純関数は手で書いた値を返す(rail: 100, km: 10000, expected: 50) [< 1 ms] 失敗!   -失敗:     3、合格:     1、スキップ:     0、合計:     4、期間: 59 ms - PriceOfBread.Tests.dll (net10.0) 
+done
