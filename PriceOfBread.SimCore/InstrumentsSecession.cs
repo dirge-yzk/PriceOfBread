@@ -41,7 +41,7 @@ public static partial class Instruments
                         + ((r.Religion.Length > 0 && cap.Religion.Length > 0 && r.Religion != cap.Religion) ? 0.5 : 0);
         double core = Politics.AvgRegionCoreShare(r);
         if (c.CultureDistanceFromEthnic > 0)
-            cultDist += c.CultureDistanceFromEthnic * ((1.0 - core) - cultDist);
+            cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - core, c.CultureDistanceFromEthnic);
         double mil = Politics.AvgRegionMilitancy(r);
         double tariffTerm = Math.Abs(stance - r.TariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);
         double pressure = tariffTerm, ethnic = 0;

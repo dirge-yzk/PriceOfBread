@@ -1163,9 +1163,7 @@ public sealed class Coefficients
     // 収益駆動の投資：限界収益(逓減)×(1+Leverage×技術) − CapitalCost > 0 の間だけ投資＝固定上限なしで均衡が創発。
     public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
     public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
-    public double BaseUrbanCap = 0.20;            // 前工業の都市化上限（1789≈20%）
-    public double UrbanCapFollowSpeed = 0.02;   // 【点火0.02・2026-08-16＝S級梯子r4単独37/71/56】都市化天井の工業化追従に建設時間（時定数≈4年）＝天井ジャンプ時の史実比8-10倍速い都市化を律速。      // 監査2026-07-05（D3）：都市化天井の工業化追従速度（月次）。1=即時追従（現行と厳密一致）・0.02程度で住宅/インフラの建設時間＝天井が数年遅れて追いつく。#17で有効化検討
-    public double UrbanPerInd = 0.08;             // 工業化度1あたり都市化上限の上乗せ（史実：1890で都市≈37%）
+    // 【墓標2026-11-03 (812)・旗の焼き込み】都市化の天井 BaseUrbanCap（0.20）・UrbanPerInd（0.08）・UrbanCapFollowSpeed（0.02）と旗 UrbanCapOff（(687) 線 urb2 が 2026-10-30 に 1 で点火）＝都市化の天井は置かない（設計思想⑧）。止めるのは所得差（目標の都市の割合）・飢えの線 FamineMigrationFillGate・農奴の門 SerfMobilityGate。天井の式 PopDecision.UrbanShareCap と平滑化の状態 Region.UrbanIndSmoothed も削除した（旧の枝は旗 0 の経路だけが読んでいた）。
     // 工場建設が食う束（鋼＋機械＋セメント＋製材）＝これらの死蔵を解消する消費先（最も不足する成分が律速）
     // 機械は少数の専門職が担う資本財段で常に最も薄い→建設での必要量を下げ「機械は希少でも工業化の壁にはしない」
     // （機械は発電機・電化製品など他用途で価値を保つ）。建設の主体は構造材（鋼・セメント・製材）。
@@ -1563,25 +1561,25 @@ public sealed class Coefficients
     // **植民地/割譲アームは不採用**（ベルリン会議1884-85はアフリカ分割を「加速」＝史実逆行、かつ植民地→ThreatScore→開戦網への非局所波及）。賠償のみ＝Treasury移転で保存則内に閉じる。
     public double ConcertReparationRestraint = 0.04;  // 第7段第1波⑤点火（2026-07-28）：会議外交＝ウィーン体制（傍観する非交戦列強が勝者の賠償を削る＝サンステファノ→ベルリン1878）。旧0.10は2026-07-15却下（賠償削減が富移転を減らし清entrench）→副作用警告に従い0.04へ減量して点火。0でビット恒等。
     public double ConcertRestraintMax = 0.5;         // 抑制の上限（会議度が高くても賠償の半分まで）。非0だが主レバー0が積を先にゼロ化＝恒等不破。
-    public double ThreatTensionRate = 0.10;       // 経済/植民地の大国であること自体が周囲の緊張を高める（覇権防止）。0.25は軍事0で空振りしていたが、GDP+植民地基準に修正(2026-06-23)したら戦争過多(76回)になったため0.10へ＝覇権国を「時々」包囲（常時でなく）
-    public double RouteDependenceTensionRate = 0.10;   // ★点火2026-09-03（B-02・単独A/B batch10・値は設計目安どおり ThreatTensionRate と同桁＝新しい数字を作らない）。
+    public double ThreatTensionPerMonth = 0.10;       // 経済/植民地の大国であること自体が周囲の緊張を高める（覇権防止）。0.25は軍事0で空振りしていたが、GDP+植民地基準に修正(2026-06-23)したら戦争過多(76回)になったため0.10へ＝覇権国を「時々」包囲（常時でなく）
+    public double RouteDependenceTensionPerMonth = 0.10;   // ★点火2026-09-03（B-02・単独A/B batch10・値は設計目安どおり ThreatTensionPerMonth と同桁＝新しい数字を作らない）。
                                                       //   ⚠全ゲート緑（破綻0/デッドロック0/異常0/ハーネス0/要注意フラグ0）で **◎7割帯 13→19**（主指標）。
                                                       //   ⚠記録＝政体exact 46.9→43.3／near 80.0→79.0／法 58.6→57.1／列強再現率 16.3→12.5／領土本国 66.0→61.7／経済 21.3→20.0。
-                                                      //   差し戻し口＝この値を0へ。   // ★13l地政学（点火済み・作者裁定2026-08-14）：閉鎖海盆の出口を扼する相手への緊張（月・依存度1あたり）。露⇔土（黒海×ボスポラス）・普/瑞⇔丁（バルト×エーレスンド）の受け皿＝経済の内積からは出ない対立（観測4回で≈0・99_実装ログ§4-6）。設計目安はThreatTensionRate同桁（依存1.0の国は覇権国並みに扼者を警戒）。0＝RouteTensionが1命令も走らない厳密恒等（⚠既定は0.10＝2026-09-03に点火済み。旧注記「点火はS2測定キュー」は消化済み＝B-02）
-    public double IdeologyTensionRate = 0.22;     // 異なる政体間の緊張（イデオロギー距離1あたり・月）。陣営化の駆動。0.35→0.22＝開戦回数の抑制（覇権の脅威緊張ThreatTensionRateは温存）
+                                                      //   差し戻し口＝この値を0へ。   // ★13l地政学（点火済み・作者裁定2026-08-14）：閉鎖海盆の出口を扼する相手への緊張（月・依存度1あたり）。露⇔土（黒海×ボスポラス）・普/瑞⇔丁（バルト×エーレスンド）の受け皿＝経済の内積からは出ない対立（観測4回で≈0・99_実装ログ§4-6）。設計目安はThreatTensionPerMonth同桁（依存1.0の国は覇権国並みに扼者を警戒）。0＝RouteTensionが1命令も走らない厳密恒等（⚠既定は0.10＝2026-09-03に点火済み。旧注記「点火はS2測定キュー」は消化済み＝B-02）
+    public double IdeologyTensionPerMonth = 0.22;     // 異なる政体間の緊張（イデオロギー距離1あたり・月）。陣営化の駆動。0.35→0.22＝開戦回数の抑制（覇権の脅威緊張ThreatTensionPerMonthは温存）
     public double IdeologyAffinityRelief = 0.30;  // 同じ政体間の緊張低下（月）。同イデオロギーの親近
     // 緊張の差分化（民族/宗教/法の隔たり＝陣営化の駆動。旧の旗 EnableCivilizationTension〔既定 true〕は 2026-10-23 に焼き込み＝常に走る）。時代適合の重み：民族≳法＞宗教
-    public double EthnicTensionRate = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループは反目）。月。政体緊張0.22より十分小＝war-spam回避
+    public double EthnicTensionPerMonth = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループは反目）。月。政体緊張0.22より十分小＝war-spam回避
     public double EthnicAffinityRelief = 0.12;    // 同民族グループ間の緊張低下（月・同一民族はさらに強い）
-    public double LawTensionRate = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由主義 vs 反動＝1848型）。月。政体距離と相関するため控えめ
-    public double ReligionTensionRate = 0.03;     // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）。ファミリー座標距離＋同族異端ボーナス。月
+    public double LawTensionPerMonth = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由主義 vs 反動＝1848型）。月。政体距離と相関するため控えめ
+    public double ReligionTensionPerMonth = 0.03;     // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）。ファミリー座標距離＋同族異端ボーナス。月
     public double ReligionHeresyBonus = 0.22;     // 同ファミリー異宗派（スンナ⇔シーア・カトリック⇔プロテスタント）の摩擦加算＝「異端は異教より揉める（小さな差異のナルシシズム）」。多くの異ファミリー距離を上回る
     public double ReligionAffinityRelief = 0.06;  // 同一宗教間の緊張低下（月）
     // P11 東方問題パック「同宗教保護」（原典2026-07-17・実装2026-08-09・点火済み）：自国と同宗教の州を異宗教の国が支配している→保護利害（緊張チャネル＋介入口実）。
     // 宣言は保存しない＝宗教ラベルの構造から毎期導出（新規状態ゼロ）。書き手＝なし（純係数）。読み手＝Diplomacy.ProtectorTension（緊張）・Diplomacy.InterventionMotive（介入口実）。
     // 番人＝ProtectorTests（既定ピン＋ON経路の式検証）。
     // 再現＝露のバルカン正教保護・聖地管理権争い（クリミアの引き金）・汎イスラム主義（スルタン=カリフ＝オスマン側の同式運用）。台本なし＝州宗教ラベルから創発。
-    public double ProtectorTensionRate = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護の緊張（月）＝これ×grievance（相手国内の自宗教州人口比0..1・完全一致のみ＝同族異端はReligionHeresyBonusの領分で重複計上しない）。休眠側の設計値0.02目安＝EthnicTensionRate 0.06/ReligionTensionRate 0.03 の弟分。0=不走行（厳密恒等）
+    public double ProtectorTensionPerMonth = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護の緊張（月）＝これ×grievance（相手国内の自宗教州人口比0..1・完全一致のみ＝同族異端はReligionHeresyBonusの領分で重複計上しない）。休眠側の設計値0.02目安＝EthnicTensionPerMonth 0.06/ReligionTensionPerMonth 0.03 の弟分。0=不走行（厳密恒等）
     public double ProtectorInterventionWeight = 0.5;  // 【点火2026-08-09 同上】// 列強介入の動機×(1+これ×grievance)＝介入口実（InterventionMotive の1箇所のみ・新しい介入経路は作らない）。休眠側の設計値0.5目安。0=乗算自体を踏まない（PeaceInterventionEnabled=1.0 live下でも厳密恒等）
     // 従属関係（属国/衛星国/傀儡）。旧の旗 EnableDependency〔既定 true〕は 2026-10-23 に焼き込み＝常に有効。
     public double VassalTributeMonthGdpPerQuarter = 0.015;      // 属国/傀儡の貢納＝従属の月の GDP×これを毎四半期 宗主国庫へ（四半期ごとに月 GDP の 1.5%＝年 GDP の 0.5%・運河通行料の両建てを流用・保存）。搾取だが過大にしない
@@ -1940,9 +1938,8 @@ public sealed class Coefficients
     public double IndustrializationOff = 1;         // ★(495) **2026-10-23 に 1 で点火**（同上）。工業化度の倍率の読み手の削除（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」）。0＝今のまま＝厳密恒等。正のとき、能力の倍率 indMult・機械化度・開発度の記憶とヴィンテージ（技術水準を読む 3 つ）が働かない（★(609) 合流の注の直し：賃金の天井の工業化度の項・独占の解体・冷蔵の傾斜は (605) で物理削除＝旗を 0 にしても戻らない）。
                                                     //   州の在庫 Region.Industrialization とその書き手・在庫として読む 8 か所と州の上限 IndustryInvestRegionCap は残す（上限の削除は延期＝事前登録 追記 1 (2)）。
     // ★(605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・2026-10-26〈工業化度の廃止理由は、盤面から読めばよいから〉〔★(609) 合流：原文を確かめられない＝指示文にも docs にも無い・〈原文〉の札を外した〕）。
-    //   残りの旗（CapitalHeadroomFromReturn）は既定 0＝今のまま（UrbanCapOff は (687) で既定 1 に点火）（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。
+    //   残りの旗（CapitalHeadroomFromReturn）は既定 0＝今のまま（UrbanCapOff は (687) で既定 1 に点火し (812) で焼き込んだ）（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。
     //   ★(667) 線 igi4：疫病の衛生・信用の深さ・開幕の交易の比重・扶養力の 4 本の旗（EpidemicSanitFromBoard・CreditDevOff・TradeWeightOpeningEven・CapacityIndTermsOff）を既定 1 で採り、旧の枝・旗・死んだ係数 7 本（EpidemicSanitationHalf・EpidemicSanitationWeight・CreditMultiplierDevWeight・CreditMultiplierDevFloor・CreditDevScale・IndustryCapacityBonus・PollutionCapacityWeight）を物理削除した（事前登録 measurements/igi4_667_20261030_prereg.txt）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
-    public double UrbanCapOff = 1;          // ★(687) **2026-10-30 に 1 で点火**（線 urb2・腕 B・種 1〜20・止める線に当たらず・事前登録 measurements/urb2_687_20261030_prereg.txt [8]・作者「どうぞ。停止せず進めてください」で推奨を採った＝承認ではない）。旧の枝（0）は残す。0＝旧の天井。都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差（目標の都市の割合の sigmoid）・飢えの線（FamineMigrationFillGate）だけ（住居の充足は PopDecision.Run が読まない＝旗の名は UrbanCapOff）。UrbanIndSmoothed は書かない。
     public double UrbanFlowReal = 0;        // ★(706) 線 urb3（設計 docs/202610/20261031/20261031_都市化の目標の式_設計.md 案B・段2 の器）。0＝今の式（シグモイドの目標の都市の割合＋名目の温度 MigrationTemperature・1 ビットも変わらない）。正＝州の中の農村↔都市の移動を〈移る値打ち〉V（<see cref="PopDecision.MigrationValues"/>＝農村は現金＋自給の値・都市は現金−住居の費用・それぞれ 0 で切る）の対称の相対差 g＝2(V都市−V農村)÷(V都市＋V農村) に比例させる：流れ＝Mobility×g×送り手の規模（g＞0 は農村・g＜0 は都市）。**目標の割合も天井も温度も持たない**（旗 UrbanCapOff・MigrationTemperature・UrbanIndSmoothed を読まない）。農奴の門と飢えの門は残る。Mobility の意味は〈目標との差の月の割合〉から〈相対差 1 あたりの送り手の月の割合〉へ変わる（値は同じ 0.02）。**旗 1 の腕は回していない**（段3＝波49・門の基線と幅が要る）。AI の設計＝確証なし。
     public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。★旗 1 の CapitalIndTarget は 0〜1 の割合に掛ける目盛り（旧は工業化度の単位の目標）。ModernizeReturnShare は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む（直読みを外すだけ）。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。
@@ -2270,9 +2267,8 @@ public sealed class Coefficients
     //   艦は海軍の予算（Region.NavalBudget＝装備の器×海の金の割合）と目標の艦隊（海の必要量）の差で買う（EconomyStep.FleetOrder）＝兵の頭数に比例させない（00一覧 §0-A の 0h）。
     //   陸の装備の段は艦を買わない（陸の装備の必要量・充足・在庫の目標から艦を外す＝陸の質の乗数は陸の装備だけ）。
     // ⚠撤去2026-08-12（段B未実装（読み手ゼロ））: FleetPowerWeight  段B のゲート：0=NavalPower は従来（Military×NavalShare）＝厳密恒等／>0 で艦隊ストックから立てる
-    // ★軍艦は港でしか造れない（2026-08-01）。0＝旧（内陸州も軍艦を買う）／1＝港の州が1つも無い国は艦を買わない（(189) 海軍の調達の必要額が0＝海軍の予算は装備の器の残りへ）。
-    // 実測の動機＝1914年の海軍力1位が**内陸の西安王国**、艦隊ストック2位が広州王国だった（docs/202608/99_実装ログ）。
-    public double NavalProcurementNeedsPort = 1.0;
+    // 【墓標2026-11-03 (812)・旗の焼き込み】NavalProcurementNeedsPort（軍艦は港でしか造れない・2026-08-01・既定 1）＝港の州が1つも無い国は艦を買わない（EconomyStep.FleetOrder が常にこの門を通る・(189) 海軍の調達の必要額が0＝海軍の予算は装備の器の残りへ）。
+    //   動機＝1914年の海軍力1位が**内陸の西安王国**、艦隊ストック2位が広州王国だった（docs/202608/99_実装ログ）。旧（内陸州も軍艦を買う）の枝は消した。
     // ★(606) 線 navf／★(669) 線 navf3（海軍の需要の道）：0＝旧（艦の発注と予算は首都の州の1本・英の造船所32のうち31は需要も値段の信号も受けない）／正＝国の海軍の発注と予算を国の**本国格（Core・Integrated）の港の州**へ**同じ割合**で配る
     //   （割合＝本国格の港の取扱高の比・分子と分母は同じ述語 EconomyStep.NavalHomePort・植民地格の港は配りに入れない〔(614) の F1 は入れた〕・EconomyStep.NavalPortSplit）＝各州が自分の市場で普通の経路（需要→配給→決済→艦の在庫）で買う。AI とプレイヤーで同じ道（国の動詞は無い）。
     //   旗の読み手＝Simulation（月初の配り・予算）・EconomyStep（発注と決済の述語 navPort）。既定 1（(679) 線 navf4 で点火＝腕 B・B11 が止める線に当たらず・G7／G1／G1b／G6 が通り〈壊す〉の物差し ①②③ が鳴らず採った・作者 2026-10-30「全て推奨で進めてください。」で推奨を採った〔作者の承認の言葉ではない〕・形の史実の確証は無い）。
@@ -2679,7 +2675,7 @@ public sealed class Coefficients
     public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。Pop.Blend の選抜の枝（残る人がいるときだけ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない
     // 【削除2026-09-30 段4e 後半 4e-3】LiteracyGenerationalDecay（識字の世代減衰の月率0.002）＝世代の流れ（20歳になる若者が max(学校, 母の識字の比×大人の識字) を持ち込む）が置き換えた（設計書 §4-2・§5-2）。
-    public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
+    // 【墓標2026-11-03 (812)・旗の焼き込み】CrossBorderMigrationByOpportunity（人3/外14・既定 1）＝国家間移民を州の機会で常に判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0＝越境移民なしの枝は消した（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）。
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。MigrationDistanceScale は既定 10000 で点火済み（scale=0→減衰1.0）。運賃 MigrationFarePerkKm は (551) で削除。
@@ -3001,7 +2997,7 @@ public sealed class Coefficients
     // ★武器の市場購入（設計メモ §7 作者裁定2026-09-09 の未実装3件(a)・実装2026-09-11・休眠）：反乱勢力（FactionState）が参加POPの貯蓄を資金に、
     //   **国軍と同じ市場で同じ財を**買う（首都州の運動は国庫と同じ配給を奪い合う）。
     //   必要量＝MilitaryUpkeepScale×参加人数 × MilitaryRates（DiscoveredRates を通す＝未発見の装備は要らない）＝Simulation の MilitaryScale と同じ換算（新しい原単位を書かない）。
-    //   陸海＝国軍の「港を持たない者は艦を買わない・総額は陸へ」（NavalProcurementNeedsPort）と同じ式を運動に当てる（運動は港を持たない）。
+    //   陸海＝国軍の「港を持たない者は艦を買わない・総額は陸へ」（EconomyStep.FleetOrder の港の門）と同じ式を運動に当てる（運動は港を持たない）。
     //   質＝国軍の装備充足と**同じ関数**（EconomyStep.ArmsFillContribution／EquipFill）＝耐久品は運動の武器庫（FactionState.ArmsStock）に溜まり同じ摩耗で減る
     //   ＝新しい運動は丸腰から数年（1/摩耗≒50か月）かけて武装する。
     //   資金＝参加POPの貯蓄の合計（導出量・勢力の金庫は作らない）。支払いは参加POPの Paid（貯蓄から減る）→売り手の revenue（普通の市場経路）＝保存。
@@ -3119,7 +3115,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し econ-16・dorm-22）】OpiumSatisfactionPenalty（満足度への直接の減算・休眠0＝作者裁定2026-08-19「阿片も抜く」）＝思想⑨の裏返し＝削除。
                                                  // ★「中毒者は阿片を**需要する**」形は既に入っている（EconomyStep の必要量に州の中毒度を足す・困窮の門の外）＝買えなければ NeedMet が下がり満足度が自然に落ちる。この減算は⑨の二重計上（2026-09-26 訂正・棚卸し dorm-22）。旧0.5
                                                  // （旧注記：1.0はハーネス13/30＝満足↓→困窮ゲート消費↑の正帰還が強すぎ→0.5へ・2026-07-18）
-    public double OpiumBanTensionRate = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
+    public double OpiumBanTensionPerMonth = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
     public double OpiumBanThreshold = 0.05;      // AIが禁令を出す全国平均中毒度の閾値（解除は×0.3のヒステリシス）
     public double DynMandateSatWeight = 0.6;    // perf: 満足重み×(未教育層加重の平均満足−中立点)÷(1−中立点)（第5段5-3＝天命の母数を未教育層へ再定義）
     // 天命の満足項の中立点（これ未満で天命を削る）。旧＝式に埋め込みの0.5（(満足−0.5)×2）。

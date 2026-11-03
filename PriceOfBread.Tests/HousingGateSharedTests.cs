@@ -43,8 +43,8 @@ public class HousingGateSharedTests
     {
         var (econ, migr) = Open(0);
         Assert.False(share_gt(0));   // 期待：share > thr は偽（等しい）
-        Assert.Equal(false, econ);
-        Assert.Equal(false, migr);
+        Assert.False(econ);
+        Assert.False(migr);
     }
 
     [Fact]
@@ -52,8 +52,8 @@ public class HousingGateSharedTests
     {
         var (econ, migr) = Open(-1);
         Assert.True(share_gt(-1));   // 期待：share > BitDecrement(share) は真
-        Assert.Equal(true, econ);
-        Assert.Equal(true, migr);
+        Assert.True(econ);
+        Assert.True(migr);
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class HousingGateSharedTests
     {
         var (econ, migr) = Open(+1);
         Assert.False(share_gt(+1));
-        Assert.Equal(false, econ);
-        Assert.Equal(false, migr);
+        Assert.False(econ);
+        Assert.False(migr);
     }
 
     /// <summary>期待値＝盤面の都市の割合と閾値の比べを test の中で書く（述語の関数を呼ばない）。</summary>

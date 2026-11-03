@@ -27,8 +27,6 @@ public class MigrationPairTests
         return (rural, urban);
     }
 
-    private static double Headroom(Region r, Coefficients c)
-        => (double)typeof(Meritocracy).GetMethod("UrbanHeadroom", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [r, c])!;
 
     [Fact]
     public void 全州で対は独立のループと同じPOP参照_旧の職の移しの規則とも同じ()
@@ -57,7 +55,7 @@ public class MigrationPairTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        r.CapitalEnabled = true; c.UrbanCapOff = 0; r.Industrialization = 1.0; r.UrbanIndSmoothed = -1.0;
+        r.CapitalEnabled = true; r.Industrialization = 1.0;
         var crim = new Pop { ClassId = 14, ClassName = "犯罪者", IsUrban = false, Size = 0, Satisfaction = 1.0 };
         r.Pops.Insert(0, crim);
         var (rural, urban) = Indep(r, true);
@@ -72,12 +70,6 @@ public class MigrationPairTests
         Assert.Equal(rural!.Size + urban!.Size, d.Total, 9);
         Assert.Equal(urban.Size, d.UrbanSize, 9);
 
-        // 職の移しの天井：犯罪者（規模 0）が農村に化けると total が都市だけになり残枠が変わる
-        double total = rural.Size + urban.Size;
-        double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
-        double maxShare = Math.Clamp(c.BaseUrbanCap + indForCap * c.UrbanPerInd, 0, 0.85);
-        Assert.True(maxShare * total - urban.Size > 0, "残枠が 0 では犯罪者が農村に化けても期待値が変わらない");
-        Assert.Equal(Math.Max(0, maxShare * total - urban.Size), Headroom(r, c), 9);
 
         // 人口の移動：犯罪者の規模は動かない（0 のまま）
         PopDecision.Run(r, c);

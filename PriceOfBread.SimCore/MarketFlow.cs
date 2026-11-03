@@ -169,7 +169,7 @@ public static class MarketFlow
                         double rw = RW;
                         if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
                         double rwSpeed = target >= rw ? coef.ReservationWageRisePerDay : coef.ReservationWageFallPerDay;
-                        rw += (target - rw) * rwSpeed;
+                        rw = PoliticalQuantities.Toward(rw, target, rwSpeed);
                         double want = System.Math.Max(target, rw);
                         double p1 = bandFloorOff && want < wrp
                             ? System.Math.Max(want, Eps)   // ★(469) 帯の下側を外す＝参照より下は漸近形を通さない（下限は Eps だけ・参照 wrp で連続＝SoftBandLn(wrp)＝wrp）

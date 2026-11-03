@@ -1,0 +1,7 @@
+組数 1000000
+A 食い違い 0
+B 食い違い 0
+AB_product 食い違い 0
+A_product_K 食い違い 0
+over_steps 食い違い 0
+clamp_wrap 食い違い 0

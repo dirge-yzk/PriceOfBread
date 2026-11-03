@@ -1,0 +1,22 @@
+(812) c13ib 突然変異の記録 2026-11-03（台本 scripts/instruments/c13ib/mut_run.py・使い捨ての複製に 1 本ずつ当て、絞り込んだ試験だけを回す。コミット 055d6809 の木）
+終了コード 1＝赤（変異を検出）・0＝緑（検出できず）。
+
+M1  PolicyPreferences.cs の教育法・女性の権利の行 `-StatusScale * (0.5 + e.Wealth[0])` を LordStake に替える
+    → 赤。失敗 1：Rs2LordOppositionTests.教育法と女性の権利の旧支配層の反対は旧支配層の貯蓄の割合から作られる（足した試験が検出）
+M2  Government.Spend の `w.MandateSpentNew += amount` を `+= applied` にする
+    → 赤。失敗 5：MandateWallStockCapTests.壁の一歩の正統性の払いは壁に当たらない盤面と同じ大きさ（足した試験）ほか 4 本
+M3  EconomyStep.FleetOrder の港の門 `if (!region.NationHasPort) return null;` を外す
+    → 1 回目は緑（絞り込みが EquipDiscoveryTests と NavalPortProcurementTests だけで、港の門を見る試験を含んでいなかった＝台本の絞り込みの誤り）。
+    → 絞り込みを MilitaryTests.軍艦の購入は兵の頭数に比例せず海の必要量と在庫の差で決まる（④ 港の州が無い国は買わない）に直して 2 回目は赤（失敗 1）。穴ではない（この試験は焼き込みの前から持つ）。
+M4  MultiNationSim.MigrateBetweenNations を最初の集計の後で return する（越境移民を止める）
+    → 赤。失敗 1：RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる（越境移民の量を計器と閉じる試験が検出。越境移民の機構そのものの直接の試験ではない＝弱い検出と記録）
+M5  PoliticalQuantities.Toward の符号を壊す（x + k*(x − target)）
+    → 赤。失敗 5：CreditTests 2・FiscalTests 3（寄せる関数を通る信用・財政の試験が検出）
+M6  Calendar.OverSteps を壊す（Math.Pow(rate, steps)）
+    → 赤。失敗 3：CreditTests 3
+
+穴の名乗り：M3 の 1 回目の緑は台本の絞り込みの誤り（試験の穴ではない）。M4 の検出は 1 本だけ＝越境移民が止まったことを直接見る試験は無い（焼き込みの前からの状態。この線では足さない＝記録）。
+
+M7  Meritocracy.UrbanHeadroom の〈if (total <= Eps) return 0;〉を外す（焼き込みで残した 3 つの早い return の 1 本）
+    → 1 回目は緑（順序を守る試験が無かった＝穴）。★(790) に従い IndustrializationReaderTests.職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限 を足した
+    → 2 回目は赤。失敗 1（足した試験が検出）。足した試験は変異なしの木でも通ることを art_c のビルドで確かめる（下の追記）。
