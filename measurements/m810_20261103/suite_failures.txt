@@ -1,0 +1,16 @@
+(810) c13fl フルスイート Category!=FullLength（測った木 13a63b5c＝旗 1）の赤とスキップ（エラー メッセージだけ・スタック トレースは除いた）
+  失敗 PriceOfBread.Tests.IndustrializationReaderTests.工業化度を読む行の数はファイル別の許可表のとおり [461 ms]
+  エラー メッセージ:
+   CapitalMarket.cs: 2 行（許可 1）＝増えた。工業化度を読まず盤面の量を読むこと
+InstrumentsDivhost.cs: 1 行（許可 0）＝増えた。工業化度を読まず盤面の量を読むこと
+  スタック トレース:
+  失敗 PriceOfBread.Tests.UnitTypeTests.在庫のお金をdoubleから作る所の数は宣言のとおり [677 ms]
+  エラー メッセージ:
+   SimCore の `new MoneyStock(` が 66 件（宣言 65）：Bank.cs 1、CapitalMarket.cs 9、Credit.cs 1、Diplomacy.cs 2、Fiscal.cs 9、Model.cs 4、MultiNationSim.cs 3、Simulation.cs 32、World.cs 5＝増えたなら月の流れを在庫へ直に足していないか確かめる（Pop の月末の精算は Calendar.OneMonthOf）・減ったなら宣言を下げる
+  スタック トレース:
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+  失敗 PriceOfBread.Tests.InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す [24 ms]
+  エラー メッセージ:
+   経路名の鍵がソースに1本だけ見つからないか、移し方の呼び出しでない（route_anchors.tsv の anchor を直す）：CapitalMarket.cs：0 本「double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord(nations, i, e[i], divFci0, divSav0, div, divPaid0);」
+  スタック トレース:
+失敗!   -失敗:     3、合格:  2222、スキップ:     1、合計:  2226、期間: 17 m 44 s - PriceOfBread.Tests.dll (net10.0)
