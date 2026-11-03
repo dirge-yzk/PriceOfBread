@@ -1,0 +1,85 @@
+(811) c13ia Simulation.cs の旗の焼き込み（(796) の I2）と tl 段6 の整理（I4）（恒等の線）事前登録 2026-11-03
+基線＝m797（main 9ce2cf90）。枝 c13ia（9ce2cf90 から）。出発＝(796) の表 3 の I2・I4 と表 4。作者「全て推奨でよい」（2026-11-03）で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。
+
+[0] 形の種類＝尾（読み手の整理）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0・新しい補助関数 0。AI とプレイヤーで同じ経路。
+    確証＝あり（旗の旧い枝の削除＝挙動なし）。浮動小数の計算は 1 つも書き換えない（条件の枝を消すだけ。a*b/c の順序・和の順・÷12 の位置は触れない。* 1.0 の消去も無い）。
+    名簿の出し方（表 3 が (796) のログ本文に無いため）：measurements/m796_20261103/pureflags.tsv で files 欄が Simulation.cs だけの旗＝9 本
+    （MilitaryBudgetNeedCapped・RegionalPriceBaseExcludesColonies・MachineCastIronRecipe・ParishEduFunded・ChilledMeatEnabled・KeroseneFromOilEnabled・HouseholdProductionEnabled・MintPriceFloorGate・StandardMetalMintGate）。
+    I3 の法の旗 4 本と BuildingGoodBundle（複数のファイル）は含まない。
+
+[1] 恒等の線・予言 0
+    素の 5 種・計器つき 10 種の成績表が m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行（SOURCE-HASH）を除いて全行一致。
+    計器の表の差は 0（宣言なし）。.cost の件数の行の差は 0。NG の集合は触らない（ng.sh は回さない＝成績表の全行一致が NG の同一を含意する）。
+    浮動小数の順序が変わる箇所＝0。紙の台本（同じ盤面で旧の式と新の式の食い違い）の件数＝0（下の [2] の各行は条件の枝の削除だけで、式の本体は 1 文字も変えない）。
+    ヌル腕は回さない。
+
+[2] 消す物と残す物（読み手の grep：SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表）
+  (A) 残す（Runner・Display・App に読み手がある、または相手の旗と一体＝この回では触らない）
+    StandardMetalMintGate ：PriceOfBread.Runner/Program.cs:1428（診断の印字）。Simulation.cs:2910 が本体の読み。⚠(796) の注〈Runner の印字が読む旗を含む〉に当たる。
+    MintPriceFloorGate    ：読み手は Simulation.cs:2902（`floor`・MintGold の 8 か所）と試験だけ。だが `floor` が常に真になると GoldMintFraction（Share）を読む産出比例の枝
+                            （`frac * mintScale * LastProduced`）と mintScale が本体で死に、GoldMintFraction は Runner/Program.cs:1429 の印字だけが読む欄になる。
+                            DormantIdentityTests の〈係数は全て本体のどこかで読まれる〉の走査の範囲と、FullChainTests の保存則の番人（旧・産出比例経路を係数 0 でピンして読む）に波及する。
+                            StandardMetalMintGate と一組（MoneyThemeTests:79・StateFactoryTests:512 が両方を前提に置く）＝**組ごと残して報告に回す**。
+  (B) 消す（7 本。読み手の grep の結果は下のとおり。App・Runner・Display・SaveGame の名前の表・POB_COEF の名前に読み手 0）
+    MilitaryBudgetNeedCapped  Coefficients.cs:773。読み手＝Simulation.cs:2153（`> 0 && r.Id == 0`）・:2165（`> 0` の Math.Min）。試験＝MilitaryTests.cs:176。
+        式（新）  `if (r.Id == 0) { milCap = Math.Min(…); navalCap = Math.Min(…); }`／`navalNat = Math.Min(navalNat, navNeedNat);`（navNeedNat は :2102 で常に求まる）
+    RegionalPriceBaseExcludesColonies  Coefficients.cs:1204。読み手＝Simulation.cs:1812（`exColonies`）。試験＝IvfInitialValuesTests・PopScanTests.cs:242。
+        式（新）  `exColonies` を真に置き換える（`if (r.Tier != RegionTier.Colonial) {…}`・`if (mainPop > 1e-9) {…}`）。和の足し込みの順は変えない。
+    MachineCastIronRecipe  Coefficients.cs:1207。読み手＝Simulation.cs:1129（`if (coef.MachineCastIronRecipe > 0) {…}`）。試験＝IvfInitialValuesTests・FullChainTests.cs:23。
+        新＝包みを外して中身を同じ順序で残す（producers への追加の順は変わらない）。
+    ParishEduFunded  Coefficients.cs:1876。読み手＝Simulation.cs:2205。試験＝ReformPathTests・ScholarshipTests。
+        式（新）  `… : World.EducationLaw == EducationLaw.Public || World.EducationLaw == EducationLaw.Religious ? share × spending : 0`
+    ChilledMeatEnabled  Coefficients.cs:2060。読み手＝Simulation.cs:1194 だけ。包みを外す。試験の読み手 0（DormantIdentityTests:22 の注）。
+    KeroseneFromOilEnabled  Coefficients.cs:2063。読み手＝Simulation.cs:1175 だけ。包みを外す。
+    HouseholdProductionEnabled  Coefficients.cs:2814。読み手＝Simulation.cs:3249（`if (!(coef.HouseholdProductionEnabled > 0)) return;`）。試験＝HouseholdProductionTests。
+        新＝先頭の return を消す。
+    欄は消して DormantIdentityTests の RetiredFields へ墓標 1 行（★(743)）。Coefficients.cs の墓標コメントは今の意味 1〜2 行。
+    閉じた線の台本（scripts/instruments/ivf536/run_smoke.sh・run_verif.sh・mut_ivf536.py：POB_COEF で RegionalPriceBaseExcludesColonies・MachineCastIronRecipe を渡す）は
+    閉じた線の記録のまま触らない（古い。c12lw の前例）。measurements の *_ins などの .manifest にある名前は記録。
+  (C) I4 tl 段6 の範囲の決定（腕の前）
+    EraOff の物理削除はできない：SimCore/Display/DiscoveryTables.cs:45 が c.EraOff を読み、PriceOfBread.App/ViewModels/GameViewModel.Politics.cs:639 が c.EraFactor(…, c.EraNavalFuel) を呼ぶ
+    （News.cs:289 の注も EraFactor のランプを再現）。EraOff を残したまま SimCore の EraFactor の呼び出しだけを 1.0 へ畳むと、POB_COEF の EraOff=0 で Display は運賃革命を出し本体は無視する
+    半端になる（c12lw の前例が禁じた形）。同じ理由で TechMultipliersOff（Display/FiscalTables.cs）・TechGateByDiscovery（Runner/PlayHarness.cs）も残す。
+    ＝I4 のうち**読み手が SimCore だけの段 2a・2b の旗（TechSignalOff・TechThresholdOff）だけ**を恒等で入れられるか、I2 の ident の後に読み直す（追記で別に事前登録する）。入れられなければ全て報告に回す。
+  (D) c13ib（I5・I11）との重なり：I5 の旗は pureflags.tsv で MultiNationSim.cs・Territory.cs・Diplomacy.cs・PopDecision.cs・Meritocracy.cs にある。
+      本線が触る Simulation.cs の行（:1129・:1175・:1194・:1242 付近・:1812・:2153・:2165・:2205・:3249）に I5 の読み手は無い。Coefficients.cs と DormantIdentityTests.cs は各線が自分の行だけを触る。
+
+[3] 試験（★(743) の札で名乗る）と突然変異
+    1 本ずつ名乗る（-＝削除・~＝書き直し）。確定は試験のコミットで追記に書く。
+    MilitaryTests.軍需予算は上限を超えない（Theory 2 行）       ① InlineData(0.0) の行を消す＝Theory→Fact・Coef の行とメッセージの NeedCapped を消す（−1）
+    IvfInitialValuesTests
+      ~ 旗の既定はF1とF3が1_…                                   ④ 消す欄を名指す Assert 2 行を消し、鋼の組の量の Assert は残す（名前から F1/F3 を落とす）
+      ~ 鋳鉄の機械は旗1でだけ全ての州に1本入り_…                ① 旗 0 の世界 off と `offRegion.Producers.Count + 1`・`Assert.Equal(0, …)` を消す。Assert.Single と手の値の入力は残す
+      ~ 国平均から植民地を外すと…                               ① m0（旗 0）と旗 0 の対照の Assert 3 行を消す。m1 の手の式（本土の平均）・本土の乗数が 1 に届く Assert は残す
+      ~ 賃金の割増の国平均も植民地を外す                         ① Prem(0.0)・e0・p1<p0 を消す。Prem(1.0) と e1 の手の式は残す
+    PopScanTests.州の価格水準の1周の求め方は旧の2周とビット一致 ③ `RegionalPriceBaseExcludesColonies = 0;` の行を消し、写しの 2 周の式の国平均を本土の州だけにする（旗 1 の定義と同じ範囲）。範囲が違えば赤＝盤面の植民地の有無を見る
+    FullChainTests.cs:23                                         ② `132 + (… > 0 ? 1 : 0) + …` → `132 + 1 + …`
+    ReformPathTests（D2）
+      ~ D2_旗0のReligiousの財源は0_旗1はPublicと同じ割合         ① 旗 0 の世界 off の Assert を消し、旗 1 の半分を残す
+      ~ D2_旗1のReligiousは国庫が教育を買い旗0は買わない…        ① 旗 0 の Cum の Assert 行を消す
+      ~ EduBoard の flag 引数・D2_国庫の購入は保存量Dを動かさない   ③ 旗の代入を消す
+    ScholarshipTests（:204・:234）                               ③ `ParishEduFunded = 0` の代入を消す。ただし Board(1, Religious, 1.0) の 0 の Assert は、ParishEduFunded が常に 1 になる世界では
+                                                                    教区学校の国でも最上段なら奨学金が出る（今の既定）ので、教育法に〈財源が 0 の段〉があればそこへ付け替え、無ければ ① で消して報告に〈今の既定〉と書く
+    HouseholdProductionTests ~ 旗 0 の世界を作る Worlds(0.0) の対照                ① 旗 0 の半分を消す。他の行の並びは変えないことは、行が末尾に連続することの確認として残せるなら残す
+    DormantIdentityTests ~ RetiredFields に 7 名を 1 行で足す。
+    ㉑ 書き換える件数の番人＝DormantIdentityTests.係数は全て本体のどこかで読まれる（Coefficients の公開欄を走査）は、欄を消すことで走査の母集合が 7 減るだけ（赤にならない）。
+      WriterRatchetTests など計算量の件数の表は触れない（予言＝変化 0）。UnitTypeTests に 7 名の行は無い（grep 済み）。
+    テストの数の予言（--tests-delta）＝ MilitaryTests −1 のみ（他は Fact の書き直しと Assert の削除）＝−1。ReformPathTests・ScholarshipTests・HouseholdProductionTests に Fact の削除が要るなら試験のコミットの追記で確定する。
+    突然変異（使い捨ての木・焼き込み後のソースに当てる・scripts/instruments/c13ia/mut_run.sh。出力は measurements/m811_20261103_mutation.txt にコミット）
+        M1  Simulation.cs 軍需の上限の必要額での切り捨てを外す（milCap の Math.Min）          → 赤か緑かを記録。緑なら同じ線で機構の試験を足す
+        M2  Simulation.cs UpdateRegionalPriceLevels の植民地の除外を外す                    → IvfInitialValuesTests が赤のはず
+        M3  Simulation.cs 鋳鉄の機械の Producer を足さない                                   → IvfInitialValuesTests・FullChainTests が赤のはず
+        M4  Simulation.cs ParishEduFunded の枝から Religious を外す                           → ReformPathTests（D2）が赤のはず
+        M5  Simulation.cs 冷蔵の加工肉の Producer を足さない                                 → 赤か緑かを記録。緑なら試験を足す
+        M6  Simulation.cs 石油ケロシンの Producer を足さない                                 → 赤か緑かを記録。緑なら試験を足す
+        M7  Simulation.cs AddHouseholdProducers を先頭で戻る                                 → HouseholdProductionTests が赤のはず
+      赤にならなかった突然変異は、同じ線で機構の試験を足して、その突然変異で赤になることを確かめる（★(790)）。
+
+[4] 腕（挙動を変えない＝腕 A のみ）
+    `bash scripts/instruments/ident/ident.sh run c13ia --tree D:/PoB_work/wt_c13ia --tests-delta <整数> --saveleak`（run_in_background）。
+    素の 5 種（b5）・計器つき 10 種（b10_ins）・テストの数・savetest・leakhunt。ヌル腕は回さない。
+    腕の枠：arms.sh free が 4 以上のときだけ ident を始める（c13fl が優先・同時に ident を回す恒等の線は 1 本まで）。待った時間は報告に書く。
+
+[5]〈判定: 恒等〉なら採る（測った種で一致と名乗る）。一致しなければ、その変更を外して報告に回す。
+    フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる（期待＝ident.cfg の値＋ --tests-delta）。
