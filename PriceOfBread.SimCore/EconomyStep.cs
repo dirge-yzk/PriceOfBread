@@ -829,7 +829,7 @@ public static class EconomyStep
             //   種火を残す＝再点火の入口（床撤去後の bootstrap）。新定数ゼロ。墓標＝×UnitCapacity（能力）＝過剰生産・×LastInputFill＝自己参照デッドロック。
             double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
             if (sleep[pi] == 2) s.LaborWeight = rentR * sellR;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
-            else s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
+            else s.LaborWeight = PoliticalQuantities.Toward(s.LaborWeight, rentR * sellR, coef.SupplyAdjustSpeed);
             if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }   // ★(495) 倒産しても設備は残る（Scale は据え置き）＝労働は取らない（旧は Scale=0 が重みを 0 にした）
             prodW[pi] = s.LaborWeight * s.Scale;
             if (Catalog.IsLaborGood(s.GoodId)) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
@@ -991,7 +991,7 @@ public static class EconomyStep
             double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
             // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
             target *= InventoryAdjust(region, s.GoodId, coef);
-            s.Output += coef.SupplyAdjustSpeed * (target - s.Output);
+            s.Output = PoliticalQuantities.Toward(s.Output, target, coef.SupplyAdjustSpeed);
             if (s.Output < 0) s.Output = 0;
             // ★幻の生産の根絶（作者2度指摘・2026-08-10／係数 PhantomOutputSnapFloor に由来の全文）。
             // 上の追従式は**目標が0でも幾何級数で減るだけ**でゼロに到達しない＝1783年に内燃機関・自動車が
@@ -2127,8 +2127,8 @@ public static class EconomyStep
                 double elecStep0 = coef.FillInertia * (0 - s.ElecFill);
                 if (elecStep0 < 0) elecStep0 *= 1.0 - coef.ElecFillIrreversibility;
                 s.ElecFill += elecStep0;
-                s.SteamFill += coef.FillInertia * (0 - s.SteamFill);
-                s.EffFill += coef.FillInertia * (0 - s.EffFill);
+                s.SteamFill = PoliticalQuantities.Toward(s.SteamFill, 0, coef.FillInertia);
+                s.EffFill = PoliticalQuantities.Toward(s.EffFill, 0, coef.FillInertia);
                 inputCost[pi] = 0;
                 continue;
             }
@@ -2170,7 +2170,7 @@ public static class EconomyStep
             if (elecStep < 0) elecStep *= 1.0 - coef.ElecFillIrreversibility;
             s.ElecFill += elecStep;   // 電化はゆっくり進み・剥がれる（設備の慣性）
             double steamFillTarget = steamNeed[pi] > 0 ? ration[Catalog.CoalId] : 0;
-            s.SteamFill += coef.FillInertia * (steamFillTarget - s.SteamFill);   // 蒸気動力もゆっくり進み・剥がれる（電化と同型の設備慣性）
+            s.SteamFill = PoliticalQuantities.Toward(s.SteamFill, steamFillTarget, coef.FillInertia);   // 蒸気動力もゆっくり進み・剥がれる（電化と同型の設備慣性）
             // RGO効率化材の決済（任意＝買えなくても基礎産出は出る）。買えた率が効率(EffFill)に積もる。
             if (effNeed[pi] > 0)
             {
@@ -2180,7 +2180,7 @@ public static class EconomyStep
                 revenue[bg] += pay;
             }
             double effFillTarget = effNeed[pi] > 0 ? effRation[effChosen[pi]] : 0;
-            s.EffFill += coef.FillInertia * (effFillTarget - s.EffFill);   // 効率化もゆっくり進み・剥がれる（慣性）
+            s.EffFill = PoliticalQuantities.Toward(s.EffFill, effFillTarget, coef.FillInertia);   // 効率化もゆっくり進み・剥がれる（慣性）
             inputCost[pi] = ic;
         }
 
@@ -2721,7 +2721,7 @@ public static class EconomyStep
             // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
             double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限
             bool eqS = eqOn && FactoryEquipment.Eligible(s);   // ★(495) 設備を持つ生産者（旗 RecipeEquipment が正・暦が進む月）＝Scale は据え付けた設備で、ただでは伸び縮みしない
-            if (!eqS) s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度
+            if (!eqS) s.Scale = PoliticalQuantities.Toward(s.Scale, scaleTarget, catSpeed);   // ★カテゴリ速度
             // ★幻の工場（**live**・2026-08-11点火／旧の旗 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
             // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。
@@ -2737,7 +2737,7 @@ public static class EconomyStep
 
             // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）
             if (sleep[pi] == 2) s.SmoothedMargin = margin;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
-            else s.SmoothedMargin += coef.FactoryMarginSmoothing * (margin - s.SmoothedMargin);
+            else s.SmoothedMargin = PoliticalQuantities.Toward(s.SmoothedMargin, margin, coef.FactoryMarginSmoothing);
             if (s.Bankrupt)
             {
                 // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。

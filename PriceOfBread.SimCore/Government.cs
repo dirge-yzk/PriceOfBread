@@ -355,9 +355,9 @@ public static class Government
             if (!(gap >= -1 && gap <= 1)) gap = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
             rateTarget = PoliticalQuantities.Clamp01(w.InterestRate + c.TrilemmaRateResponse * gap);
         }
-        w.InterestRate += c.PolicyBaseSpeed * (rateTarget - w.InterestRate);
+        w.InterestRate = PoliticalQuantities.Toward(w.InterestRate, rateTarget, c.PolicyBaseSpeed);
         // 行政費＝官僚機構の予算編成（行政府の内部事項＝利益集団の抵抗は受けない）。目標へ寄る。
-        w.AdminSpending += c.PolicyBaseSpeed * (Q5(PoliticalQuantities.Clamp01(p.AdminSpendingTarget)) - w.AdminSpending);
+        w.AdminSpending = PoliticalQuantities.Toward(w.AdminSpending, Q5(PoliticalQuantities.Clamp01(p.AdminSpendingTarget)), c.PolicyBaseSpeed);
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の予算編成（AntiCorruptionSpending←AntiCorruptionTarget平滑）を物理削除＝汚職V2恒久ONで下流（Fiscal請求・清廉度更新）が全て死んでいた。
         // P9改（2026-07-19ユーザー裁定）：国民形成費レバーは廃止＝NationBuildingSpending は Fiscal の需要駆動ブロック
         // （「選挙を望む層」の自費拠出＝実支払い/満額）が毎月導出する。ここでは動かさない。
