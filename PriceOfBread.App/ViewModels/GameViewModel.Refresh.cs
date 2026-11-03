@@ -56,42 +56,13 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(ExpansionTip));   // 戦力余剰・好戦世論のホバー内訳を再計算
         // ★防衛同盟の枠数はヘッダーから撤去（2026-08-23作者指示）＝同盟の有無は外交タブの国カードのバッジ「同盟」で読む。
 
-        // 概況（上部バー2行目）：人口・GDP・生産・技術力・識字率・満足/闘争度・汚職・正統性・行政力・軍事力。一部はホバーで年次推移グラフ。
-        double popTotal = 0, litSum = 0;
-        foreach (var rp in _player.AllPops()) { popTotal += rp.Size; litSum += rp.Size * rp.Literacy; }
-        double lit = popTotal > 1e-9 ? litSum / popTotal : 0;
+        // 概況（ヘッダーの満足度〜正統性・2026-11-03 に1段へ）。外した項目の控えは下の stats の注記。
         double corrRate = EffectiveCorruption();
         // 技術力＝世界前線比（自国技術÷各国最高＝0〜100%）。開始盤面は技術の助走（WarmupTech・2026-07-13）で前線t≈0.23まで育つ＝
         // 全国ゼロの「団子」を脱し、識字×世俗教育の差が前線比で見える（前線<0.05のみ「揺籃期」＝助走を通らない単一国/古いセーブの安全弁）。
         // 旧表示「技術力:{TechLevel:P0}」は0〜3の絶対値を%扱い（後期300%超）＋「遅れ」を別スケールの前線比で出す不整合＝初期に0%/98%と矛盾表示になっていた（2026-07-12修正）。
         // ★技術力の対最先端比はヘッダーから撤去（2026-08-15＝財政タブの技術効率へ移設）
         // ★軍事力（順位＋即応度）はヘッダーから撤去（2026-08-24作者指示）＝戦争タブの「理想の軍隊」の節見出しへ移設（ArmyIdealHeader）。
-        // 並び＝**GDPが先頭**（2026-08-02ユーザー指示）。以降は論理グループ順：経済（GDP・ジニ係数・技術力）→
-        // 人的（人口・識字率・満足度・闘争度）→統治（汚職・治安・行政力・正統性・国民意識）→軍事力。
-        // GDPと1人あたりGDPの世界順位（2026-08-23作者指示）＝自国より上の国の数＋1。物差しは軍事力の順位（milPos）と同じ。
-        // ★1人あたりは**人単位**（TotalPopulation の内部単位は千人＝×1000で人に直す）。GDPは月次フロー＝1人あたりも同じ期間。
-        double myGdp = _player.GdpPerMonth.Value, myPop = _player.TotalPopulation;
-        double myGdpPc = myPop > 1e-9 ? myGdp / (myPop * 1000.0) : 0;
-        int gdpPos = 1, gdpPcPos = 1;
-        // ★2026-09-23：上位5カ国の一人当たりGDPの一覧（pcList）は撤去＝ホバーが折れ線だけになり読み手が消えた（毎月61カ国ぶんの整形も消える）
-        foreach (var q in powers)
-        {
-            if (q == me || q.Nation is not { } qw) continue;
-            double qPop = qw.TotalPopulation;
-            double qPc = qPop > 1e-9 ? (qw.GdpPerMonth / (qPop * 1000.0)).Value : 0;
-            if (qw.GdpPerMonth.Value > myGdp) gdpPos++;
-            if (qPc > myGdpPc) gdpPcPos++;
-        }
-        // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：ヘッダーのホバーは**折れ線だけ**になった。
-        //   ⚠例外は1行だけ＝一人当たりGDPと世界順位（GDPの量なので置き場はGDPのグラフのホバーしかない・作者指示）。
-        //   上位5カ国の一人当たりGDPの一覧とティア内訳（主食/日用品/…/素材）は撤去した。
-        string gdpHover = $"GDP　一人当たり {Fmt.MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
-        // ★2026-09-23（作者指示「文字数固定」）：各項目の箱の最小幅（画素）。この行は FontBody=13。
-        //   下の数値は「1900年前後に出うる最長の文字列」の実寸を2の倍数へ切り上げたもの。
-        //     地位:列強12位 84（★2026-09-23に1行目から移設） ／ GDP:£999.99M(61位) 130 ／ 人口:1234.56M人 104 ／
-        //     識字率:100% 76（満足度・不満度・闘争度・行政力・正統性も同じ） ／ 工業化:1000% 84 ／
-        //     外資信用:100% 90 ／ 国民意識:-100% 96。統一の機運は**末尾**なので0（右に押すものが無い）。
-        //   合計＝1044px＋項目間の余白 9px×12＝1152px（全画面1920なら可用 1896px に収まる）。実測（1783全画面）で末尾のインク右端は1142px。
         // 地位：列強は順位付き「列強3位」・それ以外は「準列強」「中堅」「弱小」。★2026-09-23に1行目（国名の隣）から概況行へ移したので、
         // 下の stats が読む前にここで作る（旧はSyncRowsの後で作っており、そのまま stats に入れると1ヶ月前の値が出る）。
         // 順位＝国力スコア（NationalScore）で自国より上の列強の数＋1（旧＝Powersリストの生成順インデックスは無関係で、
@@ -110,49 +81,19 @@ public partial class GameViewModel
         PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;
         PlayerRankText = myRank == PowerRank.Great ? $"列強{myPos}位" : myRank == PowerRank.Secondary ? "準列強" : myRank == PowerRank.Middle ? "中堅" : "弱小";
         OnPropertyChanged(nameof(PlayerScoreTip));   // 国名ホバーのスコア4分解を再計算
+        // ★2026-11-03（作者）：ヘッダーを1段に＝国名(地位)・国庫(月の収支)・満足度・不満度・闘争度・正統性だけ。満足度〜正統性は深刻度の色。
+        //   外した項目（GDP・GDP順位・人口・識字率・工業化・外資信用・行政力・国民意識・統一の機運・国債・戦力余剰）は再配置の待ち＝
+        //   docs/202610/20261023/20261023_UIの作り直し_設計.md の「ヘッダーから外した項目（2026-11-03）」。系列（_hist*）の採取とセーブは据え置き。
+        //   色の帯：闘争度・不満度＝暴動の閾値 RiotMilitancyThreshold 0.5 で赤・その半分で琥珀／満足度＝逆向き（50% 未満で琥珀・25% 未満で赤）／
+        //   正統性＝同盟が付く下限 AllyJoinLegitimacyMin 0.4 未満で赤・0.6 未満で琥珀。
+        double sat = NationalScore.MeanSatisfaction(_player), dis = Politics.AvgMassDiscontent(_player), mil = Politics.AvgMassMilitancy(_player);
         var stats = new List<HeaderStat>
         {
-            // ★2026-09-23：地位は国名の隣から**この行**へ移した＝1行目が2段になる退行の是正（算術は GameView.axaml の1行目のコメント）。
-            //   順位もランクも世界が動かす量＝この行の他11項と同類。1行目に残すと 76+12px を食い、最長の国名
-            //   「サルデーニャ＝ピエモンテ」（実測171px）が1行目に入らず戦力余剰が2段目へ落ちていた（撮影で確認）。
-            //   最長「地位:列強12位」＝13pxで実測84px。
-            StatPlain($"地位:{PlayerRankText}", "地位", 84),
-            // ★2026-09-23作者指示：「GDPはnk」→「GDP:nk」（この1行だけ「は」で他は全部「名前:値」だった）
-            StatG($"GDP:{Fmt.Money(myGdp)}", "GDP", _histGdp, Fmt.Money, 92, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）。順位は括弧で添えず別の項目（2026-10-23）
-            StatPlain($"GDP順位:{gdpPos}位", "GDP順位", 92),
-            // ★2026-09-23作者指示：ジニ係数は撤去（採取 _histGini は残す＝セーブの系列配列に居る）。
-            //   ⚠その空きに技術水準を置くのは**差し戻した**＝2026-08-15作者裁定「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」が生きており、
-            //     その撤去の記録がすぐ上の行にコメントで残ったまま再設置していた。年次グラフは TechHover で財政タブへ渡す（_histTech の採取は継続）。
-            StatG($"人口:{Fmt.PopFmt(popTotal)}", "人口", _histPop, Fmt.PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
-            StatG($"識字率:{lit:P0}", "識字率", _histLit, v => v.ToString("P0"), 76),
-            StatG($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, v => v.ToString("P0"), 76),
-            // ★2026-09-23作者指示「識字率の右に満足度・不満度・闘争度の順」＝足りないのは不満度1つ。
-            //   値はエンジンの集計 Politics.AvgMassDiscontent をそのまま呼ぶ（App側に式を書き写さない）。
-            //   ★2026-09-25：満足度（NationalScore.MeanSatisfaction）も「大衆のみ」（Politics.IsMassPop）へ揃えた＝3つの数字が同じ母集団を見る。
-            //   ⚠年次グラフの _histSat はセーブされる系列＝2026-09-25 より前のセーブを読むと、その年までは全POPの定義の値が混ざる。
-            StatG($"不満度:{Politics.AvgMassDiscontent(_player):P0}", "不満度", _histDis, v => v.ToString("P0"), 76),
-            StatG($"闘争度:{Politics.AvgMassMilitancy(_player):P0}", "闘争度", _histMil, v => v.ToString("P0"), 76),
-            // 生産はヘッダーから撤去（GDP＋役務とほぼ同値・2026-07-16）。_histProd の採取とセーブ枠は互換のため保持。
-            // ★2026-08-13：国力スコア7項のうちヘッダーに無かった3つ（工業化・対外信用・金融）を追加。
-            //   工業化はスコア最大の重み(×9)で本作の主題そのものなのに、**自国の全体値を出す場所がUIに1つも無かった**。
-            //   対外信用は外資の流入・引き上げ・配当を全部決めるのに同じく不在（作者指摘）。
-            StatG($"工業化:{_player.MeanIndustrialization:P0}", "工業化", _histInd, v => v.ToString("P0"), 84),   // ★2026-08-31：％表示
-            // ★2026-08-15作者指示：「対外信用」は国家信用とも読める＝実体（外資が付くか/逃げるかの係数）に合わせ「外資信用」へ改名
-            StatG($"外資信用:{_player.CreditRating:P0}", "外資信用", _histCredit, v => v.ToString("P0"), 90),   // 4項の内訳（国債残高/兌換/為替/利回り）は財政タブへ移送（2026-09-23）
-            // ★2026-08-31作者指示：金融(x/6)と汚職はヘッダーから撤去（_histFin/_histCorr の採取はセーブ互換のため継続）
-            // ★2026-08-15作者指示(5)：治安はヘッダーから撤去＝州ホバーへ移設済み（Map.cs・悪化州のみ表示。SecurityTermsも削除済み）
-            // ★2026-09-23：行政力は年次系列を持たない＝グラフが作れない＝ホバーを持たない素の項目にする（内訳は財政タブへ移送）
-            StatPlain($"行政力:{_player.AdminEfficiency:P0}", "行政力", 76),
-            StatG($"正統性:{_player.Legitimacy:P0}", "正統性", _histLeg, v => v.ToString("F3"), 76),        // 説明API（#63）の内訳は政治タブへ移送（2026-09-23）
-            StatG($"国民意識:{_player.NationalConsciousnessDisplay:P0}", "国民意識", _histCons, v => v.ToString("P0"), 96),   // ★2026-08-02：開始時から値がある（World 側で初期値を読み側に持たせた）
-            // 政治資本（MandateSpent）はヘッダー上段の戦力余剰の隣へ移動（2026-07-20ユーザー指示）＝CoercionHeaderText。年次履歴 _histMandate は互換のため採取継続。
+            Sev(StatG($"満足度:{sat:P0}", "満足度", _histSat, v => v.ToString("P0"), 76), SeverityBrushes.LowIsBad(sat, 0.5, 0.25)),
+            Sev(StatG($"不満度:{dis:P0}", "不満度", _histDis, v => v.ToString("P0"), 76), SeverityBrushes.HighIsBad(dis, 0.25, 0.5)),
+            Sev(StatG($"闘争度:{mil:P0}", "闘争度", _histMil, v => v.ToString("P0"), 76), SeverityBrushes.HighIsBad(mil, 0.25, 0.5)),
+            Sev(StatG($"正統性:{_player.Legitimacy:P0}", "正統性", _histLeg, v => v.ToString("F3"), 76), SeverityBrushes.LowIsBad(_player.Legitimacy, 0.6, 0.4)),
         };
-        // ★2026-09-23：統一の機運も1行目から**この行の末尾**へ（1行目の2段化の是正）。1行目では最大265px を食い、しかも
-        //   機運が立つのは長い国名の国（サルデーニャ＝ピエモンテ→イタリア・プロイセン→ドイツ）＝国名と同時に溢れる組み合わせだった。
-        //   末尾＝右に押すものが無いので箱の最小幅は要らない（0）。文言は UnifLine の一本（Fiscal.cs が作る）をそのまま読む。
-        if (UnifLine.Length > 0) stats.Add(StatPlain(UnifLine, "統一の機運", 0));
-        // ★王権支持度（天命×有効度＋世論の支持）のヘッダー表示は撤去（2026-08-23作者指示）。エンジン側の天命（DynasticMandate）は稼働のまま＝表示だけを畳む。
-        // ★制度疲労のヘッダー表示は撤去（2026-08-15作者指示＝機構ごと廃止予定：汚職V2の制度疲労ループが受け皿・台本を創発へdocの残項）
         SyncRows(HeaderStats, stats, h => h.Key, (t, s) => t.CopyFrom(s));   // 据え置き同期＝ヘッダー2行目が点滅しない（キーは GraphTitle でなく Key＝空にならない）
 
         // 戦争タブ（レビュー2026-07-19で改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）と CivDeadA/CivDeadB（民間人）＝内戦・粛清の混入なし、

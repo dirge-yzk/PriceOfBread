@@ -319,6 +319,9 @@ public partial class GameViewModel
         return rows;
     }
 
+    /// <summary>項目に深刻度の色を付けて返す（2026-11-03）。</summary>
+    private static HeaderStat Sev(HeaderStat s, IBrush brush) { s.Brush = brush; return s; }
+
     /// <summary>年次グラフの Stat。<paramref name="boxWidth"/>＝桁が動いても右の項目を押さないための箱の最小幅（画素）。
     /// <paramref name="hoverTitle"/>＝ホバー1行目（既定は title と同じ。GDP だけは「一人当たりGDPと世界順位」をここに載せる
     /// ＝作者指示2026-09-23「GDPの量なのでGDPのグラフのホバーに1行だけ残す」）。突き合わせキー（Key）は常に title＝ホバー題が

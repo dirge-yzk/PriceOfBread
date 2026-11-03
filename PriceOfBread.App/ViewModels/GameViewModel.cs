@@ -85,7 +85,6 @@ public partial class GameViewModel : ViewModelBase
     // ★2026-09-23（作者指示「文字数固定」）：国庫と収支を**2枚に割る**。1枚のままだと箱の右端は止まっても
     //   中の収支の桁が動いて読み位置がずれる（＝指摘が消えない）。それぞれが自前の最小幅を持つ。
     [ObservableProperty] private string _treasuryText = "";
-    [ObservableProperty] private string _balanceText = "";
     // 金融（物価・為替・金利・貸出金利・損失の負債化・家計債務・兌換カバー率）は財政と貨幣のページの金融の表（本体の目録 FiscalTables.Finance）が渡す。ここには持たない。
     [ObservableProperty] private string _playerName = "";   // 旧DebtText/DebtVisible（未バインド）は削除＝財政劣化の連鎖はDebtLineへ統合（監査2026-07-12 死14）
     // ★2026-09-23（作者指示「文字数固定」）：地位（列強12位／準列強／中堅／弱小）を国名から割る。
@@ -93,6 +92,10 @@ public partial class GameViewModel : ViewModelBase
     //   ⚠国名まで固定幅にはしない：最長の変体名「ポーランド＝リトアニア」は18px太字で216px あり、常時確保すると
     //     ヘッダー1行目の合計が全画面の枠を越えて WrapPanel が折り返す＝2段化（2026-08-02に却下済み）を招く。
     [ObservableProperty] private string _playerRankText = "";
+    /// <summary>ヘッダーの国名＝「フランス（列強7位）」（2026-11-03 作者）。</summary>
+    public string PlayerTitle => PlayerRankText.Length > 0 ? $"{PlayerName}（{PlayerRankText}）" : PlayerName;
+    partial void OnPlayerNameChanged(string value) => OnPropertyChanged(nameof(PlayerTitle));
+    partial void OnPlayerRankTextChanged(string value) => OnPropertyChanged(nameof(PlayerTitle));
     // 速度レベル（1〜3＝レート）と再生状態は分離：1/2/3は速度の選択（ハイライトのみ）・スペースで再生/停止。
     [ObservableProperty] private int _speed = 2;
     [ObservableProperty] private bool _playing;
@@ -413,8 +416,7 @@ public partial class GameViewModel : ViewModelBase
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫:{Fmt.Money(_player.Treasury.Value)}";
-        BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(_monthDelta))}/月";
+        TreasuryText = $"国庫:{Fmt.Money(_player.Treasury.Value)}（{(_monthDelta >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(_monthDelta))}）";   // ★2026-11-03 作者「国庫:£n(+£n)」＝括弧の中は先月の収支
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }
 
