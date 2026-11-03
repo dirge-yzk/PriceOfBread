@@ -22,7 +22,7 @@ MUTS = {
     'M3': ('PriceOfBread.SimCore/EconomyStep.cs',
            '        if (!region.NationHasPort) return null;\n',
            '',
-           'FullyQualifiedName~EquipDiscoveryTests|FullyQualifiedName~NavalPortProcurementTests'),
+           'FullyQualifiedName~MilitaryTests.軍艦の購入は兵の頭数に比例せず海の必要量と在庫の差で決まる|FullyQualifiedName~EquipDiscoveryTests'),
     # 越境移民を止める（焼き込んだ早い return を戻して常に return）→ 越境移民の試験が赤のはず
     'M4': ('PriceOfBread.SimCore/MultiNationSim.cs',
            '        int n = Nations.Count;\n        // 1. 行き先の州・機会・座標・受入国の重み・州の受入の上限・居る階級\n',
