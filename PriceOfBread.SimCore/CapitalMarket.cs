@@ -130,7 +130,7 @@ public static class CapitalMarket
         //   旧＝負債は払えた額しか減らず、払えなかった元本が債権のまま残って毎四半期もう一度の逃避と配当を請求された（戻らない輪）。
         //   払えない配当も同じ規則＝未払いを積まない（host に延滞の負債も、owner に未収の債権も立たない）。
         double flightTotal = 0;   // 逃避で消えた請求権の総額（払えた額でなく逃避の額・金建て）
-        var taken = new double[n];   // host 別に実際に抜いた額（逃避＋配当）＝owner へ戻る金。保有者が居ない場合は抜いた host へ返金＝金を捨てない（保存）
+        var taken = new double[n];   double[]? cpY = c.CapitalDividendFromHostRent > 0 ? new double[n] : null;   double insDep = 0, insNewIn = 0; if (Instruments.On) Instruments.DivworldStart(nations, e);   // host 別に実際に抜いた額（逃避＋配当）＝owner へ戻る金。保有者が居ない場合は抜いた host へ返金＝金を捨てない（保存）／★(810) 旗が正のときだけ＝受け皿ごとの払った利回り（四半期・払い÷その時点の外資の負債）。旗 0 は配列も作らない／insDep・insNewIn と DivworldStart は計器（読むだけ・divworld_s）
         ProbeSnap();
         for (int i = 0; i < n; i++)
         {
@@ -163,15 +163,15 @@ public static class CapitalMarket
                         if (h == i) continue;
                         double k = got * e[i] * (cred[h] * System.Math.Max(0, ngdp[h]) * e[h] / credSum) / e[h];   // 金建ての取り分を受け皿の通貨へ
                         GiveGold(w[h], k);
-                        w[h].ForeignCapitalIn += new MoneyStock(k);
+                        w[h].ForeignCapitalIn += new MoneyStock(k); if (Instruments.On) insDep += k * e[h];   // (810) 計器：預けの額（金建て）
                         fx += k;
                     }
                 }
             }
             double flight = System.Math.Min(w[i].ForeignCapitalIn.Value, (w[i].ForeignCapitalIn * c.CapitalFlightRatePerQuarter.Value * (1.0 - cred[i])).Value);
             if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
-            double divFci0 = w[i].ForeignCapitalIn.Value, divSav0 = Instruments.On ? InvestorSavings(w[i]) : 0; double div = c.CapitalDividendFromHostRent > 0 ? HostRentDividend(w[i]) : (w[i].ForeignCapitalIn * c.CapitalDividendRatePerQuarter.Value).Value;
-            double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord(nations, i, e[i], divFci0, divSav0, div, divPaid0);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
+            double divFci0 = w[i].ForeignCapitalIn.Value, divSav0 = Instruments.On ? InvestorSavings(w[i]) : 0; double div = c.CapitalDividendFromHostRent > 0 ? HostRentDividend(w[i], c) : (w[i].ForeignCapitalIn * c.CapitalDividendRatePerQuarter.Value).Value;
+            double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (cpY is not null) { double divU = div - divPaid0; if (divU > 1e-9) { double divWo = System.Math.Min(divU, w[i].ForeignCapitalIn.Value); if (divWo > 0) { w[i].ForeignCapitalIn -= new MoneyStock(divWo); flightTotal += divWo * e[i]; } } cpY[i] = divFci0 > 0 ? divPaid0 / divFci0 : 0; } if (Instruments.On) Instruments.DivhostRecord(nations, i, e[i], divFci0, divSav0, div, divPaid0);   // 旗 0：払えない配当は積まない（未払いの負債も未収の債権も立たない）／★(810) 旗が正：払えない利札（未払い）は外資の負債から同じ額を落とし、逃避と同じく金建てで flightTotal へ＝下の還流で持ち主の対外資産も同じ額だけ減る（規則 C の型・(b)）
         }
         ProbeDiff("逃避配当");
         // 按分は金建て（対外資産×為替の比）＝逃避の請求権と戻る金を金建てで配り、各国の通貨へ戻す。
@@ -192,6 +192,16 @@ public static class CapitalMarket
             for (int i = 0; i < n; i++)
                 if (taken[i] > 0) GiveGold(w[i], taken[i]);   // 同じ国へ戻す＝換算なし
         ProbeDiff("還流");
+        // ★(810) c13fl (c)：払われた利回りを流入の収益率へ（旗 CapitalDividendFromHostRent が正のときだけ）。ret は上の最初の巡で決まり、利札は後の巡＝今四半期の払いを (3) の前で足す。
+        //   項＝PolicyRateCapitalDraw×払った利回り（年の率）×信用＝政策金利の項（carry）と同じ重みと同じ信用の掛け方（新しい係数なし）。worldRate は同じ式で取り直す。
+        //   利回り＝払い÷外資の負債（同じ受け皿の通貨の名目どうし）。流入で外資の負債が積み上がると利札の率（HostRentDividend の分母）が下がる＝錠も天井も無い。旗 0 は 1 命令も通らない（計器の書き出しだけ）。
+        if (cpY is not null)
+        {
+            worldRate = 0;
+            for (int i = 0; i < n; i++) { double rt = c.PolicyRateCapitalDraw * Calendar.PerQuarterToPerYear(cpY[i]) * cred[i]; double r0 = ret[i]; ret[i] += rt; cpY[i] = ret[i] - r0; worldRate += ret[i]; }   // cpY＝実際に動いた ret の差（計器の実際の側）
+            worldRate /= n;
+        }
+        if (Instruments.On) for (int i = 0; i < n; i++) Instruments.DivhostFlush(nations, i, cpY is null ? 0 : cpY[i]);   // (810) 計器（読むだけ）：利札の行を ret に足した額つきで書き出す
 
         // (3) 新規フロー：収益率＞worldRate の国が呼び込み（流入）、＜の国が送り出す（流出）。材の清算（min(需要,供給)）と同型。
         var demand = new double[n]; var supply = new double[n];
@@ -232,9 +242,11 @@ public static class CapitalMarket
                     given += kg;
                     double k = kg / e[i];
                     w[i].ForeignCapitalIn += new MoneyStock(k); GiveGold(w[i], k); fx += k;   // 流入→投資家貯蓄（工業化を支える・受け手の通貨）
+                    if (Instruments.On) insNewIn += k * e[i];   // (810) 計器：新規の流入（金建て）
                 }
         }
         ProbeDiff("新規フロー");
+        if (Instruments.On) Instruments.DivworldEnd(nations, e, insDep, insNewIn, flightTotal);   // (810) 計器（読むだけ）：世界の外資の負債と対外資産の出入り
 
         // === 02断線走査（2026-07-28）繋ぐべき筆頭＝対外国債の相手方（レンティア帝国の成立）===
         // 旧＝外債の利子は債務国のCumulativeTradeFlowから一方向に消えるだけ（片側記帳）＝「債務国は痛むが債権国は儲からない」
@@ -344,12 +356,15 @@ public static class CapitalMarket
                 if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims += new MoneyStock(g * (InvestorSavings(wj) * wj.FxRate / inv) / wj.FxRate); }
     }
 
-    /// <summary>★(801) 外資の利札（旗 <c>CapitalDividendFromHostRent</c>・設計思想⑨⑩）：受け皿 <paramref name="w"/> が外資の負債（<see cref="World.ForeignCapitalIn"/>）の持ち主へ払う四半期の額＝
-    /// 受け皿の投資家の工業レント（四半期分）×外資の負債÷(外資の負債＋投資家の貯蓄)。預けた金は受け皿の投資家の富の一部として、その富が実際に稼いだ分の持ち分を受ける（旧＝産出と結ばない固定の率×外資の負債）。
-    /// 工業レント＝<see cref="Pop.IndustrialRentPerMonth"/>（第 3 月の値・四半期の共有層は第 3 月の決算の後なので 1 か月分が残っている）を 3 倍して四半期分にする（新しい状態を作らない）。
-    /// 払い手と受け手と按分は旧と同じ（払えない分は積まない）。レントが 0・負・非有限、外資の負債が 0 以下なら 0（否定形で書く）。
+    /// <summary>★(801)→★(810) 外資の利札（旗 <c>CapitalDividendFromHostRent</c>・設計思想⑨⑩）：受け皿 <paramref name="w"/> が外資の負債（<see cref="World.ForeignCapitalIn"/>＝額面 F）の持ち主へ払う四半期の額＝
+    /// F×R÷(F＋S＋K)＝元本 F に率 R÷(F＋S＋K) を掛けた額。R＝受け皿の投資家の工業レント（四半期分）・S＝投資家の貯蓄（流動性）・K＝その World の州の工業化度を今の値段で買い直す費用の和
+    /// （1 点の費用＝建設の束の今の費用×(1＋ConstructionLaborWageFrac)÷<see cref="EconomyStep.PrivateIndPerConstruction"/>＝私的な建設の置き換え費用）。R・S・K は今の名目・F は額面（名目の請求権は物価で書き直さない）。
+    /// ★(810) 単位の直し：(801) の分母 F＋S は投資家の富を流動性 S だけで測り、利札が S を尽くすと持ち分が 1 に張り付いて今の値段のレントを額面の元本に丸ごと当てた（種 16 の 30〜55%／四半期）。
+    /// 今の値段の生産資本 K を富に入れる（物価が上がると K が膨らみ額面の持ち分が縮む）。請求は R を超えない。事前登録 measurements/m810_20261103_prereg_fl.txt [1][2]。確証なし（AI の推奨）。
+    /// 工業レント＝<see cref="Pop.IndustrialRentPerMonth"/>（第 3 月の値）を 3 倍して四半期分にする（新しい状態を作らない）。K に足さない州＝束の財の市場が無い・工業化度が正でない・1 点の費用が正の有限でない（否定形で書く）。
+    /// レントが 0・負・非有限、F が 0 以下、分母が正でない、結果が有限でないなら 0。<paramref name="c"/> 省略＝<c>w.Coef</c>。
     /// ヘルパーの理由（README §1-10）：似た物は <see cref="InvestorSavings"/>（貯蓄だけの和）。レントと貯蓄を同じ投資家の集合で 1 巡して取るため別に置く。</summary>
-    internal static double HostRentDividend(World w)
+    internal static double HostRentDividend(World w, Coefficients? c = null)
     {
         double fci = w.ForeignCapitalIn.Value;
         if (!(fci > 0)) return 0;   // 外資が無い国は pop を 1 巡しない
@@ -357,7 +372,21 @@ public static class CapitalMarket
         foreach (var (_, p) in w.AllPopsWithRegion())
             if (IsInvestor(p)) { rent += p.IndustrialRentPerMonth.Value; sav += System.Math.Max(0, p.Savings.Value); }
         if (!(rent > 0)) return 0;
-        double d = Calendar.PerMonthToPerQuarter(rent) * (fci / (fci + sav));
+        c ??= w.Coef;
+        double k = 0;   // ★(810) 今の値段の生産資本（州の工業化度×1 点の置き換え費用の和）
+        foreach (var r in w.Regions)
+        {
+            double ind = r.TotalIndustrialization;
+            if (!(ind > 0)) continue;
+            int nm = r.Markets.Length;
+            if (!(c.SteelGoodId < nm && c.MachineGoodId < nm && c.CementGoodId < nm && c.LumberGoodId < nm)) continue;   // 束の財の市場が無い州（World.ConstructionMaterialPerMonth と同じ門）
+            double perPoint = EconomyStep.BundleCost(r, c) * (1.0 + c.ConstructionLaborWageFrac) / EconomyStep.PrivateIndPerConstruction(r, c);
+            if (!(perPoint > 0) || !double.IsFinite(perPoint)) continue;
+            k += ind * perPoint;
+        }
+        double den = fci + sav + k;
+        if (!(den > 0)) return 0;
+        double d = Calendar.PerMonthToPerQuarter(rent) * (fci / den);
         return double.IsFinite(d) ? d : 0;
     }
 }

@@ -60,6 +60,7 @@ public class CapitalDividendHostRentTests
     {
         var coef = Quiet(1);
         var (sim, uk, fr) = Setup(coef);
+        foreach (var r in fr.Regions) { r.Industrialization = 0; r.OldVintageCapital = 0; }   // ★(810) 盤面の前提：今の値段の生産資本 K＝0（K＝0 では (810) の請求 F×R÷(F＋S＋K) が形 B の F×R÷(F＋S) と同じ＝Assert は変えない）
         double s = CapitalMarket.InvestorSavings(fr);
         double R = 0.2 * s;   // 四半期分のレント（利札 0.5R＝0.1s は貯蓄に収まる）
         PutRent(fr, R / 3.0);
