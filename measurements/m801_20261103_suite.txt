@@ -1,0 +1,13 @@
+(801) c11fl フルスイート（Release・測った木 src_c11flB＝コミット a965b990 の git archive・scripts/instruments/c11fl/suite801.sh）
+[Category!=FullLength]
+   計算量「外交：覇権の判定の国×国」が 2313056 件（宣言 2787201）＝10 % を超えて**下がった**＝表を 2313056 へ下げて理由を書く（＝改善の宣言）。
+   計算量「建設：見た生産者（旬）」が 1859 件（宣言 1777・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+   経路名の鍵がソースに1本だけ見つからないか、移し方の呼び出しでない（route_anchors.tsv の anchor を直す）：CapitalMarket.cs：0 本「if (div > 1e-9) taken[i] += TakeGold(w[i], div);」
+失敗!   -失敗:     3、合格:  2195、スキップ:     1、合計:  2199、期間: 18 m 52 s - PriceOfBread.Tests.dll (net10.0)
+[Category=FullLength]
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 54 s - PriceOfBread.Tests.dll (net10.0)
+
+[赤 3 本の帰属（線の担当は WriterRatchetTests を自分の木で取り直さない・README ★(778)）]
+- WriterRatchetTests.計算量の見た件数は宣言した表を超えない (item: 11, declared: 2787201)＝外交：覇権の判定の国×国 が 2313056 件（宣言から 17% 下がった）＝軌道の件数を写しただけの番人（機構の向き・大きさを主張しない）。合流の木の実測で 1 回だけ取り直す（★(749)）。
+- 同 (item: 2, declared: 1777)＝建設：見た生産者（旬）が 1859 件（+4.6%・許し +2% を超えた）＝同じ区分。.cost の推定の計算量は 218.7 秒（基線 221.2）で全長の予算は内側。
+- InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す＝CapitalMarket.cs:174 の呼び出しの行を書き換えた（旗の分岐と計器の呼び出しを同じ行に足した）ため scripts/instruments/flow262/route_anchors.tsv の anchor（行のコードの文字列）が 0 本になった。anchor を新しい行のコードへ直した（route_anchors.tsv:27＝番人を写しただけの表の行・テストの判定は書き換えない）。直した後 InstrumentsTests・CapitalDividendHostRentTests・DormantIdentityTests の 53 本が緑。
