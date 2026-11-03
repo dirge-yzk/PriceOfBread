@@ -1,0 +1,21 @@
+## Mu1
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.未払いが元本を超える時は外資の負債が0で止まり対外資産も同じ額だけ減る [115 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [268 ms]
+失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+## Mu2
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [37 ms]
+失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+## Mu5
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払える時は請求の全額が移り_請求は今の値段の生産資本を分母に入れる_外資の負債は減らない [83 ms]
+失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+## Mu6
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払った利回りが高いと新規の流入が増える [4 s]
+失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTUNITDONE
+## Mu3
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払った利回りが高いと新規の流入が増える [5 s]
+失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+## Mu4
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払った利回りが高いと新規の流入が増える [3 s]
+失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTUNITDONE
