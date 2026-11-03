@@ -30,6 +30,11 @@ public sealed partial class InternationalMarket
     /// ＝使い回す前の形。既定 false。<c>TradeClearingTests</c> が使い回し（既定）と求め直しの清算を同じ盤面で比べる（全ての量がビット単位で同じ）。</summary>
     internal static bool DealConstAlwaysStale;
 
+    /// <summary>★(804) 内陸州の鉄道の容量の減衰＝鉄道の容量 ÷（1＋最寄りの港までの距離 km ÷ <see cref="Diplomacy.DistanceNormKm"/>）。旧の係数 InlandPortDistanceDecay（既定 1.0）の×1.0 を除いた形＝結果は同じ double。
+    /// 純関数に括り出したのは試験の入口のため（呼び手の門 `!r.IsPort && NearestPortDistanceKm > 1e-9` は呼び手に残る）。</summary>
+    internal static double InlandRailAfterDecay(double railToPort, double nearestPortKm)
+        => railToPort / (1.0 + nearestPortKm / Diplomacy.DistanceNormKm);
+
     /// <summary>鎖国の対称化（高関税レジーム＝輸出側も閉じる）の売りの比の掛け率＝max(0, 1−IsolationExportWeight×関税率²)。売り手の国の関税率（負は0）。買い手側の走査と売り手側の走査が同じ1本を読む。</summary>
     private static double IsolationExportFactor(double tariff, Coefficients c)
         => System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tariff) * System.Math.Max(0, tariff));
@@ -269,8 +274,8 @@ public sealed partial class InternationalMarket
                 else r.LastPortFrozen = false;
                 double portBonus = c.PortCapToThroughput * r.PortCapacity;
                 double inlandRail = railToPort;
-                if (!r.IsPort && c.InlandPortDistanceDecay > 1e-12 && r.NearestPortDistanceKm > 1e-9)
-                    inlandRail = railToPort / (1.0 + c.InlandPortDistanceDecay * r.NearestPortDistanceKm / Diplomacy.DistanceNormKm);
+                if (!r.IsPort && r.NearestPortDistanceKm > 1e-9)
+                    inlandRail = InlandRailAfterDecay(railToPort, r.NearestPortDistanceKm);
                 double cap = (r.IsPort ? shipEff : Math.Min(inlandRail, shipEff)) + portBonus;
                 r.LastTransportCap = cap;   // ★純テレメトリ（式の二重定義をしない）
                 // ★(1.5)：陸直行のために**州自身の座標**も持つ（上の lat/lon は最寄り港へ置き換えられている）。

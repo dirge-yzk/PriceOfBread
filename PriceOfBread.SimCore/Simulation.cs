@@ -610,7 +610,7 @@ public sealed class Simulation
     }
 
     /// <summary>内陸州の最寄り港距離を設定（監査2026-07-05・trade-capacity-even-share-not-network のデータ側配線）。
-    /// 従来 NearestPortDistanceKm はどこからも代入されず、InlandPortDistanceDecay（dormant）を有効化しても減衰式が不発だった（#17較正の阻害）。
+    /// 従来 NearestPortDistanceKm はどこからも代入されず、内陸の鉄道の減衰（旧の係数 InlandPortDistanceDecay〔dormant〕）を有効化しても減衰式が不発だった（#17較正の阻害）。
     /// 州都市座標（Climate）から同国の港を選び距離を設定（(770)(779)＝港ごとの eff〈陸路が有限なら陸路 km・無限なら大圏 km〉の最小の港とその eff＝Simulation.PortChoice）。座標未登録・港なし世界は 0＝減衰なし（従来挙動）。係数0の既定では挙動不変（較正中立）。
     ///
     /// ★rewire＝再配線モード（W2・是正1/是正2案B・2026-08-16・doc 20260812_港の配線を領土に追随させる）。

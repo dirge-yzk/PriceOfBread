@@ -9,7 +9,7 @@ namespace PriceOfBread.SimCore;
 //   landKmOld・landKmNew・gcKm は PortChoice の返り値を写さず、PathGraph.LandDistanceKm と Geo.DistanceKm を計器が直接引く（P1・U1 が PortChoice の中の誤りも拾えるように）。
 // 行＝内陸州×年。列（接尾辞：Km・Index）：year・nation・region・portGc（大圏の最小の港＝旧の規則）・portUsed（実際に張った NearestPortName）・
 //   gcKm（portGc までの大圏）・landKmOld（portGc の eff＝〈陸路が有限 ? 陸路 : 大圏〉＝旧の PortLandKm）・landKmNew（portUsed の eff）・railUsedKm（実際の NearestPortDistanceKm）・
-//   railDecayOldIndex＝1/(1+k·gcKm/N)（旧の規則では NearestPortDistanceKm＝gcKm）・railDecayUsedIndex＝1/(1+k·railUsedKm/N)（k＝InlandPortDistanceDecay・N＝Diplomacy.DistanceNormKm・BilateralMarket.cs:272-273 と同じ式と門）・
+//   railDecayOldIndex＝1/(1+gcKm/N)（旧の規則では NearestPortDistanceKm＝gcKm）・railDecayUsedIndex＝1/(1+railUsedKm/N)（N＝Diplomacy.DistanceNormKm・BilateralMarket.InlandRailAfterDecay と同じ式と門）・
 //   basinOld（portGc の海盆）・basinNew（r.SeaBasin＝実際の海盆）・
 //   fareLandOldIndex＝landKmOld×terrCost×landRatio・fareLandNewIndex＝landKmNew×terrCost×landRatio（BilateralMarket.cs:421 の陸の脚の運賃 landKm*terrCost*landRatio の同じ盤面の旧と新。km に線形＝新÷旧＝landKmNew÷landKmOld）。
 // ⚠限界（計器が自己申告する）：年末の断面（四半期の途中の張り直しは見ない）／港の一覧の作り方（IsPort かつ座標あり）は Simulation.WirePortDistances の写し＝そこが替われば追いつかない／
@@ -55,7 +55,7 @@ public static partial class Instruments
                 if (r.IsPort) { var pc = Climate.CityCoord(r.Name); if (pc.Lat != 0 || pc.Lon != 0) ports.Add((pc.Lat, pc.Lon, r.Name)); }
             if (ports.Count == 0) continue;
             var c = w.Coef;
-            double k = c.InlandPortDistanceDecay, norm = Diplomacy.DistanceNormKm;
+            double norm = Diplomacy.DistanceNormKm;
             double railGate = Discovery.RailTransport(w.Discovered) ? 1.0 : 0.0;
             double landRatio = c.LandSeaCostRatio * (1.0 - railGate * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));   // BilateralMarket.cs:308 の写し
             string nat = NameOf(w);
@@ -75,9 +75,9 @@ public static partial class Instruments
                 double terrCost = horse + railGate * (rail - horse);
                 if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) terrCost = c.TerrainWaterMajorCost;
                 else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) terrCost = c.TerrainWaterMinorCost;
-                // BilateralMarket.cs:272-273 の写し（距離が 0 に近い・係数 0 の州は減衰なし＝1）
-                double decayOld = k > 1e-12 && gcKm > 1e-9 ? 1.0 / (1.0 + k * gcKm / norm) : 1.0;
-                double decayUsed = k > 1e-12 && r.NearestPortDistanceKm > 1e-9 ? 1.0 / (1.0 + k * r.NearestPortDistanceKm / norm) : 1.0;
+                // BilateralMarket.cs:272-273 の写し（距離が 0 に近い州は減衰なし＝1）
+                double decayOld = gcKm > 1e-9 ? 1.0 / (1.0 + gcKm / norm) : 1.0;
+                double decayUsed = r.NearestPortDistanceKm > 1e-9 ? 1.0 / (1.0 + r.NearestPortDistanceKm / norm) : 1.0;
                 sk.W ??= Open("portch", seed);
                 if (!sk.Header) { sk.W.WriteLine(PortchHeaderText); sk.Header = true; }
                 sk.W.WriteLine(string.Join('\t', w.Year.ToString(inv), nat, r.Name, gcPickName, r.NearestPortName,

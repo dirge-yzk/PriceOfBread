@@ -1217,7 +1217,7 @@ public sealed class Coefficients
 
     // --- 輸送・物流（§5.1拡張：港・鉄道・船。世界市場は港州のみ、内陸は鉄道で港経由。容量不足→購入量限界縮小→価格上昇）---
     // 【墓標2026-10-18・旗の焼き込み】TransportEnabled（輸送ゲートの有効化・既定 true）を消した＝輸送の容量制約は常に有効。
-    public double InlandPortDistanceDecay = 1.0;    // 内陸州のrailToPort容量を最寄り港までの距離（選んだ港までの陸路 km〈陸路∞は大圏〉＝PortLandKm と同じ値）で減衰（trade-capacity-even-share-not-network）＝遠い内陸ほど鉄道を食い港集約が創発。減衰=1/(1+これ×NearestPortDistanceKm/10000)。0で均等割りそのまま（恒等）
+    // 【削除 2026-11-03 (804)】InlandPortDistanceDecay（既定 1.0）＝内陸州の鉄道の容量の減衰 1/(1+NearestPortDistanceKm÷DistanceNormKm) は Diplomacy.DistanceNormKm（1万km・同じ値）を直接読む形へ（BilateralMarket.InlandRailAfterDecay・×1.0 の因子の除去だけで結果は同じ）。
     public double TransportDecay = 0.02;            // 鉄道/船容量の月次減耗（維持に投資が要る＝持続需要）
     public double TransportTargetPerPop = 0.08;     // 目標容量＝人口×これ（必要数を増やし鉄道供給網の構築を要求）
                                                     //   ⚠読み手は2つ（2026-10-02 (167)・反証役の指摘）＝①鉄道の容量の目標（Transport.Step＝人口×これ×(1＋脅威の項)×(1＋混雑)）
@@ -2522,7 +2522,7 @@ public sealed class Coefficients
     // 【墓標2026-10-25 (551)・恒等の線 gc1】ForceUnlockRate（0.10＝武力解錠時のインフラ進捗）・ForceUnlockTreasuryCostPerMonth（1000＝制圧の月あたりの軍需の予算・2026-09-30 支払いの段3-2）・ForceUnlockMilitancy（0.03＝制圧が pop に与える闘争度）
     //   ＝Territory.Step の locked 州の解錠の道ごと削除（World.ForceUnlock・Scenario.ForceUnlock・Region.Infra も同じ線で削除）。
 
-    // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（UpkeepDistanceGeneral）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ（それも 2026-09-30 (140) に撤去）
+    // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（Fiscal.AdminDistanceMul）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ（それも 2026-09-30 (140) に撤去）
     // 帝国の過伸展は距離の金銭倍率でなく**物理**から創発：遠方植民地ほど補給線が長く、交易の船腹を占有する（下の ColonyShipOccupyPerDist）。
     // 【墓標2026-10-02 (173)・R4】ColonyUpkeepCoalPerDist（400×距離×質量の補給線の石炭）＝民間の船隊の燃料（ShipFuelRate×容量）の数百倍の別の物差しで、同じ船腹を商人も焚いていた（思想⑨）
     //   ＝補給線の燃料は占有された船腹の汽船の分（ShipFuelRate×時代係数×汽船の割合×Colonial.OccupiedShipCapacity）＝民間の汽船と同じ式へ・係数ごと削除。
@@ -2754,7 +2754,7 @@ public sealed class Coefficients
     // ⚠撤去2026-09-11（要求は法の経路の点火）：プレイヤーの危機ダイアログの受諾禁止（体制転覆の相手）の係数は決着関数ごと物理削除＝受諾のボタンそのものが無い。
     public double CultureDistanceFromEthnic = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */  // ★E-05段5（2026-09-03）：分離の文化距離を**民族の実体**（1−州の平均中核度）へ寄せる混合比。⚠現行は文字列比較で、昇格した植民地は宗主国の首都と同じ文化・宗教を代入されるため**インドの文化距離がロンドンと0**＝文化/民族の分離圧力が植民地で恒等的に0（プロイセン領ポーランドの方がインドより離反圧力が高い）。⚠寄せ切ると SecessionCultureAdditive と合わせて2乗になるので中間値から掃く。0で厳密恒等
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SuffrageScopeUnified＝参政権の範囲を1本の算入率へ畳む（E-05段3・2026-09-05 点火）
-    public double UpkeepDistanceGeneral = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★E-05段4（作者裁定2026-09-03「維持費は本国州にも必要なはず。植民地は遠く、それが高額なだけ」）：行政に**首都からの距離**の割増を掛ける＝1＋これ×DistanceWarDecay×km÷DistanceNormKm。★2026-09-30 (135) に行政費の人頭割り（削除）から**行政の購買**へ移した＝州の行政の予算と単価の両方に掛ける（充足は変わらず金額だけ増える・Fiscal.AdminDistanceMul）。⚠植民地専用の平場（ColonyUpkeepBase）は二重計上なので点火時に外す（★2026-09-28 に外した＝c2・Colonial.Step）。0で厳密恒等
+    // 【削除 2026-11-03 (804)】UpkeepDistanceGeneral（既定 1.0）＝行政の距離の割増は DistanceWarDecay（既定 1.0・同じ値）を直接掛ける形へ（Fiscal.AdminDistanceMul＝1＋DistanceWarDecay×km÷DistanceNormKm・×1.0 の因子の除去だけで結果は同じ）。
     public double SecessionHoldSharedArmy = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★E-05段2（作者裁定2026-09-03「同じフォルダに入る→反乱鎮圧コストが合計になる」）：同時に閾値を越えている運動の数で保持力を割る（分母 `1+これ×(件数−1)`）。⚠実体は統合せず**国家の側の分母だけ**が割れる＝これが「フォルダ」。★形は既存の `ColonialHoldSharedArmy〔削除済み〕` の一般化＝新しい写像を作らない。⚠数える対象に**格を見ない**（植民地格の州・本国の州・組織運動の蜂起がすべて同じ1件）。0で分母1＝厳密恒等
     public double SecessionHoldProjection = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★E-05段1（作者裁定2026-09-03「あらゆる反乱は1つの経路で発生し、1つの方法で対処する。植民地と国内でルールが異なるのはダメ」）：分離の保持力に**投射**（首都→州の距離減衰・`Diplomacy.Projection` と同じ形・同じ係数）を掛ける適用率。⚠「植民地なら」という条件を1つも書かずに「遠い領土は保ちにくい」を出す＝国内の辺境にも同じ規則が効く。0で厳密恒等
     // ★E-06 支配度＝ストック（作者裁定2026-09-05「C群すべてやる」・設計＝20260903_支配度はストックにする_再裁定 §4／実装計画 20260905_支配度ストック_E06）。

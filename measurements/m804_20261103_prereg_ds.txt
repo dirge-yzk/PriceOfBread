@@ -1,0 +1,54 @@
+(804) c12ds 事前登録：距離の物差しの写しの残り（B6・B11・B12）と c4dg の倒し先（I13）  波62・恒等の線・枝 c12ds・基点 main 618e3e21（基線 m797）
+書いたモデル Claude Sonnet 5.5。腕を回す前・コードを触る前の最初のコミット。
+形＝尾でも入口でもない（整理・結果を 1 ビットも変えない）。新しい係数 0・新しい状態変数 0・エンジンの挙動を変えない。
+
+[1] 恒等の線・予言 0（成績表・計器の表・注視の表・推定の計算量は m797 と同じ）
+  入れる（恒等）：
+   B6  UpkeepDistanceGeneral（既定 1.0）の削除。読み手は Fiscal.AdminDistanceMul の 2 行だけ。
+       前  if (!(c.UpkeepDistanceGeneral > 0)) return 1.0;  …  1.0 + c.UpkeepDistanceGeneral * c.DistanceWarDecay * km / Diplomacy.DistanceNormKm
+       後  （門の行を消す）                                …  1.0 + decay * km / Diplomacy.DistanceNormKm
+       評価の順は ((u*w)*km)/N → (w*km)/N。u は厳密に 1.0 なので 1.0*w は w と同じ double（IEEE 754 で ×1.0 は恒等）＝結合を変えない・並べ替えない。
+       門の行 (u>0) は既定で常に偽（発火しない）。代わりの (w>0) の門は置かない（w≦0 のとき旧は 1+1*w*km/N を返す＝別の値になるため）。
+       純関数 AdminDistanceMulOfKm(km, decay) を括り出す（(792) の GoldDebtBurden と同じ理由＝試験の入口は純関数でしか作れない・式は 1 文字も替えない・似た関数は無い〔grep 済み〕）。
+   B11 InlandPortDistanceDecay（既定 1.0）の削除。読み手は BilateralMarket.cs の内陸の鉄道の減衰（門 c.…>1e-12 は既定で常に真）と InstrumentsPortch.cs:58 の計器の 1 行。
+       前  c.InlandPortDistanceDecay > 1e-12 && … railToPort / (1.0 + c.InlandPortDistanceDecay * r.NearestPortDistanceKm / N)
+       後  … railToPort / (1.0 + r.NearestPortDistanceKm / N)         （k*km は 1.0*km＝km と同じ double）
+       計器の railDecayOldIndex／railDecayUsedIndex も 1/(1+k·km/N) の k を落とす（同じ理由）。
+   I13 は入れない（下）。B12 は入れない（下）。
+  入れない（理由つき・報告に回す）：
+   B12 DistanceMarginScale  読み手に PriceOfBread.Runner/Program.cs:1354（診断の動詞）がある＝この回は Runner に触れない。さらに InstrumentsTransport.cs:231 の trstat の Z 行（名前つきの行）を消すと
+       計器の表の行が 1 行減るが、ident に消えた行の宣言が無い。SimCore の読み手だけ外して欄を残すと POB_COEF で Runner の診断だけが動いてエンジンが動かない罠になる。
+       → 触らない（BilateralMarket.cs:839・:920・Discovery.cs:443・:1001・InstrumentsTransport.cs:231）。Runner に触れてよい回で、欄・trstat の Z 行・Runner の 1 行・試験 2 か所（DiscoveryScoreTests:377・:459）をまとめて消す。
+   I13 PowerShares.DebtGrip の倒し先  gdpYear≦0 のとき債務の正負に関わらず 0 を返す。債務が正なら 1 へ倒すのは到達する枝の値の置き換え＝挙動（区分 II・(757) の申し送り ①が自ら区分 II と書いた）。
+       到達の確かめ＝scripts/instruments/c12ds/debtgrip_branch.py で基線とヌル腕・種 11〜20 の nation_s を数える（結果は measurements/m804_20261103/debtgrip_branch.txt）。
+       Fiscal.cs:376 の側は gdpDenom>1e-9 かつ債務が正なら上限なしへ倒す＝向きが逆（旧からの非対称）。この線では入れずに報告に回す。
+   Colonial.cs  距離は Diplomacy.DistanceNormKm を既に読む（:59）。写しは無い（:29・:30 は注だけ）。
+   InstrumentsTransport.cs の KmPerDeg = 111.195  Landmask／SeaGraph／PathGraph の 111.0 とは別の値＝統一は非恒等（区分 II）。触らない。
+   B2（MigrationDistanceScale）・B8（ColonyCaptureDistanceWeight）  Territory／Diplomacy（c12cm の持ち主・ces2 の後）。この線のファイルではない。
+
+[2] 消す物と残す物（読み手の grep・SimCore／App／Runner／Tests／scripts／measurements／POB_COEF の名前／SaveGame／RetiredFields）
+  消す  UpkeepDistanceGeneral   SimCore: Coefficients.cs:2761（宣言）・Fiscal.cs:555・:559（読み手）・:549（注）・Colonial.cs:29（注）・Coefficients.cs:2529（墓標の注）。Tests: FiscalTests.cs:1548・:1596（置く行）・:1537（注）。App 0・Runner 0・scripts 0・measurements 0・POB_COEF の台本 0。
+  消す  InlandPortDistanceDecay SimCore: Coefficients.cs:1224（宣言）・BilateralMarket.cs:272・:273・InstrumentsPortch.cs:12（注）・:58・Simulation.cs:613（注）。Tests: TradeThemeTests.cs:21（既定の Assert）・:29（置く行）。App 0・Runner 0・scripts 0・measurements 0。
+  残す  DistanceWarDecay（B6 の統合先・注に新しい読み手を足さない＝Fiscal の読み手は元からあった）・DistanceNormKm（B11 の統合先）・DistanceMarginScale（B12・上）。
+  SaveGame は Coefficients の欄を名前で書く（参照同一性つき）＝欄が 2 つ減るだけ・旧版との互換は要らない・同じ版の往復は savetest（--saveleak）で確かめる。
+  墓標＝Coefficients.cs に (736) と同じ形の注・DormantIdentityTests.RetiredFields に名を足す（前例 3cca92f9）。
+
+[3] 足す試験と突然変異・件数の番人
+  足す  FiscalTests に Theory 行政の距離の割増の純関数（AdminDistanceMulOfKm・期待は手で書いた 8 行：decay 0／1／2／0.5 の整数に近い値・km 0・負・+∞・NaN）＝+8。
+  足す  BilateralMarket か近い試験に Theory 内陸の鉄道の減衰（InlandRailAfterDecay・手で書いた 4 行：km 0／5000／10000／20000）＝+4。
+  突然変異（使い捨ての木・枝 c12ds の先から・stash を使わない）：
+   MB6-1 decay を落とす（1.0 + km/N）→ decay≠1 の行が赤。MB6-2 IsFinite を外す→ +∞ の行が赤。MB6-3 /N を *N に→ 全行赤。
+   MB11-1 1.0+ を 0.5+ に→ km 0 の行が赤。MB11-2 /N を落とす→ km 正の行が赤。
+  ident だけが守る物（正直に）：BilateralMarket の呼び手の配線（Nearest…>1e-9 の門と呼び出し）は新しい試験では届かない。ident（素の 5 種・計器つき 10 種）が見る。
+  書き換えてよい既存の試験（README ★(743)）：FiscalTests.cs:1548 ③（UpkeepDistanceGeneral = general → DistanceWarDecay = general）・:1596 ③（= 50.0 の行を DistanceWarDecay へ）・:1572 の expect ②（10.0 * を落とす・同じ double）・
+   TradeThemeTests.cs:21 ④（消す欄を名指す前提の Assert）・:29 ③（既定と同じ値の置く行を消す）。それ以外は書き換えない。FiscalTests.cs:1596 の盤面は DistanceWarDecay=50 で 1 四半期走る＝他の読み手（投射・分離の保持・法の到達）も 50 倍になる。
+   前提の Assert が軌道で赤になったら B6 はこの回外す（50 を替えて緑にしない＝RULE47）。先に FiscalTests の 2 本と TradeThemeTests だけ回して確かめる。
+  ㉑ 件数の番人：ソースを走査する試験のうち消す名前に触れる物＝DormantIdentityTests（Coefficients の欄の走査・RetiredFields の名簿）。
+   変わる件数の予言：RetiredFields の名簿 +2 行（UpkeepDistanceGeneral・InlandPortDistanceDecay）以外 0。WriterRatchetTests の計算量の表 0（軌道が動かない）。Coefficients の欄数は −2（欄数を固定する番人は無い＝grep 済み）。
+  --tests-delta の予言＝+12（Category!=FullLength 2202 → 2214）。FullLength 3。
+
+[4] 素の 5 種（b5）と計器つき 10 種（b10_ins）が m797 と名乗り行を除いて全行一致。計器の表の差は宣言なし（portch_s の railDecay 2 列の値は同じ double）。.cost の件数の行も同じ。
+  腕：ident.sh run c12ds --tree D:/PoB_work/wt_c12ds --tests-delta 12 --saveleak。腕の枠（arms.sh free）が 4 以上のときだけ始める。回す前に紙の台本（浮動小数の食い違い）は要らない＝因子 ×1.0 の除去だけで結合を変えない。
+
+[5] ident が 判定: 恒等 なら採る。一致しなければ、その変更を外して報告に回す。
+  書き方の規律：〈判定: 恒等〉は 測った種で一致 と名乗る（証明とは書かない）。
