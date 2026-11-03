@@ -1,4 +1,4 @@
-SOURCE-HASH: 91d296d3b8b556b3
+SOURCE-HASH: 656ab8094db5150c
 FILES: 471
 RUN: selfplay-batch 10（10種＝採否）（計器 POB_INSTRUMENTS=/d/PoB_work/ident_c11h16/out_ib_10/ins NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ）
 ---
@@ -134,7 +134,7 @@ f24c9f2f786bc7419bf9e5df1ac1e735dc3f43b526ddd758a55d99e9993999f7 *./PriceOfBread
 429b92be434975437b53647568565bebd5e46ddb4dcfe51bc55566baa64e5f10 *./PriceOfBread.SimCore/FactionSnapshot.cs
 f8508b108aa77e98a970b9ff2e6c4a303121f6a97bd4761d6928ad1ed644081b *./PriceOfBread.SimCore/Factions.cs
 2f0b184c63f180ba90904af83ac0e94c67acdacd4833a9d77abeb608a30d1658 *./PriceOfBread.SimCore/FactoryEquipment.cs
-7aa227ff2a79e8ffbf976122582b50e80b0bdc4cdd24863138455cb500fe8fea *./PriceOfBread.SimCore/Fiscal.cs
+1e60ebea27729f4d35ff56adaca55b4969ccc0d029444e01ae0993471b9d7faa *./PriceOfBread.SimCore/Fiscal.cs
 1f1c1e926f89034768097a1f02a2d669e1ef036488fc21cecf04ff9713d4079c *./PriceOfBread.SimCore/Formations.cs
 0725a79f12d55bf802c3e9a44c28ed19dc7747aea4505ea0bc17bbf723b71664 *./PriceOfBread.SimCore/Geo.cs
 0545788f186f5f85c4909d74a7fc6030995fdd00b4529adadf6f166c27677a59 *./PriceOfBread.SimCore/GovernanceSnapshot.cs
