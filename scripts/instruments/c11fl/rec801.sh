@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# (805) python が読む道は D:/ の形（/d/… だと Windows の python が C:/d/… と読んで空振りする）。
 # (801) c11fl の記録の駆動（読むだけ）。腕 B（旗 1・計器つき 10 種）と基線 m797・ヌル腕 N1・N2 の生を読む。使い方: bash rec801.sh <腕 B の ins フォルダ> <出力ファイル> [腕の名前]
 #   ⚠走っている間にこの台本を書き換えない（README ★(778)）。
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
@@ -7,11 +8,11 @@ B=${1:?腕 B の ins フォルダ}; OUT=${2:?出力}; NAME=${3:-B}
 BASE=D:/PoB_work/keep_797/base_ins; N1=D:/PoB_work/keep_797/n1; N2=D:/PoB_work/keep_797/n2
 : > $OUT
 sec(){ echo "## ===== $1" >> $OUT; }
-sec "divhost_${NAME}（門 U・L・⑦形の一致・⑤同じ盤面の旧新・O 観測の予言）"; python -X utf8 -I $S/c11fl/divhost_read.py $B 10 --other /d/PoB_work/c11fl/inv_income_base.tsv >> $OUT 2>&1
-sec "inv_income_${NAME}（門 O の実測＝9 国・投資家の 配当の払い÷それ以外の受け取り）"; python -X utf8 -I $S/r794/inv_income.py $B 10 > /d/PoB_work/c11fl/inv_income_${NAME}.tsv 2>&1
+sec "divhost_${NAME}（門 U・L・⑦形の一致・⑤同じ盤面の旧新・O 観測の予言）"; python -X utf8 -I $S/c11fl/divhost_read.py $B 10 --other D:/PoB_work/c11fl/inv_income_base.tsv >> $OUT 2>&1
+sec "inv_income_${NAME}（門 O の実測＝9 国・投資家の 配当の払い÷それ以外の受け取り）"; python -X utf8 -I $S/r794/inv_income.py $B 10 > D:/PoB_work/c11fl/inv_income_${NAME}.tsv 2>&1
 python -X utf8 -I - <<PY >> $OUT
 import csv
-for k, f in (('${NAME}', '/d/PoB_work/c11fl/inv_income_${NAME}.tsv'), ('base', '/d/PoB_work/c11fl/inv_income_base.tsv'), ('n1', '/d/PoB_work/c11fl/inv_income_n1.tsv'), ('n2', '/d/PoB_work/c11fl/inv_income_n2.tsv')):
+for k, f in (('${NAME}', 'D:/PoB_work/c11fl/inv_income_${NAME}.tsv'), ('base', 'D:/PoB_work/c11fl/inv_income_base.tsv'), ('n1', 'D:/PoB_work/c11fl/inv_income_n1.tsv'), ('n2', 'D:/PoB_work/c11fl/inv_income_n2.tsv')):
     d = o = 0.0
     for r in csv.DictReader(open(f, encoding='utf-8'), delimiter='\t'):
         if r['nation'] == '9国計' and 1850 <= int(r['dec']) <= 1940: d += -float(r['div']); o += float(r['otherPos'])

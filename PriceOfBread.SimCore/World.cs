@@ -868,7 +868,7 @@ public sealed class World
             return s > 1e-9 ? v / s : _ncScalar;
         }
         internal set => _ncScalar = value;
-    }   // 国民意識∈[0,1]＝構築される市民的結束（EthnicUnityの与件とは別・docs/2026-07-13_国民意識.md）。公教育×識字＋徴兵で育つ・多民族は育ちにくい（天井でなく抵抗）・国難は既存結束で符号が決まる両刃。-1=未捕捉（初回に初期値で立ち上げ）。⚠旧・汚職チャネル（低国民意識×代議制の civicGraft→Fiscal leak）は汚職V2恒久ONにつきC2-C5撤去（2026-08-16）＝現読者は civicCarriesEthnic（下）と CrownParliament の蓄積ゲート
+    }   // 国民意識∈[0,1]＝構築される市民的結束（EthnicUnityの与件とは別・docs/2026-07-13_国民意識.md）。公教育×識字＋徴兵で育つ・多民族は育ちにくい（天井でなく抵抗）・国難は既存結束で符号が決まる両刃。-1=未捕捉（初回に初期値で立ち上げ）。⚠旧・汚職チャネル（低国民意識×代議制の civicGraft→Fiscal leak）は汚職V2恒久ONにつきC2-C5撤去（2026-08-16）。civicCarriesEthnic という読み手は無い・CrownParliament の蓄積の門は (798) で消えた（読み手は NationalConsciousness の参照を grep）
     public double Coercion { get; internal set; }
     // 民族統一度（0..1のスカラー。POPは作らない＝以前の「民族POP不採用」と整合）。史実の初期値→移民（国家間移民）で希釈→同化で回復。
     // 高い＝不満の上昇が鈍い・軍が結束・近代化が通りやすい／低い＝移民を引く（坩堝）・分離圧力。EthnicEnabled が false の世界（合成較正・最小テスト）では全効果が無効＝較正不変。

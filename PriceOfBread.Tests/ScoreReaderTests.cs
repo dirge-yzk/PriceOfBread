@@ -47,20 +47,20 @@ public class ScoreReaderTests
     [Fact]
     public void 旧の国力の式と旗は復活しない_旧の列を読むのは計器だけである()
     {
-        // ★(456) 旗 ScoreFromWorldShare（0＝旧の和）と旧の腕〔OfOld・TreatyStrengthOld・LegacyLines〕は焼き込んで消した。旧の 4 項の式は計器 score_s の旧の列〔scoreOld・rankOld・isGreatOld〕
-        //   のためだけに Instruments.OldScore（InstrumentsScore.cs）が持つ。NationalScore に旧の項を戻す・旗を戻す・OldScore を他のファイルから読む、のどれも赤にする。
-        //   金融〔NationalScore.Finance〕は画面の与信の履歴の系列〔GameViewModel.Header.cs〕と旧の和〔OldScore.Of〕が読む＝国力の読み手ではない（その 2 つだけ許す）。
+        // ★(456) 旗 ScoreFromWorldShare（0＝旧の和）と旧の腕〔OfOld・TreatyStrengthOld・LegacyLines〕は焼き込んで消した。旧の 4 項の式（Instruments.OldScore）と計器 score_s の旧の列〔scoreOld・rankOld・isGreatOld〕は (798) で消した。
+        //   NationalScore に旧の項を戻す・旗を戻す・OldScore を戻す・旧の項の宣言を戻す、のどれも（どのファイルでも）赤にする。
+        //   金融〔NationalScore.Finance〕は画面の与信の履歴の系列〔GameViewModel.Header.cs〕だけが読む＝国力の読み手ではない（その 1 つだけ許す・(805) で計器 InstrumentsScore.cs の例外を外した）。
         var forbidden = new Regex(@"\b(OfOld|TreatyStrengthOld|LegacyLines|LegacyLabels|ScoreFromWorldShare)\b|NationalScore\.(Military|Wealth|Tech|WealthParts)\b");
-        var decl = new Regex(@"\bstatic\s+[\w<>\[\](),?\s]*?\b(Military|Wealth|Tech|WealthParts)\s*\(");   // ★(457) 修飾なしで呼ぶ旧の項の宣言も禁じる（計器の OldScore だけ許す・反証役 hy3〔v〕低#3）
+        var decl = new Regex(@"\bstatic\s+[\w<>\[\](),?\s]*?\b(Military|Wealth|Tech|WealthParts)\s*\(");   // ★(457) 修飾なしで呼ぶ旧の項の宣言も禁じる（反証役 hy3〔v〕低#3・(805) で計器の例外を外した）
         var finance = new Regex(@"NationalScore\.Finance\b");
         var oldScore = new Regex(@"\bOldScore\b");
         var bad = new List<string>();
         foreach (var (name, ln, code) in SourceLines())
         {
             foreach (Match m in forbidden.Matches(code)) bad.Add($"{name}:{ln} {m.Value}");
-            if (name != "InstrumentsScore.cs") foreach (Match m in decl.Matches(code)) bad.Add($"{name}:{ln} {m.Value}");
-            if (finance.IsMatch(code) && name != "GameViewModel.Header.cs" && name != "InstrumentsScore.cs") bad.Add($"{name}:{ln} NationalScore.Finance");
-            if (oldScore.IsMatch(code) && name != "InstrumentsScore.cs") bad.Add($"{name}:{ln} OldScore");
+            foreach (Match m in decl.Matches(code)) bad.Add($"{name}:{ln} {m.Value}");
+            if (finance.IsMatch(code) && name != "GameViewModel.Header.cs") bad.Add($"{name}:{ln} NationalScore.Finance");
+            if (oldScore.IsMatch(code)) bad.Add($"{name}:{ln} OldScore");
         }
         Assert.True(bad.Count == 0, "旧の国力の式か旗が戻っている：" + string.Join(" / ", bad));
     }

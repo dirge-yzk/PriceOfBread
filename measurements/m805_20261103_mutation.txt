@@ -1,0 +1,65 @@
+(805) c12cm 突然変異の結果 2026-11-03（試験の突然変異の測る木 ef48a114 の写し D:/PoB_work/c12cm/mut_tree。腕の突然変異の木は e5732421＋未コミット差〔ef48a114 との差は注と試験だけ〕・台本 scripts/instruments/c12cm/mutate.py・mut_tests.sh・mut_arms.sh）。
+
+=== 試験の突然変異（対照＝何も入れない木で関連する試験 63 本が全て緑 → 1 つ入れるごとに足した試験が赤）
+--- ctrl（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~UrbanFlowRealTests|FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~FactoryEquipmentTests|FullyQualifiedName~ModernizeReturnAndScoreTests|FullyQualifiedName~CpeaceColumn
+成功!   -失敗:     0、合格:    63、スキップ:     0、合計:    63、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu1（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~UrbanFlowRealTests）
+  失敗 PriceOfBread.Tests.HousingGateSharedTests.都市の割合が閾値ちょうどなら両方の読み手で門は閉じる [57 ms]
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu2（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~UrbanFlowRealTests）
+  失敗 PriceOfBread.Tests.HousingGateSharedTests.閾値が1ulp上なら両方の読み手で門は閉じる [4 s]
+  失敗 PriceOfBread.Tests.HousingGateSharedTests.閾値が1ulp下なら両方の読み手で門は開く [17 ms]
+  失敗 PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和 [36 ms]
+  失敗 PriceOfBread.Tests.UrbanFlowRealTests.V_家賃が現金を超えるときは0で切る_gは符号が反転せず発散しない [2 ms]
+  失敗 PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない [5 ms]
+  失敗 PriceOfBread.Tests.UrbanFlowRealTests.旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る [8 ms]
+  失敗 PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない [15 ms]
+  失敗 PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術 [6 ms]
+--- Mu3（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~UrbanFlowRealTests）
+  失敗 PriceOfBread.Tests.HousingGateSharedTests.都市の割合が閾値ちょうどなら両方の読み手で門は閉じる [13 ms]
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu4（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~FactoryEquipmentTests|FullyQualifiedName~ModernizeReturnAndScoreTests）
+  失敗 PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_旗で人力の労働の能力が工業化度の倍率を受けない [15 ms]
+  失敗 PriceOfBread.Tests.HousingGateSharedTests.工業の飽和は1足す稼働資本割るスケールの手書きの式と設備の限界収益のsatに一致する [4 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.設備の収益の持ち分は手計算の値になる [35 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.信号は設備の収益だけで_世界前線に依らない [54 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.ダンピングの後発判定は設備の収益の信号である [55 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.私的な投資家の建設の式と信号は同じ関数を通る [20 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.スタンスの工業化の余地は目盛り4_0かける信号である [48 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.適格の州が無ければ信号は0で_重みは上限までの余地と手当で決まる [44 ms]
+--- Mu5（filter=FullyQualifiedName~HousingGateSharedTests|FullyQualifiedName~FactoryEquipmentTests|FullyQualifiedName~ModernizeReturnAndScoreTests）
+  失敗 PriceOfBread.Tests.FactoryEquipmentTests.倍率の削除_旗で人力の労働の能力が工業化度の倍率を受けない [4 ms]
+  失敗 PriceOfBread.Tests.HousingGateSharedTests.工業の飽和は1足す稼働資本割るスケールの手書きの式と設備の限界収益のsatに一致する [1 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.信号は設備の収益だけで_世界前線に依らない [52 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.AIの近代化投資と自動化は同じ信号を読む [66 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.ダンピングの後発判定は設備の収益の信号である [34 ms]
+  失敗 PriceOfBread.Tests.ModernizeReturnAndScoreTests.私的な投資家の建設の式と信号は同じ関数を通る [44 ms]
+失敗!   -失敗:     6、合格:    38、スキップ:     0、合計:    44、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu7（filter=FullyQualifiedName~CpeaceColumnsTests）
+  失敗 PriceOfBread.Tests.CpeaceColumnsTests.条約港の倍率と支払い率を掛けた期待の側が実際に移った賠償に一致する [3 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu8（filter=FullyQualifiedName~CpeaceColumnsTests）
+  失敗 PriceOfBread.Tests.CpeaceColumnsTests.条約港の倍率と支払い率を掛けた期待の側が実際に移った賠償に一致する [1 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu9（filter=FullyQualifiedName~CpeaceColumnsTests）
+  失敗 PriceOfBread.Tests.CpeaceColumnsTests.条約港の倍率と支払い率を掛けた期待の側が実際に移った賠償に一致する [1 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+--- Mu10（filter=FullyQualifiedName~CpeaceColumnsTests）
+  失敗 PriceOfBread.Tests.CpeaceColumnsTests.戦争ごとの因子の列に会議の削りと条約港の倍率と支払い率が書かれる [60 ms]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+MUTTESTSDONE
+
+読み：
+- Mu1（述語の > を >=）＝HousingGateSharedTests〈閾値ちょうど〉が赤。Mu2（向きを <）＝〈1ulp 下〉〈1ulp 上〉が赤＋UrbanFlowRealTests 6 本も赤。Mu3（PopDecision 側だけ >=＝1 本化の前の形が片方だけ割れる）＝〈閾値ちょうど〉が赤。
+- Mu4（飽和の + を -）・Mu5（飽和の / を *）＝HousingGateSharedTests〈工業の飽和〉・FactoryEquipmentTests・ModernizeReturnAndScoreTests が赤。
+- Mu7（期待の側が条約港の倍率を掛けない）・Mu8（エンジンが条約港の倍率を掛けない）・Mu9（期待の側が r を掛けない）＝CpeaceColumnsTests〈期待の側が実際に移った賠償に一致する〉が赤。Mu10（repFactors に r を書かない）＝〈戦争ごとの因子の列〉が赤。
+- 穴 0（緑のまま残った突然変異は無い）。
+
+=== 腕の突然変異（門 G＝cpeace_s の repMovedOverExpect が 1±1e-9 に入る・種 1〜2・計器つき・全長）
+読みの全文は m805_20261103_gates_mutations.txt。要約：
+- Mu6（repBase が saPay でなく sa のまま）：R_up' の最大 6.143（落ちる）・R_lo' の最小 1（通る）。旧の列 repRealIndex の読みでは通る（c11cp の記録どおり）が、新しい門では落ちる。落ちた事象 全事象 59（N>=2 の全て）。
+- MuCut（会議の削りを消す）：R_up' の最大 2.0（落ちる）。落ちた事象 163（repCut が正の講和を含む）。
+- MuTp（条約港の倍率を掛けない）：R_lo' の最小 0.4（=1/2.5・落ちる）。落ちた事象 66。
+- MuR（支払い率 r を掛けない）：R_up' の最大 1.020（落ちる）。落ちた事象 6（r<1 の講和だけ＝基線の講和 292 のうち r<1 は 8）。r が 1 の盤面では見えない誤りで、門は r<1 の講和が有る種で落ちる。
+- 全ての突然変異の腕で門 G が落ちた。
+- 因子が 1 から外れる講和の数（記録）：repCut>0 175〜200／条約港の倍率>1 42〜63／r<1 8〜17（講和 292〜344 のうち・種 1〜2）＝門が自明に通る盤面ではない。

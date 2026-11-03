@@ -446,7 +446,7 @@ def main():
     arms = open(arms_p, encoding='utf-8').read().split() if os.path.exists(arms_p) else ['a', 'b', 't']
     known = parse_known(cfg.get('KNOWN', '').split(',') + a['known_extra'])
     base = lambda k: cfg[k] if os.path.isabs(cfg[k]) or re.match(r'^[a-zA-Z]:', cfg[k]) else J(root, cfg[k])
-    say(f'=== 恒等の証明 {a["label"]}（{datetime.datetime.now():%F %T}）===')
+    say(f'=== 恒等の判定（測った種で一致） {a["label"]}（{datetime.datetime.now():%F %T}）===')
     tree = norm(a['tree'] or root)
     say(f'測った木：{tree}（HEAD {sh_out(["git", "-C", tree, "rev-parse", "--short", "HEAD"])}・未コミット {len(sh_out(["git", "-C", tree, "status", "--porcelain"]).splitlines())} 本）')
     say(f'基準の設定：{cfgp}')

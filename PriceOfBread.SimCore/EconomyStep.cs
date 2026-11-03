@@ -861,7 +861,7 @@ public static class EconomyStep
         region.Mechanization = coef.LaborSaveRate > 0 && !indOff ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;   // ★(495) 旗 IndustrializationOff では機械化度 0
         // 工業化由来の生産性は逓減（飽和カーブ）。固定上限を持たずに頭打ちになるので、上限を外しても発散しない。
         double indMult = cap && !indOff   // ★(495) 旗 IndustrializationOff では能力の倍率 indMult＝1.0（作者 2026-10-16〈倍率は全て削除〉）
-            ? 1.0 + coef.IndProductivityGain * effInd / (1.0 + effInd / coef.IndProductivityScale)
+            ? 1.0 + coef.IndProductivityGain * effInd / IndSaturation(effInd, coef)
             : 1.0;
 
         // 主食(Staple)の good.Id ルックアップ（豊作/不作は主食RGO産出と自給にのみ効く）。役務(Service)も同様に索引。
@@ -1685,8 +1685,7 @@ public static class EconomyStep
             double housingGate = 0;
             if (housingGood)
             {
-                double urbanShare = totalPop > Eps ? urbanPop / totalPop : 0;
-                housingGate = urbanShare > coef.HousingUrbanThreshold ? 1.0 : 0.0;   // 都市化度ゲート（AgrarianToUrban低都市率で0）
+                housingGate = PopDecision.HousingGateOpen(coef, urbanPop, totalPop) ? 1.0 : 0.0;   // 都市化度ゲート（AgrarianToUrban低都市率で0）。★(805) 述語は PopDecision.MigrationValues の住居の費用と同じ 1 本
                 effBaseNeed = coef.HousingNeedPerUrban * housingGate;
             }
             double popDemand = 0;
@@ -2863,6 +2862,10 @@ public static class EconomyStep
             }
     }
 
+    /// <summary>★(805) 工業化の飽和の変数＝<c>1＋稼働資本÷IndProductivityScale</c>。能力の倍率 <c>indMult</c>（<c>Run</c>）と設備の限界収益 <see cref="InvestmentReturn"/> の <c>sat</c> が同じ飽和点を読む 1 本
+    /// （旧＝同じ式を 2 行に手書き。どちらも座礁控除後の稼働資本を渡す）。純関数。</summary>
+    internal static double IndSaturation(double productiveInd, Coefficients coef) => 1.0 + productiveInd / coef.IndProductivityScale;
+
     /// <summary>★(416) 設備の限界収益（私的な投資家の建設の速さを決める式の 1 本）。<c>EconomyStep.Run</c> の私的投資と <see cref="World.ModernizeReturnShare"/>（AI の近代化投資の信号）が同じ関数を通る。
     /// 戻り値＝(技術の梃子の量 techLev・飽和の変数 sat・総収益 gross・ハードル hurdle)。純関数（状態を書かない）。
     /// <c>sat＝1＋稼働資本÷IndProductivityScale</c>（<c>indMult</c> と同じ飽和点・座礁控除後）／<c>gross＝IndProductivityGain÷sat²×(1＋IndTechLeverage×techLev)</c>／
@@ -2870,7 +2873,7 @@ public static class EconomyStep
     internal static (double TechLev, double Sat, double Gross, double Hurdle) InvestmentReturn(Region region, Coefficients coef, double productivityMultiplier)
     {
         double techLev = Math.Max(0, productivityMultiplier - 1.0);
-        double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
+        double sat = IndSaturation(region.ProductiveIndustrialization, coef);   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
         double marginalGain = coef.IndProductivityGain / (sat * sat);
         double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
         return (techLev, sat, marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle);

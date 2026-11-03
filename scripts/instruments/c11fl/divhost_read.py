@@ -17,7 +17,7 @@ U_viol = 0; U_n = 0; L_viol = 0; L_n = 0; L_min = float('inf'); U_max = 0.0
 share99 = 0; fci_pos = 0; halfS = 0; unpaid_num = 0.0; unpaid_den = 0.0; zero_den = 0
 dec = collections.defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])   # (dec,all/nine) → paid, divOld, newPred, divReq（金建て・種の平均）
 nine = collections.defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
-worst = []; eq_new = eq_old = eq_none = 0
+worst = []; eq_new = eq_old = eq_none = 0; eq_rows = 0
 for s in range(1, N + 1):
     p = os.path.join(d, f'divhost_s{s}.tsv')
     if not os.path.exists(p): print('欠け', p); continue
@@ -45,6 +45,7 @@ for s in range(1, N + 1):
                 if sav > 0 and paid >= 0.5 * sav: halfS += 1
             if req > 1e-9: unpaid_num += max(0.0, req - paid); unpaid_den += req
             if req > 0 or dold > 0 or dnew > 0:
+                eq_rows += 1
                 if req == dnew: eq_new += 1
                 if req == dold: eq_old += 1
                 if req != dnew and req != dold: eq_none += 1
@@ -89,7 +90,11 @@ for k in sorted(nine):
 print('  合計\t' + '\t'.join(f'{x:.6g}' for x in tp))
 # 観測の門 O の一次の予言：9 国・1850〜1949 の Σ min(divNew,invSav) ÷ Σ otherPos（inv_income.py の出力の 9国計・1850〜1940 の otherPos の和＝配当に依らない受け取り）。
 #   ⚠divhost_s は IsInvestor の全ての階級（flow_s の読み手は階級 3・10・4・9 だけ）＝分子の絶対値は flow_s より約 15% 大きい（旗 0 の paid の和 ÷ 基線の flow_s の配当の和で割って両方を出す）。
-if '--other' in sys.argv:
+# (805) O の予言は旗 0 の腕（divReqIndex が全ての行で divOldIndex に一致する）のときだけ出す。旗 1 の腕では divNew が実際なので、旗 0 の盤面を前提にした予言は意味を持たない。
+flag0 = eq_rows > 0 and eq_none == 0 and eq_old == eq_rows
+if '--other' in sys.argv and not flag0:
+    print('■O 観測の一次の予言：省略（旗 1 の腕＝divReqIndex が divOldIndex に全行は一致しない・旗 0 の盤面の予言なので出さない）')
+if '--other' in sys.argv and flag0:
     op = 0.0; dv = 0.0
     with open(sys.argv[sys.argv.index('--other') + 1], encoding='utf-8') as f:
         for r in csv.DictReader(f, delimiter='\t'):
