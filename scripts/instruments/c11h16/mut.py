@@ -4,10 +4,10 @@ def rd(p):
     b=open(p,'rb').read(); return b.decode('utf-8-sig'), b.startswith(b'\xef\xbb\xbf')
 def wr(p,s,bom): open(p,'wb').write((b'\xef\xbb\xbf' if bom else b'')+s.encode('utf-8'))
 MUT={
- 'M1_threshold_div12_removed':('Fiscal.cs','distrustThresholdPerMonthGdp / Calendar.MonthsPerYear','distrustThresholdPerMonthGdp'),
+ 'M1_threshold_div12_removed':('Fiscal.cs','Calendar.PerYearToPerMonth(distrustThresholdPerMonthGdp)','distrustThresholdPerMonthGdp'),
  'M2_month_year_reversed':('Fiscal.cs','Calendar.PerMonthToPerYear(new MoneyPerMonth(nominalGdpPerMonth))','new MoneyPerYear(nominalGdpPerMonth / Calendar.MonthsPerYear)'),
- 'M3_threshold_times12':('Fiscal.cs','distrustThresholdPerMonthGdp / Calendar.MonthsPerYear','distrustThresholdPerMonthGdp * Calendar.MonthsPerYear'),
- 'M4_gt_to_ge':('Fiscal.cs','              > distrustThresholdPerMonthGdp / Calendar.MonthsPerYear;','              >= distrustThresholdPerMonthGdp / Calendar.MonthsPerYear;'),
+ 'M3_threshold_times12':('Fiscal.cs','Calendar.PerYearToPerMonth(distrustThresholdPerMonthGdp)','distrustThresholdPerMonthGdp * Calendar.MonthsPerYear'),
+ 'M4_gt_to_ge':('Fiscal.cs','              > Calendar.PerYearToPerMonth(distrustThresholdPerMonthGdp);','              >= Calendar.PerYearToPerMonth(distrustThresholdPerMonthGdp);'),
  'M5_guard_removed':('Fiscal.cs','=> nominalGdpPerMonth > 1e-9\n           && Calendar','=> Calendar'),
  'M6_selfplay_old_direct_form':('SelfPlay.cs','Fiscal.CurrencyMemoryBroken(w.CumulativeDevaluation, w.NominalGdpPerMonth.Value, w.Coef.CapitalFlightDistrustThreshold)','(w.NominalGdpPerMonth.Value > 1e-9 && w.CumulativeDevaluation / w.NominalGdpPerMonth.Value > w.Coef.CapitalFlightDistrustThreshold)'),
 }

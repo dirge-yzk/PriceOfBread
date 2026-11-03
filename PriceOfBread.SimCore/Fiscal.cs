@@ -610,12 +610,12 @@ public static class Fiscal
     }
 
     /// <summary>★(799) 通貨の切下げの記憶が壊れている（不信）の述語＝累積の切下げ÷**年**の名目GDP が <see cref="Coefficients.CapitalFlightDistrustThreshold"/> の年換算（÷12）を超える。
-    /// 係数の宣言は月の名目GDP 比（0.02）のまま＝右辺だけ月→年に直す（左辺の分母を <see cref="Calendar.PerMonthToPerYear(MoneyPerMonth)"/> で年にした分と打ち消す）。年GDP 比は <see cref="Calendar.ToGdpYear"/> を通す＝月の流れで割る取り違えは型が合わず渡せない。
+    /// 係数の宣言は月の名目GDP 比（0.02）のまま＝右辺だけ年GDP 比に直す（左辺の分母を <see cref="Calendar.PerMonthToPerYear(MoneyPerMonth)"/> で年にした分と打ち消す・÷12 の1回の除算＝暦の名前のある関数 <see cref="Calendar.PerYearToPerMonth(double)"/> と同じ算術。裸の時間換算の番人〔CalendarTests〕を通すための選択で、名前の向きは厳密には逆）。年GDP 比は <see cref="Calendar.ToGdpYear"/> を通す＝月の流れで割る取り違えは型が合わず渡せない。
     /// 読み手は2つ＝<see cref="Step"/> の通貨改革の発動と金本位への再加入の門（broken）と、SelfPlay の AI の通貨改革の意思（プレイヤーのボタンと同じ門の前の判断）＝同じ1本。分母の守り（名目GDP＞1e-9）もここ。</summary>
     internal static bool CurrencyMemoryBroken(double cumulativeDevaluation, double nominalGdpPerMonth, double distrustThresholdPerMonthGdp)
         => nominalGdpPerMonth > 1e-9
            && Calendar.ToGdpYear(new MoneyStock(cumulativeDevaluation), Calendar.PerMonthToPerYear(new MoneyPerMonth(nominalGdpPerMonth))).Value
-              > distrustThresholdPerMonthGdp / Calendar.MonthsPerYear;
+              > Calendar.PerYearToPerMonth(distrustThresholdPerMonthGdp);
 
     /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
     /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>

@@ -23,3 +23,5 @@
 [4] 素の 5 種・計器つき 10 種は m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行を除いて全行一致。計器の表の差は 0（宣言なし）。.cost の推定も m797 と一致（221.2 秒）。テスト数：Category!=FullLength 2191＋CurrencyMemoryBrokenTests 11（Fact 3＋Theory 4 行＋4 行）＝2202、--tests-delta 11。FullLength 3。savetest・leakhunt。
 
 [5] 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
+
+追記（腕の前・2026-11-03）：フルスイートの CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで が赤（Fiscal.cs に裸の `/ Calendar.MonthsPerYear` が 1 件）。番人の指示（名前のある関数を通す）に従い、閾値の ÷12 を `Calendar.PerYearToPerMonth(閾値)`（中身は同じ `perYear / MonthsPerYear` の 1 回の除算）に直す。算術は同一＝[2] の紙の台本は式の値が変わらないので取り直さず、恒等の腕（ident）は最終の木で回し直す。テストの書き換えは 0（番人の宣言は動かさない）。
