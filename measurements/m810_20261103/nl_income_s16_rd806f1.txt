@@ -1,0 +1,26 @@
+ネーデルラント 種 16 1923〜1950：投資家の階級の受け取り（正の流れ）の和 585853・払い（負の流れ）の和 -880663（各国の通貨・四半期の額の和）
+受け取りの書き手（種類|ファイル:行|相手の側）	額	割合
+  give|CapitalMarket.cs:187|B	202033	0.345
+  carryIn|Meritocracy.cs:655|P	101947	0.174
+  settle|:0|-	88222.2	0.151
+  giveIncome|Transport.cs:184|P	80087.2	0.137
+  give|CapitalMarket.cs:273|B	68557.3	0.117
+  giveIncome|BilateralMarket.cs:1125|B	29083	0.050
+  give|BilateralMarket.cs:1136|T	6437.34	0.011
+  giveIncome|Simulation.cs:2991|M	4525.04	0.008
+  give|CapitalMarket.cs:165|B	2543.53	0.004
+  give|Fiscal.cs:325|T	634.938	0.001
+  giveIncome|BilateralMarket.cs:1129|B	544.14	0.001
+  give|Fiscal.cs:261|T	426.451	0.001
+  give|CapitalMarket.cs:234|B	267.837	0.000
+  giveIncome|BilateralMarket.cs:1131|B	160.619	0.000
+  give|MultiNationSim.cs:1915|T	147.947	0.000
+払いの書き手	額	割合
+  take|Simulation.cs:2412|T	-366009	0.416
+  take|Credit.cs:155|C	-97235.3	0.110
+  take|CapitalMarket.cs:158|B	-88872	0.101
+  take|Transport.cs:184|P	-80087.2	0.091
+  carryOut|Meritocracy.cs:655|P	-80031.2	0.091
+  take|BilateralMarket.cs:1143|B	-61079.5	0.069
+  settle|:0|-	-40949.1	0.046
+  take|BilateralMarket.cs:1142|T	-21992.2	0.025
