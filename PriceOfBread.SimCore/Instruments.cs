@@ -1880,6 +1880,7 @@ public static partial class Instruments
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
         SilverParityClose(sim);   // (775)
+        SilverWeightClose(sim, sk.Seed);   // (807)
         DivhostClose(sim); PortchClose(sim);    // (801)(770)
         PortlmClose(sim);    // (777)
         InheritIntentClose(sim);   // (781) 開いたままの継いだ工事の窓を書く

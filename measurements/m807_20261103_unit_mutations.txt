@@ -1,0 +1,9 @@
+# (807) 機構の試験 SilverParityDemandWeightedTests の突然変異（使い捨ての木・scripts/instruments/c12sv/mutunit.sh の写し）：M1u 票を 1 に固定／M2u 産出で重みづけ／M3u 需要の二乗／M4u 票の和 0 で 1 を返す／M5u 平均を等重みへ
+M1u 失敗!   -失敗:     5、合格:     2、スキップ:     0、合計:     7、期間: 15 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.需要のない州は平均に効かず_1州だけ需要があればその州の比になる;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.票は旗0で常に1_旗1で金鉱の需要_需要なしと不正は0;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.票の和が正でなければ0を返し比が不正の扱いへ倒れる;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の票は片側の州と1州の独占を計器が数える;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の注入は計器が独立に組んだ需要の重みの平均と合い_旗0は等重みと合う;
+M2u 失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 9 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の票は片側の州と1州の独占を計器が数える;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の注入は計器が独立に組んだ需要の重みの平均と合い_旗0は等重みと合う;
+M3u BUILDFAIL
+M4u BUILDFAIL
+M5u BUILDFAIL
+M3u 失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 10 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の票は片側の州と1州の独占を計器が数える;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の注入は計器が独立に組んだ需要の重みの平均と合い_旗0は等重みと合う;
+M4u 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 12 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.票の和が正でなければ0を返し比が不正の扱いへ倒れる;
+M5u 失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 11 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.需要のない州は平均に効かず_1州だけ需要があればその州の比になる;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.票の和が正でなければ0を返し比が不正の扱いへ倒れる;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗1の注入は計器が独立に組んだ需要の重みの平均と合い_旗0は等重みと合う;
