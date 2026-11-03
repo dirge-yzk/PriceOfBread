@@ -247,16 +247,12 @@ public sealed class Coefficients
     public double ParliamentLawWeight = 1.2;          // 法案可決/スライダー律速に効く議席の重み（議席×党選好を NetSupport/OpposingPower に加算）。社会党多数→富裕ブロックの梯子を票で乗り越え参政権拡大＝選挙が法を動かす
     public Share LandReformRentCap = new(0.3);            // 土地改革：RGO地代（地主取り分）の上限（地代>0.3の国を再分配。小作0.5も自作0.3へ）
     public Share SerfEmancipationRentCap = new(0.5);      // 農奴解放：地代の上限（農奴制1.0→小作0.5へ。自作/小作の国＝既に0.5以下には効かない＝農奴国だけ解放）
-    // ★(547) 線 rs2（読む線 rs〔(540)〕の直し）：LordOppositionByRentLoss＝> 0 のとき、農奴解放・土地改革への旧支配層（ブロック 0）の反対の強さを
-    //   StatusScale×(0.5＋〈次の一段で失う所得の割合〉)にする（失う割合＝(今の実効の取り分−次の実効の取り分)÷今の実効の取り分×(旧支配層の地代÷所得)・取り分＝min(慣習, 地代の上限)）。
-    //   0＝今の式 StatusScale×(0.5＋W0)（W0＝旧支配層の貯蓄の割合＝同じ貴族の富が政治力〔InterestGroups〕と反対の強さの両方に入り、農奴制が続くほど強まる）＝厳密恒等。
-    //   **既定は 1（2026-10-25 (547) 点火・腕 B＝計器つき 10 種で M1〜M6 と止める線を通った）**。0 は今の式（番人が両方を踏む・事前登録 measurements/rs2547_20261025_prereg.txt）。新しい状態も倍率も無い（慣習は最初の活動中の州〔通常は首都〕の産地の生産者の読み・上限は FarmRentCap と同じ式）。
-    public double LordOppositionByRentLoss = 1.0;
-    // ★(558) 線 rs3（rs2 の続き・減らす向き）：LordOppositionReverseGain＞0 かつ LordOppositionByRentLoss＞0 のとき、農奴解放・土地改革への旧支配層（ブロック 0）の**減らす向き**（再農奴化・巻き戻し）の支持の強さを
-    //   StatusScale×(0.5＋〈1 段戻したときに得る所得の割合〉)にする（得＝(戻した段の実効の取り分−今の実効の取り分)÷今の実効の取り分×(旧支配層の地代÷所得)・損の式と分母の規則が同じ＝その動きの前の状態で割る）。
-    //   進める向きは rs2 の損の式のまま（1 ビットも変えない）。0＝rs2 のまま＝減らす向きは進める向きの値の符号反転（全面の国は床 1.0）＝厳密恒等。既定 1（2026-10-25 に点火＝腕 B・計器つき 10 種・止める線に当たらず・G1〜G5・G7 が通る。事前登録 measurements/rs3558_20261025_prereg.txt）。新しい状態も倍率も無い。
-    // ⚠法の通常の経路からは戻らない（Government.BlockedByIrreversibility が農奴解放・土地改革の後退を旗なしで止める）＝この強さが効くのは旧支配層の要求の順位と議題・表示の内訳だけ。
-    public double LordOppositionReverseGain = 1.0;
+    // ★(547) 線 rs2（読む線 rs〔(540)〕の直し）：農奴解放・土地改革への旧支配層（ブロック 0）の反対の強さは StatusScale×(0.5＋〈次の一段で失う所得の割合〉)（失う割合＝(今の実効の取り分−次の実効の取り分)÷今の実効の取り分×(旧支配層の地代÷所得)・取り分＝min(慣習, 地代の上限)）。
+    //   旧の式 StatusScale×(0.5＋W0)（W0＝旧支配層の貯蓄の割合＝同じ貴族の富が政治力〔InterestGroups〕と反対の強さの両方に入る二重計上）は無い。新しい状態も倍率も無い（慣習は最初の活動中の州〔通常は首都〕の産地の生産者の読み・上限は FarmRentCap と同じ式）。事前登録 measurements/rs2547_20261025_prereg.txt。
+    // ★(558) 線 rs3（rs2 の続き・減らす向き）：農奴解放・土地改革への旧支配層（ブロック 0）の**減らす向き**（再農奴化・巻き戻し）の支持の強さは StatusScale×(0.5＋〈1 段戻したときに得る所得の割合〉)（得＝(戻した段の実効の取り分−今の実効の取り分)÷今の実効の取り分×(旧支配層の地代÷所得)・損の式と分母の規則が同じ＝その動きの前の状態で割る）。
+    //   進める向きは rs2 の損の式のまま。事前登録 measurements/rs3558_20261025_prereg.txt。新しい状態も倍率も無い。
+    // ⚠法の通常の経路からは戻らない（Government.BlockedByIrreversibility が農奴解放・土地改革の後退を止める）＝この強さが効くのは旧支配層の要求の順位と議題・表示の内訳だけ。
+    // 【墓標2026-11-03 (803)・旗の焼き込み】LordOppositionByRentLoss（(547)・2026-10-25 に 1 で点火）と LordOppositionReverseGain（(558)・同日に 1 で点火）を消した＝0 の旧の式（貯蓄の割合 W0・減らす向きは進める向きの符号反転）は無い。
     public double CornLawImportPenalty = 1.0;         // 穀物法：主食の輸入閾値への上乗せ（高関税相当＝輸入を阻む→国内パン高騰）
     // ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
     //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では革命は起きないが半年続けば大量の反乱軍」という裁定が**係数の値では表現できない**証明だった。
@@ -1747,7 +1743,7 @@ public sealed class Coefficients
     public double RuptureWindowQuartersOnCrush = 8;   // 第6段6-8点火（2026-07-28）：断裂の窓の長さ＝革命鎮圧・内戦制圧・弾圧の直後この四半期数だけ6-7を解除（反動の後退はこの窓のみ＝仏1850・ストルイピン1907）。0で窓なし
     // ⚠撤去2026-09-11（要求は法の経路の点火）：第6段6-6の別軸譲歩（主フラグ・緩和・結束残存の係数3本と Politics の施行関数）は読み手ごと物理削除。
     //   別軸譲歩の実体は「本丸以外の要求の法だけが通常経路で動いた」（Politics.CrisisThroughLawPath の moved==2）。
-    public double FactionOpportunism = 1.0;        // 第6段6-5点火（2026-07-28）：結束の予算化＝運動は閾値越えでも体制健在なら待つ（静かな蓄積→一斉投入＝1848/1917）。弱み（下2つ・交戦）か圧倒（下のOverwhelm）で打つ。0で旧＝閾値即発火
+    // 【墓標2026-11-03 (803)・旗の焼き込み】FactionOpportunism（第6段6-5・2026-07-28 に 1 で点火）を消した＝結束の予算化（運動は閾値を越えても体制が健在なら待ち、弱み〔下の2つ・外征〕か圧倒〔下の Overwhelm〕で打つ＝静かな蓄積→一斉投入＝1848/1917）は常に働く。0 の旧（閾値即発火）は無い。
     public double FactionStrikeLegitimacy = 0.5;   // 第6段6-5：体制の弱み判定＝正統性がこれ未満なら好機
     public Share FactionStrikeDrawdown = new(0.1);     // 第6段6-5：体制の弱み判定＝GDPドローダウンがこれ超（恐慌）なら好機
     public double FactionOverwhelmFactor = 1.5;    // 第6段6-5：圧倒判定＝勢力強度が保持力のこれ倍超なら好機を待たず打つ（雪崩は止まらない）
@@ -2960,12 +2956,11 @@ public sealed class Coefficients
     //   ⚠憲法級（参政権等）だけは 0 を返す＝硬い「純支持>0」＝2026-08-04 の裁定をそのまま保存（弁 ConstitutionalMandateScale は 2026-09-26 に削除＝dorm-50）。
     // ★主フラグ PoliticalCapitalStock（N2/S1・0/1）は 2026-09-21 ㉖で 1.0 を焼き込んで削除＝在庫の門・線形回復・θ の退役が既定（旧の余白の門と指数減衰の枝は削除）。
     public double MandateRefillQuarters = 40;    // 空から満タンまでの四半期数（作者裁定＝実行度が最大のとき10年）。実行度 ≥ 1/(1+2.667)≈0.273 なので最悪でも ≈147四半期＝0の吸収状態を作らない
-    // ★(615) 線 pcw：政治資本の壁の一歩の勘定（事前登録 measurements/pcw615_20261028_prereg.txt・(602) 読む線 bnd の根①・(609) の推奨③）。★2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず・再開までの長さの中央値 47→8）。0＝旧の勘定（Government.Spend は S へ代価の全額を足す＝番人が旗 0 の経路として残す）。
-    //   正のとき、Government.Spend が S へ足す量を残りの在庫 max(0, b−S) で止める＝在庫を使い切る（S は b で止まる）。b を超える分は S に載らず、正統性だけが払う（MandateSpentNew は代価の全額のまま＝Politics.Step が 1 回だけ引く）。
-    //   旗に入る枝は壁の一歩（S≦0 かつ 代価＞b）だけ＝普通の一歩（S＋代価≦b）は旗 0 と 1 ビットも同じ。内戦に負けた講和の代価（Politics.ConcedeToFaction）は門を通らない意図した例外のまま。AI の設計＝確証なし。
-    public double MandateWallStockCap = 1;
+    // ★(615) 線 pcw：政治資本の壁の一歩の勘定（事前登録 measurements/pcw615_20261028_prereg.txt・(602) 読む線 bnd の根①・(609) の推奨③）。Government.Spend は S へ足す量を残りの在庫 max(0, b−S) で止める＝在庫を使い切る（S は b で止まる）。b を超える分は S に載らず、正統性だけが払う（MandateSpentNew は代価の全額のまま＝Politics.Step が 1 回だけ引く）。
+    //   止める枝に入るのは壁の一歩（S≦0 かつ 代価＞b）だけ＝普通の一歩（S＋代価≦b）は代価の全額を足す。内戦に負けた講和の代価（Politics.ConcedeToFaction）は門を通らない意図した例外のまま。AI の設計＝確証なし。
+    // 【墓標2026-11-03 (803)・旗の焼き込み】MandateWallStockCap（2026-10-28 に 1 で点火・腕 B・止める線に当たらず・再開までの長さの中央値 47→8）を消した＝0 の旧の勘定（S へ代価の全額を足す）は無い。
     // ★(404) 専制の改革の経路・2-2（事前登録 measurements/rf_20261018_prereg.txt D1）：その壁の一歩だけを値段にする（旧は代価が b を超える一歩が満タンでも永遠に通らない壁だった）
-    //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）〔★(615)(617) 既定 MandateWallStockCap＝1 では S は b で止まる＝代価の全額は MandateSpentNew にだけ記帳〕。
+    //   ＝在庫が満タン（S=0）で、正統性が（この四半期に請求済みの分を引いて）代価を払えるなら通る。S と MandateSpentNew には代価の全額を記帳する（Spend は不変＝新しい減算を足さない・⑨）〔★(615)(617) S は b で止まる＝代価の全額は MandateSpentNew にだけ記帳〕。
     //   代価 ≤ b の普通の一歩は旧と同じ式（時間の値段）。憲法級の硬い門は触らない。4 本の脚（MandateGate・CanStep・GateInfo・Move）は Government.PoliticalCapitalAffords の1本を共有する。
     // 【墓標2026-10-19 (419)・旗の焼き込み】MandateOverStockFromLegitimacy（(405) で採用・既定 1）を消した＝壁の一歩は常に値段で通る（0 は旧の経路〔壁の一歩は永遠に通らない〕。同じ振る舞いは MandateOverStockLegitPower＝0 で閉じる〔`!(power>0)` で fail-closed〕）。(405) の腕 B〔床 0〕は止める線 ⑥④ に当たり、床つきの BF は当たらなかった（★(409) で床は消え、払える量は下の MandateOverStockLegitPower の比例の形）
     // ★(409) 採用（腕 B・既定 2）：壁の一歩で払える正統性の量 = avail^p（avail＝正統性−この四半期の請求済み・0〜1）。(405) の床 0.4（閾値）を消してこの比例の形に置き換えた（README §1-8・設計思想⑧）。
@@ -3639,7 +3634,7 @@ public sealed class Coefficients
     // ==== 環境変数による係数の上書き（測定用・2026-08-12）====
     // なぜ要るか：A/B を**同一バイナリ・同一ソースハッシュ**で取るため。従来は既定値を書き換えて2回ビルドしていたが、
     // その間に他の編集が混ざると「挙動不変のはずの変更で軌道が動く」事故になる（設計doc「測定汚染」2026-07-28 と同じ罠）。
-    //   使い方: POB_COEF="FactionOpportunism=0" bash measure.sh ...
+    //   使い方: POB_COEF="FactionStrikeLegitimacy=0.4" bash measure.sh ...
     // 決定論：同じ環境変数なら同じ値＝再現する。未指定なら1件も触らない（＝厳密恒等）。
     // 名前を間違えたら**黙って無視せず例外**＝「掛けたつもりの実験が素通り」を構造で防ぐ（番人の空洞化対策）。
     private static readonly (string Name, double Value)[] Overrides = ParseOverrides();

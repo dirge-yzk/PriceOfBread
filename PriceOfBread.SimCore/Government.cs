@@ -579,7 +579,7 @@ public static class Government
     {
         if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true;
         // ★(404) 壁の一歩だけを値段にする（事前登録 rf_20261018_prereg.txt D1）：代価が b そのものを超える一歩は在庫が満タンでも届かない＝待っても永遠に通らない壁だった
-        //   （README §1-8 片方向の錠なし・歯止めは値段と費用で）。値段＝①在庫を使い切る（S＝0 の満タンのときだけ・その後 S＝代価で長く空く〔★(615)(617) 既定 MandateWallStockCap＝1 では S は b で止まる＝代価の全額は MandateSpentNew にだけ記帳〕）②正統性が代価を払えること（この四半期に請求済みの MandateSpentNew を引く）。
+        //   （README §1-8 片方向の錠なし・歯止めは値段と費用で）。値段＝①在庫を使い切る（S＝0 の満タンのときだけ・その後 S＝代価で長く空く〔★(615)(617) S は b で止まる＝代価の全額は MandateSpentNew にだけ記帳〕）②正統性が代価を払えること（この四半期に請求済みの MandateSpentNew を引く）。
         //   正統性の減算は Spend が記帳する MandateSpentNew→Politics.Step の 1 回だけ（新しい減算を足さない）。代価≦b の一歩は上の式のまま（時間の値段）。
         //   ⚠否定形：S・正統性・代価のどれかが NaN なら比較が偽＝閉じる側へ倒れる。
         //   ここへ来た時点で S+代価 ＞ b。S≦0（満タン）ならそれは 代価＞b と同じ＝壁の一歩（S＞0 なら普通の一歩の在庫不足か壁の一歩の在庫の使いかけ＝どちらも待つ）。
@@ -863,12 +863,12 @@ public static class Government
     //   (615) が b で止めるのは S の記帳だけで、選んだ一歩（代価）は削らない＝代価の全額は MandateSpentNew に残り正統性が払う＝設計思想⑧〈選んだ値を上限で削らない〉の外という読み（AI の読み・作者の承認は未確認）。
     // ⚠private へ戻した（2026-09-20）：外部の唯一の呼び手だった World.SetStateMonopolyOn は、専売を政治から切り離したので
     //   もう政治資本を払わない。内部（Move と MandateGate）の2本だけが記帳する＝「誰でも政治資本を燃やせる口」を開けたままにしない。
-    //   ★(615) 線 pcw：旗 MandateWallStockCap > 0 のとき S へ足す量を残りの在庫 max(0, b−S) で止める（在庫を使い切る）。b を超える分は S に載らず正統性だけが払う（MandateSpentNew は代価の全額＝Politics.Step が 1 回だけ引く）。
-    //   旗に入る枝は壁の一歩だけ（呼び手は PoliticalCapitalAffords が真のときだけ呼ぶ＝S＋代価≦b か〔S≦0 かつ 代価＞b〕）。普通の一歩は旗 0 と同じ足し算。否定形＝NaN は S を変えない側（0）へ倒れる。
+    //   ★(615) 線 pcw：S へ足す量を残りの在庫 max(0, b−S) で止める（在庫を使い切る・(803) で旗 MandateWallStockCap を焼き込んだ）。b を超える分は S に載らず正統性だけが払う（MandateSpentNew は代価の全額＝Politics.Step が 1 回だけ引く）。
+    //   止める枝に入るのは壁の一歩だけ（呼び手は PoliticalCapitalAffords が真のときだけ呼ぶ＝S＋代価≦b か〔S≦0 かつ 代価＞b〕）。普通の一歩は代価の全額を足す。否定形＝NaN は S を変えない側（0）へ倒れる。
     private static void Spend(World w, double amount)
     {
         double applied = amount;
-        if (w.Coef.MandateWallStockCap > 0 && !(w.MandateSpent + amount <= w.PoliticalCapitalMax))
+        if (!(w.MandateSpent + amount <= w.PoliticalCapitalMax))
             applied = w.PoliticalCapitalMax > w.MandateSpent ? w.PoliticalCapitalMax - w.MandateSpent : 0;
         if (Instruments.On) Instruments.SpendApplied(w, amount, applied);   // 計器（読むだけ・(615)）
         w.MandateSpent += applied;
