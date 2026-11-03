@@ -2136,7 +2136,7 @@ public sealed class Simulation
                 if (!(seaShare >= 0)) seaShare = 0; else if (seaShare > 1) seaShare = 1;   // 否定形＝NaN は陸へ
                 double milCap = equipRoom * (1.0 - seaShare);   // 陸の装備の請求（r を掛ける前）。支出反射（OpulenceSpendRatePerYear>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
                 double navalCap = equipRoom * seaShare;         // 艦の請求（r を掛ける前）
-                r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側。S3a=0 では下の予算と同値＝厳密恒等
+                r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側（下の予算は必要額で切った後＝(811) で S3a は常に有効）
                 // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。（旗 MilitaryBudgetNeedCapped は (811) で焼き込み＝常にこの経路。）
                 // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。
                 // ★(189) 艦も同じ規則（海軍の調達の必要額＝目標の艦隊と在庫の差・EconomyStep.NavalProcurementNeed）＝十分な艦隊が揃えば出費は伸びない（(155) の扶養限界と同じ形）。

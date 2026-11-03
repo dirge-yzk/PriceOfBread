@@ -97,7 +97,7 @@ public static partial class Instruments
         a.N++;
     }
 
-    /// <summary>PopDecision.Run の直前：本国の州の駆動を PopDecision.Run と同じ式で組み直して累積する（読むだけ）。<c>UrbanIndSmoothed</c> は書かない（更新後の値を局所で計算）。</summary>
+    /// <summary>PopDecision.Run の直前：本国の州の駆動を PopDecision.Run と同じ式で組み直して累積する（読むだけ）。（都市化の天井と UrbanIndSmoothed は (812) で削除＝cap・capBound の列は定数。）</summary>
     internal static void UrxPd(World w, Region region, double serfFree)
     {
         if (!On || w.WarmupFrozen || region.Tier != RegionTier.Core) return;
