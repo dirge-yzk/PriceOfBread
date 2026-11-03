@@ -1122,20 +1122,17 @@ public sealed class Simulation
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
-        // ★(536) 線 ivf（旗 MachineCastIronRecipe・★2026-10-25 点火＝既定 1。0 にすると 1 件も足さない＝旧の形）：機械（財）の地理差のレシピ〈鋳鉄の機械〉。鋳鉄の機関（上）と同じ型。
+        // ★(536) 線 ivf（旗 MachineCastIronRecipe・★2026-10-25 点火・(811) で焼き込み）：機械（財）の地理差のレシピ〈鋳鉄の機械〉。鋳鉄の機関（上）と同じ型。
         //   既定の機械は鋼 1.514＋銅 0.57（goods.json）で、鋼を使わないレシピが無い＝1783 年の機械の費用は坩堝鋼の値段（転炉鋼の発見は 1850 年代）で決まる（iv ②・坩堝鋼の機械は参照の約 8.1）。
         //   史実＝1780 年代の機械は鋳鉄・錬鉄と木材（Dickinson & Jenkins 1927・Hills 1989 は蒸気機関についての文献で、機械一般への換算の根拠ではない）。換算は鋳鉄の機関の比（鉄 1.832÷鋼 1.0992＝1.665）の流用＝鋼 1.514 を鉄 2.52 に置き換える（確証なし・AI の推奨・事前登録 追記 2）。
         //   参照の費用 4.8046（既定の機械 4.3943 の 1.093 倍）。★(542) 合流（反証役 ivf〔bv〕中#1）：〈転炉鋼の後は費用で鋼のレシピが勝つ〉は数字と合わない＝機械の産出のうち鋳鉄の機械の割合は 1850 年 1.000・1880 年 0.997・1913 年 0.412（腕 C・10 種の中央値）＝1913 年でも約 4 割が鋳鉄（鋼の慢性的な不足で鋼のレシピが費用で勝てない・F2 を落とした G5b と同じ根）。退場の行は置いていない（置くかは作者に聞く物＝00一覧 §0-2）。新しい財なし。生産性は既定の機械と同じ。全ての州に同じ 1 本（国名の分岐なし）。
-        if (coef.MachineCastIronRecipe > 0)
-        {
-            Producer? machineDefault = null;
-            foreach (var pr in producers) if (pr.GoodId == Catalog.MachineryId) { machineDefault = pr; break; }
-            if (machineDefault is not null)   // 機械を作らない世界（最小シナリオ）は不発
-                producers.Add(new Producer { GoodId = Catalog.MachineryId, RecipeName = "鋳鉄の機械",
-                    Productivity = machineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
-                    LaborPopIndex = machineDefault.LaborPopIndex, OwnerPopIndex = machineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                    Inputs = [new Input(Catalog.IronId, 2.52), new Input(Catalog.CopperId, 0.57), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.MachineryId))] });
-        }
+        Producer? machineDefault = null;
+        foreach (var pr in producers) if (pr.GoodId == Catalog.MachineryId) { machineDefault = pr; break; }
+        if (machineDefault is not null)   // 機械を作らない世界（最小シナリオ）は不発
+            producers.Add(new Producer { GoodId = Catalog.MachineryId, RecipeName = "鋳鉄の機械",
+                Productivity = machineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                LaborPopIndex = machineDefault.LaborPopIndex, OwnerPopIndex = machineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
+                Inputs = [new Input(Catalog.IronId, 2.52), new Input(Catalog.CopperId, 0.57), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.MachineryId))] });
         // ★(550) 線 fb（旗 BuildingGoodBundle・既定 1〔(555) で 0 から倒した〕・0 にすると 1 件も足さない）：工場の建屋＝建造物の段のレシピ 4 本（既定の木造は CatalogEconomy が置く）。鋳鉄の機械（上）と同じ型・新しい倍率なし。
         //   生産性は既定（木造）と同じ＝段の差は材の量だけ（隠れた倍率を作らない）。参照価格（単位費用）：木造 1.273 ＞ 煉瓦造 1.277（地理差・常にある）＞ 鋳鉄の骨組み 1.180 ＞ 鋼の骨組み 1.112 ＞ 鉄筋コンクリート造 1.056（確証なし・AI の推奨）。
         //   史実の注：耐火工場は木造より高く、利点は火災・荷重・高さだった。ここは〈材あたりの床と梁の大きさ〉の読み（既知のずれ・事前登録 [6]）。
@@ -1166,43 +1163,37 @@ public sealed class Simulation
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
         //   同じ原油→灯油の近代レシピ（RecipeName="石油灯油"・同じ1850年代の発見の行〔旧 TechOnset=0.6〕）が**既にある**＝空白ではない。
-        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled=1 は点火済みで
+        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled は点火済み・(811) で焼き込み。当時
         //   列強+6.2/人口−5.7 の実測がある）ので、ここでは**事実の記録だけ**に留め、統合は測定とセットで行う（キューAUD-09）。
         // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる（★2026-10-01 段2A・旧＝onset後）。
         //   史実の較正＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い。
         //   投入は原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）で表す＝倍率を書かない。
-        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。⚠KeroseneFromOilEnabled=0 で不発＝厳密恒等。
-        if (coef.KeroseneFromOilEnabled > 0)
-            {
-                Producer? keroDefault = null;
-                foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
-                if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
-                {
-                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン",
-                    Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
-                    LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                    Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
-                }
-            }
+        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。（旗 KeroseneFromOilEnabled は (811) で焼き込み。）
+        Producer? keroDefault = null;
+        foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
+        if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
+        {
+            producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン",
+                Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
+                Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
+        }
 
         // ★冷蔵の加工肉（2026-09-04・作者提案「冷蔵庫という形にして、肉輸送+消費財でよいのでは」）＝**加工肉(63)の第2レシピ**。
         //   既定は 肉+小麦粉（塩漬け・ソーセージ）。⚠冷凍船（1877/1882）以後は**冷蔵**が主役になる。
         //   ★新しい財を作らない＝加工肉の需要は既に較正済みのまま使える（作者指摘で「冷蔵肉」の新設を撤回した）。
         //   ⚠解禁は暦年でなく**冷蔵庫(137)が作れるか**＝精密工作機械の連鎖に律速される（時計を書かない）。
         //   ★副産物＝塩漬けの設備が座礁する＝「乗り換えるか／捨てられる側が抵抗するか」の実例になる。
-        //   ⚠ChilledMeatEnabled=0 で Producer を1件も足さない＝**厳密恒等**（休眠）。
-        if (coef.ChilledMeatEnabled > 0)
-            {
-                Producer? saltCured = null;
-                foreach (var pr in producers) if (pr.GoodId == Catalog.PreservedMeatId) { saltCured = pr; break; }
-                if (saltCured is not null)   // 加工肉を作らない世界（最小シナリオ）は不発
-                {
-                producers.Add(new Producer { GoodId = Catalog.PreservedMeatId, RecipeName = "冷蔵の加工肉",
-                    Productivity = saltCured.Productivity * coef.ChilledMeatProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
-                    LaborPopIndex = saltCured.LaborPopIndex, OwnerPopIndex = saltCured.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                    Inputs = [new Input(Catalog.MeatId, 0.6), new Input(Catalog.RefrigeratorId, coef.ChilledMeatColdInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PreservedMeatId))] });
-                }
-            }
+        //   （旗 ChilledMeatEnabled は (811) で焼き込み。）
+        Producer? saltCured = null;
+        foreach (var pr in producers) if (pr.GoodId == Catalog.PreservedMeatId) { saltCured = pr; break; }
+        if (saltCured is not null)   // 加工肉を作らない世界（最小シナリオ）は不発
+        {
+            producers.Add(new Producer { GoodId = Catalog.PreservedMeatId, RecipeName = "冷蔵の加工肉",
+                Productivity = saltCured.Productivity * coef.ChilledMeatProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                LaborPopIndex = saltCured.LaborPopIndex, OwnerPopIndex = saltCured.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
+                Inputs = [new Input(Catalog.MeatId, 0.6), new Input(Catalog.RefrigeratorId, coef.ChilledMeatColdInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PreservedMeatId))] });
+        }
 
         // ★E-15 手順1（2026-09-05）：硫酸(33)の第2レシピ「黄鉄鉱法」＝硫黄の代替（(493) 以後は銅鉱＋石炭＝含銅黄鉄鉱を焙焼して硫酸・旧は鉄鉱石＋石炭＋塩）。
         //   史実＝1838年の硫黄危機（シチリア独占）の後、世界は原料の代替（リオ・ティントの黄鉄鉱）で解いた。新しい財は足さない。
@@ -1239,7 +1230,7 @@ public sealed class Simulation
             AddSodaAsh("ソルベー法", (Catalog.SaltId, 0.5), (Catalog.LimestoneId, 0.4), (Catalog.CoalId, 0.25));
             AddSodaAsh("電解", (Catalog.SaltId, 0.5), (Catalog.ElectricityId, 0.3));
         }
-        AddHouseholdProducers(producers, coef);   // ★(418) 日用品の自給：農家の手仕事の行（旗 HouseholdProductionEnabled＝0 で 1 本も足さない）
+        AddHouseholdProducers(producers, coef);   // ★(418) 日用品の自給：農家の手仕事の行（旗 HouseholdProductionEnabled は (811) で焼き込み）
         ApplyRecipeCostFollowsProductivity(producers, coef);   // ★(328) 流れG ①：別レシピの自己費用を生産性の比で割る（★(331) 既定1＝点火・0＝走査もしない＝旧の挙動）。4本の構築経路の最後の add の後の1回
     }
 
@@ -1808,8 +1799,7 @@ public sealed class Simulation
         // ★(351) 1 周で足す：稼働中の州の POP を州の並びで 1 周し、州ごとの和（rSav・rEarn・rPop）と国の和（nat＝州をまたいで足し続ける）を同時に数える。
         //   旧＝国の和の周と州ごとの和の周の 2 周（同じ集合・同じ順）。各和の足し込みの順は旧と同じ＝1 ビットも変わらない（国の和は州ごとの和の合計ではない＝足し方が違う）。
         double natSav = 0, natEarn = 0, natPop = 0;
-        // ★(536) 線 ivf（旗 RegionalPriceBaseExcludesColonies・★2026-10-25 点火＝既定 1。0 で旧の形）：正のとき〈国平均〉を植民地の格の州を除いた州で取る。本土の州が無い（人口 0）ときは全ての州（今の式）。旗 0 では下の 2 行と 1 分岐が走らず、nat の足し込みは今のまま。
-        bool exColonies = c.RegionalPriceBaseExcludesColonies > 0;
+        // ★(536) 線 ivf（旗 RegionalPriceBaseExcludesColonies・★2026-10-25 点火・(811) で焼き込み）：〈国平均〉は植民地の格の州を除いた州で取る。本土の州が無い（人口 0）ときは全ての州。
         double mainSav = 0, mainEarn = 0, mainPop = 0;
         var regSums = new double[World.Regions.Count * 3];
         for (int ri = 0; ri < World.Regions.Count; ri++)
@@ -1823,9 +1813,9 @@ public sealed class Simulation
                 rSav += sv; rEarn += ea; rPop += sz;
             }
             regSums[ri * 3] = rSav; regSums[ri * 3 + 1] = rEarn; regSums[ri * 3 + 2] = rPop;
-            if (exColonies && r.Tier != RegionTier.Colonial) { mainSav += rSav; mainEarn += rEarn; mainPop += rPop; }
+            if (r.Tier != RegionTier.Colonial) { mainSav += rSav; mainEarn += rEarn; mainPop += rPop; }
         }
-        if (exColonies && mainPop > 1e-9) { natSav = mainSav; natEarn = mainEarn; natPop = mainPop; }
+        if (mainPop > 1e-9) { natSav = mainSav; natEarn = mainEarn; natPop = mainPop; }
         double natPerCap = natPop > 1e-9 ? natSav / natPop : 0;
         double natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;   // 国平均の1人あたり月次所得（QuarterStart時点＝共有層〔戦死・移民・国際市場・資本市場の受け取り〕が直前の月の決算の後に書いた分を含む）
         for (int ri = 0; ri < World.Regions.Count; ri++)
@@ -2147,10 +2137,10 @@ public sealed class Simulation
                 double milCap = equipRoom * (1.0 - seaShare);   // 陸の装備の請求（r を掛ける前）。支出反射（OpulenceSpendRatePerYear>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
                 double navalCap = equipRoom * seaShare;         // 艦の請求（r を掛ける前）
                 r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側。S3a=0 では下の予算と同値＝厳密恒等
-                // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。MilitaryBudgetNeedCapped=0 で従来＝厳密恒等。
+                // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。（旗 MilitaryBudgetNeedCapped は (811) で焼き込み＝常にこの経路。）
                 // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。
                 // ★(189) 艦も同じ規則（海軍の調達の必要額＝目標の艦隊と在庫の差・EconomyStep.NavalProcurementNeed）＝十分な艦隊が揃えば出費は伸びない（(155) の扶養限界と同じ形）。
-                if (World.Coef.MilitaryBudgetNeedCapped > 0 && r.Id == 0)
+                if (r.Id == 0)
                 {
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
                     navalCap = Math.Min(navalCap, EconomyStep.NavalProcurementNeed(r, World.Coef, World));
@@ -2162,7 +2152,7 @@ public sealed class Simulation
                     // ★(606) 線 navf（旗 NavalPortProcurement が正）：国の海軍の予算（装備の器×海の金の割合を必要額で切った額・首都の1本で引いた旧と同じ値）と発注を国の本国格の港の州へ**同じ割合**で配る。
                     //   Σ予算 ＝ 国の予算 navalNat（★(669) 追記 1：上限の必要額は各州の値段で買う額の和・首都だけに配る国は旧と同じ）。割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。
                     double navalNat = equipRoom * seaShare;
-                    if (World.Coef.MilitaryBudgetNeedCapped > 0) navalNat = Math.Min(navalNat, navNeedNat);
+                    navalNat = Math.Min(navalNat, navNeedNat);
                     double sh = navShare[navIdx];
                     r.NavalBudget = EconomyStep.NavalPortBudget(navalNat, sh, navBudShare![navIdx]);   // 追記 1：予算の割合は発注額の比（各州が自分の値段で買う額）・発注は取扱高の比
                     double[]? nq = null;
@@ -2202,7 +2192,7 @@ public sealed class Simulation
                 // C-高9（史実検証2026-07-22）：公教育（Public）にも国庫財源を配線（旧＝Compulsory 以外は厳密0＝「国が無料で供給を得る」因果の逆向き）。
                 // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
-                    : World.EducationLaw == EducationLaw.Public || (World.EducationLaw == EducationLaw.Religious && World.Coef.ParishEduFunded > 0) ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // ★(404) 旗 ParishEduFunded＞0：Religious も Public と同じ割合を国庫が買う（担い手は教区学校のまま・rf_20261018_prereg.txt D2）。0 は旧の 0
+                    : World.EducationLaw == EducationLaw.Public || World.EducationLaw == EducationLaw.Religious ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // ★(404) 旗 ParishEduFunded は (811) で焼き込み：Religious も Public と同じ割合を国庫が買う（担い手は教区学校のまま・rf_20261018_prereg.txt D2）
                     * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
                 r.EducationSpending = World.EducationSpending;   // ★(597) 国の教育費の実効の率の複製（奨学金の法が最上段かを州の側で導く入力・上の写像は変えない・支払い率は CompulsoryEduFunding の行に畳まれる＝この欄には掛けない）
                 if (r.EducationProducerIndex >= 0)
@@ -3238,7 +3228,7 @@ public sealed class Simulation
         Catalog.BeerId, Catalog.SpiritsId, Catalog.CheeseId, Catalog.LeatherGoodsId,
     ];
 
-    /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 <see cref="Coefficients.HouseholdProductionEnabled"/>＝0 では**先頭で戻る**＝Producers の件数も順序も不変（厳密恒等）。★既定は 1（(418) 後半で点火）。
+    /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 HouseholdProductionEnabled は (418) 後半で点火・(811) で焼き込み（常にこの経路）。
     /// &gt;0 のとき、財を作る州（その財の行が既にある）に、職人の工房（<see cref="AddArtisanProducers"/>）と同じ型の行を <see cref="HouseholdGoods"/> の 1 財 1 本ずつ足す：担い手＝所有者＝農民（既存の RGO の行の担い手から読む）・
     /// 投入＝財の表の投入（職人と同じ＝工場の連鎖の最後の一段）に**農業労働力を自家農家（RGO）の行と同じ量だけ**足す・生産性＝財の生産性×全連鎖の倍率×<see cref="HandcraftProductivityRatio"/>・自己費用＝<see cref="HandcraftSelfCost"/>・規模 1.0・産出 30（職人と同じ）。
     /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。
@@ -3246,7 +3236,6 @@ public sealed class Simulation
     /// 農民の時間の値段は、農業労働力の賃金が RGO の行と手仕事の行の両方の付加価値（EconomyStep の零和分割の重み）に同じ向きで効く形で担う＝新しい状態も倍率も置かない。表に無い RecipeName＝発見の門 1＝眠らない。</summary>
     private static void AddHouseholdProducers(List<Producer> producers, Coefficients coef)
     {
-        if (!(coef.HouseholdProductionEnabled > 0)) return;
         int peasantIdx = -1;
         foreach (var pr in producers) if (pr.IsRgo) { peasantIdx = pr.LaborPopIndex; break; }
         if (peasantIdx < 0) return;   // RGO の無い世界（最小シナリオ）は不発
