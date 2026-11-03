@@ -83,3 +83,27 @@
 
 [5]〈判定: 恒等〉なら採る（測った種で一致と名乗る）。一致しなければ、その変更を外して報告に回す。
     フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる（期待＝ident.cfg の値＋ --tests-delta）。
+
+[追記 2026-11-03・ident の起動（21:13）の後・どの結果も読む前に書いた（I4 の範囲の決定と tests-delta は腕〔測る木〕を変えない＝腕の前の事前登録として扱う。順序は〈起動の後〉と名乗る）]
+  (A) 入れた物＝旗 7 本（[2] (B)）。残した物＝StandardMetalMintGate・MintPriceFloorGate（[2] (A)）。名簿 9 本のうち 2 本は残した。
+  (B) I4 tl 段6 は**入れない**（読み直した結果）：
+      EraOff                 ：SimCore/Display/DiscoveryTables.cs:45 が読む＋App/ViewModels/GameViewModel.Politics.cs:639 が EraFactor を呼ぶ（News.cs:289 は注）。
+      TechMultipliersOff     ：SimCore/Display/FiscalTables.cs が読む。
+      TechGateByDiscovery    ：Runner/PlayHarness.cs が読む。
+      TechSignalOff          ：読み手は SimCore だけ（MultiNationSim.cs:861・SelfPlay.cs:656）だが、焼き込むと ExternalPressure に毎四半期 0 を書く経路・ExternalPressureGapScale・
+                               ExternalPressureInlandFactor・UModTechWeight／UIndTechWeight が同時に死ぬ（死んだ信号の連鎖）。式の項を消す線は恒等の枠を出る（x+0.0 の項の削除）＝別の線。
+      TechThresholdOff       ：読み手は SimCore だけ（Agents.cs:37・Discovery.cs:673,1167,1172・SelfPlay.cs:1519,1528〜1530）だが、DiscoveryEngineerTests の Board() が旗 0 を
+                               わざと立てて〈制度と思想の行は技術水準を読む〉旧の枝の上に機構の番人（T3・旗が正なら製法と産地は技術水準を読まず…）を置いている。焼き込むと、その番人が見る
+                               対象が消える＝機構の番人の削除が要る。★(743) の ①〜④ では足りない（機構の向き・大きさの Assert を書き換える）＝入れない。
+      ＝I4 の恒等で入る範囲は 0 本。次の波へ申し送る（App・Display・Runner に触れてよい回で EraOff・TechMultipliersOff・TechGateByDiscovery を同時に畳み、TechSignalOff／TechThresholdOff は
+        番人の移し先を決めてから）。
+  (C) 試験の書き換え（件数）：-1（MilitaryTests.軍需予算は上限を超えない：Theory 2 行→Fact）。他は Fact の中の Assert の書き換えで件数は動かない。
+      --tests-delta -1。
+  (D) 突然変異の台本＝scripts/instruments/c13ia/mut_run.sh・mut_apply.py（M0＝変異なしの対照・M1〜M7）。出力は measurements/m811_20261103_mutation.txt。
+  (E) 試験の札の補足（読み返しで分けた物）：
+      PopScanTests.州の価格水準の1周の求め方は旧の2周とビット一致：英の単独の盤面は本土 5 州・植民地 0（プローブで確認）＝範囲は変わらない。旗の行を消し（③）、写しの式を焼き込んだ形
+        〈州ごとの和の和で本土の国平均〉へ置き換えた（②の拡張：期待が指すエンジンの値は焼き込み前の既定〔旗 1〕と同じ double。旧の写しは全ての州の足し込み＝旗 0 の足し方で、既定の経路とは足す順が違った）。
+        ビット一致の Assert は書き換えていない。
+      ScholarshipTests（Board(1, Religious, 1.0) → Board(1, None, 1.0)）：試験の盤面の選び直し（検査は同じ＝財源が 0 の教育法では奨学金が出ない）。ParishEduFunded が常に 1 の世界では
+        教区学校の国でも最上段なら奨学金が出る＝今の既定。記録として残す。
+      IvfInitialValuesTests の比較の Assert：旗 0 のエンジンの走りとの比較を、手の式（Old(i)・e0）との比較に置き換えた（①＋残した Assert）。
