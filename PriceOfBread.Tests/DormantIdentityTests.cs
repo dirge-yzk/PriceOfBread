@@ -300,6 +300,7 @@ public class DormantIdentityTests
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
         "NationalConsciousnessCorruptionWeight",   // (798) c11dm：国民意識の蓄積の門の左の項（既定 0.2 で常に真・他の読み手なし〔Coefficients の注にあった World.civicCarriesEthnic は存在しない〕）。試験〈係数は全て本体のどこかで読まれる〉が門を消した後に赤で知らせた
         "UpkeepDistanceGeneral",   // (804) c12ds：既定 1.0 の距離の物差し（×1.0 の因子の除去・読み手は Fiscal.AdminDistanceMulOfKm・Fiscal の行政の距離の割増）
+        "InlandPortDistanceDecay",   // (804) c12ds：既定 1.0 の距離の物差し（×1.0 の因子の除去・読み手は InternationalMarket.InlandRailAfterDecay と計器 portch_s の railDecay の 2 列）
         "ScoreTechWeight",              // (798) c11dm：旧の国力の式 OldScore の技術の項の重み（読み手は計器 score_s の旧の 3 列だけ＝列ごと消した）
         "OpeningMoneyFromRatioMode",    // (798) c11dm：★(574) 線 svf 開幕の貨幣の量（00一覧 296 行で採らない・World.RescaleOpeningSavings・NationConfig.BroadMoneyToGdpYear・world.json の表ごと削除）
         "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // (798) c11dm：★(640) 線 idn の盤面の旗（00一覧 255 行で差し戻し）。式は工場労働者の人数×闘争度のまま

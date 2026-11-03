@@ -18,15 +18,23 @@ public class TradeThemeTests
     {
         var c = new Coefficients();
         Assert.Equal(1.0, c.PrizeCargoShare.Value);          // A-5有効化（賞金は実積荷基準）
-        Assert.Equal(1.0, c.InlandPortDistanceDecay);  // A-4有効化（港湾集約の創発）
     }
+
+    /// <summary>★(804) 内陸州の鉄道の容量の減衰の純関数 <see cref="InternationalMarket.InlandRailAfterDecay"/>：容量÷（1＋最寄りの港までの距離 km÷1万km）。期待は手で書いた値。
+    /// ⚠突然変異「1.0+ を 0.5+ にする」「÷1万を落とす」で赤（呼び手の門と配線は ident が見る）。</summary>
+    [Theory]
+    [InlineData(100.0, 0.0, 100.0)]
+    [InlineData(100.0, 10000.0, 50.0)]
+    [InlineData(90.0, 20000.0, 30.0)]
+    [InlineData(100.0, 5000.0, 66.66666666666667)]
+    public void 内陸の鉄道の減衰の純関数は手で書いた値を返す(double rail, double km, double expected)
+        => Assert.Equal(expected, InternationalMarket.InlandRailAfterDecay(rail, km), 12);
 
     [Fact]
     public void テーマI_全機能係数有効化でも保存則が保たれる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
         sim.Coef.PrizeCargoShare = new Share(1.0);             // 拿捕賞金の積荷連動
-        sim.Coef.InlandPortDistanceDecay = 1.0;     // 内陸港距離減衰（NearestPortDistanceKm=0なら不発だが係数経路は走る）
         var ex = Record.Exception(() => sim.Run(200));   // §11.6（貨幣・人口保存と境界）が全ティック・全国で保持
         Assert.Null(ex);
         // 2026-07-26 不可侵協定の機能削除に伴い緩和：低緊張ペアの凍結が無くなり、4カ国閉世界の50年では

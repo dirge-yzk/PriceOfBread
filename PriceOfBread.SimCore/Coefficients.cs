@@ -1221,7 +1221,7 @@ public sealed class Coefficients
 
     // --- 輸送・物流（§5.1拡張：港・鉄道・船。世界市場は港州のみ、内陸は鉄道で港経由。容量不足→購入量限界縮小→価格上昇）---
     // 【墓標2026-10-18・旗の焼き込み】TransportEnabled（輸送ゲートの有効化・既定 true）を消した＝輸送の容量制約は常に有効。
-    public double InlandPortDistanceDecay = 1.0;    // 内陸州のrailToPort容量を最寄り港までの距離（選んだ港までの陸路 km〈陸路∞は大圏〉＝PortLandKm と同じ値）で減衰（trade-capacity-even-share-not-network）＝遠い内陸ほど鉄道を食い港集約が創発。減衰=1/(1+これ×NearestPortDistanceKm/10000)。0で均等割りそのまま（恒等）
+    // 【削除 2026-11-03 (804)】InlandPortDistanceDecay（既定 1.0）＝内陸州の鉄道の容量の減衰 1/(1+NearestPortDistanceKm÷DistanceNormKm) は Diplomacy.DistanceNormKm（1万km・同じ値）を直接読む形へ（BilateralMarket.InlandRailAfterDecay・×1.0 の因子の除去だけで結果は同じ）。
     public double TransportDecay = 0.02;            // 鉄道/船容量の月次減耗（維持に投資が要る＝持続需要）
     public double TransportTargetPerPop = 0.08;     // 目標容量＝人口×これ（必要数を増やし鉄道供給網の構築を要求）
                                                     //   ⚠読み手は2つ（2026-10-02 (167)・反証役の指摘）＝①鉄道の容量の目標（Transport.Step＝人口×これ×(1＋脅威の項)×(1＋混雑)）
