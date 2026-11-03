@@ -247,7 +247,7 @@ public static class Politics
             double press = 0.75 + 0.5 * PressFreedom(w.Censorship) * newsReach;
             // [PORT:P2] 意識targetへの寄与＝識字×教育変換×都市化＋便乗、×報道（新聞/検閲）。時定数17年の遅い変数＝速い興奮は闘争度(P1)の仕事
             double target = PoliticalQuantities.Clamp01((p.Literacy * convert * urban + bandwagon) * press);
-            p.Consciousness += c.ConsciousnessSpeed * (target - p.Consciousness);
+            p.Consciousness = PoliticalQuantities.Toward(p.Consciousness, target, c.ConsciousnessSpeed);
         }
 
         // 倍率排除⑥b-2：軍拡負担の闘争度直接加算（治安維持力>2500 の手書き絶対閾値）を撤去。軍・治安維持力の維持コストは
@@ -314,14 +314,14 @@ public static class Politics
             // ★闘争度の追従速度 σ（設計メモ §7-3）＝**上昇の側で決まる**：σ < RegionalRevoltThreshold（1四半期では越えない）かつ
             //   1−(1−σ)² > RegionalRevoltThreshold（2四半期で越える）＝門0.50 では σ∈(0.293, 0.50)。
             //   ⚠上昇鈍化（旧 UnityMilitancyRelief×EthnicUnity）は削除＝民族統一度の3度目の読みだった（一本鎖へ）。
-            p.Militancy += c.MilitancySpeed * (target - p.Militancy);
+            p.Militancy = PoliticalQuantities.Toward(p.Militancy, target, c.MilitancySpeed);
             // ★参照点を今の生活水準へ寄せる（⚠want を計算した【後】＝同一ティック内で閉じない）。
             if (c.LivingRefSpeed > 0)
-                p.LivingRef += c.LivingRefSpeed * (p.Satisfaction - p.LivingRef);
+                p.LivingRef = PoliticalQuantities.Toward(p.LivingRef, p.Satisfaction, c.LivingRefSpeed);
             // ★食料の平常を今の充足へ寄せる（同じ慣れの速度・駆動を計算した【後】＝同一ティック内で閉じない）。
             //   ⚠利得に関わらず回す＝駆動が休眠の世界でも「慣れ」の分布を計器が測れる（起点と利得はその分布から導いた）。
             if (c.LivingRefSpeed > 0 && foodFill >= 0)
-                p.FoodRef += c.LivingRefSpeed * (foodFill - p.FoodRef);
+                p.FoodRef = PoliticalQuantities.Toward(p.FoodRef, foodFill, c.LivingRefSpeed);
         }
         }   // 参政権の範囲2法：州→popの入れ子ループの閉じ（AllPops の展開形）
 
@@ -355,7 +355,7 @@ public static class Politics
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
             double dynPerf = dmSat + dmFood + dmWar;   // ★(383) 作者 2026-10-16「汚職→廃止」：汚職の項 dmGraft（天命への -DynMandateGraftWeight×実効汚職）は物理削除した
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
-            w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
+            w.DynasticMandate = PoliticalQuantities.Toward(w.DynasticMandate, dmTarget, c.DynMandateEmaRate);
             if (w.Explain != null)   // 説明API：天命の内訳（合計＝最終値の厳密分解）
             {
                 double r = c.DynMandateEmaRate;
@@ -1447,7 +1447,7 @@ public static class Politics
             //   ⚠副作用に注意：下の `SecessionCultureAdditive` は既に (1−中核度) を掛けているので、寄せ切ると**2乗**になる
             //   （＝民族主因の圧力が非線形に強まる）。点火は 1.0 でなく中間値から掃く。0で厳密恒等（休眠）。
             if (c.CultureDistanceFromEthnic > 0)
-                cultDist += c.CultureDistanceFromEthnic * ((1.0 - AvgRegionCoreShare(r)) - cultDist);
+                cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - AvgRegionCoreShare(r), c.CultureDistanceFromEthnic);
             double mil = AvgRegionMilitancy(r);
             double pressure = Math.Abs(stance - r.TariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);   // 関税乖離(0..2)×州不満×文化異質性
             // 政14：分離の駆動因が関税利害の乗算に一元化（関税乖離0なら文化がどれだけ異質でも圧力0）。19世紀の分離は民族・宗教が主因＝**独立の加算圧力**を用意（MinorityMilitancy と接続）。

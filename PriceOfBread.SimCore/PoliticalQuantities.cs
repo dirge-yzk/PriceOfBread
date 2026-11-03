@@ -275,7 +275,7 @@ public static class PoliticalQuantities
     public static double[] DriftedPolityCoord(Polity polity, Suffrage suffrage, Coefficients c)
     {
         var coord = (double[])Ideologies.BasePolityCoord(polity).Clone();
-        coord[0] += c.PolityCoordDriftWeight * (Ideologies.Openness(suffrage) - coord[0]);
+        coord[0] = PoliticalQuantities.Toward(coord[0], Ideologies.Openness(suffrage), c.PolityCoordDriftWeight);
         return coord;
     }
 

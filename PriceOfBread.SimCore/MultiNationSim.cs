@@ -1619,7 +1619,7 @@ public sealed class MultiNationSim
             if (p.Nation is { } nw)
             {
                 double v = Math.Max(0, nw.LastExportValue) + Math.Max(0, nw.LastImportValue);
-                nw.TradeValueSmoothed += _coef.TradeValueSmoothing * (v - nw.TradeValueSmoothed);   // 数期平滑＝単四半期の禁輸/封鎖スパイクで比重が跳ねない
+                nw.TradeValueSmoothed = PoliticalQuantities.Toward(nw.TradeValueSmoothed, v, _coef.TradeValueSmoothing);   // 数期平滑＝単四半期の禁輸/封鎖スパイクで比重が跳ねない
                 total += nw.TradeValueSmoothed; count++;
             }
         if (total <= 1e-9 || count == 0) return;

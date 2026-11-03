@@ -57,7 +57,7 @@ public static class TechEducation
                     if (p.Literacy < p.EducationFill)
                     {
                         double litFactor = 1.0 + c.ChildLaborLiteracyPenalty * (1.0 - LaborSupply.ChildLaborRate(p, r, c, p.SupplyFill));   // 児童労働率0＝学校へ（旧 禁止＝1+penalty）／率1＝全員労働（旧 許可＝1.0）
-                        p.Literacy += baseSpeed * litFactor * (p.EducationFill - p.Literacy);   // 買えた教育の水準へ漸近（買えない者は伸びない）
+                        p.Literacy = PoliticalQuantities.Toward(p.Literacy, p.EducationFill, baseSpeed * litFactor);   // 買えた教育の水準へ漸近（買えない者は伸びない）
                     }
                     // ★識字の下がる側＝世代の流れ（2026-09-30 段4e 後半 4e-3・設計書 §5-2・作者裁定 Q6＝推奨）：識字は一生もの＝大人は字を忘れない。
                     //   変わるのは20歳になって大人に入る若者が持ち込む値だけ＝伝わった識字 x_in＝max(学校＝教育の充足, 家庭＝母の識字の比 τ×大人の識字)。
