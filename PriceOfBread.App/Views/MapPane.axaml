@@ -94,8 +94,5 @@
                 </StackPanel>
             </Border>
 
-            <!-- ★(501) 段2：地図の色の切替（支配度）はヘッダーから地図の欄へ移した（設計 §3-1）。 -->
-            <Button Classes="tab" Content="{Binding DominanceModeLabel}" Command="{Binding ToggleDominanceModeCommand}" IsVisible="{Binding RuleSharesLive}"
-                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"/>
         </Grid>
 </UserControl>

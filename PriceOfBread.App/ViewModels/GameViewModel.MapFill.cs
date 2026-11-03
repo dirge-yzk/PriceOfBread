@@ -16,17 +16,10 @@ namespace PriceOfBread.App.ViewModels;
 public partial class GameViewModel
 {
     [ObservableProperty] private WriteableBitmap? _politicalFill;
-    // ★支配度の一般化 §7 地図モード「支配度」（2026-09-07）：政治の塗り分けを支配度の濃淡で焼く（色だけ・アイコンなし）。
-    [ObservableProperty] private bool _mapDominanceMode;
-    partial void OnMapDominanceModeChanged(bool value) { OnPropertyChanged(nameof(DominanceModeLabel)); RebuildPoliticalFill(); }
-    // ★裁定②（2026-09-23）：濃さの元を休眠の Rule[0] から live な Region.Dominance へ替えた＝係数のゲートで隠す理由が無くなった（常に押せる）。
-    //   ⚠名前は GameView.axaml:63 の IsVisible が参照している（コンパイル束縛＝消すとビルドが落ちる）。そちらを外すのは Views の担当。
-    public bool RuleSharesLive => true;
-    // 支配度モードの濃さの刻み＝1/DominanceQ。**値も指紋も同じ量子化入力から作る**（量子化キャッシュの不変条件）。
+    // ★支配度（2026-11-03 作者「支配度切り替えは廃止し、100%でない場合その分だけ塗りを黒くする」）：切替の釦と地図モードは廃止＝政治の塗りは常に支配度で暗くする（色だけ・アイコンなし）。
+    // 支配度の暗さの刻み＝1/DominanceQ。**値も指紋も同じ量子化入力から作る**（量子化キャッシュの不変条件）。
     //   16 の根拠：DominanceSpeed=0.025（Coefficients.cs:2646）＞1/64 なので 64 刻みだとほぼ毎四半期 MapFill.Build（120ms級）が走る。1/16=0.0625 なら2〜3四半期に1回。
     private const int DominanceQ = 16;
-    public string DominanceModeLabel => MapDominanceMode ? "支配度: 表示" : "支配度";
-    [RelayCommand] private void ToggleDominanceMode() => MapDominanceMode = !MapDominanceMode;
     // ★政治塗りのLOD（2026-09-06・作者指示「マップスクロールがかなり重い」）：3600×1380 の塗りを引いた帯では 1倍（2000×780）の写しで描く。
     //   背景と同じ規則（View の ApplyLandLod が SetMapLod で知らせる）。写しは塗りが変わった時だけ作る（所有が変わる四半期のみ）。
     private Avalonia.Media.Imaging.RenderTargetBitmap? _politicalFillLo;
@@ -84,12 +77,12 @@ public partial class GameViewModel
             {
                 if (!MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
                 // ★裁定②（2026-09-23 作者指示「支配度は国家でない割合だけ、色を薄くするか黒くする」）：濃さ＝live な rg.Dominance。
-                //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ薄くする（MapFill.cs:176 のアルファ変調）。
+                //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ黒くする（MapFill.Build の色の変調・2026-11-03 に薄くする→黒くするへ）。
                 //   ⚠旧コードは Seed に生値・指紋に ×64 の整数を渡していた＝1/64 未満しか動かない四半期は塗りが古いまま残った（量子化キャッシュの不変条件の破れ）。
                 //     いまは wq ひとつから値も指紋も作る＝「焼き直さない」と「同じ絵」が一致する。
                 double raw = rg.Dominance;
                 if (!(raw > 0)) raw = 0; else if (!(raw < 1)) raw = 1;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
-                int wq = MapDominanceMode ? (int)(raw * DominanceQ) : DominanceQ;
+                int wq = (int)(raw * DominanceQ);
                 double wgt = wq / (double)DominanceQ;
                 seeds.Add(new MapFill.Seed(co.Lat, co.Lon, col, wgt));
                 targets.Add((rg, null, false));
