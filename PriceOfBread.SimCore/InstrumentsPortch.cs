@@ -75,7 +75,7 @@ public static partial class Instruments
                 double terrCost = horse + railGate * (rail - horse);
                 if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) terrCost = c.TerrainWaterMajorCost;
                 else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) terrCost = c.TerrainWaterMinorCost;
-                // BilateralMarket.cs:272-273 の写し（距離が 0 に近い・係数 0 の州は減衰なし＝1）
+                // BilateralMarket.cs:272-273 の写し（距離が 0 に近い州は減衰なし＝1）
                 double decayOld = gcKm > 1e-9 ? 1.0 / (1.0 + gcKm / norm) : 1.0;
                 double decayUsed = r.NearestPortDistanceKm > 1e-9 ? 1.0 / (1.0 + r.NearestPortDistanceKm / norm) : 1.0;
                 sk.W ??= Open("portch", seed);
