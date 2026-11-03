@@ -546,18 +546,20 @@ public static class Fiscal
     }
 
     /// <summary>行政の購買の距離の割増（作者裁定 2026-09-03 E-05段4「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ」）
-    /// ＝1＋UpkeepDistanceGeneral×DistanceWarDecay×首都からの距離÷DistanceNormKm（戦力投射と同じ形と物差し）。遠い州の官僚は同じ働きに割増の俸給が要る。
+    /// ＝1＋DistanceWarDecay×首都からの距離÷DistanceNormKm（戦力投射と同じ形と物差し・★(804) 旧の係数 UpkeepDistanceGeneral〔既定 1.0〕は削除＝DistanceWarDecay を直接掛ける）。遠い州の官僚は同じ働きに割増の俸給が要る。
     /// 座標未登録(0,0)の州・距離が有限でない州は1（幻の遠距離を作らない）。2026-09-30 (135) に維持費の人頭割りから行政の購買へ移した。
     /// 読み手＝州の行政の予算（Simulation）・行政の購買の単価（EconomyStep）・行政の請求の平均（<see cref="AdminDistanceMean"/>）＝同じ1本。</summary>
     internal static double AdminDistanceMul(World w, Region r)
     {
-        var c = w.Coef;
-        if (!(c.UpkeepDistanceGeneral > 0)) return 1.0;
         var rc = Places.Coord(r.Name);
         if (rc.Lat == 0 && rc.Lon == 0) return 1.0;
         double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
-        return km > 0 && double.IsFinite(km) ? 1.0 + c.UpkeepDistanceGeneral * c.DistanceWarDecay * km / Diplomacy.DistanceNormKm : 1.0;
+        return AdminDistanceMulOfKm(km, w.Coef.DistanceWarDecay);
     }
+
+    /// <summary>★(804) <see cref="AdminDistanceMul"/> の式だけ（距離 km と減衰の重みから割増を返す純関数＝試験の入口）。距離が正でない・有限でないときは 1（幻の遠距離を作らない）。</summary>
+    internal static double AdminDistanceMulOfKm(double km, double decay)
+        => km > 0 && double.IsFinite(km) ? 1.0 + decay * km / Diplomacy.DistanceNormKm : 1.0;
 
     /// <summary>行政の距離の割増の人口加重の平均（活きた州）＝州ごとの行政の予算（人口の比×割増＝Simulation）の和を、国の行政の請求（Fiscal）と予算表（UI）が同じ量で読む。</summary>
     public static double AdminDistanceMean(World w)

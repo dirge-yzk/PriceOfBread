@@ -1535,7 +1535,7 @@ public class FiscalTests
     /// <summary>★行政の距離の割増（2026-09-30 (135)＝作者裁定 2026-09-03 E-05段4「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ」を
     /// 維持費の人頭割りから行政の購買へ移した）：遠い州の官僚は同じ働きに割増の俸給＝国の払う単価は市場の価格×割増・予算も同じ割増
     /// ＝充足は割増の無い州と同じ・国庫の支払いだけが割増倍（Fiscal.AdminDistanceMul の1本を予算〔Simulation〕・単価〔EconomyStep〕・請求〔Fiscal〕が読む）。
-    /// 盤面＝英の同じ種の双子（UpkeepDistanceGeneral 0＝割増1・10＝首都から離れた州ほど割増）＝同じ州で予算を割増倍にして EconomyStep を1回。
+    /// 盤面＝英の同じ種の双子（DistanceWarDecay 0＝割増1・10＝首都から離れた州ほど割増）＝同じ州で予算を割増倍にして EconomyStep を1回。
     /// ⚠突然変異「単価に割増を掛けない」「見積もりに割増を掛けない」で赤（支払いか充足が食い違う）。</summary>
     [Fact]
     public void 遠い州の行政は同じ充足に距離の割増の金額を払う()
@@ -1545,7 +1545,7 @@ public class FiscalTests
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             sim.Run(1);
             var w = sim.World;
-            w.Coef.UpkeepDistanceGeneral = general;
+            w.Coef.DistanceWarDecay = general;
             Region? far = null; double km = 0;
             foreach (var rg in w.Regions)
             {
@@ -1564,7 +1564,7 @@ public class FiscalTests
         Assert.Equal(1.0, Fiscal.AdminDistanceMul(a, ra));   // 係数0＝割増なし
         double mul = Fiscal.AdminDistanceMul(b, rb);
         var rc2 = Places.Coord(rb.Name);
-        double expect = 1.0 + 10.0 * b.Coef.DistanceWarDecay * Geo.DistanceKm(b.Latitude, b.Longitude, rc2.Lat, rc2.Lon) / Diplomacy.DistanceNormKm;
+        double expect = 1.0 + b.Coef.DistanceWarDecay * Geo.DistanceKm(b.Latitude, b.Longitude, rc2.Lat, rc2.Lon) / Diplomacy.DistanceNormKm;
         Assert.Equal(expect, mul, 12);
         Assert.True(mul > 1.05, $"前提が崩れた：割増が小さすぎて測れない（{mul}）");
         // 同じ予算の比（予算で必要量の1割しか買えない＝供給でなく予算が効く盤面）・上下水道と電化は止める（同じ区分 Admin に記帳する）
@@ -1593,7 +1593,7 @@ public class FiscalTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(1);
         var w = sim.World;
-        w.Coef.UpkeepDistanceGeneral = 50.0;
+        w.Coef.DistanceWarDecay = 50.0;
         sim.Run(1);   // この四半期の月の予算は全て割増で配る
         double k = double.NaN; int n = 0; double lo = double.MaxValue, hi = 0;
         foreach (var r in w.Regions)
@@ -1611,6 +1611,20 @@ public class FiscalTests
         Assert.True(Fiscal.AdminDistanceMean(w) > 1.3, "前提が崩れた：平均の割増が小さい");
         Assert.Equal(claim, w.LastAdminClaimPerMonth.Value);   // 同じ式・同じ順＝ビット一致
     }
+    /// <summary>★(804) 行政の距離の割増の純関数 <see cref="Fiscal.AdminDistanceMulOfKm"/>：1＋減衰の重み×距離 km÷1万km（距離が正でない・有限でないときは 1）。期待は手で書いた値。
+    /// ⚠突然変異「減衰の重みを落とす」「IsFinite を外す」「km&gt;0 を外す」「÷1万を×1万にする」で赤。</summary>
+    [Theory]
+    [InlineData(5000.0, 0.0, 1.0)]
+    [InlineData(10000.0, 1.0, 2.0)]
+    [InlineData(5000.0, 2.0, 2.0)]
+    [InlineData(20000.0, 0.5, 2.0)]
+    [InlineData(0.0, 3.0, 1.0)]
+    [InlineData(-5000.0, 1.0, 1.0)]
+    [InlineData(double.PositiveInfinity, 1.0, 1.0)]
+    [InlineData(double.NaN, 1.0, 1.0)]
+    public void 行政の距離の割増の純関数は手で書いた値を返す(double km, double decay, double expected)
+        => Assert.Equal(expected, Fiscal.AdminDistanceMulOfKm(km, decay));
+
     /// <summary>★段3-4（2026-09-30・B6・作者裁定 Q4＝処理の一元化 段4d）：POP の義務は1本の率＝税と十分の一税の請求を POP ごとに集め、
     /// 払える額（貯蓄）が足りなければ全ての請求に同じ率 r_p＝貯蓄÷請求の和を掛ける（国家が教会に優先しない）。足りれば全額。
     /// どの義務も払い手の総所得（Earned）を減らさず、十分の一税は聖職の所得になる（C15 の確かめ＝所得税と同じ記帳）。
