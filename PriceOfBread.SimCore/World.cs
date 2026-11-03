@@ -1538,15 +1538,15 @@ public sealed class World
     public void UpdateGdpCycle()
     {
         double g = GdpPerMonth.Value;
-        GdpTrend = !(GdpTrend > 0) ? g : GdpTrend + Coef.GdpTrendSmoothing * (g - GdpTrend);   // EMA＝高頻度ノイズを除去したトレンド（否定形＝NaN は再シード）
+        GdpTrend = !(GdpTrend > 0) ? g : PoliticalQuantities.Toward(GdpTrend, g, Coef.GdpTrendSmoothing);   // EMA＝高頻度ノイズを除去したトレンド（否定形＝NaN は再シード）
         double pc = g / Math.Max(1.0, TotalPopulation);   // ★E2：同じ平滑・同じピーク忘却で1人あたりも追う
-        GdpPcTrend = !(GdpPcTrend > 0) ? pc : GdpPcTrend + Coef.GdpTrendSmoothing * (pc - GdpPcTrend);
+        GdpPcTrend = !(GdpPcTrend > 0) ? pc : PoliticalQuantities.Toward(GdpPcTrend, pc, Coef.GdpTrendSmoothing);
         if (GdpPcTrend > GdpPcPeak) GdpPcPeak = GdpPcTrend;
-        else GdpPcPeak += Coef.GdpPeakDecay * (GdpPcTrend - GdpPcPeak);
+        else GdpPcPeak = PoliticalQuantities.Toward(GdpPcPeak, GdpPcTrend, Coef.GdpPeakDecay);
         // ピークは上昇に即追従、下降中は忘却係数でゆっくり再基準化（構造的に縮小した国は「新しい長期水準」を基準に＝永久恐慌バグの解消）。
         // 一時的な後退（数四半期）はピークが高止まりして drawdown を出すが、年単位の恒常縮小はピークが追いつき drawdown が自然に解ける。
         if (GdpTrend > GdpPeak) GdpPeak = GdpTrend;
-        else GdpPeak += Coef.GdpPeakDecay * (GdpTrend - GdpPeak);
+        else GdpPeak = PoliticalQuantities.Toward(GdpPeak, GdpTrend, Coef.GdpPeakDecay);
     }
 
     // 物価水準（名目スカラー・段4-貨幣 第1段）。広義マネー(金+信用)が実質産出(Gdp＝参照価格建て)より速く伸びるとインフレ、遅いとデフレ（1873-96の長期デフレ等）。
@@ -1641,10 +1641,10 @@ public sealed class World
         double ratio = money / Math.Max(1e-9, gdp);   // 実質産出あたりの貨幣（名目の厚み＝数量説の M/Y）
         if (_moTrend <= 1e-9) { _moTrend = ratio; if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, double.NaN, double.NaN, PriceLevel, double.NaN, double.NaN, convTarget, 0.0, true); return; }   // 初回はトレンドの基準を取るだけ
         bool holdTrend = !(gdp > 1e-9);   // ★(603) 実質 GDP が正でない四半期（産出が死んだ国）：1e-9 で割った比（1e15）で趨勢を汚さない＝趨勢を更新せず、循環比は P そのもの（寄せる力 0）。否定形＝NaN の GDP も同じ側
-        double trend0 = _moTrend; if (!holdTrend) _moTrend += c.MonetaryTrendSpeed * (ratio - _moTrend);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
+        double trend0 = _moTrend; if (!holdTrend) _moTrend = PoliticalQuantities.Toward(_moTrend, ratio, c.MonetaryTrendSpeed);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
         double cyclical = holdTrend ? PriceLevel : ratio / Math.Max(1e-9, _moTrend);   // トレンド比＝信用循環：好況で信用が厚い→>1→インフレ／恐慌で信用が縮む→<1→デフレ
         double before = PriceLevel;
-        PriceLevel += c.MonetaryPriceSensitivity * (cyclical - PriceLevel); double pEma = PriceLevel, fiatP = FiatInflationPressure;   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）。(280) 後ろの2つは計器の読み（計算には使わない）
+        PriceLevel = PoliticalQuantities.Toward(PriceLevel, cyclical, c.MonetaryPriceSensitivity); double pEma = PriceLevel, fiatP = FiatInflationPressure;   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）。(280) 後ろの2つは計器の読み（計算には使わない）
         // #3 不換の紙幣増発（通貨切下げ）→物価上昇＝印刷はインフレ的（→名目GDP↑→実質債務減）。金本位中は devaluation 封印ゆえ圧0。
         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
@@ -1652,7 +1652,7 @@ public sealed class World
         // ★(582) 天井は廃止（作者 2026-10-27 の依頼「数値としての天井は可能なら排除したい」）。床だけ残す。P が正の有限でない（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）四半期は更新前の P を保つ＝否定形の守り（Math.Clamp も Math.Max も NaN を消さない）。
         //   ★(584) 設計の選択：有限で 0 以下の P も更新前の P を保つ（旧の Clamp は床 0.4 にした）＝床は掛けない。⚠(587) 月の切り（貯蓄の 5%）は外した。それでも増発だけでは届きにくい【推】＝(a) 圧は haircut（貯蓄の取り上げ・貨幣を作らない）も数える (b) 循環比 c は ratio÷_moTrend で、一定の発行の速さの定常ではトレンドが吸う（c→1+g/0.02・定常のインフレ率 0）(c) 閾値は四半期の圧 f＞5/9（月に広義の貨幣の約 18.5%）の分岐だけで、開幕の広義の貨幣は年 GDP の約 29 年分＝届く赤字は作りにくい（事前登録 hyp587 追記 4）。次の候補は貨幣の厚み（OpeningMoneyFromRatioMode）とトレンドの吸い。
         PriceLevel = PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before;
-        CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
+        CostPriceLevel = PoliticalQuantities.Toward(CostPriceLevel, PriceLevel, c.MonetaryTrendSpeed);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
         ExpectedInflationPerYear += new RatePerYear(Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear.Value)); if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, trend0, cyclical, before, pEma, pFiat, convTarget, fiatP, false);   // EMA。(280) 後ろは計器（読むだけ）：物価の更新の鎖
@@ -1677,7 +1677,7 @@ public sealed class World
             parity = GoldParity * silverRel;
         }
         double rateTarget = floatTarget + (parity - floatTarget) * Convertibility;   // Conv=1→平価・Conv=0→floatTarget(変動)
-        ExchangeRate += c.ExchangeRateSpeed * (rateTarget - ExchangeRate);
+        ExchangeRate = PoliticalQuantities.Toward(ExchangeRate, rateTarget, c.ExchangeRateSpeed);
         // 説明API（金利doc B2・2026-07-30）：金利の第4チャネル（為替）と第5チャネル（物価→期待インフレ）を測れる状態にする。
         // ★診断④の実証点＝金本位（Convertibility=1）では「兌換（平価への拘束）」の項が floatTarget の寄与を**厳密に打ち消す**
         //   （rateTarget−floatTarget ＝ (1−floatTarget)×1 ＝ 1.0−floatTarget）＝金利の為替チャネルが恒等的に消えるのが台帳に出る。

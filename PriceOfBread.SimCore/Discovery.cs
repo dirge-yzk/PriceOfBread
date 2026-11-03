@@ -818,7 +818,7 @@ public static class Discovery
         for (int g = 0; g < x.Length; g++)
         {
             if (!(x[g] >= 0)) continue;                                   // 観測なし＝動かさない（否定形＝NaN も）
-            s[g] = s[g] >= 0 ? s[g] + a * (x[g] - s[g]) : x[g];           // 最初の観測は瞬間の値から
+            s[g] = s[g] >= 0 ? PoliticalQuantities.Toward(s[g], x[g], a) : x[g];           // 最初の観測は瞬間の値から
         }
         return (x, prod);
     }

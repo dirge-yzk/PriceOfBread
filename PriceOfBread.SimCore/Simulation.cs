@@ -2011,7 +2011,7 @@ public sealed class Simulation
             for (int g = 0; g < cropHealth.Length; g++)
             {
                 if (!Catalog.IsDiseaseProneCrop(g)) continue;
-                cropHealth[g] += hc.CropDiseaseRecovery * (1.0 - cropHealth[g]);   // 前年までの病害が数年かけて癒える（→1.0）
+                cropHealth[g] = PoliticalQuantities.Toward(cropHealth[g], 1.0, hc.CropDiseaseRecovery);   // 前年までの病害が数年かけて癒える（→1.0）
                 if (cropHealth[g] > 0.9 && HarvestRng.NextDouble() < hc.CropDiseaseChance)
                 {
                     cropHealth[g] = hc.CropDiseaseSeverity * (0.5 + HarvestRng.NextDouble());   // 新規の胴枯れ＝0.15〜0.45へ激減（重さに揺らぎ）
@@ -2035,17 +2035,17 @@ public sealed class Simulation
         //   ★(399) で旧の門（第6段6-8a の執行の飢餓＝行政効率÷LawEnforcementAdminGate）を物理削除した（先進方向〔短縮・禁止・保持確立〕の浸透だけが掛かる・緩和方向は即時＝規制撤廃に監督官は不要）。
         double enforce = Politics.StateReach(World, World.Coef);
         double hoursTarget = World.WorkHours.Hours();
-        World.WorkHoursValue += World.Coef.WomenRightsFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0) * (hoursTarget - World.WorkHoursValue);
+        World.WorkHoursValue = PoliticalQuantities.Toward(World.WorkHoursValue, hoursTarget, World.Coef.WomenRightsFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0));
         // 法の浸透の速さ WomenRightsFollowSpeed（0.15）は労働時間・賃金保持・児童労働の 3 本の法で共有する（3 本とも同じ形・同じ月次）。
         // 賃金保持・児童労働合法度の連続追従（倍率排除④）：法は離散だが社会への浸透は連続（女性の賃金保持の確立／児童労働禁止の取締り）。
-        World.WomenWageRetention += World.Coef.WomenRightsFollowSpeed * enforce * ((World.WomenPropertyLaw ? 1.0 : 0.0) - World.WomenWageRetention);
+        World.WomenWageRetention = PoliticalQuantities.Toward(World.WomenWageRetention, World.WomenPropertyLaw ? 1.0 : 0.0, World.Coef.WomenRightsFollowSpeed * enforce);
         // 第6段6-7：児童労働の再合法化（禁止→合法）は政治軸を持たない連続追従のため、ここで不可逆を判定＝戦時・断裂の窓のみ可（英1915軍需品法型）。
         double childTarget = World.ChildLaborAllowed ? 1.0 : 0.0;   // 02断線走査2026-07-28：現在値（政治ゲート通過後）を追従＝目標の直読みをやめる
         bool childRegress = childTarget > World.ChildLaborLegal + 1e-9;
         // 交戦判定は国スコープ（州非依存）。毎州の再評価とラムダ・クロージャの確保を避け、ループ前に一度だけ算出して児童労働の不可逆判定・軍需調達・Military.Step で共用する。
         bool atWarNation = World.Diplomacy is { } dipN && World.SelfPower is { } spN && dipN.Wars.Any(war => war.A == spN || war.B == spN);
         if (!(World.Coef.IrreversibleLaws > 0 && childRegress && !atWarNation && World.RuptureWindowQuarters <= 0))
-            World.ChildLaborLegal += World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce) * (childTarget - World.ChildLaborLegal);
+            World.ChildLaborLegal = PoliticalQuantities.Toward(World.ChildLaborLegal, childTarget, World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce));
         double colonialAccess = ColonialAccess();                        // 植民地素材の入手率（植民地×制海・封鎖で↓）
         double nationPop = World.TotalPopulation;                        // 行政予算の地域按分に使う
         bool navalYard = false;   // ★2026-08-01：国内に稼働中の港州が1つでもあるか（州ループの外で1回だけ数える）
@@ -2652,7 +2652,7 @@ public sealed class Simulation
         double foodRatioProduction = foodNeed > 1e-9 ? (stapleOutput + c.FoodAnchorNetImport * Math.Max(0, stapleNetImport)) / foodNeed : 1.0;   // 生産ベース（未クランプ＝実食料産出÷必要量。余剰で1超＝天井押し上げ）
         // 人2補完(1b)：生産比は月次の豊凶（HarvestFactor×帯天候×病害）を生で浴びて跳ねる→FoodFillと同じ時定数のEMAで平滑（初回=-1未捕捉は直接初期化＝跳躍なし）。
         if (World.FoodRatioProductionSmoothed < 0) World.FoodRatioProductionSmoothed = foodRatioProduction;
-        else World.FoodRatioProductionSmoothed += c.FoodFillSmoothing * (foodRatioProduction - World.FoodRatioProductionSmoothed);
+        else World.FoodRatioProductionSmoothed = PoliticalQuantities.Toward(World.FoodRatioProductionSmoothed, foodRatioProduction, c.FoodFillSmoothing);
         // 人2補完(1c)：輸入依存国（英）の保護＝生産ブレンドは**上方向専用**（max）。輸入で食う国の capacity を産出不足が直に削らない
         //（輸入の分子算入は B-高1 で実装済み＝下の foodRatioProduction が FoodAnchorNetImport で加算。ここは max で「農業拡大は天井を押し上げ・輸入国は従来の消費アンカー」）。
         double foodRatioRaw = Math.Max(foodRatioConsumption,
@@ -2840,7 +2840,7 @@ public sealed class Simulation
             double met = 0, need = 0;
             foreach (var p in region.Pops) { met += p.FoodMet; need += p.FoodNeed; }
             double raw = need > 1e-9 ? PoliticalQuantities.Clamp01(met / need) : 1.0;
-            region.FoodFill += c.FoodFillSmoothing * (raw - region.FoodFill);   // 州の食料充足を平滑（穀倉の備蓄＝餓死は数ヶ月の持続的欠乏で起きる）
+            region.FoodFill = PoliticalQuantities.Toward(region.FoodFill, raw, c.FoodFillSmoothing);   // 州の食料充足を平滑（穀倉の備蓄＝餓死は数ヶ月の持続的欠乏で起きる）
         }
     }
 

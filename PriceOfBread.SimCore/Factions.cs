@@ -62,7 +62,7 @@ public static class Factions
             // 結束の成長＝意識ある層ほど組織が速い（指導部の創発）。変異済みは2倍（旗の下の凝集）。
             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
-            st.Cohesion = PoliticalQuantities.Clamp01(st.Cohesion + growth * (1.0 - st.Cohesion));
+            st.Cohesion = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(st.Cohesion, 1.0, growth));
             // 2) 変異のロール（1クラスタ1回まで・危機×結束のみ・独立RNG系列）
             if (!st.Mutated && st.Cohesion >= MutationCohesionGate)   // 変異は結束した運動体のみ（頻度絞り2026-07-12＝旗は安売りしない）
             {

@@ -25,7 +25,7 @@ public static class NationalScore
     {
         if (double.IsNaN(w.ScoreStanding)) { w.ScoreStanding = now; return; }   // 開始時の種＝そのときの実力
         double r = PoliticalQuantities.Clamp01(w.Coef.ScoreInertiaRate);
-        w.ScoreStanding += (now - w.ScoreStanding) * r;
+        w.ScoreStanding = PoliticalQuantities.Toward(w.ScoreStanding, now, r);
     }
     // ===== ★(416) 国力の物差し＝世界の総量に対する本国の割合（事前登録 measurements/sc_20261019_prereg.txt D6・★(456) 旗 ScoreFromWorldShare は焼き込んだ＝この物差しが唯一の経路） =====
     /// <summary>国力の 6 項の素の量（本国の州だけ＝活きていて Tier≠Colonial）。兵・軍事費〔参照価格建て＝名目を物価水準で割る〕・鉄の産出（鋼は鉄を投入する＝入れると二重計上）・動力の消費（石炭＋原油×熱量比・満たされた量＝LastSold。満たされない需要〔LastDemand〕は数えない＝足りない国ほど増える歪みを避ける）・都市人口・総人口。</summary>
@@ -2233,7 +2233,7 @@ public static class SelfPlayMatch
                         if (outQ <= floorOut) { if (dLoss > 0) { lossRateSkipped++; if (lossRateSkipWorst.Length == 0) lossRateSkipWorst = $"{w.SelfPower?.Name}(Q{q + 1}・産出{outQ:F0})"; } }
                         else
                         {
-                            lossRate[i] += lossRateSmooth * (dLoss / outQ - lossRate[i]);
+                            lossRate[i] = PoliticalQuantities.Toward(lossRate[i], dLoss / outQ, lossRateSmooth);
                             if (lossRate[i] > worstLossRate)
                             {
                                 worstLossRate = lossRate[i];
@@ -2248,7 +2248,7 @@ public static class SelfPlayMatch
                     // 恐慌計測：助走後、平滑化GDP（トレンド）のピーク比収縮を追う
                     if (q >= warmupQ)
                     {
-                        gdpTrend[i] += w.Coef.GdpTrendSmoothing * (w.GdpPerMonth.Value - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
+                        gdpTrend[i] = PoliticalQuantities.Toward(gdpTrend[i], w.GdpPerMonth.Value, w.Coef.GdpTrendSmoothing);   // EMA＝高頻度の市場ノイズを除去
                         if (gdpTrend[i] > gdpPeak[i]) gdpPeak[i] = gdpTrend[i];
                         worldTrendThis += gdpTrend[i];
                         // ★DDの産出床（史実基準化）：残骸国家（世界平均の1/1000未満）の〜100%収縮を世界DDに数えない。
@@ -2260,7 +2260,7 @@ public static class SelfPlayMatch
                         if (isMajor[i])
                         {
                             double pc = (w.GdpPerMonth / System.Math.Max(1.0, w.TotalPopulation)).Value;
-                            gdpPcTrend[i] += w.Coef.GdpTrendSmoothing * (pc - gdpPcTrend[i]);
+                            gdpPcTrend[i] = PoliticalQuantities.Toward(gdpPcTrend[i], pc, w.Coef.GdpTrendSmoothing);
                             if (gdpPcTrend[i] > gdpPcPeak[i]) gdpPcPeak[i] = gdpPcTrend[i];
                             double ddPc = gdpPcPeak[i] > 0 && gdpPeak[i] > ddFloor ? 1.0 - gdpPcTrend[i] / gdpPcPeak[i] : 0;
                             if (ddPc > majorMaxDrawdown)

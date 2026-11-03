@@ -73,7 +73,7 @@ public static class Credit
         double spd = (targetConf < bank.Confidence ? c.PanicSpeed : c.ConfidenceSpeed) / div;
         if (days > 1) spd = Calendar.OverSteps(spd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
         double confStart = bank.Confidence;
-        bank.Confidence = PoliticalQuantities.Clamp01(bank.Confidence + spd * (targetConf - bank.Confidence));
+        bank.Confidence = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(bank.Confidence, targetConf, spd));
         // ★旬次（S3c）：与信の目標が読む信頼＝旬の中の平均（始めと終わりの台形）＝日次は毎日その日の信頼で目標を引き直す（終わりの値だけでは与信が旬の分だけ先回りする）。h=1 は旧のまま。
         double confL = days > 1 ? 0.5 * (confStart + bank.Confidence) : bank.Confidence;
 
