@@ -50,3 +50,7 @@
   [2] の I9a は〈係数 NationalConsciousnessCorruptionWeight は World.civicCarriesEthnic が読むので残す〉と書いたが、Coefficients.cs の注の言い分で、grep で確かめていなかった。civicCarriesEthnic はどのファイルにも無い（全域 grep）。
   門を消した後、既存の試験〈係数は全て本体のどこかで読まれる〉（機構の番人）が NationalConsciousnessCorruptionWeight を読み手なしと赤で知らせた＝この係数の読み手は消した門の左の項だけだった。試験の指示（使わないなら削除）どおり、係数も消す（既定 0.2 は常に真だったので挙動は変わらない）・RetiredFields に墓標・T1 は NationBuildMobilizationWeight だけを 0 にする形へ直す（突然変異は門 `if (c.NationBuildMobilizationWeight > 0)` を足す）。物差しは替えない。
   .cost・成績表への予言は変わらない（予言 0）。
+
+[追記 2] 結果の後に分かった静的な番人の赤（フルスイートで）
+  予言が漏れていた＝prereg [3] に書かなかった。OldScore の削除で、ソースを走査する許可表の 2 本が減った分だけ赤になった：TechLevelRemovalTests（InstrumentsScore.cs の TechLevel の読み 1 行→0 行・表の行を消した）と IndustrializationReaderTests（InstrumentsScore.cs の MeanIndustrialization の読み 2 行→1 行〔OldScore.WealthParts の 1 行が消えた分〕・数を 2→1）。どちらも〈番人を写しただけ〉の許可表の更新（機構の向き・大きさの Assert ではない）。結果の後の追記と名乗る。
+  OpeningBakeTests 2 本（opening_bake.json の頭書きの入力ハッシュ 766cc4aa61216eb9 ≠ 世界 81c222ceeec0309e）は world.json の 28 行の削除（入力の資源に触れた）で赤＝README ★(764) の区分（線の担当は触らず赤のまま報告し、合流の木で 1 回だけ焼き直す）。焼き直した表は OpeningBakeEnabled=0 で開かれない。
