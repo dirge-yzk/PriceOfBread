@@ -125,4 +125,20 @@ public class MandateWallStockCapTests
         while (w.MandateSpent > 0 && n < 100000) { w.ParliamentControl = 0; w.PoliticalCapitalMax = 0.3; Politics.Step(w, c); n++; }
         Assert.InRange(n, 39, 41);                        // b＝0.3 を b/40 ずつ（実行度 1）
     }
+
+    /// <summary>壁の一歩の請求は壁に当たらない盤面と同じ大きさ（(803) の反証役の指摘②）＝同じ一歩を b の大きい国（壁に当たらず S が代価の全額）と b の小さい国（壁の一歩で S は b で止まる）に払わせ、
+    /// Politics.Step の後の正統性が同じ。S の側を b で止めても、正統性が払う請求（MandateSpentNew）は代価の全額のまま。</summary>
+    [Fact]
+    public void 壁の一歩の正統性の払いは壁に当たらない盤面と同じ大きさ()
+    {
+        double LegitAfter(double b)
+        {
+            var w = Board(); w.PoliticalCapitalMax = b; w.MandateSpent = 0; w.MandateSpentNew = 0; w.Legitimacy = 0.95;
+            Spend(w, 0.9); Politics.Step(w, w.Coef);
+            return w.Legitimacy;
+        }
+        double wall = LegitAfter(0.3), free = LegitAfter(100.0);
+        Assert.True(free < 0.95 - 1e-6, $"前提が崩れた：壁に当たらない盤面で正統性が減っていない（{free}）");
+        Assert.Equal(free, wall, 12);
+    }
 }

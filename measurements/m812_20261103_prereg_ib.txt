@@ -75,3 +75,24 @@
     フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる。
 
 [6]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す（外した枝は読み手の残る旗・名前として報告）。コミットを群ごとに分けてあるので、不一致のときは群ごとに外して切り分ける。
+
+[追記 2026-11-03・腕の前・結果を見る前に確定した数と形（㉑）]
+    入れた範囲（実装済みのコミット）：A1・A2・A3（旗の焼き込み）／緊張の流入 8 本の改名／OverSteps 3 か所／Toward 44 か所（群 1＝13・群 2＝10・群 3＝21）／試験の直し。
+    入れなかった物（[2] (B) のとおり）：NavalCedeFleetReturn・InheritedStateIntentDrop・World.InsolvencyQuarters（App が読む）・Simulation.cs の FoodFill・型つきの World.cs:1658・Discovery.cs:557・Military.cs:326・TechEducation.cs:125。
+    ㉑ 書き換える件数の番人の予言（IndustrializationReaderTests.Allowed＝工業化度を読む行の数のファイル別の許可表）：InstrumentsUrx.cs 4→0・Meritocracy.cs 1→0・PopDecision.cs 4→0・Model.cs 5→4（他は変わらない。紙の台本＝許可表の正規表現を焼き込み後のソースに当てた結果）。
+    WriterRatchetTests など計算量の件数の表は触れない（予言＝変化 0・.cost の件数の行の差 0）。
+    テストの数の予言（--tests-delta）＝ −3（Hz7IdentityTests の天井の式 1・MobilityTests の天井の残枠 1・PolicyPoliticsTests の旗 0 の双子 1）＋2（Rs2LordOppositionTests +1・MandateWallStockCapTests +1）＝ −1。
+    試験の書き換え（★(743)）：
+      Hz7IdentityTests.cs の都市化の天井の式の試験と Inds ①（天井の式 UrbanShareCap ごと消えた）
+      MobilityTests.cs の失業プールは都市化天井の残枠…の試験 ①／BaseUrbanCap の行 2 本 ③（効かない目盛り）
+      MilitaryTests.cs:1866 の BaseUrbanCap・UrbanPerInd の行 ③
+      PolicyPoliticsTests.cs の旗 0 の双子の試験 ①／TaxChainCheck の引数 capOff・minFixedMil と旗の行と下限の Assert ③④
+      IndustrializationReaderTests.cs の J4 の試験の旗 0 の半分 ①・旗の既定の Assert と Flags の名前 ④・許可表 ㉑
+      UrxInstrumentTests.cs の旗 0 の盤面 2 つ ①・UrbanIndSmoothed の前提の Assert 2 行 ④
+      MigrationPairTests.cs の職の移しの天井の期待と Headroom の補助 ①（天井が無いので 3 か所目の検査は成り立たない＝犯罪者を対に選ばない検査は残りの 2 か所が持つ）
+      EquipDiscoveryTests.cs:210 の前提 Assert ④
+      MilitaryTests・ProtectorTests・RouteTensionTests の緊張 8 本の識別子の置換 ⑤
+      HousingGateSharedTests の xUnit2004 ⑥
+      DormantIdentityTests の RetiredFields +7 名と注
+      足した試験：Rs2LordOppositionTests +1・MandateWallStockCapTests +1（足すので区分外）
+    突然変異（scripts/instruments/c13ib/mut_run.py・使い捨ての複製で当てる）：M1＝教育法・女性の権利の反対を LordStake に替える→Rs2 の新しい試験が赤／M2＝Spend の MandateSpentNew への足しを applied にする→MandateWallStockCapTests の新しい試験が赤／M3＝港の門を外す／M4＝越境移民を止める／M5＝Toward の符号を壊す／M6＝OverSteps を壊す。M3〜M6 は赤になる試験があるかを記録する（緑なら穴を名乗り、機構の試験を足す〔★(790)〕）。
