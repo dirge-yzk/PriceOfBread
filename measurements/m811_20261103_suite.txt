@@ -1,0 +1,10 @@
+(811) c13ia フルスイート（Release・測った木 HEAD 78c76aa9〔試験と SimCore は 141e8372 から同じ〕・Category!=FullLength と FullLength を分けて回した）
+== Category!=FullLength
+
+成功!   -失敗:     0、合格:  2219、スキップ:     1、合計:  2220、期間: 1 h - PriceOfBread.Tests.dll (net10.0)
+== FullLength
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 9 m 53 s - PriceOfBread.Tests.dll (net10.0)
+== --list-tests（独立の数え直し）：Category!=FullLength 2220・FullLength 3＝合計 2223（ident.cfg 2221＋3 から宣言 -1）
+テストホストの中止の行：0 件
+注：非 FullLength は他の線の腕が 6 本走る負荷の下で 1 時間かかった（CPU の取り分が少ない）。
