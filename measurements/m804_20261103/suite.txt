@@ -1,0 +1,4 @@
+(804) c12ds フルスイート（Release・木 5e507f9b と同じ原本）
+Category!=FullLength: 成功 合格 2213・スキップ 1・失敗 0・合計 2214（36 分 16 秒）＝--list-tests 2214 と一致
+Category=FullLength: 成功 合格 3・失敗 0・合計 3（6 分 1 秒）＝--list-tests 3 と一致
+スキップ 1 本＝TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（基線から [SKIP]）
