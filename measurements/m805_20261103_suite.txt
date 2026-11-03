@@ -1,0 +1,14 @@
+(805) c12cm フルスイート（Release・scripts/instruments/c12cm/suite.sh・木 0bc9c355 以降のコミット 2f54b756＝ident が測った .cs と同じ SOURCE-HASH 975467ebd03f3973）2026-11-03
+--list-tests（ident c12cm の腕 t）：Category!=FullLength 2208・FullLength 3
+nonfull rc=0 2040s
+full rc=0 308s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2207、スキップ:     1、合計:  2208、期間: 33 m 46 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 5 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2207、スキップ:     1、合計:  2208、期間: 33 m 46 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 5 s - PriceOfBread.Tests.dll (net10.0)
+合計 2208（合格 2207＋スキップ 1）と --list-tests 2208 が一致・FullLength 3 と一致・中止の行 0。スキップ 1 は TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（基線から同じ）。
+追加で ScoreReaderTests・InstrumentsTests・HousingGateSharedTests・CpeaceColumnsTests（51 本）を HEAD のビルドで別に回して緑。
