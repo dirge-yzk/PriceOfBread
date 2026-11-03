@@ -30,6 +30,11 @@ public static class PopDecision
         return (rural, urban);
     }
 
+    /// <summary>★(805) 住居の門＝州の都市の割合（都市の人口÷人口・人口が <c>Eps</c> 以下なら 0）が <c>HousingUrbanThreshold</c> を超えるか。<c>EconomyStep.Run</c> の都市住宅の需要（月の頭の 1 回の走査の和を渡す）と
+    /// <see cref="MigrationValues"/> の住居の費用が同じ 1 本を読む（旧＝同じ述語を 2 か所に手書き）。述語だけを共有する＝住居の必要量の掛け方は呼び手ごとに別。</summary>
+    internal static bool HousingGateOpen(Coefficients coef, double urbanPop, double totalPop)
+        => (totalPop > Eps ? urbanPop / totalPop : 0.0) > coef.HousingUrbanThreshold;   // 住居の門
+
     /// <summary>★(706) 線 urb3（設計 20261031_都市化の目標の式_設計.md 案B）：農村と都市の対の〈移る値打ち〉V（1 人・月・その州の名目）と、その対称の相対差 g。呼び手＝<see cref="Run"/>（旗 <c>UrbanFlowReal</c> が正のとき）と計器 <c>UrxPdDrive</c>（常に・読むだけ）の 2 本＝式は 1 本。
     /// <para>農村の V＝現金の所得÷人数（負なら 0）＋自給の値÷人数（<see cref="Pop.SubsistenceValuePerMonth"/>）。都市の V＝現金の所得÷人数（負なら 0）−住居の費用÷人数。V は 0 で切る（合流 (702) の訂正＝家賃が現金を超えると分母が 0 に近づき g が発散する縁を守る・設計思想⑧の例外〈発散する量の守り〉）。</para>
     /// <para>住居の費用＝<c>HousingNeedPerUrban</c>×その州の住居の今の市場価格（<c>EconomyStep.Run</c> の都市住宅と同じ門＝州の都市の割合が <c>HousingUrbanThreshold</c> を超えたときだけ立つ）。買い手の楔は含まない（自給の値と同じ基礎の価格）。
@@ -44,8 +49,7 @@ public static class PopDecision
         if (coef.HousingNeedPerUrban > 0 && Catalog.HousingId < region.Markets.Length)
         {
             double totalPop = region.SumPopulation();
-            double urbanShare = totalPop > Eps ? region.SumUrbanPopulation() / totalPop : 0.0;
-            if (urbanShare > coef.HousingUrbanThreshold) housing = coef.HousingNeedPerUrban * region.Markets[Catalog.HousingId].Price;
+            if (HousingGateOpen(coef, region.SumUrbanPopulation(), totalPop)) housing = coef.HousingNeedPerUrban * region.Markets[Catalog.HousingId].Price;
         }
         double vr = (earnedR > 0 ? earnedR : 0.0) + (sub > 0 ? sub : 0.0);
         double vuRaw = (earnedU > 0 ? earnedU : 0.0) - housing;
