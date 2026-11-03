@@ -1,4 +1,4 @@
-# (728) 恒等の証明の突き合わせ（読むだけ）。ident.sh check から呼ぶ。使い方は ident.sh の先頭。
+# (728) 恒等の判定（測った種で一致）の突き合わせ（読むだけ）。ident.sh check から呼ぶ。使い方は ident.sh の先頭。
 #   python -I ident_check.py <ラベル> --root <木> [--work <作業フォルダ>] [--cfg <設定>] [--tree <測った木>] [--save <日付>] [宣言...] [--saveleak] [--ng]
 # 判定の規則：宣言の無い違いは全て〈不一致〉。基準の生が無い・出力が無いなど突き合わせられない所は〈未了〉（恒等とは言わない）。
 import sys, os, re, csv, hashlib, shutil, subprocess, datetime
