@@ -1,0 +1,17 @@
+(806) c12rd 回し直しの計画（読むだけ・コミットしない）
+作業の場所：D:/PoB_work/r806_work（台本・表・腕の出力）・木 D:/PoB_work/wt_c12rd（枝 c12rd・618e3e21）
+腕 R1（1 本・計器つき・計器 9 国の既定）：
+  POB_WORK=D:/PoB_work/r806_work POB_REPO=D:/PoB_work/wt_c12rd
+  printf 'CapitalDividendFromHostRent=1' > D:/PoB_work/r806_work/coef_r806f1.txt
+  bash scripts/instruments/batch.sh prep r806f1 commit:618e3e21 plain
+  INS=1 bash scripts/instruments/batch.sh run r806f1 4 14     ＝種 14・15・16・17（batch.sh は連続の種しか取らない＝4 種で 14・16・17 を覆う）
+  出力：D:/PoB_work/r806_work/out_r806f1_4_s14/ins・成績表 b4_r806f1_4_s14.txt
+比べる側（旗 0）：D:/PoB_work/keep_797/a11（m797 の種 11〜20・旧の木＝score_s の旧 3 列・cpeace_s の旧 19 列・divhost_s なし）
+最初の確かめ：(802) の記録＝フォートウィリアム 57.7→5.8 千人（種 17）・バーミンガム 2,866→285 千人（種 14）・ネーデルラントの価格水準 1,062.7 倍（1918・種 16）と 1923〜1950 の名目 GDP 0（69 四半期）
+腕 R2（予備）：一致しないときだけ種 11〜20 の 10 種
+変更（12:42・最初の腕は 12:41 に始めて約 1 分で止めた）：R1 を始めて約 1 分で止めた（自分のプロセス 4 本＝bash 3・dotnet 1 を止めた）＝ネーデルラントとスペインは既定の 9 国の外で money_s・fiscal_s に出ない。
+  計器の国を 11 国にして回し直す（計器は読むだけ＝軌道は変わらない）：POB_INSTRUMENTS_NATIONS="清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ,ネーデルラント,スペイン"
+腕 R2（予備の代わりに使う・12:44）：旗 0 の同じ木・同じ 11 国・種 14〜17（coef_r806f0.txt なし＝POB_COEF 空）
+  INS=1 bash scripts/instruments/batch.sh run r806f0 4 14
+  理由：keep_797/a11 は 9 国だけ＝ネーデルラントとスペインの money_s・fiscal_s が無く、divhost_s も無い（旧の木）＝(iii) の同じ国の差が読めない。
+  a11 は旗 0 の木が旧 S11 と同じ軌道かの確かめ（nation_s・region_s）に使う。腕を 2 本使うので、一致の確かめが外れても種 11〜20 は回さない（差を先頭に書く）。
