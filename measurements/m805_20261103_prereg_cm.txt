@@ -1,0 +1,75 @@
+(805) c12cm 住居の門と工業の飽和の写しの 1 本化（I10）＋崩壊の講和の期待の側の列＋古い注と台本の直し（恒等の線）事前登録 2026-11-03
+基線＝m797（main 618e3e21）。枝 c12cm（618e3e21 から）。出発＝(796) 読み手の棚卸し（表 3 の I10）と (802) 合流の申し送り・反証役の指摘（c11cp の門 R_up／R_lo が実際の列に当たらない）。作者「いったん全て推奨で」で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。
+
+[0] 形の種類＝尾（写しの 1 本化・計器の列・注と台本）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0。AI とプレイヤーで同じ経路。確証＝あり（挙動なし）。
+
+[1] 恒等の線・予言 0（成績表 0 行の差）
+    (a1) 住居の門：EconomyStep.cs:1686〜1689（月の頭の 1 回の走査の totalPop・urbanPop で `urbanShare = totalPop > Eps ? urbanPop / totalPop : 0`・`housingGate = urbanShare > HousingUrbanThreshold ? 1.0 : 0.0`）と
+        PopDecision.cs:45〜48（MigrationValues の `totalPop = region.SumPopulation()`・`urbanShare = totalPop > Eps ? region.SumUrbanPopulation() / totalPop : 0.0`・`urbanShare > HousingUrbanThreshold`）の述語を
+        PopDecision の internal static bool HousingGateOpen(Coefficients coef, double urbanPop, double totalPop) の 1 本へ。共有するのは述語だけ。
+        EconomyStep の effBaseNeed = HousingNeedPerUrban × housingGate（double の 0／1）と PopDecision の housing = HousingNeedPerUrban × 住居の市場価格は別の量＝1 本化しない。
+        既にある 1 本を先に探した：World.cs:1175 の TryUrbanShare（private・守りが `rpop < 1e-9` で false＝`> Eps` と等号の側が逆・SumPopulation を引数に取らず自分で数える）は使えない（EconomyStep は月の頭の局所変数を渡す）＝新しく 1 本作る理由。
+        浮動小数の順序が変わる箇所＝0：EconomyStep の局所の和（`totalPop += p.Size; if (p.IsUrban) urbanPop += p.Size` の 1 巡）と SumPopulation／SumUrbanPopulation（`foreach Pops` で `+= p.Size`）は加算の順が同じ（各変数は 0 から Pops の順に足す）。
+        述語の式は割る・比べる向きまで元の字句のまま（`urbanPop / totalPop`・`> Threshold`）。Eps は両クラスとも 1e-9。
+    (a2) 工業の飽和：EconomyStep.cs:864（indMult の分母 `1.0 + effInd / IndProductivityScale`）と :2873（InvestmentReturn の sat `1.0 + ProductiveIndustrialization / IndProductivityScale`）を
+        EconomyStep の internal static double IndSaturation(double productiveInd, Coefficients coef) => 1.0 + productiveInd / coef.IndProductivityScale; の 1 本へ。同じファイルの 2 か所＝既存の似た関数は無い（grep：IndProductivityScale の読み手は EconomyStep の 2 行と Runner の印字だけ）。
+        indMult の式は `1.0 + coef.IndProductivityGain * effInd / IndSaturation(effInd, coef)` と書く（分母を関数にしただけ・`Gain * effInd` を先に掛けてから割る順は変えない・`Gain * (effInd / sat)` に並べ替えない）。
+        浮動小数の順序が変わる箇所＝0（.NET は a*b+c を FMA に自動で畳まない）。cap && !indOff の門は呼び手に残す。FactoryEquipmentTests.cs:473 は期待値を手書きの式で持つ＝触らない。
+    (a3) 紙の台本 scripts/instruments/c12cm/paper.py：旧の字句の式と新の関数の式を同じ入力（乱数 100 万＋境界の ±1ulp）で並べて食い違いの数を数える。予言＝0。0 でなければその箇所を外す。
+    (b) 崩壊の講和の期待の側（計器だけ）：Diplomacy の [System.NonSerialized] 欄 CpRepCut・CpTpMult・CpPayR を足し、:3118 の計器の行で書く（ResolvePeace の rep に掛けた会議の削り repCut・条約港の倍率 `farCrush ? TreatyPortReparationMult : 1.0`・支払い率 r〔lw.FiscalFundingRatio〕）。
+        rep が 0 の講和（どちらかが国でない）の r は NaN。cpeace_s の末尾に 3 列：
+          repExpectIndex＝Σ（崩壊の講和）RepUnit0×saMax×fsh×(1−repCut)×条約港の倍率×r（RepUnit0＝ReparationGdpFraction×敗者の GdpPerMonth〔r を含まない〕・Valid でなければ 0）
+          repMovedOverExpect＝repMovedIndex÷repExpectIndex（計器の中で double で割る・repExpectIndex≦0 なら nan）
+          repFactors＝戦争ごとの `repCut:条約港の倍率:r` を `/` で並べた文字列（shares と同じ型）
+        ⚠指示文の式〈repNewIndex×repCut×条約港の倍率×r〉からの差を名乗る：①repNewIndex の RepUnit は r（講和の前の支払い率）を既に含む＝さらに r を掛けると二重。期待の側は RepUnit0（r なし）に実際の r を 1 回だけ掛ける（repNewIndex×(1−repCut)×条約港の倍率×(実際の r÷講和の前の r) と同じ）。
+        ②掛かるのは repCut でなく (1−repCut)。③repCut・条約港の倍率・r は戦争ごとに違う（行は月×敗者で複数の戦争を足す）＝行に 1 つの値の列を足しても比が定義できない。戦争ごとに控え、期待の側は戦争ごとの積を足す。
+        期待の側は ResolvePeace を呼ばず、入力（戦勝点 saMax・式の取り分 fsh・GDP）から式で書く。掛ける 3 つの因子だけは ResolvePeace が実際に掛けた値を読む（因子は入力で、出力ではない＝循環しない）。実際の側 repMovedIndex は ResolvePeace の rep（移した額）。
+        予言＝cpeace_s は列が末尾に 3 つ増えるだけ（ident の宣言 --grown-ok cpeace_s）・他の表は 0 行の差・力学の値を 1 つも書かない。
+    (b2) cpeace_s の表の組み立てを CpTable から CpRowsPending(Diplomacy)（行の文字列の一覧を返す）へ括り出し、CpTable は書くだけにする（試験が行を読めるように・出力は 1 バイトも変わらない）。
+    (c) 古い注と台本（コメントと台本だけ・行は grep し直して既に直っている物は触らない）。確かめた結果は記録に書く。
+        - Coefficients.cs:2825（score_s の旧の列の注）：(798) で旧の式と列を消したと既に書いてある＝触らない（確かめる）。
+        - World.cs:871 の civicCarriesEthnic（存在しない読み手）：注から外す。CrownParliament.cs:246 付近は該当の字が無い＝触らない（確かめる）。
+        - Model.cs の MeanSupplyFill・Discovery の旗つきの式：grep で 0 件＝触らない（確かめる）。
+        - InstrumentsTests.cs:467 の ScaleSavings・World.cs:1653 付近：行を読んで事実と合わなければ直す。
+        - ScoreReaderTests.cs:50〜63：旧の列（scoreOld 等）・OldScore は (798) で消えた。注を事実に直し、`oldScore` の例外（InstrumentsScore.cs に OldScore を許す）を外す＝番人を締める向き。
+          NationalScore.Finance の例外は GameViewModel.Header.cs:271 がまだ読む＝残す（App は触れない）。InstrumentsScore.cs 自体に許す例外は NationalScore.Finance の読みが無ければ外す（grep で確かめる）。
+        - scripts/instruments/c11fl/rec801.sh の python の heredoc の道（/d/PoB_work/…）を D:/ の形へ。divhost_read.py の O の予言の行は旗 0 の腕のときだけ出す（divReq が全て divOld に一致する行のとき）。
+        - scripts/instruments/ident/ident_check.py:449 の見出し〈=== 恒等の証明〉を〈=== 恒等の判定（測った種で一致）〉へ。読み手の grep：scripts/ 全域で `恒等の証明 ` を見出しとして探す台本は 0（ident_check.py と ident.sh のコメントだけ）。measurements/ の古い出力は書き換えない。
+        - scripts/instruments/c11cp/gates_moved.py の [記録] 2 行の〈Σ賠償の実際〉が repRealIndex を足している＝repMovedIndex のラベルへ直す（もう 1 本の gates_expect.py を足す）。
+
+[2] 消す物と残す物
+    消す：なし（コードの削除 0）。書き換える行：EconomyStep.cs（:864・:1686〜1689・:2873）・PopDecision.cs（:43〜48）・Diplomacy.cs（:382 の宣言に欄 3 つ・:3118 の計器の行）・InstrumentsCpeace.cs（CpRec・CpBefore・CpAfter・CpTable・ヘッダー）・
+    ScoreReaderTests.cs（注と例外 1）・World.cs の注 1 行・scripts の台本。
+    読み手の grep（SimCore・Runner・App・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表）：
+      HousingUrbanThreshold／HousingNeedPerUrban の読み手＝EconomyStep.cs・PopDecision.cs・App の GameViewModel.Map.cs:783（HousingNeedPerUrban > 0 の比べだけ）・Display/PopTables.cs:251（同）・Coefficients.cs・試験 5 本（係数を置くだけ）。係数名の文字列を読む台本 0（scripts/instruments/urbd_699/eq.py は値の写し 0.03）。
+      IndProductivityScale／Gain の読み手＝EconomyStep の 2 行（:864・:2873）・Runner/Program.cs:828（印字だけ）・試験 2 本（係数を置く・期待値を手書き）。
+      Cp* の欄（CpHit・CpCeded・CpRep・CpBudget0・CpRepRaw・CpCaptured）の読み手＝InstrumentsCpeace.cs だけ。足す欄（CpRepCut・CpTpMult・CpPayR）は新しい名前（grep 0 件）・[System.NonSerialized] で SaveGame の対象外（リフレクションが飛ばす）。
+      cpeace_s の列の読み手＝scripts/instruments/c10cp/gates.py・c11cp/gates_moved.py・moved_ratio.py（列の名前で読む＝列が末尾に増えても影響 0）。試験 0。
+    ソースを走査する試験（Regex）の洗い出し：CalendarTests・DiscontentReaderTests・DiscoveryEngineerTests・DormantIdentityTests・FactoryEquipmentTests・FoodLedgerTests・GoodIdGuardTests・ScalarDeletionTests・ScholarshipTests・ScoreReaderTests を読んだ。
+      この線の変更で件数が変わる物＝ScoreReaderTests だけ（例外を 1 つ外す＝許す名前が 1 つ減る・走査の結果は空のまま）。他は読む字の並びを増減しない（CalendarTests は単位の並びだけ・GoodIdGuardTests は財の数字の直書きだけ＝足す行に財の数字は 0）。
+      ㉑ 予言：走査する件数の番人（許可表・宣言の数）を書き換える数＝1（ScoreReaderTests の許可名 1 つ減）。変わる件数＝許す名前 2→1。ほかの番人の件数・宣言の数は変わらない。
+
+[3] 足す試験と、それぞれを赤にする突然変異
+    T1 PopDecisionTests 系（新ファイル PriceOfBread.Tests/HousingGateSharedTests.cs）：都市の割合が HousingUrbanThreshold に等しい盤面・1 ulp 上・1 ulp 下で、EconomyStep の住居の需要（housingGate を通る effBaseNeed が立つか）と PopDecision.MigrationValues の HousingCost が同じ側になる。
+        期待値は手で置いた規模から作る（述語の関数を呼ばない）。突然変異：Mu1 述語の `>` を `>=`（等しい盤面で赤）・Mu2 述語の向きを `<`（全部赤）・Mu3 PopDecision 側だけ旧の字句で `>=`（片方だけ割れる＝等しい盤面で赤・1 本化の前の形が割れたら検出する番人）。
+    T2 同ファイル：IndSaturation（1＋稼働資本÷IndProductivityScale）が手書きの式と一致し、EconomyStep.InvestmentReturn の Sat と同じ値を返す。突然変異：Mu4 `+`→`-`・Mu5 `/`→`*`（赤）。
+    T3 CollapsePeaceTests 系（新ファイル PriceOfBread.Tests/CpeaceColumnsTests.cs）：Instruments.Configure したうえで崩壊の講和 2 本（条約港の倍率 2.5・支払い率 0.8・戦勝点 1）を Step で通し、cpeace_s の行の repMovedIndex が手書きの式
+        0.2×敗者の GdpPerMonth×戦勝点 1×2.5×0.8 に一致・repExpectIndex が同じ値・repMovedOverExpect が 1±1e-9・repFactors に条約港の倍率 2.5 と r 0.8 が出る。
+        突然変異：Mu7 期待の側が条約港の倍率を掛けない（比が 2.5）・Mu8 エンジンが条約港の倍率を掛けない（比が 0.4）・Mu9 期待の側に r を掛けない（比が 0.8）・Mu10 repFactors に r を書かない。
+    門 G（scripts/instruments/c12cm/gates_expect.py・盤面＝ident の計器つき 10 種の cpeace_s〔main の木＝旗 CollapsePeaceOneShare 既定 1〕・全ての崩壊の事象で）：
+        R_up' repMovedOverExpect の最大 ≦ 1+1e-9 ／ R_lo' 最小 ≧ 1−1e-9。閾値は計器の中で double の比を G10 で書く（印字の分解能 5e-10 < 閾値 1e-9）。
+        N>=2 の事象だけの読みも並べる。基線で門が落ちたら、落ちた事象の一覧（種・月・敗者・比・repFactors）を記録の先頭に書いて止めずに報告する（c10cp の採否は変えない）。
+    突然変異の腕（使い捨ての木・種 1〜2・計器つき・全長・使い捨ての木は c12cm の最後のコミットから作る・MU を環境で渡す）：Mu6（repBase が saPay でなく sa のまま〔c11cp の台本〕）・MuCut（`repBase -= repCut * repBase;` を消す）・MuTp（条約港の倍率を 1.0 に）・MuR（`rep = repBase`＝r を掛けない）。
+        予言＝4 本とも新しい門 G の R_up' か R_lo' が落ちる（基線は通る）。Mu6 は旧の列 repRealIndex の読みでは通る（c11cp の記録どおり）が、新しい門では落ちる。出力は measurements/m805_*・生は合流の判断まで残す。
+        ⚠MuCut は repCut が正の事象が無い種では落ちない可能性がある。落ちなければ穴として名乗り、repCut が正の事象の数を数えて記録する（落ちるまで門の閾値は変えない）。
+    ほか：scripts/instruments/c12cm/paper.py（a3）。
+
+[4] 恒等の合否：素の 5 種・計器つき 10 種が m797 と名乗り行を除いて全行一致（計器の表の差は cpeace_s の末尾 3 列だけ）。判定文＝〈判定: 恒等〉。
+    ident：`bash scripts/instruments/ident/ident.sh run c12cm --tree D:/PoB_work/wt_c12cm --tests-delta N --grown-ok cpeace_s --saveleak`（N＝足した試験の数＝T1・T2・T3 の Fact の数。ScoreReaderTests は試験の数を変えない）。
+    腕の枠：腕を起こす前に arms.sh free を読む（ident は 2 腕＝5種・計器つき 10 種に試験の数え腕）。free が 4 未満なら走っている腕の印を待つ。待った時間を報告に書く。
+    フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる。savetest・leakhunt。
+
+[5] 採否：〈判定: 恒等〉なら採る（〈測った種で一致〉と名乗る）。恒等でなければ、その変更を外して報告に回す。(b) の読み直しの結果は記録だけ＝c10cp（波60 で採った崩壊の講和）の採否は変えない。
+
+[6] 計算量：恒等の整理は推定を変えない（.cost の推定が m797 の 221.2 秒と一致）。住居の門の関数・飽和の関数は月に 1 回の呼び出しの付け替え（EconomyStep は州ごとに月 1 回・PopDecision は州ごとに月 1 回）＝呼び出しの数は変わらない。
