@@ -38,6 +38,11 @@ MUTS = {
            'public static double OverSteps(double rate, double steps) => 1.0 - Math.Pow(1.0 - rate, steps);',
            'public static double OverSteps(double rate, double steps) => Math.Pow(rate, steps);',
            'FullyQualifiedName~CreditTests|FullyQualifiedName~MeritocracyTests|FullyQualifiedName~SoldierTests'),
+    # UrbanHeadroom の〈組の人口が 0 なら 0〉の早い return を外す（焼き込みで残した 3 つの return の 1 本）→ 赤になる試験があるかを記録
+    'M7': ('PriceOfBread.SimCore/Meritocracy.cs',
+           '        if (total <= Eps) return 0;\n        return double.PositiveInfinity;',
+           '        return double.PositiveInfinity;',
+           'FullyQualifiedName~MobilityTests|FullyQualifiedName~MigrationPairTests|FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~MeritocracyTests'),
 }
 
 old_file, old, new, flt = MUTS[name]

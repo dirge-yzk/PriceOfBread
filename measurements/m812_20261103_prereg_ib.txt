@@ -96,3 +96,8 @@
       DormantIdentityTests の RetiredFields +7 名と注
       足した試験：Rs2LordOppositionTests +1・MandateWallStockCapTests +1（足すので区分外）
     突然変異（scripts/instruments/c13ib/mut_run.py・使い捨ての複製で当てる）：M1＝教育法・女性の権利の反対を LordStake に替える→Rs2 の新しい試験が赤／M2＝Spend の MandateSpentNew への足しを applied にする→MandateWallStockCapTests の新しい試験が赤／M3＝港の門を外す／M4＝越境移民を止める／M5＝Toward の符号を壊す／M6＝OverSteps を壊す。M3〜M6 は赤になる試験があるかを記録する（緑なら穴を名乗り、機構の試験を足す〔★(790)〕）。
+
+[追記 2 2026-11-03・ident の前・結果（成績表）を見る前]
+    突然変異 M7（UrbanHeadroom の〈組の人口が 0 なら 0〉の早い return を外す）が緑だった（焼き込みで残した順序を守る試験が無かった）。★(790) に従い同じ線で機構の試験を足した：
+    IndustrializationReaderTests.職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限（足す・区分外）。M7 で赤になることを確かめた（measurements/m812_20261103_mutation.txt）。
+    テストの数の予言を直す：−3＋3（Rs2 +1・MandateWall +1・Industrialization +1）＝ 0（--tests-delta 0・--list-tests の予言＝非 FullLength 2221・FullLength 3）。

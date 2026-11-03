@@ -16,3 +16,7 @@ M6  Calendar.OverSteps を壊す（Math.Pow(rate, steps)）
     → 赤。失敗 3：CreditTests 3
 
 穴の名乗り：M3 の 1 回目の緑は台本の絞り込みの誤り（試験の穴ではない）。M4 の検出は 1 本だけ＝越境移民が止まったことを直接見る試験は無い（焼き込みの前からの状態。この線では足さない＝記録）。
+
+M7  Meritocracy.UrbanHeadroom の〈if (total <= Eps) return 0;〉を外す（焼き込みで残した 3 つの早い return の 1 本）
+    → 1 回目は緑（順序を守る試験が無かった＝穴）。★(790) に従い IndustrializationReaderTests.職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限 を足した
+    → 2 回目は赤。失敗 1（足した試験が検出）。足した試験は変異なしの木でも通ることを art_c のビルドで確かめる（下の追記）。

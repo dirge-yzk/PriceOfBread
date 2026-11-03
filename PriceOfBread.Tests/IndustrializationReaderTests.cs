@@ -128,6 +128,22 @@ public class IndustrializationReaderTests
         Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
     }
 
+    /// <summary>焼き込み (812) で残した 3 つの早い return の確かめ：首都の州（CapitalEnabled）で、組の人口が 0 の州だけ残枠 0・人口のある州は無限。
+    /// 突然変異（組の人口 0 の return を外す）で赤になる＝焼き込みの前は旗の前にあったこの順序を、天井の式が消えた後も守る。</summary>
+    [Fact]
+    public void 職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限()
+    {
+        var sim = Britain(); var r = sim.World.Region; var c = sim.World.Coef;
+        r.CapitalEnabled = true;
+        Pop? rural = null, urban = null;
+        foreach (var p in r.Pops) { if (p.Closed || p.IsCriminal) continue; if (p.IsUrban) urban ??= p; else rural ??= p; }
+        Assert.True(rural is not null && urban is not null);
+        rural!.Size = 900; urban!.Size = 100;
+        Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
+        rural.Size = 0; urban.Size = 0;
+        Assert.Equal(0.0, Headroom(r, c));
+    }
+
     // ---- J5 信用の深さ ------------------------------------------------------------------------------------------------
     /// <summary>与信の上限（説明API の CreditTarget の 1 行目）を、州の工業化度だけを変えた英の盤面で出す（投資家の所得は十分に大きくして返せる額の側を外す）。</summary>
     private static (double Cap, double Gold, bool OnGold) CreditCapAt(double ind)
