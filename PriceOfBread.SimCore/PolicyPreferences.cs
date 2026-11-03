@@ -91,7 +91,7 @@ public static class PolicyPreferences
         // ★2026-09-26 A2-2：名目GDP（World.NominalGdpPerMonth と同じ値）。Build で州×生産者の走査を1回だけ走らせて持つ＝Pref の読み手は走査し直さない。
         //   Build と Pref は同じ呼び出しの中で読むだけ（このファイルに産出・州・物価水準を書く行は無い）＝値は getter とビット単位で同じ。
         public readonly double NominalGdp;
-        // ★(547) 線 rs2：旧支配層（ブロック 0）の所得のうち地代の割合（正規化の前の和の比＝Rent[0]÷Income[0]・所得 0 なら 0）。農奴解放・土地改革への反対の強さが読む（LordOppositionByRentLoss>0 のときだけ）。新しい和は足さない（BuildSums の既存の 2 本の比）。
+        // ★(547) 線 rs2：旧支配層（ブロック 0）の所得のうち地代の割合（正規化の前の和の比＝Rent[0]÷Income[0]・所得 0 なら 0）。農奴解放・土地改革への反対の強さが読む。新しい和は足さない（BuildSums の既存の 2 本の比）。
         public readonly double LordRentToIncome;
         public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp, double lordRentToIncome)
         { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; LordRentToIncome = lordRentToIncome; }
@@ -226,7 +226,7 @@ public static class PolicyPreferences
     // 「進める方向」への各ブロックの賛否（+賛成 / −反対）を**経済プロファイルから導出**。連続値（概ね −2..+2）。
     // ★internal（2026-10-01 (146)）：要求の順位（FactionSnapshot.ComputeDemands）が自分のブロックの1本だけを読む（旧＝Stance で3ブロックと純支持を全て計算して1本を捨てた）。
     // ★(558) 線 rs3：increasing＝**どちらの向きの選好として読むか**（既定 true＝進める向き）。返り値は常に「進める向き」の符号の値（呼び手が ×sign する）。減らす向き（false）で値が変わるのは
-    //   旗 rs2・rs3 がともに正のときの旧支配層の農奴解放・土地改革の 2 行だけ（<see cref="DirectionAware"/>）。他の全ての軸・ブロックは increasing を読まない。
+    //   旧支配層の農奴解放・土地改革の 2 行だけ（<see cref="DirectionAware"/>）。他の全ての軸・ブロックは increasing を読まない。
     internal static double Pref(PolicyAxis a, int b, in Profile e, World w, bool increasing = true)
     {
         bool trad = b == 0, modern = b == 1, mass = b == 2;
@@ -301,8 +301,8 @@ public static class PolicyPreferences
                                               // 段による難度差は選好でなく**構造**が持つ：最上段（選挙権）だけが憲法級（政治資本では押せない）＋男性普通選挙が前提。
                 return trad ? -StatusScale * (0.5 + e.Wealth[0]) : 1.0;
             case PolicyAxis.SerfEmancipation: // 農奴解放＝農奴所有の地主が強く抵抗
-                // ★(547) 線 rs2：LordOppositionByRentLoss>0 なら強さ＝〈次の一段で失う所得の割合〉（貯蓄の割合 W0 は政治力にも入る二重計上＝(540)）。0＝今の式（W0）
-                // ★(558) 線 rs3：減らす向き（increasing=false）で旗が立てば、強さは〈1 段戻したときの得〉（LordStake）
+                // ★(547) 線 rs2：強さ＝〈次の一段で失う所得の割合〉（貯蓄の割合 W0 は政治力にも入る二重計上＝(540)）。(803) で旗 LordOppositionByRentLoss を焼き込んだ（旧の式 W0 は消した）
+                // ★(558) 線 rs3：減らす向き（increasing=false）の強さは〈1 段戻したときの得〉（LordStake）。(803) で旗 LordOppositionReverseGain を焼き込んだ
                 return trad ? -StatusScale * (0.5 + LordStake(w, a, e, increasing)) : 1.0;
             case PolicyAxis.LandReform:       // 土地改革＝地主が強く抵抗・大衆が強く賛成
                 return trad ? -StatusScale * (0.5 + LordStake(w, a, e, increasing)) : mass ? 2.0 : 1.0;
@@ -638,20 +638,17 @@ public static class PolicyPreferences
     }
 
     // ---------------------------------------------------------------- (558) 線 rs3：減らす向きの旧支配層の強さ（農奴解放・土地改革） ----------------------------------------------------------------
-    // rs2 の損の式は進める向きだけを読む＝減らす向きは進める向きの符号反転（全面の国は損 0＝床 1.0）。旗 LordOppositionReverseGain＞0 のときだけ、減らす向きを〈1 段戻したときに得る所得の割合〉で読む。
+    // rs2 の損の式は進める向きだけを読む。減らす向きは〈1 段戻したときに得る所得の割合〉で読む（(803) で旗 LordOppositionReverseGain を焼き込んだ）。
     // 新しい関数はこのファイルの末尾に置く（gc2 が 181〜215 行を触る＝重ならない）。産地の走査は CustomaryRentShare の 1 回（新しい和・状態・倍率は 0）。
 
-    /// <summary>旧支配層の農奴解放・土地改革への強さの中身（<c>0.5＋これ</c> に StatusScale を掛ける）。旗 rs2＝0 なら貯蓄の割合 W0・正なら進める向きは損・減らす向き（<paramref name="increasing"/>＝false）で旗 rs3 が正なら得。</summary>
+    /// <summary>旧支配層の農奴解放・土地改革への強さの中身（<c>0.5＋これ</c> に StatusScale を掛ける）。進める向きは損・減らす向き（<paramref name="increasing"/>＝false）は得。</summary>
     private static double LordStake(World w, PolicyAxis a, in Profile e, bool increasing)
-        => w.Coef.LordOppositionByRentLoss > 0
-            ? (!increasing && w.Coef.LordOppositionReverseGain > 0 ? LordIncomeGain(w, a, e.LordRentToIncome) : LordIncomeLoss(w, a, e.LordRentToIncome))
-            : e.Wealth[0];
+        => !increasing ? LordIncomeGain(w, a, e.LordRentToIncome) : LordIncomeLoss(w, a, e.LordRentToIncome);
 
     /// <summary>この選好（軸×ブロック）の減らす向きの強さが、進める向きの符号反転と違う読みを持つか（<see cref="Pref"/> の <c>increasing=false</c> を別に呼ぶ価値があるか）。
-    /// 旗 rs2・rs3 がともに正・軸が農奴解放か土地改革・ブロックが旧支配層（0）のとき true。</summary>
+    /// 軸が農奴解放か土地改革・ブロックが旧支配層（0）のとき true。</summary>
     internal static bool DirectionAware(World w, PolicyAxis a, int b)
-        => b == 0 && w.Coef.LordOppositionByRentLoss > 0 && w.Coef.LordOppositionReverseGain > 0
-           && (a == PolicyAxis.SerfEmancipation || a == PolicyAxis.LandReform);
+        => b == 0 && (a == PolicyAxis.SerfEmancipation || a == PolicyAxis.LandReform);
 
     /// <summary>★(558) 線 rs3：<paramref name="axis"/> を 1 段戻したときに旧支配層が得る所得の割合＝
     /// (戻した段の実効の取り分−今の実効の取り分)÷今の実効の取り分 × <paramref name="lordRentToIncome"/>（損 <see cref="LordIncomeLoss"/> と分母の規則が同じ＝その動きの前の状態＝今で割る）。

@@ -1,0 +1,43 @@
+(803) c12lw 突然変異の記録（焼き込み後の木 70c472f7・scripts/instruments/c12lw/mut_run.sh・使い捨ての木）。M1 は最初の回で試験の要約の行が出ず（rc=1・同時に走っていた ident のビルドの負荷による試験ホストの中断の疑い）、単独で回し直して 4 失敗を確かめた。
+対照＝変異なしの 7 組（Rs2・Rs3・MandateWall・Revolt・Dormant・PolicyPolitics・ReformPath の 187 本）は全て合格（焼き込み後の木・変異なし）。
+
+== M1 M1: applied to PriceOfBread.SimCore/PolicyPreferences.cs
+  失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.要求の順位は旧支配層の土地改革を減らす要求の強さを得から取り直す [992 ms]
+  失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.減らす向きで内訳の合計は純支持と一致し議会の保守党の項が得に替わる [558 ms]
+  失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.減らす向きは1段戻したときの得になり段ごとの値が手の式と合う [596 ms]
+  失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.旧支配層の貯蓄を10倍にしても減らす向きの強さは動かない [385 ms]
+失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 M=M1 試験の組=Rs3LordReverseGainTests
+
+== M2 M2: applied to PriceOfBread.SimCore/PolicyPreferences.cs
+  失敗 PriceOfBread.Tests.Rs2LordOppositionTests.慣習の取り分が上限以下の国は農奴解放で失う所得が0で反対は基礎の0_5だけ [5 s]
+  失敗 PriceOfBread.Tests.Rs2LordOppositionTests.旧支配層の貯蓄を10倍にしても反対の強さは動かない [1 s]
+  失敗 PriceOfBread.Tests.Rs2LordOppositionTests.農奴解放の反対は次の一段で失う所得の割合になり段ごとの値が手の式と合う [306 ms]
+  失敗 PriceOfBread.Tests.Rs2LordOppositionTests.旧支配層の反対の強さは損の式の手の値と一致する [230 ms]
+失敗!   -失敗:     4、合格:     0、スキップ:     0、合計:     4、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 M=M2 試験の組=Rs2LordOppositionTests
+
+== M3 M3: applied to PriceOfBread.SimCore/PolicyPreferences.cs
+  失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.要求の順位は旧支配層の土地改革を減らす要求の強さを得から取り直す [940 ms]
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 M=M3 試験の組=Rs3LordReverseGainTests
+
+== M4 M4: applied to PriceOfBread.SimCore/Government.cs
+  失敗 PriceOfBread.Tests.MandateWallStockCapTests.bが0_またはbがNaNならSは増えない [4 s]
+  失敗 PriceOfBread.Tests.MandateWallStockCapTests.正統性は代価の全額を払い_Sはbを超えずに戻る [414 ms]
+  失敗 PriceOfBread.Tests.MandateWallStockCapTests.スライダーの壁の一歩もSはbで止まる [861 ms]
+  失敗 PriceOfBread.Tests.MandateWallStockCapTests.壁の一歩の後の在庫は40四半期で戻る [390 ms]
+  失敗 PriceOfBread.Tests.MandateWallStockCapTests.壁の一歩を払うとSはbで止まり_正統性の請求は代価の全額のまま [289 ms]
+  失敗 PriceOfBread.Tests.MandateWallStockCapTests.法の壁の一歩_Sは小さなbで止まり請求は代価の全額 [435 ms]
+失敗!   -失敗:     6、合格:     1、スキップ:     0、合計:     7、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 M=M4 試験の組=MandateWallStockCapTests
+
+== M5 M5: applied to PriceOfBread.SimCore/Politics.cs
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.段3_内戦の最中の親には次の旗が立たず_外征の弱みでも開かない [1 s]
+失敗!   -失敗:     1、合格:    55、スキップ:     0、合計:    56、期間: 43 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 M=M5 試験の組=RevoltIgnitionTests
+
+== M6 M6: applied to PriceOfBread.SimCore/Politics.cs
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.段3_内戦の最中の親には次の旗が立たず_外征の弱みでも開かない [813 ms]
+失敗!   -失敗:     1、合格:    55、スキップ:     0、合計:    56、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 M=M6 試験の組=RevoltIgnitionTests

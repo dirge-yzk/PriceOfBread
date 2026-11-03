@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(547) 線 rs2：農奴解放・土地改革への旧支配層の反対の強さ（<see cref="Coefficients.LordOppositionByRentLoss"/>）の番人。
+/// <summary>(547) 線 rs2：農奴解放・土地改革への旧支配層の反対の強さ（次の一段で失う所得の割合）の番人（(803) で旗 LordOppositionByRentLoss を焼き込んだ）。
 /// ⚠機構と不変条件だけを見る（解放の年の分布・政体の通り道は成績表が見る）。期待値は本体の関数 <see cref="PolicyPreferences.LordIncomeLoss"/> から作らない＝
 /// 慣習は NationConfig の農制と農奴の市場参加床の係数から組む（盤面の数字を手書きで固定しない）・上限は 1.0／0.75／0.5／0.3 の手書き・所得の比は POP を直に数える。</summary>
 public class Rs2LordOppositionTests
@@ -32,24 +32,9 @@ public class Rs2LordOppositionTests
     }
 
     [Fact]
-    public void 旗0なら今の式のまま旧支配層の反対は貯蓄の割合から作られる()
+    public void 農奴解放の反対は次の一段で失う所得の割合になり段ごとの値が手の式と合う()
     {
         var w = RussiaBoard();
-        w.Coef.LordOppositionByRentLoss = 0.0;   // 既定は 1（点火済み）＝今の式の経路は旗を倒して踏む
-        var (w0, _) = LordSums(w);
-        var e = PolicyPreferences.Build(w);
-        double expect = -2.0 * (0.5 + w0);
-        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, e, w), 9);
-        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.LandReform, 0, e, w), 9);
-        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.EducationLaw, 0, e, w), 9);   // 分けていない 2 軸（教育法・女性の権利）は今の式のまま
-        Assert.True(w0 > 0.05, $"盤面の前提が崩れた（旧支配層の貯蓄の割合 {w0}）");
-    }
-
-    [Fact]
-    public void 旗1なら農奴解放の反対は次の一段で失う所得の割合になり段ごとの値が手の式と合う()
-    {
-        var w = RussiaBoard();
-        w.Coef.LordOppositionByRentLoss = 1.0;
         var (_, ratio) = LordSums(w);
         Assert.True(ratio > 0.2 && ratio <= 1.0, $"盤面の前提が崩れた（旧支配層の地代÷所得 {ratio}）");
         var e = PolicyPreferences.Build(w);
@@ -76,19 +61,20 @@ public class Rs2LordOppositionTests
     }
 
     [Fact]
-    public void 旗1なら旧支配層の貯蓄を10倍にしても反対の強さは動かず旗0では動く()
+    public void 旧支配層の貯蓄を10倍にしても反対の強さは動かない()
     {
         // 〈同じ貴族の富が力にも反対の強さにも入る〉ことの反証：貯蓄（ストック）は地代と所得（フロー）の比に入らない
-        double Opp(double flag, double savingsMul)
+        (double Opp, double W0) Run(double savingsMul)
         {
             var w = RussiaBoard();
-            w.Coef.LordOppositionByRentLoss = flag;
             w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
             foreach (var (_, p) in w.AllPopsWithRegion()) if (p.Closed) p.ApplyBakedSavings(p.Savings.Value * savingsMul);
-            return PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w);
+            return (PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w), LordSums(w).W0);
         }
-        Assert.Equal(Opp(1.0, 1.0), Opp(1.0, 10.0), 12);
-        Assert.True(Opp(0.0, 10.0) < Opp(0.0, 1.0) - 0.05, "旗 0 では貯蓄が反対の強さに乗る（読む線 rs の根）はずが動かない＝この番人は空洞");
+        var (o1, w1) = Run(1.0);
+        var (o10, w10) = Run(10.0);
+        Assert.True(w10 > w1 + 0.01, $"貯蓄を 10 倍にしても旧支配層の貯蓄の割合が上がらない（{w1}→{w10}）＝この番人は空洞");   // 貯蓄を動かした対照（POP を直に数える）
+        Assert.Equal(o1, o10, 12);
     }
 
     [Fact]
@@ -98,7 +84,6 @@ public class Rs2LordOppositionTests
         var sim = new Simulation(NationConfig.America().ToScenario(1789), new NullAgent());
         sim.Run(4);
         var w = sim.World;
-        w.Coef.LordOppositionByRentLoss = 1.0;
         w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
         Assert.Equal(ExpectedCustom(NationConfig.America(), w.Coef), PolicyPreferences.CustomaryRentShare(w), 12);
         Assert.True(ExpectedCustom(NationConfig.America(), w.Coef) <= 0.5, "盤面の前提が崩れた（慣習が農奴解放の全面の上限 0.5 以下でなければ失う所得が 0 にならない）");
@@ -106,20 +91,16 @@ public class Rs2LordOppositionTests
     }
 
     [Fact]
-    public void 計器の表は旗0と旗1のどちらでも今の式と損の式を同じ列に並べる()
+    public void 旧支配層の反対の強さは損の式の手の値と一致する()
     {
-        // 計器の列の式は Pref と同じ形（StatusScale×(0.5＋x)）＝旗の値を入れ替えても二つの列は動かず、使われている方だけが旗で変わる
+        // 計器の列の式は Pref と同じ形（StatusScale×(0.5＋x)）
         var w = RussiaBoard();
-        var (w0, ratio) = LordSums(w);
+        var (_, ratio) = LordSums(w);
         w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
         double loss = PolicyPreferences.LordIncomeLoss(w, PolicyAxis.SerfEmancipation, ratio);
         double cust = ExpectedCustom(NationConfig.Russia(), w.Coef);
         Assert.Equal((cust - 0.75) / cust * ratio, loss, 9);
-        w.Coef.LordOppositionByRentLoss = 0.0;
-        double used0 = -PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w);
-        w.Coef.LordOppositionByRentLoss = 1.0;
         double used1 = -PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w);
-        Assert.Equal(PolicyPreferences.StatusScale * (0.5 + w0), used0, 9);
         Assert.Equal(PolicyPreferences.StatusScale * (0.5 + loss), used1, 9);
     }
 }

@@ -39,7 +39,7 @@ public class DormantIdentityTests
         // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalCedeFleetReturnTests（旗を 0 に置いた走行）。
         // ★StanceEduHoldsLaw（(680) 線 edq）は 2026-10-30 に 1 で**点火**＝この表から外した。(772) c6sp で焼き込み（欄は墓標・旗 0 の経路は無い）＝番人 StanceEduHoldsLawTests は既定の形だけを確かめる。
         // ★SpreadLiteracyFull・SpreadPrereqEdges（(621) 線 inst）は 2026-10-28 に点火＝この表から外した（SpreadLiteracyFull は既定 0.5・辺は Catalog.After の共産主義 ← 社会主義へ移して旗を消した）。旗 0 の経路の番人は InstitutionAnchorTests。
-        // ★MandateWallStockCap（(615) 政治資本の壁の一歩の勘定）は 2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。旗 0 の経路の番人は MandateWallStockCapTests。
+        // ★MandateWallStockCap（(615) 政治資本の壁の一歩の勘定）は 2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は MandateWallStockCapTests。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
         // ★NavalPortProcurement（(606)(669)(679) 線 navf4 海軍の需要の道）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalPortProcurementTests（旗を 0 に置いた走行）。
         // ★ModernizationAbolished（(573) 近代化投資の廃止・作者 2026-10-26）は 2026-10-26 に 1 で**点火**（腕 B_mod・止める線に当たらず）＝この表から外した。
@@ -126,8 +126,8 @@ public class DormantIdentityTests
         "StapleDemandRebalance",        // ★(504) 主食どうしの乗り換えの配り直し②（挟みを外し欲しい量の和を必要量に合わせる）＝0 で今の挟み。点火は同上
         // ★UnionBargaining（(520) 交渉の取り分）は 2026-10-24 に 1 で**点火**・LandRentResidual（産地の地代の残りの道）は (529) で撤回して旗ごと削除（腕 B1″〔種 21〜30〕・B2・合成の腕 B3・止める線に当たらず）＝この表から外した。
         // ★RentScarcityElasticity（産地の地代の土地稀少弾力）は (529) で既定 0＝休眠にし、(541) で墓標へ消した＝この表から外した（復活を禁じる番人は Hz8IdentityTests）。
-        // ★LordOppositionByRentLoss（(547) 農奴解放・土地改革への旧支配層の反対の強さを次の一段で失う所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した（0 の経路は Rs2LordOppositionTests が踏む）。
-        // ★LordOppositionReverseGain（(558) 農奴解放・土地改革への旧支配層の減らす向きの強さを 1 段戻したときに得る所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した（0 の経路は Rs3LordReverseGainTests が踏む）。
+        // ★LordOppositionByRentLoss（(547) 農奴解放・土地改革への旧支配層の反対の強さを次の一段で失う所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は Rs2LordOppositionTests。
+        // ★LordOppositionReverseGain（(558) 農奴解放・土地改革への旧支配層の減らす向きの強さを 1 段戻したときに得る所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は Rs3LordReverseGainTests。
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
@@ -304,6 +304,7 @@ public class DormantIdentityTests
         "SpreadNeedSocialismBoard", "SpreadNeedCommunismBoard",   // (798) c11dm：★(640) 線 idn の盤面の旗（00一覧 255 行で差し戻し）。式は工場労働者の人数×闘争度のまま
         "FrontierDevelopmentRate", "FrontierUnlockThreshold", "ForceUnlockRate", "ForceUnlockTreasuryCostPerMonth", "ForceUnlockMilitancy",
         "PreemptiveSeizeWeight", "FertileAbsoluteBlend", "MigrationFarePerkKm", "NationalismFromConsciousness", "WorldPriceStatUnclamped",
+        "LordOppositionByRentLoss", "LordOppositionReverseGain", "MandateWallStockCap", "FactionOpportunism",   // (803) c12lw：法の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は Rs2LordOppositionTests・Rs3LordReverseGainTests・MandateWallStockCapTests・RevoltIgnitionTests）
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

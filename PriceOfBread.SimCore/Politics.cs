@@ -932,27 +932,24 @@ public static class Politics
             //   この旧2門は RevoltIgnitionIntensity=0（＝現在の既定＝休眠）のとき**唯一の点火条件**であり、消すと
             //   「危機が立った＝毎四半期その運動が必ず蜂起する」世界になる（力の門も好機のブレーキも無くなる）。
             //   doc §6 が「二重計上だから消せる」と書いたのは**段4を点火した後の世界**の話＝点火と同時に、この if ブロックごと落ちる。
-            //   ⇒ 4本（FactionOpportunism / FactionStrikeLegitimacy / FactionStrikeDrawdown / FactionOverwhelmFactor）は
+            //   ⇒ 4本（FactionOpportunism〔(803) で旗を焼き込んだ〕 / FactionStrikeLegitimacy / FactionStrikeDrawdown / FactionOverwhelmFactor）は
             //     段4を点火する回に**このブロックごと**畳む（今畳むと世界が壊れる＝掃除ではなく挙動の破壊）。
             if (bestStrength <= hold + militia) { ClearFactionCrisis(w); return; }   // ★要求は法の経路：立たなかった＝通知を下ろす
             // 第6段6-5①（2026-07-28）結束の予算化＝一斉投入のタイミング（中核ルールdoc §3-3①/§3-4）：閾値を越えても体制が健在なら
             // 待って蓄積を続け（静かな数十年＝結束は減らずに積み上がる）、弱み（低正統性・交戦・恐慌）か圧倒（保持力の大差超え）で打つ
-            // ＝賢い挑戦者は歴史を平坦にせず遅らせて凝縮する（1848/1917の形）。FactionOpportunism=0で旧＝閾値即発火。
-            if (c.FactionOpportunism > 0)
-            {
-                // ★段3＝亡霊の残り(i)（F3b蜂起doc・2026-09-08・係数なし）：「交戦」から**内戦を除く**。
-                //   Government.AtWar は CivilWarParent 付きの戦争も数えるので、内戦一元化の主経路では
-                //   反乱が1つ立った瞬間に親が**恒久に弱み**になり、好機のブレーキも圧倒判定も両方外れた＝1つ目の蜂起が2つ目を呼ぶ。
-                //   体制の弱さは既に保持力（w.Coercion＝正統性×財源率×戦争消耗）に入っているので、ここで数えるのは外征の消耗だけでよい。
-                bool externalWar = false;
-                if (w.Diplomacy is { } dipEx && w.SelfPower is { } spEx)
-                    foreach (var war in dipEx.Wars)
-                        if (war.CivilWarParent is null && (war.A == spEx || war.B == spEx)) { externalWar = true; break; }
-                bool weakness = w.Legitimacy < c.FactionStrikeLegitimacy
-                             || w.GdpDrawdown.Value > c.FactionStrikeDrawdown.Value
-                             || externalWar;
-                if (!weakness && bestStrength < (hold + militia) * c.FactionOverwhelmFactor) { ClearFactionCrisis(w); return; }   // R2：圧倒判定も同じ実効保持力を読む（フラグ0では hold==coerce＝ビット恒等）。★要求は法の経路：待つ＝通知を下ろす
-            }
+            // ＝賢い挑戦者は歴史を平坦にせず遅らせて凝縮する（1848/1917の形）。(803) で旗 FactionOpportunism（0＝旧の閾値即発火）を焼き込んだ。
+            // ★段3＝亡霊の残り(i)（F3b蜂起doc・2026-09-08・係数なし）：「交戦」から**内戦を除く**。
+            //   Government.AtWar は CivilWarParent 付きの戦争も数えるので、内戦一元化の主経路では
+            //   反乱が1つ立った瞬間に親が**恒久に弱み**になり、好機のブレーキも圧倒判定も両方外れた＝1つ目の蜂起が2つ目を呼ぶ。
+            //   体制の弱さは既に保持力（w.Coercion＝正統性×財源率×戦争消耗）に入っているので、ここで数えるのは外征の消耗だけでよい。
+            bool externalWar = false;
+            if (w.Diplomacy is { } dipEx && w.SelfPower is { } spEx)
+                foreach (var war in dipEx.Wars)
+                    if (war.CivilWarParent is null && (war.A == spEx || war.B == spEx)) { externalWar = true; break; }
+            bool weakness = w.Legitimacy < c.FactionStrikeLegitimacy
+                         || w.GdpDrawdown.Value > c.FactionStrikeDrawdown.Value
+                         || externalWar;
+            if (!weakness && bestStrength < (hold + militia) * c.FactionOverwhelmFactor) { ClearFactionCrisis(w); return; }   // R2：圧倒判定も同じ実効保持力を読む（フラグ0では hold==coerce＝ビット恒等）。★要求は法の経路：待つ＝通知を下ろす
         }
         // ★D-34 計器（2026-09-03・作者要望）：ここに来た＝**危機が立った**。決着の**共通の分母**として1回ずつ数える
         //   （⚠試行と成立の粒度を揃える＝分子と分母の非対称を作らない）。試行と成立の Hit は CrisisThroughLawPath（評価の四半期だけ）。

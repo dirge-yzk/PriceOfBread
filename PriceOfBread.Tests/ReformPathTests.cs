@@ -150,7 +150,7 @@ public class ReformPathTests
         Assert.True(Government.CanStep(w, axis, inc));
         Government.Step(w, w.Coef);
         Assert.Equal(level, PolicyPoliticsTests.LawLevel(w, axis));            // 施行された
-        Assert.Equal(w.PoliticalCapitalMax, w.MandateSpent, 9);                // S＝残りの在庫 b で止まる（(615) MandateWallStockCap 既定 1・b を超えない）
+        Assert.Equal(w.PoliticalCapitalMax, w.MandateSpent, 9);                // S＝残りの在庫 b で止まる（(615) 壁の一歩の勘定・b を超えない）
         Assert.Equal(cost, w.MandateSpentNew, 9);                              // 正統性の減算の元（Politics.Step が 1 回だけ引く）は代価の全額 1 回ぶん
         Assert.True(cost > w.PoliticalCapitalMax);
         // 直後は在庫が空＝同じ四半期の次の壁の一歩は通らない
