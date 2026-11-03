@@ -1173,9 +1173,7 @@ public sealed class Coefficients
     // 収益駆動の投資：限界収益(逓減)×(1+Leverage×技術) − CapitalCost > 0 の間だけ投資＝固定上限なしで均衡が創発。
     public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
     public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
-    public double BaseUrbanCap = 0.20;            // 前工業の都市化上限（1789≈20%）
-    public double UrbanCapFollowSpeed = 0.02;   // 【点火0.02・2026-08-16＝S級梯子r4単独37/71/56】都市化天井の工業化追従に建設時間（時定数≈4年）＝天井ジャンプ時の史実比8-10倍速い都市化を律速。      // 監査2026-07-05（D3）：都市化天井の工業化追従速度（月次）。1=即時追従（現行と厳密一致）・0.02程度で住宅/インフラの建設時間＝天井が数年遅れて追いつく。#17で有効化検討
-    public double UrbanPerInd = 0.08;             // 工業化度1あたり都市化上限の上乗せ（史実：1890で都市≈37%）
+    // 【墓標2026-11-03 (812)・旗の焼き込み】都市化の天井 BaseUrbanCap（0.20）・UrbanPerInd（0.08）・UrbanCapFollowSpeed（0.02）と旗 UrbanCapOff（(687) 線 urb2 が 2026-10-30 に 1 で点火）＝都市化の天井は置かない（設計思想⑧）。止めるのは所得差（目標の都市の割合）・飢えの線 FamineMigrationFillGate・農奴の門 SerfMobilityGate。天井の式 PopDecision.UrbanShareCap と平滑化の状態 Region.UrbanIndSmoothed も削除した（旧の枝は旗 0 の経路だけが読んでいた）。
     // 工場建設が食う束（鋼＋機械＋セメント＋製材）＝これらの死蔵を解消する消費先（最も不足する成分が律速）
     // 機械は少数の専門職が担う資本財段で常に最も薄い→建設での必要量を下げ「機械は希少でも工業化の壁にはしない」
     // （機械は発電機・電化製品など他用途で価値を保つ）。建設の主体は構造材（鋼・セメント・製材）。
@@ -1959,9 +1957,8 @@ public sealed class Coefficients
     public double IndustrializationOff = 1;         // ★(495) **2026-10-23 に 1 で点火**（同上）。工業化度の倍率の読み手の削除（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」）。0＝今のまま＝厳密恒等。正のとき、能力の倍率 indMult・機械化度・開発度の記憶とヴィンテージ（技術水準を読む 3 つ）が働かない（★(609) 合流の注の直し：賃金の天井の工業化度の項・独占の解体・冷蔵の傾斜は (605) で物理削除＝旗を 0 にしても戻らない）。
                                                     //   州の在庫 Region.Industrialization とその書き手・在庫として読む 8 か所と州の上限 IndustryInvestRegionCap は残す（上限の削除は延期＝事前登録 追記 1 (2)）。
     // ★(605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・2026-10-26〈工業化度の廃止理由は、盤面から読めばよいから〉〔★(609) 合流：原文を確かめられない＝指示文にも docs にも無い・〈原文〉の札を外した〕）。
-    //   残りの旗（CapitalHeadroomFromReturn）は既定 0＝今のまま（UrbanCapOff は (687) で既定 1 に点火）（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。
+    //   残りの旗（CapitalHeadroomFromReturn）は既定 0＝今のまま（UrbanCapOff は (687) で既定 1 に点火し (812) で焼き込んだ）（式は書き直さず旧の枝をそのまま残す＝厳密恒等）。
     //   ★(667) 線 igi4：疫病の衛生・信用の深さ・開幕の交易の比重・扶養力の 4 本の旗（EpidemicSanitFromBoard・CreditDevOff・TradeWeightOpeningEven・CapacityIndTermsOff）を既定 1 で採り、旧の枝・旗・死んだ係数 7 本（EpidemicSanitationHalf・EpidemicSanitationWeight・CreditMultiplierDevWeight・CreditMultiplierDevFloor・CreditDevScale・IndustryCapacityBonus・PollutionCapacityWeight）を物理削除した（事前登録 measurements/igi4_667_20261030_prereg.txt）。正のとき、読み手は工業化度を読まず、既に盤面にある量だけを読む。置き換え先は全て AI の推奨（確証なし・事前登録 measurements/ind4_605_20261027_prereg.txt）。
-    public double UrbanCapOff = 1;          // ★(687) **2026-10-30 に 1 で点火**（線 urb2・腕 B・種 1〜20・止める線に当たらず・事前登録 measurements/urb2_687_20261030_prereg.txt [8]・作者「どうぞ。停止せず進めてください」で推奨を採った＝承認ではない）。旧の枝（0）は残す。0＝旧の天井。都市化の天井（BaseUrbanCap＋工業化度×UrbanPerInd・絶対上限）を使わない（設計思想⑧＝天井なし）。止めるのは所得差（目標の都市の割合の sigmoid）・飢えの線（FamineMigrationFillGate）だけ（住居の充足は PopDecision.Run が読まない＝旗の名は UrbanCapOff）。UrbanIndSmoothed は書かない。
     public double UrbanFlowReal = 0;        // ★(706) 線 urb3（設計 docs/202610/20261031/20261031_都市化の目標の式_設計.md 案B・段2 の器）。0＝今の式（シグモイドの目標の都市の割合＋名目の温度 MigrationTemperature・1 ビットも変わらない）。正＝州の中の農村↔都市の移動を〈移る値打ち〉V（<see cref="PopDecision.MigrationValues"/>＝農村は現金＋自給の値・都市は現金−住居の費用・それぞれ 0 で切る）の対称の相対差 g＝2(V都市−V農村)÷(V都市＋V農村) に比例させる：流れ＝Mobility×g×送り手の規模（g＞0 は農村・g＜0 は都市）。**目標の割合も天井も温度も持たない**（旗 UrbanCapOff・MigrationTemperature・UrbanIndSmoothed を読まない）。農奴の門と飢えの門は残る。Mobility の意味は〈目標との差の月の割合〉から〈相対差 1 あたりの送り手の月の割合〉へ変わる（値は同じ 0.02）。**旗 1 の腕は回していない**（段3＝波49・門の基線と幅が要る）。AI の設計＝確証なし。
     public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする（旧＝CapitalIndTarget−MeanIndustrialization）。大きさの根拠なし。★旗 1 の CapitalIndTarget は 0〜1 の割合に掛ける目盛り（旧は工業化度の単位の目標）。ModernizeReturnShare は設備の収益の飽和と州の上限を通じて州の資本の在庫を間接に読む（直読みを外すだけ）。
     public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。

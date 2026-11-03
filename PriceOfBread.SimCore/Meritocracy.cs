@@ -439,8 +439,7 @@ public static class Meritocracy
     }
 
     /// <summary>§2.4 都市化天井のヘッドルーム（人数）：PopDecision と同じペア物差し（<see cref="PopDecision.MigrationPair"/>＝最初の非閉鎖・非犯罪者の農村pop/都市pop）・
-    /// 同じ天井式（BaseUrbanCap＋工業化×UrbanPerInd・平滑状態 UrbanIndSmoothed は読み取りのみ・0.85は既存ハードストップの再利用）。
-    /// CapitalEnabled=false（天井の無い世界）とペア不成立は無制限。</summary>
+    /// 都市化の天井は無い（(812) 旗 UrbanCapOff の焼き込み）＝無制限。組の人口が 0 の州だけ 0。</summary>
     private static double UrbanHeadroom(Region r, Coefficients c)
     {
         if (!r.CapitalEnabled) return double.PositiveInfinity;
@@ -448,10 +447,7 @@ public static class Meritocracy
         if (rural is null || urban is null) return double.PositiveInfinity;
         double total = rural.Size + urban.Size;
         if (total <= Eps) return 0;
-        if (c.UrbanCapOff > 0) return double.PositiveInfinity;   // ★(605) 旗 UrbanCapOff：都市化の天井なし（PopDecision.Run と同じ）
-        double indForCap = c.UrbanCapFollowSpeed < 1.0 && r.UrbanIndSmoothed >= 0 ? r.UrbanIndSmoothed : r.TotalIndustrialization;
-        double maxShare = PopDecision.UrbanShareCap(c, indForCap);
-        return Math.Max(0, maxShare * total - urban.Size);
+        return double.PositiveInfinity;   // 都市化の天井なし（PopDecision.Run と同じ）
     }
 
     /// <summary>クラス jobClass の職を1人あたり所得の高い順に試し、資格ゲートぶんを移す。残量を返す。

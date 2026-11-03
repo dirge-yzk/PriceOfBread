@@ -1863,7 +1863,6 @@ public class MilitaryTests
         (double toFarm, double toWork, double flow, double popDiff, double farmPW, double workPW) Arm(double soldierEarnedPerHead)
         {
             var w = France155().World; var c = w.Coef; var r = w.Region;
-            c.BaseUrbanCap = 0.85; c.UrbanPerInd = 0;   // 都市化の天井を外す（兵士 POP は農村＝都市の職へは天井の残枠まで）
             c.SerfGateCoversPool = 0;                    // 農奴の移動の門を外す（送った人数＝流れ）
             var s = r.Pops[r.SoldierPopIndex];
             Pop? farm = null, work = null;

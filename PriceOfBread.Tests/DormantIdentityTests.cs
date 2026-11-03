@@ -24,7 +24,7 @@ public class DormantIdentityTests
         // ★StateEduDemandInFront（(452) 国庫の教育の買いたい分を値段が読む需要へ）は 2026-10-20 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★ServiceClosedFixedPoint（(spa) A′ 役務の不動点の閉じた式）は 2026-10-23 に 1 で**点火**（S1c・ServiceClosedMaxCurv=0.01）＝この表から外した。
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
-        // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は IndustrializationReaderTests（都市化の天井_旗1…旗0は旧のまま）。
+        // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。(812) で旗ごと焼き込んだ（RetiredFields）。
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
@@ -299,6 +299,7 @@ public class DormantIdentityTests
         "ColoniesAreRegions",
         // ★旗の焼き込み 2026-11-03 (812) c13ib（I5・港と移民の旗。既定 1 の経路だけ残した）
         "NavalProcurementNeedsPort", "CrossBorderMigrationByOpportunity",
+        "UrbanCapOff", "BaseUrbanCap", "UrbanPerInd", "UrbanCapFollowSpeed", "UrbanIndSmoothed",   // 都市化の天井の旗と目盛り・Region の平滑化の状態（A3）
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
         "NationalConsciousnessCorruptionWeight",   // (798) c11dm：国民意識の蓄積の門の左の項（既定 0.2 で常に真・他の読み手なし〔Coefficients の注にあった World.civicCarriesEthnic は存在しない〕）。試験〈係数は全て本体のどこかで読まれる〉が門を消した後に赤で知らせた

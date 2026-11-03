@@ -9,12 +9,6 @@
 public static class PopDecision
 {
     private const double Eps = 1e-9;
-    private const double MaxUrbanShareCap = 0.85;   // 都市化天井の絶対上限（§2.4・工業化に追従する天井のハードストップ）
-
-    /// <summary>都市化の天井（都市の人口の割合の上限）＝<c>BaseUrbanCap + 工業化度 × UrbanPerInd</c> を 0〜<see cref="MaxUrbanShareCap"/> に挟んだ値。人口の移動（<see cref="Run"/>）と
-    /// 職の移し（<c>Meritocracy.UrbanHeadroom</c>）が同じ 1 本を読む（(532) 以前は両方に同じ式の写しがあった）。<paramref name="indForCap"/>＝天井が追う工業化度（平滑化の有無は呼び手が決める）。</summary>
-    internal static double UrbanShareCap(Coefficients c, double indForCap)
-        => Math.Clamp(c.BaseUrbanCap + indForCap * c.UrbanPerInd, 0, MaxUrbanShareCap);
 
     /// <summary>農村↔都市の対の選び（(668) 案 U）＝閉鎖階級と犯罪者を飛ばし、最初の農村 POP と最初の都市 POP を取る。人口の移動（<see cref="Run"/>）・職の移しの天井（<c>Meritocracy.UrbanHeadroom</c>）・計器 <c>UrxPdDrive</c> が同じ 1 本を読む
     /// （旧＝3 か所の手書きで、犯罪者を飛ばすのは <see cref="Run"/> と計器だけだった。犯罪者の POP は Pops の末尾に足されるので値は変わらない＝恒等）。対が成り立たなければ該当の側が null。</summary>
@@ -93,21 +87,7 @@ public static class PopDecision
             double targetUrban = 1.0 / (1.0 + Math.Exp(-z));
             double curUrban = urban.Size / total;
 
-            // 都市化の上限（§2.4）：工業化度が都市化の天井を決める＝都市化は工業化に従う。
-            // 工業化度が無ければ前工業の天井に留まり、投資（誘導）で天井が上がって初めて都市化が進む。
-            if (region.CapitalEnabled && !(coef.UrbanCapOff > 0))   // ★(605) 旗 UrbanCapOff：工業化度の天井も平滑化の更新も使わない
-            {
-                // 監査2026-07-05（D3）：都市化天井の工業化追従ラグ＝住宅・インフラの建設時間。UrbanCapFollowSpeed 既定0.02（点火2026-08-16・時定数≈4年）で天井が工業化に数年遅れて追いつく。1.0 なら即時追従＝旧挙動。
-                double indForCap = region.TotalIndustrialization;   // 都市化天井は立っている建屋・雇用基盤の総量＝新旧合計（座礁しても街は残る。ヴィンテージ休眠時は恒等・2026-07-10）
-                if (coef.UrbanCapFollowSpeed < 1.0)
-                {
-                    if (region.UrbanIndSmoothed < 0) region.UrbanIndSmoothed = region.TotalIndustrialization;   // 初回＝現在値から開始（ジャンプなし）
-                    region.UrbanIndSmoothed += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - region.UrbanIndSmoothed);
-                    indForCap = region.UrbanIndSmoothed;
-                }
-                double maxUrbanShare = UrbanShareCap(coef, indForCap);
-                if (targetUrban > maxUrbanShare) targetUrban = maxUrbanShare;
-            }
+            // 都市化の天井は置かない（(812) 旗 UrbanCapOff の焼き込み・設計思想⑧）。止めるのは所得差（目標の割合）・飢えの線・農奴の門。
 
             flow = coef.Mobility * (targetUrban - curUrban) * total;   // 決定論的緩和（§0-B）。旧MigrationNoise（実験用ノブ）はC裁定2026-07-09で撤去
         }

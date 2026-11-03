@@ -1039,7 +1039,6 @@ public sealed class Region
     public double MineralDepositInitial = -1.0;   // 初期鉱脈（初年率×DepositYearsAtBirth）＝品位曲線の分母
     public double MineralDeposit = -1.0;          // 残量。毎月、鉱物産出ぶんだけ減る（決定論＝採掘量の関数）
     public double MineralGradeFactor = 1.0;       // 品位（残量から導出・EconomyStep の鉱物の能力と MineralSelfCost が読む）。既定1.0
-    public double UrbanIndSmoothed = -1.0;            // 監査2026-07-05（D3）：都市化天井が参照する平滑化済み工業化度（UrbanCapFollowSpeed<1で使用）。-1=未初期化（初回に現在値から開始）
     public int CulturalGoodId = -1;                   // 各国の象徴的主食（英＝茶・露＝蒸留酒・日＝米…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。固執財の需要床/闘争度機構は廃止。-1＝なし
     public bool[]? Discovered;                        // ★発見の表の解禁（段2A・2026-10-01）＝国の World.Discovered と同じ配列への参照（月次に TechLevel と一緒に写す・複製しない）。null＝まだ写していない＝表の行は全て未発見
     public double MilitaryScalePeace;                 // ★段2a：戦時倍率を除いた平時基準の規模（耐久品の目標在庫はこちら）

@@ -21,9 +21,9 @@ public class IndustrializationReaderTests
     private static readonly (string File, int Lines)[] Allowed =
     [
         ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8),
-        ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 1), ("InstrumentsUrx.cs", 4),   // (649) PopDecision.Run の天井の式の読むだけの写し（計器 urxpd_s）＝PopDecision.cs の 4 行と同じ読み手の写し・PopDecision 側の読み手が消えたら一緒に消す
-        ("Megaprojects.cs", 4), ("Meritocracy.cs", 1), ("Model.cs", 5), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
-        ("PopDecision.cs", 4), ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
+        ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 1),
+        ("Megaprojects.cs", 4), ("Model.cs", 4), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
+        ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
     ];
 
     [Fact]
@@ -60,8 +60,7 @@ public class IndustrializationReaderTests
         var c = new Coefficients();
         foreach (var gone in new[] { "WageClampIndScale", "MonopolyDissolveInd", "RefrigerationIndOnset", "RefrigerationIndSpan" })
             Assert.Null(typeof(Coefficients).GetField(gone));
-        Assert.Equal(1.0, c.UrbanCapOff);   // ★(687) 2026-10-30 に 1 で点火
-        foreach (var flag in Flags.Where(x => x != "UrbanCapOff"))
+        foreach (var flag in Flags)
         {
             var f = typeof(Coefficients).GetField(flag);
             Assert.True(f is not null, $"旗 {flag} が無い");
@@ -71,7 +70,7 @@ public class IndustrializationReaderTests
 
     private static readonly string[] Flags =
     [
-        "UrbanCapOff", "CapitalHeadroomFromReturn",   // (667) 疫病の衛生・信用の深さ・開幕の交易・扶養力の旗 4 本は既定 1 で採り旧の枝ごと削除した（下の J2・J5・J7・J8 は旗なしの番人）
+        "CapitalHeadroomFromReturn",   // (667) 疫病の衛生・信用の深さ・開幕の交易・扶養力の旗 4 本は既定 1 で採り旧の枝ごと削除した（下の J2・J5・J7・J8 は旗なしの番人）
     ];
 
     // ---- J9 対称：旗を読む行が IsPlayer を読まない ---------------------------------------------------------------------
@@ -116,28 +115,17 @@ public class IndustrializationReaderTests
         => (double)typeof(Meritocracy).GetMethod("UrbanHeadroom", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [r, c])!;
 
     [Fact]
-    public void 都市化の天井_旗1は天井が無く平滑化の状態も書かない_旗0は旧のまま()
+    public void 都市化の天井は無く職の移しの残枠は無限()
     {
         var sim = Britain(); var w = sim.World; var r = w.Region; var c = w.Coef;
-        r.UrbanIndSmoothed = -1.0;
         Pop? rural = null, urban = null;
         foreach (var p in r.Pops) { if (p.Closed || p.IsCriminal) continue; if (p.IsUrban) urban ??= p; else rural ??= p; }
         Assert.True(rural is not null && urban is not null);
         rural!.Size = 900; urban!.Size = 100;   // 組の合計 1000・都市 100（手計算の期待の元）
-        c.UrbanCapOff = 1; r.Industrialization = 0.0; r.OldVintageCapital = 0;
+        r.Industrialization = 0.0; r.OldVintageCapital = 0;
         Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
         r.Industrialization = 5.0;
         Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
-        PopDecision.Run(r, c);
-        Assert.Equal(-1.0, r.UrbanIndSmoothed);   // 旗 1 は平滑化の状態を書かない
-        c.UrbanCapOff = 0;
-        rural.Size = 900; urban.Size = 100;   // Run が動かした分を戻す
-        r.Industrialization = 0.0; double h0 = Headroom(r, c);
-        r.Industrialization = 5.0; double h5 = Headroom(r, c);
-        Assert.Equal(c.BaseUrbanCap * 1000 - 100, h0, 9);                          // 手計算：BaseUrbanCap×組の 1000 − 都市 100（係数から作る）
-        Assert.Equal((c.BaseUrbanCap + c.UrbanPerInd * 5.0) * 1000 - 100, h5, 9);  // 工業化度 5 の天井
-        PopDecision.Run(r, c);
-        Assert.True(r.UrbanIndSmoothed >= 0, "旗 0 で平滑化の状態が書かれない（旧）");
     }
 
     // ---- J5 信用の深さ ------------------------------------------------------------------------------------------------

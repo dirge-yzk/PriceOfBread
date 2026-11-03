@@ -144,19 +144,7 @@ public static partial class Instruments
         double targetPre = 1.0 / (1.0 + Math.Exp(-z));
         double target = targetPre, cur = urban.Size / total, cap = 1.0;
         bool capBound = false;
-        if (region.CapitalEnabled && !(coef.UrbanCapOff > 0))
-        {
-            double indForCap = region.TotalIndustrialization;
-            if (coef.UrbanCapFollowSpeed < 1.0)
-            {
-                double sm = region.UrbanIndSmoothed;
-                if (sm < 0) sm = region.TotalIndustrialization;
-                sm += coef.UrbanCapFollowSpeed * (region.TotalIndustrialization - sm);
-                indForCap = sm;
-            }
-            cap = PopDecision.UrbanShareCap(coef, indForCap);
-            if (target > cap) { target = cap; capBound = true; }
-        }
+        // (812) 旗 UrbanCapOff の焼き込み：天井なし＝cap は 1.0・capBound は false のまま（計器の列は残す）
         // (706) urb3：〈移る値打ち〉V の列は常に出す（本物の式 PopDecision.MigrationValues を呼ぶ＝写しではない）。流れは旗 UrbanFlowReal に従い Run と同じ式
         var mv = PopDecision.MigrationValues(region, coef, rural, urban);
         double flow = coef.UrbanFlowReal > 0 ? (mv.Gsym > 0 ? coef.Mobility * mv.Gsym * rural.Size : coef.Mobility * mv.Gsym * urban.Size) : coef.Mobility * (target - cur) * total;
