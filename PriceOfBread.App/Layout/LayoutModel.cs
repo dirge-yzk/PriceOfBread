@@ -126,6 +126,17 @@ public sealed class LayoutModel
         Raise();
     }
 
+    /// <summary>全面のページを <paramref name="slot"/> にする（Tab＝生産と地図の切替）。全面でなければ入る・全面なら前の配置の写しを保ったまま中身だけ替える。</summary>
+    public void FullTo(Slot slot)
+    {
+        if (!IsFull) { ToggleFull(slot); return; }
+        if (_seats[0] == slot) return;
+        int at = Array.IndexOf(_seats, slot);
+        if (at > 0) (_seats[at], _seats[0]) = (_seats[0], _seats[at]);
+        else _seats[0] = slot;
+        Raise();
+    }
+
     /// <summary>全面から前の配置へ戻る。全面でなければ何もしない（戻ったときだけ真）。</summary>
     public bool LeaveFull()
     {

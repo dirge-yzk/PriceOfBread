@@ -166,12 +166,12 @@ public partial class GameView : UserControl
         char? letter = e.Key >= Key.A && e.Key <= Key.Z && (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) == 0 ? (char)('A' + (e.Key - Key.A)) : null;
         bool isPriorityKey = letter is { } lc && PageKeys.Priority.Contains(lc);
         if (modal && (e.Key is Key.Space or (>= Key.D1 and <= Key.D3) or (>= Key.NumPad1 and <= Key.NumPad3) || isPriorityKey)) return;
-        if (e.Key == Key.Tab) { e.Handled = true; return; }   // Tab は何にも割り当てない（既定のフォーカス移動だけを抑止）。旧の生産のキーは Q に移った
         // 押しっぱなしのリピート（毎秒30回）を捨てる。Avalonia 12 の KeyEventArgs にリピートの印は無いので、握ったキーを1つ覚えて同じキーの再入を捨てる
         //（Windowsのリピートは最後に押した1キーだけ＝覚えるのは1つで足りる）。これが無いと切り替え系（スペース＝停止/再開・ページと地図のキー・F11・Esc）は
         // 離した時の状態が押した長さ任せになり、F5/F9 は押している間ずっと保存/読込が走る。
         if (_heldKey != Key.None && e.Key == _heldKey) { e.Handled = true; return; }
-        if (e.Key == Key.Space)
+        if (e.Key == Key.Tab) { if (!modal) vm.ToggleProductionMap(); e.Handled = true; }   // Tab＝生産の全面と地図の全面の切替（2026-11-03 作者）。既定のフォーカス移動は握って抑止
+        else if (e.Key == Key.Space)
         {
             vm.TogglePauseCommand.Execute(null);
             // 押すたびフォーカスを地図へ集める。理由＝パネルやモーダルを閉じてフォーカス先の要素が木から消えると焦点が null のまま誰も戻さず、

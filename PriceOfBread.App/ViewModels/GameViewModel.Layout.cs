@@ -101,6 +101,9 @@ public partial class GameViewModel
         else Layout.OpenInSelected(slot);
     }
 
+    /// <summary>Tab（作者の指示 2026-11-03）：生産の全面と地図の全面を切り替える。全面でなければ生産の全面へ入る（戻るのは Q・Esc・他のページのキー）。</summary>
+    public void ToggleProductionMap() => Layout.FullTo(Layout.FullSlot == Slot.Production ? Slot.Map : Slot.Production);
+
     [RelayCommand] private void ToggleLeftColumn() => Layout.SetColumns(!Layout.LeftOpen, Layout.RightOpen);
     [RelayCommand] private void ToggleRightColumn() => Layout.SetColumns(Layout.LeftOpen, !Layout.RightOpen);
 }

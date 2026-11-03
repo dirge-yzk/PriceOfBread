@@ -100,10 +100,14 @@ public partial class GameViewModel : ViewModelBase
     public bool IsSpeed2 => Speed == 2;
     public bool IsSpeed3 => Speed == 3;
     public bool IsSpeed4 => Speed == 4;
-    public string PlayIcon => Playing ? "SPACE:⏸" : "SPACE:▶";
+    // 速度の箱 [1][2][3]（作者の指示 2026-11-03）：速度 n なら 1〜n の箱を塗る。停止中は塗りを保ったまま灰色（Paused）。
+    public bool SpeedFill2 => Speed >= 2;
+    public bool SpeedFill3 => Speed >= 3;
+    public bool Paused => !Playing;
     partial void OnSpeedChanged(int value) { if (value > 3) { Speed = 3; return; }   // ★最高速廃止＝旧状態(4)も3へ丸める
-        OnPropertyChanged(nameof(IsSpeed1)); OnPropertyChanged(nameof(IsSpeed2)); OnPropertyChanged(nameof(IsSpeed3)); OnPropertyChanged(nameof(IsSpeed4)); }
-    partial void OnPlayingChanged(bool value) => OnPropertyChanged(nameof(PlayIcon));
+        OnPropertyChanged(nameof(IsSpeed1)); OnPropertyChanged(nameof(IsSpeed2)); OnPropertyChanged(nameof(IsSpeed3)); OnPropertyChanged(nameof(IsSpeed4));
+        OnPropertyChanged(nameof(SpeedFill2)); OnPropertyChanged(nameof(SpeedFill3)); }
+    partial void OnPlayingChanged(bool value) => OnPropertyChanged(nameof(Paused));
 
 
     // 地図中心UI：ラベル層と線の層。**リストごと差し替え**（要素単位のCollectionChanged千発を出さない＝ズーム/四半期の再構築が軽い）。
@@ -286,6 +290,14 @@ public partial class GameViewModel : ViewModelBase
     // 速度キー/ボタン：速度レベルを選ぶだけ（時間は動かさない＝ハイライトのみ）。再生/停止はスペース（TogglePause）に限る。
     [RelayCommand]
     private void SetSpeed(string s) { if (int.TryParse(s, out var v)) Speed = System.Math.Clamp(v, 1, 3); }   // ★2026-08-31：最高速(4=45日/秒)は廃止＝かくつくため（作者指示）
+
+    // 速度の箱を押す：いまの速度の箱＝再生/停止（停止/再開のボタンを外したので、マウスでの入り切りはここ）・別の箱＝速度を選ぶだけ（キーの 1〜3 と同じ）。
+    [RelayCommand]
+    private void ClickSpeed(string s)
+    {
+        if (!int.TryParse(s, out var v)) return;
+        if (v == Speed) TogglePause(); else SetSpeed(s);
+    }
 
     [RelayCommand]
     private void TogglePause()

@@ -12,7 +12,7 @@
     <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・分割・右の列・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
     <!-- ページ中心UI（ライトテーマ）：7ページ＋地図を分割に置く。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
          外交＝行にホバーでアクションメニュー・クリックでカメラ移動。侵略/統一戦争＝確認モーダル（侵略は膨張度消費）。実国家間の開戦＝緊張の創発のみ。
-         スペース=停止/再開・1〜3=速度。 -->
+         スペース=停止/再開・1〜3=速度・Tab=生産と地図の全面の切替。 -->
 
     <Grid RowDefinitions="Auto,*">
 
@@ -102,13 +102,11 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                        <!-- 停止⏸と再生▶で字形幅が違い、内容任せだとボタン幅→速度ボタン列全体が押されて動く。固定幅で根絶（2026-07-25ユーザー指摘） -->
-                        <Button Classes="speed" Classes.active="{Binding Playing}" Content="{Binding PlayIcon}" Command="{Binding TogglePauseCommand}"
-                                Width="88" HorizontalContentAlignment="Center"/>
-                        <Button Classes="speed" Classes.active="{Binding IsSpeed1}" Content="1:低速" Command="{Binding SetSpeedCommand}" CommandParameter="1"/>
-                        <Button Classes="speed" Classes.active="{Binding IsSpeed2}" Content="2:中速" Command="{Binding SetSpeedCommand}" CommandParameter="2"/>
-                        <Button Classes="speed" Classes.active="{Binding IsSpeed3}" Content="3:高速" Command="{Binding SetSpeedCommand}" CommandParameter="3"/>
+                    <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                        <!-- 速度の箱 [1][2][3]（2026-11-03 作者）：速度 n なら 1〜n を塗る・停止中は塗りのまま灰色。停止/再開のボタンは外した（スペースのまま・いまの速度の箱を押しても入り切り） -->
+                        <Button Classes="speedbox filled" Classes.paused="{Binding Paused}" Content="1" Command="{Binding ClickSpeedCommand}" CommandParameter="1"/>
+                        <Button Classes="speedbox" Classes.filled="{Binding SpeedFill2}" Classes.paused="{Binding Paused}" Content="2" Command="{Binding ClickSpeedCommand}" CommandParameter="2"/>
+                        <Button Classes="speedbox" Classes.filled="{Binding SpeedFill3}" Classes.paused="{Binding Paused}" Content="3" Command="{Binding ClickSpeedCommand}" CommandParameter="3"/>
                         <!-- ★2026-08-31：最高速(4)は廃止＝45日/秒はかくつく（作者指示）。SpeedDays[4]とIsSpeed4は互換のため残置 -->
                     </StackPanel>
                     <!-- Width固定（2026-07-27ユーザー指摘）：可変幅数字で日付の幅が毎日揺れ→Auto列→ヘッダー全体が毎tick再レイアウトされていた -->
