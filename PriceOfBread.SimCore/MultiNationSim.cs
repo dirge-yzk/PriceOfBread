@@ -31,6 +31,13 @@ public sealed class MultiNationSim
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
 
     // splitmix64（Diplomacy.Hash01と同系の混合）：国別乱数種の生成（他16）。
+    /// <summary>★(807) 銀の平価の注入の対数平均の 1 州ぶんの票。旗 0＝1（等重み）／旗 1＝その州の金鉱の需要（0・負・NaN・非有限は票なし＝否定形で 0 へ倒す）。純関数（試験が手の値で読む）。</summary>
+    internal static double SilverVoteWeight(double demandAu, bool weighted) => !weighted ? 1.0 : (demandAu > 0 && demandAu < double.PositiveInfinity ? demandAu : 0.0);
+
+    /// <summary>★(807) 注入の対数平均の最後の 1 行。旗 0＝州の数で割る（今の形）／旗 1＝票の和で割る（和が正でなければ 0＝比が不正の扱い）。</summary>
+    internal static double SilverMeanRatio(bool weighted, double lnSum, int count, double weightedLnSum, double weightSum)
+        => weighted ? (weightSum > 1e-9 ? System.Math.Exp(weightedLnSum / weightSum) : 0) : (count > 0 ? System.Math.Exp(lnSum / count) : 0);
+
     private static ulong MixSeed(ulong seed, ulong i)
     {
         ulong x = seed + 0x9E3779B97F4A7C15UL * (i + 1);
@@ -790,6 +797,7 @@ public sealed class MultiNationSim
         //   ・StepAssimilation　読む：識字　書く：中核民族の割合
         //   ・MigrateBetweenNations／RecruitSpecialists　読む：食料の充足・貯蓄・規模・失業　書く：規模・貯蓄・Blend の全欄・閉鎖（為替で運ぶ）
         //   ・StepDiscoveries　読む：規模　書く：国の欄
+        //   ・銀の平価の注入（下のブロックの銀の世界価格）　読む：各州の銀と金鉱の値段・金鉱の需要（旗 SilverParityDemandWeighted が正のとき票）　書く：各国の WorldSilverPrice・SilverGoldRatio
         //   ・CapitalMarket.Step／対外借入の貸し手の引き落とし　読む：投資家の貯蓄（旗 CapitalDividendFromHostRent が正のときは投資家の工業レント〔第 3 月の流れ＝(801) の外資の利札〕も）　書く：貯蓄
         //   ・ReabsorbNations／SpawnSecededNations　州ごと移す　・StepDiffusion　読む：識字・報道・ラジオ・規模・思想　書く：国の欄
         //   順番に依存する所：戦死と移民（規模・貯蓄）を四半期首の地域価格・Blocs・Build が読む／移民が混ぜた思想を次の四半期首の議会が読む。
@@ -871,6 +879,8 @@ public sealed class MultiNationSim
             if (Catalog.SilverId < Market.Price.Count)
             {
                 double ratioSum = 0; int ratioCnt = 0;
+                bool demandWeighted = _coef.SilverParityDemandWeighted > 0;   // ★(807) 旗：対数平均の票を金鉱の需要で重みづける
+                double wLnSum = 0, wSum = 0;
                 foreach (var n in Nations)
                     foreach (var r in n.World.Regions)
                     {
@@ -879,11 +889,16 @@ public sealed class MultiNationSim
                         if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
                         double pAg = mAg.Price, pAu = mAu.Price;
                         if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
-                        ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
+                        double lnRatio = System.Math.Log(pAg / pAu);
+                        ratioSum += lnRatio; ratioCnt++;   // 対数平均
+                        double dAu = mAu.LastDemand;
+                        double wState = SilverVoteWeight(dAu, demandWeighted);   // ★(807) 旗 1＝その州の金鉱の需要（需要 0・非有限は票なし）
+                        if (demandWeighted) { wLnSum += wState * lnRatio; wSum += wState; }
+                        if (Instruments.On) Instruments.SilverWeightState(this, wState, lnRatio, dAu, mAu.LastProduced);   // (807) 計器（読むだけ）：エンジンが実際に使った票
                     }
                 double refAu = Catalog.RefPrices[Catalog.GoldOreId];
                 double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
-                double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
+                double meanRatio = SilverMeanRatio(demandWeighted, ratioSum, ratioCnt, wLnSum, wSum);   // ★(807) 旗 1：重みの和が正でなければ 0＝比が不正（旧の統計へ倒れる）
                 bool ratioOk = ratioCnt > 0 && meanRatio > 1e-9 && refRatio > 1e-9;
                 double rel = ratioOk ? meanRatio / refRatio : 1.0;
                 // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
@@ -894,6 +909,7 @@ public sealed class MultiNationSim
                 if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
                 foreach (var n in Nations) { n.World.WorldSilverPrice = silverWorld; n.World.SilverGoldRatio = rel; }
                 if (Instruments.On && !_calendarFrozen) Instruments.SilverParityCapture(this, silverWorld, rel, ratioOk);   // (775) 計器（読むだけ）：注入の直後の旧と新の平価
+                if (Instruments.On) Instruments.SilverWeightEnd(this, _calendarFrozen, ratioOk);   // (807) 計器（読むだけ）：助走の注入も含めて 1 注入 1 行
             }
             // ★交易網の引力（タスク#75再開・2026-08-21・(210) で組ごとの相手へ）：TradeGoldPull_i ＝（自国の取引の相手の本位の差）×（自国の貿易開放度）。
             //   相手の本位の差＝World.TradePartnerStandardBalance（BilateralMarket が越境の成約ごとに相手の本位の符号で積む＝金＋1・銀−1・不換0・−1..1）。
