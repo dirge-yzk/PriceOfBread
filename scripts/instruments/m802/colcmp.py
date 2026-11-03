@@ -5,6 +5,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 a, b, pre = sys.argv[1], sys.argv[2], sys.argv[3]
 da = [x.encode() for x in sys.argv[4].split(',') if x and x != '-']; db = [x.encode() for x in sys.argv[5].split(',') if x and x != '-']
 def drop(L, cols):
+    L = [l[:-1] if l.endswith(b'\r') else l for l in L]   # CR LF の表は末尾の列に CR が付く＝見出しと照合する前に取る
     h = L[0].split(b'\t'); idx = {h.index(c) for c in cols if c in h}
     if len(idx) != len(cols): print('  ⚠落とす列が見出しに無い', [c.decode() for c in cols if c not in h])
     return [b'\t'.join(c for k, c in enumerate(l.split(b'\t')) if k not in idx) if l else l for l in L]

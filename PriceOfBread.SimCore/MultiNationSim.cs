@@ -790,7 +790,7 @@ public sealed class MultiNationSim
         //   ・StepAssimilation　読む：識字　書く：中核民族の割合
         //   ・MigrateBetweenNations／RecruitSpecialists　読む：食料の充足・貯蓄・規模・失業　書く：規模・貯蓄・Blend の全欄・閉鎖（為替で運ぶ）
         //   ・StepDiscoveries　読む：規模　書く：国の欄
-        //   ・CapitalMarket.Step／対外借入の貸し手の引き落とし　読む：投資家の貯蓄・投資家の工業レント（第 3 月の流れ＝(801) の外資の利札）　書く：貯蓄
+        //   ・CapitalMarket.Step／対外借入の貸し手の引き落とし　読む：投資家の貯蓄（旗 CapitalDividendFromHostRent が正のときは投資家の工業レント〔第 3 月の流れ＝(801) の外資の利札〕も）　書く：貯蓄
         //   ・ReabsorbNations／SpawnSecededNations　州ごと移す　・StepDiffusion　読む：識字・報道・ラジオ・規模・思想　書く：国の欄
         //   順番に依存する所：戦死と移民（規模・貯蓄）を四半期首の地域価格・Blocs・Build が読む／移民が混ぜた思想を次の四半期首の議会が読む。
         if (quarterDone)
