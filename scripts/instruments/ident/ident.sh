@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (728) 恒等の証明の 1 コマンド：結果を 1 ビットも変えないはずの変更（整理・計器・器）が本当に恒等かを、基準の成績表と突き合わせて 1 枚に出す。
+# (728) 恒等の判定（測った種で一致）の 1 コマンド：結果を 1 ビットも変えないはずの変更（整理・計器・器）が本当に恒等かを、基準の成績表と突き合わせて 1 枚に出す。
 #
 #   bash scripts/instruments/ident/ident.sh run   <ラベル> [--tree <木>] [宣言...]   起動して全部終わるまで走り、続けて check する（長い＝Bash を run_in_background で）
 #   bash scripts/instruments/ident/ident.sh start <ラベル> [--tree <木>] [--work <作業フォルダ>] [--saveleak] [--no-ins] [--no-tests]   腕を起こして終わるまで走る（check はしない）
