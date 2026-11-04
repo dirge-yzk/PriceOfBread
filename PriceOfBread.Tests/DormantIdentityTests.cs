@@ -300,6 +300,7 @@ public class DormantIdentityTests
         // ★旗の焼き込み 2026-11-03 (812) c13ib（I5・港と移民の旗。既定 1 の経路だけ残した）
         "NavalProcurementNeedsPort", "CrossBorderMigrationByOpportunity",
         "NavalCedeFleetReturn",   // (817) c14id：I5 の旗の焼き込み（割譲で艦を送り手の首都の州へ戻す・既定 1 の経路だけ残した）
+        "InheritedStateIntentDrop",   // (817) c14id：I5 の旗の焼き込み（移る州の生産者の意志を今の棟数まで下げる・既定 1 の経路だけ残した）
         "UrbanCapOff", "BaseUrbanCap", "UrbanPerInd", "UrbanCapFollowSpeed", "UrbanIndSmoothed",   // 都市化の天井の旗と目盛り・Region の平滑化の状態（A3）
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。

@@ -2740,8 +2740,7 @@ public sealed class Coefficients
     // 【墓標2026-10-18・旗の焼き込み】BarrierWallSegments（既定1.0・点火2026-09-05・作者指摘「山脈などのバリアは正しく機能しているか」）を消した＝同じ山脈名（語幹）のバリア点を線分の壁にして、壁を横切る辺を張らない。
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
     // ★(785) 旗 PortByLandRoute（(770)）・PortSameLandmassFirst（(779)）は既定 1 の経路だけを残して焼き込んだ（線 c9bk）。港の選び方は Simulation.PortChoice の 1 本＝同じ国の港の eff（陸路が有限 ? 陸路 km : 大圏 km）の最小。ただし州と同じ陸塊の札（Landmass.Of）で陸路が有限の港が 1 つでもあれば、陸路∞の港を候補から外す（無ければ eff の最小のまま）。内陸の鉄道の減衰（InlandPortDistanceDecay）の km は選んだ港までの eff（PortLandKm と同じ値）。
-    // ★(774) 継いだ着工の意志の取り下げ（線 c7sw・線の枝の既定 1・0＝旧）。InheritedStateIntentDrop＞0＝州が別の国へ移るとき（割譲・分離独立・再併合＝Territory.TransferRegion）、移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる（意志は政府のもの＝建物は州と一緒に移るが旧の政府の着工の意志は移らない）。0＝旧（意志がそのまま移る）。確証なし（AI の推奨）。
-    public double InheritedStateIntentDrop = 1.0;
+    // 【墓標2026-11-04 (817)・旗の焼き込み】InheritedStateIntentDrop（(774) 線 c7sw・既定 1）を消した＝州が別の国へ移るとき（割譲・分離独立・再併合＝Territory.TransferRegion）、移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる（意志は政府のもの＝建物は州と一緒に移るが旧の政府の着工の意志は移らない）。旧（意志がそのまま移る）の枝は消した。確証なし（AI の推奨）。
     // 【墓標2026-11-02・旗の焼き込み（769）】LandGraphFixRows（既定1.0・点火2026-11-02 (762)・事前登録 measurements/m762_20261102_prereg_lg.txt）を消した＝barriers.json の fix=1 の行（ドロミテの点 46.6 と峠 4 本）を常に読み、fix=-1 の旧の行は読まない。足した峠は既存の点の枠と半径を食わない。0＝旧の盤面は git の履歴から戻せる。
 
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）
