@@ -1,0 +1,12 @@
+D:\PoB_work\c68ui_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:03.53]     PriceOfBread.Tests.FullChainTests.鋳造で基礎貨幣が増えても保存則は保たれる [FAIL]
+  失敗 PriceOfBread.Tests.FullChainTests.鋳造で基礎貨幣が増えても保存則は保たれる [183 ms]
+  エラー メッセージ:
+   鋳造が一度も発生していない（金鉱の産出/在庫が無い？）
+  スタック トレース:
+     at PriceOfBread.Tests.FullChainTests.鋳造で基礎貨幣が増えても保存則は保たれる() in D:\PoB_work\wt_c68ui\PriceOfBread.Tests\FullChainTests.cs:line 53
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

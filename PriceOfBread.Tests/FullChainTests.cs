@@ -43,20 +43,11 @@ public class FullChainTests
     public void 鋳造で基礎貨幣が増えても保存則は保たれる()   // #10 金鉱→貨幣供給：鋳造は CumulativeGoldMinted を介した正当な基礎貨幣の増加源
     {
         var sim = new Simulation(Full(1), new NullAgent());
-        // ★(843) 造幣の旗 2 本（MintPriceFloorGate・StandardMetalMintGate）を焼き込んだ＝旧・産出比例経路の番人は**床の盤面**へ移した：
-        //   金鉱の値段を造幣平価（RefPrice）の半分に置く＝平価未満なので造幣局が在庫から買い上げる（自由鋳造）。
-        //   （新既定ではこの玩具世界の金鉱は平価未満にならず鋳造が起きない＝minted>0 の前提が空振りするため、値段を置く）。
-        sim.World.MonetaryLaw = MonetaryStandardLaw.Gold;   // 本位金属＝金（既定の不換では造幣局は買わない）
+        // ★(843) 造幣の旗 2 本（MintPriceFloorGate・StandardMetalMintGate）を焼き込んだ＝旧・産出比例経路の番人は**自由鋳造（床）の盤面**へ移した：
+        //   既定の通貨制度は不換（造幣局は何も買わない）なので、金本位を置く＝造幣局が本位金属（金鉱）を買い、鋳造で基礎貨幣が増える。
+        sim.World.MonetaryLaw = MonetaryStandardLaw.Gold;
         double base0 = sim.World.BaseMoney.Value;
-        var ex = Record.Exception(() =>
-        {
-            for (int t = 0; t < 400; t++)
-            {
-                foreach (var rg in sim.World.Regions)
-                    if (rg.GoodOf(Catalog.GoldOreId) is not null) rg.Markets[Catalog.GoldOreId].Price = Catalog.RefPrices[Catalog.GoldOreId] * 0.5;   // 毎日置き直す（値段は日々の歩で動く）
-                sim.Run(1);
-            }
-        });
+        var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が鋳造を含めて全ティックで保持（GoodsBalance/MoneyConservation/NonNegative）
         // 基礎貨幣の変化＝累積貿易流入＋累積鋳造（鋳造が新たな増加源）
         Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value) < 1e-3 * Math.Max(1.0, base0), "鋳造込みの基礎貨幣保存の破れ");
