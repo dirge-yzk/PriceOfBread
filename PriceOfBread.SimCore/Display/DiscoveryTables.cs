@@ -42,8 +42,7 @@ public static class DiscoveryTables
         // 財に紐づかない世界のゲート：電信・鉄道・汽船＝報せの速さ（News の距離ラグが読む世界技術のランプ＝TransportRevolutionOnset/Span）
         if (c.TransportRevolutionSpan > 0)
         {
-            double tr = c.EraOff > 0 ? 0.0 : Math.Clamp((w.WorldTechLevel - c.TransportRevolutionOnset) / c.TransportRevolutionSpan, 0, 1);
-            if (!(tr >= 0)) tr = 0;
+            double tr = 0.0;   // ★(613) 段4（旗 EraOff は (843) で焼き込み）：前線の技術水準のランプを読まない
             tech.Add(new DiscoveryLine("transport", Groups[2], "報せの速さ", tr, double.NaN, double.NaN, double.NaN, "", c.TransportRevolutionOnset));
         }
         gov.Sort(ByGate); ideo.Sort(ByGate); tech.Sort(ByGate);

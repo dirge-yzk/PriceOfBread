@@ -159,7 +159,7 @@ public static class MarketFlow
                     }
                     // ★(469) 線 mw：帯の下側（WageClampMin）の撤去。ゲート 1（既定）で撤去・0 では下の分岐に入らない＝旧と1ビットも変わらない。教育・医療の役務の枝は別の枝＝触らない。
                     bool bandFloorOff = coef.LaborBandFloorOffGate > 0;
-                    bool laborClosed = h > 1 && bandFloorOff && coef.LaborClosedForm > 0;   // ★(spb) 案 B（係数 LaborClosedForm の注）
+                    bool laborClosed = h > 1 && bandFloorOff;   // ★(spb) 案 B（係数 LaborClosedForm の注）
                     double P = m.Price, RW = m.ReservationWage;
                     int run = 0;
                     while (run < h)
@@ -215,7 +215,7 @@ public static class MarketFlow
                     }
                     else if (h == 1) nStep1++;
                     else nHard++;
-                    if (closedWage && coef.ServiceClosedFixedPoint > 0 && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc, coef.ServiceClosedMaxCurv))
+                    if (closedWage && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc, coef.ServiceClosedMaxCurv))
                     {   // ★(spa) A′ 役務の不動点の閉じた式（係数 ServiceClosedFixedPoint の注）＝日次の写像を回さない
                         m.Price = psc;
                         nClosedS++;

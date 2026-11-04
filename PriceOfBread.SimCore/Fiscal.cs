@@ -263,7 +263,7 @@ public static class Fiscal
         w.ForeignIntPaidThisQuarter += foreignInt;   // 02断線走査（2026-07-28）：CapitalMarketが債権国投資家へ配当（旧＝世界から消えるだけの片側記帳）
         // ★利子の未払いは元本へ繰り入れる（作者裁定 Q3・2026-09-28）＝お金は動かない・請求権だけが増える。国内分は持ち手の保有へ（保有に比例＝台帳の不変条件
         //   Σ保有＝GovDebt−ForeignDebt を保つ）・対外分は対外債へ（CapitalMarket が新しい対外債として債権国へ付ける）。持ち手のいない国内分は債権者がいない＝繰り入れない。
-        //   不履行は既存の計数（借入の上限に張り付いたまま＝InsolvencyQuarters）のまま。
+        //   不履行は既存の計数（借入の上限に張り付いたまま＝InsolvencyMonths）のまま。
         //   ★開始前の助走（World.WarmupFrozen）は繰り入れない（2026-09-29 (109)）＝国債の残高は時間が経って積み上がる量（借入・減債・不履行の計数と同じ門）。
         //     旧は助走の歳入が請求の数倍で r＜1 の月が来ず、この穴が表に出なかった（1783年の税の段で米の国債が助走で +0.02 動いた）。
         double unpaidInt = interest - interestPaid;
@@ -341,8 +341,8 @@ public static class Fiscal
 
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
         // 借入の逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
-        // 財3（cadence）：BorrowCooldownMonths（減算）・InsolvencyQuarters（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
-        //   ⚠名前は「Quarters」だが単位は月＝InsolvencyQuarters は払えなかった請求の割合の月ごとの累計（月の請求の何か月分・(205)）・DefaultCooldownMonths=24 は2年の借入禁止。
+        // 財3（cadence）：BorrowCooldownMonths（減算）・InsolvencyMonths（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
+        //   ★(843) 旧の名前 InsolvencyQuarters は単位（月）と食い違っていたので InsolvencyMonths へ改めた（値は変えない）＝InsolvencyMonths は払えなかった請求の割合の月ごとの累計（月の請求の何か月分・(205)）・DefaultCooldownMonths=24 は2年の借入禁止。
         //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。
         if (w.BorrowCooldownMonths > 0) w.BorrowCooldownMonths--;
         // ★張り付き＝今月の借入の門が閉じていた（直近の利払い≧限界×直近の歳入＝月初の Borrow と同じ1本＝上の underLimit の外）のに、払えない（r＜1）月（2026-09-28）。
@@ -355,12 +355,12 @@ public static class Fiscal
         //   兌換停止の後の兌換は四半期 ConvertibilityDropSpeed で0 へ漸近するだけで0 にならない＝切り下げの余地＝払えない額×(1−兌換) の残り（払えない額×兌換）・
         //   銀の改鋳の窓の残り（×(1−正貨比率)）・浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、ほぼ全てを払えていた国が8か月で国債を全て否認した
         //   （(203) の10種で148件中67件・英5件中4件・計器 scratchpad/m204/inj_d204）。重みは入力に比例＝天井も床も足していない（思想⑧）。戻りは旧と同じ（払えた月・門が開いた月に0）。
-        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters += 1.0 - payRate; else w.InsolvencyQuarters = 0;
-        if (w.InsolvencyQuarters >= c.DefaultArrearsMonths)
+        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += 1.0 - payRate; else w.InsolvencyMonths = 0;
+        if (w.InsolvencyMonths >= c.DefaultArrearsMonths)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
-            w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が数えられない）。★(373) 制度疲労の削除の後、回数は計器（defaultCount・sovereignDefaultCumulativeCount）とセーブだけが読む
+            w.InsolvencyMonths = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が数えられない）。★(373) 制度疲労の削除の後、回数は計器（defaultCount・sovereignDefaultCumulativeCount）とセーブだけが読む
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);

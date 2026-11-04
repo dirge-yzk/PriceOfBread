@@ -508,8 +508,7 @@ public partial class GameViewModel
             double MilMul(int g) => EconomyStep.LandMul(c, g);
             // ★①基本段の耐久品（2026-08-26）＝財ごとの摩耗率。1.0＝消耗品＝従来のフロー行（弾薬・馬）。
             // ⚠**未初期化の在庫は目標**とみなす＝エンジンの EconomyStep.ArmsHeld と同一の定義（表示とエンジンで在庫の意味を割らない）。
-            bool baseStock = c.BaseArmsStockEnabled > 0;
-            double BaseWear(int b) => baseStock && b < c.MilitaryWearRatesPerMonth.Length ? c.MilitaryWearRatesPerMonth[b] : 1.0;
+            double BaseWear(int b) => b < c.MilitaryWearRatesPerMonth.Length ? c.MilitaryWearRatesPerMonth[b] : 1.0;
             bool BaseDurable(int b) => BaseWear(b) < 1.0;
             // ⚠目標には**陸海の再配分を必ず掛ける**＝エンジンの EconomyStep.BaseArmsTarget と同一（分子と分母を同じ規則に）。
             // ★(474) 目標在庫・在庫の読み・発注量・見積はエンジンの関数を呼ぶ（EconomyStep.BaseArmsTarget・ArmsOnHand・TierQty・TierCost＝写しを持たない）。
@@ -523,7 +522,6 @@ public partial class GameViewModel
             // 耐久装備の目標在庫と発注（EconomyStep）
             double wear = Math.Max(1e-6, c.ArmsWearRatePerMonth.Value);
             double warWear = wear * (1.0 + c.ArmsWarWearScale * Math.Max(0, r.MilitaryWarMultLast - 1.0));
-            bool stock = c.ArmsStockEnabled > 0;
             double StockTarget(int g, double rate) => EconomyStep.BaseArmsTarget(r.MilitaryScalePeace, rate, c.ArmsWearRatePerMonth.Value, MilMul(g));   // ★(474) 上位段の目標在庫（エンジンの TierQty の目標と同じ1本）
             double Held(int g, double rate) => EconomyStep.ArmsOnHand(r, g, StockTarget(g, rate));
             double StockOrder(int g, double rate) => EconomyStep.TierQty(r, c, g, rate, true, MilMul(g));
@@ -615,7 +613,7 @@ public partial class GameViewModel
                 var fleetT = EconomyStep.FleetTargetUnits(r, c, _player);
                 var fleetH = EconomyStep.FleetHeldUnits(_player, c);
                 var fleetQ = EconomyStep.FleetOrder(r, c, _player, out double fleetCost);
-                double fAfford = EconomyStep.FleetAfford(_player, c, r, fleetCost);   // ★(688) 充足の式は SimCore の1本（旗 NavalPortProcurement が正のときは国の Σ州の予算 ÷ 各州が自分の値段で買う額の和・(679) の直しと同じ式）
+                double fAfford = EconomyStep.FleetAfford(_player, c, r, fleetCost);   // ★(688) 充足の式は SimCore の1本（国の Σ州の予算 ÷ 各州が自分の値段で買う額の和・(679) の直しと同じ式・旗 NavalPortProcurement は (824) で焼き込み）
                 var fleetRows = new List<ArmyNeedRow>();
                 for (int k = 0; k < c.FleetGoodIds.Length; k++)
                 {
@@ -659,7 +657,6 @@ public partial class GameViewModel
                 {
                     int g = goods[b];
                     if (Unavail(g) || MilMul(g) == 0.0) continue;   // ★(189) 艦は陸の装備の段に出さない（艦隊の節）
-                    if (stock)
                     {
                         double need = StockTarget(g, rates[b]);
                         if (!(need > Eps)) continue;
@@ -667,12 +664,6 @@ public partial class GameViewModel
                         string tip = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(order * tierAfford * MilMul(g) * PriceAfford(g))}"
                                    + $"\n月次の摩耗 {Math.Min(0.9, warWear):P1}　予算の充足 {tierAfford:P0}　市場の配給 {Ration(g):P0}";
                         list.Add(NeedRow(tag + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, Fmt.MilQty, "", need * Price(g)));
-                    }
-                    else
-                    {
-                        double need = r.MilitaryScale * rates[b] * MilMul(g);   // 段1と同じ是正＝必要量が再配分込み（上の「軍艦1083%」の注記）
-                        if (!(need > Eps)) continue;
-                        list.Add(FlowRow(tag, g, need, tierAfford * PriceAfford(g) * Ration(g), tierAfford, Ration(g), PriceAfford(g), MilMul(g), Price(g)));
                     }
                 }
                 return list;

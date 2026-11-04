@@ -43,13 +43,9 @@ public class FullChainTests
     public void 鋳造で基礎貨幣が増えても保存則は保たれる()   // #10 金鉱→貨幣供給：鋳造は CumulativeGoldMinted を介した正当な基礎貨幣の増加源
     {
         var sim = new Simulation(Full(1), new NullAgent());
-        // ★2026-08-29 造幣3本点火後は**旧・産出比例経路の番人**として係数を明示0にピン（新既定＝床/本位金属/準備目標では
-        //   この玩具世界で「平価未満」が成立せず鋳造が発生しない＝minted>0 の前提が空振りした）。
-        //   新既定の保存則は本ファイル先頭テスト（全50財…）の恒等式が番人・床モードの発火はR20バッチ（破綻0）で実証済み。
-        sim.World.Coef.MintPriceFloorGate = 0;
-        sim.World.Coef.StandardMetalMintGate = 0;
-        sim.World.Coef.MintReserveTargetWeight = 0;
-        sim.World.Coef.GoldMintFraction = new Share(0.5);   // 金産出の半分を鋳造（貨幣化）
+        // ★(843) 造幣の旗 2 本（MintPriceFloorGate・StandardMetalMintGate）を焼き込んだ＝旧・産出比例経路の番人は**自由鋳造（床）の盤面**へ移した：
+        //   既定の通貨制度は不換（造幣局は何も買わない）なので、金本位を置く＝造幣局が本位金属（金鉱）を買い、鋳造で基礎貨幣が増える。
+        sim.World.MonetaryLaw = MonetaryStandardLaw.Gold;
         double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が鋳造を含めて全ティックで保持（GoodsBalance/MoneyConservation/NonNegative）

@@ -122,9 +122,9 @@ public partial class GameViewModel
         var c = _player.Coef;
         // ★(405) 比の門を相対に：残りの未払いの大きさ left を u（払えない割合）で割った月数が、ゲームに残る月数の内に収まるときだけ出す（割り算をしないので u が極小でも溢れない・u か left が NaN なら出さない）
         double unpaidShare = 1.0 - _player.FiscalFundingRatio.Value;
-        double arrearsLeft = Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyQuarters);
+        double arrearsLeft = Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyMonths);
         double gameMonthsLeft = Math.Max(0, Calendar.YearsToMonths(Calendar.EndYear - Calendar.StartYear) - _simDays / Calendar.DaysPerMonth);
-        bool showDefaultEta = _player.InsolvencyQuarters > 0 && unpaidShare > 0 && arrearsLeft <= unpaidShare * gameMonthsLeft;
+        bool showDefaultEta = _player.InsolvencyMonths > 0 && unpaidShare > 0 && arrearsLeft <= unpaidShare * gameMonthsLeft;
         DebtHeaderText = $"国債:{Fmt.Money(_player.GovDebt.Value)}"
                        + (showDefaultEta
                           ? $"　デフォルトまで{Math.Ceiling(arrearsLeft / unpaidShare):F0}か月" : "");   // ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数
@@ -134,7 +134,7 @@ public partial class GameViewModel
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Fmt.Money(_player.CumulativeDevaluation)}" : "")
                        + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {_player.FiscalFundingRatio:P0}" : "");
-        DebtHeaderBrush = _player.InsolvencyQuarters > 0 ? NewsRed : TermNeutral;
+        DebtHeaderBrush = _player.InsolvencyMonths > 0 ? NewsRed : TermNeutral;
     }
     [ObservableProperty] private string _debtHeaderText = "";
     [ObservableProperty] private string _debtHeaderTip = "";

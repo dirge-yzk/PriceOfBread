@@ -17,13 +17,13 @@ public class TechLevelRemovalTests
 
     private static readonly (string Dir, string File, int Lines)[] Allowed =
     [
-        ("PriceOfBread.SimCore", "ArmyShape.cs", 1), ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),
-        ("PriceOfBread.SimCore", "Colonial.cs", 1), ("PriceOfBread.SimCore", "Diplomacy.cs", 1), ("PriceOfBread.SimCore", "Discovery.cs", 2),
-        ("PriceOfBread.SimCore", "DiscoveryTables.cs", 1), ("PriceOfBread.SimCore", "FiscalTables.cs", 1), ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 2), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
-        ("PriceOfBread.SimCore", "Megaprojects.cs", 3), ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 9),
+        ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),   // (843) c68ui：ArmyShape.cs・Diplomacy.cs・DiscoveryTables.cs・FiscalTables.cs・Megaprojects.cs（3→0）・PlayHarness.cs の行は段6 の旗の焼き込みで技術水準を読む行が無くなった（許可表の行を消す・MultiNationSim.cs 9→8・World.cs 5→4）
+        ("PriceOfBread.SimCore", "Colonial.cs", 1), ("PriceOfBread.SimCore", "Discovery.cs", 2),
+        ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 2), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
+        ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 8),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
-        ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 5),
-        ("PriceOfBread.Runner", "PlayHarness.cs", 1), ("PriceOfBread.Runner", "Program.cs", 2),
+        ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 4),
+        ("PriceOfBread.Runner", "Program.cs", 2),
     ];
 
     [Fact]
@@ -103,19 +103,12 @@ public class TechLevelRemovalTests
     // ---- 段3 倍率の削除（旗 TechMultipliersOff）の番人 ------------------------------------------------------------------
     private static Simulation Britain(ulong seed = 41) => new(NationConfig.Britain().ToScenario(seed), new NullAgent());
 
-    /// <summary>旗 TechMultipliersOff が正なら軍の質の技術の因子が技術水準に依らず 1。旗 0 では技術水準で動く（陽性対照・期待は係数の値から手で作る）。
-    /// 突然変異＝旗の分岐を外す→赤。</summary>
+    /// <summary>軍の質の技術の因子は技術水準に依らず 1（旗 TechMultipliersOff は (843) で焼き込み。旗 0 の陽性対照は旗とともに消した）。
+    /// 突然変異＝技術水準の因子を戻す→赤。</summary>
     [Fact]
     public void 段3_軍の質の技術の因子は旗が正なら技術水準に依らず1()
     {
         var w = Britain().World; var c = w.Coef;
-        c.TechMultipliersOff = 0;   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
-        w.TechLevel = 0.25;
-        double low = ArmyShape.Quality(w, c).Tech;
-        double expect0 = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * (0.25 / c.TechMilFullLevel);   // 手で作った期待（技術 0.25 は満額より下）
-        Assert.Equal(expect0, low, 12);
-        Assert.True(low < 1.0 - 1e-9, "対照：旗 0 で技術 0.25 の因子が 1 未満でない（この試験は何も言っていない）");
-        c.TechMultipliersOff = 1;
         foreach (double t in new[] { 0.0, 0.25, 1.0, 5.0, double.NaN })
         {
             w.TechLevel = t;
@@ -123,22 +116,18 @@ public class TechLevelRemovalTests
         }
     }
 
-    /// <summary>旗が正なら近代化費用の遅れの割増が無い＝世界の先端との遅れが 0 の盤面と同じ予算。旗 0 では遅れがあると要求額が増え予算が大きい（陽性対照）。
-    /// 突然変異＝costMul の旗の分岐を外す→赤。</summary>
+    /// <summary>近代化費用の遅れの割増が無い＝世界の先端との遅れが 0 の盤面と同じ予算（旗 TechMultipliersOff は (843) で焼き込み。旗 0 の陽性対照は旗とともに消した）。
+    /// 突然変異＝costMul に遅れの割増を戻す→赤。</summary>
     [Fact]
     public void 段3_近代化費用の遅れの割増は旗が正なら無い()
     {
         var sim = Britain(); sim.Run(8);
         var w = sim.World; var c = w.Coef;
-        c.TechMultipliersOff = 0;   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
         c.ModernizationCostGdpShare = Math.Max(c.ModernizationCostGdpShare, 0.05);
         w.SetTreasuryRaw(1e9); w.ModernizationFrac = 0.3;
         double Budget(double world, double own) { w.WorldTechLevel = world; w.TechLevel = own; return w.ModernizationBudget(); }
         double noLag = Budget(2.0, 2.0);
-        double lag = Budget(2.0, 0.0);   // 遅れ 1.0 ＝割増 ModernizationTechLagCost
         Assert.True(noLag > 0, "対照：予算が立たない（この試験は何も言っていない）");
-        Assert.True(lag > noLag * (1 + 1e-9), $"対照：旗 0 で遅れの割増が要求額（予算）を上げない（{noLag:G9}→{lag:G9}）");
-        c.TechMultipliersOff = 1;
         Assert.Equal(noLag, Budget(2.0, 0.0), 9);
         Assert.Equal(noLag, Budget(2.0, 2.0), 9);
     }
@@ -172,20 +161,16 @@ public class TechLevelRemovalTests
                 Assert.True(Catalog.Discoveries[r].Field is DiscoveryField.Process or DiscoveryField.Product or DiscoveryField.Weapon, m.Id);
     }
 
-    /// <summary>旗 0 は今の techGate（技術が足りなければ拒否）。旗が正なら技術水準を一切読まず、requires の無い個体は Q0 から着工でき、ある個体は自国がその行を開くまで拒否・開けば着工できる。
+    /// <summary>(843) 旗 TechGateByDiscovery は焼き込み済み（旗 0 の techGate の対照は旗とともに消した）。技術水準を一切読まず、requires の無い個体は Q0 から着工でき、ある個体は自国がその行を開くまで拒否・開けば着工できる。
     /// 拒否の理由に〈技術〉が出ない。突然変異＝旗の分岐を外す／requires の判定を常に true にする→赤。</summary>
     [Fact]
-    public void 段1_旗が正なら門は発見の行_旗0は今の技術の門()
+    public void 段1_門は発見の行()
     {
         var (sim, w, me) = Board3();
-        w.Coef.TechGateByDiscovery = 0;   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
         var free = sim.Diplomacy.Megaprojects.First(m => m.Host == "ロンドン" && Megaprojects.RequiresRowOf(m.Id) < 0);
         var gated = sim.Diplomacy.Megaprojects.First(m => m.Host == "ロンドン" && Megaprojects.RequiresRowOf(m.Id) >= 0);
         free.Owner = me; gated.Owner = me;
         w.TechLevel = 0.0;   // 開幕の技術水準では techGate（0.95 以上）を満たさない
-        Assert.Equal("技術が足りない", Megaprojects.StartRefusal(w, free));   // 陽性対照：旗 0 は技術の門
-        Assert.Equal("技術が足りない", Megaprojects.StartRefusal(w, gated));
-        w.Coef.TechGateByDiscovery = 1;
         Assert.Null(Megaprojects.StartRefusal(w, free));   // requires が無い＝Q0 から着工できる
         int row = Megaprojects.RequiresRowOf(gated.Id);
         w.Discovered[row] = false;
@@ -194,8 +179,6 @@ public class TechLevelRemovalTests
         Assert.NotNull(why); Assert.DoesNotContain("技術", why);
         w.Discovered[row] = true; w.TechLevel = 0.0;   // 行を開けば技術水準 0 でも着工できる
         Assert.Null(Megaprojects.StartRefusal(w, gated));
-        w.Coef.TechGateByDiscovery = double.NaN;   // 否定形：NaN は旗 0（技術の門）へ倒れる
-        Assert.Equal("技術が足りない", Megaprojects.StartRefusal(w, free));
     }
 
     // ---- 段2a 信号の削除（旗 TechSignalOff は (824) で焼き込み）--------------------------------------------------------------
@@ -265,18 +248,14 @@ public class TechLevelRemovalTests
     }
 
     // ---- 段4 時代係数・運賃革命の削除（旗 EraOff）------------------------------------------------------------------------
-    /// <summary>旗 0 は前線の技術水準のランプで 1 を外れる（陽性対照）。旗が正なら k が何でも 1.0。突然変異＝旗の分岐を外す→赤。</summary>
+    /// <summary>k が何でも 1.0・運賃革命も 1.0（旗 EraOff は (843) で焼き込み。旗 0 の陽性対照は旗とともに消した）。突然変異＝ランプの式を戻す→赤。</summary>
     [Fact]
-    public void 段4_時代係数と運賃革命は旗が正なら1()
+    public void 段4_時代係数と運賃革命は1()
     {
-        var c = new Coefficients { EraOff = 0 };   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
+        var c = new Coefficients();
         double hi = c.TransportRevolutionOnset + c.TransportRevolutionSpan + 1.0;
-        Assert.True(Math.Abs(c.EraFactor(hi, 1.0) - 1.0) > 1e-9 && InternationalMarket.FreightRevolution(hi, c) < 1.0 - 1e-9, "対照：旗 0 で前線の技術水準が高くても 1 のまま");
-        c.EraOff = 1;
         foreach (double k in new[] { 1.0, -0.5, 3.0 }) Assert.Equal(1.0, c.EraFactor(hi, k));
         Assert.Equal(1.0, InternationalMarket.FreightRevolution(hi, c));
-        c.EraOff = double.NaN;
-        Assert.True(InternationalMarket.FreightRevolution(hi, c) < 1.0 - 1e-9);
     }
 
     // ---- 段5 技術の括弧（旗 TechProductivityBracketOff）-----------------------------------------------------------------

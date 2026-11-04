@@ -514,7 +514,7 @@ public static class EconomyStep
     internal static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)   // ★(474) internal＝軍事タブ（App）が写さず呼ぶ
     {
         double cost = 0;
-        bool stock = durable && coef.ArmsStockEnabled > 0;
+        bool stock = durable;
         for (int b = 0; b < goods.Length; b++)
             cost += TierQty(region, coef, goods[b], rates[b], stock, LandMul(coef, goods[b])) * region.Markets[goods[b]].Price;
         return cost;
@@ -1235,9 +1235,9 @@ public static class EconomyStep
             {
                 double cost = TierCost(region, coef, goods, rates, true);
                 double tAfford = cost > Eps ? Math.Min(1.0, remainingBudget / cost) : 0.0;
-                bool stock = coef.ArmsStockEnabled > 0;   // ★段2a（2026-08-13）：耐久品は**不足分だけ**発注する（現行は毎期フロー全量）。0で従来式＝厳密恒等。
+                // ★段2a（2026-08-13・旗 ArmsStockEnabled は (843) で焼き込み）：耐久品は**不足分だけ**発注する
                 for (int b = 0; b < goods.Length; b++)
-                    militaryDemand[goods[b]] += TierQty(region, coef, goods[b], rates[b], stock, LandMul(coef, goods[b])) * tAfford * PriceAfford(goods[b]);
+                    militaryDemand[goods[b]] += TierQty(region, coef, goods[b], rates[b], true, LandMul(coef, goods[b])) * tAfford * PriceAfford(goods[b]);
                 return cost * tAfford;
             }
 
@@ -1624,7 +1624,7 @@ public static class EconomyStep
         double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
         // ★(504) 食料の台帳を主食の和へ（事前登録 measurements/fd504_20261023_prereg.txt）。旗①②③が全て 0 の月は下の塊の中を 1 行も走らない（厳密恒等）。
         bool fdLedger = coef.StapleLedgerSum > 0;
-        bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.StapleElasticityZero > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
+        bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
         bool fdShortfall = coef.HarvestShortfallToMarket > 0;
         bool fdAny = fdLedger || fdRebalance || fdShortfall;
         Instruments.FdDiag? fdd = fdAny && Instruments.On ? Instruments.FdBegin(region) : null;   // (504) 計器（読むだけ）
@@ -1696,7 +1696,7 @@ public static class EconomyStep
                 // 財tier別に上限を差し替える（DemandElasticityMaxDaily=2.5／Luxury=2.0・R1点火2026-07-13。1.4=PriceFactorMax なら旧恒等）。PriceFactorMin/Max自体は不変。
                 double elasMax = good.Tier switch { GoodTier.Daily => coef.DemandElasticityMaxDaily, GoodTier.Luxury => coef.DemandElasticityMaxLuxury, _ => coef.PriceFactorMax };
                 // ★塊1段0（StapleElasticityZero）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。ゲート0＝データの弾力＝厳密恒等
-                double elasEff = staple && coef.StapleElasticityZero > 0 ? 0.0 : good.Elasticity;
+                double elasEff = staple ? 0.0 : good.Elasticity;
                 double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
                 if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
                 {
@@ -1759,7 +1759,7 @@ public static class EconomyStep
                     // ★主食の tier に限る＝質屋は食い扶持のための信用であって奢侈のためではない（新しい優先順位規則を書かずに史実の形になる）。
                     // ⚠自給農民には原理的に効かない（marketNeed が自給ぶん減っているため）＝機構の適用範囲であって欠陥ではない。
                     if (coef.PopDebtDriven > 0 && coef.HouseholdCreditMonths > 0 && bank is not null && world is not null
-                        && (staple || coef.HouseholdCreditStapleOnly <= 0))
+                        && staple)
                     {
                         double shortfall = (desired - p.RemainingBudget / buyerPrice) * buyerPrice;
                         if (shortfall > 0)
@@ -1884,7 +1884,6 @@ public static class EconomyStep
                 // ★(452) 旗 StateEduDemandInFront＝1：国庫の買いたい分（`want`）を、取れた分だけでなく値段が読む需要（m.LastDemand）に足す。旗 0 は条件も式も旧のまま。
                 //   供給が尽きた月（remaining ≦ 1e-12）も買いたい分を求める＝未充足は順位の配分に依らない〈予算の足りなさ〉Σ max(0, 必要量 − 民間の買いたい量〉で数える
                 //   （配分で削られた民間の分は popDemand に載っている＝数えると二重）。供給が足りる月は want == take がビットで成り立つ＝足す量は 0。
-                bool stateFront = coef.StateEduDemandInFront > 0;
                 if (insOn && gi == Catalog.EducationId)
                 {
                     double nd = 0, pv = 0;
@@ -1892,7 +1891,7 @@ public static class EconomyStep
                     Instruments.EdBegin(region, nd, pv, available);   // (452) 計器（読むだけ）：診断は計器の側の蓄え（(465) で Region から移した）
                 }
                 if (insOn && gi == Catalog.HigherEducationId) Instruments.HigherEdSet(region, 0, 0);   // (452) 計器（読むだけ）
-                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn))
+                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps)
                 {
                     double unmet = 0;
                     if (remaining > 1e-12)
@@ -1902,7 +1901,7 @@ public static class EconomyStep
                     else
                     {
                         foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（insOn だけの旗 0 は計器のためだけに読む＝購入も需要への加算も無い）
-                        if (stateFront && costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件・計器だけの読みも数えない）
+                        if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件・計器だけの読みも数えない）
                     }
                     // 財源率（教育費スライダー：満額1.0＝全民就学・半分＝半数就学）も行政の届きも**天井にだけ**効く。
                     // 配分率 gr＝take÷未充足 なので Σ配分＝take が式の形から立つ（下の高等教育ブロックと同じ書き方）。
@@ -1930,13 +1929,13 @@ public static class EconomyStep
                         sold += take;
                         m.LastDemand += take;             // 国家購入も需要として記録（次期の労働配分の重み）
                     }
-                    if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。供給が足りる月は want == boughtQty で 0 を足さない）
+                    if (want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。供給が足りる月は want == boughtQty で 0 を足さない）
                     if (insOn) Instruments.EdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 // ★段③：近代化投資の学費補助。義務教育と**同じ形**だが律速が違う——義務教育は「率」（全民就学が目標）、
                 //   こちらは「額」（予算で買える人数が決まる＝作者裁定「効果を投入額から計算し、投入額上限は収入から計算する」）。
                 //   ⚠買えた分だけ StateSpent へ計上＝**空振りは国庫に残る**（予約 HigherEduFunding は月末に無条件ゼロ化）。
-                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn) && m.Price > Eps)   // ★(452) 旗 1：供給が尽きた月も買いたい分を求める（教育と同じ型・既定では必要量 0 で休眠）
+                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && m.Price > Eps)   // ★(452) 旗 1：供給が尽きた月も買いたい分を求める（教育と同じ型・既定では必要量 0 で休眠）
                 {
                     double unmet = 0;
                     if (remaining > 1e-12)
@@ -1946,7 +1945,7 @@ public static class EconomyStep
                     else
                     {
                         foreach (var p in region.Pops) if (p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（民間の買いたい分は popDemand に載っている）。insOn だけの旗 0 は計器のためだけに読む
-                        if (stateFront && costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）
+                        if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）
                     }
                     double want = Math.Min(unmet, region.HigherEduFunding / m.Price);   // 国庫の買いたい分（予算の天井つき）
                     double take = Math.Min(Math.Min(remaining, unmet), region.HigherEduFunding / m.Price);
@@ -1968,7 +1967,7 @@ public static class EconomyStep
                         sold += take;
                         m.LastDemand += take;
                     }
-                    if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）
+                    if (want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）
                     if (insOn) Instruments.HigherEdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 ration[gi] = totalDemand > 1e-12 ? Math.Min(1.0, sold / totalDemand) : 0;
@@ -2370,9 +2369,8 @@ public static class EconomyStep
             //   （耐久品の枝に入らず、equipGot への加算が got のまま・0加算は浮動小数でも完全に無害）。
             // ⚠重み付けを変えない＝各財の寄与は従来と同じ want（フロー量）で測り、耐久品はその want に
             //   「在庫充足率」を掛けて足す。**在庫量と流量を1つの比の中で混ぜない**（分子と分母の非対称を作らない）。
-            bool baseStock = coef.BaseArmsStockEnabled > 0;
             bool opening = region.ArmsStock is null;   // 武器庫が一度も開いていない＝1783年の開幕の軍（ArmsHeld＝この月だけ未初期化を目標と読む・上位段と tier3 も同じ月の同じ値）
-            if (baseStock) region.ArmsStock ??= new Dictionary<int, double>();
+            region.ArmsStock ??= new Dictionary<int, double>();
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             {
                 int gi = coef.MilitaryGoods[b];
@@ -2390,7 +2388,7 @@ public static class EconomyStep
                     region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 // 耐久品は在庫へ積み摩耗で減らす（質の関数＝反乱勢力の武器購入と同じ1本 ArmsFillContribution・2026-09-11。baseStock=false では got そのもの＝フロー）
-                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null, opening);
+                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, region.ArmsStock, opening);
             }
             region.MilitaryEquipFill = EquipFill(equipWant, equipGot);
             // 運用コスト監査2026-08-16 #4b：輜重燃料の決済＝自分の発注量×配給率（militaryDemand[原油]の他の書き手＝空軍燃料と混ざらない）。
@@ -2410,7 +2408,7 @@ public static class EconomyStep
             //   1本も要らない段（未発見）は0＝質の乗数を立てない（基本段の「要らなければ1」とは逆＝上位段の充足は乗数の上乗せの量）。
             double SettleTier(int[] goods, double[] rates)
             {
-                var stock = coef.ArmsStockEnabled > 0 ? (region.ArmsStock ??= new Dictionary<int, double>()) : null;
+                var stock = (region.ArmsStock ??= new Dictionary<int, double>());
                 double tWant = 0, tGot = 0;
                 for (int b = 0; b < goods.Length; b++)
                 {
@@ -2486,10 +2484,9 @@ public static class EconomyStep
         //   ⚠払い手の端数は最後の参加者に寄せる＝Σ Paid ＝ 売り手の受取 と**厳密に**一致（比の和の丸めで1銭も湧かせない）。
         if (rebelOrders is not null && world is not null)
         {
-            bool rebelStock = coef.BaseArmsStockEnabled > 0;
             foreach (var (f, scale, rates, want, order, payers) in rebelOrders)
             {
-                if (rebelStock) f.ArmsStock ??= new Dictionary<int, double>();
+                f.ArmsStock ??= new Dictionary<int, double>();
                 double equipWant = 0, equipGot = 0, pay = 0;
                 for (int b = 0; b < coef.MilitaryGoods.Length; b++)
                 {
@@ -2500,7 +2497,7 @@ public static class EconomyStep
                     revenue[g] += payB;
                     pay += payB;
                     double mul = LandMul(coef, g);
-                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null, false);
+                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, f.ArmsStock, false);
                 }
                 f.EquipFill = EquipFill(equipWant, equipGot);
                 double charged = 0;

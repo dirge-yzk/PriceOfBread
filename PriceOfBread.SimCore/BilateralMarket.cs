@@ -841,7 +841,7 @@ public sealed partial class InternationalMarket
                 if (thin && !(capLeft[t] / Math.Max(1e-9, Wg) > 1e-12)) { m.ClearFailLp = lp; continue; }   // ★(130)②買い手の容量が尽きた行＝成約できない（qA の上限）・月の清算の潜在量は読まれない＝回さない。印は走査して成約しなかった行と同じ（上の (130) の注記・否定形＝NaN も回さない）
                 if (candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = sc.CandS = new int[cn0]; candD = sc.CandD = new double[cn0]; candK = sc.CandK = new double[cn0]; candF = sc.CandF = new double[cn0]; }
                 int rowBase = t * tc; bool hostileRow = natAnyHostile[ni];   // ★(spg) 走査の局所の写し（KmOf・PairRisk の添字の行と、PairRisk の最初の枝＝買い手の国 ni＝tr[t].nation）
-                double tMargin = c.TransportMargin, dMarginScale = c.DistanceMarginScale, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
+                double tMargin = c.TransportMargin, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
                 double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
@@ -922,7 +922,7 @@ public sealed partial class InternationalMarket
                             double risk2 = 0;   // ★(spg) PairRisk の最初の2つの枝（買い手の国に敵が無い＝0・表に当たり＝その値）。外れだけ PairRisk を呼ぶ
                             if (hostileRow) { double rc = riskTabL[ix]; risk2 = rc >= 0 ? rc : PairRisk(sn, t); }
                             double bb2 = stapleTier ? blockStaple * risk2 : 0.0;
-                            double mar2 = tMargin * (1.0 + dMarginScale * km2 / Diplomacy.DistanceNormKm) * adValoremRev
+                            double mar2 = tMargin * (1.0 + km2 / Diplomacy.DistanceNormKm) * adValoremRev
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
                             double del2 = selP * fac2;

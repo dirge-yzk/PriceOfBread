@@ -1368,7 +1368,7 @@ public sealed class MultiNationSim
             foreach (var sim in Nations)
             {
                 var w = sim.World; year = w.Year;
-                if (_coef.TechGateByDiscovery > 0 ? !Megaprojects.RequirementMet(w, cp.Id) : w.TechLevel < cp.TechGate) continue;   // ★(613) 段1：旗が正なら拠出する国の自国の発見の行 requires。近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
+                if (!Megaprojects.RequirementMet(w, cp.Id)) continue;   // ★(613) 段1（旗 TechGateByDiscovery は (843) で焼き込み）：拠出する国の自国の発見の行 requires。近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
                 if (_coef.CanalInvestReturns.Value > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 // ★段3-3（C13・2026-09-30）：出資者＝投資家の述語の1本（CapitalMarket.Investors＝配当の受け手と同じ集合）。旧＝各州の資本家1人（InvestorPopIndex・活きた州）。
@@ -2023,7 +2023,7 @@ public static class CostLedger
         "年齢の層の歩：POP×月×（層の数−8）（8層の算術は月次・消費の単価の中。作者の 11 層の増分だけ・8層では 0 件）",
         "レシピごとの設備の配り：購入が起きた州×月の生産者の数（旗 RecipeEquipment が正のとき・配りは 3 周・退場は 2 周の走査 1 周につき州の生産者の数）",
         "主食の台帳と配り直し：POP×月×段（旗 StapleLedgerSum が正のとき決済後の締め 1 段・旗 StapleDemandRebalance が正のとき月の頭の前計算 1 段・(504)）",
-        "海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
+        "海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。

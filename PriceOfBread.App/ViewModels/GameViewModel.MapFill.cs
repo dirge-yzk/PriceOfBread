@@ -19,7 +19,7 @@ public partial class GameViewModel
     // ★支配度の一般化 §7 地図モード「支配度」（2026-09-07）：政治の塗り分けを支配度の濃淡で焼く（色だけ・アイコンなし）。
     [ObservableProperty] private bool _mapDominanceMode;
     partial void OnMapDominanceModeChanged(bool value) { OnPropertyChanged(nameof(DominanceModeLabel)); RebuildPoliticalFill(); }
-    // ★裁定②（2026-09-23）：濃さの元を休眠の Rule[0] から live な Region.Dominance へ替えた＝係数のゲートで隠す理由が無くなった（常に押せる）。
+    // ★裁定②（2026-09-23）：濃さの元を休眠の Rule[0] から live な Region.Dominance へ替えた＝係数のゲートで隠す理由が無くなった（常に押せる）。★(843)：濃さの元は live な Rule（国家の区分）へ分けた＝Dominance は帰属。
     //   ⚠名前は GameView.axaml:63 の IsVisible が参照している（コンパイル束縛＝消すとビルドが落ちる）。そちらを外すのは Views の担当。
     public bool RuleSharesLive => true;
     // 支配度モードの濃さの刻み＝1/DominanceQ。**値も指紋も同じ量子化入力から作る**（量子化キャッシュの不変条件）。
@@ -87,7 +87,9 @@ public partial class GameViewModel
                 //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ薄くする（MapFill.cs:176 のアルファ変調）。
                 //   ⚠旧コードは Seed に生値・指紋に ×64 の整数を渡していた＝1/64 未満しか動かない四半期は塗りが古いまま残った（量子化キャッシュの不変条件の破れ）。
                 //     いまは wq ひとつから値も指紋も作る＝「焼き直さない」と「同じ絵」が一致する。
-                double raw = rg.Dominance;
+                //   ★(843) 裁定 D1（★(826) ⑤）：塗りの元は 1−Rule[0]（国家でない割合）の区分＝表の〈支配度〉の列・州パネルの半円と同じ 4 区分（PopTables.RuleParts の 1 本）。
+                //     Region.Dominance は別の量（呼び名は帰属）で、塗りには使わない。
+                double raw = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg)[0].Share;
                 if (!(raw > 0)) raw = 0; else if (!(raw < 1)) raw = 1;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
                 int wq = MapDominanceMode ? (int)(raw * DominanceQ) : DominanceQ;
                 double wgt = wq / (double)DominanceQ;

@@ -374,7 +374,7 @@ public class DiscoveryScoreTests
         double pLoco = CostByHand(w, repL, basePx);
         Assert.True(AliveIn(w, Catalog.RailId) && repL.Inputs.All(i => !(i.QtyPerOutput > 0) || AliveIn(w, i.GoodId)), "前提が崩れた（英の線路か機関車の投入の市場）");
         double capital = cc.TransportDecay * (pRail + pLoco) / (2.0 * cc.TransportCapPerUnit);
-        double horseUnit = cc.TransportMargin * cc.DistanceMarginScale * cc.LandSeaCostRatio / 10_000.0;   // 運賃革命の前（単独の判定＝市場が無いので1）
+        double horseUnit = cc.TransportMargin * cc.LandSeaCostRatio / 10_000.0;   // 運賃革命の前（単独の判定＝市場が無いので1）
         int inland = 0; double pot = 0, sum = 0, sumRun = 0, f = cc.RailCostFraction;
         foreach (var rg in w.Regions)
         {
@@ -456,7 +456,7 @@ public class DiscoveryScoreTests
         Assert.True(km > 100, $"前提が崩れた（英仏の距離 {km}）");
         double freight = 0.8;   // 運賃革命の倍率（任意の値を渡す）
         double duty = System.Math.Max(0, InternationalMarket.TariffRate(w, cw));
-        double LandedFactor(double d) => 1.0 + cw.TransportMargin * (1.0 + cw.DistanceMarginScale * d / 10_000.0) * freight + duty;
+        double LandedFactor(double d) => 1.0 + cw.TransportMargin * (1.0 + d / 10_000.0) * freight + duty;
         Discovery.WorldMarket MarketOf(double wl)
         {
             var sp = Enumerable.Repeat(Discovery.NoPrice, ng + 1).ToArray(); sp[gl] = wl;
@@ -597,13 +597,7 @@ public class DiscoveryScoreTests
         for (int g = 0; g < expect.Length; g++) Assert.Equal(expect[g], view.Market.Average[g], 9);
         double frontier = worlds.Max(x => x.TechLevel);
         Assert.Equal(InternationalMarket.FreightRevolution(frontier, sim.Nations[0].World.Coef), view.Market.Freight, 12);
-        // 運賃革命の倍率が1でない盤面でも同じ1本を読む（前線の技術水準を上げる）
-        sim.Coef.EraOff = 0; foreach (var n in sim.Nations) n.World.Coef.EraOff = 0;   // ★(613) 旗 EraOff（既定 1）の旧の枝＝運賃革命の倍率を使う側の配線を見る〔段6 の物理削除のときは FreightRevolution の関数が無くなる＝この組を消す〕
-        foreach (var n in sim.Nations) n.World.TechLevel = 3.0;
-        sim.StepQuarter();
-        var v2 = sim.Nations[0].World.LastDiscoveryView!.Market!;
-        Assert.True(v2.Freight < 1.0 - 1e-6, $"前提が崩れた（運賃革命の倍率 {v2.Freight}）");
-        Assert.Equal(InternationalMarket.FreightRevolution(sim.Nations.Max(n => n.World.TechLevel), sim.Nations[0].World.Coef), v2.Freight, 9);
+        // (843) 旗 EraOff の焼き込みで運賃革命の倍率は常に 1（倍率が 1 でない盤面の配線の確かめは旗 0 の枝とともに消した）
         Assert.Contains(expect, v => v >= 0);
     }
 

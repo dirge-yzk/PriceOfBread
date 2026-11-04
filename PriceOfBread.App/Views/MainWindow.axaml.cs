@@ -327,6 +327,10 @@ public partial class MainWindow : Window
             gvm.CenterNationCommand.Execute("フランス");
             await Task.Delay(600);
             Capture(dir, "03c_地図_欧州.png");
+            // ★(843) 支配度の塗り（国家でない割合のぶんだけ薄くする・塗りの元は Rule の国家の区分）：同じ欧州で 1 枚
+            gvm.MapDominanceMode = true; await Task.Delay(1500);
+            Capture(dir, "03c2_地図_欧州_支配度.png");
+            gvm.MapDominanceMode = false; await Task.Delay(800);
             // Escメニュー（2026-09-06・セーブのスロット化の確認）
             gvm.MenuOpen = true; await Task.Delay(300); Capture(dir, "11b_Escメニュー.png"); gvm.MenuOpen = false; await Task.Delay(200);
             // 州名の帯（2026-09-05）＝フィット×4 でパリを中心に＝州名の出方を決定的に撮る（作者裁定＝地図のアイコン類は置かない）。

@@ -294,7 +294,7 @@ public class FiscalTests
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         double treasury0 = w.Treasury.Value, base0 = w.BaseMoney.Value;
         w.Coef.MaxInterestShareOfRevenue = new Share(0);                 // 借入上限に張り付き（利払い÷歳入≧限界＝借りられない）
-        w.InsolvencyQuarters = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(205)）
+        w.InsolvencyMonths = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(205)）
         FiscalMonth(w, Short);                                // 払えない月（r＜1）＝借りられずに払えない月が続いた
         Assert.True(w.HadSovereignDefault, "前提が崩れた：デフォルトが起きていない");
         Assert.Equal(0.0, w.GovDebt.Value);
@@ -958,10 +958,10 @@ public class FiscalTests
         // ③ 不履行の計数（借入の上限の上＝限界0・払えない月）
         var warm3 = Board(true); warm3.Coef.MaxInterestShareOfRevenue = new Share(0);
         warm3.FiscalFundingRatio = new Share(Short); Fiscal.Step(warm3, warm3.Coef, -Ample);
-        Assert.Equal(0.0, warm3.InsolvencyQuarters);
+        Assert.Equal(0.0, warm3.InsolvencyMonths);
         var ctl3 = Board(false); ctl3.Coef.MaxInterestShareOfRevenue = new Share(0);
         ctl3.FiscalFundingRatio = new Share(Short); Fiscal.Step(ctl3, ctl3.Coef, -Ample);
-        Assert.Equal(1.0 - Short, ctl3.InsolvencyQuarters);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
+        Assert.Equal(1.0 - Short, ctl3.InsolvencyMonths);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
     }
 
     /// <summary>★(205) 不履行は**払えなかった大きさの累計**で決まる（2026-10-04・README §1-8・推奨で進めた＝作者の承認は未確認）。
@@ -992,7 +992,7 @@ public class FiscalTests
         Assert.True(d0 > 0 && HeldOf(a) > 0, "前提が崩れた：国債と持ち手がいない");
         Month(a, 0.5);
         Assert.False(a.HadSovereignDefault, "r＝0.5 の月1つ（累計 0.5）で不履行になった");
-        Assert.Equal(0.5, a.InsolvencyQuarters);
+        Assert.Equal(0.5, a.InsolvencyMonths);
         Month(a, 0.5);
         Assert.True(a.HadSovereignDefault, "r＝0.5 の月2つ（累計 1.0＝月の請求1か月分）で不履行にならない");
         Assert.Equal(1, a.SovereignDefaultCount);
@@ -1001,7 +1001,7 @@ public class FiscalTests
         var b = Board();
         for (int m = 0; m < 60; m++) Month(b, 0.99);
         Assert.False(b.HadSovereignDefault, "ほぼ払えている月（r＝0.99）の60か月で不履行になった＝大きさを見ていない");
-        Assert.InRange(b.InsolvencyQuarters, 0.59, 0.61);
+        Assert.InRange(b.InsolvencyMonths, 0.59, 0.61);
         Assert.True(b.GovDebt.Value >= d0 * 0.99, "前提が崩れた：国債が消えた");
         // ③ 浮動小数の端
         var c = Board();
@@ -1010,7 +1010,7 @@ public class FiscalTests
         // ④ 払えた月で0
         var e = Board();
         Month(e, 0.5); Month(e, 1.0);
-        Assert.Equal(0.0, e.InsolvencyQuarters);
+        Assert.Equal(0.0, e.InsolvencyMonths);
         Month(e, 0.5);
         Assert.False(e.HadSovereignDefault, "払えた月を挟んだのに累計が残った（0.5・1・0.5 で不履行）");
         // ⑤ 門が開いた月で0
@@ -1018,7 +1018,7 @@ public class FiscalTests
         Month(g, 0.5);
         g.Coef.MaxInterestShareOfRevenue = new Share(1e9); g.LastInterestPerMonth = new MoneyPerMonth(0); g.LastRevenuePerMonth = g.NominalGdpPerMonth;   // 利払い÷歳入が限界の下＝借りられる
         Month(g, 0.5);
-        Assert.Equal(0.0, g.InsolvencyQuarters);
+        Assert.Equal(0.0, g.InsolvencyMonths);
         g.Coef.MaxInterestShareOfRevenue = new Share(0);
         Month(g, 0.5);
         Assert.False(g.HadSovereignDefault, "門が開いた月を挟んだのに累計が残った");

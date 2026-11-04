@@ -490,7 +490,7 @@ public class SmallFixes471Tests
         long debtOf(double savings)
         {
             var (r, w, p) = BudgetBoard(savings);
-            w.Coef.PopDebtDriven = 1; w.Coef.HouseholdCreditMonths = 12; w.Coef.HouseholdCreditStapleOnly = 1;
+            w.Coef.PopDebtDriven = 1; w.Coef.HouseholdCreditMonths = 12;
             p.LastEarnedPerMonth = new MoneyPerMonth(1e9);   // 枠は大きい（借りる額は shortfall で決まる）
             double d0 = p.Debt.Value;
             EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
