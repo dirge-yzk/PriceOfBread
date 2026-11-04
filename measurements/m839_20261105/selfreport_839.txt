@@ -1,0 +1,10 @@
+(839) 合流の自己申告の記録（作った物・待ち・覗き・外れ）
+作ったフォルダ: D:/PoB_work/wt_m839（worktree・枝 m839）・D:/PoB_work/m839（作業）
+- hook に止められた 1 回目：suite の写しの置き換えに sed のその場の書き換えを書いた（言い換えず、Edit で直した）
+作ったフォルダ（続き）: D:/PoB_work/m839/zt（worktree・detached 27ec9ff1＝T1）・D:/PoB_work/m839/ident_z
+- 違反：存在しない印（marks/nonexistent_guard）を waitmark に 1 回渡した（1 秒・腕の一覧の前に意味なく打った）＝〈存在しない印を待たない〉に反する
+- 覗き：1 巡目の腕の一覧と arms_start.txt を 02:43 に 1 回
+作ったフォルダ: D:/PoB_work/keep_839_rej（c67sv の腕 B の生を c67sv_armB/out_c67svB_10 から移した）
+- 線の ident の生（ident_c67id・ident_c67ss・ident_c67pu）を消した：バイト一致の表は keepsum を残し、宣言した表（cpop_s・subst_s・cornint_s）は腕 Z の同じ表と sha256 が 10/10・20/20 一致を確かめた後（線の担当の作ったフォルダ＝指示の片付けの〈ident の生は帰属を読み終えたら消す〉に拠る）。c67id_work/mut の突然変異の腕の生 2 本も keepsum を残して消した
+- 覗き：2 巡目の arms_start.txt を 04:3x に 1 回
+- 違反：2 巡目の読みの台本 rec_r2.sh に単独の & と wait を書いて走らせた（xargs -P へ直す Write が〈読んでいない〉で落ちたのに気づかず、古い中身のまま bg.sh で起こした）。命令の文字列ではなく台本の中身なので hook は止めなかった
