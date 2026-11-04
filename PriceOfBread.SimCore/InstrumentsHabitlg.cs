@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 // ---------------------------------------------------------------- (820) c65op アヘンの依存のロジスティック（形 H）の旧新の表 habitlg_s（読むだけ・恒等） ----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（旧 InstrumentsHabitcap.cs〔(830) で削除〕の型）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（蓄えは計器の側の ConditionalWeakTable）。
 // 目的＝旗 OpiumAddictionLogistic の旧（線形＋蓋）と新（s' = s + G·pc·(1 − s/d) − D·s）を同じ盤面の同じ前の在庫から並べ、実際の次の在庫がどちらに等しいかと、ロジスティックの釣り合いの不変式を数える。
-// エンジンの関数（Habit.Of・Habit.NextStock）を呼ばない＝係数 G＝OpiumAddictionGrowth・D＝OpiumAddictionDecay・d＝OpiumAddictionCap（CapOff が正なら +∞）から自分で組む。
+// エンジンの関数（Habit.Of・Habit.NextStock）を呼ばない＝係数 G＝OpiumAddictionGrowth・D＝OpiumAddictionDecay・d＝OpiumAddictionCap から自分で組む（旧の旗 OpiumAddictionCapOff は (830) で焼き込み＝d は常に有限の係数）。
 // 実際の次の在庫は計器が自分で読む＝次の月の口の時点の Region.OpiumAddiction と、四半期の末の表の時点の同じ欄（エンジンから受け取るのは 1 人あたり消費 pc だけ）。
 // 表 habitlg_s（四半期の末・州の行・前の在庫か pc が正の月があった州だけ）：
 //   monthsCount＝口が呼ばれた月数／logisticFlag＝旗の値／pcMeanPerMonth・pcMinPerMonth・pcMaxPerMonth＝その四半期の pc の平均・最小・最大／
@@ -29,7 +29,7 @@ public static partial class Instruments
     sealed class HabitcapSink { public bool Started; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, HabitcapSink> HabitlgSinks = new();
 
-    /// <summary>旧（線形）と新（ロジスティック）の挟む前の値と挟んだ値。d は CapOff が正なら +∞。挟みは 0〜d・NaN は 0（エンジンの ClampOr と同じ規則を計器の側で書く）。</summary>
+    /// <summary>旧（線形）と新（ロジスティック）の挟む前の値と挟んだ値。d は依存者 1 人の上乗せの量（+∞ も受ける純関数）。挟みは 0〜d・NaN は 0（エンジンの ClampOr と同じ規則を計器の側で書く）。</summary>
     internal static (double Old, double Log, double LogRaw) HabitLgPair(double g, double dcy, double d, double s, double pc)
     {
         double oldRaw = s + g * pc - dcy * s;
@@ -56,7 +56,7 @@ public static partial class Instruments
 
     static void HabitLgTrans(HabitlgAcc a, Coefficients c, double s, double pc, double u)
     {
-        double g = c.OpiumAddictionGrowth, dcy = c.OpiumAddictionDecay, d = c.OpiumAddictionCapOff > 0 ? double.PositiveInfinity : c.OpiumAddictionCap;
+        double g = c.OpiumAddictionGrowth, dcy = c.OpiumAddictionDecay, d = c.OpiumAddictionCap;
         var (o, l, raw) = HabitLgPair(g, dcy, d, s, pc);
         a.Trans++;
         if (BitConverter.DoubleToInt64Bits(u) != BitConverter.DoubleToInt64Bits(o)) a.OldMis++;

@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(342) 段2：財の性質〈習慣性〉（<see cref="Habit"/>・<see cref="HabitProfile"/>）の番人。アヘンの中毒の更新は旧の式（<c>OpiumAddictionGrowth</c> ほかの直読み）と同じ値で、他の財は 0（効かない）。
-/// 期待値はコードの式を呼ばず、リテラルの算術で書く（0.1・0.02・0.2・1.0・2.0 は係数の既定値＝別の出所。蓋 0.2 は旗 OpiumAddictionCapOff＝0 のとき）。
+/// 期待値はコードの式を呼ばず、リテラルの算術で書く（0.1・0.02・0.2・1.0・2.0 は係数の既定値＝別の出所。蓋 0.2 は OpiumAddictionCap の既定）。
 /// 突然変異（一時的に壊して赤を確かめる・結果は実装ログ (342)）：①<c>NextStock</c> の減衰を 1.1 倍 ②<c>NextStock</c> の上限を外す ③<c>LaborFactor</c> の床を 0.4 に ④<c>Of</c> が全ての財に行を返す
 /// ⑤<c>EconomyStep</c> の更新を <c>Active</c>（成長&gt;0）で守る ⑥<c>LaborFactor</c> の主フラグを外す ⑦<c>EconomyStep</c> の <c>adults *= </c> の行を消す ⑧所得弾力の除外を <c>Active</c> に。
 /// ★(344) 反証役 op〔v〕：計器の全体の口（<c>Instruments.Configure</c>）を立てる試験があるので、並列を外す集まり〈Instruments〉に入れた（<c>InstrumentsTests</c>・<c>LuxuryRatioDiagTests</c> と同じ）。</summary>
@@ -15,7 +15,6 @@ public class HabitTests
     public void アヘンの行は今の係数の値_他の財は全て0で効かない()
     {
         var c = new Coefficients();
-        c.OpiumAddictionCapOff = 0;   // (771) 盤面の明示＝旗 0 の経路の番人（段2 で既定が 1 になっても赤にならない）
         var h = Habit.Of(c, Catalog.OpiumId);
         Assert.True(h.Forms); Assert.True(h.Active);
         Assert.Equal(0.1, h.Growth); Assert.Equal(0.02, h.Decay); Assert.Equal(0.2, h.Cap); Assert.Equal(1.0, h.LaborPenalty); Assert.Equal(2.0, h.MiseryScale);
@@ -173,12 +172,11 @@ public class HabitTests
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
 
     /// <summary>英の最初の活きた州に中毒度 0.05 を置いて <paramref name="quarters"/> 四半期。計器を出すなら opium_s の読み先を返す。最後の英の州の中毒度と国庫のビット列も返す。</summary>
-    internal static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? capOff = null, double? logistic = null)
+    internal static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? logistic = null)
     {
         string? dir = instr ? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_opium_" + Guid.NewGuid().ToString("N")) : null;
         if (instr) Instruments.Configure(dir, null);
         var sim = MakeMatch();
-        if (capOff is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionCapOff = capOff.Value;   // (787) 旗を明示して回す（既定が 1 になっても旗 0 の経路の番人が動く）
         if (logistic is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionLogistic = logistic.Value;   // (820) 形 H の旗を明示して回す
         var uk = sim.Nations[2].World;
         var seeded = uk.Regions.First();
@@ -248,31 +246,6 @@ public class HabitTests
             Assert.True(nation.Count >= quarters, "種を置いた国の国×四半期の行が出ていない");
         }
         finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
-    }
-
-    // ---------------------------------------------------------------- (771) c6op アヘンの蓋の段1：旗 OpiumAddictionCapOff と旧新の計器 habitcap_s ----------------------------------------------------------------
-
-    [Fact]
-    public void アヘンの蓋の旗は既定0_旗1で蓋だけが外れる_他の5値は変わらない()
-    {
-        var c0 = new Coefficients();
-        Assert.Equal(0.0, c0.OpiumAddictionCapOff);
-        var c1 = new Coefficients { OpiumAddictionCapOff = 1 };
-        var h0 = Habit.Of(c0, Catalog.OpiumId); var h1 = Habit.Of(c1, Catalog.OpiumId);
-        Assert.Equal(double.PositiveInfinity, h1.Cap);
-        Assert.Equal(h0.Forms, h1.Forms); Assert.Equal(h0.Growth, h1.Growth); Assert.Equal(h0.Decay, h1.Decay); Assert.Equal(h0.LaborPenalty, h1.LaborPenalty); Assert.Equal(h0.MiseryScale, h1.MiseryScale);
-        Assert.Equal(0.2862, Habit.NextStock(h1, 0.19, 1.0), 12);   // 0.19＋0.1−0.02×0.19（蓋なし）
-        // NaN の旗は蓋あり側へ倒れる（否定形）
-        Assert.Equal(h0.Cap, Habit.Of(new Coefficients { OpiumAddictionCapOff = double.NaN }, Catalog.OpiumId).Cap);
-    }
-
-    [Fact]
-    public void 蓋の旗は呼び手の更新まで届く_旗0は蓋で止まり_旗1は蓋なしで残る()
-    {
-        var (r0, _) = OneMonth(0.3, c => c.OpiumAddictionCapOff = 0);
-        Assert.Equal(0.2, r0.OpiumAddiction);                       // 0.3 は蓋 0.2 を超える＝0.2 へ
-        var (r1, _) = OneMonth(0.3, c => c.OpiumAddictionCapOff = 1);
-        Assert.True(r1.OpiumAddiction >= 0.3 * 0.98 - 1e-12, $"蓋なしなのに 0.2 付近へ落とされた {r1.OpiumAddiction}");   // 0.3−0.02×0.3＋成長×消費（消費は 0 以上）
     }
 
     // ---------------------------------------------------------------- (830) 旧の蓋の表 habitcap_s と釣り合いの表 habitbal_s の削除の番人 ----------------------------------------------------------------
