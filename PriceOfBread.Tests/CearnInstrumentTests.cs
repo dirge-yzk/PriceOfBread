@@ -130,13 +130,20 @@ public class CearnInstrumentTests
         double ns = 0, np = 0;
         foreach (var r in w.Regions) foreach (var p in r.Pops) { ns += p.Savings.Value; np += p.Size; }
         double nat = ns / np;
-        var s0 = Instruments.CearnSnapshot(w, r0, nat); var s1 = Instruments.CearnSnapshot(w, r1, nat);
+        double ms = 0, mp = 0;   // 本土（植民地格を除く）＝州の乗数の分母と同じ物差し（試験が自分で数える）
+        foreach (var r in w.Regions) if (r.Tier != RegionTier.Colonial) foreach (var p in r.Pops) { ms += p.Savings.Value; mp += p.Size; }
+        double main = ms / mp;
+        Assert.True(Math.Abs(main - nat) > 1e-9 * nat, "前提が崩れた：本土と全ての州の 1 人あたりが同じ（植民地の無い盤面）");
+        var (gotMain, gotAll) = Instruments.CearnNationPerCap(w);
+        Assert.Equal(main, gotMain, 12);
+        Assert.Equal(nat, gotAll, 12);
+        var s0 = Instruments.CearnSnapshot(w, r0, nat, main); var s1 = Instruments.CearnSnapshot(w, r1, nat, main);
         Assert.Equal(1, s0.AtFloor);
         Assert.Equal(0, s1.AtFloor);
         double want0 = r0.Pops.Sum(p => p.Savings.Value) / r0.Pops.Sum(p => p.Size) / nat;
         Assert.True(want0 > 0);
         Assert.Equal(want0, s0.SavPerCapOverNation, 12);
-        Assert.Equal(want0, Instruments.CearnPerCapOverNation(w, r0), 12);
+        Assert.Equal(r0.Pops.Sum(p => p.Savings.Value) / r0.Pops.Sum(p => p.Size) / main, s0.SavPerCapOverMainland, 12);
     }
 
     /// <summary>T4：別の州の 2 つの POP の間の移し方の 1 本＝払い手の州の流出と受け手の州の inFromPops に同じ額・第三の州は動かない。</summary>

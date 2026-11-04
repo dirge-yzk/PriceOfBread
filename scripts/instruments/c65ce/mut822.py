@@ -1,5 +1,5 @@
 """(822) 突然変異の台本（使い捨て）：worktree の計器に 1 つずつ変異を入れ、隔離ビルドで CearnInstrumentTests を回し、結果を表にして元へ戻す。
-使い方: python -I mut822.py <worktree> <ビルドの出力> <結果の txt>
+使い方: python -I mut822.py <worktree> <ビルドの出力> <結果の txt> [<変異の名前,...>]
 ファイルはバイトで読み書きする（改行と BOM を保つ）。各変異の後に元のバイトへ書き戻す（git は使わない）。"""
 import sys, os, subprocess, re
 wt, art, outp = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -13,9 +13,12 @@ MUT = [
            'for (int ri = 0; ri < w.Regions.Count; ri++)\n        {\n            var r = w.Regions[ri]; var a = CearnAccs.GetValue(w.Regions[(ri + 1) % w.Regions.Count], _ => new CearnAcc());\n            bool fresh'),
     ('M6', 'InstrumentsCearn.cs', 'fileName == "Fiscal.cs" ? CearnCol.OutDues : fileName == "Colonial.cs" ? CearnCol.OutColonialRent', 'fileName == "Fiscal.cs" ? CearnCol.OutColonialRent : fileName == "Colonial.cs" ? CearnCol.OutDues'),
     ('M7', 'InstrumentsCearn.cs', 'a.Flow[(int)col] += isIn ? delta : -delta;', 'a.Flow[(int)col] += delta;'),
+    ('M8', 'InstrumentsCearn.cs', 'return (mp > 1e-9 ? ms / mp : all, all);', 'return (all, all);'),   # 追記：本土の物差しを全ての州の物差しへ取り違える
 ]
+only = set(sys.argv[4].split(',')) if len(sys.argv) > 4 else None   # 名前の集合（省略＝全て）
 res = []
 for name, f, old, new in MUT:
+    if only is not None and name not in only: continue
     p = os.path.join(S, f)
     b0 = open(p, 'rb').read()
     o, n = old.encode('utf-8'), new.encode('utf-8')

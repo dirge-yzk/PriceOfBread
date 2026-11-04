@@ -64,6 +64,9 @@ for seed in seeds:
         bscm = statistics.median(bsc) if bsc else float('nan')
         pc = [fl(r['savingsPerCapitaOverNation']) for r in Win if math.isfinite(fl(r['savingsPerCapitaOverNation']))]
         pcm = statistics.median(pc) if pc else float('nan')
+        pm = [fl(r['savingsPerCapitaOverMainland']) for r in Win if math.isfinite(fl(r['savingsPerCapitaOverMainland']))]
+        pmm = statistics.median(pm) if pm else float('nan')
+        depth = 0.7 / (pmm ** 0.3) if pmm > 0 else float('nan')   # 床の深さ＝床÷(比^RegionalPriceLevelWeight 0.3)
         frz = [int(r['frozenFlag']) for r in rr]
         best = cur = 0
         for v in frz:
@@ -92,21 +95,22 @@ for seed in seeds:
             route_rows.append([str(seed), reg, k, '%.4g' % v, src_line(f_, l_)])
         # 床の対照：同じ持ち主の国・同じ種・同じ年の植民地格で床に当たり凍っていない州
         nat_years = {(r['nation'], r['year']) for r in Win}
-        cmp_pc, cmp_bsc = [], []
+        cmp_pc, cmp_bsc, cmp_pm = [], [], []
         for r in rows:
             if r['region'] == reg or r['tier'] != 'Colonial': continue
             if (r['nation'], r['year']) not in nat_years: continue
             if r['localPriceAtFloorFlag'] != '1' or r['frozenFlag'] == '1': continue
-            v = fl(r['savingsPerCapitaOverNation']); b = fl(r['belowSelfCostShare'])
+            v = fl(r['savingsPerCapitaOverNation']); b = fl(r['belowSelfCostShare']); vm = fl(r['savingsPerCapitaOverMainland'])
+            if math.isfinite(vm): cmp_pm.append(vm)
             if math.isfinite(v): cmp_pc.append(v)
             if math.isfinite(b): cmp_bsc.append(b)
-        contrast_rows.append([str(seed), reg, '%.3g' % pcm, '%.3f' % bscm, str(len(cmp_pc)), ('%.3g' % statistics.median(cmp_pc)) if cmp_pc else '対照なし',
+        contrast_rows.append([str(seed), reg, '%.3g' % pcm, '%.3g' % pmm, '%.3g' % depth, '%.3f' % bscm, str(len(cmp_pc)), ('%.3g' % statistics.median(cmp_pm)) if cmp_pm else '対照なし', ('%.3g' % statistics.median(cmp_pc)) if cmp_pc else '対照なし',
                               ('%.3f' % statistics.median(cmp_bsc)) if cmp_bsc else '対照なし'])
 H = ['seed','region','nation','y0','y1','nQ','closure','kstar','kstarSum','outTax','returnR','pollClaim','gInPerMonth','floorShare','belowSelfCostMed','perCapOverNationMed','frozenLongestQ','form','formsAll'] + OUTS + ['marketNet']
 with open(os.path.join(outdir, 'forms.tsv'), 'w', encoding='utf-8', newline='\n') as o:
     o.write('\t'.join(H) + '\n'); [o.write('\t'.join(x) + '\n') for x in forms]
 with open(os.path.join(outdir, 'contrast.tsv'), 'w', encoding='utf-8', newline='\n') as o:
-    o.write('\t'.join(['seed','region','frozenPerCapMed','frozenBelowSelfCostMed','nonFrozenFloorRows','nonFrozenPerCapMed','nonFrozenBelowSelfCostMed']) + '\n'); [o.write('\t'.join(x) + '\n') for x in contrast_rows]
+    o.write('\t'.join(['seed','region','frozenPerCapMed','frozenPerCapMainlandMed','frozenFloorDepth','frozenBelowSelfCostMed','nonFrozenFloorRows','nonFrozenPerCapMainlandMed','nonFrozenPerCapMed','nonFrozenBelowSelfCostMed']) + '\n'); [o.write('\t'.join(x) + '\n') for x in contrast_rows]
 with open(os.path.join(outdir, 'routes.tsv'), 'w', encoding='utf-8', newline='\n') as o:
     o.write('\t'.join(['seed','region','route','sumPerQuarterInW','sourceLine']) + '\n'); [o.write('\t'.join(x) + '\n') for x in route_rows]
 cnt = collections.Counter(x[17] for x in forms)

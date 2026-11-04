@@ -15,3 +15,6 @@ M5（州の登録を隣の州へずらす＝払い手の書き込みを別の州
 M6（Colonial.cs と Fiscal.cs の POP→POP の列の入れ替え）→ 赤 T6
 M7（追加・流出の符号を逆に足す）→ 赤 T1/T2・T4
 ＝登録した突然変異は全て 1 本以上の試験で赤。T5 は計器が軌道を変えないことの番人（どの変異でも緑が正しい）。
+追記（腕の前・本土の 1 人あたりの列を足した後）：
+M8	InstrumentsCearn.cs	赤=-	緑=POPからPOPへの移しは払い手の州と受け手の州に帰属する,列の振り分けは事前登録の定義のとおり,州の台帳は閉じ_税の列は国庫の区分の台帳に合う,計器を出しても軌道が変わらない	
+M8（本土の物差しを全ての州の物差しへ取り違える）→ 赤 T3（緑は他の 4 本）。同じ追記の後に CearnInstrumentTests 5 本と走査の番人の速い 5 組（GoodIdGuard・Calendar・WriterRatchet・IndustrializationReader・UnitType）を回し直した＝134 本緑。

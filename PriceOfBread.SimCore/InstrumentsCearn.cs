@@ -17,7 +17,7 @@ namespace PriceOfBread.SimCore;
 // 値段と床・凍結・人頭税の物差しの列は四半期の末の断面（州の生産者・市場・POP を計器が自分で読む・エンジンの関数を呼ばない・自己費用は読み手が MarginalCost×costPriceLevel×localPriceMultiplier で組む）。
 // ⚠限界（計器が自分で申告する）：①登録は月初＝月の途中で作られた POP の書き込みは次の月まで台帳の外（残差と lateRegisteredPops に出る）②並列の国の日次の中で別の国の POP へ払う書き込みは無い前提（flow_s と同じ）
 //   ③精算の所得と支払いは州の中の市場の循環を含む（州の外への純の払いは outMarket−inMarket）④国庫の区分は World.Transfer の頭で写した値（運搬の書き込みは区分を読まない）
-//   ⑤格・乗数・値段は四半期の末の値⑥国家の市場を通る出入り（stateMarket*）は POP の台帳の外（StateSpent の月の和）⑦鉱脈の品位の器 MineralCostFollowsGrade（既定 0）は自己費用に掛けない。
+//   ⑤格・乗数・値段は四半期の末の値（savingsPerCapitaOverNation＝全ての州の 1 人あたりで割る〔事前登録の定義〕・savingsPerCapitaOverMainland＝州の乗数の分母と同じ本土の 1 人あたりで割る〔腕の前の追記〕）⑥国家の市場を通る出入り（stateMarket*）は POP の台帳の外（StateSpent の月の和）⑦鉱脈の品位の器 MineralCostFollowsGrade（既定 0）は自己費用に掛けない。
 public static partial class Instruments
 {
     internal const string CearnHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\tsavingsStart\tsavings\t"
@@ -25,7 +25,7 @@ public static partial class Instruments
         + "outMarketPerQuarter\toutTaxPerQuarter\toutBondPerQuarter\toutDuesPerQuarter\toutColonialRentPerQuarter\toutCapitalPerQuarter\toutImportPerQuarter\toutMigrationPerQuarter\toutOtherPerQuarter\t"
         + "residualPerQuarter\tlateRegisteredPops\tstateMarketSpendPerQuarter\tstateMarketTakePerQuarter\t"
         + "outTop1Route\toutTop1PerQuarter\toutTop2Route\toutTop2PerQuarter\tinTop1Route\tinTop1PerQuarter\t"
-        + "localPriceMultiplier\tlocalPriceAtFloorFlag\tregionPriceLevel\tcostPriceLevel\tsavingsPerCapitaOverNation\t"
+        + "localPriceMultiplier\tlocalPriceAtFloorFlag\tregionPriceLevel\tcostPriceLevel\tsavingsPerCapitaOverNation\tsavingsPerCapitaOverMainland\t"
         + "stapleGood\tstaplePrice\tstapleMarginalCost\ttop1Good\ttop1Price\ttop1MarginalCost\ttop2Good\ttop2Price\ttop2MarginalCost\ttop3Good\ttop3Price\ttop3MarginalCost\t"
         + "belowSelfCostShare\tfactoryOutputRefValuePerMonth\textractionOutputRefValuePerMonth\tfrozenFlag\tpollClaimPerMonth\tearnedGrossPerMonth\ttaxRate\tpollTaxLevel";
 
@@ -104,7 +104,7 @@ public static partial class Instruments
         bool routed = kind is SavKind.Give or SavKind.GiveIncome or SavKind.Take or SavKind.CarryOut or SavKind.CarryIn;
         char cp = !routed ? '-' : kind is SavKind.Give or SavKind.GiveIncome ? _routeFrom : kind == SavKind.Take ? _routeTo : 'P';
         string file = _routeFile ?? "";
-        var col = CearnColumn(kind, cp, _cearnCat, System.IO.Path.GetFileName(file), delta);
+        var col = CearnColumn(kind, cp, _cearnCat, CearnFileName(file), delta);
         if (col == CearnCol.Skip) return;
         bool isIn = (int)col < CearnInCols;
         a.Flow[(int)col] += isIn ? delta : -delta;
@@ -113,6 +113,14 @@ public static partial class Instruments
         var d = isIn ? a.In : a.Out;
         d.TryGetValue(key, out double v);
         d[key] = v + (isIn ? delta : -delta);
+    }
+
+    [System.ThreadStatic] static string? _cearnLastPath, _cearnLastName;
+    /// <summary>呼び手のファイルの名前（パスを除く）。直前と同じ文字列の参照（呼び手の位置の定数）なら写しを使う＝呼ぶたびに文字列を作らない。</summary>
+    static string CearnFileName(string path)
+    {
+        if (!ReferenceEquals(path, _cearnLastPath)) { _cearnLastPath = path; _cearnLastName = System.IO.Path.GetFileName(path); }
+        return _cearnLastName ?? "";
     }
 
     static double CearnSavings(Region r) { double s = 0; foreach (var p in r.Pops) s += p.Savings.Value; return s; }
@@ -153,22 +161,26 @@ public static partial class Instruments
     }
 
     /// <summary>四半期の末の断面の列（値段と床・主食と上位 3 財・自己費用の下限・凍結・人頭税の物差し）。試験が州から直に呼べる。</summary>
-    internal readonly record struct CearnSnap(double PopK, double Savings, double Lpm, int AtFloor, double RegionPriceLevel, double CostPriceLevel, double SavPerCapOverNation,
+    internal readonly record struct CearnSnap(double PopK, double Savings, double Lpm, int AtFloor, double RegionPriceLevel, double CostPriceLevel, double SavPerCapOverNation, double SavPerCapOverMainland,
         int StapleGood, double StaplePrice, double StapleMc, int[] TopGood, double[] TopPrice, double[] TopMc, double BelowSelfCostShare,
         double FacOut, double ExtOut, int Frozen, double PollClaimPerMonth, double EarnedGrossPerMonth);
 
-    /// <summary>州の 1 人あたりの貯蓄÷国の 1 人あたりの貯蓄（国の州の和から）。分母が正でなければ NaN。</summary>
-    internal static double CearnPerCapOverNation(World w, Region r)
+    /// <summary>国の 1 人あたりの貯蓄の 2 つの物差し：Mainland＝州の乗数の分母と同じ本土（植民地格を除く）の州の和（本土の人口が 0 なら全ての州）・All＝全ての州の和（事前登録の定義）。分母が正でなければ NaN。</summary>
+    internal static (double Mainland, double All) CearnNationPerCap(World w)
     {
-        double ns = 0, np = 0;
-        foreach (var x in w.Regions) foreach (var p in x.Pops) { ns += p.Savings.Value; np += p.Size; }
-        double rs = 0, rp = 0;
-        foreach (var p in r.Pops) { rs += p.Savings.Value; rp += p.Size; }
-        double nat = np > 0 ? ns / np : double.NaN;
-        return rp > 0 && nat > 0 ? rs / rp / nat : double.NaN;
+        double ns = 0, np = 0, ms = 0, mp = 0;
+        foreach (var x in w.Regions)
+        {
+            double rs = 0, rp = 0;
+            foreach (var p in x.Pops) { rs += p.Savings.Value; rp += p.Size; }
+            ns += rs; np += rp;
+            if (x.Tier != RegionTier.Colonial) { ms += rs; mp += rp; }
+        }
+        double all = np > 0 ? ns / np : double.NaN;
+        return (mp > 1e-9 ? ms / mp : all, all);
     }
 
-    internal static CearnSnap CearnSnapshot(World w, Region r, double natSavPerCap)
+    internal static CearnSnap CearnSnapshot(World w, Region r, double natSavPerCap, double mainSavPerCap)
     {
         var c = w.Coef;
         double pop = 0, sav = 0, poll = 0, earned = 0;
@@ -182,6 +194,7 @@ public static partial class Instruments
         double lpm = r.LocalPriceMultiplier, cpl = w.CostPriceLevel;
         int atFloor = lpm <= c.RegionalPriceLevelMin + 1e-9 ? 1 : 0;
         double perCap = pop > 0 && natSavPerCap > 0 ? sav / pop / natSavPerCap : double.NaN;
+        double perCapMain = pop > 0 && mainSavPerCap > 0 ? sav / pop / mainSavPerCap : double.NaN;
         // 主食＝層 Staple の財のうち州の LastDemand が最大の財
         int staple = -1; double stapleDem = -1;
         int ng = System.Math.Min(r.Markets.Length, Catalog.Goods.Length);
@@ -208,7 +221,7 @@ public static partial class Instruments
         }
         var prod = RegionProdRow(r);   // region_s と同じ定義の工場と採取の産出（計器の関数）
         int frozen = prod[0] == 0 && prod[1] == 0 && prod[2] + prod[4] > 0 ? 1 : 0;
-        return new CearnSnap(pop, sav, lpm, atFloor, r.PriceLevel, cpl, perCap,
+        return new CearnSnap(pop, sav, lpm, atFloor, r.PriceLevel, cpl, perCap, perCapMain,
             staple, staple >= 0 ? r.Markets[staple].Price : double.NaN, staple >= 0 ? CearnMc(r, staple) : double.NaN, tg, tp, tm,
             belowDen > 0 ? (double)below / belowDen : double.NaN, prod[0], prod[1], frozen, poll, earned);
     }
@@ -247,13 +260,11 @@ public static partial class Instruments
         foreach (var n in sim.Nations)
         {
             var w = n.World; string nation = NameOf(w);
-            double ns = 0, np = 0;
-            foreach (var x in w.Regions) foreach (var p in x.Pops) { ns += p.Savings.Value; np += p.Size; }
-            double natPerCap = np > 0 ? ns / np : double.NaN;
+            var (mainPerCap, natPerCap) = CearnNationPerCap(w);
             foreach (var r in w.Regions)
             {
                 var a = CearnAccs.GetValue(r, _ => new CearnAcc());
-                var sn = CearnSnapshot(w, r, natPerCap);
+                var sn = CearnSnapshot(w, r, natPerCap, mainPerCap);
                 double inSum = 0, outSum = 0;
                 for (int k = 0; k < CearnInCols; k++) inSum += a.Flow[k];
                 for (int k = CearnInCols; k < CearnCols; k++) outSum += a.Flow[k];
@@ -262,7 +273,7 @@ public static partial class Instruments
                 foreach (double v in a.Flow) cols.Add(F(v));
                 cols.Add(F(resid)); cols.Add(I(a.Late)); cols.Add(F(a.StateSpend)); cols.Add(F(a.StateTake));
                 cols.Add(CearnTop(a.Out, 0, out double o1)); cols.Add(F(o1)); cols.Add(CearnTop(a.Out, 1, out double o2)); cols.Add(F(o2)); cols.Add(CearnTop(a.In, 0, out double i1)); cols.Add(F(i1));
-                cols.Add(F(sn.Lpm)); cols.Add(I(sn.AtFloor)); cols.Add(F(sn.RegionPriceLevel)); cols.Add(F(sn.CostPriceLevel)); cols.Add(F(sn.SavPerCapOverNation));
+                cols.Add(F(sn.Lpm)); cols.Add(I(sn.AtFloor)); cols.Add(F(sn.RegionPriceLevel)); cols.Add(F(sn.CostPriceLevel)); cols.Add(F(sn.SavPerCapOverNation)); cols.Add(F(sn.SavPerCapOverMainland));
                 cols.Add(sn.StapleGood >= 0 ? Catalog.Goods[sn.StapleGood].Name : "-"); cols.Add(F(sn.StaplePrice)); cols.Add(F(sn.StapleMc));
                 for (int k = 0; k < 3; k++) { cols.Add(sn.TopGood[k] >= 0 ? Catalog.Goods[sn.TopGood[k]].Name : "-"); cols.Add(F(sn.TopPrice[k])); cols.Add(F(sn.TopMc[k])); }
                 cols.Add(F(sn.BelowSelfCostShare)); cols.Add(F(sn.FacOut)); cols.Add(F(sn.ExtOut)); cols.Add(I(sn.Frozen));
