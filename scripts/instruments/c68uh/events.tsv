@@ -1,0 +1,17 @@
+# set	dir	seed	region	peakYear	troughYear	label
+base	D:/PoB_work/keep_839/base_ins	4	マサワ	1886	1924	1/4
+n1	D:/PoB_work/keep_839/n1	1	マサワ	1829	1931	1/4
+n1	D:/PoB_work/keep_839/n1	2	バーミンガム	1797	1945	1/4
+n1	D:/PoB_work/keep_839/n1	2	ペトロパヴロフスク	1909	1946	1/4
+n1	D:/PoB_work/keep_839/n1	4	チャールストン	1883	1938	1/4
+n1	D:/PoB_work/keep_839/n1	6	オホーツク	1876	1937	1/4
+n1	D:/PoB_work/keep_839/n1	7	フォートウィリアム	1875	1923	1/4
+n1	D:/PoB_work/keep_839/n1	8	ダニーデン	1906	1920	1/4
+n2	D:/PoB_work/keep_839/n2	2	フォートウィリアム	1887	1931	1/4
+n2	D:/PoB_work/keep_839/n2	3	シュテッティン	1902	1943	1/4
+n2	D:/PoB_work/keep_839/n2	3	ジブラルタル	1915	1947	1/4
+n2	D:/PoB_work/keep_839/n2	3	ホバート	1926	1949	1/4
+n2	D:/PoB_work/keep_839/n2	4	ロッテルダム	1783	1931	1/4
+n2	D:/PoB_work/keep_839/n2	8	フォートウィリアム	1874	1913	1/4
+abDW0	D:/PoB_work/keep_839_rej/abDW0_md_10/ins	1	バーミンガム	1811	1928	1/10
+c67svB	D:/PoB_work/keep_839_rej/c67svB_10/ins	3	フォートウィリアム	1871	1942	1/10

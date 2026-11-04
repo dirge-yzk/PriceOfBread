@@ -1,0 +1,37 @@
+# (841) c68uh 事前登録：出る側の残る値打ちに〈都市の持ち分〉を足す（Territory.Holding の都市版）
+# 波68・挙動の線・3 回の規則の 1 回目・仮番号 (841)・担当 c68uh（Claude Opus 5.5）・基点 eccd9155（基線 m839）
+# 形は〈入口〉ではなく〈出る側〉（stay＝機会×残る値打ち）。入る側（Opportunity）には掛けない。
+# この文書の [1]〜[3] は紙の台本を回す前に書いてコミットする（[4] 以降は紙の結果の後に追記し、追記と名乗る）。
+
+[1] 段0 の読み（ソース・grep で確かめた）
+- 住居は**流量**：Catalog.cs:241 の住居（HousingId 116）は NonTradeable の役務の財で、毎月作られ毎月買われる。
+  EconomyStep.cs:1802 の HousingFill＝その月の配給の率 ration（＝売れた÷需要・上限 1）。市場の在庫 m.Stock は売れ残りの役務で、
+  WearRatePerMonth 0.005 は在庫の傷みの率＝建物の在庫ではない。住居の生産者の能力も下の式で POP の頭数に比例する。
+- 工場の能力も**頭数に比例する流量**：EconomyStep.cs:972 `s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * …`
+  ＝担い手の POP の規模×労働の配分の割合。人が抜けると能力も同じ割合で減る＝残る人の 1 人あたりの能力は上がらない。
+- 州に動かずに残る都市の在庫の候補：
+  (a) 工業化度（Region.Industrialization）＝州に立っている資本の総量。**読めない**：IndustrializationReaderTests の J1 許可表
+      （Territory.cs は 1 行＝非有限の診断の文だけ）が新しい読み手を禁じる・作者 2026-10-16〈工業化度を集計してバフ／デバフを与えるのは二重計上〉。
+  (b) Producer.BuiltScale（建てた棟）＝国営の建設だけが書く（World.cs:1890・2628）。factory_s の builtScaleSum は 1850 年で英 1.5・墺 3・オスマン 7 など＝ほぼ 0。
+  (c) Producer.Scale（操業規模）＝採算で伸縮する無次元の倍率で、労働の配分の重みに掛かる。1 人あたりの量ではなく、生産の行の数に比例する。
+  ⇒ 今の生産の式には〈人が抜けると残る人の取り分が増える都市の固定の要素〉が無い（工業化度は 1 人あたりの生産性の倍率で、人数に依らない＝非競合）。
+- 越境の出る側（MultiNationSim.cs:1735）も Holding を読む＝Holding の中で変えれば国内と越境の両方に効く（(125) の〈出る側は同じ残る値打ち〉）。
+
+[2] no-go の基準（紙を数える前に固定）
+- 母集合：an_h2.py -v4（規則 A2・既定）で〈移民・1/4〉に出る事象（例外の名簿の行は数えない）。
+  keep_839/base_ins・keep_839/n1・keep_839/n2 の 14 件と、abDW0 の種 1 バーミンガム（1/10）・c67svB の種 3 フォートウィリアム（1/10）の 2 件＝16 件
+  （一覧 scripts/instruments/c68uh/events.tsv・an_h2 の出力 measurements/m841_20261105/anh2_*.txt）。
+- 数える四半期：事象の窓（ピークの年〜底の年）の中で、窓の人口の最大の四半期より後、国内の出（migrationOutKPerQuarter）＞0、
+  かつ旧の最良の差 g＞0（g＝opp_d−stay_s−TransportFriction−EF(km)・EF の時代の係数 Era＝2＝差が最も大きい側）の四半期。
+- 判定：新しい stay で最良の差 g が正→0 以下に返る四半期の割合が **1/2 未満なら no-go**（腕を回さず、形を報告して終える）。
+- 紙の形は**在庫の選び方に依らない上側の見積り**とする（どの在庫を選んでもこれより強くは返らない）：
+  都市の在庫は事象のピークの四半期の量で動かず、そこで国の基準と同じ（ρ＝1）とする＝ρ_t＝都市人口_peak÷都市人口_t。
+  U＝max(1,ρ)^e（e＝0.7＝LandDiminishExponent の使い回し と e＝1 の 2 本）・新しい Holding＝旧 Holding×U^u（u＝州の都市の割合＝1−農村÷人口）。
+  ⚠ 上側である理由：実際の在庫（[1] の (b)(c)）は人が抜けても増えず、Scale は採算の悪化で縮む＝ρ は上の値を超えない。
+    ピークで ρ＞1（国の平均より在庫が厚い州）の場合だけ上を超えうる＝その感度として e＝1 も数える（同じ ρ で U が大きい側）。
+- 判定に使うのは e＝0.7・Era＝2 の行。e＝1・Era＝1 は記録（感度）。
+- 〈人が去らずに死ぬ〉型（(812)）が都市で出る見込み：紙では主食の充足（foodFillShare）を窓で並べて記録する（判定には使わない）。
+
+[3] 紙の台本
+- scripts/instruments/c68uh/paper_flip.py（region_s の opportunityIndex・holdingFactor・人口・農村・国内の出と hol_common の距離だけを読む＝エンジンの関数を呼ばない）。
+- 出力は measurements/m841_20261105/paper_flip.txt。
