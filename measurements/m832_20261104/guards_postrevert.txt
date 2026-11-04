@@ -1,0 +1,6 @@
+list nonfull 2257
+list full 3
+guards rc=0 642s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   399、スキップ:     0、合計:   399、期間: 10 m 40 s - PriceOfBread.Tests.dll (net10.0)
+GUARDSDONE
