@@ -9,9 +9,11 @@ namespace PriceOfBread.SimCore;
 // 列：seq／month／year／sideA／sideB／civilFlag／forcedFlag／collapsedIterFlag（その戦争の月の歩で崩壊と判定されたか＝CpIter の控え）／exA／exB（講和の前の厭戦）／scoreIndex（講和の前の未クランプの戦勝点）／
 //   blankFlag（|Clamp(戦勝点,−1,1)| ＜ WhitePeaceScore）／overwriteMatchFlag（|戦勝点| が崩壊の上書きの式 1.5×min(1,max(0,2×勝者の押し÷(勝者の押し＋敗者の押し＋1e-12))) と A・B どちらかを敗者と見て一致）／
 //   hitFlag（ResolvePeace が賠償の枝まで進んだ）／repMovedIndex／ledgerAbsIndex／capturedCount／cededFlag／regionsMovedCount（A・B の国の州の数の前後の差の絶対値の和）／
-//   repWouldOldIndex（調停の戦争で collapsedIterFlag=1 の講和だけ＝旧の規則の反実仮想 ReparationGdpFraction×敗者の GdpPerMonth×min(1,1.5×reach)×敗者の FiscalFundingRatio・それ以外は 0）。
-// ⚠限界（計器が自分で申告する）：①collapsedIterFlag はエンジンの判定（革命圧力の前倒し RevCut を含む）の控え②repWouldOld の敗者＝厭戦が大きい側（同値は押しの累計が小さい側）＝歩の本体の同値の規則（塹壕の後のその月の押し）と違う
-//   ③repWouldOld は会議の削り（repCut）と条約港の倍率の前④ledgerAbsIndex は ResolvePeace の中で動いた WarCost の全て（賠償以外の WarCost の動きがあれば混ざる）⑤国を持たない側（抽象標的）の台帳と州は 0 と数える。
+//   repWouldOldIndex（調停の戦争で collapsedIterFlag=1 の講和だけ＝旧の規則の反実仮想 ReparationGdpFraction×敗者の GdpPerMonth×sa×敗者の FiscalFundingRatio・sa＝min(1,1.5×reach)・sa が WhitePeaceScore 未満なら 0〔旧でも白紙〕・それ以外の行は 0）。
+//   敗者＝崩壊の線（厭戦≧1−RevolutionSurrenderWeight×革命圧力）にいる側・両者なら厭戦が大きい側（同値は押しの累計が小さい側）。
+// ⚠限界（計器が自分で申告する）：①collapsedIterFlag はエンジンの判定の控え②repWouldOld の同値の敗者決めは押しの累計（歩の本体は塹壕の後のその月の押し）
+//   ③repWouldOld は会議の削り（repCut）と条約港の倍率の前・(791) の 1 回分の取り分の前（旧の規則で同じ敗者の崩壊の戦争と集合になれば実際は取り分だけ）
+//   ④ledgerAbsIndex は ResolvePeace の中で動いた WarCost の全て（賠償以外の WarCost の動きがあれば混ざる）⑤国を持たない側（抽象標的）の台帳と州は 0 と数える。
 public static partial class Instruments
 {
     internal const string CpmedHeaderText = "seq\tmonth\tyear\tsideA\tsideB\tcivilFlag\tforcedFlag\tcollapsedIterFlag\texA\texB\tscoreIndex\tblankFlag\toverwriteMatchFlag\thitFlag\trepMovedIndex\tledgerAbsIndex\tcapturedCount\tcededFlag\tregionsMovedCount\trepWouldOldIndex";
@@ -50,11 +52,15 @@ public static partial class Instruments
         double would = 0;
         if (forced && collapsed && !civil)
         {
-            bool aLoses = exA != exB ? exA > exB : war.PushA < war.PushB;
+            // 崩壊の線は厭戦≧1−RevolutionSurrenderWeight×革命圧力（入力の読み＝Politics.RevolutionPressure は状態を書かない）。両者が線にいれば厭戦が大きい側（同値は押しの累計が小さい側）が敗者。
+            double CutOf(Power q) => 1.0 - (q.Nation is { } qn ? c.RevolutionSurrenderWeight * Politics.RevolutionPressure(qn) : 0.0);
+            bool ac = exA >= CutOf(war.A), bc = exB >= CutOf(war.B);
+            bool aLoses = ac && bc ? (exA != exB ? exA > exB : war.PushA < war.PushB) : ac || !bc && exA > exB;
             Power loser = aLoses ? war.A : war.B, winner = aLoses ? war.B : war.A;
             double winPush = aLoses ? war.PushB : war.PushA, losePush = aLoses ? war.PushA : war.PushB;
-            if (loser.Nation is { } lw && winner.Nation is not null)
-                would = c.ReparationGdpFraction.Value * loser.GdpPerMonth.Value * System.Math.Min(1.0, CmImpose(winPush, losePush)) * lw.FiscalFundingRatio.Value;
+            double sa = System.Math.Min(1.0, CmImpose(winPush, losePush));
+            if (sa >= c.WhitePeaceScore && loser.Nation is { } lw && winner.Nation is not null)   // 旧の規則でも |戦勝点| が白紙の線の内なら払わない
+                would = c.ReparationGdpFraction.Value * loser.GdpPerMonth.Value * sa * lw.FiscalFundingRatio.Value;
         }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string row0 = string.Join('\t', I(++st.Seq), I(cps.Month), I(cps.Year), NameOf(war.A), NameOf(war.B), I(civil ? 1 : 0), I(forced ? 1 : 0), I(collapsed ? 1 : 0), F(exA), F(exB), F(sc), I(blank ? 1 : 0), I(match ? 1 : 0));
