@@ -383,4 +383,138 @@ public class CearnInstrumentTests
         }
         finally { Instruments.CearnOn = true; try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    // ---------------------------------------------------------------- (836) 線 c67pu：植民地格の州の POP の行 cpop_s（作業の事前登録 D:/PoB_work/r836_work/plan.txt の P1〜P3・M9） ----------------------------------------------------------------
+    // 期待は計器と別の出所から作る：群の和は cgrp_s の群の行（別の台帳）・最後の四半期の POP の人数と在庫と行の数と賃金の行の数は試験が sim の州から自分で数えた値・止まった月の振り分けは手で書いた表。
+    // 突然変異（使い捨ての木・measurements/m836_20261104/mutation.txt〔合流が写す〕）：P1 POP の振り分けを入れ替える・P2 人数 0 の POP を落とす・P3 月初を月末で読む・M9 POP を群の台帳から落とす（cgrp_s）。
+
+    private static List<Dictionary<string, string>> PRows(string path)
+    {
+        var lines = System.IO.File.ReadAllLines(path);
+        Assert.Equal(Instruments.CpopHeaderText, lines[0]);
+        var h = lines[0].Split('\t');
+        var res = new List<Dictionary<string, string>>();
+        foreach (var l in lines.Skip(1))
+        {
+            var c = l.Split('\t');
+            Assert.Equal(h.Length, c.Length);
+            var d = new Dictionary<string, string>();
+            for (int i = 0; i < h.Length; i++) d[h[i]] = c[i];
+            res.Add(d);
+        }
+        return res;
+    }
+
+    /// <summary>G5：英仏の 3 四半期。POP の行が閉じ（台帳と月の窓）・州×群の和が cgrp_s の群の行に合い・最後の四半期の行の数と人数と在庫と賃金の行の数が sim の州から数えた値に合う。</summary>
+    [Fact]
+    public void POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cpop5_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        var sim = Two(1789UL);
+        var want = new Dictionary<(string Nation, string Region, int Idx), (double Size, double Sav, int LaborLines)>();
+        var popsPerRegion = new Dictionary<(string Nation, string Region), int>();
+        try
+        {
+            for (int q = 0; q < 3; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+            foreach (var n in sim.Nations)
+                foreach (var r in n.World.Regions)
+                {
+                    if (r.Tier != RegionTier.Colonial) continue;
+                    string nn = Instruments.NameOf(n.World);
+                    popsPerRegion[(nn, r.Name)] = r.Pops.Count;
+                    for (int i = 0; i < r.Pops.Count; i++)
+                    {
+                        int ll = 0; foreach (var s in r.Producers) if (s.LaborPopIndex == i) ll++;
+                        want[(nn, r.Name, i)] = (r.Pops[i].Size, r.Pops[i].Savings.Value, ll);
+                    }
+                }
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        try
+        {
+            var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1789.tsv"));
+            var pop = PRows(System.IO.Path.Combine(dir, "cpop_s1789.tsv"));
+            Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+            Assert.True(pop.Count > 0, "POP の行が無い＝計器が働いていない");
+            Assert.Contains(pop, r => D(r, "popK") == 0);   // 前提：人数 0 の POP（器）がある＝P2 を拾える
+            var gKey = grp.ToDictionary(r => (r["quarter"], r["nation"], r["region"], r["group"]));
+            double winAbs = 0; int posAll = 0;
+            foreach (var r in pop)
+            {
+                double inS = InCols.Sum(c => D(r, c)), outS = OutCols.Sum(c => D(r, c));
+                double rs = InCols.Concat(OutCols).Sum(c => Math.Abs(D(r, c))) + Math.Abs(D(r, "savings")) + Math.Abs(D(r, "savingsStart"));
+                double resid = D(r, "savings") - D(r, "savingsStart") - (inS - outS);
+                Assert.True(Math.Abs(resid - D(r, "residualPerQuarter")) <= 1e-9 * Math.Max(1, rs), $"POP の残差の列が列から組んだ値と違う {r["region"]} {r["popIndex"]} q{r["quarter"]}");
+                double ms = Math.Abs(D(r, "savingsMonthStartSum")) + Math.Abs(D(r, "savingsMonthEndSum")) + Math.Abs(D(r, "windowNetSum"));
+                Assert.True(Math.Abs(D(r, "monthResidualSum") - (D(r, "savingsMonthEndSum") - D(r, "savingsMonthStartSum") - D(r, "windowNetSum"))) <= 1e-9 * Math.Max(1, ms), "POP の月の閉じの列が列から組んだ値と違う");
+                int stuck = new[] { "stuckOffPortMonths", "stuckBothZeroMonths", "stuckClaimZeroMonths", "stuckIncomeZeroMonths", "stuckUnpaidMonths", "stuckOtherMonths" }.Sum(c => int.Parse(r[c]));
+                Assert.True(stuck <= int.Parse(r["posMonths"]) && int.Parse(r["posMonths"]) <= int.Parse(r["monthsClosed"]) && int.Parse(r["emptiedPosMonths"]) <= int.Parse(r["posMonths"]), $"月の数えの順序が崩れた {r["region"]} {r["popIndex"]}");
+                Assert.True(int.Parse(r["emptiedMonths"]) <= int.Parse(r["claimedMonths"]) && int.Parse(r["claimedMonths"]) <= int.Parse(r["monthsClosed"]), "空の印の月の順序が崩れた");
+                winAbs += Math.Abs(D(r, "windowNetSum")); posAll += int.Parse(r["posMonths"]);
+                var gk = (r["quarter"], r["nation"], r["region"], r["group"]);
+                double gs = Math.Abs(D(gKey[gk], "savingsStart")) + InCols.Concat(OutCols).Sum(c => Math.Abs(D(gKey[gk], c)));
+                Assert.True(Math.Abs(D(r, "groupStartGap")) <= 1e-9 * Math.Max(1, gs) && Math.Abs(D(r, "groupNetFlowGap")) <= 1e-9 * Math.Max(1, gs), $"群の和の確かめの列が 0 でない {gk}");
+                if (int.Parse(r["lateRegistered"]) > 0) continue;
+                Assert.True(Math.Abs(resid) <= 1e-8 * Math.Max(1, rs), $"POP の台帳が閉じない {r["region"]} {r["popIndex"]} q{r["quarter"]}：残差 {resid}");
+                Assert.True(Math.Abs(D(r, "monthResidualSum")) <= 1e-8 * Math.Max(1, ms), $"POP の月の窓が閉じない {r["region"]} {r["popIndex"]}：{D(r, "monthResidualSum")}");
+                if (r["quarter"] != "0") Assert.Equal("3", r["monthsClosed"]);
+            }
+            foreach (var gset in pop.GroupBy(r => (r["quarter"], r["nation"], r["region"], r["group"])))
+            {
+                var g = gKey[gset.Key];
+                double scale = InCols.Concat(OutCols).Sum(c => Math.Abs(D(g, c))) + Math.Abs(D(g, "savings")) + Math.Abs(D(g, "savingsStart"));
+                double tol = 1e-9 * Math.Max(1, scale);
+                foreach (var c in InCols.Concat(OutCols).Append("savings").Append("savingsStart"))
+                    Assert.True(Math.Abs(gset.Sum(r => D(r, c)) - D(g, c)) <= tol, $"POP の和が群の行と違う {gset.Key} {c}：{gset.Sum(r => D(r, c))} ≠ {D(g, c)}");
+                Assert.True(Math.Abs(gset.Sum(r => D(r, "popK")) - D(g, "popK")) <= 1e-9 * Math.Max(1, D(g, "popK")), $"POP の人数の和が群の人数と違う {gset.Key}");
+                Assert.Equal(int.Parse(g["nPops"]), gset.Count());
+            }
+            foreach (var kv in popsPerRegion)
+                Assert.Equal(kv.Value, pop.Count(r => r["quarter"] == "2" && r["nation"] == kv.Key.Nation && r["region"] == kv.Key.Region));
+            foreach (var r in pop.Where(r => r["quarter"] == "2"))
+            {
+                var w = want[(r["nation"], r["region"], int.Parse(r["popIndex"]))];
+                Assert.True(Math.Abs(D(r, "popK") - w.Size) <= 1e-9 * Math.Max(1, w.Size), $"POP の人数が州の POP と違う {r["region"]} {r["popIndex"]}");
+                Assert.True(Math.Abs(D(r, "savings") - w.Sav) <= 1e-9 * Math.Max(1, Math.Abs(w.Sav)), $"POP の在庫が州の POP と違う {r["region"]} {r["popIndex"]}");
+                Assert.Equal(w.LaborLines, int.Parse(r["laborLines"]));
+            }
+            Assert.True(winAbs > 0, "月の窓の書き込みが 0＝窓が働いていない");
+            Assert.True(posAll > 0, "月初が正で begin≧claim の月が 0＝数えが働いていない");
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>G6：止まった月の振り分けの表（手で書く）と、門を閉じると cpop_s を書かないこと。</summary>
+    [Fact]
+    public void 止まった月の振り分けは手で書いた表のとおり_門を閉じるとPOPの行を書かない()
+    {
+        var table = new (double End, double Begin, double Win, double Claim, double Earned, double Tax, int Want)[]
+        {
+            (90, 100, -10, 5, 1, 5, -1),          // 動いた（10%）
+            (100, 100, 0, 0, 0, 0, 1),            // 請求 0 かつ所得 0
+            (100, 100, 0, 0, 3, 0, 2),            // 請求 0
+            (100, 100, 0, 5, 0, 5, 3),            // 所得 0（払いと受け取りが打ち消す形は数えに入らない＝窓の和 0）
+            (100, 100, 0, 5, 3, 0, 4),            // 払っていない
+            (100, 100, 0, 5, 3, 3, 5),            // その他（所得と払いが打ち消す）
+            (100, 100, -5, 5, 3, 3, 0),           // 口の外（窓の和と在庫の動きが合わない）
+            (100.05, 100, 0.05, 0, 0, 0, 1),      // 0.05% は止まった側
+            (100.2, 100, 0.2, 0, 0, 0, -1),       // 0.2% は動いた側
+        };
+        foreach (var t in table)
+            Assert.True(Instruments.CpStuckKind(t.End, t.Begin, t.Win, t.Claim, t.Earned, t.Tax) == t.Want, $"{t} → {Instruments.CpStuckKind(t.End, t.Begin, t.Win, t.Claim, t.Earned, t.Tax)}（期待 {t.Want}）");
+        Assert.Equal(6, Instruments.CpStuckKinds);
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cpop6_" + Guid.NewGuid().ToString("N"));
+        Instruments.CearnOn = false;
+        try
+        {
+            Instruments.Configure(dir, "*");
+            var sim = Two(1795UL);
+            try { sim.StepQuarter(); Instruments.Quarter(sim, 1795UL, 0); }
+            finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "cpop_s1795.tsv")), "門を閉じても cpop_s が出た");
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(dir, "fiscal_s1795.tsv")), "前提：他の計器の表は出る");
+        }
+        finally { Instruments.CearnOn = true; try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
