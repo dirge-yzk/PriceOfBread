@@ -107,3 +107,9 @@
     ・試験の書き換えの追加の予言：MultiNationSim.cs:861 の式が ExternalPressureGapScale を読まなくなる以外に挙動は変わらない（gap は 0.0 のまま）。
     ・実際に動かした試験の名前（改名は ⑤ にも当たらない意味の改名＝波51 の〈テストの名前を書き換えない〉との食い違い・verdict に列挙）：DiscoveryEngineerTests 2 本・InstitutionAnchorTests 1 本・TechLevelRemovalTests 4 本・NavalPortProcurementTests 1 本（旗1…）・MilitaryTests 1 本（Theory→Fact）・ColonyCessionDistanceTests 1 本・InheritIntentTests 1 本。
     ・突然変異の結果は measurements/m824_20261104_mutation.txt（巡 r1〔焼き込みの前・文字化けを直した記録〕・r2pre・r2post）。
+
+[追記 3 2026-11-04・腕の前・成績表を見る前（突然変異の結果と、足した試験・消した行）]
+    ・突然変異の結果は measurements/m824_20261104_mutation.txt（巡 r1・r2pre・r2post・r3post・r4post・r5post・r6post）。登録した変異のうち、Mu4（女性財産権の閾値を戻す）は 段2b の試験が緑のまま＝等価変異（RaiseWomenRights は最大を取る＝選挙権の行が無条件になれば財産権の行は常に何もしない）→ SelfPlay.cs の財産権の行を消した（58f4c5b0・挙動は同じ）。Mu6（Modernize の制限選挙の閾値を戻す）は 段2b の試験が緑のまま＝穴（大衆の闘争度の譲歩と、門の畳みが目標を現行法へ戻す形に隠れた）→ 試験の盤面を直した（闘争度 0・現行法が参政権なし）→ r6 で赤。M7（Territory.cs の海軍の予算と発注の戻しの行を消す）は緑＝穴 → 試験を 1 本足した（NavalPortProcurementTests.州が持ち主を替えるとき海軍の予算と発注は戻る）→ r4 で赤。Mu5・Mu6 の文字列は 2 回現れて当たらず、Mu9 は消した係数を指してコンパイルが通らなかった＝台本を直して回し直した（r3）。
+    ・[5] テストの数の予言の訂正（結果の前）：−3＋足した試験 1 本＝−2（Category!=FullLength 2226 → 2224・FullLength 3）。ident は --tests-delta -2。
+    ・[3] の予言との食い違い：Mu1 は DiscoveryEngineerTests を赤にしない（追記 1）・Mu4 は等価変異・Mu6 と M7 は穴だった（試験を足して塞いだ）・M7 は登録しない探りのつもりが穴だったので試験を足した。Mu3〜Mu12・M1c・M3a・M3b は予言どおり。
+    ・ソースを走査する番人の追加の点検：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests を最後の木（財産権の行を消す前）で回し 172 本緑（19 分 53 秒）。財産権の行を消した後は WriterRatchetTests と InstrumentsTests を除く 4 組＋技術の試験＋海軍の試験を回し 116 本緑。WriterRatchetTests・InstrumentsTests は財産権の行の削除（挙動が同じ 1 行）で件数が動かない（.cost の件数の行の差 0 を ident が見る）。
