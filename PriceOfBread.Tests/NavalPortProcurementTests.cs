@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(606) 線 navf／★(669) 線 navf3（海軍の需要の道・読む線 nav〔(594)〕の答え）の番人。旗 <see cref="Coefficients.NavalPortProcurement"/>（艦の発注と予算を国の**本国格の港の州**へ配る）。既定 1（(679) 線 navf4 で点火）・旗 0 の経路は旧と同じ（恒等は成績表の報告で見た）。
+/// <summary>★(606) 線 navf／★(669) 線 navf3（海軍の需要の道・読む線 nav〔(594)〕の答え）の番人。艦の発注と予算を国の**本国格の港の州**へ配る（旗 NavalPortProcurement は (679) 線 navf4 で既定 1 に点火・(824) で焼き込み）。
 /// ここは機構と不変条件だけ：配りの合計が1・港でない州と植民地格の港は0・予算の合計は旧の首都の1本と同じ・決済は港の州の艦の在庫と海軍の区分に入る。
 /// 陸の必要量の国境の番人は (614) の F2 のもの＝この線では載せない。</summary>
 public class NavalPortProcurementTests
@@ -72,46 +72,32 @@ public class NavalPortProcurementTests
         for (int i = 0; i < share.Length; i++) Assert.Equal(i == cap ? 1.0 : 0.0, share[i]);
     }
 
-    /// <summary>予算の置き場：旗1の海軍の予算は本国格の港の州だけに立ち、発注は予算のある州だけに立つ。旗0は首都だけ。
-    /// 盤面＝英仏を同じ種で2本・旗だけ違う。60日（艦の目標が無い間は2本とも同じ軌道）→海の必要量を置いて月次の予算が書かれる最初の日に比べる。
-    /// 州ごとに：発注があるのは予算が正の州だけ（予算なしで需要だけ立てない）。旗0では首都以外の予算は0。
-    /// ★追記 1：旗1の上限は各州の値段で買う額の和なので、旗0の首都の1本（首都の値段）とは一致しない（保存の等式は外した）。ここで見るのは〈発注は予算のある州だけ・予算は本国格の港の州だけ・旗0は首都だけ〉。</summary>
+    /// <summary>予算の置き場：海軍の予算は本国格の港の州だけに立ち、発注は予算のある州だけに立つ。
+    /// 盤面＝英仏。60日（艦の目標が無い間）→海の必要量を置いて月次の予算が書かれる最初の日に比べる（(824) で旗 NavalPortProcurement の焼き込みに伴い旗 0 の盤面を外した）。
+    /// 州ごとに：発注があるのは予算が正の州だけ（予算なしで需要だけ立てない）。
+    /// ★追記 1：上限は各州の値段で買う額の和（保存の等式は外した）。ここで見るのは〈発注は予算のある州だけ・予算は本国格の港の州だけ〉。</summary>
     [Fact]
     public void 海軍の予算は本国格の港の州だけに立ち発注は予算のある州だけに立つ()
     {
-        static MultiNationSim Make(double flag)
-        {
-            var sim = Frozen("イギリス", "フランス");
-            foreach (var n in sim.Nations) n.World.Coef.NavalPortProcurement = flag;
-            for (int d = 0; d < 60; d++) sim.StepDay();
-            return sim;
-        }
-        var s0 = Make(0.0); var s1 = Make(1.0);
-        var w0 = s0.Nations[0].World; var w1 = s1.Nations[0].World;
-        foreach (var w in new[] { w0, w1 })
-        {
-            w.LastRevenuePerMonth = new MoneyPerMonth(1e12);
-            w.SelfPower!.NeedSea = 50; w.SelfPower.NeedLand = 3; w.SelfPower.NeedInternal = 1; w.SelfPower.NavySkillMul = 1.0;
-        }
-        double b0 = 0; bool got = false;
+        var sim = Frozen("イギリス", "フランス");
+        for (int d = 0; d < 60; d++) sim.StepDay();
+        var w1 = sim.Nations[0].World;
+        w1.LastRevenuePerMonth = new MoneyPerMonth(1e12);
+        w1.SelfPower!.NeedSea = 50; w1.SelfPower.NeedLand = 3; w1.SelfPower.NeedInternal = 1; w1.SelfPower.NavySkillMul = 1.0;
+        double bsum1 = 0; bool got = false;
         for (int d = 0; d < 40 && !got; d++)
         {
-            s0.StepDay(); s1.StepDay();
-            b0 = w0.Region.NavalBudget;
-            if (b0 > 0) got = true;
+            sim.StepDay();
+            bsum1 = 0; foreach (var r in w1.Regions) bsum1 += r.NavalBudget;
+            if (bsum1 > 0) got = true;
         }
-        Assert.True(got, "前提が崩れた：旗0の首都の海軍の予算が立たない");
-        foreach (var r in w0.Regions) if (r.Id != 0) Assert.Equal(0.0, r.NavalBudget);
-        // 旗1：発注があるのは予算が正の州だけ・植民地格の州と港でない州の予算は0（予算÷発注額が全ての州で等しいことは配りの番人が手で置いた値段で見る＝ここは月末の支払い率と値段の動きの後なので見ない）
-        double bsum1 = 0;
+        Assert.True(got, "前提が崩れた：海軍の予算が立たない");
+        // 発注があるのは予算が正の州だけ・植民地格の州と港でない州の予算は0（予算÷発注額が全ての州で等しいことは配りの番人が手で置いた値段で見る＝ここは月末の支払い率と値段の動きの後なので見ない）
         foreach (var r in w1.Regions)
         {
             Assert.Equal(r.NavalBudget > 0, r.NavalOrder is not null);
-            bsum1 += r.NavalBudget;
             if (r.NavalBudget > 0 && r.Id != 0) Assert.True(r.IsPort && r.Tier != RegionTier.Colonial, "港でない州か植民地格の州に予算が立った");
         }
-        Assert.True(bsum1 > 0, "前提が崩れた：旗1の予算が立たない");
-        foreach (var r in w0.Regions) Assert.Null(r.NavalOrder);   // 旗0は配りの書き込みに1度も入らない
     }
 
     /// <summary>★(679) 線 navf4：画面の艦隊の行（App の <c>GameViewModel.Politics.cs</c>）の充足の式の番人。旗1では予算が国の本国格の港の州へ割られ、首都が港でない国の首都の州の予算は0になる
@@ -122,7 +108,6 @@ public class NavalPortProcurementTests
     {
         var sim = Frozen("イギリス", "フランス");
         var w = sim.Nations[1].World; var c = w.Coef;
-        c.NavalPortProcurement = 1.0;
         for (int d = 0; d < 60; d++) sim.StepDay();
         var cap = w.Regions.Find(r => r.Id == 0)!;
         foreach (var r in w.Regions) { r.NationHasPort = true; r.IsPort = false; r.LastPortThroughput = 0; r.Tier = RegionTier.Core; r.NavalBudget = 0; }
@@ -152,7 +137,6 @@ public class NavalPortProcurementTests
     {
         var sim = Frozen("イギリス", "フランス");
         var w = sim.Nations[0].World; var c = w.Coef;
-        c.NavalPortProcurement = 1.0;
         for (int d = 0; d < 60; d++) sim.StepDay();
         var r = w.Regions[1];
         Assert.True(r.Id != 0 && r.MilitaryScale <= 0, "前提が崩れた：州1が首都か軍需を持つ");
@@ -177,33 +161,14 @@ public class NavalPortProcurementTests
         Assert.Equal(0.0, r2.StateSpent[(int)TreasuryCat.Navy]);
     }
 
-    /// <summary>★(688) 線 navf5 (a)：App の艦隊の行の充足の式を移した SimCore の関数 <see cref="EconomyStep.FleetAfford"/> の番人。旗 0 の枝＝首都の州の予算 ÷ 発注の必要額（0 の守りは 1e-9 の文字どおり・上限 1）。
-    /// 期待値は手で置いた値から独立に作る（予算 3・必要額 12 → 0.25／必要額 2 → 1／必要額 0 と 1e-10 → 0）。突然変異で赤：Math.Min の引数を外す・0 の守りを外す・予算を首都でなく国の和にする。</summary>
+    /// <summary>★(688) 線 navf5 (a)：App の艦隊の行の充足の式を移した SimCore の関数 <see cref="EconomyStep.FleetAfford"/> の番人。式＝国の Σ州の予算 ÷ <see cref="EconomyStep.NavalPortSplit"/> の必要額（上限 1・必要額 0 は 0）。盤面は上の画面の番人と同じ（首都が港でない・港の州 2 つに手で置いた値段）。
+    /// 期待値は国の予算を必要額の半分にして独立に作る（0.5）・予算が必要額を超えれば 1・値段が全て 0 で必要額が立たなければ 0。突然変異で赤：分母を首都の必要額にする。
+    /// （旗 NavalPortProcurement の焼き込み〔(824)〕で、旧の枝〈首都の州の予算 ÷ 首都の値段の必要額〉を確かめる試験を消した。）</summary>
     [Fact]
-    public void 艦隊の充足の関数は旗0で首都の予算を必要額で割り上限1で0の守りは1e9分の1()
-    {
-        var sim = Frozen("イギリス", "フランス");
-        var w = sim.Nations[0].World; var c = w.Coef;
-        c.NavalPortProcurement = 0.0;
-        for (int d = 0; d < 5; d++) sim.StepDay();
-        var cap = w.Regions.Find(r => r.Id == 0)!;
-        foreach (var r in w.Regions) r.NavalBudget = 0;
-        w.Regions.First(r => r.Id != 0).NavalBudget = 1000;   // 首都以外の予算は旗 0 では読まない
-        cap.NavalBudget = 3;
-        Assert.Equal(0.25, EconomyStep.FleetAfford(w, c, cap, 12.0), 12);
-        Assert.Equal(1.0, EconomyStep.FleetAfford(w, c, cap, 2.0), 12);
-        Assert.Equal(0.0, EconomyStep.FleetAfford(w, c, cap, 0.0), 12);
-        Assert.Equal(0.0, EconomyStep.FleetAfford(w, c, cap, 1e-10), 12);   // 守りの下（1e-9 以下は 0）
-    }
-
-    /// <summary>★(688) 線 navf5 (a)：旗 1 の枝＝国の Σ州の予算 ÷ <see cref="EconomyStep.NavalPortSplit"/> の必要額（上限 1・必要額 0 は 0）。盤面は上の画面の番人と同じ（首都が港でない・港の州 2 つに手で置いた値段）。
-    /// 期待値は国の予算を必要額の半分にして独立に作る（0.5）・予算が必要額を超えれば 1・値段が全て 0 で必要額が立たなければ 0。突然変異で赤：2 つの枝を入れ替える・分母を首都の必要額にする。</summary>
-    [Fact]
-    public void 艦隊の充足の関数は旗1で国のΣ州の予算を各州の値段の必要額で割る()
+    public void 艦隊の充足の関数は国のΣ州の予算を各州の値段の必要額で割る()
     {
         var sim = Frozen("イギリス", "フランス");
         var w = sim.Nations[1].World; var c = w.Coef;
-        c.NavalPortProcurement = 1.0;
         for (int d = 0; d < 60; d++) sim.StepDay();
         var cap = w.Regions.Find(r => r.Id == 0)!;
         foreach (var r in w.Regions) { r.NationHasPort = true; r.IsPort = false; r.LastPortThroughput = 0; r.Tier = RegionTier.Core; r.NavalBudget = 0; }

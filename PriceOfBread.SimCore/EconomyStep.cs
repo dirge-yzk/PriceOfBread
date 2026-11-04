@@ -369,7 +369,7 @@ public static class EconomyStep
         return cost;
     }
 
-    /// <summary>★(606) 線 navf：発注 <paramref name="q"/>（財ごとの隻数）の必要額＝その州の今の市場の値段で（<see cref="FleetOrder"/> の必要額の和と同じ式・同じ順）。旗 <see cref="Coefficients.NavalPortProcurement"/> が正のときだけ呼ばれる。</summary>
+    /// <summary>★(606) 線 navf：発注 <paramref name="q"/>（財ごとの隻数）の必要額＝その州の今の市場の値段で（<see cref="FleetOrder"/> の必要額の和と同じ式・同じ順）。旗 NavalPortProcurement は (824) で焼き込み＝港の州の発注（<see cref="Region.NavalOrder"/>）の必要額を読む経路から呼ばれる。</summary>
     internal static double FleetOrderCost(Region region, Coefficients coef, double[] q)
     {
         double cost = 0;
@@ -385,7 +385,7 @@ public static class EconomyStep
     /// （分母に植民地格の港まで含む <see cref="World.PortThroughputTotal"/> を使って分子だけ植民地を外すと Σ割合＜1＝予算が消える＝分子と分母の非対称）。</summary>
     internal static bool NavalHomePort(Region r) => r.IsPort && r.Tier != RegionTier.Colonial && r.LastPortThroughput > 0;
 
-    /// <summary>★(606) 線 navf／★(669) 線 navf3：国の海軍の発注を国の**本国格の港の州**に配る（旗 <see cref="Coefficients.NavalPortProcurement"/> が正のとき Simulation が月初に1回だけ呼ぶ）。
+    /// <summary>★(606) 線 navf／★(669) 線 navf3：国の海軍の発注を国の**本国格の港の州**に配る（Simulation が月初に1回だけ呼ぶ・旗 NavalPortProcurement は (824) で焼き込み）。
     /// 戻り値＝国の発注（<see cref="FleetOrder"/>＝目標の艦隊−国の在庫・首都の州で引く＝旧と同じ式）。<paramref name="share"/>（<c>World.Regions</c> と同じ並び）へ各州の割合を書く＝Σ=1（発注が無いなら全て 0）。
     /// 割合＝その州の港の取扱高 <see cref="Region.LastPortThroughput"/> ÷ 本国格の港の取扱高の和（述語は <see cref="NavalHomePort"/> の1本）。植民地格の港は配りに入らない（(614) の F1 は入れた）。
     /// 本国格の港の取扱高の和が 1e-9 以下（本国の港が無い国・開幕の清算の前）は首都の州が全部（旧と同じ）。割合は発注と予算の両方を同じ値で配る（発注だけ配ると需要が港の数倍になる＝分子と分母を同じ規則で）。</summary>
@@ -415,19 +415,14 @@ public static class EconomyStep
     }
 
     /// <summary>★(688) 線 navf5：App の政治タブの艦隊の行の〈海軍の予算の充足〉の式を SimCore の1本へ移した（挙動を変えない恒等の部分）。<paramref name="capital"/>＝首都の州（App の <c>r</c>）・<paramref name="fleetCost"/>＝首都の値段で引いた発注の必要額（<see cref="FleetOrder"/> の <c>out cost</c>）。
-    /// 旗 <see cref="Coefficients.NavalPortProcurement"/> が 0 のときは 首都の州の予算 ÷ <paramref name="fleetCost"/>。正のときは予算が国の本国格の港の州へ割られる（<see cref="NavalPortSplit"/>）ので、国の Σ州の予算 ÷ 各州が自分の値段で買う額の和。
+    /// 予算は国の本国格の港の州へ割られる（<see cref="NavalPortSplit"/>）ので、国の Σ州の予算 ÷ 各州が自分の値段で買う額の和（旗 NavalPortProcurement は (824) で焼き込み＝旧の〈首都の州の予算 ÷ <paramref name="fleetCost"/>〉の式は消えた。引数 <paramref name="capital"/>・<paramref name="fleetCost"/> は App が渡すので署名は残してあり、今は読まない）。
     /// 読むのは<b>支払い率を掛けた後</b>の <see cref="Region.NavalBudget"/>（Simulation の <c>r.NavalBudget *= payRate</c> の後）。0 の守りは App の <c>Eps</c> と同じ 1e-9（文字どおり）。呼び手＝App の艦隊の行（数と状態だけ）。</summary>
     internal static double FleetAfford(World world, Coefficients coef, Region capital, double fleetCost)
     {
-        double fAfford = fleetCost > 1e-9 ? Math.Min(1.0, capital.NavalBudget / fleetCost) : 0.0;
-        if (coef.NavalPortProcurement > 0)
-        {
-            var navShare = new double[world.Regions.Count]; var navBudShare = new double[world.Regions.Count];
-            NavalPortSplit(world, coef, navShare, navBudShare, out double navNeed);
-            double navBudget = 0; foreach (var pr in world.Regions) navBudget += pr.NavalBudget;
-            fAfford = navNeed > 1e-9 ? Math.Min(1.0, navBudget / navNeed) : 0.0;
-        }
-        return fAfford;
+        var navShare = new double[world.Regions.Count]; var navBudShare = new double[world.Regions.Count];
+        NavalPortSplit(world, coef, navShare, navBudShare, out double navNeed);
+        double navBudget = 0; foreach (var pr in world.Regions) navBudget += pr.NavalBudget;
+        return navNeed > 1e-9 ? Math.Min(1.0, navBudget / navNeed) : 0.0;
     }
 
     /// <summary>★(669) 追記 1：州の海軍の予算＝国の予算 <paramref name="navalNat"/> × その州の予算の割合（発注の割合が 0 の州は 0）。Simulation の州ごとの書き込みが通る1本（Σ州の予算＝国の予算を番人が見る）。</summary>
@@ -1192,9 +1187,9 @@ public static class EconomyStep
         // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
         System.Array.Clear(region.StateSpent);   // 区分つき（TreasuryCat）の今月の未精算＝精算の後も次のこの行までは先月の値として残る（月初の請求の見込みが読む・Simulation）
         bool milProc = region.MilitaryScale > 0 && AllPresent(coef.MilitaryGoods, ng);   // 小シナリオ（軍需財を持たない）は対象外
-        // ★(606) 線 navf：旗 NavalPortProcurement が正のとき、陸の軍需（MilitaryScale＝首都だけ）の外で、港の州も自分の市場で艦を買う（発注 Region.NavalOrder は Simulation が月初に1回だけ配る）。
-        //   陸の装備は首都のまま（milProc の枝は触らない）。発注の述語と決済の述語は同じ1本（navPort）＝需要だけ立てて決済が無い（代金が消える）形を作らない。旗 0 では常に偽。
-        bool navPort = !milProc && coef.NavalPortProcurement > 0 && region.NavalOrder is not null && AllPresent(coef.FleetGoodIds, ng);
+        // ★(606) 線 navf（旗 NavalPortProcurement は (824) で焼き込み）：陸の軍需（MilitaryScale＝首都だけ）の外で、港の州も自分の市場で艦を買う（発注 Region.NavalOrder は Simulation が月初に1回だけ配る）。
+        //   陸の装備は首都のまま（milProc の枝は触らない）。発注の述語と決済の述語は同じ1本（navPort）＝需要だけ立てて決済が無い（代金が消える）形を作らない。
+        bool navPort = !milProc && region.NavalOrder is not null && AllPresent(coef.FleetGoodIds, ng);
         // ★E1（作者裁定2026-08-26）：陸海の乗数は**装備充足率の分母でも使う**＝分子（実発注）と分母（equipWant）が同じ乗数（「軍艦1083%」と同型の非対称を作らない）。
         //   ★(189) 乗数は LandMul（艦は0）＝陸の装備の段は艦を買わない・艦は海軍の調達（FleetOrder）と海軍の予算（Region.NavalBudget）。
         // ★装備の発見（作者裁定2026-09-08）＝まだ発見していない装備を、必要量（分母）にも発注（分子）にも見積（予算）にも入れない。
@@ -1298,15 +1293,11 @@ public static class EconomyStep
         //   2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」）：艦は海軍の予算（Region.NavalBudget＝装備の器×海の金の割合を必要額で切った額・Simulation）で
         //   目標の艦隊（海の必要量）と在庫の差を買う（FleetOrder・予算の上限と同じ1本）＝兵の頭数（MilitaryScale）を読まない。afford と価格の門は陸の装備と同じ形。
         //   決済と艦の在庫は下の軍需の決済の後（買えた分＝発注×配給率・支払いは海軍の区分）。
-        //   ★(606) 旗 NavalPortProcurement が正のときは発注を Simulation が配った Region.NavalOrder（国の発注×この州の割合）から読む＝州の並びに依らない（FleetOrder は国の在庫を読み、前の州の決済で在庫が増える）。
-        //   必要額はその州の今の値段で（予算 Region.NavalBudget も同じ割合で配られている）。旗 0 は従来のまま（首都だけが FleetOrder で引く）。
-        double[]? fleetQ; double fleetCost = 0;
-        if (coef.NavalPortProcurement > 0)
-        {
-            fleetQ = (milProc || navPort) ? region.NavalOrder : null;
-            if (fleetQ is not null) fleetCost = FleetOrderCost(region, coef, fleetQ);
-        }
-        else fleetQ = milProc ? FleetOrder(region, coef, world, out fleetCost) : null;
+        //   ★(606) 発注は Simulation が配った Region.NavalOrder（国の発注×この州の割合）から読む＝州の並びに依らない（FleetOrder は国の在庫を読み、前の州の決済で在庫が増える）。旗 NavalPortProcurement は (824) で焼き込み。
+        //   必要額はその州の今の値段で（予算 Region.NavalBudget も同じ割合で配られている）。
+        double fleetCost = 0;
+        double[]? fleetQ = (milProc || navPort) ? region.NavalOrder : null;
+        if (fleetQ is not null) fleetCost = FleetOrderCost(region, coef, fleetQ);
         if (fleetQ is not null)
         {
             double fAfford = fleetCost > Eps ? Math.Min(1.0, region.NavalBudget / fleetCost) : 0.0;

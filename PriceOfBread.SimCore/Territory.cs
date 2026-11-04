@@ -372,7 +372,7 @@ public static class Territory
         bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
         RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
-        if (from.Coef.NavalPortProcurement > 0) { r.NavalBudget = 0; r.NavalOrder = null; }   // ★(669) 追記 1（旗 1 のときだけ・旗 0 の状態は 1 ビットも触らない）：月ごとに Simulation が書き直す複製を、州が持ち主を替えるときに戻す（移った州が前の国の首都の予算を持ったまま計器の行に出る＝偽の植民地向けの予算を作らない）
+        r.NavalBudget = 0; r.NavalOrder = null;   // ★(669) 追記 1（旗 NavalPortProcurement は (824) で焼き込み）：月ごとに Simulation が書き直す複製を、州が持ち主を替えるときに戻す（移った州が前の国の首都の予算を持ったまま計器の行に出る＝偽の植民地向けの予算を作らない）
         if (backToColony && to?.Diplomacy is { } dg)
         {
             if (tierLeft == RegionTier.Core) dg.SovereignColonialRegions--; else dg.PromotedColonies--;

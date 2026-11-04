@@ -95,3 +95,9 @@
     c65fl＝FiscalTests.cs・CapitalMarket.cs・Coefficients.cs の旗の行 ／ c65op＝EconomyStep.cs の依存の段（1751 付近）・新しい試験のファイル・Coefficients.cs の旗の行 ／ c65md＝Diplomacy.cs・Coefficients.cs の旗の行 ／ c65ce・c65sv＝新しい Instruments*.cs・Instruments.cs の登録の行・InstrumentsTests の名簿 ／ c65ds＝コミットしない。
     c65id が触る共有のファイルと行：Coefficients.cs（:2275 の宣言とその注・:2853〜2855 の 3 行）・Instruments.cs（:74・:1214・:1224 の注）・DormantIdentityTests.cs（RetiredFields の末尾に 3 行・:37・:46 の注）・EconomyStep.cs（:372・388・418・423・1195〜1197・1301〜1310）・Simulation.cs（:2084〜2150）・Territory.cs（:375）・Discovery.cs（:673・1167〜1172）・SelfPlay.cs（:656・1519〜1530・定数 4 本）・Agents.cs（:28・37）・MultiNationSim.cs（:861・2097）・Model.cs（:1108 の注）。
     c65op の EconomyStep.cs の依存の段は 1751 付近＝私の 1195〜1310 とは別の塊（合流で衝突しない見込み）。Coefficients.cs は旗の行の追加と私の墓標の置き換えが近い行になりうる＝合流で解く。
+
+[追記 1 2026-11-04・腕の前・成績表を見る前]
+    ・コミットの流れ（実際）：事前登録 7c9f08fd → 古い注と名前の古い試験 2 本の改名 2e4281c7 → 技術の番人の移し（試験だけ）→ NavalPortProcurement の焼き込み → TechSignalOff・TechThresholdOff の焼き込み → 突然変異の記録。
+    ・[4] への追加（点検で見落とした走査の番人）：TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり（w.TechLevel／WorldTechLevel を読む行の数のラチェット・表の語は \b(World)?TechLevel\b）。焼き込みで読み手が減る＝表を直す（番人を写しただけの例外・★(743) の区分に当たらないラチェットの更新として verdict に列挙する）。変化の予言：Agents.cs 1→0（行ごと削除）・SelfPlay.cs 5→0（行ごと削除）・MultiNationSim.cs 10→9（:861 の gap の行が TechLevel を読まなくなる。:618・:692・:850 の frontier は残る）。ほか Discovery.cs 2・Megaprojects.cs 3 ほかは不変。
+    ・[3] の突然変異 Mu1 の予言の訂正（結果を見た後の記録・採否の規則は変えていない）：Mu1（TechRatioOf の制度と思想の枝を旧に戻す）は DiscoveryEngineerTests の 2 本を赤にしない（既定の盤面では識字の上書き〔Discovery.cs:673・SpreadLiteracyFull 0.5〕が d＞0 の行を覆い、特許は d＝0 で比 1＝TechRatioOf が効く行が無い）。実際に赤にするのは TechLevelRemovalTests の段2b・InstitutionAnchorTests の 2 本（識字の係数 0 と NaN の半分）。Mu1 と Mu2 を同時に当てた Mu12（識字の上書きも飛ばす）でだけ DiscoveryEngineerTests の主張（制度と思想の行が技術水準で動かない）が赤になる＝Mu12 を足して回す。予言の誤り（紙の読みが浅かった）であって穴ではない。
+    ・[5] の予言は変えない（−3）。
