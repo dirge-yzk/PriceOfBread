@@ -205,7 +205,7 @@ public static class EconomyStep
     ///（budget=estCost なら afford=1 で差が消える）、機関銃・装甲艦以降の3段が全世界で調達不能になる＝死蔵財を増やす。
     /// 段のゲートは調達ブロックの入れ子と揃える（上位段の財が無い小シナリオでは、その先の段も数えない）。
     /// ⚠燃料（空軍/輜重）と艦隊修理は含めない。
-    /// ★(189)：陸の装備の段は艦（<see cref="Coefficients.FleetGoodIds"/>）を買わない（<see cref="LandMul"/>＝0）＝艦は海軍の調達（<see cref="NavalProcurementNeed"/>・別の予算）。
+    /// ★(189)：陸の装備の段は艦（<see cref="Coefficients.FleetGoodIds"/>）を買わない（<see cref="LandMul"/>＝0）＝艦は海軍の調達（<see cref="FleetOrder"/> の必要額・別の予算）。
     ///   旧＝陸海の再配分（ProcureMul＝理想の海の割合÷一律レートの海の割合）で艦も同じ段の中で買った＝軍艦の購入は兵の頭数（MilitaryScale）×海の割合だった。</summary>
     internal static double MilitaryProcurementNeed(Region region, Coefficients coef)
     {
@@ -360,13 +360,6 @@ public static class EconomyStep
             cost += d * region.Markets[coef.FleetGoodIds[k]].Price;
         }
         return q;
-    }
-
-    /// <summary>★海軍の調達の必要額（2026-10-03 (189)）＝<see cref="FleetOrder"/> の必要額＝Simulation が海軍の予算（Region.NavalBudget）の上限に使う（陸の <see cref="MilitaryProcurementNeed"/> と対）。</summary>
-    internal static double NavalProcurementNeed(Region region, Coefficients coef, World? world)
-    {
-        FleetOrder(region, coef, world, out double cost);
-        return cost;
     }
 
     /// <summary>★(606) 線 navf：発注 <paramref name="q"/>（財ごとの隻数）の必要額＝その州の今の市場の値段で（<see cref="FleetOrder"/> の必要額の和と同じ式・同じ順）。旗 NavalPortProcurement は (824) で焼き込み＝港の州の発注（<see cref="Region.NavalOrder"/>）の必要額を読む経路から呼ばれる。</summary>

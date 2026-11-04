@@ -838,7 +838,6 @@ public class MilitaryTests
         // ④ 港の州が無い国
         r.NationHasPort = false;
         Assert.Null(EconomyStep.FleetOrder(r, c, w, out _));
-        Assert.Equal(0.0, EconomyStep.NavalProcurementNeed(r, c, w));
     }
 
     /// <summary>★(189) 陸の装備の段は艦を買わない（EconomyStep.LandMul＝艦は0）＝陸の装備の必要額は軍艦の値段に依らない・上位と最上位の充足は陸分と同じ
