@@ -8,6 +8,9 @@ namespace PriceOfBread.SimCore;
 // エンジンの関数を呼ばない：ブロックの分け方・地代の和・慣習の取り分は計器が自分で書く。エンジンの状態は欄（POP の LandRentPerMonth・生産者の Output・RentShare・州の FarmRentCap・市場の LastProduced・値段・World.ImportsByGood・ExportsByGood）として読むだけ。
 // 行＝国×四半期（全ての国）。額は国の通貨・どれも直近の月の値（…PerMonth）。ブロックの添字 b＝0 旧支配層・1 近代エリート・2 大衆（PolicyPreferences.BlocOf と同じ三項式）。
 // σ_g＝(輸入−輸出)÷(輸入＋輸出＋産出の値)。輸入と輸出は World.ImportsByGood・ExportsByGood＝国境を越えた分だけ（BilateralMarket が crossA の中でだけ積む＝同じ国の州どうしは数えない）。産出の値＝Σ州 LastProduced×値段。
+// engineRentShare0..2＝rentDom_b÷rentDomTotal（エンジンの PolicyPreferences.Build の第 3 走査と同じ集合）。分母 rentDomTotal が 1e-9 以下のときは Normalize と同じく割らず rentDom_b のまま（0 にはしない）。
+//   (837) の事前登録 measurements/m837_20261104_prereg_ss.txt の〈分母＜1e-9 なら 0〉は実装と食い違う＝実装が正しい（(842)・(837) の反証役）。
+// c1InterestGrain0PositiveFlag（末尾の列・(842)）＝c1InterestGrain0 が正なら 1・そうでなければ 0・貿易の配列が無い国は nan。読み手が平均すれば〈ブロック 0 の穀物の利害が輸入競合に傾く四半期の割合〉。
 // 地代の財ごとの配分：国内＝POP の LandRentPerMonth をその POP が所有する RGO の産出の値で按分（所有する RGO の産出が 0 なら rentDomUnattrPerMonth へ）・輸出＝PaySales の地代の近似（輸出された財の RGO の売り手の産出比で ExportsByGood を割り、慣習の取り分 min(RentShare, FarmRentCap) を所有者のブロックへ）。
 // 穀物法の客体＝Tier が Staple か GrainChain の財（BilateralMarket の cornPen と同じ客体）。
 // ⚠限界（計器が自己申告する）：①四半期の末＝直近の月の値②国内の地代の財ごとの配分は産地ごとの地代がどこにも貯まっていないための近似③輸出の地代は国営持分・不在地主・州ごとの取引の分布を数えない国の産出比の近似④ByGood は値（世界価格建て・輸入は運賃を含む）で産出は州の値段建て
@@ -146,6 +149,7 @@ public static partial class Instruments
             Add3("c1InterestGrain", haveTrade ? intGrain : [nan, nan, nan]); Add3("c1InterestAll", haveTrade ? intAll : [nan, nan, nan]);
             Add3("c1CornPref", c1Corn); Add3("c1TariffLand", c1Tariff);
             cols.Add(("flipCorn0", haveTrade ? I((cornNow[0] > 0) != (c1Corn[0] > 0) ? 1 : 0) : "nan"));
+            cols.Add(("c1InterestGrain0PositiveFlag", haveTrade ? I(intGrain[0] > 0 ? 1 : 0) : "nan"));   // (842) 末尾の列
             if (!sk.Header) { sk.W.WriteLine(string.Join('\t', cols.ConvertAll(x => x.Name))); sk.Header = true; }
             sk.W.WriteLine(string.Join('\t', cols.ConvertAll(x => x.Val)));
         }

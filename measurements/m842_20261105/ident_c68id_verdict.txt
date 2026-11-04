@@ -1,0 +1,36 @@
+ident start：ラベル=c68id 木=/d/PoB_work/wt_c68id 作業=/d/PoB_work/ident_c68id 腕=[a b t s] 開始=2026-11-05 05:57:18
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c68id（2026-11-05 06:10:34）===
+測った木：D:/PoB_work/wt_c68id（HEAD 93847482・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c68id/scripts/instruments/ident/ident.cfg
+宣言：grown=['rule_s', 'cornint_s'] known_extra=['cgrp_s:savingsStart', 'cgrp_s:residualPerQuarter'] tests_delta=8
+腕 a：rc=1 end=2026-11-05 06:07:14
+腕 b：rc=1 end=2026-11-05 06:10:33
+腕 t：rc=0 end=2026-11-05 05:58:20
+腕 s：rc=0 end=2026-11-05 06:07:02
+測る木の SOURCE-HASH：309a507d61970ef9
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 309a507d61970ef9
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m839
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m839.cost
+  ○ 件数の行 29 本・推定 219.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 309a507d61970ef9
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m839_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m839_ins.cost
+  ○ 件数の行 29 本・推定 220.8 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c68id/out_ib_10/ins  対  基準 D:/PoB_work/keep_839/base_ins
+  基準 1068 本・腕 1068 本・バイト一致 1018 本
+  列が増えた表（--grown-ok の宣言）20 本：cornint_s1.tsv+1列・cornint_s10.tsv+1列・cornint_s2.tsv+1列・cornint_s3.tsv+1列・cornint_s4.tsv+1列・cornint_s5.tsv+1列
+  既知の揺れの列だけが違う表 30 本：burscan_s:seconds×10・cgrp_s:residualPerQuarter,savingsStart×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1018・既知の揺れ 30・宣言された増減 20）
+[注視の表] mon_ib_10.txt 対 mon_20261105_m839.txt（タグの行を除く）
+  ○ タグの行以外が一致（4686 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2272（基準 2264+8 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等

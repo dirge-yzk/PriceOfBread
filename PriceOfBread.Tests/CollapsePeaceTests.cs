@@ -144,8 +144,10 @@ public class CollapsePeaceTests
     }
 
     [Fact]
-    public void 旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る()
+    public void 旗1で調停の戦争の白紙の旗が0なら列強の調停の戦争も崩壊で賠償を払い集合に入る()
     {
+        // (842) 改名（Assert は変えない）：旧名は前提〈ForcedPeaceBlankOverCollapse が 0＝崩壊が調停の戦争を上書きする旧の挙動〉を名乗らず、旗を載せ直した側では主張が逆になる（measurements/m833_20261105/result833.txt:56）。
+        //   ここで固定するのは旗 CollapsePeaceOneShare が 1・ForcedPeaceBlankOverCollapse が 0（既定）の盤面だけ。
         // 調停の戦争（ForcedPeace・戦勝点 0）でも、敗者の厭戦が崩壊の線なら歩の本体が戦勝点を崩壊の値で上書きして講和する（旧の挙動＝賠償を払う）。2 本目と同じ集合で 1 回分。
         var (sim, fr, uk, es, w1, w2) = Board(1);
         w1.ForcedPeace = true; w1.Score = 0;

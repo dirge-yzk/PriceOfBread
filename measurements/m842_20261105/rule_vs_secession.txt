@@ -1,0 +1,2 @@
+m_r 対 secession_s の militancyMeanIndex：突き合わせた行 1118869・文字列が違う行 1038750・相対 1e-9 を超える行 1029509・最大の相対差 376
+orderRawLagIndex 対 前の四半期の coerceIndex÷(totalPopK×0.8)：突き合わせた国×四半期×州の行 991502・相対 1e-9 を超える行 57

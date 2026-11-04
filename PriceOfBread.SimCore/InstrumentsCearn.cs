@@ -425,7 +425,7 @@ public static partial class Instruments
             }
     }
 
-    // ---------------------------------------------------------------- (836) 植民地格の州の POP の行 cpop_s（読むだけ・恒等・作業の事前登録 D:/PoB_work/r836_work/plan.txt） ----------------------------------------------------------------
+    // ---------------------------------------------------------------- (836) 植民地格の州の POP の行 cpop_s（読むだけ・恒等・作業の事前登録 measurements/m836_20261105/plan.txt） ----------------------------------------------------------------
     // 目的＝〈人数がほぼ 0 の POP に在庫が止まる根〉と〈人の居る POP の所得が 0 の根〉（(829) の反証役の直し）を、群でなく POP の単位で読む。
     // 行＝四半期の末に格が Colonial の州×その州の POP（州の Pops の並び・人数 0 の POP も書く）。cgrp_s と同じ Sav の口で、同じ列へ POP の四半期の台帳にも足す。
     // 列：識別（popIndex＝州の Pops の添字・classId・className・group）・人数・四半期の始まりの在庫（その州の台帳が戻された時点の値・戻される前に現れた POP は nan）・末の在庫・流入 7・流出 9・残差・遅れの印・
@@ -562,9 +562,11 @@ public static partial class Instruments
             bool any = np[gi] > 0 || g.Start != 0 || g.PopKMonths != 0 || g.Late != 0;
             foreach (double v in g.Flow) if (v != 0) { any = true; break; }
             if (!any) continue;
-            var cols = new List<string>(48) { I(q), I(w.Year), nation, r.Name, CgGroupNames[gi], F(pk[gi]), I(np[gi]), F(g.Start), F(sv[gi]) };
+            // (842) 州の台帳が Started でない四半期（四半期の途中で州が足されて月初の登録の前）は、始まりの在庫 g.Start が既定の 0 のまま＝残差が在庫の全額に見える。cearn_s と同じに始まりと残差は nan で名乗る（行の数は変えない）。
+            bool started = a.Started;
+            var cols = new List<string>(48) { I(q), I(w.Year), nation, r.Name, CgGroupNames[gi], F(pk[gi]), I(np[gi]), F(started ? g.Start : double.NaN), F(sv[gi]) };
             foreach (double v in g.Flow) cols.Add(F(v));
-            cols.Add(F(sv[gi] - g.Start - net[gi])); cols.Add(I(g.Late));
+            cols.Add(F(started ? sv[gi] - g.Start - net[gi] : double.NaN)); cols.Add(I(g.Late));
             cols.Add(I(g.Months)); cols.Add(F(g.PopKMonths)); cols.Add(F(g.MonthStart)); cols.Add(F(g.MonthEnd)); cols.Add(F(g.Win)); cols.Add(F(g.MonthEnd - g.MonthStart - g.Win));
             cols.Add(F(g.Emptied)); cols.Add(F(g.Claimed)); cols.Add(F(g.Poll)); cols.Add(F(g.IncTax));
             cols.Add(F(gapSav)); cols.Add(F(gapNet));
