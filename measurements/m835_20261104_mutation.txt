@@ -1,0 +1,77 @@
+(835) c67id 突然変異の記録 2026-11-05（使い捨ての木に 1 本ずつ当てた・台本 scripts/instruments/c67id/mut835_unit.py・mut835.sh・mutate835.py）
+読み：
+  Mu1・Mu1b（関係を破る）：CoefficientRelationTests の赤の行は CoefficientRelationTests.cs:line 18＝関係の Assert.True の行（値の固定を外した後なので、赤の出所は関係の行だけ）。予言どおり。
+  Mu1c（WhitePeaceScore を 0.3＝関係は保たれる）：緑＝値の固定を外したので既定の値の動きでは赤にならない（関係だけを主張している確かめ）。WhitePeaceScore の既定の固定は WarVerdictTests が別に持つ。
+  Mu2a（戻した Fact の期待 0.2→0.3）：その Fact が HabitTests.cs:line 107 で赤。予言どおり。
+  Mu2b（Habit.NextStock の上限を +∞）：戻した Fact（:107）と、既存の〈中毒度の更新は成長_減衰_0から上限の手の算術〉の両方の旗が赤＝戻した Fact だけの拾いではない（予言は戻した Fact が赤＝予言どおり・既存の赤は予言の外 2 本）。
+  F1（旗 1 だけ・突然変異なし）：CapitalCouponWriteDownTests・FiscalTests の規則 C の 13 本が緑（足した Fact を含む）。
+  Mu7（逃避の行で受け皿の側〔外資の負債〕を flight の半分だけ減らす）：単位版の足した Fact が赤・FiscalTests の規則 C の Theory 2 行も赤（予言の外）。既存の旗 1 の Theory 3 本（利札の吸収・利札の端数・逃避の端数）は緑のまま＝予言どおり（両側が台帳の差で一致するので持ち主＝受け皿の比較では拾えない穴）。
+    計器つき 1 種（種 1）の cpwdft_s：osF＝osC＝0（片側の書き込みの門 L1 は赤にならない＝穴の確認）・hostDevF_ulp＝6.36e14（門 U1 の上限 0.5 を超えて赤）。予言どおり。
+  Mu8（利札の落としの行で受け皿の側を divWo の半分だけ減らす）：単位版の足した Fact が赤。既存の Fact 2 本〔払えない時は… ・未払いが外資の負債より大きい時は…〕と FiscalTests の Theory 1 行も赤（予言の外＝旧の試験が利札の側の受け皿の値を持っていた）。旗 1 の Theory 3 本は緑のまま。
+    cpwdft_s：osF＝osC＝0・hostDevC_ulp＝9.00e13（門 U1 の 0.5 超で赤）。予言どおり。
+  足した Fact は Mu7・Mu8 のどちらでも赤になる（足す前は Mu7 を拾うのが FiscalTests の規則 C だけ＝旗 1 の単位試験の 3 本は Mu7 で全て緑のまま）。
+
+== 係数の関係の番人・HabitTests の Fact（mut835_unit.py の出力） ==
+(835) c67id 突然変異の記録（コミット 4bb7e75a・複製の木に 1 本ずつ当てて関係する試験だけを回した・台本 scripts/instruments/c67id/mut835_unit.py）
+M0 変異なしの対照
+    rc=0（0＝緑・1＝赤）
+    成功!   -失敗:     0、合格:    12、スキップ:     0、合計:    12、期間: 31 s - PriceOfBread.Tests.dll (net10.0)
+Mu1 WhitePeaceScore の既定を 0.2 に（0.22 ＞ 0.2・関係を破る）
+    rc=1（0＝緑・1＝赤）
+    失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 [91 ms]
+    at PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満() in D:\PoB_work\c67id_work\mut_unit_src\PriceOfBread.Tests\CoefficientRelationTests.cs:line 18
+    失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 91 ms - PriceOfBread.Tests.dll (net10.0)
+Mu1b WarPushSpeed の既定を 0.2 に（0.32 ＞ 0.25・関係を破る）
+    rc=1（0＝緑・1＝赤）
+    失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 [59 ms]
+    at PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満() in D:\PoB_work\c67id_work\mut_unit_src\PriceOfBread.Tests\CoefficientRelationTests.cs:line 18
+    失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 125 ms - PriceOfBread.Tests.dll (net10.0)
+Mu1c WhitePeaceScore を 0.3 に（関係は保たれる＝緑のはず・値の固定を外した確かめ）
+    rc=0（0＝緑・1＝赤）
+    成功!   -失敗:     0、合格:     1、スキップ:     0、合計:     1、期間: 52 ms - PriceOfBread.Tests.dll (net10.0)
+Mu2a 戻した Fact の期待 0.2 を 0.3 に（試験の側を壊す）
+    rc=1（0＝緑・1＝赤）
+    失敗 PriceOfBread.Tests.HabitTests.在庫が蓋を超えていれば1か月の更新で蓋の0_2へ戻る_既定の経路の大きさ [9 ms]
+    at PriceOfBread.Tests.HabitTests.在庫が蓋を超えていれば1か月の更新で蓋の0_2へ戻る_既定の経路の大きさ() in D:\PoB_work\c67id_work\mut_unit_src\PriceOfBread.Tests\HabitTests.cs:line 107
+    失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 1 m 19 s - PriceOfBread.Tests.dll (net10.0)
+Mu2b Habit.NextStock の上限を +∞ に（蓋を外す）
+    rc=1（0＝緑・1＝赤）
+    失敗 PriceOfBread.Tests.HabitTests.在庫が蓋を超えていれば1か月の更新で蓋の0_2へ戻る_既定の経路の大きさ [12 ms]
+    at PriceOfBread.Tests.HabitTests.在庫が蓋を超えていれば1か月の更新で蓋の0_2へ戻る_既定の経路の大きさ() in D:\PoB_work\c67id_work\mut_unit_src\PriceOfBread.Tests\HabitTests.cs:line 107
+    失敗 PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(logistic: 0) [< 1 ms]
+    at PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(Double logistic) in D:\PoB_work\c67id_work\mut_unit_src\PriceOfBread.Tests\HabitTests.cs:line 44
+    失敗 PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(logistic: 1) [< 1 ms]
+    at PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(Double logistic) in D:\PoB_work\c67id_work\mut_unit_src\PriceOfBread.Tests\HabitTests.cs:line 54
+    失敗!   -失敗:     3、合格:     8、スキップ:     0、合計:    11、期間: 1 m 7 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
+
+== cpwdft の U1：単位試験（mut835.sh の mutation_unit.txt） ==
+MUTATED F1
+== F1 rc=0
+成功!   -失敗:     0、合格:    13、スキップ:     0、合計:    13、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu7
+== Mu7 rc=1
+  失敗 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(writeDown: 1) [3 s]
+  失敗 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(writeDown: 0) [103 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.旗1でも受け皿の側の外資の負債の減りは旧の規則の額から刻みの半分以内_利札も逃避も [76 ms]
+失敗!   -失敗:     3、合格:    10、スキップ:     0、合計:    13、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu8
+== Mu8 rc=1
+  失敗 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(writeDown: 1) [3 s]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.未払いが外資の負債より大きい時は外資の負債が0で止まり対外資産も同じ額だけ減る [84 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [94 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.旗1でも受け皿の側の外資の負債の減りは旧の規則の額から刻みの半分以内_利札も逃避も [67 ms]
+失敗!   -失敗:     4、合格:     9、スキップ:     0、合計:    13、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+
+== cpwdft の U1：計器つき 1 種（種 1）の gate828.py の読み（mutation_gate.txt。hostDevF_ulp・hostDevC_ulp が U1 の列・上限 0.5） ==
+== Mu7 rc=1
+seed	rows	evF	evC	osF	osC	abF	abC	actF	actC	oldF	oldC	maxDevGold	hostDevF_ulp	hostDevC_ulp
+1	41814	39581	8005	0	0	0	0	39581	2677	39581	2677	0.0	635867306084684.2	0.5
+total	41814	39581	8005	0	0	0	0	39581	2677	39581	2677	0.0	635867306084684.2	0.5
+rows 42495 events(woExp>1e-9) 8005 mismatch(woExp!=woAct) 7859 absorbed(woAct==0) 0 woExp<=1e-6 0
+== Mu8 rc=1
+seed	rows	evF	evC	osF	osC	abF	abC	actF	actC	oldF	oldC	maxDevGold	hostDevF_ulp	hostDevC_ulp
+1	39668	37890	6156	0	0	0	0	13772	6156	13772	6156	0.0	0.5	90022650129700.31
+total	39668	37890	6156	0	0	0	0	13772	6156	13772	6156	0.0	0.5	90022650129700.31
+rows 39969 events(woExp>1e-9) 6156 mismatch(woExp!=woAct) 6156 absorbed(woAct==0) 0 woExp<=1e-6 0
+MUTDONE

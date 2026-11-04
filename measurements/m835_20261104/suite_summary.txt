@@ -1,0 +1,6 @@
+(835) c67id フルスイート（Release・木 4bb7e75a・suite835.sh・Category!=FullLength と =FullLength を分けた）
+--list-tests：Category!=FullLength 2259（基準 2257＋2）・FullLength 3。
+Category!=FullLength：成功! -失敗 0・合格 2258・スキップ 1・合計 2259（18 m 19 s）。
+FullLength：成功! -失敗 0・合格 3・スキップ 0・合計 3（3 m 12 s）。中止 0。
+走査の番人 6 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）と線の試験を含む 401 本の組：成功! -失敗 0・合格 401（器の直後・ident の前に回した・ac1f1d32）。
+savetest OK・leakhunt 完走（保存則違反なし）は ident c67id の s 腕（ident_c67id.txt）。
