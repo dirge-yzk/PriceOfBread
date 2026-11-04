@@ -1,0 +1,25 @@
+# (845) 合わせた木 ef637d89 のフルスイート（scripts/instruments/m845/suite845.sh）
+list nonfull 2244
+list full 3
+guards rc=0 455s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   475、スキップ:     0、合計:   475、期間: 7 m 33 s - PriceOfBread.Tests.dll (net10.0)
+GUARDSDONE
+list nonfull 2244
+list full 3
+nonfull rc=0 860s
+full rc=0 170s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2243、スキップ:     1、合計:  2244、期間: 14 m 17 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 48 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 183s
+保存 44.3MB（512ms）／読込 398ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 117・その月の額の和 8.967E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m845/leakhunt.txt　マニフェスト=D:/PoB_work/m845/leakhunt.txt.manifest（SOURCE-HASH=f389ae4668bf3df3）
+SL-END 08:26:19
+SAVELEAKDONE
