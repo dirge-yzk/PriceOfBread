@@ -1,0 +1,3 @@
+cpwd_s1 同じ（バイト）
+cpworld_s1 同じ（バイト）
+nation_s1 同じ（バイト）
