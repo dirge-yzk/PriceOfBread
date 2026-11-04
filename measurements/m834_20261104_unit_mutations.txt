@@ -8,3 +8,7 @@ M3 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     
 M5: ok
 M5 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 25 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.薄い側の票の和が正でなければ0を返し比が不正の扱いへ倒れる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし ;
 MUTUNITDONE
+# (834) mutunit コミット 90f1defe フィルタ FullyQualifiedName~MultiNationTests.銀平価の器|FullyQualifiedName~SilverParityInstrumentTests.平価の計器は注入と独立な式で
+M4: ok
+M4 失敗!   -失敗:     3、合格:     1、スキップ:     0、合計:     4、期間: 7 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate: 0) ;  失敗 PriceOfBread.Tests.MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate: 1) ;  失敗 PriceOfBread.Tests.SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate: 1) ;
+MUTUNITDONE
