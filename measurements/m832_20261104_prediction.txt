@@ -52,3 +52,9 @@
  線の担当の生（ident_c66cg・ident_c66id・c66dw_work・c66sv_work）は合流が消さない（★(818)）＝名と大きさを記録に並べる。採らなかった腕が出たら keep_832_rej へ。
 
 [11] 待ち方（この回の決まり）：bg.sh を run_in_background・前面の waitmark.sh <印> 230 を繰り返す・印の外の覗きは 1 本の仕事につき 30 分に 1 回まで・Monitor なし。回数を分けて自己申告する。
+
+[追記 1]（S11 を読んだ後・新しい腕の前に書く＝結果の後の追記と名乗る）
+ - 予言の外れ：[8] は止める線 0 と予言したが、S11（種 11〜20・dw 1）の名目 GDP の 1 四半期 100 倍に建国の直後でない 2 件（種 11 ポルトガル 1944 Q644 618.1 倍・種 18 バタヴィア王国 1884 Q404 168.5 倍・どちらも内戦で人口が 1 四半期だけ約 1.3% に落ちて次の四半期に戻る〈分母の痩せ〉＝c65md と同じ型）。同じ台本で a11（m826 の S11・dw 0）0・Z11 0・M 0。
+ - 判定：c66dw は採らない（止める線・RULE47・★(826) の型＝物差しの直しは作者の答え〔§0-2 ★(826) ①〕まで当てない）。7eef43e6（旗の既定 1・DormantZeroFields から外す）を revert して旗 0 の器と計器 cpwdft_s と試験と台本だけ入れる。基線は m826 のまま。
+ - 腕 Z′（revert の後の最終の木・coef なし）＝ident m832f。予言〈判定: 恒等〉（m826 と）・宣言は Z と同じ（--added-tables cgrp,cpwdft --removed-tables habitcap_s,habitbal_s --grown-ok silverwt_s --known-extra cearn_s 3 列 --tests-delta 7）・cearn_remap.py で〈写しても違う 0〉・テスト 2257／3。生は keep_832/base_ins（INSRAW）。N1・N2・P・P5 は新しい基線を作らないので要らない（回さない）。
+ - 採らなかった腕の生：c66dw の腕 B（c66dw_work/out_c66dwB_10）→ keep_832_rej/c66dwB_10・S11 → keep_832_rej/mS_s11。M の生は c66dw の腕 B と共通の表が全てバイト一致（cmpraw 978/978・cmpprefix・flowcmp・cearn_remap）＝要約を残して消す。
