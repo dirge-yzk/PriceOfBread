@@ -76,3 +76,30 @@
  ・silverst_s の E・L の行は、seq＞1 のとき前の注入の走査の集合（計器が自分で持つ Region の参照の集合）との差。silverwt_s の enterCount・leaveCount は同じ集合の差の数。
  ・足した試験は 4 本（SilverstInstrumentTests.cs：Fact 2＋Theory 1〔旗 0 と旗 1 の 2 行〕＝--list-tests で 4）＝tests-delta +4。
  ・ident の宣言：--added-tables silverst_s --grown-ok silverwt_s --tests-delta 4。
+
+[10] 結果（腕の後・[1]〜[9] の規則は変えていない。書いたモデル Claude Sonnet 5.5）
+ ・恒等の判定（測った種で一致）：`ident.sh run c65sv --tree D:/PoB_work/wt_c65sv --added-tables silverst_s --grown-ok silverwt_s --tests-delta 4 --saveleak` ＝〈判定: 恒等〉（measurements/m823_20261104_ident_c65sv.txt・測った木 HEAD d63eef8d・SOURCE-HASH 5b16f758790f1290）。
+   素の 5 種は b5_20261103_m797 と全行バイト一致（184 行）・.cost 推定 220.1 秒（件数の行 29 本一致）／計器つき 10 種は b10_20261103_m797_ins と全行バイト一致（185 行）・.cost 推定 221.2 秒（一致）／
+   計器の表：基準 999 本・腕 1009 本・バイト一致 959・既知の揺れ 30・宣言された増減 20（silverst_s 10 本が新しい・silverwt_s 10 本が +24 列）／注視の表一致（4636 行）／テスト Category!=FullLength 2230（2226+4）・FullLength 3／savetest OK・leakhunt 完走（保存則違反なし）。
+   予言 0（エンジンの算術を変えない）どおり。成績表は measurements/b5_20261104_c65svz・b10_20261104_c65svz_ins（.manifest・.cost つき）。
+ ・足した列（silverwt_s の末尾 24 列）：relMinRefIndex・relMinValIndex・relMaxRefIndex・minRefMaxShare・minValMaxShare・maxRefMaxShare・minRefOneSidedShare・minValOneSidedShare・maxRefOneSidedShare・enterShareEqual・enterShareW1・enterShareMinRef・enterShareMinVal・enterShareMaxRef・enterCount・leaveCount・minRefZeroCount・minValZeroCount・selfStateCount・selfW1Sum・selfRelW1Index・stateCountDiff・w1SumDiff・relW1ReadDiff。
+   新しい表 silverst_s（28 列・1 種 約 1.1 万行・10 種で 112,486 行）。自走査の読みの差（stateCountDiff・w1SumDiff・relW1ReadDiff）は 6,880 注入の全てで 0（エンジンが渡した値とビット一致）。
+ ・試験：SilverstInstrumentTests 4 本（SilverstInstrumentTests.cs:11・:56〔Theory 旗 0／旗 1 の 2 行〕・:94）。突然変異 8 本が全て赤（measurements/m823_20261104_unit_mutations.txt）。㉘の番人 5 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests ほか SilverParityDemandWeightedTests）＝140 本緑・書き換えた番人 0（予言どおり）。
+ ・紙の判定 P1〜P4（旗 0 の盤面・計器つき 10 種・6,880 注入〔助走 200・本走 6,680〕・scripts/instruments/c65sv/paper823.py の出力 measurements/m823_20261104/paper823_out.txt）
+     形           | P1 本走の挟み外 | P2 助走の片側の票の最大 | P3 本走の入った州の票の最大 | P4 1 州＞0.5 の割合
+     A′（min・参照価格建て） | 0／6,680       | 0.0049                 | 0.0035                     | 0.0000      → 全て通る
+     A（min・局所の値段建て） | 0／6,680       | 0.0046                 | 0.0032                     | 0.0000      → 全て通る
+     対照 等重み（旗 0）  | 0              | 0.4118（落ちる）       | 0.0230                     | —
+     対照 w1（金鉱の需要）| 6（落ちる）    | 0.0023                 | 0.6767（落ちる）           | 0.0031
+     対照 二乗           | 24（落ちる）   | —                      | —                          | 0.4068（落ちる）
+     対照 産出           | 6（落ちる）    | —                      | —                          | 0.0068
+     対照 max 版         | 6（落ちる）    | 0.3596（落ちる）       | 0.5292（落ちる）           | 0.0055
+   選び方（[5] で固定）の結論＝A′（A′ が全て通った）。A も全て通る。4 つの門のどれも少なくとも 1 本の対照で落ちる（P1＝w1・二乗・産出・max／P2＝等重み・max／P3＝w1・max／P4＝二乗）＝何でも通る門ではない。max 版が P1〜P3 で落ちる＝min と max を区別できる（形に固有の誤りを拾う）。P4 は二乗の型だけを拾う上限の門（w1 も max 版も通る）。
+   本走の rel：A′ p5 0.847・p50 0.974・p95 1.051・最小 0.692・最大 1.416（等重み 0.871／0.988／1.082／0.742／1.306・w1 は最小 0.132・最大 3.167）。1 州の最大の票の割合：A′ p50 0.037・p99 0.085・最大 0.140（w1 は 0.085／0.468／0.581）。
+   w1 の挟み外 6 注入は (807)・(816) の紙と同じ（種 3 の 1788 と 1925・種 5・9・10 の 1788〜89）。同じ 6 注入の A′ は 0.961〜1.050・A は 0.941〜1.029（挟みの内で等重みに近い）。
+   ★(816) の問い（票の外に居た州の名）に答える：silverst_s で 1786〜1790 年に入った州（w1 の票の割合＞0.1・43 件）は全て英＝中核ベンガル 16・内陸ベンガル 12・マドラス 11・オーストラリア 2・南アフリカ 2。入った時の銀の需要の中央値は 2.4e-4（銀の市場が生き返っただけで、ほぼ死んでいる）・金鉱の需要は 3,900〜7,800。
+   金本位の州の T1 の行（10,465 行）で、造幣の月平均の引き取り÷金鉱の需要の中央値は 0.986（p10 0.916・p90 1.037）＝(816) の上限の見積もり 7〜8 割より大きく、w1 の票はほぼ全て造幣の買い。A′ の票の上位は清・マラータ同盟・シク連邦・アメリカなど（銀と金鉱の両側が厚い銀本位の州）。
+   入った州の法の別：銀本位 3,280・金本位 1,427・不換 11。入った州の A′ の票の割合の最大は 3.3e-5。
+ ・限界（自己申告）：反実仮想は旗 0 の盤面（エンジンの rel は等重み）で数えた。A′ に替えると rel が動き、金銀の価格・造幣・通貨制度の選好が動く＝腕 B の軌道は替わる（紙は軌道の替わりを見ない）。A・A′・max 版は計器の定義。票 0 の州（片側が無い）は A′・A とも 1 注入あたり平均 1.83（最大 82）で、そのぶん票の数は減る。
+ ・結論（次の波の挙動の線の素案・AI の案・確証なし）：旗 SilverParityDemandWeighted の値を 2（A′）とする案。重み＝min(dAg×RefPrices[銀], dAu×RefPrices[金鉱])（SilverMinWeight）。新しい係数 0・新しい状態 0。門＝助走の片側の票 ≦0.05（W1）・本走の挟み外 0（W2b）・入った州の票 ≦0.05（E1）・1 州＞0.5 の割合 ≦0.01（U1）・計器が自走査で組んだ重みとエンジンの重みのビット一致（S1）。
+   旗 0 の盤面で A′ の余裕は P2 10 倍・P3 14 倍。腕 B で軌道が替わるので、門は腕 B の生で読み直す（紙の数は予言にとどめ、門の数に写さない）。開幕の金鉱の市場のデータ（産出が需要の約 6 倍）は触らない（根 D は作者に聞く物のまま）。
