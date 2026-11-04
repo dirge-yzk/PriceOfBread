@@ -1,0 +1,22 @@
+両方にある表 961（外した頭 burscan_s,clock_s,flow_s,silverwt_s）・同じ 961・違う 0・新にだけ 40・旧にだけ 0
+  新にだけ cearn_s1.tsv
+  新にだけ cearn_s10.tsv
+  新にだけ cearn_s2.tsv
+  新にだけ cearn_s3.tsv
+  新にだけ cearn_s4.tsv
+  新にだけ cearn_s5.tsv
+  新にだけ cearn_s6.tsv
+  新にだけ cearn_s7.tsv
+  新にだけ cearn_s8.tsv
+  新にだけ cearn_s9.tsv
+  新にだけ cpmed_s1.tsv
+  新にだけ cpmed_s10.tsv
+  新にだけ cpmed_s2.tsv
+  新にだけ cpmed_s3.tsv
+  新にだけ cpmed_s4.tsv
+  新にだけ cpmed_s5.tsv
+  新にだけ cpmed_s6.tsv
+  新にだけ cpmed_s7.tsv
+  新にだけ cpmed_s8.tsv
+  新にだけ cpmed_s9.tsv
+判定: 不一致
