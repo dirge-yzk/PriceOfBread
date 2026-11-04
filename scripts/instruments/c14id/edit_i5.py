@@ -70,7 +70,7 @@ elif grp == 'A2t':   # InheritedStateIntentDrop の試験
     E.edit(f, 'static (MultiNationSim Sim, World Uk, World Fr, Region R, Region Other) Setup(double flag)', 'static (MultiNationSim Sim, World Uk, World Fr, Region R, Region Other) Setup()')
     E.edit(f, '        uk.Coef.InheritedStateIntentDrop = flag; fr.Coef.InheritedStateIntentDrop = flag;' + NL, '')   # ③
     E.replace_all(f, 'Setup(1.0)', 'Setup()', 7)
-    E.edit(f, '        foreach (double flag in new[] { 1.0, 0.0 })' + NL + '        {' + NL, '        {' + NL)   # ① 旗 0 の半分
+    E.remove_line(f, '        foreach (double flag in ')   # ① 旗 0 の半分（旗の 2 値を回す foreach の頭の行だけを消し、続く { } は素のブロックとして残す）
     E.edit(f, 'var (sim, uk, fr, r, _) = Setup(flag);', 'var (sim, uk, fr, r, _) = Setup();')
     E.edit(f, 'Assert.Equal(flag > 0 ? nw : old, used);                // 実際＝旗 1 で新・旗 0 で旧', 'Assert.Equal(nw, used);                // 実際＝新')   # ②
     E.edit(T + 'DormantIdentityTests.cs', '        "NavalCedeFleetReturn",   // (817) c14id：I5 の旗の焼き込み（割譲で艦を送り手の首都の州へ戻す・既定 1 の経路だけ残した）' + NL,
