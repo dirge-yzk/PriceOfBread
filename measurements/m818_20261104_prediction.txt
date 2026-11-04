@@ -1,0 +1,37 @@
+(818) 合流の予言（波64・merge の前にコミット・書いたモデル Claude Opus 5.5）
+基点 main 8f558f9c（origin/main と同じ・fetch 済み）。作者「いったん全て推奨で」「全て推奨でよい」「止めずに作業してください」で推奨を採って進める。
+
+■ 入れる線と外す線
+- c14id (817)：入れる（恒等の線・線の ident〈判定: 恒等〉＝測った種で一致・枝の先端 cfa36ba0）。
+- c14fl (815)：挙動の線としては採らない（線の止める線＝機構のテスト FiscalTests.cs:651 の赤）。旗 0 の器（旗 CapitalCouponUnpaidWriteDown 既定 0）・計器 cpwd_s・cpworld_s・試験 CapitalCouponWriteDownTests 4 本・台本・measurements を (802)(808) の型で入れる（枝の先端 d2f919cb・旗の既定は 43f39b4b で 0 へ戻した・SimCore と Tests は e0518931 とバイトで同じ・旗 0 のフルスイート赤 0）。
+- c14ce (814)・c14sv (816)：読むだけ＝台本と表を scripts/instruments/r814/・r816/・measurements/m814_20261104/・m816_20261104/ へ写す。
+- 挙動を変える線は 0 本＝基線は m797 のまま（S11・N1・N2 は回さない＝★(790) の型）。
+
+■ ★(773) の grep（merge の前に済ませた）
+- c14id が消す 3 名（NavalCedeFleetReturn・InheritedStateIntentDrop・HcdColonyCessionDistance）：c14fl の + 行のコードに 0（出たのは .manifest のファイル名の行 3 本だけ）。
+- c14fl が消す名前：0（− 行は UnitTypeTests の宣言 65 の行だけ）。旗 CapitalCouponUnpaidWriteDown は c14id の木に 0。
+- git merge-tree origin/c14id origin/c14fl：衝突 0。重なるファイル＝Coefficients.cs・DormantIdentityTests.cs・UnitTypeTests.cs（別の行）。
+- 署名の行：c14fl 17/17・c14id 13/13。
+
+■ 合わせた木で何が動くか（予言）
+- エンジンの軌道：動かない（c14id は比べの削除だけ・c14fl は旗 0 で落とす行の 1 命令も通らない・計器は Instruments.On のときだけで読むだけ）。
+- 素の 5 種の成績表：b5_20261103_m797 と名乗り行を除いて全行バイト一致（184 行）。
+- 計器つき 10 種の成績表：b10_20261103_m797_ins と全行バイト一致（185 行）。
+- .cost：件数の行 29 本一致・推定 220.1／221.2 秒。
+- 計器の表：基準 979 本（keep_813/base_ins）・腕 999 本・バイト一致 949・既知の揺れ 30・宣言 20（cpwd_s・cpworld_s×10 種）。
+- 注視の表：タグの行以外 4636 行一致。
+- NG：101・新しい 0・外れた 0（基準 rd:measurements/ng797_20261103:m797）。
+- 試験の数：Category!=FullLength 2226（2220＋c14id 2〔−3＋5〕＋c14fl 4）・FullLength 3。
+- ソースを走査する番人：UnitTypeTests の宣言 66（c14fl の +1）・RetiredFields +3（c14id）・DormantZeroFields +1（c14fl の旗 0）・WriterRatchetTests の表 0・route_anchors.tsv の鍵 0・工業化度の読み手の許可表 0。
+- savetest OK・leakhunt 保存則違反なし。
+
+■ 止める線の段（合わせた木で読む＝恒等なら m797 と同じ字）
+- 破綻 0・価格水準の 1 四半期 100 倍以上 0・名目 GDP の 1 四半期 100 倍以上 2（建国の直後の 2 件・基準と同じ）・1e10 倍以上 0・空洞化 1/10 未満 0 件・推定 221.2 秒（上限 248.5）・機構のテストの赤 0（フルスイート 2226／3）。
+- 挙動の線を採らない＝空洞化の件ごとの振り分けの表は空（c14fl の腕 B の 1/10 未満 0 件）。
+
+■ 記録の段（採否に使わない）
+- 1/4 未満 6 件・英の国債の不履行 M 4/10（N1 5・N2 4・S11 3＝(813) の数え直し）・開幕の 1000 倍以上 0・名目 GDP 0 の続き 0。
+- 合わせた木の ident の計器つき 10 種の生を keep_818/base_ins へ（計器の表が 2 本増える＝INSRAW を移す）。keep_797・keep_813 は残す。c14fl の腕 B の生は keep_818_rej/c14flB_10 へ。
+
+■ 予言が外れたときの扱い
+- ident が〈不一致〉なら、どちらの線が原因かを各線の旗 0 の木で切り分け、原因の線を外す（合流はエンジンの .cs を直さない）。
