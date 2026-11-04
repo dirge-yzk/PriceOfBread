@@ -60,7 +60,7 @@ public static class PopTables
             Privileges.Tithe => "国教",
             Privileges.VestedOffice => "官僚制度",
             Privileges.Seigneurial => "農奴解放",
-            Privileges.Monopoly => c.AntitrustGate > 0 ? "独占禁止" : null,   // ゲート 0＝独占レントの係数は常に 1＝法は効かない
+            Privileges.Monopoly => "独占禁止",
             Privileges.Guild => "同業組合",
             _ => null,
         };
@@ -217,7 +217,7 @@ public static class PopTables
 
     /// <summary>支配度の 4 区分（国家・在地・外国・無統治）。区分は州ごとに毎四半期 Politics.CheckSecession が目標へ寄せる live な量＝そのまま出す（0% は 0% と出す）。
     /// 4 要素でない州だけ、国家＝支配度・残りは無統治。</summary>
-    private static IReadOnlyList<(string Name, double Share)> RuleParts(Region rg)
+    public static IReadOnlyList<(string Name, double Share)> RuleParts(Region rg)
     {
         double dom, loc = 0, foreign = 0, ungov = 0;
         if (rg.Rule.Length == 4)
