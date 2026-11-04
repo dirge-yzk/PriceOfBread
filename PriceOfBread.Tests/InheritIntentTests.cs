@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>(774) c7sw 継いだ着工の意志の取り下げ：州が別の国へ移るとき（割譲・分離独立・再併合＝<see cref="Territory.TransferRegion"/>）、（旗 <c>InheritedStateIntentDrop</c> は (817) で焼き込み）
 /// 移る州の生産者の <c>StateTarget</c>（国営工場を建てる意志）を今の棟数まで下げる。手の盤面で期待値を直に書く（期待値は規則の関数を呼ばず、棟数と意志のリテラルから作る）。
-/// 突然変異（一時的に壊して赤を確かめる・結果は measurements/m774_*）：Math.Min を外して 0 にする→③と①が赤・旗を読まない→①が赤・毎月全ての州に当てる→②が赤。
+/// 突然変異（一時的に壊して赤を確かめる・結果は measurements/m774_*）：Math.Min を外して 0 にする→③と①が赤・毎月全ての州に当てる→②が赤（旗を読まない変異は、旗を (817) で焼き込んだので無い＝旗 0 の経路の試験 ① の半分も消えた）。
 /// 計器の全体の口（<c>Instruments.Configure</c>）を立てる試験があるので、並列を外す集まり〈Instruments〉に入れた。</summary>
 [Collection("Instruments")]
 public class InheritIntentTests
@@ -79,7 +79,7 @@ public class InheritIntentTests
     }
 
     [Fact]
-    public void 計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい()
+    public void 計器の表は旧と新を同じ盤面で並べ_実際が新に等しい()
     {
         {
             string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_inherit_" + Guid.NewGuid().ToString("N"));

@@ -71,7 +71,7 @@ public static partial class Instruments
 
     sealed class WState
     {
-        public double FleetMovedOutCeded, FleetReceivedCeded, FleetReturned;   // ★(688) 線 navf5：割譲で艦ごと出ていった隻数（送り手）・割譲で艦を受け取った隻数（受け手）・旗 NavalCedeFleetReturn で送り手の首都の州へ戻した隻数（送り手）の累計（読むだけ・World ごと）
+        public double FleetMovedOutCeded, FleetReceivedCeded, FleetReturned;   // ★(688) 線 navf5：割譲で艦ごと出ていった隻数（送り手）・割譲で艦を受け取った隻数（受け手）・割譲で送り手の首都の州へ戻した隻数（送り手・旗 NavalCedeFleetReturn は (817) で焼き込み）の累計（読むだけ・World ごと）
         public double FleetMovedOutHome, FleetMovedOutColonial;   // ★(669) 線 navf3：この国（送り手）の州が割譲・分離独立などで FleetUnits ごと出ていった隻数の累計を、出た州の格（移る前の Tier）で分けた（読むだけ・World ごと）
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
@@ -1211,7 +1211,7 @@ public static partial class Instruments
     /// <summary>移し方の1本（<see cref="World.Transfer"/>）と人の移し方の1本（<see cref="Pop.Blend"/>）の入口：呼び出しの位置（コンパイル時の定数・[CallerFilePath]／[CallerLineNumber]）を、続く貯蓄の書き込みの経路名にする。</summary>
     internal static void Route(string file, int line, char fromSide, char toSide) { _routeFile = file; _routeLine = line; _routeFrom = fromSide; _routeTo = toSide; }
 
-    internal static void FleetReturned(World from, double ships) => S(from).FleetReturned += ships;   // ★(688) 線 navf5：割譲のとき送り手の首都の州へ戻した艦の隻数（旗 NavalCedeFleetReturn が正のときだけ呼ばれる）
+    internal static void FleetReturned(World from, double ships) => S(from).FleetReturned += ships;   // ★(688) 線 navf5：割譲のとき送り手の首都の州へ戻した艦の隻数（割譲で送り手に州が残るときだけ呼ばれる・旗 NavalCedeFleetReturn は (817) で焼き込み）
 
     /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
     internal static void RegionMoved(World from, World? to, Region r, Territory.Rehoming how)
@@ -1221,7 +1221,7 @@ public static partial class Instruments
             double sum = 0; foreach (double x in fu) sum += x;
             var sf = S(from);
             if (r.Tier == RegionTier.Colonial) sf.FleetMovedOutColonial += sum; else sf.FleetMovedOutHome += sum;
-            if (how == Territory.Rehoming.Ceded && from.Regions.Count > 0) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：送り手が残る割譲だけの内訳（送り手・受け手）＝旗 NavalCedeFleetReturn が戻す対象と同じ集合（送り手の最後の州の割譲は国が消える＝艦ごと渡るので別。Remove の後なので Count は残る州の数）
+            if (how == Territory.Rehoming.Ceded && from.Regions.Count > 0) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：送り手が残る割譲だけの内訳（送り手・受け手）＝割譲で艦を戻す対象と同じ集合（旗 NavalCedeFleetReturn は (817) で焼き込み・送り手の最後の州の割譲は国が消える＝艦ごと渡るので別。Remove の後なので Count は残る州の数）
         }
         foreach (var p in r.Pops) { Sav(p, SavKind.RegionOut, -p.Savings.Value); PopOwner.Remove(p); }
         if (to is null) return;
