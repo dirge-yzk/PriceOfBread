@@ -1,0 +1,75 @@
+(843) c68ui 事前登録（波68・恒等の線・App／SimCore/Display／Runner に触れてよい唯一の線）
+基準＝m839（eccd9155・測った木 bd1fb979）。書いたモデル＝Claude Sonnet 5.5。腕を回す前・コードを変える前に書く最初のコミット。
+
+[1] 恒等の線・予言 0
+  挙動を変えない。合否＝素の 5 種（b5_20261105_m839）・計器つき 10 種（b10_20261105_m839_ins）が名乗り行を除いて全行一致。
+  計器の表の差は宣言だけ（下の [4]）。採否は〈判定: 恒等〉。浮動小数の順序が変わる箇所は [3] に列挙し、同じ盤面で旧と新が食い違う数を数える（0 でなければその箇所を外す）。
+  新しい係数 0・新しい状態 0。
+
+[2] 消す物と残す物（担当が grep した結果）
+  入れる（11 項目のうち）：
+  (1) 技術の死んだ項：SelfPlay.cs:218 UModTechWeight・:220 UIndTechWeight・ChooseStance の techGap（:652 の 0.0 の局所変数と :659〜660 の項）。
+      読み手：SimCore は SelfPlay.cs だけ。App・Runner・Tests・scripts に読み手 0（grep -rn 'TechWeight\|techGap' の結果は SelfPlay.cs と Coefficients.cs の墓標の注だけ）。
+      MultiNationSim.cs:868 の gap は書き込みを残す（ExternalPressureInlandFactor の読み手を保つ）。
+  (2) I4 tl 段6：EraOff（Coefficients.cs:2860）・TechMultipliersOff（:2853）・TechGateByDiscovery（:2855）を既定 1 の枝だけ残して焼く。
+      読み手：EraOff＝Coefficients.cs:3497 EraFactor・Display/DiscoveryTables.cs:45・InternationalMarket.cs:180・試験 DiscoveryScoreTests.cs:601／FuelOperatingCostTests（4）／TechLevelRemovalTests（4）／DormantIdentityTests（1）。
+      TechMultipliersOff＝ArmyShape.cs:296・Diplomacy.cs:2279・Display/FiscalTables.cs:107・World.cs:1940・試験 MilitaryTests（4）／TechLevelRemovalTests（6）／DormantIdentityTests（1）。
+      TechGateByDiscovery＝Megaprojects.cs:87・:141・:148・MultiNationSim.cs:1371・Runner/PlayHarness.cs:919・試験 ConservationTests（1）／PlayHarnessTests（2）／TechLevelRemovalTests（4）／DormantIdentityTests（1）。
+      焼くと最後の読み手を失う係数が出る＝(824) の前例（番人 DormantIdentityTests が読み手の無い係数を赤にする）。担当は焼いた後に番人を回し、出た係数は消して墓標を Coefficients.cs に足す（消す係数の名前は実装ログに列挙）。
+  (3) I3 の残り 4 本：MinimumWageLawGate（:3326）・InheritanceLawGate（:3331）・AntitrustGate（:3183）・NationalizationGate（:3190）。
+      読み手：Display/LawCatalog.cs・Display/LawTables.cs・Display/PopTables.cs・Government.cs・Parliament.cs・PolicyPreferences.cs・Politics.cs・SelfPlay.cs・Simulation.cs・MarketFlow.cs（注）・Policy.cs/World.cs/Model.cs（注）・InstrumentsLw.cs（注のみ）。
+      試験：LaborMarketFormTests（11）・MinimumWageAiFloorTests（3）・LaborClosedTests（1）・InheritanceLawTests（3）・PoliticsTablesTests（3）・DormantIdentityTests。
+  (4) I2 の造幣の組：MintPriceFloorGate（:3420）＋StandardMetalMintGate（:3444）。
+      先に Runner/Program.cs:1428〜1429 の印字を外す。FullChainTests.cs:49〜50 の保存則の番人（旗 0 の旧い産出比例の経路をピンして鋳造を起こす）は、床の盤面（平価未満の価格を置く）へ移し、赤→緑を確かめてから焼く。
+      MoneyThemeTests.cs:79・StateFactoryTests.cs:512 は前提の Assert（> 0）＝焼いたら前提の文だけ消す（★(743) の ② ③ に当たらなければ止めて報告）。
+      焼いて MintGold の !floor の枝が死ぬ（frac・mintScale・totOut）。GoldMintFraction などの読み手が減る場合は番人の指示に従う。
+  (5) I1 経済の旗：(796) の表 3 の本文が repo に無い（(813) の注）ため、pureflags.tsv で〈pure〉かつ今も Coefficients.cs に残り、読み手が経済のファイルだけの旗から選ぶ。
+      入れる：ServiceClosedFixedPoint（MarketFlow.cs:218）・LaborClosedForm（MarketFlow.cs:162）・HouseholdCreditStapleOnly（EconomyStep.cs:1762）・StapleElasticityZero（EconomyStep.cs:1627・:1699）・
+              StateEduDemandInFront（EconomyStep.cs:1887）・ArmsStockEnabled（EconomyStep.cs:517・:1238・:2413・App GameViewModel.Politics.cs:526）・BaseArmsStockEnabled（EconomyStep.cs:2373・:2489・Runner/Program.cs:487・:503・App GameViewModel.Politics.cs:511・:531）。
+      入れない（理由）：HarvestShortfallToMarket・BuildingGoodBundle（InstrumentsFd.cs・InstrumentsFb.cs が読む＝Instruments*.cs が読む旗）／ClearingIdle*（InstrumentsScope.cs が読む）／LaborFloorOffGate・LaborBandFloorOffGate（InstrumentsLw.cs が読む）／
+              ScarceMineralOnlySulfur（0〜4 の段の値＝二値の旗でない）／IndustrializationOff（試験 5 ファイル・確証なし・別の線）／MegaprojectEnabled・BattleLogEnabled（ゲーム内の切り替えか未確認）／I5 の港・移民・都市の旗／SilverParityFromRatio（c67sv の隣）。
+      13 本に届かない分（7 本）は報告に〈残り〉と書く。
+  (6) B12：DistanceMarginScale（Coefficients.cs:753・既定 1.0）。読み手：BilateralMarket.cs:844・Discovery.cs:380・:443・:1001・InstrumentsTransport.cs:231（trstat の Z 行）・Runner/Program.cs:1354・試験 DiscoveryScoreTests.cs（3）。
+      InstrumentsTransport.cs:231 の Z 行を消す＝trstat の行が 1 本減る（宣言：行の削除。ident に表の行の削除の宣言が無いため、trstat の差が出たらこの 1 行の差だけと数えて報告に書く）。
+      x*1.0 の削除＝ビット同一（IEEE）。
+  (7) Display/FiscalTables.cs:229 の通貨改革の釦の条件を Fiscal.CurrencyMemoryBroken へ（(799) の反証役）。画面だけ（シミュは読まない）。
+  (8) World.InsolvencyQuarters（World.cs:1103）→ InsolvencyMonths。値と型（double）は変えない＝名前の直し。読み手：Fiscal.cs（:266・:344〜363）・Instruments.cs:1543（列 insolvencyMonths の値）・App GameViewModel.Fiscal.cs（3）・試験 FiscalTests（7）・TreasuryLedgerTests（5）。
+      scripts/instruments/m201・m204・m207 は古い注入の台本（ソースの文字列を直す）＝触れず記録。
+  (10) 台帳の名乗り：MultiNationSim.cs の CostLedger.Names の文字列のうち、焼く旗の名前を書いた物と、App の GameViewModel.Politics.cs の技術の旗の名の注。
+      .cost の行の名前が変わるなら ident に --cost-allow <行の名前の頭> を足す（結果の前に書く＝下の [4]）。
+  (11) 支配度の地図の塗りを 1−Rule[0]（国家でない割合）へ（App のみ）。呼び名を〈帰属〉に分けるのは画面の文言だけ。説明文を書かない・漢字 1 字の略称を使わない。--uishot 1 枚を D:/PoB_work/c68ui_shots に置く。
+  入れない（理由を先に書く）：
+  (9) I13 PowerShares.DebtGrip の倒し先 0→1：(804) の記録＝基線 keep_802/base_ins で到達する枝（種 3 マカッサル共和国 1946〜の 3 四半期）＝区分 II（挙動が変わる）。恒等の線に入れない（measurements/m804_20261103/debtgrip_branch.txt）。報告に〈残り（区分 II）〉と書く。
+  入れない物（指示どおり）：I5・I8・I9・I10〜I12／計器の R 書式／Territory.cs・InstrumentsRule.cs・InstrumentsCearn.cs・InstrumentsSubst.cs・InstrumentsCornint.cs・InstrumentsSilverWeight.cs／Coefficients.cs:1025〜1037／:3440〜3442 の c67sv の旗／GameViewModel.Refresh.cs:360／挙動の変更／画面の説明文。
+
+  他の線との重なり（grep で確かめた）：
+    Coefficients.cs＝c68uh は :1031 の直後に 1 行足す（私は 1025〜1037 に触れない）。DormantIdentityTests.cs＝c68uh は旗の表に 1 行足す・私は焼いた旗の行を外す＝合流が手で解く。
+    Instruments.cs＝私は insolvencyMonths の読み手 1 行（InsolvencyQuarters の名前だけ）。InstrumentsTransport.cs＝Z 行 1 本の削除。
+    MultiNationSim.cs＝台帳の名乗りの文字列だけ。Territory.cs＝触れない（Holding の読み手は c68uh）。
+
+[3] 足す試験と突然変異・走査の番人の点検・件数の予言
+  足す試験（既定の盤面の主張）：
+    T1 FullChainTests に床の盤面の保存則の番人（平価未満の価格を置いて鋳造を起こす・突然変異＝鋳造の記帳を外す→赤）を、旧の旗 0 の番人の置き換えとして。
+    T2 InsolvencyMonths の単位の試験（換算を 1 倍にする突然変異＝払えなかった割合の月ごとの累計を 3 倍にする→FiscalTests の既存の Assert が赤）。既存の試験が守っている＝新しい試験は足さない。
+    T3 焼いた旗ごとの旗 0 の試験（陰性対照）は消す（★(743) ①）。消す本数は焼いた後に数えて追記に書く（結果の前）。
+  突然変異（コードを壊して赤を確かめる・使い捨ての木）：M1 焼いた旗の 1 本を旧い経路の値で書く→ident で不一致か番人が赤／M2 FullChainTests の床の盤面の番人の床を外す→赤／M3 InsolvencyMonths の換算を 1 倍にする→FiscalTests が赤。
+  走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests の 6 組を器のコミットの直後に隔離ビルド（--artifacts-path D:/PoB_work/c68ui_art）で回す。
+    点検の grep：工業化度の読み手の許可表（IndustrializationReaderTests.Allowed）に焼く旗の読み手が入っていないか／`new MoneyStock(` の件数／route_anchors.tsv の鍵の行／WriterRatchetTests の宣言の表（EconomyStep.cs・Simulation.cs のソースの行を数える表があるか）を焼いた後に grep し、変わる件数は追記へ（結果の前）。
+  浮動小数の順序が変わる箇所：
+    (1) uMod = 1.0*0.0 + a + b → a + b（0.0 を足すのが消える・a が −0.0 のときだけ符号が違う＝a は非負）。uInd = x + 0.5*0.0 → x（同じ）。
+    (2) World.cs:1940 の `+ (… ? 0.0 : …)` の 0.0 を足す項の削除（x + 0.0 → x・同じ理由）。
+    (6) c0.TransportMargin * (1.0 + 1.0 * kmR) → c0.TransportMargin * (1.0 + kmR)・d / Norm の前の 1.0 * の削除（x*1.0 は恒等）。
+    それ以外に掛け算・足し算の順を変える箇所は作らない（旗の枝の削除だけ）。食い違いの数は ident の判定が 0 であること（成績表 2 枚が全行一致）で数える。
+
+[4] 恒等の基準と宣言（結果の前）
+  ident c68ui：素の 5 種・計器つき 10 種を m839 に当てる。--tests-delta は焼いた旗の旗 0 の試験の削除本数（負の数）と足した試験の本数の和＝[3] の追記に書く。
+  計器の表の宣言：
+    - trstat（InstrumentsTransport.cs）の Z 行 1 本の削除が表の行の差になる場合のみ、その 1 行の差と数える（宣言が無いなら不一致になるため、先に ident の対応する選択肢を確かめる）。
+    - flow_s の sourceLine は動いてよい（ident の既定）。
+  cearn_s の経路の 3 列（★(832)）：Fiscal.cs・EconomyStep.cs・Simulation.cs・Government.cs の行が動く＝経路の名（ファイル:行）は動く。宣言＝〈cearn_s の経路の名の行番号だけが違い、写像 BASE_COMMIT bd1fb979 と cearn_remap.py で写すと違う 0〉。
+  .cost の行の名前：[2] (10) で変わる行の頭を --cost-allow に書く（変わらなければ付けない）。
+  D: の空き：腕を起こす前に arms.sh free と空きの両方を見る（20GB 未満なら起こさない）。
+
+[5] 〈判定: 恒等〉なら採る。そうでなければ、その変更を外して報告に回す（一致しない変更を残さない）。
+
+[6] 使う計算量：0（挙動を変えない・推定は m839 の 220.8 秒のまま）。
