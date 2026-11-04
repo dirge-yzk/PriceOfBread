@@ -100,8 +100,8 @@ for seed in seeds:
             v = fl(r['savingsPerCapitaOverNation']); b = fl(r['belowSelfCostShare'])
             if math.isfinite(v): cmp_pc.append(v)
             if math.isfinite(b): cmp_bsc.append(b)
-        contrast_rows.append([str(seed), reg, '%.3g' % pcm, '%.3f' % bscm, str(len(cmp_pc)), '%.3g' % (statistics.median(cmp_pc) if cmp_pc else float('nan')),
-                              '%.3f' % (statistics.median(cmp_bsc) if cmp_bsc else float('nan'))])
+        contrast_rows.append([str(seed), reg, '%.3g' % pcm, '%.3f' % bscm, str(len(cmp_pc)), ('%.3g' % statistics.median(cmp_pc)) if cmp_pc else '対照なし',
+                              ('%.3f' % statistics.median(cmp_bsc)) if cmp_bsc else '対照なし'])
 H = ['seed','region','nation','y0','y1','nQ','closure','kstar','kstarSum','outTax','returnR','pollClaim','gInPerMonth','floorShare','belowSelfCostMed','perCapOverNationMed','frozenLongestQ','form','formsAll'] + OUTS + ['marketNet']
 with open(os.path.join(outdir, 'forms.tsv'), 'w', encoding='utf-8', newline='\n') as o:
     o.write('\t'.join(H) + '\n'); [o.write('\t'.join(x) + '\n') for x in forms]
