@@ -1,0 +1,48 @@
+(835) c67id 事前登録 2026-11-04（腕の前・最初のコミット）。木＝D:/PoB_work/wt_c67id・枝 c67id（f32502c3 から）。基準＝m826（b5_20261104_m826・b10_20261104_m826_ins・計器の生 D:/PoB_work/keep_832/base_ins）。
+
+[0] 形：恒等の線（尾でも入口でもない＝エンジンの挙動を変えない・読み手と試験と道具と注だけ）。新しい係数 0・新しい状態 0。出発＝§00〈次の波（波67〜）〉③ と (830)(827)(828)(832) の反証役の残り。答え待ちではない。
+
+[1] 予言 0（恒等）：SimCore の .cs は注の直し（Coefficients.cs:763・:2247／InstrumentsInheritIntent.cs:4／InstrumentsSilverParity.cs:10）だけ＝コードの行は 1 行も変えない。
+  - 素の 5 種・計器つき 10 種は m826 と名乗り行を除いて全行バイト一致。計器の表の差は宣言 0（cearn_s の経路の列は注の直しで行番号が動かないので、バイト一致のはず）。
+  - 行数が変わる注（InstrumentsSilverParity.cs:10）は行を足さず同じ行の中で直す＝cearn_s の経路の名（Coefficients.cs・InstrumentsCearn.cs などへの〈ファイル:行〉）が動かない予言。もし動いたら新しい規則（[3] の 5）が写して一致にする＝その場合も〈判定: 恒等〉。
+  - テストの数：Category!=FullLength 2257 → 2259（HabitTests に Fact 1 本戻す＋CapitalCouponWriteDownTests に Fact 1 本足す。CoefficientRelationTests は Assert 3 行を外すだけで本数は変わらない・HabitLogisticTests は改名だけ）。ident の宣言＝--tests-delta 2。FullLength 3。
+  - 旧の ident_check.py でも新しい ident_check.py でも同じ判定（〈判定: 恒等〉）になることを並べて書く（バイト一致なので両方とも通る）。
+
+[2] 消す物と残す物（読み手の grep）
+  消す：CoefficientRelationTests.cs:18〜20 の Assert.Equal 3 行（0.10・0.12・0.25＝係数の既定の値の固定）。読み手＝この 3 行だけ（WarVerdictTests に 0.25 の固定が別にある＝白紙の線の既定の番人は残る）。
+  残す：:22 の関係の Assert（WarPushSpeed＋WarLuck ＜ WhitePeaceScore）と試験本体。⚠外すのは〈値の固定〉であり〈関係の主張〉ではない（注の記述〈既定の値は別の出所のリテラルで固定する〉は直す）。
+  改名：HabitLogisticTests.cs:16〈…蓋なしの旗では線形とビットで一致〉→〈…dが無限大では線形とビットで一致〉。読み手の grep（--include=* 全域）＝試験の中の 1 箇所と、measurements の歴史の記録 3 本（m820・m830・m830 prereg＝書き換えない）。試験の名前を引く台本・フィルタ・docs の手順は 0（FullyQualifiedName~ の絞りは HabitLogisticTests の型名で、メソッド名ではない）。
+  直す注：Coefficients.cs:763（艦の予算は NavalProcurementNeed＝消えた名前）と :2247 を FleetOrder の必要額へ／InstrumentsInheritIntent.cs:4（InstrumentsHabitcap.cs の型＝消えたファイル名）を InstrumentsHabitlg.cs の型へ／InstrumentsSilverParity.cs:10 の relRecomputedIndex に〈旗 0 の規則〔等重み〕での取り直し〉。
+    NavalProcurementNeed の読み手（SimCore・Runner・App・Display・Tests・scripts・POB_COEF・SaveGame）＝注の 2 箇所と scripts/instruments/c13ib/edit_flags_a12.py（歴史の台本・書き換えない）以外は 0。FleetOrder は EconomyStep.cs に実在（grep 済み）。
+  戻す：HabitTests.cs に Fact 1 本（OneMonth(0.3) の後の州の中毒度が蓋 0.2 で止まる・(830) の焼き込みで旗 CapOff の試験 2 本と一緒に消えた〈蓋の旗は呼び手の更新まで届く〉の旗 0 の側＝今の既定の経路）。期待は手のリテラル 0.2（Coefficients の OpiumAddictionCap の既定＝別の出所）。
+  足す：CapitalCouponWriteDownTests.cs に Fact 1 本（旗 CapitalClaimCancelFromLedger＝1 でも、受け皿の側〔外資の負債〕の減りは旧の規則の額から刻みの半分以内＝利札の落とし・逃避の両方。U1 の単位版）。
+  足す（道具・scripts/instruments/c67id/）：cearn_rule_test.py（道具の門）・mutate835.py（cpwdft の U1 の突然変異）・mut835.sh。他の線の持ち物（MultiNationSim.cs・Coefficients.cs の 1009・1521・3440〜3442・App・Display・Runner・InstrumentsCearn.cs・CearnInstrumentTests.cs）には触れない。
+  重なり：Coefficients.cs は c67sv が 3440〜3442・合流の revert が 1009・1521・私が 763・2247 の注（行が離れている）。DormantIdentityTests.cs・WriterRatchetTests.cs・Instruments.cs には触れない。scripts/instruments/ident/ は c67id だけ。
+
+[3] 足す試験・道具と、それぞれを赤にする突然変異（使い捨ての木・結果は measurements/m835_20261104_mutation.txt と m835_20261104/）
+  1. CoefficientRelationTests（関係だけ）：突然変異 WhitePeaceScore の既定を 0.2 → 赤。赤の出所が :22 の関係の Assert の行であること（スタックの行）を記録する（値の固定を外した後なので、赤は関係の行だけから出る）。WarPushSpeed を 0.2 にしても赤（関係を破る）。
+  2. HabitTests の戻す Fact：突然変異 A（期待の 0.2 を 0.3 に＝試験の側）→ 赤。突然変異 B（EconomyStep の蓋を外す＝Habit.NextStock の上限を +∞）→ 赤。
+  3. 注だけ直して試験名を残す：変化 0（記録・コンパイルと全試験が同じ）。
+  4. cearn_s の経路の列の規則（道具の門・両側・scripts/instruments/c67id/cearn_rule_test.py）：
+     G1 行を足しただけの使い捨ての木（合成：1 つの .cs の頭に 3 行足す）で、新しい規則 → 一致、旧の規則（バイト比べ）→ 不一致。
+     G1b 実データ：keep_826/base_ins（木 cbc11c34）対 keep_832/base_ins（木 2b2fb3f6）で、新しい規則 → 一致、旧の規則 → 不一致（(828) で本当に行が動いた 2 つの木）。
+     G2 経路を別の動詞の行へ替える突然変異（腕の表の outTop1Route の 1 行の〈:行〉を別の呼び出しの行へ）→ 新しい規則 → 不一致。
+     G3 写像に無い行（消した行）へ移る突然変異 → 新しい規則 → 不一致。
+     G4 経路の列でない列を 1 バイト変える → 新しい規則 → 不一致（他の列はバイトで比べる）。
+     G5 BASE_COMMIT が cfg に無いとき → 規則を使わない（旧のバイト比べ）＝既存の判定が変わらない。
+     flow_s の規則（呼び出し位置を除いた行の多重集合）は変えない。
+  5. cpwdft の U1（受け皿の側を台帳の差とずらす）：使い捨ての木で旗 CapitalClaimCancelFromLedger を 1 にして、
+     Mu7 逃避の行で外資の負債を flight の半分だけ減らす（持ち主の側は台帳の差で書く＝両側は一致のまま・受け皿の側だけ旧の額からずれる）
+     Mu8 利札の行で外資の負債を divWo の半分だけ減らす。
+     予言：単位版の Fact（[2] 足す）が Mu7・Mu8 で赤・旗 1 のままの F1（突然変異なし）で緑。計器 cpwdft_s の U1（gate828.py の hostDevF_ulp・hostDevC_ulp ≦ 0.5）は Mu7・Mu8 でそれぞれ F・C が 0.5 を超える（計器つき 1 種・種 1・scripts/instruments/c67id/mut835.sh）。
+     ⚠既存の旗 1 の Theory 3 本は Mu7・Mu8 でも緑のはず（両側が台帳の差で一致するため）＝穴を名乗る。足す Fact がその穴を塞ぐ（足すだけ）。
+
+[3b] ソースを走査する番人の点検（㉘）と、書き換える件数の予言（㉑）
+  - 工業化度の読み手の許可表（IndustrializationReaderTests）・GoodIdGuardTests・UnitTypeTests（`new MoneyStock(` の宣言数は SimCore 64・変わらない）・InstrumentsTests（名簿）・WriterRatchetTests（宣言の表）・DormantIdentityTests：件数の変化 0 の予言（コードの行を足さない・注の文字だけ）。
+  - route_anchors.tsv の鍵の行：触れない（エンジンの行を変えない）。
+  - 走査の番人 6 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）を器の直後に回す。赤なら ident を回さない。
+
+[4] 帯（ident c67id）：素の 5 種・計器つき 10 種が m826 と名乗り行を除いて全行バイト一致。計器の表は宣言 0。テストの数 2259／3（--tests-delta 2）。計算量の推定は .cost で m826（215.6 秒）と一致。浮動小数の順序が変わる箇所：0（エンジンのコードを変えない）。紙の台本で旧と新の比較の食い違いの数を数える必要はない（コードの変更が 0 行）。
+
+[5] 採る条件：ident が〈判定: 恒等〉（測った種で一致）・走査の番人 6 組が緑・フルスイートが Category!=FullLength 2259 緑（分けて）・FullLength 3 緑・savetest OK・leakhunt 保存則違反 0・[3] の突然変異が予言どおり。一致しなければ、その変更を外して報告に回す。
+  計算量の割り当て：0 秒（エンジンの行は変えない）。D:：ident 1 本（約 9〜12GB）＋ cpwdft の腕の突然変異 2 本（計器つき 1 種ずつ・約 1.2GB ずつ）。作る物は D:/PoB_work/c67id_* と ident_c67id だけ。
