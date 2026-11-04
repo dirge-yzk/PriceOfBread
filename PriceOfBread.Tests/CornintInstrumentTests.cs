@@ -76,7 +76,7 @@ public class CornintInstrumentTests
         var (dir, sim) = RunTwo(4);
         var rows = Rows(dir, 1790UL).Where(r => r["quarter"] == "3").ToList();
         Assert.Equal(2, rows.Count);
-        double coefTotal = 0;
+        double coefTotal = 0, grainAll = 0, otherAll = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World; string nat = Instruments.NameOf(w);
@@ -84,6 +84,28 @@ public class CornintInstrumentTests
             var want = new double[3];
             foreach (var reg in w.Regions) foreach (var p in reg.Pops) want[PolicyPreferences.BlocOf(p)] += Math.Max(0, p.LandRentPerMonth.Value);
             var eng = PolicyPreferences.Build(w);
+            // 財ごとの配分の期待（定義から試験が組む）：POP の地代を、その POP が所有する RGO の産出の値〔産出×州の値段〕で按分し、穀物法の客体の財とそれ以外に分ける
+            var wantGrain = new double[3]; var wantOther = new double[3];
+            foreach (var reg in w.Regions)
+            {
+                int ng = Math.Min(reg.Markets.Length, Catalog.Goods.Length);
+                var ownerTot = new double[reg.Pops.Count];
+                foreach (var s in reg.Producers) if (s.IsRgo && s.OwnerPopIndex >= 0 && s.OwnerPopIndex < reg.Pops.Count && s.GoodId >= 0 && s.GoodId < ng) ownerTot[s.OwnerPopIndex] += Math.Max(0, s.Output * reg.Markets[s.GoodId].Price);
+                for (int pi = 0; pi < reg.Pops.Count; pi++)
+                {
+                    double rent = Math.Max(0, reg.Pops[pi].LandRentPerMonth.Value);
+                    if (!(rent > 0) || !(ownerTot[pi] > 0)) continue;
+                    int bb = PolicyPreferences.BlocOf(reg.Pops[pi]);
+                    foreach (var s in reg.Producers)
+                    {
+                        if (!s.IsRgo || s.OwnerPopIndex != pi || s.GoodId < 0 || s.GoodId >= ng) continue;
+                        double v = Math.Max(0, s.Output * reg.Markets[s.GoodId].Price);
+                        if (!(v > 0)) continue;
+                        double share = rent * v / ownerTot[pi];
+                        if (Catalog.Goods[s.GoodId].Tier == GoodTier.Staple || Catalog.Goods[s.GoodId].GrainChain) wantGrain[bb] += share; else wantOther[bb] += share;
+                    }
+                }
+            }
             for (int b = 0; b < 3; b++)
             {
                 double dom = D(row, "rentDomPerMonth" + b);
@@ -92,12 +114,16 @@ public class CornintInstrumentTests
                 double wantPref = w.Coef.RentProtectionWeightCoef * eng.Rent[b] - (b == 0 ? 0.0 : 1.0);
                 Assert.True(Math.Abs(D(row, "cornPrefNow" + b) - wantPref) <= 1e-6, $"今の穀物法の選好が違う {nat} b{b}");
                 Assert.True(Math.Abs(D(row, "tariffLandTermNow" + b) - w.Coef.RentProtectionWeightCoef * eng.Rent[b]) <= 1e-6, $"今の関税の地主の項が違う {nat} b{b}");
+                Assert.True(Math.Abs(D(row, "rentGrainDomPerMonth" + b) - wantGrain[b]) <= 1e-6 * Math.Max(1, wantGrain[b]), $"穀物の客体の地代が定義から組んだ値と違う {nat} b{b}：{D(row, "rentGrainDomPerMonth" + b)} ≠ {wantGrain[b]}");
+                Assert.True(Math.Abs(D(row, "rentOtherDomPerMonth" + b) - wantOther[b]) <= 1e-6 * Math.Max(1, wantOther[b]), $"穀物以外の地代が定義から組んだ値と違う {nat} b{b}");
+                grainAll += wantGrain[b]; otherAll += wantOther[b];
                 double closed = D(row, "rentGrainDomPerMonth" + b) + D(row, "rentOtherDomPerMonth" + b) + D(row, "rentDomUnattrPerMonth" + b);
                 Assert.True(Math.Abs(closed - dom) <= 1e-6 * Math.Max(1, dom), $"財ごとの配分が閉じない {nat} b{b}：{closed} ≠ {dom}");
                 coefTotal += dom;
             }
         }
         Assert.True(coefTotal > 0, "国内の地代が全て 0＝何もしない計器で緑にならない");
+        Assert.True(grainAll > 0 && otherAll > 0, $"穀物の客体とそれ以外の地代の両方が正でない {grainAll}・{otherAll}＝按分の試験にならない");
     }
 
     /// <summary>C4：輸出の地代が、試験が World の ExportsByGood と生産者から組んだ値に合い、少なくとも 1 国×四半期で正（PaySales の地代を落とす突然変異で赤）。σ と C1 の列は範囲に収まる。</summary>

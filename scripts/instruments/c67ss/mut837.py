@@ -1,8 +1,9 @@
 """(837) 突然変異の台本（使い捨ての木で 1 本ずつ当て、SubstInstrumentTests と CornintInstrumentTests を回して赤と緑を書く）。
-使い方: python -I mut837.py <使い捨ての木> <隔離ビルドのフォルダ> <出力.txt>
+使い方: python -I mut837.py <使い捨ての木> <隔離ビルドのフォルダ> <出力.txt> [Mu6,Mu8]
 当てる先は <木>/PriceOfBread.SimCore/InstrumentsSubst.cs と InstrumentsCornint.cs。元の文が 1 回でなければ当てない。"""
 import sys, os, subprocess
 tree, art, outp = sys.argv[1], sys.argv[2], sys.argv[3]
+only = sys.argv[4].split(',') if len(sys.argv) > 4 else None   # 例: Mu6,Mu8（その突然変異だけ当てる）
 SUB = os.path.join(tree, 'PriceOfBread.SimCore', 'InstrumentsSubst.cs')
 COR = os.path.join(tree, 'PriceOfBread.SimCore', 'InstrumentsCornint.cs')
 M = [
@@ -23,6 +24,7 @@ o.write('(837) 突然変異（木 %s・SubstInstrumentTests 4 本＋CornintInstr
 env = dict(os.environ, AVALONIA_TELEMETRY_OPTOUT='1')
 csproj = os.path.join(tree, 'PriceOfBread.Tests', 'PriceOfBread.Tests.csproj')
 for name, f, a, b in M:
+    if only is not None and name.split(' ')[0] not in only: continue
     a, b = a.encode(), b.encode()
     orig = files[f]
     if orig.count(a) != 1: o.write('%s：当てられない（元の文が %d 回）\n' % (name, orig.count(a))); o.flush(); continue
@@ -33,7 +35,7 @@ for name, f, a, b in M:
         r = subprocess.run(['dotnet', 'test', csproj, '-c', 'Release', '--no-build', '--artifacts-path', art, '--filter', 'FullyQualifiedName~SubstInstrumentTests|FullyQualifiedName~CornintInstrumentTests', '--logger', 'console;verbosity=normal'], capture_output=True, text=True, encoding='utf-8', errors='replace', env=env)
         txt = (r.stdout or '') + chr(10) + (r.stderr or '')
         fails = sorted({l.strip().split('InstrumentTests.')[1].split(' [')[0] for l in txt.splitlines() if ('InstrumentTests.' in l) and l.strip().startswith('失敗 ')})
-        summ = [l.strip() for l in r.stdout.splitlines() if '合格:' in l or '失敗:' in l]
+        summ = [l.strip() for l in txt.splitlines() if '合格:' in l or '失敗:' in l]
         o.write('%s：%s・赤 %s\n' % (name, summ[-1] if summ else '（集計の行なし）', '・'.join(fails) if fails else 'なし（緑のまま）'))
     finally:
         open(f, 'wb').write(orig)

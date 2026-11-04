@@ -33,14 +33,14 @@ public class SubstInstrumentTests
         => row[col] == "nan" ? double.NaN : double.Parse(row[col], System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>英仏を n 四半期回し、出力のフォルダを返す（計器は閉じる）。</summary>
-    internal static (string Dir, MultiNationSim Sim) Run(ulong seed, int quarters, Action<MultiNationSim, int>? after = null)
+    internal static (string Dir, MultiNationSim Sim) Run(ulong seed, int quarters, Action<MultiNationSim, int>? after = null, Action<MultiNationSim, int>? before = null)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_subst_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         var sim = Two(seed);
         try
         {
-            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, seed, q); after?.Invoke(sim, q); }
+            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); before?.Invoke(sim, q); Instruments.Quarter(sim, seed, q); after?.Invoke(sim, q); }
         }
         finally { Instruments.Close(sim); Instruments.Configure(null, null); }
         return (dir, sim);
@@ -120,9 +120,18 @@ public class SubstInstrumentTests
     [Fact]
     public void Q2の材料は試験がPOPから数えた値に合う()
     {
-        var (dir, sim) = Run(1789UL, 2);   // 最後の四半期の世界の状態は Quarter を呼んだ直後と同じ（計器は何も書き換えない）
+        // 試験が盤面を置く（Quarter を呼ぶ前）：人頭税の段を正にし、閉鎖階級と兵士の POP にも Subsistence を置く＝人頭税の対象の述語（平民だけ）が効く盤面にする（突然変異 Mu8 の穴を塞ぐ）
+        var (dir, sim) = Run(1789UL, 2, before: (s, q) =>
+        {
+            if (q != 1) return;
+            foreach (var n0 in s.Nations)
+            {
+                n0.World.PollTax = 0.5;
+                foreach (var reg0 in n0.World.Regions) foreach (var p0 in reg0.Pops) if ((p0.Closed || p0.IsSoldier) && p0.Subsistence <= 0) p0.Subsistence = 0.5;
+            }
+        });   // 最後の四半期の世界の状態は Quarter を呼んだ直後と同じ（計器は何も書き換えない）
         var rows = Rows(System.IO.Path.Combine(dir, "subst_s1789.tsv"), Instruments.SubstHeaderText).Where(r => r["quarter"] == "1").ToList();
-        int checkedRows = 0; double pollAll = 0, incAll = 0, othersAll = 0, valueAll = 0;
+        int checkedRows = 0; double pollAll = 0, incAll = 0, othersAll = 0, valueAll = 0, closedSubPop = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World; string nat = Instruments.NameOf(w);
@@ -137,6 +146,7 @@ public class SubstInstrumentTests
                     if (p.Subsistence > 0)
                     {
                         subPop += p.Size; farmers += rent;
+                        if (!p.IsCommoner) closedSubPop += p.Size;
                         if (w.PollTax > 1e-9 && p.IsCommoner && !p.IsCriminal) poll += w.Coef.PollTaxRate * w.PollTax * p.Size;
                         inc += w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value);
                     }
@@ -159,5 +169,7 @@ public class SubstInstrumentTests
         }
         Assert.True(checkedRows >= 10, $"突き合わせた行が少ない {checkedRows}");
         Assert.True(valueAll > 0 && (pollAll > 0 || incAll > 0 || othersAll > 0), "材料が全て 0＝何もしない計器で緑にならない");
+        Assert.True(pollAll > 0, "人頭税の請求が全て 0＝述語（平民だけ）の試験にならない");
+        Assert.True(closedSubPop > 0, "Subsistence を置いた閉鎖階級・兵士が無い＝述語の試験にならない");
     }
 }
