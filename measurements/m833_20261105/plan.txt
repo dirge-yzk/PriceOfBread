@@ -1,0 +1,18 @@
+(833) c67sl 止める線〈1 四半期に 100 倍〉の型の物差し＝〈分母の痩せ〉の区分（読む線・腕 0 本・コミットしない）
+作業の場所: D:/PoB_work/r833_work（この回に作ったフォルダはこれだけ・worktree と枝は作らない＝main の作業ツリー f32502c3 を読むだけ）
+台本: D:/PoB_work/r833_work/gdp_jump833.py（合流が scripts/instruments/c67sl/ へ写す）
+元の台本: C:/Users/dirge/Documents/PriceOfBread/scripts/instruments/m797/gdp_jump797.py（変えない）
+
+読む生（10 個）:
+  M     D:/PoB_work/keep_826/base_ins            基線 m826 の計器つき 10 種（種 1〜10）
+  N1n   D:/PoB_work/keep_826/n1                  新しいヌル腕 N1
+  N2n   D:/PoB_work/keep_826/n2                  新しいヌル腕 N2
+  A11   D:/PoB_work/keep_826/a11                 基線の種 11〜20
+  N1o   D:/PoB_work/keep_797/n1                  旧のヌル腕 N1
+  N2o   D:/PoB_work/keep_797/n2                  旧のヌル腕 N2
+  I832  D:/PoB_work/keep_832/base_ins            合わせた木 2b2fb3f6 の ident m832f（m826 と同じ軌道）
+  MD    D:/PoB_work/keep_826_rej/c65mdB_10/ins   c65md の腕 B（種 1〜10）
+  DW    D:/PoB_work/keep_832_rej/c66dwB_10/ins   c66dw の腕 B（種 1〜10）
+  DWS   D:/PoB_work/keep_832_rej/mS_s11/ins      c66dw の合流の S11（種 11〜20）
+
+順: 事前登録（prereg.txt）を生を読む前に書く → 台本 → 恒等の門 → 新しい区分 → 突然変異 → c65md の Theory 化の判定 → 線ごとの表

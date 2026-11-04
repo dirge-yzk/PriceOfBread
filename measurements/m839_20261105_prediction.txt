@@ -1,0 +1,48 @@
+(839) 合流（波67）の予言（腕を回す前・merge の前に書いた・2026-11-05）
+基点 main f32502c3（origin/main と同じ・fetch 済み）。worktree D:/PoB_work/wt_m839（枝 m839）・作業フォルダ D:/PoB_work/m839。
+
+[1] 入れる線と外す線
+ - c67id (835) 恒等〈判定: 恒等〉＝merge（--no-ff）。
+ - c67ss (837) 恒等〈判定: 恒等〉＝merge。
+ - c67pu (836)：指示の持ち主の表と㉖は〈コミットしない〉、担当の節は〈worktree・枝・ident〉＝担当は担当の節に従い、ローカルの枝に計器 cpop_s と試験のコミット bbe63e0d を 1 本入れた（〈判定: 恒等〉）。合流は枝を merge し、台本と表（D:/PoB_work/r836_work）を scripts/instruments/r836/・measurements/m836_20261105/ へ写す（食い違いは記録の先頭）。
+ - c67sv (834)：門は全て通り、止める線〈空洞化 1/10 未満〉に 1 件（s3 フォートウィリアム・基線の同じ種で比 0.933＝事前登録の基準で〈線が原因〉）＝採らない。枝を merge し、点火 90f1defe を revert＝旗 0 の器（w1 の枝の削除・値 0 で恒等）と計器なし・試験・台本・記録だけ。反証役の〈ヌル腕でも同じ州が同じ型で落ちる〉は⑫（結果の後に物差しを替えない）どおり採否に使わない＝次の波の物差しの線へ。3 回の規則の 2 回目。
+ - c65md (821)・c66dw (828)：c67sl (833) の結論〈載せる〉のとおり、旗 1 の腕に載せる＝git revert 24212451（381f1046 の既定 1 と a6a5e142 の Theory 化を取り直す＝★(826) ② の型に当たる＝c67sl の読み）・git revert 936c103e（7eef43e6 の既定 1 と DormantZeroFields の行を取り直す）。挙動は 2 本（c67sv を入れないので 3 本の枠の内）。
+   記録：a6a5e142 の旗 1 の枝は、前提の Assert を〈|w1.Score| < WhitePeaceScore〉へ反転し、フランスの受け取り 0 を足した。Close は旗 1 では単独の満額を見る＝(791) の〈1 回分〉の主張は旗 0 の InlineData だけが試す（c67sl の反証役の指摘・〈同じ式で通った〉は言い過ぎ）。
+ - c67sl (833)：読む線＝台本と表を scripts/instruments/r833/・measurements/m833_20261105/ へ写した（このコミット）。反証役の low の指摘で、両側の門の盤面に端の 4 系列（i 建国 4 四半期目・j 人口 0→正＝∞・k 人口非有限・l 0÷0）を足し、(e) を完全一致に直し、literal_eval を正規表現へ（inf・nan の組で落ちるため）。区分の規則（gdp_jump833.py）は 1 字も変えていない。〈q-first <= K〉を〈< K〉にした突然変異が新しい盤面で赤になることを確かめた（measurements/m833_20261105/fixgate_839.txt）。プロセス置換の従の形は使わない。
+ - c67ds (838)：設計の材料＝docs/202611/20261105/ へ写す（題の行に状態・中身は書き換えない・反証役の訂正を末尾に）。
+ - 合流が書く .cs は 0 行（revert と merge だけ）。例外は WriterRatchetTests の宣言の表（item 11）が旗 1 の木で赤のときの★(749) の取り直しだけ（指示どおり・(821)(828) の旗 1 のフルスイートは緑だった＝赤にならない見込み）。
+
+[2] 木の順
+ T0＝f32502c3 ＋ c67id ＋ c67ss ＋ c67pu ＋ c67sv ＋ revert 90f1defe（挙動の旗は全て 0）。
+ T1＝T0 ＋ revert 24212451 ＋ revert 936c103e（ForcedPeaceBlankOverCollapse＝1・CapitalClaimCancelFromLedger＝1）＝最終の木の候補。
+ DormantIdentityTests.cs の :31・:32・:33 は隣り合う＝衝突なら手で解き `# Conflicts:` を残さない。
+ ★(773) の grep：c67sv が消す名前（SilverVoteWeight・minRefWeighted・試験 8 本の名前）と c67id が改名した試験の名前を、他の 3 枝の + 行で（*.cs *.py *.sh *.cfg *.axaml）＝0（記録の文の中の 1 件だけ＝c67id の事前登録の文）。
+
+[3] 順番（腕の巡は D: の空きで決める・空き 64GB→線の ident の生のバイト一致の表を消して約 100GB の見込み）
+ ① T1 で㉜のフルスイート（Category!=FullLength と =FullLength を分ける・--list-tests と突き合わせ・中止の行も・savetest・leakhunt）。赤なら腕を回さない。
+ ② 1 巡目（同時）：Z＝ident m839z（--tree T1・coef_ia.txt・coef_ib.txt に ForcedPeaceBlankOverCollapse=0;CapitalClaimCancelFromLedger=0・--saveleak）・M（T1・計器つき 10 種）・S11（T1・種 11〜20）・abMD0（T1＋ForcedPeaceBlankOverCollapse=0）・abDW0（T1＋CapitalClaimCancelFromLedger=0）。計器つき 1 腕は cpop_s で約 15GB（㊲ の 12GB は古い）。
+ ③ 採るときだけ 2 巡目：N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）・P（素の 10 種）・P5（素の 5 種）＝新しい基線 m839 の成績表 3 枚と ident.cfg の B5。
+ ④ 採らないとき：最終の木（旗の既定 0 に戻した木）の ident（Z′）を回す＝(832) の型。
+
+[4] 予言（どれとどれがバイト一致か・何が動くか）
+ ・Z（T1 の旗を POB_COEF で 0）：素の 5 種と計器つき 10 種の成績表が m826（b5_20261104_m826・b10_20261104_m826_ins）と名乗り行を除いて全行一致・.cost の件数の行 29 本・推定 215.6 秒。
+   計器の表：増える表 cpop_s・subst_s・cornint_s（各 10 本＝宣言 30）・既知の揺れ burscan_s・clock_s。
+   cearn_s の経路の 3 列（inTop1Route・outTop1Route・outTop2Route）：c67sv が MultiNationSim.cs の :34〜43 で行を消した（c67sv の宣言〈−3・−4〉）＝MultiNationSim.cs のそれより後ろの行を指す経路は行番号がずれる＝c67id の規則（ident_check.py の cearn_same_but_location・BASE_COMMIT=2b2fb3f6）で〈経路の行番号だけ〉の既知の揺れに入るか、そこへ落ちる経路が無ければバイト一致。どちらでも cearn_remap.py で〈写しても違う 0〉。T1 の revert は行の中の既定の値だけ＝行はずれない。
+   試験：Category!=FullLength 2265（2257＋c67id 2＋c67ss 8＋c67pu 2−c67sv 5＋a6a5e142 の Theory の InlineData 1）・FullLength 3＝ident の宣言 --tests-delta 8。savetest OK・leakhunt 保存則違反 0。
+ ・abMD0（md 0・dw 1）：c66dw の腕 B（b10_20261104_c66dwB_ins＝m826＋dw 1）と成績表が名乗り行を除いて全行一致・.cost の件数の行一致（恒等の線 4 本と c67sv の器は軌道を動かさない＝(832) の M≡c66dwB と同じ型）。生の共通の表もバイト一致（cearn_s は行番号を写して一致）。
+ ・abDW0（md 1・dw 0）：m826＋md 1 は今まで回していない（c65md の腕 B は m797＋md 1）＝何とも一致しない新しい軌道。
+ ・M・S11：新しい軌道（予言しない）。計算量は 215.6 秒からヌル腕の幅（N1 221.1・N2 220.4）の内の見込み（md 0 秒・dw は尾）。
+ ・止める線〈それ以外〉の 100 倍は M・S11 で 0 の見込み（両線の腕 B と S11 で 0）。分母の痩せ・建国の直後は記録。
+
+[5] 門（数は線の事前登録のまま・変えない）
+ c65md（measurements/m821_20261104_prereg_md.txt [3]）：G0（調停の戦争の崩壊の講和 ≧1・Σ repWouldOld＞0）・G1（forced の講和で賠償 0・台帳 0・奪取 0・割譲 0・hit 0）・G2（repMoved÷repExpect ∈[0.95,1.05]・調停でない崩壊の講和で上書きの外れ 0）・G3（c10cp の R_up・R_lo・B_up・B_lo・U2・U3）＝gate821.py と c10cp/gates.py で M・abDW0・S11。旗 0 の側（G1 が落ちる）＝Z の生の cpmed_s。
+ c66dw（measurements/m828_20261104_prereg_dw.txt [4]）：L1（旗 1 で osF＝osC＝0）・C・W1（≧1,000・種ごと ≧1）・W2・U1（≦0.5 刻み）＝gate828.py と colcheck839.py で M・abMD0・S11。旗 0 の側（L1 が落ちる）＝Z の生。
+   U2：G2（保存の外れ 0）は gate815.py --short で読む。G5（名目 GDP 0 の続き 0）は止める線の gdp_zero10。**G3・G4 は比べる側（旗 fl 0 の盤面 keep_818/base_ins）の生が消えている（作者のセッション）＝読めない＝未了と名乗る**（新しい腕を足さない・dw は 1 事象 7.45e-9 金以下の尾）。
+ 合成後のアブレーション（㉞）：各線の門を自分の旗だけ 1 の腕（md は abDW0・dw は abMD0）と M で読む。門が M だけで落ちたら後から入れた側（c66dw）を外す。効きが足し算か＝門の量（W1・G0 の本数ほか）を並べる（記録）。
+
+[6] 止める線（M と S11・結果を見る前に固定）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）／〈1 四半期に 100 倍〉の〈それ以外〉＞0（gdp_jump833.py・fixgate.py が緑のとき）／1e10 倍以上／非有限／空洞化 1/10 未満の名簿の外で〈線が原因〉の件（an_h2.py -v5・holclass839.py・基線の同じ種で同じ州が 1/4 未満なら〈元からの弱さ〉＝種 1〜10 は keep_832/base_ins、種 11〜20 は keep_826/a11）／推定の計算量 ＞248.5 秒／機構のテストの赤（ソースを走査する番人を含む）。
+ 記録の段：建国の直後と分母の痩せの件数（旧のヌル腕 N1o 0・N2o 0・新のヌル腕 N1n 0・N2n 2〔ヌル腕は種 1〜10 だけ〕・同じ種の基線 a11 0）・名目 GDP 0 の続き・開幕の 1000 倍・英の国債の不履行・NG・門 A′・exact・near。
+ S11 で止める線に当たったら、両方とも採らない（種 11〜20 のアブレーションは回さない＝帰属は次の波へ）。M で当たったら abMD0・abDW0 で帰属を読み、当たった側を外す。残る側を採るには、残る側だけ旗 1 の木（そのアブレーションの腕と同じ coef）で S11 を 1 本回して同じ線で読む（D: の空きで決める）。
+
+[7] 最終の採否は S11 で 1 回だけ（同じ門・同じ止める線）。
