@@ -1853,6 +1853,7 @@ public static partial class Instruments
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         DivhostTable(sim, seed, q); RdhTable(sim, seed, q);            // (801) 外資の配当の旧新の表 // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
+        CpwdTable(sim, seed, q);           // (815) 払えない利札の落としの表
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
@@ -1883,6 +1884,7 @@ public static partial class Instruments
         SilverWeightClose(sim, sk.Seed);   // (807)
         DivhostClose(sim); PortchClose(sim);    // (801)(770)
         PortlmClose(sim);    // (777)
+        CpwdClose(sim);      // (815)
         InheritIntentClose(sim);   // (781) 開いたままの継いだ工事の窓を書く
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
