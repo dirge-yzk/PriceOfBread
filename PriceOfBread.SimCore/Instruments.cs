@@ -1862,6 +1862,7 @@ public static partial class Instruments
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
+        SubstTable(sim, seed, q); CornintTable(sim, seed, q);   // (837) 自給の段 1 の表 subst_s（州×四半期）・地主の政治 C1 の表 cornint_s（国×四半期）
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1885,6 +1886,7 @@ public static partial class Instruments
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        SubstClose(sim); CornintClose(sim);   // (837)
         SilverParityClose(sim);   // (775)
         SilverWeightClose(sim, sk.Seed);   // (807)
         DivhostClose(sim); PortchClose(sim);    // (801)(770)

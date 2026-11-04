@@ -1,0 +1,48 @@
+(837) c67ss 記録（波67・恒等の線＋読み・枝 c67ss・書いたモデル Claude Sonnet 5.5）
+事前登録：measurements/m837_20261104_prereg_ss.txt（[7] に結果の後の変更 1 を名乗り済み）。
+
+■ 判定（ident c67ss・木 8fc0ec23〔SOURCE-HASH 75ab4b6150308788〕）
+  判定: 恒等（測った種で一致）。素の 5 種・計器つき 10 種が m826 と名乗り行を除いて全行バイト一致（各 181 行）・.cost は件数の行 29 本・推定 215.6 秒が一致・計器の表は基準 1045 本のうち 1025 本バイト一致＋既知の揺れ 20（burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10）＋宣言 20（subst_s×10・cornint_s×10）・注視の表は 4698 行一致・--list-tests は Category!=FullLength 2265（基準 2257＋宣言 8）・FullLength 3・savetest OK・leakhunt 保存則違反なし。
+  腕 a・b の終了コードは 1（selfplay-batch が出す値で ident_check.py は 0・1・2 を許す）。保存：measurements/ident_20261104_c67ss.txt・b5_20261104_c67ss{,.cost,.manifest}・b10_20261104_c67ss_ins{,.cost,.manifest}・mon_20261104_c67ss.txt。
+  8fc0ec23 の後のコミットは試験 2 本の強化（f0e6126f）と記録だけ＝SimCore は無変更。保存の ident check は 8fc0ec23 の別の木（detached）を --tree に渡して回した。
+
+■ 足した計器の列
+  subst_s（州×四半期・32 列）：quarter・year・nation・region・tier・subPopK・subRateWeighted・farmCapPerMonth・farmSoldPerMonth・farmProducedPerMonth・soldOverCap・unsoldD1Share・unsoldD2Share・producedZeroFlag・stapleNeedPerCapita・engineSubOutputPerMonth・nominalSubPerMonth・productivityFromDataPerCapita・derivedD1PerMonth・derivedD2PerMonth・derivedD1OverNominal・derivedD2OverNominal・derivedD1OverEngine・derivedD2OverEngine・pollClaimPerMonth・incomeTaxUpperPerMonth・rentToOthersPerMonth・rentToFarmersPerMonth・stapleNeedWeightedPrice・stapleNeedValuePerMonth・marketShareOfNeed・obligationOverMarketNeed
+  cornint_s（国×四半期・53 列）：quarter・year・nation・cornLawsCode・rentDomPerMonth0・rentDomPerMonth1・rentDomPerMonth2・rentDomTotalPerMonth・rentDomUnattrPerMonth0・rentDomUnattrPerMonth1・rentDomUnattrPerMonth2・rentOtherDomPerMonth0・rentOtherDomPerMonth1・rentOtherDomPerMonth2・engineRentShare0・engineRentShare1・engineRentShare2・rentExpPerMonth0・rentExpPerMonth1・rentExpPerMonth2・rentGrainDomPerMonth0・rentGrainDomPerMonth1・rentGrainDomPerMonth2・rentGrainExpPerMonth0・rentGrainExpPerMonth1・rentGrainExpPerMonth2・tariffLandTermNow0・tariffLandTermNow1・tariffLandTermNow2・cornPrefNow0・cornPrefNow1・cornPrefNow2・grainImportValue・grainExportValue・grainProducedValue・allImportValue・allExportValue・sigmaGrain・sigmaGrainRentW・sigmaAllRentW・c1InterestGrain0・c1InterestGrain1・c1InterestGrain2・c1InterestAll0・c1InterestAll1・c1InterestAll2・c1CornPref0・c1CornPref1・c1CornPref2・c1TariffLand0・c1TariffLand1・c1TariffLand2・flipCorn0
+  1 種の容量：subst_s1.tsv 65.2MB（208,829 行）・cornint_s1.tsv 14.3MB（41,396 行）。10 種の合計 743MB。名乗りの定数：SubstCalibration 0.89・SubstD1Ref 0.866（係数ではない）。
+
+■ 増えた行と減った行（f32502c3 → HEAD の SimCore と試験）
+  Instruments.cs +2・InstrumentsSubst.cs +114（新）・InstrumentsCornint.cs +159（新）・SubstInstrumentTests.cs +175（新）・CornintInstrumentTests.cs +191（新）・scripts/instruments/c67ss/ ほか。減った行 0。テスト 2257 → 2265（+8）。
+  金を動かすファイルに足した行 0 → cearn_s の経路の 3 列〈ファイル:行〉は動かない（cearn_remap.py は回していない＝必要が無い）。
+
+■ 足した試験（ファイル:行）
+  SubstInstrumentTests.cs:51 D1とD2は手の表のとおり（S1）・:65 売れ残りは能力の基準で数え_国の和はlabor_sに合う（S2）・:103 開幕の比はD1で1に近くD2では遠い（S3）・:121 Q2の材料は試験がPOPから数えた値に合う（S4）。
+  CornintInstrumentTests.cs:19 シグマとブロックは手の表のとおり（C1）・:34 国境を越えた分だけを読む（C2）・:74 国内の地代とブロックの割合と今の選好はエンジンの値に合う（C3・C5）・:131 輸出の地代は輸出額と生産者から組んだ値に合い_シグマは範囲に収まる（C4）。
+  結果の後の変更 1（事前登録 [7]）：S3 の D2 の帯 0.30 未満は、助走を通さない試験の盤面で 0.87 になり赤だったので向きだけ（D2＜D1）に直し、帯は ident の生の読みで見た（予言 0.06 に対し実測 0.056＝当たり）。
+
+■ 突然変異（measurements/m837_20261104_mutation.txt）
+  Mu1 能力を産出で読む→S2・S3 で赤／Mu2 σ に州どうしの流れ→C2／Mu3 PaySales の地代を落とす→C4／Mu4 較正を 1.1→S3／Mu5 D1 の clamp を外す→S1／Mu6 地代の按分を頭数→C3／Mu7 ブロックの入れ替え→C1・C3・C4／Mu8 人頭税に閉鎖階級→S4。8 本とも赤・緑のまま 0。
+  穴：Mu6 と Mu8 は 1 回目は緑のまま（台本が成功の行を拾えず確かでなかった）。同じ線で試験を強化して（S4 に人頭税の段 0.5 と閉鎖階級・兵士への Subsistence を置く盤面・C3 に穀物の客体とそれ以外の地代を定義から組んだ値との突き合わせ）当て直し、赤になった。Mu1〜5・7 は強化の前の試験で測った（強化は赤を増やす方向だけ）。
+
+■ 走査の番人（㉘）
+  器と試験のコミット（ee475dec・0bca2c08）の直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests を隔離ビルドで回した：172 本合格・失敗 0。書き換えた件数 0（既存の番人のテストは触っていない）。
+  点検：工業化度の読み手＝新しいファイルは IndustrializationDegree を読まない／`new MoneyStock(` 0 件／route_anchors.tsv の鍵の行は動かない（金を動かすファイルに行を足していない）／WriterRatchetTests の宣言の表は書き手を足していないので変更 0。
+
+■ フルスイート・savetest・leakhunt（HEAD f0e6126f）
+  Category!=FullLength：合格 2264・スキップ 1＝2265（--list-tests と一致）・失敗 0・26 分 21 秒。FullLength：3 合格（--list-tests 3 と一致）・中止 0。savetest OK・leakhunt 保存則違反なし（ident の s 腕・8fc0ec23）。
+
+■ 読みの結果（数の表まで・measurements/m837_20261104/read_ss.txt・読み手 scripts/instruments/c67ss/r837_read.py・計器つき 10 種の生）
+  (a) 開幕（自給率 0.7 の州）：Σ導いた自給÷Σ名目 D1 1.0148（予言 1.02・帯 0.90〜1.15 の内）・D2 0.0557（予言 0.06・帯 0.30 未満の内）。Σ導いた÷Σエンジン D1 1.0261・Σ名目÷Σエンジン 1.0111（収穫係数と補正が 1% ほど）。
+     D1（売れ残り・能力の基準）の中央：開幕 0.892・1786〜1849 0.778・1850〜99 0.642・1900〜50 0.759。D2（産出の基準）の中央：0.019・0.042・0.050・0.060（p90 は 0.25〜0.31）。Σ導いた÷Σ名目 D1 は 1.015→0.928→0.856→0.899（商業化で自給が減り、1900 年代に少し戻る）・D2 は 0.056→0.084→0.080→0.121。
+     読み：D1 は開幕の 0.7 を較正どおり再現し、D2 は 1 桁小さい（今の失業の式の基準では自給が立たない）。
+  (b) 開幕の窓 obligationOverMarketNeed（(人頭税＋所得税の上界＋他の層の地代)÷市場に出す 3 割の値）：中央 0.219・p10 0.000・p90 1.702。内訳の中央：人頭税 0.012・所得税の上界 0.0000・他の層の地代 0.202。後の窓：1786〜1849 中央 0.985（地代 0.899）・1850〜99 中央 2.098（地代 1.930）・1900〜50 中央 1.633（地代 1.433）。
+     読み：開幕の 3 割のうち地代と税で説明できるのは中央の州で約 22%（州の分布が広い＝p90 は 1.7）・後の窓では中央で説明を超える。所得税の上界の中央 0 は読み取りの誤りでなく、税率が 0 の国が大半（1850〜99 の cearn_s の taxRate 中央 0・上界が正の行は 14%）。
+  (c) σ の符号（記録）：イギリス 1815〜1846（n=1280）sigmaGrainRentW 中央 +0.0028・正の割合 0.603（輸入競合寄り）・sigmaGrain 中央 +0.0116。プロイセン sigmaGrainRentW の正の割合：1850s 0.380・1860s 0.323・1870s 0.215（中央はほぼ 0）＝予想〈輸出から競合へ〉と逆向きに輸入競合の割合が減る（記録・確証なし）。
+     大きさ：|C1 の旧支配層の利害|÷今の割合（今の割合 0.1 以上・n=408,196）中央 0.00000・p90 0.0094・最大 0.53。イギリス 1815〜1846 の中央 0.00037・p90 0.0081＝C1 の値は今の値（旧支配層の穀物法の選好 +0.90）の 1/2700 ほどで、置き換えると地主の項はほぼ消える。向きの食い違い（今の選好の正負≠C1）の割合は全体 0.811・イギリス 0.685・上位はブハラ・ヒヴァ・コーカンド 1.0 ですが、符号は C1≈0 が正にならないための〈大きさの食い違い〉。
+     原因の推測（確証なし）：σ の分母に産出が入るため、国境を越える穀物が産出の 1% 前後の世界では σ≈0 に張り付く。c67ds への注意として〈C1 の σ は分母の取り方（産出を入れるか）で大きさがほぼ決まる〉。
+
+■ 運用の記録
+  作ったフォルダ：D:/PoB_work/c67ss（読み手の出力・印）・c67ss_art・c67ss_mutart・c67ss_mut（worktree）・c67ss_id（worktree）・ident_c67ss（ident の作業）・wt_c67ss。消した物：c67ss_art・c67ss_mutart・c67ss_mut・c67ss_id。残した物と理由：ident_c67ss（14G＝合流の判断まで・⑲）・c67ss（印と読み手の出力・小さい）・wt_c67ss（枝 c67ss）。keep_* は触れていない。
+  生のパス：D:/PoB_work/ident_c67ss/out_ib_10/ins（subst_s1〜10・cornint_s1〜10 を含む計器つき 10 種）・out_ia_5（素の 5 種）。宣言で差を許した表（subst_s・cornint_s）の生は消さない。
+  腕の枠：ident を起こす前の arms.sh free は 4（≥3）・待った時間 0。waitmark の呼び出しは約 31 回（うち 1 回は完了済みの印を 4 本並べて重ねて呼んだ）・印の外の覗きは ident の作業に 1 回（marks の ls）・他の覗き（出力の tail・cat・ls）は十数回で、どれも 1 本の仕事につき 30 分に 1 回を超えてはいない（突然変異の出力の cat は印の完了の後）。hook に止められた回数 0。
+  1 回目の突然変異の台本は成功の行を拾えず Mu6・Mu8 の緑が確かでなかった（上）。
