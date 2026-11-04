@@ -97,10 +97,9 @@ public class LaborMarketFormTests
         var c = new Coefficients();
         Assert.Equal(2.0, c.LaborFloorOffGate);
         Assert.Equal(1.0, c.LaborBandFloorOffGate);
-        Assert.Equal(1.0, c.MinimumWageLawGate);
         var a = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var b = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        b.World.Coef.LaborFloorOffGate = 2.0; b.World.Coef.LaborBandFloorOffGate = 1.0; b.World.Coef.MinimumWageLawGate = 1.0;
+        b.World.Coef.LaborFloorOffGate = 2.0; b.World.Coef.LaborBandFloorOffGate = 1.0;
         a.Run(4); b.Run(4);
         Assert.Equal(LaborPrice(a), LaborPrice(b));
         Assert.Equal(a.World.Region.Markets[Catalog.FarmLaborId].Price, b.World.Region.Markets[Catalog.FarmLaborId].Price);
@@ -305,7 +304,6 @@ public class LaborMarketFormTests
         Simulation Build()
         {
             var s = OversuppliedLabor(1, 1.0);
-            s.World.Coef.MinimumWageLawGate = 1;
             return s;
         }
         var none = Build(); var trades = Build(); var national = Build();   // trades＝生存・national＝充足
@@ -337,47 +335,13 @@ public class LaborMarketFormTests
         Assert.Equal(none.World.Region.Markets[Catalog.AdvLaborId].Price, national.World.Region.Markets[Catalog.AdvLaborId].Price);
     }
 
-    [Fact]
-    public void 法がNoneなら旧と同じ_ゲートが開いても床は足さない()
-    {
-        var none = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var gateOnly = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        none.World.Coef.MinimumWageLawGate = 0;   // ★(475) 既定は 1＝閉じた側を明示する
-        gateOnly.World.Coef.MinimumWageLawGate = 1;
-        none.Run(4); gateOnly.Run(4);
-        Assert.Equal(LaborPrice(none), LaborPrice(gateOnly));
-        Assert.Equal(none.World.Region.Markets[Catalog.FarmLaborId].Price, gateOnly.World.Region.Markets[Catalog.FarmLaborId].Price);
-    }
-
     // ---------------------------------------------------------------- 最低賃金法：軸の配線（漏れを赤に）
-
-    [Fact]
-    public void ゲート0では法の軸は全ての入口で非活性である()
-    {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var w = sim.World;
-        w.Coef.MinimumWageLawGate = 0;   // ★(475) 既定は 1＝閉じた側を明示する
-        var e = PolicyPreferences.Build(w);
-        for (int b = 0; b < PolicyPreferences.BlocCount; b++) Assert.Equal(0.0, PolicyPreferences.Pref(PolicyAxis.MinimumWage, b, e, w));
-        // 段の法の表の門（施行と戦線の両方）が閉じている（前提が無い軸では GateInfo は純支持 0 で通るため、門は表の Open が持つ）
-        var row = Government.LevelLaws.Single(l => l.Axis == PolicyAxis.MinimumWage);
-        Assert.False(row.Open!(w));
-        w.Coef.MinimumWageLawGate = 1;
-        Assert.True(row.Open!(w));
-        w.Coef.MinimumWageLawGate = 0;
-        Assert.Null(UtilityAgent.MinimumWageTargetFromBoard(w));
-        // 方針の欄は既定（None）のまま・議会の綱領は載せない
-        Assert.Equal(MinimumWageLaw.None, w.Policy.MinimumWage);
-        for (int bloc = 0; bloc < PolicyPreferences.BlocCount; bloc++)
-            Assert.DoesNotContain(FactionSnapshot.ComputeDemands(w, bloc), d => d.Axis == PolicyAxis.MinimumWage);
-    }
 
     [Fact]
     public void ゲートが開けば大衆が賛成し資本が反対し_他の法の前提を持たず段は1つずつ()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        w.Coef.MinimumWageLawGate = 1;
         var e = PolicyPreferences.Build(w);
         Assert.True(PolicyPreferences.Pref(PolicyAxis.MinimumWage, 2, e, w) > 0);   // 大衆
         Assert.True(PolicyPreferences.Pref(PolicyAxis.MinimumWage, 1, e, w) < 0);   // 近代エリート（雇う側）
@@ -401,7 +365,6 @@ public class LaborMarketFormTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        w.Coef.MinimumWageLawGate = 1;
         double u = UtilityAgent.HomeUrbanShare(w);
         var want = u > 2.0 / 3.0 ? MinimumWageLaw.Sufficiency : u > 0.5 ? MinimumWageLaw.Living : u > 1.0 / 3.0 ? MinimumWageLaw.Subsistence : (MinimumWageLaw?)null;   // 別の出所（リテラル）で
         Assert.Equal(want, UtilityAgent.MinimumWageTargetFromBoard(w));
@@ -456,7 +419,6 @@ public class LaborMarketFormTests
     {
         var sim = new MultiNationSim([OpeningFixture.Named("イギリス"), OpeningFixture.Named("フランス")], 1789, _ => new NullAgent());
         var w = sim.Nations[0].World;
-        w.Coef.MinimumWageLawGate = 1;
         w.MinimumWage = MinimumWageLaw.Living; w.Policy.MinimumWage = MinimumWageLaw.Sufficiency;
         sim.StartWarmup();
         sim.StepQuarter();

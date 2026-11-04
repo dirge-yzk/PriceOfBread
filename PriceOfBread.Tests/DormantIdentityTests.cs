@@ -323,6 +323,11 @@ public class DormantIdentityTests
         "PreemptiveSeizeWeight", "FertileAbsoluteBlend", "MigrationFarePerkKm", "NationalismFromConsciousness", "WorldPriceStatUnclamped",
         "LordOppositionByRentLoss", "LordOppositionReverseGain", "MandateWallStockCap", "FactionOpportunism",   // (803) c12lw：法の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は Rs2LordOppositionTests・Rs3LordReverseGainTests・MandateWallStockCapTests・RevoltIgnitionTests）
         "OpiumAddictionCapOff",   // (830) c66id：アヘンの蓋の旗（(771)・既定 0＝蓋 OpiumAddictionCap）の焼き込み。正の枝〔d=+∞〕は形 H の下で形 H が黙って消える罠だった。計器 habitcap_s・habitbal_s も削除
+        "TechMultipliersOff", "TechGateByDiscovery", "EraOff",   // (843) c68ui：技術水準の削除の段6（段1・3・4 の旗の焼き込み・既定 1 の経路だけ残した）
+        "ExpeditionTechLevel", "ExpeditionTechFloor", "TechMilLowFloor", "TechMilFullLevel", "ModernizationTechLagCost",   // (843) c68ui：TechMultipliersOff の焼き込みで読み手が無くなった技術の倍率の係数 5 本
+        "MinimumWageLawGate", "InheritanceLawGate", "AntitrustGate", "NationalizationGate",   // (843) c68ui：I3 の残り 4 本（法の旗・既定 1 の経路だけ残した）
+        "ServiceClosedFixedPoint", "LaborClosedForm", "HouseholdCreditStapleOnly", "StapleElasticityZero", "StateEduDemandInFront", "ArmsStockEnabled", "BaseArmsStockEnabled",   // (843) c68ui：I1 経済の旗（既定の経路だけ残した）
+        "DistanceMarginScale",   // (843) c68ui：B12 既定 1.0 の距離の物差し（×1.0 の因子の除去）
         "MilitaryBudgetNeedCapped", "RegionalPriceBaseExcludesColonies", "MachineCastIronRecipe", "ParishEduFunded", "ChilledMeatEnabled", "KeroseneFromOilEnabled", "HouseholdProductionEnabled",   // (811) c13ia：Simulation.cs の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は MilitaryTests・IvfInitialValuesTests・ReformPathTests・HouseholdProductionTests ほか）
     ];
 

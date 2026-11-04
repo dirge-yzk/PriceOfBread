@@ -11,7 +11,6 @@ public class NutritionTests
     public void 既定は休眠で栄養データは配線済み()
     {
         var c = new Coefficients();
-        Assert.Equal(1.0, c.StapleElasticityZero);      // ★2026-08-31点火（ラウンドB・符号の是正）
         Assert.Equal(0.0, c.FoodIncludesAnimalProtein); // 休眠温存（英常勝復活のため＝負帰還とセットで再挑戦）
         // goods.json の nutrition 列＝加工肉63/干物64のみ1.0（dumpgoods再生成2026-08-31）
         Assert.Equal(1.0, Catalog.Goods[Catalog.PreservedMeatId].Nutrition);
@@ -47,26 +46,5 @@ public class NutritionTests
         // ⚠肉自身の需要は検証しない：Markets[].LastDemand はコア需要の合計＝缶詰工場の投入需要が支配的で（実測＝価格×5でも329.7で不変）、
         //   POPの食卓分の減少が埋もれる。ギッフェンの証拠は上の2本（パンへの波及＋OFF恒等）で足りる。
         _ = onSpike.meatD; _ = onCalm.meatD;
-    }
-
-    [Fact]
-    public void 段0_主食の必要量は価格に反応しなくなるが交差の乗り換えは残る()
-    {
-        var off = new Simulation(NationConfig.France().ToScenario(41), new NullAgent());
-        var on = new Simulation(NationConfig.France().ToScenario(41), new NullAgent());
-        off.Run(20); on.Run(20);
-        off.World.Coef.StapleElasticityZero = 0;    // ★2026-08-31点火（既定1.0）：OFF側を明示ピン＝明示しないと対照の番人が空洞化する
-        on.World.Coef.StapleElasticityZero = 1.0;
-        const int bread = Catalog.BreadId;
-        foreach (var sim in new[] { off, on })
-        {
-            var r = sim.World.Region;
-            foreach (var g in r.Goods) if (g.Tier == GoodTier.Staple) r.Markets[g.Id].Price *= 3.0;   // 主食が一斉高騰（交差の相対価格は不変＝自己弾力だけを単離）
-            EconomyStep.Run(r, sim.World.Coef);
-        }
-        var ro = off.World.Region; var rn = on.World.Region;
-        // OFF＝(rp/3rp)^0.3 ≈ 0.72 で需要が縮む／ON＝^0 ＝縮まない（買えるかは予算が決める）
-        Assert.True(rn.Markets[bread].LastDemand > ro.Markets[bread].LastDemand * 1.05,
-            $"主食一斉高騰でON側の必要量が縮んでいる（OFF {ro.Markets[bread].LastDemand:F1} / ON {rn.Markets[bread].LastDemand:F1}）＝符号の是正が効いていない");
     }
 }

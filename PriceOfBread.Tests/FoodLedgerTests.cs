@@ -73,7 +73,7 @@ public class FoodLedgerTests
     {
         var c = new Coefficients();
         Assert.Equal(0.6, c.CrossElasticity); Assert.Equal(0.4, c.PriceFactorMin); Assert.Equal(1.4, c.PriceFactorMax);
-        Assert.True(c.StapleElasticityZero > 0); Assert.Equal(0.0, c.FoodIncludesAnimalProtein);
+        Assert.Equal(0.0, c.FoodIncludesAnimalProtein);
         Assert.Equal(1.0, c.StapleLedgerSum); Assert.Equal(0.0, c.StapleDemandRebalance); Assert.Equal(1.0, c.HarvestShortfallToMarket);   // 既定＝①③は点火（1）・②は休眠（0・腕 B の M5 が外れた）
         for (int i = 0; i < 5; i++) Assert.Equal(E[i], Catalog.Goods[Staples[i]].BaseNeed);
     }

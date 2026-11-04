@@ -293,7 +293,7 @@ public class TreasuryLedgerTests
             w.PollTax = 0;   // 人頭税の率は頭数あたりの実額（物価水準で伸びない）＝双子の名目を2倍にしても2倍にならない＝止める
             // 盤面：不履行の計数は0から数える（2026-09-29 S3b の盤面の直し＝この盤面の4四半期目は払える額と請求がちょうど釣り合う刃の上
             //   〔r＝1 と r＝1−1ulp が張り付いた市場の打ち切り〔相対1e-8〕の差で入れ替わる〕＝旧は「0 のはず」を前提に置いていた）。
-            w.InsolvencyQuarters = 0;
+            w.InsolvencyMonths = 0;
             return w;
         }
         // 名目の量を全て2倍にする（2倍は浮動小数で厳密＝和も積もちょうど2倍）＝同じ実体・物価水準2倍
@@ -327,15 +327,15 @@ public class TreasuryLedgerTests
         double gotA = Month(a, below, 0.5);
         Assert.True(gotA > 0, $"利払い÷歳入 {share:F4} が限界 {below:F4} の下なのに借りない");
         Assert.True(System.Math.Abs(gotA - unitA) <= 1e-9 * unitA, $"大きな不足で1件の額（名目GDP×割合）{unitA:F3} で止まっていない（{gotA:F3}＝1件の額の物差しが名目でないか、プールが先に尽きた）");
-        Assert.Equal(0.0, a.InsolvencyQuarters);
+        Assert.Equal(0.0, a.InsolvencyMonths);
 
         // ② 限界に届いた＝借りない・払えない月は不履行の計数が進む・払えている月は進まない
         var x = Twin();
         Assert.Equal(0.0, Month(x, above, 0.5));
-        Assert.Equal(0.5, x.InsolvencyQuarters);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝1−0.5）
+        Assert.Equal(0.5, x.InsolvencyMonths);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝1−0.5）
         var y = Twin();
         Assert.Equal(0.0, Month(y, above, 1.0));
-        Assert.Equal(0.0, y.InsolvencyQuarters);
+        Assert.Equal(0.0, y.InsolvencyMonths);
 
         // ③ 物価水準2倍の双子：門の判定は同じ・借りる額はちょうど2倍
         var b2 = Twin();
@@ -347,7 +347,7 @@ public class TreasuryLedgerTests
         var z2 = Twin();
         DoubleNominal(z2);
         Assert.Equal(0.0, Month(z2, above, 0.5));
-        Assert.Equal(0.5, z2.InsolvencyQuarters);   // ★(205) 同じ（物価水準2倍の双子でも r は同じ）
+        Assert.Equal(0.5, z2.InsolvencyMonths);   // ★(205) 同じ（物価水準2倍の双子でも r は同じ）
     }
 
     /// <summary>★借入はエンジンの1行だけ（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝AI とプレイヤーの経路が無い。

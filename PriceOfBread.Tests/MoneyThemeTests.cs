@@ -76,7 +76,6 @@ public class MoneyThemeTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // 国家世界の1国＝密閉（交易相手なし）・商人/投資家POPが立つ（FullChain の最小ビルダーは商人索引を持たない）
         var w = sim.World;
-        Assert.True(w.Coef.MintPriceFloorGate > 0 && w.Coef.StandardMetalMintGate > 0, "前提＝床モードと本位金属が live");
         w.Coef.MintParitySells = gate;
         w.Coef.MintBuysAtMarket = 0;   // 隔離＝準備不足の市場買い（atMarket）を切る。ON の売りは atMarket の月に走らない設計なので、買い側が同じ州で発火すると器が測れない
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
