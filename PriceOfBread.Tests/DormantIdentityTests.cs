@@ -37,7 +37,7 @@ public class DormantIdentityTests
         // ★InheritanceLawGate（(650) 相続法）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は InheritanceLawTests。
         // ★HcdColonyCessionDistance（(696) 線 hcd 講和の植民地格の州の複数割譲に距離）は 2026-10-31 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は ColonyCessionDistanceTests（旗を 0 に置いた走行）。
         "TechProductivityBracketOff",
-        // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalCedeFleetReturnTests（旗を 0 に置いた走行）。
+        // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。(817) で旗ごと削除（RetiredFields）。番人は NavalCedeFleetReturnTests。
         // ★StanceEduHoldsLaw（(680) 線 edq）は 2026-10-30 に 1 で**点火**＝この表から外した。(772) c6sp で焼き込み（欄は墓標・旗 0 の経路は無い）＝番人 StanceEduHoldsLawTests は既定の形だけを確かめる。
         // ★SpreadLiteracyFull・SpreadPrereqEdges（(621) 線 inst）は 2026-10-28 に点火＝この表から外した（SpreadLiteracyFull は既定 0.5・辺は Catalog.After の共産主義 ← 社会主義へ移して旗を消した）。旗 0 の経路の番人は InstitutionAnchorTests。
         // ★MandateWallStockCap（(615) 政治資本の壁の一歩の勘定）は 2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は MandateWallStockCapTests。
@@ -299,6 +299,7 @@ public class DormantIdentityTests
         "ColoniesAreRegions",
         // ★旗の焼き込み 2026-11-03 (812) c13ib（I5・港と移民の旗。既定 1 の経路だけ残した）
         "NavalProcurementNeedsPort", "CrossBorderMigrationByOpportunity",
+        "NavalCedeFleetReturn",   // (817) c14id：I5 の旗の焼き込み（割譲で艦を送り手の首都の州へ戻す・既定 1 の経路だけ残した）
         "UrbanCapOff", "BaseUrbanCap", "UrbanPerInd", "UrbanCapFollowSpeed", "UrbanIndSmoothed",   // 都市化の天井の旗と目盛り・Region の平滑化の状態（A3）
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
