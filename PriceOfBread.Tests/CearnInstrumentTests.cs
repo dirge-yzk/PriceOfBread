@@ -560,4 +560,43 @@ public class CearnInstrumentTests
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>(842) G8（(836) の反証役・c67pu：配線の突然変異 W6＝Instruments.Phase の warm から CearnWarm の呼びを外す、が緑のままだった穴）：助走の直後（Phase warm）で始まりの在庫を取り直し、助走の月の流れを捨てる。
+    /// 盤面：1 四半期回して（助走の代わり）流れを積み、Phase(warm) を呼び、もう 1 四半期回して Quarter。cearn_s の savingsStart は warm の時点の州の在庫（試験が POP から数える）に合う。
+    /// 前提：warm の時点の在庫が最初の登録の時点の在庫と違う州がある（外すと始まりが登録の時点の在庫に残って食い違う）。突然変異 W6＝CearnWarm の呼びを外す→ 赤。</summary>
+    [Fact]
+    public void 助走の直後に始まりの在庫を取り直す()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cwarm_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        var sim = Two(1798UL);
+        double Sav(Region r) { double s = 0; foreach (var p in r.Pops) s += p.Savings.Value; return s; }
+        var init = new Dictionary<(string, string), double>();
+        var atWarm = new Dictionary<(string, string), double>();
+        try
+        {
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) init[(Instruments.NameOf(n.World), r.Name)] = Sav(r);
+            sim.StepQuarter();
+            Instruments.Phase(sim, 1798UL, "warm");
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) atWarm[(Instruments.NameOf(n.World), r.Name)] = Sav(r);
+            sim.StepQuarter(); Instruments.Quarter(sim, 1798UL, 0);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        try
+        {
+            var rows = Rows(System.IO.Path.Combine(dir, "cearn_s1798.tsv"));
+            Assert.NotEmpty(rows);
+            Assert.True(atWarm.Any(kv => Math.Abs(kv.Value - init[kv.Key]) > 1e-9 * Math.Max(1, Math.Abs(kv.Value))), "前提が崩れた：最初の 1 四半期で在庫が動いた州が無い");
+            int checkedRows = 0;
+            foreach (var r in rows)
+            {
+                if (D(r, "lateRegisteredPops") > 0) continue;
+                double want = atWarm[(r["nation"], r["region"])];
+                Assert.True(Math.Abs(D(r, "savingsStart") - want) <= 1e-9 * Math.Max(1, Math.Abs(want)), $"始まりの在庫が warm の時点の在庫と違う {r["nation"]} {r["region"]}：{D(r, "savingsStart")} ≠ {want}");
+                checkedRows++;
+            }
+            Assert.True(checkedRows > 0);
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

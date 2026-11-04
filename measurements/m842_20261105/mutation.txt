@@ -1,0 +1,21 @@
+(842) c68id 突然変異の記録（使い捨ての写し D:/PoB_work/c68id_mut・隔離ビルド D:/PoB_work/c68id_mutart・台本 scripts/instruments/c68id/mut842.py）。形式：名前<TAB>結果｜要約｜赤になった試験｜秒<TAB>期待。
+M1 WarPushSpeed を 0.11 に	赤｜失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 143 ms - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0_12 [4 ms]｜39秒	期待：赤（新しい既定の固定の Fact）
+M2 cgrp_s の nan を数に戻す	赤｜失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.台帳が始まっていない州のcgrpは始まりと残差がnan_他の州は数 [545 ms]｜17秒	期待：赤（G7）
+M2b cgrp_s の残差の nan を数に戻す	赤｜失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.台帳が始まっていない州のcgrpは始まりと残差がnan_他の州は数 [500 ms]｜17秒	期待：赤（G7）
+M3 m̄ から首都を外す	赤｜失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 4 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.RuleInstrumentTests.州の闘争度と国の平均は首都を含めて試験が数えた値に合う [2 s]｜15秒	期待：赤（T5）
+M4 遅れた R に今の R を入れる	赤｜失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 5 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.RuleInstrumentTests.遅れたRは1四半期前の末のRで_公開秩序が1未満の行ではその値に一致する [858 ms]｜15秒	期待：赤（T7）
+M5 旗の `> 0` を `>= 0` に	赤｜失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 4 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CornintInstrumentTests.ブロック0の穀物の利害が正なら旗は1_そうでなければ0 [2 s]｜14秒	期待：赤（C6）
+W1 CpopRows の呼びを外す	赤｜失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う [499 ms]｜16秒	期待：赤（G5）
+W2 CgMonthClose の呼びを外す	赤｜失敗!   -失敗:     3、合格:     9、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.群の表は州の台帳の和に合い_群と月の窓の台帳が閉じる [2 s] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.空の印と人頭税の請求の群 [255 ms] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う [752 ms]｜16秒	期待：赤（G5）
+W3 CearnRegister の呼びを外す	赤｜失敗!   -失敗:     6、合格:     6、スキップ:     0、合計:    12、期間: 7 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.群の表は州の台帳の和に合い_群と月の窓の台帳が閉じる [2 s] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.POPからPOPへの移しは払い手の州と受け手の州に帰属する [19 ms] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.州の台帳は閉じ_税の列は国庫の区分の台帳に合う [628 ms] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.台帳が始まっていない州のcgrpは始まりと残差がnan_他の州は数 [461 ms]｜18秒	期待：赤
+W4 CearnTable の CgReset を外す	赤｜失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.群の表は州の台帳の和に合い_群と月の窓の台帳が閉じる [2 s] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う [656 ms]｜16秒	期待：赤（G5 の monthsClosed）
+W5 CearnTable の CearnOn の門を外す	赤｜失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.止まった月の振り分けは手で書いた表のとおり_門を閉じるとPOPの行を書かない [245 ms] / 失敗 PriceOfBread.Tests.CearnInstrumentTests.門を閉じると植民地の稼ぎと群の表を書かず軌道は変わらない [614 ms]｜16秒	期待：赤（G6）
+
+W6 の最初の結果（上の台本の 1 回目）：緑（CearnInstrumentTests 12 本全て合格）＝Instruments.Phase の warm から CearnWarm の呼びを外しても、G1〜G6 のどれも赤にならなかった（c67pu の G5・G6 の配線の穴）。
+  → 同じ線で試験 G8（CearnInstrumentTests.助走の直後に始まりの在庫を取り直す）を足し、同じ突然変異を取り直した（下の行）：赤。
+W6 CearnWarm の呼びを外す	赤｜失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (net10.0)｜失敗 PriceOfBread.Tests.CearnInstrumentTests.助走の直後に始まりの在庫を取り直す [2 s]｜23秒	期待：赤か緑（助走の流れを捨てる）
+
+同値の突然変異（赤にならないのが正しい＝出力が変わらない・記録）：
+  W7 CgMonthClose の先頭の `if (!CearnOn) return;` を外す：CearnOn が偽のとき CearnRegister が登録しない（同じ門）ので CgPops に何も無く、何も起きない。出力は同じ。
+  W8 CearnRegister の `if (!CearnOn) return;` を外す：登録は進むが CearnTable の門で書き出しが無い。ファイルは出ない。G6 の主張（門を閉じると cpop_s を書かない）と出力は同じ。
+  どちらも G6 の対象外（出力が変わらない物を試験は拾えない）。
