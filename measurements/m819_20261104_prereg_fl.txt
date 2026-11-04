@@ -1,0 +1,70 @@
+(819) c65fl 払えない利札で請求権を落とす（c14fl の (b)）を規則 C の拡張として入れる・事前登録 2026-11-04（担当 Claude Opus 5.5・挙動の線・枝 c65fl・基点 8bbcd39f）
+
+[★先頭] 指示の前提が成り立たない（作者の指示から外れる所）
+  - 指示は〈SimCore が e0518931 とバイトで同じかぎり腕 B の生 keep_818_rej/c14flB_10 を使い回す・違うなら腕 B を回さずに止める〉。
+  - 実際：`git diff e0518931 8bbcd39f -- PriceOfBread.SimCore` は 4 ファイル（Coefficients.cs・Diplomacy.cs・Territory.cs・InstrumentsInheritIntent.cs・+12 −19）＝(817) c14id の旗 3 本の焼き込み
+    （HcdColonyCessionDistance・NavalCedeFleetReturn・InheritedStateIntentDrop）と注 1 行。加えて旗の既定を 1 にする時点で e0518931（旗 0）とは必ず 1 行違う＝指示の比べる相手は、腕 B を測った木 8e4bf0a9（旗 1）が正しい読み。
+  - 扱い：腕 B は回さない（指示と 3 回の規則のとおり）。腕 B の生は〈近似＝測っていない使い回し〉として使う（恒等とは書かない）。根拠は [6] の 2 つの読み（ファイルごとのハッシュ・違う塊の形）。
+    作者に聞く物の先頭に書く：(A) この読みで使い回しを認める（推奨）／(B) 合流が旗 1 の木で計器つき 10 種を 1 本回し、cpwd_s・cpworld_s ほか計器の表を keep_818_rej/c14flB_10 とバイトで比べてから採る。
+
+[0] 形の種類＝尾（払えない利札＝不履行の事象の後始末だけを変える）。形は (815) と同じ（CapitalMarket.cs の 1 行・旗 CapitalCouponUnpaidWriteDown）＝エンジンは 1 字も変えない。
+  - 変えるのは 2 つだけ：①旗の既定 0→1（Coefficients.cs の 1 行・8e4bf0a9 の行とバイトで同じにする）②規則 C の番人 FiscalTests.cs:611〜（Fact）を旗の Theory にする。
+  - 作者の扱い：§0-2 ★(818) ①〈払えない利札で元本の請求権を落としてよいか〉＝推奨〈認める＝不履行の元本の切り捨ての形として規則 C の拡張にする〉を、作者「全て推奨で」で推奨を採った（承認の言葉ではない）。
+    形の史実の確証：なし（AI の推奨）。
+  - ④ エンジンの `divWo > 1e-9`（絶対値の門）：直さない（推奨）。読み（keep_818/base_ins の cpwd_s・種 1〜10・旗 0 の盤面・請求−払い＝claimIndex−paidIndex）：
+    請求−払いが正の事象 203,244 のうち、門の下（0＜請求−払い≦1e-9）が 106,487 事象・その額の和（金建て）4.87e-7＝未払いの全額 8.37e9 の 5.8e-17。
+    門の上は 96,757 事象（未払いの最小 1.05e-9・外資の負債の最小 5.8e-8）。＝門の下は額では 0 と区別できない（大半は請求と払いの丸めの差の桁）。
+    相対の門にしても落とす額は 1e-16 の桁しか変わらない＝働きに効かない。直すと SimCore が変わり使い回せない＝直さない。
+
+[1] 試験の書き換え（★(743) の区分の外＝規則の置き換えに当たる番人を、作者「全て推奨で」で推奨を採った規則 C の拡張に合わせる）
+  FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える：[Fact] → [Theory] [InlineData(0.0)] [InlineData(1.0)]（係数に CapitalCouponUnpaidWriteDown = 引数 を明示）。
+  - 旗 0：期待＝逃避の額ちょうど（旧の等式・flight + 0.0 は浮動小数でも flight と同じ値）。
+  - 旗 1：期待＝逃避＋min(未払いの利札, 逃避の後の外資の負債)。未払いの利札は試験が係数から書く＝(fci0−flight)×CapitalDividendRatePerQuarter
+    （前提〈逃避が払えた額の 2 倍より大きい〉＝逃避だけで投資家が払い切る＝利札の払いは 0）。新しい前提：未払いの利札＞10^6×許しの幅（落とさない実装が許しの幅で通らない）。
+  - 両方：Σ対外資産の減り＝Σ外資の負債の減り（変えない）・英の対外資産の減り＝期待の額（旧は逃避の額）・(a)(b)(d) の Assert は変えない。
+  - 旗 1 の側は新しい規則の番人＝〈恒等の線〉とは書かない。
+  - 予言の照合：(815) の旗 1 のフルスイートの赤の文〈仏の負債の減り 819405950 ≠ 逃避の額 657277500.0000001〉の差 162,128,450 が、旗 1 の期待の未払いの利札（試験が書く）と許しの内で一致する。
+  DormantIdentityTests.DormantZeroFields：旗の既定を 1 にするコミットで〈CapitalCouponUnpaidWriteDown〉の行を外す（点火の型・8e4bf0a9 と同じ行）。
+
+[2] 試験の数の予言（㉑）：Category!=FullLength 2226→**2227**（Fact 1 本が InlineData 2 本）・FullLength 3（変わらない）。
+
+[3] ソースを走査する番人の点検（㉘・grep 2026-11-04・8bbcd39f）と変わる件数の予言
+  - IndustrializationReaderTests の許可表：CapitalMarket.cs 1（変えない）＝**変化 0**（SimCore は旗の既定の 1 字だけ）。
+  - UnitTypeTests の `new MoneyStock(`：SimCore の grep -o で 66・宣言 66＝**変化 0**。
+  - route_anchors.tsv の CapitalMarket.cs の 11 行：CapitalMarket.cs を触らない＝**変化 0**。
+  - WriterRatchetTests の宣言の表：触らない＝**変化 0**（計算量の件数の表は旗 1 で動く行があれば (815) の腕 B の .cost と同じ＝★(749) の型で写す必要があるかを旗 1 のフルスイートで読む・予言＝(815) の旗 1 のフルスイートで WriterRatchetTests は緑＝**変化 0**）。
+  - DormantIdentityTests：上の 1 行（旗の既定を 1 にするコミット）。
+  - 旗 1 の木で旧の規則を固定している番人の grep（㉜）：tests の〈逃避の額〉〈払えない配当は積まない〉〈ForeignCapitalIn.Value - flight〉＝FiscalTests.cs の 651（今の 653）と 655（今の 657）の 2 つの Assert だけ（同じ試験の中＝(815) では 651 で止まったので 655 は表に出なかった）。CapitalCouponWriteDownTests は旗を明示＝旗の既定に依らない。
+
+[4] 突然変異（㉚・使い捨ての木＝8bbcd39f＋この線の試験の git archive に mutate.py を当てる・D:/PoB_work/c65fl_work/mutu/）と、どの番人で赤か
+  門＝FiscalTests の Theory の 2 行（F0＝旗 0・F1＝旗 1）と CapitalCouponWriteDownTests の T2・T4。
+  Mu1 資産だけ（外資の負債を落とさない・flightTotal にだけ足す）：F1 赤（負債の減り）・F0 緑・T2 T4 赤
+  Mu2 2 倍落とす：F1 赤（負債の減り・英の対外資産）・F0 緑・T2 赤
+  Mu3 負債だけ（flightTotal に足さない）：F1 赤（Σ対外資産≠Σ負債・英の対外資産）・F0 緑・T2 T4 赤
+  Mu4 ÷10：F1 赤（負債の減り）・F0 緑・T2 T4 赤
+  Mu5 全く落とさない（旗の枝ごと消す＝旗 1 でも旗 0 の形）：F1 赤（負債の減り）・F0 緑・T2 T4 赤
+  （F0 が全ての突然変異で緑＝旗 0 の経路は突然変異の行を通らない。）
+
+[5] 門（(815) の G1〜G5 と止める線をそのまま・使い回した値を写す＝腕は回さない）
+  G1〜G4：scripts/instruments/c14fl/gate815.py。紙の台本（今の盤面 keep_818/base_ins・measurements/m819_20261104/gate_paper_keep818.txt）：
+    旗 0 の盤面＝G1 落ちる（事象 96,741・比 0）・G4 落ちる（比 1）・G2・G3 通る＝(815) の Mu0 の行と同じ＝旗 0 で〈働いた〉の門が落ちる。
+    使い回す腕 B の生（比べる側を keep_818/base_ins に替えて読み直した）＝G1 通る（事象 93,497・比 1）・G2 通る（保存の外れ 0）・G3 0.4559（≧0.2）・G4 0.5009（[0.1, 0.8]）＝(815) の rec_B と同じ値。
+  G5：名目 GDP 0 の続き 0（(815) rec_B）。止める線：(815) rec_B・stoplines_null_recount（100 倍は建国の直後の 2 件だけ・1e10 倍 0・空洞化 1/10 未満 0）・計算量（(815) の .cost）。
+  この線で新しく回すのは：旗 1 の木のフルスイート（分けて・合計を --list-tests と突き合わせる）・savetest・leakhunt・走査の番人の組＝赤が 1 本でも出たら採らない。
+
+[6] 使い回しの根拠（腕 B を回さない代わりの読み・旗を 1 にした後に取る）
+  ①ファイルごとの sha256：腕 B の manifest（keep_818_rej/c14flB_10/b10_c14flB_10.txt.manifest・479 行）の SimCore の行と、旗 1 の木の SimCore を突き合わせる。
+    予言＝違うのは Coefficients.cs・Diplomacy.cs・Territory.cs・InstrumentsInheritIntent.cs の 4 本だけ・CapitalMarket.cs と InstrumentsCpwd.cs はバイトで同じ。
+  ②違う塊の形：`const が 1 の旗 > 0 && X → X`・`if (const が 1 の旗 > 0) 文 → 文`・注だけ（算術と順序の変わりは 0）。焼いた旗 3 本の書き手は 8e4bf0a9 の木で試験だけ（ColonyCessionDistanceTests・NavalCedeFleetReturnTests・InheritIntentTests）・
+    台本の c7sw/named.sh は POB_COEF の例の注・腕 B の manifest の RUN 行に POB_COEF は無い。
+  ③(817)〜(818) の ident（旗 0）で同じ焼き込みは測った種で一致（素の 5 種・計器つき 10 種）＝支え（旗 1 の軌道は測っていない＝限界として名乗る）。
+
+[7] ident の段（③）：旗 0 の器の木（この線の試験だけを足した木）は SimCore が 8bbcd39f とバイトで同じ（合わせた木の ident m818〈判定: 恒等〉の木）＝ソースから自明＝ident.sh は回さない（腕の枠は他の線へ）。試験の数は [2] でフルスイートの --list-tests が数える。
+
+[8] 止める線（この回の形を結果を見る前に写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる）・1e10 倍以上・
+  空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+  NG・国力・史実度・exact・near は記録。名目 GDP 0 の続きは記録の段の先頭（G5 で門にもする）。
+
+[9] 計算量の割り当て：0.5 秒（(815) と同じ・国×四半期に比較 1 つと引き算 2 つ）。m797 221.2＋0.5＝221.7＜248.5。
+
+[10] 手順：①この事前登録（最初のコミット）②Theory のコミット（旗の既定 0）→走査の番人の組（㉘）③突然変異（使い捨ての木）④旗の既定を 1 にするコミット→ [6] の読み→フルスイート（分けて）・savetest・leakhunt（㉜）＝赤なら止める（番人を書き換えない）⑤採るなら記録を measurements/m819_20261104/ へ。
