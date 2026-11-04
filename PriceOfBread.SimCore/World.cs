@@ -730,7 +730,7 @@ public sealed class World
                                     Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null, double fromHeld = double.NaN,
                                     [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
     {
-        if (Instruments.On) Instruments.Route(routeFile, routeLine, from.Pops is not null ? 'P' : from.W is not null ? 'T' : OutsideCode(outside), to.Pops is not null ? 'P' : to.W is not null ? 'T' : OutsideCode(outside));   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）と相手の側を貯蓄の台帳の経路名にする
+        if (Instruments.On) { Instruments.Route(routeFile, routeLine, from.Pops is not null ? 'P' : from.W is not null ? 'T' : OutsideCode(outside), to.Pops is not null ? 'P' : to.W is not null ? 'T' : OutsideCode(outside)); Instruments.CearnRoute(cat, toCat); }   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）と相手の側を貯蓄の台帳の経路名にする・(822) 国庫の側の区分を州の台帳へ写す
         if (!(amount > 0)) return 0;
         if ((from.Pops is not null && from.W is null) || (to.Pops is not null && to.W is null))
             throw new InvariantViolationException("移し方の1本：POP の側が国を名乗っていない（国 null・POP は台帳に載らない）");
@@ -977,7 +977,7 @@ public sealed class World
     /// 相手の側（生産者の持分と消費者）は月内の仮勘定（Paid・Earned）が同じ額で書いてある＝両側は月の中の1本の形で閉じる（計画 §10-12-2-3）。</summary>
     internal void SettleStateSpent(Region r)
     {
-        for (int k = 0; k < r.StateSpent.Length; k++)
+        if (Instruments.On) Instruments.CearnStateSpent(r); for (int k = 0; k < r.StateSpent.Length; k++)   // (822) 計器（読むだけ）
             if (r.StateSpent[k] != 0) Pay((TreasuryCat)k, -r.StateSpent[k]);
     }
 

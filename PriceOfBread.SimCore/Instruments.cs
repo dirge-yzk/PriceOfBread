@@ -300,6 +300,7 @@ public static partial class Instruments
     internal static void Begin(World w)
     {
         var st = S(w);
+        CearnRegister(w);   // (822) 植民地の稼ぎの表：全ての国の州の POP を州の台帳へ登録（月初・読むだけ）
         if (IsPicked(w, st)) RegisterPops(w, st);   // (262) 貯蓄の書き手の台帳：挙げた国の POP を台帳の持ち主へ登録（月初・新しい POP は次の月から）
         st.Active = !w.WarmupFrozen; st.Armed = true;
         if (!st.Active) { st.HaveLedger = false; st.LimitPrev = -1; return; }   // (281) 助走の月は限界の縁の往復を数えない
@@ -1235,6 +1236,7 @@ public static partial class Instruments
     /// <summary>貯蓄の書き込み1件（<c>Pop</c> の中の書き手の隣から呼ぶ・額は符号つきの増分）。挙げた国の POP だけ記帳する（登録が無ければ何もしない）。</summary>
     internal static void Sav(Pop p, SavKind kind, double delta)
     {
+        CearnSav(p, kind, delta);   // (822) 植民地の稼ぎの表：州の台帳（全ての国・挙げた国の登録より前）
         if (!PopOwner.TryGetValue(p, out var st)) return;
         bool routed = kind is SavKind.Give or SavKind.GiveIncome or SavKind.Take or SavKind.CarryOut or SavKind.CarryIn;
         // 相手の側：受け取り（Give・GiveIncome）は払い手の側・払い（Take）は受け手の側。運搬は POP どうし
@@ -1767,6 +1769,7 @@ public static partial class Instruments
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
         if (time == "warm") InpWorldTable(sim);   // (657)
+        if (time == "warm") CearnWarm(sim);   // (822) 助走の月の流れを捨て、始まりの在庫を取り直す
         if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // (380)(403) 助走の月の成約を数えない・(579) 助走の着工の判断の回を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
         RdhPhase(sim, seed, time);   // (721) rdh_s の O・W の行（RDH が空なら何もしない）
@@ -1854,6 +1857,7 @@ public static partial class Instruments
         DivhostTable(sim, seed, q); RdhTable(sim, seed, q);            // (801) 外資の配当の旧新の表 // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
         CpwdTable(sim, seed, q);           // (815) 払えない利札の落としの表
+        CearnTable(sim, seed, q);          // (822) 植民地の稼ぎの表（全ての国の州×四半期）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
@@ -1885,6 +1889,7 @@ public static partial class Instruments
         DivhostClose(sim); PortchClose(sim);    // (801)(770)
         PortlmClose(sim);    // (777)
         CpwdClose(sim);      // (815)
+        CearnClose(sim);     // (822)
         InheritIntentClose(sim);   // (781) 開いたままの継いだ工事の窓を書く
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
