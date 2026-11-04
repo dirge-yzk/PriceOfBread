@@ -1,0 +1,20 @@
+## Mu1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.未払いが外資の負債より大きい時は外資の負債が0で止まり対外資産も同じ額だけ減る [111 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [14 ms]
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+## Mu2
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [38 ms]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+## Mu3
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.未払いが外資の負債より大きい時は外資の負債が0で止まり対外資産も同じ額だけ減る [43 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [48 ms]
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+## Mu4
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.未払いが外資の負債より大きい時は外資の負債が0で止まり対外資産も同じ額だけ減る [61 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [37 ms]
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+MUTUNITDONE

@@ -42,7 +42,7 @@
   G5（壊さない）：名目 GDP 0 の続き（scripts/instruments/m808/gdp_zero10.py・人口 1 万以上・4 四半期以上）の区間の数 ≦ 基準 m797 とヌル腕 N1・N2 の最大（(813) で 0・0・0＝0）。
   ⚠ヌル腕（keep_797 の n1・n2）は旧の木で divhost_s が無い＝G3・G4 のヌル腕の幅は取れない（限界）。G1・G2 は機構の恒等式＝ヌル腕に依らない。
 
-[5] 突然変異（使い捨ての木 D:/PoB_work/c14fl_mut*・腕は計器つき 2 種〔種 1・2〕・出力は measurements/m815_20261104/mutation_gates.txt へ）と、どの門で赤か（㉚）
+[5] 突然変異（使い捨ての木＝腕は D:/PoB_work/c14fl_work/mut/src_c14flMuN〔batch.sh prep の写し〕・機構の試験は D:/PoB_work/c14fl_work/mutu/src_c14flMuN〔e0518931 の git archive＋mutate.py〕＝★追記 1 で場所を直した・腕は計器つき 2 種〔種 1・2〕・出力は measurements/m815_20261104/mutation_gates.txt へ）と、どの門で赤か（㉚）
   Mu0 旗 0（器のまま）            ：G1 赤（下限）・G4 赤（上限 1.0）・G2 緑・G3 緑
   Mu1 落とさない（落とす 1 行を消す・flightTotal だけ足す＝資産だけ）：G1 赤（下限）・G2 赤（ownerDrop＞host の和）
   Mu2 2 倍落とす（divWo を 2 倍・外資の負債で頭打ち）：G1 赤（上限）・G2 緑
@@ -77,3 +77,17 @@
 [10] 記録（門にしない）：外資の負債÷年 GDP の中央値と p90（1850・1900・1949）・英の国債の不履行の種の数・兌換停止の件数・分離独立の件数・蘭と西の価格水準・開幕の 1000 倍以上・NG（ng.sh・基準 rd:measurements/ng797_20261103:m797）・門 A′（nullgate.py）・.cost・空洞化 1/4 未満の件数。
 
 [11] 手順：①この事前登録（最初のコミット）②旗 0 の器と計器と試験 → 走査の番人の試験（㉘）③ident.sh run c14flz（--added-tables cpwd,cpworld・--tests-delta +4・--saveleak）④突然変異（使い捨ての木）⑤旗 1 の種 16 の全長の savetest と leakhunt（腕の前の確かめ）→ 旗の既定を 1 → 腕 B（INS=1 batch.sh run c14flB 10・POB_INSTRUMENTS_NATIONS を渡す）→ 門と止める線 ⑥落ちたら採らない（物差しを替えない・形の変え直しは 1 回まで）⑦フルスイート（旗 1 の木・2 本に分けて）・savetest・leakhunt（旗 1）。
+
+★追記 1（2026-11-04・旗 1 の出力を 1 行も読む前・ident c14flz と突然変異の腕 Mu1・Mu2 の走行中に書いた＝測る木は変えない）
+  G1 の事象の母集合に浮動小数の床を足す：woActual は計器が読んだ外資の負債の差（fciAtCoupon−fciAfterWriteDown）＝落とした額が外資の負債の 1e-13 程度より小さい事象では
+  引き算の丸め（ulp(F)）が比を 0.001 より大きく動かす（機構の誤りではなく読み方の誤り）。よって G1 の比の事象＝woExpected＞max(1e-9, 1e-9×fciAtCoupon)。
+  床の下の事象は別に数え、|fciAfterWriteDown −(fciAtCoupon − woExpected)| ≦ 1e-12×fciAtCoupon（外れ 0）を同じ G1 の条件に含める（記録に件数を書く）。
+  旗 0 は床の上の事象で比 0＝下限で落ちる（紙の台本 [2] は変わらない・96,757 事象の未払いは請求の 1e-2 の桁＝外資の負債の 1e-4 以上が大半）。門の数（0.999・1.001）は変えない。
+  G2 の許しにも同じ床を足す：ownerDrop は対外資産の金建ての和（Σ）の前と後の差＝和が大きく落としが小さい呼び出しでは、和の丸め（ulp(Σ)×国の数）が相対 1e-9 を超える。
+  よって許し＝1e-9×max(ownerDrop, hostFlightDrop＋hostWoDrop, 1e-6) ＋ 1e-12×ownerBeforeGold（和の丸めの桁）。外れ 0・skip か clip の割合 ≦1e-3 は変えない。
+
+★追記 2（2026-11-04・旗 1 の腕 B の前・突然変異の腕 Mu1・Mu2 の門の値を読んだ後・旗 1 の腕 B の出力は無い＝門の数は変えない）
+  旗 0 の盤面の G2（ident c14flz の腕 b＝計器つき 10 種・旗 0）：呼び出し 6,880・保存の外れ 0（相対の最大 9.36e-12）・skip 0・clip の呼び出し 0・skip か clip の逃避の割合 0
+  ＝今ある逃避の経路に〈受け手の側が落ちない落とし〉は無い（advisor の指摘の〈逃避の側に同じ非対称が既にあるか〉の確かめ＝無い）＝㉗ の破れの予言は無い。
+  旗 0 の盤面で G1 は 96,741 事象（床の下 16）で比 0＝落ちる・G4 は比 1＝落ちる・G2・G3 は通る（[5] の Mu0 の行のとおり・measurements/m815_20261104/gate_flag0_ident.txt）。
+  計器の請求は divhost_s（エンジンの請求）と独立に書いたが、未払いの額の割合 0.5733 と外資の負債÷年 GDP の中央 14.06 が紙の台本（divhost_s から）と一致した。
