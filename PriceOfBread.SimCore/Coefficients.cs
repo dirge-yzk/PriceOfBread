@@ -760,7 +760,7 @@ public sealed class Coefficients
     public double GdpTrendSmoothing = 0.18;       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
     public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflationPerYear)EMAの平滑速度（旧 World直書き0.34）
     public Share AdminBudgetFrac = new(0.5);          // 行政＝歳入シェア（行政費スライダー×これ×歳入）。行政が薄いと汚職で歳入が漏れるので自己投資的
-    // 【墓標2026-11-03 (811)・旗の焼き込み】MilitaryBudgetNeedCapped（S3a・2026-07-31 再点火・既定 1）を消した＝軍需予算と艦の予算は常に必要額（全 4 段〔EconomyStep.MilitaryProcurementNeed〕・艦は NavalProcurementNeed）で切る。旧の式〔0＝固定額を割り当てる〕は物理削除。
+    // 【墓標2026-11-03 (811)・旗の焼き込み】MilitaryBudgetNeedCapped（S3a・2026-07-31 再点火・既定 1）を消した＝軍需予算と艦の予算は常に必要額（全 4 段〔EconomyStep.MilitaryProcurementNeed〕・艦は EconomyStep.FleetOrder の必要額）で切る。旧の式〔0＝固定額を割り当てる〕は物理削除。
     // 【削除2026-10-02 (155)】MilitaryRevenueShare（0.25＝軍需装備の上限＝軍事費×これ×歳入・給与と別の2本目の器）＝軍事費の器（MilitaryEnvelopeShare）の吸い込みの2段目（給与の後の残り・必要額まで）へ畳んだ。
     //   旧の注記＝「45%は鋼を奪い私的工業化をクラウドアウトし過ぎた→0.25」（装備の上限）＝(155) は必要額（全4段）で切るので器が大きくても装備は必要額を超えない。
     // ★(155) 軍事費の吸い込みの3段目＝質（幹部の給与＝訓練）の必要額＝規定の給与の満額×これ。将校と下士官の給与は兵卒の給与とほぼ同じ額（仏1788＝将校約4,600万リーヴル対
@@ -2244,7 +2244,7 @@ public sealed class Coefficients
     //   今＝海軍力は艦の在庫（Region.FleetUnits＝財ごとの隻数）×段の効き（建造費×段の乗数＝EconomyStep.FleetTierMul）×乗員の充足×海の熟練（Power.NavalPower）・
     //   乗員は艦に付く量（隻数×1隻の乗員＝EconomyStep.FleetCrewPerHull）・艦の購入は海軍の予算（Region.NavalBudget＝装備の器×海の金の割合）と目標の艦隊（海の必要量）の差＝兵の頭数を読まない。
     // ★★★理想の軍隊の形（2026-08-01・段0＝全計算を休眠で実装・読み手ゼロ）。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
-    // 【墓標2026-10-18・旗の焼き込み】ArmyShapeEnabled（既定1.0・理想の軍隊の形）を消した＝海の必要量 Power.NeedSea が陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.NavalProcurementNeed）を決める計算は常に走る（0＝必要量0の旧は git の履歴から戻せる）。
+    // 【墓標2026-10-18・旗の焼き込み】ArmyShapeEnabled（既定1.0・理想の軍隊の形）を消した＝海の必要量 Power.NeedSea が陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.FleetOrder の必要額）を決める計算は常に走る（0＝必要量0の旧は git の履歴から戻せる）。
     public double AttentionHostilityFloor = 0.15;  // 平時（緊張0）でも残る敵意＝「無政府状態では武力は武力」。⚠段1の分布を見て較正する
     public double AttentionTensionHalf = 40.0;     // 敵意が半分に達する緊張。★**既存の RivalTensionThreshold(40)＝「これ超＝ライバル」と同値**＝新しい水準を発明しない
     public double AllyAttentionDiscount = 0.7;     // 宗主と属国の間の敵意の割引（3割だけ向ける）＝作者裁定 2026-09-29 の5「属国は仮想敵国ほどではないが、脅威を与える」（ArmyShape.Hostility・脅威の緊張が同じ1本）。⚠(151) 同盟は割引でなく0（同「同盟国は計上しない」・旧＝同盟と従属の共用の3割）
