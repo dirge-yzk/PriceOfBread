@@ -50,7 +50,7 @@ public static partial class Instruments
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, CearnAcc> CearnAccs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CearnAcc> CearnPopAcc = new();
-    sealed class CearnSink { public System.IO.StreamWriter? W, G; public bool Header, GHeader; }   // G＝(829) cgrp_s
+    sealed class CearnSink { public System.IO.StreamWriter? W, G, P; public bool Header, GHeader, PHeader; }   // G＝(829) cgrp_s・P＝(836) cpop_s
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, CearnSink> CearnSinks = new();
     [System.ThreadStatic] static TreasuryCat _cearnCat;
 
@@ -97,7 +97,8 @@ public static partial class Instruments
         if (kind is SavKind.RegionOut or SavKind.RegionIn) return;   // 州の移し替えの記帳（お金は動かない）
         if (!CearnPopAcc.TryGetValue(p, out var a)) return;
         var ga = a.G[CgGroupOf(p)];   // (829) 同じ書き込みを POP の群の台帳にも足す
-        if (CgPops.TryGetValue(p, out var cw) && cw.InWin) cw.Win += delta;   // (829) 月の窓の中の書き込みの和
+        CgPops.TryGetValue(p, out var cw);
+        if (cw is not null && cw.InWin) cw.Win += delta;   // (829) 月の窓の中の書き込みの和
         if (kind == SavKind.Settle)
         {
             double earned = Calendar.OneMonthOf(p.EarnedPerMonth).Value;   // 精算の所得の側（同じ月の値・精算の書き込みの直後に読む）
@@ -105,6 +106,15 @@ public static partial class Instruments
             a.Flow[(int)CearnCol.OutMarket] += earned - delta;             // 支払いの側＝所得−増分（精算の 1 行に閉じる）
             ga.Flow[(int)CearnCol.InMarket] += earned;
             ga.Flow[(int)CearnCol.OutMarket] += earned - delta;
+            if (cw is not null)   // (836) POP の四半期の台帳と精算の内訳（同じ月の値）
+            {
+                cw.QFlow[(int)CearnCol.InMarket] += earned;
+                cw.QFlow[(int)CearnCol.OutMarket] += earned - delta;
+                cw.QEarned += earned; cw.QPaid += earned - delta;
+                cw.QLand += Calendar.OneMonthOf(p.LandRentPerMonth).Value; cw.QInd += Calendar.OneMonthOf(p.IndustrialRentPerMonth).Value;
+                cw.QSub += Calendar.OneMonthOf(p.SubsistenceValuePerMonth).Value;
+                if (cw.InWin) cw.WinEarned += earned;
+            }
             return;
         }
         bool routed = kind is SavKind.Give or SavKind.GiveIncome or SavKind.Take or SavKind.CarryOut or SavKind.CarryIn;
@@ -115,6 +125,11 @@ public static partial class Instruments
         bool isIn = (int)col < CearnInCols;
         a.Flow[(int)col] += isIn ? delta : -delta;
         ga.Flow[(int)col] += isIn ? delta : -delta;
+        if (cw is not null)   // (836) POP の四半期の台帳（同じ列）と窓の中の税
+        {
+            cw.QFlow[(int)col] += isIn ? delta : -delta;
+            if (col == CearnCol.OutTax && cw.InWin) cw.WinTax -= delta;
+        }
         if (!routed) return;
         var key = (file, _routeLine, kind, cp);
         var d = isIn ? a.In : a.Out;
@@ -145,9 +160,10 @@ public static partial class Instruments
             {
                 var cw = CgPops.GetValue(p, _ => new CgPop());   // (829) 月の窓の始まり＝月初の在庫を写す
                 cw.InWin = true; cw.Begin = p.Savings.Value; cw.Win = 0;
+                cw.WinTax = 0; cw.WinEarned = 0;   // (836)
                 if (CearnPopAcc.TryGetValue(p, out var a0) && ReferenceEquals(a0, a)) continue;
                 CearnPopAcc.AddOrUpdate(p, a);
-                if (!fresh) { a.Late++; a.G[CgGroupOf(p)].Late++; }
+                if (!fresh) { a.Late++; a.G[CgGroupOf(p)].Late++; cw.QLate++; }
             }
         }
     }
@@ -300,7 +316,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void CearnClose(MultiNationSim sim)
     {
-        if (CearnSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.G?.Dispose(); sk.G = null; }
+        if (CearnSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.G?.Dispose(); sk.G = null; sk.P?.Dispose(); sk.P = null; }
     }
 
     // ---------------------------------------------------------------- (829) 植民地格の州の階級の群の表 cgrp_s（読むだけ・恒等・事前登録 measurements/m829_20261104_prereg_cg.txt） ----------------------------------------------------------------
@@ -325,7 +341,7 @@ public static partial class Instruments
     /// <summary>空の印の割合（月末の在庫 ≦ これ×max(月初の在庫, 請求)）。計器の物差し（係数ではない）。</summary>
     internal const double CgEmptyShare = 0.01;
 
-    /// <summary>環境変数の門：POB_CEARN=0 で cearn_s と cgrp_s を書かない（試験が切り替える）。</summary>
+    /// <summary>環境変数の門：POB_CEARN=0 で cearn_s と cgrp_s と cpop_s〔(836)〕を書かない（試験が切り替える）。</summary>
     internal static bool CearnOn = System.Environment.GetEnvironmentVariable("POB_CEARN") != "0";
 
     /// <summary>群の台帳（州×群）。流れは州の台帳と同じ列。</summary>
@@ -337,8 +353,25 @@ public static partial class Instruments
         public double PopKMonths, MonthStart, MonthEnd, Win, Emptied, Claimed, Poll, IncTax;
         public void Clear() { System.Array.Clear(Flow); Late = 0; Months = 0; PopKMonths = MonthStart = MonthEnd = Win = Emptied = Claimed = Poll = IncTax = 0; }
     }
-    /// <summary>POP の月の窓（月初の在庫・窓の中の書き込みの和）。</summary>
-    internal sealed class CgPop { public bool InWin; public double Begin, Win; }
+    /// <summary>POP の月の窓（月初の在庫・窓の中の書き込みの和）。(836) POP の四半期の台帳（Q…・cpop_s）と窓の中の税と精算の所得（止まった月の振り分け）も持つ。</summary>
+    internal sealed class CgPop
+    {
+        public bool InWin; public double Begin, Win;
+        public double WinTax, WinEarned;   // (836) 窓の中の outTax と精算の所得
+        public readonly double[] QFlow = new double[CearnCols];
+        public double QStart = double.NaN; public int QLate, QMonths;
+        public double QMonthStart, QMonthEnd, QWin, QEarned, QLand, QInd, QPaid, QSub, QPoll, QInc;
+        public int QClaimed, QEmptied, QPos, QEmptiedPos;
+        public readonly int[] QStuck = new int[CpStuckKinds];
+        /// <summary>四半期の始まり（州の台帳と同じ時点）：POP の四半期の台帳を戻し、始まりの在庫を取る。</summary>
+        public void QReset(double start)
+        {
+            System.Array.Clear(QFlow); System.Array.Clear(QStuck);
+            QStart = start; QLate = 0; QMonths = 0;
+            QMonthStart = QMonthEnd = QWin = QEarned = QLand = QInd = QPaid = QSub = QPoll = QInc = 0;
+            QClaimed = QEmptied = QPos = QEmptiedPos = 0;
+        }
+    }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CgPop> CgPops = new();
     static long _cgStamp;
 
@@ -350,6 +383,7 @@ public static partial class Instruments
     {
         foreach (var g in a.G) { g.Clear(); g.Start = 0; }
         foreach (var p in r.Pops) a.G[CgGroupOf(p)].Start += p.Savings.Value;
+        foreach (var p in r.Pops) CgPops.GetValue(p, _ => new CgPop()).QReset(p.Savings.Value);   // (836) POP の四半期の台帳も同じ時点で戻す
     }
 
     /// <summary>月の終わり（<see cref="MonthClose"/> の頭）：国の州の POP の月の窓を閉じ、群の台帳へ月初と月末の在庫・窓の和・請求・空の印を足す。</summary>
@@ -372,12 +406,129 @@ public static partial class Instruments
                 double inc = taxRate * System.Math.Max(0, p.LastEarnedPerMonth.Value);
                 double claim = poll + inc;
                 g.PopKMonths += p.Size; g.MonthStart += cw.Begin; g.MonthEnd += end; g.Win += cw.Win; g.Poll += poll; g.IncTax += inc;
+                bool emptied = CgEmptied(end, cw.Begin, claim);
                 if (claim > 0)
                 {
                     g.Claimed += p.Size;
-                    if (CgEmptied(end, cw.Begin, claim)) g.Emptied += p.Size;
+                    if (emptied) g.Emptied += p.Size;
+                }
+                // (836) POP の四半期の台帳：月の窓・請求・空の印・月初が正で begin≧claim の月と、その中の止まった月の振り分け
+                cw.QMonths++; cw.QMonthStart += cw.Begin; cw.QMonthEnd += end; cw.QWin += cw.Win; cw.QPoll += poll; cw.QInc += inc;
+                if (claim > 0) { cw.QClaimed++; if (emptied) cw.QEmptied++; }
+                if (cw.Begin > 0 && cw.Begin >= claim)
+                {
+                    cw.QPos++;
+                    if (emptied) cw.QEmptiedPos++;
+                    int k = CpStuckKind(end, cw.Begin, cw.Win, claim, cw.WinEarned, cw.WinTax);
+                    if (k >= 0) cw.QStuck[k]++;
                 }
             }
+    }
+
+    // ---------------------------------------------------------------- (836) 植民地格の州の POP の行 cpop_s（読むだけ・恒等・作業の事前登録 D:/PoB_work/r836_work/plan.txt） ----------------------------------------------------------------
+    // 目的＝〈人数がほぼ 0 の POP に在庫が止まる根〉と〈人の居る POP の所得が 0 の根〉（(829) の反証役の直し）を、群でなく POP の単位で読む。
+    // 行＝四半期の末に格が Colonial の州×その州の POP（州の Pops の並び・人数 0 の POP も書く）。cgrp_s と同じ Sav の口で、同じ列へ POP の四半期の台帳にも足す。
+    // 列：識別（popIndex＝州の Pops の添字・classId・className・group）・人数・四半期の始まりの在庫（その州の台帳が戻された時点の値・戻される前に現れた POP は nan）・末の在庫・流入 7・流出 9・残差・遅れの印・
+    //   月の窓（cgrp_s と同じ定義の POP の値）・精算の内訳（所得・その中の地代〔LandRentPerMonth〕と工業レント〔IndustrialRentPerMonth〕・支払い＝所得−増分・自給の値〔SubsistenceValuePerMonth〕＝精算の時点の月の値の和）・
+    //   請求（cgrp_s と同じ式）・月の数え（請求の立つ月・空の印・月初の在庫が正で begin≧claim の月・その中の空の印・その中の止まった月の 6 区分＝CpStuckKind）・
+    //   四半期の末の断面（失業率・自給率・主食の充足・その POP が賃金の受け手〔LaborPopIndex〕の行と地代の受け手〔OwnerPopIndex〕の行）・群の和の確かめ（州×群の POP の和−群の台帳）。
+    //   賃金の行の採算の率はエンジンの関数を呼ばず、供給の段が書いた DesiredOutput（＝Capacity×採算の率）と Capacity を写す（読み手が割る）。
+    // 環境変数の門 POB_CEARN=0 で書かない（cearn_s・cgrp_s と同じ門）。
+    // ⚠限界（計器が自分で申告する）：①cgrp_s の限界①〜⑥と同じ ②払った税の種類（人頭税と所得税）は口では分けられない（国庫への移しは 1 本）＝払った額は outTax・種類は請求の式だけ
+    //   ③自給の〈量〉は POP ごとの欄が無い＝自給の値と自給率 ④DesiredOutput は供給の段を通った月の値（眠った生産者・倒産の行は古い値）⑤断面は四半期の末の 1 時点。
+    internal const string CpopHeaderText = "quarter\tyear\tnation\tregion\tpopIndex\tclassId\tclassName\tgroup\tpopK\tsavingsStart\tsavings\t"
+        + "inMarketPerQuarter\tinExportPerQuarter\tinStatePerQuarter\tinCreditPerQuarter\tinFromPopsPerQuarter\tinMigrationPerQuarter\tinOtherPerQuarter\t"
+        + "outMarketPerQuarter\toutTaxPerQuarter\toutBondPerQuarter\toutDuesPerQuarter\toutColonialRentPerQuarter\toutCapitalPerQuarter\toutImportPerQuarter\toutMigrationPerQuarter\toutOtherPerQuarter\t"
+        + "residualPerQuarter\tlateRegistered\t"
+        + "monthsClosed\tsavingsMonthStartSum\tsavingsMonthEndSum\twindowNetSum\tmonthResidualSum\t"
+        + "earnedSettlePerQuarter\tlandRentSettlePerQuarter\tindustrialRentSettlePerQuarter\tpaidSettlePerQuarter\tsubsistenceValuePerQuarter\tpollClaimPerQuarter\tincomeTaxUpperPerQuarter\t"
+        + "claimedMonths\temptiedMonths\tposMonths\temptiedPosMonths\tstuckOffPortMonths\tstuckBothZeroMonths\tstuckClaimZeroMonths\tstuckIncomeZeroMonths\tstuckUnpaidMonths\tstuckOtherMonths\t"
+        + "unemploymentRate\tsubsistenceRate\tfoodFill\t"
+        + "laborLines\tlaborBankruptLines\tlaborCapacity\tlaborDesiredOutput\tlaborOutput\tlaborRevenuePerMonth\tlaborZeroDesiredCapacity\t"
+        + "topLaborGood\ttopLaborCapacity\ttopLaborDesiredOutput\ttopLaborOutput\ttopLaborPrice\ttopLaborMarginalCost\ttopLaborRevenuePerMonth\ttopLaborCostPerMonth\t"
+        + "ownerLines\townerRevenuePerMonth\tgroupStartGap\tgroupNetFlowGap";
+
+    internal const int CpStuckKinds = 6;
+    /// <summary>止まった月の割合（|月末−月初| ≦ これ×月初）。計器の物差し（係数ではない）。</summary>
+    internal const double CpStuckShare = 0.001;
+
+    /// <summary>止まった月の振り分け（純関数・排他・この順）：-1 止まっていない／0 口の外（|月末−月初−窓の和| ＞ 1e-9×規模）／1 請求 0 かつ所得 0／2 請求 0／3 所得 0／4 払っていない（窓の税 0）／5 その他。
+    /// 呼び手は月初の在庫が正で begin≧claim の月だけを渡す。</summary>
+    internal static int CpStuckKind(double end, double begin, double win, double claim, double earned, double tax)
+    {
+        if (!(System.Math.Abs(end - begin) <= CpStuckShare * begin)) return -1;
+        if (System.Math.Abs(end - begin - win) > 1e-9 * System.Math.Max(1, System.Math.Abs(begin) + System.Math.Abs(end) + System.Math.Abs(win))) return 0;
+        if (!(claim > 0) && !(earned > 0)) return 1;
+        if (!(claim > 0)) return 2;
+        if (!(earned > 0)) return 3;
+        if (!(tax > 0)) return 4;
+        return 5;
+    }
+
+    /// <summary>四半期の末：植民地格の州の POP の行を書く（<paramref name="gStart"/>・<paramref name="gNet"/>＝群の台帳の始まりの在庫と流れの差＝POP の和の確かめ）。</summary>
+    static void CpopRows(CearnSink sk, ulong seed, int q, World w, string nation, Region r, double[] gStart, double[] gNet)
+    {
+        sk.P ??= Open("cpop", seed);
+        if (!sk.PHeader) { sk.P.WriteLine(CpopHeaderText); sk.PHeader = true; }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int n = r.Pops.Count;
+        var cws = new CgPop?[n];
+        var net = new double[n];
+        var sumStart = new double[CgGroups]; var sumNet = new double[CgGroups];
+        for (int i = 0; i < n; i++)
+        {
+            var p = r.Pops[i];
+            CgPops.TryGetValue(p, out cws[i]);
+            double inS = 0, outS = 0;
+            if (cws[i] is { } cw0) { for (int k = 0; k < CearnInCols; k++) inS += cw0.QFlow[k]; for (int k = CearnInCols; k < CearnCols; k++) outS += cw0.QFlow[k]; }
+            net[i] = inS - outS;
+            int gi = CgGroupOf(p);
+            sumStart[gi] += cws[i]?.QStart ?? double.NaN; sumNet[gi] += net[i];
+        }
+        // 賃金の受け手と地代の受け手の行（州の生産者を 1 周）
+        var lLines = new int[n]; var lBank = new int[n]; var lCap = new double[n]; var lDes = new double[n]; var lOut = new double[n]; var lRev = new double[n]; var lZero = new double[n];
+        var top = new Producer?[n]; var oLines = new int[n]; var oRev = new double[n];
+        foreach (var s in r.Producers)
+        {
+            int li = s.LaborPopIndex, oi = s.OwnerPopIndex;
+            if (li >= 0 && li < n)
+            {
+                lLines[li]++;
+                if (s.Bankrupt) lBank[li]++;
+                else
+                {
+                    lCap[li] += s.Capacity; lDes[li] += s.DesiredOutput; lOut[li] += s.Output; lRev[li] += s.LastRevenue;
+                    if (s.Capacity > 0 && !(s.DesiredOutput > 0)) lZero[li] += s.Capacity;
+                    if (top[li] is null || s.Capacity > top[li]!.Capacity) top[li] = s;
+                }
+            }
+            if (oi >= 0 && oi < n && oi != li) { oLines[oi]++; oRev[oi] += s.LastRevenue; }
+        }
+        int ng = System.Math.Min(r.Markets.Length, Catalog.Goods.Length);
+        for (int i = 0; i < n; i++)
+        {
+            var p = r.Pops[i]; var cw = cws[i]; int gi = CgGroupOf(p);
+            var cols = new List<string>(80) { I(q), I(w.Year), nation, r.Name, I(i), I(p.ClassId), p.ClassName, CgGroupNames[gi], F(p.Size), F(cw?.QStart ?? double.NaN), F(p.Savings.Value) };
+            for (int k = 0; k < CearnCols; k++) cols.Add(F(cw?.QFlow[k] ?? 0));
+            cols.Add(F(p.Savings.Value - (cw?.QStart ?? double.NaN) - net[i])); cols.Add(I(cw?.QLate ?? 0));
+            cols.Add(I(cw?.QMonths ?? 0)); cols.Add(F(cw?.QMonthStart ?? 0)); cols.Add(F(cw?.QMonthEnd ?? 0)); cols.Add(F(cw?.QWin ?? 0));
+            cols.Add(F(cw is null ? 0 : cw.QMonthEnd - cw.QMonthStart - cw.QWin));
+            cols.Add(F(cw?.QEarned ?? 0)); cols.Add(F(cw?.QLand ?? 0)); cols.Add(F(cw?.QInd ?? 0)); cols.Add(F(cw?.QPaid ?? 0)); cols.Add(F(cw?.QSub ?? 0)); cols.Add(F(cw?.QPoll ?? 0)); cols.Add(F(cw?.QInc ?? 0));
+            cols.Add(I(cw?.QClaimed ?? 0)); cols.Add(I(cw?.QEmptied ?? 0)); cols.Add(I(cw?.QPos ?? 0)); cols.Add(I(cw?.QEmptiedPos ?? 0));
+            for (int k = 0; k < CpStuckKinds; k++) cols.Add(I(cw?.QStuck[k] ?? 0));
+            cols.Add(F(p.UnemploymentRate.Value)); cols.Add(F(p.Subsistence)); cols.Add(F(p.FoodFill));
+            cols.Add(I(lLines[i])); cols.Add(I(lBank[i])); cols.Add(F(lCap[i])); cols.Add(F(lDes[i])); cols.Add(F(lOut[i])); cols.Add(F(lRev[i])); cols.Add(F(lZero[i]));
+            if (top[i] is { } t)
+            {
+                cols.Add(t.GoodId >= 0 && t.GoodId < Catalog.Goods.Length ? Catalog.Goods[t.GoodId].Name : "-");
+                cols.Add(F(t.Capacity)); cols.Add(F(t.DesiredOutput)); cols.Add(F(t.Output));
+                cols.Add(F(t.GoodId >= 0 && t.GoodId < ng ? r.Markets[t.GoodId].Price : double.NaN)); cols.Add(F(t.MarginalCost)); cols.Add(F(t.LastRevenue)); cols.Add(F(t.LastCost));
+            }
+            else { cols.Add("-"); for (int k = 0; k < 7; k++) cols.Add("nan"); }
+            cols.Add(I(oLines[i])); cols.Add(F(oRev[i]));
+            cols.Add(F(sumStart[gi] - gStart[gi])); cols.Add(F(sumNet[gi] - gNet[gi]));
+            sk.P.WriteLine(string.Join('\t', cols));
+        }
     }
 
     /// <summary>人頭税の請求（純関数・計器が自分で書く式）：段が正で、閉鎖階級でも兵士でも犯罪者でもない POP の 率×段×人数。</summary>
@@ -419,5 +570,8 @@ public static partial class Instruments
             cols.Add(F(gapSav)); cols.Add(F(gapNet));
             sk.G.WriteLine(string.Join('\t', cols));
         }
+        var gStart = new double[CgGroups];
+        for (int gi = 0; gi < CgGroups; gi++) gStart[gi] = a.G[gi].Start;
+        CpopRows(sk, seed, q, w, nation, r, gStart, net);   // (836) 同じ州の POP の行
     }
 }
