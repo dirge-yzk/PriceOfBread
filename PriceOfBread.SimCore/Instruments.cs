@@ -1490,6 +1490,7 @@ public static partial class Instruments
     internal static void MonthClose(World w)
     {
         DivhostMonth(w);   // (801) 投資家の工業レントの月の和
+        CgMonthClose(w);   // (829) 植民地格の州の階級の群の表：POP の月の窓の終わり（月末の在庫は徴税の後に読む）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }

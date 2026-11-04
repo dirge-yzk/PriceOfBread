@@ -193,4 +193,194 @@ public class CearnInstrumentTests
         Assert.Equal(off.Sav, onr.Sav);
         Assert.Equal(off.Tr, onr.Tr);
     }
+
+    // ---------------------------------------------------------------- (829) 線 c66cg：植民地格の州の階級の群の表 cgrp_s（事前登録 measurements/m829_20261104_prereg_cg.txt の G1〜G4） ----------------------------------------------------------------
+    // 期待は計器と別の出所から作る：群の和は cearn_s の州の行（別の台帳）・最後の四半期の群の在庫と人数は試験が sim の POP からエンジンの述語（Politics.IsMassPop ほか）で数えた和・
+    // 振り分けは手で書いた旗の組・空の印は手で書いた表。突然変異（使い捨ての木・measurements/m829_20261104/mutation.txt）：M1 群の入れ替え・M2 兵士を外す・M3 月初の在庫を月の終わりで読む・M4 空の印の比較を逆・M5 門の向きを逆・M6 人頭税に閉鎖階級を入れる。
+
+    private static List<Dictionary<string, string>> GRows(string path)
+    {
+        var lines = System.IO.File.ReadAllLines(path);
+        Assert.Equal(Instruments.CgrpHeaderText, lines[0]);
+        var h = lines[0].Split('\t');
+        var res = new List<Dictionary<string, string>>();
+        foreach (var l in lines.Skip(1))
+        {
+            var c = l.Split('\t');
+            Assert.Equal(h.Length, c.Length);
+            var d = new Dictionary<string, string>();
+            for (int i = 0; i < h.Length; i++) d[h[i]] = c[i];
+            res.Add(d);
+        }
+        return res;
+    }
+
+    /// <summary>試験の側の群（エンジンの述語で書く＝計器の CgGroupOf と別の出所）。</summary>
+    private static int EngineGroup(Pop p) => p.IsSoldier ? 3 : p.Closed ? 2 : Politics.IsMassPop(p) ? 0 : p.IsModernElite ? 1 : -1;
+
+    /// <summary>G1：英仏の 3 四半期。群の行の和が cearn_s の州の行に合い・群と月の窓の台帳が閉じ・最後の四半期の群の在庫と人数がエンジンの述語で数えた和に合う。</summary>
+    [Fact]
+    public void 群の表は州の台帳の和に合い_群と月の窓の台帳が閉じる()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cgrp1_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        var sim = Two(1789UL);
+        var want = new Dictionary<(string Nation, string Region, string Group), (double PopK, double Sav)>();
+        try
+        {
+            for (int q = 0; q < 3; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+            foreach (var n in sim.Nations)
+                foreach (var r in n.World.Regions)
+                {
+                    if (r.Tier != RegionTier.Colonial) continue;
+                    foreach (var p in r.Pops)
+                    {
+                        int gi = EngineGroup(p);
+                        Assert.True(gi >= 0, $"試験の述語で群が決まらない POP {p.ClassName}");
+                        var k = (Instruments.NameOf(n.World), r.Name, Instruments.CgGroupNames[gi]);
+                        want.TryGetValue(k, out var v); want[k] = (v.PopK + p.Size, v.Sav + p.Savings.Value);
+                    }
+                }
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        try
+        {
+            var cearn = Rows(System.IO.Path.Combine(dir, "cearn_s1789.tsv"));
+            var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1789.tsv"));
+            Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+            Assert.True(grp.Count > 0, "群の行が無い＝計器が働いていない");
+            var byRegion = cearn.ToDictionary(r => (r["quarter"], r["nation"], r["region"]));
+            var colonial = cearn.Where(r => r["tier"] == "Colonial" && D(r, "popK") > 0).Select(r => (r["quarter"], r["nation"], r["region"])).ToHashSet();
+            var seen = new HashSet<(string, string, string)>();
+            double winAbs = 0, claimedAll = 0;
+            foreach (var gset in grp.GroupBy(r => (r["quarter"], r["nation"], r["region"])))
+            {
+                var cr = byRegion[gset.Key];
+                Assert.Equal("Colonial", cr["tier"]);
+                seen.Add(gset.Key);
+                double scale = InCols.Concat(OutCols).Sum(c => Math.Abs(D(cr, c))) + Math.Abs(D(cr, "savings")) + Math.Abs(D(cr, "savingsStart"));
+                double tol = 1e-9 * Math.Max(1, scale);
+                foreach (var c in InCols.Concat(OutCols).Append("savings").Append("savingsStart"))
+                    Assert.True(Math.Abs(gset.Sum(r => D(r, c)) - D(cr, c)) <= tol, $"群の和が州の行と違う {gset.Key} {c}：{gset.Sum(r => D(r, c))} ≠ {D(cr, c)}");
+                Assert.True(Math.Abs(gset.Sum(r => D(r, "popK")) - D(cr, "popK")) <= 1e-9 * Math.Max(1, D(cr, "popK")), $"群の人数の和が州の人数と違う {gset.Key}");
+                foreach (var r in gset)
+                {
+                    Assert.True(Math.Abs(D(r, "regionSavingsGap")) <= tol && Math.Abs(D(r, "regionNetFlowGap")) <= tol, $"群の和の確かめの列が 0 でない {gset.Key} {r["group"]}");
+                    double inS = InCols.Sum(c => D(r, c)), outS = OutCols.Sum(c => D(r, c));
+                    double rs = InCols.Concat(OutCols).Sum(c => Math.Abs(D(r, c))) + Math.Abs(D(r, "savings")) + Math.Abs(D(r, "savingsStart"));
+                    double resid = D(r, "savings") - D(r, "savingsStart") - (inS - outS);
+                    Assert.True(Math.Abs(resid - D(r, "residualPerQuarter")) <= 1e-9 * Math.Max(1, rs), $"群の残差の列が列から組んだ値と違う {gset.Key} {r["group"]}：組んだ {resid}・列 {D(r, "residualPerQuarter")}・規模 {rs}");
+                    double ms = Math.Abs(D(r, "savingsMonthStartSum")) + Math.Abs(D(r, "savingsMonthEndSum")) + Math.Abs(D(r, "windowNetSum"));
+                    Assert.True(Math.Abs(D(r, "monthResidualSum") - (D(r, "savingsMonthEndSum") - D(r, "savingsMonthStartSum") - D(r, "windowNetSum"))) <= 1e-9 * Math.Max(1, ms), "月の閉じの列が列から組んだ値と違う");
+                    Assert.True(D(r, "emptiedPopKMonths") <= D(r, "claimedPopKMonths") + 1e-12 && D(r, "claimedPopKMonths") <= D(r, "popKMonths") + 1e-9, $"空の印の人数の順序が崩れた {gset.Key} {r["group"]}");
+                    winAbs += Math.Abs(D(r, "windowNetSum")); claimedAll += D(r, "claimedPopKMonths");
+                    if (D(r, "lateRegisteredPops") > 0 || D(cr, "lateRegisteredPops") > 0) continue;
+                    Assert.True(Math.Abs(resid) <= 1e-8 * Math.Max(1, rs), $"群の台帳が閉じない {gset.Key} {r["group"]}：残差 {resid}");
+                    Assert.True(Math.Abs(D(r, "monthResidualSum")) <= 1e-8 * Math.Max(1, ms), $"月の窓が閉じない {gset.Key} {r["group"]}：{D(r, "monthResidualSum")}（規模 {ms}）");
+                    if (D(r, "popK") > 0 && r["quarter"] != "0") Assert.Equal("3", r["monthsClosed"]);
+                }
+                if (gset.Key.Item1 == "2")
+                    foreach (var r in gset)
+                    {
+                        var k = (r["nation"], r["region"], r["group"]);
+                        Assert.True(want.TryGetValue(k, out var wv) || D(r, "popK") == 0, $"試験の述語に無い群の行 {k}");
+                        Assert.True(Math.Abs(D(r, "popK") - wv.PopK) <= 1e-9 * Math.Max(1, wv.PopK), $"群の人数がエンジンの述語の和と違う {k}：{D(r, "popK")} ≠ {wv.PopK}");
+                        Assert.True(Math.Abs(D(r, "savings") - wv.Sav) <= 1e-9 * Math.Max(1, Math.Abs(wv.Sav)), $"群の在庫がエンジンの述語の和と違う {k}：{D(r, "savings")} ≠ {wv.Sav}");
+                    }
+            }
+            foreach (var k in want.Keys) if (want[k].PopK > 0) Assert.Contains(grp, r => r["quarter"] == "2" && r["nation"] == k.Nation && r["region"] == k.Region && r["group"] == k.Group);
+            Assert.True(colonial.IsSubsetOf(seen), "人のいる植民地格の州に群の行が無い");
+            Assert.True(winAbs > 0, "月の窓の書き込みが 0＝窓が働いていない（月初の在庫の読み違いを拾えない）");
+            Assert.True(claimedAll > 0, "請求のある人が 0＝請求の列が働いていない");
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>G2：群の振り分けを、手で書いた旗の組と突き合わせる（エンジンの大衆の述語が真なら mass）。</summary>
+    [Fact]
+    public void 群の振り分けは手で書いた旗の表のとおり()
+    {
+        var table = new (bool Closed, bool Soldier, bool Elite, int Cls, string Want)[]
+        {
+            (false, false, false, 1, "mass"),          // 農民
+            (false, false, false, PopClass.Criminal, "mass"),   // 犯罪者は大衆に入れる
+            (false, false, true, 3, "modernElite"),    // ブルジョワ
+            (false, false, true, 4, "modernElite"),    // 専門職
+            (true, false, false, 0, "closed"),         // 貴族
+            (true, false, true, 0, "closed"),          // 閉鎖階級が先
+            (false, true, false, 5, "soldier"),
+            (true, true, false, 5, "soldier"),         // 兵士が先
+            (false, true, true, 5, "soldier"),
+        };
+        foreach (var t in table)
+        {
+            var p = new Pop { Closed = t.Closed, IsSoldier = t.Soldier, IsModernElite = t.Elite, ClassId = t.Cls };
+            Assert.True(Instruments.CgGroupNames[Instruments.CgGroupOf(p)] == t.Want, $"{t} → {Instruments.CgGroupNames[Instruments.CgGroupOf(p)]}（期待 {t.Want}）");
+            if (Politics.IsMassPop(p)) Assert.Equal("mass", Instruments.CgGroupNames[Instruments.CgGroupOf(p)]);
+        }
+        Assert.Equal(new[] { "mass", "modernElite", "closed", "soldier" }, Instruments.CgGroupNames);
+    }
+
+    /// <summary>G3：空の印の表（手で書く）と、人頭税の段を正にした英仏の 1 四半期で閉鎖階級と兵士の群に人頭税の請求が立たない。</summary>
+    [Fact]
+    public void 空の印と人頭税の請求の群()
+    {
+        Assert.True(Instruments.CgEmptied(0, 100, 5));
+        Assert.True(Instruments.CgEmptied(1.0, 100, 5));      // ちょうど 1%
+        Assert.False(Instruments.CgEmptied(2, 100, 5));
+        Assert.True(Instruments.CgEmptied(0.04, 0.1, 5));     // 請求が月初の在庫より大きい＝請求の 1%
+        Assert.False(Instruments.CgEmptied(0.06, 0.1, 5));
+        Assert.False(Instruments.CgEmptied(0, 100, 0));       // 請求が無ければ空の印は付けない
+        // 人頭税の請求（手で書いた表）：平民の民間人（犯罪者を除く）だけ＝率×段×人数
+        foreach (var (closed, soldier, elite, cls, want) in new (bool, bool, bool, int, double)[]
+                 { (false, false, false, 1, 0.15 * 0.5 * 10), (false, false, true, 3, 0.15 * 0.5 * 10), (true, false, false, 0, 0), (false, true, false, 5, 0), (true, true, false, 5, 0), (false, false, false, PopClass.Criminal, 0) })
+        {
+            var p = new Pop { Closed = closed, IsSoldier = soldier, IsModernElite = elite, ClassId = cls, Size = 10 };
+            Assert.Equal(want, Instruments.CgPollClaim(p, 0.15, 0.5), 12);
+        }
+        Assert.Equal(0.0, Instruments.CgPollClaim(new Pop { ClassId = 1, Size = 10 }, 0.15, 0.0));   // 段が 0 なら請求は立たない
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cgrp3_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        var sim = Two(1793UL);
+        foreach (var n in sim.Nations) n.World.PollTax = 1.0;
+        try { sim.StepQuarter(); Instruments.Quarter(sim, 1793UL, 0); }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        try
+        {
+            var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1793.tsv"));
+            Assert.All(grp.Where(r => r["group"] is "closed" or "soldier"), r => Assert.Equal(0.0, D(r, "pollClaimPerQuarter")));
+            Assert.Contains(grp, r => r["group"] == "mass" && D(r, "pollClaimPerQuarter") > 0);
+            Assert.All(grp, r => Assert.True(D(r, "emptiedPopKMonths") <= D(r, "claimedPopKMonths") + 1e-12 && D(r, "claimedPopKMonths") <= D(r, "popKMonths") + 1e-9));
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>G4：門を閉じると（POB_CEARN=0 と同じ）cearn_s と cgrp_s を書かず、軌道は計器なしと同じ。</summary>
+    [Fact]
+    public void 門を閉じると植民地の稼ぎと群の表を書かず軌道は変わらない()
+    {
+        Assert.True(Instruments.CearnOn, "既定は書く（基準の表を変えない）");
+        (long[] Sav, long[] Tr) Run(bool on, string? dir)
+        {
+            if (on) Instruments.Configure(dir, "*");
+            var sim = Two(1794UL);
+            try { for (int q = 0; q < 2; q++) { sim.StepQuarter(); if (on) Instruments.Quarter(sim, 1794UL, q); } }
+            finally { if (on) { Instruments.Close(sim); Instruments.Configure(null, null); } }
+            return (sim.Nations.SelectMany(n => n.World.Regions).SelectMany(r => r.Pops).Select(p => BitConverter.DoubleToInt64Bits(p.Savings.Value)).ToArray(),
+                    sim.Nations.Select(n => BitConverter.DoubleToInt64Bits(n.World.Treasury.Value)).ToArray());
+        }
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cgrp4_" + Guid.NewGuid().ToString("N"));
+        var off = Run(false, null);
+        Instruments.CearnOn = false;
+        try
+        {
+            var gated = Run(true, dir);
+            Assert.Equal(off.Sav, gated.Sav);
+            Assert.Equal(off.Tr, gated.Tr);
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "cearn_s1794.tsv")), "門を閉じても cearn_s が出た");
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, "cgrp_s1794.tsv")), "門を閉じても cgrp_s が出た");
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(dir, "fiscal_s1794.tsv")), "前提：他の計器の表は出る");
+        }
+        finally { Instruments.CearnOn = true; try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
