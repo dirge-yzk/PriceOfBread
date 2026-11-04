@@ -29,7 +29,7 @@ public class DormantIdentityTests
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
         "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
-        "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
+        // ★SilverParityDemandWeighted（(807)(827)(834) 銀の平価の注入の 1 州の票＝A′）は (834) c67sv で 2 に**点火**＝この表から外した。旗 0 の経路の番人は MultiNationTests の 2 本の Theory（旗を明示）・SilverParityDemandWeightedTests。
         "CapitalClaimCancelFromLedger",   // (828) c66dw 消えた請求権の額を外資の負債の台帳の差で書く旗（0＝逃避の額・落とした額のまま＝今の形・1 ビットも変わらない・番人 CapitalCouponWriteDownTests の Theory）。点火時にこの表から外す
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
         // ★CapitalCouponUnpaidWriteDown（(815) c14fl 払えない利札で請求権を落とす）は 1 で**点火**（腕 B の木）＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests（旗を明示）。
