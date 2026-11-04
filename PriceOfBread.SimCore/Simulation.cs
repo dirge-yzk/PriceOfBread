@@ -2984,6 +2984,7 @@ public sealed class Simulation
             double value = paid;
             if (atMarket) gapLeft -= value;   // 予算を消費（国の準備ギャップは州をまたいで1本）
             m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
+            if (Instruments.On) Instruments.SilverMintCapture(r, metal, qty);   // (823) 計器（読むだけ）：州・金属・量
             // ★★準備需要を**需要として計上する**（2026-08-13・実測で発見した会計の欠落）。
             // ⚠旧＝Stock と LastSold しか書かず `LastDemand` を書いていなかった。`MarketFlow.StepDay` は
             //   totalDemand＝`m.LastDemand`（重み FlowAdjustSpeed）と TargetStock＝TargetStockBuffer×LastDemand を読むので、
