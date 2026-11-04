@@ -1,0 +1,54 @@
+(832) 合流（波66）の予言（腕を回す前・merge の前に書く・書いたモデル Claude Opus 5.5）
+作者「全て推奨で。ただ、現状のタスクは完了する方向で」で推奨を採って進める（承認の言葉ではない）。
+基点 main 4e7fd41f（origin/main と同じ・fetch 済み）。worktree D:/PoB_work/wt_m832（枝 m832）。作業 D:/PoB_work/m832。
+
+[0] 入れる線と順（線の報告と反証役の読みから・結果の前に決める）
+ 1. c66cg（恒等・ident c66cg〈判定: 恒等〉・反証役 high 0）＝枝 c66cg（ローカル・9492cb74）を --no-ff。
+ 2. c66id（恒等・ident c66id〈判定: 恒等〉・反証役 high 0）＝origin/c66id 60211c67 を --no-ff。
+ 3. c66sv（挙動の線・腕 B を回していない＝挙動は入れない）＝origin/c66sv を --no-ff で入れ、71be1db5（旗の既定 2 と DormantIdentityTests:32）を git revert（線のコミットを戻すだけ・(826) c65md の型）。器（旗 0）・計器 silverwt_s の末尾 6 列・試験 3 本・台本と記録は残る。
+ 4. c66dw（挙動の線・線の門と止める線は全て通る・反証役 high 0・線の推奨〈採る〉）＝origin/c66dw de8d76c9 を --no-ff。旗 CapitalClaimCancelFromLedger 既定 1（線 1・合流 1＝食い違いなし）。
+ 5. c66ds（設計の材料）＝D:/PoB_work/r831_work の material.md・draft.md を docs/202611/20261104/ へ写す（題の行に状態・中身は書き換えない・反証役の訂正 8 件を末尾）。台本 farm_unsold.py は scripts/instruments/r831/、出力 farm_unsold_m826.txt は measurements/m831_20261104/ へ（台本と出力を分ける）。
+ 挙動の線は c66dw の 1 本だけ＝合成後のアブレーション（㉞）は要らない（2 本以上のときだけ）。
+
+[1] 衝突（git merge-tree で 2 本ずつ・結果の前に取った）：c66cg×c66id 0・c66cg×c66dw 0・c66sv(604f815c)×c66cg 0・×c66id 0・×c66dw 0・c66dw×c66id 0。
+ 予言：順に入れても衝突 0。出るなら DormantIdentityTests.cs（c66sv :32・c66dw :33・c66id :35 が隣り合う）か Coefficients.cs。解くのは行の並べ方だけ（.cs の中身を合流が書かない）。
+
+[2] ★(773) の grep（c66id が消す名前を他の 3 枝の + 行で・*.cs *.py *.sh *.cfg *.axaml）：
+ OpiumAddictionCapOff・HabitCapStep・HabitcapTable・HabitbalTable・HabitCapPair・HabitBal・NavalProcurementNeed・habitcap_s・habitbal_s・InstrumentsHabitcap＝c66cg 0・c66sv 0・c66dw 0。
+ 他の線が消す名前：c66cg・c66sv・c66dw は消す名前 0（足すだけ・c66dw の 1009 行の挿入は既存の名前を消さない）。
+
+[3] テストの数：2250＋c66cg 4−c66id 6＋c66sv 3＋c66dw 6＝**2257**（Category!=FullLength）・FullLength **3**。
+
+[4] 腕 Z（合わせた木・今の波の挙動の旗を全て 0＝coef_ia/ib に CapitalClaimCancelFromLedger=0・c66sv の旗は既定 0 のまま）＝ident m832z（--tree D:/PoB_work/m832/zt）。予言〈判定: 恒等〉（m826 と）：
+ - 素の 5 種＝b5_20261104_m826 と全行一致（181 行）・計器つき 10 種＝b10_20261104_m826_ins と全行一致（181 行）・.cost 件数の行 29 本・推定 215.6 秒。
+ - 計器の表（vs keep_826/base_ins）：宣言＝--added-tables cgrp,cpwdft・--removed-tables habitcap_s,habitbal_s・--grown-ok silverwt_s（c66sv の末尾 6 列）・--known-extra cearn_s:inTop1Route,cearn_s:outTop1Route,cearn_s:outTop2Route（★結果の前に宣言する＝経路の名が〈ファイル:行〉で、合わせた木は MultiNationSim.cs〔c66sv +10〕・CapitalMarket.cs〔c66dw〕・Instruments.cs〔c66cg +1・c66id −2〕の行が動くため・3 線が独立に当たった）。flow_s は呼び出し位置だけの揺れ（cfg の規則で通る）。
+   宣言の対の確かめ（必須）：scripts/instruments/c66dw/cearn_remap.py keep_826/base_ins <Z の ins> <repo> 4e7fd41f <測った木> で〈写しても違う 0〉。0 でなければ宣言を取り下げて〈不一致〉と読む。
+   cearn_s の 3 列を ident.cfg の KNOWN に恒久に足すのはこの回はしない（根の直し〔flow_s と同じく呼び出し位置を除いて比べるか、名を行番号から鍵へ〕は次の波の恒等の線へ）。
+ - 注視の表 4698 行一致・テスト 2257／3（--tests-delta 7）・savetest OK・leakhunt 違反なし。
+ Z の生は cearn_remap と要約（keepsum）の後に消す。
+
+[5] 腕 Z11（合わせた木・CapitalCouponUnpaidWriteDown=0;OpiumAddictionLogistic=0;CapitalClaimCancelFromLedger=0＝c65fl・c65op・c66dw の旗 0・計器つき・種 11〜20）：
+ 用途＝c66dw の門 U2（(815) の G3・G4）の S11 の比べる側（旗 fl 0 の盤面・cpworld_s のある物＝keep_797/a11 には cpworld_s が 0 本・(826) の Z11 の生は消した）。
+ 予言：成績表は b10s11_20261103_m797_ins と名乗り行・POB_COEF の行を除いて全行一致（(826) の Z11 と同じ）・注視の表一致。
+ L1 の旗 0 の側（下限）は種 1〜10（Z の腕 b）で定めた門＝S11 では旗 1 の側（osF＝osC＝0・W1・W2・U1・C）だけを読む。
+
+[6] M（合わせた木・既定の旗＝dw 1・計器つき 10 種）＝新しい基線の計器の生。予言：
+ - 成績表は c66dw の腕 B（measurements/b10_20261104_c66dwB_ins）と名乗り行を除いて全行一致・.cost の件数の行一致・推定 220.8 秒。
+ - 生の共通の表は c66dw の腕 B の生（D:/PoB_work/c66dw_work/out_c66dwB_10/ins）とバイト一致（違ってよいのは cearn_s の経路の 3 列〔行番号〕・flow_s の呼び出し位置・silverwt_s〔末尾 6 列＝古い列の頭で一致〕・腕にだけある cgrp_s・腕 B にだけある habitcap_s・habitbal_s）。cearn_s は cearn_remap.py（c66dw の木 de8d76c9→測った木）で〈写しても違う 0〉。
+ - c66dw の門（事前登録 measurements/m828_20261104_prereg_dw.txt [4]・数は変えない）：L1 旗 1 osF＝osC＝0（C# の列）・旗 0 の側（Z）179,333 ≧1／C 印字一致・C# の列 0／W1 164,600 ≧1,000・種ごと ≧1／W2 oldF＝actF・oldC＝actC／U1 0.5 刻み以下／U2 G2 0・G5 0・G3 0.2517 ≧0.2・G4 0.2314 ∈[0.1,0.8]（比べる側 keep_818/base_ins）＝腕 B と同じ値で全て通る。
+ P（素の 10 種）≡ M（成績表の全行）。P5（素の 5 種）＝新しい基線の b5。
+
+[7] S11（合わせた木・既定の旗・計器つき・種 11〜20）＝最終の採否（★(802)）。予言：c66dw の旗 1 の側の門 L1（osF＝osC＝0）・C・W1（≧1,000・種ごと ≧1）・W2・U1・U2（G2 0・G5 0・G3 ≧0.2・G4 ∈[0.1,0.8]・比べる側 Z11）は通る。
+ ⚠ 紙の予言の弱い所（結果の前に書く）：U2 の G3 は腕 B で 0.2517（閾値 0.2 の 1.26 倍・種ごと 0.082〜2.796）＝S11 で 0.2 を割る見込みは無視できない。割ったら c66dw は採らない（門の数を変えない・読み替えない）＝基線は m826 のまま。
+
+[8] 止める線（M・S11・同じ台本 scripts/instruments/m832/stoplines832.sh で新旧のヌル腕も数え直して並べる）：
+ 破綻 0・非有限 0・価格水準の 1 四半期 100 倍 0・1e10 倍 0・名目 GDP の 1 四半期 100 倍（建国の直後でない）0・空洞化 1/10 未満の〈線が原因〉0（件ごとに keep_826/base_ins・keep_826/a11 の同じ種・同じ州で振り分け）・推定の計算量 ≦248.5 秒（M 220.8 の見込み）・機構のテストの赤 0（フルスイート・WriterRatchetTests は c66dw の旗 1 の木で緑＝許しの内の見込み）。
+ 記録の段：名目 GDP 0 の続き・開幕の 1000 倍以上・英の国債の不履行（M・S11・N1・N2・m826 と並べる）・NG（基準 rd:measurements/ng826_20261104:m826・ヌル腕の幅と並べる）・門 A′（新旧のヌル腕）・exact・near。成績表の差がヌル腕の幅の内なら改善と書かない。
+
+[9] N1・N2（合わせた木＋SupplySlope 0.50000001・0.49999999・計器つき 10 種）＝新しいヌル腕。採否には使わない。
+
+[10] 順序（(826) の外れを繰り返さない）：merge → ㉘ の番人 6 組＋この回の線の試験の組（隔離ビルド・Release）が**終わってから**腕を起こす。
+ D: の空き 53GB（各計器つき 10 種 約 11〜12GB）＝3 巡：1 巡目 Z（ident）・M・S11 → Z の確かめの後に Z の生を消す → 2 巡目 Z11・P・P5 → Z11 を読んで要約を残して消す → 3 巡目 N1・N2。フルスイートは巡の間に単独で（10 種のバッチと並べない）。
+ 線の担当の生（ident_c66cg・ident_c66id・c66dw_work・c66sv_work）は合流が消さない（★(818)）＝名と大きさを記録に並べる。採らなかった腕が出たら keep_832_rej へ。
+
+[11] 待ち方（この回の決まり）：bg.sh を run_in_background・前面の waitmark.sh <印> 230 を繰り返す・印の外の覗きは 1 本の仕事につき 30 分に 1 回まで・Monitor なし。回数を分けて自己申告する。
