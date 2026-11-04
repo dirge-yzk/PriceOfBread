@@ -1521,8 +1521,7 @@ public sealed class UtilityAgent : INationAgent
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
                 p.SocialSecurityTarget = 0.3;   // 近代国家は公共医療を一定維持＝人口増（乳児死亡の低下）
                 p.ChildLaborAllowed = false;    // 近代化＝児童労働を禁止（出力↓だが識字↑＝教育→医療→人口）
-                RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
-                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：選挙権の段は財産権より後。教育権の段は梯子が通る
+                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：成熟した近代国家＝女性の権利の最上段（選挙権）を願う。旧は財産権の段を先に願ったが、RaiseWomenRights は最大を取るので技術の閾値を外した後は財産権の行は常に no-op（(824) で消した・突然変異の記録 Mu4）。教育権の段は梯子が通る
                 if (p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b（旗 TechThresholdOff は (824) で焼き込み）：技術の閾値の 4 本は無い（願いは無条件・可否は政治の門と国庫の緩衝が決める）
                 break;
             case Stance.Industrialize:
