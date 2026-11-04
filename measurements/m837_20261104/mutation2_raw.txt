@@ -1,0 +1,3 @@
+(837) 突然変異（木 D:/PoB_work/c67ss_mut・SubstInstrumentTests 4 本＋CornintInstrumentTests 4 本）
+Mu6 国内の地代の按分を産出の値でなく頭数にする（所有する RGO の数で等分）：失敗: 1・赤 国内の地代とブロックの割合と今の選好はエンジンの値に合う
+Mu8 人頭税の対象に閉鎖階級を入れる：失敗: 1・赤 Q2の材料は試験がPOPから数えた値に合う
