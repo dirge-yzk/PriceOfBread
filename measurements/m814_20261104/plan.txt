@@ -1,0 +1,12 @@
+(814) c14ce 植民地の州の稼ぎが 0 へ落ちる経路を今ある生から読む（波64・読むだけ・腕 0 本・コミット 0・push 0・worktree なし）
+作業の場所：D:/PoB_work/r814_work（この回に作ったフォルダはこれだけ）
+読む生（読むだけ・消さない）：
+  D:/PoB_work/keep_813/base_ins（種 1〜10・今の木・m797 と全行一致）
+  D:/PoB_work/keep_797/a11（種 11〜20・旧の木）・keep_797/n1・n2（ヌル腕・旧の木）
+  D:/PoB_work/keep_813/rd806（c11fl の旗 0/1・種 14〜17＝rdf1 の フィリピン）
+  表：region_s（earnedPerMonth・factoryOutputRefValuePerMonth・extractionOutputRefValuePerMonth・wagePremium・holdingFactor・landFactor・arableLand・employmentShare・foodFillShare・人口・農村）
+      sbrreg_s（計器9国の州：rev・inCost・va・rent・wages）・rule_s（全国の州・年：revenuePerMonth・gdpPerMonth・ruleCutPerMonth）・fd_s（計器9国の州：自給・充足・landFactor）
+      class_s・nation_s（持ち主の国の側）
+材料：measurements/m809_20261103/（ev_type.tsv ほか）・scripts/instruments/r809/・scripts/instruments/hol/an_h2.py
+ソース：PriceOfBread.SimCore（LastEarnedPerMonth の書き手・自給・LandFactor・Territory.cs:171〜173・賃金のプレミアム）
+順：(i) 型 A の 10 件の稼ぎの成り立ち → (ii) ソースの経路と不具合／設計の区分 → (iii) 紙の見積もり → (iv) 作者の問いの材料 → (v) 記録の直し → 推奨と波65 の事前登録の素案

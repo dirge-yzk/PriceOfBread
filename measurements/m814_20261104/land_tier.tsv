@@ -1,0 +1,7 @@
+set	tier	regionQuarters	landFactorAt1Share	arablePerRuralP10	P50	P90	empMedian	foodBelow08Share
+a11	Colonial	590788	0.927	1.13	1.82	2.8	0.995	0.185
+a11	Core	1392324	0.959	1.35	2.11	3.2	0.986	0.033
+a11	Integrated	132537	0.956	1.29	2.15	3.23	0.985	0.017
+base	Colonial	588631	0.907	1.04	1.76	2.52	0.995	0.165
+base	Core	1389550	0.956	1.3	2.09	3.18	0.986	0.035
+base	Integrated	135071	0.959	1.27	2.11	3.14	0.986	0.018
