@@ -1,0 +1,63 @@
+(830) c66id 突然変異の記録 2026-11-04（完成した木 097ad328 の複製に 1 本ずつ当てて関係する試験だけを回した。台本 scripts/instruments/c66id/mut_run.py）
+読み：
+  M0 変異なしの対照＝49 本緑。
+  Mu1 CapOff の欄と正の枝を残す → 予言どおり DormantIdentityTests〈削除した休眠の係数は戻っていない〉が赤。予言の外の赤 1 本＝〈既定ゼロの係数は休眠表か台帳のどちらかに載っている〉（戻した欄が既定 0 で表に無い）。〈係数は全て本体のどこかで読まれる〉は緑（Habit.cs が読むため）。
+  Mu2 habitcap_s の登録だけ残す → 予言どおり HabitTests の新しい〈アヘンの計器は旧の蓋と釣り合いの表を出さない…〉が赤。InstrumentsTests に表の一覧を比べる試験は無い（事前登録 [3] Mu2 の記録どおり）ので、この試験が門。
+  Mu3／Mu3b T3 の陽性の対照（hi＞lo）：製法の行の技術の比を 0 に固定（Discovery.TechRatioOf・r1 では patterns が 2 回出て当たらず、r2 で TechRatioOf の行だけに文脈つきで当てた）→ T3〈旗0は製法の行が技術水準の式のまま…〉が赤（70×比 以下は通るので hi＞lo で赤）。同じ変異で T3 の hi＞lo の Assert を外した使い捨ての木では T3 は緑のまま＝T3 の中ではこの陽性の対照が唯一の拾い手。ただしどちらの木でも別の番人〈発見の技術力が技術水準を読むのは自分の2か所だけ〉と TechLevelRemovalTests〈技術水準を読む行の数は…許可表〉が（行の数を変える変異なので）赤になる。予言の外の赤はこの 2 本。
+  Mu4 WhitePeaceScore の既定を 0.2 → 予言どおり新しい関係の番人と WarVerdictTests〈白紙の線は既定の0_25…〉が赤（r1 の予言の断片〈0.25〉は試験名が 0_25 のため当たらなかった＝予言の書き方の誤りで r2 で直した）。
+  Mu5 Habit.Of の Cap を +∞ → 予言（HabitTests〈アヘンの行は今の係数の値…〉）が赤。予言の外の赤 5 本＝HabitTests〈中毒度の更新…(logistic: 1)〉・HabitLogisticTests の 4 本（d を読む試験が一斉に赤）。
+  Mu6 habitlg_s の d を +∞ → 予言どおり HabitLogisticTests〈ロジスティックの表は…〉2 行が赤。
+巡 r1（Mu3・Mu3b は文字列が当たらず NG）と巡 r2（Mu3・Mu3b・Mu4 の取り直し）を分けて載せる（上書きしない）。r2 の台本は c66id_work/mut_run2.py（r1 の台本との差は Mu3・Mu3b の文脈つきの文字列と Mu4 の予言の断片だけ）。
+
+== r1 ==
+M0 変異なしの対照（完成した木）
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    49、スキップ:     0、合計:    49、期間: 42 s - PriceOfBread.Tests.dll (net10.0)  112秒
+    → 予言どおり（緑）
+Mu1 CapOff の欄と正の枝を残したまま（注だけ直した形）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 760 ms - PriceOfBread.Tests.dll (net10.0)  111秒
+        失敗 PriceOfBread.Tests.DormantIdentityTests.既定ゼロの係数は休眠表か台帳のどちらかに載っている [15 ms]
+        失敗 PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない [49 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu2 habitcap_s の登録だけ残す（表を書く 1 行を戻す）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 33 s - PriceOfBread.Tests.dll (net10.0)  173秒
+        失敗 PriceOfBread.Tests.HabitTests.アヘンの計器は旧の蓋と釣り合いの表を出さない_ロジスティックの表と中毒度の表は出る [10 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+Mu3 NG 変異の文字列が 2 回: ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+Mu3b NG 変異の文字列が 2 回: ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+Mu4 WhitePeaceScore の既定を 0.2 にする
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)  121秒
+        失敗 PriceOfBread.Tests.WarVerdictTests.白紙の線は既定の0_25_判定は表のとおり [20 ms]
+        失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 [20 ms]
+    → 予言と違う（赤になっていない試験：0.25）・予言の外の赤 1 本
+Mu5 Habit.Of の Cap を +∞ に固定（蓋の読みを壊す）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     6、合格:     9、スキップ:     0、合計:    15、期間: 34 s - PriceOfBread.Tests.dll (net10.0)  99秒
+        失敗 PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(logistic: 1) [1 ms]
+        失敗 PriceOfBread.Tests.HabitTests.アヘンの行は今の係数の値_他の財は全て0で効かない [1 ms]
+        失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの在庫はdの内に留まり_釣り合いを越えない_一定の消費では釣り合いへ収束する [3 ms]
+        失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの更新は手の算術_挟みは0からd_蓋なしの旗では線形とビットで一致 [< 1 ms]
+        失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 1) [6 s]
+        失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 0) [5 s]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 5 本
+Mu6 habitlg_s の計器の d を +∞ に固定
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 16 s - PriceOfBread.Tests.dll (net10.0)  47秒
+        失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 1) [12 s]
+        失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 0) [4 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+
+== r2 ==
+Mu3 製法の行の技術の比を 0 に固定（〈70×比 以下〉は通り hi＞lo の陽性の対照だけが拾う形）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     3、合格:    22、スキップ:     0、合計:    25、期間: 10 s - PriceOfBread.Tests.dll (net10.0)  118秒
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.発見の技術力が技術水準を読むのは自分の2か所だけ [204 ms]
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [6 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [3 s]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 2 本
+Mu3b Mu3 と同じ変異で T3 の hi＞lo の Assert を外した使い捨ての木（T3 が緑なら陽性の対照が T3 の唯一の拾い手）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    23、スキップ:     0、合計:    25、期間: 10 s - PriceOfBread.Tests.dll (net10.0)  59秒
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.発見の技術力が技術水準を読むのは自分の2か所だけ [20 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [152 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu4 WhitePeaceScore の既定を 0.2 にする
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  37秒
+        失敗 PriceOfBread.Tests.WarVerdictTests.白紙の線は既定の0_25_判定は表のとおり [68 ms]
+        失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 [68 ms]
+    → 予言どおり（赤にしたい試験が全て赤）
