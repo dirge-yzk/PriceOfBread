@@ -88,3 +88,7 @@
   旗 1 の木 5b623cd9 を計器つき 1 種（種 1・9 国・`INS=1 bash batch.sh run c65flS1 1 1`・作業 D:/PoB_work/c65fl_work/s1）で回し、
   scripts/instruments/c65fl/cmpraw.py --only-new で keep_818_rej/c14flB_10 の種 1 の表とバイトで比べる（burscan_s・clock_s は秒の列＝外す）。
   予言＝全ての表が一致。一致しても〈種 1 で一致〉とだけ言う（種 2〜10 は測っていない＝作者に聞く物 (A)/(B) は残す）。不一致なら使い回しをやめて止める（腕 B は回さない）。
+
+★追記 4（2026-11-04・結果の後＝記録）フルスイート（旗 1・5b623cd9）：Category!=FullLength 合格 2226・スキップ 1（既存の TechInstitutionTests）・失敗 0・合計 2227（--list-tests 2227 と一致）・FullLength 合格 3（--list-tests 3 と一致）・中止の行 0。
+  [2] の予言（2227／3）どおり。GoodIdGuardTests は HEAD（cmpraw.py を含む）で 43 本緑。savetest OK（12 四半期後も全 61 か国が継続系列と一致）。
+  追記 3 の種 1 の確かめ：97 表（burscan_s・clock_s を除く）がバイトで一致＝予言どおり（〈種 1 で一致〉とだけ言う）。種 1 は焼いた 3 本の経路を通っている（割譲の意志の事象 83・植民地格の州の割譲 73・首都へ戻した艦の累計の最大 7,776）。
