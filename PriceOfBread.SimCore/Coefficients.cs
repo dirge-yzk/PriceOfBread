@@ -1005,7 +1005,7 @@ public sealed class Coefficients
     public Share CapitalExportFrac = new(0.10);          // 資本余剰国が対外投資に回す投資家貯蓄の割合。※衰退実験(0.28)は逆効果（覇権がレンティア化し配当で首位維持）＝既定0.10に復帰
     public RatePerQuarter CapitalDividendRatePerQuarter = new(0.02);        // 外資への四半期配当率（ForeignCapitalIn に対し・本国へ送金＝外資のコスト）。払えない配当は積まない（未払いの負債も未収の債権も立たない）
     public double CapitalDividendFromHostRent = 0;   // (801) c11fl：外資の利札の旗（既定 0＝★(802) 合流で採らない：門は全て通ったが種 11〜20 で州の空洞化 1/10 未満 2 件＝止める線）＝0 で旧（外資の負債の全体×CapitalDividendRatePerQuarter＝産出と結ばない固定の率）・正で受け皿の投資家の工業レント（四半期分）×外資の負債÷(外資の負債＋投資家の貯蓄)（CapitalMarket.HostRentDividend・新しい係数なし）。確証なし（形 B は AI の推奨・金利生活者のポンプの同族の読み手 (794)）
-    public double CapitalCouponUnpaidWriteDown = 1;   // (815) c14fl：払えない利札で請求権を落とす旗（既定 1＝腕 B の木・0＝今の形と 1 ビットも変わらない）＝正で、払えなかった利札（請求−払えた額）の分だけ外資の負債を落とし（外資の負債で頭打ち）、同じ額を金建てで逃避の消えた請求権へ足す＝還流の段で持ち主の対外資産も同じ額だけ減る（逃避の規則 C と同じ配り方・新しい係数なし）。確証なし（AI の推奨）・事前登録 measurements/m815_20261104_prereg_fl.txt
+    public double CapitalCouponUnpaidWriteDown = 0;   // (815) c14fl：払えない利札で請求権を落とす旗（既定 0＝今の形・1 ビットも変わらない）＝正で、払えなかった利札（請求−払えた額）の分だけ外資の負債を落とし（外資の負債で頭打ち）、同じ額を金建てで逃避の消えた請求権へ足す＝還流の段で持ち主の対外資産も同じ額だけ減る（逃避の規則 C と同じ配り方・新しい係数なし）。確証なし（AI の推奨）・事前登録 measurements/m815_20261104_prereg_fl.txt
     public RatePerQuarter CapitalFlightRatePerQuarter = new(0.15);          // 資本逃避：毎四半期 ForeignCapitalIn×これ×(1−信用) が本国送還（信用崩壊で急増）。払えない分は債権ごと消える（受入国の負債と持ち主の対外資産が同額減る・2026-09-27 C）
     public double CapitalContagion = 0.6;            // 伝染：危機国の割合×これだけ世界の資本意欲が縮む（サドンストップ）
     public double CapitalCreditFloor = 0.5;          // 信用の床：収益率＝伸びしろ×(これ+(1−これ)×信用)。信用が低くても高潜在国は資本を呼ぶ（ゲートでなくプレミアム）。代償は高い逃避・配当
