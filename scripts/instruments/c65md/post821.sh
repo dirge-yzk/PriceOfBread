@@ -17,7 +17,7 @@ echo "== gdp_zero10"; python -X utf8 -I $S/m808/gdp_zero10.py M=$B
 echo "== plvl"; python -X utf8 -I $S/brk693/plvl_seeds.py $B
 echo "== hol"; python -X utf8 $S/hol/an_h2.py $B -v4
 } > $O/stoplines_B.txt 2>&1
-python -X utf8 -I $S/brk693/home_break.py c65mdB=$B base=D:/PoB_work/keep_818/base_ins n1=D:/PoB_work/keep_797/n1 n2=D:/PoB_work/keep_797/n2 > $O/homebreak_B.txt 2>&1
+python -X utf8 -I $S/brk693/home_break.py --test c65mdB c65mdB=$B base=D:/PoB_work/keep_818/base_ins n1=D:/PoB_work/keep_797/n1 n2=D:/PoB_work/keep_797/n2 > $O/homebreak_B.txt 2>&1
 python -X utf8 $S/tools/nullgate.py measurements/b10_20261104_c65mdB_ins measurements/b10_20261103_m797_ins measurements/b10_20261103_m797_n1_ins measurements/b10_20261103_m797_n2_ins > $O/nullgate_B.txt 2>&1
 bash $S/ng.sh $B c65mdB D:/PoB_work/c65md_work/ngB rd:measurements/ng797_20261103:m797 > $O/ng_B.txt 2>&1
 echo POSTDONE >> $O/gates_B.txt
