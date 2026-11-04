@@ -101,3 +101,9 @@
     ・[4] への追加（点検で見落とした走査の番人）：TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり（w.TechLevel／WorldTechLevel を読む行の数のラチェット・表の語は \b(World)?TechLevel\b）。焼き込みで読み手が減る＝表を直す（番人を写しただけの例外・★(743) の区分に当たらないラチェットの更新として verdict に列挙する）。変化の予言：Agents.cs 1→0（行ごと削除）・SelfPlay.cs 5→0（行ごと削除）・MultiNationSim.cs 10→9（:861 の gap の行が TechLevel を読まなくなる。:618・:692・:850 の frontier は残る）。ほか Discovery.cs 2・Megaprojects.cs 3 ほかは不変。
     ・[3] の突然変異 Mu1 の予言の訂正（結果を見た後の記録・採否の規則は変えていない）：Mu1（TechRatioOf の制度と思想の枝を旧に戻す）は DiscoveryEngineerTests の 2 本を赤にしない（既定の盤面では識字の上書き〔Discovery.cs:673・SpreadLiteracyFull 0.5〕が d＞0 の行を覆い、特許は d＝0 で比 1＝TechRatioOf が効く行が無い）。実際に赤にするのは TechLevelRemovalTests の段2b・InstitutionAnchorTests の 2 本（識字の係数 0 と NaN の半分）。Mu1 と Mu2 を同時に当てた Mu12（識字の上書きも飛ばす）でだけ DiscoveryEngineerTests の主張（制度と思想の行が技術水準で動かない）が赤になる＝Mu12 を足して回す。予言の誤り（紙の読みが浅かった）であって穴ではない。
     ・[5] の予言は変えない（−3）。
+
+[追記 2 2026-11-04・腕の前・成績表を見る前（結果の前の名乗り）]
+    ・指示との食い違い（先頭に書く）：指示は〈外圧の死んだ信号の連鎖の係数（ExternalPressureGapScale・UModTechWeight・UIndTechWeight）は消さない〉。旗 TechSignalOff を焼くと、ExternalPressureGapScale の読み手が MultiNationSim.cs:861 の 1 行だけだったため無読になり、読み手のない係数の番人（DormantIdentityTests.係数は全て本体のどこかで読まれる＝機構のテストの赤は止める線 RULE47）が赤になる。番人の物差しは替えず、係数を削除した（墓標・RetiredFields）。[2](B) の点検で見落とした。代替案（TechSignalOff の外圧側だけ焼かず旗を残す〔部分の焼き込み〕・読み手を保つだけの式を書く）は、前者は旗の焼き込みの目的に反し後者は読み手を偽装するので採らなかった。UModTechWeight・UIndTechWeight は SelfPlay の定数で techGap の項の読み手が残る＝残した。RetiredFields は +4（NavalPortProcurement・TechSignalOff・TechThresholdOff・ExternalPressureGapScale）。
+    ・試験の書き換えの追加の予言：MultiNationSim.cs:861 の式が ExternalPressureGapScale を読まなくなる以外に挙動は変わらない（gap は 0.0 のまま）。
+    ・実際に動かした試験の名前（改名は ⑤ にも当たらない意味の改名＝波51 の〈テストの名前を書き換えない〉との食い違い・verdict に列挙）：DiscoveryEngineerTests 2 本・InstitutionAnchorTests 1 本・TechLevelRemovalTests 4 本・NavalPortProcurementTests 1 本（旗1…）・MilitaryTests 1 本（Theory→Fact）・ColonyCessionDistanceTests 1 本・InheritIntentTests 1 本。
+    ・突然変異の結果は measurements/m824_20261104_mutation.txt（巡 r1〔焼き込みの前・文字化けを直した記録〕・r2pre・r2post）。
