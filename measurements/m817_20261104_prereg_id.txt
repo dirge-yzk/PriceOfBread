@@ -1,0 +1,103 @@
+(817) c14id I5 の残りの旗の焼き込み・試験の穴・古い注（恒等の線）事前登録 2026-11-04
+基線＝m797（main 8f558f9c）。枝 c14id（8f558f9c から）・worktree D:/PoB_work/wt_c14id。出発＝(796) の表 3 の I5・I12 と (811)(812)(813) の申し送り。作者「全て推奨でよい」（2026-11-03）で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。担当 c14id は Claude Sonnet 5.5。
+
+[0] 形の種類＝尾（旗の旧の枝の削除と試験の穴埋め）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0。AI とプレイヤーで同じ経路（旗の焼き込みだけ）。確証＝あり（旧い枝の削除＝挙動なし）。
+    ⚠(796) の表 3 の本文（I5・I12 の項目）は repo に無い（実装ログ (796) の本文 7 行と measurements/m796_20261103/*.tsv だけ・(812) の事前登録 [0] と同じ）。
+      I5 の名簿は m796 の pureflags.tsv／flagpure.tsv（読みが全て数との比べだけの旗＝pure）から、(812) が焼いた 3 本の残りを選んだ。
+      I12（テストの構造）は本文が無く、00一覧は〈宣言の表を手書きから生成へ〉を (3) リファクタの候補①に置く（毎波の取り直しの根）＝恒等の線に入る範囲に収まらない（WriterRatchetTests の作り直しは挙動の線の合流と衝突する）。
+      この回の I12 は〈指示に列挙された試験の穴と古い注〉に絞る。それ以外は入れない（報告に書く）。
+    浮動小数の順序が変わる箇所＝0（比べの `> 0` の削除と、同じ文の無条件化だけ）＝紙の台本は不要。旧と新の食い違いの数の予言＝0。
+
+[1] 恒等の線・予言 0
+    素の 5 種・計器つき 10 種の成績表が m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は 0（宣言なし）。.cost の件数の行の差は 0。
+    NG の集合は触らない（ng.sh は回さない＝成績表の全行一致が NG の同一を含意する）。判定は〈測った種で一致〉（証明とは書かない）。
+
+[2] 消す物と残す物
+  (A) 焼き込む旗 3 本（既定 1 の経路だけ残す。SimCore だけに読み手がある。App・Runner・Display に読み手 0 を git grep で確かめた＝2026-11-04・8f558f9c）
+    A1 NavalCedeFleetReturn（Coefficients.cs:2280・コメント 2276〜2279）
+        読み手：Territory.cs:325 `if (how == Rehoming.Ceded && from.Coef.NavalCedeFleetReturn > 0 && r.FleetUnits is { } cededFleet)` → `from.Coef.NavalCedeFleetReturn > 0 &&` を消す。
+        他：Instruments.cs:74・1214・1224 は旗の名を指さない（列名の注に〈navf5〉があるだけ）＝触らない。Territory.cs:323 の注は旗の名を書く＝〈割譲のとき〉に直す。
+        Tests：NavalCedeFleetReturnTests.cs（Setup(flag) の `from.Coef.NavalCedeFleetReturn = flag` の行 ③・旗 0 の Fact 1 本の削除 ①）・DormantIdentityTests.cs:40 の注。
+    A2 InheritedStateIntentDrop（Coefficients.cs:2747〜2748）
+        読み手：Territory.cs:341 `if (from.Coef.InheritedStateIntentDrop > 0)` → if を外して foreach を無条件に（`foreach (var pr in r.Producers) pr.StateTarget = DroppedStateTarget(...)` の 1 文）。
+        他：InstrumentsInheritIntent.cs:6 の注（旗の名を指す）＝直す。Territory.cs:338 の注＝直す。
+        Tests：InheritIntentTests.cs（Setup(flag) の旗の代入の行 ③・旗 0 の Fact `旗0では意志がそのまま移る` の削除 ①・計器の表の試験 `foreach (double flag in new[] { 1.0, 0.0 })` の 0.0 の半分 ① と `Assert.Equal(flag > 0 ? nw : old, used)`→`Assert.Equal(nw, used)` ②〔比べる double は旗 1 で同じ〕）。
+        閉じた線の台本：scripts/instruments/c7sw/mutate_m1.py・mutate_m3.py・named.sh は閉じた線の記録（旗の名の文字列を探す・今の木では当たらない）＝触らない。WriterRatchetTests.cs の注（401・408・412・413・520）は軌道の経緯の記述＝触らない（宣言の値は変えない）。
+    A3 HcdColonyCessionDistance（Coefficients.cs:1527〜1528）
+        読み手：Diplomacy.cs:3052 `bool hcdDist = c.HcdColonyCessionDistance > 0 && c.ColonyCaptureDistanceWeight > 0;` → `bool hcdDist = c.ColonyCaptureDistanceWeight > 0;`（Diplomacy.cs は CRLF のファイル＝バイトで書く）。注の 3051・3053 は旗の名を指す＝直す。
+        Tests：ColonyCessionDistanceTests.cs（Peace(flag, …) の旗の代入の行 ③・旗 0 の Fact 1 本の削除 ①・旗 1 と旗 0 を比べる Fact は旗 0 の側の比べを削る ①〔`Assert.Equal(new[]{マドラス}, b.moved)` は残る〕）。
+    名簿の登録：DormantIdentityTests.RetiredFields に 3 名を足す（番人を写しただけ＝戻らないことの番人・(812) の前例）。足す行は c14fl と衝突しないよう、既存の (812) の行の直後に独立の 1 行（コメント つき）。
+  (B) 残す（名簿外・触らない）と理由
+    NavalPortProcurement：flagpure.tsv は mixed（5 ファイル：EconomyStep.cs・MultiNationSim.cs・Simulation.cs・Territory.cs ＋ App の注）。旗 0 の枝（首都 1 本の艦の予算）は NavalPortProcurementTests と MilitaryTests:740 が使い、この回の M1b の試験（旗 0 の行）が持つ＝(812) の c13ib と同じく残す。
+    PortCapToThroughput・ImmigrationAbsorbExponent・StapleElasticityZero ほか：算術に使う係数（旗ではない）。UrbanCapOff・NavalProcurementNeedsPort・CrossBorderMigrationByOpportunity：(812) で済み。
+    I13 PowerShares.DebtGrip の倒し先（区分 II＝挙動）・I1・I3 の残り・I2 の造幣の組・I4 tl 段6・B12・TechSignalOff／TechThresholdOff：指示の入れない物。
+    World.InsolvencyQuarters（App が読む）：触らない。
+  (C) 古い注（試験ファイルの注だけ・コードも Assert も触らない）
+    FullChainTests.cs:23 の行末の注（〈冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない〉〈旗 0 で 132〉などが (811) の焼き込みの後に偽）→ 今の意味と単位に短くする（経緯は実装ログ）。
+    HouseholdProductionTests.cs:10 の旗 HouseholdProductionEnabled の文（(811) で焼き込み済み）と〈旗の読み落とし（先頭の return を外す）〉の突然変異の名簿 → 今の意味へ。
+    UrxInstrumentTests.cs:9 の〈計器の呼びが UrbanIndSmoothed を書かない〉（状態ごと (812) で削除）→ 削る。
+    ident.cfg:1・ident_check.py:1 は (813) で直した＝確かめるだけ（grep で〈証明〉の字が残っていないか）。
+
+  c14fl との重なり（持ち主の一覧を grep して確かめた）：c14fl＝CapitalMarket.cs の利札と流入の需要の行・InstrumentsDivhost.cs・CapitalDividendHostRentTests.cs・新しい試験のファイル・scripts/instruments/c14fl/・measurements/m815_*。
+    c14id が触る .cs：Territory.cs・Diplomacy.cs・Coefficients.cs（A1〜A3 の旗の行と注だけ・c14fl は CapitalMarket の係数の行）・InstrumentsInheritIntent.cs（注の 1 行）・DormantIdentityTests.cs（RetiredFields の 1 行と 3 本の旗の注の行）・Tests の上の (A)(C) のファイルと新しい試験のファイル 2 本・PopScanTests.cs（足す）・MilitaryTests.cs（足す）。
+    共有 3 ファイルで触る行：Coefficients.cs＝1527〜1528・2276〜2280・2745〜2748 の 3 塊／DormantIdentityTests.cs＝RetiredFields の (812) の行の直後に 1 行・40・38・（InheritedStateIntentDrop には注が無い）の旗の注の行／Instruments.cs・WriterRatchetTests.cs は触らない。
+    衝突の見込み＝Coefficients.cs と DormantIdentityTests.cs で近い行に c14fl が足す可能性（合流で解く）。
+
+[3] 足す試験と突然変異
+    T1（SecondRecipeContentsTests.cs・新しいファイル）：冷蔵の加工肉と石油ケロシンの行の中身。FullChainTests は件数（132＋1＋5）しか見ない＝(811) の突然変異 M5・M6 は件数の試験だけが拾った。
+        フルチェーンの州に RecipeName が〈冷蔵の加工肉〉〈石油ケロシン〉の行が 1 本ずつ。手で書いた表：冷蔵の加工肉＝産出 加工肉・投入 肉 0.6／冷蔵庫 0.15／労働 0.5／技師（加工肉の技師の量 0.02）・生産性＝同じ州の塩漬け（既定の加工肉の行）の 1.4 倍・産出 0.5・規模 0.05。石油ケロシン＝産出 灯油・投入 原油 0.5／労働 0.5／技師（灯油 0.02）・生産性＝1.6×7＝11.2・産出 0.5・規模 0.05。期待は Coefficients の既定をリテラルで写さず、手で書いた数（上の数）で書く。
+        突然変異（使い捨ての木・Simulation.cs の 1 文を替える）：
+          M5a 加工肉の肉の投入量 0.6→0.5／M5b 冷蔵庫の投入を塩（SaltId）に替える／M5c 生産性の ChilledMeatProductivity を掛けない
+          M6a 灯油の原油の投入を銅鉱に替える／M6b 灯油の生産性の KeroseneOilProductivity を 1.0 にする／M6c 技師の投入を外す
+        予言＝6 本とも T1 だけが赤。
+    T2（MilitaryTests.cs に Theory 1 本〔旗 0・旗 1 の 2 行〕）：海軍の予算は必要額で切られる。(811) の反証役：M1 は陸の milCap だけ＝艦の 2 か所（Simulation.cs の navalCap の Min〔旗 0 の経路〕と navalNat の Min〔旗 1 の経路〕）は変異していない。
+        盤面＝Frozen152 の英仏・NeedSea を 0.4 と 50 で 30 日回し、国の海軍の予算の和を比べる。主張＝NeedSea 0.4 の和＜0.1×NeedSea 50 の和（必要額は NeedSea に比例＝0.4÷50＝0.008 ≪ 0.1）。前提＝NeedSea 50 の和＞0。旗 0／旗 1 は各国の World.Coef.NavalPortProcurement に置く。
+        突然変異（使い捨ての木）：M1b `navalCap = Math.Min(navalCap, …NavalProcurementNeed…)` の行を消す→旗 0 の行が赤（旗 1 の行は上書きされるので緑＝等価なので旗 1 の行では期待しない）／M1c `navalNat = Math.Min(navalNat, navNeedNat)` の行を消す→旗 1 の行が赤。
+        ⚠旗 1 で M1b の行を消しても緑（navShare の経路で上書きされる）＝M1b は旗 0 の行だけが拾う。予言＝M1b は旗 0 の行・M1c は旗 1 の行だけが赤。
+    T3（PopScanTests.cs に Fact 1 本）：全ての州が植民地格の国は国平均を全ての州で取る（`mainPop ≦ 1e-9` の退避の枝）。(811) の反証役：本土の州が無い国の枝のビット一致の番人が消えた。
+        盤面＝英国の世界を 2 四半期回し、全ての州の Tier を Colonial に置き、州ごとに貯蓄と所得の厚みを変える（既存の 州の価格水準の1周… と同じ作り方）。期待＝手の式（全 POP の和から国平均・州の乗数 Clamp(Pow(州の1人あたり貯蓄÷国平均, 重み), 下限, 上限)・賃金のプレミアムの 0.75/0.25 の混ぜ）。ビット一致で見る。
+        突然変異：M3a `if (mainPop > 1e-9) { natSav = mainSav; … }` の条件を `true` にする（本土の和 0 を国平均に使う＝国平均 0）→T3 が赤／M3b 退避の枝の natPop を全ての州でなく 0 にする。予言＝M3a は T3 だけが赤。
+    T4（越境移民の機構を直接見る試験）：(812) の突然変異 M4（MigrateBetweenNations を最初の集計の後で return）は、台本の絞り込みが RouteKmTests だけだったので 1 本としか見えなかった可能性がある。ConservationTests に国家間移民の番人が 6 本以上ある（総人口と基礎貨幣の保存・上限・差 0 以下は行かない・受入の上限ほか）。
+        予言＝M4 を ConservationTests で回すと 3 本以上が赤＝穴ではない。その場合は試験を足さず〈既にある〉と報告する。赤が 0 または 1 本なら T4 を足す（越境移民が低い機会→高い機会へ向かい総人口が保存される直接の試験）。
+    突然変異の台本は scripts/instruments/c14id/（c13ia／c13ib の型を写す）・出力は measurements/m817_20261104_mutation.txt にコミット。穴の名乗りは緑のまま終わらせず、同じ線で試験を足して赤を確かめる（★(790)）。
+
+[4] ㉘ ソースを走査する番人の点検（grep の結果・2026-11-04・8f558f9c の木）
+    工業化度の読み手の許可表（IndustrializationReaderTests.Allowed）：焼き込む行（Territory.cs:325・341・Diplomacy.cs:3052・Coefficients.cs の 3 塊）は表の語（TotalIndustrialization ほか）を含まない＝Territory.cs 1・Diplomacy.cs 1・Coefficients.cs 1 は変わらない。変化の予言＝0 行（ファイル別すべて）。
+    `new MoneyStock(` の件数（UnitTypeTests）：焼く行にも足す試験にも書かない＝変化 0。T1〜T3 の期待は double の手の数で書き MoneyStock を作らない。
+    route_anchors.tsv（scripts/instruments/flow262/）の鍵の行：Territory.cs の鍵は MoveBetweenRegions の 1 行（Territory.cs:73 付近）・Diplomacy.cs の鍵は拿捕品の World.Transfer の 1 行＝焼く行と別＝鍵の変化 0。新しいコードは鍵の行に書き足さない。
+    WriterRatchetTests の宣言の表：触らない（予言＝.cost の件数の差 0）。
+    DormantIdentityTests：RetiredFields に 3 名を足す（番人を写しただけの例外として verdict に列挙）。DormantZeroFields には旗 3 本は無い（点火済み）＝表の変化 0。`削除した休眠の係数は戻っていない`・`係数は全て本体のどこかで読まれる`・`削除した係数は戻っていない_旗は全て既定0` は緑のままのはず。
+    SaveGame：旗は Coefficients の欄＝セーブの欄ではない。savetest で同じ版の往復を確かめる。POB_COEF の名前解決：3 名を渡す台本は閉じた線の記録だけ（c7sw named.sh・hcd）＝今の測りは渡さない。
+    ㉘ の番人 5 組（IndustrializationReaderTests／UnitTypeTests／InstrumentsTests／WriterRatchetTests／DormantIdentityTests）は器のコミットの直後、ident の前に Release で回す。赤なら腕を回さず直す。
+
+[5] テストの数（--tests-delta の予言）
+    削る：旗 0 の Fact 3 本（NavalCedeFleetReturnTests・InheritIntentTests・ColonyCessionDistanceTests）＝−3。足す：T1 の Fact 2 本（冷蔵の加工肉・石油ケロシン）＋T2 の Theory 2 行＋T3 の Fact 1 本＝＋5（T4 を足すなら＋1）。
+    予言＝＋2（--list-tests は Category!=FullLength 2222・FullLength 3）。T4 を足したら＋3。実測が違えば理由を読んでから ident.cfg 側を直す（ident へは --tests-delta で渡す）。
+
+[6] 腕（挙動を変えない＝腕 A のみ）
+    `bash scripts/instruments/ident/ident.sh run c14id --tree D:/PoB_work/wt_c14id --tests-delta <整数> --saveleak`（run_in_background）。素の 5 種・計器つき 10 種・テストの数・savetest・leakhunt。ヌル腕は回さない。
+    腕の枠：arms.sh free が 4 以上のときだけ始める（c14fl を優先）。待った時間を報告に書く。走っている間はその worktree にコミットしない（㉙）。
+    フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる（ident が回さないなら別に）。
+
+[7]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。コミットを旗ごとに分けるので、不一致のときは旗ごとに外して切り分ける（A1・A2・A3 は別のコミット）。
+
+[追記 2026-11-04・腕の前]
+    ・以下の ㉑ の予言は上の [4] と同じ＝許可表の変化 0 行・MoneyStock の件数 0・鍵 0・WriterRatchet 0。
+
+[追記 2 2026-11-04・腕の前・成績表を見る前]
+    ・焼いた旗 3 本は予定どおり（コミット c061f311・0b2c97c5・2b2d5934）。古い注の直しは b5aaaa0e（FullChainTests・HouseholdProductionTests・UrxInstrumentTests の注と cref の 2 行のみ）。
+    ・㉘ の番人 5 組＋焼いた旗の 3 試験は b5aaaa0e の木（足した試験の前）で Release・隔離ビルド D:/PoB_work/c14id_art に回し 145 本全て緑（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・NavalCedeFleetReturnTests・InheritIntentTests・ColonyCessionDistanceTests）。許可表の変化 0・MoneyStock の件数 0・鍵 0・宣言の表 0＝[4] の予言どおり。
+    ・足した試験：T1 SecondRecipeContentsTests 2 本（cbe4da6e）／T2 海軍の予算は必要額で切られ… の Theory 2 行（3959264c）／T3 PopScanTests 1 本（3959264c）。T4 は足さない：M4 で ConservationTests の国家間移民の番人が 4 本赤＝穴ではない（[3] T4 の予言〈3 本以上〉どおり）。
+    ・[3] T2 の盤面の訂正（結果を見る前の較正）：事前登録の 0.4 は誤り（この盤面の装備の器×海の金の割合は約 22・必要額は海の必要量 1 あたり約 5.6 万＝0.4 では切られない）。変異なしで赤になるのを見て探りの試験で較正し、海の必要量を 1e-5 と 50 に直した（主張の形〈小さい国の予算＜大きい国の 1 割〉は同じ）。突然変異の結果は直した後の 2 巡目が有効（measurements/m817_20261104_mutation.txt に無効な行の名乗りあり）。
+    ・突然変異の結果（予言どおり）：T1 の 6 本は足した試験だけが赤・M1b は旗 0 の行だけ・M1c は旗 1 の行だけ・M3a は T3 が赤。変異なしの対照は緑 11 本。
+    ・[2] に無い追加（区分 ⑥〈警告の解消だけ〉）：xUnit の解析の警告 4 件（LayoutTests:147・ScholarshipTests:161・UnitTypeTests:67・UrbanFlowRealTests:304・fd343286）。Assert の判定と母集合は変えない。I12（テストの構造）の本文が repo に無いので、〈指示に列挙された穴と古い注〉の外で恒等で入る警告の解消だけを足した。
+    ・テストの数の予言（--tests-delta）：−3（旗 0 の Fact 3 本）＋2（T1）＋2（T2 の Theory 2 行）＋1（T3）＝＋2（--list-tests の予言＝Category!=FullLength 2222・FullLength 3）。
+    ・RetiredFields は 3 名（NavalCedeFleetReturn・InheritedStateIntentDrop・HcdColonyCessionDistance・番人を写しただけ）。書き換えた既存の試験は [2] のとおり＋⑥ の 4 件。
+
+[追記 3 2026-11-04・結果の後の記録（採否の規則は変えていない）]
+    ・判定: 恒等（ident run c14id・測った木 HEAD 7d1e0163・SOURCE-HASH 84b0f0cf54dbfee0・measurements/ident_20261104_c14id.txt）。素の 5 種 184 行・計器つき 10 種 185 行が m797 と全行一致・.cost の件数の行 29 本一致（推定 220.1 秒／221.2 秒）・計器の表 959 一致＋既知の揺れ 20（宣言 0）・注視の表 4636 行一致・--list-tests 2222（基準 2220＋2）／FullLength 3・savetest OK・leakhunt 違反なし。
+    ・フルスイート（Category!=FullLength・隔離ビルド）：合計 2222（--list-tests と一致）＝合格 2220・スキップ 1（従来から）・失敗 1。失敗は GoodIdGuardTests.道具のPythonは財の番号を数字で書かない＝自分の台本 scripts/instruments/c14id/edit_i5.py の C# の整数配列の字面（テストの旧い行を探す文字列）。[4] の ㉘ の番人の点検は 5 組だけで、scripts の *.py を走査するこの番人を入れ損ねた（反証＝ソースを走査する番人は 6 組目がある）。台本の 1 行を直して再走（GoodIdGuardTests 43 本緑）。物差しは替えていない。.cs は触らない＝ident の測った木のまま。FullLength 3 本緑（4 分 55 秒）。
+    ・フルスイートは他の線（c14fl）の腕 2〜4 本と並べて回した（腕の枠の割り振りの外・結果は合否だけで時間は使っていない）。
+    ・試験の穴の結果：T1〜T3 を足して赤を確かめた。T4 は穴ではなかった。冷蔵の加工肉・石油ケロシンの穴は塞がった。M1b は旗 0 の経路の穴＝旗 NavalPortProcurement を焼かない限り残る（焼けば navalCap の行は死んだコードになり消える）。
+    ・名前が古くなった試験（記録・名前は書き換えない）：ColonyCessionDistanceTests.旗1は世界最大の艦を持つ勝者には距離の項が0で旗0と同じ州が移る（旗 0 との比べは ① で消し、今はマドラスが移ることだけを見る）・InheritIntentTests.計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい（旗 0 の半分は消えた）・NavalCedeFleetReturnTests.旗1で…の 3 本・InheritIntentTests.cs:8 の突然変異の注の〈旗を読まない→①が赤〉。.cs を ident の後に触らないため直していない（次の恒等の線で直す）。

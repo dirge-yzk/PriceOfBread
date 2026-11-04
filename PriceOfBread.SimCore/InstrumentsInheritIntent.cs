@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 // ---------------------------------------------------------------- (774) 継いだ着工の意志の表 inheritintent_s（読むだけ・恒等） ----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsHabitcap.cs の型）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（蓄えは計器の側の ConditionalWeakTable）。INS=1 のときだけ動く。
 // 目的＝事前登録 measurements/m774_20261102_prereg_sw.txt。州が別の国へ移る（Territory.TransferRegion＝割譲・分離独立・再併合）とき、移る州の国営工場を建てる意志 StateTarget が新しい国へそのまま移る形の誤りを、
-//   同じ盤面で旧（下げる前）と新（Territory.DroppedStateTarget＝旗 InheritedStateIntentDrop に依らず同じ純関数）を並べて読む。
+//   同じ盤面で旧（下げる前）と新（Territory.DroppedStateTarget＝同じ純関数・旗 InheritedStateIntentDrop は (817) で焼き込み）を並べて読む。
 // 表 inheritintent_s（scope 列で 2 種類の行・全ての国。POB_INSTRUMENTS_NATIONS の絞りは読まない）：
 //   E＝移しの事象の行（移る州の生産者のうち StateTarget＞0 のもの・四半期の末に出す）：quarter／year／how（Ceded・Seceded・Returned）／fromNation／toNation（四半期の末のその州の持ち主・見つからなければ空）／toBornQuarter（受け手が計器に初めて現れた四半期＝nation_s の生まれと同じ定義）／
 //     region／good／recipe／stateTargetOld（下げる前）／stateTargetNew（DroppedStateTarget＝旗に依らず計算）／builtCount（今の棟数）／stateTargetUsed（規則を当てた後に実際に残った値）／constructionLeftDays（工事中なら残りの日数）／

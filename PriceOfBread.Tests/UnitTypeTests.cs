@@ -64,7 +64,7 @@ public class UnitTypeTests
             Assert.True(typeof(IUnitValue).IsAssignableFrom(t));
             Assert.True(typeof(IFormattable).IsAssignableFrom(t));
             Assert.True(typeof(IComparable<>).MakeGenericType(t).IsAssignableFrom(t));   // OrderBy・Max・Min は実行時に要る（無いと落ちる）
-            Assert.Empty(t.GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.Name is "op_Implicit" or "op_Explicit"));
+            Assert.DoesNotContain(t.GetMethods(BindingFlags.Public | BindingFlags.Static), m => m.Name is "op_Implicit" or "op_Explicit");
         }
     }
 

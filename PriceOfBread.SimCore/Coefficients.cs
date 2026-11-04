@@ -1524,8 +1524,7 @@ public sealed class Coefficients
     public double ColonyCapturePopCost = 2;        // 人口規模1あたりの追加奪取コスト（人口の多い植民地＝印度ほど奪いにくい＝大勝が必要）
     // 【墓標2026-10-18・旗の焼き込み】ColonyCaptureReachGate（既定1.0・2026-08-02）を消した＝講和奪取の射程ゲート：投射圏（CessionMaxDistanceKm）の外の植民地は海を実際に制していなければ受け取れない。
     public int ColonyCaptureMax = 3;               // 1戦争で奪える植民地の上限（完全勝利でも3つほど）
-    // ★(696) 線 hcd（講和の植民地格の州の複数割譲に距離を戻す・2026-10-31 に既定 1 で点火）：0＝旧（植民地格の州の複数割譲の費用は 基本＋資源＋人口 だけ＝距離を見ない・射程の門は 敗者との相対の CanCrossSea だけ）／正＝植民地格の州の費用に、ColonyList 経路（上）と同じ形の距離の項 ×(1＋ColonyCaptureDistanceWeight×海路 km÷DistanceNormKm×(1−勝者の艦÷世界最大の艦)) を掛ける（予算 sa×ColonyCaptureBudget は 2 経路で共有のまま・州の選ぶ順〔価値〕は変えない）。新しい定数・倍率・天井・状態は無い（既存の ColonyCaptureDistanceWeight・DistanceNormKm を使う）。AI とプレイヤーで同じ経路。形は〈入口〉（遠い植民地格の州が安く移る）。CedeTerritory の colonialReach 経路（単独の境界割譲）は触らない。
-    public double HcdColonyCessionDistance = 1;
+    // 【墓標2026-11-04 (817)・旗の焼き込み】HcdColonyCessionDistance（(696) 線 hcd・2026-10-31 に既定 1 で点火）を消した＝講和の植民地格の州の複数割譲の費用に、ColonyList 経路と同じ距離の項 ×(1＋ColonyCaptureDistanceWeight×海路 km÷DistanceNormKm×(1−勝者の艦÷世界最大の艦)) を常に掛ける（ColonyCaptureDistanceWeight が 0 のときは掛けない）。旧（距離を見ない）の枝は消した。
     public double ColonyCaptureDistanceWeight = 1.0;   // 戦勝奪取の距離実力ゲート（2026-07-09・上海集中対策）：奪取コスト×(1＋これ×海路距離万km×(1−制海権))＝海軍なき国は遠方植民地を奪えず、海軍国は距離を制海権で相殺（州割譲のCessionMaxDistanceKmと対をなす植民地側＝地理無視の戦利品循環〔清がカラカス/ペルー・ソコトがペルー保有〕の是正）。0で旧挙動（休眠可）
     public double ExpansionWillBourgeois = 0.4;        // 商業帝国チャネル（裁定2・2026-07-10）：ブルジョワ・ブロック力×これ/四半期の膨張意志＝東インド会社の実体化（英Modern≈0.4で+0.16/四半期→willCost8.4を約13年で充足）。従来は戦争熱>0.5超過分のみ＝自由主義的な英仏が構造的に植民地化不能だった。0で旧挙動
     public double ColonizeWillSuperiorityDiscount = 1.0;   // 国力比の重み（作者裁定2026-08-23）：要求余剰戦力＝上限÷(1＋これ×実効戦力/屈服線)。1.0＝**ちょうど屈服させられる相手で上限の50%**（弱小へは半分で行ける）。大きいほど優位が安くつく・0で常に満タン要求
@@ -2273,11 +2272,7 @@ public sealed class Coefficients
     //   （割合＝本国格の港の取扱高の比・分子と分母は同じ述語 EconomyStep.NavalHomePort・植民地格の港は配りに入れない〔(614) の F1 は入れた〕・EconomyStep.NavalPortSplit）＝各州が自分の市場で普通の経路（需要→配給→決済→艦の在庫）で買う。AI とプレイヤーで同じ道（国の動詞は無い）。
     //   旗の読み手＝Simulation（月初の配り・予算）・EconomyStep（発注と決済の述語 navPort）。既定 1（(679) 線 navf4 で点火＝腕 B・B11 が止める線に当たらず・G7／G1／G1b／G6 が通り〈壊す〉の物差し ①②③ が鳴らず採った・作者 2026-10-30「全て推奨で進めてください。」で推奨を採った〔作者の承認の言葉ではない〕・形の史実の確証は無い）。
     public double NavalPortProcurement = 1.0;
-    // ★(688) 線 navf5（割譲で艦が移る経路の切り分け）：0＝旧（割譲のとき出ていく州の艦の在庫〔Region.FleetUnits〕が州ごと受け手の国へ渡る）／正＝割譲（Rehoming.Ceded だけ）のとき、送り手に州が残るなら
-    //   出ていく州の艦の在庫を送り手の首都の州（首都の州が割譲されるときは遷都の後の新しい首都）の艦の在庫に足し、出ていく州の艦の在庫は空にする（送り手の州が 0 になる＝国が消えるときは今のまま艦ごと渡る）。
-    //   艦隊は国のもの（Diplomacy の FleetGauge は国内の全州の艦の在庫の和）で、州の艦の在庫は帳簿上の置き場＝割譲で艦が相手の海軍に渡るのは稀（推測・確証なし）。建国〔Seceded〕・再併合〔Returned〕は変えない。
-    //   新しい倍率・状態・天井は無い。形は〈尾〉（艦の置き場）。既定 1（(688) 線 navf5 で点火＝腕 B・B11 が止める線に当たらず・G1／G3 が通り〈壊す〉の物差し ①②③ が鳴らず採った・作者 2026-10-30「どうぞ。停止せず進めてください」で推奨を採った〔作者の承認の言葉ではない〕・G1／G3 は作りの上で自明に通る番人＝〈艦の置き場が国のものに合った〉とだけ言う）。事前登録 measurements/navf688_20261030_prereg.txt。
-    public double NavalCedeFleetReturn = 1.0;
+    // 【墓標2026-11-04 (817)・旗の焼き込み】NavalCedeFleetReturn（(688) 線 navf5・2026-10-30 に既定 1 で点火）を消した＝割譲（Rehoming.Ceded だけ）のとき、送り手に州が残るなら出ていく州の艦の在庫を送り手の首都の州（首都の州が割譲されるときは遷都の後の新しい首都）へ戻して空にする（艦は国のもの＝州の艦の在庫は帳簿上の置き場）。建国〔Seceded〕・再併合〔Returned〕は変えない。旧（艦が州ごと受け手の国へ渡る）の枝は消した。確証なし（AI の推奨）。
     // ★海軍力を艦隊から出す（作者裁定「海軍は戦艦ありき」）。0＝旧（兵数×海軍シェア）／1＝min(艦隊ゲージ, 乗員ゲージ)。
     // ★点火2026-08-01（裁定③の受入試験を実測してから）。海軍力＝min(艦隊ゲージ, 乗員ゲージ)。
     // ⚠**播種（Diplomacy）と導出分母（EconomyStep.FleetGaugeDenominator）が同じコミットに入っていること**が前提。
@@ -2744,8 +2739,7 @@ public sealed class Coefficients
     // 【墓標2026-10-18・旗の焼き込み】BarrierWallSegments（既定1.0・点火2026-09-05・作者指摘「山脈などのバリアは正しく機能しているか」）を消した＝同じ山脈名（語幹）のバリア点を線分の壁にして、壁を横切る辺を張らない。
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
     // ★(785) 旗 PortByLandRoute（(770)）・PortSameLandmassFirst（(779)）は既定 1 の経路だけを残して焼き込んだ（線 c9bk）。港の選び方は Simulation.PortChoice の 1 本＝同じ国の港の eff（陸路が有限 ? 陸路 km : 大圏 km）の最小。ただし州と同じ陸塊の札（Landmass.Of）で陸路が有限の港が 1 つでもあれば、陸路∞の港を候補から外す（無ければ eff の最小のまま）。内陸の鉄道の減衰（InlandPortDistanceDecay）の km は選んだ港までの eff（PortLandKm と同じ値）。
-    // ★(774) 継いだ着工の意志の取り下げ（線 c7sw・線の枝の既定 1・0＝旧）。InheritedStateIntentDrop＞0＝州が別の国へ移るとき（割譲・分離独立・再併合＝Territory.TransferRegion）、移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる（意志は政府のもの＝建物は州と一緒に移るが旧の政府の着工の意志は移らない）。0＝旧（意志がそのまま移る）。確証なし（AI の推奨）。
-    public double InheritedStateIntentDrop = 1.0;
+    // 【墓標2026-11-04 (817)・旗の焼き込み】InheritedStateIntentDrop（(774) 線 c7sw・既定 1）を消した＝州が別の国へ移るとき（割譲・分離独立・再併合＝Territory.TransferRegion）、移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる（意志は政府のもの＝建物は州と一緒に移るが旧の政府の着工の意志は移らない）。旧（意志がそのまま移る）の枝は消した。確証なし（AI の推奨）。
     // 【墓標2026-11-02・旗の焼き込み（769）】LandGraphFixRows（既定1.0・点火2026-11-02 (762)・事前登録 measurements/m762_20261102_prereg_lg.txt）を消した＝barriers.json の fix=1 の行（ドロミテの点 46.6 と峠 4 本）を常に読み、fix=-1 の旧の行は読まない。足した峠は既存の点の枠と半径を食わない。0＝旧の盤面は git の履歴から戻せる。
 
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）

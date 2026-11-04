@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(774) c7sw 継いだ着工の意志の取り下げ：州が別の国へ移るとき（割譲・分離独立・再併合＝<see cref="Territory.TransferRegion"/>）、旗 <c>InheritedStateIntentDrop</c> が正なら
+/// <summary>(774) c7sw 継いだ着工の意志の取り下げ：州が別の国へ移るとき（割譲・分離独立・再併合＝<see cref="Territory.TransferRegion"/>）、（旗 <c>InheritedStateIntentDrop</c> は (817) で焼き込み）
 /// 移る州の生産者の <c>StateTarget</c>（国営工場を建てる意志）を今の棟数まで下げる。手の盤面で期待値を直に書く（期待値は規則の関数を呼ばず、棟数と意志のリテラルから作る）。
 /// 突然変異（一時的に壊して赤を確かめる・結果は measurements/m774_*）：Math.Min を外して 0 にする→③と①が赤・旗を読まない→①が赤・毎月全ての州に当てる→②が赤。
 /// 計器の全体の口（<c>Instruments.Configure</c>）を立てる試験があるので、並列を外す集まり〈Instruments〉に入れた。</summary>
@@ -13,11 +13,10 @@ public class InheritIntentTests
     // 手の盤面：移る州 r の生産者 4 つに (棟数, 意志) を置く（0:棟2・意志5 ／1:棟3・意志3 ／2:棟3・意志1 ／3:棟0・意志4）。
     static readonly (int Built, int Target)[] Layout = [(2, 5), (3, 3), (3, 1), (0, 4)];
 
-    static (MultiNationSim Sim, World Uk, World Fr, Region R, Region Other) Setup(double flag)
+    static (MultiNationSim Sim, World Uk, World Fr, Region R, Region Other) Setup()
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
-        uk.Coef.InheritedStateIntentDrop = flag; fr.Coef.InheritedStateIntentDrop = flag;
         var r = uk.Regions.Find(x => x.Id != 0 && x.Tier == RegionTier.Core)!;
         var other = uk.Regions.Find(x => x.Id != 0 && x != r && x.Tier == RegionTier.Core)!;
         foreach (var reg in new[] { r, other })
@@ -44,7 +43,7 @@ public class InheritIntentTests
     [Fact]
     public void 分離独立で移る州の意志は今の棟数まで下がる_棟数以下の意志は動かない_移らない州は不変()
     {
-        var (sim, uk, _, r, other) = Setup(1.0);
+        var (sim, uk, _, r, other) = Setup();
         int n0 = sim.Nations.Count;
         uk.PendingSecessionWars = [r];
         sim.SpawnSecededNations();
@@ -55,20 +54,10 @@ public class InheritIntentTests
     }
 
     [Fact]
-    public void 旗0では意志がそのまま移る()
-    {
-        var (sim, uk, _, r, other) = Setup(0.0);
-        uk.PendingSecessionWars = [r];
-        sim.SpawnSecededNations();
-        Assert.Equal([5, 3, 1, 4], Targets(r));       // ④ 旧と同じ
-        Assert.Equal([5, 3, 1, 4], Targets(other));
-    }
-
-    [Fact]
     public void 毎月の駆動は移らない州の意志を消さない()
     {
         // 移しの外では規則を当てない：旗 1 でも、月次の駆動（StepStateTargets）は門が開いている生産者の意志（棟数より上の分）を取り下げない
-        var (_, uk, _, _, other) = Setup(1.0);
+        var (_, uk, _, _, other) = Setup();
         var pending = other.Producers.Take(Layout.Length).Where(p => Discovery.Gate(other, p) > 0 && p.StateTarget > uk.StateUnitsOf(p)).ToList();
         Assert.NotEmpty(pending);   // 前提：門が開いて意志が棟数を超える生産者がある
         uk.StepStateTargets();
@@ -78,7 +67,7 @@ public class InheritIntentTests
     [Fact]
     public void 割譲と再併合でも同じ規則()
     {
-        var (_, uk, fr, r, other) = Setup(1.0);
+        var (_, uk, fr, r, other) = Setup();
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
         Assert.Contains(r, fr.Regions);
         Assert.Equal([2, 3, 1, 0], Targets(r));       // ⑤ 割譲
@@ -92,11 +81,10 @@ public class InheritIntentTests
     [Fact]
     public void 計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい()
     {
-        foreach (double flag in new[] { 1.0, 0.0 })
         {
             string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_inherit_" + Guid.NewGuid().ToString("N"));
             Instruments.Configure(dir, null);
-            var (sim, uk, fr, r, _) = Setup(flag);
+            var (sim, uk, fr, r, _) = Setup();
             try
             {
                 Instruments.Phase(sim, 1789UL, "open");
@@ -120,7 +108,7 @@ public class InheritIntentTests
             {
                 int old = int.Parse(x[I("stateTargetOld")]), nw = int.Parse(x[I("stateTargetNew")]), built = int.Parse(x[I("builtCount")]), used = int.Parse(x[I("stateTargetUsed")]);
                 Assert.Equal(Math.Min(old, built), nw);                 // 新＝旗に依らず同じ規則（期待値は列の値から作る別の出所）
-                Assert.Equal(flag > 0 ? nw : old, used);                // 実際＝旗 1 で新・旗 0 で旧
+                Assert.Equal(nw, used);                // 実際＝新
                 Assert.Equal("Ceded", x[I("how")]);
                 Assert.Equal("フランス", x[I("toNation")]);
                 Assert.Equal("3", x[I("toBornQuarter")]);   // 計器に現れた最初の四半期（この試験は Quarter を q＝3 の 1 回だけ呼ぶ）
@@ -155,7 +143,7 @@ public class InheritIntentTests
     {
         string dir = NewDir();
         Instruments.Configure(dir, null);
-        var (sim, uk, fr, r, _) = Setup(1.0);
+        var (sim, uk, fr, r, _) = Setup();
         try
         {
             Instruments.Phase(sim, 1789UL, "open");
@@ -183,7 +171,7 @@ public class InheritIntentTests
     {
         string dir = NewDir();
         Instruments.Configure(dir, null);
-        var (sim, uk, fr, r, _) = Setup(1.0);
+        var (sim, uk, fr, r, _) = Setup();
         try
         {
             Instruments.Phase(sim, 1789UL, "open");
@@ -230,7 +218,7 @@ public class InheritIntentTests
         {
             string dir = NewDir();
             if (ins) Instruments.Configure(dir, null);
-            var (sim, uk, fr, r, _) = Setup(1.0);
+            var (sim, uk, fr, r, _) = Setup();
             try
             {
                 if (ins) Instruments.Phase(sim, 1789UL, "open");
@@ -257,7 +245,7 @@ public class InheritIntentTests
     {
         string dir = NewDir();
         Instruments.Configure(dir, null);
-        var (sim, uk, fr, r, _) = Setup(1.0);
+        var (sim, uk, fr, r, _) = Setup();
         string Name(Region reg, int i) => Catalog.Goods[reg.Producers[i].GoodId].Name;
         string n0 = "", n1 = "", n2 = "", n3 = "";
         try

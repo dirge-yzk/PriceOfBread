@@ -3048,8 +3048,8 @@ public sealed class Diplomacy
             && (c.CessionUnified > 0 || CanCrossSea(winner, loser, c)))   // ★(723) 旗 1 は入口の門を外す（陸で隣り合う州は艦が無くても候補・港の州の上陸の門は CessionTarget の中）
         {
             int ctaken = captured;   // 旧経路（ColonyList奪取）との合算で ColonyCaptureMax を守る（予算budgetも上で1本化して共有）
-            // ★(696) 線 hcd（旗 HcdColonyCessionDistance が正のとき）：ColonyList 経路（上）と同じ距離の項を植民地格の州の費用へ。世界最大の艦との比（敗者との相対でない）で相殺する規約も上と同じ。0 のときは何も計算しない。
-            bool hcdDist = c.HcdColonyCessionDistance > 0 && c.ColonyCaptureDistanceWeight > 0;
+            // ★(696) 線 hcd（旗 HcdColonyCessionDistance は (817) で焼き込み）：ColonyList 経路（上）と同じ距離の項を植民地格の州の費用へ。世界最大の艦との比（敗者との相対でない）で相殺する規約も上と同じ。ColonyCaptureDistanceWeight が 0 のときは何も計算しない。
+            bool hcdDist = c.ColonyCaptureDistanceWeight > 0;
             bool hcdSuez = false, hcdPanama = false; double hcdSea = 0;
             if (hcdDist)
             {
