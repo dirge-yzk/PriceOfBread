@@ -32,7 +32,7 @@ public class DormantIdentityTests
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
         "CapitalCouponUnpaidWriteDown",   // (815) c14fl 払えない利札で請求権を落とす旗（0＝今の形・1 ビットも変わらない・番人 CapitalCouponWriteDownTests）
         "OpiumAddictionCapOff",   // (771) c6op アヘンの蓋の段1（0＝蓋 0.2・段2 で 1）
-        "OpiumAddictionLogistic",   // (820) c65op 形 H：依存を人の割合のロジスティックへ（0＝今の式・1 ビットも変わらない・番人 HabitLogisticTests）。点火時にこの表から外す
+        // ★OpiumAddictionLogistic（(820) c65op 形 H）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は HabitTests の Theory（旗を明示）・HabitLogisticTests。
         // ★PortSameLandmassFirst（(779) c8pd 港の形 (d)）は線の枝で 1 に**点火**＝この表から外した。(785) c9bk で旗ごと焼き込み（欄は削除）＝番人は PortByLandTests の形d_ 3 本。
         "CapitalHeadroomFromReturn",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
         // ★TechMultipliersOff（(613) 線 tl 段3）は 2026-10-28 に 1 で**点火**＝この表から外した。TechGateByDiscovery・TechSignalOff・TechThresholdOff・EraOff（段1・2a・2b・4）も同日に 1 で点火。TechProductivityBracketOff（段5・腕 B5）は既定 0 のまま〔cp3 と同じ線か後〕
