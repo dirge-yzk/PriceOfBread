@@ -113,3 +113,9 @@
     ・[5] テストの数の予言の訂正（結果の前）：−3＋足した試験 1 本＝−2（Category!=FullLength 2226 → 2224・FullLength 3）。ident は --tests-delta -2。
     ・[3] の予言との食い違い：Mu1 は DiscoveryEngineerTests を赤にしない（追記 1）・Mu4 は等価変異・Mu6 と M7 は穴だった（試験を足して塞いだ）・M7 は登録しない探りのつもりが穴だったので試験を足した。Mu3〜Mu12・M1c・M3a・M3b は予言どおり。
     ・ソースを走査する番人の追加の点検：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests を最後の木（財産権の行を消す前）で回し 172 本緑（19 分 53 秒）。財産権の行を消した後は WriterRatchetTests と InstrumentsTests を除く 4 組＋技術の試験＋海軍の試験を回し 116 本緑。WriterRatchetTests・InstrumentsTests は財産権の行の削除（挙動が同じ 1 行）で件数が動かない（.cost の件数の行の差 0 を ident が見る）。
+
+[追記 4 2026-11-04・結果の後の記録（採否の規則は変えていない）]
+    ・判定: 恒等（ident run c65id・測った木 HEAD a961c0c7・SOURCE-HASH 76b4a6ad7edbe1b3・measurements/ident_20261104_c65id.txt）。素の 5 種 184 行・計器つき 10 種 185 行が m797 と全行一致・.cost の件数の行 29 本一致（推定 220.1 秒／221.2 秒）・計器の表 969 一致＋既知の揺れ 30（宣言 0）・注視の表 4636 行一致・--list-tests 2224（基準 2226−2）／FullLength 3・savetest OK・leakhunt 違反なし。
+    ・フルスイート（隔離ビルド）：Category!=FullLength 合計 2224（--list-tests と一致）＝合格 2223・スキップ 1（従来から TechInstitutionTests）・失敗 0（36 分 35 秒）。FullLength 3 本 合格 3（4 分 42 秒）。ident の腕とは並べず、FullLength はフルスイートと並べて別の artifacts-path で回した。
+    ・テストの数：予言 −3（追記 3 で −2 に訂正）＝実測 −2（2226→2224）。足した試験 1 本（NavalPortProcurementTests.州が持ち主を替えるとき海軍の予算と発注は戻る）。
+    ・腕の枠で待った時間：ident の開始前に他の線の腕が満杯（arms.sh free 0〜2）で約 8 分（12:49〜12:57・他の線の ident の印を waitmark で待った）。
