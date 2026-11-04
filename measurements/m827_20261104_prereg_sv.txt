@@ -120,3 +120,12 @@
  ・旗 2 の赤の名簿を早く取った（[8] の使い捨ての木・measurements/m827_20261104/f2probe.txt）：赤 4＝DormantIdentityTests.休眠フラグは既定でゼロである（点火の手順で外す行）・MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate 0・1)・SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate 1)。
    値：gate 0 で フランス SilverGoldRatio＝1.5014（期待＝等重み 0.3315）／gate 1 で WorldSilverPrice＝0.8099（期待 0.1790）／silverpar_s の gate 1 で 注入 1.0740・計器の等重みの取り直し 1.0808。
    ＝[7] の ①② の予言どおり（旧の規則〈等重みの票〉を固定する番人・持ち主でないファイル）。[8] の規則で、点火の後のフルスイートでも同じ赤なら番人を書き換えずに止め、腕 B は回さない。
+
+[13] 結果（点火のコミット 71be1db5 の木・[1]〜[12] の規則は変えていない。書いたモデル Claude Opus 5.5）　★腕 B を回さずに止めた（[8]）
+ ・フルスイート（measurements/m827_20261104/suite_flag2.txt）：--list-tests は Category!=FullLength 2253・FullLength 3（ident.cfg の 2250＋3 と足した 3 本に合う）。
+   Category!=FullLength＝失敗 4・合格 2248・スキップ 1（TechInstitutionTests の既存のスキップ）・合計 2253／FullLength＝合格 3。中止の行 0。
+   赤 4：①MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate 0)・②同(gate 1)・③SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate 1)＝[7] の予言どおり（等重みの票を固定する番人・MultiNationTests.cs）。
+   ④WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item 11)＝〈外交：覇権の判定の国×国〉3,083,057 件（宣言 2,787,201・+10.6%）＝★(749) の区分（最初の 40 四半期の軌道の件数の写し）＝線は触らず、採るなら合流の木で 1 回取り直す。
+ ・savetest OK（12 四半期・全 61 カ国・最大相対差 0）・leakhunt 完走（200 四半期・保存則違反なし・世界の台帳の説明できない増減 0）。
+ ・判断：①〜③ は旧の規則（等重みの票）そのものを固定する番人で、この線の持ち主でないファイル＝[8] の規則どおり書き換えずに止め、腕 B を回さない。門は 1 つも腕の生で読んでいない。
+ ・作者に聞く物（推奨つき）は [8] の (a)(b) と、3 回の規則の数え方（門を読まずに止まった＝2 回目に数えない）。答えが来たら、次の線は (a) なら MultiNationTests.cs の 2 本の初期化子に SilverParityDemandWeighted = 0.0 を置いた木で、この器（d20419ef）と点火（71be1db5）の上から腕 B `INS=1 bash scripts/instruments/batch.sh run c66svB 10` と paper827.py --mode arm・stoplines827.sh を回すだけ。
