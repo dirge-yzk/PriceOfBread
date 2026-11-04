@@ -91,4 +91,9 @@ for y in (1850, 1900, 1949):
 cl = 0.0; un = 0.0
 for s in seeds:
     for ix, row in rows(os.path.join(arm, f'cpworld_s{s}.tsv')): cl += float(row[ix['claimGold']]); un += float(row[ix['unpaidGold']])
+fa = fb = 0.0
+for s in seeds:
+    for ix, row in rows(os.path.join(arm, f'cpwd_s{s}.tsv')):
+        e = float(row[ix['fxRate']]); fa += float(row[ix['fciAfterWriteDown']]) * e; fb += float(row[ix['fciAtCoupon']]) * e
+print(f'記録 同じ盤面の新÷旧（呼び出しごとの落としの後の外資の負債÷旧の規則の外資の負債＝利札の時点・金建ての延べ）{fa / fb if fb else float("nan"):.6f}')
 print(f'記録 未払いの額の割合（腕）{un / cl if cl else float("nan"):.4f}（旗 0 の紙の台本 0.5733）')
