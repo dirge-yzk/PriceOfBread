@@ -1105,7 +1105,7 @@ public sealed class Region
     //   null＝まだ艦を持ったことがない（0隻）。Diplomacy が艦の強さ（段の効き＝建造費×段の乗数）と乗員（隻数×1隻の乗員）を毎月ここから導く。
     //   ⚠旧 FleetStock（建造費で重みを付けた1本の和）を置き換えた＝段の効き（強さ）と隻数（乗員）は1本の和からは導けない（思想⑩：本当に要る分だけ＝財ごとの隻数）。
     public double[]? FleetUnits;
-    // ★(606) 線 navf：この州の今月の艦の発注（財ごとの隻数＝<see cref="Coefficients.FleetGoodIds"/> の並び）＝国の発注×この州の港の割合。Simulation が旗 NavalPortProcurement が正のときだけ毎月書く複製
+    // ★(606) 線 navf：この州の今月の艦の発注（財ごとの隻数＝<see cref="Coefficients.FleetGoodIds"/> の並び）＝国の発注×この州の港の割合。Simulation が毎月書く複製（旗 NavalPortProcurement は (824) で焼き込み）
     //   （GarrisonShare・NationHasPort と同じ型＝積み上げる状態ではない）・読み手は EconomyStep の艦の発注と決済だけ。null＝この州は今月艦を買わない。旗 0 では常に null。
     public double[]? NavalOrder;
     public double MilitaryTier3Fill = 0.0;            // #16 tier3軍需(戦車・弩級戦艦)の充足率＝戦力の最上位乗数(Power.Military を +MilitaryTier3Bonus×これ)。更なる残余予算で届く＝富裕/軍国/晩期のみ

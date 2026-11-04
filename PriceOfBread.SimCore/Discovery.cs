@@ -670,7 +670,7 @@ public static class Discovery
             // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
             //   ★(415) 旗 DiscoveryEngineerHalfPerMonth が正のとき、製法と新製品と新兵器の行は技術水準を読まない（下の技師の比 EngineerFactor）。制度と思想の行は今のまま（親の産業が定義できない・事前登録 [3-3]）。★(621)(627) ただし制度と思想の行（特許以外）は下で TechRatioOf の値を本国の識字÷SpreadLiteracyFull（0〜1）で上書きする（既定 0.5）。
             double ratio = TechRatioOf(w, row, spread, engOn, c);
-            if (spread && c.TechThresholdOff > 0 && c.SpreadLiteracyFull.Value > 0 && d.Decade > Catalog.DiscoveryBaseDecade)   // ★(621) 線 inst：制度と思想の技術の比を本国の識字÷基準へ（特許〔d≦0〕は 1 のまま・NaN の旗は偽＝旗 0）
+            if (spread && c.SpreadLiteracyFull.Value > 0 && d.Decade > Catalog.DiscoveryBaseDecade)   // ★(621) 線 inst：制度と思想の技術の比を本国の識字÷基準へ（特許〔d≦0〕は 1 のまま・NaN の係数は偽＝比 1・旗 TechThresholdOff は (824) で焼き込み）
             {
                 if (double.IsNaN(spreadLit)) spreadLit = PoliticalQuantities.AvgLiteracy(w, coreOnly: true);
                 ratio = SpreadLiteracyRatio(spreadLit, c.SpreadLiteracyFull.Value);
@@ -1164,12 +1164,12 @@ public static class Discovery
         }
     }
 
-    /// <summary>★(613) 点数の技術の比＝技術水準÷難易度（0〜1）。制度と思想の行（<paramref name="spread"/>）は旗 TechThresholdOff が正なら 1（注の〈技術の押しは1〉）＝★(621)(627) 呼び手（Step）が特許以外の制度と思想の行でこの 1 を本国の識字÷SpreadLiteracyFull に上書きする。製法ほかの行は技師の旗 <paramref name="engOn"/> が立つと 1（技師の比 EngineerFactor が代わる）。
+    /// <summary>★(613) 点数の技術の比＝技術水準÷難易度（0〜1）。制度と思想の行（<paramref name="spread"/>）は 1（注の〈技術の押しは1〉・旗 TechThresholdOff は (824) で焼き込み）＝★(621)(627) 呼び手（Step）が特許以外の制度と思想の行でこの 1 を本国の識字÷SpreadLiteracyFull に上書きする。製法ほかの行は技師の旗 <paramref name="engOn"/> が立つと 1（技師の比 EngineerFactor が代わる）。
     /// 式は元の Step の中の 4 行をそのまま抜き出した（ビット一致）。</summary>
     internal static double TechRatioOf(World w, int row, bool spread, bool engOn, Coefficients c)
     {
         double ratio = 1.0;
-        if ((spread && !(c.TechThresholdOff > 0)) || (!spread && !engOn))
+        if (!spread && !engOn)
         {
             double diff = Difficulty(row, c);
             ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;

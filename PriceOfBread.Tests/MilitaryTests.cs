@@ -721,7 +721,7 @@ public class MilitaryTests
     /// <summary>★(189) 呼び手の側：海軍の予算（Simulation の月次の Region.NavalBudget）＝装備の器（軍事費の器から給与を払った残り）×海の金の割合（World.NavalSpendShare＝施行された陸海の維持費の比）・
     /// 陸の装備の上限（MilitaryBudgetCeiling）＝装備の器×(1−海の金の割合)＝作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」の金の分け方。
     /// 盤面＝英仏（外交は止める＝艦は播かれない・海の必要量は手で大きく置く＝目標の艦隊は在庫より大きい＝必要額で切られない）＝30日回すと首都の 海軍の予算÷陸の装備の上限＝割合÷(1−割合)
-    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。★(685) 合流：旗 NavalPortProcurement（既定 1）は国の予算を本国格の港の州へ配る＝比は〈Σ州の海軍の予算÷首都の陸の上限〉で読む（旗 0 でも首都の1本＝同じ式）。州ごとの配りの番人は NavalPortProcurementTests。
+    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。★(685) 合流：国の予算は本国格の港の州へ配られる（旗 NavalPortProcurement は (824) で焼き込み）＝比は〈Σ州の海軍の予算÷首都の陸の上限〉で読む。州ごとの配りの番人は NavalPortProcurementTests。
     /// ⚠突然変異「陸の装備の上限を装備の器の全体のまま（旧）」「海軍の予算を分けない」で赤。</summary>
     [Fact]
     public void 海軍の予算は装備の器を海の金の割合で分ける()
@@ -737,23 +737,19 @@ public class MilitaryTests
         Assert.True(cap.NavalBudget > 0 && cap.MilitaryBudgetCeiling > 0, $"前提が崩れた：海軍の予算 {cap.NavalBudget}・陸の装備の上限 {cap.MilitaryBudgetCeiling}");
         double navSum = 0; foreach (var r in w.Regions) navSum += r.NavalBudget;
         Assert.Equal(s / (1 - s), navSum / cap.MilitaryBudgetCeiling, 9);
-        if (w.Coef.NavalPortProcurement <= 0) foreach (var r in w.Regions) if (!ReferenceEquals(r, cap)) Assert.Equal(0.0, r.NavalBudget);
     }
 
     /// <summary>(817) c14id 海軍の予算は必要額で切られる：国の海軍の予算（Region.NavalBudget の和）は、海の必要量が十分小さい国が大きい国の 1 割に満たない（必要額は海の必要量に比例する＝1e-5÷50＝2e-7）。
     /// 盤面の読み（探りの試験で測った）：この盤面の装備の器×海の金の割合は約 22（月の額）・必要額は海の必要量 1 あたり約 5.6 万＝必要量 4e-4 を超えると予算は必要額に届かず器の側で止まる（必要量 0.4 では切られない）。
-    /// (811) の突然変異 M1 は陸の milCap の切り捨て 1 行だけで、艦の 2 か所は変異していなかった：旗 NavalPortProcurement 0 の経路の navalCap（首都の 1 本・M1b）と旗 1 の経路の navalNat（本国格の港の州へ配る国の予算・M1c）。
-    /// 切り捨てを外すと予算は装備の器×海の金の割合のままで必要量に依らない＝比が 1 になって赤。旗 1 で navalCap の行を外しても navShare の経路が予算を上書きするので緑（M1b は旗 0 の行だけが拾う）。
+    /// (811) の突然変異 M1 は陸の milCap の切り捨て 1 行だけで、艦の切り捨て（本国格の港の州へ配る国の予算の navalNat・M1c）は変異していなかった。
+    /// 切り捨てを外すと予算は装備の器×海の金の割合のままで必要量に依らない＝比が 1 になって赤。（(824) で旗 NavalPortProcurement を焼き込み、旧の経路の navalCap〔首都の 1 本・M1b〕は死んだコードとして消えた＝旗 0 の行を消した。）
     /// 期待値は必要量の比（手で書いた 1e-5 と 50）から作り、Simulation の式を呼ばない。</summary>
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void 海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(double flag)
+    [Fact]
+    public void 海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない()
     {
         double NavalSum(double needSea)
         {
             var sim = Frozen152("イギリス", "フランス");
-            foreach (var n in sim.Nations) n.World.Coef.NavalPortProcurement = flag;
             var w = sim.Nations[0].World; var sp = w.SelfPower!;
             sp.NeedSea = needSea; sp.NeedLand = 3; sp.NeedInternal = 1;
             for (int d = 0; d < 30; d++) sim.StepDay();
@@ -882,7 +878,7 @@ public class MilitaryTests
             int kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);
             var q = EconomyStep.FleetOrder(r, c, w, out double cost);
             Assert.True(q is not null && q[kw] > 0 && cost > 0, "前提が崩れた：帆船の軍艦の発注が無い");
-            r.NavalOrder = q;   // ★(679) 旗 NavalPortProcurement の既定 1：発注は月次の書き手 Simulation が州に配る（Run を直に呼ぶ本試験は Simulation を通らない）＝首都の州だけが港の盤面で Simulation が書く発注（国の発注×割合 1）を置く
+            r.NavalOrder = q;   // ★(679) 旗 NavalPortProcurement〔(824) で焼き込み〕：発注は月次の書き手 Simulation が州に配る（Run を直に呼ぶ本試験は Simulation を通らない）＝首都の州だけが港の盤面で Simulation が書く発注（国の発注×割合 1）を置く
             r.NavalBudget = frac * cost;
             EconomyStep.Run(r, c, 1.0, w.Bank, w);
             return (r.FleetUnits?[kw] ?? 0, r.StateSpent[(int)TreasuryCat.Navy], q![kw]);

@@ -25,7 +25,6 @@ public sealed class ModernizerAgent : INationAgent
 {
     private const double IncomeTaxTarget = 0.25;          // 富裕層に課税して財源（議会が強いと上げにくい）
     private const double CoercionTarget = 200;            // 治安維持力を緩め改革を容認（旧支配層は縮小に抵抗）
-    private const double SuffrageTechThreshold = 0.25;    // 制限選挙へ踏み出す技術水準
 
     public void DecideQuarter(World w)
     {
@@ -34,7 +33,7 @@ public sealed class ModernizerAgent : INationAgent
         p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝教育費の教義最大（Modernize と同値）
         p.IncomeTaxTarget = IncomeTaxTarget;
         p.CoercionTarget = CoercionTarget;
-        if ((w.Coef.TechThresholdOff > 0 || w.TechLevel > SuffrageTechThreshold) && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
+        if (p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b（旗 TechThresholdOff は (824) で焼き込み）：制限選挙へ踏み出す技術の閾値は無い
         if (w.Polity != Polity.Absolutist && p.Suffrage < Suffrage.AdultMale) p.Suffrage = Suffrage.AdultMale;
     }
 }

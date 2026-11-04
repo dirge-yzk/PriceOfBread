@@ -43,19 +43,17 @@ public class InstitutionAnchorTests
     }
 
     [Fact]
-    public void 係数0は識字に依らず旧の式_既定は0点5_陽性対照で旧の技術水準の式に戻る()
+    public void 係数0は識字に依らず技術の比は1_既定は0点5()
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
         Assert.Equal(0.5, w.Coef.SpreadLiteracyFull.Value);   // 既定 0.5（点火）
         w.Discovered[Row("社会主義")] = true;   // 共産主義 ← 社会主義の辺：前提が既知の国で見る
-        w.Coef.SpreadLiteracyFull = new Share(0.0);           // 0＝旧の式（識字を読まない）
+        w.Coef.SpreadLiteracyFull = new Share(0.0);           // 0＝識字を読まない（比 1）
         SetLiteracy(w, 0.0, 0.0);
+        w.TechLevel = 0.0;                                     // 技術水準 0 でも比は 1（制度と思想の行は技術水準を読まない）
         foreach (int row in Discovery.SpreadRows)
-            Assert.Equal(Discovery.TermMax, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Tech, 12);   // 既定は TechThresholdOff＝1（比 1＝満点）
-        // 陽性対照：技術水準の式（旗 TechThresholdOff＝0）は d＞0 の行で技術水準 0 だと 0
-        w.Coef.TechThresholdOff = 0; w.TechLevel = 0.0;
-        Assert.Equal(0.0, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[Row("社会主義")].Tech);
+            Assert.Equal(Discovery.TermMax, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Tech, 12);   // 比 1＝満点
     }
 
     [Fact]
@@ -89,18 +87,6 @@ public class InstitutionAnchorTests
         w.Coef.SpreadLiteracyFull = new Share(double.NaN);
         t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
         foreach (string n in SpreadNamesWithD) Assert.Equal(Discovery.TermMax, t[Row(n)].Tech, 12);
-    }
-
-    [Fact]
-    public void 技術の閾値を戻す旧の経路では識字を読まず技術水準の式のまま()
-    {
-        var sim = Board();
-        var w = Nation(sim, "イギリス");
-        w.Discovered[Row("社会主義")] = true;
-        SetLiteracy(w, 0.0, 0.0);   // 識字 0＝新の経路なら 0
-        w.Coef.TechThresholdOff = 0; w.TechLevel = 100.0;   // 旧の経路（段2b を戻す）＝技術水準÷難易度（満点）
-        var t = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
-        foreach (string n in SpreadNamesWithD) Assert.True(t[Row(n)].Tech > 0.0, n);
     }
 
     [Fact]

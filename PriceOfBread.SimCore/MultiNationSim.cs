@@ -858,7 +858,7 @@ public sealed class MultiNationSim
                 var w = n.World;
                 bool coastal = false;
                 foreach (var r in w.Regions) if (r.IsPort) { coastal = true; break; }
-                double gap = _coef.TechSignalOff > 0 ? 0.0 : PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));   // ★(613) 段2a：旗が正なら格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）
+                double gap = 0.0;   // ★(613) 段2a（旗 TechSignalOff は (824) で焼き込み）：技術の格差は外圧に入れない＝格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）。旧の ExternalPressureGapScale は読み手が無くなったので削除
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
@@ -2094,7 +2094,7 @@ public static class CostLedger
     /// <summary>★(504) 主食の台帳と配り直しの単価（マイクロ秒/件＝POP×月×段）＝**上限の見積り**（census は無い）。前計算は POP ごとに主食 5 財の乗算と加算（約 20 演算）、締めは POP ごとに 2 回の比較。
     /// 形が近い奢侈品と家事奉仕の所得弾力の走査（POP×月・0.0155）より少し重い 0.04 を置く（事前登録 measurements/fd504_20261023_prereg.txt の[7]）。旗①②が全て 0 では件数 0。腕 B の .cost の実測で取り直す。</summary>
     public const double StapleLedgerUnitMicros = 0.04;
-    /// <summary>★(669) 海軍の発注の配りの単価（マイクロ秒/件＝州×月×周）＝**上限の見積り**（census は無い）。州の取扱高と階級を比べて足す・割るだけの走査で、形が近い建設の見た生産者（0.013）より少し重い 0.02 を置く（旗 NavalPortProcurement が正のときだけ数える＝旗 0 の推定は不変）。
+    /// <summary>★(669) 海軍の発注の配りの単価（マイクロ秒/件＝州×月×周）＝**上限の見積り**（census は無い）。州の取扱高と階級を比べて足す・割るだけの走査で、形が近い建設の見た生産者（0.013）より少し重い 0.02 を置く（旗 NavalPortProcurement は (824) で焼き込み＝月初の配りのたびに数える）。
     ///   件数の上限＝国×月×州×3 周（61 国で全長 約 8 千州×月 3 周でも 1 試合 0.1 秒未満）。</summary>
     public const double NavalOrderScanUnitMicros = 0.02;
     /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。★(486) 旗 MinimumWageAiFromFloor が正のときは AI の判断の読み（本国の州の生産者と財の走査・国×四半期）の件数も同じ台帳に立つ（法が無くても）。</summary>

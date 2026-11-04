@@ -1080,7 +1080,7 @@ public class DiscoveryScoreTests
             var t0 = Discovery.Evaluate(w, new Discovery.WorldView(contact), w.Coef, includeKnown: true)[row];
             Assert.Equal(0.0, t0.Transmit);   // 接触は読まない
             double diff = Discovery.Difficulty(row, w.Coef);
-            Assert.Equal(Discovery.TermMax, t0.Tech, 9);   // 技術の押しは1（★(613) 旗 TechThresholdOff が既定 1＝制度と思想の行の技術の比は 1。★(621)(627) 既定では本国の識字÷0.5 が上書きする＝上で識字を 1.0 にそろえたので満点）
+            Assert.Equal(Discovery.TermMax, t0.Tech, 9);   // 技術の押しは1（★(613) 旗 TechThresholdOff〔(824) で焼き込み〕＝制度と思想の行の技術の比は 1。★(621)(627) 既定では本国の識字÷0.5 が上書きする＝上で識字を 1.0 にそろえたので満点）
             w.SpreadReach[slot] = w.Coef.DiscoveryContactHalf;
             Assert.Equal(Discovery.TermMax / 2, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Transmit, 9);
         }

@@ -2081,17 +2081,13 @@ public sealed class Simulation
         double equipRoom = Math.Max(0, milEnvelope - payFull * soldierPayFill);   // 給与の後に残る器＝装備の上限（必要額で切る前＝恒常性の信号の分子）
         if (!(equipRoom >= 0)) equipRoom = 0;
         double equipClaimNat = 0;   // 州ループで立った装備の請求（首都・r を掛ける前）＝下の質の残り
-        // ★(606) 線 navf：旗 NavalPortProcurement が正のとき、国の艦の発注（FleetOrder＝首都の州で引く旧と同じ式）を月初に1回だけ引き、国の**本国格の港の州**へ取扱高の比で配る（EconomyStep.NavalPortSplit・★(669) 植民地格の港は配りに入れない）。
+        // ★(606) 線 navf（旗 NavalPortProcurement は (824) で焼き込み）：国の艦の発注（FleetOrder＝首都の州で引く旧と同じ式）を月初に1回だけ引き、国の**本国格の港の州**へ取扱高の比で配る（EconomyStep.NavalPortSplit・★(669) 植民地格の港は配りに入れない）。
         //   州の並びに依らない（EconomyStep の Run は州ごとに順に走り、前の州の決済で国の艦の在庫が増える＝Run の中で FleetOrder を引くと後の州の発注が減る）。FleetOrder が読む港の門 NationHasPort は州ループの中で毎月書く値なので先に写す。
-        double[]? navQ = null, navShare = null, navBudShare = null;
-        double navNeedNat = 0;   // 国の艦の発注の必要額（★(669) 追記 1：各州が自分の値段で買う額の和・首都だけに配る国は旧の NavalProcurementNeed と同じ）＝予算の上限を国の1本で引く
-        if (World.Coef.NavalPortProcurement > 0)
-        {
-            foreach (var pr in World.Regions) pr.NationHasPort = navalYard;
-            navShare = new double[World.Regions.Count]; navBudShare = new double[World.Regions.Count];
-            navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out navNeedNat);
-            World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断・旗が正のときだけ）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
-        }
+        foreach (var pr in World.Regions) pr.NationHasPort = navalYard;
+        var navShare = new double[World.Regions.Count]; var navBudShare = new double[World.Regions.Count];
+        // 国の艦の発注の必要額 navNeedNat（★(669) 追記 1：各州が自分の値段で買う額の和・首都だけに配る国は旧の NavalProcurementNeed と同じ）＝予算の上限を国の1本で引く
+        double[]? navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out double navNeedNat);
+        World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
         int navIdx = -1;
         foreach (var r in World.Regions)
             {
@@ -2135,26 +2131,22 @@ public sealed class Simulation
                 double seaShare = navalSpendNat;
                 if (!(seaShare >= 0)) seaShare = 0; else if (seaShare > 1) seaShare = 1;   // 否定形＝NaN は陸へ
                 double milCap = equipRoom * (1.0 - seaShare);   // 陸の装備の請求（r を掛ける前）。支出反射（OpulenceSpendRatePerYear>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
-                double navalCap = equipRoom * seaShare;         // 艦の請求（r を掛ける前）
                 r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側（下の予算は必要額で切った後＝(811) で S3a は常に有効）
                 // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。（旗 MilitaryBudgetNeedCapped は (811) で焼き込み＝常にこの経路。）
                 // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。
-                // ★(189) 艦も同じ規則（海軍の調達の必要額＝目標の艦隊と在庫の差・EconomyStep.NavalProcurementNeed）＝十分な艦隊が揃えば出費は伸びない（(155) の扶養限界と同じ形）。
+                // ★(189) 艦も同じ規則（海軍の調達の必要額＝目標の艦隊と在庫の差）＝十分な艦隊が揃えば出費は伸びない（(155) の扶養限界と同じ形）。陸は下で首都の州の請求を必要額で切る。艦は下の navalNat を国の必要額 navNeedNat で切る。
                 if (r.Id == 0)
                 {
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
-                    navalCap = Math.Min(navalCap, EconomyStep.NavalProcurementNeed(r, World.Coef, World));
                 }
                 r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
-                r.NavalBudget = r.Id == 0 ? navalCap : 0;   // 旗 NavalPortProcurement が 0 の経路＝艦は国の調達（首都の州の1本・港の門は EconomyStep.FleetOrder）。既定 1（(679) で点火）は下の navShare で国の本国格の港の州へ配る
-                if (navShare is not null)
                 {
-                    // ★(606) 線 navf（旗 NavalPortProcurement が正）：国の海軍の予算（装備の器×海の金の割合を必要額で切った額・首都の1本で引いた旧と同じ値）と発注を国の本国格の港の州へ**同じ割合**で配る。
+                    // ★(606) 線 navf（旗 NavalPortProcurement は (824) で焼き込み）：国の海軍の予算（装備の器×海の金の割合を必要額で切った額）と発注を国の本国格の港の州へ**同じ割合**で配る。
                     //   Σ予算 ＝ 国の予算 navalNat（★(669) 追記 1：上限の必要額は各州の値段で買う額の和・首都だけに配る国は旧と同じ）。割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。
                     double navalNat = equipRoom * seaShare;
                     navalNat = Math.Min(navalNat, navNeedNat);
                     double sh = navShare[navIdx];
-                    r.NavalBudget = EconomyStep.NavalPortBudget(navalNat, sh, navBudShare![navIdx]);   // 追記 1：予算の割合は発注額の比（各州が自分の値段で買う額）・発注は取扱高の比
+                    r.NavalBudget = EconomyStep.NavalPortBudget(navalNat, sh, navBudShare[navIdx]);   // 追記 1：予算の割合は発注額の比（各州が自分の値段で買う額）・発注は取扱高の比
                     double[]? nq = null;
                     if (sh > 0 && navQ is not null)
                     {

@@ -17,11 +17,11 @@ public class TechLevelRemovalTests
 
     private static readonly (string Dir, string File, int Lines)[] Allowed =
     [
-        ("PriceOfBread.SimCore", "Agents.cs", 1), ("PriceOfBread.SimCore", "ArmyShape.cs", 1), ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),
+        ("PriceOfBread.SimCore", "ArmyShape.cs", 1), ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),
         ("PriceOfBread.SimCore", "Colonial.cs", 1), ("PriceOfBread.SimCore", "Diplomacy.cs", 1), ("PriceOfBread.SimCore", "Discovery.cs", 2),
         ("PriceOfBread.SimCore", "DiscoveryTables.cs", 1), ("PriceOfBread.SimCore", "FiscalTables.cs", 1), ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 2), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
-        ("PriceOfBread.SimCore", "Megaprojects.cs", 3), ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 10),
-        ("PriceOfBread.SimCore", "SelfPlay.cs", 5), ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
+        ("PriceOfBread.SimCore", "Megaprojects.cs", 3), ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 9),
+        ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 5),
         ("PriceOfBread.Runner", "PlayHarness.cs", 1), ("PriceOfBread.Runner", "Program.cs", 2),
     ];
@@ -198,96 +198,70 @@ public class TechLevelRemovalTests
         Assert.Equal("技術が足りない", Megaprojects.StartRefusal(w, free));
     }
 
-    // ---- 段2a 信号の削除（旗 TechSignalOff）------------------------------------------------------------------------------
-    /// <summary>旗 0 は技術の遅れが姿勢の効用に入る（陽性対照）。旗が正なら遅れがいくらあっても効用が遅れ 0 の盤面と同じ。突然変異＝旗の分岐を外す→赤。</summary>
+    // ---- 段2a 信号の削除（旗 TechSignalOff は (824) で焼き込み）--------------------------------------------------------------
+    /// <summary>技術の遅れは姿勢の効用に入らない：遅れがいくらあっても効用が遅れ 0 の盤面と同じ。突然変異＝遅れを効用に入れる→赤。（旗 0 の対照〔遅れが効用を上げる〕は旗の焼き込みで消した。）</summary>
     [Fact]
-    public void 段2a_技術の遅れは旗が正なら姿勢の効用に入らない()
+    public void 段2a_技術の遅れは姿勢の効用に入らない()
     {
-        var w = Britain().World; var c = w.Coef;
-        c.TechSignalOff = 0;   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
-        w.TechLevel = 0.0; w.WorldTechLevel = 3.0;
-        UtilityAgent.ChooseStance(w, out var lagged);
-        w.WorldTechLevel = 0.0;
+        var w = Britain().World;
+        w.TechLevel = 0.0; w.WorldTechLevel = 0.0;
         UtilityAgent.ChooseStance(w, out var level);
-        Assert.True(lagged.UMod > level.UMod + 1e-9 && lagged.UInd > level.UInd + 1e-9, "対照：旗 0 で遅れが効用を上げない（この試験は何も言っていない）");
-        c.TechSignalOff = 1;
         w.WorldTechLevel = 3.0;
         UtilityAgent.ChooseStance(w, out var off);
         Assert.Equal(level.UMod, off.UMod, 12); Assert.Equal(level.UInd, off.UInd, 12);
     }
 
-    /// <summary>外圧は旗 0 で技術の格差から正（陽性対照・格差のある国）。旗が正なら全ての国で毎四半期 0 が書かれる（NationConfig の初期値 0.3 が残らない）。
-    /// 突然変異＝書き込みごと旗で飛ばす（0.3 が残る）／旗の分岐を外す→赤。</summary>
+    /// <summary>外圧は全ての国で毎四半期 0 が書かれる（NationConfig の初期値 0.3 が残らない）。格差のある国（技術水準 0.1 と 2.0）でも 0。
+    /// 突然変異＝書き込みごと飛ばす（0.3 が残る）／格差を外圧に入れる→赤。</summary>
     [Fact]
-    public void 段2a_外圧は旗が正なら毎四半期0が書かれる()
+    public void 段2a_外圧は毎四半期0が書かれる()
     {
-        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia(), NationConfig.France()], seed: 1789, coef: new Coefficients { TechSignalOff = 0 });   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
-        foreach (var n in sim.Nations) { n.World.TechLevel = 0.1; }
-        sim.Nations[0].World.TechLevel = 2.0;
-        sim.StepQuarter();
-        Assert.True(sim.Nations.Skip(1).Any(n => n.World.ExternalPressure > 1e-6), "対照：旗 0 で格差のある国の外圧が 0（この試験は何も言っていない）");
-        var coef = new Coefficients { TechSignalOff = 1 };
-        var sim2 = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia(), NationConfig.France()], seed: 1789, coef: coef);
+        var sim2 = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia(), NationConfig.France()], seed: 1789, coef: new Coefficients());
         foreach (var n in sim2.Nations) n.World.TechLevel = 0.1;
         sim2.Nations[0].World.TechLevel = 2.0;
         sim2.StepQuarter();
         foreach (var n in sim2.Nations) Assert.Equal(0.0, n.World.ExternalPressure);
     }
 
-    // ---- 段2b 閾値の削除（旗 TechThresholdOff）---------------------------------------------------------------------------
-    /// <summary>旗 0 では技術水準が閾値の下だと Modernize の法の目標（制限選挙・女性財産権・女性選挙権）が出ない（陽性対照）。旗が正なら技術水準 0 でも出る。
-    /// 突然変異＝4 本のどれかの旗の分岐を外す→赤。</summary>
+    // ---- 段2b 閾値の削除（旗 TechThresholdOff は (824) で焼き込み）-------------------------------------------------------------
+    /// <summary>技術水準 0 でも Modernize の法の目標（義務教育・制限選挙・女性財産権・女性選挙権）が出る（技術の閾値で出し惜しまない）。
+    /// 突然変異＝閾値の 4 本のどれかを戻す→赤。（旗 0 の対照〔閾値の下だと出ない〕は旗の焼き込みで消した。）</summary>
     [Fact]
-    public void 段2b_Modernizeの法の目標は旗が正なら技術の閾値で出し惜しまない()
+    public void 段2b_Modernizeの法の目標は技術の閾値で出し惜しまない()
     {
         var w = Britain().World; var p = w.Policy;
-        w.Coef.TechThresholdOff = 0;   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
         w.ParliamentEnabled = false;   // 議会の与党の段（技術と無関係に参政権を上げる）に入らない盤面にして、技術の閾値だけを見る
-        w.TechLevel = 0.0;
+        foreach (var pp in w.AllPops()) pp.Militancy = 0;   // 大衆の闘争度の譲歩（技術と無関係に参政権を男子普選へ上げる別の書き手）に入らない盤面にする＝制限選挙の目標が閾値なしで出ることだけを見る（突然変異 Mu6 が緑だった穴の番人）
+        w.TechLevel = 0.0; w.Suffrage = Suffrage.None;   // 現行法が参政権なしの国（門の畳みが目標を現行法へ戻す形に隠れない）
         p.Suffrage = Suffrage.None; p.WomenRights = WomenRightsLaw.None;
-        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
-        Assert.True(p.WomenRights == WomenRightsLaw.None, $"対照：旗 0 で技術水準 0 でも女性の権利の目標が出る（この試験は何も言っていない）{p.WomenRights}");   // 参政権は他の書き手〔大衆の闘争度の譲歩ほか〕も Census を置くので対照に使わない
-        // 義務教育の目標：公教育が法で国庫が潤沢なら、旗 0 は技術水準 0 だと置かず、旗が正は置く
-        w.TechLevel = 0.0; w.Coef.TechThresholdOff = 0; w.EducationLaw = EducationLaw.Public; w.SetTreasuryRaw(1e12);
-        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
-        Assert.Equal(EducationLaw.Public, p.EducationLaw);
-        w.Coef.TechThresholdOff = 1;
+        // 義務教育の目標：公教育が法で国庫が潤沢なら、技術水準 0 でも置く
+        w.EducationLaw = EducationLaw.Public; w.SetTreasuryRaw(1e12);
         UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
         Assert.Equal(EducationLaw.Compulsory, p.EducationLaw);
         p.Suffrage = Suffrage.None; p.WomenRights = WomenRightsLaw.None;
         UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
         Assert.True(p.Suffrage >= Suffrage.Census);
         Assert.True(p.WomenRights >= WomenRightsLaw.Property, $"{p.WomenRights}");   // 後段の整形で選挙権の段は 1 段に畳まれうる＝財産権以上
-        // C3（Agents の近代化派）：絶対王政で技術水準 0 なら旗 0 は制限選挙を置かず、旗が正は置く
-        var w2 = Britain().World; w2.Coef.TechThresholdOff = 0; w2.Polity = Polity.Absolutist; w2.TechLevel = 0.0; w2.Policy.Suffrage = Suffrage.None;
-        new ModernizerAgent().DecideQuarter(w2);
-        Assert.Equal(Suffrage.None, w2.Policy.Suffrage);
-        w2.Coef.TechThresholdOff = 1;
+        // C3（Agents の近代化派）：絶対王政で技術水準 0 でも制限選挙を置く
+        var w2 = Britain().World; w2.Polity = Polity.Absolutist; w2.TechLevel = 0.0; w2.Policy.Suffrage = Suffrage.None;
         new ModernizerAgent().DecideQuarter(w2);
         Assert.Equal(Suffrage.Census, w2.Policy.Suffrage);
-        // 女性選挙権の段（財産権が法・男子普通選挙が法）：旗が正なら技術水準 0 でも目標が選挙権の段に上がる（旗 0 は財産権のまま）
+        // 女性選挙権の段（財産権が法・男子普通選挙が法）：技術水準 0 でも目標が選挙権の段に上がる
         var w3 = Britain().World; w3.ParliamentEnabled = false; w3.TechLevel = 0.0;
         w3.WomenRights = WomenRightsLaw.Education; w3.Suffrage = Suffrage.AdultMale; w3.Policy.WomenRights = WomenRightsLaw.Education;
-        w3.Coef.TechThresholdOff = 0; UtilityAgent.Apply(w3, UtilityAgent.Stance.Modernize);
-        Assert.Equal(WomenRightsLaw.Education, w3.Policy.WomenRights);
-        w3.Coef.TechThresholdOff = 1; UtilityAgent.Apply(w3, UtilityAgent.Stance.Modernize);
+        UtilityAgent.Apply(w3, UtilityAgent.Stance.Modernize);
         Assert.Equal(WomenRightsLaw.Suffrage, w3.Policy.WomenRights);
     }
 
-    /// <summary>旗が正なら制度と思想の行の技術の比は 1（技術水準 0 でも点数が立つ）。旗 0 では技術水準 0 だと比 0（陽性対照）。製法の行は旗に依らず今のまま。突然変異＝旗の分岐を外す→赤。</summary>
+    /// <summary>制度と思想の行の技術の比は 1（技術水準 0 でも点数が立つ）。製法の行は技術水準を読む（技師の旗が立たない比の式）。突然変異＝制度と思想の行に技術水準の比を戻す→赤。</summary>
     [Fact]
-    public void 段2b_制度と思想の行の技術の比は旗が正なら1()
+    public void 段2b_制度と思想の行の技術の比は1()
     {
         int idea = Discovery.SocialismRow;   // 十年が 1830 年＝技術水準 0 だと比 0
         int proc = Catalog.DiscoveryRowNamed("転炉鋼");
-        var w = Britain().World; var c = w.Coef; w.TechLevel = 0.0; c.TechThresholdOff = 0;   // 既定は 1（点火済み）＝陽性対照は旗 0 を明示する
-        Assert.Equal(0.0, Discovery.TechRatioOf(w, idea, true, false, c));
-        Assert.Equal(0.0, Discovery.TechRatioOf(w, proc, false, false, c));
-        c.TechThresholdOff = 1;
+        var w = Britain().World; var c = w.Coef; w.TechLevel = 0.0;
         Assert.Equal(1.0, Discovery.TechRatioOf(w, idea, true, false, c));
-        Assert.Equal(0.0, Discovery.TechRatioOf(w, proc, false, false, c));   // 製法の行は旗に依らず技術水準を読む
-        c.TechThresholdOff = double.NaN;
-        Assert.Equal(0.0, Discovery.TechRatioOf(w, idea, true, false, c));   // 否定形：NaN は旗 0
+        Assert.Equal(0.0, Discovery.TechRatioOf(w, proc, false, false, c));   // 製法の行は技術水準を読む
     }
 
     // ---- 段4 時代係数・運賃革命の削除（旗 EraOff）------------------------------------------------------------------------

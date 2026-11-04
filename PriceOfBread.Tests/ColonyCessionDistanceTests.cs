@@ -31,7 +31,7 @@ public class ColonyCessionDistanceTests
     }
 
     [Fact]
-    public void 旗1は世界最大の艦を持つ勝者には距離の項が0で旗0と同じ州が移る()
+    public void 世界最大の艦を持つ勝者には距離の項が0でマドラスが移る()
     {
         var b = Peace(100, 10, 50);   // 勝者 100 が世界最大（第三者 50）
         Assert.Equal(new[] { "マドラス" }, b.moved);

@@ -1,0 +1,145 @@
+(824) c65id 突然変異の記録 2026-11-04（台本 scripts/instruments/c65id/mut_run.py・事前登録 measurements/m824_20261104_prereg_id.txt [3] と追記 1・2）
+巡ごとに出力を分ける（上書きしない）。各行の予言は台本の MUTS の予言の欄。生の dotnet の出力は D:/PoB_work/c65id_work/mut_<巡>/<名前>.txt（合流の判断まで残す）。
+
+== r1（焼き込みの前の木＝6d1b1543・試験を移した直後・PRE 組 M0 Mu1 Mu2。台本の標準出力が既定の文字コードで化けたので cp932 から UTF-8 へ直して写した） ==
+M0 変異なしの対照（焼き込みの前の木・移した試験が緑）
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    25、スキップ:     0、合計:    25、期間: 6 s - PriceOfBread.Tests.dll (net10.0)  52秒
+    → 予言どおり（緑）
+Mu1 制度と思想の行が技術水準を読む（TechRatioOf の旧の枝を既定に戻す）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     3、合格:    22、スキップ:     0、合計:    25、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  19秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_制度と思想の行の技術の比は旗が正なら1 [4 ms]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数0は識字に依らず技術の比は1_既定は0点5 [1 s]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない [946 ms]
+    → 予言と違う（赤になっていない試験：旗0は製法の行が技術水準の式のまま / 旗が正なら製法と産地と制度と思想の行は技術水準を読まない）・予言の外の赤 2 本
+Mu2 制度と思想の行の識字の上書きを飛ばす
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  19秒
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [3 ms]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない [696 ms]
+    → 予言どおり（赤にしたい試験が全て赤）
+done
+  読み：Mu1 は予言と違う（DiscoveryEngineerTests の 2 本は赤にならなかった＝既定の盤面では識字の上書き〔Discovery.cs:673〕が d＞0 の行を覆い、特許は d＝0 で比 1 だから TechRatioOf が効く行が無い）。予言の誤り（紙の読みが浅かった）で穴ではない＝TechLevelRemovalTests の段2b・InstitutionAnchorTests の 2 本が赤にした。両方を外す Mu12 で DiscoveryEngineerTests も赤になる（r2pre）。
+
+== r2pre（焼き込みの前の木＝6d1b1543 を git archive したもの・PRE 組 M0 Mu12） ==
+M0 変異なしの対照（焼き込みの前の木・移した試験が緑）
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    25、スキップ:     0、合計:    25、期間: 12 s - PriceOfBread.Tests.dll (net10.0)  179秒
+    → 予言どおり（緑）
+Mu12 制度と思想の行が技術水準を読む（TechRatioOf の旧の枝と識字の上書きの両方を既定から外す）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     5、合格:    20、スキップ:     0、合計:    25、期間: 12 s - PriceOfBread.Tests.dll (net10.0)  78秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_制度と思想の行の技術の比は旗が正なら1 [6 ms]
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗が正なら製法と産地と制度と思想の行は技術水準を読まない [6 s]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数0は識字に依らず技術の比は1_既定は0点5 [3 s]
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [5 ms]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない [2 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+
+== r2post（最後の木＝58f4c5b0 の 1 つ前の 768569d9 を含む木・POST 組。Mu4 Mu5 Mu6 Mu9 は後で直した＝下の r3） ==
+M0 変異なしの対照（最後の木）
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    32、スキップ:     0、合計:    32、期間: 12 s - PriceOfBread.Tests.dll (net10.0)  166秒
+    → 予言どおり（緑）
+Mu3 義務教育の目標の技術の閾値を戻す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 3 s - PriceOfBread.Tests.dll (net10.0)  34秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_Modernizeの法の目標は技術の閾値で出し惜しまない [38 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [278 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu4 女性財産権の技術の閾値を戻す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  48秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [269 ms]
+    → 予言と違う（赤になっていない試験：段2b_Modernizeの法の目標は技術の閾値で出し惜しまない）・予言の外の赤 1 本
+Mu5 NG 変異の文字列が 2 回:                 RaiseWomenRights(p, WomenRightsLaw.Suffrage)
+Mu6 NG 変異の文字列が 2 回:                 if (p.Suffrage < Suffrage.Census) p.Suffrage
+Mu7 ModernizerAgent の制限選挙の技術の閾値を戻す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 8 s - PriceOfBread.Tests.dll (net10.0)  45秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_Modernizeの法の目標は技術の閾値で出し惜しまない [64 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [381 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu8 技術の遅れを姿勢の効用に入れる
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (net10.0)  104秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2a_技術の遅れは姿勢の効用に入らない [61 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [352 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu9 技術の格差を外圧に入れる
+    rc=1（0＝緑・1＝赤）  66秒
+    → 予言と違う（赤になっていない試験：段2a_外圧は毎四半期0が書かれる）
+Mu10 TechRatioOf で制度と思想の行に技術水準の比を戻す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     3、合格:    22、スキップ:     0、合計:    25、期間: 13 s - PriceOfBread.Tests.dll (net10.0)  112秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_制度と思想の行の技術の比は1 [2 s]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数0は識字に依らず技術の比は1_既定は0点5 [3 s]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない [2 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+Mu11 制度と思想の行の識字の上書きを飛ばす
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 16 s - PriceOfBread.Tests.dll (net10.0)  95秒
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [5 ms]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない [1 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+Mu12 制度と思想の行が技術水準を読む（旧の枝と識字の上書きの両方）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     5、合格:    20、スキップ:     0、合計:    25、期間: 15 s - PriceOfBread.Tests.dll (net10.0)  143秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_制度と思想の行の技術の比は1 [3 s]
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗が正なら製法と産地と制度と思想の行は技術水準を読まない [8 s]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数0は識字に依らず技術の比は1_既定は0点5 [4 s]
+        失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [4 ms]
+        失敗 PriceOfBread.Tests.InstitutionAnchorTests.係数が正なら技術の項は本国の識字に比例し基準以上は満点で特許は識字に依らない [2 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+M1c 国の海軍の予算の必要額での切り捨てを外す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  88秒
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない [5 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+M3a 本土の州が無い国でも本土の和（0）を国平均に使う
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)  63秒
+        失敗 PriceOfBread.Tests.PopScanTests.全ての州が植民地格の国は国平均を全ての州で取る [3 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+M3b 本土の州が無い国の退避の枝で国平均の分母を 0 にする
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)  55秒
+        失敗 PriceOfBread.Tests.PopScanTests.全ての州が植民地格の国は国平均を全ての州で取る [3 s]
+    → 予言どおり（赤にしたい試験が全て赤）
+M7 州が持ち主を替えるときの海軍の予算と発注の戻しを外す（探り・結果は記録するだけ）
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    18、スキップ:     0、合計:    18、期間: 6 s - PriceOfBread.Tests.dll (net10.0)  54秒
+    → 予言どおり（緑）
+  読み：Mu4（女性財産権の閾値を戻す）は 段2b の試験が緑のまま＝等価変異。RaiseWomenRights は最大を取る（SelfPlay.cs:741）ので、選挙権の行が無条件になった後は財産権の行は常に何もしない。穴ではなく死んだ行＝行を消した（58f4c5b0）。Mu5・Mu6 は変異の文字列が 2 回現れて当たらなかった（NG）・Mu9 は消した係数 ExternalPressureGapScale を変異の文字列が指していてコンパイルが通らなかった（赤の中身が無い）＝どれも台本を直して r3 で回し直した。M7 は緑＝Territory.cs の海軍の予算と発注の戻しの行を覆う試験が無かった穴＝試験を足した（NavalPortProcurementTests.州が持ち主を替えるとき海軍の予算と発注は戻る）→ r4 で赤を確かめた。
+
+== r3post（58f4c5b0 の木・POST 組 M0 Mu5 Mu6 Mu9。Mu6 は予言と違う＝緑＝穴） ==
+M0 変異なしの対照（最後の木）
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    32、スキップ:     0、合計:    32、期間: 11 s - PriceOfBread.Tests.dll (net10.0)  143秒
+    → 予言どおり（緑）
+Mu5 女性の権利の技術の閾値を戻す（Property の行は Suffrage の行が無条件だと常に no-op＝(824) で消した）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 50 s - PriceOfBread.Tests.dll (net10.0)  109秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_Modernizeの法の目標は技術の閾値で出し惜しまない [242 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [10 s]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu6 Modernize の制限選挙の技術の閾値を戻す（参政権は他の書き手も Census を置く＝緑なら穴）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 4 s - PriceOfBread.Tests.dll (net10.0)  51秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [291 ms]
+    → 予言と違う（赤になっていない試験：段2b_Modernizeの法の目標は技術の閾値で出し惜しまない）・予言の外の赤 1 本
+Mu9 技術の格差を外圧に入れる
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  32秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2a_外圧は毎四半期0が書かれる [1 s]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [156 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+
+== r4post（試験を足した木・POST 組 M7） ==
+M7 州が持ち主を替えるときの海軍の予算と発注の戻しを外す（r2post では緑＝穴→試験を足した・足した後の r4 は赤のはず）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:    18、スキップ:     0、合計:    19、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  113秒
+        失敗 PriceOfBread.Tests.NavalPortProcurementTests.州が持ち主を替えるとき海軍の予算と発注は戻る [156 ms]
+    → 予言どおり（赤にしたい試験が全て赤）
+
+== r5post（Mu6 の穴を埋める試験の直し 1 回目〔大衆の闘争度 0〕の木・Mu6 は緑のまま＝現行法が参政権ありの国で門の畳みが目標を現行法へ戻す形に隠れていた） ==
+Mu6 Modernize の制限選挙の技術の閾値を戻す（参政権は他の書き手も Census を置く＝緑なら穴）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 14 s - PriceOfBread.Tests.dll (net10.0)  133秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [4 s]
+    → 予言と違う（赤になっていない試験：段2b_Modernizeの法の目標は技術の閾値で出し惜しまない）・予言の外の赤 1 本
+
+== r6post（段2b の試験を現行法が参政権なしの国にした最後の木・POST 組 Mu6 Mu3 Mu5） ==
+Mu6 Modernize の制限選挙の技術の閾値を戻す（参政権は他の書き手も Census を置く＝緑なら穴）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 12 s - PriceOfBread.Tests.dll (net10.0)  183秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_Modernizeの法の目標は技術の閾値で出し惜しまない [67 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [3 s]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu3 義務教育の目標の技術の閾値を戻す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (net10.0)  61秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_Modernizeの法の目標は技術の閾値で出し惜しまない [152 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [369 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
+Mu5 女性の権利の技術の閾値を戻す（Property の行は Suffrage の行が無条件だと常に no-op＝(824) で消した）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (net10.0)  62秒
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.段2b_Modernizeの法の目標は技術の閾値で出し惜しまない [78 ms]
+        失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [481 ms]
+    → 予言どおり（赤にしたい試験が全て赤）・予言の外の赤 1 本
