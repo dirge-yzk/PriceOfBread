@@ -232,7 +232,7 @@ public class TechLevelRemovalTests
         var w = Britain().World; var p = w.Policy;
         w.ParliamentEnabled = false;   // 議会の与党の段（技術と無関係に参政権を上げる）に入らない盤面にして、技術の閾値だけを見る
         foreach (var pp in w.AllPops()) pp.Militancy = 0;   // 大衆の闘争度の譲歩（技術と無関係に参政権を男子普選へ上げる別の書き手）に入らない盤面にする＝制限選挙の目標が閾値なしで出ることだけを見る（突然変異 Mu6 が緑だった穴の番人）
-        w.TechLevel = 0.0;
+        w.TechLevel = 0.0; w.Suffrage = Suffrage.None;   // 現行法が参政権なしの国（門の畳みが目標を現行法へ戻す形に隠れない）
         p.Suffrage = Suffrage.None; p.WomenRights = WomenRightsLaw.None;
         // 義務教育の目標：公教育が法で国庫が潤沢なら、技術水準 0 でも置く
         w.EducationLaw = EducationLaw.Public; w.SetTreasuryRaw(1e12);
