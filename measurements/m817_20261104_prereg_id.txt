@@ -84,3 +84,13 @@
 
 [追記 2026-11-04・腕の前]
     ・以下の ㉑ の予言は上の [4] と同じ＝許可表の変化 0 行・MoneyStock の件数 0・鍵 0・WriterRatchet 0。
+
+[追記 2 2026-11-04・腕の前・成績表を見る前]
+    ・焼いた旗 3 本は予定どおり（コミット c061f311・0b2c97c5・2b2d5934）。古い注の直しは b5aaaa0e（FullChainTests・HouseholdProductionTests・UrxInstrumentTests の注と cref の 2 行のみ）。
+    ・㉘ の番人 5 組＋焼いた旗の 3 試験は b5aaaa0e の木（足した試験の前）で Release・隔離ビルド D:/PoB_work/c14id_art に回し 145 本全て緑（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・NavalCedeFleetReturnTests・InheritIntentTests・ColonyCessionDistanceTests）。許可表の変化 0・MoneyStock の件数 0・鍵 0・宣言の表 0＝[4] の予言どおり。
+    ・足した試験：T1 SecondRecipeContentsTests 2 本（cbe4da6e）／T2 海軍の予算は必要額で切られ… の Theory 2 行（3959264c）／T3 PopScanTests 1 本（3959264c）。T4 は足さない：M4 で ConservationTests の国家間移民の番人が 4 本赤＝穴ではない（[3] T4 の予言〈3 本以上〉どおり）。
+    ・[3] T2 の盤面の訂正（結果を見る前の較正）：事前登録の 0.4 は誤り（この盤面の装備の器×海の金の割合は約 22・必要額は海の必要量 1 あたり約 5.6 万＝0.4 では切られない）。変異なしで赤になるのを見て探りの試験で較正し、海の必要量を 1e-5 と 50 に直した（主張の形〈小さい国の予算＜大きい国の 1 割〉は同じ）。突然変異の結果は直した後の 2 巡目が有効（measurements/m817_20261104_mutation.txt に無効な行の名乗りあり）。
+    ・突然変異の結果（予言どおり）：T1 の 6 本は足した試験だけが赤・M1b は旗 0 の行だけ・M1c は旗 1 の行だけ・M3a は T3 が赤。変異なしの対照は緑 11 本。
+    ・[2] に無い追加（区分 ⑥〈警告の解消だけ〉）：xUnit の解析の警告 4 件（LayoutTests:147・ScholarshipTests:161・UnitTypeTests:67・UrbanFlowRealTests:304・fd343286）。Assert の判定と母集合は変えない。I12（テストの構造）の本文が repo に無いので、〈指示に列挙された穴と古い注〉の外で恒等で入る警告の解消だけを足した。
+    ・テストの数の予言（--tests-delta）：−3（旗 0 の Fact 3 本）＋2（T1）＋2（T2 の Theory 2 行）＋1（T3）＝＋2（--list-tests の予言＝Category!=FullLength 2222・FullLength 3）。
+    ・RetiredFields は 3 名（NavalCedeFleetReturn・InheritedStateIntentDrop・HcdColonyCessionDistance・番人を写しただけ）。書き換えた既存の試験は [2] のとおり＋⑥ の 4 件。
