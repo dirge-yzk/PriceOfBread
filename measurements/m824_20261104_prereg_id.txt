@@ -1,0 +1,97 @@
+(824) c65id 古い注・名前の古い試験・NavalPortProcurement の焼き込み・技術の 2 つの旗の番人の移しと焼き込み（恒等の線）事前登録 2026-11-04
+基線＝m797（main 8bbcd39f）。枝 c65id（8bbcd39f から）・worktree D:/PoB_work/wt_c65id。出発＝(818) の次の波の推奨 ④ と (817) の残り（実装ログ (796)(811)(812)(813)(817)(818)・00一覧〈(3) リファクタの候補〉・§0-2 ★(813) ②・measurements/m817_*）。作者「全て推奨で。ただ、現状のタスクは完了する方向で」（2026-11-04）・技術の 2 つの旗は作者「推奨でよい」で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。担当 c65id は Claude Sonnet 5.5。
+作ったフォルダ：D:/PoB_work/wt_c65id（worktree）・D:/PoB_work/c65id_work（作業・突然変異の木）・D:/PoB_work/c65id_art（隔離ビルド）。ほかの D: は触らない。
+
+[0] 形の種類＝尾（旗の旧い枝の削除・古い注の直し・試験の移しと穴埋め）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0。AI とプレイヤーで同じ経路（旗の焼き込みだけ）。確証＝あり（旧い枝の削除＝挙動なし）。
+    ⚠(796) の表 3 の I12 の本文は repo に無い（(817) の事前登録 [0] と同じ）＝この回の I12 は指示に列挙された物（古い注・名前の古い試験 2 本・M3b・技術の番人の移し）に絞る。
+
+[1] 恒等の線・予言 0
+    素の 5 種・計器つき 10 種の成績表が m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は 0（宣言なし）。.cost の件数の行の差は 0（旗はどれも既定 1 だった＝件数を数える枝は元から動いていた）。
+    NG の集合は触らない（ng.sh は回さない＝成績表の全行一致が NG の同一を含意する）。判定は〈測った種で一致〉（証明とは書かない）。
+
+[2] 消す物と残す物（読み手の grep＝2026-11-04・8bbcd39f の木・SimCore／Runner／App／SimCore/Display／Tests／scripts／measurements の台本／POB_COEF の名前／SaveGame）
+  grep の結果の要約：3 つの旗の名前（NavalPortProcurement・TechSignalOff・TechThresholdOff）を持つ非 docs・非 measurements のファイルは次だけ。
+    SimCore：Agents.cs・Coefficients.cs・Discovery.cs・EconomyStep.cs・Instruments.cs（コメントのみ・Navalの語は無し）・Model.cs（コメント）・MultiNationSim.cs・SelfPlay.cs・Simulation.cs・Territory.cs。SimCore/Display＝0 件。Runner＝0 件（Program.cs が FleetAffordableCost を呼ぶだけで旗を読まない）。
+    App：GameViewModel.Politics.cs:618 の注 1 行だけ（EconomyStep.FleetAfford を呼ぶ・旗の名はコメントの中）＝触らない回（署名を変えない）。
+    Tests：DiscoveryEngineerTests・DiscoveryScoreTests（注のみ）・DormantIdentityTests（注のみ）・InstitutionAnchorTests・MilitaryTests・NavalPortProcurementTests・TechLevelRemovalTests・WriterRatchetTests（注のみ）。
+    scripts：scripts/instruments/navf679/mutate.py（閉じた線 (679) の突然変異の台本＝文字列の旗の名前だけ・今の測りは使わない）。POB_COEF で 3 名を渡す今の台本は 0（measurements の旧い .cost・.manifest は過去の記録）。
+    SaveGame：旗は Coefficients の欄＝セーブの欄ではない（savetest で同じ版の往復を確かめる）。
+  (A) NavalPortProcurement（既定 1 の経路だけ残す）
+    A1 Coefficients.cs:2275（宣言）と直前のコメントを墓標にする（墓標の型は (817) と同じ）。
+    A2 Simulation.cs:2088 `if (World.Coef.NavalPortProcurement > 0)` → 無条件。:2093 の台帳の加算は無条件になる（元から旗 1 で動いていた）。:2139〜2149 `navalCap` の宣言（:2140）・`if (r.Id == 0)` の中の navalCap の Min（:2146・M1b の行）・:2149 の `r.NavalBudget = r.Id == 0 ? navalCap : 0;` は、後の `if (navShare is not null)` の段が必ず上書きする＝死んだ値。`navShare is not null` の判定も常に真。
+        FleetOrder の純関数性：EconomyStep.FleetOrder → FleetTargetUnits／FleetHeldUnits／FleetGaugeDenominator／FleetRate／GoodGate は World・Region に書かず台帳も数えない（読んで確かめた）＝NavalProcurementNeed の呼び出しを消しても状態は動かない。NavalProcurementNeed 本体は MilitaryTests.cs:845 が読む＝残す。
+        `r.Id == 0` の中の `milCap = Math.Min(milCap, MilitaryProcurementNeed(...))` は残す（navalCap の行だけ消す）。
+    A3 EconomyStep.cs:423 FleetAfford：旗 0 の初期値の行 `double fAfford = ...` が死ぬ → 旗 1 の枝を無条件にする。引数 capital・fleetCost は App（GameViewModel.Politics.cs:618）が渡す＝署名は変えない（未使用の引数が残る）。
+    A4 EconomyStep.cs:1197 `bool navPort = !milProc && coef.NavalPortProcurement > 0 && ...` → 項を落とす。:1304 `if (coef.NavalPortProcurement > 0) { ... } else fleetQ = milProc ? FleetOrder(...) : null;` → 旗 1 の枝だけ（`fleetQ = (milProc || navPort) ? region.NavalOrder : null; if (fleetQ is not null) fleetCost = FleetOrderCost(...)`）。
+    A5 Territory.cs:375 `if (from.Coef.NavalPortProcurement > 0) { r.NavalBudget = 0; r.NavalOrder = null; }` → 無条件。
+    A6 注の直し：EconomyStep.cs:372・388・418・1195・1196・1301 周辺・Simulation.cs:2084・2152 周辺・Model.cs:1108・MultiNationSim.cs:2097 の注（旗の名を〈焼き込み〉に直す）。**MultiNationSim.cs:2018 の台帳の名乗りの文字列は変えない**（measurements の .cost の行の名前＝ident が突き合わせる。基準の b10_20261103_m797_ins.cost:35 に旗の名が入っている）＝古い文言のまま残して報告。
+    A7 Tests：NavalPortProcurementTests（旗 0 の対照を消す：〈艦隊の充足の関数は旗0で…〉1 本を削除①・〈海軍の予算は本国格の港の州だけに…〉の Make(0.0)・w0 の分岐を削除①・旗 1 を代入する行 ③）・MilitaryTests.cs（:724 の Fact の `if (NavalPortProcurement <= 0)` 行 ④・:745 の Theory の旗 0 の行 ①＋引数の旗の代入 ③ → Fact へ）・DormantIdentityTests（RetiredFields +3）。
+        (817) の M1b（旗 0 の経路の穴）は navalCap の行ごと消える＝事前登録 [3] の M1b は〈死んだコードの削除〉で消滅と名乗る。M1c（navalNat の Min）は残る行＝足した試験が旗 1 の行で拾う（再確認）。
+  (B) TechSignalOff（既定 1 の経路だけ残す）
+    B1 Coefficients.cs:2853 の宣言を墓標にする。
+    B2 SelfPlay.cs:656 `double techGap = w.Coef.TechSignalOff > 0 ? 0.0 : Math.Max(...)` → `double techGap = 0.0;`（`UModTechWeight * techGap`・`UIndTechWeight * techGap` の項は消さない＝外圧の死んだ信号の連鎖の係数は消さない指示・浮動小数の式の形を変えない）。
+    B3 MultiNationSim.cs:861 `double gap = _coef.TechSignalOff > 0 ? 0.0 : Clamp01(...)` → `double gap = 0.0;`（`w.ExternalPressure = gap * (coastal ? 1.0 : ExternalPressureInlandFactor)` の式は残す）。`frontier` が他で読まれなくなるかは grep して、読み手 0 なら宣言の削除、あれば残す。
+  (C) TechThresholdOff（既定 1 の経路だけ残す）
+    C1 Coefficients.cs:2854 の宣言を墓標にする。SpreadLiteracyFull（2855）の注の旗の名は〈焼き込み済み〉へ直す（値は変えない）。
+    C2 Agents.cs:37 `(w.Coef.TechThresholdOff > 0 || w.TechLevel > SuffrageTechThreshold) && p.Suffrage < Census` → `p.Suffrage < Census`。読み手 0 の const SuffrageTechThreshold（:28）を消す。
+    C3 SelfPlay.cs:1519・1528・1529・1530 → 技術の閾値の項を落とす。読み手 0 の const 5 本（CompulsoryEduTechThreshold :249・WomenPropertyTechThreshold :262・WomenSuffrageTechThreshold :263・CensusSuffrageTechThreshold :264）を消す（全域 grep＝上の 4 本は SelfPlay だけ・Agents の 1 本は Agents だけ・measurements/buff_inventory_20261016.tsv の棚卸しの行は過去の記録）。
+    C4 Discovery.cs:673 `if (spread && c.TechThresholdOff > 0 && c.SpreadLiteracyFull.Value > 0 && ...)` → `c.TechThresholdOff > 0 &&` を落とす。:1172 TechRatioOf `if ((spread && !(c.TechThresholdOff > 0)) || (!spread && !engOn))` → `if (!spread && !engOn)`（引数 spread は残す＝試験が呼ぶ）。:1167 の注を直す。
+    C5 Tests（先に移す・[3] 参照）。
+  浮動小数の順序が変わる箇所＝0（`||` の真の項の削除・`x ? 0.0 : y` の既定側だけ残す＝0.0 リテラルへ・式の形は変えない）。同じ盤面で旧と新の比較の食い違いの数＝紙の台本で数える（旧の関数 `techGap = TechSignalOff>0 ? 0.0 : …` は既定 1 で 0.0 を返す＝新と同じ。旗 1 の下で呼ぶ旧と新の比較は定数の置き換えなので食い違い 0 は紙で自明）。予言＝0。
+  (D) 古い注・名前の古い試験
+    D1 Instruments.cs:74・1214・1224 の注（旗 NavalCedeFleetReturn の名を書いたまま）→ 〈(817) で焼き込み〉に直す（注の字だけ）。
+    D2 InheritIntentTests.cs:8 の突然変異の注（旗を読まない→①が赤）→ (817) で ① が無くなった事実に直す。
+    D3 名前が古くなった試験（(817) の報告）：ColonyCessionDistanceTests〈旗1は世界最大の艦を持つ勝者には…〉・InheritIntentTests〈計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい〉＝メソッド名の旗の字を今の中身に合わせて改名する（区分 ⑤ 改名に伴う置換に最も近い。波51 の〈テストの名前を書き換えない〉と食い違う＝この回の指示が名指している旨を verdict の先頭に自己申告する）。NavalCedeFleetReturnTests〈旗1で…〉の 3 本は指示の 2 本の外＝名乗りだけ記録して触らない。改名のあと --list-tests の本数は不変（予言）・scripts・measurements の台本が試験の名前を指していないことを grep で確かめる。
+    D4 M3b：(817) の事前登録 [3] T3 の M3b を回す（下の [3]）。
+
+[3] 試験と突然変異（門ごとにどの試験で赤になるかの表・㉚）
+  使い捨ての木：D:/PoB_work/c65id_work/mut/tree（scripts/instruments/c65id/mut_run.py・c14id の型）。変異の出力は measurements/m824_20261104_mutation.txt にコミット。巡の番号は出力の名前に入れて上書きしない。
+  (T-pre) 技術の番人を今の既定の盤面へ移す（焼き込みの前・試験だけのコミット・旗はまだある）
+    DiscoveryEngineerTests.Board から `TechThresholdOff = 0` の行を外し、既定の盤面（旗 1）で次を主張する：
+      ・〈旗0は技術水準の式のまま〉（T3）→ 製法の行（転炉鋼）は 70×min(1, 技術水準÷難易度) を超えず技術水準で増える（そのまま）・制度と思想の行は技術水準に依らない：特許＝70・社会主義＝70×SpreadLiteracyRatio(本国の識字, SpreadLiteracyFull)（期待は識字の手の値から作り、Discovery の式を呼ばない）。
+      ・〈旗が正なら製法と産地は技術水準を読まず_制度と思想は読む〉→ 制度と思想の行の主張を反転：技術水準 0 と 100 で社会主義の Tech が変わらない（識字で決まる）。
+    InstitutionAnchorTests：旗 0 の陽性対照（:56〜58）と〈技術の閾値を戻す旧の経路では…〉（:95〜104）は旗 0 の旧い経路だけ＝① の削除。
+    突然変異（pre・旗が残る木で、読み手の旗の比べを偽に固定＝旧の枝を既定に戻す）：
+      Mu1 Discovery.cs:1172 `!(c.TechThresholdOff > 0)` → `true`（制度と思想の行が技術水準を読む）→ 赤にしたい試験：移した T3・〈制度と思想は技術水準に依らない〉・TechLevelRemovalTests 段2b の TechRatioOf・InstitutionAnchorTests
+      Mu2 Discovery.cs:673 の識字の上書きを飛ばす（`c.TechThresholdOff > 0` → `false`）→ 赤にしたい試験：InstitutionAnchorTests〈係数が正なら技術の項は本国の識字に比例し…〉・移した T3
+  (T-bake) 焼き込んだ木（最後の木）で再確認する突然変異（読み手の旗の比べを戻す＝閾値の旧の枝を復活）：
+      Mu3 SelfPlay.cs 義務教育の目標の閾値を戻す（`w.TechLevel > 1.0` を加える）→ TechLevelRemovalTests 段2b（Modernize の法の目標）
+      Mu4 SelfPlay.cs 女性財産権の閾値を戻す → 同上
+      Mu5 SelfPlay.cs 女性選挙権の閾値を戻す → 同上
+      Mu6 SelfPlay.cs 制限選挙の閾値を戻す（Census）→ 同上（参政権は他の書き手も Census を置く＝緑なら穴を名乗り、同じ線で試験を足す・★(790)）
+      Mu7 Agents.cs 制限選挙の閾値を戻す → 同上（C3 の ModernizerAgent の行）
+      Mu8 SelfPlay.cs:656 techGap を技術の遅れから作る → TechLevelRemovalTests 段2a（姿勢の効用）
+      Mu9 MultiNationSim.cs:861 gap を技術の格差から作る → TechLevelRemovalTests 段2a（外圧は毎四半期 0）
+      Mu10 Discovery.cs TechRatioOf で制度と思想に技術水準を戻す → 移した T3・段2b
+      Mu11 Discovery.cs:673 の識字の上書きを飛ばす → InstitutionAnchorTests
+  (T-nav) NavalPortProcurement の焼き込みの木での突然変異：
+      M1c Simulation.cs `navalNat = Math.Min(navalNat, navNeedNat)` の行を消す → MilitaryTests〈海軍の予算は必要額で切られ…〉（Fact になる）が赤
+      M7 Territory.cs の `r.NavalBudget = 0; r.NavalOrder = null;` を消す → 緑なら穴を名乗る（これは登録しない＝追加の探り・緑でも足さない。理由＝(669) 追記 1 の番人が既にあるはずなので結果を記録するだけ）
+  (T-pop) M3b：Simulation.cs UpdateRegionalPriceLevels の退避の枝に `else { natPop = 0; }` を足す（本土が無い国の国平均の分母を 0 にする）→ PopScanTests〈全ての州が植民地格の国は国平均を全ての州で取る〉が赤（国平均 0 → 全ての州の乗数 1）。M3a（`if (true)`）も同じ試験で再確認する。予言＝M3a・M3b ともその 1 本だけが赤。M3b が緑なら試験を足す（★(790)）。
+  突然変異の表（門→赤にする試験）：上のとおり。結果の記録は 〈予言どおり〉〈予言と違う〉を行ごとに書く。
+  足す試験：0（予定）。M7 以外の突然変異が緑のままなら、その線で機構の試験を足す。
+
+[4] ㉘ ソースを走査する番人の点検（grep の結果・2026-11-04・8bbcd39f の木）
+    工業化度の読み手の許可表（IndustrializationReaderTests.Allowed）：触る行のコード部（`//` の前）は表の語（TotalIndustrialization ほか）を含まない（EconomyStep.cs の 8 行・Simulation.cs の 14 行・Territory.cs の 1 行・MultiNationSim.cs の 2 行・SelfPlay.cs の 3 行・Discovery.cs の 1 行はこの回の削る行とは別の行）。変化の予言＝0 行（ファイル別すべて）。腕の前に番人 6 組を回して確かめる。
+    `new MoneyStock(` の件数（UnitTypeTests.cs・13 本）：触る行にも足す試験にも書かない＝変化 0。
+    route_anchors.tsv の鍵：Territory.cs の鍵（MoveBetweenRegions の 1 行）・Diplomacy.cs の鍵（拿捕品の World.Transfer）は触る行（Territory.cs:375・EconomyStep.cs の発注）と別＝鍵の変化 0。
+    WriterRatchetTests の宣言の表：触らない（件数の行の差 0）。MultiNationSim.cs の台帳の名乗り（:2018）は文字列を変えない。
+    DormantIdentityTests：RetiredFields に 3 名を足す（NavalPortProcurement・TechSignalOff・TechThresholdOff＝番人を写しただけの例外として verdict に列挙）。DormantZeroFields には 3 旗とも無い（点火済み）。`係数は全て本体のどこかで読まれる`・`削除した係数は戻っていない` は緑のはず。注（:37・:46）の旗の名は〈焼き込み〉に直すだけ。
+    GoodIdGuardTests（scripts の *.py を走査）：台本に C# の整数配列の字面を書かない。
+    SaveGame：旗は Coefficients の欄＝セーブの欄ではない。savetest で同じ版の往復を確かめる。POB_COEF の名前解決：3 名を渡す今の台本は 0。
+
+[5] テストの数（--tests-delta の予言）
+    NavalPortProcurementTests の旗 0 の Fact 1 本を削除（−1）・MilitaryTests の Theory 2 行 → Fact 1 本（−1）・InstitutionAnchorTests の旗 0 の Fact 1 本を削除（−1）・TechLevelRemovalTests と DiscoveryEngineerTests は本数を変えない（旗 0 の対照の Assert を消すだけ・T3 は書き換え）・改名は本数を変えない・足す試験 0。
+    予言＝Category!=FullLength 2226 → 2223（--tests-delta −3）・FullLength 3。突然変異で穴が出て試験を足したら追記する。
+
+[6] 腕（挙動を変えない＝腕 A のみ）
+    `bash scripts/instruments/ident/ident.sh run c65id --tree D:/PoB_work/wt_c65id --tests-delta <N> --saveleak`（run_in_background・走行中はその worktree にコミットしない・ファイルも書かない＝㉙）。腕の枠は `bash scripts/instruments/tools/arms.sh free` が 3 以上のときだけ始める。足りなければ印を waitmark で待つ（存在する印だけ）。
+    フルスイート（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる）・savetest・leakhunt は ident の後に隔離ビルドで。
+
+[7]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。コミットを旗ごとに分けるので、不一致のときは旗ごとに外して切り分ける（A・B・C は別のコミット）。
+
+[8] 他の線との重なり（持ち主のファイル）
+    c65fl＝FiscalTests.cs・CapitalMarket.cs・Coefficients.cs の旗の行 ／ c65op＝EconomyStep.cs の依存の段（1751 付近）・新しい試験のファイル・Coefficients.cs の旗の行 ／ c65md＝Diplomacy.cs・Coefficients.cs の旗の行 ／ c65ce・c65sv＝新しい Instruments*.cs・Instruments.cs の登録の行・InstrumentsTests の名簿 ／ c65ds＝コミットしない。
+    c65id が触る共有のファイルと行：Coefficients.cs（:2275 の宣言とその注・:2853〜2855 の 3 行）・Instruments.cs（:74・:1214・:1224 の注）・DormantIdentityTests.cs（RetiredFields の末尾に 3 行・:37・:46 の注）・EconomyStep.cs（:372・388・418・423・1195〜1197・1301〜1310）・Simulation.cs（:2084〜2150）・Territory.cs（:375）・Discovery.cs（:673・1167〜1172）・SelfPlay.cs（:656・1519〜1530・定数 4 本）・Agents.cs（:28・37）・MultiNationSim.cs（:861・2097）・Model.cs（:1108 の注）。
+    c65op の EconomyStep.cs の依存の段は 1751 付近＝私の 1195〜1310 とは別の塊（合流で衝突しない見込み）。Coefficients.cs は旗の行の追加と私の墓標の置き換えが近い行になりうる＝合流で解く。
