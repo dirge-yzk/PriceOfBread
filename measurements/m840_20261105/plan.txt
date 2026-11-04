@@ -1,0 +1,35 @@
+# (840) c68hl 空洞化 1/10 未満の止める線の物差し（読む線・腕 0 本・コミット 0）
+作業の場所: D:/PoB_work/r840_work（この回に作ったフォルダはこれだけ・worktree と枝は作らない）
+台本の元: C:/Users/dirge/Documents/PriceOfBread（main eccd9155・読むだけ）の scripts/instruments/hol/an_h2.py・hol_common.py・m839/holclass839.py・m839/statepeak839.py
+新しい台本: D:/PoB_work/r840_work/c68hl/holclass840.py（合流が scripts/instruments/c68hl/ へ写す）
+
+## 読む生（region_s<seed>.tsv・migration_s<seed>.tsv）
+### 基線（〈元からの弱さ〉の比べる側＝旧の規則のまま）
+- keep_839/base_ins（m839 M′・種 1〜10）
+- keep_839/a11（m839 S11′・種 11〜20）
+- keep_832/base_ins（m826・種 1〜10）＝keep_826/base_ins と region_s1 の sha256 一致
+- keep_826/base_ins（m826・種 1〜10）
+- keep_826/a11（m826 S11・種 11〜20）
+- keep_797/a11（m797 S11・種 11〜20）
+- m797 の種 1〜10 の基線の生（keep_818/base_ins）は消えている＝c65mdB の〈元からの弱さ〉の比べる側は無い（名乗る）
+### ヌル腕（新しい区分の母集合）
+- 新：keep_839/n1・n2　旧：keep_826/n1・n2・keep_797/n1・n2（種 1〜10）
+- 種 11〜20：keep_839/a11・keep_826/a11・keep_797/a11（ヌル腕が無いので基線の S11 を並べる・指示どおり）
+### 腕（読み直す物）
+- keep_839_rej/abDW0_md_10/ins（c65md だけ旗 1・m826 の盤面・基線 keep_832/base_ins）
+- keep_839_rej/c67svB_10/ins（c67sv の腕 B・基線 keep_832/base_ins）
+- keep_839_rej/mM_mddw_10/ins（合わせた木 M・基線 keep_832/base_ins）
+- keep_839_rej/mS_mddw_s11/ins（合わせた木 S11・基線 keep_826/a11）
+- keep_826_rej/c65mdB_10/ins（c65md の腕 B・m797 の盤面・基線は消えた＝無し）
+- keep_832_rej/c66dwB_10/ins（c66dw の腕 B・m826 の盤面・基線 keep_826/base_ins）
+- keep_832_rej/mS_s11/ins（(832) の合流 S11・基線 keep_826/a11）
+- keep_839/base_ins（M′・基線 keep_832/base_ins）・keep_839/a11（S11′・基線 keep_826/a11）
+- ヌル腕 6 本と a11 3 本自身（一つ抜き＝自分の組を母集合から外す）
+
+## 手順
+1. 事前登録 D:/PoB_work/r840_work/m840_20261105_prereg.txt（生を読む前・新しい台本を書く前）
+2. an_h2.py -v5 を全ての生に（背景・bg.sh）＝出力 D:/PoB_work/r840_work/an/<名>.txt
+3. holclass840.py を書く・小さな盤面（fixture）・両側の門・突然変異
+4. 恒等の門：全ての腕で holclass839.py と行の数・例外・元からの弱さ・(i)+(ii)＝旧の線が原因
+5. 読み直しの表（腕ごと）・予言の当たり外れ
+6. 報告（合流が写す物の一覧）
