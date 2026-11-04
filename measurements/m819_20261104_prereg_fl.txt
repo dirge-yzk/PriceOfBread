@@ -79,3 +79,7 @@
   ㉜ の grep（★(818)：`grep -ln ForeignCapitalIn\|CapitalAbroad PriceOfBread.Tests/*.cs`）：CapitalCouponWriteDownTests・CapitalDividendHostRentTests・FiscalTests・UnitTypeTests。
     旧の規則を固定する Assert は FiscalTests の 2 つ（今の 658・662＝Theory にした物）だけ。FiscalTests:595〜597（国内資本の逃避の受け皿）・:1123〜1124（再併合の金の値打ちの和）・UnitTypeTests:453〜454（2 つの世界のビットの一致）は規則 C を固定しない（(815) の旗 1 のフルスイートで緑）。
   ソースを走査する番人は 6 組（★(818)：GoodIdGuardTests を足す）＝旗 1 の木で回す。
+
+★追記 2（2026-11-04・旗 1 のフルスイートの結果を見る前）④ の読みの足し：(815) の反証役の指摘（実装ログ (815)）＝〈床が無いと G1 は 11 事象で比 0〉の原因はエンジンの絶対値の門 `divWo > 1e-9` と double の吸収
+  （外資の負債 4e7〜9e7 から 1e-9 の桁を引いても値が変わらない＝持ち主の側だけが約 1e-9 落ちる片側の書き込み）。額は 1e-9 の桁×11 事象＝請求権の台帳の外れ（貨幣は動かない＝leakhunt の保存則の外）。
+  相対の門（divWo＞ulp の桁×外資の負債）にすればこの片側は消えるが、SimCore が変わり使い回せない＝この線では直さない（推奨のまま）。次の恒等でない線の候補として申し送る（形：`divWo > 1e-9 * Math.Max(1.0, w[i].ForeignCapitalIn.Value)`・挙動は変わる＝腕 B が要る）。
