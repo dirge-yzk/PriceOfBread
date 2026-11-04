@@ -384,9 +384,9 @@ public class CearnInstrumentTests
         finally { Instruments.CearnOn = true; try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
-    // ---------------------------------------------------------------- (836) 線 c67pu：植民地格の州の POP の行 cpop_s（作業の事前登録 D:/PoB_work/r836_work/plan.txt の P1〜P3・M9） ----------------------------------------------------------------
+    // ---------------------------------------------------------------- (836) 線 c67pu：植民地格の州の POP の行 cpop_s（作業の事前登録 measurements/m836_20261105/plan.txt の P1〜P3・M9） ----------------------------------------------------------------
     // 期待は計器と別の出所から作る：群の和は cgrp_s の群の行（別の台帳）・最後の四半期の POP の人数と在庫と行の数と賃金の行の数は試験が sim の州から自分で数えた値・止まった月の振り分けは手で書いた表。
-    // 突然変異（使い捨ての木・measurements/m836_20261104/mutation.txt〔合流が写す〕）：P1 POP の振り分けを入れ替える・P2 人数 0 の POP を落とす・P3 月初を月末で読む・M9 POP を群の台帳から落とす（cgrp_s）。
+    // 突然変異（使い捨ての木・measurements/m836_20261105/mutation.txt）：P1 POP の振り分けを入れ替える・P2 人数 0 の POP を落とす・P3 月初を月末で読む・M9 POP を群の台帳から落とす（cgrp_s）。
 
     private static List<Dictionary<string, string>> PRows(string path)
     {
@@ -516,5 +516,48 @@ public class CearnInstrumentTests
             Assert.True(System.IO.File.Exists(System.IO.Path.Combine(dir, "fiscal_s1795.tsv")), "前提：他の計器の表は出る");
         }
         finally { Instruments.CearnOn = true; try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>(842) G7（(836) の反証役・c67pu ③）：州の台帳が Started でない四半期は cgrp_s の savingsStart と residualPerQuarter が nan（在庫の全額が残差に見えない）。他の州と前の四半期は数のまま。
+    /// 盤面：四半期の途中で州が足された形（月初の登録の前）の代わりに、StepQuarter の後・Quarter の前に植民地格の州の台帳の Started を倒す（CearnAccOf で取る＝注で名乗る）。
+    /// 突然変異 M2＝nan を 0 に戻す（`started ? … : double.NaN` を数に戻す）→ 赤。</summary>
+    [Fact]
+    public void 台帳が始まっていない州のcgrpは始まりと残差がnan_他の州は数()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_cgnan_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        var sim = Two(1796UL);
+        string nation = "", region = "";
+        try
+        {
+            sim.StepQuarter(); Instruments.Quarter(sim, 1796UL, 0);
+            sim.StepQuarter();
+            foreach (var n in sim.Nations)
+            {
+                foreach (var r in n.World.Regions)
+                    if (r.Tier == RegionTier.Colonial && Instruments.CearnAccOf(r) is { } acc) { acc.Started = false; nation = Instruments.NameOf(n.World); region = r.Name; break; }
+                if (region != "") break;
+            }
+            Assert.NotEqual("", region);
+            Instruments.Quarter(sim, 1796UL, 1);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        try
+        {
+            var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1796.tsv"));
+            var hit = grp.Where(r => r["quarter"] == "1" && r["nation"] == nation && r["region"] == region).ToList();
+            Assert.NotEmpty(hit);
+            foreach (var r in hit)
+            {
+                Assert.True(double.IsNaN(D(r, "savingsStart")), $"始まっていない台帳の savingsStart が nan でない {r["group"]}：{r["savingsStart"]}");
+                Assert.True(double.IsNaN(D(r, "residualPerQuarter")), $"始まっていない台帳の residualPerQuarter が nan でない {r["group"]}：{r["residualPerQuarter"]}");
+                Assert.False(double.IsNaN(D(r, "savings")), "在庫の末は数のまま");
+            }
+            var others = grp.Where(r => r["quarter"] == "1" && !(r["nation"] == nation && r["region"] == region)).ToList();
+            Assert.NotEmpty(others);
+            Assert.All(others, r => Assert.False(double.IsNaN(D(r, "savingsStart")) || double.IsNaN(D(r, "residualPerQuarter")), $"他の州の行が nan {r["region"]} {r["group"]}"));
+            Assert.All(grp.Where(r => r["quarter"] == "0"), r => Assert.False(double.IsNaN(D(r, "savingsStart")) || double.IsNaN(D(r, "residualPerQuarter")), "前の四半期の行が nan"));
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 }
