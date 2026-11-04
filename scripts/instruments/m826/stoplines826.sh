@@ -11,6 +11,6 @@ echo "== pxjump"; python -X utf8 -I $S/c11fl/pxjump.py M=$M
 echo "== gdpjump"; python -X utf8 -I $S/m797/gdp_jump797.py M=$M
 echo "== gdp_zero10"; python -X utf8 -I $S/m808/gdp_zero10.py M=$M
 echo "== plvl"; python -X utf8 -I $S/brk693/plvl_seeds.py $M
-echo "== hol"; python -X utf8 $S/hol/an_h2.py $M -v4
+echo "== hol"; python -X utf8 $S/hol/an_h2.py $M -v5   # -v5＝全ての原因の事象を 1 件ずつ（件数は -v4 と同じ・振り分けの表 holclass826.py が読む）
 } > $OUT 2>&1
 echo STOPDONE
