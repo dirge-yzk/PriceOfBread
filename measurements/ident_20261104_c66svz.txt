@@ -1,0 +1,34 @@
+=== 恒等の判定（測った種で一致） c66svz（2026-11-04 18:55:41）===
+測った木：D:/PoB_work/wt_c66sv（HEAD d20419ef・未コミット 1 本）
+基準の設定：D:/PoB_work/wt_c66sv/scripts/instruments/ident/ident.cfg
+宣言：grown=['silverwt_s'] known_extra=['cearn_s:inTop1Route', 'cearn_s:outTop1Route', 'cearn_s:outTop2Route'] tests_delta=3
+腕 a：rc=1 end=2026-11-04 18:29:39
+腕 b：rc=1 end=2026-11-04 18:46:15
+腕 t：rc=0 end=2026-11-04 18:01:07
+腕 s：rc=0 end=2026-11-04 18:27:37
+測る木の SOURCE-HASH：9a246a2d52c2af5b
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 9a246a2d52c2af5b
+[素の 5 種] b5_ia_5.txt 対 b5_20261104_m826
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261104_m826.cost
+  ○ 件数の行 29 本・推定 215.6 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 9a246a2d52c2af5b
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261104_m826_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261104_m826_ins.cost
+  ○ 件数の行 29 本・推定 215.6 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c66svz/out_ib_10/ins  対  基準 D:/PoB_work/keep_826/base_ins
+  基準 1045 本・腕 1045 本・バイト一致 995 本
+  列が増えた表（--grown-ok の宣言）10 本：silverwt_s1.tsv+6列・silverwt_s10.tsv+6列・silverwt_s2.tsv+6列・silverwt_s3.tsv+6列・silverwt_s4.tsv+6列・silverwt_s5.tsv+6列
+  既知の揺れの列だけが違う表 40 本：burscan_s:seconds×10・cearn_s:inTop1Route,outTop1Route,outTop2Route×10・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 995・既知の揺れ 40・宣言された増減 10）
+[注視の表] mon_ib_10.txt 対 mon_20261104_m826.txt（タグの行を除く）
+  ○ タグの行以外が一致（4698 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2253（基準 2250+3 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等

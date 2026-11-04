@@ -103,3 +103,20 @@
  ・旗 0（何もしない実装）で落ちる門：W1（0.4118）。値 1（w1）で落ちる門：E1・W2b。T1 は w1 の盤面で 0.6088＝落ちる。
  ・事前登録の形と実装の形の一致（⑪）：[1] の 1 行の三項と純関数を実装の差分と突き合わせて報告に書く。
  ・他の線との重なり（この回の持ち主の表）：MultiNationSim.cs は c66id が 852〜855 の注を触る（この線は 35〜45 と 880〜905）＝行は重ならない。Coefficients.cs は c66dw（1008 付近）・c66id（2510〜2512）・この線（3438〜3439）＝重ならない。DormantIdentityTests.cs は c66id が :35・この線が :32（点火のコミットで行を外す）＝隣接の行＝合流で確かめる。InstrumentsSilverWeight.cs・InstrumentsSilverst.cs・SilverParityDemandWeightedTests.cs・SilverstInstrumentTests.cs は他の線の表に無い。
+
+[12] 追記 1（点火の前・腕 B の出力はまだ無い＝結果の後の変更ではない。門・閾値・採否の規則は変えていない）
+ ・器のコミット d20419ef。足した試験 3 本（SilverParityDemandWeightedTests：手の値 1・旗 2 の S1 1・旗 0／1 の新しい列 1）＝tests-delta +3。SilverstInstrumentTests の U3 に入口の Assert 4 行（dAg・prodAg・pAg と前提）。
+ ・走査の番人 6 組＋銀の試験と MultiNationTests（207 本）は緑（measurements/m827_20261104/guards.txt）。書き換えた番人 0・件数の変化 0（予言どおり）。
+ ・恒等の判定（測った種で一致）：`ident.sh run c66svz --tree D:/PoB_work/wt_c66sv --grown-ok silverwt_s --tests-delta 3 --saveleak` の 1 回目は〈判定: 不一致〉（measurements/m827_20261104/ident_first_check.txt）。
+   宣言の無い違いは cearn_s の 10 本の 3 列（inTop1Route・outTop1Route・outTop2Route）だけ。この 3 列は〈ファイル:行:動詞:種〉の呼び出し位置＝MultiNationSim.cs の頭に 10 行・注入の段に 2 行足したので行が +10・+12 ずれた。
+   scripts/instruments/c66sv/cearnloc827.py（git diff の hunk から旧→新の行の写像を作り、違う全てのセルを照らす）で、違うセル 55,229 の全てが同じファイル・同じ動詞と種・行だけが写像どおり（それ以外 0）＝〈位置だけ〉（measurements/m827_20261104/cearnloc.txt）。
+   これを確かめた後に `ident.sh check c66svz --grown-ok silverwt_s --tests-delta 3 --known-extra cearn_s:inTop1Route,cearn_s:outTop1Route,cearn_s:outTop2Route` で〈判定: 恒等〉（measurements/ident_20261104_c66svz.txt・SOURCE-HASH 9a246a2d52c2af5b）。
+   素の 5 種と計器つき 10 種は m826 と全行バイト一致（181 行）・.cost 推定 215.6 秒（一致）・計器の表 バイト一致 995＋既知の揺れ 40＋宣言 10・注視の表一致・テスト 2253（2250+3）＋3・savetest OK・leakhunt 保存則違反なし。
+   推奨（AI の案）：cearn_s の 3 列は flow_s と同じ呼び出し位置の列＝ident.cfg の KNOWN に足すか、flow_s と同じく位置を除いて比べる（次の恒等の線・合流が決める）。
+ ・W1m の紙（ident の旗 0 の生・measurements/m827_20261104/paper827_ident.txt）：A′ 0.0001 通る／対照 等重み 0.0882 落ちる・w1 0.4206 落ちる（＝M2〈dAg を無視〉と M4〈値 2→1〉は W1m でも落ちる）・max 版 0.0726 落ちる。W1・W2b・E1・U1 の紙は [4] と同じ値（同じ盤面）。
+   旗 0 の生でエンジンの新しい列は自走査の等重みと全 6,880 注入で文字列一致（usedAgOneSidedShare＝equalAgOneSidedShare・usedEnterShare＝enterShareEqual）。
+ ・単位の突然変異 M1〜M7（measurements/m827_20261104_unit_mutations.txt）：全て赤。M1・M2・M3＝手の値と旗 2 の S1 の 2 本／M4＝旗 2 の S1／M5＝手の値／M6・M7＝旗 2 の S1 と旗 0／1 の新しい列の 2 本。
+   M3（RefPrices を外す）は旗 2 の実盤面の S1（文字列の比べ）でも赤になった＝定数倍の丸めがビットを変えた（[5] で〈保証しない〉と書いた側に出た・門の水準では検出できないことは変わらない）。
+ ・旗 2 の赤の名簿を早く取った（[8] の使い捨ての木・measurements/m827_20261104/f2probe.txt）：赤 4＝DormantIdentityTests.休眠フラグは既定でゼロである（点火の手順で外す行）・MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate 0・1)・SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate 1)。
+   値：gate 0 で フランス SilverGoldRatio＝1.5014（期待＝等重み 0.3315）／gate 1 で WorldSilverPrice＝0.8099（期待 0.1790）／silverpar_s の gate 1 で 注入 1.0740・計器の等重みの取り直し 1.0808。
+   ＝[7] の ①② の予言どおり（旧の規則〈等重みの票〉を固定する番人・持ち主でないファイル）。[8] の規則で、点火の後のフルスイートでも同じ赤なら番人を書き換えずに止め、腕 B は回さない。
