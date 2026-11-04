@@ -246,7 +246,6 @@ public sealed class UtilityAgent : INationAgent
     private const double IndustrialistModBias = 1.2;          // 資本主義教義：近代化効用の増幅
     private const double ModernizerModBias = 1.5;            // 近代化教義：近代化効用の増幅
     private const double ModernizerWelBias = 1.2;           // 近代化教義：福祉効用の増幅
-    private const double CompulsoryEduTechThreshold = 1.0;   // 義務教育の技術閾値
     // ★(423) AI の法の門の線 3 本（★(599) 旗 AiLawGateFromBoard と工業化度を読む旧の式は削除した）。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
     internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
     internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
@@ -259,9 +258,6 @@ public sealed class UtilityAgent : INationAgent
     internal const double MinimumWageUnempRaiseLine = 0.25;          // 上げる：失業がこの割合未満（下げる線の半分＝間の帯は現状維持）
     internal const double MinimumWageBindRaiseMax = 1.0 / 3.0;       // 上げる：次の段の床が縛る広がりがこれ以下（賃金が次の段の籠をおおむね払えている＝法は生活費を書き留めるだけで広くは縛らない）
     private const double CompulsoryEduBufferMult = 3.0;     // 義務教育の財政バッファ倍率
-    private const double WomenPropertyTechThreshold = 1.2; // 女性の権利＝財産権の段を目標に置く技術閾値
-    private const double WomenSuffrageTechThreshold = 1.5;// 女性の権利＝選挙権の段を目標に置く技術閾値（財産権より後）
-    private const double CensusSuffrageTechThreshold = 0.25;// 制限選挙の技術閾値
     private const double IndustrializeInvestFrac = 0.15;   // 産業スタンスの近代化投資率
     private const double ModernizeInvestFrac = 0.08;       // 近代化スタンスの近代化投資率
     /// <summary>開始時に**全国が共有する**近代化投資率（プレイヤーとAIの出発点を揃える）。
@@ -653,7 +649,7 @@ public sealed class UtilityAgent : INationAgent
     {
         var doctrine = DoctrineFrom(w);   // 倍率排除⑧：支配ブロック＋軍国度から創発（政体ラベルの写像を廃止・政変や参政権拡大で動的に変わる）
         double sat = NationalScore.MeanSatisfaction(w);
-        double techGap = w.Coef.TechSignalOff > 0 ? 0.0 : Math.Max(0, w.WorldTechLevel - w.TechLevel);   // 技術の遅れ（後発の伸びしろ）。★(613) 段2a：旗 TechSignalOff が正なら 0（作者 2026-10-16〈技術水準は二重計上＝削除〉・否定形＝NaN は旗 0）
+        double techGap = 0.0;   // 技術の遅れ（後発の伸びしろ）は姿勢の効用に入れない。★(613) 段2a（旗 TechSignalOff は (824) で焼き込み・作者 2026-10-16〈技術水準は二重計上＝削除〉）。UModTechWeight・UIndTechWeight の項は外圧の死んだ信号の連鎖として残す
         double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();   // ★(416) 工業化の余地＝目盛り 4.0×国庫の配り先の設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）。達成して収益が立たなくなれば uInd が下がり教義の道へ
         double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);                                       // 不満（満足の不足）
         double fiscalNeed = FiscalStressOf(w);   // 国庫の逼迫（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
@@ -1516,7 +1512,7 @@ public sealed class UtilityAgent : INationAgent
             case Stance.Modernize:
                 p.EducationLaw = EducationLaw.Public;
                 // 豊かな近代化国は義務教育へ＝popが買えない教育を国庫が買い全民就学（多大な財政コスト＝豊かさが前提）。
-                if (w.EducationLaw >= EducationLaw.Public && (w.Coef.TechThresholdOff > 0 || w.TechLevel > CompulsoryEduTechThreshold) && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
+                if (w.EducationLaw >= EducationLaw.Public && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
                 p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（★(399) 汚職の財政の漏れは削除済み＝行政費は税にも法の浸透にも返らない・何を返すかは作者に聞く Q8＝(402)）
@@ -1525,9 +1521,9 @@ public sealed class UtilityAgent : INationAgent
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
                 p.SocialSecurityTarget = 0.3;   // 近代国家は公共医療を一定維持＝人口増（乳児死亡の低下）
                 p.ChildLaborAllowed = false;    // 近代化＝児童労働を禁止（出力↓だが識字↑＝教育→医療→人口）
-                if (w.Coef.TechThresholdOff > 0 || w.TechLevel > WomenPropertyTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
-                if (w.Coef.TechThresholdOff > 0 || w.TechLevel > WomenSuffrageTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：選挙権の段は財産権より後（tech閾値↑）。教育権の段は梯子が通る
-                if ((w.Coef.TechThresholdOff > 0 || w.TechLevel > CensusSuffrageTechThreshold) && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b：旗 TechThresholdOff が正なら技術の閾値の 4 本を落とす（願いは無条件・可否は政治の門と国庫の緩衝が決める）
+                RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
+                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：選挙権の段は財産権より後。教育権の段は梯子が通る
+                if (p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b（旗 TechThresholdOff は (824) で焼き込み）：技術の閾値の 4 本は無い（願いは無条件・可否は政治の門と国庫の緩衝が決める）
                 break;
             case Stance.Industrialize:
                 p.EducationLaw = w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：願いは〈公教育以上〉＝義務教育の国に撤回の願いを書き戻さない（事前登録 measurements/edq680_20261030_prereg.txt・Modernize は国庫の述語で戻す願いを残す）。(772) 旗 StanceEduHoldsLaw を焼き込み（既定 1 の枝だけ残す）

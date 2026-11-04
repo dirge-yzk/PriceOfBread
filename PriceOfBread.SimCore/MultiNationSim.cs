@@ -858,7 +858,7 @@ public sealed class MultiNationSim
                 var w = n.World;
                 bool coastal = false;
                 foreach (var r in w.Regions) if (r.IsPort) { coastal = true; break; }
-                double gap = _coef.TechSignalOff > 0 ? 0.0 : PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));   // ★(613) 段2a：旗が正なら格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）
+                double gap = 0.0;   // ★(613) 段2a（旗 TechSignalOff は (824) で焼き込み）：技術の格差は外圧に入れない＝格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）。旧の ExternalPressureGapScale は読み手が無くなったので削除
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を

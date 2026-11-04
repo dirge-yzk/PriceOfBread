@@ -2029,7 +2029,7 @@ public sealed class Coefficients
     // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
     // 【削除2026-09-30 段4e 後半】ConscriptExcludeOldMales（徴兵の上限から老年の男を除く旗）＝年齢の層で徴兵の年齢（男20〜39・皆兵は49まで）を直接読む＝自明（設計書 §4-2）。
     // 【墓標2026-10-18・旗の焼き込み】ExternalPressureDerived（接7・既定1.0・点火2026-07-27 機能優先ラウンド第2群）を消した＝外圧は創建時定数 0.3 でなく「世界の技術水準格差×海からの接触係数」から四半期ごとに導出する。
-    public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み＝常に読む
+    // 【墓標2026-11-04 (824)】ExternalPressureGapScale（接7・既定 1.5・外圧が満額になる技術格差）を消した＝旗 TechSignalOff の焼き込みで外圧の格差は常に 0 になり、読み手が MultiNationSim の 1 行だけだったのが無くなった（読み手のない係数の番人〔DormantIdentityTests〕の指示どおり削除）。指示は〈外圧の死んだ信号の連鎖の係数は消さない〉だったが、この 1 本だけは番人が許さない＝報告の先頭に書いた。UModTechWeight・UIndTechWeight（SelfPlay の定数・techGap の項）は読み手が残るので残した。
     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み＝常に読む
     // A-高1：鋼のベッセマー不連続。坩堝鋼（地理差・高価＝鉄2.2+コークス1.2・Productivity0.9）と錬鉄レール（地理差・鉄1.3）を
     // 並存レシピで追加し、デフォルト（ベッセマー転炉＝鉄1.0+コークス0.4）を発見の表の転炉鋼（1850年代）で門（旧＝onset 0.55・旗 CrucibleSteelEnabled＝2026-10-01 段2A で焼き込み）。
@@ -2849,9 +2849,9 @@ public sealed class Coefficients
     public double TechMultipliersOff = 1;             // ★(613) 線 tl 段3（**2026-10-28 に既定 1 へ点火**＝腕 B が止める線に当たらず。0 は旧の挙動）：技術水準を掛ける3つの倍率を 1 にする（軍の質の技術の因子 ArmyShape.Quality・海越えの遠征の門 Diplomacy.ExpeditionLift・近代化費用の遅れの割増 World.ModernizationBudget の costMul）。作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・技術水準の削除の線（★(617) 合流の注：段1〔門を発見の行へ置き換え〕と段2b〔閾値を落とす〕は原文の削除より広い AI の推奨＝確証なし）。正で 3 つとも 1.0（costMul は割増 0）
     // ★(613) 線 tl 後半（**2026-10-28 に段1・2a・2b・4 を既定 1 へ点火**＝腕 B〔計器つき 10 種〕が止める線に当たらず。0 は旧の挙動〔テストの陽性対照が使う〕。段5 は既定 0 のまま〔腕 B5・cp3 と同じ線か後〕。否定形で NaN は 0 へ倒す。旗は段6 の物理削除と一緒に消す）
     public double TechGateByDiscovery = 1;            // 段1：巨大建造物の着工と進行・運河の着工の門を、技術水準の techGate から発見の行 requires（megaprojects.json・world.json）へ。正で有効
-    public double TechSignalOff = 1;                  // 段2a：AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。正で有効
-    public double TechThresholdOff = 1;               // 段2b：Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery）を落とす。正で有効
-    public Share SpreadLiteracyFull = new(0.5);       // ★(621) 線 inst（2026-10-28 に 0.5 で**点火**）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（TechThresholdOff）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）。0＝旧の比（TechThresholdOff の式）
+    // 【墓標2026-11-04 (824)・旗の焼き込み】TechSignalOff（段2a・2026-10-28 に既定 1 で点火）を消した＝AI の姿勢の効用の技術の遅れ（SelfPlay.ChooseStance の techGap）と外圧の格差（MultiNationSim の gap）を 0 にする（外圧は毎四半期 0 を書く）。旧（遅れと格差を入れる）の枝は消した。
+    // 【墓標2026-11-04 (824)・旗の焼き込み】TechThresholdOff（段2b・2026-10-28 に既定 1 で点火）を消した＝Modernize の法の目標の技術の閾値 4 本（SelfPlay.Apply）・制限選挙の技術の閾値（Agents）・制度と思想の行の技術の比（Discovery.TechRatioOf＝1）を落とす。旧（技術水準÷難易度）の枝と閾値の定数 5 本は消した。
+    public Share SpreadLiteracyFull = new(0.5);       // ★(621) 線 inst（2026-10-28 に 0.5 で**点火**）：>0 で制度と思想の行（特許以外）の技術の比を 本国の識字÷この値（0〜1）にする。技術水準の削除（旗 TechThresholdOff は (824) で焼き込み）で比が 1 になった穴を、盤面の量（PoliticalQuantities.AvgLiteracy の本国）で埋める。0.5＝読み書きできる者が人口の過半（AI の置き・確証なし）。0＝比 1
     public double SpreadNeedFascismDecline = 1;       // ★(640) 線 idn：>0 でファシズムの必要性の強度に〈自国の国力の割合の落ち込み＝(在庫 ScoreStanding−今の ShareScores)÷在庫〉を掛ける（新しい状態なし）。0＝今の式（危機×人々の闘争度）。正で有効
     public double EraOff = 1;                         // 段4：時代係数 EraFactor と運賃革命 FreightRevolution を 1.0 にする（前線の技術水準のランプを読まない）。正で有効
     public double TechProductivityBracketOff = 0;     // 段5（腕 B5・cp3 と同じ線か後）：World.TechProductivity の技術の括弧を whOut×union だけにする。正で有効

@@ -304,6 +304,9 @@ public class DormantIdentityTests
         "InheritedStateIntentDrop",   // (817) c14id：I5 の旗の焼き込み（移る州の生産者の意志を今の棟数まで下げる・既定 1 の経路だけ残した）
         "HcdColonyCessionDistance",   // (817) c14id：I5 の旗の焼き込み（講和の植民地格の州の複数割譲に距離の項・既定 1 の経路だけ残した）
         "NavalPortProcurement",   // (824) c65id：I5 の旗の焼き込み（国の海軍の発注と予算を本国格の港の州へ配る・既定 1 の経路だけ残した）
+        "TechSignalOff",   // (824) c65id：技術水準の削除の段2a の旗の焼き込み（姿勢の効用の技術の遅れと外圧の格差を 0 にする・既定 1 の経路だけ残した）
+        "TechThresholdOff",   // (824) c65id：技術水準の削除の段2b の旗の焼き込み（Modernize の法の目標と制限選挙の技術の閾値・制度と思想の行の技術の比・既定 1 の経路だけ残した）
+        "ExternalPressureGapScale",   // (824) c65id：外圧が満額になる技術格差（読み手は MultiNationSim の gap の 1 行だけだった＝TechSignalOff の焼き込みで読み手が無くなり、読み手のない係数の番人に従って削除）
         "UrbanCapOff", "BaseUrbanCap", "UrbanPerInd", "UrbanCapFollowSpeed", "UrbanIndSmoothed",   // 都市化の天井の旗と目盛り・Region の平滑化の状態（A3）
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
