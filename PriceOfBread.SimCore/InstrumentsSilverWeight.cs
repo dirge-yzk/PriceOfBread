@@ -18,7 +18,9 @@ namespace PriceOfBread.SimCore;
 //   行は試合の終わりに書く＝途中で落ちた試合は行が無い。
 public static partial class Instruments
 {
-    internal const string SilverWeightHeaderText = "seq\tfrozen\tyear\tratioOkFlag\tstateCount\trelEqualIndex\trelW1Index\trelSqIndex\trelProdIndex\tusedRelIndex\tusedParityIndex\tusedRelFromWeightsIndex\tusedWeightSum\tusedMaxShare\tusedOneSidedShare\tequalOneSidedShare\tw1OneSidedShare\tw1MaxShare\tsqMaxShare\tprodMaxShare\tw1ZeroWeightCount\tsilverNationCount\tclampHitCount" + SilverstWeightTailHeader;   // (823) 末尾に反実仮想と自走査の列を足した（既存の列は変えない）
+    internal const string SilverWeightHeaderText = "seq\tfrozen\tyear\tratioOkFlag\tstateCount\trelEqualIndex\trelW1Index\trelSqIndex\trelProdIndex\tusedRelIndex\tusedParityIndex\tusedRelFromWeightsIndex\tusedWeightSum\tusedMaxShare\tusedOneSidedShare\tequalOneSidedShare\tw1OneSidedShare\tw1MaxShare\tsqMaxShare\tprodMaxShare\tw1ZeroWeightCount\tsilverNationCount\tclampHitCount" + SilverstWeightTailHeader + SilverWeightTail827Header;   // (823) 末尾に反実仮想と自走査の列を足した（既存の列は変えない）／(827) さらに末尾に 6 列
+    /// <summary>(827) 末尾の 6 列：エンジンの票の銀の側の片側の割合・入った州の割合と、自走査の反実仮想（等重み・w1・A′・max 版）の銀の側の片側の割合。</summary>
+    internal const string SilverWeightTail827Header = "\tusedAgOneSidedShare\tusedEnterShare\tequalAgOneSidedShare\tw1AgOneSidedShare\tminRefAgOneSidedShare\tmaxRefAgOneSidedShare";
 
     sealed class SilverWeightSink
     {
@@ -29,14 +31,17 @@ public static partial class Instruments
         public double W1, W1Ln, W1Max, W1One;
         public double Sq, SqLn, SqMax;
         public double Pr, PrLn, PrMax;
-        public void Reset() { N = 0; OneSided = 0; ZeroW = 0; SumLn = UsedW = UsedWLn = UsedMax = UsedOne = W1 = W1Ln = W1Max = W1One = Sq = SqLn = SqMax = Pr = PrLn = PrMax = 0; }
+        public double UsedAgOne, UsedEnter; public bool EnterKnown;   // (827) エンジンの票の銀の側の片側・入った州（EnterKnown＝前の注入の集合があった）
+        public void Reset() { N = 0; OneSided = 0; ZeroW = 0; SumLn = UsedW = UsedWLn = UsedMax = UsedOne = W1 = W1Ln = W1Max = W1One = Sq = SqLn = SqMax = Pr = PrLn = PrMax = UsedAgOne = UsedEnter = 0; EnterKnown = false; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, SilverWeightSink> SilverWeightSinks = new();
 
     static string SilverWeightR(double v) => double.IsNaN(v) ? "nan" : double.IsPositiveInfinity(v) ? "inf" : double.IsNegativeInfinity(v) ? "-inf" : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
 
-    /// <summary>注入の走査が 1 州を数えるたび（MultiNationSim）：エンジンの票 <paramref name="wUsed"/>・比の対数・金鉱の需要と産出を溜める。</summary>
-    internal static void SilverWeightState(MultiNationSim sim, double wUsed, double lnRatio, double demandAu, double producedAu)
+    /// <summary>注入の走査が 1 州を数えるたび（MultiNationSim）：エンジンの票 <paramref name="wUsed"/>・比の対数・金鉱の需要と産出を溜める。
+    /// (827) 州 <paramref name="r"/> と銀の需要・産出も受け取る＝銀の側の片側（銀の需要＜銀の産出の 1%）と入った州（前の注入の自走査の集合 Prev に無い州）のエンジンの票を数える。
+    /// Prev は SilverstEnd（この関数の全ての呼び出しの後の SilverWeightEnd の頭）が今の注入の集合へ更新する＝ここでは前の注入の集合。</summary>
+    internal static void SilverWeightState(MultiNationSim sim, Region r, double wUsed, double lnRatio, double demandAu, double producedAu, double demandAg, double producedAg)
     {
         var sk = SilverWeightSinks.GetValue(sim, _ => new SilverWeightSink());
         bool oneSided = demandAu < 0.01 * producedAu;
@@ -51,6 +56,8 @@ public static partial class Instruments
         sk.Pr += pr; sk.PrLn += pr * lnRatio; sk.PrMax = Math.Max(sk.PrMax, pr);
         double u = wUsed > 0 && wUsed < double.PositiveInfinity ? wUsed : 0.0;
         sk.UsedW += u; sk.UsedWLn += u * lnRatio; sk.UsedMax = Math.Max(sk.UsedMax, u); if (oneSided) sk.UsedOne += u;
+        if (demandAg < 0.01 * producedAg) sk.UsedAgOne += u;   // (827) 銀の側の片側
+        if (SilverstSinks.TryGetValue(sim, out var ss) && ss.HavePrev) { sk.EnterKnown = true; if (!ss.Prev.Contains(r)) sk.UsedEnter += u; }   // (827) 入った州（前の注入の自走査の集合に無い）
     }
 
     /// <summary>注入の直後（助走の注入も含む）：World に入った rel と WorldSilverPrice を読み、挟みに当たる銀本位国を数えて 1 行を溜める。</summary>
@@ -85,7 +92,10 @@ public static partial class Instruments
             // (823) 反実仮想（A′＝参照価格建ての薄い側・A＝局所の値段建て・max 版）と入った州の票の割合・自走査とエンジンの渡した値の差
             R(ag.RelRef), R(ag.RelVal), R(ag.RelMax), R(ag.MaxShareRef), R(ag.MaxShareVal), R(ag.MaxShareMax), R(ag.OneRef), R(ag.OneVal), R(ag.OneMax),
             R(ag.EnterEqual), R(ag.EnterW1), R(ag.EnterRef), R(ag.EnterVal), R(ag.EnterMax), I(ag.EnterCount), I(ag.LeaveCount), I(ag.ZeroRef), I(ag.ZeroVal),
-            I(ag.N), R(ag.W1Sum), R(ag.RelW1), I(Math.Abs(ag.N - sk.N)), R(Math.Abs(ag.W1Sum - sk.W1)), R(double.IsNaN(ag.RelW1) && double.IsNaN(Rel(sk.W1Ln, sk.W1)) ? 0.0 : Math.Abs(ag.RelW1 - Rel(sk.W1Ln, sk.W1)))));
+            I(ag.N), R(ag.W1Sum), R(ag.RelW1), I(Math.Abs(ag.N - sk.N)), R(Math.Abs(ag.W1Sum - sk.W1)), R(double.IsNaN(ag.RelW1) && double.IsNaN(Rel(sk.W1Ln, sk.W1)) ? 0.0 : Math.Abs(ag.RelW1 - Rel(sk.W1Ln, sk.W1))),
+            // (827) エンジンの票の銀の側の片側と入った州の割合・自走査の反実仮想の銀の側の片側
+            R(sk.UsedW > 0 ? sk.UsedAgOne / sk.UsedW : double.NaN), R(sk.EnterKnown && sk.UsedW > 0 ? sk.UsedEnter / sk.UsedW : double.NaN),
+            R(ag.OneAgEqual), R(ag.OneAgW1), R(ag.OneAgRef), R(ag.OneAgMax)));
         sk.Reset();
     }
 

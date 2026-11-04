@@ -1,0 +1,15 @@
+M1: ok
+M1 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 9 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う;
+M2: ok
+M2 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 9 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う;
+M3: ok
+M3 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 12 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う;
+M4: ok
+M4 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 17 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う;
+M5: ok
+M5 失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 35 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし;
+M6: ok
+M6 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 45 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.銀の側の片側と入った州のエンジンの票は旗0で等重みと_旗1でw1の自走査と一致する;
+M7: ok
+M7 失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 35 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.銀の側の片側と入った州のエンジンの票は旗0で等重みと_旗1でw1の自走査と一致する;
+MUTUNITDONE

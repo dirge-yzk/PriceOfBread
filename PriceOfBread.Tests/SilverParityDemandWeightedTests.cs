@@ -20,6 +20,25 @@ public class SilverParityDemandWeightedTests
             Assert.Equal(0.0, MultiNationSim.SilverVoteWeight(d, true));
     }
 
+    /// <summary>★(827) 旗 2（A′）の票＝薄い側の額（参照価格建て）。参照価格が 2 辺で違う行（refAg 2・refAu 0.5）で、参照価格を外す・銀の辺を無視する・max にする突然変異を拾う。
+    /// 積が非有限・非正の辺は 0（積に掛けるガード）。</summary>
+    [Fact]
+    public void 旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし()
+    {
+        Assert.Equal(3.0, MultiNationSim.SilverMinRefWeight(3.0, 5.0, 1.0, 1.0));
+        Assert.Equal(3.0, MultiNationSim.SilverMinRefWeight(5.0, 3.0, 1.0, 1.0));
+        Assert.Equal(4.0, MultiNationSim.SilverMinRefWeight(4.0, 4.0, 1.0, 1.0));
+        Assert.Equal(2.5, MultiNationSim.SilverMinRefWeight(3.0, 5.0, 2.0, 0.5));   // min(6, 2.5)：参照価格を外すと 3・max なら 6
+        Assert.Equal(2.0, MultiNationSim.SilverMinRefWeight(1.0, 5.0, 2.0, 0.5));   // min(2, 2.5)：銀の辺を無視すると 2.5
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(0.0, 5.0, 1.0, 1.0));
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(-1.0, 5.0, 1.0, 1.0));
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(-1.0, -2.0, 1.0, 1.0));
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(double.NaN, 5.0, 1.0, 1.0));
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(5.0, double.PositiveInfinity, 1.0, 1.0));
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(5.0, 3.0, 1.0, double.NaN));
+        Assert.Equal(0.0, MultiNationSim.SilverMinRefWeight(1e308, 1.0, 10.0, 1.0));   // 銀の辺の積が inf＝票なし（辺の値が有限でも）
+    }
+
     // 手の盤面：比の対数 ln(2)・ln(8)・ln(32) の 3 州。旗 0 の等重みは (1·2·... の幾何平均) = (2·8·32)^(1/3) = 8。
     static readonly double[] Lns = [Math.Log(2.0), Math.Log(8.0), Math.Log(32.0)];
 
@@ -117,6 +136,47 @@ public class SilverParityDemandWeightedTests
                 if (Math.Abs(D(on[i], "relW1Index") / D(on[i], "relEqualIndex") - 1) > 1e-6) differs = true;
             }
             Assert.True(differs, "前提が崩れた：この盤面では需要の重みと等重みが同じ値で、試験が何も確かめていない");
+        }
+
+        /// <summary>★(827) 門 S1：旗 2 の注入（エンジンが自前で書いた A′ の票）が、計器の自走査の A′（計器が自分で市場を読んで組む）と全ての列でビット一致（"R" 書式の文字列の一致）。
+        /// 非空虚＝A′ の rel が w1 とも等重みとも 1e-6 を超えて違う注入がある（無ければ値 2→値 1 の突然変異を拾えない）。</summary>
+        [Fact]
+        public void 旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う()
+        {
+            var on = Quarters(2.0);
+            Assert.Equal(3, on.Count);
+            bool differs = false;
+            foreach (var r in on)
+            {
+                Assert.Equal("1", r["ratioOkFlag"]);
+                Assert.True(D(r, "stateCount") > 0);
+                Assert.Equal(r["relMinRefIndex"], r["usedRelIndex"]);
+                Assert.Equal(r["minRefMaxShare"], r["usedMaxShare"]);
+                Assert.Equal(r["minRefOneSidedShare"], r["usedOneSidedShare"]);
+                Assert.Equal(r["minRefAgOneSidedShare"], r["usedAgOneSidedShare"]);
+                Assert.Equal(r["enterShareMinRef"], r["usedEnterShare"]);
+                double a = D(r, "relMinRefIndex");
+                if (Math.Abs(a / D(r, "relW1Index") - 1) > 1e-6 && Math.Abs(a / D(r, "relEqualIndex") - 1) > 1e-6) differs = true;
+            }
+            Assert.True(differs, "前提が崩れた：この盤面では A′ の rel が w1 か等重みと同じで、試験が値 2 と値 1・0 を区別しない");
+        }
+
+        /// <summary>★(827) 計器の新しい列（エンジンの票の銀の側の片側・入った州）が、旗 0 では等重みの、旗 1 では w1 の自走査の反実仮想と一致（エンジンの票の累積の番人）。</summary>
+        [Fact]
+        public void 銀の側の片側と入った州のエンジンの票は旗0で等重みと_旗1でw1の自走査と一致する()
+        {
+            var off = Quarters(0.0); var on = Quarters(1.0);
+            bool agSeen = false;
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.Equal(off[i]["equalAgOneSidedShare"], off[i]["usedAgOneSidedShare"]);
+                Assert.Equal(off[i]["enterShareEqual"], off[i]["usedEnterShare"]);
+                Assert.Equal(on[i]["w1AgOneSidedShare"], on[i]["usedAgOneSidedShare"]);
+                Assert.Equal(on[i]["enterShareW1"], on[i]["usedEnterShare"]);
+                if (D(off[i], "equalAgOneSidedShare") > 0) agSeen = true;
+            }
+            Assert.Equal("nan", off[0]["usedEnterShare"]);   // 最初の注入は前の集合が無い
+            Assert.True(agSeen, "前提が崩れた：この盤面に銀の側の片側の州が無く、銀の側の片側の列を確かめていない");
         }
 
         [Fact]

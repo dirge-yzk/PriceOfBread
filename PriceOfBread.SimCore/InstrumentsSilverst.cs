@@ -42,6 +42,7 @@ public static partial class Instruments
         public double W1Sum, RelW1, RelRef, RelVal, RelMax;
         public double MaxShareRef, MaxShareVal, MaxShareMax, OneRef, OneVal, OneMax;
         public double EnterEqual, EnterW1, EnterRef, EnterVal, EnterMax;
+        public double OneAgEqual, OneAgW1, OneAgRef, OneAgMax;   // (827) 銀の側の片側（銀の需要＜銀の産出の 1%）の票の割合（等重み・w1・A′・max 版）
     }
 
     internal const string SilverstWeightTailHeader = "\trelMinRefIndex\trelMinValIndex\trelMaxRefIndex\tminRefMaxShare\tminValMaxShare\tmaxRefMaxShare\tminRefOneSidedShare\tminValOneSidedShare\tmaxRefOneSidedShare\tenterShareEqual\tenterShareW1\tenterShareMinRef\tenterShareMinVal\tenterShareMaxRef\tenterCount\tleaveCount\tminRefZeroCount\tminValZeroCount\tselfStateCount\tselfW1Sum\tselfRelW1Index\tstateCountDiff\tw1SumDiff\trelW1ReadDiff";
@@ -75,6 +76,7 @@ public static partial class Instruments
         var scanned = new List<SilverstRec>(); var entered = new List<SilverstRec>(); var left = new List<SilverstRec>();
         // 形ごとの累積（0＝w1・1＝A′・2＝A・3＝max 版）
         var sumW = new double[4]; var sumWLn = new double[4]; var maxW = new double[4]; var oneW = new double[4]; var enterW = new double[4];
+        var oneAgW = new double[4]; int oneAgCount = 0;   // (827) 銀の側の片側
         foreach (var n in sim.Nations)
         {
             var w = n.World; string nat = NameOf(w); int law = (int)w.MonetaryLaw;
@@ -106,11 +108,14 @@ public static partial class Instruments
                 if (isEnter) entered.Add(rec);
                 double ln = Math.Log(rec.PAg / rec.PAu);
                 bool oneSided = rec.DAu < 0.01 * rec.ProdAu;
+                bool oneSidedAg = rec.DAg < 0.01 * rec.ProdAg;   // (827)
+                if (oneSidedAg) oneAgCount++;
                 var ws = new[] { rec.W1, rec.WRef, rec.WVal, rec.WMax };
                 for (int f = 0; f < 4; f++)
                 {
                     sumW[f] += ws[f]; sumWLn[f] += ws[f] * ln; maxW[f] = Math.Max(maxW[f], ws[f]);
                     if (oneSided) oneW[f] += ws[f];
+                    if (oneSidedAg) oneAgW[f] += ws[f];
                     if (isEnter) enterW[f] += ws[f];
                 }
             }
@@ -125,6 +130,8 @@ public static partial class Instruments
         ag.EnterEqual = sk.HavePrev && ag.N > 0 ? (double)ag.EnterCount / ag.N : double.NaN;
         ag.EnterW1 = sk.HavePrev ? SilverstShare(enterW[0], sumW[0]) : double.NaN; ag.EnterRef = sk.HavePrev ? SilverstShare(enterW[1], sumW[1]) : double.NaN;
         ag.EnterVal = sk.HavePrev ? SilverstShare(enterW[2], sumW[2]) : double.NaN; ag.EnterMax = sk.HavePrev ? SilverstShare(enterW[3], sumW[3]) : double.NaN;
+        ag.OneAgEqual = ag.N > 0 ? (double)oneAgCount / ag.N : double.NaN; ag.OneAgW1 = SilverstShare(oneAgW[0], sumW[0]);   // (827)
+        ag.OneAgRef = SilverstShare(oneAgW[1], sumW[1]); ag.OneAgMax = SilverstShare(oneAgW[3], sumW[3]);
 
         string R(double v) => SilverWeightR(v);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
