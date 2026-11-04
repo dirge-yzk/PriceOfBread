@@ -10,6 +10,7 @@ ign = ['burscan_s', 'clock_s']
 if '--ignore' in sys.argv: ign += sys.argv[sys.argv.index('--ignore') + 1].split(',')
 def stem(f): return re.sub(r'\d+\.tsv$', '', f)
 fa = set(os.listdir(new)); fb = set(os.listdir(old))
+if '--only-new' in sys.argv: fb &= fa   # 新の側が一部の種だけ（例 種 1 だけの確かめ）のとき、新にある表だけを比べる
 both = sorted(f for f in fa & fb if stem(f) not in ign)
 same = 0; diff = []
 for f in both:
