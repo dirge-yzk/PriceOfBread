@@ -77,3 +77,12 @@
   ③ `bash scripts/instruments/ident/ident.sh run c65mdz --tree D:/PoB_work/wt_c65md --added-tables cpmed --tests-delta <新しい試験の本数>`（走行中はこの worktree にコミットもファイルの書きもしない）→〈判定: 恒等〉→ [7] を追記
   ④突然変異 M1・M2・M3・M4・M7 を使い捨ての木で（新しい試験と、腕の枠が空けば計器つき 2 種の腕で門の台本）⑤旗の既定を 1 にするコミット→ フルスイート（Category!=FullLength と FullLength を分ける・合計を --list-tests と突き合わせる）・savetest・leakhunt
   → 赤（[6] の予言の型）なら腕 B を回さず止める ⑥緑なら腕 B `INS=1 bash scripts/instruments/batch.sh run c65mdB 10`。形の変え直しは 1 回だけ。
+
+[6′] 追記（ident の前・旗 1 の出力を見る前・2026-11-04）：㉜ の予言の赤の扱い
+  - 予言どおり CollapsePeaceTests.cs:147〜159 が旗 1 で赤なら、それは :155 の前提の Assert（「前提が崩れた：調停の戦争が崩壊で上書きされていない」）＝置き換える旧の規則（調停の白紙を崩壊で上書きして払う）を前提に置いた試験。
+    機構の主張 :156（勝者の受け取りの和＝単独の満額 1 本分）は旗 1 でもそのまま通る見込み（調停の戦争は白紙・スペインとの戦争は 1 本の集合＝単独の満額）。波64 の FiscalTests.cs:651（2026-09-27 の規則 C）とは型が違う。
+  - 扱い：止めずに、この 1 本を新しい旗 ForcedPeaceBlankOverCollapse の Theory に直す（InlineData 0＝今の Assert を 1 字も変えない・InlineData 1＝|w1.Score|＜WhitePeaceScore・フランスの台帳の増分 0・|w2.Score|≧1.0・スペインの増分＝0.2×敗者の GdpPerMonth×r の単独の満額）。
+    根拠：作者 2026-11-04「全て推奨で。ただ、現状のタスクは完了する方向で」（㉜ の〈推奨つきで作者に聞く〉は推奨で先に答えが出ている）・ExecuteMediation の注〈白紙＝ResolvePeace が領土も賠償も動かさない〉・(791) の〈旧の挙動の所見〉・指示の〈新しい既定で通るように直すか、採らない〉。
+    これは ★(743) ①〜④ の外の書き換え＝verdict に〈ファイル:行・前と後〉で列挙し、㉜ と食い違うことを報告の先頭に書く。合流が ㉜ を優先するなら、旗 1 のコミット以後を落とせば旗 0 の器（ee48d223 まで）が残る。
+  - 試験の数の予言：ident（旗 0 の木）は Category!=FullLength 2226＋8＝2234（--tests-delta 8）・FullLength 3。Theory 化の後の旗 1 の木は 2234−1＋2＝2235・FullLength 3。
+  - G2a の紙の確かめ：今の盤面 keep_818/base_ins の cpeace_s で Σ repMovedIndex÷Σ repExpectIndex＝1.000000（1086 事象・事象ごとの比の最小 1.0・最大 1.0）＝正しい実装で門の内に入る。
