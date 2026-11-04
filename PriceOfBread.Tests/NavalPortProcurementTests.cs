@@ -161,6 +161,23 @@ public class NavalPortProcurementTests
         Assert.Equal(0.0, r2.StateSpent[(int)TreasuryCat.Navy]);
     }
 
+    /// <summary>(824) c65id 州が持ち主を替えるとき、月ごとに Simulation が書き直す海軍の予算と発注の複製を戻す（移った州が前の国の予算と発注を持ったまま計器の行に出ない・★(669) 追記 1）。
+    /// 旗 NavalPortProcurement の焼き込みで Territory の条件が外れた行（突然変異 M7＝その行を消す→緑で穴と判った）の番人。盤面＝英仏を60日→英の州2に予算 5 と発注を手で置き、仏へ割譲する。期待値は手で置いた値から独立に作る（0 と null）。</summary>
+    [Fact]
+    public void 州が持ち主を替えるとき海軍の予算と発注は戻る()
+    {
+        var sim = Frozen("イギリス", "フランス");
+        var from = sim.Nations[0].World; var to = sim.Nations[1].World;
+        for (int d = 0; d < 60; d++) sim.StepDay();
+        var r = from.Regions[2];
+        Assert.True(r.Id != 0, "前提が崩れた：州2が首都");
+        r.NavalBudget = 5.0; r.NavalOrder = new double[from.Coef.FleetGoodIds.Length];
+        Territory.TransferRegion(from, to, r, Territory.Rehoming.Ceded);
+        Assert.Contains(r, to.Regions);   // 州は受け手の国へ移った
+        Assert.Equal(0.0, r.NavalBudget);
+        Assert.Null(r.NavalOrder);
+    }
+
     /// <summary>★(688) 線 navf5 (a)：App の艦隊の行の充足の式を移した SimCore の関数 <see cref="EconomyStep.FleetAfford"/> の番人。式＝国の Σ州の予算 ÷ <see cref="EconomyStep.NavalPortSplit"/> の必要額（上限 1・必要額 0 は 0）。盤面は上の画面の番人と同じ（首都が港でない・港の州 2 つに手で置いた値段）。
     /// 期待値は国の予算を必要額の半分にして独立に作る（0.5）・予算が必要額を超えれば 1・値段が全て 0 で必要額が立たなければ 0。突然変異で赤：分母を首都の必要額にする。
     /// （旗 NavalPortProcurement の焼き込み〔(824)〕で、旧の枝〈首都の州の予算 ÷ 首都の値段の必要額〉を確かめる試験を消した。）</summary>

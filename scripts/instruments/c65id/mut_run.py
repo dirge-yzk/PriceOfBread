@@ -75,7 +75,7 @@ POST = {
     'M3b': ([(SIM, '        if (mainPop > 1e-9) { natSav = mainSav; natEarn = mainEarn; natPop = mainPop; }\n', '        if (mainPop > 1e-9) { natSav = mainSav; natEarn = mainEarn; natPop = mainPop; } else { natPop = 0; }\n')], F_POPSCAN,
             '本土の州が無い国の退避の枝で国平均の分母を 0 にする', ['全ての州が植民地格の国は国平均を全ての州で取る']),
     'M7': ([(TERR, '        r.NavalBudget = 0; r.NavalOrder = null;', '        // M7: 州が持ち主を替えるときの海軍の予算と発注の戻しを外した')], F_NPP + '|FullyQualifiedName~TerritoryTests|FullyQualifiedName~NavalCedeFleetReturnTests',
-           '州が持ち主を替えるときの海軍の予算と発注の戻しを外す（探り・結果は記録するだけ）', []),
+           '州が持ち主を替えるときの海軍の予算と発注の戻しを外す（r2post では緑＝穴→試験を足した・足した後の r4 は赤のはず）', ['州が持ち主を替えるとき海軍の予算と発注は戻る']),
 }
 
 MUTS = PRE if group == 'PRE' else POST
