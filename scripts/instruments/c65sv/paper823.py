@@ -4,6 +4,8 @@
 #   読む表: silverwt_s<種>.tsv（種 1〜10・旗 0 の盤面・助走の注入も含む 1 注入 1 行）。D:/… の形で渡す。
 #   判定: A′（relMinRef）と A（relMinVal）を別々に P1〜P4 に当て、対照（落ちるはずの形）が落ちることを同時に確かめる。選び方＝A′ が全て通れば A′・A′ が落ち A が通れば A・両方落ちたら採らない。
 import sys, os, glob, math, statistics as st
+try: sys.stdout.reconfigure(encoding='utf-8')
+except Exception: pass
 FLOOR, CEIL = 0.3, 3.0          # Coefficients の ExchangeRateFloor・Ceil（World.cs の挟み）
 P2_MAX, P3_MAX, P4_FRAC, P4_SHARE = 0.05, 0.05, 0.01, 0.5
 

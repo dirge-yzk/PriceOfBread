@@ -70,3 +70,9 @@
  ・門は旗 0（何もしない実装＝等重み）の盤面で落ちることを紙で確かめる設計：P2 は等重みの 0.412（m807 の紙の記録）で落ちる。P1・P3・P4 は旗 0 の等重みでは通る上限の門＝対照（w1・二乗）の形が落ちることで〈何でも通る門ではない〉ことを担保する。
  ・工業化度の読み手の許可表・`new MoneyStock(` の件数・route_anchors.tsv・WriterRatchetTests の宣言の表：触らない（grep 済み）。
  ・IndustrializationReaderTests の許可表は Instruments*.cs を名指しで数える（InstrumentsCapacity.cs など）。新しい InstrumentsSilverst.cs の行は表に無い＝読み手 0 なら赤にならない（㉘で確かめる）。
+
+[9] 追記 1（腕の前・器のコミットの後。腕の出力はまだ無い＝結果の後の変更ではない）
+ ・silverst_s の T1・TR・TV の行は、その形の票が正（＞0）の州だけを上位 5 まで書く（票 0 の州は順位に入れない）。[4-1] の〈上位 5 州〉の精密化で、列と行の選び方の他は変えない。
+ ・silverst_s の E・L の行は、seq＞1 のとき前の注入の走査の集合（計器が自分で持つ Region の参照の集合）との差。silverwt_s の enterCount・leaveCount は同じ集合の差の数。
+ ・足した試験は 4 本（SilverstInstrumentTests.cs：Fact 2＋Theory 1〔旗 0 と旗 1 の 2 行〕＝--list-tests で 4）＝tests-delta +4。
+ ・ident の宣言：--added-tables silverst_s --grown-ok silverwt_s --tests-delta 4。
