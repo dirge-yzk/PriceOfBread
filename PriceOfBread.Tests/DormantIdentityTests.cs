@@ -32,7 +32,7 @@ public class DormantIdentityTests
         "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
         // ★CapitalCouponUnpaidWriteDown（(815) c14fl 払えない利札で請求権を落とす）は 1 で**点火**（腕 B の木）＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests（旗を明示）。
-        "OpiumAddictionCapOff",   // (771) c6op アヘンの蓋の段1（0＝蓋 0.2・段2 で 1）
+        // ★OpiumAddictionCapOff（(771) c6op アヘンの蓋の段1・既定 0）は (830) で旗ごと削除（RetiredFields）。d は常に OpiumAddictionCap。
         // ★OpiumAddictionLogistic（(820) c65op 形 H）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は HabitTests の Theory（旗を明示）・HabitLogisticTests。
         // ★PortSameLandmassFirst（(779) c8pd 港の形 (d)）は線の枝で 1 に**点火**＝この表から外した。(785) c9bk で旗ごと焼き込み（欄は削除）＝番人は PortByLandTests の形d_ 3 本。
         "CapitalHeadroomFromReturn",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
@@ -321,6 +321,7 @@ public class DormantIdentityTests
         "FrontierDevelopmentRate", "FrontierUnlockThreshold", "ForceUnlockRate", "ForceUnlockTreasuryCostPerMonth", "ForceUnlockMilitancy",
         "PreemptiveSeizeWeight", "FertileAbsoluteBlend", "MigrationFarePerkKm", "NationalismFromConsciousness", "WorldPriceStatUnclamped",
         "LordOppositionByRentLoss", "LordOppositionReverseGain", "MandateWallStockCap", "FactionOpportunism",   // (803) c12lw：法の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は Rs2LordOppositionTests・Rs3LordReverseGainTests・MandateWallStockCapTests・RevoltIgnitionTests）
+        "OpiumAddictionCapOff",   // (830) c66id：アヘンの蓋の旗（(771)・既定 0＝蓋 OpiumAddictionCap）の焼き込み。正の枝〔d=+∞〕は形 H の下で形 H が黙って消える罠だった。計器 habitcap_s・habitbal_s も削除
         "MilitaryBudgetNeedCapped", "RegionalPriceBaseExcludesColonies", "MachineCastIronRecipe", "ParishEduFunded", "ChilledMeatEnabled", "KeroseneFromOilEnabled", "HouseholdProductionEnabled",   // (811) c13ia：Simulation.cs の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は MilitaryTests・IvfInitialValuesTests・ReformPathTests・HouseholdProductionTests ほか）
     ];
 

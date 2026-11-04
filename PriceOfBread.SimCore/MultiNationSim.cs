@@ -850,9 +850,9 @@ public sealed class MultiNationSim
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;
             // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
-            // 「先進勢力との接触」の実体から四半期導出する。外圧＝世界の技術水準との格差（GapScaleで正規化）×海からの接触係数
-            //（港あり=1/内陸=InlandFactor＝黒船は海から来る）。世界の技術水準国自身は格差0＝外圧0（追い風は後発の現象）。
-            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。点火2026-07-27（旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み）。
+            // 「先進勢力との接触」の実体から四半期導出する形で点火した（2026-07-27・旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み）。★(824) 以後：外圧＝技術の格差 gap（下で 0 を書く）×海からの接触係数（港あり=1／内陸=InlandFactor）＝**常に 0**。
+            //   技術水準の削除（段2a・旧の旗 TechSignalOff の焼き込み）で技術の格差は外圧に入れない。書き込みは残す（NationConfig の死んだ定数 0.3 を残さない）。
+            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。
             foreach (var n in Nations)
             {
                 var w = n.World;

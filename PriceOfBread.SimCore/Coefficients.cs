@@ -2507,10 +2507,11 @@ public sealed class Coefficients
     // アヘン（特殊資材・実験）：消費するほど中毒度が上がり、それが需要に上乗せされる＝供給が需要を生む正のフィードバック（暴走する想定）。
     public int OpiumGoodId = Catalog.OpiumId;                     // アヘンの good.Id
     public double OpiumAddictionGrowth = 0.1;        // P3点火0.1（2026-07-18＝Phase B実現。0.2はハーネス13/30＝依存→満足↓→困窮消費の発散で却下）。0=機構全体オフ（恒等）。点火で困窮ゲート消費・労働/満足ペナルティ・世界プール参加・AI禁令・輸出国緊張が全て連動
-    public double OpiumAddictionCap = 0.2;           // 中毒度ストックの生理的上限（州人口の実効障害の飽和＝発散の物理的な蓋）
+    public double OpiumAddictionCap = 0.2;           // 依存者 1 人の上乗せの量 d（(826) から形 H が既定＝在庫は 0〜d・成長の項に (1−在庫/d)・在庫/d が依存者の割合）。旗 OpiumAddictionLogistic が 0 の旧の線形の式では在庫の蓋（州人口の実効障害の飽和＝発散の物理的な蓋）。有限の正の値で使う（+∞ を置くと形 H の (1−在庫/d) が 1 になり、蓋のない線形の式とビットで一致する）
     public double CollapsePeaceOneShare = 1;         // (791) c10cp：崩壊の講和の取り分の旗（既定 1＝腕 B の採否の後に確定）＝0 で旧（同じ月に同じ敗者が崩壊で負ける戦争ごとに賠償の元・植民地の奪取の予算・本国の割譲が満額＝連合の N 本で N 倍・設計思想⑨の二重計上）・正で 1 回分（賠償の元＝max 戦勝点×取り分・植民地の奪取の予算＝同×ColonyCaptureBudget×取り分・本国の割譲＝集合で 1 回・取り分＝勝者の押しの累計 PushA／PushB の比）。新しい定数・倍率・状態は無い。AI とプレイヤーで同じ経路。
-    public double OpiumAddictionCapOff = 0;          // (771) c6op 段1：アヘンの蓋の旗＝0 で蓋 OpiumAddictionCap（0.2）・正で蓋なし（段2 で既定 1 にする）。確証なし（蓋を外すと労働の床 0.5＝Habit.LaborFactor へ張り付きが移る・Growth 0.2 は発散で却下）
-    public double OpiumAddictionLogistic = 1;        // (820) c65op 形 H：依存を人の割合のロジスティックへ（既定 1＝線の枝で点火・採否は合流）＝0 で旧の式（線形＋蓋 0.2）・正で s' = s + 成長×1人あたり消費×(1 − s/d) − 減衰×s（d＝OpiumAddictionCap＝依存者 1 人の上乗せの量・h = s/d が依存者の割合・CapOff が正なら d=+∞＝線形とビットで一致）。確証なし（AI の推奨・作者「全て推奨で」で推奨を採った）
+    // 【墓標2026-11-04 (830)・旗の焼き込み】OpiumAddictionCapOff（(771) c6op 段1・既定 0＝蓋 OpiumAddictionCap・正で蓋なし＝d=+∞）を消した＝d は常に OpiumAddictionCap。形 H の下で旗を正にすると d=+∞ で (1−在庫/d)=1 になり形 H が黙って消える罠を持っていた（(820)(826)）。
+    //   旧新の蓋と釣り合いの計器 habitcap_s・habitbal_s（(771)(787)）も削除（読み手は旗だけだった）。名前の復活は DormantIdentityTests.RetiredFields が拾う。
+    public double OpiumAddictionLogistic = 1;        // (820) c65op 形 H：依存を人の割合のロジスティックへ（既定 1＝(826) 合流で採用）＝0 で旧の式（線形＋蓋 0.2）・正で s' = s + 成長×1人あたり消費×(1 − s/d) − 減衰×s（d＝OpiumAddictionCap＝依存者 1 人の上乗せの量・h = s/d が依存者の割合）。確証なし（AI の推奨・作者「全て推奨で」で推奨を採った）
     public double OpiumAddictionDecay = 0.02;        // 中毒度の自然減（成長>減衰なら発散）
 
     // === リアリティ監査 2026-07-02 Wave1（致命バグ・保存則・ガード）===

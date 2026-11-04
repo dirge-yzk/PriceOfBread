@@ -1047,7 +1047,7 @@ public sealed class Region
     public double MilitaryBudget;                     // 陸の装備の調達に充てられる国庫（Simulation が設定）。★(189) 艦は含まない（艦は下の NavalBudget）
     // ★海軍の予算（2026-10-03 (189)・作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」・2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、
     //   軍事費を分割するようにしよう」）＝軍事費の器から給与を払った残り（装備の器）×海の金の割合（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI とプレイヤーの同じ法の値）を、
-    //   海軍の調達の必要額（EconomyStep.NavalProcurementNeed＝目標の艦隊と在庫の差）で切った額。Simulation が月初に書き（国家の支払い率 r を掛ける）、EconomyStep の海軍の調達が読む。
+    //   海軍の調達の必要額（EconomyStep.FleetOrder の必要額＝目標の艦隊と在庫の差）で切った額。Simulation が月初に書き（国家の支払い率 r を掛ける）、EconomyStep の海軍の調達が読む。
     //   月ごとに作り直す作業の値（陸の MilitaryBudget と同じ型）＝旧 ShapeNavalShare（陸海の再配分の比・軍需を兵の頭数×海の割合で買った）を置き換えた（状態の数は同じ）。
     public double NavalBudget;
     public double MilitaryBudgetCeiling;              // 軍需予算の**上限**＝歳入シェア側の額（必要額で切る前。Simulation が設定）。恒常性の信号（MilitaryAffordRaw）はこちらから取る＝

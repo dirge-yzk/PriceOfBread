@@ -2085,7 +2085,7 @@ public sealed class Simulation
         //   州の並びに依らない（EconomyStep の Run は州ごとに順に走り、前の州の決済で国の艦の在庫が増える＝Run の中で FleetOrder を引くと後の州の発注が減る）。FleetOrder が読む港の門 NationHasPort は州ループの中で毎月書く値なので先に写す。
         foreach (var pr in World.Regions) pr.NationHasPort = navalYard;
         var navShare = new double[World.Regions.Count]; var navBudShare = new double[World.Regions.Count];
-        // 国の艦の発注の必要額 navNeedNat（★(669) 追記 1：各州が自分の値段で買う額の和・首都だけに配る国は旧の NavalProcurementNeed と同じ）＝予算の上限を国の1本で引く
+        // 国の艦の発注の必要額 navNeedNat（★(669) 追記 1：各州が自分の値段で買う額の和・首都だけに配る国は首都の州の FleetOrder の必要額と同じ）＝予算の上限を国の1本で引く
         double[]? navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out double navNeedNat);
         World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
         int navIdx = -1;

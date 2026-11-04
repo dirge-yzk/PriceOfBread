@@ -30,7 +30,7 @@ public class NavalCedeFleetReturnTests
     }
 
     [Fact]
-    public void 旗1で割譲の州の艦は送り手の首都の州へ戻り受け手に渡らない()
+    public void 割譲の州の艦は送り手の首都の州へ戻り受け手に渡らない()
     {
         var (from, to, r) = Setup(false);
         var cap = from.Region;
@@ -44,7 +44,7 @@ public class NavalCedeFleetReturnTests
     }
 
     [Fact]
-    public void 旗1で首都の州が割譲されるときは遷都の後の新しい首都へ送る()
+    public void 首都の州が割譲されるときは遷都の後の新しい首都へ送る()
     {
         var (from, to, r) = Setup(true);
         var oldCap = r;
@@ -59,7 +59,7 @@ public class NavalCedeFleetReturnTests
     }
 
     [Fact]
-    public void 旗1でも建国と送り手の州が0になる割譲は艦が州に付いて行く()
+    public void 建国と送り手の州が0になる割譲は艦が州に付いて行く()
     {
         // 建国（Seceded・to＝null）は旗を見ない
         var (from, _, r) = Setup(false);

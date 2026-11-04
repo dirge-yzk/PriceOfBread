@@ -1,0 +1,74 @@
+(830) c66id 形 H の後の注の一巡・OpiumAddictionCapOff と計器 habitcap_s・habitbal_s の焼き込みと削除・NavalProcurementNeed・試験の名前・係数の関係の番人（恒等の線）事前登録 2026-11-04
+基線＝m826（main 4e7fd41f・測った木 cbc11c34・SOURCE-HASH cbb717a976b69e18）。枝 c66id（4e7fd41f から）・worktree D:/PoB_work/wt_c66id。出発＝§00〈次の波（波66〜）〉④ と (820)(824) の反証役の残り（実装ログ (771)(787)(793)(820)(824)(826)・measurements/m820_*・m824_*・00一覧〈(3) リファクタの候補〉）。作者「全て推奨で。ただ、現状のタスクは完了する方向で」（2026-11-04）で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。担当 c66id は Claude Sonnet 5.5。
+作ったフォルダ：D:/PoB_work/wt_c66id（worktree）・D:/PoB_work/c66id_work（作業・突然変異の木）・D:/PoB_work/c66id_art（隔離ビルド）・ident の出力 D:/PoB_work/ident_c66id。ほかの D: は触らない。
+D: の掃除（開始の時に 1 回）：Win32_Process で PoB_work を使うプロセスは 0 を確かめてから、波65 の線の生 10 個（ident_c65ce・ident_c65sv・ident_c65id・ident_c65opz・c65op_work・c65fl_work・c65ce_work・c65id_work・c65md_work・r825_work）を消した。空き 32GB → 90GB（他の線の始まりの分を含む）。ほかは消していない。
+
+[0] 形の種類＝尾（旗の旧い枝の削除・古い注の直し・読み手 0 の削除・計器 2 表の削除・試験の改名と穴埋め）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0。AI とプレイヤーで同じ経路（旗の焼き込みだけ）。確証＝あり（旧い枝の削除＝挙動なし）。
+
+[1] 恒等の線・予言 0
+    素の 5 種・計器つき 10 種の成績表が m826（b5_20261104_m826・b10_20261104_m826_ins）と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差＝habitcap_s と habitbal_s の 2 本が消えるだけ（宣言 --removed-tables habitcap_s,habitbal_s）。ほかの表（habitlg_s・opium_s ほか）は全行一致。.cost の件数の行の差は 0（計器の口は件数に数えない・EconomyStep の旗の枝は元から既定 0 の経路を通っていた）。NG の集合は触らない（ng.sh は回さない＝成績表の全行一致が NG の同一を含意する）。判定は〈測った種で一致〉（証明とは書かない）。
+
+[2] 消す物と残す物（読み手の grep＝2026-11-04・4e7fd41f の木・SimCore／Runner／App／SimCore/Display／Tests／scripts／measurements の台本／POB_COEF の名前／SaveGame）
+  grep の結果の要約
+    OpiumAddictionCapOff：SimCore＝Coefficients.cs:2512（宣言）・Habit.cs:9（cref）・:28（三項）・InstrumentsHabitcap.cs:5・:60・InstrumentsHabitlg.cs:56。Runner・App・Display＝0 件。Tests＝DormantIdentityTests.cs:35・HabitLogisticTests.cs:13・HabitTests.cs:7・18・181・253〜335。scripts＝c6op/mutate.py・c9op/mutate.py・r793/run_r793.sh（閉じた線の台本＝過去の記録・触らない）・ident.cfg（注のみ）。batch.sh・measure.sh・POB_COEF でこの名を渡す今の台本は 0（grep 済み）。measurements の旧い .cost・.manifest は過去の記録。SaveGame＝旗は Coefficients の欄でセーブの欄ではない（savetest で同じ版の往復を確かめる）。
+    habitcap_s・habitbal_s：SimCore＝InstrumentsHabitcap.cs（ファイルごと）・Instruments.cs:1845・:1846（登録の 2 行）・EconomyStep.cs:1826（口の呼び出し 1 行）・InstrumentsHabitlg.cs（HabitcapSink・HabitcapR を借りている）。Tests＝HabitTests.cs:285〜376（HabitCapPair・HabitBalCeiling・HabitBalViolates・2 本の tsv を読む試験）。scripts＝m773/habitcap_check.py・c9op の gate.py ほか（閉じた線の台本）。Runner・App・Display＝0 件。
+    NavalProcurementNeed：SimCore＝EconomyStep.cs:366（宣言）・:208（cref）・Model.cs:1050（注）・Simulation.cs:2088（注）。本体の読み手＝0。Tests＝MilitaryTests.cs:841 の Assert 1 行だけ。scripts＝c14id/mut_run.py の M1b（(817) の突然変異の台本＝消えた行を指す閉じた線）。Coefficients.cs の NavalProcurementNeedsPort は別の名前（(812) で墓標）。
+  (A) OpiumAddictionCapOff（既定 0＝蓋 d＝OpiumAddictionCap の経路だけ残し、正の枝〔d=+∞〕を消す）
+    A1 Coefficients.cs:2512 の宣言を墓標にする。:2510 OpiumAddictionCap の注を〈依存者 1 人の上乗せの量 d（形 H）／旧の線形の式では蓋〉へ直す。:2513 OpiumAddictionLogistic の注の〈CapOff が正なら d=+∞＝線形とビットで一致〉を直す（持ち主の名指し 2510〜2512 の 1 行外・誰の持ち物でもない行＝報告に列挙）。
+    A2 Habit.cs:28 の三項 → `c.OpiumAddictionCap`。:9 の cref と NextStock の注〈上限が +∞（蓋なしの旗）なら線形〉を直す。浮動小数の順序の変化＝0（既定側を残すだけ）。
+    A3 InstrumentsHabitlg.cs:56 の d の三項 → `c.OpiumAddictionCap`。:5 の注。HabitLgPair・HabitLgEquilibrium の +∞ の枝は消さない（純関数・HabitLogisticTests〈計器の釣り合いの判定は手の算術〉が +∞ で呼ぶ）。
+    A4 DormantIdentityTests.cs:35 の DormantZeroFields の行を消し、RetiredFields に OpiumAddictionCapOff を足す（番人を写しただけの例外として verdict に列挙）。
+    A5 HabitTests：:18 の旗 0 の明示の行を消す（④）。:181 の RunMatch の capOff 引数を消す（呼び手 HabitLogisticTests.cs:78 の `capOff: 0` の 1 行も変わる＝持ち主の名指し :13 の外・列挙）。:253〜335 の旗の試験と habitcap_s の試験を ① で消す（下の [5]）。HabitLogisticTests.cs:13 の H の capOff 引数を cap 引数（既定 0.2＝焼き込んだ値）へ付け替える ③。〈蓋なしの旗では線形とビットで一致〉の段は d=+∞ を係数 OpiumAddictionCap=+∞ で置く（主張の double は同じ・③）。テスト名は改名の名指しの外なので触らない（名前が古くなる旨を推奨として報告）。
+    A6 scripts の閉じた線の台本（c6op・c9op・r793・c65op/paper_op.py ほか）は触らない（過去の記録）。
+  (B) 計器 habitcap_s・habitbal_s の削除
+    B1 InstrumentsHabitcap.cs を削除。ただし InstrumentsHabitlg.cs が使う HabitcapSink と HabitcapR の定義はそのまま（名前も変えず）InstrumentsHabitlg.cs へ移す（文字の移し）。InstrumentsHabitlg.cs:4 の注〈InstrumentsHabitcap.cs の型〉を直す。InstrumentsInheritIntent.cs:4 の同じ注は持ち主の外＝触らず報告に書く（コメントだけ）。
+    B2 Instruments.cs:1845・1846 の 2 行を消す。隣は :1847 HabitlgTable（残す）・c66cg が触る CearnTable は :1861（15 行離れている）・CearnRegister :303・CearnSav :1239・CearnWarm :1772・CearnClose :1894＝重ならない。
+    B3 EconomyStep.cs:1826 の HabitCapStep の呼び出しを消す。:1828 の注〈P3：生理的上限…物理の蓋〉を形 H の後の意味へ直す（docs の :1837 は古い）。
+    B4 HabitTests の旧い 2 表の試験 → 消す ①。足す試験は [5]。
+  (C) NavalProcurementNeed（本体の読み手 0 を grep し直した）
+    C1 EconomyStep.cs:366〜370 を消す。:208 の cref を FleetOrder の必要額へ直す。Model.cs:1050 の注・Simulation.cs:2088 の注（持ち主の外の 1 行・列挙）を直す。MilitaryTests.cs:841 の `Assert.Equal(0.0, EconomyStep.NavalProcurementNeed(r, c, w));` 1 行を ④（消したメンバーの Assert）で消す。前の行の `Assert.Null(FleetOrder(...))` が港なしの主張を持つ。
+  (D) 注の一巡（コードを変えない）
+    D1 MultiNationSim.cs:852〜855〈外圧＝世界の技術水準との格差（GapScale で正規化）〉→ (824) 以後は格差 0 の書き込み（ExternalPressure は常に 0）へ。c66sv の持ち分 30〜45・880〜905 と離れている（重ならない）。
+    D2 DiscoveryEngineerTests.cs の T3 の注（:177〜179）〈⚠壊し方＝制度と思想の行に技術水準の比を戻す…〉は事実と違う（measurements/m824_20261104_mutation.txt の Mu1・Mu10 で緑）＝出所をこの記録に直し、本当の番人は TechLevelRemovalTests（段2b）と InstitutionAnchorTests と書く。
+  (E) 試験の名前（★(743) ⑤・名指しの 3 本だけ）
+    NavalCedeFleetReturnTests.cs:33〈旗1で割譲の州の艦は…〉・:47〈旗1で首都の州が…〉・:62〈旗1でも建国と…〉から〈旗1で〉〈旗1でも〉を取る。ほかは改名しない。本数は変わらない。
+  (F) 係数の関係の番人 1 本（新しいファイル CoefficientRelationTests.cs・持ち主の重なりなし）
+    既定を別の出所のリテラルで固定（WarPushSpeed 0.10・WarLuck 0.12・WhitePeaceScore 0.25）した上で関係 WarPushSpeed＋WarLuck ＜ WhitePeaceScore を主張する（意味＝運が全部同じ向きに出て一方だけが押す戦線でも、1 か月の戦勝点の動きは 0 から白紙の線を跨がない＝(821) の反証役）。
+  浮動小数の順序が変わる箇所＝0（三項の既定側を残す・行の削除・注の直しだけ）。同じ盤面で旧と新の比較の食い違いの数＝紙の台本：旧の d＝(CapOff>0 ? +∞ : Cap) は既定 CapOff=0 で Cap を返す＝新と同じ。旗 1 の下で呼ぶ旧と新の比較は定数の置き換えなので食い違い 0 は紙で自明。予言＝0。
+
+[3] 試験と突然変異（門ごとにどの試験・どの門で赤になるかの表・㉚）
+  使い捨ての木：D:/PoB_work/c66id_work/mut/tree（完成した木の写し・変異を 1 つずつ当てて戻す）。出力は measurements/m830_20261104_mutation.txt にコミット。
+    Mu1 CapOff の正の枝を残したまま注だけ直す（欄 OpiumAddictionCapOff と Habit.cs の三項を復活）→ 赤にしたい試験：DormantIdentityTests〈削除した休眠の係数は戻っていない〉（RetiredFields に足した欄が戻る）。〈係数は全て本体のどこかで読まれる〉は緑（読み手がある）。
+    Mu2 habitcap_s の登録だけ残す（Instruments.cs の登録の位置に habitcap_s{seed}.tsv を書く 1 行を足す）→ 赤にしたい試験：HabitTests の新しい〈アヘンの計器は旧の蓋と釣り合いの表を出さない〉。InstrumentsTests に表の一覧を比べる試験は無い（grep 済み・表の名前の語は 0 件）＝コンパイル失敗でなく、新しい試験と ident の --removed-tables の宣言の外れが門。
+    Mu3 T3 の正の対照（hi＞lo）だけが拾う変異：Discovery.TechRatioOf の製法の行の比を 0.0 に固定 → T3 は 〈≦ 70×min(1, 比)〉 の Assert では通り、hi＞lo の Assert で赤。Mu3b＝同じ変異で T3 の hi＞lo の Assert を外した使い捨ての木 → 緑なら T3 の陽性の対照が唯一の拾い手（穴の名乗りでなく対照の必要の証拠）。他の赤（TechLevelRemovalTests 段2b ほか）も記録する。
+    Mu4 WhitePeaceScore の既定を 0.2 にする → 新しい関係の番人が赤（0.10＋0.12＝0.22 ＞ 0.2）。ほかの既定を固定する Assert（WarVerdictTests〈既定の白紙の線 0.25〉）も赤になる＝予言。
+    Mu5 Habit.Of の Cap を +∞ に固定（蓋の読みを壊す）→ HabitTests〈アヘンの行は今の係数の値〉の h.Cap==0.2 が赤。
+    Mu6 InstrumentsHabitlg の d を +∞ に固定 → HabitLogisticTests〈ロジスティックの表は…〉（stockMaxIndex ≦ 0.2・疑似の釣り合い）が赤になるかを記録（赤でなければ穴を名乗る）。
+  突然変異の表（門→赤にする試験）：上のとおり。結果は〈予言どおり〉〈予言と違う〉を行ごとに書く。予言と違って緑のまま残る変異は、穴を名乗るだけで終わらせず同じ線で機構の試験を足す（★(790)）。
+
+[4] ㉘ ソースを走査する番人の点検（grep の結果・2026-11-04・4e7fd41f の木）
+    工業化度の読み手の許可表（IndustrializationReaderTests.Allowed）：触る行のコード部（`//` の前）は表の語を含まない（Habit・Instruments の登録・EconomyStep の習慣の行・NavalProcurementNeed の本体は工業化度の語を含まない）。変化の予言＝0 行（ファイル別すべて）。
+    `new MoneyStock(` の件数（UnitTypeTests）：触る行にも足す試験にも書かない＝変化 0。
+    route_anchors.tsv の鍵（scripts/instruments/flow262/route_anchors.tsv）：Habit・Instruments の習慣の行・Naval の関数は鍵の行でない＝変化 0。
+    WriterRatchetTests の宣言の表：触らない（件数の行の差 0）。
+    DormantIdentityTests：RetiredFields に OpiumAddictionCapOff を足す・DormantZeroFields から外す（番人を写しただけの例外として verdict に列挙）。〈係数は全て本体のどこかで読まれる〉〈削除した係数は戻っていない〉〈既定ゼロの係数は…〉は緑のはず。
+    DormantIdentityTests／UnitTypeTests／IndustrializationReaderTests／WriterRatchetTests／InstrumentsTests／GoodIdGuardTests の 6 組を器のコミットの直後に隔離ビルドで回す。
+    GoodIdGuardTests（scripts の *.py を走査）：台本に C# の整数配列の字面を書かない。
+    SaveGame：旗は Coefficients の欄＝セーブの欄ではない。savetest で同じ版の往復を確かめる。POB_COEF の名前解決：CapOff を渡す今の台本は 0。
+
+[5] テストの数（--tests-delta の予言）
+    HabitTests：旗の既定と旗 1 の Fact 1 本・呼び手の更新まで届く Fact 1 本・蓋の旧新の純関数 Theory 2 行・蓋の表 Theory 2 行・釣り合いの算術 Fact 1 本・釣り合いの表 Fact 1 本＝**−8**（①）。足す試験＝HabitTests に〈アヘンの計器は旧の蓋と釣り合いの表を出さない〉1 本（+1）・CoefficientRelationTests に 1 本（+1）。HabitLogisticTests・MilitaryTests・DiscoveryEngineerTests・NavalCedeFleetReturnTests・DormantIdentityTests は本数を変えない。
+    予言＝Category!=FullLength 2250 → 2244（--tests-delta −6）・FullLength 3。突然変異で穴が出て試験を足したら追記する。
+
+[6] 腕（挙動を変えない＝腕 A のみ）
+    `bash scripts/instruments/ident/ident.sh run c66id --tree D:/PoB_work/wt_c66id --work D:/PoB_work/ident_c66id --removed-tables habitcap_s,habitbal_s --tests-delta -6 --saveleak`（run_in_background・走行中はその worktree にコミットしない・ファイルも書かない＝㉙）。腕の枠は `bash scripts/instruments/tools/arms.sh free` が 3 以上のときだけ始める。足りなければ印を waitmark で待つ（存在する印だけ）。
+    フルスイート（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる）・savetest・leakhunt は ident の後に隔離ビルドで。
+
+[7] 他の線との重なり（2026-11-04・各線の持ち主のファイルを突き合わせた）
+    Coefficients.cs：c66id＝2510〜2513 だけ。c66dw＝1008 行付近だけ・c66sv＝3438〜3439（旗の行）。離れている。
+    Instruments.cs：c66id＝1845〜1846 の削除。c66cg＝cearn_s の登録の行（CearnTable :1861 の近く）。15 行離れている。
+    MultiNationSim.cs：c66id＝852〜855 の注（コメントだけ）。c66sv＝30〜45 と 880〜905。離れている。
+    EconomyStep.cs・Habit.cs・InstrumentsHabitlg.cs・InstrumentsHabitcap.cs・Model.cs・Simulation.cs（2088 の注 1 行）：ほかの線の持ち分に無い。
+    DormantIdentityTests.cs：c66id＝:35 の 1 行（と RetiredFields の末尾に 1 行）。c66sv・c66dw が自分の旗の行を触るなら別の行。
+    App・SimCore/Display・Runner：触らない（grep で読み手 0 を確かめただけ）。

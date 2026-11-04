@@ -9,8 +9,8 @@ namespace PriceOfBread.Tests;
 [Collection("Instruments")]
 public class HabitLogisticTests
 {
-    static HabitProfile H(double logistic = 1, double capOff = 0)
-        => Habit.Of(new Coefficients { OpiumAddictionLogistic = logistic, OpiumAddictionCapOff = capOff }, Catalog.OpiumId);
+    static HabitProfile H(double logistic = 1, double? cap = null)   // (830) 旗 OpiumAddictionCapOff の焼き込み：d＝+∞ は係数 OpiumAddictionCap に直に置く（既定は null＝係数の既定 0.2）
+        => Habit.Of(cap is { } d ? new Coefficients { OpiumAddictionLogistic = logistic, OpiumAddictionCap = d } : new Coefficients { OpiumAddictionLogistic = logistic }, Catalog.OpiumId);
 
     [Fact]
     public void 形Hの更新は手の算術_挟みは0からd_蓋なしの旗では線形とビットで一致()
@@ -23,8 +23,8 @@ public class HabitLogisticTests
         Assert.Equal(0.0244, Habit.NextStock(h, 0.0, 0.244), 12);  // 依存者が居なければ成長の項はそのまま（0.1×0.244）
         Assert.Equal(0.2, Habit.NextStock(h, 0.3, 0.1), 12);       // d を超えた在庫（0.3−0.005−0.006＝0.289）は d へ挟む
         Assert.Equal(0.0, Habit.NextStock(h, 0.05, double.NaN));   // NaN は 0
-        // 蓋なしの旗（d＝+∞）：s/d＝0 ＝線形の式とビットで一致
-        var hf = H(capOff: 1); var hl = H(logistic: 0, capOff: 1);
+        // 蓋なし（d＝+∞）：s/d＝0 ＝線形の式とビットで一致
+        var hf = H(cap: double.PositiveInfinity); var hl = H(logistic: 0, cap: double.PositiveInfinity);
         Assert.True(double.IsPositiveInfinity(hf.Cap));
         foreach (var (s, pc) in new[] { (0.05, 0.3), (0.19, 1.0), (3.0, 0.7), (0.0, 0.0) })
             Assert.Equal(BitConverter.DoubleToInt64Bits(Habit.NextStock(hl, s, pc)), BitConverter.DoubleToInt64Bits(Habit.NextStock(hf, s, pc)));
@@ -77,7 +77,7 @@ public class HabitLogisticTests
     public void ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(double logistic)
     {
         const int quarters = 12;
-        var (_, dir) = HabitTests.RunMatch(quarters, instr: true, capOff: 0, logistic: logistic);
+        var (_, dir) = HabitTests.RunMatch(quarters, instr: true, logistic: logistic);
         try
         {
             var rows = Rows(dir!, "habitlg_s1789.tsv", out var D, out var I);

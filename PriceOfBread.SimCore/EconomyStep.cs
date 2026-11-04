@@ -205,7 +205,7 @@ public static class EconomyStep
     ///（budget=estCost なら afford=1 で差が消える）、機関銃・装甲艦以降の3段が全世界で調達不能になる＝死蔵財を増やす。
     /// 段のゲートは調達ブロックの入れ子と揃える（上位段の財が無い小シナリオでは、その先の段も数えない）。
     /// ⚠燃料（空軍/輜重）と艦隊修理は含めない。
-    /// ★(189)：陸の装備の段は艦（<see cref="Coefficients.FleetGoodIds"/>）を買わない（<see cref="LandMul"/>＝0）＝艦は海軍の調達（<see cref="NavalProcurementNeed"/>・別の予算）。
+    /// ★(189)：陸の装備の段は艦（<see cref="Coefficients.FleetGoodIds"/>）を買わない（<see cref="LandMul"/>＝0）＝艦は海軍の調達（<see cref="FleetOrder"/> の必要額・別の予算）。
     ///   旧＝陸海の再配分（ProcureMul＝理想の海の割合÷一律レートの海の割合）で艦も同じ段の中で買った＝軍艦の購入は兵の頭数（MilitaryScale）×海の割合だった。</summary>
     internal static double MilitaryProcurementNeed(Region region, Coefficients coef)
     {
@@ -360,13 +360,6 @@ public static class EconomyStep
             cost += d * region.Markets[coef.FleetGoodIds[k]].Price;
         }
         return q;
-    }
-
-    /// <summary>★海軍の調達の必要額（2026-10-03 (189)）＝<see cref="FleetOrder"/> の必要額＝Simulation が海軍の予算（Region.NavalBudget）の上限に使う（陸の <see cref="MilitaryProcurementNeed"/> と対）。</summary>
-    internal static double NavalProcurementNeed(Region region, Coefficients coef, World? world)
-    {
-        FleetOrder(region, coef, world, out double cost);
-        return cost;
     }
 
     /// <summary>★(606) 線 navf：発注 <paramref name="q"/>（財ごとの隻数）の必要額＝その州の今の市場の値段で（<see cref="FleetOrder"/> の必要額の和と同じ式・同じ順）。旗 NavalPortProcurement は (824) で焼き込み＝港の州の発注（<see cref="Region.NavalOrder"/>）の必要額を読む経路から呼ばれる。</summary>
@@ -1823,9 +1816,8 @@ public static class EconomyStep
             {
                 double perCapita = totalPop > Eps ? sold / totalPop : 0;
                 if (insOn) Instruments.HabitSold(region, sold);   // (342) 計器（読むだけ）：州のその月の販売量
-                if (insOn && !world!.WarmupFrozen) Instruments.HabitCapStep(region, coef, habit, region.OpiumAddiction, perCapita);   // (771) 計器（読むだけ）：アヘンの蓋の旧新の次の在庫（更新の前＝同じ前の在庫・助走の月は数えない）
                 if (insOn && !world!.WarmupFrozen) Instruments.HabitLgStep(region, coef, perCapita);   // (820) 計器（読むだけ）：ロジスティックの旧新（前の月の遷移を今の在庫で閉じる・係数から自分で組む）
-                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // P3：生理的上限＝依存→満足↓→困窮消費↑の正帰還に物理の蓋（0.2上限でも労働−最大20%・満足−最大10%）
+                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // (820) 形 H（旗 OpiumAddictionLogistic 既定 1）：在庫は 0〜d（d＝OpiumAddictionCap＝依存者 1 人の上乗せの量・成長の項に (1−在庫/d)）＝依存→満足↓→困窮消費↑の正帰還は d を超えない（旗 0 の旧の線形の式では d が蓋）。d＝0.2 でも労働−最大20%・満足−最大10%
             }
 
             // ★popが自腹で買った量の階級別記帳（作者フィードバック2026-08-10 項目6）＝生産タブの「用途」先頭行が読む唯一の出所。
