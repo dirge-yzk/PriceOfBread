@@ -1,0 +1,91 @@
+(837) c67ss 自給の世帯の家計の段 1 の恒等の計器 subst_s と、地主の政治 C1 の恒等の計器 cornint_s の事前登録（波67・恒等の線＋読み・枝 c67ss・f32502c3 から・書いたモデル Claude Sonnet 5.5）
+この文書は計器を書く前・腕を回す前の最初のコミット。結果を見た後にここを書き換えない（書き換えるなら〈結果の後の変更〉と名乗る）。
+作者「全て推奨で」で推奨を採って進める（承認の言葉ではない）。全ての門・閾値・窓・列の定義は AI の案（確証なし）。
+
+■ [0] 出発と答え
+  - 出発：§00〈次の波（波67〜）〉⑤ の (D) D1 の恒等の計器と (C) C1 の計器。設計の段の元は c65ds の S3 段 1（2本の支配度と自給の世帯の家計_下書き.md 113 行・門の素案 133 行）と c66ds の §3 C1・§4 D1・末尾の反証役の訂正 8 件。
+  - 答え：★(826) ⑤ Q2〈開幕の 0.7 の 3 割を、地代と税を払うために売った分として、土地税の算定の基準と同じ 1 本の腕で入れる。〈売れ残った労働〉の基準は、計器で測ってから設計の材料の線が決める〉・★(832) ② A1・B1。
+  - この線は計器だけ。Subsistence=0.7 の置き換え・土地税の算定の基準・A1 と B1 の状態・CornLaws と関税の式の変更・App・Display・Runner は入れない。
+  - 腕の前に読んだ物：materials は measurements/m831_20261104/farm_unsold_m826.txt（売れた÷能力の中央は開幕 0.135・1850〜99 は 0.436・売れた÷産出は 0.95 前後・失業の式は p90 まで 0）。
+
+■ [1] 恒等の線・予言 0
+  - 挙動を変えない。計器の表を 2 本足す（subst_s・cornint_s）。係数・状態・乱数・浮動小数の順序の変更 0。旗を足さない。
+  - エンジンの行に足すのは計器の呼び 2 行だけ（Instruments.cs の Quarter の末尾に 1 行・Close に 1 行）。金を動かすファイル（Fiscal.cs・Colonial.cs・InternationalMarket.cs ほか）には 1 行も足さない＝cearn_s の経路の 3 列（inTop1Route・outTop1Route・outTop2Route）の〈ファイル:行〉は動かない（★(832)）。cearn_remap.py を回す必要は無い（この線は Instruments.cs と新しい 2 ファイルと試験にしか触れない）。
+  - 推定の計算量の割り当て 0 秒（.cost の推定が一致することを ident で確かめる）。計器は INS=1 のときだけ動く。
+  - 紙の台本で数える旧≠新の食い違いの数：浮動小数の順序が変わる箇所は 0（エンジンの式を 1 つも触らない）＝列挙する箇所なし。
+
+■ [2] 足す物・消す物・残す物（読み手の grep つき）
+  足す物：
+  - SimCore/InstrumentsSubst.cs（新しいファイル）：表 subst_s（州×四半期）・名乗りつきの定数 SubstCalibration（0.89）・SubstD1Ref（0.866）・純関数 SubstD1・SubstD2・SubstDerived・四半期の末の口 SubstTable・閉じる口 SubstClose。
+  - SimCore/InstrumentsCornint.cs（新しいファイル）：表 cornint_s（国×四半期）・純関数 CnBloc・CnSigma・四半期の末の口 CornintTable・閉じる口 CornintClose。
+  - SimCore/Instruments.cs：Quarter の末尾に 1 行（SubstTable／CornintTable）・Close に 1 行（SubstClose／CornintClose）。c67pu が触る cearn_s の登録の行（CearnTable／CearnClose の行）には触れない。
+  - Tests/SubstInstrumentTests.cs・Tests/CornintInstrumentTests.cs（新しいファイル）。
+  - scripts/instruments/c67ss/（突然変異の台本 mut837.py・読み手 r837_read.py）・measurements/m837_20261104_*。
+  消す物：なし。残す物：全て。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前）：新しい名前は SubstTable・SubstClose・SubstCalibration・SubstD1Ref・SubstD1・SubstD2・SubstDerived・CornintTable・CornintClose・CnBloc・CnSigma。腕の前に全域 grep して既存の同名が 0 であることを確かめる（結果は〔実装ログ〕へ）。新しい欄は ConditionalWeakTable の計器の欄だけ＝SaveGame に載せる欄 0・係数 0・POB_COEF の名前 0。
+  他の線との重なり：Instruments.cs は c67pu（cearn_s の登録の行の近く）と別の行（Quarter の末尾・Close の IdnClose の次の行）。Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs・CearnInstrumentTests.cs・InstrumentsCearn.cs には触れない。CgPollClaim など c67pu の持ち物の関数は呼ばず、同じ式を自前で書く（c67pu の改名で合流が壊れない）。
+
+■ [3] 計器の定義（腕の前に固定・エンジンの関数を呼ばず、状態の欄は計器が自分で読む）
+
+  subst_s（州×四半期・四半期の末の断面＝直近の月の値・行は担い手がいる州〔自給の担い手の人数＞0〕か農業労働の売り手がいる州だけ）
+    列（単位の接尾辞：PerMonth＝その月の量・Share＝0〜1・Over＝比）：
+    quarter／year／nation／region／tier／subPopK（Subsistence＞0 の POP の Size の和）／subRateWeighted（Size 加重の Subsistence）／
+    farmCapPerMonth（農業労働力の人力の売り手〔財＝FarmLabor・RecipeName が空・Inputs が空・倒産でない・Capacity＞0〕の Capacity の和）／farmSoldPerMonth（農業労働力の市場の LastSold）／farmProducedPerMonth（同 LastProduced）／
+    soldOverCap（売れた÷能力・能力＝0 なら nan）／
+    unsoldD1Share＝D1（clamp01(1−売れた÷能力)・能力＝0 なら nan）／unsoldD2Share＝D2（産出＞1e-9 なら clamp01(1−売れた÷産出)・そうでなければ 0＝今の失業の式の Eps の枝と同じ）／producedZeroFlag（産出≦1e-9 なら 1）／
+    stapleNeedPerCapita（Catalog の主食〔Tier＝Staple〕の BaseNeed の和＝名目 1.10）／engineSubOutputPerMonth（Region.LastSubsistenceOutput＝エンジンが月に積んだ自給の量・収穫係数と補正を含む）／nominalSubPerMonth（Σ Size×Subsistence×stapleNeedPerCapita＝収穫係数 1・補正なし）／
+    productivityFromDataPerCapita（subRateWeighted×stapleNeedPerCapita÷SubstD1Ref＝国のデータから導いた開幕の生産性）／
+    derivedD1PerMonth（D1×SubstCalibration×subPopK）／derivedD2PerMonth（D2×SubstCalibration×subPopK）／
+    derivedD1OverNominal・derivedD2OverNominal・derivedD1OverEngine・derivedD2OverEngine（導いた÷今・分母＝0 なら nan）／
+    Q2 の材料：pollClaimPerMonth（Subsistence＞0 の POP の人頭税の請求＝PollTaxRate×段×Size・段＞1e-9・閉鎖階級・兵士・犯罪者を除く）／incomeTaxUpperPerMonth（TaxRate×max(0, LastEarnedPerMonth)・Subsistence＞0 の POP の上界）／rentToOthersPerMonth（Subsistence≦0 の POP の LandRentPerMonth の和＝地代を受け取る他の層）／rentToFarmersPerMonth（Subsistence＞0 の POP の LandRentPerMonth の和）／
+    stapleNeedWeightedPrice（主食の BaseNeed で重み付けた州の市場の値段）／stapleNeedValuePerMonth（Σ Size〔Subsistence＞0〕×stapleNeedPerCapita×stapleNeedWeightedPrice）／marketShareOfNeed（1−subRateWeighted）／
+    obligationOverMarketNeed（(pollClaimPerMonth＋incomeTaxUpperPerMonth＋rentToOthersPerMonth)÷(marketShareOfNeed×stapleNeedValuePerMonth)・分母＝0 なら nan）。
+  定数（計器の名乗り・係数ではない）：SubstD1Ref＝0.866（開幕 1783〜85 の売れた÷能力の補の物差し＝c66ds 材料 D-2 の〈0.866〉）・SubstCalibration＝0.89（c66ds が (825) の 1.1 を取り直した値＝0.7×1.10÷0.866 ≈ 0.889 を 2 桁に丸めた名乗り）。
+
+  cornint_s（国×四半期・四半期の末の断面・全ての国）
+    ブロックの添字 b：0＝旧支配層（Closed）・1＝近代エリート（IsModernElite）・2＝大衆（それ以外）＝PolicyPreferences.BlocOf と同じ三項式を計器が自分で書く。
+    列：quarter／year／nation／cornLawsCode（World.CornLaws の序数）／
+    rentDomPerMonth0..2（国の全 POP の max(0, LandRentPerMonth) のブロック別の和＝エンジンの Rent[b] の正規化の前）／rentDomTotalPerMonth／engineRentShare0..2（rentDom_b÷rentDomTotal・分母＜1e-9 なら 0＝Normalize と同じ）／
+    rentExpPerMonth0..2（PaySales の地代：輸出された財ごとに、その財の RGO の売り手〔所有者と労働の POP の添字が有効・産出＞0〕の産出比で ExportsByGood を割り、慣習の取り分 min(RentShare, FarmRentCap) を掛けた額を所有者のブロックへ・国営持分と不在地主は引かない〔限界⑤〕）／
+    rentGrainDomPerMonth0..2・rentGrainExpPerMonth0..2（穀物法の客体＝Tier が Staple か GrainChain の財の分）／
+    tariffLandTermNow0..2（RentProtectionWeightCoef×engineRentShare_b＝今の関税の地主の項）／cornPrefNow0..2（今の穀物法の選好＝RentProtectionWeightCoef×engineRentShare_b−(b＝0 なら 0・他は 1)）／
+    grainImportValue・grainExportValue・grainProducedValue（客体の財の World.ImportsByGood・ExportsByGood の和＝国境を越えた分だけ・産出の値＝Σ 州 LastProduced×値段）／allImportValue・allExportValue／
+    sigmaGrain（客体の財の Σ(輸入−輸出)÷Σ(輸入＋輸出＋産出の値)）／sigmaGrainRentW（客体の財の地代で重み付けた財ごとの σ）／sigmaAllRentW（全ての財の地代で重み付けた財ごとの σ）／
+    c1InterestGrain0..2（Σ_財∈客体 rent_bg×σ_g÷rentTotal）／c1InterestAll0..2（Σ_財 rent_bg×σ_g÷rentTotal）・rentTotal＝Σ_b（rentDom_b＋rentExp_b）＝国の地代の和（反証役の訂正 中〜低④）／
+    c1CornPref0..2（RentProtectionWeightCoef×c1InterestGrain_b−(b＝0 なら 0・他は 1)）／c1TariffLand0..2（RentProtectionWeightCoef×c1InterestAll_b）／
+    flipCorn0（今の穀物法の選好の正負と C1 の正負が違えば 1）。
+    財ごとの σ_g＝(ImportsByGood[g]−ExportsByGood[g])÷(ImportsByGood[g]＋ExportsByGood[g]＋産出の値_g)・分母＝0 なら 0・ByGood の配列が無い国は σ＝nan。ByGood は国境を越えた分だけ（BilateralMarket.cs の crossA の中でだけ積む＝同じ国の州どうしは数えない・反証役の訂正 中②）。
+    地代の財ごとの配分（国内）：POP の LandRentPerMonth を、その POP が所有する RGO の産出の値〔産出×州の値段〕で按分する。所有する RGO の産出の値が 0 の POP の地代は rentDomUnattrPerMonth0..2 に別に出す（和＝rentDom）。
+
+  共通の限界（計器が自己申告する）：①四半期の末＝直近の月の値②限界の記録として、地代の財ごとの配分は産地ごとの地代がどこにも貯まっていないための近似③輸出の地代は国営持分・不在地主・州ごとの取引の分布を数えない近似（国の産出比）④ByGood は値（世界価格建て・輸入は運賃を含む）で産出は州の値段建て⑤国営持分と不在地主の分は引かない⑥Subsistence の担い手は農民以外も数える（エンジンと同じ読み方）。
+
+■ [4] 足す試験と、それぞれを赤にする突然変異（腕の前・紙の台本の予言）
+  SubstInstrumentTests（隔離ビルドで先に回す＝㉘）：
+   S1 D1・D2 の純関数の手の表（能力の基準と産出の基準で値が違う表・産出＝0 は D2＝0）／
+   S2 英仏 3 四半期：subst_s の国の和が labor_s の farmCapPerMonth・farmSoldPerMonth に合う（labor_s はエンジンの IsHumanLaborSupply を通る別の出所）／
+   S3 開幕の比：Σ derivedD1／Σ nominal ∈ [0.90, 1.15]（紙の見積もりは 0.884×0.89÷(0.7×1.10)＝1.02）・Σ derivedD2／Σ nominal ＜ 0.30（紙の見積もりは 0.05×0.89÷0.77＝0.06）／
+   S4 Q2 の材料の閉じ：pollClaim＋… が各列の定義から試験が POP から数えた値に合う（試験が自前の式で数える）。
+  CornintInstrumentTests：
+   C1 σ の純関数の手の表と符号（輸入超過＞0・輸出超過＜0・分母＝0 は 0）／
+   C2 単国のシム（イギリスだけ）で grain/all の輸入・輸出の列が 0 なのに州の市場の PrevImport＋PrevExport の和が正（試験が自分で数え、前提が成り立つことを Assert）＝国境を越えた分だけを読むこと／
+   C3 英仏：rentDom の和が試験が POP から数えた max(0, LandRentPerMonth) のブロック別の和に合い、財ごとの配分の和（rentGrainDom＋rentOtherDom＋Unattr）が rentDom に閉じる／
+   C4 英仏：輸出の地代（rentExp）が、試験が World の ExportsByGood と生産者から自前で組んだ値に合い、少なくとも 1 国×四半期で正（PaySales の地代を落とす突然変異で赤）／
+   C5 英仏：今の穀物法の選好の列が試験が係数と POP から組んだ値に合う（RentProtectionWeightCoef×Rent[b]−(b＝0 なら 0・他は 1)）。
+  突然変異（使い捨ての木・台本 scripts/instruments/c67ss/mut837.py・出力 measurements/m837_20261104_mutation.txt）：
+   Mu1 能力を産出で読む（D1 の分母を farmProduced に）→ S1 か S3 で赤　　Mu2 σ に州どうしの流れを足す（単国で PrevImport/PrevExport を読む）→ C2 で赤
+   Mu3 PaySales の地代を落とす（rentExp を 0）→ C4 で赤　　Mu4 較正の定数を 1.1 に戻す → S3 で赤（1.1 なら紙の見積もりの比は 1.26＞1.15）
+   Mu5 D1 の clamp を外す → S1 で赤　　Mu6 国内の地代の按分を産出の値でなく頭数にする → C3 の財ごとの閉じは通る可能性（記録・緑なら穴を名乗り、試験を足して赤にする）
+  ソースを走査する番人の点検（㉘）：器のコミットの直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests を隔離ビルド D:/PoB_work/c67ss_art で回す。点検する grep：工業化度の読み手の許可表（新しいファイルは IndustrializationDegree を読まない＝0 件）・`new MoneyStock(`（0 件）・route_anchors.tsv の鍵の行（金を動かすファイルに行を足さない＝動かない）・WriterRatchetTests の宣言の表（書き手を足さない＝件数の変更 0）。書き換える件数の予言（㉑）＝0 件（既存の番人のテストを書き換えない）。赤なら腕を回さず直すか止める。
+
+■ [5] 恒等の判定と読みの手順・窓（結果を見る前に固定）
+  - ident：`bash scripts/instruments/ident/ident.sh run c67ss --tree D:/PoB_work/wt_c67ss --added-tables subst_s,cornint_s --tests-delta <足した試験の数>`。素の 5 種・計器つき 10 種が m826 と名乗り行を除いて全行一致・計器の表の差は宣言（subst_s・cornint_s の追加）だけ・.cost の推定が一致・--list-tests の増減は足した試験の数。〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
+  - 読み（ident の計器つき 10 種の生・腕を足さない・種 1〜10）。窓は開幕＝1783〜85・初期＝1786〜1849・中期＝1850〜99・後期＝1900〜50。
+    (a) D1 と D2 の売れ残りの分布（窓ごと・p10 中央 p90・州×四半期）。開幕の盤面で derivedD1OverNominal の Σ比が 0.90〜1.15 か（予言＝1.02）・D2 の Σ比は 0.30 未満か（予言＝0.06）。
+    (b) 開幕の窓で obligationOverMarketNeed の分布（中央・p90）。予言なし（紙で見積もれない＝記録）。〈地代と税で説明できる〉の読み＝この比が 1 に近いほど市場に出す 3 割が地代と税で説明できる（1 未満は説明しきれない・1 超は説明を超える）。
+    (c) σ の符号（記録）：英 1815〜1846 の sigmaGrainRentW・c1InterestGrain のブロック 0 が正の四半期の割合・プロイセンの 1850〜1879 の同じ列が負から正へ動くか。cornPrefNow0 と c1CornPref0 の正負が違う（flipCorn0＝1）国×四半期の割合を国別に出す。
+  - 結論は数の表まで。c67ds と、次の波の段 2 が使う。
+  - 足した列は報告に列挙する。1 種の容量（subst_s1.tsv・cornint_s1.tsv）を報告する。
+
+■ [6] 運用
+  - 作ったフォルダ：D:/PoB_work/c67ss（作業・読み手の出力）・D:/PoB_work/c67ss_art（隔離ビルド）・D:/PoB_work/c67ss_mut（突然変異の使い捨ての木）・D:/PoB_work/ident_c67ss（ident の作業）。消さない物：keep_797・keep_826・keep_826_rej・keep_832・keep_832_rej。ident の生は合流の判断まで残す。
+  - 待ち方：1 分を超える仕事は bg.sh で起こし、waitmark で待つ。ident を起こす前に arms.sh free を見る。
