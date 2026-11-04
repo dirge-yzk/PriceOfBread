@@ -18,7 +18,7 @@ namespace PriceOfBread.SimCore;
 //   行は試合の終わりに書く＝途中で落ちた試合は行が無い。
 public static partial class Instruments
 {
-    internal const string SilverWeightHeaderText = "seq\tfrozen\tyear\tratioOkFlag\tstateCount\trelEqualIndex\trelW1Index\trelSqIndex\trelProdIndex\tusedRelIndex\tusedParityIndex\tusedRelFromWeightsIndex\tusedWeightSum\tusedMaxShare\tusedOneSidedShare\tequalOneSidedShare\tw1OneSidedShare\tw1MaxShare\tsqMaxShare\tprodMaxShare\tw1ZeroWeightCount\tsilverNationCount\tclampHitCount";
+    internal const string SilverWeightHeaderText = "seq\tfrozen\tyear\tratioOkFlag\tstateCount\trelEqualIndex\trelW1Index\trelSqIndex\trelProdIndex\tusedRelIndex\tusedParityIndex\tusedRelFromWeightsIndex\tusedWeightSum\tusedMaxShare\tusedOneSidedShare\tequalOneSidedShare\tw1OneSidedShare\tw1MaxShare\tsqMaxShare\tprodMaxShare\tw1ZeroWeightCount\tsilverNationCount\tclampHitCount" + SilverstWeightTailHeader;   // (823) 末尾に反実仮想と自走査の列を足した（既存の列は変えない）
 
     sealed class SilverWeightSink
     {
@@ -60,6 +60,7 @@ public static partial class Instruments
         sk.Seq++;
         if (sim.Nations.Count == 0) { sk.Reset(); return; }
         var w0 = sim.Nations[0].World; var c0 = w0.Coef;
+        var ag = SilverstEnd(sim, frozen, sk.Seq);   // (823) 計器が自分で全州を走査（silverst_s の行も溜める）
         double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];
         double refRatio = refAu > 1e-9 ? refAg / refAu : double.NaN;
         double Rel(double lnSum, double wSum) => wSum > 0 && refRatio > 1e-9 ? Math.Exp(lnSum / wSum) / refRatio : double.NaN;
@@ -80,13 +81,18 @@ public static partial class Instruments
             R(usedRel), R(usedParity), R(Rel(sk.UsedWLn, sk.UsedW)),
             R(sk.UsedW), R(sk.UsedW > 0 ? sk.UsedMax / sk.UsedW : double.NaN), R(sk.UsedW > 0 ? sk.UsedOne / sk.UsedW : double.NaN),
             R(sk.N > 0 ? (double)sk.OneSided / sk.N : double.NaN), R(sk.W1 > 0 ? sk.W1One / sk.W1 : double.NaN), R(sk.W1 > 0 ? sk.W1Max / sk.W1 : double.NaN),
-            R(sk.Sq > 0 ? sk.SqMax / sk.Sq : double.NaN), R(sk.Pr > 0 ? sk.PrMax / sk.Pr : double.NaN), I(sk.ZeroW), I(silverNations), I(clampHits)));
+            R(sk.Sq > 0 ? sk.SqMax / sk.Sq : double.NaN), R(sk.Pr > 0 ? sk.PrMax / sk.Pr : double.NaN), I(sk.ZeroW), I(silverNations), I(clampHits),
+            // (823) 反実仮想（A′＝参照価格建ての薄い側・A＝局所の値段建て・max 版）と入った州の票の割合・自走査とエンジンの渡した値の差
+            R(ag.RelRef), R(ag.RelVal), R(ag.RelMax), R(ag.MaxShareRef), R(ag.MaxShareVal), R(ag.MaxShareMax), R(ag.OneRef), R(ag.OneVal), R(ag.OneMax),
+            R(ag.EnterEqual), R(ag.EnterW1), R(ag.EnterRef), R(ag.EnterVal), R(ag.EnterMax), I(ag.EnterCount), I(ag.LeaveCount), I(ag.ZeroRef), I(ag.ZeroVal),
+            I(ag.N), R(ag.W1Sum), R(ag.RelW1), I(Math.Abs(ag.N - sk.N)), R(Math.Abs(ag.W1Sum - sk.W1)), R(double.IsNaN(ag.RelW1) && double.IsNaN(Rel(sk.W1Ln, sk.W1)) ? 0.0 : Math.Abs(ag.RelW1 - Rel(sk.W1Ln, sk.W1)))));
         sk.Reset();
     }
 
     /// <summary>試合の終わり（<see cref="Close"/>）：溜めた行を書く。</summary>
     static void SilverWeightClose(MultiNationSim sim, ulong seed)
     {
+        SilverstClose(sim, seed);   // (823) 州の表 silverst_s も書く
         if (!SilverWeightSinks.TryGetValue(sim, out var sk) || sk.Rows.Count == 0) return;
         using var wr = Open("silverwt", seed);
         wr.WriteLine(SilverWeightHeaderText);
