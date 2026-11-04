@@ -38,6 +38,16 @@ public sealed class MultiNationSim
     internal static double SilverMeanRatio(bool weighted, double lnSum, int count, double weightedLnSum, double weightSum)
         => weighted ? (weightSum > 1e-9 ? System.Math.Exp(weightedLnSum / weightSum) : 0) : (count > 0 ? System.Math.Exp(lnSum / count) : 0);
 
+    /// <summary>★(827) 旗 2（A′）の 1 州ぶんの票＝薄い側の額（参照価格建て）＝min(dAg×refAg, dAu×refAu)。2 つの積をそれぞれ非有限・非正なら 0（否定形）にしてから小さい方
+    /// （片側が無い州は票なし）。計器の <c>Instruments.SilverMinWeight</c> は呼ばない＝計器の自走査と独立（門 S1）。純関数（試験が手の値で読む）。</summary>
+    internal static double SilverMinRefWeight(double demandAg, double demandAu, double refAg, double refAu)
+    {
+        double sideAg = demandAg * refAg, sideAu = demandAu * refAu;
+        if (!(sideAg > 0 && sideAg < double.PositiveInfinity)) sideAg = 0.0;
+        if (!(sideAu > 0 && sideAu < double.PositiveInfinity)) sideAu = 0.0;
+        return sideAg < sideAu ? sideAg : sideAu;
+    }
+
     private static ulong MixSeed(ulong seed, ulong i)
     {
         ulong x = seed + 0x9E3779B97F4A7C15UL * (i + 1);
@@ -880,6 +890,8 @@ public sealed class MultiNationSim
             {
                 double ratioSum = 0; int ratioCnt = 0;
                 bool demandWeighted = _coef.SilverParityDemandWeighted > 0;   // ★(807) 旗：対数平均の票を金鉱の需要で重みづける
+                bool minRefWeighted = _coef.SilverParityDemandWeighted >= 2;   // ★(827) 旗 2＝A′（薄い側の額・参照価格建て）。値 1 は w1 のまま・値 0 は等重みのまま
+                double refAgW = Catalog.RefPrices[Catalog.SilverId], refAuW = Catalog.RefPrices[Catalog.GoldOreId];   // (827) A′ の票の参照価格（読むだけ）
                 double wLnSum = 0, wSum = 0;
                 foreach (var n in Nations)
                     foreach (var r in n.World.Regions)
@@ -892,9 +904,9 @@ public sealed class MultiNationSim
                         double lnRatio = System.Math.Log(pAg / pAu);
                         ratioSum += lnRatio; ratioCnt++;   // 対数平均
                         double dAu = mAu.LastDemand;
-                        double wState = SilverVoteWeight(dAu, demandWeighted);   // ★(807) 旗 1＝その州の金鉱の需要（需要 0・非有限は票なし）
+                        double wState = minRefWeighted ? SilverMinRefWeight(mAg.LastDemand, dAu, refAgW, refAuW) : SilverVoteWeight(dAu, demandWeighted);   // ★(807) 旗 1＝その州の金鉱の需要（需要 0・非有限は票なし）／★(827) 旗 2＝A′
                         if (demandWeighted) { wLnSum += wState * lnRatio; wSum += wState; }
-                        if (Instruments.On) Instruments.SilverWeightState(this, wState, lnRatio, dAu, mAu.LastProduced);   // (807) 計器（読むだけ）：エンジンが実際に使った票
+                        if (Instruments.On) Instruments.SilverWeightState(this, r, wState, lnRatio, dAu, mAu.LastProduced, mAg.LastDemand, mAg.LastProduced);   // (807) 計器（読むだけ）：エンジンが実際に使った票／(827) 州と銀の需要・産出
                     }
                 double refAu = Catalog.RefPrices[Catalog.GoldOreId];
                 double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;

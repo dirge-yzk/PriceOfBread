@@ -137,6 +137,9 @@ public class SilverstInstrumentTests
                 List<Dictionary<string, string>> Pick(int seq, string kind) => st.Where(x => D(x, "seq") == seq && x["kind"] == kind && x["region"] == target.Name).ToList();
                 Assert.Single(Pick(901, "L")); Assert.Equal("0", Pick(901, "L")[0]["inScan"]);
                 var e = Pick(902, "E"); Assert.Single(e);
+                var tAgEnd = target.Markets[Catalog.SilverId];   // ④ で戻した後＝②の時と同じ需要・産出・値段（四半期は回していない）
+                Assert.True(tAgEnd.LastDemand > 0 || tAgEnd.LastProduced > 0);
+                Assert.Equal(tAgEnd.LastDemand, D(e[0], "dAg")); Assert.Equal(tAgEnd.LastProduced, D(e[0], "prodAg")); Assert.Equal(tAgEnd.Price, D(e[0], "pAg"));   // (827) 入口：計器が読んだ銀の需要・産出・値段が市場のまま
                 Assert.Equal(5.0, D(e[0], "mintQtyAg")); Assert.Equal(5.0, D(e[0], "mintQtyAu"));
                 Assert.Equal(1.0, D(e[0], "mintMonthsAg")); Assert.Equal(2.0, D(e[0], "mintMonthsAu"));
                 var l = Pick(903, "L"); Assert.Single(l);

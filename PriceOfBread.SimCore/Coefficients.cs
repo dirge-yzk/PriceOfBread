@@ -3436,6 +3436,7 @@ public sealed class Coefficients
     //   0＝旧統計をそのまま注入。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。(775) で既定 1＝平価は世界の金銀比 rel×Ref（計器 silverpar_s が旧と新を同じ盤面で数える）。
     public double SilverParityFromRatio = 1.0;   // ★(775) 1.0 に点火（既定 0.0 → 1.0・波57 c7ag）
     // ★(807) c12sv 旗 SilverParityDemandWeighted：上の対数平均を、その州の金鉱の需要（LastDemand）で重みづける（0＝州ごとに等しい 1 票＝今の形・1＝需要に比例）。需要 0 の州は票を持たない・全ての州の重みの和が正でないときは比が不正の扱い（旧の統計へ倒れる）。新しい係数 0・新しい状態変数 0。
+    //   ★(827) c66sv 値 2＝A′：票を薄い側の額（参照価格建て）min(銀の需要×RefPrices[銀], 金鉱の需要×RefPrices[金鉱]) にする（どちらかの辺が 0・非有限なら票なし・MultiNationSim.SilverMinRefWeight）。値 1（w1）の経路は変えない。新しい係数 0・新しい状態 0。
     public double SilverParityDemandWeighted = 0.0;
     // 【削除 2026-10-04 (210)】SilverStandardIndThreshold（銀本位に届く工業化＝0＝銀は誰でも持てる・読み手は AI の目標の1行だけ＝常に真）＝不換の国は銀を志向する（SelfPlay.DecideQuarter）。
     public double StandardMetalMintGate = 1.0;         // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30）：0で造幣は旧来どおり金鉱だけを買う／1で**本位金属**（銀本位なら銀）を買う＝需要が法に従って現れ・消える。⚠銀価格暴落の線は閉鎖のまま（20-3打ち切り線）
