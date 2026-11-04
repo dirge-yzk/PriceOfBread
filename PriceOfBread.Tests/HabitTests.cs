@@ -32,12 +32,23 @@ public class HabitTests
         Assert.True(z.Forms); Assert.False(z.Active);
     }
 
-    [Fact]
-    public void 中毒度の更新は成長_減衰_0から上限の手の算術()
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 中毒度の更新は成長_減衰_0から上限の手の算術(double logistic)
     {
-        var h = Habit.Of(new Coefficients(), Catalog.OpiumId);
-        Assert.Equal(0.079, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);   // 0.05＋0.1×0.3−0.02×0.05
-        Assert.Equal(Math.Min(0.2862, h.Cap), Habit.NextStock(h, 0.19, 1.0), 12);                           // 0.19＋0.1−0.0038＝0.2862 → 上限 0.2
+        // (820) 旗 OpiumAddictionLogistic を引数にした（旗 0 の行は今の算術と判定のまま・旗 1 の行は形 H の手の算術）
+        var h = Habit.Of(new Coefficients { OpiumAddictionLogistic = logistic }, Catalog.OpiumId);
+        if (logistic == 0)
+        {
+            Assert.Equal(0.079, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);   // 0.05＋0.1×0.3−0.02×0.05
+            Assert.Equal(Math.Min(0.2862, h.Cap), Habit.NextStock(h, 0.19, 1.0), 12);                           // 0.19＋0.1−0.0038＝0.2862 → 上限 0.2
+        }
+        else
+        {
+            Assert.Equal(0.0715, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);  // 0.05＋0.1×0.3×(1−0.05/0.2)−0.02×0.05
+            Assert.Equal(0.1912, Habit.NextStock(h, 0.19, 1.0), 12);                          // 0.19＋0.1×1.0×(1−0.95)−0.0038
+        }
         Assert.Equal(0.0098, Habit.NextStock(h, 0.01, 0.0), 12);                         // 消費が無ければ 2% ずつ減る
         Assert.Equal(0.0, Habit.NextStock(h, 0.0, 0.0), 12);
         // 習慣性の無い財の行（全て 0）：在庫は 0 に潰れる（行を持たない財では呼ばれない＝呼び手の Forms で守る）
@@ -162,12 +173,13 @@ public class HabitTests
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
 
     /// <summary>英の最初の活きた州に中毒度 0.05 を置いて <paramref name="quarters"/> 四半期。計器を出すなら opium_s の読み先を返す。最後の英の州の中毒度と国庫のビット列も返す。</summary>
-    private static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? capOff = null)
+    internal static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? capOff = null, double? logistic = null)
     {
         string? dir = instr ? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_opium_" + Guid.NewGuid().ToString("N")) : null;
         if (instr) Instruments.Configure(dir, null);
         var sim = MakeMatch();
         if (capOff is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionCapOff = capOff.Value;   // (787) 旗を明示して回す（既定が 1 になっても旗 0 の経路の番人が動く）
+        if (logistic is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionLogistic = logistic.Value;   // (820) 形 H の旗を明示して回す
         var uk = sim.Nations[2].World;
         var seeded = uk.Regions.First();
         seeded.OpiumAddiction = 0.05;
@@ -263,22 +275,28 @@ public class HabitTests
         Assert.True(r1.OpiumAddiction >= 0.3 * 0.98 - 1e-12, $"蓋なしなのに 0.2 付近へ落とされた {r1.OpiumAddiction}");   // 0.3−0.02×0.3＋成長×消費（消費は 0 以上）
     }
 
-    [Fact]
-    public void 蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す()
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す(double logistic)
     {
-        var c = new Coefficients { OpiumAddictionCapOff = 0 };
+        // (820) 旗 OpiumAddictionLogistic を引数にした（旗 0 の行は今の判定のまま・旗 1 の行は実際が形 H＝0.19＋0.1×1.0×(1−0.95)−0.0038＝0.1912）
+        var c = new Coefficients { OpiumAddictionCapOff = 0, OpiumAddictionLogistic = logistic };
         var (o0, n0, u0) = Instruments.HabitCapPair(Habit.Of(c, Catalog.OpiumId), c, 0.19, 1.0);
-        Assert.Equal(0.2, o0, 12); Assert.Equal(0.2862, n0, 12); Assert.Equal(0.2, u0, 12);
+        Assert.Equal(0.2, o0, 12); Assert.Equal(0.2862, n0, 12); Assert.Equal(logistic == 0 ? 0.2 : 0.1912, u0, 12);
         c.OpiumAddictionCapOff = 1;
         var (o1, n1, u1) = Instruments.HabitCapPair(Habit.Of(c, Catalog.OpiumId), c, 0.19, 1.0);
         Assert.Equal(0.2, o1, 12); Assert.Equal(0.2862, n1, 12); Assert.Equal(0.2862, u1, 12);
     }
 
-    [Fact]
-    public void アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい()
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい(double logistic)
     {
+        // (820) 旗 OpiumAddictionLogistic を引数にした（旗 0 の行は今の判定のまま・旗 1 の行は実際が旧〔線形＋蓋〕以下＝成長の項に (1−s/d)≦1 が掛かる）
         const int quarters = 12;
-        var (_, dir) = RunMatch(quarters, instr: true, capOff: 0);   // (787) 旗 0 を明示（旗 0 の経路の番人）
+        var (_, dir) = RunMatch(quarters, instr: true, capOff: 0, logistic: logistic);   // (787) 旗 0 を明示（旗 0 の経路の番人）
         try
         {
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitcap_s1789.tsv"));
@@ -292,7 +310,8 @@ public class HabitTests
             {
                 Assert.Equal(BitConverter.DoubleToInt64Bits(Math.Min(D(r, "newNextLastIndex"), D(r, "capIndex"))), B(r, "oldNextLastIndex"));   // 旧＝新を旧の蓋で切った値（ビット一致）
                 Assert.Equal(0.0, D(r, "capOffFlag"));
-                Assert.Equal(B(r, "oldNextLastIndex"), B(r, "usedNextLastIndex"));   // 旗 0 では実際の蓋＝旧の蓋
+                if (logistic == 0) Assert.Equal(B(r, "oldNextLastIndex"), B(r, "usedNextLastIndex"));   // 旗 0 では実際の蓋＝旧の蓋
+                else Assert.InRange(D(r, "usedNextLastIndex"), 0, D(r, "oldNextLastIndex"));            // (820) 旗 1：実際（形 H）は旧以下
                 Assert.True(int.Parse(r[I("bindMonthsCount")]) <= int.Parse(r[I("monthsCount")]));
                 Assert.True(D(r, "excessSumIndex") >= 0 && D(r, "newNextMaxIndex") >= D(r, "newNextLastIndex"));
             }

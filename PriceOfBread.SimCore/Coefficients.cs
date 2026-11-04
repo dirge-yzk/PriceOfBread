@@ -2510,6 +2510,7 @@ public sealed class Coefficients
     public double OpiumAddictionCap = 0.2;           // 中毒度ストックの生理的上限（州人口の実効障害の飽和＝発散の物理的な蓋）
     public double CollapsePeaceOneShare = 1;         // (791) c10cp：崩壊の講和の取り分の旗（既定 1＝腕 B の採否の後に確定）＝0 で旧（同じ月に同じ敗者が崩壊で負ける戦争ごとに賠償の元・植民地の奪取の予算・本国の割譲が満額＝連合の N 本で N 倍・設計思想⑨の二重計上）・正で 1 回分（賠償の元＝max 戦勝点×取り分・植民地の奪取の予算＝同×ColonyCaptureBudget×取り分・本国の割譲＝集合で 1 回・取り分＝勝者の押しの累計 PushA／PushB の比）。新しい定数・倍率・状態は無い。AI とプレイヤーで同じ経路。
     public double OpiumAddictionCapOff = 0;          // (771) c6op 段1：アヘンの蓋の旗＝0 で蓋 OpiumAddictionCap（0.2）・正で蓋なし（段2 で既定 1 にする）。確証なし（蓋を外すと労働の床 0.5＝Habit.LaborFactor へ張り付きが移る・Growth 0.2 は発散で却下）
+    public double OpiumAddictionLogistic = 0;        // (820) c65op 形 H：依存を人の割合のロジスティックへ＝0 で今の式（1 ビットも変わらない）・正で s' = s + 成長×1人あたり消費×(1 − s/d) − 減衰×s（d＝OpiumAddictionCap＝依存者 1 人の上乗せの量・h = s/d が依存者の割合・CapOff が正なら d=+∞＝線形とビットで一致）。確証なし（AI の推奨・作者「全て推奨で」で推奨を採った）
     public double OpiumAddictionDecay = 0.02;        // 中毒度の自然減（成長>減衰なら発散）
 
     // === リアリティ監査 2026-07-02 Wave1（致命バグ・保存則・ガード）===

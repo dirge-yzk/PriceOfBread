@@ -24,7 +24,7 @@ public static partial class Instruments
 
     /// <summary>同じ前の在庫 <paramref name="stock"/> と 1 人あたり消費 <paramref name="perCapita"/> から、旧（蓋 <see cref="Coefficients.OpiumAddictionCap"/>）・新（蓋なし）・実際（<paramref name="h"/> の蓋）の次の在庫。</summary>
     internal static (double Old, double New, double Used) HabitCapPair(in HabitProfile h, Coefficients c, double stock, double perCapita)
-        => (Habit.NextStock(h with { Cap = c.OpiumAddictionCap }, stock, perCapita),
+        => (Habit.NextStock(h with { Cap = c.OpiumAddictionCap, Logistic = false }, stock, perCapita),   // (820) 旧＝線形＋蓋を明示（旗 OpiumAddictionLogistic が 0 なら h の Logistic は偽＝今と同じ値）
             Habit.NextStock(h with { Cap = double.PositiveInfinity }, stock, perCapita),
             Habit.NextStock(h, stock, perCapita));
 
