@@ -2643,6 +2643,7 @@ public sealed class Diplomacy
         //   賠償の元・植民地の奪取の予算・本国の割譲の回数を 1 回分だけ立てて、勝者たちへ戦線の押しの累計（PushA／PushB）の取り分で配る（FlushCollapseGroup）。保留は月の中の一時の集計だけ（新しい状態なし）。
         //   前走査は保留するかを決めるだけ（旧の走査の順・各戦争の歩は変えない）。1 本だけの崩壊は旧の経路をそのまま通る。
         bool cpOn = c.CollapsePeaceOneShare > 0;
+        bool fpBlank = c.ForcedPeaceBlankOverCollapse > 0;   // ★(821) 旗：列強の調停の戦争は崩壊の上書きを通らず白紙で終わる（0＝下の 2 か所とも旧のまま）
         Dictionary<Power, int>? cpCount = null; Dictionary<int, List<Power>>? cpFlushAt = null; Dictionary<Power, List<War>>? cpPending = null;
         if (cpOn)
         {
@@ -2651,7 +2652,8 @@ public sealed class Diplomacy
             for (int wi = 0; wi < Wars.Count; wi++)   // 添字の昇順＝最初に見た添字がその敗者の最も低い添字（走査は添字の降順なので最後に歩く戦争）
             {
                 var cw = Wars[wi];
-                if (cw.CivilWarParent is not null) continue;   // 列強の調停の戦争も数える（歩の本体は調停の白紙〔戦勝点 0〕を崩壊の戦勝点で上書きして講和する＝賠償を払う）
+                if (cw.CivilWarParent is not null) continue;   // 列強の調停の戦争も数える（旗 0：歩の本体は調停の白紙〔戦勝点 0〕を崩壊の戦勝点で上書きして講和する＝賠償を払う）
+                if (fpBlank && cw.ForcedPeace) continue;        // ★(821) 旗が正：調停の戦争は白紙で終わる＝崩壊の集合の数に入れない
                 bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
                 // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら塹壕の後の押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
                 double tA = pushA[wi], tB = pushB[wi]; if (ac && bc) TrenchAdjust(c, cw, ref tA, ref tB);   // 同値の厭戦の敗者決めは塹壕の後の押し（歩の本体と同じ関数）
@@ -2727,7 +2729,9 @@ public sealed class Diplomacy
             bool aCollapse = war.A.WarExhaustion >= 1.0 * aCut, bCollapse = war.B.WarExhaustion >= 1.0 * bCut;
             Power? cpLoser = null;   // (791) 旗 1 のときだけ置く崩壊の敗者
             if (Instruments.On) Instruments.CpIter(war, aCollapse || bCollapse);   // (791) 計器（読むだけ）：この戦争の歩で崩壊と判定されたか
-            if (aCollapse || bCollapse)
+            // ★(821) 旗が正：列強の調停の戦争（ForcedPeace）は崩壊の上書きを通らない＝調停が置いた白紙（戦勝点 0＋この月の押しと運）のまま下の ForcedPeace の枝で講和する
+            //   （ExecuteMediation の〈白紙＝ResolvePeace が領土も賠償も動かさない〉の意図どおり）。旗 0 は旧のまま（調停の白紙を崩壊の値で上書きして賠償を払う＝(791) の所見）。
+            if ((aCollapse || bCollapse) && !(fpBlank && war.ForcedPeace))
             {
                 bool aLoses = aCollapse && bCollapse
                     ? (war.A.WarExhaustion != war.B.WarExhaustion ? war.A.WarExhaustion > war.B.WarExhaustion : aPush < bPush)
@@ -2779,7 +2783,10 @@ public sealed class Diplomacy
     private void ConcludeWar(Coefficients c, War war, int i, CollapseGroup? cg, double cgShare)
     {
         var cpPre = Instruments.On ? Instruments.CpBefore(this, c, war, cg, cgShare) : null;
-        ResolvePeace(c, war, cg, cgShare); EndWar(war, i, c);   // 終戦の記録は EndWar の中（国の除去 RemovePower と同じ1本）
+        var cmPre = Instruments.On ? Instruments.CmBefore(this, c, war) : null;   // (821) 計器（読むだけ）：調停の戦争の講和の表 cpmed_s
+        ResolvePeace(c, war, cg, cgShare);
+        if (cmPre is not null) Instruments.CmAfter(this, war, cmPre);   // (821) 計器（読むだけ）：ResolvePeace の直後に実際の値を読む
+        EndWar(war, i, c);   // 終戦の記録は EndWar の中（国の除去 RemovePower と同じ1本）
         if (cpPre is not null) Instruments.CpAfter(this, war, cpPre);   // 計器（読むだけ）
         // 監査2026-07-11（他3）：復讐心は EndWar の緊張リセット（_tension[k]=PostWarTension）より後に積む。
         // 旧＝ResolvePeace 内で AddTension → 直後の EndWar が同ペアキーへ代入し同ティック内で必ず消えていた（失地回復戦が一度も発火しない死蔵）。

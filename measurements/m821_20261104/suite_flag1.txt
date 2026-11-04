@@ -1,0 +1,6 @@
+(821) c65md フルスイート（旗 1 の木 9b528681 の git archive・Release・隔離ビルド）2026-11-04
+--list-tests：Category!=FullLength 2235・FullLength 3
+成功!   -失敗:     0、合格:  2234、スキップ:     1、合計:  2235、期間: 32 m 3 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 17 s - PriceOfBread.Tests.dll (net10.0)
+スキップ 1 本＝TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する（既存）・ホストの中止の行 0
+＝合計 2235 と 3 は --list-tests と一致・失敗 0（WriterRatchetTests の宣言の表も緑＝許しの内）
