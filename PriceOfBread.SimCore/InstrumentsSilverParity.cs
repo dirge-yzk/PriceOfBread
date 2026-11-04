@@ -7,7 +7,7 @@ namespace PriceOfBread.SimCore;
 //   ②<see cref="SilverParityTable"/>：Instruments.Quarter（四半期の末）から呼ばれ、溜めた捕捉と**その時の** E（注入の rel に月次で寄った後の値）・法・国の数を合わせて 1 四半期 3 行（S・G・F）を書く。
 // 行＝四半期×法（S＝銀本位・G＝金本位・F＝不換）。世界の列は 3 行に同じ値。列（接尾辞：Index・Count・Share・Flag）：
 //   世界：quarter・year・ratioOkFlag・oldRawIndex（Market.Price[銀]÷RefPrice＝RefPrice×[0.1,10] に挟んだ後・[ExchangeRateFloor,Ceil] に挟む前）・oldParityIndex（oldRawIndex を [Floor,Ceil] に挟んだ値＝旧の経路の平価の元）・
-//         usedParityIndex（実際に各国へ注入された WorldSilverPrice÷RefPrice）・newParityIndex（rel＝比が不正なら nan）・relRecomputedIndex（計器が自分で取り直した rel）・wAgShare（銀の局所価格が正の州のうち銀本位国の州の割合）。
+//         usedParityIndex（実際に各国へ注入された WorldSilverPrice÷RefPrice）・newParityIndex（rel＝比が不正なら nan）・relRecomputedIndex（計器が自分で取り直した rel・旗 0 の規則〔等重み〕での取り直し＝旗 SilverParityDemandWeighted が正でも重みづけない）・wAgShare（銀の局所価格が正の州のうち銀本位国の州の割合）。
 //   法：law・nationCount・eMean・eMedian（その時の E・人口＞0 の国）・eAtCeilCount・eAtFloorCount・
 //         provCount・mAgIndex・mAgEIndex・mAuIndex（その法の国の州のうち銀と金鉱の両方の市場が生きて価格が正の州。局所の銀の値段÷RefPrice・同×E・局所の金鉱の値段÷RefPrice の算術平均）・
 //         agCount・mAgAllIndex・mAgEAllIndex（銀の局所価格が正の州〔Market.Step の平均価格の節と同じ集合に近い〕。不動点 E*＝(1−wAg)·mAgEAll(非S)/(1−wAg·mAgAll(S)) の確かめ用）。

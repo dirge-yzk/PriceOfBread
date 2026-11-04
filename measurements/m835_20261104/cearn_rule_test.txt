@@ -1,0 +1,17 @@
+○ G1 行を足しただけ（合成）：新しい規則：期待 True・実際 True 
+○ G1 行を足しただけ（合成）：旧の規則（バイト比べ）は不一致：期待 True・実際 True 
+○ G2 経路を別の呼び出しの行へ替える（outTop1Route の 8→12）：期待 False・実際 False 
+○ G2b 経路を別の動詞へ替える（carryOut→carryIn・行は正しい）：期待 False・実際 False 
+○ G3a 写像に無い行（足した行の 2）へ移る：期待 False・実際 False 
+○ G4 経路でない列を 1 バイト変える（other 1.5→1.6）：期待 False・実際 False 
+○ G4b 経路でない列でないが数の列（quarter 0→2）：期待 False・実際 False 
+○ G6 同じ字のまま行が動いたはずの経路（arm が 5 のまま）：期待 False・実際 False 
+○ G3b 基準の経路が指す行を腕の木が書き換えた（写像に無い）：新しい規則：期待 False・実際 False 
+○ G5 BASE_COMMIT 無し：規則を使わない（旧のバイト比べのまま）：期待 False・実際 False 
+○ G7 経路の列が無い表：規則を使わない：期待 False・実際 False 
+○ G1b 実データ 10 本：新しい規則が全て一致：期待 True・実際 True 
+○ G1b 実データ 10 本：旧の規則（バイト比べ）が全て不一致：期待 True・実際 True 
+○ G2r 実データ：経路を別の呼び出しの行へ替える：期待 False・実際 False （PopDecision.cs:116:carryOut:P → Bank.cs:31:take:H）
+○ G3r 実データ：行番号を 1 ずらす：期待 False・実際 False （PopDecision.cs:116:carryOut:P → PopDecision.cs:117:carryOut:P）
+○ G4r 実データ：経路でない列（savings）を 1 字変える：期待 False・実際 False 
+GATEOK

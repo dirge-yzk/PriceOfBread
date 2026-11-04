@@ -170,4 +170,32 @@ public class CapitalCouponWriteDownTests
         if (ledger > 0) Assert.True(dA == dF, $"旗 1：英の対外資産の減り {dA} ≠ 仏の外資の負債の減り {dF}（両側が別の数）");
         else Assert.True(Math.Abs(dA - flight) <= 1e-9, $"旗 0（旧）：英の対外資産の減り {dA} ≠ 逃避の額 {flight}");
     }
+    [Fact]
+    public void 旗1でも受け皿の側の外資の負債の減りは旧の規則の額から刻みの半分以内_利札も逃避も()
+    {
+        // (835) (828) の反証役：旗 1 が直すのは持ち主の側が読む額だけ＝受け皿の側（仏の外資の負債）の動きは旧のまま（旧の規則の額と、double の刻みの丸めの分しか違わない）。
+        // 上限の門 U1（scripts/instruments/c66dw/gate828.py の hostDev＝|旧の規則の額−台帳の差|÷刻み ≦ 0.5）の単位版。両側が台帳の差で一致していても、受け皿の側が旧からずれる誤りを拾う
+        // （既存の旗 1 の 3 本は持ち主の減り＝仏の減りだけを比べるので、仏の減りが旧から半分ずれても緑のまま）。刻み＝BigF（1e17）の double の刻み 16・丸めの誤差はその半分 8 以内。
+        double half = (Math.BitIncrement(BigF) - BigF) / 2.0;
+        Assert.Equal(8.0, half);   // 前提：BigF の刻みは 16
+        // 利札：未払い≈50.3（旧の規則の額＝請求−払い）
+        var coef = Quiet(1, 0.0); coef.CapitalClaimCancelFromLedger = 1;
+        var (sim, uk, fr) = Setup(coef);
+        double s = CapitalMarket.InvestorSavings(fr);
+        coef.CapitalDividendRatePerQuarter = new RatePerQuarter((s + 50.3) / BigF);
+        var (paid, dF, _, _) = RunBig(coef, sim, uk, fr);
+        double unpaid = BigF * coef.CapitalDividendRatePerQuarter.Value - paid;
+        Assert.True(unpaid > 40 && unpaid < 60, $"前提が崩れた：未払い {unpaid} が (40, 60) の外");
+        Assert.True(Math.Abs(dF - unpaid) <= half, $"旗 1：仏の外資の負債の減り {dF} が旧の規則の額 {unpaid} から刻みの半分 {half} を超えてずれた（受け皿の側が旧でない）");
+        // 逃避：逃避の額≈50.3（旧の規則の額＝min(F, F×率×(1−信用))）
+        var coef2 = Quiet(1, 0.0); coef2.CapitalClaimCancelFromLedger = 1;
+        var (sim2, uk2, fr2) = Setup(coef2);
+        double cr0 = fr2.CreditRating;
+        Assert.True(cr0 < 0.999, $"前提が崩れた：仏の信用 {cr0} が 1 に近い（逃避が起きない）");
+        coef2.CapitalFlightRatePerQuarter = new RatePerQuarter(50.3 / (BigF * (1.0 - cr0)));
+        var (_, dF2, _, cr) = RunBig(coef2, sim2, uk2, fr2);
+        double flight = Math.Min(BigF, BigF * coef2.CapitalFlightRatePerQuarter.Value * (1.0 - cr));
+        Assert.True(flight > 20 && flight < 100, $"前提が崩れた：逃避の額 {flight} が (20, 100) の外");
+        Assert.True(Math.Abs(dF2 - flight) <= half, $"旗 1：仏の外資の負債の減り {dF2} が旧の規則の額 {flight} から刻みの半分 {half} を超えてずれた（受け皿の側が旧でない）");
+    }
 }

@@ -1,7 +1,7 @@
 # (728) 恒等の判定（測った種で一致）の突き合わせ（読むだけ）。ident.sh check から呼ぶ。使い方は ident.sh の先頭。
 #   python -I ident_check.py <ラベル> --root <木> [--work <作業フォルダ>] [--cfg <設定>] [--tree <測った木>] [--save <日付>] [宣言...] [--saveleak] [--ng]
 # 判定の規則：宣言の無い違いは全て〈不一致〉。基準の生が無い・出力が無いなど突き合わせられない所は〈未了〉（恒等とは言わない）。
-import sys, os, re, csv, hashlib, shutil, subprocess, datetime
+import sys, os, re, csv, hashlib, shutil, subprocess, datetime, difflib
 from collections import Counter
 from itertools import zip_longest
 from concurrent.futures import ThreadPoolExecutor
@@ -254,6 +254,106 @@ def flow_same_but_location(pa, pb):   # 呼び出し位置を除いた行の多�
     return len(ra) == len(rb) and key(ra) == key(rb)
 
 
+# (835) c67id：cearn_s の経路の列（outTop1Route・outTop2Route・inTop1Route）は〈ファイル:行:向き:区分〉の名を持つ＝金を動かすファイルに行を足すと、動きが同じでも行番号が変わって表が不一致になる。
+#   基準の木のコミット（cfg の BASE_COMMIT＝INSRAW を出した木）と測る木の同じファイルの行の対応（difflib・変わらない行どうし）で基準の表の〈:行〉を写してから比べる（cearn_remap.py〔(828)〕と同じ写像）。
+#   他の列はバイトで比べる。写像に無い行（消した・書き換えた行）を指す経路・別の行へ移った経路・経路でない列の違いは不一致のまま。BASE_COMMIT が cfg に無ければ使わない（旧のバイト比べ）。flow_s の規則は別（上）。
+CEARN_ROUTE_COLS = ('outTop1Route', 'outTop2Route', 'inTop1Route')
+CEARN = {'root': None, 'base': None, 'tree': None, 'arm_commit': None, 'maps': {}, 'paths': None}   # 測る木は tree の作業ファイル（arm_commit を渡せばその木のコミット＝道具の試験用）
+_ROUTE_RE = re.compile(r'^([A-Za-z0-9_]+\.cs):(\d+)(.*)$', re.S)
+
+
+def _git_bytes(root, args):
+    r = subprocess.run(['git', '-C', root] + args, capture_output=True)
+    return r.stdout if r.returncode == 0 else None
+
+
+def _cearn_path(name):   # 経路の名のファイル名 → 基準のコミットの PriceOfBread.SimCore/ の下のパス（同名が 2 本あれば None＝写せない）
+    c = CEARN
+    if c['paths'] is None:
+        out = _git_bytes(c['root'], ['ls-tree', '-r', '--name-only', c['base'], '--', 'PriceOfBread.SimCore']) or b''
+        d = {}
+        for ln in out.decode('utf-8').splitlines():
+            if ln.endswith('.cs'):
+                d.setdefault(os.path.basename(ln), []).append(ln)
+        c['paths'] = d
+    ps = c['paths'].get(name, [])
+    return ps[0] if len(ps) == 1 else None
+
+
+def _cearn_map(name):   # ファイル名 → {基準の行: 測る木の行}（変わらない行だけ）。None＝同じファイル（恒等）。{}＝写せない
+    c = CEARN
+    if name in c['maps']:
+        return c['maps'][name]
+    m = {}
+    path = _cearn_path(name)
+    a = _git_bytes(c['root'], ['show', f"{c['base']}:{path}"]) if path else None
+    if a is None:
+        c['maps'][name] = m
+        return m
+    if c['arm_commit']:
+        bb = _git_bytes(c['root'], ['show', f"{c['arm_commit']}:{path}"])
+    else:
+        fp = J(c['tree'], path)
+        bb = open(fp, 'rb').read() if os.path.exists(fp) else None
+    if bb is None:
+        c['maps'][name] = m
+        return m
+    if a == bb:
+        c['maps'][name] = None
+        return None
+    la = [x.rstrip(b'\r') for x in a.split(b'\n')]
+    lb = [x.rstrip(b'\r') for x in bb.split(b'\n')]
+    for blk in difflib.SequenceMatcher(None, la, lb, autojunk=False).get_matching_blocks():
+        for k in range(blk.size):
+            m[blk.a + k + 1] = blk.b + k + 1
+    c['maps'][name] = m
+    return m
+
+
+def _cearn_remap(s):   # 基準の経路の名の〈:行〉を測る木の行へ。写せない行は末尾に ? を付ける（どの腕の値とも一致しない）
+    mo = _ROUTE_RE.match(s)
+    if not mo:
+        return s
+    fn, ln, rest = mo.group(1), int(mo.group(2)), mo.group(3)
+    m = _cearn_map(fn)
+    if m is None:
+        return s
+    if ln not in m:
+        return s + '?'
+    return f'{fn}:{m[ln]}{rest}'
+
+
+def cearn_same_but_location(pa, pb):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数)
+    if not CEARN['base'] or not CEARN['root'] or not (CEARN['tree'] or CEARN['arm_commit']):
+        return False, 0
+    with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
+        ra = list(csv.reader(fa, delimiter='\t'))
+        rb = list(csv.reader(fb, delimiter='\t'))
+    if not ra or not rb or ra[0] != rb[0] or len(ra) != len(rb):
+        return False, 0
+    h = ra[0]
+    rc = [i for i, c in enumerate(h) if c in CEARN_ROUTE_COLS]
+    if not rc:
+        return False, 0
+    n = len(h)
+    moved = 0
+    for xa, xb in zip(ra[1:], rb[1:]):
+        if len(xa) != n or len(xb) != n:
+            return False, 0
+        for i in range(n):
+            if i in rc:
+                if xa[i] == xb[i]:
+                    if _cearn_remap(xa[i]) != xa[i]:   # 同じ字でも基準の行が動いた（または消えた）行を指す＝別の呼び出しの行を指している
+                        return False, 0
+                    continue
+                if _cearn_remap(xa[i]) != xb[i]:
+                    return False, 0
+                moved += 1
+            elif xa[i] != xb[i]:
+                return False, 0
+    return True, moved
+
+
 def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}')
     if not os.path.isdir(new):
@@ -286,6 +386,10 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         t = table_of(f)
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
             known_hit.append((f, ['呼び出し位置だけ'])); continue
+        if t == 'cearn_s':
+            okc, nmv = cearn_same_but_location(J(base, f), J(new, f))
+            if okc:
+                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）'])); continue
         rcs = [x.split(':', 1)[1] for x in removed_cols if ':' in x and f.startswith(x.split(':', 1)[0])]
         kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown), removed_cols=rcs)
         if J(base, f) in COLS_REMOVED and not d and not extra and not kn and not (pref(f, rows_grown) and ROWS_ADDED.get(J(base, f), 0) > 0):
@@ -448,6 +552,7 @@ def main():
     base = lambda k: cfg[k] if os.path.isabs(cfg[k]) or re.match(r'^[a-zA-Z]:', cfg[k]) else J(root, cfg[k])
     say(f'=== 恒等の判定（測った種で一致） {a["label"]}（{datetime.datetime.now():%F %T}）===')
     tree = norm(a['tree'] or root)
+    CEARN.update(root=root, base=cfg.get('BASE_COMMIT') or None, tree=tree)   # (835) cearn_s の経路の列の規則（BASE_COMMIT が無ければ使わない）
     say(f'測った木：{tree}（HEAD {sh_out(["git", "-C", tree, "rev-parse", "--short", "HEAD"])}・未コミット {len(sh_out(["git", "-C", tree, "status", "--porcelain"]).splitlines())} 本）')
     say(f'基準の設定：{cfgp}')
     say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'rows_grown', 'removed_cols', 'known_extra', 'cost_allow') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
