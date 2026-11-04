@@ -68,3 +68,14 @@
 [9] 計算量の割り当て：0.5 秒（(815) と同じ・国×四半期に比較 1 つと引き算 2 つ）。m797 221.2＋0.5＝221.7＜248.5。
 
 [10] 手順：①この事前登録（最初のコミット）②Theory のコミット（旗の既定 0）→走査の番人の組（㉘）③突然変異（使い捨ての木）④旗の既定を 1 にするコミット→ [6] の読み→フルスイート（分けて）・savetest・leakhunt（㉜）＝赤なら止める（番人を書き換えない）⑤採るなら記録を measurements/m819_20261104/ へ。
+
+★追記 1（2026-11-04・旗の既定を 1 にした木で [6] を読んだ・フルスイートの前＝結果は見ていない）
+  [6] ①：腕 B の manifest の SimCore の行 164・同じ 160・違う 4（Coefficients.cs・Diplomacy.cs・InstrumentsInheritIntent.cs・Territory.cs）・木に無い 0・manifest に無い 0。
+    CapitalMarket.cs と InstrumentsCpwd.cs はバイトで同じ（予言どおり）。台本 scripts/instruments/c65fl/hashcmp.py・出力 measurements/m819_20261104/hashcmp.txt。
+  [6] ②：`git diff 8e4bf0a9 <旗 1 の木> -- PriceOfBread.SimCore` は (817) の塊だけ＝Coefficients.cs は欄 3 本の削除と墓標の注・Diplomacy.cs:3052 `c.HcdColonyCessionDistance > 0 && X → X`・
+    Territory.cs:325 `&& from.Coef.NavalCedeFleetReturn > 0` を外す・Territory.cs:341 `if (from.Coef.InheritedStateIntentDrop > 0)` を外す・InstrumentsInheritIntent.cs は注 1 行。旗 CapitalCouponUnpaidWriteDown の行は 8e4bf0a9 とバイトで同じ。
+    書き手の grep（8e4bf0a9 の木・docs と measurements の外）：3 本とも試験（ColonyCessionDistanceTests:19・NavalCedeFleetReturnTests:21・InheritIntentTests:20）と台本の注（c7sw/named.sh・mutate_m1/m3.py）だけ。
+    腕 B の manifest と ms のログに POB_COEF は 0 行（c14fl/armB.sh も渡さない）。
+  ㉜ の grep（★(818)：`grep -ln ForeignCapitalIn\|CapitalAbroad PriceOfBread.Tests/*.cs`）：CapitalCouponWriteDownTests・CapitalDividendHostRentTests・FiscalTests・UnitTypeTests。
+    旧の規則を固定する Assert は FiscalTests の 2 つ（今の 658・662＝Theory にした物）だけ。FiscalTests:595〜597（国内資本の逃避の受け皿）・:1123〜1124（再併合の金の値打ちの和）・UnitTypeTests:453〜454（2 つの世界のビットの一致）は規則 C を固定しない（(815) の旗 1 のフルスイートで緑）。
+  ソースを走査する番人は 6 組（★(818)：GoodIdGuardTests を足す）＝旗 1 の木で回す。

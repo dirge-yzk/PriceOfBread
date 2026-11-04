@@ -1,0 +1,7 @@
+manifest の SimCore の行 164・同じ 160・違う 4・木に無い 0・manifest に無い 0
+  違う PriceOfBread.SimCore/Coefficients.cs
+  違う PriceOfBread.SimCore/Diplomacy.cs
+  違う PriceOfBread.SimCore/InstrumentsInheritIntent.cs
+  違う PriceOfBread.SimCore/Territory.cs
+  PriceOfBread.SimCore/CapitalMarket.cs： 同じ
+  PriceOfBread.SimCore/InstrumentsCpwd.cs： 同じ
