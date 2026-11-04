@@ -2046,10 +2046,8 @@ public sealed class Simulation
         //   装備の器（軍事費の器から給与を払った残り）を陸の装備と艦に分ける（下の州ループ・旧＝理想の海の割合〔ShapeNavalShare〕で軍需の内訳を再配分＝艦を兵の頭数×割合で買った）。
         double navalSpendNat = World.NavalSpendShare.Value;
         double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
-        double monopolyRentFactorNat = World.Coef.AntitrustGate > 0
-            ? World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 }
-            : 1.0;
-        int nationalizedMaskNat = World.Coef.NationalizationGate > 0 ? World.NationalizedMask() : 0;
+        double monopolyRentFactorNat = World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 };
+        int nationalizedMaskNat = World.NationalizedMask();
         World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
         // ★軍事費の吸い込み（2026-10-02 (155)・作者 2026-10-01「高い軍事費はより多くの兵士の他、より十分な武器（≒軍需産業を育てる需要）や、高品質な軍隊を作ります。
         //   ただし、扶養限界の考え方は必要だと思います（つまり、十分な軍隊がそろっている状態だと、兵士の給与は高止まりし、軍事費が高い設定でも出費は伸び続けない）」＝推奨で進めた）：
@@ -2730,8 +2728,8 @@ public sealed class Simulation
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
         // ★(650) 線 inh：相続法。旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。請求＝死者×1 人あたりの貯蓄×段の率×行政の届き（POP の走査の中・貯蓄はこの走査で書かない）
         //   ＝走査の後に 1 回の移転（POP→国庫・OtherIn）。戦死・疫病・鎮圧・粛清は対象外（KillPops に触らない）。
-        double estateRate = c.InheritanceLawGate > 0 ? Government.InheritanceRate(World.Inheritance) : 0.0;
-        if (c.InheritanceLawGate > 0) World.LastEstateDutyPerMonth = 0;
+        double estateRate = Government.InheritanceRate(World.Inheritance);
+        World.LastEstateDutyPerMonth = 0;
         List<Pop>? estPayers = estateRate > 0 ? new List<Pop>() : null; List<double>? estClaims = estateRate > 0 ? new List<double>() : null; double estSum = 0;
         bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）
         Span<double> disasterW = stackalloc double[2 * Pop.Layout.Bands];
@@ -2880,27 +2878,19 @@ public sealed class Simulation
     /// GoodsBalance：引き取り量を Stock−／LastSold＋で対称に動かし在庫恒等式を保つ。</summary>
     private void MintGold()
     {
-        double frac = World.Coef.GoldMintFraction.Value;
-        bool floor = World.Coef.MintPriceFloorGate > 0;   // ★自由鋳造＝床モード（2026-08-14設計・2026-08-29点火＝既定1）。0＝旧来
-        if (frac <= 0 && !floor) return;
+        // ★(843) 旗 MintPriceFloorGate（自由鋳造＝床モード・2026-08-14設計・2026-08-29点火）と StandardMetalMintGate（本位金属・同日点火）は焼き込んだ。旧来（産出比例の上限・国内鉱山限定・金鉱だけ）の枝と GoldMintFraction は消した。
         // ★本位金属の一般化（銀本位doc G3・2026-08-13）：造幣局が買うのは「金鉱」ではなく**その国の本位金属**である。
         //   金本位→金鉱／銀本位→銀／不換→どちらも買わない。⚠これで需要が法に従って現れ・消える＝
         //   独が1871年に金へ移れば独の銀需要は【消える】＝需要曲線そのものが下へ落ちる（価格弾力性では戻せない＝大デフレ）。
-        //   StandardMetalMintGate=0（対照腕）では常に金鉱＝旧経路と厳密一致（数値中立）。既定1.0で本位金属（★点火2026-08-29）。
         int metal = Catalog.GoldOreId;
-        bool isFiat = false;
-        if (World.Coef.StandardMetalMintGate > 0)
-        {
-            isFiat = World.MonetaryLaw == MonetaryStandardLaw.Fiat;
-            if (!isFiat) metal = World.MonetaryLaw == MonetaryStandardLaw.Silver ? Catalog.SilverId : Catalog.GoldOreId;
-        }
+        bool isFiat = World.MonetaryLaw == MonetaryStandardLaw.Fiat;
+        if (!isFiat) metal = World.MonetaryLaw == MonetaryStandardLaw.Silver ? Catalog.SilverId : Catalog.GoldOreId;
         // ★床モード：法が捨てた金属の準備を市場へ売る（demonetization・2026-08-14）。買うより先に売る＝
         //   金へ移った国は同じ月から銀を吐き出す（独1871年型＝買い手の消滅と投げ売りが同時）。床OFFでは準備が常に0＝恒等。
-        if (floor) SellDemonetizedReserves(metal, isFiat);
+        SellDemonetizedReserves(metal, isFiat);
         if (isFiat) return;   // 不換＝準備需要そのものが無い（造幣しない）
         // ★準備需要（G3）：買う量は「基礎貨幣×目標カバー率 − 現在の準備」＝準備が足りているほど買わない。
         //   MintReserveTargetWeight=0 なら shortfall 係数=1＝旧来の産出比例と厳密一致（⚠既定は点火済みの1.0＝2026-08-29・x-02 で注記を是正）。
-        double mintScale = 1.0;
         double coverShort = 0;   // ★MintBuysAtMarket（2026-09-06）：カバー率の不足（0..1）＝平価の上でも市場で買う根拠
         double gapLeft = 0;      // ★第2版（2026-09-06）：今月の市場買いの予算＝準備ギャップ（目標カバー率×広義貨幣−基礎貨幣）×売却側と同じ月次率（MintReserveSellRatePerMonth）
         if (World.Coef.MintReserveTargetWeight > 0)
@@ -2909,8 +2899,6 @@ public sealed class Simulation
             double coverTarget = World.Coef.GoldCoverMin.Value * World.Coef.GoldRejoinCoverMargin;
             double shortfall = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             shortfall = PoliticalQuantities.Clamp01(shortfall);   // NaN は Clamp01 が0＝造幣停止側へ倒す
-            mintScale = 1.0 - World.Coef.MintReserveTargetWeight * (1.0 - shortfall);
-            mintScale = PoliticalQuantities.Clamp01(mintScale);
             coverShort = shortfall;
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
                 gapLeft = Math.Max(0, (coverTarget * World.BroadMoney - World.BaseMoney).Value) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
@@ -2919,13 +2907,12 @@ public sealed class Simulation
         //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
         //   置き換えの候補＝床の持ち込みを貨幣の不足（M/Y の趨勢×実質産出−今の貨幣）までに切る形は (210) で測って**入れていない**
         //   （r207＋その形だけの10種＝移民による州の空洞化1件〔判定の線〕・工場の蒸気動力の NG +8・英の金本位の月 1822-49 1.00→0.85＝パッチ measurements/s208_20261009_floor.diff）。
-        if (!floor && mintScale <= 1e-12) return;   // ⚠床モードは mintScale を読まない（床＝無制限の standing offer に「準備が足りたら買わない」を混ぜると床が消える＝罠の記録どおり）
         double parity = Catalog.RefPrices[metal];   // 造幣平価（固定・RefPrice建て）＝史実の固定平価。市場価格がこれを超えれば誰も持ち込まない
         // ★器 MintParitySells の売り予算（2026-09-07・休眠既定0・レビュー是正）：国の状態で1本に決める。準備不足（coverShort>0＝市場買い gapLeft の根）の月は**売らない**
         //   （州ごとの !atMarket では gapLeft が尽きた後続州が同じ月に平価で売る＝買い高・売り安の閉ループ）。今月の売り上限＝準備×MintFloorBuyRatePerMonth（買い側と同じ月次率）を
         //   **州をまたいで1本**消費する（gapLeft と同じ作法。州ごとに準備×率を掛け直すと 1−(1−率)^N に複利化し先頭の州ほど多く受ける）。0＝sellLeft=0＝厳密恒等。
         double sellLeft = 0;
-        if (floor && World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
+        if (World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
         {
             sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value);
             if (!(sellLeft > 1e-12)) sellLeft = 0;   // 否定形＝NaN/非正の準備は売らない側へ
@@ -2946,15 +2933,12 @@ public sealed class Simulation
                 sellLeft -= sold;                                          // 国1本の月次予算を消費
             }
             if (m.Stock <= 1e-12) continue;
-            if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
             if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
             double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
-                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value)
-                               : Math.Min(frac * mintScale * m.LastProduced, m.Stock);
+                               : m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value);   // 床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
             if (qty <= 1e-12) continue;
             double totOut = 0;
             foreach (var p in r.Producers) if (p.GoodId == metal) totOut += p.Output;
-            if (!floor && totOut <= 1e-12) continue;   // 旧来＝国内鉱山限定／★床＝撤廃（パリの造幣局はどこで掘られた銀も受けた＝仏は大産地でないのに世界の緩衝材だった）
             double price = atMarket ? m.Price : parity;   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（MintBuysAtMarket）だけ市場価格＝準備の購入代金
             // ★支払いの一元化 段3-5（2026-09-30・C8＝処理の一元化 段4d）：鋳造の代金は**④の持分**（InternationalMarket.PaySales＝その財の生産者の産出の比・地代→持ち主
             //   〔国営持分は国庫〕・賃金→労働・Earned を通す＝国内の売上と輸出代金と同じ分け方）。旧＝産出の比で持ち主へ・労働へは係数 MintWageShare（0.5）で別に分けた
@@ -2990,7 +2974,7 @@ public sealed class Simulation
             //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
             // ★床モード＝吸った現物を国の準備として保持（旧来は「コインになって消える」＝追跡しない＝恒等）。
             //   法が本位を捨てたとき、この準備が市場へ売られる＝暴落を深める投げ売りが台本なしで出る。
-            if (floor) { if (metal == Catalog.SilverId) World.SilverReserveQty += qty; else World.GoldReserveQty += qty; }
+            if (metal == Catalog.SilverId) World.SilverReserveQty += qty; else World.GoldReserveQty += qty;
         }
     }
 

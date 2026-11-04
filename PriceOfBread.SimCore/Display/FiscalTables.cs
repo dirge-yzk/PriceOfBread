@@ -104,15 +104,11 @@ public static class FiscalTables
         double tribOut = Calendar.PerQuarterToPerMonth(w.LastTributeOutPerQuarter * w.FiscalFundingRatio.Value);
         double tribIn = Calendar.PerQuarterToPerMonth(w.LastTributeInPerQuarter);
 
-        double lag = c.TechMultipliersOff > 0 ? 0.0 : w.WorldTechLevel > 1e-9 ? Math.Clamp((w.WorldTechLevel - w.TechLevel) / w.WorldTechLevel, 0, 1) : 0;
         string indTip;
         {
             var (trad, modern, mass) = InterestGroups.Blocs(w);
             double tot = trad + modern + mass; double tradShare = tot > 1e-9 ? trad / tot : 0;
-            indTip = $"効率 +{lag:P0}\n"
-                   + $"技術(対世界最先端) {(1.0 - lag >= 0.995 ? "最先端" : (1.0 - lag).ToString("P0"))}\n"
-                   + $"コスト倍率 ×{1.0 + c.ModernizationTechLagCost * lag:F2}　技術の遅れ +{c.ModernizationTechLagCost * lag:P0}\n"
-                   + $"旧体制の反対 -{Math.Min(1.0, c.ModernizationOldGuardResist * tradShare):P0}　旧支配層の政治力 {tradShare:P0}";
+            indTip = $"旧体制の反対 -{Math.Min(1.0, c.ModernizationOldGuardResist * tradShare):P0}　旧支配層の政治力 {tradShare:P0}";
         }
         string adminTip = $"行政力　{w.AdminEfficiency:P0}\n行政費　目標 {w.Policy.AdminSpendingTarget:P0}　実効 {w.AdminSpending:P0}"
             + string.Concat(PlayText.ExplainTerms(w, "AdminEfficiency").Select(t => "\n" + PlayText.SignedLine(t.Delta, t.Reason, v => v.ToString("P0"))));
@@ -225,8 +221,8 @@ public static class FiscalTables
     {
         var c0 = w.Coef;
         return !w.OnGoldStandard
-            && w.CurrencyReformCooldown <= 0 && w.NominalGdpPerMonth.Value > 1e-9
-            && w.CumulativeDevaluation / w.NominalGdpPerMonth.Value > c0.CapitalFlightDistrustThreshold
+            && w.CurrencyReformCooldown <= 0
+            && Fiscal.CurrencyMemoryBroken(w.CumulativeDevaluation, w.NominalGdpPerMonth.Value, c0.CapitalFlightDistrustThreshold)
             && w.NoDevaluationMonths >= c0.CurrencyReformCalmMonths
             && w.FiscalFundingRatio >= c0.GoldStandardMinFunding;
     }

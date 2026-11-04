@@ -2276,9 +2276,7 @@ public sealed class Diplomacy
     /// 印度・中央アジアの「従属はするが宗主が史実と違う」逸脱（宗主一致exact40%の主因）を生んでいた。
     /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(194) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
     internal double ExpeditionLift(Power great, Power target, Coefficients c)
-        => !(c.TechMultipliersOff > 0) && great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target)   // ★(613) 段3：旗が正なら門なし（1.0）
-           ? PoliticalQuantities.ClampOr(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0, c.ExpeditionTechFloor)   // NaN は床へ
-           : 1.0;
+        => 1.0;   // ★(613) 段3（旗 TechMultipliersOff は (843) で焼き込み）：海越えの遠征の技術の門なし（1.0）。旧の式（遠征の技術水準÷自国の技術水準）の枝は消した
 
     /// <summary>屈服線＝標的を屈服させるのに要る実効戦力（軍事ゲージ×<see cref="Coefficients.ColonizeSubmitRatio"/>・無防備な標的の床つき）。
     /// ★屈服判定・要求余剰戦力（国力比の分母）・UI表示が**この1本**を読む（2026-08-23：床0.05と床なしの二重定義を統合）。</summary>

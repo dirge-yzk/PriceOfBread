@@ -440,7 +440,7 @@ public static class Discovery
                         d = ReferenceEquals(seller, buyer) ? 0 : Geo.DistanceKm(buyer.Latitude, buyer.Longitude, seller.Latitude, seller.Longitude);
                         if (i < km.Length) km[i] = d;
                     }
-                    fac = 1.0 + c.TransportMargin * (1.0 + c.DistanceMarginScale * d / Diplomacy.DistanceNormKm) * Freight + duty;
+                    fac = 1.0 + c.TransportMargin * (1.0 + d / Diplomacy.DistanceNormKm) * Freight + duty;
                 }
                 else fac = 1.0;
                 num += wt * s[g] * fac; den += wt;
@@ -998,7 +998,7 @@ public static class Discovery
         double pRail = book.Of(c.RailGoodId), pLoco = book.Cost(loco);
         if (!(pRail >= 0) || !(pLoco >= 0) || !(c.TransportCapPerUnit > 0)) return NoPrice;
         double capital = c.TransportDecay * (pRail + pLoco) / (2.0 * c.TransportCapPerUnit);   // 容量1あたりの月の資本の費用（実質）
-        double horseUnit = c.TransportMargin * c.DistanceMarginScale * c.LandSeaCostRatio * (freight > 0 ? freight : 1.0) / Diplomacy.DistanceNormKm;   // 陸の脚1kmの馬の運賃の倍率（地形1）
+        double horseUnit = c.TransportMargin * c.LandSeaCostRatio * (freight > 0 ? freight : 1.0) / Diplomacy.DistanceNormKm;   // 陸の脚1kmの馬の運賃の倍率（地形1）
         double pot = 0, sum = 0;
         foreach (var r in w.Regions)
         {

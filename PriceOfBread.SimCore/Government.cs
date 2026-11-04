@@ -145,7 +145,7 @@ public static class Government
             FrontOpen: w => w.Polity != Polity.ProletarianDictatorship),
         new(PolicyAxis.Antitrust, w => (int)w.Antitrust, (w, v) => w.Antitrust = (AntitrustLaw)v, (w, p) => (int)p.Antitrust, 2, Stage: 2),   // 独占禁止法（E6）：規制なし→談合禁止→独占の解体（独占レント保有層が抵抗）
         new(PolicyAxis.Guild, w => (int)w.Guild, (w, v) => w.Guild = (GuildLaw)v, (w, p) => (int)p.Guild, 2, Stage: 2, Open: w => w.Coef.GuildLawGate > 0),   // ★同業組合法（特権 段4・2026-09-07）：保護→制限→廃止（職人が抵抗）。ゲート0＝法が動かない＝恒等
-        new(PolicyAxis.MinimumWage, w => (int)w.MinimumWage, (w, v) => w.MinimumWage = (MinimumWageLaw)v, (w, p) => (int)p.MinimumWage, 3, Stage: 2, Open: w => w.Coef.MinimumWageLawGate > 0),   // ★最低賃金法（線 lw (459)・2026-10-20）：なし→生存→生活→充足（独立した量の段・他の法の前提なし・賃金労働者が推し資本が抵抗する）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.MinimumWage, w => (int)w.MinimumWage, (w, v) => w.MinimumWage = (MinimumWageLaw)v, (w, p) => (int)p.MinimumWage, 3, Stage: 2),   // ★最低賃金法（線 lw (459)・2026-10-20）：なし→生存→生活→充足（独立した量の段・他の法の前提なし・賃金労働者が推し資本が抵抗する）。旗 MinimumWageLawGate は (843) で焼き込み
         new(PolicyAxis.WartimeRationing, w => w.WartimeRationing ? 1 : 0, (w, v) => w.WartimeRationing = v == 1, (w, p) => p.WartimeRationing ? 1 : 0, 1),   // 戦時配給法（E6・あり/なし）：戦時のみ発火（資本が反対）
         new(PolicyAxis.MilitaryExport, w => w.MilitaryExportBan ? 1 : 0, (w, v) => w.MilitaryExportBan = v == 1, (w, p) => p.MilitaryExportBan ? 1 : 0, 1),   // 軍需輸出の法（禁制品doc C5・2026-07-30）：武器で稼ぐ資本が禁止に反対＝軍需産業の大きい国ほど通らない・軸の増＝禁止
         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：旧支配層が禁止を推し近代/大衆が抵抗。ゲート0＝法が動かない＝恒等。軸の増＝禁止。
@@ -180,7 +180,7 @@ public static class Government
         // 既定 None＝AI/議会/勢力が目標を置かなければ目標＝現在＝StepLevel が即 return。
         new(PolicyAxis.ColonialSuffrage, w => (int)w.ColonialSuffrage, (w, v) => w.ColonialSuffrage = (ColonialSuffrageLaw)v, (w, p) => (int)p.ColonialSuffrage, 2, Stage: 2),   // なし→自国民のみ→全面を1段ずつ
         new(PolicyAxis.MigrantNativeSuffrage, w => (int)w.MigrantNativeSuffrage, (w, v) => w.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v, (w, p) => (int)p.MigrantNativeSuffrage, 1, Stage: 1),   // なし0／あり1（2段＝段の飛び越しが存在しない）
-        new(PolicyAxis.Inheritance, w => (int)w.Inheritance, (w, v) => w.Inheritance = (InheritanceLaw)v, (w, p) => (int)p.Inheritance, 4, Stage: 2, Open: w => w.Coef.InheritanceLawGate > 0),   // ★相続法（線 inh (650)）：なし→低→中→高→全て（独立した量の段・政体の門なし）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.Inheritance, w => (int)w.Inheritance, (w, v) => w.Inheritance = (InheritanceLaw)v, (w, p) => (int)p.Inheritance, 4, Stage: 2),   // ★相続法（線 inh (650)）：なし→低→中→高→全て（独立した量の段・政体の門なし）。旗 InheritanceLawGate は (843) で焼き込み
     ];
 
     /// <summary>軸→表の行（同じ軸の行が複数あるのは国有化の5部門だけ＝先頭の行・段も位置も表を読まない軸）。</summary>

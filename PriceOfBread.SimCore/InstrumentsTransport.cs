@@ -228,7 +228,7 @@ public static partial class Instruments
         var c = sim.Nations[0].World.Coef;
         void Z(string name, double v) => sk.TrStat!.WriteLine(string.Join('\t', "Z", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", name, F(v), ""));
         Z("LandSeaCostRatio", c.LandSeaCostRatio); Z("RailCostFraction", c.RailCostFraction); Z("FreightRatePer10Mm", c.FreightRatePer10Mm);
-        Z("TransportMargin", c.TransportMargin); Z("DistanceMarginScale", c.DistanceMarginScale); Z("TransportWeightMarginScale", c.TransportWeightMarginScale);
+        Z("TransportMargin", c.TransportMargin); Z("DistanceMarginScale", 1.0);   /* (843) 係数 DistanceMarginScale は焼き込んだ（常に 1）＝trstat の行は旧の値のまま残す */ Z("TransportWeightMarginScale", c.TransportWeightMarginScale);
         Z("MerchantMargin", c.MerchantMargin); Z("TerrainWaterMajorCost", c.TerrainWaterMajorCost); Z("TerrainWaterMinorCost", c.TerrainWaterMinorCost);
         Z("DistanceNormKm", Diplomacy.DistanceNormKm);
         for (int t = 0; t < c.TerrainHorseCost.Length; t++) Z("TerrainHorseCost[" + ((Terrain)t) + "]", c.TerrainHorseCost[t]);

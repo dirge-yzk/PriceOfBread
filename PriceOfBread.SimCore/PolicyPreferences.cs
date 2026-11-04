@@ -321,10 +321,10 @@ public static class PolicyPreferences
                 return w.Coef.RebelArmsMarketEnabled > 0 ? (trad ? 1.0 : -1.0) : 0.0;
             case PolicyAxis.MinimumWage:      // 最低賃金法（線 lw (459)・2026-10-20）＝賃金労働者（大衆）が賛成・雇う側の資本（近代）が反対・農業の雇い主（旧支配層）は弱く反対。符号の出所＝労働組合（LaborUnion）と同型（作者の向きを AI が写した形・確証なし）。
                                               // ⚠MinimumWageLawGate=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（Guild と同じ休眠の防壁）
-                return w.Coef.MinimumWageLawGate > 0 ? (mass ? 1.0 : modern ? -1.0 : -0.5) : 0.0;
+                return mass ? 1.0 : modern ? -1.0 : -0.5;
             case PolicyAxis.Inheritance:      // 相続法（線 inh (650)）＝所得税と同じ型：大衆が国庫の使い道で得る（+1.0・段の大きさに依らない）・資産の持ち手は取られる率に比例して反対（BurdenScale×Δr×貯蓄のシェア）
                                               // Δr＝次の段で動く率の差（最上段では今の段の大きさ＝最上段の資産階級の Pref が負＝戻す要求が立つ）。⚠InheritanceLawGate=0 では全ブロック0（Guild と同じ休眠の防壁）
-                return w.Coef.InheritanceLawGate > 0 ? (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w) * e.Wealth[b] : 0.0;
+                return (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w) * e.Wealth[b];
             case PolicyAxis.WartimeRationing: // 戦時配給（E6）＝国家/軍が総力戦の統制として支持・資本が価格統制で反対（大衆は中立＝公平配給だが統制も伴う）
                 return trad ? 0.5 : modern ? -0.5 : 0;
             case PolicyAxis.MilitaryExport:   // 軍需輸出の禁止（C5・2026-07-30）＝武器を作って売る資本が利益から反対。強さは**軍需財の生産額シェア**から創発

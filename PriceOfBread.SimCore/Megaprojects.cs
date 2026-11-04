@@ -84,8 +84,7 @@ public static class Megaprojects
         if (mp.IsComplete) return "完成している";
         if (mp.Started) return "着工済み";
         if (!(mp.Owner is { } o && w.SelfPower is { } me && ReferenceEquals(o, me))) return "建設地の州を自国が領有していない";
-        if (w.Coef.TechGateByDiscovery > 0) { if (!RequirementMet(w, mp.Id)) return "必要な発見が済んでいない"; }   // ★(613) 段1：旗が正なら発見の行 requires（否定形＝NaN は旗 0）
-        else if (!(w.TechLevel >= mp.TechGate)) return "技術が足りない";
+        if (!RequirementMet(w, mp.Id)) return "必要な発見が済んでいない";   // ★(613) 段1（旗 TechGateByDiscovery は (843) で焼き込み）：発見の行 requires
         return null;
     }
 
@@ -138,14 +137,14 @@ public static class Megaprojects
                 dip.Log.Add($"{hw.Year} {mp.Name}が完成（{mp.Owner?.Name ?? "中立"}）");
                 continue;
             }
-            if (hw.Coef.TechGateByDiscovery > 0 ? !RequirementMet(hw, mp.Id) : hw.TechLevel < mp.TechGate) continue;   // 技術ゲート＝時代を出す（暦年で発火させない＝台本禁止）。★(613) 段1：旗が正なら発見の行 requires
+            if (!RequirementMet(hw, mp.Id)) continue;   // 技術ゲート＝時代を出す（暦年で発火させない＝台本禁止）。★(613) 段1（旗 TechGateByDiscovery は (843) で焼き込み）：発見の行 requires
             if (!mp.Started) continue;                 // 着工の動詞（2026-08-02）＝未着工は国庫を引かない
             // 国庫から予約を積む。★有界化は「1国あたりの**総額**」で効かせる＝同じ国が複数を同時に建てると
             // 1件ずつ Frac×Treasury を取り、国庫が一気に吸われる（征服で建設地が1国に集まると現実に起きる）。
             // 1件あたり Frac／全体で Cap を超えない、の小さい方。件数はリスト順に数えるので決定論。
             int inProgressHere = 0;
             foreach (var m2 in dip.Megaprojects)
-                if (m2.Started && !m2.IsComplete && m2.Owner is { } o2 && ReferenceEquals(o2, hw.SelfPower) && (hw.Coef.TechGateByDiscovery > 0 ? RequirementMet(hw, m2.Id) : hw.TechLevel >= m2.TechGate)) inProgressHere++;
+                if (m2.Started && !m2.IsComplete && m2.Owner is { } o2 && ReferenceEquals(o2, hw.SelfPower) && RequirementMet(hw, m2.Id)) inProgressHere++;
             double share = inProgressHere > 0
                 ? Math.Min(coef.MegaprojectStateFrac.Value, coef.MegaprojectStateCap / inProgressHere)
                 : coef.MegaprojectStateFrac.Value;

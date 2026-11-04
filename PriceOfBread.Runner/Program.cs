@@ -484,7 +484,7 @@ if (args.Length > 0 && args[0] == "armsdebug")
     foreach (var sD in msD.Nations) sD.TelemetryEnabled = false;
     msD.Diplomacy.Log.Enabled = false;
     msD.StartWarmup();
-    Console.WriteLine($"# armsdebug seed={dSeed} 国={dName}　BaseArmsStockEnabled={msD.Nations[0].World.Coef.BaseArmsStockEnabled}");
+    Console.WriteLine($"# armsdebug seed={dSeed} 国={dName}");
     Console.WriteLine("四半期,年,規模,平時規模,小銃目標,小銃在庫,小銃発注,火砲目標,火砲在庫,装備充足,即応度,軍事力,名目産出,損失累計,損失増分,軍需生産者数,平均採算,倒産数,小銃生産者数,小銃産出計,小銃規模平均,小銃建設規模計,小銃投入充足平均,小銃価格,小銃基準価格,建材採算率,首都の未達意志,首都の建設中,国庫,財政バッファ");   // ★2026-09-07：着工が止まる根（建材の高値ゲート/未達の意志/国庫）   // ★2026-09-07：小銃(82)の生産者の内訳（英の軍が立たない根＝能力か投入か価格か）
     double prevLoss = -1;
     for (int q = 0; q < dTo; q++)
@@ -500,7 +500,7 @@ if (args.Length > 0 && args[0] == "armsdebug")
         double Tgt(int b)
         {
             double wr = b < cD.MilitaryWearRatesPerMonth.Length ? cD.MilitaryWearRatesPerMonth[b] : 1.0;
-            return !(cD.BaseArmsStockEnabled > 0) || !(wr < 1.0) ? 0 : EconomyStep.BaseArmsTarget(rD.MilitaryScalePeace, milRatesD[b], wr, EconomyStep.LandMul(cD, cD.MilitaryGoods[b]));
+            return !(wr < 1.0) ? 0 : EconomyStep.BaseArmsTarget(rD.MilitaryScalePeace, milRatesD[b], wr, EconomyStep.LandMul(cD, cD.MilitaryGoods[b]));
         }
         double Held(int b) => EconomyStep.ArmsOnHand(rD, cD.MilitaryGoods[b], Tgt(b));
         double t0 = Tgt(0), h0 = Held(0), t2 = Tgt(2), h2 = Held(2);
@@ -1351,7 +1351,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
             double kmR = 3000.0 / 10_000.0;
             double rp = Catalog.RefPrices[g];
             double weightAdd = c0.TransportWeightMarginScale > 0 && rp > 1e-9 ? c0.TransportWeightMarginScale * Catalog.TransportWeight(g) / rp * freightRev : 0;
-            double margin = c0.TransportMargin * (1.0 + c0.DistanceMarginScale * kmR) + weightAdd * kmR;
+            double margin = c0.TransportMargin * (1.0 + kmR) + weightAdd * kmR;
             double wedgeEng = eng is not null
                 ? System.Math.Clamp(eng.Tariff, c0.TariffFloor, 1)
                   + (Catalog.Goods[g].Tier == GoodTier.Staple ? (eng.CornLaws == ReformLevel.Full ? 1.0 : eng.CornLaws == ReformLevel.Limited ? 0.5 : 0) * c0.CornLawImportPenalty : 0)
@@ -1425,8 +1425,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
     svm.StartWarmup();   // 自己対戦バッチと同じ開始盤面から測る
     string svOv = Coefficients.OverrideSummary();
     Console.WriteLine($"=== 銀本位プローブ seed={svSeed}／上書き={(svOv.Length > 0 ? svOv : "なし")} ===");
-    Console.WriteLine($"    StandardMetalMintGate={svc.StandardMetalMintGate}"
-                    + $" GoldMintFraction={svc.GoldMintFraction.Value} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
+    Console.WriteLine($"    MintReserveTargetWeight={svc.MintReserveTargetWeight}");
     Console.WriteLine($"    RefPrice: 銀({Catalog.SilverId})={Catalog.RefPrices[Catalog.SilverId]:F3}　金鉱({Catalog.GoldOreId})={Catalog.RefPrices[Catalog.GoldOreId]:F3}");
     var svEverAg = new List<string>(); var svEverAu = new List<string>();
     void SvDump(int q)

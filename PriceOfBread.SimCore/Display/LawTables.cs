@@ -42,9 +42,8 @@ public static class PoliticsTables
         var rows = new List<LawLine>();
         foreach (var d in LawCatalog.In(LawSlot.Law))
             if (d.IsVisible(w)) rows.Add(new LawLine(d, w, d.Group.Length > 0 ? d.Group : OtherGroup));
-        if (w.Coef.NationalizationGate > 0)
-            foreach (var d in LawCatalog.In(LawSlot.Nationalization))
-                if (d.IsVisible(w)) rows.Add(new LawLine(d, w, NationalizationGroup));
+        foreach (var d in LawCatalog.In(LawSlot.Nationalization))
+            if (d.IsVisible(w)) rows.Add(new LawLine(d, w, NationalizationGroup));
         return rows;
     }
 

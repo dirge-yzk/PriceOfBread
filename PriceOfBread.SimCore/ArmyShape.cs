@@ -293,8 +293,7 @@ public static class ArmyShape
     ///   3因子を別々に返す＝各呼び手の掛ける順（浮動小数の結合順）をそのまま保つ。</summary>
     internal static (double Tech, double Cohesion, double Militarism) Quality(World w, Coefficients c)
     {
-        double techQuality = c.TechMultipliersOff > 0 ? 1.0   // ★(613) 段3：技術水準を掛けない（兵器の発見と装備の在庫が質を持つ）
-            : c.TechMilLowFloor + (1 - c.TechMilLowFloor) * PoliticalQuantities.Clamp01(w.TechLevel / c.TechMilFullLevel);
+        double techQuality = 1.0;   // ★(613) 段3（旗 TechMultipliersOff は (843) で焼き込み）：技術水準を掛けない（兵器の発見と装備の在庫が質を持つ）
         double cohesion = w.EthnicEnabled ? 1 + c.UnityMilitaryQuality * (w.EthnicUnity - 0.5) : 1.0;
         // ①軍の練度（2026-08-18・親軍法の撤去）＝識字×組織（専門官僚制・鉄道）×勤務年数。旧＝親軍法ONで一律1.3の段差。
         // 露は皆兵＋巨額でも低質（識字と下士官層の不在）・英は志願長期勤務で最高＝法でなく実物量が質を作る。

@@ -215,9 +215,7 @@ public sealed class UtilityAgent : INationAgent
     private const double UnrestSatisfactionThreshold = 0.62;
     private const double UModUnrestWeight = 0.3;                // 近代化効用：不満の重み
     private const double UIndRoomWeight = 1.2;                  // 工業化効用：余地の重み
-    private const double UModTechWeight = 1.0;                  // 近代化効用：技術差の重み
     private const double UModIndRoomWeight = 0.5;               // 近代化効用：工業化余地の重み
-    private const double UIndTechWeight = 0.5;                  // 工業化効用：技術差の重み
     // ★2026-08-04（作者指示「不満度の社会保障への圧力を高め、より満足度を落ちづらくする」）：1.5→2.5。
     //   旧値では不満の理論最大（満足0＝unrest0.7）でも効用1.05＝工業化効用（≈4.0）に構造的に勝てず、
     //   福祉スタンスは飢饉か革命間際でしか選ばれなかった。それでも早期は工業化が勝つ（史実＝福祉国家は工業化の後）。
@@ -364,8 +362,8 @@ public sealed class UtilityAgent : INationAgent
         GateLaw(ref shared, w, PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)p.Bureaucracy, (int)BureaucracyLaw.Professional, v => p.Bureaucracy = (BureaucracyLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Antitrust, (int)w.Antitrust, (int)p.Antitrust, (int)AntitrustLaw.Trustbust, v => p.Antitrust = (AntitrustLaw)v);
         if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);   // ★特権 段4
-        if (w.Coef.InheritanceLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (int)InheritanceLaw.All, v => p.Inheritance = (InheritanceLaw)v);   // ★相続法（線 inh (650)・ゲート0では目標を整形しない＝恒等）
-        if (w.Coef.MinimumWageLawGate > 0) GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・ゲート0では目標を整形しない＝恒等）
+        GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (int)InheritanceLaw.All, v => p.Inheritance = (InheritanceLaw)v);   // ★相続法（線 inh (650)・ゲート0では目標を整形しない＝恒等）
+        GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・ゲート0では目標を整形しない＝恒等）
         GateLaw(ref shared, w, PolicyAxis.WartimeRationing, w.WartimeRationing ? 1 : 0, p.WartimeRationing ? 1 : 0, 1, v => p.WartimeRationing = v != 0);
         GateLaw(ref shared, w, PolicyAxis.MilitaryExport, w.MilitaryExportBan ? 1 : 0, p.MilitaryExportBan ? 1 : 0, 1, v => p.MilitaryExportBan = v != 0);
         if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(ref shared, w, PolicyAxis.CivilianArms, w.CivilianArmsBan ? 1 : 0, p.CivilianArmsBan ? 1 : 0, 1, v => p.CivilianArmsBan = v != 0);   // ★民間の武器購入の法（2026-09-11）
@@ -640,7 +638,7 @@ public sealed class UtilityAgent : INationAgent
         return lo + (hi - lo) * SecurityShare(w);
     }
 
-    // スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（技術差・工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
+    // スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
     private static Stance ChooseStance(World w) => ChooseStance(w, out _);
 
     /// <summary>★2026-08-26：内訳つきの本体。従来の <c>ChooseStance(World)</c> は out を捨てる薄いラッパー＝
@@ -649,15 +647,14 @@ public sealed class UtilityAgent : INationAgent
     {
         var doctrine = DoctrineFrom(w);   // 倍率排除⑧：支配ブロック＋軍国度から創発（政体ラベルの写像を廃止・政変や参政権拡大で動的に変わる）
         double sat = NationalScore.MeanSatisfaction(w);
-        double techGap = 0.0;   // 技術の遅れ（後発の伸びしろ）は姿勢の効用に入れない。★(613) 段2a（旗 TechSignalOff は (824) で焼き込み・作者 2026-10-16〈技術水準は二重計上＝削除〉）。UModTechWeight・UIndTechWeight の項は外圧の死んだ信号の連鎖として残す
         double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();   // ★(416) 工業化の余地＝目盛り 4.0×国庫の配り先の設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）。達成して収益が立たなくなれば uInd が下がり教義の道へ
         double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);                                       // 不満（満足の不足）
         double fiscalNeed = FiscalStressOf(w);   // 国庫の逼迫（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
 
         // スタンスごとの効用＝助ける成分×不足。最大を選ぶ。
         double famine = Math.Max(0, 1.0 - w.FoodFill);   // 飢饉度（主食充足の不足∈[0,1]）。旧AIは FoodFill を一切読まず飢饉を見殺しにしていた（AI監査2026-07-06）＝反応の入力を与える
-        double uMod = UModTechWeight * techGap + UModIndRoomWeight * indRoom + UModUnrestWeight * unrest;
-        double uInd = UIndRoomWeight * indRoom + UIndTechWeight * techGap;
+        double uMod = UModIndRoomWeight * indRoom + UModUnrestWeight * unrest;
+        double uInd = UIndRoomWeight * indRoom;
         double uWel = UWelUnrestWeight * unrest + UWelFamineWeight * famine;        // 飢饉時は福祉スタンスの効用↑＝救済(社会保障)・逆進課税の緩和・労働短縮へ舵を切る（生存反射）
         double uFis = UFisWeight * fiscalNeed;
         // 軍備の基礎効用：専制(軍国)は常に軍拡。加えて対外脅威(緊張)があればどの政体も防衛のため軍拡する
@@ -984,7 +981,6 @@ public sealed class UtilityAgent : INationAgent
     /// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
     internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
     {
-        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
         MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
         return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
     }
@@ -999,7 +995,6 @@ public sealed class UtilityAgent : INationAgent
     /// 書き方は <see cref="MinimumWageFloorWant"/>（純関数）。新しい状態・倍率を作らない。</summary>
     internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)
     {
-        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
         var cost = w.Cost;
         var h = MinimumWageFloor.ReadHomeLabor(w, cost);
         double u = h.Unemployment;

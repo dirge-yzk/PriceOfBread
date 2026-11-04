@@ -1100,7 +1100,7 @@ public sealed class World
 
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
-    public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
+    public double InsolvencyMonths { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
     public int BorrowCooldownMonths { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 
@@ -1936,9 +1936,7 @@ public sealed class World
         //   ── コスト倍率 ────────────────────────────────────────────────────────
         //   技術が遅れた国ほど、同じ近代化に多くの金がかかる（既存の状態量だけで作る）。
         //   ＝技術を輸入に頼る国の割高さ。
-        double costMul = 1.0
-            + (Coef.TechMultipliersOff > 0 ? 0.0   // ★(613) 段3：遅れの割増なし
-               : Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0));
+        double costMul = 1.0;   // ★(613) 段3（旗 TechMultipliersOff は (843) で焼き込み）：技術の遅れの割増なし（旧の式は 1.0 + 0.0 だった＝値は同じ）
         //   ── 費用は frac に対して**凸**（2026-08-04）─────────────────────────────
         //   要求額 = A × GDP × コスト倍率 × frac/(1−frac)。frac→1 で**発散**＝「100%はほとんどの国で不可能」が
         //   閾値でなく形として成立する（線形にして係数を大きくすると、通常域まで一緒に潰れて覇権が消える＝実測でテスト赤）。
