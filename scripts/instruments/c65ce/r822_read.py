@@ -76,8 +76,8 @@ for seed in seeds:
         if not (closure <= 1e-6): names.append('閉じない')
         else:
             if gin < 0.003 and floor >= 0.95 and bscm >= 0.9: names.append('F')
-            if kstar == 'outTaxPerQuarter' and R < 0.1 * tax: names.append('T')
-            if kstar == 'outTaxPerQuarter' and poll >= 0.5 * tax: names.append('U')
+            if kstar == 'outTaxPerQuarter' and tax > 0 and R < 0.1 * tax: names.append('T')   # tax>0＝税の流れが無い窓を T・U にしない（読む前の守り）
+            if kstar == 'outTaxPerQuarter' and tax > 0 and poll >= 0.5 * tax: names.append('U')
             if kstar in ('outCapitalPerQuarter', 'outBondPerQuarter'): names.append('I')
             if not names: names.append('記録(' + kstar + ')')
         prim = names[0]
