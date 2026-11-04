@@ -1,0 +1,10 @@
+# (834) mutunit コミット b4a340d0 フィルタ FullyQualifiedName~SilverParityDemandWeightedTests|FullyQualifiedName~SilverstInstrumentTests
+M1: ok
+M1 失敗!   -失敗:     5、合格:     4、スキップ:     0、合計:     9、期間: 32 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.薄い側の票の和が正でなければ0を返し比が不正の扱いへ倒れる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗0は州の数で割り_旗が正は薄い側の額で割る ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗0は等重みの自走査と一致し_値1は値2と全ての列で同じAプライムの注入になる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う ;
+M2: ok
+M2 失敗!   -失敗:     5、合格:     4、スキップ:     0、合計:     9、期間: 41 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.薄い側の票の和が正でなければ0を返し比が不正の扱いへ倒れる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗0は州の数で割り_旗が正は薄い側の額で割る ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗0は等重みの自走査と一致し_値1は値2と全ての列で同じAプライムの注入になる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う ;
+M3: ok
+M3 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 40 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗0は等重みの自走査と一致し_値1は値2と全ての列で同じAプライムの注入になる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う ;
+M5: ok
+M5 失敗!   -失敗:     2、合格:     7、スキップ:     0、合計:     9、期間: 25 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.薄い側の票の和が正でなければ0を返し比が不正の扱いへ倒れる ;  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests.旗2の票は参照価格建ての薄い側の額で_非有限と非正の積は票なし ;
+MUTUNITDONE
