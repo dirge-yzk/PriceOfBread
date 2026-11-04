@@ -90,7 +90,7 @@
  ・㉜（旗 2 の木で旧の規則を固定する番人）：上の ①② は初期化子の旗 0 で旗 0 の経路の番人になる＝旗 2 の木でも緑の予言。DormantIdentityTests は点火で行を外して緑。WriterRatchetTests の item 11（外交：覇権の判定の国×国・(827) の旗 2 の木で 3,083,057／宣言 2,787,201・+10.6%）は★(749) の軌道の件数の表＝赤の予言・書き換えない（合流の木で 1 回取り直す）。それ以外の赤は止めて報告する。
 
 [8] cearn_s の経路の列の宣言（★(832)・結果の前）
- ・MultiNationSim.cs の行を消す（:34〜35 の 2 行と :893 の 1 行）＝この後ろの呼び出し位置の行番号が −2・−3 ずれる＝cearn_s の経路の 3 列（inTop1Route・outTop1Route・outTop2Route）が〈ファイル:行〉で違う予言。
+ ・MultiNationSim.cs の行を消す（:34〜35 の 2 行と :893 の 1 行）＝この後ろの呼び出し位置の行番号が −3・−4 ずれる（器の差分で数え直した：:34〜36 の 3 行〔空行を含む〕と :893 の 1 行・ident の前の訂正）＝cearn_s の経路の 3 列（inTop1Route・outTop1Route・outTop2Route）が〈ファイル:行〉で違う予言。
  ・ident の最初の run に `--known-extra cearn_s:inTop1Route,cearn_s:outTop1Route,cearn_s:outTop2Route` を渡す。判定の後に `python -I -X utf8 scripts/instruments/c66dw/cearn_remap.py D:/PoB_work/keep_832/base_ins <ident の計器の生> D:/PoB_work/wt_c67sv f32502c3 <器のコミット>` で〈写しても違う 0・写せない番号 0〉を確かめる（0 でなければ〈判定: 恒等〉と言わない）。
  ・flow_s は ident の FLOW_LOC が呼び出し位置を除いて比べる＝宣言なし。
  ・ident の命令：`bash scripts/instruments/ident/ident.sh run c67svz --tree D:/PoB_work/wt_c67sv --tests-delta -5 --known-extra cearn_s:inTop1Route,cearn_s:outTop1Route,cearn_s:outTop2Route --saveleak`（bg.sh で包み run_in_background・走っている間は worktree にコミットしない＝㉙）。
