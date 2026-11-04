@@ -1,0 +1,4 @@
+[xUnit.net 00:04:58.29]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+
+成功!   -失敗:     0、合格:  2253、スキップ:     1、合計:  2254、期間: 20 m 53 s - PriceOfBread.Tests.dll (net10.0)
