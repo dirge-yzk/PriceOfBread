@@ -279,6 +279,47 @@ public class PopScanTests
         Assert.True(expMult.Distinct().Count() > 1, "前提が崩れた：州の乗数が全部同じ");
     }
 
+    /// <summary>(817) c14id 全ての州が植民地格の国は、国平均（1 人あたりの貯蓄と所得）を全ての州で取る＝本土の州が無い（人口 0）ときの退避の枝（Simulation.UpdateRegionalPriceLevels の mainPop≦1e-9）。
+    /// (811) で旗 RegionalPriceBaseExcludesColonies を焼き込んだ後、上の旧の 2 周の式との一致の試験は英国の盤面（本土の州がある）だけになり、この退避の枝のビット一致の番人が消えた。
+    /// 期待値は手の式（全ての州の全ての POP から国平均・州の乗数 Clamp(Pow(比, 重み))・賃金のプレミアムの 0.75／0.25 の混ぜ）。退避の枝を外すと国平均が 0 になり全ての州の乗数が 1 になる＝赤。</summary>
+    [Fact]
+    public void 全ての州が植民地格の国は国平均を全ての州で取る()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(2);
+        var w = sim.World;
+        w.Coef.RegionalPriceLevelWeight = 0.3;
+        Assert.True(w.Regions.Count >= 4);
+        foreach (var r in w.Regions) r.Tier = RegionTier.Colonial;   // 本土の州が 1 つも無い国
+        for (int i = 0; i < w.Regions.Count; i++)
+            foreach (var p in w.Regions[i].Pops) { p.SetSavings(p.Savings.Value * (1.0 + 0.37 * i) + 0.1 * i); p.EarnedPerMonth = new MoneyPerMonth(p.EarnedPerMonth.Value * (1.0 + 0.21 * i) + 0.3); }
+        var c = w.Coef;
+        var prevPrem = w.Regions.Select(r => r.WagePremium).ToArray();
+        double natSav = 0, natEarn = 0, natPop = 0;   // 全ての州の全ての POP
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { natSav += p.Savings.Value; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
+        Assert.True(natPop > 1e-9 && natSav > 0, "前提が崩れた：国に人口か貯蓄が無い");
+        double natPerCap = natSav / natPop, natEarnPerCap = natEarn / natPop;
+        var expMult = new double[w.Regions.Count]; var expPrem = new double[w.Regions.Count];
+        for (int i = 0; i < w.Regions.Count; i++)
+        {
+            double rSav = 0, rEarn = 0, rPop = 0;
+            foreach (var p in w.Regions[i].Pops) { rSav += p.Savings.Value; rEarn += p.EarnedPerMonth.Value; rPop += p.Size; }
+            double mult = 1.0;
+            if (natPerCap > 1e-9 && rPop > 1e-9)
+                mult = !(rSav / rPop > 0) ? c.RegionalPriceLevelMin : Math.Clamp(Math.Pow(rSav / rPop / natPerCap, c.RegionalPriceLevelWeight), c.RegionalPriceLevelMin, c.RegionalPriceLevelMax);
+            expMult[i] = mult;
+            double prem = natEarnPerCap > 1e-9 && rPop > 1e-9 ? Math.Clamp(rEarn / rPop / natEarnPerCap, 0.25, 4.0) : 1.0;
+            expPrem[i] = 0.75 * prevPrem[i] + 0.25 * prem;
+        }
+        Assert.True(expMult.Distinct().Count() > 1, "前提が崩れた：州の乗数が全部同じ");
+        sim.UpdateRegionalPriceLevels();
+        for (int i = 0; i < w.Regions.Count; i++)
+        {
+            Assert.Equal(System.BitConverter.DoubleToInt64Bits(expMult[i]), System.BitConverter.DoubleToInt64Bits(w.Regions[i].LocalPriceMultiplier));
+            Assert.Equal(System.BitConverter.DoubleToInt64Bits(expPrem[i]), System.BitConverter.DoubleToInt64Bits(w.Regions[i].WagePremium));
+        }
+    }
+
     /// <summary>払い手の保有の合計を渡す移し方は、渡さない移し方（Take が自分で数える）とビット一致。保有の合計は試験の素のループで求める（同じ順・同じ max(0,·)）。</summary>
     [Fact]
     public void 払い手の保有の合計を渡す移し方は渡さない移し方とビット一致()

@@ -740,6 +740,32 @@ public class MilitaryTests
         if (w.Coef.NavalPortProcurement <= 0) foreach (var r in w.Regions) if (!ReferenceEquals(r, cap)) Assert.Equal(0.0, r.NavalBudget);
     }
 
+    /// <summary>(817) c14id 海軍の予算は必要額で切られる：国の海軍の予算（Region.NavalBudget の和）は、海の必要量が十分小さい国が大きい国の 1 割に満たない（必要額は海の必要量に比例する＝1e-5÷50＝2e-7）。
+    /// 盤面の読み（探りの試験で測った）：この盤面の装備の器×海の金の割合は約 22（月の額）・必要額は海の必要量 1 あたり約 5.6 万＝必要量 4e-4 を超えると予算は必要額に届かず器の側で止まる（必要量 0.4 では切られない）。
+    /// (811) の突然変異 M1 は陸の milCap の切り捨て 1 行だけで、艦の 2 か所は変異していなかった：旗 NavalPortProcurement 0 の経路の navalCap（首都の 1 本・M1b）と旗 1 の経路の navalNat（本国格の港の州へ配る国の予算・M1c）。
+    /// 切り捨てを外すと予算は装備の器×海の金の割合のままで必要量に依らない＝比が 1 になって赤。旗 1 で navalCap の行を外しても navShare の経路が予算を上書きするので緑（M1b は旗 0 の行だけが拾う）。
+    /// 期待値は必要量の比（手で書いた 1e-5 と 50）から作り、Simulation の式を呼ばない。</summary>
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(double flag)
+    {
+        double NavalSum(double needSea)
+        {
+            var sim = Frozen152("イギリス", "フランス");
+            foreach (var n in sim.Nations) n.World.Coef.NavalPortProcurement = flag;
+            var w = sim.Nations[0].World; var sp = w.SelfPower!;
+            sp.NeedSea = needSea; sp.NeedLand = 3; sp.NeedInternal = 1;
+            for (int d = 0; d < 30; d++) sim.StepDay();
+            Assert.True(sp.NeedSea == needSea, "前提が崩れた：外交が走って海の必要量が書き換わった");
+            double s = 0; foreach (var r in w.Regions) s += r.NavalBudget;
+            return s;
+        }
+        double big = NavalSum(50), small = NavalSum(1e-5);
+        Assert.True(big > 0, $"前提が崩れた：海の必要量が大きいのに海軍の予算が 0（{big}）");
+        Assert.True(small < 0.1 * big, $"海軍の予算が必要額で切られていない：必要量 1e-5 の国の予算 {small} が必要量 50 の国の予算 {big} の 1 割以上");
+    }
+
     /// <summary>★(189) 海軍力は艦の在庫×段の効き×乗員の充足×海の熟練から決まり、陸軍の即応度と陸の質（Military の乗数）を読まない
     /// （作者の裁定 2026-08-01「陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」・(187) 反証役 va1#1＝00一覧 §0-A の 0h）。
     /// 盤面＝英仏（構築の直後に外交を1か月＝開幕の播種）。①陸の質の充足と即応度を変えて外交をもう1か月＝軍の総合ゲージは動くが英の海軍力は1ビットも動かない
