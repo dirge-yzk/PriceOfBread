@@ -1,0 +1,3 @@
+rows 414911 events(woExp>1e-9) 85131 mismatch(woExp!=woAct) 83742 absorbed(woAct==0) 4 woExp<=1e-6 4
+max |woExp-woAct|*e 7.450580596923843e-09 max rel 1.0
+rows woExp==0 but woAct!=0 0
