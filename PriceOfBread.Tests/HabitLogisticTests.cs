@@ -13,7 +13,7 @@ public class HabitLogisticTests
         => Habit.Of(cap is { } d ? new Coefficients { OpiumAddictionLogistic = logistic, OpiumAddictionCap = d } : new Coefficients { OpiumAddictionLogistic = logistic }, Catalog.OpiumId);
 
     [Fact]
-    public void 形Hの更新は手の算術_挟みは0からd_蓋なしの旗では線形とビットで一致()
+    public void 形Hの更新は手の算術_挟みは0からd_dが無限大では線形とビットで一致()
     {
         var h = H();
         Assert.True(h.Logistic);

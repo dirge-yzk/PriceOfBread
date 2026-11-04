@@ -98,6 +98,15 @@ public class HabitTests
         Assert.Equal(0.05, r2.OpiumAddiction);
     }
 
+    [Fact]
+    public void 在庫が蓋を超えていれば1か月の更新で蓋の0_2へ戻る_既定の経路の大きさ()
+    {
+        // (835) (830) の旗 OpiumAddictionCapOff の焼き込みで旗の試験と一緒に消えた〈蓋の旗は呼び手の更新まで届く〉の、旗 0 の側（＝今の既定の経路の大きさ）を戻す。
+        // 0.3 は蓋 0.2（OpiumAddictionCap の既定＝別の出所のリテラル）を超える＝呼び手の更新（EconomyStep.Run → Habit.NextStock）が 0.2 へ挟む。
+        var (r, _) = OneMonth(0.3, c => { });
+        Assert.Equal(0.2, r.OpiumAddiction, 12);
+    }
+
     /// <summary>1か国の盤面で EconomyStep.Run を1回して、アヘンの州の市場の需要（LastDemand）を返す。奢侈品の所得弾力 ε と成長を変えて比べる（POP の所得は階級ごとに r が違う）。</summary>
     private static double OpiumDemand(double epsilon, double growth)
     {
