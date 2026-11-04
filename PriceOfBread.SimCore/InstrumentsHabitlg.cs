@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (820) c65op アヘンの依存のロジスティック（形 H）の旧新の表 habitlg_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsHabitcap.cs の型）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（蓄えは計器の側の ConditionalWeakTable）。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（旧 InstrumentsHabitcap.cs〔(830) で削除〕の型）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（蓄えは計器の側の ConditionalWeakTable）。
 // 目的＝旗 OpiumAddictionLogistic の旧（線形＋蓋）と新（s' = s + G·pc·(1 − s/d) − D·s）を同じ盤面の同じ前の在庫から並べ、実際の次の在庫がどちらに等しいかと、ロジスティックの釣り合いの不変式を数える。
 // エンジンの関数（Habit.Of・Habit.NextStock）を呼ばない＝係数 G＝OpiumAddictionGrowth・D＝OpiumAddictionDecay・d＝OpiumAddictionCap（CapOff が正なら +∞）から自分で組む。
 // 実際の次の在庫は計器が自分で読む＝次の月の口の時点の Region.OpiumAddiction と、四半期の末の表の時点の同じ欄（エンジンから受け取るのは 1 人あたり消費 pc だけ）。
@@ -24,6 +24,9 @@ public static partial class Instruments
         public double PrevS, PrevPc; public Coefficients? PrevCoef;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, HabitlgAcc> HabitlgAccs = new();
+    // (830) InstrumentsHabitcap.cs（habitcap_s・habitbal_s）を削除したので、この表が借りていた 2 つの定義をそのまま（名前も変えず）ここへ移した。
+    static string HabitcapR(double v) => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+    sealed class HabitcapSink { public bool Started; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, HabitcapSink> HabitlgSinks = new();
 
     /// <summary>旧（線形）と新（ロジスティック）の挟む前の値と挟んだ値。d は CapOff が正なら +∞。挟みは 0〜d・NaN は 0（エンジンの ClampOr と同じ規則を計器の側で書く）。</summary>

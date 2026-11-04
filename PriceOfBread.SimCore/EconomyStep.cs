@@ -1823,7 +1823,6 @@ public static class EconomyStep
             {
                 double perCapita = totalPop > Eps ? sold / totalPop : 0;
                 if (insOn) Instruments.HabitSold(region, sold);   // (342) 計器（読むだけ）：州のその月の販売量
-                if (insOn && !world!.WarmupFrozen) Instruments.HabitCapStep(region, coef, habit, region.OpiumAddiction, perCapita);   // (771) 計器（読むだけ）：アヘンの蓋の旧新の次の在庫（更新の前＝同じ前の在庫・助走の月は数えない）
                 if (insOn && !world!.WarmupFrozen) Instruments.HabitLgStep(region, coef, perCapita);   // (820) 計器（読むだけ）：ロジスティックの旧新（前の月の遷移を今の在庫で閉じる・係数から自分で組む）
                 region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // (820) 形 H（旗 OpiumAddictionLogistic 既定 1）：在庫は 0〜d（d＝OpiumAddictionCap＝依存者 1 人の上乗せの量・成長の項に (1−在庫/d)）＝依存→満足↓→困窮消費↑の正帰還は d を超えない（旗 0 の旧の線形の式では d が蓋）。d＝0.2 でも労働−最大20%・満足−最大10%
             }
