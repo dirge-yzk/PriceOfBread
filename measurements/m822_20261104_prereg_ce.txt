@@ -1,0 +1,120 @@
+(822) c65ce 植民地の稼ぎの計器 cearn_s と読む腕 1 本の事前登録（波65・恒等の線＋読み・枝 c65ce・8bbcd39f から・書いたモデル Claude Opus 5.5）
+この文書は腕を回す前・計器を書く前の最初のコミット。結果を見た後にここを書き換えない（書き換えるなら〈結果の後の変更〉と名乗る）。
+
+■ 出発と材料
+  (818) の次の波の推奨 ①(a)。実装ログ (809)(814)(818)・measurements/m814_20261104/（訂正 correction_818.txt）・scripts/instruments/r814/・InstrumentsIvf.cs:82 の colLpmFloorPop。
+  作者の答え〈自給は非効率な生産・余りを売る〉で根 A は c65ds の設計の段へ移った＝この線は稼ぎの側だけ（流入と流出・値段と自己費用・床）。
+
+■ [0] 先に読んだもの（腕の前・keep_818/base_ins の ivf_s・計器を書く前）
+  ivf_s の colLpmFloorShare（植民地の人口のうち州の値段の乗数が床 RegionalPriceLevelMin 0.7 以下の割合）を、(814) の凍結の窓（zero_all.tsv の base で連続 40 四半期以上の 12 州）と突き合わせた。
+    種 4 オスマン（カナダの窓 1834〜1904）：1820〜1915 の 5 年ごとの全ての点で 1.00（植民地の人口 51〜138 千人）。
+    種 4 イギリス（セントマイケルの窓 1843〜1891）：1830〜1905 で 0.85〜0.97（植民地の人口 5,850〜11,237 千人）。
+    種 10 スペイン（10 州の窓 1827〜1866）：1815〜1830 で 1.00・1835〜1880 で 0.94〜0.95（年末の行だけ＝スペインは計器の国の名簿の外）。
+  ＝床は凍結の窓の内でも外でも、植民地の人口のほぼ全てに当たっている（凍結した州の割合はその 1 部）。
+  ⇒床の印の頻度では〈床が主〉を決められない（必要条件かもしれないが十分条件ではない）。下の [6] の形 F は、床の印でなく〈流出が止まっているのに凍っている〉ことと、凍った州と凍っていない床の州の違いで決める（先に固定する）。
+
+■ [1] 恒等の線・予言 0
+  変更は計器だけ（読むだけ）。シミュの状態を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない。素の 5 種・計器つき 10 種の成績表が m797 と名乗り行（SOURCE-HASH）を除いて全行一致すると予言する（行の差 0）。
+  計器の表の差は〈新しい表 cearn_s を足した〉の宣言だけ（ident.sh check の --added-tables cearn）。既存の表の行と列は 1 つも変えない。
+  .cost の推定は変わらない（計器の分岐は Instruments.On の中だけ・推定の計算量は計器の無い走りで数える）。
+  浮動小数の順序が変わる箇所＝0（エンジンの式の行に触れない。下の [2] の全ての変更は `if (Instruments.On)` の枝の中か、計器のファイルの中）。紙の台本で旧と新の比較の食い違いを数える対象の箇所は無い（数える式が無い）。
+
+■ [2] 足す物・触る行・消す物（消す物は無い）
+  新しいファイル：PriceOfBread.SimCore/InstrumentsCearn.cs（部分クラス・計器 cearn_s の全て）。
+  触る行（既存のファイル）：
+    PriceOfBread.SimCore/World.cs:733（World.Transfer の頭の計器の行）＝同じ行の `if (Instruments.On)` の中に `Instruments.CearnRoute(cat, toCat)` を足す（区分 TreasuryCat を ThreadStatic へ写すだけ・行を増やさない＝World.cs の CallerLineNumber は 1 つもずれない）。
+    PriceOfBread.SimCore/World.cs:976 付近（SettleStateSpent の for の行）＝同じ行の頭に `if (Instruments.On) Instruments.CearnStateSpent(r);` を足す（国庫の月末の精算の前に州の国家の仮勘定 StateSpent を読むだけ・行を増やさない）。
+      理由：国家の市場を通る支出（海軍・教育・福祉の医療費・近代化・巨大建造物＝StateSpent の正）と専売の収入（負）は POP の側では精算の所得と支払いに混ざる＝形 T の〈戻り〉に国家の市場を通る支出を数えるため。
+    PriceOfBread.SimCore/Instruments.cs：Begin（:300〜303 の月初の登録＝全ての国の州の POP を cearn の登録へ）・Sav（:1235 付近の頭＝PopOwner の早い return の前に cearn の州の台帳へ 1 件足す）・Phase の warm（:1766 付近＝助走の月の分を捨てて始まりの在庫を取り直す）・Quarter（:1856 の CpwdTable の隣＝四半期の末に行を書く）・Close（:1887 の CpwdClose の隣）。
+    PriceOfBread.Tests：新しい試験のファイル CearnInstrumentTests.cs だけ（InstrumentsTests.cs の名簿の行＝試験の側に表の名簿は無かった〔grep "cpwd|divhost|silverwt" PriceOfBread.Tests は SilverParityDemandWeightedTests だけ〕＝足さない）。
+    scripts/instruments/c65ce/（読み手の台本）・measurements/m822_*（この文書・突然変異の記録・読みの表）。
+  消す物＝無い。
+  読み手の grep（足す名前 cearn・Cearn・CearnRoute・InstrumentsCearn の既存の出現）：SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表＝0 件（新しい名前）。係数は足さない（POB_COEF・SaveGame に触れない）。計器の欄はシミュの型に足さない（ConditionalWeakTable と ThreadStatic だけ＝SaveGame の反射に載らない）。
+  他の線との重なり（同じファイルを触る線と行）：
+    Instruments.cs＝c65sv（登録の行＝Quarter・Close の隣に足すはず）・c65id（:74・:1214・:1224 の注の行＝Route〔:1212〕と RegionMoved の注の隣・この線の Sav の頭の 1 行とは別の行）・c65fl／c65op／c65md（計器の行を足すなら Quarter・Close の隣）。
+    World.cs:733＝この回の持ち主の表に無い（c65sv の根の World.cs:1675 とは別の行）。合流で解く前提で列挙する。
+    Fiscal.cs・CapitalMarket.cs・BilateralMarket.cs・Colonial.cs には触れない（c65fl は CapitalMarket.cs の旗の読み手の行を触る＝この線は触れないので重ならない）。
+  ㉘ 走査の番人の点検（書く前の grep）：
+    IndustrializationReaderTests の許可表＝新しいファイルに工業化度の語（TotalIndustrialization ほか・.Industrialization）を書かない＝表の変化 0。
+    `new MoneyStock(` の件数＝新しいファイルで 0（在庫は .Value で読むだけ）。UnitTypeTests の宣言の表＝変化 0。
+    route_anchors.tsv＝鍵の行に触れない（World.cs:733 は鍵の行でない・鍵の行 World.cs の 684／1884／2425 の文字列は変わらない）。
+    WriterRatchetTests の宣言の表＝新しいファイルはエンジンの欄へ書かない（読むだけ）＝変化 0。CalendarTests＝暦の定数を掛けるか割る形を書かない＝変化 0。GoodIdGuardTests＝財の番号を数字で書かない（財は Catalog の名前つきの定数と Catalog.Goods の層 Tier で引く）＝変化 0。
+    ソースを走査する件数の番人の書き換えの予言（㉑）＝0 件。
+
+■ 計器 cearn_s の定義（読むだけ・エンジンの関数を呼ばない・読む州と市場を計器が自分で選ぶ）
+  行＝全ての国の全ての州×四半期（region_s と同じ母集合・助走の月は数えない）。額は州の持ち主の国の通貨・四半期の和（…PerQuarter）。
+  台帳の出所＝Pop の貯蓄の書き手の 1 本の計器の口 Instruments.Sav（Pop の中の 5 本の書き手がそこを呼ぶ）。POP の州は計器が自分で持つ登録（月初の Begin で全ての国の全ての州の POP を登録・ConditionalWeakTable）。
+    州の台帳＝その州の POP の貯蓄の増分の和を、書き手の種類（SavKind）・相手の側（P＝POP・T＝国庫・B／M／F／C／H＝世界の外）・国庫の区分（TreasuryCat・World.Transfer の頭で写す）・呼び手のファイルで列へ分ける（行番号は列の鍵にしない＝この回の他の線が行をずらしても列は変わらない）。
+    POP→POP の移しは払い手の州で流出・受け手の州で流入（植民地の地代は植民地の州で出て、受け手の州で入る）。州の中の運搬（社会移動・徴兵・州の中の移動）は同じ州の流出と流入が打ち消す。
+  流入 7 列：
+    inMarketPerQuarter＝月末の精算の所得の側（その月の EarnedPerMonth を 1 か月分の在庫へ・Calendar.OneMonthOf）
+    inExportPerQuarter＝世界の外（B・M・F）から POP への受け取りのうち CapitalMarket.cs 以外（輸出の代金・運賃・港・保険・商人の手数料・造幣の輸入の分）
+    inStatePerQuarter＝国庫（T）から POP への受け取り（福祉・年金・利払い・償還・補助・工場の建設の工賃・招聘ほか）＝形 T の〈戻り〉
+    inCreditPerQuarter＝与信（C・H）から POP へ
+    inFromPopsPerQuarter＝他の POP からの受け取り（地代・十分の一税・領主の取り分・利子・窃盗の分配・没収の分配・保険ほか）
+    inMigrationPerQuarter＝人と動くお金の受け取り（運搬の CarryIn）
+    inOtherPerQuarter＝CapitalMarket.cs の世界の外からの受け取り（外資の流入・配当の還流）・換算（Rebase）の正の分・どれにも当たらない受け取り
+  流出 9 列（正の額で書く）：
+    outMarketPerQuarter＝月末の精算の支払いの側（＝所得の側−精算の増分＝精算の 1 行に閉じる）
+    outTaxPerQuarter＝国庫へ・区分 Tax（所得税・累進・人頭税・土地税の 1 本＝Fiscal.cs の徴税の移し）
+    outBondPerQuarter＝国庫へ・区分 Borrow（国内の起債の購入）
+    outDuesPerQuarter＝Fiscal.cs の POP→POP（十分の一税と仲介者の取り分）
+    outColonialRentPerQuarter＝Colonial.cs の POP→POP（輸出の大農園の地代を本土の投資家へ＝植民地の取り分）
+    outCapitalPerQuarter＝CapitalMarket.cs の POP→世界の外（外資の配当・資本の送り出し・逃避＝内訳は下の経路の上位の列で読む）
+    outImportPerQuarter＝BilateralMarket.cs の POP→世界の外（輸入の代金と運賃）
+    outMigrationPerQuarter＝人と動くお金の送り出し（運搬の CarryOut）
+    outOtherPerQuarter＝それ以外（国庫への他の区分〔関税・切り下げ・相続・工場の買い・巨大建造物〕・他の POP への払い〔利子・窃盗・没収〕・与信の返済・焼却・造幣・換算の負の分）
+  国家の市場を通る出入り（POP の台帳の外・記録の列）：stateMarketSpendPerQuarter＝州の StateSpent の正の部の月の和（国庫→州の生産者）・stateMarketTakePerQuarter＝負の部の絶対値の和（州の買い手と生産者→国庫＝専売ほか）。
+  閉じの検査：savings＝四半期の末の州の POP の貯蓄の和・savingsStart＝前の四半期の末（または登録の時点・助走の直後）・residualPerQuarter＝savings−savingsStart−(Σ流入−Σ流出)。
+    lateRegisteredPops＝四半期の途中で初めて登録した POP の数（その POP の登録の前の書き込みは台帳に無い＝残差に出る）。
+  経路の上位：outTop1Route・outTop1PerQuarter・outTop2Route・outTop2PerQuarter・inTop1Route・inTop1PerQuarter＝精算を除く書き込みの鍵（ファイル:行:種類:相手の側）ごとの和の上位（行番号は読み手が測った木のソースで名前へ引く）。
+  値段と床：localPriceMultiplier・localPriceAtFloorFlag（乗数≦RegionalPriceLevelMin＋1e-9）・regionPriceLevel（region.PriceLevel）・costPriceLevel（World.CostPriceLevel）・savingsPerCapitaOverNation（州の貯蓄÷州の人口 を 国の貯蓄の和÷国の人口 で割る）。
+    主食＝州の市場で層が Staple の財のうち LastDemand が最大の財：stapleGood・staplePrice・stapleMarginalCost（その財を作る州の生産者のうち Capacity が最大の 1 件の MarginalCost＝参照価格の単位・無ければ nan）。
+    上位 3 財＝州の生産者（労働の財を除く・倒産を除く）の Output×参照価格の和が大きい順の 3 財：top1Good・top1Price・top1MarginalCost・…・top3MarginalCost。
+    自己費用は読み手が組む＝MarginalCost×costPriceLevel×localPriceMultiplier（EconomyStep の自己費用と同じ 3 つの因子・計器は関数を呼ばない・鉱脈の品位の器 MineralCostFollowsGrade は既定 0＝読み手は掛けない）。
+    belowSelfCostShare＝州の生産者（労働の財を除く・倒産を除く・Scale＞0）のうち、州の値段≦MarginalCost×costPriceLevel×localPriceMultiplier の割合（投入費を足さない＝自己費用だけの下限で採算が 0 の生産者の割合）。
+  凍結：factoryOutputRefValuePerMonth・extractionOutputRefValuePerMonth（RegionProdRow と同じ定義を読む）・frozenFlag（どちらも 0 ちょうど・操業中か倒産でない生産者が 1 件以上）。
+  人頭税の物差し：pollClaimPerMonth＝国の人頭税の段が正のとき Σ（平民・犯罪者でない POP）PollTaxRate×段×Size（査定の全額・届く割合と払える割合を掛けない＝計器が式を自分で書く）・earnedGrossPerMonth＝Σmax(0, LastEarnedPerMonth)・taxRate・pollTaxLevel（国の値）。
+  ⚠限界（計器が自分で申告する）：①登録は月初＝月の途中で作られた POP の書き込みは次の月まで台帳の外（残差と lateRegisteredPops に出る）②並列の国の日次の中で別の国の POP へ払う書き込みは無い前提（flow_s と同じ）③精算の所得と支払いは月の和で、州の中の市場の循環を含む（州の外への純の払いは inMarket−outMarket）④国庫の区分は World.Transfer が呼ばれた時の値（POP の側は Transfer の外で書かれない）⑤州の格の行は四半期の末の格。
+
+■ [3] 足す試験と、それぞれを赤にする突然変異（CearnInstrumentTests.cs・使い捨ての木で確かめて measurements/m822_20261104/mutation.txt に書く）
+  T1 閉じ：英仏の 2 国を 3 四半期回し、全ての州の行で |residual|≦1e-8×（Σ流入＋Σ流出＋|savingsStart|＋|savings|）。突然変異 M1＝Sav の cearn の 1 行を消す（流れ 0・在庫は動く）→赤。M2＝精算の支払いの側を 0 にする（所得の側だけ足す）→赤。
+  T2 税の列：国ごとの Σ州 outTaxPerQuarter が、同じ四半期の国庫の区分の台帳 World.TreasuryLedger[Tax] の増え（試験が四半期の前と後で読む・区分 Tax を書くのは Fiscal.cs の徴税の 1 本だけ〔grep〕）と相対 1e-9 で一致（登録の済んだ四半期 1・2）。突然変異 M3＝区分 Tax と Borrow の列を入れ替える→赤。
+  T6 列の振り分けの表：振り分けの純関数（種類・相手の側・区分・ファイル名→列）を、この文書の列の定義から手で書いた期待の表（17 行）と突き合わせる。突然変異 M3・M6＝Colonial.cs と Fiscal.cs の POP→POP の列を入れ替える→赤。
+  T3 床の印と 1 人あたりの比：州の乗数を床に置いた州で localPriceAtFloorFlag＝1・床の上の州で 0、savingsPerCapitaOverNation は試験が州の POP から自分で数えた比と 1e-12 で一致。突然変異 M4＝印の比較を `<` から `>` へ→赤。
+  T4 POP→POP の帰属：登録の済んだ盤面で、試験が別の州の 2 つの POP の間で移し方の 1 本（World.Transfer）を 1 回呼ぶ＝払い手の州の流出（相手 P・ファイルは試験＝outOther）と受け手の州の inFromPops に同じ額が出て、第三の州は動かない。突然変異 M5＝払い手の書き込みを受け手の州へ記帳する→赤。
+  T5 計器が軌道を変えない：同じ盤面を計器の有り無しで 3 四半期回し、全ての POP の貯蓄と国庫のビットが一致。
+  突然変異で緑のままの試験があれば、同じ線で機構の試験を足してその突然変異で赤になることを確かめる（★(790)）。
+
+■ [4] 恒等の判定
+  `bash scripts/instruments/ident/ident.sh run c65ce --tree D:/PoB_work/wt_c65ce --saveleak --added-tables cearn --tests-delta <足した試験の数>`（run_in_background・腕の枠は arms.sh free が 3 以上で始める・走っている間はこの worktree にコミットしない）。
+  素の 5 種・計器つき 10 種が m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行を除いて全行一致・計器の表は cearn_s の追加だけ・.cost の推定が一致・試験の数＝2226＋足した数／FullLength 3・savetest と leakhunt が通る。
+  フルスイートは ident の後に分けて回し（Category!=FullLength と =FullLength）、合計を --list-tests と突き合わせる。
+
+■ [5] 採否
+  〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ、その変更を外して報告に回す。
+
+■ [6] 読む腕と、形を決める表（読む前に固定）
+  読む腕＝ident の腕 b（`INS=1 batch.sh run ib 10`・測る木＝この枝・計器の国は batch.sh の 9 国の既定）の生 D:/PoB_work/ident_c65ce/out_ib_10/ins を使う。
+    これは指示の〈基線の計器つき 10 種・INS=1・cearn_s つき・ヌル腕なし〉と同じ走り（恒等なら軌道は m797 の基線と同じ）＝別の腕を回さない（回す前に必要性を確かめる・腕の枠の節約）。恒等でなければ読みは止めて報告。
+  対象の州＝(814) の zero_all.tsv の base（種 1〜10）で最長の連続が 40 四半期以上の 12 州（種 4 カナダ〔オスマン〕1834〜1904・種 4 セントマイケル〔イギリス〕1843〜1891・種 10 スペインの 10 州 1827〜1866）。
+    同じ軌道なので同じ窓が cearn_s にも出るはず（frozenFlag の連続で確かめて記録）。窓 W_in＝runStartYear〜runEndYear・W_pre＝runStartYear の 10 年前〜runStartYear の前の年・W＝W_pre∪W_in。
+  州ごとの量（W で四半期の和）：
+    出口 O_k＝outTax・outBond・outDues・outColonialRent・outCapital・outImport・outMigration・outOther と、市場の純の出口 max(0, Σ(outMarket−inMarket))。最大の出口 k*。
+    戻り R＝Σ inState＋Σ stateMarketSpend（国庫から州へ戻る額＝移しと市場を通る支出）。人頭税の請求 Poll＝Σ pollClaimPerMonth×3。
+    お金の減りの速さ g_in＝W_in の四半期ごとの −ln(savings÷savingsStart)÷3 の中央（月あたり・savingsStart＞0 の四半期だけ）。
+    床：W_in の localPriceAtFloorFlag の割合・belowSelfCostShare の中央・savingsPerCapitaOverNation の中央。
+  形の判定（州ごとに上から順に・最初に当たった形）：
+    閉じの前提：W の Σ|residual|÷Σ（流入＋流出）＞1e-6 の州は〈台帳が閉じない〉＝その州は判定しない（記録）。
+    形 F（床が主）：g_in＜0.003（月 0.3% 未満＝お金は抜けていない）かつ床の割合≧0.95 かつ belowSelfCostShare の中央≧0.9。
+    形 T：k*＝outTax かつ R＜0.1×O_outTax。
+    形 U：k*＝outTax かつ Poll≧0.5×O_outTax（人頭税の請求だけで取れた税の半分以上）。T と U の両方に当たれば両方を名乗る（主は T・U は副として記録）。
+    形 I（投資＝cp3 の後）：k*＝outCapital か outBond。
+    形 M（市場の純の出口）・その他：記録（形の表に無い）。
+  結論の規則：12 州のうち同じ形が 7 州以上ならその形を〈次の波の挙動の線の素案〉の形にする。7 州に届かなければ〈記録〉（形ごとの州の数と州ごとの k* を並べて書く）。
+  形 U の物差し（形 U に当たったときの素案）＝CostPriceLevel×LocalPriceMultiplier（(73) の自己費用と同じ遅い趨勢×州の乗数）。region.PriceLevel（速い P×乗数）は記録として並べる（紙の予言＝本国格の人頭税の収入の新÷旧＝その州の物差しの人口加重の平均・両方の物差しで書く）。
+  床の対照（記録・門ではない）：同じ国・同じ種・同じ年の植民地格の州×四半期で、床に当たっているが凍っていない州の savingsPerCapitaOverNation と belowSelfCostShare の中央を、凍った州の値と並べる（床の深さ 0.7÷(比^RegionalPriceLevelWeight)）。
+  素案の書き方（報告に書く・挙動はこの回に入れない）：形・旗の名前の案・両側の門（働いた量の下限と、その形に固有の誤りの量の上限）・突然変異の表（物差しの取り違え・植民地格だけに掛ける・掛けない など）・旗 0 で門が落ちることの紙の確かめ。
+
+■ 計算量
+  計器だけ＝推定の計算量の割り当て 0 秒（.cost の推定が一致することを ident で確かめる）。
