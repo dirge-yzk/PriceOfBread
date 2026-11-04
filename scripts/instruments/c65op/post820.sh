@@ -15,7 +15,7 @@ sec "記録の先頭：名目 GDP 0 の続き（gdp_zero10）"; python -X utf8 -
 sec "記録：開幕の 1000 倍以上（plvl_seeds）"; python -X utf8 -I $S/brk693/plvl_seeds.py $B >> $OUT 2>&1
 sec "記録：英の国債の不履行（ukdefault）"; python -X utf8 -I $S/c10cp/ukdefault.py $B 1 10 >> $OUT 2>&1
 sec "止める線：空洞化（an_h2 -v4・規則 A2）"; python -X utf8 $S/hol/an_h2.py $B -v4 >> $OUT 2>&1
-sec "記録：〈壊す〉①（home_break・本国の版）"; python -X utf8 -I $S/brk693/home_break.py ${NAME}=$B base=$BASE n1=$N1 n2=$N2 --test ${NAME} >> $OUT 2>&1
+sec "記録：〈壊す〉①（home_break・本国の版）"; python -X utf8 -I $S/brk693/home_break.py ${NAME}=$B base=$BASE n1=$N1 n2=$N2 --test ${NAME} --opening-only >> $OUT 2>&1
 sec "記録：門 A′（nullgate）"; python -X utf8 $S/tools/nullgate.py $BT measurements/b10_20261103_m797_ins measurements/b10_20261103_m797_n1_ins measurements/b10_20261103_m797_n2_ins >> $OUT 2>&1
 sec "記録：.cost"; cat $BT.cost >> $OUT 2>&1; grep -h "推定" measurements/b10_20261103_m797_ins.cost >> $OUT 2>&1
 sec "記録：NG（ng.sh・基準 rd:measurements/ng797_20261103:m797）"; bash $S/ng.sh $B $NAME D:/PoB_work/c65op_work/ng_$NAME rd:measurements/ng797_20261103:m797 >> $OUT 2>&1
