@@ -5,6 +5,8 @@
 #   stay_s（旧）＝opportunityIndex×holdingFactor（region_s の列＝エンジンの Opportunity と Holding そのもの）
 #   都市の持ち分の上限の形（在庫の選び方に依らない上側の見積り）：都市の在庫は事象のピークの四半期の値で動かない＝1 人あたり ρ＝都市人口_peak÷都市人口_t（ピークで 1）
 #     U＝max(1,ρ)^e（e＝0.7〔LandDiminishExponent〕と 1）・新しい stay＝旧 stay×U^u（u＝州の都市の割合＝1−農村÷人口）
+#   記録（結果の後の追加）：人口がピークの 1/2 より多い四半期だけの返り（e=0.7・Era=2）＝流出の早い段で止まるか。
+#   主食の充足（foodFillShare）の窓の中央値を記録の列に並べる（判定に使わない）。
 #   数えるのは、ピーク〜底の四半期で国内の出（migrationOut）＞0 かつ 旧の最良の g＞0 の四半期。そのうち新しい最良の g≦0 の割合。
 import sys, os, math, collections
 sys.path.insert(0, sys.argv[2])
@@ -24,12 +26,12 @@ def load(d, seed):
         for line in fh:
             f = line.rstrip('\n').split('\t')
             rows[int(f[ix['quarter']])].append((f[ix['nationIndex']], f[ix['region']], fl(f[ix['opportunityIndex']]), fl(f[ix['holdingFactor']]),
-                fl(f[ix['populationK']]), fl(f[ix['ruralPopulationK']]), fl(f[ix['migrationOutKPerQuarter']]), int(f[ix['year']])))
+                fl(f[ix['populationK']]), fl(f[ix['ruralPopulationK']]), fl(f[ix['migrationOutKPerQuarter']]), int(f[ix['year']]), fl(f[ix['foodFillShare']])))
     cache.clear(); cache[key] = rows
     return rows
 def bestg(stay, s_region, s_nat, qrows, era):
     best = -1e300
-    for nat, reg, opp, keep, pop, rural, mo, yr in qrows:
+    for nat, reg, opp, keep, pop, rural, mo, yr, _fd in qrows:
         if nat != s_nat or reg == s_region or not math.isfinite(opp): continue
         g = opp - stay - TF
         if not g > 0: continue
@@ -53,15 +55,15 @@ for st, d, seed, region, py, ty, label in ev:
     # 事象のピーク＝窓の中の人口の最大の四半期・その都市人口
     qpk = max(win, key=lambda q: ser[q][4])
     upk = ser[qpk][4] - ser[qpk][5]
-    n = 0; fl_ = collections.Counter(); us = []; need = []; rhomax = 0
+    n = 0; ne = 0; fe = 0; pk = ser[qpk][4]; fds = []; fl_ = collections.Counter(); us = []; need = []; rhomax = 0
     for q in win:
-        nat, reg, opp, keep, pop, rural, mo, yr = ser[q]
+        nat, reg, opp, keep, pop, rural, mo, yr, fd = ser[q]
         if q < qpk or not (mo > 0) or not (pop > 0): continue
         stay = opp * keep
         g1 = bestg(stay, region, nat, rows[q], 1.0)
         g2 = bestg(stay, region, nat, rows[q], 2.0)
         if not g2 > 0: continue   # 旧でも差が負＝国内の出は前の月の盤面か越境（数えない）
-        n += 1
+        n += 1; fds.append(fd)
         u = max(0.0, 1.0 - rural / pop); us.append(u)
         urb = pop - rural
         rho = upk / urb if urb > 1e-9 else float('inf'); rhomax = max(rhomax, rho)
@@ -72,13 +74,18 @@ for st, d, seed, region, py, ty, label in ev:
             ns = stay * U ** u
             for era, tag in ((1.0, 'era1'), (2.0, 'era2')):
                 if not bestg(ns, region, nat, rows[q], era) > 0: fl_[(e, tag)] += 1
+        if pop > pk / 2:
+            ne += 1
+            if not bestg(stay * max(1.0, rho) ** (0.7 * u), region, nat, rows[q], 2.0) > 0: fe += 1
     need.sort(); us.sort()
     med = lambda a: a[len(a)//2] if a else float('nan')
     fr = lambda k: f'{fl_[k]}/{n}'
-    print(f'{st}\t{seed}\t{region}\t{label}\t{n}\t{med(us):.3f}\t{fr((0.7,"era1"))}\t{fr((0.7,"era2"))}\t{fr((1.0,"era1"))}\t{fr((1.0,"era2"))}\t{rhomax:.3g}\t{med(need):.3g}')
+    print(f'{st}\t{seed}\t{region}\t{label}\t{n}\t{med(us):.3f}\t{fr((0.7,"era1"))}\t{fr((0.7,"era2"))}\t{fr((1.0,"era1"))}\t{fr((1.0,"era2"))}\t{rhomax:.3g}\t{med(need):.3g}	{med(sorted(fds)):.3f}	{fe}/{ne}')
+    tot['ne'] += ne; tot['fe'] += fe
     tot['n'] += n
     for k, v in fl_.items(): tot[k] += v
     sys.stdout.flush()
 print(f'# 計 四半期 {tot["n"]}　e=0.7 Era1 {tot[(0.7,"era1")]}　Era2 {tot[(0.7,"era2")]}　e=1 Era1 {tot[(1.0,"era1")]}　Era2 {tot[(1.0,"era2")]}')
+print(f'# 記録（結果の後の追加）：人口がピークの 1/2 より多い四半期だけ e=0.7 Era2 {tot["fe"]}/{tot["ne"]}＝{tot["fe"]/max(1,tot["ne"]):.3f}')
 for k in [(0.7,'era1'),(0.7,'era2'),(1.0,'era1'),(1.0,'era2')]:
     print(f'# 割合 e={k[0]} {k[1]}：{tot[k]/max(1,tot["n"]):.3f}')
