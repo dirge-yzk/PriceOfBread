@@ -12,7 +12,9 @@ def edit(rel, pairs):
         assert b.count(o) == 1, (rel, o)
         b = b.replace(o, n)
     open(p, 'wb').write(b)
-edit('PriceOfBread.SimCore/Coefficients.cs', [('    public double CapitalClaimCancelFromLedger = 0;', '    public double CapitalClaimCancelFromLedger = 1;')])
+_cp = os.path.join(root, 'PriceOfBread.SimCore/Coefficients.cs')
+if b'    public double CapitalClaimCancelFromLedger = 1;' not in open(_cp, 'rb').read():   # 旗 1 のコミットの後の木は既に 1（写す木が動いた＝(828) の Mu5・Mu6 の PREPFAIL の直し）
+    edit('PriceOfBread.SimCore/Coefficients.cs', [('    public double CapitalClaimCancelFromLedger = 0;', '    public double CapitalClaimCancelFromLedger = 1;')])
 FL = 'if (c.CapitalClaimCancelFromLedger > 0 && flight > 1e-9) flightTotal = '
 CP = 'flightTotal += (c.CapitalClaimCancelFromLedger > 0 ? fciPreWo - w[i].ForeignCapitalIn.Value : divWo) * e[i];'
 CM = 'PriceOfBread.SimCore/CapitalMarket.cs'

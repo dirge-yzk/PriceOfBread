@@ -7,6 +7,7 @@ export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/P
 W=${1:?作業フォルダ}; T=${2:?元の木}; UNIT=${3:?単位}; ARMS=${4:-}
 S=$T/scripts/instruments
 mkdir -p $W; : > $W/mutation_unit.txt; : > $W/mutation_gate.txt
+[ "$UNIT" = none ] && UNIT=""   # 単位を回さない（腕だけ）
 for mu in $UNIT; do
   SRC=$W/u_$mu; rm -rf $SRC && mkdir -p $SRC
   tar -cf - -C $T --exclude=bin --exclude=obj --exclude=.git --exclude=docs --exclude=measurements --exclude=uishot --exclude=.vs . | tar -xf - -C $SRC
