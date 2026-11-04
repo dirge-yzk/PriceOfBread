@@ -1,0 +1,79 @@
+(815) c14fl 払えない利札で請求権を落とす（c13fl の (b) を独立の線に）事前登録 2026-11-04（担当 Claude Opus 5.5・挙動の線・枝 c14fl・基点 8f558f9c）
+
+[0] 形の種類＝尾（払えない利札＝不履行の事象の後始末だけを変える・入口は変えない）。
+  - 旧の固定の率の利札（旗 CapitalDividendFromHostRent＝0 の経路＝外資の負債×CapitalDividendRatePerQuarter）はそのまま。旗 CapitalDividendFromHostRent は 0 のまま触らない。
+  - 新しい旗 CapitalCouponUnpaidWriteDown（既定 0＝今の形と 1 ビットも変わらない）。正のとき：払えなかった利札（請求−払えた額）の分だけ、
+    外資の負債（ForeignCapitalIn）を落とし（外資の負債で頭打ち）、同じ額を金建てで flightTotal へ足す＝下の還流の段で持ち主の対外資産（CapitalAbroad）が同じ額だけ減る。
+  - 新しい係数 0（旗だけ）・新しい状態変数 0・新しい上限と下限 0・工業化度を読まない・AI とプレイヤーで同じ経路（World だけを読む）。
+  - 確証：なし（AI の推奨・(810) の (b) の形）。作者の裁定の形ではない。
+  - 按分の形：**世界の総和で同じ額**。持ち主の側は CapitalAbroad の金建ての比で按分＝今の逃避の規則 C（CapitalMarket.cs:128〜131・:185）と同じ 1 本の規則。
+    債権者ごとに落とせる盤面の量は無い（CapitalAbroad は国ごとに 1 本の在庫・CapitalMarket.cs:245〈二国間台帳は持たない〉）＝債権者ごとにするには二国間の行列という新しい状態が要る（設計思想⑩に反する）＝しない。
+    (810) の反証役の指摘〈受け皿の債権者に当たるとは限らない〉はこの線でも残る＝限界として名乗る（逃避の損と同じ配り方）。
+
+[1] (c)〈払われた利回りを流入の収益率へ〉は入れない（(b) だけで進める）。理由：
+  - 換算はソースから決まる：0..1 の政策の目盛が年の率になる所は Fiscal.cs:443 の国債の式の 1 か所だけ＝PolicyRateBondWeight（0.02）×InterestRate（年の率の上乗せ）。
+    Credit.cs:81・Government.cs:356 は目盛を無次元で使う。よって〈目盛の換算＝年の率÷PolicyRateBondWeight〉が唯一の換算。
+  - その換算で紙の台本（今の盤面 keep_813/base_ins・種 1〜10）を取ると、払った利回りの目盛換算の国の幅（四半期ごとの p90−p10）の中央 3.1e-15・p90 3.855、
+    政策の目盛の項の幅の中央 0.147＝(c) の項は大半の四半期で 0（外資の負債のある国が全て満額を払う）で、不履行の国がいる四半期だけ政策金利の項の 26 倍の跳ねになる。
+    ret の第 1 項にすでに信用 cr が掛かる＝実現した利回り（不履行で下がる）に cr を掛けると不履行のリスクを 2 回数える（設計思想⑨）。cr を外すと満額の国は全て同じ値＝worldRate で相殺され、(b) が入った後の不履行の国だけに効く細い項になる。
+  - 〈支配するか雑音か〉のどちらかで、しかも腕を回す前に形を決めきれない＝指示の退避の道（(b) だけ）を採る。(c) は記録（次の波へ申し送り：目盛と年の率の換算の関数を置き、不履行の国の跳ねの扱いを設計書で決めてから）。
+
+[2] 紙の台本（scripts/instruments/c14fl/paper_b.py・今の盤面＝D:/PoB_work/keep_813/base_ins・出力 measurements/m815_20261104/paper_b_base.txt）
+  [1] 旗 0 の盤面：請求のある事象 413,925・未払いの事象 96,757（0.2338）・未払いの額の割合（金建て）0.5733。
+  [2] 門 G1：旗 0＝落とした額 0＝比 0（全 96,757 事象で下限 0.999 を割る＝**旗 0 で落ちる**）・2 倍の突然変異＝比 2（外資の負債で頭打ちの事象 0）＝上限 1.001 で落ちる。
+  [3] 外資の負債÷年 GDP（fci>0 の国・中央／p90）：旗 0 1949 14.06／54.5。(b) の粗い見込み（加法＝流入と逃避の額は旧のまま／乗法＝比で縮む＝上下の幅）1949 8.03／20.4（加法）・4.69／13.7（乗法）。
+  [3b] 未払いの額の割合の見込み 0.311（加法）・0.246（乗法）。世界の外資の負債の和（金建て）の旗 0 との比（種の中央・最小）：1949 加法 0.465・0.184／乗法 0.375・0.141。
+  ㉗：種ごとの最小は 0.2 を割る見込み（0.14〜0.18）＝門 G3 は種の中央で置く（下）。種ごとに置くと紙の台本が破れを予言する＝種ごとには置かない（腕の前に固定）。
+
+[3] 計器（新しい表 2 本・旗 0 でも同じ列を書く・力学の値を書かない・乱数を引かない・エンジンの関数を呼ばない）
+  cpwd_s（国×CapitalMarket.Step の呼び出し・請求か落としがある行だけ）：quarter・call・year・nation・fxRate・fciBeforeFlight（計器が状態から読む）・fciAtCoupon（逃避の後＝利札の時点・計器が読む）・
+    claimIndex（計器が w.Coef.CapitalDividendRatePerQuarter×fciAtCoupon で書く＝エンジンの div を受け取らない）・paidIndex（エンジンの TakeGold の返り値＝実際に移った額・⑮）・
+    unpaidIndex（claim−paid が 1e-9 を超えるときその値・他は 0）・woExpectedIndex（min(unpaid, fciAtCoupon)）・fciAfterWriteDown（計器が状態から読む）・woActualIndex（fciAtCoupon−fciAfterWriteDown＝台帳の差＝実際の側）。
+  cpworld_s（呼び出しごとに 1 行）：quarter・call・year・ownerBeforeGold・ownerAfterGold（還流の段の前と後の Σ CapitalAbroad×為替・計器が読む）・ownerDropGold・hostFlightDropGold（Σ(fciBeforeFlight−fciAtCoupon)×為替）・
+    hostWoDropGold（Σ woActual×為替）・unpaidGold・claimGold・woExpectedGold・woEvents・skip（受け手の側が下がらない呼び出し＝ownerDrop≦1e-12 かつ host の落としが正）・clipNations（還流の段で CapitalAbroad が正から 0 へ張り付いた国の数）・fciSumGold・abroadSumGold（呼び出しの終わり）。
+  限界（計器が自己申告）：①claimIndex は旗 CapitalDividendFromHostRent＝0 のときだけ正しい（正なら請求は別の式）②為替は呼び出しの時点の FxRate を計器が読む（エンジンの e[] と同じ値）③ThreadStatic の緩衝＝1 試合 1 スレッド。
+
+[4] 門（両側・腕 B の前に固定・旗 0 の盤面で〈働いた〉の門が落ちることを紙の台本で確かめた）
+  G1（働いた・事象ごと）：woExpected＞1e-9 の全ての事象で woActual÷woExpected ∈ [0.999, 1.001]（外れの事象 0）。旗 0＝全事象で 0（下限で落ちる）・2 倍＝2（上限で落ちる）・桁の取り違え（×10・÷10）は両側で落ちる。
+  G2（保存・呼び出しごと）：skip でも clip でもない呼び出しで |ownerDrop −(hostFlightDrop＋hostWoDrop)| ≦ 1e-9×max(ownerDrop, hostFlightDrop＋hostWoDrop, 1e-6)（外れの呼び出し 0）。
+      skip か clip の呼び出しの hostWoDrop の和 ÷ 全ての hostWoDrop の和 ≦ 1e-3（受け手の側が落ちない落としが全体の千分の一以下）。旗 0 の盤面の skip・clip の件数は ident の計器つき 10 種（旗 0）の cpworld_s で数えて記録に書く（腕 B の前）。
+  G3（流入の全停止を捕まえる下限）：1949 年の世界の外資の負債の和（fciSumGold のその年の 4 四半期の和）の腕 B÷旗 0（同じ種）の種の中央 ≧ 0.2（見込み 0.375〜0.465）。
+  G4（働いた・大きさ・両側）：外資の負債÷年 GDP（fci>0 の国・1949 年の 4 四半期の延べ）の中央の腕 B÷旗 0 ∈ [0.1, 0.8]（見込み 0.33〜0.57）。上限＝落としが効いていない（旗 0 は 1.0 で落ちる）・下限＝削りすぎ（落とす額を桁で取り違える誤り）。
+  G5（壊さない）：名目 GDP 0 の続き（scripts/instruments/m808/gdp_zero10.py・人口 1 万以上・4 四半期以上）の区間の数 ≦ 基準 m797 とヌル腕 N1・N2 の最大（(813) で 0・0・0＝0）。
+  ⚠ヌル腕（keep_797 の n1・n2）は旧の木で divhost_s が無い＝G3・G4 のヌル腕の幅は取れない（限界）。G1・G2 は機構の恒等式＝ヌル腕に依らない。
+
+[5] 突然変異（使い捨ての木 D:/PoB_work/c14fl_mut*・腕は計器つき 2 種〔種 1・2〕・出力は measurements/m815_20261104/mutation_gates.txt へ）と、どの門で赤か（㉚）
+  Mu0 旗 0（器のまま）            ：G1 赤（下限）・G4 赤（上限 1.0）・G2 緑・G3 緑
+  Mu1 落とさない（落とす 1 行を消す・flightTotal だけ足す＝資産だけ）：G1 赤（下限）・G2 赤（ownerDrop＞host の和）
+  Mu2 2 倍落とす（divWo を 2 倍・外資の負債で頭打ち）：G1 赤（上限）・G2 緑
+  Mu3 負債だけ落とす（flightTotal へ足さない）：G1 緑・G2 赤（ownerDrop＜host の和）
+  Mu4 桁の取り違え（divWo÷10）   ：G1 赤（下限）
+  （(c) は入れない＝(c) の 2 本の突然変異は無い。）2 種の短い腕では G3・G4（1949 年・種の中央）は読まない＝G1・G2 だけで判定する。
+
+[6] 機構のテスト（新しいファイル PriceOfBread.Tests/CapitalCouponWriteDownTests.cs・英仏の 2 国・CapitalMarket.Step を直に回す）
+  T1 払える時は請求の全額が移り、外資の負債と対外資産は落ちない（旗 1）。
+  T2 払えない時（受け皿の投資家の貯蓄＜請求）は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る（旗 1・期待は手で置いた盤面の数：請求＝0.02×F・払い＝貯蓄の全て）。
+  T3 旗 0 では払えなくても外資の負債と対外資産は変わらない（今の形）。
+  T4 未払いが外資の負債より大きい時は外資の負債が 0 で止まり、対外資産も同じ額（外資の負債の額）だけ減る。
+  突然変異 Mu1〜Mu4 で T2 か T4 が赤になることを使い捨ての木で確かめる（measurements/m815_20261104/mutation_unit.txt）。
+
+[7] ソースを走査する番人の点検（㉘・grep 2026-11-04・8f558f9c）と変わる件数の予言（㉑）
+  - IndustrializationReaderTests J1 の許可表：CapitalMarket.cs 1・InstrumentsDivhost.cs 0（表に無い）。新しいコードは工業化度の語を書かない＝**変化 0**（新しい計器は別のファイル InstrumentsCpwd.cs＝表に無い・0 行）。
+  - UnitTypeTests の `new MoneyStock(` の件数：今 65（grep -o で 65＝宣言 65）。落とす 1 行 `w[i].ForeignCapitalIn -= new MoneyStock(divWo)` で **+1＝66**（取引の額を在庫の型へ入れる継ぎ目＝(256) の〈外資の逃避で減る負債 1〉と同じ種類）＝UnitTypeTests.cs:889 の Declared を 65→66 へ上げ、理由を (799) の鎖の先頭に書く（番人の宣言の更新＝試験の書き換えとして verdict に列挙する）。計器のファイルは MoneyStock を作らない。
+  - InstrumentsTests の経路名の鍵（scripts/instruments/flow262/route_anchors.tsv の CapitalMarket.cs の 9 行・鍵は行の全文）：CapitalMarket.cs:171〜174 の行は 1 字も変えない。新しいコードは別の行（:172 と :173 の間・:174 の後）に置き、
+    鍵の文字列（`GiveGold(w[i], k);`・`TakeGold(` ほか）を含めない＝**変化 0**。
+  - WriterRatchetTests の宣言の表：ForeignCapitalIn・CapitalAbroad は表に無い＝**変化 0**。
+  - DormantIdentityTests.DormantZeroFields：旗 0 の器で 1 行足す（〈CapitalCouponUnpaidWriteDown〉）・旗の既定を 1 にするコミットで外す（点火の型）。
+  - c14id との重なり（m817 の事前登録を grep）：c14id は Coefficients.cs の 1527〜1528・2276〜2280・2745〜2748、DormantIdentityTests.cs の RetiredFields と 38・40 の行。
+    この線は Coefficients.cs の 1007 の直後に 1 行・DormantIdentityTests.cs の 32 の直後に 1 行＝**重なり 0**（近い行ではない）。Instruments.cs は c14id が触らない（この線は 1854・1884 の近くに 2 行）。
+
+[8] 止める線（RULE64 の形をそのまま写す・結果を見る前）
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる）・1e10 倍以上・
+  空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・
+  推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。NG・国力・史実度・exact・near は記録。名目 GDP 0 の続きは記録の段の先頭（G5 で門にもする）。
+
+[9] 計算量の割り当て：0.5 秒（国×四半期に比較 1 つと引き算 2 つ・計器は計器つきの腕だけ）。m797 221.2＋0.5＝221.7＜248.5。この波の他の線（c14ce・c14sv は腕 0・c14id は恒等）と合わせても余りに収まる。
+
+[10] 記録（門にしない）：外資の負債÷年 GDP の中央値と p90（1850・1900・1949）・英の国債の不履行の種の数・兌換停止の件数・分離独立の件数・蘭と西の価格水準・開幕の 1000 倍以上・NG（ng.sh・基準 rd:measurements/ng797_20261103:m797）・門 A′（nullgate.py）・.cost・空洞化 1/4 未満の件数。
+
+[11] 手順：①この事前登録（最初のコミット）②旗 0 の器と計器と試験 → 走査の番人の試験（㉘）③ident.sh run c14flz（--added-tables cpwd,cpworld・--tests-delta +4・--saveleak）④突然変異（使い捨ての木）⑤旗 1 の種 16 の全長の savetest と leakhunt（腕の前の確かめ）→ 旗の既定を 1 → 腕 B（INS=1 batch.sh run c14flB 10・POB_INSTRUMENTS_NATIONS を渡す）→ 門と止める線 ⑥落ちたら採らない（物差しを替えない・形の変え直しは 1 回まで）⑦フルスイート（旗 1 の木・2 本に分けて）・savetest・leakhunt（旗 1）。
