@@ -1,0 +1,7 @@
+ok_flag1	全て通る
+flag0	落ちる G1
+empty	落ちる G0,G2a,G2b
+M1M2	落ちる G1
+M4	落ちる G2a
+M7	落ちる G2b
+colony_only	落ちる G1
