@@ -188,4 +188,25 @@ public class CornintInstrumentTests
         }
         Assert.True(any > 0, "輸出の地代が全て 0＝PaySales の地代を数えていない");
     }
+    /// <summary>(842) C6：末尾の列 c1InterestGrain0PositiveFlag は c1InterestGrain0 が正なら 1・そうでなければ 0（貿易の配列が無い国は nan）。
+    /// 期待は同じ行の c1InterestGrain0 の符号から試験が作る（旗の式を呼ばない）。前提：厳密に 0 の行と数のある行が盤面にある＝`> 0` を `>= 0` に替える突然変異を拾える。</summary>
+    [Fact]
+    public void ブロック0の穀物の利害が正なら旗は1_そうでなければ0()
+    {
+        var (dir, _) = RunTwo(3);
+        var rows = Rows(dir, 1790UL);
+        Assert.NotEmpty(rows);
+        Assert.Equal("c1InterestGrain0PositiveFlag", System.IO.File.ReadLines(System.IO.Path.Combine(dir, "cornint_s1790.tsv")).First().Split('\t').Last());
+        int zero = 0, numeric = 0;
+        foreach (var r in rows)
+        {
+            double v = D(r, "c1InterestGrain0"), f = D(r, "c1InterestGrain0PositiveFlag");
+            if (double.IsNaN(v)) { Assert.True(double.IsNaN(f), "貿易の配列が無い行で旗が nan でない"); continue; }
+            numeric++;
+            if (v == 0) zero++;
+            Assert.Equal(v > 0 ? 1.0 : 0.0, f);
+        }
+        Assert.True(numeric > 0, "前提が崩れた：c1InterestGrain0 が数の行が無い");
+        Assert.True(zero > 0, "前提が崩れた：c1InterestGrain0 が厳密に 0 の行が無い＝`>= 0` の突然変異を拾えない");
+    }
 }
