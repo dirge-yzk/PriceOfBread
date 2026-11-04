@@ -94,3 +94,10 @@
     ・[2] に無い追加（区分 ⑥〈警告の解消だけ〉）：xUnit の解析の警告 4 件（LayoutTests:147・ScholarshipTests:161・UnitTypeTests:67・UrbanFlowRealTests:304・fd343286）。Assert の判定と母集合は変えない。I12（テストの構造）の本文が repo に無いので、〈指示に列挙された穴と古い注〉の外で恒等で入る警告の解消だけを足した。
     ・テストの数の予言（--tests-delta）：−3（旗 0 の Fact 3 本）＋2（T1）＋2（T2 の Theory 2 行）＋1（T3）＝＋2（--list-tests の予言＝Category!=FullLength 2222・FullLength 3）。
     ・RetiredFields は 3 名（NavalCedeFleetReturn・InheritedStateIntentDrop・HcdColonyCessionDistance・番人を写しただけ）。書き換えた既存の試験は [2] のとおり＋⑥ の 4 件。
+
+[追記 3 2026-11-04・結果の後の記録（採否の規則は変えていない）]
+    ・判定: 恒等（ident run c14id・測った木 HEAD 7d1e0163・SOURCE-HASH 84b0f0cf54dbfee0・measurements/ident_20261104_c14id.txt）。素の 5 種 184 行・計器つき 10 種 185 行が m797 と全行一致・.cost の件数の行 29 本一致（推定 220.1 秒／221.2 秒）・計器の表 959 一致＋既知の揺れ 20（宣言 0）・注視の表 4636 行一致・--list-tests 2222（基準 2220＋2）／FullLength 3・savetest OK・leakhunt 違反なし。
+    ・フルスイート（Category!=FullLength・隔離ビルド）：合計 2222（--list-tests と一致）＝合格 2220・スキップ 1（従来から）・失敗 1。失敗は GoodIdGuardTests.道具のPythonは財の番号を数字で書かない＝自分の台本 scripts/instruments/c14id/edit_i5.py の C# の整数配列の字面（テストの旧い行を探す文字列）。[4] の ㉘ の番人の点検は 5 組だけで、scripts の *.py を走査するこの番人を入れ損ねた（反証＝ソースを走査する番人は 6 組目がある）。台本の 1 行を直して再走（GoodIdGuardTests 43 本緑）。物差しは替えていない。.cs は触らない＝ident の測った木のまま。FullLength 3 本緑（4 分 55 秒）。
+    ・フルスイートは他の線（c14fl）の腕 2〜4 本と並べて回した（腕の枠の割り振りの外・結果は合否だけで時間は使っていない）。
+    ・試験の穴の結果：T1〜T3 を足して赤を確かめた。T4 は穴ではなかった。冷蔵の加工肉・石油ケロシンの穴は塞がった。M1b は旗 0 の経路の穴＝旗 NavalPortProcurement を焼かない限り残る（焼けば navalCap の行は死んだコードになり消える）。
+    ・名前が古くなった試験（記録・名前は書き換えない）：ColonyCessionDistanceTests.旗1は世界最大の艦を持つ勝者には距離の項が0で旗0と同じ州が移る（旗 0 との比べは ① で消し、今はマドラスが移ることだけを見る）・InheritIntentTests.計器の表は旧と新を同じ盤面で並べ_旗1では実際が新に等しい_旗0では旧に等しい（旗 0 の半分は消えた）・NavalCedeFleetReturnTests.旗1で…の 3 本・InheritIntentTests.cs:8 の突然変異の注の〈旗を読まない→①が赤〉。.cs を ident の後に触らないため直していない（次の恒等の線で直す）。
