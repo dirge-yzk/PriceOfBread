@@ -90,3 +90,9 @@
 [11] 持ち主のファイル（重なり）：Habit.cs（NextStock・Of・HabitProfile）・EconomyStep.cs:1835 の次に計器の口 1 行・Coefficients.cs の OpiumAddictionCapOff の次に旗 1 行・
   Instruments.cs の Quarter の HabitbalTable の次に 1 行・InstrumentsHabitcap.cs の HabitCapPair の 1 行・新しい SimCore/InstrumentsHabitlg.cs・HabitTests.cs の 3 本・新しい HabitLogisticTests.cs・
   DormantIdentityTests.cs の表の 1 行・scripts/instruments/c65op/・measurements/m820_*。他の線（c65fl・c65md・c65ce・c65sv・c65id）と同じファイルは Coefficients.cs・Instruments.cs・DormantIdentityTests.cs の自分の行だけ。
+
+[12] ★2026-11-04 腕 B の前の追記（門の数と形は変えていない）
+  - ident c65opz〈判定: 恒等〉（測った種で一致・measurements/m820_20261104_ident.txt）。
+  - 旗 0 の habitlg_s（ident の腕 b・10 種）を gate_op.py で読んだ（measurements/m820_20261104/gate_flag0.txt）：L1 44.63%・L2 2727.9/種・U3 150,518 で落ち、U1・U2 は通る＝[5] の Mu0 の行どおり（U3 の ? は赤）。紙の L1（43.8%・最後の月の pc）と腕の L1（四半期平均の pc）は定義が違う＝門は変えない。
+  - 突然変異 Mu1・Mu2 の腕（2 種）：どちらも L1・L2・U3 が赤・U1・U2 は緑＝[5] の表どおり。Mu3 は腕の枠が満杯で 1 回走らず（ARMFULL・12:34）→ 12:50 に回し直し（走行中）。
+  - 旗 1 の木 c2b45d86 のフルスイート（Category!=FullLength）で WriterRatchetTests の計算量の表 2 行が赤：建設：見た生産者（旬）1823（宣言 1777・+2.6%）・請求：見た生産者（月）1809（宣言 1769・+2.3%）＝最初の 40 四半期の 1 種の軌道の件数を写しただけの番人＝README ★(749) の区分＝旗 1 の木の実測で 1 回だけ取り直す（新しい計数の処理は無い）。機構の番人の赤は（この時点で）0。
