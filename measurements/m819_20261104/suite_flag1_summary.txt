@@ -1,0 +1,18 @@
+(819) c65fl フルスイート（旗 1・測った木 5b623cd9・git archive の写し・SOURCE-HASH 8a3bc11eb5e6424c）・続けて savetest と leakhunt（同じ写し）
+nonfull rc=0 2257s
+full rc=0 470s
+list nonfull 2227 full 3
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2226、スキップ:     1、合計:  2227、期間: 37 m 32 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 7 m 44 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 1042s
+保存 47.1MB（1432ms）／読込 1332ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 86・その月の額の和 5.587E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c65fl_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c65fl_work/suite/leakhunt.txt.manifest（SOURCE-HASH=8a3bc11eb5e6424c）
+SL-END 12:53:51
+SAVELEAKDONE
