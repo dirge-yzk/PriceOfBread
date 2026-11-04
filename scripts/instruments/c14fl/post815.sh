@@ -3,7 +3,7 @@
 #   使い方: bash post815.sh（Bash の run_in_background で）。腕 B の生 D:/PoB_work/c14fl_work/armB/out_c14flB_10/ins。
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 cd D:/PoB_work/wt_c14fl; S=scripts/instruments; W=D:/PoB_work/c14fl_work; O=measurements/m815_20261104
-B=D:/PoB_work/c14fl_work/armB/out_c14flB_10/ins; Z=D:/PoB_work/c14fl_work/ident_c14flz/out_ib_10/ins
+B=D:/PoB_work/c14fl_work/armB/out_c14flB_10/ins; Z=D:/PoB_work/c14fl_work/flag0_cp   # 旗 0 の cpwd_s・cpworld_s（ident c14flz の腕 b から写した 20 本＝門の比べる側）
 for x in "" .cost .manifest; do cp $W/armB/b10_c14flB_10.txt$x measurements/b10_20261104_c14flB_ins$x; done
 bash $S/c14fl/rec815.sh $B $O/rec_B.txt c14flB 1-10 $Z
 python -X utf8 -I $S/brk693/home_break.py c14flB=$B base=D:/PoB_work/keep_813/base_ins n1=D:/PoB_work/keep_797/n1 n2=D:/PoB_work/keep_797/n2 > $O/homebreak_B.txt 2>&1
