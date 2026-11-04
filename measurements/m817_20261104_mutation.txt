@@ -1,0 +1,75 @@
+(817) c14id 突然変異の記録 2026-11-04（台本 scripts/instruments/c14id/mut_run.py・使い捨ての木 D:/PoB_work/c14id/mut/tree に 1 本ずつ当て、絞り込んだ試験だけを回し、必ず元へ戻す）
+rc=1＝赤（変異を検出）・rc=0＝緑（検出できず）。各行の下は赤になった試験の名前。出力の全文は D:/PoB_work/c14id/mut/*.txt（作業フォルダ・消してよい）。
+
+読み方（結論）：
+  T1 SecondRecipeContentsTests（足した 2 本）：M5a・M5b・M5c は冷蔵の加工肉の試験だけが赤・M6a・M6b・M6c は石油ケロシンの試験だけが赤＝6 本とも意図した試験で赤（予言どおり）。
+  T2 MilitaryTests.海軍の予算は必要額で切られ…（足した Theory 2 行）：M1b（旗 0 の経路の navalCap の Min を外す）は旗 0 の行だけが赤・M1c（旗 1 の経路の navalNat の Min を外す）は旗 1 の行だけが赤（予言どおり・旗 1 の行は M1b で緑のまま）。
+  T3 PopScanTests.全ての州が植民地格の国は国平均を全ての州で取る（足した 1 本）：M3a（退避の枝を外す）で赤。
+  T4 越境移民（M4＝MigrateBetweenNations を最初の集計の後で return）：ConservationTests の国家間移民の番人が 4 本赤（保存・上限・受入の上限・差 0 以下）＝(812) の〈1 本としか見えない〉は台本の絞り込み（RouteKmTests だけ）の見え方で、試験の穴ではない。試験は足していない。
+  対照 M0（変異なし）：緑 11 本（T1 2＋T2 2＋T3 1＋ConservationTests の国家間移民 6）。
+
+台本の訂正と無効な行（自己申告）：
+  ・1 巡目の M0 と M1b・M1c の赤は無効：T2 の最初の盤面（海の必要量 0.4）は変異なしでも予算が切られていなかった（この盤面の装備の器×海の金の割合は約 22・必要額は海の必要量 1 あたり約 5.6 万＝0.4 では器の側で止まる）。探りの試験（使い捨て・消した）で較正して海の必要量を 1e-5 に直した。直した後の 2 巡目の M1b・M1c が有効。
+  ・1 巡目の M6c は変異の文字列が 2 回（鯨油の行にも同じ並び）で当たらなかった（NG）→ 文字列を直して 2 巡目に回した。
+  ・2 巡目の M0 の赤 4 本（ConservationTests）は、木の複製が更新時刻を保ったため増分ビルドが 1 巡目の M4 の dll を使い回した偽の赤。台本を直し（copy_function=shutil.copyfile）、3 巡目の M0（下）で緑を確かめた。2 巡目の M6c・M1b・M1c は変異のたびに Simulation.cs の更新時刻が新しくなるので有効（M6c で ConservationTests が緑なことで確認）。
+  ・台本の標準出力は python -I が PYTHONUTF8 を無視して cp932 で書いた（下の本文は読み直して UTF-8 に直した）。
+
+== 1 巡目（M0 M5a M5b M5c M6a M6b M6c M1b M1c M3a M4） ==
+M0 変異なしの対照
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 4 s - PriceOfBread.Tests.dll (net10.0)  36秒
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 1) [1 s]
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 0) [128 ms]
+M5a 加工肉の肉の投入量 0.6→0.5
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 178 ms - PriceOfBread.Tests.dll (net10.0)  8秒
+        失敗 PriceOfBread.Tests.SecondRecipeContentsTests.冷蔵の加工肉の行は肉と冷蔵庫と労働と技師を投入にし塩漬けの1_4倍の生産性 [152 ms]
+M5b 冷蔵庫の投入を塩に替える
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 183 ms - PriceOfBread.Tests.dll (net10.0)  8秒
+        失敗 PriceOfBread.Tests.SecondRecipeContentsTests.冷蔵の加工肉の行は肉と冷蔵庫と労働と技師を投入にし塩漬けの1_4倍の生産性 [158 ms]
+M5c 冷蔵の加工肉の生産性の倍率を掛けない
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 178 ms - PriceOfBread.Tests.dll (net10.0)  8秒
+        失敗 PriceOfBread.Tests.SecondRecipeContentsTests.冷蔵の加工肉の行は肉と冷蔵庫と労働と技師を投入にし塩漬けの1_4倍の生産性 [153 ms]
+M6a 灯油の原油の投入を銅鉱に替える
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 169 ms - PriceOfBread.Tests.dll (net10.0)  8秒
+        失敗 PriceOfBread.Tests.SecondRecipeContentsTests.石油ケロシンの行は原油と労働と技師を投入にし生産性は1_6かける7 [< 1 ms]
+M6b 灯油の生産性の倍率を掛けない
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 168 ms - PriceOfBread.Tests.dll (net10.0)  8秒
+        失敗 PriceOfBread.Tests.SecondRecipeContentsTests.石油ケロシンの行は原油と労働と技師を投入にし生産性は1_6かける7 [< 1 ms]
+M6c NG 変異の文字列が 2 回
+M1b 旗 0 の経路の navalCap の Min を外す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  11秒
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 1) [1 s]
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 0) [110 ms]
+M1c 旗 1 の経路の navalNat の Min を外す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  12秒
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 1) [1 s]
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 0) [118 ms]
+M3a 本土の州が無いときの退避の枝を外す（国平均が 0 になる）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)  12秒
+        失敗 PriceOfBread.Tests.PopScanTests.全ての州が植民地格の国は国平均を全ての州で取る [2 s]
+M4 越境移民を止める（最初の集計の後で return）
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)  14秒
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民の段の前後で世界の総人口と基礎貨幣は変わらない [2 s]
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民は受入国の全ての州へ着き州ごとの上限を超えない [268 ms]
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民の受入は上限以下_閉鎖は開放の2割以下 [2 s]
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ [104 ms]
+
+== 2 巡目（木を作り直し・M0 M6c M1b M1c） ==
+M0 変異なしの対照
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     4、合格:     7、スキップ:     0、合計:    11、期間: 4 s - PriceOfBread.Tests.dll (net10.0)  17秒
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民の段の前後で世界の総人口と基礎貨幣は変わらない [1 s]
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民は受入国の全ての州へ着き州ごとの上限を超えない [357 ms]
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民の受入は上限以下_閉鎖は開放の2割以下 [1 s]
+        失敗 PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ [111 ms]
+M6c 灯油の技師の投入を外す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 317 ms - PriceOfBread.Tests.dll (net10.0)  10秒
+        失敗 PriceOfBread.Tests.SecondRecipeContentsTests.石油ケロシンの行は原油と労働と技師を投入にし生産性は1_6かける7 [1 ms]
+M1b 旗 0 の経路の navalCap の Min を外す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 2 s - PriceOfBread.Tests.dll (net10.0)  12秒
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 0) [98 ms]
+M1c 旗 1 の経路の navalNat の Min を外す
+    rc=1（0＝緑・1＝赤） 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)  10秒
+        失敗 PriceOfBread.Tests.MilitaryTests.海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない(flag: 1) [1 s]
+
+== 3 巡目（M0 だけ・有効な対照） ==
+M0 変異なしの対照
+    rc=0（0＝緑・1＝赤） 成功!   -失敗:     0、合格:    11、スキップ:     0、合計:    11、期間: 5 s - PriceOfBread.Tests.dll (net10.0)  14秒
