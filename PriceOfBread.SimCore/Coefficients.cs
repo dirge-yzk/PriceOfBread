@@ -1518,7 +1518,7 @@ public sealed class Coefficients
 
     public double ColoniesForFullColonial = 3.0;  // 植民地素材を満たすのに要る植民地数（少ないと入手率↓・封鎖で更に↓）
     public double WhitePeaceScore = 0.25;         // 戦勝点がこれ未満の講和は白紙（得るものなし）
-    public double ForcedPeaceBlankOverCollapse = 1;   // (821) c65md：列強の調停の戦争（War.ForcedPeace）の旗（既定 1＝腕 B の採否の後に確定）＝0 で旧（調停の白紙を月の歩の崩壊の値で上書きして賠償を払う）・正で、調停の戦争は月の歩の崩壊の上書き（戦勝点＝±1.5×reach）を通らず白紙で終わる（賠償・植民地・本国の割譲 0）・崩壊の講和の前走査（(791) の集合の数）にも数えない。新しい係数なし。AI とプレイヤーで同じ経路。確証なし（AI の推奨）・事前登録 measurements/m821_20261104_prereg_md.txt
+    public double ForcedPeaceBlankOverCollapse = 0;   // (821) c65md：列強の調停の戦争（War.ForcedPeace）の旗（既定 0＝今の形・1 ビットも変わらない）＝正で、調停の戦争は月の歩の崩壊の上書き（戦勝点＝±1.5×reach）を通らず白紙で終わる（賠償・植民地・本国の割譲 0）・崩壊の講和の前走査（(791) の集合の数）にも数えない。新しい係数なし。AI とプレイヤーで同じ経路。確証なし（AI の推奨）・事前登録 measurements/m821_20261104_prereg_md.txt
     // 植民地の奪取：戦勝点(0〜100点＝sa×100)＝奪取予算。コスト＝基本30点 ＋ 資源 ＋ 開発の重み（加算）。
     // ＝未開発でも30点要る（初期に大量簒奪できない）、開発・資源を生む植民地ほど高くつく。完全勝利(100点)でも上限3つ。
     public double ColonyCaptureBudget = 100;       // 完全勝利(戦勝点1)の奪取予算＝100点（budget ＝ 戦勝点 × これ）
