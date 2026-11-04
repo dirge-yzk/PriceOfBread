@@ -1,0 +1,10 @@
+1 C#の列 osF 15003 osC 3840 印字の比較 ftAfter≠ledgerAfter 逃避 15003 利札 3840
+2 C#の列 osF 14068 osC 424 印字の比較 ftAfter≠ledgerAfter 逃避 14068 利札 424
+3 C#の列 osF 13805 osC 2641 印字の比較 ftAfter≠ledgerAfter 逃避 13805 利札 2641
+4 C#の列 osF 12359 osC 3187 印字の比較 ftAfter≠ledgerAfter 逃避 12359 利札 3187
+5 C#の列 osF 16570 osC 2712 印字の比較 ftAfter≠ledgerAfter 逃避 16570 利札 2712
+6 C#の列 osF 18752 osC 2484 印字の比較 ftAfter≠ledgerAfter 逃避 18752 利札 2484
+7 C#の列 osF 18961 osC 2563 印字の比較 ftAfter≠ledgerAfter 逃避 18961 利札 2563
+8 C#の列 osF 14162 osC 496 印字の比較 ftAfter≠ledgerAfter 逃避 14162 利札 496
+9 C#の列 osF 16672 osC 2483 印字の比較 ftAfter≠ledgerAfter 逃避 16672 利札 2483
+10 C#の列 osF 15002 osC 3149 印字の比較 ftAfter≠ledgerAfter 逃避 15002 利札 3149
