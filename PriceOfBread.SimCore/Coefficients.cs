@@ -3439,7 +3439,7 @@ public sealed class Coefficients
     public double SilverParityFromRatio = 1.0;   // ★(775) 1.0 に点火（既定 0.0 → 1.0・波57 c7ag）
     // 旗 SilverParityDemandWeighted：上の対数平均の 1 州の票（0＝州ごとに等しい 1 票＝今の形・正＝A′＝薄い側の額〔参照価格建て〕min(銀の需要×RefPrices[銀], 金鉱の需要×RefPrices[金鉱])・どちらかの辺が 0・非有限なら票なし・MultiNationSim.SilverMinRefWeight）。
     //   全ての州の票の和が正でないときは比が不正の扱い（旧の統計へ倒れる）。点火の値は 2（(827) の名乗り）・値 1 も A′（(834) で w1〔金鉱の需要だけの票・(807)〕の枝を消した）。新しい係数 0・新しい状態 0。
-    public double SilverParityDemandWeighted = 2.0;   // ★(834) c67sv 2.0 に点火（既定 0.0 → 2.0・A′）
+    public double SilverParityDemandWeighted = 0.0;
     // 【削除 2026-10-04 (210)】SilverStandardIndThreshold（銀本位に届く工業化＝0＝銀は誰でも持てる・読み手は AI の目標の1行だけ＝常に真）＝不換の国は銀を志向する（SelfPlay.DecideQuarter）。
     public double StandardMetalMintGate = 1.0;         // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30）：0で造幣は旧来どおり金鉱だけを買う／1で**本位金属**（銀本位なら銀）を買う＝需要が法に従って現れ・消える。⚠銀価格暴落の線は閉鎖のまま（20-3打ち切り線）
     // ★銀本位の再開（作者裁定2026-09-06「一時的に壊れるのは問題ない。その後に復旧する仕組みが必要」・銀本位doc §7）。
