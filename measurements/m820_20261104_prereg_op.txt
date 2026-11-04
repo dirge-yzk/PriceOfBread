@@ -1,0 +1,98 @@
+(820) c65op アヘンの依存を人の割合のロジスティックへ（形 H・3 回の規則の 2 回目・挙動の線）＝事前登録（腕の前に固定・2026-11-04・書いたモデル Claude Opus 5.5）
+枝 c65op（8bbcd39f から）・worktree D:/PoB_work/wt_c65op・作業フォルダ D:/PoB_work/c65op_work（この回に作った物はこの 2 つだけ）
+
+[0] 形の種類＝〈入口〉（依存の在庫の更新の式そのものを置き換える・尾の事象ではない）。
+  出発＝(793) 読み手の推奨〈形 H〉と (787) c9op（蓋を外す＝1 回目・U2・U3 で落ちた）。§0-2 ★(797) ①・②：人の割合なら h≦1 は定義＝思想⑧の天井に当たらない・POP ごとの在庫（思想⑩）は入れない＝作者「全て推奨で」で推奨を採った。
+  3 回の規則：同じテーマ（アヘンの依存の正帰還）の 2 回目。1 回目（(787)）は〈蓋を外す〉、今回は〈式の形を変える〉＝設計の新しい形（(793) の読みを経た）。
+
+[1] 形（AI の推奨・確証なし）
+  旗 OpiumAddictionLogistic（Coefficients.cs・既定 0＝今の式・1 ビットも変わらない）。旗が正（否定形で NaN は 0 側）のとき、Habit.NextStock を
+     s' = ClampOr( s + G·pc·(1 − s/d) − D·s , 0, d, 0 )      （今は s' = ClampOr( s + G·pc − D·s , 0, d, 0 )）
+  G＝OpiumAddictionGrowth 0.1・D＝OpiumAddictionDecay 0.02・d＝OpiumAddictionCap 0.2 を〈依存者 1 人の上乗せの量〉と読み替える（h = s/d＝依存者の人の割合・0..1）・pc＝州の売れた量÷州の人口（今のまま）。
+  新しい係数のリテラル 0 本・新しい状態 0 本（在庫 Region.OpiumAddiction の 1 本のまま＝s = d·h）。読み手（需要の上乗せ Habit.StockOf・労働の害 Habit.LaborFactor＝max(0.5, 1−害×s)・PolicyPreferences:513・SelfPlay:1767・opium_s）は全て s を読むまま＝無改修。
+  ★労働の害は s を読む形を保つ（依存者 1 人の損失＝害×d＝0.2）。(793) の紙の〈害×h〉（今の 5 倍）は入れない＝確証なし・(787) が U3 で落ちた型（床 0.5 への張り付き）に戻る。
+  旗 OpiumAddictionCapOff（(771)・既定 0・(787) で採らなかった形）との関係：CapOff が正なら d = +∞＝ s/d = 0 ＝式は今の蓋なしの線形とビットで一致（優先順位の分岐を書かない）。
+  計器 InstrumentsHabitcap.cs の HabitCapPair の〈旧〉は〈線形＋蓋〉を明示する（h with { Logistic = false }）＝旗 0 では今と同じ値（旗 0 の h は Logistic が偽）。
+
+[2] 紙の台本（scripts/instruments/c65op/paper_op.py・旗 0 の盤面から最後の月の pc を戻す：pc = (new − s(1−D))/G）
+  m797（keep_818/base_ins）：L2（在庫≧0.199 の州×四半期）1 種あたり 2152.1・L1（許容 0.3）43.8%（種ごと 27.0〜60.6%）・許容 0.15 16.0%・母集合 1 種あたり 578・在庫の最大 0.2000・床 0
+  N1（keep_797/n1）：L2 2580.1・L1 0.3 46.5%・0.15 12.9%（母集合 703）
+  N2（keep_797/n2）：L2 1986.5・L1 0.3 52.8%・0.15 18.3%（母集合 635）
+  形 H の近似の再生（四半期ごとの sigma = pc/(B+s)・B=0.02・困窮の門 g=1 と置いて一定＝近似・需要が減ると配給は上がる側＝h を低めに見る向き）：
+    m797：L2 0.0・在庫の最大 0.1896〜0.1902・L1 0.3 98.1%（種ごと 94.4〜99.4%）・0.15 87.9%（79.3〜94.2%）・母集合 478
+    N1：L2 0.0・L1 0.3 97.6%／N2：L2 0.0・L1 0.3 98.7%
+  出力：measurements/m820_20261104/paper_base.txt・paper_n1.txt・paper_n2.txt
+  ＝紙の予言：旗 0（何もしない実装）は L1 と L2 で落ち、形 H は全ての門を通る。
+
+[3] 計器（恒等・旗 0 で全行バイト一致）：新しい表 habitlg_s（SimCore/InstrumentsHabitlg.cs・四半期の末・州の行・habitcap_s と同じ〈前の在庫か pc が正の月〉の州）
+  エンジンの関数（Habit.Of・Habit.NextStock）を呼ばない。係数 G・D・d（CapOff が正なら +∞）から旧（線形＋蓋）と新（ロジスティック）の次の在庫を自分で組む。
+  実際の次の在庫は計器が自分で読む＝次の月の口で州の Region.OpiumAddiction・四半期の末の表で同じ欄（エンジンの局所の値は pc だけを受け取る）。
+  列：quarter year nationIndex nation region monthsCount logisticFlag pcMeanPerMonth pcMinPerMonth pcMaxPerMonth stockLastIndex stockMaxIndex oldNextLastIndex logNextLastIndex
+      transCount oldMismatchCount logMismatchCount lgViolMonthsCount lgViolMaxIndex pinMonthsCount floorMonthsCount overDMonthsCount
+  lgViol＝実際の次の在庫 u が max(s, s_eq(pc))（率 G·pc/d + D が 1 を超える月は max(s, d)）を相対 1e-9＋絶対 1e-15 を超えて破った月（s_eq = G·pc·d/(D·d + G·pc)・否定形で NaN も破り）。
+  pin＝u ≧ 0.995·d の月／floor＝害×u ≧ 0.5 の月／overD＝新の式の挟む前の値が d を超えた月（挟みが効いた月＝思想⑧の確かめ）。
+  ⚠限界（自己申告）：助走の月は数えない。pc は州の売れた量÷人口（POP 以外の買い手も含む＝(793) で 0）。月が飛んだ州（その月の EconomyStep が呼ばれない）は飛んだ前後を 1 つの遷移として数える（稀）。
+  ident：bash scripts/instruments/ident/ident.sh run c65opz --tree D:/PoB_work/wt_c65op --added-tables habitlg_s --tests-delta <数>（〈判定: 恒等〉＝測った種で一致）。
+
+[4] 門（両側・腕 B〔計器つき 10 種・種 1〜10・旗 1〕の habitlg_s を scripts/instruments/c65op/gate_op.py で読む・定数は G=0.1・D=0.02・d=0.2 を台本に固定＝表の capIndex は読まない）
+  ★L2 の向き：課題文〈s≧0.199 が 1 種ある〔…何もしない実装を落とす〕〉と (793)〈1 種あたり 10 以下〉が食い違う。紙の再生で形 H は 0・旗 0 は 2152＝〈1 種ある〉では形 H が定義で落ちる＝(793) の〈≦10〉を採る（旗 0 を落とす目的の門）。
+  下限（狙いどおり働いた＝大きさ）：
+    L1：定常の州×四半期（その四半期と前の 3 四半期が連続・4 つの pcMeanPerMonth の最大÷最小 ≦1.25・4 つの平均 p̄ ≧0.02）で |stockLastIndex − s_eq(p̄)| ≦ 0.3·s_eq(p̄) の割合 ≧ 70%（10 種の合計）・かつ母集合 1 種あたり ≧100（空洞の門にしない）。許容 0.15 の割合は記録。
+        旗 0 の値＝紙 43.8%（ヌル腕の紙 46.5%・52.8%）＝門の外。
+  下限（何もしない実装を落とす）：
+    L2：stockMaxIndex ≧ 0.199 の州×四半期が 1 種あたり ≦ 10（旗 0＝紙 2152・N1 2580・N2 1987）。
+  上限（形に固有の誤りの量）：
+    U1：stockMaxIndex の最大 ≦ 0.2 + 1e-9（d を取り違えた実装・(1−s/d) を外して挟みも外した実装）。(787) の U2〈≦3.30〉より狭い。
+    U2：floorMonthsCount の合計 = 0（労働の床 0.5 は害 1.0×在庫 0.5 以上でしか効かない・旗 0 で 0）。(787) の U3〈≦1.0%〉より狭い。
+    U3：lgViolMonthsCount の合計 = 0（ロジスティックの釣り合いの不変式：u − s_eq = (1 − 率)(s − s_eq) ＝率 ≦1 なら u ≦ max(s, s_eq)）。
+  記録（門ではない）：logMismatchCount（旗 1 で 0 の見込み）・oldMismatchCount・overDMonthsCount（0 の見込み）・在庫の最大・pin の月・同じ盤面の新÷旧（logNext÷oldNext の分布）。
+  旗 0 で落ちることの確かめ：紙（[2]）に加えて、ident の計器つき 10 種（旗 0）の habitlg_s を同じ gate_op.py で読み、L1 か L2 が落ちることを腕 B の前に確かめて measurements/ へ書く。
+    ★旗 0 の habitlg_s で L1 と L2 が両方とも通ったら、門が何もしない実装を落とせない＝腕 B を回さず止めて報告する（結果の後に門を替えない）。
+
+[5] 突然変異（㉚・腕の前の表・使い捨ての木 D:/PoB_work/c65op_work/mut・旗 1 にしてから 1 つずつ入れる・計器つき 2 種〔種 1〜2〕・機構の試験 HabitLogisticTests も回す）
+     突然変異                              L1   L2   U1   U2   U3   試験
+  Mu0 旗を読まない（＝旗 0 の経路）          赤   赤   緑   緑   赤?  赤（旗 1 の手の算術）   ＝ident の旗 0 の計器つき 10 種で読む（同じ経路）
+  Mu1 (1 − s/d) を外す（挟みは d のまま）     赤   赤   緑   緑   赤   赤
+  Mu2 減衰 D を 0（新の式の中だけ）          赤   赤   緑   緑   赤   赤
+  Mu3 d を 1（新の式の中と挟み）             赤   赤   赤   赤?  赤   赤
+  （?＝紙では決められない＝腕で読む。Mu0 の U3 は旗 0 で釣り合いを越える上りの月があるか・Mu3 の U2 は pc ≧0.2 の州があるか）
+  ＝U だけでは Mu1・Mu2 を拾えない（在庫は d の内に留まる）＝L1・L2 が要る。L だけでは d の取り違えの大きさは拾えない＝U1 が要る。
+  出力：measurements/m820_<日付>_mutation.txt（門の表）・生は D:/PoB_work/c65op_work/mut の下（合流の判断まで消さない）。
+
+[6] 予言（腕 B・主な観測量の符号と大きさ・段0）
+  在庫：旗 1 は旗 0 以下（同じ s と pc で新 ≦ 旧：G·pc·(1−s/d) ≦ G·pc）＝蓋に張り付いた州は d·h* へ下がる（σ=1 で 0.164・σ=2 で 0.182・紙の表 (793)）。
+  依存の在庫の国の平均は下がる向き・労働の害は小さくなる向き（最大 20%→約 16〜18%）・アヘンの需要は下がる向き。
+  ＝〈悪くする〉見込みは無い（正帰還を飽和で止める・止める線に当たる経路は紙では見えない）＝腕を回す。
+
+[7] 機構の試験（旗 0 の器のコミットで入れる・★(818) の grep〈NextStock|OpiumAddiction〉の Assert を全て読んだ結果）
+  新しいファイル PriceOfBread.Tests/HabitLogisticTests.cs：①旗 1 の手の算術（0.05,0.3→0.0715・0.19,1.0→0.1912・0.01,0→0.0098・0.3,0.1→0.2〔挟み〕・d=∞ で線形とビット一致・NaN→0）
+    ②格子の不変式（s∈[0,d]・pc∈[0,2] の格子で s'∈[0,d] と s' ≦ max(s, s_eq) の手の式）③計器 habitlg_s（4 国の 12 四半期：旗 0 で oldMismatch=0・旗 1 で logMismatch=0・lgViol=0・在庫 ≦0.2）④旗 0 と旗 1 で旗の値が計器の列に出る。
+  既存の試験で旗 1 の既定で赤になる物（予言・旗 0 の器のコミットで〈旗を引数にした Theory〉へ直す＝旗 0 の行は今の算術と判定をそのまま残し、旗 1 の行に新の手の算術を足す。c65fl の FiscalTests の型）：
+    HabitTests.cs:35〜45 中毒度の更新は成長_減衰_0から上限の手の算術（new Coefficients() のまま 0.079・0.2 を期待＝ロジスティックでは 0.0715・0.1912）
+    HabitTests.cs:266〜275 蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す（u0＝0.2 を期待＝ロジスティックでは 0.1912）
+    HabitTests.cs:277〜314 アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい（実際＝旧のビット一致を期待）
+  赤にならない見込み（読んだ）：:15 行の値（Cap＝0.2 のまま）・:244 蓋の旗（CapOff 1 は d=∞＝線形とビット一致）・:258 呼び手の更新（0.3→挟み 0.2・CapOff 1 は線形）・:78 成長 0（G=0 で同じ）・:319・:335 釣り合いの表（新 ≦ 線形）・:48 労働・:112 所得弾力・:139 労働の産出・:153 行は 1 つ・:191 opium_s（在庫 ≦0.2）・LuxuryIncomeTests.cs:98（在庫を置くだけ）・DormantIdentityTests.cs:34（CapOff は既定 0 のまま）。
+  DormantIdentityTests の表に OpiumAddictionLogistic を旗 0 のコミットで足し、旗 1 のコミットで外す。
+
+[8] ソースを走査する番人の点検（㉘・6 組）と変わる件数の予言（㉑）
+  IndustrializationReaderTests：工業化度を読まない＝0 件。UnitTypeTests：`new MoneyStock(` は SimCore に 64 件・この線で増減 0。
+  route_anchors.tsv（scripts/instruments/flow262/）：Habit・opium・EconomyStep.cs の鍵の行 0＝直し 0。WriterRatchetTests：OpiumAddiction の書き手は EconomyStep.cs:1836 の 1 か所のまま＝0（最初の 40 四半期の件数の表が軌道で動いたら ★(749) の区分で 1 回だけ取り直し・注に前後の値）。
+  InstrumentsTests：表の名簿は無い（habitcap_s・habitbal_s も名簿に無い）＝0。GoodIdGuardTests：台本の *.py に C# の配列の字面を書かない＝0。
+  ㉜ 旗 1 の木でフルスイートの番人が旧の規則を固定していないかの grep：[7] の 3 本（器のコミットで Theory へ）以外に無い。
+
+[9] 止める線（この回の形をそのまま写す）
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる）・1e10 倍以上・
+  空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+  記録：NG（ng.sh・基準 rd:measurements/ng797_20261103:m797）・exact・near・国力・史実度・nullgate（門 A′）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・英の国債の不履行の種の数。
+  旗 1 のコミットの直後に、旗 1 の木でフルスイート（Category!=FullLength と =FullLength を分けて回し、合計を --list-tests と突き合わせる）・savetest・leakhunt＝赤なら腕 B を回さない（㉜）。
+
+[10] 計算量の割り当て：1.0 秒（在庫が有界になるので減る向きの見込み・(787) の +9.3 秒は蓋なしの型・記録）。上限 248.5 秒は止める線。
+[11] 持ち主のファイル（重なり）：Habit.cs（NextStock・Of・HabitProfile）・EconomyStep.cs:1835 の次に計器の口 1 行・Coefficients.cs の OpiumAddictionCapOff の次に旗 1 行・
+  Instruments.cs の Quarter の HabitbalTable の次に 1 行・InstrumentsHabitcap.cs の HabitCapPair の 1 行・新しい SimCore/InstrumentsHabitlg.cs・HabitTests.cs の 3 本・新しい HabitLogisticTests.cs・
+  DormantIdentityTests.cs の表の 1 行・scripts/instruments/c65op/・measurements/m820_*。他の線（c65fl・c65md・c65ce・c65sv・c65id）と同じファイルは Coefficients.cs・Instruments.cs・DormantIdentityTests.cs の自分の行だけ。
+
+[12] ★2026-11-04 腕 B の前の追記（門の数と形は変えていない）
+  - ident c65opz〈判定: 恒等〉（測った種で一致・measurements/m820_20261104_ident.txt）。
+  - 旗 0 の habitlg_s（ident の腕 b・10 種）を gate_op.py で読んだ（measurements/m820_20261104/gate_flag0.txt）：L1 44.63%・L2 2727.9/種・U3 150,518 で落ち、U1・U2 は通る＝[5] の Mu0 の行どおり（U3 の ? は赤）。紙の L1（43.8%・最後の月の pc）と腕の L1（四半期平均の pc）は定義が違う＝門は変えない。
+  - 突然変異 Mu1・Mu2 の腕（2 種）：どちらも L1・L2・U3 が赤・U1・U2 は緑＝[5] の表どおり。Mu3 は腕の枠が満杯で 1 回走らず（ARMFULL・12:34）→ 12:50 に回し直し（走行中）。
+  - 旗 1 の木 c2b45d86 のフルスイート（Category!=FullLength）で WriterRatchetTests の計算量の表 2 行が赤：建設：見た生産者（旬）1823（宣言 1777・+2.6%）・請求：見た生産者（月）1809（宣言 1769・+2.3%）＝最初の 40 四半期の 1 種の軌道の件数を写しただけの番人＝README ★(749) の区分＝旗 1 の木の実測で 1 回だけ取り直す（新しい計数の処理は無い）。機構の番人の赤は（この時点で）0。

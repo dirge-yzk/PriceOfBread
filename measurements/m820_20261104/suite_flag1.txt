@@ -1,0 +1,23 @@
+# (820) c65op 旗 1 の木 c2b45d86 のフルスイート（suite820.sh・Release・分けて回した）・savetest・leakhunt
+nonfull rc=1 2298s
+full rc=0 400s
+list nonfull 2234 full 3
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     2、合格:  2231、スキップ:     1、合計:  2234、期間: 38 m 8 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 36 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1769) [239 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1777) [< 1 ms]
+saveleak rc=0
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+SUITEDONE
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1769) [239 ms]
+  エラー メッセージ:
+   計算量「請求：見た生産者（月）」が 1809 件（宣言 1769・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1777) [< 1 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 1823 件（宣言 1777・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
