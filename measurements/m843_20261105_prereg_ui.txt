@@ -73,3 +73,25 @@
 [5] 〈判定: 恒等〉なら採る。そうでなければ、その変更を外して報告に回す（一致しない変更を残さない）。
 
 [6] 使う計算量：0（挙動を変えない・推定は m839 の 220.8 秒のまま）。
+
+[7] 追記（ident の前・結果の前に書く）
+  入れたコミット：5a19a944（地図の塗り・ServiceClosedTests.cs の削除が同じコミットに入った）・9bfd9d98（本体）・22e99b57（試験）。
+  実際に入れた物（[2] との差）：
+    (1) 技術の死んだ項＝入れた。(2) 段6 の三旗＝入れた（EraFactor は常に 1.0・FreightRevolution は常に 1.0・ExpeditionLift は常に 1.0）。読み手が無くなった係数 5 本（ExpeditionTechLevel・ExpeditionTechFloor・TechMilLowFloor・TechMilFullLevel・ModernizationTechLagCost）を墓標にして消した（(824) の前例・番人 DormantIdentityTests が指示）。
+        近代化の吹き出し（Display/FiscalTables.cs）の技術の遅れの 3 行は常に 0 を出す死んだ行だったので消した（画面だけ）。
+    (3) 法の旗 4 本＝入れた。(4) 造幣の組＝入れた（GoldMintFraction も読み手が無くなり消した。UnitTypeTests の 2 つの表から行を消した＝許可表の行）。
+    (5) I1＝7 本（ServiceClosedFixedPoint・LaborClosedForm・HouseholdCreditStapleOnly・StapleElasticityZero・StateEduDemandInFront・ArmsStockEnabled・BaseArmsStockEnabled）。残り 6 本は [2] のとおり入れない。
+    (6) B12＝入れた。InstrumentsTransport.cs の Z 行は値を 1.0 の定数にして行を残した（trstat の行を消すと ident に宣言が無いため）。
+    (7) 釦の条件＝入れた（Fiscal.CurrencyMemoryBroken。分母の守りは関数の中＝釦の側の重複した条件を消した）。(8) InsolvencyMonths＝入れた。
+    (9) I13＝入れない（区分 II）。(10) 台帳の名乗り＝海軍の発注の配りの行の名前から旗 NavalPortProcurement の言及（(824) で焼き込み済みの旗）を消した＋App の注。(11) 地図の塗り＝入れた（--uishot は ident の後）。
+  試験の本数の予言（Category!=FullLength）：消した試験 28 本＝MilitaryTests 2・FuelOperatingCostTests 4（Theory 3 行＋Fact 1）・ServiceClosedTests 2（ファイルごと）・LaborClosedTests 6（Theory 2 行＋Fact 2＋Theory 2 行）・StateEduDemandTests 7・NutritionTests 1・InheritanceLawTests 3・LaborMarketFormTests 2・PoliticsTablesTests 1。
+        足した試験 0 本（FullChainTests の保存則の番人は旧の旗 0 の盤面から床の盤面〈金本位＋金鉱の値段を平価の半分〉へ移した・本数は同じ）。→ --tests-delta -28（2264→2236）。FullLength は 3 のまま。
+  ★(743) の区分：旗 0 の経路の試験の削除＝① 28 本。前提の Assert 行の削除（> 0 の確かめ）＝③ 相当（NutritionTests・FoodLedgerTests・LaborMarketFormTests・MoneyThemeTests・StateFactoryTests・InheritanceLawTests の旗の代入行）。許可表・名簿の行＝DormantIdentityTests に焼いた名を足す・UnitTypeTests の GoldMintFraction の 2 行を消す・FullChainTests は床の盤面への置き換え（突然変異で赤を確かめる）。
+        機構の向き・大きさの Assert は書き換えていない（旗 0 との比べの片方を消した試験は、旗 1 だけで言える主張を残した：StateEduDemandTests の 3 本・LaborClosedTests の純関数の 1 本）。旗 0 との差を主張していた試験は消した（その差は ident が全行一致で確かめる）。
+  走査の番人（㉘）：器のコミットの後、隔離ビルド（D:/PoB_work/c68ui_art）で 6 組 172 本＝緑（11 分 48 秒）。IndustrializationReaderTests の許可表・new MoneyStock( の件数・route_anchors.tsv・WriterRatchetTests の宣言の表は書き換え 0（番人が緑のまま）。
+  ident の宣言（結果の前）：
+    --tests-delta -28 ／ --cost-allow 海軍の発注の配り（.cost の行の名前を変えたため）。
+    cearn_s の経路の 3 列：Fiscal.cs（コメントの 1 行と名前の改名だけ＝行は動かない）・EconomyStep.cs（旗の枝を消して行が動く）・Simulation.cs（造幣の枝を消して行が動く）・Government.cs（法の旗の Open を消す）。経路の名（ファイル:行）の行番号だけが違う予想＝BASE_COMMIT bd1fb979 の写像（ident_check.py）と cearn_remap.py で写すと違う 0 を期待する。
+    表の行の差の宣言は付けない（trstat の行は残した）。
+  突然変異の予定（使い捨ての木）：M1 焼いた旗の 1 本を旧い経路の値で書く（ServiceClosed を使わない）→ident か番人で不一致／M2 FullChainTests の床の盤面の値段の置き直しを外す→CumulativeGoldMinted が 0 で赤／M3 InsolvencyMonths の加算を 3 倍→FiscalTests が赤。
+  使う計算量：0。
