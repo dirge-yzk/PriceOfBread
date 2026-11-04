@@ -143,16 +143,26 @@ public class CollapsePeaceTests
         Close(0.2 * fr.GdpPerMonth.Value * 0.8, (Led(uk) - u0) + (Led(es) - e0));
     }
 
-    [Fact]
-    public void 旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る()
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る(double fpBlank)
     {
         // 調停の戦争（ForcedPeace・戦勝点 0）でも、敗者の厭戦が崩壊の線なら歩の本体が戦勝点を崩壊の値で上書きして講和する（旧の挙動＝賠償を払う）。2 本目と同じ集合で 1 回分。
+        // ★(821) 旗 ForcedPeaceBlankOverCollapse の Theory：0＝上の旧の挙動（Assert は (791) の文のまま）・1＝調停の戦争は白紙（戦勝点は白紙の線の内・フランスの受け取り 0）で集合に入らず、2 本目は 1 本の集合＝単独の満額（和の Assert は同じ）。
         var (sim, fr, uk, es, w1, w2) = Board(1);
+        sim.Coef.ForcedPeaceBlankOverCollapse = fpBlank;
         w1.ForcedPeace = true; w1.Score = 0;
         double f0 = Led(fr), e0 = Led(es);
         sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
         Assert.Empty(sim.Diplomacy.Wars);
-        Assert.True(Math.Abs(w1.Score) >= 1.0 && Math.Abs(w2.Score) >= 1.0, $"前提が崩れた：調停の戦争が崩壊で上書きされていない（{w1.Score:G6}/{w2.Score:G6}）");
+        if (fpBlank == 0)
+            Assert.True(Math.Abs(w1.Score) >= 1.0 && Math.Abs(w2.Score) >= 1.0, $"前提が崩れた：調停の戦争が崩壊で上書きされていない（{w1.Score:G6}/{w2.Score:G6}）");
+        else
+        {
+            Assert.True(Math.Abs(w1.Score) < sim.Coef.WhitePeaceScore && Math.Abs(w2.Score) >= 1.0, $"旗 1 で調停の戦争が白紙でない・または 2 本目が崩壊の満額でない（{w1.Score:G6}/{w2.Score:G6}）");
+            Assert.Equal(0.0, Led(fr) - f0);
+        }
         Close(0.2 * uk.GdpPerMonth.Value * uk.Nation!.FiscalFundingRatio.Value, (Led(fr) - f0) + (Led(es) - e0));
     }
 
