@@ -1,0 +1,31 @@
+(821) c65md 突然変異の結果（使い捨ての木 D:/PoB_work/c65md_work/mt＝ee48d223 に scripts/instruments/c65md/mutate821.py で 1 本ずつ当て、ForcedPeaceBlankTests 8 本と CollapsePeaceTests 13 本を回した・2026-11-04）
+回し：bash scripts/instruments/c65md/mutrun821.sh D:/PoB_work/c65md_work/mt D:/PoB_work/c65md_work M1 M2 M3 M4 M7
+元の木（ee48d223・旗の既定 0・試験は旗を明示）の同じ 21 本は全て緑（D:/PoB_work/c65md_work/t_new.txt の 83 本〔旧 7 本の版〕と番人の走り）
+
+M1: 1 か所を置き換えた D:/PoB_work/c65md_work/mt\PriceOfBread.SimCore\Diplomacy.cs
+M1 失敗!   -失敗:     4、合格:    17、スキップ:     0、合計:    21、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+  M1   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で調停の戦争があっても同じ敗者の調停でない崩壊の戦争2本は1回分を分ける [4 s]
+  M1   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.計器cpmed_sは調停の戦争の講和を1行に書き旗1は移った額が0で反実仮想が旗0の払いに一致する(flag: 1) [76 ms]
+  M1   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で同じ敗者の調停でない崩壊の戦争は単独の満額を払う [43 ms]
+  M1   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1は調停の戦争を白紙で終え賠償も勝敗も動かない [54 ms]
+M2: 2 か所を置き換えた D:/PoB_work/c65md_work/mt\PriceOfBread.SimCore\Diplomacy.cs
+M2 失敗!   -失敗:     4、合格:    17、スキップ:     0、合計:    21、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  M2   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で調停の戦争があっても同じ敗者の調停でない崩壊の戦争2本は1回分を分ける [3 s]
+  M2   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.計器cpmed_sは調停の戦争の講和を1行に書き旗1は移った額が0で反実仮想が旗0の払いに一致する(flag: 1) [285 ms]
+  M2   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で同じ敗者の調停でない崩壊の戦争は単独の満額を払う [51 ms]
+  M2   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1は調停の戦争を白紙で終え賠償も勝敗も動かない [57 ms]
+M3: 1 か所を置き換えた D:/PoB_work/c65md_work/mt\PriceOfBread.SimCore\Diplomacy.cs
+M3 成功!   -失敗:     0、合格:    21、スキップ:     0、合計:    21、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M4: 1 か所を置き換えた D:/PoB_work/c65md_work/mt\PriceOfBread.SimCore\Diplomacy.cs
+M4 失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+  M4   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で調停の戦争があっても同じ敗者の調停でない崩壊の戦争2本は1回分を分ける [4 s]
+M7: 1 か所を置き換えた D:/PoB_work/c65md_work/mt\PriceOfBread.SimCore\Diplomacy.cs
+M7 失敗!   -失敗:     3、合格:    18、スキップ:     0、合計:    21、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+  M7   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で調停の戦争があっても同じ敗者の調停でない崩壊の戦争2本は1回分を分ける [3 s]
+  M7   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1でも調停でない崩壊の戦争の上書きと賠償は旗0と同じ [107 ms]
+  M7   失敗 PriceOfBread.Tests.ForcedPeaceBlankTests.旗1で同じ敗者の調停でない崩壊の戦争は単独の満額を払う [51 ms]
+MUTDONE
+
+門の台本（紙・scripts/instruments/c65md/paper821.py の盤面）での赤：M1・M2＝G1／M3＝全て緑（予言どおり〈働いていない項〉＝前走査の除外は額を変えない・1 本の集合は旧の経路）／M4＝G2a／M7＝G2b
+表（事前登録 [4] の予言との突き合わせ）：
+  M1 新しい試験 赤 4 本（予言 赤）・M2 赤 4 本（予言 赤）・M3 緑（予言 緑の見込み）・M4 赤 1 本（予言 赤）・M7 赤 3 本（予言 赤）・CollapsePeaceTests は 5 つとも緑（試験は旗 ForcedPeaceBlankOverCollapse を置かない＝既定 0）
