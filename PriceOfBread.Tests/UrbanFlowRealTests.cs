@@ -301,7 +301,7 @@ public class UrbanFlowRealTests
         try
         {
             var (w, r, rural, urban, c) = Board(0.10, 0.0, 0.30, housingPrice: 1.0, housingOn: false);
-            Assert.Equal(Tier(r), RegionTier.Core);
+            Assert.Equal(RegionTier.Core, Tier(r));
             urban.Size = rural.Size;   // 対の都市の割合 0.5＝所得の差の向きがそのまま流れの向き（目標 0.79／0.21）
             long Flip() => Instruments.UrxPdPeek(w).FlipRegionMonths;
             PdMonth(w, r, rural, urban, 0.10, 0.30, 0.9);   // 農村→都市（+）

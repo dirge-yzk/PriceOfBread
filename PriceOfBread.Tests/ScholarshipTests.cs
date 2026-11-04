@@ -158,7 +158,7 @@ public class ScholarshipTests
         Assert.Matches(new Regex(@"regrow\s*\*\s*\(\s*Math\.Max\(0,\s*r\.StateSpent\[\(int\)TreasuryCat\.Education\]\)"), src);
         Assert.Matches(new Regex(@"CompulsoryEduFunding \*= payRate;"), src);   // 割合は義務教育の財源率そのもの（別の状態を持たない）＝支払い率 r＜1 の月は負担も比例して縮む
         // 国の教育費の率の複製は 1 行（月次の写し）で、支払い率を掛けない（割合の支払い率は CompulsoryEduFunding に畳まれている＝二重に掛けない）
-        Assert.Equal(1, Regex.Matches(src, @"r\.EducationSpending = World\.EducationSpending;").Count);
+        Assert.Single(Regex.Matches(src, @"r\.EducationSpending = World\.EducationSpending;"));
         Assert.DoesNotMatch(new Regex(@"r\.EducationSpending\s*\*="), src);
         string eco = File.ReadAllText(FindSimCore("EconomyStep.cs"));
         Assert.Contains("region.StateSpent[(int)TreasuryCat.Education] += subsidy;", eco);
