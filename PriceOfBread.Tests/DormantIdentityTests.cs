@@ -30,7 +30,7 @@ public class DormantIdentityTests
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
         "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
         "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
-        // ★CapitalClaimCancelFromLedger（(828) c66dw 消えた請求権の額を外資の負債の台帳の差で書く）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests の Theory（旗を明示）。
+        "CapitalClaimCancelFromLedger",   // (828) c66dw 消えた請求権の額を外資の負債の台帳の差で書く旗（0＝逃避の額・落とした額のまま＝今の形・1 ビットも変わらない・番人 CapitalCouponWriteDownTests の Theory）。点火時にこの表から外す
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
         // ★CapitalCouponUnpaidWriteDown（(815) c14fl 払えない利札で請求権を落とす）は 1 で**点火**（腕 B の木）＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests（旗を明示）。
         // ★OpiumAddictionCapOff（(771) c6op アヘンの蓋の段1・既定 0）は (830) で旗ごと削除（RetiredFields）。d は常に OpiumAddictionCap。
