@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(696) 線 hcd：旗 <see cref="Coefficients.HcdColonyCessionDistance"/>（講和の植民地格の州の複数割譲の費用に距離の項を戻す）の番人。既定 1（2026-10-31 点火）。旗 0 の経路は旧（距離を見ない）。
+/// <summary>★(696) 線 hcd：講和の植民地格の州の複数割譲の費用に距離の項を戻す規則の番人（旗 HcdColonyCessionDistance は (817) で焼き込み＝常に距離の項を掛ける）。
 /// 盤面は手で置いた艦の強さ（Military×NavalShare・凍結した外交では月次の同期が走らない）と戦勝点だけ＝期待値は実装の式を写さず、〈世界最大の艦を持つ勝者は距離の項が 0〉と〈遠く高い州ほど費用が増え予算で買えなくなる〉の向きで見る。</summary>
 public class ColonyCessionDistanceTests
 {
