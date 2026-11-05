@@ -1,0 +1,14 @@
+# (869) 旗 1 のフルスイート（merge の前＝点火 4ef2369c の木・記録・隔離ビルド・Release・2026-11-06・他の線の腕 2 本と並んだ）
+--list-tests：Category!=FullLength 2307・FullLength 3
+失敗!   -失敗:     4、合格:  2302、スキップ:     1、合計:  2307、期間: 35 m 20 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 9 s - PriceOfBread.Tests.dll (net10.0)
+中止の行：0
+失敗 PriceOfBread.Tests.TradeClearingTests.月の清算は潜在量を書かず容量の尽きた行を回さない [22 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [2 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [< 1 ms]
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 48・その月の額の和 4039
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+読み：(863) と同じ 4 本（TradeClearingTests:473＝c72tc の盤面の前の赤・WriterRatchetTests item 1・9・11＝予言）＝merge の前の記録。採否の段は merge の後の suite_flag1_summary.txt。
