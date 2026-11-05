@@ -1,0 +1,4 @@
+M3 if (m is not null) ob = m.Debt.Value > 0 ? System.Math.Max(0, m.Savings.Value) : double.PositiveInfinity;
+  -> ob = b;
+  失敗 PriceOfBread.Tests.CearnTradeColumnsTests.旧の規則の予算はkind2と3でも旗に依らず手で数えた値_書き出しの行を通して [9 ms]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 891 ms - PriceOfBread.Tests.dll (net10.0)
