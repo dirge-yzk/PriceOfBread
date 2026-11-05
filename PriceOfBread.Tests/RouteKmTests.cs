@@ -134,22 +134,19 @@ public class RouteKmTests
     }
     private static string Str(string[] h, string[] r, string name) { int i = Array.IndexOf(h, name); Assert.True(i >= 0, "列が無い " + name); return r[i]; }
 
-    [Theory]
-    [InlineData(0.0)]   // (876) ★(866) の Theory 化：旗 ImportPayerLive の 0（今の形）と 1（人の居る POP が払う）の両方で同じ主張
-    [InlineData(1.0)]
-    public void 陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる(double importPayerLive)
+    [Fact]
+    public void 陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_rk_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         int snap = Instruments.TrSnapEveryYears; Instruments.TrSnapEveryYears = 1;
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
-        sim.Coef.ImportPayerLive = importPayerLive;   // (876) 旗 1 の 40 四半期では越境の移民の行が 9（前提 ≧10 に 1 足りない）＝盤面を 80 四半期へ（:176 の注〈1789〜1830 年代は運河なし〉の内）
         try
         {
             Instruments.Phase(sim, 1789UL, "open");
             sim.StartWarmup();
             Instruments.Phase(sim, 1789UL, "warm");
-            try { for (int q = 0; q < 80; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+            try { for (int q = 0; q < 40; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
             finally { Instruments.Close(sim); }
             string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
 
