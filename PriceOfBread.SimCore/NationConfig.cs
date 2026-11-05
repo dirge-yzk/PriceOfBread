@@ -22,7 +22,7 @@ public sealed class NationConfig
     //   開発初期に国ごとに手で置いた値で、農民だけ下げても他の階級がテンプレのまま残った（修正一覧 F1：アフリカの識字が史実の10〜50倍）。既定＝テンプレの国（世界の大半）の人口加重の値。
     public double Literacy = 0.23;
     public double ClergyFrac = 0.40, IntelligentsiaFrac = 0.35;   // 貴族→聖職者・専門職→インテリ を分離する初期割合（聖職者・知識人）
-    public double PeasantSubsistence = 0.7;
+    public double PeasantSubsistence = 0.7;   // 開幕の農民の食べる割合のデータ（Pop.SubsistenceBasis の焼く前の値・★(849) 旗 SubsistenceStage2 が正なら助走の後の最初の月にこの割合を保つ ρ を焼く）
     public Polity Polity = Polity.Absolutist;
     public EducationLaw Education = EducationLaw.Religious;
     public double Coercion = 400;   // 人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）

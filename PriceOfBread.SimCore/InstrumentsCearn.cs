@@ -516,7 +516,7 @@ public static partial class Instruments
             cols.Add(F(cw?.QEarned ?? 0)); cols.Add(F(cw?.QLand ?? 0)); cols.Add(F(cw?.QInd ?? 0)); cols.Add(F(cw?.QPaid ?? 0)); cols.Add(F(cw?.QSub ?? 0)); cols.Add(F(cw?.QPoll ?? 0)); cols.Add(F(cw?.QInc ?? 0));
             cols.Add(I(cw?.QClaimed ?? 0)); cols.Add(I(cw?.QEmptied ?? 0)); cols.Add(I(cw?.QPos ?? 0)); cols.Add(I(cw?.QEmptiedPos ?? 0));
             for (int k = 0; k < CpStuckKinds; k++) cols.Add(I(cw?.QStuck[k] ?? 0));
-            cols.Add(F(p.UnemploymentRate.Value)); cols.Add(F(p.Subsistence)); cols.Add(F(p.FoodFill));
+            cols.Add(F(p.UnemploymentRate.Value)); cols.Add(F(p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity ? p.SubsistenceShare : p.SubsistenceBasis)); cols.Add(F(p.FoodFill));
             cols.Add(I(lLines[i])); cols.Add(I(lBank[i])); cols.Add(F(lCap[i])); cols.Add(F(lDes[i])); cols.Add(F(lOut[i])); cols.Add(F(lRev[i])); cols.Add(F(lZero[i]));
             if (top[i] is { } t)
             {

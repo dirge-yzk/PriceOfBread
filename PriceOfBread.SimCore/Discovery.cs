@@ -286,7 +286,7 @@ public static class Discovery
                 if (ir > 0) rent += ir;
                 if (p.ClassId != PopClass.Worker) continue;
                 workerPop += p.Size;
-                double sub = p.Subsistence; sub = PoliticalQuantities.Clamp01(sub);
+                double sub = p.SubsistenceShare; sub = PoliticalQuantities.Clamp01(sub);
                 double dep = p.Size * (1.0 - sub);
                 double fill = p.SupplyFill;
                 wage += dep; unmet += dep * (1.0 - fill); fillW += p.Size * fill;

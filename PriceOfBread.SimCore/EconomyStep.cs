@@ -51,6 +51,90 @@ public static class EconomyStep
         return Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), crossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
     }
 
+    /// <summary>★(849) 主食の 1 人あたり月の名目の必要量（Catalog の主食の BaseNeed の和）＝自給の生産性 ρ の単位を〈農業労働の能力 1 単位あたりの主食〉にする分母（試合の中で変わらない）。</summary>
+    internal static readonly double StapleNeedPerCapita = SumStapleBaseNeed();
+    private static double SumStapleBaseNeed() { double n = 0; foreach (var gd in Catalog.Goods) if (gd.Tier == GoodTier.Staple) n += gd.BaseNeed; return n; }
+
+    /// <summary>★(849) 人力の農業労働の生産者（財＝農業労働力・レシピ名が空・投入が空・倒産でない）の能力の和（Capacity＞0 の物）と、最初の生産者の担い手の POP の番号（無ければ −1）。</summary>
+    private static (double cap, int lp) HumanFarmLabor(Region region)
+    {
+        int lp = -1; double cap = 0;
+        foreach (var s in region.Producers)
+        {
+            if (s.GoodId != Catalog.FarmLaborId || s.RecipeName.Length != 0 || s.Inputs.Count != 0 || s.Bankrupt) continue;
+            if (lp < 0) lp = s.LaborPopIndex;
+            if (s.Capacity > 0) cap += s.Capacity;
+        }
+        return (cap, lp);
+    }
+
+    /// <summary>★(849) 主食の RGO（IsRgo・主食・倒産でない）の効率化材の倍率 (1＋EffBoost×EffFill) の産出の加重平均（前の月の Output で重みづける）。Σ Output≦0 なら 1。
+    /// 読むのは効率化材の倍率だけ（発見の門・健康・土地・規模の経済は技術の比に入れない）。</summary>
+    private static double StapleEffTech(Region region, Coefficients coef)
+    {
+        double w = 0, ws = 0;
+        foreach (var s in region.Producers)
+        {
+            if (!s.IsRgo || s.Bankrupt || s.GoodId >= Catalog.Goods.Length || Catalog.Goods[s.GoodId].Tier != GoodTier.Staple) continue;
+            if (!(s.Output > 0)) continue;
+            w += s.Output; ws += s.Output * (1.0 + coef.EffBoost * s.EffFill);
+        }
+        return w > 0 ? ws / w : 1.0;
+    }
+
+    /// <summary>★(849) 売れ残りの農業労働の能力 U＝能力×clamp01(1−売れた÷能力)（c66ds の D1×能力）。能力が 0 以下なら 0。</summary>
+    private static double UnsoldFarmCapacity(double sold, double cap) => cap > 0 ? cap * Math.Clamp(1.0 - sold / cap, 0.0, 1.0) : 0.0;
+
+    /// <summary>★(849) 月の頭（前の月の能力・売れた量・産出・効率化材の値を読む位置＝市場の 0 戻しと能力の上書きの前）：全ての POP のこの月の食べる割合 <see cref="Pop.SubsistenceShare"/> を書く。
+    /// 旗 <see cref="Coefficients.SubsistenceStage2"/> が 0 か world＝null＝欄 <see cref="Pop.SubsistenceBasis"/> そのもの（1 ビットも変わらない）。
+    /// 旗が正：助走の月は割合のまま印を WarmupShare へ・助走の後の最初の月は WarmupShare の担い手だけ ρ＝d×必要量×人数÷(U×T) を焼く（U≦0・人数≦0 は焼かずに OpeningShare）・
+    /// 焼いた POP は σ＝min(1, ρ×U×T÷(必要量×人数))（人力の農業労働の担い手でない・人数 0 は 0）。</summary>
+    private static void SubsistenceHead(Region region, Coefficients coef, World? world)
+    {
+        var pops = region.Pops;
+        if (!(coef.SubsistenceStage2 > 0) || world is null)
+        {
+            for (int i = 0; i < pops.Count; i++) pops[i].SubsistenceShare = pops[i].SubsistenceBasis;
+            return;
+        }
+        if (world.WarmupFrozen)
+        {
+            for (int i = 0; i < pops.Count; i++)
+            {
+                var p = pops[i];
+                if (p.SubsistenceBasisKind == SubsistenceBasisKind.OpeningShare && p.SubsistenceBasis > 0) p.SubsistenceBasisKind = SubsistenceBasisKind.WarmupShare;
+                p.SubsistenceShare = p.SubsistenceBasis;
+            }
+            return;
+        }
+        var (cap, lp) = HumanFarmLabor(region);
+        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef), need = StapleNeedPerCapita;
+        for (int i = 0; i < pops.Count; i++)
+        {
+            var p = pops[i];
+            if (p.SubsistenceBasisKind == SubsistenceBasisKind.WarmupShare)
+            {
+                if (i == lp && u > 0 && p.Size > 0) { p.SubsistenceBasis = p.SubsistenceBasis * need * p.Size / (u * t); p.SubsistenceBasisKind = SubsistenceBasisKind.Productivity; }
+                else p.SubsistenceBasisKind = SubsistenceBasisKind.OpeningShare;
+            }
+            if (p.SubsistenceBasisKind != SubsistenceBasisKind.Productivity) p.SubsistenceShare = p.SubsistenceBasis;
+            else p.SubsistenceShare = i == lp && p.Size > 0 ? Math.Min(1.0, p.SubsistenceBasis * u * t / (need * p.Size)) : 0.0;
+        }
+    }
+
+    /// <summary>★(849) 旗が正で焼いた担い手の農民の失業（(844) の (b) から収穫係数を外した形 (b′)）：普段の収穫で必要量を作るのに要る労働 L＝必要量×人数÷(ρ×T) を超えた売れ残りだけ＝clamp01((U−L)÷能力)。
+    /// U・能力・T はこの月の末の値（今の式と同じくこの月）。能力が 0 以下なら 0。</summary>
+    private static double FarmUnemploymentStage2(Region region, Coefficients coef, Pop lpop)
+    {
+        var (cap, _) = HumanFarmLabor(region);
+        if (!(cap > 0)) return 0;
+        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef);
+        double lneed = StapleNeedPerCapita * lpop.Size / (lpop.SubsistenceBasis * t);
+        return PoliticalQuantities.Clamp01((u - lneed) / cap);
+    }
+
     /// <summary>主食の自給の収穫係数＝市場向けRGOと同じ三重積（州の収穫係数×緯度帯天候×その主食の作物の健全度×土地係数）。旧は決済の段の中の 3 行。
     /// ★(504) 需要の段（旗 HarvestShortfallToMarket）と前計算が同じ関数を呼ぶために取り出した＝積の順は 1 文字も変えない。</summary>
     private static double StapleHarvestFactor(Region region, int gi, double regionLandFactor)
@@ -102,7 +186,7 @@ public static class EconomyStep
             var norm = scratch.PopNorm;
             for (int i = 0; i < np; i++)
             {
-                double s = region.Pops[i].Subsistence, s0 = 0, s1 = 0;
+                double s = region.Pops[i].SubsistenceShare, s0 = 0, s1 = 0;
                 for (int j = 0; j < k; j++) { int id = ids[j]; double m = es[j] * Math.Max(0.0, 1.0 - s * self[id]); s0 += m; s1 += m * subst[id]; }
                 double r = s0 / s1;
                 norm[i] = s1 > 0 && double.IsFinite(r) ? r : 1.0;
@@ -650,6 +734,8 @@ public static class EconomyStep
     public static void Run(Region region, Coefficients coef, double productivityMultiplier = 1.0, Bank? bank = null, World? world = null)
     {
         Prefetch(region);   // ★(spr) R1 先読み（読むだけ・値を書かない＝恒等。Prefetch の注）
+        if (Instruments.On && world is not null && !world.WarmupFrozen) Instruments.SubstMonthHead(world, region);   // (849) 計器（読むだけ）：月の頭の自給の材料を計器が自分で読む（エンジンの頭の前＝焼く前の値と前の月の食べる割合を読む）
+        SubsistenceHead(region, coef, world);   // ★(849) この月の食べる割合（旗 SubsistenceStage2 が 0 なら欄そのもの）
         int ng = region.Markets.Length;
         int np = region.Producers.Count;
         // 計算量の台帳（診断・この国の台帳）：生産者×月・POP×月（月次決算の残り＝財政・犯罪・軍事・人口ほかは POP に比例）。world＝null（単国の直呼び）は数えない。
@@ -1732,13 +1818,13 @@ public static class EconomyStep
                 //   経済の行動であって政治の量ではない＝食料の二重計上にならない（思想⑨）。
                 if (habit.Active)
                     p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(habit.MiseryScale * (1.0 - lastSupply[pIdx])) + Habit.StockOf(region, habit)) * p.Size;
-                double marketNeed = staple ? (fdShortfall ? p.GoodNeed * Math.Max(0.0, 1.0 - p.Subsistence * fdSelf[gi]) : p.GoodNeed * (1.0 - p.Subsistence)) : p.GoodNeed;   // 自給分は市場に出さない（農民）。★(504) ③（対称の形・追記 2）：市場に出す量＝必要量×max(0, 1−自給率×収穫係数 f)＝凶作（f＜1）は自給の減りを市場で買い、豊作（f＞1）は市場の買いが減る。f は天候・作物の因子と土地係数（慢性の混み）の積＝混んだ州でも市場の需要が上がる〔(508) 反証役 fd〔bv〕低#6 で注を直した〕
+                double marketNeed = staple ? (fdShortfall ? p.GoodNeed * Math.Max(0.0, 1.0 - p.SubsistenceShare * fdSelf[gi]) : p.GoodNeed * (1.0 - p.SubsistenceShare)) : p.GoodNeed;   // 自給分は市場に出さない（農民）。★(504) ③（対称の形・追記 2）：市場に出す量＝必要量×max(0, 1−自給率×収穫係数 f)＝凶作（f＜1）は自給の減りを市場で買い、豊作（f＞1）は市場の買いが減る。f は天候・作物の因子と土地係数（慢性の混み）の積＝混んだ州でも市場の需要が上がる〔(508) 反証役 fd〔bv〕低#6 で注を直した〕
                 double demand = 0;
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
                     if (fdRebalance && staple) desired *= fdNorm[pIdx];   // ★(504) ②：Σ欲しい量＝Σ市場に出す必要量（予算の前）
-                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.Subsistence) * (fdRebalance ? fdOldFactor : priceFactor); }   // (504) 計器（読むだけ）
+                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.SubsistenceShare) * (fdRebalance ? fdOldFactor : priceFactor); }   // (504) 計器（読むだけ）
                     if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceIncomeFactorExponent) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
                     // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
                     // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
@@ -2047,7 +2133,7 @@ public static class EconomyStep
                         // 市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
                         double subFactor = region.HarvestFactor;
                         if (staple) subFactor = StapleHarvestFactor(region, gi, regionLandFactor);   // 市場向けと同じ収穫係数（三重積）
-                        double sub = staple ? p.GoodNeed * p.Subsistence * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
+                        double sub = staple ? p.GoodNeed * p.SubsistenceShare * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
                         double met = sub + Math.Min(qty, p.GoodNeed - sub);
                         p.NeedMet += met * needW;
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
@@ -2780,7 +2866,11 @@ public static class EconomyStep
                 double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
                 // 農業労働は自給分（自作＝市場外の雇用）を失業から除く：高自給の貧農の自作を「失業」と数えない
                 // （主食消費は §EconomyStep で自給ぶんを FoodMet に計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
-                if (s.GoodId == Catalog.FarmLaborId) unsold -= lpop.Subsistence;
+                if (s.GoodId == Catalog.FarmLaborId)
+                {
+                    if (coef.SubsistenceStage2 > 0 && lpop.SubsistenceBasisKind == SubsistenceBasisKind.Productivity) unsold = FarmUnemploymentStage2(region, coef, lpop);   // ★(849) (b′)
+                    else unsold -= lpop.SubsistenceShare;
+                }
                 lpop.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(unsold));
             }
 
