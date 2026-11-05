@@ -2726,6 +2726,7 @@ public sealed class Simulation
         double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
+        EmptyPopEstate.Step(World);   // ★(848) c69eh：人の居ない POP の在庫を同じ州の人の居る POP へ（旗 EmptyPopEstate・0＝何もしない・相続の請求より前＝同じ月に二重に動かさない）
         // ★(650) 線 inh：相続法。旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。請求＝死者×1 人あたりの貯蓄×段の率×行政の届き（POP の走査の中・貯蓄はこの走査で書かない）
         //   ＝走査の後に 1 回の移転（POP→国庫・OtherIn）。戦死・疫病・鎮圧・粛清は対象外（KillPops に触らない）。
         double estateRate = Government.InheritanceRate(World.Inheritance);
