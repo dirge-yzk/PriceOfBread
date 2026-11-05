@@ -1,0 +1,109 @@
+(849) c69ss 自給の段 2（S1-a）の事前登録（波69・挙動の線・3 回の規則の 1 回目・枝 c69ss・7f34146c から）
+この文書は器を書く前・腕を回す前の最初のコミット。結果を見た後にここを書き換えない（書き換えるなら〈結果の後の変更〉と名乗り、日付と理由を末尾に追記する）。
+作者「全て推奨で」で推奨を採って進める（★(839) ③＝2026-11-05 の作者の言葉）。式・門・閾値・窓・列の定義は全て AI の案（確証なし）。
+作者の原文（2026-11-04）：「彼らを都市に引っ張り出すことが、工業化である」「ゲーム的には『非常に非効率な生産』」「技術向上(農薬など）の出現と共に、売却割合が増える方が自然」。
+
+■ [0] 先頭に書く物（和らげずに）
+  - 形は〈入口〉（全ての自給の担い手の毎月の自給の量を替える＝尾ではない）。
+  - 凍結の州は救われない見込み（(844) §0-0・紙＝凍結〔D1≧0.99〕の州の上げは中央 −0.002〜−0.024）。救いは段 2 の目的から外す（★(839) ③＝段 2 の門は〈商業化の向き〉）。
+  - 主な働きは商業化の向きの下げ＝主食の市場の需要が 1850-99 に約 6 割増える見込み（(844)）＝飢えの鎖→空洞化の向きを強めうる（止める線に当たりうる所）。
+  - 指示の形から外した所（推奨の直し・README §1-7）：
+    ① (844) の (b) の式の収穫係数は外した。主食は財が複数で収穫係数は財ごと（EconomyStep.StapleHarvestFactor）＝POP に 1 本の収穫係数が無い。
+      (b) は〈普段の収穫で必要量を作るのに要る労働〉L_need＝必要量×Size÷(ρ×T) を超えた売れ残りだけを失業と数える形にした。σ の min(1) と同じ境（σ＝1 ⇔ U≧L_need）で、1 つの労働を〈自給を作った〉と〈失業〉の両方に数えない。
+    ② min(1) は収穫係数の前に掛ける：σ_p＝min(1, ρ_p×U_p×T_r÷(必要量×Size_p))。財ごとの収穫係数は今の読み手の位置（:1735・:2050 の subFactor・:105 の self）でそのまま掛かる＝焼いた月は GoodNeed×d_p×f で旧と同じ形。
+    ③〈焼いたか〉の印を POP の欄 1 本（列挙 SubsistenceBasisKind＝OpeningShare／WarmupShare／Productivity）で持つ＝思想⑩の例外（ρ と同じ理由＝開幕の U_p0 は暦が動くと導けない・印は欄の意味〈割合か ρ か〉を示す型の印）。MultiNationSim.cs（助走の入口）は持ち主の外＝触らない。旗 1 の EconomyStep.Run が助走の月に OpeningShare→WarmupShare と付け、助走の後の最初の月の頭で WarmupShare の POP だけを焼く（Productivity）。助走を通らない世界（world＝null の直呼び・StartWarmupQuarters 0・助走を回さない試験）は焼かない＝旗 1 でも欄を割合のまま読む（旗 0 と同じ）。セーブとロードは印ごと往復する（焼き直さない）。旗 0 は欄にも印にも 1 ビットも書かない。
+    ④ 改名は InstrumentsCearn.cs:519（c69eh の持ち物）の 1 語に触れる（`p.Subsistence`→`p.SubsistenceShare`）。旗 0 は同じ値（cpop_s の列は不変）。旗 1 の cpop_s の列はこの月の食べる割合 σ（割合のまま・ρ にはしない）。合流は c69eh の cpop_s の末尾の列の行と並べて手で解く。
+    ⑤ 紙の台本（scripts/instruments/c69ss/paper849.py）は、この事前登録のコミットの前に 1 回走らせた。no-go の基準は指示の文〈母集合の 1/2 未満なら no-go〉のまま台本の中に走らせる前に書いた（結果を見て変えていない）。門の閾値はこの紙の数を見てから置いた＝〈結果の後〉ではなく〈腕の前の紙〉の数。
+
+■ [1] 形（S1-a・粒度は POP）
+  欄：Model.cs の Pop.Subsistence を Pop.SubsistenceBasis へ改める（同名のまま意味を替えない＝コンパイラに読み手を全て挙げさせる）。
+    - SubsistenceBasis（double）：焼く前＝開幕の食べる割合のデータ d_p（world.json の peasantSubsistence・既定 0.7・主の世界 0.7・植民地の写しは max(0.5, 首都の農民)）。焼いた後＝自給の生産性 ρ_p（売れ残りの農業労働の能力 1 単位あたりの主食・技術の倍率で割った値）。
+    - SubsistenceBasisKind（列挙・セーブに載る）：上の ③。
+    - SubsistenceShare（[System.NonSerialized] double）：この月に使う食べる割合 σ_p。EconomyStep.Run の頭で全ての POP に書く（旗 0＝SubsistenceBasis そのもの＝ビットで同じ）。読み手＝:105・:1735・:1741・:2050・Discovery.cs:289・InstrumentsFd.cs:45・InstrumentsSubst.cs・InstrumentsCearn.cs:519。
+  旗：Coefficients.SubsistenceStage2（:529 EffBoost の直後・既定 0＝今の形・1 ビットも変わらない）。
+  旗 1 の式（Run の頭＝:758 の LastSold の 0 戻しと :972 の Capacity の上書きより前・:680 の目覚めの EffFill の 0 戻しより前＝全て前の月の値）：
+    - 人力の農業労働の生産者 h（財＝農業労働力・レシピ名が空・投入が空・倒産でない）の LaborPopIndex＝p。cap_p＝Σ Capacity（＞0 の物）。sold＝農業労働の市場の LastSold（市場は州に 1 本）。
+    - U_p＝cap_p×clamp01(1−sold÷cap_p)（＝c66ds の D1×能力・subst_s の unsoldD1Share と同じ式）。cap_p≦0 なら U_p＝0。
+    - T_r＝Σ_主食の RGO（IsRgo・Tier＝Staple・倒産でない）Output×(1＋EffBoost×EffFill)÷Σ Output（前の月の産出で重みづけ・Σ Output≦0 なら 1）。読むのは効率化材の倍率だけ（発見の門・健康・土地・規模の経済は読まない＝(844) 訂正 10）。
+    - 焼く（WarmupShare の POP だけ・助走の後の最初の月の頭で 1 回）：ρ_p＝d_p×need×Size_p÷(U_p×T_r)（need＝主食の BaseNeed の和）。U_p≦0 か Size_p≦0 なら焼かない（OpeningShare へ戻す＝割合のまま・記録）。
+    - σ_p＝min(1, ρ_p×U_p×T_r÷(need×Size_p))（Productivity の POP）・それ以外の POP は σ_p＝SubsistenceBasis。
+    - 焼いた月の盤面では σ_p＝d_p（浮動小数の丸めの内）＝食べる量 GoodNeed×d_p×f は旧と同じ形。暦が動いた後は U_p と T_r で動く。
+  植民地の州化の写し（Simulation.cs:1523）：旗 1＝首都の農民の SubsistenceBasis と SubsistenceBasisKind をそのまま写す（床 0.5 なし）。旗 0＝今の `Math.Max(0.5, …)` をバイトで保つ。
+  建国と割譲：州ごと POP が移る＝欄と印も移る（コードの変更なし）。社会移動で農民に入った人も同じ ρ_p。
+  失業の式（EconomyStep.cs:2783）：旗 1 かつ Productivity の POP＝(b′) `unsold = cap_p>0 ? Clamp01((U_p − L_need) ÷ cap_p) : 0`（U_p・cap_p・T_r はこの月の末の値＝今の式と同じくこの月・L_need＝need×Size_p÷(ρ_p×T_r)）。σ は前の月の U から＝1 か月ずれる（名乗る）。それ以外＝今の `unsold -= SubsistenceShare`（旗 0＝SubsistenceBasis と同じ値）。
+    帰結（名乗る）：農民の失業が正になるのは σ＝1 の行だけ＝今の尾（今の式で正の州×四半期 0.98〜2.31%・labor_s の farmUnemploymentShare 6.4%）はほぼ消える。UnemploymentRate の読み手＝失業プールの流入（Meritocracy.cs:209）・行き先の空き（:496）・州の機会（Territory.cs:148）・移民法の選好（PolicyPreferences.cs:104）・組合の外部の機会（UnionBargaining.cs:93）・最低賃金（MinimumWageFloor.cs:115）。怒りへの直の項と福祉の給付は失業率を読まない。
+  入れない物：段 3＋4（余りの売り・請求の不足を売る・土地税の基数）・地代を自給に立てる形・生産者の行（S1-b・H2・H3）・世界か国で 1 本の ρ（S1-c）・改良度の点火・App・Display・Runner・WriterRatchet の書き換え・MultiNationSim.cs。
+
+■ [2] 段0 の紙（今の盤面 keep_845/base_ins・ヌル腕 keep_839/n1・n2・10 種・シミュは回していない）＝measurements/m849_20261105/paper849_m845.txt
+  定義：U＝D1×能力（四半期の末の月）・ρ_r＝d×need×担い手÷U0（q0 で焼く・技術の比 1）・s0＝engineSub÷(need×担い手)・s1＝ρ_r×U÷(need×担い手)×hf（hf＝engineSub÷nominal）・w＝同じ（種・四半期・州）の s0 の 3 本（基線・N1・N2）の最大−最小・P1＝D1＜D1_0 の州×四半期（q≧1）・外＝(s1−s0)＜−w。
+  no-go の基準（指示の文のまま）：P1 の外が P1 の 1/2 未満なら腕を回さず形を報告する。
+  結果：P1 1,313,654 行・外 938,385（0.7143）＝go。窓ごと 1786-99 0.6115・1800-49 0.7425・1850-99 0.8090・1900-50 0.6123。P1 の d 中央 −0.1149・w 中央 0.0572。
+  ヌル腕の一つ抜き（腕＝N2・幅＝|N1−基線|）の外の割合 0.2891＝旗 0 相当の空振り。
+  対照 P5（|売れた÷能力−開幕|≦0.01）122,290 行：d 中央 −0.0123・w 中央 0.0398・|d|≦w の割合 0.5663。
+  E_p＞0（技術の比 1）：q≧1 で 4,449 州×四半期（1786-99 208・1800-49 909・1850-99 630・1900-50 2,699）。
+  焼けなかった（q0 に無い・U0＝0）種×州 1,283（焼いた 3,080）＝開幕の後に現れた州か U0＝0＝旗 1 のエンジンでは植民地の写し（首都の ρ）か割合のまま。
+  (844) の時期の動き（食べる割合 中央 0.689→0.636→0.568→0.489→0.575・主食の市場の買い 1850-99 約 0.31→0.51）はこの紙の P1 の d と同じ向き（取り直しの数は上）。
+
+■ [3] 門（腕 B＝c69ssB の計器つき 10 種・種 1〜10・台本 scripts/instruments/c69ss/gates849.py・腕の前に固定）
+  共通：旗 0 の側＝基線の生 keep_845/base_ins の同じ（種・四半期・国/州）。ヌル腕の幅 w＝基線・N1・N2 の s0 の最大−最小。腕の行は腕自身の subst_s。
+  G1 働いた（商業化の向き・大きさ・両側）：
+    G1a（下側）：腕の P1（腕の D1＜腕の D1_0・q≧1）で、d＝s_腕−s0_基線 が −w より小さい行の割合 ≧ 1/2（紙 0.7143・ヌル一つ抜き 0.2891・旗 0 は d≡0 で 0）。
+    G1b（上側＝この形に固有の誤り）：腕の P1 で σ_エンジン＝0 の行の割合 ≦ 腕の P1 で U＝0（D1＝0）の行の割合＋0.001（σ＝0 は U＝0 か ρ＝0 のときだけ）。
+  G2 実装の一致（両側）：計器が月の頭に自分で数えた σ_計器（計器が自分で焼いた ρ_計器・自分で読んだ Capacity・LastSold・Size・Output・EffFill から）と、エンジンが同じ月に使った SubsistenceShare が、Productivity の担い手の行で |差|≦1e-9。σ_計器＜1 の行と σ_計器＝1 の行の両方で数える（min(1) の上下とも）。母集合の下限：σ＜1 の行 ≧100,000・σ＝1 の行 ≧100（10 種）。旗 0 では Productivity の行が 0＝母集合の下限で落ちる。
+  G3 開幕の再現：
+    G3a：焼いた月（助走の後の最初の月）の頭で、エンジンの σ と計器が読んだ焼く前の d_p の差 ≦1e-9・エンジンの ρ と計器の ρ の比−1 ≦1e-9（焼いた州の全て・下限 2,000 種×州）。旗 0 は焼いた州が 0＝落ちる。
+    G3b：最初の四半期（q＝0）の行で |s_腕−s0_基線|≦w の割合 ≧ 1/2。
+    G3c：収穫係数が効いている：腕の q≧0 の行で |hf−1|＞1e-6 の割合 ≧ 1/2（hf＝engineSub÷nominal）。
+  G4 失業 (b′)（両側）：計器が四半期の末に自分で数えた E＝U−L_need（ρ_計器・T_計器・この月の能力と売れた量）で、E＞0 の行は |UnemploymentRate−clamp01(E÷cap)|≦1e-9・E≦0 の行は UnemploymentRate≦1e-12。母集合の下限：E＞0 の行 ≧400（紙の E_p＞0 4,449 の 1/10 前後）・E≦0 の行 ≧100,000。旗 0 では E≦0 の行のうち今の式で失業＞0 の行（紙 0.98〜2.31%）が上側で落ちる。
+  G5 対照：腕の P5（|売れた÷能力−その州の q0 の値|≦0.01・q≧1）で |d の中央|≦ w の中央（紙 0.0123≦0.0398）。
+  記録（門ではない）：nullgate.py の O・同じ盤面の新÷旧（計器の列 sigmaInst÷d0Inst＝この形の食べる割合÷旧の規則の食べる割合）・EffFill の助走の終わりの値と時期の動き・T÷T0・主食の市場の買い（marketShareOfNeed）・農村の値打ち（PopDecision.cs:41 の SubsistenceValuePerMonth）・都市への移動（migration_s）・ρ の分布・焼けなかった州の数。
+  狙いどおり働いたか：G1a と G2 と G4 が通ること（機構の観測量）。史実の大きさ・年は記録。
+
+■ [4] 突然変異（門ごとにどの門で赤か・1 種の計器つきの使い捨ての腕で確かめる＝D: の空きのため。門の台本は 1 種でも同じ式で数える〔母集合の下限は 1/10 にして読む〕）
+  M1 ρ＝0（焼いた値を 0）：G1b 赤・G2 赤・G3a 赤。
+  M2 U_p に能力の全部（売れた量を引かない）：G1a 赤（D1 が下がっても σ が下がらない）・G2 赤・G5 赤。
+  M3 産出の基準 D2 で数える（U＝D2×能力）：G2 赤。
+  M4 :2050 の収穫係数を外す（sub＝GoodNeed×σ）：G3c 赤（hf≡1）・G3b 赤の見込み。
+  M5 :2783 を直さない（旗 1 でも unsold −= σ）：G4 赤。
+  M6 技術の比を掛けない（T を 1）：G2 赤（EffFill が動く州で）。
+  旗 0（ident の腕の生）：G1a・G2・G3a・G4 が赤（上の各門の〈旗 0〉の行）。紙の台本で確かめて measurements/m849_20261105/ に出力を置く。
+  突然変異の腕の生は合流の判断まで残す（D:/PoB_work/c69ss_work/mut）。
+
+■ [5] 止める線（この波の形をそのまま写す・腕 B と合流の M・S11 に当てる）
+  - 破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  - 空洞化 1/10 未満：an_h2.py <腕>/ins -v4（規則 A2）＋ holclass839.py で振り分け＝基線の同じ種・同じ州が 1/4 未満なら〈元からの弱さ〉・それ以外は〈線が原因〉＝止める（作者 ①〈線の自分の腕も数える〉＝腕 B に当てる）。3 世代のヌル腕（新 m839・旧 m826・旧 m797）の件数を並べる。
+  - 1 四半期に 100 倍：gdp_jump797.py と gdp_jump833.py（〈それ以外〉だけが止める線）・基準とヌル腕も同じ台本で数え直す。価格水準（pxmonth の priceLevelIndex の 3 か月の比）も同じ。
+  - 1e10 倍・開幕の 1000 倍（記録・同じ国が半分以上の種なら NG）・名目 GDP 0 の続き（gdp_zero10.py・記録の先頭）。
+  - 飢え（主食の値段の跳ね）・扶養力（人口の増えすぎ）：記録の段で 3 世代のヌル腕と並べる（発散の桁なら止める）。
+  - 機構の番人（扶養力・家内工業・FoodMet の保存・EngineReadIdentityTests ほか全ての機構のテスト）とソースを走査する番人 6 組の赤。
+  - 推定の計算量 ＞248.5 秒。
+  - 記録（採否に使わない）：exact・near・NG（ng.sh・基準 rd:measurements/ng839_20261105:m839）・史実の線・補給崩壊の倍化・英の国債の不履行。
+  - 最終の採否は種 11〜20 の止める線まで読む（合流が読む・★(802)・★(832)）。
+
+■ [6] 計算量：割り当て 0.3 秒以下（旗 1 の頭の周回＝州ごとに生産者を 1 回なめる・POP ごとに 1 回）。m839 の推定 220.8 秒・名目の余り 約 27.7 秒。
+
+■ [7] 恒等の判定（器・旗 0）＝ident c69ssz：予言
+  - 旗 0 は 1 ビットも変わらない（SubsistenceShare＝SubsistenceBasis・印は OpeningShare のまま・読み手は同じ値）。
+  - 宣言：--grown-ok subst_s（末尾に列を足す）・--tests-delta ＝器のコミットで足した試験の数（器のコミットのメッセージに書く）。
+  - cearn_s の経路の 3 列（outTop1Route・outTop2Route・inTop1Route）：この線は経路の行（Simulation.cs:2392・2804・2955・2957・3007・3063〔ef637d89〕）を書き換えない。EconomyStep.cs に経路の行は無い。Simulation.cs に足す行は :1523 付近だけ＝それより下の経路の行は番号がずれるだけ＝ident_check.py の BASE_COMMIT の写像と cearn_remap.py で〈写して一致〉になる予言（写しても違う 0）。
+  - 計算量の .cost の推定は一致（旗 0 は頭の周回を回さない）。
+  - savetest（欄の改名と列挙の欄）・leakhunt。
+
+■ [8] ソースを走査する番人の点検（㉘・器のコミットの直後に回す）と変わる件数の予言（㉑）
+  - IndustrializationReaderTests：工業化度の読み手を足さない＝0 件。UnitTypeTests：単位の型の表に足さない（新しい欄は double と列挙）＝0 件。InstrumentsTests：計器の表の名前は増やさない（subst_s の列だけ）＝0 件。WriterRatchetTests：宣言の表に触れない（★(749)）＝0 件の予言（赤なら止めて報告）。DormantIdentityTests：旗の表に 1 行（SubsistenceStage2）。GoodIdGuardTests：財の番号の直書きを足さない＝0 件。
+  - `new MoneyStock(` の件数（SimCore）：64 のまま。route_anchors.tsv の鍵の行に触れない。
+  - ★(818)：`grep -lnE 'SubsistenceValuePerMonth|LandRentPerMonth|Subsistence' PriceOfBread.Tests/*.cs` の 19 本の Assert を読んだ。p.Subsistence を読む試験（FoodLedgerTests・UrbanFlowRealTests・SubstInstrumentTests・IdeaNeedBoardTests）は名の追従だけ（読む所は SubsistenceShare＝その月の割合・書く所は SubsistenceBasis）・Assert は不変。旗 1 の木で助走を回す試験は読む所が σ になる＝手の算術の式（割合を読む）はそのまま成り立つ予言。
+  - 旗 1 の木のフルスイート（㉜）の前の grep：旧の規則（自給 0.7 の固定・今の失業の式）を固定する番人を `grep -rnE "Subsistence|UnemploymentRate|FarmUnemployment" PriceOfBread.Tests` で探し、赤なら〈前提の Assert だけが赤〉か〈機構の主張〉かを分けて報告（書き換えない）。
+
+■ [9] 他の線との重なり（最初の事前登録で grep した一覧）
+  - Coefficients.cs：:529 の直後に旗 1 行（c69eh :3328・c69po :2750・c69id :654〜657 と別の行）。
+  - Simulation.cs：:529・:1466・:1523 付近（c69eh は :2729 の前の 1 行）。
+  - InstrumentsCearn.cs:519：1 語（c69eh の持ち物＝[0] ④）。
+  - DormantIdentityTests.cs：旗の表に 1 行（3 本の線が 1 行ずつ）。
+  - EconomyStep.cs・InstrumentsSubst.cs・InstrumentsFd.cs・Model.cs・PopDecision.cs（読むだけ・名の変更は無い＝SubsistenceValuePerMonth は改めない）・Discovery.cs:289・NationConfig.cs:25（注だけ）は c69ss だけ。
+  - 合流への申し送り：c69ss が改める名＝Pop.Subsistence（→SubsistenceBasis・SubsistenceShare）＝他の線の枝で grep してから merge（★(773)）。
+
+■ [10] D: の決まり
+  - ident c69ssz（約 15GB）と腕 B c69ssB（約 15GB）・突然変異の 1 種の腕 6 本（各 約 1.5GB）。起こす前に arms.sh free と D: の空き（35GB 未満なら起こさない）。
+  - ident の生：判定と反証役の読みの後に要約（keepsum）を measurements に残して消す。
+  - 腕 B の生：反証役が読んだ後に、門と止める線の読み手が開く表（subst_s・region_s・migration_s・nation_s・pxmonth・labor_s・fd_s・ins の an_h2 が読む表）と keepsum_all_tables.tsv へ縮めてよい（keep_839_rej/abDW0_md_10 の型）。合流が読むまで残す。
