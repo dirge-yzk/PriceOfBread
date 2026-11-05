@@ -1,0 +1,7 @@
+(874) c73tc フルスイート（木 500e7afa・Release・分けて回した）
+list Category!=FullLength 2317（基準 2312＋5）・FullLength 3 ＝ --list-tests と一致
+Category!=FullLength：成功 失敗 0・合格 2316・スキップ 1・合計 2317（15 m 45 s）
+FullLength：成功 失敗 0・合格 3・合計 3（3 m 6 s）
+中止 0・[FAIL] 0
+savetest OK・leakhunt 完走・保存則違反なし（ident の腕 s・measurements/ident_20261106_m874.txt）
+ready874（番人 7 組ほか 231 件）成功・旗 1 の使い捨ての木（TradeClearing 系・ImportPayerLive 系・InstrumentsTests・CearnTradeColumnsTests 86 件）成功

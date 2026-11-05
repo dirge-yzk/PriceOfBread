@@ -1,0 +1,36 @@
+(874) c73tc 事前登録（恒等の線・ident 1 本）  2026-11-06  木 70b27755  基線 m873  Claude Sonnet 5.5
+
+[1] 恒等の線。予言 0：エンジンの挙動を変えない（新しい係数 0・新しい状態 0・既にある列の値は 1 ビットも変えない）。
+  足すのは計器 InstrumentsCearn.cs の cearn_s の末尾 4 列と、そのための CearnAcc の [NonSerialized] でない作業欄（計器の内側・SaveGame に載る型ではない）、試験、台本、Coefficients.cs:2752 の行末の注だけ。
+  新しい列（末尾 4 列・名は AI の案）：
+    importBudgetExcessMaxPerClearingSub      ＝ importBudgetExcessMaxPerClearing と同じ定義で、補助の足し込みを `_cearnCat == TreasuryCat.Subsidy` に絞った物
+    importPaidPayerSizeLe1e12PerQuarter      ＝ importPaidPerQuarter のうち、払いの時点の払い手の p.Size ≦1e-12 の分
+    importPaidPayerSizeMidPerQuarter         ＝ 同 1e-12 超〜1e-9 以下
+    importPaidPayerSizeGt1e9PerQuarter       ＝ 同 1e-9 超
+  今の列 importBudgetExcessMaxPerClearing は値を変えず残す（読み手は c72ip の gates869.py の U2c＝記録）。BilateralMarket.cs に新しい呼び口を足さない（c73ip の持ち物）。
+  払いの時点の人数は CearnSav の Take の枝（importPaidPerQuarter と同じ母集合）が受け取る p.Size。払いの時点の人数が清算の選びの時点の人数と同じかは〈推定〉（試験の盤面で確かめる。実走の突き合わせは c73ip の旗 0 の紙）。
+
+[2] 消す物・変える物と残す物。
+  消す物 0。変える物：InstrumentsCearn.cs（CearnHeaderText・CearnAcc の欄 3 つと Clear・CearnSav の補助の hook と Take の枝・CearnImportHeadInto・CearnImportFoldInto・CearnImportPaid の引数・書き出しの 4 列）／Coefficients.cs:2752 の行末の注だけ（既定値 1.0 と式は 1 字も変えない）。
+  足す物：CearnImportSubsidySubInto・CearnImportPaidBandInto（internal・試験の口）。
+  読み手の grep（CearnImportPaid／ImpPaid／importBudgetExcessMaxPerClearing）：SimCore は InstrumentsCearn.cs のみ。Tests は TradeClearingBoardTests.cs／ImportPayerLiveTests.cs（今の欄だけ・値は不変）。scripts は c72ip/gates869.py・c72tc/cols868.py（列名で読む・末尾に列が増えても名前で開く）。Runner・App・Display は 0。POB_COEF の名前 0。SaveGame の名前 0（計器の欄は SaveGame に載らない型）。
+  他の線との重なり：Coefficients.cs は c73ts（:530 の直後に新しい旗）・c73ip（:3596 の既定値）と別の行。InstrumentsCearn.cs・TradeClearingBoardTests.cs・新しい試験は c73tc だけ。BilateralMarket.cs は読むだけ。
+
+[3] 足す試験（PriceOfBread.Tests/CearnTradeColumnsTests.cs・5 件＝Fact 3＋Theory 2 行）と突然変異（scripts/instruments/c73tc/mut874.py・出力 measurements/m874_20261106/mut_M*.txt）。
+  T1 補助はSubsidyだけを足し輸出の関税の戻しは足さない：Tariff の Give（:1165 の道）で今の列だけが増え新しい列は増えない。:1141 だけの盤面では 2 列が一致。手形の清算は畳まない。
+      M1 補助の絞りを外す → T1 が赤。
+  T2 帯は払いの時点の払い手の人数で決まり四半期の末の人数ではない：人数を 0／1e-12／5e-10／1e-9／1.0 と替えながら払い、帯が 11／9／3 になる（境界は ≦ で下の帯）。和＝importPaidPerQuarter。BilateralMarket.cs 以外の払いは数えない。
+      M2 帯を人数 1.0（四半期の末に人が居る状態）で振る → T2 と T4(flag 0) が赤。四半期の末の人数で振る形の近似と名乗る（試験の末尾の人数が 1.0）。
+  T3 旧の規則の予算は kind 2 と 3 でも旗に依らず手で数えた値（旗 0 と 1 で回す・Quarter が書く cearn_s の行を通す）：kind 2＝商人の人数 0・債務 0 で旧の規則は +∞（行では inf）・債務 3 で貯蓄 40・新の規則の予算は人の居る POP の在庫の和。kind 3＝商人の添字なしで旧の規則は全 POP の Σmax(0, 貯蓄)・新は人の居る POP の Σ。行の末尾 4 列の値も確かめる（清算が無い州は nan）。
+      M3 旧の規則の予算の枝を新の規則の予算に置き換える → T3 が赤。
+  T4 エンジンを通す（ジェノヴァとトスカーナの盤面・買い手の州 1 つ）：旗 0 では人の居ない商人（人数 0）が払う＝最初の帯が正で払った額の全部・旗 1 では最初の帯が 0・最後の帯が正。3 列の和＝importPaidPerQuarter。
+  注だけの直し（Coefficients.cs:2752）は変化 0＝記録。
+  ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests を器のコミットの直後に回す（ready874.sh）。`new MoneyStock(` の件数の番人は SimCore の件数＝SimCore に足さない（予言：件数 変化 0）。route_anchors.tsv の鍵の行・WriterRatchetTests の表・工業化度の読み手の許可表・DormantIdentityTests は触らない（予言：書き換える件数 0）。cearn_s の経路の名はファイル:行＝InstrumentsCearn.cs の行は動くが経路の名は呼び手（BilateralMarket.cs ほか）の行なので不変。
+  旗 1 の確認：使い捨ての木で RuleOrderByRegion と同様に ImportPayerLive の既定を 1 にし、TradeClearingTests・TradeClearingBoardTests・ImportPayerLiveTests・InstrumentsTests・CearnTradeColumnsTests を回す（コミットしない）。
+
+[4] 浮動小数の順序が変わる箇所：0（足し込みは新しい欄へ別に足すだけ。既にある欄の足す順序・式は変えない）。素の 5 種・計器つき 10 種が m873 と名乗り行を除いて全行一致。計器の表の差は cearn_s の末尾 4 列だけ（--grown-ok cearn_s）。cearn_s の既にある列は全行バイト一致。--tests-delta 5。
+
+[5] 採否：ident が〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ該当の変更を外して報告に回す。
+  印：tc_ready.mark＝push の後・番人の緑の後・ident の前。f0_ready.mark＝ident の終わり（先頭に VERDICT 行と旗 0 の生の場所）。
+  出し直された印：1 回目の rc が 0 でなく、出す側が式と判定の規則を変えずに道具の側だけを直して出し直した印は待ってよい（その場合は 1 回目の .log を .log.1 として残す）。
+  D: の空き：着手時 64.26GB（shutil.disk_usage）。ident の見込み約 17GB・床 35GB。
