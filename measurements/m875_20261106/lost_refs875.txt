@@ -1,0 +1,26 @@
+(875) c73gt (e) 失われた参照の名乗り（記録・古い記録は書き換えない）
+失われた物：D:/PoB_work/c71gt_work（台本の既定のパスと flag1_forms860.txt の文からの推定：gates/・f0_839〔旗 0 の生・名前からは m839 の盤面〕・selftest/・t_batch/）と D:/PoB_work/c70id_work。
+  どちらも (873) の合流が始めた時点（2026-11-06 03:2x）で既に無かった（measurements/m873_20261106/prereg_873.txt の記録）。この線の始め（2026-11-06 06 時台）も無い（ls で確認）。帰属は不明。
+影響：次の記録・台本はこの 2 つを名指す。名指された生はもう読み直せない（記録の数字は記録のまま残る）。
+  ・measurements/m860_20261105/flag1_forms860.txt の旗 0 の側（f0_839）＝この記録の比べは再現できない。
+  ・scripts/instruments/c71gt/selftest860.sh（既定の F0 が失われた f0_839）・test_batch_rc860.sh（既定の作業フォルダ c71gt_work/t_batch）＝既定のままでは動かない（環境変数 C71GT_F0 などで別の生を指せば動く）。
+  近い代わり（同じ物とは言わない）：m839 の盤面の生は D:/PoB_work/keep_839、m852 の盤面は keep_852、m873 の盤面は keep_873。f0_839 と keep_839 のどれかが同じ内容かは確かめていない。
+一覧（grep -rln 'c71gt_work\|c70id_work' measurements scripts docs の結果。docs は参考）：
+docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md
+docs/202609/99_実装ログ_20260903.md
+measurements/m854_20261105/mutation_854.txt
+measurements/m854_20261105/record_854.txt
+measurements/m860_20261105/flag1_forms860.txt
+measurements/m860_20261105/flag1_po860.txt
+measurements/m860_20261105/mut_po860.txt
+measurements/m860_20261105/record_860.txt
+measurements/m860_20261105/t10_new.txt
+measurements/m860_20261105/t10_old.txt
+measurements/m860_20261105_prereg_gt.txt
+measurements/m862_20261105/c71gt_gates_ready_log_copy.txt
+measurements/m862_20261105_prereg_po.txt
+measurements/m873_20261106/prereg_873.txt
+measurements/m875_20261106/lost_refs875.txt
+measurements/m875_20261106_prereg_gt.txt
+scripts/instruments/c71gt/selftest860.sh
+scripts/instruments/c71gt/test_batch_rc860.sh
