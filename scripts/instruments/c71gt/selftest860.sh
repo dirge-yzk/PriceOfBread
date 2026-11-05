@@ -77,6 +77,7 @@ $PY "$G/gates_ss860.py" --loo $RAW/base_ins $RAW/n1 $RAW/n2 "$M/loo_ss860.txt" 1
 # 9 sha256 の確かめ（写した物が源と同じ）
 for f in $FILES; do cmp -s "$SD/$f" "$G/$f" || nogo "[共通] $f の写しが源と違う"; done
 if [ -n "$NOGO" ]; then echo "== 判定：no-go あり（G2b か道具の確かめが通らない＝c71po は腕を回さない）"; printf "$NOGO\n"; else echo "== 判定：po の門は使える（G2b は形 c・固定の盤面は予言どおり・旗 0 の盤面で働いた門が落ち壊さない門が通る・旗 1 の実の生で全ての門が通る・閾値の表は数え直しと一致）"; fi
+echo "== 名乗り（G2b）：形 c は窓の連鎖で ung の連続（目標以外の書き手が無いこと）を読む。G2a と独立ではない＝門の数 5 を独立な 5 つと読まない。(856) の持ち越しの超過は G2b0（記録）にだけ見える。--choose-form が no-go を返しうるのは台本が壊れたときだけ（旗 0 のデータからは代数で残りが 0 になる）。"
 echo "== G2b の形"; sed -n '/選んだ形/p' "$M/chooseForm_860.txt"
 echo "== 旗 1 の実の生での結果（po・種 1〜10・閾値の合わせには使っていない）"; cat "$M/flag1_po860.txt"; cat "$M/flag1_forms860.txt"
 echo "== 固定の盤面（po）"; head -14 "$M/mut_po860.txt"
