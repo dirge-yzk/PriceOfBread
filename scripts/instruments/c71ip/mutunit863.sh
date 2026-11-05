@@ -13,7 +13,7 @@ for m in $MODES; do
   dotnet build "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --artifacts-path "$W/art_$m" --disable-build-servers > "$W/mut_$m.build.txt" 2>&1 || { echo "$m	BUILDFAIL" >> "$OUT"; continue; }
   dotnet test "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --no-build --artifacts-path "$W/art_$m" --filter "FullyQualifiedName~ImportPayerLiveTests" > "$W/mut_$m.test.txt" 2>&1
   RC=$?
-  RED=$(grep -E '^\s+失敗 PriceOfBread' "$W/mut_$m.test.txt" | sed 's/^\s*失敗 //; s/ \[.*$//' | tr '\n' '・')
+  RED=$(grep -E '^\s+失敗 PriceOfBread' "$W/mut_$m.test.txt" | sed 's/^\s*失敗 //; s/ \[.*$//' | paste -sd ',')
   echo "$m	rc=$RC	$(grep -E '合計:' "$W/mut_$m.test.txt" | tail -1)	赤の試験：${RED:-なし}" >> "$OUT"
 done
 echo "MUTUNITDONE $OUT"

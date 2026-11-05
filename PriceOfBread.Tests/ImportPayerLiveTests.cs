@@ -87,9 +87,10 @@ public class ImportPayerLiveTests
     public void 旗1で人の居るPOPが1つでも手形を振り出さない()
     {
         var (sim, g, buyer, mer) = Make(1);
-        var live = buyer.Pops.Where(p => p.Size > 1e-6 && !ReferenceEquals(p, mer)).ToList();
-        foreach (var p in live.Skip(1)) p.Size = 0;   // 人の居る POP を 1 つだけにする（払い手の並びが 1 要素＝手形の枝の型 [var mer] に当たる形）
-        var one = live[0]; one.SetSavings(50);
+        var one = buyer.Pops.First(p => p.Size > 1e-6 && !ReferenceEquals(p, mer));
+        foreach (var p in buyer.Pops) if (!ReferenceEquals(p, one)) p.Size = 0;   // 人の居る POP を 1 つだけにする（払い手の並びが 1 要素＝手形の枝の型 [var mer] に当たる形）
+        Assert.Single(buyer.Pops, p => p.Size > 1e-12);
+        one.SetSavings(50);
         double h0 = HouseholdLoans(sim);
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal(0.0, one.Debt.Value);                       // 落とした枝は手形を振り出さない
