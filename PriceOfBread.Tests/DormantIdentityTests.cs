@@ -28,7 +28,7 @@ public class DormantIdentityTests
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
         "SubsistenceStage2",           // ★(849) c69ss 自給の段 2（S1-a）の旗（0＝食べる割合は欄のデータのまま・1 ビットも変わらない）
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
-        // ★RuleOrderByRegion（(850) c69po 州ごとの治安 P1-1）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は RuleOrderP1Tests の P1_0（旗を明示）・P1_5 の Theory。
+        "RuleOrderByRegion",           // (850) c69po 州ごとの治安 P1-1：無統治の目標を州の秩序 Clamp01(R×m̄÷m_r) で作る旗（0＝国の秩序 w.PublicOrder の今の式・1 ビットも変わらない・番人 RuleOrderP1Tests）。点火時にこの表から外す
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
         "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
         "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）

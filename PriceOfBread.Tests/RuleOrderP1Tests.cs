@@ -6,7 +6,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(850) c69po 州ごとの治安 P1-1 の番人（事前登録 measurements/m850_20261105_prereg_po.txt の [7]）。
-/// 旗 RuleOrderByRegion（既定 1）：0＝無統治の目標は国の秩序 Clamp01(w.PublicOrder)（旧の式）・1＝州の秩序 order_r＝Clamp01(R×m̄÷m_r)（R＝今の Coercion の切る前の被覆）。
+/// 旗 RuleOrderByRegion：0＝無統治の目標は国の秩序 Clamp01(w.PublicOrder)（今の式）・1＝州の秩序 order_r＝Clamp01(R×m̄÷m_r)（R＝今の Coercion の切る前の被覆）。
 /// 機構の番人（向き・対照・旗 0 の不変）であって、創発の主張（税の届き・分離の数）は成績表と計器 secession_s・rule_s が見る。期待値は手で書いた数か、入力（闘争度・規模）の算術から作る（本体の関数から作らない）。</summary>
 public class RuleOrderP1Tests
 {
