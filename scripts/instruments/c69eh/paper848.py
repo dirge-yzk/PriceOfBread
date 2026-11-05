@@ -27,7 +27,7 @@ def main():
     for name, d in sets:
         P(f'== {name}  {d}')
         P('seed\tnP\tfracBelow0.01\tmedianShare\tW\tsumE\tsumM\tnNoHeir\tsumENoHeir\tnCapEmpty\tsumCapEmpty\tE_artisan\tE_merchant\tE_capitalist\tE_other\tWq<200\tWq>=500')
-        allfrac = []; tot_n = 0; tot_below = 0; Ws = []
+        allfrac = []; tot_n = 0; tot_below = 0; Ws = []; pw = []
         evrows = []
         for s in range(1, 11):
             fn = os.path.join(d, f'cpop_s{s}.tsv')
@@ -35,15 +35,17 @@ def main():
             agg = {}
             with open(fn, encoding='utf-8') as f:
                 h = f.readline().rstrip('\n').split('\t')
-                iq, ir, ip, ic, ik, isv = h.index('quarter'), h.index('region'), h.index('popIndex'), h.index('className'), h.index('popK'), h.index('savings')
+                iq, ir, ip, ic, ik, isv, ie = h.index('quarter'), h.index('region'), h.index('popIndex'), h.index('className'), h.index('popK'), h.index('savings'), h.index('earnedSettlePerQuarter')
                 for line in f:
                     x = line.split('\t')
                     key = (int(x[iq]), x[ir])
                     a = agg.get(key)
-                    if a is None: a = agg[key] = [0.0, 0.0, False, defaultdict(float), 0.0]
+                    if a is None: a = agg[key] = [0.0, 0.0, False, defaultdict(float), 0.0, 0.0, 0.0]
                     k = float(x[ik]); sv = float(x[isv])
                     if sv > 0: a[1] += sv
-                    if k > EMPTY: a[2] = True
+                    if k > EMPTY:
+                        a[2] = True; a[6] += float(x[ie])
+                        if sv > 0: a[5] += sv
                     elif sv > 0:
                         a[0] += sv; a[3][x[ic]] += sv
                         if x[ip] == '3': a[4] += sv
@@ -62,7 +64,7 @@ def main():
                 if a[4] > 0: nCap += 1; sCap += a[4]
                 if q < 200: eq[0] += E; mq[0] += M
                 if q >= 500: eL[0] += E; mL[0] += M
-            tot_n += n; tot_below += below; W = sE / sM if sM > 0 else float('nan'); Ws.append(W)
+            tot_n += n; tot_below += below; W = sE / sM if sM > 0 else float('nan'); Ws.append(W); pw.append((sE, sM))
             oth = sum(v for c, v in cls.items() if c not in ('職人', '商人', '資本家'))
             P(f'{s}\t{n}\t{below/n if n else float("nan"):.4f}\t{st.median(shares) if shares else float("nan"):.4g}\t{W:.4g}\t{sE:.6g}\t{sM:.6g}\t{nNo}\t{sNo:.6g}\t{nCap}\t{sCap:.6g}\t{cls["職人"]:.4g}\t{cls["商人"]:.4g}\t{cls["資本家"]:.4g}\t{oth:.4g}\t{eq[0]/mq[0] if mq[0] else float("nan"):.4g}\t{eL[0]/mL[0] if mL[0] else float("nan"):.4g}')
             for (es, er), oq in ev.items():
@@ -73,10 +75,13 @@ def main():
                 for cr in ctl.get((s, er), []):
                     b = agg.get((oq, cr))
                     if b and b[1] > 0 and b[2]: cs.append(b[0] / b[1])
-                evrows.append((s, er, oq, sh, len(cs), st.median(cs) if cs else float('nan'), sum(1 for v in cs if v >= 0.5)))
+                evrows.append((s, er, oq, sh, len(cs), st.median(cs) if cs else float('nan'), sum(1 for v in cs if v >= 0.5), a[5] if a else float('nan'), a[6] if a else float('nan')))
         P(f'pooled\tnP={tot_n}\tfracBelow0.01={tot_below/tot_n if tot_n else float("nan"):.4f}\tW(seed median)={st.median(Ws) if Ws else float("nan"):.4g}\tW(seed min..max)={min(Ws):.4g}..{max(Ws):.4g}')
-        P('event: seed\tregion\tonsetQ\tshareAtOnset\tnControls\tcontrolMedianShare\tcontrols>=0.5')
+        P('event: seed\tregion\tonsetQ\tshareAtOnset\tnControls\tcontrolMedianShare\tcontrols>=0.5\tliveSavingsAtOnset\tliveEarnedAtOnset')
         for r in evrows: P('event: ' + '\t'.join(str(v) if not isinstance(v, float) else f'{v:.4g}' for v in r))
+        lv = [r[7] for r in evrows if r[7] == r[7]]; le = [r[8] for r in evrows if r[8] == r[8]]
+        P(f'G3 stat: n={len(lv)}\tmedianLiveSavingsAtOnset={st.median(lv) if lv else float("nan"):.6g}\tmedianLiveEarnedAtOnset={st.median(le) if le else float("nan"):.6g}')
+        P(f'G1 stat: pooledW={sum(x[0] for x in pw) / sum(x[1] for x in pw):.6g}\tseedW min={min(Ws):.6g}\tseedW max={max(Ws):.6g}')
         summary[name] = (tot_n, tot_below, Ws)
     with open(out, 'w', encoding='utf-8', newline='\n') as f: f.write('\n'.join(L) + '\n')
 main()
