@@ -56,4 +56,18 @@ public class ServiceClosedTests
         Assert.True(closedRuns > 0, "前提が崩れた：15 日の 1 歩が日次の写像を回していない（閉じた式を使っている）");
         Assert.Equal(daily, closed);   // 1ビットも違わない
     }
+
+    [Fact]
+    public void 参照の直上から品余りで内側の帯を出て参照の下へ抜ける役務は日次へ戻る()
+    {
+        // (854) 反証役 低 4：内側の閉じた式（|t|＜0.5）は旬の終わりが帯の内側のときだけ使う＝旬の終わりが内側を出る歩（ここでは 70 日）だけが ServiceClosed に届く。
+        //   参照の 1.02 倍・品余り（需要 1・供給 1000）＝70 日の途中で参照をまたぎ、終わりは参照の約 0.4 倍（帯の内側の外）。値段と平行移動が参照の逆の側（ServiceClosed の ①）＝閉じた式を使わず日次の写像を 70 回回す。
+        //   突然変異（measurements/m854_20261105/mutation_854.txt）：①だけを外す・①②x＞0 を外す・さらに ③ を外す・さらに ④ を外す（判定を全部外す）。
+        var (daily, dailyRuns) = Step(false, 1.02, 1, 1000, 70, 1);
+        var (closed, closedRuns) = Step(true, 1.02, 1, 1000, 70, 1);
+        Assert.True(daily < 0.5, $"前提が崩れた：参照をまたいで帯の内側の外へ抜けていない（参照の {daily} 倍）");
+        Assert.Equal(70, dailyRuns);
+        Assert.Equal(70, closedRuns);      // 閉じた式を使わず日次の写像を 70 回回した
+        Assert.Equal(daily, closed);       // 1ビットも違わない
+    }
 }
