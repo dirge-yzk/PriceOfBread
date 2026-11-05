@@ -286,7 +286,7 @@ public static class Discovery
                 if (ir > 0) rent += ir;
                 if (p.ClassId != PopClass.Worker) continue;
                 workerPop += p.Size;
-                double sub = p.SubsistenceShare; sub = PoliticalQuantities.Clamp01(sub);
+                double sub = p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity ? p.SubsistenceShare : p.SubsistenceBasis; sub = PoliticalQuantities.Clamp01(sub);   // ★(854) InstrumentsCearn と同じ三項式：読み込みの直後や Run の前の月も同じ値を読む（欄 SubsistenceShare は [NonSerialized]・Run の頭が毎月書く）
                 double dep = p.Size * (1.0 - sub);
                 double fill = p.SupplyFill;
                 wage += dep; unmet += dep * (1.0 - fill); fillW += p.Size * fill;
