@@ -103,3 +103,13 @@
   - 門・止める線・記録の読みは全て縮める前の生で数え、出力を measurements/m855_20261105/ にコミットしてから縮める。
   - 残す表：region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s ＋ keepsum_all_tables.tsv（縮める前の全ての表の行数とバイト数・sha256 の要約）。POB_CEARN=0 なので cearn_s・cgrp_s・cpop_s は元から無い＝縮めで消えるのはそれ以外の計器の表（labor_s・fd_s ほか）。
   - 縮めは bg.sh の印 D:/PoB_work/c70ss_work/shrink.mark で起こす（他の線が待ってよい印）。縮めた後も合流が読むまで消さない。
+
+■ 追記 2026-11-05 16:50（腕 B の前・門の数は変えていない）：腕 B を D: の空きで起こせなかった＝★(852) の条件で合流へ渡す
+  - D: の空き（shutil.disk_usage）：worktree を作った時 34.68GB → フルスイートの後 22.37GB → 自分の suitesrc・art_suite を消して 24.32GB → 突然変異の写しの木を消して 23.69GB → 16:48 に 23.64GB。arms.sh free は 6。
+  - 規則〈POB_CEARN=0 の腕は空きが 30GB 以上〉に届かない。他の線（c70po・c70id）は空きを空ける印を名乗っていない＝待ってよい印が無い。c70po も同じ段で同じ 30GB を待っている。床は下げない（(849) の違反の再発を避ける）。
+  - ＝この線は腕 B を回さない。これは門の no-go ではない・形は測っていない＝3 回の規則に数えない（2 回目は未了）。
+  - 合流への渡し（★(852)〈線が D: の空きで腕 B を起こせなかったときに合流が回す〉）：
+    ・回す物：bash scripts/instruments/c70ss/armB855.sh 1b9eeab1（POB_CEARN=0・INS=1・計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。c70ss の頭の .cs・.csproj・.json は 1b9eeab1 とバイトで同じ（後のコミットは measurements と scripts だけ）＝どちらの木でもよい。合流の木で回すなら、合わせた木の SubsistenceStage2 が 1 であること（c70ss の点火）を確かめる。
+    ・読む物：bash scripts/instruments/c70ss/read855.sh <腕の出力フォルダ> <腕の成績表> <読みの出力フォルダ>（[8] の門・[10] の止める線・holclass・nullgate・NG をこの事前登録のまま・腕の ins のパスは引数＝[8] と [10] に書いたパスは c70ss_work/armB の場合の例）。
+    ・生の縮めは [11] のまま。
+  - 腕の前の段は全て済んだ（段0 の紙 go・旗 1 のフルスイート・savetest・leakhunt・門の写しと sha256・(849) の生への予言・突然変異の表）。
