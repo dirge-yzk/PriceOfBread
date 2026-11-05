@@ -12,12 +12,13 @@ public class StateEduDemandTests
     private const double Funding = 0.5;
 
     /// <summary>開幕の英を 1 月だけ回す。poorGroups の階級は貯蓄 0（民間の買いたい量 0・国庫の未充足＝必要量）・他は貯蓄を厚く（予算が拘束しない）。supplyMul は教育の産出の倍率。</summary>
-    internal static (Region Region, World World) OneMonth(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding)
+    internal static (Region Region, World World) OneMonth(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double reachFromAdmin = 0, double adminFill = 1.0)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        w.Coef.EduReachFromAdmin = 0;                       // 到達 r＝1（行政の届きの式を外して手の算術を単純に）
+        w.Coef.EduReachFromAdmin = reachFromAdmin;          // 既定 0＝到達 r＝1（行政の届きの式を外して手の算術を単純に）。正のときの r＝1−係数×(1−AdminFill)（AdminFill は前月値＝ここで置く）
         var r = w.Region;
+        r.AdminFill = adminFill;
         r.CompulsoryEduFunding = funding;                   // 国庫が買う率 f（月次の設定は Simulation が毎月書く＝1 月だけ回す試験は直に置く）
         r.Markets[Catalog.EducationId].Stock = 0;
         foreach (var s in r.Producers) if (s.GoodId == Catalog.EducationId) s.Output *= supplyMul;
@@ -35,6 +36,135 @@ public class StateEduDemandTests
     }
 
     internal static double StateSpentEdu(Region r) => r.StateSpent[(int)TreasuryCat.Education];
+
+    // ---- (846) c68ui が消した 7 本の復元：物差しを〈旗 0 の盤面〉から〈財源率 f＝0 の盤面〉へ置き換えた。f＝0 では EconomyStep の国庫のブロック（CompulsoryEduFunding &gt; Eps）ごと飛ぶ。
+    //   f＞0 で需要 LastDemand に足されるのは、買えた分 take と取れなかった分 want−boughtQty の和＝want＝f×到達 r×Σ（予算 0 の階級の学齢の必要量）。よって Demand(f) − Demand(0) ＝ want（手の算術）。
+    //   突然変異（measurements/m846_20261105/）：`+= 2*(want−boughtQty)`→(b)(c) が赤・その行を消す→(b)(c)(d)(e) が赤・高等教育の行を消す→(f)・到達 r を 1 に固定→(g)。
+
+    private static double PoorNeed(World w) => Need(w, p => p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker);
+
+    [Fact]
+    public void 供給が足りる月は国庫が買い_足す量は買えた量と同じ_二重に数えない()
+    {
+        var (a, wa) = OneMonth(200.0, funding: 0.0);
+        var (b, wb) = OneMonth(200.0);
+        int e = Catalog.EducationId;
+        double price = b.Markets[e].Price;
+        Assert.Equal(0.0, StateSpentEdu(a));                                            // f＝0 ＝国庫は買わない
+        Assert.True(StateSpentEdu(b) > 0, "前提が崩れた：供給が十分なのに国庫が教育を 1 銭も買っていない");
+        Assert.True(b.Markets[e].LastProduced > b.Markets[e].LastSold, "前提が崩れた：供給が尽きている");
+        double want = Funding * PoorNeed(wa);
+        double bought = StateSpentEdu(b) / price;                                       // 買えた量（支払い＝量×値段）
+        Assert.Equal(want, bought, 9);                                                  // 供給が足りる月は買いたい分がそのまま買える
+        Assert.Equal(want, b.Markets[e].LastDemand - a.Markets[e].LastDemand, 9);       // 需要に足されたのは買えた量だけ（取れなかった分の 0 を足して二重にしていない）
+        Assert.Equal(bought, b.Markets[e].LastSold - a.Markets[e].LastSold, 9);
+    }
+
+    [Fact]
+    public void 供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ()
+    {
+        var (a, wa) = OneMonth(0.001, funding: 0.0);
+        var (b, wb) = OneMonth(0.001);
+        int e = Catalog.EducationId;
+        var ma = a.Markets[e]; var mb = b.Markets[e];
+        Assert.True(mb.LastShortage > 0, "前提が崩れた：教育が不足していない（供給が尽きた月の主張が空洞）");
+        Assert.Equal(0.0, StateSpentEdu(b));                                            // 前提：供給が尽きて国庫は 1 銭も買えない
+        // 手の算術：開幕の値段＝参照価格 ⇒ 予算が厚い階級の買いたい量＝必要量（価格の係数 1）⇒ その階級の未充足 0。予算 0 の階級（農民・工場労働者）の買いたい量は 0 ⇒ 未充足＝必要量。
+        //   国庫の買いたい分 ＝ f × Σ（予算 0 の階級の学齢の必要量）。供給が尽きた月でも〈民間が削られた分〉は数えない（数えると厚い階級の削られた必要量が混じり、この値より大きくなる）。
+        Assert.Equal(Catalog.RefPrices[Catalog.EducationId], mb.Price);
+        double expected = Funding * PoorNeed(wb);
+        Assert.True(expected > 0, "前提が崩れた：貧しい階級の学齢の必要量が 0");
+        Assert.Equal(expected, mb.LastDemand - ma.LastDemand, 9);
+        // 順位の配分・購入・支払い・充足・貯蓄は f＝0 の盤面と同じ（足すのは需要の記録だけ）
+        Assert.Equal(0.0, StateSpentEdu(a));
+        Assert.Equal(a.CumEducationCost, b.CumEducationCost);
+        Assert.Equal(ma.LastSold, mb.LastSold);
+        Assert.Equal(a.Pops.Count, b.Pops.Count);
+        for (int i = 0; i < a.Pops.Count; i++)
+        {
+            Assert.Equal(a.Pops[i].EducationFill, b.Pops[i].EducationFill);
+            Assert.Equal(a.Pops[i].Savings.Value, b.Pops[i].Savings.Value);
+        }
+    }
+
+    [Fact]
+    public void 一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない()
+    {
+        var (a, wa) = OneMonth(150.0, funding: 0.0);
+        var (b, _) = OneMonth(150.0);
+        int e = Catalog.EducationId;
+        double price = b.Markets[e].Price;
+        double bought = StateSpentEdu(b) / price;                                       // 取れた量（支払い＝量×値段）
+        double want = Funding * PoorNeed(wa);
+        Assert.True(bought > 0 && bought < want, $"前提が崩れた：一部だけ取れた月でない（取れた {bought}・買いたい {want}）");
+        double diff = b.Markets[e].LastDemand - a.Markets[e].LastDemand;
+        Assert.Equal(want, diff, 9);                                                    // 足す量＝買えた分 bought ＋ 取れなかった分 (want − bought) ＝ want
+        Assert.Equal(want - bought, diff - bought, 9);                                  // 取れなかった分だけが買えた分の上に載る（買えた分を 2 度数えると want を超える）
+        Assert.Equal(bought, b.Markets[e].LastSold - a.Markets[e].LastSold, 9);         // 売れた量の差は買えた分
+    }
+
+    [Fact]
+    public void 供給が尽きた月は教育の値段が財源率0より上がる_買いたい分が値段に出る()
+    {
+        var (a, wa) = OneMonth(0.001, funding: 0.0);
+        var (b, wb) = OneMonth(0.001);
+        int e = Catalog.EducationId;
+        double p0 = a.Markets[e].Price;
+        Assert.Equal(p0, b.Markets[e].Price);                                           // 前提：1 月の Run は値段を動かさない（値段は MarketFlow の歩）
+        for (int d = 0; d < 20; d++) { MarketFlow.StepDay(a, wa.Coef); MarketFlow.StepDay(b, wb.Coef); }
+        Assert.True(b.Markets[e].Price > a.Markets[e].Price, $"f＝{Funding} の値段 {b.Markets[e].Price} が f＝0 の値段 {a.Markets[e].Price} より上がっていない");
+    }
+
+    [Fact]
+    public void 供給が尽きた月は教育の担い手への労働の配分の重みが増える_翌月の重みは前月の需要を読む()
+    {
+        double LaborWeightSum(double funding)
+        {
+            var (r, w) = OneMonth(0.001, funding: funding);
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);          // 2 か月目：重み ← 前月の LastDemand（EconomyStep の LaborWeight の更新）
+            double t = 0; int n = 0;
+            foreach (var s in r.Producers) if (s.GoodId == Catalog.EducationId) { t += s.LaborWeight; n++; }
+            Assert.True(n > 0, "前提が崩れた：教育の担い手が無い");
+            return t;
+        }
+        Assert.True(LaborWeightSum(Funding) > LaborWeightSum(0.0), "f＞0 の労働の配分の重みが f＝0 より増えていない");
+    }
+
+    [Fact]
+    public void 高等教育の補助も同じ型_供給が無い月は予算の天井ぶんだけ需要へ足す()
+    {
+        double Run(double higherFunding, out double price)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            var w = sim.World; var r = w.Region;
+            w.Coef.HigherEduNeedPerEducated = 0.5;           // 高等教育の必要量を立てる（既定 0＝休眠）
+            r.HigherEduFunding = higherFunding;               // 補助の予算（月末に 0 へ戻る）。0 なら国庫のブロックごと飛ぶ
+            int h = Catalog.HigherEducationId;
+            price = r.Markets[h].Price;
+            foreach (var p in w.AllPops()) p.SetSavings(0.0);   // 予算 0 ＝民間の買いたい量 0 ＝未充足は必要量そのもの（予算が厚いと値段が参照より安い月は買いたい量が必要量を超えて未充足 0 になる）
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+            Assert.Equal(0.0, r.StateSpent[(int)TreasuryCat.Modernization]);   // 前提：大学が無く供給が 0 ＝国庫は買えない
+            return r.Markets[h].LastDemand;
+        }
+        double off = Run(0.0, out double price0);
+        double on = Run(1.0, out double price1);
+        Assert.Equal(price0, price1);
+        // 手の算術：買いたい分＝min(未充足, 予算÷値段)。未充足＝必要量（0.5×識字×人数）は十分大きいので予算の天井 1.0÷値段。
+        Assert.Equal(1.0 / price0, on - off, 9);
+    }
+
+    [Fact]
+    public void 行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む()
+    {
+        // 到達 r＝1−EduReachFromAdmin×(1−AdminFill)（EconomyStep の want の式）。係数 0.5・AdminFill 0.4 なら r＝1−0.5×0.6＝0.7（手の算術）。旧の第 9 の試験〈旗の既定は 1〉の代わり（旗が焼かれて主張が空になった）。
+        var (a, _) = OneMonth(0.001, funding: 0.0, reachFromAdmin: 0.5, adminFill: 0.4);
+        var (b, wb) = OneMonth(0.001, reachFromAdmin: 0.5, adminFill: 0.4);
+        var (c, wc) = OneMonth(0.001);                                                  // 届きの式を外した盤面（r＝1）
+        int e = Catalog.EducationId;
+        double diffReach = b.Markets[e].LastDemand - a.Markets[e].LastDemand;
+        Assert.Equal(0.7 * Funding * PoorNeed(wb), diffReach, 9);
+        Assert.True(diffReach < c.Markets[e].LastDemand - OneMonth(0.001, funding: 0.0).Region.Markets[e].LastDemand, "前提が崩れた：届きの式が買いたい分を縮めていない");
+    }
 
     [Fact]
     public void 財源率が0なら何も足さない_買いたい分は財源率に比例する()

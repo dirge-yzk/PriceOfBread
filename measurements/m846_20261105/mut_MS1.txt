@@ -1,0 +1,15 @@
+RESTORED MS1 PriceOfBread.SimCore/MarketFlow.cs
+APPLIED MS1 PriceOfBread.SimCore/MarketFlow.cs
+filter: FullyQualifiedName~ServiceClosedTests
+test rc=1 4s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.ServiceClosedTests.天井の近くに張り付いた役務は閉じた式で日次と同じ値へ進む [946 ms]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 974 ms - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.ServiceClosedTests.天井の近くに張り付いた役務は閉じた式で日次と同じ値へ進む [946 ms]
+  エラー メッセージ:
+   閉じた式の誤差 1.00E-004 が 3e-5 を超えた
+  スタック トレース:
+     at PriceOfBread.Tests.ServiceClosedTests.天井の近くに張り付いた役務は閉じた式で日次と同じ値へ進む() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\ServiceClosedTests.cs:line 46
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+RESTORED MS1 PriceOfBread.SimCore/MarketFlow.cs

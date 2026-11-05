@@ -1,0 +1,52 @@
+ident start：ラベル=c69id 木=/d/PoB_work/wt_c69id 作業=/d/PoB_work/ident_c69id 腕=[a b t s] 開始=2026-11-05 09:23:41
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c69id（2026-11-05 09:57:39）===
+測った木：D:/PoB_work/wt_c69id（HEAD b00b1163・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c69id/scripts/instruments/ident/ident.cfg
+宣言： tests_delta=16
+腕 a：rc=1 end=2026-11-05 09:51:37
+腕 b：rc=1 end=2026-11-05 09:57:38
+腕 t：rc=0 end=2026-11-05 09:26:54
+腕 s：rc=0 end=2026-11-05 09:44:13
+測る木の SOURCE-HASH：f7cc4caabd56b873
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: f7cc4caabd56b873
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m839
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m839.cost
+  ✗ 不一致：素の 5 種の .cost：件数の行 2 本が違う
+      海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州
+         新 1947035	0.02000	0.04
+         基 None
+      海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit
+         新 None
+         基 1947035	0.02000	0.04
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: f7cc4caabd56b873
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m839_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m839_ins.cost
+  ✗ 不一致：計器つき 10 種の .cost：件数の行 2 本が違う
+      海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州
+         新 1946888	0.02000	0.04
+         基 None
+      海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit
+         新 None
+         基 1946888	0.02000	0.04
+[計器の表] 腕 D:/PoB_work/ident_c69id/out_ib_10/ins  対  基準 D:/PoB_work/keep_845/base_ins
+  基準 1068 本・腕 1068 本・バイト一致 1048 本
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1048・既知の揺れ 20・宣言された増減 0）
+[注視の表] mon_ib_10.txt 対 mon_20261105_m839.txt（タグの行を除く）
+  ○ タグの行以外が一致（4686 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 81 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_c69id/measurements/ng839_20261105:m839）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2260（基準 2244+16 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+不一致の理由 2 件：
+  - 素の 5 種の .cost：件数の行 2 本が違う
+  - 計器つき 10 種の .cost：件数の行 2 本が違う
+判定: 不一致

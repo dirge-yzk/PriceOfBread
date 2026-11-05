@@ -1,0 +1,15 @@
+RESTORED ME3 PriceOfBread.SimCore/EconomyStep.cs
+APPLIED ME3 PriceOfBread.SimCore/EconomyStep.cs
+filter: FullyQualifiedName~StateEduDemandTests
+test rc=1 3s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.StateEduDemandTests.高等教育の補助も同じ型_供給が無い月は予算の天井ぶんだけ需要へ足す [4 ms]
+失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.StateEduDemandTests.高等教育の補助も同じ型_供給が無い月は予算の天井ぶんだけ需要へ足す [4 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 1.6666666670000001 (rounded from 1.6666666666666667)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.高等教育の補助も同じ型_供給が無い月は予算の天井ぶんだけ需要へ足す() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 153
+RESTORED ME3 PriceOfBread.SimCore/EconomyStep.cs
