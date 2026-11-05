@@ -1,0 +1,19 @@
+(854) c70id：最終の木（HEAD＝試験・注・Discovery の 1 行をコミット済み）のフルスイート（suite854.sh・Release・Category!=FullLength と =FullLength を分けた）・savetest・leakhunt
+list nonfull 2298
+list full 3
+nonfull rc=0 892s
+full rc=0 188s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2297、スキップ:     1、合計:  2298、期間: 14 m 49 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 6 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 183s
+保存 46.3MB（534ms）／読込 493ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 317・その月の額の和 3.353E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c70id_suite/leakhunt.txt　マニフェスト=D:/PoB_work/c70id_suite/leakhunt.txt.manifest（SOURCE-HASH=d60fab531d9072a1）
+SL-END 17:05:29
+SAVELEAKDONE
