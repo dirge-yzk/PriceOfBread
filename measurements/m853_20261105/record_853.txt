@@ -24,7 +24,7 @@
 - ident_check.py の表示：1 つの表を 1 つの区分にだけ数える（優先＝宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ）。判定（bad_missing・bad_only・real）・FAILS・MISSING は変えていない。表示に〈内訳〉の行を足した。T9（test_ident_display853.py）：新＝緑（内訳の和 4＝共通の表 4）・旧（二重計上を戻す）＝赤（和 6）。二重計上は 2 か所：cearn_s の grown と known、rows_grown と grown の両方（旧の表示では 4 本の表が 6 と数えられた）。
 - mkm852.py：ident.cfg の KNOWN を ic.parse_known で読み、既知の表に ic.cols_diff を当てる。試し（test_mkm852_known853.py）：新＝(a) 緑・(b) 緑・旧＝(a) 赤。
 [5] c69hl の残り
-- run847.sh・gate847.sh（門 1）：n839a・a839 の 2 組で an・比の表ともバイト一致（gate1_2sets_853.txt）。**16 組全部は D:/PoB_work/c70gt_work/gate1full.mark で回したが、この記録を書いた時点では未完（完了は報告に書く）**。
+- run847.sh・gate847.sh（門 1）：生が今ある 16 組の全てで an・比の表とも measurements/m840_20261105/ の写しとバイト一致（gate1_all_853.txt・4 本並走＋先に 2 組）。
 - mut847.sh に MU9（--base の割り当てを別の腕の物へずらす）と MU10（--board の割り当てをずらす）を足した。
   **結果の後の追記**：最初の MU9（--board をずらす）と次の MU9（--base をずらす）は、実の生では件数も恒等の門 3 も MU0 と同じ＝**赤にならなかった**（基線の割り当てが違っても (i)(ii) の件数が動かない。--board は記録 (b) の世代にだけ使う欄）。そこで loo847.py に〈割り当ての表〉（holclass840 へ実際に渡した基線と盤面）を出させ、mut847.sh が期待（$BASE・$BOARD）と突き合わせる列を足した＝MU0 0/17・MU9 4/17・MU10 12/17。割り当ての写し間違いは件数でなく割り当ての表で赤になる。
 - arm847.sh：git の中身は元から LF（git ls-files --eol の i/lf）。足したのは an_h2 と ratio840 の出力に `tr -d '\r'`（Windows の CRLF を避ける）。S11 の呼び方は頭書きの 1 行。
@@ -34,4 +34,6 @@
 - 固定の盤面（po）は事前登録で〈約 220 四半期〉と書いたが、選んだ L＝120 に合わせて 260 四半期にした（窓の後に母集合の行が残る長さ）。
 - c9gd/removed_cols_selftest.py と c10tg の同種の試しは、基準の silverpar_s1.tsv から列 fiscalBAt3Count が既に消えており回せない（古い試し・この線の持ち物ではない）。
 - 計器を月の末に撮る直し（Rehome の前に売れた量を撮る）は計器の変更＝別の恒等の線の候補。
-- GoodIdGuardTests・InstrumentsTests（隔離ビルド D:/PoB_work/c70gt_art）：合格 83・失敗 0（台本を足した後・最後のコミットの前に 1 回）。.cs の変更 0 行（git diff --stat -- '*.cs' が空）。ident は回していない。
+- GoodIdGuardTests・InstrumentsTests（隔離ビルド D:/PoB_work/c70gt_art）：合格 83・失敗 0（台本を足した後・loo847/mut847/run847 の最後の編集の前）。最後の編集の後に GoodIdGuardTests だけ回し直した：合格 43・失敗 0。.cs の変更 0 行（git diff --stat -- '*.cs' が空）。ident は回していない。
+- 作業の事故（名乗り）：16 組の門 1 を回すとき、止めた背景の仕事の子プロセスが残り、同じ出力フォルダへ 2 本が書いていた。孤児を止めて、そのフォルダを消して 1 本で回し直した（結果は上の 16 組）。
+- gates/NOTE_po853.txt（sha256 の対象外）に po の受け渡しの注意（L の規則が情報を持たない・W_C が細い）を置いた。
