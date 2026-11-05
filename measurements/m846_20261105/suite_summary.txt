@@ -1,0 +1,9 @@
+list nonfull 2260
+list full 3
+nonfull rc=0 2033s
+full rc=0 227s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2259、スキップ:     1、合計:  2260、期間: 33 m 51 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 44 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
