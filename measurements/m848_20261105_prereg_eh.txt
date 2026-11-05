@@ -96,3 +96,12 @@ cearn_s の経路の 3 列（outTop1Route・outTop2Route・inTop1Route）：旗 
 突然変異（measurements/m848_20261105/mutation.txt）：§5 の表どおり、E0〜E4 は全て少なくとも 1 本の試験で赤。表より余分に赤：E2 で〈人数 0 の POP が在庫を持たない州は旗 1 でも変わらない〉・E3 で同じ試験（どちらも形どおり）。
   〈州に人の居る POP が無ければ動かない〉はどの突然変異でも緑＝受け手の人数の和の門は World.Transfer の受け手不在の門が二重に守る＝EmptyPopEstate だけの突然変異では落とせない（名乗る）。
 基線とヌル腕 3 世代の止める線の数え直し（同じ台本 scripts/instruments/c69eh/stoplines848.sh・出力 measurements/m848_20261105/stop_null/）。
+
+== §10 追記（2026-11-05・点火 6d71ed93 の後・腕 B の前＝旗 1 のフルスイート〔㉜〕の結果・measurements/m848_20261105/suite_flag1.txt）
+--list-tests は Category!=FullLength 2251・FullLength 3（ident と同じ）。FullLength 3 本合格・中止 0。Category!=FullLength は 2246 合格・スキップ 1・失敗 4：
+  ①WriterRatchetTests の計算量の表 3 行（item 9〈清算：着値の充填〉34,767,013→28,790,685・item 1〈価格：日次の写像の回〉18,448,309→14,079,089〔どちらも 10% を超えて下がった〕・item 11〈外交：覇権の判定の国×国〉2,787,201→3,382,172〔増えた〕）
+     ＝§6 の予言どおり★(749) の〈軌道の件数を写しただけの番人〉＝機構の赤ではない＝線では取り直さない（赤のまま・合流の木で 1 回だけ）。item 11 は★(749) の注意の行。
+  ②EmptyPopEstateTests〈計器の列は移った額を読み_出と入りが州の中で閉じる〉＝試験の前提〈国 1 は旗 0〉を既定に頼っていた（点火で既定が 1 になり国 1 も移した）＝前提の明示だけを直した（★(826) ② の型・機構の主張の Assert は同じ式のまま）：
+     diff：`w.Coef.EmptyPopEstate = 1;   // 国 0 だけ旗 1（国 1 は旗 0＝移さないが due は数える）` の次の行に `sim.Nations[1].World.Coef.EmptyPopEstate = 0;   // 前提を既定に頼らず明示（点火の後の既定は 1）` を足した。
+     Assert（`if (c[Ix("nation")] != nation0) Assert.Equal(0.0, moved);` ほか）は 1 字も変えていない。直した後は 7 本合格。
+savetest OK（12 四半期後も全 61 カ国が継続系列と一致）・leakhunt 完走（200 四半期・保存則違反なし・説明できない増減 0）。＝腕 B を回す（赤は①の区分と②の前提だけ）。

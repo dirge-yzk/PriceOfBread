@@ -1,0 +1,20 @@
+(848) c69eh 旗 1 の木（6d71ed93＋試験の前提の明示）のフルスイート（㉜・隔離ビルド D:/PoB_work/c69eh_suite/art）
+--list-tests：Category!=FullLength 2251・FullLength 3（ident.cfg の 2244＋7＝2251・3）
+== nonfull
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 34767013) [12 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 18448309) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2787201) [< 1 ms]
+  失敗 PriceOfBread.Tests.EmptyPopEstateTests.計器の列は移った額を読み_出と入りが州の中で閉じる [150 ms]
+失敗!   -失敗:     4、合格:  2246、スキップ:     1、合計:  2251、期間: 30 m 15 s - PriceOfBread.Tests.dll (net10.0)
+== full
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 12 s - PriceOfBread.Tests.dll (net10.0)
+== 前提を明示した後（EmptyPopEstateTests だけ）
+成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== savetest・leakhunt（旗 1 の木）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+== WriterRatchetTests の計算量の表（★(749)・線では取り直さない・合流の木で 1 回だけ）
+計算量「清算：着値の充填」が 28790685 件（宣言 34767013）＝10 % を超えて**下がった**＝表�
+計算量「価格：日次の写像の回」が 14079089 件（宣言 18448309）＝10 % を超えて**下がった**�
+計算量「外交：覇権の判定の国×国」が 3382172 件（宣言 2787201・許し +2 %）＝**増えている*

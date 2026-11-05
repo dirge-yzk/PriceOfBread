@@ -145,6 +145,7 @@ public class EmptyPopEstateTests
             sim.StepQuarter(); Instruments.Quarter(sim, 1854UL, 0);   // 四半期 0 は旗 0 のまま（台帳を始める）
             MakeEmpty(w, r0, 900, 300);
             w.Coef.EmptyPopEstate = 1;   // 国 0 だけ旗 1（国 1 は旗 0＝移さないが due は数える）
+            sim.Nations[1].World.Coef.EmptyPopEstate = 0;   // 前提を既定に頼らず明示（点火の後の既定は 1）
             foreach (var n in sim.Nations) Instruments.Begin(n.World);   // 月初の登録
             foreach (var n in sim.Nations) EmptyPopEstate.Step(n.World);
             Instruments.Quarter(sim, 1854UL, 1);
