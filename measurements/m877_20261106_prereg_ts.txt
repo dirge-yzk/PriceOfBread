@@ -1,0 +1,91 @@
+(877) c73ts 事前登録：自給の段 2′ Σ2′＝技術の比 T を自給の 3 か所（焼く ρ・σ・(b′) の lneed）から外す（挙動の線・1 回目・3 回の規則の 1 回目）
+書いた者：Claude Opus 5.5（c73ts の担当）。木の出発 70b27755（main・基線 m873＝合わせた木 b63d5453）。worktree D:/PoB_work/wt_c73ts・枝 c73ts。
+作ったフォルダ：D:/PoB_work/wt_c73ts・D:/PoB_work/c73ts_work（この回の終わりに自分で片付ける）。
+このファイルは最初のコミット。数を足すときは末尾の〈追記〉に理由つきで書く（腕の前）。
+
+[0] 名乗り
+- 形の種類：入口（全ての自給の担い手の州の月の頭の 1 行＝SubsistenceHead と、月の末の (b′) の FarmUnemploymentStage2）。
+- 出所：00一覧 §00〈次の波（波73〜）〉④・(872) c72ds 下書き §2-2 案 Σ2′（AI の案・確証なし）・§7 の反証役の訂正 1（lneed も外す）と 3（GC の上限）。
+- 作者の言葉：作者 2026-11-04 の自給の言葉と AI の推奨（売る量＝作った量−世帯が食べる量・技術は自給も 1 本のレシピとして既存の発見と改良に乗せる）を〈作者「全て推奨で」で推奨を採った〉。作者の原文「技術向上(農薬など）の出現と共に、売却割合が増える方が自然」。
+- §0-2 ★(873) ⓪ の Q1〈自給の世帯は市場の農場が買った肥料・農薬の効き目を、買わずに得てよいか〉は推奨〈掛けない〉で進める（知らせる物・異論があれば作者が止める）＝この線の前提。
+- 確証：形は AI の案（確証なし）。〈買った財の効き目を、買わない世帯が得る〉は思想⑨（二重計上）の型＝外すのが物の筋という読み（AI）。
+
+[1] 形（旗 SubsistenceNoBoughtTech・器では既定 0・点火で 1）
+- EconomyStep.cs SubsistenceHead（:112）と FarmUnemploymentStage2（:133）の t を、旗が正なら 1.0 にする（StapleEffTech を呼ばない）。:118（焼く ρ＝d×need×n÷(u×t)）・:122（σ＝min(1, ρ×u×t÷(need×n))）・:134（lneed＝need×n÷(ρ×t)）の式は触らない。
+  ＝旗 1：ρ′＝d0×need×n÷U・σ＝min(1, ρ′×U÷(need×n))・lneed＝need×n÷ρ′。焼いた月の σ＝d0（旗 0 と同じ）・焼いた月の lneed＝U÷d0（旗 0 と同じ＝焼いた時の T と同じ T）。
+- 旗 0：同じ呼びと同じ式＝1 ビットも変わらない（ident で確かめる）。×1.0 と ÷(u×1.0) は IEEE で厳密＝T≡1 の盤面では旗 0 と旗 1 が同じビット（試験 技術の比が1の盤面では旗0と旗1が同じビット）。
+- 3 か所を同じ旗で外す理由：(872) 反証役 ①〔中〕＝ρ を T なしで焼き lneed だけ T を残すと、焼いた月の L が U0÷(d0×T0) になり開幕の失業が T0 倍ずれる（分子と分母の非対称）。
+- 市場の RGO の側（StapleEffTech の定義・EffFill・EffBoost）は変えない。subst_s の列（InstrumentsSubst.cs）は変えない。
+- Coefficients.cs は :530 の直後に 1 行だけ。DormantIdentityTests.cs は :29 の直後に旗の行 1 行（点火で外す）。
+- 計算量の割り当て：0 以下（旗 1 は StapleEffTech を 1 州×月に 2 回呼ばない＝減る向き）。
+
+[2] 門（両側・腕 B〔種 1〜10〕と S11 に当てる・台本 scripts/instruments/c73ts/gates_ts877.py・閾値の表 gates_ts877_thresholds.tsv＝m873 の base_ins・N1・N2 の生だけから --make-thresholds が置く・腕を見ない）
+- 写しの元は c72gt/gates_ss867.py。G1a・G1b・G4m の式は 1 字も変えずに写した。
+- **指示から外れる所（README §1-7・報告の先頭に書く）**：指示は〈G2 の式だけを Σ2′ へ〉だったが、計器 subst_s の s2 の列は S1-a の式（ρ_inst＝d0×need×n÷(u×t)・lneed_inst＝need×heads÷(ρ_inst×tE)）で書かれ、InstrumentsSubst.cs はこの線が触れない。旗 1 の正しい実装でも s2BakeRhoRelDiff＝|T0−1|・s2UnempB と s2UnempEngine は tE≠T0 の行で食い違う（m873 の base_ins 種 1：RhoSource＝1・BasisKind＝2 の 205,744 行のうち T0≠1 が 152,972 行）＝G3a・G4 を 1 字も変えずに写せば正しい実装が赤。G3a と G4 も Σ2′ の量へ直す（下の diff）。
+- Σ2′ の量（台本が計器の列から数える＝エンジンの関数を呼ばない）：
+    ρ′＝s2RhoInst×s2Tech0Inst
+    σ′＝min(1, s2SigmaInst×s2Tech0Inst÷s2TechHead)（s2SigmaInst＜1）・s2SigmaInst≧1 かつ T≦T0 なら 1・s2SigmaInst≧1 かつ T＞T0 は〈決まらない行〉（σ′∈[T0÷T, 1]）
+    E′＝s2UEnd−need×s2HeadsEnd÷ρ′・ub′＝clamp01(E′÷s2CapEnd)（能力 0 以下は 0）
+- 決まらない行の扱い（腕を見る前に決める）：G2 は別勘定（σ_e が [T0÷T−1e-9, 1+1e-9] の内）・G5p は nan で外す・GC は下限 T0÷T で近似（〈近似〉と名乗る）。件数は追記 [A1] に 30 本で数えて書く。
+- G1a 働いた（下側）・G1b 上側：867 の式のまま（P1＝売れ残りの割合が開幕より下がった行）。
+- G2 実装の一致（Σ2′）：σ＜1 の行・σ＝1 の行で |s2SigmaEngine−σ′|≦1e-9 が全行・下限 σ＜1 10 万行・σ＝1 100 行（種 10 の倍率）・決まらない行は幅の内が全行。
+    diff：867 `if abs(se - si) <= 1e-9` → 877 `if abs(se - r["sig2"]) <= NEED_TOL`（si＝s2SigmaInst は記録の行〈G2（S1-a の列そのまま）〉へ残す）。
+- G3a 焼いた月（Σ2′）：焼いた州ごとに |s2BasisEngine÷ρ′−1|≦1e-9 かつ s2BakeSigmaDiff≦1e-9・下限 2000 州。
+    diff：867 `if r["s2BakeRhoRelDiff"] <= 1e-9 and r["s2BakeSigmaDiff"] <= 1e-9` → 877 `rel = abs(r["s2BasisEngine"] / r["rho2"] - 1.0)`・`if rel <= 1e-9 and r["s2BakeSigmaDiff"] <= 1e-9`。
+- G4 失業 (b′)（Σ2′）：持ち主が変わった行を外した後、E′＞0 の行で |s2UnempEngine−ub′|≦1e-9・E′≦0 の行で s2UnempEngine≦1e-12・下限 E′＞0 400 行・E′≦0 10 万行。
+    diff：867 `e, ue, ub = r["s2EEnd"], r["s2UnempEngine"], r["s2UnempB"]` → 877 `e, ue, ub = r["e2"], r["s2UnempEngine"], r["ub2"]`。
+- G4m 印の乱用の止め：867 の式のまま（候補＝RhoSource＝1 かつ s2EEnd 有限・外した E＞0 の割合≦G4m_limit）。閾値は 867 と同じ規則（3 本の割合の最大の 3 倍）を m873 の 3 本で数え直す。
+- G5b 壊さない（σ の外の経路）：P5（売れた÷能力が開幕から 0.01 の内）の行で dB＝d0×(H_腕−H_基線)（H＝engineSubOutputPerMonth÷nominalSubPerMonth＝収穫係数）・|dB の中央|≦w の中央（w＝基線・N1・N2 の s の範囲）。
+    diff：867 `dF = r["s"] - hH * r["s2D0Inst"]; L["G5b dB"].append(d - dF)`（＝H_腕×d0−s_基線）→ 877 `L["G5b dB"].append(d0 * (r["hf"] - hb))`。867 の基線（段 2 の旗 0）では s_基線＝H_基線×d0 で同じ値。m873 の基線は S1-a＝s_基線に σ の項が残る＝そのまま写すと正しい実装が H_基線×(d0−σ_基線) だけずれる。
+    ★(866) の〈構造的に恒真でないか〉：G5b は〈壊さない〉門（通るのが期待）＝恒真でないことは Mu2（σ の外の倍率）で赤になるかを紙で確かめる（[4]）。
+- G5p 働いた（大きさ）：窓ごとに |中央(dF_腕−x′_基線)|≦wp の中央（dF＝s−H×d0・x′＝H×(σ′−d0)・wp＝ヌル 3 本の x′ の範囲）・評価する窓（500 行以上・外す窓でない）が 2 以上で全て通る。外す窓＝閾値の表の一つ抜き（6 通りで落ちた通りが 2 以上）。
+    diff：867 の紙 x＝H×(s2SigmaInst−d0) → 877 x′＝H×(σ′−d0)。
+- GC 商業化の向き（両側＋上限・新しい）：升＝種×国×窓（開幕の窓 1783-85 を除く 4 窓）。κ＝1−Σ(subPopK×σ)÷ΣsubPopK（RhoSource＝1・BasisKind＝2 の行）・soc＝ΣfarmSold÷ΣfarmCap。Δ＝窓の値−開幕の窓の値。
+    腕の Δκ は s2SigmaEngine・紙の Δκ_紙は基線の σ′。Δsoc は基線（m873）の値。w_κ・w_soc＝ヌル 3 本の升ごとの範囲の中央。
+    上がった升（Δsoc_基線＞w_soc）で 中央(Δκ腕−Δκ紙)≧−w_κ・下がった升（Δsoc_基線＜−w_soc）で 中央≦w_κ・両方の升の |中央|≦w_κ・升の数の下限＝基線の紙の升の数の半分（閾値の表）。
+    〈旗 0 で落ちる〉の意味：この線の旗 0 は S1-a（κ は動く）＝Δκ(S1-a)−Δκ_紙(Σ2′) が w_κ を超えて落ちるかを紙で数える（下書きの〈旗 0 は Δκ＝0〉は段 2 の旗 0 の話で、ここでは成り立たない）。
+- 対照：σ′÷d0 が 1±0.02 の内の行（基線の紙）で |中央(σ_e÷d0−σ′_基線÷d0)|≦ヌル 3 本の σ′÷d0 の範囲の中央・下限 1000 行（種 10 の倍率）。
+- no-go（紙を数える前に固定）：(a) ident が〈判定: 恒等〉でない (b) 紙で G5p の dF_紙（Mu0〔S1-a〕と Σ2′ の差）が全ての評価の窓でヌル腕の幅の内（＝旗 1 の効きが見えない） (c) GC の上か下の升の数が下限に足りない (d) 紙の正しい実装（OK）が門のどれかで赤＝門の不具合（腕を回さず直すか止める）。
+- 紙で閾値の 3/4 以上に寄る門は㉗の形で名乗る（追記 [A2]）。
+
+[3] 止める線（この回の運用のまま・腕 B・S11 に当てる・m873 のヌル腕の件数を並べ・m852 は記録）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能＝シミュが止まる）・発散（価格水準 1e10 倍・開幕の 1000 倍）・空洞化 1/10 未満（holclass839.py・規則 A2＝T1・腕の〈線が原因〉も数える・基準は m873 の armM/stop_mM.txt と armS11/stop_mS.txt）・〈100 倍〉の〈それ以外〉（gdp_jump797.py・gdp_jump833.py）・名目 GDP 0 の続き（m808/gdp_zero10.py・記録の先頭）・推定の計算量＞248.5 秒・機構の番人の赤（SubsistenceStage2Tests・SubsistenceNoBoughtTechTests・FoodLedgerTests・UrbanFlowRealTests・SubstInstrumentTests・RdhInstrumentTests と走査の番人 7 組）・savetest・leakhunt。
+- 数え方は m866/stoplines866.sh（種の起点 1 か 11）。holsplit867 の L2 は免除に使わない。T1 の一つ抜き（r847/loo847.py）は記録。
+- 空洞化の振り分け：基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉。
+- 記録（採否に使わない）：exact・near・NG（基準 rd:measurements/ng873_20261106:m873）・英の国債の不履行の種の数・nullgate の O・空洞化 1/4 未満の件数・食べる割合の開幕の値（0.695 前後か）・市場へ出す割合の窓ごとの値（(870) の S11 の 1786-99 0.336→1850-99 0.423→1900-50 0.331 と並べる）・技術の比の上位と下位 1/4 の升の Δκ の差・σ が 1 に張り付く州×四半期・農民の失業・植民地格の飢えの死と空洞化 1/4 未満。
+- 採否は種 11〜20 の止める線まで読む（★(802)・★(832)）。S11 の門は〈近似・記録〉（ヌル腕が a11 の 1 本）。
+
+[4] 突然変異（紙と使い捨ての木の単体の試験・腕は回さない）＝どの門で赤か（見込み＝紙で確かめる前・確かめた物は追記 [A3] で分ける）
+- この線の旗 0 は S1-a＝下書きの Mu0 と Mu1（T を残す）は同じエンジン＝Mu0 に畳み、Mu1 を〈σ だけ T を残す（焼き・lneed は T なし）〉に定義し直した。
+| 突然変異 | G2 | G3a | G4 | G5b | G5p | GC | 単体の試験 |
+| OK 正しい実装（紙） | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+| Mu0 旗 0（S1-a・3 か所に T） | 赤 | 赤 | 赤 | 緑 | 赤（1850 年以後） | 赤 | 焼き・頭・lneed・失業の 4 本が赤 |
+| Mu1 σ だけ T を残す | 赤 | 赤（焼いた月の σ＝d0×T0） | 緑 | 緑 | 赤 | 赤 | 頭の試験が赤 |
+| Mu2 σ の外の倍率（自給の産出に収穫係数をもう 1 回） | 緑 | 緑 | 緑 | 赤 | 赤か緑 | 緑 | T≡1 の同じビットの試験が赤（旗 1 だけに入れた場合） |
+| Mu3 U を開幕の値に固定 | 赤 | 緑 | 緑 | 緑 | 赤 | 赤か緑 | 紙だけ |
+| Mu4 cap÷人数で割る（Σ3） | 赤 | 緑 | 緑 | 緑 | 赤（植民地格） | 記録 | 紙では作らない（見込み） |
+| Mu5 σ と焼きは T なし・lneed に T | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 必要な労働の試験・失業の試験が赤 |
+| Mu6 効きを 2 倍（T0÷T を 2 回） | 赤 | 緑 | 緑 | 緑 | 赤 | 赤（上限） | 紙だけ |
+- 紙の突然変異は基線（S1-a の盤面）の行から、その形のエンジンが書いたはずの σ_e・s・H・ρ_e・失業を作る（盤面の応答は入れない）：gates_ts877.py --paper-mut。
+- 使い捨ての木の単体の試験：Mu1・Mu2（旗 1 の時だけ）・Mu5 をそれぞれ別の木で SubsistenceNoBoughtTechTests に当てる。出力は measurements/m877_20261106/ にコミット。
+
+[5] ソースを走査する番人の点検と予言
+- 器のコミットの直後に 7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）を隔離ビルドで回す。
+- 変わる件数の予言：工業化度の読み手の許可表 0・`new MoneyStock(` 0・route_anchors.tsv の鍵の行 0（EconomyStep の 2 行は既存の行の中の三項演算）・WriterRatchetTests の宣言の表は器で 0。
+- 旗 1 の木（点火）で赤になりうる WriterRatchetTests は item 2〈建設：見た生産者（旬）〉（1 種 40 四半期の軌道）。T の呼びが減る向き＝計数の行（自給の頭）を持つ item は無い＝item 2 だけの予言。予言に無い赤は止める（★(778)）。
+- --tests-delta：新しい Fact 5 本（SubsistenceNoBoughtTechTests）。
+
+[6] 旧の規則を固定する番人の予言と直し方（旗 1 で赤になったときだけ・★(832) ① (a) の型）
+- 予言：SubsistenceStage2Tests の 旗1は助走の後の最初の月に_開幕の割合を保つ_rhoを焼く・旗1の農民の失業は必要量を作る労働を超えた売れ残りだけ_両側・旗1の焼きは主食のRGOの効率化材の倍率で割る_技術の比 の 3 本（期待値に Tech() を掛ける）と、SubstInstrumentTests の 自給の段2の列は旗0と旗1で計器とエンジンを並べる(1.0)（計器は S1-a の式＝s2SigmaInst・s2BakeRhoRelDiff・s2UnempB）が赤の見込み。範囲だけの 2 本（min1・旗 0）と植民地の写しは緑の見込み。
+- 直し（赤になった物だけ・diff は追記に引用してから直す）：初期化子に新しい旗 0 を置き〈旗 0（S1-a）の経路の番人〉にする＝
+    SubsistenceStage2Tests.cs Two()：`foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = flag;` → `foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; n.World.Coef.SubsistenceNoBoughtTech = 0; }`
+    SubstInstrumentTests.cs:185：`foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = flag;` → `foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; n.World.Coef.SubsistenceNoBoughtTech = 0; }`
+  Assert の式とリテラルは 1 字も変えない。旗 1 の経路は SubsistenceNoBoughtTechTests の 5 本が守る。この型の外の赤は止めて報告する。
+- 台帳の欄を書く線の点検（★(818)）：書く欄は Pop.SubsistenceShare・Pop.SubsistenceBasis・Pop.UnemploymentRate（形は同じ欄を同じ所で書く）＝`grep -ln 'StapleEffTech\|SubsistenceShare\|SubsistenceBasis' PriceOfBread.Tests/*.cs` の Assert を読んだ：FoodLedgerTests（SubsistenceShare を入力として読む＝式は旗によらない）・IdeaBoardLoadTests（旗 SubsistenceStage2＝0 を明示）・IdeaNeedBoardTests・UrbanFlowRealTests（SubsistenceShare を入力に使う手の算術）・WriterRatchetTests（宣言の表）＝赤の見込みなし。
+
+[7] 腕と D:
+- 腕 B（種 1〜10）：`POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c73tsB 10 1`（POB_CEARN=0＝cearn_s・cgrp_s・cpop_s を書かない宣言・この線の門は subst_s・region_s だけを読む）。台本 c73ts/armB877.sh に D: の床 30GB の exit。
+- S11：`POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c73tsS 10 11`（c73ts/s11_877.sh・床 30GB）。床が許せば腕 B と並べる。
+- 生を縮める：反証役が読んだ後、門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s と keepsum_all_tables.tsv）だけを残し、合流が読むまで残す。ビルドの写し src_* は腕が終わったら消す。
+- ident：器のコミットの木を別の worktree（D:/PoB_work/c73ts_work/tree_f0・detached）に置いて回す（㉙＝走行中に wt_c73ts へコミットしても判定の頭が動かない）。宣言は --tests-delta 5 だけ。判定と反証役の後に生を消す（要約は measurements/m877_20261106/）。
+- D: の空き：器のコミットの前に 63.99GB（2026-11-06・shutil.disk_usage）・arms.sh free 6。
