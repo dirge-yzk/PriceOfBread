@@ -1,0 +1,3 @@
+F1	rc=0	成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)	赤の試験：なし
+EU1	rc=1	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)	赤の試験：  失敗 PriceOfBread.Tests.ImportPayerLiveTests.旗1で人の居るPOPが0の州は輸入しない [6 ms],  失敗 PriceOfBread.Tests.ImportPayerLiveTests.旗1は人の居るPOPだけが払い人の居ない商人と他の州のPOPは払わない [10 ms]
+EU1b	rc=1	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)	赤の試験：  失敗 PriceOfBread.Tests.ImportPayerLiveTests.旗1で人の居るPOPが0の州は輸入しない [7 ms],  失敗 PriceOfBread.Tests.ImportPayerLiveTests.旗1は人の居るPOPだけが払い人の居ない商人と他の州のPOPは払わない [10 ms]
