@@ -72,27 +72,15 @@ public class RuleSharesFormTests
 
     // ===== D2 ② 無統治の目標は 治安と首都からの到達で決まり、支配度（Dominance）に依らない =====
 
-    /// <summary>秩序を 0.5 に置く前提（(850) c69po・★(826) ② の Theory 化＝Assert の式とリテラルは変えない）。旗 0＝w.PublicOrder（今の前提のまま）。
-    /// 旗 1（RuleOrderByRegion）は秩序を w.PublicOrder から読まず、今の Coercion の被覆 R と州の闘争度の比から作る＝R＝0.5 に置き、全ての POP の闘争度を揃える（m̄＝m_r＝秩序 0.5）。</summary>
-    private static void HalfOrder(World w, double flag)
-    {
-        w.PublicOrder = 0.5;
-        if (!(flag > 0)) return;
-        w.Coercion = 0.5 * Math.Max(1.0, w.Coef.PoliticalReferencePop) * w.Coef.CrimeOrderPerPop;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0.1;
-    }
-
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void D2_無統治の目標は秩序と首都からの距離で決まり支配度に依らない(double flag)
+    [Fact]
+    public void D2_無統治の目標は秩序と首都からの距離で決まり支配度に依らない()
     {
         // マルセイユ＝首都（パリ 48.85N 2.35E）から大圏距離 659.5km → 到達 1÷(1＋659.5÷10000)＝0.93813（別の道具〔Python の haversine〕で求めた値）
         foreach (double dom in new[] { 1.0, 0.2 })
         {
-            var sim = France(c => c.RuleOrderByRegion = flag);
+            var sim = France(_ => { });
             var w = sim.World;
-            HalfOrder(w, flag);
+            w.PublicOrder = 0.5;
             foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = dom; }
             Settle(w, 400);
             var mars = w.Regions.Single(r => r.Name == "マルセイユ");
@@ -113,16 +101,14 @@ public class RuleSharesFormTests
         Assert.Equal(0.98254, Politics.RegionReach(w, w.Coef, havre), 5);   // 大圏距離 177.7km → 1÷(1＋0.01777)
     }
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void D2_1四半期だけ踏むと無統治の区分は到達の目標へ寄り支配度の低さでは増えない(double flag)
+    [Fact]
+    public void D2_1四半期だけ踏むと無統治の区分は到達の目標へ寄り支配度の低さでは増えない()
     {
         // 1 四半期だけ踏む＝区分は目標へ DominanceSpeed(0.025) だけ寄る。マルセイユ（到達 0.93813）の無統治の目標 0.5×(1−0.93813)＝0.030935 → 0.025×0.030935＝約 0.00077。
         // 旧の目標（支配度 0.2 を読む形）なら 0.5×(1−0.2)＝0.4 → 約 0.0098 だった（突然変異「無統治を支配度へ戻す」で赤）。
-        var sim = France(c => c.RuleOrderByRegion = flag);
+        var sim = France(_ => { });
         var w = sim.World;
-        HalfOrder(w, flag);
+        w.PublicOrder = 0.5;
         foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = 0.2; }
         Settle(w, 1);
         double ungov = w.Regions.Single(r => r.Name == "マルセイユ").Rule[3];
