@@ -109,7 +109,7 @@ public static class EconomyStep
         }
         var (cap, lp) = HumanFarmLabor(region);
         double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
-        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef), need = StapleNeedPerCapita;
+        double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef), need = StapleNeedPerCapita;   // ★(877) 旗 SubsistenceNoBoughtTech が正なら技術の比 T を自給に掛けない（焼く ρ・σ の 2 か所＝×1.0 は厳密）
         for (int i = 0; i < pops.Count; i++)
         {
             var p = pops[i];
@@ -130,7 +130,7 @@ public static class EconomyStep
         var (cap, _) = HumanFarmLabor(region);
         if (!(cap > 0)) return 0;
         double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
-        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef);
+        double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef);   // ★(877) 同じ旗で (b′) の lneed からも T を外す（焼く ρ と同じ規則＝焼いた月の L は旗 0 と同じ）
         double lneed = StapleNeedPerCapita * lpop.Size / (lpop.SubsistenceBasis * t);
         return PoliticalQuantities.Clamp01((u - lneed) / cap);
     }
