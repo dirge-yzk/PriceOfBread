@@ -2731,7 +2731,7 @@ public sealed class Simulation
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
         // ★(650) 線 inh：相続法。旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。請求＝死者×1 人あたりの貯蓄×段の率×行政の届き（POP の走査の中・貯蓄はこの走査で書かない）
         //   ＝走査の後に 1 回の移転（POP→国庫・OtherIn）。戦死・疫病・鎮圧・粛清は対象外（KillPops に触らない）。
-        double estateRate = Government.InheritanceRate(World.Inheritance);
+        EmptyPopEstate.Step(World); double estateRate = Government.InheritanceRate(World.Inheritance);   // ★(848) c69eh：呼びを同じ行に置く（行番号を動かさない＝cearn_s の経路の名が変わらない）＝人の居ない POP の在庫を同じ州の人の居る POP へ（旗 EmptyPopEstate・0＝何もしない・相続の請求より前）
         World.LastEstateDutyPerMonth = 0;
         List<Pop>? estPayers = estateRate > 0 ? new List<Pop>() : null; List<double>? estClaims = estateRate > 0 ? new List<double>() : null; double estSum = 0;
         bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）

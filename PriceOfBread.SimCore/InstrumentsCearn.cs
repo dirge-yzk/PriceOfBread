@@ -27,7 +27,8 @@ public static partial class Instruments
         + "outTop1Route\toutTop1PerQuarter\toutTop2Route\toutTop2PerQuarter\tinTop1Route\tinTop1PerQuarter\t"
         + "localPriceMultiplier\tlocalPriceAtFloorFlag\tregionPriceLevel\tcostPriceLevel\tsavingsPerCapitaOverNation\tsavingsPerCapitaOverMainland\t"
         + "stapleGood\tstaplePrice\tstapleMarginalCost\ttop1Good\ttop1Price\ttop1MarginalCost\ttop2Good\ttop2Price\ttop2MarginalCost\ttop3Good\ttop3Price\ttop3MarginalCost\t"
-        + "belowSelfCostShare\tfactoryOutputRefValuePerMonth\textractionOutputRefValuePerMonth\tfrozenFlag\tpollClaimPerMonth\tearnedGrossPerMonth\ttaxRate\tpollTaxLevel";
+        + "belowSelfCostShare\tfactoryOutputRefValuePerMonth\textractionOutputRefValuePerMonth\tfrozenFlag\tpollClaimPerMonth\tearnedGrossPerMonth\ttaxRate\tpollTaxLevel\t"
+        + "emptyPopSavings\testateDuePerQuarter\testateNoHeirPerQuarter\testateMovedPerQuarter\testateInPerQuarter\testateOutFromLivePerQuarter\testateInToEmptyPerQuarter\testateRecvPerCapitaSpread";   // (848) 末尾 8 列＝相続 R1
 
     /// <summary>台帳の列（流入 7・流出 9）。<see cref="CearnColumn"/> の返り値。</summary>
     internal enum CearnCol : sbyte
@@ -44,9 +45,10 @@ public static partial class Instruments
         public double Start = double.NaN; public bool Started;
         public int Late;
         public double StateSpend, StateTake;
+        public double EstDue, EstNoHeir, EstMoved, EstIn, EstOutLive, EstInEmpty, EstSpread, EstMin = double.PositiveInfinity, EstMax = double.NegativeInfinity;   // (848) 相続 R1 の列
         public readonly Dictionary<(string File, int Line, SavKind Kind, char Cp), double> Out = new(), In = new();
         public readonly CgAcc[] G = [new(), new(), new(), new()];   // (829) 階級の群の台帳（群の番号＝CgGroupOf）
-        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); }
+        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, CearnAcc> CearnAccs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CearnAcc> CearnPopAcc = new();
@@ -130,6 +132,7 @@ public static partial class Instruments
             cw.QFlow[(int)col] += isIn ? delta : -delta;
             if (col == CearnCol.OutTax && cw.InWin) cw.WinTax -= delta;
         }
+        if (routed && CearnFileName(file) == "EmptyPopEstate.cs") EstateSav(a, cw, p, kind, delta);   // (848) 相続 R1 の列（実際に移った額＝台帳の書き込み）
         if (!routed) return;
         var key = (file, _routeLine, kind, cp);
         var d = isIn ? a.In : a.Out;
@@ -306,6 +309,8 @@ public static partial class Instruments
                 for (int k = 0; k < 3; k++) { cols.Add(sn.TopGood[k] >= 0 ? Catalog.Goods[sn.TopGood[k]].Name : "-"); cols.Add(F(sn.TopPrice[k])); cols.Add(F(sn.TopMc[k])); }
                 cols.Add(F(sn.BelowSelfCostShare)); cols.Add(F(sn.FacOut)); cols.Add(F(sn.ExtOut)); cols.Add(I(sn.Frozen));
                 cols.Add(F(sn.PollClaimPerMonth)); cols.Add(F(sn.EarnedGrossPerMonth)); cols.Add(F(w.TaxRate.Value)); cols.Add(F(w.PollTax));
+                EstateFold(a);   // (848) 相続 R1 の末尾 8 列
+                cols.Add(F(EstateEmptySavings(r))); cols.Add(F(a.EstDue)); cols.Add(F(a.EstNoHeir)); cols.Add(F(a.EstMoved)); cols.Add(F(a.EstIn)); cols.Add(F(a.EstOutLive)); cols.Add(F(a.EstInEmpty)); cols.Add(F(a.EstSpread));
                 sk.W.WriteLine(string.Join('\t', cols));
                 if (r.Tier == RegionTier.Colonial) CgRows(sk, seed, q, w, nation, r, a, sn.Savings, inSum - outSum);   // (829) 植民地格の州だけ群の行
                 a.Clear(); a.Start = sn.Savings; a.Started = true; CgReset(a, r);
@@ -362,6 +367,7 @@ public static partial class Instruments
         public double QStart = double.NaN; public int QLate, QMonths;
         public double QMonthStart, QMonthEnd, QWin, QEarned, QLand, QInd, QPaid, QSub, QPoll, QInc;
         public int QClaimed, QEmptied, QPos, QEmptiedPos;
+        public double QEstOut, QEstIn;   // (848) 相続 R1 の出と入り
         public readonly int[] QStuck = new int[CpStuckKinds];
         /// <summary>四半期の始まり（州の台帳と同じ時点）：POP の四半期の台帳を戻し、始まりの在庫を取る。</summary>
         public void QReset(double start)
@@ -370,6 +376,7 @@ public static partial class Instruments
             QStart = start; QLate = 0; QMonths = 0;
             QMonthStart = QMonthEnd = QWin = QEarned = QLand = QInd = QPaid = QSub = QPoll = QInc = 0;
             QClaimed = QEmptied = QPos = QEmptiedPos = 0;
+            QEstOut = QEstIn = 0;
         }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CgPop> CgPops = new();
@@ -425,6 +432,67 @@ public static partial class Instruments
             }
     }
 
+    // ---------------------------------------------------------------- (848) 相続 R1 の列（読むだけ・恒等・事前登録 measurements/m848_20261105_prereg_eh.txt §4 G2） ----------------------------------------------------------------
+    // cearn_s の末尾 8 列（全ての国の全ての州×四半期）：emptyPopSavings＝四半期の末の断面の人数 ≦1e-12 で在庫が正の POP の在庫の和／estateDue・estateNoHeir＝EmptyPopEstate.Step の頭で計器が自分で数えた
+    //   〈その月に移るはずの額〉（旗に依らない・受け手の人数の和 ＞1e-9 の州＝due・それ以外＝noHeir）の四半期の和／estateMoved・estateIn＝移し方の 1 本の呼び手が EmptyPopEstate.cs の
+    //   書き込み（払い手の出・受け手の入り）／estateOutFromLive＝人数 ＞1e-12 の払い手の出／estateInToEmpty＝人数 ≦1e-12 の受け手の入り／estateRecvPerCapitaSpread＝月ごとの受けた額÷受け手の人数の
+    //   (最大−最小)÷最大の四半期の最大。cpop_s の末尾 2 列＝POP ごとの出と入り（四半期の和）。
+    // ⚠限界：①登録は月初＝月の途中で現れた POP の書き込みは台帳の外 ②広がりは受け手の書き込みの時点の人数で割る ③due は旗 0 でも数える（反実仮想）＝旗 1 の腕では前の月の移しの後に入った額。
+    static void EstateSav(CearnAcc a, CgPop? cw, Pop p, SavKind kind, double delta)
+    {
+        if (kind == SavKind.Take)
+        {
+            a.EstMoved -= delta;
+            if (p.Size > 1e-12) a.EstOutLive -= delta;
+            if (cw is not null) cw.QEstOut -= delta;
+        }
+        else if (kind is SavKind.Give or SavKind.GiveIncome)
+        {
+            a.EstIn += delta;
+            if (!(p.Size > 1e-12)) a.EstInEmpty += delta;
+            else { double x = delta / p.Size; if (x < a.EstMin) a.EstMin = x; if (x > a.EstMax) a.EstMax = x; }
+            if (cw is not null) cw.QEstIn += delta;
+        }
+    }
+
+    /// <summary>月の受けた額÷人数の広がりを四半期の最大へ畳む（<see cref="EstateDue"/> の頭と四半期の行の前）。</summary>
+    static void EstateFold(CearnAcc a)
+    {
+        if (a.EstMax >= a.EstMin)
+        {
+            double d = (a.EstMax - a.EstMin) / System.Math.Max(System.Math.Abs(a.EstMax), 1e-300);
+            if (d > a.EstSpread) a.EstSpread = d;
+        }
+        a.EstMin = double.PositiveInfinity; a.EstMax = double.NegativeInfinity;
+    }
+
+    /// <summary>EmptyPopEstate.Step の頭（旗に依らない）：その月に移るはずの額を計器が自分で数える。</summary>
+    internal static void EstateDue(World w)
+    {
+        if (!CearnOn) return;
+        foreach (var r in w.Regions)
+        {
+            if (!CearnAccs.TryGetValue(r, out var a)) continue;
+            EstateFold(a);
+            double e = 0, live = 0;
+            foreach (var p in r.Pops)
+            {
+                if (p.Size > 1e-12) live += p.Size;
+                else if (p.Savings.Value > 0) e += p.Savings.Value;
+            }
+            if (!(e > 0)) continue;
+            if (live > 1e-9) a.EstDue += e; else a.EstNoHeir += e;
+        }
+    }
+
+    /// <summary>四半期の末の断面：人数 ≦1e-12 で在庫が正の POP の在庫の和。</summary>
+    static double EstateEmptySavings(Region r)
+    {
+        double e = 0;
+        foreach (var p in r.Pops) if (!(p.Size > 1e-12) && p.Savings.Value > 0) e += p.Savings.Value;
+        return e;
+    }
+
     // ---------------------------------------------------------------- (836) 植民地格の州の POP の行 cpop_s（読むだけ・恒等・作業の事前登録 measurements/m836_20261105/plan.txt） ----------------------------------------------------------------
     // 目的＝〈人数がほぼ 0 の POP に在庫が止まる根〉と〈人の居る POP の所得が 0 の根〉（(829) の反証役の直し）を、群でなく POP の単位で読む。
     // 行＝四半期の末に格が Colonial の州×その州の POP（州の Pops の並び・人数 0 の POP も書く）。cgrp_s と同じ Sav の口で、同じ列へ POP の四半期の台帳にも足す。
@@ -446,7 +514,7 @@ public static partial class Instruments
         + "unemploymentRate\tsubsistenceRate\tfoodFill\t"
         + "laborLines\tlaborBankruptLines\tlaborCapacity\tlaborDesiredOutput\tlaborOutput\tlaborRevenuePerMonth\tlaborZeroDesiredCapacity\t"
         + "topLaborGood\ttopLaborCapacity\ttopLaborDesiredOutput\ttopLaborOutput\ttopLaborPrice\ttopLaborMarginalCost\ttopLaborRevenuePerMonth\ttopLaborCostPerMonth\t"
-        + "ownerLines\townerRevenuePerMonth\tgroupStartGap\tgroupNetFlowGap";
+        + "ownerLines\townerRevenuePerMonth\tgroupStartGap\tgroupNetFlowGap\testateOutPerQuarter\testateInPerQuarter";   // (848) 末尾 2 列＝相続 R1
 
     internal const int CpStuckKinds = 6;
     /// <summary>止まった月の割合（|月末−月初| ≦ これ×月初）。計器の物差し（係数ではない）。</summary>
@@ -527,6 +595,7 @@ public static partial class Instruments
             else { cols.Add("-"); for (int k = 0; k < 7; k++) cols.Add("nan"); }
             cols.Add(I(oLines[i])); cols.Add(F(oRev[i]));
             cols.Add(F(sumStart[gi] - gStart[gi])); cols.Add(F(sumNet[gi] - gNet[gi]));
+            cols.Add(F(cw?.QEstOut ?? 0)); cols.Add(F(cw?.QEstIn ?? 0));   // (848)
             sk.P.WriteLine(string.Join('\t', cols));
         }
     }
