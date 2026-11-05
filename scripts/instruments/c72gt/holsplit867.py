@@ -110,7 +110,7 @@ def calib(nulls, out, at_q=400, nseed=10):
 def main():
     a = sys.argv[1:]
     if a and a[0] == "--calib":
-        nulls = [(a[1], a[2]), (a[3], a[4]), (a[5], a[6])]; return calib(nulls, a[7], 400, a[8] if len(a) > 8 else 10)
+        nulls = [(a[1], a[2]), (a[3], a[4]), (a[5], a[6])]; return calib(nulls, a[7], 400, int(a[8]) if len(a) > 8 else 10)
     mode = "peak"
     if "--mode" in a:
         i = a.index("--mode"); mode = a[i + 1]; a = a[:i] + a[i + 2:]
