@@ -1,0 +1,19 @@
+(857) c70ea 読む線（波70・腕 0 本・コミット 0・担当 Claude Opus 5.5・2026-11-05）
+作業の場所：D:/PoB_work/r857_work（台本 *.py・出力 out/*）＝この回に作ったフォルダはこれ 1 つだけ。worktree と枝は作らない（main の作業ツリー C:/Users/dirge/Documents/PriceOfBread は読むだけ・HEAD fe21d8a1）。
+合流が写す先：scripts/instruments/r857/（台本）・measurements/m857_20261105/（出力）・measurements/m857_20261105_prereg.txt（事前登録）。
+
+読む生（今ある物だけ・2026-11-05 に ls -d で確かめた・書き込まない）
+- 旗 1（M＝m852）：D:/PoB_work/keep_852/base_ins/（1070 本・cpop_s・cearn_s・nation_s・region_s・pxmonth_s ほか・種 1〜10）
+- 旗 0 の同じ盤面（腕 Z ≡ m839）：D:/PoB_work/keep_845/base_ins/（1068 本・全ての表）
+- 幅（旧のヌル腕・旗 0・全ての表）：D:/PoB_work/keep_839/n1・n2/
+- 幅（新のヌル腕・旗 1・8 表だけ）：D:/PoB_work/keep_852/n1・n2/（nation_s・region_s ほか＝Q3 の S11・N1・N2 の確かめだけ）
+- S11：D:/PoB_work/keep_852/a11/（8 表）
+- 線の腕：D:/PoB_work/keep_852_rej/c69ehB1_10/（縮めた表・使うのは必要なときだけ）
+読む表（リポジトリ）：measurements/m852_20261105/・m848_20261105/・m836_20261105/report.txt・plan.txt・scripts/instruments/c69eh/ratio848.py・m852/cpopcap852.py
+読むソース：EconomyStep.cs:809〜811・:1101〜1125・BilateralMarket.cs:560〜583・:1141〜1148・EmptyPopEstate.cs・Simulation.cs:2734・MultiNationSim.cs:773〜797（日の 3 相と月の清算の順）・Model.cs:947・:958・:960
+
+手順
+1. 事前登録 measurements 用の prereg.txt を書いて sha256 を取る（生の値を読む前）。
+2. 台本 q1_import.py・q2_invest.py・q3_denmark.py（読むだけ・Python・バイトで書く必要のある既存ファイルは無い＝新しい出力だけ）。
+3. 出力 out/ に表。report.txt に問いの表・根・次の形の案・素案・作者への材料。
+入れない物：エンジン・試験・計器の変更・新しい腕・旗の変更・採否・README・stoplines・App・Display・Runner・コミット・push。
