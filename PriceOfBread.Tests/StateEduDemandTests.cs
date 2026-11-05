@@ -12,19 +12,26 @@ public class StateEduDemandTests
     private const double Funding = 0.5;
 
     /// <summary>開幕の英を 1 月だけ回す。poorGroups の階級は貯蓄 0（民間の買いたい量 0・国庫の未充足＝必要量）・他は貯蓄を厚く（予算が拘束しない）。supplyMul は教育の産出の倍率。</summary>
-    internal static (Region Region, World World) OneMonth(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double reachFromAdmin = 0, double adminFill = 1.0)
+    internal static (Region Region, World World) OneMonth(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double reachFromAdmin = 0, double? adminFill = null)
+    {
+        var (r, w) = Setup(supplyMul, poorPeasantsAndWorkers, funding, reachFromAdmin, adminFill);
+        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+        return (r, w);
+    }
+
+    /// <summary><see cref="OneMonth"/> の月を回す前までの盤面（(854) 分けた：渡さなければ AdminFill に触れないことを回す前の値で確かめるため）。</summary>
+    internal static (Region Region, World World) Setup(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double reachFromAdmin = 0, double? adminFill = null)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
         w.Coef.EduReachFromAdmin = reachFromAdmin;          // 既定 0＝到達 r＝1（行政の届きの式を外して手の算術を単純に）。正のときの r＝1−係数×(1−AdminFill)（AdminFill は前月値＝ここで置く）
         var r = w.Region;
-        r.AdminFill = adminFill;
+        if (adminFill is double af) r.AdminFill = af;       // 渡したときだけ置く（(854) 渡さなければ Region の既定のまま＝(846) の前の盤面）
         r.CompulsoryEduFunding = funding;                   // 国庫が買う率 f（月次の設定は Simulation が毎月書く＝1 月だけ回す試験は直に置く）
         r.Markets[Catalog.EducationId].Stock = 0;
         foreach (var s in r.Producers) if (s.GoodId == Catalog.EducationId) s.Output *= supplyMul;
         foreach (var p in w.AllPops())
             p.SetSavings(poorPeasantsAndWorkers && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker) ? 0.0 : 1e12);
-        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
         return (r, w);
     }
 
@@ -205,6 +212,65 @@ public class StateEduDemandTests
         Assert.True(price >= lo * 0.99 && price <= hi * 1.01, $"教育の値段 {price} が役務の帯 [{lo}, {hi}] の外");
         Assert.True(double.IsFinite(r.Markets[e].LastDemand) && double.IsFinite(StateSpentEdu(r)) && double.IsFinite(r.CumEducationCost), "需要・支払い・累計のどれかが有限でない");
         Assert.True(maxDemand > 0, "前提が崩れた：どの月も教育の需要が立っていない");
+    }
+
+    /// <summary>(846) の前の OneMonth の本体をそのまま写した物（adminFill の欄を持たない）。(846) で既定が <c>r.AdminFill = 1.0</c> になり、渡さない呼び手の盤面が変わった（(846) の反証役 低 1）ので、
+    /// 渡さなければ Region の既定のまま＝この写しと 1 ビットも違わないことを確かめる。期待値はこの写し（OneMonth を呼ばない）。</summary>
+    private static (Region Region, World World) Pre846OneMonth(double supplyMul, double funding)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var w = sim.World;
+        w.Coef.EduReachFromAdmin = 0;
+        var r = w.Region;
+        r.CompulsoryEduFunding = funding;
+        r.Markets[Catalog.EducationId].Stock = 0;
+        foreach (var s in r.Producers) if (s.GoodId == Catalog.EducationId) s.Output *= supplyMul;
+        foreach (var p in w.AllPops())
+            p.SetSavings(p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker ? 0.0 : 1e12);
+        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+        return (r, w);
+    }
+
+    [Theory]
+    [InlineData(0.001, Funding)]
+    [InlineData(200.0, Funding)]
+    [InlineData(0.001, 0.0)]
+    public void 行政の充足を渡さなければ_846の前の盤面と1ビットも違わない(double supplyMul, double funding)
+    {
+        var (a, wa) = OneMonth(supplyMul, funding: funding);
+        var (b, wb) = Pre846OneMonth(supplyMul, funding);
+        int e = Catalog.EducationId;
+        long Bits(double x) => BitConverter.DoubleToInt64Bits(x);
+        Assert.Equal(Bits(b.Markets[e].LastDemand), Bits(a.Markets[e].LastDemand));
+        Assert.Equal(Bits(b.Markets[e].LastSold), Bits(a.Markets[e].LastSold));
+        Assert.Equal(Bits(b.Markets[e].Price), Bits(a.Markets[e].Price));
+        Assert.Equal(Bits(StateSpentEdu(b)), Bits(StateSpentEdu(a)));
+        Assert.Equal(Bits(b.CumEducationCost), Bits(a.CumEducationCost));
+        Assert.Equal(Bits(b.AdminFill), Bits(a.AdminFill));                 // 月の終わりの行政の充足も同じ（渡さない呼び手は Region の既定から出発する）
+        var pa = wa.AllPops().ToList(); var pb = wb.AllPops().ToList();
+        Assert.Equal(pb.Count, pa.Count);
+        for (int i = 0; i < pa.Count; i++) Assert.Equal(Bits(pb[i].Savings.Value), Bits(pa[i].Savings.Value));
+    }
+
+    [Fact]
+    public void 行政の充足を渡さなければ月を回す前の盤面は開幕の既定のまま()
+    {
+        double fresh = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World.Region.AdminFill;
+        var (r, _) = Setup(0.001);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(fresh), BitConverter.DoubleToInt64Bits(r.AdminFill));   // 渡さなければ触れない
+        var (r2, _) = Setup(0.001, adminFill: 0.4);
+        Assert.Equal(0.4, r2.AdminFill);                                                                      // 渡せばその値
+    }
+
+    [Fact]
+    public void 行政の充足を渡せばその値から出発する_渡さない呼び手を変えない()
+    {
+        // 渡した値が Region に置かれる（月の途中で EconomyStep が上書きする前の値は届きの式 EduReachFromAdmin が読む＝到達の試験が渡している）。
+        // 届きの式が正のとき、渡した充足が低いほど国庫の買いたい分は縮む（渡さなければ Region の既定＝縮み方は別）。
+        var (low, _) = OneMonth(0.001, reachFromAdmin: 0.5, adminFill: 0.2);
+        var (high, _) = OneMonth(0.001, reachFromAdmin: 0.5, adminFill: 1.0);
+        int e = Catalog.EducationId;
+        Assert.True(low.Markets[e].LastDemand < high.Markets[e].LastDemand, "渡した充足が届きの式に効いていない");
     }
 }
 
