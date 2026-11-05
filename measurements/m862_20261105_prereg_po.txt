@@ -83,5 +83,14 @@
 - 命令：`bash scripts/instruments/tools/bg.sh D:/PoB_work/c71po_work/armB.mark bash scripts/instruments/c71po/armB862.sh <点火のコミット>`（中で `POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c71poB 10`・POB_INSTRUMENTS_NATIONS は 9 国の名簿）を run_in_background で。腕の成否は成績表の有無で読む（今の main の batch.sh の終了コードの意味は旧のまま）。
 - 腕 B の生は、反証役が読んだ後に、門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s と keepsum_all_tables.tsv）へ縮める。縮めた後も合流が読むまで消さない。報告に生のパスを書く。線の担当は反証役が読む前に縮めない（⑲）。
 
-━━ [10] 紙の台本の出力（次のコミットで追記）
+━━ [10] 紙の台本の出力（[1] を固定したコミット 9de87ec9 の後に数えた・台本 scripts/instruments/c71po/p1_paper862.py＝p1_paper856.py の写し・出力 measurements/m862_20261105/paper_m852.txt）
+- 出力は (856) の measurements/m856_20261105/paper_m852.txt と行末の空白を除いて全行一致（同じ生・同じ台本＝数え直しの確かめ・改行の字だけが違う）。
+- S：M′(m852) 0.029441（国×四半期 70,163）・N1 0.026609・N2 0.027133 ＝ ΔS(N1) −0.002833・ΔS(N2) −0.002308 ＝ **W＝0.002833**。旧 m839 のヌル腕（記録）：S 0.023041・0.022256（M′ との差 −0.0064・−0.0072）。
+- 紙の予言 ΔS_pred（正確＝T）＝**0.072626**（N1 の盤面 0.064061・N2 0.071324）・近似 b 0.072616・近似 a 0.071735（記録）。
+  ＝ ΔS_pred 0.0726 ＞ W 0.0028（約 25.6 倍）＝ **no-go ① に当たらない（go）**。
+- 遅れだけの ΔS（M1／M4＝Clamp01(R)）：−0.000103＝|値|＜W＝m̄÷m_r の項が働きの全て＝M1・M4 は G1 で落ちる（㉚：項を消した形は雑音の内＝この項が働く物）。
+- 旗 0 で門が落ちることの確かめ（m852 の生＝旗 0 の木で計器の新しい列あり）：G0 点検 t_eng＝tNew 474,792／1,148,001（41.4%）＝落ちる・G1 は旗 0 の腕が M′ と全行一致＝ΔS 0 ≤ W＝落ちる・G1u は旗 0 で ΔS 0 ≤ T＋W＝通る（上限の門）・G2a は旗 0 でも 100%（P_ctrl 469,166 行・対照の門＝旗 0 で通るのが正しい）。N1・N2 でも G0 は 43.2%・40.6%・G2a 100%。
+- 紙と閾値の比（★(859) の 3/4）：G1 は ΔS_pred÷W＝25.6（下限に対し遠い）・G1u は ΔS_pred が T＋W の内（紙では同じ量）・G2a は 100%（閾値 0.9999）。G2b は c71gt の閾値で [11] に書く。
+- (850) の台本の近似の G2b の C（持続 40 四半期）：M′ 0.002497・N1 0.002867・N2 0.002778（記録＝この線の G2b は c71gt の台本で読む）。
+- 突然変異（[4]・使い捨ての木 D:/PoB_work/c71po_mut＝点火 6a067f65・measurements/m862_20261105/mutation_unit.txt）：8 本とも予言どおり赤（M1：P1_3・P1_5(旗1)／M2：P1_1・P1_2・P1_3・P1_5(旗1)・P1_6／M3：P1_2／M4：P1_3・P1_5(旗1)／M5：CrimeTests／M7：P1_5(旗1)／D2〔台本の名は D0〕：RuleSharesFormTests の D2 の 2 本／D1：P1_6・P1_7）。
 ━━ [11] c71gt の門の台本の引用と腕 B の前の決め（印の後に追記）
