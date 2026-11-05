@@ -3593,7 +3593,7 @@ public sealed class Coefficients
     //   ＝「正しい海に出る」。退避が効くことは SeaGraphTests / SeaStitchBudgetTests が固定する。
     // ⚠海路距離が動く＝**較正非中立**（貿易/GDP・領土・列強の帯が動く）。点火A/Bは POB_COEF="SeaStitchLeadBudgetMult=1"
     //   で親がバッチ測定済み＝0.5を採用（1.0は地図の線が最少だが帯は0.5が上）。0＝旧規則（無制限免除）とビット恒等＝新しい実測（陸マスクの走査）は1回も走らない。
-    public double ImportPayerLive = 1;   // ★(863) c71ip 輸入の払い手を人の居る POP に限る旗（2026-11-05 に 1 で点火・案 A・形 (ii)・名は AI の案・確証なし・事前登録 measurements/m863_20261105_prereg_ip.txt）。0＝旧の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）。＞0＝商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけが払う（手形なし・0 人なら輸入しない）
+    public double ImportPayerLive = 0;   // ★(863) c71ip 輸入の払い手を人の居る POP に限る旗（案 A・形 (ii)・名は AI の案・確証なし・事前登録 measurements/m863_20261105_prereg_ip.txt）。0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）。＞0＝商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけが払う（手形なし・0 人なら輸入しない）
     public double SeaStitchLeadBudgetMult = 0.5;   // 【点火0.5・2026-08-16 点火梯子＝単独 exact43.3＝全16腕で最良／合成comp4で near77.4・人口28.6。1.0は地図の線は最少だが帯は0.5が上。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】
 
     // 【墓標2026-09-26（棚卸し dorm-49）】エンジンの中の測定専用の腕2本を削除した：PopBudgetRelax（POP の予算の蓋を外す反実仮想＝保存則を破る）と
