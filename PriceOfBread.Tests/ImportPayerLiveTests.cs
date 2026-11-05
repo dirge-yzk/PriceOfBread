@@ -90,7 +90,7 @@ public class ImportPayerLiveTests
         var one = buyer.Pops.First(p => p.Size > 1e-6 && !ReferenceEquals(p, mer));
         foreach (var p in buyer.Pops) if (!ReferenceEquals(p, one)) p.Size = 0;   // 人の居る POP を 1 つだけにする（払い手の並びが 1 要素＝手形の枝の型 [var mer] に当たる形）
         Assert.Single(buyer.Pops, p => p.Size > 1e-12);
-        one.SetSavings(50);
+        one.SetSavings(1);   // 代金（旗 1 で予算が縛らなければ約 16）より小さい在庫＝手形を振り出せる形なら借りる額が立つ
         double h0 = HouseholdLoans(sim);
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal(0.0, one.Debt.Value);                       // 落とした枝は手形を振り出さない

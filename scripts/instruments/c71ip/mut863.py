@@ -9,7 +9,8 @@ def sub(rel, old, new):
     o, n = old.encode('utf-8'), new.encode('utf-8')
     if b.count(o) != 1: sys.exit(f'MUTFAIL {mode} {rel}: 元が {b.count(o)} 回')
     with open(p, 'wb') as f: f.write(b.replace(o, n))
-sub('PriceOfBread.SimCore/Coefficients.cs', 'public double ImportPayerLive = 0;', 'public double ImportPayerLive = 1;')
+with open(os.path.join(root, 'PriceOfBread.SimCore/Coefficients.cs'), 'rb') as f0: already = f0.read().count(b'public double ImportPayerLive = 1;') == 1
+if not already: sub('PriceOfBread.SimCore/Coefficients.cs', 'public double ImportPayerLive = 0;', 'public double ImportPayerLive = 1;')   # 点火の後の木は既に 1
 BM = 'PriceOfBread.SimCore/BilateralMarket.cs'
 A = 'if (r2.MerchantPop is { } merchPay && !(c.ImportPayerLive > 0 && !(merchPay.Size > 1e-12)))'
 B = 'else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) || r2.Pops.TrueForAll(p => p.Size > 1e-12) ? r2.Pops : r2.Pops.Exists(p => p.Size > 1e-12) ? r2.Pops.FindAll(p => p.Size > 1e-12) : null;'
