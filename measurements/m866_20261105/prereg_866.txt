@@ -1,0 +1,51 @@
+(866) 波71 の合流の予言（merge と腕と ident の前の最初のコミット・担当 Claude Opus 5.5・基点 62190ef0）
+この文書は merge・ident・フルスイートの前に書いた。結果を見た後に書き換えない（足すなら〈結果の後の追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（作者 2026-10-27「残りは推奨で」・2026-11-05「全て推奨で」）。
+
+■ [0] 作った物（この回の合流が自分で作ったフォルダ）
+  - D:/PoB_work/m866_work（読みの出力・ident の作業・フルスイートの作業・kit の写し）。
+  - D:/PoB_work/keep_866（新しく作る＝合わせた木の ident の計器つき 10 種の生 base_ins・keep_852/base_ins とバイトで同じ表はハードリンク）。
+  - D:/PoB_work/keep_866_rej（新しく作る＝採らなかった腕 c71poB_10 の 8 表＋keepsum）。
+  - 合流の ident の木：git worktree add --detach D:/PoB_work/wt_m866（★(742)）。
+
+■ [1] D: の空き（2026-11-05・shutil.disk_usage）＝121.19GB・arms.sh free 6。床（ident 35GB）に届く＝ident を回す。
+
+■ [2] 線ごとの入れ方（予言）
+  - c71gt (860)：入れる（.cs 0 行・台本と記録だけ・batch.sh の終了コード・ident_check の表示・r847 の注）。
+  - c71id (861)：入れる（ident〈判定: 恒等〉・SimCore の差は注の文字と Discovery.cs:289 の 1 行・テスト +14）。merge e3113b9b の署名の行の欠けは履歴に入る（書き換えない・記録に書く）。
+  - c71po (862)：採らない（線の腕 B で空洞化 1/10 未満〈線が原因〉1 件＝T1・★(852) ① の答え）。merge して、点火 6a067f65 の .cs だけ（Coefficients.cs・DormantIdentityTests.cs・RuleSharesFormTests.cs）を逆適用する（`git show 6a067f65 -- <3 ファイル> | git apply -R --index`）。plain の git revert は使わない＝6a067f65 は台本 6 本を同梱している。3 回の規則の 2 回目の不採用（次が最後）。
+  - c71ip (863)：腕 B なしで止まった（旗 1 のフルスイートに予言の外の赤 1 本＝TradeClearingTests:473）。merge して、点火 f5e52fb2 の .cs だけ（Coefficients.cs・DormantIdentityTests.cs）を逆適用する（f5e52fb2 は marms863.sh・mutunit863.sh を同梱＝plain の revert は台本を消し、b53222dd の直しと衝突する＝反証役 中）。main に残るのは旗 0 の器（BilateralMarket.cs:580〜583 の選び・計器 cearn_s +4 列・cpop_s +1 列・ImportPayerLiveTests 6 本）。3 回の規則の 1 回目に数えない（推奨・腕 B が無い停止＝(850)→(856) の型）。
+  - 確かめ：逆適用の後、RuleOrderByRegion・ImportPayerLive の既定は 0。DormantIdentityTests の旗の表に RuleOrderByRegion と ImportPayerLive の行が両方ある。`git diff 62190ef0 -- PriceOfBread.Tests/RuleSharesFormTests.cs` は空。
+  - 順：c71gt → c71id → c71po（＋逆適用）→ c71ip（＋逆適用）。自分の merge は `--no-ff -m` で本文の最後に Co-Authored-By。
+  - 消す名前（★(773)）：4 枝とも 0（62190ef0...origin/<枝> の .cs の削除の行を読んだ＝c71id は注の書き換えの行・試験の関数の引数の書き換え・c71po は旗の値と表の行と注・c71ip は計器の見出しの文字列と行の末尾への呼び口の追加）。
+  - 衝突の見込み：0（DormantIdentityTests.cs は c71po の行を戻してから c71ip を merge する＝別の行。Coefficients.cs は :2752・c71id の注の行・c71ip の新しい 1 行で 20 行以上離れている）。
+
+■ [3] 合わせた木の予言（恒等の判定・ident.sh run m866 --tree D:/PoB_work/wt_m866 --grown-ok cearn_s,cpop_s --tests-delta 20）
+  - 素の 5 種 ≡ b5_20261105_m852（全行・名乗り行を除く）・.cost 推定 216.0 秒。
+  - 計器つき 10 種 ≡ b10_20261105_m852_ins（全行）・.cost 推定 212.6 秒。
+  - 計器の表：基準 keep_852/base_ins 1070 本＝バイト一致 1030＋既知の揺れ 20（burscan_s:seconds・clock_s:worldTotalPerMonth@kind=C）＋列が増えた 20（cearn_s +4×10・cpop_s +1×10）。宣言の無い違い 0。
+  - 注視の表 ≡ mon_20261105_m852.txt（タグの行以外 5221 行）。
+  - テスト：Category!=FullLength 2307（2287＋c71id 14＋c71ip 6＋c71po 0）・FullLength 3。
+  - 判定: 恒等。
+  - 合わせた木の SimCore は 1271053f と差がある（c71id の注と Discovery.cs:289・c71ip の BilateralMarket.cs・InstrumentsCearn.cs・Coefficients.cs の 1 行）＝★(778) の腕 Z は挙動の線が 0 本なので回さない＝この ident が合わせた木の恒等の証拠。
+  - これが c71gt の新しい batch.sh の終了コードの初めての実走。腕 a・b の rc は 0 の予言。rc=4 で〈判定: 未了〉が出たら batch.sh の ms ログを読んでから判断する（合流は batch.sh を直さない＝c71gt の持ち物・報告へ）。
+  - 灰色の所：c71ip の走査の番人は器のコミットの直前の作業木で回った（反証役 低）＝合わせた木のフルスイートで確かめる。
+
+■ [4] フルスイート（合わせた木・ident の後・10 種と並べない）
+  - Category!=FullLength：合格 2306＋スキップ 1＝2307・FullLength 合格 3・中止 0・--list-tests と一致。savetest OK・leakhunt 違反なし。
+  - WriterRatchetTests は旗 0 で緑の予言（取り直さない）。
+
+■ [5] 止める線と記録の段
+  - 止める線（採否）：合流は挙動の線を採らない＝合わせた木の M・N1・N2・S11 は回さない（新しい基線を作らない）。
+  - c71po の腕 B（D:/PoB_work/c71po_work/out_c71poB_10/ins）に、合流が同じ台本を当て直す（★(797)）：holclass839.py（規則 A2・基準 m852 の M）・gdp_jump797.py・gdp_jump833.py・brk693/plvl_seeds.py・m808/gdp_zero10.py。予言：空洞化 1/10 未満 1 件（種 10 フォートウィリアム）〈線が原因〉・他の止める線 0。表は measurements/m866_20261105/stop_table_866.tsv（stop_table_859.tsv の写しに腕 c71poB の行を足す）。
+  - 記録：英の国債の不履行（c71poB 4/10・M 5/10・S11 4/10・新 N1 5/10・N2 6/10）・開幕の 1000 倍・名目 GDP 0 の続き・NG（線の ngB.txt）。
+  - 基線は m852 のまま。ident.cfg は INSRAW を keep_866/base_ins・BASE_COMMIT を ident が測った木の頭・TESTS_NONFULL 2307・頭の注に (866) を足す。B5・B10INS・MON・NG_BASE は据え置き。
+
+■ [6] 読む線と設計の材料の線
+  - c71sr (864)：D:/PoB_work/r864_work の台本を scripts/instruments/r864/、表と報告を measurements/m864_20261105/ へ写す（中身を書き換えない）。結論〈物差しの側〉は反証役の同じ鍵の比べで立つが、根拠は〈同じ鍵の σ の差とヌルの cf の幅〉へ置き換えると記録に書く（規則 0 は構造的に 0 に近い）。
+  - c71ds (865)：D:/PoB_work/r865_work の material.md・draft.md を docs/202611/20261105/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（題の行に状態・本文は書き換えない・反証役の訂正 9 件は末尾に足す）。台本は scripts/instruments/r865/・出力は measurements/m865_20261105/。
+
+■ [7] 生の扱い
+  - c71poB_10 の生（約 11GB）は 8 表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s）＋keepsum へ縮めて D:/PoB_work/keep_866_rej/c71poB_10 へ置く（要約 measurements/m866_20261105/keepsum_c71poB_all.tsv）。
+  - c71ip の突然変異の腕の生（marms/out_c71ipE*_1・約 6GB）：門の出力 gates_E*.txt は measurements/m863_20261105 にある＝cearn_s・cpop_s の表だけ keep_866_rej/c71ip_marms へ残し、残りは消す。
+  - ident の生（合流）：計器つき 10 種の ins は keep_866/base_ins へ移す（ハードリンク）。他は消す。
