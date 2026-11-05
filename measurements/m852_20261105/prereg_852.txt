@@ -1,0 +1,64 @@
+(852) 合流の予言（波69・担当 合流〔Claude Opus 5.5〕・2026-11-05・合わせる前・腕の結果を見る前に書いてコミットする）
+作者「全て推奨で」で推奨を採って進める（★(839) ①②③ の答え・2026-11-05）。承認の言葉ではない。
+
+== [0] この回に作ったフォルダ（消してよいのはこれだけ）
+D:/PoB_work/m852（作業）・D:/PoB_work/wt_m852（worktree・枝 m852・7f34146c から）・D:/PoB_work/keep_852_rej（採らなかった腕の生）・D:/PoB_work/c69eh_armB2（線 c69eh の腕 B2・下の [3]）・D:/PoB_work/ident_m852（ident の作業・下の [4]）。
+採るなら D:/PoB_work/keep_852 も作る（新しい基線の生か、採らないなら INSRAW）。
+この予言の前にした事（結果に触れない段取り）：
+  ①keep_852_rej/c69poB_10：線 c69po の腕 B（採らない）の生 15.9GB を、要約 measurements/m852_20261105/keepsum_c69poB_10_all.tsv（全ての表の sha256・行数・見出し）を書いてから、門と止める線の読み手が開く表（secession_s・rule_s・region_s・migration_s・nation_s・pxmonth_s・cessp_s・計 70 本）と成績表・z_secession（旗 0 の secession_s）だけへ縮めた（scripts/instruments/m852/shrinkrej852.sh・残り 2.7GB・★(839) の型＝keep_839_rej/abDW0_md_10）。D: の空き 45.3→58.2GB。線の作業フォルダ c69po_work の腕の出力を合流が縮めた＝合流の判断（記録に名乗る）。
+  ②道具の直し（下の [2]）。
+
+== [1] 入れる線と順（★(802) の型＝採らない挙動の線は旗 0 の器と計器と試験だけ main へ）
+- c69id（恒等・〈判定: 恒等〉c69id・測った木 b00b1163）：枝の頭 c7eed107 を no-ff で merge。
+- c69ss（挙動・採らない＝線が門 G3b・G4 で〈採らない〉と決めた）：枝の頭 76b7ac7b（旗 SubsistenceStage2 は既定 0 に戻してある・.cs は ident を測った器 addbd33d と同じ）を no-ff で merge。
+- c69po（挙動・採らない＝門 G2b で落ちた）：枝の頭 5ec4a712 を no-ff で merge し、点火 a565c2b1 と RuleSharesFormTests の Theory 化 f880f55c を revert。
+  f880f55c の revert の理由：README ★(826)〈旧の規則を固定する番人の Theory 化を線の中で入れたら、合流は revert して旗 0 の器だけ入れる＝作者の答え（§0-2 ★(826) ②）まで〉。この波の指示（RULEW）は線に Theory 化を許したが、README の規則は作者の答えまで残る＝食い違いは §0-2 ★(852) の作者に聞く物へ（推奨つき）。
+- c69eh（挙動・腕 B2 は未起動）：枝の頭 ed3b404b を no-ff で merge し、点火 6d71ed93 の .cs の 2 行（Coefficients.cs の旗の既定・DormantIdentityTests.cs の表の行）だけを revert（同じコミットの記録 measurements/ident_20261105_m848z.txt と読み手 postB848.sh は残す）。形の変え直し 1ff69dcd は今の形＝そのまま入る（旗 0 の経路〔早い return の前〕は触っていない＝下の Z で確かめる）。
+★(773) の grep（消す・改める名前＝c69ss の Pop.Subsistence→SubsistenceBasis・SubsistenceShare・SubsistenceBasisKind）：c69id・c69eh・c69po の枝の追加の行（*.cs・*.py・*.sh・*.axaml）で `\bSubsistence\b`（Basis・Share・Kind が続かない）＝c69id 2 件・c69eh 0・c69po 0。c69id の 2 件は LaborClosedTests の `MinimumWageLaw.Subsistence`（最低賃金法の段の名・列挙）＝Pop の欄ではない＝新しい使い手 0。r847_work・r851_work の台本（.py・.sh）0 件。
+DormantIdentityTests.cs の旗の表は 3 本の線が 1 行ずつ足す＝手で解く（3 行とも残す・`# Conflicts` の行を残さない）。InstrumentsCearn.cs は c69eh（見出し・cearn_s の末尾 8 列・cpop_s の末尾 2 列）と c69ss（:519 の三項式）が別の行。
+
+== [2] 道具の直し（結果の前・(843) の MonGateColumn の型を繰り返さない）
+ident_check.py の cearn_same_but_location に allow_grown を足した：--grown-ok に cearn_s があるとき、腕の見出しが基準の見出しを頭に含み末尾に列が増えた形も、基準の列（頭の n 列）を旧と同じ規則（経路の 3 列は BASE_COMMIT の写像・他の列はバイト）で比べ、増えた列は宣言の増減に数える。
+  理由：c69eh が cearn_s の末尾に 8 列を足し、c69ss が金を動かすファイル（EconomyStep.cs・Simulation.cs）に行を足す＝合わせた木では列の追加と行の移動が同時に起きる＝旧の道具は見出しの不一致で写像を走らせず〈宣言の無い違い〉にする（(848) §9 の道具の限界・線の申し送り）。
+  試し：scripts/instruments/m852/test_cearn_grown852.py（基準 ef637d89・測る木 76b7ac7b・keep_845/base_ins/cearn_s1.tsv の頭から作った 400 行）＝T1〜T8 が全て予言どおり（増えた列＋写像で一致・宣言なしで不一致・経路の外の 1 欄を壊す・行を落とす・見出しを変える・写さない経路・列の足りない行は全て不一致・旧の形〈列が増えない〉は今までどおり一致）＝measurements/m852_20261105/test_cearn_grown852.txt。
+  ⚠写像そのもの（difflib）は旧からの部品で、試しは腕の経路を同じ写像で作る＝確かめたのは〈増えた列の扱い〉と〈壊した形が落ちること〉だけ。
+
+== [3] 線 c69eh の腕 B2（合流が回す・灰色の所＝記録の先頭に名乗る）
+合流の指示の順は〈自分の門を通った挙動の線〉＝c69eh は腕 B2 を D: の空きの床（25.5GB＜35GB）で起こせず門を読んでいない。線の担当と反証役の両方が〈合流か次の回で B2〉を推奨し、今の D: の空き（58.2GB）で起こせる＝合流が線の事前登録（measurements/m848_20261105_prereg_eh.txt §4・§8・§11・§12）のまま回す。
+  木：c69eh の枝の頭 ed3b404b（.cs は 107830f7 と同じ・旗 EmptyPopEstate 既定 1）。`POB_WORK=D:/PoB_work/c69eh_armB2 bash scripts/instruments/batch.sh prep c69ehB commit:ed3b404b plain` → `POB_WORK=D:/PoB_work/c69eh_armB2 INS=1 bash scripts/instruments/batch.sh run c69ehB 10`（計器つき 10 種・種 1〜10・国は既定の 9 国）→ 線の読み手 `bash scripts/instruments/c69eh/postB848.sh <出力> D:/PoB_work/c69eh_armB2`（線の木 wt_c69eh の台本）。
+  ⑭ の枠は線が使い切った（1ff69dcd）＝**B2 で 1 門でも落ちたら c69eh は採らない（旗 0 の器だけ）・3 回目の形の変え直しは無い**。合流はエンジンの .cs を 1 字も変えない。
+  門（線の §4 のまま）：G1〈P の和の W ≦0.02〉かつ〈全ての種の W ≦0.02〉かつ〈P の share＜0.01 の割合 ≧0.7〉・G2 ①〜⑥（④＝estateRecvPerCapitaSpread ≦1e-9・予言 ≦1e-13 の桁＝最初に読む）。G3 は記録・G4 は ident と単体の試験（分解済み）。
+  止める線（線の §8 のまま・腕 B2 に当てる）：破綻・空洞化 1/10 未満の名簿の外〈線が原因〉（holclass839.py・基準は keep_845/base_ins の数え直し stop_base.txt・規則 A2・基線の同じ種で同じ州が 1/4 未満なら〈元からの弱さ〉）・1 四半期 100 倍（gdp_jump797.py・gdp_jump833.py の〈それ以外〉だけ）・1e10 倍・推定の計算量 ＞248.5 秒・機構のテストの赤（線が 107830f7 で旗 1 のフルスイートを回した＝赤は★(749) の計算量の表 4 行だけ）。
+  記録（採否に使わない）：c69hl の新しい型 T1・T2（scripts/instruments/c69hl/arm847.sh・記録として並べるだけ）・NG・nullgate・exact・near・英の国債の不履行・1/4 未満の件数・名目 GDP 0 の続き・開幕の 1000 倍・同じ盤面の新÷旧（ratio848.py＋反証役が求めた cpop_s の資本家〔popIndex 3〕の在庫の新÷旧）。
+
+== [4] 合わせた木の腕 Z（挙動の線の旗を全て 0＝★(778)）の ident
+命令：`bash scripts/instruments/ident/ident.sh run m852 --tree D:/PoB_work/wt_m852 --work D:/PoB_work/ident_m852 --grown-ok subst_s,secession_s,cpop_s,cearn_s --tests-delta 41 --cost-allow 海軍の発注の配り`
+  --cost-allow の理由：基準 b5/b10_20261105_m839 の .cost は件数の行の名乗りが (843) の前の旗名つき＝今の木は〈海軍の発注の配り〉の名乗りだけ違う（件数は同じ・(845) と 4 本の線の全てが同じ宣言）。
+予言（結果の前）：
+- 素の 5 種 182 行・計器つき 10 種 181 行が m839 と全行バイト一致（名乗り行を除く）。.cost の件数の行 29 本と推定 219.0／220.8 秒が一致（例外は〈海軍の発注の配り〉の 2 本だけ）。注視の表 4686 行が一致。NG 81 件・新しい 0・外れた 0（基準 ng839）。
+- テストの数：Category!=FullLength 2244＋41＝2285（c69id 16・c69eh 8・c69ss 9・c69po 8〔RuleOrderP1Tests 7・CrimeTests 1・Theory の +2 は revert〕）・FullLength 3。
+- 計器の表 1068 本（新しい表 0・消える表 0）：列が増える表 40 本＝subst_s×10（+26）・secession_s×10（+10）・cpop_s×10（+2）・cearn_s×10（+8・基準の列は経路の写像で一致＝[2] の道具）。既知の揺れ＝burscan_s×10・clock_s×10（＋flow_s の〈呼び出し位置だけ〉が出るなら最大 10）。バイト一致＝998 以上 1008 以下。これ以外の違いが 1 本でも出たら〈不一致〉＝その線を外して帰属を読む。
+- 予言の外れの備え：cearn_s が [2] の道具で一致しなければ、補助の読み手 scripts/instruments/c69eh/routecheck848.py（経路の 3 列を写して比べ・共通の列はバイト）を当てて名乗る（道具をこの結果の後に直さない）。
+- 走査の番人（㉘・7 組＝IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）と線の試験の組を、合わせた木の頭で ident より前に回す＝全て緑（旗 0 の木＝計算量の表も赤にならない）。
+
+== [5] B2 が門と止める線を全て通ったときだけ（採る候補＝c69eh 1 本）
+- 合わせた木で c69eh の .cs の revert を revert（旗の既定 1・表の行を外す＝merge と revert だけ）→ その頭で M（計器つき 10 種）・N1・N2（SupplySlope 0.50000001・0.49999999・coef_<腕>.txt）・S11（種 11〜20）。
+- 採る線が 1 本＝M ≡ B2 を表ごとに確かめる（★(826) の型：subst_s・secession_s は B2 の木に無い列＝古い列の名で比べる cmpprefix826.py・cearn_s は経路を写して比べる）。一致しなければ帰属を読むまで採らない。
+- c69eh の門（両側）を M でもう一度読み、最終の採否は S11 で 1 回だけ（同じ門・止める線・空洞化の基準は種 11〜20 は keep_839/a11）。
+- D: の巡：M（約 15GB）→ M ≡ B2 を確かめて B2 の生を縮める → N1・N2・S11 を 1 本ずつ（各 約 15GB・読んだ後に門と止める線の読み手が開く表だけへ縮めて次を起こす・起こす前に空き ≧35GB）。N1・N2 は門の読み手が開く表だけを keep_852/n1・n2 へ（POB_CEARN=0 は使わない）。
+- 採ったら新しい基線 m852（成績表・keep_852/base_ins＝M の生・NG の新しい基準・ident.cfg・WriterRatchetTests の計算量の表を合わせた木で 1 回だけ取り直す＝★(749)・00一覧〈(3) リファクタの候補〉に〈波69 …〉）。英の国債の不履行の種（M・S11・N1・N2）を m839 と並べる。
+- 1 つでも落ちたら採らない＝[6]。
+
+== [6] B2 が落ちたとき（基線は m839 のまま）
+- c69eh は旗 0 の器だけ（[1] のまま）。B2 の生は要約を書いてから門と止める線の読み手が開く表だけへ縮め keep_852_rej/c69ehB2_10 へ。
+- INSRAW を合わせた木の腕 Z の計器つき 10 種の生へ移す（D:/PoB_work/keep_852/base_ins・keep_845/base_ins とバイトで同じ表はハードリンク＝mkkeep845.py の型）＝次の波の線が 4 つの表の --grown-ok を毎回名乗らなくて済む。BASE_COMMIT は Z を測った木。TESTS_NONFULL 2285。
+- ident.cfg の B5・B10INS を Z の写し（b5_20261105_m852・b10_20261105_m852_ins＝m839 と全行一致・.cost の名乗りが今の木）へ付け替える（基線の名は m839 のまま・次の線が --cost-allow を名乗らなくて済む＝c69id の申し送り①）。
+
+== [7] 止める線と記録の段（分けて書く）
+止める線（挙動の線に当てる）：B2（[3]）・採る候補なら M と S11（[5]）。Z は恒等＝止める線に当てない（全行一致が全て）。
+記録の段：NG・nullgate・exact・near・英の不履行・1/4 未満・名目 GDP 0 の続き・開幕の 1000 倍・c69hl の T1・T2・3 世代のヌル腕の件数（新 m839・旧 m826・旧 m797）。線の報告と反証役の訂正（和らげずに・下の [8]）。
+
+== [8] 合流がしない事
+- エンジンの .cs・試験の .cs を手で書かない（merge と revert だけ・WriterRatchetTests の取り直しは [5] の採るときだけ）。反証役の指摘の直しは線の担当へ戻す（記録と次の波へ）。
+- c65md・c67sv の旗 1 の腕は回さない（この波の決まり）。c69ss・c69po の腕は回し直さない（門の物差しの直しは次の波の恒等の線から）。
+- フルスイート（Category!=FullLength と =FullLength を分ける・--list-tests と突き合わせ）・savetest・leakhunt は最後の頭で 1 回（10 種の腕と並べない）。

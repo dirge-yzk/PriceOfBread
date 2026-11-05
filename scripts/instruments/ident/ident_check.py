@@ -323,35 +323,44 @@ def _cearn_remap(s):   # 基準の経路の名の〈:行〉を測る木の行へ
     return f'{fn}:{m[ln]}{rest}'
 
 
-def cearn_same_but_location(pa, pb):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数)
+def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数, 腕で末尾に増えた列)
+    # (852) allow_grown＝--grown-ok に cearn_s がある＝腕の見出しが基準の見出しを頭に含み末尾に列が増えた形も、基準の列（頭の n 列）を同じ規則で比べる（増えた列は比べない＝宣言の増減に数える）。
+    #   列の追加と金を動かすファイルの行の移動が同じ木に入ると、旧の形は見出しの不一致で写像を走らせず〈宣言の無い違い〉にしていた（(848) c69eh §9 の道具の限界）。
     if not CEARN['base'] or not CEARN['root'] or not (CEARN['tree'] or CEARN['arm_commit']):
-        return False, 0
+        return False, 0, []
     with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
         ra = list(csv.reader(fa, delimiter='\t'))
         rb = list(csv.reader(fb, delimiter='\t'))
-    if not ra or not rb or ra[0] != rb[0] or len(ra) != len(rb):
-        return False, 0
+    if not ra or not rb or len(ra) != len(rb):
+        return False, 0, []
     h = ra[0]
+    n = len(h)
+    if rb[0] == h:
+        extra = []
+    elif allow_grown and len(rb[0]) > n and rb[0][:n] == h:
+        extra = rb[0][n:]
+    else:
+        return False, 0, []
+    nb = len(rb[0])
     rc = [i for i, c in enumerate(h) if c in CEARN_ROUTE_COLS]
     if not rc:
-        return False, 0
-    n = len(h)
+        return False, 0, []
     moved = 0
     for xa, xb in zip(ra[1:], rb[1:]):
-        if len(xa) != n or len(xb) != n:
-            return False, 0
+        if len(xa) != n or len(xb) != nb:
+            return False, 0, []
         for i in range(n):
             if i in rc:
                 if xa[i] == xb[i]:
                     if _cearn_remap(xa[i]) != xa[i]:   # 同じ字でも基準の行が動いた（または消えた）行を指す＝別の呼び出しの行を指している
-                        return False, 0
+                        return False, 0, []
                     continue
                 if _cearn_remap(xa[i]) != xb[i]:
-                    return False, 0
+                    return False, 0, []
                 moved += 1
             elif xa[i] != xb[i]:
-                return False, 0
-    return True, moved
+                return False, 0, []
+    return True, moved, extra
 
 
 def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
@@ -387,9 +396,11 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
             known_hit.append((f, ['呼び出し位置だけ'])); continue
         if t == 'cearn_s':
-            okc, nmv = cearn_same_but_location(J(base, f), J(new, f))
-            if okc:
+            okc, nmv, ext = cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown))
+            if okc and not ext:
                 known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）'])); continue
+            if okc and ext:   # (852) 基準の列は経路を写して一致・末尾に増えた列は --grown-ok の宣言（宣言の増減と既知の揺れの両方に名乗る）
+                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）'])); continue
         rcs = [x.split(':', 1)[1] for x in removed_cols if ':' in x and f.startswith(x.split(':', 1)[0])]
         kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown), removed_cols=rcs)
         if J(base, f) in COLS_REMOVED and not d and not extra and not kn and not (pref(f, rows_grown) and ROWS_ADDED.get(J(base, f), 0) > 0):
