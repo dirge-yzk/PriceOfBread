@@ -1,0 +1,35 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\wt_m873\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (83 ミリ秒)。
+  D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (295 ミリ秒)。
+  D:\PoB_work\wt_m873\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (300 ミリ秒)。
+D:\PoB_work\wt_m873\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.SimCore\EconomyStep.cs(1688,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_m873\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.SimCore\Instruments.cs(2494,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_m873\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\m873\art_guards\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\wt_m873\PriceOfBread.App\Controls\TableView.cs(74,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\wt_m873\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\m873\art_guards\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\wt_m873\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\ConservationTests.cs(956,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\UnitTypeTests.cs(322,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\UnitTypeTests.cs(322,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\UnitTypeTests.cs(323,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\UnitTypeTests.cs(323,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_m873\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_m873\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\m873\art_guards\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\m873\art_guards\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:02:33.40]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3133384 件（宣言 2978732・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\wt_m873\PriceOfBread.Tests\WriterRatchetTests.cs:line 552
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:   184、スキップ:     0、合計:   185、期間: 38 m 51 s - PriceOfBread.Tests.dll (net10.0)

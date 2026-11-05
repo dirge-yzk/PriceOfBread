@@ -1,0 +1,19 @@
+# (873) 最後の木 9d12c073 のフルスイート（suite873.sh・Release・--disable-build-servers・10 種のバッチと並べない）
+list nonfull 2312
+list full 3
+nonfull rc=0 803s
+full rc=0 171s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2311、スキップ:     1、合計:  2312、期間: 13 m 20 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 50 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 179s
+保存 46.2MB（525ms）／読込 465ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 167・その月の額の和 2.533E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m873/leakhunt.txt　マニフェスト=D:/PoB_work/m873/leakhunt.txt.manifest（SOURCE-HASH=9de19663182947b7）
+SL-END 05:29:20
+SAVELEAKDONE
