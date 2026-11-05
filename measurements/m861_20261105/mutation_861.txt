@@ -1,5 +1,5 @@
 (861) c71id 突然変異の表（使い捨ての木 D:/PoB_work/c71id_mut＝git archive 84d6e753・scripts/instruments/c71id/mutrun861.sh が c70id の mut854.py の変異 MM7 を当てて MintAtMarketTests の組だけを隔離ビルドで回した）。
-restore は変異が触るファイル（Simulation.cs）を worktree D:/PoB_work/wt_c71id から写した（走行中に worktree の追跡ファイルは編集していない＝元の木はコミット済みの木と同じ）。
+restore は変異が触るファイル（Simulation.cs）を worktree D:/PoB_work/wt_c71id から写した（走行中に worktree で変異が触るファイル〔Simulation.cs〕は編集していない。ただし measurements/m854_20261105/mutation_854.txt は未コミットで編集中だった〔頭の行の直し・変異の対象外＝結果に影響しない〕）。
 
 MM7  予算の消費 `if (atMarket) gapLeft -= value;` を外す
     結果：失敗 1・合格 4  赤
