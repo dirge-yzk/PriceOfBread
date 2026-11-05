@@ -1,4 +1,5 @@
-(854) c70id 突然変異の表（使い捨ての木 D:/PoB_work/c70id_mut に git archive したコミット済みの木。変異ごとに該当の試験の組だけを隔離ビルドで回した。台本 scripts/instruments/c70id/mut854.py・mutrun854.sh）
+(854) c70id 突然変異の表（使い捨ての木 D:/PoB_work/c70id_mut。元の木は git archive したコミット済みの木で、変異ごとの restore（mutrun854.sh）は**変異が触るファイルを worktree D:/PoB_work/wt_c70id から写した**＝走行中の時間帯に worktree の注を編集していたので、元の木は〈その時点のコミット済みの木＋編集中の注〉〔注だけの差・record_854.txt の〈突然変異の手順の名乗り〉と同じ〕。変異ごとに該当の試験の組だけを隔離ビルドで回した。台本 scripts/instruments/c70id/mut854.py・mutrun854.sh）
+(861) 頭の行の直し：この行は record_854.txt と食い違っていた（git archive のコミット済みの木とだけ書いていた）ので、実態の worktree 写しに揃えた。表の中身は変えていない。MM7（予算の消費を外す）の緑は (861) の新しい試験 MintAtMarketTests.市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う で赤に直した（measurements/m861_20261105/mutation_861.txt）。
 NL・OM・D・E6・MM は D:/PoB_work/c70id_work/mut1（木＝ServiceClosed の試験を足す前）・NS は mut3（木＝ServiceClosed の試験〔1.002 倍〕のコミットの後）。NS は mut1・mut2 でも回した（mut2 は 1.02 倍の盤面〔NaN で ② の前に落ちて NS4 でも新しい試験は緑〕・mut1 は新しい試験の前）。
 
 OM1  OneMonth を (846) の形（AdminFill = adminFill ?? 1.0）へ
