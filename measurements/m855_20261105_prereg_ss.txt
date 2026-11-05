@@ -55,3 +55,51 @@
 ■ [6] 計算量：割り当て 0.3 秒以下（(849) の登録のまま）。m852 の推定 212.6 秒・名目の余り 約 35.9 秒。2 秒以下の割り当ては 1 本の腕で門にしない＝記録。
 
 ■ [7] 突然変異・門・止める線の詳細は c70gt の印の後に [8] 以下へ追記する（腕の前）。
+
+■ [7b] 旗 1 の木のフルスイート（点火 1b9eeab1・㉜・D:/PoB_work/c70ss_work/suite_nonfull.txt・suite_full.txt）＝腕 B の前の結果
+  - --list-tests：Category!=FullLength 2285・FullLength 3（予言どおり）。
+  - Category!=FullLength：合格 2283・スキップ 1・失敗 1・合計 2285＝--list-tests と一致・中止 0。FullLength：3 合格。
+  - 失敗の 1 本＝WriterRatchetTests item 2〈建設：見た生産者（旬）〉1,983 件（宣言 1,862・許し +2%）＝[4] の予言（item 1・2・9・11）の内＝軌道の件数を写しただけの番人＝線では取り直さない（★(749)・★(778)）。item 11 は緑（(849) では赤）。
+  - savetest OK（12 四半期後も全 61 か国が継続系列と一致・最大相対差 0）・leakhunt 保存則違反なし（D:/PoB_work/c70ss_work/savetest.txt・leakhunt.txt）。
+  - 走査の番人 7 組（IndustrializationReader・UnitType・Instruments・WriterRatchet〔item 2 だけ〕・DormantIdentity・GoodIdGuard・TechLevelRemoval）はこのフルスイートの中で item 2 の他は全て緑。
+
+■ [8] 門（腕 B＝c70ssB の計器つき 10 種・種 1〜10・c70gt (853) の台本をそのまま写した＝腕の前に固定）
+  - 台本：scripts/instruments/c70ss/gates_ss853.py（sha256 9e2abe199c5fd894ee9d7d19a3b8ba2017ef6f51204ae026fd5cc2160810a47c）・閾値の表 gates_ss853_thresholds.tsv（70fe47933750192b7beff26b2ecc4389b432b9fbe2cde98668ca4936117b2e7c）・突然変異の盤面 mut_ss853.py（41cc25ac0433eaea65bb2471004817a223f5bf4149df812c5825836f164b5d4b）＝D:/PoB_work/c70gt_work/gates/ の物と sha256 が一致（SHA256_c70gt.txt・sha256sum -c で OK）。c70gt の印 gates_ready.mark は rc=0・〈ss と po の門は使える〉（16:31:47）。c70gt の事前登録＝c70gt の枝 5bcc2eb0 の measurements/m853_20261105_prereg_gt.txt [1]。
+  - 呼び方：python -X utf8 scripts/instruments/c70ss/gates_ss853.py D:/PoB_work/c70ss_work/armB/out_c70ssB_10/ins D:/PoB_work/keep_852/base_ins D:/PoB_work/keep_852/n1 D:/PoB_work/keep_852/n2 measurements/m855_20261105/armB_gates.txt 10 1
+    ＝比べる側は m852（keep_852/base_ins）・ヌル腕の幅 w は 基線・新 N1・新 N2（keep_852/n1・n2 の subst_s と region_s）。
+  - 門（両側・全て通れば〈門は通る〉）：
+    G1a（下側＝商業化の向き）：腕の P1（D1＜D1_0・q≧1）で d＝s_腕−s0_基線 ＜ −w の行の割合 ≧ 1/2（紙 0.7481・新しいヌル腕の一つ抜き 0.2782・c70gt の一つ抜き 6 通り 0.2179〜0.2893＝6/6 赤・旗 0 は 0）。
+    G1b（上側）：P1 の焼いた行で σ＝0 の割合 ≦ D1＝0 の割合＋0.001。
+    G2（実装の一致）：σ＜1 の行 ≧100,000・σ＝1 の行 ≧100・全て |差|≦1e-9。
+    G3a（焼いた月）：焼いた州 ≧2,000・全て ρ と σ が 1e-9 で一致。
+    G4（失業 (b′)・持ち主が変わった行〔region_s の nationIndex が同じ州の一つ前の行と違う行・最初の行が q＞0 の行〕を外した後）：E＞0 の行 ≧400・E≦0 の行 ≧100,000・全て一致。
+    G4m（印の乱用の止め）：外した E＞0 の割合 ≦ 0.047238（旗 0 の 3 本の最大の 3 倍）。
+    G5（対照）：P5 で |d の中央| ≦ w の中央。〈壊さない〉側の門＝ヌル腕の一つ抜きでは 6/6 緑（判別の力はこの門には求めない・G1a が大きさの門）。
+  - 記録（門ではない）：G3b・G3c・ρ・新÷旧・T÷T0・EffFill・市場の買いの割合（台本の記録の節）。
+  - 予言（紙・腕の前）：(849) の腕 B の生に新しい門を当てた（measurements/m855_20261105/pred_gates853_on_c69ssB.txt・比べる側はその腕の盤面 keep_845/base_ins と keep_839/n1・n2）＝全て通る（G1a 0.6161・G4 は外した E＞0 57 行＝(849) の不一致の 57 行と同じ数・一致 6,059／6,059・G4m 0.00932）。形が同じなのでこの腕も全て通る見込み（G1a は紙 0.7481・(849) 0.6161）。
+  - 旗 0 で門が落ちること（c70gt の gates_ready.mark.log〈旗 0 の盤面 ss・種 1〜2〉）：keep_852/base_ins を腕に見立てると G1a・G1b・G2・G3a・G4・G4m が落ち G5 だけ通る＝〈何もしない実装〉は落ちる。
+  - 狙いどおり働いたか：G1a（大きさ）と G2・G3a・G4（実装の一致）が通ること。史実の大きさ・年は記録。
+
+■ [9] 突然変異（㉚・どの門で赤か）
+  - 固定の盤面（c70gt の表・gates_ready.mark.log・紙の台本 mut_ss853.py）：
+    M1 ρ＝0：赤 G1b・G2・G3a・G4・G5／緑 G1a・G4m。M2 U に能力の全部：赤 G1a・G2・G3a・G4／緑 G1b・G4m・G5。M3 D2：赤 G2・G3a・G4。M5 失業の式を直さない：赤 G4。M6 技術の比 1：赤 G2・G3a・G4。
+    空の盤面：赤 G1b・G2・G3a・G4・G4m。印の乱用：赤 G4・G4m。M4（収穫係数を外す）は門の表の赤 0（G3c を記録へ下げた・(849) で捕まえたのは UrbanFlowRealTests）。
+  - 機構の試験（使い捨ての写しの木 D:/PoB_work/c70ss_work/mt・台本 scripts/instruments/c70ss/run_mt855.sh＝(849) run_mt.sh の写し・突然変異の編集は mut849.py）：M0〜M6 を SubsistenceStage2Tests・SubstInstrumentTests・UrbanFlowRealTests・FoodLedgerTests で回す。予言＝(849) の mut_unit_849.txt と同じ（M0 全て合格・M1〜M6 は全て 1 本以上赤）。D: の空きのため腕 B の後に回す（腕と並べない）。
+  - 1 種の計器つきの突然変異の腕は回さない（固定の盤面が c70gt の持ち物＝① (b)・D: の空き）。
+
+■ [10] 止める線（この回の形をそのまま写す・結果を見る前）
+  - 読み手：bash scripts/instruments/c70ss/stoplines855.sh D:/PoB_work/c70ss_work/armB/out_c70ssB_10/ins measurements/m855_20261105/armB_stop.txt 1（stoplines848.sh の写し＝ukdefault・pxjump・gdp_jump797・gdp_jump833〔fixgate の両側の門つき〕・gdp_zero10・plvl_seeds・an_h2 -v5）。
+  - 空洞化 1/10 未満：python -X utf8 -I scripts/instruments/m839/holclass839.py measurements/m855_20261105/armB_stop.txt measurements/m852_20261105/armM/stop_mM.txt（規則 A2・基線の同じ種・同じ州が 1/4 未満なら〈元からの弱さ〉・それ以外は〈線が原因〉＝止める・作者 ①〈線の自分の腕も数える〉＝腕 B に当てる）。
+  - 1 四半期に 100 倍：gdp_jump797（合計）と gdp_jump833 の〈それ以外〉だけが止める線（建国の直後・分母の痩せはヌル腕の件数と並べる＝㊳）。1e10 倍・非有限は止める。
+  - 開幕の 1000 倍（同じ国が半分以上の種なら NG・記録）・名目 GDP 0 の続き（記録の先頭）・価格水準の 3 か月の比の最大（記録）。
+  - ヌル腕と並べる（同じ台本の出力）：新 m852 N1・N2＝measurements/m852_20261105/null/stop_n1_852.txt・stop_n2_852.txt・M＝armM/stop_mM.txt・S11＝armS11/stop_mS.txt・3 世代の表 measurements/m852_20261105/stop_table_852.tsv（旧 m839・m826・m797 の N1・N2）。この表に腕 B の行を足して measurements/m855_20261105/stop_table_855.tsv に置く。
+  - T1／T2（scripts/instruments/r847/arm847.sh）は記録として並べるだけ（★(852) ① の答え待ち）。
+  - 飢え（主食の値段の跳ね）・扶養力：記録の段で並べる（発散の桁なら止める）。
+  - 機構の番人の赤（[7b] の item 2 の他は無い）・推定の計算量 ＞248.5 秒（.cost・割り当て 0.3 秒・2 秒以下は記録）・savetest・leakhunt（[7b] で緑）。
+  - 記録（採否に使わない）：成績表（exact・near・勝者）・nullgate（python scripts/instruments/tools/nullgate.py <腕の成績表> measurements/b10_20261105_m852_ins measurements/b10_20261105_m852_n1_ins measurements/b10_20261105_m852_n2_ins）・NG（bash scripts/instruments/ng.sh <腕>/ins c70ssB D:/PoB_work/c70ss_work/ng rd:measurements/ng852_20261105:m852）・英の国債の不履行・史実の線。
+  - 最終の採否は種 11〜20 の止める線まで読む（合流が読む・★(802)・★(832)）。
+
+■ [11] 生の縮め（[5] を具体に）
+  - 門・止める線・記録の読みは全て縮める前の生で数え、出力を measurements/m855_20261105/ にコミットしてから縮める。
+  - 残す表：region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s ＋ keepsum_all_tables.tsv（縮める前の全ての表の行数とバイト数・sha256 の要約）。POB_CEARN=0 なので cearn_s・cgrp_s・cpop_s は元から無い＝縮めで消えるのはそれ以外の計器の表（labor_s・fd_s ほか）。
+  - 縮めは bg.sh の印 D:/PoB_work/c70ss_work/shrink.mark で起こす（他の線が待ってよい印）。縮めた後も合流が読むまで消さない。
