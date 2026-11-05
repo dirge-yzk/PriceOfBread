@@ -21,6 +21,7 @@ namespace PriceOfBread.SimCore;
 //     publicOrderIndex が 1 未満の行では orderRawLagIndex と publicOrderIndex が一致する（試験 T7 が固定）。Rule の目標を行ごとに数える州は Rule の長さが 4 の州だけ（それ以外の州の目標の列は nan）。
 // ⚠限界（計器が自己申告する）：四半期の末の断面（Instruments.Quarter の呼び時点）／外国持分の主体名は列にしない（個数だけ）／orderRawIndex は四半期の末の Coercion＝エンジンの Rule のループが走った時点の値と同じとは限らない（Rule のループの時点の R を貯めない＝思想⑩）／
 //   遅れた R は計器が毎四半期の末に 1 つ持つ値＝挙げた国でない国も毎四半期更新する（年末の行しか出ない国でも遅れは前の四半期の値）。
+//   (846) m_r・m̄ とその派生（militancyRegionIndex・militancyNationIndex・orderRegionIndex・ungovTargetNewShare）は四半期の末の値で、エンジンの Rule のループが読む CheckSecession の瞬間の値と 92% の行で違う（(842)・measurements/m842_20261105/rule_vs_secession.txt）＝エンジンの〈働いた〉の数に使わない。
 public static partial class Instruments
 {
     sealed class RuleLagState { public double Prev = double.NaN; }

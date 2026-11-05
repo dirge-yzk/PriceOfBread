@@ -369,8 +369,8 @@ public static class Parliament
             case PolicyAxis.StateReligion: p.StateReligion = (StateReligionLaw)System.Math.Min(StepTo((int)w.StateReligion, 2), 2); break;   // 上限=信仰の自由（国家無神論は政体の属性）
             case PolicyAxis.Antitrust: p.Antitrust = (AntitrustLaw)StepTo((int)w.Antitrust, 2); break;
             case PolicyAxis.Guild: if (w.Coef.GuildLawGate > 0) p.Guild = (GuildLaw)StepTo((int)w.Guild, 2); break;   // ★特権 段4（ゲート0では綱領に載せない）
-            case PolicyAxis.Inheritance: p.Inheritance = (InheritanceLaw)StepTo((int)w.Inheritance, 4); break;   // ★相続法（線 inh (650)・ゲート0では綱領に載せない）
-            case PolicyAxis.MinimumWage: p.MinimumWage = (MinimumWageLaw)StepTo((int)w.MinimumWage, 3); break;   // ★最低賃金法（線 lw (459)・ゲート0では綱領に載せない）
+            case PolicyAxis.Inheritance: p.Inheritance = (InheritanceLaw)StepTo((int)w.Inheritance, 4); break;   // ★相続法（線 inh (650)・門の係数 InheritanceLawGate は (843) で焼き込み）
+            case PolicyAxis.MinimumWage: p.MinimumWage = (MinimumWageLaw)StepTo((int)w.MinimumWage, 3); break;   // ★最低賃金法（線 lw (459)・門の係数 MinimumWageLawGate は (843) で焼き込み）
             case PolicyAxis.WartimeRationing: p.WartimeRationing = FlipTo(w.WartimeRationing); break;
             case PolicyAxis.MilitaryExport: p.MilitaryExportBan = FlipTo(w.MilitaryExportBan); break;   // 軍需輸出の法（禁制品doc C5・2026-07-30）
             case PolicyAxis.CivilianArms: if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = FlipTo(w.CivilianArmsBan); break;   // ★民間の武器購入の法（2026-09-11・ゲート0では綱領に載せない）

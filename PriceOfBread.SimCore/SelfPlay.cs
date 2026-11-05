@@ -362,8 +362,8 @@ public sealed class UtilityAgent : INationAgent
         GateLaw(ref shared, w, PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)p.Bureaucracy, (int)BureaucracyLaw.Professional, v => p.Bureaucracy = (BureaucracyLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Antitrust, (int)w.Antitrust, (int)p.Antitrust, (int)AntitrustLaw.Trustbust, v => p.Antitrust = (AntitrustLaw)v);
         if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);   // ★特権 段4
-        GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (int)InheritanceLaw.All, v => p.Inheritance = (InheritanceLaw)v);   // ★相続法（線 inh (650)・ゲート0では目標を整形しない＝恒等）
-        GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・ゲート0では目標を整形しない＝恒等）
+        GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (int)InheritanceLaw.All, v => p.Inheritance = (InheritanceLaw)v);   // ★相続法（線 inh (650)・門の係数 InheritanceLawGate は (843) で焼き込み）
+        GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・門の係数 MinimumWageLawGate は (843) で焼き込み）
         GateLaw(ref shared, w, PolicyAxis.WartimeRationing, w.WartimeRationing ? 1 : 0, p.WartimeRationing ? 1 : 0, 1, v => p.WartimeRationing = v != 0);
         GateLaw(ref shared, w, PolicyAxis.MilitaryExport, w.MilitaryExportBan ? 1 : 0, p.MilitaryExportBan ? 1 : 0, 1, v => p.MilitaryExportBan = v != 0);
         if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(ref shared, w, PolicyAxis.CivilianArms, w.CivilianArmsBan ? 1 : 0, p.CivilianArmsBan ? 1 : 0, 1, v => p.CivilianArmsBan = v != 0);   // ★民間の武器購入の法（2026-09-11）
