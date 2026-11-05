@@ -30,7 +30,7 @@ public class RuleSharesFormTests
     {
         var sim = France(_ => { });
         var w = sim.World;
-        w.PublicOrder = 1.0;   // 旗 RuleOrderByRegion 0 なら無統治の目標 0（治安が満ちている）・旗 1 は州の秩序 Clamp01(R×m̄÷m_r) で無統治が立ちうる（この試験の Assert は在地の Rule[1] だけ＝旗に依らない）
+        w.PublicOrder = 1.0;   // 無統治の目標 0（治安が満ちている）
         foreach (var r in w.Regions) { r.Rule = [0.6, 0.4, 0.0, 0.0]; r.RuleInit = [0.6, 0.4, 0.0, 0.0]; }
         w.Bureaucracy = BureaucracyLaw.Spoils; w.LandReform = ReformLevel.None; w.SerfEmancipation = ReformLevel.None;
         Settle(w, 300);
