@@ -1,0 +1,40 @@
+(859) 波70 の合流の予言（merge と腕の前の最初のコミット・担当 Claude Opus 5.5・基点 fe21d8a1）
+この文書は merge・腕・ident の前に書いた。結果を見た後に書き換えない（足すなら〈結果の後の追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（★(839) ③・作者 2026-10-27「残りは推奨で」）。
+
+■ [0] 作った物（この回の合流が自分で作ったフォルダ）
+  - D:/PoB_work/m859_work（読みの出力・要約）。採らなかった腕の生を置くなら D:/PoB_work/keep_859_rej（新しく作る）。
+  - 腕 c70ssB の生は線の事前登録 [5] の場所 D:/PoB_work/c70ss_work/armB に出る（線の台本 armB855.sh の POB_WORK＝線のフォルダ・★(852) の型で合流が起こす）。
+
+■ [1] D: の空き（2026-11-05 17:2x・shutil.disk_usage）＝30.85GB・arms.sh free 6
+  - 床（この回の決まり）：POB_CEARN=0 の腕 30GB・ident 35GB・M を全ての表で回す腕（約 16GB）は 36GB。
+  - この回に消せる物（この回の線のフォルダ・線が〈合流の判断の後に消す〉と渡した物だけ）：c70po_mutart 1.2G・c70po_mut 0.68G（git worktree）・wt_c70gt・wt_c70po・wt_c70id 計 約 2.0G＝合わせて 約 3.9G（c70po_work の 882M は keep_852_rej・keep_845 へのハードリンク＝実の空きは増えない）。wt_c70ss は armB855.sh・stoplines855.sh が固定で参照する＝読み終えるまで残す。
+  - 帰結（予言）：
+    ・ident（35GB）は消した後でも 約 34.8GB で床に届かない見込み＝**c70id はこの回入れない**（枝 origin/c70id に残す・空きの数を記録の先頭に書く・c70id の探り〔61 か国・差 0〕や M ≡ 腕 B で代えない）。
+    ・c70ssB（POB_CEARN=0・約 9〜10GB）は 30GB の床に届く＝起こす。
+    ・**c70ss は腕 B の門を全て通っても、この回では採れない**（M を全ての表で回す 36GB・N1・N2・S11 の空きが無い）＝門を通れば〈2 回目の腕 B は門を通った・M・S11 は次の波〉、1 門でも落ちれば〈2 回目の不採用〉（3 回目が最後）。§0-2 ⓪ の型で作者に空きの数を知らせる。
+    ・床は下げない（(849) の違反の再発を避ける）。
+
+■ [2] ★(852) の条件（合流が線の腕 B を線の事前登録のまま回す＝灰色の所）
+  - 回す物：bash scripts/instruments/c70ss/armB855.sh 1b9eeab1（線の木 D:/PoB_work/wt_c70ss・POB_CEARN=0・INS=1・計器つき 10 種・種 1〜10・国の名簿は batch.sh の既定 9 国〔batch.sh:59 で確かめた〕）。台本・門・閾値・止める線は線の事前登録 measurements/m855_20261105_prereg_ss.txt の [8]〜[11] のまま 1 字も変えない（sha256：gates_ss853.py 9e2abe19…・gates_ss853_thresholds.tsv 70fe4793…・mut_ss853.py 41cc25ac…）。
+  - 読む物：bash scripts/instruments/c70ss/read855.sh D:/PoB_work/c70ss_work/armB/out_c70ssB_10 <腕の成績表> D:/PoB_work/m859_work/readB（門・止める線・holclass839・nullgate・NG）。加えて合流が同じ台本で ㊳（政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期）を腕 B と新しいヌル腕で並べる（記録）。
+  - ⑭ の枠：旗 1 の出力を見た後のエンジンの変更は 0（この線の 2 回目の腕は形を変えていない）＝1 門でも落ちたら採らない。
+  - G4m の分母（c70gt の反証役 中）：閾値の分母（s2RhoSource＝1・E 有限）と門の分母（s2BasisKind＝2 かつ s2RhoSource＝1）が違う＝値は門のまま読み、閾値の近く（閾値の 1/2 以上）なら記録の先頭に名乗る。採否の規則は変えない。
+  - 縮め：線の事前登録 [11] のとおり（8 表＋keepsum_all_tables.tsv・印 shrink.mark）。門を通れば D:/PoB_work/c70ss_work/armB のまま次の波の M まで残す（合流の判断＝次の波の M ≡ 腕 B の比べに使う）・落ちれば縮めた生を D:/PoB_work/keep_859_rej/c70ssB_10 へ移す。
+  - 予言：形は (849) と同じ＝門は全て通る見込み（線の紙 G1a 0.7481・(849) の生への当て G1a 0.6161・G4 57 行外し・G4m 0.00932）。止める線は (849) の腕で空洞化 1/10 未満 0・〈100 倍〉は建国の直後 1 だけ＝当たらない見込み。WriterRatchet は腕の後に読まない（線の [7b] で item 2 の赤＝予言の内）。
+
+■ [3] merge の形と順（予言）
+  - c70gt（.cs 0 行・台本と記録だけ）→ c70po（頭 39069d30＝旗 0 の器・Coefficients.cs と DormantIdentityTests.cs の正味 0・残るのは RuleSharesFormTests.cs:81・:109 の初期化子の旗 0 と RuleOrderP1Tests.cs の P1_6・P1_7）→ c70ss（頭 639e5ab1）を merge した直後に点火 1b9eeab1 を revert（Coefficients.cs:530 の既定と DormantIdentityTests.cs の旗の表の行）＝main は旗 0。
+  - 消す名前：4 枝とも 0（fe21d8a1..origin/<枝> の削除の行を読んだ＝c70gt は台本の表示の行・c70po は試験の 2 行の書き換え・c70ss は点火の 2 行）。
+  - 合わせた木の SimCore・Runner・データは 1271053f と 0 行の差（fe21d8a1 は 1271053f と SimCore・Runner の差 0・c70gt・c70po・c70ss＋revert は SimCore・Runner に正味 0）＝**素の 5 種・10 種・計器つき 10 種は m852 と全行バイト一致（ソースから自明・ident は回さない）**。
+  - テスト：Category!=FullLength 2285＋c70po の 2（P1_6・P1_7）＝2287・FullLength 3。旗 0 なので WriterRatchetTests は緑の予言（取り直さない）。ident.cfg は TESTS_NONFULL 2287 だけを直す（INSRAW・BASE_COMMIT・NG_BASE は m852 のまま）。
+  - 灰色の所（名乗る）：c70po の D2 初期化子（★(832) ① (a) の型を別の番人に当てた）・c70gt の G4m の分母の違い・L＝120 は規則が情報 0（同数の決めで最長）・c70id の MM7 の穴（この回は入れない）。
+  - c70po は〈近似（別の盤面の腕＝(850) の腕 m839 の盤面に m852 の W_C を当てた）による停止〉と名乗り直す。3 回の規則の 2 回目に数えるか＝推奨：数えない（G2b の物差しに構造の穴＝門と道具の線が先・§0-2 ★(832) ① の前例と同じ型）。
+
+■ [4] 止める線と記録の段（腕 B に当てる）
+  - 止める線：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍（gdp_jump797 と gdp_jump833 の〈それ以外〉）・1e10 倍・空洞化 1/10 未満（holclass839・規則 A2・〈線が原因〉の件だけ）・推定の計算量 ＞248.5 秒・機構のテストの赤。
+  - 記録：成績表・nullgate・NG・英の国債の不履行・開幕の 1000 倍・名目 GDP 0 の続き（gdp_zero10）・T1／T2（★(852) ① の答え待ち）・㊳。
+
+■ [5] 読む線と設計の材料の線
+  - c70ea：D:/PoB_work/r857_work の台本を scripts/instruments/r857/、表と報告を measurements/m857_20261105/ へ写す（中身を書き換えない）。反証役の中 3 件（進行不能の物差しの替え・中央 0.72 の未読・(d) の外れの和らげ）を記録の先頭に写す。
+  - c70ds：D:/PoB_work/r858_work の material.md・draft.md を docs/202611/20261105/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（題の行に状態・本文は書き換えない・反証役の訂正は末尾に足す）。台本は scripts/instruments/r858/・出力は measurements/m858_20261105/。
