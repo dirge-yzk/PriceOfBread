@@ -43,7 +43,11 @@ done
 a=$(grep '^G4m_limit' "$R/scripts/instruments/c71gt/gates_ss860_thresholds.tsv" | cut -f2); b=$(grep '^G4m_limit' "$G/gates_ss867_thresholds.tsv" | cut -f2)
 [ "$a" = "$b" ] || nogo "[ss] G4m の閾値が 860 と違う ($a / $b)"
 FIL() { grep -v '^ *#' "$1" | grep 'G1a\|G1b\|G2\|G3a\|G4\|g1a\|g1b' | sed 's/(86[07])/(N)/g'; }
-diff <(FIL "$R/scripts/instruments/c71gt/gates_ss860.py") <(FIL "$G/gates_ss867.py") > "$T/gdiff.txt" 2>&1 || nogo "[ss] G1a〜G4m の式の行が 860 と違う：$(head -3 "$T/gdiff.txt")"
+# 860 の G1a〜G4m の行が 867 に 1 字も変えずに全て残る（860 にだけ在る行が 0）。867 にだけ在る行（G4m の閾値の読みと薄まりの記録の口）は記録に並べる。
+FIL "$R/scripts/instruments/c71gt/gates_ss860.py" | sort -u > "$T/g860.txt"; FIL "$G/gates_ss867.py" | sort -u > "$T/g867.txt"
+comm -23 "$T/g860.txt" "$T/g867.txt" > "$T/gonly860.txt"; comm -13 "$T/g860.txt" "$T/g867.txt" > "$T/gonly867.txt"
+[ -s "$T/gonly860.txt" ] && nogo "[ss] 860 の G1a〜G4m の行が 867 で変わっている：$(head -3 "$T/gonly860.txt" | cut -c1-120)"
+say "== 867 にだけ在る G1a〜G4m を含む行（G4m の閾値の読みと薄まりの記録の口＝式ではない）"; cut -c1-160 "$T/gonly867.txt" >> "$BODY"
 cmp -s "$R/scripts/instruments/c71gt/gates_po860.py" "$G/gates_po867.py" || nogo "[po] gates_po867.py が gates_po860.py のバイト一致の写しでない"
 # 5 G5p の閾値を旧の w に戻した突然変異（旗 0 の盤面の窓ごとの判定は 2 の出力の〈記録：旧の w の中央〉の列）
 say "== G5p の閾値を旧の w へ戻した突然変異（旗 0 の盤面・窓ごとの判定の違い）"; grep '窓 17\|窓 18\|窓 19' "$M/flag0_ss867.txt" >> "$BODY"
