@@ -14,6 +14,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 ORDER_PER_POP = 0.8   # Coefficients.CrimeOrderPerPop の既定
 SPEED = 0.025         # Coefficients.DominanceSpeed の既定
 PERSIST = 40
+TOL = 1e-8          # G0・G2a の許容（事前登録 [10] の訂正＝G10 の 10 桁の丸めが約 4e-9 乗る）
 SEEDS = range(1, 11)
 
 def c01(x): return 0.0 if not (x > 0) else (1.0 if x > 1 else x)
@@ -145,14 +146,15 @@ for spec in args:
                     mo, mi = r['militancyRegionOwnIndex'], r['mil']
                     own_mr_n += 1
                     if mo == mi or abs(mo - mi) <= 1e-12 * max(1.0, abs(mi)): own_mr_ok += 1
+                    if not (r['ruleUngovBeforeShare'] == r['ruleUngovBeforeShare']): continue   # Rule の長さが 4 でない州
                     if r['ruleForeignBeforeShare'] > 0 or r['fsh'] > 0: foreign_skip += 1; continue
                     t_eng = (r['ung'] - r['ruleUngovBeforeShare'] * (1 - SPEED)) / SPEED
                     g0_n += 1
-                    if abs(t_eng - r['ungovTargetNewShare']) <= 1e-9: g0_ok += 1
-                    if abs(t_eng - r['ungovTargetOldShare']) <= 1e-9: g0_old_ok += 1
+                    if abs(t_eng - r['ungovTargetNewShare']) <= TOL: g0_ok += 1
+                    if abs(t_eng - r['ungovTargetOldShare']) <= TOL: g0_old_ok += 1
                     if r['orderOldIndex'] >= 1 and r['orderRawNowIndex'] >= 1 and r['orderRegionNowIndex'] >= 1 and r['militancyRegionOwnIndex'] > 0:
                         g2a_n += 1
-                        if abs(t_eng - r['ungovTargetOldShare']) <= 1e-9: g2a_ok += 1
+                        if abs(t_eng - r['ungovTargetOldShare']) <= TOL: g2a_ok += 1
     S = st.mean(Ds) if Ds else float('nan'); C = st.mean(Cs) if Cs else float('nan'); G3 = st.mean(G3s) if G3s else float('nan')
     summary[name] = (S, C, G3)
     print('== 腕', name, d)
@@ -168,8 +170,8 @@ for spec in args:
         else:
             print('  T（tNew−tOld の上位−下位・国×四半期 %d）%s' % (len(Ts), fmt(st.mean(Ts) if Ts else float('nan'))))
             print('  m_r の自前の数と militancyMeanIndex の一致 %d / %d' % (own_mr_ok, own_mr_n))
-            print('  G0 点検 t_eng＝tNew（1e-9）%d / %d（割合 %s）  t_eng＝tOld %d / %d  外国の区分で除いた行 %d' % (g0_ok, g0_n, fmt(g0_ok / g0_n if g0_n else float('nan')), g0_old_ok, g0_n, foreign_skip))
-            print('  G2a P_ctrl %d 行  t_eng＝tOld（1e-9）%d（割合 %s）' % (g2a_n, g2a_ok, fmt(g2a_ok / g2a_n if g2a_n else float('nan'))))
+            print('  G0 点検 t_eng＝tNew（1e-8）%d / %d（割合 %s）  t_eng＝tOld %d / %d  外国の区分で除いた行 %d' % (g0_ok, g0_n, fmt(g0_ok / g0_n if g0_n else float('nan')), g0_old_ok, g0_n, foreign_skip))
+            print('  G2a P_ctrl %d 行  t_eng＝tOld（1e-8）%d（割合 %s）' % (g2a_n, g2a_ok, fmt(g2a_ok / g2a_n if g2a_n else float('nan'))))
 if args and '--base' in flags:
     b = args[0].split('=', 1)[0]
     Sb, Cb, Gb = summary[b]
