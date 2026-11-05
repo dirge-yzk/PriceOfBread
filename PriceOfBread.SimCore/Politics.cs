@@ -1550,13 +1550,34 @@ public static class Politics
         // ★支配度の一般化（段1〜5・(399) で点火）：州の4区分（国家・在地・外国・無統治）を目標へ寄せる。速度は DominanceSpeed（新しい速度定数を作らない）。合計1を保つ。
         //   目標：無統治＝(1−治安)×(1−到達)（到達＝首都からの距離〔RegionReach〕・辺境ほど・治安が抜けるほど）／在地＝開幕のデータ×仲介者の権利の残高（官僚制度法と土地改革の max〔Privileges.IntermediaryDegree〕・
         //   農奴解放の法は読まない〔作者 2026-10-16：農奴解放は農奴POPを農民POPにする法で州の支配度には影響しない〕）／外国＝講和で積まれた持分の合計（ForeignShareSum）／国家＝残り。
+        //   ★(850) 州ごとの治安 P1-1（旗 RuleOrderByRegion・既定 0＝下の order をそのまま読む今の式）。作者 2026-11-04「闘争度が高い州は、支配度が低下するのではないか（警察力が十分でない場合）」→
+        //   AI の推奨〈無統治の目標を州ごとの治安で作る〉を〈作者「全て推奨で」で推奨を採った〉（形は AI の案・確証なし・事前登録 measurements/m850_20261105_prereg_po.txt）。
+        //   旗 1：州の秩序 order_r＝Clamp01(R×m̄÷m_r)。R＝今の Coercion の切る前の被覆（Crime.Step と同じ式・w.PublicOrder は切った値で 1 四半期遅れ＝読まない）・
+        //   m̄＝国の全ての州（首都を含む）の大衆の闘争度の人口加重の平均・m_r＝その州の平均（AvgRegionMilitancy・この瞬間の値）。m_r が正でない州は 1。
+        //   国の被覆を州の闘争度の比で割り振るだけ＝R≧1 かつ R×m̄÷m_r≧1 の州（警察が十分）は旧と同じ目標。新しい係数 0・新しい状態 0。
+        //   ⚠犯罪（Crime.cs）は国の秩序のまま（闘争度を 2 回数えない＝思想⑨・番人 CrimeTests）。1 州の国は上の頭の return で動かない（今と同じ）。
         {
             double order = PoliticalQuantities.Clamp01(w.PublicOrder);
+            bool byRegion = c.RuleOrderByRegion > 0;
+            double rawOrder = 0, mbar = 0;
+            if (byRegion)
+            {
+                rawOrder = PoliticalQuantities.EffectiveCoerce(w, c) / Math.Max(1e-9, w.TotalPopulation * c.CrimeOrderPerPop);
+                double milSum = 0, sizeSum = 0;
+                foreach (var rm in w.Regions) { var (mm, ss) = RegionMilitancy(rm); milSum += mm; sizeSum += ss; }
+                mbar = sizeSum > 1e-9 ? milSum / sizeSum : 0;
+            }
             double intermediary = Privileges.IntermediaryDegree(w);
             foreach (var r4 in w.Regions)
             {
                 if (r4.Rule.Length != 4) continue;
-                double tUngov = (1.0 - order) * (1.0 - RegionReach(w, c, r4));
+                double orderR = order;
+                if (byRegion)
+                {
+                    double mr = AvgRegionMilitancy(r4);
+                    orderR = !(mr > 0) ? 1.0 : PoliticalQuantities.Clamp01(rawOrder * mbar / mr);
+                }
+                double tUngov = (1.0 - orderR) * (1.0 - RegionReach(w, c, r4));
                 double tLocal = System.Math.Min(1.0 - tUngov, (r4.RuleInit.Length == 4 ? r4.RuleInit[1] : 0) * intermediary);
                 double tForeign = ForeignShareSum(r4);
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);
