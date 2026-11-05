@@ -1,0 +1,58 @@
+RESTORED ME2 PriceOfBread.SimCore/EconomyStep.cs
+APPLIED ME2 PriceOfBread.SimCore/EconomyStep.cs
+filter: FullyQualifiedName~StateEduDemandTests
+test rc=1 4s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ [1 s]
+  失敗 PriceOfBread.Tests.StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない [3 ms]
+  失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は教育の担い手への労働の配分の重みが増える_翌月の重みは前月の需要を読む [75 ms]
+  失敗 PriceOfBread.Tests.StateEduDemandTests.財源率が0なら何も足さない_買いたい分は財源率に比例する [7 ms]
+  失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は教育の値段が財源率0より上がる_買いたい分が値段に出る [6 ms]
+  失敗 PriceOfBread.Tests.StateEduDemandTests.行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む [5 ms]
+失敗!   -失敗:     6、合格:     3、スキップ:     0、合計:     9、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ [1 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 63.271619999999999 (rounded from 63.271619999999999)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 77
+--
+  失敗 PriceOfBread.Tests.StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない [3 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 63.271619999999999 (rounded from 63.271619999999999)
+Actual:   39.587922458999998 (rounded from 39.587922459088489)
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 101
+--
+  失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は教育の担い手への労働の配分の重みが増える_翌月の重みは前月の需要を読む [75 ms]
+  エラー メッセージ:
+   f＞0 の労働の配分の重みが f＝0 より増えていない
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は教育の担い手への労働の配分の重みが増える_翌月の重みは前月の需要を読む() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 130
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.StateEduDemandTests.財源率が0なら何も足さない_買いたい分は財源率に比例する [7 ms]
+  エラー メッセージ:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.財源率が0なら何も足さない_買いたい分は財源率に比例する() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 179
+--
+  失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は教育の値段が財源率0より上がる_買いたい分が値段に出る [6 ms]
+  エラー メッセージ:
+   f＝0.5 の値段 0.7579544741355123 が f＝0 の値段 0.7579544741355123 より上がっていない
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は教育の値段が財源率0より上がる_買いたい分が値段に出る() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 115
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.StateEduDemandTests.行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む [5 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 44.290134000000002 (rounded from 44.290133999999995)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.StateEduDemandTests.行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\StateEduDemandTests.cs:line 165
+RESTORED ME2 PriceOfBread.SimCore/EconomyStep.cs

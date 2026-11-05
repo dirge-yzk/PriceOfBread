@@ -1,0 +1,15 @@
+RESTORED MR1 PriceOfBread.SimCore/InstrumentsRule.cs
+APPLIED MR1 PriceOfBread.SimCore/InstrumentsRule.cs
+filter: FullyQualifiedName~RuleInstrumentTests
+test rc=1 12s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.RuleInstrumentTests.挙げていない国の遅れたRも毎四半期更新される_年末の行が1四半期前のRに一致する [1 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RuleInstrumentTests.挙げていない国の遅れたRも毎四半期更新される_年末の行が1四半期前のRに一致する [1 s]
+  エラー メッセージ:
+   遅れた R が 1 四半期前の末の R でない（q=3：NaN ≠ 公開秩序 0.5603973752）
+  スタック トレース:
+     at PriceOfBread.Tests.RuleInstrumentTests.挙げていない国の遅れたRも毎四半期更新される_年末の行が1四半期前のRに一致する() in D:\PoB_work\c69id_mut2\PriceOfBread.Tests\RuleInstrumentTests.cs:line 164
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+RESTORED MR1 PriceOfBread.SimCore/InstrumentsRule.cs

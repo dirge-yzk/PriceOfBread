@@ -45,6 +45,8 @@ public class FullChainTests
         var sim = new Simulation(Full(1), new NullAgent());
         // ★(843) 造幣の旗 2 本（MintPriceFloorGate・StandardMetalMintGate）を焼き込んだ＝旧・産出比例経路の番人は**自由鋳造（床）の盤面**へ移した：
         //   既定の通貨制度は不換（造幣局は何も買わない）なので、金本位を置く＝造幣局が本位金属（金鉱）を買い、鋳造で基礎貨幣が増える。
+        // (846) 鋳造の経路（変異で確かめた・measurements/m846_20261105/mut_summary.txt）：この盤面の鋳造は自由鋳造の床の枝（Simulation.MintGold の `m.Price > parity && !atMarket` を通る在庫の買い上げ）で起きている。
+        //   市場買い（MintBuysAtMarket）の枝を外しても緑・床の枝を外すと赤（鋳造が一度も発生していない）・鋳造の記帳（World の Outside.Mint）を外すと赤（貨幣保存の破れ）。〈市場買いでしか起きていない〉疑い（(843) の反証役 ③）は当たらなかった。
         sim.World.MonetaryLaw = MonetaryStandardLaw.Gold;
         double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));

@@ -1,0 +1,15 @@
+RESTORED MR3 PriceOfBread.SimCore/InstrumentsRule.cs
+APPLIED MR3 PriceOfBread.SimCore/InstrumentsRule.cs
+filter: FullyQualifiedName~RuleInstrumentTests
+test rc=1 9s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.RuleInstrumentTests.切る前のRと州の秩序と無統治の目標は恒等式どおり [761 ms]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RuleInstrumentTests.切る前のRと州の秩序と無統治の目標は恒等式どおり [761 ms]
+  エラー メッセージ:
+   order_r が違う イギリス ロンドン
+  スタック トレース:
+     at PriceOfBread.Tests.RuleInstrumentTests.切る前のRと州の秩序と無統治の目標は恒等式どおり() in D:\PoB_work\c69id_mut2\PriceOfBread.Tests\RuleInstrumentTests.cs:line 113
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+RESTORED MR3 PriceOfBread.SimCore/InstrumentsRule.cs

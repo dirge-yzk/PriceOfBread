@@ -65,4 +65,10 @@
  D:/PoB_work/wt_c69id（worktree・枝は残す）・D:/PoB_work/c69id_work（台本の出力・印）・D:/PoB_work/c69id_art（隔離ビルド）・D:/PoB_work/c69id_mut（変異の使い捨ての写し）・D:/PoB_work/c69id_mutart・D:/PoB_work/ident_c69id（ident の作業・生は反証役が読み終えるまで残す）・D:/PoB_work/c69id_suite（フルスイートの作業）。反証役が読み終えたら keepsum を measurements に残して ident_c69id の生を消す。
 
 ■ [8] 追記（ident を起こす前・結果の前）
- （ここに確定値を書く）
+ （ident を起こす前・結果の前に書く）
+- 足した試験は予言どおり 16 本。`--list-tests`（隔離ビルド D:/PoB_work/c69id_art）＝Category!=FullLength 2260（2244＋16）・FullLength 3。--tests-delta 16 のまま。
+- ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests＋TechLevelRemovalTests・InstrumentsMonTests）＝193 本全て緑・書き換えた件数 0（予言どおり）。注の編集の前後で緑（焼いた旗の名を注へ書いた Parliament.cs・Politics.cs・SelfPlay.cs の 3 ファイルも緑）。
+- 紙の台本：scripts/instruments/c69id/src_diff846.py 7f34146c → SimCore の差のあるファイル 6 本・注の文字だけの差 6 本・コードの差 0 本（measurements/m846_20261105/paper_src_diff.txt）。
+- 変異の結果は measurements/m846_20261105/mut_summary.txt。事前登録 [3] に無い変異 ME5（買えた分 take を 2 倍・試験 (a) を赤にする変異）を 1 本足した（結果の前の追加ではなく、(a) が ME1〜ME4 で赤にならないと分かった後の追加＝〈変異の表の穴を後から埋めた〉と名乗る）。MF2・MF3 の見込みは逆だった（鋳造は床の枝）。FullChainTests は注に 2 行足しただけ（Assert は不変・主張は事実どおり）。
+- 作ったフォルダの追加：D:/PoB_work/c69id_mut2・c69id_mutart2（並行の変異の写し）・D:/PoB_work/c69id_work/mutout（変異の生の出力）。
+- ident は変異のジョブが全て終わった後・D: の空き 35GB 以上・arms.sh free 3 以上で起こす。浮動小数の順序が変わる箇所：エンジン側 0（paper_src_diff.txt）。

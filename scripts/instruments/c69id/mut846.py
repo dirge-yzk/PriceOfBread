@@ -31,6 +31,9 @@ M = {
     'ME3': ('PriceOfBread.SimCore/EconomyStep.cs', [
         ('if (want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）', 'if (false && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）'),
     ]),
+    'ME5': ('PriceOfBread.SimCore/EconomyStep.cs', [
+        ('                        m.LastDemand += take;             // 国家購入も需要として記録（次期の労働配分の重み）', '                        m.LastDemand += 2 * take;             // 国家購入も需要として記録（次期の労働配分の重み）'),
+    ]),
     'ME4': ('PriceOfBread.SimCore/EconomyStep.cs', [
         ('* (coef.EduReachFromAdmin > 0 ? 1.0 - coef.EduReachFromAdmin * (1.0 - PoliticalQuantities.Clamp01(region.AdminFill)) : 1.0);   // 国庫の買いたい分', '* 1.0;   // 国庫の買いたい分'),
     ]),
