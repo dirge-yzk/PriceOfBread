@@ -27,6 +27,7 @@ def band(a): return '11-20' if SEEDS.get(a) and min(SEEDS[a]) >= 11 else '1-10'
 PAT = re.compile(r'例外 (\d+)・元からの弱さ (\d+)・ヌル腕の幅の内 (\d+)・線が原因（新） (\d+)・食い違い (\d+)')
 RROW = re.compile(r'\]\s+s(\d+)\s+(\S+?)（.*\tr ([0-9.naninf]+)\t.*記録\(a\) 全ての種 n=(\d+) 最小 ([0-9.naninf]+)')
 CACHE = {}
+USED = {}   # (853) holclass840 へ実際に渡した基線と盤面（腕ごと）＝割り当ての写し間違いを割り当ての表で読めるようにする
 def hc(a, null):
     key = (a, tuple(null))
     if key in CACHE: return CACHE[key]
@@ -34,6 +35,7 @@ def hc(a, null):
     if BASE.get(a, '-') != '-': cmd.append(f'{AN}/{BASE[a]}.txt')
     cmd += ['--ratios', RAT, '--null', ','.join(null), '--self', a]
     if a in BOARD: cmd += ['--board', BOARD[a]]
+    USED[a] = (cmd[6][len(AN) + 1:-4] if cmd[6] != '--ratios' else '-', cmd[cmd.index('--board') + 1] if '--board' in cmd else '')
     out = subprocess.run(cmd, capture_output=True, encoding='utf-8', check=True).stdout
     m = PAT.search(out)
     cnt = tuple(int(v) for v in m.groups())
@@ -97,3 +99,6 @@ if CHK:
         bad += got != exp
         print(f'{a}\t{"一致" if got == exp else "不一致"}\t{got}\t{exp}')
     print(f'## 恒等の門 3：不一致 {bad}')
+# ---- (853) 割り当ての表：holclass840 へ渡した基線と盤面（--base・--board の割り当てを mut847.sh が期待と突き合わせる）
+for a in sorted(USED):
+    print(f'## 割り当て {a} 基線 {USED[a][0]} 盤面 {USED[a][1]}')

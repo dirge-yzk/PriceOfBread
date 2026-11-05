@@ -1,0 +1,9 @@
+[計器の表] 腕 D:/PoB_work/c70gt_work/t9old\arm  対  基準 D:/PoB_work/c70gt_work/t9old\base
+  基準 4 本・腕 4 本・バイト一致 1 本
+  列が増えた表（--grown-ok の宣言）2 本：cearn_s1.tsv+2列・rowsg_s1.tsv+1列
+  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）1 本・増えた行 1：rowsg_s+1
+  既知の揺れの列だけが違う表 2 本：burscan_s:seconds×1・cearn_s:経路の行番号だけ（写して一致 3 欄・列が増えた表）×1
+  ○ 計器の表は恒等（バイト一致 1・既知の揺れ 2・宣言された増減 3）
+○ 判定は恒等（FAILS・MISSING が空）
+✗ T9a ok の行の内訳の和＝共通の表の数（4）：実際 6
+✗ T9b 内訳の行が在り和＝共通の表の数
