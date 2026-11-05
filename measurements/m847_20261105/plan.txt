@@ -1,0 +1,25 @@
+# (847) c69hl 空洞化 1/10 未満の止める線の物差しの続き（読む線・腕 0 本・コミット 0・担当 Claude Opus 5.5）
+作業の場所: D:/PoB_work/r847_work（この回に作ったフォルダはこれだけ・worktree と枝は作らない）
+台本の元（読むだけ）: C:/Users/dirge/Documents/PriceOfBread（main 7f34146c）の scripts/instruments/r840/・m839/holclass839.py・hol/an_h2.py・hol_common.py
+新しい台本: D:/PoB_work/r847_work/c69hl/（mkfix847.py・fixgate847.py・loo847.py・mut847.sh・run847.sh・gate847.sh ほか＝合流が scripts/instruments/c69hl/ へ写す）
+T1 の中身は scripts/instruments/r840/holclass840.py を変えずに呼ぶ（写しは突然変異のときだけ）。
+
+## 読む生（region_s<seed>.tsv・migration_s<seed>.tsv）＝今ある物（2026-11-05 に ls で 10 種ずつあると確かめた）
+### ヌル腕（9 組の一つ抜きの母集合）
+- 種 1〜10：n839a=keep_839/n1・n839b=keep_839/n2（新）・n826a=keep_826/n1・n826b=keep_826/n2・n797a=keep_797/n1・n797b=keep_797/n2（旧）
+- 種 11〜20：a839=keep_839/a11・a826=keep_826/a11・a797=keep_797/a11（基線の S11＝ヌル腕ではない＝(840) の反証役 ④・指示どおり 9 組に数える）
+### 基線（〈元からの弱さ〉の比べる側＝(840) の all840.sh の割り当てのまま）
+- b839=keep_839/base_ins（keep_845/base_ins とハードリンク）・b826=keep_826/base_ins
+- b832（keep_832/base_ins）は消えた＝measurements/m840_20261105/an/b832.txt の写しを使う（keep_826/base_ins と region_s1 の sha256 が一致した同じ m826 の軌道＝(840) §11）
+### 腕（読み直す物）
+- abDW0=keep_839_rej/abDW0_md_10/ins（c65md だけ旗 1・m826）・c67svB=keep_839_rej/c67svB_10/ins・mM=keep_839_rej/mM_mddw_10/ins・mS=keep_839_rej/mS_mddw_s11/ins・c65mdB=keep_826_rej/c65mdB_10/ins
+- 消えた腕：c66dwB（keep_832_rej/c66dwB_10/ins）・mS832（keep_832_rej/mS_s11/ins）＝measurements/m840_20261105/ratios.tsv の行と an/*.txt の写しでしか読めない
+## 手順
+1. 事前登録 m847_20261105_prereg.txt（生を読む前）＋ sha256
+2. 小さな盤面 mkfix847（種 2 つ・腕＝母集合の 1 本・母集合が空・ヌル腕 3 組の件数の規則）＋両側の門 fixgate847
+3. 生から an_h2 -v5 と ratio840 を作り直し（bg.sh）、(840) の写しとバイトで比べる（恒等の門 1）
+4. holclass839 と holclass840 を全ての腕に（恒等の門 2＝(840) の out/ とバイトで比べる）
+5. loo847（9 組の一つ抜き・T1・T2・T3 の空振りの率・型の選び）＋ loo847 の T1 と holclass840 の一致（恒等の門 3）
+6. 突然変異 MU0〜MU7（＋旗 0 の T2）＝表
+7. 選んだ型で読み直しの表（c65md・c67sv・mM・mS ほか）
+8. 報告（合流が写す物の一覧）
