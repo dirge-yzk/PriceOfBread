@@ -1,0 +1,4 @@
+which	tier	sumRatio	medianRatio	nPairs	nSeeds
+arm	Colonial	2.292	0.7183	114679	10
+null1	Colonial	1.826	0.9574	335624	10
+null2	Colonial	1.141	0.8686	346981	10
