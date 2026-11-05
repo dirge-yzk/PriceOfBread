@@ -1,0 +1,2 @@
+写した .cs：['Coefficients.cs', 'EmptyPopEstate.cs', 'InstrumentsCearn.cs', 'Simulation.cs']・行 2101712・経路の列の違い 0・経路の外の列（共通の列）の違い 0
+判定：一致（経路の列は写して一致・共通の列は一致）

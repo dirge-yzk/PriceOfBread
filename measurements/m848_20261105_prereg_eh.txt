@@ -81,3 +81,18 @@ cearn_s の経路の 3 列（outTop1Route・outTop2Route・inTop1Route）：旗 
   ③人の居る POP の在庫：P の人の居る在庫の割合は 1−W＝約 0.76→約 1 へ（+30% 前後）。相続法の請求（死者×1 人あたりの貯蓄）はその分だけ増える。
   ④英の国債の不履行の種・1/4 未満の件数は記録。
 腕 B の生：反証役が読んだ後に、門と止める線の読み手が開く表だけ（region_s・migration_s・gdp の表・門の列の表〔cearn_s・cpop_s〕と keepsum_all_tables.tsv＝keep_839_rej/abDW0_md_10 の型）へ縮める。縮めた後も合流が読むまで残す。ident c69ehz の生は判定と反証役の読みの後に keepsum を measurements/m848_20261105/ へ残して消す。
+
+== §9 追記（2026-11-05・ident c69ehz の 1 回目の後・旗 1 の出力を見る前＝⑭の〈形の変え直し〉に数えない）
+1 回目（木 bb767545・印の記録 measurements/m848_20261105/ident_c69ehz_run1.txt）は〈判定: 不一致〉。理由は 2 件とも道具の限界で、恒等の破れではない：
+  ①.cost の件数の行〈海軍の発注の配り〉はラベルの文字列だけが違う（値は同じ 1946888・1947035）＝c68ui (843) の名の変え＝m845 の ident も `--cost-allow 海軍の発注の配り` で通した。この線とは無関係＝同じ宣言を足す。
+  ②cearn_s の経路 3 列：ident_check.py の cearn_same_but_location は見出しの一致（ra[0]==rb[0]）を前提にする＝列が末尾に増えた表では写像が走らず、Simulation.cs の 1 行の挿入で動いた行番号を〈宣言の無い違い〉と数えた。
+     §7 の予言〈difflib で写る＝不一致にならない〉は外れた（道具が grown と写像を同時に扱えない）。補助の読み手 scripts/instruments/c69eh/routecheck848.py（基準の行番号を測る木へ写して経路の 3 列だけ比べ、共通の列はバイトで比べる）では 10 種の 2,101,712 行で経路の違い 0・共通の列の違い 0（measurements/m848_20261105/routecheck_identz1.txt）。
+直し（形は同じ・順序も同じ）：Simulation.cs の足した 1 行を消し、呼びを既存の行 `double estateRate = Government.InheritanceRate(World.Inheritance);` の頭へ同じ行として置いた（`EmptyPopEstate.Step(World); double estateRate = …`）＝Simulation.cs の行番号は ef637d89 と同じ（World.Transfer の行番号の並びが一致を確かめた）＝cearn_s の共通の列はバイトで比べられる。
+2 回目の ident の宣言：--grown-ok cearn_s,cpop_s・--tests-delta 7・--cost-allow 海軍の発注の配り。EmptyPopEstate.cs の World.Transfer は 28 行目＝旗 1 の腕の新しい経路の名は EmptyPopEstate.cs:28:take:P と EmptyPopEstate.cs:28:give:P（§7 の <呼びの行>）。
+1 回目の生は keepsum（measurements/m848_20261105/keepsum_identz1_ins.tsv）を残して 2 回目に置き換えた（同じラベルの start は古い出力を消す）。
+全ての州の反実仮想（1 回目の生・旗 0・cearn_s の末尾の列・measurements/m848_20261105/gate848_identz1.txt）：格ごとの〈断面の空の在庫÷州の在庫〉＝植民地格 0.2356（cpop_s の紙と一致）・本国格（Core）0.000114・統合格（Integrated）9.4e-11。
+  その月に移るはずの額の 10 種の和＝植民地格 1.456e10・本国格 8.79e8・統合格 51.2・受け手の居ない州 0。due＞0 の州×四半期＝植民地格 394,821／574,835・本国格 104,221／1,392,843・統合格 10,684／134,034。
+  G2①（移った額の和 ＞0）は旗 0 で 0＝落ちる（旗 0 で門が落ちることの確かめ）。G2②〜⑥ は旗 0 で違反 0（0 を 0 と比べる＝旗 0 では判別しない側の門）。
+突然変異（measurements/m848_20261105/mutation.txt）：§5 の表どおり、E0〜E4 は全て少なくとも 1 本の試験で赤。表より余分に赤：E2 で〈人数 0 の POP が在庫を持たない州は旗 1 でも変わらない〉・E3 で同じ試験（どちらも形どおり）。
+  〈州に人の居る POP が無ければ動かない〉はどの突然変異でも緑＝受け手の人数の和の門は World.Transfer の受け手不在の門が二重に守る＝EmptyPopEstate だけの突然変異では落とせない（名乗る）。
+基線とヌル腕 3 世代の止める線の数え直し（同じ台本 scripts/instruments/c69eh/stoplines848.sh・出力 measurements/m848_20261105/stop_null/）。
