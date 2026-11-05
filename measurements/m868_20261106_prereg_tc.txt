@@ -1,0 +1,38 @@
+(868) 線 c72tc 事前登録：輸入の払い手の試験の盤面（案 1）と cearn_s の末尾 2 列（旗に依らない恒等の器）
+書いたモデル：Claude Sonnet 5.5。枝 c72tc（出発 688294bf0fbf70f66d05fdde0520e6052b3ad1c8）。worktree D:/PoB_work/wt_c72tc。作業フォルダ D:/PoB_work/c72tc_work（この回に作った）。
+恒等の線・予言 0。新しい係数 0・新しい状態 0（計器の欄は ConditionalWeakTable の CearnAcc の欄だけ・NonSerialized 不要）。エンジンの挙動を変えない。
+
+━━ [1] 恒等の線・予言 0
+- 変える物＝TradeClearingTests.cs の 1 試験の盤面の行（:444 の近く）と属性（Fact→Theory）・InstrumentsCearn.cs の末尾 2 列・新しい試験ファイル 1 本。SimCore のエンジン（BilateralMarket.cs ほか）は 0 行。
+- 素の 5 種・計器つき 10 種は m852 の成績表（ident.cfg）と全行一致を予言する。計器の表の差は cearn_s の末尾 2 列の増加だけ（宣言 --grown-ok cearn_s）。他の表は全行一致。
+- 試験の数の差（--tests-delta）：+1（新しい Fact 1 本。既存の試験は Theory にしても --list-tests の行が 2 つに増える＝Theory の InlineData 2 行で +1 → 合計 +2）。数え直して ident に渡す。
+
+━━ [2] 消す物と残す物
+- 消す物：0。足す物：
+  (a) TradeClearingTests.月の清算は潜在量を書かず容量の尽きた行を回さない を Theory(旗 ImportPayerLive 0 と 1) にする。形 (ii)（推奨どおり）。旗は Make の後に `sim.Coef.ImportPayerLive = flag;`（World.Coef は国ごとだが Coef は sim 側の 1 本で、ImportPayerLiveTests と同じ置き方）。
+  (b) 盤面の行：`foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);` の直後に、人数 ＞1e-12 の POP にも在庫 1e9 を置く 1 行を足す（値 1e9 は商人と同じ）。既存の行は 1 字も変えない。
+  (c) Assert の式・リテラル・文言は 1 字も変えない（diff で示す）。
+  (d) InstrumentsCearn.cs の末尾 2 列：importOldRuleBudgetStartPerQuarter・importBudgetExcessMaxPerClearing。
+  (e) 新しい試験ファイル TradeClearingBoardTests.cs（盤面の前提を数えて記録する Fact 1 本・CearnAcc の新しい 2 欄の単体）。
+- 読み手の grep（新しい名前）：importOldRuleBudgetStartPerQuarter／importBudgetExcessMaxPerClearing／ImpOld／ImpEx は SimCore・Runner・App・Display・Tests・scripts・measurements に 0 件（作る前に確認済み）。読み手は c72ip の門（未実装）だけ。
+- 他の線との重なり：InstrumentsCearn.cs と TradeClearingTests.cs は c72tc だけの持ち物。BilateralMarket.cs・Coefficients.cs・DormantIdentityTests.cs は触らない。c72ip は tc_ready.mark の後に origin/c72tc を merge する。
+
+━━ [3] 足す試験と突然変異
+- 旗 1 で :473 が緑になる（直す前は赤＝(863) の再現を先に確かめる：Theory 化だけして盤面の行を足す前に旗 1 を回し、:473 の ClearFailLp が Expected 1.926…・Actual 0 で赤を確かめる）。
+- 旗 0 で緑。盤面の行を足す前後で、旗 0 の ClearingFills（最初の Step 後の Fills()−f0）を比べて記録する（盤面の直しが旗 0 の道筋を動かしたかの材料）。
+- 新しい Fact：英の州のうち商人の添字が無い州の数・商人の人数 ≦1e-12 の州の数・人数 ＞1e-12 の POP を持つ州の数を数えて記録する（ITestOutputHelper）。Assert は「内陸の買い手の州が 1 つ以上」「人の居る POP を持たない州が 0（直した盤面で旗 1 の予算が全州で正）」。
+- 突然変異：M1 盤面の行を外す→旗 1 で :473 が赤（再現）／M2 importOldRuleBudgetStart の手形の枝（債務 0 の商人は ∞）を外す→新しい Fact の「旧の規則の予算が手形の州で ∞」が赤／M3 清算ごとの超過を四半期の和に戻す→新しい Fact の「1 回の清算の超過が他の清算の余りで隠れない」が赤。結果は measurements/m868_20261106/mutation_868.txt に書く。
+- 走査の番人 7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）：書き換える件数の予言＝0。WriterRatchetTests の表は取り直さない。`new MoneyStock(` は SimCore で 64 件（現状）＝増減 0 の予言。route_anchors.tsv は触らない。
+
+━━ [4] 計器の列（InstrumentsCearn.cs・cearn_s の末尾に 2 列・宣言 --grown-ok cearn_s）
+- importOldRuleBudgetStartPerQuarter：CearnImportHead（既にある呼び口 BilateralMarket.cs:583）で、旗に依らず旧の規則の予算を数える＝州に商人の POP があればその 1 POP（債務 ＞0 ならその max(0, 貯蓄)・債務が 0 や NaN なら手形＝+∞）／商人の添字が無い州は全 POP の Σmax(0, 貯蓄)。清算の頭ごとの和。
+  ⚠指示の門〈旗 0 の 1 種で importBudgetStartPerQuarter と一致〉は文面どおりには成り立たない：既存の importBudgetStartPerQuarter は旗を読まず〈今の新しい規則（人数 ＞1e-12 に限る）〉の予算（(863) の定義）で、旗 0 の旧の規則と一致するのは importPayerKind＝1 の州（商人が人数 ＞1e-12）だけ。人数 ≦1e-12 の商人の州（kind 2）では旧＝商人の在庫または +∞、新＝人の居る POP の在庫の和で食い違う。よって門は〈importPayerKind が 1 で四半期の全ての清算の頭が kind 1 の行では 2 列が一致する〉と置き、kind 2・3 の行の食い違い数は記録する（結果の前に固定）。
+- importBudgetExcessMaxPerClearing：清算ごとの〈払った額 − 清算の頭の払い手の在庫（新しい規則の予算・有限のときだけ）〉の最大（0 で切らない）。既にある呼び口だけで数える：頭（:583 の CearnImportHead）で前の清算の分を畳み、払い（:1140 の Take＝CearnImportPaid）で清算内の払いを足す。BilateralMarket.cs に新しい呼び口は不要＝列は作る。手形の州（予算 ∞）は除く。清算が無ければ nan。四半期の行を書く前に最後の清算を畳む。
+  限界（名乗る）：払った額は CearnPopAcc に登録された POP が払い手の州の台帳に載る＝月の途中に作られた POP は数えない（cearn_s の限界①）。清算の行の州と払い手の登録の州が違う払いは、払い手の登録の州の清算の頭の在庫に対して数える。
+- 計器はエンジンの値を書かない・乱数を引かない・旗を読まない。POB_CEARN=0 の門の中に入る。
+
+━━ [5] ident と判定
+- 器のコミットの後、番人 5 組（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests）に GoodIdGuardTests|TechLevelRemovalTests を足した 7 組と、TradeClearingTests・ImportPayerLiveTests・InstrumentsTests・CearnInstrumentTests を旗 0 と旗 1 で回す（旗 1 は使い捨ての木で既定を 1 にして確かめる・コミットしない）。緑なら tc_ready.mark を起こす。
+- その後 ident c72tc：`ident.sh run c72tc --tree D:/PoB_work/wt_c72tc --grown-ok cearn_s --tests-delta <数> --saveleak`。ident.cfg の INSRAW が keep_866 に移った後の初めての実走と名乗る。判定が〈恒等〉なら採る。ident の間は worktree にコミットしない（㉙）。
+- 浮動小数の順序が変わる箇所：0（エンジンの式は 0 行）。
+- 止める線：該当なし（挙動を変えない）。不一致なら変更を外して報告に回す。
