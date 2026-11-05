@@ -1,0 +1,36 @@
+(871) c72po 旗 1 の木（点火 384c3246）のフルスイート・走査の番人・savetest・leakhunt（suite871.sh・Release・隔離ビルド D:/PoB_work/c72po_work/art_suite）
+list nonfull 2307
+list full 3
+filter rc=1 664s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:   184、スキップ:     0、合計:   185、期間: 11 m - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3442688 件（宣言 2978732・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+FILTERDONE
+===FULL
+list nonfull 2307
+list full 3
+nonfull rc=1 2140s
+full rc=0 343s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:09:38.57]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [FAIL]
+失敗!   -失敗:     1、合格:  2305、スキップ:     1、合計:  2307、期間: 35 m 37 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 38 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [29 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3442688 件（宣言 2978732・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+SUITEDONE
+saveleak rc=0 288s
+保存 45.8MB（683ms）／読込 694ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 167・その月の額の和 2.533E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c72po_work/leakhunt.txt　マニフェスト=D:/PoB_work/c72po_work/leakhunt.txt.manifest（SOURCE-HASH=0790e3e5878e45b2）
+SL-END 02:10:15
+SAVELEAKDONE
+読み：走査の番人 7 組の filter＝185 本・失敗 1（WriterRatchetTests item 11）。Category!=FullLength --list-tests 2307＝合格 2305＋スキップ 1＋失敗 1（WriterRatchetTests item 11＝予言の内・3,442,688 対 宣言 2,978,732・+15.6%・(856)・(862) と同じ値）・FullLength 3＝合格 3・中止 0。予言の外の赤 0。savetest OK・leakhunt 違反なし。
