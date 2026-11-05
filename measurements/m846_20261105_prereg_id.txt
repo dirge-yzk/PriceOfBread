@@ -1,0 +1,68 @@
+(846) 線 c69id 事前登録（最初のコミット・結果を見る前）。書いたモデル：Claude Sonnet 5.5。仮番号 (846)。枝 c69id。出発点 7f34146c（main・m839 の基線のまま）。
+
+■ [1] 形と予言 0
+- 種類＝恒等の線（入口でも尾でもない。試験・計器の注・ソースの注だけ）。エンジンの挙動を変えない。新しい係数 0・新しい状態 0・計器の列の変更 0。
+- 予言 0：素の 5 種（b5）と計器つき 10 種（b10_ins）は m839 の成績表と名乗り行を除いて全行バイト一致。計器の表（1068 本）は宣言なしで全てバイト一致（既知の揺れ burscan_s:seconds・clock_s:worldTotalPerMonth は ident.cfg の KNOWN）。cearn_s も全行一致（金を動かすファイルに行を足さない）。
+- 出す判定は ident の〈判定: 恒等〉（測った種で一致）。一致しなければ、その変更を外して報告に回す。
+- 作者の言葉は引かない（この線に作者の新しい言葉は無い。(843) の反証役の ①③ と (842) の反証役の ①③④ を出発にする）。AI の案・確証なしは〈AI の案〉と書く。
+- 浮動小数の順序が変わる箇所：エンジン側 0（ソースの変更は注の文字だけ）。同じ盤面で旧と新を比べる箇所：なし。
+
+■ [2] 消す物と残す物・読み手の grep
+2-1 消す物：なし（試験の復元 16 本・試験の注・ソースの注・InstrumentsRule.cs:22 の ⚠限界に 1 文）。
+2-2 項目
+ 1 LaborClosedTests（6 本の復元）：旧の元は `git show 22e99b57^:PriceOfBread.Tests/LaborClosedTests.cs`。旗 LaborClosedForm（0／1）で比べていた物差しを、`MarketFlow.StepDay(r, c, 1, cost, monthStart, law)` を h＝15 回まわした盤面に置き換える（h＝1 では `laborClosed = h > 1 && …` が偽＝日次の 1 歩。MarketFlow.cs:161〜162）。復元する 6 ケース＝Theory 2（品薄・品余りで閉じた式と日次が相対 1e-12）＋Fact 2（旬の途中で参照をまたぐ・法の床に届く＝ビットで同じ）＋Theory 2（参照より上から出発＝ビットで同じ）。〈閉じた式を使った〉の証拠は台帳 `cost[PriceDailyRuns]`（1 歩＝1・日次を 15 回＝15）。`c.LaborClosedForm`・`c.MinimumWageLawGate` の代入は消えた係数＝書かない。
+ 2 ServiceClosedTests（新しいファイル・2 本の復元）：旧の元は `git show 5a19a944^:PriceOfBread.Tests/ServiceClosedTests.cs`（ファイルごと消えたのは (843) の 22e99b57 でなく 5a19a944）。物差しは同じ置き換え（h＝15 の 1 歩 対 h＝1 を 15 回）。①天井の近くに張り付いた役務は相対 3e-5 以内（今の既定の ServiceClosedMaxCurv は 0.01〈Coefficients.cs:657〉で旧の 0.05 でなく、誤差は小さくなる側）②参照をまたぐ向き（参照より上・品余り）はビットで同じ。
+ 3 StateEduDemandTests（7 本の復元）：旧の元は `git show 22e99b57^:PriceOfBread.Tests/StateEduDemandTests.cs`。物差しは旗 0 の盤面でなく Demand(f＝0)（`CompulsoryEduFunding＝0` なら EconomyStep.cs:1894 の `region.CompulsoryEduFunding > Eps` が偽で国庫のブロックごと飛ぶ）。f＞0 で需要に足されるのは `take`（買えた分）と `want − boughtQty`（取れなかった分）の和＝want だから、Demand(f) − Demand(0) ＝ want ＝ f × 到達 r × Σ（予算 0 の階級の学齢の必要量）。
+    復元の 7 本：(a) 供給が足りる月（差＝買えた量＝want・二重に数えない）(b) 供給が尽きた月（差＝f×Need・購入と支払いと充足と貯蓄は f＝0 と同じ）(c) 一部だけ取れた月（差＝want・0＜bought＜want・LastSold の差＝bought）(d) 供給が尽きた月は値段が f＝0 より上がる (e) 労働の配分の重みが f＝0 より増える (f) 高等教育（HigherEduFunding 1.0 対 0 の差＝1÷price）(g) 到達 r（EduReachFromAdmin＞0 のとき差＝r×f×Need）。旧の第 9 の試験〈旗の既定は 1〉は、旗が焼かれて主張が空になったので (g) に置き換える（旧の 9 つ目は復元しない）＝AI の案。
+    前提の確かめ：ScholarshipCover（EconomyStep.cs:596）は ScholarshipTopStage（既定 0〈Coefficients.cs:194〉）が 0 なら 0＝f の有無が教育以外を動かさない。
+ 4 RuleInstrumentTests に Fact を 1 本足す（遅れた R を全ての国で毎四半期更新する所・(842) の反証役 ③）：`Instruments.Configure(dir, "イギリス")` で 1 国だけ挙げ、挙げていない国（年末の四半期にしか行を出さない）の行で orderRawLagIndex が publicOrderIndex（＜1）に一致する。InstrumentsRule.cs:75 の `lagSt.Prev = rNow;` を早い return の後へ動かす突然変異では、挙げていない国の遅れた R が nan または 4 四半期前の値になり赤になる見込み。
+ 5 InstrumentsRule.cs:22 の ⚠限界に 1 文（注だけ）：〈m_r・m̄ とその派生（militancyRegionIndex・militancyNationIndex・orderRegionIndex・ungovTargetNewShare）は四半期の末の値・CheckSecession の瞬間と 92% の行で違う（(842)）・エンジンの〈働いた〉の数に使わない〉。
+ 6 FullChainTests の鋳造の経路：使い捨ての木（D:/PoB_work/c69id_mut）で、MintGold の 3 つの変異を表にする（下の [3]）。見込み（結果を見る前・推測）：自由鋳造〈床の枝〉でなく MintBuysAtMarket の市場買いで鋳造は起きている（(843) の反証役 ③ は〈値段を 2 倍にしても鋳造が起きた〉と報告）。市場買いでしか起きていないなら、番人の名と注を事実に合わせる（Assert の主張は弱めない）。床の枝が働く盤面が作れるなら、それも別の Fact にする。
+ 7 古い注の一巡（注だけ・ident で全行一致）：World.cs:1103（InsolvencyMonths の注の〈名前は Quarters だが〉）・Coefficients.cs:656（ServiceClosedMaxCurv の注〈ServiceClosedFixedPoint が正のときだけ読む〉）・Parliament.cs:372〜373／Politics.cs:1294〜1295／SelfPlay.cs:365〜366（相続法と最低賃金法の〈ゲート0では…〉＝焼いた旗の名を指す注）・LaborClosedTests の summary・FuelOperatingCostTests の summary（汽船の性能の番人が (843) で消えた）。
+    **対象外（理由つき）**：Diplomacy.cs:1555（SubmitProbabilistic は Coefficients.cs:1875 で既定 0.0 の生きた旗＝注は正しい）・Parliament.cs:371（GuildLawGate は Coefficients.cs:3335 で生きている）・Parliament.cs:376 と Politics.cs:1298（RebelArmsMarketEnabled は Coefficients.cs:3005 で生きている）。App の GameViewModel.MapFill.cs の注は App に触れない回なので入れない。Politics.cs と Diplomacy.cs は CRLF（`git ls-files --eol` で i/crlf）＝バイトで読み書きして CR を保つ。
+2-3 読み手の grep（7f34146c の木）：消す物が無いので、読み手の表は〈試験が呼ぶエンジンの入口〉だけ。MarketFlow.StepDay（引数 region, coef, days, cost, monthStart, minWage）・MarketFlow.LaborClosed（internal・MarketFlow.cs:401）・MinimumWageFloor.AbsFloor（internal static・:73）・Instruments.EdDiagOf・Instruments.Configure（internal）は全て InternalsVisibleTo の範囲（既存の試験が同じ入口を呼んでいる）。SimCore の公開面・SaveGame・POB_COEF の名前・scripts・measurements の台本に触れない。
+2-4 他の線との重なり（grep 済み・指示の持ち主の表のとおり）
+ - c69eh：Simulation.cs の相続の段・Coefficients.cs:3328 の直後・InstrumentsCearn.cs・DormantIdentityTests.cs＝c69id は触れない。
+ - c69ss：Model.cs・EconomyStep.cs・Simulation.cs・Coefficients.cs:529 の直後・InstrumentsSubst.cs／InstrumentsFd.cs＝c69id は触れない。ただし StateEduDemandTests（c69id の持ち主）は EconomyStep.cs の教育の需要を読むだけ（c69ss は EconomyStep.cs の自給の読み手と失業の式を触る＝教育のブロックは触れない見込み）。
+ - c69po：Politics.cs の Rule のループ（:1550〜1575）・Coefficients.cs:2750 の直後・InstrumentsSecession.cs・DormantIdentityTests.cs＝c69id は触れない。**c69id が Politics.cs で触るのは :1294〜1295 の注の 2 行だけ**（c69po の持ち主の領域の外）。
+ - 触る行：Coefficients.cs は :654〜657 の注だけ（旗の行ではない）。World.cs:1103・Parliament.cs:372〜373・Politics.cs:1294〜1295・SelfPlay.cs:365〜366・InstrumentsRule.cs:22 は 1 行ずつ。テストは LaborClosedTests.cs・StateEduDemandTests.cs・ServiceClosedTests.cs（新）・RuleInstrumentTests.cs（足すだけ）・FullChainTests.cs・FuelOperatingCostTests.cs（注）。
+ - App・Display・Runner・DormantIdentityTests.cs・WriterRatchetTests.cs・TechLevelRemovalTests の許可表には触れない。
+
+■ [3] 足す試験と、それぞれを赤にする突然変異（使い捨ての写し D:/PoB_work/c69id_mut を git archive で作り、変異ごとに該当の試験の組だけを隔離ビルドで回す。出力は measurements/m846_20261105/mut_*.txt にコミット）
+ 項目と変異（ID）と、赤になるべき試験：
+ ML1 MarketFlow.LaborClosed の戻す値 P に 1.001 を掛ける → LaborClosedTests の Theory 2 ケース（相対 1e-12）が赤。
+ ML2 MarketFlow.cs:162 の `laborClosed = h > 1 && bandFloorOff` を `false` にする（閉じた式を使わない・M1 の労働版）→ LaborClosedTests の Theory（台帳 closed.runs == 1）が赤。WriterRatchetTests の件数の番人も赤（(843) の M1 と同じ）。
+ MS1 MarketFlow.ServiceClosed の戻す値に 1 + 1e-4 を掛ける → ServiceClosedTests ① が赤（3e-5）。
+ MS2 MarketFlow.cs:218 の `if (closedWage && ServiceClosed(` を `if (false && closedWage && ServiceClosed(` にする（M1 の役務版）→ ServiceClosedTests ① が赤（NotEqual と台帳）。WriterRatchetTests も赤。
+ ME1 EconomyStep.cs の教育のブロックの `m.LastDemand += want - boughtQty` を `m.LastDemand += 2 * (want - boughtQty)` にする（(843) の反証役 ① が名指した形）→ StateEduDemandTests の (b)(c) が赤。
+ ME2 同じ行を消す（取れなかった分を足さない）→ (b)(c)(d)(e) が赤。
+ ME3 高等教育のブロックの `if (want > boughtQty) m.LastDemand += want - boughtQty;` を消す → (f) が赤。
+ ME4 教育のブロックの到達 r の式を 1.0 に固定 → (g) が赤。
+ MR1 InstrumentsRule.cs:75 の `lagSt.Prev = rNow;` を早い return の後へ動かす → 項目 4 の新しい Fact が赤。既存の T7（"*" で毎四半期の行が出る）は緑のまま（＝T7 では見えない穴であることの確認）。
+ MR2（T4 の変異）：RuleFold の p1 の行で `F(mReg), F(mBar)` の順を入れ替える → T4 が赤。
+ MR3（T6 の変異）：`orderNew = … RuleClamp01(rNow * mBar / mReg)` を `RuleClamp01(rNow * mReg / mBar)` にする → T6 が赤。
+ MF1 World.cs:775 の `case Outside.Mint: w.CumulativeGoldMinted += d; break;` から台帳の加算を外す → FullChainTests の鋳造の保存則の番人が赤（保存の破れか Minted＞0 の失敗）。
+ MF2 Simulation.cs:2936 の `if (m.Price > parity && !atMarket) continue;` を `if (!atMarket) continue;` にする（床の枝を外す＝市場買いだけが残る）→ 緑なら鋳造は市場買いで起きている。
+ MF3 Simulation.cs:2931 の `bool atMarket = …` を `bool atMarket = false;` にする（市場買いを外す＝床だけが残る）→ 緑なら鋳造は床の枝で起きている。
+ 見込み（推測・結果を見る前）：ML1・ML2・MS1・MS2・ME1〜ME4・MR1〜MR3・MF1 は赤。MF2 は緑・MF3 は赤（鋳造は市場買い）。外れたら外れたと書く。
+ ML・MS の変異は赤が出なければ盤面を置き直して試験を直す（直した試験を再び変異に通す）。
+ ソースを走査する番人の点検（㉘）：器のコミットの直後に `IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests` を隔離ビルドで回す。書き換える件数の予言（㉑）＝0（許可表・宣言の表・件数に触れない）。`new MoneyStock(` の件数は 7f34146c で 192（増やさない）。route_anchors.tsv（scripts/instruments/flow262/）の鍵の行に書き足さない。工業化度の読み手の許可表に新しい読み手を足さない（工業化度を読まない）。WriterRatchetTests の宣言の表に新しい書き手を足さない（SimCore の書き換えは注の文字だけ）。
+
+■ [4] 恒等の判定
+ - コマンド：bash scripts/instruments/ident/ident.sh run c69id --tree D:/PoB_work/wt_c69id --tests-delta <[6] の確定値> --saveleak（宣言の差は 0。計器の表の差・cearn_s の差も 0 の予言）。
+ - 期待：b5 全行一致・b10_ins 全行一致・.cost の件数の行と推定（219.0／220.8 秒）が一致・計器の表 1068 本は既知の揺れ以外バイト一致・cearn_s は全行一致（cearn_remap.py で写しても違う 0・写せない 0）。
+ - 紙の台本（腕の前）：ソースの変更が注の文字だけであることを `git diff 7f34146c -- PriceOfBread.SimCore` から数える（コード行の変更 0・注の行だけ）。ここを結果の前の紙の予言とする。
+ - ident は D: の空きが 35GB 以上かつ `arms.sh free` が 3 以上のときだけ起こす（挙動の線の ident・腕を優先する）。走っている間はこの worktree にコミットしない（㉙）。
+
+■ [5] 採るかの規則
+ 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。フルスイート（Category!=FullLength と FullLength を分ける）・savetest・leakhunt を ident の後に回す。ident の判定と反証役の読みが終わってから要約（keepsum）を measurements に残して ident の生を消す（反証役が読む前に消さない・⑲）。**反証役が起こせないときは、生を残したまま合流へ渡す**（消すのは合流）。
+
+■ [6] 足す試験の数（予言）
+ LaborClosedTests +6・ServiceClosedTests +2・StateEduDemandTests +7・RuleInstrumentTests +1＝16。--list-tests は Theory の InlineData を 1 行ずつ数える（(843) の 28 本も同じ数え方）。Category!=FullLength は 2244 → 2260。FullLength は 3 のまま。
+ 暫定：--tests-delta 16。MR2・MR3 などの変異で緑が出たら +1 ごと（その場合は ident の前に [8] へ追記して再コミット）。
+
+■ [7] 作ったフォルダ（消す予定）
+ D:/PoB_work/wt_c69id（worktree・枝は残す）・D:/PoB_work/c69id_work（台本の出力・印）・D:/PoB_work/c69id_art（隔離ビルド）・D:/PoB_work/c69id_mut（変異の使い捨ての写し）・D:/PoB_work/c69id_mutart・D:/PoB_work/ident_c69id（ident の作業・生は反証役が読み終えるまで残す）・D:/PoB_work/c69id_suite（フルスイートの作業）。反証役が読み終えたら keepsum を measurements に残して ident_c69id の生を消す。
+
+■ [8] 追記（ident を起こす前・結果の前）
+ （ここに確定値を書く）
