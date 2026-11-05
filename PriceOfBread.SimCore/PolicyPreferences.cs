@@ -52,8 +52,8 @@ public enum PolicyAxis
                                                                                     //   旧支配層＝武力の独占の防衛者として禁止を望み・近代/大衆＝自衛と蜂起の手段として許可を望む（地位/権力軸の型）。
                                                                                     //   休眠 RebelArmsMarketEnabled=0 では Pref=0＝要求リストにも綱領にも載らない（Guild と同じ防壁）
     MinimumWage,                                                                    // ★最低賃金法（線 lw (459)・2026-10-20・末尾追加＝列挙順を動かさない）。軸の増＝**強める**（なし→生存→生活→充足）。
-                                                                                    //   大衆（賃金労働）が賛成・資本（雇う側）と旧支配層（農業の雇い主）が反対。休眠 MinimumWageLawGate=0 では Pref=0＝要求リストにも綱領にも載らない（Guild と同じ防壁）
-    Inheritance,                                                                    // ★相続法（線 inh (650)・末尾追加＝列挙順を動かさない）。軸の増＝**取る率を上げる**（なし→低→中→高→全て）。休眠 InheritanceLawGate=0 では Pref=0（Guild と同じ防壁）
+                                                                                    //   大衆（賃金労働）が賛成・資本（雇う側）と旧支配層（農業の雇い主）が反対。門の係数 MinimumWageLawGate は (843) で焼き込み＝この軸の Pref は常に評価される
+    Inheritance,                                                                    // ★相続法（線 inh (650)・末尾追加＝列挙順を動かさない）。軸の増＝**取る率を上げる**（なし→低→中→高→全て）。門の係数 InheritanceLawGate は (843) で焼き込み＝この軸の Pref は常に評価される
 }
 
 /// <summary>
@@ -320,10 +320,10 @@ public static class PolicyPreferences
                                               // 地位/権力軸の型（検閲・秘密投票と同じ±1）＝保有から導く量が無い軸。⚠RebelArmsMarketEnabled=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（Guild と同じ休眠の防壁）
                 return w.Coef.RebelArmsMarketEnabled > 0 ? (trad ? 1.0 : -1.0) : 0.0;
             case PolicyAxis.MinimumWage:      // 最低賃金法（線 lw (459)・2026-10-20）＝賃金労働者（大衆）が賛成・雇う側の資本（近代）が反対・農業の雇い主（旧支配層）は弱く反対。符号の出所＝労働組合（LaborUnion）と同型（作者の向きを AI が写した形・確証なし）。
-                                              // ⚠MinimumWageLawGate=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（Guild と同じ休眠の防壁）
+                                              // （門の係数 MinimumWageLawGate は (843) で焼き込み＝綱領・要求・戦線に常に現れうる）
                 return mass ? 1.0 : modern ? -1.0 : -0.5;
             case PolicyAxis.Inheritance:      // 相続法（線 inh (650)）＝所得税と同じ型：大衆が国庫の使い道で得る（+1.0・段の大きさに依らない）・資産の持ち手は取られる率に比例して反対（BurdenScale×Δr×貯蓄のシェア）
-                                              // Δr＝次の段で動く率の差（最上段では今の段の大きさ＝最上段の資産階級の Pref が負＝戻す要求が立つ）。⚠InheritanceLawGate=0 では全ブロック0（Guild と同じ休眠の防壁）
+                                              // Δr＝次の段で動く率の差（最上段では今の段の大きさ＝最上段の資産階級の Pref が負＝戻す要求が立つ）。（門の係数 InheritanceLawGate は (843) で焼き込み）
                 return (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w) * e.Wealth[b];
             case PolicyAxis.WartimeRationing: // 戦時配給（E6）＝国家/軍が総力戦の統制として支持・資本が価格統制で反対（大衆は中立＝公平配給だが統制も伴う）
                 return trad ? 0.5 : modern ? -0.5 : 0;

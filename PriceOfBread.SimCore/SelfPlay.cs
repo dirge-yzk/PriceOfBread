@@ -976,7 +976,7 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    /// <summary>★最低賃金法の目標（線 lw (459)）＝MinimumWageLawGate＞0 かつ本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// <summary>★最低賃金法の目標（線 lw (459)）＝本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
     /// （帯で現行の法がすでにその段以上なら書かない＝施行済みの床を引き下げる目標を立てない）。賛否の出所＝PolicyPreferences（大衆が賛成・資本が反対）が目標の施行を政治ゲートで決める。
     /// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
     internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
@@ -989,7 +989,7 @@ public sealed class UtilityAgent : INationAgent
     internal static MinimumWageLaw? MinimumWageTargetChosen(World w)
         => w.Coef.MinimumWageAiFromFloor > 0 ? MinimumWageTargetFromFloor(w) : MinimumWageTargetFromBoard(w);
 
-    /// <summary>★(480) 線 ma：盤面の実物から最低賃金法の目標を選ぶ（旗 MinimumWageAiFromFloor ＞ 0）。MinimumWageLawGate＝0 では書かない。
+    /// <summary>★(480) 線 ma：盤面の実物から最低賃金法の目標を選ぶ（旗 MinimumWageAiFromFloor ＞ 0）。（門の係数 MinimumWageLawGate は (843) で焼き込み）。
     /// 読むもの＝本国の州の労働の失業（<see cref="MinimumWageFloor.ReadHomeLabor"/>）と、床が縛る広がり（<see cref="MinimumWageFloor.BindShare"/>）。広がりは必要な向きの 1 本だけ求める
     /// （失業が下げる線以上なら今の段・上げる線未満なら次の段。両方は同時に立たない＝財の走査は高々 1 回）。計算量の台帳（MinimumWageBasketScans）に走査の件数を足す。
     /// 書き方は <see cref="MinimumWageFloorWant"/>（純関数）。新しい状態・倍率を作らない。</summary>

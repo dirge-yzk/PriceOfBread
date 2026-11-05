@@ -377,7 +377,7 @@ public static class Discovery
 
     /// <summary>★(169) 世界の市場（判定の段の頭で1回組む導出量・状態ではない＝<see cref="WorldPrices"/>）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段と重み（その国の産出＝売っている量）。
     /// ・<see cref="Average"/>＝平滑化した値段を重みで平均した世界の値段（財ごと・どの国にも市場が無い財は <see cref="NoPrice"/>）＝画面と計器が読む（(165) の世界の値段と同じ）。
-    /// ・<see cref="Landed"/>＝買い手の国が払う着値＝売り手ごとに 値段×(1＋運賃＋関税) を同じ重みで平均（清算の着値の倍率と同じ組み方＝運賃＝TransportMargin×(1＋DistanceMarginScale×距離÷1万km)×運賃革命・
+    /// ・<see cref="Landed"/>＝買い手の国が払う着値＝売り手ごとに 値段×(1＋運賃＋関税) を同じ重みで平均（清算の着値の倍率と同じ組み方＝運賃＝TransportMargin×(1＋距離÷1万km)×運賃革命・
     ///   関税＝買い手の関税の楔）。距離は国の経済の中心どうしの大圏（清算の海路と陸路の距離ではない＝近似）・従量の運賃と危険料と売買方針は読まない（AI の読み・推奨で進めた）。
     ///   旧（(165)）＝運賃と関税を入れない世界の値段（遠い国の輸入の費用を低く見た＝(167) 反証役 vd1#8）。着値は呼ばれた財だけ（市場の死んだ財）求める＝国×財の全ての組は回さない。</summary>
     public sealed class WorldMarket
@@ -986,7 +986,7 @@ public static class Discovery
     /// ・運転の費用＝清算の陸路の費用の鉄道÷馬（BilateralMarket の陸路の費用＝LandSeaCostRatio×地形の係数・鉄道の後は×<see cref="Coefficients.RailCostFraction"/>・地形は馬→鉄道の係数・水路の州は水運のまま）。
     /// ・★(169) 資本の費用（AI の推奨・作者の承認は未確認）＝容量1あたりの月の減耗×財の値段（<see cref="Transport"/> が積む形＝線路と機関車を同じ単位数ずつ買い1単位が <see cref="Coefficients.TransportCapPerUnit"/> の容量・
     ///   月に <see cref="Coefficients.TransportDecay"/> ずつ減る＝TransportDecay×(線路の値段＋機関車を作る費用)÷(2×TransportCapPerUnit)）を、同じ容量の荷を馬で運ぶ陸の運賃の金額
-    ///   （清算の陸の脚の運賃の倍率＝TransportMargin×DistanceMarginScale×LandSeaCostRatio×地形×最寄りの港までの陸の距離 <see cref="Region.PortLandKm"/>÷1万km×運賃革命・容量1あたりの荷の値打ちは1【推】）で割った値。
+    ///   （清算の陸の脚の運賃の倍率＝TransportMargin×LandSeaCostRatio×地形×最寄りの港までの陸の距離 <see cref="Region.PortLandKm"/>÷1万km×運賃革命・容量1あたりの荷の値打ちは1【推】）で割った値。
     ///   旧（(165)〜(167)）＝運転の費用だけ＝輸送の不足が無くても（通した割合1）必要性 54（(166) §0・(167) の作者への確認③）。
     /// を国の内陸の州（港でない稼働中の州・陸の脚のある州）の潜在の交易で重み付けた平均（<see cref="LandFreightServed"/> と同じ重み）。
     /// ★(169) 内陸の州の潜在の交易が無い国（陸の輸送を使っていない）は <see cref="NoPrice"/>＝必要性0（代替する物の需要が無ければ0＝他の行と同じ規則・旧＝RailCostFraction＝島国も必要性 54）。

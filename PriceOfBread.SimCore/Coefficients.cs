@@ -1122,7 +1122,7 @@ public sealed class Coefficients
     public double FoodIncludesAnimalProtein = 0.0;   // 段1b：動物性タンパク（加工肉63/干物64・Nutrition=1）を食料に数え、交差弾力の食卓に参加させ、主食の必要量を AnimalNutritionNeedRatio で譲る（総食料需要は中立）。ギッフェン＝肉高騰→需要がパン/芋へ流れる、が既存の交差弾力から創発。0＝厳密恒等
     public double StapleLedgerSum = 1;               // ★点火 2026-10-23 (504)（腕 C〔①③・種 11〜20〕が追記 3 の合否を全て通った＝止める線にも〈壊す〉の物差しにも当たらず）。食料の台帳を主食の和へ①（事前登録 measurements/fd504_20261023_prereg.txt）。0＝今の台帳（満たせた量は主食の財ごとに必要量で頭打ち）＝厳密恒等。正のとき、POP ごとに主食の財を全部通した後、過分（自給＋買えた量が必要量を超えた分）と不足（届かなかった分）の小さい方を FoodMet に足す
                                                     //   （＝min(Σ(自給+買えた量), Σ必要量)・全ての主食が満たされた POP は足す項が無く 1 ビットも変わらない）。FoodNeed の足し方は変えない。動物性タンパク（FoodIncludesAnimalProtein＞0）の食卓は対象外。AI の設計＝確証なし。
-    public double StapleDemandRebalance = 0;         // ★(504) 主食どうしの乗り換えの配り直し②。0＝今の挟み（主食の相対価格の倍率を PriceFactorMin／Max で挟む）＝厳密恒等。正のとき（かつ StapleElasticityZero＞0・CrossElasticity＞0・主食が 2 財以上・FoodIncludesAnimalProtein≦0）、
+    public double StapleDemandRebalance = 0;         // ★(504) 主食どうしの乗り換えの配り直し②。0＝今の挟み（主食の相対価格の倍率を PriceFactorMin／Max で挟む）＝厳密恒等。正のとき（かつ CrossElasticity＞0・（StapleElasticityZero は (843) で焼き込み済み＝常に真）主食が 2 財以上・FoodIncludesAnimalProtein≦0）、
                                                     //   主食の欲しい量を 市場に出す量×(相対価格の冪)×norm にする（挟みなし・norm は POP ごと＝Σ欲しい量が Σ市場に出す量〔必要量×(1−自給)〕に一致するように月の頭に求める）。①が 0 だと過分が捨てられる＝腕 B は 3 本とも 1。AI の設計＝確証なし。
     public double HarvestShortfallToMarket = 1;      // ★点火 2026-10-23 (504)（①と同じ腕 C）。凶作で自給が減った分を市場の需要へ③。0＝今のまま（市場に出す量は必要量×(1−自給率)・自給の収穫係数は台帳の側だけが読む）＝厳密恒等。正のとき、主食の市場に出す量は 必要量×max(0, 1−自給率×自給の収穫係数)（決済の段の自給の産出〔必要量×自給率×収穫係数〕と同じ向き＝豊作は市場の需要を減らし凶作は増やす・追記 2 で対称にした）。AI の設計＝確証なし。
 
@@ -1391,7 +1391,7 @@ public sealed class Coefficients
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
     // 【墓標2026-09-26（棚卸し mil-21・dorm-36）】MilitaryProcureProRata（軍需の4段を一律比例で削る器・休眠0）＝2026-08-13 実測で差し戻し（破綻1/10）＝削除
     // 直下 TrenchDefenseWeight の注記：
-    //   ★点火2026-08-13＝0.5（ArmsStockEnabled と**対**。装備が戦場に残る世界でのみ意味を持つ）。
+    //   ★点火2026-08-13＝0.5（ArmsStockEnabled〔(843) で焼き込み済み〕と**対**。装備が戦場に残る世界でのみ意味を持つ）。
     //   ★装備がフローだった頃に単独で測ると −17.8〜−26.4pt だった＝前提（戦場に装備がある）が偽だったため。
     public double TrenchDefenseWeight = 0.5;
     // 直下 WarPushSpeed の注記：★2026-09-28 回8-1（棚卸し mil-04）で単位が変わった＝押しの**割合**（(押しA−押しB)÷(押しA＋押しB)・−1〜1）1あたりの月の戦勝点。
@@ -2115,7 +2115,7 @@ public sealed class Coefficients
     //     海0.01/陸0.01、1914年断面の米が海0.00/陸0.00）。Military が0へ潰れると生存効用の脅威比
     //     maxReach / Math.Max(1e-9, Military) が天文学的な値へ飛び（実測 1.4×10¹⁰）、clamp の上限に恒久的に張り付いて
     //     **全61カ国が131年間 Militarize から降りられない**＝軍縮エピソード0件の根。
-    //   ★機構は新設しない＝上位段と tier3 が既に持つ耐久品ストック（ArmsStockEnabled）を、取り残されていた
+    //   ★機構は新設しない＝上位段と tier3 が既に持つ耐久品ストック（旗 ArmsStockEnabled は (843) で焼き込み済み）を、取り残されていた
     //     基本段の**耐久品だけ**へ広げる。消耗品（弾薬・馬）はフローのまま1ビットも変えない。
     //   ★★**発注も見積も1ビットも変えない**（2026-08-26 の設計是正）。変えるのは**充足の測り方だけ**＝
     //     納入を在庫へ積み、充足を「在庫÷目標」で測る。定常では従来の充足と厳密に同じ値へ収束し、違いは時定数だけ。
@@ -2214,7 +2214,7 @@ public sealed class Coefficients
                                                   //   ①**訓練・経験だけ**の効果を定量化した研究はデュピュイの戦闘効率指数が最も引用されるが、
                                                   //     独軍の対英米が1.2〜1.5倍・対ソ連の緒戦でようやく2倍前後で、しかも後者は**装備と教義**を含む。
                                                   //     兵数と装備を揃えた上での練度だけの差は1.3〜1.5倍が実証の中心。
-                                                  //   ②このエンジンには**技術による軍質の倍率が既にある**（TechMilLowFloor 0.4→1.0＝2.5倍の幅）。
+                                                  //   ②このエンジンには**技術による軍質の倍率が既にある**（TechMilLowFloor 0.4→1.0＝2.5倍の幅だった。(843) で TechMultipliersOff を焼き込み、この係数は消した）。
                                                   //     そこへ練度で2倍を重ねると合計5倍の幅になり、**同じ「精鋭軍」を二重に数える**ことになる。
                                                   //     オムドゥルマンやアヘン戦争の一方的な結果は練度でなく技術の差であり、既に技術側が担っている。
                                                   //   ③作者指示は「最大でも2倍程度に留める」＝**上限の指定**なので、1.5倍はその範囲内。
@@ -3313,17 +3313,17 @@ public sealed class Coefficients
     // ★特権システム 段5前半（2026-09-07）：P5 特許会社（茶の独占レント＝資本家の取り分）を台帳へ記帳（金の流れは変えない。制度疲労の導出は2026-10-16に削除）。0＝記帳なし＝恒等。
     //   P6 徴兵免除は「取り分＝金の移転」が無い（兵役の回避）＝台帳の単位に乗らない＝作者裁定待ち（動員ベースの歪みだけなら既存の徴兵プール除外が担っている）。
     public double PrivilegeMonopolyInLedger = 0.0;
-    // ★(469) 線 mw：労働の下限の撤去と最低賃金法（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」「生活にかかるコストは最低賃金法でカバーすべき」）。3 本とも 0＝(475) より前の挙動と厳密恒等。事前登録 measurements/mw469_20261020_prereg.txt。
+    // ★(469) 線 mw：労働の下限の撤去と最低賃金法（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」「生活にかかるコストは最低賃金法でカバーすべき」）。3 本とも 0＝(475) より前の挙動と厳密恒等（MinimumWageLawGate は (843) で焼き込み済み＝この恒等は残る 2 本について）。事前登録 measurements/mw469_20261020_prereg.txt。
     //   LaborFloorOffGate：> 0 のとき、人力の 労働力・農業労働力（EconomyStep.IsHumanLaborSupply）の採算の率 profitFactor の崖〈price≦mc で 0〉を外す（確証なし）。技師（高度労働力）と動力 4 本は今のまま。
     //     崖 mc（自己費用×物価水準）は〈床〉であると同時に人力の供給曲線の全体＝外し方が弾力を決める（事前登録 §0・追記 1）。正＝原点を通る線形 min(1, price／(mc×(1＋SupplySlope)))（弾力を残す）。弾力の調整そのもの（留保賃金の広がり）は別の線（作者「調整が必要」）。
     //   LaborBandFloorOffGate：> 0 のとき、労働 3 財の賃金の帯の下側（WageClampMin＝0.15×物価水準の漸近形）を外す（下限は Eps だけ）。教育・医療の役務の枝は触らない。崖を外した後に次に縛る床＝外すと値段が日に 1.4〜1.5% ずつ落ち続ける見込み（事前登録 §6 P3）。
-    //   MinimumWageLawGate：> 0 のとき最低賃金法（PolicyAxis.MinimumWage・なし／生存／生活／充足）が動く（Government の表・AI の目標・要求・綱領・UI）。床＝その州の労働者の籠×人数÷人力の能力の和（MinimumWageFloor.PerUnit・能力ベース 1 つ・確証なし）。0＝法は None のまま動かず効かない。
+    //   MinimumWageLawGate（(843) で焼き込み済み・下に墓標）：最低賃金法（PolicyAxis.MinimumWage・なし／生存／生活／充足）は常に動く（Government の表・AI の目標・要求・綱領・UI）。床＝その州の労働者の籠×人数÷人力の能力の和（MinimumWageFloor.PerUnit・能力ベース 1 つ・確証なし）。
     //   ★(475) 合流で3本とも既定を倒した（2・1・1）＝作者 2026-10-20「弾力は調整が必要ですが、下限は最低賃金法に移したので、差し戻す必要はありません。」「理由のない底よりは、底なしの方が健全です。」
     //     形 1（弾力ゼロ）の分岐は同じ合流で消した＝LaborFloorOffGate は 0（旧の崖）／正（形 2）の2値。形 2 の勾配 1/(1.5mc)（旧 1/(0.5mc)）は AI の選び（確証なし）＝弾力の調整は別の線。
     public double LaborFloorOffGate = 2.0;
     public double LaborBandFloorOffGate = 1.0;
     // 【墓標2026-11-05 (843)・旗の焼き込み】MinimumWageLawGate（既定 1.0）を消した＝最低賃金法は常に動く（Government の表・AI の目標・要求・綱領・UI）。旧の枝（ゲート 0 では動かない）は消した。
-    // ★(650) 線 inh：相続法（PolicyAxis.Inheritance・なし／低／中／高／全て）。> 0 のとき法が動く（Government の表・要求・綱領・UI）。0（既定）＝法の行が出ない・Pref が 0・移転が起きない＝厳密恒等。
+    // ★(650) 線 inh：相続法（PolicyAxis.Inheritance・なし／低／中／高／全て）。門の係数 InheritanceLawGate は (843) で焼き込み済み（下に墓標）＝法は常に動く（Government の表・要求・綱領・UI）。
     //   請求＝死者×1 人あたりの貯蓄×段の率（Government.InheritanceRate）×行政の届き（Politics.RuleDelivery）を DemographicStep の POP の走査の中で立て、走査の後に 1 回の Transfer で POP→国庫（区分 OtherIn）。戦死・疫病・鎮圧・粛清は対象外。
     //   事前登録 measurements/inh_650_20261030_prereg.txt と _prereg2.txt。
     //   ★2026-10-30 に 1 で**点火**（腕 A〔旗 0〕は基線 m645 と全行バイト一致・腕 B〔計器つき 10 種〕は止める線に当たらず・狙いの数字 ③a ③d が通る＝事前登録 measurements/inh_650_20261030_prereg2.txt [2]・結果 measurements/inh_650_20261030_result.txt）。0 に倒せば法の行が消え厳密に旧に戻る。
@@ -3331,7 +3331,7 @@ public sealed class Coefficients
     public double EmptyPopEstate = 1.0;   // ★(848) c69eh（2026-11-05 に 1 で点火・0 に戻せば何もしない）：> 0 のとき毎月、人数 ≦1e-12 で在庫が正の POP の在庫を同じ州の人数 ＞1e-12 の POP へ人数の比で移す（EmptyPopEstate.Step・相続の段の前・確証なし・事前登録 measurements/m848_20261105_prereg_eh.txt）。0＝何もしない
     // ★(480) 線 ma：AI が最低賃金法に置く目標の選び方（AI の選び・確証なし・事前登録 measurements/ma480_20261021_prereg.txt）。0＝今の規則〈本国の都市の割合の線で上げる目標だけを書く〉（UtilityAgent.MinimumWageTargetFromBoard）。
     //   > 0＝盤面の実物から選ぶ（UtilityAgent.MinimumWageTargetFromFloor）：本国の州の労働の失業と、床が縛る広がり（MinimumWageFloor.BindShare）から、上げる線と下げる線を分け（間は現状維持）、下げる目標も書く。都市の割合の線は読まない。
-    //   プレイヤーと同じ法の門（GateLaw → Government.GateInfo）を通る＝目標を置くだけ。MinimumWageLawGate＝0 では目標を書かない（旗の値に依らない）。
+    //   プレイヤーと同じ法の門（GateLaw → Government.GateInfo）を通る＝目標を置くだけ（門の係数 MinimumWageLawGate は (843) で焼き込み済み）。
     //   ★(486) 2026-10-21 に 1 で**点火**（保存則の狭い直し〔PaySales〕の上で腕 B・止める線に当たらず・事前登録 measurements/pf486_20261021_prereg.txt）。0 に戻せば今の都市の割合の規則（旧の関数 MinimumWageTargetFromBoard は焼き込みまで残す）。
     public double MinimumWageAiFromFloor = 1.0;
     // ★特権システム 段4（作者設計 §4-1 P4・2026-09-07）：同業組合法（GuildLaw 保護/制限/廃止）。主ゲート＝法が動く（Government/AI目標/要求経路/UI）。0＝法が Full のまま動かず・効き先も0＝厳密恒等。
@@ -3376,7 +3376,7 @@ public sealed class Coefficients
     // ⚠これで1870年代の銀暴落が**内生する**：独が金へ移る→独の銀需要が消える→他国が追随→需要曲線そのものが下へ落ちる
     //   （★価格弾力性＝需要曲線上の移動では戻せない＝これが史実の大デフレ）。
     // ★★造幣の準備需要を需要として計上する（2026-08-13・実測で発見）。0で旧来＝書かない＝厳密恒等／1で全量を計上。
-    // ⚠GoldMintFraction は既定 live なので、これを点火すると**金の市場も動く**＝必ず単独バッチで測る。
+    // ⚠造幣は (843) の焼き込みの後も常に live（旧の係数 GoldMintFraction は消した）なので、これを点火すると**金の市場も動く**＝必ず単独バッチで測る。
     public double MintDemandCounted = 1.0;   // ★点火2026-08-14（会計の欠落の是正＝正しい挙動）。⚠帯の代償＝◎7割帯 26→21・法 −2.3・列強再現率 −2.5（政体exact +1.8・領土本国 +3.3・逸脱過多 −1）。#17の同時再較正で見直す
     // ★★自由鋳造＝価格の床（2026-08-14・作者裁定）。史実の銀の暴落は「需要曲線が下にずれた」のではなく**床が抜けた**：
     //   造幣局は平価で**数量無制限**に買う約束（free coinage）＝市場価格はその水準を割れない。独1871→ラテン同盟1874/78→米1873→印1893と
