@@ -7,7 +7,7 @@
 set -u
 SRC="${1:?腕の出力フォルダ}"; NAME="${2:?名}"; SUM="${3:?要約}"; KEEP="${4:?残す表}"; shift 4
 SP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DST=D:/PoB_work/keep_852_rej/$NAME
+DST=${DSTROOT:-D:/PoB_work/keep_852_rej}/$NAME   # DSTROOT＝置き場の根（新しい基線のヌル腕・種 11〜20 は D:/PoB_work/keep_852）
 [ -d "$SRC/ins" ] || { echo "ins が無い：$SRC"; exit 1; }
 [ -e "$DST" ] && { echo "もうある：$DST"; exit 1; }
 python -I "$SP/tools/keepsum.py" "$SRC/ins" "$SUM" || { echo "要約を書けない＝何もしない"; exit 1; }
