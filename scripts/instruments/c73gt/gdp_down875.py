@@ -1,7 +1,7 @@
 # (875) c73gt 下向きの 100 倍の読み手（記録だけ・止める線にしない・事前登録 measurements/m875_20261106_prereg_gt.txt [3] (a)）。
 #   gdp_jump833.py の鏡像：名目 GDP が 1 四半期で 1/DOWN 以下に落ちた行を、同じ区分（建国の直後・分母の痩せ・それ以外）で数え、戻りと人口の比を付ける。
 #   使い方: python -X utf8 -I gdp_down875.py [--rows] [--down N] <名前>=<ins フォルダ> ...
-#   落ち：同じ国（nationUid）の連続する 2 行で prev>0・g 有限・g>0 のとき g/prev ≦ 1/DOWN（既定 100）。g＝0 への落ちは別に数える（gdp_zero10 の領分）。
+#   落ち：同じ国（nationUid）の連続する 2 行で prev>0・g 有限・g>0 のとき g/prev ≦ 1/DOWN（既定 100）。g＝0（以下）への落ちは別に数える（gdp_zero10 の領分）。
 #   戻り：落ちた四半期より後 RET 四半期以内に、名目 GDP が落ちる前の値の RET_FRAC 倍以上へ戻る最初の四半期。窓の内に 1 段の比 ≧100 があれば〈上向きの台本が数えた〉の印。
 #   行の組＝(種, 国, 年, 四半期, 最初の行からの四半期, GDP の比, 人口の比, totalPopulationK の比, 戻りの四半期|−, 戻りの窓の 1 段の最大比, 上向きの印)
 #   空の盤面（nation_s* が無い）は終了コード 2。
@@ -40,7 +40,7 @@ def scan_seed(path, down):
         for k, (q, y, nm, g, pop, tot) in enumerate(rows):
             if not math.isfinite(g): nonf += 1; continue
             if prev is not None and prev[1] > 0:
-                if g == 0.0:
+                if g <= 0.0:     # 0 への落ち（負は無い見込み・財の番号の比較の番人の字面を避けて <= で書く）
                     zero += 1
                 elif g > 0 and g / prev[1] <= 1.0 / down:
                     ra = g / prev[1]

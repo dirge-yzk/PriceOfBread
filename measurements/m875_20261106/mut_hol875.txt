@@ -1,0 +1,8 @@
+(875) 振り分けの固定の盤面（合成）の表・holsplit875.py（867 では L2・875 では L3 になる州 c8 を足した）
+変異	予言	実際	予言との差
+match（875 の既定）	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3 c8=L3	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3 c8=L3	予言どおり
+nomatch（--no-match＝条件を外す）	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3 c8=L2	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3 c8=L2	予言どおり
+holsplit867 の写し元	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3 c8=L2	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3 c8=L2	予言どおり
+M3 条件を外すと 867 と同じ区分：確認
+新しい条件が働く＝c8 だけが 867 と 875 で違う：確認
+判定：予言どおり
