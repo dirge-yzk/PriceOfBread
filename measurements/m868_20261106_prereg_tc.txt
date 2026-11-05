@@ -36,3 +36,11 @@
 - その後 ident c72tc：`ident.sh run c72tc --tree D:/PoB_work/wt_c72tc --grown-ok cearn_s --tests-delta <数> --saveleak`。ident.cfg の INSRAW が keep_866 に移った後の初めての実走と名乗る。判定が〈恒等〉なら採る。ident の間は worktree にコミットしない（㉙）。
 - 浮動小数の順序が変わる箇所：0（エンジンの式は 0 行）。
 - 止める線：該当なし（挙動を変えない）。不一致なら変更を外して報告に回す。
+
+━━ [6] 追記（器のコミットの前・結果を見る前）
+- 清算ごとの超過の列の補助の扱い：BilateralMarket.cs の補助（paySub×FiscalFundingRatio）は清算の頭の後・払いの前に払い手へ Give される＝払った額が頭の在庫を補助の分だけ超えうる（構造の偽陽性）。
+  採る形＝(a)：CearnSav の Give で、国庫（cp が T）から BilateralMarket.cs が払い手の州の POP へ渡した額を、その州の清算内の在庫（ImpHeadStock・有限のときだけ）に足す。InstrumentsCearn.cs の中で閉じる・BilateralMarket.cs に新しい呼び口は要らない。
+- 旗 0 の kind 2（人数 ≦1e-12 の商人）の州では、実際の払い手（商人）と計器の予算（人の居る POP の和）が別＝importBudgetExcessMaxPerClearing は旗 0 では kind 2 の州で意味を持たない（計器が旗を読まない限界）。c72ip は旗 1 で読む。
+- 計器の試験は [Collection("Instruments")] に入れる（静的状態の衝突を避ける）。
+- 盤面の probe（旗 0 と 1 の ClearingFills・商人の添字なしの州の数・商人の人数 ≦1e-12 の州の数・人の居る POP が無い州の数）は、盤面の行を足す前と後の 2 回、使い捨ての一行（コミットしない）で取り measurements/m868_20261106/board_868.txt へ写す。
+- 結果を見る前の予言：旗 0 の fills は盤面の行の前後で同じ（商人の添字がある州は払い手が商人 1 POP で予算に非商人の在庫が入らないため）。商人の添字なしの州があれば食い違いうる。
