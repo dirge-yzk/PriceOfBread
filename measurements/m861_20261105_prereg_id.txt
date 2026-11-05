@@ -1,0 +1,62 @@
+(861) c71id 事前登録（波71・恒等の線・担当 Claude Sonnet 5.5・枝 c71id・出発 origin/c70id 1392fa13 に origin/main 62190ef0 を merge＝e3113b9b）
+(854) c70id が入れなかった枝（D: の空きで ident が回らなかった）を今の main に載せて ident を回す。加えて (854) の反証役 中 1（MM7）・低 2（OM1）・低 3（mutation_854.txt の頭の行）を直す。
+エンジンの挙動は変えない。新しい係数 0・新しい状態 0・新しい旗 0。
+
+[0] 形の先頭
+  ・種類＝恒等の線（予言 0）。旗なし。腕 B なし。ident は 1 本（[5]）。
+  ・D: の空き＝書く時点で 143.8GB（python shutil.disk_usage）・arms.sh free＝6。ident の床 35GB を満たす。
+  ・merge の結果：衝突 0（main で増えたのは c70gt の台本・c70po の試験 RuleSharesFormTests.cs:81・:109 と RuleOrderP1Tests.cs の P1_6・P1_7・docs・measurements）。
+  ・SimCore の 1271053f（基準の木）との差は 9 ファイル・注の文字だけ 8 本＋Discovery.cs:289 の 1 行（src_diff854.py で数え直す）。Runner・App・データは差 0。
+
+[1] 予言（エンジンの出力）
+  ・素の 5 種・計器つき 10 種の成績表は m852 と名乗り行を除いて全行一致。計器の表も全行一致。差は宣言だけ（--tests-delta のみ）。
+  ・.cost の推定は m852 と同じ。
+  ・エンジンの差＝Discovery.cs:289 の 1 行＋注の文字だけ。Discovery.cs:289 の紙の根拠は (854) 事前登録 [1] のとおり（Worker の SubsistenceBasis は全てのデータで 0）＝通常の走りでビットが同じ。
+  ・今回エンジンに足す行は 0（試験・台本・記録だけ）。
+
+[2] 消す物・改める物（名前・場所・読み手）
+  消す物：なし（器・休眠・係数は 1 つも消さない）。
+  改める物（試験と記録だけ）：
+   (a) PriceOfBread.Tests/MintAtMarketTests.cs：州をまたぐ予算の消費の試験を 1 本足す（[3] 項目 A）。既存の Assert・リテラルは 1 字も変えない。
+   (b) PriceOfBread.Tests/StateEduDemandTests.cs：OM1 の判別の範囲を、Theory（行ごとの 1 ビット比べ）の直前の注に名乗る（[3] 項目 B）。Assert・リテラルは変えない（注だけ）。
+   (c) measurements/m854_20261105/mutation_854.txt の頭の行：record_854.txt の〈突然変異の手順の名乗り〉と食い違っていた記述を worktree 写しの実態に揃える（[3] 項目 C）。中身の表は変えない。
+  読み手の grep（MintAtMarketTests・StateEduDemandTests は同じファイルの中の試験だけ。SimCore・Runner・App・Display・scripts・measurements・POB_COEF の名前・SaveGame の名前の読み手は影響なし＝欄・係数・型を足さない）。
+  他の線との重なり（指示の割り当てと worktree の status で grep 済み）：
+   ・c71po（RuleSharesFormTests.cs・RuleOrderP1Tests.cs・DormantIdentityTests.cs・Coefficients.cs:2752）／c71ip（BilateralMarket.cs・Coefficients.cs の新しい旗・DormantIdentityTests.cs・ImportPayerLiveTests.cs・InstrumentsCearn.cs）／c71gt（scripts/instruments/ident・batch.sh・r847・c71gt）とは、ファイルが重ならない。
+   ・Coefficients.cs は origin/c70id の注の行（:1125・:1394・:2118・:2217・:3316〜:3334・:3379）だけ。c71po の :2752・c71ip の新しい旗の行・:530 には 20 行以上離れているか触れない（merge の衝突 0 で確認）。
+   ・c71gt が ident.sh・batch.sh を直すが、この線は今の木の ident.sh・batch.sh で回す（終了コードの意味は旧のまま＝腕の成否は成績表の有無で読む）。
+
+[3] 足す試験と、それぞれを赤にする突然変異
+  項目 A（MM7・反証役 中 1）：MintAtMarketTests に 1 本＝複数の州が銀を持つ盤面で、予算（gapLeft）が州をまたいで 1 本で消費されること。
+   盤面：Board と同じ（仏・銀本位・準備不足・銀の値段＝平価×1.5）。ただし首都州以外の銀在庫を 0 にしない。銀市場と商人（受け手）を持つ州を 2 つ選び、片方は在庫で縛る小さな在庫（在庫×月次率＝予算÷値段の 0.3 倍）・もう片方は予算を超える大きな在庫（同 5 倍）にする。残りの州の銀在庫は 0。
+   Assert（期待は試験が自分で数える＝Budget(w) と市場価格から）：①今月の鋳造の価値の合計＝予算（相対 1e-6）。②州ごとの引き取りの合計＝予算÷市場価格（州をまたいで二重に予算を使わない）。③各州の引き取りは自分の在庫×月次率を超えない。④保存量 D は動かない。⑤前提の Assert（2 州とも受け手がいる・予算が在庫で縛る州の容量より大きい・予算が 2 州の容量の合計より小さい）。
+   赤にする突然変異：MM7（予算の消費 `if (atMarket) gapLeft -= value;` を外す）→ 赤の見込み（外した木では 2 州目が予算を丸ごと使い、合計が 1.3 倍になる。州の順番がどちらでも 1.3 倍）。D: の使い捨ての木 D:/PoB_work/c71id_mut（git archive）に scripts/instruments/c70id/mut854.py の MM7 を当てて確かめる。
+   緑のままなら、穴として名乗り和らげない（盤面の選び直しは 1 回まで・主張と Assert は変えない）。
+   tests-delta：+1。
+  項目 B（OM1・反証役 低 2）：決める＝**〈判別は Fact だけ〉と試験の注に名乗る**（Theory の判別を足さない）。
+   理由：Theory は (846) の前の OneMonth の本体の写し（Pre846OneMonth）と月の終わりの出力を 1 ビットで比べる。月の終わりの出力は EconomyStep が AdminFill を書き直し、届きの式の係数 EduReachFromAdmin が 0 のとき AdminFill の出発値に依らない。この比べに reachFromAdmin を入れると写しが (846) の後の本体になり、〈前の本体の写し〉という主張から外れる。判別は月を回す前の値を見る Fact（行政の充足を渡さなければ月を回す前の盤面は開幕の既定のまま）が持つ。
+   tests-delta：0（注だけ）。
+  項目 C（mutation_854.txt の頭の行・反証役 低 3）：頭の行を〈変異ごとの restore は worktree から変異が触るファイルを写した〉に揃える（record_854.txt の名乗りが実態）。24 本の変異は回し直さない（枝の中身が同じ）。MM7 の行の末尾に〈(861) の新しい試験で赤〉の参照を足す。
+  tests-delta の予言（Category!=FullLength）：merge 後 2287＋13（枝の +13）＝2300 を --list-tests で数える → 項目 A を足して 2301（FullLength は 3 のまま）。ident の宣言は --tests-delta 14（基準 2287 に対し）。
+  走査の番人の点検（㉘）：7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）を試験のコミットの直後に回す。
+   ・工業化度の読み手の許可表：Discovery.cs の 1 行は IdeaBoardOf の別の行（`p.IndustrialRentPerMonth`）＝今回の追加の行は工業化度の語を含まない＝表は不変。
+   ・`new MoneyStock(` の件数（SimCore）＝エンジンに足す行 0 なので不変。route_anchors.tsv の鍵の行も不変。WriterRatchetTests の宣言の表＝計算量の件数を変えない。
+   ・書き換える番人の件数の予言＝0。赤が出たら止める。
+
+[4] 合否（採る条件）
+  ・項目 A が MM7 で赤になる（外れたら和らげずに記録。穴として名乗る）。
+  ・素の 5 種・計器つき 10 種が m852 と名乗り行を除いて全行一致（ident c71id）。
+  ・フルスイート（Category!=FullLength と FullLength を分け、合計を --list-tests と突き合わせ）・savetest・leakhunt 緑。
+  ・走査の番人 7 組が赤にならない。
+
+[5] ident の条件
+  ・試験と記録のコミットの後に、走査の番人が緑であることを確かめてから ident c71id を 1 本起こす（起こす前に arms.sh free と D: の空き〔35GB 以上〕を見る・arms.sh free が 3 未満なら走っている腕の印を waitmark で待つ）。
+  ・宣言は --tests-delta 14 のみ（計器の表は全行一致を予言）。
+  ・ident の走行中はこの worktree にコミットしない（㉙）。判定と反証役の読みの後に生を消す（要約は measurements/m861_20261105/）。反証役が読む前に消さない（⑲）。
+
+[6] 浮動小数の順序が変わる箇所
+  ・無し（エンジンに足す行 0）。Discovery.cs:289 は (854) の紙の根拠のまま（同じ double の選び方を変えるだけ）。
+
+[7] 約束
+  ・App・SimCore/Display・Runner・InstrumentsRule.cs・InstrumentsSubst.cs・InstrumentsSecession.cs・WriterRatchetTests の表・Coefficients.cs の :530・:2752 と c71ip の新しい旗の行・BilateralMarket.cs・RuleSharesFormTests.cs・RuleOrderP1Tests.cs・DormantIdentityTests.cs は触らない。計器の変更 0。実装ログと 00一覧は書かない（合流が書く）。
+  ・範囲外の焼いた旗の注（World.cs・Model.cs・Diplomacy.cs・InstrumentsEd.cs・InstrumentsFd.cs・Megaprojects.cs・WorldData.cs・App の GameViewModel.Politics.cs:455・:529 ほか）は直さない（⑩ の束）。
