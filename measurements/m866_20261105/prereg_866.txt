@@ -49,3 +49,10 @@
   - c71poB_10 の生（約 11GB）は 8 表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s）＋keepsum へ縮めて D:/PoB_work/keep_866_rej/c71poB_10 へ置く（要約 measurements/m866_20261105/keepsum_c71poB_all.tsv）。
   - c71ip の突然変異の腕の生（marms/out_c71ipE*_1・約 6GB）：門の出力 gates_E*.txt は measurements/m863_20261105 にある＝cearn_s・cpop_s の表だけ keep_866_rej/c71ip_marms へ残し、残りは消す。
   - ident の生（合流）：計器つき 10 種の ins は keep_866/base_ins へ移す（ハードリンク）。他は消す。
+
+■ 結果の後の追記（2026-11-05 21:3x・上の文は書き換えていない）
+  - [2] merge：予言どおり（衝突 0・消す名前 0・逆適用の確かめ 3 点とも成り立った）。頭 3b5fbb56。
+  - [3] ident m866：予言どおり〈判定: 恒等〉（測った種で一致）＝素の 5 種 181 行・計器つき 10 種 182 行が m852 と全行一致・計器の表 1030＋既知の揺れ 20＋列が増えた 20・注視 5221 行・.cost 216.0／212.6・テスト 2307＋3・腕 a・b とも rc=0（新しい batch.sh の初めての実走）。
+  - [4] フルスイート：予言どおり（2306＋スキップ 1＝2307・FullLength 3・中止 0・savetest OK・leakhunt 違反なし）。
+  - [5] c71poB の止める線の数え直し：予言どおり（空洞化 1/10 未満 1 件〈線が原因〉・他 0）。
+  - [7] 生：予言どおり（keep_866_rej/c71poB_10 3.2G・keep_866_rej/c71ip_marms 1.8G・keep_866/base_ins 1030 本はハードリンク）。
