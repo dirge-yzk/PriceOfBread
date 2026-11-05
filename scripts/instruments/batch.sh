@@ -52,7 +52,9 @@ elif [ "$1" = run ]; then
   if [ "$SB" != "1" ]; then TAG=${ARM}_${N}_s$SB; XARGS="$N - 0 $SB"; fi
   O=$W/out_$TAG
   # (728) 道具の段：①同時に走る腕の数の管理（満杯なら走らずに 3 で止まる＝tools/arms.sh）②INS=1 のとき計器の国の既定は 9 国（渡し忘れの型を消す・空を明示したら止まる）③同じ腕の名の計器の生を消す前に要約を残す（tools/keepsum.py）
-  #   終了コード：3＝腕が満杯で走っていない（ms_$TAG.log の末尾に ARMFULL の行）・それ以外＝measure.sh の終了コード（0〜2 は試合の結果＝1 はハーネス不合格を含む〔基線も 1〕。ビルドの失敗も 1 だが成績表が出ない）＝呼び手は終了コードと出力の有無を見る
+  #   終了コード（(860) で改めた）：0＝成績表 $W/b${N}_$TAG.txt が出て最後の空でない行が〈判定:〉を含む（走りは完走。試合の結果は成績表の判定の行が持つ＝ハーネス不合格でも 0）・
+  #     2＝INS=1 で計器の国が空・3＝腕が満杯で走っていない（ms_$TAG.log の末尾に ARMFULL の行）・4＝BATCHFAIL＝ビルドの失敗か成績表が無い／途中で切れた（旧は measure.sh の終了コードをそのまま返し、ハーネス不合格の 1 とビルドの失敗の 1 が区別できなかった）。
+  #     measure.sh の終了コードは ms_$TAG.log に〈measure rc=…〉と書いて残す。走る前に古い成績表を消す（失敗した走りが前の走りの成績表を完走に見せない）。
   bash $SP/tools/arms.sh acquire "$ARM" $$ || { echo "ARMFULL $(date '+%F %T') $TAG（走っていない＝出力は前の回の物か無い）" | tee -a $W/ms_$TAG.log; exit 3; }
   trap 'bash $SP/tools/arms.sh release "$ARM" $$' EXIT
   if [ -n "${INS:-}" ]; then
@@ -64,15 +66,18 @@ elif [ "$1" = run ]; then
   rm -rf $O $W/snap_$TAG && mkdir -p $O/s3a $O/disc $O/navy $O/need $O/hist $O/cas $O/d165 $O/w171 $O/col $O/w176 $O/f181 $O/tier $O/need183 $O/sec183 $O/serf184 $O/g186 $O/nvy190 $O/mig $O/cnl $O/mob $O/nvq $O/pow $O/cap $O/l186 $O/c201 $O/fx205 $O/c206 $O/t203 $O/d204 $O/rv204 $O/s208
   (cd $REPO && git show 1a3c227:.pob-fidelity-baseline.tsv) > $W/fid_$TAG.tsv
   echo "START $(date +%T) selfplay-batch N=$N SRC=$SRC" > $W/ms_$TAG.log
+  rm -f $W/b${N}_$TAG.txt
   export POB_COEF="$(cat $W/coef_$ARM.txt 2>/dev/null)"
   if [ -n "${INS:-}" ]; then mkdir -p $O/ins; export POB_INSTRUMENTS=$O/ins; fi   # (245) 標準の計器（NG の入力）を出す＝注入なしの木（plain）で回す
   SEEDS=$N SNAP_DIR=$W/snap_$TAG POB_FIDELITY_BASELINE=$W/fid_$TAG.tsv POB_S3A_DIR=$O/s3a POB_DISC_DIR=$O/disc POB_NAVY_DIR=$O/navy POB_NEED_DIR=$O/need POB_FC_DIR=$O/hist POB_MIL_DIR=$O/hist POB_CAS_DIR=$O/cas POB_D165_DIR=$O/d165 POB_W171_DIR=$O/w171 POB_COL175_DIR=$O/col POB_W176_DIR=$O/w176 POB_F181_DIR=$O/f181 POB_TIER_DIR=$O/tier POB_NEED183_DIR=$O/need183 POB_SEC183_DIR=$O/sec183 POB_SERF184_DIR=$O/serf184 POB_G186_DIR=$O/g186 POB_NVY190_DIR=$O/nvy190 POB_MIG_DIR=$O/mig POB_CNL193_DIR=$O/cnl POB_MOB194_DIR=$O/mob POB_NVQ195_DIR=$O/nvq POB_POW_DIR=$O/pow POB_CAP_DIR=$O/cap POB_L186_DIR=$O/l186 POB_C201_DIR=$O/c201 POB_FX205_DIR=$O/fx205 POB_C206_DIR=$O/c206 POB_T203_DIR=$O/t203 POB_D204_DIR=$O/d204 POB_RV204_DIR=$O/rv204 POB_S208_DIR=$O/s208 \
     bash $SRC/measure.sh $W/b${N}_$TAG.txt selfplay-batch $XARGS >> $W/ms_$TAG.log 2>&1
   MRC=$?
   echo "rc=$MRC END $(date +%T)" >> $W/ms_$TAG.log
+  echo "measure rc=$MRC" >> $W/ms_$TAG.log
+  if [ -s $W/b${N}_$TAG.txt ] && grep -v '^[[:space:]]*$' $W/b${N}_$TAG.txt | tail -1 | grep -q '判定:'; then BRC=0; else BRC=4; echo "BATCHFAIL $(date +%T) $TAG（成績表が無い／最後の判定の行まで書けていない・ビルドの失敗など＝measure rc=$MRC）" >> $W/ms_$TAG.log; fi
   if [ -n "${INS:-}" ]; then python $SP/mon/an_mon.py $O/ins --seeds $SB-$((SB+N-1)) --tag $TAG --repo $SRC > $W/mon_$TAG.txt 2>&1; fi   # (651) 頻度の監視と注視の一覧の読み手（読むだけ・判定ではない）。INS が空の経路（腕 A）は 1 命令も変わらない。(655) 測った写しの木 $SRC から法の名簿と政体を引く（手元の木ではない）。(702) 種の起点を --seeds で渡す（旧は既定の 1-10＝種 11〜20 の腕で 0 行だった）
   rm -rf $W/snap_$TAG
   tail -4 $W/ms_$TAG.log
   echo BATCHDONE $TAG
-  exit $MRC
+  exit $BRC
 fi

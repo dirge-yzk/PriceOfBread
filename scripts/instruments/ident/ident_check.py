@@ -439,8 +439,8 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     if known_hit:
         by = {}
         for f, d in known_hit:
-            if f in gf or f in rf or f in cf:
-                continue   # (853) 列が増えた表・行が増えた表・列が消えた表として数え済み（二重に数えない）
+            if f in gf or f in rf or f in cf or f in realf:
+                continue   # (853) 列が増えた表・行が増えた表・列が消えた表として数え済み（二重に数えない）／(860) 宣言の無い違いの表（real）も数え済み（part は real を先に数える）
             by.setdefault(table_of(f) + ':' + ','.join(d), []).append(f)
         say(f'  既知の揺れの列だけが違う表 {part["known"]} 本：' + '・'.join(f'{k}×{len(v)}' for k, v in sorted(by.items())))
     if bad_missing:

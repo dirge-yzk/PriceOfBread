@@ -34,7 +34,7 @@ rep = {'MU0': None,
        'MU8': ('loo847.py', b'def t2(c, thr): return c > thr', b"def t2(c, thr): return c > float('inf')"),
        # (853) MU9：腕の基線（--base の割り当て＝元からの弱さの比べ先）を別の腕の物にずらす（割り当ての写し間違い）
        'MU9': ('loo847.py', b"if BASE.get(a, '-') != '-': cmd.append(f'{AN}/{BASE[a]}.txt')", b"if BASE.get(a, '-') != '-': _nb = [k for k, v in BASE.items() if v != '-']; cmd.append(f'{AN}/{BASE[_nb[(_nb.index(a) + 1) % len(_nb)]]}.txt')"),
-       # (853) MU10：腕の盤面（--board の割り当て）をずらす。盤面は記録 (b) の世代にだけ使う欄で件数に効かない＝赤にならないことの確かめ（穴の報告の元）
+       # (853) MU10：腕の盤面（--board の割り当て）をずらす。盤面は記録 (b) の世代にだけ使う欄で件数に効かない＝門の色（盤A・盤B・盤L・恒等の門）は変わらない。拾うのは別の欄の〈割り当ての不一致〉（結果は 12/17〔measurements/m853_20261105/mut847_mu9_mu10.txt〕）。(860) 注を結果に合わせた（実行する式は 1 字も変えない）
        'MU10': ('loo847.py', b"if a in BOARD: cmd += ['--board', BOARD[a]]", b"if a in BOARD: cmd += ['--board', BOARD[list(BOARD)[(list(BOARD).index(a) + 1) % len(BOARD)]]]")}[mu]
 for name, p in src.items():
     b = open(p, 'rb').read()
