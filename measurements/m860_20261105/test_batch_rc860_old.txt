@@ -1,0 +1,11 @@
+✗ rc1_table：終了コード 1（期待 0）
+○ rc0_table：終了コード 0（期待 0）
+✗ rc1_notable：終了コード 1（期待 4）
+✗ rc0_truncated：終了コード 0（期待 4）
+✗ rc1_stale：終了コード 1（期待 4）
+○ armfull：終了コード 3（期待 3）
+○ ins_nonations：終了コード 2（期待 2）
+✗ ms ログに measure rc=1 が無い
+✗ BATCHFAIL が無い
+○ 成績表は変えない
+== 判定：予言と違う所あり
