@@ -70,7 +70,7 @@ bash "$SD/test_batch_rc860.sh" "$R/scripts/instruments/batch.sh" "$T/tb_new" > "
 mkdir -p "$T/oldsp" && git -C "$R" show $PRE:scripts/instruments/batch.sh > "$T/oldsp/batch.sh" && cp -r "$R/scripts/instruments/tools" "$T/oldsp/tools" && cp -r "$R/scripts/instruments/mon" "$T/oldsp/mon" 2>/dev/null
 POB_REPO="$R" bash "$SD/test_batch_rc860.sh" "$T/oldsp/batch.sh" "$T/tb_old" > "$M/test_batch_rc860_old.txt" 2>&1 && nogo "[batch.sh] 終了コードの試しが旧で赤にならない（試験が拾わない）"
 # 7 G5 の式が 853 と同じ（コメント以外の G5 を含む行の集合）
-diff <(grep -v '^ *#' "$R/scripts/instruments/c70gt/gates_ss853.py" | grep 'G5\|g5') <(grep -v '^ *#' "$SD/gates_ss860.py" | grep 'G5\|g5') > "$T/g5diff.txt" 2>&1 || nogo "[ss] G5 の式が 853 と違う：$(head -3 "$T/g5diff.txt")"
+diff <(grep -v '^ *#' "$R/scripts/instruments/c70gt/gates_ss853.py" | grep 'G5\|g5' | sed 's/(853)/(860)/g') <(grep -v '^ *#' "$SD/gates_ss860.py" | grep 'G5\|g5') > "$T/g5diff.txt" 2>&1 || nogo "[ss] G5 の式が 853 と違う：$(head -3 "$T/g5diff.txt")"
 # 8 一つ抜きの空振りの率（記録）
 $PY "$G/gates_po860.py" --loo $RAW/base_ins $RAW/n1 $RAW/n2 "$M/loo_po860.txt" 10 "$G/gates_po860_thresholds.tsv" > "$T/loo_po.out" 2>&1 || nogo "[po] 一つ抜きの実行が失敗"
 $PY "$G/gates_ss860.py" --loo $RAW/base_ins $RAW/n1 $RAW/n2 "$M/loo_ss860.txt" 10 > "$T/loo_ss.out" 2>&1 || nogo "[ss] 一つ抜きの実行が失敗"
