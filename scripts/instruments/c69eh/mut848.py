@@ -10,6 +10,7 @@ M = {
     'E1 人数の比でなく均等に配る': [(b'World.Transfer((w, payers), (w, heirs, null), sum, fromWeights: held);', b'World.Transfer((w, payers), (w, heirs, heirs.ConvertAll(_ => 1.0)), sum, fromWeights: held);')],
     'E2 人の居る POP からも出す': [(b'if (p.Size > 1e-12) { live += p.Size; continue; }', b'if (p.Size > 1e-12) { live += p.Size; }')],
     'E3 別の州へ移す（次の州の受け手）': [(b'foreach (var p in r.Pops) if (p.Size > 1e-12) heirs.Add(p);', b'foreach (var p in w.Regions[(w.Regions.IndexOf(r) + 1) % w.Regions.Count].Pops) if (p.Size > 1e-12) heirs.Add(p);')],
+    'E5 受け手の並びを直さない（§11 の入れ替えを外す）': [(b'(heirs[big], heirs[^1]) = (heirs[^1], heirs[big]);', b'')],
     'E4 人数 0 の POP へも配る（重み 1）': [(b'World.Transfer((w, payers), (w, heirs, null), sum, fromWeights: held);', b'World.Transfer((w, payers), (w, new List<Pop>(r.Pops), r.Pops.ConvertAll(p => p.Size > 1e-12 ? p.Size : 1.0)), sum, fromWeights: held);')],
 }
 L = ['(848) c69eh 突然変異（EmptyPopEstateTests・使い捨ての木 ' + tree + '）']

@@ -115,3 +115,6 @@ savetest OK（12 四半期後も全 61 カ国が継続系列と一致）・leakh
   変更する行は EmptyPopEstate.Step の `if (!(w.Coef.EmptyPopEstate > 0)) return;` より後だけ＝旗 0 の経路は 1 字も触らない（ident c69ehz の〈判定: 恒等〉はそのまま当てはまる・合流の Z 腕で確かめる）。
 予言（B2）：G2④ の広がり ≦1e-13 の桁・G1 は B1 と同じ水準（W ≦1e-6）・他の門と止める線は B2 で全て読み直す（軌道は B1 と別物＝人数の比の端数の帰属が変わる）。
 B1 の生は §8 の形へ縮める（keepsum_all_tables.tsv を先に書く・残す表＝読み手が開く nation_s・region_s・migration_s・pxmonth_s・wars_s・stock_s・casualty_s・fiscal_s・cessp_s・canal_s・tnation_s・flow_s・cearn_s・cpop_s）。
+§11 の補い（同じ日・B2 の前）：直しの後も試験が赤（0.00258）＝試験の読み方の桁落ち（末尾の小さな受け手の受けた額を〈後の在庫−前の在庫〉で読むと、前の在庫が大きいときに 1e-16×在庫÷受けた額 の誤差が出る）。
+  計器（cearn_s の estateRecvPerCapitaSpread）は Sav の口に渡る額そのもの（share）を読む＝桁落ちは無い＝B1 の ④ の赤は末尾の端数の帰属で説明できる（計器の読み方の側の問題ではない）。
+  試験は、末尾の受け手の在庫を先に 0 の近く（|在庫|＜1e-9）へ移してから読む形に直した（主張の式〈(最大−最小)÷最大 ≦1e-9〉は同じ）。§11 の〈今の形で赤（0.00315）〉は桁落ちを含む値＝今の形で赤になるかは突然変異 E5〈入れ替えを外す〉で取り直す（measurements/m848_20261105/mutation.txt に追記）。

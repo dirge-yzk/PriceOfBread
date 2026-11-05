@@ -25,6 +25,9 @@ internal static class EmptyPopEstate
             if (payers is null || !(live > 1e-9)) continue;
             var heirs = new List<Pop>();
             foreach (var p in r.Pops) if (p.Size > 1e-12) heirs.Add(p);
+            int big = 0;   // ★(848) §11：人数が最大の受け手を末尾へ（Pop.Distribute は端数を末尾の受け手へ寄せる＝末尾の人数がごく小さいと 1 人あたりの受け取りが 1 本にならない）
+            for (int i = 1; i < heirs.Count; i++) if (heirs[i].Size > heirs[big].Size) big = i;
+            (heirs[big], heirs[^1]) = (heirs[^1], heirs[big]);
             World.Transfer((w, payers), (w, heirs, null), sum, fromWeights: held);
         }
     }

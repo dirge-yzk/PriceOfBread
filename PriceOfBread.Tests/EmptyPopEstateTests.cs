@@ -84,6 +84,8 @@ public class EmptyPopEstateTests
         var live = r.Pops.Where(p => p.Size > 1e-12).ToList();
         var e = live[0]; e.Size = 0; Put(w, e, 1234.5678);
         live[^1].Size = 1e-10;   // 並びの末尾の受け手の人数をごく小さく
+        if (live[^1].Savings.Value > 0) World.Transfer((w, [live[^1]]), (w, null, null), live[^1].Savings.Value);   // 在庫を 0 の近くへ（受けた額を引き算で読むときの桁落ちを避ける）
+        Assert.True(Math.Abs(live[^1].Savings.Value) < 1e-9);
         w.Coef.EmptyPopEstate = 1;
         var heirs = r.Pops.Where(p => p.Size > 1e-12).ToList();
         var s0 = heirs.Select(p => p.Savings.Value).ToArray();
