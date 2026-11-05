@@ -421,6 +421,10 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         elif not extra:
             real.append((f, ['BYTES_ONLY']))
     # 既知の揺れだけが違う表は known_hit、それ以外が real。増えた列で real に入った表は上で入れ済み
+    # (853) 表示の内訳：共通の表を 1 つの区分にだけ数える（優先＝宣言の無い違い・列が増えた・行が増えた・列が消えた・既知の揺れ）。判定（bad_missing・bad_only・real）には触れない。
+    gf, rf, cf, kf = ({f for f, _ in x} for x in (grown_hit, rows_hit, cols_hit, known_hit))
+    realf = {f for f, _ in real}
+    part = Counter('real' if f in realf else 'grown' if f in gf else 'rows' if f in rf else 'cols' if f in cf else 'known' if f in kf else 'other' for f in diffs)
     say(f'  基準 {len(fa)} 本・腕 {len(fb)} 本・バイト一致 {same} 本')
     if missing:
         say(f'  基準にあって腕に無い {len(missing)} 本（うち宣言 {len(missing) - len(bad_missing)}）')
@@ -435,8 +439,10 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     if known_hit:
         by = {}
         for f, d in known_hit:
+            if f in gf or f in rf or f in cf:
+                continue   # (853) 列が増えた表・行が増えた表・列が消えた表として数え済み（二重に数えない）
             by.setdefault(table_of(f) + ':' + ','.join(d), []).append(f)
-        say(f'  既知の揺れの列だけが違う表 {len(known_hit)} 本：' + '・'.join(f'{k}×{len(v)}' for k, v in sorted(by.items())))
+        say(f'  既知の揺れの列だけが違う表 {part["known"]} 本：' + '・'.join(f'{k}×{len(v)}' for k, v in sorted(by.items())))
     if bad_missing:
         fail(f'計器の表：基準にあって腕に無い {len(bad_missing)} 本 {bad_missing[:5]}')
     if bad_only:
@@ -444,9 +450,13 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     if real:
         fail(f'計器の表：宣言の無い違い {len(real)} 本')
         for f, d in real[:10]:
-            say(f'      {f}\t{d[:6]}')
+            say(f'      {f}	{d[:6]}')
     if not (bad_missing or bad_only or real):
-        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {len(known_hit)}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + len(grown_hit) + len(rows_hit) + len(cols_hit)}）')
+        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {part["known"]}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + part["grown"] + part["rows"] + part["cols"]}）')
+    # (853) 内訳の和＝共通の表の数（表示だけ・合わなければ注意の行を出す）
+    tot = same + sum(part.values())
+    say(f'  内訳：共通の表 {len(both)} 本＝バイト一致 {same}＋既知の揺れ {part["known"]}＋列が増えた {part["grown"]}＋行が増えた {part["rows"]}＋列が消えた {part["cols"]}＋宣言の無い違い {part["real"]}＋その他 {part["other"]}（和 {tot}）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える'
+        + ('' if tot == len(both) else '　※和が合わない'))
 
 
 # ---------- 4 注視の表（タグの行以外） ----------
