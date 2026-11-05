@@ -430,18 +430,22 @@ public class TradeClearingTests
     /// 潜在量と律速率（州の輸送の容量の取り分・混雑の信号）は四半期の最初の清算（眠る行が無い）だけが書く。月の清算で、買い手の州の容量が尽きている行は
     /// 成約できない＝売り手を回らない（着値の充填が0）・印は走査して成約しなかった行と同じ（その時の自州価格）。
     /// ⚠突然変異「月の清算も潜在量を書く」「容量の尽きた行も回す」「回さない行に印を付けない」で赤。</summary>
-    [Fact]
-    public void 月の清算は潜在量を書かず容量の尽きた行を回さない()
+    [Theory]
+    [InlineData(0.0)]   // (868) 旗 ImportPayerLive の 0（今の形）と 1（人の居る POP が払う）の両方で同じ主張
+    [InlineData(1.0)]
+    public void 月の清算は潜在量を書かず容量の尽きた行を回さない(double importPayerLive)
     {
         // 盤面＝英の1国：鉄道と基礎の陸の容量を0にすると内陸の州は運べない（容量が尽きた行）。売り手は港の2州・内陸の州だけが欲しがる（潜在量の番人と同じ盤面）。
         //   ★(166) 鉄道以前の陸の容量＝人口×TransportTargetPerPop（Transport.PreRailCapacity）＝その係数を0にする。
         var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));
         var w = sim.Nations[0].World;
+        sim.Coef.ImportPayerLive = importPayerLive;   // (868)
         sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
         foreach (var r in w.Regions) foreach (var m in r.Markets)
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
         foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.Size > 1e-12) p.SetSavings(1e9);   // (868) 人の居る POP にも在庫（旗 ImportPayerLive 1 は人の居ない商人を払い手にしない＝商人の在庫だけの盤面は旧の規則に頼っていた）
         var inland = new List<Region>();
         foreach (var r in w.Regions)
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
