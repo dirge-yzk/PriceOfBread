@@ -42,7 +42,7 @@
 
 ■ 作ったフォルダ・消した物・残した物
 - 作った：D:/PoB_work/wt_c70id（worktree・枝 c70id）・D:/PoB_work/c70id_work（base1・mut1・mut2・mut3・scan1・suite_logs・probec など小さな出力）・c70id_art・c70id_mut・c70id_mutart・c70id_suite（隔離ビルドと使い捨ての写し）。
-- 消した（この担当が作った物だけ）：c70id_art・c70id_mut・c70id_mutart・c70id_suite（suite の要約と ログは c70id_work/suite_logs へ写した）。c70id_dbgart（デバッグ用）。
+- 消した（この担当が作った物だけ・最後に実際に消した）：c70id_art・c70id_mut・c70id_mutart・c70id_suite・c70id_dbgart と、それぞれの .build.txt・.test.txt（suite の要約とログは c70id_work/suite_logs へ写した）。消した後の D: の空き 30.9GB（消す前 25.7GB）。
 - 残した：wt_c70id・c70id_work（合流が読み終えたら消す）。生の ident は無い。
 
 ■ 自己申告
