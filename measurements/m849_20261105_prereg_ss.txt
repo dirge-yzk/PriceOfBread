@@ -114,3 +114,13 @@
   - 計器の末尾の列 26 本（Instruments.SubstS2HeaderText）：s2BasisKind・s2BasisEngine・s2D0Inst・s2RhoInst・s2RhoSource・s2SigmaEngine・s2SigmaInst・s2CapHead・s2SoldHead・s2UHead・s2TechHead・s2Tech0Inst・s2EffFillHead・s2EffFill0Inst・s2BakeSigmaDiff・s2BakeRhoRelDiff・s2CapEnd・s2SoldEnd・s2UEnd・s2TechEnd・s2HeadsEnd・s2LneedEnd・s2EEnd・s2UnempEngine・s2UnempB・s2NewOverOld。月の頭の口 Instruments.SubstMonthHead（EconomyStep.Run の頭・エンジンの頭の前・助走の月は呼ばない）。
   - 台本：門 scripts/instruments/c69ss/gates849.py・突然変異の編集 scripts/instruments/c69ss/mut849.py（batch.sh prep の編集の python）。
   - 器のコミットの直後の走査の番人 6 組（㉘）と名の追従の試験：217 本合格・失敗 0（隔離ビルド D:/PoB_work/c69ss_art）。
+
+■ 追記 2026-11-05（ident c69ssz の 1 回目の後・腕 B の前＝旗 1 の結果は見ていない）
+  - ident の 1 回目（5976a6d7）は〈不一致〉：①cpop_s の subsistenceRate が 1 種あたり 4 行（その四半期に EconomyStep.Run を通らなかった州の POP＝食べる割合の欄が 0・基線は 0.7）②.cost の件数の行 2 本の名（海軍の発注の配り＝(843) で名が変わった既知の例外・ident_20261105_m845.txt と同じ宣言）。
+    直し：cpop_s の読み手を〈焼いた POP（印 Productivity）だけその月の食べる割合・他は欄〉の三項式へ（32192faf・旗 0 は欄そのもの）。宣言 --cost-allow 海軍の発注の配り は 1 回目の結果の後に足した（(843) の既知の例外と名乗る）。
+    限界（cpop_s）：旗 1 でその四半期に Run を通らなかった焼いた POP（ロードの直後・植民地の写しの直後）は 0 を書く。
+  - subst_s の先頭の 32 列は 1 回目でバイト一致だった（ident_check.py の --grown-ok は共通の列をバイトで比べる）。
+  - ident の生の扱い：判定と読みの後、subst_s（新しい列を持つ唯一の表）と keepsum だけを measurements と D:/PoB_work/c69ss_work に残して縮める（D: の空きのため・合流は INSRAW を作り直さない限りこの生を読まない）。
+  - 試験を 1 本足す（M6＝技術の比を掛けない突然変異の番人・SubsistenceStage2Tests の〈焼きは主食の RGO の効率化材の倍率で割る〉）＝点火のコミットで Category!=FullLength 2253 の予言。
+  - 突然変異の確かめの形（D: の空きのため）：M1〜M6 は貼り替えた木の機構の試験（SubsistenceStage2Tests・SubstInstrumentTests・UrbanFlowRealTests・FoodLedgerTests）で赤を先に確かめ、門の台本での赤は 1 種の計器つきの腕（2 本ずつ）で確かめる。M4 は G3c が緑のままになりうる（主食の門が全て 1・習慣 0 の行では hf＝1 ちょうど）＝緑なら〈M4 の門の穴〉と表に書き、門を替えない。
+  - ident の 2 回目（32192faf）も〈不一致〉：subst_s の subRateWeighted ほか 6 列（cpop_s と同じ原因＝その四半期に Run を通らない州の担い手の食べる割合の欄が 0）。1 回目の不一致の 20 本の残り 10 本はこの subst_s だった（1 回目のログの末尾だけを読んで見落とした）。直し：InstrumentsSubst の subWeighted も同じ三項式へ。3 回目の ident は試験 +9（M6 の番人を含む）を宣言する。

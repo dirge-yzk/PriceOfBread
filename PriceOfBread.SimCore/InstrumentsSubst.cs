@@ -71,9 +71,9 @@ public static partial class Instruments
                 foreach (var p in r.Pops)
                 {
                     double rent = System.Math.Max(0, p.LandRentPerMonth.Value);
-                    if (p.SubsistenceBasis > 0)   // ★(849) 担い手＝自給の基が正（旗 0 では旧の Subsistence＞0 と同じ集合）・割合はこの月の食べる割合 SubsistenceShare（旗 0 は欄そのもの）
+                    if (p.SubsistenceBasis > 0)   // ★(849) 担い手＝自給の基が正（旗 0 では旧の Subsistence＞0 と同じ集合）・割合は焼いた POP だけこの月の食べる割合 SubsistenceShare・他は欄（その四半期に Run を通らない州の POP の食べる割合の欄は 0＝cpop_s と同じ三項式）
                     {
-                        subPop += p.Size; subWeighted += p.Size * p.SubsistenceShare; rentFarmers += rent;
+                        subPop += p.Size; subWeighted += p.Size * (p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity ? p.SubsistenceShare : p.SubsistenceBasis); rentFarmers += rent;
                         if (pollLevel > 1e-9 && !p.Closed && !p.IsSoldier && p.ClassId != PopClass.Criminal) poll += c.PollTaxRate * pollLevel * p.Size;
                         incTax += taxRate * System.Math.Max(0, p.LastEarnedPerMonth.Value);
                     }

@@ -1,0 +1,62 @@
+ident start：ラベル=c69ssz 木=/d/PoB_work/wt_c69ss 作業=/d/PoB_work/ident_c69ssz 腕=[a b t s] 開始=2026-11-05 10:18:49
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c69ssz（2026-11-05 10:44:07）===
+測った木：D:/PoB_work/wt_c69ss（HEAD 5976a6d7・未コミット 1 本）
+基準の設定：D:/PoB_work/wt_c69ss/scripts/instruments/ident/ident.cfg
+宣言：grown=['subst_s'] tests_delta=8
+腕 a：rc=1 end=2026-11-05 10:40:49
+腕 b：rc=1 end=2026-11-05 10:44:07
+腕 t：rc=0 end=2026-11-05 10:22:17
+腕 s：rc=0 end=2026-11-05 10:39:12
+測る木の SOURCE-HASH：2ee869983a806eab
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 2ee869983a806eab
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m839
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m839.cost
+  ✗ 不一致：素の 5 種の .cost：件数の行 2 本が違う
+      海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州
+         新 1947035	0.02000	0.04
+         基 None
+      海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit
+         新 None
+         基 1947035	0.02000	0.04
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 2ee869983a806eab
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m839_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m839_ins.cost
+  ✗ 不一致：計器つき 10 種の .cost：件数の行 2 本が違う
+      海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州
+         新 1946888	0.02000	0.04
+         基 None
+      海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit
+         新 None
+         基 1946888	0.02000	0.04
+[計器の表] 腕 D:/PoB_work/ident_c69ssz/out_ib_10/ins  対  基準 D:/PoB_work/keep_845/base_ins
+  基準 1068 本・腕 1068 本・バイト一致 1008 本
+  列が増えた表（--grown-ok の宣言）10 本：subst_s1.tsv+26列・subst_s10.tsv+26列・subst_s2.tsv+26列・subst_s3.tsv+26列・subst_s4.tsv+26列・subst_s5.tsv+26列
+  既知の揺れの列だけが違う表 40 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 20634 欄）×1・cearn_s:経路の行番号だけ（写して一致 21040 欄）×1・cearn_s:経路の行番号だけ（写して一致 21253 欄）×1・cearn_s:経路の行番号だけ（写して一致 22439 欄）×1・cearn_s:経路の行番号だけ（写して一致 22736 欄）×1・cearn_s:経路の行番号だけ（写して一致 23348 欄）×1・cearn_s:経路の行番号だけ（写して一致 23494 欄）×1・cearn_s:経路の行番号だけ（写して一致 23707 欄）×1・cearn_s:経路の行番号だけ（写して一致 23896 欄）×1・cearn_s:経路の行番号だけ（写して一致 25237 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×10
+  ✗ 不一致：計器の表：宣言の無い違い 20 本
+      cpop_s1.tsv	['subsistenceRate']
+      cpop_s10.tsv	['subsistenceRate']
+      cpop_s2.tsv	['subsistenceRate']
+      cpop_s3.tsv	['subsistenceRate']
+      cpop_s4.tsv	['subsistenceRate']
+      cpop_s5.tsv	['subsistenceRate']
+      cpop_s6.tsv	['subsistenceRate']
+      cpop_s7.tsv	['subsistenceRate']
+      cpop_s8.tsv	['subsistenceRate']
+      cpop_s9.tsv	['subsistenceRate']
+[注視の表] mon_ib_10.txt 対 mon_20261105_m839.txt（タグの行を除く）
+  ○ タグの行以外が一致（4686 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2252（基準 2244+8 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+不一致の理由 3 件：
+  - 素の 5 種の .cost：件数の行 2 本が違う
+  - 計器つき 10 種の .cost：件数の行 2 本が違う
+  - 計器の表：宣言の無い違い 20 本
+判定: 不一致

@@ -177,4 +177,28 @@ public class SubsistenceStage2Tests
         }
         Assert.True(below > 20, $"0 と 1 の間の州が少ない {below}");
     }
+
+    [Fact]
+    public void 旗1の焼きは主食のRGOの効率化材の倍率で割る_技術の比()
+    {
+        // 突然変異 M6（技術の比を掛けない）の番人：助走の後に主食の RGO の EffFill を 0.5 に置くと T＝1＋EffBoost×0.5＝焼く ρ は T で割った値（T を掛けない実装は ρ が T 倍になる）。
+        var sim = Two(13UL, 1);
+        sim.StartWarmup(quartersOverride: 1);
+        var expect = new System.Collections.Generic.Dictionary<Pop, double>();
+        foreach (var nt in sim.Nations) foreach (var r in nt.World.Regions)
+        {
+            foreach (var s in r.Producers)
+                if (s.IsRgo && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].Tier == GoodTier.Staple) s.EffFill = 0.5;
+            var (cap, lp, _) = Farm(r);
+            if (lp < 0) continue;
+            var p = r.Pops[lp];
+            double u = Unsold(r, cap), t = Tech(r, nt.World.Coef);
+            if (!(u > 0) || !(p.Size > 0) || !(t > 1.0 + 1e-6)) continue;
+            expect[p] = p.SubsistenceBasis * Need() * p.Size / (u * t);
+        }
+        Assert.True(expect.Count > 20, $"技術の比が 1 を超える州が少ない {expect.Count}");
+        sim.StepQuarter();
+        foreach (var (p, rho) in expect)
+            Assert.True(Math.Abs(p.SubsistenceBasis / rho - 1.0) <= 1e-9, $"焼いた ρ が技術の比で割っていない {p.SubsistenceBasis} vs {rho}");
+    }
 }
