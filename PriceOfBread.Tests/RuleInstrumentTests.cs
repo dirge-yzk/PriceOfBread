@@ -35,10 +35,10 @@ public class RuleInstrumentTests
     }
 
     /// <summary>英仏を n 四半期回し（挙げた国は全て＝毎四半期の行）、rule_s の行と最後の四半期の世界を返す。</summary>
-    private static (List<Dictionary<string, string>> Rows, MultiNationSim Sim, int LastQ) Run(ulong seed, int quarters)
+    private static (List<Dictionary<string, string>> Rows, MultiNationSim Sim, int LastQ) Run(ulong seed, int quarters, string nations = "*")
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_rulep1_" + Guid.NewGuid().ToString("N"));
-        Instruments.Configure(dir, "*");
+        Instruments.Configure(dir, nations);
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: seed) { DiplomacyFrozen = true };
         try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, seed, q); } }
         finally { Instruments.Close(sim); Instruments.Configure(null, null); }
@@ -142,5 +142,27 @@ public class RuleInstrumentTests
         Assert.True(below > 0, "前提が崩れた：公開秩序が 1 未満の国×四半期が無い");
         Assert.Equal(below, lagMatch);
         Assert.True(nowMatch < below, $"前提が崩れた：今の R がどの行でも公開秩序に一致する＝遅れの有無を区別できない（今の一致 {nowMatch}/{below}）");
+    }
+
+    /// <summary>(846) T8：遅れた R は挙げていない国でも毎四半期更新する（InstrumentsRule.cs の RuleFold の頭）。1 国だけ挙げると、もう一方は年末の四半期（q＝3・7）にしか行を出さない。
+    /// その国の年末の行の orderRawLagIndex は 1 四半期前（q＝2・6）の末の R＝publicOrderIndex（＜1 の行）に一致する。`lagSt.Prev = rNow;` を早い return の後へ動かすと、挙げていない国の Prev は行を出した四半期でしか更新されず、
+    /// q＝3 では nan・q＝7 では q＝3 の末の R になって一致しない（T7 は "*" で毎四半期の行が出る＝この穴を見ない・(842) の反証役 ③）。</summary>
+    [Fact]
+    public void 挙げていない国の遅れたRも毎四半期更新される_年末の行が1四半期前のRに一致する()
+    {
+        var (rows, _, _) = Run(1797UL, 8, "イギリス");
+        var france = rows.Where(r => r["nation"] == "フランス").ToList();
+        Assert.NotEmpty(france);
+        Assert.All(france, r => Assert.True(r["quarter"] == "3" || r["quarter"] == "7", $"前提が崩れた：挙げていない国が年末以外の四半期（{r["quarter"]}）に行を出した"));
+        int below = 0;
+        foreach (var g in france.GroupBy(r => r["quarter"]))
+        {
+            var r = g.First();
+            double po = D(r, "publicOrderIndex");
+            if (!(po < 1 - 1e-9)) continue;
+            below++;
+            Assert.True(Math.Abs(D(r, "orderRawLagIndex") - po) <= 1e-9 * Math.Max(1, po), $"遅れた R が 1 四半期前の末の R でない（q={r["quarter"]}：{D(r, "orderRawLagIndex")} ≠ 公開秩序 {po}）");
+        }
+        Assert.True(below > 0, "前提が崩れた：挙げていない国の年末の行に公開秩序が 1 未満の行が無い");
     }
 }
