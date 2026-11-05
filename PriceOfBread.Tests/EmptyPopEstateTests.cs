@@ -75,6 +75,25 @@ public class EmptyPopEstateTests
         Assert.True(Math.Abs(r.Pops.Sum(p => p.Savings.Value) - total0) <= 1e-9 * Math.Max(1, Math.Abs(total0)), "州の在庫の和が変わった");
     }
 
+    /// <summary>(848) 事前登録 §11：受け手の 1 人あたりの受け取りは州の中で 1 本（相対 1e-9）＝末尾の受け手の人数がごく小さくても（Pop.Distribute は端数を末尾の受け手へ寄せる）。</summary>
+    [Fact]
+    public void 末尾の受け手の人数がごく小さくても1人あたりの受け取りは1本()
+    {
+        var sim = Two(1855UL); var w = sim.Nations[0].World;
+        var r = Pick(w);
+        var live = r.Pops.Where(p => p.Size > 1e-12).ToList();
+        var e = live[0]; e.Size = 0; Put(w, e, 1234.5678);
+        live[^1].Size = 1e-10;   // 並びの末尾の受け手の人数をごく小さく
+        w.Coef.EmptyPopEstate = 1;
+        var heirs = r.Pops.Where(p => p.Size > 1e-12).ToList();
+        var s0 = heirs.Select(p => p.Savings.Value).ToArray();
+        EmptyPopEstate.Step(w);
+        double lo = double.PositiveInfinity, hi = double.NegativeInfinity;
+        for (int i = 0; i < heirs.Count; i++) { double x = (heirs[i].Savings.Value - s0[i]) / heirs[i].Size; lo = Math.Min(lo, x); hi = Math.Max(hi, x); }
+        Assert.True(hi > 0);
+        Assert.True((hi - lo) / hi <= 1e-9, $"1 人あたりの受け取りが州の中で 1 本でない：(最大−最小)÷最大＝{(hi - lo) / hi}");
+    }
+
     [Fact]
     public void 人の居るPOPからは出ない()
     {
