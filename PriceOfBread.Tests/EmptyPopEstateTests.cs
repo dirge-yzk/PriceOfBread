@@ -201,4 +201,29 @@ public class EmptyPopEstateTests
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>(854) 反証役 低 6（(848) の突然変異 E6）：旗 0 は早い return で何もしない＝在庫に触れない・乱数を引かない・リストを確保しない。人数 0 で在庫が正の POP と受け手がいる盤面（早い return を外せば移しが走る盤面）で確かめる。
+    /// 乱数は同じ種で作った 2 つの世界の片方だけ Step を呼び、世界が持つ 2 系列（FactionRng・AiRng）の次の値が一致するかで見る（DeterministicRng は状態の読み手を持たない）。確保は GC.GetAllocatedBytesForCurrentThread の前後差（JIT のために 1 回呼んでから測る）。
+    /// 計器は切ってある（Instruments.On が真だと頭の EstateDue が確保する）＝この収集は Instruments と直列。突然変異の表は measurements/m854_20261105/mutation_854.txt。</summary>
+    [Fact]
+    public void 旗0は早くreturnする_在庫に触れず乱数を引かずリストを確保しない()
+    {
+        Assert.False(Instruments.On, "前提が崩れた：計器が入っている（EstateDue が確保する）");
+        var simA = Two(1860UL); var wA = simA.Nations[0].World;
+        var simB = Two(1860UL); var wB = simB.Nations[0].World;
+        MakeEmpty(wA, Pick(wA), 500, 200);
+        MakeEmpty(wB, Pick(wB), 500, 200);
+        wA.Coef.EmptyPopEstate = 0; wB.Coef.EmptyPopEstate = 0;
+        Assert.NotNull(wA.FactionRng); Assert.NotNull(wA.AiRng);
+        EmptyPopEstate.Step(wA);                                   // JIT（測る前に 1 回）
+        var before = Bits(wA);
+        long a0 = GC.GetAllocatedBytesForCurrentThread();
+        EmptyPopEstate.Step(wA);
+        long a1 = GC.GetAllocatedBytesForCurrentThread();
+        Assert.Equal(0L, a1 - a0);                                 // リストを確保しない
+        Assert.Equal(before, Bits(wA));                            // 在庫に触れない（人の居ない POP に在庫が残ったまま）
+        Assert.Equal(wB.FactionRng!.NextULong(), wA.FactionRng!.NextULong());   // 乱数を引かない（B は一度も Step を呼んでいない）
+        Assert.Equal(wB.AiRng!.NextULong(), wA.AiRng!.NextULong());
+        Assert.True(Pick(wA).Pops.Any(p => Empty(p) && p.Savings.Value > 0), "前提が崩れた：人の居ない POP の在庫が無い（早い return を外しても動かない盤面）");
+    }
 }

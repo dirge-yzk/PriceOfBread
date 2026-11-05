@@ -589,7 +589,7 @@ public static class EconomyStep
     internal static double EquipFill(double equipWant, double equipGot)
         => equipWant > Eps ? PoliticalQuantities.Clamp01(equipGot / equipWant) : 1.0;
 
-    /// <param name="durable">★段2a（2026-08-13）：true かつ ArmsStockEnabled>0 のとき、その段を**耐久品**として
+    /// <param name="durable">★段2a（2026-08-13・旗 ArmsStockEnabled は (843) で焼き込み）：true のとき、その段を**耐久品**として
     /// 「不足分の費用」で見積もる。予算の上限式がフロー基準のままだと、発注だけがストック基準になって
     /// **在庫を積み上げる原資が構造的に足りない**（実測：ストック版の方が装備が少なくなった）。
     /// 消耗品の段（基本・空軍）は false で呼ぶ＝従来どおりフロー。</param>
@@ -610,7 +610,7 @@ public static class EconomyStep
     ///   目標 A* ＝ **平時基準**の規模 × 原単位 ÷ 摩耗率（定常で 摩耗×A* ＝ 現行の平時フロー消費に一致するよう逆算
     ///   ＝新しい数を作らない）。戦時倍率は目標に掛けない＝**機関銃は戦争が始まっても9倍要らない**。
     ///   発注 ＝ (A* − 在庫)⁺ ＝ 負の小銃は発注できないという物理。戦時は在庫が摩耗で減るぶんだけ発注が増える。
-    ///   ArmsStockEnabled=0 では stock=false。
+    ///   （旗 ArmsStockEnabled は (843) で焼き込み＝耐久品の段は常に stock。旧の stock=false の枝は消した）。
     /// ★陸海の乗数 <paramref name="mul"/>（(189) から <see cref="LandMul"/>＝艦は0）は**目標に**掛ける（2026-09-29 処理の一元化 段3 F）＝決済の充足の分母（<see cref="ArmsFillContribution"/> の目標）と同じ量
     ///   ＝基本段の <see cref="BaseArmsTarget"/> と同じ式。⚠旧＝(A*−在庫)⁺ の**発注にだけ**掛け、充足の分母には掛けなかった＝港の無い国の装甲艦・弩級戦艦は
     ///   発注0なのに分母に残り、理想の形が海を望む国は在庫が目標で止まって満たされなかった（E1 で基本段を是正したのと同型の非対称）。
@@ -1781,7 +1781,7 @@ public static class EconomyStep
                 // 経11（大量消費化）：需要の上クランプは従来 PriceFactorMax=1.4 一律＝価格暴落しても基礎量の1.4倍で頭打ち＝産業革命の綿布型「安価な工業製品の大量消費」が構造的に起きない。
                 // 財tier別に上限を差し替える（DemandElasticityMaxDaily=2.5／Luxury=2.0・R1点火2026-07-13。1.4=PriceFactorMax なら旧恒等）。PriceFactorMin/Max自体は不変。
                 double elasMax = good.Tier switch { GoodTier.Daily => coef.DemandElasticityMaxDaily, GoodTier.Luxury => coef.DemandElasticityMaxLuxury, _ => coef.PriceFactorMax };
-                // ★塊1段0（StapleElasticityZero）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。ゲート0＝データの弾力＝厳密恒等
+                // ★塊1段0（旗 StapleElasticityZero は (843) で焼き込み）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。
                 double elasEff = staple ? 0.0 : good.Elasticity;
                 double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
                 if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
@@ -1967,7 +1967,7 @@ public static class EconomyStep
                     sold += take;
                 }
                 // 義務教育：popが買えなかった必要量を**教育費スライダーの割合だけ**国庫が買い与える＝全民就学・ただし多大な財政コスト（教師給与を国家が払う）。
-                // ★(452) 旗 StateEduDemandInFront＝1：国庫の買いたい分（`want`）を、取れた分だけでなく値段が読む需要（m.LastDemand）に足す。旗 0 は条件も式も旧のまま。
+                // ★(452) 旗 StateEduDemandInFront は (843) で焼き込み：国庫の買いたい分（`want`）を、取れた分だけでなく値段が読む需要（m.LastDemand）に足す（旧の取れた分だけの枝は消した）。
                 //   供給が尽きた月（remaining ≦ 1e-12）も買いたい分を求める＝未充足は順位の配分に依らない〈予算の足りなさ〉Σ max(0, 必要量 − 民間の買いたい量〉で数える
                 //   （配分で削られた民間の分は popDemand に載っている＝数えると二重）。供給が足りる月は want == take がビットで成り立つ＝足す量は 0。
                 if (insOn && gi == Catalog.EducationId)
@@ -2451,8 +2451,8 @@ public static class EconomyStep
         if (milProc)
         {
             double equipWant = 0, equipGot = 0;
-            // ★①基本段の耐久品ストック（2026-08-26）。BaseArmsStockEnabled=0 で以下は従来と**厳密恒等**
-            //   （耐久品の枝に入らず、equipGot への加算が got のまま・0加算は浮動小数でも完全に無害）。
+            // ★①基本段の耐久品ストック（2026-08-26・旗 BaseArmsStockEnabled は (843) で焼き込み）。
+            //   （旧の旗 0＝耐久品の枝に入らずフローだけの枝は消した）。
             // ⚠重み付けを変えない＝各財の寄与は従来と同じ want（フロー量）で測り、耐久品はその want に
             //   「在庫充足率」を掛けて足す。**在庫量と流量を1つの比の中で混ぜない**（分子と分母の非対称を作らない）。
             bool opening = region.ArmsStock is null;   // 武器庫が一度も開いていない＝1783年の開幕の軍（ArmsHeld＝この月だけ未初期化を目標と読む・上位段と tier3 も同じ月の同じ値）

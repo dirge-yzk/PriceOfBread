@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (459) 労働の値段の表 labor_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsEd.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しい状態を足さない。INS=1 のときだけ動く。旗 LaborFloorOffGate・LaborBandFloorOffGate・MinimumWageLawGate に依らず出す。
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsEd.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しい状態を足さない。INS=1 のときだけ動く。旗 LaborFloorOffGate・LaborBandFloorOffGate に依らず出す（MinimumWageLawGate は (843) で焼き込み済み）。
 // 目的＝事前登録 measurements/lw459_20261020_prereg.txt の G1〜G6 と段0b（農民の所得の内訳の近似）・P5（水準の低下の帰結）を読む。
 // 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末）。人口が 0 の国は出さない。値は州の和か、断りがなければ人力の生産者の能力の重み付き平均（直近の月の値）。
 // 列（単位は接尾辞：Share＝0〜1・Index＝無次元の量・PerMonth＝月あたりの量〔数量は財の単位・Money は国の通貨〕）：

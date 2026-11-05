@@ -1,0 +1,38 @@
+(861) c71id 記録（波71・恒等の線・担当 Claude Sonnet 5.5・枝 c71id・出発 origin/c70id 1392fa13 に origin/main 62190ef0 を merge）
+
+■ 記録の先頭
+- ident c71id の判定：**判定: 恒等（測った種で一致）**。比べた成績表＝素の 5 種 b5_20261105_m852（全行バイト一致 181 行）・計器つき 10 種 b10_20261105_m852_ins（全行バイト一致 182 行）・計器の表 keep_852/base_ins（共通の表 1070 本＝バイト一致 1050＋既知の揺れ 20〔burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10〕・宣言の無い違い 0）・注視の表 mon_20261105_m852.txt（タグの行以外 5221 行が一致）・.cost（素の 5 種 216.0 秒・計器つき 10 種 212.6 秒＝m852 と同じ）・テストの数（Category!=FullLength 2301＝基準 2287＋宣言 14・FullLength 3）。宣言は --tests-delta 14 だけ。測った木 D:/PoB_work/wt_c71id（HEAD dadff0cf・未コミット 0 本）・SOURCE-HASH 40463f121b763c84。
+- 注意（読み手向け）：ident の腕 a・b の終了コードが 1 だった（ident_c71id.txt の腕 a／b の行）。今の木の batch.sh は measure.sh の判定（予算の内など）で 0 以外を返すことがある（c71gt が batch.sh の終了コードを直す線）。腕の成否は成績表の有無と SOURCE-HASH の一致で読む（決まりどおり）＝出力は全て出来ていて、ident の check は〈走りが足りない〉にならず〈恒等〉を返した。
+- 反証役（opus）は起こせなかった（道具が無い）＝advisor で代える。生の ident（D:/PoB_work/ident_c71id）は advisor の読みの後に消した（⑲）。
+
+■ 入れた物（コミット・origin/c70id の 11 本の上に）
+- e3113b9b merge（衝突 0）
+- e0efa1f5 事前登録（measurements/m861_20261105_prereg_id.txt）
+- 84d6e753 試験：MintAtMarketTests に 1 本（市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う）・StateEduDemandTests の Theory の直前に OM1 の名乗り（注だけ）・台本 scripts/instruments/c71id/mutrun861.sh・suite861.sh（c70id の写し・作業フォルダの名と guards の組に MintAtMarketTests・IdeaBoardLoadTests を足しただけ）
+- dadff0cf 突然変異の表（mutation_861.txt）・mutation_854.txt の頭の行の直し・走査の番人の組の要約
+- この記録のコミット（ident の結果・フルスイート・成績表 3 枚）
+- エンジン（SimCore）の 1271053f との差は 9 ファイル・注の文字だけ 8 本＋Discovery.cs:289 の 1 行（src_diff854.py）。今回エンジンに足した行は 0。Runner・App・データは差 0。
+
+■ 項目ごとの結果
+- 項目 A（MM7）：新しい試験を足した。変異 MM7（予算の消費 `gapLeft -= value` を外す）で赤＝期待 367954.2048・実際 478340.4662（1.3 倍・見込みどおり）。他の 4 本は緑。元の木では緑。(854) の反証役 中 1 は塞がった。
+- 項目 B（OM1）：Theory で判別する形にはせず、〈判別は Fact だけ〉と StateEduDemandTests の Theory の直前に名乗った（事前登録の決め）。試験の数は変わらない。
+- 項目 C：mutation_854.txt の頭の行を、変異ごとの restore が worktree から写した実態（record_854.txt の名乗り）に揃えた。24 本の変異は回し直していない（枝の中身が同じ）。
+- 予言との比べ：tests-delta の予言 +14（2287→2301）が --list-tests と一致（2301／3）。外れ 0。書き換えた番人 0。範囲外の注は触れていない。
+
+■ 走査の番人 7 組（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests を含む 603 本の組（MintAtMarketTests・IdeaBoardLoadTests を含む）＝全て合格・586 秒（試験のコミットの直後・guards_summary.txt）。書き換えた番人 0。
+
+■ フルスイート・savetest・leakhunt（最終の木 dadff0cf・suite_summary.txt）
+- Category!=FullLength：--list-tests 2301・結果 合格 2300＋スキップ 1＝2301（失敗 0・中止の行なし）。FullLength：--list-tests 3・結果 合格 3。合計が --list-tests と一致。
+- savetest OK（12四半期後も全 61 カ国が継続系列と一致）・leakhunt 完走（seed=1789・200四半期・保存則違反なし）。
+- 並行の線の試験（RuleOrderP1Tests の P1_6・P1_7 ほか）は main の物がそのまま入っていて合格。
+
+■ 範囲外で見つけた残り（直していない・⑩ の束）：焼いた旗を生きているように書いた注 World.cs・Model.cs・Diplomacy.cs・InstrumentsEd.cs・InstrumentsFd.cs・Megaprojects.cs・WorldData.cs・App の GameViewModel.Politics.cs:455・:529 ほか（(854) の記録のとおり）。
+
+■ 作ったフォルダ・消した物・残した物
+- 作った：D:/PoB_work/wt_c71id（worktree・枝 c71id）・c71id_work（印とログ・小さい）・c71id_mut（MM7 の使い捨ての木）・c71id_mutart・c71id_suite（隔離ビルド）・ident_c71id（ident の生）。
+- 消した（この担当が作った物だけ）：c71id_mutart・c71id_suite（フルスイートの後すぐ）・ident_c71id と c71id_mut（advisor の読みの後）。
+- 残した：wt_c71id・c71id_work（合流が読み終えたら消す）。生の ident は無い（要約は measurements/b5_20261105_m861・b10_20261105_m861_ins とその .cost・.manifest・m861_20261105/ident_c71id.txt）。計器の表の生は基準 keep_852/base_ins とバイト一致だったので写しを残す意味が無い。
+
+■ 自己申告
+- 腕の枠で待った時間 0（arms.sh free＝5・c71ip の腕 1 本が走っていた）。waitmark の回数 約 30（ガード 3・MM7 の変異 1・フルスイート 11・ident 8 ほか。並べて起こした待ちを含む）・進み具合の覗き（ls・cat）は 0 回・hook に止められた回数 0。
+- 違反候補：なし。ident の走行中は worktree にコミットしていない（㉙）。

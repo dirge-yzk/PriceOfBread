@@ -2163,7 +2163,7 @@ public sealed class Simulation
                 // 戦時備蓄（07_再設計 §5(a)・2026-07-31）：国の最大緊張を州へ複製＝日次の在庫目標（MarketFlow）が読む。
                 // 外交層のない世界（単一国テスト・較正）は0＝在庫目標は従来どおり＝厳密恒等。
                 r.WarScareTension = warScareTensionNat;
-                // 独占禁止法（E6）：独占レント(塩/茶)の実効倍率を法段から複製。AntitrustGate=0で常に1.0＝恒等（EconomyStep が monRent に乗算）
+                // 独占禁止法（E6）：独占レント(塩/茶)の実効倍率を法段から複製（門の係数 AntitrustGate は (843) で焼き込み。EconomyStep が monRent に乗算）
                 r.MonopolyRentFactor = monopolyRentFactorNat;
                 // 阿片の全面禁止（禁制品doc C3・2026-07-30）：国内生産も違法＝取り締まれた分だけ産出が消え、残るのは闇栽培。
                 // 漏れ率は州の行政充足率が決める＝★清が禁止後に国産阿片を激増させた史実（1860年代に国産が輸入を上回る）が
@@ -2171,7 +2171,7 @@ public sealed class Simulation
                 r.ContrabandProductionFactor = World.Coef.OpiumAddictionGrowth > 0 && World.OpiumPossession == ReformLevel.Full
                     ? Contraband.LeakFraction(r.AdminFill, World.Coef)
                     : 1.0;
-                // 国有化法（E6）：5部門＋『全て』（§11-6d統合）のビットマスクを複製。NationalizationGate=0で常に0＝恒等（EconomyStep が該当財の利潤を国庫へ）
+                // 国有化法（E6）：5部門＋『全て』（§11-6d統合）のビットマスクを複製（門の係数 NationalizationGate は (843) で焼き込み。EconomyStep が該当財の利潤を国庫へ）
                 r.NationalizedMask = nationalizedMaskNat;
                 // 倍率排除④：女性参加・児童労働を連続状態（賃金保持・合法度）から複製。実効値は LaborSupply が家計困窮・就学を加味して創発。
                 r.WomenWageRetention = World.WomenWageRetention;          // 賃金保持（連続）。女性参加・女性識字の駆動
@@ -2468,7 +2468,7 @@ public sealed class Simulation
         Colonial.Step(World, World.Coef);                                // §6.1 植民地（インフラ整備→資源産出＋捕囚市場。交易流入で保存）
         ProbeCheck("月次植民地");
         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
-        MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
+        MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。造幣の旗は (843) で焼き込み（本位金属を床モードで買う）
         ProbeCheck("月次鋳造");
         Fiscal.Step(World, World.Coef, spare, devalued);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
         ProbeCheck("月次財政");
@@ -2876,7 +2876,7 @@ public sealed class Simulation
     }
 
     /// <summary>鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣の増加（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→物価/好況）。
-    /// 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。GoldMintFraction=0 で無効＝較正中立。
+    /// 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。（旧の係数 GoldMintFraction は (843) で消した。）
     /// 保存：鉱山所有者へ新鋳貨を支払い（Savings↑＝TotalMoney↑＝BaseMoney↑）、同額を CumulativeGoldMinted に積み貨幣保存の基準に算入。
     /// GoodsBalance：引き取り量を Stock−／LastSold＋で対称に動かし在庫恒等式を保つ。</summary>
     private void MintGold()

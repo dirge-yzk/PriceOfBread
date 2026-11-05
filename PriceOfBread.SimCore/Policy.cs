@@ -94,7 +94,7 @@ public enum SocialSecurityLaw { PoorLaw, WorkersComp, Unemployment, Pension }
 public enum StateReligionLaw { StateChurch, InnerFreedom, ReligiousFreedom, StateAtheism }
 
 /// <summary>独占禁止法（1934拡張E6・3段）。規制なし→談合禁止→独占の解体。無規制ほど独占レント（塩のgabelle・茶の東インド会社独占）が買い手価格に上乗せされ保有エリートへ流れる。
-/// 独禁が強まるほどレントが縮む＝大衆の生活水準↑・エリート収入↓（消費者→保有者の移転が細る＝保存）。既定 None（1789はほぼ無規制）。AntitrustGate=0で効果なし＝恒等（E9点火）。</summary>
+/// 独禁が強まるほどレントが縮む＝大衆の生活水準↑・エリート収入↓（消費者→保有者の移転が細る＝保存）。既定 None（1789はほぼ無規制）。門の係数 AntitrustGate は (843) で焼き込み＝独禁法の効果は常に動く。</summary>
 public enum AntitrustLaw { None, CartelBan, Trustbust }
 
 /// <summary>★同業組合法（特権システム 段4・作者設計 §4-1 P4・2026-09-07）：保護（参入制限のレント＝職人の特権）→制限→廃止（英1814徒弟条例廃止・仏1791ル・シャプリエ法・独1869営業の自由）。
@@ -104,11 +104,11 @@ public enum GuildLaw { Full, Limited, None }
 /// <summary>★最低賃金法（線 lw (459)・作者 2026-10-20）：独立した法・量の段（労働時間 <see cref="WorkHours"/> と同じ作り＝他の法の前提を持たず政治の門だけで1段ずつ）。
 /// 段の名は作者の原文〈「なし」「生存」「生活」「充足」〉。床＝その州の労働者の階級の必要量×その州の今の値段の籠
 /// （生存＝食料／生活＝食料＋日用品／充足＝食料＋日用品＋嗜好品・<see cref="MinimumWageFloor.BasketPerPerson"/>）。軸の増＝強める。
-/// 史実の目安（解禁の順序の出所・年のタイマーは作らない）＝NZ 1894・ヴィクトリア 1896・英 Trade Boards 1909・米 FLSA 1938。MinimumWageLawGate=0 では法が動かない＝恒等。</summary>
+/// 史実の目安（解禁の順序の出所・年のタイマーは作らない）＝NZ 1894・ヴィクトリア 1896・英 Trade Boards 1909・米 FLSA 1938。門の係数 MinimumWageLawGate は (843) で焼き込み＝法は常に動く。</summary>
 public enum MinimumWageLaw { None, Subsistence, Living, Sufficiency }
 
 /// <summary>★相続法（線 inh (650)・作者 2026-10-29〜30）：死者の貯蓄のうち国庫へ移る割合の段（なし／低／中／高／全て）。独立した量の段（政体の門も他の法の前提も持たない＝作者「理論上は可能だが、だれも望まないので、極端な状況でしか成立しない」）。
-/// 率の表は <see cref="Government.InheritanceRate"/>（AI の見積り・確証なし）。軸の増＝取る率を上げる。InheritanceLawGate=0 では法が動かない＝恒等。</summary>
+/// 率の表は <see cref="Government.InheritanceRate"/>（AI の見積り・確証なし）。軸の増＝取る率を上げる。門の係数 InheritanceLawGate は (843) で焼き込み＝法は常に動く。</summary>
 public enum InheritanceLaw { None, Low, Mid, High, All }
 
 /// <summary>通貨制度の法（銀本位doc G4・2026-08-13・3段）。不換紙幣→**銀本位**→金本位。
@@ -191,14 +191,14 @@ public sealed class NationPolicy
     public MigrantNativeSuffrageLaw MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;   // 移民原住民参政権：なし/あり
     public SocialSecurityLaw SocialSecurityLaw = SocialSecurityLaw.PoorLaw;  // 社会保障法（1934拡張E5・4段。既定=救貧法＝福祉水準0で旧「なし」相当）。この法が福祉水準を駆動（旧スライダー枝は削除済み）
     public StateReligionLaw StateReligion = StateReligionLaw.StateChurch;    // 国教法（1934拡張E6・3段）。寛容ほど十分の一税↓＋宗教分裂の抵抗↓
-    public AntitrustLaw Antitrust = AntitrustLaw.None;                       // 独占禁止法（1934拡張E6・3段）。強いほど独占レント↓＝大衆生活水準↑・エリート収入↓。AntitrustGate=0で恒等
+    public AntitrustLaw Antitrust = AntitrustLaw.None;                       // 独占禁止法（1934拡張E6・3段）。強いほど独占レント↓＝大衆生活水準↑・エリート収入↓。門の係数 AntitrustGate は (843) で焼き込み
     public GuildLaw Guild = GuildLaw.Full;                                   // ★同業組合法（特権 段4・3段）。既定＝保護（1783年の全国＝ギルドあり）。GuildLawGate=0 で恒等
-    public MinimumWageLaw MinimumWage = MinimumWageLaw.None;                 // ★最低賃金法（線 lw (459)・4段）。既定＝なし。MinimumWageLawGate=0 では法が動かない＝恒等
-    public InheritanceLaw Inheritance = InheritanceLaw.None;                 // ★相続法（線 inh (650)・5段）。既定＝なし。InheritanceLawGate=0 では法が動かない＝恒等
+    public MinimumWageLaw MinimumWage = MinimumWageLaw.None;                 // ★最低賃金法（線 lw (459)・4段）。既定＝なし。門の係数 MinimumWageLawGate は (843) で焼き込み
+    public InheritanceLaw Inheritance = InheritanceLaw.None;                 // ★相続法（線 inh (650)・5段）。既定＝なし。門の係数 InheritanceLawGate は (843) で焼き込み
     public bool WartimeRationing = false;                                    // 戦時配給法（1934拡張E6・あり/なし）。戦時のみ発火＝海上封鎖の厭戦（飢餓）を公平配給で緩和（英国型）だが自由派/資本が反対（価格統制）。
     public bool MilitaryExportBan = false;                                   // 軍需輸出の法（禁制品doc C5・2026-07-30・許可/禁止）。禁止＝緊張が MilitaryExportTensionThreshold 以上の相手へ武器を売らない（**相手は法が選ぶ**＝手動管理なし）。既定＝許可
     public bool CivilianArmsBan = false;                                     // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11・許可/禁止）。禁止＝反乱勢力の武器購入が Contraband.LeakFraction(AdminFill) だけ漏れる（取り締まれた分だけ買えない）。既定＝許可。RebelArmsMarketEnabled=0 で法は動かない＝恒等
-    // 国有化法（1934拡張E6・5部門＋『全て』）。各部門の利潤が国庫へ・赤字も国庫が負う。NationalizationGate=0で恒等
+    // 国有化法（1934拡張E6・5部門＋『全て』）。各部門の利潤が国庫へ・赤字も国庫が負う。門の係数 NationalizationGate は (843) で焼き込み
     public bool NationalizeRailways = false;    // 鉄道の国有化
     public bool NationalizeMines = false;       // 鉱山の国有化
     public bool NationalizeMilitary = false;    // 軍事産業の国有化
