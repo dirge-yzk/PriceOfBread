@@ -53,11 +53,12 @@ for s in range(s0, s1 + 1):
             elif b == b and p == p:
                 tot['u2checked'] += 1
                 if p > b * (1 + 1e-9) + 1e-9: tot['u2rows'] += 1; tot['u2exc'] += p - b
-            if ipc is not None and b == b and b != float('inf'):
+            if ipc is not None:
                 e = fl(x[ipc])
-                if e == e:
+                if e == e:   # NaN＝その四半期に有限の頭の清算が無い（手形だけ・頭なし）
+                    ref = b if (b == b and b != float('inf')) else (p if p == p else 0.0)   # 許しの基準＝四半期の頭の予算の和（∞なら四半期の払いの和）
                     tot['u2cchecked'] += 1; tot['u2cmax'] = max(tot['u2cmax'], e)
-                    if e > 1e-9 * (1 + b) + 1e-9: tot['u2crows'] += 1
+                    if e > 1e-9 * (1 + ref) + 1e-9: tot['u2crows'] += 1
             if iob is not None and x[it] == 'Colonial':
                 ob = fl(x[iob])
                 if ob == float('inf') or b == float('inf'): tot['oldBinf'] += 1
