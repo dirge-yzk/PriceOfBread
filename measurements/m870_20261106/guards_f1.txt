@@ -1,0 +1,9 @@
+list nonfull 2307
+list full 3
+guards rc=1 909s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:01:12.34]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1862) [FAIL]
+失敗!   -失敗:     1、合格:   595、スキップ:     0、合計:   596、期間: 15 m 6 s - PriceOfBread.Tests.dll (net10.0)
+GUARDSDONE
+[xUnit.net 00:01:12.34]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1862) [FAIL]
+失敗!   -失敗:     1、合格:   595、スキップ:     0、合計:   596、期間: 15 m 6 s - PriceOfBread.Tests.dll (net10.0)
