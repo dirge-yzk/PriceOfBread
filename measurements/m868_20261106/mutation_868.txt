@@ -1,0 +1,8 @@
+(868) 突然変異と旗 1 の木（git archive 23239bb3・対象の試験 86 本＝TradeClearing*・ImportPayerLive*・CearnInstrument*・InstrumentsTests・DormantIdentityTests）
+F1=旗 ImportPayerLive の既定を 1（コミットしない）：赤は DormantIdentityTests.休眠フラグは既定でゼロである だけ（旗の表の行＝c72ip が点火で外す物）。TradeClearing の Theory は旗 1 でも緑。
+M1=盤面の行を外す→旗 1 で :473 が赤（再現）／M2=旧の規則の手形の枝を外す／M3=清算内の払いを頭で 0 に戻さない
+
+F1	rc=1	失敗!   -失敗:     1、合格:    85、スキップ:     0、合計:    86	赤の試験：PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである
+M1	rc=1	失敗!   -失敗:     1、合格:    85、スキップ:     0、合計:    86	赤の試験：PriceOfBread.Tests.TradeClearingTests.月の清算は潜在量を書かず容量の尽きた行を回さない(importPayerLive: 1)
+M2	rc=1	失敗!   -失敗:     1、合格:    85、スキップ:     0、合計:    86	赤の試験：PriceOfBread.Tests.TradeClearingBoardTests.旧の規則の予算は手形の州で無限大_債務のある商人は貯蓄_旗に依らない
+M3	rc=1	失敗!   -失敗:     1、合格:    85、スキップ:     0、合計:    86	赤の試験：PriceOfBread.Tests.TradeClearingBoardTests.超過は清算ごとの最大_他の清算の余りで隠れない

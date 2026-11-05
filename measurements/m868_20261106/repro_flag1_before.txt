@@ -1,0 +1,5 @@
+  失敗 PriceOfBread.Tests.TradeClearingTests.月の清算は潜在量を書かず容量の尽きた行を回さない(importPayerLive: 1) [965 ms]
+Expected: 1.9262720000000002
+Actual:   0
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+rc=1
