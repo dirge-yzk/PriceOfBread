@@ -26,7 +26,7 @@ public class DormantIdentityTests
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
         // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。(812) で旗ごと焼き込んだ（RetiredFields）。
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
-        "SubsistenceStage2",           // ★(849) c69ss 自給の段 2（S1-a）の旗（0＝食べる割合は欄のデータのまま・1 ビットも変わらない）
+        // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (855) c70ss が 2026-11-05 に 1 で**点火**＝この表から外した。
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
         "RuleOrderByRegion",           // (850) c69po 州ごとの治安 P1-1：無統治の目標を州の秩序 Clamp01(R×m̄÷m_r) で作る旗（0＝国の秩序 w.PublicOrder の今の式・1 ビットも変わらない・番人 RuleOrderP1Tests）。点火時にこの表から外す
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
