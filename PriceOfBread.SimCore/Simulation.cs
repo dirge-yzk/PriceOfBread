@@ -526,7 +526,7 @@ public sealed class Simulation
         // 身分・階級（代表スケール 1単位＝1000人・計≈28,000＝人口2800万）。識字は階級で大差。
         var nobility     = new Pop { ClassId = 0, ClassName = "貴族",       IsUrban = false, Size = 300,   Savings = new MoneyStock(900_000),   Satisfaction = 1.0, Literacy = 0.95, Closed = true };       // 世襲＝移民しない
         var clergy       = new Pop { ClassId = 6, ClassName = "聖職者",     IsUrban = false, Size = 200,   Savings = new MoneyStock(600_000),   Satisfaction = 1.0, Literacy = 0.92, Closed = true };       // 宗教学校の教育を算出（世俗化で没落）
-        var peasant      = new Pop { ClassId = 1, ClassName = "農民",       IsUrban = false, Size = 20000, Savings = new MoneyStock(4_000_000), Satisfaction = 1.0, Literacy = 0.15, Subsistence = 0.7 };   // 食料の多くを自給
+        var peasant      = new Pop { ClassId = 1, ClassName = "農民",       IsUrban = false, Size = 20000, Savings = new MoneyStock(4_000_000), Satisfaction = 1.0, Literacy = 0.15, SubsistenceBasis = 0.7 };   // 食料の多くを自給
         var worker       = new Pop { ClassId = 2, ClassName = "工場労働者", IsUrban = true,  Size = 4200,  Savings = new MoneyStock(1_260_000), Satisfaction = 1.0, Literacy = 0.40 };   // 労働力を算出し工場に売る
         var bourgeois    = new Pop { ClassId = 3, ClassName = "資本家",     IsUrban = true,  Size = 2500,  Savings = new MoneyStock(8_000_000), Satisfaction = 1.0, Literacy = 0.80, IsModernElite = true };   // 深い連鎖の投資元手（§8較正までのバッファ）
         var engineer     = new Pop { ClassId = 4, ClassName = "技師",       IsUrban = true,  Size = 520,   Savings = new MoneyStock(416_000),   Satisfaction = 1.0, Literacy = 0.85, IsModernElite = true };  // 工場の生産性（近代エリート）
@@ -1463,7 +1463,7 @@ public sealed class Simulation
 
     // 階級（代表スケール 1単位＝1000人）。貯蓄＝サイズ×階級別の一人当たり富。識字・自給は設定から。
     private static Pop MkPop(int id, string name, bool urban, double size, double lit, double wealthPer, bool closed = false, bool modern = false, double subs = 0)
-        => new() { ClassId = id, ClassName = name, IsUrban = urban, Size = size, Savings = new MoneyStock(size * wealthPer), Satisfaction = 1.0, Literacy = lit, Closed = closed, IsModernElite = modern, Subsistence = subs };
+        => new() { ClassId = id, ClassName = name, IsUrban = urban, Size = size, Savings = new MoneyStock(size * wealthPer), Satisfaction = 1.0, Literacy = lit, Closed = closed, IsModernElite = modern, SubsistenceBasis = subs };
 
 
     /// <summary>植民地の州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」・設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）。
@@ -1519,10 +1519,13 @@ public sealed class Simulation
         double natives = Math.Max(0, col.PopSize);
         double peasantSize = natives;
         // 現地住民の自給率：植民地POPは元々市場の外で食っていた（台帳の外）＝自給農。首都の農民自給率を下回らない床0.5
-        double subs = 0.5;
-        foreach (var cp in w.Region.Pops) if (cp.ClassId == PopClass.Peasant) { subs = Math.Max(subs, cp.Subsistence); break; }
+        //   ★(849) 首都の農民が自給の生産性 ρ を焼いた後（印 Productivity＝旗 SubsistenceStage2 が正の世界の助走の後）：ρ と印をそのまま写す（床 0.5 は割合の床＝ρ に掛けると本国の約 4.5 倍になる＝掛けない）。
+        //   焼く前（旗 0 は常に）は今の床のまま（印は OpeningShare＝助走の月なら次の月にエンジンが WarmupShare へ付けて助走の後に焼く）。
+        double subs = 0.5; var subsKind = SubsistenceBasisKind.OpeningShare;
+        foreach (var cp in w.Region.Pops) if (cp.ClassId == PopClass.Peasant) { if (cp.SubsistenceBasisKind == SubsistenceBasisKind.Productivity) { subs = cp.SubsistenceBasis; subsKind = cp.SubsistenceBasisKind; } else subs = Math.Max(subs, cp.SubsistenceBasis); break; }
         var nobility  = MkPop(0, "貴族",       false, 0, 0.5, 0, closed: true);
         var peasant   = MkPop(1, "農民",       false, peasantSize, 0.3, 0, subs: subs);
+        peasant.SubsistenceBasisKind = subsKind;   // ★(849) 旗 0 は OpeningShare（既定）のまま
         var worker    = MkPop(2, "工場労働者", true,  0, 0.3, 0);   // 器（Size0）＝識字は旧の入植者の既定値 0.3 のまま
         var bourgeois = MkPop(3, "資本家",     true,  0, 0.5, 0, modern: true);
         var engineer  = MkPop(4, "技師",       true,  0, 0.5, 0, modern: true);

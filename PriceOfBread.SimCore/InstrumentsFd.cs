@@ -42,7 +42,7 @@ public static partial class Instruments
     /// <summary>消費の月の終わり（①の締めの後）：POP ごとに旧の台帳の FoodMet（<paramref name="oldMet"/>）と新の台帳の FoodMet から充足を求めて溜める。</summary>
     internal static void FdPop(FdDiag d, Pop p, double oldMet)
     {
-        d.PopK += p.Size; d.StapleNeed += p.FoodNeed; d.OldMet += oldMet; d.Carry += p.FoodMet - oldMet; d.SubsW += p.Subsistence * p.FoodNeed;
+        d.PopK += p.Size; d.StapleNeed += p.FoodNeed; d.OldMet += oldMet; d.Carry += p.FoodMet - oldMet; d.SubsW += p.SubsistenceShare * p.FoodNeed;
         if (p.FoodMet - oldMet > 0) d.CarryPopK += p.Size;
         if (p.FoodMet > p.FoodNeed * (1 + 1e-9)) d.OverNeedPopK += p.Size;   // 追記 2：台帳の不変条件 S1（FoodMet≦FoodNeed）の観測。下の Clamp01 は違反を隠すのでここで数える
         if (p.FoodNeed > 1e-9)

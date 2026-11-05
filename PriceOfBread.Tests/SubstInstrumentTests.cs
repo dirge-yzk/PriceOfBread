@@ -127,7 +127,7 @@ public class SubstInstrumentTests
             foreach (var n0 in s.Nations)
             {
                 n0.World.PollTax = 0.5;
-                foreach (var reg0 in n0.World.Regions) foreach (var p0 in reg0.Pops) if ((p0.Closed || p0.IsSoldier) && p0.Subsistence <= 0) p0.Subsistence = 0.5;
+                foreach (var reg0 in n0.World.Regions) foreach (var p0 in reg0.Pops) if ((p0.Closed || p0.IsSoldier) && p0.SubsistenceBasis <= 0) p0.SubsistenceBasis = 0.5;
             }
         });   // 最後の四半期の世界の状態は Quarter を呼んだ直後と同じ（計器は何も書き換えない）
         var rows = Rows(System.IO.Path.Combine(dir, "subst_s1789.tsv"), Instruments.SubstHeaderText).Where(r => r["quarter"] == "1").ToList();
@@ -143,7 +143,7 @@ public class SubstInstrumentTests
                 foreach (var p in reg.Pops)
                 {
                     double rent = Math.Max(0, p.LandRentPerMonth.Value);
-                    if (p.Subsistence > 0)
+                    if (p.SubsistenceBasis > 0)
                     {
                         subPop += p.Size; farmers += rent;
                         if (!p.IsCommoner) closedSubPop += p.Size;
@@ -171,5 +171,44 @@ public class SubstInstrumentTests
         Assert.True(valueAll > 0 && (pollAll > 0 || incAll > 0 || othersAll > 0), "材料が全て 0＝何もしない計器で緑にならない");
         Assert.True(pollAll > 0, "人頭税の請求が全て 0＝述語（平民だけ）の試験にならない");
         Assert.True(closedSubPop > 0, "Subsistence を置いた閉鎖階級・兵士が無い＝述語の試験にならない");
+    }
+
+    /// <summary>★(849) 自給の段 2 の末尾の列を、旗 0 と旗 1 の両方で読む（助走 1 四半期を通す）。旗 1：計器が自分で焼いた ρ・自分で数えた食べる割合と失業 (b′) がエンジンと 1e-9 で一致（G2・G3a・G4 の型）。
+    /// 旗 0：エンジンの印は OpeningShare のまま・食べる割合は欄そのもの・計器の反実仮想の食べる割合はエンジンと違う（門が旗 0 で落ちる）。</summary>
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 自給の段2の列は旗0と旗1で計器とエンジンを並べる(double flag)
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_subst2_" + Guid.NewGuid().ToString("N"));
+        var sim = Two(1791UL);
+        foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = flag;
+        sim.StartWarmup(quartersOverride: 1);
+        Instruments.Configure(dir, "*");
+        try { for (int q = 0; q < 2; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1791UL, q); } }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        var rows = Rows(System.IO.Path.Combine(dir, "subst_s1791.tsv"), Instruments.SubstHeaderText).Where(r => r["quarter"] == "1" && r["s2RhoSource"] == "1").ToList();
+        Assert.True(rows.Count >= 20, $"計器が焼いた州が少ない {rows.Count}");
+        int sigDiff = 0, eNeg = 0;
+        foreach (var r in rows)
+        {
+            double se = D(r, "s2SigmaEngine"), si = D(r, "s2SigmaInst"), ub = D(r, "s2UnempB"), ue = D(r, "s2UnempEngine"), e = D(r, "s2EEnd");
+            if (flag > 0)
+            {
+                Assert.Equal("2", r["s2BasisKind"]);
+                Assert.True(Math.Abs(se - si) <= 1e-9, $"食べる割合が計器と違う {se} vs {si}");
+                Assert.True(D(r, "s2BakeRhoRelDiff") <= 1e-9 && D(r, "s2BakeSigmaDiff") <= 1e-9, "焼いた月の ρ か食べる割合が計器と違う");
+                if (e > 0) Assert.True(Math.Abs(ue - ub) <= 1e-9, $"失業が (b′) と違う {ue} vs {ub}");
+                else { eNeg++; Assert.True(ue <= 1e-12, $"必要量に届かない売れ残りを失業と数えた {ue}"); }
+            }
+            else
+            {
+                Assert.Equal("0", r["s2BasisKind"]);
+                Assert.Equal(D(r, "s2BasisEngine"), se);
+                if (Math.Abs(se - si) > 1e-6) sigDiff++;
+            }
+        }
+        if (flag > 0) Assert.True(eNeg >= 10, $"下側の州が少ない {eNeg}");
+        else Assert.True(sigDiff >= rows.Count / 2, $"旗 0 で計器の反実仮想とエンジンの食べる割合が同じ＝門が旗 0 で落ちない {sigDiff}/{rows.Count}");
     }
 }

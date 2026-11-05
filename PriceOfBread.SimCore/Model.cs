@@ -87,6 +87,9 @@ public enum TreasuryCat
 /// （参政権・技術伝播・維持費・割譲到達・派閥が Colonial を読む。Core/Integrated は同じ扱い）。</summary>
 public enum RegionTier { Core, Integrated, Colonial }
 
+/// <summary>★(849) 自給の基（<see cref="Pop.SubsistenceBasis"/>）の意味：OpeningShare＝開幕の食べる割合のデータ（焼いていない）・WarmupShare＝割合のまま助走を通った（助走の後の最初の月に焼く）・Productivity＝焼いた自給の生産性 ρ。</summary>
+public enum SubsistenceBasisKind : byte { OpeningShare, WarmupShare, Productivity }
+
 /// <summary>★地形タグ（(3)・設計doc 20260826_地形と輸送コスト.DONE.md＝タグ7種×手段3列）。既定 Plain。
 /// ⚠数値は州に置かない＝州はタグ（事実）だけを持ち、係数は Coefficients の表に集約（思想②）。
 /// 森林＝**温帯林**（馬を強く阻むが鉄道はほぼ妨げない）／不毛＝砂漠・熱帯雨林・凍土（人がほぼ住めない）／
@@ -157,7 +160,14 @@ public sealed class Pop
                                 //   期の初めに読む用途（私的投資の原資）には使えない。ゼロ化の直前にここへ退避する。
     public double[] IdeologyShares = new double[Ideologies.Count];   // イデオロギー分布（伝統/反動/自由/共和/ナショ/社会/共産/無政府/帝国/ファシズム/王党派・合計1）。階級×条件×時代から創発（Ideology.cs）＝政体遷移の力ベクトル
     public bool Closed;              // 閉鎖階級（世襲の特権身分＝貴族・聖職）。移民の出入りをしない（史実の身分制）
-    public double Subsistence;       // 自給率（0..1）。必需(Staple)の一部を市場外で自足＝農民。市場で飢えない
+    /// <summary>★(849) 自給の基（旧 Subsistence）。焼く前（<see cref="SubsistenceBasisKind"/> が OpeningShare か WarmupShare）＝開幕の食べる割合のデータ（0..1・world.json の peasantSubsistence）。
+    /// 焼いた後（Productivity・旗 <see cref="Coefficients.SubsistenceStage2"/> が正の世界で助走の後の最初の月に 1 回）＝自給の生産性 ρ（売れ残りの農業労働の能力 1 単位あたりの主食・技術の倍率で割った値）。
+    /// 読み手は割合をこの欄から直に読まない＝その月の割合は <see cref="SubsistenceShare"/>（同名のまま意味を替えないための改名＝型の統合が起こす静かな破損を避ける）。</summary>
+    public double SubsistenceBasis;
+    /// <summary>★(849) <see cref="SubsistenceBasis"/> の意味の印（思想⑩の例外＝開幕の売れ残りの能力は暦が動くと導けない・ρ と同じ理由）。旗 0 は書かない（OpeningShare のまま）。</summary>
+    public SubsistenceBasisKind SubsistenceBasisKind;
+    /// <summary>★(849) この月に使う食べる割合（0..1）。EconomyStep.Run の頭で全ての POP に書く（旗 0 か焼く前＝<see cref="SubsistenceBasis"/> そのもの）。導ける量＝セーブに載せない。</summary>
+    [System.NonSerialized] public double SubsistenceShare;
     public bool IsModernElite;       // 近代的利益団体（専門職・ブルジョワ）。その勢力割合がメリトクラシー値を決める
     public bool IsSoldier;           // 兵士POP（軍隊規模の素）。軍事費で徴募/離職、戦争で戦死、徴兵で大衆から変換。自然出生死は対象外（規模は軍事力学が管理）
     /// <summary>★平民の民間人の述語（2026-09-30 処理の一元化 段4e H）＝閉鎖階級（貴族・聖職）でも兵士でもない（近代エリートを含む）。
