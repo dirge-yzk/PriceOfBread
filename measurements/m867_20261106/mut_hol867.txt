@@ -1,0 +1,8 @@
+(867) 振り分けの固定の盤面（合成）の表・holsplit867.py
+変異	予言	実際	予言との差
+peak	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L3 c7=L3	予言どおり
+  ヌルに行が無い（割れと数えない）件数 1・読めない 0
+late	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L2 c7=L2	c1=L2 c2=L3 c3=L3 c4=L1 c5=L0 c6=L2 c7=L2	予言どおり
+nocmp	c1=L2 c2=L2 c3=L3 c4=L1 c5=L0 c6=L2 c7=L3	c1=L2 c2=L2 c3=L3 c4=L1 c5=L0 c6=L2 c7=L3	予言どおり
+要を外した写し（late・nocmp）が peak と違う区分を出す＝規則の要を外すと表が崩れる：確認
+判定：予言どおり
