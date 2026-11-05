@@ -78,7 +78,7 @@ public class RuleSharesFormTests
         // マルセイユ＝首都（パリ 48.85N 2.35E）から大圏距離 659.5km → 到達 1÷(1＋659.5÷10000)＝0.93813（別の道具〔Python の haversine〕で求めた値）
         foreach (double dom in new[] { 1.0, 0.2 })
         {
-            var sim = France(_ => { });
+            var sim = France(c => c.RuleOrderByRegion = 0);   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_6）
             var w = sim.World;
             w.PublicOrder = 0.5;
             foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = dom; }
@@ -106,7 +106,7 @@ public class RuleSharesFormTests
     {
         // 1 四半期だけ踏む＝区分は目標へ DominanceSpeed(0.025) だけ寄る。マルセイユ（到達 0.93813）の無統治の目標 0.5×(1−0.93813)＝0.030935 → 0.025×0.030935＝約 0.00077。
         // 旧の目標（支配度 0.2 を読む形）なら 0.5×(1−0.2)＝0.4 → 約 0.0098 だった（突然変異「無統治を支配度へ戻す」で赤）。
-        var sim = France(_ => { });
+        var sim = France(c => c.RuleOrderByRegion = 0);   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_7）
         var w = sim.World;
         w.PublicOrder = 0.5;
         foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = 0.2; }

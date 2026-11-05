@@ -114,6 +114,42 @@ public class RuleOrderP1Tests
         Settle(w, 10);
         Assert.Equal(new[] { 0.7, 0.1, 0.0, 0.2 }, cap.Rule);
     }
+
+    /// <summary>(856) 旗 1 で秩序 0.5 を置く盤面：今の Coercion の被覆 R＝0.5・全ての POP の闘争度 0.1（m̄＝m_r＝order_r＝0.5）。w.PublicOrder は 1（旗 1 は読まない）。</summary>
+    private static void HalfOrderFlag1(World w)
+    {
+        w.PublicOrder = 1.0;
+        SetRaw(w, 0.5);
+        SetMilitancy(w, _ => 0.1);
+    }
+
+    [Fact]
+    public void P1_6_旗1でも無統治の目標は秩序と到達で決まり支配度に依らない()
+    {
+        // (856) RuleSharesFormTests の D2（旗 0 の経路の番人）と同じ主張を旗 1 で。マルセイユの到達 0.93813＝D2 と同じ別の道具の値。
+        foreach (double dom in new[] { 1.0, 0.2 })
+        {
+            var w = France(1.0);
+            HalfOrderFlag1(w);
+            foreach (var r in w.Regions) r.Dominance = dom;
+            Settle(w, 400);
+            var mars = w.Regions.Single(r => r.Name == "マルセイユ");
+            Assert.Equal(0.5 * (1.0 - 0.93813), mars.Rule[3], 4);   // 0.030935
+            Assert.Equal(1.0 - 0.5 * (1.0 - 0.93813), mars.Rule[0], 4);
+        }
+    }
+
+    [Fact]
+    public void P1_7_旗1で1四半期だけ踏むと無統治の区分は到達の目標へ寄り支配度の低さでは増えない()
+    {
+        // (856) D2 の 1 四半期の主張を旗 1 で：0.025×0.5×(1−0.93813)＝約 0.00077。支配度 0.2 を読む旧の形なら約 0.0098。
+        var w = France(1.0);
+        HalfOrderFlag1(w);
+        foreach (var r in w.Regions) r.Dominance = 0.2;
+        Settle(w, 1);
+        double ungov = w.Regions.Single(r => r.Name == "マルセイユ").Rule[3];
+        Assert.InRange(ungov, 0.0006, 0.0009);
+    }
 }
 
 /// <summary>(850) secession_s の末尾 10 列の番人：計器が自分で数えた州の秩序・目標と、エンジンが実際に寄せた目標（Rule の前と後から読む）が一致する。</summary>
