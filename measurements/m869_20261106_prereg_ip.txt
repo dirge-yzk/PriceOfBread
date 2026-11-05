@@ -1,0 +1,81 @@
+(869) 線 c72ip 事前登録：植民地格の輸入の払い手を人の居る POP に限る（案 A・形 (ii)・旗 ImportPayerLive〔名は AI の案〕既定 0→1）の 2 回目＝3 回の規則の数える 1 回目
+書いたモデル：Claude Opus 5.5。枝 c72ip（出発 688294bf0fbf70f66d05fdde0520e6052b3ad1c8）。worktree D:/PoB_work/wt_c72ip。作業フォルダ D:/PoB_work/c72ip_work（この回に作った）。
+挙動の線。形は〈入口〉（輸入の払い手の選び）。新しい状態 0。新しい係数 0（旗 ImportPayerLive は (863) の器・main にある）。
+出発：00一覧 §00〈次の波（波72〜）〉③。§0-2 ★(859) ② を〈作者「全て推奨で」で推奨を採った〉＝案 A〈人の居る POP が払う〉＋〈州のお金が約 100 年 0 のまま続く州は Sen 型の現金不足として消さずに見張る（案 A の後に読み直す）〉。
+(863) の 1 回目は旗 1 のフルスイートの予言の外の赤（TradeClearingTests:473）で腕 B なし＝3 回の規則に数えない（合流 (866) の扱い）。その盤面の直しは別の線 c72tc（(868)・★(743) の〈盤面を取り直す別の線〉）。
+確証：形は AI の案（確証なし）。作者が裁定したのは〈人の居る POP が払う〉の向きだけ。
+この文書は measurements/m863_20261105_prereg_ip.txt の [0]〜[8] を土台にし、違う所だけを書く（書いていない所は m863 の文のまま＝形・門の定義・閾値・止める線）。
+
+この文書の順＝[0] 形 [1] no-go の基準 [2] 門（両側） [3] 突然変異ごとの門の表 [4] 計器の列と ident [5] 止める線と当てる腕 [6] 計算量 [7] 記録の段 [8] 試験の予言 [9] 紙の出力（[0]〜[8] の後に足す）
+[0]〜[8] の sha256 は [9] の頭に書く（紙を数える前の文の指紋）。
+
+━━ [0] 形（m863 [0] のまま・器は main にある）
+- 器：BilateralMarket.cs:580〜581（2026-11-06 に grep し直した行・(863) の f5e52fb2 の逆適用の後の main と同じ字）。旗 0＝今の形（商人の POP があれば人数を見ずにその 1 POP・手形は債務 0 なら振り出せる）。旗 1＝(a) 商人の人数 ＞1e-12 なら今と同じ／(b) 商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけ（手形なし・0 人なら null＝その清算でその州は輸入しない）。
+- 点火のコミットは .cs だけ（★(866)）：Coefficients.cs:3596 `public double ImportPayerLive = 0;` の既定を 1／DormantIdentityTests.cs:138 の旗の表の行を〈★ImportPayerLive は 2026-11-06 (869) に 1 で**点火**＝この表から外した〉の注の 1 行に置き換える（行の数を変えない・:29・:31 は c72ss・c72po の行＝触れない）。BilateralMarket.cs は 1 字も変えない。
+- 変えない物（記録）：運賃の受け手・保険の引受手・港湾料の受け手・仲介料・関税の戻し・流通マージン（EconomyStep.cs）の受け手は人の居ない商人へ入りうる（相続 EmptyPopEstate で毎月人の居る POP へ移る）／人の居ない POP に残る Debt の扱い（案 B）／EmptyPopEstate.cs／TradeClearingTests.cs と InstrumentsCearn.cs（c72tc の物）。
+
+━━ [1] no-go の基準（紙と腕の前にこのコミットで固定）
+- N-a：c72tc の印 D:/PoB_work/c72tc_work/tc_ready.mark の rc が 0 でない（または .log の頭に〈印の後に merge してよい〉と読めない）→ 腕 B を回さずに報告（3 回の規則に数えない）。
+- N-b：紙（keep_866/base_ins を旗 0 の M とし、keep_839/n1・n2 を需要の代わり）で P_3 が n1 と n2 のどちらでも ＜0.2（m863 [1] の定義）→ 旗 1 の効きの見込みが門の幅の内＝腕 B を回さず形と紙を報告して終える。
+- N-c：紙の L1・U1・P1・P3・形の決め手の数が m863 [9] の数と一致しない（keep_866/base_ins の cearn_s・cpop_s の頭の列は keep_852/base_ins と同じ鍵のはず）→ 原因を書くまで腕を回さない。
+- N-d：c72tc の ident の判定が〈恒等〉でないなら、合流が c72ip ごと止める（c72ip は origin/c72tc を merge した木で腕を回す＝c72tc の非恒等が腕 B に混ざる）。この線は判定を待たずに腕 B を回してよい（判定は後でもよい＝計画の決まり）。
+- N-e：旗 1 の木（origin/c72tc を merge した後）のフルスイートで [8] の予言の外の赤が 1 本でもあれば腕 B を回さない。
+- 紙で閾値の 3/4 以上に寄る門は㉗の形で名乗る：P1 ＜0.267 なら名乗る（m863 [1] のまま）。
+
+━━ [2] 門（両側・数は scripts/instruments/c72ip/gates869.py＝gates863.py の写し＋U2c と記録の 1 行）
+- 下限（働いた）L1：m863 [2] のまま＝商人の人数 ≦1e-12 の植民地格の州×四半期の輸入の代金の和 ÷ 植民地格の輸入の和 ≧0.2（旗 0 の M の値は [9] で取り直す）。
+- 上限 U1：人数 ≦1e-12 の POP の outImportPerQuarter の和 ＝0（植民地格の州だけ）。
+- 上限 U2（四半期の和）：importPaidPerQuarter ≦ importBudgetStartPerQuarter×(1＋1e-9)＋1e-9 を破る行 ＝0（予算が有限の行だけ・全ての州）。
+- 上限 U2c（清算ごと・この回に足す）：c72tc が cearn_s に足す列 importBudgetExcessMaxPerClearing（その四半期の清算ごとの〈払った額 − その清算の頭の予算〉の最大）が merge の後の生にあれば、importBudgetExcessMaxPerClearing ＞ 1e-9×(1＋importBudgetStartPerQuarter)＋1e-9 の行（予算が有限の行だけ）＝0 を門にする。
+  列が無ければ U2c は〈列なし〉＝U2（四半期の和）を〈緩い上限〉と名乗って門にする。c72tc の列の定義がこの文と違う（例：比で書く・符号が逆）なら、腕 B の前に理由つきでこの文書に追記し、閾値は同じ〈清算ごとの超過 ＝0（許し 1e-9 の相対と 1e-9 の絶対）〉の意味を保つ形に置き直す（結果の前）。
+- 上限 U3：importCrossRegionPerQuarter の和 ＝0（全ての州）。
+- 保存：leakhunt の保存則違反なし・savetest OK（旗 1 の木・merge の後）。
+- 〈壊さない〉門とは別の〈働いた〉門は L1。新の盤面のヌル腕（keep_852/n1・n2）は cearn_s・cpop_s を持たない＝L1 の幅は旧 m839（keep_839/n1・n2・EmptyPopEstate 0 の盤面＝盤面が違う）と旗 0 の M で読むと名乗る。
+
+━━ [3] 突然変異ごとの門の表（㉚）
+| 突然変異 | 形 | 赤になるはずの門 | 緑のはずの門 | この回の扱い |
+| E0 | 旗 0（main の器） | L1・U1 | U2・U2c・U3（記録） | keep_866/base_ins（旗 0・計器つき 10 種・cearn_s の 4 列と cpop_s の debt あり）で数え直す＝[9] |
+| E1 | 条件を逆さ | U1 | U3 | (863) の表を引く（器が同じ＝回し直さない）：L1 0.000276 赤・U1 654.9 赤・U2 25 行 赤・U3 0 緑 |
+| E2 | (b) の枝で手形を∞のまま | U2・U2c | U1・U3 | (863) の表を引く（U2 190 行 赤）＋この回は U2c を清算ごとに確かめる：merge の後の点火の木に mut869.py E2 を当てた使い捨ての木で計器つき 1 種（種 1・約 2GB）を回し、U2c が赤になることを表にする（列が無ければ〈U2c 列なし〉と名乗る） |
+| E3 | 別の州（次の行の州）の POP | U3 | U1 | (863)：門まで届かず貨幣保存の番人が止めた（破綻＝止める線が拾う） |
+| E3b | 同じ国の最初の州の POP | U3 | U1 | (863) の表を引く：U3 1.163e7 赤 |
+| E4 | 門を Size ＞1e-9 | 記録 | — | (863) の表を引く：L1 0.3357 |
+- E2 の腕の順：merge（[1] N-a の後）→ 旗 1 のフルスイート（N-e）→ E2 の 1 種と腕 B を同時に起こしてよい（腕の枠と D: の空きを見る）。E2 の 1 種の生は合流の判断まで残す。
+- 単体の段（mutation_unit_863.txt）は器と試験が同じ＝引く（F1 6/6 緑・E1 3 本赤・E2 2 本赤・E3 2 本赤・E4 緑）。
+
+━━ [4] 計器の列と ident
+- この線は計器を足さない（cearn_s の末尾 4 列・cpop_s の debt は (863) の器・main にある）。U2c と旧の規則の予算の列は c72tc の物（merge で入る）。
+- ident をこの線では回さない：旗 0 の木は main（688294bf）と同じ .cs（器は (866) の ident m866〈判定: 恒等〉が覆う）。merge で入る InstrumentsCearn.cs・TradeClearingTests.cs の差は c72tc の ident の管轄（N-d）。点火のコミットは挙動を変える（ident の対象外）。
+
+━━ [5] 止める線と当てる腕（この回の決まりをそのまま写す）
+- 破綻：クラッシュ・NaN・保存則・savetest・進行不能（作者の破綻の定義＝シミュが止まる）。
+- 発散：1 四半期に 100 倍以上＝gdp_jump797.py と gdp_jump833.py の〈それ以外〉だけが止める線（建国の直後・分母の痩せ〔政府の人口が 1 四半期で 1/10 未満か 10 倍以上〕は記録＝ヌル腕の件数と並べる・㊳）／1e10 倍以上＝brk693/plvl_seeds.py（開幕の 1000 倍以上は記録・同じ国が半分以上の種なら NG）。
+- 空洞化 1/10 未満：holclass839.py（規則 A2・an_h2.py -v5 の件数は -v4 と同じ）＝T1（〈線が原因〉が 1 件でもあれば止める）。基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉。基線の読みは measurements/m856_20261105/stop_null/stop_M852.txt（m852 の M）。c72gt の振り分けの規則（hol_ready.mark）の数は記録だけ。
+- 推定の計算量 ＞248.5 秒。機構の番人（走査の番人 7 組を含む）の赤。
+- 数え方：scripts/instruments/m866/stoplines866.sh <ins> <出力> 1（読むだけ）。基準とヌル腕の件数は measurements/m866_20261105/stop_table_866.tsv・m852_20261105/stop_table_852.tsv・m856_20261105/stop_null/（新 m852 の N1・N2・旧 m839 の N1・N2）を並べる（⑰）。
+- 記録：T1 の一つ抜き（r847/loo847.py）・名目 GDP 0 の続き（m808/gdp_zero10.py・記録の段の先頭）・NG（ng.sh・基準 rd:measurements/ng852_20261105:m852・読み手の出力は D:/ の形）・exact・near・英の国債の不履行の種の数・空洞化 1/4 未満の件数・nullgate.py の O（m852 の 3 本）。
+- 当てる腕：腕 B（c72ipB・計器つき 10 種・種 1〜10）と、合流の M・S11・アブレーション。種 11〜20 は線では回さない。
+- 生の扱い：腕 B の生（D:/PoB_work/c72ip_work/armB/out_c72ipB_10）と E2 の 1 種の生は、反証役が読んだ後に、門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s・cearn_s・cpop_s と keepsum_all_tables.tsv の要約）へ縮める。縮めた後も合流が読むまで残す。反証役が読む前には消さない・縮めない（⑲）。
+- D: の床：腕 B は起こす前に D: の空き 36GB 以上（armB869.sh の 1 行で exit）と arms.sh free を見る。
+
+━━ [6] 計算量
+- 登録 0.1 秒以下（m863 [6] のまま）。m852 の推定 212.6 秒・名目の余り 約 35.9 秒。腕 B の .cost の推定で読む（2 秒以下は 1 本の腕で門にしない＝記録）。
+
+━━ [7] 記録の段（門ではない）
+- 先頭：ペルーの型（peru869.py＝peru863.py の写し）＝M（keep_866/base_ins）と腕 B を並べる＝作者〈Sen 型として消さずに見張る〉の読み直し。
+- 同じ盤面の新÷旧（record869.py＝record863.py の写し・旧＝keep_866/base_ins）：植民地格の輸入の和・工場の産出・資本家の在庫の中央＝(852) の 0.25・0.59・0.72 と並べる。
+- 同じ盤面の旧の規則の予算の比（教訓①）：c72tc の importOldRuleBudgetStartPerQuarter が有れば gates869.py が〈新の予算÷旧の規則の予算〉（植民地格・両方有限の行）を出す。無ければ〈列なし〉。
+- 人の居ない商人に残る債務（cpop_s の debt）・英の国債の不履行の種の数・nullgate.py の O・空洞化 1/4 未満の件数。
+
+━━ [8] 試験の予言（★(818)・㉘・㉜・★(778)）
+- ★(818)：`grep -ln 'MerchantPop\|payerOf\|PayerOf\|Debt' PriceOfBread.Tests/*.cs`＝34 本（m863 の 32 本＋ImportPayerLiveTests.cs〔(863) の器の試験＝旗を自分で置く `sim.Coef.ImportPayerLive = flag`＝既定に依らない＝緑の予言〕＋MintAtMarketTests.cs〔(854)・造幣局の市場買い・密閉 1 国＝清算の払い手を通らない・:26・:86 は商人の添字の前提だけ＝緑の予言〕）。
+  m863 [8] の読み（TradeClearingTests:180〜:200 の商人の払い・ConservationTests の家計の与信・他は清算の払い手を通らない）は今の木でも同じ＝緑の予言。
+  TradeClearingTests:473（月の清算の試験）は c72tc が :444 の盤面を直した後＝旗 1 で緑の予言（c72tc の印の後の merge で確かめる）。
+- 走査の番人 7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）：点火のコミットの直後に回す。`new MoneyStock(` 0 本足す・工業化度の読み手 0・route_anchors.tsv の鍵の行 0・BilateralMarket.cs の行 0＝件数の番人は動かない予言。DormantIdentityTests の表は Theory のデータではない（:175・:376 が配列を読む）＝テストの数は変わらない。
+  ただし WriterRatchetTests の計算量の表は 1 種 40 四半期の軌道を読む＝旗 1 で item 1・9・11 が赤の予言（(863) の実測：item 1＝15,859,997／宣言 14,043,298・item 9＝31,414,231／28,783,150・item 11＝1,923,064／2,978,732〔10% を超えて下がった〕）。**予言は {1, 9, 11} の 3 つに固定**（(863) の {1,2,8,9,11} は外れた 2 つを含む）。表は書き換えない（★(778)）。それ以外の item が赤なら止める。
+- --list-tests：Category!=FullLength 2307・FullLength 3（点火で変わらない予言）。merge の後は c72tc の足した試験の数を足す（c72tc の報告と突き合わせる）。
+- 旗 1 のフルスイート（㉜・merge の後）：Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせ、中止の行も拾う。赤の予言＝WriterRatchetTests item 1・9・11 の 3 本だけ。予言の外の赤が 1 本でもあれば腕 B を回さない（N-e）。
+- 旧の規則を固定する番人：〈人の居ない商人が払う〉を主張する Assert は ImportPayerLiveTests の〈旗0は人の居ない商人が1POPとして払う_今の形〉だけ（旗を自分で 0 に置く＝既定に依らない）。旗 1 で他の番人が赤になったら、★(866) の Theory 化の型か ★(832) ① (a) の型に当たるかを diff つきでこの文書に書いてから直すか、止めて報告する。
+
+━━ [9] 紙の出力（[0]〜[8] の後に足す）
+[0]〜[8] の sha256＝75628fa229cf6513a293eef6b7ee616d57913fc73be7d792b9be1bc94b72081d（紙はこの指紋の後に数える・2026-11-06）
