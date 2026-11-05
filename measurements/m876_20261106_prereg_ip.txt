@@ -139,3 +139,29 @@
 - **U2s（Subsidy だけの新しい列）は旗 0 で違反 7 行（最大 64.66）＝今の列と同じ 7 行**＝(868) 反証役 ①（輸出の関税の戻し）では説明できない別の構造の偽陽性が旗 0 に在る。
   → [9-2] に先に書いた枝のとおり、**U2s は〈旗 0 で落ちる上限〉として記録へ下げる**。この回の門は **L1（下限）・U1b・U3（上限）**＋保存（leakhunt・savetest）＋止める線。E2（手形を∞のまま払う）の型は U2s が記録でも〈旗 1 の腕で U2s の違反が旗 0 の 7 行より増えるか〉を記録の先頭に並べて読む（採否に使わない）。
   c73tc と合流へ知らせる物：旗 0 の M で清算ごとの〈払った額 − 頭の在庫（＋Subsidy）〉が 7 行で正（最大 64.66）＝頭の後に Subsidy 以外の入りがある（候補は清算の中の売上の入り・AI の推定・確かめていない）。
+
+━━ [11] 旗 1 のフルスイートの予言の外の赤 1 本と、★(866) の Theory 化（直す前に書く・2026-11-06・腕 B の前・旗 1 の腕の出力はまだ 1 行も見ていない）
+- 旗 1 のフルスイート（木 e45fc26e・measurements/m876_20261106/suite_flag1_e45fc26e.txt）：--list-tests 2317・3（[10] の予言どおり）・Category!=FullLength 2312 合格・スキップ 1・失敗 4・FullLength 3 合格・中止 0・savetest OK・leakhunt 保存則違反なし。
+  赤＝WriterRatchetTests item 1（15,733,303）・9（31,821,007）・11（2,662,704）＝予言の内＋**RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる＝予言の外**（:185 `Assert.True(xr.Count >= 10, $"xmig_s の行が {xr.Count}＝越境の移民が起きた対照が無い")`・実 9）。
+- 因果：同じ木 e45fc26e の旗 0 版（Coefficients.cs:3596 だけ 0 に戻した使い捨ての木 D:/PoB_work/c73ip_work/rk0）で RouteKmTests 5/5 緑（measurements/m876_20261106/routekm_flag0_rk0.txt）・旗 1 の木で単独に回して 1/5 赤・同じ 9 行（routekm_flag1_alone.txt）＝決定的に旗 1 が原因（並びの干渉ではない）。
+- 型：赤は :185 の**前提の Assert だけ**（越境の移民の行が 10 以上ある盤面か）で、機構の主張（:161 の陸路の一致・:175〜:177 の routeKm・:184 の列の数・その後の xmig_s と region_s の閉じ）には届いていない＝★(866)〈前提の Assert だけが赤で、機構の主張が同じ式で通る型〉に当てる。[8] の末尾の分岐〈★(866) の型に当たるかを diff つきでこの文書に書いてから直す〉のとおり。
+- 当てる diff（PriceOfBread.Tests/RouteKmTests.cs・i/lf・Assert の式とリテラルは 1 字も変えない・変えるのは旗の行と盤面〔四半期の数〕だけ）：
+```
+-    [Fact]
+-    public void 陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる()
++    [Theory]
++    [InlineData(0.0)]   // (876) ★(866) の Theory 化：旗 ImportPayerLive の 0（今の形）と 1（人の居る POP が払う）の両方で同じ主張
++    [InlineData(1.0)]
++    public void 陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる(double importPayerLive)
+     {
+ ...
+         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
++        sim.Coef.ImportPayerLive = importPayerLive;   // (876) 旗 1 の 40 四半期では越境の移民の行が 9（前提 ≧10 に 1 足りない）＝盤面を 80 四半期へ（:176 の注〈1789〜1830 年代は運河なし〉の内）
+ ...
+-            try { for (int q = 0; q < 40; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
++            try { for (int q = 0; q < 80; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+```
+- 梯子（先に固定）：80 四半期で旗 1 の行の前提がまだ ＜10 なら 120 四半期（1819 年まで・運河なしの内）の 1 段だけ上げる。それでも足りなければ止めて報告（種の選び直し・閾値 10 の変更・Assert の書き換えはしない）。
+- no-go：Theory の旗 1 の行か旗 0 の行が、前提の後の Assert（機構の主張）で赤なら止める（機構の赤＝止める線）。
+- 予言：--list-tests は Category!=FullLength 2317→**2318**（Theory の 2 行で +1）・FullLength 3。試験だけの別のコミット（点火の .cs とは分ける）。owns の外のファイル（RouteKmTests.cs）＝origin/c73gt・c73ts・c73tc の 70b27755 からの変更は 0 本（2026-11-06 に確かめた）＝合流は〈灰色の所〉と名乗る。
+- この直しの後の木で旗 1 のフルスイートをもう 1 回回す（㉜＝腕 B が使う木で）。赤が item 1・9・11 だけで、Theory の 2 行が緑なら腕 B へ。
