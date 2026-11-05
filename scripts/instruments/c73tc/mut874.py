@@ -25,7 +25,6 @@ try:
     r = subprocess.run(['dotnet', 'test', os.path.join(REPO, 'PriceOfBread.Tests'), '-c', 'Release', '--artifacts-path', 'D:/PoB_work/c73tc_art',
                         '--filter', 'FullyQualifiedName~CearnTradeColumnsTests'], capture_output=True, text=True, encoding='utf-8', errors='replace')
     keep = [l for l in r.stdout.splitlines() if ('失敗' in l or '成功' in l or 'Assert' in l or 'error' in l.lower())]
-    open(out, 'w', encoding='utf-8', newline='
-').write(M + ' ' + old.split('\n')[0] + '\n  -> ' + new.split('\n')[0] + '\n' + '\n'.join(keep) + '\n')
+    open(out, 'w', encoding='utf-8', newline=chr(10)).write(M + ' ' + old.split('\n')[0] + '\n  -> ' + new.split('\n')[0] + '\n' + '\n'.join(keep) + '\n')
 finally:
     open(P, 'wb').write(orig)
