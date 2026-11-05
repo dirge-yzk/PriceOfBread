@@ -2749,6 +2749,7 @@ public sealed class Coefficients
 
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）
     public double DominanceSpeed = 0.025;            //   四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
+    public double RuleOrderByRegion = 1.0;           // ★(850) c69po 州ごとの治安 P1-1 の旗（点火 2026-11-05＝既定 1・0＝無統治の目標は国の秩序 Clamp01(w.PublicOrder)＝今の式・1＝州の秩序 Clamp01(R×m̄÷m_r)・R は今の Coercion の切る前の被覆・Politics.CheckSecession・番人 RuleOrderP1Tests）
     public double DominanceMatureYears = 30.0;       //   初期値＝保有年数÷これ（世代長＝同化の物差し）。HeldSince=0（中核）＝1.0
     // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md）：州の4区分（国家・在地・外国・無統治）を
     //   DominanceSpeed で目標へ寄せる。(399) で点火（旗 RuleSharesEnabled・RuleSharesReach・RuleSharesTaxBase・RuleLocalFromRights・RuleUngovFromReach・ColonyRuleFromData・TaxLeakByRule・LawReachByRule は物理削除＝常時）：

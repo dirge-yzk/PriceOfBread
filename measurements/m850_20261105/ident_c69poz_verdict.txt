@@ -1,0 +1,32 @@
+=== 恒等の判定（測った種で一致） c69poz（2026-11-05 10:01:05）===
+測った木：D:/PoB_work/wt_c69po（HEAD 3ce2a2f3・未コミット 4 本）
+基準の設定：D:/PoB_work/wt_c69po/scripts/instruments/ident/ident.cfg
+宣言：grown=['secession_s'] cost_allow=['海軍の発注の配り'] tests_delta=8
+腕 a：rc=1 end=2026-11-05 09:36:24
+腕 b：rc=1 end=2026-11-05 09:54:53
+腕 t：rc=0 end=2026-11-05 09:18:41
+測る木の SOURCE-HASH：6fd77bb64096b9d4
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 6fd77bb64096b9d4
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m839
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m839.cost
+  △ 宣言された例外（--cost-allow）2 本：海軍の発注の配り：州×月×3 周（NavalPortSpli・海軍の発注の配り：州×月×3 周（旗 NavalPortPr
+  ○ 件数の行 29 本・推定 219.0 秒・種ごとの忠実度 5 行が一致（例外 2 本を宣言）
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 6fd77bb64096b9d4
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m839_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m839_ins.cost
+  △ 宣言された例外（--cost-allow）2 本：海軍の発注の配り：州×月×3 周（NavalPortSpli・海軍の発注の配り：州×月×3 周（旗 NavalPortPr
+  ○ 件数の行 29 本・推定 220.8 秒・種ごとの忠実度 10 行が一致（例外 2 本を宣言）
+[計器の表] 腕 D:/PoB_work/ident_c69poz/out_ib_10/ins  対  基準 D:/PoB_work/keep_845/base_ins
+  基準 1068 本・腕 1068 本・バイト一致 1022 本
+  列が増えた表（--grown-ok の宣言）10 本：secession_s1.tsv+10列・secession_s10.tsv+10列・secession_s2.tsv+10列・secession_s3.tsv+10列・secession_s4.tsv+10列・secession_s5.tsv+10列
+  既知の揺れの列だけが違う表 36 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 106 欄）×1・cearn_s:経路の行番号だけ（写して一致 16 欄）×1・cearn_s:経路の行番号だけ（写して一致 18 欄）×1・cearn_s:経路の行番号だけ（写して一致 22 欄）×1・cearn_s:経路の行番号だけ（写して一致 52 欄）×1・cearn_s:経路の行番号だけ（写して一致 6 欄）×1・cearn_s:経路の行番号だけ（写して一致 62 欄）×2・cearn_s:経路の行番号だけ（写して一致 67 欄）×1・cearn_s:経路の行番号だけ（写して一致 77 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×6
+  ○ 計器の表は恒等（バイト一致 1022・既知の揺れ 36・宣言された増減 10）
+[注視の表] mon_ib_10.txt 対 mon_20261105_m839.txt（タグの行を除く）
+  ○ タグの行以外が一致（4686 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2252（基準 2244+8 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等

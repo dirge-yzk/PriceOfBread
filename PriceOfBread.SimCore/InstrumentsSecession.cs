@@ -27,7 +27,41 @@ public static partial class Instruments
         + "legitimacyIndex\ttotalPopK\tcoerceIndex\tholdBaseIndex\tholdBaseRebuildGapIndex\tstanceIndex\tsharedDivIndex\trestiveCount\t"
         + "popK\tcrowdK\tcrowdFactorShare\tmilitancyMeanIndex\tcultureDistanceIndex\tcoreShareMeanShare\tconsciousnessMeanIndex\tsuffrageInclusionShare\t"
         + "tariffInterestIndex\ttariffGapIndex\ttariffTermIndex\tethnicTermIndex\tconsciousnessFactorShare\tsuffrageFactorShare\t"
-        + "pressureIndex\tpressureRebuiltIndex\tpressureRebuildGapIndex\teffHoldBeforeShareIndex\tholdShareIndex\tmarginIndex\tdominanceShare\tgoFlag\tcapitalDistanceKm";
+        + "pressureIndex\tpressureRebuiltIndex\tpressureRebuildGapIndex\teffHoldBeforeShareIndex\tholdShareIndex\tmarginIndex\tdominanceShare\tgoFlag\tcapitalDistanceKm\t"
+        + "orderRawNowIndex\torderOldIndex\tmilitancyNationMeanIndex\tmilitancyRegionOwnIndex\torderRegionNowIndex\treachOwnShare\t"
+        + "ungovTargetOldShare\tungovTargetNewShare\truleUngovBeforeShare\truleForeignBeforeShare";
+
+    // ---- (850) c69po 州ごとの治安 P1-1 の末尾 10 列（読むだけ・CheckSecession の瞬間＝Rule のループの直前・計器が自分で州の POP と国の Coercion を読む＝エンジンの関数を呼ばない） ----
+    //   orderRawNowIndex＝R＝今の Coercion の切る前の被覆＝Coercion×(総人口÷max(1, PoliticalReferencePop))÷max(1e-9, 総人口×CrimeOrderPerPop)（Crime.Step と同じ式・同じ結合順）／
+    //   orderOldIndex＝Clamp01(w.PublicOrder)（旗 0 の秩序＝Crime.Step が前の四半期の Coercion で書いた値）／militancyNationMeanIndex＝m̄＝国の全ての州（首都を含む）の大衆（閉鎖階級と兵士を除く）の闘争度の人口加重の平均（州ごとの和を足す順）／
+    //   militancyRegionOwnIndex＝m_r（同じ述語で計器が数えた値・militancyMeanIndex と一致するはず）／orderRegionNowIndex＝order_r＝m_r が正でなければ 1・そうでなければ Clamp01(R×m̄÷m_r)／
+    //   reachOwnShare＝首都（国の座標）からの到達 1÷(1＋DistanceWarDecay×km÷10000)（座標未登録・距離が正でない・非有限は 1）／ungovTargetOldShare＝(1−orderOld)×(1−到達)（旗 0 の目標）／
+    //   ungovTargetNewShare＝(1−order_r)×(1−到達)（旗 1 の目標）／ruleUngovBeforeShare・ruleForeignBeforeShare＝Rule のループの前の r.Rule[3]・r.Rule[2]（長さ 4 でなければ nan）。
+    //   ⚠限界：⑦目標の 2 列は計器が数えた〈意図した式〉＝エンジンが実際に寄せた目標ではない（実際の側は rule_s の四半期の末の ruleUngovShare と ruleUngovBeforeShare から (after−before×(1−速度))÷速度 で読み手が読む・外国の区分が正の行は正規化で外れる）。
+    //   ⑧首都の行は無い（CheckSecession の州の行と同じ）＝m̄ にだけ入る。⑨数は G10 の 10 桁で書く＝読み手の (after−before×0.975)÷0.025 は約 4e-9 まで丸めが乗る。
+    static double SecC01(double x) => !(x > 0) ? 0 : x > 1 ? 1 : x;
+
+    static string SecP1Columns(World w, Coefficients c, Region r, double rawNow, double orderOld, double mbar)
+    {
+        double mil = 0, size = 0;
+        foreach (var p in r.Pops) if (p.IsCommoner) { mil += p.Militancy * p.Size; size += p.Size; }
+        double mr = size > 1e-9 ? mil / size : 0;
+        double orderR = !(mr > 0) ? 1.0 : SecC01(rawNow * mbar / mr);
+        double reach = 1.0;
+        var rc = Places.Coord(r.Name);
+        if (!(rc.Lat == 0 && rc.Lon == 0))
+        {
+            double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
+            if (km > 0 && double.IsFinite(km))
+            {
+                double v = 1.0 / (1.0 + c.DistanceWarDecay * km / 10_000.0);
+                reach = !(v > 0 && v <= 1.0) ? 1.0 : v;
+            }
+        }
+        double before3 = r.Rule.Length == 4 ? r.Rule[3] : double.NaN, before2 = r.Rule.Length == 4 ? r.Rule[2] : double.NaN;
+        return string.Join('\t', F(rawNow), F(orderOld), F(mbar), F(mr), F(orderR), F(reach),
+            F((1.0 - orderOld) * (1.0 - reach)), F((1.0 - orderR) * (1.0 - reach)), F(before3), F(before2));
+    }
 
     /// <summary>州の離脱圧力を組み直した結果（<see cref="SecRebuild"/>）。番人（テスト）が世界から直に呼べるよう値の組で返す。</summary>
     internal readonly record struct SecParts(double Pressure, double TariffTerm, double EthnicTerm, double ConsciousnessFactor, double SuffrageFactor, double CrowdFactor, double CrowdK,
@@ -77,6 +111,18 @@ public static partial class Instruments
         double holdBaseObserved = hold * sharedDiv;
         string head = string.Join('\t', F(w.Legitimacy), F(w.TotalPopulation), F(coerce), F(holdBase), F(Rel(holdBase, holdBaseObserved)), F(stance), F(sharedDiv),
             restive.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        // (850) 国の 3 つの量（計器が自分で数える）：R・旗 0 の秩序・m̄
+        double effNow = w.Coercion * (w.TotalPopulation / Math.Max(1.0, c.PoliticalReferencePop));
+        double rawNow = effNow / Math.Max(1e-9, w.TotalPopulation * c.CrimeOrderPerPop);
+        double orderOld = SecC01(w.PublicOrder);
+        double milAll = 0, sizeAll = 0;
+        foreach (var rr in w.Regions)
+        {
+            double mi = 0, si = 0;
+            foreach (var p in rr.Pops) if (p.IsCommoner) { mi += p.Militancy * p.Size; si += p.Size; }
+            milAll += mi; sizeAll += si;
+        }
+        double mbar = sizeAll > 1e-9 ? milAll / sizeAll : 0;
         foreach (var (r, effBefore, pressure) in margins)
         {
             var p = SecRebuild(w, c, r, cap, stance);
@@ -88,7 +134,8 @@ public static partial class Instruments
             rows.Add(string.Join('\t', r.Name, r.Tier.ToString(), head,
                 F(pop), F(p.CrowdK), F(p.CrowdFactor), F(p.Militancy), F(p.CultureDistance), F(p.CoreShare), F(p.Consciousness), F(p.Inclusion),
                 F(r.TariffInterest), F(Math.Abs(stance - r.TariffInterest)), F(p.TariffTerm), F(p.EthnicTerm), F(p.ConsciousnessFactor), F(p.SuffrageFactor),
-                F(pressure), F(p.Pressure), F(Rel(p.Pressure, pressure)), F(effBefore), F(holdShare), F(holdShare - pressure), F(r.Dominance), r.Dominance > 0 ? "0" : "1", F(km)));
+                F(pressure), F(p.Pressure), F(Rel(p.Pressure, pressure)), F(effBefore), F(holdShare), F(holdShare - pressure), F(r.Dominance), r.Dominance > 0 ? "0" : "1", F(km),
+                SecP1Columns(w, c, r, rawNow, orderOld, mbar)));
         }
         st.SecRows = rows;
     }
