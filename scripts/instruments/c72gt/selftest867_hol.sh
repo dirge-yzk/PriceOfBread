@@ -42,7 +42,7 @@ if [ -n "$NOGO" ]; then
   echo "VERDICT hol fail 道具の確かめが通らない（c72po は腕を回さない）：$(printf "$NOGO" | head -3 | tr '\n' ' ')"
 else
   case "$RV" in
-    "VERDICT hol pass"*) echo "VERDICT hol pass 道具は使える・読み直し (c)（c71poB_10・近似）：${RV#VERDICT hol pass }";;
+    "VERDICT hol pass"*) echo "VERDICT hol pass 道具は使える・読み直し (c)（c71poB_10・近似）：${RV#VERDICT hol pass }＝弱い pass：$(sed -n 1p "$M/hol_calib_867.txt" | cut -c1-120)／$(sed -n 2p "$M/hol_calib_867.txt" | cut -c1-120)（割れる州は広く、ヌルの 1/4 事象に濃縮が無ければ L2 の免除は広い＝採否の決め手は c72po の種 11〜20 の止める線）";;
     *) echo "VERDICT hol fail 読み直し (c)（c71poB_10・近似）で L3 が残る：${RV#VERDICT hol fail }（c71po は 3 回の規則の最後で閉じる）";;
   esac
 fi
