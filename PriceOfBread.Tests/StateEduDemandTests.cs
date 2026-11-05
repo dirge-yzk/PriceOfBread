@@ -231,6 +231,9 @@ public class StateEduDemandTests
         return (r, w);
     }
 
+    // (861) OM1 の名乗り（(854) の反証役 低 2）：この Theory は月の終わりの出力を写し（Pre846OneMonth）と 1 ビットで比べる回帰の網で、OneMonth を (846) の形（AdminFill = adminFill ?? 1.0）へ戻しても緑のまま
+    //   （月の終わりの出力は EconomyStep が AdminFill を書き直し、EduReachFromAdmin が 0 のとき出発値に依らない）。**判別は月を回す前の値を見る Fact（行政の充足を渡さなければ月を回す前の盤面は開幕の既定のまま）だけが持つ**。
+    //   Theory に届きの式（reachFromAdmin）を入れて判別させると、写しが (846) の後の本体になり〈前の本体の写し〉という主張から外れるので入れない。
     [Theory]
     [InlineData(0.001, Funding)]
     [InlineData(200.0, Funding)]

@@ -74,6 +74,38 @@ public class MintAtMarketTests
         Assert.True(System.Math.Abs(D(w) - d0) <= 1e-9 * System.Math.Max(1.0, System.Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");
     }
 
+    /// <summary>(861) MM7（(854) の反証役 中 1）：今月の予算 gapLeft は州をまたいで 1 本で消費される（<c>if (atMarket) gapLeft -= value;</c>）。
+    /// 銀を持つ州が 2 つ以上あり、予算が 1 州の在庫の容量を超える盤面＝片方の州は在庫で縛られ（容量＝予算の 0.3 倍）、もう片方は予算を超える在庫（容量＝予算の 5 倍）を持つ。
+    /// 期待は試験が自分で数える：今月の引き取りの価値の合計＝Budget(w)（州の順番に依らない＝小さい州が先なら 0.3＋0.7・大きい州が先なら 1.0＋0）。予算の消費を外すと 2 州目が予算を丸ごと使い 1.3 倍になる。</summary>
+    [Fact]
+    public void 市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う()
+    {
+        var (sim, w, r, m, parity) = Board(1.0);
+        Region? r2 = null;
+        foreach (var x in w.Regions)
+            if (!ReferenceEquals(x, r) && x.GoodOf(Catalog.SilverId) is not null && x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count) { r2 = x; break; }
+        Assert.True(r2 is not null, "前提＝銀市場と商人（受け手）を持つ州が 2 つある");
+        var m2 = r2!.Markets[Catalog.SilverId];
+        m2.Price = m.Price;                              // 平価の上（市場買いだけが立つ）・2 州とも同じ値段で数量と価値を比べやすくする
+        double rate = w.Coef.MintFloorBuyRatePerMonth.Value;
+        double budget = Budget(w);
+        Assert.True(budget > 1e-6, $"前提が崩れた：準備不足の予算が立たない（{budget}）");
+        double budgetQty = budget / m.Price;
+        m.Stock = 0.3 * budgetQty / rate;                // 在庫で縛る（容量＝予算の 0.3 倍）
+        m2.Stock = 5.0 * budgetQty / rate;               // 予算で縛る（容量＝予算の 5 倍）
+        double cap1 = m.Stock * rate, cap2 = m2.Stock * rate;
+        Assert.True(cap1 < budgetQty && cap2 > budgetQty && cap1 + cap2 > budgetQty, "前提が崩れた：片方は在庫で縛られ、もう片方は予算を超える");
+        double stock1 = m.Stock, stock2 = m2.Stock, price0 = m.Price, minted0 = w.CumulativeGoldMinted.Value, d0 = D(w), reserve0 = w.SilverReserveQty;
+        Mint(sim);
+        double q1 = stock1 - m.Stock, q2 = stock2 - m2.Stock;
+        Assert.True(q1 >= 0 && q2 >= 0 && q1 + q2 > 0, "市場買いが立っていない");
+        Assert.True(q1 <= cap1 * (1 + 1e-9) && q2 <= cap2 * (1 + 1e-9), "各州の引き取りは自分の在庫×月次率を超えない");
+        Assert.Equal(budget, (q1 + q2) * price0, 6);                                                // 州をまたいで予算を 1 本で使い切る（二重に使わない）
+        Assert.Equal(budgetQty, w.SilverReserveQty - reserve0, 9);                                   // 準備の増え＝予算÷市場価格
+        Assert.Equal(budget, w.CumulativeGoldMinted.Value - minted0, 6);                             // 鋳造の価値の合計＝予算
+        Assert.True(System.Math.Abs(D(w) - d0) <= 1e-9 * System.Math.Max(1.0, System.Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");
+    }
+
     [Fact]
     public void 市場買いの係数が0なら平価の上では買わない_準備不足でも()
     {
