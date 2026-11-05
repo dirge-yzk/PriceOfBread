@@ -1,0 +1,55 @@
+(879) 波73 の合流の予言（merge と ident とフルスイートの前の最初のコミット・担当 Claude Opus 5.5・基点 70b27755）
+この文書は merge・ident・フルスイートの前に書いた。結果を見た後に書き換えない（足すなら〈結果の後の追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（作者 2026-10-27「残りは推奨で」・2026-11-05「全て推奨で」）。
+
+■ [0] 作った物（この回の合流が自分で作ったフォルダ）
+  - D:/PoB_work/wt_m879（合流の worktree・枝 m879・基点 70b27755）。
+  - D:/PoB_work/m879（合流の作業：du の印・縮めの印・要約・フルスイートと道具箱の作業）。
+  - D:/PoB_work/ident_m879z（腕 Z の ident の作業）。
+  - D:/PoB_work/keep_879_rej（新しく作った＝採らなかった腕 c73ipB_10 の 10 表＋keepsum・突然変異の腕 EU1 の 1 種の生）。
+  - D:/PoB_work/keep_879（Z が恒等のときだけ作る＝base_ins〈Z の計器つき 10 種の生〉・keep_873/base_ins とバイトで同じ表はハードリンク）。
+  - 消さない：keep_839・keep_852・keep_852_rej・keep_859_rej・keep_866・keep_866_rej・keep_873・keep_873_rej。
+
+■ [1] D: の空き（shutil.disk_usage）＝始め 24.70GB（2026-11-06 07:5x）・arms.sh free 6。
+  - Z の ident の床は 35GB＝c73ip の腕 B の生（16GB）を keep_879_rej へ縮めてから起こす。届かなければ待ち、待った時間を記録に書く。
+  - c73ipB_10 を 10 表＋keepsum へ縮めた後（9.0GB・cearn_s と cpop_s が大きい）の空き 32.76GB＝床に届かない。
+  - そこで ident_c73tc（17GB・c73tc の旗 0 の生）を、c73tc の担当の申し送りの形（cearn_s・cpop_s と keepsum）へ縮めて D:/PoB_work/m879/c73tc_f0 に置き、残りを消す（反証役は読み終えた・c73ip の紙も済んだ）。縮めた物は Z の判定を読んだ後に消す（INSRAW の候補は Z の生が代わる）。
+
+■ [2] 線ごとの入れ方（予言）
+  - c73gt (875)：入れる（.cs 0 行・台本 scripts/instruments/c73gt/ と記録 m875）。ident は要らない（台本と記録だけ）。
+  - c73tc (874)：入れる（ident〈判定: 恒等〉＝測った種で一致・木 500e7afa・SimCore の差は InstrumentsCearn.cs と Coefficients.cs:2752 の行末の注だけ・テスト +5）。反証役の 7 件は high ではない＝外さない（記録と次の波へ）。
+  - c73ip (876)：採らない（止める線 T1＝空洞化 1/10 未満〈線が原因〉1 件・種 8 フォートウィリアム＝数える 2 回目の不採用・次が最後）。merge して、点火 4bd19b65 の .cs だけを逆適用する（`git show 4bd19b65 -- PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DormantIdentityTests.cs | git apply -R --index`）。
+    - RouteKmTests の Theory 化（4aee02c5・試験だけ・持ち主の外）も逆適用で外す（`git show 4aee02c5 -- PriceOfBread.Tests/RouteKmTests.cs | git apply -R --index`）。理由：反証役の指摘〈★(866) の見出し〈旧の規則を固定する番人〉に当たらない・9＜10 を見た後に盤面を 40→80 四半期へ広げた＝⑫ と緊張〉。旗 0 の main では元の [Fact] が通る＝入れる必要が無い。最後（3 回目）の線が点火の前に RouteKmTests の扱いを事前登録する（次の波へ）。
+    - main に残るのは旗 0 の器（既にある）と台本と記録。c73ip の枝は origin/c73tc の 500e7afa を含む＝c73tc の後に merge する。
+  - c73ts (877)：点火しない（紙の no-go＝事前登録の (b)〔旗 0 が〈働いた〉の門 G5p・GC を通る〕と (d)〔紙の正しい実装が G1a で赤〕が両方当たった）。器 4c21da6a（旗 SubsistenceNoBoughtTech 既定 0・EconomyStep.cs の :112・:133 の三項演算・試験 5 本）は旗 0 で入れる。恒等は Z で測る。
+    - 3 回の規則の数え方（ここで決める・後で変えない）：事前登録した no-go が紙で当たった＝〈1 回目〉に数える（結果の後に足した no-go ではない）。次は門を作り直した事前登録から〈2 回目〉。
+  - c73ds (878)：コミットしていない＝合流が D:/PoB_work/r878_work を写す（docs/202611/20261106/ の下書きと材料・台本 scripts/instruments/r878/・出力 measurements/m878_20261106/）。反証役の 5 件は下書きの末尾に足す（中身は書き換えない）。
+  - 消す名前：どの線も 0（c73gt は足すだけ・c73tc は private の引数を足すだけ〔CearnImportPaid〕・c73ip は既定の値と表の行・c73ts は足すだけ）＝★(773) の grep の対象は無い（反証役 4 人の確かめと同じ）。
+  - merge の順：c73gt → c73tc → c73ip（＋逆適用のコミット 1 本）→ c73ts →（これが合わせた木＝Z の木）。Coefficients.cs（:531 の追加・:2752 の注・:3596 は戻し）と DormantIdentityTests.cs（:30 の追加・:138 は戻し）は離れている＝衝突しない見込み。衝突したら手で解き `# Conflicts:` を残さない。
+  - 確かめ（Z の木）：SubsistenceStage2＝1・RuleOrderByRegion＝1.0・EmptyPopEstate＝1.0・ImportPayerLive＝0・SubsistenceNoBoughtTech＝0。
+
+■ [3] 腕は Z 1 本だけ（挙動の線の採用は 0 本）
+  - Z：`bash scripts/instruments/ident/ident.sh run m879z --tree D:/PoB_work/wt_m879z --saveleak --grown-ok cearn_s --tests-delta 10`（腕 a・b・t・s）。wt_m879z は合わせた木の detached の worktree。
+  - 宣言はこの 2 つだけ。Z が宣言の無い差を出したら、宣言を足して通さない＝止めて帰属を読み、報告に回す。
+  - 見込みの D:＝約 17GB（床 35GB）。ident の走行中は wt_m879z にコミットしない（㉙）。
+
+■ [4] バイト一致の予言
+  - Z：素の 5 種が b5_20261106_m873 と全行一致（名乗り行の SOURCE-HASH を除く）・計器つき 10 種の成績表が b10_20261106_m873_ins と全行一致・注視の表が mon_20261106_m873.txt と一致・計器の表は keep_873/base_ins と、cearn_s の末尾 +4 列（c73tc）と KNOWN の揺れ（burscan_s・clock_s）だけ違う・.cost の推定 素の 5 種 210.1 秒・計器つき 10 種 211.5 秒が一致・テスト Category!=FullLength 2322（2312＋c73tc 5＋c73ts 5・c73ip の RouteKmTests は外す＝+0・点火の逆適用で旗の表の行は元に戻る＝+0）・FullLength 3・savetest OK・leakhunt 違反なし＝〈判定: 恒等〉。
+  - NG：Z は ident.sh の既定で ng.sh を回さない＝挙動が同じなら NG の集合も ng873 と同じ見込み（記録・測らない）。
+
+■ [5] 止める線・門
+  - 挙動の線を入れない＝門の読み直し・止める線の数え直し・アブレーションの腕・ヌル腕・S11 は回さない。基線は m873 のまま。
+  - 機構のテストの赤（走査の番人 7 組を含む）は止める。merge の直後に走査の番人 7 組（suite879.sh guards）を回し、緑を見てから Z を起こす。
+  - Z が〈不一致〉なら、どの線の差かを読むまで main に入れない（止めて報告）。
+
+■ [6] テストの予言
+  - --list-tests：Category!=FullLength 2322・FullLength 3。ident.cfg の TESTS_NONFULL を 2322 へ。
+  - 合わせた木のフルスイート（Z の後・10 種の腕と並べない）：赤 0（全ての旗が 0 か基線と同じ＝WriterRatchetTests の宣言の表も動かない見込み＝取り直さない）。赤が出たら止めて読む。
+  - savetest OK・leakhunt 違反なし。
+
+■ [7] 枝分かれ
+  - Z が恒等：基線は m873 のまま（B5・B10INS・MON・NG_BASE は据え置き）。INSRAW を D:/PoB_work/keep_879/base_ins（Z の out_ib_10/ins を移し、keep_873/base_ins とバイトで同じ表を mkkeep845.py でハードリンク）・BASE_COMMIT を Z の木のコミット・TESTS_NONFULL 2322。
+  - Z が不一致：main に入れない・帰属を読み報告。
+  - c73ip が落ちた＝00一覧の行を〈数える 2 回目の不採用・次が最後〉にする。c73ts は〈1 回目（紙の no-go）〉。
+
+■ [8] 記録で出す物：入れた線と外した線と理由・門の値（線の腕 B）と新÷旧・空洞化の件ごとの表（c73ip の腕 B のフォートウィリアム）・c73ds の要点・次の波の推奨・不履行の種の数・開幕の 1000 倍・書き換えたテスト・増減の行数・担当の違反・孤児のプロセス・NG の出入り（c73ip の腕 B の記録）。予言の外れは記録の段の先頭。
