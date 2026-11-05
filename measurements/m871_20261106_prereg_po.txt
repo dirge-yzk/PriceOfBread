@@ -67,5 +67,16 @@ ident を回さない理由：この線が書くエンジンの .cs は Coeffici
 - 命令：`bash scripts/instruments/tools/bg.sh D:/PoB_work/c72po_work/s11.mark bash scripts/instruments/c72po/s11_871.sh <点火のコミット>` を run_in_background で（中で `POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c72poS 10 11`・POB_INSTRUMENTS_NATIONS は 9 国）。腕の成否は終了コード（0＝完走）と成績表 D:/PoB_work/c72po_work/b10_c72poS_10_s11.txt の有無の両方で読む。
 - S11 の生は、反証役が読んだ後に門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s と keepsum_all_tables.tsv）へ縮める。縮めた後も合流が読むまで消さない。報告に生のパスを書く。反証役が読む前に縮めない（⑲）。
 
-━━ [11] c72gt の印と台本の引用（印の後・S11 の前に追記する）
+━━ [11] c72gt の印と台本の引用（印 D:/PoB_work/c72gt_work/hol_ready.mark＝rc=0 end=2026-11-06 01:51:29 の後・S11 を起こす前に書いた）
+- 印の経過（記録）：1 回目の印は rc=1 end=01:26:52（log の 1 行目〈VERDICT hol fail 道具の確かめが通らない（c72po は腕を回さない）： [hol] 較正の記録が失敗〉＝較正の記録のファイルが無かった＝道具の側）。その時の読み直しの行は 2 回目と同じ（L2 1 件・L3 0 件）。c72gt が holsplit867.py の較正の口の型（`a[8]` → `int(a[8])`・ccd0119a・classify の行は不変）を直して回し直し、2 回目の印 rc=0。この線は 2 回目の印で読む（no-go ① に当たらない）。
+- 2 回目の log の 1 行目：〈VERDICT hol pass 道具は使える・読み直し (c)（c71poB_10・近似）：L3 が 0 件（L2 1 件はヌルの幅の内として記録・〈近似〉）＝弱い pass〉＝no-go ② に当たらない。c72gt の名乗り：ヌル 3 本の 1/4 未満の事象 9 件のうちピークの四半期に持ち主が割れた州 3 件（0.333）・全ての州 3192 件のうち割れる州 1136 件（0.356）＝L2 の免除は広い＝採否の決め手は種 11〜20 の止める線。写し measurements/m871_20261106/c72gt_hol_ready_log_copy.txt・c72gt_hol_ready_mark_copy.txt。
+- 読み直し (c) の件：種 10 フォートウィリアム（アメリカ・col）＝L2（ピークの前に持ち主が替わり、ヌル 3 本の持ち主も割れる）＝ヌルの幅の内の記録。holclass839 の数（線が原因）は 1 のまま（並べる）。
+- 写した台本（scripts/instruments/c72po/gt867/・c72gt の SHA256_hol.txt と sha256sum -c で一致・2 回目の印の log の sha256 の節とも一致）：
+  2711d1cfa9a668291194ef0a0140adf219fdb93559834db0a2c4d1c9fe862253  holsplit867.py
+  f86225f3ada88c907178c37984470b0d958b7ec5179e96f5f11a32e30b0bcf63  mut_hol867.py
+  （1 回目の印の holsplit867.py は e23b3fb4…＝差は較正の口の int() の 1 か所だけ〔git show ccd0119a〕・記録）
+- S11 での呼び方：`python -X utf8 -I gt867/holsplit867.py <腕の stop_S11.txt> <腕の ins> <出力> --null <stop_a11.txt> D:/PoB_work/keep_852/a11`。種 11〜20 にはヌル腕が無い＝ヌルは基線 a11 の 1 本だけ＝〈ヌル 3 本の持ち主が割れる〉は成り立たない＝**S11 では L2 が出ない（L1〔a11 の同じ種・同じ州が 1/4 未満〕でなければ全て L3）＝holclass839 と同じ厳しさ**。これを結果を見る前に決める（ヌル腕の生を足して L2 を作り直すことはしない）。L3 が 1 件でもあれば T1 で採らない。
+- c72gt の作業フォルダに gates_po867.py もあるが、この線の門は指示どおり gt860/gates_po860.py（記録）。
+- 種 11〜20 の門の自己試験（旗 0 の a11 を腕にも基線にも置いた・measurements/m871_20261106/gates_a11_flag0_self.txt）：G0 落（41.3%）・G1 落（ΔS 0 ＞ W 0）・G1u 通・G2a 通（474,260 行・100%）・G2b 通（40,529 行・残り 7.79e-14）＝並べ替えで台本が種 11〜20 を読めること、旗 0 で働きの門が落ちることを確かめた。
+- 旗 1 の木の走査の番人 7 組（suite871.sh filter・隔離ビルド）：185 本のうち失敗 1＝WriterRatchetTests item 11（3,442,688 件・宣言 2,978,732）＝[8] の予言どおり。予言の外の赤 0。--list-tests は Category!=FullLength 2307・FullLength 3（予言どおり）。
 ━━ [12] 結果（腕の後に追記する）
