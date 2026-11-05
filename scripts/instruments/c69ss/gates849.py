@@ -95,7 +95,7 @@ def main(arm, b, n1, n2, out, nseed=10, scale=1.0):
             if r["cap"] > 0 and o["cap"] > 0 and abs(r["sold"] / r["cap"] - o["sold"] / o["cap"]) <= 0.01:
                 C["G5 P5 行"] += 1; L["G5 d"].append(d); L["G5 w"].append(w)
         del A, B
-    P = []; ok = {}
+    OUT = []; P = OUT.append; ok = {}
     def rate(a, b): return C[a] / C[b] if C[b] else float("nan")
     P("(849) 門（腕 %s・基線 %s・N1 %s・N2 %s・種 %d・母集合の下限の倍率 %.2f・計器の末尾の列 %s）" % (arm, b, n1, n2, nseed, scale, "あり" if has2all else "なし"))
     g1a = rate("G1a 外", "G1 P1 行"); ok["G1a"] = g1a >= 0.5
@@ -126,8 +126,8 @@ def main(arm, b, n1, n2, out, nseed=10, scale=1.0):
             med(L[("記録 市場の買いの割合 腕", wn)]), med(L[("記録 市場の買いの割合 基線", wn)])))
     e0 = L[("記録 EffFill₀", "q0")]
     P("  助走の終わりの EffFill（計器が焼いた州・q0）：行 %d・中央 %.4f・＞0 の割合 %.4f" % (len(e0), med(e0), sum(1 for x in e0 if x > 0) / len(e0) if e0 else float("nan")))
-    with open(out, "w", encoding="utf-8", newline="\n") as f: f.write("\n".join(P) + "\n")
-    print("\n".join(P))
+    with open(out, "w", encoding="utf-8", newline="\n") as f: f.write("\n".join(OUT) + "\n")
+    print("\n".join(OUT))
 
 if __name__ == "__main__":
     main(*sys.argv[1:8])
