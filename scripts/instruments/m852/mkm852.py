@@ -4,12 +4,15 @@
 #     subst_s・secession_s：B2 の木に無い末尾の列（c69ss・c69po の旗 0 の器）＝M の頭の列が B2 と全行同じか（cmpprefix826.py の型）。
 #     cearn_s：経路の 3 列を B2 の木から M の木へ写して比べる（ident_check.py の cearn_same_but_location・列は同じ）。
 #     flow_s：呼び出し位置を除いた行の多重集合（ident_check.py の flow_same_but_location）。
+#     (853) ident.cfg の KNOWN にある表（burscan_s の seconds・clock_s の worldTotalPerMonth の C 行ほか）：既知の列だけが違えば〈既知の揺れだけ〉（ic.cols_diff）。第 7 引数で ident.cfg を替えられる。
 #   ⚠ハードリンクの後は B2 の生を消してよい（リンクの中身は M の側に残る）。生の表をその場で書き換える道具は無い前提。
 import sys, os, filecmp, importlib.util, csv
 mins, bins, repo, cb, cm, out = sys.argv[1:7]
+cfgp = sys.argv[7] if len(sys.argv) > 7 else os.path.join(repo, 'scripts', 'instruments', 'ident', 'ident.cfg')
 spec = importlib.util.spec_from_file_location('ic', os.path.join(repo, 'scripts', 'instruments', 'ident', 'ident_check.py'))
 ic = importlib.util.module_from_spec(spec); spec.loader.exec_module(ic)
 ic.CEARN.update(root=repo, base=cb, arm_commit=cm, tree=None)
+KNOWN = ic.parse_known(ic.load_cfg(cfgp).get('KNOWN', '').split(','))   # (853) ident.cfg の KNOWN（表:列[@列=値]）を読む＝既知の列だけが違う表は〈違う〉に数えない
 def prefix_same(pb, pm):
     with open(pb, encoding='utf-8', newline='') as fb, open(pm, encoding='utf-8', newline='') as fm:
         rb = csv.reader(fb, delimiter='\t'); rm = csv.reader(fm, delimiter='\t')
@@ -39,6 +42,9 @@ for f in sorted(os.listdir(mins)):
         ok, mv, ext = ic.cearn_same_but_location(pb, pm); kind = f'経路を写して同じ（{mv} 欄）' if ok and not ext else '違う'
     elif t == 'flow_s':
         kind = '呼び出し位置だけ' if ic.flow_same_but_location(pb, pm) else '違う'
+    elif t in KNOWN:
+        kn, d, extra = ic.cols_diff(pb, pm, KNOWN[t])   # (853) 既知の揺れの列（ident.cfg の KNOWN）だけが違う表
+        kind = '既知の揺れだけ（' + ','.join(kn) + '）' if kn and not d and not extra else '違う'
     else:
         kind = '違う'
     cnt[kind.split('（')[0]] = cnt.get(kind.split('（')[0], 0) + 1
@@ -49,5 +55,5 @@ with open(out, 'w', encoding='utf-8', newline='\n') as w:
     for r in rows: w.write('%s\t%d\t%s\n' % r)
     w.write(f'# B2 にだけ {len(onlyb)} 本 {onlyb[:5]}\n# ' + '・'.join(f'{k} {v}' for k, v in sorted(cnt.items())) + '\n')
     bad = cnt.get('違う', 0) + cnt.get('M にだけ', 0) + len(onlyb)
-    w.write('# 判定：' + ('M ≡ B2（違うのは宣言した 4 つの型だけ）' if bad == 0 else f'違う表 {bad} 本＝帰属を読むまで採らない') + '\n')
+    w.write('# 判定：' + ('M ≡ B2（違うのは宣言した型〔頭の列・経路・呼び出し位置・ident.cfg の KNOWN〕だけ）' if bad == 0 else f'違う表 {bad} 本＝帰属を読むまで採らない') + '\n')
 print(open(out, encoding='utf-8').read().splitlines()[-2:])
