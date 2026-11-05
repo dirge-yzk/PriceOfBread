@@ -9,7 +9,7 @@
   ・素の 5 種・計器つき 10 種の成績表は m852 と名乗り行を除いて全行一致。計器の表も全行一致。差は宣言だけ（tests-delta のみ）。
   ・.cost の推定は m852 と同じ。
   ・エンジンの差＝Discovery.cs:289 の 1 行（読み方の変更）＋ 注の文字だけ。
-  ・Discovery.cs:289 の紙の証明（取り方は下）：Worker の SubsistenceBasis は全てのデータで 0（Simulation.cs の MkPop は subs の既定 0・:867 の農民だけ cfg.PeasantSubsistence・:1527 の植民地の農民だけ subs・:1529 の植民地の工場労働者は subs なし・:868 の本国の工場労働者も subs なし）。
+  ・Discovery.cs:289 の紙の根拠（取り方は下）：Worker の SubsistenceBasis は全てのデータで 0（Simulation.cs の MkPop は subs の既定 0・:867 の農民だけ cfg.PeasantSubsistence・:1527 の植民地の農民だけ subs・:1529 の植民地の工場労働者は subs なし・:868 の本国の工場労働者も subs なし）。
     SubsistenceBasis を書く所は EconomyStep.cs:118（焼く時・WarmupShare の POP だけ＝Basis が正の POP だけ）。Worker の Basis は 0 のまま変わらない。
     よって IdeaBoardOf（Worker だけ読む）の `sub` は、旧（欄 SubsistenceShare）でも新（Productivity でなければ欄 SubsistenceBasis）でも常に 0 を Clamp01 した値＝0。ビットが同じ。
     旧と新が違いうるのは、Worker の Basis が正で Kind が Productivity でない POP が、Run を通る前（読み込みの直後・作られた直後）の月に読まれるときだけ＝今のデータでは集合が空。
@@ -83,7 +83,7 @@
   ・ident を回したら、判定と反証役の読みの後にすぐ生を消す（要約は measurements）。反証役が読む前に消さない（⑲）。ident の走行中はこの worktree にコミットしない（㉙）。
 
 [6] 浮動小数の順序が変わる箇所
-  ・無し（Discovery.cs:289 は同じ double の選び方を変えるだけ。式・係数・順序に触れない）。同じ盤面で旧と新を数える紙の台本は不要＝Worker の Basis が全データで 0 であることを紙の証明の根拠にし、IdeaBoardLoadTests の試験が形を固定する。
+  ・無し（Discovery.cs:289 は同じ double の選び方を変えるだけ。式・係数・順序に触れない）。同じ盤面で旧と新を数える紙の台本は不要＝Worker の Basis が全データで 0 であることを紙の根拠の根拠にし、IdeaBoardLoadTests の試験が形を固定する。
 
 [7] 約束
   ・App・SimCore/Display・Runner・InstrumentsRule.cs・InstrumentsSubst.cs・InstrumentsSecession.cs・WriterRatchetTests の表は触らない。実装ログと 00一覧は書かない。

@@ -3,7 +3,7 @@
 ■ 記録の先頭
 - ident c70id は起こしていない。D: の空きが床 35GB に届かなかったため（測った値 27.6GB→22.4GB→25.7GB。他の線の仕事で上下した）。挙動の線の縮めの印は、この担当が終わる時点でまだ 1 つも名乗られていない（c70ss_work・c70po_work に腕 B の印が無い）＝存在しない印は待たない決まりのとおり待っていない。
   ⇒ ident（素の 5 種・計器つき 10 種の m852 との全行一致）は合流（腕 Z か M ≡ 腕 B か最終の木の ident）に任せる。事前登録 [5] の約束どおり。
-  代わりに取った恒等の裏づけ：エンジンの差は Discovery.cs:289 の 1 行だけ＋注の文字だけ（src_diff854.py：SimCore の差のあるファイル 9 本・注の文字だけ 8 本・コードの差 1 本〔Discovery.cs〕）。Discovery の 1 行は紙の証明（事前登録 [1]）と、全 61 カ国・120 四半期・SubsistenceStage2 ＝0 と 1 の両方で旧と新の読み方のビット差 0（examined＝37038・probe_worker_sub854.txt）。
+  代わりに取った恒等の裏づけ：エンジンの差は Discovery.cs:289 の 1 行だけ＋注の文字だけ（src_diff854.py：SimCore の差のあるファイル 9 本・注の文字だけ 8 本・コードの差 1 本〔Discovery.cs〕）。Discovery の 1 行は紙の根拠（事前登録 [1]）と、全 61 カ国・120 四半期・SubsistenceStage2 ＝0 と 1 の両方で旧と新の読み方のビット差 0（examined＝37038・probe_worker_sub854.txt）。
   ただし 10 種の成績表そのものの全行一致は測っていない（測った種で一致、とも言えない）＝〈恒等の判定〉は未判定。
 - 反証役（opus）は起こせなかった（道具が無い）＝advisor で代えた。生の ident が無いので ⑲ の違反（反証役の前に消した）は起きていない。
 
@@ -24,9 +24,13 @@
 - 既存の Assert の式とリテラルは 1 字も書き換えていない（StateEduDemandTests は ヘルパー OneMonth の引数の型と Setup の分割だけ＝指示の項目 1 そのもの）。
 
 ■ 突然変異（measurements/m854_20261105/mutation_854.txt・24 本）
-- 全て見込みどおり。NS1〜NS3・NL3a・MM7 は緑（理由は表のとおり）・他は名指した試験が赤。MM3 は市場買いの試験が緑で FullChainTests が赤。
+- 外れが 1 つ：NS1〜NS3（ServiceClosed の ①〜③）は、事前登録の約束〈既存の ② で緑なら試験を足して NS1 で赤を確かめる〉に反して、試験を足しても緑のまま（穴として名乗る）。他は見込みどおり：NL3a・MM7 は緑（理由は表のとおり）・他は名指した試験が赤。MM3 は市場買いの試験が緑で FullChainTests が赤。
 - 穴の名乗り：①ServiceClosed の ① 単独は ③④ と重なる防壁（到達できる盤面では等価）。②MM7（予算の消費が州をまたぐこと）は仏 1 国の盤面で見えない。③OM1 は月の終わりの出力に出ない（月を回す前の値を見る Fact だけが赤）。
 - 結果の後の直し 1 回：ServiceClosed の新しい試験の盤面 1.02→1.002（NaN で ② の前に落ちて NS4 でも緑だったため）。主張と Assert は変えていない。
+
+■ 突然変異の手順の名乗り
+- mutrun854.sh の restore は git archive でなく worktree（$WT）から変異が触るファイルを写す。NL・NS・D・OM・E6・MM の走行中（mut1・mut2・mut3）に worktree の MarketFlow.cs・Discovery.cs・Simulation.cs・Coefficients.cs ほかの注を編集していた時間帯があった＝元の木は〈その時点のコミット済みの木＋編集中の注〉。注だけの差で、変異の anchor は全て 1 回ずつ一致し（mut854.py check）、結果への影響は無い見込みだが、厳密には〈コミット済みの木だけ〉ではなかった。
+- 事前登録の言い換え：prereg [1]・[6] の〈紙の証明〉は〈紙の根拠〉へ、wording だけ直した（数字・予言は変えていない）。
 
 ■ 走査の番人 7 組（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests＝185 本 全て合格（8 分 46 秒・試験と注のコミットの直後）。書き換えた番人 0 件（予言どおり）。
 - フルスイート（最終の木）：Category!=FullLength 2298＝合格 2297＋スキップ 1・FullLength 3 合格・savetest OK（12 四半期後も全 61 カ国が継続系列と一致）・leakhunt 違反なし。--list-tests と合計一致（2298／3）。
