@@ -1,0 +1,89 @@
+(854) c70id 事前登録（波70・恒等の線・担当 Claude Sonnet 5.5・枝 c70id・出発 fe21d8a1）
+試験の残り（(846) の反証役 低 4・(848) の反証役の試験の物）と注の残りと Discovery.cs:289 の三項式。エンジンの挙動は変えない。新しい係数 0・新しい状態 0。
+
+[0] 形の先頭
+  ・種類＝恒等の線（予言 0）。旗なし。腕 B なし。ident は条件つき（[5]）。
+  ・D: の空き＝書く時点で 27.6GB（arms.sh free＝6）。ident の床 35GB に届かない。他の線の腕が走っている。
+
+[1] 予言（エンジンの出力）
+  ・素の 5 種・計器つき 10 種の成績表は m852 と名乗り行を除いて全行一致。計器の表も全行一致。差は宣言だけ（tests-delta のみ）。
+  ・.cost の推定は m852 と同じ。
+  ・エンジンの差＝Discovery.cs:289 の 1 行（読み方の変更）＋ 注の文字だけ。
+  ・Discovery.cs:289 の紙の証明（取り方は下）：Worker の SubsistenceBasis は全てのデータで 0（Simulation.cs の MkPop は subs の既定 0・:867 の農民だけ cfg.PeasantSubsistence・:1527 の植民地の農民だけ subs・:1529 の植民地の工場労働者は subs なし・:868 の本国の工場労働者も subs なし）。
+    SubsistenceBasis を書く所は EconomyStep.cs:118（焼く時・WarmupShare の POP だけ＝Basis が正の POP だけ）。Worker の Basis は 0 のまま変わらない。
+    よって IdeaBoardOf（Worker だけ読む）の `sub` は、旧（欄 SubsistenceShare）でも新（Productivity でなければ欄 SubsistenceBasis）でも常に 0 を Clamp01 した値＝0。ビットが同じ。
+    旧と新が違いうるのは、Worker の Basis が正で Kind が Productivity でない POP が、Run を通る前（読み込みの直後・作られた直後）の月に読まれるときだけ＝今のデータでは集合が空。
+    なお植民地の州の POP は月ごとに作り直される州がある（探りで確認：StepQuarter の後に本国外の工場労働者の SubsistenceBasis を置き直した 27 件が失われた）＝試験は本国の州に限る。
+
+[2] 消す物・改める物（名前・場所・読み手）
+  消す物：なし（器・休眠・係数は 1 つも消さない。DormantIdentityTests の表と 00一覧の休眠の器は触らない）。
+  改める物：
+   (a) PriceOfBread.Tests/StateEduDemandTests.cs OneMonth：`double adminFill = 1.0` → `double? adminFill = null`・`if (adminFill is double af) r.AdminFill = af;`。OneMonth を月を回す前の Setup と回す部分に分ける（呼び手は同じファイルの中だけ＝grep 済み：StateEduDemandTests.OneMonth の外の呼び手は同じファイルの StateEduDemandInstrumentTests の 2 か所だけ）。
+   (b) PriceOfBread.SimCore/Discovery.cs:289（IdeaBoardOf）：`double sub = p.SubsistenceShare;` → `p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity ? p.SubsistenceShare : p.SubsistenceBasis`（InstrumentsCearn.cs:587・InstrumentsSubst.cs:76 と同じ三項式。第二の式ではなく既存の読み方の写し）。
+       読み手の grep：IdeaBoardOf の呼び手＝Discovery.cs:656（旗 SpreadNeedFascismDecline＞0 のときだけ）・InstrumentsIdn.cs:31・IdeaNeedBoardTests.cs:121。SubsistenceShare の読み手は EconomyStep・Instruments*（grep 済み）。POB_COEF の名前解決・SaveGame（[NonSerialized] の欄は触らない）・scripts・measurements の読み手は影響なし（欄を足さない・消さない）。
+   (c) 注の一巡（焼いた旗を生きているように書いた注）。焼いた旗の名 23 本（Coefficients.cs の墓標 (843) の 23 行）で、担当のファイルの注の行を grep し直した：
+       MarketFlow.cs:152・:162・:219・:393（死んだ cref ServiceClosedFixedPoint）・:397（死んだ cref LaborClosedForm）／EconomyStep.cs:592・:613・:1784・:1970・:2454／Policy.cs:97・:107・:111・:194・:196・:197・:201／PolicyPreferences.cs:55・:323・:326／SelfPlay.cs:979・:992／InstrumentsLw.cs:4／Discovery.cs:380・:989／Simulation.cs:2166・:2174・:2471・:2879／Coefficients.cs:1394・:2118・:2217・:3320・:3334・:3379・:3494。
+       Coefficients.cs:655・:664 は作者の採否の引用「…」を含む旗の宣言の注＝中身を変えない（墓標の行は別にある）。Coefficients.cs の :530（SubsistenceStage2）・:2752（RuleOrderByRegion）・:3331（EmptyPopEstate）の行は触らない（diff 0 を確かめる）。
+       範囲外で見つけた物は直さず報告に列挙する（World.cs:142・:143・Government.cs・Parliament.cs・Politics.cs:1294・:1295）。
+       注だけのコミット＝コードの部分（// より前）を 1 字も変えない。Simulation.cs と EconomyStep.cs の行は route_anchors.tsv の鍵が〈// より前のコードの文字列〉なので影響なし（MintGold は鍵に無い＝grep 済み）。
+  他の線との重なり（00一覧と指示の割り当てで grep 済み）：
+   ・Coefficients.cs は c70ss が :530・c70po が :2752 だけ・c70id は注の行だけ（:530・:2752・:3331 の行は触らない）＝merge の衝突は行が離れている限り無い。
+   ・DormantIdentityTests.cs・RuleSharesFormTests.cs・RuleOrderP1Tests.cs・SubsistenceStage2Tests.cs・SubstInstrumentTests.cs は触らない。
+   ・EmptyPopEstateTests.cs は足すだけ（他の線は触らない）。EmptyPopEstate.cs・EconomyStep.cs・Simulation.cs・Politics.cs・Territory.cs の書く .cs は注の行だけ。
+   ・scripts/instruments/ident/ident_check.py・m852/mkm852.py・r847/ は c70gt の物＝触らない。
+
+[3] 足す試験と突然変異（回す前の見込み。台本 scripts/instruments/c70id/mut854.py・mutrun854.sh・使い捨ての木 D:/PoB_work/c70id_mut に git archive）
+  tests-delta の予言（Category!=FullLength 2285 → 2298・FullLength 3 は 3）：
+   StateEduDemandTests +5（Theory 3 行＋Fact 2）・MintAtMarketTests（新）+4（Theory 2 行＋Fact 2）・EmptyPopEstateTests +1・IdeaBoardLoadTests（新）+2・ServiceClosedTests +1（下の NS の結果で決まる。緑のままなら足す）。
+   合計 +13（ServiceClosed の +1 を足さなければ +12 で 2297）。--list-tests で突き合わせる。
+  走査の番人の点検（㉘）：7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）を試験のコミットの直後に回す。
+   ・工業化度の読み手の許可表：Discovery.cs の 1 行は IdeaBoardOf の別の行（`p.IndustrialRentPerMonth`）＝今回の行は工業化度の語を含まない＝表は不変（書き換え 0）。
+   ・`new MoneyStock(` の件数 64（SimCore）＝変えない（書き換え 0）。route_anchors.tsv の鍵＝〈// より前のコードの文字列〉を変える行 0。WriterRatchetTests の表＝計算量の件数を変えない（書き換え 0）。
+   ・書き換える番人の件数＝0（予言）。赤が出たら止める。
+  変異（ID・見込み。赤＝名指した試験が赤／緑＝全て緑）：
+   項目 1  OM1 OneMonth を (846) の形（r.AdminFill = adminFill ?? 1.0）へ戻す → 赤：行政の充足を渡さなければ月を回す前の盤面は開幕の既定のまま（Region の開幕の AdminFill が 1.0 でなければ。測る）。
+   項目 2  LaborClosed（新しい物差し）：
+     NL1 閉じた式の〈最後の日が参照より下〉の判定（品薄の枝 `!(pe < wrp)`）を外す → 赤：旬の途中で参照をまたぐ労働は日次へ戻る・閉じた式は端の日だけを確かめる。
+     NL2 法の床の判定（品余りの枝）を外す → 赤：旬の途中で法の床に届く労働は日次へ戻る・閉じた式は端の日だけを確かめる。
+     NL3a 1 日目の `want < wrp` だけ外す → 緑（閉じた式の中の参照の判定が止める）。
+     NL3b 閉じた式の中の参照の判定 2 本だけ外す → 参照より上の 2 行は緑（1 日目の判定が止める）・NL1 と同じ 2 本は赤。
+     NL3c 1 日目の判定と閉じた式の中の参照の判定 2 本を全て外す → 赤：参照より上から出発する労働は日次のまま（2 行とも）。
+     ※〈参照より上〉は 1 点の変異では赤にできない（2 層の防壁）＝NL3c の 2 点（3 か所）の変異で赤にする。
+   項目 2  ServiceClosed ②：
+     NS1 ①（参照をまたがない）だけ外す／NS2 ①・x＞0・② を外す／NS3 さらに ③ を外す／NS4 さらに ④ を外す（判定を全部外す）。
+     見込み：注（ServiceClosedTests の頭）の主張どおり NS1〜NS3 は既存の ② が緑（③④ が日次へ戻す）・NS4 は赤。
+     NS1〜NS3 が既存の ② で緑なら、〈参照の直上から品余りで旬の途中に参照をまたぐ〉盤面の試験（ServiceClosedTests に +1）を足し、NS1 で赤になることを確かめる（★(790) の型）。それでも緑なら穴として名乗る（和らげない）。
+   項目 3  市場買い（MintAtMarketTests）：
+     MM1 atMarket を false に → 赤：2 行とも。
+     MM2 鋳造価値を平価建てに（price = parity）→ 赤：2 行とも。
+     MM3 `m.Price > parity && !atMarket` の continue から !atMarket を外し常に continue → 緑：MintAtMarketTests／赤：FullChainTests の鋳造（床の枝）。
+     MM4 数量の予算の上限（gapLeft/m.Price）を外す → 予算で縛る行（8.0）が赤・在庫で縛る行（0.01）は緑。
+     MM5 予算の月次率を外す → 予算で縛る行が赤・在庫で縛る行は緑。
+     MM6 係数 MintBuysAtMarket の判定を外す → 赤：市場買いの係数が 0 なら平価の上では買わない。
+     MM7 予算の消費 `gapLeft -= value` を外す → 緑（1 州の盤面では 2 回目が無い。州をまたいだ消費は仏 1 国の盤面で見えない＝穴を名乗る）。
+     MM8 World の鋳造の記帳（Outside.Mint の CumulativeGoldMinted）を外す → 赤：保存量 D の Assert（2 行とも）。
+   項目 4  EmptyPopEstate の旗 0：
+     E6a 早い return を外す → 赤：旗 0 の新しい試験と既存の旗 0 の試験。
+     E6b 早い return を外し、人の居る受け手の判定の後に旗を見る（確保はするが移さない）→ 赤：新しい試験だけ（確保）。
+     E6c 早い return の前に乱数（AiRng）を 1 回引く → 赤：新しい試験だけ。
+     E6d 早い return の前にリストを確保する → 赤：新しい試験だけ。
+   項目 5  Discovery.IdeaBoardOf：
+     D1 旧の読み方（欄 SubsistenceShare）へ戻す → 赤：IdeaBoardLoadTests の 2 本。
+     D2 常に欄 SubsistenceBasis を読む → 赤：Productivity の POP の試験だけ。
+
+[4] 合否（採る条件）
+  ・[3] の見込みどおりに変異が赤／緑になる（外れたら和らげずに記録）。
+  ・素の 5 種・計器つき 10 種が m852 と名乗り行を除いて全行一致（ident c70id）。
+  ・フルスイート（Category!=FullLength と FullLength を分け、合計を --list-tests と突き合わせ）・savetest・leakhunt 緑。
+  ・走査の番人 7 組が赤にならない。
+
+[5] ident の条件（D: の決まり）
+  ・試験と注のコミットの後に、D: の空きが 35GB 以上で走っている腕が無いときだけ ident c70id を起こす。
+  ・足りなければ挙動の線の縮めの印を 1 回だけ待つ（その線が名乗った印だけ・存在しない印は待たない）。それでも届かなければ ident は合流（腕 Z か M ≡ 腕 B か最終の木の ident）に任せると記録の先頭に名乗る。
+  ・ident を回したら、判定と反証役の読みの後にすぐ生を消す（要約は measurements）。反証役が読む前に消さない（⑲）。ident の走行中はこの worktree にコミットしない（㉙）。
+
+[6] 浮動小数の順序が変わる箇所
+  ・無し（Discovery.cs:289 は同じ double の選び方を変えるだけ。式・係数・順序に触れない）。同じ盤面で旧と新を数える紙の台本は不要＝Worker の Basis が全データで 0 であることを紙の証明の根拠にし、IdeaBoardLoadTests の試験が形を固定する。
+
+[7] 約束
+  ・App・SimCore/Display・Runner・InstrumentsRule.cs・InstrumentsSubst.cs・InstrumentsSecession.cs・WriterRatchetTests の表は触らない。実装ログと 00一覧は書かない。
