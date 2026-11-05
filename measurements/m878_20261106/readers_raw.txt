@@ -1,0 +1,65 @@
+PriceOfBread.SimCore/Diplomacy.cs:549:                    for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
+PriceOfBread.SimCore/Diplomacy.cs:3655:                    if (r.Rule.Length != 4 || !(r.Rule[0] >= c.ProjectionRuleMin)) continue;
+PriceOfBread.SimCore/Display/PopTables.cs:223:        if (rg.Rule.Length == 4)
+PriceOfBread.SimCore/Display/PopTables.cs:225:            double s0 = rg.Rule[0], s1 = rg.Rule[1], s2 = rg.Rule[2], s3 = rg.Rule[3];
+PriceOfBread.SimCore/Display/PopTables.cs:236:            dom = rg.Dominance;
+PriceOfBread.SimCore/Fiscal.cs:504:                    double reach = Politics.RuleReach(rg);
+PriceOfBread.SimCore/Fiscal.cs:735:                double mul = Politics.RuleDelivery(r, c);
+PriceOfBread.SimCore/Fiscal.cs:736:                double cut = r.Rule.Length == 4
+PriceOfBread.SimCore/Fiscal.cs:737:                    ? (PoliticalQuantities.Clamp01(r.Rule[1]) + PoliticalQuantities.Clamp01(r.Rule[0]) * (1.0 - PoliticalQuantities.Clamp01(r.AdminFill))) * (1.0 - ruleDeliver
+PriceOfBread.SimCore/InstrumentsAdmin.cs:30:            bool ok = r.Rule.Length == 4;
+PriceOfBread.SimCore/InstrumentsAdmin.cs:31:            double s0 = ok ? PoliticalQuantities.Clamp01(r.Rule[0]) : 1.0, s1 = ok ? PoliticalQuantities.Clamp01(r.Rule[1]) : 0.0, f = PoliticalQuantities.Clamp01(r.A
+PriceOfBread.SimCore/InstrumentsAdmin.cs:34:            dOld += pop * (s0 + s1 * d); dNew += pop * Politics.RuleDelivery(r, c);
+PriceOfBread.SimCore/InstrumentsAdmin.cs:35:            unserved += pop * (s0 * (1.0 - f)); reachOld += pop * Politics.RuleReach(r);
+PriceOfBread.SimCore/InstrumentsAdmin.cs:47:            double mNow = Military.RegionManpower(r, c), dNow = Politics.RuleDelivery(r, c);
+PriceOfBread.SimCore/InstrumentsRule.cs:65:            num += pop * Politics.RuleReach(r); den += pop;
+PriceOfBread.SimCore/InstrumentsRule.cs:83:            F(Politics.StateReach(w, c)), F(w.AdminEfficiency), w.UnequalTreatyInForce ? "1" : "0", F(Politics.ForeignPortShare(w)),
+PriceOfBread.SimCore/InstrumentsRule.cs:94:            bool ok = r.Rule.Length == 4;
+PriceOfBread.SimCore/InstrumentsRule.cs:104:                F(ok ? r.Rule[0] : double.NaN), F(ok ? r.Rule[1] : double.NaN), F(ok ? r.Rule[2] : double.NaN), F(ok ? r.Rule[3] : double.NaN),
+PriceOfBread.SimCore/InstrumentsRule.cs:105:                F(r.RuleInit.Length == 4 ? r.RuleInit[1] : double.NaN), I(r.ForeignRulers.Length), F(r.Dominance), F(km), F(reach))
+PriceOfBread.SimCore/InstrumentsScore.cs:34:        static double ForeignSum(World w) { double v = 0; foreach (var r in w.Regions) foreach (var x in r.ForeignShares) if (x > 0) v += x; return v; }   // ★(449)
+PriceOfBread.SimCore/InstrumentsSecession.cs:39:    //   ungovTargetNewShare＝(1−order_r)×(1−到達)（旗 1 の目標）／ruleUngovBeforeShare・ruleForeignBeforeShare＝Rule のループの前の r.Rul
+PriceOfBread.SimCore/InstrumentsSecession.cs:61:        double before3 = r.Rule.Length == 4 ? r.Rule[3] : double.NaN, before2 = r.Rule.Length == 4 ? r.Rule[2] : double.NaN;
+PriceOfBread.SimCore/InstrumentsSecession.cs:137:                F(pressure), F(p.Pressure), F(Rel(p.Pressure, pressure)), F(effBefore), F(holdShare), F(holdShare - pressure), F(r.Dominance), r.Dominance > 0 ? 
+PriceOfBread.SimCore/InternationalMarket.cs:169:        => 1.0 - Politics.ForeignPortShare(w);
+PriceOfBread.SimCore/Military.cs:149:        return sld ? m * Politics.RuleDelivery(r, c) : 0;   // ★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（★(408) 以後は国家区�
+PriceOfBread.SimCore/Military.cs:273:            bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && !wartimeConscript && (r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]
+PriceOfBread.SimCore/Model.cs:1101:    public double[] RuleStateYears = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+PriceOfBread.SimCore/Model.cs:1107:        if (RuleStateYears.Length == 0) return -1;
+PriceOfBread.SimCore/Model.cs:1108:        double v = RuleStateYears[RuleStateHead % RuleStateYears.Length];   // 次に上書きされる位置＝最古
+PriceOfBread.SimCore/Politics.cs:1604:        foreach (var (r3, _, _) in margins) if (!(r3.Dominance > 0)) (go ??= []).Add(r3);
+PriceOfBread.SimCore/Politics.cs:1737:            num += pop * (RuleReach(r) * PoliticalQuantities.Clamp01(r.AdminFill)); den += pop;   // ★(408) 国家区分の中でも官僚の役務が届く分にしか�
+PriceOfBread.SimCore/Politics.cs:1743:    internal static double ForeignPortShare(World w)
+PriceOfBread.SimCore/Politics.cs:1751:            num += pop * ForeignShareSum(r); den += pop;
+PriceOfBread.SimCore/Politics.cs:1758:    internal static bool TreatyPortInForce(World w, Coefficients c)
+PriceOfBread.SimCore/Politics.cs:1763:            if (r.IsPort && ForeignShareSum(r) >= line) return true;
+PriceOfBread.SimCore/Politics.cs:1769:    internal static double RuleReach(Region r)
+PriceOfBread.SimCore/Politics.cs:1771:        if (r.Rule.Length != 4) return 1.0;
+PriceOfBread.SimCore/Politics.cs:1772:        double v = PoliticalQuantities.Clamp01(r.Rule[0]);
+PriceOfBread.SimCore/Politics.cs:1777:    internal static double ForeignShareSum(Region r)
+PriceOfBread.SimCore/Politics.cs:1779:        double v = 0; foreach (var x in r.ForeignShares) if (x > 0) v += x;
+PriceOfBread.SimCore/Politics.cs:1786:        int k = System.Array.IndexOf(r.ForeignRulers, baseName);
+PriceOfBread.SimCore/Politics.cs:1789:            var names = new string[r.ForeignRulers.Length + 1]; var shares = new double[r.ForeignShares.Length + 1];
+PriceOfBread.SimCore/Politics.cs:1790:            System.Array.Copy(r.ForeignRulers, names, r.ForeignRulers.Length); System.Array.Copy(r.ForeignShares, shares, r.ForeignShares.Length);
+PriceOfBread.SimCore/Politics.cs:1791:            names[^1] = baseName; shares[^1] = 0; r.ForeignRulers = names; r.ForeignShares = shares; k = names.Length - 1;
+PriceOfBread.SimCore/Politics.cs:1793:        r.ForeignShares[k] = System.Math.Min(1.0, r.ForeignShares[k] + amount);
+PriceOfBread.SimCore/Politics.cs:1799:    internal static double RuleDelivery(Region r, Coefficients c)
+PriceOfBread.SimCore/Politics.cs:1801:        if (r.Rule.Length != 4) return 1.0;
+PriceOfBread.SimCore/Politics.cs:1804:        double v = PoliticalQuantities.Clamp01(r.Rule[0]) * (deliver + (1.0 - deliver) * PoliticalQuantities.Clamp01(r.AdminFill)) + PoliticalQuantities.Clamp01(r.Rule[1]) 
+PriceOfBread.SimCore/SaveGame.cs:266:                    if (dv is Array arr) dv = arr.Clone();   // ★2026-09-07 レビュー是正：donor の配列を共有しない（旧セーブの全州が1本の Rule/R
+PriceOfBread.SimCore/Simulation.cs:2189:                    * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
+PriceOfBread.SimCore/Simulation.cs:2749:            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // ★(650) 国庫へ届く割合（税と同じ物差し・州ごと）
+PriceOfBread.SimCore/Territory.cs:288:                r.Dominance = 1.0;
+PriceOfBread.SimCore/World.cs:43:    internal bool UnequalTreatyInForce => Politics.TreatyPortInForce(this, Coef);
+PriceOfBread.App/ViewModels/GameViewModel.Header.cs:108:                manpower += (pool + sld) * Politics.RuleDelivery(r, c);   // 兵役の母数＝Military.Step と同一（州ごとの支配度 段3）
+PriceOfBread.App/ViewModels/GameViewModel.Map.cs:720:        //   国家・在地・外国・無統治をそのまま出す（0% はそのまま 0% と出す＝**無い値をUIで作らない**）。Rule が無
+PriceOfBread.App/ViewModels/GameViewModel.Map.cs:723:        if (rg.Rule.Length == 4)
+PriceOfBread.App/ViewModels/GameViewModel.Map.cs:725:            double s0 = rg.Rule[0], s1 = rg.Rule[1], s2 = rg.Rule[2], s3 = rg.Rule[3];
+PriceOfBread.App/ViewModels/GameViewModel.Map.cs:736:            dom = rg.Dominance;
+PriceOfBread.App/ViewModels/GameViewModel.MapFill.cs:22:    // ★裁定②（2026-09-23）：濃さの元を休眠の Rule[0] から live な Region.Dominance へ替えた＝係数のゲートで隠す理由�
+PriceOfBread.App/ViewModels/GameViewModel.MapFill.cs:86:                // ★裁定②（2026-09-23 作者指示「支配度は国家でない割合だけ、色を薄くするか黒くする」）：濃さ＝l
+PriceOfBread.App/ViewModels/GameViewModel.MapFill.cs:87:                //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ薄くする（MapFill.c
+PriceOfBread.App/ViewModels/GameViewModel.MapFill.cs:91:                //     Region.Dominance は別の量（呼び名は帰属）で、塗りには使わない。
+PriceOfBread.App/ViewModels/GameViewModel.Trade.cs:75:        TreatyPortLine = Politics.ForeignPortShare(w) > 0   // setter は private プロパティへ直接・★(402) 関税が目減りしている間は�
+PriceOfBread.App/ViewModels/GameViewModel.Trade.cs:76:            ? $"条約港　外国持分 {Politics.ForeignPortShare(w):P0}　関税の実効 ×{InternationalMarket.TreatyPortTariffScale(w):F2}"
+PriceOfBread.Runner/Program.cs:4049:            foreach (var r in w.Regions) { double sz = r.SumPopulation(); pop += sz; for (int k = 0; k < 4 && k < r.Rule.Length; k++) acc[k] += r.Rule[k] * sz; }
