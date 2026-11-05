@@ -20,6 +20,8 @@ elif mode == 'E2':   # 落とした枝で手形を∞のまま（商人の債務
     sub(BM, B, 'else if (r2.Pops.Count > 0) { payerOf[t2] = !(c.ImportPayerLive > 0) || r2.Pops.TrueForAll(p => p.Size > 1e-12) ? r2.Pops : r2.Pops.Exists(p => p.Size > 1e-12) ? r2.Pops.FindAll(p => p.Size > 1e-12) : null; bill[t2] = r2.MerchantPop is { } mpb && !(mpb.Debt.Value > 0); }')
 elif mode == 'E3':   # 落とした枝の払い手を別の州（清算の行の次の行の州）の人の居る POP にする
     sub(BM, B, 'else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) ? r2.Pops : tr[(t2 + 1) % tc].r.Pops.FindAll(p => p.Size > 1e-12) is { Count: > 0 } oth ? oth : null;')
+elif mode == 'E3b':   # E3 の同じ国の版（E3 は別の国の POP で貨幣保存の番人が止めた＝U3 を全長で確かめる型）：落とした枝の払い手を同じ国の最初の州の人の居る POP にする
+    sub(BM, B, 'else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) ? r2.Pops : w2.Regions[0].Pops.FindAll(p => p.Size > 1e-12) is { Count: > 0 } oth ? oth : null;')
 elif mode == 'E4':   # 門を Size ＞1e-9 に変える（記録）
     sub(BM, A, A.replace('1e-12', '1e-9'))
     sub(BM, B, B.replace('1e-12', '1e-9'))
