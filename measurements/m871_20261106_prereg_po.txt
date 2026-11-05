@@ -1,0 +1,71 @@
+(871) 線 c72po 事前登録：州ごとの治安 P1-1 の 3 回目＝3 回の規則の最後（形は (850) のまま・エンジン 0 行＝旗の既定を 1 にするだけ・種 1〜10 は回し直さない・c72gt (867) の振り分けで keep_866_rej/c71poB_10 を読み直して通れば種 11〜20 の腕 S11）
+書いたモデル：Claude Opus 5.5。枝 c72po（出発 688294bf0fbf70f66d05fdde0520e6052b3ad1c8）。worktree D:/PoB_work/wt_c72po。作業フォルダ D:/PoB_work/c72po_work（この回に作った・消してよいのはこれと、この線が作る c72po_art だけ）。
+挙動の線・3 回の規則の 3 回目（(856) は〈近似による停止〉で数えない・(862) が 2 回目の不採用）。新しい状態 0・新しい係数 0。形は〈入口〉（目標の式の 1 項を替える＝全ての州×四半期に効く・尾ではない）。
+出発：00一覧 §00〈次の波（波72〜）〉⑤。作者 2026-11-04「闘争度が高い州は、支配度が低下するのではないか（警察力が十分でない場合）」→ AI の推奨〈無統治の目標を州ごとの治安（警察と軍の届く力と州の闘争度の比例）で作る〉を〈作者「全て推奨で」で推奨を採った〉。弾力・形は AI の案＝確証なし。
+前提：この線は作者の答え待ち（§0-2 ★(866) ①）を前提にしない。基線は m852（成績表 b10_20261105_m852_ins・NG ng852・生 keep_852/base_ins〔木 1271053f〕・keep_866/base_ins〔木 3b5fbb56〕）。
+ident を回さない理由：この線が書くエンジンの .cs は Coefficients.cs:2752 の値 1 字だけ（Politics.cs ほかは 1 字も書かない）。旗 0 の器は (850) の ident c69poz で〈判定: 恒等〉と測った。今の main（688294bf）の木の旗 0 は (866) の ident m866 で m852 と全行一致と測った。旗 1 の木は挙動を変える木＝恒等の判定の対象ではない。
+
+この文書の順＝[0] 形 [1] no-go の基準（印を読む前に固定）[2] 点火のコミットの中身 [3] 決定論と種 1〜10 を回さない理由 [4] 門（記録・近似）[5] 突然変異（引くだけ）[6] 止める線と採否 [7] 記録 [8] 番人と試験の予言 [9] 計算量 [10] D: と生の扱い [11] c72gt の印と台本の引用（印の後・S11 の前に追記）[12] 結果（腕の後に追記）。
+
+━━ [0] 形（(850) の [1]・(862) の [0] と同じ・エンジンは main の旗 0 の器のまま 1 字も変えない）
+- 旗 RuleOrderByRegion（Coefficients.cs:2752）の既定を 0.0 → 1.0。
+- 旗 1：R＝EffectiveCoerce÷max(1e-9, 総人口×CrimeOrderPerPop)・m̄＝全ての州の大衆の規模加重の闘争度・m_r＝AvgRegionMilitancy(r)・order_r＝m_r が正でなければ 1、でなければ Clamp01(R×m̄÷m_r)。tUngov＝(1−order_r)×(1−RegionReach)（Politics.cs:1561 `bool byRegion = c.RuleOrderByRegion > 0;`・CheckSecession の中）。旗 0：order＝Clamp01(w.PublicOrder)＝今の式。
+- 犯罪（Crime.cs）は国の秩序のまま（番人 CrimeTests）。1 州の国は CheckSecession の頭の return で動かない（記録）。
+
+━━ [1] no-go の基準（このコミットで固定・印 D:/PoB_work/c72gt_work/hol_ready.mark はまだ無い＝読む前）
+- no-go ①：hol_ready.mark の rc が 0 でない → S11 を回さず報告する（3 回の規則に数えない）。
+- no-go ②：hol_ready.mark の .log の先頭が `VERDICT hol fail …`（＝c72gt が旗 0 とヌル腕の生だけから導いて事前登録した振り分けの規則でも、keep_866_rej/c71poB_10 の種 10 フォートウィリアムが〈線が原因〉）→ S11 を回さない＝**3 回の規則の最後の不採用でこのテーマを閉じる**（合流は採らない・旗 0 の器の扱いは合流が次の波の推奨に書く）。
+- no-go ③：旗 1 の木のフルスイートに予言（[8]）の外の赤 → S11 を回さず止めて報告する（3 回の規則に数えない）。
+- 印の .log が `VERDICT hol pass` なら S11（種 11〜20）を回す。**読み直しの〈近似〉の通りだけでは採らない**＝採否は S11 の止める線（[6]）。
+- この 3 つの外の理由で腕を止めない（★(859)：結果の後に足した no-go は〈近似〉と名乗り 3 回の規則に数えない）。
+
+━━ [2] 点火のコミットの中身（.cs だけ・★(866)＝6a067f65 の .cs と同じ字・`git show 6a067f65 -- <3 つの .cs> | git apply --index` で当てる）
+- PriceOfBread.SimCore/Coefficients.cs:2752 の値 `0.0` → `1.0`（値だけ・同じ行の注は変えない）。
+- PriceOfBread.Tests/DormantIdentityTests.cs:31 の `"RuleOrderByRegion",` の行を注の行に替える（表から外す）。c72ss の :29 と近い＝合流が手で解く。
+- PriceOfBread.Tests/RuleSharesFormTests.cs:33（D1 の試験の頭は :29）の `w.PublicOrder = 1.0;` の行の注だけを替える（Assert・リテラル・初期化子は 1 字も変えない）：
+    -        w.PublicOrder = 1.0;   // 無統治の目標 0（治安が満ちている）
+    +        w.PublicOrder = 1.0;   // 旗 RuleOrderByRegion 0 なら無統治の目標 0（治安が満ちている）・旗 1 は州の秩序 Clamp01(R×m̄÷m_r) で無統治が立ちうる（この試験の Assert は在地の Rule[1] だけ＝旗に依らない）
+- 旧の規則を固定する番人が旗 1 で赤になったとき直してよいのは ★(866) の Theory 化の型か ★(832) ① (a) の型（RuleSharesFormTests.cs:81・:109 の初期化子の旗 0 は main にある）だけ。diff をこの文書に追記してから直す。それ以外は止めて報告する。予言は〈直す物 0〉（(862) の旗 1 のフルスイートで赤は WriterRatchet の item 11 だけ）。
+
+━━ [3] 決定論と種 1〜10 を回さない理由
+- 点火の後の木の SimCore と 6a067f65（(862) の点火）の木の SimCore の差は、旗 0 で恒等の器（c71ip の BilateralMarket.cs:580〜583 ほか・ImportPayerLive＝0）と c71id の注と Discovery.cs:289 だけ＝ident m866 で m852 と全行一致と測った。旗 RuleOrderByRegion＝1 の経路はそれらに触れない＝種 1〜10 の旗 1 の生は keep_866_rej/c71poB_10 とバイトで同じになる見込み＝回し直さない（合流が採るときの M ≡ 腕の確かめで拾う）。
+
+━━ [4] 門（c71gt (860) の gates_po860.py をそのまま・写し scripts/instruments/c72po/gt860/〔SHA256.txt と sha256sum -c で一致：gates_po860.py 61467ad5…・gates_po860_thresholds.tsv e7cd62d0…・mut_po860.py 580338ad…〕）
+- G0・G1・G1u・G2a・G2b（形 c・〈母集合の下限と連鎖の点検〉と名乗る）。閾値は種 1〜10 の旗 0（keep_852 の M′・N1・N2）から置いた表のまま（W_S 0.00283251538・persist_L 120・G2b_tol 1e-8）。
+- 種 11〜20 は W のヌル腕が無い＝**門は全て記録・〈近似〉と名乗る**。台本は種 1〜N しか読まない＝種 11〜20 の生（腕と keep_852/a11）を種 1〜10 の名へハードリンクで並べ替えたフォルダを作って読む（台本は 1 字も変えない）。ヌル腕の欄には a11 を入れる（W＝0 になる）＝G1 は ΔS を種 1〜10 の W_S と並べて記録。
+- 計算量の登録：0.1 秒以下。
+
+━━ [5] 突然変異（形が同じ＝回し直さない・(856)・(862) の記録を引く）
+- measurements/m862_20261105/mutation_unit.txt：M1・M2・M3・M4・M5・M7・D2（初期化子の旗 0 を外す）・D1 の 8 本とも予言どおり赤（M1：P1_3・P1_5(旗1)／M2：P1_1・P1_2・P1_3・P1_5(旗1)・P1_6／M3：P1_2／M4：P1_3・P1_5(旗1)／M5：CrimeTests／M7：P1_5(旗1)／D2：RuleSharesFormTests の D2 の 2 本／D1：P1_6・P1_7）。門の側の突然変異は c71gt (860) の表（measurements/m862_20261105/c71gt_gates_ready_log_copy.txt）。
+
+━━ [6] 止める線と採否（この回の形をそのまま写す・結果を見る前）
+- 採否の決め手は S11（c72poS・種 11〜20）の止める線（★(802)・★(832)）。種 1〜10（keep_866_rej/c71poB_10）の止める線は (862)・(866) の読みのまま（空洞化の振り分けは c72gt の規則の VERDICT が決める）。
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能＝作者の破綻の定義〈シミュが止まる・クラッシュ・NaN・保存則・savetest〉の範囲だけ）・税と徴兵が届かなくなった州の財政の破綻・発散（金利・人口・値段が桁で暴走）。
+- 空洞化 1/10 未満（an_h2.py -v5 の出力・規則 A2 の例外の名簿の外）：**S11 の振り分けは c72gt が事前登録した規則（holsplit867.py・sha256 は [11]）で読み、holclass839.py（基線 keep_852/a11 を同じ台本で数えた出力）の数を並べる＝合流は灰色と名乗る**。〈線が原因〉が 1 件でもあれば T1 で採らない。主要国の州は例外にしない。
+- 〈100 倍〉：gdp_jump797.py と gdp_jump833.py の〈それ以外〉だけが止める線（建国の直後・分母の痩せはヌル腕の件数と並べる）。1e10 倍以上・非有限・開幕の 1000 倍（brk693/plvl_seeds.py・開幕の 1000 倍は同じ国が半分以上の種なら NG・それ以外は記録）。
+- 名目 GDP 0 の続き（m808/gdp_zero10.py）は記録の段の先頭。
+- 機構の番人の赤（走査の番人 7 組を含む）・推定の計算量 ＞248.5 秒・savetest・leakhunt。
+- 数え方：scripts/instruments/c72po/stoplines871.sh（m866/stoplines866.sh の写し・木だけ wt_c72po）`<ins> <出力> 11`。S11 の基準は keep_852/a11 を同じ台本で数えた物。新 m852（keep_852/n1・n2）と旧 m839（keep_839/n1・n2）のヌル腕の件数は stop_table_866.tsv の行を並べる（種 1〜10）。
+- T1 の一つ抜き（r847/loo847.py）は記録として並べるだけ。
+
+━━ [7] 記録（採否に使わない）
+- 分離の戦争の数・建国の数（M852 16・N1 13・N2 14・c71poB 11）・国の無統治の区分・同じ闘争度が 3 系統（犯罪・離脱・届き）に効くこと・名目 GDP 0 の続き・開幕の 1000 倍以上・exact・near・勝者・英の国債の不履行の種の数・門の値（[4]）・nullgate.py（S11 の基準は a11 の成績表 measurements/b10s11_20261105_m852_ins）・NG（S11 は記録）。
+
+━━ [8] 番人と試験の予言
+- 足す試験 0・消す試験 0＝--list-tests は Category!=FullLength 2307・FullLength 3 のまま（点火のコミットの後に数え直す）。DormantIdentityTests の表の行を外しても件数は変わらない。
+- 走査の番人 7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）：点火の直後に隔離ビルド D:/PoB_work/c72po_art で回す（㉘）。変わる件数の予言（㉑）：工業化度の読み手の許可表・`new MoneyStock(` の件数（SimCore の grep -c の行の和 64）・route_anchors.tsv の鍵の行・WriterRatchetTests の書き手の数の表は全て変わらない。
+- WriterRatchetTests の計算量の表（★(778)・線では書き換えない）：予言＝**item 11（DiploHegemonScans）が赤・値 3,442,688 対 宣言 2,978,732（+15.6%・(856)・(862) と同じ値）**。item 1・2・9 は緑。この外の item の赤は予言の外＝no-go ③。
+- ㉜ ★(818)：`grep -ln 'Rule\[\|PublicOrder' PriceOfBread.Tests/*.cs`＝AdminServesRuleTests・CrimeTests・DormantIdentityTests・PopScanTests・PowerSharesTests・RuleInstrumentTests・RuleOrderP1Tests・RuleSharesFormTests、`grep -ln 'CheckSecession\|RuleOrderByRegion'`＝CrimeTests・DormantIdentityTests・NationIdentityTests・RevoltIgnitionTests・RuleOrderP1Tests・RuleSharesFormTests・SecessionLaborLawInstrumentTests（(862) と同じ 11 ファイル。`git diff --stat 62190ef0 688294bf -- PriceOfBread.Tests/` で、この 11 ファイルのうち変わったのは DormantIdentityTests.cs の 1 行〔c71ip の旗 ImportPayerLive の表の行〕だけ・WriterRatchetTests.cs も変わっていない＝Assert は (862) で読んだ物のまま）。予言：旗 1 で赤になる機構の番人 0。
+- 台帳の欄を書く線ではない（Rule の段はお金を動かさない）。
+
+━━ [9] 計算量
+- 割り当て 0.1 秒以下。比べる側は m852 の 212.6 秒（名目の余り 約 35.9 秒・上限 248.5 秒）。c71poB（種 1〜10）は 210.3 秒。S11 の基準 b10s11_20261105_m852_ins は 209.5 秒。2 秒以下は 1 本の腕で門にしない＝合流の木の累計で読む。推定 ＞248.5 秒は止める線。
+
+━━ [10] D: と生の扱い
+- この線の D: の大きな仕事は S11（c72poS・`POB_CEARN=0`＝宣言：cearn_s・cgrp_s・cpop_s を書かない・門と止める線はそれらの表を読まない・見込み 約 9〜10GB・床 30GB）の 1 本だけ。
+- 起こす前に `bash scripts/instruments/tools/arms.sh free`（1 以上）と D: の空き（`python -c "import shutil;print(shutil.disk_usage('D:/').free/1e9)"`・30GB 以上）を見る。
+- 命令：`bash scripts/instruments/tools/bg.sh D:/PoB_work/c72po_work/s11.mark bash scripts/instruments/c72po/s11_871.sh <点火のコミット>` を run_in_background で（中で `POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c72poS 10 11`・POB_INSTRUMENTS_NATIONS は 9 国）。腕の成否は終了コード（0＝完走）と成績表 D:/PoB_work/c72po_work/b10_c72poS_10_s11.txt の有無の両方で読む。
+- S11 の生は、反証役が読んだ後に門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s と keepsum_all_tables.tsv）へ縮める。縮めた後も合流が読むまで消さない。報告に生のパスを書く。反証役が読む前に縮めない（⑲）。
+
+━━ [11] c72gt の印と台本の引用（印の後・S11 の前に追記する）
+━━ [12] 結果（腕の後に追記する）
