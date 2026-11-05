@@ -38,6 +38,15 @@
   - 予言：旗 1 の木で item 11 が赤になりうる（軌道で国の数が変わる）。item 1・2・9 も軌道の件数の写し＝赤になりうる。この 4 つ以外の item の赤は予言の外＝止めて報告。
   - 予言に当たる赤は〈軌道の件数を写しただけの番人〉＝腕 B の前の止める線ではない（RULEW〈予言に無い赤は止める〉の裏）。赤のまま報告する。
 
+■ [4b] 旗 1 の木のフルスイートの前の点検（㉜・★(818)・㉘・㉑）＝点火 1b9eeab1 のフルスイートの出力を読む前に書いた
+  - ★(818) の grep `grep -lnE 'SubsistenceBasis|SubsistenceShare|LandRentPerMonth|UnemploymentRate' PriceOfBread.Tests/*.cs`＝22 本の該当行を全て読んだ。
+    ・食べる割合を読む試験（FoodLedgerTests:87〜236・UrbanFlowRealTests:49〜91・IdeaNeedBoardTests:30）：読む所は SubsistenceShare（その月の σ）・農民の見分けは SubsistenceBasis＞0（焼いた後は ρ＞0 のまま）＝手の算術はエンジンの σ を読む形＝旗 1 でも成り立つ予言。
+    ・UnemploymentRate を書くだけの試験（AiFirstWave・Military・MinimumWageAiFloor・Mobility・PlayHarness・SbBargain・SteelMarketAi）は前提の盤面を置くだけ＝旧の失業の式を固定しない。UnemploymentRate を Assert するのは SubsistenceStage2Tests:126〜127（(b′) の線の持ち物）と UnitTypeTests:480（型の往復）だけ。
+    ・LandRentPerMonth の Assert（ColonialPop・Tax・Cornint ほか）は地代の台帳＝この旗は地代を書かない。
+  - 旧の規則を固定する番人の grep `grep -rnE "FarmUnemployment|SubsistenceStage2|SubsistenceBasisKind" PriceOfBread.Tests`：SubsistenceStage2Tests・SubstInstrumentTests（線の持ち物）と DormantIdentityTests の旗の表（点火で外した）だけ。
+  - 予言：--list-tests は Category!=FullLength 2285・FullLength 3（点火は試験を足さない）。赤は [4] の WriterRatchetTests の item（1・2・9・11）だけ。それ以外の赤（機構の番人・走査の番人 7 組・試験の中止）は止める。
+  - 走査の番人の件数：`new MoneyStock(`（SimCore）64 のまま・scripts/instruments/flow262/route_anchors.tsv に触れない・工業化度の読み手の許可表・単位の型の表・計器の表の名前・財の番号の直書き・技術水準の削除の番人は 0 件の変化（点火は既定値 1 字と旗の表の 1 行だけ）。DormantIdentityTests の旗の表は 1 行減る。
+
 ■ [5] 腕 B の生の扱い（腕の前に書く）
   - 腕 B は POB_CEARN=0（cearn_s・cgrp_s・cpop_s を書かない）。門と止める線はその表を読まない。
   - 生は D:/PoB_work/c70ss_work/armB に置く。門・止める線・記録の読みと反証役（助言の担当）の読みの後に、門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s）と keepsum_all_tables.tsv へ縮める。縮めた後も合流が読むまで残す（消さない）。
