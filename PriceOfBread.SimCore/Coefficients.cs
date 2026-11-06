@@ -528,7 +528,7 @@ public sealed class Coefficients
     public double EffPerOutput = 0.08;            // RGO産出1単位あたりの効率化材消費（profit-gateで割に合う時だけ買う）
     public double EffBoost     = 0.3;             // 完全充足時のRGO産出の上乗せ（肥料/飼料/漁船/工具が満たされた時）
     public double SubsistenceStage2 = 1;          // ★(849) 自給の段 2（S1-a・AI の案・確証なし・(870) 2026-11-06 点火〔3 回目〕）。0＝旧の形（食べる割合は欄のデータのまま・1 ビットも変わらない）。正＝助走の後の最初の月に POP ごとに自給の生産性 ρ を焼き、毎月の食べる割合を min(1, ρ×売れ残りの農業労働の能力×主食の RGO の効率化材の倍率÷(主食の必要量×人数)) にする・農民の失業は必要量を作るのに要る労働を超えた売れ残りだけ（事前登録 measurements/m849_20261105_prereg_ss.txt）
-    public double SubsistenceNoBoughtTech = 1;    // ★(877) 自給の段 2′ Σ2′（AI の案・確証なし・作者「全て推奨で」で推奨を採った・(890) c75ts が 2026-11-06 に 1 で点火〔3 回目〕）。0＝旧の形（S1-a＝自給の食べる割合と焼く ρ と農民の失業の必要な労働に、同じ州の主食の RGO が買った効率化材の倍率 T を掛ける）。正＝T を自給の 3 か所から外す（σ＝min(1, ρ×売れ残りの能力÷(必要量×人数))・焼く ρ＝d0×必要量×人数÷売れ残りの能力・必要な労働＝必要量×人数÷ρ）。旗 SubsistenceStage2 が 0 なら読まない（事前登録 measurements/m877_20261106_prereg_ts.txt）
+    public double SubsistenceNoBoughtTech = 0;    // ★(877) 自給の段 2′ Σ2′（AI の案・確証なし・作者「全て推奨で」で推奨を採った）。0＝今の形（S1-a＝自給の食べる割合と焼く ρ と農民の失業の必要な労働に、同じ州の主食の RGO が買った効率化材の倍率 T を掛ける）。正＝T を自給の 3 か所から外す（σ＝min(1, ρ×売れ残りの能力÷(必要量×人数))・焼く ρ＝d0×必要量×人数÷売れ残りの能力・必要な労働＝必要量×人数÷ρ）。旗 SubsistenceStage2 が 0 なら読まない（事前登録 measurements/m877_20261106_prereg_ts.txt）
     public double GridBuildRate = 0.1;           // 送電容量の不足分を月に何割ずつ敷設するか（投資家の残予算の範囲で）
     public double FillInertia = 0.25;            // 電化率(ElecFill)・効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）。旧・EconomyStep直書き0.25×2を集約（sweep対象化・DRY）
     public double ElecFillIrreversibility = 1.0; // **1.0点火済み（稼働中）**（第2段2-8是正2026-07-27：旧注記「#17で有効化検討」は点火後も残った嘘）。監査2026-07-05（E4）：電化の不可逆性＝設備ロックイン。0=無効（採算で毎期進退）・1で電化率は下がらない（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）。中間は下落速度を(1−これ)倍に減速。緩和は裁定待ち（史実では電化はほぼ不可逆＝現状も擁護可）
@@ -3594,7 +3594,7 @@ public sealed class Coefficients
     //   ＝「正しい海に出る」。退避が効くことは SeaGraphTests / SeaStitchBudgetTests が固定する。
     // ⚠海路距離が動く＝**較正非中立**（貿易/GDP・領土・列強の帯が動く）。点火A/Bは POB_COEF="SeaStitchLeadBudgetMult=1"
     //   で親がバッチ測定済み＝0.5を採用（1.0は地図の線が最少だが帯は0.5が上）。0＝旧規則（無制限免除）とビット恒等＝新しい実測（陸マスクの走査）は1回も走らない。
-    public double ImportPayerLive = 1;   // ★(863) c71ip 輸入の払い手を人の居る POP に限る旗（案 A・形 (ii)・名は AI の案・確証なし・事前登録 measurements/m863_20261105_prereg_ip.txt）。0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）。＞0＝商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけが払う（手形なし・0 人なら輸入しない）
+    public double ImportPayerLive = 0;   // ★(863) c71ip 輸入の払い手を人の居る POP に限る旗（案 A・形 (ii)・名は AI の案・確証なし・事前登録 measurements/m863_20261105_prereg_ip.txt）。0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）。＞0＝商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけが払う（手形なし・0 人なら輸入しない）
     public double SeaStitchLeadBudgetMult = 0.5;   // 【点火0.5・2026-08-16 点火梯子＝単独 exact43.3＝全16腕で最良／合成comp4で near77.4・人口28.6。1.0は地図の線は最少だが帯は0.5が上。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】
 
     // 【墓標2026-09-26（棚卸し dorm-49）】エンジンの中の測定専用の腕2本を削除した：PopBudgetRelax（POP の予算の蓋を外す反実仮想＝保存則を破る）と
