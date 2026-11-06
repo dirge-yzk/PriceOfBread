@@ -14,7 +14,7 @@ namespace PriceOfBread.SimCore;
 // ⚠限界：1 四半期に Transition が複数回走れば最後の行だけ。passOld は動員から兵を外した値で比べる（採用前の旗 0 の passOld は兵を含む動員で比べていた＝同じ量ではない）。上からの改革の例外（reformFromAbove）は門 2 の外なので passOld／passSplit に入れていない。
 public static partial class Instruments
 {
-    internal const string CoupHeaderText = "quarter\tyear\tnation\tpolity\tattractor\tsCur\tsAtt\ta\tsoldierW\tkappa\tchallenge\tpassOld\tpassSplit\tatWar\tsoldierMob\troute";
+    internal const string CoupHeaderText = "quarter\tyear\tnation\tpolity\tattractor\tsCur\tsAtt\ta\tsoldierW\tkappa\tchallenge\tpassOld\tpassSplit\tatWar\tsoldierMob\troute\tnanBranchMark";
 
     /// <summary>Transition の第 1 の門の直後から呼ぶ（Instruments.On のときだけ）。行は Quarter の CoupFold が書く。</summary>
     internal static void CoupGate(World w, Polity attractor, double sCur, double sAtt, double a, double soldierW, double kappa, double challenge)
@@ -24,13 +24,13 @@ public static partial class Instruments
         int passOld = challenge > kappa ? 1 : 0;
         int passSplit = challenge + kappa * (1.0 - a) > kappa * a ? 1 : 0;
         var st = S(w);
-        st.CoupRoute = 0;
+        st.CoupRoute = 0; st.CoupNanBranch = 0;
         st.CoupRow = string.Join('\t', I((int)w.Polity), I((int)attractor), D(sCur), D(sAtt), D(a), D(soldierW), D(kappa), D(challenge), I(passOld), I(passSplit),
             Government.AtWar(w) ? "1" : "0", D(SoldierMobShare(w, w.Coef)));
     }
 
     /// <summary>Transition の第 1 の門の後の出口の印（Instruments.On のときだけ呼ばれる）。</summary>
-    internal static void CoupRoute(World w, int route) => S(w).CoupRoute = route;
+    internal static void CoupRoute(World w, int route, bool violent = true) { var st = S(w); st.CoupRoute = route; st.CoupNanBranch = route == 5 && !violent ? 1 : 0; }   // (908) 経路 5 で violent が偽＝radical／reformist が NaN のときだけ（旧の経路 6 を畳んだ後に計器が隠した向き）
 
     /// <summary>動員の素の量（Politics.MeasureMobilization の改革派＋急進派の和・外圧の追い風と失望の割引の前・組合の動員は除く）に兵士 POP が占める割合。
     /// ⚠式の写し（読むだけ）：MeasureMobilization の POP ごとの 2 項（規模×意識〔改革＋急進の和〕・窮乏のチャネル）を同じ係数で組み直す。式が変わったらここも直す。分母が 0 なら 0。</summary>
@@ -53,6 +53,6 @@ public static partial class Instruments
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         sk.Coup ??= Open("coupgate", seed);
         if (!sk.CoupHeader) { sk.Coup.WriteLine(CoupHeaderText); sk.CoupHeader = true; }
-        sk.Coup.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), row, I(st.CoupRoute)));
+        sk.Coup.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), row, I(st.CoupRoute), I(st.CoupNanBranch)));
     }
 }

@@ -1,0 +1,40 @@
+# (908) 線 c78sm 事前登録（恒等の小物の束）— 木 D:/PoB_work/wt_c78sm・枝 c78sm（258a4543 から）・日付 2026-11-07
+# 形：入口（計器・試験・注・文書）だけ。挙動を変えない。署名の食い違い：指示の署名の節は Opus 5.5・持ち主の節と system-reminder は〈実際に書いたモデルの名〉＝この線のコミットは Claude Sonnet 5.5（報告の先頭に書く）。
+
+[1] 恒等の線・予言 0
+- エンジンの値と分岐は変えない。素の 5 種・計器つき 10 種は m905 と名乗り行を除いて全行バイト一致。
+- 計器の表の差は宣言だけ：--added-tables lawgate2_s（新）・--grown-ok coupgate_s（末尾 1 列 nanBranchMark）。landshare_s・crownpc_s の値は変えない（既にある列は全行一致）。
+- 比べる基準：scripts/instruments/ident/ident.cfg の INSRAW keep_905/base_ins・BASE_COMMIT fc9aeb4c（m905）。
+- 浮動小数の順序が変わる箇所：なし（式の行に触れない）。紙の台本の食い違い数＝該当なし。
+- D: の空き（腕の前）：df 70GB（床 ident 35GB＋5GB＝40GB で足りる）。arms.sh free＝6。起こす前に再確認して値を報告に残す。
+
+[2] 項目・消す物と残す物・読み手の grep の引用
+- (a) PriceOfBread.Tests/WriterRatchetTests.cs（i/mixed・バイト置き換え）：クラスに [Collection("Instruments")]（CapacityAnchorTests.cs:13 ほか同じ属性の先例）・:157 CumulativeTradeFlow の注に 6 本目の理由（MultiNationSim.cs:1821 `src.CumulativeTradeFlow -= …; dst.CumulativeTradeFlow += …;` の 1 行 2 書き手）。宣言の値は 6 のまま。
+- (b) LandShareTests.cs：T7e の首都が植民地格の盤面へ `remitNotAddedPerQuarter＝colonialRemitPerQuarter` の等号・新しい T7f（beforeLast で Instruments.LandshareMonth を期待が空のまま 1 回足す＝期待 0・実際が正＝差は手の数で 1.0）で maxRelDiffSlotVsActualTierRule が正になる盤面・T7e と T7b の summary の位置を直す（T7′・T7″ の summary は T7e の前にあった＝T7b の直前へ）。InstrumentsLandshare.cs は触らない（既存 :116・:212 の LsMax を読むだけ）。
+- (c) Government.cs:373 の注だけ（旗 SummonByInterestShare＝1 は利払い÷歳入）。CrownPcInstrumentTests.cs に T3b（②・②′ の当て直し＝手の数・押す先の下限 0）。形 A（CrownParliament.Step の各項の直後に計器の hook を 1 行ずつ）＝**要らない**と決める：理由＝T0〔Stepの直後に数えれば残差は0・旗 1 でも同じ〕が Step の直後に前後の断面から各項の当て直しの残差を 0 と確かめている（形 A は同じ量を別の位置で取るだけで、足すエンジンの行が増える＝入れない）。
+- (d) docs/ゲーム概要と実装機能.md L263（取り消し線＋削除済みへ）・L300（取り消し線）。c78lg の S25 の patch と節が重ならない（外交の節・本線は第 2 部の政治の節 L263 と一覧 L300）。
+- (e) 新 PriceOfBread.SimCore/InstrumentsLawgate2.cs・Instruments.cs の自分の行（Sink の欄 1・LevelResult の末尾の控え 1・Quarter の Fold 呼び 1・Dispose 1＝4 行）・新 PriceOfBread.Tests/Lawgate2InstrumentTests.cs（2 本）。Government.cs のエンジンの行は触らない・LawPrereq／GateInfo／UniversalConscriptionOpen を呼ばない（Privileges.SeigneurialDegree の写しは w.SerfEmancipation≠Full）。
+- (f) Politics.cs:686 `Instruments.CoupRoute(w, 5);`→`(w, 5, violent)`（i/crlf・replace1.py）・InstrumentsCoup.cs の CoupRoute に既定 true の引数と末尾の列 nanBranchMark（経路 5 かつ violent が偽＝radical／reformist が NaN のときだけ）・Instruments.cs の WState に欄 1（CoupNanBranch・自分の行）。**列を足す**と決める（ラベルが 5 に畳まれて計器が隠していた向きを表に出す）。エンジンの値と分岐は変えない（violent は ExecuteRegimeChange へ今も同じ値）。
+- 読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements・POB_COEF・SaveGame）：CoupRoute の呼び手＝Politics.cs の 7 行（1・2・3・4・5・7 と上の 1 行）と InstrumentsCoup.cs のみ・coupgate の読み手＝scripts/instruments/mc/an_mc.py・r886/s16_stats.py（列名で読む＝末尾に足して壊れない）・nanBranch／lawgate2／Lawgate2 の既存の読み手＝0（足す物）。消す物＝なし。
+- 他の線との重なり：Instruments.cs（全ての線が自分の行だけ）・WriterRatchetTests.cs（c78ls・c78ep もある＝自分の行だけ・クラスの属性の 1 行と :157 の注の末尾）。c78gz は scripts/instruments/c78gz・c78ls は world.json と新しい試験・c78ep は EmptyPopEstate.cs・Coefficients.cs・InstrumentsCearn.cs＝重ならない。
+- WriterRatchet の宣言が動く item：なし（足した代入は st.CoupNanBranch・pend.Rows＝量名の表の外）。動いたら合流が取り直す。
+- 点検（grep の結果）：`new MoneyStock(` の件数＝64（SimCore・変えない）・工業化度の読み手の許可表／route_anchors.tsv の鍵の行＝足さない（鍵の行は書き足さない）・WriterRatchetTests の宣言の表＝上のとおり。
+
+[3] 足す試験と突然変異（赤にならない列は〈確かめていない〉）
+- Lawgate2InstrumentTests 2 本（期待は手の数の盤面の欄と、エンジンが戦線に残した符号 FrontsOf＝別の出所）：場面 11（緊縮 0・官僚＝猟官）・場面 8（緊縮 0.9）・資格任用なら行が無い・参政権＝14・農奴解放の後退＝符号 5 の 20・秘密投票＝9・女性の権利＝13・下側の門（符号 6 と 5 の戦線の数＝行の数・reasonCode 0 の行 0）。
+  M1 理由を全て 1＝場面の期待で赤／M2 緊縮の上限を外す＝場面 8 で赤／M3 符号 5 を控えない＝符号 5 の下側の門で赤／M4 呼ばない＝行が空で赤／M5 順序の取り違え＝場面 8 で赤。
+  確かめていない列：curStage・targetStage（場面 11 の 1・3 だけ）・austerityIndex（場面 8 の 0.9 だけ）・bureaucracyCode（値を Assert しない）・reasonCode 10・12・21・14 以外の 9／13 の別の軸（ColonialSuffrage・MigrantNativeSuffrage・StateReligion・NationalizationAll・Antitrust の 11）。
+  バッチ上の門（ident の生の上・scripts/instruments/c78sm/gate908.py）：下側＝nation_s の L.*:6 の数＝engineCode 6 の行の数・L.*:5＝engineCode 5・reasonCode 0 の行 0。上側＝社会保障の符号 6 の理由 11・8 の数を s19_ss6.py の近似（R2 の 6,184・22,533）と並べる。**近似が R2 の旧い盤面の数＝教訓⑧で今の盤面（keep_905/base_ins と ident の生）で取り直す・一致しなければ近似の側を直して名乗る・門を替えない**。下側の述語は nation_s と同じ（開いた戦線に数えられ四半期の末にその符号が残る）＝理由の導出の欠けだけを拾うと自己申告する。
+- CrownPcInstrumentTests T3b：手の数（②＝−0.006・軍の力 0.2024・②′＝−0.01012・End 0.48388・始まり 0.003 は T2Zero・T2pZero）。M7a ②の下限を外す・M7a2 ②′の下限を外す・M7b ②の正統性の因子を外す・M7c 軍の力の (1−PC) を外す＝どれでも赤の予言。
+- LandShareTests T7f：LsMax の本体を空にする突然変異で赤の予言（T7e だけでは緑だった＝(904) の反証役 中 1）。
+- coupgate_s の nanBranchMark：試験は足さない（ident で既にある列の全行一致＋末尾列の宣言だけ）＝列の値の突然変異は〈確かめていない〉。NaN の経路は radical／reformist が NaN のときだけ＝10 種では 0 行の予言（立てば記録）。
+- ソースを走査する番人（㉘）：隔離ビルドで IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を ident の前に回す（書き換える件数の予言＝0 件）。WriterRatchetTests の宣言の書き換え＝なし。
+
+[4] 恒等の合否
+- 素の 5 種・計器つき 10 種の成績表が m905 と全行一致（ident〈判定: 恒等〉）。coupgate_s は末尾 1 列の宣言（--grown-ok coupgate_s）・lawgate2_s は --added-tables lawgate2_s・--tests-delta は +4。
+  数え直し：Category!=FullLength の増加＝Lawgate2InstrumentTests 2 本＋CrownPcInstrumentTests T3b 1 本＋LandShareTests T7f 1 本＝+4（TESTS_NONFULL 2391→2395）。
+- 計器の門を壊す行：上の M1〜M5・M7a〜c・LsMax（measurements/m908_20261107/mutation.txt に生の出力・台本 scripts/instruments/c78sm/mut_all908.sh）。
+- 突然変異は使い捨てではなく木の中を 1 か所ずつ壊して戻す（台本が必ず元へ戻す）＝実行中はこの木へコミットしない（㉙）。
+
+[5] 採る条件
+- ident〈判定: 恒等〉・フルスイート（Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせ・中止 0）・savetest・leakhunt が緑・gate908 の下側が一致。一致しなければ、その変更を外して報告に回す。

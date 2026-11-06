@@ -370,7 +370,7 @@ public static class Government
         //   新＝<see cref="LawPrereq"/> の門（「緊縮の下限」「緊縮の上限」）＝債権者が奪うのは**法を選ぶ自由**であって値ではない。
         //   ⚠門は「上げる力」を持たない＝緊縮下で逆進税を自動で引き上げる手は消える（自発的に上げるのは SelfPlay の財政ストレス／プレイヤーの判断）。
         //     債務スパイラルは未払い（Fiscal の利払い・維持費の Min）→FiscalFundingRatio の劣化→デフォルト（払えなかった大きさの累計が DefaultArrearsMonths に届く・(205)）で閉じる。
-        //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料。
+        //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（旗 SummonByInterestShare＝1〔既定〕では CrownParliament が 利払い÷歳入 を読む・旗 0 では本値の >0.5 を読む〔(908) で注だけ直した〕）と門の材料。
         //   軍事費の緊縮は**不採用**（2026-06-18 検証）：負債国だけが動員解除し財政健全な覇権国は軍を維持＝非対称な武装解除で力の格差が拡大した。
         // ★値は施行の前（上の austerity）で導出し、置くのはここ＝この四半期の法の門は前の四半期の値を読む（2026-09-30 (119) で導出だけを上へ移した・並びは旧と同じ）。
         if (Instruments.On) Instruments.StockAtStepEnd(w);   // 計器（読むだけ・(278)）：Step の末尾の政治資本の在庫

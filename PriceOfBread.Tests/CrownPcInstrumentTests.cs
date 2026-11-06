@@ -108,6 +108,23 @@ public class CrownPcInstrumentTests
         Assert.False(seized.BlockOpen); Assert.Equal(0.0, seized.Term1);
     }
 
+    /// <summary>(908) T3b：王権の圧力（②）と軍の圧力（②′）の当て直しは手の数で合い、押す先の下限 0 が働く。②＝率×(王権の支持−代議の支持)×正統性・②′＝率×軍の傾き×軍の力（軍の力＝重み×兵士の割合×(1−PC)）。
+    /// 手の数：始まり 0.5・率 0.04・(0.9−0.6)×正統性 0.5 → ②＝−0.006・PC 0.494 → 軍の力 1×0.4×0.506＝0.2024 → ②′＝−0.1×0.5×0.2024＝−0.01012。始まり 0.003 は ② が −0.003 で 0 に止まり（T2Zero）・②′ は 0 のまま（T2pZero）。
+    /// 突然変異 M7（使い捨ての木・measurements/m908_20261107/mutation.txt）：②・②′ の押す先の Max(0,·) を外す／② の正統性の因子を外す／軍の力の (1−PC) を外す、のどれでも赤。</summary>
+    [Fact]
+    public void 王権と軍の圧力の当て直しは手の数で合い押す先の下限0が働く()
+    {
+        var c = new Coefficients(); c.SummonParliamentRate = 0.02; c.SummonByInterestShare = 0; c.ParliamentPressureRate = 0.04; c.ArmyPcPressure = 0.1; c.ArmyPoliticalWeight = 1.0;
+        var x = new Instruments.CrownInputs { Rep = 0.6, CrownS = 0.9, Legitimacy = 0.5, Inertia = 0.1, Lean = 0.5, SoldierShare = 0.4, Austerity = 0 };
+        Instruments.CrownRun Run(double start) => Instruments.CrownApply(x, c, start, Polity.Absolutist, CrownForm.Absolutist, SeizureForm.None, 0, 0, 0.6);
+        var r = Run(0.5);
+        Assert.True(r.T2Gate && r.T2pGate); Assert.False(r.T2Zero); Assert.False(r.T2pZero);
+        Assert.Equal(-0.006, r.Term2, 12); Assert.Equal(0.2024, r.ArmyPower, 12); Assert.Equal(-0.01012, r.Term2p, 12); Assert.Equal(0.48388, r.End, 12);
+        var z = Run(0.003);
+        Assert.True(z.T2Zero && z.T2pZero);
+        Assert.Equal(-0.003, z.Term2, 12); Assert.Equal(0.0, z.Term2p, 12); Assert.Equal(0.0, z.End, 12);
+    }
+
     /// <summary>T4：巻き返し。王冠あり・前の協力度 −0.8・正統性 0.9・前の軍の帰属 0.5 → rollbackTerm＝−0.02。王冠なし（共和）→ 0 と門の因子の列。</summary>
     [Fact]
     public void 巻き返しは前の断面の協力度と軍の帰属で門を読み王冠の無い国では0()
