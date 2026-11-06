@@ -157,3 +157,8 @@
   c9b6a5c0b047dc0ec9622bf28f14111589753733b53a3f0acbe7a034a7e085ea holown880.py
   写し（バイトで同じ）：gw882.py・gw882_thresholds.tsv・agg882.py（c74ts/）・gdp_jump797.py（m797/）・gdp_jump833.py（r833/）・gdp_down875.py（c73gt/）・holown880.py（c74id/）。gates_ts890.py の元は c74ts/gates_ts877.py（sha256 8b7a5f5b…）・閾値の表の数の行は c74ts/gates_ts882_thresholds.tsv と同じ。stoplines890.sh は 797・833・down875 を main の scripts/instruments から呼ぶ（写しは読むための控え）。
   紙の出力：measurements/m890_20261106/（paper890_*.txt・floor0_base885.txt・selftest_gates890.txt・selftest_jump890.txt・jumps_flag0_5x.tsv・jumps_flag0_20x.txt・stop0_base885_smoke.txt〔stoplines890 を旗 0 の基線に当てた煙の試し＝不履行 6/10・〈100 倍〉0・空洞化 1/10 未満 0〕）
+
+==== 追記（2026-11-06・点火 858a26f5 とフルスイートの後・結果の後の追記と名乗る・規則と閾値は変えない）
+[A1] 台本の依存の直し：事前登録のコミットで scripts/instruments/c75ts/ から gates_ts877.py の写しを消したが、agg882.py（GW の材料）がそれを import していた＝読みの 1 回目で GW だけが動かなかった。c74ts/gates_ts877.py とバイトで同じ写し（sha256 8b7a5f5b8960c5f3eda3fd6c247cd26165314480c0e0514e5cfb61f9fe96b43a＝[12] の〈元〉と同じ）を戻し、GW だけを読み直した。門の式・閾値・母集合は変えていない。
+[A2] 読む線の台本 scripts/instruments/c75ts/australia890.py を足した（[6] の読み・nation_s と region_s の行を並べるだけ）。
+[A3] 結果は measurements/m890_20261106/report_890.txt。予言 [2]（67 州と 9 行は新しい許しの内）と [5]（670.6 倍は〈それ以外〉に残る・q85 の名目 GDP 2,148.6＜3,080.8・over 14.34）と [7]（予言の赤は item 11 だけ）は当たった。

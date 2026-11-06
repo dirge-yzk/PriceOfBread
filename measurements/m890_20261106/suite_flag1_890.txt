@@ -1,0 +1,29 @@
+(890) c75ts 旗 1 の木（858a26f5＝点火）の走査の番人・機構の番人・フルスイート・savetest・leakhunt（台本 scripts/instruments/c75ts/suite890.sh・隔離ビルド D:/PoB_work/c75ts_work/suite/art_suite）
+--list-tests：Category!=FullLength 2323・FullLength 3（予言どおり）
+[guards]（㉘・点火の直後）フィルタの文字列＝F="FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~CapitalCouponWriteDownTests|FullyQualifiedName~CearnInstrumentTests|FullyQualifiedName~SilverParityDemandWeightedTests|FullyQualifiedName~SilverstInstrumentTests|FullyQualifiedName~SilverParityInstrumentTests|FullyQualifiedName~MultiNationTests|FullyQualifiedName~CoefficientRelationTests|FullyQualifiedName~WarVerdictTests|FullyQualifiedName~HabitTests|FullyQualifiedName~HabitLogisticTests|FullyQualifiedName~NavalCedeFleetReturnTests|FullyQualifiedName~DiscoveryEngineerTests|FullyQualifiedName~MilitaryTests|FullyQualifiedName~FiscalTests|FullyQualifiedName~SubstInstrumentTests|FullyQualifiedName~CornintInstrumentTests|FullyQualifiedName~CollapsePeaceTests|FullyQualifiedName~ForcedPeaceBlankTests|FullyQualifiedName~RuleInstrumentTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~FullChainTests|FullyQualifiedName~InstrumentsMonTests|FullyQualifiedName~TreasuryLedgerTests|FullyQualifiedName~LaborClosedTests|FullyQualifiedName~ServiceClosedTests|FullyQualifiedName~StateEduDemandTests|FullyQualifiedName~EmptyPopEstateTests|FullyQualifiedName~SubsistenceStage2Tests|FullyQualifiedName~FoodLedgerTests|FullyQualifiedName~UrbanFlowRealTests|FullyQualifiedName~IdeaNeedBoardTests|FullyQualifiedName~RuleOrderP1Tests|FullyQualifiedName~CrimeTests|FullyQualifiedName~RuleSharesFormTests|FullyQualifiedName~FuelOperatingCostTests|FullyQualifiedName~CearnTradeColumnsTests|FullyQualifiedName~SubsistenceNoBoughtTechTests|FullyQualifiedName~TradeClearingTests|FullyQualifiedName~TradeClearingBoardTests|FullyQualifiedName~ImportPayerLiveTests|FullyQualifiedName~RouteKmTests"
+失敗!   -失敗:     1、合格:   639、スキップ:     0、合計:   640、期間: 14 m 54 s - PriceOfBread.Tests.dll (net10.0)
+   計算量「外交：覇権の判定の国×国」が 3409728 件（宣言 3133384・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+[full]
+list nonfull 2323
+list full 3
+nonfull rc=1 1081s
+full rc=0 183s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:  2321、スキップ:     1、合計:  2323、期間: 17 m 54 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 1 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3409728 件（宣言 3133384・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+SUITEDONE
+saveleak rc=0 190s
+保存 46.2MB（531ms）／読込 511ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 167・その月の額の和 2.533E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c75ts_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c75ts_work/suite/leakhunt.txt.manifest（SOURCE-HASH=2e2e064044158dc8）
+SL-END 13:49:43
+SAVELEAKDONE
+中止の行：nonfull 0・full 0（grep '中止|aborted|Test Run Aborted'）
+予言 [7] との突き合わせ：Category!=FullLength 合格 2321・スキップ 1・失敗 1（WriterRatchetTests item 11〈外交：覇権の判定の国×国〉3,409,728・宣言 3,133,384・+8.8%＝予言の値と同じ）＝2323・FullLength 3 合格・中止 0・savetest OK・leakhunt 違反なし＝**予言どおり・予言に無い赤 0**。item 2 は緑。
