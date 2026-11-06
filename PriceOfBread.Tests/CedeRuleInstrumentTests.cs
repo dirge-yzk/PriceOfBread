@@ -14,6 +14,7 @@ public class CedeRuleInstrumentTests
     static (MultiNationSim Sim, World Uk, World Fr) Setup()
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.World.Coef.CedeRuleToLocal = 0;   // (902) 旗 0 の世界の計器の性質を確かめる試験（★(832) ① (a) の型・送り手の Coef を読む）
         return (sim, sim.Nations[0].World, sim.Nations[1].World);
     }
 

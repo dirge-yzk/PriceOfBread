@@ -96,3 +96,5 @@
 - 形の変え直しは 1 回だけ。旗 1 の出力を見た後のエンジンの変更は 0（変えたら形の変え直しに数える）。
 
 [11] D: の空き（起こす前）：shutil 141.92GB・arms.sh free 6（2026-11-06・線の頭）。
+
+[追記 2026-11-06・器のコミットの前・腕の前] 機構の試験は Fact 4 本＋Theory 1 本（旗 0 と旗 1 の 2 行）＝--list-tests で 6 件増える＝ident の宣言は --tests-delta 6（[10] の 5 を直す・数え方の誤り）。器の木で走査の番人 5 組＋TechLevelRemovalTests＋CedeRuleInstrumentTests＋CedeRuleToLocalTests は 156 件全て合格（隔離ビルド D:/PoB_work/c77ce_work/art）。
