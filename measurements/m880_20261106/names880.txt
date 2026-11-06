@@ -1,0 +1,12 @@
+(880) c74id 記録の言い方の訂正（古い記録は書き換えない・ここに名乗り直す・書いたモデル Claude Opus 5.5）
+
+1. (874) c73tc の報告と f0_ready.mark.log の〈cpop_s*.tsv も新しい列つき〉は誤り＝(874) の新しい 4 列（importBudgetExcessMaxPerClearingSub・importPaidPayerSizeLe1e12PerQuarter・importPaidPayerSizeMidPerQuarter・importPaidPayerSizeGt1e9PerQuarter）は cearn_s だけ（InstrumentsCearn.cs の CearnHeaderText の末尾）。cpop_s の列は (874) で変わっていない。(880) の新しい 1 列 importBudgetExcessMaxPerClearingSubLive も cearn_s だけ。
+
+2. (875) c73gt の g5bdist875.py：事前登録 measurements/m875_20261106_prereg_gt.txt の〈式を写し書きしない〉と実装の形が違う＝P5 の述語と dB の式は台本の中で写して書いている（import するのは load_arm・load_light・med だけ）。腕対は --check で行数 122630 と中央が run_gates と一致することを確かめたが、ヌル対ヌルの側には確かめの口が無い＝〈写し書きの台本〉と名乗る。
+
+3. (875) c73gt の holsplit875.py の L2〈持ち主の一致の条件〉：一致の条件は L2 を L3 へ動かすだけ（免除を増やす向きの道が無い）＝測れるのはヌルの L2 を誤って L3 に落とす率だけで 0/2。〈区別する力は測れていない〉と名乗る（(875) の記録の〈区別する力〉の文は較正の割合〔1/4 事象 12 件のうち持ち主が割れた州 7 件 0.583・全ての州 0.346〕であって、規則の区別する力ではない）。
+
+4. (880) の区別する力の記録（measurements/m880_20261106/null880.txt）は (875) と数え方が違う＝並べるときは名乗る：
+   - (880)：種 1〜10・3 本（M・N1・N2）に在る州 3313 のうち、持ち主の軌道（nation の名前の全ての四半期の並び）が 3 本で割れる州 1684（0.5083）・3 本の 1/4 事象（例外を除く・種と州の重複を除く）11 のうち割れた州 10（0.9091）。
+   - (875)：四半期 400 の 1 時点の nationIndex で割れる州 0.346・1/4 事象のピークの四半期で割れる州 7/12（0.583）。
+   - ＝全ての四半期で比べると割れる州は半分・弱さの事象はほぼ全て割れた州にある。holown880 の持ち主の照合が効くのは〈A2 が元からの弱さ〉の件だけ（ヌル腕どうしの 1/4 の水準で 6 対のうち 2 件＝ジブラルタル s1）。

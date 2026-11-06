@@ -1,0 +1,12 @@
+突然変異 M3b（木 4cda498a・新しい試験）
+ PriceOfBread.SimCore/InstrumentsCearn.cs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+-        else foreach (var p in r.Pops) ob += System.Math.Max(0, p.Savings.Value);
++        else foreach (var p in r.Pops) if (p.Size > 1e-12) ob += System.Math.Max(0, p.Savings.Value);
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:02.84]     PriceOfBread.Tests.CearnTradeColumnsTests.旧の規則の予算はkind2と3でも旗に依らず手で数えた値_書き出しの行を通して [FAIL]
+  失敗 PriceOfBread.Tests.CearnTradeColumnsTests.旧の規則の予算はkind2と3でも旗に依らず手で数えた値_書き出しの行を通して [10 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 6 decimal places
+--
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
