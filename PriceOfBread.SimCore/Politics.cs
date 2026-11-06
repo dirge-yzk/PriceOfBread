@@ -228,9 +228,9 @@ public static class Politics
         //   ＝労働供給がその瞬間に回復する。⚠蜂起の予約中（RevoltingFaction／PendingRebelRegions）は「まだ始まっていないだけ」なので剥がさない
         //   （TriggerFactionRevolt が札を立ててから建国＝開戦までに四半期の境界を跨ぐ＝処理順に依存させない）。
         //   ⚠民兵率0の世界（RevoltMilitiaRaise=0＝既定）ではこの条件の中で1回も書かない＝厳密恒等。
-        //   ⚠「内戦中か」の物差しは World.InCivilWar **1本**（新しい述語を作らない）＝CivilWarPredicateUnified=1.0 が点火済みなので
+        //   ⚠「内戦中か」の物差しは World.InCivilWar **1本**（新しい述語を作らない）＝War 経路（CivilWarParent 付き）も含めて見える（旗 CivilWarPredicateUnified は 2026-10-18 に消えた＝Coefficients.cs の墓標）ので
         //     War 経路（CivilWarParent 付き＝親も反乱国も真）が見える（旧経路の内戦 CivilWarYears は 2026-09-28 段2 束3 で削除）。
-        //     ⚠それを0へ戻すと反乱国の民兵は建国の翌四半期に剥がれる（＝この札は内戦の述語に依存している）。
+        //     ⚠この札は内戦の述語に依存している（述語が War 経路を見なければ反乱国の民兵は建国の翌四半期に剥がれる）。
         bool inRevolt = w.InCivilWar || w.RevoltingFaction is not null || w.PendingRebelRegions is not null;
         foreach (var p in w.AllPops())
         {
@@ -683,7 +683,7 @@ public static class Politics
         // P2：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
         // 「近代法を持つが議会に権力を渡さない」プロイセン/明治型が自然点になる（ラベルが後日 床交差で変わった時だけ建国制度が走る）。
         if (reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
-        if (Instruments.On) Instruments.CoupRoute(w, violent ? 5 : 6);
+        if (Instruments.On) Instruments.CoupRoute(w, 5);   // (904) 旧 `violent ? 5 : 6`：6 は届かない枝（台帳 §2-3・10 種で 0 行）。radical／reformist が NaN のときだけ violent=false のまま来るが、ExecuteRegimeChange へ渡す violent は変えない（挙動は同じ）＝ラベルだけ 5 に畳まれる
         ExecuteRegimeChange(w, c, attractor, violent);
     }
 
@@ -885,7 +885,7 @@ public static class Politics
         // ⚠述語に `RevoltingFaction is not null` を入れない：参照は戦争の決着でだけ外れる（再併合・白紙の分断・独立の確定＝2026-09-28 から3つとも
         //   Politics.SpendRevolt を通る。旧＝白紙と独立は参照を残したまま return し、この述語に入れると一度膠着した国は二度と蜂起できない恒久の錠になった）。
         //   状態（地図の上の内乱）だけを見る＝参照の外し忘れが錠にならない。
-        // ⚠InCivilWar は CivilWarPredicateUnified（点火済み1.0）に依存する＝0へ戻すと戦争経路の内戦をこの述語が見なくなる（段5の民兵の剥離と同じ依存）。
+        // ⚠InCivilWar は戦争経路の内戦（親も反乱国も真）を見る述語（旗 CivilWarPredicateUnified は消えた＝Coefficients.cs の墓標・段5の民兵の剥離と同じ依存）。
         if (w.InCivilWar || w.PendingRebelRegions is not null) return;
         FactionState? best = null; double bestStrength = 0, bestDespair = 0;
         foreach (var f in w.Factions)
