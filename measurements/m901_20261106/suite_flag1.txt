@@ -1,0 +1,9 @@
+(901) c77cs 旗 1 の木（点火 4c3382d3）のフルスイート・savetest・leakhunt（台本 scripts/instruments/c77cs/suite901.sh・WriterRatchetTests を分けて回した・2026-11-06 19:3x〜20:35）
+--list-tests：Category!=FullLength 2377・FullLength 3
+Category!=FullLength（WriterRatchetTests 以外）：合格 2330＋スキップ 1＝2331（失敗 0・中止 0）
+Category!=FullLength（WriterRatchetTests）：合格 45＋失敗 1＝46
+  合計 2331＋46＝2377（--list-tests と一致）
+  失敗 1＝WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item 11 DiploHegemonScans)：3,395,620 件（宣言 3,133,384・+8.4%・許し +2%）＝事前登録 §5 の〈動きうる・合流が ★(749) で 1 回取り直す〉の種類の予言どおり（(896) の実測と同じ数）
+FullLength：合格 3＝3（中止 0）
+savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（seed 1789・200 四半期・保存則違反なし・SOURCE-HASH 84f1888e9e3fa74e）
+予言に無い赤：0 ⇒ 腕 B へ進む（㉜）
