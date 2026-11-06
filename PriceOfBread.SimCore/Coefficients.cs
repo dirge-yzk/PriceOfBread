@@ -2959,6 +2959,7 @@ public sealed class Coefficients
     // --- 王権議会P1＝動学6フック（2026-07-10・P0の観測軸を動学化・点火済み。値は各行。P1-F は 2026-09-20 に削除＝残り5本）---
     public double SummonParliamentRate = 0.02;      // P1-H 破産召集（1789三部会）：緊縮(Austerity>0.5)の深さ×これ/四半期でParliamentControl↑。提案0.02
                                                     // ⚠(739) 読み手は 2 つ＝召集（＋）と P1-E ストルイピン後退（敵対議会×高正統性×王権寄り軍で ParliamentControl−これ/四半期・旧 CrownRollbackRate）＝この値を動かすと両方が一緒に動く。
+    public double SummonByInterestShare = 0;        // ★(896) c76cs 召集の入力と押す先の旗（名は AI の案・確証なし・作者「全て推奨で」で推奨を採った・事前登録 measurements/m896_20261106_prereg_cs.txt）。0＝今の式（緊縮＞0.5 の深さで Clamp01 の 1.0 まで）。正＝PC＋＝SummonParliamentRate×Clamp01(利払い÷歳入÷MaxInterestShareOfRevenue)×max(0, DebtGrip−PC)
     public double GrantedControlOnReform = 0.3;    // P1-A 下賜（明治1889欽定）：上からの改革の遷移時にParliamentControlの床をこの値へ（弱い議会を与える）。提案0.3
     public double ParliamentBudgetVeto = 2.0;      // P1-C 予算闘争（憲法紛争1862）：所得税スライダーの抵抗に 統制力×max(0,−協力度)×これ を加算＝非協力議会は予算を通さない。提案2.0
     public double VictoryLegitBoost = 0.05;         // P1-D 勝利の免責（ビスマルク型）：決定的勝利で正統性ストック+これ×戦勝点＝敗戦ショックの対称。0.1は工業化の差別化を壊し**0.05で採用**（bisect2026-07-10）

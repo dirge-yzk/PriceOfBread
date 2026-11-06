@@ -54,6 +54,7 @@ public class CrownPcInstrumentTests
         var w = Nation(NationConfig.France()); var c = w.Coef;
         Assert.Equal(0.02, c.SummonParliamentRate);   // 手の数の前提
         CloseContinuous(c);
+        c.SummonByInterestShare = 0;   // ★(896) 旧の召集の式の番人（旗 0 の初期化子・★(832) ① (a) の型）
         w.ParliamentControl = 0.2; w.CoopParliamentCrown = 0; w.AusterityIntensity = 0.8;
         var prev = Instruments.CrownSnap(w);
         CrownParliament.Step(w, c);
@@ -73,6 +74,7 @@ public class CrownPcInstrumentTests
         var w = Nation(NationConfig.France()); var c = w.Coef;
         Assert.Equal(0.02, c.SummonParliamentRate);
         CloseContinuous(c);
+        c.SummonByInterestShare = 0;   // ★(896) 旧の召集の式の番人（旗 0 の初期化子・★(832) ① (a) の型）
         w.ParliamentControl = 0.995; w.CoopParliamentCrown = 0; w.AusterityIntensity = 1.0;
         var prev = Instruments.CrownSnap(w);
         CrownParliament.Step(w, c);
@@ -112,6 +114,7 @@ public class CrownPcInstrumentTests
         var w = Nation(NationConfig.France()); var c = w.Coef;
         Assert.Equal(0.02, c.SummonParliamentRate);
         CloseContinuous(c);
+        c.SummonByInterestShare = 0;   // ★(896) 旧の召集の式の番人（旗 0 の初期化子・★(832) ① (a) の型）
         w.ParliamentControl = 0.3; w.AusterityIntensity = 0; w.CoopParliamentCrown = -0.8; w.Legitimacy = 0.9; w.ArmyAllegiance = 0.5;
         var prev = Instruments.CrownSnap(w);
         CrownParliament.Step(w, c);
@@ -222,5 +225,57 @@ public class CrownPcInstrumentTests
         var (ok, bad, _) = Cross(crown, fm, 1e-6);
         Assert.True(bad >= 1, $"ずらした値を落とせない ok={ok} bad={bad}");
         Assert.Equal(0, ok);
+    }
+
+    /// <summary>★(896) T1′：旗 SummonByInterestShare＝1 の召集だけの盤面（利払い÷歳入 0.8＝圧力 1・国債＝年の名目GDP の 0.6 倍・PC 0.2）＝計器の項はエンジンの動き（0.02×1×0.4）・残差 0・切りの印は立たない・説明の区分 0。
+    /// 計器の写しを旗で分けないと旧の式（緊縮 0＝項 0）で数えて残差が 0.008 になる＝この試験が赤。</summary>
+    [Fact]
+    public void 旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0()
+    {
+        var w = Nation(NationConfig.France()); var c = w.Coef;
+        CloseContinuous(c);
+        c.SummonByInterestShare = 1;
+        double gy = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
+        Assert.True(gy > 0, "前提：名目GDP が正");
+        w.GovDebt = new MoneyStock(0.6 * gy); w.LastRevenuePerMonth = new MoneyPerMonth(100); w.LastInterestPerMonth = new MoneyPerMonth(80);
+        w.ParliamentControl = 0.2; w.CoopParliamentCrown = 0; w.AusterityIntensity = 0;
+        var prev = Instruments.CrownSnap(w);
+        CrownParliament.Step(w, c);
+        Assert.True(Math.Abs(w.ParliamentControl - 0.208) <= 1e-12, $"前提：エンジンが動いた pc={w.ParliamentControl}");
+        var row = Instruments.CrownCompute(w, prev);
+        Assert.True(Math.Abs(row.Run.Summon - 0.008) <= 1e-12, $"summon={row.Run.Summon}");
+        Assert.False(row.Run.SummonClamp);
+        Assert.Equal(0.0, row.Residual);
+        Assert.Equal(0, row.Explain);
+    }
+
+    /// <summary>★(896) T0′：T0 を旗 1 で（仏・英・米・日・露を 8 四半期・利払い÷歳入を 0.8／0.1 で交互・国債＝年の名目GDP の 0.7 倍）＝Step の直後に数えれば残差は 0・召集の項が動いた行がある。</summary>
+    [Fact]
+    public void 旗1でもStepの直後に数えれば残差は0()
+    {
+        int rows = 0, summoned = 0;
+        foreach (var cfg in new[] { NationConfig.France(), NationConfig.Britain(), NationConfig.America(), NationConfig.Japan(), NationConfig.Russia() })
+        {
+            var w = Nation(cfg); var c = w.Coef;
+            c.SummonByInterestShare = 1;
+            double gy = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
+            w.GovDebt = new MoneyStock(0.7 * gy); w.LastRevenuePerMonth = new MoneyPerMonth(100);
+            if (w.Polity != Polity.Republic) w.ParliamentControl = 0.3;
+            for (int q = 0; q < 8; q++)
+            {
+                w.LastInterestPerMonth = new MoneyPerMonth(q % 2 == 0 ? 80 : 10);
+                var prev = Instruments.CrownSnap(w);
+                CrownParliament.Step(w, c);
+                var row = Instruments.CrownCompute(w, prev);
+                Assert.False(row.RegimeEvent);
+                if (row.Relabel) continue;
+                rows++;
+                if (row.Run.Summon != 0) summoned++;
+                Assert.True(row.Explain is 0 or 7, $"{Instruments.NameOf(w)} q{q} explain={row.Explain} residual={row.Residual}");
+                if (row.Explain == 0) Assert.Equal(0.0, row.Residual);
+            }
+        }
+        Assert.True(rows >= 30, $"前提：再ラベルの無い行が十分ある rows={rows}");
+        Assert.True(summoned >= 10, $"前提：召集の項が動いた行がある summoned={summoned}");
     }
 }
