@@ -1,0 +1,30 @@
+(912) 合流（波78）の予言（合流の前にコミットする・結果を見る前に書いた）
+基点 main 258a4543（= origin/main）。基線 m905（測った木 fc9aeb4c・SOURCE-HASH aaecd9e3b5cce1b8）。
+
+[1] 入れる物と入れない物（線の報告と反証役の指摘から・結果を見る前に固定）
+- c78gz (906)：入れる（台本だけ・.cs 0 行・旧の既定の出力がバイト一致）。新しい区分はこの波の採否に使わない。
+- c78sm (908)：入れる（線の ident c78sm〈判定: 恒等〉）。
+- c78ep (910)：旗 0 の器と記録だけ入れる。枝を merge し、点火 f103a76d の 2 行（Coefficients.cs・DormantIdentityTests.cs）だけを revert する。採否＝採らない（線の門 G1′ 0.5229 ＞ 0.51）。3 回の規則で B5 の 1 回目に数える。
+- c78ls (909)：world.json と LandOwnershipDataTests.cs を入れない（腕 B の前のフルスイートで予言の外の赤 7 本＝線が止めた）。事前登録・紙の台本・scripts/instruments/c78ls/・measurements/m909_* だけを写す。腕を回していない＝3 回の規則に数えない（c76cs・c74ip の前例）。
+- c78lg (907)：読む線。台帳と概要の差分を写す（台帳は ledger_after907.md・概要は overview_s25.patch を c78sm の後に当てる）・台本と表は scripts/instruments/r907/・measurements/m907_20261107/。
+- c78lt (911)：設計の材料。docs/202611/20261107/ へ題に状態を書いて写す（本文は変えない・反証役の訂正は末尾）。台本は scripts/instruments/r911/・出力は measurements/m911_20261107/。
+- 採る挙動の線は 0 本＝基線は m905 のまま。M・N1・N2・S11・アブレーションは回さない。回す腕は合わせた木の旗 0 の腕 Z（ident m912z）1 本だけ。
+
+[2] 消す名前の確かめ（★(773)）
+- 4 枝とも名前を消していない（c78sm は CoupRoute に既定の引数を足し、CoupHeaderText に列を足しただけ。c78ep は局所変数 s の削除と注の移動だけ）。他の枝で grep する対象なし。
+
+[3] 合わせた木で一致する物（腕 Z = ident m912z・--tree D:/PoB_work/wt_m912）
+- 素の 5 種の成績表 = b5_20261106_m905 と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+- 計器つき 10 種の成績表 = b10_20261106_m905_ins と全行バイト一致。注視の表 = mon_20261106_m905.txt とタグの行以外で一致。
+- 計器の表（基準 keep_905/base_ins 1133 本）：一致 1093・既知の揺れ 20・宣言した列の増加 20（coupgate_s +1 列 nanBranchMark 10・cearn_s +2 列 merchantDebt・estateDebtSettledPerQuarter 10）・腕にだけ lawgate2_s 10 本・宣言の無い違い 0。宣言＝--added-tables lawgate2_s --grown-ok coupgate_s,cearn_s。
+- .cost の推定 = 212.4 秒（m905 と同じ）。
+- テストの数：Category!=FullLength = 2391 + 4（c78sm）+ 7（c78ep）= 2402（--tests-delta 11）・FullLength 3。
+- WriterRatchetTests の宣言の表は動かない（旗 0 で軌道が同じ・c78sm は量名の表の外）。
+- savetest OK・leakhunt 保存則違反なし。
+
+[4] 止める線の段と記録の段
+- 止める線：腕 Z が m905 と一致しない（宣言の外の違い 1 つでも）→ 違いを出した線を外して報告に回す。フルスイートの赤・savetest・leakhunt の破れ → 同じ。
+- 記録：stoplines906.sh を合わせた木で 1 回通し、stoplines866.sh の段の出力とバイト一致かを記録する（c78gz は bash -n だけだった）。新しい区分の件数は記録だけ（採否に使わない）。
+
+[5] ident.cfg
+- B5・B10INS・MON・NG_BASE は m905 のまま。INSRAW を D:/PoB_work/keep_912/base_ins（腕 Z の計器つき 10 種の生・keep_905/base_ins とバイトで同じ表はハードリンク）へ。BASE_COMMIT を測った木へ。TESTS_NONFULL を実測の値へ。
