@@ -1,0 +1,58 @@
+(905) 合流（波77・連結の回の 1 本目）の予言＝腕を起こす前・merge の前に書く（2026-11-06・Claude Opus 5.5）
+基点 101d4329（origin/main）。線：c77lg (900) 読む・c77cs (901) 挙動・c77ce (902) 挙動・c77cw (903) 挙動・c77sm (904) 恒等。設計の材料の線は無し。
+
+[0] 作ったフォルダ（この回に合流が作った物だけを片付ける）
+- D:/PoB_work/m905（作業・腕の出力・読みの出力）
+- D:/PoB_work/wt_m905（worktree・枝 m905）
+- D:/PoB_work/keep_905_rej（採らなかった腕の生の縮め＝c77ce・c77cw の腕 B と S11・shrink892.py を 1 字も変えずに呼んだ・keepsum は m905_20261106/ へ写す）
+- この後に作る予定：D:/PoB_work/wt_m905z（Z の木の detached worktree）・D:/PoB_work/ident_m905z（ident の作業）・D:/PoB_work/keep_905（採ったときの新しい基線の生）
+
+[1] 入れる線と順（RULEW：恒等の線 → 自分の門を通った挙動の線）
+- c77sm（恒等・ident m904z〈判定: 恒等〉）：枝ごと merge。
+- c77cw（挙動・S11 で止める線〈100 倍〉の〈それ以外〉1 件＝担当が点火を戻した f4c29d57）：採る候補に数えない。枝の頭は旗 0 の器＝枝ごと merge（器・計器 cwmult_s・試験 6 本・記録）。
+- c77ce（挙動・S11 で事前登録の止める線 gdp_zero10 に 1 件〔種 12 共和制モロッコ・名目 GDP 0 が 5 四半期〕）：採る候補に数えない。理由＝波77 の〈止める線〉の一覧に gdp_zero10 が明記され、線の事前登録 [7] もそれを写した。合流が結果の後に記録へ下げると物差しを替えることになる（RULE47）。枝ごと merge した後、点火 e53491c5 を逆適用（旗 0 の器だけを残す＝(896)・(892) の前例の型）。物差しの食い違い（一般の文〈記録の段の先頭〉と波77 の一覧〈止める線〉）は §0-2 の先頭に推奨つきで置く。
+- c77cs（挙動・腕 B と S11 で門 G1〔2 値〕・G1b・G2・G3 が全て通り止める線 0）：採る候補 1 本。
+- c77lg（読む）：コミットは合流が写す（scripts/instruments/r900/・measurements/m900_20261106/・台帳・overview_s19.patch）。
+- 消す名前の grep（★(773)）：c77sm が TreatyRatificationWeight を消す（改名）。origin/c77cs・c77ce・c77cw の SimCore・Tests では Coefficients.cs と Diplomacy.cs の元の 2 か所だけ（どの線もその行を触らない）＝合わせた木で `git grep TreatyRatificationWeight -- 'PriceOfBread.*'` が 0 件であることを merge の後に確かめる。c77cs が消す名は無い（SummonByInterestShare の既定値の行の置き換えだけ）。c77ce・c77cw は名前を消さない。
+
+[2] 木を 2 段で作る
+- Z の木＝101d4329 ＋ c77sm ＋ c77cw ＋ c77ce（＋e53491c5 の逆適用）＋ c77cs を 2ec8b6cb まで（試験の直しだけ・旗 0）。挙動の線の旗は全て 0。
+- M の木＝Z の木 ＋ c77cs の残り（4c3382d3 点火〜065da712）。旗は SummonByInterestShare＝1 だけ。
+
+[3] 予言（恒等の段＝Z）
+- `ident.sh run m905z --tree D:/PoB_work/wt_m905z --added-tables cwmult_s --grown-ok landshare_s --tests-delta 15 --saveleak`
+- 素の 5 種・計器つき 10 種の成績表は m873（b5_20261106_m873・b10_20261106_m873_ins）と全行バイト一致（名乗り行の SOURCE-HASH を除く）。注視の表も一致。
+- 計器の表：宣言（cwmult_s 10 本が足される・landshare_s の末尾に 3 列）以外はバイト一致か既知の揺れ。
+- テストの数：Category!=FullLength 2376＋15＝2391（c77sm +2・c77cs +1〔T5′〕・c77ce +6・c77cw +6）・FullLength 3。
+- 判定: 恒等 で無ければ、恒等でない線を割り出して外す（腕は増やさず報告に回す）。
+
+[4] 予言（挙動の段＝M・S11）
+- M の成績表は m873 と一致しない（c77cs の点火）。
+- 他の線は旗 0 の経路が元の式のまま＝M の計器つき 10 種の成績表は c77cs の腕 B（measurements/b10_20261106_m901B_ins）と全行バイト一致（名乗り行を除く）、S11 は b10s11_20261106_m901S_ins と全行バイト一致と予言する。計器の表は c77cs の腕 B の生（D:/PoB_work/c77cs_work/out_c77csB_10/ins）と、宣言（cwmult_s・landshare_s の末尾 3 列・既知の揺れ）以外でバイト一致と予言する（keepsum で比べる）。
+- これが外れたら、門と止める線を M で読み直したうえで、外れの行を記録の先頭に書く（採否は門と止める線で読む）。
+- 門（c77cs の事前登録 §3 のまま・gates901.py を 1 字も変えずに呼ぶ・幅は keep_899/base_ins・keep_873/n1・n2）：
+  - M（種 1〜10）：G1 英 PC＝1 の割合 ≤43.90%・清 ≤73.09%（EPS 1e-9・1e-6 の両方）／G1b 英 ≥2,464・清 ≥735／G2 ≥10%（件数＞0）／G3 420〜6,720。
+  - S11（種 11〜20・基準 keep_873/a11）：G1 英 ≤40.21%・清 ≤67.70%／G1b 英 ≥2,496・清 ≥788.5／G2 ≥10%／G3 227〜3,632。
+  - 最終の採否は S11 で 1 回だけ（同じ門）。
+- 機構が狙いどおり働いたか：G1（PC＝1 の張り付きが消える）と G2（利払いが重い所で召集が実際に PC を動かす）の両方。M2（押す先を 1.0）は腕の門で落とせない＝機構の試験（SummonByInterestShareTests の S2 ほか 7 本）が落とす組で読む。
+
+[5] 止める線（M と S11・stoplines866.sh を 1 字も変えずに呼ぶ）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・〈100 倍〉の〈それ以外〉（gdp_jump797/833）・1e10 倍・plvl_seeds・gdp_zero10・空洞化 1/10 未満（an_h2 -v4・holclass839＝T1・holown880〈線が原因〉）・走査の番人 7 組・推定の計算量 ＞248.5 秒・savetest・leakhunt。
+- 空洞化 1/10 未満の件ごとに、基線の同じ種で同じ州が 1/4 未満だったか（種 1〜10 は keep_899/base_ins〔＝m873 と恒等〕・種 11〜20 は keep_873/a11）を表にし、〈元からの弱さ〉は記録の先頭・〈線が原因〉が 1 件でもあれば採らない。
+- 基準とヌル腕は同じ台本で数え直して並べる（新しい N1・N2 と、旧の measurements/m873_20261106/null・armM・armS11）。
+- 予言：止める線は 0（c77cs の腕 B・S11 と同じ）。〈100 倍〉の建国の直後 1 件（共和制ポルトガル 1879 s2）は記録。
+
+[6] 記録の段（採否に使わない）
+- exact・near・NG（ng.sh・基準 rd:measurements/ng873_20261106:m873・出力は D:/… の形）・nullgate・英の国債の不履行の種の数（M・S11・N1・N2 を m873 と並べる）・開幕の 1000 倍以上の国・名目 GDP 0 の続き・空洞化 1/4 未満。
+- 成績表の差がヌル腕の幅の内なら改善と書かない。
+
+[7] 枝分かれ（採る候補 1 本）
+- Z・M・S11 を同時に起こす（D: の空きは 86.7GB＝Z 約 35・M 約 17・S11 約 14）。Z が済んで縮めた後に N1・N2（SupplySlope 0.50000001・0.49999999）と素の 10 種 mP・素の 5 種 mP5。
+- S11 で門が全て通り、止める線が 0 なら採る＝新しい基線 m905（B5＝mP5・B10INS＝mM・MON・INSRAW＝D:/PoB_work/keep_905/base_ins〔M の生〕・ヌル腕 keep_905/n1・n2・種 11〜20 keep_905/a11・NG_BASE ng905・BASE_COMMIT＝M の木・TESTS_NONFULL 2391）。
+- 採らないなら、点火 4c3382d3 の .cs を逆適用し、基線は m873 のまま・INSRAW だけ Z の生（keep_905/base_ins）へ。
+- アブレーションは要らない（挙動の線 1 本）。
+
+[8] テストの宣言の表（WriterRatchetTests）
+- item 11（計算量の軌道の件数）：〈動きうる・合流が ★(749) で 1 回取り直す〉（種類の予言・c77cs の旗 1 の木の値 3,395,620 は参考値で点の予言ではない）。
+- CumulativeTradeFlow 6（c77sm 2d1f4e4a・数え方の直し）は入ったまま。:157 の行末の注に理由を足すのは線の持ち物＝合流は書かず報告に回す。
+- フルスイートで WriterRatchetTests が Instruments の静的な Dir・On の競合で赤（ArgumentException）になったら、suite901.sh の型で WriterRatchetTests を分けて回し、〈競合・機構の赤ではない〉と書く。[Collection("Instruments")] の 1 行は誰の線の持ち物でもない＝この合流では入れず次の波の恒等の線へ申し送る。
