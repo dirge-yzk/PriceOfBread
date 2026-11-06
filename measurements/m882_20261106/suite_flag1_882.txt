@@ -1,0 +1,46 @@
+list nonfull 2322
+list full 3
+nonfull rc=1 1257s
+full rc=0 235s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:05:13.83]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [FAIL]
+失敗!   -失敗:     1、合格:  2320、スキップ:     1、合計:  2322、期間: 20 m 55 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 51 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [3 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3409728 件（宣言 3133384・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+SUITEDONE
+saveleak rc=0 256s
+保存 46.2MB（586ms）／読込 1803ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 167・その月の額の和 2.533E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c74ts_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c74ts_work/suite/leakhunt.txt.manifest（SOURCE-HASH=ed54814202ba5e52）
+SL-END 10:07:11
+SAVELEAKDONE
+
+--- suite_nonfull の失敗の行
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [3 ms]
+失敗!   -失敗:     1、合格:  2320、スキップ:     1、合計:  2322、期間: 20 m 55 s - PriceOfBread.Tests.dll (net10.0)
+--- suite_full
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 51 s - PriceOfBread.Tests.dll (net10.0)
+--- 走査と機構の番人（点火の直後・直しの前）
+    0 エラー
+
+経過時間 00:00:28.36
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SubsistenceStage2Tests.旗1は助走の後の最初の月に_開幕の割合を保つ_rhoを焼く [2 s]
+  失敗 PriceOfBread.Tests.SubsistenceStage2Tests.旗1の農民の失業は必要量を作る労働を超えた売れ残りだけ_両側 [849 ms]
+  失敗 PriceOfBread.Tests.SubsistenceStage2Tests.旗1の焼きは主食のRGOの効率化材の倍率で割る_技術の比 [248 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.自給の段2の列は旗0と旗1で計器とエンジンを並べる(flag: 1) [1 s]
+失敗!   -失敗:     5、合格:   229、スキップ:     0、合計:   234、期間: 6 m 37 s - PriceOfBread.Tests.dll (net10.0)
+--- WriterRatchet の詳細
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:23.10]       計算量「外交：覇権の判定の国×国」が 3409728 件（宣言 3133384・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+   計算量「外交：覇権の判定の国×国」が 3409728 件（宣言 3133384・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+テストの合計数: 23
+合計時間: 23.5945 秒
