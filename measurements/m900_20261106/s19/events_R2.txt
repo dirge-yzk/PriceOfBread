@@ -1,0 +1,25 @@
+(1) |差|>=2
+  ('Censorship', '上', 'polity変化') 2
+  ('Censorship', '下', 'polity変化') 6
+  ('ConscriptionLaw', '下', 'polity変化') 8
+  ('ConscriptionLaw', '下', '政体同じ') 367
+  ('MonetaryStandard', '下', '政体同じ') 2
+  ('Suffrage', '上', 'polity変化') 2
+(2) 後退
+  ('ShorterHours', 'polity変化') 8
+  ('ShorterHours', '政体同じ') 182
+  ('Suffrage', 'polity変化') 1432
+  ('Suffrage', '政体同じ') 1
+(2b) 後退の政体の移り（上位）
+  ('Suffrage', '3→0') 1144
+  ('Suffrage', '3→1') 215
+  ('Suffrage', '4→0') 37
+  ('Suffrage', '4→1') 30
+  ('ShorterHours', '0→3') 6
+  ('Suffrage', '4→5') 3
+  ('Suffrage', '4→3') 3
+  ('ShorterHours', '5→4') 1
+  ('ShorterHours', '3→0') 1
+(3) 後退の種ごと
+  Suffrage {1: 146, 2: 120, 3: 127, 4: 146, 5: 153, 6: 149, 7: 139, 8: 148, 9: 167, 10: 138}
+  ShorterHours {1: 19, 2: 23, 3: 19, 4: 26, 5: 13, 6: 13, 7: 20, 8: 21, 9: 22, 10: 14}

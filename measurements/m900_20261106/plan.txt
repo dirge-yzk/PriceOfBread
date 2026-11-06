@@ -1,0 +1,12 @@
+(900) c77lg 計画（読む線・.cs 0 行・腕 0 本・コミットしない）
+作業の場所: D:/PoB_work/r900_work（tools/ selftest/ s19/）・読む木 D:/PoB_work/wt_c77lg（detached 101d4329・最後に外す）
+材料の木: 101d4329（git grep / git show で錨を引く）
+読む生（既にある物だけ）:
+  R2 = D:/PoB_work/keep_899/base_ins（合わせた木 ea7fcad2・計器つき 10 種・m873 と全行一致）: lawgate_s・monlaw_s・reform_s・opium_s・burblock_s・burscan_s・fm_s・nation_s・scalars_s
+  N1/N2 = D:/PoB_work/keep_873/n1・n2（ヌル腕・cearn 末尾5列・cederule・crownpc・landbase 系・landshare は無い＝幅なし）
+  S11 = D:/PoB_work/keep_873/a11
+文書: docs/ゲーム概要と実装機能.md L3400-3626・3666-3694・3750-3801（S19 の見出し 45）
+台帳: docs/機能の台帳.md（§3 の S19-H001〜H042＝800・846・868 行の 3 塊）
+根拠に引くだけ（二度確かめない）: docs/202611/20261106/20261106_地主の政治の導き直しの段C-0′_盤面m873とC-1・D-0の素案_下書き.md §2（秘密投票・官僚制度・徴兵の札）
+道具: scripts/instruments/r893/ を tools/ へ写した（元は書き換えない）→ build_after900.py・ledger_check.py（門7 列の数・門8 見出しの重複）・mk_fixtures900.py
+手順: 1 S19 を門ごとに割る（s19/）→ 2 文書が古い／壊れているを分け overview_s19.patch → 3 道具 (a)(b)(c)(d) → ledger_after900.md
