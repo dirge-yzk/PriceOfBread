@@ -1,0 +1,11 @@
+(880) c74id フルスイート（suite880.sh 2acd9ff3・Release・git archive の写し）
+rc=0 end=2026-11-06 10:33:20
+list nonfull 2323
+list full 3
+nonfull rc=0 1460s
+full rc=0 180s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2322、スキップ:     1、合計:  2323、期間: 24 m 18 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 58 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
