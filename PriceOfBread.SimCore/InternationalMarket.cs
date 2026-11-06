@@ -100,9 +100,8 @@ public sealed partial class InternationalMarket
                     if (sc > 0) { stateCut += sc; rent -= sc; }
                     if (rent > 0)
                     {
-                        // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園の地代は不在地主（本国の首都の投資家）へ直接＝清算の受け取りは移し方の1本（貯蓄と所得を同じ額で書く）
-                        //   なので国内の売上（EconomyStep の④＝精算の後に送る）と違って直接払ってよい。
-                        to.Add(Colonial.AbsenteeRgo(rr, pr) && Colonial.AbsenteeOwner(w, rr) is { } ab ? ab : rr.Pops[pr.OwnerPopIndex]); wt.Add(rent);
+                        if (Instruments.On) Instruments.LandshareExp(w, rr, pr, rent);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分を引いた後の輸出の地代の総額
+                        EconomyStep.AddRentRecipients(to, wt, w, rr, pr, rent);   // ★(895) 受け手＝不在地主（植民地格の大農園・R1）か持ち主か土地の持ち分の枠
                     }
                     if (wages > 0) { to.Add(rr.Pops[pr.LaborPopIndex]); wt.Add(wages); }
                 }

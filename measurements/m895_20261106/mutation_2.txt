@@ -1,0 +1,10 @@
+木 59cc9826923de2b6d458b6b627e47de4a5a11b25（使い捨て D:/PoB_work/c76ls_work/mutwt）・試験の組 LandShareTests＋WriterRatchetTests
+M0	赤: なし	成功!   -失敗:     0、合格:    62、スキップ:     0、合計:    62、期間: 27 s - PriceOfBread.Tests.dll (net10.0)
+mut M8b 当てた
+M8b	赤: WriterRatchetTests.お金への書き手は増やさない 	失敗!   -失敗:     1、合格:    61、スキップ:     0、合計:    62、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+mut M15 当てた
+M15	赤: T7d_欄を持つ州だけの列は欄の無い州を積まない 	失敗!   -失敗:     1、合格:    61、スキップ:     0、合計:    62、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+mut M25 当てた
+M25	赤: T9_cornintは持ち分の受け手で按分する 	失敗!   -失敗:     1、合格:    61、スキップ:     0、合計:    62、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+M10	門の台本 TOL=1 の自分の試し rc=1（0 なら緑＝穴・1 なら赤）・元の台本 rc=0	selftest 綺麗な行が通る True ・人工のずれ（1e-6・nan・欄 3・inf）を落とす [False, True, True, True]
+おわり

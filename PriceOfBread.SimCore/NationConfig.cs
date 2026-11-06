@@ -100,6 +100,7 @@ public sealed class NationConfig
     // 農制＝農場の残余（売上−農業労働力の購入費）のうち地主（貴族）が取る割合。
     // 1.0＝農奴制（露）・0.8＝領主農場（普・土）・0.6＝既定（61国のうち43国）・0.5＝小作（仏・日・英）・0.0＝自作農（米＝農民が自分の農場を所有）
     public double FarmLordShare = 0.6;
+    public double[]? LandOwnership = null;   // ★(895) 土地の持ち分（world.json の "landOwnership"・4 個＝貴族・教会・農民の自作・市民の地主の地代の受け手の割合）。null＝今の持ち主に 1.0。構築（Simulation.BuildProvince）が非賦存の RGO へ和で割った写しを置く
     // 各国の象徴的主食（英＝紅茶・露＝ウォッカ・日＝米・仏＝パン…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。
     // 固執財の需要床/闘争度直撃の機構は廃止（主食欠乏の怒りは満足度経路＝主食tierの最重みが拾う）。
     public int CulturalGoodId = Catalog.BreadId;   // 既定＝パン（61国のうち24国・Runner の診断が <0 のときに使う財と同じ）

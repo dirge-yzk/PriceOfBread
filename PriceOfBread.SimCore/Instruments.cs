@@ -1492,6 +1492,7 @@ public static partial class Instruments
     {
         DivhostMonth(w);   // (801) 投資家の工業レントの月の和
         CgMonthClose(w);   // (829) 植民地格の州の階級の群の表：POP の月の窓の終わり（月末の在庫は徴税の後に読む）
+        LandshareMonth(w);   // (895) 土地の持ち分：その月の LandRent の期待と実際（不在地主の送金の後・次の月の 0 化の前）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
@@ -1861,6 +1862,7 @@ public static partial class Instruments
         CpwdTable(sim, seed, q);           // (815) 払えない利札の落としの表
         CearnTable(sim, seed, q);          // (822) 植民地の稼ぎの表（全ての国の州×四半期）
         CedeTable(sim, q);                 // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：貯めた事象の後の値を四半期の末に読む
+        LandshareTable(sim, seed, q);      // (895) 土地の持ち分の段 B-0 の表 landshare_s（国×四半期・月の閉じで積んだ期待と実際）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
@@ -1893,6 +1895,7 @@ public static partial class Instruments
         SubstClose(sim); CornintClose(sim);   // (837)
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
         CrownClose(sim);   // (889) crownpc_s
+        LandshareClose(sim);   // (895) landshare_s
         SilverParityClose(sim);   // (775)
         SilverWeightClose(sim, sk.Seed);   // (807)
         DivhostClose(sim); PortchClose(sim);    // (801)(770)

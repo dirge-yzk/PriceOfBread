@@ -59,7 +59,12 @@ public static partial class Instruments
                     if (s.GoodId < 0 || s.GoodId >= ng) continue;
                     if (s.OwnerPopIndex >= 0 && s.OwnerPopIndex < r.Pops.Count && s.LaborPopIndex >= 0 && s.LaborPopIndex < r.Pops.Count) totalOut[s.GoodId] += System.Math.Max(0, s.Output);
                     if (!s.IsRgo || s.OwnerPopIndex < 0 || s.OwnerPopIndex >= r.Pops.Count) continue;
-                    ownerTot[s.OwnerPopIndex] += System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price);
+                    if (s.LandShares is { } lso)   // ★(895) 土地の持ち分：枠の受け手に 産出の値×割合（null は今の持ち主の 1 行）
+                    {
+                        double v0 = System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price); long fbo = 0;
+                        for (int k = 0; k < lso.Length; k++) if (lso[k] > 0) ownerTot[LsRecipient(r, s, k, ref fbo)] += v0 * lso[k];
+                    }
+                    else ownerTot[s.OwnerPopIndex] += System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price);
                 }
                 for (int pi = 0; pi < r.Pops.Count; pi++)
                 {
@@ -70,10 +75,13 @@ public static partial class Instruments
                     if (!(ownerTot[pi] > 0)) { rentUnattr[b] += rent; continue; }
                     foreach (var s in r.Producers)
                     {
-                        if (!s.IsRgo || s.OwnerPopIndex != pi || s.GoodId < 0 || s.GoodId >= ng) continue;
+                        if (!s.IsRgo || s.GoodId < 0 || s.GoodId >= ng) continue;
+                        double wpi = 0;   // ★(895) 土地の持ち分：割合が正の枠の受け手が pi の RGO を、割合の和の重みで読む（null は今の条件 OwnerPopIndex==pi）
+                        if (s.LandShares is { } lsp) { long fbp = 0; for (int k = 0; k < lsp.Length; k++) if (lsp[k] > 0 && LsRecipient(r, s, k, ref fbp) == pi) wpi += lsp[k]; if (!(wpi > 0)) continue; }
+                        else if (s.OwnerPopIndex != pi) continue;
                         double v = System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price);
                         if (!(v > 0)) continue;
-                        double share = rent * v / ownerTot[pi];
+                        double share = s.LandShares is null ? rent * v / ownerTot[pi] : rent * (v * wpi) / ownerTot[pi];
                         rentBg[b, s.GoodId] += share;
                         if (isCorn[s.GoodId]) rentGrainDom[b] += share; else rentOtherDom[b] += share;
                     }
@@ -94,6 +102,18 @@ public static partial class Instruments
                         if (!(amt > 0)) continue;
                         double rent = System.Math.Min(s.RentShare.Value, r.FarmRentCap.Value) * amt;
                         if (!(rent > 0)) continue;
+                        if (s.LandShares is { } lsx)   // ★(895) 土地の持ち分：枠ごとの層へ rent×割合（null は今の持ち主の 1 行）
+                        {
+                            long fbx = 0;
+                            for (int k = 0; k < lsx.Length; k++)
+                            {
+                                if (!(lsx[k] > 0)) continue;
+                                int bk = CnBloc(r.Pops[LsRecipient(r, s, k, ref fbx)]); double rk = rent * lsx[k];
+                                rentExp[bk] += rk; rentBg[bk, s.GoodId] += rk;
+                                if (isCorn[s.GoodId]) rentGrainExp[bk] += rk;
+                            }
+                            continue;
+                        }
                         int b = CnBloc(r.Pops[s.OwnerPopIndex]);
                         rentExp[b] += rent; rentBg[b, s.GoodId] += rent;
                         if (isCorn[s.GoodId]) rentGrainExp[b] += rent;

@@ -714,6 +714,7 @@ public sealed class Producer
     public int OwnerPopIndex;     // 地代/利潤の受け手
     public int LaborPopIndex;     // 賃金の受け手
     public Share RentShare;      // ρ。自営は実質無関係（owner==labor）
+    public double[]? LandShares; // ★(895) 土地の持ち分（RGO の地代の受け手の割合・和 1）：0 貴族＝OwnerPopIndex・1 教会＝州の ClergyPopIndex・2 農民の自作＝LaborPopIndex・3 市民の地主＝州の InvestorPopIndex。null＝今の OwnerPopIndex に 1.0（割り方は EconomyStep.PayOwnerRent・AddRentRecipients）
     public List<Input> Inputs = [];   // レシピの投入材（多段チェーン §2.4）。RGO は空
     public double LastInputFill = 1.0;  // 前期の投入充足率（§9-A 注2：投入が買えないと実産出が落ちる・律速）
     // UI診断用の純記帳（2026-07-19・力学は一切読まない）：素材のみの充足率。
