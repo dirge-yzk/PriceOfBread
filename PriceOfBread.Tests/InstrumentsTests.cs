@@ -22,10 +22,12 @@ public class InstrumentsTests
     private const int WarQ = 100;
     // ★(400)(405) 2026-10-18：この盤面は借入の枝を 1 度は通す対照が要る（下の borrowSeen）。英の開幕の専売の段（world.json の 3）では英が段 3 の歳入で始まり 20 四半期のうちに借りない＝この番人の盤面の英だけ
     //   開幕の段を持たない形〔規則なし＝教義の段が助走から決める＝旧の開幕〕へ戻す（旗の焼き込み〔405〕の後は旗でなく設定の欄で戻す）。計器が軌道を変えない・形が正しい、の確かめには開幕の財政の形は関係しない。
-    private static MultiNationSim Make(ulong seed = 1789UL)
+    private static MultiNationSim Make(ulong seed = 1789UL, bool noLandData = false)
     {
         var uk = NationConfig.Britain().ShallowClone(); uk.OpeningStateMonopolyTier = 0;   // ★(407) 写しに書く＝共有の世界データ（WorldData の型初期化の配列）を書き換えない（旧＝(405) は共有の英を 0 にした＝同じテストの工程の後の全ての試験の英が段なしになり、接触の内訳の番人が並びで赤になった）
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent());
+        NationConfig[] cfgs = [NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()];
+        if (noLandData) cfgs = [.. cfgs.Select(c => { var d = c.ShallowClone(); d.LandOwnership = null; return d; })];   // ★(914) 土地の持ち分のデータの有無に依らず同じ盤面（データ無し）にする
+        var sim = new MultiNationSim(cfgs, seed, _ => new UtilityAgent());
         return sim;
     }
 
@@ -1898,7 +1900,7 @@ public class InstrumentsTests
             double limit;
             try
             {
-                var sim = Make();
+                var sim = Make(noLandData: true);   // ★(914) 英の限界の縁の反転の対照は土地の持ち分のデータ無しの盤面で組んである
                 sim.Nations[2].World.Coef.MaxInterestShareOfRevenue = new Share(LimitUnderTest);   // 英の限界を 0.60 に動かす（国ごと別インスタンス）＝英の利払い÷歳入はこの盤面で 0.35〜1.0 を動く＝限界の両側の月と反転が実際に現れる（0.67 よりは下＝仏の線 ≦ 限界 の不変条件を保つ）
                 limit = sim.Nations[2].World.Coef.MaxInterestShareOfRevenue.Value;
                 RunMatch(sim, Quarters, instr: true);
