@@ -96,3 +96,11 @@
 - D: の空き：162.77GB（2026-11-06・shutil.disk_usage・事前登録の時）・arms.sh free 6。見込み：各 約 10GB＋src 約 1GB。
 - 生を縮める：反証役（合流）が読んだ後に、門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s と keepsum_all_tables.tsv）だけを残す。この線は報告の前に生を消さない・縮めない。ビルドの写し src_* は腕が終わったら消す。
 - 読み：`bash scripts/instruments/c74ts/read882.sh B <ins>`・`S <ins>`（D:/PoB_work/c74ts_work/read_B・read_S）。
+
+==== 追記（2026-11-06・点火のコミット 7023745f の後・腕 B の前・結果の後の追記と名乗る）
+[A1] 走査の番人と機構の番人（旗 1 の木・隔離ビルド D:/PoB_work/c74ts_work/art）：フィルタの文字列＝`FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~SubsistenceStage2Tests|FullyQualifiedName~SubsistenceNoBoughtTechTests|FullyQualifiedName~SubstInstrumentTests|FullyQualifiedName~FoodLedgerTests|FullyQualifiedName~UrbanFlowRealTests|FullyQualifiedName~RdhInstrumentTests`＝合計 234・合格 229・失敗 5（D:/PoB_work/c74ts_work/t1.mark.log）。
+- 赤 4 本は [6] の予言どおり（SubsistenceStage2Tests 3 本＋SubstInstrumentTests(flag: 1)）。
+- **予言の外れ**：WriterRatchetTests は [7] の予言 item 2 ではなく **item 11〈外交：覇権の判定の国×国〉が赤**＝実測 3,409,728（宣言 3,133,384・許し +2%・+8.8%）。item 2 は緑。
+- 診断：点火の diff は 2 行（Coefficients.cs:531 の既定・DormantIdentityTests.cs の休眠の表の 1 行）＝外交のコードに 1 字も触れない。item 11 は 1 種 40 四半期の軌道の件数（注の履歴で表の更新のたびに −27%〜+48% 動く）＝自給の σ が変わって最初の 40 四半期の戦争と同盟の候補の月が動いた軌道。新しい処理ではない（〈軌道の件数を写しただけの番人〉＝波47 の規則の例外の型）。
+- 扱い（指示の〈予言に無い赤は止める〉から外れる＝報告の先頭に書く・README §1-7 の形）：表は線で取り直さない（★(778)・合流が ★(749) で 1 回）。赤のまま報告する。計算量の本当の門は腕 B の .cost の推定 ≦248.5 秒（覇権の判定の行は m873 の .cost と並べて記録）。フルスイートで許す赤は WriterRatchetTests の item 11（と item 2 が赤なら item 2）だけ。他の赤は止める。
+[A2] [4] の表の Mu0 の行の〈単体の試験〉の欄の書き直し：器の試験 SubsistenceNoBoughtTechTests は旗を自分で立てて回す＝旗 0 の既定（Mu0）では赤にならない。試験 3〈技術の比が1の盤面では旗0と旗1が同じビット〉は何もしない実装も通す＝壊さない側。
