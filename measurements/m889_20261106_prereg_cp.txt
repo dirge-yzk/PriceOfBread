@@ -1,0 +1,135 @@
+(889) c75cp 事前登録：王権と議会の点検の恒等の計器 crownpc_s（議会の統制力 ParliamentControl の項ごとの寄与）
+日付 2026-11-06・枝 c75cp（11db605f から）・worktree D:/PoB_work/wt_c75cp・作業フォルダ D:/PoB_work/c75cp_work・担当 Claude Opus 5.5
+出発：00一覧 §00〈次の波（波75〜）〉③。作者の問い「王権と議会の権力の奪い合い構造は正しく機能していますか？」（2026-11-06）への調べ。
+作者の答えはまだ無い＝〈作者「全て推奨で」で推奨を採った〉として残りタスクの列に置いた物（計画の担当の扱い・削らない）。
+担当のモデル：opus（計画の担当の判断＝README〈実装は sonnet〉からの外れ・理由は計画の head）。
+
+==== [1] 恒等の線・予言 0 ====
+- エンジン（CrownParliament.cs・Politics.cs・Coefficients.cs ほか）は 0 行。計器だけを足す。
+- 予言：素の 5 種・計器つき 10 種・注視の表が m873（基準 ident.cfg）と名乗り行を除いて全行バイト一致。差は crownpc_s_s<種>.tsv が増えることだけ。
+- 新しい係数 0・新しい状態 0（計器の持ち物は ConditionalWeakTable だけ・World と Sink に欄を足さない）・乱数を引かない。
+- 浮動小数の順序が変わる箇所：エンジン側は 0（エンジンの式に触れない）。計器の中の式はエンジンの式の写し（同じ結合順）＝計器の値が世界へ戻る経路は無い。
+  紙の台本で旧と新の食い違いを数える対象は無い（エンジンの行を 1 行も変えないため）。
+
+==== [2] 足す物・消す物・重なり ====
+足す物
+- PriceOfBread.SimCore/InstrumentsCrown.cs（新しい部分クラス・LF）。表 crownpc_s（国×四半期・全ての国・毎四半期・州が 0 の国は行を出さない）。
+- PriceOfBread.SimCore/Instruments.cs の 2 行だけ（どちらも Instruments.On の中＝Quarter と Close の中）：
+  - :1804 ScalarsFold の行の直後に 1 行 `CrownFold(sim, seed, w, q);`（国ごとの段の並び）。
+  - :1889 `SubstClose(sim); CornintClose(sim);` の行の直後に 1 行 `CrownClose(sim);`（試合の終わり）。
+- PriceOfBread.Tests/CrownPcInstrumentTests.cs（新しい試験のファイル・[Collection("Instruments")]）。
+- scripts/instruments/c75cp/（ident889.sh・cross889.py〔交差の門と自己試験〕・read889.py〔生の読み〕・mut889.sh〔突然変異の台本〕）・measurements/m889_20261106/。
+消す物：0。
+名の衝突（grep・11db605f）：`crownpc`・`InstrumentsCrown`・`CrownFold`・`CrownClose`・`CrownPc` は SimCore・Tests・Runner・App・scripts で 0 件。
+読み手の grep（足す名の読み手）：SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表に、上の名は 0 件。
+  SaveGame はリフレクションで World の欄を書く＝World に欄を足さないので触れない。POB_COEF＝係数を足さないので触れない。
+他の線との重なり
+- c75ce (888)：Instruments.cs の :1218（RegionMoved の中）・:1860〜:1865（全ての国の段）・:1900（CessClose の並び）。この線は :1804 の直後と :1889 の直後＝行は分かれる。
+  :1889 と :1900 は 11 行離れる＝git の merge は別の塊として通る見込み。衝突したら合流が手で解く。
+- c75ip・c75ts の Coefficients.cs・DormantIdentityTests.cs：この線は触れない。
+- App・Display・Runner・CrownParliament.cs・Politics.cs・Coefficients.cs・WriterRatchetTests.cs：0 行。
+
+==== 四半期の中の順（grep で読んだ・入力がいつ動くか）====
+一四半期の流れ（MultiNationSim.StepDay の四半期の終わり→SelfPlay.cs:2183 Instruments.Quarter）：
+  (a) 四半期の頭：Simulation.QuarterStart（PopWindow を開いて閉じる :1785〜:1791）→ Government（AusterityIntensity を書く Government.cs:377・軍事費の施行 Government.cs:896〜:923 で fm_s の FmNet が ParlControl を写す）。
+  (b) 月の決算×3。
+  (c) 国の四半期の末 Simulation.QuarterEnd：GrowTech → Politics.Step（Simulation.cs:1887）
+      Politics.Step の中：Coercion（Politics.cs:492）・Factions・Transition（下賜 Politics.cs:680＝PC を max(PC, grant) へ／ExecuteRegimeChange→ApplyRegime Politics.cs:713＝PC を政体の目標へ）・
+      ReformistPower／RadicalPower（Politics.cs:560〜:561）・CheckSecession ほか → 末尾 CrownParliament.Step（Politics.cs:512）。
+      → Meritocracy.Step（社会移動＝POP の Blend・規模の移し）→ TickExpansionWill・UpdateGdpCycle・UpdatePriceLevel・Snapshot。
+  (d) 四半期の末の共有層（MultiNationSim.cs:812〜:1067）：Diplomacy.Step×3（講和の矯正 Diplomacy.cs:3201 ApplyRegime・正統性 Diplomacy.cs:3204・戦死）・移民・
+      ReabsorbNations（内戦の決着→SettleRevolt→ExecuteRegimeChange→ApplyRegime）・SpawnSecededNations（新しい国）・StepDiffusion（思想の伝播）。
+  (e) Instruments.Quarter（計器が四半期の末の断面を読む）。
+入力の 3 区分（CrownParliament.Step が読む値・計器が四半期の末に読む値）
+  A＝前の四半期の末の断面が Step の見た値に等しい（書き手は Step の後段だけ・または ApplyRegime だけ）：
+     ParliamentControl（書き手は CrownParliament.cs:27・:30・:40・:111・:120・:126・:159・:461・Politics.cs:680・GovernanceSnapshot.cs:63〔助走だけ〕）・
+     CoopParliamentCrown（書き手 CrownParliament.cs:63・:66＝:39 より後）・ArmyAllegiance（:195＝:39 より後）・Crown（:133・:155・ApplyRegime）・Seizure（ApplyRegime だけ）・Polity（:178 の再ラベルと ApplyRegime）。
+     ⇒ 計器はこれらを前の四半期の末に貯める（計器の持ち物）。事象（ApplyRegime・下賜）の無い四半期では Step の見た値と一致する。
+  B＝四半期の末の値が Step の見た値に等しい見込み（Step の前に書かれ、後に書き手が無い見込み）：
+     AusterityIntensity（四半期の頭の Government だけ）・ReformistPower・RadicalPower（Politics.cs:560〜:561）・Coercion（Politics.cs:492）・PoliticsEnabled。
+  C＝Step の後に動きうる（数え直しがずれうる・自己申告する）：
+     Legitimacy（書き手 16 行・共有層の Diplomacy.cs:3204 ほか）・思想の集計 Ideologies.National（POP の IdeologyShares・Consciousness・規模・参政権＝Meritocracy・移民・StepDiffusion・戦死・Step の再ラベルの RaiseFoundingInstitutions が参政権を動かす）
+     ⇒ rep・cur・crown・兵士の傾き lean・兵士の数・TotalPopulation（EffectiveCoerce と ArmyPower の分母）。
+  ⇒ 召集（入力 A と B だけ）は四半期の末に正確に数え直せる。巻き返しは正統性（C）だけがずれうる。①・②・②′ は C の入力を読む＝ずれうる。
+
+==== 列の式（計器が自分で書く・エンジンの CrownParliament の関数を呼ばない）====
+走る値 pc を前の四半期の末の pcPrev から始め、Step の順に項を当てる（各項＝当てた後−当てる前）：
+  初期化（:26）：pc＜0 なら pc＝目標(政体)（目標の表＝CrownParliament.ParliamentControlTarget の写し 6 行・計器の中に持つ）。
+  召集（:29〜:30）：SummonParliamentRate＞0 かつ Austerity＞0.5 なら raw＝pc＋SummonParliamentRate×(Austerity−0.5)×2.0・pc＝Clamp01(raw)。summonClampHitFlag＝raw＞1。
+  巻き返し（:39〜:40）：SummonParliamentRate＞0 かつ Crown≠None かつ Coop＜−0.5 かつ Legitimacy＞0.7 かつ ArmyAllegiance＞0.3 なら pc＝Max(0, pc−SummonParliamentRate)。
+     Crown・Coop・ArmyAllegiance は前の断面（A）・Legitimacy は四半期の末（C）。門の 4 つの真偽を列に出す。
+  ①②②′ の塊（:92）：Seizure＝None（前の断面）のときだけ。
+     agg＝Ideologies.National(w)・S(p)＝SupportAt(agg, BasePolityCoord(p), IdeologyAffinitySlope)・cur＝SupportAt(agg, DriftedPolityCoord(政体, Suffrage, c), …)・rep＝max(S(立憲), S(共和))・crown＝max(S(絶対), max(S(専制), S(幕府)))。
+     （これらはエンジンの純関数＝世界を書かない読み。項と門と切りの式は計器が書く。）
+     ①（:109〜:111）：ParliamentPressureRate＞0 かつ rep−cur＞PolityInertia×Legitimacy かつ ReformistPower＋RadicalPower＞Coercion×(TotalPopulation÷max(1, PoliticalReferencePop)) なら pc＝Clamp01(pc＋ParliamentPressureRate×(rep−cur))。
+     ②（:116〜:120）：ParliamentPressureRate＞0 かつ Crown≠None（前の断面）かつ crown＞rep なら pc＝Max(0, pc−ParliamentPressureRate×(crown−rep)×Legitimacy)。
+     ②′（:125〜:126）：ArmyPcPressure＞0 かつ lean＞0 なら pc＝Max(0, pc−ArmyPcPressure×lean×armyPower)・armyPower＝ArmyPoliticalWeight×(兵士の数÷max(1, 人口))×(1−Clamp01(pc))（pc は ② の後の走る値＝PolicyPreferences.ArmyPower が Step の瞬間に読む値）。
+        lean＝兵士の POP の (保守族の割合−それ以外)×規模の和÷規模の和（FamilyOf の写像）・兵士の数は州の POP を直に数える（窓のメモを使わない）。
+  廃位（:129〜:135）：前の Crown≠None・今の Crown＝None・事象なし → depositionFlag（PC は動かさない）。
+  幕府の終わり（:144〜:163）：前の Crown＝幕府・今の Crown＝絶対・事象なし → shogunateEndFlag。pcNow＝ConstitutionalControlFloor かつ走る値＜床なら floorHitFlag（PC＝max(PC, 床)・:159）。
+  再ラベル（:174〜:181）：前の政体≠今の政体・事象なし → relabelFlag（PC は動かさない）。
+  pcEmulShare＝走る値の最後。residualShare＝pcNow−pcEmul（〈pcNow−pcPrev−Σ項〉と同じ量・Σ項は走る値の差の和＝丸めの 1e-16 の桁を除き同じ）。
+  事象の印：regimeEventFlag＝RecentRegimeChanges の増え＞0.5（ApplyRegime が政体を替えると +1・Step は ×(1−置き換わり率)≒×0.99 だけ）・grantFlag＝ReformGrantCount の増え。
+  residualAltShare＝事象のある四半期だけ、走る値を〈今の政体の目標〉から始め直した残差（ApplyRegime が Step の前＝Transition のとき）。
+  explainCode（説明の区分）：1＝最初の行（前の断面なし＝q0・建国の最初の四半期）／0＝|residual|≤1e-12（計器の中の double・印字の桁ではない）／
+    3＝事象あり・pcNow＝今の政体の目標（ApplyRegime が Step の後＝講和の矯正・内戦の決着）／4＝事象あり・|residualAlt|≤1e-12（ApplyRegime が Step の前）／5＝事象ありで説明できない／
+    7＝幕府の終わりの床／6＝下賜（grantFlag・値はソースから数え直せない＝印だけ）／9＝説明できない（入力が四半期の中で動いた）。
+  driftMaskCode（9 の行の自己申告）：1＝① の門が開いていた・2＝② の門・4＝②′ の門・8＝巻き返しの門・0＝四半期の末に全ての門が閉じていた（Step の瞬間には開いていた門がある）。
+材料の列：austerityIndex・debtGripShare（国債÷年の名目GDP の Clamp01＝PowerShares.DebtGrip と同じ式を計器が書く）・interestPerMonth（LastInterestPerMonth）・revenuePerMonth（LastRevenuePerMonth）・
+  interestPerRevenueShare（利払い÷歳入・歳入が正でなければ nan＝挙動の線 (1) の材料）・aboveConstitutionalFloorFlag（pcNow≥ConstitutionalControlFloor）・recentRegimeChangesIndex。
+列の名と単位は README §1-9（Share＝0〜1・Index＝無次元・Flag・Code・PerMonth）。鍵：quarter・year・nation・nationUid（fm_s の uid と同じ番号）。
+
+==== [3] 足す試験と突然変異・走査の番人 ====
+試験（新しいファイル CrownPcInstrumentTests.cs・期待値は計器と別の出所＝係数の値から手で書いた式・エンジンを直に Step させた後の w.ParliamentControl）：
+  T0 直後に数えれば残差は 0：仏・英で前の断面を取り、Step を直に呼んだ直後に数える（共有層を挟まない＝C の入力が動かない）→ residual＝0 と explainCode 0（事象の無い四半期）。
+  T1 召集だけ：Austerity 0.8・ParliamentPressureRate 0・ArmyPcPressure 0・Coop＞−0.5 → summonTerm＝0.02×0.3×2＝0.012（手）・residual 0・pcNow−pcPrev＝0.012。
+  T2 Clamp01：pcPrev 0.995・Austerity 1.0 → summonClampHitFlag 1・summonTerm＝0.005・pcNow＝1。
+  T3 ① の門：純粋な関数に手の入力（rep 0.6・cur 0.3・inertia 0.1・動員 2・保持力 1）→ term1＝0.04×0.3＝0.012。動員 0.5（保持力の門を閉じる）→ 0・支持の門を閉じる → 0。
+  T4 巻き返し：Crown 有・前の Coop −0.8・Legitimacy 0.9・前の ArmyAllegiance 0.5・Austerity 0 → rollbackTerm＝−0.02（手）・門 4 つが 1。前提＝Step の後の Coop は −0.5 以上（今の値で数える誤りを落とせる）。
+     Crown＝None（共和）→ rollbackTerm 0・rollbackCrownGateFlag 0・他の門の因子の列は値を出す。
+  T5 ApplyRegime：Step の前に ApplyRegime（政体を替える）→ regimeEventFlag 1・explainCode 4。Step の後に ApplyRegime → explainCode 3。
+  T6a fm_s との交差：英仏の多国シム 6 四半期（外交を止める）→ fm_s の Increasing が空でない行で、同じ (quarter, uid) の crownpc_s の pcPrevShare と ParlControl の文字列が一致（行が 1 本以上あることが前提）。
+     ⚠ fm_s の ParlControl は四半期の頭（軍事費の施行 Government.cs:896〜:923 → FmNet InstrumentsFm.cs:72）で写す＝今の四半期の末の pcNow ではなく前の四半期の末の pcPrev に一致する（ソースから決まる・結果を見る前に書く）。
+  T6b 交差の門の門：同じ照合の関数に pcPrev を 1e-6 ずらした行を渡すと不一致が 1 本以上（許しを 1 へ緩めると赤）。
+突然変異（使い捨ての木 D:/PoB_work/c75cp_work/mut・試験だけ回す・結果は measurements/m889_20261106/mutation.txt）：
+  M1 召集の係数を 2 倍 → T1 赤／M2 Clamp01 を外す → T2 赤／M3 ① の保持力の門を外す → T3 赤／M4 巻き返しの王冠の守りを外す → T4 赤／
+  M5 前の断面を貯めず今の値（Coop・ArmyAllegiance）で数える → T4 赤（T5・T0 で赤になる物も書く）／M6 交差の門の許しを 1 へ緩める → T6b 赤。
+走査の番人（㉘・器と試験のコミットの直後・ident より前）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests（隔離ビルド --artifacts-path D:/PoB_work/c75cp_art）。
+  点検の grep：工業化度の語＝計器に書かない（許可表 0 行の変化）・`new MoneyStock(`・`new MoneyPerYear(`・`new RatioToGdpYear(` を書かない（件数 0 の変化）・techLevel の列を書かない・数値の財 id を書かない・route_anchors.tsv の鍵の行に触れない・WriterRatchetTests の宣言の表に触れない。
+  書き換える件数の予言（㉑）：0（どの番人の表も書き換えない）。
+テストの数の予言：Category!=FullLength 2323＋新しい [Fact] の数（--list-tests で数え直す）・FullLength 3 のまま。
+
+==== [4] 判定 ====
+`bash scripts/instruments/ident/ident.sh run c75cp --tree D:/PoB_work/wt_c75cp --added-tables crownpc_s --tests-delta <新しい試験の数> --saveleak`
+（--saveleak は回す物＝savetest と leakhunt を腕で回す指定・許しの宣言ではない）。素の 5 種・計器つき 10 種が m873 と名乗り行を除いて全行一致・計器の表の差は crownpc_s だけ。
+門（両側）：
+  G1 ident〈判定: 恒等〉（既にある表と列が全行バイト一致・crownpc_s だけが増える）。
+  G2 fm_s との交差：10 種の生で fm_s の Increasing が空でない全ての行に同じ (quarter, uid) の crownpc_s の行があり、pcPrevShare と ParlControl の文字列が一致（不一致 0）。
+     自己試験：同じ台本で pcPrev を 1e-6 ずらすと不一致が出る（cross889.py --selftest）。
+  G3 説明できない残差の行（explainCode 9 と 5）は数えて列ごとに名乗る（隠すのは 0）。行の数そのものは門にしない（点検の答え＝記録）。
+  G4 T0〜T6b が緑・突然変異 M1〜M6 がそれぞれ赤。
+採否：〈判定: 恒等〉かつ G2・G4 → 採る。一致しなければ、その変更を外して報告に回す。
+
+==== [5] 読み（記録・採否でない）＝ident の計器つき 10 種の生 ====
+measurements/m889_20261106/ に置く（read889.py）：
+  (i) 国ごとに PC が上がった四半期のうち召集が上げた割合（召集の項＞0 の四半期÷pcNow＞pcPrev の四半期・事象の四半期を除く）と、① の項＞0 の四半期の数。
+  (ii) 立憲（ConstitutionalMonarchy）の四半期のうち pcNow＝1 の割合（国ごと）。
+  (iii) 巻き返しの門が全て開いた四半期の数と、門ごとの開いた割合・協力度 coopParliamentCrownPrevIndex の分布（下位 10%・最小）。ArmyAllegiance の分布。
+  (iv) 立憲→絶対・専制（Crown 有）の遷移（relabel または事象）の前の四半期と同じ四半期に ② の項が負だった回数。
+  (v) 説明できない残差の行の数と driftMaskCode の内訳・explainCode の内訳。
+  m852 の AI の読み（memory pob-crown-parliament-audit-2026-11-06・生は消えた）の (i)〜(iv) と並べ、変わった所を名乗る。
+  国の名簿：計器つき 10 種の既定の計器の国＋全ての国（表は全ての国を持つ）。
+
+==== 周辺の点検（★(885)・ソースと生だけ・30〜40 分）====
+ParliamentControl の読み手（grep 11db605f・コメントを除く）：Diplomacy.cs:3145（条約の批准）・Fiscal.cs:447（国債の金利の代議制の割引）・Government.cs:910（予算の拒否権）・
+  Parliament.cs:261（政党化の門）・PolicyPreferences.cs:532（軍の政治力）・PoliticalQuantities.cs:214・:247（宮廷の任免・将校の任免）・PowerShares.cs:54〜:56（形式上の統制）→ :117・PowerAffinity.cs:130（軍政の判定）・
+  World.cs:424（監督の予算）・CrownParliament.LabelFromAxes（:466〜:476 の床）・InstrumentsFm.cs:72・App（GameViewModel.Header.cs:47・Politics.cs:49・:188・:277＝読むだけ）・Runner（Program.cs:2433・:5733〜:5734）。
+  届かない門・読まれない欄・天井の錠・片側だけの門を表にし、挙動の線 (1)〜(3) の門の素案（両側・旗 0 で落ちる形）と材料の数を書く（AI の案・確証なし・決めない）。
+
+==== D: と腕の枠・生を縮めること ====
+起こす前（2026-11-06）：D: の空き 155.31GB（shutil.disk_usage）・arms.sh free 6。床 35GB（ident 1 本 約 15〜17GB）。起こす直前に測り直して記録へ書く。
+ident の生（D:/PoB_work/ident_c75cp）は、判定・反証役・読みの後に crownpc_s（全ての種）・fm_s（交差の門の相手）・keepsum_all_tables.tsv へ縮め、合流まで残す（合流の INSRAW の候補）。
+消してよいのはこの回に自分で作ったフォルダだけ（wt_c75cp・c75cp_work・c75cp_art・ident_c75cp の残りの中身・mut）。keep_* には触れない。
+
+==== 入れない物 ====
+挙動の線 (1)〜(3)／CrownParliament.cs・Politics.cs・Coefficients.cs の変更／形 A（各項の直後の hook）／World と Sink の新しい欄／仏 1789 と立憲化の時期（(184)）の直し／App・Display・Runner／WriterRatchetTests の表／c75ce の行。

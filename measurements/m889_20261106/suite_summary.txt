@@ -1,0 +1,14 @@
+(889) c75cp フルスイート（木 6ce66cf9・隔離ビルド D:/PoB_work/c75cp_work/art_suite・Category!=FullLength と FullLength を分けた・合計を --list-tests と突き合わせた・中止 0）
+HEAD 6ce66cf9
+    0 エラー
+--- list Category!=FullLength
+2331
+--- list FullLength
+3
+--- run Category!=FullLength
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2330、スキップ:     1、合計:  2331、期間: 22 m 5 s - PriceOfBread.Tests.dll (net10.0)
+--- run FullLength
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 19 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
