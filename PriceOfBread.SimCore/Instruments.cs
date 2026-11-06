@@ -1217,6 +1217,7 @@ public static partial class Instruments
     /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
     internal static void RegionMoved(World from, World? to, Region r, Territory.Rehoming how)
     {
+        CedeBefore(from, to, r, how);   // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：移る時点の前の値を貯める（最初の文＝建国と挙げていない受け手の行も落とさない・InstrumentsCede.cs）
         if (r.FleetUnits is { } fu)   // ★(669) 線 navf3：送り手の World ごとに、出ていく艦を出た州の格で分けて積む（(614) の [ThreadStatic] は種の数が違う腕を比べられなかった）
         {
             double sum = 0; foreach (double x in fu) sum += x;
@@ -1858,6 +1859,7 @@ public static partial class Instruments
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
         CpwdTable(sim, seed, q);           // (815) 払えない利札の落としの表
         CearnTable(sim, seed, q);          // (822) 植民地の稼ぎの表（全ての国の州×四半期）
+        CedeTable(sim, q);                 // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：貯めた事象の後の値を四半期の末に読む
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
@@ -1898,6 +1900,7 @@ public static partial class Instruments
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)
         CessClose(sim, sk.Seed);   // (717) 割譲の表 cess_s・講和の表 cessp_s
+        CedeClose(sim, sk.Seed);   // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s
         DscClose(sim);   // (725) dsc2_s
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)

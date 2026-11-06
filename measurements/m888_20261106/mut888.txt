@@ -1,0 +1,19 @@
+木 7392588300a5d227459814b0b0137e6c3da7bcc0（使い捨て D:/PoB_work/c75ce_work/mutwt）
+M0_変えない	赤: なし	成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+mut 1 当てた
+M1_鍵をNameだけ	赤: T2 	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+mut 2 当てた
+M2_印を外す	赤: T5 	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+mut 3 当てた
+M3_movedAgainを持ち主だけ	赤: T4 	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+mut 4 当てた
+M4_yearをQuarterの時	赤: T7 	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+mut 5 当てた
+M5_助走を捨てない	赤: T6 	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+mut 6 当てた
+M6_門の許しを1へ	赤: T8 	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+mut 7 当てた
+M7_前をRehomeの後に読む	赤: なし	成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mut 8 当てた
+M8_差に持分を入れない	赤: T5 T8 	失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+おわり
