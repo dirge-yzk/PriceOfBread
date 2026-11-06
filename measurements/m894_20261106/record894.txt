@@ -70,3 +70,14 @@
 - hook に止められた命令 0。D: の床で待った時間 0（ident の前の空き 141.47GB・arms.sh free 6）。腕の枠で待った時間 0。
 - 走っていた他の担当のプロセス（ident の前の tasklist）：dotnet 3・VBCSCompiler 1（PID 20164）・testhost 1＝他の線の物・触れていない。
 - ident が走っている間（15:45〜16:20）は wt_c76lb にコミットしていない（突然変異の台本は別の使い捨ての worktree）。
+
+## 縮めと片付け
+
+- 縮め（scripts/instruments/m892/shrink892.py を呼んだ・書き換えていない）：ident の生 D:/PoB_work/ident_c76lb/out_ib_10/ins の 1110 本を keepsum（measurements/m894_20261106/keepsum_ident_c76lb_ins.tsv）に書いてから、landbase_s・landbasereg_s・cornint_s の 30 本（0.31GB）を D:/PoB_work/c76lb_work/keep へ移し、他の 1080 本（16.87GB）を消した。
+  - cornint_s を残した理由＝gate894.py は同じフォルダの cornint_s を読む（合流の反証役が門をそのまま打てる）。縮めた後に `python -X utf8 scripts/instruments/c76lb/gate894.py D:/PoB_work/c76lb_work/keep <出力>` を打ち直して 10 種とも通る（gate894_keep.txt）。
+  - subst_s ほか既にある表は keep_892/base_ins と全行バイト一致（ident の判定）＝そちらを読めば同じ。
+- 成績表と .cost・.manifest・注視の表・ident の出力を measurements/b5_20261106_c76lb・b10_20261106_c76lb_ins・mon_20261106_c76lb.txt・ident_20261106_c76lb.txt に写した（成績表はバイトのまま）。
+- 消した物：D:/PoB_work/ident_c76lb（縮めの後の残り＝成績表の元・src_ia・src_ib・src_it・art_it）・D:/PoB_work/c76lb_art（隔離ビルド）・突然変異の使い捨て mutwt と mut_art（台本の終わり）。git worktree prune。
+- 残した物：D:/PoB_work/c76lb_work（keep 30 本・各 .mark と .log・ident_out.txt・突然変異のビルドと試験の出力）・worktree D:/PoB_work/wt_c76lb。
+- 反証役：この線では別の担当が ident の生を読んでいない（担当を起こす道具が無い）。読んだのは advisor の読みだけ＝合流の反証役が keep と keep_892/base_ins で門と試験を打ち直せる形で残した。
+- R の照合の 1e-12 の意味：double で 1e-12 を測ったのは (a) 計器の中の 2 通りの和（1 本の和と cornint_s と同じブロック分け）と (b) 試験 T8 の LbR 対 試験の和。cornint_s の出力そのものとの比較は G10 の文字列の一致（417,233／417,233 行・食い違い 0）＝相対 約 5e-10 以内を言えるだけ（cornint_s と 1e-12 で一致とは言えない）。
