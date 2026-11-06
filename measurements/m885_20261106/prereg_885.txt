@@ -1,0 +1,59 @@
+(885) 波74 の合流の予言（merge と ident とフルスイートの前の最初のコミット・担当 Claude Opus 5.5・基点 496d5ec8）
+この文書は merge・ident・フルスイートの前に書いた。結果を見た後に書き換えない（足すなら〈結果の後の追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（作者 2026-10-27「残りは推奨で」・2026-11-05「全て推奨で」）。
+
+■ [0] 作った物（この回の合流が自分で作るフォルダ）
+  - D:/PoB_work/wt_m885（合流の worktree・枝 m885・基点 496d5ec8）。
+  - D:/PoB_work/m885（合流の作業：印・下書き・フルスイートと道具箱の作業）。
+  - D:/PoB_work/ident_m885z（腕 Z の ident の作業）。
+  - D:/PoB_work/keep_885（Z が恒等のときだけ作る＝base_ins〈Z の計器つき 10 種の生〉・keep_879/base_ins とバイトで同じ表はハードリンク）。
+  - D:/PoB_work/keep_885_rej（新しく作る＝採らなかった腕 c74tsB・c74tsS の生・c74ip と c74ce の未完の下書き）。
+  - 消さない・中身を移さない：keep_873・keep_873_rej・keep_879・keep_879_rej。
+
+■ [1] D: の空き（shutil.disk_usage）＝始め 119.11GB（2026-11-06 11:00）・arms.sh free 6。
+  - Z の ident の床 35GB に届く＝待たずに起こす。
+  - 残留プロセス：dotnet・Runner・testhost・VBCSCompiler・python は 0 本（Get-Process）。
+
+■ [2] 線ごとの入れ方（予言）
+  - c74id (880)：入れる。ident〈判定: 恒等〉（測った種で一致・木 2acd9ff3・SimCore の差は InstrumentsCearn.cs の cearn_s の末尾 1 列だけ・テスト +1）。反証役の 5 件は high ではない＝外さない（記録と次の波へ）。
+    - holown880.py（R880）は〈AI の案・確証なし〉の記録の読み手として入れる。止める線は A2（holclass839）のまま＝担当の next の〈R880 の線が原因が 1 件でもあれば止める〉は写さない（反証役 medium：ヌル腕どうしの 1/4 の水準で A2 の免除 4 件のうち 2 件を R880 が外した＝区別する力が示されていない）。
+  - c74ts (882)：採らない（止める線〈100 倍〉の〈それ以外〉1 件＝腕 B 種 8 オーストラリア王国 1806 q94 670.6 倍・門 G3a と GC の赤＝3 回の規則の 2 回目・次が最後）。merge して、点火 7023745f の .cs だけを逆適用する（`git show 7023745f -- PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DormantIdentityTests.cs | git apply -R --index`）。
+    - 064717b3（SubsistenceStage2Tests.cs:14・SubstInstrumentTests.cs:185 の初期化子に SubsistenceNoBoughtTech＝0 を明示・Assert は不変）は残す＝旗 0 の既定と同じ値を書くだけ＝恒等の見込み（Z で測る）。3 回目の準備。
+    - 反証役の〈オーストラリア王国の旗 0 の跳びは全て建国の直後の型＝腕 B 種 8 の 33 四半期目の型と違う〉を記録に写す。担当の〈同じ型〉は写さない。
+  - c74ip (881)：入れる物は無い（枝は未 push・点火 8761f506 の 1 本だけ・門は 1 つも評価していない・腕 0）。main は旗 0 の器のまま（Coefficients.cs:3597 ImportPayerLive＝0）。
+    - 3 回の規則：数えない（推奨）＝門も止める線も評価していない・★(866) の〈印の rc が 0 でないときは数えない〉と同じ扱い。次も〈数える 3 回目＝最後〉。
+    - 事前登録の下書き D:/PoB_work/c74ip_work/prereg_draft.txt は measurements/m881_20261106/prereg_draft_unfinished.txt へ〈未完の下書き・コミットされなかった〉と名乗って写す（中身は変えない）。
+    - 違反：8761f506 の署名が Claude Sonnet 4.5（決まりは 5.5）・背景の走査の番人を残して応答を終えた（㊱・出力は [killed]）。
+  - c74ce (883)：入れる物は無い（コミット 0）。下書き InstrumentsCede.cs と prereg_ce.txt は keep_885_rej/c74ce_draft へ写す（コミットしない＝コンパイルを確かめていない .cs をリポジトリへ入れない）。反証役の 2 件 high（year は from.Year・quarter は Instruments.Quarter の q で Fold が付ける・Diplomacy.cs に触らない）を次の波の行に書く。
+  - c74ds (884)：docs/202611/20261106/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（中身は書き換えない・反証役の 10 件を末尾に〈反証役の訂正〉として足す）。台本 4 本は scripts/instruments/r884/・出力 4 本は measurements/m884_20261106/。
+
+■ [3] 消す・改める名前（★(773)）
+  - c74id・c74ts とも、消した名前は 0（反証役も 0 と確かめた）＝他の枝での grep は対象が無い。
+  - 2 枝の触るファイルは重ならない（comm -12 の出力が空）＝衝突なしの見込み。
+
+■ [4] 合わせた木の予言
+  - SimCore の 496d5ec8 との差は InstrumentsCearn.cs だけ（逆適用の後に `git diff --stat 496d5ec8 -- PriceOfBread.SimCore` で 1 ファイル）。Coefficients.cs:531 SubsistenceNoBoughtTech＝0・:3597 ImportPayerLive＝0。
+  - Tests の差：CearnTradeColumnsTests.cs・RouteKmTests.cs（c74id）・SubsistenceStage2Tests.cs・SubstInstrumentTests.cs（c74ts の 064717b3）。DormantIdentityTests.cs は 496d5ec8 と差 0。WriterRatchetTests.cs は差 0＝★(749) の取り直しはしない。
+  - 腕 Z：`bash scripts/instruments/ident/ident.sh run m885z --tree D:/PoB_work/wt_m885 --saveleak --grown-ok cearn_s --tests-delta 1`。
+    - 素の 5 種 178 行が b5_20261106_m873 と・計器つき 10 種 183 行が b10_20261106_m873_ins と全行バイト一致（SOURCE-HASH を除く）。
+    - .cost の推定 210.1／211.5 秒が一致。
+    - 計器の表 1070＝バイト一致 1040＋既知の揺れ 20（burscan_s・clock_s）＋cearn_s の +1 列 10（--grown-ok）。宣言の無い違いは 0。
+    - 注視の表 5130 行一致。
+    - テスト Category!=FullLength 2323（2322＋1）・FullLength 3。savetest OK・leakhunt 違反なし。
+    - Z の計器の表は c74id の ident の生（D:/PoB_work/ident_c74id/out_ib_10/ins）とバイトで全て同じ見込み（064717b3 は試験だけ）。
+  - フルスイート（suite885.sh・ident の後に回す・並べない）：Category!=FullLength 2322 合格＋スキップ 1＝2323（--list-tests 2323）・FullLength 3・中止 0。WriterRatchetTests は緑（点火を外したので item 11 の赤は消える見込み）。savetest OK・leakhunt 違反なし。
+  - NG は回さない（ident の既定・成績表が全行一致＝NG の集合は ng873 と同じ・記録）。
+
+■ [5] 止める線の段と記録の段
+  - 止める線の段：Z の〈判定: 恒等〉・フルスイートの赤 0（機構の番人・走査の番人を含む）・savetest・leakhunt。どれかが落ちたら、その線を外した木で測り直して帰属を決める（c74ts の 064717b3 → c74id の順に外す）。
+  - 記録の段：c74ts の腕 B・S11 の成績表と止める線の表（線の記録をそのまま写す）・c74id の R880 の表・c74ds の紙の数。
+  - 挙動の線は 0 本＝基線は m873 のまま（B5・B10INS・MON・NG_BASE ng873 は据え置き）。英の国債の不履行は m873 の M 6・S11 6・N1 2・N2 4 のまま。
+
+■ [6] Z が恒等のときの後始末（予言）
+  - ident.cfg：INSRAW D:/PoB_work/keep_885/base_ins・BASE_COMMIT <合わせた木>・TESTS_NONFULL 2323。KNOWN・TESTS_FULL・NG_BASE は据え置き。
+  - keep_885/base_ins：Z の計器の生 1070 本・keep_879/base_ins とバイトで同じ表（cearn_s 以外の 1040 本の見込み・既知の揺れ 20 は own）はハードリンク（keep885_links.tsv）。
+  - ident_c74id（c74id の旗 0 の生）は Z の判定の後に消す（INSRAW は Z の生が代わる）。
+  - c74ts の腕の生（c74ts_work/armB・s11）は keep_885_rej/ へ移す（縮めない＝3 回目の前の物差しの直しを〈近似〉で読み直す生）。
+
+■ [7] 待ち方
+  - 1 分を超える仕事は bg.sh で run_in_background・前面の waitmark 230 で待つ。Z の走行中は wt_m885 にコミットしない（㉙）＝docs の下書きは D:/PoB_work/m885 に置き、Z の後にコミットする。
