@@ -1,0 +1,19 @@
+(896) c76cs 旗 1 の木（点火 339e6537）のフルスイート・savetest・leakhunt（台本 scripts/instruments/c76cs/suite896.sh・2026-11-06 16:00〜16:54）
+--list-tests：Category!=FullLength 2347（2339＋8）・FullLength 3
+Category!=FullLength：合格 2343＋スキップ 1＋失敗 3＝2347（--list-tests と一致・中止の行 0）
+FullLength：合格 3＝3（一致・中止 0）
+savetest OK・leakhunt 保存則違反なし（SOURCE-HASH 66bc01ea24193dd4）
+
+予言に無い赤 3 本（事前登録 §5 は〈旗 1 で赤の予言：無い〉と書いた）＝★(885) により止める・腕 B と S11 は回さない（3 回の規則に数えない）：
+1. WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item 11 DiploHegemonScans)：3,395,620 件（宣言 3,133,384・+8.4%・許し +2%）＝1 種 40 四半期の軌道の件数（外交の覇権の判定の国×国）。
+2. CrownPcInstrumentTests.Stepの直後に数えれば残差は0（T0）：前提 active≥10 が active=0＝T0 は緊縮 0.9／0.2 の交互で旧の召集を動かして項を作る盤面＝旗 1 では召集が緊縮を読まず、新しい世界は利払いと歳入が 0＝項が 1 本も動かない（旧の規則の盤面に依る前提）。
+3. CrownPcInstrumentTests.政変の四半期は印と説明の区分で残差が説明される（T5）：explainCode 4 の期待が 3＝緊縮 0.8 で旧の召集が PC を目標 0.65 から動かすことで 3 と 4 を分けていた＝旗 1 では召集が動かず PC が目標のまま＝区分 3（旧の規則の盤面に依る前提）。
+読み（AI・確証なし）：2 と 3 は機構の赤ではなく、旧の召集の式で項を作る試験の前提（★(832) ① (a) の型＝旗 0 の初期化子を T1・T2・T4 にだけ入れ、T0・T5 に入れなかった）。1 は軌道の件数の番人（★(749) は合流が取り直す）。どちらも予言に書かなかった＝結果の後に許しへ替えない。
+
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:10:16.96]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [FAIL]
+[xUnit.net 00:23:17.59]     PriceOfBread.Tests.CrownPcInstrumentTests.政変の四半期は印と説明の区分で残差が説明される [FAIL]
+[xUnit.net 00:23:17.60]     PriceOfBread.Tests.CrownPcInstrumentTests.Stepの直後に数えれば残差は0 [FAIL]
+失敗!   -失敗:     3、合格:  2343、スキップ:     1、合計:  2347、期間: 23 m 28 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 49 s - PriceOfBread.Tests.dll (net10.0)
