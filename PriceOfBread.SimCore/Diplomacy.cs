@@ -3139,10 +3139,10 @@ public sealed class Diplomacy
                 bool crushing = absScore >= c.VassalizeWinScore;
                 bool handled = false;
                 bool ceded = false;   // ★是正（監査2026-09-02 #23）：実際に領土移転が起きたかの記録＝_pendingRevanchの予約条件（下）
-                // 機能2-6（2026-07-28配線・TreatyRatificationWeight=0.5 点火2026-07-31）：条約の批准権＝議会統制の強い敗者（立憲/共和）は従属条項を議会が拒否できる
+                // 機能2-6（2026-07-28配線・TreatyRatificationControlThreshold=0.5 点火2026-07-31）：条約の批准権＝議会統制の強い敗者（立憲/共和）は従属条項を議会が拒否できる
                 //（属国化→追加割譲の帰結へ振替＝講和自体は成立・戦争は再開しない）。0で不読。
-                bool ratifyRefused = c.TreatyRatificationWeight > 0 && dw.ParliamentEnabled
-                    && dw.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && dw.ParliamentControl >= c.TreatyRatificationWeight;
+                bool ratifyRefused = c.TreatyRatificationControlThreshold > 0 && dw.ParliamentEnabled
+                    && dw.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && dw.ParliamentControl >= c.TreatyRatificationControlThreshold;
                 // ★条約港（2026-08-04・作者仕様(4)「遠方の国に大勝すると属国化するが不自然（日本の属国になったオスマン）」）。
                 //   遠く離れた国は**属国として統治できない**（守備兵も総督も送れない）。史実の遠隔地への圧勝の帰結は
                 //   領土でも従属でもなく**賠償金と通商特権**だった（南京条約1842・安政条約1858・下関条約1895）。
