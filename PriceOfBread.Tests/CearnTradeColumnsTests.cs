@@ -9,7 +9,9 @@ namespace PriceOfBread.Tests;
 /// <summary>(874) c73tc cearn_s の末尾 4 列（importBudgetExcessMaxPerClearingSub・importPaidPayerSizeLe1e12PerQuarter・importPaidPayerSizeMidPerQuarter・importPaidPayerSizeGt1e9PerQuarter）と、
 /// (868) の列 importOldRuleBudgetStartPerQuarter の kind 2（商人の人数 ≦1e-12）・kind 3（商人の添字なし）の旧の規則の枝の番人。事前登録 measurements/m874_20261106_prereg_tc.txt [3]。
 /// 期待は計器と別の出所（試験が自分で置いた額と人数から手で計算）から作る。
-/// ⚠突然変異（measurements/m874_20261106/mutation_874.txt）：M1 補助の絞りを外す→「補助は Subsidy だけ…」が赤／M2 帯を四半期の末の人数で振る→「帯は払いの時点…」が赤／M3 kind 2・3 の旧の規則の枝を外す→「旧の規則の予算は kind 2・3…」が赤。</summary>
+/// ⚠突然変異（measurements/m874_20261106/mut_M1.txt〜mut_M3.txt）：M1 補助の絞りを外す→「補助は Subsidy だけ…」が赤／M2 帯を四半期の末の人数で振る→「帯は払いの時点…」が赤／M3 kind 2・3 の旧の規則の枝を外す→「旧の規則の予算は kind 2・3…」が赤。
+/// (880) c74id：kind 3 の枝だけの突然変異 M3b（measurements/m880_20261106/mut_M3b.txt）は、r3 に人数 0 で貯蓄が正の POP を置いた〈旧の規則の予算は kind2 と 3 でも…〉が赤。
+/// 末尾の列 importBudgetExcessMaxPerClearingSubLive（人数 ≦1e-12 の払い手の払いが無かった清算だけの超過の最大）の番人は〈人の居ない払い手の払いがあった清算は…〉（突然変異 MB1・MB2＝measurements/m880_20261106/mut_MB.txt）。事前登録 measurements/m880_20261106_prereg_id.txt [3][4]。</summary>
 [Collection("Instruments")]
 public class CearnTradeColumnsTests
 {
@@ -41,12 +43,13 @@ public class CearnTradeColumnsTests
             Instruments.CearnImportFoldInto(a);
             Assert.Equal(150.0 - (100 + 25 + 40), a.ImpExMax);        // 今の列は 2 つとも足す（記録として残す）
             Assert.Equal(150.0 - (100 + 25), a.ImpExMaxSub);          // 新しい列は Subsidy だけ
-            // :1141 だけの盤面では 2 列が一致する
-            var b = new Instruments.CearnAcc();
+            // :1141 だけの盤面では 2 列が一致する（(880) Sav の口を通して州の台帳に入れる）
+            var b = a; b.Clear();
             Instruments.CearnImportHeadInto(b, r);
             Instruments.Route(BmPath, 1141, 'T', 'P'); Instruments.CearnRoute(TreasuryCat.Subsidy, null);
-            Instruments.CearnImportSubsidyInto(b, 25); Instruments.CearnImportSubsidySubInto(b, 25);
-            Instruments.CearnImportPaidInto(b, 150);
+            Instruments.Sav(m, Instruments.SavKind.Give, 25);
+            Instruments.Route(BmPath, 1150, 'P', 'T'); Instruments.CearnRoute(TreasuryCat.Tariff, null);
+            Instruments.Sav(m, Instruments.SavKind.Take, -150);
             Instruments.CearnImportFoldInto(b);
             Assert.Equal(b.ImpExMax, b.ImpExMaxSub);
             Assert.Equal(25.0, b.ImpExMaxSub);
@@ -106,8 +109,10 @@ public class CearnTradeColumnsTests
                 foreach (var p in r2.Pops) if (p.Size > 1e-12) live2 += Math.Max(0, p.Savings.Value);
                 // kind 3：商人の添字なし（旧の規則も新の規則も全 POP / 人の居る POP の Σmax(0, 貯蓄)）
                 r3.MerchantPopIndex = -1;
+                var z3 = r3.Pops.Last(p => p.Size > 1e-12); z3.Size = 0; z3.SetSavings(33);   // (880) 人数 0 で貯蓄が正の POP（旧の規則は数え・新の規則は数えない＝kind 3 の枝だけの突然変異 M3b を落とす）
                 double all3 = 0, live3 = 0;
                 foreach (var p in r3.Pops) { all3 += Math.Max(0, p.Savings.Value); if (p.Size > 1e-12) live3 += Math.Max(0, p.Savings.Value); }
+                Assert.True(all3 > live3, $"前提が崩れた：r3 に人数 ≦1e-12 で貯蓄が正の POP が無い（all3 {all3}・live3 {live3}）");
                 var a2 = Instruments.CearnAccOf(r2)!; a2.Clear(); Instruments.CearnImportHeadInto(a2, r2);
                 var a3 = Instruments.CearnAccOf(r3)!; a3.Clear(); Instruments.CearnImportHeadInto(a3, r3);
                 Assert.Equal(2, a2.ImpKind); Assert.Equal(3, a3.ImpKind);
@@ -148,6 +153,61 @@ public class CearnTradeColumnsTests
             }
             finally { Done(dir); }
         }
+    }
+
+    /// <summary>(880) 末尾の列 importBudgetExcessMaxPerClearingSubLive：人数 ≦1e-12 の払い手の 0 でない払いがあった清算は畳まない（Sub の列は畳む）・次の清算の頭で印が戻る・額 0 の払いは印を付けない・書き出しの行（未定義は nan）。
+    /// 期待は試験が置いた頭の在庫（商人の貯蓄 100・債務 5）と払いの額から手で計算する。</summary>
+    [Fact]
+    public void 人の居ない払い手の払いがあった清算は新しい列に畳まない_次の頭で印が戻る()
+    {
+        string dir = NewDir(); Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = Two(); var w = sim.Nations[0].World; Instruments.Begin(w);
+            var r = w.Regions.First(x => x.MerchantPopIndex >= 0 && x.Pops[x.MerchantPopIndex].Size > 1e-12 && x.Pops.Count >= 2);
+            var m = r.Pops[r.MerchantPopIndex]; m.Debt = new MoneyStock(5); m.SetSavings(100);
+            var other = r.Pops.First(p => !ReferenceEquals(p, m)); double os = other.Size;
+            var a = Instruments.CearnAccOf(r)!; a.Clear();
+            Instruments.Route(BmPath, 1150, 'P', 'T'); Instruments.CearnRoute(TreasuryCat.Tariff, null);
+            // 清算 1：人の居る払い手だけ（150）＝超過 50
+            Instruments.CearnImportHeadInto(a, r);
+            Instruments.Sav(m, Instruments.SavKind.Take, -150);
+            Instruments.CearnImportFoldInto(a);
+            Assert.Equal(50.0, a.ImpExMaxSub); Assert.Equal(50.0, a.ImpExMaxSubLive);
+            // 清算 2：人数 0 の払い手の払い（10）と人の居る払い手（390）＝超過 300。Sub は畳み、新しい列は畳まない
+            Instruments.CearnImportHeadInto(a, r);
+            other.Size = 0; Instruments.Sav(other, Instruments.SavKind.Take, -10); other.Size = os;
+            Instruments.Sav(m, Instruments.SavKind.Take, -390);
+            Instruments.CearnImportFoldInto(a);
+            Assert.Equal(300.0, a.ImpExMaxSub); Assert.Equal(50.0, a.ImpExMaxSubLive);
+            // 清算 3：頭で印が戻る＝人の居る払い手の超過 120 を畳む
+            Instruments.CearnImportHeadInto(a, r);
+            Instruments.Sav(m, Instruments.SavKind.Take, -220);
+            Instruments.CearnImportFoldInto(a);
+            Assert.Equal(300.0, a.ImpExMaxSub); Assert.Equal(120.0, a.ImpExMaxSubLive);
+            // 清算 4：人数 0 の払い手の額 0 の払いは印を付けない＝超過 130 を畳む
+            Instruments.CearnImportHeadInto(a, r);
+            other.Size = 0; Instruments.Sav(other, Instruments.SavKind.Take, 0); other.Size = os;
+            Instruments.Sav(m, Instruments.SavKind.Take, -230);
+            // 書き出しの行（Quarter が最後の清算を畳んでから書く）
+            string nation = Instruments.NameOf(w);
+            Instruments.Quarter(sim, 7UL, 0);
+            Instruments.Close(sim);
+            var file = System.IO.Directory.GetFiles(dir, "cearn_s*").Single();
+            var lines = System.IO.File.ReadAllLines(file);
+            Assert.Equal(Instruments.CearnHeaderText, lines[0]);
+            Assert.EndsWith("\timportBudgetExcessMaxPerClearingSubLive", lines[0]);
+            var h = lines[0].Split('\t'); int Ix(string n) => Array.IndexOf(h, n);
+            var row = lines.Skip(1).Select(l => l.Split('\t')).Single(c => c[2] == nation && c[3] == r.Name);
+            Assert.Equal(h.Length, row.Length);
+            double D(string[] c, string n) => double.Parse(c[Ix(n)], System.Globalization.CultureInfo.InvariantCulture);
+            Assert.Equal(300.0, D(row, "importBudgetExcessMaxPerClearingSub"));
+            Assert.Equal(130.0, D(row, "importBudgetExcessMaxPerClearingSubLive"));
+            var rx = w.Regions.First(x => !ReferenceEquals(x, r));
+            var rowx = lines.Skip(1).Select(l => l.Split('\t')).Single(c => c[2] == nation && c[3] == rx.Name);
+            Assert.Equal("nan", rowx[Ix("importBudgetExcessMaxPerClearingSubLive")], ignoreCase: true);   // 清算が無ければ未定義
+        }
+        finally { Done(dir); }
     }
 
     /// <summary>エンジンを通す：人の居ない商人（人数 0）が払い手になる旗 0 では最初の帯が正・旗 1 では 0（人の居る POP の帯だけ）。3 列の和 = importPaidPerQuarter。</summary>
