@@ -1073,10 +1073,11 @@ public static class Discovery
             w.DiscoveryLossQ = null;
         }
         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
-        var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
-        var eo = Instruments.On ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
+        bool insOn = Instruments.On;   // (921) 関数の頭で 1 回だけ読む（(913) と同じ形・並列の試験で On が途中で切り替わっても確保と使用が食い違わない）
+        var ro = insOn ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
+        var eo = insOn ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
         var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
-        if (Instruments.On) Instruments.IdnObserve(w, view, c, terms);   // ★(640) 計器だけ＝思想の必要性の量（旗 0 でも候補の量を書く）
+        if (insOn) Instruments.IdnObserve(w, view, c, terms);   // ★(640) 計器だけ＝思想の必要性の量（旗 0 でも候補の量を書く）
         if (eo is not null && Calendar.QuarterIndexOfTick(w.Tick) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
         {
             var all = ParentEngineersByRow(w, view, c, out var allTerms, out var allRatio);   // ★(450) 必要性・代替する物の値段・新しいレシピの費用も同じ 1 回から（解禁済みの行も）
@@ -1105,7 +1106,7 @@ public static class Discovery
                 foreach (var p in r.Producers)
                 {
                     if (!Unfound(p)) continue;
-                    double[]? po = Instruments.On ? new double[3] : null;   // (316) 計器だけ＝開いた時の人・値段・費用を読む（判定の値は同じ）
+                    double[]? po = insOn ? new double[3] : null;   // (316) 計器だけ＝開いた時の人・値段・費用を読む（判定の値は同じ）
                     var tm = SiteTerms(w, r, p, c, book, dem, po);
                     if (!(tm.Score >= GateScore)) continue;
                     if (po is not null) Instruments.SiteOpened(w, r, p, tm, po);
