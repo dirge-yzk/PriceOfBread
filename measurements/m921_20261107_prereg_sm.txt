@@ -1,0 +1,25 @@
+(921) c80sm 事前登録  2026-11-07  恒等の線（小物の束＋ExpeditionLift の削除・波80 の消す線）  木 b3a4190f から  基準 ident.cfg（INSRAW keep_919/base_ins・BASE_COMMIT 8a8344ad・TESTS_NONFULL 2402・NG_BASE rd:measurements/ng919_20261107:m919）
+[1] 線の種類＝恒等・予言 0。素の 5 種・計器つき 10 種の成績表は m919 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言だけ（宣言 0）。試験の数は +1（CoupGateNanMarkTests）。
+    作者 2026-11-06（00一覧 §00 ⑤）〈全て推奨で〉で推奨を採った：動作していない値 1.0 の関数は削除。
+[2] 中身と現物（b3a4190f・grep 済み）：
+    (1) Territory.cs:375 の注 〈既定 0〉→〈既定 1（(915) で点火）〉（Coefficients.cs:1561 CedeRuleToLocal = 1）。コードは変えない。
+    (2) Discovery.cs Step（:1063）：頭で `bool insOn = Instruments.On;` を 1 回読み、:1076 ro・:1077 eo・:1079 IdnObserve の守り・:1108 po をその局所へ。:1096 の `ro![row]` は eo と同じ局所で確保されるので非 null（式は変えない）。
+    (3) coupgate_s の nanBranchMark（InstrumentsCoup.cs:33 `CoupRoute(w,5,false)` で 1）の単体の試験：PriceOfBread.Tests/CoupGateNanMarkTests.cs（新しいファイル 1 本）。
+    (4) InstrumentsLawgate2.cs:47 の room：`Min(1.0, Max(0.0, 1.0 - x))` → `PoliticalQuantities.Clamp01(1.0 - x)`（NaN の扱いだけが変わる〔旧は NaN→NaN→Floor の int 化、新は 0〕・NaN 以外の値は同じ。AusterityIntensity が NaN になる盤面は 10 種に無い＝計器の表の差は 0 を予言）。
+    (5) 台本と fixture だけ：scripts/instruments/c78sm/mut_all908.sh に LsMax の項目〔TierRule 列：MaxSlotTierRule の LsMax 呼びを外す〕を足す・gdp_zero906 の --founding を名前ごとに戻す突然変異・同名で別の識別子の盤面と優先の盤面（scripts/instruments/c80sm/）。c78gz の判定は変えない。
+    (6) ExpeditionLift（常に 1.0）の削除：Diplomacy.cs の関数と doc（旧 :2271〜2279）・呼び口 2 か所（旧 :2021 `Projection(great, q, c) * ExpeditionLift(...)`・旧 :2288 ColonizeForce の末尾）・ArmyShape.cs:86 `* dip.ExpeditionLift(...)`・注 ArmyShape.cs:80・Diplomacy.cs:3627。×1.0 は IEEE でビットが同じ（積の順序は左から評価＝`a*b*1.0` から末尾の `*1.0` を外すだけ）。
+    読み手の grep（git grep -n ExpeditionLift）：
+      SimCore＝ArmyShape.cs:80（注）・:86、Diplomacy.cs:2021・:2278・:2288・:3627（注）の 6 行。Tests・Runner・App・Display＝0。
+      係数 ExpeditionTechLevel／ExpeditionTechFloor は (843) で墓標のみ（Coefficients.cs:1537・1538）・DormantIdentityTests.cs:335 の名簿にあるだけ＝POB_COEF の名前解決・SaveGame の名前の表に無い（触らない）。
+      scripts＝scripts/instruments/r907/（s25_rows.py・patch_overview907.py の文字列）・measurements／docs＝歴史的記述（触らない）。
+    浮動小数の順序が変わる箇所：(6) は恒等元 1.0 の乗算を外すだけ（順序不変）。(4) は NaN のみ。紙の台本の食い違い数＝0。
+    他の線との重なり：c80eb は Instruments.cs・InstrumentsCearn.cs・BilateralMarket.cs・EmptyPopEstate.cs・Model.cs・CearnTradeColumnsTests.cs、c80cw は Coefficients.cs・DormantIdentityTests.cs:68・CivilWarArmsDemandTests.cs・Simulation.cs:2123、c80lr は Tests の 2 ファイル＝Discovery.cs・Diplomacy.cs・ArmyShape.cs・Territory.cs・InstrumentsLawgate2.cs と重ならない。
+[3] 足す試験：CoupGateNanMarkTests.経路5で非暴力の縁だけ印が1（1 本）。突然変異（使い捨て・表に書く）：
+    M1 InstrumentsCoup.cs:33 の `route == 5 && !violent` から `!violent` を外す → 赤（(5,true) が 1）。
+    M2 試験の route を 4 に変えた写し（(5,false) の行を route 4 で呼ぶ）→ 赤（Mark(4,false)=1 を期待する行ではなく "1" 期待の行が 0）。
+    M3 ExpeditionLift を 0.999 にした旧の形の写し（Diplomacy の旧の形に戻して値だけ 0.999）→ 短い ident か機構の試験が赤（呼び口が値を運んでいたことを示す）。
+    M4 Discovery 旧の形（確保を局所化せず :1096 の前で On を真にする）→ NRE／新の形では出ない（measurements/m921_* に使い捨てのソースを残す）。
+    ソースを走査する番人の点検（㉘）：器のコミット直後に IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を隔離ビルド D:/PoB_work/c80sm_art で回す。書き換える件数の予言（㉑）＝0。`new MoneyStock(` は SimCore 64 件のまま。route_anchors.tsv は内容鍵＝触らない。WriterRatchetTests の宣言の表（Territory.cs の .Rebase( 1 件など）は変えない。IndustrializationReaderTests の許可表（Diplomacy.cs 1・Discovery.cs 1・Territory.cs 1）は注の語を足さない＝変わらない予言。
+[4] 合否：素の 5 種・計器つき 10 種が m919 と名乗り行を除いて全行一致・.cost の推定が一致。フルスイート（分けて・合計を --list-tests と突き合わせ・中止 0）で赤 0。savetest・leakhunt OK。ng.sh は回さない（SimCore の計算が変わらない）。
+[5] 〈判定: 恒等〉なら採る。一致しなければ該当の変更を外して報告に回す。
+D: 空き 67GB（床 35GB＋5GB を満たす）。作業フォルダ D:/PoB_work/c80sm_work/・隔離ビルド D:/PoB_work/c80sm_art・worktree D:/PoB_work/wt_c80sm。
