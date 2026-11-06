@@ -1,0 +1,1 @@
+selftest OK {'rows': 5, 'rows_Ceded': 2, 'pop': 3, 'pop_Ceded': 2, 'ceded_tier_Core': 1, 'breaks': 1, 'breaks_Ceded': 1, 'ceded_tier_Colonial': 1, 'ceded_ownBefore_pos': 1, 'ceded_pickedReceiver': 1, 'rows_Seceded': 1, 'excl_movedAgain': 1, 'rows_Returned': 2, 'excl_foreignAdded': 1, 'pop_Returned': 1, 'flag_mismatch': 1}
