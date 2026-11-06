@@ -1,0 +1,72 @@
+# (894) c76lb 記録：土地税の算定の基準 A1 の段 A-0＝恒等の計器 landbase_s・landbasereg_s
+
+- 書いたモデル：Claude Opus 5.5。2026-11-06。枝 c76lb（731d3de1 から）。事前登録 measurements/m894_20261106_prereg_lb.txt（ad24593e＝最初のコミット）。
+- 作ったフォルダ：D:/PoB_work/wt_c76lb（worktree）・D:/PoB_work/c76lb_work（作業）・D:/PoB_work/c76lb_art（隔離ビルド）・D:/PoB_work/ident_c76lb（ident.sh の作業フォルダ）・D:/PoB_work/c76lb_work/mutwt と mut_art（突然変異の使い捨て・台本の終わりに外した）。
+
+## 判定
+
+- 恒等の判定（測った種で一致）：判定: 恒等（ident.sh run c76lb・測った木 47a7434e・SOURCE-HASH 820ec7ccf5aa8f1f・ident894.txt）。
+  - 素の 5 種 b5_ia_5.txt 対 b5_20261106_m873：全行バイト一致（178 行・名乗り行を除く）・.cost 一致（推定 210.1 秒）。
+  - 計器つき 10 種 b10_ib_10.txt 対 b10_20261106_m873_ins：全行バイト一致（183 行）・.cost 一致（推定 211.5 秒）。
+  - 計器の表：基準 keep_892/base_ins 1090 本・腕 1110 本・バイト一致 1070・既知の揺れ 20（burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10）・宣言された増 20（landbase_s×10・landbasereg_s×10）・宣言の無い違い 0。
+  - 注視の表：mon_20261106_m873.txt とタグの行以外が一致（5130 行）。savetest OK・leakhunt 完走・保存則違反なし。
+  - 宣言は --added-tables landbase_s,landbasereg_s と --tests-delta 13 だけ（--saveleak は savetest と leakhunt を回す指示）。
+- R の照合の門（gate894.py・gate894_ident.txt）：(i) baseRCheckBreakFlag の和 0（10 種・417,233 行）・(iii) 行の集合が cornint_s と同じ（種ごとの行の数と quarter・nation の並び）＝通る。記録 (ii)：baseRPerMonth と cornint_s の rentDomTotalPerMonth の G10 の文字列は 417,233 行の全てで一致（食い違い 0）。gate894.py の自己試験 OK（旗 1・行の数・nation の食い違いを落とす）。
+- テスト（suite894.txt）：--list-tests Category!=FullLength 2352（2339＋13）・FullLength 3。Category!=FullLength 2351 合格＋スキップ 1＝2352・FullLength 3 合格・中止 0。
+- 走査の番人 7 組（guard894.txt・器のコミット b3b09abb の直後・ident の前）：185 合格・失敗 0。書き換えた件数 0（予言 0 と一致）。WriterRatchetTests の表は触れていない。
+
+## 足した物（ファイル:行）
+
+- PriceOfBread.SimCore/InstrumentsLandbase.cs（新しい・206 行）。
+- PriceOfBread.SimCore/Instruments.cs:1869 `LandbaseTable(sim, seed, q);`（:1868 の SubstTable／CornintTable の直後）・:1894 `LandbaseClose(sim);`（:1893 の SubstClose／CornintClose の直後）。
+- PriceOfBread.Tests/LandbaseInstrumentTests.cs（新しい・442 行）：T1 :211・T2 :229・T3 :244・T4 :254・T5 :272・T6 :298・T7 :310・T8 :335・T9 :359・T10 :370・T11 :394・T12 :405・T13 :420。
+- 計器の列：landbase_s 25 列（quarter・year・nation・privExemptDegreeShare・landClaimPerMonth・landClaimExemptPerMonth・landTaxPaidPerMonth・landPaidOverClaim・landClaimExtShareUpperPerMonth・landClaimExtGrossUpperPerMonth・baseRPerMonth・baseRCheckRelDiff・baseRCheckBreakFlag・baseLag4Ratio・baseOverFirstSeenRatio・fpCarrierPops・fpShortPops・fpShortSizeK・fpShortfallGoodsPerMonth・fpShortNoPricePops・fpShortPopsSizeK1・K10・K100・K1000・KOver）・landbasereg_s 15 列（quarter・year・nation・region・tier・regionBasePerMonth・regionPayersWithRent・regionStapleRentShare・regionSubValuePerMonth・regionClaimPerMonth・regionBaseLag4Ratio・regionZeroBaseFlag・regionRgoCount・regionRgoOwnerEmpty・regionAbsenteeRgoCount）。
+  - 仕様 §1-2・§1-3 から足した列（名乗り）：privExemptDegreeShare・baseRPerMonth・baseRCheckRelDiff・baseRCheckBreakFlag（訂正 (7) の照合）・fpShortNoPricePops（§1-2 の〈値段 0 は件数だけ数える〉の置き場）・regionAbsenteeRgoCount（訂正 (2)）。
+- 台本 scripts/instruments/c76lb/：ident894.sh・gate894.py・mut894.sh・mutapply894.py・read894.py・unattr894.py・suite894.sh。
+
+## 突然変異（mut894.txt・使い捨ての木 47a7434e・LandbaseInstrumentTests だけを回した）
+
+| # | 突然変異 | 予言 | 実際の赤 |
+|---|---|---|---|
+| U0 | 変えない | なし | なし（13 合格） |
+| U1 | privBase′ を落とす | T2 | T2・T3・T13 |
+| U2 | R の max を外す | T3・T8 | T3（T8 は緑＝盤面 A に負の地代が無い・T3 の盤面で落ちる） |
+| U3 | R に輸出額を足す | T8 | T3・T5・T8 |
+| U4 | 遅れを 3 四半期 | T5（T6 も見込み） | T5（T6 は緑＝q1 の基数も正なので旗は 1 のまま・T5 で落ちる） |
+| U5 | 0 の州の判定を ＜ へ | T6 | T6 |
+| U6 | 地代を 0 へ書き戻す | T7 | T2・T3・T5・T6・T7・T8・T13 |
+| U7 | 取り分の上界で r を 1 | T11 | T11 |
+| U8 | 総額の上界に r を掛ける | T11 | T11 |
+| U9 | 不足を値段で割らない | T12 | T12 |
+| U10 | ＞1000 を (100,1000] へ | T12 | T12 |
+| U11 | 請求′から十分の一税を落とす | T12 | T12 |
+| U12 | 持ち主の空の判定を反転 | T13 | T13 |
+| U13 | 照合の許しを 1 へ（計器の門を壊す行） | T9 | T9 |
+| U14 | 値段の重みを 1 へ | T10（T11 も見込み） | T10・T11・T12 |
+| U15 | 州の請求に免税を掛けない | T13 | T13 |
+- 予言の試験で赤にならなかった突然変異：0（U2 の T8・U4 の T6 は〈見込み〉の側が緑・主の予言の試験は赤）。
+- 突然変異で確かめていない列（名乗り）：landTaxPaidPerMonth（読むだけ＝T4）・landPaidOverClaim（2 列の比）・fpCarrierPops・fpShortSizeK・fpShortNoPricePops（盤面で 0）・fpShortPopsSizeK1・K10・K100（境の値の取り違えは境に乗る POP が無いと拾えない）・regionPayersWithRent・regionAbsenteeRgoCount（英仏の盤面で植民地格の州の有無に依る）・regionStapleRentShare（T11 の和を通してだけ）・baseRCheckRelDiff・quarter・year・nation・region・tier。
+
+## ident の生で読んだ物（記録・採否でない・read894.txt）
+
+- landPaidOverClaim（取れた÷請求）の国ごとの中央の、全ての国の中央 0.734（国 126＝建国の国を含む）。英 0.787・仏 0.812・清 0.871・露 0.792・米 0.757。
+- J-a（自給へ取り分で広げた上界÷今の請求）の国×四半期の中央：1783-85 6.62・1786-99 1.95・1800-49 0.63・1850-99 0.31・1900-50 0.50。J-b（総額）：14.67・4.40・1.53・0.84・1.35。英は J-a 2.69・J-b 8.75（10 種の全ての四半期の中央）＝(884) §0-2 の 1〈開幕の跳ねは時期で 1 桁崩れる〉と同じ向き（請求の比で読み直した）。
+- baseOverFirstSeenRatio（最初の基数÷今）の国×四半期の中央：1783-85 0.98・1786-99 0.90・1800-49 0.74・1850-99 0.57・1900-50 0.67。国ごとの中央：英 0.98（p10 0.64・p90 1.67）・清 0.62（0.31・0.97）・米 0.18・プロイセン 1.55・仏 0.91・露 0.90・日本 0.61＝(884) §3-2 の英〈ほぼ 1〉・清〈軽くなる向き〉と同じ（段 A-2 の G8 の材料）。
+- baseLag4Ratio の中央は全ての窓で 0.99〜1.00（p10 0.84〜0.88・p90 1.14〜1.19）。
+- fpShortPops（担い手の請求′＞手持ち・全ての州）の POP×四半期：1783-85 0・1786-99 1,841・1800-49 19,456・1850-99 21,604・1900-50 9,548（10 種の和 52,449）。担い手の POP×四半期の 0.3〜3.4%。値段の無い不足の POP は 0。
+- regionZeroBaseFlag＝1 の州×四半期 616（計器の国の名簿の国・全て植民地格の州＝Colonial の移しの後の基数が 0 になった州が多い見込み・仏 365・日本 67・清 59・英 52・オスマン 45・米 24・オーストリア 4）。
+- 不在地主の RGO がある州×四半期 145,875（RGO の数の和 358,246）・持ち主の空の RGO がある州×四半期 65,567。
+- cornint_s の未帰属は rentDomTotalPerMonth の部分集合（unattr894.txt・keep_892/base_ins：3 本の和と total の食い違い 0・未帰属÷total 0.00148）＝訂正 (7) の〈＋未帰属〉は二重計上。
+
+## A-2 の事前登録の物（この線では写さない）
+
+- §9 の訂正 (1)（割譲の換算は TransferRegion）・(3)（G8 の向きの門）・(4)（M4 の形）・(8)（C1 の式の向き）・(10)（松方デフレの年）。
+
+## 自己申告
+
+- 前面の waitmark：16 回（走査の番人 2・突然変異 3・ident 5・フルスイート 6）。180 秒で背景へ移された前面の待ち 0。
+- 印の外の覗き：1 回（mut894.txt を 1 回 cat）。印の後の確かめ：各仕事 1 回（.log の頭・結果の行）。
+- 前面の du を 1 回打った（ident の作業フォルダの大きさ・120 秒で背景へ移された＝README〈前面で du を回さない〉の違反・以後は python の os.path.getsize で数えた）。
+- hook に止められた命令 0。D: の床で待った時間 0（ident の前の空き 141.47GB・arms.sh free 6）。腕の枠で待った時間 0。
+- 走っていた他の担当のプロセス（ident の前の tasklist）：dotnet 3・VBCSCompiler 1（PID 20164）・testhost 1＝他の線の物・触れていない。
+- ident が走っている間（15:45〜16:20）は wt_c76lb にコミットしていない（突然変異の台本は別の使い捨ての worktree）。
