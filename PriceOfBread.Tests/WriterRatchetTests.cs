@@ -29,19 +29,37 @@ public class WriterRatchetTests
 
     private static int CountWriters(string member)
     {
+        int n = 0;
+        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
+            n += CountWritersIn(File.ReadLines(f), member);
+        return n;
+    }
+
+    /// <summary>(904) 書き手の数え方の本体（自己試験 M8 が人工の行で呼ぶ）。**1 行に書き手が 2 つある行（`a.X -= …; b.X += …;`）は 2 と数える**（旧は 1 行を 1 と数えた＝(895) M8）。</summary>
+    internal static int CountWritersIn(System.Collections.Generic.IEnumerable<string> lines, string member)
+    {
         // 代入・複合代入のみ（`==` は除外）。`=>`（ラムダ/式形メンバ）も除外。
         // ★添字つきの書き込み（`.StateSpent[(int)TreasuryCat.Army] += …`）も数える（2026-09-28 段2-1＝StateSpent を区分の配列にした＝数え落とさない）。
         var rx = new Regex($@"\.{member}(\[[^\]]*\])?\s*(\+=|-=|\*=|/=|=(?![=>]))");
         int n = 0;
-        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
-            foreach (var line in File.ReadLines(f))
-            {
-                var code = line;
-                int c = code.IndexOf("//", StringComparison.Ordinal);
-                if (c >= 0) code = code[..c];   // コメント内の言及は数えない
-                if (rx.IsMatch(code)) n++;
-            }
+        foreach (var line in lines)
+        {
+            var code = line;
+            int c = code.IndexOf("//", StringComparison.Ordinal);
+            if (c >= 0) code = code[..c];   // コメント内の言及は数えない
+            n += rx.Matches(code).Count;
+        }
         return n;
+    }
+
+    /// <summary>(904) 自己試験 M8：1 行に書き手が 2 つある行は 2 と数える・`==`・`=>`・コメント内の言及は数えない。突然変異「Matches(code).Count を IsMatch ? 1 : 0 へ戻す」で 2 本目（二つの書き手）が赤になる。期待は手のリテラル。</summary>
+    [Fact]
+    public void M8_1行に2つの書き手は2と数える()
+    {
+        Assert.Equal(2, CountWritersIn(["a.CumulativeX -= p; b.CumulativeX += q;   // 持参金"], "CumulativeX"));
+        Assert.Equal(3, CountWritersIn(["a.X = 1; b.X += 2;", "c.X[(int)K.A] -= 3;"], "X"));
+        Assert.Equal(0, CountWritersIn(["if (a.X == 1 && b.X => 2) { }", "var f = (q) => q.X;", "// a.X = 1; b.X += 2;"], "X"));
+        Assert.Equal(1, CountWritersIn(["a.X = 1;   // b.X += 2;"], "X"));
     }
 
     [Theory]
@@ -136,7 +154,7 @@ public class WriterRatchetTests
     [InlineData("StateSpent", 23)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
     // ★2026-09-30 段4e（I＋人と動くお金の換算）：CumulativeTradeFlow 13→**12**（＝宣言）＝越境移民と招聘の持参金の台帳（逐語の写し2行）を国境をまたぐ人の運搬の1本（MultiNationSim.MoveAbroad）へ。
-    [InlineData("CumulativeTradeFlow", 5)]    // 世界の台帳・国境をまたいだ出入り（移し方の1本の台帳の1行＋再併合の与信の合算・割譲の2行・分離建国の1行）
+    [InlineData("CumulativeTradeFlow", 6)]    // 世界の台帳・国境をまたいだ出入り（移し方の1本の台帳の1行＋再併合の与信の合算・割譲の2行・分離建国の1行）
     [InlineData("CumulativeFiatIssued", 2)]   // 不換の発行と回収（移し方の1本の台帳の1行）＋非常発行（1＝負の国の与信の償却だけ）
     [InlineData("CumulativeGoldMinted", 1)]   // 鋳造と準備の売却（移し方の1本の台帳の1行）
     [InlineData("Loans", 4)]                  // 銀行の与信（移し方の1本の台帳の1行＝企業の貸しと回収・損失の負債化・利息の繰り入れ）＋負の国の償却・再併合の合算・盤面の復元

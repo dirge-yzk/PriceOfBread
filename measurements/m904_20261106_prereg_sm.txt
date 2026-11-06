@@ -1,0 +1,53 @@
+(904) c77sm 恒等の小物の束 事前登録（最初のコミット・2026-11-06・枝 c77sm・出発 101d4329・基線 m873・基準の生 keep_899/base_ins）
+作者の言葉は引かない（この線は作者の新しい裁定を要さない恒等の線）。AI の案・確証なし。
+
+[1] 種類と予言
+ 恒等の線。挙動（シムの数字）を変えない。予言 0＝10 種・5 種・計器つき 10 種が m873 と名乗り行を除いて全行バイト一致。
+ 計器の表の差は宣言だけ：landshare_s の末尾 3 列（--grown-ok landshare_s）。それ以外の表・列は 1 バイトも違わない（coupgate_s・landshare_s の既にある列を含む）。
+ テストの数：Category!=FullLength が 2376→2378（--tests-delta 2＝LandShareTests.T7e と WriterRatchetTests.M8 の 2 本）・FullLength は 3 のまま。
+ D: の空き 136GB（df -h /d）・arms.sh free＝6（起こす前）。ident は床 35GB。
+
+[2] 項目・消す物と残す物・読み手（全て grep し直した。行番号は 101d4329）
+ (a) CedeRuleInstrumentTests.cs T1：tierBefore＝Core・tierAfter＝Integrated の Assert を足す（Territory.cs:272 `if (r.Tier != RegionTier.Colonial) r.Tier = RegionTier.Integrated;`・InstrumentsCede.cs:62 `TierBefore = r.Tier.ToString()`）。頭の注に〈前を Rehome の後に読む→T1〉を足す。
+ (c) Politics.cs:686 `CoupRoute(w, violent ? 5 : 6)` → `CoupRoute(w, 5)`。6 は届かない枝（台帳 §2-3・coupgate_s の route 6 は 10 種で 0 行・N1・N2 も 0）。
+     ★NaN のときの倒し方：radical か reformist が NaN だと :644 を通って :650 の violent が偽のまま :686 に来る。**ExecuteRegimeChange へ渡す violent は変えない（挙動は同じ）**。変わるのは計器の経路の名だけ＝NaN のときの経路の名が 6 から 5 に畳まれる（10 種では NaN が起きない＝0 行のまま）。
+     注：Politics.cs:231・:233・:888・Simulation.cs:1706 の CivilWarPredicateUnified の言及（旗は Coefficients.cs:2800 の墓標で消えている）を〈今の述語〉の言い方に直す（コメントだけ）。Politics.cs は i/crlf＝バイトで直す。
+ (d) TreatyRatificationWeight → TreatyRatificationControlThreshold（値 0.5 は不変）。コード上の読み手：Coefficients.cs:1787（宣言）・Diplomacy.cs:3142（注）・:3144・:3145（読み＝i/crlf）。
+     grep（SimCore・App・Runner・Display・Tests・scripts）：他に 0 件。docs（機能の台帳.md の S17-H013・S19-H031・S24-H056・S27-H050・S17-P07・ゲーム概要と実装機能.md の 5 行）と measurements の古い表（coef.tsv・flagpure.tsv・buff_inventory・units）は旧名のまま＝**合流が台帳を取り直す**（台帳の錨は Coefficients.cs の行番号〔1787〕で、行は動かない）。
+     Runner/Program.cs:1105・:2943 は Coefficients の全欄をリフレクションで走る＝名前を出力に書く物があれば ident が拾う（拾ったらその表を宣言に加えず、この改名を外して報告）。SaveGame は名前でフィールドを書く（同じ版の往復だけ＝savetest）。POB_COEF の名前解決に使う台本は 0 件。
+ (e) scripts/instruments/c77sm/gdp_jump904.py（gdp_jump890.py の上に足す・元は変えない）：890 の型 3〈時間の分母の痩せ〉を、窓 N に依らない〈1 四半期の落ち込みと戻り〉と〈窓に依存〉に割る。止める線〈100 倍〉の〈それ以外〉の定義は替えない。N＝8・THIN＝10 を固定（振りの表 sweep_100.txt・sweep_20.txt をヌル腕 n1・n2 と基線から出す）。
+     正直な注：オマーン 1803（1 四半期の落ち込みと戻り）は 890 の読み手でも既に型 3 に入る＝新しい型で〈止める線の件数〉は変わらない。足したのは副区分（窓に依存する免除＝刃の上の数）の見える化。オーストラリア王国 1806 q94 は 7 四半期の下り坂の後の跳び＝1 四半期の型ではない（それ以外のまま）。
+ (g) InstrumentsLandshare.cs：LandshareMonth の送金。**既にある列の値は変えない**（指示の 2 つの文のうち、〈Tier≠Colonial の月だけ送金を期待へ足す〉を既にある列へ入れると種 7 英 q484 の行の既にある列の値が変わる＝全行バイト一致の門と食い違う。**食い違いは既にある列を守る側で解く**）。
+     足すもの（末尾 3 列）：capColonialMonths（首都が植民地格だった月数）・remitNotAddedPerQuarter（送金が期待へ入らなかった額＝首都が植民地格の月・首都の投資家の添字が範囲の外）・maxRelDiffSlotVsActualTierRule（Tier≠Colonial の月だけ送金を期待へ足す規則での月ごとの相対差の最大）。
+     cap.Pops[cap.InvestorPopIndex] を範囲の確かめ（LsAbsenteeOwner と同じ 0≦i＜Pops.Count）の後に読む（範囲の外のときは旧は例外・新は足さない＝例外が出ない盤面では値は同じ）。
+     合流への申し送り：既にある列を直す（旧の規則を新しい規則に替える）のは別の恒等でない小さな線＝gate895 の旧の破れ 1 行（種 7 英 q484）が消える。
+ (h) InstrumentsLandbase.cs の限界の注に ⑨（QuarterEnd〔Simulation.cs:1896〕の Politics.Step〔:1908〕・Meritocracy.Step〔:1912〕・割譲は課税の後で計器の前）を足す。LandbaseInstrumentTests の頭の注に U2 の実測（T3 だけが赤・T8 は緑のまま。m894 の事前登録の予言は T3・T8）を書く。T8 が緑のままの理由は未確認。
+ ④ WriterRatchetTests.CountWriters：1 行に書き手が 2 つある行を 2 と数える（旧は 1 行 1）。本体を CountWritersIn(lines, member) に出し、自己試験 M8 を足す。**宣言の値は変えない**が、数え方を変えると次の 1 件で数が動く：
+     今 1 行に 2 つある行（紙の台本で Theory の全 15 メンバーを旧・新の両方で数えた）：MultiNationSim.cs:1821 `src.CumulativeTradeFlow -= savOut - debtOut; dst.CumulativeTradeFlow += savIn - debtIn;` の 1 行だけ。
+     動く item：CumulativeTradeFlow 5→6（他の 14 メンバーは旧＝新）。宣言を 5 のまま置くと `n <= baseline` で赤になる＝**宣言 5→6 に上げる（数え方の修正であって書き手は 1 本も増えていない）**。これは指示の〈宣言の値は変えない〉からの外れ＝最初に名乗る。合流が WriterRatchet の宣言を取り直すときに 5→6 を含める。別コミット（切り離せる）。
+     WriterRatchet item 11（計算量の宣言）は動かない（挙動を変えない）。
+ 他の線との重なり：Coefficients.cs は :1787 の改名の 1 行だけ（cs は :2962・ce・cw は別の新しい旗の行）。Simulation.cs は :1706 の注の 1 行だけ（cw は :2121〜:2125）。DormantIdentityTests.cs は触らない。Politics.cs・Diplomacy.cs は他の線が触らない。
+ 入れない物：(b) M7・(f) 形 A・(i)・内戦の 2.0・Simulation.cs:2121〜:2125・Territory.cs・CrownParliament.cs・CrownPcInstrumentTests.cs・既にある列の値の変更・App・Display・Runner。(c) の〈2.0 を係数表へ〉は c77cw が枝ごと消す＝入れない。
+
+[3] 足す試験・突然変異（使い捨ての木＝コミット後に 1 本ずつ入れて git checkout で戻す・結果は measurements/m904_20261106/mut904.txt）
+ | 突然変異 | 入れる所 | 赤になるはずの試験 |
+ | M-a  tierBefore を移した後の値に | InstrumentsCede.cs:62 `TierBefore = RegionTier.Integrated.ToString()` | CedeRuleInstrumentTests.T1（(888) の M7 は緑のままだった穴） |
+ | M-g1 capColonial を常に偽に | InstrumentsLandshare.cs LandshareMonth | LandShareTests.T7e 後半（capColonialMonths 3 を期待） |
+ | M-g2 新しい規則の期待に送金を常に足す | 同上 `expTier[...] += remit` を無条件 | T7e 後半（新しい規則の差 ≦1e-12） |
+ | M-g3 capIn の確かめを外す | 同上 | **確かめていない**（例外が出る盤面を試験で作っていない・紙の注だけ） |
+ | M-8  数え方を 1 行 1 に戻す（`Matches(code).Count` → `IsMatch(code) ? 1 : 0`） | WriterRatchetTests.CountWritersIn | WriterRatchetTests.M8（自己試験）＋CumulativeTradeFlow の宣言 6 に対して実測 5＝緑のまま（上限の型）。M8 が赤になることだけを赤の根拠にする |
+ | M-c  `CoupRoute(w, 5)` を `(w, 6)` に | Politics.cs:686 | **確かめていない**（coupgate_s は ident の全行バイト一致が見る＝route 5 の行が 6 になれば不一致） |
+ | M-d  改名の片側だけ | Diplomacy.cs:3144 | コンパイルエラー（試験の赤ではない） |
+ | M-e  gdp_jump904 の副区分の判定を反転 | gdp_jump904.py | gdp_jump904.py --selftest（オマーン型・刃の上・オーストラリア型・戻り過ぎの 6 盤面） |
+ | M-gate gate904 の門 2 を外す | gate904.py | gate904.py --selftest（人工の外れ 3 本を落とす） |
+ 計器の門を壊す行：(g) の新しい列の門 gate904 は、既にある列が 1e-12 を超える行（旧の破れ）を capColonialMonths＞0 かつ remitNotAddedPerQuarter＞0 で説明できないと落とす（門 2）。ident の gate895 は旧の列を見る＝1 行の破れが残る（既知・記録）。
+ ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。書き換える件数の予言（㉑）：WriterRatchetTests の `[InlineData("CumulativeTradeFlow", 5)]`→6 の 1 行だけ。`new MoneyStock(` の件数は動かさない。DormantIdentityTests の行は触らない。route_anchors.tsv は触らない。
+ テストの書き換え（★(743)）：書き換えるのは CedeRuleInstrumentTests.cs（T1 に Assert を足す＝足すだけ）・WriterRatchetTests.cs（CountWriters の本体と CumulativeTradeFlow の宣言 5→6＝★(764) 静的な件数の番人・予言と一致するときだけ）。機構の向き・大きさの Assert は書き換えない。
+
+[4] 測る物（腕の枠は arms.sh free で数える）
+ ident：bash scripts/instruments/tools/bg.sh D:/PoB_work/c77sm_work/ident.mark bash scripts/instruments/c77sm/ident904.sh（run_in_background・床 35GB・宣言 --grown-ok landshare_s --tests-delta 2 --saveleak）。
+ 門：〈判定: 恒等〉・coupgate_s と landshare_s の既にある列が全行バイト一致・gate904 の門 1〜3 が全て通る（旧の破れ 1 行は capColonialMonths＞0 で説明できる）・--list-tests の合計 2378＋3・フルスイートを Category で分けて回す・savetest・leakhunt。
+ 浮動小数の順序が変わる箇所：なし（(g) は新しい列の計算だけで既にある列の計算順は変えない。expTier は exp を足す前に Clone した複写）。同じ盤面で旧≠新の比較の食い違い：既にある列 0（ident の全行バイト一致が数える）。
+
+[5] 採る条件
+ 〈判定: 恒等〉なら採る（〈測った種で一致〉と名乗る）。一致しなければ、その変更を外して報告に回す（(d) の改名・(c) の経路の名が最初の疑い）。

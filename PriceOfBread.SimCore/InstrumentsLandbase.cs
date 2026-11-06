@@ -15,6 +15,7 @@ namespace PriceOfBread.SimCore;
 //   ⑤自給へ広げた請求は LastSubsistenceOutput（σ を 1 で切った後の量×収穫係数）を使う＝作った量の余り E_p は入らない
 //   ⑥遅れの列は計器が見た四半期だけで数える（建国・割譲で母集合が変わった四半期は比が跳ぶ＝nan にしない＝読み手が割譲の表と突き合わせる・州の履歴は Region を鍵にする＝割譲で持ち主が変わっても州に付いて行く）
 //   ⑦州の基数は Colonial.RemitAbsenteeRent の後（訂正 (2)＝植民地格の州の輸出作物の大農園の地代は首都の州の投資家の POP に載る・国の R は変わらない）⑧法の読み手のうち Fiscal.cs:85・:90 は写していない。
+//   ⑨(904) 計器の行は QuarterEnd（Simulation.cs:1896）の後に書く＝QuarterEnd の Politics.Step（:1908）・Meritocracy.Step（:1912）・割譲（外交は四半期の境）は課税（3 か月目の Fiscal.Step）の後で計器の前に走る＝四半期の末の LandRentPerMonth・州の POP は課税の時点とは別の盤面の物（社会移動・粛清・割譲で POP と持ち主が動きうる）。
 public static partial class Instruments
 {
     internal const string LandbaseHeaderText = "quarter\tyear\tnation\tprivExemptDegreeShare\t"

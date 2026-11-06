@@ -1,0 +1,5 @@
+M-a_tierBeforeを移した後の値に	失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 9 s - PriceOfBread.Tests.dll (net10.0) 
+M-g1_capColonialを常に偽に	失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 33 s - PriceOfBread.Tests.dll (net10.0) 
+M-g2_新しい規則の期待に送金を常に足す	失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 14 s - PriceOfBread.Tests.dll (net10.0) 
+M-8_数え方を1行1に戻す	失敗!   -失敗:     1、合格:    46、スキップ:     0、合計:    47、期間: 2 m 11 s - PriceOfBread.Tests.dll (net10.0) 
+done
