@@ -11,7 +11,7 @@ namespace PriceOfBread.Tests;
 /// 期待は計器と別の出所（試験が自分で置いた額と人数から手で計算）から作る。
 /// ⚠突然変異（measurements/m874_20261106/mut_M1.txt〜mut_M3.txt）：M1 補助の絞りを外す→「補助は Subsidy だけ…」が赤／M2 帯を四半期の末の人数で振る→「帯は払いの時点…」が赤／M3 kind 2・3 の旧の規則の枝を外す→「旧の規則の予算は kind 2・3…」が赤。
 /// (880) c74id：kind 3 の枝だけの突然変異 M3b（measurements/m880_20261106/mut_M3b.txt）は、r3 に人数 0 で貯蓄が正の POP を置いた〈旧の規則の予算は kind2 と 3 でも…〉が赤。
-/// 末尾の列 importBudgetExcessMaxPerClearingSubLive（人数 ≦1e-12 の払い手の払いが無かった清算だけの超過の最大）の番人は〈人の居ない払い手の払いがあった清算は…〉（突然変異 MB1・MB2＝measurements/m880_20261106/mut_MB.txt）。事前登録 measurements/m880_20261106_prereg_id.txt [3][4]。</summary>
+/// 末尾の列 importBudgetExcessMaxPerClearingSubLive（人数 ≦1e-12 の払い手の払いが無かった清算だけの超過の最大）の番人は〈人の居ない払い手の払いがあった清算は…〉（突然変異 MB1・MB2＝measurements/m880_20261106/mut_MB1.txt・mut_MB2.txt）。事前登録 measurements/m880_20261106_prereg_id.txt [3][4]。</summary>
 [Collection("Instruments")]
 public class CearnTradeColumnsTests
 {
