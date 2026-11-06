@@ -14,6 +14,22 @@ public class CornintInstrumentTests
     private static List<Dictionary<string, string>> Rows(string dir, ulong seed) => SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"cornint_s{seed}.tsv"), null);
     private static double D(Dictionary<string, string> r, string c) => SubstInstrumentTests.D(r, c);
 
+    /// <summary>★(923) 土地の持ち分の枠 k の受け手の POP の添字（試験が州の添字から組む・エンジンと計器の写像を呼ばない）：0 持ち主・1 聖職者・2 担い手・3 投資家・範囲の外は持ち主。</summary>
+    private static int SlotPop(Region r, Producer s, int k)
+    {
+        int i = k == 0 ? s.OwnerPopIndex : k == 1 ? r.ClergyPopIndex : k == 2 ? s.LaborPopIndex : k == 3 ? r.InvestorPopIndex : -1;
+        return i >= 0 && i < r.Pops.Count ? i : s.OwnerPopIndex;
+    }
+
+    /// <summary>★(923) POP pj が RGO s の地代を受ける割合（LandShares が null なら持ち主に 1・有りなら割合が正の枠のうち受け手が pj の割合の和）。</summary>
+    private static double SlotWeight(Region r, Producer s, int pj)
+    {
+        if (s.LandShares is not { } ls) return s.OwnerPopIndex == pj ? 1.0 : 0.0;
+        double w = 0;
+        for (int k = 0; k < ls.Length; k++) if (ls[k] > 0 && SlotPop(r, s, k) == pj) w += ls[k];
+        return w;
+    }
+
     /// <summary>C1：σ とブロックの純関数を手の表と突き合わせる。</summary>
     [Fact]
     public void シグマとブロックは手の表のとおり()
@@ -90,7 +106,8 @@ public class CornintInstrumentTests
             {
                 int ng = Math.Min(reg.Markets.Length, Catalog.Goods.Length);
                 var ownerTot = new double[reg.Pops.Count];
-                foreach (var s in reg.Producers) if (s.IsRgo && s.OwnerPopIndex >= 0 && s.OwnerPopIndex < reg.Pops.Count && s.GoodId >= 0 && s.GoodId < ng) ownerTot[s.OwnerPopIndex] += Math.Max(0, s.Output * reg.Markets[s.GoodId].Price);
+                foreach (var s in reg.Producers) if (s.IsRgo && s.OwnerPopIndex >= 0 && s.OwnerPopIndex < reg.Pops.Count && s.GoodId >= 0 && s.GoodId < ng)
+                    for (int pj = 0; pj < reg.Pops.Count; pj++) ownerTot[pj] += Math.Max(0, s.Output * reg.Markets[s.GoodId].Price) * SlotWeight(reg, s, pj);   // ★(923) 土地の持ち分の 4 枠の受け手×割合
                 for (int pi = 0; pi < reg.Pops.Count; pi++)
                 {
                     double rent = Math.Max(0, reg.Pops[pi].LandRentPerMonth.Value);
@@ -98,10 +115,12 @@ public class CornintInstrumentTests
                     int bb = PolicyPreferences.BlocOf(reg.Pops[pi]);
                     foreach (var s in reg.Producers)
                     {
-                        if (!s.IsRgo || s.OwnerPopIndex != pi || s.GoodId < 0 || s.GoodId >= ng) continue;
+                        if (!s.IsRgo || s.OwnerPopIndex < 0 || s.OwnerPopIndex >= reg.Pops.Count || s.GoodId < 0 || s.GoodId >= ng) continue;
+                        double wpi = SlotWeight(reg, s, pi);   // ★(923) pi が受ける枠の割合の和（null は持ち主なら 1）
+                        if (!(wpi > 0)) continue;
                         double v = Math.Max(0, s.Output * reg.Markets[s.GoodId].Price);
                         if (!(v > 0)) continue;
-                        double share = rent * v / ownerTot[pi];
+                        double share = rent * v * wpi / ownerTot[pi];
                         if (Catalog.Goods[s.GoodId].Tier == GoodTier.Staple || Catalog.Goods[s.GoodId].GrainChain) wantGrain[bb] += share; else wantOther[bb] += share;
                     }
                 }
@@ -152,7 +171,9 @@ public class CornintInstrumentTests
                             if (!s.IsRgo || s.GoodId < 0 || s.GoodId >= eg.Length || !(eg[s.GoodId] > 0) || !(totalOut[s.GoodId] > 0)) continue;
                             if (s.OwnerPopIndex < 0 || s.OwnerPopIndex >= r.Pops.Count || s.LaborPopIndex < 0 || s.LaborPopIndex >= r.Pops.Count) continue;
                             double amt = eg[s.GoodId] * Math.Max(0, s.Output) / totalOut[s.GoodId];
-                            e[PolicyPreferences.BlocOf(r.Pops[s.OwnerPopIndex])] += EconomyStep.RentShareOf(s, r, w.Coef) * amt;
+                            double rx = EconomyStep.RentShareOf(s, r, w.Coef) * amt;
+                            if (s.LandShares is null) e[PolicyPreferences.BlocOf(r.Pops[s.OwnerPopIndex])] += rx;
+                            else for (int k = 0; k < s.LandShares.Length; k++) if (s.LandShares[k] > 0) e[PolicyPreferences.BlocOf(r.Pops[SlotPop(r, s, k)])] += rx * s.LandShares[k];   // ★(923) 枠ごとの受け手の層へ 地代×割合
                         }
                     }
                     want.Add((q, Instruments.NameOf(w), e));

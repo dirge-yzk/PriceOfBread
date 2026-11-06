@@ -536,7 +536,14 @@ public class StateFactoryTests
         double rent = domestic * rs, wages = domestic - rent;
         var expect = new System.Collections.Generic.Dictionary<Pop, double>(ReferenceEqualityComparer.Instance);
         void Add(Pop q, double v) => expect[q] = (expect.TryGetValue(q, out var o) ? o : 0) + v;
-        Add(r.Pops[p.OwnerPopIndex], rent * (1 - f));   // 残りの地代→持ち主
+        if (p.LandShares is not { } lsm) Add(r.Pops[p.OwnerPopIndex], rent * (1 - f));   // 残りの地代→持ち主
+        else   // ★(923) 土地の持ち分の 4 枠：割合が正の枠ごとに受け手へ 残りの地代×割合（受け手は試験が州の添字から組む＝0 持ち主・1 聖職者・2 担い手・3 投資家・範囲の外は持ち主）
+            for (int k = 0; k < lsm.Length; k++)
+            {
+                if (!(lsm[k] > 0)) continue;
+                int ix = k == 0 ? p.OwnerPopIndex : k == 1 ? r.ClergyPopIndex : k == 2 ? p.LaborPopIndex : k == 3 ? r.InvestorPopIndex : -1;
+                Add(r.Pops[ix >= 0 && ix < r.Pops.Count ? ix : p.OwnerPopIndex], rent * (1 - f) * lsm[k]);
+            }
         Add(r.Pops[p.LaborPopIndex], wages);             // 賃金→労働
         Add(r.Pops[r.MerchantPopIndex], impPart);        // 輸入の分→捌き手の商人
         var s0 = new System.Collections.Generic.Dictionary<Pop, (double S, double E)>(ReferenceEqualityComparer.Instance);
