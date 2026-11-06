@@ -1,0 +1,21 @@
+m914 (914) c79lb 事前登録（試験の盤面の直し・試験だけ・SimCore 0 行）  2026-11-07  基点 17b9a1ed
+[1] 恒等の線・予言 0。SimCore・Runner・App・Display は 0 行。試験だけの変更の ident は自明に恒等なので証拠にしない（README ★(912)）。
+    証拠＝データ無しの木とデータありの木の両方でフルスイート＋突然変異で赤。ident は回さない。
+[2] 直す盤面（行は b482aa8b 系の grep）
+    LandShareTests.cs T7_データ無しの盤面で...  : RunIns の国を With(名, null)（NationConfig の写しで LandOwnership=null）にし、計器の data の側は
+        Instruments.LsDataOverride（internal・試験だけが登録する口・既存の使い方は LandShareTests:351）へ null を登録＝InstrumentsLandshare.cs:78 の WorldData.Nations() の直読みを避ける。
+    AiFirstWaveTests.cs UnreachableSuffrageWorld : NationConfig.France().ShallowClone() に LandOwnership=null を置いて ToScenario。
+    ReformPathTests.cs Board() : 同上（仏）。
+    InstrumentsTests.cs Make(seed, noLandData) : 既定 false（他の試験は不変）。:1963 の試験だけ true＝4 国の写しに LandOwnership=null。
+    国は選び直さない。Assert・期待値・判定・母集合は 1 字も書き換えない（★(743)）。
+    読み手の確認: NationConfig.LandOwnership は Simulation.cs:968 の BuildProvince だけが読む（grep）。ShallowClone は MemberwiseClone＝他の欄は同じ。
+    他の線との重なり: c79ar は ArmyShape.cs と新しい試験 1 本・c79ce は Coefficients.cs・DormantIdentityTests.cs・CedeRule*Tests.cs。この 4 ファイルは他の線が触らない。
+[3] 足す試験なし（直しは盤面だけ）。突然変異（使い捨ての木）:
+    M1 データありの木で null の行を外す → 元の赤が戻る（T7・AiFirstWave:325・ReformPath:430・Instruments:1963）
+    M2 データ無しの木でエンジンを〈持ち主へ全額〉〈枠を読まない〉に壊す → LandShareTests の B-0 の試験（T1 ほか）が赤＝直した試験が機構の番人を弱めていない
+    ソースを走査する番人(㉘): WriterRatchetTests・DormantIdentityTests・InstrumentsTests の静的な走査は SimCore を触らないので件数の変化の予言は 0。
+[4] 成績表は回さない（SimCore 0 行）。名乗り行の SOURCE-HASH は変わらない。
+[5] データありの木の予言の赤: StateFactoryTests:508 の 2 本・CornintInstrumentTests:74・:131（★(912) ① 待ち）・OpeningBakeTests 2 本（★(764)）・WriterRatchet item 6・11（★(749)）だけ。
+    MultiNationTests の Instruments.ArmyNeed の NRE は試験のホストの競合（★(912)）＝そのクラスだけ再走。
+    T7 の紙の当て: データ側 override=null・欄 null ⇒ 期待と実際は両方「持ち主へ 1」＝maxRelDiffDataVsField=0・rgoFieldCount=0・fieldRegionCount=0。
+    T7 の 4 枠が立たない確かめはデータありの木の実測で行う。緑にならなければ止めて報告。
