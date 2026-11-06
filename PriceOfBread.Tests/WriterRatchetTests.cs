@@ -22,6 +22,7 @@ namespace PriceOfBread.Tests;
 ///   生活水準だけ doc は7＝オブジェクト初期化子（`new Pop { Satisfaction = … }`）込みの数え方＝
 ///   ここでは**プロパティ代入のみ**（初期化子は構築であって副作用ではない）＝4 を基準にする。
 /// ⚠数を**減らす**変更（統合・削除）はそのまま通る（上限であって固定値ではない）＝ラチェットの向き。</summary>
+[Collection("Instruments")]   // (908) Instruments.cs の静的な Dir・On の並列の競合（(901) で 23 本が ArgumentException）
 public class WriterRatchetTests
 {
     private static string SimCoreDir([CallerFilePath] string self = "")
@@ -154,7 +155,7 @@ public class WriterRatchetTests
     [InlineData("StateSpent", 23)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
     // ★2026-09-30 段4e（I＋人と動くお金の換算）：CumulativeTradeFlow 13→**12**（＝宣言）＝越境移民と招聘の持参金の台帳（逐語の写し2行）を国境をまたぐ人の運搬の1本（MultiNationSim.MoveAbroad）へ。
-    [InlineData("CumulativeTradeFlow", 6)]    // 世界の台帳・国境をまたいだ出入り（移し方の1本の台帳の1行＋再併合の与信の合算・割譲の2行・分離建国の1行）
+    [InlineData("CumulativeTradeFlow", 6)]    // 世界の台帳・国境をまたいだ出入り（移し方の1本の台帳の1行＋再併合の与信の合算・割譲の2行・分離建国の1行） ／6 本目＝MultiNationSim.cs:1821 の 1 行 2 書き手（src と dst を 1 行で書く越境移民の持参金・債務の台帳）
     [InlineData("CumulativeFiatIssued", 2)]   // 不換の発行と回収（移し方の1本の台帳の1行）＋非常発行（1＝負の国の与信の償却だけ）
     [InlineData("CumulativeGoldMinted", 1)]   // 鋳造と準備の売却（移し方の1本の台帳の1行）
     [InlineData("Loans", 4)]                  // 銀行の与信（移し方の1本の台帳の1行＝企業の貸しと回収・損失の負債化・利息の繰り入れ）＋負の国の償却・再併合の合算・盤面の復元
