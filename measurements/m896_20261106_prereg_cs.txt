@@ -1,0 +1,138 @@
+(896) c76cs 事前登録＝王権と議会の挙動の線 (1)：破産の召集の入力を利払い÷歳入へ・押す先を Clamp01 の 1.0 の錠でなく目標 DebtGrip への比例へ（旗 1 本・既定 0・1 回目＝3 回の規則の数え始め）
+日付 2026-11-06・枝 c76cs（731d3de1 から）・worktree D:/PoB_work/wt_c76cs・担当 Claude Opus 5.5（全ての線を opus にした計画の担当の判断＝README〈実装は sonnet〉から外れる）。
+出発：00一覧 §00〈次の波（波76〜）〉③。作者の問い「王権と議会の権力の奪い合い構造は正しく機能していますか？」（2026-11-06）の答えはまだ無い＝〈作者「全て推奨で」で推奨を採った〉として置いた（削らない）。
+基線 m873（SimCore は 731d3de1＝11db605f＋計器 3 本・エンジンの行は同じ）。計器の生の基準 keep_892/base_ins（m873 と全行一致）。ヌル腕 keep_873/n1・n2（crownpc_s は無い・fm_s はある）。
+作ったフォルダ：D:/PoB_work/wt_c76cs（worktree）・D:/PoB_work/c76cs_work。
+D: の空き：145.94GB（2026-11-06 15:2x・shutil.disk_usage）。
+
+== 0. 形（形の選びは §2 の紙の後・下の式に固定する＝★(778) 事前登録の形と実装の形の一致）==
+旗：Coefficients.SummonByInterestShare（double・既定 0・名は AI の案・grep で 0 件を確かめた）。
+エンジン（CrownParliament.Step の召集の行だけ・書き込みは各枝で 1 本の代入）：
+  if (c.SummonParliamentRate > 0)
+  {
+      if (c.SummonByInterestShare > 0)
+      {
+          double rev = w.LastRevenuePerMonth.Value;
+          double x = !(rev > 0) ? 0 : w.LastInterestPerMonth.Value / rev;                       // 利払い÷歳入（Fiscal.cs:28 の借入の門と同じ比・分母の守りは否定形）
+          double s = PoliticalQuantities.Clamp01(x / c.MaxInterestShareOfRevenue.Value);       // 圧力∈[0,1]（定義域の守り＝Clamp01 は NaN を 0 へ倒す）
+          double t = PowerShares.DebtGrip(w);                                                 // 押す先＝国債÷年の名目GDP（[0,1]）
+          w.ParliamentControl = w.ParliamentControl + c.SummonParliamentRate * s * System.Math.Max(0, t - w.ParliamentControl);
+      }
+      else if (w.AusterityIntensity > 0.5)
+          w.ParliamentControl = PoliticalQuantities.Clamp01(w.ParliamentControl + c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0);   // 旗 0＝今の式（1 ビットも変えない）
+  }
+  ・結果に Clamp01 を掛けない（PC≦t≦1 なので 1 を超えない・設計思想⑧＝錠を使わない）。Toward を使わない（PC＞t で下へ引くため）。新しい閾値の係数を作らない（0.5 の段差を外し比例・§1-8）。
+  ・旗 0 は今の 2 条件の if と全く同じ値（SummonParliamentRate>0 を外側へ出しただけ＝短絡の順も同じ）。
+  ・巻き返し（P1-E）の行は触らない（SummonParliamentRate を読むのは同じ）。
+計器（InstrumentsCrown.cs・召集の写しの旗の分岐だけ）：
+  ・CrownInputs に X（利払い÷歳入・同じ否定形の守り）と Dg（計器が自分で書く DebtGrip の式＝CrownLine の debtGrip と同じ式・PowerShares を呼ばない）を足し、CrownGather で読む（四半期の末の値）。
+  ・CrownApply の召集の段を同じ旗で分ける（旗 1 は上のエンジンと同じ演算の順・切りなし・SummonClamp は常に偽）。
+  ・driftMaskCode に 16 を足す＝旗 1 で召集の項≠0 の 9 の行（旗 0 では立たない＝旗 0 の出力は 1 ビットも変わらない）。
+  ・crownpc_s に列を足さない（ident.sh に列を足す宣言が無い・s と t は既にある interestPerMonth・revenuePerMonth・debtGripShare・pcPrevShare から作れる）。
+  ・計器の限界の自己申告に 1 行足す：エンジンは DebtGrip を Politics.Step（QuarterEnd）で読み、計器は Instruments.Quarter（共有層の後）で読む。NominalGdpPerMonth は getter＝割譲・州の移り・講和で国債か GDP が動けば t がずれる＝旗 1 では召集の列もずれうる（(889) の〈召集はずれない〉は旗 0 だけ）。ずれた行は residualShare≠0・explainCode 9・driftMaskCode の 16 で名乗る。
+
+== 1. 史実の型（AI の読み・確証なし）==
+1789 三部会＝利払いが歳入の半ばを食う（仏 1788 の利払い÷歳入≒0.67＝MaxInterestShareOfRevenue の錨と同じ）ときに王権は議会に予算の協力を乞う。議会が買う財布の権の大きさは、王権の起債への依存（英 1688 以後・国債÷GDP）に比例する。
+⇒ 圧力＝利払い÷歳入（危機の深さ）・押す先＝DebtGrip（債権者の握り）。旧＝緊縮の強度（国債÷年の名目GDP＞0.65 の段差）で 1.0 まで押す錠。
+
+== 2. 段 0 の紙（腕の前・旗 0 の生に一歩だけ当てた近似＝軌道は旗 0 のまま）==
+台本 scripts/instruments/c76cs/paper896.py・出力 measurements/m896_20261106/paper896.txt・入力の中央値 inputs896.py → inputs896.txt。
+門の閾値は紙を数える前に measurements/m896_20261106/gates_before_paper.txt に書いた（15:23 に書いて紙を回した・その後は替えていない）。
+一歩の紙（crownpc_s・416,446 行・利払い÷歳入≥0.67 の行 4,385）：
+  形	召集の項>0 の行	≥0.67 の行で項>0	1 へ届く	床 0.45 を下から越える	項の和
+  旧（旗 0）	8,794	502（11.45%）	108	114	89.9
+  (A) T＝床	36,989	142（3.24%）	0	0	27.7
+  (B) T＝DebtGrip	22,140	530（12.09%）	0	102	51.9
+  (C) T＝max(床, DebtGrip)	43,079	541（12.34%）	0	102	61.3
+形の選び＝(B)。
+  ・(A) は G2（≥10%）を紙で割る（3.24%）＝立憲の国（PC≥0.45）では max(0, 0.45−PC)＝0 で、利払いが最も重い所で召集が死ぬ（形に固有の誤り）。床を下から越えることも 0（比例は 1 歩で目標を越えない）。
+  ・(C) は (B) に〈DebtGrip＜0.45 の国を 0.45 へ押す〉を足しただけ（増えた 2.1 万行は国債の少ない国）＝債権者が立憲の床を買う因果の話が無い（§1-8 の読めない側）。紙の他の数は (B) とほぼ同じ。
+  ・(B) は既にあるエンジンの量（PowerShares.DebtGrip）だけで新しい部品が 0。
+⚠構造の帰結（隠さない）：比例の形は 1 歩で t を越えない＝召集だけでは PC は 1 に届かず、立憲の床 0.45 も DebtGrip＞0.45 の国でしか越えない（紙の 102 件は全て DebtGrip＞0.45）。〈債務の危機→立憲化〉は国債÷GDP＞0.45 を要する。
+⚠ DebtGrip の二度使い（〈確証なし〉と名乗る）：PowerShares.cs:86 の ParliamentGrip＝ProbOr(税の掌握, DebtGrip) が既に DebtGrip を読み、ParliamentEffective＝PC×握り（PowerShares.cs:117）。(B) で DebtGrip は PC の押す先にも入る。
+  AI の読み：PC は四半期ごとに目標へ寄る在庫（債務が減った後も残る＝議会の制度の記憶）・握りはその四半期の瞬間の比＝別の量を作るが、同じ入力が 2 回掛かる面はある（設計思想⑨ に当たるかは確証なし＝記録に書く）。
+時期ごとの召集の項の和（一歩の紙・全ての種の和）：英 1783–1829 旧 11.47→(B) 2.25・清 1914–1950 旧 3.05→1.11・仏 1783–1829 旧 0.40→2.03・露 1880–1913 旧 3.57→1.13（全表は paper896.txt (3)）。
+入力の中央値（inputs896.txt）：仏 1783–1829 の利払い÷歳入の中央 0.095・≥0.67 は 0.1%（盤面の仏は 1788 の危機を持たない＝(184) の既知と同じ根の側・この線では直さない）。
+
+== 3. 門（両側・閾値は gates_before_paper.txt の写し・結果を見て替えない）==
+G1 働いた（上側）：腕 B の fm_s で、立憲（polityCode 3）の四半期の PC≥1−1e-9 の割合が、英と清の両方で base−幅 より下。幅＝base・N1・N2 の 3 値の対の差の最大。
+   紙の値：英 base 57.34%・N1 70.77%・N2 67.91%・幅 13.43pt・線 43.90%／清 base 76.73%・N1 73.09%・N2 74.80%・幅 3.64pt・線 73.09%。
+   旗 0 は base そのもの（57.34＜43.90 は偽）＝旗 0 で落ちる（★(879) 恒真でない）。
+   ⚠fm_s の parliamentControlShare と polityCode は四半期の頭の写し（CrownPcInstrumentTests の交差の門＝pcPrevShare と一致）。base・N1・N2・腕で同じ読み方。fm_s は計器の 9 国だけ。
+G1b 壊さない（下側）：腕 B の英と清の立憲の四半期の数が base の 0.5 倍以上（英 4,927→2,464 以上・清 1,470→735 以上）。
+G2 壊さない（召集が消えない）：腕 B の crownpc_s で、利払い÷歳入≥0.67 の行（最初の行と政治の止まった行を除く）のうち召集の項＞0 の割合が 10% 以上、かつ件数＞0。
+   ㉗：閾値 10% は旗 0 の値 11.45% の 0.87 倍・紙 (B) 12.09% の 0.83 倍＝閾値の 3/4 以上に寄る門。それでも回す理由：G2 は〈壊さない〉の門で、旗 0 でも通る形（召集が生きていることだけを見る）・紙の分母は PC が 1 に張り付いた旗 0 の軌道（71,830 行が始まり＋項≥1）＝旗 1 で PC が 1 から離れれば t−PC＞0 の行は増える〈予言・計っていない〉。線は替えない。
+G3 壊さない（両側）：腕 B の crownpc_s の絶対・専制・幕府→立憲の再ラベル（relabelFlag 1・事象の無い四半期）の件数が base の 0.25 倍以上・4 倍以下（base 1,680＝種ごと 132〜184 → 420 以上・6,720 以下）。
+   ⚠crownpc_s は全ての国・fm_s の遷移（858）は 9 国だけ＝母集合が違う（S11 の G3 は fm_s で数える＝同じ母集合どうしで比べる）。
+G4 記録：summonClampHitFlag＝1 の行の数（旗 0＝18,762・旗 1 は 0 の見込み＝計器の旗 1 の枝は SummonClamp を立てない）。
+〈働いた〉は G1∧G2 で読む（どちらか 1 つでは〈何もしない実装〉を落とせない：旗 0 は G1✗・G2✓／s＝0 の何もしない実装は G1✓・G2✗／正しい形は両方✓）。
+S11（種 11〜20）：G1 は base＝keep_873/a11 の fm_s（英 53.65%・清 71.34%）−種 1〜10 の幅（英 13.43・清 3.64）＝線 英 40.22%・清 67.70%（種 11〜20 のヌル腕は無い＝〈近似〉）・G1b 同じ倍率（a11 英 4,992・清 1,577）・G3 は fm_s の遷移（a11 908 → 227 以上・3,632 以下）・G2 は腕 S11 の crownpc_s（S11 では crownpc_s を出す＝POB_CEARN=0 でも出る表）。
+最終の採否：門と止める線を種 1〜10（腕 B）と種 11〜20（腕 S11）の両方で読む。★(892)：腕 B で止める線に当たったら採る候補に数えない。
+
+== 4. 突然変異の表（腕の前・どの門か試験で赤か）==
+| 突然変異 | 落とす物 |
+| 圧力 s を 0（何もしない実装） | G2（≥0.67 の行の項＞0 が 0%）・新しい機構の試験 S1（項＝式の値）。G1 は通る（PC＝1 へ押す物が無い）＝G1 では落ちない（計画の担当の素案〈G1 で赤〉は誤りと訂正） |
+| 押す先を 1.0 に戻す（t＝1） | 機構の試験 S2（押す先が DebtGrip）。腕なら G1 は弱まるが錠ではない（比例のまま）＝G1 で落ちる保証は無い・G4 も 0 のまま＝腕の門では落とせない〈突然変異で確かめていない〉側として名乗る。旧の Clamp01 の錠に戻す変異は G1・G4 で落ちる（旗 0 と同じ） |
+| 分母の守りを外す（歳入 0 で x＝利払い÷0） | 機構の試験 S4（歳入 0・利払い＞0 で PC は動かず有限） |
+| 比例を段差へ戻す（x＞0.67 なら s＝1・他は 0） | 機構の試験 S3（x を 2 倍にすると項が 2 倍） |
+| 計器の写しを旗で分けない | CrownPcInstrumentTests T1′（旗 1 で計器の項＝エンジンの動き・残差 0）・T0 を旗 1 で回す T0′ |
+| 結果に Clamp01 を掛ける（PC≦1 の守り） | 何もしない変異（PC≦t≦1）＝どの試験でも緑＝働いていない項として名乗る（入れない） |
+| 押す先の Max(0,·) を外す（PC＞t で下へ引く） | 機構の試験 S5（PC＞t なら召集の項 0） |
+| 旗 0 の枝を変える | 旗 0 の ident（〈判定: 恒等〉が割れる）・既にある T1・T2（旗 0 の初期化子つき） |
+突然変異は使い捨ての木（D:/PoB_work/c76cs_work/mut_*）で単体の試験を回し、出力を measurements/m896_20261106/mutation.txt へ。単体で緑の突然変異（Clamp01 を掛ける・押す先 1.0 の腕の門）は名乗る。
+
+== 5. 予言の赤と試験の変更 ==
+★(818) 読んだ Assert：`grep -ln "ParliamentControl\|SummonParliamentRate\|AusterityIntensity" PriceOfBread.Tests/*.cs` の 16 ファイル。召集の値を固定するのは CrownPcInstrumentTests の T1（Summon＝0.012・PC＝0.212）・T2（SummonClamp・PC＝1.0）だけ。T4（巻き返し・Austerity 0・PC＝0.28）はエンジンの PC を等号で読む＝旗 1 で国債と利払いがあれば召集が混ざる。
+器のコミットで ★(832) ① (a) の型（初期化子に旗 0）を入れる：T1・T2・T4 の CloseContinuous(c) の次の行に `c.SummonByInterestShare = 0;   // ★(896) 旧の召集の式の番人（旗 0 の初期化子）`（旗 0 の器では何もしない行）。
+旗 1 で赤の予言：無い（T1・T2・T4 は (a) の型で旗 0 のまま・T0 と T5 は計器が同じ旗で式を分けるので緑・新しい盤面で利払いが 0 なら召集は 0）。
+  BureaucracyFromPrereqTests・PolicyPoliticsTests:851・:1107・StartWarmupTests:280・FiscalTests は Austerity を直に読むだけ（召集を読まない）＝緑。CrownParliamentTests:50 は PC を直に置く＝緑。
+  軌道で政体と PC を読む全長・史実の試験は〈予言・計っていない〉＝赤は予言に無い＝止める（★(885)：結果の後に許しへ替えない）。
+WriterRatchetTests：ParliamentControl の item は無い（grep 0）＝書き手の数の番人は動かない。旗 1 の枝は 1 本の代入（各枝で 1 本）。item は書き換えない。
+新しい試験 PriceOfBread.Tests/SummonByInterestShareTests.cs（旗 1 の盤面・①②②′ と巻き返しを閉じる）：
+  S0 旗 0 なら今と同じ値（Austerity 0.8 で 0.012）。S1 項＝0.02×s×(DebtGrip−PC)（期待値は試験が国債と名目 GDP から自分で書く）。S2 押す先は DebtGrip（1.0 ではない）・PC 0.995・DebtGrip 1・s 1 で 1 にならない。S3 x を 2 倍で項が 2 倍（比例）。S4 歳入 0・利払い＞0 で PC は動かず有限。S5 PC＞DebtGrip なら項 0。
+CrownPcInstrumentTests に T1′（旗 1 の召集だけの盤面で計器の項＝エンジンの動き・残差 0・SummonClamp 偽・explain 0）と T0′（T0 を旗 1 で）。
+
+== 6. ソースを走査する番人（㉘）と変わる件数（㉑）・旧の規則の番人（㉜）==
+7 組＝IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests。器のコミットの直後に隔離ビルドで回す。
+grep：CrownParliament.cs・InstrumentsCrown.cs の `new MoneyStock(` 0 件（変えない）・工業化度の読み手の許可表に CrownParliament の行なし・route_anchors.tsv に CrownParliament の鍵なし・WriterRatchetTests に ParliamentControl の item なし。
+変わる件数の予言：DormantIdentityTests の表に 1 行足す（器）・点火で 1 行外す。他の件数の番人は動かない。
+㉜：旧の規則そのものを固定する番人＝CrownPcInstrumentTests の T1・T2（＋T4 の PC の等号）だけ（grep）＝(a) の型で旗 0 に固定した。
+
+== 7. 止める線（この回の形をそのまま写す）==
+破綻（作者の定義＝シミュが止まる・クラッシュ・NaN・保存則・savetest・leakhunt）・空洞化 1/10 未満（holclass839.py＝規則 A2・T1・線の自分の腕の〈線が原因〉も数える・第 2 引数 measurements/m873_20261106/armM/stop_mM.txt〔S11 は armS11/stop_mS.txt〕）・〈100 倍〉の〈それ以外〉（gdp_jump797.py・gdp_jump833.py＝今の規則のまま）・plvl_seeds.py（1e10 倍・開幕の 1000 倍）・gdp_zero10.py（名目 GDP 0 の続き）・機構の番人（走査の番人 7 組を含む）・推定の計算量 ＞248.5 秒。
+数え方：`bash scripts/instruments/m866/stoplines866.sh <ins> <出力> [1|11]`。m873 の件数（stop_table_873.tsv）：空洞化 1/10 未満・〈100 倍〉の〈それ以外〉・1e10 倍・開幕の 1000 倍・名目 GDP 0 の続き・未完走はすべて 0（M・S11・N1・N2）。空洞化 1/4 未満は M 6・S11 1・N1 2・N2 5（記録）。
+記録だけ：holown880.py・holsplit の L2・gdp_down875.py（下向き）・gdp_jump890 の型（〈1 四半期の落ち込みと戻り〉＝オマーン 1803・オーストラリア王国 1806 の型は名指して並べる）・nullgate.py・ng.sh（基準 rd:measurements/ng873_20261106:m873）・exact・near・英の国債の不履行。
+空洞化の振り分け：基線の同じ種・同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（★(839)）。
+
+== 8. 記録の先頭（門ではない）==
+立憲の四半期の PC＝1 の割合（英・清・仏・露）・召集の項の時期ごとの大きさ・立憲化の年（仏 1789 が出るか・普露日オスマンの立憲化が 40〜90 年早い既知の (184) が動くか）・英の国債の不履行の種の数・②′ による立憲→王権の再ラベルの件数（旗 0＝1,188）・下向きの跳び・〈1 四半期の落ち込みと戻り〉の型・G4・driftMask 16 の行の数と |残差|。
+同じ盤面の新÷旧：腕 B と base の crownpc_s の召集の和・PC の中央（立憲の四半期）。
+
+== 9. 予言・計っていない（理由に書かない・並べるだけ）==
+・英の PC＝1 の割合は 0 近くへ落ちる（召集の 1.0 の錠が消え、① の Clamp01 と下賜と共和の目標だけが 1 を作る）。英の PC は DebtGrip≒1 の 1783–1829 に 1 へ漸近する（0.98^n）。
+・清の立憲の四半期の PC＝1 も下がる。
+・PC が 1 から離れるので、軍の政治力（PolicyPreferences.cs:532 の ×(1−PC)）と ②′ の大きさが立憲の国で増える＝立憲→王権の再ラベルは増えうる（G3 の上限 4 倍はこの向きの誤りの上限ではない＝G3 は絶対→立憲の向き）。
+・仏の 1783–1829 の召集は増える（紙 0.40→2.03）が、盤面の仏の利払い÷歳入は 1788 の危機を持たない＝仏 1789 が出る保証は無い。
+
+== 10. 周辺の点検（★(885)・作者 2026-11-06 原文「それぞれの機能を改善する際、その機能が正しく動作しているかはもちろん、関連機能が動作しているかも確認（読むだけ、明らかな欠損があれば修正）するようにしてほしい」）==
+写し：measurements/m889_20261106/periph889.txt（PC の書き手 10・読み手 11・届かない門・天井の錠・片側だけの門・数え直しのずれ）を二度確かめない。変えた門の周りだけ足す（ソースと既にある生だけ・新しい腕なし）：
+・AusterityIntensity の読み手（grep・コメントを除く）：CrownParliament.cs:29〜:30（召集＝旗 1 で読まなくなる）・Government.cs:444（人頭税の緊縮の下限の段）・:684（社会保障の緊縮の上限の段）・InstrumentsCrown.cs:63（計器）。書き手は Government.cs:249（助走）・:377。
+  ⇒ 旗 1 で召集が緊縮を読まなくなっても、緊縮は法の門 2 本を動かし続ける（読まれない欄にはならない）。Government.cs:373 の注〈w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料〉は旗 1 で半分が古くなる＝点火したら注の一巡（Government.cs は持ち主でない＝合流か次の恒等の線の候補として報告）。
+・LastInterestPerMonth・LastRevenuePerMonth の書き手は Fiscal.cs:184 だけ（月の末・FiscalEnabled のときだけ）。Politics.Step（QuarterEnd）は四半期の最後の月の MonthSettle の後（Simulation.cs:1714 の後に :1717）＝召集はその月の値を読む。助走（PoliticsEnabled＝偽）では CrownParliament.Step を呼ばない。建国の直後は 0（守りで s＝0）。歳入が正でない行は base で 1 行だけ。不履行の後は国債が減る＝利払いも減る。
+・利払い÷歳入の他の読み手：Fiscal.cs:28（不履行の計数の門）・:592 BorrowGateOpen（借入・巨大建造物）・SelfPlay.cs:556〜:557（AI の財政の逼迫）・計器 3 本＝同じ比を読む機構が 4 つ（召集が足されて 5）。
+・DebtGrip の読み手：PowerShares.cs:86 ParliamentGrip だけ（旗 1 で召集が 2 本目）。書き手なし（純関数）。⇒ §2 の二度使いの注。
+・ParliamentControl の読み手の下流（periph889 の写し）：PC＝1 で軍の政治力 0（PolicyPreferences.cs:532）・宮廷の任免 0（PoliticalQuantities.cs:214）・批准の拒否（Diplomacy.cs:3145 の PC≥0.5）。旗 1 で PC が 1 から離れると、この 3 本の門が立憲の国で開く側へ動く〈予言・計っていない〉。
+・入力の時期ごと（inputs896.txt）：英の利払い÷歳入≥0.67 は 1783–1829 の 14.0% で、1830 以後はほぼ 0・DebtGrip＞0.45 は 1830–1879 で 43.5%。清は 1914–1950 で ≥0.67 が 31.9%・DebtGrip 中央 1.0。
+・明らかな欠損（別の線として報告・この腕に混ぜない）：(i) Government.cs:373 の注（上）。(ii) 仏の開幕の利払い÷歳入が史実（1788 の 0.67）の約 1/7（中央 0.095）＝仏 1789 の召集の入力そのものが盤面に無い（初期値の側・(184) の根の候補・読む線へ）。
+台帳：S17（王権と議会）の召集の行の材料＝上の書き手と読み手と門・この線の G1〜G4 の結果（合流が写す）。
+
+== 11. 計算量 ==
+四半期に国ごとに割り算 2 回・掛け算 3 回（DebtGrip の getter の名目 GDP を含む＝GdpPerMonth の走査 1 回が増える）。登録 0.5 秒（名目の余り 約 37.0 秒・GDP の走査が 1 国 1 四半期に 1 回増える＝月の Fiscal の走査の約 1/3）。.cost を m873 と比べる（記録・2 秒以下は門にしない）。
+
+== 12. 腕・D:・縮め方 ==
+手順：器（旗 0）→走査の番人 7 組→ident `bash scripts/instruments/ident/ident.sh run c76csz --tree D:/PoB_work/wt_c76cs`（宣言なし＝既にある表の値が 1 ビットでも動けば止める・走っている間はこの worktree にコミットしない）→突然変異→点火（.cs だけ）→旗 1 のフルスイート（Category!=FullLength と FullLength を分け --list-tests と突き合わせ・中止の行も拾う）・savetest・leakhunt→腕 B `INS=1 bash scripts/instruments/batch.sh run c76csB 10`（全ての表・約 16GB＋src 1GB・床 36GB）→腕 S11 `POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c76csS 10 11`（宣言＝門が crownpc_s・fm_s を読むだけ・cearn_s・cgrp_s・cpop_s は出さない・約 10GB・床 30GB）。
+ident の宣言：--tests-delta（新しい試験の本数＝器のコミットで数えて書き足す）。--added-tables は無し（新しい表を作らない）。
+起こす前に `arms.sh free` と D: の空きを見る。成否は終了コードと成績表の有無の両方で読む。
+縮め方（反証役が読んだ後）：腕 B・S11 は 8 表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s）＋crownpc_s・fm_s と keepsum_all_tables.tsv。縮めた後も合流が読むまで残す。src_* は腕が終わったら消す。ident の生は判定の後に消す（基準と全行一致なら残す価値なし・keepsum だけ）。
+入れない物：② の門（(2)）・巻き返しの門（(3a)）・②′ の向き（(3b)）・仏 1789 と立憲化の時期（(184)）の直し・Politics.cs・Government.cs・Fiscal.cs・PowerShares.cs の変更・新しい状態と新しい閾値の係数・App・Display・Runner・WriterRatchetTests の書き換え・国ごとの特例。
+重なり：持ち主のファイル＝CrownParliament.cs・InstrumentsCrown.cs・Coefficients.cs（旗の 1 行と注・:2960 の近く）・DormantIdentityTests.cs（1 行）・CrownPcInstrumentTests.cs・SummonByInterestShareTests.cs（新しい）・scripts/instruments/c76cs/・measurements/m896_*。他の線（c76lb・c76ls）は Instruments.cs・EconomyStep.cs ほか＝重ならない。Coefficients.cs と DormantIdentityTests.cs は自分の行だけ。
