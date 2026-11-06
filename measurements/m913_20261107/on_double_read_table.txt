@@ -1,0 +1,9 @@
+確保と使用が別の読みの関数（Instruments.On を 2 回以上読み、1 回目で確保した物を後で使う）  b482aa8b  直さない
+ArmyShape.Compute :39・:40 → :155 fmHome!/fmH!  NRE になりうる（本線で直す）
+Discovery (1076 ro・1077 eo・1096 ro![row] は eo の非 null で守る)  On が 1076 と 1077 の間で偽→真に切り替わると ro=null・eo≠null で ro! が NRE  なりうる（次の恒等の線）
+Discovery 1108 po  後続の使い方は po is not null の守りかを次の線で確かめる
+Diplomacy 2783・2784 cpPre・cmPre  使用は is not null の守り  安全
+EconomyStep 1757 fdd  使用は is not null の守り  安全
+Ideology 50 prds  使用は is null／is not null の守り  安全
+BilateralMarket 998 potBefore (On ? : 0.0) → 1001 で On を再読  値型・NRE なし（On の切替で potBefore が 0 のまま ScopePot へ渡る誤差の型）
+CapitalMarket 179 divSav0・MultiNationSim 603/608 ct0・MultiNationSim 1495 need・SelfPlay 348/351 scanT0  値型・NRE なし（切替で時間・量が 0 の計器の値のずれの型）
