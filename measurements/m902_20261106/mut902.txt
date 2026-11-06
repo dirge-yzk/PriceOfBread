@@ -1,0 +1,27 @@
+木 5b9459e7ecdcda2ee25bb9052537496f9bf973ab（使い捨て D:/PoB_work/c77ce_work/mutwt）
+M0	赤: なし	成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+M1 当てた
+M1	赤: T2 T5 T5(flag: 1) 	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M2 当てた
+M2	赤: T2 	失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M3 当てた
+M3	赤: T2 T3 	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+M4 当てた
+M4	赤: T4 	失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M5 当てた
+M5	赤: T2 	失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M6 当てた
+M6	赤: T2 T5 T5(flag: 1) 	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M7 当てた
+M7	赤: T2 T3 	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M8 当てた
+M8	赤: T2 T3 T5 T5(flag: 1) 	失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M9 当てた
+M9	赤: T2 T5 T5(flag: 1) 	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M10 当てた
+M10	赤: T4 	失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M11 当てた
+M11	赤: T1 T5 T5(flag: 0) 	失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M12 当てた
+M12	赤: T3 	失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+おわり
