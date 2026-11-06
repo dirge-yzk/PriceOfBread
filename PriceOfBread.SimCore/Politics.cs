@@ -683,7 +683,7 @@ public static class Politics
         // P2：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
         // 「近代法を持つが議会に権力を渡さない」プロイセン/明治型が自然点になる（ラベルが後日 床交差で変わった時だけ建国制度が走る）。
         if (reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
-        if (Instruments.On) Instruments.CoupRoute(w, 5);   // (904) 旧 `violent ? 5 : 6`：6 は届かない枝（台帳 §2-3・10 種で 0 行）。radical／reformist が NaN のときだけ violent=false のまま来るが、ExecuteRegimeChange へ渡す violent は変えない（挙動は同じ）＝ラベルだけ 5 に畳まれる
+        if (Instruments.On) Instruments.CoupRoute(w, 5, violent);   // (904) 旧 `violent ? 5 : 6`：6 は届かない枝（台帳 §2-3・10 種で 0 行）。radical／reformist が NaN のときだけ violent=false のまま来るが、ExecuteRegimeChange へ渡す violent は変えない（挙動は同じ）＝ラベルだけ 5 に畳まれる
         ExecuteRegimeChange(w, c, attractor, violent);
     }
 

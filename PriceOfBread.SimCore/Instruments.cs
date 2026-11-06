@@ -78,7 +78,7 @@ public static partial class Instruments
         public int ModStance = -1; public double ModGapUsed = double.NaN;   // (416) AI の近代化投資の判断（Apply が置き ModFold が書いて戻す）
         public List<string>? SecRows;                      // (395) 州の分離の内訳の行（CheckSecession が置き SecFold が書いて消す）
         public List<string>? EpiRows;                      // (629) 疫病 1 件ごとの行（World.TriggerEpidemic が置き EpiFold が書いて消す）
-        public string? CoupRow; public int CoupRoute;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
+        public string? CoupRow; public int CoupRoute, CoupNanBranch;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
         public readonly double[] Claim = new double[(int)Item.Count];
         public double Treasury0, Payable0, Spare0, Payable1, Borrowed, Devalued, ClaimsTotal, PayRate;
@@ -251,6 +251,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Fb; public bool FbHeader;   // (550) 工場の建屋の財（建造物）の表（旗 BuildingGoodBundle が正の国×四半期・InstrumentsFb.cs）
         public System.IO.StreamWriter? Wp; public bool WpHeader;   // (537) 旧と新の武器の並行の表（挙げた国×四半期×{小銃・火砲・蒸気機関}）
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // (416) 近代化投資の信号の表（国×四半期）・国力の旧と新の表（国×年末）
+        public System.IO.StreamWriter? Lawgate2; public bool Lawgate2Header;                // (908) 施行の否決の理由の表 lawgate2_s
         public System.IO.StreamWriter? LawGate; public bool LawGateHeader;                 // (423) 法の門の旧と新の表（国×四半期）
         public System.IO.StreamWriter? SvcBuy; public bool SvcBuyHeader;                   // (433) 家事奉仕の買い手の表（国×四半期×階級）
         public System.IO.StreamWriter? Dcont; public bool DcontHeader;                       // (417) 不満度の読み手の表（国×四半期）
@@ -1005,6 +1006,7 @@ public static partial class Instruments
             f.Code = code; f.Net = code is 0 or 5 or 6 ? double.NaN : st.GfGateNet;
             if (gated) { f.Cost = st.GfGateCost; f.SDec = st.GfGateS; f.Structural = IsStructural(w, code, f.Cost); }
         }
+        Lawgate2Note(w, code, ci, ti);   // (908) 施行の否決の理由の表 lawgate2_s の控え（符号 5・6 だけ）
     }
     /// <summary><c>Government.Move</c> の結果（outcome は <see cref="MilitaryMove"/> と同じ 0 閉じていた／1 純支持／2 政治資本／3 無償で動いた／4 払って動いた）。軸と歩幅の尺度から戦線の種類を決める。</summary>
     internal static void MoveResult(World w, PolicyAxis a, double spendScale, int outcome, double cur, double target, double next, double net, double speed)
@@ -1836,6 +1838,7 @@ public static partial class Instruments
             WpFold(sk, seed, w, q);                         // (537) 旧と新の武器の並行の表（全ての国・旧の門・産出の割合・費用・装備の充足・国営の持分）
             ModFold(sk, seed, w, st, q, picked, yearEnd);   // (416) AI の近代化投資の信号の表（旧の gap と新しい信号）
             LawGateFold(sk, seed, w, q, picked, yearEnd);   // (423) 法の門の旧と新の表（金本位・反トラスト・同業組合の願い）
+            Lawgate2Fold(sk, seed, w, q);                   // (908) 施行の否決の理由の表（符号 5・6 の段の法の一歩ごと）
             SvcBuyFold(sk, seed, w, q, picked);   // (433) 家事奉仕の買い手の表（階級ごとの欲しい量・予算で絞った量・買えた量・州の月の和を戻す）
             DcontFold(sk, seed, w, q, picked, yearEnd);     // (417) 不満度の読み手の表（闘争度の 5 本の内訳・参加の述語の旧と新・運動体）
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
@@ -1953,6 +1956,7 @@ public static partial class Instruments
         sk.Wp?.Dispose(); sk.Wp = null;   // (537)
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // (416)
         sk.LawGate?.Dispose(); sk.LawGate = null;   // (423)
+        sk.Lawgate2?.Dispose(); sk.Lawgate2 = null;   // (908)
         sk.SvcBuy?.Dispose(); sk.SvcBuy = null;   // (433)
         sk.Dcont?.Dispose(); sk.Dcont = null;   // (417)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
