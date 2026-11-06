@@ -1,0 +1,24 @@
+== M1_keep_branch
+失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦の戦時の倍率は対外戦と同じ総動員の式
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦は厭戦で総動員が深まる
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の対外戦の戦時の倍率は内戦と同じ値
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.計器は同じ盤面で旧と新の規則と実際の値を数える(flag:
+== M2_civil_one
+失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦の戦時の倍率は対外戦と同じ総動員の式
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦は厭戦で総動員が深まる
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の対外戦の戦時の倍率は内戦と同じ値
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.計器は同じ盤面で旧と新の規則と実際の値を数える(flag:
+== M3_no_mobilize
+失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦の戦時の倍率は対外戦と同じ総動員の式
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦は厭戦で総動員が深まる
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の対外戦の戦時の倍率は内戦と同じ値
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.計器は同じ盤面で旧と新の規則と実際の値を数える(flag:
+== M4_foreign_double
+失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦の戦時の倍率は対外戦と同じ総動員の式
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦は厭戦で総動員が深まる
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の対外戦の戦時の倍率は内戦と同じ値
+  赤 PriceOfBread.Tests.CivilWarArmsDemandTests.計器は同じ盤面で旧と新の規則と実際の値を数える(flag:
