@@ -646,7 +646,22 @@ public static partial class Instruments
                     if (top[li] is null || s.Capacity > top[li]!.Capacity) top[li] = s;
                 }
             }
-            if (oi >= 0 && oi < n && oi != li) { oLines[oi]++; oRev[oi] += s.LastRevenue; }
+            if (s.LandShares is { } lsc)   // ★(895) 土地の持ち分：割合が正の枠の受け手のうち担い手でない者に行を 1（同じ受け手は 1 回）・売上×その受け手の割合の和（null は今の持ち主の 1 行）
+            {
+                long fbc = 0;
+                for (int k = 0; k < lsc.Length; k++)
+                {
+                    if (!(lsc[k] > 0)) continue;
+                    int ri = LsRecipient(r, s, k, ref fbc);
+                    bool seen = false;
+                    for (int j = 0; j < k; j++) if (lsc[j] > 0 && LsRecipient(r, s, j, ref fbc) == ri) { seen = true; break; }
+                    if (seen || ri == li || ri < 0 || ri >= n) continue;
+                    double wr = 0;
+                    for (int j = k; j < lsc.Length; j++) if (lsc[j] > 0 && LsRecipient(r, s, j, ref fbc) == ri) wr += lsc[j];
+                    oLines[ri]++; oRev[ri] += s.LastRevenue * wr;
+                }
+            }
+            else if (oi >= 0 && oi < n && oi != li) { oLines[oi]++; oRev[oi] += s.LastRevenue; }
         }
         int ng = System.Math.Min(r.Markets.Length, Catalog.Goods.Length);
         for (int i = 0; i < n; i++)

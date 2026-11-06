@@ -709,6 +709,47 @@ public static class EconomyStep
         return s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
     }
 
+    /// <summary>★(895) 土地の持ち分の枠 <paramref name="slot"/> の受け手の POP の添字（<see cref="Producer.LandShares"/>）：0 貴族＝持ち主・1 教会＝州の聖職者・2 農民の自作＝担い手・3 市民の地主＝州の投資家。
+    /// 添字が −1 か範囲の外（4 以上の枠も）は持ち主（貴族の枠）へ寄せる。読み手＝<see cref="PayOwnerRent"/>・<see cref="AddRentRecipients"/>・構築の地代の種（Simulation.BuildProvince）。</summary>
+    internal static int LandShareRecipient(Region region, Producer s, int slot)
+    {
+        int i = slot switch { 0 => s.OwnerPopIndex, 1 => region.ClergyPopIndex, 2 => s.LaborPopIndex, 3 => region.InvestorPopIndex, _ => -1 };
+        return i >= 0 && i < region.Pops.Count ? i : s.OwnerPopIndex;
+    }
+
+    /// <summary>★(895) ④の地代（持ち主の取り分 <paramref name="rent"/>・国営持分と赤字の枝の後・負もありうる）を受け手へ：所得（Earned）・RGO の正の地代は地代の記録（LandRent＝土地税の課税ベース）・
+    /// 貴族の受け手の領主権の記録（旗 PrivilegeLedgerEnabled）。受け手と重みの並び＝<see cref="Producer.LandShares"/> の割合が正の枠（null＝持ち主に rent そのまま＝今の 1 組）。
+    /// 書き込みの行は所得・地代とも 1 本（受け手ごとに行を足さない＝WriterRatchetTests）。</summary>
+    internal static void PayOwnerRent(World? world, Region region, Producer s, double rent, Coefficients coef)
+    {
+        var ls = s.LandShares;
+        for (int k = 0, nk = ls is null ? 1 : ls.Length; k < nk; k++)
+        {
+            if (ls is not null && !(ls[k] > 0)) continue;   // 割合が 0（と NaN）の枠は並べない
+            int rp = ls is null ? s.OwnerPopIndex : LandShareRecipient(region, s, k);
+            double rk = ls is null ? rent : rent * ls[k];
+            region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);
+            if (s.IsRgo && rk > 0) region.Pops[rp].LandRentPerMonth += new MoneyPerMonth(rk);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
+            if (s.IsRgo && rk > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[rp].ClassId == PopClass.Noble)
+                Privileges.Record(world, Privileges.Seigneurial, rk * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
+        }
+    }
+
+    /// <summary>★(895) 輸出代金の地代（<see cref="InternationalMarket.PaySales"/>・国営持分を引いた後の正の rent）の受け手と重みを並びへ足す。
+    /// 植民地格の州の輸出作物の大農園（<see cref="Colonial.AbsenteeRgo"/>）は不在地主（首都の投資家）・欄が null は持ち主の 1 組（今のまま）・欄ありは割合が正の枠ごとに 1 組（枠の順）。</summary>
+    internal static void AddRentRecipients(List<Pop> to, List<double> wt, World w, Region rr, Producer pr, double rent)
+    {
+        if (pr.LandShares is { } ls && !Colonial.AbsenteeRgo(rr, pr))
+        {
+            for (int k = 0; k < ls.Length; k++)
+                if (ls[k] > 0) { to.Add(rr.Pops[LandShareRecipient(rr, pr, k)]); wt.Add(rent * ls[k]); }
+            return;
+        }
+        // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園の地代は不在地主（本国の首都の投資家）へ直接＝清算の受け取りは移し方の1本（貯蓄と所得を同じ額で書く）
+        //   なので国内の売上（EconomyStep の④＝精算の後に送る）と違って直接払ってよい。
+        to.Add(Colonial.AbsenteeRgo(rr, pr) && Colonial.AbsenteeOwner(w, rr) is { } ab ? ab : rr.Pops[pr.OwnerPopIndex]); wt.Add(rent);
+    }
+
     /// <summary>★(186) 生産者の眠り（計算量の予算・近似＝2026-10-03 推奨で進めた）＝0 回す・1 眠った・2 目覚めた。
     /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（技術ゲート0の月の操業規模0）・産出が0（産出のスナップ）に
     ///   置かれた工場と産地。その月の生産者の段（労働の重み・供給・投入の需要と決済・投入の充足・所得と操業規模と採算）を全て飛ばす
@@ -2742,13 +2783,11 @@ public static class EconomyStep
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
             bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
             s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth).Value);
-            region.Pops[s.OwnerPopIndex].EarnedPerMonth += new MoneyPerMonth(rent);
+            if (insOn && s.IsRgo && world is not null) Instruments.LandshareRgo(world, region, s, rent);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分と赤字の枝の後の rent（割る前の総額）
+            PayOwnerRent(world, region, s, rent, coef);   // ★(895) 地代の受け手（持ち主か土地の持ち分の枠）へ所得・地代（LandRent）・領主権の記録（null＝今の持ち主に全額）
             region.Pops[s.LaborPopIndex].EarnedPerMonth += new MoneyPerMonth(wages);
-            if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRentPerMonth += new MoneyPerMonth(rent);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
             if (absentee is not null && Colonial.AbsenteeRgo(region, s)) absentee[s.OwnerPopIndex] += rent;   // R1：不在地主の分（精算の後に送る・赤字も）
-            if (s.IsRgo && rent > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble)
-                Privileges.Record(world, Privileges.Seigneurial, rent * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
-            else if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
+            if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
                      && !(s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].GrainChain))
                 region.Pops[s.OwnerPopIndex].IndustrialRentPerMonth += new MoneyPerMonth(rent);   // 工業レントの物差し（書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読んで外資の利札の入力にする。powertrace/incomeprobe も読む）
             // 課題8（RGO第2層・2026-08-08）：穀物加工チェーン（麦・小麦粉＝GrainChain）は除外＝人口×食料需要に比例する

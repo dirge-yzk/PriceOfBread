@@ -963,11 +963,32 @@ public sealed class Simulation
         //   近代化法を通していた（lawtiming実測＝仏の公教育・資格任用が1783年に逆戻り）。
         //   月次の実勢（rentShare×産出×参照価格）を1回だけ推定して置く＝初回の EconomyStep が実流で上書きする。
         //   ⚠貨幣ではない（LandRent は診断/課税ベースの記録値）＝保存則に触れない。決定論（データのみから導出）。
+        // ★(895) 土地の持ち分（NationConfig.LandOwnership＝world.json）：非賦存（州の resources に載らない）・持ち主が貴族の RGO にだけ、和で割った写しを生産者ごとに別の配列で置く。
+        //   賦存の RGO（大農園・鉱山の経営）・工場・率 0 の国（持ち主が農民）・植民地格（PromoteColonyToRegion は cfg を読まない）・合成の世界は null＝今の持ち主に 1.0。無効なデータは null。
+        if (LandOwnershipShares(cfg.LandOwnership) is { } lo)
+            foreach (var pr in region.Producers)
+                if (pr.IsRgo && System.Array.IndexOf(resources, pr.GoodId) < 0 && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < region.Pops.Count
+                    && region.Pops[pr.OwnerPopIndex].ClassId == PopClass.Noble)
+                    pr.LandShares = (double[])lo.Clone();
         foreach (var pr in region.Producers)
             if (pr.IsRgo && pr.RentShare.Value > 0 && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < region.Pops.Count
                 && pr.GoodId >= 0 && pr.GoodId < Catalog.RefPrices.Length)
-                region.Pops[pr.OwnerPopIndex].LandRentPerMonth += new MoneyPerMonth(pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale);
+                for (int k = 0, nk = pr.LandShares is { } ls0 ? ls0.Length : 1; k < nk; k++)   // ★(895) 枠ごとに 種×割合（null＝今の持ち主に種のまま）
+                    if (pr.LandShares is not { } ls || ls[k] > 0)
+                        region.Pops[pr.LandShares is null ? pr.OwnerPopIndex : EconomyStep.LandShareRecipient(region, pr, k)].LandRentPerMonth += new MoneyPerMonth(pr.LandShares is { } lsk ? pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale * lsk[k] : pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale);
         return region;
+    }
+
+    /// <summary>★(895) 土地の持ち分のデータ（4 個）を和で割った写し。長さが 4 でない・負・非有限・和が正でないなら null（＝今の持ち主に 1.0）。</summary>
+    internal static double[]? LandOwnershipShares(double[]? lo)
+    {
+        if (lo is null || lo.Length != 4) return null;
+        double sum = 0;
+        foreach (var v in lo) { if (!(v >= 0) || double.IsInfinity(v)) return null; sum += v; }
+        if (!(sum > 0) || double.IsInfinity(sum)) return null;
+        var o = new double[4];
+        for (int k = 0; k < 4; k++) o[k] = lo[k] / sum;
+        return o;
     }
 
     // 役務（サービス財）の係数：労働力＝工場の投入。賃金は労働市場の価格で決まる（生産が先→売って収入の設計）。
