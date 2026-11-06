@@ -44,6 +44,7 @@
 - guard0_summary：フィルタの文字列と --list-tests の数は suite_flag1_890.txt。
 
 [自己申告]
-- waitmark：23 回（うち 1 回は wc と 1 本にした＝決まりの外）。印の外の覗き：paper の作業フォルダの ls 1 回・guards の .log 1 回・suite の .log 1 回。D: の床で待った時間 0。hook に止められた回数 0。
+- 背景の仕事の印は全て rc=0（floor0・thr・paper_g1〜g3・stop0・guards・suite・readB・readS・gw）。
+- waitmark：22 回（thr 1・stop0 2・paper 5・guards 5・suite 7・readB 2）。うち 2 回は他の命令と 1 本にした（記録の写しと wc・中止の行の grep）＝決まりの外。印の外の覗き：paper の作業フォルダの ls 1 回・guards の .log 1 回・suite の .log 1 回。D: の床で待った時間 0。hook に止められた回数 0。
 - 台本の依存の直し（結果の後・規則は変えない）：事前登録のコミットで c75ts/ から gates_ts877.py の写しを消したが、agg882.py が import していた（GW の読みが 1 回目に動かなかった）＝c74ts/gates_ts877.py とバイトで同じ写しを戻して GW だけを読み直した（sha256 8b7a5f5b…・事前登録 [12] の〈元〉と同じ）。
 - 旗 1 の出力を見た後のエンジンの変更 0・門の変更 0・閾値の変更 0。
