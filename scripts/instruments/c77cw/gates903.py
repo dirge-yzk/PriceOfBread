@@ -4,7 +4,7 @@ import sys, os, csv, statistics
 ARM, BASE = sys.argv[1], sys.argv[2]
 M = float(sys.argv[3]) if len(sys.argv) > 3 else 9.0
 D = float(sys.argv[4]) if len(sys.argv) > 4 else 0.5
-SEEDS = range(1, 11)
+SEEDS = range(int(os.environ.get('SB', '1')), int(os.environ.get('SB', '1')) + 10)   # SB=11 で S11（種 11〜20）
 
 def cw(d):
     t = dict(civil=0, foreign=0, actC=0.0, oldC=0.0, newC=0.0, exhC=0.0, actF=0.0, newF=0.0, oldMis=0, newMis=0, milC=0.0,
