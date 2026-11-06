@@ -26,7 +26,7 @@ public static class CrownParliament
         if (w.ParliamentControl < 0)
             w.ParliamentControl = target;   // 未捕捉のみ初期化（構築時ApplyRegime未経由の小世界向け）
         // P1-H 破産召集（1789三部会）：財政緊縮が深い（AusterityIntensity>0.5）ほど王権は議会に予算協力を乞う＝統制力が上がる。既定0.02で点火（0で休眠）。
-        // ★(896) 旗 SummonByInterestShare（既定 0・事前登録 measurements/m896_20261106_prereg_cs.txt）：正＝圧力を利払い÷歳入（Fiscal.cs:28 の借入の門と同じ比）÷MaxInterestShareOfRevenue へ、
+        // ★(896) 旗 SummonByInterestShare（★(901) で既定 1 へ点火・事前登録 measurements/m896_20261106_prereg_cs.txt・m901_20261106_prereg_cs.txt）：正＝圧力を利払い÷歳入（Fiscal.cs:28 の借入の門と同じ比）÷MaxInterestShareOfRevenue へ、
         //   押す先を Clamp01 の 1.0 でなく DebtGrip（国債÷年の名目GDP）への比例へ（PC≦DebtGrip≦1 なので結果を切らない・PC＞DebtGrip なら動かさない）。0＝今の式（緊縮の段差で 1.0 まで）。
         if (c.SummonParliamentRate > 0)
         {
