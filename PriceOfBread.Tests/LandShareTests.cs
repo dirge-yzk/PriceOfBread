@@ -343,6 +343,25 @@ public class LandShareTests
         Assert.Equal(0.5, D(Rows(dir, seed)[0], "fieldSumMaxAbsDev"), 12);
     }
 
+    /// <summary>T7⁗：欄を持つ州だけの列（…FieldRegion…）は欄を持つ州だけを積む（試験が 1 つの州の欄を外す＝その州の地代は全体の列にだけ入る）。</summary>
+    [Fact]
+    public void T7d_欄を持つ州だけの列は欄の無い州を積まない()
+    {
+        const ulong seed = 1796UL;
+        string cleared = "";
+        string dir = RunIns([With("フランス", Fr)], 1, seed, setup: sim =>
+        {
+            var r = sim.Nations[0].World.Regions.Where(x => x.Tier != RegionTier.Colonial && x.Producers.Any(p => p.LandShares is not null)).OrderByDescending(x => x.Producers.Where(p => p.IsRgo).Sum(p => p.Output)).First();
+            foreach (var p in r.Producers) p.LandShares = null;
+            cleared = r.Name;
+        });
+        var row = Rows(dir, seed)[0];
+        double act = Sum5(row, "landRentActual", "PerQuarter"), actF = Sum5(row, "landRentActualFieldRegion", "PerQuarter"), expF = Sum5(row, "expectedFieldRegionByClass", "PerQuarter");
+        Assert.True(actF < 0.999 * act, $"欄を外した州 {cleared} の地代が欄を持つ州の列に入った {actF} / {act}");
+        Assert.True(actF > 0 && System.Math.Abs(actF - expF) <= 1e-12 * actF, $"欄を持つ州の期待と実際の差 {actF} {expF}");
+        Assert.True(D(row, "maxRelDiffSlotVsActual") <= 1e-12);
+    }
+
     /// <summary>計器の純関数：相対の差・階級の区分・正規化（手の表）。</summary>
     [Fact]
     public void 計器の純関数は手の表のとおり()
@@ -375,7 +394,24 @@ public class LandShareTests
         double dom1 = D(row, "rentDomPerMonth1");
         Assert.True(dom1 > 0, "試験の前提：ブロック 1 の地代が 0");
         Assert.True(D(row, "rentDomUnattrPerMonth1") <= 0.01 * dom1, $"ブロック 1 の地代が所有の RGO で按分されない {row["rentDomUnattrPerMonth1"]} / {dom1}");
-        Assert.True(D(row, "rentExpPerMonth1") > 0, "輸出の地代が市民の枠の受け手（ブロック 1）に立たない");
+        // 輸出の層：同じ種の 2 本（軌道は同じ）で、最後の四半期の表の直前にだけ欄を置いた側は、非賦存の貴族の RGO の輸出の地代が枠ごとの層へ割れる
+        //   ＝市民の枠（ブロック 1）の増分と農民の枠（ブロック 2）の増分は 0.2：0.4、層の和は同じ。
+        static void Mark(MultiNationSim sim)
+        {
+            foreach (var r in sim.Nations[0].World.Regions)
+                if (r.Tier != RegionTier.Colonial)
+                    foreach (var s in r.Producers)
+                        if (s.IsRgo && System.Array.IndexOf(r.Resources, s.GoodId) < 0 && r.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble) s.LandShares = (double[])Fr.Clone();
+        }
+        string dA = RunIns([With("フランス", null), WorldData.ByName("イギリス")], 2, seed);
+        string dB = RunIns([With("フランス", null), WorldData.ByName("イギリス")], 2, seed, beforeLast: Mark);
+        Dictionary<string, string> Fr1(string d) => SubstInstrumentTests.Rows(System.IO.Path.Combine(d, $"cornint_s{seed}.tsv"), null).Single(r => r["nation"] == "フランス" && r["quarter"] == "1");
+        var a = Fr1(dA); var bb = Fr1(dB);
+        double d1 = D(bb, "rentExpPerMonth1") - D(a, "rentExpPerMonth1"), d2 = D(bb, "rentExpPerMonth2") - D(a, "rentExpPerMonth2");
+        double tA = D(a, "rentExpPerMonth0") + D(a, "rentExpPerMonth1") + D(a, "rentExpPerMonth2"), tB = D(bb, "rentExpPerMonth0") + D(bb, "rentExpPerMonth1") + D(bb, "rentExpPerMonth2");
+        Assert.True(d1 > 0, $"輸出の地代が市民の枠の受け手（ブロック 1）へ割れない（増分 {d1}）");
+        Assert.True(System.Math.Abs(d2 - 2 * d1) <= 1e-6 * d2, $"農民の枠の増分 {d2} が市民の枠の増分 {d1} の 2 倍でない");
+        Assert.True(System.Math.Abs(tA - tB) <= 1e-6 * tA, $"輸出の地代の層の和が欄で変わった {tA} {tB}");
     }
 
     /// <summary>T10：cpop_s（植民地格の州の POP の行）の地代の受け手の行は持ち分の受け手を数える（試験がスペインの植民地格の州の 1 本の RGO に欄 (0.5,0.5,0,0) を置く）＝聖職者の行 1・売上×0.5。</summary>
