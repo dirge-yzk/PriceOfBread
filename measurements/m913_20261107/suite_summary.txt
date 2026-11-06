@@ -1,0 +1,5 @@
+(913) c79ar フルスイート（Release・木 42dda596 と同じ SimCore）
+1: 成功!   -失敗:     0、合格:  2401、スキップ:     1、合計:  2402、期間: 18 m 3 s - PriceOfBread.Tests.d
+2: 成功!   -失敗:     0、合格:  2401、スキップ:     1、合計:  2402、期間: 16 m 43 s - PriceOfBread.Tests.
+3: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 45 s - PriceOfBread.Tests.d
+1・2 行目＝Category!=FullLength を 2 回・3 行目＝FullLength・ArmyNeed の NullReferenceException は 0 件・guard（㉘の 5 クラス）130 本緑・--list-tests は 2402＋3 で一致
