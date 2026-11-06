@@ -15,5 +15,6 @@ $PY $O/mut_cr.txt "FullyQualifiedName~CrownPcInstrumentTests" \
  "M7b_②の正統性の因子を外す@@$C@@(x.CrownS - x.Rep) * x.Legitimacy;@@(x.CrownS - x.Rep);" \
  "M7c_軍の力の(1-PC)を外す@@$C@@c.ArmyPoliticalWeight * x.SoldierShare * (1.0 - RuleClamp01(pc))@@c.ArmyPoliticalWeight * x.SoldierShare"
 $PY $O/mut_ls.txt "FullyQualifiedName~LandShareTests" \
- "LsMax_最大値を取らない@@PriceOfBread.SimCore/InstrumentsLandshare.cs@@static void LsMax(ref double max, double v) { if (double.IsNaN(max)) return; if (double.IsNaN(v) || v > max) max = v; }@@static void LsMax(ref double max, double v) { }"
+ "LsMax_最大値を取らない@@PriceOfBread.SimCore/InstrumentsLandshare.cs@@static void LsMax(ref double max, double v) { if (double.IsNaN(max)) return; if (double.IsNaN(v) || v > max) max = v; }@@static void LsMax(ref double max, double v) { }" \
+ "LsMax_TierRule列の最大を取らない@@PriceOfBread.SimCore/InstrumentsLandshare.cs@@            LsMax(ref a.MaxSlotTierRule, LsRelDiff(expTier, act));@@            "
 cat $O/mut_lg.txt $O/mut_cr.txt $O/mut_ls.txt > $O/mutation.txt
