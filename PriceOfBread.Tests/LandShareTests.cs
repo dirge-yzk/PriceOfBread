@@ -276,7 +276,7 @@ public class LandShareTests
     public void T7_データ無しの盤面で期待と実際は一致し送金も数える()
     {
         const ulong seed = 1791UL;
-        string dir = RunIns([WorldData.ByName("イギリス"), WorldData.ByName("アメリカ")], 2, seed);
+        string dir = RunIns([With("イギリス", null), With("アメリカ", null)], 2, seed, setup: sim => { foreach (var n in sim.Nations) Instruments.LsDataOverride.AddOrUpdate(n.World, null!); });   // ★(914) 欄を null にし、計器の data の側も同じ（データ無し）に置く＝world.json に欄が入っても盤面は同じ
         var rows = Rows(dir, seed);
         Assert.Equal(4, rows.Count);
         foreach (var row in rows)

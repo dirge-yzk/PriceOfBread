@@ -12,7 +12,8 @@ public class ReformPathTests
 {
     private static Simulation Board()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var cfg = NationConfig.France().ShallowClone(); cfg.LandOwnership = null;   // ★(914) 土地の持ち分のデータの有無に依らず同じ盤面（データ無し）にする
+        var sim = new Simulation(cfg.ToScenario(1789), new NullAgent());
         sim.World.Coef.MandateOverStockLegitPower = 1;   // ★既定は採用値（指数 2＝(409)）。Board() は指数 1（払える量 avail＝旧の床なしと同値）を土台に、各テストが指数を明示して見る
         sim.Run(8);
         return sim;
