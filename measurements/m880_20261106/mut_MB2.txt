@@ -1,0 +1,12 @@
+突然変異 MB2（木 4cda498a・新しい試験）
+ PriceOfBread.SimCore/InstrumentsCearn.cs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+-        a.ImpClrDead = false;   // (880) 今の清算の印を戻す
++        ;   // (880) 突然変異 MB2
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:01.78]     PriceOfBread.Tests.CearnTradeColumnsTests.人の居ない払い手の払いがあった清算は新しい列に畳まない_次の頭で印が戻る [FAIL]
+  失敗 PriceOfBread.Tests.CearnTradeColumnsTests.人の居ない払い手の払いがあった清算は新しい列に畳まない_次の頭で印が戻る [1 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+--
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

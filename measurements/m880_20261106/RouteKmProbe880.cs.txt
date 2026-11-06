@@ -1,0 +1,47 @@
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>(880) 使い捨ての試験（コミットしない）：RouteKmTests の 4 国・種 1789 の盤面を 80 四半期回し、四半期 40・60・80 までの xmig_s の行数と前提の数を書き出す。</summary>
+[Collection("Instruments")]
+public class RouteKmProbe880
+{
+    [Theory]
+    [InlineData(0.0, 0.0)]
+    [InlineData(1.0, 0.0)]
+    [InlineData(0.0, 1.0)]
+    public void 数える(double ipl, double snbt)
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_rkp_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        int snap = Instruments.TrSnapEveryYears; Instruments.TrSnapEveryYears = 1;
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
+        sim.Coef.ImportPayerLive = ipl; sim.Coef.SubsistenceNoBoughtTech = snbt;
+        foreach (var n in sim.Nations) { n.World.Coef.ImportPayerLive = ipl; n.World.Coef.SubsistenceNoBoughtTech = snbt; }
+        var lines = new System.Collections.Generic.List<string>();
+        try
+        {
+            Instruments.Phase(sim, 1789UL, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, 1789UL, "warm");
+            try { for (int q = 0; q < 80; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+            finally { Instruments.Close(sim); }
+            string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
+            var x = System.IO.File.ReadAllLines(P("xmig")); var xh = x[0].Split('\t'); int iq = Array.IndexOf(xh, "quarter");
+            var m = System.IO.File.ReadAllLines(P("migration")); var mh = m[0].Split('\t'); int mq = Array.IndexOf(mh, "quarter");
+            var rg = System.IO.File.ReadAllLines(P("region")); var rh = rg[0].Split('\t'); int ry = Array.IndexOf(rh, "year"); int rq = Array.IndexOf(rh, "quarter");
+            foreach (int Q in new[] { 40, 60, 80 })
+            {
+                var xs = x.Skip(1).Select(l => l.Split('\t')).Where(c => int.Parse(c[iq]) < Q).ToList();
+                int xq = xs.Select(c => c[iq]).Distinct().Count();
+                int ms = m.Skip(1).Select(l => l.Split('\t')).Count(c => int.Parse(c[mq]) < Q);
+                string lastYear = rg.Skip(1).Select(l => l.Split('\t')).Where(c => int.Parse(c[rq]) < Q).Select(c => c[ry]).Last();
+                lines.Add($"ipl={ipl} snbt={snbt} Q={Q} xmig_rows={xs.Count} xmig_quarters={xq} migration_rows={ms} last_year={lastYear}");
+            }
+        }
+        finally { Instruments.TrSnapEveryYears = snap; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+        System.IO.Directory.CreateDirectory("D:/PoB_work/c74id_work/rkprobe");
+        System.IO.File.WriteAllLines($"D:/PoB_work/c74id_work/rkprobe/counts_{ipl}_{snbt}.txt", lines);
+    }
+}

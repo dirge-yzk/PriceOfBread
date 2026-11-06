@@ -1,0 +1,68 @@
+(880) c74id 事前登録：c73ip の最後の前の物差しと試験の直し（波74・恒等の線・枝 c74id・出発 496d5ec8・担当 Claude Opus 5.5）
+書いた時点：新しい読み手 holown880.py はまだ無い＝どの生にも当てていない。keep_879_rej/c73ipB_10・keep_873_rej/c72ipB_10 は開いていない（このコミットの後に記録としてだけ当てる）。
+材料として読んだ物（既に measurements にある数だけ）：m876_20261106/fortwilliam_s8.txt・holclass_B.txt・report_876.txt・routekm_*.txt・m873_20261106/armM/stop_mM.txt・armS11/stop_mS.txt・null/stop_n1.txt・stop_n2.txt・m875_20261106/record875.txt・m874_20261106/*。
+旗 0 の生で数えた物（このコミットの前）：keep_879/base_ins の cearn_s の U2s の 7 行の行（[3] の表・数えた台本 D:/PoB_work/c74id_work/u2s/find7.py＝記録の段で scripts/instruments/c74id/ へ写す）。
+
+[1] 恒等の線・予言
+- SimCore の .cs の変更は InstrumentsCearn.cs の中だけ（[3] の 1 列）。エンジンの挙動は変えない。新しい係数 0・新しい状態 0（計器の CearnAcc の欄 2 つ＝読み手は書き出しの 1 列）。
+- 予言：素の 5 種・計器つき 10 種の成績表が m873（b5_20261106_m873・b10_20261106_m873_ins）と名乗り行を除いて全行一致・.cost の推定 210.1／211.5 秒が一致・計器の表は cearn_s の末尾 1 列だけが増える（宣言 --grown-ok cearn_s）・他の表は全てバイト一致（既知の揺れ burscan_s・clock_s は cfg の KNOWN）・注視の表は一致・テストは Category!=FullLength が 2322→2323（[4] の +1・宣言 --tests-delta は --list-tests で数え直して書く）・FullLength 3・savetest OK・leakhunt 違反なし。〈判定: 恒等〉なら採る。
+- 浮動小数の順序が変わる箇所：0（既にある欄・列の計算の行は 1 字も変えない。足すのは別の欄への代入と、その欄の比較だけ）。
+
+[2] (a) 持ち主の分かれた州の空洞化の読み方（新 scripts/instruments/c74id/holown880.py・holclass839.py は書き換えない）
+- 選んだ形：**OR 形**＝holclass839 の規則 A2 か、下の持ち主の照合のどちらかで〈線が原因〉なら止める。R880 の〈線が原因〉の集合は A2 の集合を必ず含む（緩める向きの道が無い）。
+- 規則（1/10 の事象ごと・例外の名簿は件数の外のまま）：
+  1. A2 をそのまま写す（holclass839.py と同じ正規表現・同じ比べ方：基線の出力に同じ種・同じ州の事象の行があれば〈元からの弱さ〉・無ければ〈線が原因〉）。
+  2. A2 が〈元からの弱さ〉のときだけ、持ち主を照合する：腕の region_s から an_h2.py と同じ走査（populationK・有限の行だけ・ピークは 1 千人以上）でその事象のピークの四半期 qp と 1/10 未満へ初めて落ちた四半期 qe を数え直す（an_h2 の行の年と食い違えば〈読めない〉＝線が原因）。qp〜qe の腕の行の全ての四半期で、基線の region_s の同じ四半期・同じ州の持ち主（nation の名前）が腕と同じなら免除は立つ。1 四半期でも違うか基線に行が無ければ免除は無効＝〈線が原因（持ち主の軌道が基線と違う＝基線の弱さは反実仮想にならない）〉。基線を複数渡したときは、事象の行があり持ち主が合う基線が 1 本でもあれば免除は立つ。
+  3. 持ち主は nation の名前で比べる（nationIndex は建国の順で腕ごとに違いうる）。
+- 選んだ理由（旗 0 とヌル腕と既にある記録だけ）：
+  - 候補 (i)（底÷基線の同じ種のピーク・分母を max(基線, N1, N2) にする型も）と (iii)（持ち主の区切りの後のピーク）は、持ち主の軌道がヌルの幅の外にある件を免除できる形＝★(866)〈分かれた州を免除する形は採らない〉の言い換えになる。持ち主の分かれ自体が線の結果でありうる（旗は 1 四半期目から効く）。
+  - 候補 (ii)（ヌル腕 N1・N2 の同じ種・同じ州の軌道の幅）は種 11〜20 に当てられない＝種 11〜20 の参照は keep_873/a11 の 1 本だけ（N1・N2 は種 1〜10 だけ）。c74ip の線の腕は S11 だけ。
+  - A2 の免除は〈基線の同じ種・同じ州が弱かった〉を反実仮想として読む。持ち主の軌道が違えば基線は反実仮想にならない＝その免除だけを締める（m875 の較正：ヌルの 1/4 事象 12 件のうち持ち主が割れた州 7 件 0.583・全ての州 0.346＝割れた州は弱さの事象に多い）。
+  - **この形はフォートウィリアム型（持ち主が分かれた後にピークの 1/10 未満へ落ち、基線の同じ種は弱くない州）を救わない**＝A2 と同じく〈線が原因〉。(a) の成果は〈読み方の固定〉であって救済ではない。
+- 自己試験（台本 scripts/instruments/c74id/selftest880.sh・固定の盤面・出力 measurements/m880_20261106/selftest880.txt）：
+  - 人工の盤面（合成の region_s を作り、本物の an_h2.py -v5 で事象の行を作る）：B1 分かれない・基線は弱くない→線／B2 腕で分かれた後に抜ける・基線は弱くない→線／B3 分かれない・基線が同じ持ち主で弱い→元からの弱さ／B4 腕で分かれた後に抜ける・基線は持ち主が分かれずに弱い→線（A2 は元からの弱さ）／B5 腕も基線も同じ四半期に同じ持ち主へ分かれ・基線が弱い→元からの弱さ／B6 an_h2 の行の年と region_s が食い違う→読めない＝線。予言の表＝線・線・弱・線・弱・線。両方の答えが出る＝構造的に恒真でない。
+  - holclass839.py そのものと A2 の写しの一致：実の生（下の 6 対・1/4 の水準）で〈線が原因〉の数が holclass839.py の出力と同じ。
+  - ヌル腕どうし：(N1→M)・(N2→M)・(M→N1)・(N2→N1)・(M→N2)・(N1→N2) の 6 対（矢印の左を腕、右を基線と見なす・M＝keep_873/base_ins と stop_mM.txt・N1・N2＝keep_873/n1・n2 と stop_n1.txt・stop_n2.txt）。**1/10 の水準ではヌル腕の 1/10 事象が 0 件＝〈線が原因 0〉は空振り（何も検査していない）と名乗る**。読み手の口 --level 1/4 で 1/4 の事象を同じ規則で振り分け、A2 と R880 の〈線が原因〉の数と、R880 が A2 に足した件（持ち主の照合で免除が無効になった件）を全て表にする（記録・門にしない＝A2 はもともと 1/4 の水準のための規則ではない）。
+  - 区別する力（記録）：keep_873 の 3 本（M・N1・N2）で、全ての州×種のうち持ち主の軌道がヌルどうしで割れる州の割合と、1/4 事象のうち割れた州にある割合を数える（名前で照合）。c73gt (875) の L2 は〈区別する力は測れていない〉と名乗り直す（names880.txt）。
+- 突然変異（台本 mut880.py・出力 measurements/m880_20261106/mut880.txt）：MU-a1〈分かれた州を免除する〉→ B2 が元からの弱さ＝赤／MU-a2〈持ち主の照合を外す〉（＝A2 と同じ）→ B4 が元からの弱さ＝赤／MU-a3〈閾を 1/4 へ緩める〉（--level 1/4 を実の判定に使う）→ ヌル腕の件数が増える（表に数）。
+- 適用の範囲：id_ready.mark の後に出る全ての挙動の線の腕と合流の腕（c74ip の S11・c74ts の腕 B と S11・合流の M・S11・アブレーション）に、A2（holclass839.py）と並べて当てる。**止めるのは R880 の〈線が原因〉（＝A2 の〈線が原因〉∪持ち主の照合で免除が無効になった件）が 1 件でもあるとき**。基線の引数：種 1〜10 は measurements/m873_20261106/armM/stop_mM.txt と D:/PoB_work/keep_879/base_ins（region_s は keep_873/base_ins とバイトで同じ）・種 11〜20 は armS11/stop_mS.txt と D:/PoB_work/keep_873/a11（参照は 1 本だけと名乗る）。
+- 記録としてだけ当てる腕（このコミットの後・採否に使わない・★(873) の〈近似・記録〉）：keep_879_rej/c73ipB_10（種 1〜10・m876 の stop_B.txt）。
+
+[3] (b) U2s の 7 行の出所と、手形の誤りに固有の上限
+- 旗 0 の生（keep_879/base_ins）で U2s（importBudgetExcessMaxPerClearingSub が閾値 1e-9×(1＋ref)＋1e-9 を超える行）は 7 行。7 行とも importPayerKind＝2・importOldRuleBudgetStartPerQuarter＝inf・払った額の全てが人数 ≦1e-12 の帯（Mid・Gt は 0）・州をまたぐ払い 0：
+  種 4 q487 1905 日本 バンダアチェ 2.353／種 4 q628 1940 日本 キサンガニ 12.81／種 5 q636 1942 日本 キサンガニ 0.769／種 7 q554 1921 オスマン キサンガニ 64.66／種 9 q498 1907 両シチリア キサンガニ 3.235／種 9 q514 1911 スペイン ウォルビスベイ 0.809／種 10 q460 1898 日本 ファショダ 13.85（数は超過の最大）。
+- 読み（ソース・読むだけ）：BilateralMarket.cs:580 は旗 0 で人数を見ずに商人を払い手にし、債務が 0 なら手形（bill＝真・:583 で予算 ∞）。計器の頭（InstrumentsCearn.cs の CearnImportHeadInto）は旗を読まず、kind 2 の州の在庫を人の居る POP の Σmax(0, 貯蓄) で作る（注〈旗 0 の kind 2 の州では実際の払い手と計器の在庫が別〉）。＝7 行は〈人の居ない商人が手形で、人の居る POP の在庫を超えて払った清算〉の見込み。Subsidy の入りも輸出の関税の戻しも要らない＝(876)(879) の〈清算の頭の後に入る Subsidy 以外の入り〉の疑いはこの読みで閉じる見込み（下の列で 1 行ずつ確かめる）。
+- 足す列（cearn_s の末尾に 1 列・InstrumentsCearn.cs だけ・BilateralMarket.cs に呼び口は足さない）：**importBudgetExcessMaxPerClearingSubLive**＝importBudgetExcessMaxPerClearingSub と同じ在庫と同じ畳み方で、清算の中に人数 ≦1e-12 の払い手の 0 でない払いが 1 つでもあった清算は畳まない（未定義は nan）。払い手の人数は CearnImportPaid が既に受け取る払いの時点の値（帯の列と同じ述語 `payerSize <= 1e-12`）。既にある列の値は変えない。
+- 予言（旗 0 の ident の生）：(p1) 全ての行で新しい列 ≦ Sub の列（両方が有限のとき）か新しい列が nan (p2) 人数 ≦1e-12 の帯が 0 の行では新しい列と Sub の列が文字列で一致 (p3) 7 行は新しい列が nan か閾値以下 (p4) 新しい列が閾値を超える行は 0。外れた行は 1 行ずつ表に書く（出所を名指す）。
+- c74ip へ渡す門の形（AI の案・確証なし・measurements/m880_20261106/u2s_source880.txt に書く）：**U2L**＝新しい列が閾値を超える行の数＝0（旗 1）。旗 0 では 0 行（旗 0 の落ちは U1b の役）・E2〈落とした枝で手形を ∞ のまま〉では人の居る POP が在庫を超えて払う＝赤の見込み（紙・c74ip が突然変異で確かめる）。
+- 試験（[4] の T5）。突然変異：MB1〈人の居ない払いの清算も畳む〉→ T5 赤／MB2〈頭で印を戻さない〉→ T5 赤。
+
+[4] (c) c73tc の反証役の残り（PriceOfBread.Tests/CearnTradeColumnsTests.cs）
+- T3（旧の規則の予算は kind2 と 3 でも…）：r3 の人の居る POP の 1 つを人数 0・貯蓄 33（正）にしてから all3・live3 を数え、`Assert.True(all3 > live3, …)`（前提）を足す。既にある Assert の式とリテラルは変えない。
+- 突然変異 M3b：CearnImportHeadInto の kind 3 の旧の規則の枝（`else foreach (var p in r.Pops) ob += …`）だけを人数 ＞1e-12 の POP に絞る → T3 が赤（直す前の T3 では緑のままの見込み＝r3 に人数 ≦1e-12 で貯蓄が正の POP が無い）。両方を回して記録（measurements/m880_20261106/mut_M3b.txt）。
+- T1 の後半（acc b の盤面）：試験の口（CearnImportSubsidyInto・CearnImportSubsidySubInto・CearnImportPaidInto）を直に呼ぶ代わりに、Route(BmPath, 1141, 'T', 'P')＋CearnRoute(TreasuryCat.Subsidy, null)＋Sav(Give, 25) と Route(BmPath, 1150, 'P', 'T')＋Sav(Take, −150) で州の台帳に入れる。Assert（ImpExMax＝ImpExMaxSub・25）は変えない。
+- docstring の参照 mutation_874.txt → mut_M1〜M3.txt（m874_20261106 に実在する名）。
+- T5（新）：新しい列の番人＝(i) 人の居る払いだけの清算は Sub と同じ値 (ii) 人数 0 の払い手の払いがある清算は畳まない（新しい列は −∞ のまま・Sub は畳む）(iii) 次の頭で印が戻り、人の居る払いの清算は畳む (iv) 書き出しの行で新しい列の名と値（未定義は nan）。期待は試験が置いた額から手で計算する。
+- 記録の訂正（measurements/m880_20261106/names880.txt）：(874) の報告と f0_ready.mark.log の〈cpop_s も新しい列つき〉は誤り＝(874) の新しい 4 列は cearn_s だけ。
+
+[5] (d) RouteKmTests の盤面（PriceOfBread.Tests/RouteKmTests.cs・[Fact] のまま・Theory 化しない）
+- 事実：:185 の前提〈xmig_s の行 ≧10〉が ImportPayerLive＝1 の 40 四半期で 9 行（routekm_flag1_alone.txt）。旧の規則の番人ではない（軌道に依る前提の数）。
+- 選び方（数える前に固定）：変えてよいのは for の四半期の数だけ（種 1789・4 国の組・Assert の式とリテラルは 1 字も変えない）。候補 {40, 60, 80} のうち、3 つの設定（旗 0 の既定・ImportPayerLive＝1・SubsistenceNoBoughtTech＝1）の全てで、試験の全ての Assert が緑かつ xmig_s の行が 20 以上（リテラル 10 の 2 倍）となる最小。40 が満たすなら変えない。どれも満たさなければ入れず、(ii)〈c74ip の事前登録に予言する赤として書く形〉を渡す。
+- 数え方：使い捨ての木（git worktree add --detach・コミットしない）に行数を書き出す使い捨ての試験を置き、3 つの設定×80 四半期の 1 走りで四半期 40・60・80 までの行数を数え、選んだ数で本物の試験を 3 つの設定とも回す。注〈1789〜1830 年代は運河なし（cfg 0）＝国に依らない〉が延ばした年数でも保つことは、選んだ数での :165 の Near が緑であることで確かめる。
+- 突然変異：選んだ盤面を 40 へ戻す → ImportPayerLive＝1 の使い捨ての木で :185 が赤（routekm の記録と同じ 9 行の見込み）。
+- 結果（選んだ数か (ii)）は id_ready.mark の .log と measurements/m880_20261106/routekm880.txt に書く。
+
+[6] 小物
+- scripts/instruments/ident/ident_check.py：受け入れの正規表現 `^rc=(0|1|2) ` の注に〈2（INS=1 で計器の国が空）を印の段で受けるのは、計器の表が欠けて下の突き合わせで不一致になるから〉を 1 行足す（判定の行・正規表現・メッセージの文字列は 1 字も変えない・diff を記録に）。
+- c73gt の記録の言い方の訂正（names880.txt・古い記録は書き換えない）：g5bdist875.py は P5 の述語と dB の式を中で写して書いている（〈式を写し書きしない〉と実装の形が違う）・(875) の L2 は〈区別する力は測れていない〉（一致の条件は L2→L3 だけ）。
+
+[7] 番人と試験（㉘・㉑）
+- 走査の番人 7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）と CearnTradeColumnsTests・CearnInstrumentTests・TradeClearingBoardTests・TradeClearingTests・ImportPayerLiveTests・RouteKmTests を、旗 0（この枝）と旗 1（使い捨ての木・ImportPayerLive＝1・コミットしない）で回す。RouteKmTests は SubsistenceNoBoughtTech＝1 の使い捨ての木でも回す。
+- 書き換える件数の予言：走査の番人の表は 0 件（WriterRatchetTests の宣言の表は触れない＝計器の CearnAcc の欄は数える名前に当たらない・工業化度の読み手の許可表・route_anchors.tsv の鍵の行〔InstrumentsCearn.cs は 0 行〕・`new MoneyStock(` の SimCore の件数は変わらない）。旗 1 の木では WriterRatchetTests の item 1・9・11 が赤になりうる（(876) の予言と同じ・この線では書き換えない）。
+- 他の線との重なり：InstrumentsCearn.cs・CearnTradeColumnsTests.cs・RouteKmTests.cs はこの線だけ（指示の割り当て）。Coefficients.cs・BilateralMarket.cs・DormantIdentityTests.cs・Instruments.cs は 0 行。
+
+[8] 手順と D:
+- 印：D:/PoB_work/c74id_work/id_ready.mark（[2]〜[6] のコミットと push・番人の緑・(d) の旗 1 の緑の後・ident の前・.log の先頭にこの事前登録の sha256 と u2s_source880.txt のパス）・D:/PoB_work/c74id_work/f0_ready.mark（ident c74id の終わり・.log の先頭に VERDICT と旗 0 の生の場所）。
+- 出し直された印：1 回目の rc が 0 でなく、式と判定の規則を変えずに道具の側だけを直して出し直すときは、1 回目の .log を .log.1 に残して出し直す。
+- ident c74id：`bash scripts/instruments/ident/ident.sh run c74id --tree D:/PoB_work/wt_c74id --grown-ok cearn_s --tests-delta <数え直した数> --saveleak`。起こす前に arms.sh free（3 以上）と D: の空き（35GB 以上）を測って記録に残す。走っている間はこの木にコミットしない（㉙）。
+- ident の生は合流の判断まで消さない・縮めない（反証役が読む前に縮めない＝⑲）。

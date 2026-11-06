@@ -1,0 +1,15 @@
+突然変異 RK（木 4cda498a・ImportPayerLive＝1・盤面 60→40）
+ PriceOfBread.SimCore/Coefficients.cs | 2 +-
+ PriceOfBread.Tests/RouteKmTests.cs   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+-    public double ImportPayerLive = 0;   // ★(863) c71ip 輸入の払い手を人の居る POP に限る旗（案 A・形 (ii)・名は AI の案・確証なし・事前登録 measurements/m863_20261105_prereg_ip.txt）。0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）。＞0＝商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけが払う（手形なし・0 人なら輸入しない）
++    public double ImportPayerLive = 1;   // ★(863) c71ip 輸入の払い手を人の居る POP に限る旗（案 A・形 (ii)・名は AI の案・確証なし・事前登録 measurements/m863_20261105_prereg_ip.txt）。0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）。＞0＝商人の人数 ≦1e-12 か商人の添字の無い州は、人数 ＞1e-12 の POP だけが払う（手形なし・0 人なら輸入しない）
+-            try { for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
++            try { for (int q = 0; q < 40; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:15.39]     PriceOfBread.Tests.RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる [FAIL]
+  失敗 PriceOfBread.Tests.RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる [12 s]
+  エラー メッセージ:
+   xmig_s の行が 9＝越境の移民が起きた対照が無い
+--
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
