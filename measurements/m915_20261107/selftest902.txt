@@ -1,0 +1,1 @@
+selftest OK {'pop': 1, 'G4_ownBefore_pos': 1, 'pop_G6': 1} {'pop': 1, 'G1_fail': 1, 'G4_ownBefore_pos': 1, 'G5_fail': 1, 'pop_G6': 1, 'pop_G3': 1, 'G3_fail': 1}
