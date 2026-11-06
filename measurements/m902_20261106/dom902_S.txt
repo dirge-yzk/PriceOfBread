@@ -1,0 +1,15 @@
+# (902) 割譲の州の支配度と R0 の戻り（D:/PoB_work/c77ce_work/bw/out_c77ceS_10_s11/ins・Ceded の母集合 1433 件）
+dom_before	n 1433	p10 1.0000	med 1.0000	p90 1.0000
+dom_after	n 1433	p10 1.0000	med 1.0000	p90 1.0000
+dom_4y	n 1341	p10 1.0000	med 1.0000	p90 1.0000
+dom_10y	n 1238	p10 1.0000	med 1.0000	p90 1.0000
+domdiff_4y	n 1341	p10 0.0000	med 0.0000	p90 0.0000
+domdiff_10y	n 1238	p10 0.0000	med 0.0000	p90 0.0000
+r0_before	n 1433	p10 0.1635	med 0.5127	p90 0.7618
+r0_after	n 1433	p10 0.0000	med 0.0000	p90 0.0000
+r0_4y	n 1341	p10 0.0978	med 0.1913	p90 0.2746
+r0_10y	n 1238	p10 0.1846	med 0.3633	p90 0.5236
+r0ratio_4y	n 1311	p10 0.2317	med 0.3618	p90 0.8521
+r0ratio_10y	n 1208	p10 0.4402	med 0.6828	p90 1.6113
+dominance＜0.999 の件数	前 119	後 119	4 年後 95	10 年後 44
+打切り	cens_10y 194	cens_4y 91	no_track 1
