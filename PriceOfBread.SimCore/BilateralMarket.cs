@@ -573,14 +573,14 @@ public sealed partial class InternationalMarket
         var bill = ClearScratch.FitZero(ref sc.Bill, tc);            // 手形を振り出せる（商人の払い手・返し切れない手形が無い）
         for (int t2 = 0; t2 < tc; t2++)
         {
-            var r2 = tr[t2].r;
+            var r2 = tr[t2].r; bool ins2 = Instruments.On;   // (920) 計器の門はこの繰り返しで 1 回だけ読む（決済の呼び口と清算の頭の呼び口が使う）
             var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
-                if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
+                if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) { Bank.Lend(w2, p2, -back); if (ins2) Instruments.CearnBillSettle(r2, p2, back); } }   // ①手形の決済（否定形の門＝NaN は返さない）
             if (r2.MerchantPop is { } merchPay && !(c.ImportPayerLive > 0 && !(merchPay.Size > 1e-12))) { payerOf[t2] = [merchPay]; bill[t2] = !(merchPay.Debt.Value > 0); }   // ★(863) 旗 ImportPayerLive＞0：人の居ない商人（人数 ≦1e-12）は払い手にしない＝下の枝へ
             else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) || r2.Pops.TrueForAll(p => p.Size > 1e-12) ? r2.Pops : r2.Pops.Exists(p => p.Size > 1e-12) ? r2.Pops.FindAll(p => p.Size > 1e-12) : null;   // ★(863) 旗＞0：人数 ＞1e-12 の POP だけ（全員なら Pops そのもの・0 人なら null＝輸入しない・手形なし）
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
-            if (bill[t2]) budget[t2] = double.PositiveInfinity; if (Instruments.On) Instruments.CearnImportHead(r2);   // ③積荷が担保（量は X が決める）・(863) 計器：清算の頭の州だけを渡す（払い手・予算は渡さない）
+            if (bill[t2]) budget[t2] = double.PositiveInfinity; if (ins2) Instruments.CearnImportHead(r2);   // ③積荷が担保（量は X が決める）・(863) 計器：清算の頭の州だけを渡す（払い手・予算は渡さない）
         }
         var payHouse = ClearScratch.FitZero(ref sc.PayHouse, tc);   // 払い手が清算所へ払う額（輸入代金＋運賃＋港湾料＋保険料・自国通貨）
         // ★支払いの一元化 段3-4（2026-09-30・C10＝処理の一元化 段4d）：**港湾料と海上保険の保険料は取引の時点の上乗せ**＝海路の成約ごとに輸入の捌き手（荷主）が払う

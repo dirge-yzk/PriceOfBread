@@ -151,7 +151,7 @@ public class EmptyPopDebtFirstTests
         {
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "cearn_s1916.tsv"));
             Assert.Equal(Instruments.CearnHeaderText, lines[0]);
-            Assert.EndsWith("\tmerchantDebt\testateDebtSettledPerQuarter", lines[0]);
+            Assert.Contains("\tmerchantDebt\testateDebtSettledPerQuarter\t", lines[0]);   // (920) 列の名の隣接で確かめる（尾に列が増えても赤にならない同じ強さ）
             var h = lines[0].Split('\t');
             int Ix(string c) => Array.IndexOf(h, c);
             string nation0 = Instruments.NameOf(w);
