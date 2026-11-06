@@ -1,0 +1,2 @@
+# S D:/PoB_work/c75ip_work/s11/out_c75ipS_10_s11/ins 種 11-20（表のあった種 10）
+S	計	最後の四半期の人の居ない POP の debt の和 0	人の居る POP の debt の和 13.3589
