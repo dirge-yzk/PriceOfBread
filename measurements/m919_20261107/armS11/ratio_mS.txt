@@ -1,0 +1,8 @@
+# admrule_s（計器の国×四半期の平均）新 D:/PoB_work/m919/out_mS_10_s11/ins（148494 行）÷旧 D:/PoB_work/keep_905/a11（148944 行）
+ruleStateShare	新 0.53226	旧 0.53830	新÷旧 0.98877
+ruleLocalShare	新 0.41656	旧 0.41139	新÷旧 1.01258
+deliveryShare	新 0.75034	旧 0.75175	新÷旧 0.99812
+stateReachShare	新 0.28722	旧 0.28991	新÷旧 0.99073
+adminFillShare	新 0.51697	旧 0.51996	新÷旧 0.99426
+ヌル腕 D:/PoB_work/keep_905/n1	ruleStateShare÷旧 0.99845	ruleLocalShare÷旧 0.99883	deliveryShare÷旧 0.99590	stateReachShare÷旧 0.97517	adminFillShare÷旧 0.97139
+ヌル腕 D:/PoB_work/keep_905/n2	ruleStateShare÷旧 0.98928	ruleLocalShare÷旧 1.00589	deliveryShare÷旧 0.99301	stateReachShare÷旧 0.96653	adminFillShare÷旧 0.97103

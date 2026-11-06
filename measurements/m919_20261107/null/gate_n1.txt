@@ -1,0 +1,12 @@
+seed 1	pop 138	G1_fail 0	sumR0before 69.685209	sumMoved 69.685209	G2 ok	G3_pop 22	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 72	G6_fail 0
+seed 2	pop 138	G1_fail 0	sumR0before 66.006457	sumMoved 66.006457	G2 ok	G3_pop 18	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 86	G6_fail 0
+seed 3	pop 126	G1_fail 0	sumR0before 62.486037	sumMoved 62.486037	G2 ok	G3_pop 28	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 61	G6_fail 0
+seed 4	pop 92	G1_fail 0	sumR0before 46.262027	sumMoved 46.262027	G2 ok	G3_pop 21	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 53	G6_fail 0
+seed 5	pop 143	G1_fail 0	sumR0before 75.685225	sumMoved 75.685225	G2 ok	G3_pop 75	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 65	G6_fail 0
+seed 6	pop 182	G1_fail 0	sumR0before 86.901980	sumMoved 86.901980	G2 ok	G3_pop 41	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 132	G6_fail 0
+seed 7	pop 165	G1_fail 0	sumR0before 87.445229	sumMoved 87.445229	G2 ok	G3_pop 38	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 125	G6_fail 0
+seed 8	pop 123	G1_fail 0	sumR0before 61.585103	sumMoved 61.585103	G2 ok	G3_pop 23	G3_fail 0	G4_fail 0	G4_ownBefore_pos 1	G5_fail 0	G6_pop 88	G6_fail 0
+seed 9	pop 150	G1_fail 0	sumR0before 75.126116	sumMoved 75.126116	G2 ok	G3_pop 44	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 97	G6_fail 0
+seed 10	pop 153	G1_fail 0	sumR0before 78.049596	sumMoved 78.049596	G2 ok	G3_pop 36	G3_fail 0	G4_fail 0	G4_ownBefore_pos 0	G5_fail 0	G6_pop 93	G6_fail 0
+total	seeds 10	pop 1410	excl 0	G1_fail 0	G2_fail_seeds 0	G3_pop 346	G3_fail 0	G4_fail 0	G4_ownBefore_pos 1	G5_fail 0	G6_pop 872	G6_fail 0	sumR0before_per_seed_mean 70.923
+GATE 全て緑
