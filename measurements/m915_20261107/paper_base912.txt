@@ -1,0 +1,12 @@
+# (902) 紙の突然変異（盤面 D:/PoB_work/keep_912/base_ins の行に各変異の規則を当てて〈後〉の列を作り、門を数える）
+M0 C1＋H-a（正しい形）	total	seeds 10	pop 1206	excl 2	G1_fail 0	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 0	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 0	sumR0before_per_seed_mean 63.522	GATE 全て緑
+M1 R0 を無統治へ（形 C3）	total	seeds 10	pop 1206	excl 2	G1_fail 1174	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 0	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 720	sumR0before_per_seed_mean 63.522	GATE 赤 G1 G6
+M2 RuleInit[1] にも足す（C1′）	total	seeds 10	pop 1206	excl 2	G1_fail 1174	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 0	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 0	sumR0before_per_seed_mean 63.522	GATE 赤 G1
+M3 穴を消さない	total	seeds 10	pop 1206	excl 2	G1_fail 0	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 3	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 0	sumR0before_per_seed_mean 63.522	GATE 赤 G4
+M4 建国・再併合でも動かす	total	seeds 10	pop 1206	excl 2	G1_fail 0	G2_fail_seeds 0	G3_pop 344	G3_fail 343	G4_fail 0	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 0	sumR0before_per_seed_mean 63.522	GATE 赤 G3
+M5 Dominance も 0	total	seeds 10	pop 1206	excl 2	G1_fail 1206	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 0	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 0	sumR0before_per_seed_mean 63.522	GATE 赤 G1
+M6 半分だけ移す	total	seeds 10	pop 1206	excl 2	G1_fail 1174	G2_fail_seeds 10	G3_pop 344	G3_fail 0	G4_fail 0	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 720	sumR0before_per_seed_mean 63.522	GATE 赤 G1 G2 G6
+M7 第三国の持分も消す	total	seeds 10	pop 1206	excl 2	G1_fail 0	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 21	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 0	sumR0before_per_seed_mean 63.522	GATE 赤 G4
+M8 旗 0（何もしない実装）	total	seeds 10	pop 1206	excl 2	G1_fail 1174	G2_fail_seeds 10	G3_pop 344	G3_fail 0	G4_fail 3	G4_ownBefore_pos 3	G5_fail 0	G6_pop 739	G6_fail 712	sumR0before_per_seed_mean 63.522	GATE 赤 G1 G2 G4 G6
+M9 R1 を足し忘れる（R0 だけ 0）	total	seeds 10	pop 1206	excl 2	G1_fail 1174	G2_fail_seeds 0	G3_pop 344	G3_fail 0	G4_fail 0	G4_ownBefore_pos 3	G5_fail 1174	G6_pop 739	G6_fail 720	sumR0before_per_seed_mean 63.522	GATE 赤 G1 G5 G6
+M10 独立の確定（Sovereign）でも動かす	表に行が無い（RegionMoved を通らない）＝機構の試験だけ
