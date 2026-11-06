@@ -10,7 +10,8 @@
   - cornint_s・cearn_s（cpop_s を含む）・sbr_s は全行バイト一致（持ち分化した計器の null の枝は今の式）。
 - 成績表と記録：measurements/b5_20261106_c76ls（.cost・.manifest）・b10_20261106_c76ls_ins（同）・ident_20261106_c76ls.txt。
 - フルスイート（0151f2e5・分けて）：Category!=FullLength 2353 合格＋スキップ 1＝2354（--list-tests 2354 と一致）・FullLength 3 合格・中止 0（suite_summary.txt）。
-  ident の後の試験だけのコミット b7666610（T9 の直し・T7d を足した＝LandShareTests 16 本）は LandShareTests を単独で回して 16 合格（SimCore と Runner は 0151f2e5 と同じ）＝今の頭の Category!=FullLength は 2355。
+  ident の後の試験だけのコミット b7666610（T9 の直し・T7d を足した＝LandShareTests 16 本）は LandShareTests を単独で回して 16 合格＝今の頭（252fa340）の --list-tests を c76ls_art（頭のビルド）で数えた：Category!=FullLength 2355・FullLength 3。合流が ident に渡す宣言は --tests-delta 16（ident で測ったのは 15）。
+  `git diff 0151f2e5 HEAD --stat -- PriceOfBread.SimCore PriceOfBread.Runner PriceOfBread.App` の出力は空（測った木と頭の SimCore・Runner・App は同じ）。
 - 走査の番人（㉘・器のコミットの直後 85307814）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests と関係する組（Cornint・ColonialPop・InitialDefaults・Tax・SbBargain・StateFactory）249 本が緑（guards_log.txt）。書き換えた番人 0。
 
 == landshare_s の門（gate895.py・ident の生 D:/PoB_work/ident_c76ls/out_ib_10/ins・10 種 417,233 行）＝破れ 1 件 ==
@@ -18,7 +19,8 @@
 - maxRelDiffSlotVsActual：0 の行 416,628・0 でない行 605。そのうち 604 行は 1.9e-17 以下（足し算の順の丸め）。**1e-12 を超えた 1 行＝種 7・イギリス・四半期 484（1904）・0.383**。
   - 読み＝〈期待の側の集合の誤り〉（訂正 1 の型・門は緩めない）：cederule_s7 で首都ロンドンが q483 に Seceded（立憲王政イギリス）・q484 に Returned。その間イギリスの World.Region（＝Regions[0]・World.cs:29）は中核ベンガル（植民地格）だった読み（q484 の末の region_s7 の並びがロンドン→中核ベンガルの順・q484 の非植民地格の貴族の地代は 305＝前後の 1/10＝本国の州がほぼ抜けた月）＝間接の確かめ。
     Colonial.AbsenteeOwner は w.Region を不在地主とする＝植民地格の州の送金の受け手が植民地格の州（中核ベンガル）の投資家になった。計器の送金の項（a）は受け手を首都の投資家と見て期待へ足すが、実際の側は非植民地格の州だけを数える＝送金 109.4 が実際の側に出ない。
-  - 直し（この線ではしない＝同じ腕を結果の後の物差しで読み直さない・★(866)）：送金の項を〈w.Region が植民地格でない月〉だけ期待へ足し、植民地格の受け手の分は別の列にする。次の波の恒等の小物の束の候補。
+  - 直し（この線ではしない＝同じ腕を結果の後の物差しで読み直さない・★(866)）：送金の項は w.Region.Tier != Colonial の月だけ期待へ足し、植民地格の受け手へ送られた分は colonialRemitToColonialPerQuarter の列へ分ける。次の波の恒等の小物の束の候補。
+    B-2a の門（G-B1）は q0 だけに当てる＝この破れは B-2a を止めない。
   - エンジンの側の周辺の所見（記録・別の線の候補）：首都が離れている間、Colonial.AbsenteeOwner（Regions[0]）は植民地格の州の投資家を〈本国の首都の投資家〉として扱い、他の植民地の大農園の地代がそこへ送られる（R1 の作者裁定〈本国首都の投資家〉と食い違う形）。この線は触れない。
 - 訂正 1 の (a) が効いた国（colonialRemitPerQuarter が正の種の数）：フランス・イギリス・ロシア・ネーデルラント・スペイン・ポルトガル・オマーン・清・アメリカ 10・マラータ同盟・デンマーク・日本 9 ほか 33 国。植民地を持つ英・西・仏・丁・葡・蘭の maxRelDiffSlotVsActual は上の 1 行を除き 1.9e-17 以下。
 - B-2a の予言の材料（q0・種の中央値・gate895_ident.txt の表）：非賦存の地代の持ち主の階級は名簿の 7 国（仏・英・西・普・丁・日・ポ）で全て貴族 1.0・アメリカは農民 1.0。賦存の割合 e＝rentEndow÷(rentEndow＋rentNonEndow) は国ごとに表へ（G-B2 の上限 U＝(1＋1÷(1−e))÷2 の材料）。
@@ -30,8 +32,8 @@
   M21（計器の受け手の写しを壊す）→T3・T7b・T10・M22（エンジンの受け手を壊す）→T1・T1b・T1c・T3・T4・T7b・M23・M24（cornint の所有の値・按分の持ち分化を外す）→T9・M25（cornint の輸出の層）→T9（2 回目の組で直した T9）・M26・M27（cearn の地代の受け手の行・売上×割合）→T10・
   M10（gate895.py の TOL を 1 へ）→自分の試しが人工のずれ 1e-6 を落とせず rc=1（赤）。
 - 緑のまま（突然変異で確かめていない）：
-  - M1b（割合 0 の枠を国内の繰り返しへ）：予言どおり緑＝rent×0.0 の足し算は有限の値でビット不変・LandRent は rk>0 で飛ぶ（Earned が −0.0 のときだけ +0.0 に変わる形が残る）。
-  - M8（Earned += を 1 行に 2 つ）：WriterRatchetTests.CountWriters は行ごとに数える（1 行に 2 つの書き手は 1）＝番人の数え方の限界（WriterRatchetTests は書き換えない・★(778)）。別の行で足す M8b は赤。
+  - M1b（割合 0 の枠を国内の繰り返しへ）：結果が同じ突然変異（穴ではない）＝予言どおり緑。rent×0.0 の足し算は有限の値でビット不変・LandRent と領主権は rk>0 で通らない（Earned が −0.0 のときだけ +0.0 に変わる形が残る）。
+  - M8（Earned += を 1 行に 2 つ）：穴＝WriterRatchetTests.CountWriters は行ごとに数える（1 行に 2 つの書き手は 1）＝番人の数え方の限界（WriterRatchetTests は書き換えない・★(778)・別の線の候補）。別の行で足す M8b は赤。
   - 1 回目の組で緑だった M15・M25 は、試験を足して（T7d）直して（T9）2 回目の組で赤にした（★(790)・★(892)）。
   - InstrumentsSb.cs:73（sbr_s の自営の数）は今のまま＝欄を持つ RGO の農民の枠は数えない（限界⑩）。cornint・cearn の null の枝の演算は ident の全行一致だけが確かめる（xUnit の突然変異なし）。
 
@@ -46,3 +48,6 @@
 
 == 生の扱い ==
 - ident の生は反証役が読んだ後に landshare_s と keepsum（全ての表の要約）へ縮め、合流まで D:/PoB_work/c76ls_work/keep_ident に残す（B-2a の事前登録の材料）。
+
+== B-2a への注（記録）==
+- 計器の data の側は NameOf(w)（SelfPower の BaseName）で world.json の国を引く＝分離した国が基の名（BaseName）を持てば同じデータが当たる。B-2a の事前登録で〈名簿の国だけ〉に限る規則（建国の国の扱い）を書く材料。
