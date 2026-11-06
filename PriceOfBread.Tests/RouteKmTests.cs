@@ -146,7 +146,8 @@ public class RouteKmTests
             Instruments.Phase(sim, 1789UL, "open");
             sim.StartWarmup();
             Instruments.Phase(sim, 1789UL, "warm");
-            try { for (int q = 0; q < 40; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+            // (880) 盤面の四半期の数 40→60（Assert の式とリテラルは不変）＝旗 0・ImportPayerLive＝1・SubsistenceNoBoughtTech＝1 の 3 つで xmig_s の行が 20 以上になる {40,60,80} の最小（事前登録 measurements/m880_20261106_prereg_id.txt [5]・数は measurements/m880_20261106/routekm880.txt）
+            try { for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
             finally { Instruments.Close(sim); }
             string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
 
