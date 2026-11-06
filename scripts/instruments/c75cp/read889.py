@@ -33,8 +33,9 @@ def main():
     cm = defaultdict(lambda: [0, 0])                       # 立憲の四半期・pcNow=1
     rb = Counter(); coop = []; army = []; coopCm = []
     trans = Counter(); prevrows = {}
-    expl = Counter(); drift = Counter(); driftNat = defaultdict(Counter); res9 = []
+    expl = Counter(); drift = Counter(); driftNat = defaultdict(Counter); res9 = []; resMask = defaultdict(list); explNat = defaultdict(Counter)
     nrows = Counter(); seeds = 0
+    terms = defaultdict(lambda: [0.0] * 6 + [0] * 7)       # 事象の無い行の項の和（召集・①・②・②′・巻き返し・残差）と 0 でない四半期の数・行の数
     for path in files:
         seeds += 1
         last = {}
@@ -42,7 +43,7 @@ def main():
             for r in csv.DictReader(f, delimiter="\t"):
                 n = r["nation"]; nrows[n] += 1
                 key = (r["nationUid"])
-                expl[r["explainCode"]] += 1
+                expl[r["explainCode"]] += 1; explNat[n][r["explainCode"]] += 1
                 if r["firstRowFlag"] == "1":
                     last[key] = r
                     continue
@@ -50,7 +51,7 @@ def main():
                 ev = r["regimeEventFlag"] == "1"
                 s, t1, t2 = num(r["summonTermShare"]), num(r["term1Share"]), num(r["term2Share"])
                 if r["explainCode"] == "9":
-                    m = int(r["driftMaskCode"]); drift[m] += 1; driftNat[n][m] += 1; res9.append(abs(num(r["residualShare"])))
+                    m = int(r["driftMaskCode"]); drift[m] += 1; driftNat[n][m] += 1; res9.append(abs(num(r["residualShare"]))); resMask[m].append(abs(num(r["residualShare"])))
                 if not ev and pn > pp:
                     a = rise[n]; a[0] += 1; a[3] += pn - pp
                     if s > 0: a[1] += 1; a[4] += s
@@ -67,11 +68,23 @@ def main():
                     if num(r["rollbackTermShare"]) < 0: rb["項が負"] += 1
                     coop.append(num(r["coopParliamentCrownPrevIndex"])); army.append(num(r["armyAllegiancePrevIndex"]))
                     if int(r["polityPrevCode"]) == 3: coopCm.append(num(r["coopParliamentCrownPrevIndex"]))
+                if r["explainCode"] in ("0", "9"):   # 事象・下賜・床の無い行（残差は数え直しのずれだけ）
+                    t = terms[n]
+                    for i, col in enumerate(("summonTermShare", "term1Share", "term2Share", "term2pShare", "rollbackTermShare", "residualShare")):
+                        v = num(r[col])
+                        if v == v and v != 0: t[i] += v; t[6 + i] += 1
+                    t[12] += 1
                 prv = int(r["polityPrevCode"])
                 if prv == 3 and pc_code in CROWN_POL:
                     trans["立憲→王権の政体"] += 1
                     trans["同じ四半期に②が負"] += t2 < 0
                     trans["その遷移が再ラベル（事象なし）"] += r["relabelFlag"] == "1"
+                    if r["relabelFlag"] == "1":
+                        trans["再ラベルの四半期に②′が負"] += num(r["term2pShare"]) < 0
+                        trans["再ラベルの四半期に巻き返しが負"] += num(r["rollbackTermShare"]) < 0
+                        trans["再ラベルの四半期の残差が負"] += num(r["residualShare"]) < 0
+                    else:
+                        trans[f"事象の区分{r['explainCode']}"] += 1
                     lp = last.get(key)
                     if lp is not None and lp["firstRowFlag"] == "0":
                         trans["前の四半期に②が負"] += num(lp["term2Share"]) < 0
@@ -100,11 +113,18 @@ def main():
     print("\n(iv) 立憲→絶対・専制・幕府の遷移")
     for k, v in sorted(trans.items(), key=lambda kv: (kv[0].startswith("国:"), -kv[1])):
         print(f"{k}\t{v}")
+    print("\n(vi) explainCode 0 と 9 の行（事象・下賜・幕府の床の無い行）の項の和（全ての種の和・単位は PC）と 0 でない四半期の割合")
+    print("国\t行\t召集の和\t①の和\t②の和\t②′の和\t巻き返しの和\t残差の和\t召集≠0\t①≠0\t②≠0\t②′≠0\t別の区分の行")
+    for n in names:
+        t = terms.get(n)
+        if not t or t[12] == 0: continue
+        e = explNat[n]; nev = e["3"] + e["4"] + e["5"]
+        print(f"{n}\t{t[12]}\t" + "\t".join(f"{t[i]:.4g}" for i in range(6)) + "\t" + "\t".join(pct(t[6 + i], t[12]) for i in range(4)) + f"\t下賜{e['6']}・事象{nev}・床{e['7']}")
     print("\n(v) 説明の区分（explainCode：0 一致・1 最初の行・3 事象 Step の後・4 事象 Step の前・5 事象で説明できない・6 下賜・7 幕府の床・9 説明できない）")
     tot = sum(expl.values())
     for k in sorted(expl): print(f"{k}\t{expl[k]}\t{pct(expl[k], tot)}")
     print("driftMaskCode（9 の行・1 ①・2 ②・4 ②′・8 巻き返し・0 門が全て閉じていた）")
-    for k in sorted(drift): print(f"{k}\t{drift[k]}")
+    for k in sorted(drift): print(f"{k}\t{drift[k]}\t|残差| 中央 {quant(resMask[k], 0.5):.3g}・上位10% {quant(resMask[k], 0.9):.3g}・最大 {max(resMask[k]):.3g}")
     if res9:
         print(f"9 の行の |残差|\t中央 {quant(res9, 0.5):.3g}\t上位10% {quant(res9, 0.9):.3g}\t最大 {max(res9):.3g}")
     print("9 の行の多い国（上位 10）")
