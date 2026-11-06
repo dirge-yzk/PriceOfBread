@@ -1,0 +1,30 @@
+感度：拠点のファイルも最も多く引く系統へ入れた（同数は全てへ）
+S01 180 Catalog.cs Discovery.cs Model.cs goods.json goods.json
+S02 44 Calendar.cs MarketFlow.cs
+S03 0 
+S04 1 LaborSupply.cs
+S05 181 EconomyStep.cs Megaprojects.cs megaprojects.json
+S06 10 Crime.cs
+S07 30 InternationalMarket.cs
+S08 98 BilateralMarket.cs Geo.cs Landmask.cs Landmass.cs PathGraph.cs Places.cs SeaGraph.cs Transport.cs barriers.json landmass.json passages.json places.json sea_nodes.json
+S09 63 BilateralMarket.cs TradeReachDiag.cs
+S10 377 LaborSupply.cs Model.cs PopClass.cs Simulation.cs World.cs
+S11 16 TechEducation.cs
+S12 29 Meritocracy.cs
+S13 237 Crime.cs MultiNationSim.cs NationConfig.cs PopDecision.cs Territory.cs
+S14 508 Coefficients.cs Ideology.cs PoliticalQuantities.cs
+S15 94 PoliticalQuantities.cs Politics.cs
+S16 87 FactionSnapshot.cs Factions.cs Politics.cs SecessionNames.cs
+S17 46 CrownParliament.cs PoliticalQuantities.cs PowerAffinity.cs
+S18 55 InterestGroups.cs Parliament.cs PolicyPreferences.cs
+S19 73 Contraband.cs Government.cs Policy.cs
+S20 102 Fiscal.cs Privileges.cs
+S21 0 
+S22 94 Bank.cs CapitalMarket.cs Credit.cs Explain.cs NationConfig.cs
+S23 106 ArmyShape.cs Military.cs NationConfig.cs PowerShares.cs Scenario.cs
+S24 1 Landmass.cs
+S25 127 Diplomacy.cs Landmass.cs
+S26 39 Colonial.cs Landmass.cs
+S27 54 CultureRealms.cs Formations.cs SecessionNames.cs world.json
+S28 63 Climate.cs DeterministicRng.cs Geo.cs NationConfig.cs Places.cs megaprojects.json places.json
+S29 614 Program.cs BudgetBindDiag.cs Coefficients.cs DeterministicRng.cs HistoricalReference.cs Invariants.cs MechanismProbe.cs SaveGame.cs Scenario.cs SelfPlay.cs TradeReachDiag.cs Validation.cs

@@ -1,0 +1,12 @@
+(886) c75lg 機能の台帳の骨と1系統の確かめ（読む線・.cs 0・腕 0・コミットしない）
+作業の場所: D:/PoB_work/r886_work（この回に作ったフォルダはこれだけ。worktree・枝は作らない＝main の作業ツリー C:/Users/dirge/Documents/PriceOfBread を HEAD 11db605f のまま読むだけ。突然変異の使い捨ての木だけ git worktree で D:/PoB_work/r886_work/mut_* に作り、終わったら外す）
+読む物:
+ - docs/README.md §1-2/§1-3/§1-7/§1-8/§1-9/§1-10・止める線の改め・腕の節約・計器と読み手の道具・★(885)
+ - docs/CURRENT.md §1 先頭
+ - docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md §00 波75〜 ⓪
+ - docs/202609/99_実装ログ_20260903.md (880)〜(885)
+ - docs/ゲーム概要と実装機能.md 全体（§1〜§2 と §3-1〜§3-11 の見出し）
+ - docs/202609/20260926/20260926_機能の棚卸し.md（名の手がかりだけ・判定は写さない）
+ - ソース: PriceOfBread.SimCore/*.cs（木 11db605f）
+読む生（必要なときだけ・書かない）: D:/PoB_work/keep_873/base_ins・n1・n2・a11, keep_879/base_ins, keep_885/base_ins
+出力（全て r886_work）: ledger.md（台帳の下書き＝docs/機能の台帳.md の素）・ledger.tsv・overview.patch（ゲーム概要と実装機能.md の差分）・scripts/（ledger_check.py, changed_rows.py, sysfiles.py）・selftest/（自己試験の出力）
