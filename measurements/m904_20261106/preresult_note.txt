@@ -1,0 +1,6 @@
+(904) ident の結果を見る前の追記（2026-11-06 18:55・腕の出力を開く前）
+ 基準の生（keep_899/base_ins）で読めたこと：種 7 英は q483 にロンドンが Seceded（cederule_s7）・q484 に Returned。q483 の行は期待＝実際＝110.7（Capitalist）で合い、q484 は実際 0・期待 109.4（＝colonialRemit）。
+ q484 の月の間、英の本国の格の州は 0（region_s7：Colonial 36・Integrated 1）＝首都は遷都後の州（植民地格か Integrated）。仮説＝首都が植民地格で、LandshareMonth の continue により首都の実際が act に入らず送金だけが exp に入る。
+ まだ確かめていない（首都の格は基準の生に列が無い）。ident の末尾の列で確かめる。
+ 門 2 は事前登録のとおり〈capColonialMonths＞0 かつ remitNotAddedPerQuarter＞0〉で書いたまま（結果を見た後に緩めない）。説明できない行が出たら〈原因は首都の格ではない〉と報告し、門は替えない。
+ もう一つの可能性（記録）：首都が w.Regions に無い州（分離した旧首都を指したまま）。その場合 capColonialMonths は 0 になり、門 2 は落ちる。
