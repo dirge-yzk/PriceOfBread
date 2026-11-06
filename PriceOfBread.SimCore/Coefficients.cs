@@ -2168,7 +2168,7 @@ public sealed class Coefficients
     public double InitialArsenalMonths = 60.0;
     public double MilitaryWarMult = 9.0;                      // 交戦中の軍需消費の倍率（武器需要ブーム）。元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
     public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：対外戦の軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）
-    public double CivilWarArmsDemandUnified = 0.0;            // (903) c77cw 旗：内戦の軍需の倍率（MilitaryWarMult×2.0 の枝）を消し、内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)へ。0＝今の 2 倍の枝（Simulation.cs の warMult の行）
+    public double CivilWarArmsDemandUnified = 1.0;            // (922) c80cw 点火（1）・(903) c77cw 旗：内戦の軍需の倍率（MilitaryWarMult×2.0 の枝）を消し、内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)へ。0＝今の 2 倍の枝（Simulation.cs の warMult の行）
     // 監査2026-07-12 死19：MilitaryBudgetFrac（国庫比の軍需上限）は歳入フロー基準（MilitaryRevenueShare）への置換後の残骸＝参照ゼロにつき削除。軍需上限を調整する係数は MilitaryRevenueShare
     // 上位軍需（機関銃・装甲艦）：基本装備を整えた残余予算で調達＝戦力の質的乗数。富裕/軍国国ほど届く（高価だが強い）。値は暫定でsweep対象
     public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
