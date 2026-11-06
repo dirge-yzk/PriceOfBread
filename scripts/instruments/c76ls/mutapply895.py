@@ -30,6 +30,9 @@ MUT = {
     # M8 受け手ごとに EarnedPerMonth += の行を足す
     'M8': [(E, "            region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);\n",
                "            if (k == 0) region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk); else region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);\n")],
+    # M8b 受け手ごとに EarnedPerMonth += の行を足す（別の行＝WriterRatchetTests の数え方は行ごと＝M8 の 1 行に 2 つの形は数えない）
+    'M8b': [(E, "            region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);\n",
+                "            if (k == 0) region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);\n            else region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);\n")],
     # M9 訂正 1 の (a)（送金の項）を外す
     'M9': [(L, "            if (remit > 0)\n", "            if (false && remit > 0)\n")],
     # M10b 計器の比べを壊す（相対の差を常に 0）
