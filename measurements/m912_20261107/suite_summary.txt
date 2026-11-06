@@ -1,0 +1,8 @@
+(912) 合流の木 b482aa8b のフルスイート（Release・Category!=FullLength と =FullLength を分けた・--list-tests と突き合わせた）
+--list-tests：Category!=FullLength 2402・FullLength 3（ident m912z の腕 t と同じ）
+初回（03:02〜03:21）：Category!=FullLength 合格 2399・失敗 2・スキップ 1・合計 2402・中止 0（18 分 2 秒）／FullLength 合格 3（4 分 6 秒）
+  失敗 MultiNationTests.マクロ層の健全性が回帰しない・MultiNationTests3.緊張は戦争を生み講和で植民地と賠償が動く
+  ＝どちらも共有の走行 MultiNationShared.FourNations400 の Error（Record.Exception）＝System.NullReferenceException at Instruments.ArmyNeed（InstrumentsFm.cs:78）← ArmyShape.Compute（ArmyShape.cs:155）
+  ＝ArmyShape.cs:39〜40 で Instruments.On が偽（fmHome・fmH＝null）・:155 で真＝並列の別の collection の試験が静的な Instruments.On を切り替えた競合（機構の赤ではない・(901) の区分）
+再走（03:23〜03:42・同じ木・別の artifacts）：MultiNationTests だけ 合格 18（2 分 1 秒）／Category!=FullLength 合格 2401・失敗 0・スキップ 1・合計 2402・中止 0（18 分 43 秒）
+＝競合の再現 1/2。savetest OK・leakhunt 保存則違反なし（ident m912z の腕 s）。
