@@ -1,0 +1,6 @@
+empty rc=1
+noS16 rc=1
+shiftS15 rc=1
+provS15 rc=1
+after rc=0
+before_main rc=0

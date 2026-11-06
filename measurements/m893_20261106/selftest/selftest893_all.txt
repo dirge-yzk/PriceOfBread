@@ -1,0 +1,20 @@
+書いた 機能の台帳_after.md 1494 行
+fixtures ['changed_ignition.txt', 'changed_ignition_old886.txt', 'changed_nochange.txt', 'changed_nochange_old886.txt', 'check_after.txt', 'check_before_main.txt', 'check_empty.txt', 'check_noS16.txt', 'check_provS15.txt', 'check_shiftS15.txt', 'ledger_after.md', 'ledger_before_main.md', 'ledger_empty.md', 'ledger_noS16.md', 'ledger_provS15.md', 'ledger_shiftS15.md', 'mut_c_add.txt', 'mut_c_diff.txt', 'mut_c_mutate.txt', 'selftest893_all.txt']
+== empty:   下側: 門4: 行が 0   下側: 門4: §1 で〈で確かめた〉の系統が 0（§1 の系統の表が無いか、確かめた系統が無い） 門（上側と下側） 落ちる rc=1 
+== noS16:   下側: 門5: S16 は §1 で確かめたのに行が 0 門（上側と下側） 落ちる rc=1 
+== shiftS15:   引けない: S15-01 Politics.cs:399:double erosion = 行に名が無い 門（上側と下側） 落ちる rc=1 
+== provS15:   下側: 門5: S15 の行 46 のうち最後に確かめたコミットの無い行 1（仮の行が残る） 門（上側と下側） 落ちる rc=1 
+== after: 門（上側と下側） 通る rc=0 
+== before_main: 門（上側と下側） 通る rc=0 
+worktrees_left=0
+== changed_nochange
+確かめ直す行 0（最後に確かめたコミットのある行 111・未確かめの行 978）
+== changed_nochange_old886
+確かめ直す行 0（最後に確かめたコミットのある行 111・未確かめの行 978）
+== mut_c_mutate
+変えた D:/PoB_work/r893_work/mut_c\PriceOfBread.SimCore\Coefficients.cs
+== changed_ignition
+確かめ直す行 1（最後に確かめたコミットのある行 111・未確かめの行 978）
+S16-33	11db605f		RevoltIgnitionIntensity
+== changed_ignition_old886
+確かめ直す行 0（最後に確かめたコミットのある行 111・未確かめの行 978）

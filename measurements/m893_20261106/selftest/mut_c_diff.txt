@@ -1,0 +1,7 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index abf1a263..465e1772 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -3030 +3030 @@ public sealed class Coefficients
+-    public double RevoltIgnitionIntensity = 0.0;
++    public double RevoltIgnitionIntensity = 0.5;

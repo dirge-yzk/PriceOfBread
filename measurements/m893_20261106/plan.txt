@@ -1,0 +1,12 @@
+(893) c76lg 読む線・.cs 0 行・腕 0 本・コミットしない
+作業の場所: D:/PoB_work/r893_work/（この回に作ったフォルダ。worktree は changed_rows の自己試験の使い捨て mut_* だけ・終わったら外す）
+読む木: C:/Users/dirge/Documents/PriceOfBread の main = 731d3de1（git show 731d3de1:<path> と grep で読む・作業ツリーは書かない）
+読む文書: docs/機能の台帳.md（§0・§1・§1-1・§2 S16 の型・§2-3・§3 S15 の仮の行・§4・§4-1）
+          docs/ゲーム概要と実装機能.md L2593〜2796（S15）
+          docs/README.md ★(885)・★(892)、00一覧 §00 ⓪
+読む生（既にある物だけ・新しい腕なし）:
+  R1' = D:/PoB_work/keep_892/base_ins（合わせた木 10fe1b48 の腕 Z・計器つき 10 種・m873 と全行一致）
+  ヌル腕 = D:/PoB_work/keep_873/n1・n2（・a11 は種 11〜20）
+  表の候補: coupgate_s・scalars_s・fm_s・nation_s・rule_s ほか（列の名で探す）
+道具: scripts/instruments/r886/ を D:/PoB_work/r893_work/tools/ へ写して直す（元は書き換えない）
+出力: ledger_s15.md・overview_s15.patch・tools/・selftest/・s15/（読みの記録）

@@ -1,0 +1,1 @@
+変えた D:/PoB_work/r893_work/mut_c\PriceOfBread.SimCore\Coefficients.cs
