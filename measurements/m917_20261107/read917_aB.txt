@@ -1,0 +1,9 @@
+# 名 B・D:/PoB_work/keep_912_rej/c78epB_10/ins・a＝inMarket ≧ D1・b＝inMarket ＜ D1
+F	a 4	b 3
+E	a 0	b 0
+N	a 1	b 0
+S	a 14069	b 27514
+P	a 15891	b 132192
+P!	a 2	b 1199
+U	a 14	b 24
+計	a 29981	b 160932
