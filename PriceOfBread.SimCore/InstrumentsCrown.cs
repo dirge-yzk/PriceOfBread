@@ -13,6 +13,8 @@ namespace PriceOfBread.SimCore;
 //   ②最初の行（q0・建国の最初の四半期）は前の断面が無い＝項と残差は nan（explainCode 1）。
 //   ③下賜（Politics.cs:680）の値はソースから数え直せない（挑戦の比が Transition の局所変数）＝grantFlag の印だけ（explainCode 6）。
 //   ④政変（ApplyRegime）は RecentRegimeChanges の増え＞0.5 で印を付ける（1 回で +1・Step は ×(1−置き換わり率) だけ）。Step の前か後かは residualAlt と目標の一致で分ける（explainCode 3・4・5）。
+//   ⑤(896) 旗 SummonByInterestShare＞0 の召集は四半期の末の利払い÷歳入と DebtGrip（計器が自分で書く式）を読む。エンジンは Politics.Step（QuarterEnd）で読む＝その後の共有層（割譲・講和・州の移り）で
+//     国債か名目 GDP（getter）が動けば押す先がずれる＝旗 1 では召集の列もずれうる（〈召集はずれない〉は旗 0 だけ）。ずれた行は explainCode 9 と driftMaskCode の 16（旗 1 で召集の項≠0）で名乗る。
 public static partial class Instruments
 {
     /// <summary>前の四半期の末の断面（計器の持ち物・World に欄を足さない）。</summary>
@@ -48,6 +50,7 @@ public static partial class Instruments
     internal struct CrownInputs
     {
         public double Austerity, Legitimacy, Rep, CurPrev, CurNow, CrownS, Inertia, Mobilization, Coerce, Lean, SoldierShare;
+        public double InterestShare, Dg;   // (896) 旗 1 の召集の入力：利払い÷歳入（歳入が正でなければ 0）・DebtGrip（計器の式）
     }
 
     /// <summary>当て直しの結果（1 本の始まりの値から）。</summary>
@@ -61,6 +64,10 @@ public static partial class Instruments
     internal static CrownInputs CrownGather(World w, Coefficients c, Polity polityPrev)
     {
         var x = new CrownInputs { Austerity = w.AusterityIntensity, Legitimacy = w.Legitimacy };
+        double revS = w.LastRevenuePerMonth.Value;
+        x.InterestShare = !(revS > 0) ? 0 : w.LastInterestPerMonth.Value / revS;
+        double gdpYearS = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
+        x.Dg = !(gdpYearS > 0) ? 0 : RuleClamp01(System.Math.Max(0, w.GovDebt.Value) / gdpYearS);
         var agg = Ideologies.National(w);
         double S(Polity p) => Ideologies.SupportAt(agg, Ideologies.BasePolityCoord(p), c.IdeologyAffinitySlope);
         x.Rep = System.Math.Max(S(Polity.ConstitutionalMonarchy), S(Polity.Republic));
@@ -95,7 +102,12 @@ public static partial class Instruments
         double pc = start;
         if (pc < 0) pc = CrownTarget(polityAtStep);   // :26 未捕捉の初期化
         double before = pc;
-        if (c.SummonParliamentRate > 0 && x.Austerity > 0.5)
+        if (c.SummonParliamentRate > 0 && c.SummonByInterestShare > 0)
+        {
+            double s = RuleClamp01(x.InterestShare / c.MaxInterestShareOfRevenue.Value);   // (896) 旗 1：比例・押す先 DebtGrip・切りなし（SummonClamp は立たない）
+            pc = pc + c.SummonParliamentRate * s * System.Math.Max(0, x.Dg - pc);
+        }
+        else if (c.SummonParliamentRate > 0 && x.Austerity > 0.5)
         {
             double raw = pc + c.SummonParliamentRate * (x.Austerity - 0.5) * 2.0;
             r.SummonClamp = raw > 1;
@@ -187,7 +199,7 @@ public static partial class Instruments
         if (row.Explain == 9)
         {
             var r = row.Run;
-            row.DriftMask = (r.BlockOpen && r.T1Support && r.T1Coerce ? 1 : 0) | (r.BlockOpen && r.T2Gate ? 2 : 0) | (r.BlockOpen && r.T2pGate ? 4 : 0) | (r.RbCrown && r.RbCoop && r.RbLeg && r.RbArmy ? 8 : 0);
+            row.DriftMask = (r.BlockOpen && r.T1Support && r.T1Coerce ? 1 : 0) | (r.BlockOpen && r.T2Gate ? 2 : 0) | (r.BlockOpen && r.T2pGate ? 4 : 0) | (r.RbCrown && r.RbCoop && r.RbLeg && r.RbArmy ? 8 : 0) | (w.Coef.SummonByInterestShare > 0 && r.Summon != 0 ? 16 : 0);
         }
         return row;
     }
