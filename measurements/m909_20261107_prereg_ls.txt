@@ -107,3 +107,6 @@
 - 起こす前に arms.sh free と shutil の空きを見て値を残す。順＝c78sm の ident → この線の腕 B → c78ep の腕 B → この線の S11 → c78ep の S11。
 - 腕の生は反証役が読んだらすぐ〈門と止める線の表＋keepsum〉へ縮め、合流まで残す。
 - 他の線との重なり：world.json はこの線だけ。LandShareTests.cs（c78sm・T7e・T7b）・InstrumentsLandshare.cs（c78sm・試験のための読みだけ）は触らない＝T7 の赤と T7b の注は合流で解く。
+
+[12] 追記（腕の前・データのコミットの前）
+- [0] の〈各国の "rule" の行の直後〉は誤り：イギリスは "name" の次が "knownDiscoveries"。置き場は各国の "name" の行の直後に直した（キーの順は読み方に効かない＝値は同じ）。
