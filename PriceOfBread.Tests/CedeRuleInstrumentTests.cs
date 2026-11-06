@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>(888) c75ce 割譲の支配度 C1 の段 C-0 の表 cederule_s（計器・読むだけ・事前登録 measurements/m888_20261106_prereg_ce.txt）。
 /// 州の移し（<see cref="Territory.TransferRegion"/>）を手で踏み、StepQuarter を挟まずに <see cref="Instruments.Quarter"/> を呼ぶ＝移しと四半期の末の間に Rule の書き手が走らない盤面。
 /// 期待値は試験が移す前に写した盤面の値と手のリテラルから作る（計器の列どうしで比べない）。
-/// 突然変異（使い捨ての木で 1 本ずつ・結果は measurements/m888_20261106/mut888.txt）：鍵を Name だけ→T2・印を外す→T5・movedAgain を持ち主≠受け手だけ→T4・year を Quarter の時→T7・助走を捨てない→T6・門の許しを 1 へ→T8・差に持分を入れない→T8。
+/// 突然変異（使い捨ての木で 1 本ずつ・結果は measurements/m888_20261106/mut888.txt）：鍵を Name だけ→T2・印を外す→T5・movedAgain を持ち主≠受け手だけ→T4・year を Quarter の時→T7・助走を捨てない→T6・門の許しを 1 へ→T8・差に持分を入れない→T8・前を Rehome の後に読む→T1（(904) で tierBefore／tierAfter の Assert を足した。(888) では緑のまま＝穴だった）。
 /// 計器の全体の口（<c>Instruments.Configure</c>）を立てるので、並列を外す集まり〈Instruments〉に入れた。</summary>
 [Collection("Instruments")]
 public class CedeRuleInstrumentTests
@@ -58,6 +58,8 @@ public class CedeRuleInstrumentTests
         Assert.Equal("イギリス", x[Col(h, "sender")]);
         Assert.Equal("フランス", x[Col(h, "receiver")]);
         Assert.Equal("フランス", x[Col(h, "ownerAtQuarterEnd")]);
+        Assert.Equal("Core", x[Col(h, "tierBefore")]);   // (904) 割譲の前の格（Pick は Core の州）
+        Assert.Equal("Integrated", x[Col(h, "tierAfter")]);   // 割譲で Core→Integrated（Territory.cs の Ceded 枝）
         string[] parts = ["State", "Local", "Foreign", "Ungov"];
         for (int k = 0; k < 4; k++) { Near(rule[k], x[Col(h, $"rule{parts[k]}BeforeShare")]); Near(rule[k], x[Col(h, $"rule{parts[k]}AfterShare")]); }
         Near(init1, x[Col(h, "ruleInitLocalBeforeShare")]); Near(init1, x[Col(h, "ruleInitLocalAfterShare")]);
