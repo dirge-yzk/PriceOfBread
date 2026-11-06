@@ -356,4 +356,52 @@ public class LandShareTests
         Assert.Null(Instruments.LsNormalize([1, 2, 3]));
         Assert.Null(Instruments.LsNormalize([0, 0, 0, 0]));
     }
+
+    /// <summary>T9：cornint_s の持ち分化（欄ありのフランス＋イギリス）。国内の地代は財ごとの按分と按分できない分の和がブロックの地代の和に合い（ブロック 1＝市民の地主の枠の受け手の投資家も所有の RGO で按分される＝按分できない分はほぼ 0）、
+    /// 輸出の地代も市民の枠の受け手のブロック 1 に立つ（null の今は持ち主の貴族＝ブロック 0 だけ）。</summary>
+    [Fact]
+    public void T9_cornintは持ち分の受け手で按分する()
+    {
+        const ulong seed = 1794UL;
+        string dir = RunIns([With("フランス", Fr), WorldData.ByName("イギリス")], 2, seed);
+        var rows = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"cornint_s{seed}.tsv"), null).Where(r => r["nation"] == "フランス" && r["quarter"] == "1").ToList();
+        Assert.Single(rows);
+        var row = rows[0];
+        for (int b = 0; b < 3; b++)
+        {
+            double dom = D(row, "rentDomPerMonth" + b), parts = D(row, "rentGrainDomPerMonth" + b) + D(row, "rentOtherDomPerMonth" + b) + D(row, "rentDomUnattrPerMonth" + b);
+            Assert.True(System.Math.Abs(parts - dom) <= 1e-9 * System.Math.Max(1, dom), $"ブロック {b} の按分の和 {parts} が地代 {dom} と違う");
+        }
+        double dom1 = D(row, "rentDomPerMonth1");
+        Assert.True(dom1 > 0, "試験の前提：ブロック 1 の地代が 0");
+        Assert.True(D(row, "rentDomUnattrPerMonth1") <= 0.01 * dom1, $"ブロック 1 の地代が所有の RGO で按分されない {row["rentDomUnattrPerMonth1"]} / {dom1}");
+        Assert.True(D(row, "rentExpPerMonth1") > 0, "輸出の地代が市民の枠の受け手（ブロック 1）に立たない");
+    }
+
+    /// <summary>T10：cpop_s（植民地格の州の POP の行）の地代の受け手の行は持ち分の受け手を数える（試験がスペインの植民地格の州の 1 本の RGO に欄 (0.5,0.5,0,0) を置く）＝聖職者の行 1・売上×0.5。</summary>
+    [Fact]
+    public void T10_cpopの地代の受け手の行は持ち分の受け手を数える()
+    {
+        const ulong seed = 1795UL;
+        var marked = new Dictionary<Region, List<Producer>>();
+        var rev = new Dictionary<Region, double>();
+        string dir = RunIns([WorldData.ByName("イギリス"), WorldData.ByName("スペイン")], 1, seed, setup: sim =>
+        {
+            foreach (var r in sim.Nations[1].World.Regions.Where(r => r.Tier == RegionTier.Colonial && r.ClergyPopIndex >= 0 && r.ClergyPopIndex < r.Pops.Count))
+            {
+                if (r.Producers.Any(q => q.OwnerPopIndex == r.ClergyPopIndex && q.LaborPopIndex != r.ClergyPopIndex)) continue;   // 聖職者が元から持ち主の行がある州は外す
+                var ps = r.Producers.Where(p => p.IsRgo && p.OwnerPopIndex != r.ClergyPopIndex && p.LaborPopIndex != r.ClergyPopIndex).ToList();
+                foreach (var p in ps) p.LandShares = [0.5, 0.5, 0, 0];
+                if (ps.Count > 0) marked[r] = ps;
+            }
+        }, beforeLast: _ => { foreach (var kv in marked) rev[kv.Key] = kv.Value.Sum(p => p.LastRevenue); });
+        Assert.NotEmpty(marked);
+        var reg = rev.OrderByDescending(kv => kv.Value).First().Key;
+        Assert.True(rev[reg] > 0, "試験の前提：欄を置いた RGO の売上が 0");
+        var rows = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"cpop_s{seed}.tsv"), null)
+            .Where(r => r["nation"] == "スペイン" && r["region"] == reg.Name && r["popIndex"] == reg.ClergyPopIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToList();
+        Assert.Single(rows);
+        Assert.Equal(marked[reg].Count, D(rows[0], "ownerLines"));
+        Assert.True(System.Math.Abs(D(rows[0], "ownerRevenuePerMonth") - rev[reg] * 0.5) <= 1e-8 * rev[reg], $"聖職者の地代の受け手の売上 {rows[0]["ownerRevenuePerMonth"]} が 売上×0.5 {rev[reg] * 0.5} と違う");
+    }
 }
