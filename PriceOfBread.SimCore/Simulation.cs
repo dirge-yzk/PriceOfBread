@@ -2120,7 +2120,7 @@ public sealed class Simulation
                 bool atWar = atWarNation;
                 double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
                 double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // WarMobilizationDepth=0 なら mobilize=1＝旧挙動（⚠既定は0.5＝live・x-02 で注記を是正）。>0で長期戦ほど軍需倍率↑（総動員）
-                double warMult = World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0 : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // 内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
+                double warMult = !(World.Coef.CivilWarArmsDemandUnified > 0) && World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0 : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // (903) 旗 1＝内戦も対外戦と同じ式（InCivilWar ⊂ atWar）・旗 0＝内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
                 // 軍需＝**兵士の装備のみ**（治安維持力=軍の一本化2026-06-23：治安維持力は装備された軍の効果＝BaseCoercion を MilitaryScale に含めない＝二重計上を解消し装備コストを下げる）。軍隊規模(兵数)×戦時倍率に比例。
                 // 課題6（駐屯州調達・2026-08-08）：装備需要の州配分＝首都一極と駐屯州比例のブレンド（総量保存）。
                 // g=0＝旧（首都のみ）と厳密同値。兵士は自分の駐屯州の市場で装備を買う＝単一市場の物理律速を解く。

@@ -1092,6 +1092,7 @@ public static partial class Instruments
         if (atWar) st.WarMonths++;
         st.WarNow = atWar;   // (281) 交戦×門閉の月を MonthClose で数える
         if (w.InCivilWar) st.CivilWarMonths++;
+        CwMonth(w);   // (903) cwmult_s（内戦の軍需の倍率の旧と新の規則）
     }
     /// <summary>戦争を立てた所（<c>Diplomacy.AddBelligerent</c> の <c>Wars.Add</c> の直後）：試合の終わりに戦死と月数を読む。</summary>
     internal static void WarStarted(Diplomacy dip, War war, int year) => Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war));
@@ -1772,6 +1773,7 @@ public static partial class Instruments
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
         if (time == "warm") InpWorldTable(sim);   // (657)
+        if (time == "warm") CwWarm(sim);   // (903) cwmult_s
         if (time == "warm") CearnWarm(sim);   // (822) 助走の月の流れを捨て、始まりの在庫を取り直す
         if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // (380)(403) 助走の月の成約を数えない・(579) 助走の着工の判断の回を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
@@ -1805,6 +1807,7 @@ public static partial class Instruments
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             CrownFold(sim, seed, w, q);                     // (889) 議会の統制力の項ごとの寄与の表 crownpc_s（全ての国・毎四半期・前の四半期の末の断面を計器が貯める）
+            CwFold(sim, seed, w, q);   // (903) cwmult_s
             IvfFold(sk, seed, w, q, picked, yearEnd);       // (536) 初期値の直し（資本の土台）の表（本土と植民地の物価の乗数・石炭の費用・建設の組の選び・資本財の需給）
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
             CoupFold(sk, seed, w, st, q);   // (393) 軍の力の入口の表
@@ -1895,6 +1898,7 @@ public static partial class Instruments
         SubstClose(sim); CornintClose(sim);   // (837)
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
         CrownClose(sim);   // (889) crownpc_s
+        CwClose(sim);   // (903) cwmult_s
         LandshareClose(sim);   // (895) landshare_s
         SilverParityClose(sim);   // (775)
         SilverWeightClose(sim, sk.Seed);   // (807)
