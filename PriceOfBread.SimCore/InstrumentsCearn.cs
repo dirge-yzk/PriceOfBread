@@ -32,7 +32,8 @@ public static partial class Instruments
         + "\timportPayerKind\timportBudgetStartPerQuarter\timportPaidPerQuarter\timportCrossRegionPerQuarter"   // (863) 末尾 4 列＝輸入の払い手（CearnImportHead）
         + "\timportOldRuleBudgetStartPerQuarter\timportBudgetExcessMaxPerClearing"   // (868) 末尾 2 列＝旧の規則の予算（旗に依らない）・清算ごとの超過の最大
         + "\timportBudgetExcessMaxPerClearingSub\timportPaidPayerSizeLe1e12PerQuarter\timportPaidPayerSizeMidPerQuarter\timportPaidPayerSizeGt1e9PerQuarter"   // (874) 末尾 4 列＝超過の最大（補助は TreasuryCat.Subsidy だけ足す）・払った額を払いの時点の払い手の人数（≦1e-12／1e-12 超〜1e-9／1e-9 超）で分けた和
-        + "\timportBudgetExcessMaxPerClearingSubLive";   // (880) 末尾 1 列＝Sub と同じ超過の最大を、人数 ≦1e-12 の払い手の 0 でない払いが無かった清算だけで畳む（旗 0 の人の居ない商人の手形の清算を外す）
+        + "\timportBudgetExcessMaxPerClearingSubLive"   // (880) 末尾 1 列＝Sub と同じ超過の最大を、人数 ≦1e-12 の払い手の 0 でない払いが無かった清算だけで畳む（旗 0 の人の居ない商人の手形の清算を外す）
+        + "\tmerchantDebt\testateDebtSettledPerQuarter";   // (910) 末尾 2 列＝四半期の末の商人の POP の債務（添字なし＝NaN）・相続の前の返しの段で貯蓄から世界の外へ移った額（台帳・旗を読まない）
 
     /// <summary>台帳の列（流入 7・流出 9）。<see cref="CearnColumn"/> の返り値。</summary>
     internal enum CearnCol : sbyte
@@ -53,10 +54,11 @@ public static partial class Instruments
         public int ImpKind; public double ImpBudget, ImpPaid, ImpCross;   // (863) 輸入の払い手の列（CearnImportHead・CearnImportPaid）
         public double ImpOldBudget, ImpExMax = double.NegativeInfinity, ImpHeadStock = double.NaN, ImpPaidClr; public bool ImpHeadOn;   // (868) 旧の規則の予算・清算ごとの超過の最大（未定義は -∞）・今の清算の頭の在庫（NaN＝手形）・今の清算の払い・頭があるか
         public double ImpHeadStockSub = double.NaN, ImpExMaxSub = double.NegativeInfinity; public readonly double[] ImpPaidBand = new double[3];   // (874) 補助を Subsidy だけに絞った頭の在庫と超過の最大・払った額の人数の帯別の和
+        public double EstDebtSettled;   // (910) 相続の前の返しの段で移った額（四半期の和）
         public double ImpExMaxSubLive = double.NegativeInfinity; public bool ImpClrDead;   // (880) 人数 ≦1e-12 の払い手の払いが無かった清算だけの超過の最大・今の清算に人数 ≦1e-12 の払い手の 0 でない払いがあったか
         public readonly Dictionary<(string File, int Line, SavKind Kind, char Cp), double> Out = new(), In = new();
         public readonly CgAcc[] G = [new(), new(), new(), new()];   // (829) 階級の群の台帳（群の番号＝CgGroupOf）
-        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; ImpKind = 0; ImpBudget = ImpPaid = ImpCross = 0; ImpOldBudget = 0; ImpExMax = double.NegativeInfinity; ImpHeadStock = double.NaN; ImpPaidClr = 0; ImpHeadOn = false; ImpHeadStockSub = double.NaN; ImpExMaxSub = double.NegativeInfinity; System.Array.Clear(ImpPaidBand); ImpExMaxSubLive = double.NegativeInfinity; ImpClrDead = false; }
+        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; ImpKind = 0; ImpBudget = ImpPaid = ImpCross = 0; ImpOldBudget = 0; ImpExMax = double.NegativeInfinity; ImpHeadStock = double.NaN; ImpPaidClr = 0; ImpHeadOn = false; ImpHeadStockSub = double.NaN; ImpExMaxSub = double.NegativeInfinity; System.Array.Clear(ImpPaidBand); ImpExMaxSubLive = double.NegativeInfinity; ImpClrDead = false; EstDebtSettled = 0; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, CearnAcc> CearnAccs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CearnAcc> CearnPopAcc = new();
@@ -136,7 +138,8 @@ public static partial class Instruments
             CearnImportSubsidyInto(a, delta);
             if (_cearnCat == TreasuryCat.Subsidy) CearnImportSubsidySubInto(a, delta);   // (874) 売買方針の補助だけ（輸出の関税の戻し〔TreasuryCat.Tariff・払いの後〕は足さない）
         }
-        if (kind == SavKind.Take && CearnFileName(file) == "BilateralMarket.cs") CearnImportPaid(a, -delta, p.Size);   // (863) 輸入の払い（関税・代金・運賃・港湾料・保険料＝清算の払いの段）
+        if (kind == SavKind.Take && CearnFileName(file) == "BilateralMarket.cs") CearnImportPaid(a, -delta, p.Size);
+        if (_estRepay && kind == SavKind.Take) a.EstDebtSettled -= delta;   // (910) 相続の前の返しの段の中の貯蓄の出（Bank.Lend の負の側＝世界の外へ・台帳の書き込み＝移った額）   // (863) 輸入の払い（関税・代金・運賃・港湾料・保険料＝清算の払いの段）
         if (col == CearnCol.Skip) return;
         bool isIn = (int)col < CearnInCols;
         a.Flow[(int)col] += isIn ? delta : -delta;
@@ -239,6 +242,9 @@ public static partial class Instruments
     internal static void CearnImportPaidBandInto(CearnAcc a, double amount, double payerSize) { a.ImpPaidBand[payerSize <= 1e-12 ? 0 : payerSize <= 1e-9 ? 1 : 2] += amount; }
     /// <summary>払いの段の行の州を置く（null で外す）。</summary>
     internal static void CearnImportPayRegion(Region? r) { if (CearnOn) _impRegion = r; }
+    /// <summary>(910) EmptyPopEstate.Step の返しの段の前後（true＝入る・false＝出る）：その間の貯蓄の出を estateDebtSettledPerQuarter へ畳む文脈の印（旗を読まない）。</summary>
+    internal static void EstateRepay(bool on) { _estRepay = on && CearnOn; }
+    [System.ThreadStatic] static bool _estRepay;
     internal static void CearnImportPaidInto(CearnAcc a, double amount) { a.ImpPaidClr += amount; }   // (868) 今の清算の払い（試験の口）
     /// <summary>(880) 払いの時点の払い手の人数が ≦1e-12（帯の列と同じ述語）で額が 0 でなければ、今の清算に印を付ける（その清算は importBudgetExcessMaxPerClearingSubLive に畳まない）。試験の口。</summary>
     internal static void CearnImportPaidDeadInto(CearnAcc a, double amount, double payerSize) { if (payerSize <= 1e-12 && amount != 0) a.ImpClrDead = true; }
@@ -386,6 +392,7 @@ public static partial class Instruments
                 cols.Add(F(a.ImpOldBudget)); cols.Add(F(double.IsNegativeInfinity(a.ImpExMax) ? double.NaN : a.ImpExMax));   // (868)
                 cols.Add(F(double.IsNegativeInfinity(a.ImpExMaxSub) ? double.NaN : a.ImpExMaxSub)); cols.Add(F(a.ImpPaidBand[0])); cols.Add(F(a.ImpPaidBand[1])); cols.Add(F(a.ImpPaidBand[2]));   // (874)
                 cols.Add(F(double.IsNegativeInfinity(a.ImpExMaxSubLive) ? double.NaN : a.ImpExMaxSubLive));   // (880)
+                cols.Add(F(r.MerchantPop is { } mpd ? mpd.Debt.Value : double.NaN)); cols.Add(F(a.EstDebtSettled));   // (910)
                 sk.W.WriteLine(string.Join('\t', cols));
                 if (r.Tier == RegionTier.Colonial) CgRows(sk, seed, q, w, nation, r, a, sn.Savings, inSum - outSum);   // (829) 植民地格の州だけ群の行
                 a.Clear(); a.Start = sn.Savings; a.Started = true; CgReset(a, r);
