@@ -1,0 +1,78 @@
+(881) c74ip 輸入の払い手を人の居る POP に限る（4 回目＝数える 3 回目＝最後）
+事前登録 2026-11-06
+
+【形】
+- 案 A〈人の居る POP が払う〉（★(859) ② 作者「全て推奨で」で推奨を採った）
+- 旗 ImportPayerLive の既定を 1 に（Coefficients.cs:3597）
+- BilateralMarket.cs:580〜:581 は変更しない（器は main にある）
+
+【3 回の規則】
+- (863) は数えない（恒等の計器の腕）
+- (869) 1 回目（U1 赤）
+- (876) 2 回目（T1＝フォートウィリアム）
+- この線が数える 3 回目＝最後。落ちたら〈採らないまま閉じる〉（main は旗 0 の器のまま）
+
+【no-go の基準】
+1. id_ready.mark か f0_ready.mark の rc が 0 でない
+2. c74id の VERDICT が〈否〉
+3. c74id (d) が〈予言する赤〉を渡したのに RouteKmTests 以外の予言外の赤が出る
+
+出し直された印の扱い：1 回目の rc が 0 でなく、出す側が式と判定の規則を変えずに道具の側だけを直して出し直した印は待ってよい。
+出す側は 1 回目の .log を上書きせず別名（.log.1）で残す。
+
+【no-go の各規則を旗 0 の盤面で確かめる】
+- 規則 1・2：f0_ready.mark が出る前は評価不可
+- 規則 3：RouteKmTests は c74id (d) の決めに従う＝予言の赤は c74id が名指す
+
+【門】（m876 の事前登録のまま）
+- L1≧0.2（払いの中身・植民地格の払い手の在庫・旗 0 0.000212）＝旗 0 で落ちる
+- U1b（払いの時点の人数 ≦1e-12 の帯の払った額）＝0（旗 0 9,069.61・EU1 701.3）
+- U3（州をまたがない）違反 0
+- G-帯（帯の列の和＝importPaidPerQuarter・相対 1e-9）
+
+U2s は c74id (b) の形で門に戻す（旗 0 の偽陽性 0 を紙で確かめてから）。
+形の対象を〈全ての格〉と書き直す（旗の条件は格を見ない）。
+
+【門の S11 での読み】
+S11 の旗 0（a11）に cearn_s が無い＝L1 の旗 0 の側は種 1〜10 の旗 0 と並べる〈近似〉と名乗る。
+
+【計算量の登録】
+(876) の実測 +3.9 秒（名目の余り 37.0 秒の内）
+
+【★(818) の Assert】
+grep -ln 'MerchantPop|payerOf|PayerOf|Debt|ImportPayer' の結果を確認した。
+主要な Assert：ImportPayerLiveTests、TradeClearingBoardTests、PaySalesMerchantTests
+機構を正しく検証しており問題なし。
+
+【WriterRatchetTests の予言】
+item 1・9・11（★(778)・item 11 は 3133384）
+
+【RouteKmTests】
+c74id (d) の決めに従う
+
+【止める線】
+当てる腕：S11 と合流の M・S11・アブレーション
+読み方：holclass839（基準 armS11/stop_mS.txt と armM/stop_mM.txt）と c74id (a) の読み手の両方
+c73ipB_10 の近似の読みは記録の段に置く
+
+【走査の番人】
+IndustrializationReaderTests、UnitTypeTests、InstrumentsTests、
+WriterRatchetTests、DormantIdentityTests、GoodIdGuardTests、TechLevelRemovalTests
+変わる件数の予言：DormantIdentityTests の 139 行目削除（1 行減）
+
+【D: の空き】
+測定時 166.20GB
+腕 S（種 11〜20）の見込み：約 16GB（POB_CEARN は既定＝cearn_s・cpop_s つき）
+床 36GB に対し十分な空き
+
+【生を縮める計画】
+腕 S の生は反証役が読んだ後に縮める。
+残す表：region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・
+rule_s・keepsum_all_tables.tsv・cearn_s・cpop_s
+縮めた後も合流が読むまで残す。
+
+【ソースを走査する番人の点検】
+工業化度の読み手の許可表（IndustrializationReaderTests）：変更なし
+new MoneyStock( の件数：変更なし
+route_anchors.tsv の鍵の行：変更なし
+WriterRatchetTests の宣言の表：item 1・9・11 が該当（予言済み）
