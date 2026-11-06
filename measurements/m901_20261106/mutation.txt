@@ -1,0 +1,78 @@
+(901) c77cs 突然変異（使い捨ての木 D:/PoB_work/c77cs_work/mut＝101d4329 の git archive＋この線の試験の直し〔T0・T5 の旗 0 の初期化子・T5′・S2 の盤面〕・旗の既定 0・台本 scripts/instruments/c77cs/mut901.sh・mut901.py・試験の組 SummonByInterestShareTests＋CrownPcInstrumentTests の 17 本）
+| 突然変異 | 赤の試験 | 腕の門 |
+| M0 何もしない（対照） | 赤 0（17 本とも緑） | — |
+| M1e エンジンだけ何もしない（CrownParliament.cs の旗 1 の代入を外す・計器は旗 1 のまま） | S1・S2・S3・T1′・T0′・T5′（6 本） | G2（紙：実際の側＞1e-12 が 1.35%＜10%＝paper901.txt (3)）。旧の G2（計器の項）は 12.02% で通る＝(896) の穴 |
+| M1 s＝0 | S1・S2・S3・T1′・T0′・T5′（6 本） | G2（実際の側は M1e と同じ＝残差だけ） |
+| M2 押す先を 1.0 | S1・S2・S3・S5・T1′・T0′・T5′（7 本）＝S2 は盤面を PC＜DebtGrip＜1 にして赤へ（(896) は緑） | 腕の門では落とせない（比例のまま 1 へ漸近＝G1 の 1e-6 が近いが保証なし・G4 は計器の旗 1 の枝が切りの印を立てない＝0 のまま）＝〈腕の門で確かめていない〉と名乗る |
+| M3 分母の守りを外す | S4（1 本＝NaN の盤面） | — |
+| M4 比例を段差へ | S1・S3・T0′（3 本） | — |
+| M5 計器の写しを旗で分けない | T1′・T0′・T5′（3 本） | — |
+| M6 結果に Clamp01 | 赤 0（何もしない変異＝PC≦DebtGrip≦1）＝働いていない項＝入れない | — |
+| M7 押す先の max(0,·) を外す | S5・T0′・T5′（3 本） | — |
+| M8 旗 0 の枝を変える（×2.0→×2.1） | S0・T1・T5・T0（4 本）＝T0・T5 は旗 0 の初期化子を入れた後も赤＝旗 0 の番人として生きている | — |
+㉜ との突き合わせ：M8 で赤の 4 本（S0・T1・T5・T0）＝旗 0 の式に依る試験。T2（PC 0.995・緊縮 1.0＝×2.0 でも ×2.1 でも 1 で切る）と T4（緊縮 0）は M8 で緑だが旗 0 の初期化子を持つ。(896) の旗 1 のフルスイートの赤（item 11・T0・T5）のうち T0・T5 はこの 4 本に入る＝初期化子で旗 0 に固定した。
+---- 生の出力 ----
+applied M0_none
+== M0_none
+成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M1e_engine
+== M1e_engine
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は1に張り付かない 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の政変の四半期は召集が動けば区分4で動かなければ区分3 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 
+失敗!   -失敗:     6、合格:    11、スキップ:     0、合計:    17、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+applied M1_s0
+== M1_s0
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は1に張り付かない 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の政変の四半期は召集が動けば区分4で動かなければ区分3 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 
+失敗!   -失敗:     6、合格:    11、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M2_t1
+== M2_t1
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は1に張り付かない 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1でPCがDebtGripより上なら召集は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の政変の四半期は召集が動けば区分4で動かなければ区分3 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 
+失敗!   -失敗:     7、合格:    10、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M3_noguard
+== M3_noguard
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1で歳入0なら召集は動かない 
+失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M4_step
+== M4_step
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する 
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 
+失敗!   -失敗:     3、合格:    14、スキップ:     0、合計:    17、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+applied M5_insnosplit
+== M5_insnosplit
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の政変の四半期は召集が動けば区分4で動かなければ区分3 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 
+失敗!   -失敗:     3、合格:    14、スキップ:     0、合計:    17、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+applied M6_clamp
+== M6_clamp
+成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M7_nomax
+== M7_nomax
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1でPCがDebtGripより上なら召集は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の政変の四半期は召集が動けば区分4で動かなければ区分3 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 
+失敗!   -失敗:     3、合格:    14、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M8_flag0
+== M8_flag0
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗0は緊縮の段差の式のまま 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.召集だけの盤面で召集の項は式の値で残差は0 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.政変の四半期は印と説明の区分で残差が説明される 
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.Stepの直後に数えれば残差は0 
+失敗!   -失敗:     4、合格:    13、スキップ:     0、合計:    17、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
