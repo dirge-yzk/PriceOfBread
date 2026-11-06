@@ -1,0 +1,149 @@
+# 事前登録 (888) c75ce：割譲の支配度 C1 の段 C-0 のやり直し＝恒等の計器 cederule_s（形 Q′）
+
+- 書いたモデル：Claude Opus 5.5。日付 2026-11-06。枝 c75ce（11db605fd0773d232b2925b489960440c8801085 から）。worktree D:/PoB_work/wt_c75ce。作業フォルダ D:/PoB_work/c75ce_work。
+- 仕様：docs/202611/20261106/20261106_割譲の支配度C1の段C-0_州ごとの治安P1-1の後_下書き.md の §4（形 Q′）と §10（訂正 5 件）。全て AI の案・確証なし。
+  作者 2026-11-04「割譲された場合、これらの支配度は割譲側が完全に踏襲するものなのでしょうか」→ AI の推奨〈国家の分を在地へ移し、今の寄せ方で新しい国の目標へ戻す〉を〈作者「全て推奨で」で推奨を採った〉。この線は計器だけ（C1 は点火しない）。
+- (883) の下書き（measurements/m883_20261106/InstrumentsCede_draft_unfinished.cs.txt・prereg_ce_unfinished.txt）は読むだけ。型が実物と合わない＝写さず書き直す。
+- (883) の行き詰まり〈RegionMoved の時点で year と quarter が取れない＝作者に聞く〉は、引数とソースで取れた（下の [6] ①）＝作者に聞く物は 0。
+
+## [1] 線の種類
+
+- 恒等の線。予言 0（新しい表 cederule_s が増えるだけ。他の全ての表と列は全行バイト一致）。
+- 新しい係数 0・新しい状態 0（World・Region・Sink に欄を作らない＝セーブに触れない）・エンジンの挙動を変えない・乱数を引かない。
+- 計算量：1 事象あたり数十の浮動小数の読み（m873 の割譲 1,399 行÷10 種＝1 種あたり約 140 事象＋建国と再併合）＝0.01 秒未満の見込み。.cost で確かめる。
+
+## [2] 足す物と消す物・読み手の grep（木 11db605f・この線が grep し直した）
+
+### 足す物
+- PriceOfBread.SimCore/InstrumentsCede.cs（新しい部分クラス）：CedeBefore（前を貯める）・CedeTable（四半期の末に後を読み行を貯める）・CedeClose（試合の終わりに cederule_s を書く・行が 0 でも見出しは書く）。
+- PriceOfBread.SimCore/Instruments.cs に 3 行だけ（Instruments.On の中で呼ばれる経路だけ）：
+  - :1218 `internal static void RegionMoved(World from, World? to, Region r, Territory.Rehoming how)` の本体の **最初の文** として `CedeBefore(from, to, r, how);`（下の `if (to is null) return;`〔:1229〕・`if (!IsPicked(to, st)) return;`〔:1231〕より前＝建国と挙げていない受け手の行を落とさない）。
+  - :1860 `CearnTable(sim, seed, q);` の次の行に `CedeTable(sim, q);`（全ての国の段の並び）。
+  - :1900 `CessClose(sim, sk.Seed);` の次の行に `CedeClose(sim, sk.Seed);`（試合の終わりの並び）。
+- PriceOfBread.Tests/CedeRuleInstrumentTests.cs（新しいファイル・試験 T1〜T8）。
+- scripts/instruments/c75ce/（ident888.sh・gate888.py・自分の台本）・measurements/m888_20261106/（記録）。
+- 計器の新しい表：cederule_s（列は [6] ③）。既にある表の列は 0 本も変えない（rule_s・cess_s・cessp_s・inheritintent_s を含む）。
+
+### 消す物
+- 0。
+
+### 読み手の grep
+- `cederule`：SimCore・Tests・scripts で 0 件（この線の自分の宣言が入る前）。`CedeBefore`・`CedeTable`・`CedeClose`・`CedeState`：SimCore で 0 件。
+- `crownpc`・`landshare_s`：0 件（c75cp の名と重ならない）。
+- RegionMoved の呼び手：Territory.cs:353 `if (Instruments.On) Instruments.RegionMoved(from, to, r, how);`（TransferRegion の中・Rehome〔:374 付近〕の前・換算の後・from.Regions.Remove(r) の後）。
+- TransferRegion の呼び手（=RegionMoved を通る事象の全て）：Diplomacy.cs:3389（CedeRegion・Ceded）・MultiNationSim.cs:401（SpawnNation・Seceded・to＝null）・MultiNationSim.cs:1217（ReabsorbNations・Returned）。
+  独立の確定は Diplomacy.cs:503 `Territory.Rehome(r, Territory.Rehoming.Sovereign);` を直に呼ぶ＝RegionMoved を通らない＝表に無いと名乗る。
+- 書き手（Rule・RuleInit・Dominance・ForeignShares／ForeignRulers）の全て（grep の結果をそのまま）：
+  - Politics.cs:1547 `r2.Dominance = d;`（CheckSecession）・Politics.cs:1586〜:1587（Rule の寄せ・CheckSecession）
+  - Territory.cs:288 `r.Dominance = 1.0;`（Rehome の Sovereign だけ＝独立の確定）
+  - Politics.cs:1791・:1793（AddForeignShare＝呼び口 Diplomacy.cs:3164・StepWars の中の講和）
+  - Diplomacy.cs:549（TreatyPortLapse の風化・Diplomacy.cs:956 で StepWars〔:968〕より前・四半期の最初の月だけ）
+  - Simulation.cs:938・:941・:942（構築）・Simulation.cs:1583〜:1585（植民地の昇格で新しい州を組む＝既にある州の書き手ではない）
+- POB_COEF の名前：触れない（係数 0）。SaveGame の名前の表：触れない（World・Region の欄 0）。App・Display・Runner：0 字。
+
+### 他の線との重なり（計画の担当の割り当てのまま）
+- Instruments.cs：c75ce は :1218 の中・:1860 の次・:1900 の次の 3 行。c75cp (889) は :1803〜:1804 と :1889 の並び＝行は分かれる（衝突したら合流が手で解く）。
+- 新しいファイル InstrumentsCede.cs・CedeRuleInstrumentTests.cs は c75ce だけ。Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs・Territory.cs・Diplomacy.cs・Politics.cs・MultiNationSim.cs・InstrumentsRule.cs・InstrumentsCess.cs は 1 字も触れない。
+- 改行：Instruments.cs・InstrumentsCess.cs は i/lf。新しいファイルも LF。コミットの前に `git ls-files --eol`。
+
+## [3] 足す試験と、それぞれを赤にする突然変異（腕の前・使い捨ての木で 1 本ずつ・結果は measurements/m888_20261106/mut888.txt）
+
+試験（CedeRuleInstrumentTests.cs・[Collection("Instruments")]・期待値は盤面の手の値か、エンジンの欄を移す前に試験が自分で写した値から作る＝計器の列どうしで比べない）：
+- T1 割譲（Ceded）を TransferRegion で直に踏み、StepQuarter を挟まず Quarter を呼ぶ：後の R0〜R3・RuleInit[1]・dominance・外国持分＝前（試験が移す前に写した値）・identBreakFlag＝0。
+- T2 受け手の鍵：受け手の Name を BaseName と違う名に替え、BaseName の鍵で持分 0.2 を置いた州を割譲 → receiverOwnBeforeShare＝0.2・thirdParty は第三国の分だけ。BaseName が空の受け手（Name の鍵）でも同じ。
+- T3 建国（PendingSecessionWars→SpawnSecededNations・Seceded）と再併合（Returned）の行が出る。建国の receiver は四半期の末の持ち主（新しい国）。
+- T4 同じ四半期に 2 回動いた州（Ceded の後に Ceded で戻す）：2 行とも movedAgainFlag＝1（Ceded の行でも立つ）。
+- T5 割譲の後・同じ四半期の末までに AddForeignShare が当たった州：foreignAddedFlag＝1（当たらない割譲の行は 0）。
+- T6 助走の間（WarmupFrozen＝真）の割譲は行にならない。
+- T7 quarter は Quarter の q・year は RegionMoved が受け取る from の Year（割譲の後・Quarter の前に Year を手で 1 進めた盤面）。
+- T8 計器の門：割譲の後・Quarter の前に Rule[0] を人工に 1e-6 動かす → identBreakFlag＝1・identDiffMaxIndex≧1e-6。
+
+突然変異（1 本ずつ・赤になる試験）：
+| # | 突然変異 | 赤になる試験 |
+|---|---|---|
+| M1 | 受け手の鍵の式を Name だけにする | T2（名を替えた受け手） |
+| M2 | AddForeignShare の印を外す（常に 0） | T5 |
+| M3 | movedAgain を〈四半期の末の持ち主≠受け手〉だけで数える（受け手の州一覧の中だけで探す型） | T4（2 行目の Ceded） |
+| M4 | year を Quarter の時の持ち主の Year にする | T7（手で年を進めた盤面）。⚠実の盤面では年は同じ（下の [6] ①）＝実の盤面の門ではないと名乗る |
+| M5 | 助走の行を捨てない | T6 |
+| M6 | 計器の門の閾値を 1e-12 から 1 へ緩める | T8 |
+| M7 | 前を Rehome の後に読む（使い捨ての木だけで Territory.cs:353 の呼び口を Rehome の呼び出しの後へ動かす） | なし＝**T1 は緑と予言**＝前の読みの位置は門ではないと名乗る（Rehome の Ceded 枝は Rule・RuleInit・Dominance・ForeignShares を触らない＝Territory.cs:271〜:275。tierBefore だけが変わる） |
+| M8 | identDiffMax に外国持分を入れない | T8 の第 2 の盤面（持分を人工に動かす） |
+
+ソースを走査する番人の点検（㉘・器のコミットの直後・隔離ビルド --artifacts-path D:/PoB_work/c75ce_art）：
+- IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests の 7 組。
+- 書き換える件数の予言（㉑）：0（工業化度の読み手の許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表のどれにも触れない＝新しいファイルは MoneyStock を作らず World.Transfer を呼ばず工業化度と技術水準を読まない）。
+- 点検の grep（この線の木）：`new MoneyStock(` は InstrumentsCede.cs に 0・route_anchors.tsv の鍵は Instruments.cs の行を名指さない（cearn_s・flow_s の経路の名に Instruments.cs は keep_885/base_ins の cearn_s1・flow_s1 で 0 件）＝:1860・:1900 の下の行が 1 行ずつずれても経路の名は動かない見込み。
+
+## [4] 恒等の判定
+
+- `bash scripts/instruments/ident/ident.sh run c75ce --tree D:/PoB_work/wt_c75ce --added-tables cederule_s --tests-delta <T の数> --saveleak`（台本 scripts/instruments/c75ce/ident888.sh）。
+- 素の 5 種が b5_20261106_m873 と全行一致（名乗り行の SOURCE-HASH を除く）・計器つき 10 種の成績表が b10_20261106_m873_ins と全行一致・計器の表は INSRAW keep_885/base_ins と全行バイト一致（cederule_s だけが増える）・cearn_s の経路の名が動かない・注視の表が mon_20261106_m873.txt と一致・テストの数は 2323＋T の数（FullLength 3）・savetest OK・leakhunt 違反なし。
+- ident が走っている間は wt_c75ce にコミットしない（㉙）。
+
+## [5] 採否の規則
+
+- 〈判定: 恒等〉（測った種で一致）かつ 旗 0 の恒等の門の破れが 0 かつ T1〜T8 が緑で、M1〜M3・M5・M6・M8 が赤 → 採る（合流へ）。
+- 〈判定: 不一致〉→ その変更を外して報告に回す（測り直して閾値を替えない）。
+- 恒等の門の破れが 1 以上 → 〈Rule・Dominance・外国持分の書き手が他にある〉＝計器の前提の誤りとして報告する（独立の確定 Territory.cs:288 が同じ四半期に当たった行は tierAfter と dominance で見分けて名指す）。結果の後に門の母集合を広げたり狭めたりしない。
+
+## [6] 形と列（形 Q′・(883) 反証役の直し 9 件）
+
+### ① 四半期と年
+- quarter＝Instruments.Quarter(sim, seed, q)（Instruments.cs:1780）の q を CedeTable が付ける。
+- 四半期の中の順：各国の StepDayClose→QuarterEnd（Simulation.cs:1717・:1875）の中で Politics.Step（Simulation.cs:1887）→CheckSecession（Politics.cs:505）→ Year の繰り上げ（Simulation.cs:1900・Q4 の後だけ）→ 共有層の Diplomacy.Step×3（MultiNationSim.cs:822・m＝0 で TreatyPortLapse〔Diplomacy.cs:956〕→StepWars〔:968〕の割譲と AddForeignShare）→ ReabsorbNations（MultiNationSim.cs:1062・Returned）→ SpawnSecededNations（:1063・Seceded）→ StepQuarter が戻る → SelfPlay.cs:2183 の Instruments.Quarter(sim, seed, q)。
+  ⇒ Quarter(q) の時点で貯まった事象は全て四半期 q のもの・割譲から四半期の末までに Rule・RuleInit・Dominance の書き手は走らない（独立の確定 Territory.cs:288 を除く）・外国持分の書き手は AddForeignShare だけ（風化は四半期の最初の月の StepWars の前）。
+- year＝RegionMoved が受け取る `World from` の Year（World.cs:84）。⚠実の盤面では、Year の繰り上げ（Simulation.cs:1900）は共有層より前＝RegionMoved の時の from.Year と Quarter の時の Year は同じ値（rule_s・inheritintent_s の year と同じ規約＝Q4 の行は次の年の数）＝M4 は実の盤面の門ではない。
+- 助走の間の事象は捨てる：RegionMoved の時 from.WarmupFrozen が真なら貯めない（WarmupFrozen は MultiNationSim.cs:666 で全ての国に立ち :681 で倒れる）。助走は外交を凍結（DiplomacyFrozen）＝割譲は来ない見込み。
+- 状態の置き場：ConditionalWeakTable<Diplomacy, CedeState>（鍵は from.Diplomacy＝多国の共有のインスタンス・Quarter と Close は sim.Diplomacy で引く＝InstrumentsCess.cs の CessStates と InstrumentsInheritIntent.cs の InheritRegs の型）。from.Diplomacy が null（単国の世界）なら何もしない（表に無いと名乗る）。Sink に欄を足さない。
+
+### ② 触れないファイル
+- Diplomacy.cs・Territory.cs・Politics.cs・MultiNationSim.cs・InstrumentsRule.cs・InstrumentsCess.cs には 1 字も触れない。
+
+### ③ 列（cederule_s・RegionMoved を通る事象 1 件につき 1 行・全ての国・単位は接尾辞）
+前＝RegionMoved の時点（Rehome の前・from.Regions.Remove の後・換算の後）。後＝同じ四半期の末（CedeTable）。
+- quarter／year／how（Ceded・Seceded・Returned）／sender（from の鍵）／receiver（Ceded・Returned は to の鍵・Seceded は四半期の末の持ち主の鍵）／region
+- tierBefore・tierAfter
+- sameCoreFlag（両国の主流文化 Power.Culture の一致を計器が自分で読む・Seceded は nan＝RegionMoved の時に受け手の国が無い）
+- popK（前の州の人口）・receiverPopShare（四半期の末：州の人口÷持ち主の全ての州の人口）
+- ruleStateBeforeShare・ruleLocalBeforeShare・ruleForeignBeforeShare・ruleUngovBeforeShare（R0〜R3）・ruleInitLocalBeforeShare（RuleInit[1]）・dominanceBeforeShare
+- foreignRulerBeforeCount・foreignShareBeforeSum（正の持分の和）・receiverOwnBeforeShare・thirdPartyBeforeSum（受け手の鍵の持分を引いた正の持分の和＝⑦）
+- adminFillBeforeShare・deliveryBeforeShare（R0×(d＋(1−d)×AdminFill)＋R1×d・d＝1−PrivilegeTaxDiscount・式は計器が自分で書く）・reachBeforeShare（R0）
+- C1＋H-a の見込み（計器が自分で当てる・エンジンの関数を呼ばない）：c1StateShare（0）・c1LocalShare（前の R0＋R1）・c1DeliveryShare・c1ReachShare（0）・haOwnShare（0）。c1Delivery は **四半期の末の AdminFill** で数える（⑥）。
+- ruleStateAfterShare〜ruleUngovAfterShare・ruleInitLocalAfterShare・dominanceAfterShare・foreignRulerAfterCount・foreignShareAfterSum・receiverOwnAfterShare・thirdPartyAfterSum
+- adminFillAfterShare・deliveryAfterShare（四半期の末の AdminFill と後の Rule）・reachAfterShare
+- ownerAtQuarterEnd（Region の参照を sim.Nations の全ての World の州一覧から探す＝④・見つからなければ空）
+- militancyRegionIndex（州の平民〔IsCommoner〕の人口加重の闘争度＝InstrumentsRule.cs の RuleCrowdMilitancy・四半期の末・割譲の +0.3〔Diplomacy.cs:3390〕の後）
+- ungovTargetOldShare・ungovTargetNewShare（InstrumentsRule.cs の rule_s と同じ計器の式＝RuleRawOrder・RuleCrowdMilitancy・RuleClamp01 と Politics.RegionReach〔rule_s と同じ呼び〕・持ち主は四半期の末・⑤・Rule の長さが 4 でない州は nan）
+- movedAgainFlag（同じ Region の参照が同じ四半期の事象に 2 回以上あるか、Ceded・Returned で四半期の末の持ち主が to でない＝④）
+- foreignAddedFlag（前と後で外国持分の主体の数が増えたか、正の持分の和が増えた＝AddForeignShare が当たった印・§10 訂正 2）
+- pickedReceiverFlag（四半期の末の持ち主が計器の国か）
+- identDiffMaxIndex（前と後の |差| の最大＝R0〜R3・RuleInit の全ての要素・Dominance・外国持分の全ての要素・持分の要素の数が違えば inf・**double のまま C# で数える**＝G10 の印字の床で門を置かない〔★(885)〕）・identBreakFlag（identDiffMaxIndex が 1e-12 以下でなければ 1）
+
+- 受け手の鍵：Diplomacy.cs:3164 と同じ式 `BaseName.Length > 0 ? BaseName : Name` を計器が自分で書く（CedeKey）。計器はエンジンの関数を呼ばない＝(774) の InheritIntentBefore／After〈エンジンと同じ純関数を呼ぶ〉との食い違いを名乗る（ungovTarget の 2 列だけは rule_s と同じく Politics.RegionReach を読む＝rule_s の式をそのまま使う⑤）。
+- 40 四半期の追跡の表は作らない（戻りは rule_s で読める）。
+
+### ④〜⑨（(883) 反証役の直し）
+- ④ movedAgain は Region の参照を持ち四半期の末の持ち主を全ての World から探す（受け手の州一覧の中だけで探さない）。
+- ⑤ ungovTargetNew は InstrumentsRule.cs の計器の式（:17〜:33 の注・RuleRawOrder・RuleCrowdMilitancy）。
+- ⑥ c1Delivery・c1Reach は四半期の末の AdminFill。
+- ⑦ thirdParty は受け手の持分を引く。
+- ⑧ grep はこの木で取り直した（:1900 は `CessClose(sim, sk.Seed);`・:1814 の引数は yearEnd）。突然変異の表に計器の門を壊す行（M6）を入れた。
+- ⑨ 台本 ident888.sh はこの線が書く。
+
+## [7] 旗 0 の恒等の門（ident の生で数える）
+
+- 母集合：cederule_s の Ceded・Seceded・Returned の全ての行のうち movedAgainFlag＝0 かつ foreignAddedFlag＝0。
+- 門：identBreakFlag の和＝0（後の R0〜R3・RuleInit・dominance・外国持分＝前・1e-12・double で数えた差）。数えるのは scripts/instruments/c75ce/gate888.py（flag の和・母集合の数・除いた件数を種ごとに）。gate888.py の自己試験は人工の行（flag 1）を落とせることを確かめる。
+- あわせて段 C-1 の G4 の母集合の数（割譲の件数・格の内訳・前の receiverOwnBeforeShare＞0 の件数・印で外れる件数）を measurements/m888_20261106/ に記録する（採否の言い方にしない）。
+
+## [8] D: と腕
+
+- D: の空き（shutil.disk_usage・2026-11-06 この線の開始時）：157.52GB。`arms.sh free`＝6。
+- 起こす前に arms.sh free（3 以上）と D: の空き（35GB 以上）を測り直して記録に書く。ident 1 本 約 15〜17GB。
+- 生の縮め：判定と反証役の後に、ident の生を cederule_s と keepsum（全ての表の要約）へ縮め、D:/PoB_work/c75ce_work/keep/ に合流まで残す（段 C-1 の母集合と合流の INSRAW の候補）。ビルドの写し src_* は終わったら消す。
+
+## [9] 記録（名乗り）
+
+- PeacetimeConscriptGrievance を点火する線は、C1 で割譲の全ての州が中央 12 年遺恨の源になる、と名乗る（(878) の推奨 3・打切りを除いた中央 48 四半期・打切り 37%＝下界・⑫）。
+- 担当のモデルは opus（README の〈実装は sonnet〉からの外れ＝計画の担当の判断）。
