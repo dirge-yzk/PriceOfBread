@@ -1,0 +1,6 @@
+base イギリス：州で組んだ |log B_reg| の中央 0.195（行 6680）・国の |log baseOverFirstSeenRatio| の中央 0.217（行 6680）・比 0.899
+base 清：州で組んだ |log B_reg| の中央 0.566（行 6680）・国の |log baseOverFirstSeenRatio| の中央 0.567（行 6680）・比 0.998
+n1 イギリス：州で組んだ |log B_reg| の中央 0.217（行 6680）・国の |log baseOverFirstSeenRatio| の中央 0.204（行 6680）・比 1.067
+n1 清：州で組んだ |log B_reg| の中央 0.478（行 6680）・国の |log baseOverFirstSeenRatio| の中央 0.471（行 6680）・比 1.015
+n2 イギリス：州で組んだ |log B_reg| の中央 0.186（行 6680）・国の |log baseOverFirstSeenRatio| の中央 0.196（行 6680）・比 0.951
+n2 清：州で組んだ |log B_reg| の中央 0.695（行 6680）・国の |log baseOverFirstSeenRatio| の中央 0.646（行 6680）・比 1.076

@@ -1,0 +1,33 @@
+生 D:/PoB_work/keep_905/n2 種 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+[wars] 戦争 全 5365 国家間 5183 内戦 182 種ごとの国家間 {1: 475, 2: 820, 3: 492, 4: 410, 5: 474, 6: 552, 7: 455, 8: 534, 9: 450, 10: 521}
+[wars] 国家間の組（種×組） 2880 3 回以上の組 554 最多 14
+[wars] 国家間の月数 中央 15.0 最大 226.0 1 か月以下 32
+[invade] 侵略の試み 1287 屈服 submitted=1 558 拒否 0 729 相手が国家 835 相手が非国家 452
+[invade] 近隣の列強へ足した緊張 proximityAdded>0 1287 =0 0 中央 202.7408048
+[invade] 相手へ足した緊張 addedToTarget の値 {'35': 835, '0': 452}
+[invade] (相手が国家, 屈服) の組 {('1', '1'): 400, ('0', '1'): 158, ('1', '0'): 435, ('0', '0'): 294}
+[cess] 割譲の州 1401 tier {'Colonial': 814, 'Core': 364, 'Integrated': 178, 'ColonyList': 45} route {'2': 703, '3': 604, '4': 49, '1': 45}
+[cess] sameLandmassFlag {'0': 780, '1': 621}
+[cess] landAdjFlag {'1': 453, '0': 948}
+[cess] portFlag {'1': 867, '0': 489, 'nan': 45}
+[cess] canCrossFlag {'1': 1057, '0': 344}
+[cess] colonialReachOnlyFlag {'nan': 748, '0': 609, '1': 44}
+[cess] e2OkFlag {'1': 1023, '0': 378}
+[cess] winnerIsNationFlag {'1': 1401}
+[cess] loserIsNationFlag {'1': 1356, '0': 45}
+[cess] gcKm 最大 18744.50158 4000 超 663 reachKm 最大 nan
+[cess] 講和ごとの州の数 分布 {2: 245, 1: 827, 3: 28} 講和 1100
+[cess] tier ごとの講和で 2 州以上 {'Colonial': 173, 'ColonyList': 3, 'Core': 0, 'Integrated': 0}
+[cessp] 講和 4580 n1..n4 の合計 [45.0, 703.0, 604.0, 49.0] loserRegionCount 0 109
+[cpeace] 講和 1468 賠償 repRealIndex>0 1320 捕獲 capturedCount>0 241 割譲 cedeRealCount>0 653 nCollapse>0 1468 repNew<repOld 339
+[opium] scope {'R': 2032786, 'N': 416690}
+[opium] 国×四半期 2449476 輸出禁止 exportBanFlag=1 21856 禁止の国 ['アシャンティ王国', 'アフガニスタン', 'アメリカ', 'アラビア', 'アルジェ摂政国', 'アワド', 'イエメン', 'イギリス', 'ウジジ王国', 'エチオピア', 'オスマン', 'オマーン']
+[opium] 禁令の緊張 tensionAddedPerQuarter>0 18704 合計 201877.5 組の月 tensionPairMonthsCount>0 18704
+[opium] 禁止の国で緊張>0 839 所持の法 possessionLawCode {'': 2032786, '0': 377762, '1': 27282, '2': 11646}
+[rule] 条約港の州×四半期 29774 入った 1039 外れた（失効か移転） 1045 条約港を持った州（種×州） 853
+[score] rankInForce {'Great': 11759, 'Middle': 11750, 'Secondary': 8400, 'Minor': 73412} isGreatShare {'1': 11760, '0': 93561}
+[score] treatyStrength>0 105294 / 105321
+[scalars] 国×四半期 149789 defeatShock>0 111523 >=0.3 10157 最大 1.0
+[scalars] warExhaustion>0 132221 >=0.5 12971 最大 1.0 externalPressure>0 0
+[nation] securityThreatShare>0 418611 / 418793 最大 0.9998055898
+[nation] armyThreatShare>0 413534 / 418793 最大 0.9998055493

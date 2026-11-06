@@ -1,0 +1,19 @@
+(907) c78lg 読む線の計画（読むだけ・コミットしない・腕 0 本）
+作ったフォルダ：D:/PoB_work/r907_work（tools/・selftest/・s25/）。worktree と枝は作らない（main の作業ツリー C:/Users/dirge/Documents/PriceOfBread を読むだけ・錨は git show fc9aeb4c:<path> で引く）。
+
+作業の場所
+- 道具：scripts/instruments/r900/ と scripts/instruments/m905/reanchor905.py を tools/ へ写した（元は書き換えない）。
+- 台帳の元：C:/Users/dirge/Documents/PriceOfBread/docs/機能の台帳.md（main 258a4543・門 1〜9 は fc9aeb4c で rc=0＝check_main.txt）。
+- 文書：docs/ゲーム概要と実装機能.md §3-8 外交（5348〜5872 行・見出し 85 件）＝s25/doc_s25.txt に写した。
+- 錨の木：fc9aeb4c（SOURCE-HASH aaecd9e3b5cce1b8・SimCore は 258a4543 と同じ＝git diff --stat は WriterRatchetTests.cs 1 行だけ）。
+
+読む生（既にある物だけ）
+- R905＝D:/PoB_work/keep_905/base_ins（計器つき 10 種・m905）：wars・invade・cess・cessp・cpeace・opium・nation・scalars・secession ほか、列の名で探す。
+- N1・N2＝D:/PoB_work/keep_905/n1・n2（ヌル腕）。S11＝D:/PoB_work/keep_905/a11（種 11〜20）。
+- 成績表：measurements/b10_20261106_m905_ins（同一ペアの再戦・列強の介入の行）。
+
+出力
+- s25/：見出しごとの係数と読み手の自動の表（s25_static.tsv）・生の台本と出力（s25_*.py・*_R905.txt）・S25 の節（ledger_s25_section.md）。
+- ledger_after907.md（§2d S25 を入れ、§3 の S25 の仮の行を置き換え・S09/S24 の重なりの行へ〈S25-xx で確かめた〉・S15-10 と 12 列目の 5 行の数）。
+- overview_s25.patch（S25 の節 5348〜5872 だけ）。
+- selftest/：門 6 の両側（錨が無い側・最後に確かめたコミットが無い側）と他の門の試験の出力。

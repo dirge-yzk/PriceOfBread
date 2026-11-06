@@ -1,0 +1,7 @@
+[opium N] 国×四半期 413891 輸出禁止 22249 禁止した国の数（種×国） 336
+[opium N] 緊張>0 19848 所持の法 {'0': 370908, '1': 30931, '2': 12052}
+[opium N] 所持の法 1以上で緊張>0 19848 所持の法 0 で緊張>0 0
+[opium N] 輸出禁止の国の輸出 exportsPerClearing>0 3511 禁止でない国で輸出>0 7362
+[cess] tier×(gcKm>4000) {('Colonial', True): 520, ('Core', False): 363, ('Colonial', False): 159, ('Integrated', False): 166, ('ColonyList', False): 23, ('ColonyList', True): 31}
+[cess] route×tier {('2', 'Colonial'): 578, ('3', 'Core'): 332, ('3', 'Colonial'): 100, ('3', 'Integrated'): 163, ('1', 'ColonyList'): 54, ('4', 'Core'): 31, ('4', 'Colonial'): 1, ('4', 'Integrated'): 3}
+[cess] canCross=0 の route {('3', '1'): 329, ('1', '1'): 10, ('4', '1'): 21}

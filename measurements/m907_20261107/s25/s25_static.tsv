@@ -1,0 +1,194 @@
+docL	head	name	decl	value	readers	files	first
+5398	● 緊張の台帳と開戦時計	WarDeclareTension	Coefficients.cs:1415	140.0	3	Diplomacy.cs:3	Diplomacy.cs:296;Diplomacy.cs:1513;Diplomacy.cs:1952
+5398	● 緊張の台帳と開戦時計	WarTriggerMonths	Coefficients.cs:1265	6	3	Diplomacy.cs:3	Diplomacy.cs:296;Diplomacy.cs:1431;Diplomacy.cs:1527
+5404	● 緊張の内訳台帳	TensionReasonJa	Diplomacy.cs:679		2	Diplomacy.cs:2	Diplomacy.cs:247;Diplomacy.cs:679
+5408	● 脅威の緊張（大国であること自体が敵を作る）	ThreatTension	Diplomacy.cs:1067		11	Diplomacy.cs:5 MultiNationSim.cs:5 ArmyShape.cs:1	ArmyShape.cs:160;Diplomacy.cs:950;Diplomacy.cs:1057
+5408	● 脅威の緊張（大国であること自体が敵を作る）	ThreatReach	Diplomacy.cs:1104		4	Diplomacy.cs:2 MultiNationSim.cs:2	Diplomacy.cs:1094;Diplomacy.cs:1104;MultiNationSim.cs:2068
+5408	● 脅威の緊張（大国であること自体が敵を作る）	ArmyShape	ArmyShape.cs:25		37	Diplomacy.cs:13 MultiNationSim.cs:9 Discovery.cs:3 World.cs:3	ArmyShape.cs:25;ArmyShape.cs:265;BilateralMarket.cs:179
+5408	● 脅威の緊張（大国であること自体が敵を作る）	Borders	ArmyShape.cs:197		12	ArmyShape.cs:4 Diplomacy.cs:4 MultiNationSim.cs:3 World.cs:1	ArmyShape.cs:39;ArmyShape.cs:41;ArmyShape.cs:76
+5408	● 脅威の緊張（大国であること自体が敵を作る）	ThreatTensionRate			0		
+5408	● 脅威の緊張（大国であること自体が敵を作る）	DependentThreatWeight	Coefficients.cs:1600	0.3	3	Diplomacy.cs:3	Diplomacy.cs:1128;Diplomacy.cs:1134;Diplomacy.cs:1140
+5408	● 脅威の緊張（大国であること自体が敵を作る）	ThreatUsesColonyValue			1	Diplomacy.cs:1	Diplomacy.cs:412
+5415	● 熟練度が生む緊張	SkillTensionWeight	Coefficients.cs:2227	0.5	3	Diplomacy.cs:3	Diplomacy.cs:1078;Diplomacy.cs:1079;Diplomacy.cs:1080
+5421	● 思想の緊張	IdeologyTensionRate			0		
+5421	● 思想の緊張	IdeologyAffinityRelief	Coefficients.cs:1575	0.30	1	Diplomacy.cs:1	Diplomacy.cs:1174
+5427	● 文明の距離（民族・法体系・宗教）	EnableCivilizationTension			1	Diplomacy.cs:1	Diplomacy.cs:1180
+5427	● 文明の距離（民族・法体系・宗教）	EthnicTensionRate			0		
+5427	● 文明の距離（民族・法体系・宗教）	LawTensionRate			0		
+5427	● 文明の距離（民族・法体系・宗教）	ReligionTensionRate			0		
+5427	● 文明の距離（民族・法体系・宗教）	EthnicAffinityRelief	Coefficients.cs:1578	0.12	2	Diplomacy.cs:2	Diplomacy.cs:1288;Diplomacy.cs:1289
+5427	● 文明の距離（民族・法体系・宗教）	ReligionAffinityRelief	Coefficients.cs:1582	0.06	1	Diplomacy.cs:1	Diplomacy.cs:1295
+5427	● 文明の距離（民族・法体系・宗教）	ReligionHeresyBonus	Coefficients.cs:1581	0.22	3	Diplomacy.cs:3	Diplomacy.cs:1299;Diplomacy.cs:1314;Diplomacy.cs:1346
+5433	● 同じ宗教の住民の保護	ProtectorTensionRate			0		
+5433	● 同じ宗教の住民の保護	ProtectorInterventionWeight	Coefficients.cs:1588	0.5	2	Diplomacy.cs:2	Diplomacy.cs:2418;Diplomacy.cs:2419
+5439	● 交易路の扼圧	RouteDependenceTensionRate			0		
+5444	● アヘン禁令の緊張	Contraband	Contraband.cs:25		11	BilateralMarket.cs:3 EconomyStep.cs:2 Policy.cs:2 Contraband.cs:1	BilateralMarket.cs:736;BilateralMarket.cs:962;BilateralMarket.cs:983
+5444	● アヘン禁令の緊張	OpiumBanTensionRate			0		
+5450	● アヘン輸出禁止のAI	OpiumExportPressureThreshold	Coefficients.cs:1502	1.2	1	SelfPlay.cs:1	SelfPlay.cs:1778
+5450	● アヘン輸出禁止のAI	OpiumExportPressureTension	Coefficients.cs:1501	40.0	1	SelfPlay.cs:1	SelfPlay.cs:1775
+5455	● 緊張の自然減衰	TensionDecay	Coefficients.cs:1262	0.42	2	Diplomacy.cs:2	Diplomacy.cs:3694;Diplomacy.cs:3711
+5455	● 緊張の自然減衰	HighTensionBand	Coefficients.cs:1261	100.0	4	Diplomacy.cs:4	Diplomacy.cs:3693;Diplomacy.cs:3697;Diplomacy.cs:3701
+5455	● 緊張の自然減衰	HighTensionDecayRate			0		
+5455	● 緊張の自然減衰	FrozenTensionDecayRate	Coefficients.cs:2883	0.2	1	Diplomacy.cs:1	Diplomacy.cs:3698
+5461	● 遺恨ストックによる解凍の遅れ	LostLandHalflifeQuarters			6	CrownParliament.cs:2 Diplomacy.cs:2 Politics.cs:1 World.cs:1	CrownParliament.cs:216;CrownParliament.cs:219;Diplomacy.cs:3705
+5466	● ハイエナ抑制	DefeatShockTensionRelief	Coefficients.cs:1767	2.0	2	Diplomacy.cs:2	Diplomacy.cs:3701;Diplomacy.cs:3702
+5466	● ハイエナ抑制	DefeatShockProtectMin	Coefficients.cs:1768	0.3	1	Diplomacy.cs:1	Diplomacy.cs:3701
+5472	● 凍結ペアの解凍	FrozenTensionDecays			1	Diplomacy.cs:1	Diplomacy.cs:3696
+5478	● 復讐心（失地の記憶）	RevanchismTension	Coefficients.cs:1563	70.0	3	Diplomacy.cs:2 Ideology.cs:1	Diplomacy.cs:1938;Diplomacy.cs:2793;Ideology.cs:29
+5483	● 国家ランク（列強・準列強・中堅・弱小）	GreatPowerCount	Coefficients.cs:1656	7	5	Diplomacy.cs:4 HistoricalReference.cs:1	Diplomacy.cs:555;Diplomacy.cs:577;Diplomacy.cs:578
+5483	● 国家ランク（列強・準列強・中堅・弱小）	SecondPowerCount	Coefficients.cs:1670	5	3	Diplomacy.cs:3	Diplomacy.cs:555;Diplomacy.cs:578;Diplomacy.cs:579
+5483	● 国家ランク（列強・準列強・中堅・弱小）	MiddlePowerCount	Coefficients.cs:1675	7	2	Diplomacy.cs:2	Diplomacy.cs:556;Diplomacy.cs:579
+5483	● 国家ランク（列強・準列強・中堅・弱小）	RankBracketsMerged			1	Diplomacy.cs:1	Diplomacy.cs:597
+5483	● 国家ランク（列強・準列強・中堅・弱小）	RankUpdateIntervalQuarters	Coefficients.cs:1655	4	2	Diplomacy.cs:2	Diplomacy.cs:380;Diplomacy.cs:949
+5483	● 国家ランク（列強・準列強・中堅・弱小）	GreatPowerScoreFraction	Coefficients.cs:1651	new(0.35)	1	Diplomacy.cs:1	Diplomacy.cs:586
+5483	● 国家ランク（列強・準列強・中堅・弱小）	MinorPowerScoreFraction	Coefficients.cs:1652	new(0.22)	1	Diplomacy.cs:1	Diplomacy.cs:586
+5493	● 覇権国の特定と反覇権の封じ込め	HegemonThreatMin	Coefficients.cs:1269	0.3	3	Diplomacy.cs:3	Diplomacy.cs:751;Diplomacy.cs:1144;Diplomacy.cs:1147
+5493	● 覇権国の特定と反覇権の封じ込め	HegemonContainmentTrade	Coefficients.cs:1276	0.40	2	Diplomacy.cs:2	Diplomacy.cs:756;Diplomacy.cs:761
+5493	● 覇権国の特定と反覇権の封じ込め	HegemonContainmentMax	Coefficients.cs:1277	0.55	2	Diplomacy.cs:2	Diplomacy.cs:372;Diplomacy.cs:761
+5493	● 覇権国の特定と反覇権の封じ込め	AntiHegemonExtraAlliances	Coefficients.cs:1271	1	1	Diplomacy.cs:1	Diplomacy.cs:1986
+5493	● 覇権国の特定と反覇権の封じ込め	AntiHegemonAllianceChance	Coefficients.cs:1270	0.7	1	Diplomacy.cs:1	Diplomacy.cs:1987
+5499	● 防衛同盟	MaxAlliances	Coefficients.cs:1267	2	2	Diplomacy.cs:2	Diplomacy.cs:297;Diplomacy.cs:1986
+5499	● 防衛同盟	FriendlyTensionMax	Coefficients.cs:1263	20	2	Diplomacy.cs:2	Diplomacy.cs:1957;Diplomacy.cs:1962
+5499	● 防衛同盟	RivalTensionThreshold	Coefficients.cs:1264	40	6	Diplomacy.cs:4 Model.cs:2	Diplomacy.cs:1915;Diplomacy.cs:1938;Diplomacy.cs:1951
+5505	● 同盟に「届く」ことの要求	—					
+5509	● 同盟の破棄	AllianceBreakTension	Coefficients.cs:1603	50	2	Diplomacy.cs:2	Diplomacy.cs:1392;Diplomacy.cs:1423
+5514	● 同盟による参戦（義務は無い）	—					
+5518	● 参戦の連鎖	—					
+5522	● 参戦要請と信義の傷	Popups			0		
+5522	● 参戦要請と信義の傷	AllyRefusalTension	Coefficients.cs:1757	60	8	Diplomacy.cs:8	Diplomacy.cs:94;Diplomacy.cs:1783;Diplomacy.cs:1805
+5527	● 開戦と強制禁輸	—					
+5532	● 到達できない相手には宣戦しない	WarNeedsReach			0		
+5532	● 到達できない相手には宣戦しない	DefendProjectionMin	Coefficients.cs:1795	0.2	5	Diplomacy.cs:5	Diplomacy.cs:1442;Diplomacy.cs:1466;Diplomacy.cs:1733
+5537	● AI同士の屈服	AISubmitMilRatio	Coefficients.cs:1415	?	7	Diplomacy.cs:6 SelfPlay.cs:1	Diplomacy.cs:1398;Diplomacy.cs:1403;Diplomacy.cs:1556
+5537	● AI同士の屈服	SubmitCountsAllies			1	Diplomacy.cs:1	Diplomacy.cs:1549
+5537	● AI同士の屈服	ConcedeTensionTarget	Coefficients.cs:1418	110.0	2	Diplomacy.cs:2	Diplomacy.cs:1565;Diplomacy.cs:2186
+5537	● AI同士の屈服	AISubmitLegitCost	Coefficients.cs:1965	0.05	4	Diplomacy.cs:4	Diplomacy.cs:1568;Diplomacy.cs:2085;Diplomacy.cs:2187
+5543	● プレイヤーへの最後通牒	Popups			0		
+5547	● 緊張ポップアップ	Popups			0		
+5547	● 緊張ポップアップ	GameViewModel			16	SelfPlay.cs:5 Diplomacy.cs:3 World.cs:2 Fiscal.cs:1	Diplomacy.cs:2217;Diplomacy.cs:2702;Diplomacy.cs:3406
+5547	● 緊張ポップアップ	TensionPopupThreshold	Coefficients.cs:1419	70.0	0		
+5552	● 戦争見通しの提示	—					
+5557	● 挑発と緩和	Popups			0		
+5557	● 挑発と緩和	ActionTensionStep	Coefficients.cs:1688	25.0	13	Diplomacy.cs:13	Diplomacy.cs:1952;Diplomacy.cs:2033;Diplomacy.cs:2046
+5557	● 挑発と緩和	TensionActionRampMonths	Coefficients.cs:1689	6	2	Diplomacy.cs:2	Diplomacy.cs:2033;Diplomacy.cs:2046
+5557	● 挑発と緩和	TensionActionCooldownMonths			1	Diplomacy.cs:1	Diplomacy.cs:2035
+5563	● AIの挑発回避と自衛的宥和	InsultTension			0		
+5563	● AIの挑発回避と自衛的宥和	InsultChance			1	Diplomacy.cs:1	Diplomacy.cs:1933
+5563	● AIの挑発回避と自衛的宥和	AppeaseMilitaryRatio	Coefficients.cs:1789	2.5	4	Diplomacy.cs:3 SelfPlay.cs:1	Diplomacy.cs:1806;Diplomacy.cs:1808;Diplomacy.cs:1930
+5569	● 挑発の近隣波及	Popups			0		
+5569	● 挑発の近隣波及	ProximityTensionRange	Coefficients.cs:1468	3000.0	6	Diplomacy.cs:5 World.cs:1	Diplomacy.cs:2114;Diplomacy.cs:2123;Diplomacy.cs:2132
+5569	● 挑発の近隣波及	ProvokeProximitySpread	Coefficients.cs:1696	0.3	3	Diplomacy.cs:3	Diplomacy.cs:2123;Diplomacy.cs:2127;Diplomacy.cs:2136
+5574	● 外交行動の国内帰結	TensionPoliticsScale	Coefficients.cs:1693	0.03	2	Diplomacy.cs:2	Diplomacy.cs:2076;Diplomacy.cs:2100
+5580	● 禁輸	—					
+5585	● 軍需輸出の禁止	BilateralMarket	InternationalMarket.cs:20		37	InternationalMarket.cs:8 MultiNationSim.cs:6 World.cs:4 ProductionDiag.cs:3	Bank.cs:23;Colonial.cs:127;Discovery.cs:986
+5585	● 軍需輸出の禁止	MilitaryExportTensionThreshold	Coefficients.cs:2179	60.0	2	Diplomacy.cs:1 Policy.cs:1	Diplomacy.cs:747;Policy.cs:199
+5585	● 軍需輸出の禁止	MilitaryExportAccessFloor	Coefficients.cs:2181	0.1	1	Diplomacy.cs:1	Diplomacy.cs:748
+5591	● 通商破壊	BilateralMarket	InternationalMarket.cs:20		37	InternationalMarket.cs:8 MultiNationSim.cs:6 World.cs:4 ProductionDiag.cs:3	Bank.cs:23;Colonial.cs:127;Discovery.cs:986
+5591	● 通商破壊	RiskLambda	Coefficients.cs:2614	2.0	6	BilateralMarket.cs:5 Diplomacy.cs:1	BilateralMarket.cs:110;BilateralMarket.cs:356;BilateralMarket.cs:389
+5597	○ 拿捕賞金	PrizeMoneyRate			0		
+5597	○ 拿捕賞金	PrizeCargoShare	Coefficients.cs:1793	new(1.0)	2	Diplomacy.cs:2	Diplomacy.cs:784;Diplomacy.cs:803
+5603	○ 拿捕の連合按分	PrizeLossProrated			1	Diplomacy.cs:1	Diplomacy.cs:792
+5609	~~● 海軍シェアの地理的創発~~	NavalShareBase			0		
+5609	~~● 海軍シェアの地理的創発~~	NavalShareOceanBonus			0		
+5609	~~● 海軍シェアの地理的創発~~	NavalShareColonyWeight			1	Diplomacy.cs:1	Diplomacy.cs:418
+5609	~~● 海軍シェアの地理的創発~~	NavalShareMax			0		
+5609	~~● 海軍シェアの地理的創発~~	NavalShareFromUpkeep			0		
+5613	● 艦隊の摩耗と修理	EconomyStep	Diplomacy.cs:28		226	Simulation.cs:35 World.cs:33 Model.cs:32 ProductionDiag.cs:21	AiRootSupply.cs:88;ArmyShape.cs:11;ArmyShape.cs:23
+5618	● 属国（従属関係）	EnableDependency			0		
+5618	● 属国（従属関係）	DependencyAlignmentRelief	Coefficients.cs:1591	1.2	1	Diplomacy.cs:1	Diplomacy.cs:1369
+5623	● 貢納	VassalTributeRate			0		
+5628	● 属国の離反	VassalHoldScale	Coefficients.cs:1592	0.5	1	Diplomacy.cs:1	Diplomacy.cs:1395
+5628	● 属国の離反	VassalDefectionMilitancy	Coefficients.cs:1593	0.6	1	Diplomacy.cs:1	Diplomacy.cs:1402
+5628	● 属国の離反	DefectionTensionResidue	Diplomacy.cs:396		2	Diplomacy.cs:2	Diplomacy.cs:396;Diplomacy.cs:1406
+5628	● 属国の離反	VassalDefectionUsesSubmitMeasure			0		
+5634	● 宗主の防衛義務	DefendProjectionMin	Coefficients.cs:1795	0.2	5	Diplomacy.cs:5	Diplomacy.cs:1442;Diplomacy.cs:1466;Diplomacy.cs:1733
+5639	● 宗主が抱えられる数の上限	MaxDependents	Coefficients.cs:1601	8	3	Diplomacy.cs:2 World.cs:1	Diplomacy.cs:1413;Diplomacy.cs:3213;World.cs:2189
+5645	● 列強の介入と和平提案	PeaceInterventionEnabled	Coefficients.cs:1588	?	2	Diplomacy.cs:2	Diplomacy.cs:326;Diplomacy.cs:2301
+5645	● 列強の介入と和平提案	InterventionMotiveRatio	Coefficients.cs:1810	1.0	2	Diplomacy.cs:2	Diplomacy.cs:2314;Diplomacy.cs:2409
+5645	● 列強の介入と和平提案	InterventionSubmitBar	Coefficients.cs:1814	0.5	1	Diplomacy.cs:1	Diplomacy.cs:2344
+5645	● 列強の介入と和平提案	InterventionRivalTension	Coefficients.cs:1815	22.0	1	Diplomacy.cs:1	Diplomacy.cs:2371
+5645	● 列強の介入と和平提案	InterventionWarMinMonths	Coefficients.cs:1816	12.0	1	Diplomacy.cs:1	Diplomacy.cs:2400
+5653	● プレイヤーの調停	WarTab			0		
+5658	● 調停の拒否と参戦	InterventionRefusalSymmetric			1	Diplomacy.cs:1	Diplomacy.cs:2366
+5658	● 調停の拒否と参戦	InterventionRefusalWar			0		
+5663	● 講和の中身	ReparationGdpFraction	Coefficients.cs:1438	new(0.2)	3	Diplomacy.cs:3	Diplomacy.cs:3098;Diplomacy.cs:3105;Diplomacy.cs:3124
+5663	● 講和の中身	VassalizeWinScore	Coefficients.cs:1599	1.4	3	Diplomacy.cs:3	Diplomacy.cs:3102;Diplomacy.cs:3134;Diplomacy.cs:3139
+5663	● 講和の中身	GovCostVassalThreshold	Coefficients.cs:1602	0.4	2	Diplomacy.cs:2	Diplomacy.cs:3135;Diplomacy.cs:3171
+5663	● 講和の中身	ColonyCaptureMax	Coefficients.cs:1531	3	5	Diplomacy.cs:5	Diplomacy.cs:2976;Diplomacy.cs:3001;Diplomacy.cs:3049
+5663	● 講和の中身	ColonyCaptureBudget	Coefficients.cs:1526	100	4	Diplomacy.cs:4	Diplomacy.cs:2802;Diplomacy.cs:2978;Diplomacy.cs:2979
+5663	● 講和の中身	AbstractTargetReparations			1	Diplomacy.cs:1	Diplomacy.cs:3110
+5668	● 割譲の投射圏	CessionMaxDistanceKm	Coefficients.cs:1557	4000	8	Diplomacy.cs:8	Diplomacy.cs:3005;Diplomacy.cs:3017;Diplomacy.cs:3022
+5668	● 割譲の投射圏	ColonyCaptureReachGate			1	Diplomacy.cs:1	Diplomacy.cs:3332
+5668	● 割譲の投射圏	SeaInvasionControlMin	Coefficients.cs:1414	0.65	12	Diplomacy.cs:11 World.cs:1	Diplomacy.cs:2512;Diplomacy.cs:3023;Diplomacy.cs:3051
+5674	● 植民地格の州の複数割譲	ColonialRegionCession			2	Diplomacy.cs:2	Diplomacy.cs:2978;Diplomacy.cs:3048
+5680	● 条約港（不平等条約）	InternationalMarket	BilateralMarket.cs:14		46	MultiNationSim.cs:11 Transport.cs:5 Colonial.cs:4 Diplomacy.cs:4	BilateralMarket.cs:14;BilateralMarket.cs:541;Colonial.cs:74
+5680	● 条約港（不平等条約）	TreatyPortWinnerDistanceKm	Coefficients.cs:1018	6000	5	Diplomacy.cs:5	Diplomacy.cs:3102;Diplomacy.cs:3104;Diplomacy.cs:3150
+5680	● 条約港（不平等条約）	TreatyPortTariffLoss			1	InternationalMarket.cs:1	InternationalMarket.cs:166
+5680	● 条約港（不平等条約）	TreatyPortReparationMult	Coefficients.cs:1023	2.5	3	Diplomacy.cs:3	Diplomacy.cs:3098;Diplomacy.cs:3105;Diplomacy.cs:3124
+5680	● 条約港（不平等条約）	ForeignRuleFromTreaty	Coefficients.cs:2764	0.5	4	Diplomacy.cs:2 Politics.cs:2	Diplomacy.cs:3164;Diplomacy.cs:3165;Politics.cs:1756
+5685	● 条約港の自然失効	TreatyPortLapseRatio	Coefficients.cs:1022	new(0.5)	4	Diplomacy.cs:4	Diplomacy.cs:525;Diplomacy.cs:528;Diplomacy.cs:531
+5685	● 条約港の自然失効	TreatyPortLapseYears			0		
+5691	● 宗主権の引き継ぎ	VassalTransferOnCrush			0		
+5696	● 条約の批准権	CrownParliament	CrownParliament.cs:10		30	Politics.cs:9 World.cs:7 PoliticalQuantities.cs:6 Diplomacy.cs:2	CrownParliament.cs:10;Diplomacy.cs:398;Diplomacy.cs:3201
+5696	● 条約の批准権	TreatyRatificationControlThreshold	Coefficients.cs:1788	0.5	3	Diplomacy.cs:3	Diplomacy.cs:3142;Diplomacy.cs:3144;Diplomacy.cs:3145
+5701	● 革命圧力による早期降伏	DeclareCivilWar	Diplomacy.cs:1741		8	MultiNationSim.cs:3 Politics.cs:3 Diplomacy.cs:2	Diplomacy.cs:1710;Diplomacy.cs:1741;MultiNationSim.cs:310
+5701	● 革命圧力による早期降伏	MeasureMobilization			6	Politics.cs:4 Diplomacy.cs:2	Diplomacy.cs:1749;Diplomacy.cs:1754;Politics.cs:330
+5701	● 革命圧力による早期降伏	RevolutionSurrenderWeight	Coefficients.cs:1748	0.4	3	Diplomacy.cs:3	Diplomacy.cs:1750;Diplomacy.cs:2638;Diplomacy.cs:2724
+5706	~~○ 休戦（規模で決める器・いまは0年）~~	TruceYearsPerExhaustion			0		
+5706	~~○ 休戦（規模で決める器・いまは0年）~~	PostWarTension	Coefficients.cs:1436	38	4	Diplomacy.cs:4	Diplomacy.cs:493;Diplomacy.cs:1465;Diplomacy.cs:2789
+5713	● 敗戦・戦勝の国内帰結	OfficerCasualtyShare	Coefficients.cs:1646	new(0.06)	1	Diplomacy.cs:1	Diplomacy.cs:2875
+5719	● 砲艦外交（屈服か戦争か）	ColonizeSubmitRatio	Coefficients.cs:1697	3.0	3	Diplomacy.cs:3	Diplomacy.cs:2281;Diplomacy.cs:2284;Diplomacy.cs:2424
+5719	● 砲艦外交（屈服か戦争か）	ColonizeSubmitFloorMilitary	Coefficients.cs:1698	0.05	1	Diplomacy.cs:1	Diplomacy.cs:2284
+5719	● 砲艦外交（屈服か戦争か）	ColonizeAnnexMilitancy	Coefficients.cs:1794	0.3	4	Diplomacy.cs:4	Diplomacy.cs:1394;Diplomacy.cs:2235;Diplomacy.cs:2244
+5725	● 侵略の一本化	CanInvade	World.cs:2179		14	Diplomacy.cs:9 World.cs:5	Diplomacy.cs:1413;Diplomacy.cs:1759;Diplomacy.cs:1764
+5725	● 侵略の一本化	Invade	World.cs:2214		11	World.cs:5 Diplomacy.cs:4 MultiNationSim.cs:1 Simulation.cs:1	Diplomacy.cs:1997;Diplomacy.cs:2029;Diplomacy.cs:2222
+5725	● 侵略の一本化	ExpansionCostFor	World.cs:2261		3	World.cs:3	World.cs:2166;World.cs:2258;World.cs:2261
+5725	● 侵略の一本化	InvadeMilitaryFactor	Coefficients.cs:1460	1.2	1	World.cs:1	World.cs:2192
+5725	● 侵略の一本化	InvadeSeaControlMin	Coefficients.cs:2312	0.45	1	World.cs:1	World.cs:2198
+5725	● 侵略の一本化	ExpansionWillCap	Coefficients.cs:1450	10.0	4	World.cs:3 Diplomacy.cs:1	Diplomacy.cs:2433;World.cs:2117;World.cs:2122
+5725	● 侵略の一本化	ColonizeWillSuperiorityDiscount	Coefficients.cs:1535	1.0	1	Diplomacy.cs:1	Diplomacy.cs:2433
+5734	● 遠征技術のゲート	ExpeditionTechLevel			1	Diplomacy.cs:1	Diplomacy.cs:2277
+5734	● 遠征技術のゲート	ExpeditionTechFloor			0		
+5739	● AIの侵略と自制	CanInvade	World.cs:2179		14	Diplomacy.cs:9 World.cs:5	Diplomacy.cs:1413;Diplomacy.cs:1759;Diplomacy.cs:1764
+5739	● AIの侵略と自制	Invade	World.cs:2214		11	World.cs:5 Diplomacy.cs:4 MultiNationSim.cs:1 Simulation.cs:1	Diplomacy.cs:1997;Diplomacy.cs:2029;Diplomacy.cs:2222
+5739	● AIの侵略と自制	AiColonizeChance	Coefficients.cs:1541	0.12	1	Diplomacy.cs:1	Diplomacy.cs:2003
+5739	● AIの侵略と自制	HegemonRestraintFloor	Coefficients.cs:1790	new(0.25)	1	Diplomacy.cs:1	Diplomacy.cs:2003
+5746	● 勢力圏の衝突	ColonizeRivalTension	Coefficients.cs:1699	22.0	1	Diplomacy.cs:1	Diplomacy.cs:2443
+5746	● 勢力圏の衝突	ProximityTensionRange	Coefficients.cs:1468	3000.0	6	Diplomacy.cs:5 World.cs:1	Diplomacy.cs:2114;Diplomacy.cs:2123;Diplomacy.cs:2132
+5752	● 統一戦争のAI	Formations	Diplomacy.cs:90		22	World.cs:6 CultureRealms.cs:5 Diplomacy.cs:4 SelfPlay.cs:3	CultureRealms.cs:6;CultureRealms.cs:16;CultureRealms.cs:23
+5752	● 統一戦争のAI	UnificationNatioShare	Coefficients.cs:3112	new(0.25)	1	Formations.cs:1	Formations.cs:471
+5752	● 統一戦争のAI	UnificationAiPursueChance	Coefficients.cs:3113	0.7	1	Diplomacy.cs:1	Diplomacy.cs:1894
+5752	● 統一戦争のAI	UnificationAiCooldownYears	Coefficients.cs:3114	20	1	Diplomacy.cs:1	Diplomacy.cs:1900
+5752	● 統一戦争のAI	UnificationAiWarGapYears	Coefficients.cs:3115	3	1	Diplomacy.cs:1	Diplomacy.cs:1898
+5758	● 戦力の投射	DistanceWarDecay	Coefficients.cs:2309	1.0	10	Politics.cs:4 Diplomacy.cs:3 Fiscal.cs:2 World.cs:1	Diplomacy.cs:1448;Diplomacy.cs:1460;Diplomacy.cs:3664
+5758	● 戦力の投射	HomeDefenseBonus	Coefficients.cs:2311	1.25	3	Diplomacy.cs:2 ArmyShape.cs:1	ArmyShape.cs:31;Diplomacy.cs:3637;Diplomacy.cs:3641
+5764	○ 投射の起点を港州の鎖へ	ProjectionRuleMin	Coefficients.cs:2767	1.1	4	Diplomacy.cs:4	Diplomacy.cs:3646;Diplomacy.cs:3648;Diplomacy.cs:3650
+5764	○ 投射の起点を港州の鎖へ	ProjectionUsesLand	Coefficients.cs:2769	0.0	3	Diplomacy.cs:3	Diplomacy.cs:3648;Diplomacy.cs:3656;Diplomacy.cs:3660
+5769	● 陸続きの判定	Landmass	Landmass.cs:11		26	Diplomacy.cs:5 Simulation.cs:5 Landmass.cs:4 PathGraph.cs:4	Diplomacy.cs:1980;Diplomacy.cs:3306;Diplomacy.cs:3315
+5774	● 報復関税	TariffRetaliation	Coefficients.cs:707	0.5	7	Diplomacy.cs:5 Government.cs:1 World.cs:1	Diplomacy.cs:961;Diplomacy.cs:1855;Diplomacy.cs:1857
+5774	● 報復関税	TariffReactionMax	Coefficients.cs:708	0.25	6	SelfPlay.cs:5 Diplomacy.cs:1	Diplomacy.cs:1877;SelfPlay.cs:1160;SelfPlay.cs:1197
+5780	● ~~通商条約~~（★2026-10-28 (604) 廃止）	TradeTreaties			0		
+5780	● ~~通商条約~~（★2026-10-28 (604) 廃止）	NationalTariffInterest			0		
+5780	● ~~通商条約~~（★2026-10-28 (604) 廃止）	TradeTreatyEnabled			0		
+5788	● 戦う価値の判定	SpoilsWorthThreshold			2	Diplomacy.cs:2	Diplomacy.cs:1433;Diplomacy.cs:3113
+5793	● 厭戦による開戦の抑止	WarWearyThreshold	Coefficients.cs:1433	0.5	8	Diplomacy.cs:8	Diplomacy.cs:937;Diplomacy.cs:1512;Diplomacy.cs:1733
+5798	● 初期条件（史実のライバルと従属）	—					
+5802	● 独立国との講和相当状態	—					
+5807	● 会議外交	ConcertReparationRestraint	Coefficients.cs:1567	0.04	3	Diplomacy.cs:3	Diplomacy.cs:2965;Diplomacy.cs:2967;Diplomacy.cs:2973
+5807	● 会議外交	ConcertRestraintMax	Coefficients.cs:1568	0.5	1	Diplomacy.cs:1	Diplomacy.cs:2973
+5813	● 政体の押し付け	ImposeRegimeEnabled			1	Diplomacy.cs:1	Diplomacy.cs:3197
+5813	● 政体の押し付け	ImposeRegimeIdeologyGap	Coefficients.cs:2018	0.4	1	Diplomacy.cs:1	Diplomacy.cs:3199
+5818	● 事件ログと終戦記録	—					
+5822	◐ 割譲圏の技術延伸と渡海の摩擦	CessionSeaCrossingWeight	Coefficients.cs:1551	1.0	5	Diplomacy.cs:5	Diplomacy.cs:3305;Diplomacy.cs:3306;Diplomacy.cs:3308
+5822	◐ 割譲圏の技術延伸と渡海の摩擦	CessionRangeTechKm			1	Diplomacy.cs:1	Diplomacy.cs:3299
+5828	○ 屈服の確率化	SubmitProbabilistic	Coefficients.cs:1878	0.0	3	Diplomacy.cs:2 MultiNationSim.cs:1	Diplomacy.cs:378;Diplomacy.cs:1557;MultiNationSim.cs:65
+5834	● 離反の物理判定	VassalDefectionUsesSubmitMeasure			0		
+5839	~~○ 緊張動詞の対称化~~ → ● 2026-09-28 (83) に点火して旗ごと削除（上の「挑発と緩和」	SymmetricTensionVerb			0		
+5845	○ 開戦の政治的帰結	WarStartPoliticsScale			1	Diplomacy.cs:1	Diplomacy.cs:1693
+5851	~~○ 報復関税の政治化~~	PolicyPreferences	Government.cs:109		81	SelfPlay.cs:19 FactionSnapshot.cs:14 Government.cs:14 Politics.cs:8	CrownParliament.cs:139;StageGate.cs:70;EconomyStep.cs:666
+5851	~~○ 報復関税の政治化~~	TariffRetaliationViaPolitics			1	PolicyPreferences.cs:1	PolicyPreferences.cs:279
+5858	○ 外交コア（過不足ベクトルと関係値）	DiploCore			0		
+5858	○ 外交コア（過不足ベクトルと関係値）	Runner	Instruments.cs:30		83	PlayText.cs:14 SelfPlay.cs:10 World.cs:8 Simulation.cs:7	AssemblyInfo.cs:5;AssemblyInfo.cs:6;Diplomacy.cs:140
+5858	○ 外交コア（過不足ベクトルと関係値）	Program			1	SelfPlay.cs:1	SelfPlay.cs:2034
+5864	◇ 介入の計器	PeaceInterventionProbe			1	Diplomacy.cs:1	Diplomacy.cs:2301
+5869	◇ 同一ペア再戦の計器	—					
