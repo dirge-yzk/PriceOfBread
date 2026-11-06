@@ -1,0 +1,29 @@
+# (887) 旗 1 のフルスイート（木 6c55bc67＝点火のコミット・suite887.sh both・2026-11-06）＝腕 S11 の木
+list nonfull 2323
+list full 3
+guards rc=1 484s
+失敗!   -失敗:     3、合格:   221、スキップ:     0、合計:   224、期間: 8 m 1 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+GUARDSDONE
+nonfull rc=1 2008s
+full rc=0 311s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     3、合格:  2319、スキップ:     1、合計:  2323、期間: 33 m 25 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 6 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+SUITEDONE
+saveleak rc=0 418s
+保存 44.4MB（743ms）／読込 742ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 279・その月の額の和 2.758E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c75ip_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c75ip_work/suite/leakhunt.txt.manifest（SOURCE-HASH=b22133bbcafe14d4）
+SL-END 13:11:39
+SAVELEAKDONE
+中止の行 0（suite_nonfull.txt・suite_full.txt に〈中止〉〈aborted〉は 0 行）。合計 2323（2319 合格＋スキップ 1＋赤 3）＝--list-tests 2323・FullLength 3＝3。赤は WriterRatchetTests item 1（15,733,303）・9（31,821,007）・11（2,662,704）だけ＝予言の内・値も予言と同じ。N1・N2 は発火しない。

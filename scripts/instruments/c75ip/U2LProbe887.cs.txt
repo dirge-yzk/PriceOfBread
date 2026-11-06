@@ -1,0 +1,94 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>(887) c75ip 突然変異の単体の試し（使い捨ての木にだけ入れる・main と枝にはコミットしない・事前登録 measurements/m887_20261106_prereg_ip.txt [3]）。
+/// 盤面＝ImportPayerLiveTests・CearnTradeColumnsTests と同じ（ジェノヴァとトスカーナ・買い手の州 1 つ・人の居ない商人〔人数 0・債務 0〕）。人の居る POP の在庫を代金より小さく置いて 1 回清算し、
+/// 最後の清算を畳んでから、計器の累計（cearn_s に書く値そのもの）で門の読みを確かめる：
+///   U2L＝ImpExMaxSubLive ≦ 1e-9×(1＋ref)＋1e-9（ref＝ImpBudget が有限ならそれ・∞ なら ImpPaid）／U1b＝ImpPaidBand[0]（払いの時点の人数 ≦1e-12 の帯）＝0。
+/// 予言：F1（正しい旗 1）は 2 本とも緑・E2（落とした枝で手形を ∞ のまま）は U2L が赤・U1b が緑・E1／EU1（人の居ない商人が払う）は U1b が赤・U2L が緑。</summary>
+// ⚠2 回目（結果の後の直し・記録）：1 回目は [Collection("Instruments")] が無く、計器の大域の状態を ImportPayerLiveTests の計器の試験と並べて回した（F1 でもその試験が赤＝試しの側の誤り）。
+//   2 回目で Collection を付け、人の居る POP を 1 つにした形（U2L_人の居るPOPが1つ）を〈結果の後に足した試し＝記録〉として足した：E2 の誤りは払い手の並びが 1 要素のときだけ手形になる
+//   （BilateralMarket.cs:1142 `payerOf[t] is [var mer]`・World.Transfer は払い手の Σmax(0, 貯蓄) までしか動かさない）＝1 回目の 2 POP の盤面では E2 が U2L に届かない。
+[Collection("Instruments")]
+public class U2LProbe887
+{
+    private static (Instruments.CearnAcc a, double import) Run(bool onePop = false)
+    {
+        var sim = new MultiNationSim([WorldData.ByName("ジェノヴァ"), WorldData.ByName("トスカーナ")], seed: 1789) { DiplomacyFrozen = true };
+        sim.Coef.ClearingIdleSearchQuarters = 1; sim.Coef.ImportPayerLive = 1;
+        var gd = sim.Nations[0].World.Region.Goods
+            .First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain && Array.IndexOf(sim.Coef.MilitaryExportGoods, g.Id) < 0);
+        double wp = sim.Market.Price[gd.Id];
+        var all = new List<Region>();
+        foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; Instruments.Begin(n.World); foreach (var r in n.World.Regions) all.Add(r); }
+        var ports = all.Where(r => r.IsPort).ToList();
+        var seller = ports[0];
+        var buyer = all.First(r => !ReferenceEquals(r, seller) && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count
+                                   && r.Pops.Count(p => p.Size > 1e-6 && !ReferenceEquals(p, r.Pops[r.MerchantPopIndex])) >= 2);
+        foreach (var r in all)
+        {
+            var m = r.Markets[gd.Id]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0;
+            if (ReferenceEquals(r, seller)) { m.Price = 0.5 * wp; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 10; }
+            else if (ReferenceEquals(r, buyer)) { m.Price = 2.0 * wp; m.Stock = 0; m.TargetStock = 50; m.LastDemand = 500; m.LastProduced = 0; }
+            else { m.Price = wp; m.Stock = 0; m.TargetStock = 0; }
+        }
+        foreach (var r in all) foreach (var p in r.Pops) { p.Debt = new MoneyStock(0); if (p.Size > 1e-6) p.SetSavings(Math.Max(p.Savings.Value, 1e4)); }
+        var mer = buyer.Pops[buyer.MerchantPopIndex]; mer.Size = 0; mer.SetSavings(1e7);
+        if (onePop) { var one = buyer.Pops.First(p => p.Size > 1e-6 && !ReferenceEquals(p, mer)); foreach (var p in buyer.Pops) if (!ReferenceEquals(p, one)) p.Size = 0; }   // (2 回目・記録) 人の居る POP を 1 つ
+        foreach (var p in buyer.Pops) if (!ReferenceEquals(p, mer) && p.Size > 1e-12) p.SetSavings(1);   // 人の居る POP の在庫を代金より小さく（手形が振り出されれば在庫を超えて払う形）
+        var a = Instruments.CearnAccOf(buyer)!; a.Clear();
+        sim.Market.Step(sim.Nations, sim.Coef);
+        Instruments.CearnImportFoldInto(a);   // 最後の清算を畳む（次の清算の頭で畳まれる分）
+        return (a, buyer.Markets[gd.Id].LastImport);
+    }
+    private static void WithDir(Action body)
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_c75ip_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try { body(); } finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void U2L_人数の居る払い手の清算の超過は在庫の内()
+    {
+        WithDir(() =>
+        {
+            var (a, imp) = Run();
+            Assert.True(imp > 1e-9, "前提が崩れた：買い手の州が輸入していない");
+            Assert.True(a.ImpPaid > 0, "前提が崩れた：払いが記録されていない");
+            double refB = double.IsPositiveInfinity(a.ImpBudget) ? a.ImpPaid : a.ImpBudget;
+            double live = double.IsNegativeInfinity(a.ImpExMaxSubLive) ? double.NaN : a.ImpExMaxSubLive;
+            Assert.False(live > 1e-9 * (1 + refB) + 1e-9, $"U2L：人の居ない払い手の払いが無い清算の超過 {live} が閾値 {1e-9 * (1 + refB) + 1e-9} を超えた（予算 {a.ImpBudget}・払った額 {a.ImpPaid}）");
+        });
+    }
+
+    [Fact]
+    public void U2L_人の居るPOPが1つ_記録()
+    {
+        WithDir(() =>
+        {
+            var (a, imp) = Run(onePop: true);
+            Assert.True(imp > 1e-9, "前提が崩れた：買い手の州が輸入していない");
+            Assert.True(a.ImpPaid > 0, "前提が崩れた：払いが記録されていない");
+            double refB = double.IsPositiveInfinity(a.ImpBudget) ? a.ImpPaid : a.ImpBudget;
+            double live = double.IsNegativeInfinity(a.ImpExMaxSubLive) ? double.NaN : a.ImpExMaxSubLive;
+            Assert.False(live > 1e-9 * (1 + refB) + 1e-9, $"U2L（人の居る POP 1 つ）：超過 {live} が閾値 {1e-9 * (1 + refB) + 1e-9} を超えた（予算 {a.ImpBudget}・払った額 {a.ImpPaid}）");
+        });
+    }
+
+    [Fact]
+    public void U1b_払いの時点の人数0の払い手の払いは0()
+    {
+        WithDir(() =>
+        {
+            var (a, imp) = Run();
+            Assert.True(a.ImpPaid > 0, "前提が崩れた：払いが記録されていない");
+            Assert.Equal(0.0, a.ImpPaidBand[0]);
+        });
+    }
+}
