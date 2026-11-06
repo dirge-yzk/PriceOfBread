@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>★(894) 線 c76lb：土地税の算定の基準 A1 の段 A-0 の表 <c>landbase_s</c>（国×四半期）・<c>landbasereg_s</c>（州×四半期）（読むだけ）の番人＝計器の不変条件。
 /// 事前登録 measurements/m894_20261106_prereg_lb.txt の T1〜T13。期待は計器と別の出所から作る：POP と州と生産者の欄から試験が自分で組んだ値・エンジンの査定 <see cref="Fiscal.AssessPop"/>（T2）・
 /// <see cref="World.LastTaxLandPerMonth"/>（T4）・subst_s と cornint_s の列（T8・T10）・計器の有無の 2 つのシム（T7）。計器の列どうしでは比べない。
-/// 突然変異（使い捨ての木・measurements/m894_20261106/mut894.txt）：U1〜U15（事前登録 [6] の表）。</summary>
+/// 突然変異（使い捨ての木・measurements/m894_20261106/mut894.txt）：U1〜U15（事前登録 [6] の表）。実測の読み替え（(904)）：事前登録 [6] は U2（R の max(0, …) を外す）を T3・T8 の赤と予言したが、mut894.txt の実測は T3 だけが赤で T8 は緑のまま（T8 が緑のままの理由は未確認）＝U2 を捕まえるのは T3 だけ。</summary>
 [Collection("Instruments")]
 public class LandbaseInstrumentTests
 {
