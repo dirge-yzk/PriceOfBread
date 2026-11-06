@@ -1,0 +1,23 @@
+(899) 合流のフルスイート（suite899.sh・木 fdab12aa＝SimCore は合わせた木 ea7fcad2 と同じ・Z の後・並べない）
+list nonfull 2376
+list full 3
+nonfull rc=0 801s
+full rc=0 169s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2375、スキップ:     1、合計:  2376、期間: 13 m 19 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 47 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 179s
+保存 46.2MB（515ms）／読込 448ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 167・その月の額の和 2.533E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m899/leakhunt.txt　マニフェスト=D:/PoB_work/m899/leakhunt.txt.manifest（SOURCE-HASH=e55bd8213a483380）
+SL-END 17:58:01
+SAVELEAKDONE
+
+印：rc=0 end=2026-11-06 17:58:02
+suite_nonfull.txt:0
+suite_full.txt:0
