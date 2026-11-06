@@ -68,15 +68,19 @@ public class SummonByInterestShareTests
         Assert.True(w.AusterityIntensity == 0, "前提：緊縮は 0 のまま（旗 1 は緊縮を読まない）");
     }
 
-    /// <summary>S2：1.0 で切らない＝PC 0.995・DebtGrip 1（国債＝年GDP の 3 倍）・s 1 → 0.995＋0.02×0.005＝0.9951（1 にならない）。</summary>
+    /// <summary>S2：押す先は 1.0 でなく DebtGrip＝★(901) 盤面を PC＜DebtGrip＜1 へ（(896) の DebtGrip 1 の盤面では押す先 1.0 の誤りを落とせなかった）。
+    /// PC 0.5・DebtGrip 0.8（国債＝年GDP の 0.8 倍）・s 1 → 0.5＋0.02×0.3＝0.506（押す先が 1.0 なら 0.51）。400 四半期回しても DebtGrip を越えず 1 に張り付かない。</summary>
     [Fact]
     public void 旗1の召集は1に張り付かない()
     {
         var w = Board(1);
-        Set(w, 0.995, 3.0, 90);
+        Set(w, 0.5, 0.8, 90);
         CrownParliament.Step(w, w.Coef);
+        Assert.True(System.Math.Abs(w.ParliamentControl - 0.506) <= 1e-12, $"pc={w.ParliamentControl}（押す先が 1.0 なら 0.51）");
+        for (int q = 0; q < 400; q++) CrownParliament.Step(w, w.Coef);
+        Assert.True(w.ParliamentControl <= 0.8, $"DebtGrip を越えない pc={w.ParliamentControl}");
+        Assert.True(w.ParliamentControl > 0.79, $"DebtGrip へ寄る pc={w.ParliamentControl}");
         Assert.True(w.ParliamentControl < 1.0, $"pc={w.ParliamentControl}");
-        Assert.True(System.Math.Abs(w.ParliamentControl - 0.9951) <= 1e-12, $"pc={w.ParliamentControl}");
     }
 
     /// <summary>S3：比例＝利払い÷歳入を 2 倍（0.1675→0.335＝閾値 0.67 の下どうし）にすると項が 2 倍（段差の形なら両方 0）。</summary>

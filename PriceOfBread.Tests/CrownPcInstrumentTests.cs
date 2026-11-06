@@ -28,6 +28,7 @@ public class CrownPcInstrumentTests
         foreach (var cfg in new[] { NationConfig.France(), NationConfig.Britain(), NationConfig.America(), NationConfig.Japan(), NationConfig.Russia() })
         {
             var w = Nation(cfg); var c = w.Coef;
+            c.SummonByInterestShare = 0;   // ★(901) 旧の召集の式の番人（旗 0 の初期化子・★(832) ① (a) の型）
             if (w.Polity != Polity.Republic) w.ParliamentControl = 0.3;   // ② が動く高さ（王権の支持が代議制を上回る国で）
             for (int q = 0; q < 8; q++)
             {
@@ -145,6 +146,7 @@ public class CrownPcInstrumentTests
     {
         var w = Nation(NationConfig.France()); var c = w.Coef;
         CloseContinuous(c);
+        c.SummonByInterestShare = 0;   // ★(901) 旧の召集の式の番人（旗 0 の初期化子・★(832) ① (a) の型）
         w.ParliamentControl = 0.0; w.CoopParliamentCrown = 0; w.AusterityIntensity = 0.8;
         var prev = Instruments.CrownSnap(w);
         CrownParliament.ApplyRegime(w, c, Polity.ConstitutionalMonarchy);   // Transition＝Step の前
@@ -157,6 +159,7 @@ public class CrownPcInstrumentTests
 
         var w2 = Nation(NationConfig.France()); var c2 = w2.Coef;
         CloseContinuous(c2);
+        c2.SummonByInterestShare = 0;   // ★(901) 旧の召集の式の番人（旗 0 の初期化子・★(832) ① (a) の型）
         w2.ParliamentControl = 0.0; w2.CoopParliamentCrown = 0; w2.AusterityIntensity = 0.8;
         var prev2 = Instruments.CrownSnap(w2);
         CrownParliament.Step(w2, c2);
@@ -165,6 +168,40 @@ public class CrownPcInstrumentTests
         Assert.True(row2.RegimeEvent);
         Assert.Equal(3, row2.Explain);
         Assert.Equal(1.0, row2.PcNow);
+    }
+
+    /// <summary>★(901) T5′：T5 の前半（ApplyRegime→Step）を旗 1 で。召集が動くか（利払い÷歳入 0.8・国債＝年の名目GDP の 0.9 倍＝PC 0.65→0.655）で区分 4 と 3 が分かれる。
+    /// 利払い 0 か国債が PC より下（0.5 倍）なら召集は動かず PC は目標のまま＝区分 3。期待値は手で書く（0.65＋0.02×1×(0.9−0.65)）。</summary>
+    [Fact]
+    public void 旗1の政変の四半期は召集が動けば区分4で動かなければ区分3()
+    {
+        (World W, Instruments.CrownRow Row) Run(double interest, double dg)
+        {
+            var w = Nation(NationConfig.France()); var c = w.Coef;
+            CloseContinuous(c);
+            c.SummonByInterestShare = 1;
+            double gy = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
+            Assert.True(gy > 0, "前提：名目GDP が正");
+            w.GovDebt = new MoneyStock(dg * gy); w.LastRevenuePerMonth = new MoneyPerMonth(100); w.LastInterestPerMonth = new MoneyPerMonth(interest);
+            w.ParliamentControl = 0.0; w.CoopParliamentCrown = 0; w.AusterityIntensity = 0.8;   // 緊縮は旧の門を開く高さ＝旗 1 は読まない
+            var prev = Instruments.CrownSnap(w);
+            CrownParliament.ApplyRegime(w, c, Polity.ConstitutionalMonarchy);   // Step の前
+            Assert.Equal(0.65, w.ParliamentControl);   // 前提：跳びの先＝立憲の目標
+            CrownParliament.Step(w, c);
+            return (w, Instruments.CrownCompute(w, prev));
+        }
+        var (w4, r4) = Run(80, 0.9);
+        Assert.True(r4.RegimeEvent);
+        Assert.True(Math.Abs(w4.ParliamentControl - 0.655) <= 1e-12, $"pc={w4.ParliamentControl}");
+        Assert.Equal(0.0, r4.ResidualAlt);
+        Assert.Equal(4, r4.Explain);
+        foreach (var (interest, dg) in new[] { (0.0, 0.9), (80.0, 0.5) })
+        {
+            var (w3, r3) = Run(interest, dg);
+            Assert.True(r3.RegimeEvent);
+            Assert.Equal(0.65, w3.ParliamentControl);
+            Assert.Equal(3, r3.Explain);
+        }
     }
 
     // ---- 交差の門（fm_s の ParlControl は四半期の頭の写し＝crownpc_s の pcPrevShare と一致） ----
