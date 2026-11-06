@@ -1,0 +1,18 @@
+list nonfull 2382
+list full 3
+nonfull rc=0 1515s
+full rc=0 261s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2381、スキップ:     1、合計:  2382、期間: 25 m 12 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 19 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 245s
+保存 46.1MB（695ms）／読込 656ms（300四半期時点）
+savetest OK：12四半期後も全64カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c77cw_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c77cw_work/suite/leakhunt.txt.manifest（SOURCE-HASH=0bcca444ae120c35）
+SL-END 20:13:44
+SAVELEAKDONE

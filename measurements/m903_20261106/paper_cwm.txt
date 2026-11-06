@@ -1,0 +1,42 @@
+== keep_899/base_ins
+seed	civilWarMonths	atWarMonths	civilQuarters	civilMonthsNotAtWar	civilWars	civilMedianMonths
+1	321	11379	107	0	11	14
+2	327	11400	109	0	13	14
+3	330	12171	110	0	9	17
+4	327	11847	109	0	16	10.5
+5	519	11085	173	0	22	12.0
+6	909	11688	303	0	26	14.0
+7	438	13137	146	0	22	10.5
+8	351	14205	117	0	15	13
+9	495	15285	165	0	27	12
+10	342	11292	114	0	16	9.5
+sum	4359	123489	1453	0	177	12
+seeds1-5	civilWars=71	medianMonths=14
+== keep_873/n1
+seed	civilWarMonths	atWarMonths	civilQuarters	civilMonthsNotAtWar	civilWars	civilMedianMonths
+1	456	11097	152	0	18	10.0
+2	330	9405	110	0	8	18.5
+3	309	10389	103	0	11	11
+4	147	8844	49	0	7	13
+5	603	11835	201	0	26	12.0
+6	483	11430	161	0	20	12.0
+7	201	10161	67	0	14	2.5
+8	183	8124	61	0	9	7
+9	372	11127	124	0	22	9.5
+10	150	13506	50	0	10	8.5
+sum	3234	105918	1078	0	145	10
+seeds1-5	civilWars=70	medianMonths=11.5
+== keep_873/n2
+seed	civilWarMonths	atWarMonths	civilQuarters	civilMonthsNotAtWar	civilWars	civilMedianMonths
+1	321	12039	107	0	15	11
+2	540	13641	180	0	26	11.0
+3	336	10893	112	0	14	13.0
+4	147	12297	49	0	9	9
+5	399	12354	133	0	31	9
+6	609	12093	203	0	24	14.0
+7	573	12864	191	0	27	12
+8	66	11352	22	0	6	5.0
+9	435	10098	145	0	17	10
+10	168	10080	56	0	9	6
+sum	3594	117711	1198	0	178	11.0
+seeds1-5	civilWars=95	medianMonths=10

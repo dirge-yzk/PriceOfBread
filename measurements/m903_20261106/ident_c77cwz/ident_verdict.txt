@@ -1,0 +1,33 @@
+ident start：ラベル=c77cwz 木=/d/PoB_work/wt_c77cw 作業=/d/PoB_work/ident_c77cwz 腕=[a b t] 開始=2026-11-06 18:49:49
+ident start：腕は全て終わった（4 印）
+=== 恒等の判定（測った種で一致） c77cwz（2026-11-06 19:33:13）===
+測った木：D:/PoB_work/wt_c77cw（HEAD c38b6bf5・未コミット 3 本）
+基準の設定：D:/PoB_work/wt_c77cw/scripts/instruments/ident/ident.cfg
+宣言：added=['cwmult'] tests_delta=6
+腕 a：rc=0 end=2026-11-06 19:22:47
+腕 b：rc=0 end=2026-11-06 19:33:12
+腕 t：rc=0 end=2026-11-06 18:51:13
+測る木の SOURCE-HASH：2aedc774003e3ddd
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 2aedc774003e3ddd
+[素の 5 種] b5_ia_5.txt 対 b5_20261106_m873
+  ○ 全行バイト一致（178 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261106_m873.cost
+  ○ 件数の行 29 本・推定 210.1 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 2aedc774003e3ddd
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261106_m873_ins
+  ○ 全行バイト一致（183 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261106_m873_ins.cost
+  ○ 件数の行 29 本・推定 211.5 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c77cwz/out_ib_10/ins  対  基準 D:/PoB_work/keep_899/base_ins
+  基準 1120 本・腕 1130 本・バイト一致 1100 本
+  腕にだけある 10 本（うち宣言 10）
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1100・既知の揺れ 20・宣言された増減 10）
+  内訳：共通の表 1120 本＝バイト一致 1100＋既知の揺れ 20＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1120）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261106_m873.txt（タグの行を除く）
+  ○ タグの行以外が一致（5130 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2382（基準 2376+6 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等
