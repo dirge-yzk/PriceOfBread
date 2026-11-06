@@ -110,3 +110,10 @@
 
 [12] 追記（腕の前・データのコミットの前）
 - [0] の〈各国の "rule" の行の直後〉は誤り：イギリスは "name" の次が "knownDiscoveries"。置き場は各国の "name" の行の直後に直した（キーの順は読み方に効かない＝値は同じ）。
+
+[13] 結果の後の追記（腕 B の前のフルスイートの結果・事前登録の本文は書き換えていない）
+- データありの木 d590fc9f のフルスイート：nonfull 失敗 12／2393（list と一致・中止 0）・full 3/3・savetest OK・leakhunt 保存則違反なし（measurements/m909_20261107/suite_summary.txt）。
+- 予言の内：OpeningBakeTests 2・WriterRatchet item 11・LandShareTests.T7・WriterRatchet item 6（★(749) の同じ区分＝種類は内・名指しは外）。
+- 予言の外 7 本：StateFactoryTests 2（造幣の地代の持ち主が全額の期待）・CornintInstrumentTests 2（期待を持ち主だけで組む）・AiFirstWaveTests:325・ReformPathTests:430・InstrumentsTests:1963（盤面の前提）。
+- [7] の規則〈これ以外の赤が出たら腕 B を回さず止める〉と ㉜ により、腕 B（c78lsB）と S11（c78lsS）は回さずに止めた。試験は書き換えていない。
+- 使い捨ての木の突然変異（[5]）は予言どおり（M0 緑・M1／M7b は T-a と T-b・M8 は T-a・M3／M4 は T-b と LandShareTests.T5 が赤）＝measurements/m909_20261107/mutation.txt。
