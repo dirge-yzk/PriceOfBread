@@ -98,6 +98,8 @@ public static partial class Instruments
         public readonly double[] QByOwner = new double[LsNC], QExpected = new double[LsNC], QData = new double[LsNC], QActual = new double[LsNC],
             QActualF = new double[LsNC], QExpectedF = new double[LsNC], QExpSlot = new double[LsNC];
         public double MaxSlot, MaxData; public long Fallback; public int Months;
+        // (904) 末尾の 3 列の積み：送金が期待へ入らなかった月（首都が植民地格・首都の投資家の添字が範囲の外）の額・首都が植民地格だった月数・その規則（Tier≠Colonial の月だけ送金を期待へ足す）での月ごとの相対差の最大
+        public double QRemitNotAdded, MaxSlotTierRule; public int CapColonialMonths;
     }
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, LsAcc> LsAccs = new();
@@ -190,13 +192,24 @@ public static partial class Instruments
                 if (g is not null) { LsAdd(exp, g.Exp); LsAdd(dat, g.Dat); }
                 if (field) { LsAdd(actF, actR); if (g is not null) LsAdd(expF, g.Exp); }
             }
+            var expTier = (double[])exp.Clone();   // (904) 送金を足す前の期待＝下の Tier≠Colonial の規則の期待の元
+            var capR = w.Region;
+            bool capColonial = capR.Tier == RegionTier.Colonial;
+            if (capColonial) a.CapColonialMonths++;
             if (remit > 0)
             {
                 var cap = w.Region;
-                int ci = LsClass(cap.Pops[cap.InvestorPopIndex].ClassId);
-                exp[ci] += remit; dat[ci] += remit;
-                if (capField) expF[ci] += remit;
+                bool capIn = cap.InvestorPopIndex >= 0 && cap.InvestorPopIndex < cap.Pops.Count;   // (904) LsAbsenteeOwner と同じ範囲の確かめ（範囲の外は足さず末尾の列へ）
+                if (capIn)
+                {
+                    int ci = LsClass(cap.Pops[cap.InvestorPopIndex].ClassId);
+                    exp[ci] += remit; dat[ci] += remit;
+                    if (capField) expF[ci] += remit;
+                    if (!capColonial) expTier[LsClass(cap.Pops[cap.InvestorPopIndex].ClassId)] += remit;
+                }
+                if (capColonial || !capIn) a.QRemitNotAdded += remit;
             }
+            LsMax(ref a.MaxSlotTierRule, LsRelDiff(expTier, act));
             LsMax(ref a.MaxSlot, LsRelDiff(exp, act));
             LsMax(ref a.MaxData, LsRelDiff(dat, exp));
             a.QNonEndow += a.MNonEndow; a.QEndow += a.MEndow; a.QColonial += a.MColonial; a.QExp += a.MExp; a.QRemit += remit;
@@ -265,11 +278,14 @@ public static partial class Instruments
             cols.Add(("fieldSumMaxAbsDev", F(sumDev))); cols.Add(("slotFallbackCount", I(a.Fallback)));
             cols.Add(("expRentPerQuarter", F(a.QExp)));
             Add5("expSlotExpected", a.QExpSlot, "PerQuarter");
+            // (904) 末尾に足した 3 列（既にある列の値は変えない）：首都が植民地格だった月数・送金が期待へ入らなかった額・Tier≠Colonial の月だけ送金を期待へ足す規則での相対差の最大
+            cols.Add(("capColonialMonths", I(a.CapColonialMonths))); cols.Add(("remitNotAddedPerQuarter", F(a.QRemitNotAdded))); cols.Add(("maxRelDiffSlotVsActualTierRule", F(a.MaxSlotTierRule)));
             if (!sk.Header) { sk.W.WriteLine(string.Join('\t', cols.ConvertAll(x => x.Name))); sk.Header = true; }
             sk.W.WriteLine(string.Join('\t', cols.ConvertAll(x => x.Val)));
             a.QNonEndow = a.QEndow = a.QColonial = a.QExp = a.QRemit = 0;
             System.Array.Clear(a.QByOwner); System.Array.Clear(a.QExpected); System.Array.Clear(a.QData); System.Array.Clear(a.QActual);
             System.Array.Clear(a.QActualF); System.Array.Clear(a.QExpectedF); System.Array.Clear(a.QExpSlot);
+            a.QRemitNotAdded = 0; a.MaxSlotTierRule = 0; a.CapColonialMonths = 0;
             a.MaxSlot = a.MaxData = 0; a.Fallback = 0; a.Months = 0; a.DataReady = false;
         }
     }
