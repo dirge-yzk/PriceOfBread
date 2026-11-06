@@ -196,7 +196,7 @@ public class CearnTradeColumnsTests
             var file = System.IO.Directory.GetFiles(dir, "cearn_s*").Single();
             var lines = System.IO.File.ReadAllLines(file);
             Assert.Equal(Instruments.CearnHeaderText, lines[0]);
-            Assert.EndsWith("\timportBudgetExcessMaxPerClearingSubLive", lines[0]);
+            Assert.EndsWith("\timportBudgetExcessMaxPerClearingSubLive\tmerchantDebt\testateDebtSettledPerQuarter", lines[0]);   // (910) 末尾に 2 列（(880) の列の位置は同じ強さで確かめる）
             var h = lines[0].Split('\t'); int Ix(string n) => Array.IndexOf(h, n);
             var row = lines.Skip(1).Select(l => l.Split('\t')).Single(c => c[2] == nation && c[3] == r.Name);
             Assert.Equal(h.Length, row.Length);
