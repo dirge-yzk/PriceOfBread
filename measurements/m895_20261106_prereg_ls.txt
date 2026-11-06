@@ -1,0 +1,149 @@
+(895) c76ls 事前登録：土地の持ち分の段 B-0＝恒等の器 Producer.LandShares（既定 null）と計器 landshare_s
+書いたモデル：Claude Opus 5.5（担当）。枝 c76ls（731d3de1 から）・worktree D:/PoB_work/wt_c76ls・作業 D:/PoB_work/c76ls_work。
+仕様：docs/202611/20261106/20261106_土地の持ち分の段B-2-0_前例の水準(c)・盤面m873_下書き.md §3-1〜§3-7・§4、§9 の訂正 1〜4 を当てる（訂正 5 は c76ds の物＝写さない）。
+出発：00一覧 §00〈次の波（波76〜）〉②（作者の答え待ちではない）。土地の推奨（財にしない・州ごとの持ち分・地主は持ち分の持ち主・1783 の開始値が先）と ★(832) ② Q-B（B1）・★(852) ③ Q2（B-0→B-2→B-1）は〈作者「全て推奨で」で推奨を採った〉。★(866) ① は作者「推奨でよい」＝(c)。
+D: の空き（2026-11-06・この線の始め・shutil.disk_usage）＝146.03GB。arms.sh free＝6。
+
+==== [1] 恒等の線・予言 0 ====
+- 形＝入口（データの入口の器）。全ての国の NationConfig.LandOwnership は null（world.json に値を書かない＝B-2a の物）＝全ての生産者の LandShares は null＝今と同じ行を通る。
+- 予言：素の 5 種・計器つき 10 種の成績表は m873（b5_20261106_m873・b10_20261106_m873_ins・mon_20261106_m873.txt）と名乗り行の SOURCE-HASH を除いて全行バイト一致。既にある計器の表（cornint_s・cearn_s・sbr_s を含む全て）も keep_892/base_ins と全行バイト一致（cearn_s の経路の名は ident_check の BASE_COMMIT 10fe1b48 の行の写像で読む）。増えるのは landshare_s だけ。
+- 宣言は --added-tables landshare_s と --tests-delta <足した試験の数> だけ（--saveleak は前例どおり付ける）。cornint_s・cearn_s・sbr_s の値が 1 ビットでも動けば、その変更を外して報告する。
+- 新しい係数 0。新しい状態 1（Producer.LandShares・既定 null）＝設計思想⑩の〈本当に必要な場合〉（所有は流れから導けない在庫＝★(832) ② Q-B の B1）。NationConfig の欄 1（LandOwnership＝データの入口・既定 null）。
+- 計算量の割り当て：0.1 秒（null の分岐＝生産者×月の参照の比べ 1 回）。.cost の推定が m873 の許しの内であることを ident で確かめる（名目の余り 約 37.0 秒）。
+- 判定：〈判定: 恒等〉なら採る（合流が入れる）。
+
+==== [2] 割り方の全ての場所（731d3de1 の行・grep で取り直した）と、変える物・変えない物 ====
+書く場所（null なら今と全く同じ演算を同じ順で通す）：
+ (a) EconomyStep.cs:2745 `region.Pops[s.OwnerPopIndex].EarnedPerMonth += new MoneyPerMonth(rent);`
+     EconomyStep.cs:2747 `if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRentPerMonth += new MoneyPerMonth(rent);`
+     EconomyStep.cs:2749〜:2750 領主権の記録（旗 PrivilegeLedgerEnabled＝0＝Coefficients.cs:3307・今は動かない）
+     → 新しい EconomyStep.PayOwnerRent(world, region, s, rent, coef) の中の 1 本の繰り返しへ移す（受け手と重みの並び＝null は (OwnerPopIndex, rent) の 1 組）。
+       行の中身：枠 k ごとに `rk = ls is null ? rent : rent * ls[k]`（ls[k] が正でない枠は飛ばす）→ `Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk)`・`if (s.IsRgo && rk > 0) Pops[rp].LandRentPerMonth += …(rk)`・
+       `if (s.IsRgo && rk > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && Pops[rp].ClassId == PopClass.Noble) Privileges.Record(world, Privileges.Seigneurial, rk * Privileges.SeigneurialDegree(world))`。
+       null の rk は rent そのもの（掛け算をしない）＝ビットで同じ。
+     順序（null の恒等の根拠）：今は Earned(持ち主)→Earned(労働)→LandRent(持ち主)→不在地主の配列→領主権／工業レント。新は Earned(持ち主)→LandRent(持ち主)→領主権→Earned(労働)→不在地主の配列→工業レント。
+       同じ POP の同じ欄への足し算の順は変わらない（自営 owner==labor の Earned は rent→wages の順のまま）。入れ替わるのは別の欄（LandRent・領主権の台帳）と Earned(労働) の間だけ＝浮動小数の結果は変わらない。
+       :2748 不在地主（absentee[s.OwnerPopIndex] += rent）と工業レント（!IsRgo の枝）は総額の rent を読む＝繰り返しの外に今のまま残す（今の else if は IsRgo と !IsRgo で互いに排他＝2 つの if に分けても同じ）。
+     受け口（計器・読むだけ）：:2744（`s.SubsidyDependence = …` の行）の直後・:2745 の前＝国営持分と赤字の枝の後の rent（訂正 2）に `if (insOn && s.IsRgo) Instruments.LandshareRgo(world!, region, s, rent);`。
+       :2722 の SbRgo（国営持分を引く前）と同じ位置にしない。
+ (b) EconomyStep.cs:2732〜:2739 赤字の枝：rent の作り方は変えない。負の rent も (a) の同じ繰り返しで枠ごとに割る（国家の枠は無い＝国営持分の扱いは今のまま）。
+ (c) InternationalMarket.cs:97〜:105 輸出の受け手：国営持分 stateCut（:99〜:100）は今のまま先に引く。:105 の `to.Add(...持ち主か不在地主...); wt.Add(rent);` を新しい EconomyStep.AddRentRecipients(to, wt, w, rr, pr, rent) へ移す。
+       null（または不在地主の RGO）は今の 1 組のまま・欄ありは割合が正の枠ごとに 1 組（枠の順）。受け口 `if (Instruments.On) Instruments.LandshareExp(w, rr, pr, rent);` は stateCut を引いた後・`if (rent > 0)` の中。
+ (d) Simulation.cs:966〜:969 地代の種：ガード（IsRgo・RentShare>0・OwnerPopIndex の範囲・GoodId の範囲）はそのまま。null は今の 1 行の式のまま・欄ありは枠ごとに 種×割合 を受け手の LandRent へ（割合が正の枠だけ）。
+       LandRentPerMonth += の行は 1 本のまま（受け手と量を三項式で選ぶ繰り返し）。
+ (e) Simulation.cs の BuildProvince：地代の種の前（州 region を作った後）に 1 か所＝`cfg.LandOwnership` が有効（長さ 4・全て有限で 0 以上・和が正）なら、非賦存（Array.IndexOf(resources, GoodId) < 0）・IsRgo・持ち主の POP の ClassId が貴族の RGO にだけ、和で割った写しを生産者ごとに別の配列で置く。
+       当てない：工場・賦存の RGO・植民地格（PromoteColonyToRegion は cfg を読まない）・率 0 の国（持ち主が農民）・合成の世界（Simulation.cs:256〜:508 は BuildProvince を通らない）。無効なデータ（長さ・負・非有限・和 0）は null のまま。
+変えない（読むだけ・grep の結果）：
+ - 再点火の払い手 EconomyStep.cs:1588・:1602・:2220〜:2221（OwnerPopIndex のまま）・UnionBargaining.cs:84・EconomyStep.cs:649（RGO でない）・Colonial.cs:145〜:161（不在地主の送金＝植民地格は null＝触れない＝訂正 1 は (a) を選ぶ・(b) は要らない）。
+ - 自動で動く読み手（式を変えない）：Fiscal.cs の LandRent の読み・十分の一税・Ideology.cs・InterestGroups.cs:62・PolicyPreferences.cs・App GameViewModel.Refresh.cs:360・Runner Program.cs:4674（App と Runner には触れない）。
+受け手の引き方（エンジンの新しい関数 EconomyStep.LandShareRecipient(region, s, k)）：0 貴族＝s.OwnerPopIndex・1 教会＝region.ClergyPopIndex・2 農民の自作＝s.LaborPopIndex・3 市民の地主＝region.InvestorPopIndex。添字が −1 か範囲の外（4 以上の枠も）は s.OwnerPopIndex（貴族の枠）。
+  新しい補助関数 3 本（LandShareRecipient・PayOwnerRent・AddRentRecipients）の理由：同じ割り方を国内・輸出・種の 3 か所と試験 T1〜T4 が読む＝写しを作らない（既存の似た物を grep：RentShareOf は取り分の率・受け手を選ぶ関数は無い）。計器はこの 3 本を呼ばず、受け手の三項式を自分で書く（教訓①・同じ規則の写しを名乗る）。
+書き込みの行の数（WriterRatchetTests の CountWriters は `\.欄(\[..\])?\s*(\+=|-=|\*=|/=|=)` を SimCore の全 .cs で数える）：
+ - EarnedPerMonth：宣言 12（WriterRatchetTests.cs:151）。今の数を ident の前に試験で読み、増やさない（:2745 の行は PayOwnerRent へ移すだけ・受け手ごとに行を足さない）。予言＝変わらない。
+ - LandRentPerMonth：書き手 4 行（EconomyStep.cs:806 の 0 化・:2747・Simulation.cs:969・Colonial.cs:161）＝宣言の表には無い。予言＝4 行のまま（:2747 は PayOwnerRent へ移す・:969 は同じ位置で 1 行のまま）。
+ - Privileges.Record( の呼び 6 か所＝変わらない。IndustrialRentPerMonth の書き手＝変わらない。
+名の衝突（SimCore・Tests・scripts を grep）：LandShares・LandOwnership・landshare_s・InstrumentsLandshare・LandShareRecipient・PayOwnerRent・AddRentRecipients はどれも 0 件（scripts の landshare の字は r865・r891 の紙の台本の名だけ）。
+セーブ：Producer の double[]? は前例（Region.CropHealth・ConstructionCarryover・Model.cs:1039〜:1043）と同じ＝SaveGame.cs の null（:107・読み :287）と配列（:138〜:143・読み :314）の枝で書ける＝新しい分岐は要らない見込み。NationConfig はセーブに載らない（構築の入力）。T6 と savetest で確かめる。旧版のセーブとの互換は要らない。
+POB_COEF と係数の名：新しい係数 0＝名前の表に触れない。
+
+==== [2′] 他の線との重なり ====
+- c76lb：Instruments.cs の :1868 の直後・:1892 の直後（landbase）。この線は :1863（CedeTable）の直後・:1893（CrownClose）の直後・MonthClose の中（CgMonthClose(w) の直後・早期 return の前）＝行は分かれる。c76lb は EconomyStep.cs ほかを読むだけ。
+- c76cs：CrownParliament.cs・InstrumentsCrown.cs・Coefficients.cs・DormantIdentityTests.cs＝この線は触れない。
+- InstrumentsCornint.cs は c76ds の段 C-0′（次の波の ⑦）と同じファイル＝この波は c76ls だけが書く。
+- この線は App・SimCore/Display・Runner・world.json・WriterRatchetTests.cs・Colonial.cs・UnionBargaining.cs・SaveGame.cs（要らない見込み）に触れない。
+
+==== [3] 計器 landshare_s（新しい部分クラス InstrumentsLandshare.cs）と、足す試験・突然変異 ====
+呼び口：Instruments.cs の Quarter に `LandshareTable(sim, seed, q);`（:1863 CedeTable の行の直後）・Close に `LandshareClose(sim);`（:1893 CrownClose の行の直後）・MonthClose に `LandshareMonth(w);`（CgMonthClose(w) の直後・`if (!st.Active || !st.Armed)` の早期 return の前）。
+  月の閉じの位置の確かめ：Simulation.cs:2511 の MonthClose は全ての州の EconomyStep（:806 の 0 化→:2747 の積み→:2854 の RemitAbsenteeRent＝Colonial.cs:161）の後・次の月の EconomyStep の前。間の PopDecision・Territory.Step・人口動態・BackstopNegativeSavings は LandRentPerMonth を書かない（書き手の grep は上の 4 行だけ）。
+  助走の月（World.WarmupFrozen）は月の積みを 0 へ戻すだけで四半期の和に足さない。四半期の表を書くときに四半期の積みを 0 へ戻す。
+行：国×四半期（全ての国）。額は国の通貨・四半期の月の和（…PerQuarter）。階級の 5 区分＝Noble・Clergy・Peasant・Capitalist・Other（PopClass の 0・6・1・3・その他）。
+列：
+ quarter・year・nation・monthsInQuarter
+ rgoNullCount・rgoFieldCount・rgoEndowCount・rgoFieldColonialCount・rgoFieldEndowCount・fieldRegionCount（四半期の末の断面）
+ rentNonEndowPerQuarter・rentEndowPerQuarter・rentColonialPerQuarter（受け口の rent>0 の和：非植民地格×非賦存・非植民地格×賦存・植民地格）
+ rentNonEndowByOwnerClass{Noble,Clergy,Peasant,Capitalist,Other}PerQuarter（非植民地格×非賦存の rent>0 を今の持ち主の POP の ClassId で）＝B-2a の予言の材料（仕様の 4 区分に Clergy を足して 5 区分に揃えた）
+ expectedByClass{…}PerQuarter（期待：非植民地格の州の全ての RGO の rent>0×欄の重み→計器が自分で引いた受け手の ClassId＋訂正 1 の (a) の送金の項）
+ dataByClass{…}PerQuarter（同じ集合で、欄の代わりに world.json の側＝WorldData.Nations() の同じ名の国の LandOwnership を計器が自分で正規化し、非賦存×持ち主が貴族の RGO にだけ掛けた期待＋同じ送金の項。データの無い国は持ち主に 1）
+ landRentActual{…}PerQuarter（月の閉じで足した非植民地格の州の POP の LandRentPerMonth・階級ごと）
+ landRentActualFieldRegion{…}PerQuarter・expectedFieldRegionByClass{…}PerQuarter（欄を持つ RGO が 1 本でもある州だけ）
+ colonialRemitPerQuarter（訂正 1 の (a) の送金の項の和）
+ maxRelDiffSlotVsActual（月ごとの Σ_c|expected_c−actual_c|÷Σ_c expected_c の四半期の中の最大・double のまま・分母 0 なら差 0 で 0・差が正なら +inf）
+ maxRelDiffDataVsField（月ごとの Σ_c|data_c−expected_c|÷Σ_c expected_c の最大）
+ fieldSumMaxAbsDev（欄を持つ生産者の |Σ枠−1| の最大・非有限は 1・欄が無ければ 0）
+ slotFallbackCount（計器が受け手を引くとき添字が −1 か範囲の外で貴族の枠へ寄せた回数）
+ expRentPerQuarter・expSlotExpected{…}PerQuarter（輸出の受け口の総額と欄で掛けた期待＝実際の側は LandRent に載らない＝門にしない・限界）
+訂正 1 の (a) の式（Colonial.cs に触れない・moved を再現しない）：
+  植民地格の州 r で、計器が自分で判別した不在地主の RGO（r.Tier==Colonial・IsRgo・主食でない〔Tier!=Staple かつ !GrainChain〕・r.Resources に載る）があり、計器が自分で引いた不在地主（w.Region≠r・w.Region.InvestorPopIndex が範囲の内）が居る州では、
+  受け口で POP k ごとに pre_k＝Σ(その州の RGO の rent>0・計器の受け手 k)（その月の LandRent の積みそのもの）を積み、月の閉じで post_k＝その POP の LandRentPerMonth を読む。
+  送金の項 remit＝Σ_k max(0, pre_k − post_k)（Colonial.cs:160〜:161 の land＝min(moved, max(0, LandRent)) の実際に移った額）を首都の投資家の ClassId へ期待（expected と data の両方）に足す。
+  ⚠首都の投資家は非植民地格の州＝実際の側に入る。送金が上限で切られた月も両側が揃う。正しい実装でデータ無しの盤面の maxRelDiffSlotVsActual は全ての国×四半期で 1e-12 以下の予言（植民地を持つ英・西・仏・丁も）。
+限界（ヘッダの注に書く）：①実際の側は LandRent＝国内だけ（輸出の地代は LandRent に載らない）②植民地格の州は外し、送金だけを (a) で足す③rent≦0 は LandRent が立たない＝期待も rent>0 の分だけ④期待も実際も受け手の POP の ClassId で積む⑤昇格した植民地は Integrated＝本国の側（訂正 3）・欄は null＝data は欄を持つ州だけの列か q0 で読む⑥持ち主の階級の列は受け口の時点の持ち主⑦data の側は国の名で world.json の国を引く＝建国の国・名の変わった国は〈データ無し〉⑧割譲で州が動いた月は旧の国の受け口と新の国の LandRent が分かれる（月の途中の割譲は無い見込み＝外交は四半期）。
+計器はエンジンの関数を呼ばない：受け手（4 枠と寄せ）・賦存の判別・不在地主の判別・正規化・掛け算を自分で書く。エンジンの局所から受けるのは受け口の総額の rent だけ（SbRgo の前例）。
+
+OwnerPopIndex を読む計器の持ち分化（null は今と同じ演算・同じ順）：
+ - InstrumentsCornint.cs:60〜:62（ownerTot）：欄ありは枠の受け手に 産出の値×割合・null は今の 1 行。
+ - InstrumentsCornint.cs:73（按分の走査）：欄ありは割合が正の枠の受け手が pi の RGO を読み、重み＝v×割合（同じ RGO で 2 枠が pi に当たれば割合を足した重み）・null は今の条件 OwnerPopIndex != pi。
+ - InstrumentsCornint.cs:92〜:97（輸出の地代の層）：欄ありは枠ごとの層へ rent×割合・null は今のまま。
+ - InstrumentsCearn.cs:637（oi）：欄ありは割合が正の枠の受け手のうち労働の POP でない者に oLines+1（同じ受け手は 1 回）・oRev += LastRevenue×割合の和・null は今のまま。
+ - InstrumentsSb.cs:73（自営の数 owner==labor）：〈今のまま〉を選ぶ（欄を持つ RGO の農民の枠は数えない＝限界として注に書く）。
+
+足す試験（新しいファイル PriceOfBread.Tests/LandShareTests.cs・[Collection("Instruments")]）：
+ T1 保存（国内）：欄 (0.3,0.1,0.4,0.2) の RGO で PayOwnerRent の後の受け手ごとの Earned の増分の和＝rent（相対 1e-12）・LandRent も同じ・受け手ごとの値＝rent×割合（教会＝ClergyPopIndex・市民＝InvestorPopIndex・農民＝LaborPopIndex）。
+ T1′ 保存（輸出）：AddRentRecipients の並びの重みの和＝rent（1e-12）・並びの長さ＝割合が正の枠の数・受け手が枠の順。
+ T1″ 種：欄を持つ国（フランスの写しに LandOwnership を置く）の構築の直後の LandRent の和が、欄の無い同じ国の和と相対 1e-12 で同じ・教会の POP の LandRent＝種×0.1 の和。
+ T2 ビット：欄 (1,0,0,0) と null で、PayOwnerRent の後の全ての POP の Earned・LandRent がビットで同じ。
+ T2′ 長さ：欄 (1,0,0,0) の AddRentRecipients の並びの長さは 1・(0.3,0,0.7,0) は 2（訂正 4：割合 0 の枠を並びに入れる突然変異は T2 では緑のままの予言＝T2′ で赤）。
+ T3 受け手と寄せ：ClergyPopIndex＝−1 の州では教会の枠が貴族の POP へ寄る。T3′ 領主権：試験の世界だけ PrivilegeLedgerEnabled＝1 で、貴族の枠の割合 0.3 のとき記録＝rent×0.3×度合。
+ T4 赤字：負の rent が割合で割られ、受け手の Earned の増分の和＝rent（1e-12）・LandRent は増えない。
+ T5 構築：LandOwnership を持つ国の構築で、非賦存の RGO だけが欄を持ち、賦存の RGO・工場は null・欄の和が 1・生産者ごとに別の配列（ReferenceEquals が偽）・無効なデータ（負・和 0・長さ 3）は全て null。
+ T6 セーブ：SaveGame の往復で null は null・配列は同じ値・生産者ごとに別の配列のまま。
+ T7 計器（データ無しのイギリス単国・1〜2 四半期）：maxRelDiffSlotVsActual≦1e-12（訂正 1 の (a)＝植民地格の州の送金がある国＝T8 を兼ねる）・rgoFieldCount＝0・rgoFieldEndowCount＝0・slotFallbackCount＝0・最後の四半期の行の landRentActual の和が正で expected の和と相対 1e-12 で一致・colonialRemitPerQuarter が正（植民地格の州の送金がある）。
+ T7′ 計器（欄ありのフランスの写し・データの側は試験が登録した同じ値）：maxRelDiffSlotVsActual≦1e-12・maxRelDiffDataVsField≦1e-12・landRentActualClergy＞0・rgoFieldCount＝試験が数えた欄ありの RGO の数・rgoFieldEndowCount＝0・fieldSumMaxAbsDev≦1e-12。
+ T7″ 人工のずれ：データの側に欄と違う値（0.5,0,0.5,0）を登録すると maxRelDiffDataVsField が 0.1 を超える（計器の比べが働く）。
+ T8 訂正 1 の (a)：T7 に含める（イギリスの colonialRemitPerQuarter＞0 かつ maxRelDiffSlotVsActual≦1e-12）。
+ 計器の門の台本：scripts/instruments/c76ls/gate895.py（ident の生の landshare_s を読み、maxRelDiffSlotVsActual≦1e-12・rgoFieldCount＝0・slotFallbackCount＝0 を全ての国×四半期で数える）＋自分の試し（人工のずれの行 1e-6 を落とすこと）。
+ データの側の試験の口：計器の中の ConditionalWeakTable<World, double[]>（試験だけが登録する・World と Sink に欄を足さない）。
+
+突然変異の表（使い捨ての木・1 本ずつ・赤になる試験か門）：
+ M1 割合 0 の枠も並びに入れる（AddRentRecipients で ls[k]>0 の条件を外す） → T2′（長さ）。T2 は緑のままの予言（国内は rent×0.0 の足し算＝ビット不変・LandRent は rk>0 で飛ぶ）。
+ M2 輸出の側だけ割らない（AddRentRecipients を今の 1 組に戻す） → T1′。
+ M3 領主権の記録を割らない（rk でなく rent を記録） → T3′。
+ M4 種を割らない（欄ありでも持ち主へ全額） → T1″（教会の POP の種）。
+ M5 null を 1.0 でなく 0 と読む（ls is null の rk を 0 に） → T2・T1・ident（腕は回さない＝試験で拾う）。
+ M6 賦存の RGO にも当てる（構築の非賦存の条件を外す） → T5・（腕なら rgoFieldEndowCount）。
+ M7 生産者で同じ配列を共有する（写しを作らない） → T5・T6。
+ M8 受け手ごとに `EarnedPerMonth +=` の行を足す（PayOwnerRent の繰り返しを展開） → WriterRatchetTests（EarnedPerMonth 12）。
+ M9 訂正 1 の (a) を外す（送金の項を足さない） → T7（イギリス）。
+ M10 計器の門を壊す：gate895.py の比べを 1e-12 から 1 へ緩める → gate895.py の自分の試し（人工のずれの行 1e-6 を落とせない＝赤）。xUnit の側は T7″ の閾値 0.1 を 1e3 にすると T7″ が赤（比べの側の突然変異）。
+ M11 期待の受け手を枠の番号で積む（受け手の ClassId でなく枠 k を階級に読み替える） → T7（データ無しのイギリス：null の RGO の持ち主が農民の州があれば枠 0＝貴族へ積まれて赤）。持ち主が全て貴族なら緑の予言＝緑なら〈突然変異で確かめていない〉と名乗る。
+ M12 expectedByClass に rent≦0 を足す → T7（赤字の月がある盤面なら赤・無ければ緑＝結果を書く）。
+ M13 dataByClass で賦存の RGO にもデータを掛ける → T7′（フランスに賦存の RGO があり rent>0 なら maxRelDiffDataVsField＞0 で赤）。
+ M14 landRentActual に植民地格の州を含める → T7（イギリス）。
+ M15 expectedFieldRegionByClass を全ての州で積む → T7′ の〈expectedFieldRegion の和＝landRentActualFieldRegion の和〉（フランスは全ての州が欄ありなら緑＝結果を書く）。
+ M16 fieldSumMaxAbsDev を常に 0 → T5′（試験で欄の和を 1.5 に書き換えた生産者の盤面で fieldSumMaxAbsDev≧0.5）＝T7′ の中で。
+ M17 rentNonEndowByOwnerClass を賦存も含めて積む → T7′（rentNonEndowByOwnerClass の和＝rentNonEndowPerQuarter）。
+ M18 Cornint の持ち分化で null の枝の演算を変える（ownerTot に ×1.0 を掛ける形は同じビット＝緑）→ ident（cornint_s の全行一致）だけが拾う＝xUnit では確かめていないと名乗る。
+ 単体の試しで緑の突然変異は、別の盤面か門で落ちるかを書く（★(773)・★(892)）。緑のままの列は〈突然変異で確かめていない〉と名乗り、試験か列を足す（★(790)）。
+
+==== [3′] ソースを走査する番人（㉘）の点検と書き換える件数の予言（㉑） ====
+ - new MoneyStock( は SimCore で 64 か所＝足さない（予言 64 のまま）。
+ - 工業化度の読み手の許可表（IndustrializationReaderTests）＝工業化度を読まない＝触れない。
+ - route_anchors.tsv（scripts/instruments/flow262/）の鍵：EconomyStep.cs・InternationalMarket.cs の鍵は無い・Simulation.cs と Colonial.cs の鍵の行（Colonial.cs:35 行目の鍵＝World.Transfer((w, [payer])…）は触れない＝予言 0 件の書き換え。
+ - WriterRatchetTests の宣言の表（InlineData 21 行）：書き換えない（★(778)）。予言＝緑。
+ - UnitTypeTests の割合の型の表（Producer.RentShare ほか）：LandShares は double[]（前例 NationConfig.Rule）＝表の外・接尾辞で縛る走査は無い（grep）＝予言 緑。
+ - DormantIdentityTests：新しい係数 0＝触れない。GoodIdGuardTests：財の番号の直書きをしない。TechLevelRemovalTests：触れない。InstrumentsTests：新しい表の名の登録の表は無い（cederule_s の前例＝Instruments.cs の呼びだけ）。
+ - 書き換える件数の予言＝0。
+ - ★(818)：grep -ln "OwnerPopIndex\|LandRentPerMonth\|RentShare\|EarnedPerMonth" PriceOfBread.Tests/*.cs＝52 ファイル。これらの欄を名指す Assert は 48 行（AiFirstWaveTests:477・BuildingGoodBundleTests:108・ColonialPopTests:63〜:110・CornintInstrumentTests:113・EconomyTests:630・HouseholdProductionTests:63〜:66・Hz8IdentityTests:43〜:44・InitialDefaultsTests:139〜:141・InstrumentsTests:2503・MilitaryTests:1823〜:1868・MobilityPushTests:24〜:28・Rs2/Rs3・SbBargainTests:263〜:284・ServiceEconomyTests:166〜:280・SmallFixes471Tests:470・StateFactoryTests:476〜:557・TaxTests:106〜:127・UnitTypeTests:484）を読んだ。全ての国が null＝赤の予言 0。InitialDefaultsTests の既定の番人（landOwnership を書く国 0＝既定 null が最頻）も緑の予言。
+
+==== [4] 恒等の判定 ====
+ bash scripts/instruments/tools/bg.sh D:/PoB_work/c76ls_work/ident.mark bash scripts/instruments/c76ls/ident895.sh（run_in_background）。中で ident.sh run c76ls --tree <worktree> --added-tables landshare_s --tests-delta <N> --saveleak。
+ 合否＝素の 5 種・計器つき 10 種が m873 と名乗り行を除いて全行一致・計器の表の差は宣言（landshare_s の追加）だけ・素の .cost が許しの内・フルスイートの数＝2339＋N・savetest と leakhunt。
+ 起こす前に arms.sh free（3 以上）と D: の空き（35GB 以上）を見て値を記録に残す。ident が走っている間はこの worktree にコミットしない（㉙）。
+ ident の生で読む（記録・採否に使わない）：rentNonEndowByOwnerClass*（B-2a の予言と G-B2 の上限の材料）・maxRelDiffSlotVsActual の分布（データ無しで全ての国×四半期 1e-12 以下か・植民地を持つ国で訂正 1 の (a) が効いたか）・rgoFieldCount＝0・slotFallbackCount。破れたら〈期待の側の集合の誤り〉として報告する（門を緩めない）。
+ 浮動小数の順序が変わる箇所：エンジンは 0（上の [2] の順序の注）。計器の Cornint・Cearn の持ち分化も null の枝は今の式のまま＝0。紙で数える食い違いは 0（全て null＝新しい枝を通らない）。
+
+==== [5] 採否と生の扱い ====
+ - 〈判定: 恒等〉かつ T1〜T8 と突然変異の表どおり（緑のままの物は名乗る）・WriterRatchetTests 緑・savetest OK なら採る（合流が入れる）。一致しなければ、その変更を外して報告に回す。
+ - 生：ident の生は反証役が読んだ後に landshare_s と keepsum（全ての表の要約）へ縮め、合流まで残す（B-2a の事前登録の材料）。縮める前に消さない（⑲）。ビルドの写しは終わったら消す。
+ - 消さない物：keep_873・keep_873_rej・keep_879・keep_879_rej・keep_885・keep_885_rej・keep_892・keep_892_rej。消してよいのはこの線が作ったフォルダ（c76ls_work・c76ls_art・ident_c76ls ほか ident が作る物）だけ。
+入れない物：world.json の landOwnership の値（B-2a）・B-2b の国家の枠・B-1 の売り買いと定額・地主の政治・再点火の払い手の変更・Colonial.cs・UnionBargaining.cs・c76lb の行・App・Display・Runner・WriterRatchetTests の表・旧版のセーブとの互換。
