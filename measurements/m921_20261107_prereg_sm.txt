@@ -23,3 +23,5 @@
 [4] 合否：素の 5 種・計器つき 10 種が m919 と名乗り行を除いて全行一致・.cost の推定が一致。フルスイート（分けて・合計を --list-tests と突き合わせ・中止 0）で赤 0。savetest・leakhunt OK。ng.sh は回さない（SimCore の計算が変わらない）。
 [5] 〈判定: 恒等〉なら採る。一致しなければ該当の変更を外して報告に回す。
 D: 空き 67GB（床 35GB＋5GB を満たす）。作業フォルダ D:/PoB_work/c80sm_work/・隔離ビルド D:/PoB_work/c80sm_art・worktree D:/PoB_work/wt_c80sm。
+
+[3 追記・ident の前・結果は見えている] 突然変異 M3（旧の木で 0.999）・M4（旧の Discovery.Step）は既存の試験では緑のままだった（measurements/m921_20261107/mutation34_first_green.txt）＝★(790) に従い機構の試験 ForceReadGuardTests（2 本・PriceOfBread.Tests/ForceReadGuardTests.cs）を足し、旧の木へ写して赤を確かめた（mutation34b_with_new_tests.txt）。試験の増え＝CoupGateNanMarkTests 1＋ForceReadGuardTests 2＝+3（TESTS_NONFULL 2405）。M4 の旧の木の赤は〈読みが 4 本ある〉ことへの赤で、並列の競合そのものの再現ではない（限界）。突然変異 M1・M2・M5 は mutation_nanbranch.txt（全て赤）。
