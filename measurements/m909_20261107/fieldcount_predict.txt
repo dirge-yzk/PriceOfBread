@@ -1,0 +1,7 @@
+フランス	field=212	coreRegions=8	colonialRegions=6	absenteeRgo=13	rgoCore=224	endowCore=12
+イギリス	field=129	coreRegions=5	colonialRegions=27	absenteeRgo=28	rgoCore=140	endowCore=11
+スペイン	field=192	coreRegions=7	colonialRegions=26	absenteeRgo=31	rgoCore=201	endowCore=9
+プロイセン	field=130	coreRegions=5	colonialRegions=0	absenteeRgo=0	rgoCore=140	endowCore=10
+デンマーク	field=106	coreRegions=4	colonialRegions=1	absenteeRgo=0	rgoCore=112	endowCore=6
+日本	field=228	coreRegions=8	colonialRegions=0	absenteeRgo=0	rgoCore=237	endowCore=9
+ポーランド	field=134	coreRegions=5	colonialRegions=0	absenteeRgo=0	rgoCore=140	endowCore=6

@@ -1,0 +1,22 @@
+(909) c78ls データあり（旗 1 に当たる）の木 d590fc9f のフルスイート・savetest・leakhunt（腕 B の前・㉜）
+台本 scripts/instruments/c78ls/suite909.sh（Release・隔離ビルド・Category!=FullLength と =FullLength を分けた）。並走＝c78ep の ident（ident_c78epz）が同じ時間に走っていた（arms.sh free 2）。
+
+- --list-tests：nonfull 2393（基線 2391＋この線の LandOwnershipDataTests 2 本）・full 3。
+- nonfull：失敗 12・合格 2380・スキップ 1・合計 2393（list と一致・中止 0）・47 分 12 秒。
+- full（FullLength）：成功 3/3・5 分 44 秒。
+- savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）。leakhunt 完走（種 1789・200 四半期・保存則違反なし・世界の台帳の説明できない増減＝人口 0・基礎貨幣 0）。saveleak 392 秒。
+- 新しい試験 LandOwnershipDataTests の 2 本は緑。
+
+赤 12 本の帰属（盤面は全て名簿の国を含む＝world.json の直しで説明できる・grep で盤面を確かめた）
+| 区分 | テスト（ファイル:行） | 盤面 | 要点 | 予言 |
+| ★(764) 派生の表 | OpeningBakeTests〈同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う〉・〈表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない〉 | world.json の入力ハッシュ | 合流が bake.sh で 1 回焼き直す | 予言どおり |
+| ★(749) 軌道の件数 | WriterRatchetTests item 11（DiploHegemonScans 2,655,980／宣言 3,395,620＝10% を超えて下がった） | 最初の 40 四半期 | 合流の木で取り直す | 予言どおり（種類） |
+| ★(749) 軌道の件数 | WriterRatchetTests item 6（請求：見た生産者〔月〕1,627／宣言 1,809＝下がった） | 同上 | 同じ区分 | 種類は予言の内・名指しは item 11 だけ＝外れ |
+| 盤面の前提 | LandShareTests.cs:288 T7〈データ無しの盤面で期待と実際は一致し送金も数える〉（Assert.Equal(0, rgoFieldCount) が英で 129） | 英＋米 | 英を〈データ無し〉の盤面に使う | 予言どおり |
+| 旧の規則を再構成する番人 | StateFactoryTests.cs:508〈国営持分の造幣の代金は持分の割合だけ国庫へ〉(imported: 0)・(imported: 3)（期待 Add(r.Pops[p.OwnerPopIndex], rent*(1−f))＝持ち主が全額・実測 0.022359375＝期待 0.084375×0.265＝仏の貴族の枠） | NationConfig.France() 密閉 1 国 | 造幣（Simulation.MintGold）の地代も PayOwnerRent を通って 4 枠に割れる＝銀の RGO が仏の州で非賦存 | **予言の外** |
+| 旧の規則を再構成する番人 | CornintInstrumentTests.cs:131〈輸出の地代は輸出額と生産者から組んだ値に合い_シグマは範囲に収まる〉（:172 q0 英 b0 0.02529 ≠ 0.03202）・:74〈国内の地代とブロックの割合と今の選好はエンジンの値に合う〉 | 仏＋英（RunTwo） | 試験の期待が持ち主だけで地代を組む（計器は (895) で持ち分に合わせ済み） | **予言の外** |
+| 盤面の前提 | AiFirstWaveTests.cs:325〈支持不足で否決された段は目標に残る_吸収状態が無い〉（テスト前提が崩れた：支持不足の拒否を作れていない） | NationConfig.France() | 貴族の地代が減り支持の盤面が動いた | **予言の外** |
+| 盤面の前提 | ReformPathTests.cs:430〈P7_スライダーの脚も二乗を読む_残りが細ければ動かない〉（テスト前提が崩れた：代価 0.0019981 が 0.05² を超えない） | Board()（仏） | 同上 | **予言の外** |
+| 盤面の前提 | InstrumentsTests.cs:1963〈借入の門の周りの列が試合の月ごとの行から組み直した数に合う〉（対照：英の限界の縁の反転が 1 度も無い） | 3 国の試合（英の限界 0.60） | 英の軌道が動いた | **予言の外** |
+
+判定：予言の外の赤 7 本（StateFactory 2・Cornint 2・AiFirstWave 1・ReformPath 1・Instruments 1）＝事前登録 [7]〈これ以外の赤が出たら腕 B を回さず止める〉と ㉜ に当たる＝腕 B・S11 を回さず止めた。試験は書き換えていない（どれもこの線の持ち物の外・㉜ は書き換え禁止）。
