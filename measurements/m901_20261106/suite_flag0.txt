@@ -1,0 +1,9 @@
+(901) c77cs 旗 0 の木（試験の直し 2ec8b6cb）の走査の番人とフルスイート（台本 scripts/instruments/c77cs/suite901.sh・2026-11-06）
+--list-tests：Category!=FullLength 2377（2376＋T5′）・FullLength 3
+走査の番人の組（guards・665 本＝7 組＋線の試験の組）：合格 665・失敗 0（WriterRatchetTests の 23 本を含む）
+Category!=FullLength：合格 2353＋スキップ 1＋失敗 23＝2377（--list-tests と一致・中止 0）
+  失敗 23 本は全て WriterRatchetTests.計算量の見た件数は宣言した表を超えない（item 0〜22）＝System.ArgumentException（path が空）at Instruments.Open ← SelfPlayMatch.Run ← WriterRatchetTests の Lazy
+  読み：Instruments の静的な Dir・On を [Collection("Instruments")] の試験が Configure(null,null) で空にする間に、その組の外の WriterRatchetTests の自己対戦が計器を開いた（Instruments.cs:52 の Dir と On は別々に書く）＝試験の並列の競合・機構の赤ではない。同じコミットの guards（WriterRatchetTests を含む 665 本）は緑。
+  ⇒ 旗 0 は〈2353＋WriterRatchet 23（guards）＋スキップ 1＝2377 で緑〉と読む。旗 1 のフルスイートから WriterRatchetTests を分けて回す（suite901.sh）。
+FullLength：合格 3＝3（中止 0）
+SimCore の差は 0＝savetest・leakhunt は旗 0 では回さない（旗 1 で回す）
