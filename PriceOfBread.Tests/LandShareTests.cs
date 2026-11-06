@@ -298,7 +298,6 @@ public class LandShareTests
         Assert.All(us, r => Assert.True(D(r, "landRentActualPeasant" + "PerQuarter") > 0 && D(r, "expectedByClassPeasantPerQuarter") > 0, "アメリカの農民の地代が 0＝持ち主が農民の盤面にならない"));
     }
 
-    /// <summary>T7′・T7″：欄ありのフランス。データの側を試験が登録した同じ値なら data と期待は一致・違う値なら差が立つ（計器の比べが働く）。教会の地代が実際に入り、欄の数は試験が数えた数。</summary>
     /// <summary>(904) T7e：首都の格と送金（末尾に足した 3 列）。首都が本国の格（既定）の盤面＝首都が植民地格だった月数 0・送金が期待へ入らなかった額 0・Tier≠Colonial の月だけ送金を足す規則の差も 1e-12 以下。
     /// 首都の州を植民地格にした盤面＝月数 3・入らなかった額は正（植民地格の州から首都の投資家への送金）・旧の列（送金を常に足す）は実際と合わなくなる（gate895 の破れ：種 7 英 q484 の型）が、新しい規則の差は 1e-12 以下。
     /// 期待は手のリテラルと実際の側の列（landRentActual）から作る＝新しい列どうしで比べない。突然変異「capColonial の判定を外す」で後半が赤。</summary>
@@ -321,11 +320,29 @@ public class LandShareTests
         {
             Assert.Equal(3, D(row, "capColonialMonths"));
             Assert.True(D(row, "remitNotAddedPerQuarter") > 0, "首都が植民地格でも送金が 0＝盤面にならない");
+            Assert.Equal(D(row, "colonialRemitPerQuarter"), D(row, "remitNotAddedPerQuarter"), 1e-9 * D(row, "colonialRemitPerQuarter"));   // (908) 首都が植民地格の 3 か月は送金の全てが期待へ入らない＝2 つの列が等しい
             Assert.True(D(row, "maxRelDiffSlotVsActualTierRule") <= 1e-12, $"首都が植民地格の月の新しい規則の差 {row["maxRelDiffSlotVsActualTierRule"]}");
             Assert.True(D(row, "maxRelDiffSlotVsActual") > 1e-9, "旧の列の破れが再現しない（首都が植民地格なのに送金を足している旧の規則の差が 0）");
         }
     }
 
+    /// <summary>(908) T7f：新しい規則の差の列（maxRelDiffSlotVsActualTierRule）が正になる盤面。T7e は全ての行で 0（両側の門のうち下側だけ）＝列の最大値の取り方（LsMax）を外しても緑だった。
+    /// 盤面：最後の四半期の後に、期待が空の 1 か月分の月の閉じを試験が直接呼ぶ（実際の地代は直前の月の値のまま・期待は 0）＝差は手の数で 1（期待が 0・実際が正＝差の和÷実際の和＝1）。
+    /// 突然変異（measurements/m908_20261107/mutation.txt）：LsMax の本体を空にする（最大値を取らない）→列が 0 のままで赤。</summary>
+    [Fact]
+    public void T7f_期待と実際が合わない盤面で新しい規則の差の列は正になる()
+    {
+        const ulong seed = 1794UL;
+        string dir = RunIns([WorldData.ByName("イギリス"), WorldData.ByName("アメリカ")], 1, seed, beforeLast: sim => Instruments.LandshareMonth(sim.Nations[0].World));
+        var uk = Rows(dir, seed).Single(r => r["nation"] == "イギリス");
+        Assert.Equal(4, D(uk, "monthsInQuarter"));
+        Assert.Equal(1.0, D(uk, "maxRelDiffSlotVsActualTierRule"), 9);
+        Assert.Equal(1.0, D(uk, "maxRelDiffSlotVsActual"), 9);
+        var us = Rows(dir, seed).Single(r => r["nation"] == "アメリカ");
+        Assert.True(D(us, "maxRelDiffSlotVsActualTierRule") <= 1e-12, "別の国（月の閉じを足していない）は 0 のまま");
+    }
+
+    /// <summary>T7′・T7″：欄ありのフランス。データの側を試験が登録した同じ値なら data と期待は一致・違う値なら差が立つ（計器の比べが働く）。教会の地代が実際に入り、欄の数は試験が数えた数。</summary>
     [Fact]
     public void T7b_欄ありの盤面で計器は写しと受け手を確かめる()
     {
