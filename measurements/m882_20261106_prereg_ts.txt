@@ -1,0 +1,108 @@
+(882) c74ts 事前登録：自給の段 2′ Σ2′＝技術の比 T を自給の 3 か所（焼く ρ・σ・(b′) の lneed）から外す（旗 SubsistenceNoBoughtTech）の 2 回目＝〈働いた〉の門を作り直す→紙→通れば点火と腕 B・S11（挙動の線・3 回の規則の 2 回目）
+書いた者：Claude Opus 5.5（c74ts の担当）。木の出発 496d5ec8（main・基線 m873・合わせた木 13e63cca）。worktree D:/PoB_work/wt_c74ts・枝 c74ts。
+作ったフォルダ：D:/PoB_work/wt_c74ts・D:/PoB_work/c74ts_work（この回の終わりに自分で片付ける・腕の生は合流の判断まで残す）。
+このファイルは最初のコミット。数を足すときは末尾の〈追記〉に理由つきで書く（腕の前）。
+
+[0] 名乗り
+- 形の種類：入口（全ての自給の担い手の州の月の頭 SubsistenceHead と月の末の (b′) FarmUnemploymentStage2）。形は (877) と同じ（器は main にある・旗 0・恒等は (879) の腕 Z で測り済み）＝この線は EconomyStep.cs を書かない・器の ident は要らない。
+- 出所：00一覧 §00〈次の波（波74〜）〉③。作者 2026-11-04 の自給の言葉と AI の推奨を〈作者「全て推奨で」で推奨を採った〉。作者の原文「技術向上(農薬など）の出現と共に、売却割合が増える方が自然」。
+- §0-2 ★(873) ⓪：自給の世帯は市場の農場が買った肥料・農薬の効き目を、買わずに得ない＝推奨〈掛けない〉で進める＝この線の前提。形は AI の案（確証なし）。
+- 3 回の規則：(877) が 1 回目（紙の no-go (b)・(d)）。この線が 2 回目。事前登録した no-go が当たるか門で落ちたら 2 回目に数える（次が最後）。
+- 確かめたソースの行（496d5ec8・grep し直した）：Coefficients.cs:531 `public double SubsistenceNoBoughtTech = 0;`・EconomyStep.cs:112・:133（`t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef)`）・DormantIdentityTests.cs:30 `"SubsistenceNoBoughtTech",`・SubsistenceStage2Tests.cs:14 と SubstInstrumentTests.cs:185 `foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = flag;`。改行は全て i/lf（git ls-files --eol）。
+
+[1] 点火の形（.cs だけのコミット）
+- Coefficients.cs:531 の既定を 0→1（注は変えない）。DormantIdentityTests.cs:30 の行を外す。他の行は触れない。
+- 計算量の割り当て：0 以下（旗 1 は StapleEffTech を 1 州×月に 2 回呼ばない＝減る向き）。
+
+[2] 00一覧 ③ の課題の決め方（紙の前に決めた）
+① 〈働いた〉の観測量＝新しい門 GW（世界の κ・T÷T0＞1.1 の行・台本 c74ts/gw882.py）。
+- κ＝1−Σ(subPopK×σ)÷ΣsubPopK（subst_s の RhoSource＝1・BasisKind＝2・subPopK＞0・d0＞0・T÷T0＞1.1 の行・窓ごと・種ごと）。σ は腕のエンジンの欄 s2SigmaEngine。紙の κ′ は基線の盤面の Σ2′ の σ′（gates_ts877.sigma2 と同じ式・決まらない行は下限）。
+- 働いた側：中央_種(κ_腕−κ0_基線) ＞ W（W＝ヌル 3 本〔基線 keep_879/base_ins・N1・N2〕の κ0 の範囲の種ごとの中央）。
+- 上限の側：|中央_種(κ_腕−κ′_基線)| ≦ 0.5×E（E＝中央_種(κ′_基線−κ0_基線)＝紙の効き）。README ★(773)〈上限はその形に固有の誤りの量〉＝効きを 2 倍にする形（Mu6）の誤りは E 1 回分＝その半分。ヌル 3 本の κ′ の範囲 W′ は記録（腕の盤面の応答はヌルの揺らしより大きい見込み＝W′ では正しい実装が落ちる危険）。
+- 評価する窓は閾値の表 gw882_thresholds.tsv（旗 0 の 3 本だけから --make-thresholds が置く）：行≧1000（10 種）・一つ抜きの 6 通り（腕＝1 本の盤面・基線＝もう 1 本・幅＝その 2 本）で〈正しい実装の紙が落ちる〉通りが 2 未満 かつ〈旗 0 が働いた側で通る〉通りが 2 未満。結果：1783-85 は行 0（外す）・1786-99／1800-49／1850-99／1900-50 を評価（4 窓）。GW は評価した窓が 2 以上で全て通る。
+- G2 との折り合い：G2 は同じ盤面の行ごとの式の一致（新÷旧＝T0÷T が式どおり）＝盤面の応答を見ない。GW は腕の盤面（旗 1 で回った世界）の κ を旗 0 の盤面（基線・ヌル）と比べる＝盤面の応答（売れ残りの能力 U の動き・担い手の入れ替わり・T の升の帰属の動き）が効きを打ち消せば落ちる＝G2 と同じ量ではない。
+- 升の選び方の正直な名乗り：agg882.py の 4 つの升（T÷T0 ≦1・≦1.02・≦1.1・＞1.1）は出力の前に固定した。どの升を門にするかは explore882 の旗 0 の 3 本の出力（measurements/m882_20261106/explore882_null.txt）を見て選んだ（〈全て〉の行は 1800 年以後 効き÷幅 0.85〜0.98＝旗 0 を落とせない・＞1.1 の升は 1.66〜8.51）＝旗 0 とヌル腕だけから選んだ・腕を見ていない。升の帰属は腕の盤面の T で決まる（計器 S2Tech は旗に依らない）＝旗 1 の応答で帰属が動く分は上限の側が拾う。
+② G5b の置き換え＝新しい門 G5h（壊さない・σ の外の倍率）。h＝Σ(subPopK×|ln H|)÷ΣsubPopK（H＝engineSubOutputPerMonth÷nominalSubPerMonth・GW と同じ母集合の全ての T の行・nominal＞0・H＞0）。エンジンの自給の産出は sub＝GoodNeed×σ×収穫係数（EconomyStep.cs の自給の行）＝H は σ に依らない。|中央_種(h_腕−h_基線)| ≦ 0.5×中央_種(h_基線)（Mu2〔H をもう 1 回掛ける〕は h を 2 倍にする＝固有の誤り h の半分）・行 500 以上の全ての窓（5 窓）が通る。ヌル 3 本の h の範囲（0.0003〜0.0067）との比べは記録。
+- 〈LastSubsistenceOutput と式の産出の一致〉の案は採らなかった：subst_s に収穫係数の独立の列が無い（InstrumentsSubst.cs に列を足さない）＝H そのものを列から作る形にした。
+③ G1a・G1b：G1a は記録（(877) [A3]＝m873 の盤面では正しい実装でも赤＝構造的に当たらない）。G1b は門のまま（壊さない側・恒真に近い＝P1 の焼いた行の σ＝0 の割合≦D1＝0 の割合＋0.001・(877) の紙で OK・Mu0 とも緑）と名乗る。
+④ Mu0〜Mu6 の表は [4]。単体の試験 3（同じビット）は何もしない実装を通す＝〈壊さない〉側と注に書く（試験は書き換えない）。
+⑤ 番人の直し：[6]（prereg_ts (877) [6] の diff の写し）。それ以外の赤は止める。
+
+[3] 門（両側・腕 B〔種 1〜10〕に当てる＝採否・S11 は近似・記録）
+- 台本と表の sha256（scripts/instruments/c74ts/）：
+  gw882.py 59aaefdf10273f4778a90249fbbed8cefc07983049b4e47c175025feee4609f8
+  agg882.py eb370a707538072165b53357a512ded1aee47db2e091cc3bd8d884197716dee7
+  explore882.py 18a629afcf3e9d04e274966a379ff6a76cbeb74396ba46a4e6c90e4f1dc759cd
+  gates_ts877.py 8b7a5f5b8960c5f3eda3fd6c247cd26165314480c0e0514e5cfb61f9fe96b43a（c73ts の写し・バイトで同じ）
+  gw882_thresholds.tsv 1f2aa350a7188ca62bfa4a5f45f6e4d6dbe9ba1975a105e441a0aa4a74849947
+  gates_ts882_thresholds.tsv 5a5dee35a72793b04ef6f3d4931c34718abf763bfa8b0de5d1f4c65fd09da82f（--make-thresholds を keep_879/base_ins・keep_873/n1・n2 で取り直した＝(877) の gates_ts877_thresholds.tsv とバイトで同じ）
+  read882.sh 3e72e6dfac3270a05447180fa14d2ef2aa46f3597a09d00d6f950199bdabafcc・armB882.sh 4939d8c4dbf88c912916a6ec1c5f4eb0ee6540d397952db9071c481b97a7c52d・s11_882.sh 37a5544413ca04d18292ff2f634af764398137f195962a8b6a710ede952eeea3・stoplines866.sh 0ccdacf129a533cb80afd7f5cf0ec7812ecf3b1981cc4ae52a0b410607e84ce6（m866 の写し）
+  旗 0 の集計 measurements/m882_20261106/agg882_null.json 1d797639d6afdffba936b8ef21023212cd20b275e3757f93446172d088f0b8d0・agg882_a11.json de69b10e9ac827c627c39e3c97458e3128c006ae7ff2087003e80c9481b079f2
+- 採否の門（全て通って採る候補）：
+  G2 実装の一致（Σ2′・(877) の式）・G3a 焼いた月（Σ2′）・G4 失業 (b′)（Σ2′）・G4m 印の乱用の止め・G1b・GC 商業化の向き（両側＋上限・(877) の式と表）・対照・GW（新・働いた）・G5h（新・壊さない）・計算量の登録 0 以下。
+- 記録（門ではない）：G1a・G5b（(877) の式）・G5p（(877) の〈働いた〉の門＝旗 0 を落とせない＝記録へ）・W′ との比べ・nullgate の O・NG・exact・near。
+- 狙いの数字（〈機構が働いたか〉の観測量）：GW の働いた側（T÷T0＞1.1 の行の κ が旗 0 の盤面より W を超えて上がる）。紙の効き E：1786-99 0.0788・1800-49 0.0680・1850-99 0.0713・1900-50 0.0808（W 0.0093・0.0168・0.0258・0.0486）。
+
+[4] 突然変異×門の表（紙・腕は回さない）
+- 確かめた物（GW・G5h＝measurements/m882_20261106/paper_gw882.txt〔種 1〜10〕・その他の門＝(877) の紙 measurements/m877_20261106/paper_mut877_s3.txt〔種 1〜3・7 形〕と paper_mut877_s10_OK_Mu0.txt〔種 1〜10〕＝同じ台本〔sha256 同じ〕・同じ閾値の表〔sha256 同じ〕・同じ生〔keep_879/base_ins は keep_873/base_ins とバイトで同じ〕＝取り直さずに引く）：
+| 形 | G2 | G3a | G4 | G4m | G1b | GC | 対照 | GW | G5h | 単体の試験（(877) mu_unit877.txt） |
+| OK 正しい実装（紙） | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+| Mu0 旗 0（S1-a） | 赤 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 | **赤** | 緑 | 器の既定（旗 0）＝SubsistenceNoBoughtTechTests の旗 1 の 4 本は旗を立てて回す＝赤にならない（試験 3 は何もしない実装を通す＝壊さない側） |
+| Mu1 σ だけ T | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 赤（働いた側・効き −0.008） | 緑 | 頭の試験 1 本が赤 |
+| Mu2 σ の外の倍率 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | **赤**（差 0.13≫上限 0.065） | 同じビットの試験が赤（旗 1 の時だけ入れた形） |
+| Mu3 U を開幕に固定 | 赤 | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 赤（働いた側） | 緑 | 紙だけ |
+| Mu5 lneed に T | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 必要な労働と失業の 2 本が赤 |
+| Mu6 効き 2 倍 | 赤 | 緑 | 緑 | 緑 | 緑 | 赤（下の升） | 緑 | 赤（上限の側） | 緑 | 紙だけ |
+- Mu4（cap÷人数）は紙で作らない（(877) と同じ・見込み：G2 と GW の上限で赤）。
+- 恒真の名乗り（(877) [A3] と同じ型）：紙の〈Mu0 が GW で赤〉は基線の行どうし（κ0−κ0＝0）の構造＝それだけでは証拠ではない。〈OK が緑〉も自分の紙との比べ（U＝0）。証拠は gw882_thresholds.tsv の一つ抜き：旗 0 の盤面を腕に見立てた 6 通りで働いた側を通った通り 0／6（4 窓とも）・正しい実装の紙（腕の盤面の κ′）が落ちた通り 0／6（4 窓とも）・Mu6 は上限の側で 24／24 赤。G5h の一つ抜き（ヌル 3 本どうしの差が上限を超えた通り）0／6（5 窓とも）。
+- ㉗（紙で閾値の 3/4 以上に寄る門）：GW の働いた側で、旗 0 の一つ抜きの Δ÷W の最大が 1900-50 の N2N1M で 0.76・1850-99 の N2MN1 で 0.70（どちらも通る側に寄る＝落ちる余裕が小さい）。正しい実装の紙の一つ抜きの最小は 1900-50 で Δ÷W 1.91（MN2N1）・上限の側 |U|÷0.5E の最大 0.42（1900-50 N1N2M）。〈評価する窓が全て通る〉のまま＝1900-50 が腕の応答で落ちたら採らない（先に書く）。
+- ★(866)〈判別が構造的に恒真でないか〉：GW の判定は腕の盤面の κ で決まる（Mu0・Mu1・Mu3・Mu6 で赤・OK で緑）＝恒真でない。G5h は Mu2 で赤・他で緑＝恒真でない（壊さない側）。GC は Mu0 で緑（87%）＝(877) の名乗りのまま〈壊さない側〉。
+
+[5] 紙の no-go（紙を数える前に固定・旗 0 の盤面とヌル腕で恒真でないかを確かめた上で書く＝★(879)）
+- (a) GW が旗 0 を落とせない＝評価する窓が 2 未満、または評価する窓のどれかで旗 0 の一つ抜きが働いた側を 2／6 以上通る。〈紙の Mu0〉（基線どうし）では構造的に発火しない＝規則は一つ抜き（ヌル腕を腕に見立てる）で書いた。旗 0 の盤面で恒真でないこと：一つ抜きの Δ÷W は −1.27〜0.76 に散る（1900-50 は 0.76 まで寄る）＝発火しうる。
+- (b) GC の上か下の升の数が下限に足りない（紙＝基線の盤面：上 1,819≧909・下 18≧9）。恒真でないこと：一つ抜きで下の升は 11〜18（下限 9 に寄る）。
+- (c) G2 しか旗 0 を落とせない（紙：G2・G3a・G4・GW が Mu0 で赤）。
+- (d) 正しい実装の紙（OK）が採否の門のどれかで赤（(877) の G1a は記録へ下げた）。
+- 判定（紙）：(a)〜(d) どれも発火しない＝点火と腕へ進む。〈結果の後に足した no-go〉は〈近似〉と名乗り、3 回の規則に数えない。
+- 旗 1 の出力を見た後のエンジンの変更は 0。門の変更は 0（同じ腕で物差しを替えない）。
+
+[6] 旧の規則を固定する番人の予言と直し方（★(832) ① (a) の型・(877) [6] の写し）
+- 予言（(877) [A5] の使い捨ての木で既定 1 で確かめた）：SubsistenceStage2Tests の 旗1は助走の後の最初の月に_開幕の割合を保つ_rhoを焼く・旗1の農民の失業は必要量を作る労働を超えた売れ残りだけ_両側・旗1の焼きは主食のRGOの効率化材の倍率で割る_技術の比 の 3 本と、SubstInstrumentTests の 自給の段2の列は旗0と旗1で計器とエンジンを並べる(flag: 1) の 1 本が赤。
+- 直し（赤になった物だけ・Assert の式とリテラルは 1 字も変えない）：
+    SubsistenceStage2Tests.cs:14 `foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = flag;` → `foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; n.World.Coef.SubsistenceNoBoughtTech = 0; }`
+    SubstInstrumentTests.cs:185 同じ置き換え。
+  ＝〈旗 0（S1-a）の経路の番人〉にする。旗 1 の経路は SubsistenceNoBoughtTechTests の 5 本が守る。(877) mu_unit877_afix.txt で 18 本緑を確かめ済み。直しは点火のコミットとは別のコミット（試験のファイルだけ）。
+- この型の外の赤は止めて報告する（RouteKmTests の型＝軌道に依る前提の数の試験は Theory 化で盤面を広げない＝★(879)）。
+- 台帳の欄を書く線の点検（★(818)）：書く欄は Pop.SubsistenceShare・Pop.SubsistenceBasis・Pop.UnemploymentRate（器と同じ所）。`grep -ln 'StapleEffTech\|SubsistenceShare\|SubsistenceBasis\|SubsistenceNoBoughtTech' PriceOfBread.Tests/*.cs`＝DormantIdentityTests・FoodLedgerTests・IdeaBoardLoadTests・IdeaNeedBoardTests・SubsistenceNoBoughtTechTests・SubsistenceStage2Tests・SubstInstrumentTests・UrbanFlowRealTests（(877) [6] で Assert を読んだ物と同じ集合＋器の試験）＝上の 4 本の外の赤の見込みなし。
+
+[7] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）・旗 1 の木の番人（㉜）
+- 7 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）を点火のコミットの直後に隔離ビルド（--artifacts-path D:/PoB_work/c74ts_work/art）で回す。
+- 件数の予言：工業化度の読み手の許可表 0・`new MoneyStock(`（SimCore で 64）0・route_anchors.tsv（scripts/instruments/flow262/）の EconomyStep の行 0 件のまま 0・DormantIdentityTests の表は 1 行減る（:30）。
+- WriterRatchetTests：item 2〈建設：見た生産者（旬）〉は 1 種 40 四半期の軌道＝旗 1 で赤になりうる（予言・線では書き換えない・合流が ★(749) で取り直す）。item 2 の外の赤は止める（★(778)）。
+- フルスイート：Category!=FullLength（--list-tests 2322）と FullLength（3）を分け、合計を --list-tests と突き合わせ、中止の行も拾う。予言の赤＝[6] の 4 本（直しの前）と item 2 だけ。savetest・leakhunt は緑の予言。新しい試験は足さない（--list-tests は 2322＋3 のまま）。
+- 記録（⑪）：フィルタの文字列を記録に書く（(877) guard0_summary.txt は文字列が無かった＝合計 236）。
+
+[8] 止める線（この回の運用のまま・腕 B・S11 に当てる・m873 のヌル腕の件数を並べる）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能＝シミュが止まる・セーブの往復の破れ）・発散（価格水準 1e10 倍・開幕の 1000 倍の〈事象なし〉で同じ国が半分以上の種）・空洞化 1/10 未満（holclass839.py・規則 A2＝T1・**腕の〈線が原因〉も数える**＝基線の同じ種で同じ州が m873 の armM/stop_mM.txt〔種 1〜10〕・armS11/stop_mS.txt〔種 11〜20〕で 1/4 未満に無ければ〈線が原因〉・〈元からの弱さ〉なら止めない）・〈100 倍〉の〈それ以外〉（gdp_jump797.py・gdp_jump833.py）・名目 GDP 0 の続き（m808/gdp_zero10.py・記録の先頭）・推定の計算量＞248.5 秒・機構の番人の赤（SubsistenceStage2Tests・SubsistenceNoBoughtTechTests・FoodLedgerTests・UrbanFlowRealTests・SubstInstrumentTests・RdhInstrumentTests と走査の番人 7 組）・savetest・leakhunt。
+- 数え方は m866/stoplines866.sh の写し（種の起点 1 か 11）。holsplit875 の L2 は免除に使わない（記録）。T1 の一つ抜き（r847/loo847.py）は記録。c74id (a) の持ち主の分かれた州の読み方は、事前登録のコミットの後に出ていれば記録として並べる（この線は id_ready.mark を待たない）。
+- 下向きの 100 倍（c73gt/gdp_down875.py）は記録。〈100 倍〉の建国の直後はヌル腕の件数と並べる（m873：N1 に 1）。
+- 採否は種 11〜20 の止める線まで読む（★(802)・★(832)）。S11 の門は〈近似・記録〉（ヌル腕が a11 の 1 本・GW の W は種 1〜10 の表の値）。
+
+[9] 記録の先頭（採否に使わない）
+- 食べる割合の開幕の値（0.695 前後か）・市場へ出す割合の窓ごとの値（(870) の S11 の 1786-99 0.336→1850-99 0.423→1900-50 0.331 と並べる＝⑪〈1900-50 で戻る点〉）・T の上位と下位 1/4 の升の Δκ の差・σ が 1 に張り付く州×四半期・農民の失業・植民地格の飢えの死と空洞化 1/4 未満・英の国債の不履行の種の数・exact・near・NG（基準 rd:measurements/ng873_20261106:m873）・nullgate の O・開幕の 1000 倍以上・.cost。
+
+[10] 腕と D:
+- 腕 B：`bash scripts/instruments/c74ts/armB882.sh <旗 1 のコミット>`（＝POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c74tsB 10 1・床 30GB の exit 9）。S11：`bash scripts/instruments/c74ts/s11_882.sh <旗 1 のコミット>`（c74tsS・種 11〜20・床 30GB）。POB_CEARN=0＝cearn_s・cgrp_s・cpop_s を書かない宣言（この線の門と止める線は subst_s・region_s・nation_s・pxmonth_s ほかだけを読む）。床が許せば並べる。
+- D: の空き：162.77GB（2026-11-06・shutil.disk_usage・事前登録の時）・arms.sh free 6。見込み：各 約 10GB＋src 約 1GB。
+- 生を縮める：反証役（合流）が読んだ後に、門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s と keepsum_all_tables.tsv）だけを残す。この線は報告の前に生を消さない・縮めない。ビルドの写し src_* は腕が終わったら消す。
+- 読み：`bash scripts/instruments/c74ts/read882.sh B <ins>`・`S <ins>`（D:/PoB_work/c74ts_work/read_B・read_S）。
+
+==== 追記（2026-11-06・点火のコミット 7023745f の後・腕 B の前・結果の後の追記と名乗る）
+[A1] 走査の番人と機構の番人（旗 1 の木・隔離ビルド D:/PoB_work/c74ts_work/art）：フィルタの文字列＝`FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~SubsistenceStage2Tests|FullyQualifiedName~SubsistenceNoBoughtTechTests|FullyQualifiedName~SubstInstrumentTests|FullyQualifiedName~FoodLedgerTests|FullyQualifiedName~UrbanFlowRealTests|FullyQualifiedName~RdhInstrumentTests`＝合計 234・合格 229・失敗 5（D:/PoB_work/c74ts_work/t1.mark.log）。
+- 赤 4 本は [6] の予言どおり（SubsistenceStage2Tests 3 本＋SubstInstrumentTests(flag: 1)）。
+- **予言の外れ**：WriterRatchetTests は [7] の予言 item 2 ではなく **item 11〈外交：覇権の判定の国×国〉が赤**＝実測 3,409,728（宣言 3,133,384・許し +2%・+8.8%）。item 2 は緑。
+- 診断：点火の diff は 2 行（Coefficients.cs:531 の既定・DormantIdentityTests.cs の休眠の表の 1 行）＝外交のコードに 1 字も触れない。item 11 は 1 種 40 四半期の軌道の件数（注の履歴で表の更新のたびに −27%〜+48% 動く）＝自給の σ が変わって最初の 40 四半期の戦争と同盟の候補の月が動いた軌道。新しい処理ではない（〈軌道の件数を写しただけの番人〉＝波47 の規則の例外の型）。
+- 扱い（指示の〈予言に無い赤は止める〉から外れる＝報告の先頭に書く・README §1-7 の形）：表は線で取り直さない（★(778)・合流が ★(749) で 1 回）。赤のまま報告する。計算量の本当の門は腕 B の .cost の推定 ≦248.5 秒（覇権の判定の行は m873 の .cost と並べて記録）。フルスイートで許す赤は WriterRatchetTests の item 11（と item 2 が赤なら item 2）だけ。他の赤は止める。
+[A2] [4] の表の Mu0 の行の〈単体の試験〉の欄の書き直し：器の試験 SubsistenceNoBoughtTechTests は旗を自分で立てて回す＝旗 0 の既定（Mu0）では赤にならない。試験 3〈技術の比が1の盤面では旗0と旗1が同じビット〉は何もしない実装も通す＝壊さない側。
+[A3] ㉜ 旗 1 の木（064717b3＝点火＋[6] の直し）のフルスイート・savetest・leakhunt（台本 c74ts/suite882.sh・記録 measurements/m882_20261106/suite_flag1_882.txt）：--list-tests Category!=FullLength 2322・FullLength 3（予言どおり）。Category!=FullLength＝合格 2320・スキップ 1・失敗 1（WriterRatchetTests item 11 だけ＝[A1] の扱い）・合計 2322・中止 0。FullLength 3 合格。savetest OK（12 四半期・最大相対差 0）・leakhunt 保存則違反なし（人口・基礎貨幣とも 0 四半期）。[6] の 4 本は直しの後に緑（全て緑の中）。item 2 は緑。
+- 腕を起こす時（2026-11-06 10:07）：D: の空き 129.74GB・arms.sh free 6。腕 B（armB882.sh 064717b3）と S11（s11_882.sh 064717b3）を並べて起こした。
