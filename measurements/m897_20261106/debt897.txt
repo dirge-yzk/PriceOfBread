@@ -1,0 +1,112 @@
+(897) c76db 読む線：案 B〈人の居ない POP の Debt〉の材料（.cs 0 行・腕 0 本・コミットしない）　2026-11-06
+読んだ木：main 731d3de1 の作業ツリー C:/Users/dirge/Documents/PriceOfBread（読むだけ）。行番号は 731d3de1 で grep した物。
+読んだ生（全て既にある生・新しい腕なし）
+  M ＝D:/PoB_work/keep_892/base_ins（合わせた木 10fe1b48 の腕 Z・m873 と全行一致）種 1〜10：cpop_s・cearn_s・money_s・nation_s
+  N1＝D:/PoB_work/keep_873/n1・N2＝D:/PoB_work/keep_873/n2（m873 のヌル腕）種 1〜10：同じ表（cearn_s に (874) の列 importPaidPayerSizeLe1e12PerQuarter が無い＝その数だけ N1・N2 は空）
+  S11＝D:/PoB_work/keep_873/a11：cpop_s も cearn_s も無い（POB_CEARN=0）＝問い 1〜3・5 の州の側は S11 で取れない（名乗る）。
+台本（python -X utf8・読むだけ・エンジンの関数を呼ばない）と出力
+  debt897.py  → out_M.txt（M）・out_N.txt（N1・N2）＝問い 1〜3・5
+  debt897b.py → out_b.txt（3 腕）＝止まった続きの長さ・B5／B1 の紙
+  debt897c.py → out_c.txt（3 腕）＝cpop_s が見ない格（Core）の人の居ない商人の手形を cearn_s から推す
+  debt897d.py → out_d.txt（3 腕）＝格ごと×払い手の型ごとの輸入の割合・名指しの州の植民地格の最後の行・種 1 ポンディシェリ・ジブラルタルの系列
+  下書き：20261106_人の居ないPOPの債務の扱い_案B_下書き.md（合流が docs/202611/20261106/ へ写す・題の行は【設計の材料と下書き・AI の案・作者の確認待ち】）
+母集合の限界：cpop_s は植民地格の州の POP だけ（InstrumentsCearn.cs:573・:200 の限界③）＝Core・Integrated の州の Pop.Debt の値は表に無い（問い 5 の (iv) で cearn_s の旧の規則の予算から有無だけ推した）。
+
+==== 先に：時刻の事実（ソースの行）====
+F1 助走は Pop.Debt を消さない：GovernanceSnapshot.RestoreTo（GovernanceSnapshot.cs:54・:69 HouseholdLoans=0・:70 Pop.Debt=0）の呼び手は Runner/Program.cs:4526（freshboard）の 1 件だけ。
+   MultiNationSim.WarmupEconomy（MultiNationSim.cs:659〜:687）は StepQuarter・RebaseOpeningFiscal・RebaselineInvariants だけで Debt と HouseholdLoans に触れない。
+F2 助走では相続が走らない：DemographicStep は !World.WarmupFrozen の時だけ（Simulation.cs:2505〜:2506）＝EmptyPopEstate.Step（Simulation.cs:2734）も助走では呼ばれない。国際市場の清算（Market.Step）は助走でも走る。
+F3 月の中の順序（本番）：MultiNationSim.StepDay（:760〜）＝StepDayClose（:783）の中の MonthSettle（Simulation.cs:1970）で
+   EconomyStep.Run（Simulation.cs:2429）＝商人の収入（流通マージン EconomyStep.cs:689 と :2109・輸入の在庫の取り分 :2676・生産者のいない財の売上 :2838）→ p.SettleMonth（EconomyStep.cs:2844＝貯蓄 += 所得−支払い）
+   → DemographicStep（Simulation.cs:2506）の中の EmptyPopEstate.Step（:2734＝人数 ≦1e-12 の POP の貯蓄＞0 を全額、同じ州の人の居る POP へ）
+   → その後に国際市場（月の 1・2 番目は MultiNationSim.cs:796、四半期の末は :829）→ BilateralMarket.cs:578〜:579 の ①手形の決済（返す額＝min(Debt, max(0, 貯蓄))）。
+   ＝決済が読む前に、相続が人の居ない商人の貯蓄を 0 にしている。
+F4 植民地格の州の商人の POP は人数 0 で作られる：Simulation.PromoteColonyToRegion（Simulation.cs:1483〜）の :1536 `MkPop(10, "商人", true, 0, 0.5, 0, modern: true)`（植民地の州の構築・現地住民は農民だけ＝:1519〜:1520）。商人の添字は立つ（Simulation.cs:1592 MerchantPopIndex = 9）。
+F5 払い手の選び：BilateralMarket.cs:580 商人の添字があれば人数を見ずにその 1 POP（旗 ImportPayerLive＝0）＝bill[t2] = !(Debt＞0)。手形の振り出し：:1142〜:1146 Bank.Lend(w0, mer, due−have)。予算は手形なら ∞（:583）・Debt＞0 なら max(0, 貯蓄)。
+F6 Bank.Lend（Bank.cs:28〜:34）：貸しは世界の外（HouseholdCredit）→POP の貯蓄・HouseholdLoans += （World.cs:778）・Pop.Debt += 動いた額。返しは逆（貯蓄まで）。ΔBaseMoney＝0（World.cs:935 OutstandingLoans＝Loans＋HouseholdLoans・:2657 BaseMoney）。
+
+==== 問い 1：いつ振り出されたか ====
+鍵＝(種・州・popIndex)。q*＝その POP の行で debt＞0 が最初に出る四半期。数は種 1〜10 の和。式は debt897.py。
+                               M        N1       N2
+ 鍵（人の居ない・debt＞0 の行を持つ）  1,031    1,034    1,066
+ 行（人数 ≦1e-12・debt＞0）       391,214  433,262  396,274   （(887) periph_debt.txt と同じ値）
+ q*=0（開幕の最初の四半期）         735      738      744
+ q* 1〜39                          72       69       71
+ q* 40〜199                        72       62       65
+ q* 200〜                         152      165      186
+ q*=0 で |debt−inCredit| ≦1e-9×debt  735/735  737/738  743/744
+ q*=0 で debt−inCredit ＞0（助走から持ち越した下限） 0     1（24.45）  1（0.467）
+読み：(887) の〈助走の中で振り出した〉は数で否定された。q*=0 の鍵は M で 735 本とも、q0 の inCreditPerQuarter（与信の受け取り＝C と H・InstrumentsCearn.cs:86）と q0 の末の debt が 1e-9 の桁で一致＝手形は q0（助走の後の最初の四半期）の清算で振り出された。
+  助走の終わりの持ち越しは M で 0 本、N1・N2 で 1 本ずつ（和 24.45・0.467）。
+  なぜ助走では残らないか（ソースと数）：F2＝助走では相続が走らない→人の居ない商人の収入は貯蓄に溜まり、①で返る。q*=0 の鍵の q0 の savingsStart（助走の終わりの在庫）の和 M 100,252（N1 94,419・N2 94,863）・q0 の estateOut の和 M 116,745（N1 111,438・N2 113,492）＝助走で溜まった在庫が q0 の最初の相続で抜けた。
+  q*＞0 の 296 本（M）：その POP の行の中で、q* の前の四半期は debt＝0（手形を返し切っていた）か、表に入った四半期（植民地格になった四半期）。
+  ⚠ inCredit には欠損の借入（C・BackstopNegativeSavings）も入る＝〈debt−inCredit≦0〉だけでは持ち越し 0 の証拠にならない。等号（|debt−inCredit|≦1e-9×debt）で確かめた。
+
+==== 問い 2：どの道で人の居ない POP に残るか ====
+                                              M      N1     N2
+ (a) q* に人が居た（popK＞1e-12）              0      0      0
+ (b′) q* に人が居ない・q* の前に人が居た        0      0      0
+ (b) q* に人が居ない・その POP の行の中で q* より前に人が居たことが無い   1,031  1,034  1,066
+ q* の後に人が来た（popK＞1e-12 の行がある）鍵  785    726    828
+ 止まった続きの長さ（四半期）中央／90 点／最大    403/668/668   453/668/668   394/668/668（debt897b.py）
+ 続きの終わり方：人が来た／表の終わり（668 か植民地格を出た）  785/246   726/308   828/238
+ 商人以外で人数 ≦1e-12・debt＞0 の行            0      0      0   （(887) の〈商人だけ〉を 3 腕で確かめた）
+読み：全て (b)＝振り出した時から人が居ない。根は F4（植民地の州の商人は人数 0 で作られ、添字は立つ）＋F5（人数を見ずに払い手にする）。
+  (a)〈人が居た後に抜けた〉の道は植民地格の表では 0。人が抜ける道（Pop.Blend＝Model.cs:426〜:430 は Debt×(移る人数÷規模) を人と一緒に運ぶ＝Model.cs:305〜:309）は 1 人あたりの債務を保つので、全員が移れば債務も 0 へ行く（推定・ソース）。
+  ⚠ 植民地格の外（Core）の (a) は表が無く数えられない（問い 5 (iv)）。
+
+==== 問い 3：なぜ返らないか ====
+                                               M            N1           N2
+ 人の居ない・debt＞0 の行の savings（四半期の末）  最小 −7.96e-9・中央 0・99 点 2.17e-11・最大 5.61e-9   N1 最大 8.33e-9   N2 最大 6.55e-9
+ 同 inMarketPerQuarter の和（月末の精算の所得）    9.993e6      1.045e7      8.651e6
+ 同 estateOutPerQuarter の和（相続で出た額）      9.496e6      9.962e6      7.968e6
+ 同 inMarket＞0 の行                              383,796      425,292      389,937
+ q* の後に debt が減った四半期：人が居る（popK＞1e-12）  14,332   9,627   20,073
+ 同：国が替わった（為替の換算 Pop.Rebase＝Model.cs:476）   222   194   226
+ 同：人が居ない                                   0   0   0
+ q* の後に debt が増えた四半期：inCredit＞0（新しい手形） 3,041   2,213   5,367
+ 同：国が替わった（換算）                          239   242   321
+ 同：その他                                       43   45   115
+読み：人の居ない商人は稼いでいる（流通マージン＝EconomyStep.cs:689 の distM が人数を見ない・:2109）。稼ぎの 95%（9.496e6÷9.993e6）は相続で人の居る POP へ移り（F3）、四半期の末の貯蓄は 1e-8 未満＝決済 ①（BilateralMarket.cs:579）が読む時は 0。
+  人の居ない四半期に debt が減ったことは 3 腕とも 0 回（換算を除く）。返るのは人が来た後（785 本）だけ。
+  ②（:580 bill＝!(Debt＞0)）で新しい手形も出ない＋予算＝max(0, 貯蓄)＝0（:582・手形なら :583 で ∞）＝その州は輸入しない（問い 5）。人の居ない四半期の手形の増えは 0（増えた 3,041 回は人が来た後の手形）。
+  EmptyPopEstate.cs は貯蓄だけを移す（Debt の字は 0 件）＝移した後の貯蓄 0 で返せない。旧の相続 0（(848) の前）なら、溜まった稼ぎで ① が返した（推定・F2 の助走の数が同じ形を示す＝助走では返っている）。(848) の前との数の比較は debt 列が (863) で足された後なので取れない＝〈比べられない〉。
+
+==== 問い 4：貨幣の保存則の側 ====
+ 今：振り出し＝銀行の家計の与信（HouseholdLoans）と預金が同じ額で立ち（Bank.cs:30〜:33・World.cs:778）、預金は関税（国庫）と輸入の代金（清算所＝輸出国へ）で出た（BilateralMarket.cs:1146〜:1147）。
+   残った Debt は、銀行の資産の側で利払いも返済も無い与信。ΔBaseMoney＝0（振り出しの時点）。番人：ConservationTests.cs:190・:199〈家計の与信は国ごとに POP の債務の和に等しい〉（全長も）・:251〈債務は割譲と越境移民で債務者について行く〉・:946・:972（換算）。
+ B1 相続（Debt も人の居る POP へ）：Pop.Debt の和も HouseholdLoans も変わらない＝:190 の番人は閉じる。貯蓄と債務を同じ規則で運ぶ前例＝Pop.Carry（Model.cs:305〜:309）。負うのは相続人（人の居る POP）。
+ B2 帳消し：Pop.Debt と HouseholdLoans を両方減らす＝OutstandingLoans が下がり BaseMoney が同じ額だけ上がる（World.cs:2657）＝貨幣が湧く。保存の台帳に行が要る＝前例は BackstopNegativeSavings の E6（Simulation.cs:3075〜:3076・bank.Loans −= wo・CumulativeFiatIssued += wo）。損は〈誰でもない〉（この模型の銀行に自己資本の欄は無い＝発行の台帳に積む）。
+ B5（下の AI の案）相続の前に返す：Bank.Lend(w, p, −min(Debt, max(0, 貯蓄)))＝決済 ① と同じ書き手・ΔBaseMoney＝0・:190 の番人は閉じる。負うのは相続人（受け取る在庫が返した分だけ減る）。
+ 設計思想⑨⑩：B1・B5 は新しい状態なし・二重計上なし（B5 は相続の時に返した分だけ ① の返す額が減る＝同じ債務を 2 度返さない）。B2 は既にある台帳（CumulativeFiatIssued）に行を足すだけ。
+
+==== 問い 5：大きさと効く所 ====
+ (i) 最後の四半期の人の居ない商人の debt の和（植民地格だけ）：M 2,195.36（種ごと 307.2・277.1・96.6・226.8・232.1・147.1・56.9・131.6・177.8・542.4）・N1 1,948.26・N2 1,663.59。
+     鍵ごとの中央 M 2.38（N1 1.40・N2 2.21）・最大 120.5。
+ (ii) q* の debt ÷ その州の四半期の総所得（cearn_s earnedGrossPerMonth×3）：中央 M 0.0129（N1 0.0127・N2 0.0153）・90 点 0.053・最大 0.454。
+ (iii) 国の量との比（最後の四半期・大きい順の上 8）：最大は種 10 清 276.1＝名目 GDP/年の 8.6e-6・与信の残高の 5.2e-4。種 1 ポルトガル 126.2＝名目 GDP/年の 8.1e-4。＝お金の量としては桁で小さい。
+ (iv) 効くのは輸入：人の居ない・debt＞0 の州×四半期（cearn_s と結んだ）M 391,214 のうち importPaidPerQuarter＝0 が 390,184（＞0 は 1,030＝ほぼ全てが q* の振り出しの四半期）。N1 432,230/433,262・N2 395,212/396,274。
+     植民地格の州×四半期の払い手の型ごとの輸入（cearn_s・debt897d.py → out_d.txt）：importPayerKind＝1（商人が居る）は M 211,065/226,952＝93.0%（N1 93.9%・N2 91.5%）が輸入＞0・importPayerKind＝2（商人が人数 ≦1e-12）は M 1,030/392,093＝0.26%（N1 0.24%・N2 0.27%）。Core の kind 1 は 98.9%・Integrated の kind 1 は 98.8%（M）。
+     ＝植民地格の州×四半期の 63%（392,093÷619,045）が、人の居ない商人の止まった手形で輸入 0。
+     植民地格の外：Core の importPayerKind＝2 は M 5,893 州×四半期（N1 5,323・N2 5,903）で、全てで旧の規則の予算（importOldRuleBudgetStartPerQuarter＝InstrumentsCearn.cs:215）が有限＝商人の Debt＞0 と読める・importPaid＞0 は 0（debt897c.py）。
+     州（種ごとの和）M 18・N1 14・N2 14＝分離独立か割譲で Core になった元の植民地。人口の大きい順：種 4 中核ベンガル（共和制イギリス・609 四半期・最後の popK 24,989）・種 6 中核ベンガル（508・24,450）・種 6 内陸ベンガル（367・16,470）・種 5／6 バタヴィア共和国（630／625・約 3,900）。
+     例（debt897d.py → out_d.txt の〈植民地格の最後の行〉）：種 5 セイロンは q34 に植民地格で debt 40.08・人数 0 のまま Core（セイロン共和国）へ移り、その後 633 四半期 輸入 0。種 4 中核ベンガルは q58 に debt 97.72 で Core へ。＝(i) の 2,195.36 は Core へ持ち越した分を数えない下限。
+ (v) ペルーの型（州のお金が 4 四半期以上 1e-6 未満・popK 100 以上＝peru887.py と同じ規則）：M 5,117 州×四半期・31 州のうち、人の居ない商人に debt が残る州×四半期は 5,117（100%）・州 31（N1 3,880/3,880・43/43、N2 3,058/3,058・25/25）。
+     逆向きは 5,117÷391,214＝1.3%。＝重なりであって原因は読んでいない（州のお金が 0 になる道は別の線）。
+
+==== 根（ソースの行の鎖）====
+ R0 植民地の州の商人は人数 0・貯蓄 0 で作られ、添字は立つ（Simulation.cs:1536・:1592）。
+ R1 人数を見ずにその 1 POP を輸入の払い手にする（BilateralMarket.cs:580・旗 ImportPayerLive＝0＝閉じたテーマ）。
+ R2 開幕の q0 の最初の清算で手形を振り出す（:1142〜:1146）。助走では相続が走らず、稼ぎで返っていた（F2・q0 の savingsStart 100,252）。
+ R3 毎月、決済 ① の前に相続（EmptyPopEstate.Step・Simulation.cs:2734）が稼ぎ（流通マージン EconomyStep.cs:2109 ほか）を全額移す＝① の原資 0（F3）。相続は Debt を移さず返しもしない（分子と分母の非対称の型）。
+ R4 ② Debt＞0 の商人は新しい手形を振り出せない・予算＝貯蓄＝0＝州の輸入 0（:580〜:583）。人が来るまで続く（中央 403 四半期）。分離独立と割譲で Core へ持ち越す。
+ 周辺（別の線の候補として報告・読むだけ）：人の居ない商人の POP が流通マージンを稼ぐ（EconomyStep.cs:689 distM は MerchantPopIndex≧0 だけを見る）＝所得が人の居ない POP に立ち、相続で人の居る POP へ回る（(848) の前は人の居ない POP に溜まった＝推定）。
+
+==== 紙（旗 0 の生の上の近似・推定）====
+ B5：最初の止まった続きで、q* からの inMarket の累積が q* の debt に届く四半期の数（debt897b.py）：M 1,031 本のうち 1 四半期 1,016・2〜4 四半期 15・届かない 0（N1 1,011／23／0・N2 1,039／27／0）。
+ G1′（次の波の門の素案）の旗 0 の値＝人数 ≦1e-12 で debt−inCredit ＞1e-9×max(1, debt) の行（前の四半期から債務を持ち越した行）：M 390,054・N1 432,160・N2 394,275。
+     1 行ごとに〈inMarket÷3 ≧ debt〉（1 か月の稼ぎで返し切る）は M 35.3%（N1 31.8%・N2 30.2%）。
+ B1：同じ州×四半期の州の在庫（cearn_s savings）≧ debt の行 M 90.1%（N1 90.7%・N2 91.6%）。
+ ⚠ どちらも旗 0 の軌道の上の数＝旗 1 では手形が毎月立ち、軌道が変わる（予言・計っていない）。
+
+覗いた回数：作りかけの出力の覗き 0。印の後の確かめ（cat・grep・tail で出力を読んだ回）は 9 回＝仕事ごとに 1 回（試しの 2 本・debt897.py 2 本・debt897b.py 3 本・debt897c.py 1 本・debt897d.py 1 本）。前面の awk の読み 4 回（列の確かめ・Core の州・格ごとの割合・名指しの州）は、数を debt897c.py・debt897d.py の出力に取り直した。ポンディシェリ・ジブラルタルの系列は前面の python の 1 回で見て、debt897d.py の出力〈系列〉に取り直した。D: の空きは測っていない（腕なし・作業フォルダは数 MB）。tasklist は終わりに見た（起こす前には見ていない）：VBCSCompiler 1 本（PID 20164）・dotnet 複数・testhost 1 本＝全て他の担当の物・止めていない。前の報告の PID 9372 は見えない。自分の python は 0。waitmark 10 回（全て単独の呼び出し・7 回は 230 秒の内に DONE か FAILED・3 回は TIMEOUT で次の呼び出しで DONE）。D: の床で待った時間 0（腕なし）。残ったプロセス：報告の項を見る。

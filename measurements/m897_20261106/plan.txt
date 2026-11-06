@@ -1,0 +1,13 @@
+(897) c76db 読む線＝案 B〈人の居ない POP の Debt〉の材料（.cs 0 行・腕 0 本・コミットしない・worktree と枝は作らない）
+作業の場所：D:/PoB_work/r897_work/（この回に自分で作ったフォルダはこれだけ）
+読むソース（main 731d3de1 の作業ツリー C:/Users/dirge/Documents/PriceOfBread を読むだけ）
+  BilateralMarket.cs:560〜:600（手形の決済と払い手）・:1140〜:1150（振り出し）・Bank.cs:Lend・Carry
+  Simulation.cs:3025〜:3075（DebtRepayFrac・PopDebtDriven）・EmptyPopEstate.cs・Model.cs（POP の移し・Debt の移し）
+  GovernanceSnapshot.cs:70（Debt の初期化）・World.Transfer（台帳・HouseholdCredit）・Invariants.cs・EconomyStep の商人の取り分
+  InstrumentsCearn.cs（cpop_s の母集合＝植民地格の州だけ・debt 列＝(863)）
+読む生
+  M ＝D:/PoB_work/keep_892/base_ins（合わせた木 10fe1b48 の腕 Z・m873 と全行一致）cpop_s1〜10・region_s・nation_s・money_s
+  N1＝D:/PoB_work/keep_873/n1・N2＝D:/PoB_work/keep_873/n2（cpop_s あり）
+  S11＝D:/PoB_work/keep_873/a11（POB_CEARN=0＝cpop_s が無い＝問い 1〜3 は S11 で取れないと名乗る）
+  前の読み：measurements/m887_20261106/periph_debt.txt・periph_S.txt・peru_*.txt・scripts/instruments/c75ip/periph887.py・peru887.py
+出力：debt897.py（python -X utf8・読むだけ）・debt897.txt（問いごとの表）・下書き 人の居ない POP の債務の扱い（案 B）_下書き.md
