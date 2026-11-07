@@ -5,7 +5,7 @@ import subprocess, sys, os
 tree, outp, art = sys.argv[1:4]
 T = chr(92) + 't'
 M = {
- 'M1': ('PriceOfBread.SimCore/BilateralMarket.cs', 'if (ins2) Instruments.CearnBillSettle(r2, p2, back);', '', '決済 ① の呼び口を外す'),
+ 'M1': ('PriceOfBread.SimCore/BilateralMarket.cs', 'if (ins2) Instruments.CearnBillSettle(r2, p2, debt0 - p2.Debt.Value);', '', '決済 ① の呼び口を外す'),
  'M2': ('PriceOfBread.SimCore/InstrumentsCearn.cs', 'if (m is not null && m.Debt.Value > 0) { a.BillBlocked++;', 'if (m is not null && m.Debt.Value > 1e99) { a.BillBlocked++;', '清算の頭の数えを外す'),
  'M3': ('PriceOfBread.SimCore/InstrumentsCearn.cs', 'if (!(m.Debt.Value > 1e-12)) a.BillBlockedDust++;', 'if (!(m.Debt.Value > 1e-9)) a.BillBlockedDust++;', '塵の閾値を 1e-9 へ'),
  'M4': ('PriceOfBread.SimCore/EmptyPopEstate.cs', 'Core(w); if (Instruments.On) Instruments.EstateAfter(w); }', 'Core(w); }', 'Step の EstateAfter の呼びを外す'),
