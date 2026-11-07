@@ -19,7 +19,7 @@ public class OpeningColonyDominanceTests
     [Fact]
     public void T1_旗1で開幕の植民地格の州は全ての国で支配度1から()
     {
-        var sim = Build(1.0);
+        var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());   // 既定の係数＝旗の既定 1 も見る
         foreach (var name in ColonialNations)
         {
             var w = sim.Nations.First(n => n.World.SelfPower!.Name == name).World;
