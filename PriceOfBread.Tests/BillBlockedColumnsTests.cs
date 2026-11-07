@@ -100,7 +100,7 @@ public class BillBlockedColumnsTests
         {
             foreach (double debtFirst in new[] { 0.0, 1.0 })
             {
-                var sim = Two(); var w = sim.Nations[0].World; w.Coef.EmptyPopDebtFirst = debtFirst;   // World.Coef は国ごと別インスタンス
+                var sim = Two(); var w = sim.Nations[0].World; w.Coef.EmptyPopDebtFirst = debtFirst; w.Coef.EmptyPopDebtToHeirs = 0;   // World.Coef は国ごと別インスタンス・(936) 前提を既定に頼らず明示（B1 は切る）
                  Instruments.Begin(w);
                 var r = ManyPopsRegion(w);
                 foreach (var p in r.Pops) if (!(p.Size > 1e-12)) p.Debt = new MoneyStock(0);
