@@ -710,7 +710,7 @@ public sealed class Coefficients
 
     // --- 税制の拡張（土地税の検地台帳の錠は (383) で物理削除。所得税の天井/ラッチは2026-09-12に廃止＝行政の弱さは汚職漏れが額で表す）---
     public double PollTaxRate = 0.15;            // 人頭税スライダー1.0時の1人あたり月額（労働者の月収2〜3に対し約5〜7%＝重い）
-    public double LandTaxFixedBasis = 0.0;       // ★(937) c82lt 土地税の算定の基準 A-2（AI の案・確証なし・事前登録 measurements/m937_20261107_prereg_lt.txt）：> 0 のとき、world.json の landTaxBasis が "Fixed" の国（World.LandTaxBasisFixed）は、助走の最後の月の RGO の名目の地代（正のときだけ）を Producer.FrozenLandRentPerMonth に凍結し（助走の無い木は凍結しない）、土地税の基数を〈凍結した地代×持ち分〉にする（差分は Pop.LandTaxBasisAdjPerMonth・読み手は Fiscal.LandTaxBase の 1 本）。0＝基数は地代そのもの（今のまま）
+    public double LandTaxFixedBasis = 1.0;       // ★(937) c82lt で 1 に点火（腕つきの 1 回目・ident c82ltz〈判定: 恒等〉は旗 0 の木 8dd58ba2・形の変え直し 1 回目の後）。土地税の算定の基準 A-2（AI の案・確証なし・事前登録 measurements/m937_20261107_prereg_lt.txt）：> 0 のとき、world.json の landTaxBasis が "Fixed" の国（World.LandTaxBasisFixed）は、助走の最後の月の RGO の名目の地代（正のときだけ）を Producer.FrozenLandRentPerMonth に凍結し（助走の無い木は凍結しない）、土地税の基数を〈凍結した地代×持ち分〉にする（差分は Pop.LandTaxBasisAdjPerMonth・読み手は Fiscal.LandTaxBase の 1 本）。0＝基数は地代そのもの（今のまま）
     public double AdminNeedPerPop = 0.04;        // 人口1単位あたりの行政の必要量。官僚・予算が足りないと AdminFill<1＝汚職
     // --- 社会移動（昇格・転落）：閾値は地域の1人あたり平均貯蓄に対する倍率＝経済規模で自動スケール ---
     public double CapitalRiseThreshold = 8.0;    // 中流→資本家の昇格閾値（平均の8倍の資金）。転落閾値と離す＝発振防止
