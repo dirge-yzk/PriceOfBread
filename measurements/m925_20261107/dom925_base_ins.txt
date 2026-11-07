@@ -1,0 +1,63 @@
+# (925) c80dm Dominance の渡り方と戻り（D:/PoB_work/keep_919/base_ins・種 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]）・上限の判定 0.999
+Ceded	left_top_within_10y(after>=top)	50
+Ceded	n	1417
+Ceded	never_top_censored(after<top)	3
+Ceded	no_row_after	10
+Ceded	no_track	4
+Ceded	r0_50pct_censored	155
+Ceded	r0_90pct_censored	426
+Ceded	stayed_top_10y_or_censored(after>=top)	1233
+Ceded	tierBefore=Colonial	794
+Ceded	tierBefore=Core	398
+Ceded	tierBefore=Integrated	225
+Returned	left_top_within_10y(after>=top)	2
+Returned	n	146
+Returned	never_top_censored(after<top)	4
+Returned	no_row_after	18
+Returned	stayed_top_10y_or_censored(after>=top)	107
+Seceded	n	160
+all	region_quarters	1334332
+all	region_quarters_at_top	1296125
+jump	n	12
+jump	same_nation_name=1	12
+jump	tier_after=Core	12
+open_Colonial	go_ever_same_owner	2
+open_Colonial	go_within_10y	1
+open_Colonial	never_top	30
+Ceded	dom_10y	n 1125	p10 1.0000	med 1.0000	p90 1.0000	<0.999 25	==0 0
+Ceded	dom_4y	n 1266	p10 1.0000	med 1.0000	p90 1.0000	<0.999 83	==0 0
+Ceded	dom_after	n 1417	p10 1.0000	med 1.0000	p90 1.0000	<0.999 120	==0 0
+Ceded	dom_before	n 1417	p10 1.0000	med 1.0000	p90 1.0000	<0.999 120	==0 0
+Ceded	margin_med_10y	n 1402	p10 0.6396	med 1.0739	p90 1.5529	<0.999 583	==0 8
+Ceded	margin_negshare_10y	n 1402	p10 0.0000	med 0.0000	p90 0.0000	<0.999 1401	==0 1330
+Ceded	min_dom_10y(after<top)	n 120	p10 0.3233	med 0.5878	p90 0.9759	<0.999 114	==0 0
+Ceded	min_dom_10y(after>=top,left)	n 50	p10 0.8986	med 0.9772	p90 0.9965	<0.999 50	==0 0
+Ceded	r0_10y	n 1125	p10 0.2055	med 0.3754	p90 0.4990	<0.999 1125	==0 0
+Ceded	r0_4y	n 1266	p10 0.1063	med 0.1946	p90 0.2669	<0.999 1266	==0 1
+Ceded	r0_after	n 1417	p10 0.0000	med 0.0000	p90 0.0000	<0.999 1417	==0 1417
+Ceded	r0_before	n 1417	p10 0.1468	med 0.5078	p90 0.7706	<0.999 1417	==0 0
+Ceded	track_years	n 1354	p10 5.7500	med 45.2500	p90 139.2500	<0.999 21	==0 0
+Ceded	years_r0_to_50pct_before	n 1199	p10 2.2500	med 6.7500	p90 11.7500	<0.999 32	==0 0
+Ceded	years_r0_to_90pct_before	n 928	p10 3.5000	med 14.2500	p90 35.0000	<0.999 17	==0 0
+Ceded	years_to_top(after<top)	n 117	p10 1.0000	med 6.0000	p90 13.2500	<0.999 12	==0 0
+Returned	dom_after	n 146	p10 0.0000	med 1.0000	p90 1.0000	<0.999 37	==0 29
+Returned	dom_before	n 146	p10 0.0000	med 1.0000	p90 1.0000	<0.999 37	==0 29
+Returned	margin_med_10y	n 34	p10 0.1854	med 0.6511	p90 1.6376	<0.999 25	==0 0
+Returned	margin_negshare_10y	n 34	p10 0.0000	med 0.0000	p90 0.1000	<0.999 34	==0 30
+Returned	min_dom_10y(after<top)	n 19	p10 0.0107	med 0.0659	p90 1.0000	<0.999 16	==0 0
+Returned	min_dom_10y(after>=top,left)	n 2	p10 0.9359	med 0.9359	p90 0.9587	<0.999 2	==0 0
+Returned	r0_after	n 146	p10 0.3524	med 0.6061	p90 0.8500	<0.999 146	==0 0
+Returned	r0_before	n 146	p10 0.3524	med 0.6061	p90 0.8500	<0.999 146	==0 0
+Returned	years_to_top(after<top)	n 15	p10 0.2500	med 2.7500	p90 26.7500	<0.999 3	==0 0
+Seceded	dom_after	n 160	p10 0.0000	med 1.0000	p90 1.0000	<0.999 50	==0 41
+Seceded	dom_before	n 160	p10 0.0000	med 1.0000	p90 1.0000	<0.999 50	==0 41
+Seceded	r0_after	n 160	p10 0.3524	med 0.5989	p90 0.8500	<0.999 160	==0 0
+Seceded	r0_before	n 160	p10 0.3524	med 0.5989	p90 0.8500	<0.999 160	==0 0
+jump	dom_after_jump	n 12	p10 1.0000	med 1.0000	p90 1.0000	<0.999 0	==0 0
+jump	dom_before_jump	n 12	p10 0.0000	med 0.0000	p90 0.0000	<0.999 12	==0 12
+open_Colonial	dom_10y	n 342	p10 0.5715	med 0.9647	p90 1.0000	<0.999 187	==0 0
+open_Colonial	dom_30y	n 299	p10 1.0000	med 1.0000	p90 1.0000	<0.999 16	==0 0
+open_Colonial	dom_q0	n 370	p10 0.0184	med 0.0277	p90 0.0361	<0.999 370	==0 0
+open_Colonial	margin_med_first2y	n 370	p10 0.6903	med 1.0338	p90 1.3668	<0.999 146	==0 0
+open_Colonial	years_to_top	n 340	p10 7.5000	med 10.5000	p90 21.5000	<0.999 0	==0 0
+open_Core	dom_q0	n 1080	p10 1.0000	med 1.0000	p90 1.0000	<0.999 0	==0 0

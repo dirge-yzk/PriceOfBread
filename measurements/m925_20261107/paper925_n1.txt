@@ -1,0 +1,23 @@
+# (925) 紙：割譲の後の Dominance の初期値の案（D:/PoB_work/keep_919/n1・種 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]・速度 0.025・10 年）
+A	start_below_top	104
+B	go_within_10y	1
+B	start_below_top	1389
+C	start_below_top	564
+C_no_old_hold	55
+Z	go_within_10y	36
+Z	start_below_top	1389
+n	1389
+no_margin_rows	21
+A	check_abs_diff_last_row	n 1389	p10 0.0000	med 0.0000	p90 0.0000	max 0.0692
+A	dom0	n 1389	p10 1.0000	med 1.0000	p90 1.0000	max 1.0000
+A	min10y	n 1389	p10 0.9887	med 1.0000	p90 1.0000	max 1.0000
+A	years_to_top	n 81	p10 0.5000	med 3.2500	p90 7.7500	max 9.5000
+B	dom0	n 1389	p10 0.1583	med 0.5220	p90 0.7843	max 0.9498
+B	min10y	n 1389	p10 0.1581	med 0.5193	p90 0.7825	max 0.9498
+B	years_to_top	n 1150	p10 1.7500	med 4.2500	p90 8.0000	max 10.0000
+C	dom0	n 1334	p10 0.6974	med 1.0000	p90 1.0000	max 1.0000
+C	min10y	n 1334	p10 0.6953	med 1.0000	p90 1.0000	max 1.0000
+C	years_to_top	n 511	p10 0.5000	med 1.7500	p90 5.7500	max 10.0000
+Z	dom0	n 1389	p10 0.0000	med 0.0000	p90 0.0000	max 0.0000
+Z	min10y	n 1389	p10 0.0000	med 0.0000	p90 0.0000	max 0.0000
+Z	years_to_top	n 664	p10 6.2500	med 7.7500	p90 9.5000	max 10.0000
