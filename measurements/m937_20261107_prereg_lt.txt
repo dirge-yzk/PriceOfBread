@@ -1,0 +1,115 @@
+(937) c82lt 事前登録：土地税の算定の基準 A1 の段 A-2＝名簿の国（イギリス・清）の定額の基数（旗 LandTaxFixedBasis・計器 A-0′ の表 landfix_s・旗 0 の ident つき・腕つきの 1 回目）
+書いたモデル：Claude Opus 5.5・2026-11-07・枝 c82lt（84688034 から）・worktree D:/PoB_work/wt_c82lt・作業フォルダ D:/PoB_work/c82lt_work（このフォルダと D:/PoB_work/c82lt_art・ident の作業フォルダ D:/PoB_work/ident_c82ltz・batch の出力の腕 c82ltB・c82ltS はこの線が作る）
+形は〈入口〉（開幕の 1 回の凍結＋毎月の基数の読み替え）。全ての案は〈AI の案・確証なし〉。作者の言葉：作者 2026-11-04「足りなくても売らされたは、制度の問題でもある…法律側で整備する問題ではないでしょうか」→ 推奨〈既存の土地税に算定の基準を持たせる〉を〈作者「全て推奨で」で推奨を採った〉。★(832) ② Q-A A1・★(852) ③ Q1（J-c）・★(919) ④（A-2 を単独で先に）も〈作者「全て推奨で」で推奨を採った〉。
+
+[0] 先頭に書く物（指示と材料からの外れ・README §1-7 の型）
+ 0-1 持ち主のファイルの外に出る所（どれもこの波の他の線〔c82it・c82sm・c82hd・c82fg・c82ln〕の持ち主の一覧に無い＝重なり 0）：
+   - NationConfig.cs：欄 LandTaxBasis 1 行（world.json の鍵を読む口は NationConfig にしか無い）。
+   - World.cs：bool LandTaxBasisFixed 1 欄（＋要約の注 1 行）。Simulation.cs:119 の初期化子の同じ行に `LandTaxBasisFixed = scenario.NationConfig?.LandTaxBasis == "Fixed"` を足す（行は増やさない）。
+   - Model.cs：Producer.FrozenLandRentPerMonth（MoneyPerMonth?＝状態 1）と Pop.LandTaxBasisAdjPerMonth（流れ・月の頭に 0）＝〈状態を置く型のファイル〉。
+   - EconomyStep.cs：PayOwnerRent の中（基数の積み・計器の受け口 1 行）に加えて、月の頭の 0 化の行（今の :847 の 1 行に 1 句を足す・行は増やさない）。
+   - Territory.cs:340 の生産者の 1 本の foreach に 1 句（移転で凍結を null）。
+   - PolicyPreferences.cs：:168 の 1 行では足りない（下の 0-3）。
+   - opening_bake.json：world.json を触ると OpeningBake.InputHash（埋め込みの資源のハッシュ）が変わる＝番人 OpeningBakeTests が赤になる＝旗 0 のデータのコミットで bake.sh（scripts/instruments/hz4_490/bake.sh）で焼き直す（★(764)・(930) の手順・旗 OpeningBakeEnabled 0 のまま＝試走は旗 0 で同じ・本文は頭書きの 3 行〔sourceHash・inputHash・generated〕以外がバイトで同じことを予言）。
+ 0-2 不在地主は材料 §5 の (b)（不在地主の RGO〔Colonial.AbsenteeRgo〕は凍結しない）。理由：(a) は Colonial.cs:160〜:161 に触る。差分（基数−地代）で持つ形なら、凍結しない RGO の地代を Colonial.RemitAbsenteeRent が動かしても基数は付いて行く＝Colonial.cs に触れない。代価：G7 の母集合から英の不在地主の RGO（材料 C-5＝q0 で 28 RGO／種）が抜ける（凍結の事象の数〔国×種〕は 20 のまま）。突然変異 M7 は〈不在地主の RGO も凍結する〉M7′ に置き換える。
+ 0-3 選好（PolicyPreferences）は :168 の o.Rent[b] を書き換えない。o.Rent の読み手は 4 か所（:121 LordRentToIncome・:241 土地税・:280・:283 地代の保護）＝:168 を基数へ替えると所得の量を読む 3 か所が黙って変わる。形＝BuildSums に土地税の基数の別の和（LandBase[]・Tl）を足し、Copy・CheckSame（窓の番人）・:168 の隣の 1 行・Build の正規化・Profile の欄・:241 の読みだけを替える（旗 0 は同じ値を同じ順で足す＝ビットで同じ）。
+ 0-4 割譲の換算 K1（材料 §8・下書きの G9・M8）をやめ、〈全ての移転（割譲・建国・再併合）で凍結を消す〉にする。理由：定額は送り手の国の査定の台帳（英の割り当ては英の州の物）＝受け手では後からできた RGO と同じ収穫比例。換算は為替の意味（凍結の月の通貨）を足す形で、名簿の国どうし（英⇄清）の割譲の稀な事象のためだけに 2 つ目の規則になる。建国と再併合の null（下書き §8）とも 1 本になる。G9 は機構の試験 T7（割譲で凍結が消える）に置き換える。
+ 0-5 計器の列は landbase_s を伸ばさず、新しい表 landfix_s（landbase_s と同じ行の集合・鍵 quarter・year・nation）に置く。理由：LandbaseInstrumentTests.cs:219〜:220 が landbase_s の見出しを 25 列で固定している＝列を足すと番人を書き換えることになる（★(743) の ①〜④ の外）。ident の宣言は --added-tables landfix_s（--grown-ok は要らない）。
+ 0-6 名簿は英と清（材料 §3・出典は書名だけ〔★(866) ① の (c)〕：英 Ward 1953・Beckett 1985／清 Wang 1973・頁は要出典確認＝作者が頁を示せる国はそれを優先）。試験の手書きの表は作らない（world.json の 2 行がデータ）＝注は Coefficients の旗の行と試験の要約に書いた。
+ 0-7 F_p・A-2b（X・UI）・B-1・B-2b・名簿の国を増やすこと・EmptyPopEstate.cs・App・Display・Runner は入れない。Ideology.cs:163（地代への依存度）・InterestGroups.cs:62（貴族の政治力の地代の資本化）・Simulation.cs:978（開幕の地代の種）は揃えない＝前の 2 つは所得の量（定額でも地代のまま読むのが正しい・材料 §10）・最後は構築の時点で凍結が無い＝差分 0＝基数＝地代（反証役 (912) (2) の答え）。
+
+[1] 形（実装の形と一致させる＝★(778)）
+ - 旗：Coefficients.LandTaxFixedBasis（既定 0・土地税の係数〈PollTaxRate〉の隣・:713）。DormantIdentityTests の表に 1 行（:144 の隣を避けて ImportPayerLive の上）。旗 1 のコミットで表から外す。
+ - データ：world.json の イギリス（"landTaxStage": 1.275 の次の行）と 清（"landTaxStage": 2 の次の行）に "landTaxBasis": "Fixed"。
+ - 凍結（EconomyStep.PayOwnerRent の頭）：旗＞0 かつ World.LandTaxBasisFixed かつ RGO かつ 凍結が null かつ 助走でない（!WarmupFrozen）かつ 1783 年の第 1 四半期 かつ 不在地主の RGO でない → FrozenLandRentPerMonth＝max(0, 割る前の地代 rent)。＝助走の後の最初の月に、その月の地代そのもの（連続の規則）。後からできた RGO・建国の国（データ無し＝false）は null＝収穫比例。
+ - 基数の積み（PayOwnerRent の持ち分の枠ごとの同じ行の次）：凍結があれば、受け手の差分 += 凍結×持ち分（null の欄は凍結そのもの）− max(0, 今の地代×持ち分)。凍結の月は 0（同じ double の積）。
+ - 0 化：月の頭（EconomyStep の LandRentPerMonth を 0 にする行）に差分も 0。
+ - 読み手の 1 本：Fiscal.LandTaxBase(c, p)＝旗＞0 なら 地代＋差分・0 なら 地代そのもの（同じ値の struct）。査定 AssessPop の土地税（分岐の判定 landRate＞1e-9 かつ 基数＞0 も基数＝反証役 (912) (1)）・予想 ForecastTax（AssessPop を呼ぶ＝自動）・特権台帳（Fiscal.cs:90）・選好（0-3）。
+ - 移転：Territory.TransferRegion の生産者の foreach で null。
+ - セーブ：MoneyPerMonth?（Nullable の IUnitValue）＝SaveGame.cs:113 の IUnitValue の枝（値あり）と Null の枝で書き、読むときは FieldInfo.SetValue が Nullable の欄へ入れる見込み（既存の Nullable の欄 Region.TierInParent〔RegionTier?〕が同じ道）＝機構の試験 T11 と savetest で確かめる。
+
+[2] grep の引用（84688034・書く前に grep した行）
+ - Fiscal.cs:803 `if (landRate > 1e-9 && p.LandRentPerMonth.Value > 0)`・:804 `{ kLand = (landRate * p.LandRentPerMonth * privBase).Value; tax += kLand; }`
+ - Fiscal.cs:90 特権台帳 `... + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));`・予想 ForecastTax は :833（AssessPop を :845 で呼ぶ）。
+ - PolicyPreferences.cs:168 `double rn = System.Math.Max(0, p.LandRentPerMonth.Value); o.Rent[b] += rn; o.Tr += rn;`・:241 `return (e.Rent[b] < LandTaxRentierThreshold ? 1.0 : 0) - (BurdenScale + 1.0) * e.Rent[b];`
+ - EconomyStep.cs:723 PayOwnerRent・:732 `if (s.IsRgo && rk > 0) region.Pops[rp].LandRentPerMonth += new MoneyPerMonth(rk);`・:847 月の頭の 0 化・:2787 呼び口（月に 1 回・生産者ごと）。
+ - Colonial.cs:124 AbsenteeRgo・:160〜:161 地代の記録を不在地主へ移す。Territory.cs:304 TransferRegion・:340 生産者の foreach。
+ - Model.cs:286 Pop.LandRentPerMonth・:717 Producer.LandShares。World.cs:102 WarmupFrozen。NationConfig.cs:52 LandTaxStage。Simulation.cs:119 の初期化子。
+ - 名の 0 件：LandTaxFixedBasis・landTaxBasis・LandTaxBasis・FrozenLandRent・LandTaxBasisAdj・landfix は 84688034 の SimCore・Tests・scripts で 0 件。
+
+[3] ★(818) の 2 軸の grep と Assert の読み
+ - 機構の軸（PayOwnerRent・LandRentPerMonth・kLand・privBase・Rent[b]・LandTax・LastTaxLandPerMonth）を Assert に持つ試験のファイル 28 本（D:/PoB_work/c82lt_work/grep818_mech.txt）。旗 0 の器の木で、そのうち 8 クラス（LandShareTests・LandbaseInstrumentTests・EngineReadIdentityTests・FiscalTests・TaxTests・PolicyPoliticsTests と新しい 2 本）221 件を回して全て緑（D:/PoB_work/c82lt_work/t937b.mark.log）。
+ - 盤面の軸（WorldData.ByName("イギリス"/"清") ほか国の名）は 82 本＝旗 0 では world.json の 2 行は読まれない（LandTaxBasisFixed は旗 0 では誰も読まない）＝赤 0 の見込み。旗 1 では英・清の土地税の額・選好・その下流（歳入・議会・軌道）が動く＝英・清を組んで長く回す試験は動きうる＝[6] の予言。
+
+[4] 門（両側・数・旗 0 で落ちること）＝読むのは腕 B と S11 の両方（scripts/instruments/c82lt/gate937.py・landfix_s）
+ - G1 保存：savetest と leakhunt（保存則の違反なし）が旗 0 と旗 1 の両方で合格。旗 0 でも通る＝〈壊さない〉側（〈働いた〉に数えない）。
+ - G4 掛けない（片側）：名簿の国の lbOverBasePopMonths（エンジンの差分が計器の RGO だけの期待を 1e-9 を超えて上回る POP×月）の和＝0。〈壊さない〉側。
+ - G7 連続（母集合の床 20）：名簿の国×種で、開幕の四半期の lbFreezeEventFlag＝1 かつ lbFreezeMonthBreakPops＝0（凍結の月に全ての POP で |差分|≦1e-12×max(1,|地代|)）の数＝20。20 未満で落ちる。旗 0＝事象 0（エンジンの凍結 0）＝落ちる。
+ - G8a 実装の点検：名簿の国の lbAdjBreakPopMonths（|エンジンの差分−計器の期待の差分|＞1e-9×max(1,|地代|+|期待|) の POP×月）の和＝0。旗 0 ではエンジンの差分 0・期待≠0＝正＝落ちる。
+ - G8b 凍結の不変：名簿の国の lbFrozenInvariantBreak の和＝0 かつ lbFrozenCopyNoEngine の和＝0（旗 1）。lbFrozenForeignEngine（エンジンに凍結があり計器の写しが無い）は M7′ で正になる＝和＝0 を門に含める。旗 0 では lbFrozenCopyNoEngine＝写しの数（正）＝落ちる。
+ - G8c 働いた（大きさ・両側）：名簿の国ごとに、全ての種×四半期の |log(lbEngBaseRAtTaxPerMonth ÷ baseRAtTaxPerMonth)| の中央（両方が正の行）が窓の内。窓＝旗 0 の 3 腕（keep_933 の base_ins・n1・n2）の |log baseOverFirstSeenRatio| の中央の [最小×1/2, 最大×2]：
+     イギリス [0.1386, 0.6773]（0.2773・0.3386・0.2917）・清 [0.2555, 1.1409]（0.5704・0.5158・0.5109）（paper937_m933.txt）。
+     旗 0：エンジンの基数＝地代＝|log|＝0＝下側で落ちる。物差しの近似：国の baseOverFirstSeenRatio は q0 の 3 か月目の R と今の R の比（凍結は 1 か月目）・失った州の地代を分子に残す＝(911) の B_reg の比 0.90〜1.08＝窓の幅（4 倍以上）の内。記録として計器の写しの B（lbExpBaseRAtTaxPerMonth ÷ baseRAtTaxPerMonth＝同じ盤面で計器が自分で組んだ定額）の中央も並べる。
+ - Gi（限界 ⑨ の (i) の番人）：全ての国の landPaidOverClaimAtTax＞1+1e-9 の行の数＝記録（0 の見込み・(911) の旧の行は 0.30%）。旗 0 の ident の生でも数えて並べる。
+ - 〈狙いどおり働いたか〉の段：G8c（大きさ）と G7（凍結の事象 20）。〈壊さない〉門は G1・G4・G8a・G8b。
+ - no-go（9-3・腕の前・紙で決める）：(i) 名簿が 0 国＝起きない（英・清）。(ii) 名簿の国の q0 の請求＞0 の種が 10 未満＝英 10/10・清 10/10（3 腕とも）＝起きない／述語は定数でない（n2 のロシア 0/10・ケープタウン共和国ほか 1〜2/10＝起きる例がある）。(iii) G7 の母集合の見込み 20 未満＝見込み 20（3 腕とも）＝起きない（凍結の月〔q0 の 1 か月目〕に R＞0 は見込み＝計器の lbFreezeMonthRentPops で確かめる）。閾値の 3/4 に寄る門：G7 は床ちょうど 20 を要る（全て起きる前提＝㉗ の形で名乗る）。
+
+[5] 突然変異（使い捨ての木・scripts/instruments/c82lt/mut937.py・出力 measurements/m937_20261107/mutation.txt）と赤になる門と試験（㉚・腕の前の予言）
+ | 突然変異 | 赤になる試験 | 赤になる腕の門（試験の I2 の盤面〔英＋仏 2 四半期〕で読む） |
+ | M1′ 凍結の月を 1 四半期遅らせる（第 2 四半期） | T1・T2・T3・T8・T9・T10・T11・T7 | G7（事象 0）・I2 |
+ | M2 地価（地代×12÷金利）を凍結 | T1・T2・T3・T8・T11 | G7・G8a・G8b・I2 |
+ | M3 毎月取り直す（凍結を毎月書く） | T2・T3・T8・T9・T10 | G8b・G8a・G8c（紙＝|log B|=0）・I2 |
+ | M4 差分を 凍結×凍結÷今 で積む | T2・T3・T8・T10 | G8a・I2 |
+ | M5 持ち分を無視して凍結を持ち主に全て寄せる | T2（POP ごと） | G8a・I2（イギリスの欄つきの RGO） |
+ | M6 基数を自給へ広げる（担い手の差分に州の LastSubsistenceOutput を足す） | T2・T10 | G4・G8a・I2 |
+ | M7′ 不在地主の RGO も凍結する | T6 | G8b（lbFrozenForeignEngine）・G8a・I2 |
+ | M8′ 移転で凍結を消さない | T7 | （腕では割譲の事象しだい＝G8b の lbFrozenForeignEngine の受け手の国の行） |
+ | M9 予想（ForecastTax）を地代のまま | T8 | — |
+ | M10 特権台帳を地代のまま | T9 | — |
+ | M11 旗 0（PayOwnerRent の凍結と積みを消す＝何もしない実装） | T1・T2・T3・T8・T9・T10・T11 | G7・G8c（紙）・I2 |
+ | M12 選好を地代のまま | T10 | — |
+ | M14 Fiscal の分岐を地代で判定 | T3 | — |
+ （M13 は M8′ に含めた）。項を消した突然変異と元の形の差が雑音の内なら〈働いていない〉（㉚）＝G8c は M3・M11（|log B|=0）と比べて読む。
+
+[6] 赤の予言
+ - 旗 0 の器のコミット（world.json の 2 行・欄・計器・試験 2 本・opening_bake.json の焼き直しの前）：OpeningBakeTests の 2 本（inputHash の照合＝表の入力のハッシュ・同梱の表）が赤。焼き直しの後は 0。ほかは 0。WriterRatchetTests の計算量の表は旗 0 で軌道が同じ＝0。
+ - 旗 1 のコミット：DormantIdentityTests（表から外す＝0）。WriterRatchetTests の計算量の見た件数（1 種 40 四半期）の軌道に依る行（覇権の判定・請求・建設ほか）は英・清の土地税が動いて許しを越えうる＝赤なら ★(749) の〈軌道の件数を写しただけの番人〉として取り直し、verdict に列挙する（予言は〈種類で＝軌道の行〉・行の番号は結果）。OpeningBakeTests は資源が同じ＝0。英・清を組んで長く回す試験（StartWarmupTests・FsxTests ほか史実の桁を固定した物）が赤なら記録へ（止める線ではない）。機構の番人が旧の規則を固定している型（土地税の請求＝率×地代を英か清の盤面で Assert する物）が赤なら止めて作者に聞く（㉜）。
+ - ㉜ の grep（旗 1 の木）：`grep -nE "LandRentPerMonth" PriceOfBread.Tests/*.cs` の Assert で英か清の盤面に率×地代を固定する物＝LandbaseInstrumentTests（計器の写しの照合＝旧の規則を計器が自分で書く＝旗 1 では英・清の claim≠請求の写しになりうる＝赤の見込み）・EngineReadIdentityTests（予想＝実際の照合・どちらも同じ基数＝0）。LandbaseInstrumentTests が赤なら、それは〈計器が旧の規則を写している〉型＝計器の名乗りの限界（landbase_s の請求は旧の規則のまま・新しい規則の写しは landfix_s）＝試験の盤面の国の旗を 0 に置く直しは〈物差しの付け替え〉になる＝止めて報告に回す（書き換えない）。
+
+[7] 走査の番人の点検（㉘）と変わる件数の予言（㉑）
+ - 工業化度の読み手の許可表：新しい読み手 0（Industrialization を読まない）＝変化 0。
+ - `new MoneyStock(` の件数：足す行 0（MoneyPerMonth だけ）＝変化 0。
+ - route_anchors.tsv（scripts/instruments/flow262/）の鍵の行：鍵の 69 行が全て今の木で 1 本ずつ（D:/PoB_work/c82lt_work/anchors_check.txt・bad 0）＝書き足しは鍵の行に置いていない。
+ - WriterRatchetTests の宣言の表（お金への書き手）：数える欄（Savings・StateSpent・EarnedPerMonth ほか）への書き手は増やさない＝変化 0。新しい欄 LandTaxBasisAdjPerMonth は表の外。
+ - 回す：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests（器のコミットの直後・ident の前）。
+
+[8] 新÷旧の表（腕 B と S11・同じ盤面と基準 keep_933/base_ins・記録・全てを報告に書く）
+ - 同じ盤面（landfix_s）：英・清の landClaimAtTaxPerMonth ÷ landClaimPropAtTaxPerMonth（新の規則の請求÷旧の規則の請求）の窓ごとの中央。
+ - 基準との比（窓ごとの種の中央）：英・清の土地税の収入（landbase_s landTaxPaidPerMonth）・ブロックごとの国内の地代（cornint_s rentDomPerMonth0〜2）・名目 GDP（nation_s nominalGdpPerYear）・土地税の実効と目標の段（nation_s landTaxEndShare・landTaxTargetEndShare＝議会と政治の支持が決める量）。
+ - 英の国債の不履行の種の数（stoplines の ukdefault）。
+
+[9] 周辺の点検（材料 §10）
+ - 割譲 C1（CedeRuleToLocal＝1・点火済み・Territory.cs の届く割合）：C1 は届く割合、A-2 は基数＝請求×届く割合の別の因子＝同じ量を 2 回動かさない（思想⑨に当たらない見込み）。割譲で凍結は消える（0-4）＝受け手の州は C1 の届く割合×収穫比例。
+ - 特権の免税：払い手ごとの privBase は今のまま（基数×(1−d′)）。特権台帳は同じ基数（T9）。
+ - 地代の受け手の所得：PayOwnerRent の所得（EarnedPerMonth）と地代（LandRentPerMonth）は変えない＝所得・票・思想・貴族の政治力は地代のまま。変わるのは税の請求と土地税の選好の負担だけ。
+ - 十分の一税（Fiscal.cs:65 付近）：大衆の所得に掛かる＝基数に依らない。
+
+[10] 止める線（この回の形をそのまま写す・結果を見る前）
+ - scripts/instruments/c78gz/stoplines906.sh の 1 本（★(919)）：〈100 倍〉の〈それ以外〉（★(905) ① の区分〈分離・反乱の建国の後に名目 GDP 0 が続いて跳ぶ〉に入る件は記録へ写す）・1e10 倍・非有限・plvl の 100 倍・開幕の 1000 倍以上（記録・同じ国が半分以上の種なら NG）。基準とヌル腕（keep_933 の base_ins・n1・n2）も同じ台本で数え直して並べる（⑰）。〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉の四半期をヌル腕の件数と並べる（㊳）。
+ - 空洞化 1/10 未満（python scripts/instruments/hol/an_h2.py <出力>/ins -v4・既定の -ex rule＝規則 A2）：★(852) ① T1＝〈線が原因〉が 1 件でもあれば止める。件ごとに keep_933/base_ins の同じ種・同じ州を読み、基線ですでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。飢えによる空洞化も原因を問わず止める線（(491) ③）。
+ - 推定の計算量 ＞248.5 秒（.cost）・機構のテストの赤（走査の番人を含む）・破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+ - 記録の段（採否に使わない）：gdp_zero10・英の不履行・ハーネス不合格・exact・near・NG（ng.sh・基準 rd:measurements/ng933_20261107:m933・読み手の出力は D:/… の形）・home_break・史実の線・nullgate.py（記録）。
+
+[11] ident の宣言（旗 0・腕 c82ltz）
+ - bash scripts/instruments/ident/ident.sh run c82ltz --tree D:/PoB_work/wt_c82lt --added-tables landfix_s --tests-delta 14 --saveleak（印 D:/PoB_work/c82lt_work/ident.mark・台本 scripts/instruments/c82lt/ident937.sh）。
+ - --tests-delta の 14＝LandTaxFixedBasisTests 11 件＋LandfixInstrumentTests 3 件（Category!=FullLength・FullLength の数は不変）。
+ - .cost の件数の行は変えない見込み（--cost-allow なし）。走っている間はこの worktree にコミットもしない（㉙）。
+
+[12] 計算量と D:
+ - m933 の推定 212.2 秒（上限 248.5・名目の余り 約 36.3 秒）。見込み：PayOwnerRent の分岐（旗 0 は 1 回の比較と計器の 1 回の比較）・旗 1 は英・清の RGO だけ差分を積む＋0 化の 1 句＝+0.1〜0.3 秒・計器（INS=1 だけ）＝PayOwnerRent の受け口（英・清の RGO だけ）と月の決算（名簿の国は毎月・他の国は締め月だけ POP を一周）＝+0.1〜0.4 秒＝約 212.4〜212.9 秒（使う量 約 0.2〜0.7 秒＝2 秒以下の割り当て＝1 本の腕で門にしない・合流の木の累計で読む）。
+ - D:：事前登録の時点の空き 98.3GB（shutil）。重い仕事の順（hd の腕 B → lt の ident → lt の腕 B → hd の S11 → lt の S11）。起こす前に shutil で 床＋5GB（ident 40・腕 B 41・S11 35GB）を確かめる。
+
+[13] 段0 の予言（主な観測量の符号と大きさ・ソースと keep_933 の生から・腕の前）
+ - 英：旗 0 の B（q0 の R÷今の R）の窓ごとの中央 0.96・0.88・0.90・0.95・0.88（base）＝定額の基数は今の地代より 5〜12% 小さい側が多い＝英の土地税の収入の新÷旧は 0.88〜0.96 の見込み（土地税は英の歳入の一部＝国の歳入では数 % 未満）。物価が下がる行（3,612 行）では B＞1 が 29%＝デフレの年は定額が重くなる向き（作者の「足りなくても売らされた」の型）。
+ - 清：B の窓ごとの中央 0.95・0.90・0.74・0.51・0.38＝定額の基数は 19 世紀の後半に今の地代の半分前後＝清の土地税の収入の新÷旧は 1850 年以後 0.4〜0.6 の見込み（史実の向き〈清の地丁の原額は名目で据え置かれ、実質の負担は下がった〉と同じ向き）。
+ - 〈悪くする〉の予言か：狙いの観測量（G8c の |log B|・G7）は機構の向きどおり＝腕を回す。英・清の歳入の減り（清で土地税の半分前後）は軌道を動かす＝止める線は腕で読む。
