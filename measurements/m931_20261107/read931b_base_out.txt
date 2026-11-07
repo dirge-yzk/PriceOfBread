@@ -1,0 +1,33 @@
+== base  D:/PoB_work/keep_919/base_ins
+入り口の前後の 1 人あたり貯蓄（入り口＝0・中央）: -12:3.4e-06 -11:5.87e-06 -10:2.3e-06 -9:1.51e-06 -8:1.31e-06 -7:2.71e-06 -6:8.76e-06 -5:9.98e-06 -4:4.41e-06 -3:4.62e-07 -2:6.42e-09 -1:2.08e-11 0:7.48e-14 1:5.36e-16 2:2.62e-16
+入り口の前 12 四半期の流出の和（1176 州×四半期・比率）:
+  outTaxPerQuarter	5723.59	0.928
+  outMarketPerQuarter	365.061	0.059
+  outMigrationPerQuarter	35.8168	0.006
+  outDuesPerQuarter	25.1464	0.004
+  outOtherPerQuarter	13.5007	0.002
+  outColonialRentPerQuarter	5.95727	0.001
+  outCapitalPerQuarter	1.04845e-13	0.000
+  outBondPerQuarter	0	0.000
+  outImportPerQuarter	0	0.000
+同じ期間の流入の和:
+  inMarketPerQuarter	386.092	0.564
+  inExportPerQuarter	189.259	0.277
+  inMigrationPerQuarter	88.1092	0.129
+  inFromPopsPerQuarter	12.5517	0.018
+  inStatePerQuarter	8.13632	0.012
+  inCreditPerQuarter	0.00292115	0.000
+  inOtherPerQuarter	8.76191e-11	0.000
+流出 − 流入（前 12 四半期の和）: 5484.92
+前 12 四半期の最大の流出の経路（額の和・上位 10）:
+  Fiscal.cs:119:take:T	5722.41
+  EmptyPopEstate.cs:31:take:P	1.72145
+  MultiNationSim.cs:1815:carryOut:P	8.98922e-08
+  Meritocracy.cs:651:carryOut:P	1.17702e-14
+  CapitalMarket.cs:180:take:B	3.72942e-16
+  CapitalMarket.cs:174:take:B	0
+続きの中（4126 州×四半期）の流入の和: inFromPopsPerQuarter:6.926e+04 inMarketPerQuarter:405.6 inStatePerQuarter:99.24 inMigrationPerQuarter:34.4 inOtherPerQuarter:0.8469 inExportPerQuarter:1.779e-07 inCreditPerQuarter:1.782e-10
+続きの中の流出の和: outMigrationPerQuarter:667.5 outMarketPerQuarter:391.7 outTaxPerQuarter:58.66 outOtherPerQuarter:10.78 outDuesPerQuarter:9.959 outCapitalPerQuarter:0.8826 outColonialRentPerQuarter:0.0003209 outBondPerQuarter:0 outImportPerQuarter:0
+再点火の四半期（98）の流入の和: inMarketPerQuarter:900.8 inStatePerQuarter:166.3 inMigrationPerQuarter:27.36 inFromPopsPerQuarter:14.16 inCreditPerQuarter:7.081 inExportPerQuarter:6.053 inOtherPerQuarter:1.313
+再点火の四半期に正の流入があった件数: inMarketPerQuarter:98 inMigrationPerQuarter:97 inFromPopsPerQuarter:94 inExportPerQuarter:16 inOtherPerQuarter:15 inStatePerQuarter:11 inCreditPerQuarter:9
+再点火の直前の四半期の 1 人あたり貯蓄の中央 5.69e-07・再点火の四半期 7.2e-06
