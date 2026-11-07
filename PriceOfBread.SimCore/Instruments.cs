@@ -1401,9 +1401,20 @@ public static partial class Instruments
         a.BuiltUnits += builtUnits; a.Paid += cost;
         U4Paid(r, builtUnits, cost);   // (707)
     }
+    /// <summary>(948) 州が国を出る（<c>InheritIntentBefore</c> から・読むだけ）：出る州の積算器を、出た国（<paramref name="from"/>）の次の cons_s の行として取り置いて州から外す。外さないと、戻った四半期に古い積算が戻った国の行として出る。
+    /// 取り置くのは挙げた国だけ（その国の ConsRows が引き取る）。外すのは挙げた国かどうかに関わらず。</summary>
+    internal static void ConsDepart(World from, Region r)
+    {
+        if (!ConAccs.TryGetValue(r, out var a)) return;
+        ConAccs.Remove(r);
+        if (!IsPicked(from, S(from))) return;
+        ConsDeparted.GetValue(from, _ => new List<(Region, ConAcc)>()).Add((r, a));
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, List<(Region Reg, ConAcc Acc)>> ConsDeparted = new();
     /// <summary>(289) 助走の月の分は数えない（<see cref="ResetQuarter"/> と同じ扱い）。</summary>
     static void ClearCons(World w)
     {
+        ConsDeparted.Remove(w);   // (948) 助走の間に出た州の積み残しも持ち越さない
         foreach (var r in w.Regions) if (ConAccs.TryGetValue(r, out var a)) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
         U4ClearWorld(w);   // (707)
     }
@@ -1415,6 +1426,8 @@ public static partial class Instruments
     /// ③州の人口は全 POP の和（兵士を含む）④工場の規模＝RGO でない生産者の <c>BuiltScale</c> の和。</summary>
     static void ConsRows(Sink sk, ulong seed, int q, World w, WState st)
     {
+        List<(Region Reg, ConAcc Acc)>? departed = null;
+        if (ConsDeparted.TryGetValue(w, out var dl)) { departed = new(dl); ConsDeparted.Remove(w); }   // (948) 上限の四半期を過ぎても溜めない
         if (q > ConsMaxQuarter) return;
         sk.Cons ??= Open("cons", seed);
         if (!sk.ConsHeader) { sk.Cons.WriteLine("quarter\tyear\tnation\tregion\ttier\tactiveFlag\tpopulationK\tinvestorSizeK\tinvestorSavingsStock\tcapitalistSavingsStock\tinvestorEarnedPerMonth\tindustrializationIndex\tproductiveIndustrializationIndex\tfactoryScale\tjudgedMonthsCount\tmonthsCount\tdesiredMoneyPerMonth\tbudgetMoneyPerMonth\tplannedMoneyPerMonth\tplannedUnitsPerMonth\tbuiltUnitsPerMonth\tpaidPerMonth	termMonthsCount	desiringMonthsCount	gainWithTechMean	satMean	techLevelMean	crowdingPremiumMean	financialHeatMean	hurdleMean	netReturnMean	absorbFactorMean	jointStockFactorMean	desiredUnitsMean	unitMoneyMean"); sk.ConsHeader = true; }
@@ -1434,6 +1447,12 @@ public static partial class Instruments
                 I(a?.TermMonths ?? 0), I(a?.DesiringMonths ?? 0), TermMean(a, a?.TermGain), TermMean(a, a?.TermSat), TermMean(a, a?.TermTech), TermMean(a, a?.TermCrowd), TermMean(a, a?.TermHeat), TermMean(a, a?.TermHurdle), TermMean(a, a?.TermNet), TermMean(a, a?.TermAbsorb), TermMean(a, a?.TermJoint), TermMean(a, a?.TermUnits), TermMean(a, a?.TermUnitMoney)));
             if (a is not null) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
         }
+        if (departed is null) return;
+        // (948) 四半期の途中でこの国を出た州：払った額は支払いの表（払った時点の国）にこの国で載る＝州の表にも出た国の行で載せる。活動の列（activeFlag）は 0・州の在庫の列は 0（いまの持ち主の物なので載せない）・月あたりの列は積算÷この国の月数。
+        foreach (var (r, a) in departed)
+            sk.Cons.WriteLine(string.Join('	', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), "0", F(0), F(0), F(0), F(0), F(double.NaN), F(double.NaN), F(double.NaN), F(0),
+                I(a.Judged), F(cm), F(a.Desired / cm), F(a.Budget / cm), F(a.Planned / cm), F(a.PlannedUnits / cm), F(a.BuiltUnits / cm), F(a.Paid / cm),
+                I(a.TermMonths), I(a.DesiringMonths), TermMean(a, a.TermGain), TermMean(a, a.TermSat), TermMean(a, a.TermTech), TermMean(a, a.TermCrowd), TermMean(a, a.TermHeat), TermMean(a, a.TermHurdle), TermMean(a, a.TermNet), TermMean(a, a.TermAbsorb), TermMean(a, a.TermJoint), TermMean(a, a.TermUnits), TermMean(a, a.TermUnitMoney)));
     }
 
     // ---------------------------------------------------------------- (292) 線P：港の建設の州ごとの表 ----------------------------------------------------------------
