@@ -1,0 +1,10 @@
+arm	seed	nation	q0	year0	lastQ	rows	type	parent	pop0K	nReg	tiers0	preZeroAll	preOut	out0	regSav0	zeroRunFromStart	zeroRunEnd	tierAtRunEnd	gdpPerKAtRunEnd+4	parentGdpPerK0	endHow
+CW1	1	共和制フランス	193	1831	230	38	不明		1404.0	1	Colonial	1	0	0	9.5e-14	22	214	Core	0.01361	nan	正へ
+M933	1	共和制オーストリア	213	1836	239	27	政体戦か要求戦	オーストリア	3310.5	1	Colonial	1	0	0	1.61e-15	11	223	Core	0.009716	30.94	正へ
+M933	8	オーストラリア王国	46	1794	50	5	分離独立	イギリス	261.2	1	Colonial	0	0.5735	0	13.8	2	47	Colonial	0.4476	14.66	正へ
+N1_933	8	オーストラリア王国	43	1794	45	3	分離独立	イギリス	266.6	1	Colonial	1	0	0	6.23	2	44	Colonial	1.646	15.41	正へ
+N2_933	5	共和制スペイン	185	1829	188	4	政体戦か要求戦	スペイン	3161.3	1	Colonial	1	0	0	2.87e-14	4	188	Colonial	0	25.92	0のまま国が消えた
+N2_933	9	共和制モロッコ	223	1839	225	3	政体戦か要求戦	モロッコ	1391.1	1	Colonial	1	0	0	9.06e-12	3	225	Colonial	0	35.19	0のまま国が消えた
+S11_933	13	オーストラリア王国	38	1792	41	4	分離独立	イギリス	259.3	1	Colonial	1	0	0	nan	4	41	Colonial	0	16.05	0のまま国が消えた
+S11_933	13	オーストラリア王国	60	1798	63	4	分離独立	イギリス	254.4	1	Colonial	1	0	0	nan	4	63	Colonial	0	16.22	0のまま国が消えた
+N2_919	1	中央メキシコの共和主義の大衆運動・スペイン	264	1849	266	3	政体戦か要求戦	スペイン	3228.2	1	Colonial	1	0	0	7.33e-16	3	266	Colonial	0	33.11	0のまま国が消えた
