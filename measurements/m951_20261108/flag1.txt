@@ -1,0 +1,4 @@
+713:    public double LandTaxFixedBasis = 1.0;       // ★(945) c83lt
+rc=0
+成功!   -失敗:     0、合格:    20、スキップ:     0、合計:    20、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+list-tests の数 20
