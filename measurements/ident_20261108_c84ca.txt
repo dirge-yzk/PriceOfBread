@@ -1,0 +1,35 @@
+=== 恒等の判定（測った種で一致） c84ca（2026-11-08 06:12:28）===
+測った木：D:/PoB_work/wt_c84ca（HEAD 3bddddc2・未コミット 1 本）
+基準の設定：D:/PoB_work/wt_c84ca/scripts/instruments/ident/ident.cfg
+宣言：rows_grown=['cons_s', 'consf_s'] known_extra=['cons_s:judgedMonthsCount', 'cons_s:desiredMoneyPerMonth', 'cons_s:termMonthsCount', 'cons_s:desiringMonthsCount', 'cons_s:gainWithTechMean', 'cons_s:satMean', 'cons_s:techLevelMean', 'cons_s:crowdingPremiumMean', 'cons_s:financialHeatMean', 'cons_s:hurdleMean', 'cons_s:netReturnMean', 'cons_s:absorbFactorMean', 'cons_s:jointStockFactorMean', 'cons_s:desiredUnitsMean', 'cons_s:unitMoneyMean', 'cons_s:budgetMoneyPerMonth', 'cons_s:plannedMoneyPerMonth', 'cons_s:plannedUnitsPerMonth', 'cons_s:builtUnitsPerMonth', 'cons_s:paidPerMonth', 'consf_s:judgedRegionMonthsCount', 'consf_s:desiringRegionMonthsCount', 'consf_s:budgetBoundRegionMonthsCount', 'consf_s:desiredMoneySum', 'consf_s:budgetBoundCutMoneySum', 'consf_s:flowAvailableRegionMonthsCount', 'consf_s:flowDesiringRegionMonthsCount', 'consf_s:flowBoundRegionMonthsCount', 'consf_s:flowDesiredMoneySum', 'consf_s:oscRegionMonthsCount', 'consf_s:flowBudgetMoneySum', 'consf_s:flowPlannedMoneySum', 'consf_s:flowEarnedLastMoneySum', 'consf_s:budgetMoneySum', 'consf_s:plannedMoneySum', 'consf_s:flowConsumptionPaidLastMoneySum', 'consf_s:paidMoneySum', 'consf_s:builtUnitsSum', 'consf_s:oscPaidMoneySum', 'consf_s:oscAbsFirstDiffMoneySum', 'consf_s:oscAbsSecondDiffMoneySum', 'consf_s:oscFirstDiffLagProductSum', 'consf_s:oscFirstDiffSquareSum', 'consf_s:oscFirstDiffLagSquareSum', 'consf_s:flowCurrentPlannedMoneySum'] tests_delta=1
+腕 a：rc=0 end=2026-11-08 06:03:36
+腕 b：rc=0 end=2026-11-08 06:07:55
+腕 t：rc=0 end=2026-11-08 05:48:54
+腕 s：rc=0 end=2026-11-08 06:01:12
+測る木の SOURCE-HASH：33aa787e4eeaa19e
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 33aa787e4eeaa19e
+[素の 5 種] b5_ia_5.txt 対 b5_20261108_m947
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261108_m947.cost
+  ○ 件数の行 29 本・推定 209.5 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 33aa787e4eeaa19e
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261108_m947_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261108_m947_ins.cost
+  ○ 件数の行 29 本・推定 210.2 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c84ca/out_ib_10/ins  対  基準 D:/PoB_work/keep_947/base_ins
+  基準 1149 本・腕 1149 本・バイト一致 1109 本
+  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）20 本・増えた行 272：cons_s+23・cons_s+20・cons_s+22・cons_s+19・cons_s+28・cons_s+20
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1109・既知の揺れ 20・宣言された増減 20）
+  内訳：共通の表 1149 本＝バイト一致 1109＋既知の揺れ 20＋列が増えた 0＋行が増えた 20＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1149）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261108_m947.txt（タグの行を除く）
+  ○ タグの行以外が一致（5085 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2424（基準 2423+1 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等

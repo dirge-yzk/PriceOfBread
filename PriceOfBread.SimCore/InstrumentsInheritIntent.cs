@@ -52,6 +52,7 @@ public static partial class Instruments
     /// <summary>移しの規則を当てる前（<c>Territory.TransferRegion</c>・読むだけ）：移る州の StateTarget＞0 の生産者ごとに、旧の値と新の値（純関数）・今の棟数・工事中の残り日数・旧の意志の月の工費の見込みを蓄える。</summary>
     internal static void InheritIntentBefore(World from, Region r, Territory.Rehoming how)
     {
+        ConsDepart(from, r);   // (948) cons_s の出る州の積算を出た国の行へ
         var acc = InheritAccs.GetValue(from, _ => new InheritAcc());
         InheritReg? reg = from.Diplomacy is { } dip ? InheritRegs.GetValue(dip, _ => new InheritReg()) : null;
         foreach (var pr in r.Producers)

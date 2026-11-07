@@ -1,0 +1,27 @@
+(948) c84ca 事前登録（2026-11-08・最初のコミット）  種類＝計器のバグの直し（尾）・恒等の線・ident 1 本
+
+[1] 恒等の線・予言
+- 変わるのは cons_s だけ。州が国を出入りした四半期（建国 Seceded・再併合 Returned・割譲 Ceded）の (種, 国, 四半期) の行だけ。他の全ての表・成績表（素の 5 種・計器つき 10 種）は m947 と全行一致。
+- 紙の予言（measurements/m948_20261108_paper_prediction.txt＝keep_947/base_ins の cons_s を種×国で走査し、州の名の集合が前の四半期と変わった四半期を数えた）：427 件（10 種・計器の国）。差はこの (種, 国, 四半期) とその直後の四半期の行に限る。出た側＝activeFlag 0 の行が足される（行が増える）・戻った側＝戻った国の行の paid などの値が積み残し分だけ変わる（値が変わる）。
+- ident.sh の宣言：--rows-grown-ok cons_s・--tests-delta +1。足りなければ結果を見て --known-extra を足し、足したら〈結果の後の宣言〉と名乗って報告に書く。
+- エンジン 0 行・新しい状態 0（計器側の取り置き ConsDeparted 1 本。前例＝InheritAccs）。係数のリテラル・計算の順序は変えない。浮動小数の順序が変わる箇所 0。
+
+[2] 足す物・変える物と読み手
+- Instruments.cs の ConAcc の塊：ConsDepart（出る州の積算を取り置いて ConAccs から外す）・ConsDeparted（World 鍵の取り置き）・ConsRows の末尾（出た州の行を activeFlag 0 で書く）・ClearCons に 1 行。
+- InstrumentsInheritIntent.cs：InheritIntentBefore の頭に ConsDepart の呼び 1 行。
+- PriceOfBread.Tests/ConsDepartTests.cs（新）1 本。InstrumentsTests.cs :2119 は触らない（fix942 は使わない・試験の母集合を狭めない）。
+- 列の足し引き 0（cons_s のヘッダーは今のまま）。出た州の行の意味：activeFlag 0・州の在庫の列（populationK・investorSizeK・investorSavingsStock・capitalistSavingsStock・factoryScale）は 0・industrializationIndex 系と investorEarnedPerMonth は nan・月あたりの列は積算÷出た国の月数。
+- 読み手の grep（cons_s）：Tests＝InstrumentsTests.cs 2128・2205・2302（旗 0 の外交凍結の盤面＝出入り無し）・U4InstrumentTests.cs 103（cons_s と consf_s を国×四半期で足して突き合わせる）。scripts＝18 本（d289・i1・ir505・lc・r857・ivf536 ほか＝分析の台本）。止める線・NG・stoplines906.sh・batch.sh・hol/an_h2.py が cons_s を開くかは腕の前に grep で確かめて記録に書く。SaveGame に無関係（計器の状態）。POB_COEF の名前なし。
+- activeFlag の読み手：an_d289.py の CONS_COLS に列名があるだけ（値で絞る読みは grep で確かめる）。
+- 移転の口：Territory.cs:340 の InheritIntentBefore の 1 本。建国 MultiNationSim.cs:401・再併合 :1217・割譲は全て TransferRegion を通る（書く前に grep）。通らない道（国の消滅で州が一緒に消える）は取り置きが引き取られない＝未対応と名乗る（その国はもう挙がらない）。
+- 他の線との重なり：Instruments.cs の ConAcc の塊（c84lb は InstrumentsLandbase.cs の中・c84kp は Instruments.cs に触れない）。InstrumentsTests.cs :2119 は ca だけ（触らない）。
+
+[3] 足す試験と突然変異
+- 出た州の建設の払いは出た国の行に載り両側の表が閉じる（ConsDepartTests）：4 国・外交凍結・6 四半期目の後に仏の首都以外の州を全て普へ割譲し、仏と普の cons_s の払いの和が spend_s の建設の材料と工賃に全ての区切りで閉じる（区切りは一つも除かない）・対照＝割譲州数>0・出た州の行（activeFlag 0）≥1 で払い>0。
+- 突然変異：M1 InheritIntentBefore の呼びを消す→この試験が赤。M2 吐き出しを二度書く→赤。M3 取り置きの鍵を戻る国（受け手）にする→赤。結果は measurements/m948_20261108_mutations.txt に残す。
+- 旗 1 の盤面（上側の門）：D:/PoB_work/c84ca_work/wt1 に origin/c83lt の 5b109157 を置き 70dda9f5（fix942）を逆適用→直しを当てる。試験 :2119 の ① を全区切りで比べ緑・州が出た四半期の出た州の行の Paid が m942 のプローブ（probe_tree.diff）の州の払いの和に 1e-9 で一致。除いた区切りの数 0。
+- ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。書き換える件数の予言＝0 件（走査する表の行に触れない）。`new MoneyStock(` の件数 0 増・route_anchors.tsv に触れない・WriterRatchetTests の宣言の表に触れない。
+
+[4] 判定
+- ident（ident.cfg の m947）が〈判定: 恒等〉で差が宣言の分だけなら採る。不一致なら変更を外して報告に回す。フルスイート 2423＋1・FullLength 3・savetest・leakhunt。
+- 関連機能の点検（直さない）：consf_s（InstrumentsU4.cs）も州の積算を畳むので同じ穴が U4 側にある可能性。U4InstrumentTests の突き合わせが旗 1 の盤面で赤になるなら別の線の所見として報告（InstrumentsU4.cs は触らない）。
