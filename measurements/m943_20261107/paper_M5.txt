@@ -1,0 +1,18 @@
+# paper943 mut=M5
+D:/PoB_work/keep_933/base_ins	seeds=10	impPerSeed=[46, 46, 62, 26, 67, 66, 49, 57, 57, 54]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=530
+  other: M5_mismatch=62  chainGroups=59  monarchWinner=352  rec_relabelAfterImp=125
+  trans(head->after,monarchWinner): 無->絶対:100 絶対->絶対:219 専制->専制:33
+D:/PoB_work/keep_933/n1	seeds=10	impPerSeed=[51, 55, 44, 56, 40, 59, 54, 48, 54, 54]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=515
+  other: M5_mismatch=72  ambiguousRows=1  chainGroups=72  monarchWinner=338  rec_relabelAfterImp=110
+  trans(head->after,monarchWinner): 無->絶対:97 絶対->絶対:200 専制->専制:40
+  ambiguous(excluded): s4:m314:ケープタウン共和国
+D:/PoB_work/keep_933/n2	seeds=10	impPerSeed=[37, 30, 22, 48, 40, 48, 37, 43, 49, 53]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=407
+  other: M5_mismatch=69  chainGroups=52  monarchWinner=265  rec_relabelAfterImp=103
+  trans(head->after,monarchWinner): 無->絶対:75 絶対->絶対:158 専制->専制:32
+D:/PoB_work/keep_933/a11	seeds=10	impPerSeed=[51, 47, 58, 48, 32, 51, 39, 56, 46, 45]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=473
+  other: M5_mismatch=62  chainGroups=58  monarchWinner=313  rec_relabelAfterImp=121
+  trans(head->after,monarchWinner): 無->絶対:92 絶対->絶対:188 専制->専制:33

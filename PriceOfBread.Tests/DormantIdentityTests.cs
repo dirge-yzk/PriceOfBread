@@ -130,6 +130,7 @@ public class DormantIdentityTests
         // ★AiLawGateFromBoard（(423) 工業化度を読む AI の法の門を盤面の実物へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。(599) で旗ごと削除（RetiredFields）。
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
+        "ImposeCrownFromLoser",         // ★(943) c83ic 形 F1 矯正講和の君主系の押し付けを敗者の講和の段の頭の王冠の形から取る旗（0＝今の形・番人 ImposeCrownFromLoserTests）。点火時にこの表から外す。
         "OpeningBakeEnabled",           // ★(490) 開幕の焼き込みの読み込み（<see cref="OpeningBake"/>）＝0 で表（opening_bake.json）を開きもしない。倒さない（焼くのは工業化度の削除の後・(464) の順）。鍵の一致と読み込みの往復は OpeningBakeTests
         // ★DevaluationCapReliefExp（(587) 切り下げの月の上限の緩め）は 2026-10-27 に 1 で**点火**（線 hyp の腕 B・止める線に当たらず）＝この表から外した。0 に戻せば旧の切り（貯蓄×DevaluationCapFracPerMonth）。
         // ★StapleLedgerSum・HarvestShortfallToMarket（(504) 食料の台帳を主食の和へ①③）は 2026-10-23 に 1 で**点火**（腕 C・止める線に当たらず）＝この表から外した。②は表に残る。
