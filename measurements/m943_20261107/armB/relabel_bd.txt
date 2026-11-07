@@ -1,0 +1,21 @@
+# paper943 mut=M0
+D:/PoB_work/keep_933/base_ins	seeds=10	impPerSeed=[46, 46, 62, 26, 67, 66, 49, 57, 57, 54]
+  gates: G1=31  G1s=62  G3=31  GC=5  GR=0  G2=530
+  other: absToDesp=1  absToDesp_order2+=1  chainGroups=59  monarchWinner=352  rec_UK_constToMonarch=33  rec_relabelAfterImp=125  rl_0>3=117  rl_1>3=8
+  trans(head->after,monarchWinner): 無->絶対:70 無->専制:30 絶対->絶対:218 絶対->専制:1 専制->絶対:31 専制->専制:2
+  violations(first 8): ('G1', 1, '233', 'ジェノヴァ', '無', '専制') | ('G1s', 1, '233', 'ジェノヴァ', '無', '専制') | ('G1s', 1, '467', 'ロシア', '専制', '絶対') | ('G1s', 1, '766', 'ビルマ', '専制', '絶対') | ('G1s', 1, '946', 'アフガニスタン', '専制', '絶対') | ('G1', 1, '1097', 'ロシア', '無', '専制') | ('G1s', 1, '1097', 'ロシア', '無', '専制') | ('G1', 1, '1098', 'オーストリア', '無', '専制')
+D:/PoB_work/keep_933/n1	seeds=10	impPerSeed=[51, 55, 44, 56, 40, 59, 54, 48, 54, 54]
+  gates: G1=34  G1s=72  G3=38  GC=13  GR=0  G2=515
+  other: absToDesp=6  absToDesp_order2+=6  ambiguousRows=1  chainGroups=72  monarchWinner=338  rec_UK_constToMonarch=33  rec_UK_crownDespQ=352  rec_UK_despoticQ=96  rec_relabelAfterImp=110  rl_0>3=98  rl_1>3=12
+  trans(head->after,monarchWinner): 無->絶対:69 無->専制:28 絶対->絶対:194 絶対->専制:6 専制->絶対:38 専制->専制:2
+  ambiguous(excluded): s4:m314:ケープタウン共和国
+  violations(first 8): ('G1', 1, '133', 'ネーデルラント', '無', '専制') | ('G1s', 1, '133', 'ネーデルラント', '無', '専制') | ('G1', 1, '189', 'スイス', '無', '専制') | ('G1s', 1, '189', 'スイス', '無', '専制') | ('G1s', 1, '239', 'ロシア', '専制', '絶対') | ('G1s', 1, '239', 'ロシア', '専制', '絶対') | ('G1', 1, '433', 'シク連邦', '無', '専制') | ('G1s', 1, '433', 'シク連邦', '無', '専制')
+D:/PoB_work/keep_933/n2	seeds=10	impPerSeed=[37, 30, 22, 48, 40, 48, 37, 43, 49, 53]
+  gates: G1=37  G1s=69  G3=32  GC=6  GR=0  G2=407
+  other: absToDesp=2  absToDesp_order2+=2  chainGroups=52  monarchWinner=265  rec_UK_constToMonarch=29  rec_UK_crownDespQ=599  rec_UK_despoticQ=379  rec_relabelAfterImp=103  rl_0>3=89  rl_1>3=14
+  trans(head->after,monarchWinner): 無->絶対:40 無->専制:35 絶対->絶対:156 絶対->専制:2 専制->絶対:32
+  violations(first 8): ('G1', 1, '180', 'ポーランド', '無', '専制') | ('G1s', 1, '180', 'ポーランド', '無', '専制') | ('G1s', 1, '257', 'ロシア', '専制', '絶対') | ('G1s', 1, '257', 'ロシア', '専制', '絶対') | ('G1', 1, '606', 'シク連邦', '無', '専制') | ('G1s', 1, '606', 'シク連邦', '無', '専制') | ('G1', 1, '621', 'ロシア', '無', '専制') | ('G1s', 1, '621', 'ロシア', '無', '専制')
+D:/PoB_work/c83ic_work/arm_c83icB/out_c83icB_10/ins	seeds=10	impPerSeed=[75, 54, 48, 55, 76, 54, 44, 48, 46, 44]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=544
+  other: chainGroups=63  monarchWinner=375  rec_UK_constToMonarch=34  rec_relabelAfterImp=148  rl_0>3=133  rl_1>3=15
+  trans(head->after,monarchWinner): 無->絶対:104 絶対->絶対:234 専制->専制:37
