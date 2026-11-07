@@ -3190,7 +3190,7 @@ public sealed class Diplomacy
                 if (crushing && dw.PoliticsEnabled && dw.Polity != ww0.Polity
                     && Math.Abs(Ideology(ww0.Polity) - Ideology(dw.Polity)) >= c.ImposeRegimeIdeologyGap)
                 {
-                    var impPre = Instruments.On ? Instruments.ImpBefore(dw) : null;   // (928) 計器（読むだけ）：矯正の前の敗者の断面
+                    var impPre = Instruments.ImpBeforeIfOn(dw);   // (928) 計器（読むだけ）：矯正の前の敗者の断面
                     CrownParliament.ApplyRegime(dw, c, ww0.Polity);
                     Politics.RaiseFoundingInstitutions(dw, allowRevoke: true, c);   // 押し付け政体の含意参政権・報道へ（自由化も反動剥奪も対称）
                     double legBeforeImpose = dw.Legitimacy;

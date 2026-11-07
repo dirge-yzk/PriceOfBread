@@ -9,7 +9,7 @@ namespace PriceOfBread.SimCore;
 //   quarter（＝講和の月÷3）／month／year／winner／loser／winnerPolityCode／loserPolityBeforeCode／loserCrownBeforeCode／loserCrownAfterCode／imposedPolityCode（矯正の後の敗者の政体）／
 //   absScoreIndex（未クランプの |戦勝点|）／ideologyGapIndex（計器が自分の表で数えた政体の隔たり）／legitimacyBeforeShare／legitimacyAfterShare／crushingFlag／
 //   orderInMonthIndex（同じ月に同じ敗者が矯正された何本目か・1 始まり）。
-// ⚠限界（計器が自己申告する）：①月は Diplomacy.Step の入口の月（CpMonth の値）＝四半期の AI・調停の歩の中の講和も同じ月で数える。②crushingFlag は矯正の門の中でしか書かないので恒に 1
+// ⚠限界（計器が自己申告する）：⓪crownpc_s の crownRegisterSourceCode は助走の後の復元（GovernanceSnapshot）で全国が 6（不明）になる＝本編の最初の行から 0 は現れない（口の印を付けた 0 は開幕の構築の直後から助走の終わりまでだけ）。①月は Diplomacy.Step の入口の月（CpMonth の値）＝四半期の AI・調停の歩の中の講和も同じ月で数える。②crushingFlag は矯正の門の中でしか書かないので恒に 1
 //   （門の定義に含まれる列＝列として残すのは read924 §5 の仕様どおり）。③orderInMonthIndex は矯正した件だけを数える（矯正に至らなかった同じ月の講和は数えない）。
 public static partial class Instruments
 {
@@ -32,6 +32,9 @@ public static partial class Instruments
 
     /// <summary>矯正の前（ApplyRegime の前）：敗者の断面を控える。</summary>
     internal static ImpPre ImpBefore(World dw) => new() { Polity = dw.Polity, Crown = dw.Crown, Legitimacy = dw.Legitimacy };
+
+    /// <summary>On の判定を中で持つ版（ResolvePeace は既に On を何度も読む関数＝呼び側で読み足さない）。切れていれば null。</summary>
+    internal static ImpPre? ImpBeforeIfOn(World dw) => On ? ImpBefore(dw) : null;
 
     /// <summary>矯正の後（ログ〈政体を矯正〉の直後）：1 行を貯め、敗者の王冠の登録簿の最後の書き手を 2（矯正講和）にする。</summary>
     internal static void ImpAfter(Diplomacy d, ImpPre pre, Power winner, Power loser, World ww, World dw, double absScore, bool crushing)

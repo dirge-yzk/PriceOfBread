@@ -64,11 +64,21 @@ public class ImposeAndCrownSourceTests
             Assert.Equal(legB, double.Parse(Col(row, "legitimacyBeforeShare"), System.Globalization.CultureInfo.InvariantCulture), 9);
             Assert.Equal(uk.Nation!.Legitimacy, double.Parse(Col(row, "legitimacyAfterShare"), System.Globalization.CultureInfo.InvariantCulture), 9);
             Assert.Equal(2, Instruments.CrownSourceOf(uk.Nation!));      // 王冠の登録簿を最後に書いたのは矯正講和
+            // 前後の列を区別する盤面（敗者の王冠と政体を矯正の間に変える）＝Before は前の値・After は後の値で読む
+            var pre = Instruments.ImpBefore(uk.Nation!);
+            var polPre = uk.Nation!.Polity; var crPre = uk.Nation!.Crown;
+            uk.Nation!.Crown = crPre == CrownForm.None ? CrownForm.Despotic : CrownForm.None;
+            Instruments.ImpAfter(sim.Diplomacy, pre, fr, uk, fr.Nation!, uk.Nation!, 1.5, true);
+            var last = Instruments.ImpRowsPending(sim.Diplomacy)[^1].Split('	');
+            Assert.Equal(((int)crPre).ToString(), Col(last, "loserCrownBeforeCode"));
+            Assert.Equal(((int)uk.Nation!.Crown).ToString(), Col(last, "loserCrownAfterCode"));
+            Assert.NotEqual(Col(last, "loserCrownBeforeCode"), Col(last, "loserCrownAfterCode"));
+            Assert.Equal(((int)polPre).ToString(), Col(last, "loserPolityBeforeCode"));
             // 同じ月に同じ敗者へ 2 本目（計器の呼び口を直に叩く）＝順番は 2・別の敗者は 1 から
             Instruments.ImpAfter(sim.Diplomacy, Instruments.ImpBefore(uk.Nation!), fr, uk, fr.Nation!, uk.Nation!, 1.5, true);
             Instruments.ImpAfter(sim.Diplomacy, Instruments.ImpBefore(fr.Nation!), uk, fr, uk.Nation!, fr.Nation!, 1.5, true);
             var all = Instruments.ImpRowsPending(sim.Diplomacy).Select(r => r.Split('	')).ToList();
-            Assert.Equal(new[] { "1", "2", "1" }, all.Select(r => Col(r, "orderInMonthIndex")).ToArray());
+            Assert.Equal(new[] { "1", "2", "3", "1" }, all.Select(r => Col(r, "orderInMonthIndex")).ToArray());
             return 0;
         });
     }
