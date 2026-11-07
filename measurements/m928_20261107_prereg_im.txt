@@ -1,0 +1,41 @@
+(928) c81im 事前登録（最初のコミット・腕の前）。AI の案・作者の承認の言葉は無い（★(926) ① は作者「全て推奨で」で推奨を採った）。
+
+[1] 恒等の線・予言 0
+ 形＝計器だけ（挙動を変えない）。imp_s（矯正講和 1 件 1 行）と crownpc_s の末尾 1 列 crownRegisterSourceCode。全て [NonSerialized] か計器の持ち物（ConditionalWeakTable）・旗を読まない・エンジンの関数を呼ばない。
+ 予言：素の 5 種・計器つき 10 種の成績表は m919 と名乗り行を除いて全行一致。計器の表の差は宣言だけ（足す表 imp_s・伸びる表 crownpc_s の末尾 1 列）。.cost の推定は一致。
+ 浮動小数の順序が変わる箇所＝無し（エンジンの式に触れない）。紙の台本で新旧の食い違いを数える必要のある箇所＝無し。
+
+[2] 触る物と読み手
+ 現物（11c35e54 の grep）：
+  Diplomacy.cs:3193 CrownParliament.ApplyRegime(dw, c, ww0.Polity)／:3199 Log.Add(...政体を矯正...)（CRLF＋BOM）
+  Simulation.cs:193 ApplyRegime（開幕）／Politics.cs:713 ApplyRegime（ExecuteRegimeChange 内・CRLF）／GovernanceSnapshot.cs:63 w.Crown = _crown
+  CrownParliament.cs:146 w.Crown = None（廃位）・:168 w.Crown = Absolutist（幕府の終わり）／InstrumentsCrown.cs CrownFold・CrownClose
+ 足す物：InstrumentsImpose.cs（新）・InstrumentsCrown.cs の登録簿の符号（CrownSource・CrownSourceOf・CrownSourceIfOn）・Instruments.cs の ImpTable の呼び 1 行。
+ 呼び口（持ち主でないファイルに各 1 行・On を同じ関数で 2 回読まない）：
+  Diplomacy.cs＝2 行（:3193 の前に ImpBefore を読む 1 行・:3199 の後に ImpAfter の 1 行）。ImpAfter の中で敗者の符号を 2 にする。
+  Simulation.cs＝1 行（符号 0）・Politics.cs＝2 行（ExecuteRegimeChange の ApplyRegime の直後に符号 1・SettleRevolt の ExecuteRegimeChange の直後に符号 3 ＝波括弧を足した）。
+  CrownParliament.cs＝2 行（符号 4・5・同じ関数に 2 本あるので On を中で読む CrownSourceIfOn）・GovernanceSnapshot.cs＝1 行（符号 6＝不明）。
+ 区分が呼び手で分けられるか（grep）：ExecuteRegimeChange の呼び手は Politics.cs:687（Transition）と :845（SettleRevolt＝蜂起の決着）の 2 つだけ＝分けられる（3 は 1 の上書き）。
+  他の ApplyRegime の呼び手は 3 つだけ（Simulation.cs:193・Politics.cs:713・Diplomacy.cs:3193）。直書きの w.Crown＝は CrownParliament.cs:146・:168・ApplyRegime の中・GovernanceSnapshot.cs:63 だけ（本体 SimCore を grep）。
+  畳む区分＝無し。符号 6（不明）＝助走の後の復元・計器が切れていた World・建国の World（印を付ける口が無い）。
+ 読み手の grep：imp_s・crownRegisterSourceCode・ImpBefore・ImpAfter・CrownSource は新しい名前＝SimCore・Runner・App・Display・Tests・scripts・measurements に既存の読み手 0（衝突 0）。POB_COEF・SaveGame に出る名前は無い（係数も保存する欄も足さない）。
+ 他の線との重なり：c81sm は InstrumentsCearn.cs・BilateralMarket.cs・Tests の別ファイルが持ち主＝重ならない。Instruments.cs は表の登録の 1 行だけ（c81sm は触らない見込み）。Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs は触らない。
+ ㉘ ソースを走査する番人：呼び口は 8 行増える。IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。書き換える件数の予言＝0（Coefficients・MoneyStock・route_anchors に触れない）。
+
+[3] 足す試験（PriceOfBread.Tests/ImposeAndCrownSourceTests.cs・3 件）と突然変異（期待値は計器と別の出所＝列挙の手書き整数・Diplomacy の表から手で引いた 0.45）
+ T1 壊滅級の勝利で矯正講和＝imp_s は 1 行（ログの〈政体を矯正〉の件数 1 と合う）・各列・王冠の書き手が 2。
+ T2 開幕 0・ExecuteRegimeChange 1・SettleRevolt 3・幕府の終わり 5・廃位 4・計器が切れていた World は 6。
+ T3 crownpc_s の見出しの末尾が crownRegisterSourceCode・行の列数が見出しと合い、末尾が書き手の符号。
+ 列ごとの突然変異（★(892)）：
+  M1 ImpAfter の呼び口を外す → T1 赤（行数 0）。
+  M2 orderInMonthIndex を常に 1 にする → 同じ月の 2 本目を作る盤面が無いと緑になる＝T1 に 2 本目の矯正（同じ敗者・同じ月）の検査を足す（下の追記で確定）。
+  M3 Transition の口（Politics.cs の符号 1）を 0 にする → T2 赤。
+  M4 SettleRevolt の口を外す → T2 赤。M5 crownRegisterSourceCode の列を常に 0 にする → T3 赤。M6 loserCrownBeforeCode を矯正の後の値で読む → T1 は王冠が変わる盤面でだけ赤（フランス→イギリスの盤面で前後の差が出るか確かめる）。
+ 結果は measurements/m928_20261107/mutation.txt に残す。緑のままの突然変異は穴として名乗り、同じ線で試験を足して赤にする。
+
+[4] 判定
+ ident：bash scripts/instruments/tools/bg.sh D:/PoB_work/c81im_work/ident.mark bash scripts/instruments/c81im/ident928.sh
+  宣言＝--added-tables imp_s・--grown-ok crownpc_s・--tests-delta 3・--saveleak。基準は ident.cfg（keep_926/base_ins・890d59e0・2410／3）。
+ 門：〈判定: 恒等〉・imp_s の行数＝10 種のログの〈政体を矯正〉の件数（ログは 10 種の出力にあるものを読む。無ければ試験の T1 で代える＝近似と名乗る）・crownRegisterSourceCode＝2 の四半期＝imp_s の行の四半期・フルスイート（--list-tests と突き合わせ）・savetest・leakhunt。
+ D:：空き 約 164GB（床 35GB＋5GB に対し足りる）。腕の枠＝arms.sh free が 3 以上で ident を始める。
+ [5] 〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
