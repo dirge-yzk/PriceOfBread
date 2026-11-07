@@ -326,8 +326,11 @@ def _cearn_remap(s):   # 基準の経路の名の〈:行〉を測る木の行へ
 def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数, 腕で末尾に増えた列)
     # (852) allow_grown＝--grown-ok に cearn_s がある＝腕の見出しが基準の見出しを頭に含み末尾に列が増えた形も、基準の列（頭の n 列）を同じ規則で比べる（増えた列は比べない＝宣言の増減に数える）。
     #   列の追加と金を動かすファイルの行の移動が同じ木に入ると、旧の形は見出しの不一致で写像を走らせず〈宣言の無い違い〉にしていた（(848) c69eh §9 の道具の限界）。
+    # (934) CEARN['known']＝cearn_s の宣言の列（--known-extra と KNOWN・parse_known の形 {列: None か (条件の列, 値)}・cmp_ins が入れる）。経路の外の列でも、宣言の列は値の違いを許す（cols_diff と同じ規則）。空か未設定＝今までと同じ（全ての列がバイトで一致）。呼び出しの引数にしないのは、試験が差し替える関数の形（c70gt）を保つため。
+    #   宣言の列だけが違い経路が動かない表は、今までどおり False を返して cols_diff の道へ落とす（判定の文言と内訳の区分を変えない）。
     if not CEARN['base'] or not CEARN['root'] or not (CEARN['tree'] or CEARN['arm_commit']):
         return False, 0, []
+    kmap = CEARN.get('known') or {}
     with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
         ra = list(csv.reader(fa, delimiter='\t'))
         rb = list(csv.reader(fb, delimiter='\t'))
@@ -346,6 +349,7 @@ def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:�
     if not rc:
         return False, 0, []
     moved = 0
+    kdiff = False
     for xa, xb in zip(ra[1:], rb[1:]):
         if len(xa) != n or len(xb) != nb:
             return False, 0, []
@@ -359,7 +363,19 @@ def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:�
                     return False, 0, []
                 moved += 1
             elif xa[i] != xb[i]:
-                return False, 0, []
+                flt = kmap.get(h[i], False)
+                if flt is False:
+                    return False, 0, []
+                if flt is not None:   # 条件つきの宣言＝その行の条件の列の値が両側とも指定の値のときだけ許す（cols_diff と同じ）
+                    fc, fv = flt
+                    if fc not in h:
+                        return False, 0, []
+                    j = h.index(fc)
+                    if xa[j] != fv or xb[j] != fv:
+                        return False, 0, []
+                kdiff = True
+    if kdiff and moved == 0:
+        return False, 0, []
     return True, moved, extra
 
 
@@ -386,6 +402,7 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     missing = [f for f in fa if f not in sb]
     only = [f for f in fb if f not in sa]
     pref = lambda f, L: any(f.startswith(x) for x in L)
+    CEARN['known'] = known.get('cearn_s', {})   # (934)
     bad_missing = [f for f in missing if not pref(f, removed)]
     bad_only = [f for f in only if not pref(f, added)]
     known_hit, grown_hit, real, rows_hit, cols_hit = [], [], [], [], []
