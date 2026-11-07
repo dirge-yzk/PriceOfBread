@@ -7,7 +7,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(937) 線 c82lt：計器 landfix_s（段 A-0′＝課税の時点の写し・段 A-2＝定額の基数の照合）の番人。事前登録 measurements/m937_20261107_prereg_lt.txt の I1〜I4。
-/// 盤面はイギリスとフランス（1783 年の構築の直後から 2 四半期・外交は凍結）。旗は試験の世界の Coef だけ。期待は試験が手で置く（凍結の事象はイギリスだけ・フランスは名簿の外）。</summary>
+/// 盤面はイギリスとフランス（1 四半期の助走の後に 2 四半期・外交は凍結）。旗は試験の世界の Coef だけ。期待は試験が手で置く（凍結の事象はイギリスだけ・フランスは名簿の外）。</summary>
 [Collection("Instruments")]
 public class LandfixInstrumentTests
 {
@@ -21,6 +21,7 @@ public class LandfixInstrumentTests
         foreach (var n in sim.Nations) n.World.Coef.LandTaxFixedBasis = flag;
         try
         {
+            sim.StartWarmup(quartersOverride: 1);   // 凍結は助走の月（形の変え直し 1 回目）＝1 四半期の助走
             for (int q = 0; q < quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, Seed, q); }
         }
         finally { Instruments.Close(sim); Instruments.Configure(null, null); }
@@ -31,18 +32,18 @@ public class LandfixInstrumentTests
     private static double D(Dictionary<string, string> r, string c) => SubstInstrumentTests.D(r, c);
     private static Dictionary<string, string> Row(List<Dictionary<string, string>> rows, int q, string nation) => rows.Single(r => r["quarter"] == q.ToString() && r["nation"] == nation);
 
-    /// <summary>I1：見出しは 3 つの鍵＋21 列（landbase_s の列は変えない＝別の表）。</summary>
+    /// <summary>I1：見出しは 3 つの鍵＋22 列（landbase_s の列は変えない＝別の表）。</summary>
     [Fact]
     public void I1_見出し()
     {
         var h = Instruments.LandfixHeaderText.Split('\t');
-        Assert.Equal(24, h.Length);
+        Assert.Equal(25, h.Length);
         Assert.Equal(["quarter", "year", "nation"], h[..3]);
         Assert.Equal(h.Length, h.Distinct().Count());
         Assert.Equal(25, Instruments.LandbaseHeaderText.Split('\t').Length);
     }
 
-    /// <summary>I2（G7・G8a・G8b・旗 1）：イギリスは開幕の四半期に凍結の事象 1・凍結の月の差分の破れ 0・差分の照合の破れ 0・凍結の不変の破れ 0・写しとエンジンの凍結の数が同じ（正）。
+    /// <summary>I2（G7・G8a・G8b・旗 1）：イギリスは助走の後の最初の四半期に凍結の事象 1・助走の月の差分の破れ 0・差分の照合の破れ 0・凍結の不変の破れ 0・写しとエンジンの凍結の数が同じ（正）。
     /// フランスは名簿の外＝凍結 0。取れた÷請求は 1 以下（写しの側）。</summary>
     [Fact]
     public void I2_旗1で凍結の事象と照合が通る()
@@ -51,8 +52,8 @@ public class LandfixInstrumentTests
         var uk0 = Row(rows, 0, "イギリス");
         Assert.Equal(1.0, D(uk0, "lbFixedData"));
         Assert.Equal(1.0, D(uk0, "lbFreezeEventFlag"));
-        Assert.True(D(uk0, "lbFreezeMonthRentPops") > 0);
-        Assert.Equal(0.0, D(uk0, "lbFreezeMonthBreakPops"));
+        Assert.True(D(uk0, "lbWarmupCheckedPopMonths") > 0);
+        Assert.Equal(0.0, D(uk0, "lbWarmupBreakPopMonths"));
         foreach (var q in new[] { 0, 1 })
         {
             var r = Row(rows, q, "イギリス");

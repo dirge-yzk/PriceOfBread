@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// <summary>★(937) 線 c82lt：土地税の算定の基準 A-2（旗 <see cref="Coefficients.LandTaxFixedBasis"/>・データ world.json の landTaxBasis＝"Fixed"・
 /// 凍結の欄 <see cref="Producer.FrozenLandRentPerMonth"/>・差分 <see cref="Pop.LandTaxBasisAdjPerMonth"/>・読み手 <see cref="Fiscal.LandTaxBase"/>）の機構の番人。
 /// 事前登録 measurements/m937_20261107_prereg_lt.txt の T1〜T11。期待は試験が手で置いた地代（1000・600・0）と計器の割り方の写し（<see cref="Instruments.LsRecipient"/>）から作る（エンジンの割り方を呼ばない）。
-/// 試験の世界は構築の直後（1783 年の第 1 四半期・助走なし＝凍結の月）。旗は試験の世界の Coef だけ 1（World.Coef は国ごとの別のインスタンス）。</summary>
+/// 試験の世界は構築の直後（助走なし）＝凍結は試験が WarmupFrozen を立てた月の PayOwnerRent だけ（形の変え直し 1 回目＝凍結は助走の最後の月の地代）。旗は試験の世界の Coef だけ 1（World.Coef は国ごとの別のインスタンス）。</summary>
 public class LandTaxFixedBasisTests
 {
     private static MultiNationSim Sim(params string[] names)
@@ -43,9 +43,17 @@ public class LandTaxFixedBasisTests
         return sum;
     }
 
+    /// <summary>助走の月（WarmupFrozen）に 1 回だけ地代を払う＝凍結の上書きの月。終わったら助走の外へ戻す。</summary>
+    private static void Freeze(World w, Region r, Producer s, double rent)
+    {
+        w.WarmupFrozen = true;
+        try { EconomyStep.PayOwnerRent(w, r, s, rent, w.Coef); }
+        finally { w.WarmupFrozen = false; }
+    }
+
     private static double Base(Region r) => r.Pops.Sum(p => p.LandRentPerMonth.Value + p.LandTaxBasisAdjPerMonth.Value);
 
-    /// <summary>T1（G7・M1・M2）：凍結の月は割る前の地代そのものを凍結し、差分は全ての受け手で 0（凍結の月は基数＝地代）。</summary>
+    /// <summary>T1（G7・M1″・M2）：助走の月は割る前の地代そのものを凍結し、差分は全ての受け手で 0（凍結の月は基数＝地代）。</summary>
     [Fact]
     public void T1_凍結の月は地代そのものを凍結し差分は0()
     {
@@ -54,7 +62,7 @@ public class LandTaxFixedBasisTests
         w.Coef.LandTaxFixedBasis = 1.0;
         Assert.Null(s.FrozenLandRentPerMonth);
         Zero(r);
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
+        Freeze(w, r, s, 1000.0);
         Assert.Equal(1000.0, s.FrozenLandRentPerMonth!.Value.Value);
         Assert.All(r.Pops, p => Assert.Equal(0.0, p.LandTaxBasisAdjPerMonth.Value));
         Assert.Equal(1000.0, r.Pops.Sum(p => p.LandRentPerMonth.Value), 9);
@@ -67,8 +75,7 @@ public class LandTaxFixedBasisTests
         var (w, r, s) = Rgo(Sim("イギリス"), 0);
         w.Coef.LandTaxFixedBasis = 1.0;
         Zero(r);
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
-        w.Year = Calendar.StartYear + 1;
+        Freeze(w, r, s, 1000.0);
         Zero(r);
         EconomyStep.PayOwnerRent(w, r, s, 600.0, w.Coef);
         Assert.Equal(1000.0, s.FrozenLandRentPerMonth!.Value.Value);
@@ -89,8 +96,7 @@ public class LandTaxFixedBasisTests
         var (w, r, s) = Rgo(Sim("イギリス"), 0);
         w.Coef.LandTaxFixedBasis = 1.0;
         Zero(r);
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
-        w.Year = Calendar.StartYear + 1;
+        Freeze(w, r, s, 1000.0);
         Zero(r);
         EconomyStep.PayOwnerRent(w, r, s, 0.0, w.Coef);
         var owner = r.Pops[s.OwnerPopIndex];
@@ -101,6 +107,37 @@ public class LandTaxFixedBasisTests
         Assert.Equal(0.1 * 1000.0 * share * a.PrivBase, a.Land, 9);
     }
 
+    /// <summary>T12（凍結の上書き）：助走の月ごとに上書きし、地代が正でない月は凍結なし（null）に戻る＝助走の最後の月の値が残る。</summary>
+    [Fact]
+    public void T12_助走の月ごとに上書きし正でなければ凍結なし()
+    {
+        var (w, r, s) = Rgo(Sim("イギリス"), 0);
+        w.Coef.LandTaxFixedBasis = 1.0;
+        Freeze(w, r, s, 1000.0);
+        Freeze(w, r, s, 700.0);
+        Assert.Equal(700.0, s.FrozenLandRentPerMonth!.Value.Value);
+        Freeze(w, r, s, -5.0);
+        Assert.Null(s.FrozenLandRentPerMonth);
+        Freeze(w, r, s, 800.0);
+        Zero(r);
+        EconomyStep.PayOwnerRent(w, r, s, 300.0, w.Coef);   // 助走の後＝上書きしない
+        Assert.Equal(800.0, s.FrozenLandRentPerMonth!.Value.Value);
+        Assert.Equal(800.0, Base(r), 9);
+    }
+
+    /// <summary>T13（助走の無い木）：助走の月が 1 度も無ければ旗 1 でも凍結しない＝基数は地代そのもの（形の変え直しの根＝助走なしの盤面で構築直後の 0 の地代を凍結しない）。</summary>
+    [Fact]
+    public void T13_助走が無ければ凍結しない()
+    {
+        var (w, r, s) = Rgo(Sim("イギリス"), 0);
+        w.Coef.LandTaxFixedBasis = 1.0;
+        Assert.False(w.WarmupFrozen);
+        Zero(r);
+        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
+        Assert.Null(s.FrozenLandRentPerMonth);
+        Assert.All(r.Pops, p => Assert.Equal(0.0, p.LandTaxBasisAdjPerMonth.Value));
+    }
+
     /// <summary>T4（旗 0 の恒等）：旗 0 は凍結しない・差分は 0・基数は地代そのもの（ビットで同じ）。</summary>
     [Fact]
     public void T4_旗0は凍結せず基数は地代()
@@ -108,7 +145,7 @@ public class LandTaxFixedBasisTests
         var (w, r, s) = Rgo(Sim("イギリス"), 0);
         w.Coef.LandTaxFixedBasis = 0.0;   // 旗 0 の盤面（既定は (937) で 1）
         Zero(r);
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
+        Freeze(w, r, s, 1000.0);
         Assert.Null(s.FrozenLandRentPerMonth);
         foreach (var p in r.Pops)
         {
@@ -125,7 +162,7 @@ public class LandTaxFixedBasisTests
         Assert.False(w.LandTaxBasisFixed);
         w.Coef.LandTaxFixedBasis = 1.0;
         Zero(r);
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
+        Freeze(w, r, s, 1000.0);
         Assert.Null(s.FrozenLandRentPerMonth);
         Assert.All(r.Pops, p => Assert.Equal(0.0, p.LandTaxBasisAdjPerMonth.Value));
     }
@@ -137,7 +174,7 @@ public class LandTaxFixedBasisTests
         var (w, r, s) = Rgo(Sim("イギリス"), 0, colonial: true);
         w.Coef.LandTaxFixedBasis = 1.0;
         Zero(r);
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
+        Freeze(w, r, s, 1000.0);
         Assert.Null(s.FrozenLandRentPerMonth);
     }
 
@@ -148,7 +185,7 @@ public class LandTaxFixedBasisTests
         var sim = Sim("イギリス", "フランス");
         var (uk, r, s) = Rgo(sim, 0);
         uk.Coef.LandTaxFixedBasis = 1.0;
-        EconomyStep.PayOwnerRent(uk, r, s, 1000.0, uk.Coef);
+        Freeze(uk, r, s, 1000.0);
         Assert.NotNull(s.FrozenLandRentPerMonth);
         Territory.TransferRegion(uk, sim.Nations[1].World, r, Territory.Rehoming.Ceded);
         Assert.Null(s.FrozenLandRentPerMonth);
@@ -160,8 +197,7 @@ public class LandTaxFixedBasisTests
     {
         var (w, r, s) = Rgo(Sim("イギリス"), 0);
         w.Coef.LandTaxFixedBasis = 1.0;
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
-        w.Year = Calendar.StartYear + 1;
+        Freeze(w, r, s, 1000.0);
         Zero(r);
         EconomyStep.PayOwnerRent(w, r, s, 600.0, w.Coef);
         double on = Fiscal.ForecastTax(w, w.Coef, 0.0, 0.0, 0.0, 0.1).Land;
@@ -180,9 +216,8 @@ public class LandTaxFixedBasisTests
             Assert.True(w.LandTaxBasisFixed, "試験の前提：清は world.json で定額の国");
             w.Coef.PrivilegeLedgerEnabled = 1.0;
             w.Coef.LandTaxFixedBasis = 1.0;
-            EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
-            w.Year = Calendar.StartYear + 1;
-            Zero(r);
+            Freeze(w, r, s, 1000.0);
+                Zero(r);
             EconomyStep.PayOwnerRent(w, r, s, 600.0, w.Coef);
             w.Coef.LandTaxFixedBasis = flag;
             Assert.True(w.LandTax > 1e-9, "試験の前提：清の土地税の率が 0");
@@ -203,8 +238,7 @@ public class LandTaxFixedBasisTests
     {
         var (w, r, s) = Rgo(Sim("イギリス"), 0);
         w.Coef.LandTaxFixedBasis = 1.0;
-        EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
-        w.Year = Calendar.StartYear + 1;
+        Freeze(w, r, s, 1000.0);
         Zero(r);
         EconomyStep.PayOwnerRent(w, r, s, 600.0, w.Coef);
         var on = PolicyPreferences.ComputeBuildSums(w);
@@ -222,7 +256,7 @@ public class LandTaxFixedBasisTests
         var sim = Sim("イギリス");
         var (w, r, s) = Rgo(sim, 0);
         w.Coef.LandTaxFixedBasis = 1.0;
-        EconomyStep.PayOwnerRent(w, r, s, 1234.5, w.Coef);
+        Freeze(w, r, s, 1234.5);
         int ri = w.Regions.IndexOf(r), si = r.Producers.IndexOf(s);
         using var ms1 = new MemoryStream();
         SaveGame.Save(sim, ms1);

@@ -5,19 +5,19 @@ import os, subprocess, sys
 
 S = 'PriceOfBread.SimCore/'
 MUT = {
-    'M1p': [(S + 'EconomyStep.cs', 'world.Year == Calendar.StartYear && world.Quarter == 1 && !Colonial.AbsenteeRgo(region, s))',
-             'world.Year == Calendar.StartYear && world.Quarter == 2 && !Colonial.AbsenteeRgo(region, s))')],
-    'M2': [(S + 'EconomyStep.cs', 's.FrozenLandRentPerMonth = new MoneyPerMonth(Math.Max(0, rent));',
-            's.FrozenLandRentPerMonth = new MoneyPerMonth(Math.Max(0, rent) * 12.0 / 0.05);')],
-    'M3': [(S + 'EconomyStep.cs', 'if (s.FrozenLandRentPerMonth is null && !world.WarmupFrozen && world.Year == Calendar.StartYear && world.Quarter == 1 && !Colonial.AbsenteeRgo(region, s))',
-            'if (!world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))')],
+    'M1pp': [(S + 'EconomyStep.cs', 'if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))',
+              'if (world.WarmupFrozen && s.FrozenLandRentPerMonth is null && !Colonial.AbsenteeRgo(region, s))')],   # 形の変え直しの後：最初の助走の月で止め上書きしない
+    'M2': [(S + 'EconomyStep.cs', 's.FrozenLandRentPerMonth = rent > 0 ? new MoneyPerMonth(rent) : null;',
+            's.FrozenLandRentPerMonth = rent > 0 ? new MoneyPerMonth(rent * 12.0 / 0.05) : null;')],
+    'M3': [(S + 'EconomyStep.cs', 'if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))',
+            'if (!Colonial.AbsenteeRgo(region, s))')],
     'M4': [(S + 'EconomyStep.cs', '((ls is null ? f : f * ls[k]) - Math.Max(0, rk))',
             '((ls is null ? f * f / Math.Max(1e-9, rent) : f * f / Math.Max(1e-9, rent) * ls[k]) - Math.Max(0, rk))')],
     'M5': [(S + 'EconomyStep.cs', 'if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth',
             'if (fz is { } f) region.Pops[s.OwnerPopIndex].LandTaxBasisAdjPerMonth')],
     'M6': [(S + 'EconomyStep.cs', '((ls is null ? f : f * ls[k]) - Math.Max(0, rk))',
             '((ls is null ? f : f * ls[k]) - Math.Max(0, rk) + (rp == s.LaborPopIndex ? region.LastSubsistenceOutput : 0))')],
-    'M7p': [(S + 'EconomyStep.cs', 'world.Quarter == 1 && !Colonial.AbsenteeRgo(region, s))', 'world.Quarter == 1)')],
+    'M7p': [(S + 'EconomyStep.cs', 'if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))', 'if (world.WarmupFrozen)')],
     'M8p': [(S + 'Territory.cs', ' pr.FrozenLandRentPerMonth = null; }', ' }')],
     'M9': [(S + 'Fiscal.cs', '            var a = AssessPop(w, c, p, crownShare, scan.ScopeInc is null ? null : scan.ScopeInc[pi], incomeRate, progressiveRate, pollRate, landRate);',
             '            double fb9 = c.LandTaxFixedBasis; c.LandTaxFixedBasis = 0; var a = AssessPop(w, c, p, crownShare, scan.ScopeInc is null ? null : scan.ScopeInc[pi], incomeRate, progressiveRate, pollRate, landRate); c.LandTaxFixedBasis = fb9;')],

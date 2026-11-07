@@ -47,9 +47,9 @@ def main():
     for n in LIST:
         for s in seeds:
             q0 = [r for r in rows if r['_seed'] == s and r['nation'] == n and r['quarter'] == '0']
-            if q0 and num(q0[0]['lbFreezeEventFlag']) == 1 and num(q0[0]['lbFreezeMonthBreakPops']) == 0:
+            if q0 and num(q0[0]['lbFreezeEventFlag']) == 1 and num(q0[0]['lbWarmupBreakPopMonths']) == 0:
                 ev += 1
-    W('G7 凍結の事象（名簿の国×種・開幕の四半期で事象 1 かつ凍結の月の破れ 0）＝%d（床 %d）' % (ev, G7_FLOOR))
+    W('G7 凍結の事象（名簿の国×種・開幕の四半期〔助走の後の最初の月〕で事象 1 かつ助走の月の差分の破れ 0）＝%d（床 %d）' % (ev, G7_FLOOR))
     if ev < G7_FLOOR:
         fail.append('G7')
     L = [r for r in rows if r['nation'] in LIST]

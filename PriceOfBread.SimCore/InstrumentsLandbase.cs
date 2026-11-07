@@ -205,36 +205,38 @@ public static partial class Instruments
     // A-0′：月の決算（MonthClose・Fiscal.Step の後で QuarterEnd の前）の四半期の締め月に、国ごとに土地税の請求・免税・R・d′・取れた÷請求を写し、四半期の行の新しい列に書く（既にある列の値は変えない）。
     //   請求の写しは Fiscal.cs の AssessPop の土地税の分岐（landRate＞1e-9 かつ 基数＞0）を計器が自分で書く。基数＝旗 LandTaxFixedBasis＞0 なら地代＋差分（エンジンの欄を読むだけ）・0 なら地代。
     //   landClaimPropAtTaxPerMonth＝同じ盤面で旧の規則（基数＝地代）の請求＝新÷旧の分母。
-    // A-2：計器は自分の名簿（WorldData.Nations() の同じ名の国の LandTaxBasis＝"Fixed"）・自分の凍結の月（助走でない 1783 年の第 1 四半期の最初の RGO の地代）・自分の不在地主の写し（LsAbsenteeRgo）・
-    //   自分の割り方（LsRecipient）で凍結の写しと POP ごとの期待の差分を組み、エンジンの差分（Pop.LandTaxBasisAdjPerMonth）・凍結の欄（Producer.FrozenLandRentPerMonth）と比べる。
+    // A-2：計器は自分の名簿（WorldData.Nations() の同じ名の国の LandTaxBasis＝"Fixed"）・自分の凍結の規則（助走〔WarmupFrozen〕の月ごとに正の地代で写しを上書き・正でなければ写しなし・助走の後は上書きしない）・
+    //   自分の不在地主の写し（LsAbsenteeRgo）・自分の割り方（LsRecipient）で凍結の写しと POP ごとの期待の差分を組み、エンジンの差分（Pop.LandTaxBasisAdjPerMonth）・凍結の欄（Producer.FrozenLandRentPerMonth）と比べる。
     //   旗 0 の盤面でも計器の写しは組む＝lbExpBaseRAtTaxPerMonth÷baseRAtTaxPerMonth が同じ盤面の B（定額の基数÷収穫比例の基数）。
     // ⚠限界（計器が自己申告する）：⑩期待の差分は EconomyStep の④の地代（PayOwnerRent の入力）だけから組む＝PayOwnerRent の入力そのものは計器の外（エンジンの局所の値）
-    //   ⑪凍結の月の判定は暦（1783 年・第 1 四半期・WarmupFrozen でない）＝助走の無い木（StartWarmupQuarters＝0）でも同じ月
-    //   ⑫名簿は国の名（NameOf）で引く＝建国の国が親の名を BaseName に持つと計器は名簿の国と見なす（凍結の月は開幕だけ＝建国の国は写しを持たない）
+    //   ⑪凍結は助走の月にしか立たない＝助走の無い木（StartWarmupQuarters＝0・単国の試験）は写しも凍結も無い（G7 の事象 0）
+    //   ⑫名簿は国の名（NameOf）で引く＝建国の国が親の名を BaseName に持つと計器は名簿の国と見なす（助走の後に生まれた国は写しを持たない）
     //   ⑬G8b（凍結の不変）は四半期の締め月だけ数える・移転で他の国へ出た RGO の写しは数えない（移った先の国の行で〈写しの国≠今の国〉としてエンジンの欄が null かを数える）
+    //   ⑭G7 は助走の月の照合（凍結＝当月の地代＝差分 0）と、助走の後の最初の月の締めの〈エンジンの凍結の数＞0〉＝事象。助走の最後の月が凍結の月（どの月が最後かは助走の後に分かる）
     internal const string LandfixHeaderText = "quarter\tyear\tnation\tlandClaimAtTaxPerMonth\tlandClaimExemptAtTaxPerMonth\tbaseRAtTaxPerMonth\tprivDegreeAtTax\tlandPaidOverClaimAtTax\tlandClaimPropAtTaxPerMonth\t"
         + "fpCarrierWithRentPops\tfpShortWithRentPops\t"
-        + "lbFixedData\tlbFrozenCopyRgo\tlbFrozenEngineRgo\tlbFreezeEventFlag\tlbFreezeMonthRentPops\tlbFreezeMonthBreakPops\t"
-        + "lbExpBaseRAtTaxPerMonth\tlbEngBaseRAtTaxPerMonth\tlbAdjBreakPopMonths\tlbOverBasePopMonths\tlbFrozenInvariantBreak\tlbFrozenForeignEngine\tlbFrozenCopyNoEngine";
+        + "lbFixedData\tlbFrozenCopyRgo\tlbFrozenEngineRgo\tlbFreezeEventFlag\tlbWarmupCheckedPopMonths\tlbWarmupBreakPopMonths\t"
+        + "lbExpBaseRAtTaxPerMonth\tlbEngBaseRAtTaxPerMonth\tlbAdjBreakPopMonths\tlbOverBasePopMonths\tlbFrozenInvariantBreak\tlbFrozenForeignEngine\tlbFrozenCopyNoEngine\tlbUnfrozenRgo";
 
     /// <summary>計器の名乗りの定数（係数ではない）：差分の照合の許し（相対・double）。</summary>
     internal const double LandbaseAdjTol = 1e-9;
 
-    /// <summary>凍結の写し（計器の持ち物）：凍結した国と、凍結した月の割る前の地代の正の部分。</summary>
-    sealed class LbFz { public World W = null!; public double V; }
+    /// <summary>凍結の写し（計器の持ち物）：凍結した国・写しがあるか（助走の最後に見た月の地代が正）・その地代。</summary>
+    sealed class LbFz { public World W = null!; public bool Has; public double V; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Producer, LbFz> LbFrozen = new();
     /// <summary>州の期待の差分（計器の持ち物・その月）。</summary>
     sealed class LbAdj { public double[] Exp = []; public bool Touched; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, LbAdj> LbAdjs = new();
-    /// <summary>国の写し（計器の持ち物）：名簿・凍結の月の数・月の照合の和・四半期の締め月の写し。</summary>
+    /// <summary>国の写し（計器の持ち物）：名簿・助走の照合の和・事象・月の照合の和・四半期の締め月の写し。</summary>
     sealed class LbNat
     {
         public bool DataReady, Fixed, FreezeSeen;
-        public int FreezeEvent, FreezeRentPops, FreezeBreakPops;
+        public int FreezeEvent;
+        public long WarmupChecked, WarmupBreak, FreezeChecked, FreezeBreak;
         public long AdjBreak, OverBase;
         public bool Snap;
         public double Claim, Exempt, R, Deg, Paid, ClaimProp, ExpR, EngR;
-        public int CopyRgo, EngineRgo, InvBreak, ForeignEngine, CopyNoEngine;
+        public int CopyRgo, EngineRgo, InvBreak, ForeignEngine, CopyNoEngine, Unfrozen;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, LbNat> LbNats = new();
 
@@ -250,20 +252,19 @@ public static partial class Instruments
         return a;
     }
 
-    static bool LbFreezeMonth(World w) => !w.WarmupFrozen && w.Year == Calendar.StartYear && w.Quarter == 1;
-
-    /// <summary>受け口（EconomyStep.PayOwnerRent の頭・RGO だけ・INS のときだけ）：割る前の地代 <paramref name="rent"/>。名簿の国の凍結の写しと、POP ごとの期待の差分を積む。</summary>
+    /// <summary>受け口（EconomyStep.PayOwnerRent の頭・RGO だけ・INS のときだけ）：割る前の地代 <paramref name="rent"/>。名簿の国の凍結の写し（助走の月に上書き）と、POP ごとの期待の差分を積む。</summary>
     internal static void LandbaseRgoRent(World w, Region r, Producer s, double rent)
     {
         var a = LbNatOf(w);
         if (!a.Fixed) return;
-        if (!LbFrozen.TryGetValue(s, out var fz))
+        LbFz? fz;
+        if (w.WarmupFrozen && !LsAbsenteeRgo(r, s))
         {
-            if (!LbFreezeMonth(w) || LsAbsenteeRgo(r, s)) return;
-            fz = new LbFz { W = w, V = System.Math.Max(0, rent) };
-            LbFrozen.Add(s, fz);
+            fz = LbFrozen.GetValue(s, _ => new LbFz());
+            fz.W = w; fz.Has = rent > 0; fz.V = rent > 0 ? rent : 0.0;
         }
-        if (!ReferenceEquals(fz.W, w)) return;
+        else if (!LbFrozen.TryGetValue(s, out fz)) return;
+        if (!fz.Has || !ReferenceEquals(fz.W, w)) return;
         int np = r.Pops.Count;
         var g = LbAdjs.GetValue(r, _ => new LbAdj());
         if (g.Exp.Length < np) System.Array.Resize(ref g.Exp, np);
@@ -278,14 +279,29 @@ public static partial class Instruments
         }
     }
 
-    /// <summary>月の閉じ（<see cref="MonthClose"/>・Fiscal.Step の後）：凍結の月の照合（G7）・POP ごとの差分の照合（G8a・G4）・四半期の締め月の写し（A-0′・G8b）。</summary>
+    /// <summary>月の閉じ（<see cref="MonthClose"/>・Fiscal.Step の後）：助走の月の照合（G7）・助走の後の最初の月の事象・POP ごとの差分の照合（G8a・G4）・四半期の締め月の写し（A-0′・G8b）。</summary>
     internal static void LandbaseMonth(World w)
     {
-        if (w.WarmupFrozen || w.Regions.Count == 0) return;
+        if (w.Regions.Count == 0) return;
         var a = LbNatOf(w);
+        if (w.WarmupFrozen)
+        {
+            if (!a.Fixed) return;
+            foreach (var r in w.Regions)
+            {
+                foreach (var p in r.Pops)
+                {
+                    double rent = p.LandRentPerMonth.Value, eng = p.LandTaxBasisAdjPerMonth.Value;
+                    a.WarmupChecked++;
+                    if (!(System.Math.Abs(eng) <= LandbaseIdentTol * System.Math.Max(1.0, System.Math.Abs(rent)))) a.WarmupBreak++;
+                }
+                if (LbAdjs.TryGetValue(r, out var gw) && gw.Touched) { System.Array.Clear(gw.Exp); gw.Touched = false; }
+            }
+            return;
+        }
         var c = w.Coef;
         bool on = c.LandTaxFixedBasis > 0;
-        bool freeze = a.Fixed && !a.FreezeSeen && LbFreezeMonth(w);
+        bool freeze = a.Fixed && !a.FreezeSeen;   // 助走の後の最初の月（助走の無い木では最初の月＝事象 0）
         bool snap = w.IsQuarterEndMonth;
         if (!a.Fixed && !snap) return;   // 名簿の外の国は締め月の写しだけ
         double disc = c.PrivilegeTaxDiscount.Value;
@@ -294,7 +310,6 @@ public static partial class Instruments
             : (w.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate ? disc : 0.0);
         double landRate = w.LandTax;
         double claim = 0, exempt = 0, R = 0, claimProp = 0, expR = 0, engR = 0;
-        int rentPops = 0, breakPops = 0;
         foreach (var r in w.Regions)
         {
             LbAdjs.TryGetValue(r, out var g);
@@ -308,11 +323,6 @@ public static partial class Instruments
                     double scale = System.Math.Max(1.0, System.Math.Abs(rent) + System.Math.Abs(exp));
                     if (!(System.Math.Abs(eng - exp) <= LandbaseAdjTol * scale)) a.AdjBreak++;
                     if (eng - exp > LandbaseAdjTol * scale) a.OverBase++;
-                    if (freeze)
-                    {
-                        if (rent > 0) rentPops++;
-                        if (!(System.Math.Abs(eng) <= LandbaseIdentTol * System.Math.Max(1.0, System.Math.Abs(rent)))) breakPops++;
-                    }
                 }
                 if (!snap) continue;
                 double rr = System.Math.Max(0, rent);
@@ -331,14 +341,14 @@ public static partial class Instruments
         {
             int eng = 0;
             foreach (var r in w.Regions) foreach (var s in r.Producers) if (s.FrozenLandRentPerMonth is not null) eng++;
-            a.FreezeSeen = true; a.FreezeEvent = eng > 0 ? 1 : 0; a.FreezeRentPops = rentPops; a.FreezeBreakPops = breakPops;
+            a.FreezeSeen = true; a.FreezeEvent = eng > 0 ? 1 : 0; a.FreezeChecked = a.WarmupChecked; a.FreezeBreak = a.WarmupBreak;
         }
         if (!snap) return;
-        int copy = 0, engine = 0, inv = 0, foreign = 0, noEng = 0;
+        int copy = 0, engine = 0, inv = 0, foreign = 0, noEng = 0, unf = 0;
         foreach (var r in w.Regions)
             foreach (var s in r.Producers)
             {
-                bool has = LbFrozen.TryGetValue(s, out var fz) && ReferenceEquals(fz!.W, w);
+                bool has = LbFrozen.TryGetValue(s, out var fz) && fz!.Has && ReferenceEquals(fz.W, w);
                 var ev = s.FrozenLandRentPerMonth;
                 if (has) copy++;
                 if (ev is { } e)
@@ -347,13 +357,17 @@ public static partial class Instruments
                     if (!has) foreign++;
                     else if (!(System.Math.Abs(e.Value - fz!.V) <= LandbaseIdentTol * System.Math.Max(1.0, fz.V))) inv++;
                 }
-                else if (has) noEng++;
+                else
+                {
+                    if (has) noEng++;
+                    if (a.Fixed && s.IsRgo && !LsAbsenteeRgo(r, s)) unf++;
+                }
             }
         a.Snap = true; a.Claim = claim; a.Exempt = exempt; a.R = R; a.Deg = deg; a.Paid = w.LastTaxLandPerMonth.Value; a.ClaimProp = claimProp; a.ExpR = expR; a.EngR = engR;
-        a.CopyRgo = copy; a.EngineRgo = engine; a.InvBreak = inv; a.ForeignEngine = foreign; a.CopyNoEngine = noEng;
+        a.CopyRgo = copy; a.EngineRgo = engine; a.InvBreak = inv; a.ForeignEngine = foreign; a.CopyNoEngine = noEng; a.Unfrozen = unf;
     }
 
-    /// <summary>四半期の行の A-0′ と A-2 の列（<see cref="LandbaseHeaderText"/> の末尾）。写しが無い国（締め月の決算が走っていない）は nan。四半期ごとの和（G8a・G4）はここで 0 に戻す。</summary>
+    /// <summary>四半期の行の A-0′ と A-2 の列（landfix_s・<see cref="LandfixHeaderText"/> の 4 列目から）。写しが無い国（締め月の決算が走っていない）は nan。四半期ごとの和（G8a・G4）と事象はここで 0 に戻す。</summary>
     static string LandbaseA2Cells(World w, int carriersRent, int shortRent)
     {
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -362,9 +376,9 @@ public static partial class Instruments
         string s = string.Join('\t',
             F(a.Snap ? a.Claim : nan), F(a.Snap ? a.Exempt : nan), F(a.Snap ? a.R : nan), F(a.Snap ? a.Deg : nan), F(a.Snap && a.Claim > 0 ? a.Paid / a.Claim : nan), F(a.Snap ? a.ClaimProp : nan),
             I(carriersRent), I(shortRent),
-            I(a.Fixed ? 1 : 0), I(a.CopyRgo), I(a.EngineRgo), I(a.FreezeEvent), I(a.FreezeRentPops), I(a.FreezeBreakPops),
-            F(a.Snap ? a.ExpR : nan), F(a.Snap ? a.EngR : nan), I(a.AdjBreak), I(a.OverBase), I(a.InvBreak), I(a.ForeignEngine), I(a.CopyNoEngine));
-        a.AdjBreak = 0; a.OverBase = 0; a.FreezeEvent = 0; a.FreezeRentPops = 0; a.FreezeBreakPops = 0; a.Snap = false;
+            I(a.Fixed ? 1 : 0), I(a.CopyRgo), I(a.EngineRgo), I(a.FreezeEvent), I(a.FreezeChecked), I(a.FreezeBreak),
+            F(a.Snap ? a.ExpR : nan), F(a.Snap ? a.EngR : nan), I(a.AdjBreak), I(a.OverBase), I(a.InvBreak), I(a.ForeignEngine), I(a.CopyNoEngine), I(a.Unfrozen));
+        a.AdjBreak = 0; a.OverBase = 0; a.FreezeEvent = 0; a.FreezeChecked = 0; a.FreezeBreak = 0; a.Snap = false;
         return s;
     }
 

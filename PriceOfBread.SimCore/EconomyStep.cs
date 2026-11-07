@@ -723,13 +723,14 @@ public static class EconomyStep
     internal static void PayOwnerRent(World? world, Region region, Producer s, double rent, Coefficients coef)
     {
         if (Instruments.On && world is not null && s.IsRgo) Instruments.LandbaseRgoRent(world, region, s, rent);   // ★(937) 計器（読むだけ）：RGO の割る前の地代（計器は凍結の写しと割り方を自分で持つ）
-        // ★(937) 定額の土地税の基数（旗 LandTaxFixedBasis＞0・定額の国だけ）：開幕（助走の後の最初の月）に RGO の地代を凍結し、その後は〈凍結×持ち分−今の地代の正の部分〉を受け手の差分へ積む。
+        // ★(937) 定額の土地税の基数（旗 LandTaxFixedBasis＞0・定額の国だけ）：助走（WarmupFrozen）の月ごとに RGO の地代で凍結を上書きし（正でなければ null）、助走の後は上書きしない＝助走の最後の月の地代が凍結の値。
+        //   その後は〈凍結×持ち分−今の地代の正の部分〉を受け手の差分へ積む。助走の無い木（単国の試験・StartWarmupQuarters＝0）は凍結が立たない＝収穫比例（形の変え直し 1 回目・事前登録 [14]）。
         //   不在地主の RGO（Colonial.AbsenteeRgo）は凍結しない＝Colonial.RemitAbsenteeRent が地代を移しても差分は動かない（差分を積むのは凍結した RGO だけ）。
         double? fz = null;
         if (coef.LandTaxFixedBasis > 0 && world is not null && world.LandTaxBasisFixed && s.IsRgo)
         {
-            if (s.FrozenLandRentPerMonth is null && !world.WarmupFrozen && world.Year == Calendar.StartYear && world.Quarter == 1 && !Colonial.AbsenteeRgo(region, s))
-                s.FrozenLandRentPerMonth = new MoneyPerMonth(Math.Max(0, rent));
+            if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))
+                s.FrozenLandRentPerMonth = rent > 0 ? new MoneyPerMonth(rent) : null;
             fz = s.FrozenLandRentPerMonth?.Value;
         }
         var ls = s.LandShares;

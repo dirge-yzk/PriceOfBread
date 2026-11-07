@@ -1,0 +1,37 @@
+// (937) 使い捨ての診断の元（コミットしない試験の写し・diag937_noWarmupUK.txt を出した物）。木＝39653eb9（旗 1・形の変え直しの前）の Tests に置いて回した。
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+// (937) 使い捨ての診断（コミットしない）：助走なしの英の盤面（MilitaryTests の seed 29・InitialArsenalMonths 0）で、旗 1 と旗 0 の新÷旧の大きさ。
+public class Diag937Tests
+{
+    [Fact]
+    public void Diag()
+    {
+        var lines = new System.Collections.Generic.List<string>();
+        Simulation Mk(double flag)
+        {
+            var sc = NationConfig.Britain().ToScenario(29);
+            sc.Coef.InitialArsenalMonths = 0;
+            sc.Coef.LandTaxFixedBasis = flag;
+            return new Simulation(sc, new NullAgent());
+        }
+        var on = Mk(1.0); var off = Mk(0.0);
+        for (int q = 0; q < 12; q++)
+        {
+            on.Run(1); off.Run(1);
+            var w = on.World; var w0 = off.World;
+            double rent = 0, bas = 0;
+            foreach (var r in w.Regions) foreach (var p in r.Pops) { rent += System.Math.Max(0, p.LandRentPerMonth.Value); bas += System.Math.Max(0, Fiscal.LandTaxBase(w.Coef, p).Value); }
+            int frozen = 0, zero = 0; double fsum = 0;
+            foreach (var r in w.Regions) foreach (var s in r.Producers) if (s.FrozenLandRentPerMonth is { } f) { frozen++; fsum += f.Value; if (!(f.Value > 0)) zero++; }
+            double rent0 = 0;
+            foreach (var r in w0.Regions) foreach (var p in r.Pops) rent0 += System.Math.Max(0, p.LandRentPerMonth.Value);
+            lines.Add($"q{q} {w.Year}Q{w.Quarter} base/rent {bas / rent:F3} rent(on) {rent:F1} rent(off) {rent0:F1} landTax on/off {w.LastTaxLandPerMonth.Value / w0.LastTaxLandPerMonth.Value:F3} ({w.LastTaxLandPerMonth.Value:F2}/{w0.LastTaxLandPerMonth.Value:F2}) rate {w.LandTax:F3}/{w0.LandTax:F3} frozen {frozen} zero {zero} fsum {fsum:F1} revenue on/off {w.LastRevenuePerMonth.Value / w0.LastRevenuePerMonth.Value:F3}");
+        }
+        System.IO.File.WriteAllLines("D:/PoB_work/c82lt_work/diag937.txt", lines);
+    }
+}
