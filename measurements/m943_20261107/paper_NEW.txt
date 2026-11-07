@@ -1,0 +1,18 @@
+# paper943 mut=NEW
+D:/PoB_work/keep_933/base_ins	seeds=10	impPerSeed=[46, 46, 60, 26, 67, 63, 49, 55, 57, 52]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=521
+  other: chainGroups=59  gateClosedOnPaper=9  monarchWinner=349  rec_relabelAfterImp=125
+  trans(head->after,monarchWinner): 無->絶対:100 絶対->絶対:219 専制->専制:30
+D:/PoB_work/keep_933/n1	seeds=10	impPerSeed=[51, 53, 44, 54, 40, 58, 47, 47, 54, 54]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=502
+  other: ambiguousRows=1  chainGroups=72  gateClosedOnPaper=13  monarchWinner=335  rec_relabelAfterImp=110
+  trans(head->after,monarchWinner): 無->絶対:97 絶対->絶対:200 専制->専制:37
+  ambiguous(excluded): s4:m314:ケープタウン共和国
+D:/PoB_work/keep_933/n2	seeds=10	impPerSeed=[36, 29, 21, 48, 39, 47, 37, 43, 49, 53]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=402
+  other: chainGroups=52  gateClosedOnPaper=5  monarchWinner=265  rec_relabelAfterImp=103
+  trans(head->after,monarchWinner): 無->絶対:75 絶対->絶対:158 専制->専制:32
+D:/PoB_work/keep_933/a11	seeds=10	impPerSeed=[50, 47, 58, 48, 32, 50, 39, 56, 46, 45]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=471
+  other: chainGroups=58  gateClosedOnPaper=2  monarchWinner=313  rec_relabelAfterImp=121
+  trans(head->after,monarchWinner): 無->絶対:92 絶対->絶対:188 専制->専制:33
