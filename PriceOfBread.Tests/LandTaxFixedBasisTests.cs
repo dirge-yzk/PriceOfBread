@@ -106,7 +106,7 @@ public class LandTaxFixedBasisTests
     public void T4_旗0は凍結せず基数は地代()
     {
         var (w, r, s) = Rgo(Sim("イギリス"), 0);
-        Assert.Equal(0.0, w.Coef.LandTaxFixedBasis);
+        w.Coef.LandTaxFixedBasis = 0.0;   // 旗 0 の盤面（既定は (937) で 1）
         Zero(r);
         EconomyStep.PayOwnerRent(w, r, s, 1000.0, w.Coef);
         Assert.Null(s.FrozenLandRentPerMonth);
