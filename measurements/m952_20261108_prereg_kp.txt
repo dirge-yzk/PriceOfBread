@@ -123,3 +123,10 @@
   §7 の表の予言との違い：M4 で T1 も赤（予言は緑）＝Tier が Core になると植民地格の州が 0 になり T1 の前提の文で落ちる。どの突然変異も少なくとも 1 本の試験で赤＝緑のままの突然変異なし。
 - 点火の形：T1 は既定の係数（new Coefficients() と同じ＝MultiNationSim の coef 省略）で構築する（§6 の文どおり）。器の木では旗 1 を明示していた。
 - 〈それ以外〉の読み：台本 scripts/instruments/c84kp/reads952.sh＝stoplines906.sh をそのまま呼び、c84gz の a3c17862 の judge949.py（rule=pair・ヌル腕 measurements/m947_20261108/null/stop906_n1.txt・_n2.txt）と gdp_fall949.py の写し（D:/PoB_work/c84kp_work/gz949）で判定。a3c17862 と c84gz の今の頭 ef326fa0 で scripts/instruments/c84gz/ の差は 0。
+
+== 追記 2026-11-08 06:40（結果の後の記録・門の数は変えていない） ==
+- 旗 1 の木（70caed7c）のフルスイート（㉜）：Category!=FullLength 2427（--list-tests 2427）＝合格 2425・スキップ 1・失敗 1／FullLength 3（--list-tests 3）＝合格 3。中止 0。savetest OK・leakhunt 保存則違反なし（measurements/m952_20261108/suite_summary.txt）。
+- 赤 1 本：SecessionLaborLawInstrumentTests.州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う（SecessionLaborLawInstrumentTests.cs:87 `checkedPairs >= 20`）＝〈支配度の増分を突き合わせた組が少ない 7（対照）〉。増分の規則（margin×速度）は 7 組全てで通った。落ちたのは対照の件数＝クランプにかからない組（0＜d＜1）の供給源が開幕の植民地の 0 起点だった（英の植民地が 1.0 から始まるとクランプに入る）。
+- §8 の予言の外れ：この試験を〈増分＝margin×速度を見る＝起点に依らない〉と書いたが、対照の件数（:87）が開幕の 0 に依っていた（★(899) の突き合わせで対照の件数を読まなかった）。
+- 原因が旗であること：基線 m947 のフルスイート（measurements/m947_20261108/suite_summary.txt）でこの試験は緑（2422 合格）。ceee778f→4ea56d76 の SimCore の差は旗 0 で通らない 1 行と係数の宣言だけ（器は ident〈判定: 恒等〉）。
+- 判断：㉜・★(912) に従い腕 B と S11 を回さない＝線を止める。試験は持ち主の外（SecessionLaborLawInstrumentTests.cs）で、対照の盤面を替えて緑にするのは物差しの直し＝同じ線ではしない。種の選び直しは、1.0 から始める以上クランプに入る組が構造的に増えないので当たらない。3 回の規則に数えない（★(912)）。
