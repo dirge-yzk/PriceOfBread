@@ -107,8 +107,21 @@ public static partial class Instruments
     /// <summary>助走の明け（ClearCons）：全ての写しを戻す（助走の月の消費・振動の履歴を持ち越さない）。</summary>
     static void U4ClearWorld(World w)
     {
+        U4Departed.Remove(w);   // (948)
         foreach (var r in w.Regions) if (U4Accs.TryGetValue(r, out var a)) a.ClearAll();
     }
+
+    /// <summary>(948) 州が国を出る（<see cref="ConsDepart"/> から・挙げた国だけ）：出る州の四半期の積みを写して出た国の次の consf_s の行へ回し、州の四半期の積みを戻す（月をまたぐ写しは州について行く）。cons_s と同じ穴（州が国を出入りした四半期に積みが戻った国の行として出る）の同じ直し。</summary>
+    static void U4Depart(World from, Region r)
+    {
+        if (!U4Accs.TryGetValue(r, out var a)) return;
+        var snap = new U4Acc(); snap.Judged = a.Judged; snap.Desiring = a.Desiring; snap.Bound = a.Bound; snap.FlowAvail = a.FlowAvail; snap.FlowDesiring = a.FlowDesiring; snap.FlowBound = a.FlowBound; snap.Osc = a.Osc;
+        snap.Desired = a.Desired; snap.Budget = a.Budget; snap.Planned = a.Planned; snap.BoundCut = a.BoundCut; snap.FlowDesired = a.FlowDesired; snap.FlowBudget = a.FlowBudget; snap.FlowPlanned = a.FlowPlanned; snap.FlowCurPlanned = a.FlowCurPlanned; snap.FlowEarned = a.FlowEarned; snap.FlowCons = a.FlowCons;
+        snap.Paid = a.Paid; snap.Built = a.Built; snap.OscPaid = a.OscPaid; snap.OscAbsD1 = a.OscAbsD1; snap.OscAbsD2 = a.OscAbsD2; snap.OscLag = a.OscLag; snap.OscSq = a.OscSq; snap.OscSqLag = a.OscSqLag;
+        a.ClearQuarter();
+        U4Departed.GetValue(from, _ => new List<(RegionTier Tier, U4Acc Acc)>()).Add((r.Tier, snap));
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, List<(RegionTier Tier, U4Acc Acc)>> U4Departed = new();
 
     /// <summary>四半期の末（挙げた国だけ）：consf_s の行（区分 2 本）を書き、四半期の積みを戻す（月をまたぐ写しは残す）。</summary>
     static void ConsfRows(Sink sk, ulong seed, int q, World w)
@@ -117,6 +130,8 @@ public static partial class Instruments
         if (!sk.ConsfHeader) { sk.Consf.WriteLine(ConsfHeaderText); sk.ConsfHeader = true; }
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string nation = NameOf(w);
+        List<(RegionTier Tier, U4Acc Acc)>? departed = null;
+        if (U4Departed.TryGetValue(w, out var dl)) { departed = new(dl); U4Departed.Remove(w); }   // (948)
         for (int s = 0; s < ConsfScopes.Length; s++)
         {
             bool colonial = s == 1;
@@ -135,7 +150,16 @@ public static partial class Instruments
                 paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq; oSqLag += a.OscSqLag;
                 a.ClearQuarter();
             }
-            if (n == 0) continue;
+            bool anyDeparted = false;
+            if (departed is not null) foreach (var (tier, a) in departed)
+            {
+                if ((tier == RegionTier.Colonial) != colonial) continue;
+                anyDeparted = true;   // (948) 出た州の積み（州の数・人口・貯蓄は今の持ち主の物＝足さない）
+                judged += a.Judged; desiring += a.Desiring; bound += a.Bound; fAvail += a.FlowAvail; fDes += a.FlowDesiring; fBound += a.FlowBound; osc += a.Osc;
+                desired += a.Desired; budget += a.Budget; planned += a.Planned; cut += a.BoundCut; fDesired += a.FlowDesired; fBudget += a.FlowBudget; fPlanned += a.FlowPlanned; fCurPlanned += a.FlowCurPlanned; fEarn += a.FlowEarned; fCons += a.FlowCons;
+                paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq; oSqLag += a.OscSqLag;
+            }
+            if (n == 0 && !anyDeparted) continue;
             sk.Consf.WriteLine(string.Join('\t', I(q), I(w.Year), nation, ConsfScopes[s], I(n), F(pop), F(invSav),
                 I(judged), I(desiring), I(bound), F(desired), F(budget), F(planned), F(cut),
                 I(fAvail), I(fDes), I(fBound), F(fDesired), F(fBudget), F(fPlanned), F(fEarn), F(fCons),

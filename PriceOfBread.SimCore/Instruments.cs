@@ -1405,6 +1405,7 @@ public static partial class Instruments
     /// 取り置くのは挙げた国だけ（その国の ConsRows が引き取る）。外すのは挙げた国かどうかに関わらず。</summary>
     internal static void ConsDepart(World from, Region r)
     {
+        if (IsPicked(from, S(from))) U4Depart(from, r);   // (948) consf_s 側の同じ直し
         if (!ConAccs.TryGetValue(r, out var a)) return;
         ConAccs.Remove(r);
         if (!IsPicked(from, S(from))) return;
