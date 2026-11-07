@@ -1,0 +1,5 @@
+Mu1 判定の < を ≦（腕 > 参照 を 腕 >= 参照）	rc=1	赤の門 J1,J6
+Mu2 ヌル腕の件数を 0 にする	rc=1	赤の門 J1,J6
+Mu3 下がりの区分を上がりに混ぜる（比の向きを逆）	rc=1	赤の門 F1,F2,F3
+全ての突然変異で赤
+# 突然変異 Mu4（StripComments を h をそのまま返す形へ）：OnDoubleReadScanTests の新しい [Fact]（ヘッダのコメントの_class_の語と括弧は…）が赤・既存の InstrumentsOn… の番人も赤（2 失敗・1 合格）。戻して 3 合格。
