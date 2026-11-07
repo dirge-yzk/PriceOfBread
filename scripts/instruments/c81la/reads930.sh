@@ -3,7 +3,7 @@
 #   bash scripts/instruments/tools/bg.sh <印> bash scripts/instruments/c81la/reads930.sh <腕の名 c81laB|c81laS> <種の起点 1|11>
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 SP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; REPO="$(cd "$SP/../../.." && pwd)"; cd "$REPO" || exit 9
-ARM=${1:?腕}; SB=${2:-1}; W=D:/PoB_work/c81la_work; I=$W/out_${ARM}_10/ins; O=$W/reads_$ARM; mkdir -p $O
+ARM=${1:?腕}; SB=${2:-1}; W=D:/PoB_work/c81la_work; SUF=_10; [ "$SB" = 11 ] && SUF=_10_s11; I=$W/out_${ARM}${SUF}/ins; O=$W/reads_$ARM; mkdir -p $O
 K=D:/PoB_work/keep_919; if [ "$SB" = 11 ]; then BASE=$K/a11; else BASE=$K/base_ins; fi
 SEED_START=$SB python -X utf8 $SP/gate930.py gate $I $BASE $K/n1 $K/n2 > $O/gate.txt 2>&1; echo "gate rc=$?"
 python -X utf8 $SP/tab930.py $I $BASE $K/n1 $K/n2 $SB > $O/tab.txt 2>&1; echo "tab rc=$?"
