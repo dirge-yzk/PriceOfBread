@@ -9,7 +9,7 @@ namespace PriceOfBread.SimCore;
 //   quarter（＝講和の月÷3）／month／year／winner／loser／winnerPolityCode／loserPolityBeforeCode／loserCrownBeforeCode／loserCrownAfterCode／imposedPolityCode（矯正の後の敗者の政体）／
 //   absScoreIndex（未クランプの |戦勝点|）／ideologyGapIndex（計器が自分の表で数えた政体の隔たり）／legitimacyBeforeShare／legitimacyAfterShare／crushingFlag／
 //   orderInMonthIndex（同じ月に同じ敗者が矯正された何本目か・1 始まり）。
-// ⚠限界（計器が自己申告する）：⓪crownpc_s の crownRegisterSourceCode は助走の後の復元（GovernanceSnapshot）で全国が 6（不明）になる＝本編の最初の行から 0 は現れない（口の印を付けた 0 は開幕の構築の直後から助走の終わりまでだけ）。①月は Diplomacy.Step の入口の月（CpMonth の値）＝四半期の AI・調停の歩の中の講和も同じ月で数える。②crushingFlag は矯正の門の中でしか書かないので恒に 1
+// ⚠限界（計器が自己申告する）：⓪crownpc_s の crownRegisterSourceCode は呼び口が印を付けた最後の書き手＝国の行に次の印が付くまで続く（符号 2 の行は矯正の後も続く）。同じ四半期に 2 つ以上の口が書けば最後の口が残る（10 種で矯正のあと同じ四半期に蜂起の決着が書いた例が 1 件）。符号 6（不明）は 10 種で 1 行も出なかった。①月は Diplomacy.Step の入口の月（CpMonth の値）＝四半期の AI・調停の歩の中の講和も同じ月で数える。②crushingFlag は矯正の門の中でしか書かないので恒に 1
 //   （門の定義に含まれる列＝列として残すのは read924 §5 の仕様どおり）。③orderInMonthIndex は矯正した件だけを数える（矯正に至らなかった同じ月の講和は数えない）。
 public static partial class Instruments
 {
