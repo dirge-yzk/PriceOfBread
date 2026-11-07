@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # (908) 突然変異の一式（木の中を 1 か所ずつ壊して戻す＝実行中はその木にコミットしない）。出力＝D:/PoB_work/c78sm_work/mutation.txt
-T=D:/PoB_work/wt_c78sm; O=D:/PoB_work/c78sm_work
+T=D:/PoB_work/wt_c81sm; O=D:/PoB_work/c81sm_work   # (927) 今の木のパスへ
 PY="python -I $T/scripts/instruments/c78sm/mutate908.py $T"
 L=PriceOfBread.SimCore/InstrumentsLawgate2.cs; C=PriceOfBread.SimCore/InstrumentsCrown.cs
 $PY $O/mut_lg.txt "FullyQualifiedName~Lawgate2InstrumentTests" \

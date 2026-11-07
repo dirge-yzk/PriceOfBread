@@ -1,0 +1,28 @@
+(927) c81sm 事前登録  2026-11-07  恒等の線（小物の束 (i)〜(iv)・波81）  木 11c35e54 から  基準 ident.cfg（INSRAW keep_926/base_ins・BASE_COMMIT 890d59e0・TESTS_NONFULL 2410・TESTS_FULL 3・NG_BASE rd:measurements/ng919_20261107:m919）
+作者「全て推奨で」で推奨を採った（00一覧 §00 ④・README ★(926)）。
+
+[1] 線の種類＝恒等。予言＝ cearn_s の heirDebtSettledPerQuarter の値だけが変わりうる（取り立てが床で 0 を返した決済で back を数えていた分が 0 になる・および Lend の前後の差の丸め）。他の列・他の表・素の 5 種の成績表・計器つき 10 種の成績表は 1 ビットも動かない。
+    予言の根拠（紙）：Pop.Take（Model.cs:346〜）は held ≦1e-9 か take ≦1e-12 で 0 を返し債務は動かない。Bank.Lend（Bank.cs:27）は移った額 moved だけ p.Debt に足す。BilateralMarket.cs:579 の back は貯蓄の正の部分と債務の小さい方＝moved ≦ back。
+    ident の宣言：--known-extra cearn_s:heirDebtSettledPerQuarter（この 1 列の値だけ違ってよい）。試験の数 --tests-delta は下の [3]（新しい試験の数）。--grown-ok・--added-tables は 0。
+
+[2] 中身と現物（11c35e54・grep 済み・全て LF）：
+    (i)  scripts/instruments/c78sm/mut_all908.sh:3 の T を今の木 D:/PoB_work/wt_c81sm・O を c81sm_work へ（:19 の項目〈LsMax_TierRule列の最大を取らない〉は既にある・InstrumentsLandshare.cs:212 の `LsMax(ref a.MaxSlotTierRule, LsRelDiff(expTier, act));` を外す）。回すのは scripts/instruments/c81sm/mut927.sh（隔離ビルド D:/PoB_work/c81sm_art）。予言＝LandShareTests.cs:339 (maxRelDiffSlotVsActualTierRule == 1.0) が赤。緑なら LandShareTests に 1 本足す（その場合 +1）。
+    (ii) BilateralMarket.cs:579 `Bank.Lend(w2, p2, -back); if (ins2) Instruments.CearnBillSettle(r2, p2, back);` → `double debt0 = p2.Debt.Value; Bank.Lend(...); if (ins2) CearnBillSettle(r2, p2, debt0 - p2.Debt.Value);`（局所 ins2 を使う＝On を読み直さない）。InstrumentsCearn.cs:600 の注を〈実際に減った額〉へ。浮動小数：計器の列だけ（debt0 - 後 は back と最後の桁で違いうる＝宣言の列の内）。エンジンの状態・乱数・順序は不変（debt0 の読みは副作用なし）。
+         読み手（grep CearnBillSettle|HeirDebtSettled）：SimCore＝BilateralMarket.cs:579・InstrumentsCearn.cs（宣言 :59・列 :401・呼び口 :601〜604）。Tests＝BillBlockedColumnsTests.cs:88（Assert.Equal(3.0, a.HeirDebtSettled, 9)＝通常の決済・値は同じ）。scripts＝c80eb/selfcheck920.py・mut920.py（列の名の文字列）。Runner・App・Display・POB_COEF・SaveGame＝0（NonSerialized の計器の欄）。
+    (iii) EmptyPopDebtFirstTests.cs:154・CearnTradeColumnsTests.cs:199 の Assert.Contains → Assert.EndsWith（(920) の末尾 5 列まで含む尾の全部）。BillBlockedColumnsTests.cs:144 の Contains（c80eb の物・この回の持ち主の表に無い）は触らない（:145 に EndsWith が既にある）。
+    (iv) PriceOfBread.Tests/OnDoubleReadScanTests.cs（新しい 1 本）：SimCore/*.cs を字句で走査し関数ごとの `Instruments.On` の読みを数える。今の木で 2 回以上読む 33 関数を表に名乗る（measurements/m913_20261107/on_double_read_table.txt の型を機械の表にした物・Python の試作 D:/PoB_work/c81sm_work/scan.py と C# の移植は同じ字句規則）。表に無い関数が 2 回以上・表より読みが増える＝赤。
+         限界の自己申告：式本体メンバーと局所関数・ラムダは外側に数える／件数だけで確保と使用の対応は見ない／括弧の無い型の直下の波括弧（プロパティの get など）は数えない。
+    他の線との重なり：c81im は Instruments.cs・InstrumentsCrown.cs・Diplomacy.cs 等（この線は触れない）。この線の触る SimCore は BilateralMarket.cs:579・InstrumentsCearn.cs:600〜604 の 2 か所だけ。Tests は BillBlockedColumnsTests.cs の RunClearing の可視性（private → internal・新しい試験が呼ぶため・持ち主の表に無い 1 語の変更）。Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs は触らない。
+
+[3] 足す試験（--tests-delta の予言＝+3）と突然変異（scripts/instruments/c81sm/mut927.sh・使い捨てに壊して戻す・結果は measurements/m927_20261107/ に残す）：
+    T1 HeirDebtSettledMovedTests.取り立てが床で0を返す決済は0を足し_通常の決済は移った額を足す（+1）。期待は試験が置いた貯蓄 5e-10・債務 3（床で動かない）と貯蓄 100・債務 2（2 移る）から手で決める。
+       M-ii BilateralMarket.cs:579 を旧の形（back を足す）に戻す → T1 が赤（5e-10 が足される・精度 15 桁）。
+    T2 OnDoubleReadScanTests.InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない（+1）。M-iv Discovery.Step に `bool insOn2 = Instruments.On;` を足す → 赤（新しい二重読み）。
+    T3 OnDoubleReadScanTests.走査は字句を正しく飛ばし関数ごとに数える（+1・コメントと文字列の中の読みを数えない・式本体メンバーを数えない）。
+    (i) の突然変異 → LandShareTests（既存）が赤の予言。緑なら ★(790) に従い 1 本足す（delta +4）。
+    (iii) M-iii InstrumentsCearn.cs の CearnHeaderText の尾に `\textraCol` を足す → EmptyPopDebtFirstTests・CearnTradeColumnsTests の EndsWith が赤。
+    ソースを走査する番人の点検（㉘）：器のコミット直後に IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を隔離ビルド D:/PoB_work/c81sm_art で回す。書き換える件数の番人（㉑）の予言＝0 件（係数・旗・new MoneyStock( の数は動かない：grep の現在値 64＝SimCore 内の `new MoneyStock(` 行の数）。
+
+[4] 合否：素の 5 種・計器つき 10 種の成績表が m919 と名乗り行を除いて全行一致。.cost の推定が一致。計器の表の差は [1] の宣言（cearn_s:heirDebtSettledPerQuarter）だけ。フルスイート（分けて・合計を --list-tests と突き合わせ・中止 0・赤 0）。savetest・leakhunt OK。
+[5] 〈判定: 恒等〉なら採る。一致しなければ該当の変更を外して報告に回す（(ii) が列の値だけを変える宣言は [1] に書いた＝それ以外が動いたら外す）。
+D: 空き 約 160GB（床 35GB＋5GB を満たす）。作業フォルダ D:/PoB_work/c81sm_work/・隔離ビルド D:/PoB_work/c81sm_art・worktree D:/PoB_work/wt_c81sm。ident は挙動の腕の後（arms.sh free が 3 以上のときだけ）。

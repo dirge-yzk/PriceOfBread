@@ -576,7 +576,7 @@ public sealed partial class InternationalMarket
             var r2 = tr[t2].r; bool ins2 = Instruments.On;   // (920) 計器の門はこの繰り返しで 1 回だけ読む（決済の呼び口と清算の頭の呼び口が使う）
             var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
-                if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) { Bank.Lend(w2, p2, -back); if (ins2) Instruments.CearnBillSettle(r2, p2, back); } }   // ①手形の決済（否定形の門＝NaN は返さない）
+                if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) { double debt0 = p2.Debt.Value; Bank.Lend(w2, p2, -back); if (ins2) Instruments.CearnBillSettle(r2, p2, debt0 - p2.Debt.Value); } }   // ①手形の決済（否定形の門＝NaN は返さない）
             if (r2.MerchantPop is { } merchPay && !(c.ImportPayerLive > 0 && !(merchPay.Size > 1e-12))) { payerOf[t2] = [merchPay]; bill[t2] = !(merchPay.Debt.Value > 0); }   // ★(863) 旗 ImportPayerLive＞0：人の居ない商人（人数 ≦1e-12）は払い手にしない＝下の枝へ
             else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) || r2.Pops.TrueForAll(p => p.Size > 1e-12) ? r2.Pops : r2.Pops.Exists(p => p.Size > 1e-12) ? r2.Pops.FindAll(p => p.Size > 1e-12) : null;   // ★(863) 旗＞0：人数 ＞1e-12 の POP だけ（全員なら Pops そのもの・0 人なら null＝輸入しない・手形なし）
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
