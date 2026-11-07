@@ -1,0 +1,85 @@
+# (922) c80cw 門の集計＝(903) gates903.py の写し。違いは G2 の帯だけ：帯の 3 値（基線・N1・N2 の内戦の長さの中央）を台本が自分で wars_s から数える（m873 の 12・10・11 を固定しない）。
+#   使い方: python gates922.py <腕の ins（cwmult_s・wars_s）> <旗 0 の ins（cwmult_s＝d_0）> <基線の ins> <N1 の ins> <N2 の ins> [M=9.0] [D=0.5]
+#   SB=11 で S11（種 11〜20）の腕と d_0 を読む。G2 の帯の 3 値は常に種 1〜10（keep_919 に種 11〜20 のヌル腕は無い）＝S11 の G2 は種 1〜10 の帯で読む（(903) と同じ）。
+#   門の閾値は事前登録 measurements/m922_20261107_prereg_cw.txt §3 の写し（結果を見て替えない）。
+import sys, os, csv, statistics
+ARM, BASE, NB, N1, N2 = sys.argv[1:6]
+M = float(sys.argv[6]) if len(sys.argv) > 6 else 9.0
+D = float(sys.argv[7]) if len(sys.argv) > 7 else 0.5
+SB = int(os.environ.get('SB', '1'))
+SEEDS = range(SB, SB + 10)
+
+def cw(d):
+    t = dict(civil=0, foreign=0, actC=0.0, oldC=0.0, newC=0.0, exhC=0.0, actF=0.0, newF=0.0, oldMis=0, newMis=0, milC=0.0,
+             ammoD=0.0, ammoP=0.0, powD=0.0, powP=0.0, leadD=0.0, leadP=0.0, minAct=float("inf"), maxAct=0.0, rows=0, seeds=0)
+    for s in SEEDS:
+        p = os.path.join(d, f"cwmult_s{s}.tsv")
+        if not os.path.exists(p): continue
+        t["seeds"] += 1
+        with open(p, encoding="utf-8") as f:
+            for r in csv.DictReader(f, delimiter="\t"):
+                t["rows"] += 1
+                c = int(r["civilWarMonthsCount"]); fo = int(r["foreignWarMonthsCount"])
+                t["civil"] += c; t["foreign"] += fo
+                for k, col in (("actC", "warMultActualCivilSumIndex"), ("oldC", "warMultOldRuleCivilSumIndex"), ("newC", "warMultNewRuleCivilSumIndex"),
+                               ("exhC", "warExhaustionCivilSumShare"), ("actF", "warMultActualForeignSumIndex"), ("newF", "warMultNewRuleForeignSumIndex"),
+                               ("milC", "militaryScaleCivilSumIndex"), ("ammoD", "ammunitionDemandCivilQty"), ("ammoP", "ammunitionProducedCivilQty"),
+                               ("powD", "gunpowderDemandCivilQty"), ("powP", "gunpowderProducedCivilQty"), ("leadD", "leadDemandCivilQty"), ("leadP", "leadProducedCivilQty")):
+                    t[k] += float(r[col])
+                t["oldMis"] += int(r["oldRuleMismatchMonthsCount"]); t["newMis"] += int(r["newRuleMismatchMonthsCount"])
+                if c > 0:
+                    a = float(r["warMultActualCivilSumIndex"]) / c   # 四半期の平均（月ごとの最小は四半期の平均の最小で下から抑える）
+                    t["minAct"] = min(t["minAct"], a); t["maxAct"] = max(t["maxAct"], a)
+    return t
+
+def civil_wars(d, seeds):
+    L = []
+    for s in seeds:
+        p = os.path.join(d, f"wars_s{s}.tsv")
+        if not os.path.exists(p): continue
+        with open(p, encoding="utf-8") as f:
+            for r in csv.DictReader(f, delimiter="\t"):
+                if r["civilWarFlag"] == "1": L.append(int(r["months"]))
+    return L
+
+a = cw(ARM); b = cw(BASE)
+def ok(x): return "緑" if x else "赤"
+print(f"# (922) 門（腕 {ARM}・旗 0 {BASE}・種 {SB}〜{SB+9}・M={M} D={D}）")
+print(f"腕：種 {a['seeds']}・行 {a['rows']}・内戦の月 {a['civil']}・対外戦だけの月 {a['foreign']}／旗 0：種 {b['seeds']}・内戦の月 {b['civil']}")
+if a["civil"] > 0:
+    ac = a["actC"] / a["civil"]
+    g1lo = ac >= M - 1e-9 and a["minAct"] >= M - 1e-9
+    g1hi = ac <= M * (1 + D) + 1e-9
+    mis_lim = 0.001 * (a["civil"] + a["foreign"])
+    g1shape = a["newMis"] <= mis_lim
+    g1mag = ac / 18.0 <= 0.75
+    print(f"G1 下限：a_c={ac:.6f}・四半期の平均の最小 {a['minAct']:.6f} ≧ {M}\t{ok(g1lo)}")
+    print(f"G1 上限：a_c={ac:.6f} ≦ {M*(1+D)}（四半期の平均の最大 {a['maxAct']:.6f}）\t{ok(g1hi)}")
+    print(f"G1 形：newRuleMismatch {a['newMis']} ≦ {mis_lim:.1f}（oldRuleMismatch {a['oldMis']}）\t{ok(g1shape)}")
+    print(f"G1 大きさ：a_c÷18={ac/18:.4f} ≦ 0.75\t{ok(g1mag)}")
+    print(f"記録：内戦の月の厭戦の平均 {a['exhC']/a['civil']:.4f}・新の規則の平均 {a['newC']/a['civil']:.4f}・旧の規則の平均 {a['oldC']/a['civil']:.4f}")
+else:
+    print("G1：内戦の月が 0＝門を読めない\t赤")
+if a["foreign"] > 0:
+    af = a["actF"] / a["foreign"]
+    print(f"G1f：対外戦の a_f={af:.6f} ∈ [{M}, {M*(1+D)}]\t{ok(M - 1e-9 <= af <= M*(1+D) + 1e-9)}")
+if b["civil"] > 0:
+    print(f"旗 0（同じ表）：a_c={b['actC']/b['civil']:.6f}・新の規則の平均 {b['newC']/b['civil']:.6f}（同じ盤面の新の分布）・oldRuleMismatch {b['oldMis']}・newRuleMismatch {b['newMis']}")
+NULLD = {"base": NB, "n1": N1, "n2": N2}
+NULL = {k: statistics.median(civil_wars(v, range(1, 11))) for k, v in NULLD.items()}
+NCNT = {k: len(civil_wars(v, range(1, 11))) for k, v in NULLD.items()}
+lo, hi = min(NULL.values()), max(NULL.values()); w = hi - lo
+La = civil_wars(ARM, SEEDS)
+med = statistics.median(La) if La else float("nan")
+G2LO, G2HI = 8.0, 14.0   # 事前登録 §3：(903) の帯 [8,14] のまま（指示）。m919 の 3 値の式の帯は記録（一つ抜きで空振り 1/3＝門にできない）
+print(f"G2（壊さない門）：内戦の長さの中央（10 種）{med} ∈ [{G2LO}, {G2HI}]\t{ok(G2LO <= med <= G2HI)}")
+print(f"記録：m919 の 3 値の式の帯 [{lo-w}, {hi+w}]（種 1〜10 の base {NULL['base']}・n1 {NULL['n1']}・n2 {NULL['n2']}）\t{'内' if lo - w <= med <= hi + w else '外'}")
+print(f"記録：内戦の件数（10 種）{len(La)}（base {NCNT['base']}・n1 {NCNT['n1']}・n2 {NCNT['n2']}）")
+for g, kd, kp in (("弾薬", "ammoD", "ammoP"), ("火薬", "powD", "powP"), ("鉛", "leadD", "leadP")):
+    print(f"G3 {g}：内戦の月の需要の和 {a[kd]:.6g}・産出の和 {a[kp]:.6g}＞0\t{ok(a[kd] > 0 and a[kp] > 0)}")
+if a["civil"] > 0 and b["civil"] > 0 and b["ammoD"] > 0:
+    dB = a["ammoD"] / a["civil"]; d0 = b["ammoD"] / b["civil"]
+    print(f"G3 比（壊さない門）：弾薬の内戦の月あたりの需要 d_B={dB:.6g}÷d_0={d0:.6g}＝{dB/d0:.4f} ≧ 0.2\t{ok(dB/d0 >= 0.2)}")
+    print(f"記録：装備の規模の内戦の月あたり 腕 {a['milC']/a['civil']:.6g}・旗 0 {b['milC']/b['civil']:.6g}・比 {(a['milC']/a['civil'])/(b['milC']/b['civil']):.4f}")
+    for g, kd, kp in (("火薬", "powD", "powP"), ("鉛", "leadD", "leadP"), ("弾薬", "ammoD", "ammoP")):
+        print(f"記録：{g} 内戦の月あたり 需要 腕÷旗0 {(a[kd]/a['civil'])/(b[kd]/b['civil']) if b[kd] > 0 else float('nan'):.4f}・産出 腕÷旗0 {(a[kp]/a['civil'])/(b[kp]/b['civil']) if b[kp] > 0 else float('nan'):.4f}")
