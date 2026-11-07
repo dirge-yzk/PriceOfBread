@@ -213,6 +213,8 @@ public static partial class Instruments
     //   ⑫名簿は国の名（NameOf）で引く＝建国の国が親の名を BaseName に持つと計器は名簿の国と見なす（助走の後に生まれた国は写しを持たない）
     //   ⑬G8b（凍結の不変）は四半期の締め月だけ数える・移転で他の国へ出た RGO の写しは数えない（移った先の国の行で〈写しの国≠今の国〉としてエンジンの欄が null かを数える）
     //   ⑭G7 は助走の月の照合（凍結＝当月の地代＝差分 0）と、助走の後の最初の月の締めの〈エンジンの凍結の数＞0〉＝事象。助走の最後の月が凍結の月（どの月が最後かは助走の後に分かる）
+    //   ⑮(951) 写しは凍結した国の持ち物＝その国の月の締め（毎月・LandbaseMonth の頭）で、国の州の RGO の集合に無い写しを消す（割譲・建国・再統合のどれでも・戻っても写しは無い＝Territory.TransferRegion がエンジンの凍結を消すのと同じ集合を計器が自分で選ぶ）。
+    //     四半期の締めの後の共有層（外交の 3 歩・再統合・建国）の中で出て戻る州は月の締めの口では見えない＝写しが残る（lbFrozenCopyNoEngine に数えられる）。眠った RGO（受け口が呼ばれない月）は差分を積まない（エンジンも同じ）
     internal const string LandfixHeaderText = "quarter\tyear\tnation\tlandClaimAtTaxPerMonth\tlandClaimExemptAtTaxPerMonth\tbaseRAtTaxPerMonth\tprivDegreeAtTax\tlandPaidOverClaimAtTax\tlandClaimPropAtTaxPerMonth\t"
         + "fpCarrierWithRentPops\tfpShortWithRentPops\t"
         + "lbFixedData\tlbFrozenCopyRgo\tlbFrozenEngineRgo\tlbFreezeEventFlag\tlbWarmupCheckedPopMonths\tlbWarmupBreakPopMonths\t"
@@ -221,7 +223,7 @@ public static partial class Instruments
     /// <summary>計器の名乗りの定数（係数ではない）：差分の照合の許し（相対・double）。</summary>
     internal const double LandbaseAdjTol = 1e-9;
 
-    /// <summary>凍結の写し（計器の持ち物）：凍結した国・写しがあるか（助走の最後に見た月の地代が正）・その地代。</summary>
+    /// <summary>凍結の写し（計器の持ち物）：凍結した国・写しがあるか（助走の最後に見た月の地代が正）・その地代。国が州を失うと、その国の次の月の締めで消える（⑮）。</summary>
     sealed class LbFz { public World W = null!; public bool Has; public double V; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Producer, LbFz> LbFrozen = new();
     /// <summary>州の期待の差分（計器の持ち物・その月）。</summary>
@@ -237,6 +239,9 @@ public static partial class Instruments
         public bool Snap;
         public double Claim, Exempt, R, Deg, Paid, ClaimProp, ExpR, EngR;
         public int CopyRgo, EngineRgo, InvBreak, ForeignEngine, CopyNoEngine, Unfrozen;
+        /// <summary>(951) この国が写しを持つ RGO の名簿（写しを作った順）と、月の締めで組む国の州の RGO の集合（毎月空にする）。</summary>
+        public readonly System.Collections.Generic.List<Producer> Held = [];
+        public readonly System.Collections.Generic.HashSet<Producer> Here = new(System.Collections.Generic.ReferenceEqualityComparer.Instance);
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, LbNat> LbNats = new();
 
@@ -260,7 +265,8 @@ public static partial class Instruments
         LbFz? fz;
         if (w.WarmupFrozen && !LsAbsenteeRgo(r, s))
         {
-            fz = LbFrozen.GetValue(s, _ => new LbFz());
+            if (!LbFrozen.TryGetValue(s, out fz)) { fz = new LbFz(); LbFrozen.Add(s, fz); a.Held.Add(s); }
+            else if (!ReferenceEquals(fz.W, w)) a.Held.Add(s);   // (951) 他の国の写しを上書きする＝この国の名簿へ（前の国は自分の締めで名簿から外すだけ）
             fz.W = w; fz.Has = rent > 0; fz.V = rent > 0 ? rent : 0.0;
         }
         else if (!LbFrozen.TryGetValue(s, out fz)) return;
@@ -279,11 +285,29 @@ public static partial class Instruments
         }
     }
 
+    /// <summary>(951) ⑮ 国 <paramref name="w"/> の写しの名簿のうち、今の国の州の RGO に無い物の写しを消し、名簿から外す（他の国の写しになった物は名簿から外すだけ）。</summary>
+    static void LbDropLeft(World w, LbNat a)
+    {
+        var here = a.Here;
+        foreach (var r in w.Regions) foreach (var s in r.Producers) if (s.IsRgo) here.Add(s);
+        int k = 0;
+        for (int i = 0; i < a.Held.Count; i++)
+        {
+            var s = a.Held[i];
+            if (!LbFrozen.TryGetValue(s, out var fz) || !ReferenceEquals(fz.W, w)) continue;
+            if (here.Contains(s)) { a.Held[k++] = s; continue; }
+            LbFrozen.Remove(s);
+        }
+        a.Held.RemoveRange(k, a.Held.Count - k);
+        here.Clear();
+    }
+
     /// <summary>月の閉じ（<see cref="MonthClose"/>・Fiscal.Step の後）：助走の月の照合（G7）・助走の後の最初の月の事象・POP ごとの差分の照合（G8a・G4）・四半期の締め月の写し（A-0′・G8b）。</summary>
     internal static void LandbaseMonth(World w)
     {
         if (w.Regions.Count == 0) return;
         var a = LbNatOf(w);
+        if (a.Fixed && a.Held.Count > 0) LbDropLeft(w, a);   // (951) ⑮ 国の州に無い写しを消す（毎月・助走の月も・下の照合と写しより前）
         if (w.WarmupFrozen)
         {
             if (!a.Fixed) return;
