@@ -1,0 +1,26 @@
+CapacityAnchorTests.cs:113:        Assert.True(arable > 1 && arable < 1e8, "前提：植民地の州の耕地は有限");
+CearnInstrumentTests.cs:136:        Assert.True(Math.Abs(main - nat) > 1e-9 * nat, "前提が崩れた：本土と全ての州の 1 人あたりが同じ（植民地の無い盤面）");
+CearnInstrumentTests.cs:250:            Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+CearnInstrumentTests.cs:438:            Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+CollapsePeaceTests.cs:267:        Assert.True(ukB.Regions.Count(r => r.Tier == RegionTier.Colonial) < colB0, "前提が崩れた：取り分 1.0 でも植民地を奪えない");
+ColonyPromotionTests.cs:40:        Assert.True(natives > 0, "前提が崩れた：抽象標的の植民地に住民がいない");
+ColonyPromotionTests.cs:115:            Assert.True(war.CivilWarSecession, "前提が崩れた：分離独立の戦争になっていない");
+ColonyPromotionTests.cs:153:            Assert.True(Conserved(), "前提が崩れた：開幕で植民地の保存が閉じない");
+ColonyPromotionTests.cs:160:            Assert.True(war.CivilWarSecession && !war.ForcedPeace, "前提が崩れた：調停でない分離独立の戦争になっていない");
+ColonyPromotionTests.cs:281:        Assert.True(colonies > 0, "前提の破れ：初期の植民地が 1 件も無い（番人が何も見ていない）");
+DiplomacyPendingTests.cs:159:        Assert.True(target.ColonyList.Count > 0 && target.Nation is null, "前提が崩れた：標的が植民地を持つ抽象標的でない");
+DiplomacyPendingTests.cs:174:        Assert.True(tgtS.ColonyList.Count == 0, "前提が崩れた：屈服の後も植民地が標的に残っている（旧の欠陥を再現する盤面でない）")
+DiscoveryScoreTests.cs:1111:        Assert.True(wm > 0 && col > 0 && maxInd > 0 && mil > wm, $"前提が崩れた（工場労働者の闘争 {wm}・植民地 {col}・工業化 {maxInd}）");
+FamineTests.cs:115:        Assert.True(colRatio < homeRatio * 0.9, $"前提：飢えが効いていない（植民地の州 ×{colRatio:F3}・本国の州 ×{homeRatio:F3}）");
+FuelOperatingCostTests.cs:334:        Assert.True(w.SelfPower!.ColonialRegions > 0, "前提が崩れている（英に植民地格の州が無い）");
+HouseholdProductionTests.cs:113:        Assert.True(on - offCount > 10, $"前提が崩れた：増える植民地の州が少ない（本土 {offCount} → {on}）");
+LandOwnershipDataTests.cs:72:        Assert.True(absenteeAll > 0, "試験の前提：名簿の国に不在地主の大農園（植民地格の賦存の RGO）が無い");
+LandShareTests.cs:213:        Assert.True(col > 0, "試験の前提：スペインに植民地格の州が無い");
+MilitaryTests.cs:297:            Assert.True(n > 0, "前提が崩れた：英に植民地格の州が無い");
+OpeningColonyDominanceTests.cs:26:            Assert.True(w.Regions.Any(r => r.Tier == RegionTier.Colonial), $"前提が崩れた：{name} に植民地格の州が無い");
+OpeningColonyDominanceTests.cs:35:        Assert.True(n0 >= 40, $"前提が崩れた：植民地格の州が少ない（{n0}）");
+OpeningColonyDominanceTests.cs:59:        Assert.True(colonial >= 40, $"前提が崩れた：植民地格の州が少ない（{colonial}）");
+OpeningColonyDominanceTests.cs:85:        Assert.True(n0 >= 40, $"前提が崩れた：植民地格の州が少ない（{n0}）");
+RevoltIgnitionTests.cs:898:        Assert.True(simD.Nations.Count == nD + 1, "前提が崩れた：分離独立の国が建っていない");
+SecessionLaborLawInstrumentTests.cs:87:            Assert.True(checkedPairs >= 20, $"支配度の増分を突き合わせた組が少ない {checkedPairs}（対照）");
+SmallFixes471Tests.cs:340:        Assert.True(voteColony > 0, "前提が崩れた：植民地にした州に有権者が居ない");
