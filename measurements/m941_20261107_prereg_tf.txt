@@ -1,0 +1,23 @@
+(941) c83tf 事前登録：InstrumentsTests.cs 〈私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる〉の持ち越しの直し
+[1] 恒等の線・予言 0。試験だけ（SimCore・Runner・App・Display に触れない）。ident は回さない（★(912)：試験だけの ident は証拠にしない）。
+    区分＝〈試験のバグの直し〉。盤面の取り直しではない（括りの幅 0.5〜2 倍・束の下限 1e-3・盤面 Make()・種 1789・期間 20 四半期・picked は変えない）。
+    ㉜〈旧の規則を固定する番人〉に当たらない理由：主張（累積の増え＝建った束×1 束の工業化度）は変えず、
+    前の四半期にその国の州でなかった州の行（累積が複数の四半期にまたがる）を数えない前処理だけを足す。決済の規則は固定していない。
+[2] 現物の引用（d313515b・InstrumentsTests.cs:2240〜）：
+    start = Dictionary<(string,string),(double Cum,double Ipc)>（:2249）・Snap(q) の中で start[(nn,r.Name)] = (cum, ipc)（:2282）は、
+    その四半期に国の州一覧に居る州にしか書かれない。州が一覧から外れた四半期の start は古いまま残り、戻った四半期（旗 1 ではパリが Q14〜Q16 に不在で Q17 に戻る・(936) のプローブ）に
+    古い start と Q17 の 1 四半期の束で割る＝÷束が日ごとの ipc の 3.6〜4.2 倍になり括りの外。
+    直す形：start の値に最後に書いた四半期 Q を持たせ、rows には s.Q == q-1 の行だけを入れる（Snap(-1) は q=-1）。母集合は〈前の四半期にもその国の州だった州×四半期〉になる（州の出入りの行が減る）。
+    採らない案：戻った四半期に start を置き直す（その四半期の gain は束と対応が取れない）・期間と種を取り直す（盤面の取り直し）。
+    消す物・読み手の grep：無い（試験の中の局所変数だけ）。他の線との重なり：c83hd が InstrumentsTests.cs に直しを cherry-pick するだけ。c83lt は :2119（別の試験）。
+[3] 足す試験：無し（--tests-delta 0）。対照の Assert（checkedRows ≧100・discriminating ≧50）は既存のまま両方の旗で書く。
+    ㉘ 走査の番人：InstrumentsTests・WriterRatchetTests・DormantIdentityTests に触れる行は無い（試験の中の局所だけ）＝件数の書き換えの予言 0。
+[4] 予言の表（bad｜checkedRows｜discriminating）：
+    旗 0 の木 d313515b：直す前 bad=0（緑）｜直した後 bad=0・checkedRows は直す前の値以下（州の出入りが無ければ同じ）・discriminating も ≧50。
+    旗 1 の木 f76dbb2e（使い捨ての worktree）：直す前 bad>0（(936) のプローブ：Q17 などの戻りの行）｜直した後 bad=0・checkedRows ≧100・discriminating ≧50。
+    直す前の数字は実測して下に追記する（結果を見る前の登録は bad の向きだけ）。
+[5] 突然変異（使い捨ての写し）：
+    M1 決済を IndPerConstruction（0.01）に戻す → 両方の旗で赤（bad>0 か discriminating の対照）。
+    M2 直しを外して州の出入りの行も数える → 旗 1 の木で赤・旗 0 は緑。
+    M3 対照の Assert を外す → 番人が何もしない形になることを名乗る（緑のまま・穴）。
+[6] 受け渡し：直しのコミットを push した後 D:/PoB_work/c83tf_work/handoff.mark に `rc=0 sha=<sha> end=<時刻>`。落ちたら `rc=1 reason=<1 行>`。
