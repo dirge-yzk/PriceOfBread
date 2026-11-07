@@ -2246,7 +2246,7 @@ public class InstrumentsTests
             var coef0 = sim.Nations[0].World.Coef;
             Assert.True(coef0.IndCapitalOutputYears > 0, "前提：κ>0（既定 1.0）＝この番人は ON の経路を見る");
             var picked = new[] { "イギリス", "フランス" };
-            var start = new Dictionary<(string, string), (double Cum, double Ipc)>();
+            var start = new Dictionary<(string, string), (double Cum, double Ipc, int Q)>();   // (941) Q＝その値を書いた四半期（州が国の一覧から外れて戻った行は累積が複数の四半期にまたがる＝数えない）
             var rows = new List<(string Nation, string Region, int Q, double Cum0, double Ipc0, double Cum1, double Ipc1)>();
             // ★(331) 合流の盤面の直し：1 束の工業化度は州の所得（LastEarnedPerMonth）で月ごとに動く。旧は四半期の初めと終わりの 2 点で括った＝四半期の中の 1 か月だけ州の所得が跳ねる月
             //   （ロンドンは助走明けの 4 か月目に州の所得が約 6 倍＝r326 の木でも同じ・(331) の診断）に束が多く建つと括りの外へ出る。四半期の中の日ごとの値の最小と最大で括る（主張は同じ）。
@@ -2273,13 +2273,13 @@ public class InstrumentsTests
                     foreach (var r in n.World.Regions)
                     {
                         double cum = r.CumPrivateIndustrialization, ipc = EconomyStep.PrivateIndPerConstruction(r, n.World.Coef);
-                        if (q >= 0 && start.TryGetValue((nn, r.Name), out var s))
+                        if (q >= 0 && start.TryGetValue((nn, r.Name), out var s) && s.Q == q - 1)
                         {
                             double lo = Math.Min(s.Ipc, ipc), hi = Math.Max(s.Ipc, ipc);
                             if (span.TryGetValue((nn, r.Name), out var w)) { lo = Math.Min(lo, w.Lo); hi = Math.Max(hi, w.Hi); }
                             rows.Add((nn, r.Name, q, s.Cum, lo, cum, hi));
                         }
-                        start[(nn, r.Name)] = (cum, ipc);
+                        start[(nn, r.Name)] = (cum, ipc, q);
                         span[(nn, r.Name)] = (ipc, ipc);
                     }
                 }
