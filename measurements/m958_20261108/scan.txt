@@ -1,0 +1,4 @@
+(958) 走査の番人（㉘）・旗 0・merge の後の木 1bab8ff4・隔離ビルド D:/PoB_work/c85lt_art
+フィルタ：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|LandfixInstrumentTests|LandTaxFixedBasisTests
+rc=0 end=2026-11-08 08:35:44
+成功!   -失敗:     0、合格:   149、スキップ:     0、合計:   149、期間: 7 m 2 s - PriceOfBread.Tests.dll (net10.0)
