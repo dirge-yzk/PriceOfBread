@@ -597,7 +597,7 @@ public static partial class Instruments
         }
     }
 
-    /// <summary>(920) 決済 ①（BilateralMarket.cs の清算の頭）で、人数 ＞1e-12 の商人でない POP が債務を返した額。商人 POP と人の居ない POP は数えない。</summary>
+    /// <summary>(920) 決済 ①（BilateralMarket.cs の清算の頭）で、人数 ＞1e-12 の商人でない POP の債務が実際に減った額（Bank.Lend の前後の差・(927) 以前は返そうとした額＝取り立てが床で 0 を返した決済でも数えていた）。商人 POP と人の居ない POP は数えない。</summary>
     internal static void CearnBillSettle(Region r, Pop p, double back)
     {
         if (!CearnOn || !(p.Size > 1e-12) || ReferenceEquals(p, r.MerchantPop)) return;

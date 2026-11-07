@@ -19,7 +19,7 @@ public class BillBlockedColumnsTests
     private static void Done(string dir) { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
 
     /// <summary>輸入する買い手の州を置いて 1 回の清算（Market.Step）を通し、買い手の州の台帳を返す。<paramref name="setup"/> は商人と他の POP の債務・貯蓄を置く（貯蓄 1e4 の下地の後）。</summary>
-    private static Instruments.CearnAcc RunClearing(Action<Region, Pop, List<Pop>> setup, out Region buyer)
+    internal static Instruments.CearnAcc RunClearing(Action<Region, Pop, List<Pop>> setup, out Region buyer)
     {
         var sim = Gt();
         sim.Coef.ClearingIdleSearchQuarters = 1;
