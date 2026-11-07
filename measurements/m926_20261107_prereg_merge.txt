@@ -1,0 +1,41 @@
+(926) 合流（波80）の予言（合流の前にコミットする・結果を見る前に書いた）
+基点 main b3a4190f（= origin/main・fetch で確かめた）。基線 m919（測った木 8a8344ad・b3a4190f との差は docs・measurements・scripts だけ）・計器の生 INSRAW keep_919/base_ins（BASE_COMMIT 8a8344ad）。
+作業フォルダ（この回に合流が作る物）：D:/PoB_work/m926（作業）・D:/PoB_work/wt_m926（worktree・枝 m926）・D:/PoB_work/ident_m926z（腕 Z の ident の生）・D:/PoB_work/keep_926（base_ins＝Z の計器つき 10 種の生・keep_919/base_ins とバイトで同じ表はハードリンク）。keep_926_rej は作らない（採らなかった腕 0）。
+
+[1] 入れる物と入れない物（線の報告と反証役の指摘から・結果を見る前に固定）
+- c80eb (920)：入れる（線の ident c80eb〈判定: 恒等〉・反証役の指摘は中 1・低 3＝high なし）。
+- c80sm (921)：入れる（線の ident c80sm〈判定: 恒等〉・反証役の指摘は低 3・情報 1＝high なし）。
+- c80lr (923)：入れる（試験 2 ファイルの期待だけ・SimCore 0 行・門 (i)(ii) が予言どおり・反証役の指摘は低 2・記録 1）。
+- c80cw (922)：**入れない**。腕 B（計器つき 10 種）と S11 を回していない＝線の門を通っていない（D: の空きが床に届かなかった）。線自身も〈合流はこのまま main に入れない〉と書いた。腕 B なし＝3 回の規則に数えない（★(899)・★(912)）。枝 origin/c80cw（74abe7a7・旗 1・旗 1 のフルスイート緑）は残し、次の波の先頭に〈74abe7a7 から腕 B と S11 だけを回す〉と申し送る。合流が腕 B を代行しない（線の門を通っていない線を合流が測るのは指示の順の外）。
+- 挙動の線を入れない＝基線は m919 のまま。M・N1・N2・S11・アブレーションは回さない。
+- c80uk (924)：読む線。台本と表を scripts/instruments/r924/・measurements/m924_20261107/ へ写す。下書きは docs/202611/20261107/ へ題に状態を書いて写す（本文は変えず、反証役の訂正 6 件を末尾に足す）。
+- c80dm (925)：設計の材料。material.md と draft.md（日付つきの 2 本と中身が同じ）を docs/202611/20261107/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（本文は変えない・反証役の訂正 4 件は末尾）。台本は scripts/instruments/r925/・出力は measurements/m925_20261107/。
+
+[2] 消す名前の確かめ（★(773)）
+- c80sm が ExpeditionLift（Diplomacy.cs の関数）を消す。他の枝（c80eb・c80lr・c80cw）での出現は基点から引き継いだ行だけ（ArmyShape.cs:80・:86・Diplomacy.cs:2021・:2278・:2288・:3627＝どれも c80sm が直す行）＝新しい呼び手なし。c80eb・c80lr はその 2 ファイルに触れない。
+- c80eb・c80lr は名前を消していない。
+
+[3] 木と衝突
+- 合わせた木＝b3a4190f＋c80eb＋c80sm＋c80lr（＋この合流の docs・scripts・measurements）。3 枝の触るファイルは重ならない（files_*.txt の重なり 0）＝衝突 0 の見込み（git merge-tree で各枝とも衝突なし）。
+- 腕 Z＝合わせた木そのもの（挙動の線の旗は無い・CivilWarArmsDemandUnified 0・EmptyPopDebtFirst 0・CedeRuleToLocal 1 のまま）。
+
+[4] 腕 Z の ident（ident.sh run m926z --tree D:/PoB_work/wt_m926 --saveleak --tests-delta 8 --grown-ok cearn_s,cpop_s --ng --save 20261107）の予言
+- 素の 5 種は b5_20261107_m919 と、計器つき 10 種は b10_20261107_m919_ins と名乗り行以外で全行バイト一致。.cost の推定 207.9／211.7 秒（件数の行も一致）。注視の表はタグの行以外で一致。
+- 計器の表 1140 本＝一致 1100＋既知の揺れ 20（burscan_s・clock_s）＋宣言どおり伸びた 20（cearn_s ×10 が末尾 5 列・cpop_s ×10 が末尾 3 列）＋宣言の無い違い 0。
+- テストの数：Category!=FullLength 2410（2402＋c80eb 5＋c80sm 3＋c80lr 0）・FullLength 3。
+- NG 99＝基準 ng919 に対し新しい 0・外れた 0（ng.sh の出力フォルダは D:/… で渡す）。
+- savetest OK・leakhunt 保存則違反なし。
+- SOURCE-HASH は c80eb の木（14f1f737）とも c80sm の木（3662139764f33480）とも一致しない（Tests を含む・★(919)）＝値は予言しない。
+- 〈判定: 恒等〉。不一致なら、どの線の差かを線の ident の生ではなく（消している）、線の枝の木を 1 本ずつ外した木で切り分ける。
+
+[5] フルスイート（合わせた木・Release・Category!=FullLength と =FullLength を分ける）
+- 2410（合格 2409・スキップ 1）＋FullLength 3・--list-tests と一致・赤 0・中止 0・NullReferenceException 0。WriterRatchetTests の宣言の表の取り直し 0。
+- 台帳：c80sm が Diplomacy.cs から 8 行・c80eb が Model.cs に 1 行を足す＝それより下の錨の行番号がずれうる。ledger_check を合わせた木で回し、ずれた錨は行番号だけ reanchor（★(899) の型）。
+
+[6] 止める線と記録
+- 止める線：挙動を変える線を入れない＝腕 Z の恒等だけが止める線（不一致なら入れた線を外す）。破綻・発散・空洞化・計算量は軌道が m919 と同じ＝対象外。
+- 記録：英の国債の不履行の種・ヌル腕の空洞化・名目 GDP 0 の続き・開幕の 1000 倍以上・NG は m919 のまま（M 4/10・S11 3/10・N1 5/10・N2 5/10 ほか＝★(919) の値を写す）。
+
+[7] D: の順
+- 起こす前の空き 30GB＜ident の床 40GB。線 c80eb・c80sm の ident の生（c80eb_work/ident_c80eb 18GB・c80sm_work/ident_c80sm 17GB）は、線の判定文と反証役が帰属を読み終えた（c80sm の反証役は計器の表 1140 本を自分で読み比べた）＝消してから腕 Z を起こす。〈自分で作っていないフォルダを消した〉と名乗る（(905)(912)(919) と同じ）。消す前に keepsum を measurements/m920_20261107/・m921_20261107/ に残っていることを確かめる。
+- keep_926/base_ins は Z の生から作り、keep_919/base_ins とバイトで同じ表はハードリンク（実の使用は cearn_s・cpop_s の 20 本と既知の揺れの 20 本ほか＝約 5GB の見込み）。
