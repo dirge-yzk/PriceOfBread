@@ -1,0 +1,61 @@
+(929) c81cw 事前登録＝内戦の軍需の 2 回目の腕 B と S11（枝 c80cw の木 74abe7a7 をそのまま回す・(922) の続き・同じ形の 2 回目・落ちたら次が最後）
+日付 2026-11-07・枝 c81cw（origin/c80cw 74abe7a7 から切った・main から切らない）・worktree D:/PoB_work/wt_c81cw・担当 Claude Opus 5.5。
+出発：作者 2026-11-06「内戦だから固定で2倍とするより、戦線の規模、動員率、戦争の継続期間、兵力、軍需品の充足率などから需要を導いた方が自然です」〈作者「全て推奨で」で推奨を採った〉＝推奨の段 ①（枝を消す）。
+  確証の区分は (922) のまま：枝を消す形は作者の指摘と 10-16 の裁定の形（確証あり）。内戦の需要を対外戦と同じ総動員の式に寄せることは AI の推奨（確証なし）。
+作ったフォルダ：D:/PoB_work/wt_c81cw（worktree）・D:/PoB_work/c81cw_work（腕の作業フォルダ・読みの出力）。
+D: の空き：173.3GB（2026-11-07・shutil.disk_usage）・arms.sh free＝6・残った Runner 0。床：腕 B 36GB＋5GB・S11 30GB＋5GB。
+
+== 0. 木（新しく点火しない・SimCore と Tests の新しい編集 0）==
+腕の木＝commit:74abe7a7（batch.sh prep の commit: の形）。
+`git diff --stat 8a8344ad 74abe7a7 -- PriceOfBread.SimCore PriceOfBread.Tests PriceOfBread.Runner PriceOfBread.App`＝
+  PriceOfBread.SimCore/Coefficients.cs 1 行（CivilWarArmsDemandUnified の既定 0.0→1.0 と同じ行の注）・PriceOfBread.Tests/DormantIdentityTests.cs 1 行 だけ。
+  ⇒ keep_919/base_ins（種 1〜10）と keep_919/a11（種 11〜20・POB_CEARN=0）がそのまま同じ木の旗 0（d_0）。ident は回さない（ident.cfg も使わない）。
+旗 1 のフルスイートは同じ木で済んでいる＝回し直さない：measurements/m922_20261107/suite_flag1.txt（--list-tests 2402＋3・2401 合格＋スキップ 1・FullLength 3・中止 0・走査の番人 605 緑・savetest・leakhunt OK・815ba8b4）。
+走査の番人の点検（㉘）・変わる件数の予言（㉑）・旗 1 の木の番人の grep（㉜）は m922_20261107_prereg_cw.txt §5・§6 のまま（変わる件数 0・予言の赤 0・実測の赤 0）。
+
+== 1. 門（cdada097＋4afcc40e のまま・数を変えない・腕 B と S11 の両方）==
+G1 働いた（両側）：a_c＝Σ warMultActualCivilSumIndex ÷ Σ civilWarMonthsCount（cwmult_s）。
+   下限 a_c ≧ 9.0 かつ内戦の四半期の平均の最小 ≧ 9.0−1e-9／上限 a_c ≦ 13.5／形 Σ newRuleMismatchMonthsCount ≦ 0.001×Σ(戦争の月)／大きさ a_c÷18 ≦ 0.75。
+G1f 対外戦：a_f ∈ [9.0, 13.5]。
+G2 壊さない：内戦の長さの中央（10 種）∈ [8, 14]（帯の 3 値は種 1〜10 の基線・N1・N2＝S11 も同じ帯で読む）。
+G3 壊さない：弾薬・火薬・鉛それぞれ内戦の月の需要の和＞0 かつ産出の和＞0・d_B÷d_0 ≧ 0.2（d_0＝腕 B は keep_919/base_ins・S11 は keep_919/a11）。
+予言（(922) §1 のまま）：a_c 約 10.7〜10.9（a_c÷18≈0.60）・新の規則からずれた月 0・計算量 ±1 秒・内戦の月あたりの弾薬の需要の腕÷旗 0 は 0.5〜0.75。
+紙の台本（旗 0 で門が落ちる確かめ・今の盤面＝同じ木の旗 0 の keep_919 で取った・m922_20261107/paper_M0_base_ins.txt・paper_M0_a11.txt・paper_M0_n1.txt・paper_M0_n2.txt）：
+   4 枚とも G1 上限 赤（18＞13.5）・G1 形 赤（全ての内戦の月）・G1 大きさ 赤（1.0）。G1 下限・G1f・G2・G3 は緑。
+   ＊keep_926/base_ins は木 890d59e0（(920) の列を含む）＝同じ木ではない＝紙は keep_919 のまま（旗 0 の同じ木の盤面）。
+
+== 2. 突然変異ごとにどの門で赤か（㉚・回し直さない・m922_20261107/mutation.txt と m922 prereg §4 の写し）==
+  変異	機構の試験（CivilWarArmsDemandTests・6 本）	G1 下限	G1 上限	G1 形	G1 大きさ	G1f	G2	G3
+  M0 何もしない	旗 1 の試験が赤（紙）	緑	赤	赤	赤	緑	緑	緑（keep_919 の 4 枚で確かめた）
+  M1 枝を残す	赤 4／緑 2	緑	赤	赤	赤	緑	緑	緑
+  M2 内戦で 1.0	赤 4／緑 2	赤	緑	赤	緑	緑	不明	赤（見込み）
+  M3 総動員を外す	赤 4／緑 2	緑	緑	赤	緑	緑	不明	緑
+  M4 対外戦も 2 倍	赤 4／緑 2	緑	緑か赤	赤	緑	赤	不明	緑
+  ⇒ どの変異も少なくとも 1 つの門か機構の試験で赤。G1・G1f の M2〜M4 は式からの紙。
+
+== 3. 止める線（この回の形をそのまま写す＝scripts/instruments/c78gz/stoplines906.sh の 1 本・結果を見る前）==
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限・開幕の 1000 倍以上・plvl）・〈100 倍〉は gdp_jump906 --founding の〈それ以外〉の行だけ・
+空洞化＝ピークの 1/10 未満で〈線が原因〉の件が 1 件でもあれば（規則 A2＝an_h2.py の既定 -ex rule・主要国の州は例外にしない・
+  基線 keep_919/base_ins〔S11 は keep_919/a11〕の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤。
+基準（32613156 の数え直し・同じ台本）：〈100 倍〉の --founding の区分（建国の直後／建国の後の 0 の続き／分母の痩せ／それ以外）＝base 1/0/0/0・a11 0/0/1/0・N1 0/0/0/0・N2 1/0/1/0。
+  1e10 倍・非有限 0・gdp_zero10 0・〈建国から続く 0〉0（4 本とも）。空洞化 1/10 未満 0 件（4 本とも）・1/4 未満 N1 2・N2 4・base 1・a11 2。
+〈建国の後の 0 の続き〉〈建国の直後〉〈分母の痩せ〉は記録の欄（ヌル腕の件数と並べる）。
+記録（採否に使わない）：exact・near・NG（ng.sh・基準 rd:measurements/ng919_20261107:m919）・nullgate の O・開幕の 1000 倍以上・英の国債の不履行・史実の線・国力・ハーネス不合格・新÷旧の表・名目 GDP 0 の続き・home_break。
+
+== 4. 使う台本（門と止める線の台本は書き換えない）==
+scripts/instruments/c81cw/reads929.sh（c80cw/reads922.sh の写し・違いは ng.sh のタグを c81cwB にし、home_break.py の読みを足しただけ）が呼ぶ：
+  c80cw/gates922.py・c80cw/tab922.py・tools/nullgate.py（種 1〜10 だけ）・c78gz/stoplines906.sh・hol/an_h2.py -v4・ng.sh・brk693/home_break.py。
+新÷旧の表：tab922.py の約 22 列を腕÷基線と N1÷基線・N2÷基線（keep_919/n1・n2）の幅と並べる。旗 1 の 3 本（(903) c77cwB・(922) の 1 回目の表・この腕 B）がそろって幅の外の列は旗の効きとして向きを書く。
+  S11 にはヌル腕が無い＝S11 の新÷旧は腕÷a11 だけ（幅は種 1〜10 の N1・N2 を参考に並べる）と先に名乗る。
+
+== 5. 計算量の割り当て ==
+1.0 秒（m919 の推定 211.7 秒・名目の余り 約 36.8 秒・上限 248.5 秒）。新しい計算は旗の比較 1 回だけ（(903) 腕 B 211.0・同じ木の基線 211.5）。
+
+== 6. 手順 ==
+この文をコミットして push → 腕 B `POB_WORK=D:/PoB_work/c81cw_work batch.sh prep c81cwB commit:74abe7a7 plain`・`INS=1 batch.sh run c81cwB 10`（POB_INSTRUMENTS_NATIONS の 9 国）→ reads929.sh → 門・止める線・記録
+  → S11 `prep c81cwS commit:74abe7a7 plain`・`POB_CEARN=0 INS=1 batch.sh run c81cwS 10 11` → reads929.sh（種の起点 11）。
+成否は終了コードと成績表の両方で読む。旗 1 の出力を見た後のエンジンの変更は 0（形の変え直しは 1 回まで＝この線では使わない）。落ちたら採らない（同じ腕で物差しを替えない）。
+腕 B と S11 の生は合流の判断まで消さない。src_* は腕の後に消す。
+
+== 7. 重なり ==
+SimCore・Tests・App・Display・Runner の編集 0。足すのは scripts/instruments/c81cw/ と measurements/m929_* だけ（他の線の持ち主のファイルに触れない）。
