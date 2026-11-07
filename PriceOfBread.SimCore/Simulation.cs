@@ -804,7 +804,7 @@ public sealed class Simulation
 
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
-        var (city, share, resources, culture, religion, _, _, _, _, _, _) = p;   // Coastal/HeldSince/Malarial/ArableLand/IndShare/Rule は p.* で直接参照（★2026-10-01 (148)：LateResources を削除＝産地の発見の表 Catalog.Sites へ）
+        var (city, share, resources, culture, religion, _, _, _, _, _) = p;   // Coastal/Malarial/ArableLand/IndShare/Rule は p.* で直接参照（★2026-10-01 (148)：LateResources を削除＝産地の発見の表 Catalog.Sites へ）
         var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
         // 列挙する州（中国の茶州等）は下の賦存ブースト×3.5で産み、加工して世界へ売る＝供給の偏在が地理から創発する（287州世界）。
@@ -931,12 +931,9 @@ public sealed class Simulation
         var region = new Region
         {
             Id = id, Name = city, IsPort = p.Coastal, Resources = resources, Culture = culture, Religion = religion,   // 改修2026-06-28：港判定を一次データ(p.Coastal)へ＝改名耐性・網羅性。TariffInterest は CheckSecession で実利から毎期算出
-            // ★州の格（植民地のラベル化・器2026-08-01）：一次データ HeldSince から確定する。
-            // 既定 HeldSince=0 では 1783−0 ＝ 1783 ≥ CoreHeldYears(150) なので**この経路の全州が Core**。
-            // ★B14（実バグ21件・2026-09-07）：world.json に heldSince（併合年＝ポーランド分割地/シレジア/ガリツィア/リガ/バグダード/台湾 等28州）を入れた。
-            //   HeldSinceFromData=0（既定）では読まない＝全州 Core・支配度1.0＝旧＝厳密恒等（群計測の腕にするための読み手ゲート・採用後は係数を消して常時読む）。
-            Dominance = !(coef.HeldSinceFromData > 0) || p.HeldSince <= 0 ? 1.0 : PoliticalQuantities.Clamp01((Calendar.StartYear - p.HeldSince) / coef.DominanceMatureYears),   // ★E-06 支配度の初期値＝保有年数÷世代長（中核＝1）
-            Tier = !(coef.HeldSinceFromData > 0) || (Calendar.StartYear - p.HeldSince) >= coef.CoreHeldYears ? RegionTier.Core : RegionTier.Integrated,
+            // ★州の格・支配度の初期値（2026-11-08 (956)）：開幕の全州は Core・支配度1.0（HeldSinceFromData と heldSince のデータを消した＝旧の旗 0 の経路そのまま）。
+            Dominance = 1.0,   // ★E-06 支配度の初期値（中核＝1）
+            Tier = RegionTier.Core,
             Malarial = p.Malarial,
             Rule = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],   // ★支配度の一般化 段1（2026-09-06）：4区分の初期値（州→国既定→国家1.0）
             RuleInit = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],
